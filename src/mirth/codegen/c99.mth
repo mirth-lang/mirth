@@ -1,4 +1,4 @@
-module(mirth.codegen)
+module(mirth.codegen.c99)
 import(prelude)
 import(data.str)
 import(data.stack)
@@ -30,9 +30,9 @@ import(mirth.data.match)
 import(mirth.elab)
 import(mirth.analysis.need)
 
-###########
-# Codegen #
-###########
+#######
+# C99 #
+#######
 
 data(+C99, MKC99 -> Int +Needs +Output)
 def(+C99/MKC99, +C99 -- Int +Needs +Output, MKC99 -> id)
@@ -53,21 +53,19 @@ def(+C99.line, +C99 -- +C99, ~Output(line))
 def(Word+C99.needed?, Word +C99 -- Bool +C99, ~Needs(needed?))
 def(Block+C99.needed?, Block +C99 -- Bool +C99, ~Needs(needed?))
 
-def(codegen-start!, Path +World +Needs -- +World +C99,
-    rdip(create-file! output-start!) rswap 0 MKC99)
+def(c99-start!, Arrow Path +World -- Arrow +World +C99,
+    to-output-path create-file! output-start!
+    rdip(+Needs.new dup determine-arrow-needs!)
+    0 MKC99)
 
-def(codegen-end!, +World +C99 -- +World +Needs,
-    /MKC99 drop rswap rdip(output-end! +File.close-file!))
+def(c99-end!, +World +C99 -- +World,
+    /MKC99 drop rdip(rdrop) output-end! +File.close-file!)
 
 def(run-output-c99!, Arrow Path +World -- +World,
     num-errors @ 0> if(
         drop2,
 
-        +Needs.new
-        over determine-arrow-needs!
-
-        to-output-path
-        codegen-start!
+        c99-start!
         c99-header!
         c99-tags!
         c99-buffers!
@@ -80,16 +78,14 @@ def(run-output-c99!, Arrow Path +World -- +World,
         c99-field-defs!
         c99-word-defs!
         c99-block-defs!
-
-        codegen-end!
-        rdrop
+        c99-end!
     ))
 
 def(Name+C99.put, Name +C99 -- +C99, mangled put)
 def(Name+C99.sig, Name +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
 def(Name+C99.cosig, Name +C99 -- Str +C99, dip("static void mp_") mangled cat " (void)" cat)
 
-embed-str(c99-header-str, "src/mirth/mirth.h")
+embed-str(c99-header-str, "src/mirth/codegen/mirth.h")
 def(c99-header!, +C99 -- +C99, c99-header-str put line)
 
 def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!) line)
@@ -196,8 +192,8 @@ def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
     f
     depth@ 1- depth!)
 
-def(c99-indent, +C99 -- +C99, depth@ repeat("    " put))
-def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, c99-indent f line)
+def(+C99.indent, +C99 -- +C99, depth@ repeat("    " put))
+def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
 def(c99-call!, List(Arg) Name +C99 -- +C99,
     dip(c99-args-push!)
@@ -241,15 +237,12 @@ def(c99-str!, Str +C99 -- +C99,
         c99-line("if (! vready) {" put)
         c99-nest(
             dup num-bytes 4090 > if(
-                "static uint8_t b[] = {" put
+                c99-line("v = mkstr(" put)
                 c99-nest(
-                    c99-indent dup str-bytes-for(
-                        >Int dup put "," put
-                        10 = if(line c99-indent, id)
-                    ) line
+                    c99-line(dup put-cstr-long "," put)
+                    c99-line(dup num-bytes put)
                 )
-                c99-line("};" put)
-                c99-line("v = mkstr((char*)b, " put dup num-bytes put ");" put),
+                c99-line(");" put),
                 c99-line("v = mkstr(" put dup put-cstr ", " put dup num-bytes put ");" put)
             )
             c99-line("vready = true;" put)
@@ -261,8 +254,22 @@ def(c99-str!, Str +C99 -- +C99,
     c99-line("}" put)
     drop)
 
+def(+C99.put-cstr-long, Str +C99 -- +C99,
+    BQUOTE put
+    BNUL swap str-bytes-for(
+        swap BLF = then(
+            BQUOTE put
+            line indent
+            BQUOTE put
+        )
+        dup c99-string-byte!
+    )
+    BQUOTE put
+    drop
+)
+
 def(+C99.put-cstr, Str +C99 -- +C99,
-    "\"" put str-bytes-for(c99-string-byte!) "\"" put)
+    BQUOTE put str-bytes-for(c99-string-byte!) BQUOTE put)
 
 def(c99-string-byte!, Byte +C99 -- +C99,
     B'\' -> "\\\\" put,

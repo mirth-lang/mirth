@@ -1,0 +1,44 @@
+module(resource.array)
+import(prelude)
+import(data.byte)
+import(resource.buffer)
+
+data(+Array(k,v), +ARRAY -> [k -- Offset Size] [Ptr -- v] [v Ptr --] +Buffer)
+def(-ARRAY, +Array(k,v) -- [k -- Offset Size] [Ptr -- v] [v Ptr --] +Buffer, +ARRAY -> id)
+
+def(+Array~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Array(k,v) -- *b +Array(k,v),
+    -ARRAY dip3(f) +ARRAY)
+def(+Array.key-span, k +Array(k,v) -- Offset Size +Array(k,v),
+    -ARRAY over2 dip(+ARRAY) rdip(run))
+def(+Array.unsafe-load, Ptr +Array(k,v) -- v +Array(k,v),
+    -ARRAY over dip(+ARRAY) rdip(run))
+def(+Array.unsafe-store, v Ptr +Array(k,v) -- +Array(k,v),
+    -ARRAY dup dip(+ARRAY) rdip(run))
+
+def(+Array.new, (k -- Offset Size, Ptr -- v, v Ptr --) Size -- +Array(k,v),
+    rot4l +Buffer.new +ARRAY)
+
+def(+Buffer>+Array, (k -- Offset Size, Ptr -- v, v Ptr --) +Buffer -- +Array(k,v), +ARRAY)
+def(+Array>+Buffer, +Array(k,v) -- +Buffer, -ARRAY drop3)
+
+def(+Array.new<U8> (f), (k -- Int) Size -- +Array(k, U8 ), +Array.new(f 1    , @U8 , !U8 ))
+def(+Array.new<U16>(f), (k -- Int) Size -- +Array(k, U16), +Array.new(f 2 * 2, @U16, !U16))
+def(+Array.new<U32>(f), (k -- Int) Size -- +Array(k, U32), +Array.new(f 4 * 4, @U32, !U32))
+def(+Array.new<U64>(f), (k -- Int) Size -- +Array(k, U64), +Array.new(f 8 * 8, @U64, !U64))
+def(+Array.new<I8> (f), (k -- Int) Size -- +Array(k, I8 ), +Array.new(f 1    , @I8 , !I8 ))
+def(+Array.new<I16>(f), (k -- Int) Size -- +Array(k, I16), +Array.new(f 2 * 2, @I16, !I16))
+def(+Array.new<I32>(f), (k -- Int) Size -- +Array(k, I32), +Array.new(f 4 * 4, @I32, !I32))
+def(+Array.new<I64>(f), (k -- Int) Size -- +Array(k, I64), +Array.new(f 8 * 8, @I64, !I64))
+
+def(+Array.new<Int>(f), (k -- Int) Size -- +Array(k, Int),
+    +Array.new<I64>(f) transport(I64>Int, Int>I64))
+def(+Array.new<Byte>(f), (k -- Int) Size -- +Array(k, Byte),
+    +Array.new<U8>(f) transport(U8>Byte, Byte>U8))
+
+def(+Array.transport(f,g), (u -- v, v -- u) +Array(k,u) -- +Array(k,v),
+    -ARRAY dip([f] compose) [dip(g)] swap compose +ARRAY)
+
+def(+Array.unsafe-ptr, k +Array(k,v) -- Ptr +Array(k,v),
+    key-span ~Buffer(over + expand! buffer-base prim-ptr-add))
+def(+Array.get!, k +Array(k,v) -- v +Array(k,v), unsafe-ptr unsafe-load)
+def(+Array.set!, v k +Array(k,v) -- +Array(k,v), unsafe-ptr unsafe-store)

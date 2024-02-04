@@ -183,6 +183,9 @@ def(count(f), (*a Int -- *a) *a Int -- *a,
 def(countdown(f), (*a Int -- *a) *a Int -- *a,
     dup 1- swap repeat(dup dip(f) 1-) drop)
 
+def(identity, [*a -- *a], [])
+def(compose(f,g), [*a -- *b] [*b -- *c] -- [*a -- *c], [f g])
+
 def-type(Size, Int)
 def-type(Offset, Int)
 

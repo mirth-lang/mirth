@@ -6,9 +6,6 @@ import(data.list)
 def(run1, (a -- b) a -- b, run)
 def(add10, [Int -- Int], [10 +])
 
-def(compose(f,g), (*a -- *b, *b -- *c) -- [*a -- *c],
-    [f g])
-
 def(add20, [Int -- Int],
     add10 add10 compose)
 

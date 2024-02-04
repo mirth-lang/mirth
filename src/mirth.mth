@@ -8,7 +8,6 @@ import(mirth.data.error)
 import(mirth.data.prim)
 import(mirth.data.type)
 import(mirth.lexer)
-import(mirth.codegen)
 import(mirth.elab)
 
 def(init!, --,
