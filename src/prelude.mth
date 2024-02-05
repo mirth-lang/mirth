@@ -182,7 +182,6 @@ def(countdown(f), (*a Int -- *a) *a Int -- *a,
 def(identity, [*a -- *a], [])
 def(compose(f,g), [*a -- *b] [*b -- *c] -- [*a -- *c], [f g])
 
-def-type(Size, Int)
 def-type(Offset, Int)
 
 def(U8_MAX, Int, 0xFF)
@@ -373,6 +372,8 @@ def(Nat>=, Nat Nat -- Bool, both(>Int) >=)
 def(Nat<>, Nat Nat -- Bool, both(>Int) <>)
 def(Nat.max, Nat Nat -- Nat, both(>Int) max >Nat-unsafe)
 def(Nat.min, Nat Nat -- Nat, both(>Int) min >Nat-unsafe)
+
+def-type(Size, Int)
 
 ##########
 # TUPLES #

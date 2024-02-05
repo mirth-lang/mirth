@@ -530,6 +530,12 @@ def(elab-check-name-visible!, Name -- Name,
 def(elab-module-is-visible, Module -- Bool,
     ab-token @ .module visible)
 
+def(elab-stack-type-is-fine?, -- Bool,
+    ab-type @ expand match(
+        STACK_TYPE_ERROR -> F,
+        _ -> drop T
+    ))
+
 def(elab-atom-name-global!, Name --,
     dup >Def match(
         DEF_ALIAS -> nip target elab-atom-name-global!,
@@ -542,10 +548,11 @@ def(elab-atom-name-global!, Name --,
         DEF_TAG -> nip elab-args! ab-tag!,
         DEF_PRIM -> nip elab-prim!,
         _ ->
-            # TODO emit error if stack isn't STACK_TYPE_ERROR
             drop
-            dip(ab-token @ "Unknown word: ")
-            >Str cat emit-error! STACK_TYPE_ERROR ab-type !
+            elab-stack-type-is-fine? if(
+                dip(ab-token @ "Unknown word: ") >Str cat emit-error!,
+                drop
+            ) STACK_TYPE_ERROR ab-type !
     ))
 
 def(elab-prim!, Prim --,
