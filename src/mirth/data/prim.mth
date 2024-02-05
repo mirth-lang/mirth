@@ -64,10 +64,8 @@ data(Prim,
     PRIM_PTR_FREE,
     PRIM_PTR_COPY,
     PRIM_PTR_FILL,
-    PRIM_PTR_RAW,
 
     PRIM_STR_CMP,
-    PRIM_STR_ALLOC,
     PRIM_STR_COPY,
     PRIM_STR_NUM_BYTES,
     PRIM_STR_BASE,
@@ -216,9 +214,7 @@ def(init-prims!, --,
     PRIM_PTR_FREE "prim-ptr-free" def-prim!
     PRIM_PTR_FILL "prim-ptr-fill" def-prim!
     PRIM_PTR_COPY "prim-ptr-copy" def-prim!
-    PRIM_PTR_RAW "prim-ptr-raw" def-prim!
 
-    PRIM_STR_ALLOC "prim-str-alloc" def-prim!
     PRIM_STR_COPY "prim-str-copy" def-prim!
     PRIM_STR_NUM_BYTES "prim-str-num-bytes" def-prim!
     PRIM_STR_BASE "prim-str-base" def-prim!
@@ -360,12 +356,6 @@ def(init-prims!, --,
 
     CTX0 TYPE_INT TYPE_INT TYPE_PTR T3 T0 T->
     PRIM_PTR_FILL ctx-type!
-
-    CTX0 TYPE_PTR T1 TYPE_PTR TYPE_INT T2 T->
-    PRIM_PTR_RAW ctx-type!
-
-    CTX0 TYPE_INT T1 TYPE_STR T1 T->
-    PRIM_STR_ALLOC ctx-type!
 
     CTX0 TYPE_PTR TYPE_INT T2 TYPE_STR T1 T->
     PRIM_STR_COPY ctx-type!

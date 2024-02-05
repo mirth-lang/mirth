@@ -2,6 +2,7 @@ module(platform.posix)
 import(prelude)
 import(data.str)
 import(data.path)
+import(resource.buffer)
 
 data(File, FILE -> Int)
 def(Int>File, Int -- File, FILE)
@@ -51,20 +52,13 @@ def(read-file!, File -- Str,
 # STAT #
 ########
 
-def-external(stat, RawPtr RawPtr -- Int)
-buffer(POSIX_STAT_BUF, 256)
-
-def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
-    sip(>Str prim-str-base with-raw-ptr(f) drop))
-
-def(is-directory?, Path -- Path Bool,
-    with-raw-path(
-        POSIX_STAT_BUF with-raw-ptr(stat)
-        swap 0= if(
-            st_mode@ S_ISDIR,
-            drop F
-        )
-    ) swap)
+def-external(stat, Ptr Ptr -- Int)
+def(is-directory?, Path -- Bool,
+    256 +Buffer.new
+    >Str with-cstr(
+        buffer-base stat
+        0= if(buffer-base st_mode@ S_ISDIR, F)
+    ) rdrop)
 
 #define S_IFMT  00170000
 #define S_IFSOCK 0140000
@@ -73,11 +67,14 @@ def(is-directory?, Path -- Path Bool,
 #define S_IFBLK  0060000
 #define S_IFDIR  0040000
 
-def(S_IFMT, Int, 0xF000)
-def(S_IFDIR, Int, 0x4000)
-def(S_IFREG, Int, 0x8000)
+def(S_IFMT,   U16, 0xF000 >U16)
+def(S_IFDIR,  U16, 0x4000 >U16)
+def(S_IFBLK,  U16, 0x6000 >U16)
+def(S_IFREG,  U16, 0x8000 >U16)
+def(S_IFLNK,  U16, 0xA000 >U16)
+def(S_IFSOCK, U16, 0xC000 >U16)
 
-def(S_ISDIR, U16 -- Bool, >Int S_IFMT & S_IFDIR =)
+def(S_ISDIR, U16 -- Bool, S_IFMT & S_IFDIR =)
 
 def(st_mode@, Ptr -- U16,
     RUNNING_OS match(

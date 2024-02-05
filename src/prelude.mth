@@ -72,10 +72,6 @@ alias(Ptr@Ptr, prim-ptr-get)
 alias(Ptr!Ptr, prim-ptr-set)
 alias(Ptr.sizeof, prim-ptr-size)
 
-data(RawPtr, Int>RawPtr -> Int)
-def(with-raw-ptr(f), (*a RawPtr -- *b) *a Ptr -- *b Ptr,
-    prim-ptr-raw >RawPtr swap dip(f))
-
 alias(Ptr@U8,  prim-u8-get ) alias(Ptr!U8,  prim-u8-set )
 alias(Ptr@U16, prim-u16-get) alias(Ptr!U16, prim-u16-set)
 alias(Ptr@U32, prim-u32-get) alias(Ptr!U32, prim-u32-set)
@@ -326,6 +322,20 @@ def(U8&,   U8  U8 --  U8, both(>Int) &  >U8-unsafe)
 def(U16&, U16 U16 -- U16, both(>Int) & >U16-unsafe)
 def(U32&, U32 U32 -- U32, both(>Int) & >U32-unsafe)
 def(U64&, U64 U64 -- U64, both(>Int-unsafe) & >U64-unsafe)
+
+def(U8^,   U8  U8 --  U8, both(>Int) ^  >U8-unsafe)
+def(U16^, U16 U16 -- U16, both(>Int) ^ >U16-unsafe)
+def(U32^, U32 U32 -- U32, both(>Int) ^ >U32-unsafe)
+def(U64^, U64 U64 -- U64, both(>Int-unsafe) ^ >U64-unsafe)
+
+def(U8=,  U8  U8  -- Bool, both(>Int) =)
+def(U16=, U16 U16 -- Bool, both(>Int) =)
+def(U32=, U32 U32 -- Bool, both(>Int) =)
+def(U64=, U64 U64 -- Bool, both(>Int-unsafe) =)
+def(I8=,  I8  I8  -- Bool, both(>Int) =)
+def(I16=, I16 I16 -- Bool, both(>Int) =)
+def(I32=, I32 I32 -- Bool, both(>Int) =)
+def(I64=, I64 I64 -- Bool, both(>Int) =)
 
 ##########
 # TUPLES #
