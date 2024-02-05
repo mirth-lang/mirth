@@ -1466,6 +1466,10 @@ static void mp_GT (void) {
     VAL car = pop_value();
     decref(car);
 }
+static void mw_Int_3E_Nat_unsafe (void) {
+}
+static void mp_Int_3E_Nat_unsafe (void) {
+}
 static void mw_BNUL (void) {
     VAL tag = MKU64(0LL);
     VAL car = (tag);
@@ -12348,93 +12352,93 @@ static void mw_U8_26_ (void) {
     WORD_EXIT(mw_U8_26_);
 }
 static void mw_pack1 (void) {
-    WORD_ENTER(mw_pack1, "pack1", "src/prelude.mth", 345, 22);
-    WORD_ATOM(345, 22, "dip");
+    WORD_ENTER(mw_pack1, "pack1", "src/prelude.mth", 382, 22);
+    WORD_ATOM(382, 22, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(345, 26, "pack0");
+        WORD_ATOM(382, 26, "pack0");
         mw_prim_pack_nil();
         push_value(d2);
     }
-    WORD_ATOM(345, 33, "prim-pack-cons");
+    WORD_ATOM(382, 33, "prim-pack-cons");
     mw_prim_pack_cons();
     WORD_EXIT(mw_pack1);
 }
 static void mw_pack2 (void) {
-    WORD_ENTER(mw_pack2, "pack2", "src/prelude.mth", 346, 26);
-    WORD_ATOM(346, 26, "dip");
+    WORD_ENTER(mw_pack2, "pack2", "src/prelude.mth", 383, 26);
+    WORD_ATOM(383, 26, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(346, 30, "pack1");
+        WORD_ATOM(383, 30, "pack1");
         mw_pack1();
         push_value(d2);
     }
-    WORD_ATOM(346, 37, "prim-pack-cons");
+    WORD_ATOM(383, 37, "prim-pack-cons");
     mw_prim_pack_cons();
     WORD_EXIT(mw_pack2);
 }
 static void mw_unpack1 (void) {
-    WORD_ENTER(mw_unpack1, "unpack1", "src/prelude.mth", 352, 24);
-    WORD_ATOM(352, 24, "prim-pack-uncons");
+    WORD_ENTER(mw_unpack1, "unpack1", "src/prelude.mth", 389, 24);
+    WORD_ATOM(389, 24, "prim-pack-uncons");
     mw_prim_pack_uncons();
-    WORD_ATOM(352, 41, "nip");
+    WORD_ATOM(389, 41, "nip");
     mw_nip();
     WORD_EXIT(mw_unpack1);
 }
 static void mw_unpack2 (void) {
-    WORD_ENTER(mw_unpack2, "unpack2", "src/prelude.mth", 353, 28);
-    WORD_ATOM(353, 28, "prim-pack-uncons");
+    WORD_ENTER(mw_unpack2, "unpack2", "src/prelude.mth", 390, 28);
+    WORD_ATOM(390, 28, "prim-pack-uncons");
     mw_prim_pack_uncons();
-    WORD_ATOM(353, 45, "dip");
+    WORD_ATOM(390, 45, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(353, 49, "unpack1");
+        WORD_ATOM(390, 49, "unpack1");
         mw_unpack1();
         push_value(d2);
     }
     WORD_EXIT(mw_unpack2);
 }
 static void mw_modify (void) {
-    WORD_ENTER(mw_modify, "modify", "src/prelude.mth", 361, 48);
-    WORD_ATOM(361, 48, "dup");
+    WORD_ENTER(mw_modify, "modify", "src/prelude.mth", 398, 48);
+    WORD_ATOM(398, 48, "dup");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(361, 48, "dup");
+        WORD_ATOM(398, 48, "dup");
         mw_prim_dup();
-        WORD_ATOM(361, 52, "dip");
+        WORD_ATOM(398, 52, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(361, 56, "@");
+            WORD_ATOM(398, 56, "@");
             mw_prim_mut_get();
-            WORD_ATOM(361, 58, "f");
+            WORD_ATOM(398, 58, "f");
             incref(var_f);
             run_value(var_f);
             push_value(d3);
         }
-        WORD_ATOM(361, 61, "!");
+        WORD_ATOM(398, 61, "!");
         mw_prim_mut_set();
         decref(var_f);
     }
     WORD_EXIT(mw_modify);
 }
 static void mw_expect_21_ (void) {
-    WORD_ENTER(mw_expect_21_, "expect!", "src/prelude.mth", 365, 5);
-    WORD_ATOM(365, 5, "f");
+    WORD_ENTER(mw_expect_21_, "expect!", "src/prelude.mth", 402, 5);
+    WORD_ATOM(402, 5, "f");
     {
         VAL var_g = pop_value();
         VAL var_f = pop_value();
-        WORD_ATOM(365, 5, "f");
+        WORD_ATOM(402, 5, "f");
         incref(var_f);
         run_value(var_f);
-        WORD_ATOM(365, 7, "if");
+        WORD_ATOM(402, 7, "if");
         if (pop_u64()) {
-            WORD_ATOM(365, 10, "id");
+            WORD_ATOM(402, 10, "id");
             mw_prim_id();
         } else {
-            WORD_ATOM(365, 14, "g");
+            WORD_ATOM(402, 14, "g");
             incref(var_g);
             run_value(var_g);
-            WORD_ATOM(365, 16, "panic!");
+            WORD_ATOM(402, 16, "panic!");
             mw_prim_panic();
         }
         decref(var_g);
@@ -12443,12 +12447,12 @@ static void mw_expect_21_ (void) {
     WORD_EXIT(mw_expect_21_);
 }
 static void mw_assert_21_ (void) {
-    WORD_ENTER(mw_assert_21_, "assert!", "src/prelude.mth", 367, 5);
-    WORD_ATOM(367, 5, "expect!");
+    WORD_ENTER(mw_assert_21_, "assert!", "src/prelude.mth", 404, 5);
+    WORD_ATOM(404, 5, "expect!");
     {
         VAL var_g = pop_value();
         VAL var_f = pop_value();
-        WORD_ATOM(367, 5, "expect!");
+        WORD_ATOM(404, 5, "expect!");
         incref(var_f);
         push_value(var_f);
         push_u64(0);
@@ -39482,16 +39486,16 @@ static void mb_U8_26__1 (void) {
 }
 
 static void mb_assert_21__3 (void) {
-    WORD_ENTER(mb_assert_21__3, "assert! block", "src/prelude.mth", 367, 15);
+    WORD_ENTER(mb_assert_21__3, "assert! block", "src/prelude.mth", 404, 15);
     mw_prim_pack_uncons();
     VAL var_f = pop_value();
     mw_prim_pack_uncons();
     VAL var_g = pop_value();
     mw_prim_drop();
-    WORD_ATOM(367, 15, "g");
+    WORD_ATOM(404, 15, "g");
     incref(var_g);
     run_value(var_g);
-    WORD_ATOM(367, 17, "");
+    WORD_ATOM(404, 17, "");
     {
         static bool vready = false;
         static VAL v;
@@ -39502,9 +39506,9 @@ static void mb_assert_21__3 (void) {
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(367, 38, "swap");
+    WORD_ATOM(404, 38, "swap");
     mw_prim_swap();
-    WORD_ATOM(367, 43, "prim-str-cat");
+    WORD_ATOM(404, 43, "prim-str-cat");
     mw_prim_str_cat();
     decref(var_f);
     decref(var_g);
