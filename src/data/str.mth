@@ -11,10 +11,10 @@ def(Str.is-empty, Str -- Bool, num-bytes 0=)
 
 ||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
-def(str-copy-partial!, Str Ptr -- Ptr,
+def(str-copy-partial!, Str Ptr +Unsafe -- Ptr +Unsafe,
     swap with-str-data(
         rotl
-        dup2 .offset-unsafe
+        dup2 offset
         dip(prim-ptr-copy)
     ))
 
@@ -25,14 +25,14 @@ def(+Str.freeze, +Str -- Str, +STR -> id)
 def(build-str!(f), (*a +Str -- *b +Str) *a -- *b Str,
     "" thaw f freeze)
 
-def(str-copy, Ptr Size -- Str,
+def(str-copy, Ptr Size +Unsafe -- Str +Unsafe,
     prim-str-copy)
 
-def(str-copy-cstr, Ptr -- Str,
+def(str-copy-cstr, Ptr +Unsafe -- Str +Unsafe,
     dup cstr-num-bytes prim-str-copy)
 
-def(cstr-num-bytes, Ptr -- Size,
-    dup 0 swap while(dup @U8 >Int 0>, dip(1+ 1) .offset-unsafe) drop nip)
+def(cstr-num-bytes, Ptr +Unsafe -- Size +Unsafe,
+    dup 0 swap while(dup @U8 >Int 0>, dip(1+ 1) offset) drop nip)
 
 def(str-buf-dup!, +Str -- Str +Str,
     +STR -> dup dip(+STR))
@@ -41,7 +41,12 @@ def(str-buf-num-bytes?, +Str -- Int +Str,
     +STR -> dup num-bytes dip(+STR))
 
 def(str-buf-byte@, Offset +Str -- Byte +Str,
-    str-buf-dup! with-str-data(drop offset-unsafe @Byte)) # TODO make this safer
+    str-buf-dup! with-str-data(
+        over2 <= if(
+            drop2 BNUL,
+            unsafe(offset @Byte)
+        )
+    ))
 
 def(str-buf-empty?, +Str -- Bool +Str,
     +STR -> dup +STR is-empty)
@@ -78,13 +83,13 @@ alias(Int>Str, prim-int-to-str)
 ||| Traverse string bytes.
 def(str-bytes-for(f), (*a Byte -- *a) *a Str -- *a,
     with-str-data(repeat(
-        dup dip(@Byte f 1) .offset-unsafe
+        dup dip(unsafe(@Byte) f 1) unsafe(offset)
     ) drop))
 
 def(Str.first-byte, Str -- Maybe(Byte),
     with-str-data(
-        1 >= if(
-            @U8 U8>Byte SOME,
+        0> if(
+            unsafe(@Byte) SOME,
             drop NONE
         )
     ))
@@ -97,7 +102,7 @@ def(Str.from-bytes-unsafe, List(Byte) -- Str,
 
 def(Str.with-cstr(f), (*a Ptr -- *b) *a Str -- *b,
     with-str-data(
-        over prim-ptr-add @U8 >Int
-        expect!(dup 0=, "tried to use string as cstring, but no null terminator")
-        drop f
+        over unsafe(offset @U8) >Int
+        0= else("tried to use string as cstring, but no null terminator" panic!)
+        f
     ))

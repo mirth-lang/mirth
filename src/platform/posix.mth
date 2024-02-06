@@ -81,4 +81,5 @@ def(st_mode@, Ptr -- U16,
         OS_LINUX -> 24, # ... this is all terrible and brittle
         OS_WINDOWS -> 6,
         _ -> drop 8
-    ) swap offset-unsafe @U16)
+    ) swap unsafe(offset @U16))
+    

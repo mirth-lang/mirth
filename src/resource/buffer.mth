@@ -41,25 +41,24 @@ def(+Buffer.check-offset!, Offset Size +Buffer -- +Buffer,
     % 0= else("memory access unaligned" panic!))
 
 def(+Buffer@U8, Offset +Buffer -- U8 +Buffer,
-    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-get)
+    dup 1 check-offset! buffer-base unsafe(offset Ptr@U8))
 def(+Buffer@U16, Offset +Buffer -- U16 +Buffer,
-    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-get)
+    dup 2 check-offset! buffer-base unsafe(offset Ptr@U16))
 def(+Buffer@U32, Offset +Buffer -- U32 +Buffer,
-    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-get)
+    dup 4 check-offset! buffer-base unsafe(offset Ptr@U32))
 def(+Buffer@U64, Offset +Buffer -- U64 +Buffer,
-    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-get)
+    dup 8 check-offset! buffer-base unsafe(offset Ptr@U64))
 
 def(+Buffer!U8, U8 Offset +Buffer -- +Buffer,
-    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-set)
+    dup 1 check-offset! buffer-base unsafe(offset Ptr!U8))
 def(+Buffer!U16, U16 Offset +Buffer -- +Buffer,
-    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-set)
+    dup 2 check-offset! buffer-base unsafe(offset Ptr!U16))
 def(+Buffer!U32, U32 Offset +Buffer -- +Buffer,
-    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-set)
+    dup 4 check-offset! buffer-base unsafe(offset Ptr!U32))
 def(+Buffer!U64, U64 Offset +Buffer -- +Buffer,
-    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-set)
+    dup 8 check-offset! buffer-base unsafe(offset Ptr!U64))
 
 def(+Buffer!Str, Str Offset +Buffer -- +Buffer,
     dup 1 check-offset!
     over num-bytes over + 1- 1 check-offset!
-    buffer-base prim-ptr-add
-    str-copy-partial! drop)
+    buffer-base unsafe(offset str-copy-partial! drop))

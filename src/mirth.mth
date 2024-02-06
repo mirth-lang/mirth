@@ -47,7 +47,7 @@ def(main, +World -- +World,
     init!
 
     expect!(argc 2 =, "expected one argument")
-    Ptr.sizeof argv offset-unsafe @Ptr str-copy-cstr >Path compile!)
+    unsafe(Ptr.sizeof argv offset @Ptr str-copy-cstr) >Path compile!)
 
 #########
 # Build #
