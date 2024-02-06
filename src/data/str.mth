@@ -41,7 +41,7 @@ def(str-buf-num-bytes?, +Str -- Int +Str,
     +STR -> dup num-bytes dip(+STR))
 
 def(str-buf-byte@, Offset +Str -- Byte +Str,
-    str-buf-dup! with-str-data(drop .offset(@Byte))) # TODO make this safer
+    str-buf-dup! with-str-data(drop offset-unsafe @Byte)) # TODO make this safer
 
 def(str-buf-empty?, +Str -- Bool +Str,
     +STR -> dup +STR is-empty)
@@ -94,7 +94,7 @@ def(Str.from-bytes-unsafe, List(Byte) -- Str,
     dip(0) for(>U8 over !U8 1+) drop
     buffer-base buffer-size prim-str-copy
     rdrop)
-    
+
 def(Str.with-cstr(f), (*a Ptr -- *b) *a Str -- *b,
     with-str-data(
         over prim-ptr-add @U8 >Int

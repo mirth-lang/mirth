@@ -31,11 +31,11 @@ def(Int>Hash, Int -- Hash, HASH_MAX % HASH)
 def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
-    >Int HASH_BUF @@I64 >Int
+    >Int 8 * HASH_BUF .offset-unsafe @I64 >Int
     dup 0= if(drop NONE, Name.from-id SOME))
 def(hash-name!, Name Hash --,
     dip(Name.id >I64)
-    >Int HASH_BUF !!I64)
+    >Int 8 * HASH_BUF .offset-unsafe !I64)
 
 ||| Get hash for string.
 def(Str.hash, Str -- Hash,

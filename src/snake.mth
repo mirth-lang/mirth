@@ -46,22 +46,22 @@ def(snake-xy!, XCoord YCoord --, snake-y ! snake-x !)
 def(coords-offset, XCoord YCoord -- Offset,
     dip(XCoord->Int) YCoord->Int SNAKE_W * +)
 def(snake-grid@, XCoord YCoord -- State,
-    coords-offset SNAKE_GRID @@U8)
+    coords-offset SNAKE_GRID offset-unsafe @U8)
 def(snake-grid!, State XCoord YCoord --,
-    coords-offset SNAKE_GRID !!U8)
+    coords-offset SNAKE_GRID offset-unsafe !U8)
 def(snake-grid-clear!, --,
     SNAKE_W SNAKE_H * while(dup 0>,
         1-
-        0 >U8 over SNAKE_GRID !!U8
+        0 >U8 over SNAKE_GRID offset-unsafe !U8
     ) drop)
 
 def(snake-queue-x?, Offset -- Offset XCoord, dup snake-queue-x@)
-def(snake-queue-x@, Offset -- XCoord, SNAKE_QUEUE_X @@U8)
-def(snake-queue-x!, XCoord Offset --, SNAKE_QUEUE_X !!U8)
+def(snake-queue-x@, Offset -- XCoord, SNAKE_QUEUE_X offset-unsafe @U8)
+def(snake-queue-x!, XCoord Offset --, SNAKE_QUEUE_X offset-unsafe !U8)
 
 def(snake-queue-y?, Offset -- Offset YCoord, dup snake-queue-y@)
-def(snake-queue-y@, Offset -- YCoord, SNAKE_QUEUE_Y @@U8)
-def(snake-queue-y!, YCoord Offset --, SNAKE_QUEUE_Y !!U8)
+def(snake-queue-y@, Offset -- YCoord, SNAKE_QUEUE_Y offset-unsafe @U8)
+def(snake-queue-y!, YCoord Offset --, SNAKE_QUEUE_Y offset-unsafe !U8)
 
 def(snake-queue-xy?, Offset -- Offset XCoord YCoord,
     dup snake-queue-xy@)
@@ -205,10 +205,10 @@ def-type(H, Int)
 
 buffer(SNAKE_RECT, 16)
 def(snake-rect!, X Y W H --,
-    >I32 3 SNAKE_RECT !!I32
-    >I32 2 SNAKE_RECT !!I32
-    >I32 1 SNAKE_RECT !!I32
-    >I32 0 SNAKE_RECT !!I32)
+    >I32 12 SNAKE_RECT offset-unsafe !I32
+    >I32 8 SNAKE_RECT offset-unsafe !I32
+    >I32 4 SNAKE_RECT offset-unsafe !I32
+    >I32 0 SNAKE_RECT offset-unsafe !I32)
 
 def(snake-rect-cell!, XCoord YCoord --,
     dip(>Int SNAKE_CELL_SIZE *)

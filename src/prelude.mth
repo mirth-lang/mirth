@@ -55,18 +55,8 @@ def(Bool.else(f), (*a -- *a) *a Bool -- *a,
     T -> id,
     F -> f)
 
-||| Add byte offset to Ptr. This is unsafe because you lose a reference to the
-||| original pointer, so the underlying memory could be garbage collected.
-||| Therefore, use Ptr.offset-unsafe only if the Ptr points to a static buffer,
-||| or if there are other references to the Ptr. Otherwise use Ptr.offset,
-||| which keeps the reference alive while you use the offset pointer.
+||| Add byte offset to Ptr.
 alias(Ptr.offset-unsafe, prim-ptr-add)
-
-||| Add byte offset to Ptr and use that offset pointer. Unless you know what
-||| you're doing (see `Ptr.offset-unsafe`), make sure to fully use the offset
-||| pointer within the callback `f`, do not leak it.
-def(Ptr.offset(f), (*a Ptr -- *b) *a Offset Ptr -- *b,
-    dup dip(prim-ptr-add f) drop)
 
 alias(Ptr@Ptr, prim-ptr-get)
 alias(Ptr!Ptr, prim-ptr-set)
@@ -247,27 +237,6 @@ def(0<>, Int -- Bool, 0 <>)
 
 alias(Ptr.null, prim-ptr-nil)
 def(Ptr.is-null, Ptr -- Bool, prim-unsafe-cast 0=)
-
-def(Ptr@@Ptr, Offset Ptr -- Ptr, dip(Ptr.sizeof *).offset(@Ptr))
-def(Ptr!!Ptr, Ptr Offset Ptr --, dip(Ptr.sizeof *).offset(!Ptr))
-
-def(Ptr@@U8,  Offset Ptr -- U8,          .offset(@U8))
-def(Ptr@@U16, Offset Ptr -- U16, dip(2 *).offset(@U16))
-def(Ptr@@U32, Offset Ptr -- U32, dip(4 *).offset(@U32))
-def(Ptr@@U64, Offset Ptr -- U64, dip(8 *).offset(@U64))
-def(Ptr@@I8,  Offset Ptr -- I8,          .offset(@I8))
-def(Ptr@@I16, Offset Ptr -- I16, dip(2 *).offset(@I16))
-def(Ptr@@I32, Offset Ptr -- I32, dip(4 *).offset(@I32))
-def(Ptr@@I64, Offset Ptr -- I64, dip(8 *).offset(@I64))
-
-def(Ptr!!U8,  U8  Offset Ptr --,         .offset(!U8))
-def(Ptr!!U16, U16 Offset Ptr --, dip(2 *).offset(!U16))
-def(Ptr!!U32, U32 Offset Ptr --, dip(4 *).offset(!U32))
-def(Ptr!!U64, U64 Offset Ptr --, dip(8 *).offset(!U64))
-def(Ptr!!I8,  I8  Offset Ptr --,         .offset(!I8))
-def(Ptr!!I16, I16 Offset Ptr --, dip(2 *).offset(!I16))
-def(Ptr!!I32, I32 Offset Ptr --, dip(4 *).offset(!I32))
-def(Ptr!!I64, I64 Offset Ptr --, dip(8 *).offset(!I64))
 
 def(U8>Int,  U8  -- Int, prim-unsafe-cast)
 def(U16>Int, U16 -- Int, prim-unsafe-cast)

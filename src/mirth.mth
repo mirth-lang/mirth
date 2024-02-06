@@ -46,14 +46,8 @@ def(compile!, Path +World -- +World,
 def(main, +World -- +World,
     init!
 
-    # argc int-trace-ln!
-    # 0 while(dup argc <,
-    #     dup argv ptr@@ str-trace-ln!
-    #     1+
-    # ) drop
-
     expect!(argc 2 =, "expected one argument")
-    1 argv @@Ptr str-copy-cstr >Path compile!)
+    Ptr.sizeof argv offset-unsafe @Ptr str-copy-cstr >Path compile!)
 
 #########
 # Build #
