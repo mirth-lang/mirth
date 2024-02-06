@@ -14459,44 +14459,44 @@ static void mw_Int_2E_trace_21_ (void) {
     WORD_EXIT(mw_Int_2E_trace_21_);
 }
 static void mw_with_open_file_21_ (void) {
-    WORD_ENTER(mw_with_open_file_21_, "with-open-file!", "src/platform/posix.mth", 38, 5);
-    WORD_ATOM(38, 5, "");
+    WORD_ENTER(mw_with_open_file_21_, "with-open-file!", "src/platform/posix.mth", 44, 5);
+    WORD_ATOM(44, 5, "");
     {
         VAL var_g = pop_value();
         VAL var_f = pop_value();
-        WORD_ATOM(38, 5, "");
+        WORD_ATOM(44, 5, "");
         push_i64(0LL);
-        WORD_ATOM(38, 7, "");
+        WORD_ATOM(44, 7, "");
         push_i64(0LL);
-        WORD_ATOM(38, 9, "posix-open!");
+        WORD_ATOM(44, 9, "posix-open!");
         mw_posix_open_21_();
-        WORD_ATOM(38, 21, "dup");
+        WORD_ATOM(44, 21, "dup");
         mw_prim_dup();
-        WORD_ATOM(38, 25, "0<");
+        WORD_ATOM(44, 25, "0<");
         mw_Int_2E_0_3C_();
-        WORD_ATOM(38, 28, "if");
+        WORD_ATOM(44, 28, "if");
         if (pop_u64()) {
-            WORD_ATOM(38, 31, "drop");
+            WORD_ATOM(44, 31, "drop");
             mw_prim_drop();
-            WORD_ATOM(38, 36, "g");
+            WORD_ATOM(44, 36, "g");
             incref(var_g);
             run_value(var_g);
         } else {
-            WORD_ATOM(38, 39, "dup");
+            WORD_ATOM(44, 39, "dup");
             mw_prim_dup();
-            WORD_ATOM(38, 43, "dip");
+            WORD_ATOM(44, 43, "dip");
             {
                 VAL d4 = pop_value();
-                WORD_ATOM(38, 47, "Int>File");
+                WORD_ATOM(44, 47, "Int>File");
                 mw_Int_3E_File();
-                WORD_ATOM(38, 56, "f");
+                WORD_ATOM(44, 56, "f");
                 incref(var_f);
                 run_value(var_f);
                 push_value(d4);
             }
-            WORD_ATOM(38, 59, "posix-close!");
+            WORD_ATOM(44, 59, "posix-close!");
             mw_prim_posix_close();
-            WORD_ATOM(38, 72, "drop");
+            WORD_ATOM(44, 72, "drop");
             mw_prim_drop();
         }
         decref(var_g);
@@ -14505,19 +14505,19 @@ static void mw_with_open_file_21_ (void) {
     WORD_EXIT(mw_with_open_file_21_);
 }
 static void mw_READ_5F_FILE_5F_BUF_5F_SIZE (void) {
-    WORD_ENTER(mw_READ_5F_FILE_5F_BUF_5F_SIZE, "READ_FILE_BUF_SIZE", "src/platform/posix.mth", 40, 30);
-    WORD_ATOM(40, 30, "");
+    WORD_ENTER(mw_READ_5F_FILE_5F_BUF_5F_SIZE, "READ_FILE_BUF_SIZE", "src/platform/posix.mth", 46, 30);
+    WORD_ATOM(46, 30, "");
     push_i64(4096LL);
     WORD_EXIT(mw_READ_5F_FILE_5F_BUF_5F_SIZE);
 }
 static void mw_read_file_21_ (void) {
-    WORD_ENTER(mw_read_file_21_, "read-file!", "src/platform/posix.mth", 43, 5);
-    WORD_ATOM(43, 5, "File>Int");
+    WORD_ENTER(mw_read_file_21_, "read-file!", "src/platform/posix.mth", 49, 5);
+    WORD_ATOM(49, 5, "File>Int");
     mw_File_3E_Int();
-    WORD_ATOM(43, 14, "\\");
+    WORD_ATOM(49, 14, "\\");
     {
         VAL var_fp = pop_value();
-        WORD_ATOM(43, 22, "");
+        WORD_ATOM(49, 22, "");
         {
             static bool vready = false;
             static VAL v;
@@ -14528,41 +14528,41 @@ static void mw_read_file_21_ (void) {
             push_value(v);
             incref(v);
         }
-        WORD_ATOM(44, 5, "fp");
+        WORD_ATOM(50, 5, "fp");
         incref(var_fp);
         push_value(var_fp);
-        WORD_ATOM(44, 8, "READ_FILE_BUF");
+        WORD_ATOM(50, 8, "READ_FILE_BUF");
         mw_READ_5F_FILE_5F_BUF();
-        WORD_ATOM(44, 22, "READ_FILE_BUF_SIZE");
+        WORD_ATOM(50, 22, "READ_FILE_BUF_SIZE");
         mw_READ_5F_FILE_5F_BUF_5F_SIZE();
-        WORD_ATOM(44, 41, "prim-posix-read");
+        WORD_ATOM(50, 41, "prim-posix-read");
         mw_prim_posix_read();
-        WORD_ATOM(45, 5, "while");
+        WORD_ATOM(51, 5, "while");
         while(1) {
-            WORD_ATOM(45, 11, "dup");
+            WORD_ATOM(51, 11, "dup");
             mw_prim_dup();
-            WORD_ATOM(45, 15, "0>");
+            WORD_ATOM(51, 15, "0>");
             mw_Int_2E_0_3E_();
             if (! pop_u64()) break;
-            WORD_ATOM(46, 9, "READ_FILE_BUF");
+            WORD_ATOM(52, 9, "READ_FILE_BUF");
             mw_READ_5F_FILE_5F_BUF();
-            WORD_ATOM(46, 23, "swap");
+            WORD_ATOM(52, 23, "swap");
             mw_prim_swap();
-            WORD_ATOM(46, 28, "prim-str-copy");
+            WORD_ATOM(52, 28, "prim-str-copy");
             mw_prim_str_copy();
-            WORD_ATOM(46, 42, "cat");
+            WORD_ATOM(52, 42, "cat");
             mw_prim_str_cat();
-            WORD_ATOM(47, 9, "fp");
+            WORD_ATOM(53, 9, "fp");
             incref(var_fp);
             push_value(var_fp);
-            WORD_ATOM(47, 12, "READ_FILE_BUF");
+            WORD_ATOM(53, 12, "READ_FILE_BUF");
             mw_READ_5F_FILE_5F_BUF();
-            WORD_ATOM(47, 26, "READ_FILE_BUF_SIZE");
+            WORD_ATOM(53, 26, "READ_FILE_BUF_SIZE");
             mw_READ_5F_FILE_5F_BUF_5F_SIZE();
-            WORD_ATOM(47, 45, "prim-posix-read");
+            WORD_ATOM(53, 45, "prim-posix-read");
             mw_prim_posix_read();
         }
-        WORD_ATOM(48, 5, "expect!");
+        WORD_ATOM(54, 5, "expect!");
         push_u64(0);
         incref(var_fp);
         push_value(var_fp);
@@ -14576,7 +14576,7 @@ static void mw_read_file_21_ (void) {
         push_fnptr(&mb_read_file_21__5);
         mw_prim_pack_cons();
         mw_expect_21_();
-        WORD_ATOM(49, 5, "drop");
+        WORD_ATOM(55, 5, "drop");
         mw_prim_drop();
         decref(var_fp);
     }
@@ -40758,24 +40758,24 @@ static void mb_slice_write_21__6 (void) {
 }
 
 static void mb_read_file_21__4 (void) {
-    WORD_ENTER(mb_read_file_21__4, "read-file! block", "src/platform/posix.mth", 48, 13);
+    WORD_ENTER(mb_read_file_21__4, "read-file! block", "src/platform/posix.mth", 54, 13);
     mw_prim_pack_uncons();
     VAL var_fp = pop_value();
     mw_prim_drop();
-    WORD_ATOM(48, 13, "dup");
+    WORD_ATOM(54, 13, "dup");
     mw_prim_dup();
-    WORD_ATOM(48, 17, "0=");
+    WORD_ATOM(54, 17, "0=");
     mw_Int_2E_0_3D_();
     decref(var_fp);
     WORD_EXIT(mb_read_file_21__4);
 }
 
 static void mb_read_file_21__5 (void) {
-    WORD_ENTER(mb_read_file_21__5, "read-file! block", "src/platform/posix.mth", 48, 21);
+    WORD_ENTER(mb_read_file_21__5, "read-file! block", "src/platform/posix.mth", 54, 21);
     mw_prim_pack_uncons();
     VAL var_fp = pop_value();
     mw_prim_drop();
-    WORD_ATOM(48, 21, "");
+    WORD_ATOM(54, 21, "");
     {
         static bool vready = false;
         static VAL v;

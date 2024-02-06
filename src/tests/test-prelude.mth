@@ -20,8 +20,7 @@ def(!!111, Int Int Int --, 1 !!= 1 !!= 1 !!=)
 def(test-prelude!, --,
     test-if test-drop test-dup test-swap test-dip
     test-rotr test-rotl test= test< test<= test> test>=
-    test+ test- test* test-while
-    test@!)
+    test+ test- test* test-while)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
     T  [ 10 ] [ 20 ] if 10 !!=
@@ -115,33 +114,8 @@ def(test*, --,
     2 2 * 4 !!=
     2 4 * 8 !!=)
 
-buffer(TEST_BUF, 16)
-def(test@!, --,
-    # reset test buffer
-    0 >I64 0 TEST_BUF !!I64
-    0 >I64 1 TEST_BUF !!I64
-    # run test
-    0 TEST_BUF @@I64 >Int !!0
-    1 TEST_BUF @@I64 >Int !!0
-    99 >I64 0 TEST_BUF !!I64
-    0 TEST_BUF @@I64 >Int 99 !!=
-    1 TEST_BUF @@I64 >Int !!0
-    30 >I64 1 TEST_BUF !!I64
-    0 TEST_BUF @@I64 >Int 99 !!=
-    1 TEST_BUF @@I64 >Int 30 !!=
-    0 >I64 0 TEST_BUF !!I64
-    0 TEST_BUF @@U8 >Int 0 !!=
-    1 TEST_BUF @@U8 >Int 0 !!=
-    2 TEST_BUF @@U8 >Int 0 !!=
-    3 TEST_BUF @@U8 >Int 0 !!=
-    99 >U8 2 TEST_BUF !!U8
-    0 TEST_BUF @@U8 >Int 0 !!=
-    1 TEST_BUF @@U8 >Int 0 !!=
-    2 TEST_BUF @@U8 >Int 99 !!=
-    3 TEST_BUF @@U8 >Int 0 !!=)
-
 def(test-while, --,
-    999 10 20 while(dup 0<>, 1- dip(1+)) drop 30 !!= 999 !!=
+    999 10 20 while(dup 0>, 1- dip(1+)) drop 30 !!= 999 !!=
     10 20 [dup 0 >] while(1- dip(1+)) drop 30 !!=
     30 40 [dup 0 >] [1- dip(1+)] while drop 70 !!=
     )

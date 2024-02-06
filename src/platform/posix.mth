@@ -34,6 +34,12 @@ def(Int.trace!, Int --, show trace!)
 def(Int.print-ln!, Int --, show print-ln!)
 def(Int.trace-ln!, Int --, show trace-ln!)
 
+def(Nat.write!, File Nat --, show write!)
+def(Nat.trace!, Nat --, show trace!)
+def(Nat.trace-ln!, Nat --, show trace-ln!)
+def(Nat.print!, Nat --, show print!)
+def(Nat.print-ln!, Nat --, show print-ln!)
+
 def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
     0 0 posix-open! dup 0< if(drop g, dup dip(Int>File f) posix-close! drop))
 
