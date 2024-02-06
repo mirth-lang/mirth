@@ -9,7 +9,7 @@ def(+Set~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Set(t) -- *b +Set(t),
     -SET dip(f) +SET)
 def(+Set.index, t +Set(t) -- Int +Set(t),
     -SET dup rdip(dip(run)) +SET
-    expect!(dup 0>=, "negative index not allowed"))
+    expect!(dup 0< not, "negative index not allowed"))
 
 def(+Set.new(f), (t -- Int) -- +Set(t), [f] 256 +Buffer.new +SET)
 def(+Set.rdrop, +Set(t) --, -SET drop rdrop)

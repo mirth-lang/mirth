@@ -207,21 +207,18 @@ def-missing(prim-int-succ, Int -- Int, 1 +)
 def-missing(prim-int-pred, Int -- Int, 1 -)
 def-missing(prim-int-negate, Int -- Int, -1 *)
 alias(negate, prim-int-negate)
-alias(1+, prim-int-succ)
-alias(1-, prim-int-pred)
+alias(Int.1+, prim-int-succ)
+alias(Int.1-, prim-int-pred)
 alias(Int.negate, prim-int-negate)
 alias(Int.succ, prim-int-succ)
 alias(Int.pred, prim-int-pred)
-def(0=, Int -- Bool, 0 =)
-def(0<, Int -- Bool, 0 <)
-def(0>, Int -- Bool, 0 >)
-def(0>=, Int -- Bool, 0 >=)
-def(0<=, Int -- Bool, 0 <=)
-def(0<>, Int -- Bool, 0 <>)
+def(Int.0=, Int -- Bool, 0 =)
+def(Int.0<, Int -- Bool, 0 <)
+def(Int.0>, Int -- Bool, 0 >)
 
 alias(Ptr.null, prim-ptr-nil)
-def(Ptr.is-null, Ptr -- Bool, prim-unsafe-cast 0=)
-def(Ptr.sizeof, -- Size, prim-ptr-size)
+def(Ptr.is-null, Ptr -- Bool, prim-unsafe-cast Int.0=)
+def(Ptr.sizeof, -- Size, prim-ptr-size >Size)
 
 data(+Unsafe, +UNSAFE)
 def(-UNSAFE, +Unsafe --, +UNSAFE -> id)
@@ -326,7 +323,7 @@ def(I64=, I64 I64 -- Bool, both(>Int) =)
 #######
 
 data(Nat, Int>Nat-unsafe -> Int)
-def(Int>Nat, Int -- Nat, expect!(dup 0>=, "tried to create negative Nat" panic!) Int>Nat-unsafe)
+def(Int>Nat, Int -- Nat, expect!(dup 0< not, "tried to create negative Nat" panic!) Int>Nat-unsafe)
 def(Nat>Int, Nat -- Int, Int>Nat-unsafe -> id)
 
 def(Nat>U8,  Nat -- U8,  >Int >U8)
@@ -359,6 +356,7 @@ def(Nat.max, Nat Nat -- Nat, both(>Int) max >Nat-unsafe)
 def(Nat.min, Nat Nat -- Nat, both(>Int) min >Nat-unsafe)
 
 def-type(Size, Int)
+def(Int>Size, Int -- Size, id)
 
 ##########
 # TUPLES #

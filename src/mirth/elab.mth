@@ -497,7 +497,7 @@ def(elab-atom-name!, Name --,
 
 
 def(elab-needs-dot, Str -- Bool,
-    first-byte if-some(is-alpha, F))
+    first-byte if-some(is-alnum, F))
 
 def(elab-combine-prefix, Str Str -- Str,
     over elab-needs-dot then("." cat) swap cat)

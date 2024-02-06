@@ -26,7 +26,7 @@ def(+Buffer.rdrop, +Buffer -- ,
 
 def(+Buffer.erase-span!, Offset Size +Buffer -- +Buffer,
     over 1 check-offset!
-    dup 0<= then("size must be positive" panic!)
+    dup 0 <= then("size must be positive" panic!)
     dup2 + 1- 1 check-offset!
     dip2(0) swap buffer-base prim-ptr-add prim-ptr-fill)
 
