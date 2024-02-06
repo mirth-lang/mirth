@@ -1067,24 +1067,6 @@ static void mw_prim_ptr_fill (void) {
     PRIM_EXIT(mw_prim_ptr_fill);
 }
 
-static void mw_prim_ptr_raw (void) { // TODO remove
-    PRIM_ENTER(mw_prim_ptr_raw,"prim-ptr-raw");
-    VAL vptr = top_value();
-    ASSERT(IS_PTR(vptr));
-    push_value(vptr);
-    PRIM_EXIT(mw_prim_ptr_raw);
-}
-
-static void mw_prim_str_alloc (void) { // TODO remove probably?
-    PRIM_ENTER(mw_prim_str_alloc,"prim-str-alloc");
-    USIZE size = pop_usize();
-    ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
-    STR* str = str_alloc(size);
-    str->size = size;
-    push_value(MKSTR(str));
-    PRIM_EXIT(mw_prim_str_alloc);
-}
-
 static void mw_prim_str_copy (void) {
     PRIM_ENTER(mw_prim_str_copy,"prim-str-copy");
     USIZE size = pop_usize();

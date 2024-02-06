@@ -1,65 +1,67 @@
 module(resource.buffer)
 import(prelude)
 import(data.str)
+import(data.byte)
 
 data(+Buffer, +BUFFER -> Size Ptr)
 def(-BUFFER, +Buffer -- Size Ptr, +BUFFER -> id)
 
 def(+Buffer.new, Size -- +Buffer,
-    dup dup prim-ptr-alloc +BUFFER
-    0 swap erase-span!)
+    dup dup unsafe(Ptr.alloc) +BUFFER
+    0 >Offset swap erase-span!)
 
 def(+Buffer.resize!, Size +Buffer -- +Buffer,
-    -BUFFER dip(over dup) swap prim-ptr-realloc +BUFFER
+    -BUFFER dip(over dup) swap unsafe(Ptr.realloc) +BUFFER
     dup2 >= if(
-        tuck - erase-span!,
+        tuck - dip(>Offset) erase-span!,
         drop2
     ))
 
 ||| Resize buffer only if the new size is larger,
 ||| and resize by a factor of at least two.
 def(+Buffer.expand!, Size +Buffer -- +Buffer,
-    dup buffer-size > if(buffer-size 2 * max resize!, drop))
+    dup buffer-size > if(buffer-size 2* max resize!, drop))
 
 def(+Buffer.rdrop, +Buffer -- ,
-    -BUFFER prim-ptr-free drop)
+    -BUFFER unsafe(free) drop)
 
 def(+Buffer.erase-span!, Offset Size +Buffer -- +Buffer,
     over 1 check-offset!
-    dup 0<= then("size must be positive" panic!)
-    dup2 + 1- 1 check-offset!
-    dip2(0) swap buffer-base prim-ptr-add prim-ptr-fill)
+    dup2 >Offset + 1- 1 check-offset!
+    swap buffer-base unsafe(offset erase))
 
 def(+Buffer.buffer-size, +Buffer -- Size +Buffer,
     -BUFFER over dip(+BUFFER))
 def(+Buffer.buffer-base, +Buffer -- Ptr +Buffer,
     -BUFFER dup dip(+BUFFER))
 
-def(+Buffer.check-offset!, Offset Size +Buffer -- +Buffer,
-    dup2 dip(0 buffer-size) - in-range
+def(+Buffer.check-offset!, Offset Int +Buffer -- +Buffer,
+    dip(>Int) dup2 dip(0 buffer-size >Int) - in-range
     else("memory access out of bounds" panic!)
     % 0= else("memory access unaligned" panic!))
 
 def(+Buffer@U8, Offset +Buffer -- U8 +Buffer,
-    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-get)
+    dup 1 check-offset! buffer-base unsafe(offset Ptr@U8))
 def(+Buffer@U16, Offset +Buffer -- U16 +Buffer,
-    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-get)
+    dup 2 check-offset! buffer-base unsafe(offset Ptr@U16))
 def(+Buffer@U32, Offset +Buffer -- U32 +Buffer,
-    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-get)
+    dup 4 check-offset! buffer-base unsafe(offset Ptr@U32))
 def(+Buffer@U64, Offset +Buffer -- U64 +Buffer,
-    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-get)
+    dup 8 check-offset! buffer-base unsafe(offset Ptr@U64))
 
 def(+Buffer!U8, U8 Offset +Buffer -- +Buffer,
-    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-set)
+    dup 1 check-offset! buffer-base unsafe(offset Ptr!U8))
 def(+Buffer!U16, U16 Offset +Buffer -- +Buffer,
-    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-set)
+    dup 2 check-offset! buffer-base unsafe(offset Ptr!U16))
 def(+Buffer!U32, U32 Offset +Buffer -- +Buffer,
-    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-set)
+    dup 4 check-offset! buffer-base unsafe(offset Ptr!U32))
 def(+Buffer!U64, U64 Offset +Buffer -- +Buffer,
-    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-set)
+    dup 8 check-offset! buffer-base unsafe(offset Ptr!U64))
+
+def(+Buffer!Byte, Byte Offset +Buffer -- +Buffer,
+    dip(>U8) !U8)
 
 def(+Buffer!Str, Str Offset +Buffer -- +Buffer,
     dup 1 check-offset!
-    over num-bytes over + 1- 1 check-offset!
-    buffer-base prim-ptr-add
-    str-copy-partial! drop)
+    over num-bytes >Offset over + 1- 1 check-offset!
+    buffer-base unsafe(offset str-copy-partial! drop))

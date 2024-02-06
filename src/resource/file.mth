@@ -33,15 +33,16 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
 def(+File.close-file!, +File --,
     -FILE prim-posix-close
-    expect!(dup 0>=, "failed to close file")
+    expect!(dup 0< not, "failed to close file")
     drop)
 
 def(+File.unsafe-write!, Ptr Size +File -- +File,
-    dip2(file-descriptor) dup dip(posix-write!)
-    expect!(dup 0 >=, "write failed")
+    dip2(file-descriptor) dup dip(>Int posix-write!)
+    dip(expect!(dup 0< not, "write failed") >Size)
     expect!(dup2 =, "write output fewer bytes than expected")
     drop2)
 
 def(+File.unsafe-read!, Ptr Size +File -- Size +File,
-    dip2(file-descriptor) posix-read!
-    expect!(dup 0>=, "read failed"))
+    dip2(file-descriptor) >Int posix-read!
+    expect!(dup 0< not, "read failed")
+    >Size)

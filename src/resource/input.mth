@@ -32,11 +32,11 @@ data(+Input,
     +INPUT_OPEN -> +InputOpen,
     +INPUT_DONE -> +File)
 
-def(INPUT_BUFFER_SIZE, Size, 0x2000)
+def(INPUT_BUFFER_SIZE, Size, 0x2000 >Size)
 
 def(input-start!, +File -- +Input,
     INPUT_BUFFER_SIZE +Buffer.new
-    0 0 +INPUTOPEN input-fill-buffer!)
+    0 >Size 0 >Offset +INPUTOPEN input-fill-buffer!)
 
 def(input-stop!, +Input -- +Input,
     input-end! +INPUT_DONE)
@@ -54,7 +54,7 @@ def(input-fill-buffer!, +InputOpen -- +Input,
     ~File(unsafe-read!)
     dup 0> if(
         input-length!
-        0 input-offset!
+        0 >Offset input-offset!
         +INPUT_OPEN,
         drop +INPUT_OPEN input-stop!
     ))
@@ -77,7 +77,7 @@ def(input-move!, +Input -- +Input,
 ||| Refill input buffer.
 def(input-prepare-for-more!, +InputOpen -- +Input,
     input-offset@
-    input-length@ >= if(
+    input-length@ >Offset >= if(
         input-fill-buffer!,
         +INPUT_OPEN
     ))

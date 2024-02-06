@@ -2,6 +2,7 @@ module(platform.posix)
 import(prelude)
 import(data.str)
 import(data.path)
+import(resource.buffer)
 
 data(File, FILE -> Int)
 def(Int>File, Int -- File, FILE)
@@ -14,8 +15,8 @@ def(STDERR, File, 2 >File)
 def(Str.write!, File Str --,
     with-str-data(slice-write!))
 
-def(slice-write!, File Ptr Int --,
-    dip2(File>Int) dup dip(posix-write!)
+def(slice-write!, File Ptr Size --,
+    dip2(>Int) >Int dup dip(posix-write!)
     expect!(dup 0 >=, "write failed")
     expect!(dup2 =, "write output fewer bytes than expected")
     drop2)
@@ -27,16 +28,22 @@ def(Str.trace-ln!, Str --, trace! line-trace!)
 def(line-print!, --, "\n" print!)
 def(line-trace!, --, "\n" trace!)
 
-def(Int.write!, File Int --, int-to-str write!)
-def(Int.print!, Int --, int-to-str print!)
-def(Int.trace!, Int --, int-to-str trace!)
-def(Int.print-ln!, Int --, int-to-str print-ln!)
-def(Int.trace-ln!, Int --, int-to-str trace-ln!)
+def(Int.write!, File Int --, show write!)
+def(Int.print!, Int --, show print!)
+def(Int.trace!, Int --, show trace!)
+def(Int.print-ln!, Int --, show print-ln!)
+def(Int.trace-ln!, Int --, show trace-ln!)
+
+def(Nat.write!, File Nat --, show write!)
+def(Nat.trace!, Nat --, show trace!)
+def(Nat.trace-ln!, Nat --, show trace-ln!)
+def(Nat.print!, Nat --, show print!)
+def(Nat.print-ln!, Nat --, show print-ln!)
 
 def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
     0 0 posix-open! dup 0< if(drop g, dup dip(Int>File f) posix-close! drop))
 
-def(READ_FILE_BUF_SIZE, Size, 0x1000)
+def(READ_FILE_BUF_SIZE, Int, 0x1000)
 buffer(READ_FILE_BUF, 0x1000)
 def(read-file!, File -- Str,
     File>Int \(fp -> ""
@@ -51,20 +58,13 @@ def(read-file!, File -- Str,
 # STAT #
 ########
 
-def-external(stat, RawPtr RawPtr -- Int)
-buffer(POSIX_STAT_BUF, 256)
-
-def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
-    sip(>Str prim-str-base with-raw-ptr(f) drop))
-
-def(is-directory?, Path -- Path Bool,
-    with-raw-path(
-        POSIX_STAT_BUF with-raw-ptr(stat)
-        swap 0= if(
-            st_mode@ S_ISDIR,
-            drop F
-        )
-    ) swap)
+def-external(stat, Ptr Ptr -- Int)
+def(is-directory?, Path -- Bool,
+    256 >Size +Buffer.new
+    >Str with-cstr(
+        buffer-base stat
+        0= if(buffer-base unsafe(st_mode@) S_ISDIR, F)
+    ) rdrop)
 
 #define S_IFMT  00170000
 #define S_IFSOCK 0140000
@@ -73,15 +73,18 @@ def(is-directory?, Path -- Path Bool,
 #define S_IFBLK  0060000
 #define S_IFDIR  0040000
 
-def(S_IFMT, Int, 0xF000)
-def(S_IFDIR, Int, 0x4000)
-def(S_IFREG, Int, 0x8000)
+def(S_IFMT,   U16, 0xF000 >U16)
+def(S_IFDIR,  U16, 0x4000 >U16)
+def(S_IFBLK,  U16, 0x6000 >U16)
+def(S_IFREG,  U16, 0x8000 >U16)
+def(S_IFLNK,  U16, 0xA000 >U16)
+def(S_IFSOCK, U16, 0xC000 >U16)
 
-def(S_ISDIR, U16 -- Bool, >Int S_IFMT & S_IFDIR =)
+def(S_ISDIR, U16 -- Bool, S_IFMT & S_IFDIR =)
 
-def(st_mode@, Ptr -- U16,
+def(st_mode@, Ptr +Unsafe -- U16 +Unsafe,
     RUNNING_OS match(
         OS_LINUX -> 24, # ... this is all terrible and brittle
         OS_WINDOWS -> 6,
         _ -> drop 8
-    ) swap .offset(@U16))
+    ) >Offset swap offset @U16)

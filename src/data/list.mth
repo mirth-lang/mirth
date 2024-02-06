@@ -7,7 +7,7 @@ data(List(t),
     L1 -> t,
     L2 -> t t,
     L3 -> t t t,
-    LCAT -> List+(t) List+(t) Int)
+    LCAT -> List+(t) List+(t) Nat)
 
 def(L4,  t t t t                   -- List(t), L4+  >List)
 def(L5,  t t t t  t                -- List(t), L5+  >List)
@@ -28,17 +28,17 @@ data(List+(t),
     L1+ -> t,
     L2+ -> t t,
     L3+ -> t t t,
-    LCAT+ -> List+(t) List+(t) Int)
+    LCAT+ -> List+(t) List+(t) Nat)
 
-def(L4+,  t t t t                   -- List+(t), L2+ dip(L2+) 4  LCAT+)
-def(L5+,  t t t t  t                -- List+(t), L3+ dip(L2+) 5  LCAT+)
-def(L6+,  t t t t  t t              -- List+(t), L3+ dip(L3+) 6  LCAT+)
-def(L7+,  t t t t  t t t            -- List+(t), L4+ dip(L3+) 7  LCAT+)
-def(L8+,  t t t t  t t t t          -- List+(t), L5+ dip(L3+) 8  LCAT+)
-def(L9+,  t t t t  t t t t  t       -- List+(t), L6+ dip(L3+) 9  LCAT+)
-def(L10+, t t t t  t t t t  t t     -- List+(t), L5+ dip(L5+) 10 LCAT+)
-def(L11+, t t t t  t t t t  t t t   -- List+(t), L6+ dip(L5+) 11 LCAT+)
-def(L12+, t t t t  t t t t  t t t t -- List+(t), L6+ dip(L6+) 12 LCAT+)
+def(L4+,  t t t t                   -- List+(t), L2+ dip(L2+) 4  >Nat LCAT+)
+def(L5+,  t t t t  t                -- List+(t), L3+ dip(L2+) 5  >Nat LCAT+)
+def(L6+,  t t t t  t t              -- List+(t), L3+ dip(L3+) 6  >Nat LCAT+)
+def(L7+,  t t t t  t t t            -- List+(t), L4+ dip(L3+) 7  >Nat LCAT+)
+def(L8+,  t t t t  t t t t          -- List+(t), L5+ dip(L3+) 8  >Nat LCAT+)
+def(L9+,  t t t t  t t t t  t       -- List+(t), L6+ dip(L3+) 9  >Nat LCAT+)
+def(L10+, t t t t  t t t t  t t     -- List+(t), L5+ dip(L5+) 10 >Nat LCAT+)
+def(L11+, t t t t  t t t t  t t t   -- List+(t), L6+ dip(L5+) 11 >Nat LCAT+)
+def(L12+, t t t t  t t t t  t t t t -- List+(t), L6+ dip(L6+) 12 >Nat LCAT+)
 
 def(List+>List, List+(t) -- List(t),
     L1+ -> L1,
@@ -57,21 +57,18 @@ def(List.is-empty, List(t) -- Bool,
     L0 -> T,
     _ -> drop F)
 
-def(List.len, List(t) -- Int,
-    L0 -> 0,
-    L1 -> drop 1,
-    L2 -> drop2 2,
-    L3 -> drop3 3,
+def(List.len, List(t) -- Nat,
+    L0 -> 0 >Nat,
+    L1 -> drop 1 >Nat,
+    L2 -> drop2 2 >Nat,
+    L3 -> drop3 3 >Nat,
     LCAT -> dip(drop2))
 
-def(List+.len, List+(t) -- Int,
-    L1+ -> drop 1,
-    L2+ -> drop2 2,
-    L3+ -> drop3 3,
+def(List+.len, List+(t) -- Nat,
+    L1+ -> drop 1 >Nat,
+    L2+ -> drop2 2 >Nat,
+    L3+ -> drop3 3 >Nat,
     LCAT+ -> dip(drop2))
-
-def(List.len?, List(t) -- List(t) Int, dup len)
-def(List+.len?, List+(t) -- List+(t) Int, dup len)
 
 def(List.cons+, t List(t) -- List+(t),
     L0 -> L1+,
@@ -143,9 +140,9 @@ def(List+.cat-aux, List+(t) List+(t) -- List+(t),
     rebalance dup2 dip(len) len + LCAT+)
 
 def(List+.rebalance, List+(t) List+(t) -- List+(t) List+(t),
-    dup2 dip(len) len dup2 6 * > if(
+    dup2 dip(len) len dup2 6 >Nat * > if(
         drop2 dip(split-half-left) cat rebalance,
-        dip(6 *) < if(
+        dip(6 >Nat *) < if(
             split-half-right dip(cat+) rebalance,
             id
         )

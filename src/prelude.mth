@@ -55,36 +55,6 @@ def(Bool.else(f), (*a -- *a) *a Bool -- *a,
     T -> id,
     F -> f)
 
-||| Add byte offset to Ptr. This is unsafe because you lose a reference to the
-||| original pointer, so the underlying memory could be garbage collected.
-||| Therefore, use Ptr.offset-unsafe only if the Ptr points to a static buffer,
-||| or if there are other references to the Ptr. Otherwise use Ptr.offset,
-||| which keeps the reference alive while you use the offset pointer.
-alias(Ptr.offset-unsafe, prim-ptr-add)
-
-||| Add byte offset to Ptr and use that offset pointer. Unless you know what
-||| you're doing (see `Ptr.offset-unsafe`), make sure to fully use the offset
-||| pointer within the callback `f`, do not leak it.
-def(Ptr.offset(f), (*a Ptr -- *b) *a Offset Ptr -- *b,
-    dup dip(prim-ptr-add f) drop)
-
-alias(Ptr@Ptr, prim-ptr-get)
-alias(Ptr!Ptr, prim-ptr-set)
-alias(Ptr.sizeof, prim-ptr-size)
-
-data(RawPtr, Int>RawPtr -> Int)
-def(with-raw-ptr(f), (*a RawPtr -- *b) *a Ptr -- *b Ptr,
-    prim-ptr-raw >RawPtr swap dip(f))
-
-alias(Ptr@U8,  prim-u8-get ) alias(Ptr!U8,  prim-u8-set )
-alias(Ptr@U16, prim-u16-get) alias(Ptr!U16, prim-u16-set)
-alias(Ptr@U32, prim-u32-get) alias(Ptr!U32, prim-u32-set)
-alias(Ptr@U64, prim-u64-get) alias(Ptr!U64, prim-u64-set)
-alias(Ptr@I8,  prim-i8-get ) alias(Ptr!I8,  prim-i8-set )
-alias(Ptr@I16, prim-i16-get) alias(Ptr!I16, prim-i16-set)
-alias(Ptr@I32, prim-i32-get) alias(Ptr!I32, prim-i32-set)
-alias(Ptr@I64, prim-i64-get) alias(Ptr!I64, prim-i64-set)
-
 data(OS,
     OS_UNKNOWN,
     OS_WINDOWS,
@@ -175,19 +145,16 @@ def(rot4l, a b c d -- b c d a, dip(rotl) swap)
 def(rrot4r, +a +b +c +d -- +d +a +b +c, rswap rdip(rrotr))
 def(rrot4l, +a +b +c +d -- +b +c +d +a, rdip(rrotl) rswap)
 
-def(repeat(f), (*a -- *a) *a Int -- *a,
+def(repeat(f), (*a -- *a) *a Nat -- *a,
     while(dup 0>, dip(f) 1-) drop)
 
-def(count(f), (*a Int -- *a) *a Int -- *a,
-    0 swap repeat(dup dip(f) 1+) drop)
-def(countdown(f), (*a Int -- *a) *a Int -- *a,
-    dup 1- swap repeat(dup dip(f) 1-) drop)
+def(count(f), (*a Nat -- *a) *a Nat -- *a,
+    0 >Nat swap repeat(dup dip(f) 1+) drop)
+def(countdown(f), (*a Nat -- *a) *a Nat -- *a,
+    dup swap repeat(1- dup dip(f)) drop)
 
 def(identity, [*a -- *a], [])
 def(compose(f,g), [*a -- *b] [*b -- *c] -- [*a -- *c], [f g])
-
-def-type(Size, Int)
-def-type(Offset, Int)
 
 def(U8_MAX, Int, 0xFF)
 def(U16_MAX, Int, 0xFFFF)
@@ -238,41 +205,57 @@ def-missing(prim-int-succ, Int -- Int, 1 +)
 def-missing(prim-int-pred, Int -- Int, 1 -)
 def-missing(prim-int-negate, Int -- Int, -1 *)
 alias(negate, prim-int-negate)
-alias(1+, prim-int-succ)
-alias(1-, prim-int-pred)
+alias(Int.1+, prim-int-succ)
+alias(Int.1-, prim-int-pred)
 alias(Int.negate, prim-int-negate)
 alias(Int.succ, prim-int-succ)
 alias(Int.pred, prim-int-pred)
-def(0=, Int -- Bool, 0 =)
-def(0<, Int -- Bool, 0 <)
-def(0>, Int -- Bool, 0 >)
-def(0>=, Int -- Bool, 0 >=)
-def(0<=, Int -- Bool, 0 <=)
-def(0<>, Int -- Bool, 0 <>)
+def(Int.2*, Int -- Int, 2 *)
+def(Int.2/, Int -- Int, 2 /)
+def(Int.0=, Int -- Bool, 0 =)
+def(Int.0<, Int -- Bool, 0 <)
+def(Int.0>, Int -- Bool, 0 >)
 
 alias(Ptr.null, prim-ptr-nil)
-def(Ptr.is-null, Ptr -- Bool, prim-unsafe-cast 0=)
+def(Ptr.is-null, Ptr -- Bool, prim-unsafe-cast Int.0=)
+def(Ptr.sizeof, -- Size, prim-ptr-size >Size)
 
-def(Ptr@@Ptr, Offset Ptr -- Ptr, dip(Ptr.sizeof *).offset(@Ptr))
-def(Ptr!!Ptr, Ptr Offset Ptr --, dip(Ptr.sizeof *).offset(!Ptr))
+data(+Unsafe, +UNSAFE)
+def(-UNSAFE, +Unsafe --, +UNSAFE -> id)
 
-def(Ptr@@U8,  Offset Ptr -- U8,          .offset(@U8))
-def(Ptr@@U16, Offset Ptr -- U16, dip(2 *).offset(@U16))
-def(Ptr@@U32, Offset Ptr -- U32, dip(4 *).offset(@U32))
-def(Ptr@@U64, Offset Ptr -- U64, dip(8 *).offset(@U64))
-def(Ptr@@I8,  Offset Ptr -- I8,          .offset(@I8))
-def(Ptr@@I16, Offset Ptr -- I16, dip(2 *).offset(@I16))
-def(Ptr@@I32, Offset Ptr -- I32, dip(4 *).offset(@I32))
-def(Ptr@@I64, Offset Ptr -- I64, dip(8 *).offset(@I64))
+def(unsafe(f), (*a +Unsafe -- *b +Unsafe) *a -- *b,
+    +UNSAFE f -UNSAFE)
 
-def(Ptr!!U8,  U8  Offset Ptr --,         .offset(!U8))
-def(Ptr!!U16, U16 Offset Ptr --, dip(2 *).offset(!U16))
-def(Ptr!!U32, U32 Offset Ptr --, dip(4 *).offset(!U32))
-def(Ptr!!U64, U64 Offset Ptr --, dip(8 *).offset(!U64))
-def(Ptr!!I8,  I8  Offset Ptr --,         .offset(!I8))
-def(Ptr!!I16, I16 Offset Ptr --, dip(2 *).offset(!I16))
-def(Ptr!!I32, I32 Offset Ptr --, dip(4 *).offset(!I32))
-def(Ptr!!I64, I64 Offset Ptr --, dip(8 *).offset(!I64))
+||| Add byte offset to Ptr.
+def(Ptr.offset, Offset Ptr +Unsafe -- Ptr +Unsafe, dip(>Int) prim-ptr-add)
+
+def(Ptr@Ptr, Ptr +Unsafe -- Ptr +Unsafe, prim-ptr-get)
+def(Ptr!Ptr, Ptr Ptr +Unsafe -- +Unsafe, prim-ptr-set)
+
+def(Ptr@U8,  Ptr +Unsafe -- U8  +Unsafe, prim-u8-get)
+def(Ptr@U16, Ptr +Unsafe -- U16 +Unsafe, prim-u16-get)
+def(Ptr@U32, Ptr +Unsafe -- U32 +Unsafe, prim-u32-get)
+def(Ptr@U64, Ptr +Unsafe -- U64 +Unsafe, prim-u64-get)
+def(Ptr@I8,  Ptr +Unsafe -- I8  +Unsafe, prim-i8-get)
+def(Ptr@I16, Ptr +Unsafe -- I16 +Unsafe, prim-i16-get)
+def(Ptr@I32, Ptr +Unsafe -- I32 +Unsafe, prim-i32-get)
+def(Ptr@I64, Ptr +Unsafe -- I64 +Unsafe, prim-i64-get)
+
+def(Ptr!U8,  U8  Ptr +Unsafe -- +Unsafe, prim-u8-set)
+def(Ptr!U16, U16 Ptr +Unsafe -- +Unsafe, prim-u16-set)
+def(Ptr!U32, U32 Ptr +Unsafe -- +Unsafe, prim-u32-set)
+def(Ptr!U64, U64 Ptr +Unsafe -- +Unsafe, prim-u64-set)
+def(Ptr!I8,  I8  Ptr +Unsafe -- +Unsafe, prim-i8-set)
+def(Ptr!I16, I16 Ptr +Unsafe -- +Unsafe, prim-i16-set)
+def(Ptr!I32, I32 Ptr +Unsafe -- +Unsafe, prim-i32-set)
+def(Ptr!I64, I64 Ptr +Unsafe -- +Unsafe, prim-i64-set)
+
+def(Ptr.alloc, Size +Unsafe -- Ptr +Unsafe, >Int prim-ptr-alloc)
+def(Ptr.realloc, Ptr Size +Unsafe -- Ptr +Unsafe, >Int prim-ptr-realloc)
+def(Ptr.free, Ptr +Unsafe -- +Unsafe, prim-ptr-free)
+def(Ptr.copy, Ptr Size Ptr +Unsafe -- +Unsafe, dip(>Int) prim-ptr-copy)
+def(Ptr.fill, U8 Size Ptr +Unsafe -- +Unsafe, dip(>Int dip(>Int)) prim-ptr-fill)
+def(Ptr.erase, Size Ptr +Unsafe -- +Unsafe, dip2(0 >U8) fill)
 
 def(U8>Int,  U8  -- Int, prim-unsafe-cast)
 def(U16>Int, U16 -- Int, prim-unsafe-cast)
@@ -326,6 +309,98 @@ def(U8&,   U8  U8 --  U8, both(>Int) &  >U8-unsafe)
 def(U16&, U16 U16 -- U16, both(>Int) & >U16-unsafe)
 def(U32&, U32 U32 -- U32, both(>Int) & >U32-unsafe)
 def(U64&, U64 U64 -- U64, both(>Int-unsafe) & >U64-unsafe)
+
+def(U8^,   U8  U8 --  U8, both(>Int) ^  >U8-unsafe)
+def(U16^, U16 U16 -- U16, both(>Int) ^ >U16-unsafe)
+def(U32^, U32 U32 -- U32, both(>Int) ^ >U32-unsafe)
+def(U64^, U64 U64 -- U64, both(>Int-unsafe) ^ >U64-unsafe)
+
+def(U8=,  U8  U8  -- Bool, both(>Int) =)
+def(U16=, U16 U16 -- Bool, both(>Int) =)
+def(U32=, U32 U32 -- Bool, both(>Int) =)
+def(U64=, U64 U64 -- Bool, both(>Int-unsafe) =)
+def(I8=,  I8  I8  -- Bool, both(>Int) =)
+def(I16=, I16 I16 -- Bool, both(>Int) =)
+def(I32=, I32 I32 -- Bool, both(>Int) =)
+def(I64=, I64 I64 -- Bool, both(>Int) =)
+
+#######
+# NAT #
+#######
+
+data(Nat, Int>Nat-unsafe -> Int)
+def(Int>Nat, Int -- Nat, expect!(dup 0< not, "tried to create negative Nat" panic!) Int>Nat-unsafe)
+def(Nat>Int, Nat -- Int, Int>Nat-unsafe -> id)
+
+def(Nat>U8,  Nat -- U8,  >Int >U8)
+def(Nat>U16, Nat -- U16, >Int >U16)
+def(Nat>U32, Nat -- U32, >Int >U32)
+def(Nat>U64, Nat -- U64, >Int >U64-unsafe)
+
+def(U8>Nat,  U8  -- Nat, >Int >Nat-unsafe)
+def(U16>Nat, U16 -- Nat, >Int >Nat-unsafe)
+def(U32>Nat, U32 -- Nat, >Int >Nat-unsafe)
+def(U64>Nat, U64 -- Nat, >Int-unsafe >Nat-unsafe)
+
+def(Nat+, Nat Nat -- Nat, both(>Int) + >Nat-unsafe)
+def(Nat-, Nat Nat -- Nat, both(>Int) - >Nat)
+def(Nat*, Nat Nat -- Nat, both(>Int) * >Nat-unsafe)
+def(Nat/, Nat Nat -- Nat, both(>Int) / >Nat-unsafe)
+def(Nat%, Nat Nat -- Nat, both(>Int) % >Nat-unsafe)
+def(Nat&, Nat Nat -- Nat, both(>Int) & >Nat-unsafe)
+def(Nat|, Nat Nat -- Nat, both(>Int) | >Nat-unsafe)
+def(Nat^, Nat Nat -- Nat, both(>Int) ^ >Nat-unsafe)
+def(Nat.1+, Nat -- Nat, >Int 1+ >Nat-unsafe)
+def(Nat.1-, Nat -- Nat, >Int 1- >Nat)
+def(Nat.2*, Nat -- Nat, >Int 2* >Nat-unsafe)
+def(Nat.2/, Nat -- Nat, >Int 2/ >Nat-unsafe)
+def(Nat.cmp, Nat Nat -- Comparison, both(>Int) cmp)
+def(Nat=, Nat Nat -- Bool, both(>Int) =)
+def(Nat<, Nat Nat -- Bool, both(>Int) <)
+def(Nat>, Nat Nat -- Bool, both(>Int) >)
+def(Nat<=, Nat Nat -- Bool, both(>Int) <=)
+def(Nat>=, Nat Nat -- Bool, both(>Int) >=)
+def(Nat<>, Nat Nat -- Bool, both(>Int) <>)
+def(Nat.0>, Nat -- Bool, >Int 0>)
+def(Nat.0=, Nat -- Bool, >Int 0=)
+def(Nat.max, Nat Nat -- Nat, both(>Int) max >Nat-unsafe)
+def(Nat.min, Nat Nat -- Nat, both(>Int) min >Nat-unsafe)
+
+data(Size, Nat>Size -> Nat)
+def(Size>Nat, Size -- Nat, Nat>Size -> id)
+def(Size>Int, Size -- Int, >Nat >Int)
+def(Int>Size, Int -- Size, >Nat >Size)
+def(Size+, Size Size -- Size, both(>Nat) + >Size)
+def(Size-, Size Size -- Size, both(>Nat) - >Size)
+def(Size.1+, Size -- Size, >Nat 1+ >Size)
+def(Size.1-, Size -- Size, >Nat 1- >Size)
+def(Size.2*, Size -- Size, >Nat 2* >Size)
+def(Size.2/, Size -- Size, >Nat 2/ >Size)
+def(Size=, Size Size -- Bool, both(>Nat) =)
+def(Size<, Size Size -- Bool, both(>Nat) <)
+def(Size>, Size Size -- Bool, both(>Nat) >)
+def(Size<=, Size Size -- Bool, both(>Nat) <=)
+def(Size>=, Size Size -- Bool, both(>Nat) >=)
+def(Size<>, Size Size -- Bool, both(>Nat) <>)
+def(Size.0=, Size -- Bool, >Nat 0=)
+def(Size.0>, Size -- Bool, >Nat 0>)
+def(Size.max, Size Size -- Size, dup2 >= if(drop, nip))
+def(Size.min, Size Size -- Size, dup2 <= if(drop, nip))
+
+data(Offset, Int>Offset -> Int)
+def(Offset>Int, Offset -- Int, Int>Offset -> id)
+def(Nat>Offset, Nat -- Offset, >Int >Offset)
+def(Size>Offset, Size -- Offset, >Nat >Offset)
+def(Offset+, Offset Offset -- Offset, both(>Int) + >Offset)
+def(Offset-, Offset Offset -- Offset, both(>Int) - >Offset)
+def(Offset.1+, Offset -- Offset, >Int 1+ >Offset)
+def(Offset.1-, Offset -- Offset, >Int 1- >Offset)
+def(Offset=, Offset Offset -- Bool, both(>Int) =)
+def(Offset>, Offset Offset -- Bool, both(>Int) >)
+def(Offset<, Offset Offset -- Bool, both(>Int) <)
+def(Offset>=, Offset Offset -- Bool, both(>Int) >=)
+def(Offset<=, Offset Offset -- Bool, both(>Int) <=)
+def(Offset<>, Offset Offset -- Bool, both(>Int) <>)
 
 ##########
 # TUPLES #

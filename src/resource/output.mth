@@ -6,18 +6,19 @@ import(data.byte)
 import(resource.buffer)
 import(resource.file)
 
-def(OUTPUT_BUFFER_SIZE, Size, 4096)
-data(+Output, +OUTPUT -> Offset +File +Buffer)
-def(-OUTPUT, +Output -- Offset +File +Buffer, +OUTPUT -> id)
+def(OUTPUT_BUFFER_SIZE, Size, 4096 >Size)
+data(+Output, +OUTPUT -> Size +File +Buffer)
+def(-OUTPUT, +Output -- Size +File +Buffer, +OUTPUT -> id)
 
 def(output-start!, +File -- +Output,
-    0 OUTPUT_BUFFER_SIZE +Buffer.new +OUTPUT)
+    0 >Size OUTPUT_BUFFER_SIZE +Buffer.new +OUTPUT)
 
 def(output-end!, +Output -- +File,
     output-flush! -OUTPUT drop rdrop)
 
-def(output-offset@, +Output -- Offset +Output, -OUTPUT dup dip(+OUTPUT))
-def(output-offset!, Offset +Output -- +Output, dip(-OUTPUT drop) +OUTPUT)
+def(output-offset@, +Output -- Offset +Output, output-size@ >Offset)
+def(output-size@, +Output -- Size +Output, -OUTPUT dup dip(+OUTPUT))
+def(output-size!, Size +Output -- +Output, dip(-OUTPUT drop) +OUTPUT)
 
 def(+Output~File(f), (*a +File -- *b +File) *a +Output -- *b +Output,
     -OUTPUT dip(rdip(f)) +OUTPUT)
@@ -26,13 +27,13 @@ def(+Output~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Output -- *b +Output,
     -OUTPUT dip(rdip'(f)) +OUTPUT)
 
 def(output-flush!, +Output -- +Output,
-    ~Buffer(buffer-base) output-offset@ ~File(unsafe-write!)
-    0 output-offset!)
+    ~Buffer(buffer-base) output-size@ ~File(unsafe-write!)
+    0 >Size output-size!)
 
 def(output-capacity-total, +Output -- Size +Output, ~Buffer(buffer-size))
 def(output-capacity-remaining, +Output -- Size +Output,
-    output-capacity-total output-offset@ -)
-def(output-full?, +Output -- Bool +Output, output-capacity-remaining 0 <=)
+    output-capacity-total output-size@ -)
+def(output-full?, +Output -- Bool +Output, output-capacity-remaining 0 >Size <=)
 
 def(Str+Output.put, Str +Output -- +Output,
     dup num-bytes output-capacity-remaining > if(
@@ -40,13 +41,16 @@ def(Str+Output.put, Str +Output -- +Output,
         with-str-data(~File(unsafe-write!)),
 
         dup output-offset@ ~Buffer(!Str)
-        num-bytes output-offset@ + output-offset!
+        num-bytes output-size@ + output-size!
     ))
 
 def(Byte+Output.put, Byte +Output -- +Output,
     output-full? then(output-flush!)
-    dip(-OUTPUT) >U8 over !U8 1+ +OUTPUT)
+    output-offset@ ~Buffer(!Byte)
+    output-size@ 1+ output-size!)
 
-def(Int+Output.put, Int +Output -- +Output, int-to-str put)
+def(Int+Output.put, Int +Output -- +Output, show put)
+def(Nat+Output.put, Nat +Output -- +Output, show put)
+def(Size+Output.put, Size +Output -- +Output, show put)
 
 def(+Output.line, +Output -- +Output, BLF put)

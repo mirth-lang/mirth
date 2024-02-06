@@ -80,12 +80,12 @@ def-external(SDL_RenderFillRect, SDL_Renderer* SDL_Rect* --)
 def-type(SDL_Rect*, Ptr)
 
 # Size of SDL_Event structure.
-def(SDL_EVENT_SIZE, Size, 56)
+def(SDL_EVENT_SIZE, Size, 56 >Size)
 def-type(SDL_Event*, Ptr)
 def-type(SDL_EventType, U32)
 def-external(SDL_PollEvent, SDL_Event* -- Int)
- 
-def(SDL_Event.type, SDL_Event* -- SDL_EventType, @U32)
+
+def(SDL_Event.type, SDL_Event* -- SDL_EventType, unsafe(@U32))
 def(SDL_QUIT, SDL_EventType, 0x100 >U32)
 def(SDL_KEYDOWN, SDL_EventType, 0x300 >U32)
 def(SDL_KEYUP, SDL_EventType, 0x301 >U32)
@@ -96,11 +96,14 @@ def(SDL_CONTROLLERDEVICEADDED, SDL_EventType, 0x653 >U32)
 def(SDL_CONTROLLERDEVICEREMOVED, SDL_EventType, 0x654 >U32)
 def(SDL_CONTROLLERDEVICEREMAPPED, SDL_EventType, 0x655 >U32)
 
-def(SDL_Event.key.repeat, SDL_Event* -- U8, 13 swap @@U8)
-def(SDL_Event.key.keysym.scancode, SDL_Event* -- SDL_Scancode, 8 swap @@U16 >SDL_Scancode)
-def(SDL_Event.cbutton.which, SDL_Event* -- SDL_JoystickID, 2 swap @@I32 >Int)
+def(SDL_Event.key.repeat, SDL_Event* -- U8,
+    13 >Offset swap unsafe(offset @U8))
+def(SDL_Event.key.keysym.scancode, SDL_Event* -- SDL_Scancode,
+    16 >Offset swap unsafe(offset @U16) >SDL_Scancode)
+def(SDL_Event.cbutton.which, SDL_Event* -- SDL_JoystickID,
+    8  >Offset swap unsafe(offset @I32) >Int)
 def(SDL_Event.cbutton.button, SDL_Event* -- SDL_GameControllerButton,
-    12 swap @@U8 >SDL_GameControllerButton)
+    12 >Offset swap unsafe(offset @U8) >SDL_GameControllerButton)
 
 def(U16>SDL_Scancode, U16 -- SDL_Scancode, prim-unsafe-cast)
 def(U8>SDL_GameControllerButton, U8 -- SDL_GameControllerButton, prim-unsafe-cast)

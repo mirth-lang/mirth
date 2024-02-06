@@ -257,8 +257,8 @@ def(Token.run-end?, Token -- Bool,
 def(Token.run-tokens, Token -- List(Token),
     collect-while(dup run-end? not, sip(next)) nip)
 
-def(Token.run-length, Token -- Int,
-    dip(0) while(dup run-end? not, next dip(1+)) drop )
+def(Token.run-length, Token -- Nat,
+    dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop )
 
 def(Token.run-has-arrow?, Token -- Bool,
     run-tokens any(dup pat-arrow?))
@@ -276,7 +276,7 @@ def(Token.sig-next-stack-end, Token -- Token,
 def(Token.sig-has-dashes?, Token -- Bool,
     sig-next-stack-end sig-dashes?)
 
-def(Token.sig-arity, Token -- Int Int,
+def(Token.sig-arity, Token -- Nat Nat,
     dup sig-has-dashes? if(
         sig-count-types
         next
@@ -284,11 +284,11 @@ def(Token.sig-arity, Token -- Int Int,
         drop,
 
         sig-count-types
-        drop 0 swap
+        drop 0 >Nat swap
     ))
 
-def(Token.sig-count-types, Token -- Int Token,
-    0 swap while(dup sig-stack-end? not,
+def(Token.sig-count-types, Token -- Nat Token,
+    0 >Nat swap while(dup sig-stack-end? not,
         dup sig-type? if(dip(1+), id)
         next
     ))

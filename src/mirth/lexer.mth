@@ -163,39 +163,27 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
     rdip(freeze drop))
 
 def(str-buf-is-doc-start?, +Str -- Bool +Str,
-    str-buf-num-bytes? 3 = if(
-        0 str-buf-byte@ B'|' =
-        1 str-buf-byte@ B'|' = &&
-        2 str-buf-byte@ B'|' = &&,
-        F
-    ))
+    str-buf-dup! "|||" =)
 
 def(str-buf-is-arrow?, +Str -- Bool +Str,
-    str-buf-num-bytes? 2 = and(
-        0 str-buf-byte@ B'-' =
-        1 str-buf-byte@ B'>' = &&
-    ))
+    str-buf-dup! "->" =)
 
 def(str-buf-is-dashes?, +Str -- Bool +Str,
-    str-buf-num-bytes? 2 = if(
-        0 str-buf-byte@ B'-' =
-        1 str-buf-byte@ B'-' = &&,
-        F
-    ))
+    str-buf-dup! "--" =)
 
 def(str-buf-is-int?, +Str -- Bool +Str,
     str-buf-is-dec-int? if(T, str-buf-is-hex-int?))
 
 def(str-buf-is-dec-int?, +Str -- Bool +Str,
-    0 # number of digits
-    0 # current index
+    0 >Size # number of digits
+    0 >Offset # current index
     dup str-buf-byte@ is-sign if(1+, id)
     while(dup str-buf-byte@ is-digit, dip(1+) 1+)
-    swap 1 >= if(str-buf-num-bytes? =, drop F))
+    swap 0> if(str-buf-num-bytes? >Offset =, drop F))
 
 def(str-buf-is-hex-int?, +Str -- Bool +Str,
-    0 # number of digits
-    0 # current index
+    0 >Size # number of digits
+    0 >Offset # current index
     dup str-buf-byte@ is-sign if(
         1+,
         id
@@ -205,8 +193,8 @@ def(str-buf-is-hex-int?, +Str -- Bool +Str,
         dup str-buf-byte@ B'x' = if(
             1+
             while(dup str-buf-byte@ is-hexdigit, dip(1+) 1+)
-            swap 1 >= if(
-                str-buf-num-bytes? =,
+            swap 0> if(
+                str-buf-num-bytes? >Offset =,
                 drop F
             ),
 
@@ -229,17 +217,17 @@ def(byte-sign-multiplier, Byte -- Int,
 
 ||| process int sign and return initial state for rest of int lexing.
 ||| returns: (sign multiplier) (accumulated value == 0) (str-buf index)
-def(str-buf-int-sign, +Str -- Int Int Int +Str,
-    0 str-buf-byte@ byte-sign-value-index)
+def(str-buf-int-sign, +Str -- Int Int Offset +Str,
+    0 >Offset str-buf-byte@ byte-sign-value-index)
 
-def(byte-sign-value-index, Byte -- Int Int Int,
-    B'-' -> -1 0 1,
-    B'+' -> +1 0 1,
-    _ -> drop +1 0 0)
+def(byte-sign-value-index, Byte -- Int Int Offset,
+    B'-' -> -1 0 1 >Offset,
+    B'+' -> +1 0 1 >Offset,
+    _ -> drop +1 0 0 >Offset)
 
 def(str-buf-dec-int?, +Str -- Int +Str,
     str-buf-int-sign
-    while(dup str-buf-num-bytes? <,
+    while(dup str-buf-num-bytes? >Offset <,
         sip(
             str-buf-byte@ >Int
             dip(10 *) 48 - +
@@ -248,8 +236,8 @@ def(str-buf-dec-int?, +Str -- Int +Str,
     drop *)
 
 def(str-buf-hex-int?, +Str -- Int +Str,
-    str-buf-int-sign 2 + # skip 0x prefix
-    while(dup str-buf-num-bytes? <,
+    str-buf-int-sign 1+ 1+ # skip 0x prefix
+    while(dup str-buf-num-bytes? >Offset <,
         sip(
             str-buf-byte@
             dip(16 *) hexdigit-value +

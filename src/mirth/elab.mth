@@ -282,10 +282,10 @@ def(atom-accepts-args?, Atom -- Atom Bool,
         OP_WORD -> dip(dup args len) type max-num-params <,
         OP_PRIM ->
             match(
-                PRIM_CORE_DIP -> dup args len 1 <,
-                PRIM_CORE_RDIP -> dup args len 1 <,
-                PRIM_CORE_IF -> dup args len 2 <,
-                PRIM_CORE_WHILE -> dup args len 2 <,
+                PRIM_CORE_DIP -> dup args len 1 >Nat <,
+                PRIM_CORE_RDIP -> dup args len 1 >Nat <,
+                PRIM_CORE_IF -> dup args len 2 >Nat <,
+                PRIM_CORE_WHILE -> dup args len 2 >Nat <,
                 _ -> drop F
             ),
         _ -> drop F
@@ -497,7 +497,7 @@ def(elab-atom-name!, Name --,
 
 
 def(elab-needs-dot, Str -- Bool,
-    first-byte if-some(is-alpha, F))
+    first-byte if-some(is-alnum, F))
 
 def(elab-combine-prefix, Str Str -- Str,
     over elab-needs-dot then("." cat) swap cat)
@@ -530,6 +530,12 @@ def(elab-check-name-visible!, Name -- Name,
 def(elab-module-is-visible, Module -- Bool,
     ab-token @ .module visible)
 
+def(elab-stack-type-is-fine?, -- Bool,
+    ab-type @ expand match(
+        STACK_TYPE_ERROR -> F,
+        _ -> drop T
+    ))
+
 def(elab-atom-name-global!, Name --,
     dup >Def match(
         DEF_ALIAS -> nip target elab-atom-name-global!,
@@ -542,10 +548,11 @@ def(elab-atom-name-global!, Name --,
         DEF_TAG -> nip elab-args! ab-tag!,
         DEF_PRIM -> nip elab-prim!,
         _ ->
-            # TODO emit error if stack isn't STACK_TYPE_ERROR
             drop
-            dip(ab-token @ "Unknown word: ")
-            >Str cat emit-error! STACK_TYPE_ERROR ab-type !
+            elab-stack-type-is-fine? if(
+                dip(ab-token @ "Unknown word: ") >Str cat emit-error!,
+                drop
+            ) STACK_TYPE_ERROR ab-type !
     ))
 
 def(elab-prim!, Prim --,
@@ -874,7 +881,7 @@ def(expect-token-arrow, Token -- Token,
 |||     - (optional) sig: the type signature
 |||     - body: a nonempty list of body arguments
 def(token-def-args, Token -- Token Maybe(Token) List+(Token),
-    dup args dup len 2 >= if(nip,
+    dup args dup len 2 >Nat >= if(nip,
         drop "def expects at least two arguments" emit-fatal-error!)
     >List+ unwrap uncons
     >List+ unwrap uncons
@@ -980,7 +987,7 @@ def(elab-buffer!, Token -- Token,
     swap dup name? unwrap-or("expected buffer name" emit-fatal-error!)
     name-undefined? else(drop "buffer name already defined" emit-fatal-error!)
     rotl dup int? unwrap-or("expected buffer size" emit-fatal-error!) nip
-    Buffer.new! drop)
+    >Size Buffer.new! drop)
 
 ||| Elaborate a var declaration `var(v, type)`.
 def(elab-variable!, Token -- Token,
@@ -1025,7 +1032,7 @@ def(typecheck-everything!, --,
 # TABLE #
 #########
 
-def(TABLE_MAX_SIZE, Int, 0x10000)
+def(TABLE_MAX_COUNT, Nat, 0x10000 >Nat)
 
 def(table-word-new!, Table Str -- Word,
     dip(dup head dup rotl name) Name.cat Word.new!)
@@ -1034,7 +1041,7 @@ def(table-new!, Token Name -- Table,
     Table.alloc!
     tuck ~name !
     tuck ~head !
-    TABLE_MAX_SIZE over ~max-count !
+    TABLE_MAX_COUNT over ~max-count !
     dup TTable DEF_TYPE over name ~Def !
 
 
@@ -1047,7 +1054,7 @@ def(table-new!, Token Name -- Table,
 
     ab-build-word!(
         dup head ab-token !
-        TABLE_MAX_SIZE ab-int!
+        TABLE_MAX_COUNT >Int ab-int!
     ) drop
 
     # Table.nil
@@ -1066,7 +1073,7 @@ def(table-new!, Token Name -- Table,
     # Table.NUM
     dup head
     over name ".NUM" Name.cat
-    8 Buffer.new!
+    8 >Size Buffer.new!
     over ~num-buffer !
 
     # Table.id
