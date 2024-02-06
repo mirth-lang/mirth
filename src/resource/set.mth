@@ -11,15 +11,18 @@ def(+Set.index, t +Set(t) -- Int +Set(t),
     -SET dup rdip(dip(run)) +SET
     expect!(dup 0< not, "negative index not allowed"))
 
-def(+Set.new(f), (t -- Int) -- +Set(t), [f] 256 +Buffer.new +SET)
+def(SET_INITIAL_SIZE, Size, 256 >Size)
+
+def(+Set.new(f), (t -- Int) -- +Set(t), [f] SET_INITIAL_SIZE +Buffer.new +SET)
 def(+Set.rdrop, +Set(t) --, -SET drop rdrop)
 
+def(+Set.offset-mask, t +Set(t) -- Offset U8 +Set(t),
+    index 8 /% over 1+ >Size ~Buffer(expand!)
+    dip(>Offset) 1 swap << >U8)
+
 def(+Set.member?, t +Set(t) -- Bool +Set(t),
-    index 8 /% over 1+ ~Buffer(expand!)
-    1 swap << >U8 ~Buffer(swap @U8) & >Int 0 <>)
+    offset-mask ~Buffer(swap @U8) & >Int 0 <>)
 def(+Set.insert!, t +Set(t) -- +Set(t),
-    index 8 /% over 1+ ~Buffer(expand!)
-    1 swap << >U8 ~Buffer(over @U8 | swap !U8))
+    offset-mask ~Buffer(over @U8 | swap !U8))
 def(+Set.remove!, t +Set(t) -- +Set(t),
-    index 8 /% over 1+ ~Buffer(expand!)
-    1 swap << 0xFF ^ >U8 ~Buffer(over @U8 & swap !U8))
+    offset-mask 0xFF >U8 ^ ~Buffer(over @U8 & swap !U8))

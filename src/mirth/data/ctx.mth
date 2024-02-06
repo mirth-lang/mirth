@@ -28,10 +28,10 @@ def(Ctx.vars, Ctx -- List(Var), >List)
 def(Ctx.physical-vars, Ctx -- List(Var), vars filter(dup is-physical?))
 def(Ctx.physically-empty?, Ctx -- Bool, physical-vars is-empty)
 def(Ctx.lookup, Name Ctx -- Maybe(Var), >List reverse-find(dup2 name =) nip)
-def(Ctx.len, Ctx -- Int, >List len)
+def(Ctx.len, Ctx -- Nat, >List len)
 def(Ctx.fresh-name!, Ctx -- Ctx Name,
     # TODO do this properly.
-    "_x" over len int-to-str cat >Name)
+    "_x" over len show cat >Name)
 def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
     dip(PRIM_TYPE_STACK TPrim) fresh-var!)
 def(Ctx.fresh-type-var!, Ctx -- Ctx Var,

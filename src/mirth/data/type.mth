@@ -458,7 +458,7 @@ def(type-head, Type -- Type,
 ||| range from 0 to (n-1). This should not be too large.
 |||
 ||| Do NOT return SOME(n) unless the type has values 0..n-1
-def(type-max-count, Type -- Maybe(Int),
+def(type-max-count, Type -- Maybe(Nat),
     TMeta -> expand-if(type-max-count, drop NONE),
     TApp -> drop type-max-count,
     TTable -> max-count 1+ SOME,
@@ -810,11 +810,11 @@ def(StackType.rigidify!, Ctx StackType -- Ctx StackType,
     STCons -> dip(rigidify!) swap dip(rigidify!) swap STCons,
     STWith -> dip(rigidify!) swap dip(rigidify!) swap STWith)
 
-def(StackType.num-morphisms-on-top, StackType -- Int,
-    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0),
-    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0),
+def(StackType.num-morphisms-on-top, StackType -- Nat,
+    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0 >Nat),
+    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0 >Nat),
     STWith -> drop num-morphisms-on-top,
-    _ -> drop 0)
+    _ -> drop 0 >Nat)
 
 ##############
 # ARROW TYPE #
@@ -880,7 +880,7 @@ def(ArrowType.rigidify!, Ctx ArrowType -- Ctx ArrowType,
     dip(rigidify!) swap
     ARROW_TYPE)
 
-def(ArrowType.max-num-params, ArrowType -- Int,
+def(ArrowType.max-num-params, ArrowType -- Nat,
     dom num-morphisms-on-top)
 
 #########

@@ -37,14 +37,22 @@ def(+Array.unsafe-store, v Ptr +Array(k,v) -- +Array(k,v),
 def(+Array.new(f,g,h), (k -- Offset Size, Ptr +Unsafe -- v +Unsafe, v Ptr +Unsafe -- +Unsafe) Size -- +Array(k,v),
     +Buffer.new MkSpanFn(f) MkPtrGetFn(g) MkPtrSetFn(h) +ARRAY)
 
-def(+Array.new<U8> (f), (k -- Int) Size -- +Array(k, U8 ), +Array.new(f 1    , @U8 , !U8 ))
-def(+Array.new<U16>(f), (k -- Int) Size -- +Array(k, U16), +Array.new(f 2 * 2, @U16, !U16))
-def(+Array.new<U32>(f), (k -- Int) Size -- +Array(k, U32), +Array.new(f 4 * 4, @U32, !U32))
-def(+Array.new<U64>(f), (k -- Int) Size -- +Array(k, U64), +Array.new(f 8 * 8, @U64, !U64))
-def(+Array.new<I8> (f), (k -- Int) Size -- +Array(k, I8 ), +Array.new(f 1    , @I8 , !I8 ))
-def(+Array.new<I16>(f), (k -- Int) Size -- +Array(k, I16), +Array.new(f 2 * 2, @I16, !I16))
-def(+Array.new<I32>(f), (k -- Int) Size -- +Array(k, I32), +Array.new(f 4 * 4, @I32, !I32))
-def(+Array.new<I64>(f), (k -- Int) Size -- +Array(k, I64), +Array.new(f 8 * 8, @I64, !I64))
+def(+Array.new<U8> (f), (k -- Int) Size -- +Array(k, U8 ),
+    +Array.new(f     >Offset 1 >Size, @U8 , !U8 ))
+def(+Array.new<U16>(f), (k -- Int) Size -- +Array(k, U16),
+    +Array.new(f 2 * >Offset 2 >Size, @U16, !U16))
+def(+Array.new<U32>(f), (k -- Int) Size -- +Array(k, U32),
+    +Array.new(f 4 * >Offset 4 >Size, @U32, !U32))
+def(+Array.new<U64>(f), (k -- Int) Size -- +Array(k, U64),
+    +Array.new(f 8 * >Offset 8 >Size, @U64, !U64))
+def(+Array.new<I8> (f), (k -- Int) Size -- +Array(k, I8 ),
+    +Array.new(f     >Offset 1 >Size, @I8 , !I8 ))
+def(+Array.new<I16>(f), (k -- Int) Size -- +Array(k, I16),
+    +Array.new(f 2 * >Offset 2 >Size, @I16, !I16))
+def(+Array.new<I32>(f), (k -- Int) Size -- +Array(k, I32),
+    +Array.new(f 4 * >Offset 4 >Size, @I32, !I32))
+def(+Array.new<I64>(f), (k -- Int) Size -- +Array(k, I64),
+    +Array.new(f 8 * >Offset 8 >Size, @I64, !I64))
 
 def(+Array.new<Int>(f), (k -- Int) Size -- +Array(k, Int),
     +Array.new<I64>(f) transport(I64>Int, Int>I64))
@@ -55,6 +63,6 @@ def(+Array.transport(f,g), (u -- v, v -- u) +Array(k,u) -- +Array(k,v),
     -ARRAY dip(map(f)) comap(g) +ARRAY)
 
 def(+Array.unsafe-ptr, k +Array(k,v) -- Ptr +Array(k,v),
-    key-span ~Buffer(over + expand! buffer-base prim-ptr-add))
+    key-span ~Buffer(over >Int >Size + expand! buffer-base unsafe(offset)))
 def(+Array.get!, k +Array(k,v) -- v +Array(k,v), unsafe-ptr unsafe-load)
 def(+Array.set!, v k +Array(k,v) -- +Array(k,v), unsafe-ptr unsafe-store)

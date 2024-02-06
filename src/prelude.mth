@@ -145,18 +145,16 @@ def(rot4l, a b c d -- b c d a, dip(rotl) swap)
 def(rrot4r, +a +b +c +d -- +d +a +b +c, rswap rdip(rrotr))
 def(rrot4l, +a +b +c +d -- +b +c +d +a, rdip(rrotl) rswap)
 
-def(repeat(f), (*a -- *a) *a Int -- *a,
+def(repeat(f), (*a -- *a) *a Nat -- *a,
     while(dup 0>, dip(f) 1-) drop)
 
-def(count(f), (*a Int -- *a) *a Int -- *a,
-    0 swap repeat(dup dip(f) 1+) drop)
-def(countdown(f), (*a Int -- *a) *a Int -- *a,
-    dup 1- swap repeat(dup dip(f) 1-) drop)
+def(count(f), (*a Nat -- *a) *a Nat -- *a,
+    0 >Nat swap repeat(dup dip(f) 1+) drop)
+def(countdown(f), (*a Nat -- *a) *a Nat -- *a,
+    dup swap repeat(1- dup dip(f)) drop)
 
 def(identity, [*a -- *a], [])
 def(compose(f,g), [*a -- *b] [*b -- *c] -- [*a -- *c], [f g])
-
-def-type(Offset, Int)
 
 def(U8_MAX, Int, 0xFF)
 def(U16_MAX, Int, 0xFFFF)
@@ -212,6 +210,8 @@ alias(Int.1-, prim-int-pred)
 alias(Int.negate, prim-int-negate)
 alias(Int.succ, prim-int-succ)
 alias(Int.pred, prim-int-pred)
+def(Int.2*, Int -- Int, 2 *)
+def(Int.2/, Int -- Int, 2 /)
 def(Int.0=, Int -- Bool, 0 =)
 def(Int.0<, Int -- Bool, 0 <)
 def(Int.0>, Int -- Bool, 0 >)
@@ -227,9 +227,8 @@ def(unsafe(f), (*a +Unsafe -- *b +Unsafe) *a -- *b,
     +UNSAFE f -UNSAFE)
 
 ||| Add byte offset to Ptr.
-def(Ptr.offset, Offset Ptr +Unsafe -- Ptr +Unsafe, prim-ptr-add)
+def(Ptr.offset, Offset Ptr +Unsafe -- Ptr +Unsafe, dip(>Int) prim-ptr-add)
 
-||| Load pointer from memory.
 def(Ptr@Ptr, Ptr +Unsafe -- Ptr +Unsafe, prim-ptr-get)
 def(Ptr!Ptr, Ptr Ptr +Unsafe -- +Unsafe, prim-ptr-set)
 
@@ -250,6 +249,13 @@ def(Ptr!I8,  I8  Ptr +Unsafe -- +Unsafe, prim-i8-set)
 def(Ptr!I16, I16 Ptr +Unsafe -- +Unsafe, prim-i16-set)
 def(Ptr!I32, I32 Ptr +Unsafe -- +Unsafe, prim-i32-set)
 def(Ptr!I64, I64 Ptr +Unsafe -- +Unsafe, prim-i64-set)
+
+def(Ptr.alloc, Size +Unsafe -- Ptr +Unsafe, >Int prim-ptr-alloc)
+def(Ptr.realloc, Ptr Size +Unsafe -- Ptr +Unsafe, >Int prim-ptr-realloc)
+def(Ptr.free, Ptr +Unsafe -- +Unsafe, prim-ptr-free)
+def(Ptr.copy, Ptr Size Ptr +Unsafe -- +Unsafe, dip(>Int) prim-ptr-copy)
+def(Ptr.fill, U8 Size Ptr +Unsafe -- +Unsafe, dip(>Int dip(>Int)) prim-ptr-fill)
+def(Ptr.erase, Size Ptr +Unsafe -- +Unsafe, dip2(0 >U8) fill)
 
 def(U8>Int,  U8  -- Int, prim-unsafe-cast)
 def(U16>Int, U16 -- Int, prim-unsafe-cast)
@@ -344,7 +350,10 @@ def(Nat%, Nat Nat -- Nat, both(>Int) % >Nat-unsafe)
 def(Nat&, Nat Nat -- Nat, both(>Int) & >Nat-unsafe)
 def(Nat|, Nat Nat -- Nat, both(>Int) | >Nat-unsafe)
 def(Nat^, Nat Nat -- Nat, both(>Int) ^ >Nat-unsafe)
-
+def(Nat.1+, Nat -- Nat, >Int 1+ >Nat-unsafe)
+def(Nat.1-, Nat -- Nat, >Int 1- >Nat)
+def(Nat.2*, Nat -- Nat, >Int 2* >Nat-unsafe)
+def(Nat.2/, Nat -- Nat, >Int 2/ >Nat-unsafe)
 def(Nat.cmp, Nat Nat -- Comparison, both(>Int) cmp)
 def(Nat=, Nat Nat -- Bool, both(>Int) =)
 def(Nat<, Nat Nat -- Bool, both(>Int) <)
@@ -352,11 +361,46 @@ def(Nat>, Nat Nat -- Bool, both(>Int) >)
 def(Nat<=, Nat Nat -- Bool, both(>Int) <=)
 def(Nat>=, Nat Nat -- Bool, both(>Int) >=)
 def(Nat<>, Nat Nat -- Bool, both(>Int) <>)
+def(Nat.0>, Nat -- Bool, >Int 0>)
+def(Nat.0=, Nat -- Bool, >Int 0=)
 def(Nat.max, Nat Nat -- Nat, both(>Int) max >Nat-unsafe)
 def(Nat.min, Nat Nat -- Nat, both(>Int) min >Nat-unsafe)
 
-def-type(Size, Int)
-def(Int>Size, Int -- Size, id)
+data(Size, Nat>Size -> Nat)
+def(Size>Nat, Size -- Nat, Nat>Size -> id)
+def(Size>Int, Size -- Int, >Nat >Int)
+def(Int>Size, Int -- Size, >Nat >Size)
+def(Size+, Size Size -- Size, both(>Nat) + >Size)
+def(Size-, Size Size -- Size, both(>Nat) - >Size)
+def(Size.1+, Size -- Size, >Nat 1+ >Size)
+def(Size.1-, Size -- Size, >Nat 1- >Size)
+def(Size.2*, Size -- Size, >Nat 2* >Size)
+def(Size.2/, Size -- Size, >Nat 2/ >Size)
+def(Size=, Size Size -- Bool, both(>Nat) =)
+def(Size<, Size Size -- Bool, both(>Nat) <)
+def(Size>, Size Size -- Bool, both(>Nat) >)
+def(Size<=, Size Size -- Bool, both(>Nat) <=)
+def(Size>=, Size Size -- Bool, both(>Nat) >=)
+def(Size<>, Size Size -- Bool, both(>Nat) <>)
+def(Size.0=, Size -- Bool, >Nat 0=)
+def(Size.0>, Size -- Bool, >Nat 0>)
+def(Size.max, Size Size -- Size, dup2 >= if(drop, nip))
+def(Size.min, Size Size -- Size, dup2 <= if(drop, nip))
+
+data(Offset, Int>Offset -> Int)
+def(Offset>Int, Offset -- Int, Int>Offset -> id)
+def(Nat>Offset, Nat -- Offset, >Int >Offset)
+def(Size>Offset, Size -- Offset, >Nat >Offset)
+def(Offset+, Offset Offset -- Offset, both(>Int) + >Offset)
+def(Offset-, Offset Offset -- Offset, both(>Int) - >Offset)
+def(Offset.1+, Offset -- Offset, >Int 1+ >Offset)
+def(Offset.1-, Offset -- Offset, >Int 1- >Offset)
+def(Offset=, Offset Offset -- Bool, both(>Int) =)
+def(Offset>, Offset Offset -- Bool, both(>Int) >)
+def(Offset<, Offset Offset -- Bool, both(>Int) <)
+def(Offset>=, Offset Offset -- Bool, both(>Int) >=)
+def(Offset<=, Offset Offset -- Bool, both(>Int) <=)
+def(Offset<>, Offset Offset -- Bool, both(>Int) <>)
 
 ##########
 # TUPLES #

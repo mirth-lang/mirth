@@ -66,8 +66,8 @@ def(make-tag!, Str Int List(Type) Mut(Tag) --,
     dip(sip(len) TT)
     sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
     sip(~num-type-inputs !)
-    sip(0 swap ~num-resource-inputs !)
-    sip(~value !)
+    sip(0 >Nat swap ~num-resource-inputs !)
+    sip(dip(>Nat) ~value !)
     dip(>Name) dup2 ~name !
     DEF_TAG swap ~Def !)
 
@@ -90,7 +90,7 @@ def(init-data!, --,
 ########
 
 def(Data=, Data Data -- Bool, both(.id) =)
-def(Data.num-tags, Data -- Int, tags len)
+def(Data.num-tags, Data -- Nat, tags len)
 
 ||| Adds constructor to data type, and gives tag its rank.
 def(Data.add-tag!, Tag Data --,
@@ -104,7 +104,7 @@ def(Data.is-transparent?, Data -- Bool,
     dup is-resource? if(
         drop F,
         tags match(
-            L1 -> dup num-type-inputs 1 = swap num-resource-inputs 0 = &&,
+            L1 -> dup num-type-inputs 1 >Nat = swap num-resource-inputs 0= &&,
             _ -> drop F
         )
     ))
@@ -119,35 +119,35 @@ def(Data.is-resource?, Data -- Bool,
 table(Tag)
 field(Tag~data, Tag, Data)
 field(Tag~name, Tag, Name)
-field(Tag~value, Tag, Int)
-field(Tag~num-type-inputs, Tag, Int)
-field(Tag~num-resource-inputs, Tag, Int)
+field(Tag~value, Tag, Nat)
+field(Tag~num-type-inputs, Tag, Nat)
+field(Tag~num-resource-inputs, Tag, Nat)
 field(Tag~sig?, Tag, Maybe(Token))
 field(Tag~ctx-type, Tag, Lazy([Ctx ArrowType]))
 
 def(Tag.data, Tag -- Data, ~data @)
 def(Tag.name, Tag -- Name, ~name @)
-def(Tag.value, Tag -- Int, ~value @)
-def(Tag.num-type-inputs, Tag -- Int, ~num-type-inputs @)
-def(Tag.num-resource-inputs, Tag -- Int, ~num-resource-inputs @)
+def(Tag.value, Tag -- Nat, ~value @)
+def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
+def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)
 def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
 def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Tag.ctx, Tag -- Ctx, ctx-type drop)
 def(Tag.type, Tag -- ArrowType, ctx-type nip)
 
-def(Tag.num-type-inputs-from-sig, Tag -- Int,
+def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
         swap num-resource-inputs-from-sig -,
-        drop 0
+        drop 0 >Nat
     ))
 
-def(Tag.num-resource-inputs-from-sig, Tag -- Int,
+def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
     sig? if-some(
         run-tokens filter-some(name?)
         filter(dup could-be-resource-var or(dup could-be-resource-con))
         len,
-        0
+        0 >Nat
     ))
 
 def(Tag.is-transparent?, Tag -- Bool,

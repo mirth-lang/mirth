@@ -11,12 +11,12 @@ table(Table)
 field(Table~head, Table, Token) # where the table was defined
 field(Table~name, Table, Name)
 field(Table~num-buffer, Table, Buffer)
-field(Table~max-count, Table, Size)
+field(Table~max-count, Table, Nat)
 
 def(Table.head, Table -- Token, ~head @)
 def(Table.name, Table -- Name, ~name @)
 def(Table.num-buffer, Table -- Buffer, ~num-buffer @)
-def(Table.max-count, Table -- Size, ~max-count @)
+def(Table.max-count, Table -- Nat, ~max-count @)
 def(Table=, Table Table -- Bool, both(.id) =)
 
 table(Field)
