@@ -477,7 +477,7 @@ def(c99-block-enter!, Block +C99 -- +C99,
     c99-line("WORD_ENTER(" put
         dup put ", " put
         dup arrow home match(
-            HOME_NONE -> "block",
+            HOME_MAIN -> drop "block",
             HOME_WORD -> name >Str " block" cat,
         ) put-cstr ", " put
         dup token .module source-path >Str put-cstr ", " put
@@ -504,7 +504,7 @@ def(c99-block-def!, Block +C99 -- +C99,
 def(Block+C99.put, Block +C99 -- +C99,
     "mb_" put
     dup arrow home match(
-        HOME_NONE -> Block.id put,
+        HOME_MAIN -> "main_" put dip(arrow token-start .id) .id - put,
         HOME_WORD -> dup name put "_" put dip(arrow) arrow both(token-start .id) - put
     ))
 

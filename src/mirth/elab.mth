@@ -224,19 +224,12 @@ def(ab-token@, +AB -- Token +AB, ab-arrow@ ~token-end @)
 def(ab-token!, Token +AB -- +AB, ab-arrow@ ~token-end !)
 def(ab-type@, +AB -- StackType +AB, ab-arrow@ ~cod @)
 def(ab-type!, StackType +AB -- +AB, ab-arrow@ ~cod !)
+def(ab-home@, +AB -- Home +AB, ab-arrow@ home)
 
-# def(ab-home!, Maybe(Word) +AB -- +AB, ab-arrow@ ~home !)
-# def(ab-homeidx!, Int +AB -- +AB, ab-arrow@ ~homeidx !)
 
-# AB = Arrow Builder = Arrow Elaborator
-var(ab-home, Home)
-# def(ab-ctx, Mut(Ctx), ab-arrow@ ~ctx)
-# def(ab-token, Mut(Token), ab-arrow@ ~token-end)
-# def(ab-type, Mut(StackType), ab-arrow@ ~cod)
-
-def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token -- *b Arrow,
+def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow,
     Arrow.alloc!
-    ab-home @ over ~home !
+    tuck ~home !
     tuck dup2 ~token-start ! ~token-end !
     tuck dup2 ~dom ! ~cod !
     tuck ~ctx !
@@ -246,14 +239,11 @@ def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token -- *b Arrow,
 ||| Like ab-build! but takes a morphism type to build
 ||| instead of just the domain. The codomain is placed
 ||| on the stack for (in)convenience. (You can ignore it with dip.)
-def(ab-build-hom!(f), (*a StackType +AB -- *b StackType +AB) *a Ctx ArrowType Token -- *b Arrow,
-    dip(unpack rotr)
+def(ab-build-hom!(f), (*a StackType +AB -- *b StackType +AB) *a Ctx ArrowType Token Home -- *b Arrow,
+    dip2(unpack rotr)
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a StackType +AB -- *b StackType +AB) *a Word -- *b Arrow,
-    dup HOME_WORD ab-home !
-    sip(elab-word-ctx-type-weak!)
-    body ab-build-hom!(f)
-    HOME_NONE ab-home !)
+    sip(elab-word-ctx-type-weak!) sip(body) HOME_WORD ab-build-hom!(f))
 def(ab-build-word!(f), (*a +AB -- *b +AB) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck ~arrow !)
@@ -352,7 +342,7 @@ def(ab-word!, Word +AB -- +AB, OP_WORD ab-op!)
 def(ab-external!, External +AB -- +AB, OP_EXTERNAL ab-op!)
 
 def(ab-block-at!(f), (*a +AB -- *b +AB) *a Token +AB -- *b +AB,
-    ab-ctx@ MetaVar.new! STMeta rotl rdip(ab-build!(f))
+    ab-ctx@ MetaVar.new! STMeta rotl ab-home@ rdip(ab-build!(f))
     Block.new! OP_BLOCK ab-op!)
 
 def(ab-block!(f), (*a +AB -- *b +AB) *a +AB -- *b +AB,
@@ -385,7 +375,7 @@ def(ab-lambda!(f), (*a +AB -- *b +AB) *a List(Param) +AB -- *b +AB,
 
     dup inner-ctx
     over mid
-    ab-token@
+    ab-token@ ab-home@
     rdip(ab-build!(
         dip(f)
         ab-type@ over ~cod !
@@ -441,18 +431,18 @@ def(elab-word-ctx-type-weak!, Word -- Ctx ArrowType,
         SOME -> drop ctx-type
     ))
 
-def(elab-arrow!, Ctx ArrowType Token -- Arrow,
-    dip(unpack) elab-arrow-hom!)
+def(elab-arrow!, Ctx ArrowType Token Home -- Arrow,
+    dip2(unpack) elab-arrow-hom!)
 
-def(elab-arrow-hom!, Ctx StackType StackType Token -- Arrow,
-    swap dip(
+def(elab-arrow-hom!, Ctx StackType StackType Token Home -- Arrow,
+    rotl dip(
         elab-arrow-fwd!
         dup token-end GAMMA
         over cod
     )
     unify! drop2)
 
-def(elab-arrow-fwd!, Ctx StackType Token -- Arrow,
+def(elab-arrow-fwd!, Ctx StackType Token Home -- Arrow,
     ab-build!(elab-atoms!))
 
 def(elab-atoms!, +AB -- +AB,
@@ -478,7 +468,7 @@ def(elab-atom-block!, +AB -- +AB,
     ab-token@ args-1 elab-block-at!)
 
 def(elab-block-at!, Token +AB -- +AB,
-    ab-ctx@ swap Block.new-deferred! OP_BLOCK ab-op!)
+    ab-ctx@ swap ab-home@ Block.new-deferred! OP_BLOCK ab-op!)
 
 def(elab-args!, +AB -- +AB,
     ab-token@ args for(elab-block-at!))
@@ -595,7 +585,7 @@ def(elab-atom-match!, +AB -- +AB,
     ab-token@ args+ first
     elab-match-at!)
 
-def(elab-lambda!, Lambda -- Lambda,
+def(elab-lambda!, Lambda +AB -- Lambda +AB,
     elab-lambda-params!
     elab-lambda-body!)
 
@@ -653,11 +643,11 @@ def(elab-lambda-params!, Lambda -- Lambda,
         prev)
     drop)
 
-def(elab-lambda-body!, Lambda -- Lambda,
+def(elab-lambda-body!, Lambda +AB -- Lambda +AB,
     dup token args-1
     while(token-is-lambda-param?, next) succ
     dip(dup mid dip(dup inner-ctx))
-    elab-arrow-fwd!
+    ab-home@ elab-arrow-fwd!
     dup2 swap ~body !
     cod over ~cod !)
 
@@ -668,14 +658,14 @@ def(elab-match-exhaustive!, Match -- Match,
     ))
 
 ||| Elaborate match cases.
-def(elab-match-cases!, Match -- Match,
+def(elab-match-cases!, Match +AB -- Match +AB,
     L0 over ~cases !
     dup body
     while(dup rparen? not, elab-match-case!)
     drop)
 
 ||| Elaborate a single match case `pattern -> body ,`
-def(elab-match-case!, Match Token -- Match Token,
+def(elab-match-case!, Match Token +AB -- Match Token +AB,
     Case.alloc!
     dup2 ~token !
     swap dip(dup2 ~match !)
@@ -730,10 +720,10 @@ def(elab-case-pattern!, Case Token -- Case Token,
     )))
 
 ||| Elaborate case body.
-def(elab-case-body!, Case Token -- Case Token,
-    dip(dup mid dip(dup .match ctx)) elab-arrow-fwd!
-    dup token-end dip(dup cod) { Case Arrow StackType Token }
-    dip2(over ~body !) { Case StackType Token }
+def(elab-case-body!, Case Token +AB -- Case Token +AB,
+    dip(dup mid dip(dup .match ctx)) ab-home@ elab-arrow-fwd!
+    dup token-end dip(dup cod) { Case Arrow StackType Token +AB }
+    dip2(over ~body !) { Case StackType Token +AB }
     dip2(dup .match cod) elab-stack-type-unify! nip)
 
 ######################
@@ -996,7 +986,7 @@ def(elab-target-c99!, Token +World -- Token +World,
     sip(next) args-2
     dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)
     dip(CTX0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
-    elab-arrow!
+    dup HOME_MAIN elab-arrow!
     swap run-output-c99!)
 
 ||| Embed a file as a string, embed-str(name, "path").

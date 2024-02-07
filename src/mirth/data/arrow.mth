@@ -63,7 +63,7 @@ def(Var>Param, Var -- Param, PARAM)
 def(Param>Var, Param -- Var, PARAM -> id)
 
 data(Home,
-    HOME_NONE,
+    HOME_MAIN -> Token,
     HOME_WORD -> Word)
 
 field(Arrow~token-start, Arrow, Token)
@@ -155,8 +155,9 @@ def(Block.new!, Arrow -- Block,
     over cod over ~cod !
     tuck dip(ready) ~arrow !)
 
-def(Block.new-deferred!, Ctx Token -- Block,
+def(Block.new-deferred!, Ctx Token Home -- Block,
     Block.alloc!
+    tuck ~home !
     tuck ~token !
     tuck ~ctx !
     MetaVar.new! STMeta over ~dom !
@@ -165,7 +166,8 @@ def(Block.new-deferred!, Ctx Token -- Block,
         dup ctx swap
         dup dom swap
         dup cod swap
-        token
+        dup token swap
+        home
         elab-arrow-hom!
     ) over ~arrow !)
 
