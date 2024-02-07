@@ -229,8 +229,7 @@ def(ab-type!, StackType +AB -- +AB, ab-arrow@ ~cod !)
 # def(ab-homeidx!, Int +AB -- +AB, ab-arrow@ ~homeidx !)
 
 # AB = Arrow Builder = Arrow Elaborator
-var(ab-home, Maybe(Word))
-var(ab-homeidx, Int)
+var(ab-home, Home)
 # def(ab-ctx, Mut(Ctx), ab-arrow@ ~ctx)
 # def(ab-token, Mut(Token), ab-arrow@ ~token-end)
 # def(ab-type, Mut(StackType), ab-arrow@ ~cod)
@@ -238,8 +237,7 @@ var(ab-homeidx, Int)
 def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token -- *b Arrow,
     Arrow.alloc!
     ab-home @ over ~home !
-    ab-homeidx @ over ~homeidx !
-    ab-homeidx modify(1+)
+    ab-home modify(next)
     tuck dup2 ~token-start ! ~token-end !
     tuck dup2 ~dom ! ~cod !
     tuck ~ctx !
@@ -253,10 +251,10 @@ def(ab-build-hom!(f), (*a StackType +AB -- *b StackType +AB) *a Ctx ArrowType To
     dip(unpack rotr)
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a StackType +AB -- *b StackType +AB) *a Word -- *b Arrow,
-    dup SOME ab-home ! 0 ab-homeidx !
+    dup 0 >Nat HOME_WORD ab-home !
     sip(elab-word-ctx-type-weak!)
     body ab-build-hom!(f)
-    NONE ab-home !)
+    HOME_NONE ab-home !)
 def(ab-build-word!(f), (*a +AB -- *b +AB) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck ~arrow !)
