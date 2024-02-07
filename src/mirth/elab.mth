@@ -214,70 +214,73 @@ def(elab-simple-type-arg!, Token -- Type,
 # Word Elaboration #
 ####################
 
+data(+AB, MKAB -> Arrow)
+def(/MKAB, +AB -- Arrow, MKAB -> id)
+def(ab-arrow@, +AB -- Arrow +AB, MKAB -> dup MKAB)
+def(ab-arrow!, Arrow +AB -- +AB, MKAB -> drop MKAB)
+def(ab-ctx@, +AB -- Ctx +AB, ab-arrow@ ~ctx @)
+def(ab-ctx!, Ctx +AB -- +AB, ab-arrow@ ~ctx !)
+def(ab-token@, +AB -- Token +AB, ab-arrow@ ~token-end @)
+def(ab-token!, Token +AB -- +AB, ab-arrow@ ~token-end !)
+def(ab-type@, +AB -- StackType +AB, ab-arrow@ ~cod @)
+def(ab-type!, StackType +AB -- +AB, ab-arrow@ ~cod !)
+
+# def(ab-home!, Maybe(Word) +AB -- +AB, ab-arrow@ ~home !)
+# def(ab-homeidx!, Int +AB -- +AB, ab-arrow@ ~homeidx !)
+
 # AB = Arrow Builder = Arrow Elaborator
 var(ab-home, Maybe(Word))
 var(ab-homeidx, Int)
-var(ab-arrow, Arrow)
-def(ab-ctx, Mut(Ctx), ab-arrow @ ~ctx)
-def(ab-token, Mut(Token), ab-arrow @ ~token-end)
-def(ab-type, Mut(StackType), ab-arrow @ ~cod)
+# def(ab-ctx, Mut(Ctx), ab-arrow@ ~ctx)
+# def(ab-token, Mut(Token), ab-arrow@ ~token-end)
+# def(ab-type, Mut(StackType), ab-arrow@ ~cod)
 
-def(init-elab!, --,
-    Arrow.nil ab-arrow !)
-
-def(ab-save!(f), (*a -- *b) *a -- *b,
-    ab-arrow @ dip(f) ab-arrow !)
-
-def(ab-build!(f), (*a -- *b) *a Ctx StackType Token -- *b Arrow,
-    ab-save!(
-        Arrow.alloc!
-        ab-home @ over ~home !
-        ab-homeidx @ over ~homeidx !
-        ab-homeidx modify(1+)
-        tuck dup2 ~token-start ! ~token-end !
-        tuck dup2 ~dom ! ~cod !
-        tuck ~ctx !
-        L0 over ~atoms !
-        ab-arrow !
-        f
-        ab-arrow @
-    ))
+def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token -- *b Arrow,
+    Arrow.alloc!
+    ab-home @ over ~home !
+    ab-homeidx @ over ~homeidx !
+    ab-homeidx modify(1+)
+    tuck dup2 ~token-start ! ~token-end !
+    tuck dup2 ~dom ! ~cod !
+    tuck ~ctx !
+    L0 over ~atoms !
+    MKAB f /MKAB)
 
 ||| Like ab-build! but takes a morphism type to build
 ||| instead of just the domain. The codomain is placed
 ||| on the stack for (in)convenience. (You can ignore it with dip.)
-def(ab-build-hom!(f), (*a StackType -- *b StackType) *a Ctx ArrowType Token -- *b Arrow,
+def(ab-build-hom!(f), (*a StackType +AB -- *b StackType +AB) *a Ctx ArrowType Token -- *b Arrow,
     dip(unpack rotr)
     ab-build!(f ab-unify-type!))
-def(ab-build-word-arrow!(f), (*a StackType -- *b StackType) *a Word -- *b Arrow,
+def(ab-build-word-arrow!(f), (*a StackType +AB -- *b StackType +AB) *a Word -- *b Arrow,
     dup SOME ab-home ! 0 ab-homeidx !
     sip(elab-word-ctx-type-weak!)
     body ab-build-hom!(f)
     NONE ab-home !)
-def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
+def(ab-build-word!(f), (*a +AB -- *b +AB) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck ~arrow !)
 
-def(ab-unify-type!, StackType --,
-    dip(ab-token @ GAMMA ab-type @) unify! ab-type ! drop)
+def(ab-unify-type!, StackType +AB -- +AB,
+    dip(ab-token@ GAMMA ab-type@) unify! ab-type! drop)
 
-def(ab-atom!, Atom --,
-    dup token ab-token !
+def(ab-atom!, Atom +AB -- +AB,
+    dup token ab-token!
     # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
-    dup cod ab-type !
-    dip(ab-arrow @ atoms)
+    dup cod ab-type!
+    dip(ab-arrow@ atoms)
     ab-optimized-snoc!
-    ab-arrow @ ~atoms !)
+    ab-arrow@ ~atoms !)
 
 ||| Add an atom to a list of atoms ... smartly.
-def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
+def(ab-optimized-snoc!, List(Atom) Atom +AB -- List(Atom) +AB,
     while(dip?(atoms-has-last-block?) and(atom-accepts-args?),
         swap atoms-turn-last-block-to-arg swap)
     snoc)
 
-def(atom-accepts-args?, Atom -- Atom Bool,
+def(atom-accepts-args?, Atom +AB -- Atom Bool +AB,
     dup op match(
         OP_WORD -> dip(dup args len) type max-num-params <,
         OP_PRIM ->
@@ -291,7 +294,7 @@ def(atom-accepts-args?, Atom -- Atom Bool,
         _ -> drop F
     ))
 
-def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
+def(atoms-has-last-block?, List(Atom) +AB -- List(Atom) Bool +AB,
     dup last match(
         NONE -> F,
         SOME ->
@@ -301,25 +304,25 @@ def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
             )
     ))
 
-def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
+def(atoms-turn-last-block-to-arg, Atom List(Atom) +AB -- Atom List(Atom) +AB,
     >List+ match(
         NONE -> L0,
         SOME ->
             unsnoc dup op match(
                 OP_BLOCK ->
-                    { Atom List(Atom) Atom Block }
+                    { Atom List(Atom) Atom Block +AB}
                     dip(cod rotl tuck ~dom !)
-                    { List(Atom) Atom Block }
+                    { List(Atom) Atom Block +AB}
                     ARG_BLOCK over add-arg-left!
                     swap,
                 _ -> drop snoc
             )
     ))
 
-def(ab-op!, Op --,
+def(ab-op!, Op +AB -- +AB,
     Atom.alloc!
-    ab-ctx @ over ~ctx !
-    ab-token @ over ~token !
+    ab-ctx@ over ~ctx !
+    ab-token@ over ~token !
     dup2 ~op !
     swap elab-op-fresh-sig!
     dip(over ~subst !)
@@ -328,68 +331,68 @@ def(ab-op!, Op --,
     L0 over ~args !
     ab-atom!)
 
-def(ab-expand-opsig!, OpSig -- StackType StackType,
-    OPSIG_ID -> ab-type @ dup,
-    OPSIG_PUSH -> dip(ab-type @ dup) STCons,
+def(ab-expand-opsig!, OpSig +AB -- StackType StackType +AB,
+    OPSIG_ID -> ab-type@ dup,
+    OPSIG_PUSH -> dip(ab-type@ dup) STCons,
     OPSIG_APPLY ->
-        dip(ab-type @) unpack
-        dip(ab-token @ elab-stack-type-unify! drop))
+        dip(ab-type@) unpack
+        dip(ab-token@ elab-stack-type-unify! drop))
 
-def(ab-int!, Int --, OP_INT ab-op!)
-def(ab-str!, Str --, OP_STR ab-op!)
-def(ab-buffer!, Buffer --, OP_BUFFER ab-op!)
-def(ab-variable!, Variable --, OP_VARIABLE ab-op!)
-def(ab-constant!, Constant --, OP_CONSTANT ab-op!)
-def(ab-field!, Field --, OP_FIELD ab-op!)
-def(ab-var!, Var --, OP_VAR ab-op!)
-def(ab-tag!, Tag --, OP_TAG ab-op!)
-def(ab-prim!, Prim --,
+def(ab-int!, Int +AB -- +AB, OP_INT ab-op!)
+def(ab-str!, Str +AB -- +AB, OP_STR ab-op!)
+def(ab-buffer!, Buffer +AB -- +AB, OP_BUFFER ab-op!)
+def(ab-variable!, Variable +AB -- +AB, OP_VARIABLE ab-op!)
+def(ab-constant!, Constant +AB -- +AB, OP_CONSTANT ab-op!)
+def(ab-field!, Field +AB -- +AB, OP_FIELD ab-op!)
+def(ab-var!, Var +AB -- +AB, OP_VAR ab-op!)
+def(ab-tag!, Tag +AB -- +AB, OP_TAG ab-op!)
+def(ab-prim!, Prim +AB -- +AB,
     dup ~type mut-is-set if(
         OP_PRIM ab-op!,
-        ab-token @ "prim does not have type" emit-fatal-error!
+        ab-token@ "prim does not have type" emit-fatal-error!
     ))
-def(ab-word!, Word --, OP_WORD ab-op!)
-def(ab-external!, External --, OP_EXTERNAL ab-op!)
+def(ab-word!, Word +AB -- +AB, OP_WORD ab-op!)
+def(ab-external!, External +AB -- +AB, OP_EXTERNAL ab-op!)
 
-def(ab-block-at!(f), (*a -- *b) *a Token -- *b,
-    ab-ctx @ MetaVar.new! STMeta rotl ab-build!(f)
+def(ab-block-at!(f), (*a +AB -- *b +AB) *a Token +AB -- *b +AB,
+    ab-ctx@ MetaVar.new! STMeta rotl rdip(ab-build!(f))
     Block.new! OP_BLOCK ab-op!)
 
-def(ab-block!(f), (*a -- *b) *a -- *b,
-    ab-token @ ab-block-at!(f))
+def(ab-block!(f), (*a +AB -- *b +AB) *a +AB -- *b +AB,
+    ab-token@ ab-block-at!(f))
 
-def(ab-dip!(f), (*a -- *b) *a -- *b,
+def(ab-dip!(f), (*a +AB -- *b +AB) *a +AB -- *b +AB,
     ab-block!(f) PRIM_CORE_DIP ab-prim!)
 
-def(ab-if!(f,g), (*a -- *b, *b -- *c) *a -- *c,
+def(ab-if!(f,g), (*a +AB -- *b +AB, *b +AB -- *c +AB) *a +AB -- *c +AB,
     ab-block!(f) ab-block!(g) PRIM_CORE_IF ab-prim!)
 
-def(ab-while!(f,g), (*a -- *b, *b -- *c) *a -- *c,
+def(ab-while!(f,g), (*a +AB -- *b +AB, *b +AB -- *c +AB) *a +AB -- *c +AB,
     ab-block!(f) ab-block!(g) PRIM_CORE_WHILE ab-prim!)
 
-def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
+def(ab-lambda!(f), (*a +AB -- *b +AB) *a List(Param) +AB -- *b +AB,
     Lambda.alloc!
-    ab-ctx @ over ~outer-ctx !
-    ab-type @ over ~dom !
-    ab-token @ over ~token !
+    ab-ctx@ over ~outer-ctx !
+    ab-type@ over ~dom !
+    ab-token@ over ~token !
     dup2 ~params !
-    dip(ab-ctx @ ab-type @ rotl reverse-for(
+    dip(ab-ctx@ ab-type@ rotl reverse-for(
         swap dip(>Var dup dip(Ctx.new))
-        ab-token @ elab-expand-tensor!
+        ab-token@ elab-expand-tensor!
         dip(rotl type) elab-type-unify! drop2
     ))
     tuck ~mid !
     tuck ~inner-ctx !
 
-    { *a Lambda }
+    { *a Lambda +AB }
 
     dup inner-ctx
     over mid
-    ab-token @
-    ab-build!(
+    ab-token@
+    rdip(ab-build!(
         dip(f)
-        ab-type @ over ~cod !
-    )
+        ab-type@ over ~cod !
+    ))
     over ~body !
     OP_LAMBDA ab-op!)
 
@@ -455,39 +458,39 @@ def(elab-arrow-hom!, Ctx StackType StackType Token -- Arrow,
 def(elab-arrow-fwd!, Ctx StackType Token -- Arrow,
     ab-build!(elab-atoms!))
 
-def(elab-atoms!, --,
+def(elab-atoms!, +AB -- +AB,
     while(
         elab-atoms-done? not,
-        elab-atom! ab-token modify(next)
+        elab-atom! ab-token@ next ab-token!
     ))
 
-def(elab-atoms-done?, Bool,
-    ab-token @ run-end?)
+def(elab-atoms-done?, +AB -- Bool +AB,
+    ab-token@ run-end?)
 
-def(elab-atom!, --,
-    ab-token @ value match(
+def(elab-atom!, +AB -- +AB,
+    ab-token@ value match(
         TOKEN_NAME -> elab-atom-name!,
         TOKEN_INT -> ab-int!,
         TOKEN_STR -> ab-str!,
         TOKEN_LSQUARE -> drop elab-atom-block!,
         TOKEN_LCURLY -> drop elab-atom-assert!,
-        _ -> ab-token @ "Unexpected token in elab-atom!" emit-fatal-error!
+        _ -> ab-token@ "Unexpected token in elab-atom!" emit-fatal-error!
     ))
 
-def(elab-atom-block!, --,
-    ab-token @ args-1 elab-block-at!)
+def(elab-atom-block!, +AB -- +AB,
+    ab-token@ args-1 elab-block-at!)
 
-def(elab-block-at!, Token --,
-    ab-ctx @ swap Block.new-deferred! OP_BLOCK ab-op!)
+def(elab-block-at!, Token +AB -- +AB,
+    ab-ctx@ swap Block.new-deferred! OP_BLOCK ab-op!)
 
-def(elab-args!, --,
-    ab-token @ args for(elab-block-at!))
+def(elab-args!, +AB -- +AB,
+    ab-token@ args for(elab-block-at!))
 
-def(elab-no-args!, --,
-    ab-token @ args-0)
+def(elab-no-args!, +AB -- +AB,
+    ab-token@ args-0)
 
-def(elab-atom-name!, Name --,
-    dup ab-ctx @ lookup match(
+def(elab-atom-name!, Name +AB -- +AB,
+    dup ab-ctx@ lookup match(
         SOME -> nip elab-args! ab-var!,
         NONE ->
             elab-relativize-name!
@@ -511,32 +514,32 @@ def(elab-combine-prefixes, List+(Str) Maybe(Str) -- List+(Str),
 def(elab-word-search, Str -- Maybe(Name),
     Name.search filter(dup >Def callable?))
 
-def(elab-name-candidates, Name -- List(Name),
+def(elab-name-candidates, Name +AB -- List(Name) +AB,
     >Str L1+
-    ab-type @ top-resource-name map(>Str) elab-combine-prefixes
-    ab-type @ top-tycon-name map(>Str) elab-combine-prefixes
+    ab-type@ top-resource-name map(>Str) elab-combine-prefixes
+    ab-type@ top-tycon-name map(>Str) elab-combine-prefixes
     filter-some(elab-word-search))
 
-def(elab-relativize-name!, Name -- Name,
+def(elab-relativize-name!, Name +AB -- Name +AB,
     dup elab-name-candidates first if-some(nip, id))
 
-def(elab-check-name-visible!, Name -- Name,
+def(elab-check-name-visible!, Name +AB -- Name +AB,
     dup >Def >Module? for(
         dup elab-module-is-visible if(drop,
             "name not visible, must import " swap name >Str cat
-            ab-token @ swap emit-error!)
+            ab-token@ swap emit-error!)
     ))
 
-def(elab-module-is-visible, Module -- Bool,
-    ab-token @ .module visible)
+def(elab-module-is-visible, Module +AB -- Bool +AB,
+    ab-token@ .module visible)
 
-def(elab-stack-type-is-fine?, -- Bool,
-    ab-type @ expand match(
+def(elab-stack-type-is-fine?, +AB -- Bool +AB,
+    ab-type@ expand match(
         STACK_TYPE_ERROR -> F,
         _ -> drop T
     ))
 
-def(elab-atom-name-global!, Name --,
+def(elab-atom-name-global!, Name +AB -- +AB,
     dup >Def match(
         DEF_ALIAS -> nip target elab-atom-name-global!,
         DEF_BUFFER -> nip elab-no-args! ab-buffer!,
@@ -550,49 +553,49 @@ def(elab-atom-name-global!, Name --,
         _ ->
             drop
             elab-stack-type-is-fine? if(
-                dip(ab-token @ "Unknown word: ") >Str cat emit-error!,
+                dip(ab-token@ "Unknown word: ") >Str cat emit-error!,
                 drop
-            ) STACK_TYPE_ERROR ab-type !
+            ) STACK_TYPE_ERROR ab-type!
     ))
 
-def(elab-prim!, Prim --,
+def(elab-prim!, Prim +AB -- +AB,
     match(
         PRIM_CORE_MATCH -> elab-atom-match!,
         PRIM_CORE_LAMBDA -> elab-atom-lambda!,
         _ -> elab-args! ab-prim!
     ))
 
-def(elab-atom-assert!, --,
-    ab-token @ GAMMA
-    ab-ctx @ type-elab-stack-assertion
-    ab-token @ args-1 elab-type-stack!
-    drop nip ab-type @ swap unify! drop2)
+def(elab-atom-assert!, +AB -- +AB,
+    ab-token@ GAMMA
+    ab-ctx@ type-elab-stack-assertion
+    ab-token@ args-1 elab-type-stack!
+    drop nip ab-type@ swap unify! drop2)
 
-def(elab-atom-lambda!, --,
+def(elab-atom-lambda!, +AB -- +AB,
     Lambda.alloc!
-    ab-ctx @ over ~outer-ctx !
-    ab-type @ over ~dom !
-    ab-token @ over ~token !
+    ab-ctx@ over ~outer-ctx !
+    ab-type@ over ~dom !
+    ab-token@ over ~token !
     elab-lambda!
     OP_LAMBDA ab-op!)
 
 ||| Elaborate a match body within AB. Takes the output stack type,
 ||| and the token for the body of the match, from the stack. Takes
 ||| the rest from the AB environment.
-def(elab-match-at!, StackType Token --,
+def(elab-match-at!, StackType Token +AB -- +AB,
     Match.alloc!
-    ab-ctx @ over ~ctx !
-    ab-type @ over ~dom !
-    ab-token @ over ~token !
+    ab-ctx@ over ~ctx !
+    ab-type@ over ~dom !
+    ab-token@ over ~token !
     tuck ~body !
     tuck ~cod !
     elab-match-cases!
     elab-match-exhaustive!
     OP_MATCH ab-op!)
 
-def(elab-atom-match!, --,
+def(elab-atom-match!, +AB -- +AB,
     MetaVar.new! STMeta
-    ab-token @ args+ first
+    ab-token@ args+ first
     elab-match-at!)
 
 def(elab-lambda!, Lambda -- Lambda,
@@ -612,20 +615,6 @@ def(elab-expand-tensor!, StackType Token -- StackType Type Token,
             drop dup "expected tuple type" emit-error!
             dip(STACK_TYPE_ERROR TYPE_ERROR)
     ))
-
-# def(elab-expand-morphism!, Type Token -- Type Type Token,
-#     swap expand match(
-#         TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
-#         TMorphism -> unpack rotl,
-#         TMeta ->
-#             dip(MetaVar.new! TMeta
-#                 MetaVar.new! TMeta
-#                 dup2 T-> SOME)
-#             ~type? ! rotl,
-#         _ ->
-#             drop dup "expected block type" emit-error!
-#             dip(TYPE_ERROR TYPE_ERROR)
-#     ))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     dip(dup mid)
@@ -953,9 +942,9 @@ def(elab-def-params!, Word -- List(Param),
 
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,
 ||| and the rest from the AB environment.
-def(elab-def-body!, StackType -- StackType,
-    ab-token @ run-has-arrow? if(
-        dup ab-token @ elab-match-at!,
+def(elab-def-body!, StackType +AB -- StackType +AB,
+    ab-token@ run-has-arrow? if(
+        dup ab-token@ elab-match-at!,
         elab-atoms!
     ))
 
@@ -1053,7 +1042,7 @@ def(table-new!, Token Name -- Table,
     ready2 over ~ctx-type !
 
     ab-build-word!(
-        dup head ab-token !
+        dup head ab-token!
         TABLE_MAX_COUNT >Int ab-int!
     ) drop
 
@@ -1065,7 +1054,7 @@ def(table-new!, Token Name -- Table,
     ready2 over ~ctx-type !
 
     ab-build-word!(
-        dup head ab-token !
+        dup head ab-token!
         0 ab-int!
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
@@ -1084,7 +1073,7 @@ def(table-new!, Token Name -- Table,
     ready2 over ~ctx-type !
 
     ab-build-word! (
-        dup head ab-token !
+        dup head ab-token!
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
@@ -1096,7 +1085,7 @@ def(table-new!, Token Name -- Table,
     ready2 over ~ctx-type !
 
     ab-build-word! (
-        dup head ab-token !
+        dup head ab-token!
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
@@ -1108,7 +1097,7 @@ def(table-new!, Token Name -- Table,
     ready2 over ~ctx-type !
 
     ab-build-word! (
-        dup head ab-token !
+        dup head ab-token!
         PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
@@ -1129,7 +1118,7 @@ def(table-new!, Token Name -- Table,
     ready2 over ~ctx-type !
 
     ab-build-word! (
-        dup head ab-token !
+        dup head ab-token!
         PRIM_UNSAFE_CAST ab-prim!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
@@ -1153,7 +1142,7 @@ def(table-new!, Token Name -- Table,
         ready2 w ~ctx-type !
 
         w ab-build-word! (
-            t head ab-token !
+            t head ab-token!
             x Var>Param L1 ab-lambda! (
                 1 ab-int!
                 ab-while! (
@@ -1187,7 +1176,7 @@ def(table-new!, Token Name -- Table,
     ready2 over ~ctx-type !
 
     ab-build-word! (
-        dup head ab-token !
+        dup head ab-token!
         dup num-buffer ab-buffer!
         PRIM_U64_GET ab-prim!
         PRIM_UNSAFE_CAST ab-prim!
