@@ -237,7 +237,6 @@ var(ab-home, Home)
 def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token -- *b Arrow,
     Arrow.alloc!
     ab-home @ over ~home !
-    ab-home modify(next)
     tuck dup2 ~token-start ! ~token-end !
     tuck dup2 ~dom ! ~cod !
     tuck ~ctx !
@@ -251,7 +250,7 @@ def(ab-build-hom!(f), (*a StackType +AB -- *b StackType +AB) *a Ctx ArrowType To
     dip(unpack rotr)
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a StackType +AB -- *b StackType +AB) *a Word -- *b Arrow,
-    dup 0 >Nat HOME_WORD ab-home !
+    dup HOME_WORD ab-home !
     sip(elab-word-ctx-type-weak!)
     body ab-build-hom!(f)
     HOME_NONE ab-home !)

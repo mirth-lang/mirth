@@ -64,10 +64,7 @@ def(Param>Var, Param -- Var, PARAM -> id)
 
 data(Home,
     HOME_NONE,
-    HOME_WORD -> Word Nat)
-def(Home.next, Home -- Home,
-    HOME_NONE -> HOME_NONE,
-    HOME_WORD -> 1+ HOME_WORD)
+    HOME_WORD -> Word)
 
 field(Arrow~token-start, Arrow, Token)
 field(Arrow~token-end, Arrow, Token)
