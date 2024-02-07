@@ -62,10 +62,13 @@ data(Param, PARAM -> Var)
 def(Var>Param, Var -- Param, PARAM)
 def(Param>Var, Param -- Var, PARAM -> id)
 
+data(Home,
+    HOME_MAIN -> Token,
+    HOME_WORD -> Word)
+
 field(Arrow~token-start, Arrow, Token)
 field(Arrow~token-end, Arrow, Token)
-field(Arrow~home, Arrow, Maybe(Word))
-field(Arrow~homeidx, Arrow, Int)
+field(Arrow~home, Arrow, Home)
 field(Arrow~ctx, Arrow, Ctx)
 field(Arrow~dom, Arrow, StackType)
 field(Arrow~cod, Arrow, StackType)
@@ -90,14 +93,14 @@ field(Lambda~body, Lambda, Arrow)
 
 field(Block~ctx, Block, Ctx)
 field(Block~token, Block, Token)
+field(Block~home, Block, Home)
 field(Block~dom, Block, StackType)
 field(Block~cod, Block, StackType)
 field(Block~arrow, Block, Lazy(Arrow))
 
 def(Arrow.token-start, Arrow -- Token, ~token-start @)
 def(Arrow.token-end, Arrow -- Token, ~token-end @)
-def(Arrow.home, Arrow -- Maybe(Word), ~home @)
-def(Arrow.homeidx, Arrow -- Int, ~homeidx @)
+def(Arrow.home, Arrow -- Home, ~home @)
 def(Arrow.ctx, Arrow -- Ctx, ~ctx @)
 def(Arrow.dom, Arrow -- StackType, ~dom @)
 def(Arrow.cod, Arrow -- StackType, ~cod @)
@@ -126,6 +129,7 @@ def(Block.token, Block -- Token, ~token @)
 def(Block.dom, Block -- StackType, ~dom @)
 def(Block.cod, Block -- StackType, ~cod @)
 def(Block.type, Block -- ArrowType, sip(dom) cod T->)
+def(Block.home, Block -- Home, ~home @)
 def(Block.arrow, Block -- Arrow, ~arrow force!)
 def(Block.infer-type!, Block -- ArrowType, arrow type)
 
@@ -145,14 +149,16 @@ def(Block=, Block Block -- Bool, both(Block.id) =)
 
 def(Block.new!, Arrow -- Block,
     Block.alloc!
+    over home over ~home !
     over ctx over ~ctx !
     over token-start over ~token !
     over dom over ~dom !
     over cod over ~cod !
     tuck dip(ready) ~arrow !)
 
-def(Block.new-deferred!, Ctx Token -- Block,
+def(Block.new-deferred!, Ctx Token Home -- Block,
     Block.alloc!
+    tuck ~home !
     tuck ~token !
     tuck ~ctx !
     MetaVar.new! STMeta over ~dom !
@@ -161,7 +167,8 @@ def(Block.new-deferred!, Ctx Token -- Block,
         dup ctx swap
         dup dom swap
         dup cod swap
-        token
+        dup token swap
+        home
         elab-arrow-hom!
     ) over ~arrow !)
 

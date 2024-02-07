@@ -14,8 +14,7 @@ def(init!, --,
     init-errors!
     init-paths!
     init-types!
-    init-prims!
-    init-elab!)
+    init-prims!)
 
 ########
 # Main #
