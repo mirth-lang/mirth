@@ -149,6 +149,7 @@ def(Block=, Block Block -- Bool, both(Block.id) =)
 
 def(Block.new!, Arrow -- Block,
     Block.alloc!
+    over home over ~home !
     over ctx over ~ctx !
     over token-start over ~token !
     over dom over ~dom !
