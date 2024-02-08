@@ -7373,7 +7373,7 @@ static void mb__2B_Buffer_2E_check_offset_21__22 (void);
 static void mb__2B_Buffer_40_U8_6 (void);
 static void mb__2B_Buffer_21_U8_6 (void);
 static void mb__2B_Buffer_21_Str_14 (void);
-static void mb__2B_Buffer_40_Str_11 (void);
+static void mb__2B_Buffer_40_Str_12 (void);
 static void mb_Path_3D__2 (void);
 static void mb_Path_2E_join_with_11 (void);
 static void mb_emit_warning_at_21__10 (void);
@@ -13841,15 +13841,17 @@ static void mw__2B_Buffer_40_Str (void) {
     mw_Size_3E_Offset();
     WORD_ATOM(71, 18, "+");
     mw_Offset_2B_();
-    WORD_ATOM(71, 20, "");
+    WORD_ATOM(71, 20, "1-");
+    mw_Offset_2E_1_();
+    WORD_ATOM(71, 23, "");
     push_i64(1LL);
-    WORD_ATOM(71, 22, "check-offset!");
+    WORD_ATOM(71, 25, "check-offset!");
     mw__2B_Buffer_2E_check_offset_21_();
     WORD_ATOM(72, 5, "buffer-base");
     mw__2B_Buffer_2E_buffer_base();
     WORD_ATOM(72, 17, "unsafe");
     push_u64(0);
-    push_fnptr(&mb__2B_Buffer_40_Str_11);
+    push_fnptr(&mb__2B_Buffer_40_Str_12);
     mw_prim_pack_cons();
     mw_unsafe();
     WORD_EXIT(mw__2B_Buffer_40_Str);
@@ -41188,8 +41190,8 @@ static void mb__2B_Buffer_21_Str_14 (void) {
     WORD_EXIT(mb__2B_Buffer_21_Str_14);
 }
 
-static void mb__2B_Buffer_40_Str_11 (void) {
-    WORD_ENTER(mb__2B_Buffer_40_Str_11, "+Buffer@Str block", "src/resource/buffer.mth", 72, 24);
+static void mb__2B_Buffer_40_Str_12 (void) {
+    WORD_ENTER(mb__2B_Buffer_40_Str_12, "+Buffer@Str block", "src/resource/buffer.mth", 72, 24);
     mw_prim_drop();
     WORD_ATOM(72, 24, "swap");
     mw_prim_swap();
@@ -41202,7 +41204,7 @@ static void mb__2B_Buffer_40_Str_11 (void) {
     }
     WORD_ATOM(72, 41, "str-copy");
     mw_str_copy();
-    WORD_EXIT(mb__2B_Buffer_40_Str_11);
+    WORD_EXIT(mb__2B_Buffer_40_Str_12);
 }
 
 static void mb_Path_3D__2 (void) {
