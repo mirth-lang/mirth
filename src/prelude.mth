@@ -401,6 +401,9 @@ def(Offset<, Offset Offset -- Bool, both(>Int) <)
 def(Offset>=, Offset Offset -- Bool, both(>Int) >=)
 def(Offset<=, Offset Offset -- Bool, both(>Int) <=)
 def(Offset<>, Offset Offset -- Bool, both(>Int) <>)
+def(Offset.0=, Offset -- Bool, >Int 0=)
+def(Offset.0<, Offset -- Bool, >Int 0<)
+def(Offset.0>, Offset -- Bool, >Int 0>)
 
 ##########
 # TUPLES #
