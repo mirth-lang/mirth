@@ -65,3 +65,8 @@ def(+Buffer!Str, Str Offset +Buffer -- +Buffer,
     dup 1 check-offset!
     over num-bytes >Offset over + 1- 1 check-offset!
     buffer-base unsafe(offset str-copy-partial! drop))
+
+def(+Buffer@Str, Offset Size +Buffer -- Str +Buffer,
+    over 1 check-offset!
+    dup2 >Offset + 1 check-offset!
+    buffer-base unsafe(swap dip(offset) str-copy))

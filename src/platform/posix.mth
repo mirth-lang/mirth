@@ -40,20 +40,6 @@ def(Nat.trace-ln!, Nat --, show trace-ln!)
 def(Nat.print!, Nat --, show print!)
 def(Nat.print-ln!, Nat --, show print-ln!)
 
-def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
-    0 0 posix-open! dup 0< if(drop g, dup dip(Int>File f) posix-close! drop))
-
-def(READ_FILE_BUF_SIZE, Int, 0x1000)
-buffer(READ_FILE_BUF, 0x1000)
-def(read-file!, File -- Str,
-    File>Int \(fp -> ""
-    fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read
-    while(dup 0>,
-        READ_FILE_BUF swap prim-str-copy cat
-        fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read)
-    expect!(dup 0=, "error while reading file")
-    drop))
-
 ########
 # STAT #
 ########
