@@ -3,6 +3,8 @@ module(resource.input)
 import(prelude)
 import(platform.posix)
 import(data.byte)
+import(data.maybe)
+import(data.str)
 import(resource.buffer)
 import(resource.file)
 
@@ -81,3 +83,18 @@ def(input-prepare-for-more!, +InputOpen -- +Input,
         input-fill-buffer!,
         +INPUT_OPEN
     ))
+
+||| Read a chunk of input.
+def(input-read-chunk!, +Input -- Maybe(Str) +Input,
+    +INPUT_OPEN ->
+        input-offset@
+        input-length@ input-offset@ >Int >Size -
+        ~Buffer(@Str)
+        input-fill-buffer!
+        SOME,
+    +INPUT_DONE ->
+        NONE +INPUT_DONE)
+
+||| Read the whole file.
+def(input-read-file!, +Input -- Str +Input,
+    "" while-some(input-read-chunk!, cat))

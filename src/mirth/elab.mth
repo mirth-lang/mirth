@@ -9,6 +9,7 @@ import(data.maybe)
 import(data.either)
 import(data.path)
 import(data.byte)
+import(resource.file)
 import(mirth.data.name)
 import(mirth.data.def)
 import(mirth.data.token)
@@ -991,12 +992,12 @@ def(elab-target-c99!, Token +World -- Token +World,
 
 ||| Embed a file as a string, embed-str(name, "path").
 ||| The path is relative to compiler's cwd, not source root.
-def(elab-embed-str!, Token -- Token,
+def(elab-embed-str!, Token +World -- Token +World,
     sip(next) args-2 swap
     dup name? unwrap-or("expected embedded constant name" emit-fatal-error!)
     name-undefined? else(drop "embedded constant name already defined" emit-fatal-error!)
     rotl dup str? unwrap-or("expected source path" emit-fatal-error!)
-    with-open-file!(read-file! nip, "could not open source file" emit-fatal-error!)
+    >Path open-file! .read-file! close-file! nip
     VALUE_STR Constant.new! drop)
 
 ||| Ensure that everything so far has been typechecked.

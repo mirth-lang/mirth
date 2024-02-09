@@ -4,6 +4,7 @@ import(prelude)
 import(data.path)
 import(data.str)
 import(platform.posix)
+import(resource.input)
 
 data(+File, +FILE -> Int)
 def(+File-FILE, +File -- Int, +FILE -> id)
@@ -46,3 +47,8 @@ def(+File.unsafe-read!, Ptr Size +File -- Size +File,
     dip2(file-descriptor) >Int posix-read!
     expect!(dup 0< not, "read failed")
     >Size)
+
+def(+File.read-file!, +File -- Str +File,
+    input-start!
+    input-read-file!
+    input-end!)
