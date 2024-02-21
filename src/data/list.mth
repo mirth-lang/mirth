@@ -284,55 +284,57 @@ def(List+.filter-some(p), (*c a -- *c Maybe(b)) *c List+(a) -- *c List(b),
     LCAT+ -> drop dip(filter-some(p)) dip'(filter-some(p)) cat,
     _ -> unsnoc dip(filter-some(p)) dip'(p) if-some(snoc, id))
 
+def(find-some-aux2(f), (*c a -- *c Maybe(b)) *c a a -- *c Maybe(b),
+    dip(f) swap match(NONE -> f, _ -> nip))
+
+def(find-some-aux3(f), (*c a -- *c Maybe(b)) *c a a a -- *c Maybe(b),
+    dip(dip(f) swap) swap match(NONE -> find-some-aux2(f), _ -> dip(drop2)))
+
+||| Find first element that returns SOME, if it exists.
+def(List.find-some(f), (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b),
+    List>List+ match(NONE -> NONE, SOME -> find-some(f)))
+
+||| Find first element that returns SOME, if it exists.
+def(List+.find-some(f), (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b),
+    L1+ -> f,
+    L2+ -> find-some-aux2(f),
+    L3+ -> find-some-aux3(f),
+    LCAT+ -> drop dip(find-some(f)) swap match(NONE -> find-some(f), _ -> nip))
+
+||| Find last element that returns SOME, if it exists.
+def(List.reverse-find-some(f), (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b),
+    List>List+ match(NONE -> NONE, SOME -> reverse-find-some(f)))
+
+||| Find last element that returns SOME, if it exists.
+def(List+.reverse-find-some(f), (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b),
+    L1+ -> f,
+    L2+ -> swap find-some-aux2(f),
+    L3+ -> rotr swap find-some-aux3(f),
+    LCAT+ -> drop dip'(reverse-find-some(f)) match(NONE -> reverse-find-some(f), _ -> nip))
+
 ||| Find the first element that satisfies the predicate, if it exists.
 def(List.find(f), (*c a -- *c a Bool) *c List(a) -- *c Maybe(a),
-    List>List+ match(
-        NONE -> NONE,
-        SOME -> find(f)
-    ))
+    find-some(f if(SOME, drop NONE)))
 
 ||| Find the first element that satisfies the predicate, if it exists.
 def(List+.find(f), (*c a -- *c a Bool) *c List+(a) -- *c Maybe(a),
-    LCAT+ ->
-        drop dip(find(f)) swap
-        match(
-            SOME -> nip SOME,
-            NONE -> find(f)
-        ),
-    _ ->
-        uncons dip(f) swap if(
-            drop SOME,
-            nip find(f)
-        )
-    )
+    find-some(f if(SOME, drop NONE)))
 
-||| Like `find` but preserves the list.
-def(List.find?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Maybe(a),
-    sip(find(f)) swap)
-
-||| Like `find` but goes backward through the list.
+||| Find the last element that satisfies the predicate, if it exists.
 def(List.reverse-find(f), (*c a -- *c a Bool) *c List(a) -- *c Maybe(a),
-    reverse find(f))  # TODO: implement directly?
+    reverse-find-some(f if(SOME, drop NONE)))
 
-||| Like `find?` but goes backward through the list.
-def(List.reverse-find?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Maybe(a),
-    sip(reverse-find(f)) swap)
+||| Find the last element that satisfies the predicate, if it exists.
+def(List+.reverse-find(f), (*c a -- *c a Bool) *c List+(a) -- *c Maybe(a),
+    reverse-find-some(f if(SOME, drop NONE)))
 
 ||| Is the predicate true for any element of the list?
 def(List.any(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
     find(f) some?)
 
-||| Is the predicate true for any element of the list?
-def(List.any?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Bool,
-    find?(f) some?)
-
 ||| Is the predicate true for all elements of the list?
 def(List.all(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
     find(f not) none?)
-
-||| Is the predicate true for all elements of the list?
-def(List.all?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Bool,
-    find?(f not) none?)
 
 ||| Build a list through repetition, stopping at the first NONE.
 def(collect(f), (*a -- *a Maybe(b)) *a -- *a List(b),
