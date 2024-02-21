@@ -98,7 +98,7 @@ def(Data.add-tag!, Tag Data --,
     dup tags rotr dip(snoc) ~tags !)
 
 def(Data.is-enum?, Data -- Bool,
-    tags all?(dup num-type-inputs 0= and(dup num-resource-inputs 0=)) nip)
+    tags all(dup num-type-inputs 0= and(dup num-resource-inputs 0=)))
 
 def(Data.is-transparent?, Data -- Bool,
     dup is-resource? if(
