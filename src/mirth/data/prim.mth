@@ -55,6 +55,7 @@ data(Prim,
     PRIM_MUT_IS_SET,
 
     PRIM_PTR_NIL,
+    PRIM_PTR_EQ,
     PRIM_PTR_ADD,
     PRIM_PTR_SIZE,
     PRIM_PTR_GET,
@@ -205,6 +206,7 @@ def(init-prims!, --,
     PRIM_MUT_IS_SET "prim-mut-is-set" def-prim!
 
     PRIM_PTR_NIL "prim-ptr-nil" def-prim!
+    PRIM_PTR_EQ "prim-ptr-eq" def-prim!
     PRIM_PTR_ADD "prim-ptr-add" def-prim!
     PRIM_PTR_SIZE "prim-ptr-size" def-prim!
     PRIM_PTR_GET "prim-ptr-get" def-prim!
@@ -335,6 +337,9 @@ def(init-prims!, --,
 
     CTX0 T0 TYPE_PTR T1 T->
     PRIM_PTR_NIL ctx-type!
+
+    CTX0 TYPE_PTR TYPE_PTR T2 TYPE_BOOL T1 T->
+    PRIM_PTR_EQ ctx-type!
 
     CTX0 TYPE_INT TYPE_PTR T2 TYPE_PTR T1 T->
     PRIM_PTR_ADD ctx-type!

@@ -1003,6 +1003,13 @@ static void mw_prim_ptr_nil (void) {
     push_ptr((void*)0);
     PRIM_EXIT(mw_prim_ptr_nil);
 }
+static void mw_prim_ptr_eq (void) {
+    PRIM_ENTER(mw_prim_ptr_eq,"prim-ptr-eq");
+    void* a = pop_ptr();
+    void* b = pop_ptr();
+    push_bool(a == b);
+    PRIM_EXIT(mw_prim_ptr_eq);
+}
 static void mw_prim_ptr_add (void) {
     PRIM_ENTER(mw_prim_ptr_add,"prim-ptr-add");
     VAL vptr = pop_value();
