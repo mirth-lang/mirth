@@ -795,7 +795,7 @@ def(elab-data!, Token -- Token,
         swap args+
         uncons dip(elab-data-header!)
         for(elab-data-tag!)
-        drop
+        elab-data-done!
     ) next)
 
 ||| Get the header, name, arity for a data type.
@@ -849,6 +849,26 @@ def(elab-data-tag!, Data Token -- Data,
     )
 
     drop)
+
+def(data-word-new!, Data Str -- Word,
+    dip(dup head? unwrap dup rotl name) Name.cat Word.new!)
+
+def(elab-data-done!, Data --,
+    \(dat -> dat is-enum? then(
+        dat ".tag" data-word-new! \(tag ->
+            CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
+            tag ab-build-word!(
+                PRIM_UNSAFE_CAST ab-prim!
+            ) drop
+        )
+
+        dat ".from-tag-unsafe" data-word-new! \(ftag ->
+            CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
+            ftag ab-build-word!(
+                PRIM_UNSAFE_CAST ab-prim!
+            ) drop
+        )
+    )))
 
 def(expect-token-arrow, Token -- Token,
     dup pat-arrow? else("Expected arrow." emit-fatal-error!))

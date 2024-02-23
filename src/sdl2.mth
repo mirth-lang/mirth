@@ -105,8 +105,10 @@ def(SDL_Event.cbutton.which, SDL_Event* -- SDL_JoystickID,
 def(SDL_Event.cbutton.button, SDL_Event* -- SDL_GameControllerButton,
     12 >Offset swap unsafe(offset @U8) >SDL_GameControllerButton)
 
-def(U16>SDL_Scancode, U16 -- SDL_Scancode, prim-unsafe-cast)
-def(U8>SDL_GameControllerButton, U8 -- SDL_GameControllerButton, prim-unsafe-cast)
+def(U16>SDL_Scancode, U16 -- SDL_Scancode,
+    >Int SDL_Scancode.from-tag-unsafe)
+def(U8>SDL_GameControllerButton, U8 -- SDL_GameControllerButton,
+    >Int SDL_GameControllerButton.from-tag-unsafe)
 
 data(SDL_Scancode,
     SDL_SCANCODE_UNKNOWN,
@@ -416,6 +418,7 @@ data(SDL_GameControllerButton,
     SDL_CONTROLLER_BUTTON_DPAD_DOWN,
     SDL_CONTROLLER_BUTTON_DPAD_LEFT,
     SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
-def(SDL_CONTROLLER_BUTTON_INVALID, SDL_GameControllerButton, 0xFF prim-unsafe-cast)
+def(SDL_CONTROLLER_BUTTON_INVALID, SDL_GameControllerButton,
+    0xFF SDL_GameControllerButton.from-tag-unsafe)
     # TODO find way to fold SDL_CONTROLLER_BUTTON_INVALID into definition of enum,
     # without having to specify all of these manually.
