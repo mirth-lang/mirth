@@ -341,7 +341,7 @@ def(snake-check-mouse!, --,
         id
     ))
 
-def(Direction->Int, Direction -- Int, prim-unsafe-cast)
+def(Direction->Int, Direction -- Int, Direction.tag)
 def(direction==, Direction Direction -- Bool, both(Direction->Int) =)
 
 def(snake-turn!, Direction --,

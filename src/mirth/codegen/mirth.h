@@ -989,8 +989,6 @@ static void mw_prim_i64_set (void) {
 #define mw_prim_sys_os() push_u64(0)
 #endif
 
-static void mw_prim_unsafe_cast (void) { }
-
 static void mw_prim_run (void) {
     PRIM_ENTER(mw_prim_run,"prim-run");
     VAL f = pop_value();
@@ -1002,6 +1000,13 @@ static void mw_prim_ptr_nil (void) {
     PRIM_ENTER(mw_prim_ptr_nil,"prim-ptr-nil");
     push_ptr((void*)0);
     PRIM_EXIT(mw_prim_ptr_nil);
+}
+static void mw_prim_ptr_eq (void) {
+    PRIM_ENTER(mw_prim_ptr_eq,"prim-ptr-eq");
+    void* a = pop_ptr();
+    void* b = pop_ptr();
+    push_bool(a == b);
+    PRIM_EXIT(mw_prim_ptr_eq);
 }
 static void mw_prim_ptr_add (void) {
     PRIM_ENTER(mw_prim_ptr_add,"prim-ptr-add");

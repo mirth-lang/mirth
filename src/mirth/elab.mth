@@ -341,6 +341,7 @@ def(ab-prim!, Prim +AB -- +AB,
     ))
 def(ab-word!, Word +AB -- +AB, OP_WORD ab-op!)
 def(ab-external!, External +AB -- +AB, OP_EXTERNAL ab-op!)
+def(ab-coerce!, Coerce +AB -- +AB, OP_COERCE ab-op!)
 
 def(ab-block-at!(f), (*a +AB -- *b +AB) *a Token +AB -- *b +AB,
     ab-ctx@ MetaVar.new! STMeta rotl ab-home@ rdip(ab-build!(f))
@@ -406,7 +407,14 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_VAR -> elab-var-sig!,
         OP_MATCH -> elab-match-sig!,
         OP_LAMBDA -> elab-lambda-sig!,
+        OP_COERCE -> elab-coerce-sig!,
     ))
+
+def(elab-coerce-sig!, Coerce -- OpSig,
+    COERCE_UNSAFE ->
+        MetaVar.new! STMeta dup
+        MetaVar.new! TMeta T* swap
+        MetaVar.new! TMeta T* T-> OPSIG_APPLY)
 
 def(elab-block-sig!, Block -- OpSig,
     VALUE_BLOCK TValue OPSIG_PUSH)
@@ -795,7 +803,7 @@ def(elab-data!, Token -- Token,
         swap args+
         uncons dip(elab-data-header!)
         for(elab-data-tag!)
-        drop
+        elab-data-done!
     ) next)
 
 ||| Get the header, name, arity for a data type.
@@ -849,6 +857,26 @@ def(elab-data-tag!, Data Token -- Data,
     )
 
     drop)
+
+def(data-word-new!, Data Str -- Word,
+    dip(dup head? unwrap dup rotl name) Name.cat Word.new!)
+
+def(elab-data-done!, Data --,
+    \(dat -> dat is-enum? then(
+        dat ".tag" data-word-new! \(tag ->
+            CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
+            tag ab-build-word!(
+                COERCE_UNSAFE ab-coerce!
+            ) drop
+        )
+
+        dat ".from-tag-unsafe" data-word-new! \(ftag ->
+            CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
+            ftag ab-build-word!(
+                COERCE_UNSAFE ab-coerce!
+            ) drop
+        )
+    )))
 
 def(expect-token-arrow, Token -- Token,
     dup pat-arrow? else("Expected arrow." emit-fatal-error!))
@@ -1044,7 +1072,7 @@ def(table-new!, Token Name -- Table,
     ab-build-word!(
         dup head ab-token!
         0 ab-int!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
     ) drop
 
     # Table.NUM
@@ -1062,7 +1090,7 @@ def(table-new!, Token Name -- Table,
 
     ab-build-word! (
         dup head ab-token!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
     ) drop
 
     # Table.from-id
@@ -1074,7 +1102,7 @@ def(table-new!, Token Name -- Table,
 
     ab-build-word! (
         dup head ab-token!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
     ) drop
 
     # Table.succ
@@ -1086,16 +1114,16 @@ def(table-new!, Token Name -- Table,
 
     ab-build-word! (
         dup head ab-token!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         dup num-buffer ab-buffer!
         PRIM_U64_GET ab-prim!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_INT_MOD ab-prim!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
     ) drop
 
     # Table.pred
@@ -1107,7 +1135,7 @@ def(table-new!, Token Name -- Table,
 
     ab-build-word! (
         dup head ab-token!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
         PRIM_INT_EQ ab-prim!
@@ -1116,7 +1144,7 @@ def(table-new!, Token Name -- Table,
             1 ab-int!
             PRIM_INT_SUB ab-prim!
         )
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
     ) drop
 
     # Table.for
@@ -1137,14 +1165,14 @@ def(table-new!, Token Name -- Table,
                     PRIM_CORE_DUP ab-prim!
                     t num-buffer ab-buffer!
                     PRIM_U64_GET ab-prim!
-                    PRIM_UNSAFE_CAST ab-prim!
+                    COERCE_UNSAFE ab-coerce!
                     1 ab-int!
                     PRIM_INT_ADD ab-prim!
                     PRIM_INT_LT ab-prim!,
 
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
-                        PRIM_UNSAFE_CAST ab-prim!
+                        COERCE_UNSAFE ab-coerce!
                         x ab-var!
                     )
                     1 ab-int!
@@ -1167,14 +1195,14 @@ def(table-new!, Token Name -- Table,
         dup head ab-token!
         dup num-buffer ab-buffer!
         PRIM_U64_GET ab-prim!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_CORE_DUP ab-prim!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
         dup num-buffer ab-buffer!
         PRIM_U64_SET ab-prim!
-        PRIM_UNSAFE_CAST ab-prim!
+        COERCE_UNSAFE ab-coerce!
     )
     drop
     )

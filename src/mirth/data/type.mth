@@ -85,7 +85,7 @@ def(Value.tycon-name, Value -- Maybe(Name),
     VALUE_STR -> drop "Str" >Name SOME,
     VALUE_BLOCK -> drop NONE)
 
-def(PrimType>Int, PrimType -- Int, prim-unsafe-cast)
+def(PrimType>Int, PrimType -- Int, PrimType.tag)
 def(PrimType=, PrimType PrimType -- Bool, both(>Int) =)
 
 def(def-type!, Type Str --, dip(DEF_TYPE) >Name ~Def !)

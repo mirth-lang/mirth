@@ -29,8 +29,6 @@ data(Prim,
     PRIM_CORE_RSWAP,
     PRIM_CORE_RDIP,
 
-    PRIM_UNSAFE_CAST,
-
     PRIM_INT_EQ,
     PRIM_INT_LT,
     PRIM_INT_ADD,
@@ -55,6 +53,7 @@ data(Prim,
     PRIM_MUT_IS_SET,
 
     PRIM_PTR_NIL,
+    PRIM_PTR_EQ,
     PRIM_PTR_ADD,
     PRIM_PTR_SIZE,
     PRIM_PTR_GET,
@@ -126,7 +125,7 @@ def(Prim.ctx, Prim -- Ctx, ~ctx @)
 def(Prim.type, Prim -- ArrowType, ~type @)
 def(Prim.decl, Prim -- Maybe([Token +World -- Token +World]), ~decl @)
 
-def(Prim>Int, Prim -- Int, prim-unsafe-cast)
+def(Prim>Int, Prim -- Int, Prim.tag)
 def(Prim=, Prim Prim -- Bool, both(>Int) =)
 
 ||| Auxilliary word for defining primitives.
@@ -180,8 +179,6 @@ def(init-prims!, --,
     PRIM_CORE_RSWAP "prim-rswap" def-prim!
     PRIM_CORE_RDIP "prim-rdip" def-prim!
 
-    PRIM_UNSAFE_CAST "prim-unsafe-cast" def-prim!
-
     PRIM_INT_ADD "prim-int-add" def-prim!
     PRIM_INT_SUB "prim-int-sub" def-prim!
     PRIM_INT_MUL "prim-int-mul" def-prim!
@@ -205,6 +202,7 @@ def(init-prims!, --,
     PRIM_MUT_IS_SET "prim-mut-is-set" def-prim!
 
     PRIM_PTR_NIL "prim-ptr-nil" def-prim!
+    PRIM_PTR_EQ "prim-ptr-eq" def-prim!
     PRIM_PTR_ADD "prim-ptr-add" def-prim!
     PRIM_PTR_SIZE "prim-ptr-size" def-prim!
     PRIM_PTR_GET "prim-ptr-get" def-prim!
@@ -336,6 +334,9 @@ def(init-prims!, --,
     CTX0 T0 TYPE_PTR T1 T->
     PRIM_PTR_NIL ctx-type!
 
+    CTX0 TYPE_PTR TYPE_PTR T2 TYPE_BOOL T1 T->
+    PRIM_PTR_EQ ctx-type!
+
     CTX0 TYPE_INT TYPE_PTR T2 TYPE_PTR T1 T->
     PRIM_PTR_ADD ctx-type!
 
@@ -385,7 +386,7 @@ def(init-prims!, --,
     PRIM_PACK_NIL ctx-type!
 
     #
-    # polymorphic prims -- we really need better technology to notate these
+    # polymorphic prims
     #
 
     TYPE_TYPE "a" >Name Var.new!
@@ -415,10 +416,6 @@ def(init-prims!, --,
         xs ys CTX2
         txs txs tys T-> >Type T* tys T->
         PRIM_CORE_RUN ctx-type!
-
-        a b CTX2
-        ta T1 tb T1 T->
-        PRIM_UNSAFE_CAST ctx-type!
 
         xs ys CTX2
         txs TYPE_INT T* tys T->
