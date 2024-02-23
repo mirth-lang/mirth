@@ -83,7 +83,8 @@ def(Op+Needs.run!, List(Arg) Op +Needs -- +Needs,
     OP_MATCH -> nip run!,
     OP_LAMBDA -> nip run!,
     OP_VAR -> drop2,
-    OP_BLOCK -> nip push!)
+    OP_BLOCK -> nip push!,
+    OP_COERCE -> drop2)
 def(Prim+Needs.run!, List(Arg) Prim +Needs -- +Needs,
     PRIM_CORE_DIP -> match(L1 -> run!, _ -> push-args!),
     PRIM_CORE_RDIP -> match(L1 -> run!, _ -> push-args!),

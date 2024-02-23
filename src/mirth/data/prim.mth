@@ -29,8 +29,6 @@ data(Prim,
     PRIM_CORE_RSWAP,
     PRIM_CORE_RDIP,
 
-    PRIM_UNSAFE_CAST,
-
     PRIM_INT_EQ,
     PRIM_INT_LT,
     PRIM_INT_ADD,
@@ -180,8 +178,6 @@ def(init-prims!, --,
 
     PRIM_CORE_RSWAP "prim-rswap" def-prim!
     PRIM_CORE_RDIP "prim-rdip" def-prim!
-
-    PRIM_UNSAFE_CAST "prim-unsafe-cast" def-prim!
 
     PRIM_INT_ADD "prim-int-add" def-prim!
     PRIM_INT_SUB "prim-int-sub" def-prim!
@@ -390,7 +386,7 @@ def(init-prims!, --,
     PRIM_PACK_NIL ctx-type!
 
     #
-    # polymorphic prims -- we really need better technology to notate these
+    # polymorphic prims
     #
 
     TYPE_TYPE "a" >Name Var.new!
@@ -420,10 +416,6 @@ def(init-prims!, --,
         xs ys CTX2
         txs txs tys T-> >Type T* tys T->
         PRIM_CORE_RUN ctx-type!
-
-        a b CTX2
-        ta T1 tb T1 T->
-        PRIM_UNSAFE_CAST ctx-type!
 
         xs ys CTX2
         txs TYPE_INT T* tys T->

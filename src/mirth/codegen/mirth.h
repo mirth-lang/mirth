@@ -989,8 +989,6 @@ static void mw_prim_i64_set (void) {
 #define mw_prim_sys_os() push_u64(0)
 #endif
 
-static void mw_prim_unsafe_cast (void) { }
-
 static void mw_prim_run (void) {
     PRIM_ENTER(mw_prim_run,"prim-run");
     VAL f = pop_value();
