@@ -321,11 +321,11 @@ var(snake-mouse-y, YCoord)
 def(snake-mouse-xy@, XCoord YCoord,
     snake-mouse-x @ snake-mouse-y @)
 
-def-external(rand, Int)
+def-external(libc-rand -> rand, Int)
 
 def(snake-randomize-mouse!, --,
-    rand SNAKE_W % Int->XCoord snake-mouse-x !
-    rand SNAKE_H % Int->YCoord snake-mouse-y !
+    libc-rand SNAKE_W % Int->XCoord snake-mouse-x !
+    libc-rand SNAKE_H % Int->YCoord snake-mouse-y !
 
     snake-mouse-xy@ snake-grid@ >Int 0> if(
         snake-randomize-mouse!, # might lead to crash if there is no empty space ...
