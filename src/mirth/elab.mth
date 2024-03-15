@@ -964,15 +964,21 @@ def(elab-def-body!, StackType +AB -- StackType +AB,
         elab-atoms!
     ))
 
-||| Elaborate an external declaration `def-external(w, t)`
+||| Elaborate an external declaration `def-external(w, t)` or `def-external(w -> sym, t)`
 def(elab-def-external!, Token -- Token,
     sip(next) args-2
     swap dup name? unwrap-or("expected word name" emit-fatal-error!)
     name-undefined? else(drop "word already defined" emit-fatal-error!)
-    nip
+    swap succ dup comma? if(
+        drop dup,
+        expect-token-arrow succ
+        dup name? unwrap-or("expected external symbol name" emit-fatal-error!) nip
+    ) >Str swap
+
     External.alloc!
     dup2 DEF_EXTERNAL swap ~Def !
     tuck ~name !
+    tuck ~symbol !
     tuck ~sig !
     dup delay(
         type-elab-default swap sig
