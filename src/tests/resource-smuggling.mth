@@ -11,6 +11,5 @@ def(main, +World -- +World,
     dup-world
     drop-world)
 
-target-c99("resource-smuggling.c", main)
 # mirth-test # merr # 4:29: error: Value type cannot contain resource.
 # mirth-test # mret # 1

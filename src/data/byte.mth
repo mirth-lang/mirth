@@ -64,6 +64,7 @@ def(Byte.is-lower, Byte -- Bool, B'a' B'z' in-range)
 def(Byte.is-digit, Byte -- Bool, B'0' B'9' in-range)
 def(Byte.is-alpha, Byte -- Bool, dup is-upper if(drop T, is-lower))
 def(Byte.is-alnum, Byte -- Bool, dup is-digit if(drop T, is-alpha))
+def(Byte.is-printable, Byte -- Bool, B'!' B'~' in-range)
 
 def(Byte.is-hexdigit, Byte -- Bool,
     B'0' -> T, B'1' -> T, B'2' -> T, B'3' -> T,

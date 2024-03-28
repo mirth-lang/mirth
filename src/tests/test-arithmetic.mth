@@ -136,4 +136,4 @@ def(arithmetic-test, --,
     "mod-div-property  17 -5"  17 -5 mod-div-property
     "mod-div-property -17 -5" -17 -5 mod-div-property)
 
-target-c99("test-arithmetic.c", arithmetic-test)
+def(main, +World -- +World, arithmetic-test)

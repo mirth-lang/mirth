@@ -366,5 +366,3 @@ def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
     snake-direction-offset
     dip(swap YCoord->Int) + SNAKE_H + SNAKE_H % Int->YCoord
     dip(dip(XCoord->Int) + SNAKE_W + SNAKE_W % Int->XCoord))
-
-target-c99("snake.c", snake!)

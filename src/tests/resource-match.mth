@@ -28,7 +28,6 @@ def(main, +World -- +World,
     "World." BAR! BAZ! reset! my-trace line-trace!
     "Foo" BAR! reset! whatever line-trace!)
 
-target-c99("resource-match.c", main)
 # mirth-test # perr # 10 LEFT
 # mirth-test # perr # 20 LEFT
 # mirth-test # perr # Hello. RIGHT

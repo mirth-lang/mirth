@@ -15,7 +15,6 @@ def(main, --,
     10 20 綴 print-ln!
     🤷‍♀️)
 
-target-c99("test-unicode-names.c", main)
 # mirth-test # pout # Hello world!
 # mirth-test # pout # 1
 # mirth-test # pout # 2

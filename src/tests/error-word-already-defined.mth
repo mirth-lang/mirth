@@ -2,5 +2,7 @@ module(tests.error-word-already-defined)
 import(prelude)
 
 def(dup, Int, 0)
+
+def(main, +World -- +World,)
 # mirth-test # merr # 4:5: error: word already defined
 # mirth-test # mret # 1

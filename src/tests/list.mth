@@ -71,7 +71,6 @@ def(main, --,
     list8 trace-list-struc! line-trace!
     list9 trace-list-struc! line-trace!)
 
-target-c99("list-test.c", main)
 # mirth-test # perr # L0
 # mirth-test # perr # L1
 # mirth-test # perr # L3

@@ -7,6 +7,8 @@ def(foo, Int -- Int,
         0 dip(bar) drop
     ) drop)
 
-def( bar, Str -- Int, drop 0)
+def(bar, Str -- Int, drop 0)
+
+def(main, ,)
 # mirth-test # merr # 7:15: error: Failed to unify Int with Str
 # mirth-test # mret # 1

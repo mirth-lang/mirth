@@ -19,7 +19,6 @@ def(main, --,
     "👋🌎🌍🌏" display-str!
     "🤷‍♀️" display-str!)
 
-target-c99("test-unicode-strings.c", main)
 # mirth-test # pout # ----------
 # mirth-test # pout # ""
 # mirth-test # pout # num-bytes: 0

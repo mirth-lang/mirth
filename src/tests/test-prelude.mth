@@ -172,4 +172,4 @@ def(test-stack-assertions-dont-care, a b -- a b,
 def(test-dup2, Int Str Int Str,
     10 "hello" dup2)
 
-target-c99("prelude-test.c", test-prelude!)
+def(main, +World -- +World, test-prelude!)

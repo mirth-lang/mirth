@@ -28,25 +28,23 @@ FAILED=0
 
 set +e
 
-for filename in $(ls src/tests/ | grep .mth)
+for filename in $(find src/tests -name "*.mth" -type f -printf '%f\n')
 do
     rm -f $TMP/test/*
     echo tests/$filename
-    $TMP/mirth tests/$filename > $TMP/test/mout 2> $TMP/test/merr
+    binary_name="${filename%.*}"
+    $TMP/mirth tests/$filename  -o "${binary_name}.c"> $TMP/test/mout 2> $TMP/test/merr
     MIRTH_BUILD_FAILED=$?
     cat $TMP/test/mout | sed 's/^/# mirth-test # mout # /' >> $TMP/test/actual
     cat $TMP/test/merr | egrep ': (error|warning):' | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual
     if [ "$MIRTH_BUILD_FAILED" != "0" ] ; then
         echo "# mirth-test # mret # $MIRTH_BUILD_FAILED" >> $TMP/test/actual
-        for c99target in $(cat src/tests/$filename | grep "target-c99" | sed 's/[^"]*"//' | sed 's/".*//') ; do
-            rm -f bin/$c99target
-        done
+	rm -f bin/${binary_name}
     else
-        for c99target in $(cat src/tests/$filename | grep "target-c99" | sed 's/[^"]*"//' | sed 's/".*//') ; do
-            echo "=> bin/$c99target"
-            $CC -o $TMP/test/ctarget bin/$c99target > $TMP/test/cout 2> $TMP/test/cerr
+            echo "=> bin/${binary_name}"
+            $CC -o $TMP/test/ctarget bin/${binary_name}.c > $TMP/test/cout 2> $TMP/test/cerr
             TARGET_FAILED=$?
-            rm -f bin/$c99target
+            rm -f bin/${binary_name}
             cat $TMP/test/cout | sed "s/^/# mirth-test # cout # /" >> $TMP/test/actual
             cat $TMP/test/cerr | sed "s/^/# mirth-test # cerr # /" >> $TMP/test/actual
             if [ "$TARGET_FAILED" != "0" ] ; then
@@ -60,7 +58,6 @@ do
                     echo "# mirth-test # pret # $PROGRAM_FAILED" >> $TMP/test/actual
                 fi
             fi
-        done
     fi
 
     if [ "$VERIFY" == "1" ] ; then

@@ -3,8 +3,8 @@ module(tests.error-shortcircuit)
 import(prelude)
 import(platform.posix)
 
-def(foo, Int, "hello")
-target-c99("error-shortcircuit.c", "this should not run" trace-ln!)
+# this should not run
+def(main, Int, "hello")
 
-# mirth-test # merr # 6:22: error: Failed to unify Int with Str
+# mirth-test # merr # 7:23: error: Failed to unify Int with Str
 # mirth-test # mret # 1
