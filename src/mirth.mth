@@ -4,11 +4,25 @@ import(prelude)
 import(platform.posix)
 import(data.path)
 import(data.str)
+import(data.list)
+import(data.byte)
+import(resource.file)
+import(data.maybe)
+
 import(mirth.data.error)
 import(mirth.data.prim)
+import(mirth.data.word)
 import(mirth.data.type)
+import(mirth.data.name)
+import(mirth.data.def)
 import(mirth.lexer)
 import(mirth.elab)
+import(mirth.data.ctx)
+
+import(mirth.codegen.c99)
+
+import(args.parse)
+import(args.types)
 
 def(init!, --,
     init-errors!
@@ -16,15 +30,49 @@ def(init!, --,
     init-types!
     init-prims!)
 
+table(Arguments)
+field(Arguments~input-file, Arguments, Path)
+field(Arguments~output-file, Arguments, Maybe(Path))
+field(Arguments~entry-point, Arguments, Maybe(Str))
+
+def(Arguments.input-file, Arguments -- Path, ~input-file @)
+def(Arguments.output-file, Arguments -- Maybe(Path), ~output-file @)
+def(Arguments.entry-point, Arguments -- Maybe(Str), ~entry-point @)
+
+def(Arguments.new, Path Maybe(Path) Maybe(Str) -- Arguments, 
+  Arguments.alloc!
+  dup dip(~entry-point !)
+  dup dip(~output-file !)
+  dup dip(~input-file !)
+)
+
+def(Arguments.default, -- Arguments,
+  "mirth.mth" >Path
+  NONE
+  "main" SOME
+  Arguments.new
+)
+
+def(Arguments.show, Arguments -- Str,
+  LIST(
+    "Arguments {";
+      "output-file: " ; dup output-file match(SOME -> >Str, NONE -> "(none)") ; 
+      ", input-file: " ; dup input-file >Str ; 
+      ", entry-point: " ; dup entry-point match(SOME -> , NONE -> "(none)") ; 
+    " }";)
+  reduce(cat)
+  swap drop unwrap
+)
+
 ########
 # Main #
 ########
 
-def(compile!, Path +World -- +World,
+def(compile!, Arguments +World -- +World,
     "Compiling " trace!
-    dup >Str trace-ln!
+    dup input-file >Str trace-ln!
 
-    run-lexer!
+    dup input-file run-lexer!
 
     # show-names-table!
     # show-tokens!
@@ -38,18 +86,85 @@ def(compile!, Path +World -- +World,
         num-errors @ trace!
         " errors." trace-ln!
         1 posix-exit!,
+	"No errors." trace-ln!
+    )
 
-        "Done." trace-ln!
-    ))
+
+    dup entry-point match(
+    SOME -> 
+      "Codegen." trace-ln!
+      Name.search match(
+        SOME -> >Def .word? match(
+          SOME -> arrow swap output-file unwrap run-output-c99!,
+	  NONE -> drop expect!(F, "Could not find entry point")
+        ),
+        NONE -> drop expect!(F, "could not find entry point")
+      ),
+      NONE -> "Skipping Codegen." trace-ln! drop
+    )
+)
+
+def(compiler-parse-args, +ArgumentParser Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser Arguments,
+  match(
+    OPTION_SHORT -> match(
+      B'o' -> unwrap >Path SOME over ~output-file !,
+      B'e' -> unwrap SOME over ~entry-point !,
+      B'c' -> drop NONE over ~entry-point !,
+      _ -> drop drop UNKNOWN_ARG SOME state ~current-error !
+    ),
+    OPTION_POSITIONAL -> state ~current-positional-arg @ 0 = if(
+      unwrap >Path over ~input-file !,
+      drop TOO_MANY_ARGS SOME state ~current-error !
+    ),
+    OPTION_END -> state ~current-positional-arg @ 1 < then(
+      TOO_FEW_ARGS SOME state ~current-error ! 
+    ) 
+
+    state ArgumentParserState~arguments @ Arguments~output-file @ match(
+      SOME -> drop,
+      NONE -> state ArgumentParserState~arguments @ Arguments~entry-point @ match (
+        SOME -> drop "output-file" MISSING_ARG SOME state ~current-error !,
+	NONE ->
+      )
+    )
+    drop,
+    _ -> drop drop UNKNOWN_ARG SOME state ~current-error !
+  ) 
+)
 
 def(main, +World -- +World,
     init!
 
-    expect!(argc 2 =, "expected one argument")
-    unsafe(Ptr.sizeof >Offset argv offset @Ptr str-copy-cstr) >Path compile!)
+    Arguments.default
 
-#########
-# Build #
-#########
+    LIST(
+      "output-file" SOME
+      B'o' OPTION_SHORT
+      "OUTPUT_FILE" SOME
+      "Test argument" SOME
+      NONE ArgpOption.new ; 
 
-target-c99("mirth.c", main)
+      "compile-only" SOME
+      B'c' OPTION_SHORT
+      NONE
+      "Compile code without running codegen step" SOME
+      NONE ArgpOption.new ;
+
+      "entry-point" SOME
+      B'e' OPTION_SHORT
+      "ENTRY_POINT" SOME
+      "Custom entry point word for compilation" SOME
+      NONE ArgpOption.new ;
+    ) SOME
+    [ compiler-parse-args ] SOME
+    "input-file" SOME
+    "Mirth Compiler" 
+    ArgumentParser.new
+
+    parse-args match(
+      LEFT -> ,
+      RIGHT -> show panic!
+    )
+
+    compile!
+)

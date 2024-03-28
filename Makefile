@@ -89,20 +89,16 @@ bin/mirth2san: bin/mirth2.c
 	$(CCSAN) -o bin/mirth2san bin/mirth2.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
-	bin/mirth0 mirth.mth
-	mv bin/mirth.c bin/mirth1.c
+	bin/mirth0 mirth.mth -o mirth1.c
 
 bin/mirth2.c: bin/mirth1 $(SRCS)
-	bin/mirth1 mirth.mth
-	mv bin/mirth.c bin/mirth2.c
+	bin/mirth1 mirth.mth -o mirth2.c
 
 bin/mirth3.c: bin/mirth2 $(SRCS)
-	bin/mirth2 mirth.mth
-	mv bin/mirth.c bin/mirth3.c
+	bin/mirth2 mirth.mth -o mirth3.c
 
 bin/mirth3san.c: bin/mirth2san $(SRCS)
-	bin/mirth2san mirth.mth
-	mv bin/mirth.c bin/mirth3san.c
+	bin/mirth2san mirth.mth -o mirth3san.c
 
 bin/mirth_prof.c: bin/mirth3.c
 
@@ -110,7 +106,7 @@ bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
 bin/snake.c: bin/mirth2 $(SRCS) src/sdl2.mth src/snake.mth
-	bin/mirth2 snake.mth
+	bin/mirth2 snake.mth -o snake.c -e 'snake!'
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`

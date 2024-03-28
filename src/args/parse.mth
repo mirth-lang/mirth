@@ -1,0 +1,180 @@
+module(args.parse)
+
+import(prelude)
+import(data.str)
+import(data.list)
+import(data.maybe)
+import(data.either)
+import(data.byte)
+
+import(resource.buffer)
+
+import(platform.posix)
+
+import(args.types)
+
+def(print-usage, +ArgumentParser -- +ArgumentParser,
+  "Usage:" print-ln!
+  LIST("  " ; rdip(state ~program-name @) ; " [options] "; rdip(argument-parser ~args-doc @ unwrap-or("")) ;) for(print!) "" print-ln!
+
+  "" print-ln!
+
+  argument-parser ~options @ match(
+  SOME ->
+  for(
+    LIST("  " ;
+    dup ~type @ match( 
+      OPTION_SHORT -> dup is-printable then("-" ; dup to-str-unsafe ;) drop,
+      _ -> drop
+    )
+
+    dup ~type @ has-short? and(dup ~long @ some?) if(
+      ", " ;,
+      "  " ;,
+    )
+    dup ~long @ match(
+      SOME -> "--"; ; dup ~arg @ match (
+        SOME -> "="; ;,
+	NONE ->
+      ),
+      NONE ->
+    )
+    dup ~doc @ match(
+      SOME -> "\t"; ;,
+      NONE ->
+    )
+    ) for(print!) "" print-ln!
+    drop
+  ),
+  NONE ->
+  )
+  "" print-ln!
+)
+
+def(check-short-option, +ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOption Bool,
+  over ~type @ match(
+    OPTION_SHORT -> 0 >Offset rotl str-byte@ =,
+    _ -> drop drop F
+  )
+)
+
+def(parse-short-flags, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError),
+  argument-parser ~options @ match(
+    SOME -> find(over check-short-option) swap drop match(
+      SOME -> dup ~arg @ match(
+        SOME -> 
+	  state ~currently-parsing-option T swap !
+	  drop SOME state ~current-option-option !,
+	NONE -> ~type @ state ~arguments @ swap NONE swap parser match(
+	  SOME -> run state ~arguments ! ,
+	  NONE -> drop drop drop
+	) 
+      ) NONE,
+      NONE -> UNKNOWN_ARG SOME
+    ),
+    NONE -> drop UNKNOWN_ARG SOME
+  )
+)
+
+def(check-long-option, +ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOption Bool,
+  over ~long @ match(
+    SOME -> =,
+    NONE -> drop F 
+  )
+)
+
+def(parse-long-flag, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError), 
+  argument-parser ~options @ match(
+    SOME -> find(over check-long-option) swap drop match(
+      SOME -> dup ~arg @ match(
+        SOME -> 
+	  state ~currently-parsing-option T swap !
+	  drop SOME state ~current-option-option !,
+	NONE -> ~type @ state ~arguments @ swap NONE swap parser match(
+	  SOME -> run state ~arguments ! ,
+	  NONE -> drop drop drop
+	) 
+      ) NONE,
+      NONE -> UNKNOWN_ARG SOME
+    ),
+    NONE -> drop UNKNOWN_ARG SOME
+  ) 
+)
+
+def(parse-flags, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError),
+  dup num-bytes 2 >Size >= and(1 >Offset over str-byte@ B'-' =) if(
+    2 dip(dup dup num-bytes >Int) unsafe(unsafe-unchecked-str-substr) parse-long-flag,
+    1 dip(dup dup num-bytes >Int) unsafe(unsafe-unchecked-str-substr) parse-short-flags
+  ) swap drop ,
+)
+
+def(do-positional-option, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError),
+  state ~arguments @ swap SOME OPTION_POSITIONAL parser unwrap run
+  state ~arguments ! NONE
+  state ~current-positional-arg modify(1+)
+)
+
+def(parse-args, a ArgumentParser -- Either(a,ArgumentParsingError),
+  swap ArgumentParserState.init +ARGUMENTPARSER
+  state ~argv @ for(
+    dup num-bytes 1 >Size > if(
+      0 >Offset over str-byte@ B'-' = if(
+        state ~currently-parsing-option @ if(
+	  drop state ~current-option-option @ match(
+            SOME -> ~arg @ match (
+	      SOME -> drop MISSING_ARGUMENT_VALUE SOME,
+	      NONE -> F state ~currently-parsing-option ! NONE
+	    ),
+	    NONE -> MISSING_ARGUMENT_VALUE SOME
+	  ),
+	  parse-flags
+	),
+	state ~currently-parsing-option @ if(
+	  state ~current-option-option @ match(
+	    SOME -> ~arg @ match(
+	      SOME -> drop state ~arguments @ swap SOME state ~current-option-option @ unwrap ~type @ parser unwrap run state ~arguments ! NONE,
+	      NONE -> drop UNKNOWN_ARG SOME
+	    ),
+	    NONE -> drop UNKNOWN_ARG SOME
+	  ) F state ~currently-parsing-option !,
+          do-positional-option
+	)
+      ),
+      drop NONE
+    ) match(
+      SOME -> SOME state ~current-error !,
+      NONE ->
+    )
+  ) 
+
+  state ~currently-parsing-option @ then(
+    MISSING_ARGUMENT_VALUE SOME state ~current-error !
+  )
+
+  state ~arguments modify(NONE OPTION_END parser unwrap run)
+
+  state ~arguments @ state ~current-error @
+  match(
+    SOME -> RIGHT swap drop print-usage,
+    NONE -> LEFT 
+  )
+  rdrop
+)
+
+def(read-from-argv, +Unsafe Int -- Str +Unsafe, 
+    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr str-copy-cstr
+)
+
+def(argv-to-str, -- List(Str), 
+  LIST(
+  1 while(argc over >,
+    dup unsafe(read-from-argv) ;
+    1+ 
+  ) drop
+  )
+)
+
+def(unsafe-unchecked-str-substr, +Unsafe Str Int Int -- Str +Unsafe,
+  dip2(dup num-bytes +Buffer.new 0 >Offset !Str)
+  swap over - >Size swap >Offset swap +Buffer@Str rdrop
+)
