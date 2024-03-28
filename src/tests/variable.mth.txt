@@ -17,7 +17,6 @@ def(main, --,
 
     myvar2 @ drop)
 
-target-c99("test-variable.c", main)
 # mirth-test # perr # 0
 # mirth-test # perr # 10
 # mirth-test # perr # 20

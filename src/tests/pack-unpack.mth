@@ -17,7 +17,6 @@ def(main, --,
     dup unpack2 ?? 20 !!= 10 !!=
     sub-int-pack
     -10 !!=)
-target-c99("pack-unpack.c", main)
 # mirth-test # perr # ?? [ 10 20 ]
 # mirth-test # perr # ?? 10 20
 # mirth-test # perr # ?? [ 10 20 ]
