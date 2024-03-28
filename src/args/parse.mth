@@ -29,7 +29,7 @@ def(print-usage, +ArgumentParser -- +ArgumentParser,
       _ -> drop
     )
 
-    # If we have both a short and long version of the argument we seperate them
+    # If we have both a short and long version of the argument we separate them
     dup ~type @ has-short? and(dup ~long @ some?) if(
       ", " ;,
       "  " ;,
