@@ -110,8 +110,8 @@ def(parse-long-flag, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsin
 ||| Parse either a short or long flag
 def(parse-flags, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError),
   dup num-bytes 2 >Size >= and(1 >Offset over str-byte@ B'-' =) if(
-    2 dip(dup dup num-bytes >Int) unsafe(unsafe-unchecked-str-substr) parse-long-flag,
-    1 dip(dup dup num-bytes >Int) unsafe(unsafe-unchecked-str-substr) parse-short-flags
+    2 >Size over unsafe(drop-bytes) parse-long-flag,
+    1 >Size over unsafe(drop-bytes) parse-short-flags
   ) swap drop ,
 )
 
@@ -187,10 +187,4 @@ def(argv-to-str, -- List(Str),
     1+ 
   ) drop
   )
-)
-
-||| Very unsafe substr that doesn't check if the indices are inside the string
-def(unsafe-unchecked-str-substr, +Unsafe Str Int Int -- Str +Unsafe,
-  dip2(dup num-bytes +Buffer.new 0 >Offset !Str)
-  swap over - >Size swap >Offset swap +Buffer@Str rdrop
 )
