@@ -35,6 +35,7 @@ field(Arguments~input-file, Arguments, Path)
 field(Arguments~output-file, Arguments, Maybe(Path))
 field(Arguments~entry-point, Arguments, Maybe(Str))
 
+# Helpers to read table fields
 def(Arguments.input-file, Arguments -- Path, ~input-file @)
 def(Arguments.output-file, Arguments -- Maybe(Path), ~output-file @)
 def(Arguments.entry-point, Arguments -- Maybe(Str), ~entry-point @)
@@ -46,6 +47,8 @@ def(Arguments.new, Path Maybe(Path) Maybe(Str) -- Arguments,
   dup dip(~input-file !)
 )
 
+||| Create a default initialized arguments table
+||| Since the input file is always required we don't need it to be Maybe(Path)
 def(Arguments.default, -- Arguments,
   "mirth.mth" >Path
   NONE
@@ -53,6 +56,7 @@ def(Arguments.default, -- Arguments,
   Arguments.new
 )
 
+||| Pretty print the contents of the arguments struct
 def(Arguments.show, Arguments -- Str,
   LIST(
     "Arguments {";
@@ -122,6 +126,7 @@ def(compiler-parse-args, +ArgumentParser Arguments Maybe(Str) ArgpOptionType -- 
 
     state ArgumentParserState~arguments @ Arguments~output-file @ match(
       SOME -> drop,
+      # If we have an entry point we need to have an output file currently
       NONE -> state ArgumentParserState~arguments @ Arguments~entry-point @ match (
         SOME -> drop "output-file" MISSING_ARG SOME state ~current-error !,
 	NONE ->
