@@ -92,7 +92,7 @@ def(Namespace.mangled, Namespace -- Str,
 def(QName.mangled, QName -- Str, QNAME -> dip(mangled "_" cat) mangled cat)
 def(QName+C99.put, QName +C99 -- +C99, mangled put )
 def(QName+C99.sig, QName +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
-def(QName+C99.cosig, QName +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
+def(QName+C99.cosig, QName +C99 -- Str +C99, dip("static void mp_") mangled cat " (void)" cat)
 
 def(Name+C99.put, Name +C99 -- +C99, mangled put)
 # def(Name+C99.sig, Name +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
@@ -386,15 +386,15 @@ def(c99-pack-ctx!, Ctx +C99 -- +C99,
     c99-line("push_u64(0);" put)
     physical-vars for(
         c99-var-push!
-        c99-line("mw_prim_pack_cons();" put)
+        c99-line("mw_std_prim_prim_pack_cons();" put)
     ))
 
 def(c99-unpack-ctx!, Ctx +C99 -- +C99,
     physical-vars reverse-for(
-        c99-line("mw_prim_pack_uncons();" put)
+        c99-line("mw_std_prim_prim_pack_uncons();" put)
         c99-line("VAL " put put " = pop_value();" put)
     )
-    c99-line("mw_prim_drop();" put))
+    c99-line("mw_std_prim_prim_drop();" put))
 
 def(c99-decref-ctx!, Ctx +C99 -- +C99,
     physical-vars reverse-for(
@@ -407,7 +407,7 @@ def(c99-block-push!, Block +C99 -- +C99,
         NONE ->
             dup ctx c99-pack-ctx!
             c99-line("push_fnptr(&" put put ");" put)
-            c99-line("mw_prim_pack_cons();" put)
+            c99-line("mw_std_prim_prim_pack_cons();" put)
     ))
 
 def(c99-var!, Var +C99 -- +C99,
@@ -449,7 +449,7 @@ def(c99-match!, Match +C99 -- +C99,
         c99-nest(
             dup cases for(c99-case!)
             has-default-case? else(
-                c99-line("default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_prim_debug(); exit(99);" put)
+                c99-line("default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_std_prim_prim_debug(); exit(99);" put)
             )
         )
         c99-line("}" put)
@@ -522,7 +522,7 @@ def(Block+C99.put, Block +C99 -- +C99,
 
 def(c99-word-enter!, Word +C99 -- +C99,
     c99-line("WORD_ENTER(" put
-        "mw_" put dup name put ", " put
+        "mw_" put dup qname put ", " put
         dup name >Str put-cstr ", " put
         dup body .module source-path >Str put-cstr ", " put
         dup body row >Int put ", " put
@@ -531,7 +531,7 @@ def(c99-word-enter!, Word +C99 -- +C99,
 
 def(c99-word-exit!, Word +C99 -- +C99,
     c99-line("WORD_EXIT(" put
-        "mw_" put dup name put ");" put)
+        "mw_" put dup qname put ");" put)
     drop)
 
 def(c99-word-defs!, +C99 -- +C99, Word.for(dup needed? if(c99-word-def!, drop)) line)

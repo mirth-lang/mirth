@@ -882,19 +882,23 @@ def(elab-data-tag!, Data Token -- Data,
 def(data-qname, Data Name -- QName,
     dip(TYCON_DATA NAMESPACE_TYCON) QNAME)
 
-def(data-word-new!, Data Name -- Word,
-    dip(dup head? unwrap dup rotl) data-qname Word.new!)
+def(data-word-qname, Data Str -- QName,
+    dip(dup name >Str "." cat) cat >Name # TODO remove
+    data-qname)
+
+def(data-word-new!, Data Str -- Word,
+    dip(dup head? unwrap dup rotl) data-word-qname Word.new!)
 
 def(elab-data-done!, Data --,
     \(dat -> dat is-enum? then(
-        dat "tag" >Name data-word-new! \(tag ->
+        dat "tag" data-word-new! \(tag ->
             CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
             tag ab-build-word!(
                 COERCE_UNSAFE ab-coerce!
             ) drop
         )
 
-        dat "from-tag-unsafe" >Name data-word-new! \(ftag ->
+        dat "from-tag-unsafe" data-word-new! \(ftag ->
             CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
             ftag ab-build-word!(
                 COERCE_UNSAFE ab-coerce!
@@ -1065,7 +1069,8 @@ def(typecheck-everything!, --,
 def(TABLE_MAX_COUNT, Nat, 0x10000 >Nat)
 
 def(table-qname, Table Str -- QName,
-    dip(TYCON_TABLE NAMESPACE_TYCON) >Name QNAME)
+    over qname name >Str "." cat swap cat >Name # TODO remove this
+    dip(TYCON_TABLE NAMESPACE_TYCON) QNAME)
 
 def(table-word-new!, Table Str -- Word,
     dip(dup dip(head dup)) table-qname Word.new!)
