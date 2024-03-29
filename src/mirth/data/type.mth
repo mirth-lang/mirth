@@ -14,6 +14,8 @@ import(mirth.data.location)
 import(mirth.data.def)
 import(mirth.data.var)
 import(mirth.data.table)
+import(mirth.data.tycon)
+import(mirth.data.typedef)
 import(mirth.data.error)
 import(mirth.data.data)
 
@@ -54,47 +56,50 @@ def(PrimType.is-physical?, PrimType -- Bool,
     _ -> drop T)
 
 ||| Get type constructor name for a type, if possible.
-def(Type.tycon-name, Type -- Maybe(Name),
+def(Type.tycon?, Type -- Maybe(Tycon),
     TYPE_ERROR -> NONE,
     TYPE_DONT_CARE -> NONE,
-    TPrim -> tycon-name,
-    TMeta -> expand-if(tycon-name, drop NONE),
+    TPrim -> TYCON_PRIM SOME,
+    TMeta -> expand-if(tycon?, drop NONE),
     THole -> drop NONE,
     TVar -> drop NONE,
-    TTable -> name SOME,
-    TData -> name SOME,
+    TTable -> TYCON_TABLE SOME,
+    TData -> TYCON_DATA SOME,
     TMorphism -> drop NONE,
     TTensor -> drop NONE,
-    TApp -> drop tycon-name,
-    TMut -> tycon-name,
-    TValue -> tycon-name)
+    TApp -> drop tycon?,
+    TMut -> tycon?,
+    TValue -> tycon?)
 
 ||| Get primitive type constructor name.
-def(PrimType.tycon-name, PrimType -- Maybe(Name),
-    PRIM_TYPE_TYPE -> NONE,
-    PRIM_TYPE_STACK -> NONE,
-    PRIM_TYPE_RESOURCE -> NONE,
-    PRIM_TYPE_INT -> "Int" >Name SOME,
-    PRIM_TYPE_STR -> "Str" >Name SOME,
-    PRIM_TYPE_PTR -> "Ptr" >Name SOME,
-    PRIM_TYPE_WORLD -> "+World" >Name SOME)
+def(PrimType.tycon-qname, PrimType -- QName,
+    PRIM_TYPE_TYPE -> "TYPE" QName.prim,
+    PRIM_TYPE_STACK -> "STACK" QName.prim,
+    PRIM_TYPE_RESOURCE -> "RESOURCE" QName.prim,
+    PRIM_TYPE_INT -> "Int" QName.prim,
+    PRIM_TYPE_STR -> "Str" QName.prim,
+    PRIM_TYPE_PTR -> "Ptr" QName.prim,
+    PRIM_TYPE_WORLD -> "+World" QName.prim)
 
 ||| Get value type constructor name.
-def(Value.tycon-name, Value -- Maybe(Name),
-    VALUE_INT -> drop "Int" >Name SOME,
-    VALUE_STR -> drop "Str" >Name SOME,
+def(Value.tycon?, Value -- Maybe(Tycon),
+    VALUE_INT -> drop PRIM_TYPE_INT TYCON_PRIM SOME,
+    VALUE_STR -> drop PRIM_TYPE_STR TYCON_PRIM SOME,
     VALUE_BLOCK -> drop NONE)
 
 def(PrimType>Int, PrimType -- Int, PrimType.tag)
 def(PrimType=, PrimType PrimType -- Bool, both(>Int) =)
 
-def(def-type!, Type Str --, dip(DEF_TYPE) >Name ~Def !)
+def(def-prim-type!, Type Str --,
+    dip(Namespace.prim) >Name QNAME
+    swap NONE rotr
+    TypeDef.new! drop)
 
 def(init-types!, --,
-    TYPE_INT "Int" def-type!
-    TYPE_PTR "Ptr" def-type!
-    TYPE_STR "Str" def-type!
-    TYPE_WORLD "+World" def-type!
+    TYPE_INT "Int" def-prim-type!
+    TYPE_PTR "Ptr" def-prim-type!
+    TYPE_STR "Str" def-prim-type!
+    TYPE_WORLD "+World" def-prim-type!
     init-data!)
 
 #########
@@ -619,28 +624,28 @@ def(StackType.types, StackType -- List(Type), split3 drop nip)
 def(StackType.resources, StackType -- List(Resource), split3 dip(drop2))
 
 ||| Get top stack type if possible.
-def(StackType.top-type, StackType -- Maybe(Type),
+def(StackType.top-type?, StackType -- Maybe(Type),
     expand match(
         STCons -> nip SOME,
-        STWith -> drop top-type,
+        STWith -> drop top-type?,
         _ -> drop NONE
     ))
 
 ||| Get the top type constructor name.
-def(StackType.top-tycon-name, StackType -- Maybe(Name),
-    top-type bind(tycon-name))
+def(StackType.top-tycon?, StackType -- Maybe(Tycon),
+    top-type? bind(tycon?))
 
 ||| Get top resource if possible.
-def(StackType.top-resource, StackType -- Maybe(Resource),
+def(StackType.top-resource?, StackType -- Maybe(Resource),
     expand match(
         STWith -> nip SOME,
-        STCons -> drop top-resource,
+        STCons -> drop top-resource?,
         _ -> drop NONE
     ))
 
 ||| Get the top resource name.
-def(StackType.top-resource-name, StackType -- Maybe(Name),
-    top-resource bind(>Type tycon-name))
+def(StackType.top-resource-tycon?, StackType -- Maybe(Tycon),
+    top-resource? bind(>Type tycon?))
 
 def(StackType.has-meta?, MetaVar StackType -- Bool,
     expand match(

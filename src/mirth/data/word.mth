@@ -9,7 +9,7 @@ import(mirth.data.name)
 import(mirth.data.def)
 
 table(Word)
-field(Word~name, Word, Name)
+field(Word~qname, Word, QName)
 field(Word~head, Word, Token)
 field(Word~sig, Word, Maybe(Token))
 field(Word~body, Word, Token)
@@ -17,7 +17,9 @@ field(Word~ctx-type, Word, Lazy([Ctx ArrowType]))
 field(Word~params, Word, Lazy(List(Param)))
 field(Word~arrow, Word, Lazy(Arrow))
 
-def(Word.name, Word -- Name, ~name @)
+def(Word.qname, Word -- QName, ~qname @)
+def(Word.namespace, Word -- Namespace, qname namespace)
+def(Word.name, Word -- Name, qname name)
 def(Word.head, Word -- Token, ~head @)
 def(Word.sig, Word -- Maybe(Token), ~sig @)
 def(Word.body, Word -- Token, ~body @)
@@ -31,10 +33,10 @@ def(Word.ctx-type, Word -- Ctx ArrowType,
 def(Word.ctx, Word -- Ctx, ctx-type drop)
 def(Word.type, Word -- ArrowType, ctx-type nip)
 
-def(Word.new!, Token Token Name -- Word,
+def(Word.new!, Token Token QName -- Word,
     Word.alloc!
-    tuck ~name !
+    tuck ~qname !
     tuck ~head !
     tuck ~body !
     NONE over ~sig !
-    dup DEF_WORD over name ~Def !)
+    dup DEF_WORD register)

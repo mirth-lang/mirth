@@ -8,15 +8,15 @@ import(mirth.data.def)
 table(Buffer)
 field(Buffer~head, Buffer, Token)
 field(Buffer~size, Buffer, Size)
-field(Buffer~name, Buffer, Name)
+field(Buffer~qname, Buffer, QName)
 
 def(Buffer.head, Buffer -- Token, ~head @)
 def(Buffer.size, Buffer -- Size, ~size @)
-def(Buffer.name, Buffer -- Name, ~name @)
+def(Buffer.qname, Buffer -- QName, ~qname @)
 
-def(Buffer.new!, Token Name Size -- Buffer,
+def(Buffer.new!, Token QName Size -- Buffer,
     Buffer.alloc!
     tuck ~size !
-    tuck dup2 ~name !
-    DEF_BUFFER swap ~Def !
-    tuck ~head !)
+    tuck ~qname !
+    tuck ~head !
+    dup DEF_BUFFER register)

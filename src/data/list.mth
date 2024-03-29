@@ -277,6 +277,19 @@ def(List+.filter(f), (*c a -- *c a Bool) *c List+(a) -- *c List(a),
         )
     )
 
+def(List.flatmap(f), (*c a -- *c List(b)) *c List(a) -- *c List(b),
+    L0 -> L0,
+    L1 -> f,
+    L2 -> dip(f) dip'(f) cat,
+    L3 -> dip(dip(f) dip'(f) cat) dip'(f) cat,
+    LCAT -> drop dip(flatmap(f)) dip'(flatmap(f)) cat)
+
+def(List+.flatmap(f), (*c a -- *c List(b)) *c List+(a) -- *c List(b),
+    L1+ -> f,
+    L2+ -> dip(f) dip'(f) cat,
+    L3+ -> dip(dip(f) dip'(f) cat) dip'(f) cat,
+    LCAT+ -> drop dip(flatmap(f)) dip'(flatmap(f)) cat)
+
 def(List.filter-some(p), (*c a -- *c Maybe(b)) *c List(a) -- *c List(b),
     List>List+ if-some(filter-some(p), L0))
 
@@ -343,3 +356,12 @@ def(collect(f), (*a -- *a Maybe(b)) *a -- *a List(b),
 ||| Build a list through repetition, stopping when condition becomes false.
 def(collect-while(f,g), (*a -- *a Bool, *a -- *a b) *a -- *a List(b),
     L0 while(dip(f) swap, dip(g) swap snoc))
+
+||| Count up, inclusive at both ends.
+def(Int.range, Int Int -- List(Int),
+    # TODO: match on integers to make this cleaner.
+    dup2 >= if(drop2 L0,
+    dup2 1- = if(drop L1,
+        dup2 + 2/ tuck swap range
+        dip(range) cat
+    )))

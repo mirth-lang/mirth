@@ -8,16 +8,18 @@ import(mirth.data.def)
 
 table(Alias)
 field(Alias~head, Alias, Token)
-field(Alias~name, Alias, Name)
-field(Alias~target, Alias, Name)
+field(Alias~qname, Alias, QName)
+field(Alias~target, Alias, QName)
 
 def(Alias.head, Alias -- Token, ~head @)
-def(Alias.name, Alias -- Name, ~name @)
-def(Alias.target, Alias -- Name, ~target @)
+def(Alias.qname, Alias -- QName, ~qname @)
+def(Alias.namespace, Alias -- Namespace, qname namespace)
+def(Alias.name, Alias -- Name, qname name)
+def(Alias.target, Alias -- QName, ~target @)
 
-def(Alias.new!, Token Name Name -- Alias,
+def(Alias.new!, Token QName QName -- Alias,
     Alias.alloc!
     tuck ~target !
-    dup2 DEF_ALIAS swap ~Def !
-    tuck ~name !
-    tuck ~head !)
+    tuck ~qname !
+    tuck ~head !
+    dup DEF_ALIAS register)

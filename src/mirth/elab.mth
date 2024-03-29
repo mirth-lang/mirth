@@ -13,7 +13,6 @@ import(resource.file)
 import(mirth.data.name)
 import(mirth.data.def)
 import(mirth.data.token)
-import(mirth.data.type)
 import(mirth.data.data)
 import(mirth.data.ctx)
 import(mirth.data.external)
@@ -23,6 +22,9 @@ import(mirth.data.buffer)
 import(mirth.data.variable)
 import(mirth.data.constant)
 import(mirth.data.table)
+import(mirth.data.tycon)
+import(mirth.data.type)
+import(mirth.data.typedef)
 import(mirth.data.var)
 import(mirth.data.arrow)
 import(mirth.data.word)
@@ -148,20 +150,22 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
         tuck args-1 elab-type-arg! drop TMut
         rotl next,
 
-        dup name? unwrap >Def match(
-            DEF_TYPE ->
-                over num-args
-                over arity = if(
-                    elab-type-args!,
+        dup name? unwrap defs find(dup defines-a-type?) match(
+            SOME -> match(
+                DEF_DATA -> TData,
+                DEF_TABLE -> TTable,
+                DEF_TYPEDEF -> target,
+                _ -> drop dup "Not a type." emit-error! TYPE_ERROR
+            ),
+            NONE -> dup "Unknown type." emit-error! TYPE_ERROR
+        )
 
-                    drop dup
-                    "Wrong number of arguments for type." emit-error!
-                    TYPE_ERROR
-                ),
-            DEF_NONE ->
-                dup "Unknown type." emit-error! TYPE_ERROR,
-            _ ->
-                drop dup "Not a type." emit-error! TYPE_ERROR
+        dup error? else(
+            over num-args
+            over arity = if(
+                elab-type-args!,
+                drop dup "Wrong number of argumets for type." emit-error! TYPE_ERROR
+            )
         )
         swap next
     ))
@@ -489,11 +493,20 @@ def(elab-atom-name!, Name +AB -- +AB,
     dup ab-ctx@ lookup match(
         SOME -> nip elab-args! ab-var!,
         NONE ->
-            elab-relativize-name!
-            elab-check-name-visible!
-            elab-atom-name-global!
+            dup elab-name-candidates
+            >List+ match(
+                NONE -> elab-atom-unknown-word!,
+                SOME ->
+                    # TODO warn about ambiguity if multiple possibliites are available
+                    nip dup find(dup elab-def-is-visible) match(
+                        SOME -> nip elab-atom-def!,
+                        NONE ->
+                            first
+                            dup qname elab-atom-not-visible!
+                            elab-atom-def!
+                    )
+            )
     ))
-
 
 def(elab-needs-dot, Str -- Bool,
     first-byte if-some(is-alnum, F))
@@ -507,25 +520,27 @@ def(elab-combine-prefixes, List+(Str) Maybe(Str) -- List+(Str),
         id
     ))
 
-def(elab-word-search, Str -- Maybe(Name),
-    Name.search filter(dup >Def callable?))
-
-def(elab-name-candidates, Name +AB -- List(Name) +AB,
-    >Str L1+
-    ab-type@ top-resource-name map(>Str) elab-combine-prefixes
-    ab-type@ top-tycon-name map(>Str) elab-combine-prefixes
-    filter-some(elab-word-search))
-
-def(elab-relativize-name!, Name +AB -- Name +AB,
-    dup elab-name-candidates first if-some(nip, id))
-
-def(elab-check-name-visible!, Name +AB -- Name +AB,
-    dup >Def >Module? for(
-        dup elab-module-is-visible if(drop,
-            "name not visible, must import " swap name >Str cat
-            ab-token@ swap emit-error!)
+def(elab-word-search, Str -- List(Def),
+    Name.search match(
+        NONE -> L0,
+        SOME -> defs filter(dup callable?)
     ))
 
+def(elab-name-candidates, Name +AB -- List(Def) +AB,
+    >Str L1+
+    ab-type@ top-resource-tycon? map(name >Str) elab-combine-prefixes
+    ab-type@ top-tycon? map(name >Str) elab-combine-prefixes
+    flatmap(elab-word-search))
+
+def(elab-def-is-visible, Def +AB -- Bool +AB, qname elab-qname-is-visible)
+def(elab-qname-is-visible, QName +AB -- Bool +AB, namespace elab-namespace-is-visible)
+def(elab-namespace-is-visible, Namespace +AB -- Bool +AB,
+    NAMESPACE_PACKAGE -> drop T,
+    NAMESPACE_MODULE -> elab-module-is-visible,
+    NAMESPACE_TYCON -> elab-tycon-is-visible)
+
+def(elab-tycon-is-visible, Tycon +AB -- Bool +AB,
+    qname elab-qname-is-visible) # FIXME
 def(elab-module-is-visible, Module +AB -- Bool +AB,
     ab-token@ .module visible)
 
@@ -535,24 +550,26 @@ def(elab-stack-type-is-fine?, +AB -- Bool +AB,
         _ -> drop T
     ))
 
-def(elab-atom-name-global!, Name +AB -- +AB,
-    dup >Def match(
-        DEF_ALIAS -> nip target elab-atom-name-global!,
-        DEF_BUFFER -> nip elab-no-args! ab-buffer!,
-        DEF_VARIABLE -> nip elab-no-args! ab-variable!,
-        DEF_CONSTANT -> nip elab-no-args! ab-constant!,
-        DEF_EXTERNAL -> nip elab-no-args! ab-external!,
-        DEF_FIELD -> nip elab-no-args! ab-field!,
-        DEF_WORD -> nip elab-args! ab-word!,
-        DEF_TAG -> nip elab-args! ab-tag!,
-        DEF_PRIM -> nip elab-prim!,
-        _ ->
-            drop
-            elab-stack-type-is-fine? if(
-                dip(ab-token@ "Unknown word: ") >Str cat emit-error!,
-                drop
-            ) STACK_TYPE_ERROR ab-type!
-    ))
+def(elab-atom-def!, Def +AB -- +AB,
+    DEF_ALIAS -> target def? unwrap-or(ab-token@ "alias undefined" emit-fatal-error!) elab-atom-def!,
+    DEF_BUFFER -> elab-no-args! ab-buffer!,
+    DEF_VARIABLE -> elab-no-args! ab-variable!,
+    DEF_CONSTANT -> elab-no-args! ab-constant!,
+    DEF_EXTERNAL -> elab-no-args! ab-external!,
+    DEF_FIELD -> elab-no-args! ab-field!,
+    DEF_WORD -> elab-args! ab-word!,
+    DEF_TAG -> elab-args! ab-tag!,
+    DEF_PRIM -> elab-prim!,
+    _ -> qname name elab-atom-unknown-word!)
+
+def(elab-atom-unknown-word!, Name +AB -- +AB,
+    elab-stack-type-is-fine? if(
+        dip(ab-token@ "Unknown word: ") >Str cat emit-error!,
+        drop
+    ) STACK_TYPE_ERROR ab-type!)
+
+def(elab-atom-not-visible!, QName +AB -- +AB,
+    dip(ab-token@ "Word not visible: ") >Str cat emit-error!)
 
 def(elab-prim!, Prim +AB -- +AB,
     match(
@@ -698,8 +715,11 @@ def(elab-case-pattern!, Case Token -- Case Token,
         succ,
 
     dup name? if-some(
-        >Def match(
-            DEF_TAG -> { Case Token Tag }
+        # TODO type-directed tag resolution
+        # TODO defined tags
+        defs find-some(tag?) match(
+            NONE -> "Unknown constructor." emit-fatal-error!,
+            SOME ->
 
                 # set case pattern
                 dup PATTERN_TAG rotr
@@ -717,12 +737,6 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
                 # advance token
                 succ,
-
-            DEF_NONE ->
-                "Unknown constructor." emit-fatal-error!,
-
-            _ ->
-                drop "Not a constructor." emit-fatal-error!
         ),
 
         "Expected constructor name." emit-fatal-error!
@@ -746,54 +760,61 @@ def(elab-module!, Module +World -- Module +World,
     while(dup module-end? not, elab-module-decl!)
     drop)
 
+def(elab-module-qname, Token -- QName,
+    dup name? unwrap-or("Expected module name." emit-fatal-error!)
+    over args-0
+    dip(.module .package NAMESPACE_PACKAGE) QNAME)
+    # TODO, handle qualified module names properly
+
 ||| Check that the `module(M)` statement exists and save the name.
 def(elab-module-header!, Token -- Token,
     # dup token-name@ name-str @ str-trace-ln!
     dup module-header? if(
-        sip(next) args-1
-        dup name? unwrap-or("Expected module name." emit-fatal-error!)
-        name-defined? then(drop "Module name already taken." emit-fatal-error!)
+        sip(next) args-1 dup elab-module-qname
+        dup defined? then(drop "Module name already taken." emit-fatal-error!)
+
         over .module
-        dup2 ~name !
-        dup2 DEF_MODULE swap ~Def !
-        path swap
-        to-module-path = if(drop,
-            "Module name should match path." emit-error!),
-        dup "Expected module header." emit-error!
+        tuck ~qname !
+
+        dup DEF_MODULE register
+        check-module-path,
+
+        dup "Expected module header." emit-fatal-error!
     ))
+
+def(check-module-path, Token Module --,
+    sip(path) qname to-module-path = else(
+        "expected module name to match path" emit-fatal-error!
+    ) drop)
 
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token +World -- Token +World,
     dup
     name? unwrap-or("unknown declaration" emit-fatal-error!)
-    >Def prim? unwrap-or("unknown declaration" emit-fatal-error!)
+    defs find-some(prim?) unwrap-or("unknown declaration" emit-fatal-error!)
     decl unwrap-or("unknown declaration" emit-fatal-error!)
     run)
+
+def(load-module, Token Name +World -- Token Module +World,
+    Namespace.std swap QNAME # TODO
+    dup def? match(
+        SOME ->
+            match(
+                DEF_MODULE -> nip,
+                _ -> drop2 "qualified module name already taken" emit-fatal-error!
+            ),
+        NONE ->
+            sip(namespace package) to-module-path run-lexer!
+            elab-module!
+                # TODO: avoid elaborating here,
+                # use a single loop to dispatch top-level module elaboration.
+    ))
 
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Token +World -- Token +World,
     sip(next)
-    args-1 dup value match(
-        TOKEN_NAME ->
-            dup >Def match(
-                DEF_MODULE ->
-                    dip(drop2 dup .module) add-import!,
-                    # module is already loaded
-
-                DEF_NONE ->
-                    to-module-path run-lexer!
-                    elab-module!
-                    dip(drop dup .module) add-import!,
-                    # elab the imported module
-                    # TODO: avoid elaborating here,
-                    # use a single loop to dispatch top-level module elaboration.
-
-                _ ->
-                    drop2 "module name already taken" emit-fatal-error!
-            ),
-        _ ->
-            drop "expected module name" emit-fatal-error!
-    ))
+    args-1 dup name? unwrap-or("expected module name" emit-fatal-error!)
+    load-module dip(.module) add-import!)
 
 ||| Elaborate a data definition `data(T, ...)`
 def(elab-data!, Token -- Token,
@@ -810,20 +831,20 @@ def(elab-data!, Token -- Token,
 def(elab-data-header!, Data Token -- Data,
     dup2 SOME swap ~head? !
     dup sig-type-con? or(dup sig-resource-con?) else("Expected type name." emit-fatal-error!)
-    dup2 name? unwrap name-undefined? else(drop2 "Type name already defined." emit-fatal-error!)
-    over TData DEF_TYPE over ~Def !
-    swap ~name !
+    dup2 elab-def-qname-undefined
+    over ~qname !
+    dup DEF_DATA register
     # TODO check header args are well-formed / elaborate them properly
-    num-args over ~arity !)
+    dip(num-args) ~arity !)
 
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
 def(elab-data-tag!, Data Token -- Data,
-    dup name? unwrap-or("Expected constructor name." emit-fatal-error!)
-    name-undefined? else(drop "Constructor name already defined." emit-fatal-error!)
+    dup2 name? unwrap-or(drop "Expected constructor name." emit-fatal-error!)
+    data-qname
     Tag.alloc!
-    dup2 DEF_TAG swap ~Def !
-    tuck ~name !
+    tuck ~qname !
+    dup DEF_TAG register
     { Data Token Tag }
     dip(over) dup2 ~data !
     tuck dip(add-tag!)
@@ -858,19 +879,22 @@ def(elab-data-tag!, Data Token -- Data,
 
     drop)
 
-def(data-word-new!, Data Str -- Word,
-    dip(dup head? unwrap dup rotl name) Name.cat Word.new!)
+def(data-qname, Data Name -- QName,
+    dip(TYCON_DATA NAMESPACE_TYCON) QNAME)
+
+def(data-word-new!, Data Name -- Word,
+    dip(dup head? unwrap dup rotl) data-qname Word.new!)
 
 def(elab-data-done!, Data --,
     \(dat -> dat is-enum? then(
-        dat ".tag" data-word-new! \(tag ->
+        dat "tag" >Name data-word-new! \(tag ->
             CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
             tag ab-build-word!(
                 COERCE_UNSAFE ab-coerce!
             ) drop
         )
 
-        dat ".from-tag-unsafe" data-word-new! \(ftag ->
+        dat "from-tag-unsafe" >Name data-word-new! \(ftag ->
             CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
             ftag ab-build-word!(
                 COERCE_UNSAFE ab-coerce!
@@ -901,15 +925,15 @@ def(token-def-args, Token -- Token Maybe(Token) List+(Token),
 ||| Elaborate an alias `alias(w1,w2)`
 def(elab-alias!, Token -- Token,
     sip(next) args-2 swap
-    dup name? unwrap-or("expected word name" emit-fatal-error!) dip(dup args-0)
-    name-undefined? else(drop "word already defined" emit-fatal-error!) rotl
-    dup name? unwrap-or("expected word name" emit-fatal-error!) dip(args-0)
+    dup elab-def-qname-undefined over args-0 rotl
+    dup name? unwrap-or("expected word name" emit-fatal-error!)
+    over args-0 defs find(dup callable?) unwrap-or("unknown target" emit-fatal-error!) nip qname
     Alias.new! drop)
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, Token -- Token,
     # TODO, verify has args
-    dup succ succ dup name? unwrap-or("expected name" emit-fatal-error!) nip name-defined? nip if(
+    dup succ succ elab-def-qname defined? if(
         next,
         elab-def!
     ))
@@ -920,8 +944,7 @@ def(elab-def!, Token -- Token,
     uncons is-empty if(id,
         dup run-has-arrow? if(id,
             "expected match case" emit-fatal-error!))
-    rotl dup name? unwrap-or("expected word name" emit-fatal-error!)
-    name-undefined? if(id, drop "word already defined" emit-fatal-error!)
+    rotl dup elab-def-qname-undefined
 
     Word.new!
     tuck ~sig !
@@ -967,44 +990,41 @@ def(elab-def-body!, StackType +AB -- StackType +AB,
 ||| Elaborate an external declaration `def-external(w, t)` or `def-external(w -> sym, t)`
 def(elab-def-external!, Token -- Token,
     sip(next) args-2
-    swap dup name? unwrap-or("expected word name" emit-fatal-error!)
-    name-undefined? else(drop "word already defined" emit-fatal-error!)
+    swap dup elab-def-qname-undefined
     swap succ dup comma? if(
-        drop dup,
+        drop dup name,
         expect-token-arrow succ
         dup name? unwrap-or("expected external symbol name" emit-fatal-error!) nip
     ) >Str swap
 
     External.alloc!
-    dup2 DEF_EXTERNAL swap ~Def !
-    tuck ~name !
+    tuck ~qname !
     tuck ~symbol !
     tuck ~sig !
     dup delay(
         type-elab-default swap sig
         elab-type-sig! drop dip(type-elab-ctx) pack2
-    ) swap ~ctx-type !)
+    ) over ~ctx-type !
+    DEF_EXTERNAL register)
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
 def(elab-def-type!, Token -- Token,
     sip(next) args-2
     swap dup sig-type-con? else("expected type constructor" emit-fatal-error!)
-    dup name? unwrap name-undefined? else(drop "type name already defined" emit-fatal-error!)
-    nip swap elab-simple-type-arg! DEF_TYPE swap ~Def !)
+    dup elab-def-qname-undefined
+    dip(SOME) rotl elab-simple-type-arg! TypeDef.new! drop)
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def(elab-buffer!, Token -- Token,
     sip(next) args-2
-    swap dup name? unwrap-or("expected buffer name" emit-fatal-error!)
-    name-undefined? else(drop "buffer name already defined" emit-fatal-error!)
+    swap dup elab-def-qname-undefined
     rotl dup int? unwrap-or("expected buffer size" emit-fatal-error!) nip
     >Size Buffer.new! drop)
 
 ||| Elaborate a var declaration `var(v, type)`.
 def(elab-variable!, Token -- Token,
     sip(next) args-2
-    swap dup name? unwrap-or("expected variable name" emit-fatal-error!)
-    name-undefined? else(drop "variable name already defined" emit-fatal-error!)
+    swap dup elab-def-qname-undefined
     rotl delay(elab-simple-type-arg!)
     Variable.new! drop)
 
@@ -1012,7 +1032,7 @@ def(elab-variable!, Token -- Token,
 def(elab-table!, Token -- Token,
     sip(next) args-1
     dup sig-type-con? else("expected type name" emit-fatal-error!)
-    dup name? unwrap name-undefined? else(drop "table name already defined" emit-fatal-error!)
+    dup elab-def-qname-undefined
     table-new! drop)
 
 ||| Elaborate C99 build target.
@@ -1028,15 +1048,14 @@ def(elab-target-c99!, Token +World -- Token +World,
 ||| The path is relative to compiler's cwd, not source root.
 def(elab-embed-str!, Token +World -- Token +World,
     sip(next) args-2 swap
-    dup name? unwrap-or("expected embedded constant name" emit-fatal-error!)
-    name-undefined? else(drop "embedded constant name already defined" emit-fatal-error!)
+    dup elab-def-qname-undefined
     rotl dup str? unwrap-or("expected source path" emit-fatal-error!)
     >Path open-file! .read-file! close-file! nip
     VALUE_STR Constant.new! drop)
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,
-    Name.for(>Def typecheck!)
+    Name.for(defs for(typecheck!))
     Block.for(typecheck!))
 
 #########
@@ -1045,19 +1064,21 @@ def(typecheck-everything!, --,
 
 def(TABLE_MAX_COUNT, Nat, 0x10000 >Nat)
 
-def(table-word-new!, Table Str -- Word,
-    dip(dup head dup rotl name) Name.cat Word.new!)
+def(table-qname, Table Str -- QName,
+    dip(TYCON_TABLE NAMESPACE_TYCON) >Name QNAME)
 
-def(table-new!, Token Name -- Table,
+def(table-word-new!, Table Str -- Word,
+    dip(dup dip(head dup)) table-qname Word.new!)
+
+def(table-new!, Token QName -- Table,
     Table.alloc!
-    tuck ~name !
+    tuck ~qname !
     tuck ~head !
     TABLE_MAX_COUNT over ~max-count !
-    dup TTable DEF_TYPE over name ~Def !
-
+    dup DEF_TABLE register
 
     # Table.MAX
-    dup ".MAX" table-word-new!
+    dup "MAX" table-word-new!
 
     L0 CTX
     T0 TYPE_INT T1 T->
@@ -1069,7 +1090,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.nil
-    dup ".nil" table-word-new!
+    dup "nil" table-word-new!
 
     L0 CTX
     T0 over3 TTable T1 T->
@@ -1083,12 +1104,12 @@ def(table-new!, Token Name -- Table,
 
     # Table.NUM
     dup head
-    over name ".NUM" Name.cat
+    over "NUM" table-qname
     8 >Size Buffer.new!
     over ~num-buffer !
 
     # Table.id
-    dup ".id" table-word-new!
+    dup "id" table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 T->
@@ -1100,7 +1121,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.from-id
-    dup ".from-id" table-word-new!
+    dup "from-id" table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 swap T->
@@ -1112,7 +1133,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.succ
-    dup ".succ" table-word-new!
+    dup "succ" table-word-new!
 
     L0 CTX
     over2 TTable T1 dup T->
@@ -1133,7 +1154,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.pred
-    dup ".pred" table-word-new!
+    dup "pred" table-word-new!
 
     L0 CTX
     over2 TTable T1 dup T->
@@ -1155,7 +1176,7 @@ def(table-new!, Token Name -- Table,
 
     # Table.for
 
-    dup ".for" table-word-new!
+    dup "for" table-word-new!
     TYPE_STACK "*a" >Name Var.new! dup STVar
     \(t w va a -> a t TTable T* a T-> >Type "x" >Name Var.new-auto-run!
     \(x ->
@@ -1191,7 +1212,7 @@ def(table-new!, Token Name -- Table,
     t))
 
     # Table.alloc!
-    dup ".alloc!" table-word-new!
+    dup "alloc!" table-word-new!
 
     L0 CTX
     T0 over3 TTable T1 T->
@@ -1217,21 +1238,29 @@ def(table-new!, Token Name -- Table,
 # FIELD #
 #########
 
+||| Elaborate the qname for a word definition.
+||| Generally speaking this is going to use the module namespace.
+def(elab-def-qname, Token -- QName,
+    dup name? unwrap-or("expected name" emit-fatal-error!)
+    dip(dup .module NAMESPACE_MODULE) QNAME
+    nip)
+
+||| Same as `elab-def-qname` but raises an error if the qname is already defined.
+def(elab-def-qname-undefined, Token -- QName,
+    dup elab-def-qname
+    dup defined? then(drop "name already defined" emit-fatal-error!)
+    nip)
+
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, Token -- Token,
-    sip(next) args-3 rotl dup value match(
-        TOKEN_NAME ->
-            name-undefined? if(id,
-                drop "name already defined" emit-fatal-error!)
-            field-new! drop,
-        _ ->
-            drop "expected field name" emit-fatal-error!
-    ))
+    sip(next) args-3
+    rotl dup elab-def-qname-undefined
+    field-new! drop)
 
-def(field-new!, Token Token Token Name -- Field,
+def(field-new!, Token Token Token QName -- Field,
     Field.alloc!
-    tuck dup2 ~name !
-    DEF_FIELD swap ~Def !
+    tuck ~qname !
     tuck ~head !
     swap delay(elab-simple-type-arg!) over ~value-type !
-    swap delay(elab-simple-type-arg!) over ~index-type !)
+    swap delay(elab-simple-type-arg!) over ~index-type !
+    dup DEF_FIELD register)

@@ -1,0 +1,25 @@
+module(mirth.data.typedef)
+
+import(prelude)
+import(mirth.resource)
+import(mirth.data.token)
+import(mirth.data.name)
+import(mirth.data.def)
+
+table(TypeDef)
+field(TypeDef~head?, TypeDef, Maybe(Token))
+field(TypeDef~qname, TypeDef, QName)
+field(TypeDef~target, TypeDef, Type)
+
+def(TypeDef.head?, TypeDef -- Maybe(Token), ~head? @)
+def(TypeDef.qname, TypeDef -- QName, ~qname @)
+def(TypeDef.namespace, TypeDef -- Namespace, qname namespace)
+def(TypeDef.name, TypeDef -- Name, qname name)
+def(TypeDef.target, TypeDef -- Type, ~target @)
+
+def(TypeDef.new!, Maybe(Token) QName Type -- TypeDef,
+    TypeDef.alloc!
+    tuck ~target !
+    tuck ~qname !
+    tuck ~head? !
+    dup DEF_TYPEDEF register)

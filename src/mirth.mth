@@ -4,6 +4,7 @@ import(prelude)
 import(platform.posix)
 import(data.path)
 import(data.str)
+import(mirth.data.package)
 import(mirth.data.error)
 import(mirth.data.prim)
 import(mirth.data.type)
@@ -24,7 +25,7 @@ def(compile!, Path +World -- +World,
     "Compiling " trace!
     dup >Str trace-ln!
 
-    run-lexer!
+    Package.std swap run-lexer!
 
     # show-names-table!
     # show-tokens!

@@ -120,6 +120,7 @@ field(Prim~ctx, Prim, Ctx)
 field(Prim~type, Prim, ArrowType)
 field(Prim~decl, Prim, Maybe([Token +World -- Token +World]))
 
+def(Prim.qname, Prim -- QName, dip(Namespace.prim) name QNAME)
 def(Prim.name, Prim -- Name, ~name @)
 def(Prim.ctx, Prim -- Ctx, ~ctx @)
 def(Prim.type, Prim -- ArrowType, ~type @)
@@ -130,9 +131,8 @@ def(Prim=, Prim Prim -- Bool, both(>Int) =)
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
-    >Name
-    dup2 dip(DEF_PRIM) ~Def !
-    swap ~name !)
+    >Name over ~name !
+    DEF_PRIM register)
 
 def(Prim.ctx-type!, Ctx ArrowType Prim --,
     tuck ~type ! ~ctx !)

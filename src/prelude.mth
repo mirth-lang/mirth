@@ -383,6 +383,8 @@ data(Offset, Int>Offset -> Int)
 def(Offset>Int, Offset -- Int, Int>Offset -> id)
 def(Nat>Offset, Nat -- Offset, >Int >Offset)
 def(Size>Offset, Size -- Offset, >Nat >Offset)
+def(Offset>Nat, Offset -- Nat, >Int >Nat)
+def(Offset>Size, Offset -- Size, >Nat >Size)
 def(Offset+, Offset Offset -- Offset, both(>Int) + >Offset)
 def(Offset-, Offset Offset -- Offset, both(>Int) - >Offset)
 def(Offset.1+, Offset -- Offset, >Int 1+ >Offset)
@@ -396,6 +398,8 @@ def(Offset<>, Offset Offset -- Bool, both(>Int) <>)
 def(Offset.0=, Offset -- Bool, >Int 0=)
 def(Offset.0<, Offset -- Bool, >Int 0<)
 def(Offset.0>, Offset -- Bool, >Int 0>)
+def(Offset.max, Offset Offset -- Offset, dup2 >= if(drop, nip))
+def(Offset.min, Offset Offset -- Offset, dup2 <= if(drop, nip))
 
 ##########
 # TUPLES #
@@ -419,6 +423,11 @@ alias(@, prim-mut-get)
 alias(!, prim-mut-set)
 alias(mut-is-set, prim-mut-is-set)
 def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
+def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
+    dup mut-is-set if(
+        @,
+        dip(f dup) !
+    ))
 
 alias(panic!, prim-panic)
 def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,

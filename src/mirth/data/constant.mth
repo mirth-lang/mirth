@@ -6,16 +6,16 @@ import(mirth.data.def)
 
 table(Constant)
 field(Constant~head, Constant, Token)
-field(Constant~name, Constant, Name)
+field(Constant~qname, Constant, QName)
 field(Constant~value, Constant, Value)
 
 def(Constant.head, Constant -- Token, ~head @)
-def(Constant.name, Constant -- Name, ~name @)
+def(Constant.qname, Constant -- QName, ~qname @)
 def(Constant.value, Constant -- Value, ~value @)
 
-def(Constant.new!, Token Name Value -- Constant,
+def(Constant.new!, Token QName Value -- Constant,
     Constant.alloc!
     tuck ~value !
-    dup2 DEF_CONSTANT swap ~Def !
-    tuck ~name !
-    tuck ~head !)
+    tuck ~qname !
+    tuck ~head !
+    dup DEF_CONSTANT register)

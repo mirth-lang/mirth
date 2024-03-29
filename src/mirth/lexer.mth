@@ -36,7 +36,7 @@ def(lexer-stack-push!, Token +Lexer -- +Lexer,
 def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
     -LEXER uncons swap dip(+LEXER))
 
-def(run-lexer!, Path +World -- Module +World,
+def(run-lexer!, Package Path +World -- Module +World,
     Module.new! dup source-path open-file! input-start!
     1 >Row
     1 >Col
@@ -151,7 +151,8 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
 
         rdip(str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
-            str-buf-dup! >Name TOKEN_NAME
+            # TODO pick apart (pre)qualified names
+            str-buf-name? TOKEN_NAME
         ))
 
         Token.alloc!
@@ -161,6 +162,14 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
         ~module !
     )
     rdip(freeze drop))
+
+def(str-buf-name?, +Str -- Name +Str, str-buf-dup! >Name)
+
+# def(str-buf-pqname?, +Str -- Maybe(PQName) +Str,
+#     "::" str-buf-find map(
+#         dup >Size unsafe(str-buf-take-slice) >Name
+#         swap 2 >Offset + unsafe(str-buf-drop-slice) >Name PQNAME
+#     ))
 
 def(str-buf-is-doc-start?, +Str -- Bool +Str,
     str-buf-dup! "|||" =)

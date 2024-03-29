@@ -98,3 +98,35 @@ def(Str.with-cstr(f), (*a Ptr -- *b) *a Str -- *b,
         0= else("tried to use string as cstring, but no null terminator" panic!)
         f
     ))
+
+def(clamp-slice-offset-size, Offset Size Size -- Offset Size,
+    swap dip(tuck >Offset min tuck >Size -) min)
+
+def(str-slice, Offset Size Str +Unsafe -- Str +Unsafe,
+    with-str-data(
+        swap dip(clamp-slice-offset-size)
+        swap dip(offset) str-copy
+    ))
+
+def(str-buf-slice, Offset Size +Str +Unsafe -- Str +Str +Unsafe,
+    rdip(str-buf-dup!) str-slice)
+
+def(str-buf-take-slice, Size +Str +Unsafe -- Str +Str +Unsafe,
+    0 >Offset swap str-buf-slice)
+
+def(str-buf-drop-slice, Offset +Str +Unsafe -- Str +Str +Unsafe,
+    rdip(str-buf-num-bytes? ) str-buf-slice)
+
+||| Find the first occurence of a string in the str buf, returning its index.
+def(str-buf-find, Str +Str -- Maybe(Offset) +Str,
+    NONE swap 0 while(
+        over num-bytes over >Size +
+        str-buf-num-bytes? <= if(
+            dup2 >Offset over num-bytes unsafe(str-buf-slice) = if(
+                rotl drop dup >Offset SOME rotr F,
+                T
+            ),
+            F
+        ),
+        1+
+    ) drop2)

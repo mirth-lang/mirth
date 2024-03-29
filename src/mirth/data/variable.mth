@@ -7,16 +7,16 @@ import(mirth.data.def)
 
 table(Variable)
 field(Variable~head, Variable, Token)
-field(Variable~name, Variable, Name)
+field(Variable~qname, Variable, QName)
 field(Variable~type, Variable, Lazy(Type))
 
 def(Variable.head, Variable -- Token, ~head @)
-def(Variable.name, Variable -- Name, ~name @)
+def(Variable.qname, Variable -- QName, ~qname @)
 def(Variable.type, Variable -- Type, ~type force!)
 
-def(Variable.new!, Token Name Lazy(Type) -- Variable,
+def(Variable.new!, Token QName Lazy(Type) -- Variable,
     Variable.alloc!
     tuck ~type !
-    tuck ~name !
+    tuck ~qname !
     tuck ~head !
-    dup DEF_VARIABLE over name ~Def !)
+    dup DEF_VARIABLE register)

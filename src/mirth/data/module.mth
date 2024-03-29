@@ -6,16 +6,21 @@ import(data.str)
 import(data.list)
 import(data.byte)
 import(mirth.data.name)
+import(mirth.data.package)
 
 # mirth/data/module
 table(Module)
-field(Module~name, Module, Name)
+field(Module~package, Module, Package)
+field(Module~qname, Module, QName)
 field(Module~path, Module, Path)
 field(Module~start, Module, Token)
 field(Module~end, Module, Token)
 field(Module~imports, Module, List(Module))
 
-def(Module.name, Module -- Name, ~name @)
+def(Module.package, Module -- Package, ~package @)
+def(Module.namespace, Module -- Namespace, qname namespace)
+def(Module.name, Module -- Name, qname name)
+def(Module.qname, Module -- QName, ~qname @)
 def(Module.path, Module -- Path, ~path @)
 def(Module.start, Module -- Token, ~start @)
 def(Module.end, Module -- Token, ~end @)
@@ -23,13 +28,24 @@ def(Module.imports, Module -- List(Module), ~imports @)
 
 def(Module=, Module Module -- Bool, both(.id) =)
 
-def(Module.new!, Path -- Module,
+var(Module.prim-var, Module)
+def(Module.prim, Module,
+    Module.prim-var memoize(
+        Module.alloc!
+        L0 over ~imports !
+        "<prim>" >Path over ~path !
+        Package.std over ~package !
+        "prim" QName.std over ~qname !
+    ))
+
+def(Module.new!, Package Path -- Module,
     Module.alloc!
-    L0 over ~imports !
-    tuck ~path !)
+    Module.prim L1 over ~imports !
+    tuck ~path !
+    tuck ~package !)
 
 ||| ( module1 module2 -- ) Add module2 as import to module1.
-||| This does not check if the import is strictly necessary.
+||| This does not check if the import is necessary.
 def(Module.add-import!, Module Module --,
     swap ~imports modify(cons))
 
@@ -37,8 +53,8 @@ def(Module.add-import!, Module Module --,
 def(Module.source-path, Module -- Path,
     path to-source-path)
 
-def(Name.to-module-path, Name -- Path,
-    build-str!(
+def(QName.to-module-path, QName -- Path,
+    name build-str!(
         >Str str-bytes-for(
             dup B'.' = if(
                 drop B'/',
