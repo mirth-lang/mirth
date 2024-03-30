@@ -25,35 +25,37 @@ def(print-usage, +ArgumentParser -- +ArgumentParser,
 
   "" print-ln!
 
-  argument-parser ~options @ for(
-    "  " print!
-    dup ~type @ match( 
-      OPTION_SHORT -> dup is-printable then("-" print! dup to-str-unsafe print!) drop,
-      _ -> drop
-    )
-
-    # If we have both a short and long version of the argument we separate them
-    dup ~type @ has-short? and(dup ~long @ some?) if(
-      ", " ,
-      "  " 
-    ) print!
-
-    dup ~long @ match(
-      SOME -> "--" print! print! dup ~arg @ match (
-        SOME -> "=" print! 
-	print!,
-	NONE ->
-      ),
-      NONE ->
-    )
-    dup ~doc @ match(
-      SOME -> "\t" print! print!,
-      NONE ->
-    ) 
-    "" print-ln!
-    drop
-  ) 
+  argument-parser ~options @ for(print-usage-for-option) 
   "" print-ln!
+)
+
+def(print-usage-for-option, ArgpOption --,
+  "  " print!
+  dup ~type @ match( 
+    OPTION_SHORT -> dup is-printable then("-" print! dup to-str-unsafe print!) drop,
+    _ -> drop
+  )
+
+  # If we have both a short and long version of the argument we separate them
+  dup ~type @ has-short? and(dup ~long @ some?) if(
+    ", " ,
+    "  " 
+  ) print!
+
+  dup ~long @ match(
+    SOME -> "--" print! print! dup ~arg @ match (
+      SOME -> "=" print! print!,
+      NONE ->
+    ),
+    NONE ->
+  )
+  dup ~doc @ match(
+    SOME -> "\t" print! print!,
+    NONE ->
+  ) 
+
+  "" print-ln!
+  drop
 )
 
 ||| Check if the currently parsed argument is something we accept

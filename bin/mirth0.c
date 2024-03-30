@@ -7570,6 +7570,7 @@ static void mw_ArgpOption_2E_alloc_21_ (void);
 static void mw_ArgpOption_2E_new (void);
 static void mw_ArgumentParsingError_2E_show (void);
 static void mw_print_usage (void);
+static void mw_print_usage_for_option (void);
 static void mw_check_short_flag (void);
 static void mw_parse_flags_where (void);
 static void mw_check_long_flag (void);
@@ -8169,8 +8170,8 @@ static void mb__2B_Set_2E_member_3F__3 (void);
 static void mb__2B_Set_2E_insert_21__3 (void);
 static void mb_print_usage_14 (void);
 static void mb_print_usage_25 (void);
-static void mb_print_usage_38 (void);
-static void mb_print_usage_56 (void);
+static void mb_print_usage_for_option_13 (void);
+static void mb_print_usage_for_option_31 (void);
 static void mb_parse_flags_where_5 (void);
 static void mb_parse_flags_7 (void);
 static void mb_parse_flags_21 (void);
@@ -41626,7 +41627,7 @@ static void mw_print_usage (void) {
     push_fnptr(&mb_print_usage_25);
     mw_prim_pack_cons();
     mw_List_2E_for();
-    WORD_ATOM(56, 3, "");
+    WORD_ATOM(29, 3, "");
     {
         static bool vready = false;
         static VAL v;
@@ -41637,56 +41638,249 @@ static void mw_print_usage (void) {
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(56, 6, "print-ln!");
+    WORD_ATOM(29, 6, "print-ln!");
     mw_Str_2E_print_ln_21_();
     WORD_EXIT(mw_print_usage);
 }
-static void mw_check_short_flag (void) {
-    WORD_ENTER(mw_check_short_flag, "check-short-flag", "src/args/parse.mth", 61, 3);
-    WORD_ATOM(61, 3, "over");
-    mw_over();
-    WORD_ATOM(61, 8, "~type");
+static void mw_print_usage_for_option (void) {
+    WORD_ENTER(mw_print_usage_for_option, "print-usage-for-option", "src/args/parse.mth", 33, 3);
+    WORD_ATOM(33, 3, "");
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("  ", 2);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    WORD_ATOM(33, 8, "print!");
+    mw_Str_2E_print_21_();
+    WORD_ATOM(34, 3, "dup");
+    mw_prim_dup();
+    WORD_ATOM(34, 7, "~type");
     mw_ArgpOption_7E_type();
-    WORD_ATOM(61, 14, "@");
+    WORD_ATOM(34, 13, "@");
     mw_prim_mut_get();
-    WORD_ATOM(61, 16, "match");
+    WORD_ATOM(34, 15, "match");
     switch (get_top_data_tag()) {
         case 0LL:
             mp_OPTION_5F_SHORT();
-            WORD_ATOM(62, 21, "");
+            WORD_ATOM(35, 21, "dup");
+            mw_prim_dup();
+            WORD_ATOM(35, 25, "is-printable");
+            mw_Byte_2E_is_printable();
+            WORD_ATOM(35, 38, "then");
+            push_u64(0);
+            push_fnptr(&mb_print_usage_for_option_13);
+            mw_prim_pack_cons();
+            mw_Bool_2E_then();
+            WORD_ATOM(35, 80, "drop");
+            mw_prim_drop();
+            break;
+        default:
+            WORD_ATOM(36, 10, "drop");
+            mw_prim_drop();
+            break;
+    }
+    WORD_ATOM(40, 3, "dup");
+    mw_prim_dup();
+    WORD_ATOM(40, 7, "~type");
+    mw_ArgpOption_7E_type();
+    WORD_ATOM(40, 13, "@");
+    mw_prim_mut_get();
+    WORD_ATOM(40, 15, "has-short?");
+    mw_ArgpOptionType_2E_has_short_3F_();
+    WORD_ATOM(40, 26, "and");
+    push_u64(0);
+    push_fnptr(&mb_print_usage_for_option_31);
+    mw_prim_pack_cons();
+    mw_Bool_2E_and();
+    WORD_ATOM(40, 49, "if");
+    if (pop_u64()) {
+        WORD_ATOM(41, 5, "");
+        {
+            static bool vready = false;
+            static VAL v;
+            if (! vready) {
+                v = mkstr(", ", 2);
+                vready = true;
+            }
+            push_value(v);
+            incref(v);
+        }
+    } else {
+        WORD_ATOM(42, 5, "");
+        {
+            static bool vready = false;
+            static VAL v;
+            if (! vready) {
+                v = mkstr("  ", 2);
+                vready = true;
+            }
+            push_value(v);
+            incref(v);
+        }
+    }
+    WORD_ATOM(43, 5, "print!");
+    mw_Str_2E_print_21_();
+    WORD_ATOM(45, 3, "dup");
+    mw_prim_dup();
+    WORD_ATOM(45, 7, "~long");
+    mw_ArgpOption_7E_long();
+    WORD_ATOM(45, 13, "@");
+    mw_prim_mut_get();
+    WORD_ATOM(45, 15, "match");
+    switch (get_top_data_tag()) {
+        case 1LL:
+            mp_SOME();
+            WORD_ATOM(46, 13, "");
+            {
+                static bool vready = false;
+                static VAL v;
+                if (! vready) {
+                    v = mkstr("--", 2);
+                    vready = true;
+                }
+                push_value(v);
+                incref(v);
+            }
+            WORD_ATOM(46, 18, "print!");
+            mw_Str_2E_print_21_();
+            WORD_ATOM(46, 25, "print!");
+            mw_Str_2E_print_21_();
+            WORD_ATOM(46, 32, "dup");
+            mw_prim_dup();
+            WORD_ATOM(46, 36, "~arg");
+            mw_ArgpOption_7E_arg();
+            WORD_ATOM(46, 41, "@");
+            mw_prim_mut_get();
+            WORD_ATOM(46, 43, "match");
+            switch (get_top_data_tag()) {
+                case 1LL:
+                    mp_SOME();
+                    WORD_ATOM(47, 15, "");
+                    {
+                        static bool vready = false;
+                        static VAL v;
+                        if (! vready) {
+                            v = mkstr("=", 1);
+                            vready = true;
+                        }
+                        push_value(v);
+                        incref(v);
+                    }
+                    WORD_ATOM(47, 19, "print!");
+                    mw_Str_2E_print_21_();
+                    WORD_ATOM(47, 26, "print!");
+                    mw_Str_2E_print_21_();
+                    break;
+                case 0LL:
+                    mp_NONE();
+                    break;
+                default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
+            }
+            break;
+        case 0LL:
+            mp_NONE();
+            break;
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
+    }
+    WORD_ATOM(52, 3, "dup");
+    mw_prim_dup();
+    WORD_ATOM(52, 7, "~doc");
+    mw_ArgpOption_7E_doc();
+    WORD_ATOM(52, 12, "@");
+    mw_prim_mut_get();
+    WORD_ATOM(52, 14, "match");
+    switch (get_top_data_tag()) {
+        case 1LL:
+            mp_SOME();
+            WORD_ATOM(53, 13, "");
+            {
+                static bool vready = false;
+                static VAL v;
+                if (! vready) {
+                    v = mkstr("\t", 1);
+                    vready = true;
+                }
+                push_value(v);
+                incref(v);
+            }
+            WORD_ATOM(53, 18, "print!");
+            mw_Str_2E_print_21_();
+            WORD_ATOM(53, 25, "print!");
+            mw_Str_2E_print_21_();
+            break;
+        case 0LL:
+            mp_NONE();
+            break;
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
+    }
+    WORD_ATOM(57, 3, "");
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("", 0);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    WORD_ATOM(57, 6, "print-ln!");
+    mw_Str_2E_print_ln_21_();
+    WORD_ATOM(58, 3, "drop");
+    mw_prim_drop();
+    WORD_EXIT(mw_print_usage_for_option);
+}
+static void mw_check_short_flag (void) {
+    WORD_ENTER(mw_check_short_flag, "check-short-flag", "src/args/parse.mth", 63, 3);
+    WORD_ATOM(63, 3, "over");
+    mw_over();
+    WORD_ATOM(63, 8, "~type");
+    mw_ArgpOption_7E_type();
+    WORD_ATOM(63, 14, "@");
+    mw_prim_mut_get();
+    WORD_ATOM(63, 16, "match");
+    switch (get_top_data_tag()) {
+        case 0LL:
+            mp_OPTION_5F_SHORT();
+            WORD_ATOM(64, 21, "");
             push_i64(0LL);
-            WORD_ATOM(62, 23, ">Offset");
+            WORD_ATOM(64, 23, ">Offset");
             mw_Int_3E_Offset();
-            WORD_ATOM(62, 31, "rotl");
+            WORD_ATOM(64, 31, "rotl");
             mw_rotl();
-            WORD_ATOM(62, 36, "str-byte@");
+            WORD_ATOM(64, 36, "str-byte@");
             mw_str_byte_40_();
-            WORD_ATOM(62, 46, "=");
+            WORD_ATOM(64, 46, "=");
             mw_Byte_3D_();
             break;
         default:
-            WORD_ATOM(63, 10, "drop");
+            WORD_ATOM(65, 10, "drop");
             mw_prim_drop();
-            WORD_ATOM(63, 15, "drop");
+            WORD_ATOM(65, 15, "drop");
             mw_prim_drop();
-            WORD_ATOM(63, 20, "F");
+            WORD_ATOM(65, 20, "F");
             mw_F();
             break;
     }
     WORD_EXIT(mw_check_short_flag);
 }
 static void mw_parse_flags_where (void) {
-    WORD_ENTER(mw_parse_flags_where, "parse-flags-where", "src/args/parse.mth", 69, 3);
-    WORD_ATOM(69, 3, "argument-parser");
+    WORD_ENTER(mw_parse_flags_where, "parse-flags-where", "src/args/parse.mth", 71, 3);
+    WORD_ATOM(71, 3, "argument-parser");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(69, 3, "argument-parser");
+        WORD_ATOM(71, 3, "argument-parser");
         mw__2B_ArgumentParser_2E_argument_parser();
-        WORD_ATOM(69, 19, "~options");
+        WORD_ATOM(71, 19, "~options");
         mw_ArgumentParser_7E_options();
-        WORD_ATOM(69, 28, "@");
+        WORD_ATOM(71, 28, "@");
         mw_prim_mut_get();
-        WORD_ATOM(70, 3, "find");
+        WORD_ATOM(72, 3, "find");
         push_u64(0);
         incref(var_f);
         push_value(var_f);
@@ -41694,81 +41888,81 @@ static void mw_parse_flags_where (void) {
         push_fnptr(&mb_parse_flags_where_5);
         mw_prim_pack_cons();
         mw_List_2E_find();
-        WORD_ATOM(70, 16, "swap");
+        WORD_ATOM(72, 16, "swap");
         mw_prim_swap();
-        WORD_ATOM(70, 21, "drop");
+        WORD_ATOM(72, 21, "drop");
         mw_prim_drop();
-        WORD_ATOM(70, 26, "match");
+        WORD_ATOM(72, 26, "match");
         switch (get_top_data_tag()) {
             case 1LL:
                 mp_SOME();
-                WORD_ATOM(71, 13, "dup");
+                WORD_ATOM(73, 13, "dup");
                 mw_prim_dup();
-                WORD_ATOM(71, 17, "~arg");
+                WORD_ATOM(73, 17, "~arg");
                 mw_ArgpOption_7E_arg();
-                WORD_ATOM(71, 22, "@");
+                WORD_ATOM(73, 22, "@");
                 mw_prim_mut_get();
-                WORD_ATOM(71, 24, "match");
+                WORD_ATOM(73, 24, "match");
                 switch (get_top_data_tag()) {
                     case 1LL:
                         mp_SOME();
-                        WORD_ATOM(73, 2, "T");
+                        WORD_ATOM(75, 2, "T");
                         mw_T();
-                        WORD_ATOM(73, 4, "state");
+                        WORD_ATOM(75, 4, "state");
                         mw__2B_ArgumentParser_2E_state();
-                        WORD_ATOM(73, 10, "currently-parsing-option!");
+                        WORD_ATOM(75, 10, "currently-parsing-option!");
                         mw_ArgumentParserState_2E_currently_parsing_option_21_();
-                        WORD_ATOM(73, 36, "state!");
+                        WORD_ATOM(75, 36, "state!");
                         mw__2B_ArgumentParser_2E_state_21_();
-                        WORD_ATOM(74, 2, "drop");
+                        WORD_ATOM(76, 2, "drop");
                         mw_prim_drop();
-                        WORD_ATOM(74, 7, "SOME");
+                        WORD_ATOM(76, 7, "SOME");
                         mw_SOME();
-                        WORD_ATOM(74, 12, "state");
+                        WORD_ATOM(76, 12, "state");
                         mw__2B_ArgumentParser_2E_state();
-                        WORD_ATOM(74, 18, "current-option-option!");
+                        WORD_ATOM(76, 18, "current-option-option!");
                         mw_ArgumentParserState_2E_current_option_option_21_();
-                        WORD_ATOM(74, 41, "state!");
+                        WORD_ATOM(76, 41, "state!");
                         mw__2B_ArgumentParser_2E_state_21_();
                         break;
                     case 0LL:
                         mp_NONE();
-                        WORD_ATOM(75, 15, "~type");
+                        WORD_ATOM(77, 15, "~type");
                         mw_ArgpOption_7E_type();
-                        WORD_ATOM(75, 21, "@");
+                        WORD_ATOM(77, 21, "@");
                         mw_prim_mut_get();
-                        WORD_ATOM(75, 23, "state");
+                        WORD_ATOM(77, 23, "state");
                         mw__2B_ArgumentParser_2E_state();
-                        WORD_ATOM(75, 29, "arguments");
+                        WORD_ATOM(77, 29, "arguments");
                         mw_ArgumentParserState_2E_arguments();
-                        WORD_ATOM(75, 39, "swap");
+                        WORD_ATOM(77, 39, "swap");
                         mw_prim_swap();
-                        WORD_ATOM(75, 44, "NONE");
+                        WORD_ATOM(77, 44, "NONE");
                         mw_NONE();
-                        WORD_ATOM(75, 49, "swap");
+                        WORD_ATOM(77, 49, "swap");
                         mw_prim_swap();
-                        WORD_ATOM(75, 54, "parser");
+                        WORD_ATOM(77, 54, "parser");
                         mw__2B_ArgumentParser_2E_parser();
-                        WORD_ATOM(75, 61, "match");
+                        WORD_ATOM(77, 61, "match");
                         switch (get_top_data_tag()) {
                             case 1LL:
                                 mp_SOME();
-                                WORD_ATOM(76, 10, "run");
+                                WORD_ATOM(78, 10, "run");
                                 mw_prim_run();
-                                WORD_ATOM(76, 14, "state");
+                                WORD_ATOM(78, 14, "state");
                                 mw__2B_ArgumentParser_2E_state();
-                                WORD_ATOM(76, 20, "arguments!");
+                                WORD_ATOM(78, 20, "arguments!");
                                 mw_ArgumentParserState_2E_arguments_21_();
-                                WORD_ATOM(76, 31, "state!");
+                                WORD_ATOM(78, 31, "state!");
                                 mw__2B_ArgumentParser_2E_state_21_();
                                 break;
                             case 0LL:
                                 mp_NONE();
-                                WORD_ATOM(77, 10, "drop");
+                                WORD_ATOM(79, 10, "drop");
                                 mw_prim_drop();
-                                WORD_ATOM(77, 15, "drop");
+                                WORD_ATOM(79, 15, "drop");
                                 mw_prim_drop();
-                                WORD_ATOM(77, 20, "drop");
+                                WORD_ATOM(79, 20, "drop");
                                 mw_prim_drop();
                                 break;
                             default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -41776,14 +41970,14 @@ static void mw_parse_flags_where (void) {
                         break;
                     default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
                 }
-                WORD_ATOM(79, 7, "NONE");
+                WORD_ATOM(81, 7, "NONE");
                 mw_NONE();
                 break;
             case 0LL:
                 mp_NONE();
-                WORD_ATOM(80, 13, "UNKNOWN_ARG");
+                WORD_ATOM(82, 13, "UNKNOWN_ARG");
                 mw_UNKNOWN_5F_ARG();
-                WORD_ATOM(80, 25, "SOME");
+                WORD_ATOM(82, 25, "SOME");
                 mw_SOME();
                 break;
             default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -41793,25 +41987,25 @@ static void mw_parse_flags_where (void) {
     WORD_EXIT(mw_parse_flags_where);
 }
 static void mw_check_long_flag (void) {
-    WORD_ENTER(mw_check_long_flag, "check-long-flag", "src/args/parse.mth", 86, 3);
-    WORD_ATOM(86, 3, "over");
+    WORD_ENTER(mw_check_long_flag, "check-long-flag", "src/args/parse.mth", 88, 3);
+    WORD_ATOM(88, 3, "over");
     mw_over();
-    WORD_ATOM(86, 8, "~long");
+    WORD_ATOM(88, 8, "~long");
     mw_ArgpOption_7E_long();
-    WORD_ATOM(86, 14, "@");
+    WORD_ATOM(88, 14, "@");
     mw_prim_mut_get();
-    WORD_ATOM(86, 16, "match");
+    WORD_ATOM(88, 16, "match");
     switch (get_top_data_tag()) {
         case 1LL:
             mp_SOME();
-            WORD_ATOM(87, 13, "=");
+            WORD_ATOM(89, 13, "=");
             mw_Str_3D_();
             break;
         case 0LL:
             mp_NONE();
-            WORD_ATOM(88, 13, "drop");
+            WORD_ATOM(90, 13, "drop");
             mw_prim_drop();
-            WORD_ATOM(88, 18, "F");
+            WORD_ATOM(90, 18, "F");
             mw_F();
             break;
         default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -41819,207 +42013,207 @@ static void mw_check_long_flag (void) {
     WORD_EXIT(mw_check_long_flag);
 }
 static void mw_parse_flags (void) {
-    WORD_ENTER(mw_parse_flags, "parse-flags", "src/args/parse.mth", 94, 3);
-    WORD_ATOM(94, 3, "dup");
+    WORD_ENTER(mw_parse_flags, "parse-flags", "src/args/parse.mth", 96, 3);
+    WORD_ATOM(96, 3, "dup");
     mw_prim_dup();
-    WORD_ATOM(94, 7, "num-bytes");
+    WORD_ATOM(96, 7, "num-bytes");
     mw_Str_2E_num_bytes();
-    WORD_ATOM(94, 17, "");
+    WORD_ATOM(96, 17, "");
     push_i64(2LL);
-    WORD_ATOM(94, 19, ">Size");
+    WORD_ATOM(96, 19, ">Size");
     mw_Int_3E_Size();
-    WORD_ATOM(94, 25, ">=");
+    WORD_ATOM(96, 25, ">=");
     mw_Size_3E__3D_();
-    WORD_ATOM(94, 28, "and");
+    WORD_ATOM(96, 28, "and");
     push_u64(0);
     push_fnptr(&mb_parse_flags_7);
     mw_prim_pack_cons();
     mw_Bool_2E_and();
-    WORD_ATOM(94, 65, "if");
+    WORD_ATOM(96, 65, "if");
     if (pop_u64()) {
-        WORD_ATOM(95, 5, "");
+        WORD_ATOM(97, 5, "");
         push_i64(2LL);
-        WORD_ATOM(95, 7, ">Size");
+        WORD_ATOM(97, 7, ">Size");
         mw_Int_3E_Size();
-        WORD_ATOM(95, 13, "over");
+        WORD_ATOM(97, 13, "over");
         mw_over();
-        WORD_ATOM(95, 18, "unsafe");
+        WORD_ATOM(97, 18, "unsafe");
         push_u64(0);
         push_fnptr(&mb_parse_flags_21);
         mw_prim_pack_cons();
         mw_unsafe();
-        WORD_ATOM(95, 37, "parse-flags-where");
+        WORD_ATOM(97, 37, "parse-flags-where");
         push_u64(0);
         push_fnptr(&mb_parse_flags_25);
         mw_prim_pack_cons();
         mw_parse_flags_where();
     } else {
-        WORD_ATOM(96, 5, "");
+        WORD_ATOM(98, 5, "");
         push_i64(1LL);
-        WORD_ATOM(96, 7, ">Size");
+        WORD_ATOM(98, 7, ">Size");
         mw_Int_3E_Size();
-        WORD_ATOM(96, 13, "over");
+        WORD_ATOM(98, 13, "over");
         mw_over();
-        WORD_ATOM(96, 18, "unsafe");
+        WORD_ATOM(98, 18, "unsafe");
         push_u64(0);
         push_fnptr(&mb_parse_flags_33);
         mw_prim_pack_cons();
         mw_unsafe();
-        WORD_ATOM(96, 37, "parse-flags-where");
+        WORD_ATOM(98, 37, "parse-flags-where");
         push_u64(0);
         push_fnptr(&mb_parse_flags_37);
         mw_prim_pack_cons();
         mw_parse_flags_where();
     }
-    WORD_ATOM(97, 5, "swap");
+    WORD_ATOM(99, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(97, 10, "drop");
+    WORD_ATOM(99, 10, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_parse_flags);
 }
 static void mw_do_positional_option (void) {
-    WORD_ENTER(mw_do_positional_option, "do-positional-option", "src/args/parse.mth", 102, 3);
-    WORD_ATOM(102, 3, "state");
-    mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(102, 9, "arguments");
-    mw_ArgumentParserState_2E_arguments();
-    WORD_ATOM(102, 19, "swap");
-    mw_prim_swap();
-    WORD_ATOM(102, 24, "SOME");
-    mw_SOME();
-    WORD_ATOM(102, 29, "OPTION_POSITIONAL");
-    mw_OPTION_5F_POSITIONAL();
-    WORD_ATOM(102, 47, "parser");
-    mw__2B_ArgumentParser_2E_parser();
-    WORD_ATOM(102, 54, "unwrap");
-    mw_Maybe_2E_unwrap();
-    WORD_ATOM(102, 61, "run");
-    mw_prim_run();
-    WORD_ATOM(103, 3, "state");
-    mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(103, 9, "arguments!");
-    mw_ArgumentParserState_2E_arguments_21_();
-    WORD_ATOM(103, 20, "state!");
-    mw__2B_ArgumentParser_2E_state_21_();
-    WORD_ATOM(103, 27, "NONE");
-    mw_NONE();
+    WORD_ENTER(mw_do_positional_option, "do-positional-option", "src/args/parse.mth", 104, 3);
     WORD_ATOM(104, 3, "state");
     mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(104, 9, "current-positional-arg");
-    mw_ArgumentParserState_2E_current_positional_arg();
-    WORD_ATOM(104, 32, "1+");
-    mw_prim_int_succ();
-    WORD_ATOM(104, 35, "state");
+    WORD_ATOM(104, 9, "arguments");
+    mw_ArgumentParserState_2E_arguments();
+    WORD_ATOM(104, 19, "swap");
+    mw_prim_swap();
+    WORD_ATOM(104, 24, "SOME");
+    mw_SOME();
+    WORD_ATOM(104, 29, "OPTION_POSITIONAL");
+    mw_OPTION_5F_POSITIONAL();
+    WORD_ATOM(104, 47, "parser");
+    mw__2B_ArgumentParser_2E_parser();
+    WORD_ATOM(104, 54, "unwrap");
+    mw_Maybe_2E_unwrap();
+    WORD_ATOM(104, 61, "run");
+    mw_prim_run();
+    WORD_ATOM(105, 3, "state");
     mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(104, 41, "current-positional-arg!");
+    WORD_ATOM(105, 9, "arguments!");
+    mw_ArgumentParserState_2E_arguments_21_();
+    WORD_ATOM(105, 20, "state!");
+    mw__2B_ArgumentParser_2E_state_21_();
+    WORD_ATOM(105, 27, "NONE");
+    mw_NONE();
+    WORD_ATOM(106, 3, "state");
+    mw__2B_ArgumentParser_2E_state();
+    WORD_ATOM(106, 9, "current-positional-arg");
+    mw_ArgumentParserState_2E_current_positional_arg();
+    WORD_ATOM(106, 32, "1+");
+    mw_prim_int_succ();
+    WORD_ATOM(106, 35, "state");
+    mw__2B_ArgumentParser_2E_state();
+    WORD_ATOM(106, 41, "current-positional-arg!");
     mw_ArgumentParserState_2E_current_positional_arg_21_();
-    WORD_ATOM(104, 65, "state!");
+    WORD_ATOM(106, 65, "state!");
     mw__2B_ArgumentParser_2E_state_21_();
     WORD_EXIT(mw_do_positional_option);
 }
 static void mw_parse_args (void) {
-    WORD_ENTER(mw_parse_args, "parse-args", "src/args/parse.mth", 109, 3);
-    WORD_ATOM(109, 3, "swap");
+    WORD_ENTER(mw_parse_args, "parse-args", "src/args/parse.mth", 111, 3);
+    WORD_ATOM(111, 3, "swap");
     mw_prim_swap();
-    WORD_ATOM(109, 8, "ArgumentParserState.init");
+    WORD_ATOM(111, 8, "ArgumentParserState.init");
     mw_ArgumentParserState_2E_init();
-    WORD_ATOM(109, 33, "+ARGUMENTPARSER");
+    WORD_ATOM(111, 33, "+ARGUMENTPARSER");
     mw__2B_ARGUMENTPARSER();
-    WORD_ATOM(110, 3, "state");
+    WORD_ATOM(112, 3, "state");
     mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(110, 9, "ArgumentParserState.argv");
+    WORD_ATOM(112, 9, "ArgumentParserState.argv");
     mw_ArgumentParserState_2E_argv();
-    WORD_ATOM(110, 34, "for");
+    WORD_ATOM(112, 34, "for");
     push_u64(0);
     push_fnptr(&mb_parse_args_7);
     mw_prim_pack_cons();
     mw_List_2E_for();
-    WORD_ATOM(145, 3, "state");
+    WORD_ATOM(147, 3, "state");
     mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(145, 9, "currently-parsing-option");
+    WORD_ATOM(147, 9, "currently-parsing-option");
     mw_ArgumentParserState_2E_currently_parsing_option();
-    WORD_ATOM(145, 34, "then");
+    WORD_ATOM(147, 34, "then");
     push_u64(0);
     push_fnptr(&mb_parse_args_137);
     mw_prim_pack_cons();
     mw_Bool_2E_then();
-    WORD_ATOM(151, 3, "state");
-    mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(151, 9, "arguments");
-    mw_ArgumentParserState_2E_arguments();
-    WORD_ATOM(151, 19, "NONE");
-    mw_NONE();
-    WORD_ATOM(151, 24, "OPTION_END");
-    mw_OPTION_5F_END();
-    WORD_ATOM(151, 35, "parser");
-    mw__2B_ArgumentParser_2E_parser();
-    WORD_ATOM(151, 42, "unwrap");
-    mw_Maybe_2E_unwrap();
-    WORD_ATOM(151, 49, "run");
-    mw_prim_run();
-    WORD_ATOM(151, 53, "state");
-    mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(151, 59, "arguments!");
-    mw_ArgumentParserState_2E_arguments_21_();
-    WORD_ATOM(151, 70, "state!");
-    mw__2B_ArgumentParser_2E_state_21_();
     WORD_ATOM(153, 3, "state");
     mw__2B_ArgumentParser_2E_state();
     WORD_ATOM(153, 9, "arguments");
     mw_ArgumentParserState_2E_arguments();
-    WORD_ATOM(153, 19, "state");
+    WORD_ATOM(153, 19, "NONE");
+    mw_NONE();
+    WORD_ATOM(153, 24, "OPTION_END");
+    mw_OPTION_5F_END();
+    WORD_ATOM(153, 35, "parser");
+    mw__2B_ArgumentParser_2E_parser();
+    WORD_ATOM(153, 42, "unwrap");
+    mw_Maybe_2E_unwrap();
+    WORD_ATOM(153, 49, "run");
+    mw_prim_run();
+    WORD_ATOM(153, 53, "state");
     mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(153, 25, "current-error");
+    WORD_ATOM(153, 59, "arguments!");
+    mw_ArgumentParserState_2E_arguments_21_();
+    WORD_ATOM(153, 70, "state!");
+    mw__2B_ArgumentParser_2E_state_21_();
+    WORD_ATOM(155, 3, "state");
+    mw__2B_ArgumentParser_2E_state();
+    WORD_ATOM(155, 9, "arguments");
+    mw_ArgumentParserState_2E_arguments();
+    WORD_ATOM(155, 19, "state");
+    mw__2B_ArgumentParser_2E_state();
+    WORD_ATOM(155, 25, "current-error");
     mw_ArgumentParserState_2E_current_error();
-    WORD_ATOM(154, 3, "match");
+    WORD_ATOM(156, 3, "match");
     switch (get_top_data_tag()) {
         case 1LL:
             mp_SOME();
-            WORD_ATOM(155, 13, "LEFT");
+            WORD_ATOM(157, 13, "LEFT");
             mw_LEFT();
-            WORD_ATOM(155, 18, "swap");
+            WORD_ATOM(157, 18, "swap");
             mw_prim_swap();
-            WORD_ATOM(155, 23, "drop");
+            WORD_ATOM(157, 23, "drop");
             mw_prim_drop();
-            WORD_ATOM(155, 28, "print-usage");
+            WORD_ATOM(157, 28, "print-usage");
             mw_print_usage();
             break;
         case 0LL:
             mp_NONE();
-            WORD_ATOM(156, 13, "RIGHT");
+            WORD_ATOM(158, 13, "RIGHT");
             mw_RIGHT();
             break;
         default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     }
-    WORD_ATOM(158, 3, "rdrop");
+    WORD_ATOM(160, 3, "rdrop");
     mw__2B_ArgumentParser_2E_rdrop();
     WORD_EXIT(mw_parse_args);
 }
 static void mw_read_from_argv (void) {
-    WORD_ENTER(mw_read_from_argv, "read-from-argv", "src/args/parse.mth", 162, 5);
-    WORD_ATOM(162, 5, "Ptr.sizeof");
+    WORD_ENTER(mw_read_from_argv, "read-from-argv", "src/args/parse.mth", 164, 5);
+    WORD_ATOM(164, 5, "Ptr.sizeof");
     mw_Ptr_2E_sizeof();
-    WORD_ATOM(162, 16, ">Int");
+    WORD_ATOM(164, 16, ">Int");
     mw_Size_3E_Int();
-    WORD_ATOM(162, 21, "*");
+    WORD_ATOM(164, 21, "*");
     mw_prim_int_mul();
-    WORD_ATOM(162, 23, ">Size");
+    WORD_ATOM(164, 23, ">Size");
     mw_Int_3E_Size();
-    WORD_ATOM(162, 29, ">Offset");
+    WORD_ATOM(164, 29, ">Offset");
     mw_Size_3E_Offset();
-    WORD_ATOM(162, 37, "argv");
+    WORD_ATOM(164, 37, "argv");
     mw_prim_sys_argv();
-    WORD_ATOM(162, 42, "offset");
+    WORD_ATOM(164, 42, "offset");
     mw_Ptr_2E_offset();
-    WORD_ATOM(162, 49, "@Ptr");
+    WORD_ATOM(164, 49, "@Ptr");
     mw_Ptr_40_Ptr();
-    WORD_ATOM(162, 54, "str-copy-cstr");
+    WORD_ATOM(164, 54, "str-copy-cstr");
     mw_str_copy_cstr();
     WORD_EXIT(mw_read_from_argv);
 }
 static void mw_argv_to_str (void) {
-    WORD_ENTER(mw_argv_to_str, "argv-to-str", "src/args/parse.mth", 166, 3);
-    WORD_ATOM(166, 3, "LIST");
+    WORD_ENTER(mw_argv_to_str, "argv-to-str", "src/args/parse.mth", 168, 3);
+    WORD_ATOM(168, 3, "LIST");
     push_u64(0);
     push_fnptr(&mb_argv_to_str_2);
     mw_prim_pack_cons();
@@ -42895,76 +43089,76 @@ static void mb_main_38 (void) {
 }
 
 static void mb_parse_args_7 (void) {
-    WORD_ENTER(mb_parse_args_7, "parse-args block", "src/args/parse.mth", 111, 5);
+    WORD_ENTER(mb_parse_args_7, "parse-args block", "src/args/parse.mth", 113, 5);
     mw_prim_drop();
-    WORD_ATOM(111, 5, "dup");
+    WORD_ATOM(113, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(111, 9, "num-bytes");
+    WORD_ATOM(113, 9, "num-bytes");
     mw_Str_2E_num_bytes();
-    WORD_ATOM(111, 19, "");
+    WORD_ATOM(113, 19, "");
     push_i64(1LL);
-    WORD_ATOM(111, 21, ">Size");
+    WORD_ATOM(113, 21, ">Size");
     mw_Int_3E_Size();
-    WORD_ATOM(111, 27, ">");
+    WORD_ATOM(113, 27, ">");
     mw_Size_3E_();
-    WORD_ATOM(111, 29, "if");
+    WORD_ATOM(113, 29, "if");
     if (pop_u64()) {
-        WORD_ATOM(112, 7, "");
+        WORD_ATOM(114, 7, "");
         push_i64(0LL);
-        WORD_ATOM(112, 9, ">Offset");
+        WORD_ATOM(114, 9, ">Offset");
         mw_Int_3E_Offset();
-        WORD_ATOM(112, 17, "over");
+        WORD_ATOM(114, 17, "over");
         mw_over();
-        WORD_ATOM(112, 22, "str-byte@");
+        WORD_ATOM(114, 22, "str-byte@");
         mw_str_byte_40_();
-        WORD_ATOM(112, 32, "B'-'");
+        WORD_ATOM(114, 32, "B'-'");
         mw_B_27___27_();
-        WORD_ATOM(112, 37, "=");
+        WORD_ATOM(114, 37, "=");
         mw_Byte_3D_();
-        WORD_ATOM(112, 39, "if");
+        WORD_ATOM(114, 39, "if");
         if (pop_u64()) {
-            WORD_ATOM(115, 9, "state");
+            WORD_ATOM(117, 9, "state");
             mw__2B_ArgumentParser_2E_state();
-            WORD_ATOM(115, 15, "currently-parsing-option");
+            WORD_ATOM(117, 15, "currently-parsing-option");
             mw_ArgumentParserState_2E_currently_parsing_option();
-            WORD_ATOM(115, 40, "if");
+            WORD_ATOM(117, 40, "if");
             if (pop_u64()) {
-                WORD_ATOM(116, 4, "drop");
+                WORD_ATOM(118, 4, "drop");
                 mw_prim_drop();
-                WORD_ATOM(116, 9, "state");
+                WORD_ATOM(118, 9, "state");
                 mw__2B_ArgumentParser_2E_state();
-                WORD_ATOM(116, 15, "current-option-option");
+                WORD_ATOM(118, 15, "current-option-option");
                 mw_ArgumentParserState_2E_current_option_option();
-                WORD_ATOM(116, 37, "match");
+                WORD_ATOM(118, 37, "match");
                 switch (get_top_data_tag()) {
                     case 1LL:
                         mp_SOME();
-                        WORD_ATOM(117, 21, "~arg");
+                        WORD_ATOM(119, 21, "~arg");
                         mw_ArgpOption_7E_arg();
-                        WORD_ATOM(117, 26, "@");
+                        WORD_ATOM(119, 26, "@");
                         mw_prim_mut_get();
-                        WORD_ATOM(117, 28, "match");
+                        WORD_ATOM(119, 28, "match");
                         switch (get_top_data_tag()) {
                             case 1LL:
                                 mp_SOME();
-                                WORD_ATOM(118, 16, "drop");
+                                WORD_ATOM(120, 16, "drop");
                                 mw_prim_drop();
-                                WORD_ATOM(118, 21, "MISSING_ARGUMENT_VALUE");
+                                WORD_ATOM(120, 21, "MISSING_ARGUMENT_VALUE");
                                 mw_MISSING_5F_ARGUMENT_5F_VALUE();
-                                WORD_ATOM(118, 44, "SOME");
+                                WORD_ATOM(120, 44, "SOME");
                                 mw_SOME();
                                 break;
                             case 0LL:
                                 mp_NONE();
-                                WORD_ATOM(119, 16, "F");
+                                WORD_ATOM(121, 16, "F");
                                 mw_F();
-                                WORD_ATOM(119, 18, "state");
+                                WORD_ATOM(121, 18, "state");
                                 mw__2B_ArgumentParser_2E_state();
-                                WORD_ATOM(119, 24, "currently-parsing-option!");
+                                WORD_ATOM(121, 24, "currently-parsing-option!");
                                 mw_ArgumentParserState_2E_currently_parsing_option_21_();
-                                WORD_ATOM(119, 50, "state!");
+                                WORD_ATOM(121, 50, "state!");
                                 mw__2B_ArgumentParser_2E_state_21_();
-                                WORD_ATOM(119, 57, "NONE");
+                                WORD_ATOM(121, 57, "NONE");
                                 mw_NONE();
                                 break;
                             default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -42972,82 +43166,82 @@ static void mb_parse_args_7 (void) {
                         break;
                     case 0LL:
                         mp_NONE();
-                        WORD_ATOM(121, 14, "MISSING_ARGUMENT_VALUE");
+                        WORD_ATOM(123, 14, "MISSING_ARGUMENT_VALUE");
                         mw_MISSING_5F_ARGUMENT_5F_VALUE();
-                        WORD_ATOM(121, 37, "SOME");
+                        WORD_ATOM(123, 37, "SOME");
                         mw_SOME();
                         break;
                     default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
                 }
             } else {
-                WORD_ATOM(123, 4, "parse-flags");
+                WORD_ATOM(125, 4, "parse-flags");
                 mw_parse_flags();
             }
         } else {
-            WORD_ATOM(126, 2, "state");
+            WORD_ATOM(128, 2, "state");
             mw__2B_ArgumentParser_2E_state();
-            WORD_ATOM(126, 8, "currently-parsing-option");
+            WORD_ATOM(128, 8, "currently-parsing-option");
             mw_ArgumentParserState_2E_currently_parsing_option();
-            WORD_ATOM(126, 33, "if");
+            WORD_ATOM(128, 33, "if");
             if (pop_u64()) {
-                WORD_ATOM(127, 4, "state");
+                WORD_ATOM(129, 4, "state");
                 mw__2B_ArgumentParser_2E_state();
-                WORD_ATOM(127, 10, "current-option-option");
+                WORD_ATOM(129, 10, "current-option-option");
                 mw_ArgumentParserState_2E_current_option_option();
-                WORD_ATOM(127, 32, "match");
+                WORD_ATOM(129, 32, "match");
                 switch (get_top_data_tag()) {
                     case 1LL:
                         mp_SOME();
-                        WORD_ATOM(128, 14, "~arg");
+                        WORD_ATOM(130, 14, "~arg");
                         mw_ArgpOption_7E_arg();
-                        WORD_ATOM(128, 19, "@");
+                        WORD_ATOM(130, 19, "@");
                         mw_prim_mut_get();
-                        WORD_ATOM(128, 21, "match");
+                        WORD_ATOM(130, 21, "match");
                         switch (get_top_data_tag()) {
                             case 1LL:
                                 mp_SOME();
-                                WORD_ATOM(129, 16, "drop");
+                                WORD_ATOM(131, 16, "drop");
                                 mw_prim_drop();
-                                WORD_ATOM(129, 21, "state");
+                                WORD_ATOM(131, 21, "state");
                                 mw__2B_ArgumentParser_2E_state();
-                                WORD_ATOM(129, 27, "arguments");
+                                WORD_ATOM(131, 27, "arguments");
                                 mw_ArgumentParserState_2E_arguments();
-                                WORD_ATOM(129, 37, "swap");
+                                WORD_ATOM(131, 37, "swap");
                                 mw_prim_swap();
-                                WORD_ATOM(129, 42, "SOME");
+                                WORD_ATOM(131, 42, "SOME");
                                 mw_SOME();
-                                WORD_ATOM(129, 47, "state");
+                                WORD_ATOM(131, 47, "state");
                                 mw__2B_ArgumentParser_2E_state();
-                                WORD_ATOM(129, 53, "current-option-option");
+                                WORD_ATOM(131, 53, "current-option-option");
                                 mw_ArgumentParserState_2E_current_option_option();
-                                WORD_ATOM(129, 75, "unwrap");
+                                WORD_ATOM(131, 75, "unwrap");
                                 mw_Maybe_2E_unwrap();
-                                WORD_ATOM(129, 82, "~type");
+                                WORD_ATOM(131, 82, "~type");
                                 mw_ArgpOption_7E_type();
-                                WORD_ATOM(129, 88, "@");
+                                WORD_ATOM(131, 88, "@");
                                 mw_prim_mut_get();
-                                WORD_ATOM(129, 90, "parser");
+                                WORD_ATOM(131, 90, "parser");
                                 mw__2B_ArgumentParser_2E_parser();
-                                WORD_ATOM(129, 97, "unwrap");
+                                WORD_ATOM(131, 97, "unwrap");
                                 mw_Maybe_2E_unwrap();
-                                WORD_ATOM(129, 104, "run");
+                                WORD_ATOM(131, 104, "run");
                                 mw_prim_run();
-                                WORD_ATOM(129, 108, "state");
+                                WORD_ATOM(131, 108, "state");
                                 mw__2B_ArgumentParser_2E_state();
-                                WORD_ATOM(129, 114, "arguments!");
+                                WORD_ATOM(131, 114, "arguments!");
                                 mw_ArgumentParserState_2E_arguments_21_();
-                                WORD_ATOM(129, 125, "state!");
+                                WORD_ATOM(131, 125, "state!");
                                 mw__2B_ArgumentParser_2E_state_21_();
-                                WORD_ATOM(129, 132, "NONE");
+                                WORD_ATOM(131, 132, "NONE");
                                 mw_NONE();
                                 break;
                             case 0LL:
                                 mp_NONE();
-                                WORD_ATOM(130, 16, "drop");
+                                WORD_ATOM(132, 16, "drop");
                                 mw_prim_drop();
-                                WORD_ATOM(130, 21, "UNKNOWN_ARG");
+                                WORD_ATOM(132, 21, "UNKNOWN_ARG");
                                 mw_UNKNOWN_5F_ARG();
-                                WORD_ATOM(130, 33, "SOME");
+                                WORD_ATOM(132, 33, "SOME");
                                 mw_SOME();
                                 break;
                             default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -43055,45 +43249,45 @@ static void mb_parse_args_7 (void) {
                         break;
                     case 0LL:
                         mp_NONE();
-                        WORD_ATOM(132, 14, "drop");
+                        WORD_ATOM(134, 14, "drop");
                         mw_prim_drop();
-                        WORD_ATOM(132, 19, "UNKNOWN_ARG");
+                        WORD_ATOM(134, 19, "UNKNOWN_ARG");
                         mw_UNKNOWN_5F_ARG();
-                        WORD_ATOM(132, 31, "SOME");
+                        WORD_ATOM(134, 31, "SOME");
                         mw_SOME();
                         break;
                     default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
                 }
-                WORD_ATOM(133, 6, "F");
+                WORD_ATOM(135, 6, "F");
                 mw_F();
-                WORD_ATOM(133, 8, "state");
+                WORD_ATOM(135, 8, "state");
                 mw__2B_ArgumentParser_2E_state();
-                WORD_ATOM(133, 14, "currently-parsing-option!");
+                WORD_ATOM(135, 14, "currently-parsing-option!");
                 mw_ArgumentParserState_2E_currently_parsing_option_21_();
-                WORD_ATOM(133, 40, "state!");
+                WORD_ATOM(135, 40, "state!");
                 mw__2B_ArgumentParser_2E_state_21_();
             } else {
-                WORD_ATOM(134, 11, "do-positional-option");
+                WORD_ATOM(136, 11, "do-positional-option");
                 mw_do_positional_option();
             }
         }
     } else {
-        WORD_ATOM(137, 7, "drop");
+        WORD_ATOM(139, 7, "drop");
         mw_prim_drop();
-        WORD_ATOM(137, 12, "NONE");
+        WORD_ATOM(139, 12, "NONE");
         mw_NONE();
     }
-    WORD_ATOM(138, 7, "match");
+    WORD_ATOM(140, 7, "match");
     switch (get_top_data_tag()) {
         case 1LL:
             mp_SOME();
-            WORD_ATOM(139, 15, "SOME");
+            WORD_ATOM(141, 15, "SOME");
             mw_SOME();
-            WORD_ATOM(139, 20, "state");
+            WORD_ATOM(141, 20, "state");
             mw__2B_ArgumentParser_2E_state();
-            WORD_ATOM(139, 26, "current-error!");
+            WORD_ATOM(141, 26, "current-error!");
             mw_ArgumentParserState_2E_current_error_21_();
-            WORD_ATOM(139, 41, "state!");
+            WORD_ATOM(141, 41, "state!");
             mw__2B_ArgumentParser_2E_state_21_();
             break;
         case 0LL:
@@ -43105,17 +43299,17 @@ static void mb_parse_args_7 (void) {
 }
 
 static void mb_parse_args_137 (void) {
-    WORD_ENTER(mb_parse_args_137, "parse-args block", "src/args/parse.mth", 146, 5);
+    WORD_ENTER(mb_parse_args_137, "parse-args block", "src/args/parse.mth", 148, 5);
     mw_prim_drop();
-    WORD_ATOM(146, 5, "MISSING_ARGUMENT_VALUE");
+    WORD_ATOM(148, 5, "MISSING_ARGUMENT_VALUE");
     mw_MISSING_5F_ARGUMENT_5F_VALUE();
-    WORD_ATOM(146, 28, "SOME");
+    WORD_ATOM(148, 28, "SOME");
     mw_SOME();
-    WORD_ATOM(146, 33, "state");
+    WORD_ATOM(148, 33, "state");
     mw__2B_ArgumentParser_2E_state();
-    WORD_ATOM(146, 39, "current-error!");
+    WORD_ATOM(148, 39, "current-error!");
     mw_ArgumentParserState_2E_current_error_21_();
-    WORD_ATOM(146, 54, "state!");
+    WORD_ATOM(148, 54, "state!");
     mw__2B_ArgumentParser_2E_state_21_();
     WORD_EXIT(mb_parse_args_137);
 }
@@ -52792,204 +52986,17 @@ static void mb_print_usage_14 (void) {
 }
 
 static void mb_print_usage_25 (void) {
-    WORD_ENTER(mb_print_usage_25, "print-usage block", "src/args/parse.mth", 29, 5);
+    WORD_ENTER(mb_print_usage_25, "print-usage block", "src/args/parse.mth", 28, 34);
     mw_prim_drop();
-    WORD_ATOM(29, 5, "");
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("  ", 2);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    WORD_ATOM(29, 10, "print!");
-    mw_Str_2E_print_21_();
-    WORD_ATOM(30, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(30, 9, "~type");
-    mw_ArgpOption_7E_type();
-    WORD_ATOM(30, 15, "@");
-    mw_prim_mut_get();
-    WORD_ATOM(30, 17, "match");
-    switch (get_top_data_tag()) {
-        case 0LL:
-            mp_OPTION_5F_SHORT();
-            WORD_ATOM(31, 23, "dup");
-            mw_prim_dup();
-            WORD_ATOM(31, 27, "is-printable");
-            mw_Byte_2E_is_printable();
-            WORD_ATOM(31, 40, "then");
-            push_u64(0);
-            push_fnptr(&mb_print_usage_38);
-            mw_prim_pack_cons();
-            mw_Bool_2E_then();
-            WORD_ATOM(31, 82, "drop");
-            mw_prim_drop();
-            break;
-        default:
-            WORD_ATOM(32, 12, "drop");
-            mw_prim_drop();
-            break;
-    }
-    WORD_ATOM(36, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(36, 9, "~type");
-    mw_ArgpOption_7E_type();
-    WORD_ATOM(36, 15, "@");
-    mw_prim_mut_get();
-    WORD_ATOM(36, 17, "has-short?");
-    mw_ArgpOptionType_2E_has_short_3F_();
-    WORD_ATOM(36, 28, "and");
-    push_u64(0);
-    push_fnptr(&mb_print_usage_56);
-    mw_prim_pack_cons();
-    mw_Bool_2E_and();
-    WORD_ATOM(36, 51, "if");
-    if (pop_u64()) {
-        WORD_ATOM(37, 7, "");
-        {
-            static bool vready = false;
-            static VAL v;
-            if (! vready) {
-                v = mkstr(", ", 2);
-                vready = true;
-            }
-            push_value(v);
-            incref(v);
-        }
-    } else {
-        WORD_ATOM(38, 7, "");
-        {
-            static bool vready = false;
-            static VAL v;
-            if (! vready) {
-                v = mkstr("  ", 2);
-                vready = true;
-            }
-            push_value(v);
-            incref(v);
-        }
-    }
-    WORD_ATOM(39, 7, "print!");
-    mw_Str_2E_print_21_();
-    WORD_ATOM(41, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(41, 9, "~long");
-    mw_ArgpOption_7E_long();
-    WORD_ATOM(41, 15, "@");
-    mw_prim_mut_get();
-    WORD_ATOM(41, 17, "match");
-    switch (get_top_data_tag()) {
-        case 1LL:
-            mp_SOME();
-            WORD_ATOM(42, 15, "");
-            {
-                static bool vready = false;
-                static VAL v;
-                if (! vready) {
-                    v = mkstr("--", 2);
-                    vready = true;
-                }
-                push_value(v);
-                incref(v);
-            }
-            WORD_ATOM(42, 20, "print!");
-            mw_Str_2E_print_21_();
-            WORD_ATOM(42, 27, "print!");
-            mw_Str_2E_print_21_();
-            WORD_ATOM(42, 34, "dup");
-            mw_prim_dup();
-            WORD_ATOM(42, 38, "~arg");
-            mw_ArgpOption_7E_arg();
-            WORD_ATOM(42, 43, "@");
-            mw_prim_mut_get();
-            WORD_ATOM(42, 45, "match");
-            switch (get_top_data_tag()) {
-                case 1LL:
-                    mp_SOME();
-                    WORD_ATOM(43, 17, "");
-                    {
-                        static bool vready = false;
-                        static VAL v;
-                        if (! vready) {
-                            v = mkstr("=", 1);
-                            vready = true;
-                        }
-                        push_value(v);
-                        incref(v);
-                    }
-                    WORD_ATOM(43, 21, "print!");
-                    mw_Str_2E_print_21_();
-                    WORD_ATOM(44, 2, "print!");
-                    mw_Str_2E_print_21_();
-                    break;
-                case 0LL:
-                    mp_NONE();
-                    break;
-                default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
-            }
-            break;
-        case 0LL:
-            mp_NONE();
-            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
-    }
-    WORD_ATOM(49, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(49, 9, "~doc");
-    mw_ArgpOption_7E_doc();
-    WORD_ATOM(49, 14, "@");
-    mw_prim_mut_get();
-    WORD_ATOM(49, 16, "match");
-    switch (get_top_data_tag()) {
-        case 1LL:
-            mp_SOME();
-            WORD_ATOM(50, 15, "");
-            {
-                static bool vready = false;
-                static VAL v;
-                if (! vready) {
-                    v = mkstr("\t", 1);
-                    vready = true;
-                }
-                push_value(v);
-                incref(v);
-            }
-            WORD_ATOM(50, 20, "print!");
-            mw_Str_2E_print_21_();
-            WORD_ATOM(50, 27, "print!");
-            mw_Str_2E_print_21_();
-            break;
-        case 0LL:
-            mp_NONE();
-            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
-    }
-    WORD_ATOM(53, 5, "");
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("", 0);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    WORD_ATOM(53, 8, "print-ln!");
-    mw_Str_2E_print_ln_21_();
-    WORD_ATOM(54, 5, "drop");
-    mw_prim_drop();
+    WORD_ATOM(28, 34, "print-usage-for-option");
+    mw_print_usage_for_option();
     WORD_EXIT(mb_print_usage_25);
 }
 
-static void mb_print_usage_38 (void) {
-    WORD_ENTER(mb_print_usage_38, "print-usage block", "src/args/parse.mth", 31, 45);
+static void mb_print_usage_for_option_13 (void) {
+    WORD_ENTER(mb_print_usage_for_option_13, "print-usage-for-option block", "src/args/parse.mth", 35, 43);
     mw_prim_drop();
-    WORD_ATOM(31, 45, "");
+    WORD_ATOM(35, 43, "");
     {
         static bool vready = false;
         static VAL v;
@@ -53000,39 +53007,39 @@ static void mb_print_usage_38 (void) {
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(31, 49, "print!");
+    WORD_ATOM(35, 47, "print!");
     mw_Str_2E_print_21_();
-    WORD_ATOM(31, 56, "dup");
+    WORD_ATOM(35, 54, "dup");
     mw_prim_dup();
-    WORD_ATOM(31, 60, "to-str-unsafe");
+    WORD_ATOM(35, 58, "to-str-unsafe");
     mw_Byte_2E_to_str_unsafe();
-    WORD_ATOM(31, 74, "print!");
+    WORD_ATOM(35, 72, "print!");
     mw_Str_2E_print_21_();
-    WORD_EXIT(mb_print_usage_38);
+    WORD_EXIT(mb_print_usage_for_option_13);
 }
 
-static void mb_print_usage_56 (void) {
-    WORD_ENTER(mb_print_usage_56, "print-usage block", "src/args/parse.mth", 36, 32);
+static void mb_print_usage_for_option_31 (void) {
+    WORD_ENTER(mb_print_usage_for_option_31, "print-usage-for-option block", "src/args/parse.mth", 40, 30);
     mw_prim_drop();
-    WORD_ATOM(36, 32, "dup");
+    WORD_ATOM(40, 30, "dup");
     mw_prim_dup();
-    WORD_ATOM(36, 36, "~long");
+    WORD_ATOM(40, 34, "~long");
     mw_ArgpOption_7E_long();
-    WORD_ATOM(36, 42, "@");
+    WORD_ATOM(40, 40, "@");
     mw_prim_mut_get();
-    WORD_ATOM(36, 44, "some?");
+    WORD_ATOM(40, 42, "some?");
     mw_Maybe_2E_some_3F_();
-    WORD_EXIT(mb_print_usage_56);
+    WORD_EXIT(mb_print_usage_for_option_31);
 }
 
 static void mb_parse_flags_where_5 (void) {
-    WORD_ENTER(mb_parse_flags_where_5, "parse-flags-where block", "src/args/parse.mth", 70, 8);
+    WORD_ENTER(mb_parse_flags_where_5, "parse-flags-where block", "src/args/parse.mth", 72, 8);
     mw_prim_pack_uncons();
     VAL var_f = pop_value();
     mw_prim_drop();
-    WORD_ATOM(70, 8, "over");
+    WORD_ATOM(72, 8, "over");
     mw_over();
-    WORD_ATOM(70, 13, "f");
+    WORD_ATOM(72, 13, "f");
     incref(var_f);
     run_value(var_f);
     decref(var_f);
@@ -53040,51 +53047,51 @@ static void mb_parse_flags_where_5 (void) {
 }
 
 static void mb_parse_flags_7 (void) {
-    WORD_ENTER(mb_parse_flags_7, "parse-flags block", "src/args/parse.mth", 94, 32);
+    WORD_ENTER(mb_parse_flags_7, "parse-flags block", "src/args/parse.mth", 96, 32);
     mw_prim_drop();
-    WORD_ATOM(94, 32, "");
+    WORD_ATOM(96, 32, "");
     push_i64(1LL);
-    WORD_ATOM(94, 34, ">Offset");
+    WORD_ATOM(96, 34, ">Offset");
     mw_Int_3E_Offset();
-    WORD_ATOM(94, 42, "over");
+    WORD_ATOM(96, 42, "over");
     mw_over();
-    WORD_ATOM(94, 47, "str-byte@");
+    WORD_ATOM(96, 47, "str-byte@");
     mw_str_byte_40_();
-    WORD_ATOM(94, 57, "B'-'");
+    WORD_ATOM(96, 57, "B'-'");
     mw_B_27___27_();
-    WORD_ATOM(94, 62, "=");
+    WORD_ATOM(96, 62, "=");
     mw_Byte_3D_();
     WORD_EXIT(mb_parse_flags_7);
 }
 
 static void mb_parse_flags_21 (void) {
-    WORD_ENTER(mb_parse_flags_21, "parse-flags block", "src/args/parse.mth", 95, 25);
+    WORD_ENTER(mb_parse_flags_21, "parse-flags block", "src/args/parse.mth", 97, 25);
     mw_prim_drop();
-    WORD_ATOM(95, 25, "drop-bytes");
+    WORD_ATOM(97, 25, "drop-bytes");
     mw_Str_2E_drop_bytes();
     WORD_EXIT(mb_parse_flags_21);
 }
 
 static void mb_parse_flags_25 (void) {
-    WORD_ENTER(mb_parse_flags_25, "parse-flags block", "src/args/parse.mth", 95, 55);
+    WORD_ENTER(mb_parse_flags_25, "parse-flags block", "src/args/parse.mth", 97, 55);
     mw_prim_drop();
-    WORD_ATOM(95, 55, "check-long-flag");
+    WORD_ATOM(97, 55, "check-long-flag");
     mw_check_long_flag();
     WORD_EXIT(mb_parse_flags_25);
 }
 
 static void mb_parse_flags_33 (void) {
-    WORD_ENTER(mb_parse_flags_33, "parse-flags block", "src/args/parse.mth", 96, 25);
+    WORD_ENTER(mb_parse_flags_33, "parse-flags block", "src/args/parse.mth", 98, 25);
     mw_prim_drop();
-    WORD_ATOM(96, 25, "drop-bytes");
+    WORD_ATOM(98, 25, "drop-bytes");
     mw_Str_2E_drop_bytes();
     WORD_EXIT(mb_parse_flags_33);
 }
 
 static void mb_parse_flags_37 (void) {
-    WORD_ENTER(mb_parse_flags_37, "parse-flags block", "src/args/parse.mth", 96, 55);
+    WORD_ENTER(mb_parse_flags_37, "parse-flags block", "src/args/parse.mth", 98, 55);
     mw_prim_drop();
-    WORD_ATOM(96, 55, "check-short-flag");
+    WORD_ATOM(98, 55, "check-short-flag");
     mw_check_short_flag();
     WORD_EXIT(mb_parse_flags_37);
 }
@@ -53098,40 +53105,40 @@ static void mb_ArgumentParserState_2E_init_4 (void) {
 }
 
 static void mb_argv_to_str_2 (void) {
-    WORD_ENTER(mb_argv_to_str_2, "argv-to-str block", "src/args/parse.mth", 167, 3);
+    WORD_ENTER(mb_argv_to_str_2, "argv-to-str block", "src/args/parse.mth", 169, 3);
     mw_prim_drop();
-    WORD_ATOM(167, 3, "");
+    WORD_ATOM(169, 3, "");
     push_i64(1LL);
-    WORD_ATOM(167, 5, "while");
+    WORD_ATOM(169, 5, "while");
     while(1) {
-        WORD_ATOM(167, 11, "argc");
+        WORD_ATOM(169, 11, "argc");
         mw_prim_sys_argc();
-        WORD_ATOM(167, 16, "over");
+        WORD_ATOM(169, 16, "over");
         mw_over();
-        WORD_ATOM(167, 21, ">");
+        WORD_ATOM(169, 21, ">");
         mw_Int_3E_();
         if (! pop_u64()) break;
-        WORD_ATOM(168, 5, "dup");
+        WORD_ATOM(170, 5, "dup");
         mw_prim_dup();
-        WORD_ATOM(168, 9, "unsafe");
+        WORD_ATOM(170, 9, "unsafe");
         push_u64(0);
         push_fnptr(&mb_argv_to_str_12);
         mw_prim_pack_cons();
         mw_unsafe();
-        WORD_ATOM(168, 32, ";");
+        WORD_ATOM(170, 32, ";");
         mw__2B_List_3B_();
-        WORD_ATOM(169, 5, "1+");
+        WORD_ATOM(171, 5, "1+");
         mw_prim_int_succ();
     }
-    WORD_ATOM(170, 5, "drop");
+    WORD_ATOM(172, 5, "drop");
     mw_prim_drop();
     WORD_EXIT(mb_argv_to_str_2);
 }
 
 static void mb_argv_to_str_12 (void) {
-    WORD_ENTER(mb_argv_to_str_12, "argv-to-str block", "src/args/parse.mth", 168, 16);
+    WORD_ENTER(mb_argv_to_str_12, "argv-to-str block", "src/args/parse.mth", 170, 16);
     mw_prim_drop();
-    WORD_ATOM(168, 16, "read-from-argv");
+    WORD_ATOM(170, 16, "read-from-argv");
     mw_read_from_argv();
     WORD_EXIT(mb_argv_to_str_12);
 }
