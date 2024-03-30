@@ -57,7 +57,7 @@ def(print-usage, +ArgumentParser -- +ArgumentParser,
 )
 
 ||| Check if the currently parsed argument is something we accept
-def(check-short-option, +ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOption Bool,
+def(check-short-flag, +ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOption Bool,
   over ~type @ match(
     OPTION_SHORT -> 0 >Offset rotl str-byte@ =,
     _ -> drop drop F
@@ -65,9 +65,9 @@ def(check-short-option, +ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOp
 )
 
 ||| Parse a short cli flag, possibly with a argument value
-def(parse-short-flags, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError),
+def(parse-flags-where(f), (+ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOption Bool) +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError),
   argument-parser ~options @ 
-  find(over check-short-option) swap drop match(
+  find(over f) swap drop match(
     SOME -> dup ~arg @ match(
       SOME -> 
 	T state currently-parsing-option! state!
@@ -82,35 +82,18 @@ def(parse-short-flags, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentPars
 )
 
 ||| Check if the currently parsed argument is something we accept 
-def(check-long-option, +ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOption Bool,
+def(check-long-flag, +ArgumentParser ArgpOption Str -- +ArgumentParser ArgpOption Bool,
   over ~long @ match(
     SOME -> =,
     NONE -> drop F 
   )
 )
 
-||| Parse a long flag, possibly with an argument value
-def(parse-long-flag, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError), 
-  argument-parser ~options @ 
-  find(over check-long-option) swap drop match(
-    SOME -> dup ~arg @ match(
-      SOME -> 
-	T state currently-parsing-option! state! 
-	drop SOME state current-option-option! state!,
-      NONE -> ~type @ state arguments swap NONE swap parser match(
-	SOME -> run state arguments! state!,
-	NONE -> drop drop drop
-      ) 
-    ) NONE,
-    NONE -> UNKNOWN_ARG SOME
-  )
-)
-
 ||| Parse either a short or long flag
 def(parse-flags, +ArgumentParser Str -- +ArgumentParser Maybe(ArgumentParsingError),
   dup num-bytes 2 >Size >= and(1 >Offset over str-byte@ B'-' =) if(
-    2 >Size over unsafe(drop-bytes) parse-long-flag,
-    1 >Size over unsafe(drop-bytes) parse-short-flags
+    2 >Size over unsafe(drop-bytes) parse-flags-where(check-long-flag),
+    1 >Size over unsafe(drop-bytes) parse-flags-where(check-short-flag)
   ) swap drop ,
 )
 
