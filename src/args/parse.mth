@@ -25,8 +25,7 @@ def(print-usage, +ArgumentParser -- +ArgumentParser,
 
   "" print-ln!
 
-  argument-parser ~options @ 
-  List.for(
+  argument-parser ~options @ for(
     "  " print!
     dup ~type @ match( 
       OPTION_SHORT -> dup is-printable then("-" print! dup to-str-unsafe print!) drop,

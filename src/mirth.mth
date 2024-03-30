@@ -95,15 +95,10 @@ def(compile!, Arguments +World -- +World,
 
 
     dup entry-point match(
-    SOME -> 
-      "Codegen." trace-ln!
-      Name.search match(
-        SOME -> >Def .word? match(
-          SOME -> arrow swap output-file unwrap run-output-c99!,
-	  NONE -> drop expect!(F, "Could not find entry point")
-        ),
-        NONE -> drop expect!(F, "could not find entry point")
-      ),
+      SOME -> 
+        "Codegen." trace-ln!
+        >Name >Def .word? unwrap-or("could not find entry point" panic!)
+        arrow swap output-file unwrap run-output-c99!,
       NONE -> "Skipping Codegen." trace-ln! drop
     )
 )
