@@ -20,7 +20,7 @@ def(print-usage, +ArgumentParser -- +ArgumentParser,
   "  " print!
   state program-name  print! 
   " [options] " print! 
-  argument-parser ~args-doc @ unwrap-or("") print!
+  argument-parser ~args-doc @ for(print!)
   "" print-ln!
 
   "" print-ln!
