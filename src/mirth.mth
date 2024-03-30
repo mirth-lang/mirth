@@ -114,26 +114,26 @@ def(compiler-parse-args, +ArgumentParser Arguments Maybe(Str) ArgpOptionType -- 
       B'o' -> unwrap >Path SOME over ~output-file !,
       B'e' -> unwrap SOME over ~entry-point !,
       B'c' -> drop NONE over ~entry-point !,
-      _ -> drop drop UNKNOWN_ARG SOME state ~current-error !
+      _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
     ),
-    OPTION_POSITIONAL -> state ~current-positional-arg @ 0 = if(
+    OPTION_POSITIONAL -> state current-positional-arg 0 = if(
       unwrap >Path over ~input-file !,
-      drop TOO_MANY_ARGS SOME state ~current-error !
+      drop TOO_MANY_ARGS SOME state current-error! state!
     ),
-    OPTION_END -> state ~current-positional-arg @ 1 < then(
-      TOO_FEW_ARGS SOME state ~current-error ! 
+    OPTION_END -> state current-positional-arg 1 < then(
+      TOO_FEW_ARGS SOME state current-error! state!
     ) 
 
-    state ArgumentParserState~arguments @ Arguments~output-file @ match(
+    state arguments Arguments~output-file @ match(
       SOME -> drop,
       # If we have an entry point we need to have an output file currently
-      NONE -> state ArgumentParserState~arguments @ Arguments~entry-point @ match (
-        SOME -> drop "output-file" MISSING_ARG SOME state ~current-error !,
+      NONE -> state arguments Arguments~entry-point @ match (
+        SOME -> drop "output-file" MISSING_ARG SOME state current-error! state!,
 	NONE ->
       )
     )
     drop,
-    _ -> drop drop UNKNOWN_ARG SOME state ~current-error !
+    _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
   ) 
 )
 
@@ -160,15 +160,15 @@ def(main, +World -- +World,
       "ENTRY_POINT" SOME
       "Custom entry point word for compilation" SOME
       NONE ArgpOption.new ;
-    ) SOME
+    )
     [ compiler-parse-args ] SOME
     "input-file" SOME
     "Mirth Compiler" 
     ArgumentParser.new
 
     parse-args match(
-      LEFT -> ,
-      RIGHT -> show panic!
+      RIGHT -> ,
+      LEFT -> show panic!
     )
 
     compile!
