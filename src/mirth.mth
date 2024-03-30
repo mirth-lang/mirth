@@ -23,6 +23,7 @@ import(mirth.codegen.c99)
 
 import(args.parse)
 import(args.types)
+import(args.state)
 
 def(init!, --,
     init-errors!
