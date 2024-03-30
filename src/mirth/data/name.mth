@@ -175,3 +175,12 @@ def(QName.prim, Str -- QName, dip(Namespace.prim) >Name QNAME)
 
 def(QName>Str, QName -- Str,
     QNAME -> dip(>Str "." cat) >Str cat)
+
+###############
+# Dotted Name #
+###############
+
+data(DName, DNAME -> Maybe(Name) List+(Name))
+def(DName/DNAME, DName -- Maybe(Name) List+(Name), DNAME -> id)
+def(DName.root?, DName -- Maybe(Name), DNAME -> drop)
+def(DName.parts, DName -- List+(Name), DNAME -> nip)

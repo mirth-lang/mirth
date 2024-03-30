@@ -27,7 +27,8 @@ data(TokenValue,
     TOKEN_RCURLY -> Token,
     TOKEN_INT -> Int,
     TOKEN_STR -> Str,
-    TOKEN_NAME -> Name)
+    TOKEN_NAME -> Name,
+    TOKEN_DNAME -> DName)
 
 def(TokenValue.none?, TokenValue -- Bool, TOKEN_NONE -> T, _ -> drop F)
 def(TokenValue.comma?, TokenValue -- Bool, TOKEN_COMMA -> T, _ -> drop F)
@@ -43,6 +44,7 @@ def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TOKEN_RCURLY -> SOME, _ -> d
 def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> SOME, _ -> drop NONE)
 def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> SOME, _ -> drop NONE)
 def(TokenValue.name?, TokenValue -- Maybe(Name), TOKEN_NAME -> SOME, _ -> drop NONE)
+def(TokenValue.dname?, TokenValue -- Maybe(DName), TOKEN_DNAME -> SOME, _ -> drop NONE)
 def(TokenValue.arg-end?, TokenValue -- Bool,
     TOKEN_COMMA -> T,
     TOKEN_RPAREN -> drop T,
@@ -98,6 +100,7 @@ def(Token.rcurly?, Token -- Maybe(Token), value rcurly?)
 def(Token.int?, Token -- Maybe(Int), value int?)
 def(Token.str?, Token -- Maybe(Str), value str?)
 def(Token.name?, Token -- Maybe(Name), value name?)
+def(Token.dname?, Token -- Maybe(DName), value dname?)
 def(Token.arg-end?, Token -- Bool, value arg-end?)
 def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
 def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)
