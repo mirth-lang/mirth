@@ -343,3 +343,9 @@ def(collect(f), (*a -- *a Maybe(b)) *a -- *a List(b),
 ||| Build a list through repetition, stopping when condition becomes false.
 def(collect-while(f,g), (*a -- *a Bool, *a -- *a b) *a -- *a List(b),
     L0 while(dip(f) swap, dip(g) swap snoc))
+
+data(+List(t), +LIST -> List(t))
+def(-LIST, +List(t) -- List(t), +LIST -> id)
+||| Syntactic sugar abuse to add list literals
+def(LIST(f), (*a +List(t) -- *a +List(t)) *a -- *a List(t), L0 +LIST f -LIST)
+def(+List;, *a t +List(t) -- *a +List(t), +LIST -> swap snoc +LIST)

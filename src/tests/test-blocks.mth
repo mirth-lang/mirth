@@ -40,7 +40,6 @@ def(main, --,
         NONE -> "not found" trace-ln!
     ))
 
-target-c99("test-blocks.c", main)
 # mirth-test # perr # ?? 10
 # mirth-test # perr # ?? 20
 # mirth-test # perr # ?? 30
