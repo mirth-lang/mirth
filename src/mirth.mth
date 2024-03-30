@@ -103,7 +103,7 @@ def(compile!, Arguments +World -- +World,
     )
 )
 
-def(compiler-parse-args, +ArgumentParser Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser Arguments,
+def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
   match(
     OPTION_SHORT -> match(
       B'o' -> unwrap >Path SOME over ~output-file !,
@@ -119,10 +119,10 @@ def(compiler-parse-args, +ArgumentParser Arguments Maybe(Str) ArgpOptionType -- 
       TOO_FEW_ARGS SOME state current-error! state!
     ) 
 
-    state arguments Arguments~output-file @ match(
+    state arguments ~output-file @ match(
       SOME -> drop,
       # If we have an entry point we need to have an output file currently
-      NONE -> state arguments Arguments~entry-point @ match (
+      NONE -> state arguments ~entry-point @ match (
         SOME -> drop "output-file" MISSING_ARG SOME state current-error! state!,
 	NONE ->
       )

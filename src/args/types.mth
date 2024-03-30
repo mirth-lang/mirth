@@ -6,17 +6,32 @@ import(data.str)
 
 import(args.parse)
 
-table(ArgumentParser)
-field(ArgumentParser~options, ArgumentParser, List(ArgpOption))
-field(ArgumentParser~parser, ArgumentParser, Maybe([ +ArgumentParser a Maybe(Str) ArgpOptionType -- +ArgumentParser a ]))
-field(ArgumentParser~args-doc, ArgumentParser, Maybe(Str))
-field(ArgumentParser~doc, ArgumentParser, Str)
-def(ArgumentParser.new, List(ArgpOption) Maybe([ +ArgumentParser a Maybe(Str) ArgpOptionType -- +ArgumentParser a ]) Maybe(Str) Str -- ArgumentParser,
-  ArgumentParser.alloc!
-  dup dip(~doc !)
-  dup dip(~args-doc !)
-  dup dip(~parser !)
-  dup dip(~options !)
+data(ArgumentParser(a),
+  ARGUMENT_PARSER -> 
+    List(ArgpOption) 
+    Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]) 
+    Maybe(Str) 
+    Str)
+
+def(ArgumentParser.options, ArgumentParser(a) -- List(ArgpOption),
+  ARGUMENT_PARSER -> drop3)
+def(ArgumentParser.options!, List(ArgpOption) ArgumentParser(a) -- ArgumentParser(a),
+  ARGUMENT_PARSER -> dip3(drop) ARGUMENT_PARSER)
+
+def(ArgumentParser.parser, ArgumentParser(a) -- Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
+  ARGUMENT_PARSER -> drop2 dip(drop))
+def(ArgumentParser.parser!, 
+  Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]) ArgumentParser(a) -- ArgumentParser(a),
+  ARGUMENT_PARSER -> dip2(drop over) ARGUMENT_PARSER swap drop)
+
+def(ArgumentParser.args-doc, ArgumentParser(a) -- Maybe(Str),
+  ARGUMENT_PARSER -> drop dip(drop2))
+
+def(ArgumentParser.doc, ArgumentParser(a) -- Str,
+  ARGUMENT_PARSER -> dip(drop3))
+
+def(ArgumentParser.new, List(ArgpOption) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]) Maybe(Str) Str -- ArgumentParser(a),
+  ARGUMENT_PARSER 
 )
 
 data(ArgumentParserStateArgvInfo,
@@ -30,8 +45,6 @@ data(ArgumentParserStateCurrentArg,
 data(ArgumentParserState(a),
   ARGUMENT_PARSER_STATE -> a ArgumentParserStateArgvInfo ArgumentParserStateCurrentArg Int Maybe(ArgumentParsingError)
 )
-
-def(ArgumentParser.parser, ArgumentParser -- Maybe([ +ArgumentParser a Maybe(Str) ArgpOptionType -- +ArgumentParser a ]), ~parser @)
 
 def(ArgumentParserState.init, a -- ArgumentParserState(a),
     argv-to-str 
@@ -119,21 +132,22 @@ def(ArgumentParserState.currently-parsing-option!, Bool ArgumentParserState(a) -
   dup dip(current-arg currently-parsing-option!) current-arg!)
 
 
+data(+ArgumentParser(a), +ARGUMENTPARSER -> ArgumentParser(a) ArgumentParserState(a))
+def(+ArgumentParser-ARGUMENTPARSER, +ArgumentParser(a) -- ArgumentParser(a) ArgumentParserState(a), +ARGUMENTPARSER -> id)
+def(+ArgumentParser.rdrop, +ArgumentParser(a) --, -ARGUMENTPARSER drop2)
 
+def(+ArgumentParser.argument-parser, +ArgumentParser(a) -- ArgumentParser(a) +ArgumentParser(a), 
+  -ARGUMENTPARSER over dip(+ARGUMENTPARSER))
+def(+ArgumentParser.argument-parser!, +ArgumentParser(a) ArgumentParser(a) -- +ArgumentParser(a), 
+  -ARGUMENTPARSER dip(drop) +ARGUMENTPARSER)
 
+def(+ArgumentParser.state, +ArgumentParser(a) -- ArgumentParserState(a) +ArgumentParser(a), -ARGUMENTPARSER dup dip(+ARGUMENTPARSER))
+def(+ArgumentParser.state!, +ArgumentParser(a) ArgumentParserState(a) -- +ArgumentParser(a), -ARGUMENTPARSER drop swap +ARGUMENTPARSER)
 
-
-
-
-data(+ArgumentParser, +ARGUMENTPARSER -> ArgumentParser ArgumentParserState(a))
-def(+ArgumentParser-ARGUMENTPARSER, +ArgumentParser -- ArgumentParser ArgumentParserState(a), +ARGUMENTPARSER -> id)
-def(+ArgumentParser.rdrop, +ArgumentParser --, -ARGUMENTPARSER drop2)
-
-def(+ArgumentParser.argument-parser, +ArgumentParser -- ArgumentParser +ArgumentParser, -ARGUMENTPARSER over dip(+ARGUMENTPARSER))
-def(+ArgumentParser.state, +ArgumentParser -- ArgumentParserState(a) +ArgumentParser, -ARGUMENTPARSER dup dip(+ARGUMENTPARSER))
-def(+ArgumentParser.state!, +ArgumentParser ArgumentParserState(a) -- +ArgumentParser, -ARGUMENTPARSER drop swap +ARGUMENTPARSER)
-
-def(+ArgumentParser.parser, +ArgumentParser -- +ArgumentParser Maybe([ +ArgumentParser a Maybe(Str) ArgpOptionType -- +ArgumentParser a ]), argument-parser ArgumentParser.parser)
+def(+ArgumentParser.parser, 
+  +ArgumentParser(a) -- +ArgumentParser(a) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]), 
+  argument-parser ArgumentParser.parser
+)
 
 data(ArgpOptionType,
   OPTION_SHORT -> Byte,
