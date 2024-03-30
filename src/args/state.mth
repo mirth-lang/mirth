@@ -41,6 +41,15 @@ def(ArgumentParserStateCurrentArg.currently-parsing-option, ArgumentParserStateC
 def(ArgumentParserStateCurrentArg.currently-parsing-option!, Bool ArgumentParserStateCurrentArg -- ArgumentParserStateCurrentArg,
   ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip2(drop) ARGUMENT_PARSER_STATE_CURRENT_ARG) 
 
+data(ArgumentParserState(a),
+  ARGUMENT_PARSER_STATE -> 
+    a # argument: the argument structure itself
+    ArgumentParserStateArgvInfo # argv-into: Data about the list of arguments passed to the program
+    ArgumentParserStateCurrentArg # current-arg: Information about the current argument being parsed
+    Int # current-positional-arg: the index of the positional argument to be parsed
+    Maybe(ArgumentParsingError) # current-error: whatever error may have been thrown by the parser last
+)
+
 def(ArgumentParserState.init, a -- ArgumentParserState(a),
     argv-to-str 
     0 unsafe(read-from-argv)
@@ -52,16 +61,6 @@ def(ArgumentParserState.init, a -- ArgumentParserState(a),
   0
   NONE
   ARGUMENT_PARSER_STATE
-)
-
-
-data(ArgumentParserState(a),
-  ARGUMENT_PARSER_STATE -> 
-    a # argument: the argument structure itself
-    ArgumentParserStateArgvInfo # argv-into: Data about the list of arguments passed to the program
-    ArgumentParserStateCurrentArg # current-arg: Information about the current argument being parsed
-    Int # current-positional-arg: the index of the positional argument to be parsed
-    Maybe(ArgumentParsingError) # current-error: whatever error may have been thrown by the parser last
 )
 
 def(ArgumentParserState.argv, ArgumentParserState(a) -- List(Str),
