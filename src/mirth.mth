@@ -85,23 +85,23 @@ def(compile!, Arguments +World -- +World,
 
     "Building." trace-ln!
 
-    elab-module! drop
+    elab-module!
     typecheck-everything!
 
     num-errors @ 0> if(
         num-errors @ trace!
         " errors." trace-ln!
         1 posix-exit!,
-	"No errors." trace-ln!
+  	    "No errors." trace-ln!
     )
 
-
-    dup entry-point match(
-      SOME ->
-        "Codegen." trace-ln!
-        >Name >Def .word? unwrap-or("could not find entry point" panic!)
-        arrow swap output-file unwrap run-output-c99!,
-      NONE -> "Skipping Codegen." trace-ln! drop
+    over entry-point match(
+        SOME ->
+            "Codegen." trace-ln!
+            >Name dip(NAMESPACE_MODULE) QNAME def? bind(word?) unwrap-or("could not find entry point" panic!)
+            arrow swap output-file unwrap run-output-c99!,
+        NONE ->
+            "Skipping Codegen." trace-ln! drop2
     )
 )
 
