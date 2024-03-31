@@ -14,6 +14,8 @@ def(g, Foo --,
 
 def(h, Foo --,
     match(_ -> drop, A -> id))
+
+def(main, ,)
 # mirth-test # merr # 13:20: error: Case is unreachable.
 # mirth-test # merr # 16:22: error: Case is unreachable.
 # mirth-test # mret # 1

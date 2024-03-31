@@ -17,7 +17,6 @@ def(main, --,
     "src/mirth.mth" should-not-be-directory
     "nonsense" should-not-be-directory)
 
-target-c99("test-is-directory.c", main)
 # mirth-test # perr # ok
 # mirth-test # perr # ok
 # mirth-test # perr # ok

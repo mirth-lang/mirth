@@ -12,3 +12,5 @@ data(TI, I1, I2 -> Int)
 data(TJ, J1, J2 -> Int,)
 data(TK)
 data(TL,)
+
+def(main, , )
