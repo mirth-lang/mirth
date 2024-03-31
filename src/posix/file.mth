@@ -1,0 +1,54 @@
+module(posix.file)
+
+import(std.prelude)
+import(std.path)
+import(std.str)
+import(posix.posix)
+import(posix.input)
+
+data(+File, +FILE -> Int)
+def(+File-FILE, +File -- Int, +FILE -> id)
+def(+File.file-descriptor, +File -- Int +File, -FILE dup +FILE)
+
+def(+World.open-file!, Path +World -- +World +File,
+    >Str with-cstr(0 0 prim-posix-open)
+    expect!(dup 0>, "failed to open file")
+    +FILE)
+
+def(+World.create-file!, Path +World -- +World +File,
+    >Str with-cstr(
+        O_WRONLY|O_CREAT|O_TRUNC
+        0x1B6 # 666 in octal
+        prim-posix-open
+    )
+    expect!(dup 0>, "failed to create file")
+    +FILE)
+
+def(O_WRONLY|O_CREAT|O_TRUNC, Int,
+    RUNNING_OS match(
+        OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
+        OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
+        OS_WINDOWS -> 0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
+        OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" panic!
+    ))
+
+def(+File.close-file!, +File --,
+    -FILE prim-posix-close
+    expect!(dup 0< not, "failed to close file")
+    drop)
+
+def(+File.unsafe-write!, Ptr Size +File -- +File,
+    dip2(file-descriptor) dup dip(>Int posix-write!)
+    dip(expect!(dup 0< not, "write failed") >Size)
+    expect!(dup2 =, "write output fewer bytes than expected")
+    drop2)
+
+def(+File.unsafe-read!, Ptr Size +File -- Size +File,
+    dip2(file-descriptor) >Int posix-read!
+    expect!(dup 0< not, "read failed")
+    >Size)
+
+def(+File.read-file!, +File -- Str +File,
+    input-start!
+    input-read-file!
+    input-end!)

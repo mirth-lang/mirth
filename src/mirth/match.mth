@@ -1,0 +1,118 @@
+module(mirth.match)
+
+import(std.prelude)
+import(std.maybe)
+import(std.list)
+import(mirth.type)
+import(mirth.data)
+import(mirth.token)
+
+#########
+# MATCH #
+#########
+
+# mirth/data/type
+table(Match)
+field(Match~ctx, Match, Ctx)
+field(Match~dom, Match, StackType)
+field(Match~cod, Match, StackType)
+field(Match~token, Match, Token) # where the diagnostics go
+field(Match~body, Match, Token) # where the cases start
+field(Match~cases, Match, List(Case))
+def(Match.ctx, Match -- Ctx, ~ctx @)
+def(Match.dom, Match -- StackType, ~dom @)
+def(Match.cod, Match -- StackType, ~cod @)
+def(Match.token, Match -- Token, ~token @)
+def(Match.body, Match -- Token, ~body @)
+def(Match.cases, Match -- List(Case), ~cases @)
+
+table(Case)
+field(Case~match, Case, Match)
+field(Case~token, Case, Token)
+field(Case~pattern, Case, Pattern)
+field(Case~subst, Case, Subst)
+field(Case~mid, Case, StackType)
+field(Case~body, Case, Arrow)
+def(Case.match, Case -- Match, ~match @)
+def(Case.token, Case -- Token, ~token @)
+def(Case.pattern, Case -- Pattern, ~pattern @)
+def(Case.subst, Case -- Subst, ~subst @)
+def(Case.mid, Case -- StackType, ~mid @)
+def(Case.body, Case -- Arrow, ~body @)
+
+def(Match.is-exhaustive?, Match -- Bool,
+    dup has-default-case? or(
+        dup scrutinee-data? match(
+            SOME ->
+                num-tags
+                over cases len =,
+            NONE ->
+                dup cases len 0>,
+                # presume exhaustiveness generally.
+                # and don't support empty matches for now.
+        )
+    ) nip)
+
+def(Match.has-default-case?, Match -- Bool,
+    cases any(dup is-default-case?))
+
+||| Get "data" associated with scrutinee. Only returns Data if all the
+||| TAG patterns use it.
+def(Match.scrutinee-data?, Match -- Maybe(Data),
+    cases filter(dup is-default-case? not) dup
+    first bind(pattern tag?) map(.data) if-some(
+        swap all(dup pattern tag? if-some(dip(over) .data =, F)) if(
+            SOME,
+            drop NONE
+        ),
+        drop NONE
+    ))
+
+def(Match.is-transparent?, Match -- Bool,
+    cases match(
+        L1 -> pattern match(
+            PATTERN_TAG -> .data is-transparent?,
+            PATTERN_UNDERSCORE -> T
+        ),
+        _ -> drop F
+    ))
+
+def(Match.add-case!, Case Match --,
+    dup2 case-redundant? if(
+        drop token "Case is unreachable." emit-error!,
+        sip(cases swap snoc) ~cases !
+    ))
+
+def(Match.case-redundant?, Case Match -- Bool,
+    cases any(dup2 covers?) nip)
+
+########
+# CASE #
+########
+
+||| Ask whether the second case covers the first case.
+def(Case.covers?, Case Case -- Bool, both(pattern) covers?)
+
+||| Is this a "default" case?
+def(Case.is-default-case?, Case -- Bool, pattern underscore?)
+
+###########
+# PATTERN #
+###########
+
+data(Pattern,
+    PATTERN_UNDERSCORE,
+    PATTERN_TAG -> Tag)
+
+def(Pattern.underscore?, Pattern -- Bool, PATTERN_UNDERSCORE -> T, _ -> drop F)
+def(Pattern.tag?, Pattern -- Maybe(Tag), PATTERN_TAG -> SOME, _ -> drop NONE)
+def(Pattern.tag=, Tag Pattern -- Bool, tag? if-some(=, drop F))
+
+def(Pattern=, Pattern Pattern -- Bool,
+    PATTERN_UNDERSCORE -> underscore?,
+    PATTERN_TAG -> swap tag=)
+
+||| Asks whether the second pattern covers the first pattern.
+def(Pattern.covers?, Pattern Pattern -- Bool,
+    PATTERN_UNDERSCORE -> drop T,
+    PATTERN_TAG -> swap tag=)

@@ -1,0 +1,128 @@
+module(mirth.def)
+
+import(std.prelude)
+import(std.maybe)
+import(std.list)
+
+import(mirth.name)
+import(mirth.alias)
+import(mirth.buffer)
+import(mirth.constant)
+import(mirth.data)
+import(mirth.external)
+import(mirth.module)
+import(mirth.prim)
+import(mirth.table)
+import(mirth.token)
+import(mirth.typedef)
+import(mirth.variable)
+import(mirth.word)
+
+data(Def,
+    DEF_ALIAS -> Alias,
+    DEF_MODULE -> Module,
+    DEF_DATA -> Data,
+    DEF_TABLE -> Table,
+    DEF_TYPEDEF -> TypeDef,
+    DEF_TAG -> Tag,
+    DEF_PRIM -> Prim,
+    DEF_WORD -> Word,
+    DEF_BUFFER -> Buffer,
+    DEF_VARIABLE -> Variable,
+    DEF_CONSTANT -> Constant,
+    DEF_EXTERNAL -> External,
+    DEF_FIELD -> Field)
+
+def(Def>Module?, Def -- Maybe(Module),
+    DEF_ALIAS -> head .module SOME,
+    DEF_MODULE -> drop NONE,
+    DEF_DATA -> head? map(.module),
+    DEF_TABLE -> head .module SOME,
+    DEF_TYPEDEF -> head? map(.module),
+    DEF_TAG -> .data head? map(.module),
+    DEF_PRIM -> drop NONE,
+    DEF_WORD -> head .module SOME,
+    DEF_BUFFER -> head .module SOME,
+    DEF_VARIABLE -> head .module SOME,
+    DEF_CONSTANT -> head .module SOME,
+    DEF_EXTERNAL -> sig .module SOME,
+    DEF_FIELD -> head .module SOME)
+
+def(Def.alias?, Def -- Maybe(Alias), DEF_ALIAS -> SOME, _ -> drop NONE)
+def(Def.module?, Def -- Maybe(Module), DEF_MODULE -> SOME, _ -> drop NONE)
+def(Def.data?, Def -- Maybe(Data), DEF_DATA -> SOME, _ -> drop NONE)
+def(Def.table?, Def -- Maybe(Table), DEF_TABLE -> SOME, _ -> drop NONE)
+def(Def.typedef?, Def -- Maybe(TypeDef), DEF_TYPEDEF -> SOME, _ -> drop NONE)
+def(Def.tag?, Def -- Maybe(Tag), DEF_TAG -> SOME, _ -> drop NONE)
+def(Def.prim?, Def -- Maybe(Prim), DEF_PRIM -> SOME, _ -> drop NONE)
+def(Def.word?, Def -- Maybe(Word), DEF_WORD -> SOME, _ -> drop NONE)
+def(Def.buffer?, Def -- Maybe(Buffer), DEF_BUFFER -> SOME, _ -> drop NONE)
+def(Def.variable?, Def -- Maybe(Variable), DEF_VARIABLE -> SOME, _ -> drop NONE)
+def(Def.constant?, Def -- Maybe(Constant), DEF_CONSTANT -> SOME, _ -> drop NONE)
+def(Def.external?, Def -- Maybe(External), DEF_EXTERNAL -> SOME, _ -> drop NONE)
+def(Def.field?, Def -- Maybe(Field), DEF_FIELD -> SOME, _ -> drop NONE)
+
+def(Def.typecheck!, Def --,
+    DEF_ALIAS -> dup target def? unwrap-or(head "alias target is not defined" emit-fatal-error!) nip typecheck!,
+    DEF_MODULE -> drop,
+    DEF_BUFFER -> drop,
+    DEF_PRIM -> drop,
+    DEF_DATA -> drop,
+    DEF_TABLE -> drop,
+    DEF_TYPEDEF -> drop,
+    DEF_EXTERNAL -> type drop,
+    DEF_WORD -> arrow drop,
+    DEF_FIELD -> type drop,
+    DEF_TAG -> type drop,
+    DEF_VARIABLE -> type drop,
+    DEF_CONSTANT -> drop)
+
+def(Def.callable?, Def -- Bool,
+    DEF_ALIAS -> target def? match(SOME -> callable?, NONE -> F),
+    DEF_MODULE -> drop F,
+    DEF_BUFFER -> drop T,
+    DEF_PRIM -> drop T,
+    DEF_DATA -> drop F,
+    DEF_TABLE -> drop F,
+    DEF_TYPEDEF -> drop F,
+    DEF_EXTERNAL -> drop T,
+    DEF_WORD -> drop T,
+    DEF_FIELD -> drop T,
+    DEF_TAG -> drop T,
+    DEF_VARIABLE -> drop T,
+    DEF_CONSTANT -> drop T)
+
+def(Def.defines-a-type?, Def -- Bool,
+    DEF_ALIAS -> target def? match(SOME -> defines-a-type?, NONE -> F),
+    DEF_MODULE -> drop F,
+    DEF_BUFFER -> drop F,
+    DEF_PRIM -> drop F,
+    DEF_DATA -> drop T,
+    DEF_TABLE -> drop T,
+    DEF_TYPEDEF -> drop T,
+    DEF_EXTERNAL -> drop F,
+    DEF_WORD -> drop F,
+    DEF_FIELD -> drop F,
+    DEF_TAG -> drop F,
+    DEF_VARIABLE -> drop F,
+    DEF_CONSTANT -> drop F)
+
+def(Def.qname, Def -- QName,
+    DEF_ALIAS -> qname,
+    DEF_MODULE -> qname,
+    DEF_BUFFER -> qname,
+    DEF_PRIM -> qname,
+    DEF_DATA -> qname,
+    DEF_TABLE -> qname,
+    DEF_TYPEDEF -> qname,
+    DEF_EXTERNAL -> qname,
+    DEF_WORD -> qname,
+    DEF_FIELD -> qname,
+    DEF_TAG -> qname,
+    DEF_VARIABLE -> qname,
+    DEF_CONSTANT -> qname)
+
+def(Def.register, Def --,
+    dup qname
+    dup undefined? else("qualified name already has definition" panic!)
+    name ~defs modify(swap snoc))

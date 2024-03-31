@@ -1,0 +1,376 @@
+module(std.list)
+
+import(std.prelude)
+import(std.maybe)
+
+data(List(t),
+    L0,
+    L1 -> t,
+    L2 -> t t,
+    L3 -> t t t,
+    LCAT -> List+(t) List+(t) Nat)
+
+def(L4,  t t t t                   -- List(t), L4+  >List)
+def(L5,  t t t t  t                -- List(t), L5+  >List)
+def(L6,  t t t t  t t              -- List(t), L6+  >List)
+def(L7,  t t t t  t t t            -- List(t), L7+  >List)
+def(L8,  t t t t  t t t t          -- List(t), L8+  >List)
+def(L9,  t t t t  t t t t  t       -- List(t), L9+  >List)
+def(L10, t t t t  t t t t  t t     -- List(t), L10+ >List)
+def(L11, t t t t  t t t t  t t t   -- List(t), L11+ >List)
+def(L12, t t t t  t t t t  t t t t -- List(t), L12+ >List)
+
+def(List/L0, List(t) -- Bool, L0 -> T, _ -> drop F)
+def(List/L1, List(t) -- Maybe(t), L1 -> SOME, _ -> drop NONE)
+def(List/L2, List(t) -- Maybe([t t]), L2 -> pack2 SOME, _ -> drop NONE)
+def(List/L3, List(t) -- Maybe([t t t]), L3 -> pack3 SOME, _ -> drop NONE)
+
+def(List.empty?, List(t) -- Bool, L0 -> T, _ -> drop F)
+
+data(List+(t),
+    L1+ -> t,
+    L2+ -> t t,
+    L3+ -> t t t,
+    LCAT+ -> List+(t) List+(t) Nat)
+
+def(L4+,  t t t t                   -- List+(t), L2+ dip(L2+) 4  >Nat LCAT+)
+def(L5+,  t t t t  t                -- List+(t), L3+ dip(L2+) 5  >Nat LCAT+)
+def(L6+,  t t t t  t t              -- List+(t), L3+ dip(L3+) 6  >Nat LCAT+)
+def(L7+,  t t t t  t t t            -- List+(t), L4+ dip(L3+) 7  >Nat LCAT+)
+def(L8+,  t t t t  t t t t          -- List+(t), L5+ dip(L3+) 8  >Nat LCAT+)
+def(L9+,  t t t t  t t t t  t       -- List+(t), L6+ dip(L3+) 9  >Nat LCAT+)
+def(L10+, t t t t  t t t t  t t     -- List+(t), L5+ dip(L5+) 10 >Nat LCAT+)
+def(L11+, t t t t  t t t t  t t t   -- List+(t), L6+ dip(L5+) 11 >Nat LCAT+)
+def(L12+, t t t t  t t t t  t t t t -- List+(t), L6+ dip(L6+) 12 >Nat LCAT+)
+
+def(List+>List, List+(t) -- List(t),
+    L1+ -> L1,
+    L2+ -> L2,
+    L3+ -> L3,
+    LCAT+ -> LCAT)
+
+def(List>List+, List(t) -- Maybe(List+(t)),
+    L0 -> NONE,
+    L1 -> L1+ SOME,
+    L2 -> L2+ SOME,
+    L3 -> L3+ SOME,
+    LCAT -> LCAT+ SOME)
+
+def(List.is-empty, List(t) -- Bool,
+    L0 -> T,
+    _ -> drop F)
+
+def(List.len, List(t) -- Nat,
+    L0 -> 0 >Nat,
+    L1 -> drop 1 >Nat,
+    L2 -> drop2 2 >Nat,
+    L3 -> drop3 3 >Nat,
+    LCAT -> dip(drop2))
+
+def(List+.len, List+(t) -- Nat,
+    L1+ -> drop 1 >Nat,
+    L2+ -> drop2 2 >Nat,
+    L3+ -> drop3 3 >Nat,
+    LCAT+ -> dip(drop2))
+
+def(List.cons+, t List(t) -- List+(t),
+    L0 -> L1+,
+    L1 -> L2+,
+    L2 -> L3+,
+    L3 -> L4+,
+    LCAT -> 1+ dip(dip(cons+) rebalance) LCAT+)
+
+def(snoc+, List(t) t -- List+(t),
+    swap match(
+        L0 -> L1+,
+        L1 -> swap L2+,
+        L2 -> rotl L3+,
+        L3 -> rot4l L4+,
+        LCAT -> 1+ dip(rotl snoc++ rebalance) LCAT+
+    ))
+
+def(List+.cons+, t List+(t) -- List+(t), >List cons+)
+def(List.cons, t List(t) -- List(t), cons+ >List)
+def(snoc++, List+(t) t -- List+(t), dip(List+>List) snoc+)
+def(snoc, List(t) t -- List(t), snoc+ List+>List)
+
+def(List+.uncons, List+(t) -- t List(t),
+    L1+ -> L0,
+    L2+ -> L1,
+    L3+ -> L2,
+    LCAT+ -> drop dip(uncons) cat >List)
+
+def(List+.unsnoc, List+(t) -- List(t) t,
+    L1+ -> dip(L0),
+    L2+ -> dip(L1),
+    L3+ -> dip(L2),
+    LCAT+ -> drop unsnoc dip(cat+ >List))
+
+def(List.cat, List(t) List(t) -- List(t),
+    >List+ for(cat >List))
+
+def(List+.cat, List(t) List+(t) -- List+(t),
+    swap >List+ for(swap cat+))
+
+def(List.cat+, List+(t) List(t) -- List+(t),
+    >List+ for(cat+))
+
+def(List+.cat+, List+(t) List+(t) -- List+(t),
+    swap match(
+        L1+ -> swap cons+,
+        L2+ ->
+            rotl match(
+                L1+ -> L3+,
+                L2+ -> L4+,
+                L3+ -> L5+,
+                _ -> dip(L2+) cat-aux
+            ),
+        L3+ ->
+            rot4l match(
+                L1+ -> L4+,
+                L2+ -> L5+,
+                L3+ -> L6+,
+                _ -> dip(L3+) cat-aux
+            ),
+        _ ->
+            swap match(
+                L1+ -> snoc++,
+                _ -> cat-aux
+            )
+    ))
+
+def(List+.cat-aux, List+(t) List+(t) -- List+(t),
+    rebalance dup2 dip(len) len + LCAT+)
+
+def(List+.rebalance, List+(t) List+(t) -- List+(t) List+(t),
+    dup2 dip(len) len dup2 6 >Nat * > if(
+        drop2 dip(split-half-left) cat rebalance,
+        dip(6 >Nat *) < if(
+            split-half-right dip(cat+) rebalance,
+            id
+        )
+    ))
+
+def(List+.split-half-left, List+(t) -- List+(t) List(t),
+    L1+ -> L0 dip(L1+),
+    L2+ -> L1 dip(L1+),
+    L3+ -> L1 dip(L2+),
+    LCAT+ -> drop List+>List)
+
+def(List+.split-half-right, List+(t) -- List(t) List+(t),
+    L1+ -> L1+ dip(L0),
+    L2+ -> L1+ dip(L1),
+    L3+ -> L2+ dip(L1),
+    LCAT+ -> drop dip(List+>List))
+
+def(List.split-half, List(t) -- List(t) List(t),
+    L0 -> L0 L0,
+    L1 -> L1 dip(L0),
+    L2 -> L1 dip(L1),
+    L3 -> L2 dip(L1),
+    LCAT -> drop dip(List+>List) List+>List)
+
+def(List.first, List(t) -- Maybe(t), List>List+ map(first))
+def(List.last, List(t) -- Maybe(t), List>List+ map(last))
+def(List.middle, List(t) -- Maybe(t), List>List+ map(middle))
+
+def(List+.first, List+(t) -- t,
+    L1+ -> id,
+    L2+ -> drop,
+    L3+ -> drop2,
+    LCAT+ -> drop2 first)
+
+def(List+.last, List+(t) -- t,
+    L1+ -> id,
+    L2+ -> dip(drop),
+    L3+ -> dip(drop2),
+    LCAT+ -> drop nip last)
+
+def(List+.middle, List+(t) -- t,
+    L1+ -> id,
+    L2+ -> nip,
+    L3+ -> drop nip,
+    LCAT+ -> drop nip first)
+
+||| Reverse the list.
+def(List.reverse, List(a) -- List(a),
+    L0 -> L0,
+    L1 -> L1,
+    L2 -> swap L2,
+    L3 -> rotr swap L3,
+    LCAT -> dip(reverse swap reverse) LCAT)
+
+||| Reverse the list.
+def(List+.reverse, List+(a) -- List+(a),
+    L1+ -> L1+,
+    L2+ -> swap L2+,
+    L3+ -> rotr swap L3+,
+    LCAT+ -> dip(reverse swap reverse) LCAT+)
+
+||| Transform each element of the list.
+def(List.map(f), (*c a -- *c b) *c List(a) -- *c List(b),
+    L0 -> L0,
+    L1 -> f L1,
+    L2 -> dip(f) swap dip(f) swap L2,
+    L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
+    LCAT -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT)
+
+||| Transform each element of the list.
+def(List+.map(f), (*c a -- *c b) *c List+(a) -- *c List+(b),
+    L1+ -> f L1+,
+    L2+ -> dip(f) swap dip(f) swap L2+,
+    L3+ -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3+,
+    LCAT+ -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT+)
+
+||| Traverse the list, left to right.
+def(List.for(f), (*c a -- *c) *c List(a) -- *c,
+    L0 -> id,
+    L1 -> f,
+    L2 -> dip(f) f,
+    L3 -> dip(dip(f) f) f,
+    LCAT -> drop dip(for(f)) for(f))
+
+||| Traverse the list, left to right.
+def(List+.for(f), (*c a -- *c) *c List+(a) -- *c,
+    L1+ -> f,
+    L2+ -> dip(f) f,
+    L3+ -> dip(dip(f) f) f,
+    LCAT+ -> drop dip(for(f)) for(f))
+
+||| Traverse the list, right to left.
+def(List.reverse-for(f), (*c a -- *c) *c List(a) -- *c,
+    L0 -> id,
+    L1 -> f,
+    L2 -> swap dip(f) f,
+    L3 -> rotr dip2(f) swap dip(f) f,
+    LCAT -> drop swap dip(reverse-for(f)) reverse-for(f))
+
+||| Traverse the list, right to left.
+def(List+.reverse-for(f), (*c a -- *c) *c List+(a) -- *c,
+    L1+ -> f,
+    L2+ -> swap dip(f) f,
+    L3+ -> rotr dip2(f) swap dip(f) f,
+    LCAT+ -> drop swap dip(reverse-for(f)) reverse-for(f))
+
+||| Reduce a list in a bottom-up manner.
+def(List.reduce(g), (a a -- a) List(a) -- Maybe(a),
+    List>List+ map(reduce(g)))
+
+||| Reduce a list in a bottom-up manner.
+def(List+.reduce(g), (a a -- a) List+(a) -- a,
+    L1+ -> id,
+    L2+ -> g,
+    L3+ -> g g,
+    LCAT+ -> drop dip(reduce(g)) reduce(g) g)
+
+||| Filter away any list elements that don't satisfy the predicate.
+def(List.filter(f), (*c a -- *c a Bool) *c List(a) -- *c List(a),
+    List>List+ match(
+        NONE -> L0,
+        SOME -> filter(f)
+    ))
+
+||| Filter away any list elements that don't satisfy the predicate.
+def(List+.filter(f), (*c a -- *c a Bool) *c List+(a) -- *c List(a),
+    LCAT+ -> drop dip(filter(f)) dip'(filter(f)) cat,
+    _ ->
+        uncons dip(f) swap if(
+            dip'(filter(f)) cons,
+            nip filter(f)
+        )
+    )
+
+def(List.flatmap(f), (*c a -- *c List(b)) *c List(a) -- *c List(b),
+    L0 -> L0,
+    L1 -> f,
+    L2 -> dip(f) dip'(f) cat,
+    L3 -> dip(dip(f) dip'(f) cat) dip'(f) cat,
+    LCAT -> drop dip(flatmap(f)) dip'(flatmap(f)) cat)
+
+def(List+.flatmap(f), (*c a -- *c List(b)) *c List+(a) -- *c List(b),
+    L1+ -> f,
+    L2+ -> dip(f) dip'(f) cat,
+    L3+ -> dip(dip(f) dip'(f) cat) dip'(f) cat,
+    LCAT+ -> drop dip(flatmap(f)) dip'(flatmap(f)) cat)
+
+def(List.filter-some(p), (*c a -- *c Maybe(b)) *c List(a) -- *c List(b),
+    List>List+ if-some(filter-some(p), L0))
+
+def(List+.filter-some(p), (*c a -- *c Maybe(b)) *c List+(a) -- *c List(b),
+    LCAT+ -> drop dip(filter-some(p)) dip'(filter-some(p)) cat,
+    _ -> unsnoc dip(filter-some(p)) dip'(p) if-some(snoc, id))
+
+def(find-some-aux2(f), (*c a -- *c Maybe(b)) *c a a -- *c Maybe(b),
+    dip(f) swap match(NONE -> f, _ -> nip))
+
+def(find-some-aux3(f), (*c a -- *c Maybe(b)) *c a a a -- *c Maybe(b),
+    dip(dip(f) swap) swap match(NONE -> find-some-aux2(f), _ -> dip(drop2)))
+
+||| Find first element that returns SOME, if it exists.
+def(List.find-some(f), (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b),
+    List>List+ match(NONE -> NONE, SOME -> find-some(f)))
+
+||| Find first element that returns SOME, if it exists.
+def(List+.find-some(f), (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b),
+    L1+ -> f,
+    L2+ -> find-some-aux2(f),
+    L3+ -> find-some-aux3(f),
+    LCAT+ -> drop dip(find-some(f)) swap match(NONE -> find-some(f), _ -> nip))
+
+||| Find last element that returns SOME, if it exists.
+def(List.reverse-find-some(f), (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b),
+    List>List+ match(NONE -> NONE, SOME -> reverse-find-some(f)))
+
+||| Find last element that returns SOME, if it exists.
+def(List+.reverse-find-some(f), (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b),
+    L1+ -> f,
+    L2+ -> swap find-some-aux2(f),
+    L3+ -> rotr swap find-some-aux3(f),
+    LCAT+ -> drop dip'(reverse-find-some(f)) match(NONE -> reverse-find-some(f), _ -> nip))
+
+||| Find the first element that satisfies the predicate, if it exists.
+def(List.find(f), (*c a -- *c a Bool) *c List(a) -- *c Maybe(a),
+    find-some(f if(SOME, drop NONE)))
+
+||| Find the first element that satisfies the predicate, if it exists.
+def(List+.find(f), (*c a -- *c a Bool) *c List+(a) -- *c Maybe(a),
+    find-some(f if(SOME, drop NONE)))
+
+||| Find the last element that satisfies the predicate, if it exists.
+def(List.reverse-find(f), (*c a -- *c a Bool) *c List(a) -- *c Maybe(a),
+    reverse-find-some(f if(SOME, drop NONE)))
+
+||| Find the last element that satisfies the predicate, if it exists.
+def(List+.reverse-find(f), (*c a -- *c a Bool) *c List+(a) -- *c Maybe(a),
+    reverse-find-some(f if(SOME, drop NONE)))
+
+||| Is the predicate true for any element of the list?
+def(List.any(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
+    find(f) some?)
+
+||| Is the predicate true for all elements of the list?
+def(List.all(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
+    find(f not) none?)
+
+||| Build a list through repetition, stopping at the first NONE.
+def(collect(f), (*a -- *a Maybe(b)) *a -- *a List(b),
+    L0 while-some(dip(f) swap, snoc))
+
+||| Build a list through repetition, stopping when condition becomes false.
+def(collect-while(f,g), (*a -- *a Bool, *a -- *a b) *a -- *a List(b),
+    L0 while(dip(f) swap, dip(g) swap snoc))
+
+||| Count up, inclusive at both ends.
+def(Int.range, Int Int -- List(Int),
+    # TODO: match on integers to make this cleaner.
+    dup2 >= if(drop2 L0,
+    dup2 1- = if(drop L1,
+        dup2 + 2/ tuck swap range
+        dip(range) cat
+    )))
+
+data(+List(t), +LIST -> List(t))
+def(-LIST, +List(t) -- List(t), +LIST -> id)
+||| Syntactic sugar abuse to add list literals
+def(LIST(f), (*a +List(t) -- *a +List(t)) *a -- *a List(t), L0 +LIST f -LIST)
+def(+List;, *a t +List(t) -- *a +List(t), +LIST -> swap snoc +LIST)

@@ -1,5 +1,0 @@
-module(mirth.resource)
-
-data(+Mirth, MIRTH! -> +World)
-def(~World(f), (*a +World -- *b +World) *a +Mirth -- *b +Mirth,
-    MIRTH! -> f MIRTH!)

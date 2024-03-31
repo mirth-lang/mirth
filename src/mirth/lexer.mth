@@ -1,19 +1,23 @@
 module(mirth.lexer)
 
-import(prelude)
-import(platform.posix)
-import(data.byte)
-import(data.stack)
-import(data.path)
-import(data.str)
-import(data.maybe)
-import(mirth.data.location)
-import(mirth.data.name)
-import(mirth.data.token)
-import(mirth.data.error)
-import(mirth.data.module)
-import(resource.file)
-import(resource.input)
+import(std.prelude)
+import(std.byte)
+import(std.stack)
+import(std.path)
+import(std.str)
+import(std.maybe)
+import(std.list)
+
+import(posix.posix)
+import(posix.file)
+import(posix.input)
+
+import(mirth.location)
+import(mirth.name)
+import(mirth.token)
+import(mirth.error)
+import(mirth.module)
+
 
 #########
 # LEXER #
@@ -151,8 +155,10 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
 
         rdip(str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
-            # TODO pick apart (pre)qualified names
-            str-buf-name? TOKEN_NAME
+            str-buf-dname? match(
+                SOME -> TOKEN_DNAME,
+                NONE -> str-buf-name? TOKEN_NAME
+            )
         ))
 
         Token.alloc!
@@ -165,11 +171,14 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
 
 def(str-buf-name?, +Str -- Name +Str, str-buf-dup! >Name)
 
-# def(str-buf-pqname?, +Str -- Maybe(PQName) +Str,
-#     "::" str-buf-find map(
-#         dup >Size unsafe(str-buf-take-slice) >Name
-#         swap 2 >Offset + unsafe(str-buf-drop-slice) >Name PQNAME
-#     ))
+def(str-buf-dname?, +Str -- Maybe(DName) +Str,
+    B'.' str-buf-split-byte
+    uncons >List+ match(
+        NONE -> drop NONE,
+        SOME ->
+            dip(dup empty? if(drop NONE, >Name SOME))
+            map(>Name) DNAME SOME
+    ))
 
 def(str-buf-is-doc-start?, +Str -- Bool +Str,
     str-buf-dup! "|||" =)

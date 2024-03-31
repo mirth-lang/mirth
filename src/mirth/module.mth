@@ -1,0 +1,73 @@
+module(mirth.module)
+
+import(std.prelude)
+import(std.path)
+import(std.str)
+import(std.list)
+import(std.byte)
+import(mirth.name)
+import(mirth.package)
+
+# mirth/data/module
+table(Module)
+field(Module~package, Module, Package)
+field(Module~qname, Module, QName)
+field(Module~path, Module, Path)
+field(Module~start, Module, Token)
+field(Module~end, Module, Token)
+field(Module~imports, Module, List(Module))
+
+def(Module.package, Module -- Package, ~package @)
+def(Module.namespace, Module -- Namespace, qname namespace)
+def(Module.name, Module -- Name, qname name)
+def(Module.qname, Module -- QName, ~qname @)
+def(Module.path, Module -- Path, ~path @)
+def(Module.start, Module -- Token, ~start @)
+def(Module.end, Module -- Token, ~end @)
+def(Module.imports, Module -- List(Module), ~imports @)
+
+def(Module=, Module Module -- Bool, both(.id) =)
+
+var(Module.prim-var, Module)
+def(Module.prim, Module,
+    Module.prim-var memoize(
+        Module.alloc!
+        L0 over ~imports !
+        "<prim>" >Path over ~path !
+        Package.std over ~package !
+        "prim" QName.std over ~qname !
+    ))
+
+def(Module.new!, Package Path -- Module,
+    Module.alloc!
+    Module.prim L1 over ~imports !
+    tuck ~path !
+    tuck ~package !)
+
+||| ( module1 module2 -- ) Add module2 as import to module1.
+||| This does not check if the import is necessary.
+def(Module.add-import!, Module Module --,
+    swap ~imports modify(cons))
+
+||| Get source path associated with module.
+def(Module.source-path, Module -- Path,
+    path to-source-path)
+
+def(QName.to-module-path, QName -- Path,
+    name build-str!(
+        >Str str-bytes-for(
+            dup B'.' = if(
+                drop B'/',
+                dup is-upper if(to-lower, id)
+            )
+            str-buf-push-byte-unsafe!
+        )
+        ".mth" str-buf-push-str!
+    ) >Path)
+
+||| ( module1 module2 -- bool ) Check whether module1 is visible in module2.
+def(Module.visible, Module Module -- Bool,
+    dup2 = if(
+        drop2 T, # Module is always visible to itself.
+        imports any(dup2 =) nip
+    ))

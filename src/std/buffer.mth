@@ -1,0 +1,72 @@
+module(std.buffer)
+
+import(std.prelude)
+import(std.str)
+import(std.byte)
+
+data(+Buffer, +BUFFER -> Size Ptr)
+def(-BUFFER, +Buffer -- Size Ptr, +BUFFER -> id)
+
+def(+Buffer.new, Size -- +Buffer,
+    dup dup unsafe(Ptr.alloc) +BUFFER
+    0 >Offset swap erase-span!)
+
+def(+Buffer.resize!, Size +Buffer -- +Buffer,
+    -BUFFER dip(over dup) swap unsafe(Ptr.realloc) +BUFFER
+    dup2 >= if(
+        tuck - dip(>Offset) erase-span!,
+        drop2
+    ))
+
+||| Resize buffer only if the new size is larger,
+||| and resize by a factor of at least two.
+def(+Buffer.expand!, Size +Buffer -- +Buffer,
+    dup buffer-size > if(buffer-size 2* max resize!, drop))
+
+def(+Buffer.rdrop, +Buffer -- ,
+    -BUFFER unsafe(free) drop)
+
+def(+Buffer.erase-span!, Offset Size +Buffer -- +Buffer,
+    dup2 check-span! swap buffer-base unsafe(offset erase))
+
+def(+Buffer.buffer-size, +Buffer -- Size +Buffer,
+    -BUFFER over dip(+BUFFER))
+def(+Buffer.buffer-base, +Buffer -- Ptr +Buffer,
+    -BUFFER dup dip(+BUFFER))
+
+def(+Buffer.check-span!, Offset Size +Buffer -- +Buffer,
+    over 0< or(dup2 >Offset + buffer-size >Offset >)
+    then("memory access out of bounds" panic!) drop2)
+
+def(+Buffer.check-span-align!, Offset Size +Buffer -- +Buffer,
+    dup2 check-span!
+    dip(>Int) >Int % 0= else("memory access unaligned" panic!))
+
+def(+Buffer@U8, Offset +Buffer -- U8 +Buffer,
+    dup 1 >Size check-span-align! buffer-base unsafe(offset Ptr@U8))
+def(+Buffer@U16, Offset +Buffer -- U16 +Buffer,
+    dup 2 >Size check-span-align! buffer-base unsafe(offset Ptr@U16))
+def(+Buffer@U32, Offset +Buffer -- U32 +Buffer,
+    dup 4 >Size check-span-align! buffer-base unsafe(offset Ptr@U32))
+def(+Buffer@U64, Offset +Buffer -- U64 +Buffer,
+    dup 8 >Size check-span-align! buffer-base unsafe(offset Ptr@U64))
+
+def(+Buffer!U8, U8 Offset +Buffer -- +Buffer,
+    dup 1 >Size check-span-align! buffer-base unsafe(offset Ptr!U8))
+def(+Buffer!U16, U16 Offset +Buffer -- +Buffer,
+    dup 2 >Size check-span-align! buffer-base unsafe(offset Ptr!U16))
+def(+Buffer!U32, U32 Offset +Buffer -- +Buffer,
+    dup 4 >Size check-span-align! buffer-base unsafe(offset Ptr!U32))
+def(+Buffer!U64, U64 Offset +Buffer -- +Buffer,
+    dup 8 >Size check-span-align! buffer-base unsafe(offset Ptr!U64))
+
+def(+Buffer!Byte, Byte Offset +Buffer -- +Buffer,
+    dip(>U8) !U8)
+
+def(+Buffer!Str, Str Offset +Buffer -- +Buffer,
+    dup2 swap num-bytes check-span!
+    buffer-base unsafe(offset str-copy-partial! drop))
+
+def(+Buffer@Str, Offset Size +Buffer -- Str +Buffer,
+    dup2 check-span!
+    buffer-base unsafe(swap dip(offset) str-copy))

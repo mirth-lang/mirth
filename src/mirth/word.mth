@@ -1,0 +1,42 @@
+module(mirth.word)
+
+import(std.prelude)
+import(std.lazy)
+import(std.maybe)
+import(mirth.token)
+import(mirth.var)
+import(mirth.name)
+import(mirth.def)
+
+table(Word)
+field(Word~qname, Word, QName)
+field(Word~head, Word, Token)
+field(Word~sig, Word, Maybe(Token))
+field(Word~body, Word, Token)
+field(Word~ctx-type, Word, Lazy([Ctx ArrowType]))
+field(Word~params, Word, Lazy(List(Param)))
+field(Word~arrow, Word, Lazy(Arrow))
+
+def(Word.qname, Word -- QName, ~qname @)
+def(Word.namespace, Word -- Namespace, qname namespace)
+def(Word.name, Word -- Name, qname name)
+def(Word.head, Word -- Token, ~head @)
+def(Word.sig, Word -- Maybe(Token), ~sig @)
+def(Word.body, Word -- Token, ~body @)
+def(Word.params, Word -- List(Param), ~params force!)
+def(Word.arrow, Word -- Arrow, ~arrow force!)
+
+def(Word.ctx-type, Word -- Ctx ArrowType,
+    dup ~ctx-type force-or!(
+        head "recursive word needs type signature" emit-fatal-error!
+    ) nip unpack2)
+def(Word.ctx, Word -- Ctx, ctx-type drop)
+def(Word.type, Word -- ArrowType, ctx-type nip)
+
+def(Word.new!, Token Token QName -- Word,
+    Word.alloc!
+    tuck ~qname !
+    tuck ~head !
+    tuck ~body !
+    NONE over ~sig !
+    dup DEF_WORD register)

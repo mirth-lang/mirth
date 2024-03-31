@@ -1,16 +1,13 @@
 module(args.parse)
 
-import(prelude)
-import(data.str)
-import(data.list)
-import(data.maybe)
-import(data.either)
-import(data.byte)
-
-import(resource.buffer)
-
-import(platform.posix)
-
+import(std.prelude)
+import(std.str)
+import(std.list)
+import(std.maybe)
+import(std.either)
+import(std.byte)
+import(std.buffer)
+import(posix.posix)
 import(args.types)
 import(args.state)
 
@@ -19,20 +16,20 @@ def(print-usage, +ArgumentParser(a) -- +ArgumentParser(a),
   "Usage:" print-ln!
 
   "  " print!
-  state program-name  print! 
-  " [options] " print! 
+  state program-name  print!
+  " [options] " print!
   argument-parser args-doc  for(print!)
   "" print-ln!
 
   "" print-ln!
 
-  argument-parser options for(print-usage-for-option) 
+  argument-parser options for(print-usage-for-option)
   "" print-ln!
 )
 
 def(print-usage-for-option, ArgpOption --,
   "  " print!
-  dup ~type @ match( 
+  dup ~type @ match(
     OPTION_SHORT -> dup is-printable then("-" print! dup to-str-unsafe print!) drop,
     _ -> drop
   )
@@ -40,7 +37,7 @@ def(print-usage-for-option, ArgpOption --,
   # If we have both a short and long version of the argument we separate them
   dup ~type @ has-short? and(dup ~long @ some?) if(
     ", " ,
-    "  " 
+    "  "
   ) print!
 
   dup ~long @ match(
@@ -53,7 +50,7 @@ def(print-usage-for-option, ArgpOption --,
   dup ~doc @ match(
     SOME -> "\t" print! print!,
     NONE ->
-  ) 
+  )
 
   "" print-ln!
   drop
@@ -72,23 +69,23 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
   argument-parser options
   find(over f) swap drop match(
     SOME -> dup ~arg @ match(
-      SOME -> 
+      SOME ->
 	T state currently-parsing-option! state!
 	drop SOME state current-option-option! state!,
       NONE -> ~type @ state arguments swap NONE swap parser match(
 	SOME -> run state arguments! state! ,
 	NONE -> drop drop drop
-      ) 
+      )
     ) NONE,
     NONE -> UNKNOWN_ARG SOME
-  ) 
+  )
 )
 
-||| Check if the currently parsed argument is something we accept 
+||| Check if the currently parsed argument is something we accept
 def(check-long-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
   over ~long @ match(
     SOME -> =,
-    NONE -> drop F 
+    NONE -> drop F
   )
 )
 
@@ -142,7 +139,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
       SOME -> SOME state current-error! state!,
       NONE ->
     )
-  ) 
+  )
 
   # Check if we are still waiting for an associated value for an option
   state currently-parsing-option then(
@@ -161,15 +158,15 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
   rdrop
 )
 
-def(read-from-argv, +Unsafe Int -- Str +Unsafe, 
+def(read-from-argv, +Unsafe Int -- Str +Unsafe,
     Ptr.sizeof >Int * >Size >Offset argv offset @Ptr str-copy-cstr
 )
 
-def(argv-to-str, -- List(Str), 
+def(argv-to-str, -- List(Str),
   LIST(
   1 while(argc over >,
     dup unsafe(read-from-argv) ;
-    1+ 
+    1+
   ) drop
   )
 )

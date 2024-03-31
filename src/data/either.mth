@@ -1,7 +1,0 @@
-module(data.either)
-import(prelude)
-import(data.maybe)
-
-data(Either(a,b), LEFT -> a, RIGHT -> b)
-def(Either.left?, Either(a,b) -- Maybe(a), LEFT -> SOME, RIGHT -> drop NONE)
-def(Either.right?, Either(a,b) -- Maybe(b), LEFT -> drop NONE, RIGHT -> SOME)

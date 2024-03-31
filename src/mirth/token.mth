@@ -1,0 +1,300 @@
+module(mirth.token)
+
+import(std.prelude)
+import(std.list)
+import(std.maybe)
+import(mirth.name)
+import(mirth.location)
+import(mirth.error)
+import(mirth.prim)
+
+##########
+# Tokens #
+##########
+
+# mirth/data/token
+data(TokenValue,
+    TOKEN_NONE,
+    TOKEN_COMMA,
+    TOKEN_LPAREN_OPEN,
+    TOKEN_LPAREN -> Token,
+    TOKEN_RPAREN -> Token,
+    TOKEN_LSQUARE_OPEN,
+    TOKEN_LSQUARE -> Token,
+    TOKEN_RSQUARE -> Token,
+    TOKEN_LCURLY_OPEN,
+    TOKEN_LCURLY -> Token,
+    TOKEN_RCURLY -> Token,
+    TOKEN_INT -> Int,
+    TOKEN_STR -> Str,
+    TOKEN_NAME -> Name,
+    TOKEN_DNAME -> DName)
+
+def(TokenValue.none?, TokenValue -- Bool, TOKEN_NONE -> T, _ -> drop F)
+def(TokenValue.comma?, TokenValue -- Bool, TOKEN_COMMA -> T, _ -> drop F)
+def(TokenValue.lparen-open?, TokenValue -- Bool, TOKEN_LPAREN_OPEN -> T, _ -> drop F)
+def(TokenValue.lparen?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> SOME, _ -> drop NONE)
+def(TokenValue.rparen?, TokenValue -- Maybe(Token), TOKEN_RPAREN -> SOME, _ -> drop NONE)
+def(TokenValue.lsquare-open?, TokenValue -- Bool, TOKEN_LSQUARE_OPEN -> T, _ -> drop F)
+def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TOKEN_LSQUARE -> SOME, _ -> drop NONE)
+def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TOKEN_RSQUARE -> SOME, _ -> drop NONE)
+def(TokenValue.lcurly-open?, TokenValue -- Bool, TOKEN_LCURLY_OPEN -> T, _ -> drop F)
+def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TOKEN_LCURLY -> SOME, _ -> drop NONE)
+def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TOKEN_RCURLY -> SOME, _ -> drop NONE)
+def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> SOME, _ -> drop NONE)
+def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> SOME, _ -> drop NONE)
+def(TokenValue.name?, TokenValue -- Maybe(Name), TOKEN_NAME -> SOME, _ -> drop NONE)
+def(TokenValue.dname?, TokenValue -- Maybe(DName), TOKEN_DNAME -> SOME, _ -> drop NONE)
+def(TokenValue.arg-end?, TokenValue -- Bool,
+    TOKEN_COMMA -> T,
+    TOKEN_RPAREN -> drop T,
+    TOKEN_RCURLY -> drop T,
+    TOKEN_RSQUARE -> drop T,
+    _ -> drop F)
+def(TokenValue.left-enclosure?, TokenValue -- Bool,
+    TOKEN_LPAREN -> drop T,
+    TOKEN_LSQUARE -> drop T,
+    TOKEN_LCURLY  -> drop T,
+    _ -> drop F)
+def(TokenValue.right-enclosure?, TokenValue -- Bool,
+    TOKEN_RPAREN -> drop T,
+    TOKEN_RSQUARE -> drop T,
+    TOKEN_RCURLY  -> drop T,
+    _ -> drop F)
+
+def(TokenValue.sig-type?, TokenValue -- Bool, name? and-some(could-be-type))
+def(TokenValue.sig-type-con?, TokenValue -- Bool, name? and-some(could-be-type-con))
+def(TokenValue.sig-type-hole?, TokenValue -- Bool, name? and-some(is-type-hole))
+def(TokenValue.sig-type-var?, TokenValue -- Bool, name? and-some(could-be-type-var))
+def(TokenValue.sig-param-name?, TokenValue -- Bool, sig-type-var?)
+def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? and-some(could-be-stack-var))
+def(TokenValue.sig-resource-var?, TokenValue -- Bool, name? and-some(could-be-resource-var))
+def(TokenValue.sig-resource-con?, TokenValue -- Bool, name? and-some(could-be-resource-con))
+def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES name =))
+def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW name =))
+def(TokenValue.pat-underscore?, TokenValue -- Bool, name? and-some(is-underscore))
+def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(>Str "module" =))
+
+table(Token)
+field(Token~value, Token, TokenValue)
+field(Token~module, Token, Module)
+field(Token~row, Token, Row)
+field(Token~col, Token, Col)
+
+def(Token.value, Token -- TokenValue, ~value @)
+def(Token.module, Token -- Module, ~module @)
+def(Token.col, Token -- Col, ~col @)
+def(Token.row, Token -- Row, ~row @)
+
+def(Token.none?, Token -- Bool, value none?)
+def(Token.comma?, Token -- Bool, value comma?)
+def(Token.lparen-open?, Token -- Bool, value lparen-open?)
+def(Token.lparen?, Token -- Maybe(Token), value lparen?)
+def(Token.rparen?, Token -- Maybe(Token), value rparen?)
+def(Token.lsquare-open?, Token -- Bool, value lsquare-open?)
+def(Token.lsquare?, Token -- Maybe(Token), value lsquare?)
+def(Token.rsquare?, Token -- Maybe(Token), value rsquare?)
+def(Token.lcurly-open?, Token -- Bool, value lcurly-open?)
+def(Token.lcurly?, Token -- Maybe(Token), value lcurly?)
+def(Token.rcurly?, Token -- Maybe(Token), value rcurly?)
+def(Token.int?, Token -- Maybe(Int), value int?)
+def(Token.str?, Token -- Maybe(Str), value str?)
+def(Token.name?, Token -- Maybe(Name), value name?)
+def(Token.dname?, Token -- Maybe(DName), value dname?)
+def(Token.arg-end?, Token -- Bool, value arg-end?)
+def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
+def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)
+def(Token.sig-type?, Token -- Bool, value sig-type?)
+def(Token.sig-type-con?, Token -- Bool, value sig-type-con?)
+def(Token.sig-type-hole?, Token -- Bool, value sig-type-hole?)
+def(Token.sig-type-var?, Token -- Bool, value sig-type-var?)
+def(Token.sig-param-name?, Token -- Bool, value sig-param-name?)
+def(Token.sig-stack-var?, Token -- Bool, value sig-stack-var?)
+def(Token.sig-resource-var?, Token -- Bool, value sig-resource-var?)
+def(Token.sig-resource-con?, Token -- Bool, value sig-resource-con?)
+def(Token.sig-dashes?, Token -- Bool, value sig-dashes?)
+def(Token.pat-arrow?, Token -- Bool, value pat-arrow?)
+def(Token.pat-underscore?, Token -- Bool, value pat-underscore?)
+def(Token.module-header?, Token -- Bool, value module-header?)
+
+def(Token.alloc-none!, Token,
+    Token.alloc!
+    TOKEN_NONE over ~value !)
+
+def(Token.location, Token -- Location,
+    sip(.module) sip(row) col LOCATION)
+
+||| Get next token, respecting nesting of tokens and arguments.
+def(Token.next, Token -- Token,
+    dup value match(
+        TOKEN_LPAREN -> nip succ,
+        TOKEN_LSQUARE -> nip succ,
+        TOKEN_LCURLY -> nip succ,
+        TOKEN_NAME -> drop succ dup lparen? for(nip succ),
+        _ -> drop succ
+    ))
+
+||| Get previous token, respecting nesting of tokens and arguments.
+def(Token.prev, Token -- Token,
+    pred dup value match(
+        TOKEN_RSQUARE -> nip,
+        TOKEN_RCURLY -> nip,
+        TOKEN_RPAREN -> nip dup pred dup name? .if(nip, drop),
+        _ -> drop
+    ))
+
+||| Get closest arg ending (see `TokenValue.arg-end?`) while respecting the
+||| nesting of tokens.
+def(Token.next-arg-end, Token -- Token,
+    while(dup arg-end? not, next))
+
+def(Token.has-args?, Token -- Bool,
+    dup name? .if(succ, id)
+    lparen? >Bool)
+
+def(Token.args-start, Token -- Token,
+    dup name? .if(
+        dup succ lparen? .if(succ, id),
+        id
+    ))
+
+||| Get number of arguments or number of components in enclosed token.
+def(Token.num-args, Token -- Int,
+    args-start dup left-enclosure? if(
+        dip(0)
+        while(dup right-enclosure? not,
+            dip(1+) succ next-arg-end)
+        drop,
+        drop 0
+    ))
+
+||| Verify that token has 0 args, and return them.
+||| Emits a fatal error if arity is wrong.
+def(Token.args-0, Token --,
+    dup num-args 0= if(
+        drop,
+        "expected no args" emit-fatal-error!
+    ))
+
+||| Verify that token has 1 arg, and return it.
+||| Emits a fatal error if arity is wrong.
+def(Token.args-1, Token -- Token,
+    dup num-args 1 = if(
+        args-start succ,
+        dup num-args 1 < if(
+            "expected 1 arg, got none" emit-fatal-error!,
+            "expected 1 arg, got too many" emit-fatal-error!
+        )
+    ))
+
+||| Verify that token has 2 args, and return them.
+||| Emits a fatal error if arity is wrong.
+def(Token.args-2, Token -- Token Token,
+    dup num-args 2 = if(
+        args-start succ
+        dup next-arg-end succ,
+        dup num-args 2 < if(
+            "expected 2 args, got too few" emit-fatal-error!,
+            "expected 2 args, got too many" emit-fatal-error!
+        )
+    ))
+
+||| Verify that token has 3 args, and return them.
+||| Emits a fatal error if arity is wrong.
+def(Token.args-3, Token -- Token Token Token,
+    dup num-args 3 = if(
+        args-start succ
+        dup next-arg-end succ
+        dup next-arg-end succ,
+        dup num-args 3 < if(
+            "expected 3 args, got too few" emit-fatal-error!,
+            "expected 3 args, got too many" emit-fatal-error!
+        )
+    ))
+
+||| Get List of token args.
+def(Token.args, Token -- List(Token),
+    dup has-args? if(
+        args-start
+        collect-while(dup args-end? not, succ sip(next-arg-end))
+        nip,
+        drop L0
+    ))
+
+||| Check if we're at the end of the last argument.
+||| A trailing comma is ignored.
+def(Token.args-end?, Token -- Bool,
+    dup comma? then(succ)
+    right-enclosure?)
+
+||| Get List+ of token args.
+||| Emits a fatal error if token has no args,
+def(Token.args+, Token -- List+(Token),
+    dup args >List+ unwrap-or("expected 1 or more args, got none" emit-fatal-error!) nip)
+
+def(emit-warning!, Token Str --,
+    dip(location) emit-warning-at!)
+def(emit-error!, Token Str --,
+    dip(location) emit-error-at!)
+def(emit-fatal-error!, *a Token Str -- *b,
+    dip(location) emit-fatal-error-at!)
+
+###############
+# Token Types #
+###############
+
+||| Is this the end of a module?
+def(Token.module-end?, Token -- Bool, none?)
+
+||| Is this a token to stop running at?
+def(Token.run-end?, Token -- Bool,
+    value match(
+        TOKEN_NONE -> T,
+        TOKEN_COMMA -> T,
+        TOKEN_RPAREN -> drop T,
+        TOKEN_RSQUARE -> drop T,
+        TOKEN_RCURLY -> drop T,
+        _ -> drop F
+    ))
+
+def(Token.run-tokens, Token -- List(Token),
+    collect-while(dup run-end? not, sip(next)) nip)
+
+def(Token.run-length, Token -- Nat,
+    dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop )
+
+def(Token.run-has-arrow?, Token -- Bool,
+    run-tokens any(dup pat-arrow?))
+
+###################
+# Type Signatures #
+###################
+
+def(Token.sig-stack-end?, Token -- Bool,
+    dup sig-dashes? or(dup run-end?) nip)
+
+def(Token.sig-next-stack-end, Token -- Token,
+    while(dup sig-stack-end? not, next))
+
+def(Token.sig-has-dashes?, Token -- Bool,
+    sig-next-stack-end sig-dashes?)
+
+def(Token.sig-arity, Token -- Nat Nat,
+    dup sig-has-dashes? if(
+        sig-count-types
+        next
+        sig-count-types
+        drop,
+
+        sig-count-types
+        drop 0 >Nat swap
+    ))
+
+def(Token.sig-count-types, Token -- Nat Token,
+    0 >Nat swap while(dup sig-stack-end? not,
+        dup sig-type? if(dip(1+), id)
+        next
+    ))
+
+def(Token.sig-skip-dashes, Token -- Token,
+    dup sig-has-dashes? then(sig-next-stack-end next))

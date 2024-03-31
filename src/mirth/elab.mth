@@ -1,40 +1,41 @@
 module(mirth.elab)
 
-import(prelude)
-import(platform.posix)
-import(data.str)
-import(data.lazy)
-import(data.list)
-import(data.maybe)
-import(data.either)
-import(data.path)
-import(data.byte)
-import(resource.file)
-import(mirth.data.name)
-import(mirth.data.def)
-import(mirth.data.token)
-import(mirth.data.data)
-import(mirth.data.ctx)
-import(mirth.data.external)
-import(mirth.data.word)
-import(mirth.data.var)
-import(mirth.data.buffer)
-import(mirth.data.variable)
-import(mirth.data.constant)
-import(mirth.data.table)
-import(mirth.data.tycon)
-import(mirth.data.type)
-import(mirth.data.typedef)
-import(mirth.data.var)
-import(mirth.data.arrow)
-import(mirth.data.word)
-import(mirth.data.prim)
-import(mirth.data.module)
-import(mirth.data.alias)
-import(mirth.data.match)
+import(std.prelude)
+import(std.str)
+import(std.lazy)
+import(std.list)
+import(std.maybe)
+import(std.either)
+import(std.path)
+import(std.byte)
+
+import(posix.posix)
+import(posix.file)
+
+import(mirth.name)
+import(mirth.def)
+import(mirth.token)
+import(mirth.data)
+import(mirth.ctx)
+import(mirth.external)
+import(mirth.word)
+import(mirth.var)
+import(mirth.buffer)
+import(mirth.variable)
+import(mirth.constant)
+import(mirth.table)
+import(mirth.tycon)
+import(mirth.type)
+import(mirth.typedef)
+import(mirth.var)
+import(mirth.arrow)
+import(mirth.word)
+import(mirth.prim)
+import(mirth.module)
+import(mirth.alias)
+import(mirth.match)
 import(mirth.lexer)
-import(mirth.codegen.c99)
-import(mirth.codegen.x64)
+import(mirth.c99)
 
 ####################
 # Type Elaboration #
@@ -883,8 +884,8 @@ def(data-qname, Data Name -- QName,
     dip(TYCON_DATA NAMESPACE_TYCON) QNAME)
 
 def(data-word-qname, Data Str -- QName,
-    dip(dup name >Str "." cat) cat >Name # TODO remove
-    data-qname)
+    # dip(dup name >Str "." cat) cat >Name # TODO remove
+    >Name data-qname)
 
 def(data-word-new!, Data Str -- Word,
     dip(dup head? unwrap dup rotl) data-word-qname Word.new!)
@@ -1069,8 +1070,8 @@ def(typecheck-everything!, --,
 def(TABLE_MAX_COUNT, Nat, 0x10000 >Nat)
 
 def(table-qname, Table Str -- QName,
-    over qname name >Str "." cat swap cat >Name # TODO remove this
-    dip(TYCON_TABLE NAMESPACE_TYCON) QNAME)
+    # over qname name >Str "." cat swap cat >Name # TODO remove this
+    >Name dip(TYCON_TABLE NAMESPACE_TYCON) QNAME)
 
 def(table-word-new!, Table Str -- Word,
     dip(dup dip(head dup)) table-qname Word.new!)
