@@ -3,6 +3,7 @@ module(mirth.token)
 import(std.prelude)
 import(std.list)
 import(std.maybe)
+import(std.either)
 import(mirth.name)
 import(mirth.location)
 import(mirth.error)
@@ -45,6 +46,10 @@ def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> SOME, _ -> drop NONE
 def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> SOME, _ -> drop NONE)
 def(TokenValue.name?, TokenValue -- Maybe(Name), TOKEN_NAME -> SOME, _ -> drop NONE)
 def(TokenValue.dname?, TokenValue -- Maybe(DName), TOKEN_DNAME -> SOME, _ -> drop NONE)
+def(TokenValue.name-or-dname?, TokenValue -- Maybe(Either(Name,DName)),
+    TOKEN_NAME -> LEFT SOME,
+    TOKEN_DNAME -> RIGHT SOME,
+    _ -> drop NONE)
 def(TokenValue.arg-end?, TokenValue -- Bool,
     TOKEN_COMMA -> T,
     TOKEN_RPAREN -> drop T,
@@ -70,21 +75,21 @@ def(TokenValue.sig-param-name?, TokenValue -- Bool, sig-type-var?)
 def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? and-some(could-be-stack-var))
 def(TokenValue.sig-resource-var?, TokenValue -- Bool, name? and-some(could-be-resource-var))
 def(TokenValue.sig-resource-con?, TokenValue -- Bool, name? and-some(could-be-resource-con))
-def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES name =))
-def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW name =))
+def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES name .==))
+def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW name .==))
 def(TokenValue.pat-underscore?, TokenValue -- Bool, name? and-some(is-underscore))
-def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(>Str "module" =))
+def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(.>Str "module" .==))
 
 table(Token)
-field(Token~value, Token, TokenValue)
-field(Token~module, Token, Module)
-field(Token~row, Token, Row)
-field(Token~col, Token, Col)
+field(Token.~value, Token, TokenValue)
+field(Token.~module, Token, Module)
+field(Token.~row, Token, Row)
+field(Token.~col, Token, Col)
 
-def(Token.value, Token -- TokenValue, ~value @)
-def(Token.module, Token -- Module, ~module @)
-def(Token.col, Token -- Col, ~col @)
-def(Token.row, Token -- Row, ~row @)
+def(Token.value, Token -- TokenValue, .~value @)
+def(Token.module, Token -- Module, .~module @)
+def(Token.col, Token -- Col, .~col @)
+def(Token.row, Token -- Row, .~row @)
 
 def(Token.none?, Token -- Bool, value none?)
 def(Token.comma?, Token -- Bool, value comma?)
@@ -101,6 +106,7 @@ def(Token.int?, Token -- Maybe(Int), value int?)
 def(Token.str?, Token -- Maybe(Str), value str?)
 def(Token.name?, Token -- Maybe(Name), value name?)
 def(Token.dname?, Token -- Maybe(DName), value dname?)
+def(Token.name-or-dname?, Token -- Maybe(Either(Name,DName)), value name-or-dname?)
 def(Token.arg-end?, Token -- Bool, value arg-end?)
 def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
 def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)
@@ -119,7 +125,7 @@ def(Token.module-header?, Token -- Bool, value module-header?)
 
 def(Token.alloc-none!, Token,
     Token.alloc!
-    TOKEN_NONE over ~value !)
+    TOKEN_NONE over .~value !)
 
 def(Token.location, Token -- Location,
     sip(.module) sip(row) col LOCATION)
@@ -131,6 +137,7 @@ def(Token.next, Token -- Token,
         TOKEN_LSQUARE -> nip succ,
         TOKEN_LCURLY -> nip succ,
         TOKEN_NAME -> drop succ dup lparen? for(nip succ),
+        TOKEN_DNAME -> drop succ dup lparen? for(nip succ),
         _ -> drop succ
     ))
 
@@ -139,7 +146,7 @@ def(Token.prev, Token -- Token,
     pred dup value match(
         TOKEN_RSQUARE -> nip,
         TOKEN_RCURLY -> nip,
-        TOKEN_RPAREN -> nip dup pred dup name? .if(nip, drop),
+        TOKEN_RPAREN -> nip dup pred dup name-or-dname? .if(nip, drop),
         _ -> drop
     ))
 
@@ -149,13 +156,12 @@ def(Token.next-arg-end, Token -- Token,
     while(dup arg-end? not, next))
 
 def(Token.has-args?, Token -- Bool,
-    dup name? .if(succ, id)
-    lparen? >Bool)
+    dup name-or-dname? then(succ)
+    lparen? .>Bool)
 
 def(Token.args-start, Token -- Token,
-    dup name? .if(
-        dup succ lparen? .if(succ, id),
-        id
+    dup name-or-dname? then(
+        dup succ lparen? then(succ)
     ))
 
 ||| Get number of arguments or number of components in enclosed token.
@@ -179,9 +185,9 @@ def(Token.args-0, Token --,
 ||| Verify that token has 1 arg, and return it.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-1, Token -- Token,
-    dup num-args 1 = if(
+    dup num-args 1 .== if(
         args-start succ,
-        dup num-args 1 < if(
+        dup num-args 1 .< if(
             "expected 1 arg, got none" emit-fatal-error!,
             "expected 1 arg, got too many" emit-fatal-error!
         )
@@ -190,10 +196,10 @@ def(Token.args-1, Token -- Token,
 ||| Verify that token has 2 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-2, Token -- Token Token,
-    dup num-args 2 = if(
+    dup num-args 2 .== if(
         args-start succ
         dup next-arg-end succ,
-        dup num-args 2 < if(
+        dup num-args 2 .< if(
             "expected 2 args, got too few" emit-fatal-error!,
             "expected 2 args, got too many" emit-fatal-error!
         )
@@ -202,11 +208,11 @@ def(Token.args-2, Token -- Token Token,
 ||| Verify that token has 3 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-3, Token -- Token Token Token,
-    dup num-args 3 = if(
+    dup num-args 3 .== if(
         args-start succ
         dup next-arg-end succ
         dup next-arg-end succ,
-        dup num-args 3 < if(
+        dup num-args 3 .< if(
             "expected 3 args, got too few" emit-fatal-error!,
             "expected 3 args, got too many" emit-fatal-error!
         )
@@ -230,7 +236,7 @@ def(Token.args-end?, Token -- Bool,
 ||| Get List+ of token args.
 ||| Emits a fatal error if token has no args,
 def(Token.args+, Token -- List+(Token),
-    dup args >List+ unwrap-or("expected 1 or more args, got none" emit-fatal-error!) nip)
+    dup args .>List+ unwrap-or("expected 1 or more args, got none" emit-fatal-error!) nip)
 
 def(emit-warning!, Token Str --,
     dip(location) emit-warning-at!)
@@ -261,7 +267,7 @@ def(Token.run-tokens, Token -- List(Token),
     collect-while(dup run-end? not, sip(next)) nip)
 
 def(Token.run-length, Token -- Nat,
-    dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop )
+    dip(0 .>Nat) while(dup run-end? not, next dip(1+)) drop )
 
 def(Token.run-has-arrow?, Token -- Bool,
     run-tokens any(dup pat-arrow?))
@@ -287,12 +293,12 @@ def(Token.sig-arity, Token -- Nat Nat,
         drop,
 
         sig-count-types
-        drop 0 >Nat swap
+        drop 0 .>Nat swap
     ))
 
 def(Token.sig-count-types, Token -- Nat Token,
-    0 >Nat swap while(dup sig-stack-end? not,
-        dup sig-type? if(dip(1+), id)
+    0 .>Nat swap while(dup sig-stack-end? not,
+        dup sig-type? then(dip(1+))
         next
     ))
 

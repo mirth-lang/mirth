@@ -13,39 +13,39 @@ import(mirth.token)
 
 # mirth/data/type
 table(Match)
-field(Match~ctx, Match, Ctx)
-field(Match~dom, Match, StackType)
-field(Match~cod, Match, StackType)
-field(Match~token, Match, Token) # where the diagnostics go
-field(Match~body, Match, Token) # where the cases start
-field(Match~cases, Match, List(Case))
-def(Match.ctx, Match -- Ctx, ~ctx @)
-def(Match.dom, Match -- StackType, ~dom @)
-def(Match.cod, Match -- StackType, ~cod @)
-def(Match.token, Match -- Token, ~token @)
-def(Match.body, Match -- Token, ~body @)
-def(Match.cases, Match -- List(Case), ~cases @)
+field(Match.~ctx, Match, Ctx)
+field(Match.~dom, Match, StackType)
+field(Match.~cod, Match, StackType)
+field(Match.~token, Match, Token) # where the diagnostics go
+field(Match.~body, Match, Token) # where the cases start
+field(Match.~cases, Match, List(Case))
+def(Match.ctx, Match -- Ctx, .~ctx @)
+def(Match.dom, Match -- StackType, .~dom @)
+def(Match.cod, Match -- StackType, .~cod @)
+def(Match.token, Match -- Token, .~token @)
+def(Match.body, Match -- Token, .~body @)
+def(Match.cases, Match -- List(Case), .~cases @)
 
 table(Case)
-field(Case~match, Case, Match)
-field(Case~token, Case, Token)
-field(Case~pattern, Case, Pattern)
-field(Case~subst, Case, Subst)
-field(Case~mid, Case, StackType)
-field(Case~body, Case, Arrow)
-def(Case.match, Case -- Match, ~match @)
-def(Case.token, Case -- Token, ~token @)
-def(Case.pattern, Case -- Pattern, ~pattern @)
-def(Case.subst, Case -- Subst, ~subst @)
-def(Case.mid, Case -- StackType, ~mid @)
-def(Case.body, Case -- Arrow, ~body @)
+field(Case.~match, Case, Match)
+field(Case.~token, Case, Token)
+field(Case.~pattern, Case, Pattern)
+field(Case.~subst, Case, Subst)
+field(Case.~mid, Case, StackType)
+field(Case.~body, Case, Arrow)
+def(Case.match, Case -- Match, .~match @)
+def(Case.token, Case -- Token, .~token @)
+def(Case.pattern, Case -- Pattern, .~pattern @)
+def(Case.subst, Case -- Subst, .~subst @)
+def(Case.mid, Case -- StackType, .~mid @)
+def(Case.body, Case -- Arrow, .~body @)
 
 def(Match.is-exhaustive?, Match -- Bool,
     dup has-default-case? or(
         dup scrutinee-data? match(
             SOME ->
                 num-tags
-                over cases len =,
+                over cases len .==,
             NONE ->
                 dup cases len 0>,
                 # presume exhaustiveness generally.
@@ -61,7 +61,7 @@ def(Match.has-default-case?, Match -- Bool,
 def(Match.scrutinee-data?, Match -- Maybe(Data),
     cases filter(dup is-default-case? not) dup
     first bind(pattern tag?) map(.data) if-some(
-        swap all(dup pattern tag? if-some(dip(over) .data =, F)) if(
+        swap all(dup pattern tag? if-some(dip(over) .data .==, F)) if(
             SOME,
             drop NONE
         ),
@@ -80,7 +80,7 @@ def(Match.is-transparent?, Match -- Bool,
 def(Match.add-case!, Case Match --,
     dup2 case-redundant? if(
         drop token "Case is unreachable." emit-error!,
-        sip(cases swap snoc) ~cases !
+        sip(cases swap snoc) .~cases !
     ))
 
 def(Match.case-redundant?, Case Match -- Bool,
@@ -106,11 +106,11 @@ data(Pattern,
 
 def(Pattern.underscore?, Pattern -- Bool, PATTERN_UNDERSCORE -> T, _ -> drop F)
 def(Pattern.tag?, Pattern -- Maybe(Tag), PATTERN_TAG -> SOME, _ -> drop NONE)
-def(Pattern.tag=, Tag Pattern -- Bool, tag? if-some(=, drop F))
+def(Pattern.tag=, Tag Pattern -- Bool, tag? if-some(.==, drop F))
 
-def(Pattern=, Pattern Pattern -- Bool,
-    PATTERN_UNDERSCORE -> underscore?,
-    PATTERN_TAG -> swap tag=)
+def(Pattern.==, Pattern Pattern -- Bool,
+    PATTERN_UNDERSCORE -> match(PATTERN_UNDERSCORE -> T, _ -> drop F),
+    PATTERN_TAG -> swap match(PATTERN_TAG -> .==, _ -> drop2 F))
 
 ||| Asks whether the second pattern covers the first pattern.
 def(Pattern.covers?, Pattern Pattern -- Bool,

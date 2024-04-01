@@ -32,30 +32,30 @@ buffer(SNAKE_EVENT, 0x100)
 data(Direction, DNORTH, DEAST, DSOUTH, DWEST)
 
 def-type(XCoord, U8)
-def(XCoord->Int, XCoord -- Int, >Int)
-def(Int->XCoord, Int -- XCoord, >U8)
+def(XCoord->Int, XCoord -- Int, .>Int)
+def(Int->XCoord, Int -- XCoord, .>U8)
 
 def-type(YCoord, U8)
-def(YCoord->Int, YCoord -- Int, >Int)
-def(Int->YCoord, Int -- YCoord, >U8)
+def(YCoord->Int, YCoord -- Int, .>Int)
+def(Int->YCoord, Int -- YCoord, .>U8)
 
 def-type(State, U8)
-def(state-occupy, State -- State, >Int 0x1 | >U8)
-def(state-vacate, State -- State, >Int 0xFE & >U8)
-def(state-is-occupied, State -- Bool, >Int 0x1 & 0>)
+def(state-occupy, State -- State, .>Int 0x1 | .>U8)
+def(state-vacate, State -- State, .>Int 0xFE & .>U8)
+def(state-is-occupied, State -- Bool, .>Int 0x1 & 0>)
 def(state-is-occupied?, State -- State Bool, dup state-is-occupied)
 
 def(snake-xy@, XCoord YCoord, snake-x @ snake-y @)
 def(snake-xy!, XCoord YCoord --, snake-y ! snake-x !)
 
 def(coords-offset, XCoord YCoord -- Offset,
-    dip(XCoord->Int) YCoord->Int SNAKE_W * + >Offset)
+    dip(XCoord->Int) YCoord->Int SNAKE_W * + .>Offset)
 def(snake-grid@, XCoord YCoord -- State,
     coords-offset SNAKE_GRID unsafe(offset @U8))
 def(snake-grid!, State XCoord YCoord --,
     coords-offset SNAKE_GRID unsafe(offset !U8))
 def(snake-grid-clear!, --,
-    SNAKE_W SNAKE_H * >Size SNAKE_GRID unsafe(erase))
+    SNAKE_W SNAKE_H * .>Size SNAKE_GRID unsafe(erase))
 
 def(snake-queue-x?, Offset -- Offset XCoord, dup snake-queue-x@)
 def(snake-queue-x@, Offset -- XCoord, SNAKE_QUEUE_X unsafe(offset @U8))
@@ -77,8 +77,8 @@ def(snake-enqueue-xy!, XCoord YCoord --,
     snake-queue-length modify(1+))
 
 def(snake-dequeue-xy!, -- XCoord YCoord,
-    0 >Offset snake-queue-xy@
-    0 >Offset
+    0 .>Offset snake-queue-xy@
+    0 .>Offset
     while(dup 1+ snake-queue-length @ <,
         dup
         dip(1+ snake-queue-xy?) snake-queue-xy!)
@@ -123,7 +123,7 @@ def(snake-reset!, --,
     DNORTH snake-direction !
     SNAKE_W 2 / Int->XCoord snake-x !
     SNAKE_H 2 / Int->YCoord snake-y !
-    0 >Offset snake-queue-length !
+    0 .>Offset snake-queue-length !
     snake-grid-clear!
     snake-randomize-mouse!
     F snake-dead !
@@ -131,9 +131,9 @@ def(snake-reset!, --,
     0 tick-timer !)
 
 def(SNAKE_INIT_FLAGS, SDL_InitFlags,
-    SDL_INIT_VIDEO >Int
-    SDL_INIT_GAMECONTROLLER >Int |
-    >U32)
+    SDL_INIT_VIDEO .>Int
+    SDL_INIT_GAMECONTROLLER .>Int |
+    .>U32)
 
 def(snake-init!, --,
     snake-reset!
@@ -204,15 +204,15 @@ def-type(H, Int)
 buffer(SNAKE_RECT, 16)
 def(snake-rect!, X Y W H --,
     unsafe(
-        >I32 12 >Offset SNAKE_RECT offset !I32
-        >I32  8 >Offset SNAKE_RECT offset !I32
-        >I32  4 >Offset SNAKE_RECT offset !I32
-        >I32  0 >Offset SNAKE_RECT offset !I32
+        .>I32 12 .>Offset SNAKE_RECT offset !I32
+        .>I32  8 .>Offset SNAKE_RECT offset !I32
+        .>I32  4 .>Offset SNAKE_RECT offset !I32
+        .>I32  0 .>Offset SNAKE_RECT offset !I32
     ))
 
 def(snake-rect-cell!, XCoord YCoord --,
     dip(>Int SNAKE_CELL_SIZE *)
-    >Int SNAKE_CELL_SIZE *
+    .>Int SNAKE_CELL_SIZE *
     SNAKE_CELL_SIZE
     SNAKE_CELL_SIZE
     snake-rect!)
@@ -226,7 +226,7 @@ def(snake-present!, --,
     snake-renderer @ snake-foreground-color SDL_SetRenderDrawColor
     snake-xy@ snake-rect-cell!
     snake-renderer @ SNAKE_RECT SDL_RenderFillRect
-    0 >Offset
+    0 .>Offset
     while(dup snake-queue-length @ <,
         snake-queue-xy? snake-rect-cell!
         snake-renderer @ SNAKE_RECT SDL_RenderFillRect
@@ -242,13 +242,13 @@ def(snake-process-events!, --,
         snake-process-event!))
 
 def(snake-process-event!, --,
-    SNAKE_EVENT SDL_Event.type >Int
-    dup SDL_QUIT >Int = if(
+    SNAKE_EVENT SDL_Event.type .>Int
+    dup SDL_QUIT .>Int = if(
         drop T snake-done !,
 
-    dup SDL_KEYDOWN >Int = if(
+    dup SDL_KEYDOWN .>Int = if(
         drop
-        SNAKE_EVENT SDL_Event.key.repeat >Int 0> if(
+        SNAKE_EVENT SDL_Event.key.repeat .>Int 0> if(
             id,
             SNAKE_EVENT SDL_Event.key.keysym.scancode
             match(
@@ -257,7 +257,7 @@ def(snake-process-event!, --,
             )
         ),
 
-    dup SDL_CONTROLLERBUTTONDOWN >Int = if(
+    dup SDL_CONTROLLERBUTTONDOWN .>Int = if(
         drop
         SNAKE_EVENT SDL_Event.cbutton.which snake-controller @ = if(
             SNAKE_EVENT SDL_Event.cbutton.button
@@ -298,15 +298,15 @@ def(snake-update!, --,
         snake-apply-direction
         snake-xy!
 
-        snake-xy@ snake-grid@ >Int 0> if(
+        snake-xy@ snake-grid@ .>Int 0> if(
             T snake-dead !,
 
-            1 >U8 snake-xy@ snake-grid!
+            1 .>U8 snake-xy@ snake-grid!
             snake-check-mouse!
 
             snake-xy@ snake-enqueue-xy!
             snake-queue-length @ snake-desired-length > if(
-                0 >U8 snake-dequeue-xy! snake-grid!,
+                0 .>U8 snake-dequeue-xy! snake-grid!,
                 id
             )
         ),
@@ -315,7 +315,7 @@ def(snake-update!, --,
     )))
 
 var(snake-points, Int)
-def(snake-desired-length, Offset, snake-points @ 5 + >Offset)
+def(snake-desired-length, Offset, snake-points @ 5 + .>Offset)
 
 var(snake-mouse-x, XCoord)
 var(snake-mouse-y, YCoord)
@@ -328,7 +328,7 @@ def(snake-randomize-mouse!, --,
     libc-rand SNAKE_W % Int->XCoord snake-mouse-x !
     libc-rand SNAKE_H % Int->YCoord snake-mouse-y !
 
-    snake-mouse-xy@ snake-grid@ >Int 0> if(
+    snake-mouse-xy@ snake-grid@ .>Int 0> if(
         snake-randomize-mouse!, # might lead to crash if there is no empty space ...
         id
     ))

@@ -4,10 +4,10 @@ import(platform.posix)
 import(data.path)
 
 def(should-be-directory, Str --,
-    >Path is-directory? if("ok", "err") trace-ln!)
+    .>Path is-directory? if("ok", "err") trace-ln!)
 
 def(should-not-be-directory, Str --,
-    >Path is-directory? if("err", "ok") trace-ln!)
+    .>Path is-directory? if("err", "ok") trace-ln!)
 
 def(main, --,
     "src" should-be-directory

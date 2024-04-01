@@ -35,13 +35,13 @@ def(ArgumentParser.new, List(ArgpOption) Maybe([ +ArgumentParser(a) a Maybe(Str)
 )
 
 data(+ArgumentParser(a), +ARGUMENTPARSER -> ArgumentParser(a) ArgumentParserState(a))
-def(+ArgumentParser-ARGUMENTPARSER, +ArgumentParser(a) -- ArgumentParser(a) ArgumentParserState(a), +ARGUMENTPARSER -> id)
+def(-ARGUMENTPARSER, +ArgumentParser(a) -- ArgumentParser(a) ArgumentParserState(a), +ARGUMENTPARSER -> id)
 def(+ArgumentParser.rdrop, +ArgumentParser(a) --, -ARGUMENTPARSER drop2)
 
 def(+ArgumentParser.argument-parser, +ArgumentParser(a) -- ArgumentParser(a) +ArgumentParser(a),
-  -ARGUMENTPARSER over dip(+ARGUMENTPARSER))
+    -ARGUMENTPARSER over dip(+ARGUMENTPARSER))
 def(+ArgumentParser.argument-parser!, +ArgumentParser(a) ArgumentParser(a) -- +ArgumentParser(a),
-  -ARGUMENTPARSER dip(drop) +ARGUMENTPARSER)
+    -ARGUMENTPARSER dip(drop) +ARGUMENTPARSER)
 
 def(+ArgumentParser.state, +ArgumentParser(a) -- ArgumentParserState(a) +ArgumentParser(a), -ARGUMENTPARSER dup dip(+ARGUMENTPARSER))
 def(+ArgumentParser.state!, +ArgumentParser(a) ArgumentParserState(a) -- +ArgumentParser(a), -ARGUMENTPARSER drop swap +ARGUMENTPARSER)
@@ -66,19 +66,25 @@ def(ArgpOptionType.has-short?, ArgpOptionType -- Bool,
 )
 
 table(ArgpOption)
-field(ArgpOption~long, ArgpOption, Maybe(Str))
-field(ArgpOption~type, ArgpOption, ArgpOptionType)
-field(ArgpOption~arg, ArgpOption, Maybe(Str))
-field(ArgpOption~doc, ArgpOption, Maybe(Str))
-field(ArgpOption~group, ArgpOption, Maybe(Int))
+field(ArgpOption.~long, ArgpOption, Maybe(Str))
+field(ArgpOption.~type, ArgpOption, ArgpOptionType)
+field(ArgpOption.~arg, ArgpOption, Maybe(Str))
+field(ArgpOption.~doc, ArgpOption, Maybe(Str))
+field(ArgpOption.~group, ArgpOption, Maybe(Int))
+
+def(ArgpOption.long, ArgpOption -- Maybe(Str), .~long @)
+def(ArgpOption.type, ArgpOption -- ArgpOptionType, .~type @)
+def(ArgpOption.arg, ArgpOption -- Maybe(Str), .~arg @)
+def(ArgpOption.doc, ArgpOption -- Maybe(Str), .~doc @)
+def(ArgpOption.group, ArgpOption -- Maybe(Int), .~group @)
 
 def(ArgpOption.new, Maybe(Str) ArgpOptionType Maybe(Str) Maybe(Str) Maybe(Int) -- ArgpOption,
   ArgpOption.alloc!
-  dup dip(~group !)
-  dup dip(~doc !)
-  dup dip(~arg !)
-  dup dip(~type !)
-  dup dip(~long !)
+  dup dip(.~group !)
+  dup dip(.~doc !)
+  dup dip(.~arg !)
+  dup dip(.~type !)
+  dup dip(.~long !)
 )
 
 data(ArgumentParsingError,

@@ -6,17 +6,17 @@ import(mirth.def)
 
 # mirth/data/buffer
 table(Buffer)
-field(Buffer~head, Buffer, Token)
-field(Buffer~size, Buffer, Size)
-field(Buffer~qname, Buffer, QName)
+field(Buffer.~head, Buffer, Token)
+field(Buffer.~size, Buffer, Size)
+field(Buffer.~qname, Buffer, QName)
 
-def(Buffer.head, Buffer -- Token, ~head @)
-def(Buffer.size, Buffer -- Size, ~size @)
-def(Buffer.qname, Buffer -- QName, ~qname @)
+def(Buffer.head, Buffer -- Token, .~head @)
+def(Buffer.size, Buffer -- Size, .~size @)
+def(Buffer.qname, Buffer -- QName, .~qname @)
 
 def(Buffer.new!, Token QName Size -- Buffer,
     Buffer.alloc!
-    tuck ~size !
-    tuck ~qname !
-    tuck ~head !
+    tuck .~size !
+    tuck .~qname !
+    tuck .~head !
     dup DEF_BUFFER register)

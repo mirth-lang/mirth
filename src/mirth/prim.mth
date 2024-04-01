@@ -9,7 +9,6 @@ import(mirth.ctx)
 import(mirth.var)
 import(mirth.token)
 import(mirth.def)
-import(mirth.elab)
 
 # mirth/data/prim
 data(Prim,
@@ -108,34 +107,33 @@ data(Prim,
     PRIM_SYNTAX_BUFFER,
     PRIM_SYNTAX_VARIABLE,
     PRIM_SYNTAX_DEF_EXTERNAL,
-    PRIM_SYNTAX_TARGET_C99,
     PRIM_SYNTAX_EMBED_STR,
     PRIM_SYNTAX_TABLE,
     PRIM_SYNTAX_FIELD,
     PRIM_SYNTAX_DATA,
     PRIM_SYNTAX_DASHES,
     PRIM_SYNTAX_ARROW)
-field(Prim~name, Prim, Name)
-field(Prim~ctx, Prim, Ctx)
-field(Prim~type, Prim, ArrowType)
-field(Prim~decl, Prim, Maybe([Token +World -- Token +World]))
+field(Prim.~name, Prim, Name)
+field(Prim.~ctx, Prim, Ctx)
+field(Prim.~type, Prim, ArrowType)
+field(Prim.~decl, Prim, Maybe([Token +World -- Token +World]))
 
 def(Prim.qname, Prim -- QName, dip(Namespace.prim) name QNAME)
-def(Prim.name, Prim -- Name, ~name @)
-def(Prim.ctx, Prim -- Ctx, ~ctx @)
-def(Prim.type, Prim -- ArrowType, ~type @)
-def(Prim.decl, Prim -- Maybe([Token +World -- Token +World]), ~decl @)
+def(Prim.name, Prim -- Name, .~name @)
+def(Prim.ctx, Prim -- Ctx, .~ctx @)
+def(Prim.type, Prim -- ArrowType, .~type @)
+def(Prim.decl, Prim -- Maybe([Token +World -- Token +World]), .~decl @)
 
-def(Prim>Int, Prim -- Int, Prim.tag)
-def(Prim=, Prim Prim -- Bool, both(>Int) =)
+def(Prim.>Int, Prim -- Int, Prim.tag)
+def(Prim.==, Prim Prim -- Bool, both(.>Int) .==)
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
-    >Name over ~name !
+    .>Name over .~name !
     DEF_PRIM register)
 
 def(Prim.ctx-type!, Ctx ArrowType Prim --,
-    tuck ~type ! ~ctx !)
+    tuck .~type ! .~ctx !)
 
 ||| Initialize name table with list of primitives.
 def(init-prims!, --,
@@ -150,7 +148,6 @@ def(init-prims!, --,
     PRIM_SYNTAX_DEF_EXTERNAL "def-external" def-prim!
     PRIM_SYNTAX_TABLE "table" def-prim!
     PRIM_SYNTAX_FIELD "field" def-prim!
-    PRIM_SYNTAX_TARGET_C99 "target-c99" def-prim!
     PRIM_SYNTAX_EMBED_STR "embed-str" def-prim!
     PRIM_SYNTAX_DATA "data" def-prim!
     PRIM_SYNTAX_VARIABLE "var" def-prim!
@@ -158,7 +155,6 @@ def(init-prims!, --,
     PRIM_SYNTAX_DASHES "--" def-prim!
 
     PRIM_CORE_DIP "dip" def-prim!
-    PRIM_CORE_IF "if" def-prim!
     PRIM_CORE_WHILE "while" def-prim!
     PRIM_CORE_MATCH "match" def-prim!
     PRIM_CORE_LAMBDA "\\" def-prim!
@@ -246,24 +242,6 @@ def(init-prims!, --,
     PRIM_POSIX_OPEN "prim-posix-open" def-prim!
     PRIM_POSIX_CLOSE "prim-posix-close" def-prim!
     PRIM_POSIX_EXIT "prim-posix-exit" def-prim!
-
-    #
-    # decl prims
-    #
-
-    [ elab-module-import! ] SOME PRIM_SYNTAX_IMPORT       ~decl !
-    [ elab-alias!         ] SOME PRIM_SYNTAX_ALIAS        ~decl !
-    [ elab-def!           ] SOME PRIM_SYNTAX_DEF          ~decl !
-    [ elab-def-missing!   ] SOME PRIM_SYNTAX_DEF_MISSING  ~decl !
-    [ elab-def-external!  ] SOME PRIM_SYNTAX_DEF_EXTERNAL ~decl !
-    [ elab-def-type!      ] SOME PRIM_SYNTAX_DEF_TYPE     ~decl !
-    [ elab-buffer!        ] SOME PRIM_SYNTAX_BUFFER       ~decl !
-    [ elab-variable!      ] SOME PRIM_SYNTAX_VARIABLE     ~decl !
-    [ elab-table!         ] SOME PRIM_SYNTAX_TABLE        ~decl !
-    [ elab-field!         ] SOME PRIM_SYNTAX_FIELD        ~decl !
-    [ elab-data!          ] SOME PRIM_SYNTAX_DATA         ~decl !
-    [ elab-target-c99!    ] SOME PRIM_SYNTAX_TARGET_C99   ~decl !
-    [ elab-embed-str!     ] SOME PRIM_SYNTAX_EMBED_STR    ~decl !
 
     #
     # monomorphic prims
@@ -382,20 +360,20 @@ def(init-prims!, --,
     CTX0 T0 TYPE_PTR T1 T->
     PRIM_SYS_ARGV ctx-type!
 
-    CTX0 T0 T0 >Type T1 T->
+    CTX0 T0 T0 .>Type T1 T->
     PRIM_PACK_NIL ctx-type!
 
     #
     # polymorphic prims
     #
 
-    TYPE_TYPE "a" >Name Var.new!
-    TYPE_TYPE "b" >Name Var.new!
-    TYPE_TYPE "c" >Name Var.new!
-    TYPE_RESOURCE "+r" >Name Var.new!
-    TYPE_RESOURCE "+s" >Name Var.new!
-    TYPE_STACK "*x" >Name Var.new!
-    TYPE_STACK "*y" >Name Var.new!
+    TYPE_TYPE "a" .>Name Var.new!
+    TYPE_TYPE "b" .>Name Var.new!
+    TYPE_TYPE "c" .>Name Var.new!
+    TYPE_RESOURCE "+r" .>Name Var.new!
+    TYPE_RESOURCE "+s" .>Name Var.new!
+    TYPE_STACK "*x" .>Name Var.new!
+    TYPE_STACK "*y" .>Name Var.new!
     \( a b c rr sr xs ys ->
         a TVar b TVar c TVar
         rr TVar RESOURCE sr TVar RESOURCE
@@ -414,7 +392,7 @@ def(init-prims!, --,
         PRIM_CORE_SWAP ctx-type!
 
         xs ys CTX2
-        txs txs tys T-> >Type T* tys T->
+        txs txs tys T-> .>Type T* tys T->
         PRIM_CORE_RUN ctx-type!
 
         xs ys CTX2
@@ -426,16 +404,16 @@ def(init-prims!, --,
         PRIM_CORE_PANIC ctx-type!
 
         xs ys c CTX3
-        txs tc T* txs tys T-> >Type T* tys tc T* T->
+        txs tc T* txs tys T-> .>Type T* tys tc T* T->
         PRIM_CORE_DIP ctx-type!
 
         xs ys CTX2
-        txs TYPE_BOOL T* txs tys T-> >Type sip(T*) T* tys T->
+        txs TYPE_BOOL T* txs tys T-> .>Type sip(T*) T* tys T->
         PRIM_CORE_IF ctx-type!
 
         xs CTX1
-        txs txs txs TYPE_BOOL T* T-> >Type T*
-            txs txs T-> >Type T*
+        txs txs txs TYPE_BOOL T* T-> .>Type T*
+            txs txs T-> .>Type T*
         txs T->
         PRIM_CORE_WHILE ctx-type!
 
@@ -444,15 +422,15 @@ def(init-prims!, --,
         PRIM_CORE_RSWAP ctx-type!
 
         xs ys rr CTX3
-        txs trr T+ txs tys T-> >Type T* tys trr T+ T->
+        txs trr T+ txs tys T-> .>Type T* tys trr T+ T->
         PRIM_CORE_RDIP ctx-type!
 
         xs b CTX2
-        txs >Type tb T2 txs tb T* >Type T1 T->
+        txs .>Type tb T2 txs tb T* .>Type T1 T->
         PRIM_PACK_CONS ctx-type!
 
         xs b CTX2
-        txs tb T* >Type T1 txs >Type tb T2 T->
+        txs tb T* .>Type T1 txs .>Type tb T2 T->
         PRIM_PACK_UNCONS ctx-type!
 
         a CTX1

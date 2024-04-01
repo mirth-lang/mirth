@@ -40,33 +40,27 @@ import(mirth.need)
 #######
 
 data(+C99, MKC99 -> Nat +Needs +Output)
-def(+C99/MKC99, +C99 -- Nat +Needs +Output, MKC99 -> id)
+def(+C99./MKC99, +C99 -- Nat +Needs +Output, MKC99 -> id)
 
-def(+C99.depth@, +C99 -- Nat +C99, /MKC99 dup dip(MKC99))
-def(+C99.depth!, Nat +C99 -- +C99, dip(/MKC99 drop) MKC99)
+def(+C99.depth@, +C99 -- Nat +C99, ./MKC99 dup dip(MKC99))
+def(+C99.depth!, Nat +C99 -- +C99, dip(./MKC99 drop) MKC99)
 
-def(+C99~Needs(f), (*a +Needs -- *b +Needs) *a +C99 -- *b +C99,
-    /MKC99 dip(rdip(f)) MKC99)
-def(+C99~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
-    /MKC99 dip(rdip'(f)) MKC99)
+def(+C99.~Needs(f), (*a +Needs -- *b +Needs) *a +C99 -- *b +C99,
+    ./MKC99 dip(rdip(f)) MKC99)
+def(+C99.~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
+    ./MKC99 dip(rdip'(f)) MKC99)
 
-def(Str+C99.put, Str +C99 -- +C99, ~Output(put))
-def(Int+C99.put, Int +C99 -- +C99, ~Output(put))
-def(Nat+C99.put, Nat +C99 -- +C99, ~Output(put))
-def(Size+C99.put, Size +C99 -- +C99, ~Output(put))
-def(Byte+C99.put, Byte +C99 -- +C99, ~Output(put))
-def(+C99.line, +C99 -- +C99, ~Output(line))
-
-def(Word+C99.needed?, Word +C99 -- Bool +C99, ~Needs(needed?))
-def(Block+C99.needed?, Block +C99 -- Bool +C99, ~Needs(needed?))
+def(+C99.put, Str +C99 -- +C99, .~Output(put))
+def(+C99.put-byte, Byte +C99 -- +C99, .~Output(put-byte))
+def(+C99.line, +C99 -- +C99, .~Output(line))
 
 def(c99-start!, Arrow Path +World -- Arrow +World +C99,
     to-output-path create-file! output-start!
     rdip(+Needs.new dup determine-arrow-needs!)
-    0 >Nat MKC99)
+    0 .>Nat MKC99)
 
 def(c99-end!, +World +C99 -- +World,
-    /MKC99 drop rdip(rdrop) output-end! +File.close-file!)
+    ./MKC99 drop rdip(rdrop) output-end! +File.close-file!)
 
 def(run-output-c99!, Arrow Path +World -- +World,
     num-errors @ 0> if(
@@ -89,42 +83,37 @@ def(run-output-c99!, Arrow Path +World -- +World,
     ))
 
 def(Namespace.mangled, Namespace -- Str,
+    NAMESPACE_ROOT -> "__root__",
     NAMESPACE_PACKAGE -> name mangled,
     NAMESPACE_MODULE -> qname mangled,
     NAMESPACE_TYCON -> qname mangled)
 def(QName.mangled, QName -- Str, QNAME -> dip(mangled "_" cat) mangled cat)
-def(QName+C99.put, QName +C99 -- +C99, mangled put )
-def(QName+C99.sig, QName +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
-def(QName+C99.cosig, QName +C99 -- Str +C99, dip("static void mp_") mangled cat " (void)" cat)
-
-def(Name+C99.put, Name +C99 -- +C99, mangled put)
-# def(Name+C99.sig, Name +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
-# def(Name+C99.cosig, Name +C99 -- Str +C99, dip("static void mp_") mangled cat " (void)" cat)
+def(+C99.sig-put, QName +C99 -- +C99, "static void mw_" put mangled put " (void)" put)
+def(+C99.cosig-put, QName +C99 -- +C99, "static void mp_" put mangled put " (void)" put)
 
 embed-str(c99-header-str, "src/mirth/mirth.h")
 def(c99-header!, +C99 -- +C99, c99-header-str put line)
 
 def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!) line)
 def(c99-buffer!, Buffer +C99 -- +C99,
-    dup qname sig put " {" put line
-    "    static uint8_t b[" put dup size put "] = {0};" put line
+    dup qname sig-put " {" put line
+    "    static uint8_t b[" put dup size show put "] = {0};" put line
     "    push_ptr(&b);" put line
     "}" put line
     drop)
 
 def(c99-variables!, +C99 -- +C99, Variable.for(c99-variable!) line)
 def(c99-variable!, Variable +C99 -- +C99,
-    qname sig put " {" put line
+    qname sig-put " {" put line
     "    static VAL v = {0};" put line
     "    push_ptr(&v);" put line
     "}" put line)
 
 def(c99-tags!, +C99 -- +C99, Tag.for(c99-tag!) line)
 def(c99-tag!, Tag +C99 -- +C99,
-    dup qname sig put " {" put line
-    dup is-transparent? if(
-        id,
-        "    VAL tag = MKU64(" put dup value put "LL);" put line
+    dup qname sig-put " {" put line
+    dup is-transparent? else(
+        "    VAL tag = MKU64(" put dup value show put "LL);" put line
         "    VAL car = (" put
         dup num-type-inputs repeat(
             "pop_value());" put line
@@ -142,14 +131,13 @@ def(c99-tag!, Tag +C99 -- +C99,
     )
     "}" put line
 
-    dup qname cosig put " {" put line
-    dup is-transparent? if(
-        id,
+    dup qname cosig-put " {" put line
+    dup is-transparent? else(
         dup outputs-resource? if(
             "    VAL car = pop_resource();",
             "    VAL car = pop_value();"
         ) put line
-        dup num-resource-inputs over num-type-inputs + 0> then(
+        dup num-resource-inputs over num-type-inputs .+ 0> then(
             "    VAL cdr;" put line
         )
         "    decref("
@@ -174,10 +162,10 @@ def(c99-externals!, +C99 -- +C99,
 
 def(c99-external!, External +C99 -- +C99,
     dup sig sig-arity
-    dup 2 >Nat >= if(
+    dup 2 .>Nat .>= if(
         "can't declare external with multiple return values" panic!,
 
-        dup 1 >Nat >= if(
+        dup 1 .>Nat .>= if(
             "int64_t ",
             "void "
         ) put
@@ -189,13 +177,13 @@ def(c99-external!, External +C99 -- +C99,
     over dup 0> if("int64_t" put 1- repeat(", int64_t" put), drop "void" put)
     ");" put line
 
-    dip2(dup qname sig put) " {" put line
-    over countdown("    int64_t x" put put " = pop_i64();" put line)
+    dip2(dup qname sig-put) " {" put line
+    over countdown("    int64_t x" put show put " = pop_i64();" put line)
     dup 0> if("    push_i64(", "    ") put
     dip2(dup symbol put)
     "(" put
     dip(dup 0> if(
-        dup 1- dup count("x" put put ", " put) "x" put put,
+        dup 1- dup count("x" put show put ", " put) "x" put show put,
         id
     ))
     ")" put
@@ -213,14 +201,14 @@ def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
 def(c99-call!, List(Arg) QName +C99 -- +C99,
     dip(c99-args-push!)
-    c99-line("mw_" put put "();" put))
+    c99-line("mw_" put mangled put "();" put))
 
 def(c99-arrow!, Arrow +C99 -- +C99, atoms for(c99-atom!))
 def(c99-atom!, Atom +C99 -- +C99,
     c99-line("WORD_ATOM(" put
-        dup token row >Int put ", " put
-        dup token col >Int put ", " put
-        dup token name? if-some(>Str, "") put-cstr
+        dup token row .>Int show put ", " put
+        dup token col .>Int show put ", " put
+        dup token name? if-some(.>Str, "") put-cstr
         ");" put)
     sip(args) op
     c99-args-op!)
@@ -244,7 +232,7 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_COERCE   -> drop2)
 
 def(c99-int!, Int +C99 -- +C99,
-    c99-line("push_i64(" put put "LL);" put))
+    c99-line("push_i64(" put show put "LL);" put))
 
 def(c99-str!, Str +C99 -- +C99,
     c99-line("{" put)
@@ -253,14 +241,14 @@ def(c99-str!, Str +C99 -- +C99,
         c99-line("static VAL v;" put)
         c99-line("if (! vready) {" put)
         c99-nest(
-            dup num-bytes 4090 >Size > if(
+            dup num-bytes 4090 .>Size .> if(
                 c99-line("v = mkstr(" put)
                 c99-nest(
                     c99-line(dup put-cstr-long "," put)
-                    c99-line(dup num-bytes put)
+                    c99-line(dup num-bytes show put)
                 )
                 c99-line(");" put),
-                c99-line("v = mkstr(" put dup put-cstr ", " put dup num-bytes put ");" put)
+                c99-line("v = mkstr(" put dup put-cstr ", " put dup num-bytes show put ");" put)
             )
             c99-line("vready = true;" put)
         )
@@ -272,21 +260,21 @@ def(c99-str!, Str +C99 -- +C99,
     drop)
 
 def(+C99.put-cstr-long, Str +C99 -- +C99,
-    BQUOTE put
+    BQUOTE put-byte
     BNUL swap str-bytes-for(
-        swap BLF = then(
-            BQUOTE put
+        swap BLF .== then(
+            BQUOTE put-byte
             line indent
-            BQUOTE put
+            BQUOTE put-byte
         )
         dup c99-string-byte!
     )
-    BQUOTE put
+    BQUOTE put-byte
     drop
 )
 
 def(+C99.put-cstr, Str +C99 -- +C99,
-    BQUOTE put str-bytes-for(c99-string-byte!) BQUOTE put)
+    BQUOTE put-byte str-bytes-for(c99-string-byte!) BQUOTE put-byte)
 
 def(c99-string-byte!, Byte +C99 -- +C99,
     B'\' -> "\\\\" put,
@@ -296,8 +284,8 @@ def(c99-string-byte!, Byte +C99 -- +C99,
     BCR -> "\\r" put,
     _ ->
         dup BSPACE B'~' in-range if(
-            put,
-            "\\x" put to-hexdigits dip(put) put
+            put-byte,
+            "\\x" put to-hexdigits dip(put-byte) put-byte
         )
     )
 
@@ -315,9 +303,9 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
             L1 ->
                 c99-line("{" put)
                 c99-nest(
-                    c99-line("VAL d" put depth@ put " = pop_value();" put)
+                    c99-line("VAL d" put depth@ show put " = pop_value();" put)
                     c99-arg-run!
-                    c99-line("push_value(d" put depth@ put ");" put)
+                    c99-line("push_value(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
             _ ->
@@ -329,9 +317,9 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
             L1 ->
                 c99-line("{" put)
                 c99-nest(
-                    c99-line("VAL d" put depth@ put " = pop_resource();" put)
+                    c99-line("VAL d" put depth@ show put " = pop_resource();" put)
                     c99-arg-run!
-                    c99-line("push_resource(d" put depth@ put ");" put)
+                    c99-line("push_resource(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
             _ ->
@@ -382,8 +370,8 @@ def(c99-arg-run!, Arg +C99 -- +C99,
 def(c99-block-run!, Block +C99 -- +C99,
     arrow c99-arrow!)
 
-def(Var+C99.put, Var +C99 -- +C99, "var_" put name put)
-def(Param+C99.put, Param +C99 -- +C99, >Var put)
+def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
+def(+C99.param-put, Param +C99 -- +C99, .>Var var-put)
 
 def(c99-pack-ctx!, Ctx +C99 -- +C99,
     c99-line("push_u64(0);" put)
@@ -395,13 +383,13 @@ def(c99-pack-ctx!, Ctx +C99 -- +C99,
 def(c99-unpack-ctx!, Ctx +C99 -- +C99,
     physical-vars reverse-for(
         c99-line("mw_std_prim_prim_pack_uncons();" put)
-        c99-line("VAL " put put " = pop_value();" put)
+        c99-line("VAL " put var-put " = pop_value();" put)
     )
     c99-line("mw_std_prim_prim_drop();" put))
 
 def(c99-decref-ctx!, Ctx +C99 -- +C99,
     physical-vars reverse-for(
-        c99-line("decref(" put put ");" put)
+        c99-line("decref(" put var-put ");" put)
     ))
 
 def(c99-block-push!, Block +C99 -- +C99,
@@ -409,7 +397,7 @@ def(c99-block-push!, Block +C99 -- +C99,
         SOME -> nip c99-var-push!,
         NONE ->
             dup ctx c99-pack-ctx!
-            c99-line("push_fnptr(&" put put ");" put)
+            c99-line("push_fnptr(&" put block-put ");" put)
             c99-line("mw_std_prim_prim_pack_cons();" put)
     ))
 
@@ -417,24 +405,24 @@ def(c99-var!, Var +C99 -- +C99,
     dup auto-run? if(c99-var-run!, c99-var-push!))
 
 def(c99-var-run!, Var +C99 -- +C99,
-    c99-line("incref(" put dup put ");" put)
-    c99-line("run_value(" put dup put ");" put)
+    c99-line("incref(" put dup var-put ");" put)
+    c99-line("run_value(" put dup var-put ");" put)
     drop)
 
 def(c99-var-push!, Var +C99 -- +C99,
-    c99-line("incref(" put dup put ");" put)
-    c99-line("push_value(" put dup put ");" put)
+    c99-line("incref(" put dup var-put ");" put)
+    c99-line("push_value(" put dup var-put ");" put)
     drop)
 
 def(c99-lambda!, Lambda +C99 -- +C99,
     c99-line("{" put)
     c99-nest(
         dup params reverse-for(
-            c99-line("VAL " put put " = pop_value();" put)
+            c99-line("VAL " put param-put " = pop_value();" put)
         )
         dup body c99-arrow!
         params reverse-for(
-            c99-line("decref(" put put ");" put)
+            c99-line("decref(" put param-put ");" put)
         )
     )
     c99-line("}" put))
@@ -470,42 +458,42 @@ def(c99-pattern!, Pattern +C99 -- +C99,
         c99-line("default:" put),
 
     PATTERN_TAG ->
-        c99-line("case " put dup value put "LL:" put)
+        c99-line("case " put dup value show put "LL:" put)
         c99-nest(
-            c99-line("mp_" put qname put "();" put)
+            c99-line("mp_" put qname mangled put "();" put)
         )
     )
 
-def(c99-word-sigs!, +C99 -- +C99, Word.for(dup needed? if(c99-word-sig!, drop)) line)
+def(c99-word-sigs!, +C99 -- +C99, Word.for(dup .~Needs(needed?) if(c99-word-sig!, drop)) line)
 def(c99-word-sig!, Word +C99 -- +C99,
-    c99-line("static void mw_" put qname put " (void);" put))
+    c99-line("static void mw_" put qname mangled put " (void);" put))
 
-def(c99-block-sigs!, +C99 -- +C99, Block.for(dup needed? if(c99-block-sig!, drop)) line)
+def(c99-block-sigs!, +C99 -- +C99, Block.for(dup .~Needs(needed?) if(c99-block-sig!, drop)) line)
 def(c99-block-sig!, Block +C99 -- +C99,
-    c99-line("static void " put put " (void);" put))
+    c99-line("static void " put block-put " (void);" put))
 
 def(c99-field-sigs!, +C99 -- +C99, Field.for(c99-field-sig!) line)
 def(c99-field-sig!, Field +C99 -- +C99,
-    c99-line("static void mw_" put qname put " (void);" put))
+    c99-line("static void mw_" put qname mangled put " (void);" put))
 
 def(c99-block-enter!, Block +C99 -- +C99,
     c99-line("WORD_ENTER(" put
-        dup put ", " put
+        dup block-put ", " put
         dup home match(
             HOME_MAIN -> drop "block",
-            HOME_WORD -> name >Str " block" cat,
+            HOME_WORD -> name .>Str " block" cat,
         ) put-cstr ", " put
-        dup token .module source-path >Str put-cstr ", " put
-        dup token row >Int put ", " put
-        dup token col >Int put ");" put)
+        dup token .module source-path .>Str put-cstr ", " put
+        dup token row .>Int show put ", " put
+        dup token col .>Int show put ");" put)
     drop)
 
 def(c99-block-exit!, Block +C99 -- +C99,
-    c99-line("WORD_EXIT(" put put ");" put))
+    c99-line("WORD_EXIT(" put block-put ");" put))
 
-def(c99-block-defs!, +C99 -- +C99, Block.for(dup needed? if(c99-block-def!, drop)) line)
+def(c99-block-defs!, +C99 -- +C99, Block.for(dup .~Needs(needed?) if(c99-block-def!, drop)) line)
 def(c99-block-def!, Block +C99 -- +C99,
-    c99-line("static void " put dup put " (void) {" put)
+    c99-line("static void " put dup block-put " (void) {" put)
     c99-nest(
         dup c99-block-enter!
         dup arrow
@@ -516,30 +504,30 @@ def(c99-block-def!, Block +C99 -- +C99,
     )
     c99-line("}" put) line)
 
-def(Block+C99.put, Block +C99 -- +C99,
+def(+C99.block-put, Block +C99 -- +C99,
     "mb_" put
     dup home match(
-        HOME_MAIN -> "main_" put dip(arrow token-start .id) .id - put,
-        HOME_WORD -> dup name put "_" put dip(arrow) arrow both(token-start .id) - put
+        HOME_MAIN -> "main_" put dip(arrow token-start .id) .id .- show put,
+        HOME_WORD -> dup qname mangled put "_" put dip(arrow) arrow both(token-start .id) .- show put
     ))
 
 def(c99-word-enter!, Word +C99 -- +C99,
     c99-line("WORD_ENTER(" put
-        "mw_" put dup qname put ", " put
-        dup name >Str put-cstr ", " put
-        dup body .module source-path >Str put-cstr ", " put
-        dup body row >Int put ", " put
-        dup body col >Int put ");" put)
+        "mw_" put dup qname mangled put ", " put
+        dup name .>Str put-cstr ", " put
+        dup body .module source-path .>Str put-cstr ", " put
+        dup body row .>Int show put ", " put
+        dup body col .>Int show put ");" put)
     drop)
 
 def(c99-word-exit!, Word +C99 -- +C99,
     c99-line("WORD_EXIT(" put
-        "mw_" put dup qname put ");" put)
+        "mw_" put dup qname mangled put ");" put)
     drop)
 
-def(c99-word-defs!, +C99 -- +C99, Word.for(dup needed? if(c99-word-def!, drop)) line)
+def(c99-word-defs!, +C99 -- +C99, Word.for(dup .~Needs(needed?) if(c99-word-def!, drop)) line)
 def(c99-word-def!, Word +C99 -- +C99,
-    c99-line(dup qname sig put " {" put)
+    c99-line(dup qname sig-put " {" put)
     c99-nest(
         dup c99-word-enter!
         dup arrow c99-arrow!
@@ -550,9 +538,9 @@ def(c99-word-def!, Word +C99 -- +C99,
 
 def(c99-field-defs!, +C99 -- +C99, Field.for(c99-field-def!) line)
 def(c99-field-def!, Field +C99 -- +C99,
-    "static VAL* fieldptr_" put dup qname put " (size_t i) {" put line
+    "static VAL* fieldptr_" put dup qname mangled put " (size_t i) {" put line
     "    static struct VAL * p = 0;" put line
-    "    size_t m = " put TABLE_MAX_COUNT put ";" put line
+    "    size_t m = " put TABLE_MAX_COUNT show put ";" put line
     "    if (! p) { p = calloc(m, sizeof *p); }" put line
     "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" put line
     "    return p+i;" put line
@@ -560,9 +548,9 @@ def(c99-field-def!, Field +C99 -- +C99,
         # TODO make this more flexible wrt table size
         # note it's important to have stability,
         # so we can't just realloc as we used to.
-    dup qname sig put "{" put
+    dup qname sig-put "{" put
     "    size_t index = (size_t)pop_u64();" put line
-    "    VAL *v = fieldptr_" put dup qname put "(index);" put line
+    "    VAL *v = fieldptr_" put dup qname mangled put "(index);" put line
     "    push_ptr(v);" put line
     "}" put line line
     drop)
@@ -576,9 +564,9 @@ def(c99-main!, Arrow +C99 -- +C99,
         c99-line("WORD_ENTER(" put
             "(void(*)(void))0, " put
             "\"<main>\", " put
-            dup token-start .module source-path >Str put-cstr ", " put
-            dup token-start row >Int put ", " put
-            dup token-start col >Int put ");" put)
+            dup token-start .module source-path .>Str put-cstr ", " put
+            dup token-start row .>Int show put ", " put
+            dup token-start col .>Int show put ");" put)
         c99-arrow!
         c99-line("WORD_EXIT((void(*)(void))0);" put)
         c99-line("return 0;" put)

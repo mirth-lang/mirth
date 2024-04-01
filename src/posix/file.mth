@@ -7,16 +7,16 @@ import(posix.posix)
 import(posix.input)
 
 data(+File, +FILE -> Int)
-def(+File-FILE, +File -- Int, +FILE -> id)
+def(-FILE, +File -- Int, +FILE -> id)
 def(+File.file-descriptor, +File -- Int +File, -FILE dup +FILE)
 
 def(+World.open-file!, Path +World -- +World +File,
-    >Str with-cstr(0 0 prim-posix-open)
+    .>Str with-cstr(0 0 prim-posix-open)
     expect!(dup 0>, "failed to open file")
     +FILE)
 
 def(+World.create-file!, Path +World -- +World +File,
-    >Str with-cstr(
+    .>Str with-cstr(
         O_WRONLY|O_CREAT|O_TRUNC
         0x1B6 # 666 in octal
         prim-posix-open
@@ -38,15 +38,15 @@ def(+File.close-file!, +File --,
     drop)
 
 def(+File.unsafe-write!, Ptr Size +File -- +File,
-    dip2(file-descriptor) dup dip(>Int posix-write!)
-    dip(expect!(dup 0< not, "write failed") >Size)
-    expect!(dup2 =, "write output fewer bytes than expected")
+    dip2(file-descriptor) dup dip(.>Int posix-write!)
+    dip(expect!(dup 0< not, "write failed") .>Size)
+    expect!(dup2 .==, "write output fewer bytes than expected")
     drop2)
 
 def(+File.unsafe-read!, Ptr Size +File -- Size +File,
-    dip2(file-descriptor) >Int posix-read!
+    dip2(file-descriptor) .>Int posix-read!
     expect!(dup 0< not, "read failed")
-    >Size)
+    .>Size)
 
 def(+File.read-file!, +File -- Str +File,
     input-start!

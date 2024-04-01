@@ -6,6 +6,7 @@ import(std.str)
 import(std.list)
 import(std.lazy)
 import(std.maybe)
+import(std.path)
 import(posix.posix)
 import(mirth.def)
 import(mirth.module)
@@ -17,41 +18,41 @@ import(mirth.tycon)
 #########
 
 table(Name)
-field(Name~Str, Name, Str)
-field(Name~defs, Name, List(Def))
-field(Name~mangled, Name, Lazy(Str))
+field(Name.~Str, Name, Str)
+field(Name.~defs, Name, List(Def))
+field(Name.~mangled, Name, Lazy(Str))
 
-def(Name>Str, Name -- Str, ~Str @)
-def(Name.defs, Name -- List(Def), ~defs @)
-def(Name.mangled, Name -- Str, ~mangled force!)
+def(Name.>Str, Name -- Str, .~Str @)
+def(Name.defs, Name -- List(Def), .~defs @)
+def(Name.mangled, Name -- Str, .~mangled force!)
 
-def(Name=, Name Name -- Bool, both(Name.id) =)
+def(Name.==, Name Name -- Bool, both(Name.id) .==)
 
 data(Hash, HASH -> Int)
-def(Hash>Int, Hash -- Int, HASH -> id)
-def(Int>Hash, Int -- Hash, HASH_MAX % HASH)
+def(Hash.>Int, Hash -- Int, HASH -> id)
+def(Int.>Hash, Int -- Hash, HASH_MAX .% HASH)
 
 def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
-    >Int 8 * >Offset HASH_BUF unsafe(offset @I64) >Int
+    .>Int 8 .* .>Offset HASH_BUF unsafe(offset .@I64) .>Int
     dup 0= if(drop NONE, Name.from-id SOME))
 def(hash-name!, Name Hash --,
-    dip(Name.id >I64)
-    >Int 8 * >Offset HASH_BUF unsafe(offset !I64))
+    dip(Name.id .>I64)
+    .>Int 8 .* .>Offset HASH_BUF unsafe(offset .!I64))
 
 ||| Get hash for string.
 def(Str.hash, Str -- Hash,
-    0 swap str-bytes-for(>Int 17 * over 7 << ^ swap 27 >> ^)
-    >Hash)
+    0 swap str-bytes-for(.>Int 17 .* over 7 .<< .^ swap 27 .>> .^)
+    .>Hash)
 
-def(Name.hash, Name -- Hash, >Str hash)
-def(Hash.next, Hash -- Hash, >Int 1+ >Hash)
+def(Name.hash, Name -- Hash, .>Str hash)
+def(Hash.next, Hash -- Hash, .>Int 1+ .>Hash)
 
 def(Hash.keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
         NONE -> F,
-        SOME -> >Str over2 <>
+        SOME -> .>Str over2 .!=
     ))
 
 def(Name.search, Str -- Maybe(Name),
@@ -59,47 +60,49 @@ def(Name.search, Str -- Maybe(Name),
     while(keep-going?, next)
     nip hash-name@)
 
-def(Str>Name, Str -- Name,
+def(Str.>Name, Str -- Name,
     dup hash
     while(keep-going?, next)
     dup hash-name@ match(
         NONE ->
             Name.alloc!
             tuck swap hash-name!
-            tuck ~Str !
-            L0 over ~defs !
-            dup delay(mangle-compute!) over ~mangled !,
+            tuck .~Str !
+            L0 over .~defs !
+            dup delay(mangle-compute!) over .~mangled !,
         SOME ->
             dip(drop2)
     ))
 
 ||| Add string to name, creating new name.
 def(Name.cat, Name Str -- Name,
-    dip(>Str) cat >Name)
+    dip(.>Str) cat .>Name)
 
-def(Name.trace!, Name --, >Str trace!)
+def(Name.trace!, Name --, .>Str trace!)
 
-def(Name.head, Name -- Byte, >Str dip(0 >Offset) str-byte@)
-def(Name.tail-head, Name -- Byte, >Str dip(1 >Offset) str-byte@)
+def(Name.head, Name -- Byte, .>Str dip(0 .>Offset) str-byte@)
+def(Name.tail-head, Name -- Byte, .>Str dip(1 .>Offset) str-byte@)
 def(Name.tail, Name -- Name,
-    >Str with-str-data(
-        dup 2 >Size >=
-        if(unsafe(dip(dip(1 >Offset) offset) 1- str-copy), drop2 "")
-    ) >Name)
+    .>Str with-str-data(
+        dup 2 .>Size .>=
+        if(unsafe(dip(dip(1 .>Offset) offset) 1- str-copy), drop2 "")
+    ) .>Name)
 
+def(Name.can-be-relative?, Name -- Bool, head is-upper not)
 def(Name.could-be-type, Name -- Bool, head is-alpha)
 def(Name.could-be-type-var, Name -- Bool, head is-lower)
 def(Name.could-be-type-con, Name -- Bool, head is-upper)
-def(Name.is-type-hole, Name -- Bool, dup head B'?' = swap tail-head dup BNUL = swap is-lower || &&)
-def(Name.is-underscore, Name -- Bool, dup head B'_' = swap tail-head BNUL = &&)
-def(Name.could-be-stack-var, Name -- Bool, dup head B'*' = swap tail-head is-lower &&)
-def(Name.could-be-resource-var, Name -- Bool, dup head B'+' = swap tail-head is-lower &&)
-def(Name.could-be-resource-con, Name -- Bool, dup head B'+' = swap tail-head is-upper &&)
+def(Name.is-type-hole, Name -- Bool, dup head B'?' .== swap tail-head dup BNUL .== swap is-lower .|| .&&)
+def(Name.is-underscore, Name -- Bool, dup head B'_' .== swap tail-head BNUL .== .&&)
+def(Name.could-be-stack-var, Name -- Bool, dup head B'*' .== swap tail-head is-lower .&&)
+def(Name.could-be-resource-var, Name -- Bool, dup head B'+' .== swap tail-head is-lower .&&)
+def(Name.could-be-resource-con, Name -- Bool, dup head B'+' .== swap tail-head is-upper .&&)
+def(Name.could-be-type-or-resource-con, Name -- Bool, dup could-be-type-con or(dup could-be-resource-con) nip)
 def(Name.mangle-compute!, Name -- Str,
-    build-str!(>Str str-bytes-for(
+    build-str!(.>Str str-bytes-for(
         dup is-alnum if(
             str-buf-push-byte-ascii!,
-            dup B'-' = if(
+            dup B'-' .== if(
                 drop B'_' str-buf-push-byte-ascii!,
                 B'_' str-buf-push-byte-ascii!
                 to-hexdigits dip(str-buf-push-byte-ascii!) str-buf-push-byte-ascii!
@@ -113,8 +116,8 @@ def(Name.could-be-relative, Name -- Bool,
 
 def(Name.to-overload-suffix, Name -- Str,
     dup head is-alpha if(
-        "." swap >Str cat,
-        >Str
+        "." swap .>Str cat,
+        .>Str
     ))
 
 #############
@@ -122,26 +125,31 @@ def(Name.to-overload-suffix, Name -- Str,
 #############
 
 data(Namespace,
+    NAMESPACE_ROOT,
     NAMESPACE_PACKAGE -> Package,
     NAMESPACE_MODULE -> Module,
     NAMESPACE_TYCON -> Tycon)
 
-def(Namespace=, Namespace Namespace -- Bool,
-    NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap =, _ -> drop2 F),
-    NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap =, _ -> drop2 F),
-    NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap =, _ -> drop2 F))
+def(Namespace.==, Namespace Namespace -- Bool,
+    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> T, _ -> drop F),
+    NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap .==, _ -> drop2 F),
+    NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap .==, _ -> drop2 F),
+    NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap .==, _ -> drop2 F))
 
-def(Namespace.package, Namespace -- Package,
-    NAMESPACE_PACKAGE -> id,
-    NAMESPACE_MODULE -> namespace package,
-    NAMESPACE_TYCON -> qname namespace package)
+def(Namespace.package?, Namespace -- Maybe(Package),
+    NAMESPACE_ROOT -> NONE,
+    NAMESPACE_PACKAGE -> SOME,
+    NAMESPACE_MODULE -> package SOME,
+    NAMESPACE_TYCON -> qname namespace package?)
 
 def(Namespace.module?, Namespace -- Maybe(Module),
+    NAMESPACE_ROOT -> NONE,
     NAMESPACE_PACKAGE -> drop NONE,
     NAMESPACE_MODULE -> SOME,
     NAMESPACE_TYCON -> qname namespace module?)
 
 def(Namespace.tycon?, Namespace -- Maybe(Tycon),
+    NAMESPACE_ROOT -> NONE,
     NAMESPACE_PACKAGE -> drop NONE,
     NAMESPACE_MODULE -> drop NONE,
     NAMESPACE_TYCON -> SOME)
@@ -149,10 +157,11 @@ def(Namespace.tycon?, Namespace -- Maybe(Tycon),
 def(Namespace.std, Namespace, Package.std NAMESPACE_PACKAGE)
 def(Namespace.prim, Namespace, Module.prim NAMESPACE_MODULE)
 
-def(Namespace>Str, Namespace -- Str,
-    NAMESPACE_PACKAGE -> name >Str,
-    NAMESPACE_MODULE -> qname >Str,
-    NAMESPACE_TYCON -> qname >Str)
+def(Namespace.>Str, Namespace -- Str,
+    NAMESPACE_ROOT -> "<root>",
+    NAMESPACE_PACKAGE -> name .>Str,
+    NAMESPACE_MODULE -> qname .>Str,
+    NAMESPACE_TYCON -> qname .>Str)
 
 ##################
 # Qualified Name #
@@ -162,19 +171,25 @@ data(QName, QNAME -> Namespace Name)
 def(QName.name, QName -- Name, QNAME -> nip)
 def(QName.namespace, QName -- Namespace, QNAME -> drop)
 
-def(QName=, QName QName -- Bool,
-    dup2 both(name) =
-    dip(both(namespace) =) &&)
+def(QName.==, QName QName -- Bool,
+    dup2 both(name) .==
+    dip(both(namespace) .==) .&&)
 
-def(QName.def?, QName -- Maybe(Def), dup name defs find(dup2 qname =) nip)
+def(QName.def?, QName -- Maybe(Def), dup name defs find(dup2 qname .==) nip)
 def(QName.defined?, QName -- Bool, def? some?)
 def(QName.undefined?, QName -- Bool, def? none?)
 
-def(QName.std, Str -- QName, dip(Namespace.std) >Name QNAME)
-def(QName.prim, Str -- QName, dip(Namespace.prim) >Name QNAME)
+def(QName.std, Str -- QName, dip(Namespace.std) .>Name QNAME)
+def(QName.prim, Str -- QName, dip(Namespace.prim) .>Name QNAME)
 
-def(QName>Str, QName -- Str,
-    QNAME -> dip(>Str "." cat) >Str cat)
+def(QName.>Str, QName -- Str,
+    QNAME -> dip(.>Str "." cat) .>Str cat)
+
+def(QName.to-module-path, QName -- Path,
+    QNAME -> swap match(
+        NAMESPACE_PACKAGE -> path swap .>Str ".mth" cat .>Path join-unix, # TODO use Path.join instead?
+        _ -> drop "expected module name" panic!
+    ))
 
 ###############
 # Dotted Name #

@@ -12,17 +12,17 @@ import(mirth.name)
 import(mirth.def)
 
 table(Data)
-field(Data~head?, Data, Maybe(Token))
-field(Data~qname, Data, QName)
-field(Data~arity, Data, Int)
-field(Data~tags, Data, List(Tag))
+field(Data.~head?, Data, Maybe(Token))
+field(Data.~qname, Data, QName)
+field(Data.~arity, Data, Int)
+field(Data.~tags, Data, List(Tag))
 
-def(Data.head?, Data -- Maybe(Token), ~head? @)
-def(Data.qname, Data -- QName, ~qname @)
+def(Data.head?, Data -- Maybe(Token), .~head? @)
+def(Data.qname, Data -- QName, .~qname @)
 def(Data.namespace, Data -- Namespace, qname namespace)
 def(Data.name, Data -- Name, qname name)
-def(Data.arity, Data -- Int, ~arity @)
-def(Data.tags, Data -- List(Tag), ~tags @)
+def(Data.arity, Data -- Int, .~arity @)
+def(Data.tags, Data -- List(Tag), .~tags @)
 
 var(DATA_BOOL, Data)
 var(TAG_T, Tag)
@@ -52,26 +52,25 @@ def(make-prim-data!, Str Mut(Data) List(Mut(Tag)) --,
     { Str Data List(Tag) }
     dip(
         dip(QName.prim)
-        tuck ~qname !
+        tuck .~qname !
         dup DEF_DATA register
     )
     { Data List(Tag) }
-    dup for(dip(over) ~data !)
-    over ~tags !
+    dup for(dip(over) .~data !)
+    over .~tags !
     { Data }
-    0 over ~arity !
-    NONE over ~head? !
+    0 over .~arity !
+    NONE over .~head? !
     drop)
-
 
 def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     @
     dip(sip(len) TT)
-    sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
-    sip(~num-type-inputs !)
-    sip(0 >Nat swap ~num-resource-inputs !)
-    sip(dip(>Nat) ~value !)
-    dip(QName.prim) tuck ~qname !
+    sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(.~ctx-type !)
+    sip(.~num-type-inputs !)
+    sip(0 .>Nat swap .~num-resource-inputs !)
+    sip(dip(.>Nat) .~value !)
+    dip(QName.prim) tuck .~qname !
     DEF_TAG register)
 
 def(init-data!, --,
@@ -92,13 +91,13 @@ def(init-data!, --,
 # DATA #
 ########
 
-def(Data=, Data Data -- Bool, both(.id) =)
+def(Data.==, Data Data -- Bool, both(.id) .==)
 def(Data.num-tags, Data -- Nat, tags len)
 
 ||| Adds constructor to data type, and gives tag its rank.
 def(Data.add-tag!, Tag Data --,
-    dup2 num-tags swap ~value !
-    dup tags rotr dip(snoc) ~tags !)
+    dup2 num-tags swap .~value !
+    dup tags rotr dip(snoc) .~tags !)
 
 def(Data.is-enum?, Data -- Bool,
     tags all(dup num-type-inputs 0= and(dup num-resource-inputs 0=)))
@@ -107,7 +106,7 @@ def(Data.is-transparent?, Data -- Bool,
     dup is-resource? if(
         drop F,
         tags match(
-            L1 -> dup num-type-inputs 1 >Nat = swap num-resource-inputs 0= &&,
+            L1 -> dup num-type-inputs 1 .>Nat .== swap num-resource-inputs 0= .&&,
             _ -> drop F
         )
     ))
@@ -120,29 +119,29 @@ def(Data.is-resource?, Data -- Bool,
 #######
 
 table(Tag)
-field(Tag~data, Tag, Data)
-field(Tag~qname, Tag, QName)
-field(Tag~value, Tag, Nat)
-field(Tag~num-type-inputs, Tag, Nat)
-field(Tag~num-resource-inputs, Tag, Nat)
-field(Tag~sig?, Tag, Maybe(Token))
-field(Tag~ctx-type, Tag, Lazy([Ctx ArrowType]))
+field(Tag.~data, Tag, Data)
+field(Tag.~qname, Tag, QName)
+field(Tag.~value, Tag, Nat)
+field(Tag.~num-type-inputs, Tag, Nat)
+field(Tag.~num-resource-inputs, Tag, Nat)
+field(Tag.~sig?, Tag, Maybe(Token))
+field(Tag.~ctx-type, Tag, Lazy([Ctx ArrowType]))
 
-def(Tag.data, Tag -- Data, ~data @)
-def(Tag.qname, Tag -- QName, ~qname @)
-def(Tag.value, Tag -- Nat, ~value @)
-def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
-def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)
-def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
-def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
+def(Tag.data, Tag -- Data, .~data @)
+def(Tag.qname, Tag -- QName, .~qname @)
+def(Tag.value, Tag -- Nat, .~value @)
+def(Tag.num-type-inputs, Tag -- Nat, .~num-type-inputs @)
+def(Tag.num-resource-inputs, Tag -- Nat, .~num-resource-inputs @)
+def(Tag.sig?, Tag -- Maybe(Token), .~sig? @)
+def(Tag.ctx-type, Tag -- Ctx ArrowType, .~ctx-type force! unpack2)
 def(Tag.ctx, Tag -- Ctx, ctx-type drop)
 def(Tag.type, Tag -- ArrowType, ctx-type nip)
 
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
-        swap num-resource-inputs-from-sig -,
-        drop 0 >Nat
+        swap num-resource-inputs-from-sig .-,
+        drop 0 .>Nat
     ))
 
 def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
@@ -150,7 +149,7 @@ def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
         run-tokens filter-some(name?)
         filter(dup could-be-resource-var or(dup could-be-resource-con))
         len,
-        0 >Nat
+        0 .>Nat
     ))
 
 def(Tag.is-transparent?, Tag -- Bool,
@@ -159,4 +158,4 @@ def(Tag.is-transparent?, Tag -- Bool,
 def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)
 
-def(Tag=, Tag Tag -- Bool, both(.id) =)
+def(Tag.==, Tag Tag -- Bool, both(.id) .==)
