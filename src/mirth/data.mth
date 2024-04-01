@@ -1,0 +1,161 @@
+module(mirth.data)
+
+import(std.prelude)
+import(std.lazy)
+import(std.list)
+import(std.maybe)
+
+import(mirth.ctx)
+import(mirth.type)
+import(mirth.token)
+import(mirth.name)
+import(mirth.def)
+
+table(Data)
+field(Data.~head?, Data, Maybe(Token))
+field(Data.~qname, Data, QName)
+field(Data.~arity, Data, Int)
+field(Data.~tags, Data, List(Tag))
+
+def(Data.head?, Data -- Maybe(Token), ~head? @)
+def(Data.qname, Data -- QName, ~qname @)
+def(Data.namespace, Data -- Namespace, qname namespace)
+def(Data.name, Data -- Name, qname name)
+def(Data.arity, Data -- Int, ~arity @)
+def(Data.tags, Data -- List(Tag), ~tags @)
+
+var(DATA_BOOL, Data)
+var(TAG_T, Tag)
+var(TAG_F, Tag)
+def(TYPE_BOOL, Type, DATA_BOOL @ TData)
+
+var(DATA_U64, Data) var(TAG_U64, Tag)
+var(DATA_U32, Data) var(TAG_U32, Tag)
+var(DATA_U16, Data) var(TAG_U16, Tag)
+var(DATA_U8, Data) var(TAG_U8, Tag)
+var(DATA_I64, Data) var(TAG_I64, Tag)
+var(DATA_I32, Data) var(TAG_I32, Tag)
+var(DATA_I16, Data) var(TAG_I16, Tag)
+var(DATA_I8, Data) var(TAG_I8, Tag)
+def(TYPE_U64, Type, DATA_U64 @ TData)
+def(TYPE_U32, Type, DATA_U32 @ TData)
+def(TYPE_U16, Type, DATA_U16 @ TData)
+def(TYPE_U8, Type, DATA_U8 @ TData)
+def(TYPE_I64, Type, DATA_I64 @ TData)
+def(TYPE_I32, Type, DATA_I32 @ TData)
+def(TYPE_I16, Type, DATA_I16 @ TData)
+def(TYPE_I8, Type, DATA_I8 @ TData)
+
+def(make-prim-data!, Str Mut(Data) List(Mut(Tag)) --,
+    dip(dip(Data.alloc! dup) !)
+    map(dip(Tag.alloc! dup) !)
+    { Str Data List(Tag) }
+    dip(
+        dip(QName.prim)
+        tuck ~qname !
+        dup DEF_DATA register
+    )
+    { Data List(Tag) }
+    dup for(dip(over) ~data !)
+    over ~tags !
+    { Data }
+    0 over ~arity !
+    NONE over ~head? !
+    drop)
+
+def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
+    @
+    dip(sip(len) TT)
+    sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
+    sip(~num-type-inputs !)
+    sip(0 >Nat swap ~num-resource-inputs !)
+    sip(dip(>Nat) ~value !)
+    dip(QName.prim) tuck ~qname !
+    DEF_TAG register)
+
+def(init-data!, --,
+    "Bool" DATA_BOOL TAG_F TAG_T L2 make-prim-data!
+    "F" 0 L0 TAG_F make-prim-tag!
+    "T" 1 L0 TAG_T make-prim-tag!
+
+    "U64" DATA_U64 TAG_U64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 TAG_U64 make-prim-tag!
+    "U32" DATA_U32 TAG_U32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 TAG_U32 make-prim-tag!
+    "U16" DATA_U16 TAG_U16 L1 make-prim-data! "Int>U16-unsafe" 0 TYPE_INT L1 TAG_U16 make-prim-tag!
+    "U8"  DATA_U8  TAG_U8  L1 make-prim-data! "Int>U8-unsafe"  0 TYPE_INT L1 TAG_U8  make-prim-tag!
+    "I64" DATA_I64 TAG_I64 L1 make-prim-data! "Int>I64-unsafe" 0 TYPE_INT L1 TAG_I64 make-prim-tag!
+    "I32" DATA_I32 TAG_I32 L1 make-prim-data! "Int>I32-unsafe" 0 TYPE_INT L1 TAG_I32 make-prim-tag!
+    "I16" DATA_I16 TAG_I16 L1 make-prim-data! "Int>I16-unsafe" 0 TYPE_INT L1 TAG_I16 make-prim-tag!
+    "I8"  DATA_I8  TAG_I8  L1 make-prim-data! "Int>I8-unsafe"  0 TYPE_INT L1 TAG_I8  make-prim-tag!)
+
+########
+# DATA #
+########
+
+def(Data.==, Data Data -- Bool, both(.id) ==)
+def(Data.num-tags, Data -- Nat, tags len)
+
+||| Adds constructor to data type, and gives tag its rank.
+def(Data.add-tag!, Tag Data --,
+    dup2 num-tags swap ~value !
+    dup tags rotr dip(snoc) ~tags !)
+
+def(Data.is-enum?, Data -- Bool,
+    tags all(dup num-type-inputs 0= and(dup num-resource-inputs 0=)))
+
+def(Data.is-transparent?, Data -- Bool,
+    dup is-resource? if(
+        drop F,
+        tags match(
+            L1 -> dup num-type-inputs 1 >Nat == swap num-resource-inputs 0= &&,
+            _ -> drop F
+        )
+    ))
+
+def(Data.is-resource?, Data -- Bool,
+    name could-be-resource-con)
+
+#######
+# TAG #
+#######
+
+table(Tag)
+field(Tag.~data, Tag, Data)
+field(Tag.~qname, Tag, QName)
+field(Tag.~value, Tag, Nat)
+field(Tag.~num-type-inputs, Tag, Nat)
+field(Tag.~num-resource-inputs, Tag, Nat)
+field(Tag.~sig?, Tag, Maybe(Token))
+field(Tag.~ctx-type, Tag, Lazy([Ctx ArrowType]))
+
+def(Tag.data, Tag -- Data, ~data @)
+def(Tag.qname, Tag -- QName, ~qname @)
+def(Tag.value, Tag -- Nat, ~value @)
+def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
+def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)
+def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
+def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
+def(Tag.ctx, Tag -- Ctx, ctx-type drop)
+def(Tag.type, Tag -- ArrowType, ctx-type nip)
+
+def(Tag.num-type-inputs-from-sig, Tag -- Nat,
+    dup sig? if-some(
+        run-length
+        swap num-resource-inputs-from-sig -,
+        drop 0 >Nat
+    ))
+
+def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
+    sig? if-some(
+        run-tokens filter-some(name?)
+        filter(dup could-be-resource-var or(dup could-be-resource-con))
+        len,
+        0 >Nat
+    ))
+
+def(Tag.is-transparent?, Tag -- Bool,
+    .data is-transparent?)
+
+def(Tag.outputs-resource?, Tag -- Bool,
+    .data is-resource?)
+
+def(Tag.==, Tag Tag -- Bool, both(.id) ==)

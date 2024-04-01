@@ -1,0 +1,33 @@
+module(std.path)
+
+import(std.str)
+import(std.prelude)
+
+data(Path, PATH -> Str)
+def(Str.>Path, Str -- Path, PATH)
+def(Path.>Str, Path -- Str, PATH -> id)
+def(Path.==, Path Path -- Bool, both(>Str) ==)
+
+def(init-paths!, --,
+    "src" >Path SOURCE_PATH_ROOT !
+    "bin" >Path OUTPUT_PATH_ROOT !)
+
+var(SOURCE_PATH_ROOT, Path)
+var(OUTPUT_PATH_ROOT, Path)
+
+def(PATH_SEPARATOR, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
+def(Path.empty?, Path -- Bool, >Str empty?)
+def(Path.join-with, Path Str Path -- Path,
+    over2 empty? if(
+        dip(drop2),
+        dip2(>Str) dip(cat) >Str cat >Path
+    ))
+
+def(Path.join, Path Path -- Path, dip(PATH_SEPARATOR) join-with)
+def(Path.join-unix, Path Path -- Path, dip("/") join-with)
+
+||| Make a source path from a project-relative path.
+def(Path.to-source-path, Path -- Path, dip(SOURCE_PATH_ROOT @) join-unix)
+
+||| Make an output path from a project-relative path.
+def(Path.to-output-path, Path -- Path, dip(OUTPUT_PATH_ROOT @) join-unix)

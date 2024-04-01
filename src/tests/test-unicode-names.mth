@@ -1,6 +1,6 @@
 module(tests.test-unicode-names)
-import(prelude)
-import(platform.posix)
+import(std.prelude)
+import(posix.posix)
 
 def(Olá-Mundo, --, "Hello world!" print-ln!)
 def(Luís, Int, 1)

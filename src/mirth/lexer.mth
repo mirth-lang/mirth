@@ -1,19 +1,23 @@
 module(mirth.lexer)
 
-import(prelude)
-import(platform.posix)
-import(data.byte)
-import(data.stack)
-import(data.path)
-import(data.str)
-import(data.maybe)
-import(mirth.data.location)
-import(mirth.data.name)
-import(mirth.data.token)
-import(mirth.data.error)
-import(mirth.data.module)
-import(resource.file)
-import(resource.input)
+import(std.prelude)
+import(std.byte)
+import(std.stack)
+import(std.path)
+import(std.str)
+import(std.maybe)
+import(std.list)
+
+import(posix.posix)
+import(posix.file)
+import(posix.input)
+
+import(mirth.location)
+import(mirth.name)
+import(mirth.token)
+import(mirth.error)
+import(mirth.module)
+
 
 #########
 # LEXER #
@@ -151,7 +155,10 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
 
         rdip(str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
-            str-buf-dup! >Name TOKEN_NAME
+            str-buf-dname? match(
+                SOME -> TOKEN_DNAME,
+                NONE -> str-buf-name? TOKEN_NAME
+            )
         ))
 
         Token.alloc!
@@ -162,14 +169,25 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
     )
     rdip(freeze drop))
 
+def(str-buf-name?, +Str -- Name +Str, str-buf-dup! >Name)
+
+def(str-buf-dname?, +Str -- Maybe(DName) +Str,
+    BDOT str-buf-split-byte
+    uncons >List+ match(
+        NONE -> drop NONE,
+        SOME ->
+            dip(dup empty? if(drop NONE, >Name SOME))
+            map(>Name) DNAME SOME
+    ))
+
 def(str-buf-is-doc-start?, +Str -- Bool +Str,
-    str-buf-dup! "|||" =)
+    str-buf-dup! "|||" ==)
 
 def(str-buf-is-arrow?, +Str -- Bool +Str,
-    str-buf-dup! "->" =)
+    str-buf-dup! "->" ==)
 
 def(str-buf-is-dashes?, +Str -- Bool +Str,
-    str-buf-dup! "--" =)
+    str-buf-dup! "--" ==)
 
 def(str-buf-is-int?, +Str -- Bool +Str,
     str-buf-is-dec-int? if(T, str-buf-is-hex-int?))
@@ -179,7 +197,7 @@ def(str-buf-is-dec-int?, +Str -- Bool +Str,
     0 >Offset # current index
     dup str-buf-byte@ is-sign if(1+, id)
     while(dup str-buf-byte@ is-digit, dip(1+) 1+)
-    swap 0> if(str-buf-num-bytes? >Offset =, drop F))
+    swap 0> if(str-buf-num-bytes? >Offset ==, drop F))
 
 def(str-buf-is-hex-int?, +Str -- Bool +Str,
     0 >Size # number of digits
@@ -188,13 +206,13 @@ def(str-buf-is-hex-int?, +Str -- Bool +Str,
         1+,
         id
     )
-    dup str-buf-byte@ B'0' = if(
+    dup str-buf-byte@ B'0' == if(
         1+
-        dup str-buf-byte@ B'x' = if(
+        dup str-buf-byte@ B'x' == if(
             1+
             while(dup str-buf-byte@ is-hexdigit, dip(1+) 1+)
             swap 0> if(
-                str-buf-num-bytes? >Offset =,
+                str-buf-num-bytes? >Offset ==,
                 drop F
             ),
 
@@ -282,14 +300,14 @@ def(lexer-push-string-escape-byte!, +Str +Lexer Byte -- +Str +Lexer,
 
 def(lexer-skip-comment!, +Lexer -- +Lexer,
     while(lexer-comment-end? not, lexer-move!)
-    lexer-peek BLF = then(lexer-newline!))
+    lexer-peek BLF == then(lexer-newline!))
 
 def(lexer-skip-doc!, +Lexer -- +Lexer, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, +Lexer -- Bool +Lexer,
     lexer-done? if(
         T,
-        lexer-peek dup BLF = nip
+        lexer-peek dup BLF == nip
     ))
 
 def(lexer-peek, +Lexer -- Byte +Lexer, -LEXER input-peek dip(+LEXER))

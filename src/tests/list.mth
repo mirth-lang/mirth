@@ -1,7 +1,7 @@
 module(tests.list)
-import(prelude)
-import(data.list)
-import(platform.posix)
+import(std.prelude)
+import(std.list)
+import(posix.posix)
 
 def(list1, List(Int), L0)
 def(list2, List(Int), 10 L1)

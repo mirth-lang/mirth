@@ -1,6 +1,6 @@
 ||| Module name should match file path.
-module(error-module-name-mismatch)
+module(mirth.error-module-name-mismatcg)
 
 def(main, ,)
-# mirth-test # merr # 2:8: error: Module name should match path.
+# mirth-test # merr # 2:8: error: expected module name to match path
 # mirth-test # mret # 1

@@ -1,8 +1,8 @@
 module(tests.resource-match)
 
-import(prelude)
-import(platform.posix)
-import(data.either)
+import(std.prelude)
+import(std.either)
+import(posix.posix)
 
 data(+Foo,
     FOO! -> Int +World,

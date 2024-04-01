@@ -1,6 +1,6 @@
 module(tests.resource-smuggling)
 
-import(prelude)
+import(std.prelude)
 data(TheWorld, THE_WORLD -> +World)
 def(/THE_WORLD, TheWorld -- +World, THE_WORLD -> id)
 

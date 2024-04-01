@@ -1,0 +1,486 @@
+module(snake.sdl2)
+import(std.prelude)
+
+#################
+# SDL2 Bindings #
+#################
+
+def-external(SDL_Init, SDL_InitFlags -- Int)
+def-type(SDL_InitFlags, U32) # technically this ought to be U32...
+def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 >U32)
+def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 >U32)
+def(SDL_INIT_VIDEO, SDL_InitFlags, 0x0020 >U32)
+def(SDL_INIT_JOYSTICK, SDL_InitFlags, 0x200 >U32)
+def(SDL_INIT_HAPTIC, SDL_InitFlags, 0x1000 >U32)
+def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32)
+def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 >U32)
+def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << >U32)
+def(SDL_INIT_EVERYTHING, SDL_InitFlags,
+    SDL_INIT_TIMER
+    SDL_INIT_AUDIO |
+    SDL_INIT_VIDEO |
+    SDL_INIT_JOYSTICK |
+    SDL_INIT_HAPTIC |
+    SDL_INIT_GAMECONTROLLER |
+    SDL_INIT_EVENTS |
+    SDL_INIT_SENSOR |)
+
+def-external(SDL_Quit, --)
+def-external(SDL_GetError, Str)
+
+def-external(SDL_Delay, SDL_Ticks --)
+def-external(SDL_GetTicks, SDL_Ticks)
+def-type(SDL_Ticks, U32)
+def(ms, Int -- SDL_Ticks, >U32)
+
+def-external(SDL_CreateWindow, Str Int Int Int Int SDL_WindowFlags -- SDL_Window*)
+def-type(SDL_Window*, Ptr)
+def-type(SDL_WindowFlags, U32)
+def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
+def(SDL_WINDOWPOS_CENTERED, Int, 0x2FFF 16 <<)
+def(SDL_WINDOW_NONE, SDL_WindowFlags, 0 >U32)
+def(SDL_WINDOW_FULLSCREEN, SDL_WindowFlags, 0x1 >U32)
+def(SDL_WINDOW_OPENGL, SDL_WindowFlags, 0x2 >U32)
+def(SDL_WINDOW_SHOWN, SDL_WindowFlags, 0x4 >U32)
+def(SDL_WINDOW_HIDDEN, SDL_WindowFlags, 0x8 >U32)
+def(SDL_WINDOW_BORDERLESS, SDL_WindowFlags, 0x10 >U32)
+def(SDL_WINDOW_RESIZABLE, SDL_WindowFlags, 0x20 >U32)
+def(SDL_WINDOW_MINIMIZED, SDL_WindowFlags, 0x40 >U32)
+def(SDL_WINDOW_MAXIMIZED, SDL_WindowFlags, 0x80 >U32)
+def(SDL_WINDOW_INPUT_GRABBED, SDL_WindowFlags, 0x100 >U32)
+def(SDL_WINDOW_INPUT_FOCUS, SDL_WindowFlags, 0x200 >U32)
+def(SDL_WINDOW_MOUSE_FOCUS, SDL_WindowFlags, 0x400 >U32)
+def(SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WindowFlags, 0x1001 >U32)
+def(SDL_WINDOW_FOREIGN, SDL_WindowFlags, 0x800 >U32)
+def(SDL_WINDOW_ALLOW_HIGHDPI, SDL_WindowFlags, 0x2000 >U32)
+def(SDL_WINDOW_MOUSE_CAPTURE, SDL_WindowFlags, 0x4000 >U32)
+def(SDL_WINDOW_ALWAYS_ON_TOP, SDL_WindowFlags, 1 15 << >U32)
+def(SDL_WINDOW_SKIP_TASKBAR, SDL_WindowFlags, 1 16 << >U32)
+def(SDL_WINDOW_UTILITY, SDL_WindowFlags, 1 17 << >U32)
+def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << >U32)
+def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << >U32)
+def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << >U32)
+
+def-external(SDL_ShowWindow, SDL_Window* --)
+def-external(SDL_HideWindow, SDL_Window* --)
+def-external(SDL_RaiseWindow, SDL_Window* --)
+
+def-external(SDL_CreateRenderer, SDL_Window* Int SDL_RendererFlags -- SDL_Renderer*)
+def-type(SDL_Renderer*, Ptr)
+def-type(SDL_RendererFlags, U32)
+def(SDL_RENDERER_SOFTWARE, SDL_RendererFlags, 0x1 >U32)
+def(SDL_RENDERER_ACCELERATED, SDL_RendererFlags, 0x2 >U32)
+def(SDL_RENDERER_PRESENTVSYNC, SDL_RendererFlags, 0x4 >U32)
+def(SDL_RENDERER_TARGETTEXTURE, SDL_RendererFlags, 0x8 >U32)
+
+def-external(SDL_RenderClear, SDL_Renderer* --)
+def-external(SDL_RenderPresent, SDL_Renderer* --)
+def-external(SDL_SetRenderDrawColor, SDL_Renderer* Int Int Int Int --)
+def-external(SDL_RenderFillRect, SDL_Renderer* SDL_Rect* --)
+def-type(SDL_Rect*, Ptr)
+
+# Size of SDL_Event structure.
+def(SDL_EVENT_SIZE, Size, 56 >Size)
+
+data(SDL_Event, WRAP_SDL_EVENT -> Ptr)
+def(SDL_Event.unwrap, SDL_Event -- Ptr, WRAP_SDL_EVENT -> id)
+def(Ptr.>SDL_Event, Ptr -- SDL_Event, WRAP_SDL_EVENT)
+def(SDL_Event.>Ptr, SDL_Event -- Ptr, unwrap)
+def-external(SDL_PollEvent, SDL_Event -- Int)
+
+data(SDL_EventType, WRAP_SDL_EVENTTYPE -> U32)
+def(U32.>SDL_EventType, U32 -- SDL_EventType, WRAP_SDL_EVENTTYPE)
+def(Int.>SDL_EventType, Int -- SDL_EventType, >U32 >SDL_EventType)
+def(SDL_EventType.unwrap, SDL_EventType -- U32, WRAP_SDL_EVENTTYPE -> id)
+def(SDL_EventType.>U32, SDL_EventType -- U32, unwrap)
+def(SDL_EventType.==, SDL_EventType SDL_EventType -- Bool, both(>U32) ==)
+
+def(SDL_Event.type@, SDL_Event -- SDL_EventType, unwrap unsafe(@U32) >SDL_EventType)
+def(SDL_QUIT, SDL_EventType, 0x100 >SDL_EventType)
+def(SDL_KEYDOWN, SDL_EventType, 0x300 >SDL_EventType)
+def(SDL_KEYUP, SDL_EventType, 0x301 >SDL_EventType)
+def(SDL_CONTROLLERAXISMOTION, SDL_EventType, 0x650 >SDL_EventType)
+def(SDL_CONTROLLERBUTTONDOWN, SDL_EventType, 0x651 >SDL_EventType)
+def(SDL_CONTROLLERBUTTONUP, SDL_EventType, 0x652 >SDL_EventType)
+def(SDL_CONTROLLERDEVICEADDED, SDL_EventType, 0x653 >SDL_EventType)
+def(SDL_CONTROLLERDEVICEREMOVED, SDL_EventType, 0x654 >SDL_EventType)
+def(SDL_CONTROLLERDEVICEREMAPPED, SDL_EventType, 0x655 >SDL_EventType)
+
+data(SDL_KeyboardEvent, WRAP -> Ptr)
+def(SDL_KeyboardEvent.unwrap, SDL_KeyboardEvent -- Ptr, WRAP -> id)
+def(SDL_Event.key, SDL_Event -- SDL_KeyboardEvent, unwrap SDL_KeyboardEvent.WRAP)
+def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, unwrap dip(4 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.timestamp@, SDL_KeyboardEvent -- U32, timestamp& unsafe(@U32))
+def(SDL_KeyboardEvent.timestamp!, U32 SDL_KeyboardEvent --, timestamp& unsafe(!U32))
+def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, unwrap dip(8 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.windowID@, SDL_KeyboardEvent -- U32, windowID& unsafe(@U32))
+def(SDL_KeyboardEvent.windowID!, U32 SDL_KeyboardEvent --, windowID& unsafe(!U32))
+def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, unwrap dip(12 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.state@, SDL_KeyboardEvent -- U8, state& unsafe(@U8))
+def(SDL_KeyboardEvent.state!, U8 SDL_KeyboardEvent --, state& unsafe(!U8))
+def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, unwrap dip(13 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.repeat@, SDL_KeyboardEvent -- U8, repeat& unsafe(@U8))
+def(SDL_KeyboardEvent.repeat!, U8 SDL_KeyboardEvent --, repeat& unsafe(!U8))
+
+data(SDL_Keysym, WRAP_SDL_KEYSYM -> Ptr)
+def(Ptr.>SDL_Keysym, Ptr -- SDL_Keysym, WRAP_SDL_KEYSYM)
+def(SDL_Keysym.unwrap, SDL_Keysym -- Ptr, WRAP_SDL_KEYSYM -> id)
+def(SDL_Keysym.>Ptr, SDL_Keysym -- Ptr, unwrap)
+def(SDL_KeyboardEvent.keysym, SDL_KeyboardEvent -- SDL_Keysym,
+    unwrap dip(16 >Offset) unsafe(offset) >SDL_Keysym)
+
+def(SDL_Keysym.scancode&, SDL_Keysym -- Ptr, unwrap)
+def(SDL_Keysym.scancode@, SDL_Keysym -- SDL_Scancode, scancode& unsafe(@U16) >SDL_Scancode)
+
+data(SDL_ControllerButtonEvent, WRAP_SDL_CBUTTON -> Ptr)
+def(Ptr.>SDL_ControllerButtonEvent, Ptr -- SDL_ControllerButtonEvent, WRAP_SDL_CBUTTON)
+def(SDL_ControllerButtonEvent.unwrap, SDL_ControllerButtonEvent -- Ptr, WRAP_SDL_CBUTTON -> id)
+def(SDL_ControllerButtonEvent.>Ptr,  SDL_ControllerButtonEvent -- Ptr, unwrap)
+
+def(SDL_Event.cbutton, SDL_Event -- SDL_ControllerButtonEvent,
+   >Ptr >SDL_ControllerButtonEvent)
+def(SDL_ControllerButtonEvent.which&, SDL_ControllerButtonEvent -- Ptr,
+    dip(8 >Offset) >Ptr unsafe(offset))
+def(SDL_ControllerButtonEvent.which@, SDL_ControllerButtonEvent -- SDL_JoystickID,
+    which& unsafe(@I32) >SDL_JoystickID)
+def(SDL_ControllerButtonEvent.which!, SDL_JoystickID SDL_ControllerButtonEvent --,
+    dip(>I32) which& unsafe(!I32))
+
+def(SDL_ControllerButtonEvent.button&, SDL_ControllerButtonEvent -- Ptr,
+    dip(12 >Offset) >Ptr unsafe(offset))
+def(SDL_ControllerButtonEvent.button@, SDL_ControllerButtonEvent -- SDL_GameControllerButton,
+    which& unsafe(@U8) >SDL_GameControllerButton)
+def(SDL_ControllerButtonEvent.button!, SDL_GameControllerButton SDL_ControllerButtonEvent --,
+    dip(>U8) button& unsafe(!U8))
+
+def(U16.>SDL_Scancode, U16 -- SDL_Scancode,
+   >Int SDL_Scancode.from-tag-unsafe)
+
+data(SDL_Scancode,
+    SDL_SCANCODE_UNKNOWN,
+    SDL_SCANCODE_UNKNOWN__1,
+    SDL_SCANCODE_UNKNOWN__2,
+    SDL_SCANCODE_UNKNOWN__3,
+    SDL_SCANCODE_A,
+    SDL_SCANCODE_B,
+    SDL_SCANCODE_C,
+    SDL_SCANCODE_D,
+    SDL_SCANCODE_E,
+    SDL_SCANCODE_F,
+    SDL_SCANCODE_G,
+    SDL_SCANCODE_H,
+    SDL_SCANCODE_I,
+    SDL_SCANCODE_J,
+    SDL_SCANCODE_K,
+    SDL_SCANCODE_L,
+    SDL_SCANCODE_M,
+    SDL_SCANCODE_N,
+    SDL_SCANCODE_O,
+    SDL_SCANCODE_P,
+    SDL_SCANCODE_Q,
+    SDL_SCANCODE_R,
+    SDL_SCANCODE_S,
+    SDL_SCANCODE_T,
+    SDL_SCANCODE_U,
+    SDL_SCANCODE_V,
+    SDL_SCANCODE_W,
+    SDL_SCANCODE_X,
+    SDL_SCANCODE_Y,
+    SDL_SCANCODE_Z,
+    SDL_SCANCODE_0,
+    SDL_SCANCODE_1,
+    SDL_SCANCODE_2,
+    SDL_SCANCODE_3,
+    SDL_SCANCODE_4,
+    SDL_SCANCODE_5,
+    SDL_SCANCODE_6,
+    SDL_SCANCODE_7,
+    SDL_SCANCODE_8,
+    SDL_SCANCODE_9,
+    SDL_SCANCODE_RETURN,
+    SDL_SCANCODE_ESCAPE,
+    SDL_SCANCODE_BACKSPACE,
+    SDL_SCANCODE_TAB,
+    SDL_SCANCODE_SPACE,
+    SDL_SCANCODE_MINUS,
+    SDL_SCANCODE_EQUALS,
+    SDL_SCANCODE_LEFTBRACKET,
+    SDL_SCANCODE_RIGHTBRACKET,
+    SDL_SCANCODE_BACKSLASH,
+    SDL_SCANCODE_NONUSHASH,
+    SDL_SCANCODE_SEMICOLON,
+    SDL_SCANCODE_APOSTROPHE,
+    SDL_SCANCODE_GRAVE,
+    SDL_SCANCODE_COMMA,
+    SDL_SCANCODE_PERIOD,
+    SDL_SCANCODE_SLASH,
+    SDL_SCANCODE_CAPSLOCK,
+    SDL_SCANCODE_F1,
+    SDL_SCANCODE_F2,
+    SDL_SCANCODE_F3,
+    SDL_SCANCODE_F4,
+    SDL_SCANCODE_F5,
+    SDL_SCANCODE_F6,
+    SDL_SCANCODE_F7,
+    SDL_SCANCODE_F8,
+    SDL_SCANCODE_F9,
+    SDL_SCANCODE_F10,
+    SDL_SCANCODE_F11,
+    SDL_SCANCODE_F12,
+    SDL_SCANCODE_PRINTSCREEN,
+    SDL_SCANCODE_SCROLLLOCK,
+    SDL_SCANCODE_PAUSE,
+    SDL_SCANCODE_INSERT,
+    SDL_SCANCODE_HOME,
+    SDL_SCANCODE_PAGEUP,
+    SDL_SCANCODE_DELETE,
+    SDL_SCANCODE_END,
+    SDL_SCANCODE_PAGEDOWN,
+    SDL_SCANCODE_RIGHT,
+    SDL_SCANCODE_LEFT,
+    SDL_SCANCODE_DOWN,
+    SDL_SCANCODE_UP,
+    SDL_SCANCODE_NUMLOCKCLEAR,
+    SDL_SCANCODE_KP_DIVIDE,
+    SDL_SCANCODE_KP_MULTIPLY,
+    SDL_SCANCODE_KP_MINUS,
+    SDL_SCANCODE_KP_PLUS,
+    SDL_SCANCODE_KP_ENTER,
+    SDL_SCANCODE_KP_1,
+    SDL_SCANCODE_KP_2,
+    SDL_SCANCODE_KP_3,
+    SDL_SCANCODE_KP_4,
+    SDL_SCANCODE_KP_5,
+    SDL_SCANCODE_KP_6,
+    SDL_SCANCODE_KP_7,
+    SDL_SCANCODE_KP_8,
+    SDL_SCANCODE_KP_9,
+    SDL_SCANCODE_KP_0,
+    SDL_SCANCODE_KP_PERIOD,
+    SDL_SCANCODE_NONUSBACKSLASH,
+    SDL_SCANCODE_APPLICATION,
+    SDL_SCANCODE_POWER,
+    SDL_SCANCODE_KP_EQUALS,
+    SDL_SCANCODE_F13,
+    SDL_SCANCODE_F14,
+    SDL_SCANCODE_F15,
+    SDL_SCANCODE_F16,
+    SDL_SCANCODE_F17,
+    SDL_SCANCODE_F18,
+    SDL_SCANCODE_F19,
+    SDL_SCANCODE_F20,
+    SDL_SCANCODE_F21,
+    SDL_SCANCODE_F22,
+    SDL_SCANCODE_F23,
+    SDL_SCANCODE_F24,
+    SDL_SCANCODE_EXECUTE,
+    SDL_SCANCODE_HELP,
+    SDL_SCANCODE_MENU,
+    SDL_SCANCODE_SELECT,
+    SDL_SCANCODE_STOP,
+    SDL_SCANCODE_AGAIN,
+    SDL_SCANCODE_UNDO,
+    SDL_SCANCODE_CUT,
+    SDL_SCANCODE_COPY,
+    SDL_SCANCODE_PASTE,
+    SDL_SCANCODE_FIND,
+    SDL_SCANCODE_MUTE,
+    SDL_SCANCODE_VOLUMEUP,
+    SDL_SCANCODE_VOLUMEDOWN,
+    SDL_SCANCODE_UNKNOWN__130,
+    SDL_SCANCODE_UNKNOWN__131,
+    SDL_SCANCODE_UNKNOWN__132,
+    SDL_SCANCODE_KP_COMMA,
+    SDL_SCANCODE_KP_EQUALSAS400,
+    SDL_SCANCODE_INTERNATIONAL1,
+    SDL_SCANCODE_INTERNATIONAL2,
+    SDL_SCANCODE_INTERNATIONAL3,
+    SDL_SCANCODE_INTERNATIONAL4,
+    SDL_SCANCODE_INTERNATIONAL5,
+    SDL_SCANCODE_INTERNATIONAL6,
+    SDL_SCANCODE_INTERNATIONAL7,
+    SDL_SCANCODE_INTERNATIONAL8,
+    SDL_SCANCODE_INTERNATIONAL9,
+    SDL_SCANCODE_LANG1,
+    SDL_SCANCODE_LANG2,
+    SDL_SCANCODE_LANG3,
+    SDL_SCANCODE_LANG4,
+    SDL_SCANCODE_LANG5,
+    SDL_SCANCODE_LANG6,
+    SDL_SCANCODE_LANG7,
+    SDL_SCANCODE_LANG8,
+    SDL_SCANCODE_LANG9,
+    SDL_SCANCODE_ALTERASE,
+    SDL_SCANCODE_SYSREQ,
+    SDL_SCANCODE_CANCEL,
+    SDL_SCANCODE_CLEAR,
+    SDL_SCANCODE_PRIOR,
+    SDL_SCANCODE_RETURN2,
+    SDL_SCANCODE_SEPARATOR,
+    SDL_SCANCODE_OUT,
+    SDL_SCANCODE_OPER,
+    SDL_SCANCODE_CLEARAGAIN,
+    SDL_SCANCODE_CRSEL,
+    SDL_SCANCODE_EXSEL,
+    SDL_SCANCODE_UNKNOWN__165,
+    SDL_SCANCODE_UNKNOWN__166,
+    SDL_SCANCODE_UNKNOWN__167,
+    SDL_SCANCODE_UNKNOWN__168,
+    SDL_SCANCODE_UNKNOWN__169,
+    SDL_SCANCODE_UNKNOWN__170,
+    SDL_SCANCODE_UNKNOWN__171,
+    SDL_SCANCODE_UNKNOWN__172,
+    SDL_SCANCODE_UNKNOWN__173,
+    SDL_SCANCODE_UNKNOWN__174,
+    SDL_SCANCODE_UNKNOWN__175,
+    SDL_SCANCODE_KP_00,
+    SDL_SCANCODE_KP_000,
+    SDL_SCANCODE_THOUSANDSSEPARATOR,
+    SDL_SCANCODE_DECIMALSEPARATOR,
+    SDL_SCANCODE_CURRENCYUNIT,
+    SDL_SCANCODE_CURRENCYSUBUNIT,
+    SDL_SCANCODE_KP_LEFTPAREN,
+    SDL_SCANCODE_KP_RIGHTPAREN,
+    SDL_SCANCODE_KP_LEFTBRACE,
+    SDL_SCANCODE_KP_RIGHTBRACE,
+    SDL_SCANCODE_KP_TAB,
+    SDL_SCANCODE_KP_BACKSPACE,
+    SDL_SCANCODE_KP_A,
+    SDL_SCANCODE_KP_B,
+    SDL_SCANCODE_KP_C,
+    SDL_SCANCODE_KP_D,
+    SDL_SCANCODE_KP_E,
+    SDL_SCANCODE_KP_F,
+    SDL_SCANCODE_KP_XOR,
+    SDL_SCANCODE_KP_POWER,
+    SDL_SCANCODE_KP_PERCENT,
+    SDL_SCANCODE_KP_LESS,
+    SDL_SCANCODE_KP_GREATER,
+    SDL_SCANCODE_KP_AMPERSAND,
+    SDL_SCANCODE_KP_DBLAMPERSAND,
+    SDL_SCANCODE_KP_VERTICALBAR,
+    SDL_SCANCODE_KP_DBLVERTICALBAR,
+    SDL_SCANCODE_KP_COLON,
+    SDL_SCANCODE_KP_HASH,
+    SDL_SCANCODE_KP_SPACE,
+    SDL_SCANCODE_KP_AT,
+    SDL_SCANCODE_KP_EXCLAM,
+    SDL_SCANCODE_KP_MEMSTORE,
+    SDL_SCANCODE_KP_MEMRECALL,
+    SDL_SCANCODE_KP_MEMCLEAR,
+    SDL_SCANCODE_KP_MEMADD,
+    SDL_SCANCODE_KP_MEMSUBTRACT,
+    SDL_SCANCODE_KP_MEMMULTIPLY,
+    SDL_SCANCODE_KP_MEMDIVIDE,
+    SDL_SCANCODE_KP_PLUSMINUS,
+    SDL_SCANCODE_KP_CLEAR,
+    SDL_SCANCODE_KP_CLEARENTRY,
+    SDL_SCANCODE_KP_BINARY,
+    SDL_SCANCODE_KP_OCTAL,
+    SDL_SCANCODE_KP_DECIMAL,
+    SDL_SCANCODE_KP_HEXADECIMAL,
+    SDL_SCANCODE_UNKNOWN__222,
+    SDL_SCANCODE_UNKNOWN__223,
+    SDL_SCANCODE_LCTRL,
+    SDL_SCANCODE_LSHIFT,
+    SDL_SCANCODE_LALT,
+    SDL_SCANCODE_LGUI,
+    SDL_SCANCODE_RCTRL,
+    SDL_SCANCODE_RSHIFT,
+    SDL_SCANCODE_RALT,
+    SDL_SCANCODE_RGUI,
+    SDL_SCANCODE_UNKNOWN__232,
+    SDL_SCANCODE_UNKNOWN__233,
+    SDL_SCANCODE_UNKNOWN__234,
+    SDL_SCANCODE_UNKNOWN__235,
+    SDL_SCANCODE_UNKNOWN__236,
+    SDL_SCANCODE_UNKNOWN__237,
+    SDL_SCANCODE_UNKNOWN__238,
+    SDL_SCANCODE_UNKNOWN__239,
+    SDL_SCANCODE_UNKNOWN__240,
+    SDL_SCANCODE_UNKNOWN__241,
+    SDL_SCANCODE_UNKNOWN__242,
+    SDL_SCANCODE_UNKNOWN__243,
+    SDL_SCANCODE_UNKNOWN__244,
+    SDL_SCANCODE_UNKNOWN__245,
+    SDL_SCANCODE_UNKNOWN__246,
+    SDL_SCANCODE_UNKNOWN__247,
+    SDL_SCANCODE_UNKNOWN__248,
+    SDL_SCANCODE_UNKNOWN__249,
+    SDL_SCANCODE_UNKNOWN__250,
+    SDL_SCANCODE_UNKNOWN__251,
+    SDL_SCANCODE_UNKNOWN__252,
+    SDL_SCANCODE_UNKNOWN__253,
+    SDL_SCANCODE_UNKNOWN__254,
+    SDL_SCANCODE_UNKNOWN__255,
+    SDL_SCANCODE_UNKNOWN__256,
+    SDL_SCANCODE_MODE,
+    SDL_SCANCODE_AUDIONEXT,
+    SDL_SCANCODE_AUDIOSTOP,
+    SDL_SCANCODE_AUDIOPLAY,
+    SDL_SCANCODE_AUDIOMUTE,
+    SDL_SCANCODE_MEDIASELECT,
+    SDL_SCANCODE_WWW,
+    SDL_SCANCODE_MAIL,
+    SDL_SCANCODE_CALCULATOR,
+    SDL_SCANCODE_COMPUTER,
+    SDL_SCANCODE_AC_SEARCH,
+    SDL_SCANCODE_AC_HOME,
+    SDL_SCANCODE_AC_BACK,
+    SDL_SCANCODE_AC_FORWARD,
+    SDL_SCANCODE_AC_STOP,
+    SDL_SCANCODE_AC_REFRESH,
+    SDL_SCANCODE_AC_BOOKMARKS,
+    SDL_SCANCODE_BRIGHTNESSDOWN,
+    SDL_SCANCODE_BRIGHTNESSUP,
+    SDL_SCANCODE_DISPLAYSWITCH,
+    SDL_SCANCODE_KBDILLUMTOGGLE,
+    SDL_SCANCODE_KBDILLUMDOWN,
+    SDL_SCANCODE_KBDILLUMUP,
+    SDL_SCANCODE_EJECT,
+    SDL_SCANCODE_SLEEP,
+    SDL_SCANCODE_APP1,
+    SDL_SCANCODE_APP2)
+
+data(SDL_JoystickID, WRAP_SDL_JOYSTICKID -> Int)
+def(SDL_JoystickID.unwrap, SDL_JoystickID -- Int, WRAP_SDL_JOYSTICKID -> id)
+def(SDL_JoystickID.>Int, SDL_JoystickID -- Int, unwrap)
+def(SDL_JoystickID.>I32, SDL_JoystickID -- I32, >Int >I32)
+def(Int.>SDL_JoystickID, Int -- SDL_JoystickID, WRAP_SDL_JOYSTICKID)
+def(I32.>SDL_JoystickID, I32 -- SDL_JoystickID, >Int >SDL_JoystickID)
+def(SDL_JoystickID.>, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) >)
+def(SDL_JoystickID.1+, SDL_JoystickID -- SDL_JoystickID, >Int 1+ >SDL_JoystickID)
+def(SDL_JoystickID.==, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) ==)
+
+data(SDL_GameController, WRAP_SDL_GAMECONTROLLER -> Ptr)
+def(Ptr.>SDL_GameController, Ptr -- SDL_GameController, WRAP_SDL_GAMECONTROLLER)
+def(SDL_GameController.>Ptr, SDL_GameController -- Ptr, WRAP_SDL_GAMECONTROLLER -> id)
+def-external(SDL_NumJoysticks, SDL_JoystickID)
+def-external(SDL_IsGameController, SDL_JoystickID -- Bool)
+def-external(SDL_GameControllerOpen, SDL_JoystickID -- SDL_GameController)
+
+data(SDL_GameControllerButton,
+    SDL_CONTROLLER_BUTTON_A,
+    SDL_CONTROLLER_BUTTON_B,
+    SDL_CONTROLLER_BUTTON_X,
+    SDL_CONTROLLER_BUTTON_Y,
+    SDL_CONTROLLER_BUTTON_BACK,
+    SDL_CONTROLLER_BUTTON_GUIDE,
+    SDL_CONTROLLER_BUTTON_START,
+    SDL_CONTROLLER_BUTTON_LEFTSTICK,
+    SDL_CONTROLLER_BUTTON_RIGHTSTICK,
+    SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
+    SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
+    SDL_CONTROLLER_BUTTON_DPAD_UP,
+    SDL_CONTROLLER_BUTTON_DPAD_DOWN,
+    SDL_CONTROLLER_BUTTON_DPAD_LEFT,
+    SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+def(SDL_CONTROLLER_BUTTON_INVALID, SDL_GameControllerButton,
+    0xFF SDL_GameControllerButton.from-tag-unsafe)
+    # TODO find way to fold SDL_CONTROLLER_BUTTON_INVALID into definition of enum,
+    # without having to specify all of these manually.
+
+def(U8.>SDL_GameControllerButton, U8 -- SDL_GameControllerButton,
+   >Int SDL_GameControllerButton.from-tag-unsafe)
+def(SDL_GameControllerButton.>U8, SDL_GameControllerButton -- U8, tag >U8)
+def(SDL_GameControllerButton.==, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(tag) ==)

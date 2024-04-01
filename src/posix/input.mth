@@ -1,0 +1,100 @@
+module(posix.input)
+
+import(std.prelude)
+import(std.byte)
+import(std.maybe)
+import(std.str)
+import(std.buffer)
+import(posix.posix)
+import(posix.file)
+
+#########
+# Input #
+#########
+
+data(+InputOpen, +INPUTOPEN -> Size Offset +File +Buffer)
+def(-INPUTOPEN, +InputOpen -- Size Offset +File +Buffer, +INPUTOPEN -> id)
+
+def(+InputOpen.input-length@, +InputOpen -- Size +InputOpen,
+    -INPUTOPEN over dip(+INPUTOPEN))
+def(+InputOpen.input-length!, Size +InputOpen -- +InputOpen,
+    dip(-INPUTOPEN swap drop) swap +INPUTOPEN)
+
+def(+InputOpen.input-offset@, +InputOpen -- Offset +InputOpen,
+    -INPUTOPEN dup dip(+INPUTOPEN))
+def(+InputOpen.input-offset!, Offset +InputOpen -- +InputOpen,
+    dip(-INPUTOPEN drop) +INPUTOPEN)
+
+def(+InputOpen.~File(f), (*a +File -- *b +File) *a +InputOpen -- *b +InputOpen,
+    -INPUTOPEN dip2(rdip(f)) +INPUTOPEN)
+def(+InputOpen.~Buffer(f), (*a +Buffer -- *b +Buffer) *a +InputOpen -- *b +InputOpen,
+    -INPUTOPEN dip2(rdip'(f)) +INPUTOPEN)
+
+data(+Input,
+    +INPUT_OPEN -> +InputOpen,
+    +INPUT_DONE -> +File)
+
+def(INPUT_BUFFER_SIZE, Size, 0x2000 >Size)
+
+def(input-start!, +File -- +Input,
+    INPUT_BUFFER_SIZE +Buffer.new
+    0 >Size 0 >Offset +INPUTOPEN input-fill-buffer!)
+
+def(input-stop!, +Input -- +Input,
+    input-end! +INPUT_DONE)
+
+def(input-end!, +Input -- +File,
+    +INPUT_OPEN -> -INPUTOPEN rdrop drop2,
+    +INPUT_DONE -> id)
+
+def(input-done?, +Input -- Bool +Input,
+    +INPUT_OPEN -> F +INPUT_OPEN,
+    +INPUT_DONE -> T +INPUT_DONE)
+
+def(input-fill-buffer!, +InputOpen -- +Input,
+    ~Buffer(buffer-base buffer-size)
+    ~File(unsafe-read!)
+    dup 0> if(
+        input-length!
+        0 >Offset input-offset!
+        +INPUT_OPEN,
+        drop +INPUT_OPEN input-stop!
+    ))
+
+# Return the current char in the input buffer.
+# Panics if file is exhausted.
+def(input-peek, +Input -- Byte +Input,
+    +INPUT_OPEN -> input-offset@ ~Buffer(@U8 >Byte) +INPUT_OPEN,
+    +INPUT_DONE -> "error: no more input" panic!)
+
+# Move to next char in input buffer.
+# Panics if file is exhausted.
+def(input-move!, +Input -- +Input,
+    +INPUT_OPEN ->
+        input-offset@ 1+ input-offset!
+        input-prepare-for-more!,
+    +INPUT_DONE ->
+        "error: no more input" panic!)
+
+||| Refill input buffer.
+def(input-prepare-for-more!, +InputOpen -- +Input,
+    input-offset@
+    input-length@ >Offset >= if(
+        input-fill-buffer!,
+        +INPUT_OPEN
+    ))
+
+||| Read a chunk of input.
+def(input-read-chunk!, +Input -- Maybe(Str) +Input,
+    +INPUT_OPEN ->
+        input-offset@
+        input-length@ input-offset@ >Int >Size -
+        ~Buffer(@Str)
+        input-fill-buffer!
+        SOME,
+    +INPUT_DONE ->
+        NONE +INPUT_DONE)
+
+||| Read the whole file.
+def(input-read-file!, +Input -- Str +Input,
+    "" while-some(input-read-chunk!, cat))

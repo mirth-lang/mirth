@@ -1,7 +1,7 @@
 module(tests.test-blocks)
-import(prelude)
-import(platform.posix)
-import(data.list)
+import(std.prelude)
+import(std.list)
+import(posix.posix)
 
 def(run1, (a -- b) a -- b, run)
 def(add10, [Int -- Int], [10 +])

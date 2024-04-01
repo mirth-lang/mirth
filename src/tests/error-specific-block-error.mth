@@ -1,5 +1,5 @@
 module(tests.error-specific-block-error)
-import(prelude)
+import(std.prelude)
 
 # Check that type error is on the "bar".
 def(foo, Int -- Int,
@@ -9,6 +9,6 @@ def(foo, Int -- Int,
 
 def(bar, Str -- Int, drop 0)
 
-def(main, ,)
+def(main, --, id)
 # mirth-test # merr # 7:15: error: Failed to unify Int with Str
 # mirth-test # mret # 1

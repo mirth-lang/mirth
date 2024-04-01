@@ -1,0 +1,23 @@
+module(mirth.tycon)
+
+import(std.prelude)
+import(mirth.name)
+import(mirth.data)
+import(mirth.table)
+import(mirth.type)
+
+data(Tycon,
+    TYCON_DATA -> Data,
+    TYCON_TABLE -> Table,
+    TYCON_PRIM -> PrimType)
+
+def(Tycon.name, Tycon -- Name, qname name)
+def(Tycon.qname, Tycon -- QName,
+    TYCON_DATA -> qname,
+    TYCON_TABLE -> qname,
+    TYCON_PRIM -> tycon-qname)
+
+def(Tycon.==, Tycon Tycon -- Bool,
+    TYCON_DATA -> swap match(TYCON_DATA -> ==, _ -> drop2 F),
+    TYCON_TABLE -> swap match(TYCON_TABLE -> ==, _ -> drop2 F),
+    TYCON_PRIM -> swap match(TYCON_PRIM -> ==, _ -> drop2 F))

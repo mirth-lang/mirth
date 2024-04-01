@@ -1,0 +1,369 @@
+module(snake.main)
+import(std.prelude)
+import(snake.sdl2)
+
+##############
+# Snake Game #
+##############
+
+def(main, --,
+    snake-init!
+    snake-loop!
+    snake-quit!)
+
+def(SNAKE_W, Int, 20)
+def(SNAKE_H, Int, 20)
+
+var(snake-done, Bool)
+var(snake-dead, Bool)
+var(snake-direction, Direction)
+var(snake-last-direction, Direction)
+var(snake-x, XCoord)
+var(snake-y, YCoord)
+var(snake-window, SDL_Window*)
+var(snake-renderer, SDL_Renderer*)
+var(snake-controller, SDL_JoystickID)
+var(snake-queue-length, Offset)
+buffer(SNAKE_QUEUE_X, 0x1000)
+buffer(SNAKE_QUEUE_Y, 0x1000)
+buffer(SNAKE_GRID, 0x1000)
+buffer(SNAKE_EVENT, 0x100)
+
+data(Direction, DNORTH, DEAST, DSOUTH, DWEST)
+
+def-type(XCoord, U8)
+def(XCoord->Int, XCoord -- Int, >Int)
+def(Int->XCoord, Int -- XCoord, >U8)
+
+def-type(YCoord, U8)
+def(YCoord->Int, YCoord -- Int, >Int)
+def(Int->YCoord, Int -- YCoord, >U8)
+
+def-type(State, U8)
+def(state-occupy, State -- State, >Int 0x1 | >U8)
+def(state-vacate, State -- State, >Int 0xFE & >U8)
+def(state-is-occupied, State -- Bool, >Int 0x1 & 0>)
+def(state-is-occupied?, State -- State Bool, dup state-is-occupied)
+
+def(snake-xy@, XCoord YCoord, snake-x @ snake-y @)
+def(snake-xy!, XCoord YCoord --, snake-y ! snake-x !)
+
+def(coords-offset, XCoord YCoord -- Offset,
+    dip(XCoord->Int) YCoord->Int SNAKE_W * + >Offset)
+def(snake-grid@, XCoord YCoord -- State,
+    coords-offset SNAKE_GRID unsafe(offset @U8))
+def(snake-grid!, State XCoord YCoord --,
+    coords-offset SNAKE_GRID unsafe(offset !U8))
+def(snake-grid-clear!, --,
+    SNAKE_W SNAKE_H * >Size SNAKE_GRID unsafe(erase))
+
+def(snake-queue-x?, Offset -- Offset XCoord, dup snake-queue-x@)
+def(snake-queue-x@, Offset -- XCoord, SNAKE_QUEUE_X unsafe(offset @U8))
+def(snake-queue-x!, XCoord Offset --, SNAKE_QUEUE_X unsafe(offset !U8))
+
+def(snake-queue-y?, Offset -- Offset YCoord, dup snake-queue-y@)
+def(snake-queue-y@, Offset -- YCoord, SNAKE_QUEUE_Y unsafe(offset @U8))
+def(snake-queue-y!, YCoord Offset --, SNAKE_QUEUE_Y unsafe(offset !U8))
+
+def(snake-queue-xy?, Offset -- Offset XCoord YCoord,
+    dup snake-queue-xy@)
+def(snake-queue-xy@, Offset -- XCoord YCoord,
+    snake-queue-y? dip(snake-queue-x@))
+def(snake-queue-xy!, XCoord YCoord Offset --,
+    tuck snake-queue-y! snake-queue-x!)
+
+def(snake-enqueue-xy!, XCoord YCoord --,
+    snake-queue-length @ snake-queue-xy!
+    snake-queue-length modify(1+))
+
+def(snake-dequeue-xy!, -- XCoord YCoord,
+    0 >Offset snake-queue-xy@
+    0 >Offset
+    while(dup 1+ snake-queue-length @ <,
+        dup
+        dip(1+ snake-queue-xy?) snake-queue-xy!)
+    drop
+    snake-queue-length modify(1-))
+
+def(SNAKE_CELL_SIZE, Int, 30)
+def(SNAKE_WINDOW_W, Int, SNAKE_W SNAKE_CELL_SIZE *)
+def(SNAKE_WINDOW_H, Int, SNAKE_H SNAKE_CELL_SIZE *)
+def(SNAKE_WINDOW_FLAGS, SDL_WindowFlags,
+    SDL_WINDOW_HIDDEN)
+def(SNAKE_RENDERER_FLAGS, SDL_RendererFlags,
+    SDL_RENDERER_ACCELERATED
+    SDL_RENDERER_PRESENTVSYNC |)
+
+data(SnakeButton,
+    SNAKE_BUTTON_NONE,
+    SNAKE_BUTTON_UP,
+    SNAKE_BUTTON_RIGHT,
+    SNAKE_BUTTON_DOWN,
+    SNAKE_BUTTON_LEFT,
+    SNAKE_BUTTON_START)
+
+def(SDL_Scancode->SnakeButton, SDL_Scancode -- SnakeButton,
+    SDL_SCANCODE_UP -> SNAKE_BUTTON_UP,
+    SDL_SCANCODE_DOWN -> SNAKE_BUTTON_DOWN,
+    SDL_SCANCODE_LEFT -> SNAKE_BUTTON_LEFT,
+    SDL_SCANCODE_RIGHT -> SNAKE_BUTTON_RIGHT,
+    SDL_SCANCODE_SPACE -> SNAKE_BUTTON_START,
+    _ -> drop SNAKE_BUTTON_NONE)
+
+def(SDL_GameControllerButton->SnakeButton, SDL_GameControllerButton -- SnakeButton,
+    SDL_CONTROLLER_BUTTON_DPAD_UP -> SNAKE_BUTTON_UP,
+    SDL_CONTROLLER_BUTTON_DPAD_DOWN -> SNAKE_BUTTON_DOWN,
+    SDL_CONTROLLER_BUTTON_DPAD_LEFT -> SNAKE_BUTTON_LEFT,
+    SDL_CONTROLLER_BUTTON_DPAD_RIGHT -> SNAKE_BUTTON_RIGHT,
+    SDL_CONTROLLER_BUTTON_START -> SNAKE_BUTTON_START,
+    _ -> drop SNAKE_BUTTON_NONE)
+
+
+def(snake-reset!, --,
+    DNORTH snake-direction !
+    SNAKE_W 2 / Int->XCoord snake-x !
+    SNAKE_H 2 / Int->YCoord snake-y !
+    0 >Offset snake-queue-length !
+    snake-grid-clear!
+    snake-randomize-mouse!
+    F snake-dead !
+    0 snake-points !
+    0 tick-timer !)
+
+def(SNAKE_INIT_FLAGS, SDL_InitFlags,
+    SDL_INIT_VIDEO >Int
+    SDL_INIT_GAMECONTROLLER >Int |
+    >U32)
+
+def(snake-init!, --,
+    snake-reset!
+
+    SNAKE_INIT_FLAGS SDL_Init 0> if(
+        SDL_GetError panic!,
+        id
+    )
+
+    SDL_NumJoysticks 0 >SDL_JoystickID while(dup2 >,
+        dup SDL_IsGameController if(
+            snake-controller ! dup
+            snake-controller @ SDL_GameControllerOpen drop,
+            1+
+        )
+    ) drop2
+
+    "Snake!"
+    100
+    100
+    SNAKE_WINDOW_W
+    SNAKE_WINDOW_H
+    SNAKE_WINDOW_FLAGS
+    SDL_CreateWindow
+    dup .is-null if(
+        SDL_GetError panic!,
+        snake-window !
+    )
+
+    snake-window @
+    -1
+    SNAKE_RENDERER_FLAGS
+    SDL_CreateRenderer
+    dup .is-null if(
+        SDL_GetError panic!,
+        snake-renderer !
+    ))
+
+def(snake-loop!, --,
+    F snake-done !
+    snake-process-events!
+    while(snake-done @ not,
+        snake-present!
+        0 ms SDL_Delay # maybe use a self-adjusting delay to interval reduce input latency.
+        snake-process-events!
+        snake-update!
+    ))
+
+def(snake-quit!, --,
+    SDL_Quit)
+
+def-type(R, Int)
+def-type(G, Int)
+def-type(B, Int)
+def-type(A, Int)
+
+def(snake-background-color, R G B A,
+    140 100 150 255)
+
+def(snake-foreground-color, R G B A,
+    255 255 255 255)
+
+def-type(X, Int)
+def-type(Y, Int)
+def-type(W, Int)
+def-type(H, Int)
+
+buffer(SNAKE_RECT, 16)
+def(snake-rect!, X Y W H --,
+    unsafe(
+        >I32 12 >Offset SNAKE_RECT offset !I32
+        >I32  8 >Offset SNAKE_RECT offset !I32
+        >I32  4 >Offset SNAKE_RECT offset !I32
+        >I32  0 >Offset SNAKE_RECT offset !I32
+    ))
+
+def(snake-rect-cell!, XCoord YCoord --,
+    dip(>Int SNAKE_CELL_SIZE *)
+    >Int SNAKE_CELL_SIZE *
+    SNAKE_CELL_SIZE
+    SNAKE_CELL_SIZE
+    snake-rect!)
+
+def(snake-present!, --,
+    snake-window @ SDL_ShowWindow
+
+    snake-renderer @ snake-background-color SDL_SetRenderDrawColor
+    snake-renderer @ SDL_RenderClear
+
+    snake-renderer @ snake-foreground-color SDL_SetRenderDrawColor
+    snake-xy@ snake-rect-cell!
+    snake-renderer @ SNAKE_RECT SDL_RenderFillRect
+    0 >Offset
+    while(dup snake-queue-length @ <,
+        snake-queue-xy? snake-rect-cell!
+        snake-renderer @ SNAKE_RECT SDL_RenderFillRect
+        1+)
+    drop
+    snake-mouse-xy@ snake-rect-cell!
+    snake-renderer @ SNAKE_RECT SDL_RenderFillRect
+
+    snake-renderer @ SDL_RenderPresent)
+
+def(snake-process-events!, --,
+    while(SNAKE_EVENT >SDL_Event SDL_PollEvent 0>,
+        snake-process-event!))
+
+def(snake-process-event!, --,
+    SNAKE_EVENT >SDL_Event type@
+    dup SDL_QUIT == if(
+        drop T snake-done !,
+
+    dup SDL_KEYDOWN == if(
+        drop
+        SNAKE_EVENT >SDL_Event key repeat@ >Int 0> if(
+            id,
+            SNAKE_EVENT >SDL_Event key keysym scancode@
+            match(
+                SDL_SCANCODE_ESCAPE -> T snake-done !,
+                _ -> SDL_Scancode->SnakeButton snake-press!
+            )
+        ),
+
+    dup SDL_CONTROLLERBUTTONDOWN == if(
+        drop
+        SNAKE_EVENT >SDL_Event cbutton which@ snake-controller @ == if(
+            SNAKE_EVENT >SDL_Event cbutton button@
+            SDL_GameControllerButton->SnakeButton snake-press!,
+            id
+        ),
+
+        drop
+    ))))
+
+def(snake-press!, SnakeButton --,
+    SNAKE_BUTTON_NONE -> id,
+    SNAKE_BUTTON_UP -> DNORTH snake-turn!,
+    SNAKE_BUTTON_RIGHT -> DWEST snake-turn!,
+    SNAKE_BUTTON_DOWN -> DSOUTH snake-turn!,
+    SNAKE_BUTTON_LEFT -> DEAST snake-turn!,
+    SNAKE_BUTTON_START -> snake-dead @ if(snake-reset!, id))
+
+var(tick-timer, Int)
+def(TICK_FRAMES, Int, 7)
+
+def(snake-tick!, Bool,
+    tick-timer @
+    1+ dup TICK_FRAMES >= if(
+        drop 0 tick-timer ! T,
+        tick-timer ! F
+    ))
+
+def(snake-update!, --,
+    snake-dead @ if(
+        id,
+
+    snake-tick! if(
+        snake-direction @ snake-last-direction !
+
+        snake-xy@
+        snake-direction @
+        snake-apply-direction
+        snake-xy!
+
+        snake-xy@ snake-grid@ >Int 0> if(
+            T snake-dead !,
+
+            1 >U8 snake-xy@ snake-grid!
+            snake-check-mouse!
+
+            snake-xy@ snake-enqueue-xy!
+            snake-queue-length @ snake-desired-length > if(
+                0 >U8 snake-dequeue-xy! snake-grid!,
+                id
+            )
+        ),
+
+        id
+    )))
+
+var(snake-points, Int)
+def(snake-desired-length, Offset, snake-points @ 5 + >Offset)
+
+var(snake-mouse-x, XCoord)
+var(snake-mouse-y, YCoord)
+def(snake-mouse-xy@, XCoord YCoord,
+    snake-mouse-x @ snake-mouse-y @)
+
+def-external(libc-rand -> rand, Int)
+
+def(snake-randomize-mouse!, --,
+    libc-rand SNAKE_W % Int->XCoord snake-mouse-x !
+    libc-rand SNAKE_H % Int->YCoord snake-mouse-y !
+
+    snake-mouse-xy@ snake-grid@ >Int 0> if(
+        snake-randomize-mouse!, # might lead to crash if there is no empty space ...
+        id
+    ))
+
+def(snake-check-mouse!, --,
+    snake-x @ snake-mouse-x @ both(>Int) ==
+    snake-y @ snake-mouse-y @ both(>Int) == && if(
+        snake-randomize-mouse!
+        snake-points modify(1+),
+
+        id
+    ))
+
+def(Direction->Int, Direction -- Int, Direction.tag)
+def(direction==, Direction Direction -- Bool, both(Direction->Int) ==)
+
+def(snake-turn!, Direction --,
+    dup snake-flip-direction snake-last-direction @ direction== if(
+        drop, # can't turn back directly
+        snake-direction !
+    ))
+
+def(snake-flip-direction, Direction -- Direction,
+    DNORTH -> DSOUTH,
+    DWEST -> DEAST,
+    DSOUTH -> DNORTH,
+    DEAST -> DWEST)
+
+def(snake-direction-offset, Direction -- Int Int,
+    DNORTH ->  0 -1,
+    DEAST  -> -1  0,
+    DSOUTH ->  0  1,
+    DWEST  ->  1  0)
+
+def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
+    snake-direction-offset
+    dip(swap YCoord->Int) + SNAKE_H + SNAKE_H % Int->YCoord
+    dip(dip(XCoord->Int) + SNAKE_W + SNAKE_W % Int->XCoord))

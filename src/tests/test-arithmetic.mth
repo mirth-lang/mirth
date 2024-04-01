@@ -1,9 +1,9 @@
 module(tests.test-arithmetic)
-import(prelude)
-import(platform.posix)
+import(std.prelude)
+import(posix.posix)
 
 def(expect==!, Str Int Int --,
-    dup2 = if(
+    dup2 == if(
         drop3,
 
         "failed: " print!

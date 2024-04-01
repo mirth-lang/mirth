@@ -1,7 +1,7 @@
 ||| Errors should short-circuit the codegen.
 module(tests.error-shortcircuit)
-import(prelude)
-import(platform.posix)
+import(std.prelude)
+import(posix.posix)
 
 # this should not run
 def(main, Int, "hello")

@@ -1,0 +1,191 @@
+module(mirth.arrow)
+
+import(std.prelude)
+import(std.maybe)
+import(std.list)
+import(std.lazy)
+
+import(mirth.token)
+import(mirth.type)
+import(mirth.data)
+import(mirth.match)
+import(mirth.var)
+
+##########
+# ARROWS #
+##########
+
+# Each Mirth word is represented by a morphism in some category
+# (or some class of categories). We provide special support for
+# the morphisms of symmetric monoidal category theory, since we
+# want to manipulate multiple pieces of data, like a string diagram,
+# but we do not assume commutativity (i.e. that dip(f) g == g dip(f)),
+# so that we can more easily represent computational effects like IO.
+# As such, we actually provide special support for premonoidal
+# categories, and we're really working with ordered string diagrams.
+
+# The representation, for now, involves building up morphisms as a
+# sequence of atomic morphisms. Atomic morphisms are morphisms that
+# can't be broken down into a composition. These include calling
+# words, primitives, control flow, and literal values. This is a
+# nested intermediate representation.
+
+# Originally this type was called Morphism but that's hard to spell and
+# to type repeatedly so now it's called Arrow :-)
+
+# mirth/data/arrow
+table(Atom)
+table(Arrow)
+table(Lambda)
+table(Block)
+
+data(Arg, ARG_BLOCK -> Block)
+
+data(Op,
+    OP_NONE,
+    OP_PRIM -> Prim,
+    OP_WORD -> Word,
+    OP_EXTERNAL -> External,
+    OP_BUFFER -> Buffer,
+    OP_VARIABLE -> Variable,
+    OP_CONSTANT -> Constant,
+    OP_FIELD -> Field,
+    OP_INT -> Int,
+    OP_STR -> Str,
+    OP_TAG -> Tag,
+    OP_MATCH -> Match,
+    OP_LAMBDA -> Lambda,
+    OP_VAR -> Var,
+    OP_BLOCK -> Block,
+    OP_COERCE -> Coerce)
+
+data(Coerce,
+    COERCE_UNSAFE)
+
+data(Param, PARAM -> Var)
+def(Var.>Param, Var -- Param, PARAM)
+def(Param.>Var, Param -- Var, PARAM -> )
+
+data(Home,
+    HOME_MAIN -> Token,
+    HOME_WORD -> Word)
+
+field(Arrow.~token-start, Arrow, Token)
+field(Arrow.~token-end, Arrow, Token)
+field(Arrow.~home, Arrow, Home)
+field(Arrow.~ctx, Arrow, Ctx)
+field(Arrow.~dom, Arrow, StackType)
+field(Arrow.~cod, Arrow, StackType)
+field(Arrow.~atoms, Arrow, List(Atom))
+
+field(Atom.~token, Atom, Token)
+field(Atom.~ctx, Atom, Ctx)
+field(Atom.~op, Atom, Op)
+field(Atom.~args, Atom, List(Arg))
+field(Atom.~dom, Atom, StackType)
+field(Atom.~cod, Atom, StackType)
+field(Atom.~subst, Atom, Subst)
+
+field(Lambda.~token, Lambda, Token)
+field(Lambda.~outer-ctx, Lambda, Ctx)
+field(Lambda.~inner-ctx, Lambda, Ctx)
+field(Lambda.~dom, Lambda, StackType)
+field(Lambda.~mid, Lambda, StackType)
+field(Lambda.~cod, Lambda, StackType)
+field(Lambda.~params, Lambda, List(Param))
+field(Lambda.~body, Lambda, Arrow)
+
+field(Block.~ctx, Block, Ctx)
+field(Block.~token, Block, Token)
+field(Block.~home, Block, Home)
+field(Block.~dom, Block, StackType)
+field(Block.~cod, Block, StackType)
+field(Block.~arrow, Block, Lazy(Arrow))
+
+def(Arrow.token-start, Arrow -- Token, ~token-start @)
+def(Arrow.token-end, Arrow -- Token, ~token-end @)
+def(Arrow.home, Arrow -- Home, ~home @)
+def(Arrow.ctx, Arrow -- Ctx, ~ctx @)
+def(Arrow.dom, Arrow -- StackType, ~dom @)
+def(Arrow.cod, Arrow -- StackType, ~cod @)
+def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
+def(Arrow.atoms, Arrow -- List(Atom), ~atoms @)
+
+def(Atom.token, Atom -- Token, ~token @)
+def(Atom.ctx, Atom -- Ctx, ~ctx @)
+def(Atom.op, Atom -- Op, ~op @)
+def(Atom.args, Atom -- List(Arg), ~args @)
+def(Atom.dom, Atom -- StackType, ~dom @)
+def(Atom.cod, Atom -- StackType, ~cod @)
+def(Atom.subst, Atom -- Subst, ~subst @)
+
+def(Lambda.token, Lambda -- Token, ~token @)
+def(Lambda.outer-ctx, Lambda -- Ctx, ~outer-ctx @)
+def(Lambda.inner-ctx, Lambda -- Ctx, ~inner-ctx @)
+def(Lambda.dom, Lambda -- StackType, ~dom @)
+def(Lambda.mid, Lambda -- StackType, ~mid @)
+def(Lambda.cod, Lambda -- StackType, ~cod @)
+def(Lambda.params, Lambda -- List(Param), ~params @)
+def(Lambda.body, Lambda -- Arrow, ~body @)
+
+def(Block.ctx, Block -- Ctx, ~ctx @)
+def(Block.token, Block -- Token, ~token @)
+def(Block.dom, Block -- StackType, ~dom @)
+def(Block.cod, Block -- StackType, ~cod @)
+def(Block.type, Block -- ArrowType, sip(dom) cod T->)
+def(Block.home, Block -- Home, ~home @)
+def(Block.arrow, Block -- Arrow, ~arrow force!)
+def(Block.infer-type!, Block -- ArrowType, arrow type)
+
+#######
+# ARG #
+#######
+
+||| Add arg to atom, on the left.
+def(Atom.add-arg-left!, Arg Atom --,
+    ~args modify(cons))
+
+#########
+# BLOCK #
+#########
+
+def(Block.==, Block Block -- Bool, both(Block.id) ==)
+
+def(Block.new!, Arrow -- Block,
+    Block.alloc!
+    over home over ~home !
+    over ctx over ~ctx !
+    over token-start over ~token !
+    over dom over ~dom !
+    over cod over ~cod !
+    tuck dip(ready) ~arrow !)
+
+def(Block.new-deferred!(f), (Block -- Arrow) Ctx Token Home -- Block,
+    Block.alloc!
+    tuck ~home !
+    tuck ~token !
+    tuck ~ctx !
+    MetaVar.new! STMeta over ~dom !
+    MetaVar.new! STMeta over ~cod !
+    dup delay(f) over ~arrow !)
+
+def(Block.typecheck!, Block --,
+    arrow drop)
+
+def(block-unify-type!, Gamma Block ArrowType -- Gamma ArrowType,
+    dip(dup type) rotl dip(unify! drop) arrow type)
+
+def(Block.to-run-var, Block -- Maybe(Var),
+    arrow to-run-var)
+
+def(Arrow.to-run-var, Arrow -- Maybe(Var),
+    atoms match(
+        L1 -> to-run-var,
+        _ -> drop NONE
+    ))
+
+def(Atom.to-run-var, Atom -- Maybe(Var),
+    op match(
+        OP_VAR -> dup auto-run? if(SOME, drop NONE),
+        _ -> drop NONE
+    ))

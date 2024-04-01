@@ -1,0 +1,43 @@
+module(std.lazy)
+
+import(std.prelude)
+
+data(Lazy(t),
+    LAZY_READY -> b,
+    LAZY_DELAY -> a [a -- b],
+    LAZY_WAIT)
+
+def(ready, a -- Lazy(a),
+    LAZY_READY)
+def(ready2, a b -- Lazy([a b]),
+    pack2 LAZY_READY)
+
+def(delay, (a -- b) a -- Lazy(b), LAZY_DELAY)
+def(delay0, (-- b) -- Lazy(b), delay(run))
+def(delay2, (a1 a2 -- b) a1 a2 -- Lazy(b),
+    pack3 delay(unpack3 run))
+def(delay3, (a1 a2 a3 -- b) a1 a2 a3 -- Lazy(b),
+    pack4 delay(unpack4 run))
+def(delay4, (a1 a2 a3 a4 -- b) a1 a2 a3 a4 -- Lazy(b),
+    pack5 delay(unpack5 run))
+
+def(force!, Mut(Lazy(a)) -- a,
+    dup @ match(
+        LAZY_READY -> nip,
+        LAZY_DELAY ->
+            rotl LAZY_WAIT over !
+            dip(run dup LAZY_READY) !,
+        LAZY_WAIT ->
+            "attempted to force already running thunk" panic!
+    ))
+def(force-or!(f), (*x -- *x a) *x Mut(Lazy(a)) -- *x a,
+    dup @ match(
+        LAZY_WAIT -> drop f,
+        _ -> drop force!
+    ))
+
+def(force2!, Mut(Lazy([a b])) -- a b,
+    force! unpack2)
+
+def(force-or2!(f), (*x -- *x a b) *x Mut(Lazy([a b])) -- *x a b,
+    force-or!(f pack2) unpack2)

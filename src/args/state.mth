@@ -1,14 +1,12 @@
 module(args.state)
 
-import(prelude)
-import(data.maybe)
-import(data.str)
-
+import(std.prelude)
+import(std.maybe)
+import(std.str)
 import(args.parse)
 
-
 data(ArgumentParserStateArgvInfo,
-  ARGUMENT_PARSER_STATE_ARGV_INFO -> 
+  ARGUMENT_PARSER_STATE_ARGV_INFO ->
     List(Str) # argv: The list of string arguments, not including C argv[0]
     Str # program-name: The name of the program, passed in argv[0]
 )
@@ -20,7 +18,7 @@ def(ArgumentParserStateArgvInfo.argv, ArgumentParserStateArgvInfo -- List(Str),
   ARGUMENT_PARSER_STATE_ARGV_INFO -> drop)
 
 data(ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> 
+  ARGUMENT_PARSER_STATE_CURRENT_ARG ->
     Bool # currently-parsing-option: whether the program is currently in the middle of parsing a option with an associated value
     Maybe(ArgpOptionType) # current-option: the type of the current option
     Maybe(ArgpOption) # current-option-option: the option value itself of the current option
@@ -34,15 +32,15 @@ def(ArgumentParserStateCurrentArg.current-option-option!, Maybe(ArgpOption) Argu
 def(ArgumentParserStateCurrentArg.current-option, ArgumentParserStateCurrentArg -- Maybe(ArgpOptionType),
   ARGUMENT_PARSER_STATE_CURRENT_ARG -> drop dip(drop))
 def(ArgumentParserStateCurrentArg.current-option!, Maybe(ArgpOptionType) ArgumentParserStateCurrentArg -- ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip(drop swap) ARGUMENT_PARSER_STATE_CURRENT_ARG) 
+  ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip(drop swap) ARGUMENT_PARSER_STATE_CURRENT_ARG)
 
 def(ArgumentParserStateCurrentArg.currently-parsing-option, ArgumentParserStateCurrentArg -- Bool,
   ARGUMENT_PARSER_STATE_CURRENT_ARG -> drop2)
 def(ArgumentParserStateCurrentArg.currently-parsing-option!, Bool ArgumentParserStateCurrentArg -- ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip2(drop) ARGUMENT_PARSER_STATE_CURRENT_ARG) 
+  ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip2(drop) ARGUMENT_PARSER_STATE_CURRENT_ARG)
 
 data(ArgumentParserState(a),
-  ARGUMENT_PARSER_STATE -> 
+  ARGUMENT_PARSER_STATE ->
     a # argument: the argument structure itself
     ArgumentParserStateArgvInfo # argv-into: Data about the list of arguments passed to the program
     ArgumentParserStateCurrentArg # current-arg: Information about the current argument being parsed
@@ -51,10 +49,10 @@ data(ArgumentParserState(a),
 )
 
 def(ArgumentParserState.init, a -- ArgumentParserState(a),
-    argv-to-str 
+    argv-to-str
     0 unsafe(read-from-argv)
   ARGUMENT_PARSER_STATE_ARGV_INFO
-    F 
+    F
     NONE
     NONE
   ARGUMENT_PARSER_STATE_CURRENT_ARG
@@ -93,7 +91,7 @@ def(ArgumentParserState.current-arg, ArgumentParserState(a) -- ArgumentParserSta
   ARGUMENT_PARSER_STATE -> drop2 dip(drop2))
 def(ArgumentParserState.current-arg!, ArgumentParserStateCurrentArg ArgumentParserState(a) -- ArgumentParserState(a),
   ARGUMENT_PARSER_STATE -> dip2(drop over2) ARGUMENT_PARSER_STATE swap drop)
-  
+
 
 def(ArgumentParserState.current-error, ArgumentParserState(a) -- Maybe(ArgumentParsingError),
   ARGUMENT_PARSER_STATE -> dip(drop4))
@@ -109,6 +107,3 @@ def(ArgumentParserState.arguments, ArgumentParserState(a) -- a,
   ARGUMENT_PARSER_STATE -> drop4)
 def(ArgumentParserState.arguments!, a ArgumentParserState(a) -- ArgumentParserState(a),
   ARGUMENT_PARSER_STATE -> dip3(dip(drop)) ARGUMENT_PARSER_STATE)
-
-
-

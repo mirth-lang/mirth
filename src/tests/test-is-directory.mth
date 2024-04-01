@@ -1,20 +1,20 @@
 module(tests.test-is-directory)
-import(prelude)
-import(platform.posix)
-import(data.path)
+import(std.prelude)
+import(std.path)
+import(posix.posix)
 
 def(should-be-directory, Str --,
-    >Path is-directory? if("ok", "err") trace-ln!)
+   >Path is-directory? if("ok", "err") trace-ln!)
 
 def(should-not-be-directory, Str --,
-    >Path is-directory? if("err", "ok") trace-ln!)
+   >Path is-directory? if("err", "ok") trace-ln!)
 
 def(main, --,
     "src" should-be-directory
     "bin" should-be-directory
     "tools" should-be-directory
     "src/mirth" should-be-directory
-    "src/mirth.mth" should-not-be-directory
+    "src/mirth/main.mth" should-not-be-directory
     "nonsense" should-not-be-directory)
 
 # mirth-test # perr # ok

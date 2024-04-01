@@ -1,0 +1,41 @@
+module(mirth.ctx)
+
+import(std.prelude)
+import(std.str)
+import(std.list)
+
+import(mirth.name)
+import(mirth.var)
+import(mirth.type)
+
+###########
+# Context #
+###########
+
+# A context for types and terms.
+data(Ctx, CTX -> List(Var))
+def(List.>Ctx, List(Var) -- Ctx, CTX)
+def(Ctx.>List, Ctx -- List(Var), CTX -> id)
+
+def(CTX0, Ctx, L0 CTX)
+def(CTX1, Var -- Ctx, L1 CTX)
+def(CTX2, Var Var -- Ctx, L2 CTX)
+def(CTX3, Var Var Var -- Ctx, L3 CTX)
+def(CTX4, Var Var Var Var -- Ctx, L4 CTX)
+
+def(Ctx.new, Ctx Var -- Ctx, dip(>List) snoc >Ctx)
+
+def(Ctx.vars, Ctx -- List(Var), >List)
+def(Ctx.physical-vars, Ctx -- List(Var), vars filter(dup is-physical?))
+def(Ctx.physically-empty?, Ctx -- Bool, physical-vars is-empty)
+def(Ctx.lookup, Name Ctx -- Maybe(Var), >List reverse-find(dup2 name ==) nip)
+def(Ctx.len, Ctx -- Nat, >List len)
+def(Ctx.fresh-name!, Ctx -- Ctx Name,
+    # TODO do this properly.
+    "_x" over len show cat >Name)
+def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
+    dip(PRIM_TYPE_STACK TPrim) fresh-var!)
+def(Ctx.fresh-type-var!, Ctx -- Ctx Var,
+    dip(PRIM_TYPE_TYPE TPrim) fresh-var!)
+def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
+    fresh-name! dip(swap) Var.new! sip(Ctx.new))

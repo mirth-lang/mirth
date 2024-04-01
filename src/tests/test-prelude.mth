@@ -1,12 +1,12 @@
 module(tests.test-prelude)
-import(prelude)
-import(platform.posix)
+import(std.prelude)
+import(posix.posix)
 
 # Assertions
 
 def(!!T, Bool --, if(id, "Assertion failed" panic!))
 def(!!F, Bool --, not !!T)
-def(!!=, Int Int --, = !!T)
+def(!!=, Int Int --, == !!T)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
 def(!!001, Int Int Int --, 1 !!= 0 !!= 0 !!=)
@@ -19,14 +19,14 @@ def(!!111, Int Int Int --, 1 !!= 1 !!= 1 !!=)
 
 def(test-prelude!, --,
     test-if test-drop test-dup test-swap test-dip
-    test-rotr test-rotl test= test< test<= test> test>=
+    test-rotr test-rotl test== test< test<= test> test>=
     test+ test- test* test-while)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
-    T  [ 10 ] [ 20 ] if 10 !!=
-    F [ 10 ] [ 20 ] if 20 !!=
-    T  [ 30 ] if(20) 30 !!=
-    F [ 30 ] if(20) 20 !!=)
+    T  [ 10 ] [ 20 ] Bool.if 10 !!=
+    F [ 10 ] [ 20 ] Bool.if 20 !!=
+    T  [ 30 ] Bool.if(20) 30 !!=
+    F [ 30 ] Bool.if(20) 20 !!=)
 
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
@@ -44,14 +44,14 @@ def(test-rotl, --,
     0 1 0 rotl !!100
     0 0 1 rotl !!010)
 
-def(test=, --,
-    0 0 = !!T
-    0 1 = !!F
-    1 0 = !!F
-    1 1 = !!T
-    1 2 = !!F
-    2 1 = !!F
-    2 2 = !!T)
+def(test==, --,
+    0 0 == !!T
+    0 1 == !!F
+    1 0 == !!F
+    1 1 == !!T
+    1 2 == !!F
+    2 1 == !!F
+    2 2 == !!T)
 def(test<, --,
     0 0 < !!F
     0 1 < !!T
@@ -95,8 +95,8 @@ def(test+, --,
     0 0 + !!0
     0 1 + !!1
     1 0 + !!1
-    1 1 + 2 = !!T
-    2 2 + 4 = !!T
+    1 1 + 2 == !!T
+    2 2 + 4 == !!T
     2 -2 + !!0)
 
 def(test-, --,
@@ -135,7 +135,7 @@ def(test-stack-assertions, --,
     1 2 { Int Int }
     3 4 { Int Int Int Int }
     + + + { Int }
-    10 =
+    10 ==
     { Bool }
     drop
 )
