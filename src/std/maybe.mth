@@ -5,8 +5,8 @@ import(std.list)
 
 data(Maybe(t), NONE, SOME -> t)
 
-def(Maybe.none?, Maybe(t) -- Bool, .>Bool not)
-def(Maybe.some?, Maybe(t) -- Bool, .>Bool)
+def(Maybe.none?, Maybe(t) -- Bool, >Bool not)
+def(Maybe.some?, Maybe(t) -- Bool, >Bool)
 def(Maybe.>Bool, Maybe(t) -- Bool,
     NONE -> F,
     SOME -> drop T)
@@ -31,7 +31,7 @@ def(Maybe.else(f), (*a -- *a) *a Maybe(t) -- *a,
     SOME -> drop,
     NONE -> f)
 
-def(Maybe.not, Maybe(a) -- Bool, .>Bool not)
+def(Maybe.not, Maybe(a) -- Bool, >Bool not)
 def(Maybe.or(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
     some? or(p))
 def(Maybe.and(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,

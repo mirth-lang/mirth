@@ -38,20 +38,20 @@ field(Arguments.~output-file, Arguments, Maybe(Path))
 field(Arguments.~entry-point, Arguments, Maybe(Str))
 
 # Helpers to read table fields
-def(Arguments.input-file, Arguments -- Path, .~input-file @)
-def(Arguments.output-file, Arguments -- Maybe(Path), .~output-file @)
-def(Arguments.entry-point, Arguments -- Maybe(Str), .~entry-point @)
+def(Arguments.input-file, Arguments -- Path, ~input-file @)
+def(Arguments.output-file, Arguments -- Maybe(Path), ~output-file @)
+def(Arguments.entry-point, Arguments -- Maybe(Str), ~entry-point @)
 
 def(Arguments.new, Path Maybe(Path) Maybe(Str) -- Arguments,
     Arguments.alloc!
-    dup dip(.~entry-point !)
-    dup dip(.~output-file !)
-    dup dip(.~input-file !))
+    dup dip(~entry-point !)
+    dup dip(~output-file !)
+    dup dip(~input-file !))
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
 def(Arguments.default, -- Arguments,
-    "mirth.mth" .>Path
+    "mirth.mth" >Path
     NONE
     "main" SOME
     Arguments.new)
@@ -59,8 +59,8 @@ def(Arguments.default, -- Arguments,
 ||| Pretty print the contents of the arguments struct
 def(Arguments.show, Arguments -- Str,
     "Arguments { "
-    "output-file: " cat over output-file map(.>Str) unwrap-or("(none)") cat
-    ", input-file: " cat over input-file .>Str cat
+    "output-file: " cat over output-file map(>Str) unwrap-or("(none)") cat
+    ", input-file: " cat over input-file >Str cat
     ", entry-point: " cat over entry-point unwrap-or("(none)") cat
     " }" cat nip)
 
@@ -70,7 +70,7 @@ def(Arguments.show, Arguments -- Str,
 
 def(compile!, Arguments +World -- +World,
     "Compiling " trace!
-    dup input-file .>Str trace-ln!
+    dup input-file >Str trace-ln!
 
     dup input-file run-lexer!
 
@@ -92,7 +92,7 @@ def(compile!, Arguments +World -- +World,
     over entry-point match(
         SOME ->
             "Codegen." trace-ln!
-            .>Name dip(NAMESPACE_MODULE) QNAME def? bind(word?) unwrap-or("could not find entry point" panic!)
+            >Name dip(NAMESPACE_MODULE) QNAME def? bind(word?) unwrap-or("could not find entry point" panic!)
             arrow swap output-file unwrap run-output-c99!,
         NONE ->
             "Skipping Codegen." trace-ln! drop2
@@ -100,23 +100,23 @@ def(compile!, Arguments +World -- +World,
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
     OPTION_SHORT -> match(
-        B'o' -> unwrap .>Path SOME over .~output-file !,
-        B'e' -> unwrap SOME over .~entry-point !,
-        B'c' -> drop NONE over .~entry-point !,
+        B'o' -> unwrap >Path SOME over ~output-file !,
+        B'e' -> unwrap SOME over ~entry-point !,
+        B'c' -> drop NONE over ~entry-point !,
         _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
     ),
     OPTION_POSITIONAL -> state current-positional-arg 0= if(
-        unwrap .>Path over .~input-file !,
+        unwrap >Path over ~input-file !,
         drop TOO_MANY_ARGS SOME state current-error! state!
     ),
     OPTION_END ->
-        state current-positional-arg 1 .< then(
+        state current-positional-arg 1 < then(
             TOO_FEW_ARGS SOME state current-error! state!
         )
-        state arguments .~output-file @ match(
+        state arguments ~output-file @ match(
             SOME -> drop,
             # If we have an entry point we need to have an output file currently
-            NONE -> state arguments .~entry-point @ match (
+            NONE -> state arguments ~entry-point @ match (
                 SOME -> drop "output-file" MISSING_ARG SOME state current-error! state!,
                 NONE ->
             )
@@ -134,19 +134,19 @@ def(main, +World -- +World,
         B'o' OPTION_SHORT
         "OUTPUT_FILE" SOME
         "Test argument" SOME
-        NONE ArgpOption.new .;
+        NONE ArgpOption.new ;
 
         "compile-only" SOME
         B'c' OPTION_SHORT
         NONE
         "Compile code without running codegen step" SOME
-        NONE ArgpOption.new .;
+        NONE ArgpOption.new ;
 
         "entry-point" SOME
         B'e' OPTION_SHORT
         "ENTRY_POINT" SOME
         "Custom entry point word for compilation" SOME
-        NONE ArgpOption.new .;
+        NONE ArgpOption.new ;
     )
     [ compiler-parse-args ] SOME
     "input-file" SOME

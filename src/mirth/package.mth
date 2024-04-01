@@ -9,19 +9,19 @@ import(mirth.def)
 table(Package)
 field(Package.~name, Package, Name)
 
-def(Package.name, Package -- Name, .~name @)
+def(Package.name, Package -- Name, ~name @)
 def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME)
-def(Package.path, Package -- Path, name .>Str .>Path)
+def(Package.path, Package -- Path, name >Str >Path)
 
 var(Package.std-var, Package)
 def(Package.std, Package,
     Package.std-var memoize(
-        "std" .>Name Package.new!
+        "std" >Name Package.new!
     ))
 
 def(Package.new!, Name -- Package,
     Package.alloc!
-    tuck .~name !
+    tuck ~name !
     dup DEF_PACKAGE register)
 
 def(Package.find, Name -- Maybe(Package),
@@ -30,4 +30,4 @@ def(Package.find, Name -- Maybe(Package),
 def(Package.find-or-new!, Name -- Package,
     dup Package.find unwrap-or(dup Package.new!) nip)
 
-def(Package.==, Package Package -- Bool, both(.id) .==)
+def(Package.==, Package Package -- Bool, both(.id) ==)

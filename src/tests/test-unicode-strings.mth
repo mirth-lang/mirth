@@ -8,7 +8,7 @@ import(posix.posix)
 def(display-str!, Str --,
     "\"" print! dup print! "\"" print-ln!
     "num-bytes: " print! dup num-bytes show print-ln!
-    "bytes:" print! dup str-bytes-for(" " print! .>Int print!) line-print!
+    "bytes:" print! dup str-bytes-for(" " print! >Int print!) line-print!
     drop "----------" print-ln!)
 
 def(main, --,

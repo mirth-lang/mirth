@@ -9,13 +9,13 @@ field(Constant.~head, Constant, Token)
 field(Constant.~qname, Constant, QName)
 field(Constant.~value, Constant, Value)
 
-def(Constant.head, Constant -- Token, .~head @)
-def(Constant.qname, Constant -- QName, .~qname @)
-def(Constant.value, Constant -- Value, .~value @)
+def(Constant.head, Constant -- Token, ~head @)
+def(Constant.qname, Constant -- QName, ~qname @)
+def(Constant.value, Constant -- Value, ~value @)
 
 def(Constant.new!, Token QName Value -- Constant,
     Constant.alloc!
-    tuck .~value !
-    tuck .~qname !
-    tuck .~head !
+    tuck ~value !
+    tuck ~qname !
+    tuck ~head !
     dup DEF_CONSTANT register)

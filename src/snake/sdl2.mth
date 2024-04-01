@@ -7,14 +7,14 @@ import(std.prelude)
 
 def-external(SDL_Init, SDL_InitFlags -- Int)
 def-type(SDL_InitFlags, U32) # technically this ought to be U32...
-def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 .>U32)
-def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 .>U32)
-def(SDL_INIT_VIDEO, SDL_InitFlags, 0x0020 .>U32)
-def(SDL_INIT_JOYSTICK, SDL_InitFlags, 0x200 .>U32)
-def(SDL_INIT_HAPTIC, SDL_InitFlags, 0x1000 .>U32)
-def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 .>U32)
-def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 .>U32)
-def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << .>U32)
+def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 >U32)
+def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 >U32)
+def(SDL_INIT_VIDEO, SDL_InitFlags, 0x0020 >U32)
+def(SDL_INIT_JOYSTICK, SDL_InitFlags, 0x200 >U32)
+def(SDL_INIT_HAPTIC, SDL_InitFlags, 0x1000 >U32)
+def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32)
+def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 >U32)
+def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << >U32)
 def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_TIMER
     SDL_INIT_AUDIO |
@@ -31,35 +31,35 @@ def-external(SDL_GetError, Str)
 def-external(SDL_Delay, SDL_Ticks --)
 def-external(SDL_GetTicks, SDL_Ticks)
 def-type(SDL_Ticks, U32)
-def(ms, Int -- SDL_Ticks, .>U32)
+def(ms, Int -- SDL_Ticks, >U32)
 
 def-external(SDL_CreateWindow, Str Int Int Int Int SDL_WindowFlags -- SDL_Window*)
 def-type(SDL_Window*, Ptr)
 def-type(SDL_WindowFlags, U32)
 def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
 def(SDL_WINDOWPOS_CENTERED, Int, 0x2FFF 16 <<)
-def(SDL_WINDOW_NONE, SDL_WindowFlags, 0 .>U32)
-def(SDL_WINDOW_FULLSCREEN, SDL_WindowFlags, 0x1 .>U32)
-def(SDL_WINDOW_OPENGL, SDL_WindowFlags, 0x2 .>U32)
-def(SDL_WINDOW_SHOWN, SDL_WindowFlags, 0x4 .>U32)
-def(SDL_WINDOW_HIDDEN, SDL_WindowFlags, 0x8 .>U32)
-def(SDL_WINDOW_BORDERLESS, SDL_WindowFlags, 0x10 .>U32)
-def(SDL_WINDOW_RESIZABLE, SDL_WindowFlags, 0x20 .>U32)
-def(SDL_WINDOW_MINIMIZED, SDL_WindowFlags, 0x40 .>U32)
-def(SDL_WINDOW_MAXIMIZED, SDL_WindowFlags, 0x80 .>U32)
-def(SDL_WINDOW_INPUT_GRABBED, SDL_WindowFlags, 0x100 .>U32)
-def(SDL_WINDOW_INPUT_FOCUS, SDL_WindowFlags, 0x200 .>U32)
-def(SDL_WINDOW_MOUSE_FOCUS, SDL_WindowFlags, 0x400 .>U32)
-def(SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WindowFlags, 0x1001 .>U32)
-def(SDL_WINDOW_FOREIGN, SDL_WindowFlags, 0x800 .>U32)
-def(SDL_WINDOW_ALLOW_HIGHDPI, SDL_WindowFlags, 0x2000 .>U32)
-def(SDL_WINDOW_MOUSE_CAPTURE, SDL_WindowFlags, 0x4000 .>U32)
-def(SDL_WINDOW_ALWAYS_ON_TOP, SDL_WindowFlags, 1 15 << .>U32)
-def(SDL_WINDOW_SKIP_TASKBAR, SDL_WindowFlags, 1 16 << .>U32)
-def(SDL_WINDOW_UTILITY, SDL_WindowFlags, 1 17 << .>U32)
-def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << .>U32)
-def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << .>U32)
-def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << .>U32)
+def(SDL_WINDOW_NONE, SDL_WindowFlags, 0 >U32)
+def(SDL_WINDOW_FULLSCREEN, SDL_WindowFlags, 0x1 >U32)
+def(SDL_WINDOW_OPENGL, SDL_WindowFlags, 0x2 >U32)
+def(SDL_WINDOW_SHOWN, SDL_WindowFlags, 0x4 >U32)
+def(SDL_WINDOW_HIDDEN, SDL_WindowFlags, 0x8 >U32)
+def(SDL_WINDOW_BORDERLESS, SDL_WindowFlags, 0x10 >U32)
+def(SDL_WINDOW_RESIZABLE, SDL_WindowFlags, 0x20 >U32)
+def(SDL_WINDOW_MINIMIZED, SDL_WindowFlags, 0x40 >U32)
+def(SDL_WINDOW_MAXIMIZED, SDL_WindowFlags, 0x80 >U32)
+def(SDL_WINDOW_INPUT_GRABBED, SDL_WindowFlags, 0x100 >U32)
+def(SDL_WINDOW_INPUT_FOCUS, SDL_WindowFlags, 0x200 >U32)
+def(SDL_WINDOW_MOUSE_FOCUS, SDL_WindowFlags, 0x400 >U32)
+def(SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WindowFlags, 0x1001 >U32)
+def(SDL_WINDOW_FOREIGN, SDL_WindowFlags, 0x800 >U32)
+def(SDL_WINDOW_ALLOW_HIGHDPI, SDL_WindowFlags, 0x2000 >U32)
+def(SDL_WINDOW_MOUSE_CAPTURE, SDL_WindowFlags, 0x4000 >U32)
+def(SDL_WINDOW_ALWAYS_ON_TOP, SDL_WindowFlags, 1 15 << >U32)
+def(SDL_WINDOW_SKIP_TASKBAR, SDL_WindowFlags, 1 16 << >U32)
+def(SDL_WINDOW_UTILITY, SDL_WindowFlags, 1 17 << >U32)
+def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << >U32)
+def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << >U32)
+def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << >U32)
 
 def-external(SDL_ShowWindow, SDL_Window* --)
 def-external(SDL_HideWindow, SDL_Window* --)
@@ -68,10 +68,10 @@ def-external(SDL_RaiseWindow, SDL_Window* --)
 def-external(SDL_CreateRenderer, SDL_Window* Int SDL_RendererFlags -- SDL_Renderer*)
 def-type(SDL_Renderer*, Ptr)
 def-type(SDL_RendererFlags, U32)
-def(SDL_RENDERER_SOFTWARE, SDL_RendererFlags, 0x1 .>U32)
-def(SDL_RENDERER_ACCELERATED, SDL_RendererFlags, 0x2 .>U32)
-def(SDL_RENDERER_PRESENTVSYNC, SDL_RendererFlags, 0x4 .>U32)
-def(SDL_RENDERER_TARGETTEXTURE, SDL_RendererFlags, 0x8 .>U32)
+def(SDL_RENDERER_SOFTWARE, SDL_RendererFlags, 0x1 >U32)
+def(SDL_RENDERER_ACCELERATED, SDL_RendererFlags, 0x2 >U32)
+def(SDL_RENDERER_PRESENTVSYNC, SDL_RendererFlags, 0x4 >U32)
+def(SDL_RENDERER_TARGETTEXTURE, SDL_RendererFlags, 0x8 >U32)
 
 def-external(SDL_RenderClear, SDL_Renderer* --)
 def-external(SDL_RenderPresent, SDL_Renderer* --)
@@ -80,7 +80,7 @@ def-external(SDL_RenderFillRect, SDL_Renderer* SDL_Rect* --)
 def-type(SDL_Rect*, Ptr)
 
 # Size of SDL_Event structure.
-def(SDL_EVENT_SIZE, Size, 56 .>Size)
+def(SDL_EVENT_SIZE, Size, 56 >Size)
 
 data(SDL_Event, WRAP_SDL_EVENT -> Ptr)
 def(SDL_Event.unwrap, SDL_Event -- Ptr, WRAP_SDL_EVENT -> id)
@@ -138,7 +138,7 @@ def(SDL_ControllerButtonEvent.unwrap, SDL_ControllerButtonEvent -- Ptr, WRAP_SDL
 def(SDL_ControllerButtonEvent.>Ptr,  SDL_ControllerButtonEvent -- Ptr, unwrap)
 
 def(SDL_Event.cbutton, SDL_Event -- SDL_ControllerButtonEvent,
-    >Ptr >SDL_ControllerButtonEvent)
+   >Ptr >SDL_ControllerButtonEvent)
 def(SDL_ControllerButtonEvent.which&, SDL_ControllerButtonEvent -- Ptr,
     dip(8 >Offset) >Ptr unsafe(offset))
 def(SDL_ControllerButtonEvent.which@, SDL_ControllerButtonEvent -- SDL_JoystickID,
@@ -154,7 +154,7 @@ def(SDL_ControllerButtonEvent.button!, SDL_GameControllerButton SDL_ControllerBu
     dip(>U8) button& unsafe(!U8))
 
 def(U16.>SDL_Scancode, U16 -- SDL_Scancode,
-    >Int SDL_Scancode.from-tag-unsafe)
+   >Int SDL_Scancode.from-tag-unsafe)
 
 data(SDL_Scancode,
     SDL_SCANCODE_UNKNOWN,
@@ -481,6 +481,6 @@ def(SDL_CONTROLLER_BUTTON_INVALID, SDL_GameControllerButton,
     # without having to specify all of these manually.
 
 def(U8.>SDL_GameControllerButton, U8 -- SDL_GameControllerButton,
-    >Int SDL_GameControllerButton.from-tag-unsafe)
+   >Int SDL_GameControllerButton.from-tag-unsafe)
 def(SDL_GameControllerButton.>U8, SDL_GameControllerButton -- U8, tag >U8)
 def(SDL_GameControllerButton.==, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(tag) ==)

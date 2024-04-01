@@ -18,6 +18,6 @@ def(Tycon.qname, Tycon -- QName,
     TYCON_PRIM -> tycon-qname)
 
 def(Tycon.==, Tycon Tycon -- Bool,
-    TYCON_DATA -> swap match(TYCON_DATA -> .==, _ -> drop2 F),
-    TYCON_TABLE -> swap match(TYCON_TABLE -> .==, _ -> drop2 F),
-    TYCON_PRIM -> swap match(TYCON_PRIM -> .==, _ -> drop2 F))
+    TYCON_DATA -> swap match(TYCON_DATA -> ==, _ -> drop2 F),
+    TYCON_TABLE -> swap match(TYCON_TABLE -> ==, _ -> drop2 F),
+    TYCON_PRIM -> swap match(TYCON_PRIM -> ==, _ -> drop2 F))

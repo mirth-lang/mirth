@@ -44,20 +44,20 @@ def(Byte.>Int, Byte -- Int, Byte.tag)
 def(Int.>Byte, Int -- Byte,
     assert!(dup 0 255 in-range, "Int->Byte out of range")
     Byte.from-tag-unsafe)
-def(Byte.>U8, Byte -- U8, .>Int .>U8)
-def(U8.>Byte, U8 -- Byte, .>Int .>Byte)
+def(Byte.>U8, Byte -- U8, >Int >U8)
+def(U8.>Byte, U8 -- Byte, >Int >Byte)
 
-def(Ptr.@Byte, Ptr +Unsafe -- Byte +Unsafe, .@U8 .>Byte)
-def(Ptr.!Byte, Byte Ptr +Unsafe -- +Unsafe, dip(.>U8) .!U8)
+def(Ptr.@Byte, Ptr +Unsafe -- Byte +Unsafe, @U8 >Byte)
+def(Ptr.!Byte, Byte Ptr +Unsafe -- +Unsafe, dip(>U8) !U8)
 
-def(Byte.cmp, Byte Byte -- Comparison, both(.>Int) .cmp)
-def(Byte.==,  Byte Byte -- Bool, both(.>Int) .==)
-def(Byte.<,  Byte Byte -- Bool, both(.>Int) .<)
-def(Byte.>,  Byte Byte -- Bool, both(.>Int) .>)
-def(Byte.<=, Byte Byte -- Bool, both(.>Int) .<=)
-def(Byte.>=, Byte Byte -- Bool, both(.>Int) .>=)
-def(Byte.!=, Byte Byte -- Bool, both(.>Int) .!=)
-def(Byte.in-range, Byte Byte Byte -- Bool, dip(both(.>Int)) .>Int in-range)
+def(Byte.cmp, Byte Byte -- Comparison, both(>Int) .cmp)
+def(Byte.==,  Byte Byte -- Bool, both(>Int) ==)
+def(Byte.<,  Byte Byte -- Bool, both(>Int) <)
+def(Byte.>,  Byte Byte -- Bool, both(>Int) >)
+def(Byte.<=, Byte Byte -- Bool, both(>Int) <=)
+def(Byte.>=, Byte Byte -- Bool, both(>Int) >=)
+def(Byte.<>, Byte Byte -- Bool, both(>Int) <>)
+def(Byte.in-range, Byte Byte Byte -- Bool, dip(both(>Int)) >Int in-range)
 
 def(Byte.is-upper, Byte -- Bool, B'A' B'Z' in-range)
 def(Byte.is-lower, Byte -- Bool, B'a' B'z' in-range)
@@ -85,16 +85,16 @@ def(Byte.is-string-end, Byte -- Bool,
     BQUOTE -> T, BLF -> T, BNUL -> T, _ -> drop F)
 
 def(Byte.to-lower, Byte -- Byte,
-    dup is-upper if(.>Int 0x20 .+ .>Byte, id))
+    dup is-upper if(>Int 0x20 + >Byte, id))
 def(Byte.to-upper, Byte -- Byte,
-    dup is-lower if(.>Int 0x20 .- .>Byte, id))
+    dup is-lower if(>Int 0x20 - >Byte, id))
 
 def(Byte.to-hexdigits, Byte -- Byte Byte,
-    .>Int
-    dup 4 .>> one-hexdigit-byte
-    swap 0xF .& one-hexdigit-byte)
+    >Int
+    dup 4 >> one-hexdigit-byte
+    swap 0xF & one-hexdigit-byte)
 def(one-hexdigit-byte, Int -- Byte,
-    dup 9 .> if(55, 48) .+ .>Byte)
+    dup 9 > if(55, 48) + >Byte)
 
 def(Byte.is-name-byte, Byte -- Bool,
     BLPAREN -> F,
@@ -106,7 +106,7 @@ def(Byte.is-name-byte, Byte -- Bool,
     BCOMMA -> F,
     BQUOTE -> F,
     BDEL -> F,
-    _ -> BSPACE .>)
+    _ -> BSPACE >)
 
 def(Byte.is-sign, Byte -- Bool,
     B'-' -> T,

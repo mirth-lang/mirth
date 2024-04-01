@@ -102,39 +102,39 @@ field(Block.~dom, Block, StackType)
 field(Block.~cod, Block, StackType)
 field(Block.~arrow, Block, Lazy(Arrow))
 
-def(Arrow.token-start, Arrow -- Token, .~token-start @)
-def(Arrow.token-end, Arrow -- Token, .~token-end @)
-def(Arrow.home, Arrow -- Home, .~home @)
-def(Arrow.ctx, Arrow -- Ctx, .~ctx @)
-def(Arrow.dom, Arrow -- StackType, .~dom @)
-def(Arrow.cod, Arrow -- StackType, .~cod @)
+def(Arrow.token-start, Arrow -- Token, ~token-start @)
+def(Arrow.token-end, Arrow -- Token, ~token-end @)
+def(Arrow.home, Arrow -- Home, ~home @)
+def(Arrow.ctx, Arrow -- Ctx, ~ctx @)
+def(Arrow.dom, Arrow -- StackType, ~dom @)
+def(Arrow.cod, Arrow -- StackType, ~cod @)
 def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
-def(Arrow.atoms, Arrow -- List(Atom), .~atoms @)
+def(Arrow.atoms, Arrow -- List(Atom), ~atoms @)
 
-def(Atom.token, Atom -- Token, .~token @)
-def(Atom.ctx, Atom -- Ctx, .~ctx @)
-def(Atom.op, Atom -- Op, .~op @)
-def(Atom.args, Atom -- List(Arg), .~args @)
-def(Atom.dom, Atom -- StackType, .~dom @)
-def(Atom.cod, Atom -- StackType, .~cod @)
-def(Atom.subst, Atom -- Subst, .~subst @)
+def(Atom.token, Atom -- Token, ~token @)
+def(Atom.ctx, Atom -- Ctx, ~ctx @)
+def(Atom.op, Atom -- Op, ~op @)
+def(Atom.args, Atom -- List(Arg), ~args @)
+def(Atom.dom, Atom -- StackType, ~dom @)
+def(Atom.cod, Atom -- StackType, ~cod @)
+def(Atom.subst, Atom -- Subst, ~subst @)
 
-def(Lambda.token, Lambda -- Token, .~token @)
-def(Lambda.outer-ctx, Lambda -- Ctx, .~outer-ctx @)
-def(Lambda.inner-ctx, Lambda -- Ctx, .~inner-ctx @)
-def(Lambda.dom, Lambda -- StackType, .~dom @)
-def(Lambda.mid, Lambda -- StackType, .~mid @)
-def(Lambda.cod, Lambda -- StackType, .~cod @)
-def(Lambda.params, Lambda -- List(Param), .~params @)
-def(Lambda.body, Lambda -- Arrow, .~body @)
+def(Lambda.token, Lambda -- Token, ~token @)
+def(Lambda.outer-ctx, Lambda -- Ctx, ~outer-ctx @)
+def(Lambda.inner-ctx, Lambda -- Ctx, ~inner-ctx @)
+def(Lambda.dom, Lambda -- StackType, ~dom @)
+def(Lambda.mid, Lambda -- StackType, ~mid @)
+def(Lambda.cod, Lambda -- StackType, ~cod @)
+def(Lambda.params, Lambda -- List(Param), ~params @)
+def(Lambda.body, Lambda -- Arrow, ~body @)
 
-def(Block.ctx, Block -- Ctx, .~ctx @)
-def(Block.token, Block -- Token, .~token @)
-def(Block.dom, Block -- StackType, .~dom @)
-def(Block.cod, Block -- StackType, .~cod @)
+def(Block.ctx, Block -- Ctx, ~ctx @)
+def(Block.token, Block -- Token, ~token @)
+def(Block.dom, Block -- StackType, ~dom @)
+def(Block.cod, Block -- StackType, ~cod @)
 def(Block.type, Block -- ArrowType, sip(dom) cod T->)
-def(Block.home, Block -- Home, .~home @)
-def(Block.arrow, Block -- Arrow, .~arrow force!)
+def(Block.home, Block -- Home, ~home @)
+def(Block.arrow, Block -- Arrow, ~arrow force!)
 def(Block.infer-type!, Block -- ArrowType, arrow type)
 
 #######
@@ -143,31 +143,31 @@ def(Block.infer-type!, Block -- ArrowType, arrow type)
 
 ||| Add arg to atom, on the left.
 def(Atom.add-arg-left!, Arg Atom --,
-    .~args modify(cons))
+    ~args modify(cons))
 
 #########
 # BLOCK #
 #########
 
-def(Block.==, Block Block -- Bool, both(Block.id) .==)
+def(Block.==, Block Block -- Bool, both(Block.id) ==)
 
 def(Block.new!, Arrow -- Block,
     Block.alloc!
-    over home over .~home !
-    over ctx over .~ctx !
-    over token-start over .~token !
-    over dom over .~dom !
-    over cod over .~cod !
-    tuck dip(ready) .~arrow !)
+    over home over ~home !
+    over ctx over ~ctx !
+    over token-start over ~token !
+    over dom over ~dom !
+    over cod over ~cod !
+    tuck dip(ready) ~arrow !)
 
 def(Block.new-deferred!(f), (Block -- Arrow) Ctx Token Home -- Block,
     Block.alloc!
-    tuck .~home !
-    tuck .~token !
-    tuck .~ctx !
-    MetaVar.new! STMeta over .~dom !
-    MetaVar.new! STMeta over .~cod !
-    dup delay(f) over .~arrow !)
+    tuck ~home !
+    tuck ~token !
+    tuck ~ctx !
+    MetaVar.new! STMeta over ~dom !
+    MetaVar.new! STMeta over ~cod !
+    dup delay(f) over ~arrow !)
 
 def(Block.typecheck!, Block --,
     arrow drop)

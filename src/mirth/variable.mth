@@ -10,13 +10,13 @@ field(Variable.~head, Variable, Token)
 field(Variable.~qname, Variable, QName)
 field(Variable.~type, Variable, Lazy(Type))
 
-def(Variable.head, Variable -- Token, .~head @)
-def(Variable.qname, Variable -- QName, .~qname @)
-def(Variable.type, Variable -- Type, .~type force!)
+def(Variable.head, Variable -- Token, ~head @)
+def(Variable.qname, Variable -- QName, ~qname @)
+def(Variable.type, Variable -- Type, ~type force!)
 
 def(Variable.new!, Token QName Lazy(Type) -- Variable,
     Variable.alloc!
-    tuck .~type !
-    tuck .~qname !
-    tuck .~head !
+    tuck ~type !
+    tuck ~qname !
+    tuck ~head !
     dup DEF_VARIABLE register)

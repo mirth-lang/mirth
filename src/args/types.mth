@@ -72,19 +72,19 @@ field(ArgpOption.~arg, ArgpOption, Maybe(Str))
 field(ArgpOption.~doc, ArgpOption, Maybe(Str))
 field(ArgpOption.~group, ArgpOption, Maybe(Int))
 
-def(ArgpOption.long, ArgpOption -- Maybe(Str), .~long @)
-def(ArgpOption.type, ArgpOption -- ArgpOptionType, .~type @)
-def(ArgpOption.arg, ArgpOption -- Maybe(Str), .~arg @)
-def(ArgpOption.doc, ArgpOption -- Maybe(Str), .~doc @)
-def(ArgpOption.group, ArgpOption -- Maybe(Int), .~group @)
+def(ArgpOption.long, ArgpOption -- Maybe(Str), ~long @)
+def(ArgpOption.type, ArgpOption -- ArgpOptionType, ~type @)
+def(ArgpOption.arg, ArgpOption -- Maybe(Str), ~arg @)
+def(ArgpOption.doc, ArgpOption -- Maybe(Str), ~doc @)
+def(ArgpOption.group, ArgpOption -- Maybe(Int), ~group @)
 
 def(ArgpOption.new, Maybe(Str) ArgpOptionType Maybe(Str) Maybe(Str) Maybe(Int) -- ArgpOption,
   ArgpOption.alloc!
-  dup dip(.~group !)
-  dup dip(.~doc !)
-  dup dip(.~arg !)
-  dup dip(.~type !)
-  dup dip(.~long !)
+  dup dip(~group !)
+  dup dip(~doc !)
+  dup dip(~arg !)
+  dup dip(~type !)
+  dup dip(~long !)
 )
 
 data(ArgumentParsingError,

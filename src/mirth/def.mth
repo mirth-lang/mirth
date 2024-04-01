@@ -170,4 +170,4 @@ def(Def.qname, Def -- QName,
 def(Def.register, Def --,
     dup qname
     dup undefined? else("qualified name already has definition" panic!)
-    name .~defs modify(swap snoc))
+    name ~defs modify(swap snoc))

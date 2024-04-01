@@ -119,21 +119,21 @@ field(Prim.~type, Prim, ArrowType)
 field(Prim.~decl, Prim, Maybe([Token +World -- Token +World]))
 
 def(Prim.qname, Prim -- QName, dip(Namespace.prim) name QNAME)
-def(Prim.name, Prim -- Name, .~name @)
-def(Prim.ctx, Prim -- Ctx, .~ctx @)
-def(Prim.type, Prim -- ArrowType, .~type @)
-def(Prim.decl, Prim -- Maybe([Token +World -- Token +World]), .~decl @)
+def(Prim.name, Prim -- Name, ~name @)
+def(Prim.ctx, Prim -- Ctx, ~ctx @)
+def(Prim.type, Prim -- ArrowType, ~type @)
+def(Prim.decl, Prim -- Maybe([Token +World -- Token +World]), ~decl @)
 
 def(Prim.>Int, Prim -- Int, Prim.tag)
-def(Prim.==, Prim Prim -- Bool, both(.>Int) .==)
+def(Prim.==, Prim Prim -- Bool, both(>Int) ==)
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
-    .>Name over .~name !
+    >Name over ~name !
     DEF_PRIM register)
 
 def(Prim.ctx-type!, Ctx ArrowType Prim --,
-    tuck .~type ! .~ctx !)
+    tuck ~type ! ~ctx !)
 
 ||| Initialize name table with list of primitives.
 def(init-prims!, --,
@@ -360,20 +360,20 @@ def(init-prims!, --,
     CTX0 T0 TYPE_PTR T1 T->
     PRIM_SYS_ARGV ctx-type!
 
-    CTX0 T0 T0 .>Type T1 T->
+    CTX0 T0 T0 >Type T1 T->
     PRIM_PACK_NIL ctx-type!
 
     #
     # polymorphic prims
     #
 
-    TYPE_TYPE "a" .>Name Var.new!
-    TYPE_TYPE "b" .>Name Var.new!
-    TYPE_TYPE "c" .>Name Var.new!
-    TYPE_RESOURCE "+r" .>Name Var.new!
-    TYPE_RESOURCE "+s" .>Name Var.new!
-    TYPE_STACK "*x" .>Name Var.new!
-    TYPE_STACK "*y" .>Name Var.new!
+    TYPE_TYPE "a" >Name Var.new!
+    TYPE_TYPE "b" >Name Var.new!
+    TYPE_TYPE "c" >Name Var.new!
+    TYPE_RESOURCE "+r" >Name Var.new!
+    TYPE_RESOURCE "+s" >Name Var.new!
+    TYPE_STACK "*x" >Name Var.new!
+    TYPE_STACK "*y" >Name Var.new!
     \( a b c rr sr xs ys ->
         a TVar b TVar c TVar
         rr TVar RESOURCE sr TVar RESOURCE
@@ -392,7 +392,7 @@ def(init-prims!, --,
         PRIM_CORE_SWAP ctx-type!
 
         xs ys CTX2
-        txs txs tys T-> .>Type T* tys T->
+        txs txs tys T-> >Type T* tys T->
         PRIM_CORE_RUN ctx-type!
 
         xs ys CTX2
@@ -404,16 +404,16 @@ def(init-prims!, --,
         PRIM_CORE_PANIC ctx-type!
 
         xs ys c CTX3
-        txs tc T* txs tys T-> .>Type T* tys tc T* T->
+        txs tc T* txs tys T-> >Type T* tys tc T* T->
         PRIM_CORE_DIP ctx-type!
 
         xs ys CTX2
-        txs TYPE_BOOL T* txs tys T-> .>Type sip(T*) T* tys T->
+        txs TYPE_BOOL T* txs tys T-> >Type sip(T*) T* tys T->
         PRIM_CORE_IF ctx-type!
 
         xs CTX1
-        txs txs txs TYPE_BOOL T* T-> .>Type T*
-            txs txs T-> .>Type T*
+        txs txs txs TYPE_BOOL T* T-> >Type T*
+            txs txs T-> >Type T*
         txs T->
         PRIM_CORE_WHILE ctx-type!
 
@@ -422,15 +422,15 @@ def(init-prims!, --,
         PRIM_CORE_RSWAP ctx-type!
 
         xs ys rr CTX3
-        txs trr T+ txs tys T-> .>Type T* tys trr T+ T->
+        txs trr T+ txs tys T-> >Type T* tys trr T+ T->
         PRIM_CORE_RDIP ctx-type!
 
         xs b CTX2
-        txs .>Type tb T2 txs tb T* .>Type T1 T->
+        txs >Type tb T2 txs tb T* >Type T1 T->
         PRIM_PACK_CONS ctx-type!
 
         xs b CTX2
-        txs tb T* .>Type T1 txs .>Type tb T2 T->
+        txs tb T* >Type T1 txs >Type tb T2 T->
         PRIM_PACK_UNCONS ctx-type!
 
         a CTX1
