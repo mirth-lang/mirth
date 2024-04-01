@@ -1,5 +1,5 @@
 module(tests.stack-assertions)
-import(prelude)
+import(std.prelude)
 
 def(ok-1, Int Str -- Str Int Str,
     {Int Str} swap {Str Int} swap {Int Str} tuck {Str Int Str})

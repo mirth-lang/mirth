@@ -1,5 +1,5 @@
 module(tests.error-missing-patterns)
-import(prelude)
+import(std.prelude)
 
 data(Foo,
     A,

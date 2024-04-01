@@ -1,7 +1,7 @@
 
 module(tests.pattern-matching)
-import(prelude)
-import(platform.posix)
+import(std.prelude)
+import(posix.posix)
 
 data(Foo,
     FOO0,
