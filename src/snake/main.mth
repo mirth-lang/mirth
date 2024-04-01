@@ -143,7 +143,7 @@ def(snake-init!, --,
         id
     )
 
-    SDL_NumJoysticks 0 while(dup2 >,
+    SDL_NumJoysticks 0 >SDL_JoystickID while(dup2 >,
         dup SDL_IsGameController if(
             snake-controller ! dup
             snake-controller @ SDL_GameControllerOpen drop,
@@ -238,29 +238,29 @@ def(snake-present!, --,
     snake-renderer @ SDL_RenderPresent)
 
 def(snake-process-events!, --,
-    while(SNAKE_EVENT SDL_PollEvent 0>,
+    while(SNAKE_EVENT >SDL_Event SDL_PollEvent 0>,
         snake-process-event!))
 
 def(snake-process-event!, --,
-    SNAKE_EVENT SDL_Event.type .>Int
-    dup SDL_QUIT .>Int = if(
+    SNAKE_EVENT >SDL_Event type@
+    dup SDL_QUIT == if(
         drop T snake-done !,
 
-    dup SDL_KEYDOWN .>Int = if(
+    dup SDL_KEYDOWN == if(
         drop
-        SNAKE_EVENT SDL_Event.key.repeat .>Int 0> if(
+        SNAKE_EVENT >SDL_Event key repeat@ >Int 0> if(
             id,
-            SNAKE_EVENT SDL_Event.key.keysym.scancode
+            SNAKE_EVENT >SDL_Event key keysym scancode@
             match(
                 SDL_SCANCODE_ESCAPE -> T snake-done !,
                 _ -> SDL_Scancode->SnakeButton snake-press!
             )
         ),
 
-    dup SDL_CONTROLLERBUTTONDOWN .>Int = if(
+    dup SDL_CONTROLLERBUTTONDOWN == if(
         drop
-        SNAKE_EVENT SDL_Event.cbutton.which snake-controller @ = if(
-            SNAKE_EVENT SDL_Event.cbutton.button
+        SNAKE_EVENT >SDL_Event cbutton which@ snake-controller @ == if(
+            SNAKE_EVENT >SDL_Event cbutton button@
             SDL_GameControllerButton->SnakeButton snake-press!,
             id
         ),
@@ -334,8 +334,8 @@ def(snake-randomize-mouse!, --,
     ))
 
 def(snake-check-mouse!, --,
-    snake-x @ snake-mouse-x @ both(>Int) =
-    snake-y @ snake-mouse-y @ both(>Int) = && if(
+    snake-x @ snake-mouse-x @ both(>Int) ==
+    snake-y @ snake-mouse-y @ both(>Int) == && if(
         snake-randomize-mouse!
         snake-points modify(1+),
 
@@ -343,7 +343,7 @@ def(snake-check-mouse!, --,
     ))
 
 def(Direction->Int, Direction -- Int, Direction.tag)
-def(direction==, Direction Direction -- Bool, both(Direction->Int) =)
+def(direction==, Direction Direction -- Bool, both(Direction->Int) ==)
 
 def(snake-turn!, Direction --,
     dup snake-flip-direction snake-last-direction @ direction== if(

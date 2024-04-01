@@ -3,7 +3,7 @@ C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-u
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 
-SRCS=src/*/*
+SRCS=src/std/* src/args/* src/posix/* src/mirth/*
 
 .PHONY: default show showsan build buildsan update check checksan update-mirth install-vim install-code install profile play-snake test test-update
 
@@ -103,8 +103,8 @@ bin/mirth_prof.c: bin/mirth3.c
 bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
-bin/snake.c: bin/mirth2 $(SRCS) src/sdl2.mth src/snake.mth
-	bin/mirth2 snake.mth -o snake.c -e 'snake!'
+bin/snake.c: bin/mirth2 src/std/* src/posix/* src/snake/*
+	bin/mirth2 snake/main.mth -o snake.c
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`
