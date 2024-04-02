@@ -3,7 +3,6 @@ module(mirth.error)
 import(std.prelude)
 import(posix.posix)
 import(mirth.location)
-import(mirth.token)
 
 ####################
 # Errors, Warnings #
