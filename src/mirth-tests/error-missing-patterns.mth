@@ -26,7 +26,7 @@ data(M(t),
 def(q, M(Int) --,
     match())
 
-def(main, ,)
+def(main, --, id)
 # mirth-test # merr # 14:5: error: Pattern match not exhaustive.
 # mirth-test # merr # 20:5: error: Pattern match not exhaustive.
 # mirth-test # merr # 27:5: error: Pattern match not exhaustive.

@@ -82,6 +82,11 @@ def(compile!, Arguments +World -- +World,
     elab-module!
     typecheck-everything!
 
+    over entry-point map(
+        dip(dup NAMESPACE_MODULE) >Name QNAME
+        elab-entry-point
+    ) nip
+
     num-errors @ 0> if(
         num-errors @ trace!
         " errors." trace-ln!
@@ -89,14 +94,12 @@ def(compile!, Arguments +World -- +World,
   	    "No errors." trace-ln!
     )
 
-    over entry-point match(
+    match(
         SOME ->
             "Codegen." trace-ln!
-            >Name dip(NAMESPACE_MODULE) QNAME
-            elab-entry-point
             swap output-file unwrap run-output-c99!,
         NONE ->
-            "Skipping Codegen." trace-ln! drop2
+            "Skipping Codegen." trace-ln! drop
     ))
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
