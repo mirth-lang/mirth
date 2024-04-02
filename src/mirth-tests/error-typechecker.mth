@@ -1,0 +1,7 @@
+||| Typechecker should run even when there's no entry point.
+module(mirth-tests.error-typechecker)
+def(spam, Int, "hello")
+
+# mirth-test # merr # 3:23: error: Failed to unify Int with Str
+# mirth-test # merr # 2:1: error: can't find entry point mirth-tests.error-typechecker.main
+# mirth-test # mret # 1

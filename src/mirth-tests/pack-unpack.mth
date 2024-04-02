@@ -1,4 +1,4 @@
-module(tests.pack-unpack)
+module(mirth-tests.pack-unpack)
 import(std.prelude)
 import(posix.posix)
 

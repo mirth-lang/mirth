@@ -1,4 +1,4 @@
-module(tests.test-unicode-names)
+module(mirth-tests.test-unicode-names)
 import(std.prelude)
 import(posix.posix)
 

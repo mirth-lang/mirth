@@ -1,5 +1,5 @@
 
-module(tests.pattern-matching)
+module(mirth-tests.pattern-matching)
 import(std.prelude)
 import(posix.posix)
 
