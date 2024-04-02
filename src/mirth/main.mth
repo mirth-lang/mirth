@@ -75,7 +75,7 @@ def(compile!, Arguments +World -- +World,
     dup input-file >Str trace-ln!
 
     dup ~packages @ for(
-      unpack2 dup2 trace! ": " trace! trace-ln! swap >Name Package.new-or-set-path! drop
+      unpack2 swap >Name Package.new-or-set-path! drop
     )
 
     dup input-file run-lexer!
