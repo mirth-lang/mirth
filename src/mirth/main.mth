@@ -28,7 +28,6 @@ import(mirth.c99)
 
 def(init!, --,
     init-errors!
-    init-paths!
     init-types!
     init-prims!)
 
@@ -75,10 +74,11 @@ def(compile!, Arguments +World -- +World,
     "Compiling " trace!
     dup input-file >Str trace-ln!
 
-    dup input-file run-lexer!
+    dup ~packages @ for(
+      unpack2 dup2 trace! ": " trace! trace-ln! swap >Name Package.new-or-set-path! drop
+    )
 
-    # show-names-table!
-    # show-tokens!
+    dup input-file run-lexer!
 
     "Building." trace-ln!
 
@@ -90,10 +90,6 @@ def(compile!, Arguments +World -- +World,
         " errors." trace-ln!
         1 posix-exit!,
   	    "No errors." trace-ln!
-    )
-
-    over ~packages @ for(
-      unpack2 swap >Name Package.new! drop
     )
 
     over entry-point match(

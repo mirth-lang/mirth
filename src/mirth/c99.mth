@@ -55,7 +55,7 @@ def(+C99.put-byte, Byte +C99 -- +C99, ~Output(put-byte))
 def(+C99.line, +C99 -- +C99, ~Output(line))
 
 def(c99-start!, Arrow Path +World -- Arrow +World +C99,
-    to-output-path create-file! output-start!
+    create-file! output-start!
     rdip(+Needs.new dup determine-arrow-needs!)
     0 >Nat MKC99)
 

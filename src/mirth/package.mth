@@ -8,28 +8,32 @@ import(mirth.def)
 
 table(Package)
 field(Package.~name, Package, Name)
-field(Package.~path, Package, Path)
+field(Package.~path, Package, Maybe(Path))
 
 def(Package.name, Package -- Name, ~name @)
 def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME)
-def(Package.path, Package -- Path, ~path @)
+def(Package.path, Package -- Maybe(Path), ~path @)
 
-var(Package.std-var, Package)
-def(Package.std, Package,
-    Package.std-var memoize(
-        "std" >Path "std" >Name Package.new!
-    ))
-
-def(Package.new!, Path Name -- Package,
+def(Package.new!, Maybe(Path) Name -- Package,
     Package.alloc!
     tuck ~name !
     tuck ~path !
     dup DEF_PACKAGE register)
 
+def(Package.new-or-set-path!, Path Name -- Package,
+  dup Package.find match(
+    SOME -> dup path match(
+      SOME -> "Package already has path" panic!,
+      NONE -> dip(drop) dup dip(dip(SOME) ~path !)
+    ),
+    NONE -> dip(SOME) Package.new!
+  )
+)
+
 def(Package.find, Name -- Maybe(Package),
     NAMESPACE_ROOT swap QNAME def? bind(package?))
 
 def(Package.find-or-new!, Name -- Package,
-    dup Package.find unwrap-or(dup >Str >Path over Package.new!) nip)
+    dup Package.find unwrap-or(dup NONE swap Package.new!) nip)
 
 def(Package.==, Package Package -- Bool, both(.id) ==)
