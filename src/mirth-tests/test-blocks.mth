@@ -1,4 +1,4 @@
-module(tests.test-blocks)
+module(mirth-tests.test-blocks)
 import(std.prelude)
 import(std.list)
 import(posix.posix)

@@ -2,7 +2,7 @@
 ||| We want to make sure it captures output from
 ||| each program that is generated, incl. stderr,
 ||| and exit codes.
-module(tests.hello-world)
+module(mirth-tests.hello-world)
 import(std.prelude)
 import(posix.posix)
 

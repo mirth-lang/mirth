@@ -1,10 +1,10 @@
 ||| Errors should short-circuit the codegen.
-module(tests.error-shortcircuit)
+module(mirth-tests.error-shortcircuit)
 import(std.prelude)
 import(posix.posix)
 
-# this should not run
-def(main, Int, "hello")
+def(main, --, id)
+def(spam, Int, "hello")
 
 # mirth-test # merr # 7:23: error: Failed to unify Int with Str
 # mirth-test # mret # 1

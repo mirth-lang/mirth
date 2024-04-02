@@ -1,4 +1,4 @@
-module(tests.resource-match)
+module(mirth-tests.resource-match)
 
 import(std.prelude)
 import(std.either)

@@ -1,4 +1,4 @@
-module(tests.test-unicode-strings)
+module(mirth-tests.test-unicode-strings)
 import(std.prelude)
 import(std.str)
 import(std.byte)

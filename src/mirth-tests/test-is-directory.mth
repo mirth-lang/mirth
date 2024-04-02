@@ -1,4 +1,4 @@
-module(tests.test-is-directory)
+module(mirth-tests.test-is-directory)
 import(std.prelude)
 import(std.path)
 import(posix.posix)

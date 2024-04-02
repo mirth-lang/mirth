@@ -1,4 +1,4 @@
-module(tests.test-prelude)
+module(mirth-tests.test-prelude)
 import(std.prelude)
 import(posix.posix)
 

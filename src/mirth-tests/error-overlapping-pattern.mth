@@ -1,10 +1,9 @@
-module(tests.error-overlapping-pattern)
+module(mirth-tests.error-overlapping-pattern)
 import(std.prelude)
 
 data(Foo,
     A,
     B)
-#
 
 def(f, Foo --,
     match(A -> id, B -> id))
@@ -15,7 +14,7 @@ def(g, Foo --,
 def(h, Foo --,
     match(_ -> drop, A -> id))
 
-def(main, ,)
-# mirth-test # merr # 13:20: error: Case is unreachable.
-# mirth-test # merr # 16:22: error: Case is unreachable.
+def(main, --, id)
+# mirth-test # merr # 12:20: error: Case is unreachable.
+# mirth-test # merr # 15:22: error: Case is unreachable.
 # mirth-test # mret # 1

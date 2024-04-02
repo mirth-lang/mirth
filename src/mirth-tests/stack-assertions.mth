@@ -1,4 +1,4 @@
-module(tests.stack-assertions)
+module(mirth-tests.stack-assertions)
 import(std.prelude)
 
 def(ok-1, Int Str -- Str Int Str,
@@ -34,7 +34,7 @@ def(non-exhaustive-reverse, a b c d -- a b c d,
     {a b}
     {a})
 
-def(main, ,)
+def(main, --, id)
 # mirth-test # merr # 17:20: error: Failed to unify Str with Int
 # mirth-test # merr # 17:50: error: Failed to unify Int with Str
 # mirth-test # merr # 20:16: error: Failed to unify b with a

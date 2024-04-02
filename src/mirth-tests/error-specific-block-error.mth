@@ -1,4 +1,4 @@
-module(tests.error-specific-block-error)
+module(mirth-tests.error-specific-block-error)
 import(std.prelude)
 
 # Check that type error is on the "bar".
