@@ -16,5 +16,5 @@ def(h, Foo --,
 
 def(main, --, id)
 # mirth-test # merr # 12:20: error: Case is unreachable.
-# mirth-test # merr # 14:22: error: Case is unreachable.
+# mirth-test # merr # 15:22: error: Case is unreachable.
 # mirth-test # mret # 1
