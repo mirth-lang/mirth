@@ -1,4 +1,4 @@
-module(tests.stack-assertions)
+module(mirth-tests.stack-assertions)
 import(std.prelude)
 
 def(ok-1, Int Str -- Str Int Str,

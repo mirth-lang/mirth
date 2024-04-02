@@ -1,4 +1,4 @@
-module(tests.error-recursive-block-type)
+module(mirth-tests.error-recursive-block-type)
 import(std.prelude)
 
 def( diverge, *a -- *b,

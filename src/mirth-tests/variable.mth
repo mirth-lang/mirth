@@ -1,4 +1,4 @@
-module(tests.variable)
+module(mirth-tests.variable)
 import(std.prelude)
 import(posix.posix)
 
@@ -25,6 +25,6 @@ def(main, --,
 # mirth-test # perr # tried to read uninitialized value
 # mirth-test # perr # ??
 # mirth-test # perr # call stack:
-# mirth-test # perr #     @ -> prim-mut-get at src/tests/variable.mth:18:12
-# mirth-test # perr #     main at src/tests/variable.mth:7:5
+# mirth-test # perr #     @ -> prim-mut-get at src/mirth-tests/variable.mth:18:12
+# mirth-test # perr #     main at src/mirth-tests/variable.mth:7:5
 # mirth-test # pret # 1

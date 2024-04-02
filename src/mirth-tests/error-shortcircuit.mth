@@ -1,5 +1,5 @@
 ||| Errors should short-circuit the codegen.
-module(tests.error-shortcircuit)
+module(mirth-tests.error-shortcircuit)
 import(std.prelude)
 import(posix.posix)
 

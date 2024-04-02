@@ -1,4 +1,4 @@
-module(tests.data-syntax)
+module(mirth-tests.data-syntax)
 import(std.prelude)
 
 data(TA, A1)

@@ -1,4 +1,4 @@
-module(tests.error-missing-patterns)
+module(mirth-tests.error-missing-patterns)
 import(std.prelude)
 
 data(Foo,

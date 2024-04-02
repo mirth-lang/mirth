@@ -1,4 +1,4 @@
-module(tests.error-name-already-defined)
+module(mirth-tests.error-name-already-defined)
 import(std.prelude)
 def(foo, Int, 0)
 def(foo, Int, 2)

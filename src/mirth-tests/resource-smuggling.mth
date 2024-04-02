@@ -1,4 +1,4 @@
-module(tests.resource-smuggling)
+module(mirth-tests.resource-smuggling)
 
 import(std.prelude)
 data(TheWorld, THE_WORLD -> +World)

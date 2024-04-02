@@ -1,4 +1,4 @@
-module(tests.test-arithmetic)
+module(mirth-tests.test-arithmetic)
 import(std.prelude)
 import(posix.posix)
 

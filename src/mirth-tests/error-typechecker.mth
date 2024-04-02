@@ -1,5 +1,5 @@
 ||| Typechecker should run even when there's no target.
-module(tests.error-typechecker)
+module(mirth-tests.error-typechecker)
 def(main, Int, "hello")
 
 # mirth-test # merr # 3:23: error: Failed to unify Int with Str
