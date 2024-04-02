@@ -36,14 +36,16 @@ table(Arguments)
 field(Arguments.~input-file, Arguments, Path)
 field(Arguments.~output-file, Arguments, Maybe(Path))
 field(Arguments.~entry-point, Arguments, Maybe(Str))
+field(Arguments.~packages, Arguments, List([Str Path]))
 
 # Helpers to read table fields
 def(Arguments.input-file, Arguments -- Path, ~input-file @)
 def(Arguments.output-file, Arguments -- Maybe(Path), ~output-file @)
 def(Arguments.entry-point, Arguments -- Maybe(Str), ~entry-point @)
 
-def(Arguments.new, Path Maybe(Path) Maybe(Str) -- Arguments,
+def(Arguments.new, Path Maybe(Path) Maybe(Str) List([Str Path]) -- Arguments,
     Arguments.alloc!
+    dup dip(~packages !)
     dup dip(~entry-point !)
     dup dip(~output-file !)
     dup dip(~input-file !))
@@ -54,6 +56,7 @@ def(Arguments.default, -- Arguments,
     "mirth.mth" >Path
     NONE
     "main" SOME
+    L0
     Arguments.new)
 
 ||| Pretty print the contents of the arguments struct
@@ -89,6 +92,10 @@ def(compile!, Arguments +World -- +World,
   	    "No errors." trace-ln!
     )
 
+    over ~packages @ for(
+      unpack2 swap >Name Package.new! drop
+    )
+
     over entry-point match(
         SOME ->
             "Codegen." trace-ln!
@@ -98,11 +105,37 @@ def(compile!, Arguments +World -- +World,
             "Skipping Codegen." trace-ln! drop2
     ))
 
+def(Str.find, Str Str -- Maybe(Offset),
+  swap thaw str-buf-find freeze drop
+)
+
+def(Str.substr-after, Offset Str -- Str,
+  dip(1+)
+  dup num-bytes over2 >Size -
+  swap unsafe(str-slice)
+)
+
+def(Str.substr-before, Offset Str -- Str,
+  swap >Size 0 >Offset swap rotl unsafe(str-slice)
+)
+
+def(Str.split-at, Offset Str -- [Str Str],
+  dup2 substr-after dip(substr-before) pack2
+)
+
+def(parse-package-def, Str -- Maybe([Str Path]),
+  dup ":" find match(
+    SOME -> swap split-at unpack2 >Path pack2 SOME,
+    NONE -> drop NONE
+  )
+)
+
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
     OPTION_SHORT -> match(
         B'o' -> unwrap >Path SOME over ~output-file !,
         B'e' -> unwrap SOME over ~entry-point !,
         B'c' -> drop NONE over ~entry-point !,
+	B'p' -> unwrap parse-package-def unwrap over ~packages @ cons over ~packages !,
         _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
     ),
     OPTION_POSITIONAL -> state current-positional-arg 0= if(
@@ -147,6 +180,12 @@ def(main, +World -- +World,
         "ENTRY_POINT" SOME
         "Custom entry point word for compilation" SOME
         NONE ArgpOption.new ;
+
+	"package" SOME
+	B'p' OPTION_SHORT
+	"(PACKAGE:PATH)*" SOME
+	"Package locations" SOME
+	NONE ArgpOption.new ;
     )
     [ compiler-parse-args ] SOME
     "input-file" SOME
