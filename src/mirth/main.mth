@@ -92,8 +92,9 @@ def(compile!, Arguments +World -- +World,
     over entry-point match(
         SOME ->
             "Codegen." trace-ln!
-            >Name dip(NAMESPACE_MODULE) QNAME def? bind(word?) unwrap-or("could not find entry point" panic!)
-            arrow swap output-file unwrap run-output-c99!,
+            >Name dip(NAMESPACE_MODULE) QNAME
+            elab-entry-point
+            swap output-file unwrap run-output-c99!,
         NONE ->
             "Skipping Codegen." trace-ln! drop2
     ))

@@ -1102,14 +1102,19 @@ def(elab-table!, Token -- Token,
     dup elab-def-qname-undefined
     table-new! drop)
 
-# ||| Elaborate C99 build target.
-# def(elab-target-c99!, Token +World -- Token +World,
-#     typecheck-everything!
-#     sip(next) args-2
-#     dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)
-#     dip(CTX0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
-#     dup HOME_MAIN elab-arrow!
-#     swap run-output-c99!)
+||| Create entry point based on word name.
+def(elab-entry-point, QName +World -- Arrow +World,
+    dup def? bind(word?) unwrap-or(
+        dup dip(
+            namespace module? unwrap start
+            "can't find entry point "
+        ) >Str cat
+        emit-fatal-error!
+    ) nip { Word +World }
+    dup dip(CTX0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
+    head dup HOME_MAIN ab-build-hom!(
+        dip(ab-word!)
+    ))
 
 ||| Embed a file as a string, embed-str(name, "path").
 ||| The path is relative to compiler's cwd, not source root.

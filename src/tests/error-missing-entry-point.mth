@@ -1,0 +1,4 @@
+module(tests.error-missing-entry-point)
+
+# mirth-test # merr # 1:1: error: can't find entry point tests.error-missing-entry-point.main
+# mirth-test # mret # 1

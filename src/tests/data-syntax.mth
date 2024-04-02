@@ -1,4 +1,5 @@
 module(tests.data-syntax)
+import(std.prelude)
 
 data(TA, A1)
 data(TB, B1,)
@@ -13,4 +14,4 @@ data(TJ, J1, J2 -> Int,)
 data(TK)
 data(TL,)
 
-def(main, , )
+def(main, --, id)

@@ -28,7 +28,7 @@ FAILED=0
 
 set +e
 
-for filename in $(find src/tests -name "*.mth" -type f -printf '%f\n')
+for filename in $(ls src/tests | grep .mth)
 do
     rm -f $TMP/test/*
     echo tests/$filename
