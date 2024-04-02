@@ -26,10 +26,7 @@ def(Word.body, Word -- Token, ~body @)
 def(Word.params, Word -- List(Param), ~params force!)
 def(Word.arrow, Word -- Arrow, ~arrow force!)
 
-def(Word.ctx-type, Word -- Ctx ArrowType,
-    dup ~ctx-type force-or!(
-        head "recursive word needs type signature" emit-fatal-error!
-    ) nip unpack2)
+def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)
 def(Word.type, Word -- ArrowType, ctx-type nip)
 

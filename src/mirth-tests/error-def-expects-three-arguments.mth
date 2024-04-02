@@ -1,0 +1,4 @@
+module(mirth-tests.error-def-expects-three-arguments)
+def(main, --, )
+# mirth-test # merr # 2:1: error: def expects at least three arguments
+# mirth-test # mret # 1

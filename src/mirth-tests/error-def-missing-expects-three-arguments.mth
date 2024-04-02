@@ -1,0 +1,4 @@
+module(mirth-tests.error-def-missing-expects-three-arguments)
+def-missing(prim-id, --, )
+# mirth-test # merr # 2:1: error: def-missing expects at least three arguments
+# mirth-test # mret # 1

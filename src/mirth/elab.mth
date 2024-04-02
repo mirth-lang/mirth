@@ -248,7 +248,7 @@ def(ab-build-hom!(f), (*a StackType +AB -- *b StackType +AB) *a Ctx ArrowType To
     dip2(unpack rotr)
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a StackType +AB -- *b StackType +AB) *a Word -- *b Arrow,
-    sip(elab-word-ctx-type-weak!) sip(body) HOME_WORD ab-build-hom!(f))
+    sip(ctx-type) sip(body) HOME_WORD ab-build-hom!(f))
 def(ab-build-word!(f), (*a +AB -- *b +AB) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck ~arrow !)
@@ -433,15 +433,6 @@ def(elab-var-sig!, Var -- OpSig,
     dup auto-run? if(
         type morphism? unwrap semifreshen-sig OPSIG_APPLY,
         type OPSIG_PUSH
-    ))
-
-def(elab-word-ctx-type-weak!, Word -- Ctx ArrowType,
-    dup sig match(
-        NONE -> ~ctx-type @ match(
-            LAZY_READY -> unpack2,
-            _ -> drop CTX0 MetaVar.new! STMeta MetaVar.new! STMeta T->
-        ),
-        SOME -> drop ctx-type
     ))
 
 def(elab-arrow!, Ctx ArrowType Token Home -- Arrow,
@@ -973,20 +964,13 @@ def(expect-token-arrow, Token -- Token,
 
 ||| Break apart the arguments for `def` into three categories:
 |||     - head: the name of the definition, plus params
-|||     - (optional) sig: the type signature
+|||     - sig: the type signature
 |||     - body: a nonempty list of body arguments
-def(token-def-args, Token -- Token Maybe(Token) List+(Token),
-    dup args dup len 2 >Nat >= if(nip,
-        drop "def expects at least two arguments" emit-fatal-error!)
-   >List+ unwrap uncons
-   >List+ unwrap uncons
-   >List+ if-some(
-        over run-has-arrow? if(
-            cons+ dip(NONE),
-            dip(SOME)
-        ),
-        L1+ dip(NONE)
-    ))
+def(token-def-args, Token -- Token Token List+(Token),
+    dup args dup len 3 >Nat < then(drop "def expects at least three arguments" emit-fatal-error!) nip
+    >List+ unwrap uncons
+    >List+ unwrap uncons
+    >List+ unwrap)
 
 ||| Elaborate an alias `alias(w1,w2)`
 def(elab-alias!, Token -- Token,
@@ -998,26 +982,21 @@ def(elab-alias!, Token -- Token,
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, Token -- Token,
-    # TODO, verify has args
-    dup succ succ elab-def-qname defined? if(
-        next,
-        elab-def!
-    ))
+    dup args len 3 >Nat < then("def-missing expects at least three arguments" emit-fatal-error!)
+    dup succ succ elab-def-qname defined? if(next, elab-def!))
 
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(next) token-def-args
-    uncons is-empty else(
-        dup run-has-arrow? else(
-            "expected match case" emit-fatal-error!))
+    uncons is-empty or(dup run-has-arrow?) else("expected match case" emit-fatal-error!)
     rotl dup elab-def-qname-undefined
 
     Word.new!
-    tuck ~sig !
+    dip(SOME) tuck ~sig !
 
     dup delay(
         type-elab-default
-        over sig unwrap-or(over head "need word signature" emit-fatal-error!) # TODO make sig mandatory again.
+        over sig unwrap-or(over head "need word signature" emit-fatal-error!)
         elab-type-sig! drop dip(type-elab-ctx)
         pack2 nip
     ) over ~ctx-type !
@@ -1033,7 +1012,7 @@ def(elab-def!, Token -- Token,
 
 ||| Elaborate a word's parameters from its type and declaration.
 def(elab-def-params!, Word -- List(Param),
-    L0 over elab-word-ctx-type-weak! nip
+    L0 over type
     rotl head dip(unpack) nip
     args reverse-for(
         dup sig-param-name? else("expected parameter name" emit-fatal-error!)
