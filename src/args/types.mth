@@ -1,0 +1,106 @@
+module(args.types)
+
+import(std.prelude)
+import(std.maybe)
+import(std.str)
+import(args.parse)
+import(args.state)
+
+data(ArgumentParser(a),
+  ARGUMENT_PARSER ->
+    List(ArgpOption)
+    Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ])
+    Maybe(Str)
+    Str)
+
+def(ArgumentParser.options, ArgumentParser(a) -- List(ArgpOption),
+  ARGUMENT_PARSER -> drop3)
+def(ArgumentParser.options!, List(ArgpOption) ArgumentParser(a) -- ArgumentParser(a),
+  ARGUMENT_PARSER -> dip3(drop) ARGUMENT_PARSER)
+
+def(ArgumentParser.parser, ArgumentParser(a) -- Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
+  ARGUMENT_PARSER -> drop2 dip(drop))
+def(ArgumentParser.parser!,
+  Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]) ArgumentParser(a) -- ArgumentParser(a),
+  ARGUMENT_PARSER -> dip2(drop over) ARGUMENT_PARSER swap drop)
+
+def(ArgumentParser.args-doc, ArgumentParser(a) -- Maybe(Str),
+  ARGUMENT_PARSER -> drop dip(drop2))
+
+def(ArgumentParser.doc, ArgumentParser(a) -- Str,
+  ARGUMENT_PARSER -> dip(drop3))
+
+def(ArgumentParser.new, List(ArgpOption) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]) Maybe(Str) Str -- ArgumentParser(a),
+  ARGUMENT_PARSER
+)
+
+data(+ArgumentParser(a), +ARGUMENTPARSER -> ArgumentParser(a) ArgumentParserState(a))
+def(-ARGUMENTPARSER, +ArgumentParser(a) -- ArgumentParser(a) ArgumentParserState(a), +ARGUMENTPARSER -> id)
+def(+ArgumentParser.rdrop, +ArgumentParser(a) --, -ARGUMENTPARSER drop2)
+
+def(+ArgumentParser.argument-parser, +ArgumentParser(a) -- ArgumentParser(a) +ArgumentParser(a),
+    -ARGUMENTPARSER over dip(+ARGUMENTPARSER))
+def(+ArgumentParser.argument-parser!, +ArgumentParser(a) ArgumentParser(a) -- +ArgumentParser(a),
+    -ARGUMENTPARSER dip(drop) +ARGUMENTPARSER)
+
+def(+ArgumentParser.state, +ArgumentParser(a) -- ArgumentParserState(a) +ArgumentParser(a), -ARGUMENTPARSER dup dip(+ARGUMENTPARSER))
+def(+ArgumentParser.state!, +ArgumentParser(a) ArgumentParserState(a) -- +ArgumentParser(a), -ARGUMENTPARSER drop swap +ARGUMENTPARSER)
+
+def(+ArgumentParser.parser,
+  +ArgumentParser(a) -- +ArgumentParser(a) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
+  argument-parser ArgumentParser.parser
+)
+
+data(ArgpOptionType,
+  OPTION_SHORT -> Byte,
+  OPTION_LONG_ONLY -> Str,
+  OPTION_POSITIONAL,
+  OPTION_END
+)
+
+def(ArgpOptionType.has-short?, ArgpOptionType -- Bool,
+  match(
+    OPTION_SHORT -> drop T,
+    _ -> drop F
+  )
+)
+
+table(ArgpOption)
+field(ArgpOption.~long, ArgpOption, Maybe(Str))
+field(ArgpOption.~type, ArgpOption, ArgpOptionType)
+field(ArgpOption.~arg, ArgpOption, Maybe(Str))
+field(ArgpOption.~doc, ArgpOption, Maybe(Str))
+field(ArgpOption.~group, ArgpOption, Maybe(Int))
+
+def(ArgpOption.long, ArgpOption -- Maybe(Str), ~long @)
+def(ArgpOption.type, ArgpOption -- ArgpOptionType, ~type @)
+def(ArgpOption.arg, ArgpOption -- Maybe(Str), ~arg @)
+def(ArgpOption.doc, ArgpOption -- Maybe(Str), ~doc @)
+def(ArgpOption.group, ArgpOption -- Maybe(Int), ~group @)
+
+def(ArgpOption.new, Maybe(Str) ArgpOptionType Maybe(Str) Maybe(Str) Maybe(Int) -- ArgpOption,
+  ArgpOption.alloc!
+  dup dip(~group !)
+  dup dip(~doc !)
+  dup dip(~arg !)
+  dup dip(~type !)
+  dup dip(~long !)
+)
+
+data(ArgumentParsingError,
+  NO_ARGS_PARSED,
+  MISSING_ARGUMENT_VALUE,
+  MISSING_ARG -> Str,
+  TOO_MANY_ARGS,
+  TOO_FEW_ARGS,
+  UNKNOWN_ARG
+)
+
+def(ArgumentParsingError.show, ArgumentParsingError -- Str,
+  NO_ARGS_PARSED -> "Failed to parse any CLI arguments",
+  MISSING_ARG -> "Missing argument: Need " swap cat,
+  MISSING_ARGUMENT_VALUE -> "Missing associated value for flag option",
+  TOO_MANY_ARGS -> "Too many positional arguments passed",
+  TOO_FEW_ARGS -> "Too few positional arguments passed",
+  UNKNOWN_ARG -> "Got an unknown option"
+)
