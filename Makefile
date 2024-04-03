@@ -93,7 +93,7 @@ bin/mirth3debug: bin/mirth3debug.c
 	$(CC) -o bin/mirth3debug bin/mirth3debug.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
-	bin/mirth0 mirth/main.mth -o mirth1.c
+	bin/mirth0 $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth1.c
 
 bin/mirth2.c: bin/mirth1 $(SRCS)
 	bin/mirth1 $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth2.c
