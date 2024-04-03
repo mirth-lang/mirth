@@ -105,28 +105,10 @@ def(compile!, Arguments +World -- +World,
             "Skipping Codegen." trace-ln! drop
     ))
 
-def(Str.find, Str Str -- Maybe(Offset),
-  swap thaw str-buf-find freeze drop
-)
-
-def(Str.substr-after, Offset Str -- Str,
-  dip(1+)
-  dup num-bytes over2 >Size -
-  swap unsafe(str-slice)
-)
-
-def(Str.substr-before, Offset Str -- Str,
-  swap >Size 0 >Offset swap rotl unsafe(str-slice)
-)
-
-def(Str.split-at, Offset Str -- [Str Str],
-  dup2 substr-after dip(substr-before) pack2
-)
-
 def(parse-package-def, Str -- Maybe([Str Path]),
-  dup ":" find match(
-    SOME -> swap split-at unpack2 >Path pack2 SOME,
-    NONE -> drop NONE
+  dip(BCOLON) str-split-byte match(
+    L2 -> >Path pack2 SOME,
+    _ -> drop "Invalid package path definition" panic!
   )
 )
 
