@@ -1,5 +1,5 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
- -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Werror -pedantic -O0 -g
+ -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Werror -pedantic -O1 -g
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 
@@ -86,6 +86,15 @@ bin/mirth1san: bin/mirth1.c
 bin/mirth2san: bin/mirth2.c
 	$(CCSAN) -o bin/mirth2san bin/mirth2.c
 
+bin/mirth1debug: bin/mirth1debug.c
+	$(CC) -o bin/mirth1debug bin/mirth1debug.c
+
+bin/mirth2debug: bin/mirth2debug.c
+	$(CC) -o bin/mirth2debug bin/mirth2debug.c
+
+bin/mirth3debug: bin/mirth3debug.c
+	$(CC) -o bin/mirth3debug bin/mirth3debug.c
+
 bin/mirth1.c: bin/mirth0 $(SRCS)
 	bin/mirth0 mirth/main.mth -o mirth1.c
 
@@ -94,6 +103,15 @@ bin/mirth2.c: bin/mirth1 $(SRCS)
 
 bin/mirth3.c: bin/mirth2 $(SRCS)
 	bin/mirth2 mirth/main.mth -o mirth3.c
+
+bin/mirth1debug.c: bin/mirth0 $(SRCS)
+	bin/mirth0 --debug mirth/main.mth -o mirth1debug.c
+
+bin/mirth2debug.c: bin/mirth1 $(SRCS)
+	bin/mirth1 --debug mirth/main.mth -o mirth2debug.c
+
+bin/mirth3debug.c: bin/mirth2 $(SRCS)
+	bin/mirth2 --debug mirth/main.mth -o mirth3debug.c
 
 bin/mirth3san.c: bin/mirth2san $(SRCS)
 	bin/mirth2san mirth/main.mth -o mirth3san.c

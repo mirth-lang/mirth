@@ -20,8 +20,8 @@ set -euo pipefail
 
 readonly TMP=$(mktemp -d)
 
-make bin/mirth2.c > $TMP/mkout 2> $TMP/mkerr || (cat $TMP/mkout && cat $TMP/mkerr && echo "Make failed." && exit 1)
-$CC -o $TMP/mirth bin/mirth2.c || (echo "Mirth build failed." && exit 1)
+make bin/mirth2debug.c > $TMP/mkout 2> $TMP/mkerr || (cat $TMP/mkout && cat $TMP/mkerr && echo "Make failed." && exit 1)
+$CC -o $TMP/mirth bin/mirth2debug.c || (echo "Mirth build failed." && exit 1)
 mkdir $TMP/test
 
 FAILED=0
@@ -33,7 +33,7 @@ do
     rm -f $TMP/test/*
     echo mirth-tests/$filename
     binary_name="${filename%.*}"
-    $TMP/mirth mirth-tests/$filename  -o "${binary_name}.c"> $TMP/test/mout 2> $TMP/test/merr
+    $TMP/mirth --debug mirth-tests/$filename  -o "${binary_name}.c"> $TMP/test/mout 2> $TMP/test/merr
     MIRTH_BUILD_FAILED=$?
     cat $TMP/test/mout | sed 's/^/# mirth-test # mout # /' >> $TMP/test/actual
     cat $TMP/test/merr | egrep ': (error|warning):' | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual

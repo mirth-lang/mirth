@@ -39,30 +39,45 @@ import(mirth.need)
 # C99 #
 #######
 
-data(+C99, MKC99 -> Nat +Needs +Output)
-def(+C99./MKC99, +C99 -- Nat +Needs +Output, MKC99 -> id)
+data(OutputPath, OUTPUT_PATH -> Path)
+def(OutputPath.>Str, OutputPath -- Str, OUTPUT_PATH -> >Str)
+def(OutputPath.as-relative-path, OutputPath -- Path, OUTPUT_PATH -> to-output-path)
+
+data(EmitDebugInfo, EMIT_DEBUG_INFO -> Bool)
+def(EmitDebugInfo.>Str, EmitDebugInfo -- Str, EMIT_DEBUG_INFO -> if("yes", "no"))
+def(EmitDebugInfo.>Bool, EmitDebugInfo -- Bool, EMIT_DEBUG_INFO -> id)
+
+data(C99_Options, C99_OPTIONS -> OutputPath EmitDebugInfo)
+def(C99_Options.emit-debug-info, C99_Options -- EmitDebugInfo, C99_OPTIONS -> nip)
+def(C99_Options.output-path, C99_Options -- OutputPath, C99_OPTIONS -> drop)
+
+data(+C99, MKC99 -> C99_Options Nat +Needs +Output)
+def(+C99./MKC99, +C99 -- C99_Options Nat +Needs +Output, MKC99 -> id)
 
 def(+C99.depth@, +C99 -- Nat +C99, /MKC99 dup dip(MKC99))
 def(+C99.depth!, Nat +C99 -- +C99, dip(/MKC99 drop) MKC99)
+def(+C99.options@, +C99 -- C99_Options +C99, /MKC99 over dip(MKC99))
+
+def(+C99.emit-debug-info?, +C99 -- Bool +C99, options@ emit-debug-info >Bool)
 
 def(+C99.~Needs(f), (*a +Needs -- *b +Needs) *a +C99 -- *b +C99,
-    /MKC99 dip(rdip(f)) MKC99)
+    /MKC99 dip(dip(rdip(f))) MKC99)
 def(+C99.~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
-    /MKC99 dip(rdip'(f)) MKC99)
+    /MKC99 dip(dip(rdip'(f))) MKC99)
 
 def(+C99.put, Str +C99 -- +C99, ~Output(put))
 def(+C99.put-byte, Byte +C99 -- +C99, ~Output(put-byte))
 def(+C99.line, +C99 -- +C99, ~Output(line))
 
-def(c99-start!, Arrow Path +World -- Arrow +World +C99,
-    to-output-path create-file! output-start!
-    rdip(+Needs.new dup determine-arrow-needs!)
+def(c99-start!, Arrow C99_Options +World -- Arrow +World +C99,
+    dup output-path as-relative-path create-file! output-start!
+    rdip(+Needs.new over determine-arrow-needs!)
     0 >Nat MKC99)
 
 def(c99-end!, +World +C99 -- +World,
-    /MKC99 drop rdip(rdrop) output-end! +File.close-file!)
+    /MKC99 drop2 rdip(rdrop) output-end! +File.close-file!)
 
-def(run-output-c99!, Arrow Path +World -- +World,
+def(run-output-c99!, Arrow C99_Options +World -- +World,
     num-errors @ 0> if(
         drop2,
 
@@ -92,7 +107,10 @@ def(+C99.sig-put, QName +C99 -- +C99, "static void mw_" put mangled put " (void)
 def(+C99.cosig-put, QName +C99 -- +C99, "static void mp_" put mangled put " (void)" put)
 
 embed-str(c99-header-str, "src/mirth/mirth.h")
-def(c99-header!, +C99 -- +C99, c99-header-str put line)
+def(c99-header!, +C99 -- +C99,
+    "#define MIRTH_DEBUG " put
+    emit-debug-info? if("1", "0") put line
+    c99-header-str put line)
 
 def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!) line)
 def(c99-buffer!, Buffer +C99 -- +C99,
@@ -205,11 +223,14 @@ def(c99-call!, List(Arg) QName +C99 -- +C99,
 
 def(c99-arrow!, Arrow +C99 -- +C99, atoms for(c99-atom!))
 def(c99-atom!, Atom +C99 -- +C99,
-    c99-line("WORD_ATOM(" put
-        dup token row >Int show put ", " put
-        dup token col >Int show put ", " put
-        dup token name? if-some(>Str, "") put-cstr
-        ");" put)
+    emit-debug-info? then(
+        c99-line("WORD_ATOM(" put
+            dup token row >Int show put ", " put
+            dup token col >Int show put ", " put
+            dup token name? if-some(>Str, "") put-cstr
+            ");" put
+        )
+    )
     sip(args) op
     c99-args-op!)
 
@@ -477,19 +498,25 @@ def(c99-field-sig!, Field +C99 -- +C99,
     c99-line("static void mw_" put qname mangled put " (void);" put))
 
 def(c99-block-enter!, Block +C99 -- +C99,
-    c99-line("WORD_ENTER(" put
-        dup block-put ", " put
-        dup home match(
-            HOME_MAIN -> drop "block",
-            HOME_WORD -> name >Str " block" cat,
-        ) put-cstr ", " put
-        dup token .module source-path >Str put-cstr ", " put
-        dup token row >Int show put ", " put
-        dup token col >Int show put ");" put)
-    drop)
+    emit-debug-info? if(
+        c99-line("WORD_ENTER(" put
+            dup block-put ", " put
+            dup home match(
+                HOME_MAIN -> drop "block",
+                HOME_WORD -> name >Str " block" cat,
+            ) put-cstr ", " put
+            dup token .module source-path >Str put-cstr ", " put
+            dup token row >Int show put ", " put
+            dup token col >Int show put ");" put
+        ) drop,
+        drop
+    ))
 
 def(c99-block-exit!, Block +C99 -- +C99,
-    c99-line("WORD_EXIT(" put block-put ");" put))
+    emit-debug-info? if(
+        c99-line("WORD_EXIT(" put block-put ");" put),
+        drop
+    ))
 
 def(c99-block-defs!, +C99 -- +C99, Block.for(dup ~Needs(needed?) if(c99-block-def!, drop)) line)
 def(c99-block-def!, Block +C99 -- +C99,
@@ -512,18 +539,23 @@ def(+C99.block-put, Block +C99 -- +C99,
     ))
 
 def(c99-word-enter!, Word +C99 -- +C99,
-    c99-line("WORD_ENTER(" put
-        "mw_" put dup qname mangled put ", " put
-        dup name >Str put-cstr ", " put
-        dup body .module source-path >Str put-cstr ", " put
-        dup body row >Int show put ", " put
-        dup body col >Int show put ");" put)
-    drop)
+    emit-debug-info? if(
+        c99-line(
+            "WORD_ENTER(" put
+            "mw_" put dup qname mangled put ", " put
+            dup name >Str put-cstr ", " put
+            dup body .module source-path >Str put-cstr ", " put
+            dup body row >Int show put ", " put
+            dup body col >Int show put ");" put
+        ) drop,
+        drop
+    ))
 
 def(c99-word-exit!, Word +C99 -- +C99,
-    c99-line("WORD_EXIT(" put
-        "mw_" put dup qname mangled put ");" put)
-    drop)
+    emit-debug-info? if(
+        c99-line("WORD_EXIT(mw_" put qname mangled put ");" put),
+        drop
+    ))
 
 def(c99-word-defs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-def!, drop)) line)
 def(c99-word-def!, Word +C99 -- +C99,
@@ -561,14 +593,18 @@ def(c99-main!, Arrow +C99 -- +C99,
         c99-line("global_argc = argc;" put)
         c99-line("global_argv = argv;" put)
         c99-line("push_resource(MKU64(0));" put) # world
-        c99-line("WORD_ENTER(" put
-            "(void(*)(void))0, " put
-            "\"<main>\", " put
-            dup token-start .module source-path >Str put-cstr ", " put
-            dup token-start row >Int show put ", " put
-            dup token-start col >Int show put ");" put)
+        emit-debug-info? then(
+            c99-line("WORD_ENTER(" put
+                "(void(*)(void))0, " put
+                "\"<main>\", " put
+                dup token-start .module source-path >Str put-cstr ", " put
+                dup token-start row >Int show put ", " put
+                dup token-start col >Int show put ");" put)
+        )
         c99-arrow!
-        c99-line("WORD_EXIT((void(*)(void))0);" put)
+        emit-debug-info? then(
+            c99-line("WORD_EXIT((void(*)(void))0);" put)
+        )
         c99-line("return 0;" put)
     )
     c99-line("}" put))
