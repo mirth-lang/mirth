@@ -1,0 +1,4 @@
+module(mirth-tests.error-table-syntax-expected-argend)
+table(Foo Bar)
+# mirth-test # merr # 2:11: error: expected end of argument after table name
+# mirth-test # mret # 1
