@@ -1,0 +1,4 @@
+module(mirth-tests.error-table-syntax-expected-type-name-2)
+table(+Foo)
+# mirth-test # merr # 2:7: error: expected type name
+# mirth-test # mret # 1

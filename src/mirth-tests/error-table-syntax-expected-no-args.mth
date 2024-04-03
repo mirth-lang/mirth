@@ -1,0 +1,4 @@
+module(mirth-tests.error-table-syntax-expected-no-args)
+table(Foo(t))
+# mirth-test # merr # 2:7: error: expected no args
+# mirth-test # mret # 1
