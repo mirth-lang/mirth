@@ -108,29 +108,12 @@ typedef struct STR {
     char data[];
 } STR;
 
-typedef struct LOC {
-    void (*fnptr) (void);
-    const char* word;
-    const char* path;
-    USIZE line, col;
-    const char* atom;
-} LOC;
-
 #define STACK_MAX 0x80000
 static USIZE stack_counter = STACK_MAX;
 static VAL stack [STACK_MAX] = {0};
 static USIZE rstack_counter = STACK_MAX;
 static VAL rstack [STACK_MAX] = {0};
-static USIZE fstack_counter = 0;
-static LOC fstack [STACK_MAX] = {
-    {
-        .fnptr=(void(*)(void))0,
-        .word="<word>",
-        .path="<path>",
-        .line=0, .col=0,
-        .atom="<atom>"
-    },
-};
+
 static int global_argc;
 static char** global_argv;
 
@@ -138,37 +121,59 @@ static void push_value(VAL v);
 static void mw_std_prim_prim_debug(void);
 static void mw_std_prim_prim_rdebug(void);
 
-#define WORD_ENTER(_f,_w,_p,_l,_c) \
-    do { \
-        fstack[fstack_counter].fnptr = (_f); \
-        fstack[fstack_counter].word = (_w); \
-        fstack[fstack_counter].path = (_p); \
-        fstack[fstack_counter].line = (_l); \
-        fstack[fstack_counter].col = (_c); \
-        fstack[fstack_counter].atom = ""; \
-        fstack_counter++; \
-    } while(0)
+#if MIRTH_DEBUG
+	typedef struct LOC {
+		void (*fnptr) (void);
+		const char* word;
+		const char* path;
+		USIZE line, col;
+		const char* atom;
+	} LOC;
+	static USIZE fstack_counter = 0;
+	static LOC fstack [STACK_MAX] = {
+		{
+			.fnptr=(void(*)(void))0,
+			.word="<word>",
+			.path="<path>",
+			.line=0, .col=0,
+			.atom="<atom>"
+		},
+	};
 
-#define WORD_ATOM(_l,_c,_n) \
-    do { \
-        if (fstack_counter > 0) { \
-            fstack[fstack_counter-1].line = (_l); \
-            fstack[fstack_counter-1].col = (_c); \
-            fstack[fstack_counter-1].atom = (_n); \
-        } \
-    } while(0)
+	#define WORD_ENTER(_f,_w,_p,_l,_c) \
+		do { \
+			fstack[fstack_counter].fnptr = (_f); \
+			fstack[fstack_counter].word = (_w); \
+			fstack[fstack_counter].path = (_p); \
+			fstack[fstack_counter].line = (_l); \
+			fstack[fstack_counter].col = (_c); \
+			fstack[fstack_counter].atom = ""; \
+			fstack_counter++; \
+		} while(0)
 
-#define WORD_EXIT(_f) \
-    do { \
-        if ((fstack_counter == 0) || (fstack[fstack_counter-1].fnptr != (_f))) { \
-            TRACE("mismatched WORD_EXIT, expected " #_f "\n"); \
-            exit(1); \
-        } \
-        fstack_counter--; \
-    } while(0)
+	#define WORD_ATOM(_l,_c,_n) \
+		do { \
+			if (fstack_counter > 0) { \
+				fstack[fstack_counter-1].line = (_l); \
+				fstack[fstack_counter-1].col = (_c); \
+				fstack[fstack_counter-1].atom = (_n); \
+			} \
+		} while(0)
 
-#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)
-#define PRIM_EXIT(_f) WORD_EXIT(_f)
+	#define WORD_EXIT(_f) \
+		do { \
+			if ((fstack_counter == 0) || (fstack[fstack_counter-1].fnptr != (_f))) { \
+				TRACE("mismatched WORD_EXIT, expected " #_f "\n"); \
+				exit(1); \
+			} \
+			fstack_counter--; \
+		} while(0)
+	#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)
+	#define PRIM_EXIT(_f) WORD_EXIT(_f)
+#else
+	#define PRIM_ENTER(_f,_w)
+	#define PRIM_EXIT(_f)
+#endif
 
 #define TRACE(x) write(2,x,strlen(x))
 #define _STR(x) #x
@@ -758,22 +763,24 @@ static void mw_std_prim_prim_debug (void) {
 }
 
 static void mw_std_prim_prim_rdebug (void) {
-    TRACE("call stack:\n");
-    for (USIZE i = fstack_counter; i --> 1;) {
-        TRACE("    ");
-        if (fstack[i-1].atom && *fstack[i-1].atom && strcmp(fstack[i-1].atom, fstack[i].word)) {
-            TRACE(fstack[i-1].atom);
-            TRACE(" -> ");
-        }
-        TRACE(fstack[i].word);
-        TRACE(" at ");
-        TRACE(fstack[i-1].path);
-        TRACE(":");
-        int_trace_((int64_t)fstack[i-1].line, 2);
-        TRACE(":");
-        int_trace_((int64_t)fstack[i-1].col, 2);
-        TRACE("\n");
-    }
+	#if MIRTH_DEBUG
+		TRACE("call stack:\n");
+		for (USIZE i = fstack_counter; i --> 1;) {
+			TRACE("    ");
+			if (fstack[i-1].atom && *fstack[i-1].atom && strcmp(fstack[i-1].atom, fstack[i].word)) {
+				TRACE(fstack[i-1].atom);
+				TRACE(" -> ");
+			}
+			TRACE(fstack[i].word);
+			TRACE(" at ");
+			TRACE(fstack[i-1].path);
+			TRACE(":");
+			int_trace_((int64_t)fstack[i-1].line, 2);
+			TRACE(":");
+			int_trace_((int64_t)fstack[i-1].col, 2);
+			TRACE("\n");
+		}
+	#endif
 }
 
 static void mw_std_prim_prim_panic(void) {
