@@ -33,25 +33,29 @@ def(init!, --,
 
 table(Arguments)
 field(Arguments.~input-file, Arguments, Path)
-field(Arguments.~output-file, Arguments, Maybe(Path))
+field(Arguments.~output-file, Arguments, Maybe(OutputPath))
 field(Arguments.~entry-point, Arguments, Maybe(Str))
 field(Arguments.~packages, Arguments, List([Str Path]))
+field(Arguments.~emit-debug-info, Arguments, EmitDebugInfo)
 
 # Helpers to read table fields
 def(Arguments.input-file, Arguments -- Path, ~input-file @)
-def(Arguments.output-file, Arguments -- Maybe(Path), ~output-file @)
+def(Arguments.output-file, Arguments -- Maybe(OutputPath), ~output-file @)
 def(Arguments.entry-point, Arguments -- Maybe(Str), ~entry-point @)
+def(Arguments.emit-debug-info, Arguments -- EmitDebugInfo, ~emit-debug-info @)
 
-def(Arguments.new, Path Maybe(Path) Maybe(Str) List([Str Path]) -- Arguments,
+def(Arguments.new, EmitDebugInfo Path Maybe(OutputPath) Maybe(Str) List([Str Path]) -- Arguments,
     Arguments.alloc!
     dup dip(~packages !)
     dup dip(~entry-point !)
     dup dip(~output-file !)
-    dup dip(~input-file !))
+    dup dip(~input-file !)
+    dup dip(~emit-debug-info !))
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
 def(Arguments.default, -- Arguments,
+    F EMIT_DEBUG_INFO
     "mirth.mth" >Path
     NONE
     "main" SOME
@@ -64,7 +68,13 @@ def(Arguments.show, Arguments -- Str,
     "output-file: " cat over output-file map(>Str) unwrap-or("(none)") cat
     ", input-file: " cat over input-file >Str cat
     ", entry-point: " cat over entry-point unwrap-or("(none)") cat
+    ", emit-debug-info: " cat over emit-debug-info >Str cat
     " }" cat nip)
+
+def(Arguments.c99-options, Arguments -- C99_Options,
+    sip(output-file unwrap)
+    sip(emit-debug-info)
+    drop C99_OPTIONS)
 
 ########
 # Main #
@@ -100,7 +110,7 @@ def(compile!, Arguments +World -- +World,
     match(
         SOME ->
             "Codegen." trace-ln!
-            swap output-file unwrap run-output-c99!,
+            swap c99-options run-output-c99!,
         NONE ->
             "Skipping Codegen." trace-ln! drop
     ))
@@ -114,7 +124,7 @@ def(parse-package-def, Str -- Maybe([Str Path]),
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
     OPTION_SHORT -> match(
-        B'o' -> unwrap >Path SOME over ~output-file !,
+        B'o' -> unwrap >Path OUTPUT_PATH SOME over ~output-file !,
         B'e' -> unwrap SOME over ~entry-point !,
         B'c' -> drop NONE over ~entry-point !,
 	B'p' -> unwrap parse-package-def unwrap over ~packages @ cons over ~packages !,
@@ -123,6 +133,10 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
     OPTION_POSITIONAL -> state current-positional-arg 0= if(
         unwrap >Path over ~input-file !,
         drop TOO_MANY_ARGS SOME state current-error! state!
+    ),
+    OPTION_LONG_ONLY -> dup "debug" == if(
+        drop2 T EMIT_DEBUG_INFO over ~emit-debug-info !,
+        drop2 UNKNOWN_ARG SOME state current-error! state!
     ),
     OPTION_END ->
         state current-positional-arg 1 < then(
@@ -168,6 +182,12 @@ def(main, +World -- +World,
 	"(PACKAGE:PATH)*" SOME
 	"Package locations" SOME
 	NONE ArgpOption.new ;
+
+        "debug" SOME
+        "debug" OPTION_LONG_ONLY
+        NONE
+        "Emit debugging information during codegen" SOME
+        NONE ArgpOption.new ;
     )
     [ compiler-parse-args ] SOME
     "input-file" SOME

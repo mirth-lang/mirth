@@ -979,7 +979,7 @@ def(elab-alias!, Token -- Token,
     over args-0
     over succ arg-end? else(over "expected comma after alias name" emit-fatal-error!)
     rotl dup name-or-dname? unwrap-or("expected alias target, which must be a name" emit-fatal-error!)
-    over args-0 over succ arg-end? else(over "expected right parenthesis or comma after alias target" emit-fatal-error!)
+    over args-0 over succ arg-end? else(over "expected end of argument after alias target" emit-fatal-error!)
     pack2 delay(
         unpack2 match(
             LEFT ->
@@ -1105,6 +1105,8 @@ def(elab-variable!, Token -- Token,
 def(elab-table!, Token -- Token,
     sip(next) args-1
     dup sig-type-con? else("expected type name" emit-fatal-error!)
+    dup args-0
+    dup succ arg-end? else(succ "expected end of argument after table name" emit-fatal-error!)
     dup elab-def-qname-undefined
     table-new! drop)
 

@@ -1,4 +1,4 @@
 module(mirth-tests.error-alias-syntax-expected-argend)
 alias(foo, bar baz)
-# mirth-test # merr # 2:12: error: expected right parenthesis or comma after alias target
+# mirth-test # merr # 2:12: error: expected end of argument after alias target
 # mirth-test # mret # 1
