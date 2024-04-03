@@ -46,7 +46,7 @@ def(Bool.not, Bool -- Bool, T -> F, F -> T)
 def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
 def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
 
-def-missing(Bool.if(then,else), (*a -- *b, *a -- *b) *a Bool -- *b, T -> then, F -> else)
+alias(Bool.if, prim-if)
 def(Bool.then(f), (*a -- *a) *a Bool -- *a, T -> f, F -> id)
 def(Bool.else(f), (*a -- *a) *a Bool -- *a, T -> id, F -> f)
 

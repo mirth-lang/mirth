@@ -1,0 +1,4 @@
+module(mirth-tests.error-alias-syntax-too-many-args)
+alias(foo,, bar)
+# mirth-test # merr # 2:1: error: expected 2 args, got too many
+# mirth-test # mret # 1

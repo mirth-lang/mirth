@@ -1,0 +1,7 @@
+module(mirth-tests.error-alias-target-ambiguous)
+import(std.prelude)
+def(dup, --, id)
+alias(foo, dup)
+def(main, --, id)
+# mirth-test # merr # 4:12: error: name is ambiguous, can't decide between: std.prelude.dup mirth-tests.error-alias-target-ambiguous.dup
+# mirth-test # mret # 1
