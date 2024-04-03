@@ -1,0 +1,4 @@
+module(mirth-tests.error-alias-syntax-params-lhs)
+alias(foo(f), bar)
+# mirth-test # merr # 2:7: error: expected no args
+# mirth-test # mret # 1

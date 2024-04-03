@@ -1,0 +1,4 @@
+module(mirth-tests.error-alias-syntax-expected-comma)
+alias(foo bar, baz)
+# mirth-test # merr # 2:7: error: expected comma after alias name
+# mirth-test # mret # 1

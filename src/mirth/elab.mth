@@ -508,7 +508,7 @@ def(elab-atom-name!, Name +AB -- +AB,
             match(
                 L0 -> dip(ab-token@ "unknown name: ") >Str cat emit-fatal-error!,
                 L1 -> nip elab-atom-qname!,
-                _ -> nip elab-atom-ambiguous-name-error!
+                _ -> nip dip(ab-token@) elab-ambiguous-name-error!
             )
     ))
 
@@ -536,11 +536,11 @@ def(elab-atom-relative-name!, Name +AB -- +AB,
     dup elab-relative-name-candidates! match(
         L0 -> dip(ab-token@ "unknown relative name: ") >Str cat emit-fatal-error!,
         L1 -> nip elab-atom-qname!,
-        _ -> nip elab-atom-ambiguous-name-error!
+        _ -> nip dip(ab-token@) elab-ambiguous-name-error!
     ))
 
-def(elab-atom-ambiguous-name-error!, List(QName) +AB -- +AB,
-    dip(ab-token@ "relative name is ambiguous, can't decide between:")
+def(elab-ambiguous-name-error!, *a Token List(QName) -- *b,
+    dip("name is ambiguous, can't decide between:")
     for(dip(" " cat) >Str cat) emit-fatal-error!)
 
 def(elab-atom-qname!, QName +AB -- +AB,
@@ -595,7 +595,7 @@ def(elab-stack-type-is-fine?, +AB -- Bool +AB,
     ))
 
 def(elab-atom-def!, Def +AB -- +AB,
-    DEF_ALIAS -> target def? unwrap-or(ab-token@ "alias undefined" emit-fatal-error!) elab-atom-def!,
+    DEF_ALIAS -> target elab-atom-def!,
     DEF_BUFFER -> elab-no-args! ab-buffer!,
     DEF_VARIABLE -> elab-no-args! ab-variable!,
     DEF_CONSTANT -> elab-no-args! ab-constant!,
@@ -975,9 +975,36 @@ def(token-def-args, Token -- Token Token List+(Token),
 ||| Elaborate an alias `alias(w1,w2)`
 def(elab-alias!, Token -- Token,
     sip(next) args-2 swap
-    dup elab-def-qname-undefined over args-0 rotl
-    dup name? unwrap-or("expected word name" emit-fatal-error!)
-    over args-0 defs find(dup callable?) unwrap-or("unknown target" emit-fatal-error!) nip qname
+    dup elab-def-qname-undefined
+    over args-0
+    over succ arg-end? else(over "expected comma after alias name" emit-fatal-error!)
+    rotl dup name-or-dname? unwrap-or("expected alias target, which must be a name" emit-fatal-error!)
+    over args-0 over succ arg-end? else(over "expected right parenthesis or comma after alias target" emit-fatal-error!)
+    pack2 delay(
+        unpack2 match(
+            LEFT ->
+                defs filter(dup2 def-visible-from-token?) match(
+                    L0 -> "unknown alias target" emit-fatal-error!,
+                    L1 -> ,
+                    _ -> map(qname) elab-ambiguous-name-error!
+                ),
+            RIGHT ->
+                dip(dup) elab-qname-from-nonrelative-dname
+                dup def? unwrap-or(dip("undefined alias target ") >Str cat emit-fatal-error!) nip
+        )
+        dup2 def-visible-from-token? else(
+            dip("alias target is not visible")
+            defining-module? for(dip(", need to import " cat) qname >Str cat)
+            emit-fatal-error!
+        )
+        match(
+            DEF_ALIAS ->
+                # Detect circular aliases, e.g. `alias(x, y) alias(y, x)`,
+                # and avoid storing alias chains (so each alias points to its ultimate target directly).
+                ~target force-or!("alias points to itself, circular aliases not allowed." emit-fatal-error!) nip,
+            _ -> nip,
+        )
+    )
     Alias.new! drop)
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`

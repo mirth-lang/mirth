@@ -1,0 +1,6 @@
+module(mirth-tests.error-alias-target-undefined)
+import(std.prelude)
+alias(foo, std.prelude.something-undefined)
+def(main, --, id)
+# mirth-test # merr # 3:12: error: undefined alias target std.prelude.something-undefined
+# mirth-test # mret # 1
