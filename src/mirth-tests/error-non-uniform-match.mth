@@ -1,0 +1,19 @@
+||| A `match` is non-uniform if it operates on more than one data at once, e.g. by
+||| pattern matching on both the top value and the top resource at the same time.
+||| In principle these can be supported, along with more complicated pattern matches,
+||| but right now they are not supported.
+|||
+||| This test demonstrate that the error can be reached.
+module(mirth-tests.error-non-uniform-match)
+import(std.prelude)
+data(Foo, FOO1, FOO2)
+data(+Bar, +BAR1, +BAR2)
+def(+Bar.rdrop, +Bar --, +BAR1 -> id, +BAR2 -> id)
+def(bad, Foo +Bar -- Foo +Bar,
+    FOO1 -> FOO1,
+    +BAR1 -> +BAR1,
+    FOO2 -> FOO2,
+    +BAR2 -> +BAR2)
+def(main, --, FOO1 +BAR1 bad drop rdrop)
+# mirth-test # merr # 13:5: error: non-uniform match, not supported at present
+# mirth-test # mret # 1
