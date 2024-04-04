@@ -29,7 +29,6 @@ def(Word.arrow, Word -- Arrow, ~arrow force!)
 def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)
 def(Word.type, Word -- ArrowType, ctx-type nip)
-def-missing(Word.index, Word -- Int, Word.id)
 
 def(Word.new!, Token Token QName -- Word,
     Word.alloc!

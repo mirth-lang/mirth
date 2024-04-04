@@ -484,8 +484,6 @@ def(MetaVar.has-meta?, MetaVar MetaVar -- Bool,
         SOME -> nip has-meta?
     ))
 
-def-missing(MetaVar.index, MetaVar -- Int, MetaVar.id)
-
 def(MetaVar.trace!, MetaVar --,
     dup type? match(
         NONE -> "?" trace! index trace!,

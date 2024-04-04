@@ -20,7 +20,6 @@ def(Table.namespace, Table -- Namespace, qname namespace)
 def(Table.name, Table -- Name, qname name)
 def(Table.num-buffer, Table -- Buffer, ~num-buffer @)
 def(Table.max-count, Table -- Nat, ~max-count @)
-def-missing(Table.index, Table -- Int, Table.id)
 def(Table.==, Table Table -- Bool, both(index) ==)
 
 table(Field)

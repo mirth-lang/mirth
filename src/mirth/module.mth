@@ -26,7 +26,6 @@ def(Module.start, Module -- Token, ~start @)
 def(Module.end, Module -- Token, ~end @)
 def(Module.imports, Module -- List(Module), ~imports @)
 
-def-missing(Module.index, Module -- Int, Module.id)
 def(Module.==, Module Module -- Bool, both(index) ==)
 
 var(Module.prim-var, Module)

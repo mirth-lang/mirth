@@ -26,8 +26,6 @@ def(Name.>Str, Name -- Str, ~Str @)
 def(Name.defs, Name -- List(Def), ~defs @)
 def(Name.mangled, Name -- Str, ~mangled force!)
 
-def-missing(Name.index, Name -- Int, Name.id)
-def-missing(Name.from-index, Int -- Name, Name.from-id)
 def(Name.==, Name Name -- Bool, both(Name.index) ==)
 
 data(Hash, HASH -> Int)
@@ -187,7 +185,7 @@ def(QName.>Str, QName -- Str,
 
 def(QName.to-module-path, QName -- Path,
     QNAME -> swap match(
-        NAMESPACE_PACKAGE -> path unwrap-or("No path defined for package" panic!) 
+        NAMESPACE_PACKAGE -> path unwrap-or("No path defined for package" panic!)
 	swap >Str ".mth" cat >Path join-unix, # TODO use Path.join instead?
         _ -> drop "expected module name" panic!
     ))

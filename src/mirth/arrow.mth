@@ -149,7 +149,6 @@ def(Atom.add-arg-left!, Arg Atom --,
 # BLOCK #
 #########
 
-def-missing(Block.index, Block -- Int, Block.id)
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
 
 def(Block.new!, Arrow -- Block,

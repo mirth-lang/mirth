@@ -91,7 +91,6 @@ def(init-data!, --,
 # DATA #
 ########
 
-def-missing(Data.index, Data -- Int, Data.id)
 def(Data.==, Data Data -- Bool, both(index) ==)
 def(Data.num-tags, Data -- Nat, tags len)
 
@@ -159,5 +158,4 @@ def(Tag.is-transparent?, Tag -- Bool,
 def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)
 
-def-missing(Tag.index, Tag -- Int, Tag.id)
 def(Tag.==, Tag Tag -- Bool, both(index) ==)
