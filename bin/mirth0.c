@@ -1214,13 +1214,6 @@ static VAL lbl_output_file = {0};
 static VAL lbl_entry_point = {0};
 static VAL lbl_packages = {0};
 static VAL lbl_output_path = {0};
-static VAL lbl_ctx = {0};
-static VAL lbl_dom = {0};
-static VAL lbl_cod = {0};
-static VAL lbl_token = {0};
-static VAL lbl_body = {0};
-static VAL lbl_home = {0};
-static VAL lbl_match = {0};
 static VAL lbl_options = {0};
 static VAL lbl_parser = {0};
 static VAL lbl_args_doc = {0};
@@ -1235,6 +1228,13 @@ static VAL lbl_argv_info = {0};
 static VAL lbl_arg = {0};
 static VAL lbl_positional_index = {0};
 static VAL lbl_error = {0};
+static VAL lbl_ctx = {0};
+static VAL lbl_dom = {0};
+static VAL lbl_cod = {0};
+static VAL lbl_token = {0};
+static VAL lbl_body = {0};
+static VAL lbl_home = {0};
+static VAL lbl_match = {0};
 static void mw_std_prim_F (void) {
 	VAL tag = MKU64(0LL);
 	VAL car = (tag);
@@ -7064,31 +7064,35 @@ static void mw_posix_posix_line_print_21_ (void);
 static void mw_posix_posix_line_trace_21_ (void);
 static void mw_std_path_Path_trace_21_ (void);
 static void mw_std_prim_Int_trace_21_ (void);
+static void mw_args_state_ArgvInfo__2F_ARGV_5F_INFO (void);
 static void mw_args_state_ArgvInfo_program_name (void);
 static void mw_args_state_ArgvInfo_argv (void);
+static void mw_args_state_CurrentArg__2F_CURRENT_5F_ARG (void);
 static void mw_args_state_CurrentArg_option_option (void);
-static void mw_args_state_CurrentArg_option_option_21_ (void);
 static void mw_args_state_CurrentArg_parsing_3F_ (void);
+static void mw_args_state_CurrentArg_option_option_21_ (void);
 static void mw_args_state_CurrentArg_parsing_21_ (void);
+static void mw_args_state_State__2F_STATE (void);
+static void mw_args_state_State_error (void);
+static void mw_args_state_State_positional_index (void);
+static void mw_args_state_State_arg (void);
+static void mw_args_state_State_argv_info (void);
+static void mw_args_state_State_arguments (void);
 static void mw_args_state_State_init (void);
 static void mw_args_state_State_argv (void);
 static void mw_args_state_State_program_name (void);
-static void mw_args_state_State_argv_info (void);
 static void mw_args_state_State_parsing_3F_ (void);
 static void mw_args_state_State_parsing_21_ (void);
 static void mw_args_state_State_option_option (void);
 static void mw_args_state_State_option_option_21_ (void);
-static void mw_args_state_State_arg (void);
 static void mw_args_state_State_arg_21_ (void);
-static void mw_args_state_State_error (void);
 static void mw_args_state_State_error_21_ (void);
-static void mw_args_state_State_positional_index (void);
 static void mw_args_state_State_positional_index_21_ (void);
-static void mw_args_state_State_arguments (void);
 static void mw_args_state_State_arguments_21_ (void);
-static void mw_args_types_ArgumentParser_options (void);
-static void mw_args_types_ArgumentParser_parser (void);
+static void mw_args_types_ArgumentParser__2F_ARGUMENT_5F_PARSER (void);
 static void mw_args_types_ArgumentParser_args_doc (void);
+static void mw_args_types_ArgumentParser_parser (void);
+static void mw_args_types_ArgumentParser_options (void);
 static void mw_args_types_ArgumentParser_new (void);
 static void mw_args_types__ARGUMENTPARSER (void);
 static void mw_args_types__2B_ArgumentParser_rdrop (void);
@@ -14200,43 +14204,68 @@ static void mw_std_prim_Int_trace_21_ (void) {
 	mw_std_prim_Int_show();
 	mw_std_prim_Str_trace_21_();
 }
-static void mw_args_state_ArgvInfo_program_name (void) {
+static void mw_args_state_ArgvInfo__2F_ARGV_5F_INFO (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
 			mp_args_state_ArgvInfo_ARGV_5F_INFO();
-			LPOP(lbl_program_name);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_program_name);
-			mw_args_state_ArgvInfo_ARGV_5F_INFO();
-			mw_std_prim_prim_drop();
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
+static void mw_args_state_ArgvInfo_program_name (void) {
+	mw_args_state_ArgvInfo__2F_ARGV_5F_INFO();
+	LPOP(lbl_program_name);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_program_name);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_ArgvInfo_ARGV_5F_INFO();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
 static void mw_args_state_ArgvInfo_argv (void) {
+	mw_args_state_ArgvInfo__2F_ARGV_5F_INFO();
+	LPOP(lbl_argv);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_argv);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_ArgvInfo_ARGV_5F_INFO();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_state_CurrentArg__2F_CURRENT_5F_ARG (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
-			mp_args_state_ArgvInfo_ARGV_5F_INFO();
-			LPOP(lbl_argv);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_argv);
-			mw_args_state_ArgvInfo_ARGV_5F_INFO();
-			mw_std_prim_prim_drop();
+			mp_args_state_CurrentArg_CURRENT_5F_ARG();
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
 static void mw_args_state_CurrentArg_option_option (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_state_CurrentArg_CURRENT_5F_ARG();
-			LPOP(lbl_option_option);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_option_option);
-			mw_args_state_CurrentArg_CURRENT_5F_ARG();
-			mw_std_prim_prim_drop();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+	mw_args_state_CurrentArg__2F_CURRENT_5F_ARG();
+	LPOP(lbl_option_option);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_option_option);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_CurrentArg_CURRENT_5F_ARG();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_state_CurrentArg_parsing_3F_ (void) {
+	mw_args_state_CurrentArg__2F_CURRENT_5F_ARG();
+	LPOP(lbl_parsing_3F_);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_parsing_3F_);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_CurrentArg_CURRENT_5F_ARG();
+		mw_std_prim_prim_drop();
+		push_value(d2);
 	}
 }
 static void mw_args_state_CurrentArg_option_option_21_ (void) {
@@ -14251,19 +14280,6 @@ static void mw_args_state_CurrentArg_option_option_21_ (void) {
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
-static void mw_args_state_CurrentArg_parsing_3F_ (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_state_CurrentArg_CURRENT_5F_ARG();
-			LPOP(lbl_parsing_3F_);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_parsing_3F_);
-			mw_args_state_CurrentArg_CURRENT_5F_ARG();
-			mw_std_prim_prim_drop();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
-}
 static void mw_args_state_CurrentArg_parsing_21_ (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
@@ -14274,6 +14290,74 @@ static void mw_args_state_CurrentArg_parsing_21_ (void) {
 			mw_args_state_CurrentArg_CURRENT_5F_ARG();
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+	}
+}
+static void mw_args_state_State__2F_STATE (void) {
+	switch (get_top_data_tag()) {
+		case 0LL:
+			mp_args_state_State_STATE();
+			break;
+		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+	}
+}
+static void mw_args_state_State_error (void) {
+	mw_args_state_State__2F_STATE();
+	LPOP(lbl_error);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_error);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_State_STATE();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_state_State_positional_index (void) {
+	mw_args_state_State__2F_STATE();
+	LPOP(lbl_positional_index);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_positional_index);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_State_STATE();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_state_State_arg (void) {
+	mw_args_state_State__2F_STATE();
+	LPOP(lbl_arg);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_arg);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_State_STATE();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_state_State_argv_info (void) {
+	mw_args_state_State__2F_STATE();
+	LPOP(lbl_argv_info);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_argv_info);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_State_STATE();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_state_State_arguments (void) {
+	mw_args_state_State__2F_STATE();
+	LPOP(lbl_arguments);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_arguments);
+	{
+		VAL d2 = pop_value();
+		mw_args_state_State_STATE();
+		mw_std_prim_prim_drop();
+		push_value(d2);
 	}
 }
 static void mw_args_state_State_init (void) {
@@ -14310,19 +14394,6 @@ static void mw_args_state_State_program_name (void) {
 	mw_args_state_State_argv_info();
 	mw_args_state_ArgvInfo_program_name();
 }
-static void mw_args_state_State_argv_info (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_state_State_STATE();
-			LPOP(lbl_argv_info);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_argv_info);
-			mw_args_state_State_STATE();
-			mw_std_prim_prim_drop();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
-}
 static void mw_args_state_State_parsing_3F_ (void) {
 	mw_args_state_State_arg();
 	mw_args_state_CurrentArg_parsing_3F_();
@@ -14351,19 +14422,6 @@ static void mw_args_state_State_option_option_21_ (void) {
 	}
 	mw_args_state_State_arg_21_();
 }
-static void mw_args_state_State_arg (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_state_State_STATE();
-			LPOP(lbl_arg);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_arg);
-			mw_args_state_State_STATE();
-			mw_std_prim_prim_drop();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
-}
 static void mw_args_state_State_arg_21_ (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
@@ -14372,19 +14430,6 @@ static void mw_args_state_State_arg_21_ (void) {
 			mw_std_prim_prim_drop();
 			LPUSH(lbl_arg);
 			mw_args_state_State_STATE();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
-}
-static void mw_args_state_State_error (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_state_State_STATE();
-			LPOP(lbl_error);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_error);
-			mw_args_state_State_STATE();
-			mw_std_prim_prim_drop();
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
@@ -14401,19 +14446,6 @@ static void mw_args_state_State_error_21_ (void) {
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
-static void mw_args_state_State_positional_index (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_state_State_STATE();
-			LPOP(lbl_positional_index);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_positional_index);
-			mw_args_state_State_STATE();
-			mw_std_prim_prim_drop();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
-}
 static void mw_args_state_State_positional_index_21_ (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
@@ -14422,19 +14454,6 @@ static void mw_args_state_State_positional_index_21_ (void) {
 			mw_std_prim_prim_drop();
 			LPUSH(lbl_positional_index);
 			mw_args_state_State_STATE();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
-}
-static void mw_args_state_State_arguments (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_state_State_STATE();
-			LPOP(lbl_arguments);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_arguments);
-			mw_args_state_State_STATE();
-			mw_std_prim_prim_drop();
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
@@ -14451,43 +14470,48 @@ static void mw_args_state_State_arguments_21_ (void) {
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
-static void mw_args_types_ArgumentParser_options (void) {
+static void mw_args_types_ArgumentParser__2F_ARGUMENT_5F_PARSER (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
 			mp_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
-			LPOP(lbl_options);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_options);
-			mw_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
-			mw_std_prim_prim_drop();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
-}
-static void mw_args_types_ArgumentParser_parser (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
-			LPOP(lbl_parser);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_parser);
-			mw_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
-			mw_std_prim_prim_drop();
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
 static void mw_args_types_ArgumentParser_args_doc (void) {
-	switch (get_top_data_tag()) {
-		case 0LL:
-			mp_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
-			LPOP(lbl_args_doc);
-			mw_std_prim_prim_dup();
-			LPUSH(lbl_args_doc);
-			mw_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
-			mw_std_prim_prim_drop();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+	mw_args_types_ArgumentParser__2F_ARGUMENT_5F_PARSER();
+	LPOP(lbl_args_doc);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_args_doc);
+	{
+		VAL d2 = pop_value();
+		mw_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_types_ArgumentParser_parser (void) {
+	mw_args_types_ArgumentParser__2F_ARGUMENT_5F_PARSER();
+	LPOP(lbl_parser);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_parser);
+	{
+		VAL d2 = pop_value();
+		mw_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
+		mw_std_prim_prim_drop();
+		push_value(d2);
+	}
+}
+static void mw_args_types_ArgumentParser_options (void) {
+	mw_args_types_ArgumentParser__2F_ARGUMENT_5F_PARSER();
+	LPOP(lbl_options);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_options);
+	{
+		VAL d2 = pop_value();
+		mw_args_types_ArgumentParser_ARGUMENT_5F_PARSER();
+		mw_std_prim_prim_drop();
+		push_value(d2);
 	}
 }
 static void mw_args_types_ArgumentParser_new (void) {
