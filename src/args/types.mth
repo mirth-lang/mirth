@@ -13,13 +13,6 @@ data(ArgumentParser(a),
     args-doc:Maybe(Str)
     doc:Str)
 
-def(ArgumentParser.options!, List(ArgpOption) ArgumentParser(a) -- ArgumentParser(a),
-  ARGUMENT_PARSER -> options> drop >options ARGUMENT_PARSER)
-
-def(ArgumentParser.parser!,
-  Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a]) ArgumentParser(a) -- ArgumentParser(a),
-  ARGUMENT_PARSER -> parser> drop >parser ARGUMENT_PARSER)
-
 def(ArgumentParser.new,
   options:List(ArgpOption)
   parser:Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a])
