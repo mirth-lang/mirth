@@ -7869,7 +7869,7 @@ static void mb_mirth_elab_typecheck_everything_21__10 (void);
 static void mb_mirth_elab_elab_entry_point_4 (void);
 static void mb_mirth_elab_elab_entry_point_8 (void);
 static void mb_mirth_elab_elab_entry_point_43 (void);
-static void mb_mirth_main_compiler_parse_args_105 (void);
+static void mb_mirth_main_compiler_parse_args_104 (void);
 static void mb_std_prelude_Nat__3D__3D__2 (void);
 static void mb_std_prelude_Size__3D__3D__2 (void);
 static void mb_std_prelude_Offset__3D__3D__2 (void);
@@ -32828,7 +32828,6 @@ static void mw_mirth_main_parse_package_def (void) {
             mp_std_list_List_L2();
             mw_std_prim_Str__3E_Path();
             mw_std_prelude_pack2();
-            mw_std_maybe_Maybe_SOME();
             break;
         default:
             mw_std_prim_prim_drop();
@@ -32881,7 +32880,6 @@ static void mw_mirth_main_compiler_parse_args (void) {
                     mp_std_byte_Byte_B_27_p_27_();
                     mw_std_maybe_Maybe_unwrap();
                     mw_mirth_main_parse_package_def();
-                    mw_std_maybe_Maybe_unwrap();
                     mw_std_prelude_over();
                     mw_mirth_main_Arguments__7E_packages();
                     mw_std_prim_prim_mut_get();
@@ -32958,7 +32956,7 @@ static void mw_mirth_main_compiler_parse_args (void) {
             push_i64(1LL);
             mw_std_prim_prim_int_lt();
             push_u64(0);
-            push_fnptr(&mb_mirth_main_compiler_parse_args_105);
+            push_fnptr(&mb_mirth_main_compiler_parse_args_104);
             mw_std_prim_prim_pack_cons();
             mw_std_prim_Bool_then();
             mw_args_types__2B_ArgumentParser_state();
@@ -33579,7 +33577,7 @@ static void mb_mirth_elab_elab_entry_point_43 (void) {
     }
 }
 
-static void mb_mirth_main_compiler_parse_args_105 (void) {
+static void mb_mirth_main_compiler_parse_args_104 (void) {
     mw_std_prim_prim_drop();
     mw_args_types_ArgumentParsingError_TOO_5F_FEW_5F_ARGS();
     mw_std_maybe_Maybe_SOME();
