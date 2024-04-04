@@ -133,76 +133,75 @@ def(parse-package-def, Str -- [Str Path],
 )
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
-    OPTION_SHORT -> match(
+    SHORT -> match(
         B'o' -> unwrap >Path SOME over ~output-file !,
         B'e' -> unwrap SOME over ~entry-point !,
         B'c' -> drop NONE over ~entry-point !,
         B'p' -> unwrap parse-package-def over ~packages @ cons over ~packages !,
-        _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
+        _ -> drop drop UNKNOWN_ARG SOME state error! state!
     ),
-    OPTION_POSITIONAL -> state current-positional-arg 0= if(
+    POSITIONAL -> state positional-index 0= if(
         unwrap >Path over ~input-file !,
-        drop TOO_MANY_ARGS SOME state current-error! state!
+        drop TOO_MANY_ARGS SOME state error! state!
     ),
-    OPTION_LONG_ONLY -> dup "debug" == if(
+    LONG_ONLY -> dup "debug" == if(
         drop2 T over ~emit-debug-info !,
-        drop2 UNKNOWN_ARG SOME state current-error! state!
+        drop2 UNKNOWN_ARG SOME state error! state!
     ),
-    OPTION_END ->
-        state current-positional-arg 1 < then(
-            TOO_FEW_ARGS SOME state current-error! state!
+    END ->
+        state positional-index 1 < then(
+            TOO_FEW_ARGS SOME state error! state!
         )
         state arguments ~output-file @ match(
             SOME -> drop,
             # If we have an entry point we need to have an output file currently
             NONE -> state arguments ~entry-point @ match (
-                SOME -> drop "output-file" MISSING_ARG SOME state current-error! state!,
+                SOME -> drop "output-file" MISSING_ARG SOME state error! state!,
                 NONE ->
             )
         )
         drop,
-    _ -> drop drop UNKNOWN_ARG SOME state current-error! state!)
+    _ -> drop drop UNKNOWN_ARG SOME state error! state!)
 
 def(main, +World -- +World,
     init!
 
-    Arguments.default
-
+    Arguments.default 
     LIST(
         "output-file" SOME
-        B'o' OPTION_SHORT
+        B'o' SHORT
         "OUTPUT_FILE" SOME
         "Test argument" SOME
         NONE ArgpOption.new ;
 
         "compile-only" SOME
-        B'c' OPTION_SHORT
+        B'c' SHORT
         NONE
         "Compile code without running codegen step" SOME
         NONE ArgpOption.new ;
 
         "entry-point" SOME
-        B'e' OPTION_SHORT
+        B'e' SHORT
         "ENTRY_POINT" SOME
         "Custom entry point word for compilation" SOME
         NONE ArgpOption.new ;
 
 	"package" SOME
-	B'p' OPTION_SHORT
+	B'p' SHORT
 	"(PACKAGE:PATH)*" SOME
 	"Package locations" SOME
 	NONE ArgpOption.new ;
 
         "debug" SOME
-        "debug" OPTION_LONG_ONLY
+        "debug" LONG_ONLY
         NONE
         "Emit debugging information during codegen" SOME
         NONE ArgpOption.new ;
-    )
-    [ compiler-parse-args ] SOME
-    "input-file" SOME
-    "Mirth Compiler"
-    ArgumentParser.new
+    ) >options
+    [ compiler-parse-args ] SOME >parser
+    "input-file" SOME >args-doc
+    "Mirth Compiler" >doc
+    ARGUMENT_PARSER
 
     parse-args match(
         RIGHT -> ,

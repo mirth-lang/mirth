@@ -16,9 +16,9 @@ def(print-usage, +ArgumentParser(a) -- +ArgumentParser(a),
   "Usage:" print-ln!
 
   "  " print!
-  state program-name  print!
+  state program-name print!
   " [options] " print!
-  argument-parser args-doc  for(print!)
+  argument-parser args-doc for(print!)
   "" print-ln!
 
   "" print-ln!
@@ -30,7 +30,7 @@ def(print-usage, +ArgumentParser(a) -- +ArgumentParser(a),
 def(print-usage-for-option, ArgpOption --,
   "  " print!
   dup type match(
-    OPTION_SHORT -> dup is-printable then("-" print! dup to-str-unsafe print!) drop,
+    SHORT -> dup is-printable then("-" print! dup to-str-unsafe print!) drop,
     _ -> drop
   )
 
@@ -59,18 +59,19 @@ def(print-usage-for-option, ArgpOption --,
 ||| Check if the currently parsed argument is something we accept
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over type match(
-        OPTION_SHORT -> 0 >Offset rotl str-byte@ ==,
+        SHORT -> 0 >Offset rotl str-byte@ ==,
         _ -> drop drop F
     ))
 
 ||| Parse a short cli flag, possibly with a argument value
-def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool) +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
+def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool) 
+  +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
   argument-parser options
   find(over f) swap drop match(
     SOME -> dup arg match(
       SOME ->
-	T state currently-parsing-option! state!
-	drop SOME state current-option-option! state!,
+	T state parsing! state!
+	drop SOME state option-option! state!,
       NONE -> type state arguments swap NONE swap parser match(
 	SOME -> run state arguments! state! ,
 	NONE -> drop drop drop
@@ -96,57 +97,57 @@ def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentPars
 
 ||| Parse a positional argument, advancing the current index
 def(do-positional-option, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    state arguments swap SOME OPTION_POSITIONAL parser unwrap run
+    state arguments swap SOME POSITIONAL parser unwrap run
     state arguments! state! NONE
-    state current-positional-arg 1+ state current-positional-arg! state!)
+    state positional-index 1+ state positional-index! state!)
 
 ||| Run the argument parser
 def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
-  swap ArgumentParserState.init +ARGUMENTPARSER
-  state ArgumentParserState.argv for(
+  swap State.init +ARGUMENTPARSER
+  state State.argv for(
     dup num-bytes 1 >Size > if(
       0 >Offset over str-byte@ B'-' == if(
         # if in the middle of currently parsing an option when we shouldn't be,
 	# turn it off, otherwise error because need an option value
-        state currently-parsing-option if(
-	  drop state current-option-option match(
+        state parsing? if(
+	  drop state option-option match(
             SOME -> ~arg @ match (
 	      SOME -> drop MISSING_ARGUMENT_VALUE SOME,
-	      NONE -> F state currently-parsing-option! state! NONE
+	      NONE -> F state parsing! state! NONE
 	    ),
 	    NONE -> MISSING_ARGUMENT_VALUE SOME
 	  ),
 	  parse-flags
 	),
 	# Parse the associated value for an option
-	state currently-parsing-option if(
-	  state current-option-option match(
+	state parsing? if(
+	  state option-option match(
 	    SOME -> ~arg @ match(
-	      SOME -> drop state arguments swap SOME state current-option-option unwrap type parser unwrap run state arguments! state! NONE,
+	      SOME -> drop state arguments swap SOME state option-option unwrap type parser unwrap run state arguments! state! NONE,
 	      NONE -> drop UNKNOWN_ARG SOME
 	    ),
 	    NONE -> drop UNKNOWN_ARG SOME
-	  ) F state currently-parsing-option! state!,
+	  ) F state parsing! state!,
           do-positional-option
 	)
       ),
       drop NONE
     ) match(
-      SOME -> SOME state current-error! state!,
+      SOME -> SOME state error! state!,
       NONE ->
     )
   )
 
   # Check if we are still waiting for an associated value for an option
-  state currently-parsing-option then(
-    MISSING_ARGUMENT_VALUE SOME state current-error! state!
+  state parsing? then(
+    MISSING_ARGUMENT_VALUE SOME state error! state!
   )
 
   # Run the callback function one last time to let it clean up
   # and run final checks
-  state arguments NONE OPTION_END parser unwrap run state arguments! state!
+  state arguments NONE END parser unwrap run state arguments! state!
 
-  state arguments state current-error
+  state arguments state error
   match(
     SOME -> LEFT swap drop print-usage,
     NONE -> RIGHT
