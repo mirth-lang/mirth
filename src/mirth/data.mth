@@ -128,6 +128,7 @@ field(Tag.~num-type-inputs, Tag, Nat)
 field(Tag.~num-resource-inputs, Tag, Nat)
 field(Tag.~sig?, Tag, Maybe(Token))
 field(Tag.~ctx-type, Tag, Lazy([Ctx ArrowType]))
+field(Tag.~untag, Tag, Maybe(Word))
 
 def(Tag.data, Tag -- Data, ~data @)
 def(Tag.qname, Tag -- QName, ~qname @)
@@ -140,6 +141,7 @@ def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
 def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Tag.ctx, Tag -- Ctx, ctx-type drop)
 def(Tag.type, Tag -- ArrowType, ctx-type nip)
+def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 
 def(Tag.label-inputs-from-sig, Tag -- List(Label),
     sig? if-some(run-tokens filter-some(label?), L0))
