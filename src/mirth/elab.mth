@@ -1189,8 +1189,8 @@ def(table-new!, Token QName -- Table,
     8 >Size Buffer.new!
     over ~num-buffer !
 
-    # Table.id
-    dup "id" table-word-new!
+    # Table.index
+    dup "index" table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 T->
@@ -1201,8 +1201,8 @@ def(table-new!, Token QName -- Table,
         COERCE_UNSAFE ab-coerce!
     ) drop
 
-    # Table.from-id
-    dup "from-id" table-word-new!
+    # Table.from-index
+    dup "from-index" table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 swap T->

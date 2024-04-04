@@ -26,7 +26,7 @@ def(Name.>Str, Name -- Str, ~Str @)
 def(Name.defs, Name -- List(Def), ~defs @)
 def(Name.mangled, Name -- Str, ~mangled force!)
 
-def(Name.==, Name Name -- Bool, both(Name.id) ==)
+def(Name.==, Name Name -- Bool, both(Name.index) ==)
 
 data(Hash, HASH -> Int)
 def(Hash.>Int, Hash -- Int, HASH -> id)
@@ -36,9 +36,9 @@ def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
     >Int 8 * >Offset HASH_BUF unsafe(offset @I64) >Int
-    dup 0= if(drop NONE, Name.from-id SOME))
+    dup 0= if(drop NONE, Name.from-index SOME))
 def(hash-name!, Name Hash --,
-    dip(Name.id >I64)
+    dip(Name.index >I64)
     >Int 8 * >Offset HASH_BUF unsafe(offset !I64))
 
 ||| Get hash for string.
@@ -185,7 +185,7 @@ def(QName.>Str, QName -- Str,
 
 def(QName.to-module-path, QName -- Path,
     QNAME -> swap match(
-        NAMESPACE_PACKAGE -> path unwrap-or("No path defined for package" panic!) 
+        NAMESPACE_PACKAGE -> path unwrap-or("No path defined for package" panic!)
 	swap >Str ".mth" cat >Path join-unix, # TODO use Path.join instead?
         _ -> drop "expected module name" panic!
     ))

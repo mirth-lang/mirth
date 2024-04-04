@@ -486,7 +486,7 @@ def(MetaVar.has-meta?, MetaVar MetaVar -- Bool,
 
 def(MetaVar.trace!, MetaVar --,
     dup type? match(
-        NONE -> "?" trace! MetaVar.id trace!,
+        NONE -> "?" trace! index trace!,
         SOME -> nip trace!
     ))
 def(MetaVar.new!, MetaVar,
@@ -517,7 +517,7 @@ def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
         SOME -> nip
     ))
 
-def(MetaVar.==, MetaVar MetaVar -- Bool, both(.id) ==)
+def(MetaVar.==, MetaVar MetaVar -- Bool, both(index) ==)
 
 def(MetaVar.freshen, Subst MetaVar -- Subst Type,
     expand-if(freshen, drop MetaVar.new! TMeta))

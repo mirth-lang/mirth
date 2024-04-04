@@ -19,7 +19,7 @@ def(Var.name, Var -- Name, ~name @)
 def(Var.type, Var -- Type, ~type @)
 def(Var.auto-run?, Var -- Bool, ~auto-run? @)
 
-def(Var.==, Var Var -- Bool, both(.id) ==)
+def(Var.==, Var Var -- Bool, both(index) ==)
 def(Var.trace!, Var --, name trace!)
 def(Var.is-type?, Var -- Bool, type prim? and-some(PRIM_TYPE_TYPE ==))
 def(Var.is-stack?, Var -- Bool, type prim? and-some(PRIM_TYPE_STACK ==))

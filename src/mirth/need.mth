@@ -18,8 +18,8 @@ data(Need,
     NEED_BLOCK -> Block)
 
 def(Need.>Int, Need -- Int,
-    NEED_WORD  -> Word.id 2*,
-    NEED_BLOCK -> Block.id 2* 1+)
+    NEED_WORD  -> index 2*,
+    NEED_BLOCK -> index 2* 1+)
 
 #########
 # NEEDS #
