@@ -8477,7 +8477,8 @@ static void mb_mirth_elab_create_projectors_21__37 (void);
 static void mb_mirth_elab_create_projectors_21__52 (void);
 static void mb_mirth_elab_create_projectors_21__68 (void);
 static void mb_mirth_elab_create_projectors_21__70 (void);
-static void mb_mirth_elab_create_projectors_21__84 (void);
+static void mb_mirth_elab_create_projectors_21__80 (void);
+static void mb_mirth_elab_create_projectors_21__86 (void);
 static void mb_mirth_elab_token_def_args_9 (void);
 static void mb_mirth_elab_elab_def_qname_4 (void);
 static void mb_mirth_elab_elab_def_params_21__13 (void);
@@ -39057,6 +39058,43 @@ static void mb_mirth_elab_create_projectors_21__70 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_mirth_elab_ab_label_push_21_();
+	push_u64(0);
+	incref(var_untag);
+	push_value(var_untag);
+	mw_std_prim_prim_pack_cons();
+	incref(var_dat);
+	push_value(var_dat);
+	mw_std_prim_prim_pack_cons();
+	incref(var_tag);
+	push_value(var_tag);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl);
+	push_value(var_lbl);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_proj);
+	push_value(var_lbl_5F_proj);
+	mw_std_prim_prim_pack_cons();
+	push_fnptr(&mb_mirth_elab_create_projectors_21__80);
+	mw_std_prim_prim_pack_cons();
+	mw_mirth_elab_ab_dip_21_();
+	decref(var_lbl_5F_proj);
+	decref(var_lbl);
+	decref(var_tag);
+	decref(var_dat);
+	decref(var_untag);
+}
+static void mb_mirth_elab_create_projectors_21__80 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_proj = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_dat = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_untag = pop_value();
+	mw_std_prim_prim_drop();
 	incref(var_tag);
 	push_value(var_tag);
 	mw_mirth_elab_ab_tag_21_();
@@ -39079,7 +39117,7 @@ static void mb_mirth_elab_create_projectors_21__70 (void) {
 	incref(var_lbl_5F_proj);
 	push_value(var_lbl_5F_proj);
 	mw_std_prim_prim_pack_cons();
-	push_fnptr(&mb_mirth_elab_create_projectors_21__84);
+	push_fnptr(&mb_mirth_elab_create_projectors_21__86);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_else();
 	decref(var_lbl_5F_proj);
@@ -39088,7 +39126,7 @@ static void mb_mirth_elab_create_projectors_21__70 (void) {
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__84 (void) {
+static void mb_mirth_elab_create_projectors_21__86 (void) {
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl_5F_proj = pop_value();
 	mw_std_prim_prim_pack_uncons();

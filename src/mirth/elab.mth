@@ -1045,8 +1045,10 @@ def(create-projectors!, Tag --,
                 lbl ab-label-pop!
                 PRIM_CORE_DUP ab-prim!
                 lbl ab-label-push!
-                tag ab-tag!
-                dat is-resource? else(PRIM_CORE_DROP ab-prim!)
+                ab-dip!(
+                    tag ab-tag!
+                    dat is-resource? else(PRIM_CORE_DROP ab-prim!)
+                )
             )) lbl_proj ~arrow !
         )
     )))))
