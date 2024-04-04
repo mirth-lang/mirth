@@ -33,7 +33,7 @@ do
     rm -f $TMP/test/*
     echo mirth-tests/$filename
     binary_name="${filename%.*}"
-    $TMP/mirth --debug mirth-tests/$filename  -o "${binary_name}.c"> $TMP/test/mout 2> $TMP/test/merr
+    $TMP/mirth --debug src/mirth-tests/$filename -p std:src/std -p posix:src/posix -p args:src/args -p mirth-tests:src/mirth-tests -o "bin/${binary_name}.c"> $TMP/test/mout 2> $TMP/test/merr
     MIRTH_BUILD_FAILED=$?
     cat $TMP/test/mout | sed 's/^/# mirth-test # mout # /' >> $TMP/test/actual
     cat $TMP/test/merr | egrep ': (error|warning):' | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual

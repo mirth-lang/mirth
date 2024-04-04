@@ -102,13 +102,13 @@ bin/mirth3.c: bin/mirth2 $(SRCS)
 	bin/mirth2 $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth3.c
 
 bin/mirth1debug.c: bin/mirth0 $(SRCS)
-	bin/mirth0 --debug mirth/main.mth -o mirth1debug.c
+	bin/mirth0 $(MIRTHFLAGS) --debug src/mirth/main.mth -o bin/mirth1debug.c
 
 bin/mirth2debug.c: bin/mirth1 $(SRCS)
-	bin/mirth1 --debug mirth/main.mth -o mirth2debug.c
+	bin/mirth1 $(MIRTHFLAGS) --debug src/mirth/main.mth -o bin/mirth2debug.c
 
 bin/mirth3debug.c: bin/mirth2 $(SRCS)
-	bin/mirth2 --debug mirth/main.mth -o mirth3debug.c
+	bin/mirth2 $(MIRTHFLAGS) --debug mirth/main.mth -o bin/mirth3debug.c
 
 bin/mirth3san.c: bin/mirth2san $(SRCS)
 	bin/mirth2san $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth3san.c
