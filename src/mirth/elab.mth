@@ -80,45 +80,61 @@ def(elab-type-stack!, TypeElab Token -- TypeElab StackType Token,
 def(elab-type-stack-rest!, TypeElab StackType Token -- TypeElab StackType Token,
     while(dup sig-stack-end? not,
         swap dip(elab-type-atom!) swap
-        dip(swap T*+)
+        dip(swap cons)
     ))
 
 def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
     elab-type-atom!
     swap match(
-        LEFT -> swap,
-        RIGHT -> drop "Expected type, not resource." emit-fatal-error!
+        STPCons -> swap,
+        STPConsLabel -> drop2 "Expected type, not label." emit-fatal-error!,
+        STPWith -> drop "Expected type, not resource." emit-fatal-error!,
     )
     dup arg-end? else(
         "Unexpected token after type." emit-fatal-error!
     ))
 
-def(elab-type-atom!, TypeElab Token -- TypeElab Either(Type, Resource) Token,
-    # TODO: handle Mut sugar
+data(StackTypePart,
+    STPCons -> Type,
+    STPConsLabel -> Type Label,
+    STPWith -> Resource)
+
+def(StackTypePart.cons, StackType StackTypePart -- StackType,
+    STPCons -> STCons,
+    STPConsLabel -> STConsLabel,
+    STPWith -> STWith)
+
+def(elab-type-atom!, TypeElab Token -- TypeElab StackTypePart Token,
+    dup label? if-some(
+        dip(succ dup dip(elab-type-atom!)) rot4l match(
+            STPCons -> swap STPConsLabel nip swap,
+            _ -> drop dip("Expected type" emit-error! TYPE_ERROR) STPConsLabel swap
+        ),
+
     dup sig-type-var? if(
-        elab-type-var! dip(TVar LEFT),
+        elab-type-var! dip(TVar STPCons),
 
     dup sig-type-con? if(
-        elab-type-con! dip(LEFT),
+        elab-type-con! dip(STPCons),
 
     dup sig-resource-var? if(
-        elab-resource-var! dip(TVar RESOURCE RIGHT),
+        elab-resource-var! dip(TVar RESOURCE STPWith),
 
     dup sig-resource-con? if(
-        elab-resource-con! dip(RIGHT),
+        elab-resource-con! dip(STPWith),
 
     dup pat-underscore? if(
-        elab-type-dont-care! dip(LEFT),
+        elab-type-dont-care! dip(STPCons),
 
     dup sig-type-hole? if(
-        elab-type-hole! dip(LEFT),
+        elab-type-hole! dip(STPCons),
 
     dup lsquare? .if(
-        elab-type-quote! dip(LEFT),
+        elab-type-quote! dip(STPCons),
 
         dup "Expected type, got unknown token." emit-error!
-        dip(TYPE_ERROR LEFT) next
-    ))))))))
+        dip(TYPE_ERROR STPCons) next
+    )))))))))
 
 def(elab-stack-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_STACK elab-implicit-var!)
@@ -346,6 +362,8 @@ def(ab-prim!, Prim +AB -- +AB,
 def(ab-word!, Word +AB -- +AB, OP_WORD ab-op!)
 def(ab-external!, External +AB -- +AB, OP_EXTERNAL ab-op!)
 def(ab-coerce!, Coerce +AB -- +AB, OP_COERCE ab-op!)
+def(ab-label-push!, Label +AB -- +AB, OP_LABEL_PUSH ab-op!)
+def(ab-label-pop!, Label +AB -- +AB, OP_LABEL_POP ab-op!)
 
 def(ab-block-at!(f), (*a +AB -- *b +AB) *a Token +AB -- *b +AB,
     ab-ctx@ MetaVar.new! STMeta rotl ab-home@ rdip(ab-build!(f))
@@ -412,6 +430,8 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_MATCH -> elab-match-sig!,
         OP_LAMBDA -> elab-lambda-sig!,
         OP_COERCE -> elab-coerce-sig!,
+        OP_LABEL_PUSH -> elab-label-push-sig!,
+        OP_LABEL_POP -> elab-label-pop-sig!,
     ))
 
 def(elab-coerce-sig!, Coerce -- OpSig,
@@ -434,6 +454,12 @@ def(elab-var-sig!, Var -- OpSig,
         type morphism? unwrap semifreshen-sig OPSIG_APPLY,
         type OPSIG_PUSH
     ))
+
+def(elab-label-push-sig!, Label -- OpSig,
+    dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2) STConsLabel dip(STCons) T-> OPSIG_APPLY)
+
+def(elab-label-pop-sig!, Label -- OpSig,
+    dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2) STConsLabel dip(STCons) swap T-> OPSIG_APPLY)
 
 def(elab-arrow!, Ctx ArrowType Token Home -- Arrow,
     dip2(unpack) elab-arrow-hom!)
@@ -466,6 +492,8 @@ def(elab-atom!, +AB -- +AB,
         TOKEN_STR -> ab-str!,
         TOKEN_LSQUARE -> drop elab-atom-block!,
         TOKEN_LCURLY -> drop elab-atom-assert!,
+        TOKEN_LABEL_PUSH -> ab-label-push!,
+        TOKEN_LABEL_POP -> ab-label-pop!,
         _ -> ab-token@ "Unexpected token in elab-atom!" emit-fatal-error!
     ))
 
@@ -912,7 +940,7 @@ def(elab-data-tag!, Data Token -- Data,
     { Data Tag }
     dup delay(
         type-elab-default
-        over .data head? unwrap elab-type-atom! drop dip(T0) T*+
+        over .data head? unwrap elab-type-atom! drop dip(T0) cons
         dip(T0 rotl sig? for(
             elab-type-stack-rest!
             dup run-end? else("syntax error" emit-fatal-error!) drop

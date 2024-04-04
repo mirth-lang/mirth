@@ -18,6 +18,7 @@ import(mirth.tycon)
 import(mirth.typedef)
 import(mirth.error)
 import(mirth.data)
+import(mirth.label)
 
 data(Type,
     TYPE_ERROR,
@@ -578,7 +579,7 @@ data(StackType,
     STVar -> Var,
     STMeta -> MetaVar,
     STCons -> StackType Type,
-    STConsLabel -> StackType Type Name,
+    STConsLabel -> StackType Type Label,
     STWith -> StackType Resource)
 
 def(Type.>StackType, Type -- StackType,
@@ -607,7 +608,7 @@ def(StackType.unit?, StackType -- Bool,
     ))
 
 ||| Split stack type into base, types, and resources.
-def(StackType.split4, StackType -- StackType List([Type Name]) List(Type) List(Resource),
+def(StackType.split4, StackType -- StackType List([Type Label]) List(Type) List(Resource),
     expand match(
         STCons -> dip(split4) swap dip(snoc),
         STWith -> dip(split4) snoc,
@@ -619,7 +620,7 @@ def(StackType.split4, StackType -- StackType List([Type Name]) List(Type) List(R
 def(StackType.base, StackType -- StackType, split4 drop3)
 
 ||| Get types with labels on stack.
-def(StackType.types-with-label, StackType -- List([Type Name]), split4 drop2 nip)
+def(StackType.types-with-label, StackType -- List([Type Label]), split4 drop2 nip)
 
 ||| Get types on stack.
 def(StackType.types, StackType -- List(Type), split4 drop dip(drop2))
@@ -722,7 +723,7 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
         ),
     ))
 
-def(StackType.force-cons-label?!, Name StackType -- Maybe([StackType Type]),
+def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
     expand match(
         STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR pack2 SOME,
         STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE pack2 SOME,
@@ -806,7 +807,7 @@ def(StackType.trace-base!, StackType -- Bool,
 def(StackType.trace!, StackType --,
     split4
     dip3(trace-base!)
-    dip2(for(swap then(" " trace!) unpack2 trace! ":" trace! trace! T))
+    dip2(for(swap then(" " trace!) unpack2 >Str trace! ":" trace! trace! T))
     dip(for(swap then(" " trace!) trace! T))
     for(swap then(" " trace!) trace! T) drop)
 

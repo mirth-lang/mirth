@@ -1,0 +1,15 @@
+module(mirth.label)
+import(std.prelude)
+import(mirth.name)
+
+table(Label)
+field(Label.~name, Label, Name)
+def(Label.name, Label -- Name, ~name @)
+def(Label.>Str, Label -- Str, name >Str)
+def(Label.==, Label Label -- Bool, both(index) ==)
+
+def(Label.new!, Name -- Label,
+    dup ~label memoize(
+        Label.alloc!
+        dup2 ~name !
+    ) nip)

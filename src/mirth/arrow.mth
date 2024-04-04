@@ -57,7 +57,9 @@ data(Op,
     OP_LAMBDA -> Lambda,
     OP_VAR -> Var,
     OP_BLOCK -> Block,
-    OP_COERCE -> Coerce)
+    OP_COERCE -> Coerce,
+    OP_LABEL_PUSH -> Label,
+    OP_LABEL_POP -> Label)
 
 data(Coerce,
     COERCE_UNSAFE)

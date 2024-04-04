@@ -34,6 +34,7 @@ import(mirth.var)
 import(mirth.match)
 import(mirth.elab)
 import(mirth.need)
+import(mirth.label)
 
 #######
 # C99 #
@@ -83,6 +84,7 @@ def(run-output-c99!, Arrow C99_Options +World -- +World,
 
         c99-start!
         c99-header!
+        c99-label-defs!
         c99-tags!
         c99-buffers!
         c99-variables!
@@ -250,7 +252,14 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_LAMBDA   -> nip c99-lambda!,
     OP_VAR      -> nip c99-var!,
     OP_BLOCK    -> nip c99-block-push!,
-    OP_COERCE   -> drop2)
+    OP_COERCE   -> drop2,
+    OP_LABEL_PUSH -> nip c99-label-push!,
+    OP_LABEL_POP  -> nip c99-label-pop!)
+
+def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
+def(c99-label-def!, Label +C99 -- +C99, "static VAL lbl_" put name mangled put " = {0};" put line)
+def(c99-label-push!, Label +C99 -- +C99, c99-line("LPUSH(lbl_" put name mangled put ");" put))
+def(c99-label-pop!, Label +C99 -- +C99, c99-line("LPOP(lbl_" put name mangled put ");" put))
 
 def(c99-int!, Int +C99 -- +C99,
     c99-line("push_i64(" put show put "LL);" put))
