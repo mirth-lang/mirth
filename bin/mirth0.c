@@ -316,9 +316,6 @@ static VAL pop_value(void) {
 	return stack[stack_counter++];
 }
 
-#define LPOP(v) do { VAL lcar, lcdr; value_uncons_c((v), &lcar, &lcdr); push_value(lcdr); (v) = lcar; } while(0)
-#define LPUSH(v) do { (v) = mkcons((v), pop_value()); } while(0)
-
 static void push_resource(VAL x) {
 	ASSERT(rstack_counter > 0);
 	rstack[--rstack_counter] = x;
@@ -344,6 +341,14 @@ static VAL mkcons (VAL car, VAL cdr) {
 	cons->cdr = cdr;
 	return MKCONS(cons);
 }
+
+static VAL lpop(VAL* stk) {
+	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
+	*stk=lcar; incref(lcar); incref(lcdr); decref(cons); return lcdr;
+}
+static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
+#define LPOP(v) push_value(lpop(&(v)))
+#define LPUSH(v) lpush(&(v),pop_value())
 
 static STR* str_alloc (USIZE cap) {
 	ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);
@@ -7207,11 +7212,13 @@ static void mw_mirth_data_Tag_alloc_21_ (void);
 static void mw_mirth_data_Tag_data (void);
 static void mw_mirth_data_Tag_qname (void);
 static void mw_mirth_data_Tag_value (void);
+static void mw_mirth_data_Tag_label_inputs (void);
 static void mw_mirth_data_Tag_num_type_inputs (void);
 static void mw_mirth_data_Tag_num_resource_inputs (void);
 static void mw_mirth_data_Tag_sig_3F_ (void);
 static void mw_mirth_data_Tag_ctx_type (void);
 static void mw_mirth_data_Tag_type (void);
+static void mw_mirth_data_Tag_label_inputs_from_sig (void);
 static void mw_mirth_data_Tag_num_type_inputs_from_sig (void);
 static void mw_mirth_data_Tag_num_resource_inputs_from_sig (void);
 static void mw_mirth_data_Tag_is_transparent_3F_ (void);
@@ -8271,9 +8278,13 @@ static void mb_mirth_data_make_prim_tag_21__11 (void);
 static void mb_mirth_data_make_prim_tag_21__22 (void);
 static void mb_mirth_data_make_prim_tag_21__27 (void);
 static void mb_mirth_data_make_prim_tag_21__32 (void);
-static void mb_mirth_data_make_prim_tag_21__40 (void);
+static void mb_mirth_data_make_prim_tag_21__39 (void);
+static void mb_mirth_data_make_prim_tag_21__47 (void);
+static void mb_mirth_data_Tag_label_inputs_from_sig_3 (void);
+static void mb_mirth_data_Tag_label_inputs_from_sig_9 (void);
+static void mb_mirth_data_Tag_label_inputs_from_sig_6 (void);
 static void mb_mirth_data_Tag_num_type_inputs_from_sig_4 (void);
-static void mb_mirth_data_Tag_num_type_inputs_from_sig_9 (void);
+static void mb_mirth_data_Tag_num_type_inputs_from_sig_14 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_3 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_20 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_6 (void);
@@ -8430,9 +8441,11 @@ static void mb_mirth_elab_elab_data_tag_21__113 (void);
 static void mb_mirth_elab_elab_data_tag_21__117 (void);
 static void mb_mirth_elab_elab_data_tag_21__122 (void);
 static void mb_mirth_elab_elab_data_tag_21__126 (void);
-static void mb_mirth_elab_elab_data_tag_21__138 (void);
-static void mb_mirth_elab_elab_data_tag_21__143 (void);
+static void mb_mirth_elab_elab_data_tag_21__131 (void);
+static void mb_mirth_elab_elab_data_tag_21__135 (void);
 static void mb_mirth_elab_elab_data_tag_21__147 (void);
+static void mb_mirth_elab_elab_data_tag_21__152 (void);
+static void mb_mirth_elab_elab_data_tag_21__156 (void);
 static void mb_mirth_elab_elab_data_done_21__8 (void);
 static void mb_mirth_elab_elab_data_done_21__29 (void);
 static void mb_mirth_elab_elab_data_done_21__55 (void);
@@ -8500,10 +8513,12 @@ static void mb_mirth_c99_c99_block_defs_21__5 (void);
 static void mb_mirth_c99_c99_tag_21__10 (void);
 static void mb_mirth_c99_c99_tag_21__25 (void);
 static void mb_mirth_c99_c99_tag_21__35 (void);
-static void mb_mirth_c99_c99_tag_21__68 (void);
-static void mb_mirth_c99_c99_tag_21__86 (void);
-static void mb_mirth_c99_c99_tag_21__95 (void);
-static void mb_mirth_c99_c99_tag_21__108 (void);
+static void mb_mirth_c99_c99_tag_21__45 (void);
+static void mb_mirth_c99_c99_tag_21__83 (void);
+static void mb_mirth_c99_c99_tag_21__105 (void);
+static void mb_mirth_c99_c99_tag_21__114 (void);
+static void mb_mirth_c99_c99_tag_21__134 (void);
+static void mb_mirth_c99_c99_tag_21__147 (void);
 static void mb_mirth_c99_c99_external_21__26 (void);
 static void mb_mirth_c99_c99_external_21__42 (void);
 static void mb_mirth_c99_c99_external_21__55 (void);
@@ -8652,6 +8667,7 @@ static void mw_mirth_data_Data__7E_tags (void);
 static void mw_mirth_data_Tag__7E_data (void);
 static void mw_mirth_data_Tag__7E_qname (void);
 static void mw_mirth_data_Tag__7E_value (void);
+static void mw_mirth_data_Tag__7E_label_inputs (void);
 static void mw_mirth_data_Tag__7E_num_type_inputs (void);
 static void mw_mirth_data_Tag__7E_num_resource_inputs (void);
 static void mw_mirth_data_Tag__7E_sig_3F_ (void);
@@ -9041,6 +9057,19 @@ static VAL* fieldptr_mirth_data_Tag__7E_value (size_t i) {
 
 static void mw_mirth_data_Tag__7E_value (void){	size_t index = (size_t)pop_u64();
 	VAL *v = fieldptr_mirth_data_Tag__7E_value(index);
+	push_ptr(v);
+}
+
+static VAL* fieldptr_mirth_data_Tag__7E_label_inputs (size_t i) {
+	static struct VAL * p = 0;
+	size_t m = 65536;
+	if (! p) { p = calloc(m, sizeof *p); }
+	if (i>=m) { write(2,"table too big\n",14); exit(123); }
+	return p+i;
+}
+
+static void mw_mirth_data_Tag__7E_label_inputs (void){	size_t index = (size_t)pop_u64();
+	VAL *v = fieldptr_mirth_data_Tag__7E_label_inputs(index);
 	push_ptr(v);
 }
 
@@ -16060,7 +16089,11 @@ static void mw_mirth_data_make_prim_tag_21_ (void) {
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_sip();
 	push_u64(0);
-	push_fnptr(&mb_mirth_data_make_prim_tag_21__40);
+	push_fnptr(&mb_mirth_data_make_prim_tag_21__39);
+	mw_std_prim_prim_pack_cons();
+	mw_std_prelude_sip();
+	push_u64(0);
+	push_fnptr(&mb_mirth_data_make_prim_tag_21__47);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_sip();
 	{
@@ -16467,6 +16500,10 @@ static void mw_mirth_data_Tag_value (void) {
 	mw_mirth_data_Tag__7E_value();
 	mw_std_prim_prim_mut_get();
 }
+static void mw_mirth_data_Tag_label_inputs (void) {
+	mw_mirth_data_Tag__7E_label_inputs();
+	mw_std_prim_prim_mut_get();
+}
 static void mw_mirth_data_Tag_num_type_inputs (void) {
 	mw_mirth_data_Tag__7E_num_type_inputs();
 	mw_std_prim_prim_mut_get();
@@ -16488,6 +16525,16 @@ static void mw_mirth_data_Tag_type (void) {
 	mw_mirth_data_Tag_ctx_type();
 	mw_std_prelude_nip();
 }
+static void mw_mirth_data_Tag_label_inputs_from_sig (void) {
+	mw_mirth_data_Tag_sig_3F_();
+	push_u64(0);
+	push_fnptr(&mb_mirth_data_Tag_label_inputs_from_sig_3);
+	mw_std_prim_prim_pack_cons();
+	push_u64(0);
+	push_fnptr(&mb_mirth_data_Tag_label_inputs_from_sig_9);
+	mw_std_prim_prim_pack_cons();
+	mw_std_maybe_Maybe_if_some();
+}
 static void mw_mirth_data_Tag_num_type_inputs_from_sig (void) {
 	mw_std_prim_prim_dup();
 	mw_mirth_data_Tag_sig_3F_();
@@ -16495,7 +16542,7 @@ static void mw_mirth_data_Tag_num_type_inputs_from_sig (void) {
 	push_fnptr(&mb_mirth_data_Tag_num_type_inputs_from_sig_4);
 	mw_std_prim_prim_pack_cons();
 	push_u64(0);
-	push_fnptr(&mb_mirth_data_Tag_num_type_inputs_from_sig_9);
+	push_fnptr(&mb_mirth_data_Tag_num_type_inputs_from_sig_14);
 	mw_std_prim_prim_pack_cons();
 	mw_std_maybe_Maybe_if_some();
 }
@@ -28765,6 +28812,14 @@ static void mw_mirth_elab_elab_data_tag_21_ (void) {
 	push_fnptr(&mb_mirth_elab_elab_data_tag_21__126);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_sip();
+	push_u64(0);
+	push_fnptr(&mb_mirth_elab_elab_data_tag_21__131);
+	mw_std_prim_prim_pack_cons();
+	mw_std_prelude_sip();
+	push_u64(0);
+	push_fnptr(&mb_mirth_elab_elab_data_tag_21__135);
+	mw_std_prim_prim_pack_cons();
+	mw_std_prelude_sip();
 	mw_std_prim_prim_dup();
 	mw_mirth_data_Tag_outputs_resource_3F_();
 	mw_std_prim_Bool_not();
@@ -28773,7 +28828,7 @@ static void mw_mirth_elab_elab_data_tag_21_ (void) {
 	mw_std_prelude_Nat_0_3E_();
 	mw_std_prim_Bool__26__26_();
 	push_u64(0);
-	push_fnptr(&mb_mirth_elab_elab_data_tag_21__138);
+	push_fnptr(&mb_mirth_elab_elab_data_tag_21__147);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_then();
 	mw_std_prim_prim_drop();
@@ -31012,9 +31067,6 @@ static void mw_mirth_c99_c99_header_21_ (void) {
 				"\treturn stack[stack_counter++];\n"
 				"}\n"
 				"\n"
-				"#define LPOP(v) do { VAL lcar, lcdr; value_uncons_c((v), &lcar, &lcdr); push_value(lcdr); (v) = lcar; } while(0)\n"
-				"#define LPUSH(v) do { (v) = mkcons((v), pop_value()); } while(0)\n"
-				"\n"
 				"static void push_resource(VAL x) {\n"
 				"\tASSERT(rstack_counter > 0);\n"
 				"\trstack[--rstack_counter] = x;\n"
@@ -31040,6 +31092,14 @@ static void mw_mirth_c99_c99_header_21_ (void) {
 				"\tcons->cdr = cdr;\n"
 				"\treturn MKCONS(cons);\n"
 				"}\n"
+				"\n"
+				"static VAL lpop(VAL* stk) {\n"
+				"\tVAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);\n"
+				"\t*stk=lcar; incref(lcar); incref(lcdr); decref(cons); return lcdr;\n"
+				"}\n"
+				"static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }\n"
+				"#define LPOP(v) push_value(lpop(&(v)))\n"
+				"#define LPUSH(v) lpush(&(v),pop_value())\n"
 				"\n"
 				"static STR* str_alloc (USIZE cap) {\n"
 				"\tASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);\n"
@@ -31898,7 +31958,7 @@ static void mw_mirth_c99_c99_header_21_ (void) {
 				"}\n"
 				"\n"
 				"/* GENERATED C99 */\n",
-				30984
+				31112
 			);
 			vready = true;
 		}
@@ -32099,7 +32159,7 @@ static void mw_mirth_c99_c99_tag_21_ (void) {
 	mw_std_prim_prim_dup();
 	mw_mirth_data_Tag_is_transparent_3F_();
 	push_u64(0);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__68);
+	push_fnptr(&mb_mirth_c99_c99_tag_21__83);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_else();
 	{
@@ -36303,13 +36363,20 @@ static void mb_mirth_data_make_prim_tag_21__27 (void) {
 }
 static void mb_mirth_data_make_prim_tag_21__32 (void) {
 	mw_std_prim_prim_drop();
+	mw_std_list_List_L0();
+	mw_std_prim_prim_swap();
+	mw_mirth_data_Tag__7E_label_inputs();
+	mw_std_prim_prim_mut_set();
+}
+static void mb_mirth_data_make_prim_tag_21__39 (void) {
+	mw_std_prim_prim_drop();
 	push_i64(0LL);
 	mw_std_prim_Int__3E_Nat();
 	mw_std_prim_prim_swap();
 	mw_mirth_data_Tag__7E_num_resource_inputs();
 	mw_std_prim_prim_mut_set();
 }
-static void mb_mirth_data_make_prim_tag_21__40 (void) {
+static void mb_mirth_data_make_prim_tag_21__47 (void) {
 	mw_std_prim_prim_drop();
 	{
 		VAL d2 = pop_value();
@@ -36319,14 +36386,35 @@ static void mb_mirth_data_make_prim_tag_21__40 (void) {
 	mw_mirth_data_Tag__7E_value();
 	mw_std_prim_prim_mut_set();
 }
+static void mb_mirth_data_Tag_label_inputs_from_sig_3 (void) {
+	mw_std_prim_prim_drop();
+	mw_mirth_token_Token_run_tokens();
+	push_u64(0);
+	push_fnptr(&mb_mirth_data_Tag_label_inputs_from_sig_6);
+	mw_std_prim_prim_pack_cons();
+	mw_std_list_List_filter_some();
+}
+static void mb_mirth_data_Tag_label_inputs_from_sig_9 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_list_List_L0();
+}
+static void mb_mirth_data_Tag_label_inputs_from_sig_6 (void) {
+	mw_std_prim_prim_drop();
+	mw_mirth_token_Token_label_3F_();
+}
 static void mb_mirth_data_Tag_num_type_inputs_from_sig_4 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_token_Token_run_length();
-	mw_std_prim_prim_swap();
+	mw_std_prelude_over();
 	mw_mirth_data_Tag_num_resource_inputs_from_sig();
 	mw_std_prelude_Nat__();
+	mw_std_prim_prim_swap();
+	mw_mirth_data_Tag_label_inputs_from_sig();
+	mw_std_list_List_len();
+	mw_std_prelude_Nat_2_2A_();
+	mw_std_prelude_Nat__();
 }
-static void mb_mirth_data_Tag_num_type_inputs_from_sig_9 (void) {
+static void mb_mirth_data_Tag_num_type_inputs_from_sig_14 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_drop();
 	push_i64(0LL);
@@ -38087,13 +38175,22 @@ static void mb_mirth_elab_elab_data_tag_21__126 (void) {
 	mw_mirth_data_Tag__7E_num_resource_inputs();
 	mw_std_prim_prim_mut_set();
 }
-static void mb_mirth_elab_elab_data_tag_21__138 (void) {
+static void mb_mirth_elab_elab_data_tag_21__131 (void) {
+	mw_std_prim_prim_drop();
+	mw_mirth_data_Tag_label_inputs_from_sig();
+}
+static void mb_mirth_elab_elab_data_tag_21__135 (void) {
+	mw_std_prim_prim_drop();
+	mw_mirth_data_Tag__7E_label_inputs();
+	mw_std_prim_prim_mut_set();
+}
+static void mb_mirth_elab_elab_data_tag_21__147 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_data_Tag_sig_3F_();
 	mw_std_maybe_Maybe_unwrap();
 	mw_mirth_token_Token_run_tokens();
 	push_u64(0);
-	push_fnptr(&mb_mirth_elab_elab_data_tag_21__143);
+	push_fnptr(&mb_mirth_elab_elab_data_tag_21__152);
 	mw_std_prim_prim_pack_cons();
 	mw_std_list_List_find();
 	mw_std_maybe_Maybe_unwrap();
@@ -38109,16 +38206,16 @@ static void mb_mirth_elab_elab_data_tag_21__138 (void) {
 	}
 	mw_mirth_token_emit_fatal_error_21_();
 }
-static void mb_mirth_elab_elab_data_tag_21__143 (void) {
+static void mb_mirth_elab_elab_data_tag_21__152 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
 	mw_mirth_token_Token_sig_resource_con_3F_();
 	push_u64(0);
-	push_fnptr(&mb_mirth_elab_elab_data_tag_21__147);
+	push_fnptr(&mb_mirth_elab_elab_data_tag_21__156);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_or();
 }
-static void mb_mirth_elab_elab_data_tag_21__147 (void) {
+static void mb_mirth_elab_elab_data_tag_21__156 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
 	mw_mirth_token_Token_sig_resource_var_3F_();
@@ -39193,6 +39290,12 @@ static void mb_mirth_c99_c99_tag_21__10 (void) {
 	push_fnptr(&mb_mirth_c99_c99_tag_21__35);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_repeat();
+	mw_std_prim_prim_dup();
+	mw_mirth_data_Tag_label_inputs();
+	push_u64(0);
+	push_fnptr(&mb_mirth_c99_c99_tag_21__45);
+	mw_std_prim_prim_pack_cons();
+	mw_std_list_List_reverse_for();
 	{
 		static bool vready = false;
 		static VAL v;
@@ -39285,7 +39388,47 @@ static void mb_mirth_c99_c99_tag_21__35 (void) {
 	}
 	mw_mirth_c99__2B_C99_put();
 }
-static void mb_mirth_c99_c99_tag_21__68 (void) {
+static void mb_mirth_c99_c99_tag_21__45 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("lpop(&lbl_", 10);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_mirth_label_Label_name();
+	mw_mirth_name_Name_mangled();
+	mw_mirth_c99__2B_C99_put();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("));", 3);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_mirth_c99__2B_C99_line();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\tcar = mkcons(car, ", 19);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+}
+static void mb_mirth_c99_c99_tag_21__83 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
 	mw_mirth_data_Tag_outputs_resource_3F_();
@@ -39319,9 +39462,13 @@ static void mb_mirth_c99_c99_tag_21__68 (void) {
 	mw_std_prelude_over();
 	mw_mirth_data_Tag_num_type_inputs();
 	mw_std_prelude_Nat__2B_();
+	mw_std_prelude_over();
+	mw_mirth_data_Tag_label_inputs();
+	mw_std_list_List_len();
+	mw_std_prelude_Nat__2B_();
 	mw_std_prelude_Nat_0_3E_();
 	push_u64(0);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__86);
+	push_fnptr(&mb_mirth_c99_c99_tag_21__105);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_then();
 	{
@@ -39335,15 +39482,21 @@ static void mb_mirth_c99_c99_tag_21__68 (void) {
 		incref(v);
 	}
 	mw_std_prelude_over();
+	mw_mirth_data_Tag_label_inputs();
+	push_u64(0);
+	push_fnptr(&mb_mirth_c99_c99_tag_21__114);
+	mw_std_prim_prim_pack_cons();
+	mw_std_list_List_for();
+	mw_std_prelude_over();
 	mw_mirth_data_Tag_num_resource_inputs();
 	push_u64(0);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__95);
+	push_fnptr(&mb_mirth_c99_c99_tag_21__134);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_repeat();
 	mw_std_prelude_over();
 	mw_mirth_data_Tag_num_type_inputs();
 	push_u64(0);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__108);
+	push_fnptr(&mb_mirth_c99_c99_tag_21__147);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_repeat();
 	mw_mirth_c99__2B_C99_put();
@@ -39360,7 +39513,7 @@ static void mb_mirth_c99_c99_tag_21__68 (void) {
 	mw_mirth_c99__2B_C99_put();
 	mw_mirth_c99__2B_C99_line();
 }
-static void mb_mirth_c99_c99_tag_21__86 (void) {
+static void mb_mirth_c99_c99_tag_21__105 (void) {
 	mw_std_prim_prim_drop();
 	{
 		static bool vready = false;
@@ -39375,7 +39528,61 @@ static void mb_mirth_c99_c99_tag_21__86 (void) {
 	mw_mirth_c99__2B_C99_put();
 	mw_mirth_c99__2B_C99_line();
 }
-static void mb_mirth_c99_c99_tag_21__95 (void) {
+static void mb_mirth_c99_c99_tag_21__114 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\tvalue_uncons_c(car, &car, &cdr);", 33);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_mirth_c99__2B_C99_line();
+	mw_std_prim_prim_swap();
+	mw_mirth_c99__2B_C99_put();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("cdr);", 5);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_mirth_c99__2B_C99_line();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\tlpush(&lbl_", 12);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_prim_prim_swap();
+	mw_mirth_label_Label_name();
+	mw_mirth_name_Name_mangled();
+	mw_std_prim_prim_str_cat();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr(", ", 2);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_prim_prim_str_cat();
+}
+static void mb_mirth_c99_c99_tag_21__134 (void) {
 	mw_std_prim_prim_drop();
 	{
 		static bool vready = false;
@@ -39413,7 +39620,7 @@ static void mb_mirth_c99_c99_tag_21__95 (void) {
 		incref(v);
 	}
 }
-static void mb_mirth_c99_c99_tag_21__108 (void) {
+static void mb_mirth_c99_c99_tag_21__147 (void) {
 	mw_std_prim_prim_drop();
 	{
 		static bool vready = false;
