@@ -13,3 +13,5 @@ def(main, --,
     dup age trace-ln!
     dup name trace-ln!
     drop)
+# mirth-test # perr # 30
+# mirth-test # perr # John
