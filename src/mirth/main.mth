@@ -201,7 +201,7 @@ def(main, +World -- +World,
     [ compiler-parse-args ] SOME >parser
     "input-file" SOME >args-doc
     "Mirth Compiler" >doc
-    ARGUMENT_PARSER
+    ArgumentParser.new 
 
     parse-args match(
         RIGHT -> ,
