@@ -3,13 +3,36 @@ import(std.prelude)
 import(posix.posix)
 
 data(Person, PERSON -> age:Int name:Str)
+data(Mixed, MIXED -> msg:Str Str)
+data(+MyWorld, ENTER -> age:Int msg:Int name:Str +World)
 
-def(main, --,
+def(main, +World -- +World,
     "John" >name
     30 >age
     PERSON
     dup age trace-ln!
     dup name trace-ln!
-    drop)
+    drop
+
+    "Hello" >msg "Goodbye"
+    MIXED msg trace-ln!
+
+    99 >age 101 >msg "me" >name
+    ENTER
+    "<<<" trace-ln!
+    age trace-ln!
+    msg trace-ln!
+    name trace-ln!
+    ">>>" trace-ln!
+    /ENTER
+    age> drop
+    msg> drop
+    name> drop)
 # mirth-test # perr # 30
 # mirth-test # perr # John
+# mirth-test # perr # Hello
+# mirth-test # perr # <<<
+# mirth-test # perr # 99
+# mirth-test # perr # 101
+# mirth-test # perr # me
+# mirth-test # perr # >>>
