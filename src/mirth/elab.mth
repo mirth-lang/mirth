@@ -667,20 +667,42 @@ def(elab-atom-lambda!, +AB -- +AB,
 ||| Elaborate a match body within AB. Takes the output stack type,
 ||| and the token for the body of the match, from the stack. Takes
 ||| the rest from the AB environment.
-def(elab-match-at!, StackType Token +AB -- +AB,
-    Match.alloc!
-    ab-ctx@ over ~ctx !
-    ab-type@ over ~dom !
-    ab-token@ over ~token !
-    tuck ~body !
-    tuck ~cod !
+def(elab-match-at!, cod:StackType body:Token +AB -- +AB,
+    >body >cod
+    ab-ctx@ >ctx
+    ab-type@ >dom
+    ab-token@ >token
+    Match.new!
     elab-match-cases!
     elab-match-exhaustive!
     OP_MATCH ab-op!)
 
+def(ab-match!(f),
+        (*a match:Match +AB -- *b match:Match +AB)
+        *a cod:StackType body:Token +AB -- *b +AB,
+    ab-ctx@ >ctx
+    ab-type@ >dom
+    ab-token@ >token
+    Match.new! >match f match> OP_MATCH ab-op!)
+
+def(ab-case!(p),
+        (*a case:Case +AB -- *b case:Case +AB)
+        *a match:Match +AB Pattern -- *b match:Match +AB,
+    Case.alloc!
+    match> over ~match !
+    ab-token@ over ~token !
+    ab-pattern!
+    tuck ~pattern !
+    determine-case-mid
+
+
+         +AB
+
+
+
 def(elab-atom-match!, +AB -- +AB,
-    MetaVar.new! STMeta
-    ab-token@ args+ first
+    MetaVar.new! STMeta >cod
+    ab-token@ args+ first >body
     elab-match-at!)
 
 def(elab-lambda!, Lambda +AB -- Lambda +AB,
@@ -788,7 +810,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
     dup name? if-some(
         # TODO type-directed tag resolution
-        # TODO defined tags
+        # TODO user-defined tags
         defs find-some(tag?) match(
             NONE -> "Unknown constructor." emit-fatal-error!,
             SOME ->
@@ -971,21 +993,35 @@ def(data-word-new!, Data Str -- Word,
     dip(dup head? unwrap dup rotl) data-word-qname Word.new!)
 
 def(elab-data-done!, Data --,
-    \(dat -> dat is-enum? then(
-        dat "tag" data-word-new! \(tag ->
-            CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
-            tag ab-build-word!(
-                COERCE_UNSAFE ab-coerce!
-            ) drop
+    \(dat ->
+        dat is-enum? then(
+            dat "tag" data-word-new! \(tag ->
+                CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
+                tag ab-build-word!(
+                    COERCE_UNSAFE ab-coerce!
+                ) drop
+            )
+
+            dat "from-tag-unsafe" data-word-new! \(ftag ->
+                CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
+                ftag ab-build-word!(
+                    COERCE_UNSAFE ab-coerce!
+                ) drop
+            )
         )
 
-        dat "from-tag-unsafe" data-word-new! \(ftag ->
-            CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
-            ftag ab-build-word!(
-                COERCE_UNSAFE ab-coerce!
-            ) drop
+        dat tags match(
+            L1 -> \(tag ->
+                dat "/" tag name >Str cat data-word-new! \(untag ->
+                    tag delay(ctx-type unpack swap T-> pack2) untag ~ctx-type !
+                    untag delay(ab-build-word-arrow!(
+                        ab-match!(ab-case!(tag PATTERN_TAG, id))
+                    )) ~arrow !
+                )
+            ),
+            _ -> drop
         )
-    )))
+    ))
 
 def(expect-token-arrow, Token -- Token,
     dup pat-arrow? else("Expected arrow." emit-fatal-error!))

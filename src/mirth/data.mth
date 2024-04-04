@@ -129,6 +129,7 @@ field(Tag.~ctx-type, Tag, Lazy([Ctx ArrowType]))
 
 def(Tag.data, Tag -- Data, ~data @)
 def(Tag.qname, Tag -- QName, ~qname @)
+def(Tag.name, Tag -- Name, qname name)
 def(Tag.value, Tag -- Nat, ~value @)
 def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
 def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)

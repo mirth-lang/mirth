@@ -26,6 +26,13 @@ def(Match.token, Match -- Token, ~token @)
 def(Match.body, Match -- Token, ~body @)
 def(Match.cases, Match -- List(Case), ~cases @)
 
+def(Match.new!,
+    ctx:Ctx dom:StackType cod:StackType
+    token:Token body:Token -- Match,
+    Match.alloc!
+    ctx> over ~ctx ! dom> over ~dom ! cod> over ~cod !
+    token> over ~token ! body> over ~body ! L0 over ~cases !)
+
 table(Case)
 field(Case.~match, Case, Match)
 field(Case.~token, Case, Token)
