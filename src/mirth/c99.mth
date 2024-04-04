@@ -49,6 +49,10 @@ def(EmitDebugInfo.>Str, EmitDebugInfo -- Str, EMIT_DEBUG_INFO -> if("yes", "no")
 def(EmitDebugInfo.>Bool, EmitDebugInfo -- Bool, EMIT_DEBUG_INFO -> id)
 
 data(C99_Options, C99_OPTIONS -> OutputPath EmitDebugInfo)
+def(C99_Options.make, output-path:Path emit-debug-info:Bool -- C99_Options,
+    output-path> OUTPUT_PATH
+    emit-debug-info> EMIT_DEBUG_INFO
+    C99_OPTIONS)
 def(C99_Options.emit-debug-info, C99_Options -- EmitDebugInfo, C99_OPTIONS -> nip)
 def(C99_Options.output-path, C99_Options -- OutputPath, C99_OPTIONS -> drop)
 
