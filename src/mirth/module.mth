@@ -26,7 +26,7 @@ def(Module.start, Module -- Token, ~start @)
 def(Module.end, Module -- Token, ~end @)
 def(Module.imports, Module -- List(Module), ~imports @)
 
-def(Module.==, Module Module -- Bool, both(.id) ==)
+def(Module.==, Module Module -- Bool, both(index) ==)
 
 var(Module.prim-var, Module)
 def(Module.prim, Module,

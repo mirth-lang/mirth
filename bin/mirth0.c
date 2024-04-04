@@ -6981,7 +6981,7 @@ static void mw_std_lazy_ready2 (void);
 static void mw_std_lazy_delay (void);
 static void mw_std_lazy_force_21_ (void);
 static void mw_std_lazy_force_or_21_ (void);
-static void mw_mirth_module_Module_id (void);
+static void mw_mirth_module_Module_index (void);
 static void mw_mirth_module_Module_alloc_21_ (void);
 static void mw_mirth_module_Module_package (void);
 static void mw_mirth_module_Module_name (void);
@@ -7007,7 +7007,7 @@ static void mw_mirth_error_init_errors_21_ (void);
 static void mw_mirth_error_emit_warning_at_21_ (void);
 static void mw_mirth_error_emit_error_at_21_ (void);
 static void mw_mirth_error_emit_fatal_error_at_21_ (void);
-static void mw_mirth_var_Var_id (void);
+static void mw_mirth_var_Var_index (void);
 static void mw_mirth_var_Var_alloc_21_ (void);
 static void mw_mirth_var_Var_name (void);
 static void mw_mirth_var_Var_type (void);
@@ -7028,7 +7028,7 @@ static void mw_mirth_ctx_Ctx_new (void);
 static void mw_mirth_ctx_Ctx_vars (void);
 static void mw_mirth_ctx_Ctx_physical_vars (void);
 static void mw_mirth_ctx_Ctx_lookup (void);
-static void mw_mirth_data_Data_id (void);
+static void mw_mirth_data_Data_index (void);
 static void mw_mirth_data_Data_alloc_21_ (void);
 static void mw_mirth_data_Data_head_3F_ (void);
 static void mw_mirth_data_Data_qname (void);
@@ -7053,7 +7053,7 @@ static void mw_mirth_data_Data_add_tag_21_ (void);
 static void mw_mirth_data_Data_is_enum_3F_ (void);
 static void mw_mirth_data_Data_is_transparent_3F_ (void);
 static void mw_mirth_data_Data_is_resource_3F_ (void);
-static void mw_mirth_data_Tag_id (void);
+static void mw_mirth_data_Tag_index (void);
 static void mw_mirth_data_Tag_for (void);
 static void mw_mirth_data_Tag_alloc_21_ (void);
 static void mw_mirth_data_Tag_data (void);
@@ -7097,7 +7097,7 @@ static void mw_mirth_match_Pattern_covers_3F_ (void);
 static void mw_mirth_arrow_Atom_alloc_21_ (void);
 static void mw_mirth_arrow_Arrow_alloc_21_ (void);
 static void mw_mirth_arrow_Lambda_alloc_21_ (void);
-static void mw_mirth_arrow_Block_id (void);
+static void mw_mirth_arrow_Block_index (void);
 static void mw_mirth_arrow_Block_for (void);
 static void mw_mirth_arrow_Block_alloc_21_ (void);
 static void mw_mirth_var_Var__3E_Param (void);
@@ -7143,7 +7143,7 @@ static void mw_mirth_buffer_Buffer_alloc_21_ (void);
 static void mw_mirth_buffer_Buffer_size (void);
 static void mw_mirth_buffer_Buffer_qname (void);
 static void mw_mirth_buffer_Buffer_new_21_ (void);
-static void mw_mirth_word_Word_id (void);
+static void mw_mirth_word_Word_index (void);
 static void mw_mirth_word_Word_for (void);
 static void mw_mirth_word_Word_alloc_21_ (void);
 static void mw_mirth_word_Word_qname (void);
@@ -7156,7 +7156,7 @@ static void mw_mirth_word_Word_arrow (void);
 static void mw_mirth_word_Word_ctx_type (void);
 static void mw_mirth_word_Word_type (void);
 static void mw_mirth_word_Word_new_21_ (void);
-static void mw_mirth_table_Table_id (void);
+static void mw_mirth_table_Table_index (void);
 static void mw_mirth_table_Table_alloc_21_ (void);
 static void mw_mirth_table_Table_head (void);
 static void mw_mirth_table_Table_qname (void);
@@ -7238,7 +7238,7 @@ static void mw_mirth_type_Type_freshen (void);
 static void mw_mirth_type_Type_freshen2 (void);
 static void mw_mirth_var_Var_freshen (void);
 static void mw_mirth_type_Type_arity (void);
-static void mw_mirth_type_MetaVar_id (void);
+static void mw_mirth_type_MetaVar_index (void);
 static void mw_mirth_type_MetaVar_alloc_21_ (void);
 static void mw_mirth_type_MetaVar_type_3F_ (void);
 static void mw_mirth_type_MetaVar_has_meta_3F_ (void);
@@ -7333,7 +7333,7 @@ static void mw_mirth_token_TokenValue_sig_dashes_3F_ (void);
 static void mw_mirth_token_TokenValue_pat_arrow_3F_ (void);
 static void mw_mirth_token_TokenValue_pat_underscore_3F_ (void);
 static void mw_mirth_token_TokenValue_module_header_3F_ (void);
-static void mw_mirth_token_Token_id (void);
+static void mw_mirth_token_Token_index (void);
 static void mw_mirth_token_Token_succ (void);
 static void mw_mirth_token_Token_pred (void);
 static void mw_mirth_token_Token_alloc_21_ (void);
@@ -7433,8 +7433,8 @@ static void mw_mirth_def_Def_head_3F_ (void);
 static void mw_mirth_def_Def_defining_module_3F_ (void);
 static void mw_mirth_def_Def_qname (void);
 static void mw_mirth_def_Def_register (void);
-static void mw_mirth_name_Name_id (void);
-static void mw_mirth_name_Name_from_id (void);
+static void mw_mirth_name_Name_index (void);
+static void mw_mirth_name_Name_from_index (void);
 static void mw_mirth_name_Name_for (void);
 static void mw_mirth_name_Name_alloc_21_ (void);
 static void mw_mirth_name_Name__3E_Str (void);
@@ -7479,7 +7479,7 @@ static void mw_mirth_name_QName__3E_Str (void);
 static void mw_mirth_name_QName_to_module_path (void);
 static void mw_mirth_name_DName_root_3F_ (void);
 static void mw_mirth_name_DName_parts (void);
-static void mw_mirth_package_Package_id (void);
+static void mw_mirth_package_Package_index (void);
 static void mw_mirth_package_Package_alloc_21_ (void);
 static void mw_mirth_package_Package_name (void);
 static void mw_mirth_package_Package_qname (void);
@@ -7984,6 +7984,8 @@ static void mb_posix_posix_slice_write_21__16 (void);
 static void mb_posix_posix_slice_write_21__20 (void);
 static void mb_posix_posix_slice_write_21__23 (void);
 static void mb_args_state_ArgumentParserState_current_arg_21__4 (void);
+static void mb_std_set__2B_Set_index_12 (void);
+static void mb_std_set__2B_Set_index_16 (void);
 static void mb_std_prim__2B_World_open_file_21__3 (void);
 static void mb_std_prim__2B_World_open_file_21__9 (void);
 static void mb_std_prim__2B_World_open_file_21__12 (void);
@@ -8446,8 +8448,6 @@ static void mb_mirth_need__2B_Needs_determine_transitive_needs_21__4 (void);
 static void mb_mirth_need__2B_Needs_run_atom_21__2 (void);
 static void mb_mirth_need__2B_Needs_push_args_21__2 (void);
 static void mb_mirth_need__2B_Needs_run_match_21__3 (void);
-static void mb_std_set__2B_Set_index_12 (void);
-static void mb_std_set__2B_Set_index_16 (void);
 static void mb_std_set__2B_Set_offset_mask_8 (void);
 
 static void mw_args_types_ArgpOption__7E_long (void);
@@ -15266,7 +15266,7 @@ static void mw_std_lazy_force_or_21_ (void) {
         decref(var_f);
     }
 }
-static void mw_mirth_module_Module_id (void) {
+static void mw_mirth_module_Module_index (void) {
 }
 static void mw_mirth_module_Module_alloc_21_ (void) {
     mw_mirth_module_Module_NUM();
@@ -15477,7 +15477,7 @@ static void mw_mirth_error_emit_fatal_error_at_21_ (void) {
     push_i64(1LL);
     mw_std_prim_prim_posix_exit();
 }
-static void mw_mirth_var_Var_id (void) {
+static void mw_mirth_var_Var_index (void) {
 }
 static void mw_mirth_var_Var_alloc_21_ (void) {
     mw_mirth_var_Var_NUM();
@@ -15592,7 +15592,7 @@ static void mw_mirth_ctx_Ctx_lookup (void) {
     mw_std_list_List_reverse_find();
     mw_std_prelude_nip();
 }
-static void mw_mirth_data_Data_id (void) {
+static void mw_mirth_data_Data_index (void) {
 }
 static void mw_mirth_data_Data_alloc_21_ (void) {
     mw_mirth_data_Data_NUM();
@@ -16103,7 +16103,7 @@ static void mw_mirth_data_Data_is_resource_3F_ (void) {
     mw_mirth_data_Data_name();
     mw_mirth_name_Name_could_be_resource_con();
 }
-static void mw_mirth_data_Tag_id (void) {
+static void mw_mirth_data_Tag_index (void) {
 }
 static void mw_mirth_data_Tag_for (void) {
     {
@@ -16457,7 +16457,7 @@ static void mw_mirth_arrow_Lambda_alloc_21_ (void) {
     mw_mirth_arrow_Lambda_NUM();
     mw_std_prim_prim_u64_set();
 }
-static void mw_mirth_arrow_Block_id (void) {
+static void mw_mirth_arrow_Block_index (void) {
 }
 static void mw_mirth_arrow_Block_for (void) {
     {
@@ -16814,7 +16814,7 @@ static void mw_mirth_buffer_Buffer_new_21_ (void) {
     mw_mirth_def_Def_DEF_5F_BUFFER();
     mw_mirth_def_Def_register();
 }
-static void mw_mirth_word_Word_id (void) {
+static void mw_mirth_word_Word_index (void) {
 }
 static void mw_mirth_word_Word_for (void) {
     {
@@ -16907,7 +16907,7 @@ static void mw_mirth_word_Word_new_21_ (void) {
     mw_mirth_def_Def_DEF_5F_WORD();
     mw_mirth_def_Def_register();
 }
-static void mw_mirth_table_Table_id (void) {
+static void mw_mirth_table_Table_index (void) {
 }
 static void mw_mirth_table_Table_alloc_21_ (void) {
     mw_mirth_table_Table_NUM();
@@ -18755,7 +18755,7 @@ static void mw_mirth_type_Type_arity (void) {
             break;
     }
 }
-static void mw_mirth_type_MetaVar_id (void) {
+static void mw_mirth_type_MetaVar_index (void) {
 }
 static void mw_mirth_type_MetaVar_alloc_21_ (void) {
     mw_mirth_type_MetaVar_NUM();
@@ -18803,7 +18803,7 @@ static void mw_mirth_type_MetaVar_trace_21_ (void) {
                 incref(v);
             }
             mw_std_prim_Str_trace_21_();
-            mw_mirth_type_MetaVar_id();
+            mw_mirth_type_MetaVar_index();
             mw_std_prim_Int_trace_21_();
             break;
         case 1LL:
@@ -22438,7 +22438,7 @@ static void mw_mirth_token_TokenValue_module_header_3F_ (void) {
     mw_std_prim_prim_pack_cons();
     mw_std_maybe_Maybe_and_some();
 }
-static void mw_mirth_token_Token_id (void) {
+static void mw_mirth_token_Token_index (void) {
 }
 static void mw_mirth_token_Token_succ (void) {
     push_i64(1LL);
@@ -23717,9 +23717,9 @@ static void mw_mirth_def_Def_register (void) {
     mw_std_prim_prim_pack_cons();
     mw_std_prelude_modify();
 }
-static void mw_mirth_name_Name_id (void) {
+static void mw_mirth_name_Name_index (void) {
 }
-static void mw_mirth_name_Name_from_id (void) {
+static void mw_mirth_name_Name_from_index (void) {
 }
 static void mw_mirth_name_Name_for (void) {
     {
@@ -23803,14 +23803,14 @@ static void mw_mirth_name_hash_name_40_ (void) {
         mw_std_prim_prim_drop();
         mw_std_maybe_Maybe_NONE();
     } else {
-        mw_mirth_name_Name_from_id();
+        mw_mirth_name_Name_from_index();
         mw_std_maybe_Maybe_SOME();
     }
 }
 static void mw_mirth_name_hash_name_21_ (void) {
     {
         VAL d2 = pop_value();
-        mw_mirth_name_Name_id();
+        mw_mirth_name_Name_index();
         mw_std_prim_Int__3E_I64();
         push_value(d2);
     }
@@ -24290,7 +24290,7 @@ static void mw_mirth_name_DName_parts (void) {
         default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
     }
 }
-static void mw_mirth_package_Package_id (void) {
+static void mw_mirth_package_Package_index (void) {
 }
 static void mw_mirth_package_Package_alloc_21_ (void) {
     mw_mirth_package_Package_NUM();
@@ -28510,7 +28510,7 @@ static void mw_mirth_elab_table_new_21_ (void) {
         static bool vready = false;
         static VAL v;
         if (! vready) {
-            v = mkstr("id", 2);
+            v = mkstr("index", 5);
             vready = true;
         }
         push_value(v);
@@ -28539,7 +28539,7 @@ static void mw_mirth_elab_table_new_21_ (void) {
         static bool vready = false;
         static VAL v;
         if (! vready) {
-            v = mkstr("from-id", 7);
+            v = mkstr("from-index", 10);
             vready = true;
         }
         push_value(v);
@@ -29201,12 +29201,12 @@ static void mw_mirth_need_Need__3E_Int (void) {
     switch (get_top_data_tag()) {
         case 0LL:
             mp_mirth_need_Need_NEED_5F_WORD();
-            mw_mirth_word_Word_id();
+            mw_mirth_word_Word_index();
             mw_std_prim_Int_2_2A_();
             break;
         case 1LL:
             mp_mirth_need_Need_NEED_5F_BLOCK();
-            mw_mirth_arrow_Block_id();
+            mw_mirth_arrow_Block_index();
             mw_std_prim_Int_2_2A_();
             mw_std_prelude_prim_int_succ();
             break;
@@ -32289,10 +32289,10 @@ static void mw_mirth_c99__2B_C99_block_put (void) {
                 VAL d4 = pop_value();
                 mw_mirth_arrow_Block_arrow();
                 mw_mirth_arrow_Arrow_token_start();
-                mw_mirth_token_Token_id();
+                mw_mirth_token_Token_index();
                 push_value(d4);
             }
-            mw_mirth_token_Token_id();
+            mw_mirth_token_Token_index();
             mw_std_prim_prim_int_sub();
             mw_std_prim_Int_show();
             mw_mirth_c99__2B_C99_put();
@@ -33613,32 +33613,32 @@ static void mb_std_path_Path__3D__3D__2 (void) {
 
 static void mb_mirth_module_Module__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_module_Module_id();
+    mw_mirth_module_Module_index();
 }
 
 static void mb_mirth_var_Var__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_var_Var_id();
+    mw_mirth_var_Var_index();
 }
 
 static void mb_mirth_data_Data__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_data_Data_id();
+    mw_mirth_data_Data_index();
 }
 
 static void mb_mirth_data_Tag__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_data_Tag_id();
+    mw_mirth_data_Tag_index();
 }
 
 static void mb_mirth_arrow_Block__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_arrow_Block_id();
+    mw_mirth_arrow_Block_index();
 }
 
 static void mb_mirth_table_Table__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_table_Table_id();
+    mw_mirth_table_Table_index();
 }
 
 static void mb_mirth_type_PrimType__3D__3D__2 (void) {
@@ -33648,12 +33648,12 @@ static void mb_mirth_type_PrimType__3D__3D__2 (void) {
 
 static void mb_mirth_type_MetaVar__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_type_MetaVar_id();
+    mw_mirth_type_MetaVar_index();
 }
 
 static void mb_mirth_name_Name__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_name_Name_id();
+    mw_mirth_name_Name_index();
 }
 
 static void mb_mirth_name_QName__3D__3D__3 (void) {
@@ -33668,7 +33668,7 @@ static void mb_mirth_name_QName__3D__3D__10 (void) {
 
 static void mb_mirth_package_Package__3D__3D__2 (void) {
     mw_std_prim_prim_drop();
-    mw_mirth_package_Package_id();
+    mw_mirth_package_Package_index();
 }
 
 static void mb_std_prelude_Nat__3C__2 (void) {
@@ -34653,6 +34653,27 @@ static void mb_args_state_ArgumentParserState_current_arg_21__4 (void) {
     mw_std_prim_prim_drop();
     mw_std_prim_prim_drop();
     mw_std_prelude_over2();
+}
+
+static void mb_std_set__2B_Set_index_12 (void) {
+    mw_std_prim_prim_drop();
+    mw_std_prim_prim_dup();
+    mw_std_prim_Int_0_3C_();
+    mw_std_prim_Bool_not();
+}
+
+static void mb_std_set__2B_Set_index_16 (void) {
+    mw_std_prim_prim_drop();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("negative index not allowed", 26);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
 }
 
 static void mb_std_prim__2B_World_open_file_21__3 (void) {
@@ -40143,7 +40164,7 @@ static void mb_mirth_c99_c99_decref_ctx_21__5 (void) {
 static void mb_mirth_c99__2B_C99_block_put_36 (void) {
     mw_std_prim_prim_drop();
     mw_mirth_arrow_Arrow_token_start();
-    mw_mirth_token_Token_id();
+    mw_mirth_token_Token_index();
 }
 
 static void mb_mirth_c99_c99_var_run_21__2 (void) {
@@ -40908,27 +40929,6 @@ static void mb_mirth_need__2B_Needs_push_args_21__2 (void) {
 static void mb_mirth_need__2B_Needs_run_match_21__3 (void) {
     mw_std_prim_prim_drop();
     mw_mirth_need__2B_Needs_run_case_21_();
-}
-
-static void mb_std_set__2B_Set_index_12 (void) {
-    mw_std_prim_prim_drop();
-    mw_std_prim_prim_dup();
-    mw_std_prim_Int_0_3C_();
-    mw_std_prim_Bool_not();
-}
-
-static void mb_std_set__2B_Set_index_16 (void) {
-    mw_std_prim_prim_drop();
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("negative index not allowed", 26);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
 }
 
 static void mb_std_set__2B_Set_offset_mask_8 (void) {
