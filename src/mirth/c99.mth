@@ -41,7 +41,7 @@ import(mirth.need)
 
 data(OutputPath, OUTPUT_PATH -> Path)
 def(OutputPath.>Str, OutputPath -- Str, OUTPUT_PATH -> >Str)
-def(OutputPath.as-relative-path, OutputPath -- Path, OUTPUT_PATH -> to-output-path)
+def(OutputPath.as-relative-path, OutputPath -- Path, OUTPUT_PATH -> )
 
 data(EmitDebugInfo, EMIT_DEBUG_INFO -> Bool)
 def(EmitDebugInfo.>Str, EmitDebugInfo -- Str, EMIT_DEBUG_INFO -> if("yes", "no"))

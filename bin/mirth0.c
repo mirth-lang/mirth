@@ -6515,14 +6515,6 @@ static void mw_mirth_main_Arguments_NUM (void) {
     push_ptr(&b);
 }
 
-static void mw_std_path_SOURCE_5F_PATH_5F_ROOT (void) {
-    static VAL v = {0};
-    push_ptr(&v);
-}
-static void mw_std_path_OUTPUT_5F_PATH_5F_ROOT (void) {
-    static VAL v = {0};
-    push_ptr(&v);
-}
 static void mw_mirth_module_Module_prim_var (void) {
     static VAL v = {0};
     push_ptr(&v);
@@ -6608,10 +6600,6 @@ static void mw_mirth_data_DATA_5F_I8 (void) {
     push_ptr(&v);
 }
 static void mw_mirth_data_TAG_5F_I8 (void) {
-    static VAL v = {0};
-    push_ptr(&v);
-}
-static void mw_mirth_package_Package_std_var (void) {
     static VAL v = {0};
     push_ptr(&v);
 }
@@ -6890,15 +6878,13 @@ static void mw_std_str_str_slice (void);
 static void mw_std_str_str_buf_slice (void);
 static void mw_std_str_str_buf_offset_slice (void);
 static void mw_std_str_str_buf_split_byte (void);
+static void mw_std_str_str_split_byte (void);
 static void mw_std_prim_Str__3E_Path (void);
 static void mw_std_path_Path__3E_Str (void);
 static void mw_std_path_Path__3D__3D_ (void);
-static void mw_std_path_init_paths_21_ (void);
 static void mw_std_path_Path_empty_3F_ (void);
 static void mw_std_path_Path_join_with (void);
 static void mw_std_path_Path_join_unix (void);
-static void mw_std_path_Path_to_source_path (void);
-static void mw_std_path_Path_to_output_path (void);
 static void mw_std_prim_Int__3E_File (void);
 static void mw_posix_posix_File__3E_Int (void);
 static void mw_posix_posix_STDOUT (void);
@@ -7498,8 +7484,8 @@ static void mw_mirth_package_Package_alloc_21_ (void);
 static void mw_mirth_package_Package_name (void);
 static void mw_mirth_package_Package_qname (void);
 static void mw_mirth_package_Package_path (void);
-static void mw_mirth_package_Package_std (void);
 static void mw_mirth_package_Package_new_21_ (void);
+static void mw_mirth_package_Package_new_or_set_path_21_ (void);
 static void mw_mirth_package_Package_find (void);
 static void mw_mirth_package_Package_find_or_new_21_ (void);
 static void mw_mirth_package_Package__3D__3D_ (void);
@@ -7848,16 +7834,16 @@ static void mw_mirth_main_Arguments_new (void);
 static void mw_mirth_main_Arguments_default (void);
 static void mw_mirth_main_Arguments_c99_options (void);
 static void mw_mirth_main_compile_21_ (void);
+static void mw_mirth_main_parse_package_def (void);
 static void mw_mirth_main_compiler_parse_args (void);
 static void mw_mirth_main_main (void);
 
-static void mb_mirth_package_Package_std_3 (void);
 static void mb_mirth_module_Module_prim_3 (void);
-static void mb_mirth_main_main_4 (void);
-static void mb_mirth_main_main_48 (void);
 static void mb_mirth_token_Token_args_7 (void);
 static void mb_mirth_token_Token_args_11 (void);
 static void mb_mirth_token_Token_args_14 (void);
+static void mb_mirth_main_main_4 (void);
+static void mb_mirth_main_main_59 (void);
 static void mb_mirth_arrow_Arrow_type_2 (void);
 static void mb_mirth_arrow_Block_type_2 (void);
 static void mb_mirth_table_Field_type_2 (void);
@@ -7868,21 +7854,22 @@ static void mb_std_list_List_cat_3 (void);
 static void mb_std_list_List_2B__cat_4 (void);
 static void mb_mirth_main_Arguments_c99_options_2 (void);
 static void mb_mirth_main_Arguments_c99_options_7 (void);
-static void mb_mirth_main_compile_21__17 (void);
+static void mb_mirth_main_compile_21__11 (void);
+static void mb_mirth_main_compile_21__28 (void);
 static void mb_mirth_type_StackType_trace_21__3 (void);
 static void mb_mirth_type_StackType_trace_21__9 (void);
 static void mb_mirth_type_StackType_trace_21__12 (void);
 static void mb_mirth_type_StackType_trace_21__21 (void);
 static void mb_mirth_type_StackType_trace_21__24 (void);
+static void mb_std_prim_Str__3E_Name_28 (void);
 static void mb_mirth_lexer_run_lexer_21__28 (void);
 static void mb_mirth_elab_typecheck_everything_21__2 (void);
 static void mb_mirth_elab_typecheck_everything_21__5 (void);
 static void mb_mirth_elab_typecheck_everything_21__10 (void);
-static void mb_std_prim_Str__3E_Name_28 (void);
 static void mb_mirth_elab_elab_entry_point_4 (void);
 static void mb_mirth_elab_elab_entry_point_8 (void);
 static void mb_mirth_elab_elab_entry_point_43 (void);
-static void mb_mirth_main_compiler_parse_args_92 (void);
+static void mb_mirth_main_compiler_parse_args_104 (void);
 static void mb_std_prelude_Nat__3D__3D__2 (void);
 static void mb_std_prelude_Size__3D__3D__2 (void);
 static void mb_std_prelude_Offset__3D__3D__2 (void);
@@ -8036,6 +8023,7 @@ static void mb_mirth_name_Name_mangle_compute_21__5 (void);
 static void mb_mirth_name_Name_could_be_type_or_resource_con_4 (void);
 static void mb_mirth_type_Type_tycon_3F__17 (void);
 static void mb_mirth_type_Type_tycon_3F__19 (void);
+static void mb_mirth_name_QName_to_module_path_10 (void);
 static void mb_mirth_def_Def_defining_module_3F__3 (void);
 static void mb_mirth_token_Token_location_2 (void);
 static void mb_mirth_token_Token_location_6 (void);
@@ -8575,9 +8563,11 @@ static void mw_mirth_name_Name__7E_Str (void);
 static void mw_mirth_name_Name__7E_defs (void);
 static void mw_mirth_name_Name__7E_mangled (void);
 static void mw_mirth_package_Package__7E_name (void);
+static void mw_mirth_package_Package__7E_path (void);
 static void mw_mirth_main_Arguments__7E_input_file (void);
 static void mw_mirth_main_Arguments__7E_output_file (void);
 static void mw_mirth_main_Arguments__7E_entry_point (void);
+static void mw_mirth_main_Arguments__7E_packages (void);
 static void mw_mirth_main_Arguments__7E_emit_debug_info (void);
 
 int main (int argc, char** argv) {
@@ -10056,6 +10046,19 @@ static void mw_mirth_package_Package__7E_name (void){    size_t index = (size_t)
     push_ptr(v);
 }
 
+static VAL* fieldptr_mirth_package_Package__7E_path (size_t i) {
+    static struct VAL * p = 0;
+    size_t m = 65536;
+    if (! p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
+}
+
+static void mw_mirth_package_Package__7E_path (void){    size_t index = (size_t)pop_u64();
+    VAL *v = fieldptr_mirth_package_Package__7E_path(index);
+    push_ptr(v);
+}
+
 static VAL* fieldptr_mirth_main_Arguments__7E_input_file (size_t i) {
     static struct VAL * p = 0;
     size_t m = 65536;
@@ -10092,6 +10095,19 @@ static VAL* fieldptr_mirth_main_Arguments__7E_entry_point (size_t i) {
 
 static void mw_mirth_main_Arguments__7E_entry_point (void){    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_mirth_main_Arguments__7E_entry_point(index);
+    push_ptr(v);
+}
+
+static VAL* fieldptr_mirth_main_Arguments__7E_packages (size_t i) {
+    static struct VAL * p = 0;
+    size_t m = 65536;
+    if (! p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
+}
+
+static void mw_mirth_main_Arguments__7E_packages (void){    size_t index = (size_t)pop_u64();
+    VAL *v = fieldptr_mirth_main_Arguments__7E_packages(index);
     push_ptr(v);
 }
 
@@ -13678,6 +13694,13 @@ static void mw_std_str_str_buf_split_byte (void) {
     mw_std_list_snoc_2B_();
     mw_std_prelude_nip();
 }
+static void mw_std_str_str_split_byte (void) {
+    mw_std_prim_Str_thaw();
+    mw_std_str_str_buf_split_byte();
+    mw_std_str__2B_Str_freeze();
+    mw_std_prim_prim_drop();
+    mw_std_list_List_2B___3E_List();
+}
 static void mw_std_prim_Str__3E_Path (void) {
     mw_std_path_Path_PATH();
 }
@@ -13690,34 +13713,6 @@ static void mw_std_path_Path__3D__3D_ (void) {
     mw_std_prim_prim_pack_cons();
     mw_std_prelude_both();
     mw_std_prim_Str__3D__3D_();
-}
-static void mw_std_path_init_paths_21_ (void) {
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("src", 3);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw_std_prim_Str__3E_Path();
-    mw_std_path_SOURCE_5F_PATH_5F_ROOT();
-    mw_std_prim_prim_mut_set();
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("bin", 3);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw_std_prim_Str__3E_Path();
-    mw_std_path_OUTPUT_5F_PATH_5F_ROOT();
-    mw_std_prim_prim_mut_set();
 }
 static void mw_std_path_Path_empty_3F_ (void) {
     mw_std_path_Path__3E_Str();
@@ -13763,24 +13758,6 @@ static void mw_std_path_Path_join_unix (void) {
         push_value(d2);
     }
     mw_std_path_Path_join_with();
-}
-static void mw_std_path_Path_to_source_path (void) {
-    {
-        VAL d2 = pop_value();
-        mw_std_path_SOURCE_5F_PATH_5F_ROOT();
-        mw_std_prim_prim_mut_get();
-        push_value(d2);
-    }
-    mw_std_path_Path_join_unix();
-}
-static void mw_std_path_Path_to_output_path (void) {
-    {
-        VAL d2 = pop_value();
-        mw_std_path_OUTPUT_5F_PATH_5F_ROOT();
-        mw_std_prim_prim_mut_get();
-        push_value(d2);
-    }
-    mw_std_path_Path_join_unix();
 }
 static void mw_std_prim_Int__3E_File (void) {
     mw_posix_posix_File_FILE();
@@ -15363,7 +15340,6 @@ static void mw_mirth_module_Module_add_import_21_ (void) {
 }
 static void mw_mirth_module_Module_source_path (void) {
     mw_mirth_module_Module_path();
-    mw_std_path_Path_to_source_path();
 }
 static void mw_mirth_module_Module_visible (void) {
     mw_std_prelude_dup2();
@@ -24257,6 +24233,10 @@ static void mw_mirth_name_QName_to_module_path (void) {
                 case 1LL:
                     mp_mirth_name_Namespace_NAMESPACE_5F_PACKAGE();
                     mw_mirth_package_Package_path();
+                    push_u64(0);
+                    push_fnptr(&mb_mirth_name_QName_to_module_path_10);
+                    mw_std_prim_prim_pack_cons();
+                    mw_std_maybe_Maybe_unwrap_or();
                     mw_std_prim_prim_swap();
                     mw_mirth_name_Name__3E_Str();
                     {
@@ -24332,25 +24312,78 @@ static void mw_mirth_package_Package_qname (void) {
     mw_mirth_name_QName_QNAME();
 }
 static void mw_mirth_package_Package_path (void) {
-    mw_mirth_package_Package_name();
-    mw_mirth_name_Name__3E_Str();
-    mw_std_prim_Str__3E_Path();
-}
-static void mw_mirth_package_Package_std (void) {
-    mw_mirth_package_Package_std_var();
-    push_u64(0);
-    push_fnptr(&mb_mirth_package_Package_std_3);
-    mw_std_prim_prim_pack_cons();
-    mw_std_prelude_memoize();
+    mw_mirth_package_Package__7E_path();
+    mw_std_prim_prim_mut_get();
 }
 static void mw_mirth_package_Package_new_21_ (void) {
     mw_mirth_package_Package_alloc_21_();
     mw_std_prelude_tuck();
     mw_mirth_package_Package__7E_name();
     mw_std_prim_prim_mut_set();
+    mw_std_prelude_tuck();
+    mw_mirth_package_Package__7E_path();
+    mw_std_prim_prim_mut_set();
     mw_std_prim_prim_dup();
     mw_mirth_def_Def_DEF_5F_PACKAGE();
     mw_mirth_def_Def_register();
+}
+static void mw_mirth_package_Package_new_or_set_path_21_ (void) {
+    mw_std_prim_prim_dup();
+    mw_mirth_package_Package_find();
+    switch (get_top_data_tag()) {
+        case 1LL:
+            mp_std_maybe_Maybe_SOME();
+            mw_std_prim_prim_dup();
+            mw_mirth_package_Package_path();
+            switch (get_top_data_tag()) {
+                case 1LL:
+                    mp_std_maybe_Maybe_SOME();
+                    {
+                        static bool vready = false;
+                        static VAL v;
+                        if (! vready) {
+                            v = mkstr("Package already has path", 24);
+                            vready = true;
+                        }
+                        push_value(v);
+                        incref(v);
+                    }
+                    mw_std_prim_prim_panic();
+                    break;
+                case 0LL:
+                    mp_std_maybe_Maybe_NONE();
+                    {
+                        VAL d6 = pop_value();
+                        mw_std_prim_prim_drop();
+                        push_value(d6);
+                    }
+                    mw_std_prim_prim_dup();
+                    {
+                        VAL d6 = pop_value();
+                        {
+                            VAL d7 = pop_value();
+                            mw_std_maybe_Maybe_SOME();
+                            push_value(d7);
+                        }
+                        mw_mirth_package_Package__7E_path();
+                        mw_std_prim_prim_mut_set();
+                        push_value(d6);
+                    }
+                    break;
+                default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+            }
+            break;
+        case 0LL:
+            mp_std_maybe_Maybe_NONE();
+            {
+                VAL d4 = pop_value();
+                mw_std_maybe_Maybe_SOME();
+                push_value(d4);
+            }
+            mw_mirth_package_Package_new_21_();
+            break;
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+    }
 }
 static void mw_mirth_package_Package_find (void) {
     mw_mirth_name_Namespace_NAMESPACE_5F_ROOT();
@@ -29497,7 +29530,6 @@ static void mw_mirth_need__2B_Needs_push_block_21_ (void) {
     }
 }
 static void mw_mirth_c99_OutputPath_as_relative_path (void) {
-    mw_std_path_Path_to_output_path();
 }
 static void mw_mirth_c99_EmitDebugInfo__3E_Bool (void) {
     mw_std_prim_prim_id();
@@ -32562,7 +32594,6 @@ static void mw_mirth_c99_c99_main_21_ (void) {
 }
 static void mw_mirth_main_init_21_ (void) {
     mw_mirth_error_init_errors_21_();
-    mw_std_path_init_paths_21_();
     mw_mirth_type_init_types_21_();
     mw_mirth_prim_init_prims_21_();
 }
@@ -32593,6 +32624,13 @@ static void mw_mirth_main_Arguments_emit_debug_info (void) {
 }
 static void mw_mirth_main_Arguments_new (void) {
     mw_mirth_main_Arguments_alloc_21_();
+    mw_std_prim_prim_dup();
+    {
+        VAL d2 = pop_value();
+        mw_mirth_main_Arguments__7E_packages();
+        mw_std_prim_prim_mut_set();
+        push_value(d2);
+    }
     mw_std_prim_prim_dup();
     {
         VAL d2 = pop_value();
@@ -32648,6 +32686,7 @@ static void mw_mirth_main_Arguments_default (void) {
         incref(v);
     }
     mw_std_maybe_Maybe_SOME();
+    mw_std_list_List_L0();
     mw_mirth_main_Arguments_new();
 }
 static void mw_mirth_main_Arguments_c99_options (void) {
@@ -32679,6 +32718,13 @@ static void mw_mirth_main_compile_21_ (void) {
     mw_std_path_Path__3E_Str();
     mw_std_prim_Str_trace_ln_21_();
     mw_std_prim_prim_dup();
+    mw_mirth_main_Arguments__7E_packages();
+    mw_std_prim_prim_mut_get();
+    push_u64(0);
+    push_fnptr(&mb_mirth_main_compile_21__11);
+    mw_std_prim_prim_pack_cons();
+    mw_std_list_List_for();
+    mw_std_prim_prim_dup();
     mw_mirth_main_Arguments_input_file();
     mw_mirth_lexer_run_lexer_21_();
     {
@@ -32697,7 +32743,7 @@ static void mw_mirth_main_compile_21_ (void) {
     mw_std_prelude_over();
     mw_mirth_main_Arguments_entry_point();
     push_u64(0);
-    push_fnptr(&mb_mirth_main_compile_21__17);
+    push_fnptr(&mb_mirth_main_compile_21__28);
     mw_std_prim_prim_pack_cons();
     mw_std_maybe_Maybe_map();
     mw_std_prelude_nip();
@@ -32770,6 +32816,35 @@ static void mw_mirth_main_compile_21_ (void) {
         default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
     }
 }
+static void mw_mirth_main_parse_package_def (void) {
+    {
+        VAL d2 = pop_value();
+        mw_std_byte_Byte_BCOLON();
+        push_value(d2);
+    }
+    mw_std_str_str_split_byte();
+    switch (get_top_data_tag()) {
+        case 2LL:
+            mp_std_list_List_L2();
+            mw_std_prim_Str__3E_Path();
+            mw_std_prelude_pack2();
+            break;
+        default:
+            mw_std_prim_prim_drop();
+            {
+                static bool vready = false;
+                static VAL v;
+                if (! vready) {
+                    v = mkstr("Invalid package path definition", 31);
+                    vready = true;
+                }
+                push_value(v);
+                incref(v);
+            }
+            mw_std_prim_prim_panic();
+            break;
+    }
+}
 static void mw_mirth_main_compiler_parse_args (void) {
     switch (get_top_data_tag()) {
         case 0LL:
@@ -32799,6 +32874,18 @@ static void mw_mirth_main_compiler_parse_args (void) {
                     mw_std_maybe_Maybe_NONE();
                     mw_std_prelude_over();
                     mw_mirth_main_Arguments__7E_entry_point();
+                    mw_std_prim_prim_mut_set();
+                    break;
+                case 112LL:
+                    mp_std_byte_Byte_B_27_p_27_();
+                    mw_std_maybe_Maybe_unwrap();
+                    mw_mirth_main_parse_package_def();
+                    mw_std_prelude_over();
+                    mw_mirth_main_Arguments__7E_packages();
+                    mw_std_prim_prim_mut_get();
+                    mw_std_list_List_cons();
+                    mw_std_prelude_over();
+                    mw_mirth_main_Arguments__7E_packages();
                     mw_std_prim_prim_mut_set();
                     break;
                 default:
@@ -32869,7 +32956,7 @@ static void mw_mirth_main_compiler_parse_args (void) {
             push_i64(1LL);
             mw_std_prim_prim_int_lt();
             push_u64(0);
-            push_fnptr(&mb_mirth_main_compiler_parse_args_92);
+            push_fnptr(&mb_mirth_main_compiler_parse_args_104);
             mw_std_prim_prim_pack_cons();
             mw_std_prim_Bool_then();
             mw_args_types__2B_ArgumentParser_state();
@@ -32936,7 +33023,7 @@ static void mw_mirth_main_main (void) {
     mw_std_prim_prim_pack_cons();
     mw_std_list_LIST();
     push_u64(0);
-    push_fnptr(&mb_mirth_main_main_48);
+    push_fnptr(&mb_mirth_main_main_59);
     mw_std_prim_prim_pack_cons();
     mw_std_maybe_Maybe_SOME();
     {
@@ -32976,22 +33063,6 @@ static void mw_mirth_main_main (void) {
     mw_mirth_main_compile_21_();
 }
 
-static void mb_mirth_package_Package_std_3 (void) {
-    mw_std_prim_prim_drop();
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("std", 3);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw_std_prim_Str__3E_Name();
-    mw_mirth_package_Package_new_21_();
-}
-
 static void mb_mirth_module_Module_prim_3 (void) {
     mw_std_prim_prim_drop();
     mw_mirth_module_Module_alloc_21_();
@@ -33013,7 +33084,18 @@ static void mb_mirth_module_Module_prim_3 (void) {
     mw_std_prelude_over();
     mw_mirth_module_Module__7E_path();
     mw_std_prim_prim_mut_set();
-    mw_mirth_package_Package_std();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("std", 3);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw_std_prim_Str__3E_Name();
+    mw_mirth_package_Package_find_or_new_21_();
     mw_std_prelude_over();
     mw_mirth_module_Module__7E_package();
     mw_std_prim_prim_mut_set();
@@ -33031,6 +33113,27 @@ static void mb_mirth_module_Module_prim_3 (void) {
     mw_std_prelude_over();
     mw_mirth_module_Module__7E_name();
     mw_std_prim_prim_mut_set();
+}
+
+static void mb_mirth_token_Token_args_7 (void) {
+    mw_std_prim_prim_drop();
+    mw_std_prim_prim_dup();
+    mw_mirth_token_Token_args_end_3F_();
+    mw_std_prim_Bool_not();
+}
+
+static void mb_mirth_token_Token_args_11 (void) {
+    mw_std_prim_prim_drop();
+    mw_mirth_token_Token_succ();
+    push_u64(0);
+    push_fnptr(&mb_mirth_token_Token_args_14);
+    mw_std_prim_prim_pack_cons();
+    mw_std_prelude_sip();
+}
+
+static void mb_mirth_token_Token_args_14 (void) {
+    mw_std_prim_prim_drop();
+    mw_mirth_token_Token_next_arg_end();
 }
 
 static void mb_mirth_main_main_4 (void) {
@@ -33143,6 +33246,44 @@ static void mb_mirth_main_main_4 (void) {
         static bool vready = false;
         static VAL v;
         if (! vready) {
+            v = mkstr("package", 7);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw_std_maybe_Maybe_SOME();
+    mw_std_byte_Byte_B_27_p_27_();
+    mw_args_types_ArgpOptionType_OPTION_5F_SHORT();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("(PACKAGE:PATH)*", 15);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw_std_maybe_Maybe_SOME();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("Package locations", 17);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw_std_maybe_Maybe_SOME();
+    mw_std_maybe_Maybe_NONE();
+    mw_args_types_ArgpOption_new();
+    mw_std_list__2B_List__3B_();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
             v = mkstr("debug", 5);
             vready = true;
         }
@@ -33178,30 +33319,9 @@ static void mb_mirth_main_main_4 (void) {
     mw_std_list__2B_List__3B_();
 }
 
-static void mb_mirth_main_main_48 (void) {
+static void mb_mirth_main_main_59 (void) {
     mw_std_prim_prim_drop();
     mw_mirth_main_compiler_parse_args();
-}
-
-static void mb_mirth_token_Token_args_7 (void) {
-    mw_std_prim_prim_drop();
-    mw_std_prim_prim_dup();
-    mw_mirth_token_Token_args_end_3F_();
-    mw_std_prim_Bool_not();
-}
-
-static void mb_mirth_token_Token_args_11 (void) {
-    mw_std_prim_prim_drop();
-    mw_mirth_token_Token_succ();
-    push_u64(0);
-    push_fnptr(&mb_mirth_token_Token_args_14);
-    mw_std_prim_prim_pack_cons();
-    mw_std_prelude_sip();
-}
-
-static void mb_mirth_token_Token_args_14 (void) {
-    mw_std_prim_prim_drop();
-    mw_mirth_token_Token_next_arg_end();
 }
 
 static void mb_mirth_arrow_Arrow_type_2 (void) {
@@ -33299,7 +33419,16 @@ static void mb_mirth_main_Arguments_c99_options_7 (void) {
     mw_mirth_main_Arguments_emit_debug_info();
 }
 
-static void mb_mirth_main_compile_21__17 (void) {
+static void mb_mirth_main_compile_21__11 (void) {
+    mw_std_prim_prim_drop();
+    mw_std_prelude_unpack2();
+    mw_std_prim_prim_swap();
+    mw_std_prim_Str__3E_Name();
+    mw_mirth_package_Package_new_or_set_path_21_();
+    mw_std_prim_prim_drop();
+}
+
+static void mb_mirth_main_compile_21__28 (void) {
     mw_std_prim_prim_drop();
     {
         VAL d2 = pop_value();
@@ -33369,6 +33498,11 @@ static void mb_mirth_type_StackType_trace_21__24 (void) {
     mw_std_prim_Str_trace_21_();
 }
 
+static void mb_std_prim_Str__3E_Name_28 (void) {
+    mw_std_prim_prim_drop();
+    mw_mirth_name_Name_mangle_compute_21_();
+}
+
 static void mb_mirth_lexer_run_lexer_21__28 (void) {
     mw_std_prim_prim_drop();
     {
@@ -33401,11 +33535,6 @@ static void mb_mirth_elab_typecheck_everything_21__5 (void) {
 static void mb_mirth_elab_typecheck_everything_21__10 (void) {
     mw_std_prim_prim_drop();
     mw_mirth_arrow_Block_typecheck_21_();
-}
-
-static void mb_std_prim_Str__3E_Name_28 (void) {
-    mw_std_prim_prim_drop();
-    mw_mirth_name_Name_mangle_compute_21_();
 }
 
 static void mb_mirth_elab_elab_entry_point_4 (void) {
@@ -33448,7 +33577,7 @@ static void mb_mirth_elab_elab_entry_point_43 (void) {
     }
 }
 
-static void mb_mirth_main_compiler_parse_args_92 (void) {
+static void mb_mirth_main_compiler_parse_args_104 (void) {
     mw_std_prim_prim_drop();
     mw_args_types_ArgumentParsingError_TOO_5F_FEW_5F_ARGS();
     mw_std_maybe_Maybe_SOME();
@@ -34765,6 +34894,8 @@ static void mb_mirth_name_QName_def_3F__5 (void) {
 static void mb_mirth_package_Package_find_or_new_21__4 (void) {
     mw_std_prim_prim_drop();
     mw_std_prim_prim_dup();
+    mw_std_maybe_Maybe_NONE();
+    mw_std_prim_prim_swap();
     mw_mirth_package_Package_new_21_();
 }
 
@@ -34861,6 +34992,21 @@ static void mb_mirth_type_Type_tycon_3F__19 (void) {
     mw_std_prim_prim_drop();
     mw_std_prim_prim_drop();
     mw_std_maybe_Maybe_NONE();
+}
+
+static void mb_mirth_name_QName_to_module_path_10 (void) {
+    mw_std_prim_prim_drop();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("No path defined for package", 27);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw_std_prim_prim_panic();
 }
 
 static void mb_mirth_def_Def_defining_module_3F__3 (void) {

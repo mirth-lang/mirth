@@ -154,7 +154,6 @@ def(Namespace.tycon?, Namespace -- Maybe(Tycon),
     NAMESPACE_MODULE -> drop NONE,
     NAMESPACE_TYCON -> SOME)
 
-def(Namespace.std, Namespace, Package.std NAMESPACE_PACKAGE)
 def(Namespace.prim, Namespace, Module.prim NAMESPACE_MODULE)
 
 def(Namespace.>Str, Namespace -- Str,
@@ -179,7 +178,6 @@ def(QName.def?, QName -- Maybe(Def), dup name defs find(dup2 qname ==) nip)
 def(QName.defined?, QName -- Bool, def? some?)
 def(QName.undefined?, QName -- Bool, def? none?)
 
-def(QName.std, Str -- QName, dip(Namespace.std) >Name QNAME)
 def(QName.prim, Str -- QName, dip(Namespace.prim) >Name QNAME)
 
 def(QName.>Str, QName -- Str,
@@ -187,7 +185,8 @@ def(QName.>Str, QName -- Str,
 
 def(QName.to-module-path, QName -- Path,
     QNAME -> swap match(
-        NAMESPACE_PACKAGE -> path swap >Str ".mth" cat >Path join-unix, # TODO use Path.join instead?
+        NAMESPACE_PACKAGE -> path unwrap-or("No path defined for package" panic!) 
+	swap >Str ".mth" cat >Path join-unix, # TODO use Path.join instead?
         _ -> drop "expected module name" panic!
     ))
 

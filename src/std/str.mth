@@ -159,3 +159,6 @@ def(str-buf-split-byte, Byte +Str -- List+(Str) +Str,
             1+
         )
     ) unsafe(str-buf-offset-slice) snoc+ nip)
+
+def(str-split-byte, Byte Str -- List(Str),
+  thaw str-buf-split-byte freeze drop >List)

@@ -1,5 +1,8 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
  -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Werror -pedantic -O1 -g
+
+MIRTHFLAGS=-p std:src/std -p args:src/args -p mirth:src/mirth -p posix:src/posix -p snake:src/snake
+
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 
@@ -68,14 +71,8 @@ test-update:
 
 #########
 
-bin/mirth0: bin/mirth0.c
-	$(CC) -o bin/mirth0 bin/mirth0.c
-
-bin/mirth1: bin/mirth1.c
-	$(CC) -o bin/mirth1 bin/mirth1.c
-
-bin/mirth2: bin/mirth2.c
-	$(CC) -o bin/mirth2 bin/mirth2.c
+bin/%: bin/%.c
+	$(CC) -o $@ $^
 
 bin/mirth0san: bin/mirth0.c
 	$(CCSAN) -o bin/mirth0san bin/mirth0.c
@@ -96,25 +93,25 @@ bin/mirth3debug: bin/mirth3debug.c
 	$(CC) -o bin/mirth3debug bin/mirth3debug.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
-	bin/mirth0 mirth/main.mth -o mirth1.c
+	bin/mirth0 $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth1.c
 
 bin/mirth2.c: bin/mirth1 $(SRCS)
-	bin/mirth1 mirth/main.mth -o mirth2.c
+	bin/mirth1 $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth2.c
 
 bin/mirth3.c: bin/mirth2 $(SRCS)
-	bin/mirth2 mirth/main.mth -o mirth3.c
+	bin/mirth2 $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth3.c
 
 bin/mirth1debug.c: bin/mirth0 $(SRCS)
-	bin/mirth0 --debug mirth/main.mth -o mirth1debug.c
+	bin/mirth0 $(MIRTHFLAGS) --debug src/mirth/main.mth -o bin/mirth1debug.c
 
 bin/mirth2debug.c: bin/mirth1 $(SRCS)
-	bin/mirth1 --debug mirth/main.mth -o mirth2debug.c
+	bin/mirth1 $(MIRTHFLAGS) --debug src/mirth/main.mth -o bin/mirth2debug.c
 
 bin/mirth3debug.c: bin/mirth2 $(SRCS)
-	bin/mirth2 --debug mirth/main.mth -o mirth3debug.c
+	bin/mirth2 $(MIRTHFLAGS) --debug mirth/main.mth -o bin/mirth3debug.c
 
 bin/mirth3san.c: bin/mirth2san $(SRCS)
-	bin/mirth2san mirth/main.mth -o mirth3san.c
+	bin/mirth2san $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth3san.c
 
 bin/mirth_prof.c: bin/mirth3.c
 
@@ -122,7 +119,7 @@ bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
 bin/snake.c: bin/mirth2 src/std/* src/posix/* src/snake/*
-	bin/mirth2 snake/main.mth -o snake.c
+	bin/mirth2 $(MIRTHFLAGS) src/snake/main.mth -o bin/snake.c
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`

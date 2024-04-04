@@ -28,7 +28,6 @@ import(mirth.c99)
 
 def(init!, --,
     init-errors!
-    init-paths!
     init-types!
     init-prims!)
 
@@ -36,6 +35,7 @@ table(Arguments)
 field(Arguments.~input-file, Arguments, Path)
 field(Arguments.~output-file, Arguments, Maybe(OutputPath))
 field(Arguments.~entry-point, Arguments, Maybe(Str))
+field(Arguments.~packages, Arguments, List([Str Path]))
 field(Arguments.~emit-debug-info, Arguments, EmitDebugInfo)
 
 # Helpers to read table fields
@@ -44,8 +44,9 @@ def(Arguments.output-file, Arguments -- Maybe(OutputPath), ~output-file @)
 def(Arguments.entry-point, Arguments -- Maybe(Str), ~entry-point @)
 def(Arguments.emit-debug-info, Arguments -- EmitDebugInfo, ~emit-debug-info @)
 
-def(Arguments.new, EmitDebugInfo Path Maybe(OutputPath) Maybe(Str) -- Arguments,
+def(Arguments.new, EmitDebugInfo Path Maybe(OutputPath) Maybe(Str) List([Str Path]) -- Arguments,
     Arguments.alloc!
+    dup dip(~packages !)
     dup dip(~entry-point !)
     dup dip(~output-file !)
     dup dip(~input-file !)
@@ -58,6 +59,7 @@ def(Arguments.default, -- Arguments,
     "mirth.mth" >Path
     NONE
     "main" SOME
+    L0
     Arguments.new)
 
 ||| Pretty print the contents of the arguments struct
@@ -82,10 +84,11 @@ def(compile!, Arguments +World -- +World,
     "Compiling " trace!
     dup input-file >Str trace-ln!
 
-    dup input-file run-lexer!
+    dup ~packages @ for(
+      unpack2 swap >Name Package.new-or-set-path! drop
+    )
 
-    # show-names-table!
-    # show-tokens!
+    dup input-file run-lexer!
 
     "Building." trace-ln!
 
@@ -112,11 +115,19 @@ def(compile!, Arguments +World -- +World,
             "Skipping Codegen." trace-ln! drop
     ))
 
+def(parse-package-def, Str -- [Str Path],
+  dip(BCOLON) str-split-byte match(
+    L2 -> >Path pack2,
+    _ -> drop "Invalid package path definition" panic!
+  )
+)
+
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
     OPTION_SHORT -> match(
         B'o' -> unwrap >Path OUTPUT_PATH SOME over ~output-file !,
         B'e' -> unwrap SOME over ~entry-point !,
         B'c' -> drop NONE over ~entry-point !,
+	B'p' -> unwrap parse-package-def over ~packages @ cons over ~packages !,
         _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
     ),
     OPTION_POSITIONAL -> state current-positional-arg 0= if(
@@ -165,6 +176,12 @@ def(main, +World -- +World,
         "ENTRY_POINT" SOME
         "Custom entry point word for compilation" SOME
         NONE ArgpOption.new ;
+
+	"package" SOME
+	B'p' OPTION_SHORT
+	"(PACKAGE:PATH)*" SOME
+	"Package locations" SOME
+	NONE ArgpOption.new ;
 
         "debug" SOME
         "debug" OPTION_LONG_ONLY
