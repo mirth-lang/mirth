@@ -18,13 +18,23 @@ field(Match.~dom, Match, StackType)
 field(Match.~cod, Match, StackType)
 field(Match.~token, Match, Token) # where the diagnostics go
 field(Match.~body, Match, Token) # where the cases start
+field(Match.~home, Match, Home)
 field(Match.~cases, Match, List(Case))
 def(Match.ctx, Match -- Ctx, ~ctx @)
 def(Match.dom, Match -- StackType, ~dom @)
 def(Match.cod, Match -- StackType, ~cod @)
 def(Match.token, Match -- Token, ~token @)
 def(Match.body, Match -- Token, ~body @)
+def(Match.home, Match -- Home, ~home @)
 def(Match.cases, Match -- List(Case), ~cases @)
+
+def(Match.new!,
+    ctx:Ctx dom:StackType cod:StackType
+    token:Token body:Token home:Home -- Match,
+    Match.alloc!
+    ctx> over ~ctx ! dom> over ~dom ! cod> over ~cod !
+    token> over ~token ! home> over ~home !
+    body> over ~body ! L0 over ~cases !)
 
 table(Case)
 field(Case.~match, Case, Match)

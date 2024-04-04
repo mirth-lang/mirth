@@ -13,29 +13,17 @@ data(ArgumentParser(a),
     args-doc:Maybe(Str)
     doc:Str)
 
-def(ArgumentParser.options, ArgumentParser(a) -- List(ArgpOption),
-  ARGUMENT_PARSER -> options> dup >options ARGUMENT_PARSER drop)
-
 def(ArgumentParser.options!, List(ArgpOption) ArgumentParser(a) -- ArgumentParser(a),
   ARGUMENT_PARSER -> options> drop >options ARGUMENT_PARSER)
-
-def(ArgumentParser.parser, ArgumentParser(a) -- Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a]),
-  ARGUMENT_PARSER -> parser> dup >parser ARGUMENT_PARSER drop)
 
 def(ArgumentParser.parser!,
   Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a]) ArgumentParser(a) -- ArgumentParser(a),
   ARGUMENT_PARSER -> parser> drop >parser ARGUMENT_PARSER)
 
-def(ArgumentParser.args-doc, ArgumentParser(a) -- Maybe(Str),
-  ARGUMENT_PARSER -> args-doc> dup >args-doc ARGUMENT_PARSER drop)
-
-def(ArgumentParser.doc, ArgumentParser(a) -- Str,
-  ARGUMENT_PARSER -> doc> dup >doc ARGUMENT_PARSER drop)
-
-def(ArgumentParser.new, 
-  options:List(ArgpOption) 
-  parser:Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a]) 
-  args-doc:Maybe(Str) 
+def(ArgumentParser.new,
+  options:List(ArgpOption)
+  parser:Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a])
+  args-doc:Maybe(Str)
   doc:Str -- ArgumentParser(a),
   ARGUMENT_PARSER
 )

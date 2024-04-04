@@ -36,6 +36,7 @@ import(mirth.package)
 import(mirth.alias)
 import(mirth.match)
 import(mirth.lexer)
+import(mirth.label)
 
 ####################
 # Type Elaboration #
@@ -236,7 +237,6 @@ def(elab-simple-type-arg!, Token -- Type,
 ####################
 
 data(+AB, MKAB -> Arrow)
-def(/MKAB, +AB -- Arrow, MKAB ->  )
 def(ab-arrow@, +AB -- Arrow +AB, MKAB -> dup MKAB)
 def(ab-arrow!, Arrow +AB -- +AB, MKAB -> drop MKAB)
 def(ab-ctx@, +AB -- Ctx +AB, ab-arrow@ ~ctx @)
@@ -246,7 +246,6 @@ def(ab-token!, Token +AB -- +AB, ab-arrow@ ~token-end !)
 def(ab-type@, +AB -- StackType +AB, ab-arrow@ ~cod @)
 def(ab-type!, StackType +AB -- +AB, ab-arrow@ ~cod !)
 def(ab-home@, +AB -- Home +AB, ab-arrow@ home)
-
 
 def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow,
     Arrow.alloc!
@@ -667,20 +666,47 @@ def(elab-atom-lambda!, +AB -- +AB,
 ||| Elaborate a match body within AB. Takes the output stack type,
 ||| and the token for the body of the match, from the stack. Takes
 ||| the rest from the AB environment.
-def(elab-match-at!, StackType Token +AB -- +AB,
-    Match.alloc!
-    ab-ctx@ over ~ctx !
-    ab-type@ over ~dom !
-    ab-token@ over ~token !
-    tuck ~body !
-    tuck ~cod !
+def(elab-match-at!, cod:StackType body:Token +AB -- +AB,
+    ab-ctx@ >ctx
+    ab-type@ >dom
+    ab-token@ >token
+    ab-home@ >home
+    Match.new!
     elab-match-cases!
     elab-match-exhaustive!
     OP_MATCH ab-op!)
 
+def(ab-match!(f),
+        (*a match:Match -- *b match:Match)
+        *a cod:StackType body:Token +AB -- *b +AB,
+    ab-ctx@ >ctx
+    ab-type@ >dom
+    ab-token@ >token
+    ab-home@ >home
+    Match.new! >match rdip(f) match> OP_MATCH ab-op!)
+
+def(ab-case!(f),
+        (*a +AB -- *b +AB)
+        *a match:Match Token Pattern -- *b match:Match,
+    Case.alloc!
+    match> over ~match !
+    tuck ~pattern !
+    tuck ~token !
+    dup token determine-case-subst-and-mid! drop
+    \(case ->
+        case .match ctx
+        case mid case .match cod T->
+        case token
+        case .match .home
+        ab-build-hom!(dip(f))
+        case ~body !
+        case dup .match add-case!
+        case .match >match
+    ))
+
 def(elab-atom-match!, +AB -- +AB,
-    MetaVar.new! STMeta
-    ab-token@ args+ first
+    MetaVar.new! STMeta >cod
+    ab-token@ args+ first >body
     elab-match-at!)
 
 def(elab-lambda!, Lambda +AB -- Lambda +AB,
@@ -776,43 +802,39 @@ def(elab-match-case!, Match Token +AB -- Match Token +AB,
 ||| Elaborate case pattern.
 def(elab-case-pattern!, Case Token -- Case Token,
     dup pat-underscore? if(
-        # set case pattern
-        dip(PATTERN_UNDERSCORE over ~pattern !)
-
-        # set case mid
-        dip(dup .match dom STACK_TYPE_DONT_CARE TYPE_DONT_CARE T*)
-        elab-stack-type-unify! dip(over ~mid !)
-
-        # advance token
+        PATTERN_UNDERSCORE over2 ~pattern !
+        determine-case-subst-and-mid!
         succ,
 
     dup name? if-some(
         # TODO type-directed tag resolution
-        # TODO defined tags
+        # TODO user-defined tags
         defs find-some(tag?) match(
             NONE -> "Unknown constructor." emit-fatal-error!,
             SOME ->
-
-                # set case pattern
-                dup PATTERN_TAG rotr
-                dip2(over ~pattern !)
-
-                # set case mid
-                dip2(dup .match dom) { Case StackType Token Tag }
-                type Subst.nil swap freshen-sig
-                rotr dip(
-                    dip(unpack)
-                    dip2(swap) elab-stack-type-unify! nip
-                    dip(over ~mid !)
-                )
-                swap dip(over ~subst !)
-
-                # advance token
+                PATTERN_TAG over2 ~pattern !
+                determine-case-subst-and-mid!
                 succ,
         ),
 
         "Expected constructor name." emit-fatal-error!
     )))
+
+def(determine-case-subst-and-mid!, Case Token -- Case Token,
+    over pattern match(
+        PATTERN_UNDERSCORE ->
+            dip(dup .match dom STACK_TYPE_DONT_CARE TYPE_DONT_CARE T*) elab-stack-type-unify!
+            dip(over ~mid ! Subst.nil over ~subst !),
+        PATTERN_TAG ->
+            dip2(dup .match dom)
+            dip(Subst.nil) type freshen-sig
+            rotr dip(
+                dip(unpack)
+                dip2(swap) elab-stack-type-unify! nip
+                dip(over ~mid !)
+            )
+            swap dip(over ~subst !)
+    ))
 
 ||| Elaborate case body.
 def(elab-case-body!, Case Token +AB -- Case Token +AB,
@@ -924,6 +946,7 @@ def(elab-data-tag!, Data Token -- Data,
     dup2 name? unwrap-or(drop "Expected constructor name." emit-fatal-error!)
     data-qname
     Tag.alloc!
+    NONE over ~untag !
     tuck ~qname !
     dup DEF_TAG register
     { Data Token Tag }
@@ -972,21 +995,63 @@ def(data-word-new!, Data Str -- Word,
     dip(dup head? unwrap dup rotl) data-word-qname Word.new!)
 
 def(elab-data-done!, Data --,
-    \(dat -> dat is-enum? then(
-        dat "tag" data-word-new! \(tag ->
-            CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
-            tag ab-build-word!(
-                COERCE_UNSAFE ab-coerce!
-            ) drop
+    \(dat ->
+        dat is-enum? then(
+            dat "tag" data-word-new! \(tag ->
+                CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
+                tag ab-build-word!(
+                    COERCE_UNSAFE ab-coerce!
+                ) drop
+            )
+
+            dat "from-tag-unsafe" data-word-new! \(ftag ->
+                CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
+                ftag ab-build-word!(
+                    COERCE_UNSAFE ab-coerce!
+                ) drop
+            )
         )
 
-        dat "from-tag-unsafe" data-word-new! \(ftag ->
-            CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
-            ftag ab-build-word!(
-                COERCE_UNSAFE ab-coerce!
-            ) drop
+        dat tags match(
+            L1 -> \(tag ->
+                dat "/" tag name >Str cat data-word-new! \(untag ->
+                    tag delay(ctx-type unpack swap T-> pack2) untag ~ctx-type !
+                    untag delay(ab-build-word-arrow!(
+                        untag type cod >cod
+                        dat head? unwrap >body
+                        ab-match!(
+                            dat head? unwrap tag PATTERN_TAG ab-case!(id)
+                        )
+                    )) untag ~arrow !
+                    untag SOME tag ~untag !
+                    tag create-projectors!
+                )
+            ),
+            _ -> drop
         )
-    )))
+    ))
+
+def(create-projectors!, Tag --,
+    dup .data over .untag unwrap \(tag dat untag ->
+    tag label-inputs reverse-for(\(lbl -> dat lbl name data-qname undefined? then(
+        dat lbl >Str data-word-new! \(lbl_proj ->
+            tag delay (
+                ctx-type unpack lbl rotl force-cons-label?! unwrap
+                unpack2 dip(drop T0 dat is-resource? then(dat TData RESOURCE T+))
+                T* T-> pack2
+            ) lbl_proj ~ctx-type !
+            lbl_proj delay(ab-build-word-arrow!(
+                untag ab-word!
+                lbl ab-label-pop!
+                PRIM_CORE_DUP ab-prim!
+                lbl ab-label-push!
+                ab-dip!(
+                    tag ab-tag!
+                    dat is-resource? else(PRIM_CORE_DROP ab-prim!)
+                )
+            )) lbl_proj ~arrow !
+        )
+    )))))
 
 def(expect-token-arrow, Token -- Token,
     dup pat-arrow? else("Expected arrow." emit-fatal-error!))
@@ -1084,7 +1149,7 @@ def(elab-def-params!, Word -- List(Param),
 ||| and the rest from the AB environment.
 def(elab-def-body!, StackType +AB -- StackType +AB,
     ab-token@ run-has-arrow? if(
-        dup ab-token@ elab-match-at!,
+        dup >cod ab-token@ >body elab-match-at!,
         elab-atoms!
     ))
 

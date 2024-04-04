@@ -57,7 +57,6 @@ def(C99_Options.emit-debug-info, C99_Options -- EmitDebugInfo, C99_OPTIONS -> ni
 def(C99_Options.output-path, C99_Options -- OutputPath, C99_OPTIONS -> drop)
 
 data(+C99, MKC99 -> C99_Options Nat +Needs +Output)
-def(+C99./MKC99, +C99 -- C99_Options Nat +Needs +Output, MKC99 -> id)
 
 def(+C99.depth@, +C99 -- Nat +C99, /MKC99 dup dip(MKC99))
 def(+C99.depth!, Nat +C99 -- +C99, dip(/MKC99 drop) MKC99)
