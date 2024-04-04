@@ -209,7 +209,7 @@ def(str-buf-is-dashes?, +Str -- Bool +Str,
     str-buf-dup! "--" ==)
 
 def(str-buf-is-int?, +Str -- Bool +Str,
-    str-buf-is-dec-int? if(T, str-buf-is-hex-int?))
+    str-buf-is-dec-int? or(str-buf-is-hex-int?) or(str-buf-is-oct-int?))
 
 def(str-buf-is-dec-int?, +Str -- Bool +Str,
     0 >Size # number of digits
@@ -217,7 +217,7 @@ def(str-buf-is-dec-int?, +Str -- Bool +Str,
     dup str-buf-byte@ is-sign if(1+, id)
     while(dup str-buf-byte@ is-digit, dip(1+) 1+)
     swap 0> if(str-buf-num-bytes? >Offset ==, drop F))
-
+   
 def(str-buf-is-hex-int?, +Str -- Bool +Str,
     0 >Size # number of digits
     0 >Offset # current index
@@ -241,10 +241,36 @@ def(str-buf-is-hex-int?, +Str -- Bool +Str,
         drop2 F
     ))
 
+def(str-buf-is-oct-int?, +Str -- Bool +Str,
+    0 >Size # number of digits
+    0 >Offset # current index
+    dup str-buf-byte@ is-sign if(
+        1+,
+        id
+    )
+    dup str-buf-byte@ B'0' == if(
+        1+
+        dup str-buf-byte@ B'o' == if(
+            1+
+            while(dup str-buf-byte@ B'0' B'7' in-range, dip(1+) 1+)
+            swap 0> if(
+                str-buf-num-bytes? >Offset ==,
+                drop F
+            ),
+
+            drop2 F
+        ),
+
+        drop2 F
+    ))
+
 def(str-buf-int?, +Str -- Int +Str,
     str-buf-is-dec-int? if(
         str-buf-dec-int?,
-        str-buf-hex-int?
+	str-buf-is-hex-int? if(
+            str-buf-hex-int?,
+	    str-buf-oct-int?
+	)
     ))
 
 def(byte-sign-multiplier, Byte -- Int,
@@ -278,6 +304,16 @@ def(str-buf-hex-int?, +Str -- Int +Str,
         sip(
             str-buf-byte@
             dip(16 *) hexdigit-value +
+        )
+        1+)
+    drop *)
+
+def(str-buf-oct-int?, +Str -- Int +Str,
+    str-buf-int-sign 1+ 1+ # skip 0x prefix
+    while(dup str-buf-num-bytes? >Offset <,
+        sip(
+            str-buf-byte@ >Int 
+            dip(8 *) 48 - +
         )
         1+)
     drop *)

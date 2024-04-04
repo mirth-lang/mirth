@@ -18,7 +18,7 @@ def(+World.open-file!, Path +World -- +World +File,
 def(+World.create-file!, Path +World -- +World +File,
     >Str with-cstr(
         O_WRONLY|O_CREAT|O_TRUNC
-        0x1B6 # 666 in octal
+  	0o666
         prim-posix-open
     )
     expect!(dup 0>, "failed to create file")
