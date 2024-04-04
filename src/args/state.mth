@@ -5,105 +5,108 @@ import(std.maybe)
 import(std.str)
 import(args.parse)
 
-data(ArgumentParserStateArgvInfo,
-  ARGUMENT_PARSER_STATE_ARGV_INFO ->
-    List(Str) # argv: The list of string arguments, not including C argv[0]
-    Str # program-name: The name of the program, passed in argv[0]
+data(ArgvInfo,
+  ARGV_INFO ->
+    argv:List(Str)
+    program-name:Str
 )
 
-def(ArgumentParserStateArgvInfo.program-name, ArgumentParserStateArgvInfo -- Str,
-  ARGUMENT_PARSER_STATE_ARGV_INFO -> swap drop)
+def(ArgvInfo.program-name, ArgvInfo -- Str, ARGV_INFO -> program-name> dup >program-name ARGV_INFO drop)
+def(ArgvInfo.argv, ArgvInfo -- List(Str), ARGV_INFO -> argv> dup >argv ARGV_INFO drop)
 
-def(ArgumentParserStateArgvInfo.argv, ArgumentParserStateArgvInfo -- List(Str),
-  ARGUMENT_PARSER_STATE_ARGV_INFO -> drop)
+data(CurrentArg,
+  CURRENT_ARG ->
+    parsing?:Bool 
+    option:Maybe(ArgpOptionType) 
+    option-option:Maybe(ArgpOption))
 
-data(ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG ->
-    Bool # currently-parsing-option: whether the program is currently in the middle of parsing a option with an associated value
-    Maybe(ArgpOptionType) # current-option: the type of the current option
-    Maybe(ArgpOption) # current-option-option: the option value itself of the current option
+def(CurrentArg.option-option, CurrentArg -- Maybe(ArgpOption),
+  CURRENT_ARG -> option-option> dup >option-option CURRENT_ARG drop)
+
+def(CurrentArg.option-option!, Maybe(ArgpOption) CurrentArg -- CurrentArg,
+  CURRENT_ARG -> option-option> drop >option-option CURRENT_ARG)
+
+def(CurrentArg.option, CurrentArg -- Maybe(ArgpOptionType),
+  CURRENT_ARG ->  option> dup >option CURRENT_ARG drop)
+
+def(CurrentArg.option!, Maybe(ArgpOptionType) CurrentArg -- CurrentArg,
+  CURRENT_ARG -> option> drop >option CURRENT_ARG)
+
+def(CurrentArg.parsing?, CurrentArg -- Bool,
+  CURRENT_ARG -> parsing?> dup >parsing? CURRENT_ARG drop)
+
+def(CurrentArg.parsing!, Bool CurrentArg -- CurrentArg,
+  CURRENT_ARG -> parsing?> drop >parsing? CURRENT_ARG)
+
+data(State(a),
+  STATE ->
+    arguments:a
+    argv-info:ArgvInfo
+    arg:CurrentArg 
+    positional-index:Int
+    error:Maybe(ArgumentParsingError)
 )
 
-def(ArgumentParserStateCurrentArg.current-option-option, ArgumentParserStateCurrentArg -- Maybe(ArgpOption),
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip(drop2))
-def(ArgumentParserStateCurrentArg.current-option-option!, Maybe(ArgpOption) ArgumentParserStateCurrentArg -- ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> drop rotl ARGUMENT_PARSER_STATE_CURRENT_ARG)
+def(State.init, a -- State(a),
+    argv-to-str >argv
+    0 unsafe(read-from-argv) >program-name
+  ARGV_INFO >argv-info
 
-def(ArgumentParserStateCurrentArg.current-option, ArgumentParserStateCurrentArg -- Maybe(ArgpOptionType),
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> drop dip(drop))
-def(ArgumentParserStateCurrentArg.current-option!, Maybe(ArgpOptionType) ArgumentParserStateCurrentArg -- ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip(drop swap) ARGUMENT_PARSER_STATE_CURRENT_ARG)
+    F >parsing?
+    NONE >option
+    NONE >option-option
+  CURRENT_ARG >arg
 
-def(ArgumentParserStateCurrentArg.currently-parsing-option, ArgumentParserStateCurrentArg -- Bool,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> drop2)
-def(ArgumentParserStateCurrentArg.currently-parsing-option!, Bool ArgumentParserStateCurrentArg -- ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE_CURRENT_ARG -> dip2(drop) ARGUMENT_PARSER_STATE_CURRENT_ARG)
-
-data(ArgumentParserState(a),
-  ARGUMENT_PARSER_STATE ->
-    a # argument: the argument structure itself
-    ArgumentParserStateArgvInfo # argv-into: Data about the list of arguments passed to the program
-    ArgumentParserStateCurrentArg # current-arg: Information about the current argument being parsed
-    Int # current-positional-arg: the index of the positional argument to be parsed
-    Maybe(ArgumentParsingError) # current-error: whatever error may have been thrown by the parser last
+  >arguments
+  0 >positional-index
+  NONE >error
+  STATE
 )
 
-def(ArgumentParserState.init, a -- ArgumentParserState(a),
-    argv-to-str
-    0 unsafe(read-from-argv)
-  ARGUMENT_PARSER_STATE_ARGV_INFO
-    F
-    NONE
-    NONE
-  ARGUMENT_PARSER_STATE_CURRENT_ARG
-  0
-  NONE
-  ARGUMENT_PARSER_STATE
-)
+def(State.argv, State(a) -- List(Str), argv-info ArgvInfo.argv)
 
-def(ArgumentParserState.argv, ArgumentParserState(a) -- List(Str),
-  ArgumentParserState.argv-info ArgumentParserStateArgvInfo.argv
-)
+def(State.program-name, State(a) -- Str, argv-info program-name)
 
-def(ArgumentParserState.program-name, ArgumentParserState(a) -- Str,
-  argv-info program-name
-)
+def(State.argv-info, State(a) -- ArgvInfo,
+  STATE -> argv-info> dup >argv-info STATE drop)
 
-def(ArgumentParserState.argv-info, ArgumentParserState(a) -- ArgumentParserStateArgvInfo,
-  ARGUMENT_PARSER_STATE -> drop3 swap drop)
+def(State.parsing?, State(a) -- Bool, arg parsing?)
 
-def(ArgumentParserState.currently-parsing-option, ArgumentParserState(a) -- Bool,
-  current-arg currently-parsing-option)
-def(ArgumentParserState.currently-parsing-option!, Bool ArgumentParserState(a) -- ArgumentParserState(a),
-  dup dip(current-arg currently-parsing-option!) current-arg!)
+def(State.parsing!, Bool State(a) -- State(a),
+  dup dip(arg parsing!) arg!)
 
-def(ArgumentParserState.current-option, ArgumentParserState(a) -- Maybe(ArgpOptionType),
-  current-arg current-option)
-def(ArgumentParserState.current-option!, Maybe(ArgpOptionType) ArgumentParserState(a) -- ArgumentParserState(a),
-  dup dip(current-arg current-option!) current-arg!)
+def(State.option, State(a) -- Maybe(ArgpOptionType),
+  arg option)
 
-def(ArgumentParserState.current-option-option, ArgumentParserState(a) -- Maybe(ArgpOption),
-  current-arg current-option-option)
-def(ArgumentParserState.current-option-option!, Maybe(ArgpOption) ArgumentParserState(a) -- ArgumentParserState(a),
-  dup dip(current-arg current-option-option!) current-arg!)
+def(State.option!, Maybe(ArgpOptionType) State(a) -- State(a),
+  dup dip(arg option!) arg!)
 
-def(ArgumentParserState.current-arg, ArgumentParserState(a) -- ArgumentParserStateCurrentArg,
-  ARGUMENT_PARSER_STATE -> drop2 dip(drop2))
-def(ArgumentParserState.current-arg!, ArgumentParserStateCurrentArg ArgumentParserState(a) -- ArgumentParserState(a),
-  ARGUMENT_PARSER_STATE -> dip2(drop over2) ARGUMENT_PARSER_STATE swap drop)
+def(State.option-option, State(a) -- Maybe(ArgpOption),
+  arg option-option)
 
+def(State.option-option!, Maybe(ArgpOption) State(a) -- State(a),
+  dup dip(arg option-option!) arg!)
 
-def(ArgumentParserState.current-error, ArgumentParserState(a) -- Maybe(ArgumentParsingError),
-  ARGUMENT_PARSER_STATE -> dip(drop4))
-def(ArgumentParserState.current-error!, Maybe(ArgumentParsingError) ArgumentParserState(a) -- ArgumentParserState(a),
-  ARGUMENT_PARSER_STATE -> drop over4 ARGUMENT_PARSER_STATE swap drop)
+def(State.arg, State(a) -- CurrentArg,
+  STATE -> arg> dup >arg STATE drop)
 
-def(ArgumentParserState.current-positional-arg, ArgumentParserState(a) -- Int,
-  ARGUMENT_PARSER_STATE -> drop dip(drop2 drop))
-def(ArgumentParserState.current-positional-arg!, Int ArgumentParserState(a) -- ArgumentParserState(a),
-  ARGUMENT_PARSER_STATE -> dip(drop over3) ARGUMENT_PARSER_STATE swap drop)
+def(State.arg!, CurrentArg State(a) -- State(a),
+  STATE -> arg> drop >arg STATE)
 
-def(ArgumentParserState.arguments, ArgumentParserState(a) -- a,
-  ARGUMENT_PARSER_STATE -> drop4)
-def(ArgumentParserState.arguments!, a ArgumentParserState(a) -- ArgumentParserState(a),
-  ARGUMENT_PARSER_STATE -> dip3(dip(drop)) ARGUMENT_PARSER_STATE)
+def(State.error, State(a) -- Maybe(ArgumentParsingError),
+  STATE -> error> dup >error STATE drop)
+
+def(State.error!, Maybe(ArgumentParsingError) State(a) -- State(a),
+  STATE -> error> drop >error STATE)
+
+def(State.positional-index, State(a) -- Int,
+  STATE -> positional-index> dup >positional-index STATE drop)
+
+def(State.positional-index!, Int State(a) -- State(a),
+  STATE -> positional-index> drop >positional-index STATE)
+
+def(State.arguments, State(a) -- a,
+  STATE -> arguments> dup >arguments STATE drop)
+
+def(State.arguments!, a State(a) -- State(a),
+  STATE -> arguments> drop >arguments STATE)
