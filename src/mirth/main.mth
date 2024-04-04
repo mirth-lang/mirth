@@ -115,9 +115,9 @@ def(compile!, Arguments +World -- +World,
             "Skipping Codegen." trace-ln! drop
     ))
 
-def(parse-package-def, Str -- Maybe([Str Path]),
+def(parse-package-def, Str -- [Str Path],
   dip(BCOLON) str-split-byte match(
-    L2 -> >Path pack2 SOME,
+    L2 -> >Path pack2,
     _ -> drop "Invalid package path definition" panic!
   )
 )
@@ -127,7 +127,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
         B'o' -> unwrap >Path OUTPUT_PATH SOME over ~output-file !,
         B'e' -> unwrap SOME over ~entry-point !,
         B'c' -> drop NONE over ~entry-point !,
-	B'p' -> unwrap parse-package-def unwrap over ~packages @ cons over ~packages !,
+	B'p' -> unwrap parse-package-def over ~packages @ cons over ~packages !,
         _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
     ),
     OPTION_POSITIONAL -> state current-positional-arg 0= if(
