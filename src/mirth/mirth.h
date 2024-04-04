@@ -315,6 +315,8 @@ static VAL pop_value(void) {
 	return stack[stack_counter++];
 }
 
+#define LPOP(v) do { VAL lcar, lcdr; value_uncons_c((v), &lcar, &lcdr); push_value(lcdr); (v) = lcar; } while(0)
+#define LPUSH(v) do { (v) = mkcons((v), pop_value()); } while(0)
 
 static void push_resource(VAL x) {
 	ASSERT(rstack_counter > 0);

@@ -19,7 +19,7 @@ def(!!111, Int Int Int --, 1 !!= 1 !!= 1 !!=)
 
 def(test-prelude!, --,
     test-if test-drop test-dup test-swap test-dip
-    test-rotr test-rotl test== test< test<= test> test>=
+    test-rotr test-rotl test== test< test<= test-gt test>=
     test+ test- test* test-while)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
@@ -68,7 +68,7 @@ def(test<=, --,
     1 2 <= !!T
     2 1 <= !!F
     2 2 <= !!T)
-def(test>, --,
+def(test-gt, --,
     0 0 > !!F
     0 1 > !!F
     1 0 > !!T

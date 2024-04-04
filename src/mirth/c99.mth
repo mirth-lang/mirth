@@ -34,6 +34,7 @@ import(mirth.var)
 import(mirth.match)
 import(mirth.elab)
 import(mirth.need)
+import(mirth.label)
 
 #######
 # C99 #
@@ -48,6 +49,10 @@ def(EmitDebugInfo.>Str, EmitDebugInfo -- Str, EMIT_DEBUG_INFO -> if("yes", "no")
 def(EmitDebugInfo.>Bool, EmitDebugInfo -- Bool, EMIT_DEBUG_INFO -> id)
 
 data(C99_Options, C99_OPTIONS -> OutputPath EmitDebugInfo)
+def(C99_Options.make, output-path:Path emit-debug-info:Bool -- C99_Options,
+    output-path> OUTPUT_PATH
+    emit-debug-info> EMIT_DEBUG_INFO
+    C99_OPTIONS)
 def(C99_Options.emit-debug-info, C99_Options -- EmitDebugInfo, C99_OPTIONS -> nip)
 def(C99_Options.output-path, C99_Options -- OutputPath, C99_OPTIONS -> drop)
 
@@ -83,6 +88,7 @@ def(run-output-c99!, Arrow C99_Options +World -- +World,
 
         c99-start!
         c99-header!
+        c99-label-defs!
         c99-tags!
         c99-buffers!
         c99-variables!
@@ -250,7 +256,14 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_LAMBDA   -> nip c99-lambda!,
     OP_VAR      -> nip c99-var!,
     OP_BLOCK    -> nip c99-block-push!,
-    OP_COERCE   -> drop2)
+    OP_COERCE   -> drop2,
+    OP_LABEL_PUSH -> nip c99-label-push!,
+    OP_LABEL_POP  -> nip c99-label-pop!)
+
+def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
+def(c99-label-def!, Label +C99 -- +C99, "static VAL lbl_" put name mangled put " = {0};" put line)
+def(c99-label-push!, Label +C99 -- +C99, c99-line("LPUSH(lbl_" put name mangled put ");" put))
+def(c99-label-pop!, Label +C99 -- +C99, c99-line("LPOP(lbl_" put name mangled put ");" put))
 
 def(c99-int!, Int +C99 -- +C99,
     c99-line("push_i64(" put show put "LL);" put))

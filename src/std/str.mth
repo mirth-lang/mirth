@@ -37,6 +37,12 @@ def(str-buf-dup!, +Str -- Str +Str,
 def(str-buf-num-bytes?, +Str -- Size +Str,
     +STR -> dup num-bytes dip(+STR))
 
+def(str-buf-last-byte, +Str -- Byte +Str,
+    str-buf-num-bytes? >Offset dup 0> if(
+        1- str-buf-byte@,
+        drop BNUL
+    ))
+
 def(str-buf-byte@, Offset +Str -- Byte +Str,
     str-buf-dup! str-byte@)
 

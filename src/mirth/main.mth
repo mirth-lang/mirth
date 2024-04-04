@@ -33,69 +33,76 @@ def(init!, --,
 
 table(Arguments)
 field(Arguments.~input-file, Arguments, Path)
-field(Arguments.~output-file, Arguments, Maybe(OutputPath))
+field(Arguments.~output-file, Arguments, Maybe(Path))
 field(Arguments.~entry-point, Arguments, Maybe(Str))
 field(Arguments.~packages, Arguments, List([Str Path]))
-field(Arguments.~emit-debug-info, Arguments, EmitDebugInfo)
+field(Arguments.~emit-debug-info, Arguments, Bool)
 
-# Helpers to read table fields
-def(Arguments.input-file, Arguments -- Path, ~input-file @)
-def(Arguments.output-file, Arguments -- Maybe(OutputPath), ~output-file @)
-def(Arguments.entry-point, Arguments -- Maybe(Str), ~entry-point @)
-def(Arguments.emit-debug-info, Arguments -- EmitDebugInfo, ~emit-debug-info @)
-
-def(Arguments.new, EmitDebugInfo Path Maybe(OutputPath) Maybe(Str) List([Str Path]) -- Arguments,
+def(Arguments.new,
+        emit-debug-info:Bool
+        input-file:Path
+        output-file:Maybe(Path)
+        entry-point:Maybe(Str)
+        packages:List([Str Path]) -- Arguments,
     Arguments.alloc!
-    dup dip(~packages !)
-    dup dip(~entry-point !)
-    dup dip(~output-file !)
-    dup dip(~input-file !)
-    dup dip(~emit-debug-info !))
+    packages> over ~packages !
+    entry-point> over ~entry-point !
+    input-file> over ~input-file !
+    output-file> over ~output-file !
+    emit-debug-info> over ~emit-debug-info !)
+
+def(Arguments.unpack, Arguments --
+        emit-debug-info:Bool
+        input-file:Path
+        output-file:Maybe(Path)
+        entry-point:Maybe(Str)
+        packages:List([Str Path]),
+    dup ~packages @ >packages
+    dup ~input-file @ >input-file
+    dup ~output-file @ >output-file
+    dup ~entry-point @ >entry-point
+    dup ~emit-debug-info @ >emit-debug-info
+    drop)
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
 def(Arguments.default, -- Arguments,
-    F EMIT_DEBUG_INFO
-    "mirth.mth" >Path
-    NONE
-    "main" SOME
-    L0
+    F >emit-debug-info
+    "mirth.mth" >Path >input-file
+    NONE >output-file
+    "main" SOME >entry-point
+    L0 >packages
     Arguments.new)
 
 ||| Pretty print the contents of the arguments struct
 def(Arguments.show, Arguments -- Str,
+    unpack
     "Arguments { "
-    "output-file: " cat over output-file map(>Str) unwrap-or("(none)") cat
-    ", input-file: " cat over input-file >Str cat
-    ", entry-point: " cat over entry-point unwrap-or("(none)") cat
-    ", emit-debug-info: " cat over emit-debug-info >Str cat
-    " }" cat nip)
-
-def(Arguments.c99-options, Arguments -- C99_Options,
-    sip(output-file unwrap)
-    sip(emit-debug-info)
-    drop C99_OPTIONS)
+    "output-file: " cat output-file> if-some(>Str, "(none)") cat
+    ", input-file: " cat input-file> >Str cat
+    ", entry-point: " cat entry-point> unwrap-or("(none)") cat
+    ", emit-debug-info: " cat emit-debug-info> if("yes", "no") cat
+    ", packages: " cat "[" packages> for(dip(cat) unpack2 dip(cat ":" cat) >Str cat " ") drop "]" cat
+    " }" cat)
 
 ########
 # Main #
 ########
 
 def(compile!, Arguments +World -- +World,
+    unpack
     "Compiling " trace!
-    dup input-file >Str trace-ln!
-
-    dup ~packages @ for(
+    input-file> dup >Str trace-ln! >input-file
+    packages> for(
       unpack2 swap >Name Package.new-or-set-path! drop
     )
-
-    dup input-file run-lexer!
-
+    input-file> run-lexer!
     "Building." trace-ln!
 
     elab-module!
     typecheck-everything!
 
-    over entry-point map(
+    entry-point> map(
         dip(dup NAMESPACE_MODULE) >Name QNAME
         elab-entry-point
     ) nip
@@ -110,9 +117,12 @@ def(compile!, Arguments +World -- +World,
     match(
         SOME ->
             "Codegen." trace-ln!
-            swap c99-options run-output-c99!,
+            output-file> unwrap >output-path
+            C99_Options.make run-output-c99!,
         NONE ->
-            "Skipping Codegen." trace-ln! drop
+            "Skipping Codegen." trace-ln!
+            emit-debug-info> drop
+            output-file> drop
     ))
 
 def(parse-package-def, Str -- [Str Path],
@@ -124,10 +134,10 @@ def(parse-package-def, Str -- [Str Path],
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
     OPTION_SHORT -> match(
-        B'o' -> unwrap >Path OUTPUT_PATH SOME over ~output-file !,
+        B'o' -> unwrap >Path SOME over ~output-file !,
         B'e' -> unwrap SOME over ~entry-point !,
         B'c' -> drop NONE over ~entry-point !,
-	B'p' -> unwrap parse-package-def over ~packages @ cons over ~packages !,
+        B'p' -> unwrap parse-package-def over ~packages @ cons over ~packages !,
         _ -> drop drop UNKNOWN_ARG SOME state current-error! state!
     ),
     OPTION_POSITIONAL -> state current-positional-arg 0= if(
@@ -135,7 +145,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
         drop TOO_MANY_ARGS SOME state current-error! state!
     ),
     OPTION_LONG_ONLY -> dup "debug" == if(
-        drop2 T EMIT_DEBUG_INFO over ~emit-debug-info !,
+        drop2 T over ~emit-debug-info !,
         drop2 UNKNOWN_ARG SOME state current-error! state!
     ),
     OPTION_END ->

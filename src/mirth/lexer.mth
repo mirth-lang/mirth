@@ -14,6 +14,7 @@ import(posix.input)
 
 import(mirth.location)
 import(mirth.name)
+import(mirth.label)
 import(mirth.token)
 import(mirth.error)
 import(mirth.module)
@@ -142,7 +143,7 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
     lexer-row@
     lexer-col@
 
-    lexer-peek while(dup is-name-byte,
+    lexer-peek while(dup is-name-byte and(rdip(str-buf-last-byte) BCOLON <>),
         rdip(str-buf-push-byte-unsafe!)
         lexer-move!
         lexer-peek)
@@ -157,7 +158,11 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
             str-buf-int? TOKEN_INT,
             str-buf-dname? match(
                 SOME -> TOKEN_DNAME,
-                NONE -> str-buf-name? TOKEN_NAME
+                NONE ->
+                    str-buf-label-token? match(
+                        SOME -> id,
+                        NONE -> str-buf-name? TOKEN_NAME
+                    )
             )
         ))
 
@@ -170,6 +175,20 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
     rdip(freeze drop))
 
 def(str-buf-name?, +Str -- Name +Str, str-buf-dup! >Name)
+
+def(str-buf-label-token?, +Str -- Maybe(TokenValue) +Str,
+    0 >Offset str-buf-byte@ is-lower if(
+        str-buf-last-byte match(
+            BCOLON -> str-buf-num-bytes? 1- unsafe(str-buf-take-slice) >Name Label.new! TOKEN_LABEL SOME,
+            B'>' -> str-buf-num-bytes? 1- unsafe(str-buf-take-slice) >Name Label.new! TOKEN_LABEL_POP SOME,
+            _ -> drop NONE
+        ),
+
+        0 >Offset str-buf-byte@ B'>' == and(1 >Offset str-buf-byte@ is-lower) if(
+            1 >Offset unsafe(str-buf-drop-slice) >Name Label.new! TOKEN_LABEL_PUSH SOME,
+            NONE
+        )
+    ))
 
 def(str-buf-dname?, +Str -- Maybe(DName) +Str,
     BDOT str-buf-split-byte
