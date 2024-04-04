@@ -315,9 +315,6 @@ static VAL pop_value(void) {
 	return stack[stack_counter++];
 }
 
-#define LPOP(v) do { VAL lcar, lcdr; value_uncons_c((v), &lcar, &lcdr); push_value(lcdr); (v) = lcar; } while(0)
-#define LPUSH(v) do { (v) = mkcons((v), pop_value()); } while(0)
-
 static void push_resource(VAL x) {
 	ASSERT(rstack_counter > 0);
 	rstack[--rstack_counter] = x;
@@ -343,6 +340,14 @@ static VAL mkcons (VAL car, VAL cdr) {
 	cons->cdr = cdr;
 	return MKCONS(cons);
 }
+
+static VAL lpop(VAL* stk) {
+	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
+	*stk=lcar; incref(lcar); incref(lcdr); decref(cons); return lcdr;
+}
+static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
+#define LPOP(v) push_value(lpop(&(v)))
+#define LPUSH(v) lpush(&(v),pop_value())
 
 static STR* str_alloc (USIZE cap) {
 	ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);

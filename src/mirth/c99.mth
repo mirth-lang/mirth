@@ -147,6 +147,10 @@ def(c99-tag!, Tag +C99 -- +C99,
             "pop_resource());" put line
             "\tcar = mkcons(car, " put
         )
+        dup label-inputs reverse-for(
+            "lpop(&lbl_" put name mangled put "));" put line
+            "\tcar = mkcons(car, " put
+        )
         "tag);" put line
         dup outputs-resource? if(
             "\tpush_resource(car);",
@@ -161,10 +165,15 @@ def(c99-tag!, Tag +C99 -- +C99,
             "\tVAL car = pop_resource();",
             "\tVAL car = pop_value();"
         ) put line
-        dup num-resource-inputs over num-type-inputs + 0> then(
+        dup num-resource-inputs over num-type-inputs + over label-inputs len + 0> then(
             "\tVAL cdr;" put line
         )
         "\tdecref("
+        over label-inputs for(
+            "\tvalue_uncons_c(car, &car, &cdr);" put line
+            swap put "cdr);" put line
+            "\tlpush(&lbl_" swap name mangled cat ", " cat
+        )
         over num-resource-inputs repeat(
             "\tvalue_uncons_c(car, &car, &cdr);" put line
             put "cdr);" put line
