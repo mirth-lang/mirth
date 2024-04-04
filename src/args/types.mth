@@ -8,34 +8,40 @@ import(args.state)
 
 data(ArgumentParser(a),
   ARGUMENT_PARSER ->
-    List(ArgpOption)
-    Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ])
-    Maybe(Str)
-    Str)
+    options:List(ArgpOption)
+    parser:Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ])
+    args-doc:Maybe(Str)
+    doc:Str)
 
 def(ArgumentParser.options, ArgumentParser(a) -- List(ArgpOption),
-  ARGUMENT_PARSER -> drop3)
-def(ArgumentParser.options!, List(ArgpOption) ArgumentParser(a) -- ArgumentParser(a),
-  ARGUMENT_PARSER -> dip3(drop) ARGUMENT_PARSER)
+  ARGUMENT_PARSER -> options> dup >options ARGUMENT_PARSER drop)
 
-def(ArgumentParser.parser, ArgumentParser(a) -- Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
-  ARGUMENT_PARSER -> drop2 dip(drop))
+def(ArgumentParser.options!, List(ArgpOption) ArgumentParser(a) -- ArgumentParser(a),
+  ARGUMENT_PARSER -> options> drop >options ARGUMENT_PARSER)
+
+def(ArgumentParser.parser, ArgumentParser(a) -- Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a]),
+  ARGUMENT_PARSER -> parser> dup >parser ARGUMENT_PARSER drop)
+
 def(ArgumentParser.parser!,
-  Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]) ArgumentParser(a) -- ArgumentParser(a),
-  ARGUMENT_PARSER -> dip2(drop over) ARGUMENT_PARSER swap drop)
+  Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a]) ArgumentParser(a) -- ArgumentParser(a),
+  ARGUMENT_PARSER -> parser> drop >parser ARGUMENT_PARSER)
 
 def(ArgumentParser.args-doc, ArgumentParser(a) -- Maybe(Str),
-  ARGUMENT_PARSER -> drop dip(drop2))
+  ARGUMENT_PARSER -> args-doc> dup >args-doc ARGUMENT_PARSER drop)
 
 def(ArgumentParser.doc, ArgumentParser(a) -- Str,
-  ARGUMENT_PARSER -> dip(drop3))
+  ARGUMENT_PARSER -> doc> dup >doc ARGUMENT_PARSER drop)
 
-def(ArgumentParser.new, List(ArgpOption) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]) Maybe(Str) Str -- ArgumentParser(a),
+def(ArgumentParser.new, 
+  options:List(ArgpOption) 
+  parser:Maybe([+ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a]) 
+  args-doc:Maybe(Str) 
+  doc:Str -- ArgumentParser(a),
   ARGUMENT_PARSER
 )
 
-data(+ArgumentParser(a), +ARGUMENTPARSER -> ArgumentParser(a) ArgumentParserState(a))
-def(-ARGUMENTPARSER, +ArgumentParser(a) -- ArgumentParser(a) ArgumentParserState(a), +ARGUMENTPARSER -> id)
+data(+ArgumentParser(a), +ARGUMENTPARSER -> ArgumentParser(a) State(a))
+def(-ARGUMENTPARSER, +ArgumentParser(a) -- ArgumentParser(a) State(a), +ARGUMENTPARSER -> id)
 def(+ArgumentParser.rdrop, +ArgumentParser(a) --, -ARGUMENTPARSER drop2)
 
 def(+ArgumentParser.argument-parser, +ArgumentParser(a) -- ArgumentParser(a) +ArgumentParser(a),
@@ -43,8 +49,8 @@ def(+ArgumentParser.argument-parser, +ArgumentParser(a) -- ArgumentParser(a) +Ar
 def(+ArgumentParser.argument-parser!, +ArgumentParser(a) ArgumentParser(a) -- +ArgumentParser(a),
     -ARGUMENTPARSER dip(drop) +ARGUMENTPARSER)
 
-def(+ArgumentParser.state, +ArgumentParser(a) -- ArgumentParserState(a) +ArgumentParser(a), -ARGUMENTPARSER dup dip(+ARGUMENTPARSER))
-def(+ArgumentParser.state!, +ArgumentParser(a) ArgumentParserState(a) -- +ArgumentParser(a), -ARGUMENTPARSER drop swap +ARGUMENTPARSER)
+def(+ArgumentParser.state, +ArgumentParser(a) -- State(a) +ArgumentParser(a), -ARGUMENTPARSER dup dip(+ARGUMENTPARSER))
+def(+ArgumentParser.state!, +ArgumentParser(a) State(a) -- +ArgumentParser(a), -ARGUMENTPARSER drop swap +ARGUMENTPARSER)
 
 def(+ArgumentParser.parser,
   +ArgumentParser(a) -- +ArgumentParser(a) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
@@ -52,15 +58,15 @@ def(+ArgumentParser.parser,
 )
 
 data(ArgpOptionType,
-  OPTION_SHORT -> Byte,
-  OPTION_LONG_ONLY -> Str,
-  OPTION_POSITIONAL,
-  OPTION_END
+  SHORT -> Byte,
+  LONG_ONLY -> Str,
+  POSITIONAL,
+  END
 )
 
 def(ArgpOptionType.has-short?, ArgpOptionType -- Bool,
   match(
-    OPTION_SHORT -> drop T,
+    SHORT -> drop T,
     _ -> drop F
   )
 )
