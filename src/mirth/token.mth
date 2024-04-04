@@ -86,6 +86,8 @@ field(Token.~module, Token, Module)
 field(Token.~row, Token, Row)
 field(Token.~col, Token, Col)
 
+def-missing(Token.index, Token -- Int, Token.id)
+
 def(Token.value, Token -- TokenValue, ~value @)
 def(Token.module, Token -- Module, ~module @)
 def(Token.col, Token -- Col, ~col @)

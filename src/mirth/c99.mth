@@ -534,8 +534,8 @@ def(c99-block-def!, Block +C99 -- +C99,
 def(+C99.block-put, Block +C99 -- +C99,
     "mb_" put
     dup home match(
-        HOME_MAIN -> "main_" put dip(arrow token-start .id) .id - show put,
-        HOME_WORD -> dup qname mangled put "_" put dip(arrow) arrow both(token-start .id) - show put
+        HOME_MAIN -> "main_" put dip(arrow token-start index) index - show put,
+        HOME_WORD -> dup qname mangled put "_" put dip(arrow) arrow both(token-start index) - show put
     ))
 
 def(c99-word-enter!, Word +C99 -- +C99,

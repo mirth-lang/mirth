@@ -36,4 +36,5 @@ def(Package.find, Name -- Maybe(Package),
 def(Package.find-or-new!, Name -- Package,
     dup Package.find unwrap-or(dup NONE swap Package.new!) nip)
 
-def(Package.==, Package Package -- Bool, both(.id) ==)
+def-missing(Package.index, Package -- Int, Package.id)
+def(Package.==, Package Package -- Bool, both(index) ==)

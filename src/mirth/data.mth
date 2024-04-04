@@ -91,7 +91,8 @@ def(init-data!, --,
 # DATA #
 ########
 
-def(Data.==, Data Data -- Bool, both(.id) ==)
+def-missing(Data.index, Data -- Int, Data.id)
+def(Data.==, Data Data -- Bool, both(index) ==)
 def(Data.num-tags, Data -- Nat, tags len)
 
 ||| Adds constructor to data type, and gives tag its rank.
@@ -158,4 +159,5 @@ def(Tag.is-transparent?, Tag -- Bool,
 def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)
 
-def(Tag.==, Tag Tag -- Bool, both(.id) ==)
+def-missing(Tag.index, Tag -- Int, Tag.id)
+def(Tag.==, Tag Tag -- Bool, both(index) ==)

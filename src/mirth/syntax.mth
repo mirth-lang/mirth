@@ -1,0 +1,20 @@
+||| Abstract Syntax Tree.
+module(mirth.syntax)
+
+data(Span, SPAN -> Token Token)
+def(Span.unpack, Span -- Token Token, SPAN -> id)
+def(Span.start, Span -- Token, SPAN -> drop)
+def(Span.end, Span -- Token, SPAN -> nip)
+def(Span.join, Span Span -- Span,
+    dup2 both(.end) max
+    dip(both(.start) min)
+    SPAN)
+
+data(Decl,
+    IMPORT -> ImportDecl,
+    DATA -> DataDecl)
+
+data(DataDecl, DATADECL -> Span DataDeclHeader List(DataCons))
+def(DataDecl.span, DataDecl -- Span, DATADECL -> drop drop)
+def(DataDecl.header, DataDecl -- DataDeclHeader, DATADECL -> drop dip(drop))
+def(DataDecl.cons, DataDecl -- List(DataCons), )
