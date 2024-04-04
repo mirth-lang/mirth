@@ -68,6 +68,7 @@ def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     dip(sip(len) TT)
     sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
     sip(~num-type-inputs !)
+    sip(L0 swap ~label-inputs !)
     sip(0 >Nat swap ~num-resource-inputs !)
     sip(dip(>Nat) ~value !)
     dip(QName.prim) tuck ~qname !
@@ -122,6 +123,7 @@ table(Tag)
 field(Tag.~data, Tag, Data)
 field(Tag.~qname, Tag, QName)
 field(Tag.~value, Tag, Nat)
+field(Tag.~label-inputs, Tag, List(Label))
 field(Tag.~num-type-inputs, Tag, Nat)
 field(Tag.~num-resource-inputs, Tag, Nat)
 field(Tag.~sig?, Tag, Maybe(Token))
@@ -130,6 +132,7 @@ field(Tag.~ctx-type, Tag, Lazy([Ctx ArrowType]))
 def(Tag.data, Tag -- Data, ~data @)
 def(Tag.qname, Tag -- QName, ~qname @)
 def(Tag.value, Tag -- Nat, ~value @)
+def(Tag.label-inputs, Tag -- List(Label), ~label-inputs @)
 def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
 def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)
 def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
@@ -137,10 +140,14 @@ def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Tag.ctx, Tag -- Ctx, ctx-type drop)
 def(Tag.type, Tag -- ArrowType, ctx-type nip)
 
+def(Tag.label-inputs-from-sig, Tag -- List(Label),
+    sig? if-some(run-tokens filter-some(label?), L0))
+
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
-        swap num-resource-inputs-from-sig -,
+        over num-resource-inputs-from-sig -
+        swap label-inputs-from-sig len 2* -,
         drop 0 >Nat
     ))
 

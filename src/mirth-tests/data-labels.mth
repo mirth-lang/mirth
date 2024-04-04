@@ -1,0 +1,15 @@
+module(mirth-tests.data-labels)
+import(std.prelude)
+import(posix.posix)
+
+data(Person, PERSON -> age:Int name:Str)
+def(Person.age, Person -- Int, PERSON -> age> dup >age PERSON drop)
+def(Person.name, Person -- Str, PERSON -> name> dup >name PERSON drop)
+
+def(main, --,
+    "John" >name
+    30 >age
+    PERSON
+    dup age trace-ln!
+    dup name trace-ln!
+    drop)
