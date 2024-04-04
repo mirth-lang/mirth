@@ -112,39 +112,39 @@ def(c99-header!, +C99 -- +C99,
     emit-debug-info? if("1", "0") put line
     c99-header-str put line)
 
-def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!) line)
+def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!))
 def(c99-buffer!, Buffer +C99 -- +C99,
     dup qname sig-put " {" put line
-    "    static uint8_t b[" put dup size show put "] = {0};" put line
-    "    push_ptr(&b);" put line
+    "\tstatic uint8_t b[" put dup size show put "] = {0};" put line
+    "\tpush_ptr(&b);" put line
     "}" put line
     drop)
 
-def(c99-variables!, +C99 -- +C99, Variable.for(c99-variable!) line)
+def(c99-variables!, +C99 -- +C99, Variable.for(c99-variable!))
 def(c99-variable!, Variable +C99 -- +C99,
     qname sig-put " {" put line
-    "    static VAL v = {0};" put line
-    "    push_ptr(&v);" put line
+    "\tstatic VAL v = {0};" put line
+    "\tpush_ptr(&v);" put line
     "}" put line)
 
-def(c99-tags!, +C99 -- +C99, Tag.for(c99-tag!) line)
+def(c99-tags!, +C99 -- +C99, Tag.for(c99-tag!))
 def(c99-tag!, Tag +C99 -- +C99,
     dup qname sig-put " {" put line
     dup is-transparent? else(
-        "    VAL tag = MKU64(" put dup value show put "LL);" put line
-        "    VAL car = (" put
+        "\tVAL tag = MKU64(" put dup value show put "LL);" put line
+        "\tVAL car = (" put
         dup num-type-inputs repeat(
             "pop_value());" put line
-            "    car = mkcons(car, " put
+            "\tcar = mkcons(car, " put
         )
         dup num-resource-inputs repeat(
             "pop_resource());" put line
-            "    car = mkcons(car, " put
+            "\tcar = mkcons(car, " put
         )
         "tag);" put line
         dup outputs-resource? if(
-            "    push_resource(car);",
-            "    push_value(car);"
+            "\tpush_resource(car);",
+            "\tpush_value(car);"
         ) put line
     )
     "}" put line
@@ -152,22 +152,22 @@ def(c99-tag!, Tag +C99 -- +C99,
     dup qname cosig-put " {" put line
     dup is-transparent? else(
         dup outputs-resource? if(
-            "    VAL car = pop_resource();",
-            "    VAL car = pop_value();"
+            "\tVAL car = pop_resource();",
+            "\tVAL car = pop_value();"
         ) put line
         dup num-resource-inputs over num-type-inputs + 0> then(
-            "    VAL cdr;" put line
+            "\tVAL cdr;" put line
         )
-        "    decref("
+        "\tdecref("
         over num-resource-inputs repeat(
-            "    value_uncons_c(car, &car, &cdr);" put line
+            "\tvalue_uncons_c(car, &car, &cdr);" put line
             put "cdr);" put line
-            "    push_resource("
+            "\tpush_resource("
         )
         over num-type-inputs repeat(
-            "    value_uncons_c(car, &car, &cdr);" put line
+            "\tvalue_uncons_c(car, &car, &cdr);" put line
             put "cdr);" put line
-            "    push_value("
+            "\tpush_value("
         )
         put "car);" put line
     )
@@ -176,7 +176,7 @@ def(c99-tag!, Tag +C99 -- +C99,
     drop)
 
 def(c99-externals!, +C99 -- +C99,
-    External.for(c99-external!) line)
+    External.for(c99-external!))
 
 def(c99-external!, External +C99 -- +C99,
     dup sig sig-arity
@@ -196,8 +196,8 @@ def(c99-external!, External +C99 -- +C99,
     ");" put line
 
     dip2(dup qname sig-put) " {" put line
-    over countdown("    int64_t x" put show put " = pop_i64();" put line)
-    dup 0> if("    push_i64(", "    ") put
+    over countdown("\tint64_t x" put show put " = pop_i64();" put line)
+    dup 0> if("\tpush_i64(", "\t") put
     dip2(dup symbol put)
     "(" put
     dip(dup 0> if(
@@ -214,7 +214,7 @@ def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
     f
     depth@ 1- depth!)
 
-def(+C99.indent, +C99 -- +C99, depth@ repeat("    " put))
+def(+C99.indent, +C99 -- +C99, depth@ repeat("\t" put))
 def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
 def(c99-call!, List(Arg) QName +C99 -- +C99,
@@ -485,15 +485,15 @@ def(c99-pattern!, Pattern +C99 -- +C99,
         )
     )
 
-def(c99-word-sigs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-sig!, drop)) line)
+def(c99-word-sigs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-sig!, drop)))
 def(c99-word-sig!, Word +C99 -- +C99,
     c99-line("static void mw_" put qname mangled put " (void);" put))
 
-def(c99-block-sigs!, +C99 -- +C99, Block.for(dup ~Needs(needed?) if(c99-block-sig!, drop)) line)
+def(c99-block-sigs!, +C99 -- +C99, Block.for(dup ~Needs(needed?) if(c99-block-sig!, drop)))
 def(c99-block-sig!, Block +C99 -- +C99,
     c99-line("static void " put block-put " (void);" put))
 
-def(c99-field-sigs!, +C99 -- +C99, Field.for(c99-field-sig!) line)
+def(c99-field-sigs!, +C99 -- +C99, Field.for(c99-field-sig!))
 def(c99-field-sig!, Field +C99 -- +C99,
     c99-line("static void mw_" put qname mangled put " (void);" put))
 
@@ -518,7 +518,7 @@ def(c99-block-exit!, Block +C99 -- +C99,
         drop
     ))
 
-def(c99-block-defs!, +C99 -- +C99, Block.for(dup ~Needs(needed?) if(c99-block-def!, drop)) line)
+def(c99-block-defs!, +C99 -- +C99, Block.for(dup ~Needs(needed?) if(c99-block-def!, drop)))
 def(c99-block-def!, Block +C99 -- +C99,
     c99-line("static void " put dup block-put " (void) {" put)
     c99-nest(
@@ -529,7 +529,7 @@ def(c99-block-def!, Block +C99 -- +C99,
         ctx c99-decref-ctx!
         c99-block-exit!
     )
-    c99-line("}" put) line)
+    c99-line("}" put))
 
 def(+C99.block-put, Block +C99 -- +C99,
     "mb_" put
@@ -557,7 +557,7 @@ def(c99-word-exit!, Word +C99 -- +C99,
         drop
     ))
 
-def(c99-word-defs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-def!, drop)) line)
+def(c99-word-defs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-def!, drop)))
 def(c99-word-def!, Word +C99 -- +C99,
     c99-line(dup qname sig-put " {" put)
     c99-nest(
@@ -568,22 +568,22 @@ def(c99-word-def!, Word +C99 -- +C99,
     c99-line("}" put)
     drop)
 
-def(c99-field-defs!, +C99 -- +C99, Field.for(c99-field-def!) line)
+def(c99-field-defs!, +C99 -- +C99, Field.for(c99-field-def!))
 def(c99-field-def!, Field +C99 -- +C99,
     "static VAL* fieldptr_" put dup qname mangled put " (size_t i) {" put line
-    "    static struct VAL * p = 0;" put line
-    "    size_t m = " put TABLE_MAX_COUNT show put ";" put line
-    "    if (! p) { p = calloc(m, sizeof *p); }" put line
-    "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" put line
-    "    return p+i;" put line
+    "\tstatic struct VAL * p = 0;" put line
+    "\tsize_t m = " put TABLE_MAX_COUNT show put ";" put line
+    "\tif (! p) { p = calloc(m, sizeof *p); }" put line
+    "\tif (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" put line
+    "\treturn p+i;" put line
     "}" put line line
         # TODO make this more flexible wrt table size
         # note it's important to have stability,
         # so we can't just realloc as we used to.
     dup qname sig-put "{" put
-    "    size_t index = (size_t)pop_u64();" put line
-    "    VAL *v = fieldptr_" put dup qname mangled put "(index);" put line
-    "    push_ptr(v);" put line
+    "\tsize_t index = (size_t)pop_u64();" put line
+    "\tVAL *v = fieldptr_" put dup qname mangled put "(index);" put line
+    "\tpush_ptr(v);" put line
     "}" put line line
     drop)
 
