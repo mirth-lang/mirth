@@ -24,51 +24,58 @@ import(mirth.module)
 # LEXER #
 #########
 
-data(+Lexer, +LEXER -> Module Row Col Stack(Token) +Input)
-def(-LEXER, +Lexer -- Module Row Col Stack(Token) +Input, +LEXER -> id)
+data(+Lexer, LEXER ->
+    lexer-module:Module
+    lexer-row:Row
+    lexer-col:Col
+    lexer-stack:Stack(Token)
+    lexer-last-token:Token
+    +Input)
 
-def(lexer-module@, +Lexer -- Module +Lexer, -LEXER over3 dip(+LEXER))
-def(lexer-row@, +Lexer -- Row +Lexer, -LEXER over2 dip(+LEXER))
-def(lexer-col@, +Lexer -- Col +Lexer, -LEXER over dip(+LEXER))
-def(lexer-stack@, +Lexer -- Stack(Token) +Lexer, -LEXER dup dip(+LEXER))
-
-def(lexer-module!, Module +Lexer -- +Lexer, -LEXER rot4l drop +LEXER)
-def(lexer-row!, Row +Lexer -- +Lexer, dip(-LEXER rotl drop) rotr +LEXER)
-def(lexer-col!, Col +Lexer -- +Lexer, dip(-LEXER swap drop) swap +LEXER)
-def(lexer-stack!, Stack(Token) +Lexer -- +Lexer, dip(-LEXER drop) +LEXER)
 def(lexer-stack-push!, Token +Lexer -- +Lexer,
-    dip(-LEXER) swap cons +LEXER)
+    lexer-stack cons lexer-stack!)
 def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
-    -LEXER uncons swap dip(+LEXER))
+    lexer-stack uncons lexer-stack!)
+def(lexer-stack-drop, +Lexer -- +Lexer,
+    lexer-stack-pop! drop)
+def(lexer-stack-peek, +Lexer -- Maybe(Token) +Lexer,
+    lexer-stack head)
+
+def-missing(+Lexer.lexer-col@, +Lexer -- +Lexer Col, lexer-col)
+def-missing(+Lexer.lexer-row@, +Lexer -- +Lexer Row, lexer-row)
+def-missing(+Lexer.lexer-module@, +Lexer -- +Lexer Module, lexer-module)
+def-missing(+Lexer.lexer-stack@, +Lexer -- +Lexer Stack(Token), lexer-stack)
+def-missing(+Lexer.lexer-last-token@, +Lexer -- +Lexer Token, lexer-last-token)
 
 def(run-lexer!, Path +World -- Module +World,
-    Module.new! dup source-path open-file! input-start!
-    1 >Row
-    1 >Col
-    STACK_NIL
-    +LEXER
-
-    Token.alloc-none!
+    Module.new! dup >lexer-module
+    source-path open-file! input-start!
+    1 >Row >lexer-row
+    1 >Col >lexer-col
+    STACK_NIL >lexer-stack
+    Token.alloc-none! dup >lexer-last-token
+    LEXER
 
     while(lexer-done? not, lexer-next!)
     TOKEN_NONE lexer-emit!
-    -LEXER input-end! +File.close-file!
-    uncons drop for("Mismatched left parenthesis." emit-fatal-error!) drop2
-
-    Token.alloc-none! over ~end !
+    /LEXER input-end! +File.close-file!
+    lexer-stack> uncons drop for("Mismatched left parenthesis." emit-fatal-error!)
+    lexer-row> lexer-col> lexer-last-token> drop3
+    lexer-module> Token.alloc-none! over ~end !
     swap succ over ~start !)
 
 # Is the lexer done?
-def(lexer-done?, +Lexer -- Bool +Lexer, -LEXER input-done? dip(+LEXER))
+def(lexer-done?, +Lexer -- Bool +Lexer, /LEXER input-done? LEXER)
 
 # Create a token, and add it to the token buffer,
 # returning the new token.
 def(lexer-make!, TokenValue +Lexer -- Token +Lexer,
     Token.alloc!
     tuck ~value !
-    lexer-module@ over ~module !
-    lexer-row@ over ~row !
-    lexer-col@ over ~col !)
+    lexer-module over ~module !
+    lexer-row over ~row !
+    lexer-col over ~col !
+    dup lexer-last-token!)
 
 # Create a token, and add it to the token buffer.
 def(lexer-emit!, TokenValue +Lexer -- +Lexer, lexer-make! drop)
@@ -81,22 +88,39 @@ def(lexer-next!, +Lexer -- +Lexer, lexer-peek match(
     BVT -> lexer-move!,
     BCR -> lexer-move!,
     BHASH -> lexer-skip-comment! lexer-move!,
-    BCOMMA -> TOKEN_COMMA lexer-emit! lexer-move!,
-    BLPAREN -> lexer-emit-lparen! lexer-move!,
-    BRPAREN -> lexer-emit-rparen! lexer-move!,
-    BLSQUARE -> lexer-emit-lsquare! lexer-move!,
-    BRSQUARE -> lexer-emit-rsquare! lexer-move!,
-    BLCURLY -> lexer-emit-lcurly! lexer-move!,
-    BRCURLY -> lexer-emit-rcurly! lexer-move!,
-    BQUOTE -> lexer-emit-string! lexer-move!,
+    BCOMMA -> lexer-close-colons! TOKEN_COMMA lexer-emit! lexer-move!,
+    BRPAREN -> lexer-close-colons! lexer-emit-rparen! lexer-move!,
+    BRSQUARE -> lexer-close-colons! lexer-emit-rsquare! lexer-move!,
+    BRCURLY -> lexer-close-colons! lexer-emit-rcurly! lexer-move!,
+    BCOLON -> lexer-prepare-for-args! lexer-emit-lcolon! lexer-move!,
+    BLPAREN -> lexer-prepare-for-args! lexer-emit-lparen! lexer-move!,
+    BLSQUARE -> lexer-prepare-for-atom! lexer-emit-lsquare! lexer-move!,
+    BLCURLY -> lexer-prepare-for-atom! lexer-emit-lcurly! lexer-move!,
+    BQUOTE -> lexer-prepare-for-atom! lexer-emit-string! lexer-move!,
     _ -> is-name-byte if(
-        lexer-emit-name!,
+        lexer-prepare-for-atom! lexer-emit-name!,
         "Unrecognized byte." lexer-emit-fatal-error!
     )))
 
 def(lexer-newline!, +Lexer -- +Lexer,
     lexer-row@ >Int 1+ >Row lexer-row!
     0 >Col lexer-col!)
+
+def(lexer-emit-lcolon!, +Lexer -- +Lexer,
+    TOKEN_LCOLON_OPEN lexer-make!
+    lexer-stack-push!)
+
+def(lexer-close-colons!, +Lexer -- +Lexer,
+    while-some(
+        lexer-stack-peek guard(dup lcolon-open?),
+        lexer-stack-drop
+        dup TOKEN_RCOLON lexer-make!
+        TOKEN_LCOLON swap ~value !
+    ))
+def(lexer-prepare-for-atom!, +Lexer -- +Lexer,
+    lexer-last-token lcolon-open? else(lexer-close-colons!))
+def(lexer-prepare-for-args!, +Lexer -- +Lexer,
+    lexer-last-token name-or-dname? else(lexer-close-colons!))
 
 def(lexer-emit-lparen!, +Lexer -- +Lexer,
     TOKEN_LPAREN_OPEN lexer-make!
@@ -143,7 +167,7 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
     lexer-row@
     lexer-col@
 
-    lexer-peek while(dup is-name-byte and(rdip(str-buf-last-byte) BCOLON <>),
+    lexer-peek while(dup is-name-byte,
         rdip(str-buf-push-byte-unsafe!)
         lexer-move!
         lexer-peek)
@@ -170,20 +194,22 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
         tuck ~value !
         tuck ~col !
         tuck ~row !
-        ~module !
+        tuck ~module !
+        lexer-last-token!
     )
     rdip(freeze drop))
 
 def(str-buf-name?, +Str -- Name +Str, str-buf-dup! >Name)
 
+def(str-buf-drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
+    rdip(str-buf-num-bytes?) 1- str-buf-take-slice)
+
 def(str-buf-label-token?, +Str -- Maybe(TokenValue) +Str,
     0 >Offset str-buf-byte@ is-lower if(
         str-buf-last-byte match(
-            BCOLON -> str-buf-num-bytes? 1- unsafe(str-buf-take-slice) >Name Label.new! TOKEN_LABEL SOME,
-            B'>' -> str-buf-num-bytes? 1- unsafe(str-buf-take-slice) >Name Label.new! TOKEN_LABEL_POP SOME,
+            B'>' -> unsafe(str-buf-drop-last-byte) >Name Label.new! TOKEN_LABEL_POP SOME,
             _ -> drop NONE
         ),
-
         0 >Offset str-buf-byte@ B'>' == and(1 >Offset str-buf-byte@ is-lower) if(
             1 >Offset unsafe(str-buf-drop-slice) >Name Label.new! TOKEN_LABEL_PUSH SOME,
             NONE
@@ -217,7 +243,7 @@ def(str-buf-is-dec-int?, +Str -- Bool +Str,
     dup str-buf-byte@ is-sign if(1+, id)
     while(dup str-buf-byte@ is-digit, dip(1+) 1+)
     swap 0> if(str-buf-num-bytes? >Offset ==, drop F))
-   
+
 def(str-buf-is-hex-int?, +Str -- Bool +Str,
     0 >Size # number of digits
     0 >Offset # current index
@@ -312,7 +338,7 @@ def(str-buf-oct-int?, +Str -- Int +Str,
     str-buf-int-sign 1+ 1+ # skip 0x prefix
     while(dup str-buf-num-bytes? >Offset <,
         sip(
-            str-buf-byte@ >Int 
+            str-buf-byte@ >Int
             dip(8 *) 48 - +
         )
         1+)
@@ -365,8 +391,9 @@ def(lexer-comment-end?, +Lexer -- Bool +Lexer,
         lexer-peek dup BLF == nip
     ))
 
-def(lexer-peek, +Lexer -- Byte +Lexer, -LEXER input-peek dip(+LEXER))
-def(lexer-move!, +Lexer -- +Lexer, -LEXER input-move! +LEXER
+def(lexer-peek, +Lexer -- Byte +Lexer, /LEXER input-peek LEXER)
+def(lexer-move!, +Lexer -- +Lexer,
+    /LEXER input-move! LEXER
     lexer-col@ >Int 1+ >Col lexer-col!)
 
 def(lexer-location, +Lexer -- Location +Lexer,

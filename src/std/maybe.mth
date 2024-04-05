@@ -40,6 +40,9 @@ def(Maybe.and(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
 def(Maybe.and-some(p), (*c a -- *c Bool) *c Maybe(a) -- *c Bool,
     NONE -> F,
     SOME -> p)
+def(Maybe.guard(p), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
+    NONE -> NONE,
+    SOME -> p if(SOME, drop NONE))
 
 def(Maybe.unwrap, Maybe(t) -- t,
     NONE -> "tried to unwrap NONE" panic!,

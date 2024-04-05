@@ -105,6 +105,7 @@ def(Byte.is-name-byte, Byte -- Bool,
     BRCURLY -> F,
     BCOMMA -> F,
     BQUOTE -> F,
+    BCOLON -> F,
     BDEL -> F,
     _ -> BSPACE >)
 
