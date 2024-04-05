@@ -6,6 +6,13 @@ data(Person, PERSON -> age:Int name:Str)
 data(Mixed, MIXED -> msg:Str Str)
 data(+MyWorld, ENTER -> age:Int msg:Int name:Str +World)
 
+def(Person.greet!, Person +World -- Person +World,
+    "Hello, " trace!
+    dup name trace!
+    " at " trace!
+    dup age trace!
+    "!" trace-ln!)
+
 def(main, +World -- +World,
     "John" >name
     30 >age
@@ -27,7 +34,12 @@ def(main, +World -- +World,
     /ENTER
     age> drop
     msg> drop
-    name> drop)
+    name> drop
+
+    "J." >name 30 >age PERSON greet!
+    "Jane" swap name! greet!
+    31 swap age! greet!
+    drop)
 # mirth-test # perr # 30
 # mirth-test # perr # John
 # mirth-test # perr # Hello
@@ -36,3 +48,6 @@ def(main, +World -- +World,
 # mirth-test # perr # 101
 # mirth-test # perr # me
 # mirth-test # perr # >>>
+# mirth-test # perr # Hello, J. at 30!
+# mirth-test # perr # Hello, Jane at 30!
+# mirth-test # perr # Hello, Jane at 31!

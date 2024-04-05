@@ -8501,7 +8501,7 @@ static void mb_mirth_elab_create_projectors_21__82 (void);
 static void mb_mirth_elab_create_projectors_21__104 (void);
 static void mb_mirth_elab_create_projectors_21__127 (void);
 static void mb_mirth_elab_create_projectors_21__129 (void);
-static void mb_mirth_elab_create_projectors_21__131 (void);
+static void mb_mirth_elab_create_projectors_21__138 (void);
 static void mb_mirth_data_Tag_project_input_label_5 (void);
 static void mb_mirth_elab_token_def_args_9 (void);
 static void mb_mirth_elab_elab_def_qname_4 (void);
@@ -39410,25 +39410,34 @@ static void mb_mirth_elab_create_projectors_21__129 (void) {
 	mw_std_prim_prim_pack_uncons();
 	VAL var_untag = pop_value();
 	mw_std_prim_prim_drop();
-	push_u64(0);
-	incref(var_untag);
-	push_value(var_untag);
-	mw_std_prim_prim_pack_cons();
 	incref(var_dat);
 	push_value(var_dat);
-	mw_std_prim_prim_pack_cons();
-	incref(var_tag);
-	push_value(var_tag);
-	mw_std_prim_prim_pack_cons();
-	incref(var_lbl);
-	push_value(var_lbl);
-	mw_std_prim_prim_pack_cons();
-	incref(var_lbl_5F_proj);
-	push_value(var_lbl_5F_proj);
-	mw_std_prim_prim_pack_cons();
-	push_fnptr(&mb_mirth_elab_create_projectors_21__131);
-	mw_std_prim_prim_pack_cons();
-	mw_mirth_elab_ab_dip_21_();
+	mw_mirth_data_Data_is_resource_3F_();
+	if (pop_u64()) {
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_mirth_elab_ab_label_push_21_();
+	} else {
+		push_u64(0);
+		incref(var_untag);
+		push_value(var_untag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_dat);
+		push_value(var_dat);
+		mw_std_prim_prim_pack_cons();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_proj);
+		push_value(var_lbl_5F_proj);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__138);
+		mw_std_prim_prim_pack_cons();
+		mw_mirth_elab_ab_dip_21_();
+	}
 	incref(var_untag);
 	push_value(var_untag);
 	mw_mirth_elab_ab_word_21_();
@@ -39446,7 +39455,7 @@ static void mb_mirth_elab_create_projectors_21__129 (void) {
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__131 (void) {
+static void mb_mirth_elab_create_projectors_21__138 (void) {
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl_5F_proj = pop_value();
 	mw_std_prim_prim_pack_uncons();

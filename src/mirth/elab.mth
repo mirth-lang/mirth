@@ -1073,7 +1073,10 @@ def(create-projectors!, Tag --,
                 T-> pack2
             ) lbl_proj ~ctx-type !
             lbl_proj delay(ab-build-word-arrow!(
-                ab-dip!(lbl ab-label-push!)
+                dat is-resource? if(
+                    lbl ab-label-push!,
+                    ab-dip!(lbl ab-label-push!)
+                )
                 untag ab-word!
                 lbl ab-label-pop!
                 PRIM_CORE_DROP ab-prim!
