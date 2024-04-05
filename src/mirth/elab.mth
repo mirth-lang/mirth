@@ -475,13 +475,13 @@ def(elab-arrow-fwd!, Ctx StackType Token Home -- Arrow,
     ab-build!(elab-atoms!))
 
 def(elab-atoms!, +AB -- +AB,
-    while(
-        elab-atoms-done? not,
-        elab-atom! ab-token@ next ab-token!
+    ab-token@ in-lens-like? if(
+        elab-atom!,
+        while(
+            ab-token@ run-end? not,
+            elab-atom! ab-token@ next ab-token!
+        )
     ))
-
-def(elab-atoms-done?, +AB -- Bool +AB,
-    ab-token@ run-end?)
 
 def(elab-atom!, +AB -- +AB,
     ab-token@ value match(

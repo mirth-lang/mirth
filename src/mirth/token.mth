@@ -55,6 +55,11 @@ def(TokenValue.name-or-dname?, TokenValue -- Maybe(Either(Name,DName)),
     TOKEN_NAME -> LEFT SOME,
     TOKEN_DNAME -> RIGHT SOME,
     _ -> drop NONE)
+def(TokenValue.name-or-dname-or-label?, TokenValue -- Bool,
+    TOKEN_NAME -> drop T,
+    TOKEN_DNAME -> drop T,
+    TOKEN_LABEL -> drop T,
+    _ -> drop F)
 def(TokenValue.arg-end?, TokenValue -- Bool,
     TOKEN_COMMA -> T,
     TOKEN_RPAREN -> drop T,
@@ -113,6 +118,7 @@ def(Token.name?, Token -- Maybe(Name), value name?)
 def(Token.dname?, Token -- Maybe(DName), value dname?)
 def(Token.label?, Token -- Maybe(Label), value label?)
 def(Token.name-or-dname?, Token -- Maybe(Either(Name,DName)), value name-or-dname?)
+def(Token.name-or-dname-or-label?, Token -- Bool, value name-or-dname-or-label?)
 def(Token.arg-end?, Token -- Bool, value arg-end?)
 def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
 def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)
@@ -138,13 +144,16 @@ def(Token.location, Token -- Location,
 
 ||| Get next token, respecting nesting of tokens and arguments.
 def(Token.next, Token -- Token,
-    dup value match(
-        TOKEN_LPAREN -> nip succ,
-        TOKEN_LSQUARE -> nip succ,
-        TOKEN_LCURLY -> nip succ,
-        TOKEN_NAME -> drop succ dup lparen? for(nip succ),
-        TOKEN_DNAME -> drop succ dup lparen? for(nip succ),
-        _ -> drop succ
+    dup lens-like? if(
+        succ next,
+        dup value match(
+            TOKEN_LPAREN -> nip succ,
+            TOKEN_LSQUARE -> nip succ,
+            TOKEN_LCURLY -> nip succ,
+            TOKEN_NAME -> drop succ dup lparen? for(nip succ),
+            TOKEN_DNAME -> drop succ dup lparen? for(nip succ),
+            _ -> drop succ
+        )
     ))
 
 ||| Get previous token, respecting nesting of tokens and arguments.
@@ -152,23 +161,32 @@ def(Token.prev, Token -- Token,
     pred dup value match(
         TOKEN_RSQUARE -> nip,
         TOKEN_RCURLY -> nip,
-        TOKEN_RPAREN -> nip dup pred dup name-or-dname? .if(nip, drop),
+        TOKEN_RPAREN -> nip dup pred dup name-or-dname-or-label? if(nip, drop),
         _ -> drop
-    ))
+    )
+    while(dup pred lens-like?, pred))
+
+def(Token.in-lens-like?, Token -- Bool,
+    pred lens-like?)
 
 ||| Get closest arg ending (see `TokenValue.arg-end?`) while respecting the
 ||| nesting of tokens.
 def(Token.next-arg-end, Token -- Token,
-    while(dup arg-end? not, next))
+    dup in-lens-like? if(
+        "Token.next-arg-end called inside lens-like token" panic!,
+        while(dup arg-end? not, next)
+    ))
 
 def(Token.has-args?, Token -- Bool,
-    dup name-or-dname? then(succ)
-    lparen? >Bool)
+    dup lens-like? if(
+        drop T,
+        dup name-or-dname? then(succ)
+        lparen? >Bool
+    ))
 
 def(Token.args-start, Token -- Token,
-    dup name-or-dname? then(
-        dup succ lparen? then(succ)
-    ))
+    dup name-or-dname-or-label?
+    and(dup succ lparen? some?) then(succ))
 
 ||| Get number of arguments or number of components in enclosed token.
 def(Token.num-args, Token -- Int,
@@ -177,7 +195,7 @@ def(Token.num-args, Token -- Int,
         while(dup right-enclosure? not,
             dip(1+) succ next-arg-end)
         drop,
-        drop 0
+        lens-like? if(1, 0)
     ))
 
 ||| Verify that token has 0 args, and return them.
@@ -227,9 +245,11 @@ def(Token.args-3, Token -- Token Token Token,
 ||| Get List of token args.
 def(Token.args, Token -- List(Token),
     dup has-args? if(
-        args-start
-        collect-while(dup args-end? not, succ sip(next-arg-end))
-        nip,
+        args-start dup left-enclosure? if(
+            collect-while(dup args-end? not, succ sip(next-arg-end))
+            nip,
+            succ L1
+        ),
         drop L0
     ))
 
@@ -270,13 +290,24 @@ def(Token.run-end?, Token -- Bool,
     ))
 
 def(Token.run-tokens, Token -- List(Token),
-    collect-while(dup run-end? not, sip(next)) nip)
+    dup in-lens-like? if(
+        L1,
+        collect-while(dup run-end? not, sip(next)) nip
+    ))
 
 def(Token.run-length, Token -- Nat,
     dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop )
 
 def(Token.run-has-arrow?, Token -- Bool,
     run-tokens any(dup pat-arrow?))
+
+def(Token.lens-like?, Token -- Bool,
+    value match(
+        TOKEN_LABEL -> drop T,
+        TOKEN_NAME -> lens-like?,
+        TOKEN_DNAME -> lens-like?,
+        _ -> drop F
+    ))
 
 ###################
 # Type Signatures #

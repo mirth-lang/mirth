@@ -7505,6 +7505,7 @@ static void mw_mirth_token_TokenValue_name_3F_ (void);
 static void mw_mirth_token_TokenValue_dname_3F_ (void);
 static void mw_mirth_token_TokenValue_label_3F_ (void);
 static void mw_mirth_token_TokenValue_name_or_dname_3F_ (void);
+static void mw_mirth_token_TokenValue_name_or_dname_or_label_3F_ (void);
 static void mw_mirth_token_TokenValue_arg_end_3F_ (void);
 static void mw_mirth_token_TokenValue_left_enclosure_3F_ (void);
 static void mw_mirth_token_TokenValue_right_enclosure_3F_ (void);
@@ -7543,6 +7544,7 @@ static void mw_mirth_token_Token_name_3F_ (void);
 static void mw_mirth_token_Token_dname_3F_ (void);
 static void mw_mirth_token_Token_label_3F_ (void);
 static void mw_mirth_token_Token_name_or_dname_3F_ (void);
+static void mw_mirth_token_Token_name_or_dname_or_label_3F_ (void);
 static void mw_mirth_token_Token_arg_end_3F_ (void);
 static void mw_mirth_token_Token_left_enclosure_3F_ (void);
 static void mw_mirth_token_Token_right_enclosure_3F_ (void);
@@ -7562,6 +7564,7 @@ static void mw_mirth_token_Token_alloc_none_21_ (void);
 static void mw_mirth_token_Token_location (void);
 static void mw_mirth_token_Token_next (void);
 static void mw_mirth_token_Token_prev (void);
+static void mw_mirth_token_Token_in_lens_like_3F_ (void);
 static void mw_mirth_token_Token_next_arg_end (void);
 static void mw_mirth_token_Token_has_args_3F_ (void);
 static void mw_mirth_token_Token_args_start (void);
@@ -7580,6 +7583,7 @@ static void mw_mirth_token_Token_run_end_3F_ (void);
 static void mw_mirth_token_Token_run_tokens (void);
 static void mw_mirth_token_Token_run_length (void);
 static void mw_mirth_token_Token_run_has_arrow_3F_ (void);
+static void mw_mirth_token_Token_lens_like_3F_ (void);
 static void mw_mirth_token_Token_sig_stack_end_3F_ (void);
 static void mw_mirth_token_Token_sig_next_stack_end (void);
 static void mw_mirth_token_Token_sig_has_dashes_3F_ (void);
@@ -7652,6 +7656,7 @@ static void mw_mirth_name_Name_could_be_resource_var (void);
 static void mw_mirth_name_Name_could_be_resource_con (void);
 static void mw_mirth_name_Name_could_be_type_or_resource_con (void);
 static void mw_mirth_name_Name_mangle_compute_21_ (void);
+static void mw_mirth_name_Name_lens_like_3F_ (void);
 static void mw_mirth_name_Namespace__3D__3D_ (void);
 static void mw_mirth_name_Namespace_module_3F_ (void);
 static void mw_mirth_name_Namespace_prim (void);
@@ -7667,6 +7672,7 @@ static void mw_mirth_name_QName__3E_Str (void);
 static void mw_mirth_name_QName_to_module_path (void);
 static void mw_mirth_name_DName_root_3F_ (void);
 static void mw_mirth_name_DName_parts (void);
+static void mw_mirth_name_DName_lens_like_3F_ (void);
 static void mw_mirth_package_Package_index (void);
 static void mw_mirth_package_Package_alloc_21_ (void);
 static void mw_mirth_package_Package_name (void);
@@ -7803,7 +7809,6 @@ static void mw_mirth_elab_elab_label_pop_sig_21_ (void);
 static void mw_mirth_elab_elab_arrow_hom_21_ (void);
 static void mw_mirth_elab_elab_arrow_fwd_21_ (void);
 static void mw_mirth_elab_elab_atoms_21_ (void);
-static void mw_mirth_elab_elab_atoms_done_3F_ (void);
 static void mw_mirth_elab_elab_atom_21_ (void);
 static void mw_mirth_elab_elab_atom_block_21_ (void);
 static void mw_mirth_elab_elab_block_at_21_ (void);
@@ -8041,9 +8046,9 @@ static void mw_mirth_main_parse_package_def (void);
 static void mw_mirth_main_compiler_parse_args (void);
 static void mw_mirth_main_main (void);
 static void mb_mirth_module_Module_prim_3 (void);
-static void mb_mirth_token_Token_args_7 (void);
 static void mb_mirth_token_Token_args_11 (void);
-static void mb_mirth_token_Token_args_14 (void);
+static void mb_mirth_token_Token_args_15 (void);
+static void mb_mirth_token_Token_args_18 (void);
 static void mb_mirth_main_main_4 (void);
 static void mb_mirth_main_main_60 (void);
 static void mb_mirth_arrow_Arrow_type_2 (void);
@@ -8221,8 +8226,8 @@ static void mb_mirth_package_Package_find_or_new_21__4 (void);
 static void mb_mirth_name_hash_name_40__7 (void);
 static void mb_mirth_name_hash_name_21__12 (void);
 static void mb_std_prim_Str_hash_4 (void);
-static void mb_mirth_token_Token_next_27 (void);
-static void mb_mirth_token_Token_next_39 (void);
+static void mb_mirth_token_Token_next_34 (void);
+static void mb_mirth_token_Token_next_46 (void);
 static void mb_mirth_name_Name_mangle_compute_21__2 (void);
 static void mb_mirth_name_Name_mangle_compute_21__5 (void);
 static void mb_mirth_name_Name_could_be_type_or_resource_con_4 (void);
@@ -8244,18 +8249,16 @@ static void mb_mirth_token_TokenValue_sig_dashes_3F__3 (void);
 static void mb_mirth_token_TokenValue_pat_arrow_3F__3 (void);
 static void mb_mirth_token_TokenValue_pat_underscore_3F__3 (void);
 static void mb_mirth_token_TokenValue_module_header_3F__3 (void);
-static void mb_mirth_token_Token_prev_22 (void);
-static void mb_mirth_token_Token_prev_24 (void);
-static void mb_mirth_token_Token_has_args_3F__4 (void);
+static void mb_mirth_token_Token_has_args_3F__11 (void);
 static void mb_mirth_token_Token_args_start_4 (void);
-static void mb_mirth_token_Token_args_start_9 (void);
+static void mb_mirth_token_Token_args_start_11 (void);
 static void mb_mirth_token_Token_args_end_3F__4 (void);
 static void mb_mirth_token_Token_args_2B__5 (void);
 static void mb_mirth_error_emit_warning_at_21__10 (void);
 static void mb_mirth_error_emit_error_at_21__10 (void);
-static void mb_mirth_token_Token_run_tokens_2 (void);
-static void mb_mirth_token_Token_run_tokens_6 (void);
 static void mb_mirth_token_Token_run_tokens_8 (void);
+static void mb_mirth_token_Token_run_tokens_12 (void);
+static void mb_mirth_token_Token_run_tokens_14 (void);
 static void mb_mirth_token_Token_run_has_arrow_3F__3 (void);
 static void mb_mirth_token_Token_sig_stack_end_3F__4 (void);
 static void mb_mirth_token_Token_sig_count_types_13 (void);
@@ -8319,7 +8322,7 @@ static void mb_mirth_data_Tag_label_inputs_from_sig_3 (void);
 static void mb_mirth_data_Tag_label_inputs_from_sig_9 (void);
 static void mb_mirth_data_Tag_label_inputs_from_sig_6 (void);
 static void mb_mirth_data_Tag_num_type_inputs_from_sig_4 (void);
-static void mb_mirth_data_Tag_num_type_inputs_from_sig_14 (void);
+static void mb_mirth_data_Tag_num_type_inputs_from_sig_13 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_3 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_20 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_6 (void);
@@ -16657,7 +16660,7 @@ static void mw_mirth_data_Tag_num_type_inputs_from_sig (void) {
 	push_fnptr(&mb_mirth_data_Tag_num_type_inputs_from_sig_4);
 	mw_std_prim_prim_pack_cons();
 	push_u64(0);
-	push_fnptr(&mb_mirth_data_Tag_num_type_inputs_from_sig_14);
+	push_fnptr(&mb_mirth_data_Tag_num_type_inputs_from_sig_13);
 	mw_std_prim_prim_pack_cons();
 	mw_std_maybe_Maybe_if_some();
 }
@@ -23126,6 +23129,29 @@ static void mw_mirth_token_TokenValue_name_or_dname_3F_ (void) {
 			break;
 	}
 }
+static void mw_mirth_token_TokenValue_name_or_dname_or_label_3F_ (void) {
+	switch (get_top_data_tag()) {
+		case 13LL:
+			mp_mirth_token_TokenValue_TOKEN_5F_NAME();
+			mw_std_prim_prim_drop();
+			mw_std_prim_T();
+			break;
+		case 14LL:
+			mp_mirth_token_TokenValue_TOKEN_5F_DNAME();
+			mw_std_prim_prim_drop();
+			mw_std_prim_T();
+			break;
+		case 15LL:
+			mp_mirth_token_TokenValue_TOKEN_5F_LABEL();
+			mw_std_prim_prim_drop();
+			mw_std_prim_T();
+			break;
+		default:
+			mw_std_prim_prim_drop();
+			mw_std_prim_F();
+			break;
+	}
+}
 static void mw_mirth_token_TokenValue_arg_end_3F_ (void) {
 	switch (get_top_data_tag()) {
 		case 1LL:
@@ -23385,6 +23411,10 @@ static void mw_mirth_token_Token_name_or_dname_3F_ (void) {
 	mw_mirth_token_Token_value();
 	mw_mirth_token_TokenValue_name_or_dname_3F_();
 }
+static void mw_mirth_token_Token_name_or_dname_or_label_3F_ (void) {
+	mw_mirth_token_Token_value();
+	mw_mirth_token_TokenValue_name_or_dname_or_label_3F_();
+}
 static void mw_mirth_token_Token_arg_end_3F_ (void) {
 	mw_mirth_token_Token_value();
 	mw_mirth_token_TokenValue_arg_end_3F_();
@@ -23466,49 +23496,56 @@ static void mw_mirth_token_Token_location (void) {
 }
 static void mw_mirth_token_Token_next (void) {
 	mw_std_prim_prim_dup();
-	mw_mirth_token_Token_value();
-	switch (get_top_data_tag()) {
-		case 3LL:
-			mp_mirth_token_TokenValue_TOKEN_5F_LPAREN();
-			mw_std_prelude_nip();
-			mw_mirth_token_Token_succ();
-			break;
-		case 6LL:
-			mp_mirth_token_TokenValue_TOKEN_5F_LSQUARE();
-			mw_std_prelude_nip();
-			mw_mirth_token_Token_succ();
-			break;
-		case 9LL:
-			mp_mirth_token_TokenValue_TOKEN_5F_LCURLY();
-			mw_std_prelude_nip();
-			mw_mirth_token_Token_succ();
-			break;
-		case 13LL:
-			mp_mirth_token_TokenValue_TOKEN_5F_NAME();
-			mw_std_prim_prim_drop();
-			mw_mirth_token_Token_succ();
-			mw_std_prim_prim_dup();
-			mw_mirth_token_Token_lparen_3F_();
-			push_u64(0);
-			push_fnptr(&mb_mirth_token_Token_next_27);
-			mw_std_prim_prim_pack_cons();
-			mw_std_maybe_Maybe_for();
-			break;
-		case 14LL:
-			mp_mirth_token_TokenValue_TOKEN_5F_DNAME();
-			mw_std_prim_prim_drop();
-			mw_mirth_token_Token_succ();
-			mw_std_prim_prim_dup();
-			mw_mirth_token_Token_lparen_3F_();
-			push_u64(0);
-			push_fnptr(&mb_mirth_token_Token_next_39);
-			mw_std_prim_prim_pack_cons();
-			mw_std_maybe_Maybe_for();
-			break;
-		default:
-			mw_std_prim_prim_drop();
-			mw_mirth_token_Token_succ();
-			break;
+	mw_mirth_token_Token_lens_like_3F_();
+	if (pop_u64()) {
+		mw_mirth_token_Token_succ();
+		mw_mirth_token_Token_next();
+	} else {
+		mw_std_prim_prim_dup();
+		mw_mirth_token_Token_value();
+		switch (get_top_data_tag()) {
+			case 3LL:
+				mp_mirth_token_TokenValue_TOKEN_5F_LPAREN();
+				mw_std_prelude_nip();
+				mw_mirth_token_Token_succ();
+				break;
+			case 6LL:
+				mp_mirth_token_TokenValue_TOKEN_5F_LSQUARE();
+				mw_std_prelude_nip();
+				mw_mirth_token_Token_succ();
+				break;
+			case 9LL:
+				mp_mirth_token_TokenValue_TOKEN_5F_LCURLY();
+				mw_std_prelude_nip();
+				mw_mirth_token_Token_succ();
+				break;
+			case 13LL:
+				mp_mirth_token_TokenValue_TOKEN_5F_NAME();
+				mw_std_prim_prim_drop();
+				mw_mirth_token_Token_succ();
+				mw_std_prim_prim_dup();
+				mw_mirth_token_Token_lparen_3F_();
+				push_u64(0);
+				push_fnptr(&mb_mirth_token_Token_next_34);
+				mw_std_prim_prim_pack_cons();
+				mw_std_maybe_Maybe_for();
+				break;
+			case 14LL:
+				mp_mirth_token_TokenValue_TOKEN_5F_DNAME();
+				mw_std_prim_prim_drop();
+				mw_mirth_token_Token_succ();
+				mw_std_prim_prim_dup();
+				mw_mirth_token_Token_lparen_3F_();
+				push_u64(0);
+				push_fnptr(&mb_mirth_token_Token_next_46);
+				mw_std_prim_prim_pack_cons();
+				mw_std_maybe_Maybe_for();
+				break;
+			default:
+				mw_std_prim_prim_drop();
+				mw_mirth_token_Token_succ();
+				break;
+		}
 	}
 }
 static void mw_mirth_token_Token_prev (void) {
@@ -23530,46 +23567,82 @@ static void mw_mirth_token_Token_prev (void) {
 			mw_std_prim_prim_dup();
 			mw_mirth_token_Token_pred();
 			mw_std_prim_prim_dup();
-			mw_mirth_token_Token_name_or_dname_3F_();
-			push_u64(0);
-			push_fnptr(&mb_mirth_token_Token_prev_22);
-			mw_std_prim_prim_pack_cons();
-			push_u64(0);
-			push_fnptr(&mb_mirth_token_Token_prev_24);
-			mw_std_prim_prim_pack_cons();
-			mw_std_maybe_Maybe_if();
+			mw_mirth_token_Token_name_or_dname_or_label_3F_();
+			if (pop_u64()) {
+				mw_std_prelude_nip();
+			} else {
+				mw_std_prim_prim_drop();
+			}
 			break;
 		default:
 			mw_std_prim_prim_drop();
 			break;
 	}
-}
-static void mw_mirth_token_Token_next_arg_end (void) {
 	while(1) {
 		mw_std_prim_prim_dup();
-		mw_mirth_token_Token_arg_end_3F_();
-		mw_std_prim_Bool_not();
+		mw_mirth_token_Token_pred();
+		mw_mirth_token_Token_lens_like_3F_();
 		if (! pop_u64()) break;
-		mw_mirth_token_Token_next();
+		mw_mirth_token_Token_pred();
+	}
+}
+static void mw_mirth_token_Token_in_lens_like_3F_ (void) {
+	mw_mirth_token_Token_pred();
+	mw_mirth_token_Token_lens_like_3F_();
+}
+static void mw_mirth_token_Token_next_arg_end (void) {
+	mw_std_prim_prim_dup();
+	mw_mirth_token_Token_in_lens_like_3F_();
+	if (pop_u64()) {
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("Token.next-arg-end called inside lens-like token", 48);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_std_prim_prim_panic();
+	} else {
+		while(1) {
+			mw_std_prim_prim_dup();
+			mw_mirth_token_Token_arg_end_3F_();
+			mw_std_prim_Bool_not();
+			if (! pop_u64()) break;
+			mw_mirth_token_Token_next();
+		}
 	}
 }
 static void mw_mirth_token_Token_has_args_3F_ (void) {
 	mw_std_prim_prim_dup();
-	mw_mirth_token_Token_name_or_dname_3F_();
-	push_u64(0);
-	push_fnptr(&mb_mirth_token_Token_has_args_3F__4);
-	mw_std_prim_prim_pack_cons();
-	mw_std_maybe_Maybe_then();
-	mw_mirth_token_Token_lparen_3F_();
-	mw_std_maybe_Maybe__3E_Bool();
+	mw_mirth_token_Token_lens_like_3F_();
+	if (pop_u64()) {
+		mw_std_prim_prim_drop();
+		mw_std_prim_T();
+	} else {
+		mw_std_prim_prim_dup();
+		mw_mirth_token_Token_name_or_dname_3F_();
+		push_u64(0);
+		push_fnptr(&mb_mirth_token_Token_has_args_3F__11);
+		mw_std_prim_prim_pack_cons();
+		mw_std_maybe_Maybe_then();
+		mw_mirth_token_Token_lparen_3F_();
+		mw_std_maybe_Maybe__3E_Bool();
+	}
 }
 static void mw_mirth_token_Token_args_start (void) {
 	mw_std_prim_prim_dup();
-	mw_mirth_token_Token_name_or_dname_3F_();
+	mw_mirth_token_Token_name_or_dname_or_label_3F_();
 	push_u64(0);
 	push_fnptr(&mb_mirth_token_Token_args_start_4);
 	mw_std_prim_prim_pack_cons();
-	mw_std_maybe_Maybe_then();
+	mw_std_prim_Bool_and();
+	push_u64(0);
+	push_fnptr(&mb_mirth_token_Token_args_start_11);
+	mw_std_prim_prim_pack_cons();
+	mw_std_prim_Bool_then();
 }
 static void mw_mirth_token_Token_num_args (void) {
 	mw_mirth_token_Token_args_start();
@@ -23596,8 +23669,12 @@ static void mw_mirth_token_Token_num_args (void) {
 		}
 		mw_std_prim_prim_drop();
 	} else {
-		mw_std_prim_prim_drop();
-		push_i64(0LL);
+		mw_mirth_token_Token_lens_like_3F_();
+		if (pop_u64()) {
+			push_i64(1LL);
+		} else {
+			push_i64(0LL);
+		}
 	}
 }
 static void mw_mirth_token_Token_args_0 (void) {
@@ -23754,14 +23831,21 @@ static void mw_mirth_token_Token_args (void) {
 	mw_mirth_token_Token_has_args_3F_();
 	if (pop_u64()) {
 		mw_mirth_token_Token_args_start();
-		push_u64(0);
-		push_fnptr(&mb_mirth_token_Token_args_7);
-		mw_std_prim_prim_pack_cons();
-		push_u64(0);
-		push_fnptr(&mb_mirth_token_Token_args_11);
-		mw_std_prim_prim_pack_cons();
-		mw_std_list_collect_while();
-		mw_std_prelude_nip();
+		mw_std_prim_prim_dup();
+		mw_mirth_token_Token_left_enclosure_3F_();
+		if (pop_u64()) {
+			push_u64(0);
+			push_fnptr(&mb_mirth_token_Token_args_11);
+			mw_std_prim_prim_pack_cons();
+			push_u64(0);
+			push_fnptr(&mb_mirth_token_Token_args_15);
+			mw_std_prim_prim_pack_cons();
+			mw_std_list_collect_while();
+			mw_std_prelude_nip();
+		} else {
+			mw_mirth_token_Token_succ();
+			mw_std_list_List_L1();
+		}
 	} else {
 		mw_std_prim_prim_drop();
 		mw_std_list_List_L0();
@@ -23838,14 +23922,20 @@ static void mw_mirth_token_Token_run_end_3F_ (void) {
 	}
 }
 static void mw_mirth_token_Token_run_tokens (void) {
-	push_u64(0);
-	push_fnptr(&mb_mirth_token_Token_run_tokens_2);
-	mw_std_prim_prim_pack_cons();
-	push_u64(0);
-	push_fnptr(&mb_mirth_token_Token_run_tokens_6);
-	mw_std_prim_prim_pack_cons();
-	mw_std_list_collect_while();
-	mw_std_prelude_nip();
+	mw_std_prim_prim_dup();
+	mw_mirth_token_Token_in_lens_like_3F_();
+	if (pop_u64()) {
+		mw_std_list_List_L1();
+	} else {
+		push_u64(0);
+		push_fnptr(&mb_mirth_token_Token_run_tokens_8);
+		mw_std_prim_prim_pack_cons();
+		push_u64(0);
+		push_fnptr(&mb_mirth_token_Token_run_tokens_12);
+		mw_std_prim_prim_pack_cons();
+		mw_std_list_collect_while();
+		mw_std_prelude_nip();
+	}
 }
 static void mw_mirth_token_Token_run_length (void) {
 	{
@@ -23874,6 +23964,28 @@ static void mw_mirth_token_Token_run_has_arrow_3F_ (void) {
 	push_fnptr(&mb_mirth_token_Token_run_has_arrow_3F__3);
 	mw_std_prim_prim_pack_cons();
 	mw_std_list_List_any();
+}
+static void mw_mirth_token_Token_lens_like_3F_ (void) {
+	mw_mirth_token_Token_value();
+	switch (get_top_data_tag()) {
+		case 15LL:
+			mp_mirth_token_TokenValue_TOKEN_5F_LABEL();
+			mw_std_prim_prim_drop();
+			mw_std_prim_T();
+			break;
+		case 13LL:
+			mp_mirth_token_TokenValue_TOKEN_5F_NAME();
+			mw_mirth_name_Name_lens_like_3F_();
+			break;
+		case 14LL:
+			mp_mirth_token_TokenValue_TOKEN_5F_DNAME();
+			mw_mirth_name_DName_lens_like_3F_();
+			break;
+		default:
+			mw_std_prim_prim_drop();
+			mw_std_prim_F();
+			break;
+	}
 }
 static void mw_mirth_token_Token_sig_stack_end_3F_ (void) {
 	mw_std_prim_prim_dup();
@@ -24856,6 +24968,15 @@ static void mw_mirth_name_Name_mangle_compute_21_ (void) {
 	mw_std_prim_prim_pack_cons();
 	mw_std_str_build_str_21_();
 }
+static void mw_mirth_name_Name_lens_like_3F_ (void) {
+	mw_mirth_name_Name__3E_Str();
+	mw_std_prim_Str_thaw();
+	mw_std_str_str_buf_last_byte();
+	mw_std_byte_Byte_BCOLON();
+	mw_std_byte_Byte__3D__3D_();
+	mw_std_str__2B_Str_freeze();
+	mw_std_prim_prim_drop();
+}
 static void mw_mirth_name_Namespace__3D__3D_ (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
@@ -25134,6 +25255,11 @@ static void mw_mirth_name_DName_parts (void) {
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
+}
+static void mw_mirth_name_DName_lens_like_3F_ (void) {
+	mw_mirth_name_DName_parts();
+	mw_std_list_List_2B__last();
+	mw_mirth_name_Name_lens_like_3F_();
 }
 static void mw_mirth_package_Package_index (void) {
 }
@@ -27722,19 +27848,22 @@ static void mw_mirth_elab_elab_arrow_fwd_21_ (void) {
 	mw_mirth_elab_ab_build_21_();
 }
 static void mw_mirth_elab_elab_atoms_21_ (void) {
-	while(1) {
-		mw_mirth_elab_elab_atoms_done_3F_();
-		mw_std_prim_Bool_not();
-		if (! pop_u64()) break;
-		mw_mirth_elab_elab_atom_21_();
-		mw_mirth_elab_ab_token_40_();
-		mw_mirth_token_Token_next();
-		mw_mirth_elab_ab_token_21_();
-	}
-}
-static void mw_mirth_elab_elab_atoms_done_3F_ (void) {
 	mw_mirth_elab_ab_token_40_();
-	mw_mirth_token_Token_run_end_3F_();
+	mw_mirth_token_Token_in_lens_like_3F_();
+	if (pop_u64()) {
+		mw_mirth_elab_elab_atom_21_();
+	} else {
+		while(1) {
+			mw_mirth_elab_ab_token_40_();
+			mw_mirth_token_Token_run_end_3F_();
+			mw_std_prim_Bool_not();
+			if (! pop_u64()) break;
+			mw_mirth_elab_elab_atom_21_();
+			mw_mirth_elab_ab_token_40_();
+			mw_mirth_token_Token_next();
+			mw_mirth_elab_ab_token_21_();
+		}
+	}
 }
 static void mw_mirth_elab_elab_atom_21_ (void) {
 	mw_mirth_elab_ab_token_40_();
@@ -34531,21 +34660,21 @@ static void mb_mirth_module_Module_prim_3 (void) {
 	mw_mirth_module_Module__7E_name();
 	mw_std_prim_prim_mut_set();
 }
-static void mb_mirth_token_Token_args_7 (void) {
+static void mb_mirth_token_Token_args_11 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
 	mw_mirth_token_Token_args_end_3F_();
 	mw_std_prim_Bool_not();
 }
-static void mb_mirth_token_Token_args_11 (void) {
+static void mb_mirth_token_Token_args_15 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_token_Token_succ();
 	push_u64(0);
-	push_fnptr(&mb_mirth_token_Token_args_14);
+	push_fnptr(&mb_mirth_token_Token_args_18);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_sip();
 }
-static void mb_mirth_token_Token_args_14 (void) {
+static void mb_mirth_token_Token_args_18 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_token_Token_next_arg_end();
 }
@@ -36218,12 +36347,12 @@ static void mb_std_prim_Str_hash_4 (void) {
 	mw_std_prim_prim_int_shr();
 	mw_std_prim_prim_int_xor();
 }
-static void mb_mirth_token_Token_next_27 (void) {
+static void mb_mirth_token_Token_next_34 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prelude_nip();
 	mw_mirth_token_Token_succ();
 }
-static void mb_mirth_token_Token_next_39 (void) {
+static void mb_mirth_token_Token_next_46 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prelude_nip();
 	mw_mirth_token_Token_succ();
@@ -36368,15 +36497,7 @@ static void mb_mirth_token_TokenValue_module_header_3F__3 (void) {
 	}
 	mw_std_prim_Str__3D__3D_();
 }
-static void mb_mirth_token_Token_prev_22 (void) {
-	mw_std_prim_prim_drop();
-	mw_std_prelude_nip();
-}
-static void mb_mirth_token_Token_prev_24 (void) {
-	mw_std_prim_prim_drop();
-	mw_std_prim_prim_drop();
-}
-static void mb_mirth_token_Token_has_args_3F__4 (void) {
+static void mb_mirth_token_Token_has_args_3F__11 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_token_Token_succ();
 }
@@ -36385,12 +36506,9 @@ static void mb_mirth_token_Token_args_start_4 (void) {
 	mw_std_prim_prim_dup();
 	mw_mirth_token_Token_succ();
 	mw_mirth_token_Token_lparen_3F_();
-	push_u64(0);
-	push_fnptr(&mb_mirth_token_Token_args_start_9);
-	mw_std_prim_prim_pack_cons();
-	mw_std_maybe_Maybe_then();
+	mw_std_maybe_Maybe_some_3F_();
 }
-static void mb_mirth_token_Token_args_start_9 (void) {
+static void mb_mirth_token_Token_args_start_11 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_token_Token_succ();
 }
@@ -36420,20 +36538,20 @@ static void mb_mirth_error_emit_error_at_21__10 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prelude_prim_int_succ();
 }
-static void mb_mirth_token_Token_run_tokens_2 (void) {
+static void mb_mirth_token_Token_run_tokens_8 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
 	mw_mirth_token_Token_run_end_3F_();
 	mw_std_prim_Bool_not();
 }
-static void mb_mirth_token_Token_run_tokens_6 (void) {
+static void mb_mirth_token_Token_run_tokens_12 (void) {
 	mw_std_prim_prim_drop();
 	push_u64(0);
-	push_fnptr(&mb_mirth_token_Token_run_tokens_8);
+	push_fnptr(&mb_mirth_token_Token_run_tokens_14);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prelude_sip();
 }
-static void mb_mirth_token_Token_run_tokens_8 (void) {
+static void mb_mirth_token_Token_run_tokens_14 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_token_Token_next();
 }
@@ -36886,10 +37004,9 @@ static void mb_mirth_data_Tag_num_type_inputs_from_sig_4 (void) {
 	mw_std_prim_prim_swap();
 	mw_mirth_data_Tag_label_inputs_from_sig();
 	mw_std_list_List_len();
-	mw_std_prelude_Nat_2_2A_();
 	mw_std_prelude_Nat__();
 }
-static void mb_mirth_data_Tag_num_type_inputs_from_sig_14 (void) {
+static void mb_mirth_data_Tag_num_type_inputs_from_sig_13 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_drop();
 	push_i64(0LL);

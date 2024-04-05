@@ -150,7 +150,7 @@ def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
         over num-resource-inputs-from-sig -
-        swap label-inputs-from-sig len 2* -,
+        swap label-inputs-from-sig len -,
         drop 0 >Nat
     ))
 
