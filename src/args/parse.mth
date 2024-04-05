@@ -64,13 +64,13 @@ def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) Ar
     ))
 
 ||| Parse a short cli flag, possibly with a argument value
-def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool) 
+def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool)
   +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
   argument-parser options
   find(over f) swap drop match(
     SOME -> dup arg match(
       SOME ->
-	T state parsing! state!
+	T state parsing?! state!
 	drop SOME state option-option! state!,
       NONE -> type state arguments swap NONE swap parser match(
 	SOME -> run state arguments! state! ,
@@ -113,7 +113,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 	  drop state option-option match(
             SOME -> ~arg @ match (
 	      SOME -> drop MISSING_ARGUMENT_VALUE SOME,
-	      NONE -> F state parsing! state! NONE
+	      NONE -> F state parsing?! state! NONE
 	    ),
 	    NONE -> MISSING_ARGUMENT_VALUE SOME
 	  ),
@@ -127,7 +127,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 	      NONE -> drop UNKNOWN_ARG SOME
 	    ),
 	    NONE -> drop UNKNOWN_ARG SOME
-	  ) F state parsing! state!,
+	  ) F state parsing?! state!,
           do-positional-option
 	)
       ),

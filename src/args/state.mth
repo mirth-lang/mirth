@@ -17,15 +17,6 @@ data(CurrentArg,
     option:Maybe(ArgpOptionType)
     option-option:Maybe(ArgpOption))
 
-def(CurrentArg.option-option!, Maybe(ArgpOption) CurrentArg -- CurrentArg,
-  CURRENT_ARG -> option-option> drop >option-option CURRENT_ARG)
-
-def(CurrentArg.option!, Maybe(ArgpOptionType) CurrentArg -- CurrentArg,
-  CURRENT_ARG -> option> drop >option CURRENT_ARG)
-
-def(CurrentArg.parsing!, Bool CurrentArg -- CurrentArg,
-  CURRENT_ARG -> parsing?> drop >parsing? CURRENT_ARG)
-
 data(State(a),
   STATE ->
     arguments:a
@@ -57,8 +48,8 @@ def(State.program-name, State(a) -- Str, argv-info program-name)
 
 def(State.parsing?, State(a) -- Bool, arg parsing?)
 
-def(State.parsing!, Bool State(a) -- State(a),
-  dup dip(arg parsing!) arg!)
+def(State.parsing?!, Bool State(a) -- State(a),
+  dup dip(arg parsing?!) arg!)
 
 def(State.option, State(a) -- Maybe(ArgpOptionType),
   arg option)
@@ -71,15 +62,3 @@ def(State.option-option, State(a) -- Maybe(ArgpOption),
 
 def(State.option-option!, Maybe(ArgpOption) State(a) -- State(a),
   dup dip(arg option-option!) arg!)
-
-def(State.arg!, CurrentArg State(a) -- State(a),
-  STATE -> arg> drop >arg STATE)
-
-def(State.error!, Maybe(ArgumentParsingError) State(a) -- State(a),
-  STATE -> error> drop >error STATE)
-
-def(State.positional-index!, Int State(a) -- State(a),
-  STATE -> positional-index> drop >positional-index STATE)
-
-def(State.arguments!, a State(a) -- State(a),
-  STATE -> arguments> drop >arguments STATE)

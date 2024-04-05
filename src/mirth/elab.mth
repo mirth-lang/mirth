@@ -1031,14 +1031,28 @@ def(elab-data-done!, Data --,
         )
     ))
 
+||| Return the tag's output type or resource in context.
+def(Tag.output-type, Tag -- Either(Type,Resource),
+    dup type cod expand match(
+        STCons -> LEFT dip(drop2),
+        STWith -> RIGHT dip(drop2),
+        _ -> drop dip("Unexpected output type for constructor ") qname >Str cat panic!
+    ))
+
+||| Return the input type for a tag along a given label.
+def(Tag.project-input-label, Label Tag -- Maybe(Type),
+    type dom force-cons-label?! map(unpack2 nip))
+
 def(create-projectors!, Tag --,
     dup .data over .untag unwrap \(tag dat untag ->
     tag label-inputs reverse-for(\(lbl -> dat lbl name data-qname undefined? then(
         dat lbl >Str data-word-new! \(lbl_proj ->
-            tag delay (
-                ctx-type unpack lbl rotl force-cons-label?! unwrap
-                unpack2 dip(drop T0 dat is-resource? then(dat TData RESOURCE T+))
-                T* T-> pack2
+            delay0(
+                tag ctx
+                T0 tag output-type T*+
+                lbl tag project-input-label unwrap T1
+                dat is-resource? then(tag output-type T*+)
+                T-> pack2
             ) lbl_proj ~ctx-type !
             lbl_proj delay(ab-build-word-arrow!(
                 untag ab-word!
@@ -1049,6 +1063,24 @@ def(create-projectors!, Tag --,
                     tag ab-tag!
                     dat is-resource? else(PRIM_CORE_DROP ab-prim!)
                 )
+            )) lbl_proj ~arrow !
+        )
+        dat lbl >Str "!" cat data-word-new! \(lbl_proj ->
+            delay0(
+                tag ctx
+                lbl tag project-input-label unwrap T1 tag output-type T*+
+                T0 tag output-type T*+
+                T-> pack2
+            ) lbl_proj ~ctx-type !
+            lbl_proj delay(ab-build-word-arrow!(
+                dat is-resource? if(
+                    lbl ab-label-push!,
+                    ab-dip!(lbl ab-label-push!)
+                )
+                untag ab-word!
+                lbl ab-label-pop!
+                PRIM_CORE_DROP ab-prim!
+                tag ab-tag!
             )) lbl_proj ~arrow !
         )
     )))))
