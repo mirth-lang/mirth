@@ -10,6 +10,9 @@ def(Stack.push!, t Mut(Stack(t)) --,
     modify(STACK_CONS))
 def(Stack.pop!, Mut(Stack(t)) -- Maybe(t),
     modify(uncons))
+def(Stack.head, Stack(t) -- Maybe(t),
+    STACK_NIL -> NONE,
+    STACK_CONS -> drop SOME)
 def(Stack.cons, t Stack(t) -- Stack(t),
     STACK_CONS)
 def(Stack.uncons, Stack(t) -- Maybe(t) Stack(t),

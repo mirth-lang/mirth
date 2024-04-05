@@ -106,11 +106,8 @@ def(StackTypePart.cons, StackType StackTypePart -- StackType,
     STPWith -> STWith)
 
 def(elab-type-atom!, TypeElab Token -- TypeElab StackTypePart Token,
-    dup label? if-some(
-        dip(succ dup dip(elab-type-atom!)) rot4l match(
-            STPCons -> swap STPConsLabel nip swap,
-            _ -> drop dip("Expected type" emit-error! TYPE_ERROR) STPConsLabel swap
-        ),
+    dup could-be-sig-label? if(
+        elab-stack-label! dip(STPConsLabel),
 
     dup sig-type-var? if(
         elab-type-var! dip(TVar STPCons),
@@ -136,6 +133,11 @@ def(elab-type-atom!, TypeElab Token -- TypeElab StackTypePart Token,
         dup "Expected type, got unknown token." emit-error!
         dip(TYPE_ERROR STPCons) next
     )))))))))
+
+def(elab-stack-label!, TypeElab Token -- TypeElab Type Label Token,
+    sip(args-1 elab-type-atom! drop) swap
+    match(STPCons -> id, _ -> drop dup args-1 "Expected type" emit-error! TYPE_ERROR)
+    swap sip(name? unwrap Label.new!) next)
 
 def(elab-stack-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_STACK elab-implicit-var!)
@@ -476,12 +478,9 @@ def(elab-arrow-fwd!, Ctx StackType Token Home -- Arrow,
 
 def(elab-atoms!, +AB -- +AB,
     while(
-        elab-atoms-done? not,
+        ab-token@ run-end? not,
         elab-atom! ab-token@ next ab-token!
     ))
-
-def(elab-atoms-done?, +AB -- Bool +AB,
-    ab-token@ run-end?)
 
 def(elab-atom!, +AB -- +AB,
     ab-token@ value match(

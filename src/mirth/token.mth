@@ -27,11 +27,13 @@ data(TokenValue,
     TOKEN_LCURLY_OPEN,
     TOKEN_LCURLY -> Token,
     TOKEN_RCURLY -> Token,
+    TOKEN_LCOLON_OPEN,
+    TOKEN_LCOLON -> Token,
+    TOKEN_RCOLON -> Token,
     TOKEN_INT -> Int,
     TOKEN_STR -> Str,
     TOKEN_NAME -> Name,
     TOKEN_DNAME -> DName,
-    TOKEN_LABEL -> Label,
     TOKEN_LABEL_PUSH -> Label,
     TOKEN_LABEL_POP -> Label)
 
@@ -46,11 +48,15 @@ def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TOKEN_RSQUARE -> SOME, _ ->
 def(TokenValue.lcurly-open?, TokenValue -- Bool, TOKEN_LCURLY_OPEN -> T, _ -> drop F)
 def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TOKEN_LCURLY -> SOME, _ -> drop NONE)
 def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TOKEN_RCURLY -> SOME, _ -> drop NONE)
+def(TokenValue.lcolon-open?, TokenValue -- Bool, TOKEN_LCOLON_OPEN -> T, _ -> drop F)
+def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TOKEN_LCOLON -> SOME, _ -> drop NONE)
+def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TOKEN_RCOLON -> SOME, _ -> drop NONE)
+def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> SOME, TOKEN_LCOLON -> SOME, _ -> drop NONE)
+
 def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> SOME, _ -> drop NONE)
 def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> SOME, _ -> drop NONE)
 def(TokenValue.name?, TokenValue -- Maybe(Name), TOKEN_NAME -> SOME, _ -> drop NONE)
 def(TokenValue.dname?, TokenValue -- Maybe(DName), TOKEN_DNAME -> SOME, _ -> drop NONE)
-def(TokenValue.label?, TokenValue -- Maybe(Label), TOKEN_LABEL -> SOME, _ -> drop NONE)
 def(TokenValue.name-or-dname?, TokenValue -- Maybe(Either(Name,DName)),
     TOKEN_NAME -> LEFT SOME,
     TOKEN_DNAME -> RIGHT SOME,
@@ -60,16 +66,19 @@ def(TokenValue.arg-end?, TokenValue -- Bool,
     TOKEN_RPAREN -> drop T,
     TOKEN_RCURLY -> drop T,
     TOKEN_RSQUARE -> drop T,
+    TOKEN_RCOLON -> drop T,
     _ -> drop F)
 def(TokenValue.left-enclosure?, TokenValue -- Bool,
     TOKEN_LPAREN -> drop T,
     TOKEN_LSQUARE -> drop T,
-    TOKEN_LCURLY  -> drop T,
+    TOKEN_LCURLY -> drop T,
+    TOKEN_LCOLON -> drop T,
     _ -> drop F)
 def(TokenValue.right-enclosure?, TokenValue -- Bool,
     TOKEN_RPAREN -> drop T,
     TOKEN_RSQUARE -> drop T,
-    TOKEN_RCURLY  -> drop T,
+    TOKEN_RCURLY -> drop T,
+    TOKEN_RCOLON -> drop T,
     _ -> drop F)
 
 def(TokenValue.sig-type?, TokenValue -- Bool, name? and-some(could-be-type))
@@ -107,11 +116,14 @@ def(Token.rsquare?, Token -- Maybe(Token), value rsquare?)
 def(Token.lcurly-open?, Token -- Bool, value lcurly-open?)
 def(Token.lcurly?, Token -- Maybe(Token), value lcurly?)
 def(Token.rcurly?, Token -- Maybe(Token), value rcurly?)
+def(Token.lcolon-open?, Token -- Bool, value lcolon-open?)
+def(Token.lcolon?, Token -- Maybe(Token), value lcolon?)
+def(Token.rcolon?, Token -- Maybe(Token), value rcolon?)
+def(Token.lparen-or-lcolon?, Token -- Maybe(Token), value lparen-or-lcolon?)
 def(Token.int?, Token -- Maybe(Int), value int?)
 def(Token.str?, Token -- Maybe(Str), value str?)
 def(Token.name?, Token -- Maybe(Name), value name?)
 def(Token.dname?, Token -- Maybe(DName), value dname?)
-def(Token.label?, Token -- Maybe(Label), value label?)
 def(Token.name-or-dname?, Token -- Maybe(Either(Name,DName)), value name-or-dname?)
 def(Token.arg-end?, Token -- Bool, value arg-end?)
 def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
@@ -142,8 +154,9 @@ def(Token.next, Token -- Token,
         TOKEN_LPAREN -> nip succ,
         TOKEN_LSQUARE -> nip succ,
         TOKEN_LCURLY -> nip succ,
-        TOKEN_NAME -> drop succ dup lparen? for(nip succ),
-        TOKEN_DNAME -> drop succ dup lparen? for(nip succ),
+        TOKEN_LCOLON -> nip succ,
+        TOKEN_NAME -> drop succ dup lparen-or-lcolon? for(nip succ),
+        TOKEN_DNAME -> drop succ dup lparen-or-lcolon? for(nip succ),
         _ -> drop succ
     ))
 
@@ -152,7 +165,8 @@ def(Token.prev, Token -- Token,
     pred dup value match(
         TOKEN_RSQUARE -> nip,
         TOKEN_RCURLY -> nip,
-        TOKEN_RPAREN -> nip dup pred dup name-or-dname? .if(nip, drop),
+        TOKEN_RPAREN -> nip dup pred name-or-dname? then(pred),
+        TOKEN_RCOLON -> nip dup pred name-or-dname? then(pred),
         _ -> drop
     ))
 
@@ -163,22 +177,15 @@ def(Token.next-arg-end, Token -- Token,
 
 def(Token.has-args?, Token -- Bool,
     dup name-or-dname? then(succ)
-    lparen? >Bool)
+    lparen-or-lcolon? >Bool)
 
 def(Token.args-start, Token -- Token,
-    dup name-or-dname? then(
-        dup succ lparen? then(succ)
-    ))
+    dup name-or-dname?
+    and(dup succ lparen-or-lcolon? >Bool) then(succ))
 
-||| Get number of arguments or number of components in enclosed token.
-def(Token.num-args, Token -- Int,
-    args-start dup left-enclosure? if(
-        dip(0)
-        while(dup right-enclosure? not,
-            dip(1+) succ next-arg-end)
-        drop,
-        drop 0
-    ))
+def(Token.could-be-sig-label?, Token -- Bool,
+    dup name? if-some(could-be-label-name?, F)
+    and(dup succ lcolon? >Bool) nip)
 
 ||| Verify that token has 0 args, and return them.
 ||| Emits a fatal error if arity is wrong.
@@ -224,12 +231,20 @@ def(Token.args-3, Token -- Token Token Token,
         )
     ))
 
+||| Get number of arguments or number of components in enclosed token.
+def(Token.num-args, Token -- Int,
+    args-start dup left-enclosure? if(
+        dip(0)
+        while(dup args-end? not,
+            dip(1+) succ next-arg-end)
+        drop,
+        drop 0
+    ))
+
 ||| Get List of token args.
 def(Token.args, Token -- List(Token),
-    dup has-args? if(
-        args-start
-        collect-while(dup args-end? not, succ sip(next-arg-end))
-        nip,
+    args-start dup left-enclosure? if(
+        collect-while(dup args-end? not, succ sip(next-arg-end)) nip,
         drop L0
     ))
 
@@ -266,6 +281,7 @@ def(Token.run-end?, Token -- Bool,
         TOKEN_RPAREN -> drop T,
         TOKEN_RSQUARE -> drop T,
         TOKEN_RCURLY -> drop T,
+        TOKEN_RCOLON -> drop T,
         _ -> drop F
     ))
 
@@ -273,7 +289,7 @@ def(Token.run-tokens, Token -- List(Token),
     collect-while(dup run-end? not, sip(next)) nip)
 
 def(Token.run-length, Token -- Nat,
-    dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop )
+    dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop)
 
 def(Token.run-has-arrow?, Token -- Bool,
     run-tokens any(dup pat-arrow?))

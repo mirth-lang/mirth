@@ -8,7 +8,7 @@ CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 
 SRCS=src/std/* src/args/* src/posix/* src/mirth/*
 
-.PHONY: default show showsan build buildsan update check checksan update-mirth install-vim install-code install profile play-snake test test-update
+.PHONY: default show showsan build buildsan debug update check checksan update-mirth install-vim install-code install profile play-snake test test-update
 
 default: show bin/snake.c
 
@@ -23,6 +23,7 @@ showsan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c
 
 build: bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth1.c bin/mirth2.c bin/mirth3.c
 buildsan: bin/mirth0 bin/mirth1 bin/mirth2san bin/mirth1.c bin/mirth2.c bin/mirth3san.c
+debug: bin/mirth3debug
 
 update: bin/mirth0.c bin/mirth3.c
 	cp bin/mirth3.c bin/mirth0.c
@@ -104,11 +105,11 @@ bin/mirth3.c: bin/mirth2 $(SRCS)
 bin/mirth1debug.c: bin/mirth0 $(SRCS)
 	bin/mirth0 $(MIRTHFLAGS) --debug src/mirth/main.mth -o bin/mirth1debug.c
 
-bin/mirth2debug.c: bin/mirth1 $(SRCS)
-	bin/mirth1 $(MIRTHFLAGS) --debug src/mirth/main.mth -o bin/mirth2debug.c
+bin/mirth2debug.c: bin/mirth1debug $(SRCS)
+	bin/mirth1debug $(MIRTHFLAGS) --debug src/mirth/main.mth -o bin/mirth2debug.c
 
-bin/mirth3debug.c: bin/mirth2 $(SRCS)
-	bin/mirth2 $(MIRTHFLAGS) --debug mirth/main.mth -o bin/mirth3debug.c
+bin/mirth3debug.c: bin/mirth2debug $(SRCS)
+	bin/mirth2debug $(MIRTHFLAGS) --debug mirth/main.mth -o bin/mirth3debug.c
 
 bin/mirth3san.c: bin/mirth2san $(SRCS)
 	bin/mirth2san $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth3san.c

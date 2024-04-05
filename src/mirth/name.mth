@@ -91,6 +91,7 @@ def(Name.tail, Name -- Name,
     ) >Name)
 
 def(Name.can-be-relative?, Name -- Bool, head is-upper not)
+def(Name.could-be-label-name?, Name -- Bool, head is-lower)
 def(Name.could-be-type, Name -- Bool, head is-alpha)
 def(Name.could-be-type-var, Name -- Bool, head is-lower)
 def(Name.could-be-type-con, Name -- Bool, head is-upper)
@@ -113,14 +114,8 @@ def(Name.mangle-compute!, Name -- Str,
         )
     )))
 
-def(Name.could-be-relative, Name -- Bool,
-    head is-overload-trigger)
-
-def(Name.to-overload-suffix, Name -- Str,
-    dup head is-alpha if(
-        "." swap >Str cat,
-        >Str
-    ))
+def(Name.lens-like?, Name -- Bool,
+    >Str thaw str-buf-last-byte BCOLON == freeze drop)
 
 #############
 # Namespace #
@@ -200,3 +195,4 @@ data(DName, DNAME -> Maybe(Name) List+(Name))
 def(DName/DNAME, DName -- Maybe(Name) List+(Name), DNAME -> id)
 def(DName.root?, DName -- Maybe(Name), DNAME -> drop)
 def(DName.parts, DName -- List+(Name), DNAME -> nip)
+def(DName.lens-like?, DName -- Bool, parts last lens-like?)

@@ -10,6 +10,7 @@ import(mirth.type)
 import(mirth.token)
 import(mirth.name)
 import(mirth.def)
+import(mirth.label)
 
 table(Data)
 field(Data.~head?, Data, Maybe(Token))
@@ -144,13 +145,13 @@ def(Tag.type, Tag -- ArrowType, ctx-type nip)
 def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 
 def(Tag.label-inputs-from-sig, Tag -- List(Label),
-    sig? if-some(run-tokens filter-some(label?), L0))
+    sig? if-some(run-tokens filter(dup could-be-sig-label?) map(name? unwrap Label.new!), L0))
 
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
         over num-resource-inputs-from-sig -
-        swap label-inputs-from-sig len 2* -,
+        swap label-inputs-from-sig len -,
         drop 0 >Nat
     ))
 
