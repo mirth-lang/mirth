@@ -39,3 +39,6 @@ def(Ctx.fresh-type-var!, Ctx -- Ctx Var,
     dip(PRIM_TYPE_TYPE TPrim) fresh-var!)
 def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
     fresh-name! dip(swap) Var.new! sip(Ctx.new))
+
+def(Ctx.==, Ctx Ctx -- Bool,
+    both(vars) ==(==))

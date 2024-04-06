@@ -6,49 +6,29 @@ import(std.list)
 import(mirth.type)
 import(mirth.data)
 import(mirth.token)
+import(mirth.ctx)
+import(mirth.arrow)
 
 #########
 # MATCH #
 #########
 
-# mirth/data/type
-table(Match)
-field(Match.~ctx, Match, Ctx)
-field(Match.~dom, Match, StackType)
-field(Match.~cod, Match, StackType)
-field(Match.~token, Match, Token) # where the diagnostics go
-field(Match.~body, Match, Token) # where the cases start
-field(Match.~home, Match, Home)
-field(Match.~cases, Match, List(Case))
-def(Match.ctx, Match -- Ctx, ~ctx @)
-def(Match.dom, Match -- StackType, ~dom @)
-def(Match.cod, Match -- StackType, ~cod @)
-def(Match.token, Match -- Token, ~token @)
-def(Match.body, Match -- Token, ~body @)
-def(Match.home, Match -- Home, ~home @)
-def(Match.cases, Match -- List(Case), ~cases @)
-
-def(Match.new!,
+data(Match, MATCH ->
+    home:Home token:Token body:Token
     ctx:Ctx dom:StackType cod:StackType
-    token:Token body:Token home:Home -- Match,
-    Match.alloc!
-    ctx> over ~ctx ! dom> over ~dom ! cod> over ~cod !
-    token> over ~token ! home> over ~home !
-    body> over ~body ! L0 over ~cases !)
+    cases:List(Case))
 
-table(Case)
-field(Case.~match, Case, Match)
-field(Case.~token, Case, Token)
-field(Case.~pattern, Case, Pattern)
-field(Case.~subst, Case, Subst)
-field(Case.~mid, Case, StackType)
-field(Case.~body, Case, Arrow)
-def(Case.match, Case -- Match, ~match @)
-def(Case.token, Case -- Token, ~token @)
-def(Case.pattern, Case -- Pattern, ~pattern @)
-def(Case.subst, Case -- Subst, ~subst @)
-def(Case.mid, Case -- StackType, ~mid @)
-def(Case.body, Case -- Arrow, ~body @)
+data(+Match, +MATCH ->
+    home:Home token:Token body:Token
+    ctx:Ctx dom:StackType cod:StackType
+    cases:List(Case))
+
+def(Match.thaw, Match -- +Match, MATCH -> +MATCH)
+def(+Match.freeze, +Match -- Match, +MATCH -> MATCH)
+
+data(Case, CASE -> pattern:Pattern body:Arrow)
+def(Case.outer-ctx, Case -- Ctx, pattern outer-ctx)
+def(Case.inner-ctx, Case -- Ctx, pattern inner-ctx)
 
 def(Match.is-exhaustive?, Match -- Bool,
     dup has-default-case? or(
@@ -70,8 +50,8 @@ def(Match.has-default-case?, Match -- Bool,
 ||| TAG patterns use it.
 def(Match.scrutinee-data?, Match -- Maybe(Data),
     cases filter(dup is-default-case? not) dup
-    first bind(pattern tag?) map(.data) if-some(
-        swap all(dup pattern tag? if-some(dip(over) .data ==, F)) if(
+    first bind(pattern single-tag?) map(.data) if-some(
+        swap all(dup pattern single-tag? if-some(dip(over) .data ==, F)) if(
             SOME,
             drop NONE
         ),
@@ -79,21 +59,20 @@ def(Match.scrutinee-data?, Match -- Maybe(Data),
     ))
 
 def(Match.is-transparent?, Match -- Bool,
-    cases match(
-        L1 -> pattern match(
-            PATTERN_TAG -> .data is-transparent?,
-            PATTERN_UNDERSCORE -> T
-        ),
-        _ -> drop F
+    cases /L1
+    bind(pattern atoms /L1)
+    and-some(op match(
+        PATOP_TAG -> .data is-transparent?,
+        PATOP_UNDERSCORE -> T
+    )))
+
+def(+Match.add-case, Case +Match -- +Match,
+    dup case-redundant? if(
+        pattern token-start "Case is unreachable." emit-error!,
+        cases(swap snoc)
     ))
 
-def(Match.add-case!, Case Match --,
-    dup2 case-redundant? if(
-        drop token "Case is unreachable." emit-error!,
-        sip(cases swap snoc) ~cases !
-    ))
-
-def(Match.case-redundant?, Case Match -- Bool,
+def(+Match.case-redundant?, Case +Match -- Bool +Match,
     cases any(dup2 covers?) nip)
 
 ########
@@ -104,25 +83,87 @@ def(Match.case-redundant?, Case Match -- Bool,
 def(Case.covers?, Case Case -- Bool, both(pattern) covers?)
 
 ||| Is this a "default" case?
-def(Case.is-default-case?, Case -- Bool, pattern underscore?)
+def(Case.is-default-case?, Case -- Bool, pattern is-default?)
 
 ###########
 # PATTERN #
 ###########
 
-data(Pattern,
-    PATTERN_UNDERSCORE,
-    PATTERN_TAG -> Tag)
+data(Pattern, PATTERN ->
+    home:Home
+    token-start:Token
+    token-end:Token
+    outer-ctx:Ctx       # Context coming from outside.
+    inner-ctx:Ctx       # Context for case body.
+    saved:List(Type)    # List of types set aside by underscores.
+    mid:StackType       # Stack type on the left of the pattern.
+    cod:StackType       # Stack type coming from outside match.
+    atoms:List(PatternAtom))
+def(Pattern.dom, Pattern -- StackType, sip:mid saved for(STCons))
+def(Pattern.thaw, Pattern -- +Pattern, >pattern +PATTERN)
 
-def(Pattern.underscore?, Pattern -- Bool, PATTERN_UNDERSCORE -> T, _ -> drop F)
-def(Pattern.tag?, Pattern -- Maybe(Tag), PATTERN_TAG -> SOME, _ -> drop NONE)
-def(Pattern.tag=, Tag Pattern -- Bool, tag? if-some(==, drop F))
+def(Pattern.single-tag?, Pattern -- Maybe(Tag),
+    atoms /L1 bind(op /PATOP_TAG))
 
-def(Pattern.==, Pattern Pattern -- Bool,
-    PATTERN_UNDERSCORE -> match(PATTERN_UNDERSCORE -> T, _ -> drop F),
-    PATTERN_TAG -> swap match(PATTERN_TAG -> ==, _ -> drop2 F))
+def(Pattern.is-default?, Pattern -- Bool,
+    atoms all(dup op /PATOP_UNDERSCORE))
+
+data(+Pattern, +PATTERN -> pattern:Pattern)
+def(+Pattern.freeze, +Pattern -- Pattern, /+PATTERN pattern>)
+
+data(PatternAtom, PATATOM ->
+    token:Token
+    ctx:Ctx
+    saved:List(Type)
+    dom:StackType
+    cod:StackType
+    subst:Subst
+    op:PatternOp)
+
+data(PatternOp,
+    PATOP_UNDERSCORE,
+    PATOP_TAG -> Tag)
+
+def(+Pattern.underscore!, +Pattern -- +Pattern,
+    pattern token-start >token
+    pattern inner-ctx >ctx
+    pattern mid >cod
+    SUBST_NIL >subst
+    PATOP_UNDERSCORE >op
+    pattern mid force-cons?! match(
+        NONE ->
+            pattern token-start "pattern expects something on stack" emit-error!
+            STACK_TYPE_ERROR TYPE_ERROR,
+        SOME ->
+            unpack2
+    )
+    dup pattern:saved:cons
+    L1 >saved dup >dom pattern:mid!
+    PATATOM pattern:atoms:cons)
+
+def(+Pattern.tag!, +Pattern Tag -- +Pattern,
+    dup PATOP_TAG >op L0 >saved
+    pattern token-start >token
+    pattern inner-ctx >ctx
+    dip:SUBST_NIL type freshen-sig unpack
+    dip(pattern token-start GAMMA pattern mid) unify! >cod drop
+    dup >dom pattern:mid!
+    >subst PATATOM pattern:atoms:cons)
 
 ||| Asks whether the second pattern covers the first pattern.
 def(Pattern.covers?, Pattern Pattern -- Bool,
-    PATTERN_UNDERSCORE -> drop T,
-    PATTERN_TAG -> swap tag=)
+    both(atoms /L1) zip match(
+        NONE -> F,
+        SOME -> unpack2 op match(
+            PATOP_UNDERSCORE -> drop T,
+            PATOP_TAG -> swap op match(
+                PATOP_UNDERSCORE -> drop F,
+                PATOP_TAG -> ==
+            )
+        )
+    ))
+
+def(PatternOp./PATOP_TAG, PatternOp -- Maybe(Tag), PATOP_TAG -> SOME, _ -> drop NONE)
+def(PatternOp./PATOP_UNDERSCORE, PatternOp -- Bool, PATOP_UNDERSCORE -> T, _ -> drop F)
+
+## TODO: introduce case trees
