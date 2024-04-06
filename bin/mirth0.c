@@ -7120,6 +7120,7 @@ static void mw_args_state_State_1_positional_index (void);
 static void mw_args_state_State_1_positional_index_21_ (void);
 static void mw_args_state_State_1_arg (void);
 static void mw_args_state_State_1_arg_21_ (void);
+static void mw_args_state_State_1_arg_1 (void);
 static void mw_args_state_State_1_argv_info (void);
 static void mw_args_state_State_1_arguments (void);
 static void mw_args_state_State_1_arguments_21_ (void);
@@ -7236,6 +7237,7 @@ static void mw_mirth_var_Var_is_stack_3F_ (void);
 static void mw_mirth_var_Var_is_physical_3F_ (void);
 static void mw_mirth_var_Var_new_21_ (void);
 static void mw_mirth_var_Var_new_auto_run_21_ (void);
+static void mw_mirth_ctx_Ctx__2F_CTX (void);
 static void mw_std_list_List_1__3E_Ctx (void);
 static void mw_mirth_ctx_Ctx__3E_List (void);
 static void mw_mirth_ctx_CTX0 (void);
@@ -7860,6 +7862,7 @@ static void mw_mirth_elab_ab_label_pop_21_ (void);
 static void mw_mirth_elab_ab_block_at_21__1 (void);
 static void mw_mirth_elab_ab_block_21__1 (void);
 static void mw_mirth_elab_ab_dip_21__1 (void);
+static void mw_mirth_elab_ab_rdip_21__1 (void);
 static void mw_mirth_elab_ab_if_21__2 (void);
 static void mw_mirth_elab_ab_while_21__2 (void);
 static void mw_mirth_elab_ab_lambda_21__1 (void);
@@ -8238,6 +8241,8 @@ static void mb_args_parse_print_usage_23 (void);
 static void mb_args_parse_print_usage_for_option_12 (void);
 static void mb_args_parse_print_usage_for_option_29 (void);
 static void mb_args_parse_parse_flags_where_1_4 (void);
+static void mb_args_state_State_1_parsing_3F__21__2 (void);
+static void mb_args_state_State_1_option_option_21__2 (void);
 static void mb_args_parse_parse_flags_7 (void);
 static void mb_args_parse_parse_flags_21 (void);
 static void mb_args_parse_parse_flags_25 (void);
@@ -8574,16 +8579,21 @@ static void mb_mirth_elab_elab_def_qname_undefined_6 (void);
 static void mb_mirth_elab_data_word_new_21__4 (void);
 static void mb_mirth_elab_create_projectors_21__15 (void);
 static void mb_mirth_elab_create_projectors_21__27 (void);
-static void mb_mirth_elab_create_projectors_21__38 (void);
-static void mb_mirth_elab_create_projectors_21__53 (void);
-static void mb_mirth_elab_create_projectors_21__66 (void);
-static void mb_mirth_elab_create_projectors_21__68 (void);
-static void mb_mirth_elab_create_projectors_21__78 (void);
-static void mb_mirth_elab_create_projectors_21__84 (void);
-static void mb_mirth_elab_create_projectors_21__107 (void);
-static void mb_mirth_elab_create_projectors_21__130 (void);
+static void mb_mirth_elab_create_projectors_21__52 (void);
+static void mb_mirth_elab_create_projectors_21__67 (void);
+static void mb_mirth_elab_create_projectors_21__80 (void);
+static void mb_mirth_elab_create_projectors_21__82 (void);
+static void mb_mirth_elab_create_projectors_21__92 (void);
+static void mb_mirth_elab_create_projectors_21__98 (void);
+static void mb_mirth_elab_create_projectors_21__109 (void);
 static void mb_mirth_elab_create_projectors_21__132 (void);
-static void mb_mirth_elab_create_projectors_21__141 (void);
+static void mb_mirth_elab_create_projectors_21__134 (void);
+static void mb_mirth_elab_create_projectors_21__143 (void);
+static void mb_mirth_elab_create_projectors_21__162 (void);
+static void mb_mirth_elab_create_projectors_21__220 (void);
+static void mb_mirth_elab_create_projectors_21__222 (void);
+static void mb_mirth_elab_create_projectors_21__230 (void);
+static void mb_mirth_elab_create_projectors_21__244 (void);
 static void mb_mirth_data_Tag_project_input_label_5 (void);
 static void mb_mirth_elab_token_def_args_9 (void);
 static void mb_mirth_elab_elab_def_qname_4 (void);
@@ -14523,6 +14533,18 @@ static void mw_args_state_State_1_arg_21_ (void) {
 	mw_std_prim_prim_drop();
 	mw_args_state_State_1_STATE();
 }
+static void mw_args_state_State_1_arg_1 (void) {
+	mw_std_prim_prim_swap();
+	mw_std_prim_prim_dup();
+	{
+		VAL d2 = pop_value();
+		mw_args_state_State_1_arg();
+		mw_std_prim_prim_swap();
+		mw_std_prim_prim_run();
+		push_value(d2);
+	}
+	mw_args_state_State_1_arg_21_();
+}
 static void mw_args_state_State_1_argv_info (void) {
 	mw_args_state_State_1__2F_STATE();
 	LPOP(lbl_argv_info);
@@ -14597,28 +14619,20 @@ static void mw_args_state_State_1_parsing_3F_ (void) {
 	mw_args_state_CurrentArg_parsing_3F_();
 }
 static void mw_args_state_State_1_parsing_3F__21_ (void) {
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_state_State_1_arg();
-		mw_args_state_CurrentArg_parsing_3F__21_();
-		push_value(d2);
-	}
-	mw_args_state_State_1_arg_21_();
+	push_u64(0);
+	push_fnptr(&mb_args_state_State_1_parsing_3F__21__2);
+	mw_std_prim_prim_pack_cons();
+	mw_args_state_State_1_arg_1();
 }
 static void mw_args_state_State_1_option_option (void) {
 	mw_args_state_State_1_arg();
 	mw_args_state_CurrentArg_option_option();
 }
 static void mw_args_state_State_1_option_option_21_ (void) {
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_state_State_1_arg();
-		mw_args_state_CurrentArg_option_option_21_();
-		push_value(d2);
-	}
-	mw_args_state_State_1_arg_21_();
+	push_u64(0);
+	push_fnptr(&mb_args_state_State_1_option_option_21__2);
+	mw_std_prim_prim_pack_cons();
+	mw_args_state_State_1_arg_1();
 }
 static void mw_args_types_ArgumentParser_1__2F_ARGUMENT_5F_PARSER (void) {
 	switch (get_top_data_tag()) {
@@ -16148,6 +16162,8 @@ static void mw_mirth_var_Var_new_auto_run_21_ (void) {
 	mw_std_prelude_over();
 	mw_mirth_var_Var__7E_auto_run_3F_();
 	mw_std_prim_prim_mut_set();
+}
+static void mw_mirth_ctx_Ctx__2F_CTX (void) {
 }
 static void mw_std_list_List_1__3E_Ctx (void) {
 	mw_mirth_ctx_Ctx_CTX();
@@ -28042,6 +28058,17 @@ static void mw_mirth_elab_ab_dip_21__1 (void) {
 		decref(var_f);
 	}
 }
+static void mw_mirth_elab_ab_rdip_21__1 (void) {
+	{
+		VAL var_f = pop_value();
+		incref(var_f);
+		push_value(var_f);
+		mw_mirth_elab_ab_block_21__1();
+		mw_mirth_prim_Prim_PRIM_5F_CORE_5F_RDIP();
+		mw_mirth_elab_ab_prim_21_();
+		decref(var_f);
+	}
+}
 static void mw_mirth_elab_ab_if_21__2 (void) {
 	{
 		VAL var_g = pop_value();
@@ -36551,6 +36578,14 @@ static void mb_args_parse_parse_flags_where_1_4 (void) {
 	run_value(var_f);
 	decref(var_f);
 }
+static void mb_args_state_State_1_parsing_3F__21__2 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_CurrentArg_parsing_3F__21_();
+}
+static void mb_args_state_State_1_option_option_21__2 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_CurrentArg_option_option_21_();
+}
 static void mb_args_parse_parse_flags_7 (void) {
 	mw_std_prim_prim_drop();
 	push_i64(1LL);
@@ -39710,58 +39745,6 @@ static void mb_mirth_elab_create_projectors_21__27 (void) {
 	mw_mirth_label_Label__3E_Str();
 	push_i64(0LL);
 	mw_mirth_elab_data_word_new_21_();
-	{
-		VAL var_lbl_5F_proj = pop_value();
-		push_u64(0);
-		incref(var_untag);
-		push_value(var_untag);
-		mw_std_prim_prim_pack_cons();
-		incref(var_dat);
-		push_value(var_dat);
-		mw_std_prim_prim_pack_cons();
-		incref(var_tag);
-		push_value(var_tag);
-		mw_std_prim_prim_pack_cons();
-		incref(var_lbl);
-		push_value(var_lbl);
-		mw_std_prim_prim_pack_cons();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
-		mw_std_prim_prim_pack_cons();
-		push_fnptr(&mb_mirth_elab_create_projectors_21__38);
-		mw_std_prim_prim_pack_cons();
-		mw_std_lazy_delay0_1();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
-		mw_mirth_word_Word__7E_ctx_type();
-		mw_std_prim_prim_mut_set();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
-		push_u64(0);
-		incref(var_untag);
-		push_value(var_untag);
-		mw_std_prim_prim_pack_cons();
-		incref(var_dat);
-		push_value(var_dat);
-		mw_std_prim_prim_pack_cons();
-		incref(var_tag);
-		push_value(var_tag);
-		mw_std_prim_prim_pack_cons();
-		incref(var_lbl);
-		push_value(var_lbl);
-		mw_std_prim_prim_pack_cons();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
-		mw_std_prim_prim_pack_cons();
-		push_fnptr(&mb_mirth_elab_create_projectors_21__66);
-		mw_std_prim_prim_pack_cons();
-		mw_std_lazy_delay_1();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
-		mw_mirth_word_Word__7E_arrow();
-		mw_std_prim_prim_mut_set();
-		decref(var_lbl_5F_proj);
-	}
 	incref(var_dat);
 	push_value(var_dat);
 	incref(var_lbl);
@@ -39780,8 +39763,17 @@ static void mb_mirth_elab_create_projectors_21__27 (void) {
 	mw_std_prim_prim_str_cat();
 	push_i64(0LL);
 	mw_mirth_elab_data_word_new_21_();
+	incref(var_dat);
+	push_value(var_dat);
+	incref(var_lbl);
+	push_value(var_lbl);
+	mw_mirth_label_Label__3E_Str();
+	push_i64(1LL);
+	mw_mirth_elab_data_word_new_21_();
 	{
-		VAL var_lbl_5F_proj = pop_value();
+		VAL var_lbl_5F_lens = pop_value();
+		VAL var_lbl_5F_set = pop_value();
+		VAL var_lbl_5F_get = pop_value();
 		push_u64(0);
 		incref(var_untag);
 		push_value(var_untag);
@@ -39795,18 +39787,24 @@ static void mb_mirth_elab_create_projectors_21__27 (void) {
 		incref(var_lbl);
 		push_value(var_lbl);
 		mw_std_prim_prim_pack_cons();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
 		mw_std_prim_prim_pack_cons();
-		push_fnptr(&mb_mirth_elab_create_projectors_21__107);
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__52);
 		mw_std_prim_prim_pack_cons();
 		mw_std_lazy_delay0_1();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
 		mw_mirth_word_Word__7E_ctx_type();
 		mw_std_prim_prim_mut_set();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
 		push_u64(0);
 		incref(var_untag);
 		push_value(var_untag);
@@ -39820,26 +39818,158 @@ static void mb_mirth_elab_create_projectors_21__27 (void) {
 		incref(var_lbl);
 		push_value(var_lbl);
 		mw_std_prim_prim_pack_cons();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
 		mw_std_prim_prim_pack_cons();
-		push_fnptr(&mb_mirth_elab_create_projectors_21__130);
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__80);
 		mw_std_prim_prim_pack_cons();
 		mw_std_lazy_delay_1();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
 		mw_mirth_word_Word__7E_arrow();
 		mw_std_prim_prim_mut_set();
-		decref(var_lbl_5F_proj);
+		push_u64(0);
+		incref(var_untag);
+		push_value(var_untag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_dat);
+		push_value(var_dat);
+		mw_std_prim_prim_pack_cons();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__109);
+		mw_std_prim_prim_pack_cons();
+		mw_std_lazy_delay0_1();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_mirth_word_Word__7E_ctx_type();
+		mw_std_prim_prim_mut_set();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		push_u64(0);
+		incref(var_untag);
+		push_value(var_untag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_dat);
+		push_value(var_dat);
+		mw_std_prim_prim_pack_cons();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__132);
+		mw_std_prim_prim_pack_cons();
+		mw_std_lazy_delay_1();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_mirth_word_Word__7E_arrow();
+		mw_std_prim_prim_mut_set();
+		push_u64(0);
+		incref(var_untag);
+		push_value(var_untag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_dat);
+		push_value(var_dat);
+		mw_std_prim_prim_pack_cons();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__162);
+		mw_std_prim_prim_pack_cons();
+		mw_std_lazy_delay0_1();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_mirth_word_Word__7E_ctx_type();
+		mw_std_prim_prim_mut_set();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		push_u64(0);
+		incref(var_untag);
+		push_value(var_untag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_dat);
+		push_value(var_dat);
+		mw_std_prim_prim_pack_cons();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__220);
+		mw_std_prim_prim_pack_cons();
+		mw_std_lazy_delay_1();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_mirth_word_Word__7E_arrow();
+		mw_std_prim_prim_mut_set();
+		decref(var_lbl_5F_lens);
+		decref(var_lbl_5F_set);
+		decref(var_lbl_5F_get);
 	}
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__38 (void) {
+static void mb_mirth_elab_create_projectors_21__52 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -39880,23 +40010,35 @@ static void mb_mirth_elab_create_projectors_21__38 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_std_prim_prim_pack_cons();
-	incref(var_lbl_5F_proj);
-	push_value(var_lbl_5F_proj);
+	incref(var_lbl_5F_lens);
+	push_value(var_lbl_5F_lens);
 	mw_std_prim_prim_pack_cons();
-	push_fnptr(&mb_mirth_elab_create_projectors_21__53);
+	incref(var_lbl_5F_set);
+	push_value(var_lbl_5F_set);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_get);
+	push_value(var_lbl_5F_get);
+	mw_std_prim_prim_pack_cons();
+	push_fnptr(&mb_mirth_elab_create_projectors_21__67);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_then_1();
 	mw_mirth_type_T__3E_();
 	mw_std_prelude_pack2();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__53 (void) {
+static void mb_mirth_elab_create_projectors_21__67 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -39910,15 +40052,21 @@ static void mb_mirth_elab_create_projectors_21__53 (void) {
 	push_value(var_tag);
 	mw_mirth_data_Tag_output_type();
 	mw_mirth_type_T_2A__2B_();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__66 (void) {
+static void mb_mirth_elab_create_projectors_21__80 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -39941,21 +40089,33 @@ static void mb_mirth_elab_create_projectors_21__66 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_std_prim_prim_pack_cons();
-	incref(var_lbl_5F_proj);
-	push_value(var_lbl_5F_proj);
+	incref(var_lbl_5F_lens);
+	push_value(var_lbl_5F_lens);
 	mw_std_prim_prim_pack_cons();
-	push_fnptr(&mb_mirth_elab_create_projectors_21__68);
+	incref(var_lbl_5F_set);
+	push_value(var_lbl_5F_set);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_get);
+	push_value(var_lbl_5F_get);
+	mw_std_prim_prim_pack_cons();
+	push_fnptr(&mb_mirth_elab_create_projectors_21__82);
 	mw_std_prim_prim_pack_cons();
 	mw_mirth_elab_ab_build_word_arrow_21__1();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__68 (void) {
+static void mb_mirth_elab_create_projectors_21__82 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -39989,21 +40149,33 @@ static void mb_mirth_elab_create_projectors_21__68 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_std_prim_prim_pack_cons();
-	incref(var_lbl_5F_proj);
-	push_value(var_lbl_5F_proj);
+	incref(var_lbl_5F_lens);
+	push_value(var_lbl_5F_lens);
 	mw_std_prim_prim_pack_cons();
-	push_fnptr(&mb_mirth_elab_create_projectors_21__78);
+	incref(var_lbl_5F_set);
+	push_value(var_lbl_5F_set);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_get);
+	push_value(var_lbl_5F_get);
+	mw_std_prim_prim_pack_cons();
+	push_fnptr(&mb_mirth_elab_create_projectors_21__92);
 	mw_std_prim_prim_pack_cons();
 	mw_mirth_elab_ab_dip_21__1();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__78 (void) {
+static void mb_mirth_elab_create_projectors_21__92 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -40032,21 +40204,33 @@ static void mb_mirth_elab_create_projectors_21__78 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_std_prim_prim_pack_cons();
-	incref(var_lbl_5F_proj);
-	push_value(var_lbl_5F_proj);
+	incref(var_lbl_5F_lens);
+	push_value(var_lbl_5F_lens);
 	mw_std_prim_prim_pack_cons();
-	push_fnptr(&mb_mirth_elab_create_projectors_21__84);
+	incref(var_lbl_5F_set);
+	push_value(var_lbl_5F_set);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_get);
+	push_value(var_lbl_5F_get);
+	mw_std_prim_prim_pack_cons();
+	push_fnptr(&mb_mirth_elab_create_projectors_21__98);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_else_1();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__84 (void) {
+static void mb_mirth_elab_create_projectors_21__98 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -40058,15 +40242,21 @@ static void mb_mirth_elab_create_projectors_21__84 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_prim_Prim_PRIM_5F_CORE_5F_DROP();
 	mw_mirth_elab_ab_prim_21_();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__107 (void) {
+static void mb_mirth_elab_create_projectors_21__109 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -40097,15 +40287,21 @@ static void mb_mirth_elab_create_projectors_21__107 (void) {
 	mw_mirth_type_T_2A__2B_();
 	mw_mirth_type_T__3E_();
 	mw_std_prelude_pack2();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__130 (void) {
+static void mb_mirth_elab_create_projectors_21__132 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -40128,21 +40324,33 @@ static void mb_mirth_elab_create_projectors_21__130 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_std_prim_prim_pack_cons();
-	incref(var_lbl_5F_proj);
-	push_value(var_lbl_5F_proj);
+	incref(var_lbl_5F_lens);
+	push_value(var_lbl_5F_lens);
 	mw_std_prim_prim_pack_cons();
-	push_fnptr(&mb_mirth_elab_create_projectors_21__132);
+	incref(var_lbl_5F_set);
+	push_value(var_lbl_5F_set);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_get);
+	push_value(var_lbl_5F_get);
+	mw_std_prim_prim_pack_cons();
+	push_fnptr(&mb_mirth_elab_create_projectors_21__134);
 	mw_std_prim_prim_pack_cons();
 	mw_mirth_elab_ab_build_word_arrow_21__1();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__132 (void) {
+static void mb_mirth_elab_create_projectors_21__134 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -40173,10 +40381,16 @@ static void mb_mirth_elab_create_projectors_21__132 (void) {
 		incref(var_lbl);
 		push_value(var_lbl);
 		mw_std_prim_prim_pack_cons();
-		incref(var_lbl_5F_proj);
-		push_value(var_lbl_5F_proj);
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
 		mw_std_prim_prim_pack_cons();
-		push_fnptr(&mb_mirth_elab_create_projectors_21__141);
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__143);
 		mw_std_prim_prim_pack_cons();
 		mw_mirth_elab_ab_dip_21__1();
 	}
@@ -40191,15 +40405,21 @@ static void mb_mirth_elab_create_projectors_21__132 (void) {
 	incref(var_tag);
 	push_value(var_tag);
 	mw_mirth_elab_ab_tag_21_();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);
 	decref(var_untag);
 }
-static void mb_mirth_elab_create_projectors_21__141 (void) {
+static void mb_mirth_elab_create_projectors_21__143 (void) {
 	mw_std_prim_prim_pack_uncons();
-	VAL var_lbl_5F_proj = pop_value();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
 	mw_std_prim_prim_pack_uncons();
 	VAL var_lbl = pop_value();
 	mw_std_prim_prim_pack_uncons();
@@ -40212,7 +40432,319 @@ static void mb_mirth_elab_create_projectors_21__141 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_mirth_elab_ab_label_push_21_();
-	decref(var_lbl_5F_proj);
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
+	decref(var_lbl);
+	decref(var_tag);
+	decref(var_dat);
+	decref(var_untag);
+}
+static void mb_mirth_elab_create_projectors_21__162 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_dat = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_untag = pop_value();
+	mw_std_prim_prim_drop();
+	mw_mirth_type_TYPE_5F_STACK();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("*x", 2);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_prim_Str__3E_Name();
+	mw_mirth_var_Var_new_21_();
+	mw_mirth_type_TYPE_5F_STACK();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("*y", 2);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_prim_Str__3E_Name();
+	mw_mirth_var_Var_new_21_();
+	incref(var_lbl);
+	push_value(var_lbl);
+	incref(var_tag);
+	push_value(var_tag);
+	mw_mirth_data_Tag_project_input_label();
+	mw_std_maybe_Maybe_1_unwrap();
+	incref(var_tag);
+	push_value(var_tag);
+	mw_mirth_data_Tag_output_type();
+	{
+		VAL var_datty = pop_value();
+		VAL var_lblty = pop_value();
+		VAL var_sy = pop_value();
+		VAL var_sx = pop_value();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_ctx();
+		mw_mirth_ctx_Ctx__2F_CTX();
+		incref(var_sx);
+		push_value(var_sx);
+		incref(var_sy);
+		push_value(var_sy);
+		mw_std_list_List_1_L2();
+		mw_std_list_List_1_cat();
+		mw_mirth_ctx_Ctx_CTX();
+		incref(var_sx);
+		push_value(var_sx);
+		mw_mirth_type_StackType_STVar();
+		incref(var_datty);
+		push_value(var_datty);
+		mw_mirth_type_T_2A__2B_();
+		incref(var_sx);
+		push_value(var_sx);
+		mw_mirth_type_StackType_STVar();
+		incref(var_lblty);
+		push_value(var_lblty);
+		mw_mirth_type_T_2A_();
+		incref(var_sy);
+		push_value(var_sy);
+		mw_mirth_type_StackType_STVar();
+		incref(var_lblty);
+		push_value(var_lblty);
+		mw_mirth_type_T_2A_();
+		mw_mirth_type_T__3E_();
+		mw_mirth_type_Type_TMorphism();
+		mw_mirth_type_T_2A_();
+		incref(var_sy);
+		push_value(var_sy);
+		mw_mirth_type_StackType_STVar();
+		incref(var_datty);
+		push_value(var_datty);
+		mw_mirth_type_T_2A__2B_();
+		mw_mirth_type_T__3E_();
+		mw_std_prelude_pack2();
+		decref(var_datty);
+		decref(var_lblty);
+		decref(var_sy);
+		decref(var_sx);
+	}
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
+	decref(var_lbl);
+	decref(var_tag);
+	decref(var_dat);
+	decref(var_untag);
+}
+static void mb_mirth_elab_create_projectors_21__220 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_dat = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_untag = pop_value();
+	mw_std_prim_prim_drop();
+	push_u64(0);
+	incref(var_untag);
+	push_value(var_untag);
+	mw_std_prim_prim_pack_cons();
+	incref(var_dat);
+	push_value(var_dat);
+	mw_std_prim_prim_pack_cons();
+	incref(var_tag);
+	push_value(var_tag);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl);
+	push_value(var_lbl);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_lens);
+	push_value(var_lbl_5F_lens);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_set);
+	push_value(var_lbl_5F_set);
+	mw_std_prim_prim_pack_cons();
+	incref(var_lbl_5F_get);
+	push_value(var_lbl_5F_get);
+	mw_std_prim_prim_pack_cons();
+	push_fnptr(&mb_mirth_elab_create_projectors_21__222);
+	mw_std_prim_prim_pack_cons();
+	mw_mirth_elab_ab_build_word_arrow_21__1();
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
+	decref(var_lbl);
+	decref(var_tag);
+	decref(var_dat);
+	decref(var_untag);
+}
+static void mb_mirth_elab_create_projectors_21__222 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_dat = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_untag = pop_value();
+	mw_std_prim_prim_drop();
+	incref(var_dat);
+	push_value(var_dat);
+	mw_mirth_data_Data_is_resource_3F_();
+	if (pop_u64()) {
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_mirth_elab_ab_word_21_();
+		push_u64(0);
+		incref(var_untag);
+		push_value(var_untag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_dat);
+		push_value(var_dat);
+		mw_std_prim_prim_pack_cons();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__230);
+		mw_std_prim_prim_pack_cons();
+		mw_mirth_elab_ab_rdip_21__1();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_mirth_elab_ab_word_21_();
+	} else {
+		mw_mirth_prim_Prim_PRIM_5F_CORE_5F_SWAP();
+		mw_mirth_elab_ab_prim_21_();
+		mw_mirth_prim_Prim_PRIM_5F_CORE_5F_DUP();
+		mw_mirth_elab_ab_prim_21_();
+		push_u64(0);
+		incref(var_untag);
+		push_value(var_untag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_dat);
+		push_value(var_dat);
+		mw_std_prim_prim_pack_cons();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_lens);
+		push_value(var_lbl_5F_lens);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_std_prim_prim_pack_cons();
+		incref(var_lbl_5F_get);
+		push_value(var_lbl_5F_get);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_elab_create_projectors_21__244);
+		mw_std_prim_prim_pack_cons();
+		mw_mirth_elab_ab_dip_21__1();
+		incref(var_lbl_5F_set);
+		push_value(var_lbl_5F_set);
+		mw_mirth_elab_ab_word_21_();
+	}
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
+	decref(var_lbl);
+	decref(var_tag);
+	decref(var_dat);
+	decref(var_untag);
+}
+static void mb_mirth_elab_create_projectors_21__230 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_dat = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_untag = pop_value();
+	mw_std_prim_prim_drop();
+	mw_mirth_prim_Prim_PRIM_5F_CORE_5F_SWAP();
+	mw_mirth_elab_ab_prim_21_();
+	mw_mirth_prim_Prim_PRIM_5F_CORE_5F_RUN();
+	mw_mirth_elab_ab_prim_21_();
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
+	decref(var_lbl);
+	decref(var_tag);
+	decref(var_dat);
+	decref(var_untag);
+}
+static void mb_mirth_elab_create_projectors_21__244 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_get = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_set = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl_5F_lens = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_lbl = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_dat = pop_value();
+	mw_std_prim_prim_pack_uncons();
+	VAL var_untag = pop_value();
+	mw_std_prim_prim_drop();
+	incref(var_lbl_5F_get);
+	push_value(var_lbl_5F_get);
+	mw_mirth_elab_ab_word_21_();
+	mw_mirth_prim_Prim_PRIM_5F_CORE_5F_SWAP();
+	mw_mirth_elab_ab_prim_21_();
+	mw_mirth_prim_Prim_PRIM_5F_CORE_5F_RUN();
+	mw_mirth_elab_ab_prim_21_();
+	decref(var_lbl_5F_get);
+	decref(var_lbl_5F_set);
+	decref(var_lbl_5F_lens);
 	decref(var_lbl);
 	decref(var_tag);
 	decref(var_dat);

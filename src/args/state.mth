@@ -43,22 +43,10 @@ def(State.init, a -- State(a),
 )
 
 def(State.argv, State(a) -- List(Str), argv-info ArgvInfo.argv)
-
 def(State.program-name, State(a) -- Str, argv-info program-name)
-
 def(State.parsing?, State(a) -- Bool, arg parsing?)
-
-def(State.parsing?!, Bool State(a) -- State(a),
-  dup dip(arg parsing?!) arg!)
-
-def(State.option, State(a) -- Maybe(ArgpOptionType),
-  arg option)
-
-def(State.option!, Maybe(ArgpOptionType) State(a) -- State(a),
-  dup dip(arg option!) arg!)
-
-def(State.option-option, State(a) -- Maybe(ArgpOption),
-  arg option-option)
-
-def(State.option-option!, Maybe(ArgpOption) State(a) -- State(a),
-  dup dip(arg option-option!) arg!)
+def(State.parsing?!, Bool State(a) -- State(a), arg:parsing?!)
+def(State.option, State(a) -- Maybe(ArgpOptionType), arg option)
+def(State.option!, Maybe(ArgpOptionType) State(a) -- State(a), arg:option!)
+def(State.option-option, State(a) -- Maybe(ArgpOption), arg option-option)
+def(State.option-option!, Maybe(ArgpOption) State(a) -- State(a), arg:option-option!)

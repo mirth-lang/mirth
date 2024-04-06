@@ -376,6 +376,9 @@ def(ab-block!(f), (*a +AB -- *b +AB) *a +AB -- *b +AB,
 def(ab-dip!(f), (*a +AB -- *b +AB) *a +AB -- *b +AB,
     ab-block!(f) PRIM_CORE_DIP ab-prim!)
 
+def(ab-rdip!(f), (*a +AB -- *b +AB) *a +AB -- *b +AB,
+    ab-block!(f) PRIM_CORE_RDIP ab-prim!)
+
 def(ab-if!(f,g), (*a +AB -- *b +AB, *b +AB -- *c +AB) *a +AB -- *c +AB,
     ab-block!(f) ab-block!(g) PRIM_CORE_IF ab-prim!)
 
@@ -1048,15 +1051,17 @@ def(Tag.project-input-label, Label Tag -- Maybe(Type),
 def(create-projectors!, Tag --,
     dup .data over .untag unwrap \(tag dat untag ->
     tag label-inputs reverse-for(\(lbl -> dat lbl name 0 data-qname undefined? then(
-        dat lbl >Str 0 data-word-new! \(lbl_proj ->
+        dat lbl >Str 0 data-word-new!
+        dat lbl >Str "!" cat 0 data-word-new!
+        dat lbl >Str 1 data-word-new! \(lbl_get lbl_set lbl_lens ->
             delay0(
                 tag ctx
                 T0 tag output-type T*+
                 lbl tag project-input-label unwrap T1
                 dat is-resource? then(tag output-type T*+)
                 T-> pack2
-            ) lbl_proj ~ctx-type !
-            lbl_proj delay(ab-build-word-arrow!(
+            ) lbl_get ~ctx-type !
+            lbl_get delay(ab-build-word-arrow!(
                 untag ab-word!
                 lbl ab-label-pop!
                 PRIM_CORE_DUP ab-prim!
@@ -1065,16 +1070,15 @@ def(create-projectors!, Tag --,
                     tag ab-tag!
                     dat is-resource? else(PRIM_CORE_DROP ab-prim!)
                 )
-            )) lbl_proj ~arrow !
-        )
-        dat lbl >Str "!" cat 0 data-word-new! \(lbl_proj ->
+            )) lbl_get ~arrow !
+
             delay0(
                 tag ctx
                 lbl tag project-input-label unwrap T1 tag output-type T*+
                 T0 tag output-type T*+
                 T-> pack2
-            ) lbl_proj ~ctx-type !
-            lbl_proj delay(ab-build-word-arrow!(
+            ) lbl_set ~ctx-type !
+            lbl_set delay(ab-build-word-arrow!(
                 dat is-resource? if(
                     lbl ab-label-push!,
                     ab-dip!(lbl ab-label-push!)
@@ -1083,7 +1087,40 @@ def(create-projectors!, Tag --,
                 lbl ab-label-pop!
                 PRIM_CORE_DROP ab-prim!
                 tag ab-tag!
-            )) lbl_proj ~arrow !
+            )) lbl_set ~arrow !
+
+            delay0(
+                TYPE_STACK "*x" >Name Var.new!
+                TYPE_STACK "*y" >Name Var.new!
+                lbl tag project-input-label unwrap
+                tag output-type \(sx sy lblty datty ->
+                    tag ctx /CTX sx sy L2 cat CTX
+                    sx STVar datty T*+
+                        sx STVar lblty T*
+                        sy STVar lblty T* T-> TMorphism T*
+                    sy STVar datty T*+
+                    T-> pack2
+                )
+            ) lbl_lens ~ctx-type !
+            lbl_lens delay(ab-build-word-arrow!(
+                dat is-resource? if(
+                    lbl_get ab-word!
+                    ab-rdip!(
+                        PRIM_CORE_SWAP ab-prim!
+                        PRIM_CORE_RUN ab-prim!
+                    )
+                    lbl_set ab-word!,
+
+                    PRIM_CORE_SWAP ab-prim!
+                    PRIM_CORE_DUP ab-prim!
+                    ab-dip!(
+                        lbl_get ab-word!
+                        PRIM_CORE_SWAP ab-prim!
+                        PRIM_CORE_RUN ab-prim!
+                    )
+                    lbl_set ab-word!
+                )
+            )) lbl_lens ~arrow !
         )
     )))))
 
@@ -1475,8 +1512,6 @@ def(elab-tycon, Token Name -- Tycon,
     )
     unwrap-or("unknown type constructor: " swap >Str cat emit-fatal-error!)
     dip(drop2))
-
-# )
 
 def(elab-tycon-qname, Token Name Name Int -- QName,
     >arity >name elab-tycon NAMESPACE_TYCON >namespace MKQNAME)
