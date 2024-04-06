@@ -7,7 +7,6 @@ import(std.list)
 import(mirth.name)
 import(mirth.alias)
 import(mirth.buffer)
-import(mirth.constant)
 import(mirth.data)
 import(mirth.external)
 import(mirth.module)
@@ -33,7 +32,6 @@ data(Def,
     DEF_WORD -> Word,
     DEF_BUFFER -> Buffer,
     DEF_VARIABLE -> Variable,
-    DEF_CONSTANT -> Constant,
     DEF_EXTERNAL -> External,
     DEF_FIELD -> Field)
 
@@ -49,7 +47,6 @@ def(Def>Module?, Def -- Maybe(Module),
     DEF_WORD -> head .module SOME,
     DEF_BUFFER -> head .module SOME,
     DEF_VARIABLE -> head .module SOME,
-    DEF_CONSTANT -> head .module SOME,
     DEF_EXTERNAL -> sig .module SOME,
     DEF_FIELD -> head .module SOME)
 
@@ -64,7 +61,6 @@ def(Def.prim?, Def -- Maybe(Prim), DEF_PRIM -> SOME, _ -> drop NONE)
 def(Def.word?, Def -- Maybe(Word), DEF_WORD -> SOME, _ -> drop NONE)
 def(Def.buffer?, Def -- Maybe(Buffer), DEF_BUFFER -> SOME, _ -> drop NONE)
 def(Def.variable?, Def -- Maybe(Variable), DEF_VARIABLE -> SOME, _ -> drop NONE)
-def(Def.constant?, Def -- Maybe(Constant), DEF_CONSTANT -> SOME, _ -> drop NONE)
 def(Def.external?, Def -- Maybe(External), DEF_EXTERNAL -> SOME, _ -> drop NONE)
 def(Def.field?, Def -- Maybe(Field), DEF_FIELD -> SOME, _ -> drop NONE)
 
@@ -81,8 +77,7 @@ def(Def.typecheck!, Def --,
     DEF_WORD -> dup type drop arrow drop,
     DEF_FIELD -> type drop,
     DEF_TAG -> type drop,
-    DEF_VARIABLE -> type drop,
-    DEF_CONSTANT -> drop)
+    DEF_VARIABLE -> type drop)
 
 def(Def.callable?, Def -- Bool,
     DEF_ALIAS -> target callable?,
@@ -97,8 +92,7 @@ def(Def.callable?, Def -- Bool,
     DEF_WORD -> drop T,
     DEF_FIELD -> drop T,
     DEF_TAG -> drop T,
-    DEF_VARIABLE -> drop T,
-    DEF_CONSTANT -> drop T)
+    DEF_VARIABLE -> drop T)
 
 def(Def.defines-a-type?, Def -- Bool,
     DEF_ALIAS -> target defines-a-type?,
@@ -113,8 +107,7 @@ def(Def.defines-a-type?, Def -- Bool,
     DEF_WORD -> drop F,
     DEF_FIELD -> drop F,
     DEF_TAG -> drop F,
-    DEF_VARIABLE -> drop F,
-    DEF_CONSTANT -> drop F)
+    DEF_VARIABLE -> drop F)
 
 def(Def.exposed-tycon?, Def -- Maybe(Tycon),
     DEF_ALIAS -> target exposed-tycon?,
@@ -129,8 +122,7 @@ def(Def.exposed-tycon?, Def -- Maybe(Tycon),
     DEF_WORD -> drop NONE,
     DEF_FIELD -> drop NONE,
     DEF_TAG -> drop NONE,
-    DEF_VARIABLE -> drop NONE,
-    DEF_CONSTANT -> drop NONE)
+    DEF_VARIABLE -> drop NONE)
 
 def(Def.head?, Def -- Maybe(Token),
     DEF_ALIAS -> head SOME,
@@ -145,8 +137,7 @@ def(Def.head?, Def -- Maybe(Token),
     DEF_WORD -> head SOME,
     DEF_FIELD -> head SOME,
     DEF_TAG -> .data head?,
-    DEF_VARIABLE -> head SOME,
-    DEF_CONSTANT -> head SOME)
+    DEF_VARIABLE -> head SOME)
 
 def(Def.defining-module?, Def -- Maybe(Module),
     head? map(.module))
@@ -164,8 +155,7 @@ def(Def.qname, Def -- QName,
     DEF_WORD -> qname,
     DEF_FIELD -> qname,
     DEF_TAG -> qname,
-    DEF_VARIABLE -> qname,
-    DEF_CONSTANT -> qname)
+    DEF_VARIABLE -> qname)
 
 def(Def.register, Def --,
     dup qname

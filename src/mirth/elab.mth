@@ -22,7 +22,6 @@ import(mirth.word)
 import(mirth.var)
 import(mirth.buffer)
 import(mirth.variable)
-import(mirth.constant)
 import(mirth.table)
 import(mirth.tycon)
 import(mirth.type)
@@ -342,7 +341,6 @@ def(ab-int!, Int +AB -- +AB, OP_INT ab-op!)
 def(ab-str!, Str +AB -- +AB, OP_STR ab-op!)
 def(ab-buffer!, Buffer +AB -- +AB, OP_BUFFER ab-op!)
 def(ab-variable!, Variable +AB -- +AB, OP_VARIABLE ab-op!)
-def(ab-constant!, Constant +AB -- +AB, OP_CONSTANT ab-op!)
 def(ab-field!, Field +AB -- +AB, OP_FIELD ab-op!)
 def(ab-var!, Var +AB -- +AB, OP_VAR ab-op!)
 def(ab-tag!, Tag +AB -- +AB, OP_TAG ab-op!)
@@ -405,7 +403,6 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_STR -> VALUE_STR TValue OPSIG_PUSH,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
         OP_VARIABLE -> type TMut OPSIG_PUSH,
-        OP_CONSTANT -> value TValue OPSIG_PUSH,
         OP_TAG -> type freshen-sig OPSIG_APPLY,
         OP_WORD -> type freshen-sig OPSIG_APPLY,
         OP_PRIM -> type freshen-sig OPSIG_APPLY,
@@ -615,7 +612,6 @@ def(elab-atom-def!, Def +AB -- +AB,
     DEF_ALIAS -> target elab-atom-def!,
     DEF_BUFFER -> elab-no-args! ab-buffer!,
     DEF_VARIABLE -> elab-no-args! ab-variable!,
-    DEF_CONSTANT -> elab-no-args! ab-constant!,
     DEF_EXTERNAL -> elab-no-args! ab-external!,
     DEF_FIELD -> elab-no-args! ab-field!,
     DEF_WORD -> elab-args! ab-word!,
@@ -1225,11 +1221,14 @@ def(elab-entry-point, QName +World -- Arrow +World,
 ||| Embed a file as a string, embed-str(name, "path").
 ||| The path is relative to compiler's cwd, not source root.
 def(elab-embed-str!, Token +World -- Token +World,
-    sip(next) args-2 swap
-    dup elab-def-qname-undefined
-    rotl dup str? unwrap-or("expected source path" emit-fatal-error!)
-   >Path open-file! .read-file! close-file! nip
-    VALUE_STR Constant.new! drop)
+    sip:next args-2 swap
+    dup >head elab-def-qname-undefined >qname
+    dup >body NONE >sig 0 >arity
+    dup str? unwrap-or("expected source path" emit-fatal-error!)
+    >Path open-file! .read-file! close-file! nip >contents
+    Word.new!
+    CTX0 T0 TYPE_STR T1 T-> ready2 over ~ctx-type !
+    ab-build-word!(contents> ab-str!) drop)
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,

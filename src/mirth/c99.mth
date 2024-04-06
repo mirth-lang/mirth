@@ -23,7 +23,6 @@ import(mirth.word)
 import(mirth.table)
 import(mirth.variable)
 import(mirth.external)
-import(mirth.constant)
 import(mirth.ctx)
 import(mirth.tycon)
 import(mirth.type)
@@ -256,7 +255,6 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_NONE     -> drop,
     OP_INT      -> nip c99-int!,
     OP_STR      -> nip c99-str!,
-    OP_CONSTANT -> nip c99-constant!,
     OP_WORD     -> qname c99-call!,
     OP_EXTERNAL -> qname c99-call!,
     OP_BUFFER   -> qname c99-call!,
@@ -334,14 +332,6 @@ def(c99-string-byte!, Byte +C99 -- +C99,
             "\\x" put to-hexdigits dip(put-byte) put-byte
         )
     )
-
-def(c99-constant!, Constant +C99 -- +C99,
-    value c99-value!)
-
-def(c99-value!, Value +C99 -- +C99,
-    VALUE_INT -> c99-int!,
-    VALUE_STR -> c99-str!,
-    VALUE_BLOCK -> c99-block-push!)
 
 def(c99-prim!, List(Arg) Prim +C99 -- +C99,
     PRIM_CORE_DIP ->
