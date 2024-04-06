@@ -9,7 +9,6 @@ def(Foo.bar~:f, (*a Int -- *b Int) *a Foo -- *b Foo, dup dip(bar f) bar!)
 def(Boom.foo~:f, (*a Foo -- *b Foo) *a Boom -- *b Boom, dup dip(foo f) foo!)
 def(Foo.print, Foo +World -- Foo +World, dup bar print! " FOO" print!)
 def(Boom.print, Boom +World -- Boom +World, .foo~:print " BOOM" print!)
-def(+World.line, +World -- +World, "\n" print!)
 
 def(main, +World -- +World,
     10 >bar FOO print line

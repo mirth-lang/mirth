@@ -28,6 +28,9 @@ def(Str.trace-ln!, Str --, trace! line-trace!)
 def(line-print!, --, "\n" print!)
 def(line-trace!, --, "\n" trace!)
 
+def(+World.put, Str +World -- +World, print!)
+def(+World.line, +World -- +World, "\n" print!)
+
 def(Path.trace!, Path --, >Str trace!)
 
 def(Int.write!, File Int --, show write!)
