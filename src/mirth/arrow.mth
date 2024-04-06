@@ -34,7 +34,6 @@ import(mirth.var)
 # to type repeatedly so now it's called Arrow :-)
 
 # mirth/data/arrow
-table(Arrow)
 table(Block)
 
 data(Arg, ARG_BLOCK -> Block)
@@ -70,13 +69,15 @@ data(Home,
     HOME_MAIN -> Token,
     HOME_WORD -> Word)
 
-field(Arrow.~token-start, Arrow, Token)
-field(Arrow.~token-end, Arrow, Token)
-field(Arrow.~home, Arrow, Home)
-field(Arrow.~ctx, Arrow, Ctx)
-field(Arrow.~dom, Arrow, StackType)
-field(Arrow.~cod, Arrow, StackType)
-field(Arrow.~atoms, Arrow, List(Atom))
+data(Arrow, ARROW ->
+    home:Home
+    token-start:Token
+    token-end:Token
+    ctx:Ctx
+    dom:StackType
+    cod:StackType
+    atoms:List(Atom))
+def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
 
 data(Atom, ATOM ->
     token:Token
@@ -103,15 +104,6 @@ field(Block.~home, Block, Home)
 field(Block.~dom, Block, StackType)
 field(Block.~cod, Block, StackType)
 field(Block.~arrow, Block, Lazy(Arrow))
-
-def(Arrow.token-start, Arrow -- Token, ~token-start @)
-def(Arrow.token-end, Arrow -- Token, ~token-end @)
-def(Arrow.home, Arrow -- Home, ~home @)
-def(Arrow.ctx, Arrow -- Ctx, ~ctx @)
-def(Arrow.dom, Arrow -- StackType, ~dom @)
-def(Arrow.cod, Arrow -- StackType, ~cod @)
-def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
-def(Arrow.atoms, Arrow -- List(Atom), ~atoms @)
 
 def(Block.ctx, Block -- Ctx, ~ctx @)
 def(Block.token, Block -- Token, ~token @)

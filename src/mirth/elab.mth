@@ -238,25 +238,22 @@ def(elab-simple-type-arg!, Token -- Type,
 # Word Elaboration #
 ####################
 
-data(+AB, MKAB -> Arrow)
-def(ab-arrow@, +AB -- Arrow +AB, MKAB -> dup MKAB)
-def(ab-arrow!, Arrow +AB -- +AB, MKAB -> drop MKAB)
-def(ab-ctx@, +AB -- Ctx +AB, ab-arrow@ ~ctx @)
-def(ab-ctx!, Ctx +AB -- +AB, ab-arrow@ ~ctx !)
-def(ab-token@, +AB -- Token +AB, ab-arrow@ ~token-end @)
-def(ab-token!, Token +AB -- +AB, ab-arrow@ ~token-end !)
-def(ab-type@, +AB -- StackType +AB, ab-arrow@ ~cod @)
-def(ab-type!, StackType +AB -- +AB, ab-arrow@ ~cod !)
-def(ab-home@, +AB -- Home +AB, ab-arrow@ home)
+data(+AB, MKAB -> arrow:Arrow)
+def(ab-arrow@, +AB -- +AB Arrow, arrow)
+def(ab-token@, +AB -- +AB Token, arrow token-end)
+def(ab-token!, +AB Token -- +AB, arrow:token-end!)
+def(ab-type@, +AB -- +AB StackType, arrow cod)
+def(ab-type!, +AB StackType -- +AB, arrow:cod!)
+def(ab-ctx@, +AB -- +AB Ctx, arrow ctx)
+def(ab-home@, +AB -- +AB Home, arrow home)
 
 def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow,
-    Arrow.alloc!
-    tuck ~home !
-    tuck dup2 ~token-start ! ~token-end !
-    tuck dup2 ~dom ! ~cod !
-    tuck ~ctx !
-    L0 over ~atoms !
-    MKAB f /MKAB)
+    >home
+    dup >token-start >token-end
+    dup >dom >cod
+    >ctx L0 >atoms
+    ARROW >arrow MKAB
+    f /MKAB arrow>)
 
 ||| Like ab-build! but takes a morphism type to build
 ||| instead of just the domain. The codomain is placed
@@ -279,17 +276,15 @@ def(ab-atom!, Atom +AB -- +AB,
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
     dup cod ab-type!
-    dip(ab-arrow@ atoms)
-    ab-optimized-snoc!
-    ab-arrow@ ~atoms !)
+    arrow:atoms(swap ab-optimized-snoc!))
 
 ||| Add an atom to a list of atoms .. smartly.
-def(ab-optimized-snoc!, List(Atom) Atom +AB -- List(Atom) +AB,
+def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
     while(dip?(atoms-has-last-block?) and(atom-accepts-args?),
         swap atoms-turn-last-block-to-arg swap)
     snoc)
 
-def(atom-accepts-args?, Atom +AB -- Atom Bool +AB,
+def(atom-accepts-args?, Atom -- Atom Bool,
     dup op match(
         OP_WORD -> dip(dup args len >Int) arity <,
         OP_PRIM ->
@@ -303,7 +298,7 @@ def(atom-accepts-args?, Atom +AB -- Atom Bool +AB,
         _ -> drop F
     ))
 
-def(atoms-has-last-block?, List(Atom) +AB -- List(Atom) Bool +AB,
+def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
     dup last match(
         NONE -> F,
         SOME ->
@@ -313,15 +308,15 @@ def(atoms-has-last-block?, List(Atom) +AB -- List(Atom) Bool +AB,
             )
     ))
 
-def(atoms-turn-last-block-to-arg, Atom List(Atom) +AB -- Atom List(Atom) +AB,
+def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
    >List+ match(
         NONE -> L0,
         SOME ->
             unsnoc dup op match(
                 OP_BLOCK ->
-                    { Atom List(Atom) Atom Block +AB}
+                    { Atom List(Atom) Atom Block }
                     dip(cod rotl dom!)
-                    { List(Atom) Atom Block +AB}
+                    { List(Atom) Atom Block }
                     ARG_BLOCK swap args:cons
                     swap,
                 _ -> drop snoc
