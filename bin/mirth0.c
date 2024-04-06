@@ -8252,6 +8252,11 @@ static void mb_posix_posix_slice_write_21__12 (void);
 static void mb_posix_posix_slice_write_21__16 (void);
 static void mb_posix_posix_slice_write_21__20 (void);
 static void mb_posix_posix_slice_write_21__23 (void);
+static void mb_posix_output__2B_Output_put_9 (void);
+static void mb_posix_output__2B_Output_put_11 (void);
+static void mb_posix_output__2B_Output_put_19 (void);
+static void mb_mirth_c99__2B_C99_put_2 (void);
+static void mb_mirth_c99__2B_C99_line_2 (void);
 static void mb_std_set__2B_Set_1_index_12 (void);
 static void mb_std_set__2B_Set_1_index_16 (void);
 static void mb_std_prim__2B_World_open_file_21__3 (void);
@@ -8606,14 +8611,9 @@ static void mb_mirth_elab_elab_absolute_namespace_9 (void);
 static void mb_mirth_elab_elab_absolute_namespace_30 (void);
 static void mb_mirth_elab_field_new_21__10 (void);
 static void mb_mirth_elab_field_new_21__18 (void);
-static void mb_posix_output__2B_Output_put_9 (void);
-static void mb_posix_output__2B_Output_put_11 (void);
-static void mb_posix_output__2B_Output_put_19 (void);
-static void mb_mirth_c99__2B_C99_put_2 (void);
 static void mb_posix_output__2B_Output_put_byte_3 (void);
 static void mb_posix_output__2B_Output_put_byte_8 (void);
 static void mb_mirth_c99__2B_C99_put_byte_2 (void);
-static void mb_mirth_c99__2B_C99_line_2 (void);
 static void mb_mirth_c99_c99_label_defs_21__2 (void);
 static void mb_mirth_c99_c99_tags_21__2 (void);
 static void mb_mirth_c99_c99_buffers_21__2 (void);
@@ -36647,6 +36647,29 @@ static void mb_posix_posix_slice_write_21__23 (void) {
 		incref(v);
 	}
 }
+static void mb_posix_output__2B_Output_put_9 (void) {
+	mw_std_prim_prim_drop();
+	push_u64(0);
+	push_fnptr(&mb_posix_output__2B_Output_put_11);
+	mw_std_prim_prim_pack_cons();
+	mw_posix_output__2B_Output__7E_File_1();
+}
+static void mb_posix_output__2B_Output_put_11 (void) {
+	mw_std_prim_prim_drop();
+	mw_posix_file__2B_File_unsafe_write_21_();
+}
+static void mb_posix_output__2B_Output_put_19 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_buffer__2B_Buffer__21_Str();
+}
+static void mb_mirth_c99__2B_C99_put_2 (void) {
+	mw_std_prim_prim_drop();
+	mw_posix_output__2B_Output_put();
+}
+static void mb_mirth_c99__2B_C99_line_2 (void) {
+	mw_std_prim_prim_drop();
+	mw_posix_output__2B_Output_line();
+}
 static void mb_std_set__2B_Set_1_index_12 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
@@ -40729,25 +40752,6 @@ static void mb_mirth_elab_field_new_21__18 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_elab_elab_simple_type_arg_21_();
 }
-static void mb_posix_output__2B_Output_put_9 (void) {
-	mw_std_prim_prim_drop();
-	push_u64(0);
-	push_fnptr(&mb_posix_output__2B_Output_put_11);
-	mw_std_prim_prim_pack_cons();
-	mw_posix_output__2B_Output__7E_File_1();
-}
-static void mb_posix_output__2B_Output_put_11 (void) {
-	mw_std_prim_prim_drop();
-	mw_posix_file__2B_File_unsafe_write_21_();
-}
-static void mb_posix_output__2B_Output_put_19 (void) {
-	mw_std_prim_prim_drop();
-	mw_std_buffer__2B_Buffer__21_Str();
-}
-static void mb_mirth_c99__2B_C99_put_2 (void) {
-	mw_std_prim_prim_drop();
-	mw_posix_output__2B_Output_put();
-}
 static void mb_posix_output__2B_Output_put_byte_3 (void) {
 	mw_std_prim_prim_drop();
 	mw_posix_output_output_flush_21_();
@@ -40759,10 +40763,6 @@ static void mb_posix_output__2B_Output_put_byte_8 (void) {
 static void mb_mirth_c99__2B_C99_put_byte_2 (void) {
 	mw_std_prim_prim_drop();
 	mw_posix_output__2B_Output_put_byte();
-}
-static void mb_mirth_c99__2B_C99_line_2 (void) {
-	mw_std_prim_prim_drop();
-	mw_posix_output__2B_Output_line();
 }
 static void mb_mirth_c99_c99_label_defs_21__2 (void) {
 	mw_std_prim_prim_drop();
