@@ -12,14 +12,14 @@ def(ready, a -- Lazy(a),
 def(ready2, a b -- Lazy([a b]),
     pack2 LAZY_READY)
 
-def(delay, (a -- b) a -- Lazy(b), LAZY_DELAY)
-def(delay0, (-- b) -- Lazy(b), delay(run))
-def(delay2, (a1 a2 -- b) a1 a2 -- Lazy(b),
-    pack3 delay(unpack3 run))
-def(delay3, (a1 a2 a3 -- b) a1 a2 a3 -- Lazy(b),
-    pack4 delay(unpack4 run))
-def(delay4, (a1 a2 a3 a4 -- b) a1 a2 a3 a4 -- Lazy(b),
-    pack5 delay(unpack5 run))
+def(delay(f), (a -- b) a -- Lazy(b), [f] LAZY_DELAY)
+def(delay0(f), (-- b) -- Lazy(b), 0 delay(drop f))
+def(delay2(f), (a1 a2 -- b) a1 a2 -- Lazy(b),
+    pack2 delay(unpack2 f))
+def(delay3(f), (a1 a2 a3 -- b) a1 a2 a3 -- Lazy(b),
+    pack3 delay(unpack3 f))
+def(delay4(f), (a1 a2 a3 a4 -- b) a1 a2 a3 a4 -- Lazy(b),
+    pack4 delay(unpack4 f))
 
 def(force!, Mut(Lazy(a)) -- a,
     dup @ match(

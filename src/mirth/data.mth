@@ -11,6 +11,7 @@ import(mirth.token)
 import(mirth.name)
 import(mirth.def)
 import(mirth.label)
+import(mirth.tycon)
 
 table(Data)
 field(Data.~head?, Data, Maybe(Token))
@@ -47,10 +48,10 @@ def(TYPE_I32, Type, DATA_I32 @ TData)
 def(TYPE_I16, Type, DATA_I16 @ TData)
 def(TYPE_I8, Type, DATA_I8 @ TData)
 
-def(make-prim-data!, Str Mut(Data) List(Mut(Tag)) --,
+def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
     dip(dip(Data.alloc! dup) !)
     map(dip(Tag.alloc! dup) !)
-    { Str Data List(Tag) }
+    { Str Int Data List(Tag) }
     dip(
         dip(QName.prim)
         tuck ~qname !
@@ -72,22 +73,29 @@ def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     sip(L0 swap ~label-inputs !)
     sip(0 >Nat swap ~num-resource-inputs !)
     sip(dip(>Nat) ~value !)
-    dip(QName.prim) tuck ~qname !
+    sip(.data swap 0 data-word-qname) tuck ~qname !
     DEF_TAG register)
 
 def(init-data!, --,
-    "Bool" DATA_BOOL TAG_F TAG_T L2 make-prim-data!
+    "Bool" 0 DATA_BOOL TAG_F TAG_T L2 make-prim-data!
     "F" 0 L0 TAG_F make-prim-tag!
     "T" 1 L0 TAG_T make-prim-tag!
 
-    "U64" DATA_U64 TAG_U64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 TAG_U64 make-prim-tag!
-    "U32" DATA_U32 TAG_U32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 TAG_U32 make-prim-tag!
-    "U16" DATA_U16 TAG_U16 L1 make-prim-data! "Int>U16-unsafe" 0 TYPE_INT L1 TAG_U16 make-prim-tag!
-    "U8"  DATA_U8  TAG_U8  L1 make-prim-data! "Int>U8-unsafe"  0 TYPE_INT L1 TAG_U8  make-prim-tag!
-    "I64" DATA_I64 TAG_I64 L1 make-prim-data! "Int>I64-unsafe" 0 TYPE_INT L1 TAG_I64 make-prim-tag!
-    "I32" DATA_I32 TAG_I32 L1 make-prim-data! "Int>I32-unsafe" 0 TYPE_INT L1 TAG_I32 make-prim-tag!
-    "I16" DATA_I16 TAG_I16 L1 make-prim-data! "Int>I16-unsafe" 0 TYPE_INT L1 TAG_I16 make-prim-tag!
-    "I8"  DATA_I8  TAG_I8  L1 make-prim-data! "Int>I8-unsafe"  0 TYPE_INT L1 TAG_I8  make-prim-tag!)
+    "U64" 0 DATA_U64 TAG_U64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 TAG_U64 make-prim-tag!
+    "U32" 0 DATA_U32 TAG_U32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 TAG_U32 make-prim-tag!
+    "U16" 0 DATA_U16 TAG_U16 L1 make-prim-data! "Int>U16-unsafe" 0 TYPE_INT L1 TAG_U16 make-prim-tag!
+    "U8"  0 DATA_U8  TAG_U8  L1 make-prim-data! "Int>U8-unsafe"  0 TYPE_INT L1 TAG_U8  make-prim-tag!
+    "I64" 0 DATA_I64 TAG_I64 L1 make-prim-data! "Int>I64-unsafe" 0 TYPE_INT L1 TAG_I64 make-prim-tag!
+    "I32" 0 DATA_I32 TAG_I32 L1 make-prim-data! "Int>I32-unsafe" 0 TYPE_INT L1 TAG_I32 make-prim-tag!
+    "I16" 0 DATA_I16 TAG_I16 L1 make-prim-data! "Int>I16-unsafe" 0 TYPE_INT L1 TAG_I16 make-prim-tag!
+    "I8"  0 DATA_I8  TAG_I8  L1 make-prim-data! "Int>I8-unsafe"  0 TYPE_INT L1 TAG_I8  make-prim-tag!)
+
+def(data-qname, Data Name Int -- QName,
+    >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
+
+def(data-word-qname, Data Str Int -- QName,
+    # dip(dup name >Str "." cat) cat >Name # TODO remove
+    dip(>Name) data-qname)
 
 ########
 # DATA #

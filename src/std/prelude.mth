@@ -26,7 +26,7 @@ alias(drop, prim-drop)
 alias(run, prim-run)
 
 alias(rswap, prim-rswap)
-alias(rdip, prim-rdip)
+alias(rdip(f), prim-rdip)
 
 alias(Int.+, prim-int-add)
 alias(Int.-, prim-int-sub)
@@ -46,7 +46,7 @@ def(Bool.not, Bool -- Bool, T -> F, F -> T)
 def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
 def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
 
-alias(Bool.if, prim-if)
+alias(Bool.if(f,g), prim-if)
 def(Bool.then(f), (*a -- *a) *a Bool -- *a, T -> f, F -> id)
 def(Bool.else(f), (*a -- *a) *a Bool -- *a, T -> id, F -> f)
 
@@ -147,9 +147,6 @@ def(count(f), (*a Nat -- *a) *a Nat -- *a,
     0 >Nat swap repeat(dup dip(f) 1+) drop)
 def(countdown(f), (*a Nat -- *a) *a Nat -- *a,
     dup swap repeat(1- dup dip(f)) drop)
-
-def(identity, [*a -- *a], [])
-def(compose(f,g), [*a -- *b] [*b -- *c] -- [*a -- *c], [f g])
 
 def(U8_MAX, Int, 0xFF)
 def(U16_MAX, Int, 0xFFFF)

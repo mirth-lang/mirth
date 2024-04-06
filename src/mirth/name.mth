@@ -163,27 +163,36 @@ def(Namespace.>Str, Namespace -- Str,
 # Qualified Name #
 ##################
 
-data(QName, QNAME -> Namespace Name)
-def(QName.name, QName -- Name, QNAME -> nip)
-def(QName.namespace, QName -- Namespace, QNAME -> drop)
+data(QName, MKQNAME ->
+    namespace:Namespace
+    name:Name
+    arity:Int)
+
+def(QNAME0, Namespace Name -- QName,
+    >name >namespace 0 >arity MKQNAME)
 
 def(QName.==, QName QName -- Bool,
-    dup2 both(name) ==
-    dip(both(namespace) ==) &&)
+    /MKQNAME /MKQNAME
+    name> name> ==
+    arity> arity> == &&
+    namespace> namespace> == &&)
 
 def(QName.def?, QName -- Maybe(Def), dup name defs find(dup2 qname ==) nip)
 def(QName.defined?, QName -- Bool, def? some?)
 def(QName.undefined?, QName -- Bool, def? none?)
 
-def(QName.prim, Str -- QName, dip(Namespace.prim) >Name QNAME)
+def(QName.prim, Str Int -- QName, >arity >Name >name Namespace.prim >namespace MKQNAME)
 
-def(QName.>Str, QName -- Str,
-    QNAME -> dip(>Str "." cat) >Str cat)
+def(QName.>Str, QName -- Str, MKQNAME ->
+    namespace> >Str "." cat
+    name> >Str cat
+    arity> dup 0= if(drop, dip:"/" show cat cat))
 
 def(QName.to-module-path, QName -- Path,
-    QNAME -> swap match(
-        NAMESPACE_PACKAGE -> path unwrap-or("No path defined for package" panic!)
-	swap >Str ".mth" cat >Path join-unix, # TODO use Path.join instead?
+    dup namespace match(
+        NAMESPACE_PACKAGE ->
+            path unwrap-or("No path defined for package" panic!)
+        	swap name >Str ".mth" cat >Path join-unix, # TODO use Path.join instead?
         _ -> drop "expected module name" panic!
     ))
 

@@ -74,13 +74,13 @@ def(Type.tycon?, Type -- Maybe(Tycon),
 
 ||| Get primitive type constructor name.
 def(PrimType.tycon-qname, PrimType -- QName,
-    PRIM_TYPE_TYPE -> "TYPE" QName.prim,
-    PRIM_TYPE_STACK -> "STACK" QName.prim,
-    PRIM_TYPE_RESOURCE -> "RESOURCE" QName.prim,
-    PRIM_TYPE_INT -> "Int" QName.prim,
-    PRIM_TYPE_STR -> "Str" QName.prim,
-    PRIM_TYPE_PTR -> "Ptr" QName.prim,
-    PRIM_TYPE_WORLD -> "+World" QName.prim)
+    PRIM_TYPE_TYPE -> "TYPE" 0 QName.prim,
+    PRIM_TYPE_STACK -> "STACK" 0 QName.prim,
+    PRIM_TYPE_RESOURCE -> "RESOURCE" 0 QName.prim,
+    PRIM_TYPE_INT -> "Int" 0 QName.prim,
+    PRIM_TYPE_STR -> "Str" 0 QName.prim,
+    PRIM_TYPE_PTR -> "Ptr" 0 QName.prim,
+    PRIM_TYPE_WORLD -> "+World" 0 QName.prim)
 
 ||| Get value type constructor name.
 def(Value.tycon?, Value -- Maybe(Tycon),
@@ -91,16 +91,14 @@ def(Value.tycon?, Value -- Maybe(Tycon),
 def(PrimType.>Int, PrimType -- Int, PrimType.tag)
 def(PrimType.==, PrimType PrimType -- Bool, both(>Int) ==)
 
-def(def-prim-type!, Type Str --,
-    dip(Namespace.prim) >Name QNAME
-    swap NONE rotr
-    TypeDef.new! drop)
+def(def-prim-type!, PrimType --,
+    dip(NONE) dup tycon-qname swap TPrim TypeDef.new! drop)
 
 def(init-types!, --,
-    TYPE_INT "Int" def-prim-type!
-    TYPE_PTR "Ptr" def-prim-type!
-    TYPE_STR "Str" def-prim-type!
-    TYPE_WORLD "+World" def-prim-type!
+    PRIM_TYPE_INT def-prim-type!
+    PRIM_TYPE_PTR def-prim-type!
+    PRIM_TYPE_STR def-prim-type!
+    PRIM_TYPE_WORLD def-prim-type!
     init-data!)
 
 #########

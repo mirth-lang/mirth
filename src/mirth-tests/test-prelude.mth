@@ -23,18 +23,14 @@ def(test-prelude!, --,
     test+ test- test* test-while)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
-    T  [ 10 ] [ 20 ] Bool.if 10 !!=
-    F [ 10 ] [ 20 ] Bool.if 20 !!=
-    T  [ 30 ] Bool.if(20) 30 !!=
-    F [ 30 ] Bool.if(20) 20 !!=)
+    T Bool.if(10,20) 10 !!=
+    F Bool.if(10,20) 20 !!=)
 
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
 def(test-swap, --, 0 1 0 swap !!001)
 def(test-dip, --,
-    0 0 dip(1) !!010
-    0 0 [1] dip !!010
-    0 0 [1 +] dip !!0 !!1)
+    0 0 dip(1) !!010)
 def(test-rotr, --,
     1 0 0 rotr !!010
     0 1 0 rotr !!001
@@ -115,10 +111,7 @@ def(test*, --,
     2 4 * 8 !!=)
 
 def(test-while, --,
-    999 10 20 while(dup 0>, 1- dip(1+)) drop 30 !!= 999 !!=
-    10 20 [dup 0 >] while(1- dip(1+)) drop 30 !!=
-    30 40 [dup 0 >] [1- dip(1+)] while drop 70 !!=
-    )
+    999 10 20 while(dup 0>, 1- dip(1+)) drop 30 !!= 999 !!=)
 
 # Morphism quotes
 def(test-morphism-quote-id, [ Int -- Int ] -- [ Int -- Int ], id)
