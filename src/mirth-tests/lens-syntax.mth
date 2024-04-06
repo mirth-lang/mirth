@@ -5,24 +5,22 @@ import(posix.posix)
 data(Foo, FOO -> bar:Int)
 data(Boom, BOOM -> foo:Foo)
 
-def(Foo.bar~:f, (*a Int -- *b Int) *a Foo -- *b Foo, dup dip(bar f) bar!)
-def(Boom.foo~:f, (*a Foo -- *b Foo) *a Boom -- *b Boom, dup dip(foo f) foo!)
 def(Foo.print, Foo +World -- Foo +World, dup bar print! " FOO" print!)
-def(Boom.print, Boom +World -- Boom +World, .foo~:print " BOOM" print!)
+def(Boom.print, Boom +World -- Boom +World, .foo:print " BOOM" print!)
 
 def(main, +World -- +World,
     10 >bar FOO print line
-    bar~(1+) print line
-    1 dip:bar~:1+ drop print line
-    bar~:1+ print line
-    Foo.bar~:30 print line
-    Foo.bar~:drop print line
+    bar(1+) print line
+    1 dip:bar:1+ drop print line
+    bar:1+ print line
+    Foo.bar:30 print line
+    Foo.bar:drop print line
     >foo BOOM print line
-    foo~:print " . " print! print line
-    foo~:bar~:1+ print line
-    foo~:bar~:1+ print line
-    foo~:bar~:99 print line
-    foo~:bar! print line
+    foo:print " . " print! print line
+    foo:bar:1+ print line
+    foo:bar:1+ print line
+    foo:bar:99 print line
+    foo:bar! print line
     drop)
 # mirth-test # pout # 10 FOO
 # mirth-test # pout # 11 FOO
