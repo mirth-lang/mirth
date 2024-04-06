@@ -13,6 +13,7 @@ field(Word.~qname, Word, QName)
 field(Word.~head, Word, Token)
 field(Word.~sig, Word, Maybe(Token))
 field(Word.~body, Word, Token)
+field(Word.~arity, Word, Int)
 field(Word.~ctx-type, Word, Lazy([Ctx ArrowType]))
 field(Word.~params, Word, Lazy(List(Param)))
 field(Word.~arrow, Word, Lazy(Arrow))
@@ -30,10 +31,13 @@ def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)
 def(Word.type, Word -- ArrowType, ctx-type nip)
 
-def(Word.new!, Token Token QName -- Word,
+def(Word.new!,
+    head:Token sig:Maybe(Token) body:Token
+    qname:QName arity:Int -- Word,
     Word.alloc!
-    tuck ~qname !
-    tuck ~head !
-    tuck ~body !
-    NONE over ~sig !
+    qname> over ~qname !
+    head> over ~head !
+    body> over ~body !
+    arity> over ~arity !
+    sig> over ~sig !
     dup DEF_WORD register)

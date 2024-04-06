@@ -11,7 +11,7 @@ field(Package.~name, Package, Name)
 field(Package.~path, Package, Maybe(Path))
 
 def(Package.name, Package -- Name, ~name @)
-def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME)
+def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME0)
 def(Package.path, Package -- Maybe(Path), ~path @)
 
 def(Package.new!, Maybe(Path) Name -- Package,
@@ -31,7 +31,7 @@ def(Package.new-or-set-path!, Path Name -- Package,
 )
 
 def(Package.find, Name -- Maybe(Package),
-    NAMESPACE_ROOT swap QNAME def? bind(package?))
+    NAMESPACE_ROOT swap QNAME0 def? bind(package?))
 
 def(Package.find-or-new!, Name -- Package,
     dup Package.find unwrap-or(dup NONE swap Package.new!) nip)

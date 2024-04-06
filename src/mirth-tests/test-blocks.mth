@@ -3,6 +3,8 @@ import(std.prelude)
 import(std.list)
 import(posix.posix)
 
+def(compose, [*a -- *b] [*b -- *c] -- [*a -- *c], \([f] [g] -> [f g]))
+
 def(run1, (a -- b) a -- b, run)
 def(add10, [Int -- Int], [10 +])
 

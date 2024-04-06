@@ -107,7 +107,11 @@ def(Namespace.mangled, Namespace -- Str,
     NAMESPACE_PACKAGE -> name mangled,
     NAMESPACE_MODULE -> qname mangled,
     NAMESPACE_TYCON -> qname mangled)
-def(QName.mangled, QName -- Str, QNAME -> dip(mangled "_" cat) mangled cat)
+def(QName.mangled, QName -- Str, MKQNAME ->
+    namespace> mangled "_" cat
+    name> mangled cat
+    arity> dup 0> if(dip:"_" show cat cat, drop))
+
 def(+C99.sig-put, QName +C99 -- +C99, "static void mw_" put mangled put " (void)" put)
 def(+C99.cosig-put, QName +C99 -- +C99, "static void mp_" put mangled put " (void)" put)
 

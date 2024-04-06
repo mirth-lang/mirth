@@ -484,8 +484,8 @@ def(elab-atoms!, +AB -- +AB,
 
 def(elab-atom!, +AB -- +AB,
     ab-token@ value match(
-        TOKEN_NAME -> elab-atom-name!,
-        TOKEN_DNAME -> elab-atom-dname!,
+        TOKEN_NAME -> ab-token@ num-args elab-atom-name!,
+        TOKEN_DNAME -> ab-token@ num-args elab-atom-dname!,
         TOKEN_INT -> ab-int!,
         TOKEN_STR -> ab-str!,
         TOKEN_LSQUARE -> drop elab-atom-block!,
@@ -524,13 +524,15 @@ def(elab-qname-is-imported?, QName +AB -- Bool +AB,
         _ -> drop2 F
     ))
 
-def(elab-atom-name!, Name +AB -- +AB,
-    dup ab-ctx@ lookup match(
-        SOME -> nip elab-args! ab-var!,
+def(arity-compatible?, Int Int -- Bool,
+    dup -1 == dip(==) ||)
+
+def(elab-atom-name!, Name Int +AB -- +AB,
+    over ab-ctx@ lookup match(
+        SOME -> dip:drop2 elab-args! ab-var!,
         NONE ->
-            dup
-            defs map(qname) filter(dup elab-qname-is-imported?)
-            over can-be-relative? then(over elab-relative-name-candidates! cat)
+            over defs map(qname) filter(dup2 arity arity-compatible?) filter(dup elab-qname-is-imported?)
+            over2 can-be-relative? then(dip(dup2 elab-relative-name-candidates!) swap cat) nip
             match(
                 L0 -> dip(ab-token@ "unknown name: ") >Str cat emit-fatal-error!,
                 L1 -> nip elab-atom-qname!,
@@ -538,30 +540,34 @@ def(elab-atom-name!, Name +AB -- +AB,
             )
     ))
 
-def(elab-atom-dname!, DName +AB -- +AB,
-    dup root? match(
+def(elab-atom-dname!, DName Int +AB -- +AB,
+    over root? match(
         SOME -> drop elab-atom-nonrelative-dname!,
-        NONE -> parts match(
-            L1+ -> elab-atom-relative-name!,
+        NONE -> swap parts match(
+            L1+ -> swap elab-atom-relative-name!,
             _ -> ab-token@ "relative name has too many parts" emit-fatal-error!
         )
     ))
 
-def(elab-atom-nonrelative-dname!, DName +AB -- +AB,
-    dip(ab-token@) elab-qname-from-nonrelative-dname elab-atom-qname!)
+def(elab-atom-nonrelative-dname!, DName Int +AB -- +AB,
+    dip2(ab-token@) elab-qname-from-nonrelative-dname elab-atom-qname!)
 
-def(elab-relative-name-candidates!, Name +AB -- List(QName) +AB,
-    L0
+def(elab-relative-name-candidates!, Name Int +AB -- List(QName) +AB,
+    NAMESPACE_ROOT >namespace >arity >name MKQNAME >template
+    L0 L0
     ab-type@ top-tycon? for(snoc)
     ab-type@ top-resource-tycon? for(snoc)
-    map(NAMESPACE_TYCON over QNAME)
-    filter(dup defined?)
-    nip)
+    for(
+        NAMESPACE_TYCON template> dup >template namespace!
+        -1 over arity! L2 cat
+    )
+    template> drop
+    filter(dup defined?))
 
-def(elab-atom-relative-name!, Name +AB -- +AB,
-    dup elab-relative-name-candidates! match(
-        L0 -> dip(ab-token@ "unknown relative name: ") >Str cat emit-fatal-error!,
-        L1 -> nip elab-atom-qname!,
+def(elab-atom-relative-name!, Name Int +AB -- +AB,
+    dup2 elab-relative-name-candidates! match(
+        L0 -> drop dip(ab-token@ "unknown relative name: ") >Str cat emit-fatal-error!,
+        L1 -> dip:drop2 elab-atom-qname!,
         _ -> nip dip(ab-token@) elab-ambiguous-name-error!
     ))
 
@@ -860,7 +866,7 @@ def(elab-module-package-name, Token -- Package Name,
     dip(Package.find-or-new! nip))
 
 def(elab-module-qname, Token -- QName,
-    elab-module-package-name dip(NAMESPACE_PACKAGE) QNAME)
+    elab-module-package-name dip(NAMESPACE_PACKAGE) QNAME0)
 
 ||| Check that the `module(M)` statement exists and save the name.
 def(elab-module-header!, Token -- Token,
@@ -943,7 +949,7 @@ def(elab-data-header!, Data Token -- Data,
 ||| This looks like either "TAG" or "TAG -> TYPE1 .. TYPEN".
 def(elab-data-tag!, Data Token -- Data,
     dup2 name? unwrap-or(drop "Expected constructor name." emit-fatal-error!)
-    data-qname
+    0 data-qname
     Tag.alloc!
     NONE over ~untag !
     tuck ~qname !
@@ -983,27 +989,24 @@ def(elab-data-tag!, Data Token -- Data,
 
     drop)
 
-def(data-qname, Data Name -- QName,
-    dip(TYCON_DATA NAMESPACE_TYCON) QNAME)
-
-def(data-word-qname, Data Str -- QName,
-    # dip(dup name >Str "." cat) cat >Name # TODO remove
-   >Name data-qname)
-
-def(data-word-new!, Data Str -- Word,
-    dip(dup head? unwrap dup rotl) data-word-qname Word.new!)
+def(data-word-new!, Data Str Int -- Word,
+    dup >arity
+    dip2(dup head? unwrap dup >body >head)
+    data-word-qname >qname
+    NONE >sig
+    Word.new!)
 
 def(elab-data-done!, Data --,
     \(dat ->
         dat is-enum? then(
-            dat "tag" data-word-new! \(tag ->
+            dat "tag" 0 data-word-new! \(tag ->
                 CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
                 tag ab-build-word!(
                     COERCE_UNSAFE ab-coerce!
                 ) drop
             )
 
-            dat "from-tag-unsafe" data-word-new! \(ftag ->
+            dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
                 CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
                 ftag ab-build-word!(
                     COERCE_UNSAFE ab-coerce!
@@ -1013,7 +1016,7 @@ def(elab-data-done!, Data --,
 
         dat tags match(
             L1 -> \(tag ->
-                dat "/" tag name >Str cat data-word-new! \(untag ->
+                dat "/" tag name >Str cat 0 data-word-new! \(untag ->
                     tag delay(ctx-type unpack swap T-> pack2) untag ~ctx-type !
                     untag delay(ab-build-word-arrow!(
                         untag type cod >cod
@@ -1044,8 +1047,8 @@ def(Tag.project-input-label, Label Tag -- Maybe(Type),
 
 def(create-projectors!, Tag --,
     dup .data over .untag unwrap \(tag dat untag ->
-    tag label-inputs reverse-for(\(lbl -> dat lbl name data-qname undefined? then(
-        dat lbl >Str data-word-new! \(lbl_proj ->
+    tag label-inputs reverse-for(\(lbl -> dat lbl name 0 data-qname undefined? then(
+        dat lbl >Str 0 data-word-new! \(lbl_proj ->
             delay0(
                 tag ctx
                 T0 tag output-type T*+
@@ -1064,7 +1067,7 @@ def(create-projectors!, Tag --,
                 )
             )) lbl_proj ~arrow !
         )
-        dat lbl >Str "!" cat data-word-new! \(lbl_proj ->
+        dat lbl >Str "!" cat 0 data-word-new! \(lbl_proj ->
             delay0(
                 tag ctx
                 lbl tag project-input-label unwrap T1 tag output-type T*+
@@ -1100,9 +1103,8 @@ def(token-def-args, Token -- Token Token List+(Token),
 ||| Elaborate an alias `alias(w1,w2)`
 def(elab-alias!, Token -- Token,
     sip(next) args-2 swap
-    dup elab-def-qname-undefined
-    over args-0
-    over succ arg-end? else(over "expected comma after alias name" emit-fatal-error!)
+    dup elab-def-qname-undefined dup \(aliasqname ->
+    over next arg-end? else(over "expected comma after alias name" emit-fatal-error!)
     rotl dup name-or-dname? unwrap-or("expected alias target, which must be a name" emit-fatal-error!)
     over args-0 over succ arg-end? else(over "expected end of argument after alias target" emit-fatal-error!)
     pack2 delay(
@@ -1114,7 +1116,7 @@ def(elab-alias!, Token -- Token,
                     _ -> map(qname) elab-ambiguous-name-error!
                 ),
             RIGHT ->
-                dip(dup) elab-qname-from-nonrelative-dname
+                dip(dup) aliasqname arity elab-qname-from-nonrelative-dname
                 dup def? unwrap-or(dip("undefined alias target ") >Str cat emit-fatal-error!) nip
         )
         dup2 def-visible-from-token? else(
@@ -1130,7 +1132,7 @@ def(elab-alias!, Token -- Token,
             _ -> nip,
         )
     )
-    Alias.new! drop)
+    Alias.new! drop))
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, Token -- Token,
@@ -1140,11 +1142,12 @@ def(elab-def-missing!, Token -- Token,
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(next) token-def-args
-    uncons is-empty or(dup run-has-arrow?) else("expected match case" emit-fatal-error!)
-    rotl dup elab-def-qname-undefined
-
+    uncons is-empty or(dup run-has-arrow?) else("expected match case" emit-fatal-error!) >body
+    SOME >sig
+    dup >head
+    dup num-args >arity
+    elab-def-qname-undefined >qname
     Word.new!
-    dip(SOME) tuck ~sig !
 
     dup delay(
         type-elab-default
@@ -1269,12 +1272,12 @@ def(typecheck-everything!, --,
 
 def(TABLE_MAX_COUNT, Nat, 0x10000 >Nat)
 
-def(table-qname, Table Str -- QName,
-    # over qname name >Str "." cat swap cat >Name # TODO remove this
-   >Name dip(TYCON_TABLE NAMESPACE_TYCON) QNAME)
+def(table-qname, Table Str Int -- QName,
+    >arity >Name >name TYCON_TABLE NAMESPACE_TYCON >namespace MKQNAME)
 
-def(table-word-new!, Table Str -- Word,
-    dip(dup dip(head dup)) table-qname Word.new!)
+def(table-word-new!, Table Str Int -- Word,
+    over2 head dup >head >body NONE >sig
+    dup >arity table-qname >qname Word.new!)
 
 def(table-new!, Token QName -- Table,
     Table.alloc!
@@ -1284,7 +1287,7 @@ def(table-new!, Token QName -- Table,
     dup DEF_TABLE register
 
     # Table.MAX
-    dup "MAX" table-word-new!
+    dup "MAX" 0 table-word-new!
 
     L0 CTX
     T0 TYPE_INT T1 T->
@@ -1296,7 +1299,7 @@ def(table-new!, Token QName -- Table,
     ) drop
 
     # Table.nil
-    dup "nil" table-word-new!
+    dup "nil" 0 table-word-new!
 
     L0 CTX
     T0 over3 TTable T1 T->
@@ -1310,12 +1313,12 @@ def(table-new!, Token QName -- Table,
 
     # Table.NUM
     dup head
-    over "NUM" table-qname
+    over "NUM" 0 table-qname
     8 >Size Buffer.new!
     over ~num-buffer !
 
     # Table.index
-    dup "index" table-word-new!
+    dup "index" 0 table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 T->
@@ -1327,7 +1330,7 @@ def(table-new!, Token QName -- Table,
     ) drop
 
     # Table.from-index
-    dup "from-index" table-word-new!
+    dup "from-index" 0 table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 swap T->
@@ -1339,7 +1342,7 @@ def(table-new!, Token QName -- Table,
     ) drop
 
     # Table.succ
-    dup "succ" table-word-new!
+    dup "succ" 0 table-word-new!
 
     L0 CTX
     over2 TTable T1 dup T->
@@ -1360,7 +1363,7 @@ def(table-new!, Token QName -- Table,
     ) drop
 
     # Table.pred
-    dup "pred" table-word-new!
+    dup "pred" 0 table-word-new!
 
     L0 CTX
     over2 TTable T1 dup T->
@@ -1382,7 +1385,7 @@ def(table-new!, Token QName -- Table,
 
     # Table.for
 
-    dup "for" table-word-new!
+    dup "for" 1 table-word-new!
     TYPE_STACK "*a" >Name Var.new! dup STVar
     \(t w va a -> a t TTable T* a T-> >Type "x" >Name Var.new-auto-run!
     \(x ->
@@ -1418,7 +1421,7 @@ def(table-new!, Token QName -- Table,
     t))
 
     # Table.alloc!
-    dup "alloc!" table-word-new!
+    dup "alloc!" 0 table-word-new!
 
     L0 CTX
     T0 over3 TTable T1 T->
@@ -1444,14 +1447,14 @@ def(table-new!, Token QName -- Table,
 # FIELD #
 #########
 
-def(elab-qname-from-nonrelative-dname, Token DName -- QName,
-    dup root? unwrap-or(drop "relative name not allowed" emit-fatal-error!)
+def(elab-qname-from-nonrelative-dname, Token DName Int -- QName,
+    over root? unwrap-or(drop2 "relative name not allowed" emit-fatal-error!)
     dup could-be-type-or-resource-con if(
-        swap parts match(
-            L1+ -> elab-tycon-qname,
-            _ -> drop2 "type-qualified name has too many parts" emit-fatal-error!
+        rotl parts match(
+            L1+ -> rotl elab-tycon-qname,
+            _ -> drop3 "type-qualified name has too many parts" emit-fatal-error!
         ),
-        swap parts cons+ elab-absolute-qname
+        rotr dip(parts cons+) elab-absolute-qname
     ))
 
 def(module-visible-from-token?, Token Module -- Bool,
@@ -1475,12 +1478,12 @@ def(elab-tycon, Token Name -- Tycon,
 
 # )
 
-def(elab-tycon-qname, Token Name Name -- QName,
-    dip(elab-tycon NAMESPACE_TYCON) QNAME)
+def(elab-tycon-qname, Token Name Name Int -- QName,
+    >arity >name elab-tycon NAMESPACE_TYCON >namespace MKQNAME)
 
 def(elab-absolute-namespace, Token List(Name) -- Namespace,
     NAMESPACE_ROOT swap for(
-        QNAME dup def? unwrap-or("unknown namespace: " swap >Str cat emit-fatal-error!)
+        QNAME0 dup def? unwrap-or("unknown namespace: " swap >Str cat emit-fatal-error!)
         match(
             DEF_PACKAGE -> NAMESPACE_PACKAGE,
             DEF_MODULE -> NAMESPACE_MODULE,
@@ -1488,16 +1491,17 @@ def(elab-absolute-namespace, Token List(Name) -- Namespace,
         ) nip
     ) nip)
 
-def(elab-absolute-qname, Token List+(Name) -- QName,
-    unsnoc dip(elab-absolute-namespace) QNAME)
+def(elab-absolute-qname, Token List+(Name) Int -- QName,
+    >arity unsnoc >name
+    elab-absolute-namespace >namespace MKQNAME)
 
 ||| Elaborate the qname for a word definition.
 ||| Generally speaking this is going to use the module namespace.
 def(elab-def-qname, Token -- QName,
     dup name-or-dname? unwrap-or("expected name" emit-fatal-error!)
     match(
-        LEFT -> dip(.module NAMESPACE_MODULE) QNAME,
-        RIGHT -> elab-qname-from-nonrelative-dname
+        LEFT -> >name dup .module NAMESPACE_MODULE >namespace num-args >arity MKQNAME,
+        RIGHT -> over num-args elab-qname-from-nonrelative-dname
     ))
 
 ||| Same as `elab-def-qname` but raises an error if the qname is already defined.

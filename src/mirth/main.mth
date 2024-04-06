@@ -103,7 +103,7 @@ def(compile!, Arguments +World -- +World,
     typecheck-everything!
 
     entry-point> map(
-        dip(dup NAMESPACE_MODULE) >Name QNAME
+        dip(dup NAMESPACE_MODULE) >Name QNAME0
         elab-entry-point
     ) nip
 
@@ -166,7 +166,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
 def(main, +World -- +World,
     init!
 
-    Arguments.default 
+    Arguments.default
     LIST(
         "output-file" SOME
         B'o' SHORT
@@ -201,7 +201,7 @@ def(main, +World -- +World,
     [ compiler-parse-args ] SOME >parser
     "input-file" SOME >args-doc
     "Mirth Compiler" >doc
-    ArgumentParser.new 
+    ArgumentParser.new
 
     parse-args match(
         RIGHT -> ,
