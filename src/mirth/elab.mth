@@ -750,11 +750,9 @@ def(elab-atom-lambda!, +AB -- +AB,
 
 ||| Check that a match is exhaustive.
 def(elab-match-exhaustive!, +Match -- +Match,
-    id) # TODO
-    # dup is-exhaustive? else(
-    #     dup token "Match not exhaustive." emit-error!
-    #     # TODO print missing patterns
-    # ))
+    freeze dup is-exhaustive? else(
+        dup token "Pattern match not exhaustive." emit-error!
+    ) thaw)
 
 ######################
 # Module Elaboration #

@@ -7561,10 +7561,12 @@ static void mw_mirth_match__2B_Match_dom (void);
 static void mw_mirth_match__2B_Match_ctx (void);
 static void mw_mirth_match__2B_Match_body (void);
 static void mw_mirth_match__2B_Match_home (void);
+static void mw_mirth_match_Match_thaw (void);
 static void mw_mirth_match__2B_Match_freeze (void);
 static void mw_mirth_match_Case__2F_CASE (void);
 static void mw_mirth_match_Case_body (void);
 static void mw_mirth_match_Case_pattern (void);
+static void mw_mirth_match_Match_is_exhaustive_3F_ (void);
 static void mw_mirth_match_Match_has_default_case_3F_ (void);
 static void mw_mirth_match_Match_scrutinee_data_3F_ (void);
 static void mw_mirth_match_Match_is_transparent_3F_ (void);
@@ -8644,6 +8646,7 @@ static void mb_mirth_data_Tag_num_resource_inputs_from_sig_20 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_6 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_10 (void);
 static void mb_mirth_data_Tag_num_resource_inputs_from_sig_14 (void);
+static void mb_mirth_match_Match_is_exhaustive_3F__4 (void);
 static void mb_mirth_match_Match_has_default_case_3F__3 (void);
 static void mb_mirth_match_Match_scrutinee_data_3F__3 (void);
 static void mb_mirth_match_Match_scrutinee_data_3F__11 (void);
@@ -8738,6 +8741,7 @@ static void mb_mirth_elab_elab_qname_from_nonrelative_dname_4 (void);
 static void mb_mirth_elab_elab_atom_lambda_21__4 (void);
 static void mb_mirth_elab_elab_atom_lambda_21__13 (void);
 static void mb_mirth_elab_elab_match_at_21__2 (void);
+static void mb_mirth_elab_elab_match_exhaustive_21__5 (void);
 static void mb_mirth_elab_elab_match_case_21__4 (void);
 static void mb_mirth_elab_elab_match_case_21__11 (void);
 static void mb_mirth_elab_elab_match_case_21__19 (void);
@@ -17155,6 +17159,15 @@ static void mw_mirth_match__2B_Match_home (void) {
 		push_value(d2);
 	}
 }
+static void mw_mirth_match_Match_thaw (void) {
+	switch (get_top_data_tag()) {
+		case 0LL:
+			mp_mirth_match_Match_MATCH();
+			mw_mirth_match__2B_Match__2B_MATCH();
+			break;
+		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+	}
+}
 static void mw_mirth_match__2B_Match_freeze (void) {
 	switch (get_top_resource_data_tag()) {
 		case 0LL:
@@ -17195,6 +17208,15 @@ static void mw_mirth_match_Case_pattern (void) {
 		mw_std_prim_prim_drop();
 		push_value(d2);
 	}
+}
+static void mw_mirth_match_Match_is_exhaustive_3F_ (void) {
+	mw_std_prim_prim_dup();
+	mw_mirth_match_Match_has_default_case_3F_();
+	push_u64(0);
+	push_fnptr(&mb_mirth_match_Match_is_exhaustive_3F__4);
+	mw_std_prim_prim_pack_cons();
+	mw_std_prim_Bool_or_1();
+	mw_std_prelude_nip();
 }
 static void mw_mirth_match_Match_has_default_case_3F_ (void) {
 	mw_mirth_match_Match_cases();
@@ -29518,7 +29540,14 @@ static void mw_mirth_elab_elab_atom_lambda_21_ (void) {
 	mw_mirth_elab_ab_lambda_at_21__1();
 }
 static void mw_mirth_elab_elab_match_exhaustive_21_ (void) {
-	mw_std_prim_prim_id();
+	mw_mirth_match__2B_Match_freeze();
+	mw_std_prim_prim_dup();
+	mw_mirth_match_Match_is_exhaustive_3F_();
+	push_u64(0);
+	push_fnptr(&mb_mirth_elab_elab_match_exhaustive_21__5);
+	mw_std_prim_prim_pack_cons();
+	mw_std_prim_Bool_else_1();
+	mw_mirth_match_Match_thaw();
 }
 static void mw_mirth_elab_elab_module_21_ (void) {
 	mw_std_prim_prim_dup();
@@ -37817,6 +37846,29 @@ static void mb_mirth_data_Tag_num_resource_inputs_from_sig_14 (void) {
 	mw_std_prim_prim_dup();
 	mw_mirth_name_Name_could_be_resource_con();
 }
+static void mb_mirth_match_Match_is_exhaustive_3F__4 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_dup();
+	mw_mirth_match_Match_scrutinee_data_3F_();
+	switch (get_top_data_tag()) {
+		case 1LL:
+			mp_std_maybe_Maybe_1_SOME();
+			mw_mirth_data_Data_num_tags();
+			mw_std_prelude_over();
+			mw_mirth_match_Match_cases();
+			mw_std_list_List_1_len();
+			mw_std_prelude_Nat__3D__3D_();
+			break;
+		case 0LL:
+			mp_std_maybe_Maybe_1_NONE();
+			mw_std_prim_prim_dup();
+			mw_mirth_match_Match_cases();
+			mw_std_list_List_1_len();
+			mw_std_prelude_Nat_0_3E_();
+			break;
+		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+	}
+}
 static void mb_mirth_match_Match_has_default_case_3F__3 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
@@ -38525,6 +38577,22 @@ static void mb_mirth_elab_elab_match_at_21__2 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_elab_elab_match_cases_21_();
 	mw_mirth_elab_elab_match_exhaustive_21_();
+}
+static void mb_mirth_elab_elab_match_exhaustive_21__5 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_dup();
+	mw_mirth_match_Match_token();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("Pattern match not exhaustive.", 29);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_token_emit_error_21_();
 }
 static void mb_mirth_elab_elab_match_case_21__4 (void) {
 	mw_std_prim_prim_drop();
