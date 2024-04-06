@@ -93,6 +93,7 @@ def(Name.tail, Name -- Name,
 def(Name.can-be-relative?, Name -- Bool, head is-upper not)
 def(Name.could-be-label-name?, Name -- Bool, head is-lower)
 def(Name.could-be-type, Name -- Bool, head is-alpha)
+def(Name.could-be-pattern-var?, Name -- Bool, head is-lower)
 def(Name.could-be-type-var, Name -- Bool, head is-lower)
 def(Name.could-be-type-con, Name -- Bool, head is-upper)
 def(Name.is-type-hole, Name -- Bool, dup head B'?' == swap tail-head dup BNUL == swap is-lower || &&)

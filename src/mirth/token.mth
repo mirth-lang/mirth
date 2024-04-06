@@ -187,6 +187,9 @@ def(Token.could-be-sig-label?, Token -- Bool,
     dup name? if-some(could-be-label-name?, F)
     and(dup succ lcolon? >Bool) nip)
 
+def(Token.pattern-var?, Token -- Bool,
+    name? and-some: could-be-pattern-var?)
+
 ||| Verify that token has 0 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-0, Token --,

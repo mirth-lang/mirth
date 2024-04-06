@@ -382,30 +382,21 @@ def(ab-while!(f,g), (*a +AB -- *b +AB, *b +AB -- *c +AB) *a +AB -- *c +AB,
     ab-block!(f) ab-block!(g) PRIM_CORE_WHILE ab-prim!)
 
 def(ab-lambda!(f), (*a +AB -- *b +AB) *a List(Param) +AB -- *b +AB,
-    Lambda.alloc!
-    ab-ctx@ over ~outer-ctx !
-    ab-type@ over ~dom !
-    ab-token@ over ~token !
-    dup2 ~params !
-    dip(ab-ctx@ ab-type@ rotl reverse-for(
-        swap dip(>Var dup dip(Ctx.new))
-        ab-token@ elab-expand-tensor!
-        dip(rotl type) elab-type-unify! drop2
-    ))
-    tuck ~mid !
-    tuck ~inner-ctx !
-
-    { *a Lambda +AB }
-
-    dup inner-ctx
-    over mid
-    ab-token@ ab-home@
-    rdip(ab-build!(
-        dip(f)
-        ab-type@ over ~cod !
-    ))
-    over ~body !
-    OP_LAMBDA ab-op!)
+    dip(ab-token@) ab-lambda-at!(f))
+def(ab-lambda-at!(f), (*a +AB -- *b +AB) *a Token List(Param) +AB -- *b +AB,
+    dup dip(
+        dip(ab-ctx@ ab-type@) reverse-for(
+            swap dip(>Var dup dip(Ctx.new))
+            ab-token@ elab-expand-tensor!
+            dip(rotl type) elab-type-unify! drop2
+        )
+        rotl ab-home@ rdip(ab-build!(f))
+    )
+    >params >body
+    ab-ctx@ >outer-ctx
+    ab-type@ >dom
+    ab-token@ >token
+    LAMBDA OP_LAMBDA ab-op!)
 
 data(OpSig,
     OPSIG_ID,
@@ -659,14 +650,6 @@ def(elab-atom-assert!, +AB -- +AB,
     ab-token@ args-1 elab-type-stack!
     drop nip ab-type@ swap unify! drop2)
 
-def(elab-atom-lambda!, +AB -- +AB,
-    Lambda.alloc!
-    ab-ctx@ over ~outer-ctx !
-    ab-type@ over ~dom !
-    ab-token@ over ~token !
-    elab-lambda!
-    OP_LAMBDA ab-op!)
-
 ||| Elaborate a match body within AB. Takes the output stack type,
 ||| and the token for the body of the match, from the stack. Takes
 ||| the rest from the AB environment.
@@ -713,71 +696,30 @@ def(elab-atom-match!, +AB -- +AB,
     ab-token@ args+ first >body
     elab-match-at!)
 
-def(elab-lambda!, Lambda +AB -- Lambda +AB,
-    elab-lambda-params!
-    elab-lambda-body!)
-
 def(elab-expand-tensor!, StackType Token -- StackType Type Token,
-    swap expand match(
-        STACK_TYPE_ERROR -> dip(STACK_TYPE_ERROR TYPE_ERROR),
-        STCons -> rotl,
-        STMeta ->
-            dip(MetaVar.new! STMeta
-                MetaVar.new! TMeta
-                dup2 T* >Type SOME)
-            ~type? ! rotl,
-        _ ->
-            drop dup "expected tuple type" emit-error!
-            dip(STACK_TYPE_ERROR TYPE_ERROR)
+    >tok force-cons?! match(
+        SOME -> unpack2 tok>,
+        NONE -> STACK_TYPE_ERROR TYPE_ERROR tok> dup "expected tuple type" emit-error!
     ))
 
-def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
-    dip(dup mid)
-    elab-expand-tensor!
-    dip2(over ~mid !))
-
-def(token-is-lambda-param?, Token -- Token Bool,
-    dup sig-type-var? if( # TODO use better named predicate than sig-type-var
-        dup has-args? not,
-    dup lsquare? .if(
-        dup T
-        dip(succ dup sig-type-var?) &&
-        dip(succ dup rsquare? some?) &&
-        nip,
-        F
+def(elab-lambda-param?, Token -- Token Maybe(Param),
+    dup pattern-var? if(
+        dup args-0 sip:next
+        dip(MetaVar.new! TMeta) name? unwrap Var.new! >Param SOME,
+    dup lsquare?
+    and(dup succ pattern-var?)
+    and(dup succ succ rsquare? >Bool) if(
+        dup succ args-0 sip:next
+        dip(MetaVar.new! STMeta MetaVar.new! STMeta T-> TMorphism)
+        succ name? unwrap Var.new-auto-run! >Param SOME,
+        NONE
     )))
 
-def(elab-lambda-params!, Lambda -- Lambda,
-    L0 over ~params !
-    dup outer-ctx over ~inner-ctx !
-    dup dom over ~mid !
-    dup token args-1
-    while(token-is-lambda-param?, next)
-    expect-token-arrow prev
-    while(token-is-lambda-param?,
-        elab-lambda-pop-from-mid! sip(
-            dup sig-type-var? if(
-                name? unwrap Var.new!,
-
-                succ dip(expand dup morphism?) swap .if(
-                    name? unwrap Var.new-auto-run!,
-
-                    "block pattern on non-block argument" emit-fatal-error!
-                )
-            )
-            dip(dup params) sip(>Param swap cons over ~params !)
-            dip(dup inner-ctx) Ctx.new over ~inner-ctx !
-        )
-        prev)
-    drop)
-
-def(elab-lambda-body!, Lambda +AB -- Lambda +AB,
-    dup token args-1
-    while(token-is-lambda-param?, next) succ
-    dip(dup mid dip(dup inner-ctx))
-    ab-home@ elab-arrow-fwd!
-    dup2 swap ~body !
-    cod over ~cod !)
+def(elab-atom-lambda!, +AB -- +AB,
+    ab-token@ args-1
+    collect(elab-lambda-param?)
+    dip(expect-token-arrow succ)
+    ab-lambda-at!(elab-atoms!))
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
