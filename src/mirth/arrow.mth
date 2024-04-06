@@ -34,7 +34,6 @@ import(mirth.var)
 # to type repeatedly so now it's called Arrow :-)
 
 # mirth/data/arrow
-table(Atom)
 table(Arrow)
 table(Lambda)
 table(Block)
@@ -80,13 +79,14 @@ field(Arrow.~dom, Arrow, StackType)
 field(Arrow.~cod, Arrow, StackType)
 field(Arrow.~atoms, Arrow, List(Atom))
 
-field(Atom.~token, Atom, Token)
-field(Atom.~ctx, Atom, Ctx)
-field(Atom.~op, Atom, Op)
-field(Atom.~args, Atom, List(Arg))
-field(Atom.~dom, Atom, StackType)
-field(Atom.~cod, Atom, StackType)
-field(Atom.~subst, Atom, Subst)
+data(Atom, ATOM ->
+    token:Token
+    ctx:Ctx
+    op:Op
+    args:List(Arg)
+    dom:StackType
+    cod:StackType
+    subst:Subst)
 
 field(Lambda.~token, Lambda, Token)
 field(Lambda.~outer-ctx, Lambda, Ctx)
@@ -113,14 +113,6 @@ def(Arrow.cod, Arrow -- StackType, ~cod @)
 def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
 def(Arrow.atoms, Arrow -- List(Atom), ~atoms @)
 
-def(Atom.token, Atom -- Token, ~token @)
-def(Atom.ctx, Atom -- Ctx, ~ctx @)
-def(Atom.op, Atom -- Op, ~op @)
-def(Atom.args, Atom -- List(Arg), ~args @)
-def(Atom.dom, Atom -- StackType, ~dom @)
-def(Atom.cod, Atom -- StackType, ~cod @)
-def(Atom.subst, Atom -- Subst, ~subst @)
-
 def(Lambda.token, Lambda -- Token, ~token @)
 def(Lambda.outer-ctx, Lambda -- Ctx, ~outer-ctx @)
 def(Lambda.inner-ctx, Lambda -- Ctx, ~inner-ctx @)
@@ -138,14 +130,6 @@ def(Block.type, Block -- ArrowType, sip(dom) cod T->)
 def(Block.home, Block -- Home, ~home @)
 def(Block.arrow, Block -- Arrow, ~arrow force!)
 def(Block.infer-type!, Block -- ArrowType, arrow type)
-
-#######
-# ARG #
-#######
-
-||| Add arg to atom, on the left.
-def(Atom.add-arg-left!, Arg Atom --,
-    ~args modify(cons))
 
 #########
 # BLOCK #

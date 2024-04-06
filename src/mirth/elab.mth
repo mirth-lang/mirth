@@ -291,7 +291,7 @@ def(ab-optimized-snoc!, List(Atom) Atom +AB -- List(Atom) +AB,
 
 def(atom-accepts-args?, Atom +AB -- Atom Bool +AB,
     dup op match(
-        OP_WORD -> dip(dup args len) type max-num-params <,
+        OP_WORD -> dip(dup args len >Int) arity <,
         OP_PRIM ->
             match(
                 PRIM_CORE_DIP -> dup args len 1 >Nat <,
@@ -320,25 +320,21 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) +AB -- Atom List(Atom) +AB,
             unsnoc dup op match(
                 OP_BLOCK ->
                     { Atom List(Atom) Atom Block +AB}
-                    dip(cod rotl tuck ~dom !)
+                    dip(cod rotl dom!)
                     { List(Atom) Atom Block +AB}
-                    ARG_BLOCK over add-arg-left!
+                    ARG_BLOCK swap args:cons
                     swap,
                 _ -> drop snoc
             )
     ))
 
 def(ab-op!, Op +AB -- +AB,
-    Atom.alloc!
-    ab-ctx@ over ~ctx !
-    ab-token@ over ~token !
-    dup2 ~op !
-    swap elab-op-fresh-sig!
-    dip(over ~subst !)
-    ab-expand-opsig!
-    dip(over ~dom !) over ~cod !
-    L0 over ~args !
-    ab-atom!)
+    ab-ctx@ >ctx
+    ab-token@ >token
+    dup >op
+    elab-op-fresh-sig! dip:>subst
+    ab-expand-opsig! >cod >dom
+    L0 >args ATOM ab-atom!)
 
 def(ab-expand-opsig!, OpSig +AB -- StackType StackType +AB,
     OPSIG_ID -> ab-type@ dup,

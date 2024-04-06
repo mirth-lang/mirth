@@ -24,6 +24,7 @@ def(Word.name, Word -- Name, qname name)
 def(Word.head, Word -- Token, ~head @)
 def(Word.sig, Word -- Maybe(Token), ~sig @)
 def(Word.body, Word -- Token, ~body @)
+def(Word.arity, Word -- Int, ~arity @)
 def(Word.params, Word -- List(Param), ~params force!)
 def(Word.arrow, Word -- Arrow, ~arrow force!)
 
