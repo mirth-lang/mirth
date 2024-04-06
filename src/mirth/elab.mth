@@ -641,51 +641,87 @@ def(elab-atom-assert!, +AB -- +AB,
     ab-token@ args-1 elab-type-stack!
     drop nip ab-type@ swap unify! drop2)
 
+def(elab-atom-match!, +AB -- +AB,
+    MetaVar.new! STMeta >cod
+    ab-token@ args+ first >body
+    elab-match-at!)
+
 ||| Elaborate a match body within AB. Takes the output stack type,
 ||| and the token for the body of the match, from the stack. Takes
 ||| the rest from the AB environment.
 def(elab-match-at!, cod:StackType body:Token +AB -- +AB,
-    ab-ctx@ >ctx
-    ab-type@ >dom
-    ab-token@ >token
-    ab-home@ >home
-    Match.new!
-    elab-match-cases!
-    elab-match-exhaustive!
-    OP_MATCH ab-op!)
+    ab-match!(
+        elab-match-cases!
+        elab-match-exhaustive!
+    ))
+
+||| Elaborate match cases.
+def(elab-match-cases!, +Match -- +Match,
+    body while(dup args-end? not, elab-match-case!) drop)
+
+||| Elaborate match case based on starting token.
+def(elab-match-case!, Token +Match -- Token +Match,
+    dup run-arrow? unwrap-or("expected arrow end" emit-fatal-error!)
+    dup2 == then("expected pattern" emit-fatal-error!)
+    dup2 prev == else("multi-part pattern not supported" emit-fatal-error!)
+    dip:pat-tokens sip:prev succ +Match.case!(
+        elab-pattern!,
+        elab-atoms!
+        ab-token@ dup comma? then(succ)
+    ))
+
+def(Token.pat-tokens, Token -- List(Token),
+    run-tokens take-while(dup pat-arrow? not))
+def(List.take-while(p), (*a t -- *a t Bool) *a List(t) -- *a List(t),
+    dip:T filter(swap dip:p && tuck) nip) # TODO improve
+
+def(elab-pattern!, List(Token) +Pattern -- +Pattern,
+    reverse-for(elab-pattern-atom!))
+
+def(elab-pattern-atom!, Token +Pattern -- +Pattern,
+    dup pat-underscore? if(
+        drop +Pattern.underscore!,
+
+    dup name? if-some(
+        # TODO type-directed tag resolution
+        defs find-some(tag?) match(
+            NONE -> "Unknown constructor." emit-fatal-error!,
+            SOME -> nip +Pattern.tag!
+        ),
+
+        "Expected constructor name." emit-fatal-error!
+    )))
 
 def(ab-match!(f),
-        (*a match:Match -- *b match:Match)
+        (*a +Match -- *b +Match)
         *a cod:StackType body:Token +AB -- *b +AB,
     ab-ctx@ >ctx
     ab-type@ >dom
     ab-token@ >token
     ab-home@ >home
-    Match.new! >match rdip(f) match> OP_MATCH ab-op!)
+    L0 >cases
+    rdip(+MATCH f freeze) OP_MATCH ab-op!)
 
-def(ab-case!(f),
-        (*a +AB -- *b +AB)
-        *a match:Match Token Pattern -- *b match:Match,
-    Case.alloc!
-    match> over ~match !
-    tuck ~pattern !
-    tuck ~token !
-    dup token determine-case-subst-and-mid! drop
-    \(case ->
-        case .match ctx
-        case mid case .match cod T->
-        case token
-        case .match .home
-        ab-build-hom!(dip(f))
-        case ~body !
-        case dup .match add-case!
-        case .match >match
+def(+Match.case!(mkpat,mkbod),
+        (*a +Pattern -- *b +Pattern,
+         *b +AB -- *c +AB)
+        *a Token Token +Match -- *c +Match,
+
+    dip(
+        home >home dup >token-start >token-end
+        ctx dup >outer-ctx >inner-ctx
+        L0 >saved dom dup >mid >cod L0 >atoms
+        PATTERN rdip(thaw mkpat freeze)
+    ) swap \(pat ->
+        pat inner-ctx
+        pat Pattern.dom +Match.cod T->
+        rotl
+        +Match.home
+        rdip(ab-build-hom!(dip(mkbod)))
+        >body
+        pat >pattern
+        CASE add-case
     ))
-
-def(elab-atom-match!, +AB -- +AB,
-    MetaVar.new! STMeta >cod
-    ab-token@ args+ first >body
-    elab-match-at!)
 
 def(elab-expand-tensor!, StackType Token -- StackType Type Token,
     >tok force-cons?! match(
@@ -712,73 +748,13 @@ def(elab-atom-lambda!, +AB -- +AB,
     dip(expect-token-arrow succ)
     ab-lambda-at!(elab-atoms!))
 
-||| Check that match is exhaustive.
-def(elab-match-exhaustive!, Match -- Match,
-    dup is-exhaustive? else(
-        dup token "Pattern match not exhaustive." emit-error!
-    ))
-
-||| Elaborate match cases.
-def(elab-match-cases!, Match +AB -- Match +AB,
-    L0 over ~cases !
-    dup body
-    while(dup rparen? not, elab-match-case!)
-    drop)
-
-||| Elaborate a single match case `pattern -> body ,`
-def(elab-match-case!, Match Token +AB -- Match Token +AB,
-    Case.alloc!
-    dup2 ~token !
-    swap dip(dup2 ~match !)
-    elab-case-pattern!
-    expect-token-arrow succ
-    elab-case-body!
-    dip(over add-case!)
-    dup comma? then(succ))
-
-||| Elaborate case pattern.
-def(elab-case-pattern!, Case Token -- Case Token,
-    dup pat-underscore? if(
-        PATTERN_UNDERSCORE over2 ~pattern !
-        determine-case-subst-and-mid!
-        succ,
-
-    dup name? if-some(
-        # TODO type-directed tag resolution
-        # TODO user-defined tags
-        defs find-some(tag?) match(
-            NONE -> "Unknown constructor." emit-fatal-error!,
-            SOME ->
-                PATTERN_TAG over2 ~pattern !
-                determine-case-subst-and-mid!
-                succ,
-        ),
-
-        "Expected constructor name." emit-fatal-error!
-    )))
-
-def(determine-case-subst-and-mid!, Case Token -- Case Token,
-    over pattern match(
-        PATTERN_UNDERSCORE ->
-            dip(dup .match dom STACK_TYPE_DONT_CARE TYPE_DONT_CARE T*) elab-stack-type-unify!
-            dip(over ~mid ! Subst.nil over ~subst !),
-        PATTERN_TAG ->
-            dip2(dup .match dom)
-            dip(Subst.nil) type freshen-sig
-            rotr dip(
-                dip(unpack)
-                dip2(swap) elab-stack-type-unify! nip
-                dip(over ~mid !)
-            )
-            swap dip(over ~subst !)
-    ))
-
-||| Elaborate case body.
-def(elab-case-body!, Case Token +AB -- Case Token +AB,
-    dip(dup mid dip(dup .match ctx)) ab-home@ elab-arrow-fwd!
-    dup token-end dip(dup cod) { Case Arrow StackType Token +AB }
-    dip2(over ~body !) { Case StackType Token +AB }
-    dip2(dup .match cod) elab-stack-type-unify! nip)
+||| Check that a match is exhaustive.
+def(elab-match-exhaustive!, +Match -- +Match,
+    id) # TODO
+    # dup is-exhaustive? else(
+    #     dup token "Match not exhaustive." emit-error!
+    #     # TODO print missing patterns
+    # ))
 
 ######################
 # Module Elaboration #
@@ -954,8 +930,9 @@ def(elab-data-done!, Data --,
                         untag type cod >cod
                         dat head? unwrap >body
                         ab-match!(
-                            dat head? unwrap tag PATTERN_TAG ab-case!(id)
-                        )
+                            dat head? unwrap dup
+                            case!(tag +Pattern.tag!, id)
+                       )
                     )) untag ~arrow !
                     untag SOME tag ~untag !
                     tag create-projectors!
@@ -1108,7 +1085,7 @@ def(elab-def-missing!, Token -- Token,
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(next) token-def-args
-    uncons is-empty or(dup run-has-arrow?) else("expected match case" emit-fatal-error!) >body
+    uncons is-empty or(dup run-arrow? >Bool) else("expected match case" emit-fatal-error!) >body
     SOME >sig
     dup >head
     dup num-args >arity
@@ -1148,7 +1125,7 @@ def(elab-def-params!, Word -- List(Param),
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,
 ||| and the rest from the AB environment.
 def(elab-def-body!, StackType +AB -- StackType +AB,
-    ab-token@ run-has-arrow? if(
+    ab-token@ run-arrow? if(
         dup >cod ab-token@ >body elab-match-at!,
         elab-atoms!
     ))

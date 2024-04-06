@@ -490,15 +490,19 @@ def(c99-case!, Case +C99 -- +C99,
     ))
 
 def(c99-pattern!, Pattern +C99 -- +C99,
-    PATTERN_UNDERSCORE ->
-        c99-line("default:" put),
+    dup is-default? if(
+        drop c99-line("default:" put),
 
-    PATTERN_TAG ->
+    dup single-tag? if-some(
+        nip
         c99-line("case " put dup value show put "LL:" put)
         c99-nest(
             c99-line("mp_" put qname mangled put "();" put)
-        )
-    )
+        ),
+
+        token-start "c99 target -- don't know how to compile this pattern"
+        emit-fatal-error!
+    )))
 
 def(c99-word-sigs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-sig!, drop)))
 def(c99-word-sig!, Word +C99 -- +C99,

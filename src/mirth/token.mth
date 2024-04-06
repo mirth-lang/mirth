@@ -100,6 +100,8 @@ field(Token.~module, Token, Module)
 field(Token.~row, Token, Row)
 field(Token.~col, Token, Col)
 
+def(Token.==, Token Token -- Bool, both(index) ==)
+
 def(Token.value, Token -- TokenValue, ~value @)
 def(Token.module, Token -- Module, ~module @)
 def(Token.col, Token -- Col, ~col @)
@@ -294,8 +296,8 @@ def(Token.run-tokens, Token -- List(Token),
 def(Token.run-length, Token -- Nat,
     dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop)
 
-def(Token.run-has-arrow?, Token -- Bool,
-    run-tokens any(dup pat-arrow?))
+def(Token.run-arrow?, Token -- Maybe(Token),
+    run-tokens find(dup pat-arrow?))
 
 ###################
 # Type Signatures #

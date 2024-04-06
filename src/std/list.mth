@@ -374,3 +374,18 @@ def(-LIST, +List(t) -- List(t), +LIST -> id)
 ||| Syntactic sugar abuse to add list literals
 def(LIST(f), (*a +List(t) -- *a +List(t)) *a -- *a List(t), L0 +LIST f -LIST)
 def(+List.;, *a t +List(t) -- *a +List(t), +LIST -> swap snoc +LIST)
+
+def(List.==(p), (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool,
+    dup2 both(len) == if(
+        zip(p) all(dup),
+        drop2 F
+    ))
+
+def(List.uncons?, List(x) -- Maybe(x) List(x),
+    dup >List+ match(
+        NONE -> NONE swap,
+        SOME -> nip uncons dip:SOME
+    ))
+
+def(List.zip(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
+    collect(uncons? dip(dip:uncons? swap dip:zip:f) rotl) dip:drop2)
