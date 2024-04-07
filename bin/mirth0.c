@@ -38,9 +38,9 @@ typedef uint16_t TAG;
 #define TUP_LEN_MAX  0x3FFF
 
 #define TAG_INT 1
+#define TAG_PTR 1
 #define TAG_STR (2 | REFS_FLAG)
-#define TAG_PTR 3
-#define TAG_FNPTR 4
+#define TAG_FNPTR 3
 #define TAG_TUP_NIL TUP_FLAG
 #define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
 #define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
@@ -826,8 +826,6 @@ void value_trace_(VAL val, int fd) {
 		int_trace_(VINT(val), fd);
 	} else if (IS_STR(val)) {
 		str_trace_(VSTR(val), fd);
-	} else if (IS_PTR(val)) {
-		write(fd, "<ptr>", 5);
 	} else if (IS_FNPTR(val)) {
 		write(fd, "<fnptr>", 7);
 	} else if (IS_TUP(val)) {
@@ -836,12 +834,12 @@ void value_trace_(VAL val, int fd) {
 		if (VTUPLEN(val) == 0) {
 			write(fd, "[]", 2);
 		} else {
-			write(fd, "[", 2);
+			write(fd, "[ ", 2);
 			for(TUPLEN i = 0; i < len; i++) {
 				if (i > 0) write(fd, " ", 1);
 				value_trace_(tup->cells[i], fd);
 			}
-			write(fd, "]", 1);
+			write(fd, " ]", 2);
 		}
 	} else {
 		TRACE("value cannot be traced");
@@ -1238,7 +1236,7 @@ static void mw_std_prim_prim_str_num_bytes (void) {
 
 static void mw_std_prim_prim_pack_nil (void) {
 	PRIM_ENTER(mw_std_prim_prim_pack_nil,"prim-pack-nil");
-	push_u64(0);
+	push_value(MKNIL);
 	PRIM_EXIT(mw_std_prim_prim_pack_nil);
 }
 
@@ -32260,9 +32258,9 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"#define TUP_LEN_MAX  0x3FFF\n"
 				"\n"
 				"#define TAG_INT 1\n"
+				"#define TAG_PTR 1\n"
 				"#define TAG_STR (2 | REFS_FLAG)\n"
-				"#define TAG_PTR 3\n"
-				"#define TAG_FNPTR 4\n"
+				"#define TAG_FNPTR 3\n"
 				"#define TAG_TUP_NIL TUP_FLAG\n"
 				"#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)\n"
 				"#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))\n"
@@ -33048,8 +33046,6 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"\t\tint_trace_(VINT(val), fd);\n"
 				"\t} else if (IS_STR(val)) {\n"
 				"\t\tstr_trace_(VSTR(val), fd);\n"
-				"\t} else if (IS_PTR(val)) {\n"
-				"\t\twrite(fd, \"<ptr>\", 5);\n"
 				"\t} else if (IS_FNPTR(val)) {\n"
 				"\t\twrite(fd, \"<fnptr>\", 7);\n"
 				"\t} else if (IS_TUP(val)) {\n"
@@ -33058,12 +33054,12 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"\t\tif (VTUPLEN(val) == 0) {\n"
 				"\t\t\twrite(fd, \"[]\", 2);\n"
 				"\t\t} else {\n"
-				"\t\t\twrite(fd, \"[\", 2);\n"
+				"\t\t\twrite(fd, \"[ \", 2);\n"
 				"\t\t\tfor(TUPLEN i = 0; i < len; i++) {\n"
 				"\t\t\t\tif (i > 0) write(fd, \" \", 1);\n"
 				"\t\t\t\tvalue_trace_(tup->cells[i], fd);\n"
 				"\t\t\t}\n"
-				"\t\t\twrite(fd, \"]\", 1);\n"
+				"\t\t\twrite(fd, \" ]\", 2);\n"
 				"\t\t}\n"
 				"\t} else {\n"
 				"\t\tTRACE(\"value cannot be traced\");\n"
@@ -33460,7 +33456,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"\n"
 				"static void mw_std_prim_prim_pack_nil (void) {\n"
 				"\tPRIM_ENTER(mw_std_prim_prim_pack_nil,\"prim-pack-nil\");\n"
-				"\tpush_u64(0);\n"
+				"\tpush_value(MKNIL);\n"
 				"\tPRIM_EXIT(mw_std_prim_prim_pack_nil);\n"
 				"}\n"
 				"\n"
@@ -33512,7 +33508,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"}\n"
 				"\n"
 				"/* GENERATED C99 */\n",
-				34112
+				34068
 			);
 			vready = true;
 		}
