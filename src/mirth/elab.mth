@@ -415,6 +415,8 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_COERCE -> elab-coerce-sig!,
         OP_LABEL_PUSH -> elab-label-push-sig!,
         OP_LABEL_POP -> elab-label-pop-sig!,
+        OP_DATA_GET_LABEL -> data-get-label-type freshen-sig OPSIG_APPLY,
+        OP_DATA_SET_LABEL -> data-set-label-type freshen-sig OPSIG_APPLY,
     ))
 
 def(elab-coerce-sig!, Coerce -- OpSig,
@@ -439,10 +441,12 @@ def(elab-var-sig!, Var -- OpSig,
     ))
 
 def(elab-label-push-sig!, Label -- OpSig,
-    dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2) STConsLabel dip(STCons) T-> OPSIG_APPLY)
+    dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2)
+    STConsLabel dip(STCons) T-> OPSIG_APPLY)
 
 def(elab-label-pop-sig!, Label -- OpSig,
-    dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2) STConsLabel dip(STCons) swap T-> OPSIG_APPLY)
+    dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2)
+    STConsLabel dip(STCons) swap T-> OPSIG_APPLY)
 
 def(elab-arrow!, Ctx ArrowType Token Home -- Arrow,
     dip2(unpack) elab-arrow-hom!)
@@ -952,6 +956,21 @@ def(Tag.output-type, Tag -- Either(Type,Resource),
 def(Tag.project-input-label, Label Tag -- Maybe(Type),
     type dom force-cons-label?! map(unpack2 nip))
 
+def(data-get-label-type, Tag Label -- ArrowType,
+    \(tag lbl ->
+        T0 tag output-type T*+
+        lbl tag project-input-label unwrap T1
+        tag .data is-resource? then(tag output-type T*+)
+        T->
+    ))
+
+def(data-set-label-type, Tag Label -- ArrowType,
+    \(tag lbl ->
+        lbl tag project-input-label unwrap T1 tag output-type T*+
+        T0 tag output-type T*+
+        T->
+    ))
+
 def(create-projectors!, Tag --,
     dup .data over .untag unwrap \(tag dat untag ->
     tag label-inputs reverse-for(\(lbl -> dat lbl name 0 data-qname undefined? then(
@@ -960,37 +979,20 @@ def(create-projectors!, Tag --,
         dat lbl >Str 1 data-word-new! \(lbl_get lbl_set lbl_lens ->
             delay0(
                 tag ctx
-                T0 tag output-type T*+
-                lbl tag project-input-label unwrap T1
-                dat is-resource? then(tag output-type T*+)
-                T-> pack2
+                tag lbl data-get-label-type
+                pack2
             ) lbl_get ~ctx-type !
             lbl_get delay(ab-build-word-arrow!(
-                untag ab-word!
-                lbl ab-label-pop!
-                PRIM_CORE_DUP ab-prim!
-                lbl ab-label-push!
-                ab-dip!(
-                    tag ab-tag!
-                    dat is-resource? else(PRIM_CORE_DROP ab-prim!)
-                )
+                tag lbl OP_DATA_GET_LABEL ab-op!
             )) lbl_get ~arrow !
 
             delay0(
                 tag ctx
-                lbl tag project-input-label unwrap T1 tag output-type T*+
-                T0 tag output-type T*+
-                T-> pack2
+                tag lbl data-set-label-type
+                pack2
             ) lbl_set ~ctx-type !
             lbl_set delay(ab-build-word-arrow!(
-                dat is-resource? if(
-                    lbl ab-label-push!,
-                    ab-dip!(lbl ab-label-push!)
-                )
-                untag ab-word!
-                lbl ab-label-pop!
-                PRIM_CORE_DROP ab-prim!
-                tag ab-tag!
+                tag lbl OP_DATA_SET_LABEL ab-op!
             )) lbl_set ~arrow !
 
             delay0(

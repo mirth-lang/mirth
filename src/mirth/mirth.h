@@ -1,4 +1,5 @@
 /* MIRTH HEADER */
+// #line 3 "src/mirth/mirth.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define MIRTH_WINDOWS 1
@@ -29,19 +30,23 @@ extern int close(int);
 extern int open(const char*, int, int);
 extern void exit(int);
 
-#define HAS_REFS_FLAG 0x8000
-typedef enum TAG {
-	// TODO: TAG_NIL
-	// TODO: TAG_PTR
-	TAG_INT  = 1,
-	TAG_CONS = 2 | HAS_REFS_FLAG,
-	TAG_STR  = 3 | HAS_REFS_FLAG,
-} TAG;
+typedef uint16_t TAG;
+#define REFS_FLAG 	 0x8000
+#define TUP_FLAG 	 0x4000
+#define TUP_LEN_MASK 0x3FFF
+#define TUP_LEN_MAX  0x3FFF
 
-typedef void (*fnptr)(void);
+#define TAG_INT 1
+#define TAG_PTR 1
+#define TAG_STR (2 | REFS_FLAG)
+#define TAG_FNPTR 3
+#define TAG_TUP_NIL TUP_FLAG
+#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
+#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
+typedef void (*FNPTR)(void);
 
 typedef union DATA {
 	USIZE usize;
@@ -54,11 +59,9 @@ typedef union DATA {
 	int16_t i16;
 	int8_t i8;
 	void* ptr;
-	void (*fnptr)(void);
-	struct VAL* valptr;
-	char* charptr;
+	FNPTR fnptr;
 	REFS* refs;
-	struct CONS* cons;
+	struct TUP* tup;
 	struct STR* str;
 } DATA;
 
@@ -67,6 +70,8 @@ typedef struct VAL {
 	TAG tag;
 } VAL;
 
+#define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
+
 #define VREFS(v)  (*(v).data.refs)
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
@@ -74,32 +79,36 @@ typedef struct VAL {
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 #define VSTR(v)   ((v).data.str)
-#define VCONS(v)  ((v).data.cons)
+#define VTUP(v)   ((v).data.tup)
+#define VTUPLEN(v) (TAG_TUP_LEN((v).tag))
 
-#define HAS_REFS(v) ((v).tag & HAS_REFS_FLAG)
+#define HAS_REFS(v) ((v).tag & REFS_FLAG)
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_U64(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
-#define IS_PTR(v)   ((v).tag == TAG_INT)
-#define IS_FNPTR(v) ((v).tag == TAG_INT)
+#define IS_PTR(v)   ((v).tag == TAG_PTR)
+#define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
-#define IS_CONS(v)  ((v).tag == TAG_CONS)
-#define IS_NIL(v)   (((v).tag == TAG_INT) && ((v).data.i64 == 0))
+#define IS_TUP(v)   ((v).tag & TUP_FLAG)
+#define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
 
-#define MKINT(x)   ((VAL){.tag=TAG_INT,  .data={.i64=(x)}})
-#define MKI64(x)   ((VAL){.tag=TAG_INT,  .data={.i64=(x)}})
-#define MKU64(x)   ((VAL){.tag=TAG_INT,  .data={.u64=(x)}})
-#define MKFNPTR(x) ((VAL){.tag=TAG_INT,  .data={.fnptr=(x)}})
-#define MKPTR(x)   ((VAL){.tag=TAG_INT,  .data={.ptr=(x)}})
-#define MKSTR(x)   ((VAL){.tag=TAG_STR,  .data={.str=(x)}})
-#define MKCONS(x)  ((VAL){.tag=TAG_CONS, .data={.cons=(x)}})
-#define MKNIL()    ((VAL){.tag=TAG_INT,  .data={.i64=0}})
+#define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
+#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
+#define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
+#define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
+#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
+#define MKTUP(x,n) ((VAL){.tag=TAG_TUP(n), .data={.tup=(x)}})
+#define MKNIL_C	         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}
+#define MKNIL      ((VAL)MKNIL_C)
 
-typedef struct CONS {
+typedef uint16_t TUPLEN;
+typedef struct TUP {
 	REFS refs;
-	VAL car;
-	VAL cdr;
-} CONS;
+	TUPLEN cap;
+	TUPLEN size;
+	VAL cells[];
+} TUP;
 
 typedef struct STR {
 	REFS refs;
@@ -123,7 +132,7 @@ static void mw_std_prim_prim_rdebug(void);
 
 #if MIRTH_DEBUG
 	typedef struct LOC {
-		void (*fnptr) (void);
+		FNPTR fnptr;
 		const char* word;
 		const char* path;
 		USIZE line, col;
@@ -219,32 +228,19 @@ static void mw_std_prim_prim_rdebug(void);
 #define ASSERT2(test,v1,v2) \
 	EXPECT2(test, __FILE__ ":" STR(__LINE__) ": error: assertion failed (" #test ")", v1, v2)
 
-static void free_value(VAL v);
-
-static void incref(VAL v) {
-	if (HAS_REFS(v)) {
-		VREFS(v)++;
-	}
-}
-
-static void decref(VAL v) {
-	if (HAS_REFS(v)) {
-		if(--VREFS(v) == 0) {
-			free_value(v);
-		}
-	}
-}
-
+#define incref(v) do { if (HAS_REFS(v)) VREFS(v)++; } while(0)
+#define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)
 static void free_value(VAL v) {
 	ASSERT(HAS_REFS(v));
 	ASSERT(VREFS(v) == 0);
-	ASSERT1(IS_CONS(v)||IS_STR(v), v);
-	if (IS_CONS(v)) {
-		CONS* cons = VCONS(v);
-		ASSERT(cons);
-		decref(cons->car);
-		decref(cons->cdr);
-		free(cons);
+	ASSERT1(IS_TUP(v)||IS_STR(v), v);
+	if (IS_TUP(v)) {
+		TUP* tup = VTUP(v);
+		ASSERT(tup);
+		for (TUPLEN i = 0; i < tup->size; i++) {
+			decref(tup->cells[i]);
+		}
+		free(tup);
 	} else if (IS_STR(v)) {
 		STR* str = VSTR(v);
 		ASSERT(str);
@@ -252,45 +248,78 @@ static void free_value(VAL v) {
 	}
 }
 
-static void value_uncons(VAL val, VAL* car, VAL* cdr) {
-	if (IS_CONS(val)) {
-		CONS* cons = VCONS(val);
-		*car = cons->car;
-		*cdr = cons->cdr;
+static void value_uncons(VAL val, VAL* tail, VAL* head) {
+	if (IS_TUP(val)) {
+		TUPLEN len = VTUPLEN(val);
+		TUP* tup = VTUP(val);
+		ASSERT1((len > 0) && tup, val);
+		VAL tailval = MKTUP(tup, len-1);
+		VAL headval = tup->cells[len-1];
+		if (len == 1) {
+			incref(headval);
+			decref(val);
+			tailval = MKNIL;
+		} else {
+			if (tup->refs == 1) {
+				for (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }
+				memset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));
+				tup->size = len-1;
+			} else {
+				incref(headval);
+			}
+			if (len == 2) {
+				VAL ptval = tup->cells[0];
+				if (!IS_TUP(ptval)) {
+					incref(ptval);
+					decref(tailval);
+					tailval = ptval;
+				}
+			}
+		}
+		*tail = tailval;
+		*head = headval;
 	} else {
-		*car = MKNIL();
-		*cdr = val;
+		*tail = MKNIL;
+		*head = val;
 	}
 }
-static void value_uncons_c(VAL val, VAL* car, VAL* cdr) {
-	value_uncons(val, car, cdr);
-	incref(*car);
-	incref(*cdr);
-	decref(val);
+
+static uint64_t value_u64 (VAL v) {
+	ASSERT1(IS_INT(v),v);
+	return VU64(v);
+}
+
+static int64_t value_i64 (VAL v) {
+	ASSERT1(IS_INT(v),v);
+	return VI64(v);
 }
 
 static void* value_ptr (VAL v) {
-	ASSERT(IS_PTR(v));
+	ASSERT1(IS_PTR(v),v);
 	return VPTR(v);
 }
 
-#define pop_fnptr() VFNPTR(pop_value())
-#define pop_u8() ((uint8_t)VU64(pop_value()))
-#define pop_u16() ((uint16_t)VU64(pop_value()))
-#define pop_u32() ((uint32_t)VU64(pop_value()))
-#define pop_u64() (VU64(pop_value()))
-#define pop_i8() ((int8_t)VI64(pop_value()))
-#define pop_i16() ((int16_t)VI64(pop_value()))
-#define pop_i32() ((int32_t)VI64(pop_value()))
-#define pop_i64() (VI64(pop_value()))
-#define pop_usize() (VU64(pop_value()))
-#define pop_bool() ((bool)VU64(pop_value()))
-#define pop_ptr() (VPTR(pop_value()))
+static FNPTR value_fnptr (VAL v) {
+	ASSERT1(IS_FNPTR(v),v);
+	return VFNPTR(v);
+}
+
+#define pop_u8() ((uint8_t)pop_u64())
+#define pop_u16() ((uint16_t)pop_u64())
+#define pop_u32() ((uint32_t)pop_u64())
+#define pop_u64() (value_u64(pop_value()))
+#define pop_i8() ((int8_t)pop_i64())
+#define pop_i16() ((int16_t)pop_i64())
+#define pop_i32() ((int32_t)pop_i64())
+#define pop_i64() (value_i64(pop_value()))
+#define pop_usize() (pop_u64())
+#define pop_bool() (pop_u64())
+#define pop_ptr() (value_ptr(pop_value()))
+#define pop_fnptr() (value_fnptr(pop_value()))
 
 #define push_u64(v) push_value(MKU64(v))
 #define push_i64(v) push_value(MKI64(v))
 #define push_usize(v) push_u64((uint64_t)(v))
-#define push_fnptr(v) push_u64((uint64_t)(v))
 #define push_bool(b) push_u64((uint64_t)((bool)(b)))
 #define push_u8(b) push_u64((uint64_t)(b))
 #define push_u16(b) push_u64((uint64_t)(b))
@@ -298,7 +327,8 @@ static void* value_ptr (VAL v) {
 #define push_i8(b) push_i64((int64_t)(b))
 #define push_i16(b) push_i64((int64_t)(b))
 #define push_i32(b) push_i64((int64_t)(b))
-#define push_ptr(v) push_u64((uint64_t)(void*)(v))
+#define push_ptr(p) push_value(MKPTR(p))
+#define push_fnptr(p) push_value(MKFNPTR(p))
 
 static void push_value(VAL x) {
 	ASSERT(stack_counter > 0);
@@ -330,20 +360,119 @@ static VAL pop_resource(void) {
 	return rstack[rstack_counter++];
 }
 
-static VAL mkcons (VAL car, VAL cdr) {
-	if (IS_NIL(car) && !IS_CONS(cdr))
-		return cdr;
-	CONS *cons = calloc(1, sizeof(CONS));
-	EXPECT(cons, "failed to allocate a cons cell");
-	cons->refs = 1;
-	cons->car = car;
-	cons->cdr = cdr;
-	return MKCONS(cons);
+// Create a TUP with at least min(cap_hint, TUP_LEN_MAX) capacity.
+static TUP* tup_new (TUPLEN cap_hint) {
+	if (cap_hint < 3) cap_hint = 3;
+	if (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;
+	TUP *new_tup = calloc(1, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);
+	ASSERT(new_tup);
+	new_tup->refs = 1;
+	new_tup->cap = cap_hint;
+	return new_tup;
+}
+
+// Create a TUP with at least min(max(old_tup->size, cap_hint), TUP_LEN_MAX) capacity.
+// Consume old_tup and copy its elements over to the new tuple.
+static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {
+	ASSERT(old_tup);
+	if (cap_hint < old_tup->size) cap_hint = old_tup->size;
+	if (old_tup->refs == 1) {
+		if (cap_hint < 3) cap_hint = 3;
+		if (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;
+		TUPLEN old_cap = old_tup->cap;
+		TUP *new_tup = realloc(old_tup, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);
+		ASSERT(new_tup);
+		if (old_cap < cap_hint) {
+			memset(new_tup->cells + old_cap, 0, sizeof(VAL)*(cap_hint - old_cap));
+		}
+		new_tup->cap = cap_hint;
+		return new_tup;
+	} else {
+		TUP* new_tup = tup_new(cap_hint);
+		for (TUPLEN i = 0; i < old_tup->size; i++) {
+			VAL v = old_tup->cells[i];
+			new_tup->cells[i] = v;
+			incref(v);
+		}
+		new_tup->size = old_tup->size;
+		old_tup->refs--;
+		return new_tup;
+	}
+}
+
+static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {
+	if (IS_TUP(tail) && HAS_REFS(tail)) {
+		TUPLEN tail_len = VTUPLEN(tail);
+		TUP *tail_tup = VTUP(tail);
+		ASSERT1(tail_tup, tail);
+		ASSERT1(tail_len <= tail_tup->size, tail);
+		if (tail_len < tail_tup->size) {
+			ASSERT1(tail_tup->refs >= 1, tail);
+			if (tail_tup->refs == 1) {
+				decref(tail_tup->cells[tail_len]);
+				tail_tup->cells[tail_len] = head;
+				return MKTUP(tail_tup, tail_len+1);
+			} else {
+				VAL *cmp = &tail_tup->cells[tail_len];
+				if (VALEQ(*cmp, head)) {
+					decref(head);
+					return MKTUP(tail_tup, tail_len+1);
+				} else {
+					if (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;
+					TUP* new_tup = tup_new(cap_hint);
+					for (TUPLEN i = 0; i < tail_len; i++) {
+						VAL v = tail_tup->cells[i];
+						new_tup->cells[i] = v;
+						incref(v);
+					}
+					new_tup->cells[tail_len] = head;
+					new_tup->size = tail_len+1;
+					tail_tup->refs--;
+					return MKTUP(new_tup, tail_len+1);
+				}
+			}
+		} else {
+			ASSERT1(tail_len < TUP_LEN_MAX, tail);
+			ASSERT1(tail_len <= tail_tup->cap, tail);
+			if (tail_len < tail_tup->cap) {
+				tail_tup->cells[tail_len] = head;
+				tail_tup->size = tail_len+1;
+				return MKTUP(tail_tup, tail_len+1);
+			} else {
+				if (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;
+				TUP* new_tup = tup_resize(tail_tup, cap_hint);
+				ASSERT(tail_len < new_tup->cap);
+				new_tup->size = tail_len+1;
+				new_tup->cells[tail_len] = head;
+				return MKTUP(new_tup, tail_len+1);
+			}
+		}
+	} else if (IS_TUP(tail)) { // cons onto nil
+		ASSERT(IS_NIL(tail));
+		if (IS_TUP(head)) {
+			TUP* tup = tup_new(cap_hint);
+			tup->size = 1;
+			tup->cells[0] = head;
+			return MKTUP(tup,1);
+		} else { // non-tup value pretends to be unary tuple
+			return head;
+		}
+	} else { // cons onto non-tup value pretending to be unary tuple
+		TUP* tup = tup_new(cap_hint);
+		tup->size = 2;
+		tup->cells[0] = tail;
+		tup->cells[1] = head;
+		return MKTUP(tup,2);
+	}
+}
+static VAL mkcons(VAL tail, VAL head) {
+	VAL v = mkcons_hint(tail,head,3);
+	return v;
 }
 
 static VAL lpop(VAL* stk) {
 	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
-	*stk=lcar; incref(lcar); incref(lcdr); decref(cons); return lcdr;
+	*stk=lcar; return lcdr;
 }
 static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
 #define LPOP(v) push_value(lpop(&(v)))
@@ -368,20 +497,20 @@ static VAL mkstr (const char* data, USIZE size) {
 }
 
 static void do_uncons(void) {
-	VAL val, car, cdr;
+	VAL val, tail, head;
 	val = pop_value();
-	value_uncons(val, &car, &cdr);
-	push_value(car);
-	push_value(cdr);
-	incref(car);
-	incref(cdr);
-	decref(val);
+	value_uncons(val, &tail, &head);
+	push_value(tail);
+	push_value(head);
 }
 
 static USIZE get_data_tag(VAL v) {
-	VAL car, cdr;
-	value_uncons(v, &car, &cdr);
-	return VU64(cdr);
+	if (IS_TUP(v)) {
+		ASSERT(VTUPLEN(v) > 0);
+		return VU64(VTUP(v)->cells[0]);
+	} else {
+		return VU64(v);
+	}
 }
 
 static USIZE get_top_data_tag(void) {
@@ -411,8 +540,6 @@ static void run_value(VAL v) {
 	VAL car, cdr;
 	value_uncons(v, &car, &cdr);
 	push_value(car);
-	incref(car);
-	decref(v);
 	ASSERT(IS_FNPTR(cdr) && VFNPTR(cdr));
 	VFNPTR(cdr)();
 }
@@ -441,45 +568,6 @@ static void mw_std_prim_prim_swap (void) {
 	PRIM_EXIT(mw_std_prim_prim_swap);
 }
 
-static void mw_std_prim_prim_dip (void) {
-	PRIM_ENTER(mw_std_prim_prim_dip,"dip");
-	VAL f = pop_value();
-	VAL x = pop_value();
-	run_value(f);
-	push_value(x);
-	PRIM_EXIT(mw_std_prim_prim_dip);
-}
-
-static void mw_std_prim_prim_if (void) {
-	PRIM_ENTER(mw_std_prim_prim_if,"if");
-	VAL else_branch = pop_value();
-	VAL then_branch = pop_value();
-	bool b = pop_bool();
-	if (b) {
-		decref(else_branch);
-		run_value(then_branch);
-	} else {
-		decref(then_branch);
-		run_value(else_branch);
-	}
-	PRIM_EXIT(mw_std_prim_prim_if);
-}
-
-static void mw_std_prim_prim_while (void) {
-	PRIM_ENTER(mw_std_prim_prim_while,"while");
-	VAL body = pop_value();
-	VAL cond = pop_value();
-	while(1) {
-		incref(cond); run_value(cond);
-		bool b = pop_bool();
-		if (!b) break;
-		incref(body); run_value(body);
-	}
-	decref(cond);
-	decref(body);
-	PRIM_EXIT(mw_std_prim_prim_while);
-}
-
 static void mw_std_prim_prim_rswap (void) {
 	PRIM_ENTER(mw_std_prim_prim_rswap,"prim-rswap");
 	VAL a = pop_resource();
@@ -487,15 +575,6 @@ static void mw_std_prim_prim_rswap (void) {
 	push_resource(a);
 	push_resource(b);
 	PRIM_EXIT(mw_std_prim_prim_rswap);
-}
-
-static void mw_std_prim_prim_rdip (void) {
-	PRIM_ENTER(mw_std_prim_prim_rdip,"rdip");
-	VAL f = pop_value();
-	VAL x = pop_resource();
-	run_value(f);
-	push_resource(x);
-	PRIM_EXIT(mw_std_prim_prim_rdip);
 }
 
 static void mw_std_prim_prim_int_add (void) {
@@ -746,14 +825,21 @@ void value_trace_(VAL val, int fd) {
 		int_trace_(VINT(val), fd);
 	} else if (IS_STR(val)) {
 		str_trace_(VSTR(val), fd);
-	} else if (IS_CONS(val)) {
-		VAL car, cdr;
-		value_uncons(val, &car, &cdr);
-		write(fd, "[ ", 2);
-		value_trace_(car, fd);
-		write(fd, " ", 1);
-		value_trace_(cdr, fd);
-		write(fd, " ]", 2);
+	} else if (IS_FNPTR(val)) {
+		write(fd, "<fnptr>", 7);
+	} else if (IS_TUP(val)) {
+		TUPLEN len = VTUPLEN(val);
+		TUP* tup = VTUP(val);
+		if (VTUPLEN(val) == 0) {
+			write(fd, "[]", 2);
+		} else {
+			write(fd, "[ ", 2);
+			for(TUPLEN i = 0; i < len; i++) {
+				if (i > 0) write(fd, " ", 1);
+				value_trace_(tup->cells[i], fd);
+			}
+			write(fd, " ]", 2);
+		}
 	} else {
 		TRACE("value cannot be traced");
 		exit(1);
@@ -1149,7 +1235,7 @@ static void mw_std_prim_prim_str_num_bytes (void) {
 
 static void mw_std_prim_prim_pack_nil (void) {
 	PRIM_ENTER(mw_std_prim_prim_pack_nil,"prim-pack-nil");
-	push_u64(0);
+	push_value(MKNIL);
 	PRIM_EXIT(mw_std_prim_prim_pack_nil);
 }
 
@@ -1163,12 +1249,7 @@ static void mw_std_prim_prim_pack_cons (void) {
 
 static void mw_std_prim_prim_pack_uncons (void) {
 	PRIM_ENTER(mw_std_prim_prim_pack_uncons,"prim-pack-uncons");
-	VAL v = pop_value();
-	VAL car,cdr;
-	value_uncons(v, &car, &cdr);
-	push_value(car);
-	push_value(cdr);
-	incref(car); incref(cdr); decref(v);
+	do_uncons();
 	PRIM_EXIT(mw_std_prim_prim_pack_uncons);
 }
 
