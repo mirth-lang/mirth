@@ -116,7 +116,7 @@ def(Data.is-transparent?, Data -- Bool,
     dup is-resource? if(
         drop F,
         tags match(
-            L1 -> dup num-type-inputs 1 >Nat == swap num-resource-inputs 0= &&,
+            L1 -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
             _ -> drop F
         )
     ))

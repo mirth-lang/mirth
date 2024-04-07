@@ -1,5 +1,5 @@
 /* MIRTH HEADER */
-#line 3 "src/mirth/mirth.h"
+// #line 3 "src/mirth/mirth.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define MIRTH_WINDOWS 1

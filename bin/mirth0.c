@@ -1,6 +1,6 @@
 #define MIRTH_DEBUG 0
 /* MIRTH HEADER */
-#line 3 "src/mirth/mirth.h"
+// #line 3 "src/mirth/mirth.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define MIRTH_WINDOWS 1
@@ -17000,8 +17000,10 @@ static void mw_mirth_data_Data_is_transparent_3F_ (void) {
 				mw_std_prim_Int__3E_Nat();
 				mw_std_prelude_Nat__3D__3D_();
 				mw_std_prim_prim_swap();
-				mw_mirth_data_Tag_num_resource_inputs();
-				mw_std_prelude_Nat_0_3D_();
+				mw_mirth_data_Tag_num_total_inputs();
+				push_i64(1LL);
+				mw_std_prim_Int__3E_Nat();
+				mw_std_prelude_Nat__3D__3D_();
 				mw_std_prim_Bool__26__26_();
 				break;
 			default:
@@ -32220,7 +32222,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 		if (! vready) {
 			v = mkstr(
 				"/* MIRTH HEADER */\n"
-				"#line 3 \"src/mirth/mirth.h\"\n"
+				"// #line 3 \"src/mirth/mirth.h\"\n"
 				"\n"
 				"#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)\n"
 				"#define MIRTH_WINDOWS 1\n"
@@ -33510,7 +33512,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"}\n"
 				"\n"
 				"/* GENERATED C99 */\n",
-				34109
+				34112
 			);
 			vready = true;
 		}
