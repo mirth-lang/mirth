@@ -11,12 +11,12 @@ def(-FILE, +File -- Int, +FILE -> id)
 def(+File.file-descriptor, +File -- Int +File, -FILE dup +FILE)
 
 def(+World.open-file!, Path +World -- +World +File,
-    >Str with-cstr(0 0 prim-posix-open)
+    >Str with-data-cstr(0 0 prim-posix-open)
     expect!(dup 0>, "failed to open file")
     +FILE)
 
 def(+World.create-file!, Path +World -- +World +File,
-    >Str with-cstr(
+    >Str with-data-cstr(
         O_WRONLY|O_CREAT|O_TRUNC
   	0o666
         prim-posix-open

@@ -430,7 +430,7 @@ def(c99-str!, Str +C99 -- +C99,
 
 def(+C99.put-cstr-long, Str +C99 -- +C99,
     BQUOTE put-byte
-    BNUL swap str-bytes-for(
+    BNUL swap bytes-for(
         swap BLF == then(
             BQUOTE put-byte
             line indent
@@ -443,7 +443,7 @@ def(+C99.put-cstr-long, Str +C99 -- +C99,
 )
 
 def(+C99.put-cstr, Str +C99 -- +C99,
-    BQUOTE put-byte str-bytes-for(c99-string-byte!) BQUOTE put-byte)
+    BQUOTE put-byte bytes-for(c99-string-byte!) BQUOTE put-byte)
 
 def(c99-string-byte!, Byte +C99 -- +C99,
     B'\' -> "\\\\" put,

@@ -168,24 +168,24 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
     lexer-col@
 
     lexer-peek while(dup is-name-byte,
-        rdip(str-buf-push-byte-unsafe!)
+        rdip(push-byte-unsafe!)
         lexer-move!
         lexer-peek)
     drop
 
-    rdip(str-buf-is-doc-start?) if(
+    rdip(is-doc-start?) if(
         drop3
         lexer-skip-doc!,
         # TODO: save the doc in the token-doc field for the next token
 
-        rdip(str-buf-is-int? if(
-            str-buf-int? TOKEN_INT,
-            str-buf-dname? match(
+        rdip(is-int? if(
+            int? TOKEN_INT,
+            dname? match(
                 SOME -> TOKEN_DNAME,
                 NONE ->
-                    str-buf-label-token? match(
+                    label-token? match(
                         SOME -> id,
-                        NONE -> str-buf-name? TOKEN_NAME
+                        NONE -> name? TOKEN_NAME
                     )
             )
         ))
@@ -199,65 +199,67 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
     )
     rdip(freeze drop))
 
-def(str-buf-name?, +Str -- Name +Str, str-buf-dup! >Name)
+def(+Str.name?, +Str -- Name +Str, dup! >Name)
 
-def(str-buf-drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
-    rdip(str-buf-num-bytes?) 1- str-buf-take-slice)
+def(+Str.drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
+    rdip(num-bytes?) 1- +Str.take-slice)
 
-def(str-buf-label-token?, +Str -- Maybe(TokenValue) +Str,
-    0 >Offset str-buf-byte@ is-lower if(
-        str-buf-last-byte match(
-            B'>' -> unsafe(str-buf-drop-last-byte) >Name Label.new! TOKEN_LABEL_POP SOME,
+def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
+    0 >Offset byte@ is-lower if(
+        last-byte match(
+            B'>' -> unsafe(+Str.drop-last-byte) >Name Label.new! TOKEN_LABEL_POP SOME,
             _ -> drop NONE
         ),
-        0 >Offset str-buf-byte@ B'>' == and(1 >Offset str-buf-byte@ is-lower) if(
-            1 >Offset unsafe(str-buf-drop-slice) >Name Label.new! TOKEN_LABEL_PUSH SOME,
+        0 >Offset byte@ B'>' == and(1 >Offset byte@ is-lower) if(
+            1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TOKEN_LABEL_PUSH SOME,
             NONE
         )
     ))
 
-def(str-buf-dname?, +Str -- Maybe(DName) +Str,
-    BDOT str-buf-split-byte
+def(+Str.dname?, +Str -- Maybe(DName) +Str,
+    BDOT +Str.split-byte
     uncons >List+ match(
         NONE -> drop NONE,
         SOME ->
-            dip(dup empty? if(drop NONE, >Name SOME))
+            dip(dup Str.empty? if(drop NONE, >Name SOME))
             map(>Name) DNAME SOME
     ))
 
-def(str-buf-is-doc-start?, +Str -- Bool +Str,
-    str-buf-dup! "|||" ==)
+def(+Str.is-doc-start?, +Str -- Bool +Str,
+    dup! "|||" ==)
 
-def(str-buf-is-arrow?, +Str -- Bool +Str,
-    str-buf-dup! "->" ==)
+def(+Str.is-arrow?, +Str -- Bool +Str,
+    +Str.dup! "->" ==)
 
-def(str-buf-is-dashes?, +Str -- Bool +Str,
-    str-buf-dup! "--" ==)
+def(+Str.is-dashes?, +Str -- Bool +Str,
+    dup! "--" ==)
 
-def(str-buf-is-int?, +Str -- Bool +Str,
-    str-buf-is-dec-int? or(str-buf-is-hex-int?) or(str-buf-is-oct-int?))
+def(+Str.is-int?, +Str -- Bool +Str,
+    is-dec-int?
+    or(is-hex-int?)
+    or(is-oct-int?))
 
-def(str-buf-is-dec-int?, +Str -- Bool +Str,
+def(+Str.is-dec-int?, +Str -- Bool +Str,
     0 >Size # number of digits
     0 >Offset # current index
-    dup str-buf-byte@ is-sign if(1+, id)
-    while(dup str-buf-byte@ is-digit, dip(1+) 1+)
-    swap 0> if(str-buf-num-bytes? >Offset ==, drop F))
+    dup byte@ is-sign if(1+, id)
+    while(dup byte@ is-digit, dip(1+) 1+)
+    swap 0> if(num-bytes? >Offset ==, drop F))
 
-def(str-buf-is-hex-int?, +Str -- Bool +Str,
+def(+Str.is-hex-int?, +Str -- Bool +Str,
     0 >Size # number of digits
     0 >Offset # current index
-    dup str-buf-byte@ is-sign if(
+    dup byte@ is-sign if(
         1+,
         id
     )
-    dup str-buf-byte@ B'0' == if(
+    dup byte@ B'0' == if(
         1+
-        dup str-buf-byte@ B'x' == if(
+        dup byte@ B'x' == if(
             1+
-            while(dup str-buf-byte@ is-hexdigit, dip(1+) 1+)
+            while(dup byte@ is-hexdigit, dip(1+) 1+)
             swap 0> if(
-                str-buf-num-bytes? >Offset ==,
+                num-bytes? >Offset ==,
                 drop F
             ),
 
@@ -267,20 +269,20 @@ def(str-buf-is-hex-int?, +Str -- Bool +Str,
         drop2 F
     ))
 
-def(str-buf-is-oct-int?, +Str -- Bool +Str,
+def(+Str.is-oct-int?, +Str -- Bool +Str,
     0 >Size # number of digits
     0 >Offset # current index
-    dup str-buf-byte@ is-sign if(
+    dup byte@ is-sign if(
         1+,
         id
     )
-    dup str-buf-byte@ B'0' == if(
+    dup byte@ B'0' == if(
         1+
-        dup str-buf-byte@ B'o' == if(
+        dup byte@ B'o' == if(
             1+
-            while(dup str-buf-byte@ B'0' B'7' in-range, dip(1+) 1+)
+            while(dup byte@ B'0' B'7' in-range, dip(1+) 1+)
             swap 0> if(
-                str-buf-num-bytes? >Offset ==,
+                num-bytes? >Offset ==,
                 drop F
             ),
 
@@ -290,12 +292,12 @@ def(str-buf-is-oct-int?, +Str -- Bool +Str,
         drop2 F
     ))
 
-def(str-buf-int?, +Str -- Int +Str,
-    str-buf-is-dec-int? if(
-        str-buf-dec-int?,
-	str-buf-is-hex-int? if(
-            str-buf-hex-int?,
-	    str-buf-oct-int?
+def(+Str.int?, +Str -- Int +Str,
+    is-dec-int? if(
+        dec-int?,
+	is-hex-int? if(
+            hex-int?,
+	    oct-int?
 	)
     ))
 
@@ -306,39 +308,39 @@ def(byte-sign-multiplier, Byte -- Int,
 
 ||| process int sign and return initial state for rest of int lexing.
 ||| returns: (sign multiplier) (accumulated value == 0) (str-buf index)
-def(str-buf-int-sign, +Str -- Int Int Offset +Str,
-    0 >Offset str-buf-byte@ byte-sign-value-index)
+def(+Str.int-sign, +Str -- Int Int Offset +Str,
+    0 >Offset byte@ byte-sign-value-index)
 
 def(byte-sign-value-index, Byte -- Int Int Offset,
     B'-' -> -1 0 1 >Offset,
     B'+' -> +1 0 1 >Offset,
     _ -> drop +1 0 0 >Offset)
 
-def(str-buf-dec-int?, +Str -- Int +Str,
-    str-buf-int-sign
-    while(dup str-buf-num-bytes? >Offset <,
+def(+Str.dec-int?, +Str -- Int +Str,
+    int-sign
+    while(dup num-bytes? >Offset <,
         sip(
-            str-buf-byte@ >Int
+            byte@ >Int
             dip(10 *) 48 - +
         )
         1+)
     drop *)
 
-def(str-buf-hex-int?, +Str -- Int +Str,
-    str-buf-int-sign 1+ 1+ # skip 0x prefix
-    while(dup str-buf-num-bytes? >Offset <,
+def(+Str.hex-int?, +Str -- Int +Str,
+    int-sign 1+ 1+ # skip 0x prefix
+    while(dup num-bytes? >Offset <,
         sip(
-            str-buf-byte@
+            byte@
             dip(16 *) hexdigit-value +
         )
         1+)
     drop *)
 
-def(str-buf-oct-int?, +Str -- Int +Str,
-    str-buf-int-sign 1+ 1+ # skip 0x prefix
-    while(dup str-buf-num-bytes? >Offset <,
+def(+Str.oct-int?, +Str -- Int +Str,
+    int-sign 1+ 1+ # skip 0x prefix
+    while(dup num-bytes? >Offset <,
         sip(
-            str-buf-byte@ >Int
+            byte@ >Int
             dip(8 *) 48 - +
         )
         1+)
@@ -367,16 +369,16 @@ def(lexer-emit-string!, +Lexer -- +Lexer,
 
 def(lexer-push-string-byte!, +Str +Lexer Byte -- +Str +Lexer,
     B'\' -> lexer-move! lexer-peek lexer-push-string-escape-byte!,
-    _ -> rdip(str-buf-push-byte-unsafe!))
+    _ -> rdip(push-byte-unsafe!))
 
 def(lexer-push-string-escape-byte!, +Str +Lexer Byte -- +Str +Lexer,
     BLF -> id,
-    B'n' -> BLF rdip(str-buf-push-byte-ascii!),
-    B'r' -> BCR rdip(str-buf-push-byte-ascii!),
-    B't' -> BHT rdip(str-buf-push-byte-ascii!),
-    B'\' -> B'\' rdip(str-buf-push-byte-ascii!),
-    BQUOTE -> BQUOTE rdip(str-buf-push-byte-ascii!),
-    _ -> rdip(str-buf-push-byte-unsafe!)
+    B'n' -> BLF rdip(push-byte-ascii!),
+    B'r' -> BCR rdip(push-byte-ascii!),
+    B't' -> BHT rdip(push-byte-ascii!),
+    B'\' -> B'\' rdip(push-byte-ascii!),
+    BQUOTE -> BQUOTE rdip(push-byte-ascii!),
+    _ -> rdip(push-byte-unsafe!)
     "Unknown character escape sequence." lexer-emit-warning!)
 
 def(lexer-skip-comment!, +Lexer -- +Lexer,

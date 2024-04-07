@@ -38,7 +38,7 @@ def(output-full?, +Output -- Bool +Output, output-capacity-remaining 0 >Size <=)
 def(+Output.put, Str +Output -- +Output,
     dup num-bytes output-capacity-remaining > if(
         output-flush!
-        with-str-data(~File(unsafe-write!)),
+        with-data(~File(unsafe-write!)),
 
         dup output-offset@ ~Buffer(!Str)
         num-bytes output-size@ + output-size!

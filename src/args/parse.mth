@@ -59,7 +59,7 @@ def(print-usage-for-option, ArgpOption --,
 ||| Check if the currently parsed argument is something we accept
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over type match(
-        SHORT -> 0 >Offset rotl str-byte@ ==,
+        SHORT -> 0 >Offset rotl byte@ ==,
         _ -> drop drop F
     ))
 
@@ -90,7 +90,7 @@ def(check-long-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) Arg
 
 ||| Parse either a short or long flag
 def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    dup num-bytes 2 >Size >= and(1 >Offset over str-byte@ B'-' ==) if(
+    dup num-bytes 2 >Size >= and(1 >Offset over byte@ B'-' ==) if(
         2 >Size over unsafe(drop-bytes) parse-flags-where(check-long-flag),
         1 >Size over unsafe(drop-bytes) parse-flags-where(check-short-flag)
     ) swap drop)
@@ -106,7 +106,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
   swap State.init +ARGUMENTPARSER
   state State.argv for(
     dup num-bytes 1 >Size > if(
-      0 >Offset over str-byte@ B'-' == if(
+      0 >Offset over byte@ B'-' == if(
         # if in the middle of currently parsing an option when we shouldn't be,
 	# turn it off, otherwise error because need an option value
         state parsing? if(
@@ -156,7 +156,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 )
 
 def(read-from-argv, +Unsafe Int -- Str +Unsafe,
-    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr str-copy-cstr
+    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr Str.copy-cstr
 )
 
 def(argv-to-str, -- List(Str),
