@@ -271,7 +271,7 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_LABEL_POP  -> nip c99-label-pop!)
 
 def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
-def(c99-label-def!, Label +C99 -- +C99, "static VAL lbl_" put name mangled put " = {0};" put line)
+def(c99-label-def!, Label +C99 -- +C99, "static VAL lbl_" put name mangled put " = MKNIL_C;" put line)
 def(c99-label-push!, Label +C99 -- +C99, c99-line("LPUSH(lbl_" put name mangled put ");" put))
 def(c99-label-pop!, Label +C99 -- +C99, c99-line("LPOP(lbl_" put name mangled put ");" put))
 
@@ -410,7 +410,7 @@ def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 def(+C99.param-put, Param +C99 -- +C99, >Var var-put)
 
 def(c99-pack-ctx!, Ctx +C99 -- +C99,
-    c99-line("push_u64(0);" put)
+    c99-line("push_value(MKNIL);" put)
     physical-vars for(
         c99-var-push!
         c99-line("mw_std_prim_prim_pack_cons();" put)
@@ -593,7 +593,7 @@ def(c99-field-def!, Field +C99 -- +C99,
     "\tstatic struct VAL * p = 0;" put line
     "\tsize_t m = " put TABLE_MAX_COUNT show put ";" put line
     "\tif (! p) { p = calloc(m, sizeof *p); }" put line
-    "\tif (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" put line
+    "\tEXPECT(i<m, \"table grew too big\");" put line
     "\treturn p+i;" put line
     "}" put line line
         # TODO make this more flexible wrt table size
