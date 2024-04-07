@@ -136,61 +136,105 @@ def(c99-variable!, Variable +C99 -- +C99,
     "}" put line)
 
 def(c99-tags!, +C99 -- +C99, Tag.for(c99-tag!))
-def(c99-tag!, Tag +C99 -- +C99,
-    dup qname sig-put " {" put line
-    dup is-transparent? else(
-        "\tVAL tag = MKU64(" put dup value show put "LL);" put line
-        "\tVAL car = (" put
-        dup num-type-inputs repeat(
-            "pop_value());" put line
-            "\tcar = mkcons(car, " put
+def(c99-tag!, Tag +C99 -- +C99, \(tag ->
+    tag qname sig-put " {" put line
+    tag is-transparent? else(
+        tag num-total-inputs 0= if(
+            tag outputs-resource? if(
+                "\tpush_resource(MKU64(",
+                "\tpush_value(MKU64("
+            ) put
+                tag value show put
+                "LL));" put line
+            ,
+
+            "\tTUP* tup = tup_new(" put
+                tag num-total-inputs 1+ show put
+                ");" put line
+            "\ttup->size = " put
+                tag num-total-inputs 1+ show put
+                ";" put line
+            "\ttup->cells[0] = MKU64(" put
+                tag value show put
+                "LL);" put line
+            tag num-total-inputs
+            tag label-inputs reverse-for(
+                "\ttup->cells[" put
+                    over show put
+                    "] = lpop(&lbl_" put
+                    name mangled put
+                    ");" put line
+                1-
+            )
+            tag num-resource-inputs repeat(
+                "\ttup->cells[" put
+                    dup show put
+                    "] = pop_resource();" put line
+                1-
+            )
+            tag num-type-inputs repeat(
+                "\ttup->cells[" put
+                    dup show put
+                    "] = pop_value();" put line
+                1-
+            )
+            drop
+            tag outputs-resource? if(
+                "\tpush_resource(MKTUP(tup, ",
+                "\tpush_value(MKTUP(tup, "
+            ) put
+                tag num-total-inputs 1+ show put
+                "));" put line
         )
-        dup num-resource-inputs repeat(
-            "pop_resource());" put line
-            "\tcar = mkcons(car, " put
-        )
-        dup label-inputs reverse-for(
-            "lpop(&lbl_" put name mangled put "));" put line
-            "\tcar = mkcons(car, " put
-        )
-        "tag);" put line
-        dup outputs-resource? if(
-            "\tpush_resource(car);",
-            "\tpush_value(car);"
-        ) put line
     )
     "}" put line
 
-    dup qname cosig-put " {" put line
-    dup is-transparent? else(
-        dup outputs-resource? if(
-            "\tVAL car = pop_resource();",
-            "\tVAL car = pop_value();"
+    tag qname cosig-put " {" put line
+    tag is-transparent? else(
+        tag outputs-resource? if(
+            "\tVAL val = pop_resource();",
+            "\tVAL val = pop_value();"
         ) put line
-        dup num-resource-inputs over num-type-inputs + over label-inputs len + 0> then(
-            "\tVAL cdr;" put line
+        tag num-total-inputs 0= if(
+            "\t(void)val;" put line,
+            "\tASSERT1(IS_TUP(val),val);" put line
+            "\tTUP* tup = VTUP(val);" put line
+            1
+            tag num-type-inputs repeat(
+                "\tpush_value(tup->cells[" put
+                    dup show put
+                    "]);" put line
+                1+
+            )
+            tag num-resource-inputs repeat(
+                "\tpush_resource(tup->cells[" put
+                    dup show put
+                    "]);" put line
+                1+
+            )
+            tag label-inputs for(
+                "\tlpush(&lbl_" put
+                    name mangled put
+                    ", tup->cells[" put
+                    dup show put
+                    "]);" put line
+                1+
+            )
+            drop
+            "\tif (tup->refs > 1) {" put line
+            1 tag num-total-inputs repeat(
+                "\t\tincref(tup->cells[" put
+                    dup show put
+                    "]);" put line
+                1+
+            ) drop
+            "\t\tdecref(val);" put line
+            "\t} else {" put line
+            "\t\tfree(tup);" put line
+            "\t}" put line
         )
-        "\tdecref("
-        over label-inputs for(
-            "\tvalue_uncons_c(car, &car, &cdr);" put line
-            swap put "cdr);" put line
-            "\tlpush(&lbl_" swap name mangled cat ", " cat
-        )
-        over num-resource-inputs repeat(
-            "\tvalue_uncons_c(car, &car, &cdr);" put line
-            put "cdr);" put line
-            "\tpush_resource("
-        )
-        over num-type-inputs repeat(
-            "\tvalue_uncons_c(car, &car, &cdr);" put line
-            put "cdr);" put line
-            "\tpush_value("
-        )
-        put "car);" put line
     )
-    "}" put line
-
-    drop)
+    "}" put line))
 
 def(c99-externals!, +C99 -- +C99,
     External.for(c99-external!))

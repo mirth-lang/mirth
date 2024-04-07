@@ -171,6 +171,11 @@ def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
         0 >Nat
     ))
 
+def(Tag.num-total-inputs, Tag -- Nat,
+    dup label-inputs len
+    over num-type-inputs +
+    swap num-resource-inputs +)
+
 def(Tag.is-transparent?, Tag -- Bool,
     .data is-transparent?)
 

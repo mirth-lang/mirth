@@ -248,7 +248,7 @@ static void free_value(VAL v) {
 	}
 }
 
-static void value_uncons_c(VAL val, VAL* tail, VAL* head) {
+static void value_uncons(VAL val, VAL* tail, VAL* head) {
 	if (IS_TUP(val)) {
 		TUPLEN len = VTUPLEN(val);
 		TUP* tup = VTUP(val);
@@ -471,7 +471,7 @@ static VAL mkcons(VAL tail, VAL head) {
 }
 
 static VAL lpop(VAL* stk) {
-	VAL cons=*stk, lcar, lcdr; value_uncons_c(cons, &lcar, &lcdr);
+	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
 	*stk=lcar; return lcdr;
 }
 static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
@@ -499,7 +499,7 @@ static VAL mkstr (const char* data, USIZE size) {
 static void do_uncons(void) {
 	VAL val, tail, head;
 	val = pop_value();
-	value_uncons_c(val, &tail, &head);
+	value_uncons(val, &tail, &head);
 	push_value(tail);
 	push_value(head);
 }
@@ -507,7 +507,7 @@ static void do_uncons(void) {
 static USIZE get_data_tag(VAL v) {
 	if (IS_TUP(v)) {
 		ASSERT(VTUPLEN(v) > 0);
-		return VU64(VTUP(v)->cells[VTUPLEN(v)-1]);
+		return VU64(VTUP(v)->cells[0]);
 	} else {
 		return VU64(v);
 	}
@@ -538,7 +538,7 @@ static void run_value(VAL v) {
 	// TODO Make a closure tag or something.
 	// As it is, this feels kinda wrong.
 	VAL car, cdr;
-	value_uncons_c(v, &car, &cdr);
+	value_uncons(v, &car, &cdr);
 	push_value(car);
 	ASSERT(IS_FNPTR(cdr) && VFNPTR(cdr));
 	VFNPTR(cdr)();

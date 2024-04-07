@@ -92,8 +92,6 @@ typedef struct VAL {
 #define IS_STR(v)   ((v).tag == TAG_STR)
 #define IS_TUP(v)   ((v).tag & TUP_FLAG)
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
-#define IS_NIL_NULL(v) (IS_NIL(v) && !HAS_REFS(v))
-#define IS_NIL_REFS(v) (IS_NIL(v) &&  HAS_REFS(v))
 
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
@@ -251,7 +249,7 @@ static void free_value(VAL v) {
 	}
 }
 
-static void value_uncons_c(VAL val, VAL* tail, VAL* head) {
+static void value_uncons(VAL val, VAL* tail, VAL* head) {
 	if (IS_TUP(val)) {
 		TUPLEN len = VTUPLEN(val);
 		TUP* tup = VTUP(val);
@@ -474,7 +472,7 @@ static VAL mkcons(VAL tail, VAL head) {
 }
 
 static VAL lpop(VAL* stk) {
-	VAL cons=*stk, lcar, lcdr; value_uncons_c(cons, &lcar, &lcdr);
+	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
 	*stk=lcar; return lcdr;
 }
 static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
@@ -502,7 +500,7 @@ static VAL mkstr (const char* data, USIZE size) {
 static void do_uncons(void) {
 	VAL val, tail, head;
 	val = pop_value();
-	value_uncons_c(val, &tail, &head);
+	value_uncons(val, &tail, &head);
 	push_value(tail);
 	push_value(head);
 }
@@ -510,7 +508,7 @@ static void do_uncons(void) {
 static USIZE get_data_tag(VAL v) {
 	if (IS_TUP(v)) {
 		ASSERT(VTUPLEN(v) > 0);
-		return VU64(VTUP(v)->cells[VTUPLEN(v)-1]);
+		return VU64(VTUP(v)->cells[0]);
 	} else {
 		return VU64(v);
 	}
@@ -541,7 +539,7 @@ static void run_value(VAL v) {
 	// TODO Make a closure tag or something.
 	// As it is, this feels kinda wrong.
 	VAL car, cdr;
-	value_uncons_c(v, &car, &cdr);
+	value_uncons(v, &car, &cdr);
 	push_value(car);
 	ASSERT(IS_FNPTR(cdr) && VFNPTR(cdr));
 	VFNPTR(cdr)();
@@ -1348,22 +1346,18 @@ static VAL lbl_template = MKNIL_C;
 static VAL lbl_tok = MKNIL_C;
 static VAL lbl_contents = MKNIL_C;
 static void mw_std_prim_Bool_F (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_std_prim_Bool_F (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prim_Bool_T (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_std_prim_Bool_T (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prim_U64_Int_3E_U64_unsafe (void) {
 }
@@ -1398,254 +1392,294 @@ static void mw_std_prim_I8_Int_3E_I8_unsafe (void) {
 static void mp_std_prim_I8_Int_3E_I8_unsafe (void) {
 }
 static void mw_std_list_List_1_L0 (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_std_list_List_1_L0 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_list_List_1_L1 (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_std_list_List_1_L1 (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list_List_1_L2 (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_std_list_List_1_L2 (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list_List_1_L3 (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[3] = pop_value();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 4));
 }
 static void mp_std_list_List_1_L3 (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_value(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list_List_1_LCAT (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(4LL);
+	tup->cells[3] = pop_value();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 4));
 }
 static void mp_std_list_List_1_LCAT (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_value(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list_List_2B__1_L1_2B_ (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_std_list_List_2B__1_L1_2B_ (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list_List_2B__1_L2_2B_ (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_std_list_List_2B__1_L2_2B_ (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list_List_2B__1_L3_2B_ (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[3] = pop_value();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 4));
 }
 static void mp_std_list_List_2B__1_L3_2B_ (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_value(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list_List_2B__1_LCAT_2B_ (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[3] = pop_value();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 4));
 }
 static void mp_std_list_List_2B__1_LCAT_2B_ (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_value(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_list__2B_List_1__2B_LIST (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 2));
 }
 static void mp_std_list__2B_List_1__2B_LIST (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_maybe_Maybe_1_NONE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_std_maybe_Maybe_1_NONE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_maybe_Maybe_1_SOME (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_std_maybe_Maybe_1_SOME (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_prelude_OS_OS_5F_UNKNOWN (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_std_prelude_OS_OS_5F_UNKNOWN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prelude_OS_OS_5F_WINDOWS (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_std_prelude_OS_OS_5F_WINDOWS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prelude_OS_OS_5F_LINUX (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_std_prelude_OS_OS_5F_LINUX (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prelude_OS_OS_5F_MACOS (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(3LL));
 }
 static void mp_std_prelude_OS_OS_5F_MACOS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prelude_Comparison_LT (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_std_prelude_Comparison_LT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prelude_Comparison_EQ (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_std_prelude_Comparison_EQ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prelude_Comparison_GT (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_std_prelude_Comparison_GT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_prelude__2B_Unsafe__2B_UNSAFE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_resource(car);
+	push_resource(MKU64(0LL));
 }
 static void mp_std_prelude__2B_Unsafe__2B_UNSAFE (void) {
-	VAL car = pop_resource();
-	decref(car);
+	VAL val = pop_resource();
+	(void)val;
 }
 static void mw_std_prelude_Nat_NAT_5F_UNSAFE (void) {
 }
@@ -1660,2670 +1694,2250 @@ static void mw_std_prelude_Offset_OFFSET (void) {
 static void mp_std_prelude_Offset_OFFSET (void) {
 }
 static void mw_std_byte_Byte_BNUL (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_std_byte_Byte_BNUL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BSOH (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_std_byte_Byte_BSOH (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BSTX (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_std_byte_Byte_BSTX (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BETX (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(3LL));
 }
 static void mp_std_byte_Byte_BETX (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BEOT (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(4LL));
 }
 static void mp_std_byte_Byte_BEOT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BENQ (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(5LL));
 }
 static void mp_std_byte_Byte_BENQ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BACK (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(6LL));
 }
 static void mp_std_byte_Byte_BACK (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BBEL (void) {
-	VAL tag = MKU64(7LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(7LL));
 }
 static void mp_std_byte_Byte_BBEL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BBS (void) {
-	VAL tag = MKU64(8LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(8LL));
 }
 static void mp_std_byte_Byte_BBS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BHT (void) {
-	VAL tag = MKU64(9LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(9LL));
 }
 static void mp_std_byte_Byte_BHT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BLF (void) {
-	VAL tag = MKU64(10LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(10LL));
 }
 static void mp_std_byte_Byte_BLF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BVT (void) {
-	VAL tag = MKU64(11LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(11LL));
 }
 static void mp_std_byte_Byte_BVT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BFF (void) {
-	VAL tag = MKU64(12LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(12LL));
 }
 static void mp_std_byte_Byte_BFF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BCR (void) {
-	VAL tag = MKU64(13LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(13LL));
 }
 static void mp_std_byte_Byte_BCR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BSO (void) {
-	VAL tag = MKU64(14LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(14LL));
 }
 static void mp_std_byte_Byte_BSO (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BSI (void) {
-	VAL tag = MKU64(15LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(15LL));
 }
 static void mp_std_byte_Byte_BSI (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BDLE (void) {
-	VAL tag = MKU64(16LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(16LL));
 }
 static void mp_std_byte_Byte_BDLE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BDC1 (void) {
-	VAL tag = MKU64(17LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(17LL));
 }
 static void mp_std_byte_Byte_BDC1 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BDC2 (void) {
-	VAL tag = MKU64(18LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(18LL));
 }
 static void mp_std_byte_Byte_BDC2 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BDC3 (void) {
-	VAL tag = MKU64(19LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(19LL));
 }
 static void mp_std_byte_Byte_BDC3 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BDC4 (void) {
-	VAL tag = MKU64(20LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(20LL));
 }
 static void mp_std_byte_Byte_BDC4 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BNAK (void) {
-	VAL tag = MKU64(21LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(21LL));
 }
 static void mp_std_byte_Byte_BNAK (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BSYN (void) {
-	VAL tag = MKU64(22LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(22LL));
 }
 static void mp_std_byte_Byte_BSYN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BETB (void) {
-	VAL tag = MKU64(23LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(23LL));
 }
 static void mp_std_byte_Byte_BETB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BCAN (void) {
-	VAL tag = MKU64(24LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(24LL));
 }
 static void mp_std_byte_Byte_BCAN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BEM (void) {
-	VAL tag = MKU64(25LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(25LL));
 }
 static void mp_std_byte_Byte_BEM (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BSUB (void) {
-	VAL tag = MKU64(26LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(26LL));
 }
 static void mp_std_byte_Byte_BSUB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BESC (void) {
-	VAL tag = MKU64(27LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(27LL));
 }
 static void mp_std_byte_Byte_BESC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BFS (void) {
-	VAL tag = MKU64(28LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(28LL));
 }
 static void mp_std_byte_Byte_BFS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BGS (void) {
-	VAL tag = MKU64(29LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(29LL));
 }
 static void mp_std_byte_Byte_BGS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BRS (void) {
-	VAL tag = MKU64(30LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(30LL));
 }
 static void mp_std_byte_Byte_BRS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BUS (void) {
-	VAL tag = MKU64(31LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(31LL));
 }
 static void mp_std_byte_Byte_BUS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BSPACE (void) {
-	VAL tag = MKU64(32LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(32LL));
 }
 static void mp_std_byte_Byte_BSPACE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__21__27_ (void) {
-	VAL tag = MKU64(33LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(33LL));
 }
 static void mp_std_byte_Byte_B_27__21__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BQUOTE (void) {
-	VAL tag = MKU64(34LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(34LL));
 }
 static void mp_std_byte_Byte_BQUOTE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BHASH (void) {
-	VAL tag = MKU64(35LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(35LL));
 }
 static void mp_std_byte_Byte_BHASH (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__24__27_ (void) {
-	VAL tag = MKU64(36LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(36LL));
 }
 static void mp_std_byte_Byte_B_27__24__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__25__27_ (void) {
-	VAL tag = MKU64(37LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(37LL));
 }
 static void mp_std_byte_Byte_B_27__25__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__26__27_ (void) {
-	VAL tag = MKU64(38LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(38LL));
 }
 static void mp_std_byte_Byte_B_27__26__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BTICK (void) {
-	VAL tag = MKU64(39LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(39LL));
 }
 static void mp_std_byte_Byte_BTICK (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BLPAREN (void) {
-	VAL tag = MKU64(40LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(40LL));
 }
 static void mp_std_byte_Byte_BLPAREN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BRPAREN (void) {
-	VAL tag = MKU64(41LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(41LL));
 }
 static void mp_std_byte_Byte_BRPAREN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__2A__27_ (void) {
-	VAL tag = MKU64(42LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(42LL));
 }
 static void mp_std_byte_Byte_B_27__2A__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__2B__27_ (void) {
-	VAL tag = MKU64(43LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(43LL));
 }
 static void mp_std_byte_Byte_B_27__2B__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BCOMMA (void) {
-	VAL tag = MKU64(44LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(44LL));
 }
 static void mp_std_byte_Byte_BCOMMA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27___27_ (void) {
-	VAL tag = MKU64(45LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(45LL));
 }
 static void mp_std_byte_Byte_B_27___27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BDOT (void) {
-	VAL tag = MKU64(46LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(46LL));
 }
 static void mp_std_byte_Byte_BDOT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__2F__27_ (void) {
-	VAL tag = MKU64(47LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(47LL));
 }
 static void mp_std_byte_Byte_B_27__2F__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_0_27_ (void) {
-	VAL tag = MKU64(48LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(48LL));
 }
 static void mp_std_byte_Byte_B_27_0_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_1_27_ (void) {
-	VAL tag = MKU64(49LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(49LL));
 }
 static void mp_std_byte_Byte_B_27_1_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_2_27_ (void) {
-	VAL tag = MKU64(50LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(50LL));
 }
 static void mp_std_byte_Byte_B_27_2_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_3_27_ (void) {
-	VAL tag = MKU64(51LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(51LL));
 }
 static void mp_std_byte_Byte_B_27_3_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_4_27_ (void) {
-	VAL tag = MKU64(52LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(52LL));
 }
 static void mp_std_byte_Byte_B_27_4_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_5_27_ (void) {
-	VAL tag = MKU64(53LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(53LL));
 }
 static void mp_std_byte_Byte_B_27_5_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_6_27_ (void) {
-	VAL tag = MKU64(54LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(54LL));
 }
 static void mp_std_byte_Byte_B_27_6_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_7_27_ (void) {
-	VAL tag = MKU64(55LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(55LL));
 }
 static void mp_std_byte_Byte_B_27_7_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_8_27_ (void) {
-	VAL tag = MKU64(56LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(56LL));
 }
 static void mp_std_byte_Byte_B_27_8_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_9_27_ (void) {
-	VAL tag = MKU64(57LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(57LL));
 }
 static void mp_std_byte_Byte_B_27_9_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BCOLON (void) {
-	VAL tag = MKU64(58LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(58LL));
 }
 static void mp_std_byte_Byte_BCOLON (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__3B__27_ (void) {
-	VAL tag = MKU64(59LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(59LL));
 }
 static void mp_std_byte_Byte_B_27__3B__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__3C__27_ (void) {
-	VAL tag = MKU64(60LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(60LL));
 }
 static void mp_std_byte_Byte_B_27__3C__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__3D__27_ (void) {
-	VAL tag = MKU64(61LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(61LL));
 }
 static void mp_std_byte_Byte_B_27__3D__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__3E__27_ (void) {
-	VAL tag = MKU64(62LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(62LL));
 }
 static void mp_std_byte_Byte_B_27__3E__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__3F__27_ (void) {
-	VAL tag = MKU64(63LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(63LL));
 }
 static void mp_std_byte_Byte_B_27__3F__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__40__27_ (void) {
-	VAL tag = MKU64(64LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(64LL));
 }
 static void mp_std_byte_Byte_B_27__40__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_A_27_ (void) {
-	VAL tag = MKU64(65LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(65LL));
 }
 static void mp_std_byte_Byte_B_27_A_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_B_27_ (void) {
-	VAL tag = MKU64(66LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(66LL));
 }
 static void mp_std_byte_Byte_B_27_B_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_C_27_ (void) {
-	VAL tag = MKU64(67LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(67LL));
 }
 static void mp_std_byte_Byte_B_27_C_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_D_27_ (void) {
-	VAL tag = MKU64(68LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(68LL));
 }
 static void mp_std_byte_Byte_B_27_D_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_E_27_ (void) {
-	VAL tag = MKU64(69LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(69LL));
 }
 static void mp_std_byte_Byte_B_27_E_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_F_27_ (void) {
-	VAL tag = MKU64(70LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(70LL));
 }
 static void mp_std_byte_Byte_B_27_F_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_G_27_ (void) {
-	VAL tag = MKU64(71LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(71LL));
 }
 static void mp_std_byte_Byte_B_27_G_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_H_27_ (void) {
-	VAL tag = MKU64(72LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(72LL));
 }
 static void mp_std_byte_Byte_B_27_H_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_I_27_ (void) {
-	VAL tag = MKU64(73LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(73LL));
 }
 static void mp_std_byte_Byte_B_27_I_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_J_27_ (void) {
-	VAL tag = MKU64(74LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(74LL));
 }
 static void mp_std_byte_Byte_B_27_J_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_K_27_ (void) {
-	VAL tag = MKU64(75LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(75LL));
 }
 static void mp_std_byte_Byte_B_27_K_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_L_27_ (void) {
-	VAL tag = MKU64(76LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(76LL));
 }
 static void mp_std_byte_Byte_B_27_L_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_M_27_ (void) {
-	VAL tag = MKU64(77LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(77LL));
 }
 static void mp_std_byte_Byte_B_27_M_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_N_27_ (void) {
-	VAL tag = MKU64(78LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(78LL));
 }
 static void mp_std_byte_Byte_B_27_N_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_O_27_ (void) {
-	VAL tag = MKU64(79LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(79LL));
 }
 static void mp_std_byte_Byte_B_27_O_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_P_27_ (void) {
-	VAL tag = MKU64(80LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(80LL));
 }
 static void mp_std_byte_Byte_B_27_P_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_Q_27_ (void) {
-	VAL tag = MKU64(81LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(81LL));
 }
 static void mp_std_byte_Byte_B_27_Q_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_R_27_ (void) {
-	VAL tag = MKU64(82LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(82LL));
 }
 static void mp_std_byte_Byte_B_27_R_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_S_27_ (void) {
-	VAL tag = MKU64(83LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(83LL));
 }
 static void mp_std_byte_Byte_B_27_S_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_T_27_ (void) {
-	VAL tag = MKU64(84LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(84LL));
 }
 static void mp_std_byte_Byte_B_27_T_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_U_27_ (void) {
-	VAL tag = MKU64(85LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(85LL));
 }
 static void mp_std_byte_Byte_B_27_U_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_V_27_ (void) {
-	VAL tag = MKU64(86LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(86LL));
 }
 static void mp_std_byte_Byte_B_27_V_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_W_27_ (void) {
-	VAL tag = MKU64(87LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(87LL));
 }
 static void mp_std_byte_Byte_B_27_W_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_X_27_ (void) {
-	VAL tag = MKU64(88LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(88LL));
 }
 static void mp_std_byte_Byte_B_27_X_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_Y_27_ (void) {
-	VAL tag = MKU64(89LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(89LL));
 }
 static void mp_std_byte_Byte_B_27_Y_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_Z_27_ (void) {
-	VAL tag = MKU64(90LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(90LL));
 }
 static void mp_std_byte_Byte_B_27_Z_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BLSQUARE (void) {
-	VAL tag = MKU64(91LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(91LL));
 }
 static void mp_std_byte_Byte_BLSQUARE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__5C__27_ (void) {
-	VAL tag = MKU64(92LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(92LL));
 }
 static void mp_std_byte_Byte_B_27__5C__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BRSQUARE (void) {
-	VAL tag = MKU64(93LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(93LL));
 }
 static void mp_std_byte_Byte_BRSQUARE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__5E__27_ (void) {
-	VAL tag = MKU64(94LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(94LL));
 }
 static void mp_std_byte_Byte_B_27__5E__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__5F__27_ (void) {
-	VAL tag = MKU64(95LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(95LL));
 }
 static void mp_std_byte_Byte_B_27__5F__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__60__27_ (void) {
-	VAL tag = MKU64(96LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(96LL));
 }
 static void mp_std_byte_Byte_B_27__60__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_a_27_ (void) {
-	VAL tag = MKU64(97LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(97LL));
 }
 static void mp_std_byte_Byte_B_27_a_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_b_27_ (void) {
-	VAL tag = MKU64(98LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(98LL));
 }
 static void mp_std_byte_Byte_B_27_b_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_c_27_ (void) {
-	VAL tag = MKU64(99LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(99LL));
 }
 static void mp_std_byte_Byte_B_27_c_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_d_27_ (void) {
-	VAL tag = MKU64(100LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(100LL));
 }
 static void mp_std_byte_Byte_B_27_d_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_e_27_ (void) {
-	VAL tag = MKU64(101LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(101LL));
 }
 static void mp_std_byte_Byte_B_27_e_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_f_27_ (void) {
-	VAL tag = MKU64(102LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(102LL));
 }
 static void mp_std_byte_Byte_B_27_f_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_g_27_ (void) {
-	VAL tag = MKU64(103LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(103LL));
 }
 static void mp_std_byte_Byte_B_27_g_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_h_27_ (void) {
-	VAL tag = MKU64(104LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(104LL));
 }
 static void mp_std_byte_Byte_B_27_h_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_i_27_ (void) {
-	VAL tag = MKU64(105LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(105LL));
 }
 static void mp_std_byte_Byte_B_27_i_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_j_27_ (void) {
-	VAL tag = MKU64(106LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(106LL));
 }
 static void mp_std_byte_Byte_B_27_j_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_k_27_ (void) {
-	VAL tag = MKU64(107LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(107LL));
 }
 static void mp_std_byte_Byte_B_27_k_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_l_27_ (void) {
-	VAL tag = MKU64(108LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(108LL));
 }
 static void mp_std_byte_Byte_B_27_l_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_m_27_ (void) {
-	VAL tag = MKU64(109LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(109LL));
 }
 static void mp_std_byte_Byte_B_27_m_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_n_27_ (void) {
-	VAL tag = MKU64(110LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(110LL));
 }
 static void mp_std_byte_Byte_B_27_n_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_o_27_ (void) {
-	VAL tag = MKU64(111LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(111LL));
 }
 static void mp_std_byte_Byte_B_27_o_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_p_27_ (void) {
-	VAL tag = MKU64(112LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(112LL));
 }
 static void mp_std_byte_Byte_B_27_p_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_q_27_ (void) {
-	VAL tag = MKU64(113LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(113LL));
 }
 static void mp_std_byte_Byte_B_27_q_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_r_27_ (void) {
-	VAL tag = MKU64(114LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(114LL));
 }
 static void mp_std_byte_Byte_B_27_r_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_s_27_ (void) {
-	VAL tag = MKU64(115LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(115LL));
 }
 static void mp_std_byte_Byte_B_27_s_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_t_27_ (void) {
-	VAL tag = MKU64(116LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(116LL));
 }
 static void mp_std_byte_Byte_B_27_t_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_u_27_ (void) {
-	VAL tag = MKU64(117LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(117LL));
 }
 static void mp_std_byte_Byte_B_27_u_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_v_27_ (void) {
-	VAL tag = MKU64(118LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(118LL));
 }
 static void mp_std_byte_Byte_B_27_v_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_w_27_ (void) {
-	VAL tag = MKU64(119LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(119LL));
 }
 static void mp_std_byte_Byte_B_27_w_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_x_27_ (void) {
-	VAL tag = MKU64(120LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(120LL));
 }
 static void mp_std_byte_Byte_B_27_x_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_y_27_ (void) {
-	VAL tag = MKU64(121LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(121LL));
 }
 static void mp_std_byte_Byte_B_27_y_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27_z_27_ (void) {
-	VAL tag = MKU64(122LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(122LL));
 }
 static void mp_std_byte_Byte_B_27_z_27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BLCURLY (void) {
-	VAL tag = MKU64(123LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(123LL));
 }
 static void mp_std_byte_Byte_BLCURLY (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__7C__27_ (void) {
-	VAL tag = MKU64(124LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(124LL));
 }
 static void mp_std_byte_Byte_B_27__7C__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BRCURLY (void) {
-	VAL tag = MKU64(125LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(125LL));
 }
 static void mp_std_byte_Byte_BRCURLY (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_B_27__7E__27_ (void) {
-	VAL tag = MKU64(126LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(126LL));
 }
 static void mp_std_byte_Byte_B_27__7E__27_ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BDEL (void) {
-	VAL tag = MKU64(127LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(127LL));
 }
 static void mp_std_byte_Byte_BDEL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx80 (void) {
-	VAL tag = MKU64(128LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(128LL));
 }
 static void mp_std_byte_Byte_Bx80 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx81 (void) {
-	VAL tag = MKU64(129LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(129LL));
 }
 static void mp_std_byte_Byte_Bx81 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx82 (void) {
-	VAL tag = MKU64(130LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(130LL));
 }
 static void mp_std_byte_Byte_Bx82 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx83 (void) {
-	VAL tag = MKU64(131LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(131LL));
 }
 static void mp_std_byte_Byte_Bx83 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx84 (void) {
-	VAL tag = MKU64(132LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(132LL));
 }
 static void mp_std_byte_Byte_Bx84 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx85 (void) {
-	VAL tag = MKU64(133LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(133LL));
 }
 static void mp_std_byte_Byte_Bx85 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx86 (void) {
-	VAL tag = MKU64(134LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(134LL));
 }
 static void mp_std_byte_Byte_Bx86 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx87 (void) {
-	VAL tag = MKU64(135LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(135LL));
 }
 static void mp_std_byte_Byte_Bx87 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx88 (void) {
-	VAL tag = MKU64(136LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(136LL));
 }
 static void mp_std_byte_Byte_Bx88 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx89 (void) {
-	VAL tag = MKU64(137LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(137LL));
 }
 static void mp_std_byte_Byte_Bx89 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx8A (void) {
-	VAL tag = MKU64(138LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(138LL));
 }
 static void mp_std_byte_Byte_Bx8A (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx8B (void) {
-	VAL tag = MKU64(139LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(139LL));
 }
 static void mp_std_byte_Byte_Bx8B (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx8C (void) {
-	VAL tag = MKU64(140LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(140LL));
 }
 static void mp_std_byte_Byte_Bx8C (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx8D (void) {
-	VAL tag = MKU64(141LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(141LL));
 }
 static void mp_std_byte_Byte_Bx8D (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx8E (void) {
-	VAL tag = MKU64(142LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(142LL));
 }
 static void mp_std_byte_Byte_Bx8E (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx8F (void) {
-	VAL tag = MKU64(143LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(143LL));
 }
 static void mp_std_byte_Byte_Bx8F (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx90 (void) {
-	VAL tag = MKU64(144LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(144LL));
 }
 static void mp_std_byte_Byte_Bx90 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx91 (void) {
-	VAL tag = MKU64(145LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(145LL));
 }
 static void mp_std_byte_Byte_Bx91 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx92 (void) {
-	VAL tag = MKU64(146LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(146LL));
 }
 static void mp_std_byte_Byte_Bx92 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx93 (void) {
-	VAL tag = MKU64(147LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(147LL));
 }
 static void mp_std_byte_Byte_Bx93 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx94 (void) {
-	VAL tag = MKU64(148LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(148LL));
 }
 static void mp_std_byte_Byte_Bx94 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx95 (void) {
-	VAL tag = MKU64(149LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(149LL));
 }
 static void mp_std_byte_Byte_Bx95 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx96 (void) {
-	VAL tag = MKU64(150LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(150LL));
 }
 static void mp_std_byte_Byte_Bx96 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx97 (void) {
-	VAL tag = MKU64(151LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(151LL));
 }
 static void mp_std_byte_Byte_Bx97 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx98 (void) {
-	VAL tag = MKU64(152LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(152LL));
 }
 static void mp_std_byte_Byte_Bx98 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx99 (void) {
-	VAL tag = MKU64(153LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(153LL));
 }
 static void mp_std_byte_Byte_Bx99 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx9A (void) {
-	VAL tag = MKU64(154LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(154LL));
 }
 static void mp_std_byte_Byte_Bx9A (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx9B (void) {
-	VAL tag = MKU64(155LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(155LL));
 }
 static void mp_std_byte_Byte_Bx9B (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx9C (void) {
-	VAL tag = MKU64(156LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(156LL));
 }
 static void mp_std_byte_Byte_Bx9C (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx9D (void) {
-	VAL tag = MKU64(157LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(157LL));
 }
 static void mp_std_byte_Byte_Bx9D (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx9E (void) {
-	VAL tag = MKU64(158LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(158LL));
 }
 static void mp_std_byte_Byte_Bx9E (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_Bx9F (void) {
-	VAL tag = MKU64(159LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(159LL));
 }
 static void mp_std_byte_Byte_Bx9F (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA0 (void) {
-	VAL tag = MKU64(160LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(160LL));
 }
 static void mp_std_byte_Byte_BxA0 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA1 (void) {
-	VAL tag = MKU64(161LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(161LL));
 }
 static void mp_std_byte_Byte_BxA1 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA2 (void) {
-	VAL tag = MKU64(162LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(162LL));
 }
 static void mp_std_byte_Byte_BxA2 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA3 (void) {
-	VAL tag = MKU64(163LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(163LL));
 }
 static void mp_std_byte_Byte_BxA3 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA4 (void) {
-	VAL tag = MKU64(164LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(164LL));
 }
 static void mp_std_byte_Byte_BxA4 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA5 (void) {
-	VAL tag = MKU64(165LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(165LL));
 }
 static void mp_std_byte_Byte_BxA5 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA6 (void) {
-	VAL tag = MKU64(166LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(166LL));
 }
 static void mp_std_byte_Byte_BxA6 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA7 (void) {
-	VAL tag = MKU64(167LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(167LL));
 }
 static void mp_std_byte_Byte_BxA7 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA8 (void) {
-	VAL tag = MKU64(168LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(168LL));
 }
 static void mp_std_byte_Byte_BxA8 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxA9 (void) {
-	VAL tag = MKU64(169LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(169LL));
 }
 static void mp_std_byte_Byte_BxA9 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxAA (void) {
-	VAL tag = MKU64(170LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(170LL));
 }
 static void mp_std_byte_Byte_BxAA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxAB (void) {
-	VAL tag = MKU64(171LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(171LL));
 }
 static void mp_std_byte_Byte_BxAB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxAC (void) {
-	VAL tag = MKU64(172LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(172LL));
 }
 static void mp_std_byte_Byte_BxAC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxAD (void) {
-	VAL tag = MKU64(173LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(173LL));
 }
 static void mp_std_byte_Byte_BxAD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxAE (void) {
-	VAL tag = MKU64(174LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(174LL));
 }
 static void mp_std_byte_Byte_BxAE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxAF (void) {
-	VAL tag = MKU64(175LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(175LL));
 }
 static void mp_std_byte_Byte_BxAF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB0 (void) {
-	VAL tag = MKU64(176LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(176LL));
 }
 static void mp_std_byte_Byte_BxB0 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB1 (void) {
-	VAL tag = MKU64(177LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(177LL));
 }
 static void mp_std_byte_Byte_BxB1 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB2 (void) {
-	VAL tag = MKU64(178LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(178LL));
 }
 static void mp_std_byte_Byte_BxB2 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB3 (void) {
-	VAL tag = MKU64(179LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(179LL));
 }
 static void mp_std_byte_Byte_BxB3 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB4 (void) {
-	VAL tag = MKU64(180LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(180LL));
 }
 static void mp_std_byte_Byte_BxB4 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB5 (void) {
-	VAL tag = MKU64(181LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(181LL));
 }
 static void mp_std_byte_Byte_BxB5 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB6 (void) {
-	VAL tag = MKU64(182LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(182LL));
 }
 static void mp_std_byte_Byte_BxB6 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB7 (void) {
-	VAL tag = MKU64(183LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(183LL));
 }
 static void mp_std_byte_Byte_BxB7 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB8 (void) {
-	VAL tag = MKU64(184LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(184LL));
 }
 static void mp_std_byte_Byte_BxB8 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxB9 (void) {
-	VAL tag = MKU64(185LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(185LL));
 }
 static void mp_std_byte_Byte_BxB9 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxBA (void) {
-	VAL tag = MKU64(186LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(186LL));
 }
 static void mp_std_byte_Byte_BxBA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxBB (void) {
-	VAL tag = MKU64(187LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(187LL));
 }
 static void mp_std_byte_Byte_BxBB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxBC (void) {
-	VAL tag = MKU64(188LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(188LL));
 }
 static void mp_std_byte_Byte_BxBC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxBD (void) {
-	VAL tag = MKU64(189LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(189LL));
 }
 static void mp_std_byte_Byte_BxBD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxBE (void) {
-	VAL tag = MKU64(190LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(190LL));
 }
 static void mp_std_byte_Byte_BxBE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxBF (void) {
-	VAL tag = MKU64(191LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(191LL));
 }
 static void mp_std_byte_Byte_BxBF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC0 (void) {
-	VAL tag = MKU64(192LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(192LL));
 }
 static void mp_std_byte_Byte_BxC0 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC1 (void) {
-	VAL tag = MKU64(193LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(193LL));
 }
 static void mp_std_byte_Byte_BxC1 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC2 (void) {
-	VAL tag = MKU64(194LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(194LL));
 }
 static void mp_std_byte_Byte_BxC2 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC3 (void) {
-	VAL tag = MKU64(195LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(195LL));
 }
 static void mp_std_byte_Byte_BxC3 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC4 (void) {
-	VAL tag = MKU64(196LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(196LL));
 }
 static void mp_std_byte_Byte_BxC4 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC5 (void) {
-	VAL tag = MKU64(197LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(197LL));
 }
 static void mp_std_byte_Byte_BxC5 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC6 (void) {
-	VAL tag = MKU64(198LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(198LL));
 }
 static void mp_std_byte_Byte_BxC6 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC7 (void) {
-	VAL tag = MKU64(199LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(199LL));
 }
 static void mp_std_byte_Byte_BxC7 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC8 (void) {
-	VAL tag = MKU64(200LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(200LL));
 }
 static void mp_std_byte_Byte_BxC8 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxC9 (void) {
-	VAL tag = MKU64(201LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(201LL));
 }
 static void mp_std_byte_Byte_BxC9 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxCA (void) {
-	VAL tag = MKU64(202LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(202LL));
 }
 static void mp_std_byte_Byte_BxCA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxCB (void) {
-	VAL tag = MKU64(203LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(203LL));
 }
 static void mp_std_byte_Byte_BxCB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxCC (void) {
-	VAL tag = MKU64(204LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(204LL));
 }
 static void mp_std_byte_Byte_BxCC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxCD (void) {
-	VAL tag = MKU64(205LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(205LL));
 }
 static void mp_std_byte_Byte_BxCD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxCE (void) {
-	VAL tag = MKU64(206LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(206LL));
 }
 static void mp_std_byte_Byte_BxCE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxCF (void) {
-	VAL tag = MKU64(207LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(207LL));
 }
 static void mp_std_byte_Byte_BxCF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD0 (void) {
-	VAL tag = MKU64(208LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(208LL));
 }
 static void mp_std_byte_Byte_BxD0 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD1 (void) {
-	VAL tag = MKU64(209LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(209LL));
 }
 static void mp_std_byte_Byte_BxD1 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD2 (void) {
-	VAL tag = MKU64(210LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(210LL));
 }
 static void mp_std_byte_Byte_BxD2 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD3 (void) {
-	VAL tag = MKU64(211LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(211LL));
 }
 static void mp_std_byte_Byte_BxD3 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD4 (void) {
-	VAL tag = MKU64(212LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(212LL));
 }
 static void mp_std_byte_Byte_BxD4 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD5 (void) {
-	VAL tag = MKU64(213LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(213LL));
 }
 static void mp_std_byte_Byte_BxD5 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD6 (void) {
-	VAL tag = MKU64(214LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(214LL));
 }
 static void mp_std_byte_Byte_BxD6 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD7 (void) {
-	VAL tag = MKU64(215LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(215LL));
 }
 static void mp_std_byte_Byte_BxD7 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD8 (void) {
-	VAL tag = MKU64(216LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(216LL));
 }
 static void mp_std_byte_Byte_BxD8 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxD9 (void) {
-	VAL tag = MKU64(217LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(217LL));
 }
 static void mp_std_byte_Byte_BxD9 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxDA (void) {
-	VAL tag = MKU64(218LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(218LL));
 }
 static void mp_std_byte_Byte_BxDA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxDB (void) {
-	VAL tag = MKU64(219LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(219LL));
 }
 static void mp_std_byte_Byte_BxDB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxDC (void) {
-	VAL tag = MKU64(220LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(220LL));
 }
 static void mp_std_byte_Byte_BxDC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxDD (void) {
-	VAL tag = MKU64(221LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(221LL));
 }
 static void mp_std_byte_Byte_BxDD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxDE (void) {
-	VAL tag = MKU64(222LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(222LL));
 }
 static void mp_std_byte_Byte_BxDE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxDF (void) {
-	VAL tag = MKU64(223LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(223LL));
 }
 static void mp_std_byte_Byte_BxDF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE0 (void) {
-	VAL tag = MKU64(224LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(224LL));
 }
 static void mp_std_byte_Byte_BxE0 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE1 (void) {
-	VAL tag = MKU64(225LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(225LL));
 }
 static void mp_std_byte_Byte_BxE1 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE2 (void) {
-	VAL tag = MKU64(226LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(226LL));
 }
 static void mp_std_byte_Byte_BxE2 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE3 (void) {
-	VAL tag = MKU64(227LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(227LL));
 }
 static void mp_std_byte_Byte_BxE3 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE4 (void) {
-	VAL tag = MKU64(228LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(228LL));
 }
 static void mp_std_byte_Byte_BxE4 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE5 (void) {
-	VAL tag = MKU64(229LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(229LL));
 }
 static void mp_std_byte_Byte_BxE5 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE6 (void) {
-	VAL tag = MKU64(230LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(230LL));
 }
 static void mp_std_byte_Byte_BxE6 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE7 (void) {
-	VAL tag = MKU64(231LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(231LL));
 }
 static void mp_std_byte_Byte_BxE7 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE8 (void) {
-	VAL tag = MKU64(232LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(232LL));
 }
 static void mp_std_byte_Byte_BxE8 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxE9 (void) {
-	VAL tag = MKU64(233LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(233LL));
 }
 static void mp_std_byte_Byte_BxE9 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxEA (void) {
-	VAL tag = MKU64(234LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(234LL));
 }
 static void mp_std_byte_Byte_BxEA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxEB (void) {
-	VAL tag = MKU64(235LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(235LL));
 }
 static void mp_std_byte_Byte_BxEB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxEC (void) {
-	VAL tag = MKU64(236LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(236LL));
 }
 static void mp_std_byte_Byte_BxEC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxED (void) {
-	VAL tag = MKU64(237LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(237LL));
 }
 static void mp_std_byte_Byte_BxED (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxEE (void) {
-	VAL tag = MKU64(238LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(238LL));
 }
 static void mp_std_byte_Byte_BxEE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxEF (void) {
-	VAL tag = MKU64(239LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(239LL));
 }
 static void mp_std_byte_Byte_BxEF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF0 (void) {
-	VAL tag = MKU64(240LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(240LL));
 }
 static void mp_std_byte_Byte_BxF0 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF1 (void) {
-	VAL tag = MKU64(241LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(241LL));
 }
 static void mp_std_byte_Byte_BxF1 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF2 (void) {
-	VAL tag = MKU64(242LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(242LL));
 }
 static void mp_std_byte_Byte_BxF2 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF3 (void) {
-	VAL tag = MKU64(243LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(243LL));
 }
 static void mp_std_byte_Byte_BxF3 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF4 (void) {
-	VAL tag = MKU64(244LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(244LL));
 }
 static void mp_std_byte_Byte_BxF4 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF5 (void) {
-	VAL tag = MKU64(245LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(245LL));
 }
 static void mp_std_byte_Byte_BxF5 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF6 (void) {
-	VAL tag = MKU64(246LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(246LL));
 }
 static void mp_std_byte_Byte_BxF6 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF7 (void) {
-	VAL tag = MKU64(247LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(247LL));
 }
 static void mp_std_byte_Byte_BxF7 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF8 (void) {
-	VAL tag = MKU64(248LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(248LL));
 }
 static void mp_std_byte_Byte_BxF8 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxF9 (void) {
-	VAL tag = MKU64(249LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(249LL));
 }
 static void mp_std_byte_Byte_BxF9 (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxFA (void) {
-	VAL tag = MKU64(250LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(250LL));
 }
 static void mp_std_byte_Byte_BxFA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxFB (void) {
-	VAL tag = MKU64(251LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(251LL));
 }
 static void mp_std_byte_Byte_BxFB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxFC (void) {
-	VAL tag = MKU64(252LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(252LL));
 }
 static void mp_std_byte_Byte_BxFC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxFD (void) {
-	VAL tag = MKU64(253LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(253LL));
 }
 static void mp_std_byte_Byte_BxFD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxFE (void) {
-	VAL tag = MKU64(254LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(254LL));
 }
 static void mp_std_byte_Byte_BxFE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_byte_Byte_BxFF (void) {
-	VAL tag = MKU64(255LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(255LL));
 }
 static void mp_std_byte_Byte_BxFF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_buffer__2B_Buffer__2B_BUFFER (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 3));
 }
 static void mp_std_buffer__2B_Buffer__2B_BUFFER (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_str__2B_Str__2B_STR (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 2));
 }
 static void mp_std_str__2B_Str__2B_STR (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_path_Path_PATH (void) {
 }
 static void mp_std_path_Path_PATH (void) {
 }
 static void mw_std_either_Either_2_LEFT (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_std_either_Either_2_LEFT (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_either_Either_2_RIGHT (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_std_either_Either_2_RIGHT (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_posix_posix_File_FILE (void) {
 }
 static void mp_posix_posix_File_FILE (void) {
 }
 static void mw_args_state_ArgvInfo_ARGV_5F_INFO (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_program_name));
-	car = mkcons(car, lpop(&lbl_argv));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = lpop(&lbl_program_name);
+	tup->cells[1] = lpop(&lbl_argv);
+	push_value(MKTUP(tup, 3));
 }
 static void mp_args_state_ArgvInfo_ARGV_5F_INFO (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_argv, cdr);
-	lpush(&lbl_program_name, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_argv, tup->cells[1]);
+	lpush(&lbl_program_name, tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_state_CurrentArg_CURRENT_5F_ARG (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_option_option));
-	car = mkcons(car, lpop(&lbl_option));
-	car = mkcons(car, lpop(&lbl_parsing_3F_));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[3] = lpop(&lbl_option_option);
+	tup->cells[2] = lpop(&lbl_option);
+	tup->cells[1] = lpop(&lbl_parsing_3F_);
+	push_value(MKTUP(tup, 4));
 }
 static void mp_args_state_CurrentArg_CURRENT_5F_ARG (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_parsing_3F_, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_option, cdr);
-	lpush(&lbl_option_option, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_parsing_3F_, tup->cells[1]);
+	lpush(&lbl_option, tup->cells[2]);
+	lpush(&lbl_option_option, tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_state_State_1_STATE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_error));
-	car = mkcons(car, lpop(&lbl_positional_index));
-	car = mkcons(car, lpop(&lbl_arg));
-	car = mkcons(car, lpop(&lbl_argv_info));
-	car = mkcons(car, lpop(&lbl_arguments));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(6);
+	tup->size = 6;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[5] = lpop(&lbl_error);
+	tup->cells[4] = lpop(&lbl_positional_index);
+	tup->cells[3] = lpop(&lbl_arg);
+	tup->cells[2] = lpop(&lbl_argv_info);
+	tup->cells[1] = lpop(&lbl_arguments);
+	push_value(MKTUP(tup, 6));
 }
 static void mp_args_state_State_1_STATE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_arguments, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_argv_info, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_arg, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_positional_index, cdr);
-	lpush(&lbl_error, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_arguments, tup->cells[1]);
+	lpush(&lbl_argv_info, tup->cells[2]);
+	lpush(&lbl_arg, tup->cells[3]);
+	lpush(&lbl_positional_index, tup->cells[4]);
+	lpush(&lbl_error, tup->cells[5]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types_ArgumentParser_1_ARGUMENT_5F_PARSER (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_doc));
-	car = mkcons(car, lpop(&lbl_args_doc));
-	car = mkcons(car, lpop(&lbl_parser));
-	car = mkcons(car, lpop(&lbl_options));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(5);
+	tup->size = 5;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[4] = lpop(&lbl_doc);
+	tup->cells[3] = lpop(&lbl_args_doc);
+	tup->cells[2] = lpop(&lbl_parser);
+	tup->cells[1] = lpop(&lbl_options);
+	push_value(MKTUP(tup, 5));
 }
 static void mp_args_types_ArgumentParser_1_ARGUMENT_5F_PARSER (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_options, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_parser, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_args_doc, cdr);
-	lpush(&lbl_doc, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_options, tup->cells[1]);
+	lpush(&lbl_parser, tup->cells[2]);
+	lpush(&lbl_args_doc, tup->cells[3]);
+	lpush(&lbl_doc, tup->cells[4]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 3));
 }
 static void mp_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types_ArgpOptionType_SHORT (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_args_types_ArgpOptionType_SHORT (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types_ArgpOptionType_LONG_5F_ONLY (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_args_types_ArgpOptionType_LONG_5F_ONLY (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types_ArgpOptionType_POSITIONAL (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_args_types_ArgpOptionType_POSITIONAL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_args_types_ArgpOptionType_END (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(3LL));
 }
 static void mp_args_types_ArgpOptionType_END (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_args_types_ArgumentParsingError_NO_5F_ARGS_5F_PARSED (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_args_types_ArgumentParsingError_NO_5F_ARGS_5F_PARSED (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_args_types_ArgumentParsingError_MISSING_5F_ARGUMENT_5F_VALUE (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_args_types_ArgumentParsingError_MISSING_5F_ARGUMENT_5F_VALUE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_args_types_ArgumentParsingError_MISSING_5F_ARG (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_args_types_ArgumentParsingError_MISSING_5F_ARG (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types_ArgumentParsingError_TOO_5F_MANY_5F_ARGS (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(3LL));
 }
 static void mp_args_types_ArgumentParsingError_TOO_5F_MANY_5F_ARGS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_args_types_ArgumentParsingError_TOO_5F_FEW_5F_ARGS (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(4LL));
 }
 static void mp_args_types_ArgumentParsingError_TOO_5F_FEW_5F_ARGS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_args_types_ArgumentParsingError_UNKNOWN_5F_ARG (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(5LL));
 }
 static void mp_args_types_ArgumentParsingError_UNKNOWN_5F_ARG (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_posix_input__2B_InputOpen__2B_INPUTOPEN (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(5);
+	tup->size = 5;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[4] = pop_resource();
+	tup->cells[3] = pop_resource();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 5));
 }
 static void mp_posix_input__2B_InputOpen__2B_INPUTOPEN (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_resource(tup->cells[3]);
+	push_resource(tup->cells[4]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_posix_input__2B_Input__2B_INPUT_5F_OPEN (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_resource());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_resource();
+	push_resource(MKTUP(tup, 2));
 }
 static void mp_posix_input__2B_Input__2B_INPUT_5F_OPEN (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_resource(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_resource(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_posix_input__2B_Input__2B_INPUT_5F_DONE (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_resource());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_resource();
+	push_resource(MKTUP(tup, 2));
 }
 static void mp_posix_input__2B_Input__2B_INPUT_5F_DONE (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_resource(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_resource(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_posix_file__2B_File__2B_FILE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 2));
 }
 static void mp_posix_file__2B_File__2B_FILE (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_lazy_Lazy_1_LAZY_5F_READY (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_std_lazy_Lazy_1_LAZY_5F_READY (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_lazy_Lazy_1_LAZY_5F_DELAY (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_std_lazy_Lazy_1_LAZY_5F_DELAY (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_lazy_Lazy_1_LAZY_5F_WAIT (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_std_lazy_Lazy_1_LAZY_5F_WAIT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_location_Row_ROW (void) {
 }
@@ -4334,860 +3948,1112 @@ static void mw_mirth_location_Col_COL (void) {
 static void mp_mirth_location_Col_COL (void) {
 }
 static void mw_mirth_location_Location_LOCATION (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[3] = pop_value();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 4));
 }
 static void mp_mirth_location_Location_LOCATION (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_value(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_ctx_Ctx_CTX (void) {
 }
 static void mp_mirth_ctx_Ctx_CTX (void) {
 }
 static void mw_mirth_tycon_Tycon_TYCON_5F_DATA (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_tycon_Tycon_TYCON_5F_DATA (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_tycon_Tycon_TYCON_5F_TABLE (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_tycon_Tycon_TYCON_5F_TABLE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_tycon_Tycon_TYCON_5F_PRIM (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_tycon_Tycon_TYCON_5F_PRIM (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_match_Match_MATCH (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_cases));
-	car = mkcons(car, lpop(&lbl_cod));
-	car = mkcons(car, lpop(&lbl_dom));
-	car = mkcons(car, lpop(&lbl_ctx));
-	car = mkcons(car, lpop(&lbl_body));
-	car = mkcons(car, lpop(&lbl_token));
-	car = mkcons(car, lpop(&lbl_home));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(8);
+	tup->size = 8;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[7] = lpop(&lbl_cases);
+	tup->cells[6] = lpop(&lbl_cod);
+	tup->cells[5] = lpop(&lbl_dom);
+	tup->cells[4] = lpop(&lbl_ctx);
+	tup->cells[3] = lpop(&lbl_body);
+	tup->cells[2] = lpop(&lbl_token);
+	tup->cells[1] = lpop(&lbl_home);
+	push_value(MKTUP(tup, 8));
 }
 static void mp_mirth_match_Match_MATCH (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_home, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_body, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_dom, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_cod, cdr);
-	lpush(&lbl_cases, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_home, tup->cells[1]);
+	lpush(&lbl_token, tup->cells[2]);
+	lpush(&lbl_body, tup->cells[3]);
+	lpush(&lbl_ctx, tup->cells[4]);
+	lpush(&lbl_dom, tup->cells[5]);
+	lpush(&lbl_cod, tup->cells[6]);
+	lpush(&lbl_cases, tup->cells[7]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		incref(tup->cells[6]);
+		incref(tup->cells[7]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_match__2B_Match__2B_MATCH (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_cases));
-	car = mkcons(car, lpop(&lbl_cod));
-	car = mkcons(car, lpop(&lbl_dom));
-	car = mkcons(car, lpop(&lbl_ctx));
-	car = mkcons(car, lpop(&lbl_body));
-	car = mkcons(car, lpop(&lbl_token));
-	car = mkcons(car, lpop(&lbl_home));
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(8);
+	tup->size = 8;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[7] = lpop(&lbl_cases);
+	tup->cells[6] = lpop(&lbl_cod);
+	tup->cells[5] = lpop(&lbl_dom);
+	tup->cells[4] = lpop(&lbl_ctx);
+	tup->cells[3] = lpop(&lbl_body);
+	tup->cells[2] = lpop(&lbl_token);
+	tup->cells[1] = lpop(&lbl_home);
+	push_resource(MKTUP(tup, 8));
 }
 static void mp_mirth_match__2B_Match__2B_MATCH (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_home, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_body, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_dom, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_cod, cdr);
-	lpush(&lbl_cases, car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_home, tup->cells[1]);
+	lpush(&lbl_token, tup->cells[2]);
+	lpush(&lbl_body, tup->cells[3]);
+	lpush(&lbl_ctx, tup->cells[4]);
+	lpush(&lbl_dom, tup->cells[5]);
+	lpush(&lbl_cod, tup->cells[6]);
+	lpush(&lbl_cases, tup->cells[7]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		incref(tup->cells[6]);
+		incref(tup->cells[7]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_match_Case_CASE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_body));
-	car = mkcons(car, lpop(&lbl_pattern));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = lpop(&lbl_body);
+	tup->cells[1] = lpop(&lbl_pattern);
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_match_Case_CASE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_pattern, cdr);
-	lpush(&lbl_body, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_pattern, tup->cells[1]);
+	lpush(&lbl_body, tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_match_Pattern_PATTERN (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_atoms));
-	car = mkcons(car, lpop(&lbl_cod));
-	car = mkcons(car, lpop(&lbl_mid));
-	car = mkcons(car, lpop(&lbl_saved));
-	car = mkcons(car, lpop(&lbl_inner_ctx));
-	car = mkcons(car, lpop(&lbl_outer_ctx));
-	car = mkcons(car, lpop(&lbl_token_end));
-	car = mkcons(car, lpop(&lbl_token_start));
-	car = mkcons(car, lpop(&lbl_home));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(10);
+	tup->size = 10;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[9] = lpop(&lbl_atoms);
+	tup->cells[8] = lpop(&lbl_cod);
+	tup->cells[7] = lpop(&lbl_mid);
+	tup->cells[6] = lpop(&lbl_saved);
+	tup->cells[5] = lpop(&lbl_inner_ctx);
+	tup->cells[4] = lpop(&lbl_outer_ctx);
+	tup->cells[3] = lpop(&lbl_token_end);
+	tup->cells[2] = lpop(&lbl_token_start);
+	tup->cells[1] = lpop(&lbl_home);
+	push_value(MKTUP(tup, 10));
 }
 static void mp_mirth_match_Pattern_PATTERN (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_home, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token_start, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token_end, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_outer_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_inner_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_saved, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_mid, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_cod, cdr);
-	lpush(&lbl_atoms, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_home, tup->cells[1]);
+	lpush(&lbl_token_start, tup->cells[2]);
+	lpush(&lbl_token_end, tup->cells[3]);
+	lpush(&lbl_outer_ctx, tup->cells[4]);
+	lpush(&lbl_inner_ctx, tup->cells[5]);
+	lpush(&lbl_saved, tup->cells[6]);
+	lpush(&lbl_mid, tup->cells[7]);
+	lpush(&lbl_cod, tup->cells[8]);
+	lpush(&lbl_atoms, tup->cells[9]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		incref(tup->cells[6]);
+		incref(tup->cells[7]);
+		incref(tup->cells[8]);
+		incref(tup->cells[9]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_match__2B_Pattern__2B_PATTERN (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_pattern));
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = lpop(&lbl_pattern);
+	push_resource(MKTUP(tup, 2));
 }
 static void mp_mirth_match__2B_Pattern__2B_PATTERN (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	lpush(&lbl_pattern, car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_pattern, tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_match_PatternAtom_PATATOM (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_op));
-	car = mkcons(car, lpop(&lbl_subst));
-	car = mkcons(car, lpop(&lbl_cod));
-	car = mkcons(car, lpop(&lbl_dom));
-	car = mkcons(car, lpop(&lbl_saved));
-	car = mkcons(car, lpop(&lbl_ctx));
-	car = mkcons(car, lpop(&lbl_token));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(8);
+	tup->size = 8;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[7] = lpop(&lbl_op);
+	tup->cells[6] = lpop(&lbl_subst);
+	tup->cells[5] = lpop(&lbl_cod);
+	tup->cells[4] = lpop(&lbl_dom);
+	tup->cells[3] = lpop(&lbl_saved);
+	tup->cells[2] = lpop(&lbl_ctx);
+	tup->cells[1] = lpop(&lbl_token);
+	push_value(MKTUP(tup, 8));
 }
 static void mp_mirth_match_PatternAtom_PATATOM (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_saved, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_dom, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_cod, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_subst, cdr);
-	lpush(&lbl_op, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_token, tup->cells[1]);
+	lpush(&lbl_ctx, tup->cells[2]);
+	lpush(&lbl_saved, tup->cells[3]);
+	lpush(&lbl_dom, tup->cells[4]);
+	lpush(&lbl_cod, tup->cells[5]);
+	lpush(&lbl_subst, tup->cells[6]);
+	lpush(&lbl_op, tup->cells[7]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		incref(tup->cells[6]);
+		incref(tup->cells[7]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_match_PatternOp_PATOP_5F_UNDERSCORE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_match_PatternOp_PATOP_5F_UNDERSCORE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_match_PatternOp_PATOP_5F_TAG (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_match_PatternOp_PATOP_5F_TAG (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Arg_ARG_5F_BLOCK (void) {
 }
 static void mp_mirth_arrow_Arg_ARG_5F_BLOCK (void) {
 }
 static void mw_mirth_arrow_Op_OP_5F_NONE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_arrow_Op_OP_5F_NONE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_arrow_Op_OP_5F_PRIM (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_PRIM (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_WORD (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_WORD (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_EXTERNAL (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_EXTERNAL (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_BUFFER (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(4LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_BUFFER (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_VARIABLE (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(5LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_VARIABLE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_FIELD (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(6LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_FIELD (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_INT (void) {
-	VAL tag = MKU64(7LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(7LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_INT (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_STR (void) {
-	VAL tag = MKU64(8LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(8LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_STR (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_TAG (void) {
-	VAL tag = MKU64(9LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(9LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_TAG (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_MATCH (void) {
-	VAL tag = MKU64(10LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(10LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_MATCH (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_LAMBDA (void) {
-	VAL tag = MKU64(11LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(11LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_LAMBDA (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_VAR (void) {
-	VAL tag = MKU64(12LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(12LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_VAR (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_BLOCK (void) {
-	VAL tag = MKU64(13LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(13LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_BLOCK (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_COERCE (void) {
-	VAL tag = MKU64(14LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(14LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_COERCE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_LABEL_5F_PUSH (void) {
-	VAL tag = MKU64(15LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(15LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_LABEL_5F_PUSH (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Op_OP_5F_LABEL_5F_POP (void) {
-	VAL tag = MKU64(16LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(16LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Op_OP_5F_LABEL_5F_POP (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Coerce_COERCE_5F_UNSAFE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_arrow_Coerce_COERCE_5F_UNSAFE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_arrow_Param_PARAM (void) {
 }
 static void mp_mirth_arrow_Param_PARAM (void) {
 }
 static void mw_mirth_arrow_Home_HOME_5F_MAIN (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Home_HOME_5F_MAIN (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Home_HOME_5F_WORD (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_arrow_Home_HOME_5F_WORD (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Arrow_ARROW (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_atoms));
-	car = mkcons(car, lpop(&lbl_cod));
-	car = mkcons(car, lpop(&lbl_dom));
-	car = mkcons(car, lpop(&lbl_ctx));
-	car = mkcons(car, lpop(&lbl_token_end));
-	car = mkcons(car, lpop(&lbl_token_start));
-	car = mkcons(car, lpop(&lbl_home));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(8);
+	tup->size = 8;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[7] = lpop(&lbl_atoms);
+	tup->cells[6] = lpop(&lbl_cod);
+	tup->cells[5] = lpop(&lbl_dom);
+	tup->cells[4] = lpop(&lbl_ctx);
+	tup->cells[3] = lpop(&lbl_token_end);
+	tup->cells[2] = lpop(&lbl_token_start);
+	tup->cells[1] = lpop(&lbl_home);
+	push_value(MKTUP(tup, 8));
 }
 static void mp_mirth_arrow_Arrow_ARROW (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_home, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token_start, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token_end, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_dom, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_cod, cdr);
-	lpush(&lbl_atoms, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_home, tup->cells[1]);
+	lpush(&lbl_token_start, tup->cells[2]);
+	lpush(&lbl_token_end, tup->cells[3]);
+	lpush(&lbl_ctx, tup->cells[4]);
+	lpush(&lbl_dom, tup->cells[5]);
+	lpush(&lbl_cod, tup->cells[6]);
+	lpush(&lbl_atoms, tup->cells[7]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		incref(tup->cells[6]);
+		incref(tup->cells[7]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Atom_ATOM (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_subst));
-	car = mkcons(car, lpop(&lbl_cod));
-	car = mkcons(car, lpop(&lbl_dom));
-	car = mkcons(car, lpop(&lbl_args));
-	car = mkcons(car, lpop(&lbl_op));
-	car = mkcons(car, lpop(&lbl_ctx));
-	car = mkcons(car, lpop(&lbl_token));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(8);
+	tup->size = 8;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[7] = lpop(&lbl_subst);
+	tup->cells[6] = lpop(&lbl_cod);
+	tup->cells[5] = lpop(&lbl_dom);
+	tup->cells[4] = lpop(&lbl_args);
+	tup->cells[3] = lpop(&lbl_op);
+	tup->cells[2] = lpop(&lbl_ctx);
+	tup->cells[1] = lpop(&lbl_token);
+	push_value(MKTUP(tup, 8));
 }
 static void mp_mirth_arrow_Atom_ATOM (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_op, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_args, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_dom, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_cod, cdr);
-	lpush(&lbl_subst, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_token, tup->cells[1]);
+	lpush(&lbl_ctx, tup->cells[2]);
+	lpush(&lbl_op, tup->cells[3]);
+	lpush(&lbl_args, tup->cells[4]);
+	lpush(&lbl_dom, tup->cells[5]);
+	lpush(&lbl_cod, tup->cells[6]);
+	lpush(&lbl_subst, tup->cells[7]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		incref(tup->cells[6]);
+		incref(tup->cells[7]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_arrow_Lambda_LAMBDA (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_body));
-	car = mkcons(car, lpop(&lbl_params));
-	car = mkcons(car, lpop(&lbl_dom));
-	car = mkcons(car, lpop(&lbl_outer_ctx));
-	car = mkcons(car, lpop(&lbl_token));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(6);
+	tup->size = 6;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[5] = lpop(&lbl_body);
+	tup->cells[4] = lpop(&lbl_params);
+	tup->cells[3] = lpop(&lbl_dom);
+	tup->cells[2] = lpop(&lbl_outer_ctx);
+	tup->cells[1] = lpop(&lbl_token);
+	push_value(MKTUP(tup, 6));
 }
 static void mp_mirth_arrow_Lambda_LAMBDA (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_token, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_outer_ctx, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_dom, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_params, cdr);
-	lpush(&lbl_body, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_token, tup->cells[1]);
+	lpush(&lbl_outer_ctx, tup->cells[2]);
+	lpush(&lbl_dom, tup->cells[3]);
+	lpush(&lbl_params, tup->cells[4]);
+	lpush(&lbl_body, tup->cells[5]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TYPE_5F_ERROR (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_type_Type_TYPE_5F_ERROR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_Type_TYPE_5F_DONT_5F_CARE (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_mirth_type_Type_TYPE_5F_DONT_5F_CARE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_Type_TPrim (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TPrim (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TMeta (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TMeta (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_THole (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(4LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_THole (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TVar (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(5LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TVar (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TTable (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(6LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TTable (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TData (void) {
-	VAL tag = MKU64(7LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(7LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TData (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TTensor (void) {
-	VAL tag = MKU64(8LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(8LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TTensor (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TMorphism (void) {
-	VAL tag = MKU64(9LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(9LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TMorphism (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TApp (void) {
-	VAL tag = MKU64(10LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(10LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_type_Type_TApp (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TMut (void) {
-	VAL tag = MKU64(11LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(11LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TMut (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Type_TValue (void) {
-	VAL tag = MKU64(12LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(12LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Type_TValue (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Value_VALUE_5F_INT (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Value_VALUE_5F_INT (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Value_VALUE_5F_STR (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Value_VALUE_5F_STR (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Value_VALUE_5F_BLOCK (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_Value_VALUE_5F_BLOCK (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_PrimType_PRIM_5F_TYPE_5F_TYPE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_type_PrimType_PRIM_5F_TYPE_5F_TYPE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_PrimType_PRIM_5F_TYPE_5F_STACK (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_mirth_type_PrimType_PRIM_5F_TYPE_5F_STACK (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_PrimType_PRIM_5F_TYPE_5F_RESOURCE (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_mirth_type_PrimType_PRIM_5F_TYPE_5F_RESOURCE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_PrimType_PRIM_5F_TYPE_5F_INT (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(3LL));
 }
 static void mp_mirth_type_PrimType_PRIM_5F_TYPE_5F_INT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_PrimType_PRIM_5F_TYPE_5F_PTR (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(4LL));
 }
 static void mp_mirth_type_PrimType_PRIM_5F_TYPE_5F_PTR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_PrimType_PRIM_5F_TYPE_5F_STR (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(5LL));
 }
 static void mp_mirth_type_PrimType_PRIM_5F_TYPE_5F_STR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_PrimType_PRIM_5F_TYPE_5F_WORLD (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(6LL));
 }
 static void mp_mirth_type_PrimType_PRIM_5F_TYPE_5F_WORLD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_Gamma_GAMMA (void) {
 }
@@ -5198,1690 +5064,1802 @@ static void mw_mirth_type_Resource_RESOURCE (void) {
 static void mp_mirth_type_Resource_RESOURCE (void) {
 }
 static void mw_mirth_type_StackType_STACK_5F_TYPE_5F_ERROR (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_type_StackType_STACK_5F_TYPE_5F_ERROR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_StackType_STACK_5F_TYPE_5F_DONT_5F_CARE (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_mirth_type_StackType_STACK_5F_TYPE_5F_DONT_5F_CARE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_StackType_STACK_5F_TYPE_5F_UNIT (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_mirth_type_StackType_STACK_5F_TYPE_5F_UNIT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_StackType_STVar (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_StackType_STVar (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_StackType_STMeta (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(4LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_type_StackType_STMeta (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_StackType_STCons (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(5LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_type_StackType_STCons (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_StackType_STConsLabel (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(6LL);
+	tup->cells[3] = pop_value();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 4));
 }
 static void mp_mirth_type_StackType_STConsLabel (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_value(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_StackType_STWith (void) {
-	VAL tag = MKU64(7LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(7LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_type_StackType_STWith (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_ArrowType_ARROW_5F_TYPE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_type_ArrowType_ARROW_5F_TYPE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_type_Subst_SUBST_5F_NIL (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_type_Subst_SUBST_5F_NIL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_type_Subst_SUBST_5F_CON (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[3] = pop_value();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 4));
 }
 static void mp_mirth_type_Subst_SUBST_5F_CON (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_value(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_ID (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_ID (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_DUP (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_DUP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_DROP (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_DROP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_SWAP (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(3LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_SWAP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_DIP (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(4LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_DIP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_IF (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(5LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_IF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_WHILE (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(6LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_WHILE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_DEBUG (void) {
-	VAL tag = MKU64(7LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(7LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_DEBUG (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_PANIC (void) {
-	VAL tag = MKU64(8LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(8LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_PANIC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_RUN (void) {
-	VAL tag = MKU64(9LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(9LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_RUN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_MATCH (void) {
-	VAL tag = MKU64(10LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(10LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_MATCH (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_LAMBDA (void) {
-	VAL tag = MKU64(11LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(11LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_LAMBDA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_RSWAP (void) {
-	VAL tag = MKU64(12LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(12LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_RSWAP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_CORE_5F_RDIP (void) {
-	VAL tag = MKU64(13LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(13LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_CORE_5F_RDIP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_EQ (void) {
-	VAL tag = MKU64(14LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(14LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_EQ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_LT (void) {
-	VAL tag = MKU64(15LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(15LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_LT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_ADD (void) {
-	VAL tag = MKU64(16LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(16LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_ADD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_SUB (void) {
-	VAL tag = MKU64(17LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(17LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_SUB (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_MUL (void) {
-	VAL tag = MKU64(18LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(18LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_MUL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_DIV (void) {
-	VAL tag = MKU64(19LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(19LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_DIV (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_MOD (void) {
-	VAL tag = MKU64(20LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(20LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_MOD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_AND (void) {
-	VAL tag = MKU64(21LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(21LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_AND (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_OR (void) {
-	VAL tag = MKU64(22LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(22LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_OR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_XOR (void) {
-	VAL tag = MKU64(23LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(23LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_XOR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_SHL (void) {
-	VAL tag = MKU64(24LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(24LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_SHL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_SHR (void) {
-	VAL tag = MKU64(25LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(25LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_SHR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_INT_5F_TO_5F_STR (void) {
-	VAL tag = MKU64(26LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(26LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_INT_5F_TO_5F_STR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PACK_5F_NIL (void) {
-	VAL tag = MKU64(27LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(27LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PACK_5F_NIL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PACK_5F_CONS (void) {
-	VAL tag = MKU64(28LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(28LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PACK_5F_CONS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PACK_5F_UNCONS (void) {
-	VAL tag = MKU64(29LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(29LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PACK_5F_UNCONS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_MUT_5F_NEW (void) {
-	VAL tag = MKU64(30LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(30LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_MUT_5F_NEW (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_MUT_5F_GET (void) {
-	VAL tag = MKU64(31LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(31LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_MUT_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_MUT_5F_SET (void) {
-	VAL tag = MKU64(32LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(32LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_MUT_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_MUT_5F_IS_5F_SET (void) {
-	VAL tag = MKU64(33LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(33LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_MUT_5F_IS_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_NIL (void) {
-	VAL tag = MKU64(34LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(34LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_NIL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_EQ (void) {
-	VAL tag = MKU64(35LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(35LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_EQ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_ADD (void) {
-	VAL tag = MKU64(36LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(36LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_ADD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_SIZE (void) {
-	VAL tag = MKU64(37LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(37LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_SIZE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_GET (void) {
-	VAL tag = MKU64(38LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(38LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_SET (void) {
-	VAL tag = MKU64(39LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(39LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_ALLOC (void) {
-	VAL tag = MKU64(40LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(40LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_ALLOC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_REALLOC (void) {
-	VAL tag = MKU64(41LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(41LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_REALLOC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_FREE (void) {
-	VAL tag = MKU64(42LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(42LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_FREE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_COPY (void) {
-	VAL tag = MKU64(43LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(43LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_COPY (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_PTR_5F_FILL (void) {
-	VAL tag = MKU64(44LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(44LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_PTR_5F_FILL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_STR_5F_CMP (void) {
-	VAL tag = MKU64(45LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(45LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_STR_5F_CMP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_STR_5F_COPY (void) {
-	VAL tag = MKU64(46LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(46LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_STR_5F_COPY (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_STR_5F_NUM_5F_BYTES (void) {
-	VAL tag = MKU64(47LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(47LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_STR_5F_NUM_5F_BYTES (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_STR_5F_BASE (void) {
-	VAL tag = MKU64(48LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(48LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_STR_5F_BASE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_STR_5F_CAT (void) {
-	VAL tag = MKU64(49LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(49LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_STR_5F_CAT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U8_5F_GET (void) {
-	VAL tag = MKU64(50LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(50LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U8_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U8_5F_SET (void) {
-	VAL tag = MKU64(51LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(51LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U8_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U16_5F_GET (void) {
-	VAL tag = MKU64(52LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(52LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U16_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U16_5F_SET (void) {
-	VAL tag = MKU64(53LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(53LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U16_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U32_5F_GET (void) {
-	VAL tag = MKU64(54LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(54LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U32_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U32_5F_SET (void) {
-	VAL tag = MKU64(55LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(55LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U32_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U64_5F_GET (void) {
-	VAL tag = MKU64(56LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(56LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U64_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_U64_5F_SET (void) {
-	VAL tag = MKU64(57LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(57LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_U64_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I8_5F_GET (void) {
-	VAL tag = MKU64(58LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(58LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I8_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I8_5F_SET (void) {
-	VAL tag = MKU64(59LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(59LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I8_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I16_5F_GET (void) {
-	VAL tag = MKU64(60LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(60LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I16_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I16_5F_SET (void) {
-	VAL tag = MKU64(61LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(61LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I16_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I32_5F_GET (void) {
-	VAL tag = MKU64(62LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(62LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I32_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I32_5F_SET (void) {
-	VAL tag = MKU64(63LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(63LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I32_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I64_5F_GET (void) {
-	VAL tag = MKU64(64LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(64LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I64_5F_GET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_I64_5F_SET (void) {
-	VAL tag = MKU64(65LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(65LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_I64_5F_SET (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYS_5F_OS (void) {
-	VAL tag = MKU64(66LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(66LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYS_5F_OS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYS_5F_ARGC (void) {
-	VAL tag = MKU64(67LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(67LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYS_5F_ARGC (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYS_5F_ARGV (void) {
-	VAL tag = MKU64(68LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(68LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYS_5F_ARGV (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_POSIX_5F_READ (void) {
-	VAL tag = MKU64(69LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(69LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_POSIX_5F_READ (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_POSIX_5F_WRITE (void) {
-	VAL tag = MKU64(70LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(70LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_POSIX_5F_WRITE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_POSIX_5F_OPEN (void) {
-	VAL tag = MKU64(71LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(71LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_POSIX_5F_OPEN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_POSIX_5F_CLOSE (void) {
-	VAL tag = MKU64(72LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(72LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_POSIX_5F_CLOSE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_POSIX_5F_EXIT (void) {
-	VAL tag = MKU64(73LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(73LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_POSIX_5F_EXIT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_POSIX_5F_MMAP (void) {
-	VAL tag = MKU64(74LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(74LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_POSIX_5F_MMAP (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_MODULE (void) {
-	VAL tag = MKU64(75LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(75LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_MODULE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_IMPORT (void) {
-	VAL tag = MKU64(76LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(76LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_IMPORT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_ALIAS (void) {
-	VAL tag = MKU64(77LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(77LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_ALIAS (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF (void) {
-	VAL tag = MKU64(78LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(78LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF_5F_MISSING (void) {
-	VAL tag = MKU64(79LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(79LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF_5F_MISSING (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF_5F_TYPE (void) {
-	VAL tag = MKU64(80LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(80LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF_5F_TYPE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_BUFFER (void) {
-	VAL tag = MKU64(81LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(81LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_BUFFER (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_VARIABLE (void) {
-	VAL tag = MKU64(82LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(82LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_VARIABLE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF_5F_EXTERNAL (void) {
-	VAL tag = MKU64(83LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(83LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DEF_5F_EXTERNAL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_EMBED_5F_STR (void) {
-	VAL tag = MKU64(84LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(84LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_EMBED_5F_STR (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_TABLE (void) {
-	VAL tag = MKU64(85LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(85LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_TABLE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_FIELD (void) {
-	VAL tag = MKU64(86LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(86LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_FIELD (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DATA (void) {
-	VAL tag = MKU64(87LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(87LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DATA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DASHES (void) {
-	VAL tag = MKU64(88LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(88LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_DASHES (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_ARROW (void) {
-	VAL tag = MKU64(89LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(89LL));
 }
 static void mp_mirth_prim_Prim_PRIM_5F_SYNTAX_5F_ARROW (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_NONE (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_NONE (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_COMMA (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(1LL));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_COMMA (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LPAREN_5F_OPEN (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(2LL));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LPAREN_5F_OPEN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LPAREN (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LPAREN (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_RPAREN (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(4LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_RPAREN (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LSQUARE_5F_OPEN (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(5LL));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LSQUARE_5F_OPEN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LSQUARE (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(6LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LSQUARE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_RSQUARE (void) {
-	VAL tag = MKU64(7LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(7LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_RSQUARE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LCURLY_5F_OPEN (void) {
-	VAL tag = MKU64(8LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(8LL));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LCURLY_5F_OPEN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LCURLY (void) {
-	VAL tag = MKU64(9LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(9LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LCURLY (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_RCURLY (void) {
-	VAL tag = MKU64(10LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(10LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_RCURLY (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LCOLON_5F_OPEN (void) {
-	VAL tag = MKU64(11LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(11LL));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LCOLON_5F_OPEN (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LCOLON (void) {
-	VAL tag = MKU64(12LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(12LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LCOLON (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_RCOLON (void) {
-	VAL tag = MKU64(13LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(13LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_RCOLON (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_INT (void) {
-	VAL tag = MKU64(14LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(14LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_INT (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_STR (void) {
-	VAL tag = MKU64(15LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(15LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_STR (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_NAME (void) {
-	VAL tag = MKU64(16LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(16LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_NAME (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_DNAME (void) {
-	VAL tag = MKU64(17LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(17LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_DNAME (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LABEL_5F_PUSH (void) {
-	VAL tag = MKU64(18LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(18LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LABEL_5F_PUSH (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_token_TokenValue_TOKEN_5F_LABEL_5F_POP (void) {
-	VAL tag = MKU64(19LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(19LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_token_TokenValue_TOKEN_5F_LABEL_5F_POP (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_ALIAS (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_ALIAS (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_MODULE (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_MODULE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_PACKAGE (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_PACKAGE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_DATA (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_DATA (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_TABLE (void) {
-	VAL tag = MKU64(4LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(4LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_TABLE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_TYPEDEF (void) {
-	VAL tag = MKU64(5LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(5LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_TYPEDEF (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_TAG (void) {
-	VAL tag = MKU64(6LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(6LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_TAG (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_PRIM (void) {
-	VAL tag = MKU64(7LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(7LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_PRIM (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_WORD (void) {
-	VAL tag = MKU64(8LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(8LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_WORD (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_BUFFER (void) {
-	VAL tag = MKU64(9LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(9LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_BUFFER (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_VARIABLE (void) {
-	VAL tag = MKU64(10LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(10LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_VARIABLE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_EXTERNAL (void) {
-	VAL tag = MKU64(11LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(11LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_EXTERNAL (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_def_Def_DEF_5F_FIELD (void) {
-	VAL tag = MKU64(12LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(12LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_def_Def_DEF_5F_FIELD (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_name_Hash_HASH (void) {
 }
 static void mp_mirth_name_Hash_HASH (void) {
 }
 static void mw_mirth_name_Namespace_NAMESPACE_5F_ROOT (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_name_Namespace_NAMESPACE_5F_ROOT (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_name_Namespace_NAMESPACE_5F_PACKAGE (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_name_Namespace_NAMESPACE_5F_PACKAGE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_name_Namespace_NAMESPACE_5F_MODULE (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_name_Namespace_NAMESPACE_5F_MODULE (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_name_Namespace_NAMESPACE_5F_TYCON (void) {
-	VAL tag = MKU64(3LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(3LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_name_Namespace_NAMESPACE_5F_TYCON (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_name_QName_MKQNAME (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_arity));
-	car = mkcons(car, lpop(&lbl_name));
-	car = mkcons(car, lpop(&lbl_namespace));
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[3] = lpop(&lbl_arity);
+	tup->cells[2] = lpop(&lbl_name);
+	tup->cells[1] = lpop(&lbl_namespace);
+	push_value(MKTUP(tup, 4));
 }
 static void mp_mirth_name_QName_MKQNAME (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_namespace, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_name, cdr);
-	lpush(&lbl_arity, car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_namespace, tup->cells[1]);
+	lpush(&lbl_name, tup->cells[2]);
+	lpush(&lbl_arity, tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_name_DName_DNAME (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_name_DName_DNAME (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_stack_Stack_1_STACK_5F_NIL (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_std_stack_Stack_1_STACK_5F_NIL (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_std_stack_Stack_1_STACK_5F_CONS (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_std_stack_Stack_1_STACK_5F_CONS (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_lexer__2B_Lexer_LEXER (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_resource());
-	car = mkcons(car, lpop(&lbl_lexer_last_token));
-	car = mkcons(car, lpop(&lbl_lexer_stack));
-	car = mkcons(car, lpop(&lbl_lexer_col));
-	car = mkcons(car, lpop(&lbl_lexer_row));
-	car = mkcons(car, lpop(&lbl_lexer_module));
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(7);
+	tup->size = 7;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[6] = lpop(&lbl_lexer_last_token);
+	tup->cells[5] = lpop(&lbl_lexer_stack);
+	tup->cells[4] = lpop(&lbl_lexer_col);
+	tup->cells[3] = lpop(&lbl_lexer_row);
+	tup->cells[2] = lpop(&lbl_lexer_module);
+	tup->cells[1] = pop_resource();
+	push_resource(MKTUP(tup, 7));
 }
 static void mp_mirth_lexer__2B_Lexer_LEXER (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_lexer_module, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_lexer_row, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_lexer_col, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_lexer_stack, cdr);
-	value_uncons_c(car, &car, &cdr);
-	lpush(&lbl_lexer_last_token, cdr);
-	push_resource(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_resource(tup->cells[1]);
+	lpush(&lbl_lexer_module, tup->cells[2]);
+	lpush(&lbl_lexer_row, tup->cells[3]);
+	lpush(&lbl_lexer_col, tup->cells[4]);
+	lpush(&lbl_lexer_stack, tup->cells[5]);
+	lpush(&lbl_lexer_last_token, tup->cells[6]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		incref(tup->cells[6]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_elab_TypeElab_TYPE_5F_ELAB (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_elab_TypeElab_TYPE_5F_ELAB (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_elab_StackTypePart_STPCons (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_elab_StackTypePart_STPCons (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_elab_StackTypePart_STPConsLabel (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_elab_StackTypePart_STPConsLabel (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_elab_StackTypePart_STPWith (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_elab_StackTypePart_STPWith (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_elab__2B_AB_MKAB (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (lpop(&lbl_arrow));
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = lpop(&lbl_arrow);
+	push_resource(MKTUP(tup, 2));
 }
 static void mp_mirth_elab__2B_AB_MKAB (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	lpush(&lbl_arrow, car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_arrow, tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_elab_OpSig_OPSIG_5F_ID (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (tag);
-	push_value(car);
+	push_value(MKU64(0LL));
 }
 static void mp_mirth_elab_OpSig_OPSIG_5F_ID (void) {
-	VAL car = pop_value();
-	decref(car);
+	VAL val = pop_value();
+	(void)val;
 }
 static void mw_mirth_elab_OpSig_OPSIG_5F_PUSH (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_elab_OpSig_OPSIG_5F_PUSH (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_elab_OpSig_OPSIG_5F_APPLY (void) {
-	VAL tag = MKU64(2LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_elab_OpSig_OPSIG_5F_APPLY (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_posix_output__2B_Output__2B_OUTPUT (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[3] = pop_resource();
+	tup->cells[2] = pop_resource();
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 4));
 }
 static void mp_posix_output__2B_Output__2B_OUTPUT (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_resource(tup->cells[2]);
+	push_resource(tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_std_set__2B_Set_1__2B_SET (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_resource();
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 3));
 }
 static void mp_std_set__2B_Set_1__2B_SET (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_resource(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_need_Need_NEED_5F_WORD (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_need_Need_NEED_5F_WORD (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_need_Need_NEED_5F_BLOCK (void) {
-	VAL tag = MKU64(1LL);
-	VAL car = (pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
 }
 static void mp_mirth_need_Need_NEED_5F_BLOCK (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_need__2B_Needs__2B_NEEDS (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_resource();
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 3));
 }
 static void mp_mirth_need__2B_Needs__2B_NEEDS (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_resource(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_c99_OutputPath_OUTPUT_5F_PATH (void) {
 }
@@ -6892,42 +6870,54 @@ static void mw_mirth_c99_EmitDebugInfo_EMIT_5F_DEBUG_5F_INFO (void) {
 static void mp_mirth_c99_EmitDebugInfo_EMIT_5F_DEBUG_5F_INFO (void) {
 }
 static void mw_mirth_c99_C99_5F_Options_C99_5F_OPTIONS (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, tag);
-	push_value(car);
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 3));
 }
 static void mp_mirth_c99_C99_5F_Options_C99_5F_OPTIONS (void) {
-	VAL car = pop_value();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_c99__2B_C99_MKC99 (void) {
-	VAL tag = MKU64(0LL);
-	VAL car = (pop_value());
-	car = mkcons(car, pop_value());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, pop_resource());
-	car = mkcons(car, tag);
-	push_resource(car);
+	TUP* tup = tup_new(5);
+	tup->size = 5;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[4] = pop_resource();
+	tup->cells[3] = pop_resource();
+	tup->cells[2] = pop_value();
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 5));
 }
 static void mp_mirth_c99__2B_C99_MKC99 (void) {
-	VAL car = pop_resource();
-	VAL cdr;
-	value_uncons_c(car, &car, &cdr);
-	decref(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_resource(cdr);
-	value_uncons_c(car, &car, &cdr);
-	push_value(cdr);
-	push_value(car);
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	push_value(tup->cells[2]);
+	push_resource(tup->cells[3]);
+	push_resource(tup->cells[4]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types_ArgpOption_NUM (void) {
 	static uint8_t b[8] = {0};
@@ -7629,6 +7619,7 @@ static void mw_mirth_data_Tag_untag (void);
 static void mw_mirth_data_Tag_label_inputs_from_sig (void);
 static void mw_mirth_data_Tag_num_type_inputs_from_sig (void);
 static void mw_mirth_data_Tag_num_resource_inputs_from_sig (void);
+static void mw_mirth_data_Tag_num_total_inputs (void);
 static void mw_mirth_data_Tag_is_transparent_3F_ (void);
 static void mw_mirth_data_Tag_outputs_resource_3F_ (void);
 static void mw_mirth_data_Tag__3D__3D_ (void);
@@ -8997,15 +8988,15 @@ static void mb_mirth_c99_c99_word_defs_21__2 (void);
 static void mb_mirth_c99_c99_word_defs_21__5 (void);
 static void mb_mirth_c99_c99_block_defs_21__2 (void);
 static void mb_mirth_c99_c99_block_defs_21__5 (void);
-static void mb_mirth_c99_c99_tag_21__10 (void);
-static void mb_mirth_c99_c99_tag_21__25 (void);
-static void mb_mirth_c99_c99_tag_21__35 (void);
-static void mb_mirth_c99_c99_tag_21__45 (void);
-static void mb_mirth_c99_c99_tag_21__83 (void);
-static void mb_mirth_c99_c99_tag_21__105 (void);
-static void mb_mirth_c99_c99_tag_21__114 (void);
-static void mb_mirth_c99_c99_tag_21__134 (void);
+static void mb_mirth_c99_c99_tag_21__14 (void);
+static void mb_mirth_c99_c99_tag_21__71 (void);
+static void mb_mirth_c99_c99_tag_21__90 (void);
+static void mb_mirth_c99_c99_tag_21__104 (void);
 static void mb_mirth_c99_c99_tag_21__147 (void);
+static void mb_mirth_c99_c99_tag_21__177 (void);
+static void mb_mirth_c99_c99_tag_21__191 (void);
+static void mb_mirth_c99_c99_tag_21__205 (void);
+static void mb_mirth_c99_c99_tag_21__229 (void);
 static void mb_mirth_c99_c99_external_21__26 (void);
 static void mb_mirth_c99_c99_external_21__42 (void);
 static void mb_mirth_c99_c99_external_21__55 (void);
@@ -17081,6 +17072,17 @@ static void mw_mirth_data_Tag_num_resource_inputs_from_sig (void) {
 	push_fnptr(&mb_mirth_data_Tag_num_resource_inputs_from_sig_20);
 	mw_std_prim_prim_pack_cons();
 	mw_std_maybe_Maybe_1_if_some_2();
+}
+static void mw_mirth_data_Tag_num_total_inputs (void) {
+	mw_std_prim_prim_dup();
+	mw_mirth_data_Tag_label_inputs();
+	mw_std_list_List_1_len();
+	mw_std_prelude_over();
+	mw_mirth_data_Tag_num_type_inputs();
+	mw_std_prelude_Nat__2B_();
+	mw_std_prim_prim_swap();
+	mw_mirth_data_Tag_num_resource_inputs();
+	mw_std_prelude_Nat__2B_();
 }
 static void mw_mirth_data_Tag_is_transparent_3F_ (void) {
 	mw_mirth_data_Tag_data();
@@ -32226,8 +32228,6 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"#define IS_STR(v)   ((v).tag == TAG_STR)\n"
 				"#define IS_TUP(v)   ((v).tag & TUP_FLAG)\n"
 				"#define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))\n"
-				"#define IS_NIL_NULL(v) (IS_NIL(v) && !HAS_REFS(v))\n"
-				"#define IS_NIL_REFS(v) (IS_NIL(v) &&  HAS_REFS(v))\n"
 				"\n"
 				"#define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
 				"#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
@@ -32385,7 +32385,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"\t}\n"
 				"}\n"
 				"\n"
-				"static void value_uncons_c(VAL val, VAL* tail, VAL* head) {\n"
+				"static void value_uncons(VAL val, VAL* tail, VAL* head) {\n"
 				"\tif (IS_TUP(val)) {\n"
 				"\t\tTUPLEN len = VTUPLEN(val);\n"
 				"\t\tTUP* tup = VTUP(val);\n"
@@ -32608,7 +32608,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"}\n"
 				"\n"
 				"static VAL lpop(VAL* stk) {\n"
-				"\tVAL cons=*stk, lcar, lcdr; value_uncons_c(cons, &lcar, &lcdr);\n"
+				"\tVAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);\n"
 				"\t*stk=lcar; return lcdr;\n"
 				"}\n"
 				"static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }\n"
@@ -32636,7 +32636,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"static void do_uncons(void) {\n"
 				"\tVAL val, tail, head;\n"
 				"\tval = pop_value();\n"
-				"\tvalue_uncons_c(val, &tail, &head);\n"
+				"\tvalue_uncons(val, &tail, &head);\n"
 				"\tpush_value(tail);\n"
 				"\tpush_value(head);\n"
 				"}\n"
@@ -32644,7 +32644,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"static USIZE get_data_tag(VAL v) {\n"
 				"\tif (IS_TUP(v)) {\n"
 				"\t\tASSERT(VTUPLEN(v) > 0);\n"
-				"\t\treturn VU64(VTUP(v)->cells[VTUPLEN(v)-1]);\n"
+				"\t\treturn VU64(VTUP(v)->cells[0]);\n"
 				"\t} else {\n"
 				"\t\treturn VU64(v);\n"
 				"\t}\n"
@@ -32675,7 +32675,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"\t// TODO Make a closure tag or something.\n"
 				"\t// As it is, this feels kinda wrong.\n"
 				"\tVAL car, cdr;\n"
-				"\tvalue_uncons_c(v, &car, &cdr);\n"
+				"\tvalue_uncons(v, &car, &cdr);\n"
 				"\tpush_value(car);\n"
 				"\tASSERT(IS_FNPTR(cdr) && VFNPTR(cdr));\n"
 				"\tVFNPTR(cdr)();\n"
@@ -33426,7 +33426,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"}\n"
 				"\n"
 				"/* GENERATED C99 */\n",
-				34230
+				34109
 			);
 			vready = true;
 		}
@@ -33616,73 +33616,86 @@ static void mw_mirth_c99_c99_tags_21_ (void) {
 	mw_mirth_data_Tag_for_1();
 }
 static void mw_mirth_c99_c99_tag_21_ (void) {
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_qname();
-	mw_mirth_c99__2B_C99_sig_put();
 	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
+		VAL var_tag = pop_value();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_qname();
+		mw_mirth_c99__2B_C99_sig_put();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr(" {", 2);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
 		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_is_transparent_3F_();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__10);
-	mw_std_prim_prim_pack_cons();
-	mw_std_prim_Bool_else_1();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_is_transparent_3F_();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__14);
+		mw_std_prim_prim_pack_cons();
+		mw_std_prim_Bool_else_1();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("}", 1);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
 		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_qname();
-	mw_mirth_c99__2B_C99_cosig_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_qname();
+		mw_mirth_c99__2B_C99_cosig_put();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr(" {", 2);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
 		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_is_transparent_3F_();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__83);
-	mw_std_prim_prim_pack_cons();
-	mw_std_prim_Bool_else_1();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_is_transparent_3F_();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__147);
+		mw_std_prim_prim_pack_cons();
+		mw_std_prim_Bool_else_1();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("}", 1);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
 		}
-		push_value(v);
-		incref(v);
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		decref(var_tag);
 	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	mw_std_prim_prim_drop();
 }
 static void mw_mirth_c99_c99_externals_21_ (void) {
 	push_value(MKNIL);
@@ -42007,163 +42020,251 @@ static void mb_mirth_c99_c99_block_defs_21__5 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_arrow_Block_needed_3F_();
 }
-static void mb_mirth_c99_c99_tag_21__10 (void) {
+static void mb_mirth_c99_c99_tag_21__14 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_drop();
+	incref(var_tag);
+	push_value(var_tag);
+	mw_mirth_data_Tag_num_total_inputs();
+	mw_std_prelude_Nat_0_3D_();
+	if (pop_u64()) {
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_outputs_resource_3F_();
+		if (pop_u64()) {
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\tpush_resource(MKU64(", 21);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+		} else {
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\tpush_value(MKU64(", 18);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+		}
+		mw_mirth_c99__2B_C99_put();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_value();
+		mw_std_prelude_Nat_show();
+		mw_mirth_c99__2B_C99_put();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("LL));", 5);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+	} else {
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\tTUP* tup = tup_new(", 20);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_total_inputs();
+		mw_std_prelude_Nat_1_2B_();
+		mw_std_prelude_Nat_show();
+		mw_mirth_c99__2B_C99_put();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr(");", 2);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\ttup->size = ", 13);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_total_inputs();
+		mw_std_prelude_Nat_1_2B_();
+		mw_std_prelude_Nat_show();
+		mw_mirth_c99__2B_C99_put();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr(";", 1);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\ttup->cells[0] = MKU64(", 23);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_value();
+		mw_std_prelude_Nat_show();
+		mw_mirth_c99__2B_C99_put();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("LL);", 4);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_total_inputs();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_label_inputs();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__71);
+		mw_std_prim_prim_pack_cons();
+		mw_std_list_List_1_reverse_for_1();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_resource_inputs();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__90);
+		mw_std_prim_prim_pack_cons();
+		mw_std_prelude_repeat_1();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_type_inputs();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__104);
+		mw_std_prim_prim_pack_cons();
+		mw_std_prelude_repeat_1();
+		mw_std_prim_prim_drop();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_outputs_resource_3F_();
+		if (pop_u64()) {
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\tpush_resource(MKTUP(tup, ", 26);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+		} else {
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\tpush_value(MKTUP(tup, ", 23);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+		}
+		mw_mirth_c99__2B_C99_put();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_total_inputs();
+		mw_std_prelude_Nat_1_2B_();
+		mw_std_prelude_Nat_show();
+		mw_mirth_c99__2B_C99_put();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("));", 3);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+	}
+	decref(var_tag);
+}
+static void mb_mirth_c99_c99_tag_21__71 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
 	mw_std_prim_prim_drop();
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("\tVAL tag = MKU64(", 17);
+			v = mkstr("\ttup->cells[", 12);
 			vready = true;
 		}
 		push_value(v);
 		incref(v);
 	}
 	mw_mirth_c99__2B_C99_put();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_value();
+	mw_std_prelude_over();
 	mw_std_prelude_Nat_show();
 	mw_mirth_c99__2B_C99_put();
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("LL);", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tVAL car = (", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_num_type_inputs();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__25);
-	mw_std_prim_prim_pack_cons();
-	mw_std_prelude_repeat_1();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_num_resource_inputs();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__35);
-	mw_std_prim_prim_pack_cons();
-	mw_std_prelude_repeat_1();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_label_inputs();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__45);
-	mw_std_prim_prim_pack_cons();
-	mw_std_list_List_1_reverse_for_1();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("tag);", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_outputs_resource_3F_();
-	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tpush_resource(car);", 20);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
-	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tpush_value(car);", 17);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-}
-static void mb_mirth_c99_c99_tag_21__25 (void) {
-	mw_std_prim_prim_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("pop_value());", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tcar = mkcons(car, ", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-}
-static void mb_mirth_c99_c99_tag_21__35 (void) {
-	mw_std_prim_prim_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("pop_resource());", 16);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tcar = mkcons(car, ", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-}
-static void mb_mirth_c99_c99_tag_21__45 (void) {
-	mw_std_prim_prim_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("lpop(&lbl_", 10);
+			v = mkstr("] = lpop(&lbl_", 14);
 			vready = true;
 		}
 		push_value(v);
@@ -42177,7 +42278,7 @@ static void mb_mirth_c99_c99_tag_21__45 (void) {
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("));", 3);
+			v = mkstr(");", 2);
 			vready = true;
 		}
 		push_value(v);
@@ -42185,28 +42286,88 @@ static void mb_mirth_c99_c99_tag_21__45 (void) {
 	}
 	mw_mirth_c99__2B_C99_put();
 	mw_mirth_c99__2B_C99_line();
+	mw_std_prelude_Nat_1_();
+	decref(var_tag);
+}
+static void mb_mirth_c99_c99_tag_21__90 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_drop();
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("\tcar = mkcons(car, ", 19);
+			v = mkstr("\ttup->cells[", 12);
 			vready = true;
 		}
 		push_value(v);
 		incref(v);
 	}
 	mw_mirth_c99__2B_C99_put();
-}
-static void mb_mirth_c99_c99_tag_21__83 (void) {
-	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
+	mw_std_prelude_Nat_show();
+	mw_mirth_c99__2B_C99_put();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("] = pop_resource();", 19);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_mirth_c99__2B_C99_line();
+	mw_std_prelude_Nat_1_();
+	decref(var_tag);
+}
+static void mb_mirth_c99_c99_tag_21__104 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\ttup->cells[", 12);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_std_prim_prim_dup();
+	mw_std_prelude_Nat_show();
+	mw_mirth_c99__2B_C99_put();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("] = pop_value();", 16);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_mirth_c99__2B_C99_line();
+	mw_std_prelude_Nat_1_();
+	decref(var_tag);
+}
+static void mb_mirth_c99_c99_tag_21__147 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_drop();
+	incref(var_tag);
+	push_value(var_tag);
 	mw_mirth_data_Tag_outputs_resource_3F_();
 	if (pop_u64()) {
 		{
 			static bool vready = false;
 			static VAL v;
 			if (! vready) {
-				v = mkstr("\tVAL car = pop_resource();", 26);
+				v = mkstr("\tVAL val = pop_resource();", 26);
 				vready = true;
 			}
 			push_value(v);
@@ -42217,7 +42378,7 @@ static void mb_mirth_c99_c99_tag_21__83 (void) {
 			static bool vready = false;
 			static VAL v;
 			if (! vready) {
-				v = mkstr("\tVAL car = pop_value();", 23);
+				v = mkstr("\tVAL val = pop_value();", 23);
 				vready = true;
 			}
 			push_value(v);
@@ -42226,54 +42387,178 @@ static void mb_mirth_c99_c99_tag_21__83 (void) {
 	}
 	mw_mirth_c99__2B_C99_put();
 	mw_mirth_c99__2B_C99_line();
+	incref(var_tag);
+	push_value(var_tag);
+	mw_mirth_data_Tag_num_total_inputs();
+	mw_std_prelude_Nat_0_3D_();
+	if (pop_u64()) {
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\t(void)val;", 11);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+	} else {
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\tASSERT1(IS_TUP(val),val);", 26);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\tTUP* tup = VTUP(val);", 22);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		push_i64(1LL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_type_inputs();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__177);
+		mw_std_prim_prim_pack_cons();
+		mw_std_prelude_repeat_1();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_resource_inputs();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__191);
+		mw_std_prim_prim_pack_cons();
+		mw_std_prelude_repeat_1();
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_label_inputs();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__205);
+		mw_std_prim_prim_pack_cons();
+		mw_std_list_List_1_for_1();
+		mw_std_prim_prim_drop();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\tif (tup->refs > 1) {", 21);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		push_i64(1LL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_mirth_data_Tag_num_total_inputs();
+		push_value(MKNIL);
+		incref(var_tag);
+		push_value(var_tag);
+		mw_std_prim_prim_pack_cons();
+		push_fnptr(&mb_mirth_c99_c99_tag_21__229);
+		mw_std_prim_prim_pack_cons();
+		mw_std_prelude_repeat_1();
+		mw_std_prim_prim_drop();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\t\tdecref(val);", 14);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\t} else {", 9);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\t\tfree(tup);", 12);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+		{
+			static bool vready = false;
+			static VAL v;
+			if (! vready) {
+				v = mkstr("\t}", 2);
+				vready = true;
+			}
+			push_value(v);
+			incref(v);
+		}
+		mw_mirth_c99__2B_C99_put();
+		mw_mirth_c99__2B_C99_line();
+	}
+	decref(var_tag);
+}
+static void mb_mirth_c99_c99_tag_21__177 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\tpush_value(tup->cells[", 23);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
 	mw_std_prim_prim_dup();
-	mw_mirth_data_Tag_num_resource_inputs();
-	mw_std_prelude_over();
-	mw_mirth_data_Tag_num_type_inputs();
-	mw_std_prelude_Nat__2B_();
-	mw_std_prelude_over();
-	mw_mirth_data_Tag_label_inputs();
-	mw_std_list_List_1_len();
-	mw_std_prelude_Nat__2B_();
-	mw_std_prelude_Nat_0_3E_();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__105);
-	mw_std_prim_prim_pack_cons();
-	mw_std_prim_Bool_then_1();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tdecref(", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_std_prelude_over();
-	mw_mirth_data_Tag_label_inputs();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__114);
-	mw_std_prim_prim_pack_cons();
-	mw_std_list_List_1_for_1();
-	mw_std_prelude_over();
-	mw_mirth_data_Tag_num_resource_inputs();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__134);
-	mw_std_prim_prim_pack_cons();
-	mw_std_prelude_repeat_1();
-	mw_std_prelude_over();
-	mw_mirth_data_Tag_num_type_inputs();
-	push_value(MKNIL);
-	push_fnptr(&mb_mirth_c99_c99_tag_21__147);
-	mw_std_prim_prim_pack_cons();
-	mw_std_prelude_repeat_1();
+	mw_std_prim_Int_show();
 	mw_mirth_c99__2B_C99_put();
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("car);", 5);
+			v = mkstr("]);", 3);
 			vready = true;
 		}
 		push_value(v);
@@ -42281,14 +42566,32 @@ static void mb_mirth_c99_c99_tag_21__83 (void) {
 	}
 	mw_mirth_c99__2B_C99_put();
 	mw_mirth_c99__2B_C99_line();
+	mw_std_prelude_prim_int_succ();
+	decref(var_tag);
 }
-static void mb_mirth_c99_c99_tag_21__105 (void) {
+static void mb_mirth_c99_c99_tag_21__191 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
 	mw_std_prim_prim_drop();
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("\tVAL cdr;", 9);
+			v = mkstr("\tpush_resource(tup->cells[", 26);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_std_prim_prim_dup();
+	mw_std_prim_Int_show();
+	mw_mirth_c99__2B_C99_put();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("]);", 3);
 			vready = true;
 		}
 		push_value(v);
@@ -42296,35 +42599,13 @@ static void mb_mirth_c99_c99_tag_21__105 (void) {
 	}
 	mw_mirth_c99__2B_C99_put();
 	mw_mirth_c99__2B_C99_line();
+	mw_std_prelude_prim_int_succ();
+	decref(var_tag);
 }
-static void mb_mirth_c99_c99_tag_21__114 (void) {
+static void mb_mirth_c99_c99_tag_21__205 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
 	mw_std_prim_prim_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tvalue_uncons_c(car, &car, &cdr);", 33);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	mw_std_prim_prim_swap();
-	mw_mirth_c99__2B_C99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("cdr);", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
 	{
 		static bool vready = false;
 		static VAL v;
@@ -42335,29 +42616,62 @@ static void mb_mirth_c99_c99_tag_21__114 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mw_std_prim_prim_swap();
+	mw_mirth_c99__2B_C99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
-	mw_std_prim_prim_str_cat();
+	mw_mirth_c99__2B_C99_put();
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr(", ", 2);
+			v = mkstr(", tup->cells[", 13);
 			vready = true;
 		}
 		push_value(v);
 		incref(v);
 	}
-	mw_std_prim_prim_str_cat();
+	mw_mirth_c99__2B_C99_put();
+	mw_std_prim_prim_dup();
+	mw_std_prim_Int_show();
+	mw_mirth_c99__2B_C99_put();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("]);", 3);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_mirth_c99__2B_C99_line();
+	mw_std_prelude_prim_int_succ();
+	decref(var_tag);
 }
-static void mb_mirth_c99_c99_tag_21__134 (void) {
+static void mb_mirth_c99_c99_tag_21__229 (void) {
+	mw_std_prim_prim_pack_uncons();
+	VAL var_tag = pop_value();
 	mw_std_prim_prim_drop();
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("\tvalue_uncons_c(car, &car, &cdr);", 33);
+			v = mkstr("\t\tincref(tup->cells[", 20);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_mirth_c99__2B_C99_put();
+	mw_std_prim_prim_dup();
+	mw_std_prim_Int_show();
+	mw_mirth_c99__2B_C99_put();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("]);", 3);
 			vready = true;
 		}
 		push_value(v);
@@ -42365,67 +42679,8 @@ static void mb_mirth_c99_c99_tag_21__134 (void) {
 	}
 	mw_mirth_c99__2B_C99_put();
 	mw_mirth_c99__2B_C99_line();
-	mw_mirth_c99__2B_C99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("cdr);", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tpush_resource(", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-}
-static void mb_mirth_c99_c99_tag_21__147 (void) {
-	mw_std_prim_prim_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tvalue_uncons_c(car, &car, &cdr);", 33);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	mw_mirth_c99__2B_C99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("cdr);", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99__2B_C99_put();
-	mw_mirth_c99__2B_C99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tpush_value(", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	mw_std_prelude_prim_int_succ();
+	decref(var_tag);
 }
 static void mb_mirth_c99_c99_external_21__26 (void) {
 	mw_std_prim_prim_drop();
