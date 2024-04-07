@@ -91,8 +91,6 @@ typedef struct VAL {
 #define IS_STR(v)   ((v).tag == TAG_STR)
 #define IS_TUP(v)   ((v).tag & TUP_FLAG)
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
-#define IS_NIL_NULL(v) (IS_NIL(v) && !HAS_REFS(v))
-#define IS_NIL_REFS(v) (IS_NIL(v) &&  HAS_REFS(v))
 
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
@@ -257,19 +255,25 @@ static void value_uncons_c(VAL val, VAL* tail, VAL* head) {
 		ASSERT1((len > 0) && tup, val);
 		VAL tailval = MKTUP(tup, len-1);
 		VAL headval = tup->cells[len-1];
-		if (tup->refs == 1) {
-			for (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }
-			memset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));
-			tup->size = len-1;
-		} else {
+		if (len == 1) {
 			incref(headval);
-		}
-		if (len == 2) {
-			VAL ptval = tup->cells[0];
-			if (!IS_TUP(ptval)) {
-				incref(ptval);
-				decref(tailval);
-				tailval = ptval;
+			decref(val);
+			tailval = MKNIL;
+		} else {
+			if (tup->refs == 1) {
+				for (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }
+				memset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));
+				tup->size = len-1;
+			} else {
+				incref(headval);
+			}
+			if (len == 2) {
+				VAL ptval = tup->cells[0];
+				if (!IS_TUP(ptval)) {
+					incref(ptval);
+					decref(tailval);
+					tailval = ptval;
+				}
 			}
 		}
 		*tail = tailval;

@@ -258,19 +258,25 @@ static void value_uncons_c(VAL val, VAL* tail, VAL* head) {
 		ASSERT1((len > 0) && tup, val);
 		VAL tailval = MKTUP(tup, len-1);
 		VAL headval = tup->cells[len-1];
-		if (tup->refs == 1) {
-			for (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }
-			memset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));
-			tup->size = len-1;
-		} else {
+		if (len == 1) {
 			incref(headval);
-		}
-		if (len == 2) {
-			VAL ptval = tup->cells[0];
-			if (!IS_TUP(ptval)) {
-				incref(ptval);
-				decref(tailval);
-				tailval = ptval;
+			decref(val);
+			tailval = MKNIL;
+		} else {
+			if (tup->refs == 1) {
+				for (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }
+				memset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));
+				tup->size = len-1;
+			} else {
+				incref(headval);
+			}
+			if (len == 2) {
+				VAL ptval = tup->cells[0];
+				if (!IS_TUP(ptval)) {
+					incref(ptval);
+					decref(tailval);
+					tailval = ptval;
+				}
 			}
 		}
 		*tail = tailval;
@@ -32386,19 +32392,25 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"\t\tASSERT1((len > 0) && tup, val);\n"
 				"\t\tVAL tailval = MKTUP(tup, len-1);\n"
 				"\t\tVAL headval = tup->cells[len-1];\n"
-				"\t\tif (tup->refs == 1) {\n"
-				"\t\t\tfor (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }\n"
-				"\t\t\tmemset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));\n"
-				"\t\t\ttup->size = len-1;\n"
-				"\t\t} else {\n"
+				"\t\tif (len == 1) {\n"
 				"\t\t\tincref(headval);\n"
-				"\t\t}\n"
-				"\t\tif (len == 2) {\n"
-				"\t\t\tVAL ptval = tup->cells[0];\n"
-				"\t\t\tif (!IS_TUP(ptval)) {\n"
-				"\t\t\t\tincref(ptval);\n"
-				"\t\t\t\tdecref(tailval);\n"
-				"\t\t\t\ttailval = ptval;\n"
+				"\t\t\tdecref(val);\n"
+				"\t\t\ttailval = MKNIL;\n"
+				"\t\t} else {\n"
+				"\t\t\tif (tup->refs == 1) {\n"
+				"\t\t\t\tfor (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }\n"
+				"\t\t\t\tmemset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));\n"
+				"\t\t\t\ttup->size = len-1;\n"
+				"\t\t\t} else {\n"
+				"\t\t\t\tincref(headval);\n"
+				"\t\t\t}\n"
+				"\t\t\tif (len == 2) {\n"
+				"\t\t\t\tVAL ptval = tup->cells[0];\n"
+				"\t\t\t\tif (!IS_TUP(ptval)) {\n"
+				"\t\t\t\t\tincref(ptval);\n"
+				"\t\t\t\t\tdecref(tailval);\n"
+				"\t\t\t\t\ttailval = ptval;\n"
+				"\t\t\t\t}\n"
 				"\t\t\t}\n"
 				"\t\t}\n"
 				"\t\t*tail = tailval;\n"
@@ -33414,7 +33426,7 @@ static void mw_mirth_c99_c99_header_str (void) {
 				"}\n"
 				"\n"
 				"/* GENERATED C99 */\n",
-				34126
+				34230
 			);
 			vready = true;
 		}
