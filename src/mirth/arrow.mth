@@ -55,7 +55,9 @@ data(Op,
     OP_BLOCK -> Block,
     OP_COERCE -> Coerce,
     OP_LABEL_PUSH -> Label,
-    OP_LABEL_POP -> Label)
+    OP_LABEL_POP -> Label,
+    OP_DATA_GET_LABEL -> Tag Label,
+    OP_DATA_SET_LABEL -> Tag Label)
 
 data(Coerce,
     COERCE_UNSAFE)
