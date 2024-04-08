@@ -10,15 +10,15 @@ def(OUTPUT_BUFFER_SIZE, Size, 4096 >Size)
 data(+Output, +OUTPUT -> Size +File +Buffer)
 def(-OUTPUT, +Output -- Size +File +Buffer, +OUTPUT -> id)
 
-def(output-start!, +File -- +Output,
+def(+Output.start!, +File -- +Output,
     0 >Size OUTPUT_BUFFER_SIZE +Buffer.new +OUTPUT)
 
-def(output-end!, +Output -- +File,
-    output-flush! -OUTPUT drop rdrop)
+def(+Output.end!, +Output -- +File,
+    flush! -OUTPUT drop rdrop)
 
-def(output-offset@, +Output -- Offset +Output, output-size@ >Offset)
-def(output-size@, +Output -- Size +Output, -OUTPUT dup dip(+OUTPUT))
-def(output-size!, Size +Output -- +Output, dip(-OUTPUT drop) +OUTPUT)
+def(+Output.offset@, +Output -- Offset +Output, size@ >Offset)
+def(+Output.size@, +Output -- Size +Output, -OUTPUT dup dip(+OUTPUT))
+def(+Output.size!, Size +Output -- +Output, dip(-OUTPUT drop) +OUTPUT)
 
 def(+Output.~File(f), (*a +File -- *b +File) *a +Output -- *b +Output,
     -OUTPUT dip(rdip(f)) +OUTPUT)
@@ -26,27 +26,27 @@ def(+Output.~File(f), (*a +File -- *b +File) *a +Output -- *b +Output,
 def(+Output.~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Output -- *b +Output,
     -OUTPUT dip(rdip'(f)) +OUTPUT)
 
-def(output-flush!, +Output -- +Output,
-    ~Buffer(buffer-base) output-size@ ~File(unsafe-write!)
-    0 >Size output-size!)
+def(+Output.flush!, +Output -- +Output,
+    ~Buffer(buffer-base) size@ ~File(unsafe-write!)
+    0 >Size size!)
 
-def(output-capacity-total, +Output -- Size +Output, ~Buffer(buffer-size))
-def(output-capacity-remaining, +Output -- Size +Output,
-    output-capacity-total output-size@ -)
-def(output-full?, +Output -- Bool +Output, output-capacity-remaining 0 >Size <=)
+def(+Output.capacity-total, +Output -- Size +Output, ~Buffer(buffer-size))
+def(+Output.capacity-remaining, +Output -- Size +Output,
+    capacity-total size@ -)
+def(+Output.full?, +Output -- Bool +Output, capacity-remaining 0 >Size <=)
 
 def(+Output.put, Str +Output -- +Output,
-    dup num-bytes output-capacity-remaining > if(
-        output-flush!
-        with-str-data(~File(unsafe-write!)),
+    dup num-bytes capacity-remaining > if(
+        flush!
+        with-data(~File(unsafe-write!)),
 
-        dup output-offset@ ~Buffer(!Str)
-        num-bytes output-size@ + output-size!
+        dup offset@ ~Buffer(!Str)
+        num-bytes size@ + size!
     ))
 
 def(+Output.put-byte, Byte +Output -- +Output,
-    output-full? then(output-flush!)
-    output-offset@ ~Buffer(!Byte)
-    output-size@ 1+ output-size!)
+    full? then(flush!)
+    offset@ ~Buffer(!Byte)
+    size@ 1+ size!)
 
 def(+Output.line, +Output -- +Output, BLF put-byte)

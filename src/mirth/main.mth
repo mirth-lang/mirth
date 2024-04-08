@@ -126,7 +126,7 @@ def(compile!, Arguments +World -- +World,
     ))
 
 def(parse-package-def, Str -- [Str Path],
-  dip(BCOLON) str-split-byte match(
+  dip(BCOLON) split-byte match(
     L2 -> >Path pack2,
     _ -> drop "Invalid package path definition" panic!
   )
