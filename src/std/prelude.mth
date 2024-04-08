@@ -178,18 +178,19 @@ def(Int.>,  Int Int -- Bool, swap <)
 def(Int.>=, Int Int -- Bool, < not)
 def(Int.<=, Int Int -- Bool, swap < not)
 def(Int.<>, Int Int -- Bool, == not)
-def(Int.cmp, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
+def(Int.compare, Int Int -- Comparison,
+    dup2 == if(drop2 EQ, < if(LT, GT)))
 def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
 def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
 def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 
-def(Str.cmp, Str Str -- Comparison, prim-str-cmp 0 .cmp)
-def(Str.==,  Str Str -- Bool, .cmp .is-eq)
-def(Str.<,  Str Str -- Bool, .cmp .is-lt)
-def(Str.>,  Str Str -- Bool, .cmp .is-gt)
-def(Str.<=, Str Str -- Bool, .cmp .is-le)
-def(Str.>=, Str Str -- Bool, .cmp .is-ge)
-def(Str.<>, Str Str -- Bool, .cmp .is-ne)
+def(Str.compare, Str Str -- Comparison, prim-str-cmp 0 .compare)
+def(Str.==,  Str Str -- Bool, .compare .is-eq)
+def(Str.<,  Str Str -- Bool, .compare .is-lt)
+def(Str.>,  Str Str -- Bool, .compare .is-gt)
+def(Str.<=, Str Str -- Bool, .compare .is-le)
+def(Str.>=, Str Str -- Bool, .compare .is-ge)
+def(Str.<>, Str Str -- Bool, .compare .is-ne)
 def(Str.max, Str Str -- Str, dup2 < if(nip, drop))
 def(Str.min, Str Str -- Str, dup2 < if(drop, nip))
 
@@ -348,7 +349,7 @@ def(Nat.1+, Nat -- Nat, >Int 1+ >Nat-unsafe)
 def(Nat.1-, Nat -- Nat, >Int 1- >Nat)
 def(Nat.2*, Nat -- Nat, >Int 2* >Nat-unsafe)
 def(Nat.2/, Nat -- Nat, >Int 2/ >Nat-unsafe)
-def(Nat.cmp, Nat Nat -- Comparison, both(>Int) cmp)
+def(Nat.compare, Nat Nat -- Comparison, both(>Int) compare)
 def(Nat.==, Nat Nat -- Bool, both(>Int) ==)
 def(Nat.<, Nat Nat -- Bool, both(>Int) <)
 def(Nat.>, Nat Nat -- Bool, both(>Int) >)
@@ -432,6 +433,8 @@ def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
         @,
         dip(f dup) !
     ))
+def(@?, Mut(t) -- Maybe(t),
+    dup mut-is-set if(@ SOME, drop NONE))
 
 alias(panic!, prim-panic)
 def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,

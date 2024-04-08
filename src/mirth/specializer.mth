@@ -1,0 +1,90 @@
+||| The specializer tries to remove higher-order words by specializing them with their arguments.
+||| This should be especially doable in Mirth because local variables are less of an issue.
+module(mirth.specializer)
+
+import(std.prelude)
+import(std.list)
+import(std.maybe)
+import(std.lazy)
+import(std.map)
+
+import(mirth.word)
+import(mirth.arrow)
+import(mirth.match)
+
+def(run-specializer!, Arrow -- Arrow,
+    +SPCheck.begin! check-arrow! loop! end!)
+
+field(Word.~sp-checked, Word, Bool)
+field(Word.~sp-variants, Word, Map(List(Arg), Word))
+
+field(Block.~sp-checked, Block, Bool)
+field(Block.~sp-variants, Block, Map(List(Arg), Block))
+
+data(+SPCheck, SPCHECK -> checklist:List(SPCheckItem))
+def(+SPCheck.begin!, -- +SPCheck, L0 >checklist SPCHECK)
+def(+SPCheck.end!, +SPCheck --, SPCHECK -> checklist> drop)
+def(+SPCheck.loop!, +SPCheck -- +SPCheck,
+    while-some(checklist:uncons?, do-item-check!))
+
+data(SPCheckItem,
+    SPCHECK_WORD -> Word,
+    SPCHECK_BLOCK -> Block)
+
+def(+SPCheck.do-item-check!, SPCheckItem +SPCheck -- +SPCheck,
+    SPCHECK_WORD -> dup dip(arrow check-arrow! ready) ~arrow !,
+    SPCHECK_BLOCK -> dup dip(arrow check-arrow! ready) ~arrow !)
+
+def(+SPCheck.check-arrow!, Arrow +SPCheck -- Arrow +SPCheck,
+    atoms:flatmap(check-atom!))
+
+def(+SPCheck.check-atom!, Atom +SPCheck -- List(Atom) +SPCheck,
+    dup op match(
+        OP_NONE -> L1,
+        OP_PRIM -> check-prim-atom!,
+        OP_WORD -> check-word-atom!,
+        OP_EXTERNAL -> drop L1,
+        OP_BUFFER -> drop L1,
+        OP_VARIABLE -> drop L1,
+        OP_FIELD -> drop L1,
+        OP_INT -> drop L1,
+        OP_STR -> drop L1,
+        OP_TAG -> drop L1,
+        OP_MATCH -> check-match! OP_MATCH swap op! L1,
+        OP_LAMBDA -> check-lambda! OP_LAMBDA swap op! L1,
+        OP_VAR -> drop L1,
+        OP_BLOCK -> push-check-block! L1,
+        OP_COERCE -> drop L1,
+        OP_LABEL_PUSH -> drop L1,
+        OP_LABEL_POP -> drop L1,
+        OP_DATA_GET_LABEL -> drop2 L1,
+        OP_DATA_SET_LABEL -> drop2 L1,
+    ))
+
+def(+SPCheck.check-arg!, Arg +SPCheck -- +SPCheck,
+    ARG_BLOCK -> push-check-block!)
+def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
+    drop dup args for(check-arg!) L1)
+def(+SPCheck.check-word-atom!, Atom Word +SPCheck -- List(Atom) +SPCheck,
+    dup arity 0> if(
+        push-check-word! L1,
+        drop L1 # todo
+    ))
+
+def(+SPCheck.check-match!, Match +SPCheck -- Match +SPCheck,
+    id) # todo
+def(+SPCheck.check-lambda!, Lambda +SPCheck -- Lambda +SPCheck,
+    id) # todo
+
+def(+SPCheck.push-check-word!, Word +SPCheck -- +SPCheck,
+    dup ~sp-checked @? unwrap-or(F) if(
+        drop,
+        T over ~sp-checked !
+        SPCHECK_WORD checklist:cons
+    ))
+def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
+    dup ~sp-checked @? unwrap-or(F) if(
+        drop,
+        T over ~sp-checked !
+        SPCHECK_BLOCK checklist:cons
+    ))
