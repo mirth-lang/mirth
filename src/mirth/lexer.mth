@@ -58,7 +58,7 @@ def(run-lexer!, Path +World -- Module +World,
 
     while(done? not, lexer-next!)
     TOKEN_NONE lexer-emit!
-    /LEXER end! +File.close-file!
+    /LEXER end! close-file!
     lexer-stack> uncons drop for("Mismatched left parenthesis." emit-fatal-error!)
     lexer-row> lexer-col> lexer-last-token> drop3
     lexer-module> Token.alloc-none! over ~end !
