@@ -61,10 +61,10 @@ def(+Str.clear!, +Str -- +Str,
     +STR -> drop "" +STR)
 
 def(+Str.push-byte-unsafe!, Byte +Str -- +Str,
-    to-str-unsafe +Str.push-str!)
+    to-str-unsafe push-str!)
 
 def(+Str.push-byte-ascii!, Byte +Str -- +Str,
-    to-ascii-str unwrap +Str.push-str!)
+    to-ascii-str unwrap push-str!)
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
