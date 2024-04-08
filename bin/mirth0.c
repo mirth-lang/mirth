@@ -1289,16 +1289,22 @@ static void mw_std_prim_prim_mut_is_set (void) {
 
 /* GENERATED C99 */
 
-static VAL lbl_packages = MKNIL_C;
-static VAL lbl_entry_point = MKNIL_C;
+static VAL lbl_emit_debug_info = MKNIL_C;
 static VAL lbl_input_file = MKNIL_C;
 static VAL lbl_output_file = MKNIL_C;
-static VAL lbl_emit_debug_info = MKNIL_C;
+static VAL lbl_entry_point = MKNIL_C;
+static VAL lbl_packages = MKNIL_C;
 static VAL lbl_output_path = MKNIL_C;
+static VAL lbl_name = MKNIL_C;
+static VAL lbl_flag_type = MKNIL_C;
+static VAL lbl_arg_doc = MKNIL_C;
+static VAL lbl_doc = MKNIL_C;
+static VAL lbl_group = MKNIL_C;
 static VAL lbl_options = MKNIL_C;
 static VAL lbl_parser = MKNIL_C;
 static VAL lbl_args_doc = MKNIL_C;
-static VAL lbl_doc = MKNIL_C;
+static VAL lbl_argument_parser = MKNIL_C;
+static VAL lbl_state = MKNIL_C;
 static VAL lbl_argv = MKNIL_C;
 static VAL lbl_program_name = MKNIL_C;
 static VAL lbl_argv_info = MKNIL_C;
@@ -1309,7 +1315,6 @@ static VAL lbl_arg = MKNIL_C;
 static VAL lbl_arguments = MKNIL_C;
 static VAL lbl_positional_index = MKNIL_C;
 static VAL lbl_error = MKNIL_C;
-static VAL lbl_name = MKNIL_C;
 static VAL lbl_namespace = MKNIL_C;
 static VAL lbl_arity = MKNIL_C;
 static VAL lbl_qname = MKNIL_C;
@@ -3648,7 +3653,7 @@ static void mp_args_state_State_1_STATE (void) {
 		free(tup);
 	}
 }
-static void mw_args_types_ArgumentParser_1_ARGUMENT_5F_PARSER (void) {
+static void mw_args_types_ArgumentParser_1_ArgumentParser (void) {
 	TUP* tup = tup_new(5);
 	tup->size = 5;
 	tup->cells[0] = MKU64(0LL);
@@ -3658,7 +3663,7 @@ static void mw_args_types_ArgumentParser_1_ARGUMENT_5F_PARSER (void) {
 	tup->cells[1] = lpop(&lbl_options);
 	push_value(MKTUP(tup, 5));
 }
-static void mp_args_types_ArgumentParser_1_ARGUMENT_5F_PARSER (void) {
+static void mp_args_types_ArgumentParser_1_ArgumentParser (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -3680,16 +3685,16 @@ static void mw_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[2] = pop_value();
-	tup->cells[1] = pop_value();
+	tup->cells[2] = lpop(&lbl_state);
+	tup->cells[1] = lpop(&lbl_argument_parser);
 	push_resource(MKTUP(tup, 3));
 }
 static void mp_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
-	push_value(tup->cells[2]);
+	lpush(&lbl_argument_parser, tup->cells[1]);
+	lpush(&lbl_state, tup->cells[2]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -3749,6 +3754,37 @@ static void mw_args_types_ArgpOptionType_END (void) {
 static void mp_args_types_ArgpOptionType_END (void) {
 	VAL val = pop_value();
 	(void)val;
+}
+static void mw_args_types_ArgpOption_ArgpOption (void) {
+	TUP* tup = tup_new(6);
+	tup->size = 6;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[5] = lpop(&lbl_group);
+	tup->cells[4] = lpop(&lbl_doc);
+	tup->cells[3] = lpop(&lbl_arg_doc);
+	tup->cells[2] = lpop(&lbl_flag_type);
+	tup->cells[1] = lpop(&lbl_name);
+	push_value(MKTUP(tup, 6));
+}
+static void mp_args_types_ArgpOption_ArgpOption (void) {
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_name, tup->cells[1]);
+	lpush(&lbl_flag_type, tup->cells[2]);
+	lpush(&lbl_arg_doc, tup->cells[3]);
+	lpush(&lbl_doc, tup->cells[4]);
+	lpush(&lbl_group, tup->cells[5]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_args_types_ArgumentParsingError_NO_5F_ARGS_5F_PARSED (void) {
 	push_value(MKU64(0LL));
@@ -6961,9 +6997,36 @@ static void mp_mirth_c99__2B_C99_MKC99 (void) {
 		free(tup);
 	}
 }
-static void mw_args_types_ArgpOption_NUM (void) {
-	static uint8_t b[8] = {0};
-	push_ptr(&b);
+static void mw_mirth_main_Arguments_Arguments (void) {
+	TUP* tup = tup_new(6);
+	tup->size = 6;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[5] = lpop(&lbl_emit_debug_info);
+	tup->cells[4] = lpop(&lbl_packages);
+	tup->cells[3] = lpop(&lbl_entry_point);
+	tup->cells[2] = lpop(&lbl_output_file);
+	tup->cells[1] = lpop(&lbl_input_file);
+	push_value(MKTUP(tup, 6));
+}
+static void mp_mirth_main_Arguments_Arguments (void) {
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_input_file, tup->cells[1]);
+	lpush(&lbl_output_file, tup->cells[2]);
+	lpush(&lbl_entry_point, tup->cells[3]);
+	lpush(&lbl_packages, tup->cells[4]);
+	lpush(&lbl_emit_debug_info, tup->cells[5]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		incref(tup->cells[4]);
+		incref(tup->cells[5]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mw_mirth_label_Label_NUM (void) {
 	static uint8_t b[8] = {0};
@@ -7038,10 +7101,6 @@ static void mw_mirth_name_HASH_5F_BUF (void) {
 	push_ptr(&b);
 }
 static void mw_mirth_package_Package_NUM (void) {
-	static uint8_t b[8] = {0};
-	push_ptr(&b);
-}
-static void mw_mirth_main_Arguments_NUM (void) {
 	static uint8_t b[8] = {0};
 	push_ptr(&b);
 }
@@ -7462,20 +7521,18 @@ static void mw_args_state_State_1_option_option_21_ (void);
 static void mw_args_types_ArgumentParser_1_args_doc (void);
 static void mw_args_types_ArgumentParser_1_parser (void);
 static void mw_args_types_ArgumentParser_1_options (void);
-static void mw_args_types_ArgumentParser_1_new (void);
-static void mw_args_types__ARGUMENTPARSER (void);
-static void mw_args_types__2B_ArgumentParser_1_rdrop (void);
-static void mw_args_types__2B_ArgumentParser_1_argument_parser (void);
+static void mw_args_types__2B_ArgumentParser_1__2F__2B_ARGUMENTPARSER (void);
 static void mw_args_types__2B_ArgumentParser_1_state (void);
 static void mw_args_types__2B_ArgumentParser_1_state_21_ (void);
+static void mw_args_types__2B_ArgumentParser_1_state_1 (void);
+static void mw_args_types__2B_ArgumentParser_1_argument_parser (void);
+static void mw_args_types__2B_ArgumentParser_1_rdrop (void);
 static void mw_args_types__2B_ArgumentParser_1_parser (void);
 static void mw_args_types_ArgpOptionType_has_short_3F_ (void);
-static void mw_args_types_ArgpOption_alloc_21_ (void);
-static void mw_args_types_ArgpOption_long (void);
-static void mw_args_types_ArgpOption_type (void);
-static void mw_args_types_ArgpOption_arg (void);
 static void mw_args_types_ArgpOption_doc (void);
-static void mw_args_types_ArgpOption_new (void);
+static void mw_args_types_ArgpOption_arg_doc (void);
+static void mw_args_types_ArgpOption_flag_type (void);
+static void mw_args_types_ArgpOption_name (void);
 static void mw_args_types_ArgumentParsingError_show (void);
 static void mw_args_parse_print_usage (void);
 static void mw_args_parse_print_usage_for_option (void);
@@ -8451,9 +8508,16 @@ static void mw_mirth_c99_c99_field_defs_21_ (void);
 static void mw_mirth_c99_c99_field_def_21_ (void);
 static void mw_mirth_c99_c99_main_21_ (void);
 static void mw_mirth_main_init_21_ (void);
-static void mw_mirth_main_Arguments_alloc_21_ (void);
-static void mw_mirth_main_Arguments_new (void);
-static void mw_mirth_main_Arguments_unpack (void);
+static void mw_mirth_main_Arguments__2F_Arguments (void);
+static void mw_mirth_main_Arguments_emit_debug_info_21_ (void);
+static void mw_mirth_main_Arguments_packages (void);
+static void mw_mirth_main_Arguments_packages_21_ (void);
+static void mw_mirth_main_Arguments_packages_1 (void);
+static void mw_mirth_main_Arguments_entry_point (void);
+static void mw_mirth_main_Arguments_entry_point_21_ (void);
+static void mw_mirth_main_Arguments_output_file (void);
+static void mw_mirth_main_Arguments_output_file_21_ (void);
+static void mw_mirth_main_Arguments_input_file_21_ (void);
 static void mw_mirth_main_Arguments_default (void);
 static void mw_mirth_main_compile_21_ (void);
 static void mw_mirth_main_parse_package_def (void);
@@ -8464,13 +8528,11 @@ static void mb_mirth_token_Token_args_7 (void);
 static void mb_mirth_token_Token_args_11 (void);
 static void mb_mirth_token_Token_args_14 (void);
 static void mb_mirth_main_main_4 (void);
-static void mb_mirth_main_main_60 (void);
+static void mb_mirth_main_main_85 (void);
 static void mb_mirth_table_Field_type_2 (void);
 static void mb_mirth_arrow_Arrow_type_2 (void);
 static void mb_mirth_arrow_Block_type_2 (void);
 static void mb_mirth_prim_init_prims_21__937 (void);
-static void mb_std_buffer__2B_Buffer_new_4 (void);
-static void mb_mirth_need__2B_Needs_new_3 (void);
 static void mb_std_list_List_1_cat_3 (void);
 static void mb_std_list_List_2B__1_cat_4 (void);
 static void mb_mirth_main_compile_21__11 (void);
@@ -8493,7 +8555,10 @@ static void mb_mirth_elab_elab_entry_point_8 (void);
 static void mb_mirth_elab_elab_entry_point_43 (void);
 static void mb_std_str__2B_Str_split_byte_20 (void);
 static void mb_std_str__2B_Str_split_byte_35 (void);
-static void mb_mirth_main_compiler_parse_args_102 (void);
+static void mb_mirth_main_compiler_parse_args_33 (void);
+static void mb_mirth_main_compiler_parse_args_64 (void);
+static void mb_mirth_main_compiler_parse_args_85 (void);
+static void mb_mirth_main_compiler_parse_args_97 (void);
 static void mb_std_prelude_Nat__3D__3D__2 (void);
 static void mb_std_prelude_Size__3D__3D__2 (void);
 static void mb_std_prelude_Offset__3D__3D__2 (void);
@@ -8513,8 +8578,8 @@ static void mb_mirth_name_Name__3D__3D__2 (void);
 static void mb_mirth_package_Package__3D__3D__2 (void);
 static void mb_std_prelude_Nat__3C__2 (void);
 static void mb_std_prelude_Offset__3C__2 (void);
-static void mb_args_parse_parse_args_7 (void);
-static void mb_args_parse_parse_args_136 (void);
+static void mb_args_parse_parse_args_8 (void);
+static void mb_args_parse_parse_args_135 (void);
 static void mb_std_prelude_Nat__2B__2 (void);
 static void mb_std_prelude_Size__2B__2 (void);
 static void mb_std_prelude_Offset__2B__2 (void);
@@ -8573,6 +8638,8 @@ static void mb_std_prim_Str_bytes_for_1_18 (void);
 static void mb_std_prim_Str_drop_bytes_10 (void);
 static void mb_std_prim_Str_from_bytes_unsafe_11 (void);
 static void mb_std_prim_Str_from_bytes_unsafe_21 (void);
+static void mb_std_buffer__2B_Buffer_new_4 (void);
+static void mb_mirth_need__2B_Needs_new_3 (void);
 static void mb_std_buffer__2B_Buffer_rdrop_3 (void);
 static void mb_std_prim_Str_with_data_cstr_1_2 (void);
 static void mb_std_prim_Str_with_data_cstr_1_6 (void);
@@ -8613,8 +8680,6 @@ static void mb_posix_output__2B_Output_put_11 (void);
 static void mb_posix_output__2B_Output_put_19 (void);
 static void mb_mirth_c99__2B_C99_put_2 (void);
 static void mb_mirth_c99__2B_C99_line_2 (void);
-static void mb_std_set__2B_Set_1_index_12 (void);
-static void mb_std_set__2B_Set_1_index_16 (void);
 static void mb_std_prim__2B_World_open_file_21__3 (void);
 static void mb_std_prim__2B_World_open_file_21__9 (void);
 static void mb_std_prim__2B_World_open_file_21__12 (void);
@@ -8645,6 +8710,8 @@ static void mb_mirth_def_Def_register_6 (void);
 static void mb_mirth_def_Def_register_13 (void);
 static void mb_mirth_name_QName_def_3F__5 (void);
 static void mb_mirth_package_Package_find_or_new_21__4 (void);
+static void mb_std_set__2B_Set_1_index_12 (void);
+static void mb_std_set__2B_Set_1_index_16 (void);
 static void mb_mirth_name_hash_name_40__7 (void);
 static void mb_mirth_name_hash_name_21__12 (void);
 static void mb_std_prim_Str_hash_4 (void);
@@ -9188,11 +9255,6 @@ static void mb_mirth_need__2B_Needs_run_atom_21__2 (void);
 static void mb_mirth_need__2B_Needs_push_args_21__2 (void);
 static void mb_mirth_need__2B_Needs_run_match_21__3 (void);
 static void mb_std_set__2B_Set_1_offset_mask_8 (void);
-static void mw_args_types_ArgpOption__7E_long (void);
-static void mw_args_types_ArgpOption__7E_type (void);
-static void mw_args_types_ArgpOption__7E_arg (void);
-static void mw_args_types_ArgpOption__7E_doc (void);
-static void mw_args_types_ArgpOption__7E_group (void);
 static void mw_mirth_label_Label__7E_name (void);
 static void mw_mirth_module_Module__7E_package (void);
 static void mw_mirth_module_Module__7E_name (void);
@@ -9271,11 +9333,6 @@ static void mw_mirth_name_Name__7E_mangled (void);
 static void mw_mirth_name_Name__7E_label (void);
 static void mw_mirth_package_Package__7E_name (void);
 static void mw_mirth_package_Package__7E_path (void);
-static void mw_mirth_main_Arguments__7E_input_file (void);
-static void mw_mirth_main_Arguments__7E_output_file (void);
-static void mw_mirth_main_Arguments__7E_entry_point (void);
-static void mw_mirth_main_Arguments__7E_packages (void);
-static void mw_mirth_main_Arguments__7E_emit_debug_info (void);
 int main (int argc, char** argv) {
 	global_argc = argc;
 	global_argv = argv;
@@ -9283,71 +9340,6 @@ int main (int argc, char** argv) {
 	mw_mirth_main_main();
 	return 0;
 }
-static VAL* fieldptr_args_types_ArgpOption__7E_long (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_args_types_ArgpOption__7E_long (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_args_types_ArgpOption__7E_long(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_args_types_ArgpOption__7E_type (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_args_types_ArgpOption__7E_type (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_args_types_ArgpOption__7E_type(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_args_types_ArgpOption__7E_arg (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_args_types_ArgpOption__7E_arg (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_args_types_ArgpOption__7E_arg(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_args_types_ArgpOption__7E_doc (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_args_types_ArgpOption__7E_doc (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_args_types_ArgpOption__7E_doc(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_args_types_ArgpOption__7E_group (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_args_types_ArgpOption__7E_group (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_args_types_ArgpOption__7E_group(index);
-	push_ptr(v);
-}
-
 static VAL* fieldptr_mirth_label_Label__7E_name (size_t i) {
 	static struct VAL * p = 0;
 	size_t m = 65536;
@@ -10359,71 +10351,6 @@ static VAL* fieldptr_mirth_package_Package__7E_path (size_t i) {
 
 static void mw_mirth_package_Package__7E_path (void){	size_t index = (size_t)pop_u64();
 	VAL *v = fieldptr_mirth_package_Package__7E_path(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_mirth_main_Arguments__7E_input_file (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_mirth_main_Arguments__7E_input_file (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_mirth_main_Arguments__7E_input_file(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_mirth_main_Arguments__7E_output_file (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_mirth_main_Arguments__7E_output_file (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_mirth_main_Arguments__7E_output_file(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_mirth_main_Arguments__7E_entry_point (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_mirth_main_Arguments__7E_entry_point (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_mirth_main_Arguments__7E_entry_point(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_mirth_main_Arguments__7E_packages (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_mirth_main_Arguments__7E_packages (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_mirth_main_Arguments__7E_packages(index);
-	push_ptr(v);
-}
-
-static VAL* fieldptr_mirth_main_Arguments__7E_emit_debug_info (size_t i) {
-	static struct VAL * p = 0;
-	size_t m = 65536;
-	if (! p) { p = calloc(m, sizeof *p); }
-	EXPECT(i<m, "table grew too big");
-	return p+i;
-}
-
-static void mw_mirth_main_Arguments__7E_emit_debug_info (void){	size_t index = (size_t)pop_u64();
-	VAL *v = fieldptr_mirth_main_Arguments__7E_emit_debug_info(index);
 	push_ptr(v);
 }
 
@@ -14610,45 +14537,54 @@ static void mw_args_types_ArgumentParser_1_options (void) {
 	decref(v);
 	push_value(u);
 }
-static void mw_args_types_ArgumentParser_1_new (void) {
-	mw_args_types_ArgumentParser_1_ARGUMENT_5F_PARSER();
-}
-static void mw_args_types__ARGUMENTPARSER (void) {
+static void mw_args_types__2B_ArgumentParser_1__2F__2B_ARGUMENTPARSER (void) {
 	switch (get_top_resource_data_tag()) {
 		case 0LL:
 			mp_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER();
-			mw_std_prim_prim_id();
 			break;
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
-static void mw_args_types__2B_ArgumentParser_1_rdrop (void) {
-	mw_args_types__ARGUMENTPARSER();
-	mw_std_prelude_drop2();
-}
-static void mw_args_types__2B_ArgumentParser_1_argument_parser (void) {
-	mw_args_types__ARGUMENTPARSER();
-	mw_std_prelude_over();
-	{
-		VAL d2 = pop_value();
-		mw_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER();
-		push_value(d2);
-	}
-}
 static void mw_args_types__2B_ArgumentParser_1_state (void) {
-	mw_args_types__ARGUMENTPARSER();
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER();
-		push_value(d2);
-	}
+	VAL v = top_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL u = VTUP(v)->cells[2];
+	incref(u);
+	push_value(u);
 }
 static void mw_args_types__2B_ArgumentParser_1_state_21_ (void) {
-	mw_args_types__ARGUMENTPARSER();
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[2];
+	VAL t = *p; *p = u; decref(t);
+}
+static void mw_args_types__2B_ArgumentParser_1_state_1 (void) {
+	mw_args_types__2B_ArgumentParser_1_state();
+	{
+		VAL d2 = pop_resource();
+		mw_std_prim_prim_swap();
+		mw_std_prim_prim_run();
+		push_resource(d2);
+	}
+	mw_args_types__2B_ArgumentParser_1_state_21_();
+}
+static void mw_args_types__2B_ArgumentParser_1_argument_parser (void) {
+	VAL v = top_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL u = VTUP(v)->cells[1];
+	incref(u);
+	push_value(u);
+}
+static void mw_args_types__2B_ArgumentParser_1_rdrop (void) {
+	mw_args_types__2B_ArgumentParser_1__2F__2B_ARGUMENTPARSER();
+	LPOP(lbl_argument_parser);
 	mw_std_prim_prim_drop();
-	mw_std_prim_prim_swap();
-	mw_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER();
+	LPOP(lbl_state);
+	mw_std_prim_prim_drop();
 }
 static void mw_args_types__2B_ArgumentParser_1_parser (void) {
 	mw_args_types__2B_ArgumentParser_1_argument_parser();
@@ -14667,68 +14603,41 @@ static void mw_args_types_ArgpOptionType_has_short_3F_ (void) {
 			break;
 	}
 }
-static void mw_args_types_ArgpOption_alloc_21_ (void) {
-	mw_args_types_ArgpOption_NUM();
-	mw_std_prim_prim_u64_get();
-	push_i64(1LL);
-	mw_std_prim_prim_int_add();
-	mw_std_prim_prim_dup();
-	mw_args_types_ArgpOption_NUM();
-	mw_std_prim_prim_u64_set();
-}
-static void mw_args_types_ArgpOption_long (void) {
-	mw_args_types_ArgpOption__7E_long();
-	mw_std_prim_prim_mut_get();
-}
-static void mw_args_types_ArgpOption_type (void) {
-	mw_args_types_ArgpOption__7E_type();
-	mw_std_prim_prim_mut_get();
-}
-static void mw_args_types_ArgpOption_arg (void) {
-	mw_args_types_ArgpOption__7E_arg();
-	mw_std_prim_prim_mut_get();
-}
 static void mw_args_types_ArgpOption_doc (void) {
-	mw_args_types_ArgpOption__7E_doc();
-	mw_std_prim_prim_mut_get();
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[4];
+	incref(u);
+	decref(v);
+	push_value(u);
 }
-static void mw_args_types_ArgpOption_new (void) {
-	mw_args_types_ArgpOption_alloc_21_();
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_types_ArgpOption__7E_group();
-		mw_std_prim_prim_mut_set();
-		push_value(d2);
-	}
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_types_ArgpOption__7E_doc();
-		mw_std_prim_prim_mut_set();
-		push_value(d2);
-	}
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_types_ArgpOption__7E_arg();
-		mw_std_prim_prim_mut_set();
-		push_value(d2);
-	}
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_types_ArgpOption__7E_type();
-		mw_std_prim_prim_mut_set();
-		push_value(d2);
-	}
-	mw_std_prim_prim_dup();
-	{
-		VAL d2 = pop_value();
-		mw_args_types_ArgpOption__7E_long();
-		mw_std_prim_prim_mut_set();
-		push_value(d2);
-	}
+static void mw_args_types_ArgpOption_arg_doc (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[3];
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_args_types_ArgpOption_flag_type (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[2];
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_args_types_ArgpOption_name (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[1];
+	incref(u);
+	decref(v);
+	push_value(u);
 }
 static void mw_args_types_ArgumentParsingError_show (void) {
 	switch (get_top_data_tag()) {
@@ -14911,7 +14820,7 @@ static void mw_args_parse_print_usage_for_option (void) {
 	}
 	mw_std_prim_Str_print_21_();
 	mw_std_prim_prim_dup();
-	mw_args_types_ArgpOption_type();
+	mw_args_types_ArgpOption_flag_type();
 	switch (get_top_data_tag()) {
 		case 0LL:
 			mp_args_types_ArgpOptionType_SHORT();
@@ -14928,7 +14837,7 @@ static void mw_args_parse_print_usage_for_option (void) {
 			break;
 	}
 	mw_std_prim_prim_dup();
-	mw_args_types_ArgpOption_type();
+	mw_args_types_ArgpOption_flag_type();
 	mw_args_types_ArgpOptionType_has_short_3F_();
 	push_value(MKNIL);
 	push_fnptr(&mb_args_parse_print_usage_for_option_29);
@@ -14959,7 +14868,7 @@ static void mw_args_parse_print_usage_for_option (void) {
 	}
 	mw_std_prim_Str_print_21_();
 	mw_std_prim_prim_dup();
-	mw_args_types_ArgpOption_long();
+	mw_args_types_ArgpOption_name();
 	switch (get_top_data_tag()) {
 		case 1LL:
 			mp_std_maybe_Maybe_1_SOME();
@@ -14976,7 +14885,7 @@ static void mw_args_parse_print_usage_for_option (void) {
 			mw_std_prim_Str_print_21_();
 			mw_std_prim_Str_print_21_();
 			mw_std_prim_prim_dup();
-			mw_args_types_ArgpOption_arg();
+			mw_args_types_ArgpOption_arg_doc();
 			switch (get_top_data_tag()) {
 				case 1LL:
 					mp_std_maybe_Maybe_1_SOME();
@@ -15042,7 +14951,7 @@ static void mw_args_parse_print_usage_for_option (void) {
 }
 static void mw_args_parse_check_short_flag (void) {
 	mw_std_prelude_over();
-	mw_args_types_ArgpOption_type();
+	mw_args_types_ArgpOption_flag_type();
 	switch (get_top_data_tag()) {
 		case 0LL:
 			mp_args_types_ArgpOptionType_SHORT();
@@ -15077,7 +14986,7 @@ static void mw_args_parse_parse_flags_where_1 (void) {
 			case 1LL:
 				mp_std_maybe_Maybe_1_SOME();
 				mw_std_prim_prim_dup();
-				mw_args_types_ArgpOption_arg();
+				mw_args_types_ArgpOption_arg_doc();
 				switch (get_top_data_tag()) {
 					case 1LL:
 						mp_std_maybe_Maybe_1_SOME();
@@ -15093,7 +15002,7 @@ static void mw_args_parse_parse_flags_where_1 (void) {
 						break;
 					case 0LL:
 						mp_std_maybe_Maybe_1_NONE();
-						mw_args_types_ArgpOption_type();
+						mw_args_types_ArgpOption_flag_type();
 						mw_args_types__2B_ArgumentParser_1_state();
 						mw_args_state_State_1_arguments();
 						mw_std_prim_prim_swap();
@@ -15133,7 +15042,7 @@ static void mw_args_parse_parse_flags_where_1 (void) {
 }
 static void mw_args_parse_check_long_flag (void) {
 	mw_std_prelude_over();
-	mw_args_types_ArgpOption_long();
+	mw_args_types_ArgpOption_name();
 	switch (get_top_data_tag()) {
 		case 1LL:
 			mp_std_maybe_Maybe_1_SOME();
@@ -15206,19 +15115,20 @@ static void mw_args_parse_do_positional_option (void) {
 	mw_args_types__2B_ArgumentParser_1_state_21_();
 }
 static void mw_args_parse_parse_args (void) {
-	mw_std_prim_prim_swap();
+	LPUSH(lbl_argument_parser);
 	mw_args_state_State_1_init();
+	LPUSH(lbl_state);
 	mw_args_types__2B_ArgumentParser_1__2B_ARGUMENTPARSER();
 	mw_args_types__2B_ArgumentParser_1_state();
 	mw_args_state_State_1_argv();
 	push_value(MKNIL);
-	push_fnptr(&mb_args_parse_parse_args_7);
+	push_fnptr(&mb_args_parse_parse_args_8);
 	mw_std_prim_prim_pack_cons();
 	mw_std_list_List_1_for_1();
 	mw_args_types__2B_ArgumentParser_1_state();
 	mw_args_state_State_1_parsing_3F_();
 	push_value(MKNIL);
-	push_fnptr(&mb_args_parse_parse_args_136);
+	push_fnptr(&mb_args_parse_parse_args_135);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_then_1();
 	mw_args_types__2B_ArgumentParser_1_state();
@@ -35326,60 +35236,162 @@ static void mw_mirth_main_init_21_ (void) {
 	mw_mirth_type_init_types_21_();
 	mw_mirth_prim_init_prims_21_();
 }
-static void mw_mirth_main_Arguments_alloc_21_ (void) {
-	mw_mirth_main_Arguments_NUM();
-	mw_std_prim_prim_u64_get();
-	push_i64(1LL);
-	mw_std_prim_prim_int_add();
-	mw_std_prim_prim_dup();
-	mw_mirth_main_Arguments_NUM();
-	mw_std_prim_prim_u64_set();
+static void mw_mirth_main_Arguments__2F_Arguments (void) {
+	switch (get_top_data_tag()) {
+		case 0LL:
+			mp_mirth_main_Arguments_Arguments();
+			break;
+		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+	}
 }
-static void mw_mirth_main_Arguments_new (void) {
-	mw_mirth_main_Arguments_alloc_21_();
-	LPOP(lbl_packages);
-	mw_std_prelude_over();
-	mw_mirth_main_Arguments__7E_packages();
-	mw_std_prim_prim_mut_set();
-	LPOP(lbl_entry_point);
-	mw_std_prelude_over();
-	mw_mirth_main_Arguments__7E_entry_point();
-	mw_std_prim_prim_mut_set();
-	LPOP(lbl_input_file);
-	mw_std_prelude_over();
-	mw_mirth_main_Arguments__7E_input_file();
-	mw_std_prim_prim_mut_set();
-	LPOP(lbl_output_file);
-	mw_std_prelude_over();
-	mw_mirth_main_Arguments__7E_output_file();
-	mw_std_prim_prim_mut_set();
-	LPOP(lbl_emit_debug_info);
-	mw_std_prelude_over();
-	mw_mirth_main_Arguments__7E_emit_debug_info();
-	mw_std_prim_prim_mut_set();
+static void mw_mirth_main_Arguments_emit_debug_info_21_ (void) {
+	VAL v = pop_value();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	if (VTUP(v)->refs == 1) {
+		VAL* p = &VTUP(v)->cells[5];
+		VAL t = *p; *p = u; decref(t);
+		push_value(v);
+	} else {
+		TUP *tup = tup_new(6);
+		tup->size = 6;
+		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
+		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
+		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
+		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
+		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
+		tup->cells[5] = u;
+		decref(v);
+		push_value(MKTUP(tup,6));
+	}
 }
-static void mw_mirth_main_Arguments_unpack (void) {
+static void mw_mirth_main_Arguments_packages (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[4];
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_main_Arguments_packages_21_ (void) {
+	VAL v = pop_value();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	if (VTUP(v)->refs == 1) {
+		VAL* p = &VTUP(v)->cells[4];
+		VAL t = *p; *p = u; decref(t);
+		push_value(v);
+	} else {
+		TUP *tup = tup_new(6);
+		tup->size = 6;
+		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
+		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
+		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
+		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
+		tup->cells[4] = u;
+		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		decref(v);
+		push_value(MKTUP(tup,6));
+	}
+}
+static void mw_mirth_main_Arguments_packages_1 (void) {
+	mw_std_prim_prim_swap();
 	mw_std_prim_prim_dup();
-	mw_mirth_main_Arguments__7E_packages();
-	mw_std_prim_prim_mut_get();
-	LPUSH(lbl_packages);
-	mw_std_prim_prim_dup();
-	mw_mirth_main_Arguments__7E_input_file();
-	mw_std_prim_prim_mut_get();
-	LPUSH(lbl_input_file);
-	mw_std_prim_prim_dup();
-	mw_mirth_main_Arguments__7E_output_file();
-	mw_std_prim_prim_mut_get();
-	LPUSH(lbl_output_file);
-	mw_std_prim_prim_dup();
-	mw_mirth_main_Arguments__7E_entry_point();
-	mw_std_prim_prim_mut_get();
-	LPUSH(lbl_entry_point);
-	mw_std_prim_prim_dup();
-	mw_mirth_main_Arguments__7E_emit_debug_info();
-	mw_std_prim_prim_mut_get();
-	LPUSH(lbl_emit_debug_info);
-	mw_std_prim_prim_drop();
+	{
+		VAL d2 = pop_value();
+		mw_mirth_main_Arguments_packages();
+		mw_std_prim_prim_swap();
+		mw_std_prim_prim_run();
+		push_value(d2);
+	}
+	mw_mirth_main_Arguments_packages_21_();
+}
+static void mw_mirth_main_Arguments_entry_point (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[3];
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_main_Arguments_entry_point_21_ (void) {
+	VAL v = pop_value();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	if (VTUP(v)->refs == 1) {
+		VAL* p = &VTUP(v)->cells[3];
+		VAL t = *p; *p = u; decref(t);
+		push_value(v);
+	} else {
+		TUP *tup = tup_new(6);
+		tup->size = 6;
+		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
+		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
+		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
+		tup->cells[3] = u;
+		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
+		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		decref(v);
+		push_value(MKTUP(tup,6));
+	}
+}
+static void mw_mirth_main_Arguments_output_file (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[2];
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_main_Arguments_output_file_21_ (void) {
+	VAL v = pop_value();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	if (VTUP(v)->refs == 1) {
+		VAL* p = &VTUP(v)->cells[2];
+		VAL t = *p; *p = u; decref(t);
+		push_value(v);
+	} else {
+		TUP *tup = tup_new(6);
+		tup->size = 6;
+		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
+		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
+		tup->cells[2] = u;
+		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
+		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
+		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		decref(v);
+		push_value(MKTUP(tup,6));
+	}
+}
+static void mw_mirth_main_Arguments_input_file_21_ (void) {
+	VAL v = pop_value();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	if (VTUP(v)->refs == 1) {
+		VAL* p = &VTUP(v)->cells[1];
+		VAL t = *p; *p = u; decref(t);
+		push_value(v);
+	} else {
+		TUP *tup = tup_new(6);
+		tup->size = 6;
+		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
+		tup->cells[1] = u;
+		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
+		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
+		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
+		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		decref(v);
+		push_value(MKTUP(tup,6));
+	}
 }
 static void mw_mirth_main_Arguments_default (void) {
 	mw_std_prim_Bool_F();
@@ -35412,10 +35424,10 @@ static void mw_mirth_main_Arguments_default (void) {
 	LPUSH(lbl_entry_point);
 	mw_std_list_List_1_L0();
 	LPUSH(lbl_packages);
-	mw_mirth_main_Arguments_new();
+	mw_mirth_main_Arguments_Arguments();
 }
 static void mw_mirth_main_compile_21_ (void) {
-	mw_mirth_main_Arguments_unpack();
+	mw_mirth_main_Arguments__2F_Arguments();
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35571,37 +35583,32 @@ static void mw_mirth_main_compiler_parse_args (void) {
 					mw_std_maybe_Maybe_1_unwrap();
 					mw_std_prim_Str__3E_Path();
 					mw_std_maybe_Maybe_1_SOME();
-					mw_std_prelude_over();
-					mw_mirth_main_Arguments__7E_output_file();
-					mw_std_prim_prim_mut_set();
+					mw_std_prim_prim_swap();
+					mw_mirth_main_Arguments_output_file_21_();
 					break;
 				case 101LL:
 					mp_std_byte_Byte_B_27_e_27_();
 					mw_std_maybe_Maybe_1_unwrap();
 					mw_std_maybe_Maybe_1_SOME();
-					mw_std_prelude_over();
-					mw_mirth_main_Arguments__7E_entry_point();
-					mw_std_prim_prim_mut_set();
+					mw_std_prim_prim_swap();
+					mw_mirth_main_Arguments_entry_point_21_();
 					break;
 				case 99LL:
 					mp_std_byte_Byte_B_27_c_27_();
 					mw_std_prim_prim_drop();
 					mw_std_maybe_Maybe_1_NONE();
-					mw_std_prelude_over();
-					mw_mirth_main_Arguments__7E_entry_point();
-					mw_std_prim_prim_mut_set();
+					mw_std_prim_prim_swap();
+					mw_mirth_main_Arguments_entry_point_21_();
 					break;
 				case 112LL:
 					mp_std_byte_Byte_B_27_p_27_();
 					mw_std_maybe_Maybe_1_unwrap();
 					mw_mirth_main_parse_package_def();
-					mw_std_prelude_over();
-					mw_mirth_main_Arguments__7E_packages();
-					mw_std_prim_prim_mut_get();
-					mw_std_list_List_1_cons();
-					mw_std_prelude_over();
-					mw_mirth_main_Arguments__7E_packages();
-					mw_std_prim_prim_mut_set();
+					mw_std_prim_prim_swap();
+					push_value(MKNIL);
+					push_fnptr(&mb_mirth_main_compiler_parse_args_33);
+					mw_std_prim_prim_pack_cons();
+					mw_mirth_main_Arguments_packages_1();
 					break;
 				default:
 					mw_std_prim_prim_drop();
@@ -35622,16 +35629,16 @@ static void mw_mirth_main_compiler_parse_args (void) {
 			if (pop_u64()) {
 				mw_std_maybe_Maybe_1_unwrap();
 				mw_std_prim_Str__3E_Path();
-				mw_std_prelude_over();
-				mw_mirth_main_Arguments__7E_input_file();
-				mw_std_prim_prim_mut_set();
+				mw_std_prim_prim_swap();
+				mw_mirth_main_Arguments_input_file_21_();
 			} else {
 				mw_std_prim_prim_drop();
 				mw_args_types_ArgumentParsingError_TOO_5F_MANY_5F_ARGS();
 				mw_std_maybe_Maybe_1_SOME();
-				mw_args_types__2B_ArgumentParser_1_state();
-				mw_args_state_State_1_error_21_();
-				mw_args_types__2B_ArgumentParser_1_state_21_();
+				push_value(MKNIL);
+				push_fnptr(&mb_mirth_main_compiler_parse_args_64);
+				mw_std_prim_prim_pack_cons();
+				mw_args_types__2B_ArgumentParser_1_state_1();
 			}
 			break;
 		case 1LL:
@@ -35651,16 +35658,16 @@ static void mw_mirth_main_compiler_parse_args (void) {
 			if (pop_u64()) {
 				mw_std_prelude_drop2();
 				mw_std_prim_Bool_T();
-				mw_std_prelude_over();
-				mw_mirth_main_Arguments__7E_emit_debug_info();
-				mw_std_prim_prim_mut_set();
+				mw_std_prim_prim_swap();
+				mw_mirth_main_Arguments_emit_debug_info_21_();
 			} else {
 				mw_std_prelude_drop2();
 				mw_args_types_ArgumentParsingError_UNKNOWN_5F_ARG();
 				mw_std_maybe_Maybe_1_SOME();
-				mw_args_types__2B_ArgumentParser_1_state();
-				mw_args_state_State_1_error_21_();
-				mw_args_types__2B_ArgumentParser_1_state_21_();
+				push_value(MKNIL);
+				push_fnptr(&mb_mirth_main_compiler_parse_args_85);
+				mw_std_prim_prim_pack_cons();
+				mw_args_types__2B_ArgumentParser_1_state_1();
 			}
 			break;
 		case 3LL:
@@ -35670,13 +35677,12 @@ static void mw_mirth_main_compiler_parse_args (void) {
 			push_i64(1LL);
 			mw_std_prim_prim_int_lt();
 			push_value(MKNIL);
-			push_fnptr(&mb_mirth_main_compiler_parse_args_102);
+			push_fnptr(&mb_mirth_main_compiler_parse_args_97);
 			mw_std_prim_prim_pack_cons();
 			mw_std_prim_Bool_then_1();
 			mw_args_types__2B_ArgumentParser_1_state();
 			mw_args_state_State_1_arguments();
-			mw_mirth_main_Arguments__7E_output_file();
-			mw_std_prim_prim_mut_get();
+			mw_mirth_main_Arguments_output_file();
 			switch (get_top_data_tag()) {
 				case 1LL:
 					mp_std_maybe_Maybe_1_SOME();
@@ -35686,8 +35692,7 @@ static void mw_mirth_main_compiler_parse_args (void) {
 					mp_std_maybe_Maybe_1_NONE();
 					mw_args_types__2B_ArgumentParser_1_state();
 					mw_args_state_State_1_arguments();
-					mw_mirth_main_Arguments__7E_entry_point();
-					mw_std_prim_prim_mut_get();
+					mw_mirth_main_Arguments_entry_point();
 					switch (get_top_data_tag()) {
 						case 1LL:
 							mp_std_maybe_Maybe_1_SOME();
@@ -35738,7 +35743,7 @@ static void mw_mirth_main_main (void) {
 	mw_std_list_LIST_1();
 	LPUSH(lbl_options);
 	push_value(MKNIL);
-	push_fnptr(&mb_mirth_main_main_60);
+	push_fnptr(&mb_mirth_main_main_85);
 	mw_std_prim_prim_pack_cons();
 	mw_std_maybe_Maybe_1_SOME();
 	LPUSH(lbl_parser);
@@ -35765,7 +35770,7 @@ static void mw_mirth_main_main (void) {
 		incref(v);
 	}
 	LPUSH(lbl_doc);
-	mw_args_types_ArgumentParser_1_new();
+	mw_args_types_ArgumentParser_1_ArgumentParser();
 	mw_args_parse_parse_args();
 	switch (get_top_data_tag()) {
 		case 1LL:
@@ -35862,8 +35867,10 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_name);
 	mw_std_byte_Byte_B_27_o_27_();
 	mw_args_types_ArgpOptionType_SHORT();
+	LPUSH(lbl_flag_type);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35875,6 +35882,7 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_arg_doc);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35886,8 +35894,10 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_doc);
 	mw_std_maybe_Maybe_1_NONE();
-	mw_args_types_ArgpOption_new();
+	LPUSH(lbl_group);
+	mw_args_types_ArgpOption_ArgpOption();
 	mw_std_list__2B_List_1__3B_();
 	{
 		static bool vready = false;
@@ -35900,9 +35910,12 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_name);
 	mw_std_byte_Byte_B_27_c_27_();
 	mw_args_types_ArgpOptionType_SHORT();
+	LPUSH(lbl_flag_type);
 	mw_std_maybe_Maybe_1_NONE();
+	LPUSH(lbl_arg_doc);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35914,8 +35927,10 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_doc);
 	mw_std_maybe_Maybe_1_NONE();
-	mw_args_types_ArgpOption_new();
+	LPUSH(lbl_group);
+	mw_args_types_ArgpOption_ArgpOption();
 	mw_std_list__2B_List_1__3B_();
 	{
 		static bool vready = false;
@@ -35928,8 +35943,10 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_name);
 	mw_std_byte_Byte_B_27_e_27_();
 	mw_args_types_ArgpOptionType_SHORT();
+	LPUSH(lbl_flag_type);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35941,6 +35958,7 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_arg_doc);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35952,8 +35970,10 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_doc);
 	mw_std_maybe_Maybe_1_NONE();
-	mw_args_types_ArgpOption_new();
+	LPUSH(lbl_group);
+	mw_args_types_ArgpOption_ArgpOption();
 	mw_std_list__2B_List_1__3B_();
 	{
 		static bool vready = false;
@@ -35966,8 +35986,10 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_name);
 	mw_std_byte_Byte_B_27_p_27_();
 	mw_args_types_ArgpOptionType_SHORT();
+	LPUSH(lbl_flag_type);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35979,6 +36001,7 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_arg_doc);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -35990,8 +36013,10 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_doc);
 	mw_std_maybe_Maybe_1_NONE();
-	mw_args_types_ArgpOption_new();
+	LPUSH(lbl_group);
+	mw_args_types_ArgpOption_ArgpOption();
 	mw_std_list__2B_List_1__3B_();
 	{
 		static bool vready = false;
@@ -36004,6 +36029,7 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_name);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -36015,7 +36041,9 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_args_types_ArgpOptionType_LONG_5F_ONLY();
+	LPUSH(lbl_flag_type);
 	mw_std_maybe_Maybe_1_NONE();
+	LPUSH(lbl_arg_doc);
 	{
 		static bool vready = false;
 		static VAL v;
@@ -36027,11 +36055,13 @@ static void mb_mirth_main_main_4 (void) {
 		incref(v);
 	}
 	mw_std_maybe_Maybe_1_SOME();
+	LPUSH(lbl_doc);
 	mw_std_maybe_Maybe_1_NONE();
-	mw_args_types_ArgpOption_new();
+	LPUSH(lbl_group);
+	mw_args_types_ArgpOption_ArgpOption();
 	mw_std_list__2B_List_1__3B_();
 }
-static void mb_mirth_main_main_60 (void) {
+static void mb_mirth_main_main_85 (void) {
 	mw_std_prim_prim_drop();
 	mw_mirth_main_compiler_parse_args();
 }
@@ -36092,14 +36122,6 @@ static void mb_mirth_prim_init_prims_21__937 (void) {
 	decref(var_sr);
 	decref(var_xs);
 	decref(var_ys);
-}
-static void mb_std_buffer__2B_Buffer_new_4 (void) {
-	mw_std_prim_prim_drop();
-	mw_std_prim_Ptr_alloc();
-}
-static void mb_mirth_need__2B_Needs_new_3 (void) {
-	mw_std_prim_prim_drop();
-	mw_mirth_need_Need__3E_Int();
 }
 static void mb_std_list_List_1_cat_3 (void) {
 	mw_std_prim_prim_drop();
@@ -36307,7 +36329,19 @@ static void mb_std_str__2B_Str_split_byte_35 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_str__2B_Str_offset_slice();
 }
-static void mb_mirth_main_compiler_parse_args_102 (void) {
+static void mb_mirth_main_compiler_parse_args_33 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_list_List_1_cons();
+}
+static void mb_mirth_main_compiler_parse_args_64 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_error_21_();
+}
+static void mb_mirth_main_compiler_parse_args_85 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_error_21_();
+}
+static void mb_mirth_main_compiler_parse_args_97 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_types_ArgumentParsingError_TOO_5F_FEW_5F_ARGS();
 	mw_std_maybe_Maybe_1_SOME();
@@ -36391,7 +36425,7 @@ static void mb_std_prelude_Offset__3C__2 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prelude_Offset__3E_Int();
 }
-static void mb_args_parse_parse_args_7 (void) {
+static void mb_args_parse_parse_args_8 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
 	mw_std_prim_Str_num_bytes();
@@ -36415,8 +36449,7 @@ static void mb_args_parse_parse_args_7 (void) {
 				switch (get_top_data_tag()) {
 					case 1LL:
 						mp_std_maybe_Maybe_1_SOME();
-						mw_args_types_ArgpOption__7E_arg();
-						mw_std_prim_prim_mut_get();
+						mw_args_types_ArgpOption_arg_doc();
 						switch (get_top_data_tag()) {
 							case 1LL:
 								mp_std_maybe_Maybe_1_SOME();
@@ -36454,8 +36487,7 @@ static void mb_args_parse_parse_args_7 (void) {
 				switch (get_top_data_tag()) {
 					case 1LL:
 						mp_std_maybe_Maybe_1_SOME();
-						mw_args_types_ArgpOption__7E_arg();
-						mw_std_prim_prim_mut_get();
+						mw_args_types_ArgpOption_arg_doc();
 						switch (get_top_data_tag()) {
 							case 1LL:
 								mp_std_maybe_Maybe_1_SOME();
@@ -36467,7 +36499,7 @@ static void mb_args_parse_parse_args_7 (void) {
 								mw_args_types__2B_ArgumentParser_1_state();
 								mw_args_state_State_1_option_option();
 								mw_std_maybe_Maybe_1_unwrap();
-								mw_args_types_ArgpOption_type();
+								mw_args_types_ArgpOption_flag_type();
 								mw_args_types__2B_ArgumentParser_1_parser();
 								mw_std_maybe_Maybe_1_unwrap();
 								mw_std_prim_prim_run();
@@ -36519,7 +36551,7 @@ static void mb_args_parse_parse_args_7 (void) {
 		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 	}
 }
-static void mb_args_parse_parse_args_136 (void) {
+static void mb_args_parse_parse_args_135 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_types_ArgumentParsingError_MISSING_5F_ARGUMENT_5F_VALUE();
 	mw_std_maybe_Maybe_1_SOME();
@@ -36980,6 +37012,14 @@ static void mb_std_prim_Str_from_bytes_unsafe_21 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_Str_copy();
 }
+static void mb_std_buffer__2B_Buffer_new_4 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_Ptr_alloc();
+}
+static void mb_mirth_need__2B_Needs_new_3 (void) {
+	mw_std_prim_prim_drop();
+	mw_mirth_need_Need__3E_Int();
+}
 static void mb_std_buffer__2B_Buffer_rdrop_3 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_Ptr_free();
@@ -37161,7 +37201,7 @@ static void mb_args_parse_print_usage_for_option_12 (void) {
 static void mb_args_parse_print_usage_for_option_29 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_prim_prim_dup();
-	mw_args_types_ArgpOption_long();
+	mw_args_types_ArgpOption_name();
 	mw_std_maybe_Maybe_1_some_3F_();
 }
 static void mb_args_parse_parse_flags_where_1_4 (void) {
@@ -37299,25 +37339,6 @@ static void mb_mirth_c99__2B_C99_put_2 (void) {
 static void mb_mirth_c99__2B_C99_line_2 (void) {
 	mw_std_prim_prim_drop();
 	mw_posix_output__2B_Output_line();
-}
-static void mb_std_set__2B_Set_1_index_12 (void) {
-	mw_std_prim_prim_drop();
-	mw_std_prim_prim_dup();
-	mw_std_prim_Int_0_3C_();
-	mw_std_prim_Bool_not();
-}
-static void mb_std_set__2B_Set_1_index_16 (void) {
-	mw_std_prim_prim_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("negative index not allowed", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
 }
 static void mb_std_prim__2B_World_open_file_21__3 (void) {
 	mw_std_prim_prim_drop();
@@ -37540,6 +37561,25 @@ static void mb_mirth_package_Package_find_or_new_21__4 (void) {
 	mw_std_maybe_Maybe_1_NONE();
 	mw_std_prim_prim_swap();
 	mw_mirth_package_Package_new_21_();
+}
+static void mb_std_set__2B_Set_1_index_12 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_dup();
+	mw_std_prim_Int_0_3C_();
+	mw_std_prim_Bool_not();
+}
+static void mb_std_set__2B_Set_1_index_16 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("negative index not allowed", 26);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
 }
 static void mb_mirth_name_hash_name_40__7 (void) {
 	mw_std_prim_prim_drop();
