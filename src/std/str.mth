@@ -10,7 +10,7 @@ def(Str.num-bytes, Str -- Size, prim-str-num-bytes >Size)
 alias(Str.cat, prim-str-cat)
 def(Str.empty?, Str -- Bool, num-bytes 0=)
 
-||| Copy string bytes to second argument with-dataout adding 0 at end.
+||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
 def(Str.copy-partial!, Str Ptr +Unsafe -- Ptr +Unsafe,
     swap with-data(
