@@ -49,23 +49,23 @@ def-missing(+Lexer.lexer-last-token@, +Lexer -- +Lexer Token, lexer-last-token)
 
 def(run-lexer!, Path +World -- Module +World,
     Module.new! dup >lexer-module
-    source-path open-file! input-start!
+    source-path open-file! +Input.start!
     1 >Row >lexer-row
     1 >Col >lexer-col
     STACK_NIL >lexer-stack
     Token.alloc-none! dup >lexer-last-token
     LEXER
 
-    while(lexer-done? not, lexer-next!)
+    while(done? not, lexer-next!)
     TOKEN_NONE lexer-emit!
-    /LEXER input-end! +File.close-file!
+    /LEXER end! +File.close-file!
     lexer-stack> uncons drop for("Mismatched left parenthesis." emit-fatal-error!)
     lexer-row> lexer-col> lexer-last-token> drop3
     lexer-module> Token.alloc-none! over ~end !
     swap succ over ~start !)
 
 # Is the lexer done?
-def(lexer-done?, +Lexer -- Bool +Lexer, /LEXER input-done? LEXER)
+def(+Lexer.done?, +Lexer -- Bool +Lexer, /LEXER done? LEXER)
 
 # Create a token, and add it to the token buffer,
 # returning the new token.
@@ -388,14 +388,14 @@ def(lexer-skip-comment!, +Lexer -- +Lexer,
 def(lexer-skip-doc!, +Lexer -- +Lexer, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, +Lexer -- Bool +Lexer,
-    lexer-done? if(
+    done? if(
         T,
         lexer-peek dup BLF == nip
     ))
 
-def(lexer-peek, +Lexer -- Byte +Lexer, /LEXER input-peek LEXER)
+def(lexer-peek, +Lexer -- Byte +Lexer, /LEXER peek LEXER)
 def(lexer-move!, +Lexer -- +Lexer,
-    /LEXER input-move! LEXER
+    /LEXER move! LEXER
     lexer-col@ >Int 1+ >Col lexer-col!)
 
 def(lexer-location, +Lexer -- Location +Lexer,

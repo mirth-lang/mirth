@@ -49,6 +49,6 @@ def(+File.unsafe-read!, Ptr Size +File -- Size +File,
     >Size)
 
 def(+File.read-file!, +File -- Str +File,
-    input-start!
-    input-read-file!
-    input-end!)
+    +Input.start!
+    read-file!
+    end!)
