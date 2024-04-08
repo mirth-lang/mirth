@@ -40,17 +40,13 @@ def(print-usage-for-option, ArgpOption --,
     "  "
   ) print!
 
-  dup name match(
-    SOME -> "--" print! print! dup arg-doc match (
-      SOME -> "=" print! print!,
-      NONE ->
-    ),
-    NONE ->
+  dup name then-some(
+    "--" print! print! dup arg-doc then-some(
+      "=" print! print!
+    )
   )
-  dup doc match(
-    SOME -> "\t" print! print!,
-    NONE ->
-  )
+
+  dup doc then-some("\t" print! print!)
 
   "" print-ln!
   drop
@@ -123,18 +119,17 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 	state parsing? if(
 	  state option-option match(
 	    SOME -> arg-doc match(
-	      SOME -> drop state arguments swap SOME state option-option unwrap flag-type parser unwrap run state arguments! state! NONE,
+	      SOME -> drop state arguments swap SOME state option-option unwrap flag-type parser unwrap run state:arguments! NONE,
 	      NONE -> drop UNKNOWN_ARG SOME
 	    ),
 	    NONE -> drop UNKNOWN_ARG SOME
-	  ) F state parsing?! state!,
+	  ) F state:parsing?!,
           do-positional-option
 	)
       ),
       drop NONE
-    ) match(
-      SOME -> SOME state error! state!,
-      NONE ->
+    ) then-some(
+      SOME state:error!,
     )
   )
 
@@ -145,7 +140,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 
   # Run the callback function one last time to let it clean up
   # and run final checks
-  state arguments NONE END parser unwrap run state arguments! state!
+  state arguments NONE END parser unwrap run state:arguments!
 
   state arguments state error
   match(
@@ -159,10 +154,18 @@ def(read-from-argv, +Unsafe Int -- Str +Unsafe,
     Ptr.sizeof >Int * >Size >Offset argv offset @Ptr Str.copy-cstr
 )
 
+def(increment-index, index:Int -- index:Int,
+  index> 1+ >index)
+
+def(index, index:Int -- Int index:Int,
+  index> dup >index)
+
 def(argv-to-str, -- List(Str),
     LIST(
-        1 while(argc over >,
-            dup unsafe(read-from-argv) ;
-            1+
-        ) drop
+        1 >index
+        while(argc index >,
+            index unsafe(read-from-argv) ;
+	    increment-index
+        )
+	index> drop
     ))

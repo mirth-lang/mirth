@@ -32,11 +32,11 @@ def(init!, --,
     init-prims!)
 
 data(Arguments,
-    Arguments -> 
-        input-file:Path 
-	output-file:Maybe(Path) 
-	entry-point:Maybe(Str) 
-	packages:List([Str Path]) 
+    Arguments ->
+        input-file:Path
+	output-file:Maybe(Path)
+	entry-point:Maybe(Str)
+	packages:List([Str Path])
 	emit-debug-info:Bool)
 
 ||| Create a default initialized arguments table
@@ -57,7 +57,7 @@ def(Arguments.show, Arguments -- Str,
     ", input-file: " cat input-file> >Str cat
     ", entry-point: " cat entry-point> unwrap-or("(none)") cat
     ", emit-debug-info: " cat emit-debug-info> if("yes", "no") cat
-    ", packages: " cat "[" packages> List.for(dip(Str.cat) unpack2 dip(Str.cat ":" cat) Path.>Str cat " ") drop "]" cat
+    ", packages: " cat "[" packages> for(dip(cat) unpack2 dip(Str.cat ":" cat) >Str cat " ") drop "]" cat
     " }" cat)
 
 ########
@@ -68,8 +68,8 @@ def(compile!, Arguments +World -- +World,
     /Arguments
     "Compiling " trace!
     input-file> dup >Str trace-ln! >input-file
-    packages> List.for(
-      unpack2 swap Str.>Name Package.new-or-set-path! drop
+    packages> for(
+      unpack2 swap >Name Package.new-or-set-path! drop
     )
     input-file> run-lexer!
     "Building." trace-ln!
@@ -108,16 +108,16 @@ def(parse-package-def, Str -- [Str Path],
 )
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
-    SHORT -> match(
-        B'o' -> unwrap >Path SOME swap output-file!,
-        B'e' -> unwrap SOME swap entry-point!,
-        B'c' -> drop NONE swap entry-point!,
-        B'p' -> unwrap parse-package-def swap packages(cons),
-        _ -> drop drop UNKNOWN_ARG SOME state error! state!
+    SHORT -> dip(swap) match(
+        B'o' -> output-file(drop unwrap >Path SOME),
+        B'e' -> entry-point(drop unwrap SOME),
+        B'c' -> entry-point(drop drop NONE),
+        B'p' -> dip(unwrap parse-package-def) packages(cons),
+        _ -> drop swap drop UNKNOWN_ARG SOME state:error!
     ),
-    POSITIONAL -> state positional-index 0= if(
-        unwrap >Path swap input-file!,
-        drop TOO_MANY_ARGS SOME state:error! 
+    POSITIONAL -> swap state positional-index 0= if(
+        input-file(drop unwrap >Path),
+        dip(drop) TOO_MANY_ARGS SOME state:error!
     ),
     LONG_ONLY -> dup "debug" == if(
         drop2 T swap emit-debug-info!,
@@ -125,14 +125,11 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
     ),
     END ->
         state positional-index 1 < then(
-            TOO_FEW_ARGS SOME state error! state!
+            TOO_FEW_ARGS SOME state:error!
         )
-        state arguments output-file match(
-            SOME -> drop,
-            # If we have an entry point we need to have an output file currently
-            NONE -> state arguments entry-point match (
-                SOME -> drop "output-file" MISSING_ARG SOME state error! state!,
-                NONE ->
+        state arguments output-file else(
+	    state arguments entry-point then(
+	        "output-file" MISSING_ARG SOME state:error!
             )
         )
         drop,
@@ -147,21 +144,21 @@ def(main, +World -- +World,
         B'o' SHORT >flag-type
         "OUTPUT_FILE" SOME >arg-doc
         "Test argument" SOME >doc
-        NONE >group 
+        NONE >group
 	ArgpOption.ArgpOption ;
 
         "compile-only" SOME >name
         B'c' SHORT >flag-type
         NONE >arg-doc
         "Compile code without running codegen step" SOME >doc
-        NONE >group 
+        NONE >group
 	ArgpOption.ArgpOption ;
 
         "entry-point" SOME >name
         B'e' SHORT >flag-type
         "ENTRY_POINT" SOME >arg-doc
         "Custom entry point word for compilation" SOME >doc
-        NONE >group 
+        NONE >group
 	ArgpOption.ArgpOption ;
 
 	"package" SOME >name

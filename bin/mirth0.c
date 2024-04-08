@@ -1305,6 +1305,7 @@ static VAL lbl_parser = MKNIL_C;
 static VAL lbl_args_doc = MKNIL_C;
 static VAL lbl_argument_parser = MKNIL_C;
 static VAL lbl_state = MKNIL_C;
+static VAL lbl_index = MKNIL_C;
 static VAL lbl_argv = MKNIL_C;
 static VAL lbl_program_name = MKNIL_C;
 static VAL lbl_argv_info = MKNIL_C;
@@ -7258,6 +7259,7 @@ static void mw_std_maybe_Maybe_1__3E_Bool (void);
 static void mw_std_maybe_Maybe_1_if_2 (void);
 static void mw_std_maybe_Maybe_1_if_some_2 (void);
 static void mw_std_maybe_Maybe_1_then_1 (void);
+static void mw_std_maybe_Maybe_1_then_some_1 (void);
 static void mw_std_maybe_Maybe_1_else_1 (void);
 static void mw_std_maybe_Maybe_1_and_1 (void);
 static void mw_std_maybe_Maybe_1_and_some_1 (void);
@@ -7543,6 +7545,8 @@ static void mw_args_parse_parse_flags (void);
 static void mw_args_parse_do_positional_option (void);
 static void mw_args_parse_parse_args (void);
 static void mw_args_parse_read_from_argv (void);
+static void mw_args_parse_increment_index (void);
+static void mw_args_parse_index (void);
 static void mw_args_parse_argv_to_str (void);
 static void mw_posix_input__INPUTOPEN (void);
 static void mw_posix_input__2B_InputOpen_length_40_ (void);
@@ -8515,9 +8519,13 @@ static void mw_mirth_main_Arguments_packages_21_ (void);
 static void mw_mirth_main_Arguments_packages_1 (void);
 static void mw_mirth_main_Arguments_entry_point (void);
 static void mw_mirth_main_Arguments_entry_point_21_ (void);
+static void mw_mirth_main_Arguments_entry_point_1 (void);
 static void mw_mirth_main_Arguments_output_file (void);
 static void mw_mirth_main_Arguments_output_file_21_ (void);
+static void mw_mirth_main_Arguments_output_file_1 (void);
+static void mw_mirth_main_Arguments_input_file (void);
 static void mw_mirth_main_Arguments_input_file_21_ (void);
+static void mw_mirth_main_Arguments_input_file_1 (void);
 static void mw_mirth_main_Arguments_default (void);
 static void mw_mirth_main_compile_21_ (void);
 static void mw_mirth_main_parse_package_def (void);
@@ -8555,10 +8563,19 @@ static void mb_mirth_elab_elab_entry_point_8 (void);
 static void mb_mirth_elab_elab_entry_point_43 (void);
 static void mb_std_str__2B_Str_split_byte_20 (void);
 static void mb_std_str__2B_Str_split_byte_35 (void);
-static void mb_mirth_main_compiler_parse_args_33 (void);
-static void mb_mirth_main_compiler_parse_args_64 (void);
-static void mb_mirth_main_compiler_parse_args_85 (void);
-static void mb_mirth_main_compiler_parse_args_97 (void);
+static void mb_mirth_main_compiler_parse_args_12 (void);
+static void mb_mirth_main_compiler_parse_args_22 (void);
+static void mb_mirth_main_compiler_parse_args_31 (void);
+static void mb_mirth_main_compiler_parse_args_45 (void);
+static void mb_mirth_main_compiler_parse_args_57 (void);
+static void mb_mirth_main_compiler_parse_args_71 (void);
+static void mb_mirth_main_compiler_parse_args_84 (void);
+static void mb_mirth_main_compiler_parse_args_105 (void);
+static void mb_mirth_main_compiler_parse_args_117 (void);
+static void mb_mirth_main_compiler_parse_args_121 (void);
+static void mb_mirth_main_compiler_parse_args_129 (void);
+static void mb_mirth_main_compiler_parse_args_134 (void);
+static void mb_mirth_main_compiler_parse_args_139 (void);
 static void mb_std_prelude_Nat__3D__3D__2 (void);
 static void mb_std_prelude_Size__3D__3D__2 (void);
 static void mb_std_prelude_Offset__3D__3D__2 (void);
@@ -8579,7 +8596,12 @@ static void mb_mirth_package_Package__3D__3D__2 (void);
 static void mb_std_prelude_Nat__3C__2 (void);
 static void mb_std_prelude_Offset__3C__2 (void);
 static void mb_args_parse_parse_args_8 (void);
-static void mb_args_parse_parse_args_135 (void);
+static void mb_args_parse_parse_args_90 (void);
+static void mb_args_parse_parse_args_110 (void);
+static void mb_args_parse_parse_args_122 (void);
+static void mb_args_parse_parse_args_125 (void);
+static void mb_args_parse_parse_args_134 (void);
+static void mb_args_parse_parse_args_149 (void);
 static void mb_std_prelude_Nat__2B__2 (void);
 static void mb_std_prelude_Size__2B__2 (void);
 static void mb_std_prelude_Offset__2B__2 (void);
@@ -8658,6 +8680,9 @@ static void mb_args_parse_print_usage_13 (void);
 static void mb_args_parse_print_usage_23 (void);
 static void mb_args_parse_print_usage_for_option_12 (void);
 static void mb_args_parse_print_usage_for_option_29 (void);
+static void mb_args_parse_print_usage_for_option_44 (void);
+static void mb_args_parse_print_usage_for_option_51 (void);
+static void mb_args_parse_print_usage_for_option_60 (void);
 static void mb_args_parse_parse_flags_where_1_4 (void);
 static void mb_args_state_State_1_parsing_3F__21__2 (void);
 static void mb_args_state_State_1_option_option_21__2 (void);
@@ -8667,8 +8692,10 @@ static void mb_args_parse_parse_flags_25 (void);
 static void mb_args_parse_parse_flags_33 (void);
 static void mb_args_parse_parse_flags_37 (void);
 static void mb_args_state_State_1_init_5 (void);
+static void mb_std_set__2B_Set_1_index_12 (void);
+static void mb_std_set__2B_Set_1_index_16 (void);
 static void mb_args_parse_argv_to_str_2 (void);
-static void mb_args_parse_argv_to_str_12 (void);
+static void mb_args_parse_argv_to_str_13 (void);
 static void mb_std_prim_Str_write_21__2 (void);
 static void mb_posix_posix_slice_write_21__2 (void);
 static void mb_posix_posix_slice_write_21__12 (void);
@@ -8710,8 +8737,6 @@ static void mb_mirth_def_Def_register_6 (void);
 static void mb_mirth_def_Def_register_13 (void);
 static void mb_mirth_name_QName_def_3F__5 (void);
 static void mb_mirth_package_Package_find_or_new_21__4 (void);
-static void mb_std_set__2B_Set_1_index_12 (void);
-static void mb_std_set__2B_Set_1_index_16 (void);
 static void mb_mirth_name_hash_name_40__7 (void);
 static void mb_mirth_name_hash_name_21__12 (void);
 static void mb_std_prim_Str_hash_4 (void);
@@ -11964,6 +11989,24 @@ static void mw_std_maybe_Maybe_1_then_1 (void) {
 		decref(var_f);
 	}
 }
+static void mw_std_maybe_Maybe_1_then_some_1 (void) {
+	{
+		VAL var_f = pop_value();
+		switch (get_top_data_tag()) {
+			case 1LL:
+				mp_std_maybe_Maybe_1_SOME();
+				incref(var_f);
+				run_value(var_f);
+				break;
+			case 0LL:
+				mp_std_maybe_Maybe_1_NONE();
+				mw_std_prim_prim_id();
+				break;
+			default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
+		}
+		decref(var_f);
+	}
+}
 static void mw_std_maybe_Maybe_1_else_1 (void) {
 	{
 		VAL var_f = pop_value();
@@ -14869,73 +14912,16 @@ static void mw_args_parse_print_usage_for_option (void) {
 	mw_std_prim_Str_print_21_();
 	mw_std_prim_prim_dup();
 	mw_args_types_ArgpOption_name();
-	switch (get_top_data_tag()) {
-		case 1LL:
-			mp_std_maybe_Maybe_1_SOME();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("--", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			mw_std_prim_Str_print_21_();
-			mw_std_prim_Str_print_21_();
-			mw_std_prim_prim_dup();
-			mw_args_types_ArgpOption_arg_doc();
-			switch (get_top_data_tag()) {
-				case 1LL:
-					mp_std_maybe_Maybe_1_SOME();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("=", 1);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
-					mw_std_prim_Str_print_21_();
-					mw_std_prim_Str_print_21_();
-					break;
-				case 0LL:
-					mp_std_maybe_Maybe_1_NONE();
-					break;
-				default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-			}
-			break;
-		case 0LL:
-			mp_std_maybe_Maybe_1_NONE();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
+	push_value(MKNIL);
+	push_fnptr(&mb_args_parse_print_usage_for_option_44);
+	mw_std_prim_prim_pack_cons();
+	mw_std_maybe_Maybe_1_then_some_1();
 	mw_std_prim_prim_dup();
 	mw_args_types_ArgpOption_doc();
-	switch (get_top_data_tag()) {
-		case 1LL:
-			mp_std_maybe_Maybe_1_SOME();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\t", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			mw_std_prim_Str_print_21_();
-			mw_std_prim_Str_print_21_();
-			break;
-		case 0LL:
-			mp_std_maybe_Maybe_1_NONE();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
+	push_value(MKNIL);
+	push_fnptr(&mb_args_parse_print_usage_for_option_60);
+	mw_std_prim_prim_pack_cons();
+	mw_std_maybe_Maybe_1_then_some_1();
 	{
 		static bool vready = false;
 		static VAL v;
@@ -15128,7 +15114,7 @@ static void mw_args_parse_parse_args (void) {
 	mw_args_types__2B_ArgumentParser_1_state();
 	mw_args_state_State_1_parsing_3F_();
 	push_value(MKNIL);
-	push_fnptr(&mb_args_parse_parse_args_135);
+	push_fnptr(&mb_args_parse_parse_args_134);
 	mw_std_prim_prim_pack_cons();
 	mw_std_prim_Bool_then_1();
 	mw_args_types__2B_ArgumentParser_1_state();
@@ -15138,9 +15124,10 @@ static void mw_args_parse_parse_args (void) {
 	mw_args_types__2B_ArgumentParser_1_parser();
 	mw_std_maybe_Maybe_1_unwrap();
 	mw_std_prim_prim_run();
-	mw_args_types__2B_ArgumentParser_1_state();
-	mw_args_state_State_1_arguments_21_();
-	mw_args_types__2B_ArgumentParser_1_state_21_();
+	push_value(MKNIL);
+	push_fnptr(&mb_args_parse_parse_args_149);
+	mw_std_prim_prim_pack_cons();
+	mw_args_types__2B_ArgumentParser_1_state_1();
 	mw_args_types__2B_ArgumentParser_1_state();
 	mw_args_state_State_1_arguments();
 	mw_args_types__2B_ArgumentParser_1_state();
@@ -15171,6 +15158,16 @@ static void mw_args_parse_read_from_argv (void) {
 	mw_std_prim_Ptr_offset();
 	mw_std_prim_Ptr__40_Ptr();
 	mw_std_prim_Str_copy_cstr();
+}
+static void mw_args_parse_increment_index (void) {
+	LPOP(lbl_index);
+	mw_std_prelude_prim_int_succ();
+	LPUSH(lbl_index);
+}
+static void mw_args_parse_index (void) {
+	LPOP(lbl_index);
+	mw_std_prim_prim_dup();
+	LPUSH(lbl_index);
 }
 static void mw_args_parse_argv_to_str (void) {
 	push_value(MKNIL);
@@ -35340,6 +35337,18 @@ static void mw_mirth_main_Arguments_entry_point_21_ (void) {
 		push_value(MKTUP(tup,6));
 	}
 }
+static void mw_mirth_main_Arguments_entry_point_1 (void) {
+	mw_std_prim_prim_swap();
+	mw_std_prim_prim_dup();
+	{
+		VAL d2 = pop_value();
+		mw_mirth_main_Arguments_entry_point();
+		mw_std_prim_prim_swap();
+		mw_std_prim_prim_run();
+		push_value(d2);
+	}
+	mw_mirth_main_Arguments_entry_point_21_();
+}
 static void mw_mirth_main_Arguments_output_file (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
@@ -35371,6 +35380,27 @@ static void mw_mirth_main_Arguments_output_file_21_ (void) {
 		push_value(MKTUP(tup,6));
 	}
 }
+static void mw_mirth_main_Arguments_output_file_1 (void) {
+	mw_std_prim_prim_swap();
+	mw_std_prim_prim_dup();
+	{
+		VAL d2 = pop_value();
+		mw_mirth_main_Arguments_output_file();
+		mw_std_prim_prim_swap();
+		mw_std_prim_prim_run();
+		push_value(d2);
+	}
+	mw_mirth_main_Arguments_output_file_21_();
+}
+static void mw_mirth_main_Arguments_input_file (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 6, v);
+	VAL u = VTUP(v)->cells[1];
+	incref(u);
+	decref(v);
+	push_value(u);
+}
 static void mw_mirth_main_Arguments_input_file_21_ (void) {
 	VAL v = pop_value();
 	VAL u = pop_value();
@@ -35392,6 +35422,18 @@ static void mw_mirth_main_Arguments_input_file_21_ (void) {
 		decref(v);
 		push_value(MKTUP(tup,6));
 	}
+}
+static void mw_mirth_main_Arguments_input_file_1 (void) {
+	mw_std_prim_prim_swap();
+	mw_std_prim_prim_dup();
+	{
+		VAL d2 = pop_value();
+		mw_mirth_main_Arguments_input_file();
+		mw_std_prim_prim_swap();
+		mw_std_prim_prim_run();
+		push_value(d2);
+	}
+	mw_mirth_main_Arguments_input_file_21_();
 }
 static void mw_mirth_main_Arguments_default (void) {
 	mw_std_prim_Bool_F();
@@ -35577,66 +35619,80 @@ static void mw_mirth_main_compiler_parse_args (void) {
 	switch (get_top_data_tag()) {
 		case 0LL:
 			mp_args_types_ArgpOptionType_SHORT();
+			{
+				VAL d4 = pop_value();
+				mw_std_prim_prim_swap();
+				push_value(d4);
+			}
 			switch (get_top_data_tag()) {
 				case 111LL:
 					mp_std_byte_Byte_B_27_o_27_();
-					mw_std_maybe_Maybe_1_unwrap();
-					mw_std_prim_Str__3E_Path();
-					mw_std_maybe_Maybe_1_SOME();
-					mw_std_prim_prim_swap();
-					mw_mirth_main_Arguments_output_file_21_();
+					push_value(MKNIL);
+					push_fnptr(&mb_mirth_main_compiler_parse_args_12);
+					mw_std_prim_prim_pack_cons();
+					mw_mirth_main_Arguments_output_file_1();
 					break;
 				case 101LL:
 					mp_std_byte_Byte_B_27_e_27_();
-					mw_std_maybe_Maybe_1_unwrap();
-					mw_std_maybe_Maybe_1_SOME();
-					mw_std_prim_prim_swap();
-					mw_mirth_main_Arguments_entry_point_21_();
+					push_value(MKNIL);
+					push_fnptr(&mb_mirth_main_compiler_parse_args_22);
+					mw_std_prim_prim_pack_cons();
+					mw_mirth_main_Arguments_entry_point_1();
 					break;
 				case 99LL:
 					mp_std_byte_Byte_B_27_c_27_();
-					mw_std_prim_prim_drop();
-					mw_std_maybe_Maybe_1_NONE();
-					mw_std_prim_prim_swap();
-					mw_mirth_main_Arguments_entry_point_21_();
+					push_value(MKNIL);
+					push_fnptr(&mb_mirth_main_compiler_parse_args_31);
+					mw_std_prim_prim_pack_cons();
+					mw_mirth_main_Arguments_entry_point_1();
 					break;
 				case 112LL:
 					mp_std_byte_Byte_B_27_p_27_();
-					mw_std_maybe_Maybe_1_unwrap();
-					mw_mirth_main_parse_package_def();
-					mw_std_prim_prim_swap();
+					{
+						VAL d6 = pop_value();
+						mw_std_maybe_Maybe_1_unwrap();
+						mw_mirth_main_parse_package_def();
+						push_value(d6);
+					}
 					push_value(MKNIL);
-					push_fnptr(&mb_mirth_main_compiler_parse_args_33);
+					push_fnptr(&mb_mirth_main_compiler_parse_args_45);
 					mw_std_prim_prim_pack_cons();
 					mw_mirth_main_Arguments_packages_1();
 					break;
 				default:
 					mw_std_prim_prim_drop();
+					mw_std_prim_prim_swap();
 					mw_std_prim_prim_drop();
 					mw_args_types_ArgumentParsingError_UNKNOWN_5F_ARG();
 					mw_std_maybe_Maybe_1_SOME();
-					mw_args_types__2B_ArgumentParser_1_state();
-					mw_args_state_State_1_error_21_();
-					mw_args_types__2B_ArgumentParser_1_state_21_();
+					push_value(MKNIL);
+					push_fnptr(&mb_mirth_main_compiler_parse_args_57);
+					mw_std_prim_prim_pack_cons();
+					mw_args_types__2B_ArgumentParser_1_state_1();
 					break;
 			}
 			break;
 		case 2LL:
 			mp_args_types_ArgpOptionType_POSITIONAL();
+			mw_std_prim_prim_swap();
 			mw_args_types__2B_ArgumentParser_1_state();
 			mw_args_state_State_1_positional_index();
 			mw_std_prim_Int_0_3D_();
 			if (pop_u64()) {
-				mw_std_maybe_Maybe_1_unwrap();
-				mw_std_prim_Str__3E_Path();
-				mw_std_prim_prim_swap();
-				mw_mirth_main_Arguments_input_file_21_();
+				push_value(MKNIL);
+				push_fnptr(&mb_mirth_main_compiler_parse_args_71);
+				mw_std_prim_prim_pack_cons();
+				mw_mirth_main_Arguments_input_file_1();
 			} else {
-				mw_std_prim_prim_drop();
+				{
+					VAL d5 = pop_value();
+					mw_std_prim_prim_drop();
+					push_value(d5);
+				}
 				mw_args_types_ArgumentParsingError_TOO_5F_MANY_5F_ARGS();
 				mw_std_maybe_Maybe_1_SOME();
 				push_value(MKNIL);
-				push_fnptr(&mb_mirth_main_compiler_parse_args_64);
+				push_fnptr(&mb_mirth_main_compiler_parse_args_84);
 				mw_std_prim_prim_pack_cons();
 				mw_args_types__2B_ArgumentParser_1_state_1();
 			}
@@ -35665,7 +35721,7 @@ static void mw_mirth_main_compiler_parse_args (void) {
 				mw_args_types_ArgumentParsingError_UNKNOWN_5F_ARG();
 				mw_std_maybe_Maybe_1_SOME();
 				push_value(MKNIL);
-				push_fnptr(&mb_mirth_main_compiler_parse_args_85);
+				push_fnptr(&mb_mirth_main_compiler_parse_args_105);
 				mw_std_prim_prim_pack_cons();
 				mw_args_types__2B_ArgumentParser_1_state_1();
 			}
@@ -35677,50 +35733,16 @@ static void mw_mirth_main_compiler_parse_args (void) {
 			push_i64(1LL);
 			mw_std_prim_prim_int_lt();
 			push_value(MKNIL);
-			push_fnptr(&mb_mirth_main_compiler_parse_args_97);
+			push_fnptr(&mb_mirth_main_compiler_parse_args_117);
 			mw_std_prim_prim_pack_cons();
 			mw_std_prim_Bool_then_1();
 			mw_args_types__2B_ArgumentParser_1_state();
 			mw_args_state_State_1_arguments();
 			mw_mirth_main_Arguments_output_file();
-			switch (get_top_data_tag()) {
-				case 1LL:
-					mp_std_maybe_Maybe_1_SOME();
-					mw_std_prim_prim_drop();
-					break;
-				case 0LL:
-					mp_std_maybe_Maybe_1_NONE();
-					mw_args_types__2B_ArgumentParser_1_state();
-					mw_args_state_State_1_arguments();
-					mw_mirth_main_Arguments_entry_point();
-					switch (get_top_data_tag()) {
-						case 1LL:
-							mp_std_maybe_Maybe_1_SOME();
-							mw_std_prim_prim_drop();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("output-file", 11);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
-							mw_args_types_ArgumentParsingError_MISSING_5F_ARG();
-							mw_std_maybe_Maybe_1_SOME();
-							mw_args_types__2B_ArgumentParser_1_state();
-							mw_args_state_State_1_error_21_();
-							mw_args_types__2B_ArgumentParser_1_state_21_();
-							break;
-						case 0LL:
-							mp_std_maybe_Maybe_1_NONE();
-							break;
-						default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-					}
-					break;
-				default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-			}
+			push_value(MKNIL);
+			push_fnptr(&mb_mirth_main_compiler_parse_args_129);
+			mw_std_prim_prim_pack_cons();
+			mw_std_maybe_Maybe_1_else_1();
 			mw_std_prim_prim_drop();
 			break;
 		default:
@@ -36329,25 +36351,92 @@ static void mb_std_str__2B_Str_split_byte_35 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_str__2B_Str_offset_slice();
 }
-static void mb_mirth_main_compiler_parse_args_33 (void) {
+static void mb_mirth_main_compiler_parse_args_12 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_drop();
+	mw_std_maybe_Maybe_1_unwrap();
+	mw_std_prim_Str__3E_Path();
+	mw_std_maybe_Maybe_1_SOME();
+}
+static void mb_mirth_main_compiler_parse_args_22 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_drop();
+	mw_std_maybe_Maybe_1_unwrap();
+	mw_std_maybe_Maybe_1_SOME();
+}
+static void mb_mirth_main_compiler_parse_args_31 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_drop();
+	mw_std_maybe_Maybe_1_NONE();
+}
+static void mb_mirth_main_compiler_parse_args_45 (void) {
 	mw_std_prim_prim_drop();
 	mw_std_list_List_1_cons();
 }
-static void mb_mirth_main_compiler_parse_args_64 (void) {
+static void mb_mirth_main_compiler_parse_args_57 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_state_State_1_error_21_();
 }
-static void mb_mirth_main_compiler_parse_args_85 (void) {
+static void mb_mirth_main_compiler_parse_args_71 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_drop();
+	mw_std_maybe_Maybe_1_unwrap();
+	mw_std_prim_Str__3E_Path();
+}
+static void mb_mirth_main_compiler_parse_args_84 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_state_State_1_error_21_();
 }
-static void mb_mirth_main_compiler_parse_args_97 (void) {
+static void mb_mirth_main_compiler_parse_args_105 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_error_21_();
+}
+static void mb_mirth_main_compiler_parse_args_117 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_types_ArgumentParsingError_TOO_5F_FEW_5F_ARGS();
 	mw_std_maybe_Maybe_1_SOME();
-	mw_args_types__2B_ArgumentParser_1_state();
+	push_value(MKNIL);
+	push_fnptr(&mb_mirth_main_compiler_parse_args_121);
+	mw_std_prim_prim_pack_cons();
+	mw_args_types__2B_ArgumentParser_1_state_1();
+}
+static void mb_mirth_main_compiler_parse_args_121 (void) {
+	mw_std_prim_prim_drop();
 	mw_args_state_State_1_error_21_();
-	mw_args_types__2B_ArgumentParser_1_state_21_();
+}
+static void mb_mirth_main_compiler_parse_args_129 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_types__2B_ArgumentParser_1_state();
+	mw_args_state_State_1_arguments();
+	mw_mirth_main_Arguments_entry_point();
+	push_value(MKNIL);
+	push_fnptr(&mb_mirth_main_compiler_parse_args_134);
+	mw_std_prim_prim_pack_cons();
+	mw_std_maybe_Maybe_1_then_1();
+}
+static void mb_mirth_main_compiler_parse_args_134 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("output-file", 11);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_args_types_ArgumentParsingError_MISSING_5F_ARG();
+	mw_std_maybe_Maybe_1_SOME();
+	push_value(MKNIL);
+	push_fnptr(&mb_mirth_main_compiler_parse_args_139);
+	mw_std_prim_prim_pack_cons();
+	mw_args_types__2B_ArgumentParser_1_state_1();
+}
+static void mb_mirth_main_compiler_parse_args_139 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_error_21_();
 }
 static void mb_std_prelude_Nat__3D__3D__2 (void) {
 	mw_std_prim_prim_drop();
@@ -36503,9 +36592,10 @@ static void mb_args_parse_parse_args_8 (void) {
 								mw_args_types__2B_ArgumentParser_1_parser();
 								mw_std_maybe_Maybe_1_unwrap();
 								mw_std_prim_prim_run();
-								mw_args_types__2B_ArgumentParser_1_state();
-								mw_args_state_State_1_arguments_21_();
-								mw_args_types__2B_ArgumentParser_1_state_21_();
+								push_value(MKNIL);
+								push_fnptr(&mb_args_parse_parse_args_90);
+								mw_std_prim_prim_pack_cons();
+								mw_args_types__2B_ArgumentParser_1_state_1();
 								mw_std_maybe_Maybe_1_NONE();
 								break;
 							case 0LL:
@@ -36526,9 +36616,10 @@ static void mb_args_parse_parse_args_8 (void) {
 					default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
 				}
 				mw_std_prim_Bool_F();
-				mw_args_types__2B_ArgumentParser_1_state();
-				mw_args_state_State_1_parsing_3F__21_();
-				mw_args_types__2B_ArgumentParser_1_state_21_();
+				push_value(MKNIL);
+				push_fnptr(&mb_args_parse_parse_args_110);
+				mw_std_prim_prim_pack_cons();
+				mw_args_types__2B_ArgumentParser_1_state_1();
 			} else {
 				mw_args_parse_do_positional_option();
 			}
@@ -36537,27 +36628,42 @@ static void mb_args_parse_parse_args_8 (void) {
 		mw_std_prim_prim_drop();
 		mw_std_maybe_Maybe_1_NONE();
 	}
-	switch (get_top_data_tag()) {
-		case 1LL:
-			mp_std_maybe_Maybe_1_SOME();
-			mw_std_maybe_Maybe_1_SOME();
-			mw_args_types__2B_ArgumentParser_1_state();
-			mw_args_state_State_1_error_21_();
-			mw_args_types__2B_ArgumentParser_1_state_21_();
-			break;
-		case 0LL:
-			mp_std_maybe_Maybe_1_NONE();
-			break;
-		default: write(2, "unexpected fallthrough in match\n", 32); mw_std_prim_prim_debug(); exit(99);
-	}
+	push_value(MKNIL);
+	push_fnptr(&mb_args_parse_parse_args_122);
+	mw_std_prim_prim_pack_cons();
+	mw_std_maybe_Maybe_1_then_some_1();
 }
-static void mb_args_parse_parse_args_135 (void) {
+static void mb_args_parse_parse_args_90 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_arguments_21_();
+}
+static void mb_args_parse_parse_args_110 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_parsing_3F__21_();
+}
+static void mb_args_parse_parse_args_122 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_maybe_Maybe_1_SOME();
+	push_value(MKNIL);
+	push_fnptr(&mb_args_parse_parse_args_125);
+	mw_std_prim_prim_pack_cons();
+	mw_args_types__2B_ArgumentParser_1_state_1();
+}
+static void mb_args_parse_parse_args_125 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_error_21_();
+}
+static void mb_args_parse_parse_args_134 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_types_ArgumentParsingError_MISSING_5F_ARGUMENT_5F_VALUE();
 	mw_std_maybe_Maybe_1_SOME();
 	mw_args_types__2B_ArgumentParser_1_state();
 	mw_args_state_State_1_error_21_();
 	mw_args_types__2B_ArgumentParser_1_state_21_();
+}
+static void mb_args_parse_parse_args_149 (void) {
+	mw_std_prim_prim_drop();
+	mw_args_state_State_1_arguments_21_();
 }
 static void mb_std_prelude_Nat__2B__2 (void) {
 	mw_std_prim_prim_drop();
@@ -37204,6 +37310,57 @@ static void mb_args_parse_print_usage_for_option_29 (void) {
 	mw_args_types_ArgpOption_name();
 	mw_std_maybe_Maybe_1_some_3F_();
 }
+static void mb_args_parse_print_usage_for_option_44 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("--", 2);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_prim_Str_print_21_();
+	mw_std_prim_Str_print_21_();
+	mw_std_prim_prim_dup();
+	mw_args_types_ArgpOption_arg_doc();
+	push_value(MKNIL);
+	push_fnptr(&mb_args_parse_print_usage_for_option_51);
+	mw_std_prim_prim_pack_cons();
+	mw_std_maybe_Maybe_1_then_some_1();
+}
+static void mb_args_parse_print_usage_for_option_51 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("=", 1);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_prim_Str_print_21_();
+	mw_std_prim_Str_print_21_();
+}
+static void mb_args_parse_print_usage_for_option_60 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\t", 1);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_prim_Str_print_21_();
+	mw_std_prim_Str_print_21_();
+}
 static void mb_args_parse_parse_flags_where_1_4 (void) {
 	mw_std_prim_prim_pack_uncons();
 	VAL var_f = pop_value();
@@ -37250,25 +37407,46 @@ static void mb_args_state_State_1_init_5 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_parse_read_from_argv();
 }
+static void mb_std_set__2B_Set_1_index_12 (void) {
+	mw_std_prim_prim_drop();
+	mw_std_prim_prim_dup();
+	mw_std_prim_Int_0_3C_();
+	mw_std_prim_Bool_not();
+}
+static void mb_std_set__2B_Set_1_index_16 (void) {
+	mw_std_prim_prim_drop();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("negative index not allowed", 26);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+}
 static void mb_args_parse_argv_to_str_2 (void) {
 	mw_std_prim_prim_drop();
 	push_i64(1LL);
+	LPUSH(lbl_index);
 	while(1) {
 		mw_std_prim_prim_sys_argc();
-		mw_std_prelude_over();
+		mw_args_parse_index();
 		mw_std_prim_Int__3E_();
 		if (! pop_u64()) break;
-		mw_std_prim_prim_dup();
+		mw_args_parse_index();
 		push_value(MKNIL);
-		push_fnptr(&mb_args_parse_argv_to_str_12);
+		push_fnptr(&mb_args_parse_argv_to_str_13);
 		mw_std_prim_prim_pack_cons();
 		mw_std_prelude_unsafe_1();
 		mw_std_list__2B_List_1__3B_();
-		mw_std_prelude_prim_int_succ();
+		mw_args_parse_increment_index();
 	}
+	LPOP(lbl_index);
 	mw_std_prim_prim_drop();
 }
-static void mb_args_parse_argv_to_str_12 (void) {
+static void mb_args_parse_argv_to_str_13 (void) {
 	mw_std_prim_prim_drop();
 	mw_args_parse_read_from_argv();
 }
@@ -37561,25 +37739,6 @@ static void mb_mirth_package_Package_find_or_new_21__4 (void) {
 	mw_std_maybe_Maybe_1_NONE();
 	mw_std_prim_prim_swap();
 	mw_mirth_package_Package_new_21_();
-}
-static void mb_std_set__2B_Set_1_index_12 (void) {
-	mw_std_prim_prim_drop();
-	mw_std_prim_prim_dup();
-	mw_std_prim_Int_0_3C_();
-	mw_std_prim_Bool_not();
-}
-static void mb_std_set__2B_Set_1_index_16 (void) {
-	mw_std_prim_prim_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("negative index not allowed", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
 }
 static void mb_mirth_name_hash_name_40__7 (void) {
 	mw_std_prim_prim_drop();
