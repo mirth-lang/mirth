@@ -29,28 +29,24 @@ def(print-usage, +ArgumentParser(a) -- +ArgumentParser(a),
 
 def(print-usage-for-option, ArgpOption --,
   "  " print!
-  dup type match(
+  dup flag-type match(
     SHORT -> dup is-printable then("-" print! dup to-str-unsafe print!) drop,
     _ -> drop
   )
 
   # If we have both a short and long version of the argument we separate them
-  dup type has-short? and(dup long some?) if(
+  dup flag-type has-short? and(dup name some?) if(
     ", " ,
     "  "
   ) print!
 
-  dup long match(
-    SOME -> "--" print! print! dup arg match (
-      SOME -> "=" print! print!,
-      NONE ->
-    ),
-    NONE ->
+  dup name then-some(
+    "--" print! print! dup arg-doc then-some(
+      "=" print! print!
+    )
   )
-  dup doc match(
-    SOME -> "\t" print! print!,
-    NONE ->
-  )
+
+  dup doc then-some("\t" print! print!)
 
   "" print-ln!
   drop
@@ -58,8 +54,8 @@ def(print-usage-for-option, ArgpOption --,
 
 ||| Check if the currently parsed argument is something we accept
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
-    over type match(
-        SHORT -> 0 >Offset rotl str-byte@ ==,
+    over flag-type match(
+        SHORT -> 0 >Offset rotl byte@ ==,
         _ -> drop drop F
     ))
 
@@ -68,11 +64,11 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
   +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
   argument-parser options
   find(over f) swap drop match(
-    SOME -> dup arg match(
+    SOME -> dup arg-doc match(
       SOME ->
 	T state parsing?! state!
 	drop SOME state option-option! state!,
-      NONE -> type state arguments swap NONE swap parser match(
+      NONE -> flag-type state arguments swap NONE swap parser match(
 	SOME -> run state arguments! state! ,
 	NONE -> drop drop drop
       )
@@ -83,14 +79,14 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
 
 ||| Check if the currently parsed argument is something we accept
 def(check-long-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
-    over long match(
+    over name match(
         SOME -> ==,
         NONE -> drop F
     ))
 
 ||| Parse either a short or long flag
 def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    dup num-bytes 2 >Size >= and(1 >Offset over str-byte@ B'-' ==) if(
+    dup num-bytes 2 >Size >= and(1 >Offset over byte@ B'-' ==) if(
         2 >Size over unsafe(drop-bytes) parse-flags-where(check-long-flag),
         1 >Size over unsafe(drop-bytes) parse-flags-where(check-short-flag)
     ) swap drop)
@@ -103,15 +99,15 @@ def(do-positional-option, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(Arg
 
 ||| Run the argument parser
 def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
-  swap State.init +ARGUMENTPARSER
+  >argument-parser State.init >state +ARGUMENTPARSER
   state State.argv for(
     dup num-bytes 1 >Size > if(
-      0 >Offset over str-byte@ B'-' == if(
+      0 >Offset over byte@ B'-' == if(
         # if in the middle of currently parsing an option when we shouldn't be,
 	# turn it off, otherwise error because need an option value
         state parsing? if(
 	  drop state option-option match(
-            SOME -> ~arg @ match (
+            SOME -> arg-doc match (
 	      SOME -> drop MISSING_ARGUMENT_VALUE SOME,
 	      NONE -> F state parsing?! state! NONE
 	    ),
@@ -122,19 +118,18 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 	# Parse the associated value for an option
 	state parsing? if(
 	  state option-option match(
-	    SOME -> ~arg @ match(
-	      SOME -> drop state arguments swap SOME state option-option unwrap type parser unwrap run state arguments! state! NONE,
+	    SOME -> arg-doc match(
+	      SOME -> drop state arguments swap SOME state option-option unwrap flag-type parser unwrap run state:arguments! NONE,
 	      NONE -> drop UNKNOWN_ARG SOME
 	    ),
 	    NONE -> drop UNKNOWN_ARG SOME
-	  ) F state parsing?! state!,
+	  ) F state:parsing?!,
           do-positional-option
 	)
       ),
       drop NONE
-    ) match(
-      SOME -> SOME state error! state!,
-      NONE ->
+    ) then-some(
+      SOME state:error!,
     )
   )
 
@@ -145,7 +140,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 
   # Run the callback function one last time to let it clean up
   # and run final checks
-  state arguments NONE END parser unwrap run state arguments! state!
+  state arguments NONE END parser unwrap run state:arguments!
 
   state arguments state error
   match(
@@ -156,13 +151,21 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 )
 
 def(read-from-argv, +Unsafe Int -- Str +Unsafe,
-    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr str-copy-cstr
+    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr Str.copy-cstr
 )
+
+def(increment-index, index:Int -- index:Int,
+  index> 1+ >index)
+
+def(index, index:Int -- Int index:Int,
+  index> dup >index)
 
 def(argv-to-str, -- List(Str),
     LIST(
-        1 while(argc over >,
-            dup unsafe(read-from-argv) ;
-            1+
-        ) drop
+        1 >index
+        while(argc index >,
+            index unsafe(read-from-argv) ;
+	    increment-index
+        )
+	index> drop
     ))

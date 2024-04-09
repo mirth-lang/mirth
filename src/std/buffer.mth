@@ -65,8 +65,8 @@ def(+Buffer.!Byte, Byte Offset +Buffer -- +Buffer,
 
 def(+Buffer.!Str, Str Offset +Buffer -- +Buffer,
     dup2 swap num-bytes check-span!
-    buffer-base unsafe(offset str-copy-partial! drop))
+    buffer-base unsafe(offset Str.copy-partial! drop))
 
 def(+Buffer.@Str, Offset Size +Buffer -- Str +Buffer,
     dup2 check-span!
-    buffer-base unsafe(swap dip(offset) str-copy))
+    buffer-base unsafe(swap dip(offset) Str.copy))

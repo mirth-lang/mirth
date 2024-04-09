@@ -32,38 +32,13 @@ def(init!, --,
     init-types!
     init-prims!)
 
-table(Arguments)
-field(Arguments.~input-file, Arguments, Path)
-field(Arguments.~output-file, Arguments, Maybe(Path))
-field(Arguments.~entry-point, Arguments, Maybe(Str))
-field(Arguments.~packages, Arguments, List([Str Path]))
-field(Arguments.~emit-debug-info, Arguments, Bool)
-
-def(Arguments.new,
-        emit-debug-info:Bool
+data(Arguments,
+    Arguments ->
         input-file:Path
-        output-file:Maybe(Path)
-        entry-point:Maybe(Str)
-        packages:List([Str Path]) -- Arguments,
-    Arguments.alloc!
-    packages> over ~packages !
-    entry-point> over ~entry-point !
-    input-file> over ~input-file !
-    output-file> over ~output-file !
-    emit-debug-info> over ~emit-debug-info !)
-
-def(Arguments.unpack, Arguments --
-        emit-debug-info:Bool
-        input-file:Path
-        output-file:Maybe(Path)
-        entry-point:Maybe(Str)
-        packages:List([Str Path]),
-    dup ~packages @ >packages
-    dup ~input-file @ >input-file
-    dup ~output-file @ >output-file
-    dup ~entry-point @ >entry-point
-    dup ~emit-debug-info @ >emit-debug-info
-    drop)
+	output-file:Maybe(Path)
+	entry-point:Maybe(Str)
+	packages:List([Str Path])
+	emit-debug-info:Bool)
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
@@ -73,17 +48,17 @@ def(Arguments.default, -- Arguments,
     NONE >output-file
     "main" SOME >entry-point
     L0 >packages
-    Arguments.new)
+    Arguments.Arguments)
 
 ||| Pretty print the contents of the arguments struct
 def(Arguments.show, Arguments -- Str,
-    unpack
+    /Arguments
     "Arguments { "
     "output-file: " cat output-file> if-some(>Str, "(none)") cat
     ", input-file: " cat input-file> >Str cat
     ", entry-point: " cat entry-point> unwrap-or("(none)") cat
     ", emit-debug-info: " cat emit-debug-info> if("yes", "no") cat
-    ", packages: " cat "[" packages> for(dip(cat) unpack2 dip(cat ":" cat) >Str cat " ") drop "]" cat
+    ", packages: " cat "[" packages> for(dip(cat) unpack2 dip(Str.cat ":" cat) >Str cat " ") drop "]" cat
     " }" cat)
 
 ########
@@ -91,7 +66,7 @@ def(Arguments.show, Arguments -- Str,
 ########
 
 def(compile!, Arguments +World -- +World,
-    unpack
+    /Arguments
     "Compiling " trace!
     input-file> dup >Str trace-ln! >input-file
     packages> for(
@@ -129,38 +104,35 @@ def(compile!, Arguments +World -- +World,
     ))
 
 def(parse-package-def, Str -- [Str Path],
-  dip(BCOLON) str-split-byte match(
+  dip(BCOLON) split-byte match(
     L2 -> >Path pack2,
     _ -> drop "Invalid package path definition" panic!
   )
 )
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
-    SHORT -> match(
-        B'o' -> unwrap >Path SOME over ~output-file !,
-        B'e' -> unwrap SOME over ~entry-point !,
-        B'c' -> drop NONE over ~entry-point !,
-        B'p' -> unwrap parse-package-def over ~packages @ cons over ~packages !,
-        _ -> drop drop UNKNOWN_ARG SOME state error! state!
+    SHORT -> dip(swap) match(
+        B'o' -> output-file(drop unwrap >Path SOME),
+        B'e' -> entry-point(drop unwrap SOME),
+        B'c' -> entry-point(drop drop NONE),
+        B'p' -> dip(unwrap parse-package-def) packages(cons),
+        _ -> drop swap drop UNKNOWN_ARG SOME state:error!
     ),
-    POSITIONAL -> state positional-index 0= if(
-        unwrap >Path over ~input-file !,
-        drop TOO_MANY_ARGS SOME state error! state!
+    POSITIONAL -> swap state positional-index 0= if(
+        input-file(drop unwrap >Path),
+        dip(drop) TOO_MANY_ARGS SOME state:error!
     ),
     LONG_ONLY -> dup "debug" == if(
-        drop2 T over ~emit-debug-info !,
-        drop2 UNKNOWN_ARG SOME state error! state!
+        drop2 T swap emit-debug-info!,
+        drop2 UNKNOWN_ARG SOME state:error!
     ),
     END ->
         state positional-index 1 < then(
-            TOO_FEW_ARGS SOME state error! state!
+            TOO_FEW_ARGS SOME state:error!
         )
-        state arguments ~output-file @ match(
-            SOME -> drop,
-            # If we have an entry point we need to have an output file currently
-            NONE -> state arguments ~entry-point @ match (
-                SOME -> drop "output-file" MISSING_ARG SOME state error! state!,
-                NONE ->
+        state arguments output-file else(
+	    state arguments entry-point then(
+	        "output-file" MISSING_ARG SOME state:error!
             )
         )
         drop,
@@ -171,40 +143,45 @@ def(main, +World -- +World,
 
     Arguments.default
     LIST(
-        "output-file" SOME
-        B'o' SHORT
-        "OUTPUT_FILE" SOME
-        "Test argument" SOME
-        NONE ArgpOption.new ;
+        "output-file" SOME >name
+        B'o' SHORT >flag-type
+        "OUTPUT_FILE" SOME >arg-doc
+        "Test argument" SOME >doc
+        NONE >group
+	ArgpOption.ArgpOption ;
 
-        "compile-only" SOME
-        B'c' SHORT
-        NONE
-        "Compile code without running codegen step" SOME
-        NONE ArgpOption.new ;
+        "compile-only" SOME >name
+        B'c' SHORT >flag-type
+        NONE >arg-doc
+        "Compile code without running codegen step" SOME >doc
+        NONE >group
+	ArgpOption.ArgpOption ;
 
-        "entry-point" SOME
-        B'e' SHORT
-        "ENTRY_POINT" SOME
-        "Custom entry point word for compilation" SOME
-        NONE ArgpOption.new ;
+        "entry-point" SOME >name
+        B'e' SHORT >flag-type
+        "ENTRY_POINT" SOME >arg-doc
+        "Custom entry point word for compilation" SOME >doc
+        NONE >group
+	ArgpOption.ArgpOption ;
 
-	"package" SOME
-	B'p' SHORT
-	"(PACKAGE:PATH)*" SOME
-	"Package locations" SOME
-	NONE ArgpOption.new ;
+	"package" SOME >name
+	B'p' SHORT >flag-type
+	"(PACKAGE:PATH)*" SOME >arg-doc
+	"Package locations" SOME >doc
+	NONE >group
+	ArgpOption.ArgpOption ;
 
-        "debug" SOME
-        "debug" LONG_ONLY
-        NONE
-        "Emit debugging information during codegen" SOME
-        NONE ArgpOption.new ;
+        "debug" SOME >name
+        "debug" LONG_ONLY >flag-type
+        NONE >arg-doc
+        "Emit debugging information during codegen" SOME >doc
+        NONE >group
+	ArgpOption.ArgpOption ;
     ) >options
     [ compiler-parse-args ] SOME >parser
     "input-file" SOME >args-doc
     "Mirth Compiler" >doc
-    ArgumentParser.new
+    ArgumentParser
 
     parse-args match(
         RIGHT -> ,

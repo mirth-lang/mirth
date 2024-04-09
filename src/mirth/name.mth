@@ -46,7 +46,7 @@ def(hash-name!, Name Hash --,
 
 ||| Get hash for string.
 def(Str.hash, Str -- Hash,
-    0 swap str-bytes-for(>Int 17 * over 7 << ^ swap 27 >> ^)
+    0 swap bytes-for(>Int 17 * over 7 << ^ swap 27 >> ^)
     >Hash)
 
 def(Name.hash, Name -- Hash, >Str hash)
@@ -83,12 +83,12 @@ def(Name.cat, Name Str -- Name,
 
 def(Name.trace!, Name --, >Str trace!)
 
-def(Name.head, Name -- Byte, >Str dip(0 >Offset) str-byte@)
-def(Name.tail-head, Name -- Byte, >Str dip(1 >Offset) str-byte@)
+def(Name.head, Name -- Byte, >Str dip(0 >Offset) byte@)
+def(Name.tail-head, Name -- Byte, >Str dip(1 >Offset) byte@)
 def(Name.tail, Name -- Name,
-    >Str with-str-data(
+    >Str with-data(
         dup 2 >Size >=
-        if(unsafe(dip(dip(1 >Offset) offset) 1- str-copy), drop2 "")
+        if(unsafe(dip(dip(1 >Offset) offset) 1- Str.copy), drop2 "")
     ) >Name)
 
 def(Name.can-be-relative?, Name -- Bool, head is-upper not)
@@ -104,20 +104,20 @@ def(Name.could-be-resource-var, Name -- Bool, dup head B'+' == swap tail-head is
 def(Name.could-be-resource-con, Name -- Bool, dup head B'+' == swap tail-head is-upper &&)
 def(Name.could-be-type-or-resource-con, Name -- Bool, dup could-be-type-con or(dup could-be-resource-con) nip)
 def(Name.mangle-compute!, Name -- Str,
-    build-str!(>Str str-bytes-for(
+    build-str!(>Str bytes-for(
         dup is-alnum if(
-            str-buf-push-byte-ascii!,
+            push-byte-ascii!,
             dup B'-' == if(
-                drop B'_' str-buf-push-byte-ascii!,
-                B'_' str-buf-push-byte-ascii!
-                to-hexdigits dip(str-buf-push-byte-ascii!) str-buf-push-byte-ascii!
-                B'_' str-buf-push-byte-ascii!
+                drop B'_' push-byte-ascii!,
+                B'_' push-byte-ascii!
+                to-hexdigits dip(push-byte-ascii!) push-byte-ascii!
+                B'_' push-byte-ascii!
             )
         )
     )))
 
 def(Name.lens-like?, Name -- Bool,
-    >Str thaw str-buf-last-byte BCOLON == freeze drop)
+    >Str thaw last-byte BCOLON == freeze drop)
 
 #############
 # Namespace #

@@ -13,7 +13,7 @@ def(STDOUT, File, 1 >File)
 def(STDERR, File, 2 >File)
 
 def(Str.write!, File Str --,
-    with-str-data(slice-write!))
+    with-data(slice-write!))
 
 def(slice-write!, File Ptr Size --,
     dip2(>Int) >Int dup dip(posix-write!)
@@ -52,7 +52,7 @@ def(Nat.print-ln!, Nat --, show print-ln!)
 def-external(stat, Ptr Ptr -- Int)
 def(is-directory?, Path -- Bool,
     256 >Size +Buffer.new
-    >Str with-cstr(
+    >Str with-data-cstr(
         buffer-base stat
         0= if(buffer-base unsafe(st_mode@) S_ISDIR, F)
     ) rdrop)
