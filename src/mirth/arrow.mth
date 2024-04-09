@@ -4,12 +4,15 @@ import(std.prelude)
 import(std.maybe)
 import(std.list)
 import(std.lazy)
+import(std.str)
 
 import(mirth.token)
 import(mirth.type)
 import(mirth.data)
 import(mirth.match)
 import(mirth.var)
+import(mirth.name)
+import(mirth.word)
 
 ##########
 # ARROWS #
@@ -81,6 +84,7 @@ data(Arrow, ARROW ->
 def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
 
 data(Atom, ATOM ->
+    home:Home
     token:Token
     ctx:Ctx
     op:Op
@@ -99,6 +103,10 @@ def(Lambda.inner-ctx, Lambda -- Ctx, body ctx)
 def(Lambda.mid, Lambda -- StackType, body dom)
 def(Lambda.cod, Lambda -- StackType, body cod) # assuming no dependent types
 
+#########
+# BLOCK #
+#########
+
 field(Block.~ctx, Block, Ctx)
 field(Block.~token, Block, Token)
 field(Block.~home, Block, Home)
@@ -115,9 +123,17 @@ def(Block.home, Block -- Home, ~home @)
 def(Block.arrow, Block -- Arrow, ~arrow force!)
 def(Block.infer-type!, Block -- ArrowType, arrow type)
 
-#########
-# BLOCK #
-#########
+field(Block.~qname, Block, QName)
+def(Block.qname, Block -- QName,
+    dup ~qname memoize(dup dup home match(
+        HOME_MAIN ->
+            .module NAMESPACE_MODULE
+            swap arrow token-start index show
+            dip:"entry@" cat >Name QNAME0,
+        HOME_WORD -> dup NAMESPACE_WORD
+            dip(dip:arrow arrow both(token-start index) - show >Name)
+            swap QNAME0
+    )) nip)
 
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
 
@@ -159,3 +175,54 @@ def(Atom.to-run-var, Atom -- Maybe(Var),
         OP_VAR -> dup auto-run? if(SOME, drop NONE),
         _ -> drop NONE
     ))
+
+def(Arg.>Str, Arg -- Str,
+    ARG_BLOCK -> qname >Str)
+def(Arg.==, Arg Arg -- Bool,
+    both(/ARG_BLOCK) ==)
+
+field(Block.~free-vars, Block, List(Var))
+def(Block.free-vars, Block -- List(Var),
+    dup ~free-vars memoize(
+        dup arrow free-vars
+    ) nip)
+
+def(Arrow.free-vars, Arrow -- List(Var),
+    atoms map(free-vars) unions(==))
+def(Atom.free-vars, Atom -- List(Var),
+    dup args map(free-vars) unions(==)
+    swap op free-vars union(==))
+def(Arg.free-vars, Arg -- List(Var),
+    ARG_BLOCK -> free-vars)
+def(Op.free-vars, Op -- List(Var),
+    OP_NONE -> L0,
+    OP_PRIM -> drop L0,
+    OP_WORD -> drop L0,
+    OP_EXTERNAL -> drop L0,
+    OP_BUFFER -> drop L0,
+    OP_VARIABLE -> drop L0,
+    OP_FIELD -> drop L0,
+    OP_INT -> drop L0,
+    OP_STR -> drop L0,
+    OP_TAG -> drop L0,
+    OP_MATCH -> free-vars,
+    OP_LAMBDA -> free-vars,
+    OP_VAR -> L1,
+    OP_BLOCK -> free-vars,
+    OP_COERCE -> drop L0,
+    OP_LABEL_PUSH -> drop L0,
+    OP_LABEL_POP -> drop L0,
+    OP_DATA_GET_LABEL -> drop2 L0,
+    OP_DATA_SET_LABEL -> drop2 L0)
+def(Match.free-vars, Match -- List(Var),
+    cases map(free-vars) unions(==))
+def(Case.free-vars, Case -- List(Var),
+    body free-vars)
+def(Lambda.free-vars, Lambda -- List(Var),
+    dup body free-vars
+    swap params map(/PARAM) difference(==))
+
+def(Arg.token, Arg -- Token,
+    ARG_BLOCK -> token)
+def(Arg.type, Arg -- ArrowType,
+    ARG_BLOCK -> type)

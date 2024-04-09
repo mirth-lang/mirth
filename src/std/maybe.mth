@@ -71,11 +71,11 @@ def(Maybe.filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
 def(while-some(f,g), (*a -- *a Maybe(b), *a b -- *a) *a -- *a,
     f while(dup some?, unwrap g f) drop)
 
-def(Maybe.zip(f), (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z),
+def(Maybe.map2(f), (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z),
     NONE -> drop NONE,
     SOME -> swap match(
         NONE -> drop NONE,
         SOME -> swap f SOME
     ))
 
-def(Maybe.zip, Maybe(x) Maybe(y) -- Maybe([x y]), zip(pack2))
+def(Maybe.zip, Maybe(x) Maybe(y) -- Maybe([x y]), map2(pack2))

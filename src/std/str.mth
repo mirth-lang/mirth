@@ -26,6 +26,11 @@ def(+Str.freeze, +Str -- Str, +STR -> id)
 def(build-str!(f), (*a +Str -- *b +Str) *a -- *b Str,
     "" thaw f freeze)
 
+def(Str(f), (*a +Str -- *b +Str) *a -- *b Str,
+    "" thaw f freeze)
+def(+Str.;, Str +Str -- +Str,
+    str-buf-push-str!)
+
 def(str-copy, Ptr Size +Unsafe -- Str +Unsafe, >Int prim-str-copy)
 def(str-copy-cstr, Ptr +Unsafe -- Str +Unsafe, dup cstr-num-bytes str-copy)
 def(cstr-num-bytes, Ptr +Unsafe -- Size +Unsafe,

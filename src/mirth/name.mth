@@ -13,6 +13,7 @@ import(mirth.module)
 import(mirth.package)
 import(mirth.tycon)
 import(mirth.label)
+import(mirth.word)
 
 #########
 # Names #
@@ -126,31 +127,36 @@ data(Namespace,
     NAMESPACE_ROOT,
     NAMESPACE_PACKAGE -> Package,
     NAMESPACE_MODULE -> Module,
-    NAMESPACE_TYCON -> Tycon)
+    NAMESPACE_TYCON -> Tycon,
+    NAMESPACE_WORD -> Word)
 
 def(Namespace.==, Namespace Namespace -- Bool,
     NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> T, _ -> drop F),
     NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 F),
     NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 F),
-    NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 F))
+    NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 F),
+    NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 F))
 
 def(Namespace.package?, Namespace -- Maybe(Package),
     NAMESPACE_ROOT -> NONE,
     NAMESPACE_PACKAGE -> SOME,
     NAMESPACE_MODULE -> package SOME,
-    NAMESPACE_TYCON -> qname namespace package?)
+    NAMESPACE_TYCON -> qname namespace package?,
+    NAMESPACE_WORD -> drop NONE)
 
 def(Namespace.module?, Namespace -- Maybe(Module),
     NAMESPACE_ROOT -> NONE,
     NAMESPACE_PACKAGE -> drop NONE,
     NAMESPACE_MODULE -> SOME,
-    NAMESPACE_TYCON -> qname namespace module?)
+    NAMESPACE_TYCON -> qname namespace module?,
+    NAMESPACE_WORD -> drop NONE)
 
 def(Namespace.tycon?, Namespace -- Maybe(Tycon),
     NAMESPACE_ROOT -> NONE,
     NAMESPACE_PACKAGE -> drop NONE,
     NAMESPACE_MODULE -> drop NONE,
-    NAMESPACE_TYCON -> SOME)
+    NAMESPACE_TYCON -> SOME,
+    NAMESPACE_WORD -> drop NONE)
 
 def(Namespace.prim, Namespace, Module.prim NAMESPACE_MODULE)
 
@@ -158,7 +164,15 @@ def(Namespace.>Str, Namespace -- Str,
     NAMESPACE_ROOT -> "<root>",
     NAMESPACE_PACKAGE -> name >Str,
     NAMESPACE_MODULE -> qname >Str,
-    NAMESPACE_TYCON -> qname >Str)
+    NAMESPACE_TYCON -> qname >Str,
+    NAMESPACE_WORD -> qname >Str)
+
+def(Namespace.mangled, Namespace -- Str,
+    NAMESPACE_ROOT -> "__root__",
+    NAMESPACE_PACKAGE -> name mangled,
+    NAMESPACE_MODULE -> qname mangled,
+    NAMESPACE_TYCON -> qname mangled,
+    NAMESPACE_WORD -> qname mangled)
 
 ##################
 # Qualified Name #
@@ -196,6 +210,10 @@ def(QName.to-module-path, QName -- Path,
         	swap name >Str ".mth" cat >Path join-unix, # TODO use Path.join instead?
         _ -> drop "expected module name" panic!
     ))
+def(QName.mangled, QName -- Str, MKQNAME ->
+    namespace> mangled "_" cat
+    name> mangled cat
+    arity> dup 0> if(dip:"_" show cat cat, drop))
 
 ###############
 # Dotted Name #

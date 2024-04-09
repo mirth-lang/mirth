@@ -410,19 +410,22 @@ def(Offset.min, Offset Offset -- Offset, dup2 <= if(drop, nip))
 # TUPLES #
 ##########
 
-alias(pack0, prim-pack-nil)
-def(pack1, a -- [a], dip(pack0) prim-pack-cons)
-def(pack2, a b -- [a b], dip(pack1) prim-pack-cons)
-def(pack3, a b c -- [a b c], dip(pack2) prim-pack-cons)
-def(pack4, a b c d -- [a b c d], dip(pack3) prim-pack-cons)
-def(pack5, a b c d e -- [a b c d e], dip(pack4) prim-pack-cons)
+alias(pack-cons, prim-pack-cons)
+alias(pack-uncons, prim-pack-uncons)
 
-alias(unpack0, drop)
-def(unpack1, [a] -- a, prim-pack-uncons nip)
-def(unpack2, [a b] -- a b, prim-pack-uncons dip(unpack1))
-def(unpack3, [a b c] -- a b c, prim-pack-uncons dip(unpack2))
-def(unpack4, [a b c d] -- a b c d, prim-pack-uncons dip(unpack3))
-def(unpack5, [a b c d e] -- a b c d e, prim-pack-uncons dip(unpack4))
+alias(pack0, prim-pack-nil)
+def(pack1, a -- [a], dip(pack0) pack-cons)
+def(pack2, a b -- [a b], dip(pack1) pack-cons)
+def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
+def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
+def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
+
+def(unpack0, [] --, drop)
+def(unpack1, [a] -- a, pack-uncons nip)
+def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
+def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
+def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
+def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
 
 alias(@, prim-mut-get)
 alias(!, prim-mut-set)
@@ -441,3 +444,4 @@ def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     f if(id, g panic!))
 def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     expect!(f,g "assertion failed: " swap prim-str-cat))
+def(todo!, *a -- *b, "TODO" panic!)

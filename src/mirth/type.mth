@@ -405,14 +405,6 @@ def(Var.freshen, Subst Var -- Subst Type,
         dip(rotr cons)
     ))
 
-def(Type.rigidify-sig!, Ctx Type -- Ctx Type,
-    TMeta ->
-        expand-or-update!(
-            MetaVar.new! STMeta
-            MetaVar.new! STMeta T-> >Type
-        ) rigidify-sig!,
-    _ -> rigidify!)
-
 ||| Replace unbound metavars with new vars, adding them to context.
 def(Type.rigidify!, Ctx Type -- Ctx Type,
     TMeta ->
@@ -916,6 +908,12 @@ def(ArrowType.rigidify!, Ctx ArrowType -- Ctx ArrowType,
     dip(rigidify!) swap
     dip(rigidify!) swap
     ARROW_TYPE)
+
+def(ArrowType.rigidify-sig!, Ctx ArrowType -- Ctx ArrowType,
+    rigidify!)
+    # TODO check if both stack bases are the same metavar,
+    # and that this metavar appears nowhere else in the sig,
+    # and if so, unify that metavar with STACK_TYPE_UNIT.
 
 def(ArrowType.max-num-params, ArrowType -- Nat,
     dom num-morphisms-on-top)
