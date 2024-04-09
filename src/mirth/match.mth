@@ -124,6 +124,10 @@ data(PatternOp,
     PATOP_UNDERSCORE,
     PATOP_TAG -> Tag)
 
+def(+Pattern.op!, PatternOp +Pattern -- +Pattern,
+    PATOP_UNDERSCORE -> underscore!,
+    PATOP_TAG -> tag!)
+
 def(+Pattern.underscore!, +Pattern -- +Pattern,
     pattern token-start >token
     pattern inner-ctx >ctx
@@ -166,4 +170,4 @@ def(Pattern.covers?, Pattern Pattern -- Bool,
 def(PatternOp./PATOP_TAG, PatternOp -- Maybe(Tag), PATOP_TAG -> SOME, _ -> drop NONE)
 def(PatternOp./PATOP_UNDERSCORE, PatternOp -- Bool, PATOP_UNDERSCORE -> T, _ -> drop F)
 
-## TODO: introduce case trees
+## TODO: introduce or trees

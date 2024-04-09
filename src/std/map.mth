@@ -11,6 +11,8 @@ data(KVPair(k,v), KVPAIR -> key:k value:v)
 
 def(Map.empty, -- Map(k,v), L0 MAP)
 def(Map.pairs, Map(k,v) -- List(KVPair(k,v)), MAP -> id)
+def(Map.keys, Map(k,v) -- List(k), MAP -> map(key))
+def(Map.values, Map(k,v) -- List(v), MAP -> map(value))
 def(Map.insert, KVPair(k,v) Map(k,v) -- Map(k,v),
     MAP -> cons MAP)
 def(Map.lookup-pair(k==), (k k -- Bool) k Map(k,v) -- Maybe(KVPair(k,v)),
