@@ -524,21 +524,23 @@ def(c99-block-run!, Block +C99 -- +C99,
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 def(+C99.param-put, Param +C99 -- +C99, >Var var-put)
 
-def(c99-pack-vars!, List(Var) +C99 -- +C99,
-    c99-line("push_value(MKNIL);" put)
+def(c99-pack-closure-vars!, List(Var) +C99 -- +C99,
     filter(dup is-physical?) for(
         c99-var-push!
         c99-line("mw_std_prim_prim_pack_cons();" put)
     ))
 
-def(c99-unpack-vars!, List(Var) +C99 -- +C99,
-    filter(dup is-physical?) reverse-for(
-        c99-line("mw_std_prim_prim_pack_uncons();" put)
-        c99-line("VAL " put var-put " = pop_value();" put)
-    )
-    c99-line("mw_std_prim_prim_drop();" put))
+def(c99-unpack-closure-vars!, List(Var) +C99 -- +C99,
+    filter(dup is-physical?) dup empty? if(
+        drop,
+        reverse-for(
+            c99-line("mw_std_prim_prim_pack_uncons();" put)
+            c99-line("VAL " put var-put " = pop_value();" put)
+        )
+        c99-line("pop_value();" put)
+    ))
 
-def(c99-decref-vars!, List(Var) +C99 -- +C99,
+def(c99-decref-closure-vars!, List(Var) +C99 -- +C99,
     filter(dup is-physical?) reverse-for(
         c99-line("decref(" put var-put ");" put)
     ))
@@ -547,9 +549,9 @@ def(c99-block-push!, Block +C99 -- +C99,
     dup to-run-var match(
         SOME -> nip c99-var-push!,
         NONE ->
-            dup free-vars c99-pack-vars!
-            c99-line("push_fnptr(&" put block-put ");" put)
-            c99-line("mw_std_prim_prim_pack_cons();" put)
+            c99-line("push_fnptr(&" put dup block-put ");" put)
+            dup free-vars c99-pack-closure-vars!
+            drop
     ))
 
 def(c99-var!, Var +C99 -- +C99,
@@ -658,9 +660,9 @@ def(c99-block-def!, Block +C99 -- +C99,
     c99-nest(
         dup c99-block-enter!
         dup arrow
-        dup free-vars c99-unpack-vars!
+        dup free-vars c99-unpack-closure-vars!
         dup c99-arrow!
-        free-vars c99-decref-vars!
+        free-vars c99-decref-closure-vars!
         c99-block-exit!
     )
     c99-line("}" put))

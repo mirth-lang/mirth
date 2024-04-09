@@ -535,13 +535,15 @@ static int str_cmp_(STR* s1, STR* s2) {
 }
 
 static void run_value(VAL v) {
-	// TODO Make a closure tag or something.
-	// As it is, this feels kinda wrong.
-	VAL car, cdr;
-	value_uncons(v, &car, &cdr);
-	push_value(car);
-	ASSERT(IS_FNPTR(cdr) && VFNPTR(cdr));
-	VFNPTR(cdr)();
+	if (IS_TUP(v)) {
+		VAL h = VTUP(v)->cells[0];
+		ASSERT(IS_FNPTR(h));
+		push_value(v);
+		VFNPTR(h)();
+	} else {
+		ASSERT(IS_FNPTR(v));
+		VFNPTR(v)();
+	}
 }
 
 static void mw_std_prim_prim_id (void) {}
