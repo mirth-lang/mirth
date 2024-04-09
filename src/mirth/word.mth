@@ -42,3 +42,6 @@ def(Word.new!,
     arity> over ~arity !
     sig> over ~sig !
     dup DEF_WORD register)
+
+def(Word.==, Word Word -- Bool, both(index) ==)
+def(Word.compare, Word Word -- Comparison, both(index) compare)

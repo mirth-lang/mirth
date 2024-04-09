@@ -50,7 +50,7 @@ def(U8.>Byte, U8 -- Byte, >Int >Byte)
 def(Ptr.@Byte, Ptr +Unsafe -- Byte +Unsafe, @U8 >Byte)
 def(Ptr.!Byte, Byte Ptr +Unsafe -- +Unsafe, dip(>U8) !U8)
 
-def(Byte.cmp, Byte Byte -- Comparison, both(>Int) .cmp)
+def(Byte.compare, Byte Byte -- Comparison, both(>Int) .compare)
 def(Byte.==,  Byte Byte -- Bool, both(>Int) ==)
 def(Byte.<,  Byte Byte -- Bool, both(>Int) <)
 def(Byte.>,  Byte Byte -- Bool, both(>Int) >)

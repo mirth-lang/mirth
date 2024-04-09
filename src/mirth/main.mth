@@ -24,6 +24,7 @@ import(mirth.def)
 import(mirth.lexer)
 import(mirth.elab)
 import(mirth.ctx)
+import(mirth.specializer)
 import(mirth.c99)
 
 def(init!, --,
@@ -91,6 +92,8 @@ def(compile!, Arguments +World -- +World,
 
     match(
         SOME ->
+            "Specializer." trace-ln!
+            run-specializer!
             "Codegen." trace-ln!
             output-file> unwrap >output-path
             C99_Options.make run-output-c99!,

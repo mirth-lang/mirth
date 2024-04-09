@@ -253,15 +253,15 @@ def(List+.reverse-for(f), (*c a -- *c) *c List+(a) -- *c,
     LCAT+ -> drop swap dip(reverse-for(f)) reverse-for(f))
 
 ||| Reduce a list in a bottom-up manner.
-def(List.reduce(g), (a a -- a) List(a) -- Maybe(a),
-    >List+ map(reduce(g)))
+def(List.fold(g), (*c a a -- *c a) *c List(a) -- *c Maybe(a),
+    >List+ map(fold(g)))
 
 ||| Reduce a list in a bottom-up manner.
-def(List+.reduce(g), (a a -- a) List+(a) -- a,
+def(List+.fold(g), (*c a a -- *c a) *c List+(a) -- *c a,
     L1+ -> id,
     L2+ -> g,
-    L3+ -> g g,
-    LCAT+ -> drop dip(reduce(g)) reduce(g) g)
+    L3+ -> dip(g) g,
+    LCAT+ -> drop dip(fold(g)) dip'(fold(g)) g)
 
 ||| Filter away any list elements that don't satisfy the predicate.
 def(List.filter(f), (*c a -- *c a Bool) *c List(a) -- *c List(a),
@@ -348,8 +348,16 @@ def(List+.reverse-find(f), (*c a -- *c a Bool) *c List+(a) -- *c Maybe(a),
 def(List.any(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
     find(f) some?)
 
+||| Is the predicate true for any element of the list?
+def(List+.any(f), (*c a -- *c a Bool) *c List+(a) -- *c Bool,
+    find(f) some?)
+
 ||| Is the predicate true for all elements of the list?
 def(List.all(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
+    find(f not) none?)
+
+||| Is the predicate true for all elements of the list?
+def(List+.all(f), (*c a -- *c a Bool) *c List+(a) -- *c Bool,
     find(f not) none?)
 
 ||| Build a list through repetition, stopping at the first NONE.
@@ -375,11 +383,28 @@ def(-LIST, +List(t) -- List(t), +LIST -> id)
 def(LIST(f), (*a +List(t) -- *a +List(t)) *a -- *a List(t), L0 +LIST f -LIST)
 def(+List.;, *a t +List(t) -- *a +List(t), +LIST -> swap snoc +LIST)
 
-def(List.==(p), (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool,
+def(List.==(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool,
     dup2 both(len) == if(
-        zip(p) all(dup),
+        map2(eq) all(dup), # TODO short circuiting version of this?
         drop2 F
     ))
+def(List+.==(eq), (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool,
+    dup2 both(len) == if(
+        map2(eq) all(dup),
+        drop2 F
+    ))
+
+def(List.member(eq), (*c a a -- *c Bool) *c a List(a) -- *c Bool,
+    any(dup2 dip2(eq) rotl) nip)
+
+def(List.difference(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+    swap filter(dup2 dip2(swap member(eq) not) rotl) nip)
+
+def(List.union(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+    over dip(swap difference(eq)) cat)
+
+def(List.unions(eq), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
+    fold(union(eq)) unwrap-or(L0))
 
 def(List.uncons?, List(x) -- Maybe(x) List(x),
     dup >List+ match(
@@ -387,5 +412,7 @@ def(List.uncons?, List(x) -- Maybe(x) List(x),
         SOME -> nip uncons dip:SOME
     ))
 
-def(List.zip(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
-    collect(uncons? dip(dip:uncons? swap dip:zip:f) rotl) dip:drop2)
+def(List.map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
+    collect(uncons? dip(dip:uncons? swap dip:map2:f) rotl) dip:drop2)
+def(List+.map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
+    dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons+)

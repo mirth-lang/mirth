@@ -101,16 +101,6 @@ def(run-output-c99!, Arrow C99_Options +World -- +World,
         c99-end!
     ))
 
-def(Namespace.mangled, Namespace -- Str,
-    NAMESPACE_ROOT -> "__root__",
-    NAMESPACE_PACKAGE -> name mangled,
-    NAMESPACE_MODULE -> qname mangled,
-    NAMESPACE_TYCON -> qname mangled)
-def(QName.mangled, QName -- Str, MKQNAME ->
-    namespace> mangled "_" cat
-    name> mangled cat
-    arity> dup 0> if(dip:"_" show cat cat, drop))
-
 def(+C99.sig-put, QName +C99 -- +C99, "static void mw_" put mangled put " (void)" put)
 def(+C99.cosig-put, QName +C99 -- +C99, "static void mp_" put mangled put " (void)" put)
 
@@ -389,6 +379,7 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_LAMBDA   -> nip c99-lambda!,
     OP_VAR      -> nip c99-var!,
     OP_BLOCK    -> nip c99-block-push!,
+    OP_RUN      -> nip c99-block-run!,
     OP_COERCE   -> drop2,
     OP_LABEL_PUSH -> nip c99-label-push!,
     OP_LABEL_POP  -> nip c99-label-pop!,
@@ -534,22 +525,24 @@ def(c99-block-run!, Block +C99 -- +C99,
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 def(+C99.param-put, Param +C99 -- +C99, >Var var-put)
 
-def(c99-pack-ctx!, Ctx +C99 -- +C99,
-    c99-line("push_value(MKNIL);" put)
-    physical-vars for(
+def(c99-pack-closure-vars!, List(Var) +C99 -- +C99,
+    filter(dup is-physical?) for(
         c99-var-push!
         c99-line("mw_std_prim_prim_pack_cons();" put)
     ))
 
-def(c99-unpack-ctx!, Ctx +C99 -- +C99,
-    physical-vars reverse-for(
-        c99-line("mw_std_prim_prim_pack_uncons();" put)
-        c99-line("VAL " put var-put " = pop_value();" put)
-    )
-    c99-line("mw_std_prim_prim_drop();" put))
+def(c99-unpack-closure-vars!, List(Var) +C99 -- +C99,
+    filter(dup is-physical?) dup empty? if(
+        drop,
+        reverse-for(
+            c99-line("mw_std_prim_prim_pack_uncons();" put)
+            c99-line("VAL " put var-put " = pop_value();" put)
+        )
+        c99-line("pop_value();" put)
+    ))
 
-def(c99-decref-ctx!, Ctx +C99 -- +C99,
-    physical-vars reverse-for(
+def(c99-decref-closure-vars!, List(Var) +C99 -- +C99,
+    filter(dup is-physical?) reverse-for(
         c99-line("decref(" put var-put ");" put)
     ))
 
@@ -557,9 +550,9 @@ def(c99-block-push!, Block +C99 -- +C99,
     dup to-run-var match(
         SOME -> nip c99-var-push!,
         NONE ->
-            dup ctx c99-pack-ctx!
-            c99-line("push_fnptr(&" put block-put ");" put)
-            c99-line("mw_std_prim_prim_pack_cons();" put)
+            c99-line("push_fnptr(&" put dup block-put ");" put)
+            dup free-vars c99-pack-closure-vars!
+            drop
     ))
 
 def(c99-var!, Var +C99 -- +C99,
@@ -668,19 +661,15 @@ def(c99-block-def!, Block +C99 -- +C99,
     c99-nest(
         dup c99-block-enter!
         dup arrow
-        dup ctx c99-unpack-ctx!
+        dup free-vars c99-unpack-closure-vars!
         dup c99-arrow!
-        ctx c99-decref-ctx!
+        free-vars c99-decref-closure-vars!
         c99-block-exit!
     )
     c99-line("}" put))
 
 def(+C99.block-put, Block +C99 -- +C99,
-    "mb_" put
-    dup home match(
-        HOME_MAIN -> "main_" put dip(arrow token-start index) index - show put,
-        HOME_WORD -> dup qname mangled put "_" put dip(arrow) arrow both(token-start index) - show put
-    ))
+    "mb_" put qname mangled put)
 
 def(c99-word-enter!, Word +C99 -- +C99,
     emit-debug-info? if(
