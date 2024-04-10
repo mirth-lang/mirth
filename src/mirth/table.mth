@@ -30,6 +30,7 @@ field(Field.~value-type, Field, Lazy(Type))
 
 def(Field.head, Field -- Token, ~head @)
 def(Field.qname, Field -- QName, ~qname @)
+def(Field.name, Field -- Name, qname name)
 def(Field.index-type, Field -- Type, ~index-type force!)
 def(Field.value-type, Field -- Type, ~value-type force!)
 

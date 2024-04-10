@@ -3,6 +3,7 @@ module(mirth.word)
 import(std.prelude)
 import(std.lazy)
 import(std.maybe)
+import(std.str)
 import(mirth.token)
 import(mirth.var)
 import(mirth.name)
@@ -17,6 +18,8 @@ field(Word.~arity, Word, Int)
 field(Word.~ctx-type, Word, Lazy([Ctx ArrowType]))
 field(Word.~params, Word, Lazy(List(Param)))
 field(Word.~arrow, Word, Lazy(Arrow))
+field(Word.~prefer-inline?, Word, Bool)
+field(Word.~cname, Word, Str)
 
 def(Word.qname, Word -- QName, ~qname @)
 def(Word.namespace, Word -- Namespace, qname namespace)
@@ -28,9 +31,15 @@ def(Word.arity, Word -- Int, ~arity @)
 def(Word.params, Word -- List(Param), ~params force!)
 def(Word.arrow, Word -- Arrow, ~arrow force!)
 
+def(Word.cname, Word -- Str, dup ~cname memoize(
+    Str("mw_" ; dup name mangled ; "_" ;
+        dup DEF_WORD def-index show ;)) nip)
+
 def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)
 def(Word.type, Word -- ArrowType, ctx-type nip)
+
+def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap-or(F))
 
 def(Word.new!,
     head:Token sig:Maybe(Token) body:Token
