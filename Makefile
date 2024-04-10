@@ -1,7 +1,6 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
  -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Wno-infinite-recursion \
- -Werror -pedantic -O0 -g
-
+ -Werror -pedantic -O0
 MIRTHFLAGS=-p std:src/std -p args:src/args -p mirth:src/mirth -p posix:src/posix -p snake:src/snake
 
 CC=gcc $(C99FLAGS)
@@ -86,13 +85,13 @@ bin/mirth2san: bin/mirth2.c
 	$(CCSAN) -o bin/mirth2san bin/mirth2.c
 
 bin/mirth1debug: bin/mirth1debug.c
-	$(CC) -o bin/mirth1debug bin/mirth1debug.c
+	$(CC) -g -o bin/mirth1debug bin/mirth1debug.c
 
 bin/mirth2debug: bin/mirth2debug.c
-	$(CC) -o bin/mirth2debug bin/mirth2debug.c
+	$(CC) -g -o bin/mirth2debug bin/mirth2debug.c
 
 bin/mirth3debug: bin/mirth3debug.c
-	$(CC) -o bin/mirth3debug bin/mirth3debug.c
+	$(CC) -g -o bin/mirth3debug bin/mirth3debug.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
 	bin/mirth0 $(MIRTHFLAGS) src/mirth/main.mth -o bin/mirth1.c
