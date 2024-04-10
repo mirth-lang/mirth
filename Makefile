@@ -1,6 +1,6 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
  -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Wno-infinite-recursion \
- -Werror -pedantic -O1 -g
+ -Werror -fmax-errors=10 -pedantic -O1 -g
 
 MIRTHFLAGS=-p std:src/std -p args:src/args -p mirth:src/mirth -p posix:src/posix -p snake:src/snake
 

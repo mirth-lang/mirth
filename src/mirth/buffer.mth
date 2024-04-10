@@ -13,6 +13,7 @@ field(Buffer.~qname, Buffer, QName)
 def(Buffer.head, Buffer -- Token, ~head @)
 def(Buffer.size, Buffer -- Size, ~size @)
 def(Buffer.qname, Buffer -- QName, ~qname @)
+def(Buffer.name, Buffer -- Name, qname name)
 
 def(Buffer.new!, Token QName Size -- Buffer,
     Buffer.alloc!
