@@ -114,17 +114,18 @@ field(Block.~home, Block, Home)
 field(Block.~dom, Block, StackType)
 field(Block.~cod, Block, StackType)
 field(Block.~arrow, Block, Lazy(Arrow))
+field(Block.~qname, Block, QName)
 
 def(Block.ctx, Block -- Ctx, ~ctx @)
 def(Block.token, Block -- Token, ~token @)
 def(Block.dom, Block -- StackType, ~dom @)
 def(Block.cod, Block -- StackType, ~cod @)
-def(Block.type, Block -- ArrowType, sip(dom) cod T->)
 def(Block.home, Block -- Home, ~home @)
+
+def(Block.type, Block -- ArrowType, sip(dom) cod T->)
 def(Block.arrow, Block -- Arrow, ~arrow force!)
 def(Block.infer-type!, Block -- ArrowType, arrow type)
 
-field(Block.~qname, Block, QName)
 def(Block.qname, Block -- QName,
     dup ~qname memoize(dup dup home match(
         HOME_MAIN ->

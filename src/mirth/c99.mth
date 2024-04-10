@@ -368,7 +368,7 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_NONE     -> drop,
     OP_INT      -> nip c99-int!,
     OP_STR      -> nip c99-str!,
-    OP_WORD     -> qname c99-call!,
+    OP_WORD     -> c99-word!,
     OP_EXTERNAL -> qname c99-call!,
     OP_BUFFER   -> qname c99-call!,
     OP_VARIABLE -> qname c99-call!,
@@ -385,6 +385,13 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_LABEL_POP  -> nip c99-label-pop!,
     OP_DATA_GET_LABEL -> c99-tag-get-label! drop,
     OP_DATA_SET_LABEL -> c99-tag-set-label! drop)
+
+def(c99-word!, List(Arg) Word +C99 -- +C99,
+    dup prefer-inline? if(
+        dip:for:c99-arg-push!
+        arrow c99-arrow!,
+        qname c99-call!,
+    ))
 
 def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
 def(c99-label-def!, Label +C99 -- +C99, "static VAL lbl_" put name mangled put " = MKNIL_C;" put line)
@@ -669,7 +676,7 @@ def(c99-block-def!, Block +C99 -- +C99,
     c99-line("}" put))
 
 def(+C99.block-put, Block +C99 -- +C99,
-    "mb_" put qname mangled put)
+    "mb_" put index show put)
 
 def(c99-word-enter!, Word +C99 -- +C99,
     emit-debug-info? if(

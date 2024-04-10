@@ -126,14 +126,12 @@ field(Word.~sp-synthed, Word, Map(SPKey,Word))
 def(Word.sp-synthed, Word -- Map(SPKey,Word),
     ~sp-synthed @? unwrap-or(Map.empty))
 
-field(Block.~sp-synthed, Block, Map(SPKey,Block))
-def(Block.sp-synthed, Block -- Map(SPKey,Block),
-    ~sp-synthed @? unwrap-or(Map.empty))
-
 ||| Specialize a word to a particular list of arguments.
 ||| Those other arguments are pushed on the stack.
 def(specialize-word!, SPKey Word -- Word,
-    \(k w -> k w sp-synthed lookup(==) unwrap-or(
+    \(k w -> k w sp-synthed lookup(==) match(
+    SOME -> F over ~prefer-inline? !,
+    NONE ->
         w head >head
         NONE >sig
         w body >body
@@ -145,6 +143,7 @@ def(specialize-word!, SPKey Word -- Word,
             k w delay2(
                 ctx-type specialize-ctx-type pack2
             ) w' ~ctx-type !
+            T w' ~prefer-inline? !
             k w w' delay3(ab-build-word-arrow!(dip(
                 synth-specialized-word!
                 # dip(/SPKEY for(/ARG_BLOCK OP_BLOCK ab-op!))

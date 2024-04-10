@@ -17,6 +17,7 @@ field(Word.~arity, Word, Int)
 field(Word.~ctx-type, Word, Lazy([Ctx ArrowType]))
 field(Word.~params, Word, Lazy(List(Param)))
 field(Word.~arrow, Word, Lazy(Arrow))
+field(Word.~prefer-inline?, Word, Bool)
 
 def(Word.qname, Word -- QName, ~qname @)
 def(Word.namespace, Word -- Namespace, qname namespace)
@@ -31,6 +32,8 @@ def(Word.arrow, Word -- Arrow, ~arrow force!)
 def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)
 def(Word.type, Word -- ArrowType, ctx-type nip)
+
+def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap-or(F))
 
 def(Word.new!,
     head:Token sig:Maybe(Token) body:Token
