@@ -561,14 +561,14 @@ def(+C99.param-put, Param +C99 -- +C99, >Var var-put)
 def(c99-pack-closure-vars!, List(Var) +C99 -- +C99,
     filter(dup is-physical?) for(
         c99-var-push!
-        c99-line(L0 PRIM_PACK_CONS cname c99-call!)
+        L0 PRIM_PACK_CONS cname c99-call!
     ))
 
 def(c99-unpack-closure-vars!, List(Var) +C99 -- +C99,
     filter(dup is-physical?) dup empty? if(
         drop,
         reverse-for(
-            c99-line(L0 PRIM_PACK_UNCONS cname c99-call!)
+            L0 PRIM_PACK_UNCONS cname c99-call!
             c99-line("VAL " put var-put " = pop_value();" put)
         )
         c99-line("pop_value();" put)
@@ -627,8 +627,9 @@ def(c99-match!, Match +C99 -- +C99,
         c99-nest(
             dup cases for(c99-case!)
             has-default-case? else(
-                c99-line(
-                    "default: push_value(mkstr(\"unexpected fallthrough in match\\n\", 32)); " put
+                c99-line("default:" put)
+                c99-nest(
+                    c99-line("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32)); " put)
                     L0 PRIM_CORE_PANIC cname c99-call!
                 )
             )
@@ -650,9 +651,7 @@ def(c99-pattern!, Pattern +C99 -- +C99,
     dup single-tag? if-some(
         nip
         c99-line("case " put dup value show put "LL:" put)
-        c99-nest(
-            c99-line(L0 swap pat-cname c99-call!)
-        ),
+        c99-nest(L0 swap pat-cname c99-call!),
 
         token-start "c99 target -- don't know how to compile this pattern"
         emit-fatal-error!
