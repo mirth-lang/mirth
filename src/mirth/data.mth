@@ -183,3 +183,8 @@ def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)
 
 def(Tag.==, Tag Tag -- Bool, both(index) ==)
+
+def(Tag.prefer-inline?, Tag -- Bool,
+    dup .data is-transparent?
+    or(dup num-total-inputs 0=)
+    nip)

@@ -152,7 +152,7 @@ def(c99-variable!, Variable +C99 -- +C99,
     "}" put line)
 
 def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
-def(c99-tag-def!, Tag +C99 -- +C99, \(tag ->
+def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
     tag ~Needs:word-needed? then(
         tag word-cname sig-put " {" put line
         tag is-transparent? else(
@@ -161,7 +161,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag ->
                     "\tpush_resource(MKU64(",
                     "\tpush_value(MKU64("
                 ) put
-                    tag value show put
+                    tag value-show put
                     "LL));" put line
                 ,
 
@@ -172,7 +172,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag ->
                     tag num-total-inputs 1+ show put
                     ";" put line
                 "\ttup->cells[0] = MKU64(" put
-                    tag value show put
+                    tag value-show put
                     "LL);" put line
                 tag num-total-inputs
                 tag label-inputs reverse-for(
@@ -254,7 +254,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag ->
             )
         )
         "}" put line
-    )))
+    ))))
 
 def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
     over num-total-inputs 1+
@@ -403,7 +403,7 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_BUFFER   -> cname c99-call!,
     OP_VARIABLE -> cname c99-call!,
     OP_FIELD    -> cname c99-call!,
-    OP_TAG      -> word-cname c99-call!,
+    OP_TAG      -> c99-tag-word!,
     OP_PRIM     -> c99-prim!,
     OP_MATCH    -> nip c99-match!,
     OP_LAMBDA   -> nip c99-lambda!,
@@ -418,9 +418,46 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
 
 def(c99-word!, List(Arg) Word +C99 -- +C99,
     dup prefer-inline? if(
-        dip:for:c99-arg-push!
+        dip:c99-args-push!
         arrow c99-arrow!,
         cname c99-call!
+    ))
+
+field(Tag.~value-show, Tag, Str)
+def(Tag.value-show, Tag -- Str, dup ~value-show memoize(dup value show) nip)
+
+def(c99-tag-word!, List(Arg) Tag +C99 -- +C99,
+    dup prefer-inline? if(
+        dup .data is-transparent? else(
+            c99-line(
+                dup outputs-resource? if(
+                    "push_resource(MKU64(" put
+                    dup value-show put
+                    "LL)); // " put,
+                    "push_u64(" put
+                    dup value-show put
+                    "LL); // " put
+                )
+                dup name >Str put
+            )
+        ) drop2,
+        word-cname c99-call!
+    ))
+
+def(c99-tag-case-pat!, Tag +C99 -- +C99,
+    c99-line("case " put dup value-show put "LL: // " put dup name >Str put)
+    c99-nest(
+        dup prefer-inline? if(
+            dup .data is-transparent? else(
+                c99-line(
+                    dup outputs-resource? if(
+                        "(void)pop_resource();",
+                        "(void)pop_u64();"
+                    ) put
+                )
+            ) drop,
+            dip:L0 pat-cname c99-call!
+        )
     ))
 
 def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
@@ -653,9 +690,7 @@ def(c99-pattern!, Pattern +C99 -- +C99,
         drop c99-line("default:" put),
 
     dup single-tag? if-some(
-        nip
-        c99-line("case " put dup value show put "LL:" put)
-        c99-nest(L0 swap pat-cname c99-call!),
+        nip c99-tag-case-pat!,
 
         token-start "c99 target -- don't know how to compile this pattern"
         emit-fatal-error!
