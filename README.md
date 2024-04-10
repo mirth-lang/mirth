@@ -13,11 +13,11 @@ This repository is a **work-in-progress** implementation of Mirth. If you are in
 ```mirth
 ||| A simple hello world program to show off the mirth language.
 module(examples.hello-world)
-import(prelude)
-import(platform.posix)
+import(std.prelude)
+import(posix.posix)
 
-target-c99("hello-world.c",
-    "Hello, world!" str-print-ln!)
+def(main, +World -- +World,
+    "Hello, World!" put line)
 ```
 
 ## Tools
