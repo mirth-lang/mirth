@@ -1,0 +1,14 @@
+module(mirth-tests.inline-def)
+import(std.prelude)
+
+def(foo, --, "foo" panic!)
+inline:def(bar, --, foo)
+  # bar is inlined, so it should not show up in the stack trace.
+def(baz, --, bar)
+def(main, --, baz)
+# mirth-test # perr # foo??
+# mirth-test # perr # call stack:
+# mirth-test # perr #     foo at src/mirth-tests/inline-def.mth:6:14
+# mirth-test # perr #     baz at src/mirth-tests/inline-def.mth:8:15
+# mirth-test # perr #     main at src/mirth-tests/inline-def.mth:8:5
+# mirth-test # pret # 1
