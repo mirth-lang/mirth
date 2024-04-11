@@ -6,9 +6,11 @@ import(std.maybe)
 import(std.byte)
 import(std.buffer)
 
-def(Str.num-bytes, Str -- Size, prim-str-num-bytes >Size)
 alias(Str.cat, prim-str-cat)
-def(Str.empty?, Str -- Bool, num-bytes 0=)
+inline(
+    def(Str.num-bytes, Str -- Size, prim-str-num-bytes >Size)
+    def(Str.empty?, Str -- Bool, num-bytes 0=)
+)
 
 ||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
@@ -19,20 +21,21 @@ def(Str.copy-partial!, Str Ptr +Unsafe -- Ptr +Unsafe,
         dip(copy)
     ))
 
+inline(
+    def(Str.copy, Ptr Size +Unsafe -- Str +Unsafe, >Int prim-str-copy)
+    def(Str.copy-cstr, Ptr +Unsafe -- Str +Unsafe, dup cstr-num-bytes Str.copy)
+)
+def(cstr-num-bytes, Ptr +Unsafe -- Size +Unsafe,
+    dup 0 >Size swap while(dup @U8 >Int 0>, dip(1+ 1 >Offset) offset) drop nip)
+
+
 data(+Str, +STR -> Str)
 def(Str.thaw, Str -- +Str, +STR)
 def(+Str.freeze, +Str -- Str, +STR -> id)
 
-def(build-str!(f), (*a +Str -- *b +Str) *a -- *b Str,
-    "" thaw f freeze)
-
 def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
-def(+Str.;, Str +Str -- +Str, push-str!)
+inline:def(+Str.;, Str +Str -- +Str, push-str!)
 
-def(Str.copy, Ptr Size +Unsafe -- Str +Unsafe, >Int prim-str-copy)
-def(Str.copy-cstr, Ptr +Unsafe -- Str +Unsafe, dup cstr-num-bytes Str.copy)
-def(cstr-num-bytes, Ptr +Unsafe -- Size +Unsafe,
-    dup 0 >Size swap while(dup @U8 >Int 0>, dip(1+ 1 >Offset) offset) drop nip)
 
 def(+Str.dup!, +Str -- Str +Str,
     +STR -> dup dip(+STR))
@@ -170,4 +173,4 @@ def(+Str.split-byte, Byte +Str -- List+(Str) +Str,
     ) unsafe(+Str.offset-slice) snoc+ nip)
 
 def(Str.split-byte, Byte Str -- List(Str),
-  thaw +Str.split-byte freeze drop >List)
+    thaw +Str.split-byte freeze drop >List)

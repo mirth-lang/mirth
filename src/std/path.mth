@@ -4,12 +4,14 @@ import(std.str)
 import(std.prelude)
 
 data(Path, PATH -> Str)
-def(Str.>Path, Str -- Path, PATH)
-def(Path.>Str, Path -- Str, PATH -> id)
-def(Path.==, Path Path -- Bool, both(>Str) ==)
+inline(
+    def(Str.>Path, Str -- Path, PATH)
+    def(Path.>Str, Path -- Str, PATH -> id)
+    def(Path.==, Path Path -- Bool, both(>Str) ==)
+    def(Path.empty?, Path -- Bool, >Str empty?)
+)
 
 def(PATH_SEPARATOR, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
-def(Path.empty?, Path -- Bool, >Str empty?)
 def(Path.join-with, Path Str Path -- Path,
     over2 empty? if(
         dip(drop2),

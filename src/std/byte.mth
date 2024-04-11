@@ -120,3 +120,37 @@ def(Byte.is-upper-or-underscore, Byte -- Bool,
 
 def(Byte.is-overload-trigger, Byte -- Bool,
     is-upper-or-underscore not)
+
+def(Byte.zencode, Byte -- Str,
+    BLPAREN -> "ZL",
+    BRPAREN -> "ZR",
+    BLCURLY -> "ZM",
+    BRCURLY -> "ZN",
+    BCOLON -> "ZC",
+    B'Z' -> "ZZ",
+
+    B'&'  -> "za",
+    B'|'  -> "zb",
+    B'^'  -> "zc",
+    B'$'  -> "zd",
+    B'='  -> "ze",
+    B'>'  -> "zg",
+    BHASH -> "zh",
+    BDOT  -> "zi",
+    B'<'  -> "zl",
+    B'-'  -> "zm",
+    B'!'  -> "zn",
+    B'+'  -> "zp",
+    BTICK -> "zq",
+    B'\'  -> "zr",
+    B'/'  -> "zs",
+    B'*'  -> "zt",
+    B'_'  -> "zu",
+    B'%'  -> "zv",
+    B'z'  -> "zz",
+    _ ->
+        dup is-alnum if(
+            to-str-unsafe,
+            Str("z" ; >Int show ; "U" ;)
+        )
+    )

@@ -808,6 +808,7 @@ def(elab-module-decl!, Token +World -- Token +World,
     match(
         PRIM_SYNTAX_IMPORT -> elab-module-import!,
         PRIM_SYNTAX_ALIAS -> elab-alias!,
+        PRIM_SYNTAX_INLINE -> elab-inline!,
         PRIM_SYNTAX_DEF -> elab-def!,
         PRIM_SYNTAX_DEF_MISSING -> elab-def-missing!,
         PRIM_SYNTAX_DEF_TYPE -> elab-def-type!,
@@ -1088,6 +1089,17 @@ def(elab-def-missing!, Token -- Token,
     dup args len 3 >Nat < then("def-missing expects at least three arguments" emit-fatal-error!)
     dup succ succ elab-def-qname defined? if(next, elab-def!))
 
+# TODO: add a +Mirth resource and keep this state in it.
+var(~prefer-inline-defs?, Bool)
+def(prefer-inline-defs?, Bool, ~prefer-inline-defs? @? unwrap-or(F))
+
+def(elab-inline!, Token +World -- Token +World,
+    sip:next args-1
+    dip:prefer-inline-defs?
+    T ~prefer-inline-defs? !
+    while(dup arg-end? not, elab-module-decl!)
+    drop ~prefer-inline-defs? !)
+
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(next) token-def-args
@@ -1097,6 +1109,8 @@ def(elab-def!, Token -- Token,
     dup num-args >arity
     elab-def-qname-undefined >qname
     Word.new!
+
+    prefer-inline-defs? over ~prefer-inline? !
 
     dup delay(
         type-elab-default
