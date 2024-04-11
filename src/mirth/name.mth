@@ -138,15 +138,15 @@ def(Namespace.==, Namespace Namespace -- Bool,
     NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 F))
 
 def(Namespace.compare, Namespace Namespace -- Comparison,
-    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> EQ, _ -> drop LT),
+    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> Comparison.EQ, _ -> drop Comparison.LT),
     NAMESPACE_PACKAGE -> swap match(
-        NAMESPACE_ROOT -> drop GT,
+        NAMESPACE_ROOT -> drop Comparison.GT,
         NAMESPACE_PACKAGE -> name >Str swap name >Str compare,
-        _ -> drop2 LT
+        _ -> drop2 Comparison.LT
     ),
     _ -> match(
-        NAMESPACE_ROOT -> drop GT,
-        NAMESPACE_PACKAGE -> drop2 GT,
+        NAMESPACE_ROOT -> drop Comparison.GT,
+        NAMESPACE_PACKAGE -> drop2 Comparison.GT,
         _ -> qname unwrap swap qname unwrap compare
     ))
 
@@ -222,21 +222,23 @@ def(QName.compare, QName QName -- Comparison,
     arity> arity>
     name> >Str name> >Str
     namespace> namespace>
-    compare match(
-        LT -> drop4 LT,
-        GT -> drop4 GT,
-        EQ -> compare match(
-            LT -> drop2 LT,
-            GT -> drop2 GT,
-            EQ -> compare
-        )
+    compare dup is-eq if(
+        drop compare dup is-eq if(
+            drop compare,
+            dip:drop2
+        ),
+        dip:drop4
     ))
 
 def(QName.def?, QName -- Maybe(Def), dup name defs find(dup2 qname ==) nip)
 def(QName.defined?, QName -- Bool, def? some?)
 def(QName.undefined?, QName -- Bool, def? none?)
 
-def(QName.prim, Str Int -- QName, >arity >Name >name Namespace.prim >namespace MKQNAME)
+def(QName.prim, Str Int -- QName,
+    >arity
+    >Name >name
+    Namespace.prim >namespace
+    MKQNAME)
 
 def(QName.>Str, QName -- Str, MKQNAME ->
     namespace> >Str "." cat

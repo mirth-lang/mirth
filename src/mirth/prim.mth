@@ -101,6 +101,7 @@ data(Prim,
     PRIM_SYNTAX_MODULE,
     PRIM_SYNTAX_IMPORT,
     PRIM_SYNTAX_ALIAS,
+    PRIM_SYNTAX_INLINE,
     PRIM_SYNTAX_DEF,
     PRIM_SYNTAX_DEF_MISSING,
     PRIM_SYNTAX_DEF_TYPE,
@@ -146,6 +147,7 @@ def(init-prims!, --,
 
     PRIM_SYNTAX_MODULE "module" -1 def-prim!
     PRIM_SYNTAX_IMPORT "import" -1 def-prim!
+    PRIM_SYNTAX_INLINE "inline" -1 def-prim!
     PRIM_SYNTAX_ALIAS "alias" -1 def-prim!
     PRIM_SYNTAX_DEF "def" -1 def-prim!
     PRIM_SYNTAX_DEF_TYPE "def-type" -1 def-prim!
