@@ -104,17 +104,7 @@ def(Name.could-be-resource-var, Name -- Bool, dup head B'+' == swap tail-head is
 def(Name.could-be-resource-con, Name -- Bool, dup head B'+' == swap tail-head is-upper &&)
 def(Name.could-be-type-or-resource-con, Name -- Bool, dup could-be-type-con or(dup could-be-resource-con) nip)
 def(Name.mangle-compute!, Name -- Str,
-    build-str!(>Str bytes-for(
-        dup is-alnum if(
-            push-byte-ascii!,
-            dup B'-' == if(
-                drop B'_' push-byte-ascii!,
-                B'_' push-byte-ascii!
-                to-hexdigits dip(push-byte-ascii!) push-byte-ascii!
-                B'_' push-byte-ascii!
-            )
-        )
-    )))
+    Str(>Str bytes-for(zencode ;)))
 
 def(Name.lens-like?, Name -- Bool,
     >Str thaw last-byte BCOLON == freeze drop)

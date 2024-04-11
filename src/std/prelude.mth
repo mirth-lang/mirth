@@ -338,10 +338,10 @@ inline(
 data(Nat, NAT_UNSAFE -> Int)
 
 def(Int.>Nat, Int -- Nat, expect!(dup 0< not, "tried to create negative Nat" panic!) >Nat-unsafe)
-inline:def(Int.>Nat-unsafe, Int -- Nat, NAT_UNSAFE)
-inline:def(Nat.>Int, Nat -- Int, NAT_UNSAFE -> id)
-
 inline(
+    def(Int.>Nat-unsafe, Int -- Nat, NAT_UNSAFE)
+    def(Nat.>Int, Nat -- Int, NAT_UNSAFE -> id)
+
     def(Nat.>U8,  Nat -- U8,  >Int >U8)
     def(Nat.>U16, Nat -- U16, >Int >U16)
     def(Nat.>U32, Nat -- U32, >Int >U32)
@@ -438,7 +438,7 @@ def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
 def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
 def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
 
-def(unpack0, [] --, drop)
+inline:def(unpack0, [] --, drop)
 def(unpack1, [a] -- a, pack-uncons nip)
 def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
 def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
