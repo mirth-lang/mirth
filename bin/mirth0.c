@@ -4450,6 +4450,7 @@ static void mw_unpack1_0 (void);
 static void mw_unpack2_0 (void);
 static void mw_unpack3_0 (void);
 static void mw_z64Uz63U_0 (void);
+static void mw_paniczn_0 (void);
 static void mw_tag_22 (void);
 static void mw_fromzmtagzmunsafe_22 (void);
 static void mw_zgInt_7 (void);
@@ -7881,7 +7882,7 @@ static void mw_unwrap_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
@@ -8092,7 +8093,7 @@ static void mw_zgU8_2 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
@@ -8123,8 +8124,8 @@ static void mw_zgNat_6 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
-		mp_primzmpanic();
+		mw_paniczn_0();
+		mw_paniczn_0();
 	}
 }
 static void mw_zgSizze_1 (void) {
@@ -8516,6 +8517,9 @@ static void mw_z64Uz63U_0 (void) {
 		push_u64(0LL); // NONE
 	}
 }
+static void mw_paniczn_0 (void) {
+	mp_primzmpanic();
+}
 static void mw_tag_22 (void) {
 }
 static void mw_fromzmtagzmunsafe_22 (void) {
@@ -8553,7 +8557,7 @@ static void mw_zgByte_1 (void) {
 		}
 		mp_primzmswap();
 		mp_primzmstrzmcat();
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	mw_fromzmtagzmunsafe_22();
 }
@@ -9451,7 +9455,7 @@ static void mw_checkzmspanzn_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		case 0LL: // F
 			(void)pop_u64();
@@ -9504,7 +9508,7 @@ static void mw_checkzmspanzmalignzn_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -10433,7 +10437,7 @@ static void mw_slicezmwritezn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	{
 		VAL d2 = pop_value();
@@ -10461,7 +10465,7 @@ static void mw_slicezmwritezn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	mp_primzmdrop();
 	mp_primzmdrop();
@@ -12886,7 +12890,7 @@ static void mw_peek_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -12914,7 +12918,7 @@ static void mw_movezn_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -13067,7 +13071,7 @@ static void mw_openzmfilezn_0 (void) {
 					push_value(v);
 					incref(v);
 				}
-				mp_primzmpanic();
+				mw_paniczn_0();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -13096,7 +13100,7 @@ static void mw_openzmfilezn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	mtw_zpFILE_0();
 }
@@ -13157,7 +13161,7 @@ static void mw_createzmfilezn_0 (void) {
 					push_value(v);
 					incref(v);
 				}
-				mp_primzmpanic();
+				mw_paniczn_0();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -13186,7 +13190,7 @@ static void mw_createzmfilezn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	mtw_zpFILE_0();
 }
@@ -13217,7 +13221,7 @@ static void mw_OzuWRONLYzbOzuCREATzbOzuTRUNC_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -13244,7 +13248,7 @@ static void mw_closezmfilezn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	mp_primzmdrop();
 }
@@ -13284,7 +13288,7 @@ static void mw_unsafezmwritezn_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 		}
 		mw_zgSizze_2();
 		push_value(d2);
@@ -13315,7 +13319,7 @@ static void mw_unsafezmwritezn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	mp_primzmdrop();
 	mp_primzmdrop();
@@ -13349,7 +13353,7 @@ static void mw_unsafezmreadzn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 	mw_zgSizze_2();
 }
@@ -13435,7 +13439,7 @@ static void mw_forcezn_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -18442,7 +18446,7 @@ static void mw_iszmphysicalz63U_0 (void) {
 						push_value(v);
 						incref(v);
 					}
-					mp_primzmpanic();
+					mw_paniczn_0();
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
@@ -20364,7 +20368,7 @@ static void mw_zgStackType_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 	}
 }
@@ -22418,7 +22422,7 @@ static void mw_semifreshen_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 	}
 }
@@ -27317,7 +27321,7 @@ static void mw_register_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -28367,7 +28371,7 @@ static void mw_tozmmodulezmpath_0 (void) {
 						push_value(v);
 						incref(v);
 					}
-					mp_primzmpanic();
+					mw_paniczn_0();
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
@@ -28405,7 +28409,7 @@ static void mw_tozmmodulezmpath_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 	}
 }
@@ -28503,7 +28507,7 @@ static void mw_newzmorzmsetzmpathzn_0 (void) {
 						push_value(v);
 						incref(v);
 					}
-					mp_primzmpanic();
+					mw_paniczn_0();
 					break;
 				case 0LL: // NONE
 					(void)pop_u64();
@@ -35197,7 +35201,7 @@ static void mw_outputzmtype_0 (void) {
 			mw_qname_3();
 			mw_zgStr_4();
 			mp_primzmstrzmcat();
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 	}
 }
@@ -39925,7 +39929,7 @@ static void mw_synthzmspecializzedzmwordzn_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
@@ -40091,7 +40095,7 @@ static void mw_synthzmspecializzedzmwordzn_0 (void) {
 				}
 				mp_primzmswap();
 				mp_primzmstrzmcat();
-				mp_primzmpanic();
+				mw_paniczn_0();
 			}
 			push_u64(0LL); // L0
 			{
@@ -40249,7 +40253,7 @@ static void mw_synthzmspecializzedzmwordzn_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 	}
 }
@@ -42180,7 +42184,7 @@ static void mw_index_18 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	}
 }
 static void mw_SETzuINITIALzuSIZZE_0 (void) {
@@ -42413,7 +42417,7 @@ static void mw_needzn_0 (void) {
 					push_value(v);
 					incref(v);
 				}
-				mp_primzmpanic();
+				mw_paniczn_0();
 			}
 			break;
 		default:
@@ -45630,7 +45634,7 @@ static void mw_c99zmexternalzn_0 (void) {
 			push_value(v);
 			incref(v);
 		}
-		mp_primzmpanic();
+		mw_paniczn_0();
 	} else {
 		mp_primzmdup();
 		push_i64(1LL);
@@ -50481,7 +50485,7 @@ static void mw_parsezmpackagezmdef_0 (void) {
 				push_value(v);
 				incref(v);
 			}
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 	}
 }
@@ -50973,7 +50977,7 @@ static void mw_main_0 (void) {
 		case 0LL: // LEFT
 			mtp_LEFT_0();
 			mw_show_0();
-			mp_primzmpanic();
+			mw_paniczn_0();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -59481,7 +59485,7 @@ static void mw_reversezmfor_0_1938 (void) {
 							push_value(v);
 							incref(v);
 						}
-						mp_primzmpanic();
+						mw_paniczn_0();
 						break;
 					case 1LL: // SOME
 						mtp_SOME_0();
@@ -59533,7 +59537,7 @@ static void mw_reversezmfor_0_1938 (void) {
 								push_value(v);
 								incref(v);
 							}
-							mp_primzmpanic();
+							mw_paniczn_0();
 							break;
 						case 1LL: // SOME
 							mtp_SOME_0();
@@ -59581,7 +59585,7 @@ static void mw_reversezmfor_0_1938 (void) {
 							push_value(v);
 							incref(v);
 						}
-						mp_primzmpanic();
+						mw_paniczn_0();
 						break;
 					case 1LL: // SOME
 						mtp_SOME_0();
@@ -59640,7 +59644,7 @@ static void mw_reversezmfor_0_1938 (void) {
 									push_value(v);
 									incref(v);
 								}
-								mp_primzmpanic();
+								mw_paniczn_0();
 								break;
 							case 1LL: // SOME
 								mtp_SOME_0();
@@ -59693,7 +59697,7 @@ static void mw_reversezmfor_0_1938 (void) {
 								push_value(v);
 								incref(v);
 							}
-							mp_primzmpanic();
+							mw_paniczn_0();
 							break;
 						case 1LL: // SOME
 							mtp_SOME_0();
@@ -59741,7 +59745,7 @@ static void mw_reversezmfor_0_1938 (void) {
 							push_value(v);
 							incref(v);
 						}
-						mp_primzmpanic();
+						mw_paniczn_0();
 						break;
 					case 1LL: // SOME
 						mtp_SOME_0();

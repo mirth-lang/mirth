@@ -457,7 +457,7 @@ def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
 def(@?, Mut(t) -- Maybe(t),
     dup mut-is-set if(@ SOME, drop NONE))
 
-alias(panic!, prim-panic)
+def(panic!, *a Str -- *b, prim-panic)
 def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     f if(id, g panic!))
 def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
