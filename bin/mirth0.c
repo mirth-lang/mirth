@@ -32449,7 +32449,7 @@ static void mw_resolvezmtypezmconzmnamezn_0 (void) {
 				static bool vready = false;
 				static VAL v;
 				if (! vready) {
-					v = mkstr(" not visible. Not imported in current scope:", 44);
+					v = mkstr(" is not visible. Not imported in current scope:", 47);
 					vready = true;
 				}
 				push_value(v);

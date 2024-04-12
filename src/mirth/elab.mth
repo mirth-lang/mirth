@@ -204,7 +204,7 @@ def(ResolveDef.expect(s), (Str) ResolveDef -- Maybe(Def),
             dip(" ") for(dip(;) qname >Str ; ", ") drop)
         emit-error! NONE,
     RD_VISIBILITY_ERROR ->
-        Str("This " ; s ; " not visible. Not imported in current scope:" ;
+        Str("This " ; s ; " is not visible. Not imported in current scope:" ;
             dip(" ") for(dip(;) qname >Str ; ", ") drop)
         emit-error! NONE,
     RD_ARITY_ERROR ->
