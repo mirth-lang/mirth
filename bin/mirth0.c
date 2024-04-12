@@ -4602,7 +4602,6 @@ static void mw_linezmprintzn_0 (void);
 static void mw_linezmtracezn_0 (void);
 static void mw_tracezn_11 (void);
 static void mw_tracezn_14 (void);
-static void mw_printzmlnzn_2 (void);
 static void mw_programzmname_1 (void);
 static void mw_argv_1 (void);
 static void mw_optionzmoption_1 (void);
@@ -10677,10 +10676,6 @@ static void mw_tracezn_14 (void) {
 	mw_show_7();
 	mw_tracezn_13();
 }
-static void mw_printzmlnzn_2 (void) {
-	mw_show_7();
-	mw_printzmlnzn_1();
-}
 static void mw_programzmname_1 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
@@ -12102,20 +12097,6 @@ static void mw_printzmusagezmforzmoption_0 (void) {
 			mp_primzmpanic();
 	}
 	LPOP(lbl_colzmoffset);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" ", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_printzn_1();
-	mp_primzmdup();
-	mw_show_7();
-	mw_printzn_1();
 	mp_primzmdrop();
 	{
 		static bool vready = false;
@@ -12510,19 +12491,6 @@ static void mw_parsezmargs_0 (void) {
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
-				mp_primzmdup();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("longest arg: ", 13);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				mw_printzn_1();
-				mw_printzmlnzn_2();
 				mw_state_0();
 				{
 					VAL d5 = pop_resource();
@@ -12605,19 +12573,6 @@ static void mw_parsezmargs_0 (void) {
 				mp_primzmswap();
 				mp_primzmintzmlt();
 				if (pop_u64()) {
-					mp_primzmdup();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("longest arg: ", 13);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
-					mw_printzn_1();
-					mw_printzmlnzn_2();
 					mw_state_0();
 					{
 						VAL d6 = pop_resource();
@@ -12697,19 +12652,6 @@ static void mw_parsezmargs_0 (void) {
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
-				mp_primzmdup();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("longest arg: ", 13);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				mw_printzn_1();
-				mw_printzmlnzn_2();
 				mw_state_0();
 				{
 					VAL d5 = pop_resource();
@@ -12794,19 +12736,6 @@ static void mw_parsezmargs_0 (void) {
 					mp_primzmswap();
 					mp_primzmintzmlt();
 					if (pop_u64()) {
-						mp_primzmdup();
-						{
-							static bool vready = false;
-							static VAL v;
-							if (! vready) {
-								v = mkstr("longest arg: ", 13);
-								vready = true;
-							}
-							push_value(v);
-							incref(v);
-						}
-						mw_printzn_1();
-						mw_printzmlnzn_2();
 						mw_state_0();
 						{
 							VAL d7 = pop_resource();
@@ -12886,19 +12815,6 @@ static void mw_parsezmargs_0 (void) {
 				mp_primzmswap();
 				mp_primzmintzmlt();
 				if (pop_u64()) {
-					mp_primzmdup();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("longest arg: ", 13);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
-					mw_printzn_1();
-					mw_printzmlnzn_2();
 					mw_state_0();
 					{
 						VAL d6 = pop_resource();
@@ -12978,19 +12894,6 @@ static void mw_parsezmargs_0 (void) {
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
-				mp_primzmdup();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("longest arg: ", 13);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				mw_printzn_1();
-				mw_printzmlnzn_2();
 				mw_state_0();
 				{
 					VAL d5 = pop_resource();
@@ -67866,19 +67769,6 @@ static void mw_for_18_308 (void) {
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
-				mp_primzmdup();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("longest arg: ", 13);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				mw_printzn_1();
-				mw_printzmlnzn_2();
 				mw_state_0();
 				{
 					VAL d5 = pop_resource();
@@ -67961,19 +67851,6 @@ static void mw_for_18_308 (void) {
 				mp_primzmswap();
 				mp_primzmintzmlt();
 				if (pop_u64()) {
-					mp_primzmdup();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("longest arg: ", 13);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
-					mw_printzn_1();
-					mw_printzmlnzn_2();
 					mw_state_0();
 					{
 						VAL d6 = pop_resource();
@@ -68053,19 +67930,6 @@ static void mw_for_18_308 (void) {
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
-				mp_primzmdup();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("longest arg: ", 13);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				mw_printzn_1();
-				mw_printzmlnzn_2();
 				mw_state_0();
 				{
 					VAL d5 = pop_resource();
@@ -68150,19 +68014,6 @@ static void mw_for_18_308 (void) {
 					mp_primzmswap();
 					mp_primzmintzmlt();
 					if (pop_u64()) {
-						mp_primzmdup();
-						{
-							static bool vready = false;
-							static VAL v;
-							if (! vready) {
-								v = mkstr("longest arg: ", 13);
-								vready = true;
-							}
-							push_value(v);
-							incref(v);
-						}
-						mw_printzn_1();
-						mw_printzmlnzn_2();
 						mw_state_0();
 						{
 							VAL d7 = pop_resource();
@@ -68242,19 +68093,6 @@ static void mw_for_18_308 (void) {
 				mp_primzmswap();
 				mp_primzmintzmlt();
 				if (pop_u64()) {
-					mp_primzmdup();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("longest arg: ", 13);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
-					mw_printzn_1();
-					mw_printzmlnzn_2();
 					mw_state_0();
 					{
 						VAL d6 = pop_resource();
@@ -68334,19 +68172,6 @@ static void mw_for_18_308 (void) {
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
-				mp_primzmdup();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("longest arg: ", 13);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				mw_printzn_1();
-				mw_printzmlnzn_2();
 				mw_state_0();
 				{
 					VAL d5 = pop_resource();

@@ -69,7 +69,7 @@ def(print-usage-for-option, +ArgumentParser(a) ArgpOption -- +ArgumentParser(a),
       drop2
     )
     "    " print! print!
-  ) col-offset> " " print! dup show print! drop
+  ) col-offset> drop
 
   "" print-ln!
   drop
@@ -136,7 +136,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 
      
     doc-length> dup state longest-arg-length > if(
-      dup "longest arg: " print! print-ln! state:longest-arg-length!,
+      state:longest-arg-length!,
       drop
     )
   )
