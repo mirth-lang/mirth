@@ -1,0 +1,158 @@
+module(ansi.ansi)
+
+import(std.prelude)
+import(std.str)
+import(std.byte)
+
+data(Sgr,
+    Reset,
+    Bold,
+    Faint,
+    Italic,
+    Underline,
+    SlowBlink,
+    FastBlink,
+    Invert,
+    Conceal,
+    Strike,
+
+    PrimaryFont,
+    Font2,
+    Font3,
+    Font4,
+    Font5,
+    Font6,
+    Font7,
+    Font8,
+    Font9,
+    Font10,
+    Fraktur,
+
+    DoubleUnderline,
+    Normal,
+    NotItalicOrBlackLetter,
+    NotUnderline,
+    NotBlink,
+    Proportional,
+    NotReversed,
+    Reveal,
+    NotStrike,
+
+    FGBlack,
+    FGRed,
+    FGGreen,
+    FGYellow,
+    FGBlue,
+    FGMagenta,
+    FGCyan,
+    FGWhite,
+    FGColor -> SGRColor,
+    FGDefault,
+
+    BGBlack,
+    BGRed,
+    BGGreen,
+    BGYellow,
+    BGBlue,
+    BGMagenta,
+    BGCyan,
+    BGWhite,
+    BGColor -> SGRColor,
+    BGDefault,
+
+    NotProportional,
+    Framed,
+    Encircled,
+    Overlined,
+    NotFramedOrEncircled,
+    NotOverlined,
+    UnderlineColor -> SGRColor,
+    DefaultUnderlineColor
+)
+
+def(Sgr.tag, Sgr -- Int,
+    Reset -> 0,
+    Bold -> 1,
+    Faint -> 2,
+    Italic -> 3,
+    Underline -> 4,
+    SlowBlink -> 5,
+    FastBlink -> 6,
+    Invert -> 7,
+    Conceal -> 8,
+    Strike -> 9,
+
+    PrimaryFont -> 10,
+    Font2 -> 11,
+    Font3 -> 12,
+    Font4 -> 13,
+    Font5 -> 14,
+    Font6 -> 15,
+    Font7 -> 16,
+    Font8 -> 17,
+    Font9 -> 18,
+    Font10 -> 19,
+    Fraktur -> 20,
+
+    DoubleUnderline -> 21,
+    Normal -> 22,
+    NotItalicOrBlackLetter -> 23,
+    NotUnderline -> 24,
+    NotBlink -> 25,
+    Proportional -> 26,
+    NotReversed -> 27,
+    Reveal -> 28,
+    NotStrike -> 29,
+
+    FGBlack -> 30,
+    FGRed -> 31,
+    FGGreen -> 32,
+    FGYellow -> 33,
+    FGBlue -> 34,
+    FGMagenta -> 35,
+    FGCyan -> 36,
+    FGWhite -> 37,
+    FGColor -> drop 38,
+    FGDefault -> 39,
+
+    BGBlack -> 40,
+    BGRed -> 41,
+    BGGreen -> 42,
+    BGYellow -> 43,
+    BGBlue -> 44,
+    BGMagenta -> 45,
+    BGCyan -> 46,
+    BGWhite -> 47,
+    BGColor -> drop 48,
+    BGDefault -> 49,
+
+    NotProportional -> 50,
+    Framed -> 51,
+    Encircled -> 52,
+    Overlined -> 53,
+    NotFramedOrEncircled -> 54,
+    NotOverlined -> 55,
+    UnderlineColor -> drop 56,
+    DefaultUnderlineColor -> 57
+)
+
+data(SGRColor,
+    Numbered -> Int,
+    RGB -> Int Int Int)
+
+def(SGRColor.show, SGRColor -- Str,
+    Numbered -> Str( ";5;" ; show ;),
+    RGB -> Str( ";2;" ; show ; ";" ; show ; ";" ; show ;)
+)
+
+def(Sgr.show, Sgr -- Str, 
+    Str( csi ;
+    dup tag show ;
+    match(
+        FGColor -> show ;,
+	BGColor -> show ;,
+    	_ -> drop 
+    )
+    "m" ;))
+
+def(csi, -- Str, Str(BESC push-byte-unsafe! BLSQUARE push-byte-unsafe!))

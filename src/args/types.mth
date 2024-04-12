@@ -6,6 +6,8 @@ import(std.str)
 import(args.parse)
 import(args.state)
 
+import(ansi.ansi)
+
 data(ArgumentParser(a),
   ArgumentParser ->
     options:List(ArgpOption)
@@ -54,7 +56,7 @@ data(ArgumentParsingError,
 
 def(ArgumentParsingError.show, ArgumentParsingError -- Str,
   NO_ARGS_PARSED -> "Failed to parse any CLI arguments",
-  MISSING_ARG -> "Missing argument: Need " swap cat,
+  MISSING_ARG -> Str(FGRed show ; "Missing argument: " ; Reset show ; ;),
   MISSING_ARGUMENT_VALUE -> "Missing associated value for flag option",
   TOO_MANY_ARGS -> "Too many positional arguments passed",
   TOO_FEW_ARGS -> "Too few positional arguments passed",
