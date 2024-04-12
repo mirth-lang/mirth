@@ -37,10 +37,10 @@ def(init!, --,
 data(Arguments,
     Arguments ->
         input-file:Path
-	output-file:Maybe(Path)
-	entry-point:Maybe(Str)
-	packages:List([Str Path])
-	emit-debug-info:Bool)
+    output-file:Maybe(Path)
+    entry-point:Maybe(Str)
+    packages:List([Str Path])
+    emit-debug-info:Bool)
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
@@ -86,15 +86,15 @@ def(compile!, Arguments +World -- +World,
     ) nip
 
     num-errors @ 0> if(
-    	FGRed show trace!
+        FGRed show trace!
         num-errors @ trace!
         " errors." trace-ln!
-	Reset show trace!
-
+        Reset show trace!
         1 posix-exit!,
-	    FGGreen show trace!
-  	    "No errors." trace!
-	    Reset show trace-ln!
+
+        FGGreen show trace!
+        "No errors." trace!
+        Reset show trace-ln!
     )
 
     match(
@@ -138,8 +138,8 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
             TOO_FEW_ARGS SOME state:error!
         )
         state arguments output-file else(
-	    state arguments entry-point then(
-	        "output-file" MISSING_ARG SOME state:error!
+        state arguments entry-point then(
+            "output-file" MISSING_ARG SOME state:error!
             )
         )
         drop,
@@ -155,35 +155,35 @@ def(main, +World -- +World,
         "OUTPUT_FILE" SOME >arg-doc
         "Test argument" SOME >doc
         NONE >group
-	ArgpOption.ArgpOption ;
+    ArgpOption.ArgpOption ;
 
         "compile-only" SOME >name
         B'c' SHORT >flag-type
         NONE >arg-doc
         "Compile code without running codegen step" SOME >doc
         NONE >group
-	ArgpOption.ArgpOption ;
+    ArgpOption.ArgpOption ;
 
         "entry-point" SOME >name
         B'e' SHORT >flag-type
         "ENTRY_POINT" SOME >arg-doc
         "Custom entry point word for compilation" SOME >doc
         NONE >group
-	ArgpOption.ArgpOption ;
+    ArgpOption.ArgpOption ;
 
-	"package" SOME >name
-	B'p' SHORT >flag-type
-	"(PACKAGE:PATH)*" SOME >arg-doc
-	"Package locations" SOME >doc
-	NONE >group
-	ArgpOption.ArgpOption ;
+    "package" SOME >name
+    B'p' SHORT >flag-type
+    "(PACKAGE:PATH)*" SOME >arg-doc
+    "Package locations" SOME >doc
+    NONE >group
+    ArgpOption.ArgpOption ;
 
         "debug" SOME >name
         "debug" LONG_ONLY >flag-type
         NONE >arg-doc
         "Emit debugging information during codegen" SOME >doc
         NONE >group
-	ArgpOption.ArgpOption ;
+    ArgpOption.ArgpOption ;
     ) >options
     [ compiler-parse-args ] SOME >parser
     "input-file" SOME >args-doc

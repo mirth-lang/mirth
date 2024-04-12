@@ -3,6 +3,7 @@ module(mirth.buffer)
 import(std.prelude)
 import(mirth.name)
 import(mirth.def)
+import(mirth.token)
 
 # mirth/data/buffer
 table(Buffer)

@@ -3,6 +3,7 @@ module(mirth.ctx)
 import(std.prelude)
 import(std.str)
 import(std.list)
+import(std.maybe)
 
 import(mirth.name)
 import(mirth.var)

@@ -21,3 +21,8 @@ def(Tycon.==, Tycon Tycon -- Bool,
     TYCON_DATA -> swap match(TYCON_DATA -> ==, _ -> drop2 F),
     TYCON_TABLE -> swap match(TYCON_TABLE -> ==, _ -> drop2 F),
     TYCON_PRIM -> swap match(TYCON_PRIM -> ==, _ -> drop2 F))
+
+def(Tycon.>Type, Tycon -- Type,
+    TYCON_DATA -> TData,
+    TYCON_TABLE -> TTable,
+    TYCON_PRIM -> TPrim)

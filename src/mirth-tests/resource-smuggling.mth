@@ -2,7 +2,6 @@ module(mirth-tests.resource-smuggling)
 
 import(std.prelude)
 data(TheWorld, THE_WORLD -> +World)
-def(/THE_WORLD, TheWorld -- +World, THE_WORLD -> id)
 
 def(drop-world, +World --, THE_WORLD drop)
 def(dup-world, +World -- +World +World, THE_WORLD dup dip(/THE_WORLD) /THE_WORLD)

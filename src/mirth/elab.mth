@@ -41,57 +41,56 @@ import(mirth.label)
 # Type Elaboration #
 ####################
 
-data(TypeElab, TYPE_ELAB -> Bool Ctx)
-def(type-elab-default, TypeElab, F CTX0 TYPE_ELAB)
-def(type-elab-stack-assertion, Ctx -- TypeElab, dip(T) TYPE_ELAB)
-def(type-elab-holes-allowed, TypeElab -- Bool, TYPE_ELAB -> drop)
-def(type-elab-ctx, TypeElab -- Ctx, TYPE_ELAB -> nip)
-def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)
-def(type-elab-ctx-replace, TypeElab Ctx -- TypeElab,
-    swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
+data(+TypeElab, TYPE_ELAB ->
+    ctx:Ctx token:Token
+    allow-type-holes:Bool
+    allow-implicit-type-vars:Bool)
 
-def(elab-type-sig!, TypeElab Token -- TypeElab ArrowType Token,
-    dup run-end? then(dup "expected type signature" emit-error!)
-    elab-type-sig-params! dip(swap)
-    elab-type-stack! dip(swap)
-    dup sig-dashes? if(
-        next elab-type-stack! dip(swap),
-        dip(T0 rotr))
-    dup run-end? else(dup "expected right paren or comma" emit-error!)
-    dip(rot4r dip(swap for(T*)) T->))
+def(+TypeElab.type-sig-start!, Token -- +TypeElab,
+    >token
+    CTX0 >ctx
+    F >allow-type-holes
+    T >allow-implicit-type-vars
+    TYPE_ELAB)
 
-def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
-    dup lparen? .if(
-        dup next dip(
-            L0 rotr args
-            for(elab-type-sig! drop >Type swap dip(snoc))
-            swap
-        ),
-        L0 swap
+def(+TypeElab.rdrop, +TypeElab --,
+    /TYPE_ELAB
+    ctx> token> drop2
+    allow-type-holes> drop
+    allow-implicit-type-vars> drop)
+
+def(+TypeElab.elab-type-sig!, +TypeElab -- +TypeElab ArrowType,
+    token run-end? then(token "expected type signature" emit-error!)
+    elab-type-sig-params!
+    elab-stack-type!
+    token sig-dashes? if(token:succ elab-stack-type!, dip:T0)
+    token run-end? else(token "expected right paren or comma" emit-error!)
+    dip(swap for(T*)) T->)
+
+def(+TypeElab.elab-type-sig-params!, +TypeElab -- +TypeElab List(Type),
+    token lparen? if(
+        token next
+        token args map(token! elab-type-sig! TMorphism)
+        dip:token!,
+        L0
     ))
 
-def(elab-type-stack!, TypeElab Token -- TypeElab StackType Token,
-    dup sig-stack-var? if(
-        elab-stack-var! dip(STVar),
-        dip(T0)
-    )
-    elab-type-stack-rest!)
+def(+TypeElab.elab-stack-type!, +TypeElab -- +TypeElab StackType,
+    token sig-stack-var? if(elab-stack-type-var! STVar, T0)
+    elab-stack-type-parts!)
 
-def(elab-type-stack-rest!, TypeElab StackType Token -- TypeElab StackType Token,
-    while(dup sig-stack-end? not,
-        swap dip(elab-type-atom!) swap
-        dip(swap cons)
-    ))
+def(+TypeElab.elab-stack-type-parts!, +TypeElab StackType -- +TypeElab StackType,
+    while(token sig-stack-end? not, elab-stack-type-part! cons))
 
-def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
-    elab-type-atom!
-    swap match(
-        STPCons -> swap,
-        STPConsLabel -> drop2 "Expected type, not label." emit-fatal-error!,
-        STPWith -> drop "Expected type, not resource." emit-fatal-error!,
+def(+TypeElab.elab-type-arg!, +TypeElab -- +TypeElab Type,
+    elab-stack-type-part!
+    match(
+        STPCons -> id,
+        STPConsLabel -> drop2 token "Expected type, not label." emit-error! TYPE_ERROR,
+        STPWith -> drop token "Expected type, not resource." emit-error! TYPE_ERROR,
     )
-    dup arg-end? else(
-        "Unexpected token after type." emit-fatal-error!
+    token arg-end? else(
+        token "Unexpected token after type." emit-fatal-error!
     ))
 
 data(StackTypePart,
@@ -104,126 +103,188 @@ def(StackTypePart.cons, StackType StackTypePart -- StackType,
     STPConsLabel -> STConsLabel,
     STPWith -> STWith)
 
-def(elab-type-atom!, TypeElab Token -- TypeElab StackTypePart Token,
-    dup could-be-sig-label? if(
-        elab-stack-label! dip(STPConsLabel),
+def(+TypeElab.elab-stack-type-part!, +TypeElab -- +TypeElab StackTypePart,
+    token could-be-sig-label? if(
+        elab-stack-label! STPConsLabel,
 
-    dup sig-type-var? if(
-        elab-type-var! dip(TVar STPCons),
+    token sig-type-var? if(
+        elab-type-var! TVar STPCons,
 
-    dup sig-type-con? if(
-        elab-type-con! dip(STPCons),
+    token sig-type-con? if(
+        elab-type-con! STPCons,
 
-    dup sig-resource-var? if(
-        elab-resource-var! dip(TVar RESOURCE STPWith),
+    token sig-resource-var? if(
+        elab-resource-var! TVar RESOURCE STPWith,
 
-    dup sig-resource-con? if(
-        elab-resource-con! dip(STPWith),
+    token sig-resource-con? if(
+        elab-resource-con! STPWith,
 
-    dup pat-underscore? if(
-        elab-type-dont-care! dip(STPCons),
+    token pat-underscore? if(
+        elab-type-dont-care! STPCons,
 
-    dup sig-type-hole? if(
-        elab-type-hole! dip(STPCons),
+    token sig-type-hole? if(
+        elab-type-hole! STPCons,
 
-    dup lsquare? .if(
-        elab-type-quote! dip(STPCons),
+    token lsquare? .if(
+        elab-type-quote! STPCons,
 
-        dup "Expected type, got unknown token." emit-error!
-        dip(TYPE_ERROR STPCons) next
+        token "Expected type, got unknown token." emit-error!
+        token:next TYPE_ERROR STPCons
     )))))))))
 
-def(elab-stack-label!, TypeElab Token -- TypeElab Type Label Token,
-    sip(args-1 elab-type-atom! drop) swap
-    match(STPCons -> id, _ -> drop dup args-1 "Expected type" emit-error! TYPE_ERROR)
-    swap sip(name? unwrap Label.new!) next)
+def(+TypeElab.elab-stack-label!, +TypeElab -- +TypeElab Type Label,
+    token next dip(
+        token name? unwrap Label.new!
+        token:args-1 elab-type-arg!
+        swap
+    ) token!)
 
-def(elab-stack-var!, TypeElab Token -- TypeElab Var Token,
+def(+TypeElab.elab-stack-type-var!, +TypeElab -- +TypeElab Var,
     TYPE_STACK elab-implicit-var!)
 
-def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
+def(+TypeElab.elab-type-var!, +TypeElab -- +TypeElab Var,
     TYPE_TYPE elab-implicit-var!)
 
-def(elab-resource-var!, TypeElab Token -- TypeElab Var Token,
+def(+TypeElab.elab-resource-var!, +TypeElab -- +TypeElab Var,
     TYPE_RESOURCE elab-implicit-var!)
 
-def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
-    dip2(type-elab-ctx?) over
-    dip2(name? unwrap dup2 swap lookup)
-    rotl match(
-        SOME ->
-            rotr dip2(nip dup type)
-            elab-type-unify! nip,
-        NONE ->
-            dip(
-                swap Var.new!
-                sip(Ctx.new)
-            )
+def(+TypeElab.elab-implicit-var!, +TypeElab Type -- +TypeElab Var,
+    token name? unwrap dup ctx lookup match(
+        SOME -> sip(nip type dip2(token GAMMA) unify! drop2),
+        NONE -> Var.new! ctx(over Ctx.new)
     )
-    next
-    dip2(type-elab-ctx-replace))
+    token args-0
+    token:succ)
 
-def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
-    dup name? unwrap >Str "Mut" == if(
-        tuck args-1 elab-type-arg! drop TMut
-        rotl next,
+def(show-num-arguments, Int -- Str,
+    dup 1 == if(drop "1 argument",
+    show " arguments" cat))
 
-        dup name? unwrap defs find(dup defines-a-type?) match(
-            SOME -> match(
-                DEF_DATA -> TData,
-                DEF_TABLE -> TTable,
-                DEF_TYPEDEF -> target,
-                _ -> drop dup "Not a type." emit-error! TYPE_ERROR
-            ),
-            NONE -> dup "Unknown type." emit-error! TYPE_ERROR
+data(ResolveDef,
+    RD_OK -> Def,
+    RD_AMBIGUOUS -> Token List+(Def),
+    RD_ARITY_ERROR -> Token List+(Def),
+    RD_VISIBILITY_ERROR -> Token List+(Def),
+    RD_SORT_ERROR -> Token List+(Def),
+    RD_UNKNOWN_NAME -> Token,
+    RD_SYNTAX_ERROR -> Token)
+
+def(resolve-def(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
+    dup name? if(resolve-def-name(p),
+    dup dname? if(resolve-def-dname(p),
+    RD_SYNTAX_ERROR)))
+
+def(resolve-def-dname(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
+    RD_UNKNOWN_NAME) # TODO
+
+def(resolve-def-name(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
+    dup name? unwrap defs >List+ match(
+        NONE -> RD_UNKNOWN_NAME,
+        SOME ->
+    tuck dip2:filter(p) rotl >List+ match(
+        NONE -> RD_SORT_ERROR,
+        SOME -> nip
+    dup filter(over2 over def-visible-from-token?) >List+ match(
+        NONE -> RD_VISIBILITY_ERROR,
+        SOME -> nip
+    dip(dup num-args) dup filter(over2 over qname arity arity-compatible?) >List+ match(
+        NONE -> nip RD_ARITY_ERROR,
+        SOME -> nip match(
+            L1+ -> dip:drop2 RD_OK,
+            _ -> nip RD_AMBIGUOUS
         )
+    )))))
 
-        dup error? else(
-            over num-args
-            over arity == if(
-                elab-type-args!,
-                drop dup "Wrong number of argumets for type." emit-error! TYPE_ERROR
-            )
+def(ResolveDef.expect(s), (Str) ResolveDef -- Maybe(Def),
+    RD_SYNTAX_ERROR -> Str("Expected a " ; s ; " name, got unknown token." ;) emit-error! NONE,
+    RD_UNKNOWN_NAME -> Str("Unknown " ; s ; " name, possibly a misspelling." ;) emit-error! NONE,
+    RD_SORT_ERROR ->
+        # TODO find a better way to pass these long messages.
+        Str("Expected a " ; s ; " name. The following are not " ; s ; "s:" ;
+            dip(" ") for(dip(;) qname >Str ; ", ") drop)
+        emit-error! NONE,
+    RD_VISIBILITY_ERROR ->
+        Str("This " ; s ; " is not visible. Not imported in current scope:" ;
+            dip(" ") for(dip(;) qname >Str ; ", ") drop)
+        emit-error! NONE,
+    RD_ARITY_ERROR ->
+        Str("Wrong number of arguments for " ; s ; ". The following are available:" ;
+            dip(" ") for(dip(;) qname >Str ; ", ") drop)
+        emit-error! NONE,
+    RD_AMBIGUOUS ->
+        Str("Ambiguous " ; s ; " name. Can't decide between the following:" ;
+            dip(" ") for(dip(;) qname >Str ; ", ") drop)
+        emit-error! NONE,
+    RD_OK ->
+        SOME)
+
+def(+TypeElab.resolve-type-con-name!, +TypeElab -- +TypeElab Type,
+    token resolve-def(dup defines-a-type?) expect("type") match(
+        NONE -> TYPE_ERROR,
+        SOME -> match(
+            DEF_DATA -> TData,
+            DEF_TABLE -> TTable,
+            DEF_TYPEDEF -> target,
+            _ ->
+                drop token "compiler bug: resolve-type-con-name! doesn't understand type"
+                emit-error! # TODO: use better types to prevent this branch.
+                TYPE_ERROR,
         )
-        swap next
     ))
 
-def(elab-resource-con!, TypeElab Token -- TypeElab Resource Token,
-    elab-type-con! dip(RESOURCE))
+def(+TypeElab.elab-type-con!, +TypeElab -- +TypeElab Type,
+    token name? unwrap >Str "Mut" == if(
+        token next dip(
+            token:args-1
+            elab-type-arg!
+            TMut
+        ) token!,
 
-def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
-    over has-args? if(
-        dip(tuck) swap succ
-        while(dup args-end? not,
-            succ swap
-            dip(elab-type-arg!) swap
-            dip(swap TApp))
-        drop dip(swap),
+        resolve-type-con-name! elab-type-args!
+        token:next
+    ))
+
+def(+TypeElab.elab-resource-con!, +TypeElab -- +TypeElab Resource,
+    elab-type-con! RESOURCE)
+
+def(+TypeElab.elab-type-args!, +TypeElab Type -- +TypeElab Type,
+    token has-args? if(
+        token dip(
+            token args for(
+                token!
+                elab-type-arg! TApp
+            )
+        ) token!,
 
         id
     ))
 
-def(elab-type-hole!, TypeElab Token -- TypeElab Type Token,
-    over type-elab-holes-allowed if(
-        dup args-0
-        dup name? unwrap THole
-        swap next,
-        "type holes are not allowed here" emit-fatal-error!
-    ))
+def(+TypeElab.elab-type-hole!, +TypeElab -- +TypeElab Type,
+    allow-type-holes if(
+        token args-0
+        token name? unwrap THole,
+        token "type holes are not allowed here" emit-error!
+        TYPE_ERROR
+    )
+    token:next)
 
-def(elab-type-dont-care!, TypeElab Token -- TypeElab Type Token,
-    over type-elab-holes-allowed if(
-        dup args-0
-        TYPE_DONT_CARE
-        swap next,
-        "underscore is not allowed here" emit-fatal-error!
-    ))
+def(+TypeElab.elab-type-dont-care!, +TypeElab -- +TypeElab Type,
+    allow-type-holes if(
+        token args-0
+        TYPE_DONT_CARE,
+        token "underscore is not allowed here" emit-error!
+        TYPE_ERROR
+    )
+    token:next)
 
-def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
-    args-1 dup sig-has-dashes? if(
-        elab-type-sig! dip(>Type),
-        elab-type-stack! dip(>Type)
-    ) next)
+def(+TypeElab.elab-type-quote!, +TypeElab -- +TypeElab Type,
+    token next dip(
+        token:args-1
+        token sig-has-dashes? if(
+            elab-type-sig! >Type,
+            elab-stack-type! >Type
+        )
+    ) token!)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
     sip(GAMMA rotr unify! nip))
@@ -231,7 +292,11 @@ def(elab-stack-type-unify!, StackType StackType Token -- StackType Token,
     sip(GAMMA rotr unify! nip))
 
 def(elab-simple-type-arg!, Token -- Type,
-    dip(type-elab-default) elab-type-arg! drop nip)
+    >token
+    CTX0 >ctx
+    F >allow-type-holes
+    F >allow-implicit-type-vars
+    TYPE_ELAB elab-type-arg! rdrop)
 
 ####################
 # Word Elaboration #
@@ -643,10 +708,13 @@ def(elab-prim!, Prim +AB -- +AB,
     ))
 
 def(elab-atom-assert!, +AB -- +AB,
-    ab-token@ GAMMA
-    ab-ctx@ type-elab-stack-assertion
-    ab-token@ args-1 elab-type-stack!
-    drop nip ab-type@ swap unify! drop2)
+    ab-token@ args-1 >token
+    ab-ctx@ >ctx
+    T >allow-type-holes
+    F >allow-implicit-type-vars
+    TYPE_ELAB elab-stack-type! rdrop
+    dip(ab-token@ GAMMA ab-type@)
+    unify! drop2)
 
 def(elab-atom-match!, +AB -- +AB,
     MetaVar.new! STMeta >cod
@@ -881,24 +949,25 @@ def(elab-data-tag!, Data Token -- Data,
     ))
     { Data Tag }
     dup delay(
-        type-elab-default
-        over .data head? unwrap elab-type-atom! drop dip(T0) cons
-        dip(T0 rotl sig? for(
-            elab-type-stack-rest!
-            dup run-end? else("syntax error" emit-fatal-error!) drop
-        ))
-        T-> dip(type-elab-ctx) pack2
-    )
-    over ~ctx-type !
+        dup .data head? unwrap
+        +TypeElab.type-sig-start!
+        dup .data TData elab-type-args!
+        over .data is-resource? if(T0 swap RESOURCE T+, T1)
+        swap sig? match(
+            NONE -> T0,
+            SOME -> token! T0 elab-stack-type-parts!
+        )
+        swap T-> dip:ctx pack2 rdrop
+    ) over ~ctx-type !
     sip(num-type-inputs-from-sig) sip(~num-type-inputs !)
     sip(num-resource-inputs-from-sig) sip(~num-resource-inputs !)
     sip(label-inputs-from-sig) sip(~label-inputs !)
 
     dup outputs-resource? not
     over num-resource-inputs 0> && then(
-        sig? unwrap run-tokens find(
+        dup sig? unwrap run-tokens find(
             dup sig-resource-con? or(dup sig-resource-var?)
-        ) unwrap "Value type cannot contain resource." emit-fatal-error!
+        ) unwrap "Value type cannot contain resource." emit-error!
     )
 
     drop)
@@ -1113,10 +1182,11 @@ def(elab-def!, Token -- Token,
     prefer-inline-defs? over ~prefer-inline? !
 
     dup delay(
-        type-elab-default
-        over sig unwrap-or(over head "need word signature" emit-fatal-error!)
-        elab-type-sig! drop dip(type-elab-ctx)
-        pack2 nip
+        sig unwrap
+        +TypeElab.type-sig-start!
+        elab-type-sig!
+        dip:ctx pack2
+        rdrop
     ) over ~ctx-type !
     dup delay(elab-def-params!) over ~params !
     dup delay(
@@ -1166,8 +1236,8 @@ def(elab-def-external!, Token -- Token,
     tuck ~sig !
     tuck ~head !
     dup delay(
-        type-elab-default swap sig
-        elab-type-sig! drop dip(type-elab-ctx) pack2
+        sig +TypeElab.type-sig-start!
+        elab-type-sig! dip:ctx pack2 rdrop
     ) over ~ctx-type !
     DEF_EXTERNAL register)
 

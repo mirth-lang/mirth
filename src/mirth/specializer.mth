@@ -17,6 +17,7 @@ import(mirth.elab)
 import(mirth.name)
 import(mirth.var)
 import(mirth.ctx)
+import(mirth.prim)
 
 def(run-specializer!, Arrow -- Arrow,
     +SPCheck.begin! check-arrow! loop! end!)

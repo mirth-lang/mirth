@@ -6,6 +6,7 @@ import(mirth.name)
 import(mirth.type)
 import(mirth.buffer)
 import(mirth.word)
+import(mirth.token)
 
 # mirth/data/table
 table(Table)

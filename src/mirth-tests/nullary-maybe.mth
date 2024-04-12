@@ -1,0 +1,8 @@
+||| Regression test for issue:
+|||   https://github.com/mirth-lang/mirth/issues/226
+module(mirth-tests.nullary-maybe)
+import(std.prelude)
+
+data(Maybe, MAYBE0)
+
+def(main, --, id)

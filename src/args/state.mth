@@ -3,7 +3,9 @@ module(args.state)
 import(std.prelude)
 import(std.maybe)
 import(std.str)
+import(std.list)
 import(args.parse)
+import(args.types)
 
 data(ArgvInfo,
   ARGV_INFO ->
