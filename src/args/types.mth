@@ -3,6 +3,8 @@ module(args.types)
 import(std.prelude)
 import(std.maybe)
 import(std.str)
+import(std.byte)
+import(std.list)
 import(args.parse)
 import(args.state)
 
@@ -41,7 +43,7 @@ data(ArgpOption,
     flag-type:ArgpOptionType
     arg-doc:Maybe(Str)
     doc:Maybe(Str)
-    group:Maybe(Int)) 
+    group:Maybe(Int))
 
 data(ArgumentParsingError,
   NO_ARGS_PARSED,

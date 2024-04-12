@@ -4,6 +4,8 @@ import(std.prelude)
 import(std.lazy)
 import(mirth.name)
 import(mirth.def)
+import(mirth.type)
+import(mirth.token)
 
 table(Variable)
 field(Variable.~head, Variable, Token)

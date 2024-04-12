@@ -9,6 +9,7 @@ import(mirth.label)
 import(mirth.location)
 import(mirth.error)
 import(mirth.prim)
+import(mirth.module)
 
 ##########
 # Tokens #

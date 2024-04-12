@@ -13,6 +13,13 @@ import(mirth.match)
 import(mirth.var)
 import(mirth.name)
 import(mirth.word)
+import(mirth.ctx)
+import(mirth.prim)
+import(mirth.external)
+import(mirth.buffer)
+import(mirth.variable)
+import(mirth.table)
+import(mirth.label)
 
 ##########
 # ARROWS #

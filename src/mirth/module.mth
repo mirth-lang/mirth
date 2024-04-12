@@ -8,6 +8,7 @@ import(std.byte)
 import(std.maybe)
 import(mirth.name)
 import(mirth.package)
+import(mirth.token)
 
 # mirth/data/module
 table(Module)

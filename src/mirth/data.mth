@@ -12,6 +12,7 @@ import(mirth.name)
 import(mirth.def)
 import(mirth.label)
 import(mirth.tycon)
+import(mirth.word)
 
 table(Data)
 field(Data.~head?, Data, Maybe(Token))
