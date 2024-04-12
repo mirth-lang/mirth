@@ -94,9 +94,7 @@ def(compile!, Arguments +World -- +World,
         1 posix-exit!,
 	    FGGreen show trace!
   	    "No errors." trace!
-	    Reset show trace!
-
-	    "" trace-ln!
+	    Reset show trace-ln!
     )
 
     match(

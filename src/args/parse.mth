@@ -32,21 +32,22 @@ def(print-usage, +ArgumentParser(a) -- +ArgumentParser(a),
 def(print-usage-for-option, +ArgumentParser(a) ArgpOption -- +ArgumentParser(a),
   "  " print!
 
+
+  0 >col-offset
   dup flag-type match(
-    SHORT -> dup is-printable if(
-        "-" print! to-str-unsafe print!,
-	drop "  " print!
-    ),
-    _ -> drop "  " print!
+    SHORT -> dup is-printable then(
+        col-offset> 2 + >col-offset
+        "-" print! dup to-str-unsafe print!,
+    ) drop,
+    _ -> drop 
   )
 
   # If we have both a short and long version of the argument we separate them
-  dup flag-type has-short? and(dup name some?) if(
-    ", " ,
-    "  "
-  ) print!
+  dup flag-type has-short? and(dup name some?) then(
+    ", " print!
+    col-offset> 2 + >col-offset
+  )
 
-  0 >col-offset
   dup name then-some( 
     "--" print! 
 
@@ -68,7 +69,7 @@ def(print-usage-for-option, +ArgumentParser(a) ArgpOption -- +ArgumentParser(a),
       drop2
     )
     "    " print! print!
-  ) col-offset> drop
+  ) col-offset> " " print! dup show print! drop
 
   "" print-ln!
   drop
@@ -123,15 +124,21 @@ def(do-positional-option, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(Arg
 def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
   >argument-parser State.init >state +ARGUMENTPARSER
   argument-parser options for(
-     0 >doc-length
-     dup name then-some(num-bytes >Int doc-length> + >doc-length)
-     arg-doc then-some(num-bytes >Int doc-length> + >doc-length)
+    0 >doc-length
+
+    dup flag-type match(
+      SHORT -> drop doc-length> 2 + >doc-length,
+      _ -> drop
+    )
+
+    dup name then-some(num-bytes >Int doc-length> 3 + + >doc-length)
+    arg-doc then-some(num-bytes >Int doc-length> 2 + + >doc-length)
 
      
-     doc-length> dup state longest-arg-length > if(
-         3 + state:longest-arg-length!,
-	 drop
-     )
+    doc-length> dup state longest-arg-length > if(
+      dup "longest arg: " print! print-ln! state:longest-arg-length!,
+      drop
+    )
   )
 
   state State.argv for(
