@@ -23,6 +23,7 @@ data(State(a),
     argv-info:ArgvInfo
     arg:CurrentArg
     positional-index:Int
+    longest-arg-length:Int
     error:Maybe(ArgumentParsingError)
 )
 
@@ -38,6 +39,7 @@ def(State.init, a -- State(a),
 
   >arguments
   0 >positional-index
+  0 >longest-arg-length
   NONE >error
   STATE
 )

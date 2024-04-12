@@ -27,6 +27,8 @@ import(mirth.ctx)
 import(mirth.specializer)
 import(mirth.c99)
 
+import(ansi.ansi)
+
 def(init!, --,
     init-errors!
     init-types!
@@ -84,10 +86,17 @@ def(compile!, Arguments +World -- +World,
     ) nip
 
     num-errors @ 0> if(
+    	FGRed show trace!
         num-errors @ trace!
         " errors." trace-ln!
+	Reset show trace!
+
         1 posix-exit!,
-  	    "No errors." trace-ln!
+	    FGGreen show trace!
+  	    "No errors." trace!
+	    Reset show trace!
+
+	    "" trace-ln!
     )
 
     match(
