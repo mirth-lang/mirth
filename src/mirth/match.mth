@@ -170,4 +170,5 @@ def(Pattern.covers?, Pattern Pattern -- Bool,
 def(PatternOp./PATOP_TAG, PatternOp -- Maybe(Tag), PATOP_TAG -> SOME, _ -> drop NONE)
 def(PatternOp./PATOP_UNDERSCORE, PatternOp -- Bool, PATOP_UNDERSCORE -> T, _ -> drop F)
 
-## TODO: introduce or trees
+## TODO: introduce case trees
+## https://github.com/mirth-lang/mirth/issues/238

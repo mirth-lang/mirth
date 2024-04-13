@@ -370,7 +370,6 @@ def(collect-while(f,g), (*a -- *a Bool, *a -- *a b) *a -- *a List(b),
 
 ||| Count up, inclusive at both ends.
 def(Int.range, Int Int -- List(Int),
-    # TODO: match on integers to make this cleaner.
     dup2 >= if(drop2 L0,
     dup2 1- == if(drop L1,
         dup2 + 2/ tuck swap range

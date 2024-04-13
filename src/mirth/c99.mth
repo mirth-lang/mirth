@@ -524,6 +524,7 @@ def(c99-string-byte!, Byte +C99 -- +C99,
     )
 
 def(c99-prim!, List(Arg) Prim +C99 -- +C99,
+    PRIM_CORE_ID -> drop,
     PRIM_CORE_DIP ->
         match(
             L1 ->

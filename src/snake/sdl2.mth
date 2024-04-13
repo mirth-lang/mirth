@@ -479,6 +479,7 @@ def(SDL_CONTROLLER_BUTTON_INVALID, SDL_GameControllerButton,
     0xFF SDL_GameControllerButton.from-tag-unsafe)
     # TODO find way to fold SDL_CONTROLLER_BUTTON_INVALID into definition of enum,
     # without having to specify all of these manually.
+    #   https://github.com/mirth-lang/mirth/issues/233
 
 def(U8.>SDL_GameControllerButton, U8 -- SDL_GameControllerButton,
    >Int SDL_GameControllerButton.from-tag-unsafe)

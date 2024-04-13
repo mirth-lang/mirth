@@ -134,10 +134,6 @@ def(T6, Type Type Type Type Type Type -- StackType, dip(T5) T*)
 def(Type.error?, Type -- Bool, expand match(TYPE_ERROR -> T, _ -> drop F))
 def(Type.morphism?, Type -- Maybe(ArrowType), expand match(TMorphism -> SOME, _ -> drop NONE))
 def(Type.prim?, Type -- Maybe(PrimType), expand match(TPrim -> SOME, _ -> drop NONE))
-def(Type.data?, Type -- Maybe(Data),
-    type-head match(TData -> SOME, _ -> drop NONE)) # TODO fix this
-def(Type.mut?, Type -- Maybe(Type),
-    expand match(TMut -> SOME, _ -> drop NONE))
 
 def(Type.tensor?, Type -- Maybe(StackType), expand match(TTensor -> SOME, _ -> drop NONE))
 def(Type.unit?, Type -- Bool, tensor? if-some(unit?, F))
@@ -915,6 +911,7 @@ def(ArrowType.rigidify-sig!, Ctx ArrowType -- Ctx ArrowType,
     # TODO check if both stack bases are the same metavar,
     # and that this metavar appears nowhere else in the sig,
     # and if so, unify that metavar with STACK_TYPE_UNIT.
+    #   https://github.com/mirth-lang/mirth/issues/239
 
 def(ArrowType.max-num-params, ArrowType -- Nat,
     dom num-morphisms-on-top)
