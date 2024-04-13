@@ -6,6 +6,7 @@ import(std.maybe)
 
 ||| Key-value map, implemented as linear search list.
 ||| TODO: switch to a comparison-based ordered map.
+|||   https://github.com/mirth-lang/mirth/issues/237
 data(Map(k,v), MAP -> List(KVPair(k,v)))
 data(KVPair(k,v), KVPAIR -> key:k value:v)
 

@@ -384,13 +384,12 @@ def(LIST(f), (*a +List(t) -- *a +List(t)) *a -- *a List(t), L0 +LIST f -LIST)
 def(+List.;, *a t +List(t) -- *a +List(t), +LIST -> swap snoc +LIST)
 
 def(List.==(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool,
-    dup2 both(len) == if(
-        map2(eq) all(dup), # TODO short circuiting version of this?
-        drop2 F
-    ))
+    both(>List+) ==(==(eq)))
+
 def(List+.==(eq), (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool,
-    dup2 both(len) == if(
-        map2(eq) all(dup),
+    dip(uncons) uncons
+    dip(swap dip(eq)) rotl if(
+        ==(eq),
         drop2 F
     ))
 
