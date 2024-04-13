@@ -582,7 +582,6 @@ static void mp_primzmrswap (void) {
 
 static void mp_primzmintzmadd (void) {
 	PRIM_ENTER(mp_primzmintzmadd,"prim-int-add");
-	// TODO promote to bigint on overflow.
 	int64_t b = pop_i64();
 	int64_t a = pop_i64();
 	if (b >= 0) {
@@ -595,7 +594,6 @@ static void mp_primzmintzmadd (void) {
 }
 static void mp_primzmintzmsub (void) {
 	PRIM_ENTER(mp_primzmintzmsub,"prim-int-sub");
-	// TODO promote to bigint on overflow
 	int64_t b = pop_i64();
 	int64_t a = pop_i64();
 	if (b >= 0) {
@@ -608,7 +606,6 @@ static void mp_primzmintzmsub (void) {
 }
 static void mp_primzmintzmmul (void) {
 	PRIM_ENTER(mp_primzmintzmmul,"prim-int-mul");
-	// TODO promote to bigint on overflow
 	int64_t b = pop_i64();
 	int64_t a = pop_i64();
 	// overflow checks for multiplication
@@ -617,7 +614,6 @@ static void mp_primzmintzmmul (void) {
 }
 static void mp_primzmintzmdiv (void) {
 	PRIM_ENTER(mp_primzmintzmdiv,"prim-int-div");
-	// TODO promote to bigint on overflow
 	int64_t b = pop_i64();
 	int64_t a = pop_i64();
 	EXPECT(b != 0, "divide by zero");
@@ -819,7 +815,32 @@ void mp_primzmintzmtozmstr(void) {
 void str_trace_(STR* str, int fd) {
 	ASSERT(str->size <= SIZE_MAX);
 	write(fd, "\"", 1);
-	write(fd, str->data, (size_t)str->size); // TODO handle escapes
+	USIZE i0 = 0;
+	char xb[4]={'\\','x'};
+	USIZE i;
+	for (i = 0; i < str->size; i++) {
+		const char* c = NULL; size_t n=0;
+		uint8_t v=str->data[i];
+		switch(v) {
+			case '\n': c="\\n"; n=2; break;
+			case '\r': c="\\r"; n=2; break;
+			case '\t': c="\\t"; n=2; break;
+			case '\\': c="\\\\"; n=2; break;
+			case '\"': c="\\\""; n=2; break;
+			default:
+				if (!((' ' <= v) && (v < 0x7F))) {
+					xb[2] = '0' + (v&15) + ('A'-'9'-1)*((v&15) > 9);
+					xb[3] = '0' + (v/16) + ('A'-'9'-1)*((v/16) > 9);
+					c=xb; n=4;
+				}
+		}
+		if ((n > 0) && (i0 < i)) {
+			write(fd, str->data+i0, (size_t)(i-i0));
+			i0=i+1;
+		}
+		write(fd, c, n);
+	}
+	if (i0 < i) write(fd, str->data+i0, (size_t)(i-i0));
 	write(fd, "\"", 1);
 }
 
@@ -880,12 +901,14 @@ static void mp_primzmrdebug (void) {
 }
 
 static void mp_primzmpanic(void) {
-	// TODO: expect less of the stack, i.e. panic gracefully even if stack
-	// is in a weird state ... this is panic! after all
-	VAL v = pop_value();
-	ASSERT(IS_STR(v));
-	ASSERT(VSTR(v)->size < SIZE_MAX);
-	write(2,VSTR(v)->data, (size_t)VSTR(v)->size);
+	if ((stack_counter > 0) && IS_STR(top_value())) {
+		VAL v = pop_value();
+		size_t n = (VSTR(v)->size < 2048) ? (size_t)(VSTR(v)->size) : 2048;
+		write(2, VSTR(v)->data, n);
+		TRACE("\n");
+	} else {
+		TRACE("panic!\n");
+	}
 	mp_primzmdebug();
 	mp_primzmrdebug();
 	exit(1);
@@ -46031,7 +46054,6 @@ static void mw_c99zmheaderzmstr_0 (void) {
 				"\n"
 				"static void mp_primzmintzmadd (void) {\n"
 				"\tPRIM_ENTER(mp_primzmintzmadd,\"prim-int-add\");\n"
-				"\t// TODO promote to bigint on overflow.\n"
 				"\tint64_t b = pop_i64();\n"
 				"\tint64_t a = pop_i64();\n"
 				"\tif (b >= 0) {\n"
@@ -46044,7 +46066,6 @@ static void mw_c99zmheaderzmstr_0 (void) {
 				"}\n"
 				"static void mp_primzmintzmsub (void) {\n"
 				"\tPRIM_ENTER(mp_primzmintzmsub,\"prim-int-sub\");\n"
-				"\t// TODO promote to bigint on overflow\n"
 				"\tint64_t b = pop_i64();\n"
 				"\tint64_t a = pop_i64();\n"
 				"\tif (b >= 0) {\n"
@@ -46057,7 +46078,6 @@ static void mw_c99zmheaderzmstr_0 (void) {
 				"}\n"
 				"static void mp_primzmintzmmul (void) {\n"
 				"\tPRIM_ENTER(mp_primzmintzmmul,\"prim-int-mul\");\n"
-				"\t// TODO promote to bigint on overflow\n"
 				"\tint64_t b = pop_i64();\n"
 				"\tint64_t a = pop_i64();\n"
 				"\t// overflow checks for multiplication\n"
@@ -46066,7 +46086,6 @@ static void mw_c99zmheaderzmstr_0 (void) {
 				"}\n"
 				"static void mp_primzmintzmdiv (void) {\n"
 				"\tPRIM_ENTER(mp_primzmintzmdiv,\"prim-int-div\");\n"
-				"\t// TODO promote to bigint on overflow\n"
 				"\tint64_t b = pop_i64();\n"
 				"\tint64_t a = pop_i64();\n"
 				"\tEXPECT(b != 0, \"divide by zero\");\n"
@@ -46268,7 +46287,32 @@ static void mw_c99zmheaderzmstr_0 (void) {
 				"void str_trace_(STR* str, int fd) {\n"
 				"\tASSERT(str->size <= SIZE_MAX);\n"
 				"\twrite(fd, \"\\\"\", 1);\n"
-				"\twrite(fd, str->data, (size_t)str->size); // TODO handle escapes\n"
+				"\tUSIZE i0 = 0;\n"
+				"\tchar xb[4]={'\\\\','x'};\n"
+				"\tUSIZE i;\n"
+				"\tfor (i = 0; i < str->size; i++) {\n"
+				"\t\tconst char* c = NULL; size_t n=0;\n"
+				"\t\tuint8_t v=str->data[i];\n"
+				"\t\tswitch(v) {\n"
+				"\t\t\tcase '\\n': c=\"\\\\n\"; n=2; break;\n"
+				"\t\t\tcase '\\r': c=\"\\\\r\"; n=2; break;\n"
+				"\t\t\tcase '\\t': c=\"\\\\t\"; n=2; break;\n"
+				"\t\t\tcase '\\\\': c=\"\\\\\\\\\"; n=2; break;\n"
+				"\t\t\tcase '\\\"': c=\"\\\\\\\"\"; n=2; break;\n"
+				"\t\t\tdefault:\n"
+				"\t\t\t\tif (!((' ' <= v) && (v < 0x7F))) {\n"
+				"\t\t\t\t\txb[2] = '0' + (v&15) + ('A'-'9'-1)*((v&15) > 9);\n"
+				"\t\t\t\t\txb[3] = '0' + (v/16) + ('A'-'9'-1)*((v/16) > 9);\n"
+				"\t\t\t\t\tc=xb; n=4;\n"
+				"\t\t\t\t}\n"
+				"\t\t}\n"
+				"\t\tif ((n > 0) && (i0 < i)) {\n"
+				"\t\t\twrite(fd, str->data+i0, (size_t)(i-i0));\n"
+				"\t\t\ti0=i+1;\n"
+				"\t\t}\n"
+				"\t\twrite(fd, c, n);\n"
+				"\t}\n"
+				"\tif (i0 < i) write(fd, str->data+i0, (size_t)(i-i0));\n"
 				"\twrite(fd, \"\\\"\", 1);\n"
 				"}\n"
 				"\n"
@@ -46329,12 +46373,14 @@ static void mw_c99zmheaderzmstr_0 (void) {
 				"}\n"
 				"\n"
 				"static void mp_primzmpanic(void) {\n"
-				"\t// TODO: expect less of the stack, i.e. panic gracefully even if stack\n"
-				"\t// is in a weird state ... this is panic! after all\n"
-				"\tVAL v = pop_value();\n"
-				"\tASSERT(IS_STR(v));\n"
-				"\tASSERT(VSTR(v)->size < SIZE_MAX);\n"
-				"\twrite(2,VSTR(v)->data, (size_t)VSTR(v)->size);\n"
+				"\tif ((stack_counter > 0) && IS_STR(top_value())) {\n"
+				"\t\tVAL v = pop_value();\n"
+				"\t\tsize_t n = (VSTR(v)->size < 2048) ? (size_t)(VSTR(v)->size) : 2048;\n"
+				"\t\twrite(2, VSTR(v)->data, n);\n"
+				"\t\tTRACE(\"\\n\");\n"
+				"\t} else {\n"
+				"\t\tTRACE(\"panic!\\n\");\n"
+				"\t}\n"
 				"\tmp_primzmdebug();\n"
 				"\tmp_primzmrdebug();\n"
 				"\texit(1);\n"
@@ -46739,7 +46785,7 @@ static void mw_c99zmheaderzmstr_0 (void) {
 				"}\n"
 				"\n"
 				"/* GENERATED C99 */\n",
-				32548
+				32985
 			);
 			vready = true;
 		}

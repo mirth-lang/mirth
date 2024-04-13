@@ -95,7 +95,6 @@ def(data-qname, Data Name Int -- QName,
     >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
 
 def(data-word-qname, Data Str Int -- QName,
-    # dip(dup name >Str "." cat) cat >Name # TODO remove
     dip(>Name) data-qname)
 
 ########
