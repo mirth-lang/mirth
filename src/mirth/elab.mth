@@ -176,6 +176,7 @@ def(resolve-def(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
 
 def(resolve-def-dname(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
     RD_UNKNOWN_NAME) # TODO
+    # https://github.com/mirth-lang/mirth/issues/244
 
 def(resolve-def-name(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
     dup name? unwrap defs >List+ match(
@@ -200,6 +201,7 @@ def(ResolveDef.expect(s), (Str) ResolveDef -- Maybe(Def),
     RD_UNKNOWN_NAME -> Str("Unknown " ; s ; " name, possibly a misspelling." ;) emit-error! NONE,
     RD_SORT_ERROR ->
         # TODO find a better way to pass these long messages.
+        #  https://github.com/mirth-lang/mirth/issues/245
         Str("Expected a " ; s ; " name. The following are not " ; s ; "s:" ;
             dip(" ") for(dip(;) qname >Str ; ", ") drop)
         emit-error! NONE,
@@ -227,8 +229,7 @@ def(+TypeElab.resolve-type-con-name!, +TypeElab -- +TypeElab Type,
             DEF_TYPEDEF -> target,
             _ ->
                 drop token "compiler bug: resolve-type-con-name! doesn't understand type"
-                emit-error! # TODO: use better types to prevent this branch.
-                TYPE_ERROR,
+                emit-error! TYPE_ERROR,
         )
     ))
 
@@ -571,6 +572,7 @@ def(elab-no-args!, +AB -- +AB,
 ||| meaning it can be referred to without qualification.
 def(elab-qname-is-imported?, QName +AB -- Bool +AB,
     # TODO: implement finer grained control over what is imported.
+    #   https://github.com/mirth-lang/mirth/issues/243
     dup namespace match(
         NAMESPACE_MODULE -> nip elab-module-is-visible,
         NAMESPACE_TYCON -> elab-tycon-is-visible and(dup def? bind(tag?) some?) nip,
@@ -670,7 +672,7 @@ def(elab-namespace-is-visible, Namespace +AB -- Bool +AB,
     NAMESPACE_WORD -> drop F)
 
 def(elab-tycon-is-visible, Tycon +AB -- Bool +AB,
-    qname elab-qname-is-visible) # FIXME
+    qname elab-qname-is-visible)
 def(elab-module-is-visible, Module +AB -- Bool +AB,
     ab-token@ .module visible)
 
@@ -745,11 +747,6 @@ def(elab-match-case!, Token +Match -- Token +Match,
         ab-token@ dup comma? then(succ)
     ))
 
-def(Token.pat-tokens, Token -- List(Token),
-    run-tokens take-while(dup pat-arrow? not))
-def(List.take-while(p), (*a t -- *a t Bool) *a List(t) -- *a List(t),
-    dip:T filter(swap dip:p && tuck) nip) # TODO improve
-
 def(elab-pattern!, List(Token) +Pattern -- +Pattern,
     reverse-for(elab-pattern-atom!))
 
@@ -759,6 +756,7 @@ def(elab-pattern-atom!, Token +Pattern -- +Pattern,
 
     dup name? if-some(
         # TODO type-directed tag resolution
+        #  https://github.com/mirth-lang/mirth/issues/227
         defs find-some(tag?) match(
             NONE -> "Unknown constructor." emit-fatal-error!,
             SOME -> nip +Pattern.tag!
@@ -898,6 +896,7 @@ def(load-module, Token QName +World -- Token Module +World,
             elab-module!
                 # TODO: avoid elaborating here,
                 # use a single loop to dispatch top-level module elaboration.
+                #    https://github.com/mirth-lang/mirth/issues/241
     ))
 
 ||| Elaborate `import(M)` statement. Return token after import.
@@ -925,6 +924,7 @@ def(elab-data-header!, Data Token -- Data,
     over ~qname !
     dup DEF_DATA register
     # TODO check header args are well-formed / elaborate them properly
+    #  as part of: https://github.com/mirth-lang/mirth/issues/246
     dip(num-args) ~arity !)
 
 ||| Get a tag associated with a data type.
@@ -1159,6 +1159,7 @@ def(elab-def-missing!, Token -- Token,
     dup succ succ elab-def-qname defined? if(next, elab-def!))
 
 # TODO: add a +Mirth resource and keep this state in it.
+#  https://github.com/mirth-lang/mirth/issues/247
 var(~prefer-inline-defs?, Bool)
 def(prefer-inline-defs?, Bool, ~prefer-inline-defs? @? unwrap-or(F))
 

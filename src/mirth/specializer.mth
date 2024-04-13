@@ -151,8 +151,6 @@ def(specialize-word!, SPKey Word -- Word,
             T w' ~prefer-inline? !
             k w w' delay3(ab-build-word-arrow!(dip(
                 synth-specialized-word!
-                # dip(/SPKEY for(/ARG_BLOCK OP_BLOCK ab-op!))
-                # ab-word! # TODO actually do the thing here
             ))) w' ~arrow !
             w'
         )

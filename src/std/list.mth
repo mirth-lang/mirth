@@ -414,3 +414,9 @@ def(List.map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
     collect(uncons? dip(dip:uncons? swap dip:map2:f) rotl) dip:drop2)
 def(List+.map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
     dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons+)
+
+def(List.take-while(p), (*a t -- *a t Bool) *a List(t) -- *a List(t),
+    dip:T filter(swap dip:p && tuck) nip)
+    # TODO implement short-circuiting version of this.
+    # Try to avoid allocating new sublists unless needed.
+    #  https://github.com/mirth-lang/mirth/issues/242
