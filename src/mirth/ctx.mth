@@ -32,8 +32,10 @@ def(Ctx.physically-empty?, Ctx -- Bool, physical-vars is-empty)
 def(Ctx.lookup, Name Ctx -- Maybe(Var), >List reverse-find(dup2 name ==) nip)
 def(Ctx.len, Ctx -- Nat, >List len)
 def(Ctx.fresh-name!, Ctx -- Ctx Name,
-    # TODO do this properly.
-    "_x" over len show cat >Name)
+    1 "_x1" >Name while-some(
+        dup over3 lookup,
+        drop2 1+ "_x" over show cat >Name
+    ) nip)
 def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
     dip(PRIM_TYPE_STACK TPrim) fresh-var!)
 def(Ctx.fresh-type-var!, Ctx -- Ctx Var,

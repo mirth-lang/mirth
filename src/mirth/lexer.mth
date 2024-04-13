@@ -177,6 +177,7 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
         drop3
         lexer-skip-doc!,
         # TODO: save the doc in the token-doc field for the next token
+        #   https://github.com/mirth-lang/mirth/issues/240
 
         rdip(is-int? if(
             int? TOKEN_INT,

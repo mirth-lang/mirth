@@ -6,7 +6,8 @@ inline:def(bar, --, foo)
   # bar is inlined, so the bar coll shouldn't show up in the stack trace.
 def(baz, --, bar)
 def(main, --, baz)
-# mirth-test # perr # foo??
+# mirth-test # perr # foo
+# mirth-test # perr # ??
 # mirth-test # perr # call stack:
 # mirth-test # perr #     panic! at src/mirth-tests/inline-def.mth:4:20
 # mirth-test # perr #     foo at src/mirth-tests/inline-def.mth:5:21

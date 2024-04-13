@@ -15,6 +15,10 @@ def(Maybe.>List, Maybe(t) -- List(t),
     NONE -> L0,
     SOME -> L1)
 
+def(Maybe.==(eq), (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool,
+    NONE -> none?,
+    SOME -> swap if-some(swap eq, drop F))
+
 def(Maybe.if(f,g), (*a -- *b, *a -- *b) *a Maybe(t) -- *b,
     SOME -> drop f,
     NONE -> g)

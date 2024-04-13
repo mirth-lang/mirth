@@ -332,3 +332,6 @@ def(Token.sig-count-types, Token -- Nat Token,
 
 def(Token.sig-skip-dashes, Token -- Token,
     dup sig-has-dashes? then(sig-next-stack-end next))
+
+def(Token.pat-tokens, Token -- List(Token),
+    run-tokens take-while(dup pat-arrow? not))
