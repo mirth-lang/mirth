@@ -106,9 +106,6 @@ def(Name.could-be-type-or-resource-con, Name -- Bool, dup could-be-type-con or(d
 def(Name.mangle-compute!, Name -- Str,
     Str(>Str bytes-for(zencode ;)))
 
-def(Name.lens-like?, Name -- Bool,
-    >Str thaw last-byte BCOLON == freeze drop)
-
 #############
 # Namespace #
 #############
@@ -257,7 +254,6 @@ data(DName, DNAME -> Maybe(Name) List+(Name))
 def(DName/DNAME, DName -- Maybe(Name) List+(Name), DNAME -> id)
 def(DName.root?, DName -- Maybe(Name), DNAME -> drop)
 def(DName.parts, DName -- List+(Name), DNAME -> nip)
-def(DName.lens-like?, DName -- Bool, parts last lens-like?)
 
 def(DName.last-name, DName -- Name, parts last)
-
+def(DName.is-relative?, DName -- Bool, root? none?)

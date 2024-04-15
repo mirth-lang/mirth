@@ -62,6 +62,10 @@ def(TokenValue.name-or-dname?, TokenValue -- Maybe(Either(Name,DName)),
     TOKEN_NAME -> LEFT SOME,
     TOKEN_DNAME -> RIGHT SOME,
     _ -> drop NONE)
+def(TokenValue.last-name?, TokenValue -- Maybe(Name),
+    TOKEN_NAME -> SOME,
+    TOKEN_DNAME -> last-name SOME,
+    _ -> drop NONE)
 def(TokenValue.arg-end?, TokenValue -- Bool,
     TOKEN_COMMA -> T,
     TOKEN_RPAREN -> drop T,
@@ -83,13 +87,13 @@ def(TokenValue.right-enclosure?, TokenValue -- Bool,
     _ -> drop F)
 
 def(TokenValue.sig-type?, TokenValue -- Bool, name? and-some(could-be-type))
-def(TokenValue.sig-type-con?, TokenValue -- Bool, name? and-some(could-be-type-con))
+def(TokenValue.sig-type-con?, TokenValue -- Bool, last-name? and-some(could-be-type-con))
 def(TokenValue.sig-type-hole?, TokenValue -- Bool, name? and-some(is-type-hole))
 def(TokenValue.sig-type-var?, TokenValue -- Bool, name? and-some(could-be-type-var))
 def(TokenValue.sig-param-name?, TokenValue -- Bool, sig-type-var?)
 def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? and-some(could-be-stack-var))
 def(TokenValue.sig-resource-var?, TokenValue -- Bool, name? and-some(could-be-resource-var))
-def(TokenValue.sig-resource-con?, TokenValue -- Bool, name? and-some(could-be-resource-con))
+def(TokenValue.sig-resource-con?, TokenValue -- Bool, last-name? and-some(could-be-resource-con))
 def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES name ==))
 def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW name ==))
 def(TokenValue.pat-underscore?, TokenValue -- Bool, name? and-some(is-underscore))
@@ -128,6 +132,7 @@ def(Token.str?, Token -- Maybe(Str), value str?)
 def(Token.name?, Token -- Maybe(Name), value name?)
 def(Token.dname?, Token -- Maybe(DName), value dname?)
 def(Token.name-or-dname?, Token -- Maybe(Either(Name,DName)), value name-or-dname?)
+def(Token.last-name?, Token -- Maybe(Name), value last-name?)
 def(Token.arg-end?, Token -- Bool, value arg-end?)
 def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
 def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)
