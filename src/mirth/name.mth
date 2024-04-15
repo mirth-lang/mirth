@@ -258,3 +258,6 @@ def(DName/DNAME, DName -- Maybe(Name) List+(Name), DNAME -> id)
 def(DName.root?, DName -- Maybe(Name), DNAME -> drop)
 def(DName.parts, DName -- List+(Name), DNAME -> nip)
 def(DName.lens-like?, DName -- Bool, parts last lens-like?)
+
+def(DName.last-name, DName -- Name, parts last)
+

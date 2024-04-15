@@ -6,3 +6,7 @@ import(std.maybe)
 data(Either(a,b), LEFT -> a, RIGHT -> b)
 def(Either.left?, Either(a,b) -- Maybe(a), LEFT -> SOME, RIGHT -> drop NONE)
 def(Either.right?, Either(a,b) -- Maybe(b), LEFT -> drop NONE, RIGHT -> SOME)
+
+def(Either.either(f,g), (*x a -- *y, *x b -- *y) *x Either(a,b) -- *y,
+    LEFT -> f,
+    RIGHT -> g)
