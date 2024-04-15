@@ -205,8 +205,8 @@ def(+ResolveDef.rdrop, +ResolveDef --,
 
 def(+ResolveDef.resolve-def-ambiguous, +ResolveDef --,
     token Str(
-        "Ambiguous " ; rdip:sort ; ". Can't decide between" ;
-        " " rdip:candidates for(swap ; qname >Str ; ", ") drop "." ;
+        "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
+        " " rdip:candidates for(swap ; qname >Str ; ", ") drop
     ) emit-error! rdrop)
 def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
     token Str(rdip:rejected match(
@@ -219,9 +219,8 @@ def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
                 "Not visible in current scope: " ;
                 qname >Str ; ,
             RD_WRONG_ARITY ->
-                "Wrong number of arguments for " ; rdip:sort ;
-                " " ; qname dup >Str ; ". Expected " ; arity show ;
-                " but got " ; rdip:token num-args show ; "." ; ,
+                qname dup >Str ; " expects " ; arity show ;
+                " arguments, but got " ; rdip:token num-args show ; "." ; ,
         ),
         _ -> "Multiple definitions for name, but none are suitable:" ;
             dip:" " for(swap ; match(
