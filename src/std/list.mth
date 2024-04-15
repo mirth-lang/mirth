@@ -2,6 +2,7 @@ module(std.list)
 
 import(std.prelude)
 import(std.maybe)
+import(std.either)
 
 data(List(t),
     L0,
@@ -420,3 +421,34 @@ def(List.take-while(p), (*a t -- *a t Bool) *a List(t) -- *a List(t),
     # TODO implement short-circuiting version of this.
     # Try to avoid allocating new sublists unless needed.
     #  https://github.com/mirth-lang/mirth/issues/242
+
+
+def(partition-either-base(p), (*a t -- *a Either(t1,t2))
+        *a t -- *a List(t1) List(t2),
+    p either(L1 L0, dip:L0 L1))
+def(partition-either-snoc(p), (*a t -- *a Either(t1,t2))
+        *a List(t1) List(t2) t -- *a List(t1) List(t2),
+    rotr dip2:p rotl either(swap dip:snoc, snoc))
+
+def(List.partition-either(p), (*a t -- *a Either(t1,t2))
+        *a List(t) -- *a List(t1) List(t2),
+    L0 -> L0 L0,
+    L1 -> partition-either-base(p),
+    L2 -> dip:partition-either-base(p)
+          partition-either-snoc(p),
+    L3 -> dip2:partition-either-base(p)
+          dip:partition-either-snoc(p)
+          partition-either-snoc(p),
+    LCAT -> drop
+        dip:partition-either(p) rotr
+        dip2:partition-either(p)
+        dip(rotr dip:cat) swap cat)
+
+def(List+.partition-either(p), (*a t -- *a Either(t1,t2))
+        *a List+(t) -- *a List(t1) List(t2),
+    >List partition-either(p))
+
+def(List.partition(p), (*a t -- *a t Bool) *a List(t) -- *a List(t) List(t),
+    partition-either(p if(LEFT, RIGHT)))
+def(List+.partition(p), (*a t -- *a t Bool) *a List+(t) -- *a List(t) List(t),
+    partition-either(p if(LEFT, RIGHT)))

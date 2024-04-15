@@ -160,78 +160,104 @@ def(show-num-arguments, Int -- Str,
     dup 1 == if(drop "1 argument",
     show " arguments" cat))
 
-data(ResolveDef,
-    RD_OK -> Def,
-    RD_AMBIGUOUS -> Token List+(Def),
-    RD_ARITY_ERROR -> Token List+(Def),
-    RD_VISIBILITY_ERROR -> Token List+(Def),
-    RD_SORT_ERROR -> Token List+(Def),
-    RD_UNKNOWN_NAME -> Token,
-    RD_SYNTAX_ERROR -> Token)
+data(+ResolveDef, RESOLVE_DEF ->
+    sort: Str
+    token: Token
+    candidates: List(Def)
+    rejected: List(RejectedDef))
 
-def(resolve-def(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
-    dup name? if(resolve-def-name(p),
-    dup dname? if(resolve-def-dname(p),
-    RD_SYNTAX_ERROR)))
+def(+ResolveDef.filter(p),
+        (*a Def +ResolveDef -- *a Either(RejectedDef, Def) +ResolveDef)
+        *a +ResolveDef -- *a +ResolveDef,
+    candidates partition-either(p) dip:rejected:cat candidates!)
 
-def(resolve-def-dname(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
-    RD_UNKNOWN_NAME) # TODO
-    # https://github.com/mirth-lang/mirth/issues/244
+def(+ResolveDef.filter(p,q),
+        (*a Def +ResolveDef -- *a Def Bool +ResolveDef,
+         *a Def +ResolveDef -- *a RejectedDef +ResolveDef)
+        *a +ResolveDef -- *a +ResolveDef,
+    filter(p if(RIGHT, q LEFT)))
 
-def(resolve-def-name(p), (*a Def -- *a Def Bool) *a Token -- *a ResolveDef,
-    dup name? unwrap defs >List+ match(
-        NONE -> RD_UNKNOWN_NAME,
-        SOME ->
-    tuck dip2:filter(p) rotl >List+ match(
-        NONE -> RD_SORT_ERROR,
-        SOME -> nip
-    dup filter(over2 over def-visible-from-token?) >List+ match(
-        NONE -> RD_VISIBILITY_ERROR,
-        SOME -> nip
-    dip(dup num-args) dup filter(over2 over qname arity arity-compatible?) >List+ match(
-        NONE -> nip RD_ARITY_ERROR,
-        SOME -> nip match(
-            L1+ -> dip:drop2 RD_OK,
-            _ -> nip RD_AMBIGUOUS
-        )
-    )))))
+data(RejectedDef,
+    RD_WRONG_SORT -> Def,
+    RD_WRONG_ARITY -> Def,
+    RD_NOT_VISIBLE -> Def)
 
-def(ResolveDef.expect(s), (Str) ResolveDef -- Maybe(Def),
-    RD_SYNTAX_ERROR -> Str("Expected a " ; s ; " name, got unknown token." ;) emit-error! NONE,
-    RD_UNKNOWN_NAME -> Str("Unknown " ; s ; " name, possibly a misspelling." ;) emit-error! NONE,
-    RD_SORT_ERROR ->
-        # TODO find a better way to pass these long messages.
-        #  https://github.com/mirth-lang/mirth/issues/245
-        Str("Expected a " ; s ; " name. The following are not " ; s ; "s:" ;
-            dip(" ") for(dip(;) qname >Str ; ", ") drop)
-        emit-error! NONE,
-    RD_VISIBILITY_ERROR ->
-        Str("This " ; s ; " is not visible. Not imported in current scope:" ;
-            dip(" ") for(dip(;) qname >Str ; ", ") drop)
-        emit-error! NONE,
-    RD_ARITY_ERROR ->
-        Str("Wrong number of arguments for " ; s ; ". The following are available:" ;
-            dip(" ") for(dip(;) qname >Str ; ", ") drop)
-        emit-error! NONE,
-    RD_AMBIGUOUS ->
-        Str("Ambiguous " ; s ; " name. Can't decide between the following:" ;
-            dip(" ") for(dip(;) qname >Str ; ", ") drop)
-        emit-error! NONE,
-    RD_OK ->
-        SOME)
+def(Token.last-name?, Token -- Maybe(Name),
+    name-or-dname? map(either(id, last-name)))
+
+def(resolve-def(f), (*a +ResolveDef -- *b +ResolveDef) *a
+        sort:Str token:Token -- *b Maybe(Def),
+    token> dup >token
+    last-name? unwrap defs >candidates
+    L0 >rejected
+    RESOLVE_DEF
+    f
+    candidates match(
+        L1 -> rdrop SOME,
+        L0 -> resolve-def-unknown NONE,
+        _ -> drop resolve-def-ambiguous NONE,
+    ))
+
+def(+ResolveDef.rdrop, +ResolveDef --,
+    /RESOLVE_DEF
+    sort> token> drop2
+    candidates> rejected> drop2)
+
+def(+ResolveDef.resolve-def-ambiguous, +ResolveDef --,
+    token Str(
+        "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
+        " " rdip:candidates for(swap ; qname >Str ; ", ") drop
+    ) emit-error! rdrop)
+def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
+    token Str(rdip:rejected match(
+        L0 -> "Unknown " ; rdip:sort ; " name, possibly a misspelling." ;,
+        L1 -> match(
+            RD_WRONG_SORT ->
+                "Expected a " ; rdip:sort ; ", but " ;
+                qname >Str ; " is not a " ; rdip:sort ; "." ; ,
+            RD_NOT_VISIBLE ->
+                "Not visible in current scope: " ;
+                qname >Str ; ,
+            RD_WRONG_ARITY ->
+                qname dup >Str ; " expects " ; arity show ;
+                " arguments, but got " ; rdip:token num-args show ; "." ; ,
+        ),
+        _ -> "Multiple definitions for name, but none are suitable:" ;
+            dip:" " for(swap ; match(
+                RD_WRONG_SORT -> qname >Str ; " is not a " ; rdip:sort ; ,
+                RD_NOT_VISIBLE ->
+                    qname >Str ; " is not visible in current scope" ; ,
+                RD_WRONG_ARITY ->
+                    qname dup >Str ; " expects " ;
+                    arity show ; " arguments" ; ,
+            ) ", ") drop
+    )) emit-error! rdrop)
+
+def(+ResolveDef.filter-sort(p),
+        (*a Def +ResolveDef -- *a Def Bool +ResolveDef)
+        *a +ResolveDef -- *a +ResolveDef,
+    filter(p, RD_WRONG_SORT))
+def(+ResolveDef.filter-arity, +ResolveDef -- +ResolveDef,
+    token num-args filter(
+        dup2 qname arity arity-compatible?,
+        RD_WRONG_ARITY
+    ) drop)
+def(+ResolveDef.filter-visible, +ResolveDef -- +ResolveDef,
+    filter(token over def-visible-from-token?, RD_NOT_VISIBLE))
 
 def(+TypeElab.resolve-type-con-name!, +TypeElab -- +TypeElab Type,
-    token resolve-def(dup defines-a-type?) expect("type") match(
-        NONE -> TYPE_ERROR,
-        SOME -> match(
-            DEF_DATA -> TData,
-            DEF_TABLE -> TTable,
-            DEF_TYPEDEF -> target,
-            _ ->
-                drop token "compiler bug: resolve-type-con-name! doesn't understand type"
-                emit-error! TYPE_ERROR,
-        )
-    ))
+    token >token "type" >sort resolve-def(
+        filter(dup defines-a-type?, RD_WRONG_SORT)
+        filter-arity
+        filter-visible
+    ) map:match(
+        DEF_DATA -> TData,
+        DEF_TABLE -> TTable,
+        DEF_TYPEDEF -> target,
+        _ ->
+            drop token "compiler bug: resolve-type-con-name! doesn't understand type"
+            emit-error! TYPE_ERROR,
+    ) unwrap-or(TYPE_ERROR))
 
 def(+TypeElab.elab-type-con!, +TypeElab -- +TypeElab Type,
     token name? unwrap >Str "Mut" == if(
