@@ -5181,9 +5181,11 @@ static void mw_token_16 (void);
 static void mw_unifyzmfailedzn_0 (void);
 static void mw_unifyzmsimplezn_0 (void);
 static void mw_unifyzmauxzn_0 (void);
+static void mw_unifyzmerrorzn_1 (void);
 static void mw_unifyzn_3 (void);
 static void mw_unifyzn_2 (void);
 static void mw_unifyzmtypezn_0 (void);
+static void mw_unifyzmerrorzn_0 (void);
 static void mw_unifyzmblockzn_0 (void);
 static void mw_unify2zn_0 (void);
 static void mw_unifyzn_6 (void);
@@ -5210,6 +5212,7 @@ static void mw_tracezn_8 (void);
 static void mw_newzn_6 (void);
 static void mw_expand_2 (void);
 static void mw_unifyzn_7 (void);
+static void mw_unifyzmerrorzn_4 (void);
 static void mw_zeze_17 (void);
 static void mw_freshen_3 (void);
 static void mw_typezmholezmunifyzn_0 (void);
@@ -5220,6 +5223,7 @@ static void mw_zgType_2 (void);
 static void mw_zgResource_0 (void);
 static void mw_haszmmetaz63U_3 (void);
 static void mw_unifyzn_5 (void);
+static void mw_unifyzmerrorzn_3 (void);
 static void mw_tracezn_6 (void);
 static void mw_freshen_2 (void);
 static void mw_rigidifyzn_3 (void);
@@ -5240,6 +5244,7 @@ static void mw_topzmresourcezmiszmfinez63U_0 (void);
 static void mw_haszmmetaz63U_2 (void);
 static void mw_unifyzmfailedzn_1 (void);
 static void mw_unifyzn_4 (void);
+static void mw_unifyzmerrorzn_2 (void);
 static void mw_forcezmconszmlabelz63Uzn_0 (void);
 static void mw_forcezmconsz63Uzn_0 (void);
 static void mw_forcezmwithz63Uzn_0 (void);
@@ -5256,6 +5261,7 @@ static void mw_unpack_1 (void);
 static void mw_dom_15 (void);
 static void mw_cod_15 (void);
 static void mw_unifyzn_8 (void);
+static void mw_unifyzmerrorzn_5 (void);
 static void mw_haszmmetaz63U_5 (void);
 static void mw_tracezn_9 (void);
 static void mw_semifreshenzmsig_0 (void);
@@ -5918,281 +5924,281 @@ static void mw_compilezn_0 (void);
 static void mw_parsezmpackagezmdef_0 (void);
 static void mw_compilerzmparsezmargs_0 (void);
 static void mw_main_0 (void);
-static void mw_filter_3_2348 (void);
-static void mw_reversezmfor_0_2349 (void);
-static void mw_dip2_0_2349 (void);
-static void mw_filter_2_2348 (void);
-static void mw_for_18_2243 (void);
-static void mw_reversezmfindzmsome_0_2457 (void);
-static void mw_findzmsomezmaux2_0_2457 (void);
-static void mw_filter_3_2338 (void);
-static void mw_for_18_2339 (void);
-static void mw_filter_2_2338 (void);
-static void mw_reversezmfor_0_2316 (void);
-static void mw_dip2_0_2316 (void);
-static void mw_reversezmfor_0_2314 (void);
-static void mw_dip2_0_2314 (void);
-static void mw_findzmsome_0_2489 (void);
-static void mw_findzmsomezmaux2_0_2489 (void);
+static void mw_filter_3_2355 (void);
+static void mw_reversezmfor_0_2356 (void);
+static void mw_dip2_0_2356 (void);
+static void mw_filter_2_2355 (void);
+static void mw_for_18_2250 (void);
+static void mw_reversezmfindzmsome_0_2464 (void);
+static void mw_findzmsomezmaux2_0_2464 (void);
+static void mw_filter_3_2345 (void);
+static void mw_for_18_2346 (void);
+static void mw_filter_2_2345 (void);
+static void mw_reversezmfor_0_2323 (void);
+static void mw_dip2_0_2323 (void);
+static void mw_reversezmfor_0_2321 (void);
+static void mw_dip2_0_2321 (void);
 static void mw_findzmsome_0_2496 (void);
 static void mw_findzmsomezmaux2_0_2496 (void);
-static void mw_for_18_2306 (void);
+static void mw_findzmsome_0_2503 (void);
+static void mw_findzmsomezmaux2_0_2503 (void);
+static void mw_for_18_2313 (void);
 static void mw_filter_3_1003 (void);
 static void mw_filter_2_1003 (void);
-static void mw_findzmsome_0_2519 (void);
-static void mw_findzmsomezmaux2_0_2519 (void);
+static void mw_findzmsome_0_2526 (void);
+static void mw_findzmsomezmaux2_0_2526 (void);
 static void mw_for_18_788 (void);
-static void mw_filter_3_1428 (void);
-static void mw_findzmsome_0_2553 (void);
-static void mw_findzmsomezmaux2_0_2553 (void);
-static void mw_filter_2_1428 (void);
-static void mw_for_18_2242 (void);
-static void mw_filter_3_2342 (void);
-static void mw_reversezmfor_0_2345 (void);
-static void mw_dip2_0_2345 (void);
-static void mw_filter_2_2342 (void);
-static void mw_fold_0_2612 (void);
-static void mw_filter_3_2619 (void);
-static void mw_filter_2_2619 (void);
-static void mw_findzmsome_0_2629 (void);
-static void mw_findzmsomezmaux2_0_2629 (void);
-static void mw_map_0_1362 (void);
-static void mw_filter_3_2648 (void);
-static void mw_filter_2_2648 (void);
-static void mw_findzmsome_0_2658 (void);
-static void mw_findzmsomezmaux2_0_2658 (void);
-static void mw_filter_3_2664 (void);
-static void mw_filter_2_2664 (void);
-static void mw_findzmsome_0_2674 (void);
-static void mw_findzmsomezmaux2_0_2674 (void);
+static void mw_filter_3_1435 (void);
+static void mw_findzmsome_0_2560 (void);
+static void mw_findzmsomezmaux2_0_2560 (void);
+static void mw_filter_2_1435 (void);
+static void mw_for_18_2249 (void);
+static void mw_filter_3_2349 (void);
+static void mw_reversezmfor_0_2352 (void);
+static void mw_dip2_0_2352 (void);
+static void mw_filter_2_2349 (void);
+static void mw_fold_0_2619 (void);
+static void mw_filter_3_2626 (void);
+static void mw_filter_2_2626 (void);
+static void mw_findzmsome_0_2636 (void);
+static void mw_findzmsomezmaux2_0_2636 (void);
 static void mw_map_0_1369 (void);
-static void mw_fold_0_2691 (void);
-static void mw_filter_3_2698 (void);
-static void mw_filter_2_2698 (void);
-static void mw_findzmsome_0_2708 (void);
-static void mw_findzmsomezmaux2_0_2708 (void);
-static void mw_map_0_1367 (void);
-static void mw_fold_0_2725 (void);
-static void mw_filter_3_2732 (void);
-static void mw_filter_2_2732 (void);
-static void mw_findzmsome_0_2742 (void);
-static void mw_findzmsomezmaux2_0_2742 (void);
-static void mw_map_0_1364 (void);
-static void mw_for_18_2174 (void);
-static void mw_reversezmfor_0_2160 (void);
-static void mw_dip2_0_2160 (void);
-static void mw_for_18_2396 (void);
-static void mw_for_18_2406 (void);
-static void mw_for_18_2407 (void);
+static void mw_filter_3_2655 (void);
+static void mw_filter_2_2655 (void);
+static void mw_findzmsome_0_2665 (void);
+static void mw_findzmsomezmaux2_0_2665 (void);
+static void mw_filter_3_2671 (void);
+static void mw_filter_2_2671 (void);
+static void mw_findzmsome_0_2681 (void);
+static void mw_findzmsomezmaux2_0_2681 (void);
+static void mw_map_0_1376 (void);
+static void mw_fold_0_2698 (void);
+static void mw_filter_3_2705 (void);
+static void mw_filter_2_2705 (void);
+static void mw_findzmsome_0_2715 (void);
+static void mw_findzmsomezmaux2_0_2715 (void);
+static void mw_map_0_1374 (void);
+static void mw_fold_0_2732 (void);
+static void mw_filter_3_2739 (void);
+static void mw_filter_2_2739 (void);
+static void mw_findzmsome_0_2749 (void);
+static void mw_findzmsomezmaux2_0_2749 (void);
+static void mw_map_0_1371 (void);
+static void mw_for_18_2181 (void);
+static void mw_reversezmfor_0_2167 (void);
+static void mw_dip2_0_2167 (void);
 static void mw_for_18_2403 (void);
-static void mw_dipzq_0_2020 (void);
-static void mw_flatmap_0_2020 (void);
+static void mw_for_18_2413 (void);
+static void mw_for_18_2414 (void);
+static void mw_for_18_2410 (void);
+static void mw_dipzq_0_2027 (void);
+static void mw_flatmap_0_2027 (void);
+static void mw_map_0_2043 (void);
+static void mw_for_18_2035 (void);
 static void mw_map_0_2036 (void);
-static void mw_for_18_2028 (void);
-static void mw_map_0_2029 (void);
 static void mw_for_18_170 (void);
 static void mw_for_18_168 (void);
 static void mw_for_18_165 (void);
-static void mw_for_18_2075 (void);
-static void mw_findzmsome_0_2922 (void);
-static void mw_findzmsomezmaux2_0_2922 (void);
-static void mw_findzmsome_0_2931 (void);
-static void mw_findzmsomezmaux2_0_2931 (void);
-static void mw_reversezmfor_0_2940 (void);
-static void mw_dip2_0_2940 (void);
-static void mw_for_18_2086 (void);
-static void mw_findzmsome_0_2957 (void);
-static void mw_findzmsomezmaux2_0_2957 (void);
-static void mw_for_18_1300 (void);
-static void mw_reversezmfor_0_2089 (void);
-static void mw_dip2_0_2089 (void);
-static void mw_for_18_2077 (void);
-static void mw_map_0_2068 (void);
-static void mw_reversezmfor_0_2061 (void);
-static void mw_reversezmfindzmsome_0_3008 (void);
-static void mw_findzmsomezmaux2_0_3008 (void);
-static void mw_for_18_2048 (void);
+static void mw_for_18_2082 (void);
+static void mw_findzmsome_0_2929 (void);
+static void mw_findzmsomezmaux2_0_2929 (void);
+static void mw_findzmsome_0_2938 (void);
+static void mw_findzmsomezmaux2_0_2938 (void);
+static void mw_reversezmfor_0_2947 (void);
+static void mw_dip2_0_2947 (void);
+static void mw_for_18_2093 (void);
+static void mw_findzmsome_0_2964 (void);
+static void mw_findzmsomezmaux2_0_2964 (void);
+static void mw_for_18_1307 (void);
+static void mw_reversezmfor_0_2096 (void);
+static void mw_dip2_0_2096 (void);
+static void mw_for_18_2084 (void);
+static void mw_map_0_2075 (void);
+static void mw_reversezmfor_0_2068 (void);
+static void mw_reversezmfindzmsome_0_3015 (void);
+static void mw_findzmsomezmaux2_0_3015 (void);
+static void mw_for_18_2055 (void);
 static void mw_for_18_140 (void);
-static void mw_findzmsome_0_3027 (void);
-static void mw_findzmsomezmaux2_0_3027 (void);
+static void mw_findzmsome_0_3034 (void);
+static void mw_findzmsomezmaux2_0_3034 (void);
 static void mw_zeze_21_297 (void);
-static void mw_findzmsome_0_3041 (void);
-static void mw_findzmsomezmaux2_0_3041 (void);
-static void mw_findzmsome_0_3047 (void);
-static void mw_findzmsomezmaux2_0_3047 (void);
-static void mw_for_18_2027 (void);
+static void mw_findzmsome_0_3048 (void);
+static void mw_findzmsomezmaux2_0_3048 (void);
+static void mw_findzmsome_0_3054 (void);
+static void mw_findzmsomezmaux2_0_3054 (void);
+static void mw_for_18_2034 (void);
 static void mw_for_18_186 (void);
-static void mw_for_18_2014 (void);
-static void mw_findzmsome_0_2009 (void);
-static void mw_findzmsomezmaux2_0_2009 (void);
-static void mw_findzmsome_0_3110 (void);
-static void mw_findzmsomezmaux2_0_3110 (void);
-static void mw_findzmsome_0_3134 (void);
-static void mw_findzmsomezmaux2_0_3134 (void);
-static void mw_for_18_1903 (void);
-static void mw_findzmsome_0_3145 (void);
-static void mw_findzmsomezmaux2_0_3145 (void);
-static void mw_filter_3_1399 (void);
-static void mw_map_0_1400 (void);
-static void mw_filter_2_1399 (void);
-static void mw_filterzmsome_1_1405 (void);
+static void mw_for_18_2021 (void);
+static void mw_findzmsome_0_2016 (void);
+static void mw_findzmsomezmaux2_0_2016 (void);
+static void mw_findzmsome_0_3117 (void);
+static void mw_findzmsomezmaux2_0_3117 (void);
+static void mw_findzmsome_0_3141 (void);
+static void mw_findzmsomezmaux2_0_3141 (void);
+static void mw_for_18_1910 (void);
+static void mw_findzmsome_0_3152 (void);
+static void mw_findzmsomezmaux2_0_3152 (void);
 static void mw_filter_3_1406 (void);
+static void mw_map_0_1407 (void);
 static void mw_filter_2_1406 (void);
-static void mw_filterzmsome_0_1405 (void);
-static void mw_for_18_1573 (void);
-static void mw_map_0_1576 (void);
-static void mw_for_18_1643 (void);
-static void mw_for_18_1654 (void);
+static void mw_filterzmsome_1_1412 (void);
+static void mw_filter_3_1413 (void);
+static void mw_filter_2_1413 (void);
+static void mw_filterzmsome_0_1412 (void);
+static void mw_for_18_1580 (void);
+static void mw_map_0_1583 (void);
 static void mw_for_18_1650 (void);
-static void mw_partitionzmeither_1_3220 (void);
-static void mw_partitionzmeitherzmbase_0_3220 (void);
-static void mw_partitionzmeitherzmsnoc_0_3220 (void);
-static void mw_partitionzmeither_0_3220 (void);
-static void mw_reversezmfor_0_1668 (void);
-static void mw_dip2_0_1668 (void);
-static void mw_partitionzmeither_1_3244 (void);
-static void mw_partitionzmeitherzmbase_0_3244 (void);
-static void mw_partitionzmeitherzmsnoc_0_3244 (void);
-static void mw_partitionzmeither_0_3244 (void);
-static void mw_findzmsome_0_3266 (void);
-static void mw_findzmsomezmaux2_0_3266 (void);
-static void mw_partitionzmeither_1_3273 (void);
-static void mw_partitionzmeitherzmbase_0_3273 (void);
-static void mw_partitionzmeitherzmsnoc_0_3273 (void);
-static void mw_partitionzmeither_0_3273 (void);
-static void mw_findzmsome_0_3296 (void);
-static void mw_findzmsomezmaux2_0_3296 (void);
-static void mw_partitionzmeither_1_3303 (void);
-static void mw_partitionzmeitherzmbase_0_3303 (void);
-static void mw_partitionzmeitherzmsnoc_0_3303 (void);
-static void mw_partitionzmeither_0_3303 (void);
-static void mw_partitionzmeither_1_3324 (void);
-static void mw_partitionzmeitherzmbase_0_3324 (void);
-static void mw_partitionzmeitherzmsnoc_0_3324 (void);
-static void mw_partitionzmeither_0_3324 (void);
-static void mw_partitionzmeither_1_3345 (void);
-static void mw_partitionzmeitherzmbase_0_3345 (void);
-static void mw_partitionzmeitherzmsnoc_0_3345 (void);
-static void mw_partitionzmeither_0_3345 (void);
-static void mw_partitionzmeither_1_3366 (void);
-static void mw_partitionzmeitherzmbase_0_3366 (void);
-static void mw_partitionzmeitherzmsnoc_0_3366 (void);
-static void mw_partitionzmeither_0_3366 (void);
-static void mw_for_18_1706 (void);
-static void mw_for_18_1979 (void);
-static void mw_for_18_1983 (void);
-static void mw_for_18_1991 (void);
-static void mw_reversezmfor_0_3463 (void);
-static void mw_dip2_0_3463 (void);
-static void mw_reversezmfor_0_3473 (void);
-static void mw_dip2_0_3473 (void);
-static void mw_reversezmfor_0_1806 (void);
-static void mw_dip2_0_1806 (void);
-static void mw_partitionzmeither_1_3498 (void);
-static void mw_partitionzmeitherzmbase_0_3498 (void);
-static void mw_partitionzmeitherzmsnoc_0_3498 (void);
-static void mw_partitionzmeither_0_3498 (void);
-static void mw_findzmsome_0_3520 (void);
-static void mw_findzmsomezmaux2_0_3520 (void);
-static void mw_partitionzmeither_1_3527 (void);
-static void mw_partitionzmeitherzmbase_0_3527 (void);
-static void mw_partitionzmeitherzmsnoc_0_3527 (void);
-static void mw_partitionzmeither_0_3527 (void);
-static void mw_filter_3_3547 (void);
-static void mw_filter_2_3547 (void);
-static void mw_for_18_1770 (void);
-static void mw_partitionzmeither_1_3559 (void);
-static void mw_partitionzmeitherzmbase_0_3559 (void);
-static void mw_partitionzmeitherzmsnoc_0_3559 (void);
-static void mw_partitionzmeither_0_3559 (void);
-static void mw_findzmsome_0_3581 (void);
-static void mw_findzmsomezmaux2_0_3581 (void);
-static void mw_reversezmfor_0_1971 (void);
-static void mw_dip2_0_1971 (void);
-static void mw_filter_3_1856 (void);
-static void mw_for_18_1780 (void);
-static void mw_map_0_1857 (void);
-static void mw_filter_2_1856 (void);
-static void mw_findzmsome_0_1841 (void);
-static void mw_findzmsomezmaux2_0_1841 (void);
+static void mw_for_18_1661 (void);
+static void mw_for_18_1657 (void);
+static void mw_partitionzmeither_1_3227 (void);
+static void mw_partitionzmeitherzmbase_0_3227 (void);
+static void mw_partitionzmeitherzmsnoc_0_3227 (void);
+static void mw_partitionzmeither_0_3227 (void);
+static void mw_reversezmfor_0_1675 (void);
+static void mw_dip2_0_1675 (void);
+static void mw_partitionzmeither_1_3251 (void);
+static void mw_partitionzmeitherzmbase_0_3251 (void);
+static void mw_partitionzmeitherzmsnoc_0_3251 (void);
+static void mw_partitionzmeither_0_3251 (void);
+static void mw_findzmsome_0_3273 (void);
+static void mw_findzmsomezmaux2_0_3273 (void);
+static void mw_partitionzmeither_1_3280 (void);
+static void mw_partitionzmeitherzmbase_0_3280 (void);
+static void mw_partitionzmeitherzmsnoc_0_3280 (void);
+static void mw_partitionzmeither_0_3280 (void);
+static void mw_findzmsome_0_3303 (void);
+static void mw_findzmsomezmaux2_0_3303 (void);
+static void mw_partitionzmeither_1_3310 (void);
+static void mw_partitionzmeitherzmbase_0_3310 (void);
+static void mw_partitionzmeitherzmsnoc_0_3310 (void);
+static void mw_partitionzmeither_0_3310 (void);
+static void mw_partitionzmeither_1_3331 (void);
+static void mw_partitionzmeitherzmbase_0_3331 (void);
+static void mw_partitionzmeitherzmsnoc_0_3331 (void);
+static void mw_partitionzmeither_0_3331 (void);
+static void mw_partitionzmeither_1_3352 (void);
+static void mw_partitionzmeitherzmbase_0_3352 (void);
+static void mw_partitionzmeitherzmsnoc_0_3352 (void);
+static void mw_partitionzmeither_0_3352 (void);
+static void mw_partitionzmeither_1_3373 (void);
+static void mw_partitionzmeitherzmbase_0_3373 (void);
+static void mw_partitionzmeitherzmsnoc_0_3373 (void);
+static void mw_partitionzmeither_0_3373 (void);
+static void mw_for_18_1713 (void);
+static void mw_for_18_1986 (void);
+static void mw_for_18_1990 (void);
+static void mw_for_18_1998 (void);
+static void mw_reversezmfor_0_3470 (void);
+static void mw_dip2_0_3470 (void);
+static void mw_reversezmfor_0_3480 (void);
+static void mw_dip2_0_3480 (void);
+static void mw_reversezmfor_0_1813 (void);
+static void mw_dip2_0_1813 (void);
+static void mw_partitionzmeither_1_3505 (void);
+static void mw_partitionzmeitherzmbase_0_3505 (void);
+static void mw_partitionzmeitherzmsnoc_0_3505 (void);
+static void mw_partitionzmeither_0_3505 (void);
+static void mw_findzmsome_0_3527 (void);
+static void mw_findzmsomezmaux2_0_3527 (void);
+static void mw_partitionzmeither_1_3534 (void);
+static void mw_partitionzmeitherzmbase_0_3534 (void);
+static void mw_partitionzmeitherzmsnoc_0_3534 (void);
+static void mw_partitionzmeither_0_3534 (void);
+static void mw_filter_3_3554 (void);
+static void mw_filter_2_3554 (void);
+static void mw_for_18_1777 (void);
+static void mw_partitionzmeither_1_3566 (void);
+static void mw_partitionzmeitherzmbase_0_3566 (void);
+static void mw_partitionzmeitherzmsnoc_0_3566 (void);
+static void mw_partitionzmeither_0_3566 (void);
+static void mw_findzmsome_0_3588 (void);
+static void mw_findzmsomezmaux2_0_3588 (void);
+static void mw_reversezmfor_0_1978 (void);
+static void mw_dip2_0_1978 (void);
+static void mw_filter_3_1863 (void);
+static void mw_for_18_1787 (void);
+static void mw_map_0_1864 (void);
+static void mw_filter_2_1863 (void);
+static void mw_findzmsome_0_1848 (void);
+static void mw_findzmsomezmaux2_0_1848 (void);
 static void mw_map_0_1013 (void);
 static void mw_for_18_157 (void);
 static void mw_for_18_842 (void);
 static void mw_for_18_854 (void);
 static void mw_for_18_317 (void);
-static void mw_findzmsome_0_3661 (void);
-static void mw_findzmsomezmaux2_0_3661 (void);
-static void mw_findzmsome_0_3670 (void);
-static void mw_findzmsomezmaux2_0_3670 (void);
+static void mw_findzmsome_0_3668 (void);
+static void mw_findzmsomezmaux2_0_3668 (void);
+static void mw_findzmsome_0_3677 (void);
+static void mw_findzmsomezmaux2_0_3677 (void);
 static void mw_for_18_311 (void);
 static void mw_for_18_1097 (void);
-static void mw_for_18_1379 (void);
-static void mw_map_0_1375 (void);
+static void mw_for_18_1386 (void);
+static void mw_map_0_1382 (void);
 static void mb_99 (void);
 static void mb_174 (void);
 static void mb_793 (void);
 static void mb_986 (void);
-static void mb_1711 (void);
-static void mb_1712 (void);
-static void mb_1714 (void);
-static void mb_1715 (void);
-static void mb_1717 (void);
 static void mb_1718 (void);
-static void mb_1748 (void);
-static void mb_1762 (void);
+static void mb_1719 (void);
+static void mb_1721 (void);
+static void mb_1722 (void);
+static void mb_1724 (void);
+static void mb_1725 (void);
+static void mb_1755 (void);
 static void mb_1769 (void);
-static void mb_1804 (void);
-static void mb_1855 (void);
-static void mb_1873 (void);
-static void mb_1875 (void);
-static void mb_1876 (void);
-static void mb_1891 (void);
-static void mb_1896 (void);
-static void mb_1918 (void);
-static void mb_1931 (void);
-static void mb_1934 (void);
-static void mb_1935 (void);
-static void mb_1936 (void);
-static void mb_1937 (void);
+static void mb_1776 (void);
+static void mb_1811 (void);
+static void mb_1862 (void);
+static void mb_1880 (void);
+static void mb_1882 (void);
+static void mb_1883 (void);
+static void mb_1898 (void);
+static void mb_1903 (void);
+static void mb_1925 (void);
 static void mb_1938 (void);
-static void mb_1939 (void);
+static void mb_1941 (void);
 static void mb_1942 (void);
 static void mb_1943 (void);
 static void mb_1944 (void);
 static void mb_1945 (void);
 static void mb_1946 (void);
-static void mb_1947 (void);
-static void mb_1948 (void);
 static void mb_1949 (void);
 static void mb_1950 (void);
 static void mb_1951 (void);
 static void mb_1952 (void);
 static void mb_1953 (void);
 static void mb_1954 (void);
+static void mb_1955 (void);
+static void mb_1956 (void);
+static void mb_1957 (void);
 static void mb_1958 (void);
-static void mb_2003 (void);
-static void mb_2004 (void);
-static void mb_2005 (void);
-static void mb_2006 (void);
-static void mb_2007 (void);
-static void mb_2017 (void);
-static void mb_2018 (void);
-static void mb_2047 (void);
-static void mb_2152 (void);
-static void mb_2154 (void);
-static void mb_2155 (void);
-static void mb_2166 (void);
-static void mb_2167 (void);
-static void mb_2197 (void);
-static void mb_2200 (void);
-static void mb_2203 (void);
+static void mb_1959 (void);
+static void mb_1960 (void);
+static void mb_1961 (void);
+static void mb_1965 (void);
+static void mb_2010 (void);
+static void mb_2011 (void);
+static void mb_2012 (void);
+static void mb_2013 (void);
+static void mb_2014 (void);
+static void mb_2024 (void);
+static void mb_2025 (void);
+static void mb_2054 (void);
+static void mb_2159 (void);
+static void mb_2161 (void);
+static void mb_2162 (void);
+static void mb_2173 (void);
+static void mb_2174 (void);
 static void mb_2204 (void);
-static void mb_2208 (void);
-static void mb_2209 (void);
+static void mb_2207 (void);
 static void mb_2210 (void);
-static void mb_2218 (void);
-static void mb_2908 (void);
-static void mb_3002 (void);
+static void mb_2211 (void);
+static void mb_2215 (void);
+static void mb_2216 (void);
+static void mb_2217 (void);
+static void mb_2225 (void);
+static void mb_2915 (void);
+static void mb_3009 (void);
 static void mfld_z126Uname_0 (void);
 static void mfld_z126Upackage_0 (void);
 static void mfld_z126Uname_1 (void);
@@ -12254,7 +12260,7 @@ static void mw_parsezmflags_0 (void) {
 				break;
 			case 1LL: // SOME
 				mtp_SOME_0();
-				mw_findzmsome_0_3670();
+				mw_findzmsome_0_3677();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -12352,7 +12358,7 @@ static void mw_parsezmflags_0 (void) {
 				break;
 			case 1LL: // SOME
 				mtp_SOME_0();
-				mw_findzmsome_0_3661();
+				mw_findzmsome_0_3668();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -15058,7 +15064,7 @@ static void mw_visible_0 (void) {
 				break;
 			case 1LL: // SOME
 				mtp_SOME_0();
-				mw_findzmsome_0_3110();
+				mw_findzmsome_0_3117();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -15340,7 +15346,7 @@ static void mw_lookup_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_reversezmfindzmsome_0_3008();
+			mw_reversezmfindzmsome_0_3015();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -16073,13 +16079,13 @@ static void mw_makezmprimzmdatazn_0 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1375();
+					mw_map_0_1382();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1375();
+					mw_map_0_1382();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -16214,10 +16220,10 @@ static void mw_makezmprimzmdatazn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1379();
+				mw_for_18_1386();
 				push_value(d4);
 			}
-			mw_for_18_1379();
+			mw_for_18_1386();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -16705,7 +16711,7 @@ static void mw_iszmenumz63U_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_3134();
+			mw_findzmsome_0_3141();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -16826,7 +16832,7 @@ static void mw_labelzminputszmfromzmsig_0 (void) {
 		case 1LL: // SOME
 			mtp_SOME_0();
 			mw_runzmtokens_0();
-			mw_filter_3_1399();
+			mw_filter_3_1406();
 			switch (get_top_data_tag()) {
 				case 0LL: // L0
 					(void)pop_u64();
@@ -16920,13 +16926,13 @@ static void mw_labelzminputszmfromzmsig_0 (void) {
 						VAL d6 = pop_value();
 						{
 							VAL d7 = pop_value();
-							mw_map_0_1400();
+							mw_map_0_1407();
 							push_value(d7);
 						}
 						mp_primzmswap();
 						{
 							VAL d7 = pop_value();
-							mw_map_0_1400();
+							mw_map_0_1407();
 							push_value(d7);
 						}
 						mp_primzmswap();
@@ -16995,8 +17001,8 @@ static void mw_numzmresourcezminputszmfromzmsig_0 (void) {
 		case 1LL: // SOME
 			mtp_SOME_0();
 			mw_runzmtokens_0();
-			mw_filterzmsome_1_1405();
-			mw_filter_3_1406();
+			mw_filterzmsome_1_1412();
+			mw_filter_3_1413();
 			mw_len_2();
 			break;
 		case 0LL: // NONE
@@ -17308,7 +17314,7 @@ static void mw_haszmdefaultzmcasez63U_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_2489();
+			mw_findzmsome_0_2496();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -17318,7 +17324,7 @@ static void mw_haszmdefaultzmcasez63U_0 (void) {
 }
 static void mw_scrutineezmdataz63U_0 (void) {
 	mw_cases_0();
-	mw_filter_3_1428();
+	mw_filter_3_1435();
 	mp_primzmdup();
 	mw_first_1();
 	switch (get_top_data_tag()) {
@@ -17361,7 +17367,7 @@ static void mw_scrutineezmdataz63U_0 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_2553();
+					mw_findzmsome_0_2560();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -17470,7 +17476,7 @@ static void mw_casezmredundantz63U_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_2957();
+			mw_findzmsome_0_2964();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -17689,10 +17695,10 @@ static void mw_dom_9 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1300();
+				mw_for_18_1307();
 				push_value(d4);
 			}
-			mw_for_18_1300();
+			mw_for_18_1307();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -17731,7 +17737,7 @@ static void mw_iszmdefaultz63U_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_2496();
+			mw_findzmsome_0_2503();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -18860,13 +18866,13 @@ static void mw_freezmvars_4 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1362();
+					mw_map_0_1369();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1362();
+					mw_map_0_1369();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -18886,7 +18892,7 @@ static void mw_freezmvars_4 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_fold_0_2612();
+			mw_fold_0_2619();
 			mtw_SOME_0();
 			break;
 		default:
@@ -18990,13 +18996,13 @@ static void mw_freezmvars_3 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1364();
+					mw_map_0_1371();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1364();
+					mw_map_0_1371();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -19016,7 +19022,7 @@ static void mw_freezmvars_3 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_fold_0_2725();
+			mw_fold_0_2732();
 			mtw_SOME_0();
 			break;
 		default:
@@ -19048,7 +19054,7 @@ static void mw_freezmvars_3 (void) {
 		VAL d2 = pop_value();
 		mp_primzmswap();
 		mp_primzmswap();
-		mw_filter_3_2648();
+		mw_filter_3_2655();
 		{
 			VAL d3 = pop_value();
 			mp_primzmdrop();
@@ -19247,13 +19253,13 @@ static void mw_freezmvars_6 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1367();
+					mw_map_0_1374();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1367();
+					mw_map_0_1374();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -19273,7 +19279,7 @@ static void mw_freezmvars_6 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_fold_0_2691();
+			mw_fold_0_2698();
 			mtw_SOME_0();
 			break;
 		default:
@@ -19384,13 +19390,13 @@ static void mw_freezmvars_1 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1369();
+					mw_map_0_1376();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1369();
+					mw_map_0_1376();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -19403,7 +19409,7 @@ static void mw_freezmvars_1 (void) {
 			mp_primzmpanic();
 	}
 	mp_primzmswap();
-	mw_filter_3_2664();
+	mw_filter_3_2671();
 	{
 		VAL d2 = pop_value();
 		mp_primzmdrop();
@@ -20243,8 +20249,7 @@ static void mw_unifyzmauxzn_0 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // TYPE_ERROR
 			(void)pop_u64();
-			mp_primzmdrop();
-			push_u64(0LL); // TYPE_ERROR
+			mw_unifyzmerrorzn_1();
 			break;
 		case 1LL: // TYPE_DONT_CARE
 			(void)pop_u64();
@@ -20259,8 +20264,7 @@ static void mw_unifyzmauxzn_0 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // TYPE_ERROR
 					(void)pop_u64();
-					mp_primzmdrop();
-					push_u64(0LL); // TYPE_ERROR
+					mw_unifyzmerrorzn_4();
 					break;
 				case 1LL: // TYPE_DONT_CARE
 					(void)pop_u64();
@@ -20305,8 +20309,7 @@ static void mw_unifyzmauxzn_0 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // TYPE_ERROR
 					(void)pop_u64();
-					mp_primzmdrop();
-					push_u64(0LL); // TYPE_ERROR
+					mw_unifyzmerrorzn_0();
 					break;
 				case 1LL: // TYPE_DONT_CARE
 					(void)pop_u64();
@@ -20345,8 +20348,7 @@ static void mw_unifyzmauxzn_0 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // TYPE_ERROR
 					(void)pop_u64();
-					mp_primzmdrop();
-					push_u64(0LL); // TYPE_ERROR
+					mw_unifyzmerrorzn_1();
 					break;
 				case 1LL: // TYPE_DONT_CARE
 					(void)pop_u64();
@@ -20368,6 +20370,86 @@ static void mw_unifyzmauxzn_0 (void) {
 					break;
 			}
 			break;
+	}
+}
+static void mw_unifyzmerrorzn_1 (void) {
+	mw_expand_0();
+	switch (get_top_data_tag()) {
+		case 0LL: // TYPE_ERROR
+			(void)pop_u64();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 1LL: // TYPE_DONT_CARE
+			(void)pop_u64();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 4LL: // THole
+			mtp_THole_0();
+			push_u64(0LL); // TYPE_ERROR
+			mp_primzmswap();
+			mw_typezmholezmunifyzn_0();
+			break;
+		case 3LL: // TMeta
+			mtp_TMeta_0();
+			mw_unifyzmerrorzn_4();
+			break;
+		case 12LL: // TValue
+			mtp_TValue_0();
+			mw_unifyzmerrorzn_0();
+			break;
+		case 5LL: // TVar
+			mtp_TVar_0();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 2LL: // TPrim
+			mtp_TPrim_0();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 7LL: // TData
+			mtp_TData_0();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 6LL: // TTable
+			mtp_TTable_0();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 8LL: // TTensor
+			mtp_TTensor_0();
+			mw_unifyzmerrorzn_2();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 9LL: // TMorphism
+			mtp_TMorphism_0();
+			mw_unifyzmerrorzn_5();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 10LL: // TApp
+			mtp_TApp_0();
+			{
+				VAL d4 = pop_value();
+				mw_unifyzmerrorzn_1();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			mw_unifyzmerrorzn_1();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 11LL: // TMut
+			mtp_TMut_0();
+			mw_unifyzmerrorzn_1();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
 	}
 }
 static void mw_unifyzn_3 (void) {
@@ -20630,9 +20712,40 @@ static void mw_unifyzmtypezn_0 (void) {
 			mp_primzmpanic();
 	}
 }
+static void mw_unifyzmerrorzn_0 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // VALUE_INT
+			mtp_VALUEzuINT_0();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 1LL: // VALUE_STR
+			mtp_VALUEzuSTR_0();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 2LL: // VALUE_BLOCK
+			mtp_VALUEzuBLOCK_0();
+			push_u64(0LL); // TYPE_ERROR
+			mw_unifyzmblockzn_0();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
 static void mw_unifyzmblockzn_0 (void) {
 	mw_expand_0();
 	switch (get_top_data_tag()) {
+		case 0LL: // TYPE_ERROR
+			(void)pop_u64();
+			push_u64(0LL); // STACK_TYPE_ERROR
+			push_u64(0LL); // STACK_TYPE_ERROR
+			mw_Tzmzg_0();
+			mw_blockzmunifyzmtypezn_0();
+			mp_primzmdrop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
 		case 3LL: // TMeta
 			mtp_TMeta_0();
 			{
@@ -21643,6 +21756,36 @@ static void mw_unifyzn_7 (void) {
 			mp_primzmpanic();
 	}
 }
+static void mw_unifyzmerrorzn_4 (void) {
+	mp_primzmdup();
+	mw_typez63U_0();
+	switch (get_top_data_tag()) {
+		case 1LL: // SOME
+			mtp_SOME_0();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			mw_unifyzmerrorzn_1();
+			break;
+		case 0LL: // NONE
+			(void)pop_u64();
+			{
+				VAL d4 = pop_value();
+				push_u64(0LL); // TYPE_ERROR
+				mtw_SOME_0();
+				push_value(d4);
+			}
+			mfld_z126Utypez63U_0();
+			mp_primzmmutzmset();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
 static void mw_zeze_17 (void) {
 	{
 		VAL d2 = pop_value();
@@ -21769,6 +21912,11 @@ static void mw_unifyzn_5 (void) {
 	}
 	mw_zgType_2();
 	mw_unifyzn_3();
+	mw_zgResource_0();
+}
+static void mw_unifyzmerrorzn_3 (void) {
+	mw_zgType_2();
+	mw_unifyzmerrorzn_1();
 	mw_zgResource_0();
 }
 static void mw_tracezn_6 (void) {
@@ -22287,8 +22435,7 @@ static void mw_unifyzn_4 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // STACK_TYPE_ERROR
 			(void)pop_u64();
-			mp_primzmdrop();
-			push_u64(0LL); // STACK_TYPE_ERROR
+			mw_unifyzmerrorzn_2();
 			break;
 		case 1LL: // STACK_TYPE_DONT_CARE
 			(void)pop_u64();
@@ -22300,8 +22447,8 @@ static void mw_unifyzn_4 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // STACK_TYPE_ERROR
 					(void)pop_u64();
-					mp_primzmdrop();
-					push_u64(0LL); // STACK_TYPE_ERROR
+					mtw_STMeta_0();
+					mw_unifyzmerrorzn_2();
 					break;
 				case 1LL: // STACK_TYPE_DONT_CARE
 					(void)pop_u64();
@@ -22409,9 +22556,8 @@ static void mw_unifyzn_4 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // STACK_TYPE_ERROR
 					(void)pop_u64();
-					mp_primzmdrop();
-					mp_primzmdrop();
-					push_u64(0LL); // STACK_TYPE_ERROR
+					mtw_STCons_0();
+					mw_unifyzmerrorzn_2();
 					break;
 				case 4LL: // STMeta
 					mtp_STMeta_0();
@@ -22487,9 +22633,8 @@ static void mw_unifyzn_4 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // STACK_TYPE_ERROR
 					(void)pop_u64();
-					mp_primzmdrop();
-					mp_primzmdrop();
-					push_u64(0LL); // STACK_TYPE_ERROR
+					mtw_STWith_0();
+					mw_unifyzmerrorzn_2();
 					break;
 				case 4LL: // STMeta
 					mtp_STMeta_0();
@@ -22570,10 +22715,8 @@ static void mw_unifyzn_4 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // STACK_TYPE_ERROR
 					(void)pop_u64();
-					mp_primzmdrop();
-					mp_primzmdrop();
-					mp_primzmdrop();
-					push_u64(0LL); // STACK_TYPE_ERROR
+					mtw_STConsLabel_0();
+					mw_unifyzmerrorzn_2();
 					break;
 				case 4LL: // STMeta
 					mtp_STMeta_0();
@@ -22652,6 +22795,73 @@ static void mw_unifyzn_4 (void) {
 					}
 					break;
 			}
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_unifyzmerrorzn_2 (void) {
+	mw_expand_1();
+	switch (get_top_data_tag()) {
+		case 0LL: // STACK_TYPE_ERROR
+			(void)pop_u64();
+			push_u64(0LL); // STACK_TYPE_ERROR
+			break;
+		case 2LL: // STACK_TYPE_UNIT
+			(void)pop_u64();
+			push_u64(0LL); // STACK_TYPE_ERROR
+			break;
+		case 1LL: // STACK_TYPE_DONT_CARE
+			(void)pop_u64();
+			push_u64(0LL); // STACK_TYPE_ERROR
+			break;
+		case 4LL: // STMeta
+			mtp_STMeta_0();
+			mw_unifyzmerrorzn_4();
+			mw_zgStackType_0();
+			break;
+		case 3LL: // STVar
+			mtp_STVar_0();
+			mp_primzmdrop();
+			push_u64(0LL); // STACK_TYPE_ERROR
+			break;
+		case 5LL: // STCons
+			mtp_STCons_0();
+			{
+				VAL d4 = pop_value();
+				mw_unifyzmerrorzn_2();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			mw_unifyzmerrorzn_1();
+			mp_primzmdrop();
+			push_u64(0LL); // STACK_TYPE_ERROR
+			break;
+		case 7LL: // STWith
+			mtp_STWith_0();
+			{
+				VAL d4 = pop_value();
+				mw_unifyzmerrorzn_2();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			mw_unifyzmerrorzn_3();
+			mp_primzmdrop();
+			push_u64(0LL); // STACK_TYPE_ERROR
+			break;
+		case 6LL: // STConsLabel
+			mtp_STConsLabel_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_unifyzmerrorzn_2();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			mw_unifyzmerrorzn_1();
+			mp_primzmdrop();
+			push_u64(0LL); // STACK_TYPE_ERROR
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -24298,6 +24508,22 @@ static void mw_unifyzn_8 (void) {
 	{
 		VAL d2 = pop_value();
 		mw_unifyzn_4();
+		push_value(d2);
+	}
+	mp_primzmswap();
+	mtw_ARROWzuTYPE_0();
+}
+static void mw_unifyzmerrorzn_5 (void) {
+	mw_unpack_1();
+	{
+		VAL d2 = pop_value();
+		mw_unifyzmerrorzn_2();
+		push_value(d2);
+	}
+	mp_primzmswap();
+	{
+		VAL d2 = pop_value();
+		mw_unifyzmerrorzn_2();
 		push_value(d2);
 	}
 	mp_primzmswap();
@@ -28243,7 +28469,7 @@ static void mw_runzmarrowz63U_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_3581();
+			mw_findzmsome_0_3588();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -28332,7 +28558,7 @@ static void mw_patzmtokens_0 (void) {
 		push_u64(1LL); // T
 		push_value(d2);
 	}
-	mw_filter_3_3547();
+	mw_filter_3_3554();
 	{
 		VAL d2 = pop_value();
 		mp_primzmdrop();
@@ -29787,7 +30013,7 @@ static void mw_defz63U_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_2519();
+			mw_findzmsome_0_2526();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -31777,10 +32003,10 @@ static void mw_elabzmtypezmsigzn_0 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_for_18_1573();
+					mw_for_18_1580();
 					push_value(d5);
 				}
-				mw_for_18_1573();
+				mw_for_18_1580();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -31894,13 +32120,13 @@ static void mw_elabzmtypezmsigzmparamszn_0 (void) {
 						VAL d6 = pop_value();
 						{
 							VAL d7 = pop_value();
-							mw_map_0_1576();
+							mw_map_0_1583();
 							push_value(d7);
 						}
 						mp_primzmswap();
 						{
 							VAL d7 = pop_value();
-							mw_map_0_1576();
+							mw_map_0_1583();
 							push_value(d7);
 						}
 						mp_primzmswap();
@@ -32541,10 +32767,10 @@ static void mw_resolvezmdefzmambiguous_0 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_for_18_1650();
+					mw_for_18_1657();
 					push_value(d5);
 				}
-				mw_for_18_1650();
+				mw_for_18_1657();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -32729,10 +32955,10 @@ static void mw_resolvezmdefzmambiguous_0 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_for_18_1654();
+					mw_for_18_1661();
 					push_value(d5);
 				}
-				mw_for_18_1654();
+				mw_for_18_1661();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -34117,10 +34343,10 @@ static void mw_resolvezmdefzmunknown_0 (void) {
 					mp_primzmdrop();
 					{
 						VAL d6 = pop_value();
-						mw_for_18_1643();
+						mw_for_18_1650();
 						push_value(d6);
 					}
-					mw_for_18_1643();
+					mw_for_18_1650();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -34137,7 +34363,7 @@ static void mw_filterzmarity_0 (void) {
 	mw_token_8();
 	mw_numzmargs_0();
 	mw_candidates_0();
-	mw_partitionzmeither_1_3345();
+	mw_partitionzmeither_1_3352();
 	{
 		VAL d2 = pop_value();
 		mw_rejected_0();
@@ -34154,7 +34380,7 @@ static void mw_filterzmarity_0 (void) {
 }
 static void mw_filterzmvisible_0 (void) {
 	mw_candidates_0();
-	mw_partitionzmeither_1_3324();
+	mw_partitionzmeither_1_3331();
 	{
 		VAL d2 = pop_value();
 		mw_rejected_0();
@@ -34178,7 +34404,7 @@ static void mw_filterzmqualifiers_0 (void) {
 		case 1LL: // SOME
 			mtp_SOME_0();
 			mw_candidates_0();
-			mw_partitionzmeither_1_3303();
+			mw_partitionzmeither_1_3310();
 			{
 				VAL d4 = pop_value();
 				mw_rejected_0();
@@ -34206,7 +34432,7 @@ static void mw_filterzmroots_0 (void) {
 			mtp_SOME_0();
 			mp_primzmdrop();
 			mw_candidates_0();
-			mw_partitionzmeither_1_3273();
+			mw_partitionzmeither_1_3280();
 			{
 				VAL d4 = pop_value();
 				mw_rejected_0();
@@ -34239,7 +34465,7 @@ static void mw_filterzmroots_0 (void) {
 			mw_iszmrelativez63U_0();
 			if (pop_u64()) {
 				mw_candidates_0();
-				mw_partitionzmeither_1_3244();
+				mw_partitionzmeither_1_3251();
 				{
 					VAL d5 = pop_value();
 					mw_rejected_0();
@@ -34254,7 +34480,7 @@ static void mw_filterzmroots_0 (void) {
 				mw_candidateszn_0();
 			} else {
 				mw_candidates_0();
-				mw_partitionzmeither_1_3220();
+				mw_partitionzmeither_1_3227();
 				{
 					VAL d5 = pop_value();
 					mw_rejected_0();
@@ -34548,7 +34774,7 @@ static void mw_climbzmupzmdnamez63U_0 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_1668();
+			mw_dip2_0_1675();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -34617,10 +34843,10 @@ static void mw_climbzmupzmdnamez63U_0 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_1668();
+				mw_reversezmfor_0_1675();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_1668();
+			mw_reversezmfor_0_1675();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -34654,7 +34880,7 @@ static void mw_resolvezmtypezmconzmnamezn_0 (void) {
 	LPUSH(lbl_rejected);
 	mtw_RESOLVEzuDEF_0();
 	mw_candidates_0();
-	mw_partitionzmeither_1_3366();
+	mw_partitionzmeither_1_3373();
 	{
 		VAL d2 = pop_value();
 		mw_rejected_0();
@@ -34864,10 +35090,10 @@ static void mw_elabzmtypezmargszn_0 (void) {
 					mp_primzmdrop();
 					{
 						VAL d6 = pop_value();
-						mw_for_18_1706();
+						mw_for_18_1713();
 						push_value(d6);
 					}
-					mw_for_18_1706();
+					mw_for_18_1713();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -35101,7 +35327,7 @@ static void mw_abzmbuildzn_0 (void) {
 static void mw_abzmbuildzmhomzn_0 (void) {
 	{
 		VAL var_f = pop_value();
-		push_fnptr(&mb_1711);
+		push_fnptr(&mb_1718);
 		{
 			VAL var_f = pop_value();
 			{
@@ -35116,7 +35342,7 @@ static void mw_abzmbuildzmhomzn_0 (void) {
 			}
 			decref(var_f);
 		}
-		push_fnptr(&mb_1712);
+		push_fnptr(&mb_1719);
 		incref(var_f);
 		push_value(var_f);
 		mp_primzmpackzmcons();
@@ -35127,7 +35353,7 @@ static void mw_abzmbuildzmhomzn_0 (void) {
 static void mw_abzmbuildzmwordzmarrowzn_0 (void) {
 	{
 		VAL var_f = pop_value();
-		push_fnptr(&mb_1714);
+		push_fnptr(&mb_1721);
 		{
 			VAL var_f = pop_value();
 			mp_primzmdup();
@@ -35139,7 +35365,7 @@ static void mw_abzmbuildzmwordzmarrowzn_0 (void) {
 			}
 			decref(var_f);
 		}
-		push_fnptr(&mb_1715);
+		push_fnptr(&mb_1722);
 		{
 			VAL var_f = pop_value();
 			mp_primzmdup();
@@ -35161,7 +35387,7 @@ static void mw_abzmbuildzmwordzmarrowzn_0 (void) {
 static void mw_abzmbuildzmwordzn_0 (void) {
 	{
 		VAL var_f = pop_value();
-		push_fnptr(&mb_1717);
+		push_fnptr(&mb_1724);
 		incref(var_f);
 		push_value(var_f);
 		mp_primzmpackzmcons();
@@ -35621,7 +35847,7 @@ static void mw_abzmlambdazmatzn_0 (void) {
 				mw_abzmtypez64U_0();
 				push_value(d4);
 			}
-			push_fnptr(&mb_1748);
+			push_fnptr(&mb_1755);
 			mw_reversezmfor_1();
 			{
 				VAL d4 = pop_value();
@@ -36054,7 +36280,7 @@ static void mw_elabzmblockzmatzn_0 (void) {
 	mfld_z126Ucod_0();
 	mp_primzmmutzmset();
 	mp_primzmdup();
-	push_fnptr(&mb_1769);
+	push_fnptr(&mb_1776);
 	mtw_LAZZYzuDELAY_0();
 	{
 		VAL d2 = pop_value();
@@ -36106,10 +36332,10 @@ static void mw_elabzmargszn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1770();
+				mw_for_18_1777();
 				push_value(d4);
 			}
-			mw_for_18_1770();
+			mw_for_18_1777();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -36199,7 +36425,7 @@ static void mw_elabzmatomzmresolvezmdefzn_0 (void) {
 	LPUSH(lbl_rejected);
 	mtw_RESOLVEzuDEF_0();
 	mw_candidates_0();
-	mw_partitionzmeither_1_3559();
+	mw_partitionzmeither_1_3566();
 	{
 		VAL d2 = pop_value();
 		mw_rejected_0();
@@ -36429,10 +36655,10 @@ static void mw_elabzmambiguouszmnamezmerrorzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1780();
+				mw_for_18_1787();
 				push_value(d4);
 			}
-			mw_for_18_1780();
+			mw_for_18_1787();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -36842,7 +37068,7 @@ static void mw_elabzmpatternzn_0 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_1806();
+			mw_dip2_0_1813();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -36857,10 +37083,10 @@ static void mw_elabzmpatternzn_0 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_1806();
+				mw_reversezmfor_0_1813();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_1806();
+			mw_reversezmfor_0_1813();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -36916,7 +37142,7 @@ static void mw_elabzmpatternzmatomzn_0 (void) {
 				LPUSH(lbl_rejected);
 				mtw_RESOLVEzuDEF_0();
 				mw_candidates_0();
-				mw_partitionzmeither_1_3527();
+				mw_partitionzmeither_1_3534();
 				{
 					VAL d5 = pop_value();
 					mw_rejected_0();
@@ -36956,7 +37182,7 @@ static void mw_elabzmpatternzmatomzn_0 (void) {
 								mtp_SOME_0();
 								mp_primzmdrop();
 								mw_candidates_0();
-								mw_partitionzmeither_1_3498();
+								mw_partitionzmeither_1_3505();
 								{
 									VAL d9 = pop_value();
 									mw_rejected_0();
@@ -37139,7 +37365,7 @@ static void mw_casezn_0 (void) {
 			mw_home_9();
 			{
 				VAL d4 = pop_resource();
-				push_fnptr(&mb_1804);
+				push_fnptr(&mb_1811);
 				incref(var_mkbod);
 				push_value(var_mkbod);
 				mp_primzmpackzmcons();
@@ -37418,7 +37644,7 @@ static void mw_elabzmatomzmlambdazn_0 (void) {
 					mp_primzmswap();
 					push_value(d5);
 				}
-				mw_dip2_0_3473();
+				mw_dip2_0_3480();
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
@@ -37487,10 +37713,10 @@ static void mw_elabzmatomzmlambdazn_0 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_reversezmfor_0_3473();
+					mw_reversezmfor_0_3480();
 					push_value(d5);
 				}
-				mw_reversezmfor_0_3473();
+				mw_reversezmfor_0_3480();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -37868,7 +38094,7 @@ static void mw_elabzmmodulezmdeclzn_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_1841();
+			mw_findzmsome_0_1848();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -38088,10 +38314,10 @@ static void mw_elabzmdatazn_0 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_for_18_1903();
+					mw_for_18_1910();
 					push_value(d5);
 				}
-				mw_for_18_1903();
+				mw_for_18_1910();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -38320,7 +38546,7 @@ static void mw_elabzmdatazmtagzn_0 (void) {
 		}
 	}
 	mp_primzmdup();
-	push_fnptr(&mb_1918);
+	push_fnptr(&mb_1925);
 	mtw_LAZZYzuDELAY_0();
 	{
 		VAL d2 = pop_value();
@@ -38398,7 +38624,7 @@ static void mw_elabzmdatazmtagzn_0 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_3145();
+					mw_findzmsome_0_3152();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -38455,7 +38681,7 @@ static void mw_elabzmdatazmdonezn_0 (void) {
 		incref(var_dat);
 		push_value(var_dat);
 		mw_iszmenumz63U_0();
-		push_fnptr(&mb_1931);
+		push_fnptr(&mb_1938);
 		incref(var_dat);
 		push_value(var_dat);
 		mp_primzmpackzmcons();
@@ -38491,7 +38717,7 @@ static void mw_elabzmdatazmdonezn_0 (void) {
 						VAL var_untag = pop_value();
 						incref(var_tag);
 						push_value(var_tag);
-						push_fnptr(&mb_1934);
+						push_fnptr(&mb_1941);
 						mtw_LAZZYzuDELAY_0();
 						incref(var_untag);
 						push_value(var_untag);
@@ -38499,7 +38725,7 @@ static void mw_elabzmdatazmdonezn_0 (void) {
 						mp_primzmmutzmset();
 						incref(var_untag);
 						push_value(var_untag);
-						push_fnptr(&mb_1935);
+						push_fnptr(&mb_1942);
 						incref(var_tag);
 						push_value(var_tag);
 						mp_primzmpackzmcons();
@@ -38629,7 +38855,7 @@ static void mw_datazmgetzmlabelzmtype_0 (void) {
 		push_value(var_tag);
 		mw_data_0();
 		mw_iszmresourcez63U_0();
-		push_fnptr(&mb_1762);
+		push_fnptr(&mb_1769);
 		incref(var_tag);
 		push_value(var_tag);
 		mp_primzmpackzmcons();
@@ -38682,7 +38908,7 @@ static void mw_createzmprojectorszn_0 (void) {
 		incref(var_tag);
 		push_value(var_tag);
 		mw_labelzminputs_0();
-		push_fnptr(&mb_1942);
+		push_fnptr(&mb_1949);
 		incref(var_tag);
 		push_value(var_tag);
 		mp_primzmpackzmcons();
@@ -38894,7 +39120,7 @@ static void mw_elabzmaliaszn_0 (void) {
 				mp_primzmpanic();
 		}
 		mw_pack2_0();
-		push_fnptr(&mb_1855);
+		push_fnptr(&mb_1862);
 		incref(var_aliasqname);
 		push_value(var_aliasqname);
 		mp_primzmpackzmcons();
@@ -39051,7 +39277,7 @@ static void mw_elabzmdefzn_0 (void) {
 	mfld_z126Upreferzminlinez63U_0();
 	mp_primzmmutzmset();
 	mp_primzmdup();
-	push_fnptr(&mb_1873);
+	push_fnptr(&mb_1880);
 	mtw_LAZZYzuDELAY_0();
 	{
 		VAL d2 = pop_value();
@@ -39062,7 +39288,7 @@ static void mw_elabzmdefzn_0 (void) {
 	mfld_z126Uctxzmtype_2();
 	mp_primzmmutzmset();
 	mp_primzmdup();
-	push_fnptr(&mb_1875);
+	push_fnptr(&mb_1882);
 	mtw_LAZZYzuDELAY_0();
 	{
 		VAL d2 = pop_value();
@@ -39073,7 +39299,7 @@ static void mw_elabzmdefzn_0 (void) {
 	mfld_z126Uparams_0();
 	mp_primzmmutzmset();
 	mp_primzmdup();
-	push_fnptr(&mb_1876);
+	push_fnptr(&mb_1883);
 	mtw_LAZZYzuDELAY_0();
 	mp_primzmswap();
 	mfld_z126Uarrow_1();
@@ -39147,10 +39373,10 @@ static void mw_checkzminlinezmrecursionzmarrowzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1979();
+				mw_for_18_1986();
 				push_value(d4);
 			}
-			mw_for_18_1979();
+			mw_for_18_1986();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -39248,10 +39474,10 @@ static void mw_checkzminlinezmrecursionzmatomzn_0 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_for_18_1983();
+					mw_for_18_1990();
 					push_value(d5);
 				}
-				mw_for_18_1983();
+				mw_for_18_1990();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -39392,10 +39618,10 @@ static void mw_checkzminlinezmrecursionzmopzn_0 (void) {
 					mp_primzmdrop();
 					{
 						VAL d6 = pop_value();
-						mw_for_18_1991();
+						mw_for_18_1998();
 						push_value(d6);
 					}
-					mw_for_18_1991();
+					mw_for_18_1998();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -39757,7 +39983,7 @@ static void mw_elabzmdefzmparamszn_0 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_1971();
+			mw_dip2_0_1978();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -39946,10 +40172,10 @@ static void mw_elabzmdefzmparamszn_0 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_1971();
+				mw_reversezmfor_0_1978();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_1971();
+			mw_reversezmfor_0_1978();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -40072,7 +40298,7 @@ static void mw_elabzmdefzmexternalzn_0 (void) {
 	mfld_z126Uhead_2();
 	mp_primzmmutzmset();
 	mp_primzmdup();
-	push_fnptr(&mb_1891);
+	push_fnptr(&mb_1898);
 	mtw_LAZZYzuDELAY_0();
 	{
 		VAL d2 = pop_value();
@@ -40202,7 +40428,7 @@ static void mw_elabzmvariablezn_0 (void) {
 		push_value(d2);
 	}
 	mp_primzmswap();
-	push_fnptr(&mb_1896);
+	push_fnptr(&mb_1903);
 	mtw_LAZZYzuDELAY_0();
 	mw_newzn_9();
 	mp_primzmdrop();
@@ -41512,7 +41738,7 @@ static void mw_tablezmnewzn_0 (void) {
 			mp_primzmmutzmset();
 			incref(var_w);
 			push_value(var_w);
-			push_fnptr(&mb_2003);
+			push_fnptr(&mb_2010);
 			incref(var_x);
 			push_value(var_x);
 			mp_primzmpackzmcons();
@@ -41781,7 +42007,7 @@ static void mw_elabzmtycon_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_2009();
+			mw_findzmsome_0_2016();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -42292,10 +42518,10 @@ static void mw_elabzmabsolutezmnamespace_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2014();
+				mw_for_18_2021();
 				push_value(d4);
 			}
-			mw_for_18_2014();
+			mw_for_18_2021();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -42440,7 +42666,7 @@ static void mw_fieldzmnewzn_0 (void) {
 	mfld_z126Uhead_4();
 	mp_primzmmutzmset();
 	mp_primzmswap();
-	push_fnptr(&mb_2017);
+	push_fnptr(&mb_2024);
 	mtw_LAZZYzuDELAY_0();
 	{
 		VAL d2 = pop_value();
@@ -42451,7 +42677,7 @@ static void mw_fieldzmnewzn_0 (void) {
 	mfld_z126Uvaluezmtype_0();
 	mp_primzmmutzmset();
 	mp_primzmswap();
-	push_fnptr(&mb_2018);
+	push_fnptr(&mb_2025);
 	mtw_LAZZYzuDELAY_0();
 	{
 		VAL d2 = pop_value();
@@ -42606,7 +42832,7 @@ static void mw_checkzmarrowzn_0 (void) {
 					mw_checkzmatomzn_0();
 					push_value(d5);
 				}
-				mw_dipzq_0_2020();
+				mw_dipzq_0_2027();
 				mw_cat_2();
 				break;
 			case 3LL: // L3
@@ -42618,11 +42844,11 @@ static void mw_checkzmarrowzn_0 (void) {
 						mw_checkzmatomzn_0();
 						push_value(d6);
 					}
-					mw_dipzq_0_2020();
+					mw_dipzq_0_2027();
 					mw_cat_2();
 					push_value(d5);
 				}
-				mw_dipzq_0_2020();
+				mw_dipzq_0_2027();
 				mw_cat_2();
 				break;
 			case 4LL: // LCAT
@@ -42630,13 +42856,13 @@ static void mw_checkzmarrowzn_0 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_flatmap_0_2020();
+					mw_flatmap_0_2027();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_flatmap_0_2020();
+					mw_flatmap_0_2027();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -42807,10 +43033,10 @@ static void mw_checkzmprimzmatomzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2027();
+				mw_for_18_2034();
 				push_value(d4);
 			}
-			mw_for_18_2027();
+			mw_for_18_2034();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -42836,10 +43062,10 @@ static void mw_checkzmwordzmatomzn_0 (void) {
 		case 1LL: // SOME
 			mtp_SOME_0();
 			mp_primzmdup();
-			mw_for_18_2028();
+			mw_for_18_2035();
 			mp_primzmdup();
-			mw_map_0_2029();
-			mw_findzmsome_0_3041();
+			mw_map_0_2036();
+			mw_findzmsome_0_3048();
 			mw_zgBool_1();
 			if (pop_u64()) {
 				mp_primzmdrop();
@@ -42994,13 +43220,13 @@ static void mw_checkzmmatchzn_0 (void) {
 					VAL d5 = pop_value();
 					{
 						VAL d6 = pop_value();
-						mw_map_0_2036();
+						mw_map_0_2043();
 						push_value(d6);
 					}
 					mp_primzmswap();
 					{
 						VAL d6 = pop_value();
-						mw_map_0_2036();
+						mw_map_0_2043();
 						push_value(d6);
 					}
 					mp_primzmswap();
@@ -43212,7 +43438,7 @@ static void mw_specializzezmwordzn_0 (void) {
 				break;
 			case 1LL: // SOME
 				mtp_SOME_0();
-				mw_findzmsome_0_3027();
+				mw_findzmsome_0_3034();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -43290,7 +43516,7 @@ static void mw_specializzezmwordzn_0 (void) {
 					push_value(var_w);
 					mfld_z126Uspzmsynthed_0();
 					mp_primzmmutzmset();
-					push_fnptr(&mb_2047);
+					push_fnptr(&mb_2054);
 					incref(var_k);
 					push_value(var_k);
 					mp_primzmpackzmcons();
@@ -43307,7 +43533,7 @@ static void mw_specializzezmwordzn_0 (void) {
 					incref(var_w);
 					push_value(var_w);
 					mw_pack2_0();
-					push_fnptr(&mb_3002);
+					push_fnptr(&mb_3009);
 					mtw_LAZZYzuDELAY_0();
 					incref(var_wzq);
 					push_value(var_wzq);
@@ -43325,7 +43551,7 @@ static void mw_specializzezmwordzn_0 (void) {
 					incref(var_wzq);
 					push_value(var_wzq);
 					mw_pack3_0();
-					push_fnptr(&mb_2908);
+					push_fnptr(&mb_2915);
 					mtw_LAZZYzuDELAY_0();
 					incref(var_wzq);
 					push_value(var_wzq);
@@ -43383,7 +43609,7 @@ static void mw_specializzezmctxzmtype_0 (void) {
 		mp_primzmswap();
 		push_value(d2);
 	}
-	mw_reversezmfor_0_2061();
+	mw_reversezmfor_0_2068();
 	LPOP(lbl_gamma);
 	mp_primzmdrop();
 	mp_primzmswap();
@@ -43533,13 +43759,13 @@ static void mw_synthzmspecializzedzmwordzn_0 (void) {
 						VAL d6 = pop_value();
 						{
 							VAL d7 = pop_value();
-							mw_map_0_2068();
+							mw_map_0_2075();
 							push_value(d7);
 						}
 						mp_primzmswap();
 						{
 							VAL d7 = pop_value();
-							mw_map_0_2068();
+							mw_map_0_2075();
 							push_value(d7);
 						}
 						mp_primzmswap();
@@ -43799,10 +44025,10 @@ static void mw_synthzmarrowzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2075();
+				mw_for_18_2082();
 				push_value(d4);
 			}
-			mw_for_18_2075();
+			mw_for_18_2082();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -43860,10 +44086,10 @@ static void mw_synthzmatomzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2077();
+				mw_for_18_2084();
 				push_value(d4);
 			}
-			mw_for_18_2077();
+			mw_for_18_2084();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -43930,7 +44156,7 @@ static void mw_synthzmblockzn_0 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_2931();
+					mw_findzmsome_0_2938();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -44049,7 +44275,7 @@ static void mw_synthzmvarzn_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_2922();
+			mw_findzmsome_0_2929();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -44208,7 +44434,7 @@ static void mw_synthzmmatchzn_0 (void) {
 											mp_primzmswap();
 											push_value(d11);
 										}
-										mw_dip2_0_2089();
+										mw_dip2_0_2096();
 										mp_primzmswap();
 										{
 											VAL d11 = pop_value();
@@ -44225,10 +44451,10 @@ static void mw_synthzmmatchzn_0 (void) {
 										mp_primzmswap();
 										{
 											VAL d11 = pop_value();
-											mw_reversezmfor_0_2089();
+											mw_reversezmfor_0_2096();
 											push_value(d11);
 										}
-										mw_reversezmfor_0_2089();
+										mw_reversezmfor_0_2096();
 										break;
 									default:
 										push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -44379,7 +44605,7 @@ static void mw_synthzmmatchzn_0 (void) {
 												mp_primzmswap();
 												push_value(d12);
 											}
-											mw_dip2_0_2089();
+											mw_dip2_0_2096();
 											mp_primzmswap();
 											{
 												VAL d12 = pop_value();
@@ -44396,10 +44622,10 @@ static void mw_synthzmmatchzn_0 (void) {
 											mp_primzmswap();
 											{
 												VAL d12 = pop_value();
-												mw_reversezmfor_0_2089();
+												mw_reversezmfor_0_2096();
 												push_value(d12);
 											}
-											mw_reversezmfor_0_2089();
+											mw_reversezmfor_0_2096();
 											break;
 										default:
 											push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -44547,7 +44773,7 @@ static void mw_synthzmmatchzn_0 (void) {
 											mp_primzmswap();
 											push_value(d11);
 										}
-										mw_dip2_0_2089();
+										mw_dip2_0_2096();
 										mp_primzmswap();
 										{
 											VAL d11 = pop_value();
@@ -44564,10 +44790,10 @@ static void mw_synthzmmatchzn_0 (void) {
 										mp_primzmswap();
 										{
 											VAL d11 = pop_value();
-											mw_reversezmfor_0_2089();
+											mw_reversezmfor_0_2096();
 											push_value(d11);
 										}
-										mw_reversezmfor_0_2089();
+										mw_reversezmfor_0_2096();
 										break;
 									default:
 										push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -44720,7 +44946,7 @@ static void mw_synthzmmatchzn_0 (void) {
 													mp_primzmswap();
 													push_value(d13);
 												}
-												mw_dip2_0_2089();
+												mw_dip2_0_2096();
 												mp_primzmswap();
 												{
 													VAL d13 = pop_value();
@@ -44737,10 +44963,10 @@ static void mw_synthzmmatchzn_0 (void) {
 												mp_primzmswap();
 												{
 													VAL d13 = pop_value();
-													mw_reversezmfor_0_2089();
+													mw_reversezmfor_0_2096();
 													push_value(d13);
 												}
-												mw_reversezmfor_0_2089();
+												mw_reversezmfor_0_2096();
 												break;
 											default:
 												push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -44888,7 +45114,7 @@ static void mw_synthzmmatchzn_0 (void) {
 												mp_primzmswap();
 												push_value(d12);
 											}
-											mw_dip2_0_2089();
+											mw_dip2_0_2096();
 											mp_primzmswap();
 											{
 												VAL d12 = pop_value();
@@ -44905,10 +45131,10 @@ static void mw_synthzmmatchzn_0 (void) {
 											mp_primzmswap();
 											{
 												VAL d12 = pop_value();
-												mw_reversezmfor_0_2089();
+												mw_reversezmfor_0_2096();
 												push_value(d12);
 											}
-											mw_reversezmfor_0_2089();
+											mw_reversezmfor_0_2096();
 											break;
 										default:
 											push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -45056,7 +45282,7 @@ static void mw_synthzmmatchzn_0 (void) {
 											mp_primzmswap();
 											push_value(d11);
 										}
-										mw_dip2_0_2089();
+										mw_dip2_0_2096();
 										mp_primzmswap();
 										{
 											VAL d11 = pop_value();
@@ -45073,10 +45299,10 @@ static void mw_synthzmmatchzn_0 (void) {
 										mp_primzmswap();
 										{
 											VAL d11 = pop_value();
-											mw_reversezmfor_0_2089();
+											mw_reversezmfor_0_2096();
 											push_value(d11);
 										}
-										mw_reversezmfor_0_2089();
+										mw_reversezmfor_0_2096();
 										break;
 									default:
 										push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -45162,10 +45388,10 @@ static void mw_synthzmmatchzn_0 (void) {
 						mp_primzmdrop();
 						{
 							VAL d7 = pop_value();
-							mw_for_18_2086();
+							mw_for_18_2093();
 							push_value(d7);
 						}
-						mw_for_18_2086();
+						mw_for_18_2093();
 						break;
 					default:
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -45310,7 +45536,7 @@ static void mw_synthzmlambdazn_0 (void) {
 							mp_primzmswap();
 							push_value(d7);
 						}
-						mw_dip2_0_2940();
+						mw_dip2_0_2947();
 						mp_primzmswap();
 						{
 							VAL d7 = pop_value();
@@ -45379,10 +45605,10 @@ static void mw_synthzmlambdazn_0 (void) {
 						mp_primzmswap();
 						{
 							VAL d7 = pop_value();
-							mw_reversezmfor_0_2940();
+							mw_reversezmfor_0_2947();
 							push_value(d7);
 						}
-						mw_reversezmfor_0_2940();
+						mw_reversezmfor_0_2947();
 						break;
 					default:
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -46059,10 +46285,10 @@ static void mw_runzmarrowzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2396();
+				mw_for_18_2403();
 				push_value(d4);
 			}
-			mw_for_18_2396();
+			mw_for_18_2403();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -46312,10 +46538,10 @@ static void mw_runzmmatchzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2406();
+				mw_for_18_2413();
 				push_value(d4);
 			}
-			mw_for_18_2406();
+			mw_for_18_2413();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -46371,10 +46597,10 @@ static void mw_runzmpatternzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2407();
+				mw_for_18_2414();
 				push_value(d4);
 			}
-			mw_for_18_2407();
+			mw_for_18_2414();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -46433,10 +46659,10 @@ static void mw_pushzmargszn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2403();
+				mw_for_18_2410();
 				push_value(d4);
 			}
-			mw_for_18_2403();
+			mw_for_18_2410();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -48729,7 +48955,7 @@ static void mw_c99zmtagzmdefzn_0 (void) {
 		incref(var_tag);
 		push_value(var_tag);
 		mw_preferzminlinez63U_0();
-		push_fnptr(&mb_2152);
+		push_fnptr(&mb_2159);
 		incref(var_tag);
 		push_value(var_tag);
 		mp_primzmpackzmcons();
@@ -48767,7 +48993,7 @@ static void mw_c99zmtagzmlabelzmindex_0 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_reversezmfindzmsome_0_2457();
+			mw_reversezmfindzmsome_0_2464();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -49027,7 +49253,7 @@ static void mw_c99zmtagzmsetzmlabelzn_0 (void) {
 		}
 		mw_put_0();
 		mw_line_0();
-		push_fnptr(&mb_2197);
+		push_fnptr(&mb_2204);
 		incref(var_tag);
 		push_value(var_tag);
 		mp_primzmpackzmcons();
@@ -49036,7 +49262,7 @@ static void mw_c99zmtagzmsetzmlabelzn_0 (void) {
 		push_value(var_tag);
 		mw_outputszmresourcez63U_0();
 		if (pop_u64()) {
-			push_fnptr(&mb_2200);
+			push_fnptr(&mb_2207);
 			incref(var_lbl);
 			push_value(var_lbl);
 			mp_primzmpackzmcons();
@@ -49071,7 +49297,7 @@ static void mw_c99zmtagzmsetzmlabelzn_0 (void) {
 			}
 			mw_put_0();
 			mw_line_0();
-			push_fnptr(&mb_2203);
+			push_fnptr(&mb_2210);
 			incref(var_lbl);
 			push_value(var_lbl);
 			mp_primzmpackzmcons();
@@ -49092,7 +49318,7 @@ static void mw_c99zmtagzmsetzmlabelzn_0 (void) {
 			}
 			mw_put_0();
 			mw_line_0();
-			push_fnptr(&mb_2208);
+			push_fnptr(&mb_2215);
 			incref(var_lbl);
 			push_value(var_lbl);
 			mp_primzmpackzmcons();
@@ -49678,10 +49904,10 @@ static void mw_c99zmarrowzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2243();
+				mw_for_18_2250();
 				push_value(d4);
 			}
-			mw_for_18_2243();
+			mw_for_18_2250();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -51197,10 +51423,10 @@ static void mw_c99zmargszmpushzn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2242();
+				mw_for_18_2249();
 				push_value(d4);
 			}
-			mw_for_18_2242();
+			mw_for_18_2249();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -51238,7 +51464,7 @@ static void mw_paramzmput_0 (void) {
 	mw_varzmput_0();
 }
 static void mw_c99zmpackzmclosurezmvarszn_0 (void) {
-	mw_filter_3_2338();
+	mw_filter_3_2345();
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -51299,10 +51525,10 @@ static void mw_c99zmpackzmclosurezmvarszn_0 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2339();
+				mw_for_18_2346();
 				push_value(d4);
 			}
-			mw_for_18_2339();
+			mw_for_18_2346();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -51310,7 +51536,7 @@ static void mw_c99zmpackzmclosurezmvarszn_0 (void) {
 	}
 }
 static void mw_c99zmunpackzmclosurezmvarszn_0 (void) {
-	mw_filter_3_2342();
+	mw_filter_3_2349();
 	mp_primzmdup();
 	mw_emptyz63U_0();
 	if (pop_u64()) {
@@ -51426,7 +51652,7 @@ static void mw_c99zmunpackzmclosurezmvarszn_0 (void) {
 					mp_primzmswap();
 					push_value(d5);
 				}
-				mw_dip2_0_2345();
+				mw_dip2_0_2352();
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
@@ -51497,10 +51723,10 @@ static void mw_c99zmunpackzmclosurezmvarszn_0 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_reversezmfor_0_2345();
+					mw_reversezmfor_0_2352();
 					push_value(d5);
 				}
-				mw_reversezmfor_0_2345();
+				mw_reversezmfor_0_2352();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -51522,7 +51748,7 @@ static void mw_c99zmunpackzmclosurezmvarszn_0 (void) {
 	}
 }
 static void mw_c99zmdecrefzmclosurezmvarszn_0 (void) {
-	mw_filter_3_2348();
+	mw_filter_3_2355();
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -51621,7 +51847,7 @@ static void mw_c99zmdecrefzmclosurezmvarszn_0 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2349();
+			mw_dip2_0_2356();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -51684,10 +51910,10 @@ static void mw_c99zmdecrefzmclosurezmvarszn_0 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2349();
+				mw_reversezmfor_0_2356();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2349();
+			mw_reversezmfor_0_2356();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -51983,7 +52209,7 @@ static void mw_c99zmlambdazn_0 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2314();
+			mw_dip2_0_2321();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -52046,10 +52272,10 @@ static void mw_c99zmlambdazn_0 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2314();
+				mw_reversezmfor_0_2321();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2314();
+			mw_reversezmfor_0_2321();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -52157,7 +52383,7 @@ static void mw_c99zmlambdazn_0 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2316();
+			mw_dip2_0_2323();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -52220,10 +52446,10 @@ static void mw_c99zmlambdazn_0 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2316();
+				mw_reversezmfor_0_2323();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2316();
+			mw_reversezmfor_0_2323();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -52355,10 +52581,10 @@ static void mw_c99zmmatchzn_0 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_for_18_2306();
+					mw_for_18_2313();
 					push_value(d5);
 				}
-				mw_for_18_2306();
+				mw_for_18_2313();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -54449,7 +54675,7 @@ static void mw_main_0 (void) {
 	}
 	mw_compilezn_0();
 }
-static void mw_filter_3_2348 (void) {
+static void mw_filter_3_2355 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -54458,14 +54684,14 @@ static void mw_filter_3_2348 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_2348();
+			mw_filter_2_2355();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfor_0_2349 (void) {
+static void mw_reversezmfor_0_2356 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -54561,7 +54787,7 @@ static void mw_reversezmfor_0_2349 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2349();
+			mw_dip2_0_2356();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -54624,17 +54850,17 @@ static void mw_reversezmfor_0_2349 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2349();
+				mw_reversezmfor_0_2356();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2349();
+			mw_reversezmfor_0_2356();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_2349 (void) {
+static void mw_dip2_0_2356 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -54669,20 +54895,20 @@ static void mw_dip2_0_2349 (void) {
 		push_value(d2);
 	}
 }
-static void mw_filter_2_2348 (void) {
+static void mw_filter_2_2355 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2348();
+				mw_filter_2_2355();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2348();
+				mw_filter_2_2355();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -54701,7 +54927,7 @@ static void mw_filter_2_2348 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_2348();
+					mw_filter_3_2355();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -54712,12 +54938,12 @@ static void mw_filter_2_2348 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_2348();
+				mw_filter_3_2355();
 			}
 			break;
 	}
 }
-static void mw_for_18_2243 (void) {
+static void mw_for_18_2250 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -54751,17 +54977,17 @@ static void mw_for_18_2243 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2243();
+				mw_for_18_2250();
 				push_value(d4);
 			}
-			mw_for_18_2243();
+			mw_for_18_2250();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfindzmsome_0_2457 (void) {
+static void mw_reversezmfindzmsome_0_2464 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -54800,7 +55026,7 @@ static void mw_reversezmfindzmsome_0_2457 (void) {
 		case 1LL: // L2+
 			mtp_L2zp_0();
 			mp_primzmswap();
-			mw_findzmsomezmaux2_0_2457();
+			mw_findzmsomezmaux2_0_2464();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -54855,7 +55081,7 @@ static void mw_reversezmfindzmsome_0_2457 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2457();
+					mw_findzmsomezmaux2_0_2464();
 					break;
 				default:
 					{
@@ -54873,14 +55099,14 @@ static void mw_reversezmfindzmsome_0_2457 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfindzmsome_0_2457();
+				mw_reversezmfindzmsome_0_2464();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_reversezmfindzmsome_0_2457();
+					mw_reversezmfindzmsome_0_2464();
 					break;
 				default:
 					{
@@ -54896,7 +55122,7 @@ static void mw_reversezmfindzmsome_0_2457 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2457 (void) {
+static void mw_findzmsomezmaux2_0_2464 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -54977,7 +55203,7 @@ static void mw_findzmsomezmaux2_0_2457 (void) {
 			break;
 	}
 }
-static void mw_filter_3_2338 (void) {
+static void mw_filter_3_2345 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -54986,14 +55212,14 @@ static void mw_filter_3_2338 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_2338();
+			mw_filter_2_2345();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2339 (void) {
+static void mw_for_18_2346 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -55051,30 +55277,30 @@ static void mw_for_18_2339 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2339();
+				mw_for_18_2346();
 				push_value(d4);
 			}
-			mw_for_18_2339();
+			mw_for_18_2346();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_2_2338 (void) {
+static void mw_filter_2_2345 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2338();
+				mw_filter_2_2345();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2338();
+				mw_filter_2_2345();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -55093,7 +55319,7 @@ static void mw_filter_2_2338 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_2338();
+					mw_filter_3_2345();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -55104,12 +55330,12 @@ static void mw_filter_2_2338 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_2338();
+				mw_filter_3_2345();
 			}
 			break;
 	}
 }
-static void mw_reversezmfor_0_2316 (void) {
+static void mw_reversezmfor_0_2323 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -55205,7 +55431,7 @@ static void mw_reversezmfor_0_2316 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2316();
+			mw_dip2_0_2323();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -55268,17 +55494,17 @@ static void mw_reversezmfor_0_2316 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2316();
+				mw_reversezmfor_0_2323();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2316();
+			mw_reversezmfor_0_2323();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_2316 (void) {
+static void mw_dip2_0_2323 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -55313,7 +55539,7 @@ static void mw_dip2_0_2316 (void) {
 		push_value(d2);
 	}
 }
-static void mw_reversezmfor_0_2314 (void) {
+static void mw_reversezmfor_0_2321 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -55409,7 +55635,7 @@ static void mw_reversezmfor_0_2314 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2314();
+			mw_dip2_0_2321();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -55472,17 +55698,17 @@ static void mw_reversezmfor_0_2314 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2314();
+				mw_reversezmfor_0_2321();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2314();
+			mw_reversezmfor_0_2321();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_2314 (void) {
+static void mw_dip2_0_2321 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -55515,121 +55741,6 @@ static void mw_dip2_0_2314 (void) {
 			push_value(d3);
 		}
 		push_value(d2);
-	}
-}
-static void mw_findzmsome_0_2489 (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // L1+
-			mtp_L1zp_0();
-			mp_primzmdup();
-			mw_iszmdefaultzmcasez63U_0();
-			if (pop_u64()) {
-				mtw_SOME_0();
-			} else {
-				mp_primzmdrop();
-				push_u64(0LL); // NONE
-			}
-			break;
-		case 1LL: // L2+
-			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2489();
-			break;
-		case 2LL: // L3+
-			mtp_L3zp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdup();
-					mw_iszmdefaultzmcasez63U_0();
-					if (pop_u64()) {
-						mtw_SOME_0();
-					} else {
-						mp_primzmdrop();
-						push_u64(0LL); // NONE
-					}
-					push_value(d5);
-				}
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			switch (get_top_data_tag()) {
-				case 0LL: // NONE
-					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2489();
-					break;
-				default:
-					{
-						VAL d6 = pop_value();
-						mp_primzmdrop();
-						mp_primzmdrop();
-						push_value(d6);
-					}
-					break;
-			}
-			break;
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_findzmsome_0_2489();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			switch (get_top_data_tag()) {
-				case 0LL: // NONE
-					(void)pop_u64();
-					mw_findzmsome_0_2489();
-					break;
-				default:
-					{
-						VAL d6 = pop_value();
-						mp_primzmdrop();
-						push_value(d6);
-					}
-					break;
-			}
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_findzmsomezmaux2_0_2489 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primzmdup();
-		mw_iszmdefaultzmcasez63U_0();
-		if (pop_u64()) {
-			mtw_SOME_0();
-		} else {
-			mp_primzmdrop();
-			push_u64(0LL); // NONE
-		}
-		push_value(d2);
-	}
-	mp_primzmswap();
-	switch (get_top_data_tag()) {
-		case 0LL: // NONE
-			(void)pop_u64();
-			mp_primzmdup();
-			mw_iszmdefaultzmcasez63U_0();
-			if (pop_u64()) {
-				mtw_SOME_0();
-			} else {
-				mp_primzmdrop();
-				push_u64(0LL); // NONE
-			}
-			break;
-		default:
-			{
-				VAL d4 = pop_value();
-				mp_primzmdrop();
-				push_value(d4);
-			}
-			break;
 	}
 }
 static void mw_findzmsome_0_2496 (void) {
@@ -55637,9 +55748,7 @@ static void mw_findzmsome_0_2496 (void) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
 			mp_primzmdup();
-			mw_op_2();
-			mw_zsPATOPzuUNDERSCORE_0();
-			mw_not_1();
+			mw_iszmdefaultzmcasez63U_0();
 			if (pop_u64()) {
 				mtw_SOME_0();
 			} else {
@@ -55658,9 +55767,7 @@ static void mw_findzmsome_0_2496 (void) {
 				{
 					VAL d5 = pop_value();
 					mp_primzmdup();
-					mw_op_2();
-					mw_zsPATOPzuUNDERSCORE_0();
-					mw_not_1();
+					mw_iszmdefaultzmcasez63U_0();
 					if (pop_u64()) {
 						mtw_SOME_0();
 					} else {
@@ -55720,6 +55827,125 @@ static void mw_findzmsomezmaux2_0_2496 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
+		mw_iszmdefaultzmcasez63U_0();
+		if (pop_u64()) {
+			mtw_SOME_0();
+		} else {
+			mp_primzmdrop();
+			push_u64(0LL); // NONE
+		}
+		push_value(d2);
+	}
+	mp_primzmswap();
+	switch (get_top_data_tag()) {
+		case 0LL: // NONE
+			(void)pop_u64();
+			mp_primzmdup();
+			mw_iszmdefaultzmcasez63U_0();
+			if (pop_u64()) {
+				mtw_SOME_0();
+			} else {
+				mp_primzmdrop();
+				push_u64(0LL); // NONE
+			}
+			break;
+		default:
+			{
+				VAL d4 = pop_value();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			break;
+	}
+}
+static void mw_findzmsome_0_2503 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // L1+
+			mtp_L1zp_0();
+			mp_primzmdup();
+			mw_op_2();
+			mw_zsPATOPzuUNDERSCORE_0();
+			mw_not_1();
+			if (pop_u64()) {
+				mtw_SOME_0();
+			} else {
+				mp_primzmdrop();
+				push_u64(0LL); // NONE
+			}
+			break;
+		case 1LL: // L2+
+			mtp_L2zp_0();
+			mw_findzmsomezmaux2_0_2503();
+			break;
+		case 2LL: // L3+
+			mtp_L3zp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdup();
+					mw_op_2();
+					mw_zsPATOPzuUNDERSCORE_0();
+					mw_not_1();
+					if (pop_u64()) {
+						mtw_SOME_0();
+					} else {
+						mp_primzmdrop();
+						push_u64(0LL); // NONE
+					}
+					push_value(d5);
+				}
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			switch (get_top_data_tag()) {
+				case 0LL: // NONE
+					(void)pop_u64();
+					mw_findzmsomezmaux2_0_2503();
+					break;
+				default:
+					{
+						VAL d6 = pop_value();
+						mp_primzmdrop();
+						mp_primzmdrop();
+						push_value(d6);
+					}
+					break;
+			}
+			break;
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_findzmsome_0_2503();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			switch (get_top_data_tag()) {
+				case 0LL: // NONE
+					(void)pop_u64();
+					mw_findzmsome_0_2503();
+					break;
+				default:
+					{
+						VAL d6 = pop_value();
+						mp_primzmdrop();
+						push_value(d6);
+					}
+					break;
+			}
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_findzmsomezmaux2_0_2503 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
 		mw_op_2();
 		mw_zsPATOPzuUNDERSCORE_0();
 		mw_not_1();
@@ -55755,7 +55981,7 @@ static void mw_findzmsomezmaux2_0_2496 (void) {
 			break;
 	}
 }
-static void mw_for_18_2306 (void) {
+static void mw_for_18_2313 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -55789,10 +56015,10 @@ static void mw_for_18_2306 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2306();
+				mw_for_18_2313();
 				push_value(d4);
 			}
-			mw_for_18_2306();
+			mw_for_18_2313();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -55875,7 +56101,7 @@ static void mw_filter_2_1003 (void) {
 			break;
 	}
 }
-static void mw_findzmsome_0_2519 (void) {
+static void mw_findzmsome_0_2526 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -55902,7 +56128,7 @@ static void mw_findzmsome_0_2519 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2519();
+			mw_findzmsomezmaux2_0_2526();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -55939,7 +56165,7 @@ static void mw_findzmsome_0_2519 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2519();
+					mw_findzmsomezmaux2_0_2526();
 					break;
 				default:
 					{
@@ -55956,14 +56182,14 @@ static void mw_findzmsome_0_2519 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2519();
+				mw_findzmsome_0_2526();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2519();
+					mw_findzmsome_0_2526();
 					break;
 				default:
 					{
@@ -55979,7 +56205,7 @@ static void mw_findzmsome_0_2519 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2519 (void) {
+static void mw_findzmsomezmaux2_0_2526 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -56136,7 +56362,7 @@ static void mw_for_18_788 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_3_1428 (void) {
+static void mw_filter_3_1435 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -56145,14 +56371,14 @@ static void mw_filter_3_1428 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_1428();
+			mw_filter_2_1435();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsome_0_2553 (void) {
+static void mw_findzmsome_0_2560 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -56193,7 +56419,7 @@ static void mw_findzmsome_0_2553 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2553();
+			mw_findzmsomezmaux2_0_2560();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -56244,7 +56470,7 @@ static void mw_findzmsome_0_2553 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2553();
+					mw_findzmsomezmaux2_0_2560();
 					break;
 				default:
 					{
@@ -56261,14 +56487,14 @@ static void mw_findzmsome_0_2553 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2553();
+				mw_findzmsome_0_2560();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2553();
+					mw_findzmsome_0_2560();
 					break;
 				default:
 					{
@@ -56284,7 +56510,7 @@ static void mw_findzmsome_0_2553 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2553 (void) {
+static void mw_findzmsomezmaux2_0_2560 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -56371,20 +56597,20 @@ static void mw_findzmsomezmaux2_0_2553 (void) {
 			break;
 	}
 }
-static void mw_filter_2_1428 (void) {
+static void mw_filter_2_1435 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_1428();
+				mw_filter_2_1435();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_1428();
+				mw_filter_2_1435();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -56404,7 +56630,7 @@ static void mw_filter_2_1428 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_1428();
+					mw_filter_3_1435();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -56415,12 +56641,12 @@ static void mw_filter_2_1428 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_1428();
+				mw_filter_3_1435();
 			}
 			break;
 	}
 }
-static void mw_for_18_2242 (void) {
+static void mw_for_18_2249 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -56454,17 +56680,17 @@ static void mw_for_18_2242 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2242();
+				mw_for_18_2249();
 				push_value(d4);
 			}
-			mw_for_18_2242();
+			mw_for_18_2249();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_3_2342 (void) {
+static void mw_filter_3_2349 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -56473,14 +56699,14 @@ static void mw_filter_3_2342 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_2342();
+			mw_filter_2_2349();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfor_0_2345 (void) {
+static void mw_reversezmfor_0_2352 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -56588,7 +56814,7 @@ static void mw_reversezmfor_0_2345 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2345();
+			mw_dip2_0_2352();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -56659,17 +56885,17 @@ static void mw_reversezmfor_0_2345 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2345();
+				mw_reversezmfor_0_2352();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2345();
+			mw_reversezmfor_0_2352();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_2345 (void) {
+static void mw_dip2_0_2352 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -56708,20 +56934,20 @@ static void mw_dip2_0_2345 (void) {
 		push_value(d2);
 	}
 }
-static void mw_filter_2_2342 (void) {
+static void mw_filter_2_2349 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2342();
+				mw_filter_2_2349();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2342();
+				mw_filter_2_2349();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -56740,7 +56966,7 @@ static void mw_filter_2_2342 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_2342();
+					mw_filter_3_2349();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -56751,12 +56977,12 @@ static void mw_filter_2_2342 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_2342();
+				mw_filter_3_2349();
 			}
 			break;
 	}
 }
-static void mw_fold_0_2612 (void) {
+static void mw_fold_0_2619 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -56773,7 +56999,7 @@ static void mw_fold_0_2612 (void) {
 				VAL d4 = pop_value();
 				mp_primzmswap();
 				mp_primzmswap();
-				mw_filter_3_2619();
+				mw_filter_3_2626();
 				{
 					VAL d5 = pop_value();
 					mp_primzmdrop();
@@ -56797,7 +57023,7 @@ static void mw_fold_0_2612 (void) {
 					VAL d5 = pop_value();
 					mp_primzmswap();
 					mp_primzmswap();
-					mw_filter_3_2619();
+					mw_filter_3_2626();
 					{
 						VAL d6 = pop_value();
 						mp_primzmdrop();
@@ -56818,7 +57044,7 @@ static void mw_fold_0_2612 (void) {
 				VAL d4 = pop_value();
 				mp_primzmswap();
 				mp_primzmswap();
-				mw_filter_3_2619();
+				mw_filter_3_2626();
 				{
 					VAL d5 = pop_value();
 					mp_primzmdrop();
@@ -56833,13 +57059,13 @@ static void mw_fold_0_2612 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_fold_0_2612();
+				mw_fold_0_2619();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_fold_0_2612();
+				mw_fold_0_2619();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -56853,7 +57079,7 @@ static void mw_fold_0_2612 (void) {
 				VAL d4 = pop_value();
 				mp_primzmswap();
 				mp_primzmswap();
-				mw_filter_3_2619();
+				mw_filter_3_2626();
 				{
 					VAL d5 = pop_value();
 					mp_primzmdrop();
@@ -56868,7 +57094,7 @@ static void mw_fold_0_2612 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_3_2619 (void) {
+static void mw_filter_3_2626 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -56877,27 +57103,27 @@ static void mw_filter_3_2619 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_2619();
+			mw_filter_2_2626();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_2_2619 (void) {
+static void mw_filter_2_2626 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2619();
+				mw_filter_2_2626();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2619();
+				mw_filter_2_2626();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -56932,7 +57158,7 @@ static void mw_filter_2_2619 (void) {
 								break;
 							case 1LL: // SOME
 								mtp_SOME_0();
-								mw_findzmsome_0_2629();
+								mw_findzmsome_0_2636();
 								break;
 							default:
 								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -56962,7 +57188,7 @@ static void mw_filter_2_2619 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_2619();
+					mw_filter_3_2626();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -56973,12 +57199,12 @@ static void mw_filter_2_2619 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_2619();
+				mw_filter_3_2626();
 			}
 			break;
 	}
 }
-static void mw_findzmsome_0_2629 (void) {
+static void mw_findzmsome_0_2636 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -57018,7 +57244,7 @@ static void mw_findzmsome_0_2629 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2629();
+			mw_findzmsomezmaux2_0_2636();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -57068,7 +57294,7 @@ static void mw_findzmsome_0_2629 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2629();
+					mw_findzmsomezmaux2_0_2636();
 					break;
 				default:
 					{
@@ -57085,14 +57311,14 @@ static void mw_findzmsome_0_2629 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2629();
+				mw_findzmsome_0_2636();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2629();
+					mw_findzmsome_0_2636();
 					break;
 				default:
 					{
@@ -57108,754 +57334,7 @@ static void mw_findzmsome_0_2629 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2629 (void) {
-	{
-		VAL d2 = pop_value();
-		{
-			VAL d3 = pop_value();
-			mp_primzmdup();
-			push_value(d3);
-		}
-		mp_primzmswap();
-		{
-			VAL d3 = pop_value();
-			mp_primzmdup();
-			push_value(d3);
-		}
-		mp_primzmswap();
-		{
-			VAL d3 = pop_value();
-			{
-				VAL d4 = pop_value();
-				mw_zeze_18();
-				push_value(d4);
-			}
-			push_value(d3);
-		}
-		{
-			VAL d3 = pop_value();
-			mp_primzmswap();
-			push_value(d3);
-		}
-		mp_primzmswap();
-		if (pop_u64()) {
-			mtw_SOME_0();
-		} else {
-			mp_primzmdrop();
-			push_u64(0LL); // NONE
-		}
-		push_value(d2);
-	}
-	mp_primzmswap();
-	switch (get_top_data_tag()) {
-		case 0LL: // NONE
-			(void)pop_u64();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_zeze_18();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			if (pop_u64()) {
-				mtw_SOME_0();
-			} else {
-				mp_primzmdrop();
-				push_u64(0LL); // NONE
-			}
-			break;
-		default:
-			{
-				VAL d4 = pop_value();
-				mp_primzmdrop();
-				push_value(d4);
-			}
-			break;
-	}
-}
-static void mw_map_0_1362 (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // L1+
-			mtp_L1zp_0();
-			mw_freezmvars_3();
-			mtw_L1zp_0();
-			break;
-		case 1LL: // L2+
-			mtp_L2zp_0();
-			{
-				VAL d4 = pop_value();
-				mw_freezmvars_3();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mw_freezmvars_3();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mtw_L2zp_0();
-			break;
-		case 2LL: // L3+
-			mtp_L3zp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_freezmvars_3();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				push_value(d4);
-			}
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_freezmvars_3();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				push_value(d4);
-			}
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_freezmvars_3();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mtw_L3zp_0();
-			break;
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_map_0_1362();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					mw_map_0_1362();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mtw_LCATzp_0();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_filter_3_2648 (void) {
-	mw_zgListzp_0();
-	switch (get_top_data_tag()) {
-		case 0LL: // NONE
-			(void)pop_u64();
-			push_u64(0LL); // L0
-			break;
-		case 1LL: // SOME
-			mtp_SOME_0();
-			mw_filter_2_2648();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_filter_2_2648 (void) {
-	switch (get_top_data_tag()) {
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_filter_2_2648();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mw_filter_2_2648();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mw_cat_2();
-			break;
-		default:
-			mw_uncons_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdup();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdup();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					{
-						VAL d6 = pop_value();
-						mp_primzmswap();
-						mw_zgListzp_0();
-						switch (get_top_data_tag()) {
-							case 0LL: // NONE
-								(void)pop_u64();
-								push_u64(0LL); // NONE
-								break;
-							case 1LL: // SOME
-								mtp_SOME_0();
-								mw_findzmsome_0_2658();
-								break;
-							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-								mp_primzmpanic();
-						}
-						mw_zgBool_1();
-						{
-							VAL d7 = pop_value();
-							mp_primzmdrop();
-							push_value(d7);
-						}
-						mw_not_1();
-						push_value(d6);
-					}
-					push_value(d5);
-				}
-				{
-					VAL d5 = pop_value();
-					mp_primzmswap();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			if (pop_u64()) {
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					mw_filter_3_2648();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				mw_cons_2();
-			} else {
-				{
-					VAL d5 = pop_value();
-					mp_primzmdrop();
-					push_value(d5);
-				}
-				mw_filter_3_2648();
-			}
-			break;
-	}
-}
-static void mw_findzmsome_0_2658 (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // L1+
-			mtp_L1zp_0();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_zeze_18();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			if (pop_u64()) {
-				mtw_SOME_0();
-			} else {
-				mp_primzmdrop();
-				push_u64(0LL); // NONE
-			}
-			break;
-		case 1LL: // L2+
-			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2658();
-			break;
-		case 2LL: // L3+
-			mtp_L3zp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					{
-						VAL d6 = pop_value();
-						mp_primzmdup();
-						push_value(d6);
-					}
-					mp_primzmswap();
-					{
-						VAL d6 = pop_value();
-						mp_primzmdup();
-						push_value(d6);
-					}
-					mp_primzmswap();
-					{
-						VAL d6 = pop_value();
-						{
-							VAL d7 = pop_value();
-							mw_zeze_18();
-							push_value(d7);
-						}
-						push_value(d6);
-					}
-					{
-						VAL d6 = pop_value();
-						mp_primzmswap();
-						push_value(d6);
-					}
-					mp_primzmswap();
-					if (pop_u64()) {
-						mtw_SOME_0();
-					} else {
-						mp_primzmdrop();
-						push_u64(0LL); // NONE
-					}
-					push_value(d5);
-				}
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			switch (get_top_data_tag()) {
-				case 0LL: // NONE
-					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2658();
-					break;
-				default:
-					{
-						VAL d6 = pop_value();
-						mp_primzmdrop();
-						mp_primzmdrop();
-						push_value(d6);
-					}
-					break;
-			}
-			break;
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_findzmsome_0_2658();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			switch (get_top_data_tag()) {
-				case 0LL: // NONE
-					(void)pop_u64();
-					mw_findzmsome_0_2658();
-					break;
-				default:
-					{
-						VAL d6 = pop_value();
-						mp_primzmdrop();
-						push_value(d6);
-					}
-					break;
-			}
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_findzmsomezmaux2_0_2658 (void) {
-	{
-		VAL d2 = pop_value();
-		{
-			VAL d3 = pop_value();
-			mp_primzmdup();
-			push_value(d3);
-		}
-		mp_primzmswap();
-		{
-			VAL d3 = pop_value();
-			mp_primzmdup();
-			push_value(d3);
-		}
-		mp_primzmswap();
-		{
-			VAL d3 = pop_value();
-			{
-				VAL d4 = pop_value();
-				mw_zeze_18();
-				push_value(d4);
-			}
-			push_value(d3);
-		}
-		{
-			VAL d3 = pop_value();
-			mp_primzmswap();
-			push_value(d3);
-		}
-		mp_primzmswap();
-		if (pop_u64()) {
-			mtw_SOME_0();
-		} else {
-			mp_primzmdrop();
-			push_u64(0LL); // NONE
-		}
-		push_value(d2);
-	}
-	mp_primzmswap();
-	switch (get_top_data_tag()) {
-		case 0LL: // NONE
-			(void)pop_u64();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_zeze_18();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			if (pop_u64()) {
-				mtw_SOME_0();
-			} else {
-				mp_primzmdrop();
-				push_u64(0LL); // NONE
-			}
-			break;
-		default:
-			{
-				VAL d4 = pop_value();
-				mp_primzmdrop();
-				push_value(d4);
-			}
-			break;
-	}
-}
-static void mw_filter_3_2664 (void) {
-	mw_zgListzp_0();
-	switch (get_top_data_tag()) {
-		case 0LL: // NONE
-			(void)pop_u64();
-			push_u64(0LL); // L0
-			break;
-		case 1LL: // SOME
-			mtp_SOME_0();
-			mw_filter_2_2664();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_filter_2_2664 (void) {
-	switch (get_top_data_tag()) {
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_filter_2_2664();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mw_filter_2_2664();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mw_cat_2();
-			break;
-		default:
-			mw_uncons_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdup();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdup();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					{
-						VAL d6 = pop_value();
-						mp_primzmswap();
-						mw_zgListzp_0();
-						switch (get_top_data_tag()) {
-							case 0LL: // NONE
-								(void)pop_u64();
-								push_u64(0LL); // NONE
-								break;
-							case 1LL: // SOME
-								mtp_SOME_0();
-								mw_findzmsome_0_2674();
-								break;
-							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-								mp_primzmpanic();
-						}
-						mw_zgBool_1();
-						{
-							VAL d7 = pop_value();
-							mp_primzmdrop();
-							push_value(d7);
-						}
-						mw_not_1();
-						push_value(d6);
-					}
-					push_value(d5);
-				}
-				{
-					VAL d5 = pop_value();
-					mp_primzmswap();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			if (pop_u64()) {
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					mw_filter_3_2664();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				mw_cons_2();
-			} else {
-				{
-					VAL d5 = pop_value();
-					mp_primzmdrop();
-					push_value(d5);
-				}
-				mw_filter_3_2664();
-			}
-			break;
-	}
-}
-static void mw_findzmsome_0_2674 (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // L1+
-			mtp_L1zp_0();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mw_zeze_18();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			if (pop_u64()) {
-				mtw_SOME_0();
-			} else {
-				mp_primzmdrop();
-				push_u64(0LL); // NONE
-			}
-			break;
-		case 1LL: // L2+
-			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2674();
-			break;
-		case 2LL: // L3+
-			mtp_L3zp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					{
-						VAL d6 = pop_value();
-						mp_primzmdup();
-						push_value(d6);
-					}
-					mp_primzmswap();
-					{
-						VAL d6 = pop_value();
-						mp_primzmdup();
-						push_value(d6);
-					}
-					mp_primzmswap();
-					{
-						VAL d6 = pop_value();
-						{
-							VAL d7 = pop_value();
-							mw_zeze_18();
-							push_value(d7);
-						}
-						push_value(d6);
-					}
-					{
-						VAL d6 = pop_value();
-						mp_primzmswap();
-						push_value(d6);
-					}
-					mp_primzmswap();
-					if (pop_u64()) {
-						mtw_SOME_0();
-					} else {
-						mp_primzmdrop();
-						push_u64(0LL); // NONE
-					}
-					push_value(d5);
-				}
-				mp_primzmswap();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			switch (get_top_data_tag()) {
-				case 0LL: // NONE
-					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2674();
-					break;
-				default:
-					{
-						VAL d6 = pop_value();
-						mp_primzmdrop();
-						mp_primzmdrop();
-						push_value(d6);
-					}
-					break;
-			}
-			break;
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_findzmsome_0_2674();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			switch (get_top_data_tag()) {
-				case 0LL: // NONE
-					(void)pop_u64();
-					mw_findzmsome_0_2674();
-					break;
-				default:
-					{
-						VAL d6 = pop_value();
-						mp_primzmdrop();
-						push_value(d6);
-					}
-					break;
-			}
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_findzmsomezmaux2_0_2674 (void) {
+static void mw_findzmsomezmaux2_0_2636 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -57944,20 +57423,20 @@ static void mw_map_0_1369 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
-			mw_zsPARAM_0();
+			mw_freezmvars_3();
 			mtw_L1zp_0();
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
 			{
 				VAL d4 = pop_value();
-				mw_zsPARAM_0();
+				mw_freezmvars_3();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_zsPARAM_0();
+				mw_freezmvars_3();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -57969,7 +57448,7 @@ static void mw_map_0_1369 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_zsPARAM_0();
+					mw_freezmvars_3();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -57984,7 +57463,7 @@ static void mw_map_0_1369 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_zsPARAM_0();
+					mw_freezmvars_3();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -57999,7 +57478,7 @@ static void mw_map_0_1369 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_zsPARAM_0();
+					mw_freezmvars_3();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -58037,119 +57516,7 @@ static void mw_map_0_1369 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_fold_0_2691 (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // L1+
-			mtp_L1zp_0();
-			break;
-		case 1LL: // L2+
-			mtp_L2zp_0();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				mp_primzmswap();
-				mw_filter_3_2698();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdrop();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			mw_cat_2();
-			break;
-		case 2LL: // L3+
-			mtp_L3zp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdup();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					mp_primzmswap();
-					mp_primzmswap();
-					mw_filter_3_2698();
-					{
-						VAL d6 = pop_value();
-						mp_primzmdrop();
-						push_value(d6);
-					}
-					push_value(d5);
-				}
-				mw_cat_2();
-				push_value(d4);
-			}
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				mp_primzmswap();
-				mw_filter_3_2698();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdrop();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			mw_cat_2();
-			break;
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_fold_0_2691();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mw_fold_0_2691();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				mp_primzmswap();
-				mw_filter_3_2698();
-				{
-					VAL d5 = pop_value();
-					mp_primzmdrop();
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			mw_cat_2();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_filter_3_2698 (void) {
+static void mw_filter_3_2655 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -58158,27 +57525,27 @@ static void mw_filter_3_2698 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_2698();
+			mw_filter_2_2655();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_2_2698 (void) {
+static void mw_filter_2_2655 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2698();
+				mw_filter_2_2655();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2698();
+				mw_filter_2_2655();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -58213,7 +57580,7 @@ static void mw_filter_2_2698 (void) {
 								break;
 							case 1LL: // SOME
 								mtp_SOME_0();
-								mw_findzmsome_0_2708();
+								mw_findzmsome_0_2665();
 								break;
 							default:
 								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -58243,7 +57610,7 @@ static void mw_filter_2_2698 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_2698();
+					mw_filter_3_2655();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -58254,12 +57621,12 @@ static void mw_filter_2_2698 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_2698();
+				mw_filter_3_2655();
 			}
 			break;
 	}
 }
-static void mw_findzmsome_0_2708 (void) {
+static void mw_findzmsome_0_2665 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -58299,7 +57666,7 @@ static void mw_findzmsome_0_2708 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2708();
+			mw_findzmsomezmaux2_0_2665();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -58349,7 +57716,7 @@ static void mw_findzmsome_0_2708 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2708();
+					mw_findzmsomezmaux2_0_2665();
 					break;
 				default:
 					{
@@ -58366,14 +57733,14 @@ static void mw_findzmsome_0_2708 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2708();
+				mw_findzmsome_0_2665();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2708();
+					mw_findzmsome_0_2665();
 					break;
 				default:
 					{
@@ -58389,7 +57756,7 @@ static void mw_findzmsome_0_2708 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2708 (void) {
+static void mw_findzmsomezmaux2_0_2665 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -58474,7 +57841,866 @@ static void mw_findzmsomezmaux2_0_2708 (void) {
 			break;
 	}
 }
-static void mw_map_0_1367 (void) {
+static void mw_filter_3_2671 (void) {
+	mw_zgListzp_0();
+	switch (get_top_data_tag()) {
+		case 0LL: // NONE
+			(void)pop_u64();
+			push_u64(0LL); // L0
+			break;
+		case 1LL: // SOME
+			mtp_SOME_0();
+			mw_filter_2_2671();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_filter_2_2671 (void) {
+	switch (get_top_data_tag()) {
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_filter_2_2671();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mw_filter_2_2671();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mw_cat_2();
+			break;
+		default:
+			mw_uncons_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdup();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdup();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					{
+						VAL d6 = pop_value();
+						mp_primzmswap();
+						mw_zgListzp_0();
+						switch (get_top_data_tag()) {
+							case 0LL: // NONE
+								(void)pop_u64();
+								push_u64(0LL); // NONE
+								break;
+							case 1LL: // SOME
+								mtp_SOME_0();
+								mw_findzmsome_0_2681();
+								break;
+							default:
+								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								mp_primzmpanic();
+						}
+						mw_zgBool_1();
+						{
+							VAL d7 = pop_value();
+							mp_primzmdrop();
+							push_value(d7);
+						}
+						mw_not_1();
+						push_value(d6);
+					}
+					push_value(d5);
+				}
+				{
+					VAL d5 = pop_value();
+					mp_primzmswap();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			if (pop_u64()) {
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					mw_filter_3_2671();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				mw_cons_2();
+			} else {
+				{
+					VAL d5 = pop_value();
+					mp_primzmdrop();
+					push_value(d5);
+				}
+				mw_filter_3_2671();
+			}
+			break;
+	}
+}
+static void mw_findzmsome_0_2681 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // L1+
+			mtp_L1zp_0();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_zeze_18();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			if (pop_u64()) {
+				mtw_SOME_0();
+			} else {
+				mp_primzmdrop();
+				push_u64(0LL); // NONE
+			}
+			break;
+		case 1LL: // L2+
+			mtp_L2zp_0();
+			mw_findzmsomezmaux2_0_2681();
+			break;
+		case 2LL: // L3+
+			mtp_L3zp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					{
+						VAL d6 = pop_value();
+						mp_primzmdup();
+						push_value(d6);
+					}
+					mp_primzmswap();
+					{
+						VAL d6 = pop_value();
+						mp_primzmdup();
+						push_value(d6);
+					}
+					mp_primzmswap();
+					{
+						VAL d6 = pop_value();
+						{
+							VAL d7 = pop_value();
+							mw_zeze_18();
+							push_value(d7);
+						}
+						push_value(d6);
+					}
+					{
+						VAL d6 = pop_value();
+						mp_primzmswap();
+						push_value(d6);
+					}
+					mp_primzmswap();
+					if (pop_u64()) {
+						mtw_SOME_0();
+					} else {
+						mp_primzmdrop();
+						push_u64(0LL); // NONE
+					}
+					push_value(d5);
+				}
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			switch (get_top_data_tag()) {
+				case 0LL: // NONE
+					(void)pop_u64();
+					mw_findzmsomezmaux2_0_2681();
+					break;
+				default:
+					{
+						VAL d6 = pop_value();
+						mp_primzmdrop();
+						mp_primzmdrop();
+						push_value(d6);
+					}
+					break;
+			}
+			break;
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_findzmsome_0_2681();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			switch (get_top_data_tag()) {
+				case 0LL: // NONE
+					(void)pop_u64();
+					mw_findzmsome_0_2681();
+					break;
+				default:
+					{
+						VAL d6 = pop_value();
+						mp_primzmdrop();
+						push_value(d6);
+					}
+					break;
+			}
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_findzmsomezmaux2_0_2681 (void) {
+	{
+		VAL d2 = pop_value();
+		{
+			VAL d3 = pop_value();
+			mp_primzmdup();
+			push_value(d3);
+		}
+		mp_primzmswap();
+		{
+			VAL d3 = pop_value();
+			mp_primzmdup();
+			push_value(d3);
+		}
+		mp_primzmswap();
+		{
+			VAL d3 = pop_value();
+			{
+				VAL d4 = pop_value();
+				mw_zeze_18();
+				push_value(d4);
+			}
+			push_value(d3);
+		}
+		{
+			VAL d3 = pop_value();
+			mp_primzmswap();
+			push_value(d3);
+		}
+		mp_primzmswap();
+		if (pop_u64()) {
+			mtw_SOME_0();
+		} else {
+			mp_primzmdrop();
+			push_u64(0LL); // NONE
+		}
+		push_value(d2);
+	}
+	mp_primzmswap();
+	switch (get_top_data_tag()) {
+		case 0LL: // NONE
+			(void)pop_u64();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_zeze_18();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			if (pop_u64()) {
+				mtw_SOME_0();
+			} else {
+				mp_primzmdrop();
+				push_u64(0LL); // NONE
+			}
+			break;
+		default:
+			{
+				VAL d4 = pop_value();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			break;
+	}
+}
+static void mw_map_0_1376 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // L1+
+			mtp_L1zp_0();
+			mw_zsPARAM_0();
+			mtw_L1zp_0();
+			break;
+		case 1LL: // L2+
+			mtp_L2zp_0();
+			{
+				VAL d4 = pop_value();
+				mw_zsPARAM_0();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mw_zsPARAM_0();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mtw_L2zp_0();
+			break;
+		case 2LL: // L3+
+			mtp_L3zp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_zsPARAM_0();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				push_value(d4);
+			}
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_zsPARAM_0();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				push_value(d4);
+			}
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_zsPARAM_0();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mtw_L3zp_0();
+			break;
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_map_0_1376();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					mw_map_0_1376();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mtw_LCATzp_0();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_fold_0_2698 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // L1+
+			mtp_L1zp_0();
+			break;
+		case 1LL: // L2+
+			mtp_L2zp_0();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				mp_primzmswap();
+				mw_filter_3_2705();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdrop();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			mw_cat_2();
+			break;
+		case 2LL: // L3+
+			mtp_L3zp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdup();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					mp_primzmswap();
+					mp_primzmswap();
+					mw_filter_3_2705();
+					{
+						VAL d6 = pop_value();
+						mp_primzmdrop();
+						push_value(d6);
+					}
+					push_value(d5);
+				}
+				mw_cat_2();
+				push_value(d4);
+			}
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				mp_primzmswap();
+				mw_filter_3_2705();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdrop();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			mw_cat_2();
+			break;
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_fold_0_2698();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mw_fold_0_2698();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				mp_primzmswap();
+				mw_filter_3_2705();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdrop();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			mw_cat_2();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_filter_3_2705 (void) {
+	mw_zgListzp_0();
+	switch (get_top_data_tag()) {
+		case 0LL: // NONE
+			(void)pop_u64();
+			push_u64(0LL); // L0
+			break;
+		case 1LL: // SOME
+			mtp_SOME_0();
+			mw_filter_2_2705();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_filter_2_2705 (void) {
+	switch (get_top_data_tag()) {
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_filter_2_2705();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mw_filter_2_2705();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mw_cat_2();
+			break;
+		default:
+			mw_uncons_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdup();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					mp_primzmdup();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					{
+						VAL d6 = pop_value();
+						mp_primzmswap();
+						mw_zgListzp_0();
+						switch (get_top_data_tag()) {
+							case 0LL: // NONE
+								(void)pop_u64();
+								push_u64(0LL); // NONE
+								break;
+							case 1LL: // SOME
+								mtp_SOME_0();
+								mw_findzmsome_0_2715();
+								break;
+							default:
+								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								mp_primzmpanic();
+						}
+						mw_zgBool_1();
+						{
+							VAL d7 = pop_value();
+							mp_primzmdrop();
+							push_value(d7);
+						}
+						mw_not_1();
+						push_value(d6);
+					}
+					push_value(d5);
+				}
+				{
+					VAL d5 = pop_value();
+					mp_primzmswap();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			if (pop_u64()) {
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					mw_filter_3_2705();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				mw_cons_2();
+			} else {
+				{
+					VAL d5 = pop_value();
+					mp_primzmdrop();
+					push_value(d5);
+				}
+				mw_filter_3_2705();
+			}
+			break;
+	}
+}
+static void mw_findzmsome_0_2715 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // L1+
+			mtp_L1zp_0();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_zeze_18();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			if (pop_u64()) {
+				mtw_SOME_0();
+			} else {
+				mp_primzmdrop();
+				push_u64(0LL); // NONE
+			}
+			break;
+		case 1LL: // L2+
+			mtp_L2zp_0();
+			mw_findzmsomezmaux2_0_2715();
+			break;
+		case 2LL: // L3+
+			mtp_L3zp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					{
+						VAL d6 = pop_value();
+						mp_primzmdup();
+						push_value(d6);
+					}
+					mp_primzmswap();
+					{
+						VAL d6 = pop_value();
+						mp_primzmdup();
+						push_value(d6);
+					}
+					mp_primzmswap();
+					{
+						VAL d6 = pop_value();
+						{
+							VAL d7 = pop_value();
+							mw_zeze_18();
+							push_value(d7);
+						}
+						push_value(d6);
+					}
+					{
+						VAL d6 = pop_value();
+						mp_primzmswap();
+						push_value(d6);
+					}
+					mp_primzmswap();
+					if (pop_u64()) {
+						mtw_SOME_0();
+					} else {
+						mp_primzmdrop();
+						push_u64(0LL); // NONE
+					}
+					push_value(d5);
+				}
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			switch (get_top_data_tag()) {
+				case 0LL: // NONE
+					(void)pop_u64();
+					mw_findzmsomezmaux2_0_2715();
+					break;
+				default:
+					{
+						VAL d6 = pop_value();
+						mp_primzmdrop();
+						mp_primzmdrop();
+						push_value(d6);
+					}
+					break;
+			}
+			break;
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_findzmsome_0_2715();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			switch (get_top_data_tag()) {
+				case 0LL: // NONE
+					(void)pop_u64();
+					mw_findzmsome_0_2715();
+					break;
+				default:
+					{
+						VAL d6 = pop_value();
+						mp_primzmdrop();
+						push_value(d6);
+					}
+					break;
+			}
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_findzmsomezmaux2_0_2715 (void) {
+	{
+		VAL d2 = pop_value();
+		{
+			VAL d3 = pop_value();
+			mp_primzmdup();
+			push_value(d3);
+		}
+		mp_primzmswap();
+		{
+			VAL d3 = pop_value();
+			mp_primzmdup();
+			push_value(d3);
+		}
+		mp_primzmswap();
+		{
+			VAL d3 = pop_value();
+			{
+				VAL d4 = pop_value();
+				mw_zeze_18();
+				push_value(d4);
+			}
+			push_value(d3);
+		}
+		{
+			VAL d3 = pop_value();
+			mp_primzmswap();
+			push_value(d3);
+		}
+		mp_primzmswap();
+		if (pop_u64()) {
+			mtw_SOME_0();
+		} else {
+			mp_primzmdrop();
+			push_u64(0LL); // NONE
+		}
+		push_value(d2);
+	}
+	mp_primzmswap();
+	switch (get_top_data_tag()) {
+		case 0LL: // NONE
+			(void)pop_u64();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mw_zeze_18();
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			if (pop_u64()) {
+				mtw_SOME_0();
+			} else {
+				mp_primzmdrop();
+				push_u64(0LL); // NONE
+			}
+			break;
+		default:
+			{
+				VAL d4 = pop_value();
+				mp_primzmdrop();
+				push_value(d4);
+			}
+			break;
+	}
+}
+static void mw_map_0_1374 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -58552,13 +58778,13 @@ static void mw_map_0_1367 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1367();
+					mw_map_0_1374();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1367();
+					mw_map_0_1374();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -58571,7 +58797,7 @@ static void mw_map_0_1367 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_fold_0_2725 (void) {
+static void mw_fold_0_2732 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -58588,7 +58814,7 @@ static void mw_fold_0_2725 (void) {
 				VAL d4 = pop_value();
 				mp_primzmswap();
 				mp_primzmswap();
-				mw_filter_3_2732();
+				mw_filter_3_2739();
 				{
 					VAL d5 = pop_value();
 					mp_primzmdrop();
@@ -58612,7 +58838,7 @@ static void mw_fold_0_2725 (void) {
 					VAL d5 = pop_value();
 					mp_primzmswap();
 					mp_primzmswap();
-					mw_filter_3_2732();
+					mw_filter_3_2739();
 					{
 						VAL d6 = pop_value();
 						mp_primzmdrop();
@@ -58633,7 +58859,7 @@ static void mw_fold_0_2725 (void) {
 				VAL d4 = pop_value();
 				mp_primzmswap();
 				mp_primzmswap();
-				mw_filter_3_2732();
+				mw_filter_3_2739();
 				{
 					VAL d5 = pop_value();
 					mp_primzmdrop();
@@ -58648,13 +58874,13 @@ static void mw_fold_0_2725 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_fold_0_2725();
+				mw_fold_0_2732();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_fold_0_2725();
+				mw_fold_0_2732();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -58668,7 +58894,7 @@ static void mw_fold_0_2725 (void) {
 				VAL d4 = pop_value();
 				mp_primzmswap();
 				mp_primzmswap();
-				mw_filter_3_2732();
+				mw_filter_3_2739();
 				{
 					VAL d5 = pop_value();
 					mp_primzmdrop();
@@ -58683,7 +58909,7 @@ static void mw_fold_0_2725 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_3_2732 (void) {
+static void mw_filter_3_2739 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -58692,27 +58918,27 @@ static void mw_filter_3_2732 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_2732();
+			mw_filter_2_2739();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_2_2732 (void) {
+static void mw_filter_2_2739 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2732();
+				mw_filter_2_2739();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_2732();
+				mw_filter_2_2739();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -58747,7 +58973,7 @@ static void mw_filter_2_2732 (void) {
 								break;
 							case 1LL: // SOME
 								mtp_SOME_0();
-								mw_findzmsome_0_2742();
+								mw_findzmsome_0_2749();
 								break;
 							default:
 								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -58777,7 +59003,7 @@ static void mw_filter_2_2732 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_2732();
+					mw_filter_3_2739();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -58788,12 +59014,12 @@ static void mw_filter_2_2732 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_2732();
+				mw_filter_3_2739();
 			}
 			break;
 	}
 }
-static void mw_findzmsome_0_2742 (void) {
+static void mw_findzmsome_0_2749 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -58833,7 +59059,7 @@ static void mw_findzmsome_0_2742 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2742();
+			mw_findzmsomezmaux2_0_2749();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -58883,7 +59109,7 @@ static void mw_findzmsome_0_2742 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2742();
+					mw_findzmsomezmaux2_0_2749();
 					break;
 				default:
 					{
@@ -58900,14 +59126,14 @@ static void mw_findzmsome_0_2742 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2742();
+				mw_findzmsome_0_2749();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2742();
+					mw_findzmsome_0_2749();
 					break;
 				default:
 					{
@@ -58923,7 +59149,7 @@ static void mw_findzmsome_0_2742 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2742 (void) {
+static void mw_findzmsomezmaux2_0_2749 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -59008,7 +59234,7 @@ static void mw_findzmsomezmaux2_0_2742 (void) {
 			break;
 	}
 }
-static void mw_map_0_1364 (void) {
+static void mw_map_0_1371 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59086,13 +59312,13 @@ static void mw_map_0_1364 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1364();
+					mw_map_0_1371();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1364();
+					mw_map_0_1371();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -59105,7 +59331,7 @@ static void mw_map_0_1364 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2174 (void) {
+static void mw_for_18_2181 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59385,17 +59611,17 @@ static void mw_for_18_2174 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2174();
+				mw_for_18_2181();
 				push_value(d4);
 			}
-			mw_for_18_2174();
+			mw_for_18_2181();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfor_0_2160 (void) {
+static void mw_reversezmfor_0_2167 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59560,7 +59786,7 @@ static void mw_reversezmfor_0_2160 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2160();
+			mw_dip2_0_2167();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -59669,17 +59895,17 @@ static void mw_reversezmfor_0_2160 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2160();
+				mw_reversezmfor_0_2167();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2160();
+			mw_reversezmfor_0_2167();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_2160 (void) {
+static void mw_dip2_0_2167 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -59737,7 +59963,7 @@ static void mw_dip2_0_2160 (void) {
 		push_value(d2);
 	}
 }
-static void mw_for_18_2396 (void) {
+static void mw_for_18_2403 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59771,17 +59997,17 @@ static void mw_for_18_2396 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2396();
+				mw_for_18_2403();
 				push_value(d4);
 			}
-			mw_for_18_2396();
+			mw_for_18_2403();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2406 (void) {
+static void mw_for_18_2413 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59815,17 +60041,17 @@ static void mw_for_18_2406 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2406();
+				mw_for_18_2413();
 				push_value(d4);
 			}
-			mw_for_18_2406();
+			mw_for_18_2413();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2407 (void) {
+static void mw_for_18_2414 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59859,17 +60085,17 @@ static void mw_for_18_2407 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2407();
+				mw_for_18_2414();
 				push_value(d4);
 			}
-			mw_for_18_2407();
+			mw_for_18_2414();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2403 (void) {
+static void mw_for_18_2410 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59903,17 +60129,17 @@ static void mw_for_18_2403 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2403();
+				mw_for_18_2410();
 				push_value(d4);
 			}
-			mw_for_18_2403();
+			mw_for_18_2410();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dipzq_0_2020 (void) {
+static void mw_dipzq_0_2027 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -59922,7 +60148,7 @@ static void mw_dipzq_0_2020 (void) {
 	}
 	mp_primzmswap();
 }
-static void mw_flatmap_0_2020 (void) {
+static void mw_flatmap_0_2027 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -59935,7 +60161,7 @@ static void mw_flatmap_0_2020 (void) {
 				mw_checkzmatomzn_0();
 				push_value(d4);
 			}
-			mw_dipzq_0_2020();
+			mw_dipzq_0_2027();
 			mw_cat_2();
 			break;
 		case 2LL: // L3+
@@ -59947,11 +60173,11 @@ static void mw_flatmap_0_2020 (void) {
 					mw_checkzmatomzn_0();
 					push_value(d5);
 				}
-				mw_dipzq_0_2020();
+				mw_dipzq_0_2027();
 				mw_cat_2();
 				push_value(d4);
 			}
-			mw_dipzq_0_2020();
+			mw_dipzq_0_2027();
 			mw_cat_2();
 			break;
 		case 3LL: // LCAT+
@@ -59959,13 +60185,13 @@ static void mw_flatmap_0_2020 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_flatmap_0_2020();
+				mw_flatmap_0_2027();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_flatmap_0_2020();
+				mw_flatmap_0_2027();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -59976,7 +60202,7 @@ static void mw_flatmap_0_2020 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_map_0_2036 (void) {
+static void mw_map_0_2043 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -60054,13 +60280,13 @@ static void mw_map_0_2036 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_2036();
+					mw_map_0_2043();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_2036();
+					mw_map_0_2043();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -60073,7 +60299,7 @@ static void mw_map_0_2036 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2028 (void) {
+static void mw_for_18_2035 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -60107,17 +60333,17 @@ static void mw_for_18_2028 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2028();
+				mw_for_18_2035();
 				push_value(d4);
 			}
-			mw_for_18_2028();
+			mw_for_18_2035();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_map_0_2029 (void) {
+static void mw_map_0_2036 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -60195,13 +60421,13 @@ static void mw_map_0_2029 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_2029();
+					mw_map_0_2036();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_2029();
+					mw_map_0_2036();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -60862,7 +61088,7 @@ static void mw_for_18_165 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2075 (void) {
+static void mw_for_18_2082 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -60896,17 +61122,17 @@ static void mw_for_18_2075 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2075();
+				mw_for_18_2082();
 				push_value(d4);
 			}
-			mw_for_18_2075();
+			mw_for_18_2082();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsome_0_2922 (void) {
+static void mw_findzmsome_0_2929 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -60933,7 +61159,7 @@ static void mw_findzmsome_0_2922 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2922();
+			mw_findzmsomezmaux2_0_2929();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -60970,7 +61196,7 @@ static void mw_findzmsome_0_2922 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2922();
+					mw_findzmsomezmaux2_0_2929();
 					break;
 				default:
 					{
@@ -60987,14 +61213,14 @@ static void mw_findzmsome_0_2922 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2922();
+				mw_findzmsome_0_2929();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2922();
+					mw_findzmsome_0_2929();
 					break;
 				default:
 					{
@@ -61010,7 +61236,7 @@ static void mw_findzmsome_0_2922 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2922 (void) {
+static void mw_findzmsomezmaux2_0_2929 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -61069,7 +61295,7 @@ static void mw_findzmsomezmaux2_0_2922 (void) {
 			break;
 	}
 }
-static void mw_findzmsome_0_2931 (void) {
+static void mw_findzmsome_0_2938 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -61096,7 +61322,7 @@ static void mw_findzmsome_0_2931 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2931();
+			mw_findzmsomezmaux2_0_2938();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -61133,7 +61359,7 @@ static void mw_findzmsome_0_2931 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2931();
+					mw_findzmsomezmaux2_0_2938();
 					break;
 				default:
 					{
@@ -61150,14 +61376,14 @@ static void mw_findzmsome_0_2931 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2931();
+				mw_findzmsome_0_2938();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2931();
+					mw_findzmsome_0_2938();
 					break;
 				default:
 					{
@@ -61173,7 +61399,7 @@ static void mw_findzmsome_0_2931 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2931 (void) {
+static void mw_findzmsomezmaux2_0_2938 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -61232,7 +61458,7 @@ static void mw_findzmsomezmaux2_0_2931 (void) {
 			break;
 	}
 }
-static void mw_reversezmfor_0_2940 (void) {
+static void mw_reversezmfor_0_2947 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -61337,7 +61563,7 @@ static void mw_reversezmfor_0_2940 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2940();
+			mw_dip2_0_2947();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -61406,17 +61632,17 @@ static void mw_reversezmfor_0_2940 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2940();
+				mw_reversezmfor_0_2947();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2940();
+			mw_reversezmfor_0_2947();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_2940 (void) {
+static void mw_dip2_0_2947 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -61454,7 +61680,7 @@ static void mw_dip2_0_2940 (void) {
 		push_value(d2);
 	}
 }
-static void mw_for_18_2086 (void) {
+static void mw_for_18_2093 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -61524,7 +61750,7 @@ static void mw_for_18_2086 (void) {
 								mp_primzmswap();
 								push_value(d8);
 							}
-							mw_dip2_0_2089();
+							mw_dip2_0_2096();
 							mp_primzmswap();
 							{
 								VAL d8 = pop_value();
@@ -61541,10 +61767,10 @@ static void mw_for_18_2086 (void) {
 							mp_primzmswap();
 							{
 								VAL d8 = pop_value();
-								mw_reversezmfor_0_2089();
+								mw_reversezmfor_0_2096();
 								push_value(d8);
 							}
-							mw_reversezmfor_0_2089();
+							mw_reversezmfor_0_2096();
 							break;
 						default:
 							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -61695,7 +61921,7 @@ static void mw_for_18_2086 (void) {
 									mp_primzmswap();
 									push_value(d9);
 								}
-								mw_dip2_0_2089();
+								mw_dip2_0_2096();
 								mp_primzmswap();
 								{
 									VAL d9 = pop_value();
@@ -61712,10 +61938,10 @@ static void mw_for_18_2086 (void) {
 								mp_primzmswap();
 								{
 									VAL d9 = pop_value();
-									mw_reversezmfor_0_2089();
+									mw_reversezmfor_0_2096();
 									push_value(d9);
 								}
-								mw_reversezmfor_0_2089();
+								mw_reversezmfor_0_2096();
 								break;
 							default:
 								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -61863,7 +62089,7 @@ static void mw_for_18_2086 (void) {
 								mp_primzmswap();
 								push_value(d8);
 							}
-							mw_dip2_0_2089();
+							mw_dip2_0_2096();
 							mp_primzmswap();
 							{
 								VAL d8 = pop_value();
@@ -61880,10 +62106,10 @@ static void mw_for_18_2086 (void) {
 							mp_primzmswap();
 							{
 								VAL d8 = pop_value();
-								mw_reversezmfor_0_2089();
+								mw_reversezmfor_0_2096();
 								push_value(d8);
 							}
-							mw_reversezmfor_0_2089();
+							mw_reversezmfor_0_2096();
 							break;
 						default:
 							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -62036,7 +62262,7 @@ static void mw_for_18_2086 (void) {
 										mp_primzmswap();
 										push_value(d10);
 									}
-									mw_dip2_0_2089();
+									mw_dip2_0_2096();
 									mp_primzmswap();
 									{
 										VAL d10 = pop_value();
@@ -62053,10 +62279,10 @@ static void mw_for_18_2086 (void) {
 									mp_primzmswap();
 									{
 										VAL d10 = pop_value();
-										mw_reversezmfor_0_2089();
+										mw_reversezmfor_0_2096();
 										push_value(d10);
 									}
-									mw_reversezmfor_0_2089();
+									mw_reversezmfor_0_2096();
 									break;
 								default:
 									push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -62204,7 +62430,7 @@ static void mw_for_18_2086 (void) {
 									mp_primzmswap();
 									push_value(d9);
 								}
-								mw_dip2_0_2089();
+								mw_dip2_0_2096();
 								mp_primzmswap();
 								{
 									VAL d9 = pop_value();
@@ -62221,10 +62447,10 @@ static void mw_for_18_2086 (void) {
 								mp_primzmswap();
 								{
 									VAL d9 = pop_value();
-									mw_reversezmfor_0_2089();
+									mw_reversezmfor_0_2096();
 									push_value(d9);
 								}
-								mw_reversezmfor_0_2089();
+								mw_reversezmfor_0_2096();
 								break;
 							default:
 								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -62372,7 +62598,7 @@ static void mw_for_18_2086 (void) {
 								mp_primzmswap();
 								push_value(d8);
 							}
-							mw_dip2_0_2089();
+							mw_dip2_0_2096();
 							mp_primzmswap();
 							{
 								VAL d8 = pop_value();
@@ -62389,10 +62615,10 @@ static void mw_for_18_2086 (void) {
 							mp_primzmswap();
 							{
 								VAL d8 = pop_value();
-								mw_reversezmfor_0_2089();
+								mw_reversezmfor_0_2096();
 								push_value(d8);
 							}
-							mw_reversezmfor_0_2089();
+							mw_reversezmfor_0_2096();
 							break;
 						default:
 							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -62478,17 +62704,17 @@ static void mw_for_18_2086 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2086();
+				mw_for_18_2093();
 				push_value(d4);
 			}
-			mw_for_18_2086();
+			mw_for_18_2093();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsome_0_2957 (void) {
+static void mw_findzmsome_0_2964 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -62514,7 +62740,7 @@ static void mw_findzmsome_0_2957 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2957();
+			mw_findzmsomezmaux2_0_2964();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -62550,7 +62776,7 @@ static void mw_findzmsome_0_2957 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2957();
+					mw_findzmsomezmaux2_0_2964();
 					break;
 				default:
 					{
@@ -62567,14 +62793,14 @@ static void mw_findzmsome_0_2957 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2957();
+				mw_findzmsome_0_2964();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2957();
+					mw_findzmsome_0_2964();
 					break;
 				default:
 					{
@@ -62590,7 +62816,7 @@ static void mw_findzmsome_0_2957 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2957 (void) {
+static void mw_findzmsomezmaux2_0_2964 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -62647,7 +62873,7 @@ static void mw_findzmsomezmaux2_0_2957 (void) {
 			break;
 	}
 }
-static void mw_for_18_1300 (void) {
+static void mw_for_18_1307 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -62681,17 +62907,17 @@ static void mw_for_18_1300 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1300();
+				mw_for_18_1307();
 				push_value(d4);
 			}
-			mw_for_18_1300();
+			mw_for_18_1307();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfor_0_2089 (void) {
+static void mw_reversezmfor_0_2096 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -62718,7 +62944,7 @@ static void mw_reversezmfor_0_2089 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_2089();
+			mw_dip2_0_2096();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -62735,17 +62961,17 @@ static void mw_reversezmfor_0_2089 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2089();
+				mw_reversezmfor_0_2096();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2089();
+			mw_reversezmfor_0_2096();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_2089 (void) {
+static void mw_dip2_0_2096 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -62757,7 +62983,7 @@ static void mw_dip2_0_2089 (void) {
 		push_value(d2);
 	}
 }
-static void mw_for_18_2077 (void) {
+static void mw_for_18_2084 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -62791,17 +63017,17 @@ static void mw_for_18_2077 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2077();
+				mw_for_18_2084();
 				push_value(d4);
 			}
-			mw_for_18_2077();
+			mw_for_18_2084();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_map_0_2068 (void) {
+static void mw_map_0_2075 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -62879,13 +63105,13 @@ static void mw_map_0_2068 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_2068();
+					mw_map_0_2075();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_2068();
+					mw_map_0_2075();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -62898,7 +63124,7 @@ static void mw_map_0_2068 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfor_0_2061 (void) {
+static void mw_reversezmfor_0_2068 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -63209,17 +63435,17 @@ static void mw_reversezmfor_0_2061 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_2061();
+				mw_reversezmfor_0_2068();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_2061();
+			mw_reversezmfor_0_2068();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfindzmsome_0_3008 (void) {
+static void mw_reversezmfindzmsome_0_3015 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -63247,7 +63473,7 @@ static void mw_reversezmfindzmsome_0_3008 (void) {
 		case 1LL: // L2+
 			mtp_L2zp_0();
 			mp_primzmswap();
-			mw_findzmsomezmaux2_0_3008();
+			mw_findzmsomezmaux2_0_3015();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -63291,7 +63517,7 @@ static void mw_reversezmfindzmsome_0_3008 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3008();
+					mw_findzmsomezmaux2_0_3015();
 					break;
 				default:
 					{
@@ -63309,14 +63535,14 @@ static void mw_reversezmfindzmsome_0_3008 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfindzmsome_0_3008();
+				mw_reversezmfindzmsome_0_3015();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_reversezmfindzmsome_0_3008();
+					mw_reversezmfindzmsome_0_3015();
 					break;
 				default:
 					{
@@ -63332,7 +63558,7 @@ static void mw_reversezmfindzmsome_0_3008 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3008 (void) {
+static void mw_findzmsomezmaux2_0_3015 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -63391,7 +63617,7 @@ static void mw_findzmsomezmaux2_0_3008 (void) {
 			break;
 	}
 }
-static void mw_for_18_2048 (void) {
+static void mw_for_18_2055 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -63509,10 +63735,10 @@ static void mw_for_18_2048 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2048();
+				mw_for_18_2055();
 				push_value(d4);
 			}
-			mw_for_18_2048();
+			mw_for_18_2055();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -63659,7 +63885,7 @@ static void mw_for_18_140 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsome_0_3027 (void) {
+static void mw_findzmsome_0_3034 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -63686,7 +63912,7 @@ static void mw_findzmsome_0_3027 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3027();
+			mw_findzmsomezmaux2_0_3034();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -63723,7 +63949,7 @@ static void mw_findzmsome_0_3027 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3027();
+					mw_findzmsomezmaux2_0_3034();
 					break;
 				default:
 					{
@@ -63740,14 +63966,14 @@ static void mw_findzmsome_0_3027 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3027();
+				mw_findzmsome_0_3034();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3027();
+					mw_findzmsome_0_3034();
 					break;
 				default:
 					{
@@ -63763,7 +63989,7 @@ static void mw_findzmsome_0_3027 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3027 (void) {
+static void mw_findzmsomezmaux2_0_3034 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -63887,7 +64113,7 @@ static void mw_zeze_21_297 (void) {
 		push_u64(0LL); // F
 	}
 }
-static void mw_findzmsome_0_3041 (void) {
+static void mw_findzmsome_0_3048 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -63900,7 +64126,7 @@ static void mw_findzmsome_0_3041 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_3047();
+					mw_findzmsome_0_3054();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -63916,7 +64142,7 @@ static void mw_findzmsome_0_3041 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3041();
+			mw_findzmsomezmaux2_0_3048();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -63933,7 +64159,7 @@ static void mw_findzmsome_0_3041 (void) {
 							break;
 						case 1LL: // SOME
 							mtp_SOME_0();
-							mw_findzmsome_0_3047();
+							mw_findzmsome_0_3054();
 							break;
 						default:
 							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -63955,7 +64181,7 @@ static void mw_findzmsome_0_3041 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3041();
+					mw_findzmsomezmaux2_0_3048();
 					break;
 				default:
 					{
@@ -63972,14 +64198,14 @@ static void mw_findzmsome_0_3041 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3041();
+				mw_findzmsome_0_3048();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3041();
+					mw_findzmsome_0_3048();
 					break;
 				default:
 					{
@@ -63995,7 +64221,7 @@ static void mw_findzmsome_0_3041 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3041 (void) {
+static void mw_findzmsomezmaux2_0_3048 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -64007,7 +64233,7 @@ static void mw_findzmsomezmaux2_0_3041 (void) {
 				break;
 			case 1LL: // SOME
 				mtp_SOME_0();
-				mw_findzmsome_0_3047();
+				mw_findzmsome_0_3054();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -64035,7 +64261,7 @@ static void mw_findzmsomezmaux2_0_3041 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_3047();
+					mw_findzmsome_0_3054();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -64058,7 +64284,7 @@ static void mw_findzmsomezmaux2_0_3041 (void) {
 			break;
 	}
 }
-static void mw_findzmsome_0_3047 (void) {
+static void mw_findzmsome_0_3054 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -64073,7 +64299,7 @@ static void mw_findzmsome_0_3047 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3047();
+			mw_findzmsomezmaux2_0_3054();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -64098,7 +64324,7 @@ static void mw_findzmsome_0_3047 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3047();
+					mw_findzmsomezmaux2_0_3054();
 					break;
 				default:
 					{
@@ -64115,14 +64341,14 @@ static void mw_findzmsome_0_3047 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3047();
+				mw_findzmsome_0_3054();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3047();
+					mw_findzmsome_0_3054();
 					break;
 				default:
 					{
@@ -64138,7 +64364,7 @@ static void mw_findzmsome_0_3047 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3047 (void) {
+static void mw_findzmsomezmaux2_0_3054 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -64173,7 +64399,7 @@ static void mw_findzmsomezmaux2_0_3047 (void) {
 			break;
 	}
 }
-static void mw_for_18_2027 (void) {
+static void mw_for_18_2034 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -64207,10 +64433,10 @@ static void mw_for_18_2027 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2027();
+				mw_for_18_2034();
 				push_value(d4);
 			}
-			mw_for_18_2027();
+			mw_for_18_2034();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -64261,7 +64487,7 @@ static void mw_for_18_186 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_2014 (void) {
+static void mw_for_18_2021 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -64721,17 +64947,17 @@ static void mw_for_18_2014 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_2014();
+				mw_for_18_2021();
 				push_value(d4);
 			}
-			mw_for_18_2014();
+			mw_for_18_2021();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsome_0_2009 (void) {
+static void mw_findzmsome_0_2016 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -64762,7 +64988,7 @@ static void mw_findzmsome_0_2009 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_2009();
+			mw_findzmsomezmaux2_0_2016();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -64803,7 +65029,7 @@ static void mw_findzmsome_0_2009 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_2009();
+					mw_findzmsomezmaux2_0_2016();
 					break;
 				default:
 					{
@@ -64820,14 +65046,14 @@ static void mw_findzmsome_0_2009 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_2009();
+				mw_findzmsome_0_2016();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_2009();
+					mw_findzmsome_0_2016();
 					break;
 				default:
 					{
@@ -64843,7 +65069,7 @@ static void mw_findzmsome_0_2009 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_2009 (void) {
+static void mw_findzmsomezmaux2_0_2016 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -64910,7 +65136,7 @@ static void mw_findzmsomezmaux2_0_2009 (void) {
 			break;
 	}
 }
-static void mw_findzmsome_0_3110 (void) {
+static void mw_findzmsome_0_3117 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -64936,7 +65162,7 @@ static void mw_findzmsome_0_3110 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3110();
+			mw_findzmsomezmaux2_0_3117();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -64972,7 +65198,7 @@ static void mw_findzmsome_0_3110 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3110();
+					mw_findzmsomezmaux2_0_3117();
 					break;
 				default:
 					{
@@ -64989,14 +65215,14 @@ static void mw_findzmsome_0_3110 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3110();
+				mw_findzmsome_0_3117();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3110();
+					mw_findzmsome_0_3117();
 					break;
 				default:
 					{
@@ -65012,7 +65238,7 @@ static void mw_findzmsome_0_3110 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3110 (void) {
+static void mw_findzmsomezmaux2_0_3117 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -65069,7 +65295,7 @@ static void mw_findzmsomezmaux2_0_3110 (void) {
 			break;
 	}
 }
-static void mw_findzmsome_0_3134 (void) {
+static void mw_findzmsome_0_3141 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -65095,7 +65321,7 @@ static void mw_findzmsome_0_3134 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3134();
+			mw_findzmsomezmaux2_0_3141();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -65131,7 +65357,7 @@ static void mw_findzmsome_0_3134 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3134();
+					mw_findzmsomezmaux2_0_3141();
 					break;
 				default:
 					{
@@ -65148,14 +65374,14 @@ static void mw_findzmsome_0_3134 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3134();
+				mw_findzmsome_0_3141();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3134();
+					mw_findzmsome_0_3141();
 					break;
 				default:
 					{
@@ -65171,7 +65397,7 @@ static void mw_findzmsome_0_3134 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3134 (void) {
+static void mw_findzmsomezmaux2_0_3141 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -65228,7 +65454,7 @@ static void mw_findzmsomezmaux2_0_3134 (void) {
 			break;
 	}
 }
-static void mw_for_18_1903 (void) {
+static void mw_for_18_1910 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -65262,17 +65488,17 @@ static void mw_for_18_1903 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1903();
+				mw_for_18_1910();
 				push_value(d4);
 			}
-			mw_for_18_1903();
+			mw_for_18_1910();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsome_0_3145 (void) {
+static void mw_findzmsome_0_3152 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -65293,7 +65519,7 @@ static void mw_findzmsome_0_3145 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3145();
+			mw_findzmsomezmaux2_0_3152();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -65324,7 +65550,7 @@ static void mw_findzmsome_0_3145 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3145();
+					mw_findzmsomezmaux2_0_3152();
 					break;
 				default:
 					{
@@ -65341,14 +65567,14 @@ static void mw_findzmsome_0_3145 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3145();
+				mw_findzmsome_0_3152();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3145();
+					mw_findzmsome_0_3152();
 					break;
 				default:
 					{
@@ -65364,7 +65590,7 @@ static void mw_findzmsome_0_3145 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3145 (void) {
+static void mw_findzmsomezmaux2_0_3152 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -65411,7 +65637,7 @@ static void mw_findzmsomezmaux2_0_3145 (void) {
 			break;
 	}
 }
-static void mw_filter_3_1399 (void) {
+static void mw_filter_3_1406 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -65420,14 +65646,14 @@ static void mw_filter_3_1399 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_1399();
+			mw_filter_2_1406();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_map_0_1400 (void) {
+static void mw_map_0_1407 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -65517,99 +65743,19 @@ static void mw_map_0_1400 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1400();
+					mw_map_0_1407();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1400();
+					mw_map_0_1407();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				push_value(d4);
 			}
 			mtw_LCATzp_0();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_filter_2_1399 (void) {
-	switch (get_top_data_tag()) {
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_filter_2_1399();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			{
-				VAL d4 = pop_value();
-				mw_filter_2_1399();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mw_cat_2();
-			break;
-		default:
-			mw_uncons_0();
-			{
-				VAL d4 = pop_value();
-				mp_primzmdup();
-				mw_couldzmbezmsigzmlabelz63U_0();
-				push_value(d4);
-			}
-			mp_primzmswap();
-			if (pop_u64()) {
-				mp_primzmswap();
-				{
-					VAL d5 = pop_value();
-					mw_filter_3_1399();
-					push_value(d5);
-				}
-				mp_primzmswap();
-				mw_cons_2();
-			} else {
-				{
-					VAL d5 = pop_value();
-					mp_primzmdrop();
-					push_value(d5);
-				}
-				mw_filter_3_1399();
-			}
-			break;
-	}
-}
-static void mw_filterzmsome_1_1405 (void) {
-	mw_zgListzp_0();
-	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_SOME_0();
-			mw_filterzmsome_0_1405();
-			break;
-		case 0LL: // NONE
-			(void)pop_u64();
-			push_u64(0LL); // L0
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_filter_3_1406 (void) {
-	mw_zgListzp_0();
-	switch (get_top_data_tag()) {
-		case 0LL: // NONE
-			(void)pop_u64();
-			push_u64(0LL); // L0
-			break;
-		case 1LL: // SOME
-			mtp_SOME_0();
-			mw_filter_2_1406();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -65640,13 +65786,7 @@ static void mw_filter_2_1406 (void) {
 			{
 				VAL d4 = pop_value();
 				mp_primzmdup();
-				mw_couldzmbezmresourcezmvar_0();
-				if (pop_u64()) {
-					push_u64(1LL); // T
-				} else {
-					mp_primzmdup();
-					mw_couldzmbezmresourcezmcon_0();
-				}
+				mw_couldzmbezmsigzmlabelz63U_0();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -65670,20 +65810,106 @@ static void mw_filter_2_1406 (void) {
 			break;
 	}
 }
-static void mw_filterzmsome_0_1405 (void) {
+static void mw_filterzmsome_1_1412 (void) {
+	mw_zgListzp_0();
+	switch (get_top_data_tag()) {
+		case 1LL: // SOME
+			mtp_SOME_0();
+			mw_filterzmsome_0_1412();
+			break;
+		case 0LL: // NONE
+			(void)pop_u64();
+			push_u64(0LL); // L0
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_filter_3_1413 (void) {
+	mw_zgListzp_0();
+	switch (get_top_data_tag()) {
+		case 0LL: // NONE
+			(void)pop_u64();
+			push_u64(0LL); // L0
+			break;
+		case 1LL: // SOME
+			mtp_SOME_0();
+			mw_filter_2_1413();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_filter_2_1413 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filterzmsome_0_1405();
+				mw_filter_2_1413();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filterzmsome_0_1405();
+				mw_filter_2_1413();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mw_cat_2();
+			break;
+		default:
+			mw_uncons_0();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				mw_couldzmbezmresourcezmvar_0();
+				if (pop_u64()) {
+					push_u64(1LL); // T
+				} else {
+					mp_primzmdup();
+					mw_couldzmbezmresourcezmcon_0();
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			if (pop_u64()) {
+				mp_primzmswap();
+				{
+					VAL d5 = pop_value();
+					mw_filter_3_1413();
+					push_value(d5);
+				}
+				mp_primzmswap();
+				mw_cons_2();
+			} else {
+				{
+					VAL d5 = pop_value();
+					mp_primzmdrop();
+					push_value(d5);
+				}
+				mw_filter_3_1413();
+			}
+			break;
+	}
+}
+static void mw_filterzmsome_0_1412 (void) {
+	switch (get_top_data_tag()) {
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_filterzmsome_0_1412();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mw_filterzmsome_0_1412();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -65693,7 +65919,7 @@ static void mw_filterzmsome_0_1405 (void) {
 			mw_unsnoc_0();
 			{
 				VAL d4 = pop_value();
-				mw_filterzmsome_1_1405();
+				mw_filterzmsome_1_1412();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -65718,7 +65944,7 @@ static void mw_filterzmsome_0_1405 (void) {
 			break;
 	}
 }
-static void mw_for_18_1573 (void) {
+static void mw_for_18_1580 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -65752,17 +65978,17 @@ static void mw_for_18_1573 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1573();
+				mw_for_18_1580();
 				push_value(d4);
 			}
-			mw_for_18_1573();
+			mw_for_18_1580();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_map_0_1576 (void) {
+static void mw_map_0_1583 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -65852,13 +66078,13 @@ static void mw_map_0_1576 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1576();
+					mw_map_0_1583();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1576();
+					mw_map_0_1583();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -65871,7 +66097,7 @@ static void mw_map_0_1576 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_1643 (void) {
+static void mw_for_18_1650 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -66943,262 +67169,6 @@ static void mw_for_18_1643 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1643();
-				push_value(d4);
-			}
-			mw_for_18_1643();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_for_18_1654 (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // L1+
-			mtp_L1zp_0();
-			mp_primzmswap();
-			mw_pushzmstrzn_0();
-			mw_qname_5();
-			mw_zgStr_4();
-			mw_pushzmstrzn_0();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(", ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			break;
-		case 1LL: // L2+
-			mtp_L2zp_0();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				mw_pushzmstrzn_0();
-				mw_qname_5();
-				mw_zgStr_4();
-				mw_pushzmstrzn_0();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr(", ", 2);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mw_pushzmstrzn_0();
-			mw_qname_5();
-			mw_zgStr_4();
-			mw_pushzmstrzn_0();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(", ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			break;
-		case 2LL: // L3+
-			mtp_L3zp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mp_primzmswap();
-					mw_pushzmstrzn_0();
-					mw_qname_5();
-					mw_zgStr_4();
-					mw_pushzmstrzn_0();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr(", ", 2);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
-					push_value(d5);
-				}
-				mp_primzmswap();
-				mw_pushzmstrzn_0();
-				mw_qname_5();
-				mw_zgStr_4();
-				mw_pushzmstrzn_0();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr(", ", 2);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mw_pushzmstrzn_0();
-			mw_qname_5();
-			mw_zgStr_4();
-			mw_pushzmstrzn_0();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(", ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			break;
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
-				mw_for_18_1654();
-				push_value(d4);
-			}
-			mw_for_18_1654();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_for_18_1650 (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // L1+
-			mtp_L1zp_0();
-			mp_primzmswap();
-			mw_pushzmstrzn_0();
-			mw_qname_5();
-			mw_zgStr_4();
-			mw_pushzmstrzn_0();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(", ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			break;
-		case 1LL: // L2+
-			mtp_L2zp_0();
-			{
-				VAL d4 = pop_value();
-				mp_primzmswap();
-				mw_pushzmstrzn_0();
-				mw_qname_5();
-				mw_zgStr_4();
-				mw_pushzmstrzn_0();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr(", ", 2);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mw_pushzmstrzn_0();
-			mw_qname_5();
-			mw_zgStr_4();
-			mw_pushzmstrzn_0();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(", ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			break;
-		case 2LL: // L3+
-			mtp_L3zp_0();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					mp_primzmswap();
-					mw_pushzmstrzn_0();
-					mw_qname_5();
-					mw_zgStr_4();
-					mw_pushzmstrzn_0();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr(", ", 2);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
-					push_value(d5);
-				}
-				mp_primzmswap();
-				mw_pushzmstrzn_0();
-				mw_qname_5();
-				mw_zgStr_4();
-				mw_pushzmstrzn_0();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr(", ", 2);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
-				push_value(d4);
-			}
-			mp_primzmswap();
-			mw_pushzmstrzn_0();
-			mw_qname_5();
-			mw_zgStr_4();
-			mw_pushzmstrzn_0();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(", ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			break;
-		case 3LL: // LCAT+
-			mtp_LCATzp_0();
-			mp_primzmdrop();
-			{
-				VAL d4 = pop_value();
 				mw_for_18_1650();
 				push_value(d4);
 			}
@@ -67209,7 +67179,263 @@ static void mw_for_18_1650 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_1_3220 (void) {
+static void mw_for_18_1661 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // L1+
+			mtp_L1zp_0();
+			mp_primzmswap();
+			mw_pushzmstrzn_0();
+			mw_qname_5();
+			mw_zgStr_4();
+			mw_pushzmstrzn_0();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr(", ", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			break;
+		case 1LL: // L2+
+			mtp_L2zp_0();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				mw_pushzmstrzn_0();
+				mw_qname_5();
+				mw_zgStr_4();
+				mw_pushzmstrzn_0();
+				{
+					static bool vready = false;
+					static VAL v;
+					if (! vready) {
+						v = mkstr(", ", 2);
+						vready = true;
+					}
+					push_value(v);
+					incref(v);
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mw_pushzmstrzn_0();
+			mw_qname_5();
+			mw_zgStr_4();
+			mw_pushzmstrzn_0();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr(", ", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			break;
+		case 2LL: // L3+
+			mtp_L3zp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mp_primzmswap();
+					mw_pushzmstrzn_0();
+					mw_qname_5();
+					mw_zgStr_4();
+					mw_pushzmstrzn_0();
+					{
+						static bool vready = false;
+						static VAL v;
+						if (! vready) {
+							v = mkstr(", ", 2);
+							vready = true;
+						}
+						push_value(v);
+						incref(v);
+					}
+					push_value(d5);
+				}
+				mp_primzmswap();
+				mw_pushzmstrzn_0();
+				mw_qname_5();
+				mw_zgStr_4();
+				mw_pushzmstrzn_0();
+				{
+					static bool vready = false;
+					static VAL v;
+					if (! vready) {
+						v = mkstr(", ", 2);
+						vready = true;
+					}
+					push_value(v);
+					incref(v);
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mw_pushzmstrzn_0();
+			mw_qname_5();
+			mw_zgStr_4();
+			mw_pushzmstrzn_0();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr(", ", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			break;
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_for_18_1661();
+				push_value(d4);
+			}
+			mw_for_18_1661();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_for_18_1657 (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // L1+
+			mtp_L1zp_0();
+			mp_primzmswap();
+			mw_pushzmstrzn_0();
+			mw_qname_5();
+			mw_zgStr_4();
+			mw_pushzmstrzn_0();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr(", ", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			break;
+		case 1LL: // L2+
+			mtp_L2zp_0();
+			{
+				VAL d4 = pop_value();
+				mp_primzmswap();
+				mw_pushzmstrzn_0();
+				mw_qname_5();
+				mw_zgStr_4();
+				mw_pushzmstrzn_0();
+				{
+					static bool vready = false;
+					static VAL v;
+					if (! vready) {
+						v = mkstr(", ", 2);
+						vready = true;
+					}
+					push_value(v);
+					incref(v);
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mw_pushzmstrzn_0();
+			mw_qname_5();
+			mw_zgStr_4();
+			mw_pushzmstrzn_0();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr(", ", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			break;
+		case 2LL: // L3+
+			mtp_L3zp_0();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					mp_primzmswap();
+					mw_pushzmstrzn_0();
+					mw_qname_5();
+					mw_zgStr_4();
+					mw_pushzmstrzn_0();
+					{
+						static bool vready = false;
+						static VAL v;
+						if (! vready) {
+							v = mkstr(", ", 2);
+							vready = true;
+						}
+						push_value(v);
+						incref(v);
+					}
+					push_value(d5);
+				}
+				mp_primzmswap();
+				mw_pushzmstrzn_0();
+				mw_qname_5();
+				mw_zgStr_4();
+				mw_pushzmstrzn_0();
+				{
+					static bool vready = false;
+					static VAL v;
+					if (! vready) {
+						v = mkstr(", ", 2);
+						vready = true;
+					}
+					push_value(v);
+					incref(v);
+				}
+				push_value(d4);
+			}
+			mp_primzmswap();
+			mw_pushzmstrzn_0();
+			mw_qname_5();
+			mw_zgStr_4();
+			mw_pushzmstrzn_0();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr(", ", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			break;
+		case 3LL: // LCAT+
+			mtp_LCATzp_0();
+			mp_primzmdrop();
+			{
+				VAL d4 = pop_value();
+				mw_for_18_1657();
+				push_value(d4);
+			}
+			mw_for_18_1657();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
+}
+static void mw_partitionzmeither_1_3227 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -67218,16 +67444,16 @@ static void mw_partitionzmeither_1_3220 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3220();
+			mw_partitionzmeitherzmbase_0_3227();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3220();
+				mw_partitionzmeitherzmbase_0_3227();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3220();
+			mw_partitionzmeitherzmsnoc_0_3227();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -67235,24 +67461,24 @@ static void mw_partitionzmeither_1_3220 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3220();
+					mw_partitionzmeitherzmbase_0_3227();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3220();
+				mw_partitionzmeitherzmsnoc_0_3227();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3220();
+			mw_partitionzmeitherzmsnoc_0_3227();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3220();
+				mw_partitionzmeither_0_3227();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -67265,7 +67491,7 @@ static void mw_partitionzmeither_1_3220 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3220();
+					mw_partitionzmeither_0_3227();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -67293,7 +67519,7 @@ static void mw_partitionzmeither_1_3220 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3220 (void) {
+static void mw_partitionzmeitherzmbase_0_3227 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -67349,7 +67575,7 @@ static void mw_partitionzmeitherzmbase_0_3220 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3220 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3227 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -67424,11 +67650,11 @@ static void mw_partitionzmeitherzmsnoc_0_3220 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3220 (void) {
+static void mw_partitionzmeither_0_3227 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3220();
+	mw_partitionzmeither_1_3227();
 }
-static void mw_reversezmfor_0_1668 (void) {
+static void mw_reversezmfor_0_1675 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -67533,7 +67759,7 @@ static void mw_reversezmfor_0_1668 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_1668();
+			mw_dip2_0_1675();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -67602,17 +67828,17 @@ static void mw_reversezmfor_0_1668 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_1668();
+				mw_reversezmfor_0_1675();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_1668();
+			mw_reversezmfor_0_1675();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_1668 (void) {
+static void mw_dip2_0_1675 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -67650,7 +67876,7 @@ static void mw_dip2_0_1668 (void) {
 		push_value(d2);
 	}
 }
-static void mw_partitionzmeither_1_3244 (void) {
+static void mw_partitionzmeither_1_3251 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -67659,16 +67885,16 @@ static void mw_partitionzmeither_1_3244 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3244();
+			mw_partitionzmeitherzmbase_0_3251();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3244();
+				mw_partitionzmeitherzmbase_0_3251();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3244();
+			mw_partitionzmeitherzmsnoc_0_3251();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -67676,24 +67902,24 @@ static void mw_partitionzmeither_1_3244 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3244();
+					mw_partitionzmeitherzmbase_0_3251();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3244();
+				mw_partitionzmeitherzmsnoc_0_3251();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3244();
+			mw_partitionzmeitherzmsnoc_0_3251();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3244();
+				mw_partitionzmeither_0_3251();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -67706,7 +67932,7 @@ static void mw_partitionzmeither_1_3244 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3244();
+					mw_partitionzmeither_0_3251();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -67734,7 +67960,7 @@ static void mw_partitionzmeither_1_3244 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3244 (void) {
+static void mw_partitionzmeitherzmbase_0_3251 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -67780,7 +68006,7 @@ static void mw_partitionzmeitherzmbase_0_3244 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_3266();
+					mw_findzmsome_0_3273();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -67839,7 +68065,7 @@ static void mw_partitionzmeitherzmbase_0_3244 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3244 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3251 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -67895,7 +68121,7 @@ static void mw_partitionzmeitherzmsnoc_0_3244 (void) {
 							break;
 						case 1LL: // SOME
 							mtp_SOME_0();
-							mw_findzmsome_0_3266();
+							mw_findzmsome_0_3273();
 							break;
 						default:
 							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -67963,11 +68189,11 @@ static void mw_partitionzmeitherzmsnoc_0_3244 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3244 (void) {
+static void mw_partitionzmeither_0_3251 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3244();
+	mw_partitionzmeither_1_3251();
 }
-static void mw_findzmsome_0_3266 (void) {
+static void mw_findzmsome_0_3273 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -68007,7 +68233,7 @@ static void mw_findzmsome_0_3266 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3266();
+			mw_findzmsomezmaux2_0_3273();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -68057,7 +68283,7 @@ static void mw_findzmsome_0_3266 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3266();
+					mw_findzmsomezmaux2_0_3273();
 					break;
 				default:
 					{
@@ -68074,14 +68300,14 @@ static void mw_findzmsome_0_3266 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3266();
+				mw_findzmsome_0_3273();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3266();
+					mw_findzmsome_0_3273();
 					break;
 				default:
 					{
@@ -68097,7 +68323,7 @@ static void mw_findzmsome_0_3266 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3266 (void) {
+static void mw_findzmsomezmaux2_0_3273 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -68182,7 +68408,7 @@ static void mw_findzmsomezmaux2_0_3266 (void) {
 			break;
 	}
 }
-static void mw_partitionzmeither_1_3273 (void) {
+static void mw_partitionzmeither_1_3280 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -68191,16 +68417,16 @@ static void mw_partitionzmeither_1_3273 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3273();
+			mw_partitionzmeitherzmbase_0_3280();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3273();
+				mw_partitionzmeitherzmbase_0_3280();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3273();
+			mw_partitionzmeitherzmsnoc_0_3280();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -68208,24 +68434,24 @@ static void mw_partitionzmeither_1_3273 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3273();
+					mw_partitionzmeitherzmbase_0_3280();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3273();
+				mw_partitionzmeitherzmsnoc_0_3280();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3273();
+			mw_partitionzmeitherzmsnoc_0_3280();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3273();
+				mw_partitionzmeither_0_3280();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -68238,7 +68464,7 @@ static void mw_partitionzmeither_1_3273 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3273();
+					mw_partitionzmeither_0_3280();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -68266,7 +68492,7 @@ static void mw_partitionzmeither_1_3273 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3273 (void) {
+static void mw_partitionzmeitherzmbase_0_3280 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -68290,7 +68516,7 @@ static void mw_partitionzmeitherzmbase_0_3273 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_3296();
+			mw_findzmsome_0_3303();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -68372,7 +68598,7 @@ static void mw_partitionzmeitherzmbase_0_3273 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3273 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3280 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -68406,7 +68632,7 @@ static void mw_partitionzmeitherzmsnoc_0_3273 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_3296();
+					mw_findzmsome_0_3303();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -68497,11 +68723,11 @@ static void mw_partitionzmeitherzmsnoc_0_3273 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3273 (void) {
+static void mw_partitionzmeither_0_3280 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3273();
+	mw_partitionzmeither_1_3280();
 }
-static void mw_findzmsome_0_3296 (void) {
+static void mw_findzmsome_0_3303 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -68541,7 +68767,7 @@ static void mw_findzmsome_0_3296 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3296();
+			mw_findzmsomezmaux2_0_3303();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -68591,7 +68817,7 @@ static void mw_findzmsome_0_3296 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3296();
+					mw_findzmsomezmaux2_0_3303();
 					break;
 				default:
 					{
@@ -68608,14 +68834,14 @@ static void mw_findzmsome_0_3296 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3296();
+				mw_findzmsome_0_3303();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3296();
+					mw_findzmsome_0_3303();
 					break;
 				default:
 					{
@@ -68631,7 +68857,7 @@ static void mw_findzmsome_0_3296 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3296 (void) {
+static void mw_findzmsomezmaux2_0_3303 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -68716,7 +68942,7 @@ static void mw_findzmsomezmaux2_0_3296 (void) {
 			break;
 	}
 }
-static void mw_partitionzmeither_1_3303 (void) {
+static void mw_partitionzmeither_1_3310 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -68725,16 +68951,16 @@ static void mw_partitionzmeither_1_3303 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3303();
+			mw_partitionzmeitherzmbase_0_3310();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3303();
+				mw_partitionzmeitherzmbase_0_3310();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3303();
+			mw_partitionzmeitherzmsnoc_0_3310();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -68742,24 +68968,24 @@ static void mw_partitionzmeither_1_3303 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3303();
+					mw_partitionzmeitherzmbase_0_3310();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3303();
+				mw_partitionzmeitherzmsnoc_0_3310();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3303();
+			mw_partitionzmeitherzmsnoc_0_3310();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3303();
+				mw_partitionzmeither_0_3310();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -68772,7 +68998,7 @@ static void mw_partitionzmeither_1_3303 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3303();
+					mw_partitionzmeither_0_3310();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -68800,7 +69026,7 @@ static void mw_partitionzmeither_1_3303 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3303 (void) {
+static void mw_partitionzmeitherzmbase_0_3310 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -68842,7 +69068,7 @@ static void mw_partitionzmeitherzmbase_0_3303 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3303 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3310 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -68903,11 +69129,11 @@ static void mw_partitionzmeitherzmsnoc_0_3303 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3303 (void) {
+static void mw_partitionzmeither_0_3310 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3303();
+	mw_partitionzmeither_1_3310();
 }
-static void mw_partitionzmeither_1_3324 (void) {
+static void mw_partitionzmeither_1_3331 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -68916,16 +69142,16 @@ static void mw_partitionzmeither_1_3324 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3324();
+			mw_partitionzmeitherzmbase_0_3331();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3324();
+				mw_partitionzmeitherzmbase_0_3331();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3324();
+			mw_partitionzmeitherzmsnoc_0_3331();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -68933,24 +69159,24 @@ static void mw_partitionzmeither_1_3324 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3324();
+					mw_partitionzmeitherzmbase_0_3331();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3324();
+				mw_partitionzmeitherzmsnoc_0_3331();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3324();
+			mw_partitionzmeitherzmsnoc_0_3331();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3324();
+				mw_partitionzmeither_0_3331();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -68963,7 +69189,7 @@ static void mw_partitionzmeither_1_3324 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3324();
+					mw_partitionzmeither_0_3331();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -68991,7 +69217,7 @@ static void mw_partitionzmeither_1_3324 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3324 (void) {
+static void mw_partitionzmeitherzmbase_0_3331 (void) {
 	mw_token_8();
 	{
 		VAL d2 = pop_value();
@@ -69026,7 +69252,7 @@ static void mw_partitionzmeitherzmbase_0_3324 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3324 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3331 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -69080,11 +69306,11 @@ static void mw_partitionzmeitherzmsnoc_0_3324 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3324 (void) {
+static void mw_partitionzmeither_0_3331 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3324();
+	mw_partitionzmeither_1_3331();
 }
-static void mw_partitionzmeither_1_3345 (void) {
+static void mw_partitionzmeither_1_3352 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -69093,16 +69319,16 @@ static void mw_partitionzmeither_1_3345 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3345();
+			mw_partitionzmeitherzmbase_0_3352();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3345();
+				mw_partitionzmeitherzmbase_0_3352();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3345();
+			mw_partitionzmeitherzmsnoc_0_3352();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -69110,24 +69336,24 @@ static void mw_partitionzmeither_1_3345 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3345();
+					mw_partitionzmeitherzmbase_0_3352();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3345();
+				mw_partitionzmeitherzmsnoc_0_3352();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3345();
+			mw_partitionzmeitherzmsnoc_0_3352();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3345();
+				mw_partitionzmeither_0_3352();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -69140,7 +69366,7 @@ static void mw_partitionzmeither_1_3345 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3345();
+					mw_partitionzmeither_0_3352();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -69168,7 +69394,7 @@ static void mw_partitionzmeither_1_3345 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3345 (void) {
+static void mw_partitionzmeitherzmbase_0_3352 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -69210,7 +69436,7 @@ static void mw_partitionzmeitherzmbase_0_3345 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3345 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3352 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -69271,11 +69497,11 @@ static void mw_partitionzmeitherzmsnoc_0_3345 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3345 (void) {
+static void mw_partitionzmeither_0_3352 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3345();
+	mw_partitionzmeither_1_3352();
 }
-static void mw_partitionzmeither_1_3366 (void) {
+static void mw_partitionzmeither_1_3373 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -69284,16 +69510,16 @@ static void mw_partitionzmeither_1_3366 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3366();
+			mw_partitionzmeitherzmbase_0_3373();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3366();
+				mw_partitionzmeitherzmbase_0_3373();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3366();
+			mw_partitionzmeitherzmsnoc_0_3373();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -69301,24 +69527,24 @@ static void mw_partitionzmeither_1_3366 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3366();
+					mw_partitionzmeitherzmbase_0_3373();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3366();
+				mw_partitionzmeitherzmsnoc_0_3373();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3366();
+			mw_partitionzmeitherzmsnoc_0_3373();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3366();
+				mw_partitionzmeither_0_3373();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -69331,7 +69557,7 @@ static void mw_partitionzmeither_1_3366 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3366();
+					mw_partitionzmeither_0_3373();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -69359,7 +69585,7 @@ static void mw_partitionzmeither_1_3366 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3366 (void) {
+static void mw_partitionzmeitherzmbase_0_3373 (void) {
 	mp_primzmdup();
 	mw_defineszmazmtypez63U_0();
 	if (pop_u64()) {
@@ -69388,7 +69614,7 @@ static void mw_partitionzmeitherzmbase_0_3366 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3366 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3373 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -69436,11 +69662,11 @@ static void mw_partitionzmeitherzmsnoc_0_3366 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3366 (void) {
+static void mw_partitionzmeither_0_3373 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3366();
+	mw_partitionzmeither_1_3373();
 }
-static void mw_for_18_1706 (void) {
+static void mw_for_18_1713 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -69486,17 +69712,17 @@ static void mw_for_18_1706 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1706();
+				mw_for_18_1713();
 				push_value(d4);
 			}
-			mw_for_18_1706();
+			mw_for_18_1713();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_1979 (void) {
+static void mw_for_18_1986 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -69560,17 +69786,17 @@ static void mw_for_18_1979 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1979();
+				mw_for_18_1986();
 				push_value(d4);
 			}
-			mw_for_18_1979();
+			mw_for_18_1986();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_1983 (void) {
+static void mw_for_18_1990 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -69634,17 +69860,17 @@ static void mw_for_18_1983 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1983();
+				mw_for_18_1990();
 				push_value(d4);
 			}
-			mw_for_18_1983();
+			mw_for_18_1990();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_1991 (void) {
+static void mw_for_18_1998 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -69714,17 +69940,17 @@ static void mw_for_18_1991 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1991();
+				mw_for_18_1998();
 				push_value(d4);
 			}
-			mw_for_18_1991();
+			mw_for_18_1998();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_reversezmfor_0_3463 (void) {
+static void mw_reversezmfor_0_3470 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -69829,7 +70055,7 @@ static void mw_reversezmfor_0_3463 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_3463();
+			mw_dip2_0_3470();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -69898,17 +70124,17 @@ static void mw_reversezmfor_0_3463 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_3463();
+				mw_reversezmfor_0_3470();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_3463();
+			mw_reversezmfor_0_3470();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_3463 (void) {
+static void mw_dip2_0_3470 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -69946,7 +70172,7 @@ static void mw_dip2_0_3463 (void) {
 		push_value(d2);
 	}
 }
-static void mw_reversezmfor_0_3473 (void) {
+static void mw_reversezmfor_0_3480 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -70051,7 +70277,7 @@ static void mw_reversezmfor_0_3473 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_3473();
+			mw_dip2_0_3480();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -70120,17 +70346,17 @@ static void mw_reversezmfor_0_3473 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_3473();
+				mw_reversezmfor_0_3480();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_3473();
+			mw_reversezmfor_0_3480();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_3473 (void) {
+static void mw_dip2_0_3480 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -70168,7 +70394,7 @@ static void mw_dip2_0_3473 (void) {
 		push_value(d2);
 	}
 }
-static void mw_reversezmfor_0_1806 (void) {
+static void mw_reversezmfor_0_1813 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -70192,7 +70418,7 @@ static void mw_reversezmfor_0_1806 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_1806();
+			mw_dip2_0_1813();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -70207,17 +70433,17 @@ static void mw_reversezmfor_0_1806 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_1806();
+				mw_reversezmfor_0_1813();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_1806();
+			mw_reversezmfor_0_1813();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_1806 (void) {
+static void mw_dip2_0_1813 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -70228,7 +70454,7 @@ static void mw_dip2_0_1806 (void) {
 		push_value(d2);
 	}
 }
-static void mw_partitionzmeither_1_3498 (void) {
+static void mw_partitionzmeither_1_3505 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -70237,16 +70463,16 @@ static void mw_partitionzmeither_1_3498 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3498();
+			mw_partitionzmeitherzmbase_0_3505();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3498();
+				mw_partitionzmeitherzmbase_0_3505();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3498();
+			mw_partitionzmeitherzmsnoc_0_3505();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -70254,24 +70480,24 @@ static void mw_partitionzmeither_1_3498 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3498();
+					mw_partitionzmeitherzmbase_0_3505();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3498();
+				mw_partitionzmeitherzmsnoc_0_3505();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3498();
+			mw_partitionzmeitherzmsnoc_0_3505();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3498();
+				mw_partitionzmeither_0_3505();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -70284,7 +70510,7 @@ static void mw_partitionzmeither_1_3498 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3498();
+					mw_partitionzmeither_0_3505();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -70312,7 +70538,7 @@ static void mw_partitionzmeither_1_3498 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3498 (void) {
+static void mw_partitionzmeitherzmbase_0_3505 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -70336,7 +70562,7 @@ static void mw_partitionzmeitherzmbase_0_3498 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_findzmsome_0_3520();
+			mw_findzmsome_0_3527();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -70374,7 +70600,7 @@ static void mw_partitionzmeitherzmbase_0_3498 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3498 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3505 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -70408,7 +70634,7 @@ static void mw_partitionzmeitherzmsnoc_0_3498 (void) {
 					break;
 				case 1LL: // SOME
 					mtp_SOME_0();
-					mw_findzmsome_0_3520();
+					mw_findzmsome_0_3527();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -70455,11 +70681,11 @@ static void mw_partitionzmeitherzmsnoc_0_3498 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3498 (void) {
+static void mw_partitionzmeither_0_3505 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3498();
+	mw_partitionzmeither_1_3505();
 }
-static void mw_findzmsome_0_3520 (void) {
+static void mw_findzmsome_0_3527 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -70499,7 +70725,7 @@ static void mw_findzmsome_0_3520 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3520();
+			mw_findzmsomezmaux2_0_3527();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -70549,7 +70775,7 @@ static void mw_findzmsome_0_3520 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3520();
+					mw_findzmsomezmaux2_0_3527();
 					break;
 				default:
 					{
@@ -70566,14 +70792,14 @@ static void mw_findzmsome_0_3520 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3520();
+				mw_findzmsome_0_3527();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3520();
+					mw_findzmsome_0_3527();
 					break;
 				default:
 					{
@@ -70589,7 +70815,7 @@ static void mw_findzmsome_0_3520 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3520 (void) {
+static void mw_findzmsomezmaux2_0_3527 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -70674,7 +70900,7 @@ static void mw_findzmsomezmaux2_0_3520 (void) {
 			break;
 	}
 }
-static void mw_partitionzmeither_1_3527 (void) {
+static void mw_partitionzmeither_1_3534 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -70683,16 +70909,16 @@ static void mw_partitionzmeither_1_3527 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3527();
+			mw_partitionzmeitherzmbase_0_3534();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3527();
+				mw_partitionzmeitherzmbase_0_3534();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3527();
+			mw_partitionzmeitherzmsnoc_0_3534();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -70700,24 +70926,24 @@ static void mw_partitionzmeither_1_3527 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3527();
+					mw_partitionzmeitherzmbase_0_3534();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3527();
+				mw_partitionzmeitherzmsnoc_0_3534();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3527();
+			mw_partitionzmeitherzmsnoc_0_3534();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3527();
+				mw_partitionzmeither_0_3534();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -70730,7 +70956,7 @@ static void mw_partitionzmeither_1_3527 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3527();
+					mw_partitionzmeither_0_3534();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -70758,7 +70984,7 @@ static void mw_partitionzmeither_1_3527 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3527 (void) {
+static void mw_partitionzmeitherzmbase_0_3534 (void) {
 	mp_primzmdup();
 	mw_tagz63U_0();
 	mw_zgBool_1();
@@ -70788,7 +71014,7 @@ static void mw_partitionzmeitherzmbase_0_3527 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3527 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3534 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -70837,11 +71063,11 @@ static void mw_partitionzmeitherzmsnoc_0_3527 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3527 (void) {
+static void mw_partitionzmeither_0_3534 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3527();
+	mw_partitionzmeither_1_3534();
 }
-static void mw_filter_3_3547 (void) {
+static void mw_filter_3_3554 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -70850,27 +71076,27 @@ static void mw_filter_3_3547 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_3547();
+			mw_filter_2_3554();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_2_3547 (void) {
+static void mw_filter_2_3554 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_3547();
+				mw_filter_2_3554();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_3547();
+				mw_filter_2_3554();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -70902,7 +71128,7 @@ static void mw_filter_2_3547 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_3547();
+					mw_filter_3_3554();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -70913,12 +71139,12 @@ static void mw_filter_2_3547 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_3547();
+				mw_filter_3_3554();
 			}
 			break;
 	}
 }
-static void mw_for_18_1770 (void) {
+static void mw_for_18_1777 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -70952,17 +71178,17 @@ static void mw_for_18_1770 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1770();
+				mw_for_18_1777();
 				push_value(d4);
 			}
-			mw_for_18_1770();
+			mw_for_18_1777();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_1_3559 (void) {
+static void mw_partitionzmeither_1_3566 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L0
 			(void)pop_u64();
@@ -70971,16 +71197,16 @@ static void mw_partitionzmeither_1_3559 (void) {
 			break;
 		case 1LL: // L1
 			mtp_L1_0();
-			mw_partitionzmeitherzmbase_0_3559();
+			mw_partitionzmeitherzmbase_0_3566();
 			break;
 		case 2LL: // L2
 			mtp_L2_0();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmbase_0_3559();
+				mw_partitionzmeitherzmbase_0_3566();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3559();
+			mw_partitionzmeitherzmsnoc_0_3566();
 			break;
 		case 3LL: // L3
 			mtp_L3_0();
@@ -70988,24 +71214,24 @@ static void mw_partitionzmeither_1_3559 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeitherzmbase_0_3559();
+					mw_partitionzmeitherzmbase_0_3566();
 					push_value(d5);
 				}
 				push_value(d4);
 			}
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeitherzmsnoc_0_3559();
+				mw_partitionzmeitherzmsnoc_0_3566();
 				push_value(d4);
 			}
-			mw_partitionzmeitherzmsnoc_0_3559();
+			mw_partitionzmeitherzmsnoc_0_3566();
 			break;
 		case 4LL: // LCAT
 			mtp_LCAT_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_partitionzmeither_0_3559();
+				mw_partitionzmeither_0_3566();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -71018,7 +71244,7 @@ static void mw_partitionzmeither_1_3559 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_partitionzmeither_0_3559();
+					mw_partitionzmeither_0_3566();
 					push_value(d5);
 				}
 				push_value(d4);
@@ -71046,7 +71272,7 @@ static void mw_partitionzmeither_1_3559 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmbase_0_3559 (void) {
+static void mw_partitionzmeitherzmbase_0_3566 (void) {
 	mp_primzmdup();
 	mw_callablez63U_0();
 	if (pop_u64()) {
@@ -71075,7 +71301,7 @@ static void mw_partitionzmeitherzmbase_0_3559 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeitherzmsnoc_0_3559 (void) {
+static void mw_partitionzmeitherzmsnoc_0_3566 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -71123,11 +71349,11 @@ static void mw_partitionzmeitherzmsnoc_0_3559 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_partitionzmeither_0_3559 (void) {
+static void mw_partitionzmeither_0_3566 (void) {
 	mw_zgList_1();
-	mw_partitionzmeither_1_3559();
+	mw_partitionzmeither_1_3566();
 }
-static void mw_findzmsome_0_3581 (void) {
+static void mw_findzmsome_0_3588 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -71142,7 +71368,7 @@ static void mw_findzmsome_0_3581 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3581();
+			mw_findzmsomezmaux2_0_3588();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -71167,7 +71393,7 @@ static void mw_findzmsome_0_3581 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3581();
+					mw_findzmsomezmaux2_0_3588();
 					break;
 				default:
 					{
@@ -71184,14 +71410,14 @@ static void mw_findzmsome_0_3581 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3581();
+				mw_findzmsome_0_3588();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3581();
+					mw_findzmsome_0_3588();
 					break;
 				default:
 					{
@@ -71207,7 +71433,7 @@ static void mw_findzmsome_0_3581 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3581 (void) {
+static void mw_findzmsomezmaux2_0_3588 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -71242,7 +71468,7 @@ static void mw_findzmsomezmaux2_0_3581 (void) {
 			break;
 	}
 }
-static void mw_reversezmfor_0_1971 (void) {
+static void mw_reversezmfor_0_1978 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -71527,7 +71753,7 @@ static void mw_reversezmfor_0_1971 (void) {
 				mp_primzmswap();
 				push_value(d4);
 			}
-			mw_dip2_0_1971();
+			mw_dip2_0_1978();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -71716,17 +71942,17 @@ static void mw_reversezmfor_0_1971 (void) {
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_reversezmfor_0_1971();
+				mw_reversezmfor_0_1978();
 				push_value(d4);
 			}
-			mw_reversezmfor_0_1971();
+			mw_reversezmfor_0_1978();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_dip2_0_1971 (void) {
+static void mw_dip2_0_1978 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -71824,7 +72050,7 @@ static void mw_dip2_0_1971 (void) {
 		push_value(d2);
 	}
 }
-static void mw_filter_3_1856 (void) {
+static void mw_filter_3_1863 (void) {
 	mw_zgListzp_0();
 	switch (get_top_data_tag()) {
 		case 0LL: // NONE
@@ -71833,14 +72059,14 @@ static void mw_filter_3_1856 (void) {
 			break;
 		case 1LL: // SOME
 			mtp_SOME_0();
-			mw_filter_2_1856();
+			mw_filter_2_1863();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_1780 (void) {
+static void mw_for_18_1787 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -71970,17 +72196,17 @@ static void mw_for_18_1780 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1780();
+				mw_for_18_1787();
 				push_value(d4);
 			}
-			mw_for_18_1780();
+			mw_for_18_1787();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_map_0_1857 (void) {
+static void mw_map_0_1864 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -72058,13 +72284,13 @@ static void mw_map_0_1857 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1857();
+					mw_map_0_1864();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1857();
+					mw_map_0_1864();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -72077,20 +72303,20 @@ static void mw_map_0_1857 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_filter_2_1856 (void) {
+static void mw_filter_2_1863 (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // LCAT+
 			mtp_LCATzp_0();
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_1856();
+				mw_filter_2_1863();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
-				mw_filter_2_1856();
+				mw_filter_2_1863();
 				push_value(d4);
 			}
 			mp_primzmswap();
@@ -72120,7 +72346,7 @@ static void mw_filter_2_1856 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_filter_3_1856();
+					mw_filter_3_1863();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -72131,12 +72357,12 @@ static void mw_filter_2_1856 (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				mw_filter_3_1856();
+				mw_filter_3_1863();
 			}
 			break;
 	}
 }
-static void mw_findzmsome_0_1841 (void) {
+static void mw_findzmsome_0_1848 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -72144,7 +72370,7 @@ static void mw_findzmsome_0_1841 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_1841();
+			mw_findzmsomezmaux2_0_1848();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -72162,7 +72388,7 @@ static void mw_findzmsome_0_1841 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_1841();
+					mw_findzmsomezmaux2_0_1848();
 					break;
 				default:
 					{
@@ -72179,14 +72405,14 @@ static void mw_findzmsome_0_1841 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_1841();
+				mw_findzmsome_0_1848();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_1841();
+					mw_findzmsome_0_1848();
 					break;
 				default:
 					{
@@ -72202,7 +72428,7 @@ static void mw_findzmsome_0_1841 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_1841 (void) {
+static void mw_findzmsomezmaux2_0_1848 (void) {
 	{
 		VAL d2 = pop_value();
 		mw_primz63U_0();
@@ -73534,7 +73760,7 @@ static void mw_for_18_317 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsome_0_3661 (void) {
+static void mw_findzmsome_0_3668 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -73554,7 +73780,7 @@ static void mw_findzmsome_0_3661 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3661();
+			mw_findzmsomezmaux2_0_3668();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -73584,7 +73810,7 @@ static void mw_findzmsome_0_3661 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3661();
+					mw_findzmsomezmaux2_0_3668();
 					break;
 				default:
 					{
@@ -73601,14 +73827,14 @@ static void mw_findzmsome_0_3661 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3661();
+				mw_findzmsome_0_3668();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3661();
+					mw_findzmsome_0_3668();
 					break;
 				default:
 					{
@@ -73624,7 +73850,7 @@ static void mw_findzmsome_0_3661 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3661 (void) {
+static void mw_findzmsomezmaux2_0_3668 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -73669,7 +73895,7 @@ static void mw_findzmsomezmaux2_0_3661 (void) {
 			break;
 	}
 }
-static void mw_findzmsome_0_3670 (void) {
+static void mw_findzmsome_0_3677 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -73689,7 +73915,7 @@ static void mw_findzmsome_0_3670 (void) {
 			break;
 		case 1LL: // L2+
 			mtp_L2zp_0();
-			mw_findzmsomezmaux2_0_3670();
+			mw_findzmsomezmaux2_0_3677();
 			break;
 		case 2LL: // L3+
 			mtp_L3zp_0();
@@ -73719,7 +73945,7 @@ static void mw_findzmsome_0_3670 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsomezmaux2_0_3670();
+					mw_findzmsomezmaux2_0_3677();
 					break;
 				default:
 					{
@@ -73736,14 +73962,14 @@ static void mw_findzmsome_0_3670 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_findzmsome_0_3670();
+				mw_findzmsome_0_3677();
 				push_value(d4);
 			}
 			mp_primzmswap();
 			switch (get_top_data_tag()) {
 				case 0LL: // NONE
 					(void)pop_u64();
-					mw_findzmsome_0_3670();
+					mw_findzmsome_0_3677();
 					break;
 				default:
 					{
@@ -73759,7 +73985,7 @@ static void mw_findzmsome_0_3670 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_findzmsomezmaux2_0_3670 (void) {
+static void mw_findzmsomezmaux2_0_3677 (void) {
 	{
 		VAL d2 = pop_value();
 		{
@@ -74324,7 +74550,7 @@ static void mw_for_18_1097 (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_for_18_1379 (void) {
+static void mw_for_18_1386 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -74424,17 +74650,17 @@ static void mw_for_18_1379 (void) {
 			mp_primzmdrop();
 			{
 				VAL d4 = pop_value();
-				mw_for_18_1379();
+				mw_for_18_1386();
 				push_value(d4);
 			}
-			mw_for_18_1379();
+			mw_for_18_1386();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_map_0_1375 (void) {
+static void mw_map_0_1382 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // L1+
 			mtp_L1zp_0();
@@ -74548,13 +74774,13 @@ static void mw_map_0_1375 (void) {
 				VAL d4 = pop_value();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1375();
+					mw_map_0_1382();
 					push_value(d5);
 				}
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_map_0_1375();
+					mw_map_0_1382();
 					push_value(d5);
 				}
 				mp_primzmswap();
@@ -74585,7 +74811,7 @@ static void mb_986 (void) {
 	run_value(var_f);
 	decref(var_f);
 }
-static void mb_1711 (void) {
+static void mb_1718 (void) {
 	mw_unpack_1();
 	mp_primzmswap();
 	{
@@ -74594,7 +74820,7 @@ static void mb_1711 (void) {
 		push_value(d2);
 	}
 }
-static void mb_1712 (void) {
+static void mb_1719 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_f = pop_value();
 	pop_value();
@@ -74603,17 +74829,17 @@ static void mb_1712 (void) {
 	mw_abzmunifyzmtypezn_0();
 	decref(var_f);
 }
-static void mb_1714 (void) {
+static void mb_1721 (void) {
 	mw_ctxzmtype_2();
 }
-static void mb_1715 (void) {
+static void mb_1722 (void) {
 	mw_body_8();
 }
-static void mb_1717 (void) {
+static void mb_1724 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_f = pop_value();
 	pop_value();
-	push_fnptr(&mb_1718);
+	push_fnptr(&mb_1725);
 	incref(var_f);
 	push_value(var_f);
 	mp_primzmpackzmcons();
@@ -74621,7 +74847,7 @@ static void mb_1717 (void) {
 	mw_ready_0();
 	decref(var_f);
 }
-static void mb_1718 (void) {
+static void mb_1725 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_f = pop_value();
 	pop_value();
@@ -74633,7 +74859,7 @@ static void mb_1718 (void) {
 	}
 	decref(var_f);
 }
-static void mb_1748 (void) {
+static void mb_1755 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
@@ -74663,7 +74889,7 @@ static void mb_1748 (void) {
 	mp_primzmdrop();
 	mp_primzmdrop();
 }
-static void mb_1762 (void) {
+static void mb_1769 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -74673,7 +74899,7 @@ static void mb_1762 (void) {
 	mw_Tztzp_0();
 	decref(var_tag);
 }
-static void mb_1769 (void) {
+static void mb_1776 (void) {
 	mp_primzmdup();
 	mw_ctx_0();
 	mp_primzmswap();
@@ -74689,7 +74915,7 @@ static void mb_1769 (void) {
 	mw_home_0();
 	mw_elabzmarrowzmhomzn_0();
 }
-static void mb_1804 (void) {
+static void mb_1811 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_mkbod = pop_value();
 	pop_value();
@@ -74701,7 +74927,7 @@ static void mb_1804 (void) {
 	}
 	decref(var_mkbod);
 }
-static void mb_1855 (void) {
+static void mb_1862 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_aliasqname = pop_value();
 	pop_value();
@@ -74710,7 +74936,7 @@ static void mb_1855 (void) {
 		case 0LL: // LEFT
 			mtp_LEFT_0();
 			mw_defs_0();
-			mw_filter_3_1856();
+			mw_filter_3_1863();
 			switch (get_top_data_tag()) {
 				case 0LL: // L0
 					(void)pop_u64();
@@ -74811,13 +75037,13 @@ static void mb_1855 (void) {
 								VAL d8 = pop_value();
 								{
 									VAL d9 = pop_value();
-									mw_map_0_1857();
+									mw_map_0_1864();
 									push_value(d9);
 								}
 								mp_primzmswap();
 								{
 									VAL d9 = pop_value();
-									mw_map_0_1857();
+									mw_map_0_1864();
 									push_value(d9);
 								}
 								mp_primzmswap();
@@ -74996,7 +75222,7 @@ static void mb_1855 (void) {
 	}
 	decref(var_aliasqname);
 }
-static void mb_1873 (void) {
+static void mb_1880 (void) {
 	mw_sig_1();
 	mw_unwrap_0();
 	mw_typezmsigzmstartzn_0();
@@ -75009,10 +75235,10 @@ static void mb_1873 (void) {
 	mw_pack2_0();
 	mw_rdrop_1();
 }
-static void mb_1875 (void) {
+static void mb_1882 (void) {
 	mw_elabzmdefzmparamszn_0();
 }
-static void mb_1876 (void) {
+static void mb_1883 (void) {
 	mp_primzmdup();
 	mp_primzmdup();
 	mp_primzmdup();
@@ -75185,7 +75411,7 @@ static void mb_1876 (void) {
 						mp_primzmswap();
 						push_value(d6);
 					}
-					mw_dip2_0_3463();
+					mw_dip2_0_3470();
 					mp_primzmswap();
 					{
 						VAL d6 = pop_value();
@@ -75254,10 +75480,10 @@ static void mb_1876 (void) {
 					mp_primzmswap();
 					{
 						VAL d6 = pop_value();
-						mw_reversezmfor_0_3463();
+						mw_reversezmfor_0_3470();
 						push_value(d6);
 					}
-					mw_reversezmfor_0_3463();
+					mw_reversezmfor_0_3470();
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -75315,7 +75541,7 @@ static void mb_1876 (void) {
 	}
 	mw_checkzminlinezmrecursionzmarrowzn_0();
 }
-static void mb_1891 (void) {
+static void mb_1898 (void) {
 	mw_sig_0();
 	mw_typezmsigzmstartzn_0();
 	mw_elabzmtypezmsigzn_0();
@@ -75327,10 +75553,10 @@ static void mb_1891 (void) {
 	mw_pack2_0();
 	mw_rdrop_1();
 }
-static void mb_1896 (void) {
+static void mb_1903 (void) {
 	mw_elabzmsimplezmtypezmargzn_0();
 }
-static void mb_1918 (void) {
+static void mb_1925 (void) {
 	mp_primzmdup();
 	mw_data_0();
 	mw_headz63U_0();
@@ -75382,7 +75608,7 @@ static void mb_1918 (void) {
 	mw_pack2_0();
 	mw_rdrop_1();
 }
-static void mb_1931 (void) {
+static void mb_1938 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_dat = pop_value();
 	pop_value();
@@ -75584,14 +75810,14 @@ static void mb_1931 (void) {
 	}
 	decref(var_dat);
 }
-static void mb_1934 (void) {
+static void mb_1941 (void) {
 	mw_ctxzmtype_0();
 	mw_unpack_1();
 	mp_primzmswap();
 	mw_Tzmzg_0();
 	mw_pack2_0();
 }
-static void mb_1935 (void) {
+static void mb_1942 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_untag = pop_value();
 	mp_primzmpackzmuncons();
@@ -75599,7 +75825,7 @@ static void mb_1935 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	push_fnptr(&mb_1936);
+	push_fnptr(&mb_1943);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
@@ -75614,7 +75840,7 @@ static void mb_1935 (void) {
 	decref(var_dat);
 	decref(var_tag);
 }
-static void mb_1936 (void) {
+static void mb_1943 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_untag = pop_value();
 	mp_primzmpackzmuncons();
@@ -75632,7 +75858,7 @@ static void mb_1936 (void) {
 	mw_headz63U_0();
 	mw_unwrap_0();
 	LPUSH(lbl_body);
-	push_fnptr(&mb_1937);
+	push_fnptr(&mb_1944);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
@@ -75644,7 +75870,7 @@ static void mb_1936 (void) {
 	decref(var_dat);
 	decref(var_tag);
 }
-static void mb_1937 (void) {
+static void mb_1944 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_dat = pop_value();
 	mp_primzmpackzmuncons();
@@ -75655,16 +75881,16 @@ static void mb_1937 (void) {
 	mw_headz63U_0();
 	mw_unwrap_0();
 	mp_primzmdup();
-	push_fnptr(&mb_1938);
+	push_fnptr(&mb_1945);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
-	push_fnptr(&mb_1939);
+	push_fnptr(&mb_1946);
 	mw_casezn_0();
 	decref(var_dat);
 	decref(var_tag);
 }
-static void mb_1938 (void) {
+static void mb_1945 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -75673,9 +75899,9 @@ static void mb_1938 (void) {
 	mw_tagzn_0();
 	decref(var_tag);
 }
-static void mb_1939 (void) {
+static void mb_1946 (void) {
 }
-static void mb_1942 (void) {
+static void mb_1949 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_dat = pop_value();
 	mp_primzmpackzmuncons();
@@ -75691,7 +75917,7 @@ static void mb_1942 (void) {
 		push_i64(0LL);
 		mw_datazmqname_0();
 		mw_undefinedz63U_0();
-		push_fnptr(&mb_1943);
+		push_fnptr(&mb_1950);
 		incref(var_tag);
 		push_value(var_tag);
 		mp_primzmpackzmcons();
@@ -75707,7 +75933,7 @@ static void mb_1942 (void) {
 	decref(var_dat);
 	decref(var_tag);
 }
-static void mb_1943 (void) {
+static void mb_1950 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_dat = pop_value();
 	mp_primzmpackzmuncons();
@@ -75751,73 +75977,73 @@ static void mb_1943 (void) {
 		VAL var_lblzulens = pop_value();
 		VAL var_lblzuset = pop_value();
 		VAL var_lblzuget = pop_value();
-		push_fnptr(&mb_1944);
-		incref(var_lbl);
-		push_value(var_lbl);
-		mp_primzmpackzmcons();
-		incref(var_tag);
-		push_value(var_tag);
-		mp_primzmpackzmcons();
-		mw_delay0_0();
-		incref(var_lblzuget);
-		push_value(var_lblzuget);
-		mfld_z126Uctxzmtype_2();
-		mp_primzmmutzmset();
-		incref(var_lblzuget);
-		push_value(var_lblzuget);
-		push_fnptr(&mb_1945);
-		incref(var_lbl);
-		push_value(var_lbl);
-		mp_primzmpackzmcons();
-		incref(var_tag);
-		push_value(var_tag);
-		mp_primzmpackzmcons();
-		mw_delay_0();
-		incref(var_lblzuget);
-		push_value(var_lblzuget);
-		mfld_z126Uarrow_1();
-		mp_primzmmutzmset();
-		push_fnptr(&mb_1947);
-		incref(var_lbl);
-		push_value(var_lbl);
-		mp_primzmpackzmcons();
-		incref(var_tag);
-		push_value(var_tag);
-		mp_primzmpackzmcons();
-		mw_delay0_0();
-		incref(var_lblzuset);
-		push_value(var_lblzuset);
-		mfld_z126Uctxzmtype_2();
-		mp_primzmmutzmset();
-		incref(var_lblzuset);
-		push_value(var_lblzuset);
-		push_fnptr(&mb_1948);
-		incref(var_lbl);
-		push_value(var_lbl);
-		mp_primzmpackzmcons();
-		incref(var_tag);
-		push_value(var_tag);
-		mp_primzmpackzmcons();
-		mw_delay_0();
-		incref(var_lblzuset);
-		push_value(var_lblzuset);
-		mfld_z126Uarrow_1();
-		mp_primzmmutzmset();
-		push_fnptr(&mb_1950);
-		incref(var_tag);
-		push_value(var_tag);
-		mp_primzmpackzmcons();
-		incref(var_lbl);
-		push_value(var_lbl);
-		mp_primzmpackzmcons();
-		mw_delay0_0();
-		incref(var_lblzulens);
-		push_value(var_lblzulens);
-		mfld_z126Uctxzmtype_2();
-		mp_primzmmutzmset();
-		incref(var_lblzulens);
-		push_value(var_lblzulens);
 		push_fnptr(&mb_1951);
+		incref(var_lbl);
+		push_value(var_lbl);
+		mp_primzmpackzmcons();
+		incref(var_tag);
+		push_value(var_tag);
+		mp_primzmpackzmcons();
+		mw_delay0_0();
+		incref(var_lblzuget);
+		push_value(var_lblzuget);
+		mfld_z126Uctxzmtype_2();
+		mp_primzmmutzmset();
+		incref(var_lblzuget);
+		push_value(var_lblzuget);
+		push_fnptr(&mb_1952);
+		incref(var_lbl);
+		push_value(var_lbl);
+		mp_primzmpackzmcons();
+		incref(var_tag);
+		push_value(var_tag);
+		mp_primzmpackzmcons();
+		mw_delay_0();
+		incref(var_lblzuget);
+		push_value(var_lblzuget);
+		mfld_z126Uarrow_1();
+		mp_primzmmutzmset();
+		push_fnptr(&mb_1954);
+		incref(var_lbl);
+		push_value(var_lbl);
+		mp_primzmpackzmcons();
+		incref(var_tag);
+		push_value(var_tag);
+		mp_primzmpackzmcons();
+		mw_delay0_0();
+		incref(var_lblzuset);
+		push_value(var_lblzuset);
+		mfld_z126Uctxzmtype_2();
+		mp_primzmmutzmset();
+		incref(var_lblzuset);
+		push_value(var_lblzuset);
+		push_fnptr(&mb_1955);
+		incref(var_lbl);
+		push_value(var_lbl);
+		mp_primzmpackzmcons();
+		incref(var_tag);
+		push_value(var_tag);
+		mp_primzmpackzmcons();
+		mw_delay_0();
+		incref(var_lblzuset);
+		push_value(var_lblzuset);
+		mfld_z126Uarrow_1();
+		mp_primzmmutzmset();
+		push_fnptr(&mb_1957);
+		incref(var_tag);
+		push_value(var_tag);
+		mp_primzmpackzmcons();
+		incref(var_lbl);
+		push_value(var_lbl);
+		mp_primzmpackzmcons();
+		mw_delay0_0();
+		incref(var_lblzulens);
+		push_value(var_lblzulens);
+		mfld_z126Uctxzmtype_2();
+		mp_primzmmutzmset();
+		incref(var_lblzulens);
+		push_value(var_lblzulens);
+		push_fnptr(&mb_1958);
 		mtw_LAZZYzuDELAY_0();
 		incref(var_lblzulens);
 		push_value(var_lblzulens);
@@ -75825,7 +76051,7 @@ static void mb_1943 (void) {
 		mp_primzmmutzmset();
 		incref(var_lblzulens);
 		push_value(var_lblzulens);
-		push_fnptr(&mb_1952);
+		push_fnptr(&mb_1959);
 		incref(var_lblzuset);
 		push_value(var_lblzuset);
 		mp_primzmpackzmcons();
@@ -75851,7 +76077,7 @@ static void mb_1943 (void) {
 	decref(var_lbl);
 	decref(var_tag);
 }
-static void mb_1944 (void) {
+static void mb_1951 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
@@ -75869,13 +76095,13 @@ static void mb_1944 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_1945 (void) {
+static void mb_1952 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
 	VAL var_lbl = pop_value();
 	pop_value();
-	push_fnptr(&mb_1946);
+	push_fnptr(&mb_1953);
 	incref(var_lbl);
 	push_value(var_lbl);
 	mp_primzmpackzmcons();
@@ -75886,7 +76112,7 @@ static void mb_1945 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_1946 (void) {
+static void mb_1953 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
@@ -75901,7 +76127,7 @@ static void mb_1946 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_1947 (void) {
+static void mb_1954 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
@@ -75919,13 +76145,13 @@ static void mb_1947 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_1948 (void) {
+static void mb_1955 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
 	VAL var_lbl = pop_value();
 	pop_value();
-	push_fnptr(&mb_1949);
+	push_fnptr(&mb_1956);
 	incref(var_lbl);
 	push_value(var_lbl);
 	mp_primzmpackzmcons();
@@ -75936,7 +76162,7 @@ static void mb_1948 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_1949 (void) {
+static void mb_1956 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
@@ -75951,7 +76177,7 @@ static void mb_1949 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_1950 (void) {
+static void mb_1957 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_lbl = pop_value();
 	mp_primzmpackzmuncons();
@@ -76044,7 +76270,7 @@ static void mb_1950 (void) {
 	decref(var_lbl);
 	decref(var_tag);
 }
-static void mb_1951 (void) {
+static void mb_1958 (void) {
 	mw_type_10();
 	mw_dom_15();
 	mw_forcezmconsz63Uzn_0();
@@ -76069,7 +76295,7 @@ static void mb_1951 (void) {
 	mw_newzmautozmrunzn_0();
 	mtw_L1_0();
 }
-static void mb_1952 (void) {
+static void mb_1959 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_lblzulens = pop_value();
 	mp_primzmpackzmuncons();
@@ -76079,7 +76305,7 @@ static void mb_1952 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_lblzuset = pop_value();
 	pop_value();
-	push_fnptr(&mb_1953);
+	push_fnptr(&mb_1960);
 	incref(var_lblzuset);
 	push_value(var_lblzuset);
 	mp_primzmpackzmcons();
@@ -76098,7 +76324,7 @@ static void mb_1952 (void) {
 	decref(var_lblzuget);
 	decref(var_lblzuset);
 }
-static void mb_1953 (void) {
+static void mb_1960 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_lblzulens = pop_value();
 	mp_primzmpackzmuncons();
@@ -76112,7 +76338,7 @@ static void mb_1953 (void) {
 	push_value(var_lblzulens);
 	mw_params_2();
 	mp_primzmdup();
-	push_fnptr(&mb_1954);
+	push_fnptr(&mb_1961);
 	incref(var_lblzuset);
 	push_value(var_lblzuset);
 	mp_primzmpackzmcons();
@@ -76128,7 +76354,7 @@ static void mb_1953 (void) {
 	decref(var_lblzuget);
 	decref(var_lblzuset);
 }
-static void mb_1954 (void) {
+static void mb_1961 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_dat = pop_value();
 	mp_primzmpackzmuncons();
@@ -76190,7 +76416,7 @@ static void mb_1954 (void) {
 	} else {
 		push_u64(1LL); // PRIM_CORE_DUP
 		mw_abzmprimzn_0();
-		push_fnptr(&mb_1958);
+		push_fnptr(&mb_1965);
 		incref(var_lblzuget);
 		push_value(var_lblzuget);
 		mp_primzmpackzmcons();
@@ -76203,7 +76429,7 @@ static void mb_1954 (void) {
 	decref(var_lblzuget);
 	decref(var_lblzuset);
 }
-static void mb_1958 (void) {
+static void mb_1965 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_lblzuget = pop_value();
 	pop_value();
@@ -76214,7 +76440,7 @@ static void mb_1958 (void) {
 	mw_abzmvarzn_0();
 	decref(var_lblzuget);
 }
-static void mb_2003 (void) {
+static void mb_2010 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_t = pop_value();
 	mp_primzmpackzmuncons();
@@ -76228,7 +76454,7 @@ static void mb_2003 (void) {
 	push_value(var_x);
 	mw_zgParam_0();
 	mtw_L1_0();
-	push_fnptr(&mb_2004);
+	push_fnptr(&mb_2011);
 	incref(var_x);
 	push_value(var_x);
 	mp_primzmpackzmcons();
@@ -76239,7 +76465,7 @@ static void mb_2003 (void) {
 	decref(var_t);
 	decref(var_x);
 }
-static void mb_2004 (void) {
+static void mb_2011 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_t = pop_value();
 	mp_primzmpackzmuncons();
@@ -76247,11 +76473,11 @@ static void mb_2004 (void) {
 	pop_value();
 	push_i64(1LL);
 	mw_abzmintzn_0();
-	push_fnptr(&mb_2005);
+	push_fnptr(&mb_2012);
 	incref(var_t);
 	push_value(var_t);
 	mp_primzmpackzmcons();
-	push_fnptr(&mb_2006);
+	push_fnptr(&mb_2013);
 	incref(var_x);
 	push_value(var_x);
 	mp_primzmpackzmcons();
@@ -76261,7 +76487,7 @@ static void mb_2004 (void) {
 	decref(var_t);
 	decref(var_x);
 }
-static void mb_2005 (void) {
+static void mb_2012 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_t = pop_value();
 	pop_value();
@@ -76283,13 +76509,13 @@ static void mb_2005 (void) {
 	mw_abzmprimzn_0();
 	decref(var_t);
 }
-static void mb_2006 (void) {
+static void mb_2013 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_x = pop_value();
 	pop_value();
 	push_u64(1LL); // PRIM_CORE_DUP
 	mw_abzmprimzn_0();
-	push_fnptr(&mb_2007);
+	push_fnptr(&mb_2014);
 	incref(var_x);
 	push_value(var_x);
 	mp_primzmpackzmcons();
@@ -76300,7 +76526,7 @@ static void mb_2006 (void) {
 	mw_abzmprimzn_0();
 	decref(var_x);
 }
-static void mb_2007 (void) {
+static void mb_2014 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_x = pop_value();
 	pop_value();
@@ -76311,13 +76537,13 @@ static void mb_2007 (void) {
 	mw_abzmvarzn_0();
 	decref(var_x);
 }
-static void mb_2017 (void) {
+static void mb_2024 (void) {
 	mw_elabzmsimplezmtypezmargzn_0();
 }
-static void mb_2018 (void) {
+static void mb_2025 (void) {
 	mw_elabzmsimplezmtypezmargzn_0();
 }
-static void mb_2047 (void) {
+static void mb_2054 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_w = pop_value();
 	mp_primzmpackzmuncons();
@@ -76330,11 +76556,11 @@ static void mb_2047 (void) {
 	incref(var_k);
 	push_value(var_k);
 	mw_zsSPKEY_0();
-	mw_for_18_2048();
+	mw_for_18_2055();
 	decref(var_w);
 	decref(var_k);
 }
-static void mb_2152 (void) {
+static void mb_2159 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -76355,7 +76581,7 @@ static void mb_2152 (void) {
 		push_value(d2);
 	}
 	mtw_MKC99_0();
-	push_fnptr(&mb_2154);
+	push_fnptr(&mb_2161);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
@@ -76377,14 +76603,14 @@ static void mb_2152 (void) {
 		push_value(d2);
 	}
 	mtw_MKC99_0();
-	push_fnptr(&mb_2166);
+	push_fnptr(&mb_2173);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
 	mw_then_1();
 	decref(var_tag);
 }
-static void mb_2154 (void) {
+static void mb_2161 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -76407,7 +76633,7 @@ static void mb_2154 (void) {
 	incref(var_tag);
 	push_value(var_tag);
 	mw_iszmtransparentz63U_0();
-	push_fnptr(&mb_2155);
+	push_fnptr(&mb_2162);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
@@ -76426,7 +76652,7 @@ static void mb_2154 (void) {
 	mw_line_0();
 	decref(var_tag);
 }
-static void mb_2155 (void) {
+static void mb_2162 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -76740,7 +76966,7 @@ static void mb_2155 (void) {
 					mp_primzmswap();
 					push_value(d5);
 				}
-				mw_dip2_0_2160();
+				mw_dip2_0_2167();
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
@@ -76849,10 +77075,10 @@ static void mb_2155 (void) {
 				mp_primzmswap();
 				{
 					VAL d5 = pop_value();
-					mw_reversezmfor_0_2160();
+					mw_reversezmfor_0_2167();
 					push_value(d5);
 				}
-				mw_reversezmfor_0_2160();
+				mw_reversezmfor_0_2167();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -77002,7 +77228,7 @@ static void mb_2155 (void) {
 	}
 	decref(var_tag);
 }
-static void mb_2166 (void) {
+static void mb_2173 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -77025,7 +77251,7 @@ static void mb_2166 (void) {
 	incref(var_tag);
 	push_value(var_tag);
 	mw_iszmtransparentz63U_0();
-	push_fnptr(&mb_2167);
+	push_fnptr(&mb_2174);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
@@ -77044,7 +77270,7 @@ static void mb_2166 (void) {
 	mw_line_0();
 	decref(var_tag);
 }
-static void mb_2167 (void) {
+static void mb_2174 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -77497,10 +77723,10 @@ static void mb_2167 (void) {
 				mp_primzmdrop();
 				{
 					VAL d5 = pop_value();
-					mw_for_18_2174();
+					mw_for_18_2181();
 					push_value(d5);
 				}
-				mw_for_18_2174();
+				mw_for_18_2181();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -77618,7 +77844,7 @@ static void mb_2167 (void) {
 	}
 	decref(var_tag);
 }
-static void mb_2197 (void) {
+static void mb_2204 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -77653,7 +77879,7 @@ static void mb_2197 (void) {
 	mw_put_0();
 	decref(var_tag);
 }
-static void mb_2200 (void) {
+static void mb_2207 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
@@ -77691,13 +77917,13 @@ static void mb_2200 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_2203 (void) {
+static void mb_2210 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
 	VAL var_lbl = pop_value();
 	pop_value();
-	push_fnptr(&mb_2204);
+	push_fnptr(&mb_2211);
 	incref(var_lbl);
 	push_value(var_lbl);
 	mp_primzmpackzmcons();
@@ -77734,7 +77960,7 @@ static void mb_2203 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_2204 (void) {
+static void mb_2211 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
@@ -77772,18 +77998,18 @@ static void mb_2204 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_2208 (void) {
+static void mb_2215 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	mp_primzmpackzmuncons();
 	VAL var_lbl = pop_value();
 	pop_value();
-	push_fnptr(&mb_2209);
+	push_fnptr(&mb_2216);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
 	mw_c99zmline_0();
-	push_fnptr(&mb_2210);
+	push_fnptr(&mb_2217);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
@@ -77916,7 +78142,7 @@ static void mb_2208 (void) {
 	}
 	mw_put_0();
 	mw_line_0();
-	push_fnptr(&mb_2218);
+	push_fnptr(&mb_2225);
 	incref(var_tag);
 	push_value(var_tag);
 	mp_primzmpackzmcons();
@@ -77924,7 +78150,7 @@ static void mb_2208 (void) {
 	decref(var_tag);
 	decref(var_lbl);
 }
-static void mb_2209 (void) {
+static void mb_2216 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -77959,7 +78185,7 @@ static void mb_2209 (void) {
 	mw_put_0();
 	decref(var_tag);
 }
-static void mb_2210 (void) {
+static void mb_2217 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -77994,7 +78220,7 @@ static void mb_2210 (void) {
 	mw_put_0();
 	decref(var_tag);
 }
-static void mb_2218 (void) {
+static void mb_2225 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_tag = pop_value();
 	pop_value();
@@ -78029,7 +78255,7 @@ static void mb_2218 (void) {
 	mw_put_0();
 	decref(var_tag);
 }
-static void mb_2908 (void) {
+static void mb_2915 (void) {
 	mw_unpack3_0();
 	mp_primzmdup();
 	{
@@ -78081,7 +78307,7 @@ static void mb_2908 (void) {
 	mw_zsMKAB_0();
 	LPOP(lbl_arrow);
 }
-static void mb_3002 (void) {
+static void mb_3009 (void) {
 	mw_unpack2_0();
 	mw_ctxzmtype_2();
 	mw_specializzezmctxzmtype_0();

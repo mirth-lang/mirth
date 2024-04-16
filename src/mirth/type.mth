@@ -197,12 +197,12 @@ def(Type.unify-simple!, Gamma Type Type -- Gamma Type,
 
 ||| Unify expanded types.
 def(Type.unify-aux!, Gamma Type Type -- Gamma Type,
-    TYPE_ERROR -> drop TYPE_ERROR,
+    TYPE_ERROR -> unify-error!,
     TYPE_DONT_CARE -> id,
     THole -> type-hole-unify!,
     TMeta ->
         swap match(
-            TYPE_ERROR -> drop TYPE_ERROR,
+            TYPE_ERROR -> unify-error!,
             TYPE_DONT_CARE -> TMeta,
             THole -> dip(TMeta) type-hole-unify!,
             TMeta -> dip(TMeta) unify!,
@@ -211,7 +211,7 @@ def(Type.unify-aux!, Gamma Type Type -- Gamma Type,
         ),
     TValue ->
         swap match(
-            TYPE_ERROR -> drop TYPE_ERROR,
+            TYPE_ERROR -> unify-error!,
             TYPE_DONT_CARE -> TValue,
             THole -> dip(TValue) type-hole-unify!,
             TMeta -> dip(TValue) unify!,
@@ -220,7 +220,7 @@ def(Type.unify-aux!, Gamma Type Type -- Gamma Type,
         ),
     _ ->
         swap match(
-            TYPE_ERROR -> drop TYPE_ERROR,
+            TYPE_ERROR -> unify-error!,
             TYPE_DONT_CARE -> id,
             THole -> type-hole-unify!,
             TMeta -> unify!,
@@ -228,6 +228,23 @@ def(Type.unify-aux!, Gamma Type Type -- Gamma Type,
             _ -> unify-simple!
         )
     )
+
+def(Type.unify-error!, Gamma Type -- Gamma Type,
+    expand match(
+        TYPE_ERROR -> TYPE_ERROR,
+        TYPE_DONT_CARE -> TYPE_ERROR,
+        THole -> TYPE_ERROR swap type-hole-unify!,
+        TMeta -> unify-error!,
+        TValue -> unify-error!,
+        TVar -> drop TYPE_ERROR,
+        TPrim -> drop TYPE_ERROR,
+        TData -> drop TYPE_ERROR,
+        TTable -> drop TYPE_ERROR,
+        TTensor -> unify-error! drop TYPE_ERROR,
+        TMorphism -> unify-error! drop TYPE_ERROR,
+        TApp -> dip(unify-error! drop) unify-error! drop TYPE_ERROR,
+        TMut -> unify-error! drop TYPE_ERROR,
+    ))
 
 ||| Unify two types. Raises a unification error if unification is impossible.
 def(Type.unify!, Gamma Type Type -- Gamma Type,
@@ -281,8 +298,14 @@ def(Value.unify-type!, Gamma Type Value -- Gamma Type,
     VALUE_STR -> drop TYPE_STR unify!,
     VALUE_BLOCK -> swap unify-block!)
 
+def(Value.unify-error!, Gamma Value -- Gamma Type,
+    VALUE_INT -> drop TYPE_ERROR,
+    VALUE_STR -> drop TYPE_ERROR,
+    VALUE_BLOCK -> TYPE_ERROR unify-block!)
+
 def(Type.unify-block!, Gamma Block Type -- Gamma Type,
     expand match(
+        TYPE_ERROR -> STACK_TYPE_ERROR STACK_TYPE_ERROR T-> block-unify-type! drop TYPE_ERROR,
         TMeta -> over dip(dip(type >Type) unify! drop) arrow type >Type,
         TMorphism -> block-unify-type! >Type,
         _ -> dip(type >Type) unify!
@@ -499,6 +522,11 @@ def(MetaVar.unify!, Gamma Type MetaVar -- Gamma Type,
             )
         )
     ))
+def(MetaVar.unify-error!, Gamma MetaVar -- Gamma Type,
+    dup type? match(
+        SOME -> nip unify-error!,
+        NONE -> dip(TYPE_ERROR SOME) ~type? ! TYPE_ERROR
+    ))
 def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
     dup type? match(
         NONE -> dip(f dup SOME) ~type? !,
@@ -549,6 +577,8 @@ def(Type.>Resource, Type -- Resource, RESOURCE)
 def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
 def(Resource.unify!, Gamma Resource Resource -- Gamma Resource,
     both(>Type) unify! >Resource)
+def(Resource.unify-error!, Gamma Resource -- Gamma Resource,
+    >Type unify-error! >Resource)
 def(Resource.trace!, Resource --, >Type trace!)
 def(Resource.freshen, Subst Resource -- Subst Resource,
     >Type freshen >Resource)
@@ -687,15 +717,14 @@ def(StackType.has-meta?, MetaVar StackType -- Bool,
     ))
 
 def(StackType.unify-failed!, Gamma StackType StackType -- Gamma StackType,
-    # "yo" panic! )
    both(>Type) unify-failed! >StackType)
 
 def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
     swap expand match(
-        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR,
+        STACK_TYPE_ERROR -> unify-error!,
         STACK_TYPE_DONT_CARE -> id,
         STMeta -> swap expand match(
-            STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR,
+            STACK_TYPE_ERROR -> STMeta unify-error!,
             STACK_TYPE_DONT_CARE -> STMeta,
             STMeta -> dip(TMeta) unify! >StackType,
             _ -> >Type swap unify! >StackType,
@@ -715,7 +744,7 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
             _ -> STACK_TYPE_UNIT unify-failed!
         ),
         STCons -> rotl expand match(
-            STACK_TYPE_ERROR -> drop2 STACK_TYPE_ERROR,
+            STACK_TYPE_ERROR -> STCons unify-error!,
             STMeta -> dip(STCons >Type) unify! >StackType,
             STACK_TYPE_DONT_CARE -> STCons,
             _ -> dup force-cons?! if-some(
@@ -724,7 +753,7 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
             )
         ),
         STWith -> rotl expand match(
-            STACK_TYPE_ERROR -> drop2 STACK_TYPE_ERROR,
+            STACK_TYPE_ERROR -> STWith unify-error!,
             STMeta -> dip(STWith >Type) unify! >StackType,
             STACK_TYPE_DONT_CARE -> STWith,
             _ -> dup force-with?! if-some(
@@ -733,7 +762,7 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
             )
         ),
         STConsLabel -> rot4l expand match(
-            STACK_TYPE_ERROR -> drop3 STACK_TYPE_ERROR,
+            STACK_TYPE_ERROR -> STConsLabel unify-error!,
             STMeta -> dip(STConsLabel >Type) unify! >StackType,
             STACK_TYPE_DONT_CARE -> STConsLabel,
             _ -> dup2 force-cons-label?! if-some(
@@ -741,6 +770,18 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
                 dip(STConsLabel) unify-failed!
             )
         ),
+    ))
+
+def(StackType.unify-error!, Gamma StackType -- Gamma StackType,
+    expand match(
+        STACK_TYPE_ERROR -> STACK_TYPE_ERROR,
+        STACK_TYPE_UNIT -> STACK_TYPE_ERROR,
+        STACK_TYPE_DONT_CARE -> STACK_TYPE_ERROR,
+        STMeta -> unify-error! >StackType,
+        STVar -> drop STACK_TYPE_ERROR,
+        STCons -> dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
+        STWith -> dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
+        STConsLabel -> drop dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
     ))
 
 def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
@@ -890,6 +931,8 @@ def(ArrowType.unify!, Gamma ArrowType ArrowType -- Gamma ArrowType,
     dip(swap dip(unify!)) rotl
     dip(unify!) swap
     ARROW_TYPE)
+def(ArrowType.unify-error!, Gamma ArrowType -- Gamma ArrowType,
+    unpack dip(unify-error!) dip'(unify-error!) ARROW_TYPE)
 def(ArrowType.has-meta?, MetaVar ArrowType -- Bool,
     unpack dip(over) has-meta? if(drop2 T, has-meta?))
 
