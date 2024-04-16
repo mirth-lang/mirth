@@ -417,7 +417,7 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_DATA_GET_LABEL -> c99-tag-get-label! drop,
     OP_DATA_SET_LABEL -> c99-tag-set-label! drop)
 
-def(c99-get-data-tag!, List(Arg) Type +C99 -- +C99,
+def(c99-get-data-tag!, List(Arg) Data +C99 -- +C99,
     drop2
     c99-line("{" put)
     c99-nest(

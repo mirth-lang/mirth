@@ -630,8 +630,8 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_DATA_SET_LABEL -> data-set-label-type freshen-sig OPSIG_APPLY,
     ))
 
-def(elab-data-get-tag-sig!, Type -- OpSig, 
-    MetaVar.new! STMeta swap STCons
+def(elab-data-get-tag-sig!, Data -- OpSig, 
+    MetaVar.new! STMeta swap TData STCons
     MetaVar.new! STMeta TYPE_INT STCons
     T-> OPSIG_APPLY)
 
@@ -1077,7 +1077,7 @@ def(elab-data-done!, Data --,
             dat "tag" 0 data-word-new! \(tag ->
                 CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
                 tag ab-build-word!(
-		    dat TData OP_DATA_GET_TAG ab-op!
+		    dat OP_DATA_GET_TAG ab-op!
                 ) drop
             )
 	)
