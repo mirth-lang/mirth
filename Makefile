@@ -120,7 +120,7 @@ bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
 bin/snake.c: bin/mirth2 src/std/* src/posix/* src/snake/*
-	bin/mirth2 $(MIRTHFLAGS) src/snake/main.mth -o bin/snake.c
+	bin/mirth2 --debug $(MIRTHFLAGS) src/snake/main.mth -o bin/snake.c
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`

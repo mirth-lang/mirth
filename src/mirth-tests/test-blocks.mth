@@ -1,6 +1,7 @@
 module(mirth-tests.test-blocks)
 import(std.prelude)
 import(std.list)
+import(std.maybe)
 import(posix.posix)
 
 def(compose, [*a -- *b] [*b -- *c] -- [*a -- *c], \([f] [g] -> [f g]))
