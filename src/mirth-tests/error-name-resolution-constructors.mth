@@ -30,3 +30,10 @@ def(unknown-single, Foo --, BAR -> )
 def(unknown-multiple, Foo --, LEFT -> )
 
 def(main, --, id)
+# mirth-test # merr # 12:9: error: Not visible in current scope: std.maybe.Maybe/1.SOME
+# mirth-test # merr # 13:9: error: Not visible in current scope: std.maybe.Maybe/1.NONE
+# mirth-test # merr # 23:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.MyEither.LEFT, mirth-tests.error-name-resolution-constructors.+MyEither.LEFT
+# mirth-test # merr # 24:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.MyEither.RIGHT, mirth-tests.error-name-resolution-constructors.+MyEither.RIGHT
+# mirth-test # merr # 29:29: error: Constructor is for a different type: mirth-tests.error-name-resolution-constructors.Bar.BAR
+# mirth-test # merr # 30:31: error: Multiple definitions for name, but none are suitable: std.either.Either/2.LEFT is constructor for a different type, mirth-tests.error-name-resolution-constructors.MyEither.LEFT is constructor for a different type, mirth-tests.error-name-resolution-constructors.+MyEither.LEFT is constructor for a different type
+# mirth-test # mret # 1
