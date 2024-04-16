@@ -641,6 +641,39 @@ def(StackType.top-resource?, StackType -- Maybe(Resource),
 def(StackType.top-resource-tycon?, StackType -- Maybe(Tycon),
     top-resource? bind(>Type tycon?))
 
+def(StackType.top-namespaces, StackType -- List(Namespace),
+    LIST(
+        dup top-tycon? for(NAMESPACE_TYCON ;)
+        top-resource-tycon? for(NAMESPACE_TYCON ;)
+    ))
+
+def(StackType.top-types-are-fine?, StackType -- Bool,
+    dup top-value-is-fine? and(dup top-resource-is-fine?) nip)
+
+def(StackType.top-value-is-fine?, StackType -- Bool,
+    expand match(
+        STWith -> drop top-value-is-fine?,
+        STConsLabel -> drop2 top-value-is-fine?,
+        STCons -> nip Type.error? not,
+        STMeta -> drop T,
+        STVar -> drop T,
+        STACK_TYPE_UNIT -> T,
+        STACK_TYPE_ERROR -> F,
+        STACK_TYPE_DONT_CARE -> F,
+    ))
+
+def(StackType.top-resource-is-fine?, StackType -- Bool,
+    expand match(
+        STWith -> nip /RESOURCE error? not,
+        STConsLabel -> drop2 top-resource-is-fine?,
+        STCons -> drop top-resource-is-fine?,
+        STMeta -> drop T,
+        STVar -> drop T,
+        STACK_TYPE_UNIT -> T,
+        STACK_TYPE_ERROR -> F,
+        STACK_TYPE_DONT_CARE -> F,
+    ))
+
 def(StackType.has-meta?, MetaVar StackType -- Bool,
     expand match(
         STMeta -> ==,
