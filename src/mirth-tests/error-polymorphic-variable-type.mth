@@ -1,0 +1,15 @@
+module(mirth-tests.error-polymorphic-variable-type)
+
+import(std.prelude)
+import(std.maybe)
+
+var(var1, a)
+var(var2, Maybe(a))
+var(var3, [a -- a])
+
+def(main, --, id)
+# mirth-test # merr # 6:11: error: Implicit type variable not allowed here.
+# mirth-test # merr # 7:17: error: Implicit type variable not allowed here.
+# mirth-test # merr # 8:12: error: Implicit type variable not allowed here.
+# mirth-test # merr # 8:17: error: Implicit type variable not allowed here.
+# mirth-test # mret # 1

@@ -76,7 +76,7 @@ def(+TypeElab.elab-type-sig-params!, +TypeElab -- +TypeElab List(Type),
     ))
 
 def(+TypeElab.elab-stack-type!, +TypeElab -- +TypeElab StackType,
-    token sig-stack-var? if(elab-stack-type-var! STVar, T0)
+    token sig-stack-var? if(elab-stack-type-var!, T0)
     elab-stack-type-parts!)
 
 def(+TypeElab.elab-stack-type-parts!, +TypeElab StackType -- +TypeElab StackType,
@@ -108,13 +108,13 @@ def(+TypeElab.elab-stack-type-part!, +TypeElab -- +TypeElab StackTypePart,
         elab-stack-label! STPConsLabel,
 
     token sig-type-var? if(
-        elab-type-var! TVar STPCons,
+        elab-type-var! STPCons,
 
     token sig-type-con? if(
         elab-type-con! STPCons,
 
     token sig-resource-var? if(
-        elab-resource-var! TVar RESOURCE STPWith,
+        elab-resource-var! STPWith,
 
     token sig-resource-con? if(
         elab-resource-con! STPWith,
@@ -139,19 +139,24 @@ def(+TypeElab.elab-stack-label!, +TypeElab -- +TypeElab Type Label,
         swap
     ) token!)
 
-def(+TypeElab.elab-stack-type-var!, +TypeElab -- +TypeElab Var,
-    TYPE_STACK elab-implicit-var!)
+def(+TypeElab.elab-stack-type-var!, +TypeElab -- +TypeElab StackType,
+    TYPE_STACK elab-implicit-var! if-some(STVar, STACK_TYPE_ERROR))
 
-def(+TypeElab.elab-type-var!, +TypeElab -- +TypeElab Var,
-    TYPE_TYPE elab-implicit-var!)
+def(+TypeElab.elab-type-var!, +TypeElab -- +TypeElab Type,
+    TYPE_TYPE elab-implicit-var! if-some(TVar, TYPE_ERROR))
 
-def(+TypeElab.elab-resource-var!, +TypeElab -- +TypeElab Var,
-    TYPE_RESOURCE elab-implicit-var!)
+def(+TypeElab.elab-resource-var!, +TypeElab -- +TypeElab Resource,
+    TYPE_RESOURCE elab-implicit-var! if-some(TVar, TYPE_ERROR) RESOURCE)
 
-def(+TypeElab.elab-implicit-var!, +TypeElab Type -- +TypeElab Var,
+def(+TypeElab.elab-implicit-var!, +TypeElab Type -- +TypeElab Maybe(Var),
     token name? unwrap dup ctx lookup match(
-        SOME -> sip(nip type dip2(token GAMMA) unify! drop2),
-        NONE -> Var.new! ctx(over Ctx.new)
+        SOME -> sip(nip type dip2(token GAMMA) unify! drop2) SOME,
+        NONE ->
+            allow-implicit-type-vars if(
+                Var.new! ctx(over Ctx.new) SOME,
+                token "Implicit type variable not allowed here." emit-error!
+                drop2 NONE
+            )
     )
     token args-0
     token:succ)
