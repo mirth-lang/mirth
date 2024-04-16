@@ -1296,13 +1296,46 @@ def(elab-def!, Token -- Token,
     ) over ~ctx-type !
     dup delay(elab-def-params!) over ~params !
     dup delay(
-        dup ab-build-word-arrow!(
+        dup dup ab-build-word-arrow!(
             swap params dup is-empty if(
                 drop elab-def-body!,
                 ab-lambda!(elab-def-body!)
             )
-        )
+        ) tuck check-inline-recursion-arrow!
     ) swap ~arrow !)
+
+def(check-inline-recursion-arrow!, Word Arrow --,
+    atoms for(dip:dup check-inline-recursion-atom!) drop)
+def(check-inline-recursion-atom!, Word Atom --,
+    over prefer-inline? if(
+        dup2 op check-inline-recursion-op!
+        args for(dip:dup check-inline-recursion-arg!) drop,
+        drop2
+    ))
+def(check-inline-recursion-arg!, Word Arg --,
+    ARG_BLOCK -> arrow check-inline-recursion-arrow!)
+def(check-inline-recursion-op!, Word Op --,
+    OP_RUN -> arrow check-inline-recursion-arrow!,
+    OP_WORD ->
+        dup2 == if(
+            drop check-inline-recursion-failed!,
+            dup prefer-inline? if(
+                ~arrow try-force! if-some(
+                    check-inline-recursion-arrow!,
+                    check-inline-recursion-failed!
+                ),
+                drop2
+            )
+        ),
+    OP_MATCH -> cases for(dip:dup body check-inline-recursion-arrow!) drop,
+    OP_LAMBDA -> body check-inline-recursion-arrow!,
+    _ -> drop2)
+def(check-inline-recursion-failed!, Word --,
+    dup prefer-inline? if(
+        F over ~prefer-inline? !
+        head "recursive word cannot be inlined" emit-warning!,
+        drop
+    ))
 
 ||| Elaborate a word's parameters from its type and declaration.
 def(elab-def-params!, Word -- List(Param),

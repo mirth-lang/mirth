@@ -1,6 +1,7 @@
 module(std.lazy)
 
 import(std.prelude)
+import(std.maybe)
 
 data(Lazy(t),
     LAZY_READY -> b,
@@ -34,6 +35,11 @@ def(force-or!(f), (*x -- *x a) *x Mut(Lazy(a)) -- *x a,
     dup @ match(
         LAZY_WAIT -> drop f,
         _ -> drop force!
+    ))
+def(try-force!, Mut(Lazy(a)) -- Maybe(a),
+    dup @ match(
+        LAZY_WAIT -> drop NONE,
+        _ -> drop force! SOME
     ))
 
 def(force2!, Mut(Lazy([a b])) -- a b,
