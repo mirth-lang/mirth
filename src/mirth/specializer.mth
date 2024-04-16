@@ -63,6 +63,7 @@ def(+SPCheck.check-atom!, Atom +SPCheck -- List(Atom) +SPCheck,
         OP_COERCE -> drop L1,
         OP_LABEL_PUSH -> drop L1,
         OP_LABEL_POP -> drop L1,
+	OP_DATA_GET_TAG -> drop L1,
         OP_DATA_GET_LABEL -> drop2 L1,
         OP_DATA_SET_LABEL -> drop2 L1,
     ))

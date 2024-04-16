@@ -67,6 +67,7 @@ data(Op,
     OP_COERCE -> Coerce,
     OP_LABEL_PUSH -> Label,
     OP_LABEL_POP -> Label,
+    OP_DATA_GET_TAG -> Type,
     OP_DATA_GET_LABEL -> Tag Label,
     OP_DATA_SET_LABEL -> Tag Label)
 
@@ -222,6 +223,7 @@ def(Op.free-vars, Op -- List(Var),
     OP_COERCE -> drop L0,
     OP_LABEL_PUSH -> drop L0,
     OP_LABEL_POP -> drop L0,
+    OP_DATA_GET_TAG -> drop L0,
     OP_DATA_GET_LABEL -> drop2 L0,
     OP_DATA_SET_LABEL -> drop2 L0)
 def(Match.free-vars, Match -- List(Var),

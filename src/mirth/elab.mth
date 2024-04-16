@@ -625,9 +625,15 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_COERCE -> elab-coerce-sig!,
         OP_LABEL_PUSH -> elab-label-push-sig!,
         OP_LABEL_POP -> elab-label-pop-sig!,
+	OP_DATA_GET_TAG -> elab-data-get-tag-sig!,
         OP_DATA_GET_LABEL -> data-get-label-type freshen-sig OPSIG_APPLY,
         OP_DATA_SET_LABEL -> data-set-label-type freshen-sig OPSIG_APPLY,
     ))
+
+def(elab-data-get-tag-sig!, Type -- OpSig, 
+    MetaVar.new! STMeta swap STCons
+    MetaVar.new! STMeta TYPE_INT STCons
+    T-> OPSIG_APPLY)
 
 def(elab-coerce-sig!, Coerce -- OpSig,
     COERCE_UNSAFE ->
@@ -1067,14 +1073,16 @@ def(data-word-new!, Data Str Int -- Word,
 
 def(elab-data-done!, Data --,
     \(dat ->
-        dat is-enum? then(
+        dat is-resource? not then(
             dat "tag" 0 data-word-new! \(tag ->
                 CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
                 tag ab-build-word!(
-                    COERCE_UNSAFE ab-coerce!
+		    dat TData OP_DATA_GET_TAG ab-op!
                 ) drop
             )
+	)
 
+        dat is-enum? then(
             dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
                 CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
                 ftag ab-build-word!(

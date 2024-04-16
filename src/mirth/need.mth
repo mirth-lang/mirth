@@ -94,6 +94,7 @@ def(+Needs.run-op!, List(Arg) Op +Needs -- +Needs,
     OP_COERCE -> drop2,
     OP_LABEL_PUSH -> drop2,
     OP_LABEL_POP -> drop2,
+    OP_DATA_GET_TAG -> drop push-args!,
     OP_DATA_GET_LABEL -> drop3,
     OP_DATA_SET_LABEL -> drop3)
 def(+Needs.run-prim!, List(Arg) Prim +Needs -- +Needs,
