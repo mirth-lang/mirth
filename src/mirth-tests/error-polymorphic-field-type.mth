@@ -1,0 +1,20 @@
+module(mirth-tests.error-polymorphic-field-type)
+
+import(std.prelude)
+import(std.maybe)
+
+table(MyTable)
+field(field1, MyTable, a)
+field(field2, MyTable, Maybe(a))
+field(field3, MyTable, [a -- a])
+field(field4, a, Int)
+field(field5, Maybe(a), Int)
+
+def(main, --, id)
+# mirth-test # merr # 7:24: error: Implicit type variable not allowed here.
+# mirth-test # merr # 8:30: error: Implicit type variable not allowed here.
+# mirth-test # merr # 9:25: error: Implicit type variable not allowed here.
+# mirth-test # merr # 9:30: error: Implicit type variable not allowed here.
+# mirth-test # merr # 10:15: error: Implicit type variable not allowed here.
+# mirth-test # merr # 11:21: error: Implicit type variable not allowed here.
+# mirth-test # mret # 1
