@@ -418,14 +418,15 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_DATA_SET_LABEL -> c99-tag-set-label! drop)
 
 def(c99-get-data-tag!, List(Arg) Data +C99 -- +C99,
-    drop2
-    c99-line("{" put)
-    c99-nest(
-        c99-line("VAL val = pop_value();" put)
-	c99-line("USIZE tag = get_data_tag(val);" put)
-	c99-line("push_u64(tag);" put )
+    nip is-enum? else(
+        c99-line("{" put)
+        c99-nest(
+            c99-line("VAL val = pop_value();" put)
+	    c99-line("USIZE tag = get_data_tag(val);" put)
+	    c99-line("push_u64(tag);" put )
+        )
+        c99-line("}" put)
     )
-    c99-line("}" put)
 )
 
 def(c99-word!, List(Arg) Word +C99 -- +C99,
