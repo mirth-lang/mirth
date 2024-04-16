@@ -1,0 +1,73 @@
+module(mirth-tests.error-name-resolution-words)
+import(std.prelude)
+import(std.either)
+
+data(Type1, TYPE1)
+data(+Type2, TYPE2)
+data(+Type3, TYPE3)
+def(Type1.method, Type1 -- Type1, id)
+def(+Type2.method, +Type2 -- +Type2, id)
+def(1+, Int -- Int, 1 +)
+def(+Type2.method2, +Type2 -- +Type2, id)
+
+def(not-visible-1, --, 10 >I8? unwrap drop)
+def(not-visible-2, --, 10 >I8? .unwrap drop)
+def(not-visible-3, --, 10 >I8? Maybe.unwrap drop)
+def(unknown-1, --, foobarbaz)
+def(unknown-2, --, std.prelude.foo)
+def(ambiguous-1a, Type1 +Type2 -- Type1 +Type2, method)
+def(ambiguous-1b, Type1 +Type2 -- Type1 +Type2, .method)
+def(not-ambiguous-1c, Type1 +Type2 -- Type1 +Type2, Type1.method)
+def(not-ambiguous-1d, Type1 +Type2 -- Type1 +Type2, +Type2.method)
+def(ambiguous-2a, Int -- Int, 1+)
+def(not-ambiguous-2b, Int -- Int, .1+)
+def(not-ambiguous-2c, Int -- Int, Int.1+)
+def(not-ambiguous-2d, Int -- Int, prim.Int.1+)
+def(not-ambiguous-2e, Int -- Int, std.prim.Int.1+)
+def(not-ambiguous-2f, Int -- Int, error-name-resolution-words.1+)
+def(not-ambiguous-2g, Int -- Int, mirth-tests.error-name-resolution-words.1+)
+def(bad-qualifier-1, --, 10 20 std.either.drop2)
+def(bad-qualifier-2, --, 10 std.either.1+ drop)
+def(bad-qualifier-3, --, 10 Int.method drop)
+def(method-wrong-type-1, Int -- Int, method2)
+def(method-wrong-type-2, Int -- Int, method)
+def(method-wrong-type-3, Int -- Int, .method2)
+def(method-wrong-type-4, Int -- Int, .method)
+def(method-not-available-1, --, method2)
+def(method-not-available-2, --, method)
+def(method-not-available-3, --, .method2)
+def(method-not-available-4, --, .method)
+
+def(error-chaining-1-ambiguous, --, "Hello" 1- 1- drop)
+def(error-chaining-2-not-ambiguous, --, "Hello" + method2 /TYPE2)
+def(error-chaining-3-detects-error-again, --, "Hello" + method2 /TYPE3)
+def(error-chaining-4-still-ambiguous, --, "Hello" 1- method2 /TYPE2 1-)
+
+def(main, --, id)
+# mirth-test # merr # 13:32: error: Not visible in current scope: std.maybe.Maybe/1.unwrap
+# mirth-test # merr # 14:32: error: Not visible in current scope: std.maybe.Maybe/1.unwrap
+# mirth-test # merr # 15:32: error: Not visible in current scope: std.maybe.Maybe/1.unwrap
+# mirth-test # merr # 16:20: error: Unknown word name, possibly a misspelling.
+# mirth-test # merr # 17:20: error: Unknown word name, possibly a misspelling.
+# mirth-test # merr # 18:49: error: Ambiguous word. Can't decide between: mirth-tests.error-name-resolution-words.Type1.method, mirth-tests.error-name-resolution-words.+Type2.method
+# mirth-test # merr # 19:49: error: Ambiguous word. Can't decide between: mirth-tests.error-name-resolution-words.Type1.method, mirth-tests.error-name-resolution-words.+Type2.method
+# mirth-test # merr # 22:31: error: Ambiguous word. Can't decide between: std.prim.Int.1+, mirth-tests.error-name-resolution-words.1+
+# mirth-test # merr # 29:32: error: Qualified name not found. Perhaps you meant: std.prelude.drop2
+# mirth-test # merr # 30:29: error: Multiple definitions for name, but none are suitable: std.prim.Int.1+ doesn't match the given qualified name, std.prelude.Nat.1+ doesn't match the given qualified name, std.prelude.Size.1+ doesn't match the given qualified name, std.prelude.Offset.1+ doesn't match the given qualified name, mirth-tests.error-name-resolution-words.1+ doesn't match the given qualified name
+# mirth-test # merr # 31:29: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.Type1.method doesn't match the given qualified name, mirth-tests.error-name-resolution-words.+Type2.method doesn't match the given qualified name
+# mirth-test # merr # 32:38: error: Method is for a different type: mirth-tests.error-name-resolution-words.+Type2.method2
+# mirth-test # merr # 33:38: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.Type1.method is method for a different type, mirth-tests.error-name-resolution-words.+Type2.method is method for a different type
+# mirth-test # merr # 34:38: error: Method is for a different type: mirth-tests.error-name-resolution-words.+Type2.method2
+# mirth-test # merr # 35:38: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.Type1.method is method for a different type, mirth-tests.error-name-resolution-words.+Type2.method is method for a different type
+# mirth-test # merr # 36:33: error: Method is not available for current stack: mirth-tests.error-name-resolution-words.+Type2.method2
+# mirth-test # merr # 37:33: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.Type1.method is not avaliable for current stack, mirth-tests.error-name-resolution-words.+Type2.method is not avaliable for current stack
+# mirth-test # merr # 38:33: error: Method is not available for current stack: mirth-tests.error-name-resolution-words.+Type2.method2
+# mirth-test # merr # 39:33: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.Type1.method is not avaliable for current stack, mirth-tests.error-name-resolution-words.+Type2.method is not avaliable for current stack
+# mirth-test # merr # 41:45: error: Multiple definitions for name, but none are suitable: std.prim.Int.1- is method for a different type, std.prelude.Nat.1- is method for a different type, std.prelude.Size.1- is method for a different type, std.prelude.Offset.1- is method for a different type
+# mirth-test # merr # 41:48: warning: Can't resolve word due to previous errors. Candidates are: std.prim.Int.1-, std.prelude.Nat.1-, std.prelude.Size.1-, std.prelude.Offset.1-
+# mirth-test # merr # 42:49: error: Multiple definitions for name, but none are suitable: std.prim.Int.+ is method for a different type, std.prelude.Nat.+ is method for a different type, std.prelude.Size.+ is method for a different type, std.prelude.Offset.+ is method for a different type
+# mirth-test # merr # 43:55: error: Multiple definitions for name, but none are suitable: std.prim.Int.+ is method for a different type, std.prelude.Nat.+ is method for a different type, std.prelude.Size.+ is method for a different type, std.prelude.Offset.+ is method for a different type
+# mirth-test # merr # 43:65: error: Failed to unify +Type2 with +Type3
+# mirth-test # merr # 44:51: error: Multiple definitions for name, but none are suitable: std.prim.Int.1- is method for a different type, std.prelude.Nat.1- is method for a different type, std.prelude.Size.1- is method for a different type, std.prelude.Offset.1- is method for a different type
+# mirth-test # merr # 44:69: warning: Can't resolve word due to previous errors. Candidates are: std.prim.Int.1-, std.prelude.Nat.1-, std.prelude.Size.1-, std.prelude.Offset.1-
+# mirth-test # mret # 1

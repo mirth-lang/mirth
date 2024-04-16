@@ -169,7 +169,8 @@ data(+ResolveDef, RESOLVE_DEF ->
     sort: Str
     token: Token
     candidates: List(Def)
-    rejected: List(RejectedDef))
+    rejected: List(RejectedDef)
+    report-ambiguous-as-warning: Bool)
 
 def(+ResolveDef.filter(p),
         (*a Def +ResolveDef -- *a Either(RejectedDef, Def) +ResolveDef)
@@ -188,10 +189,12 @@ data(RejectedDef,
     RD_NOT_VISIBLE -> Def,
     RD_NOT_IMPORTED -> Def,
     RD_WRONG_QUALIFIER -> Def,
-    RD_WRONG_CONSTRUCTOR -> Def)
+    RD_WRONG_CONSTRUCTOR -> Def,
+    RD_METHOD_NOT_AVAILABLE -> Def,
+    RD_METHOD_WRONG_TYPE -> Def)
 
 def(resolve-def(f), (*a +ResolveDef -- *b +ResolveDef) *a
-        sort:Str token:Token -- *b Maybe(Def),
+        sort:Str token:Token report-ambiguous-as-warning:Bool -- *b Maybe(Def),
     token> dup >token
     last-name? unwrap defs >candidates
     L0 >rejected
@@ -206,13 +209,21 @@ def(resolve-def(f), (*a +ResolveDef -- *b +ResolveDef) *a
 def(+ResolveDef.rdrop, +ResolveDef --,
     /RESOLVE_DEF
     sort> token> drop2
-    candidates> rejected> drop2)
+    candidates> rejected> drop2
+    report-ambiguous-as-warning> drop)
 
 def(+ResolveDef.resolve-def-ambiguous, +ResolveDef --,
-    token Str(
-        "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
-        " " rdip:candidates for(swap ; qname >Str ; ", ") drop
-    ) emit-error! rdrop)
+    report-ambiguous-as-warning if(
+        token Str(
+            "Can't resolve " ; rdip:sort ; " due to previous errors. Candidates are:" ;
+            " " rdip:candidates for(swap ; qname >Str ; ", ") drop
+        ) emit-warning!,
+
+        token Str(
+            "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
+            " " rdip:candidates for(swap ; qname >Str ; ", ") drop
+        ) emit-error!
+    ) rdrop)
 def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
     token Str(rdip:rejected match(
         L0 -> "Unknown " ; rdip:sort ; " name, possibly a misspelling." ;,
@@ -231,6 +242,10 @@ def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
                 "Qualified name not found. Perhaps you meant: " ; qname >Str ; ,
             RD_WRONG_CONSTRUCTOR ->
                 "Constructor is for a different type: " ; qname >Str ; ,
+            RD_METHOD_WRONG_TYPE ->
+                "Method is for a different type: " ; qname >Str ; ,
+            RD_METHOD_NOT_AVAILABLE ->
+                "Method is not available for current stack: " ; qname >Str ; ,
         ),
         _ -> "Multiple definitions for name, but none are suitable:" ;
             dip:" " for(swap ; match(
@@ -246,6 +261,10 @@ def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
                     qname >Str ; " doesn't match the given qualified name" ; ,
                 RD_WRONG_CONSTRUCTOR ->
                     qname >Str ; " is constructor for a different type" ; ,
+                RD_METHOD_WRONG_TYPE ->
+                    qname >Str ; " is method for a different type" ; ,
+                RD_METHOD_NOT_AVAILABLE ->
+                    qname >Str ; " is not avaliable for current stack" ; ,
             ) ", ") drop
     )) emit-error! rdrop)
 
@@ -272,12 +291,27 @@ def(+ResolveDef.filter-roots, List(Namespace) +ResolveDef -- +ResolveDef,
         filter(
             dup2 qname namespace swap member(==)
             or(token over def-is-imported-at-token?),
-            RD_NOT_IMPORTED
+            dup qname namespace match(
+                NAMESPACE_TYCON ->
+                    drop token name? unwrap can-be-relative? if(
+                        over empty? if(
+                            RD_METHOD_NOT_AVAILABLE,
+                            RD_METHOD_WRONG_TYPE
+                        ),
+                        RD_NOT_IMPORTED
+                    ),
+                _ -> drop RD_NOT_IMPORTED
+            )
         )
     )
     token dname? for(
         dup is-relative? if(
-            filter(dup2 qname climb-up-dname? and-some(over3 member(==)), RD_WRONG_QUALIFIER),
+            filter(dup2 qname climb-up-dname? and-some(over3 member(==)),
+                over2 empty? if(
+                    RD_METHOD_NOT_AVAILABLE,
+                    RD_METHOD_WRONG_TYPE
+                )
+            ),
             filter(dup2 qname climb-up-dname? and-some(
                 token swap namespace-is-imported-at-token?
             ), RD_NOT_IMPORTED)
@@ -285,14 +319,29 @@ def(+ResolveDef.filter-roots, List(Namespace) +ResolveDef -- +ResolveDef,
     )
     drop)
 
+||| Check whether a definition can be referred to without qualification.
 def(def-is-imported-at-token?, Token Def -- Bool,
-    qname namespace namespace-is-imported-at-token?)
+    # TODO: implement finer grained control over what is imported.
+    #   https://github.com/mirth-lang/mirth/issues/243
+    dup qname namespace match(
+        NAMESPACE_ROOT -> drop2 T,
+        NAMESPACE_PACKAGE -> drop3 T,
+        NAMESPACE_MODULE -> nip module-visible-from-token?,
+        NAMESPACE_TYCON -> dip:swap tycon-is-visible-at-token? if(tag? >Bool, drop F),
+        NAMESPACE_WORD -> drop3 F
+    ))
+
+def(tycon-is-visible-at-token?, Token Tycon -- Bool,
+    TYCON_DATA -> head? if-some(.module module-visible-from-token?, drop T),
+    TYCON_TABLE -> head .module module-visible-from-token?,
+    TYCON_PRIM -> drop2 T)
+
 def(namespace-is-imported-at-token?, Token Namespace -- Bool,
     NAMESPACE_ROOT -> drop T,
     NAMESPACE_PACKAGE -> drop2 T,
     NAMESPACE_MODULE -> module-visible-from-token?,
     NAMESPACE_TYCON -> qname namespace namespace-is-imported-at-token?,
-    NAMESPACE_WORD -> qname namespace namespace-is-imported-at-token?)
+    NAMESPACE_WORD -> drop2 F)
 
 def(QName.climb-up-name?, Name QName -- Maybe(Namespace),
     tuck name == if(
@@ -310,6 +359,7 @@ def(QName.climb-up-dname?, DName QName -- Maybe(Namespace),
 
 
 def(+TypeElab.resolve-type-con-name!, +TypeElab -- +TypeElab Type,
+    F >report-ambiguous-as-warning
     token >token "type" >sort resolve-def(
         filter(dup defines-a-type?, RD_WRONG_SORT)
         filter-arity
@@ -630,8 +680,8 @@ def(elab-atoms!, +AB -- +AB,
 
 def(elab-atom!, +AB -- +AB,
     ab-token@ value match(
-        TOKEN_NAME -> ab-token@ num-args elab-atom-name!,
-        TOKEN_DNAME -> ab-token@ num-args elab-atom-dname!,
+        TOKEN_NAME -> elab-atom-name!,
+        TOKEN_DNAME -> elab-atom-dname!,
         TOKEN_INT -> ab-int!,
         TOKEN_STR -> ab-str!,
         TOKEN_LSQUARE -> drop elab-atom-block!,
@@ -660,125 +710,51 @@ def(elab-args!, +AB -- +AB,
 def(elab-no-args!, +AB -- +AB,
     ab-token@ args-0)
 
-||| ( qname +AB -- bool +AB ) Return whether qname is imported in the current module,
-||| meaning it can be referred to without qualification.
-def(elab-qname-is-imported?, QName +AB -- Bool +AB,
-    # TODO: implement finer grained control over what is imported.
-    #   https://github.com/mirth-lang/mirth/issues/243
-    dup namespace match(
-        NAMESPACE_MODULE -> nip elab-module-is-visible,
-        NAMESPACE_TYCON -> elab-tycon-is-visible and(dup def? bind(tag?) some?) nip,
-        _ -> drop2 F
-    ))
-
 def(arity-compatible?, Int Int -- Bool,
     dup -1 == dip(==) ||)
 
-def(elab-atom-name!, Name Int +AB -- +AB,
-    over ab-ctx@ lookup match(
-        SOME -> dip:drop2 elab-args! ab-var!,
-        NONE ->
-            over defs map(qname) filter(dup2 arity arity-compatible?) filter(dup elab-qname-is-imported?)
-            over2 can-be-relative? then(dip(dup2 elab-relative-name-candidates!) swap cat) nip
-            match(
-                L0 -> dip(ab-token@ "unknown name: ") >Str cat emit-fatal-error!,
-                L1 -> nip elab-atom-qname!,
-                _ -> nip dip(ab-token@) elab-ambiguous-name-error!
-            )
+def(elab-atom-name!, Name +AB -- +AB,
+    ab-ctx@ lookup match(
+        SOME -> elab-args! ab-var!,
+        NONE -> elab-atom-resolve-def!
     ))
 
-def(elab-atom-dname!, DName Int +AB -- +AB,
-    over root? match(
-        SOME -> drop elab-atom-nonrelative-dname!,
-        NONE -> swap parts match(
-            L1+ -> swap elab-atom-relative-name!,
-            _ -> ab-token@ "relative name has too many parts" emit-fatal-error!
+def(elab-atom-dname!, DName +AB -- +AB,
+    drop elab-atom-resolve-def!)
+
+def(Token.can-be-relative-name-or-dname?, Token -- Bool,
+    value match(
+        TOKEN_NAME -> can-be-relative?,
+        TOKEN_DNAME -> is-relative?,
+        _ -> drop F
+    ))
+
+def(elab-atom-resolve-def!, +AB -- +AB,
+    ab-type@ top-types-are-fine? not >report-ambiguous-as-warning
+    ab-token@ >token
+    "word" >sort
+    resolve-def(
+        filter(dup callable?, RD_WRONG_SORT)
+        filter-arity
+        filter-visible
+        filter-qualifiers
+        token can-be-relative-name-or-dname? if(
+            rdip:ab-type@ top-types-are-fine? then(
+                rdip:ab-type@ top-namespaces filter-roots
+            ),
+            L0 filter-roots
         )
+    ) match (
+        NONE -> elab-atom-failed!,
+        SOME -> elab-atom-def!
     ))
 
-def(elab-atom-nonrelative-dname!, DName Int +AB -- +AB,
-    dip2(ab-token@) elab-qname-from-nonrelative-dname elab-atom-qname!)
-
-def(StackType.top-namespaces, StackType -- List(Namespace),
-    LIST(
-        dup top-tycon? for(NAMESPACE_TYCON ;)
-        top-resource-tycon? for(NAMESPACE_TYCON ;)
-    ))
-
-def(elab-relative-name-candidates!, Name Int +AB -- List(QName) +AB,
-    NAMESPACE_ROOT >namespace >arity >name MKQNAME >template
-    L0 L0
-    ab-type@ top-tycon? for(snoc)
-    ab-type@ top-resource-tycon? for(snoc)
-    for(
-        NAMESPACE_TYCON template> dup >template namespace!
-        -1 over arity! L2 cat
-    )
-    template> drop
-    filter(dup defined?))
-
-def(elab-atom-relative-name!, Name Int +AB -- +AB,
-    dup2 elab-relative-name-candidates! match(
-        L0 -> drop dip(ab-token@ "unknown relative name: ") >Str cat emit-fatal-error!,
-        L1 -> dip:drop2 elab-atom-qname!,
-        _ -> nip dip(ab-token@) elab-ambiguous-name-error!
-    ))
+def(elab-atom-failed!, +AB -- +AB,
+    STACK_TYPE_ERROR ab-type!)
 
 def(elab-ambiguous-name-error!, *a Token List(QName) -- *b,
     dip("name is ambiguous, can't decide between:")
     for(dip(" " cat) >Str cat) emit-fatal-error!)
-
-def(elab-atom-qname!, QName +AB -- +AB,
-    dup def? match(
-        NONE -> dip(ab-token@ "unknown name: ") >Str cat emit-fatal-error!,
-        SOME ->
-            ab-token@ over def-visible-from-token? else(over elab-atom-not-visible!)
-            nip elab-atom-def!
-    ))
-
-def(elab-needs-dot, Str -- Bool,
-    first-byte if-some(is-alnum, F))
-
-def(elab-combine-prefix, Str Str -- Str,
-    over elab-needs-dot then("." cat) swap cat)
-
-def(elab-combine-prefixes, List+(Str) Maybe(Str) -- List+(Str),
-    if-some(
-        over map(over elab-combine-prefix) nip cat+,
-        id
-    ))
-
-def(elab-word-search, Str -- List(Def),
-    Name.search match(
-        NONE -> L0,
-        SOME -> defs filter(dup callable?)
-    ))
-
-def(elab-name-candidates, Name +AB -- List(Def) +AB,
-   >Str L1+
-    ab-type@ top-resource-tycon? map(name >Str) elab-combine-prefixes
-    ab-type@ top-tycon? map(name >Str) elab-combine-prefixes
-    flatmap(elab-word-search))
-
-def(elab-def-is-visible, Def +AB -- Bool +AB, qname elab-qname-is-visible)
-def(elab-qname-is-visible, QName +AB -- Bool +AB, namespace elab-namespace-is-visible)
-def(elab-namespace-is-visible, Namespace +AB -- Bool +AB,
-    NAMESPACE_ROOT -> F,
-    NAMESPACE_PACKAGE -> drop F,
-    NAMESPACE_MODULE -> elab-module-is-visible,
-    NAMESPACE_TYCON -> elab-tycon-is-visible,
-    NAMESPACE_WORD -> drop F)
-
-def(elab-tycon-is-visible, Tycon +AB -- Bool +AB,
-    qname elab-qname-is-visible)
-def(elab-module-is-visible, Module +AB -- Bool +AB,
-    ab-token@ .module visible)
-
-def(elab-stack-type-is-fine?, +AB -- Bool +AB,
-    ab-type@ expand match(
-        STACK_TYPE_ERROR -> F,
-        _ -> drop T
-    ))
 
 def(elab-atom-def!, Def +AB -- +AB,
     DEF_ALIAS -> target elab-atom-def!,
@@ -789,16 +765,13 @@ def(elab-atom-def!, Def +AB -- +AB,
     DEF_WORD -> elab-args! ab-word!,
     DEF_TAG -> elab-args! ab-tag!,
     DEF_PRIM -> elab-prim!,
-    _ -> qname name elab-atom-unknown-word!)
+    _ -> qname elab-atom-not-a-word!)
 
-def(elab-atom-unknown-word!, Name +AB -- +AB,
-    elab-stack-type-is-fine? if(
-        dip(ab-token@ "Unknown word: ") >Str cat emit-error!,
+def(elab-atom-not-a-word!, QName +AB -- +AB,
+    ab-type@ top-types-are-fine? if(
+        dip(ab-token@ "Not a word: ") >Str cat emit-error!,
         drop
-    ) STACK_TYPE_ERROR ab-type!)
-
-def(elab-atom-not-visible!, QName +AB -- +AB,
-    dip(ab-token@ "Word not visible: ") >Str cat emit-error!)
+    ) elab-atom-failed!)
 
 def(elab-prim!, Prim +AB -- +AB,
     match(
@@ -857,15 +830,18 @@ def(elab-pattern-atom!, Token +Pattern -- +Pattern,
     dup name-or-dname? if(
         >token
         "constructor" >sort
+        pattern mid top-types-are-fine? not >report-ambiguous-as-warning
         resolve-def(
             filter(dup tag? some?, RD_WRONG_SORT)
             filter-arity
             filter-visible
             filter-qualifiers
-            rdip:pattern mid top-namespaces
-            token name? if(
-                filter(dup2 qname namespace swap member(==), RD_WRONG_CONSTRUCTOR) drop,
-                filter-roots
+            rdip:pattern mid top-types-are-fine? then(
+                rdip:pattern mid top-namespaces
+                token name? if(
+                    filter(dup2 qname namespace swap member(==), RD_WRONG_CONSTRUCTOR) drop,
+                    filter-roots
+                )
             )
         ) bind(tag?) match(
             SOME -> +Pattern.tag!,
