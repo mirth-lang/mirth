@@ -1,4 +1,4 @@
-module(mirth-tests.error-type-name-resolution)
+module(mirth-tests.error-name-resolution-types)
 import(std.prelude)
 
 data(Int, MY_INT -> Str)
@@ -6,7 +6,7 @@ def(Foo, Int -- Maybe(Bool), id)
 def(Bar, Str(Bool) -- BoOl, id)
 def(Baz, Foo -- Int(a), id)
 def(List, List -- Str, id)
-def(ok-fn, std.prim.Int -- error-type-name-resolution.Int, 1+ drop "0" MY_INT)
+def(ok-fn, std.prim.Int -- error-name-resolution-types.Int, 1+ drop "0" MY_INT)
 def(bad-again, badstd.Str -- failstd.prim.Int, id)
 def(main, --, id)
 # mirth-test # merr # 5:10: error: Ambiguous type. Can't decide between: std.prim.Int, mirth-tests.error-type-name-resolution.Int

@@ -6,6 +6,7 @@ import(std.str)
 import(std.list)
 import(std.byte)
 import(std.maybe)
+import(std.either)
 
 import(args.parse)
 import(args.types)

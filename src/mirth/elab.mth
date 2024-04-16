@@ -181,8 +181,9 @@ data(RejectedDef,
     RD_WRONG_SORT -> Def,
     RD_WRONG_ARITY -> Def,
     RD_NOT_VISIBLE -> Def,
+    RD_NOT_IMPORTED -> Def,
     RD_WRONG_QUALIFIER -> Def,
-    RD_NOT_IMPORTED -> Def)
+    RD_WRONG_CONSTRUCTOR -> Def)
 
 def(resolve-def(f), (*a +ResolveDef -- *b +ResolveDef) *a
         sort:Str token:Token -- *b Maybe(Def),
@@ -223,6 +224,8 @@ def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
                 " arguments, but got " ; rdip:token num-args show ; "." ; ,
             RD_WRONG_QUALIFIER ->
                 "Qualified name not found. Perhaps you meant: " ; qname >Str ; ,
+            RD_WRONG_CONSTRUCTOR ->
+                "Constructor is for a different type: " ; qname >Str ; ,
         ),
         _ -> "Multiple definitions for name, but none are suitable:" ;
             dip:" " for(swap ; match(
@@ -236,6 +239,8 @@ def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
                     arity show ; " arguments" ; ,
                 RD_WRONG_QUALIFIER ->
                     qname >Str ; " doesn't match the given qualified name" ; ,
+                RD_WRONG_CONSTRUCTOR ->
+                    qname >Str ; " is constructor for a different type" ; ,
             ) ", ") drop
     )) emit-error! rdrop)
 
@@ -689,6 +694,12 @@ def(elab-atom-dname!, DName Int +AB -- +AB,
 def(elab-atom-nonrelative-dname!, DName Int +AB -- +AB,
     dip2(ab-token@) elab-qname-from-nonrelative-dname elab-atom-qname!)
 
+def(StackType.top-namespaces, StackType -- List(Namespace),
+    LIST(
+        dup top-tycon? for(NAMESPACE_TYCON ;)
+        top-resource-tycon? for(NAMESPACE_TYCON ;)
+    ))
+
 def(elab-relative-name-candidates!, Name Int +AB -- List(QName) +AB,
     NAMESPACE_ROOT >namespace >arity >name MKQNAME >template
     L0 L0
@@ -833,15 +844,27 @@ def(elab-pattern!, List(Token) +Pattern -- +Pattern,
     reverse-for(elab-pattern-atom!))
 
 def(elab-pattern-atom!, Token +Pattern -- +Pattern,
+    dup pattern:token-start!
+
     dup pat-underscore? if(
         drop +Pattern.underscore!,
 
-    dup name? if-some(
-        # TODO type-directed tag resolution
-        #  https://github.com/mirth-lang/mirth/issues/227
-        defs find-some(tag?) match(
-            NONE -> "Unknown constructor." emit-fatal-error!,
-            SOME -> nip +Pattern.tag!
+    dup name-or-dname? if(
+        >token
+        "constructor" >sort
+        resolve-def(
+            filter(dup tag? some?, RD_WRONG_SORT)
+            filter-arity
+            filter-visible
+            filter-qualifiers
+            rdip:pattern mid top-namespaces
+            token name? if(
+                filter(dup2 qname namespace swap member(==), RD_WRONG_CONSTRUCTOR) drop,
+                filter-roots
+            )
+        ) bind(tag?) match(
+            SOME -> +Pattern.tag!,
+            NONE -> STACK_TYPE_ERROR pattern:mid!
         ),
 
         "Expected constructor name." emit-fatal-error!

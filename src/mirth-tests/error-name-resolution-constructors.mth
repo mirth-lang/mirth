@@ -1,0 +1,32 @@
+module(mirth-tests.error-name-resolution-constructors)
+
+import(std.prelude)
+import(std.either)
+data(MyEither, LEFT -> Int, RIGHT -> Str)
+data(+MyEither, LEFT -> Int, RIGHT -> Str)
+data(Foo, FOO)
+data(Bar, BAR)
+
+def(constructors-not-visible, --,
+    1 >I8? match(
+        SOME -> drop,
+        NONE -> id
+    ))
+
+def(this-is-fine-1, MyEither --,
+    LEFT -> drop,
+    RIGHT -> drop)
+def(this-is-fine-2, +MyEither --,
+    LEFT -> drop,
+    RIGHT -> drop)
+def(this-is-ambiguous, MyEither +MyEither -- +MyEither,
+    LEFT -> drop,
+    RIGHT -> drop)
+def(this-is-fine-again, MyEither +MyEither -- +MyEither,
+    MyEither.LEFT -> drop,
+    MyEither.RIGHT -> drop)
+
+def(unknown-single, Foo --, BAR -> )
+def(unknown-multiple, Foo --, LEFT -> )
+
+def(main, --, id)
