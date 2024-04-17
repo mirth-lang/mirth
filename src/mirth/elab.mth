@@ -686,10 +686,19 @@ def(elab-atom!, +AB -- +AB,
         TOKEN_STR -> ab-str!,
         TOKEN_LSQUARE -> drop elab-atom-block!,
         TOKEN_LCURLY -> drop elab-atom-assert!,
-        TOKEN_LABEL_PUSH -> ab-label-push!,
-        TOKEN_LABEL_POP -> ab-label-pop!,
+        TOKEN_LABEL_PUSH -> ab-token@ args-0 ab-label-push!,
+        TOKEN_LABEL_POP -> ab-token@ args-0 ab-label-pop!,
+        TOKEN_LABEL_LENS -> elab-label-lens!,
         _ -> ab-token@ "Unexpected token in elab-atom!" emit-fatal-error!
     ))
+
+def(elab-label-lens!, Label +AB -- +AB,
+    dup ab-label-pop!
+    ab-token@ num-args 0= if(
+        PRIM_CORE_DUP ab-prim!,
+        ab-token@ dup args-1 ab-token! elab-atoms! ab-token!
+    )
+    ab-label-push!)
 
 def(elab-atom-block!, +AB -- +AB,
     ab-token@ args-1 elab-block-at!)

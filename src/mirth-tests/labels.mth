@@ -12,6 +12,9 @@ def(main, +World -- +World,
     pop-foo trace! " " trace!
     40 push-bar
     pop-bar trace! " " trace!
+    ^bar trace! " " trace! ^bar:1+
+    ^bar trace! " " trace! ^bar:1+
+    ^bar trace! " " trace! ^bar:1+
     pop-bar trace-ln!
 )
-# mirth-test # perr # 10 30 40 20
+# mirth-test # perr # 10 30 40 20 21 22 23
