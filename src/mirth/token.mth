@@ -35,8 +35,10 @@ data(TokenValue,
     TOKEN_STR -> Str,
     TOKEN_NAME -> Name,
     TOKEN_DNAME -> DName,
+    TOKEN_LABEL_POP -> Label,
     TOKEN_LABEL_PUSH -> Label,
-    TOKEN_LABEL_POP -> Label)
+    TOKEN_LABEL_LENS -> Label,
+    )
 
 def(TokenValue.none?, TokenValue -- Bool, TOKEN_NONE -> T, _ -> drop F)
 def(TokenValue.comma?, TokenValue -- Bool, TOKEN_COMMA -> T, _ -> drop F)
@@ -53,6 +55,12 @@ def(TokenValue.lcolon-open?, TokenValue -- Bool, TOKEN_LCOLON_OPEN -> T, _ -> dr
 def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TOKEN_LCOLON -> SOME, _ -> drop NONE)
 def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TOKEN_RCOLON -> SOME, _ -> drop NONE)
 def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> SOME, TOKEN_LCOLON -> SOME, _ -> drop NONE)
+
+def(TokenValue.can-take-args?, TokenValue -- Bool,
+    TOKEN_NAME -> drop T,
+    TOKEN_DNAME -> drop T,
+    TOKEN_LABEL_LENS -> drop T,
+    _ -> drop F)
 
 def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> SOME, _ -> drop NONE)
 def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> SOME, _ -> drop NONE)
@@ -148,6 +156,7 @@ def(Token.sig-dashes?, Token -- Bool, value sig-dashes?)
 def(Token.pat-arrow?, Token -- Bool, value pat-arrow?)
 def(Token.pat-underscore?, Token -- Bool, value pat-underscore?)
 def(Token.module-header?, Token -- Bool, value module-header?)
+def(Token.can-take-args?, Token -- Bool, value can-take-args?)
 
 def(Token.alloc-none!, Token,
     Token.alloc!
@@ -163,9 +172,10 @@ def(Token.next, Token -- Token,
         TOKEN_LSQUARE -> nip succ,
         TOKEN_LCURLY -> nip succ,
         TOKEN_LCOLON -> nip succ,
-        TOKEN_NAME -> drop succ dup lparen-or-lcolon? for(nip succ),
-        TOKEN_DNAME -> drop succ dup lparen-or-lcolon? for(nip succ),
-        _ -> drop succ
+        _ -> can-take-args? if(
+            succ dup lparen-or-lcolon? for(nip succ),
+            succ
+        )
     ))
 
 ||| Get previous token, respecting nesting of tokens and arguments.
@@ -173,8 +183,8 @@ def(Token.prev, Token -- Token,
     pred dup value match(
         TOKEN_RSQUARE -> nip,
         TOKEN_RCURLY -> nip,
-        TOKEN_RPAREN -> nip dup pred name-or-dname? then(pred),
-        TOKEN_RCOLON -> nip dup pred name-or-dname? then(pred),
+        TOKEN_RPAREN -> nip dup pred can-take-args? then(pred),
+        TOKEN_RCOLON -> nip dup pred can-take-args? then(pred),
         _ -> drop
     ))
 
@@ -184,11 +194,11 @@ def(Token.next-arg-end, Token -- Token,
     while(dup arg-end? not, next))
 
 def(Token.has-args?, Token -- Bool,
-    dup name-or-dname? then(succ)
+    dup can-take-args? then(succ)
     lparen-or-lcolon? >Bool)
 
 def(Token.args-start, Token -- Token,
-    dup name-or-dname?
+    dup can-take-args?
     and(dup succ lparen-or-lcolon? >Bool) then(succ))
 
 def(Token.could-be-sig-label?, Token -- Bool,
