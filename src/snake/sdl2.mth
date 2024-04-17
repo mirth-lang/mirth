@@ -1,5 +1,6 @@
 module(snake.sdl2)
 import(std.prelude)
+import(std.str)
 
 #################
 # SDL2 Bindings #
@@ -26,14 +27,23 @@ def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_SENSOR |)
 
 def-external(SDL_Quit, --)
-def-external(SDL_GetError, Str)
+def-external(SDL_GetError-unsafe -> SDL_GetError, Ptr)
+def(SDL_GetError, Str, SDL_GetError-unsafe unsafe(Str.copy-cstr))
 
 def-external(SDL_Delay, SDL_Ticks --)
 def-external(SDL_GetTicks, SDL_Ticks)
 def-type(SDL_Ticks, U32)
 def(ms, Int -- SDL_Ticks, >U32)
 
-def-external(SDL_CreateWindow, Str Int Int Int Int SDL_WindowFlags -- SDL_Window*)
+def-external(SDL_CreateWindow-unsafe -> SDL_CreateWindow, Ptr Int Int Int Int SDL_WindowFlags -- SDL_Window*)
+def(SDL_CreateWindow,
+    title:Str
+    x:Int y:Int
+    w:Int h:Int
+    flags:SDL_WindowFlags
+    -- SDL_Window*,
+    title> with-data-cstr(x> y> w> h> flags> SDL_CreateWindow-unsafe))
+
 def-type(SDL_Window*, Ptr)
 def-type(SDL_WindowFlags, U32)
 def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
