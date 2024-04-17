@@ -625,15 +625,16 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_COERCE -> elab-coerce-sig!,
         OP_LABEL_PUSH -> elab-label-push-sig!,
         OP_LABEL_POP -> elab-label-pop-sig!,
-	OP_DATA_GET_TAG -> elab-data-get-tag-sig!,
+	OP_DATA_GET_TAG -> data-get-tag-type freshen-sig OPSIG_APPLY,
         OP_DATA_GET_LABEL -> data-get-label-type freshen-sig OPSIG_APPLY,
         OP_DATA_SET_LABEL -> data-set-label-type freshen-sig OPSIG_APPLY,
     ))
 
-def(elab-data-get-tag-sig!, Data -- OpSig, 
-    MetaVar.new! STMeta swap TData STCons
-    MetaVar.new! STMeta TYPE_INT STCons
-    T-> OPSIG_APPLY)
+def(data-get-tag-type, Data -- ArrowType, 
+    MetaVar.new! STMeta dup
+    dip(swap TData STCons)
+    TYPE_INT STCons
+    T->)
 
 def(elab-coerce-sig!, Coerce -- OpSig,
     COERCE_UNSAFE ->
