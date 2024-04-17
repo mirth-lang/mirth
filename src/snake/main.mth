@@ -151,12 +151,11 @@ def(snake-init!, --,
         )
     ) drop2
 
-    "Snake!"
-    100
-    100
-    SNAKE_WINDOW_W
-    SNAKE_WINDOW_H
-    SNAKE_WINDOW_FLAGS
+    "Snake!" >title
+    100 >x 100 >y
+    SNAKE_WINDOW_W >w
+    SNAKE_WINDOW_H >h
+    SNAKE_WINDOW_FLAGS >flags
     SDL_CreateWindow
     dup .is-null if(
         SDL_GetError panic!,
