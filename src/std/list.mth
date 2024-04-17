@@ -396,6 +396,9 @@ def(List+.==(eq), (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool,
 def(List.member(eq), (*c a a -- *c Bool) *c a List(a) -- *c Bool,
     any(dup2 dip2(eq) rotl) nip)
 
+def(List+.member(eq), (*c a a -- *c Bool) *c a List+(a) -- *c Bool,
+    any(dup2 dip2(eq) rotl) nip)
+
 def(List.difference(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
     swap filter(dup2 dip2(swap member(eq) not) rotl) nip)
 
