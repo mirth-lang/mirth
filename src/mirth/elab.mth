@@ -1083,22 +1083,28 @@ def(data-word-new!, Data Str Int -- Word,
 
 def(elab-data-done!, Data --,
     \(dat ->
-        dat is-resource? not then(
+         dat is-enum? if(
             dat "tag" 0 data-word-new! \(tag ->
                 CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
                 tag ab-build-word!(
-		    dat OP_DATA_GET_TAG ab-op!
+		    COERCE_UNSAFE ab-coerce!
                 ) drop
             )
-	)
 
-        dat is-enum? then(
             dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
                 CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
                 ftag ab-build-word!(
                     COERCE_UNSAFE ab-coerce!
                 ) drop
-            )
+            ),
+	    dat is-resource? not then(
+                dat "tag" 0 data-word-new! \(tag ->
+                    CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
+                    tag ab-build-word!(
+		        dat OP_DATA_GET_TAG ab-op!
+                    ) drop
+                )
+	    )
         )
 
         dat tags match(
