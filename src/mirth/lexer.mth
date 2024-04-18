@@ -211,8 +211,12 @@ def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
             B'>' -> unsafe(+Str.drop-last-byte) >Name Label.new! TOKEN_LABEL_POP SOME,
             _ -> drop NONE
         ),
-        0 >Offset byte@ B'>' == and(1 >Offset byte@ is-lower) if(
-            1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TOKEN_LABEL_PUSH SOME,
+        1 >Offset byte@ is-lower if(
+            0 >Offset byte@ match(
+                B'>' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TOKEN_LABEL_PUSH SOME,
+                B'^' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TOKEN_LABEL_LENS SOME,
+                _ -> drop NONE
+            ),
             NONE
         )
     ))
