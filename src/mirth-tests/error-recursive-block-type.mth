@@ -5,6 +5,6 @@ def( diverge, *a -- *b,
     [ dup run ] dup run)
 
 def(main, --, id)
-# mirth-test # merr # 5:11: error: Failed to unify [*?35 ?36 -- *?38] with ?36
-# mirth-test # merr # 5:21: error: Failed to unify [*a ?36 -- *?38] with ?36
+# mirth-test # merr # 5:11: error: Failed to unify [*?38 ?39 -- *?41] with ?39
+# mirth-test # merr # 5:21: error: Failed to unify [*a ?39 -- *?41] with ?39
 # mirth-test # mret # 1
