@@ -90,6 +90,8 @@ def(compile!, Arguments +World -- +World,
     "hi from test" trace!
     Reset show trace-ln!
 
+
+
     num-errors @ 0> if(
         FGRed show trace!
         num-errors @ trace!
