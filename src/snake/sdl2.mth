@@ -527,12 +527,32 @@ def(SDL_JoystickID.>, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) >)
 def(SDL_JoystickID.1+, SDL_JoystickID -- SDL_JoystickID, >Int 1+ >SDL_JoystickID)
 def(SDL_JoystickID.==, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) ==)
 
-data(SDL_GameController, WRAP_SDL_GAMECONTROLLER -> Ptr)
-def(Ptr.>SDL_GameController, Ptr -- SDL_GameController, WRAP_SDL_GAMECONTROLLER)
-def(SDL_GameController.>Ptr, SDL_GameController -- Ptr, WRAP_SDL_GAMECONTROLLER -> id)
-def-external(SDL_NumJoysticks, SDL_JoystickID)
-def-external(SDL_IsGameController, SDL_JoystickID -- Bool)
-def-external(SDL_GameControllerOpen, SDL_JoystickID -- SDL_GameController)
+def-external(+Unsafe.SDL_NumJoysticks, Int)
+def-external(+Unsafe.SDL_IsGameController, Int -- Bool)
+def-external(+Unsafe.SDL_GameControllerOpen, Int -- Ptr)
+def-external(+Unsafe.SDL_GameControllerClose, Ptr --)
+
+def(+SDL.num-joysticks, +SDL -- +SDL Int, unsafe(.SDL_NumJoysticks))
+def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, unsafe(.SDL_IsGameController))
+
+data(+SDL_GameController, SDL_GAME_CONTROLLER! -> unsafe-ptr:Ptr)
+data(+SDL_GameController?, OK! -> +SDL_GameController, ERROR! -> Str)
+def(+SDL_GameController?.unwrap!, +SDL_GameController? -- +SDL_GameController, OK! -> id, ERROR! -> panic!)
+def(+SDL_GameController?.map!(f), (*a +SDL_GameController -- *a +SDL_GameController) *a +SDL_GameController? -- *a +SDL_GameController?,
+    OK! -> f +SDL_GameController?.OK!,
+    ERROR! -> +SDL_GameController?.ERROR!)
+def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameController? -- *a,
+    OK! -> f,
+    ERROR! -> drop)
+
+def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
+    unsafe(.SDL_GameControllerOpen)
+    dup is-null if(
+        drop get-error! +SDL_GameController?.ERROR!,
+        >unsafe-ptr SDL_GAME_CONTROLLER! +SDL_GameController?.OK!
+    ))
+def(+SDL_GameController.close!, +SDL +SDL_GameController -- +SDL,
+    /SDL_GAME_CONTROLLER! unsafe-ptr> unsafe(.SDL_GameControllerClose))
 
 data(SDL_GameControllerButton,
     SDL_CONTROLLER_BUTTON_A,

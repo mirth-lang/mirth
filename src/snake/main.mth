@@ -3,6 +3,7 @@ import(std.prelude)
 import(std.list)
 import(std.maybe)
 import(snake.sdl2)
+import(posix.posix)
 
 ##############
 # Snake Game #
@@ -30,13 +31,20 @@ data(+SnakePlatform, SNAKE_PLATFORM! ->
     +SDL
     +SDL_Window
     +SDL_Renderer
-    controller: SDL_JoystickID)
+    +SDL_GameController?)
+
+def(+SnakePlatform.controller?(f),
+    (*a +SDL +SDL_GameController? -- *b +SDL +SDL_GameController?)
+    *a +SnakePlatform -- *b +SnakePlatform,
+    /SNAKE_PLATFORM!
+    rrotr rdip2(f) rrotl
+    SNAKE_PLATFORM!)
 
 def(+SnakePlatform.renderer(f),
         (*a +SDL +SDL_Window +SDL_Renderer -- *b +SDL +SDL_Window +SDL_Renderer)
         *a +SnakePlatform -- *b +SnakePlatform,
     /SNAKE_PLATFORM!
-    ^controller:dip(f)
+    rdip(f)
     SNAKE_PLATFORM!)
 
 def(+SnakePlatform.window(f),
@@ -149,10 +157,14 @@ def(+SnakePlatform.init!, +World -- +World +SnakePlatform,
     SNAKE_RENDERER_FLAGS >flags
     create-renderer! unwrap!
 
-    -1 >SDL_JoystickID
-    SDL_NumJoysticks 0 >SDL_JoystickID while(dup2 >,
-        dup SDL_IsGameController if(dip:nip swap dup, 1+)
-    ) drop2 >controller
+    rdip2(
+        0 num-joysticks range
+        find(dup is-game-controller)
+        match(
+            SOME -> game-controller-open! unwrap! +SDL_GameController?.OK!,
+            NONE -> "no controller detected" +SDL_GameController?.ERROR!
+        )
+    ) rrotl
 
     SNAKE_PLATFORM!)
 
@@ -179,7 +191,7 @@ def(+Snake.quit!, +World +Snake -- +World,
 
 def(+SnakePlatform.quit!, +World +SnakePlatform -- +World,
     /SNAKE_PLATFORM!
-    controller> drop
+    for!(rrotr rdip2(close!))
     destroy! destroy! quit!)
 
 def-type(R, Int)
@@ -251,11 +263,8 @@ def(+Snake.process-event!, +Snake -- +Snake,
 
     dup SDL_CONTROLLERBUTTONDOWN == if(
         drop
-        SNAKE_EVENT >SDL_Event cbutton which@ platform:controller == if(
-            SNAKE_EVENT >SDL_Event cbutton button@
-            >SnakeButton? for:logic:press!,
-            id
-        ),
+        SNAKE_EVENT >SDL_Event cbutton button@
+        >SnakeButton? for:logic:press!,
 
         drop
     ))))
