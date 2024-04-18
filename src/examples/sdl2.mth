@@ -1,4 +1,4 @@
-module(snake.sdl2)
+module(examples.sdl2)
 import(std.prelude)
 import(std.str)
 
@@ -6,16 +6,40 @@ import(std.str)
 # SDL2 Bindings #
 #################
 
-def-external(SDL_Init, SDL_InitFlags -- Int)
-def-type(SDL_InitFlags, U32) # technically this ought to be U32...
-def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 >U32)
-def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 >U32)
-def(SDL_INIT_VIDEO, SDL_InitFlags, 0x0020 >U32)
-def(SDL_INIT_JOYSTICK, SDL_InitFlags, 0x200 >U32)
-def(SDL_INIT_HAPTIC, SDL_InitFlags, 0x1000 >U32)
-def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32)
-def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 >U32)
-def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << >U32)
+def-external(+Unsafe.SDL_Init -> SDL_Init, SDL_InitFlags -- Int)
+def-external(+Unsafe.SDL_Quit -> SDL_Quit, --)
+def-external(+Unsafe.SDL_GetError -> SDL_GetError, -- Ptr)
+
+data(+SDL, SDL!)
+data(+SDL?, OK! -> +SDL, ERROR! -> Str)
+def(+SDL?.unwrap!, +SDL? -- +SDL, OK! -> id, ERROR! -> panic!)
+
+def(+SDL.get-error!, -- Str, unsafe(.SDL_GetError Str.copy-cstr))
+
+def(+SDL.init!, +World SDL_InitFlags -- +World +SDL?,
+    unsafe(.SDL_Init) 0= if(
+        SDL! +SDL?.OK!,
+        +SDL.get-error! +SDL?.ERROR!
+    ))
+
+def(+SDL.quit!, +World +SDL -- +World,
+    /SDL! unsafe(.SDL_Quit))
+
+data(SDL_InitFlags, WRAP -> U32)
+inline(
+    def(U32.>SDL_InitFlags, U32 -- SDL_InitFlags, SDL_InitFlags.WRAP)
+    def(SDL_InitFlags.>U32, SDL_InitFlags -- U32, /WRAP)
+    def(SDL_InitFlags.|, SDL_InitFlags SDL_InitFlags -- SDL_InitFlags,
+        both(>U32) | >SDL_InitFlags)
+)
+def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 >U32 >SDL_InitFlags)
+def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 >U32 >SDL_InitFlags)
+def(SDL_INIT_VIDEO, SDL_InitFlags, 0x0020 >U32 >SDL_InitFlags)
+def(SDL_INIT_JOYSTICK, SDL_InitFlags, 0x200 >U32 >SDL_InitFlags)
+def(SDL_INIT_HAPTIC, SDL_InitFlags, 0x1000 >U32 >SDL_InitFlags)
+def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32 >SDL_InitFlags)
+def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 >U32 >SDL_InitFlags)
+def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << >U32 >SDL_InitFlags)
 def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_TIMER
     SDL_INIT_AUDIO |
@@ -26,56 +50,97 @@ def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_EVENTS |
     SDL_INIT_SENSOR |)
 
-def-external(SDL_Quit, --)
-def-external(SDL_GetError-unsafe -> SDL_GetError, Ptr)
-def(SDL_GetError, Str, SDL_GetError-unsafe unsafe(Str.copy-cstr))
-
-def-external(SDL_Delay, SDL_Ticks --)
-def-external(SDL_GetTicks, SDL_Ticks)
+def-external(+Unsafe.SDL_Delay, SDL_Ticks --)
+def-external(+Unsafe.SDL_GetTicks, -- SDL_Ticks)
+def(+SDL.delay!, +SDL SDL_Ticks -- +SDL, unsafe(.SDL_Delay))
+def(+SDL.get-ticks!, +SDL -- SDL_Ticks +SDL, unsafe(.SDL_GetTicks))
 def-type(SDL_Ticks, U32)
 def(ms, Int -- SDL_Ticks, >U32)
 
-def-external(SDL_CreateWindow-unsafe -> SDL_CreateWindow, Ptr Int Int Int Int SDL_WindowFlags -- SDL_Window*)
-def(SDL_CreateWindow,
-    title:Str
-    x:Int y:Int
-    w:Int h:Int
-    flags:SDL_WindowFlags
-    -- SDL_Window*,
-    title> with-data-cstr(x> y> w> h> flags> SDL_CreateWindow-unsafe))
+data(+SDL_Window, SDL_WINDOW! -> unsafe-ptr:Ptr)
+data(+SDL_Window?, OK! -> +SDL_Window, ERROR! -> Str)
+def(+SDL_Window?.unwrap!, +SDL_Window? -- +SDL_Window, OK! -> id, ERROR! -> panic!)
+def-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow, Ptr Int Int Int Int SDL_WindowFlags -- Ptr)
+def-external(+Unsafe.SDL_DestroyWindow -> SDL_DestroyWindow, Ptr --)
+def(+SDL.create-window!,
+        +SDL title:Str
+        x:Int y:Int
+        w:Int h:Int
+        flags:SDL_WindowFlags
+        -- +SDL +SDL_Window?,
+    title> with-data-cstr(
+        x> y> w> h> flags>
+        unsafe(.SDL_CreateWindow)
+    )
+    dup is-null if(
+        drop get-error! +SDL_Window?.ERROR!,
+        >unsafe-ptr SDL_WINDOW! +SDL_Window?.OK!
+    ))
+def(+SDL_Window.destroy!, +SDL +SDL_Window -- +SDL,
+    /SDL_WINDOW! unsafe-ptr> unsafe(.SDL_DestroyWindow))
 
-def-type(SDL_Window*, Ptr)
-def-type(SDL_WindowFlags, U32)
+data(SDL_WindowFlags, SDL_WINDOW_FLAGS -> U32)
+inline(
+    def(Int.>SDL_WindowFlags, Int -- SDL_WindowFlags, >U32 >SDL_WindowFlags)
+    def(U32.>SDL_WindowFlags, U32 -- SDL_WindowFlags, SDL_WINDOW_FLAGS)
+    def(SDL_WindowFlags.>U32, SDL_WindowFlags -- U32, /SDL_WINDOW_FLAGS)
+    def(SDL_WindowFlags.|, SDL_WindowFlags SDL_WindowFlags -- SDL_WindowFlags,
+        both(>U32) | >SDL_WindowFlags)
+)
+
 def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
 def(SDL_WINDOWPOS_CENTERED, Int, 0x2FFF 16 <<)
-def(SDL_WINDOW_NONE, SDL_WindowFlags, 0 >U32)
-def(SDL_WINDOW_FULLSCREEN, SDL_WindowFlags, 0x1 >U32)
-def(SDL_WINDOW_OPENGL, SDL_WindowFlags, 0x2 >U32)
-def(SDL_WINDOW_SHOWN, SDL_WindowFlags, 0x4 >U32)
-def(SDL_WINDOW_HIDDEN, SDL_WindowFlags, 0x8 >U32)
-def(SDL_WINDOW_BORDERLESS, SDL_WindowFlags, 0x10 >U32)
-def(SDL_WINDOW_RESIZABLE, SDL_WindowFlags, 0x20 >U32)
-def(SDL_WINDOW_MINIMIZED, SDL_WindowFlags, 0x40 >U32)
-def(SDL_WINDOW_MAXIMIZED, SDL_WindowFlags, 0x80 >U32)
-def(SDL_WINDOW_INPUT_GRABBED, SDL_WindowFlags, 0x100 >U32)
-def(SDL_WINDOW_INPUT_FOCUS, SDL_WindowFlags, 0x200 >U32)
-def(SDL_WINDOW_MOUSE_FOCUS, SDL_WindowFlags, 0x400 >U32)
-def(SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WindowFlags, 0x1001 >U32)
-def(SDL_WINDOW_FOREIGN, SDL_WindowFlags, 0x800 >U32)
-def(SDL_WINDOW_ALLOW_HIGHDPI, SDL_WindowFlags, 0x2000 >U32)
-def(SDL_WINDOW_MOUSE_CAPTURE, SDL_WindowFlags, 0x4000 >U32)
-def(SDL_WINDOW_ALWAYS_ON_TOP, SDL_WindowFlags, 1 15 << >U32)
-def(SDL_WINDOW_SKIP_TASKBAR, SDL_WindowFlags, 1 16 << >U32)
-def(SDL_WINDOW_UTILITY, SDL_WindowFlags, 1 17 << >U32)
-def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << >U32)
-def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << >U32)
-def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << >U32)
 
-def-external(SDL_ShowWindow, SDL_Window* --)
-def-external(SDL_HideWindow, SDL_Window* --)
-def-external(SDL_RaiseWindow, SDL_Window* --)
+def(SDL_WINDOW_NONE, SDL_WindowFlags, 0 >SDL_WindowFlags)
+def(SDL_WINDOW_FULLSCREEN, SDL_WindowFlags, 0x1 >SDL_WindowFlags)
+def(SDL_WINDOW_OPENGL, SDL_WindowFlags, 0x2 >SDL_WindowFlags)
+def(SDL_WINDOW_SHOWN, SDL_WindowFlags, 0x4 >SDL_WindowFlags)
+def(SDL_WINDOW_HIDDEN, SDL_WindowFlags, 0x8 >SDL_WindowFlags)
+def(SDL_WINDOW_BORDERLESS, SDL_WindowFlags, 0x10 >SDL_WindowFlags)
+def(SDL_WINDOW_RESIZABLE, SDL_WindowFlags, 0x20 >SDL_WindowFlags)
+def(SDL_WINDOW_MINIMIZED, SDL_WindowFlags, 0x40 >SDL_WindowFlags)
+def(SDL_WINDOW_MAXIMIZED, SDL_WindowFlags, 0x80 >SDL_WindowFlags)
+def(SDL_WINDOW_INPUT_GRABBED, SDL_WindowFlags, 0x100 >SDL_WindowFlags)
+def(SDL_WINDOW_INPUT_FOCUS, SDL_WindowFlags, 0x200 >SDL_WindowFlags)
+def(SDL_WINDOW_MOUSE_FOCUS, SDL_WindowFlags, 0x400 >SDL_WindowFlags)
+def(SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WindowFlags, 0x1001 >SDL_WindowFlags)
+def(SDL_WINDOW_FOREIGN, SDL_WindowFlags, 0x800 >SDL_WindowFlags)
+def(SDL_WINDOW_ALLOW_HIGHDPI, SDL_WindowFlags, 0x2000 >SDL_WindowFlags)
+def(SDL_WINDOW_MOUSE_CAPTURE, SDL_WindowFlags, 0x4000 >SDL_WindowFlags)
+def(SDL_WINDOW_ALWAYS_ON_TOP, SDL_WindowFlags, 1 15 << >SDL_WindowFlags)
+def(SDL_WINDOW_SKIP_TASKBAR, SDL_WindowFlags, 1 16 << >SDL_WindowFlags)
+def(SDL_WINDOW_UTILITY, SDL_WindowFlags, 1 17 << >SDL_WindowFlags)
+def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << >SDL_WindowFlags)
+def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << >SDL_WindowFlags)
+def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << >SDL_WindowFlags)
 
-def-external(SDL_CreateRenderer, SDL_Window* Int SDL_RendererFlags -- SDL_Renderer*)
+def-external(+Unsafe.SDL_ShowWindow -> SDL_ShowWindow, Ptr --)
+def-external(+Unsafe.SDL_HideWindow -> SDL_HideWindow, Ptr --)
+def-external(+Unsafe.SDL_RaiseWindow -> SDL_RaiseWindow, Ptr --)
+def(+SDL_Window.show!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_ShowWindow))
+def(+SDL_Window.hide!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_HideWindow))
+def(+SDL_Window.raise!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_RaiseWindow))
+
+data(+SDL_Renderer, SDL_RENDERER! -> unsafe-ptr:Ptr)
+data(+SDL_Renderer?, OK! -> +SDL_Renderer, ERROR! -> Str)
+def(+SDL_Renderer?.unwrap!, +SDL_Renderer? -- +SDL_Renderer, OK! -> id, ERROR! -> panic!)
+
+def-external(+Unsafe.SDL_CreateRenderer, Ptr Int SDL_RendererFlags -- Ptr)
+def-external(+Unsafe.SDL_DestroyRenderer, Ptr --)
+
+def(+SDL_Window.create-renderer!,
+        +SDL +SDL_Window index:Int flags:SDL_RendererFlags
+        -- +SDL +SDL_Window +SDL_Renderer?,
+    .unsafe-ptr index> flags> unsafe(.SDL_CreateRenderer)
+    dup is-null if(
+        drop rdip:get-error! +SDL_Renderer?.ERROR!,
+        >unsafe-ptr SDL_RENDERER! +SDL_Renderer?.OK!
+    ))
+def(+SDL_Renderer.destroy!,
+        +SDL +SDL_Window +SDL_Renderer
+        -- +SDL +SDL_Window,
+    /SDL_RENDERER! unsafe-ptr> unsafe(.SDL_DestroyRenderer))
+
 def-type(SDL_Renderer*, Ptr)
 def-type(SDL_RendererFlags, U32)
 def(SDL_RENDERER_SOFTWARE, SDL_RendererFlags, 0x1 >U32)
@@ -462,12 +527,32 @@ def(SDL_JoystickID.>, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) >)
 def(SDL_JoystickID.1+, SDL_JoystickID -- SDL_JoystickID, >Int 1+ >SDL_JoystickID)
 def(SDL_JoystickID.==, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) ==)
 
-data(SDL_GameController, WRAP_SDL_GAMECONTROLLER -> Ptr)
-def(Ptr.>SDL_GameController, Ptr -- SDL_GameController, WRAP_SDL_GAMECONTROLLER)
-def(SDL_GameController.>Ptr, SDL_GameController -- Ptr, WRAP_SDL_GAMECONTROLLER -> id)
-def-external(SDL_NumJoysticks, SDL_JoystickID)
-def-external(SDL_IsGameController, SDL_JoystickID -- Bool)
-def-external(SDL_GameControllerOpen, SDL_JoystickID -- SDL_GameController)
+def-external(+Unsafe.SDL_NumJoysticks, Int)
+def-external(+Unsafe.SDL_IsGameController, Int -- Bool)
+def-external(+Unsafe.SDL_GameControllerOpen, Int -- Ptr)
+def-external(+Unsafe.SDL_GameControllerClose, Ptr --)
+
+def(+SDL.num-joysticks, +SDL -- +SDL Int, unsafe(.SDL_NumJoysticks))
+def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, unsafe(.SDL_IsGameController))
+
+data(+SDL_GameController, SDL_GAME_CONTROLLER! -> unsafe-ptr:Ptr)
+data(+SDL_GameController?, OK! -> +SDL_GameController, ERROR! -> Str)
+def(+SDL_GameController?.unwrap!, +SDL_GameController? -- +SDL_GameController, OK! -> id, ERROR! -> panic!)
+def(+SDL_GameController?.map!(f), (*a +SDL_GameController -- *a +SDL_GameController) *a +SDL_GameController? -- *a +SDL_GameController?,
+    OK! -> f +SDL_GameController?.OK!,
+    ERROR! -> +SDL_GameController?.ERROR!)
+def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameController? -- *a,
+    OK! -> f,
+    ERROR! -> drop)
+
+def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
+    unsafe(.SDL_GameControllerOpen)
+    dup is-null if(
+        drop get-error! +SDL_GameController?.ERROR!,
+        >unsafe-ptr SDL_GAME_CONTROLLER! +SDL_GameController?.OK!
+    ))
+def(+SDL_GameController.close!, +SDL +SDL_GameController -- +SDL,
+    /SDL_GAME_CONTROLLER! unsafe-ptr> unsafe(.SDL_GameControllerClose))
 
 data(SDL_GameControllerButton,
     SDL_CONTROLLER_BUTTON_A,
