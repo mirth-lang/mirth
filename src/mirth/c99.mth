@@ -424,6 +424,7 @@ def(c99-get-data-tag!, List(Arg) Data +C99 -- +C99,
             c99-line("VAL val = pop_value();" put)
 	    c99-line("USIZE tag = get_data_tag(val);" put)
 	    c99-line("push_u64(tag);" put )
+	    c99-line("decref(val);" put)
         )
         c99-line("}" put)
     )
