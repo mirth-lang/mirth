@@ -1,4 +1,4 @@
-module(snake.sdl2)
+module(examples.sdl2)
 import(std.prelude)
 import(std.str)
 

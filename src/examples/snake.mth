@@ -1,9 +1,9 @@
-module(snake.main)
+module(examples.snake)
+
+import(examples.sdl2)
 import(std.prelude)
 import(std.list)
 import(std.maybe)
-import(snake.sdl2)
-import(posix.posix)
 
 ##############
 # Snake Game #

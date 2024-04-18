@@ -1,7 +1,7 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
  -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Wno-infinite-recursion \
  -Werror -pedantic -O0
-MIRTHFLAGS=-p std:src/std -p args:src/args -p mirth:src/mirth -p posix:src/posix -p snake:src/snake -p ansi:src/ansi
+MIRTHFLAGS=-p std:src/std -p args:src/args -p mirth:src/mirth -p posix:src/posix -p examples:src/examples -p ansi:src/ansi
 
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
@@ -119,8 +119,8 @@ bin/mirth_prof.c: bin/mirth3.c
 bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
-bin/snake.c: bin/mirth2 src/std/* src/posix/* src/snake/*
-	bin/mirth2 --debug $(MIRTHFLAGS) src/snake/main.mth -o bin/snake.c
+bin/snake.c: bin/mirth2 src/std/* src/posix/* src/examples/snake.mth src/examples/sdl2.mth
+	bin/mirth2 --debug $(MIRTHFLAGS) src/examples/snake.mth -o bin/snake.c
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`
