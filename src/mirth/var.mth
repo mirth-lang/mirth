@@ -2,6 +2,9 @@ module(mirth.var)
 
 import(std.prelude)
 import(std.maybe)
+import(std.list)
+import(std.str)
+
 import(mirth.name)
 import(mirth.type)
 
@@ -35,3 +38,40 @@ def(Var.new!, Type Name -- Var,
 def(Var.new-auto-run!, Type Name -- Var,
     Var.new!
     T over ~auto-run? !)
+
+###########
+# Context #
+###########
+
+# A context for types and terms.
+data(Ctx, CTX -> List(Var))
+def(List.>Ctx, List(Var) -- Ctx, CTX)
+def(Ctx.>List, Ctx -- List(Var), CTX -> id)
+
+def(CTX0, Ctx, L0 CTX)
+def(CTX1, Var -- Ctx, L1 CTX)
+def(CTX2, Var Var -- Ctx, L2 CTX)
+def(CTX3, Var Var Var -- Ctx, L3 CTX)
+def(CTX4, Var Var Var Var -- Ctx, L4 CTX)
+
+def(Ctx.new, Ctx Var -- Ctx, dip(>List) snoc >Ctx)
+
+def(Ctx.vars, Ctx -- List(Var), >List)
+def(Ctx.physical-vars, Ctx -- List(Var), vars filter(dup is-physical?))
+def(Ctx.physically-empty?, Ctx -- Bool, physical-vars is-empty)
+def(Ctx.lookup, Name Ctx -- Maybe(Var), >List reverse-find(dup2 name ==) nip)
+def(Ctx.len, Ctx -- Nat, >List len)
+def(Ctx.fresh-name!, Ctx -- Ctx Name,
+    1 "_x1" >Name while-some(
+        dup over3 lookup,
+        drop2 1+ "_x" over show cat >Name
+    ) nip)
+def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
+    dip(PRIM_TYPE_STACK TPrim) fresh-var!)
+def(Ctx.fresh-type-var!, Ctx -- Ctx Var,
+    dip(PRIM_TYPE_TYPE TPrim) fresh-var!)
+def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
+    fresh-name! dip(swap) Var.new! sip(Ctx.new))
+
+def(Ctx.==, Ctx Ctx -- Bool,
+    both(vars) ==(==))

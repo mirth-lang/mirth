@@ -13,7 +13,6 @@ import(mirth.match)
 import(mirth.var)
 import(mirth.name)
 import(mirth.word)
-import(mirth.ctx)
 import(mirth.prim)
 import(mirth.external)
 import(mirth.buffer)
@@ -74,10 +73,6 @@ data(Op,
 data(Coerce,
     COERCE_UNSAFE)
 
-data(Param, PARAM -> Var)
-def(Var.>Param, Var -- Param, PARAM)
-def(Param.>Var, Param -- Var, PARAM -> )
-
 data(Home,
     HOME_MAIN -> Token,
     HOME_WORD -> Word)
@@ -106,7 +101,7 @@ data(Lambda, LAMBDA ->
     token:Token
     outer-ctx:Ctx
     dom:StackType
-    params:List(Param)
+    params:List(Var)
     body:Arrow)
 def(Lambda.inner-ctx, Lambda -- Ctx, body ctx)
 def(Lambda.mid, Lambda -- StackType, body dom)
@@ -232,7 +227,7 @@ def(Case.free-vars, Case -- List(Var),
     body free-vars)
 def(Lambda.free-vars, Lambda -- List(Var),
     dup body free-vars
-    swap params map(/PARAM) difference(==))
+    swap params difference(==))
 
 def(Arg.token, Arg -- Token,
     ARG_BLOCK -> token)

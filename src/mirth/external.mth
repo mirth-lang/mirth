@@ -6,7 +6,7 @@ import(std.lazy)
 import(mirth.type)
 import(mirth.token)
 import(mirth.name)
-import(mirth.ctx)
+import(mirth.var)
 
 # mirth/data/external
 table(External)

@@ -16,7 +16,6 @@ import(mirth.type)
 import(mirth.elab)
 import(mirth.name)
 import(mirth.var)
-import(mirth.ctx)
 import(mirth.prim)
 
 def(run-specializer!, Arrow -- Arrow,
@@ -188,7 +187,7 @@ def(synth-specialized-word!, SPKey Word +AB -- +AB,
     unwrap-or("unexpected shape for synth-specialized-word!" panic!)
     op match(
         OP_LAMBDA ->
-            dup params map(/PARAM)
+            dup params
             spkey> dup >spkey /SPKEY >List
             assert!(
                 over len over len ==,

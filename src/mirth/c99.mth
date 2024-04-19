@@ -23,7 +23,6 @@ import(mirth.word)
 import(mirth.table)
 import(mirth.variable)
 import(mirth.external)
-import(mirth.ctx)
 import(mirth.tycon)
 import(mirth.type)
 import(mirth.data)
@@ -612,7 +611,6 @@ def(c99-block-run!, Block +C99 -- +C99,
     arrow c99-arrow!)
 
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
-def(+C99.param-put, Param +C99 -- +C99, >Var var-put)
 
 def(c99-pack-closure-vars!, List(Var) +C99 -- +C99,
     filter(dup is-physical?) for(
@@ -661,11 +659,11 @@ def(c99-lambda!, Lambda +C99 -- +C99,
     c99-line("{" put)
     c99-nest(
         dup params reverse-for(
-            c99-line("VAL " put param-put " = pop_value();" put)
+            c99-line("VAL " put var-put " = pop_value();" put)
         )
         dup body c99-arrow!
         params reverse-for(
-            c99-line("decref(" put param-put ");" put)
+            c99-line("decref(" put var-put ");" put)
         )
     )
     c99-line("}" put))

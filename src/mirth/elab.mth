@@ -16,7 +16,6 @@ import(mirth.name)
 import(mirth.def)
 import(mirth.token)
 import(mirth.data)
-import(mirth.ctx)
 import(mirth.external)
 import(mirth.word)
 import(mirth.var)
@@ -583,12 +582,12 @@ def(ab-if!(f,g), (*a +AB -- *b +AB, *b +AB -- *c +AB) *a +AB -- *c +AB,
 def(ab-while!(f,g), (*a +AB -- *b +AB, *b +AB -- *c +AB) *a +AB -- *c +AB,
     ab-block!(f) ab-block!(g) PRIM_CORE_WHILE ab-prim!)
 
-def(ab-lambda!(f), (*a +AB -- *b +AB) *a List(Param) +AB -- *b +AB,
+def(ab-lambda!(f), (*a +AB -- *b +AB) *a List(Var) +AB -- *b +AB,
     dip(ab-token@) ab-lambda-at!(f))
-def(ab-lambda-at!(f), (*a +AB -- *b +AB) *a Token List(Param) +AB -- *b +AB,
+def(ab-lambda-at!(f), (*a +AB -- *b +AB) *a Token List(Var) +AB -- *b +AB,
     dup dip(
         dip(ab-ctx@ ab-type@) reverse-for(
-            swap dip(>Var dup dip(Ctx.new))
+            swap dip(dup dip(Ctx.new))
             ab-token@ elab-expand-tensor!
             dip(rotl type) elab-type-unify! drop2
         )
@@ -625,16 +624,14 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_COERCE -> elab-coerce-sig!,
         OP_LABEL_PUSH -> elab-label-push-sig!,
         OP_LABEL_POP -> elab-label-pop-sig!,
-	OP_DATA_GET_TAG -> data-get-tag-type freshen-sig OPSIG_APPLY,
+        OP_DATA_GET_TAG -> data-get-tag-type freshen-sig OPSIG_APPLY,
         OP_DATA_GET_LABEL -> data-get-label-type freshen-sig OPSIG_APPLY,
         OP_DATA_SET_LABEL -> data-set-label-type freshen-sig OPSIG_APPLY,
     ))
 
-def(data-get-tag-type, Data -- ArrowType, 
-    MetaVar.new! STMeta dup
-    dip(swap TData STCons)
-    TYPE_INT STCons
-    T->)
+def(data-get-tag-type, Data -- ArrowType,
+    full-type left? unwrap T1
+    TYPE_INT T1 T->)
 
 def(elab-coerce-sig!, Coerce -- OpSig,
     COERCE_UNSAFE ->
@@ -904,16 +901,16 @@ def(elab-expand-tensor!, StackType Token -- StackType Type Token,
         NONE -> STACK_TYPE_ERROR TYPE_ERROR tok> dup "expected tuple type" emit-error!
     ))
 
-def(elab-lambda-param?, Token -- Token Maybe(Param),
+def(elab-lambda-param?, Token -- Token Maybe(Var),
     dup pattern-var? if(
         dup args-0 sip:next
-        dip(MetaVar.new! TMeta) name? unwrap Var.new! >Param SOME,
+        dip(MetaVar.new! TMeta) name? unwrap Var.new! SOME,
     dup lsquare?
     and(dup succ pattern-var?)
     and(dup succ succ rsquare? >Bool) if(
         dup succ args-0 sip:next
         dip(MetaVar.new! STMeta MetaVar.new! STMeta T-> TMorphism)
-        succ name? unwrap Var.new-auto-run! >Param SOME,
+        succ name? unwrap Var.new-auto-run! SOME,
         NONE
     )))
 
@@ -1027,7 +1024,15 @@ def(elab-data-header!, Data Token -- Data,
     dup DEF_DATA register
     # TODO check header args are well-formed / elaborate them properly
     #  as part of: https://github.com/mirth-lang/mirth/issues/246
-    dip(num-args) ~arity !)
+    dip(dup num-args) ~arity !
+    args delay(elab-data-params!) over ~params !)
+
+def(elab-data-params!, List(Token) -- List(Var),
+    CTX0 swap for(
+        dup sig-type-var? else("expected type variable" emit-fatal-error!)
+        dup name? unwrap over2 Ctx.lookup then("duplicate parameter name" emit-fatal-error!)
+        name? unwrap TYPE_TYPE swap Var.new! Ctx.new
+    ) >List)
 
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 .. TYPEN".
@@ -1051,10 +1056,12 @@ def(elab-data-tag!, Data Token -- Data,
     ))
     { Data Tag }
     dup delay(
-        dup .data head? unwrap
-        +TypeElab.type-sig-start!
-        dup .data TData elab-type-args!
-        over .data is-resource? if(T0 swap RESOURCE T+, T1)
+        dup .data head? unwrap >token
+        dup .data params >Ctx >ctx
+        T >allow-implicit-type-vars
+        F >allow-type-holes
+        TYPE_ELAB
+        T0 over .data full-type T*+
         swap sig? match(
             NONE -> T0,
             SOME -> token! T0 elab-stack-type-parts!
@@ -1083,28 +1090,24 @@ def(data-word-new!, Data Str Int -- Word,
 
 def(elab-data-done!, Data --,
     \(dat ->
-         dat is-enum? if(
+        dat is-value-type? then(
             dat "tag" 0 data-word-new! \(tag ->
-                CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
+                dat params >Ctx
+                dat data-get-tag-type
+                ready2 tag ~ctx-type !
                 tag ab-build-word!(
-		    COERCE_UNSAFE ab-coerce!
+                    dat OP_DATA_GET_TAG ab-op!
                 ) drop
             )
+        )
 
+        dat is-enum? then(
             dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
                 CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
                 ftag ab-build-word!(
                     COERCE_UNSAFE ab-coerce!
                 ) drop
             ),
-	    dat is-resource? not then(
-                dat "tag" 0 data-word-new! \(tag ->
-                    CTX0 dat TData T1 TYPE_INT T1 T-> ready2 tag ~ctx-type !
-                    tag ab-build-word!(
-		        dat OP_DATA_GET_TAG ab-op!
-                    ) drop
-                )
-	    )
         )
 
         dat tags match(
@@ -1192,13 +1195,12 @@ def(create-projectors!, Tag --,
                 )
             ) lbl_lens ~ctx-type !
             lbl_lens delay(
-                type dom force-cons?! unwrap unpack2 nip "f" >Name Var.new-auto-run!
-                PARAM L1
+                type dom force-cons?! unwrap unpack2 nip "f" >Name Var.new-auto-run! L1
             ) lbl_lens ~params !
 
             lbl_lens delay(ab-build-word-arrow!(
                 lbl_lens params dup ab-lambda!(
-                    /L1 unwrap /PARAM >f
+                    /L1 unwrap >f
                     dat is-resource? if(
                         lbl_get ab-word!
                         ab-rdip!(f> ab-var!)
@@ -1343,7 +1345,7 @@ def(check-inline-recursion-failed!, Word --,
     ))
 
 ||| Elaborate a word's parameters from its type and declaration.
-def(elab-def-params!, Word -- List(Param),
+def(elab-def-params!, Word -- List(Var),
     L0 over type
     rotl head dip(unpack) nip
     args reverse-for(
@@ -1353,7 +1355,7 @@ def(elab-def-params!, Word -- List(Param),
         over morphism? else(
             "need function type for param" emit-fatal-error!)
         name? unwrap Var.new-auto-run!
-        PARAM rotr dip(cons)
+        rotr dip(cons)
     ) drop)
 
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,
@@ -1575,7 +1577,7 @@ def(table-new!, Token QName -- Table,
 
         w ab-build-word! (
             t head ab-token!
-            x >Param L1 ab-lambda! (
+            x L1 ab-lambda! (
                 1 ab-int!
                 ab-while! (
                     PRIM_CORE_DUP ab-prim!
