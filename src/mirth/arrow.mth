@@ -13,7 +13,6 @@ import(mirth.match)
 import(mirth.var)
 import(mirth.name)
 import(mirth.word)
-import(mirth.ctx)
 import(mirth.prim)
 import(mirth.external)
 import(mirth.buffer)
@@ -67,15 +66,12 @@ data(Op,
     OP_COERCE -> Coerce,
     OP_LABEL_PUSH -> Label,
     OP_LABEL_POP -> Label,
+    OP_DATA_GET_TAG -> Data,
     OP_DATA_GET_LABEL -> Tag Label,
     OP_DATA_SET_LABEL -> Tag Label)
 
 data(Coerce,
     COERCE_UNSAFE)
-
-data(Param, PARAM -> Var)
-def(Var.>Param, Var -- Param, PARAM)
-def(Param.>Var, Param -- Var, PARAM -> )
 
 data(Home,
     HOME_MAIN -> Token,
@@ -105,7 +101,7 @@ data(Lambda, LAMBDA ->
     token:Token
     outer-ctx:Ctx
     dom:StackType
-    params:List(Param)
+    params:List(Var)
     body:Arrow)
 def(Lambda.inner-ctx, Lambda -- Ctx, body ctx)
 def(Lambda.mid, Lambda -- StackType, body dom)
@@ -222,6 +218,7 @@ def(Op.free-vars, Op -- List(Var),
     OP_COERCE -> drop L0,
     OP_LABEL_PUSH -> drop L0,
     OP_LABEL_POP -> drop L0,
+    OP_DATA_GET_TAG -> drop L0,
     OP_DATA_GET_LABEL -> drop2 L0,
     OP_DATA_SET_LABEL -> drop2 L0)
 def(Match.free-vars, Match -- List(Var),
@@ -230,7 +227,7 @@ def(Case.free-vars, Case -- List(Var),
     body free-vars)
 def(Lambda.free-vars, Lambda -- List(Var),
     dup body free-vars
-    swap params map(/PARAM) difference(==))
+    swap params difference(==))
 
 def(Arg.token, Arg -- Token,
     ARG_BLOCK -> token)

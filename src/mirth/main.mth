@@ -24,7 +24,7 @@ import(mirth.name)
 import(mirth.def)
 import(mirth.lexer)
 import(mirth.elab)
-import(mirth.ctx)
+import(mirth.var)
 import(mirth.specializer)
 import(mirth.c99)
 

@@ -6,7 +6,7 @@ import(std.list)
 import(mirth.type)
 import(mirth.data)
 import(mirth.token)
-import(mirth.ctx)
+import(mirth.var)
 import(mirth.arrow)
 
 #########

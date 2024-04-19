@@ -23,7 +23,6 @@ import(mirth.word)
 import(mirth.table)
 import(mirth.variable)
 import(mirth.external)
-import(mirth.ctx)
 import(mirth.tycon)
 import(mirth.type)
 import(mirth.data)
@@ -413,8 +412,28 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_COERCE   -> drop2,
     OP_LABEL_PUSH -> nip c99-label-push!,
     OP_LABEL_POP  -> nip c99-label-pop!,
+    OP_DATA_GET_TAG -> c99-get-data-tag!,
     OP_DATA_GET_LABEL -> c99-tag-get-label! drop,
     OP_DATA_SET_LABEL -> c99-tag-set-label! drop)
+
+def(c99-get-data-tag!, List(Arg) Data +C99 -- +C99,
+    nip dup is-enum? else(
+        c99-line("{" put)
+        c99-nest(
+            c99-line("VAL val = pop_value();" put)
+            dup is-transparent? if(
+                c99-line(
+                    "push_u64(" put
+                    dup tags /L1 unwrap value show put
+                    "LL);" put),
+
+                c99-line("USIZE tag = get_data_tag(val);" put)
+                c99-line("push_u64(tag);" put )
+            )
+            c99-line("decref(val);" put)
+        )
+        c99-line("}" put)
+    ) drop)
 
 def(c99-word!, List(Arg) Word +C99 -- +C99,
     dup prefer-inline? if(
@@ -598,7 +617,6 @@ def(c99-block-run!, Block +C99 -- +C99,
     arrow c99-arrow!)
 
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
-def(+C99.param-put, Param +C99 -- +C99, >Var var-put)
 
 def(c99-pack-closure-vars!, List(Var) +C99 -- +C99,
     filter(dup is-physical?) for(
@@ -647,11 +665,11 @@ def(c99-lambda!, Lambda +C99 -- +C99,
     c99-line("{" put)
     c99-nest(
         dup params reverse-for(
-            c99-line("VAL " put param-put " = pop_value();" put)
+            c99-line("VAL " put var-put " = pop_value();" put)
         )
         dup body c99-arrow!
         params reverse-for(
-            c99-line("decref(" put param-put ");" put)
+            c99-line("decref(" put var-put ");" put)
         )
     )
     c99-line("}" put))

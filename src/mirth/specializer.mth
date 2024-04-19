@@ -16,7 +16,6 @@ import(mirth.type)
 import(mirth.elab)
 import(mirth.name)
 import(mirth.var)
-import(mirth.ctx)
 import(mirth.prim)
 
 def(run-specializer!, Arrow -- Arrow,
@@ -63,6 +62,7 @@ def(+SPCheck.check-atom!, Atom +SPCheck -- List(Atom) +SPCheck,
         OP_COERCE -> drop L1,
         OP_LABEL_PUSH -> drop L1,
         OP_LABEL_POP -> drop L1,
+	OP_DATA_GET_TAG -> drop L1,
         OP_DATA_GET_LABEL -> drop2 L1,
         OP_DATA_SET_LABEL -> drop2 L1,
     ))
@@ -187,7 +187,7 @@ def(synth-specialized-word!, SPKey Word +AB -- +AB,
     unwrap-or("unexpected shape for synth-specialized-word!" panic!)
     op match(
         OP_LAMBDA ->
-            dup params map(/PARAM)
+            dup params
             spkey> dup >spkey /SPKEY >List
             assert!(
                 over len over len ==,
