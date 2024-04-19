@@ -86,10 +86,6 @@ def(compile!, Arguments +World -- +World,
         elab-entry-point
     ) nip
 
-    25 100 25 RGB FGColor show trace!
-    "hi from test" trace!
-    Reset show trace-ln!
-
     num-errors @ 0> if(
         FGRed show trace!
         num-errors @ trace!

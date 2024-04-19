@@ -1718,13 +1718,6 @@ static void mtw_STATE_0 (void) {
 	tup->cells[1] = lpop(&lbl_arguments);
 	push_value(MKTUP(tup, 7));
 }
-static void mtw_FGColor_0 (void) {
-	TUP* tup = tup_new(2);
-	tup->size = 2;
-	tup->cells[0] = MKU64(38LL);
-	tup->cells[1] = pop_value();
-	push_value(MKTUP(tup, 2));
-}
 static void mtp_FGColor_0 (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
@@ -1760,15 +1753,6 @@ static void mtp_Numbered_0 (void) {
 	} else {
 		free(tup);
 	}
-}
-static void mtw_RGB_0 (void) {
-	TUP* tup = tup_new(4);
-	tup->size = 4;
-	tup->cells[0] = MKU64(1LL);
-	tup->cells[3] = pop_value();
-	tup->cells[2] = pop_value();
-	tup->cells[1] = pop_value();
-	push_value(MKTUP(tup, 4));
 }
 static void mtp_RGB_0 (void) {
 	VAL val = pop_value();
@@ -54538,27 +54522,6 @@ static void mw_compilezn_0 (void) {
 		mp_primzmdrop();
 		push_value(d2);
 	}
-	push_i64(25LL);
-	push_i64(100LL);
-	push_i64(25LL);
-	mtw_RGB_0();
-	mtw_FGColor_0();
-	mw_show_0();
-	mw_tracezn_13();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("hi from test", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_tracezn_13();
-	push_u64(0LL); // Reset
-	mw_show_0();
-	mw_tracezmlnzn_1();
 	mvar_numzmerrors_0();
 	mp_primzmmutzmget();
 	push_i64(0LL);

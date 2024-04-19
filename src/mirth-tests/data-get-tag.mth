@@ -1,0 +1,22 @@
+module(mirth-tests.data-get-tag)
+
+import(std.prelude)
+data(Foo, Foo0, Foo1, Foo2)
+data(Bar, Bar0, Bar1 -> Int)
+data(Baz, Baz -> Foo)
+data(MyStr, MyStr -> Str)
+
+def(main, --,
+    assert!(Foo0 tag 0 ==, "Foo0 tag 0 ==")
+    assert!(Foo1 tag 1 ==, "Foo1 tag 1 ==")
+    assert!(Foo2 tag 2 ==, "Foo2 tag 2 ==")
+    assert!(Bar0 tag 0 ==, "Bar0 tag 0 ==")
+    assert!(0 Bar1 tag 1 ==, "0 Bar1 tag 1 ==")
+    assert!(1 Bar1 tag 1 ==, "1 Bar1 tag 1 ==")
+    assert!(2 Bar1 tag 1 ==, "2 Bar1 tag 1 ==")
+    assert!(Foo0 Baz tag 0 ==, "Foo0 Baz tag 0 ==")
+    assert!(Foo1 Baz tag 0 ==, "Foo1 Baz tag 0 ==")
+    assert!(Foo2 Baz tag 0 ==, "Foo2 Baz tag 0 ==")
+    assert!("Hello" MyStr tag 0 ==, "\"Hello\" MyStr tag 0 ==")
+    assert!("World" MyStr tag 0 ==, "\"World\" MyStr tag 0 ==")
+)
