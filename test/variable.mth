@@ -1,0 +1,30 @@
+module(mirth-tests.variable)
+import(std.prelude)
+import(std.posix)
+
+var(myvar, Int)
+var(myvar2, Int)
+def(main, --,
+    0 myvar !
+    myvar @ trace-ln!
+    10 myvar !
+    myvar @ trace-ln!
+    20 myvar !
+    myvar @ trace-ln!
+    myvar @ trace-ln!
+    30 myvar !
+    myvar @ trace-ln!
+
+    myvar2 @ drop)
+
+# mirth-test # perr # 0
+# mirth-test # perr # 10
+# mirth-test # perr # 20
+# mirth-test # perr # 20
+# mirth-test # perr # 30
+# mirth-test # perr # tried to read uninitialized value
+# mirth-test # perr # ??
+# mirth-test # perr # call stack:
+# mirth-test # perr #     @ -> prim-mut-get at test/variable.mth:18:12
+# mirth-test # perr #     main at test/variable.mth:7:5
+# mirth-test # pret # 1

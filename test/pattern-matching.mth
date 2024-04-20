@@ -1,0 +1,65 @@
+
+module(mirth-tests.pattern-matching)
+import(std.prelude)
+import(std.posix)
+
+data(Foo,
+    FOO0,
+    FOO1 -> Int,
+    FOO2 -> Int Int,
+    FOO3 -> Int Int Int)
+
+def(foo-sum, Foo -- Int,
+    match(
+        FOO0 -> 0,
+        FOO1 -> id,
+        FOO2 -> +,
+        FOO3 -> + +,
+    ))
+
+def(foo-tag, Foo -- Str,
+    match(
+        FOO0 -> "FOO0",
+        FOO1 -> drop "FOO1",
+        FOO2 -> drop2 "FOO2",
+        _ -> drop "FOO3"
+    ))
+
+def(foo-display, Foo --,
+    dup foo-tag print!
+    ", sum = " print!
+    dup foo-sum print!
+    ", values = " print!
+    match(
+        FOO0 ->
+            "[]" print-ln!,
+        FOO1 ->
+            "[ " print!
+            print! " ]" print-ln!,
+        FOO2 ->
+            "[ " print!
+            dip(print!) " " print!
+            print! " ]" print-ln!,
+        FOO3 ->
+            "[ " print!
+            dip2(print!) " " print!
+            dip(print!) " " print!
+            print! " ]" print-ln!,
+    ))
+
+def(main, --,
+    FOO0 foo-display
+    10 FOO1 foo-display
+    20 FOO1 foo-display
+    30 12 FOO2 foo-display
+    40 60 FOO2 foo-display
+    90 90 20 FOO3 foo-display
+    9000 0 1 FOO3 foo-display)
+
+# mirth-test # pout # FOO0, sum = 0, values = []
+# mirth-test # pout # FOO1, sum = 10, values = [ 10 ]
+# mirth-test # pout # FOO1, sum = 20, values = [ 20 ]
+# mirth-test # pout # FOO2, sum = 42, values = [ 30 12 ]
+# mirth-test # pout # FOO2, sum = 100, values = [ 40 60 ]
+# mirth-test # pout # FOO3, sum = 200, values = [ 90 90 20 ]
+# mirth-test # pout # FOO3, sum = 9001, values = [ 9000 0 1 ]
