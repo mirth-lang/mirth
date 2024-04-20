@@ -9,8 +9,8 @@ def(main, --, baz)
 # mirth-test # perr # foo
 # mirth-test # perr # ??
 # mirth-test # perr # call stack:
-# mirth-test # perr #     panic! at src/mirth-tests/inline-def.mth:4:20
-# mirth-test # perr #     foo at src/mirth-tests/inline-def.mth:5:21
-# mirth-test # perr #     baz at src/mirth-tests/inline-def.mth:8:15
-# mirth-test # perr #     main at src/mirth-tests/inline-def.mth:8:5
+# mirth-test # perr #     panic! at test/inline-def.mth:4:20
+# mirth-test # perr #     foo at test/inline-def.mth:5:21
+# mirth-test # perr #     baz at test/inline-def.mth:8:15
+# mirth-test # perr #     main at test/inline-def.mth:8:5
 # mirth-test # pret # 1

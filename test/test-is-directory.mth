@@ -13,8 +13,8 @@ def(main, --,
     "src" should-be-directory
     "bin" should-be-directory
     "tools" should-be-directory
-    "src/mirth" should-be-directory
-    "src/mirth/main.mth" should-not-be-directory
+    "lib/std" should-be-directory
+    "lib/std/prelude.mth" should-not-be-directory
     "nonsense" should-not-be-directory)
 
 # mirth-test # perr # ok

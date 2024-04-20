@@ -28,12 +28,12 @@ FAILED=0
 
 set +e
 
-for filename in $(ls src/mirth-tests | grep .mth)
+for filename in $(ls test | grep .mth)
 do
     rm -f $TMP/test/*
-    echo mirth-tests/$filename
+    echo test/$filename
     binary_name="${filename%.*}"
-    $TMP/mirth --debug src/mirth-tests/$filename -p std:src/std -p posix:src/posix -p args:src/args -p mirth-tests:src/mirth-tests -o "bin/${binary_name}.c"> $TMP/test/mout 2> $TMP/test/merr
+    $TMP/mirth --debug test/$filename -p std:lib/std -p arg-parser:lib/arg-parser -p mirth-tests:test -o "bin/${binary_name}.c"> $TMP/test/mout 2> $TMP/test/merr
     MIRTH_BUILD_FAILED=$?
     cat $TMP/test/mout | sed 's/^/# mirth-test # mout # /' >> $TMP/test/actual
     cat $TMP/test/merr | egrep ': (error|warning):' | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual
@@ -61,16 +61,16 @@ do
     fi
 
     if [ "$VERIFY" == "1" ] ; then
-        cat src/mirth-tests/$filename | grep "# mirth-test #" > $TMP/test/expected || echo -n
+        cat test/$filename | grep "# mirth-test #" > $TMP/test/expected || echo -n
         diff --text --strip-trailing-cr $TMP/test/expected $TMP/test/actual
         DIFF_FAILED=$?
         if [ "$DIFF_FAILED" != "0" ] ; then
-            echo "mirth-tests/$filename FAILED"
+            echo "test/$filename FAILED"
             FAILED=1
         fi
     elif [ "$UPDATE" == "1" ] ; then
-        cat src/mirth-tests/$filename | grep -v "# mirth-test #" > $TMP/test/source || echo -n
-        cat $TMP/test/source $TMP/test/actual > src/mirth-tests/$filename
+        cat test/$filename | grep -v "# mirth-test #" > $TMP/test/source || echo -n
+        cat $TMP/test/source $TMP/test/actual > test/$filename
     fi
 done
 
