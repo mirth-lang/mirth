@@ -1,0 +1,20 @@
+module(mirth-tests.labels)
+import(std.prelude)
+import(std.posix)
+
+def(pop-foo, foo:x -- x, foo>)
+def(pop-bar, bar:x -- x, bar>)
+def(push-foo, x -- foo:x, >foo)
+def(push-bar, y -- bar:y, >bar)
+
+def(main, +World -- +World,
+    10 20 30 >foo >bar trace! " " trace!
+    pop-foo trace! " " trace!
+    40 push-bar
+    pop-bar trace! " " trace!
+    ^bar trace! " " trace! ^bar:1+
+    ^bar trace! " " trace! ^bar:1+
+    ^bar trace! " " trace! ^bar:1+
+    pop-bar trace-ln!
+)
+# mirth-test # perr # 10 30 40 20 21 22 23

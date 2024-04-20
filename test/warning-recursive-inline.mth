@@ -1,0 +1,20 @@
+module(mirth-tests.warning-recursive-inline)
+
+import(std.prelude)
+import(std.str)
+import(std.posix)
+
+inline:def(factorial, Int -- Int,
+    dup 0 <= if(drop 1, dup 1- factorial *))
+
+inline(
+    def(foo, Int -- Int, 1- bar)
+    def(bar, Int -- Int, dup 0> then( 1- foo ))
+)
+
+def(main, +World -- +World,
+    "10! = " put 10 factorial show put line)
+# mirth-test # merr # 7:12: warning: recursive word cannot be inlined
+# mirth-test # merr # 12:9: warning: recursive word cannot be inlined
+# mirth-test # merr # 11:9: warning: recursive word cannot be inlined
+# mirth-test # pout # 10! = 3628800

@@ -1,0 +1,17 @@
+||| This is mostly a test of the testing harness.
+||| We want to make sure it captures output from
+||| each program that is generated, incl. stderr,
+||| and exit codes.
+module(mirth-tests.hello-world)
+import(std.prelude)
+import(std.posix)
+
+def(main, --,
+    "Hello, world!" print-ln!
+    "Hello, world, too!" trace-ln!
+    "Goodbye!" print-ln! 1 posix-exit!)
+
+# mirth-test # pout # Hello, world!
+# mirth-test # pout # Goodbye!
+# mirth-test # perr # Hello, world, too!
+# mirth-test # pret # 1

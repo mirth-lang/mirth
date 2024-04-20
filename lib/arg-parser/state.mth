@@ -1,0 +1,56 @@
+module(arg-parser.state)
+
+import(std.prelude)
+import(std.maybe)
+import(std.str)
+import(std.list)
+import(arg-parser.parse)
+import(arg-parser.types)
+
+data(ArgvInfo,
+  ARGV_INFO ->
+    argv:List(Str)
+    program-name:Str
+)
+
+data(CurrentArg,
+  CURRENT_ARG ->
+    parsing?:Bool
+    option:Maybe(ArgpOptionType)
+    option-option:Maybe(ArgpOption))
+
+data(State(a),
+  STATE ->
+    arguments:a
+    argv-info:ArgvInfo
+    arg:CurrentArg
+    positional-index:Int
+    longest-arg-length:Int
+    error:Maybe(ArgumentParsingError)
+)
+
+def(State.init, a -- State(a),
+    argv-to-str >argv
+    0 unsafe(read-from-argv) >program-name
+  ARGV_INFO >argv-info
+
+    F >parsing?
+    NONE >option
+    NONE >option-option
+  CURRENT_ARG >arg
+
+  >arguments
+  0 >positional-index
+  0 >longest-arg-length
+  NONE >error
+  STATE
+)
+
+def(State.argv, State(a) -- List(Str), argv-info ArgvInfo.argv)
+def(State.program-name, State(a) -- Str, argv-info program-name)
+def(State.parsing?, State(a) -- Bool, arg parsing?)
+def(State.parsing?!, Bool State(a) -- State(a), arg:parsing?!)
+def(State.option, State(a) -- Maybe(ArgpOptionType), arg option)
+def(State.option!, Maybe(ArgpOptionType) State(a) -- State(a), arg:option!)
+def(State.option-option, State(a) -- Maybe(ArgpOption), arg option-option)
+def(State.option-option!, Maybe(ArgpOption) State(a) -- State(a), arg:option-option!)

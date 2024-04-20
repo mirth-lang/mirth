@@ -1,0 +1,66 @@
+module(arg-parser.types)
+
+import(std.prelude)
+import(std.maybe)
+import(std.str)
+import(std.byte)
+import(std.list)
+import(arg-parser.parse)
+import(arg-parser.state)
+
+import(std.terminal)
+
+data(ArgumentParser(a),
+  ArgumentParser ->
+    options:List(ArgpOption)
+    parser:Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ])
+    args-doc:Maybe(Str)
+    doc:Str)
+
+data(+ArgumentParser(a), +ARGUMENTPARSER -> argument-parser:ArgumentParser(a) state:State(a))
+def(+ArgumentParser.rdrop, +ArgumentParser(a) --, /+ARGUMENTPARSER argument-parser> drop state> drop)
+
+def(+ArgumentParser.parser,
+  +ArgumentParser(a) -- +ArgumentParser(a) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
+  argument-parser ArgumentParser.parser
+)
+
+data(ArgpOptionType,
+  SHORT -> Byte,
+  LONG_ONLY -> Str,
+  POSITIONAL,
+  END
+)
+
+def(ArgpOptionType.has-short?, ArgpOptionType -- Bool,
+  match(
+    SHORT -> drop T,
+    _ -> drop F
+  )
+)
+
+data(ArgpOption,
+    ArgpOption ->
+    name:Maybe(Str)
+    flag-type:ArgpOptionType
+    arg-doc:Maybe(Str)
+    doc:Maybe(Str)
+    group:Maybe(Int))
+
+data(ArgumentParsingError,
+  NO_ARGS_PARSED,
+  MISSING_ARGUMENT_VALUE,
+  MISSING_ARG -> Str,
+  TOO_MANY_ARGS,
+  TOO_FEW_ARGS,
+  UNKNOWN_ARG
+)
+
+def(ArgumentParsingError.show, ArgumentParsingError -- Str,
+  NO_ARGS_PARSED -> "Failed to parse any CLI arguments",
+  MISSING_ARG -> Str(FGRed show ; "Missing argument: " ; Reset show ; ;),
+  MISSING_ARGUMENT_VALUE -> "Missing associated value for flag option",
+  TOO_MANY_ARGS -> "Too many positional arguments passed",
+  TOO_FEW_ARGS -> "Too few positional arguments passed",
+  UNKNOWN_ARG -> "Got an unknown option"
+)
