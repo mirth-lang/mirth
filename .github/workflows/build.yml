@@ -12,6 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
+        arch: [amd64,arm64,x86]
         os: [macOS-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
