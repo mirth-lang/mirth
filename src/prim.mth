@@ -87,6 +87,7 @@ data(Prim,
     PRIM_I64_SET,
 
     PRIM_SYS_OS,
+    PRIM_SYS_ARCH,
     PRIM_SYS_ARGC,
     PRIM_SYS_ARGV,
 
@@ -241,6 +242,7 @@ def(init-prims!, --,
     PRIM_I64_SET "prim-i64-set" 0 def-prim!
 
     PRIM_SYS_OS "prim-sys-os" 0 def-prim!
+    PRIM_SYS_ARCH "prim-sys-arch" 0 def-prim!
     PRIM_SYS_ARGC "prim-sys-argc" 0 def-prim!
     PRIM_SYS_ARGV "prim-sys-argv" 0 def-prim!
 
@@ -360,6 +362,9 @@ def(init-prims!, --,
 
     CTX0 T0 TYPE_INT T1 T->
     PRIM_SYS_OS ctx-type!
+
+    CTX0 T0 TYPE_INT T1 T->
+    PRIM_SYS_ARCH ctx-type!
 
     CTX0 T0 TYPE_INT T1 T->
     PRIM_SYS_ARGC ctx-type!
