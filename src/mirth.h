@@ -27,7 +27,7 @@ extern void free(void*);
 extern int read(int, void*, size_t);
 extern int write(int, const char*, size_t);
 extern int close(int);
-extern int open(const char*, int, int);
+extern int open(const char*, int, ...);
 extern void exit(int);
 
 typedef uint16_t TAG;
