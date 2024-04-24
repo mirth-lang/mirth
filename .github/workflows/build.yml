@@ -28,7 +28,7 @@ jobs:
   build-san:
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-latest]
+        os: [macos-latest, macos-12, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
