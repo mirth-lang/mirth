@@ -73,8 +73,33 @@ def(Int.>OS, Int -- OS,
     ))))
 
 def(OS.==, OS OS -- Bool, both(>Int) ==)
-
 def(RUNNING_OS, OS, prim-sys-os >OS)
+
+data(ARCH,
+    ARCH_UNKNOWN,
+    ARCH_I386,
+    ARCH_AMD64,
+    ARCH_ARM64)
+
+def(ARCH.>Int, ARCH -- Int,
+    ARCH_UNKNOWN -> 0,
+    ARCH_I386 -> 1,
+    ARCH_AMD64 -> 2,
+    ARCH_ARM64 -> 3)
+
+def(Int.>ARCH, Int -- ARCH,
+    dup 1 == if(
+        drop ARCH_I386,
+    dup 2 == if(
+        drop ARCH_AMD64,
+    dup 3 == if(
+        drop ARCH_ARM64,
+	drop ARCH_UNKNOWN
+    ))))
+
+def(ARCH.==, ARCH ARCH -- Bool, both(>Int) ==)
+def(RUNNING_ARCH, ARCH, prim-sys-arch >ARCH)
+
 alias(argc, prim-sys-argc)
 alias(argv, prim-sys-argv)
 

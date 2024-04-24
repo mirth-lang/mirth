@@ -11,6 +11,16 @@
 #error "Platform not supported."
 #endif
 
+#if defined(__x86_64__) || defined(_M_X64)
+#define MIRTH_AMD64
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+#define MIRTH_I386
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define MIRTH_ARM64
+#else
+#error "Architecture not supported."
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -1112,6 +1122,16 @@ static void mp_primzmi64zmset (void) {
 #define mp_primzmsyszmos() push_u64(3)
 #else
 #define mp_primzmsyszmos() push_u64(0)
+#endif
+
+#if defined(MIRTH_I386)
+#define mp_primzmsyszmarch() push_u64(1)
+#elif defined(MIRTH_AMD64)
+#define mp_primzmsyszmarch() push_u64(2)
+#elif defined(MIRTH_ARM64)
+#define mp_primzmsyszmarch() push_u64(3)
+#else
+#define mp_primzmsyszmarch() push_u64(0)
 #endif
 
 static void mp_primzmrun (void) {
