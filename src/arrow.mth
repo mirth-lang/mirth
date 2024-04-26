@@ -142,9 +142,33 @@ def(Block.qname, Block -- QName,
 
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
 
+field(Word.~num-blocks, Word, Int)
+def(Word.inc-num-blocks!, Word -- Int,
+    dup ~num-blocks @? match(
+        SOME -> tuck 1+ swap ~num-blocks !,
+        NONE -> 1 swap ~num-blocks ! 0
+    ))
+
+field(Block.~home-index, Block, Int)
+def(Block.register-home!, Block --,
+    dup home match(
+        HOME_WORD ->
+            inc-num-blocks! swap ~home-index !,
+        HOME_MAIN ->
+            drop2
+    ))
+
+field(Block.~cname, Block, Str)
+def(Block.cname, Block -- Str, dup ~cname memoize(
+    dup home match(
+        HOME_WORD -> Str("mb_" ; qname mangled ; "_" ; dup ~home-index @ show ;),
+        HOME_MAIN -> drop Str("mb_" ; dup index show ;),
+    )) nip)
+
 def(Block.new!, Arrow -- Block,
     Block.alloc!
     over home over ~home !
+    dup register-home!
     over ctx over ~ctx !
     over token-start over ~token !
     over dom over ~dom !
@@ -154,6 +178,7 @@ def(Block.new!, Arrow -- Block,
 def(Block.new-deferred!(f), (Block -- Arrow) Ctx Token Home -- Block,
     Block.alloc!
     tuck ~home !
+    dup register-home!
     tuck ~token !
     tuck ~ctx !
     MetaVar.new! STMeta over ~dom !
