@@ -51,7 +51,7 @@ def(Arguments.default, -- Arguments,
     NONE >output-file
     "main" SOME >entry-point
     L0 >packages
-    Arguments.Arguments)
+    Arguments)
 
 ||| Pretty print the contents of the arguments struct
 def(Arguments.show, Arguments -- Str,
@@ -156,35 +156,35 @@ def(main, +World -- +World,
         "OUTPUT_FILE" SOME >arg-doc
         "Test argument" SOME >doc
         NONE >group
-    ArgpOption.ArgpOption ;
+    ArgpOption ;
 
         "compile-only" SOME >name
         B'c' SHORT >flag-type
         NONE >arg-doc
         "Compile code without running codegen step" SOME >doc
         NONE >group
-    ArgpOption.ArgpOption ;
+    ArgpOption ;
 
         "entry-point" SOME >name
         B'e' SHORT >flag-type
         "ENTRY_POINT" SOME >arg-doc
         "Custom entry point word for compilation" SOME >doc
         NONE >group
-    ArgpOption.ArgpOption ;
+    ArgpOption ;
 
     "package" SOME >name
     B'p' SHORT >flag-type
     "(PACKAGE:PATH)*" SOME >arg-doc
     "Package locations" SOME >doc
     NONE >group
-    ArgpOption.ArgpOption ;
+    ArgpOption ;
 
         "debug" SOME >name
         "debug" LONG_ONLY >flag-type
         NONE >arg-doc
         "Emit debugging information during codegen" SOME >doc
         NONE >group
-    ArgpOption.ArgpOption ;
+    ArgpOption ;
     ) >options
     [ compiler-parse-args ] SOME >parser
     "input-file" SOME >args-doc
