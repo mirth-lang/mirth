@@ -35,8 +35,7 @@ def(Word.params, Word -- List(Var), ~params force!)
 def(Word.arrow, Word -- Arrow, ~arrow force!)
 
 def(Word.cname, Word -- Str, dup ~cname memoize(
-    Str("mw_" ; dup name mangled ; "_" ;
-        dup DEF_WORD def-index show ;)) nip)
+    Str("mw_" ; dup qname mangled ;)) nip)
 
 def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)

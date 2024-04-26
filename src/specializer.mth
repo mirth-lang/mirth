@@ -141,9 +141,9 @@ def(specialize-word!, SPKey Word -- Word,
         Word.new! \(w' ->
             k >key w' >value KVPAIR
             w sp-synthed insert w ~sp-synthed !
-            Str(w cname ; k /SPKEY
-                for("_" ; /ARG_BLOCK index show ;)
-            ) w' ~cname !
+            # Str(w cname ; k /SPKEY
+            #     for("_" ; /ARG_BLOCK index show ;)
+            # ) w' ~cname !
 
             k w delay2(
                 ctx-type specialize-ctx-type pack2

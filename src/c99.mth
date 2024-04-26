@@ -101,7 +101,6 @@ def(run-output-c99!, Arrow C99_Options +World -- +World,
         c99-end!
     ))
 
-field(Block.~cname, Block, Str)
 field(Tag.~word-cname, Tag, Str)
 field(Tag.~pat-cname, Tag, Str)
 field(Buffer.~cname, Buffer, Str)
@@ -110,20 +109,18 @@ field(Field.~cname, Field, Str)
 field(External.~cname, External, Str)
 field(Prim.~cname, Prim, Str)
 
-def(Block.cname, Block -- Str, dup ~cname memoize(
-    Str("mb_" ; dup index show ;)) nip)
 def(Tag.word-cname, Tag -- Str, dup ~word-cname memoize(
-    Str("mtw_" ; dup name mangled ; "_" ; dup DEF_TAG def-index show ;)) nip)
+    Str("mtw_" ; dup qname mangled ;)) nip)
 def(Tag.pat-cname, Tag -- Str, dup ~pat-cname memoize(
-    Str("mtp_" ; dup name mangled ; "_" ; dup DEF_TAG def-index show ;)) nip)
+    Str("mtp_" ; dup qname mangled ;)) nip)
 def(Buffer.cname, Buffer -- Str, dup ~cname memoize(
-    Str("mbuf_" ; dup name mangled ; "_" ; dup DEF_BUFFER def-index show ;)) nip)
+    Str("mbuf_" ; dup qname mangled ;)) nip)
 def(Variable.cname, Variable -- Str, dup ~cname memoize(
-    Str("mvar_" ; dup name mangled ; "_" ; dup DEF_VARIABLE def-index show ;)) nip)
+    Str("mvar_" ; dup qname mangled ;)) nip)
 def(Field.cname, Field -- Str, dup ~cname memoize(
-    Str("mfld_" ; dup name mangled ; "_" ; dup DEF_FIELD def-index show ;)) nip)
+    Str("mfld_" ; dup qname mangled ;)) nip)
 def(External.cname, External -- Str, dup ~cname memoize(
-    Str("mext_" ; dup name mangled ; "_" ; dup DEF_EXTERNAL def-index show ;)) nip)
+    Str("mext_" ; dup qname mangled ;)) nip)
 def(Prim.cname, Prim -- Str, dup ~cname memoize(
     Str("mp_" ; dup name mangled ;)) nip)
 
