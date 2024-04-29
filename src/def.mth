@@ -160,7 +160,7 @@ def(Def.qname, Def -- QName,
 def(Def.register, Def --,
     dup qname
     dup undefined? else("qualified name already has definition" panic!)
-    name ~defs modify(swap snoc))
+    name ~defs modify(Cons))
 
 def(Def.def-index, Def -- Nat,
     qname dup name defs filter(dup2 qname <=) len nip)

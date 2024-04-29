@@ -195,10 +195,7 @@ def(Block.to-run-var, Block -- Maybe(Var),
     arrow to-run-var)
 
 def(Arrow.to-run-var, Arrow -- Maybe(Var),
-    atoms match(
-        L1 -> to-run-var,
-        _ -> drop NONE
-    ))
+    atoms /L1 bind(to-run-var))
 
 def(Atom.to-run-var, Atom -- Maybe(Var),
     op match(

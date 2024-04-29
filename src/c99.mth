@@ -542,8 +542,9 @@ def(c99-string-byte!, Byte +C99 -- +C99,
 def(c99-prim!, List(Arg) Prim +C99 -- +C99,
     PRIM_CORE_ID -> drop,
     PRIM_CORE_DIP ->
-        match(
-            L1 ->
+        dup /L1 match(
+            SOME ->
+                nip
                 c99-line("{" put)
                 c99-nest(
                     c99-line("VAL d" put depth@ show put " = pop_value();" put)
@@ -551,13 +552,14 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                     c99-line("push_value(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
-            _ ->
+            NONE ->
                 PRIM_CORE_DIP c99-prim-default!
         ),
 
     PRIM_CORE_RDIP ->
-        match(
-            L1 ->
+        dup /L1 match(
+            SOME ->
+                nip
                 c99-line("{" put)
                 c99-nest(
                     c99-line("VAL d" put depth@ show put " = pop_resource();" put)
@@ -565,25 +567,27 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                     c99-line("push_resource(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
-            _ ->
+            NONE ->
                 PRIM_CORE_RDIP c99-prim-default!
         ),
 
     PRIM_CORE_IF ->
-        match(
-            L2 ->
+        dup /L2 match(
+            SOME ->
+                nip unpack2
                 c99-line("if (pop_u64()) {" put)
                 c99-nest(swap c99-arg-run!)
                 c99-line("} else {" put)
                 c99-nest(c99-arg-run!)
                 c99-line("}" put),
-            _ ->
+            NONE ->
                 PRIM_CORE_IF c99-prim-default!
         ),
 
     PRIM_CORE_WHILE ->
-        match(
-            L2 ->
+        dup /L2 match(
+            SOME ->
+                nip unpack2
                 c99-line("while(1) {" put)
                 c99-nest(
                     swap c99-arg-run!
@@ -592,7 +596,7 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                 )
                 c99-line("}" put),
 
-            _ ->
+            NONE ->
                 PRIM_CORE_WHILE c99-prim-default!
         ),
 
