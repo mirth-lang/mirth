@@ -940,7 +940,7 @@ def(elab-module!, Module +World -- Module +World,
 def(elab-module-package-name, Token -- Package Name,
     dup dname? unwrap-or("Expected module name. (1)" emit-fatal-error!) over args-0
     dup root? unwrap-or(drop "Expected module name. (2)" emit-fatal-error!)
-    swap parts match(L1+ -> , _ -> drop2 "Expected module name. (3)" emit-fatal-error!)
+    swap parts /L1+ unwrap-or(drop "Expected module name. (3)" emit-fatal-error!)
     dip(Package.find-or-new! nip))
 
 def(elab-module-qname, Token -- QName,
@@ -1632,10 +1632,8 @@ def(table-new!, Token QName -- Table,
 def(elab-qname-from-nonrelative-dname, Token DName Int -- QName,
     over root? unwrap-or(drop2 "relative name not allowed" emit-fatal-error!)
     dup could-be-type-or-resource-con if(
-        rotl parts match(
-            L1+ -> rotl elab-tycon-qname,
-            _ -> drop3 "type-qualified name has too many parts" emit-fatal-error!
-        ),
+        rotl parts /L1+ unwrap-or(drop2 "type-qualified name has too many parts" emit-fatal-error!)
+        rotl elab-tycon-qname,
         rotr dip(parts cons+) elab-absolute-qname
     ))
 
