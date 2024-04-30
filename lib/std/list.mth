@@ -242,11 +242,27 @@ def(Int.range, Int Int -- List(Int),
         dup x> Cons >x 1-
     ) drop2 x>)
 
-data(+List(t), +LIST -> List(t))
-def(-LIST, +List(t) -- List(t), +LIST -> id)
-||| Syntactic sugar abuse to add list literals
-def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), L0 +LIST f -LIST reverse)
-def(+List.;, *a t +List(t) -- *a +List(t), +LIST -> Cons +LIST)
+data(+List(t), +List -> List(t))
+data(+List+(t), +List+ -> List+(t))
+
+def(List.thaw, List(t) -- +List(t), reverse +List)
+def(+List.freeze!, +List(t) -- List(t), /+List reverse)
+def(+List.push!, +List(t) t -- +List(t), /+List Cons +List)
+def(+List.push+!, +List(t) t -- +List+(t), /+List cons+ +List+)
+def(+List.pop!, +List(t) -- +List(t) Maybe(t), /+List uncons +List)
+inline:def(+List.;, +List(t) t -- +List(t), +List.push!)
+inline:def(+List.;+, +List(t) t -- +List+(t), +List.push+!)
+
+def(List+.thaw, List+(t) -- +List+(t), reverse +List+)
+def(+List+.freeze!, +List+(t) -- List+(t), /+List+ reverse)
+def(+List+.push!, +List+(t) t -- +List+(t), /+List+ cons+ +List+)
+def(+List+.push+!, +List+(t) t -- +List+(t), /+List+ cons+ +List+)
+def(+List+.pop!, +List+(t) -- +List(t) t, /+List+ uncons +List)
+inline:def(+List+.;, +List+(t) t -- +List+(t), +List+.push!)
+inline:def(+List+.;+, +List+(t) t -- +List+(t), +List+.push+!)
+
+def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), L0 thaw f freeze!)
+def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), L0 thaw f freeze!)
 
 def(List.==(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool,
     both(>List+) ==(==(eq)))
