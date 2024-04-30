@@ -69,8 +69,8 @@ def(+Needs.run-need!, Need +Needs -- +Needs,
     NEED_TAGW -> drop,
     NEED_TAGP -> drop)
 
-def(+Needs.run-arg!, Arg +Needs -- +Needs,
-    ARG_BLOCK -> run-block!)
+def(+Needs.run-args!, List(Arg) +Needs -- +Needs, for(run-arg!))
+def(+Needs.run-arg!, Arg +Needs -- +Needs, ARG_BLOCK -> run-block!)
 def(+Needs.run-block!, Block +Needs -- +Needs, arrow run-arrow!)
 def(+Needs.run-word!, Word +Needs -- +Needs, arrow run-arrow!)
 def(+Needs.run-arrow!, Arrow +Needs -- +Needs, atoms for(run-atom!))
@@ -98,10 +98,10 @@ def(+Needs.run-op!, List(Arg) Op +Needs -- +Needs,
     OP_DATA_GET_LABEL -> drop3,
     OP_DATA_SET_LABEL -> drop3)
 def(+Needs.run-prim!, List(Arg) Prim +Needs -- +Needs,
-    PRIM_CORE_DIP -> match(L1 -> run-arg!, _ -> push-args!),
-    PRIM_CORE_RDIP -> match(L1 -> run-arg!, _ -> push-args!),
-    PRIM_CORE_IF -> match(L2 -> dip(run-arg!) run-arg!, _ -> push-args!),
-    PRIM_CORE_WHILE -> match(L2 -> dip(run-arg!) run-arg!, _ -> push-args!),
+    PRIM_CORE_DIP -> dup /L1 if(run-args!, push-args!),
+    PRIM_CORE_RDIP -> dup /L1 if(run-args!, push-args!),
+    PRIM_CORE_IF -> dup /L2 if(run-args!, push-args!),
+    PRIM_CORE_WHILE -> dup /L2 if(run-args!, push-args!),
     _ -> drop push-args!)
 def(+Needs.run-match!, Match +Needs -- +Needs, cases for(run-case!))
 def(+Needs.run-case!, Case +Needs -- +Needs, dup pattern run-pattern! body run-arrow!)

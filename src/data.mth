@@ -111,7 +111,7 @@ def(Data.num-tags, Data -- Nat, tags len)
 ||| Adds constructor to data type, and gives tag its rank.
 def(Data.add-tag!, Tag Data --,
     dup2 num-tags swap ~value !
-    dup tags rotr dip(snoc) ~tags !)
+    dup tags rotr dip(List.snoc) ~tags !)
 
 field(Data.~is-enum?, Data, Bool)
 def(Data.is-enum?, Data -- Bool,
@@ -124,9 +124,9 @@ def(Data.is-transparent?, Data -- Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
             F,
-            dup tags match(
-                L1 -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
-                _ -> drop F
+            dup tags /L1 match(
+                SOME -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
+                NONE -> F
             )
         )
     ) nip)

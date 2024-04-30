@@ -163,14 +163,14 @@ def(+Str.find, Str +Str -- Maybe(Offset) +Str,
     ) drop2)
 
 def(+Str.split-byte, Byte +Str -- List+(Str) +Str,
-    L0 0 >Offset dup while(
-        dup +Str.num-bytes? >Offset <,
-        over3 over +Str.byte@ == if(
-            tuck unsafe(+Str.offset-slice)
-            swap dip(snoc) 1+ dup,
+    LIST+( 0 >Offset dup while(
+        dup rdip(+Str.num-bytes?) >Offset <,
+        over2 over rdip(+Str.byte@) == if(
+            tuck rdip:unsafe(+Str.offset-slice)
+            ; 1+ dup,
             1+
         )
-    ) unsafe(+Str.offset-slice) snoc+ nip)
+    ) rdip:unsafe(+Str.offset-slice) ;+) nip)
 
 def(Str.split-byte, Byte Str -- List(Str),
     thaw +Str.split-byte freeze drop >List)

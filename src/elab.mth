@@ -200,9 +200,11 @@ def(resolve-def(f), (*a +ResolveDef -- *b +ResolveDef) *a
     RESOLVE_DEF
     f
     candidates match(
-        L1 -> rdrop SOME,
-        L0 -> resolve-def-unknown NONE,
-        _ -> drop resolve-def-ambiguous NONE,
+        Nil -> resolve-def-unknown NONE,
+        Cons -> match(
+            Nil -> rdrop SOME,
+            Cons -> drop3 resolve-def-ambiguous NONE
+        )
     ))
 
 def(+ResolveDef.rdrop, +ResolveDef --,
@@ -225,46 +227,49 @@ def(+ResolveDef.resolve-def-ambiguous, +ResolveDef --,
     ) rdrop)
 def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
     token Str(rdip:rejected match(
-        L0 -> "Unknown " ; rdip:sort ; " name, possibly a misspelling." ;,
-        L1 -> match(
-            RD_WRONG_SORT ->
-                "Expected a " ; rdip:sort ; ", but " ;
-                qname >Str ; " is not a " ; rdip:sort ; "." ; ,
-            RD_NOT_VISIBLE ->
-                "Not visible in current scope: " ; qname >Str ; ,
-            RD_NOT_IMPORTED ->
-                "Not imported in current scope: " ; qname >Str ; ,
-            RD_WRONG_ARITY ->
-                qname dup >Str ; " expects " ; arity show ;
-                " arguments, but got " ; rdip:token num-args show ; "." ; ,
-            RD_WRONG_QUALIFIER ->
-                "Qualified name not found. Perhaps you meant: " ; qname >Str ; ,
-            RD_WRONG_CONSTRUCTOR ->
-                "Constructor is for a different type: " ; qname >Str ; ,
-            RD_METHOD_WRONG_TYPE ->
-                "Method is for a different type: " ; qname >Str ; ,
-            RD_METHOD_NOT_AVAILABLE ->
-                "Method is not available for current stack: " ; qname >Str ; ,
-        ),
-        _ -> "Multiple definitions for name, but none are suitable:" ;
-            dip:" " for(swap ; match(
-                RD_WRONG_SORT -> qname >Str ; " is not a " ; rdip:sort ; ,
-                RD_NOT_VISIBLE ->
-                    qname >Str ; " is not visible in current scope" ; ,
-                RD_NOT_IMPORTED ->
-                    qname >Str ; " is not imported in current scope" ; ,
-                RD_WRONG_ARITY ->
-                    qname dup >Str ; " expects " ;
-                    arity show ; " arguments" ; ,
-                RD_WRONG_QUALIFIER ->
-                    qname >Str ; " doesn't match the given qualified name" ; ,
-                RD_WRONG_CONSTRUCTOR ->
-                    qname >Str ; " is constructor for a different type" ; ,
-                RD_METHOD_WRONG_TYPE ->
-                    qname >Str ; " is method for a different type" ; ,
-                RD_METHOD_NOT_AVAILABLE ->
-                    qname >Str ; " is not avaliable for current stack" ; ,
-            ) ", ") drop
+        Nil -> "Unknown " ; rdip:sort ; " name, possibly a misspelling." ;,
+        Cons ->
+            match(
+                Nil -> match(
+                    RD_WRONG_SORT ->
+                        "Expected a " ; rdip:sort ; ", but " ;
+                        qname >Str ; " is not a " ; rdip:sort ; "." ; ,
+                    RD_NOT_VISIBLE ->
+                        "Not visible in current scope: " ; qname >Str ; ,
+                    RD_NOT_IMPORTED ->
+                        "Not imported in current scope: " ; qname >Str ; ,
+                    RD_WRONG_ARITY ->
+                        qname dup >Str ; " expects " ; arity show ;
+                        " arguments, but got " ; rdip:token num-args show ; "." ; ,
+                    RD_WRONG_QUALIFIER ->
+                        "Qualified name not found. Perhaps you meant: " ; qname >Str ; ,
+                    RD_WRONG_CONSTRUCTOR ->
+                        "Constructor is for a different type: " ; qname >Str ; ,
+                    RD_METHOD_WRONG_TYPE ->
+                        "Method is for a different type: " ; qname >Str ; ,
+                    RD_METHOD_NOT_AVAILABLE ->
+                        "Method is not available for current stack: " ; qname >Str ; ,
+                ),
+                _ -> Cons "Multiple definitions for name, but none are suitable:" ;
+                    dip:" " for(swap ; match(
+                        RD_WRONG_SORT -> qname >Str ; " is not a " ; rdip:sort ; ,
+                        RD_NOT_VISIBLE ->
+                            qname >Str ; " is not visible in current scope" ; ,
+                        RD_NOT_IMPORTED ->
+                            qname >Str ; " is not imported in current scope" ; ,
+                        RD_WRONG_ARITY ->
+                            qname dup >Str ; " expects " ;
+                            arity show ; " arguments" ; ,
+                        RD_WRONG_QUALIFIER ->
+                            qname >Str ; " doesn't match the given qualified name" ; ,
+                        RD_WRONG_CONSTRUCTOR ->
+                            qname >Str ; " is constructor for a different type" ; ,
+                        RD_METHOD_WRONG_TYPE ->
+                            qname >Str ; " is method for a different type" ; ,
+                        RD_METHOD_NOT_AVAILABLE ->
+                            qname >Str ; " is not avaliable for current stack" ; ,
+                    ) ", ") drop
+            )
     )) emit-error! rdrop)
 
 def(+ResolveDef.filter-sort(p),
@@ -488,7 +493,7 @@ def(ab-atom!, Atom +AB -- +AB,
 def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
     while(dip?(atoms-has-last-block?) and(atom-accepts-args?),
         swap atoms-turn-last-block-to-arg swap)
-    snoc)
+    List.snoc)
 
 def(atom-accepts-args?, Atom -- Atom Bool,
     dup op match(
@@ -525,7 +530,7 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
                     { List(Atom) Atom Block }
                     ARG_BLOCK swap args:cons
                     swap,
-                _ -> drop snoc
+                _ -> drop List.snoc
             )
     ))
 
@@ -940,7 +945,7 @@ def(elab-module!, Module +World -- Module +World,
 def(elab-module-package-name, Token -- Package Name,
     dup dname? unwrap-or("Expected module name. (1)" emit-fatal-error!) over args-0
     dup root? unwrap-or(drop "Expected module name. (2)" emit-fatal-error!)
-    swap parts match(L1+ -> , _ -> drop2 "Expected module name. (3)" emit-fatal-error!)
+    swap parts /L1+ unwrap-or(drop "Expected module name. (3)" emit-fatal-error!)
     dip(Package.find-or-new! nip))
 
 def(elab-module-qname, Token -- QName,
@@ -1110,8 +1115,8 @@ def(elab-data-done!, Data --,
             ),
         )
 
-        dat tags match(
-            L1 -> \(tag ->
+        dat tags /L1 match(
+            SOME -> \(tag ->
                 dat "/" tag name >Str cat 0 data-word-new! \(untag ->
                     tag delay(ctx-type unpack swap T-> pack2) untag ~ctx-type !
                     untag delay(ab-build-word-arrow!(
@@ -1126,7 +1131,7 @@ def(elab-data-done!, Data --,
                     tag create-projectors!
                 )
             ),
-            _ -> drop
+            NONE -> id
         )
     ))
 
@@ -1242,9 +1247,11 @@ def(elab-alias!, Token -- Token,
         unpack2 match(
             LEFT ->
                 defs filter(dup2 def-visible-from-token?) match(
-                    L0 -> "unknown alias target" emit-fatal-error!,
-                    L1 -> ,
-                    _ -> map(qname) elab-ambiguous-name-error!
+                    Nil -> "unknown alias target" emit-fatal-error!,
+                    Cons -> match(
+                        Nil -> id,
+                        _ -> Cons map(qname) elab-ambiguous-name-error!
+                    )
                 ),
             RIGHT ->
                 dip(dup) aliasqname arity elab-qname-from-nonrelative-dname
@@ -1285,7 +1292,7 @@ def(elab-inline!, Token +World -- Token +World,
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(next) token-def-args
-    uncons is-empty or(dup run-arrow? >Bool) else("expected match case" emit-fatal-error!) >body
+    uncons empty? or(dup run-arrow? >Bool) else("expected match case" emit-fatal-error!) >body
     SOME >sig
     dup >head
     dup num-args >arity
@@ -1304,7 +1311,7 @@ def(elab-def!, Token -- Token,
     dup delay(elab-def-params!) over ~params !
     dup delay(
         dup dup ab-build-word-arrow!(
-            swap params dup is-empty if(
+            swap params dup empty? if(
                 drop elab-def-body!,
                 ab-lambda!(elab-def-body!)
             )
@@ -1632,10 +1639,8 @@ def(table-new!, Token QName -- Table,
 def(elab-qname-from-nonrelative-dname, Token DName Int -- QName,
     over root? unwrap-or(drop2 "relative name not allowed" emit-fatal-error!)
     dup could-be-type-or-resource-con if(
-        rotl parts match(
-            L1+ -> rotl elab-tycon-qname,
-            _ -> drop3 "type-qualified name has too many parts" emit-fatal-error!
-        ),
+        rotl parts /L1+ unwrap-or(drop2 "type-qualified name has too many parts" emit-fatal-error!)
+        rotl elab-tycon-qname,
         rotr dip(parts cons+) elab-absolute-qname
     ))
 

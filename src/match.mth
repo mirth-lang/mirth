@@ -69,7 +69,7 @@ def(Match.is-transparent?, Match -- Bool,
 def(+Match.add-case, Case +Match -- +Match,
     dup case-redundant? if(
         pattern token-start "Case is unreachable." emit-error!,
-        cases(swap snoc)
+        cases(swap List.snoc)
     ))
 
 def(+Match.case-redundant?, Case +Match -- Bool +Match,

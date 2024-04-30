@@ -625,12 +625,15 @@ def(StackType.unit?, StackType -- Bool,
 
 ||| Split stack type into base, types, and resources.
 def(StackType.split4, StackType -- StackType List([Type Label]) List(Type) List(Resource),
-    expand match(
-        STCons -> dip(split4) swap dip(snoc),
-        STWith -> dip(split4) snoc,
-        STConsLabel -> pack2 dip(split4) rotr dip2(snoc),
-        _ -> L0 L0 L0
-    ))
+    L0 L0 L0 >labels >withses >conses
+    while(
+        expand match(
+            STCons -> conses> Cons >conses T,
+            STWith -> withses> Cons >withses T,
+            STConsLabel -> pack2 labels> Cons >labels T,
+            _ -> F
+        ), id
+    ) labels> conses> withses>)
 
 ||| Get bottom of stack.
 def(StackType.base, StackType -- StackType, split4 drop3)
