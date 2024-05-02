@@ -3,6 +3,7 @@ module(std.list)
 import(std.prelude)
 import(std.maybe)
 import(std.either)
+import(std.str)
 
 data(List(t),
     Nil,
@@ -235,18 +236,40 @@ def(collect(f), (*a -- *a Maybe(b)) *a -- *a List(b),
 def(collect-while(f,g), (*a -- *a Bool, *a -- *a b) *a -- *a List(b),
     LIST(while(rdip(f), rdip(g) ;)))
 
-||| Count up, inclusive at both ends.
 def(Int.range, Int Int -- List(Int),
-    L0 >x while(
-        dup2 <=,
-        dup x> Cons >x 1-
-    ) drop2 x>)
+    ||| Count up, inclusive at both ends.
+    collect-while(dup2 <=, over dip2:1+) dip:drop2)
+
+def(Int.to(f), (*a -- *a Int) *a Int -- *a List(Int),
+    ||| Count up, inclusive at both ends.
+    ||| Same as [Int.range] but takes the lower bound from the stack,
+    ||| and the upper bound from the parameter `f`.
+    |||
+    |||     1 to: -1 => ( L0 )
+    |||     1 to: 0 => ( L0 )
+    |||     1 to: 1 => ( 1 L1 )
+    |||     1 to: 2 => ( 1 2 L2 )
+    |||     1 to: 3 => ( 1 2 3 L3 )
+    |||     1 to: 4 => ( 1 2 3 4 L4 )
+    dip(f) swap range)
+
+def(Int.from(f), (*a -- *a Int) *a Int -- *a List(Int),
+    ||| Count up, inclusive at both ends.
+    ||| Same as [Int.range] but takes the upper bound from the stack,
+    ||| and the lower bound from the parameter `f`.
+    |||
+    |||     0 from: 1 => ( L0 )
+    |||     1 from: 1 => ( 1 L1 )
+    |||     2 from: 1 => ( 1 2 L2 )
+    |||     3 from: 1 => ( 1 2 3 L3 )
+    |||     4 from: 1 => ( 1 2 3 4 L4 )
+    dip(f) range)
 
 data(+List(t), +List -> List(t))
 data(+List+(t), +List+ -> List+(t))
 
 def(List.thaw, List(t) -- +List(t), reverse +List)
-def(+List.freeze!, +List(t) -- List(t), /+List reverse)
+def(+List.freeze, +List(t) -- List(t), /+List reverse)
 def(+List.push!, +List(t) t -- +List(t), /+List Cons +List)
 def(+List.push+!, +List(t) t -- +List+(t), /+List cons+ +List+)
 def(+List.pop!, +List(t) -- +List(t) Maybe(t), /+List uncons +List)
@@ -254,15 +277,13 @@ inline:def(+List.;, +List(t) t -- +List(t), +List.push!)
 inline:def(+List.;+, +List(t) t -- +List+(t), +List.push+!)
 
 def(List+.thaw, List+(t) -- +List+(t), reverse +List+)
-def(+List+.freeze!, +List+(t) -- List+(t), /+List+ reverse)
+def(+List+.freeze, +List+(t) -- List+(t), /+List+ reverse)
 def(+List+.push!, +List+(t) t -- +List+(t), /+List+ cons+ +List+)
-def(+List+.push+!, +List+(t) t -- +List+(t), /+List+ cons+ +List+)
 def(+List+.pop!, +List+(t) -- +List(t) t, /+List+ uncons +List)
 inline:def(+List+.;, +List+(t) t -- +List+(t), +List+.push!)
-inline:def(+List+.;+, +List+(t) t -- +List+(t), +List+.push+!)
 
-def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), L0 thaw f freeze!)
-def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), L0 thaw f freeze!)
+def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), L0 thaw f freeze)
+def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), L0 thaw f freeze)
 
 def(List.==(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool,
     both(>List+) ==(==(eq)))
@@ -284,28 +305,20 @@ def(List.difference(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
     swap filter(dup2 dip2(swap member(eq) not) rotl) nip)
 
 def(List.union(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
-    over dip(swap difference(eq)) cat)
+    over dip(swap difference(eq)) swap cat)
 
 def(List.unions(eq), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
     fold(union(eq)) unwrap-or(L0))
 
-def(List.uncons?, List(x) -- Maybe(x) List(x),
-    dup >List+ match(
-        NONE -> NONE swap,
-        SOME -> nip uncons dip:SOME
-    ))
-
 def(List.map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
-    collect(uncons? dip(dip:uncons? swap dip:map2:f) rotl) dip:drop2)
+    collect(uncons dip(dip:uncons swap dip:map2:f) rotl) dip:drop2)
 def(List+.map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
     dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons+)
 
 def(List.take-while(p), (*a t -- *a t Bool) *a List(t) -- *a List(t),
-    dip:T filter(swap dip:p && tuck) nip)
-    # TODO implement short-circuiting version of this.
-    # Try to avoid allocating new sublists unless needed.
-    #  https://github.com/mirth-lang/mirth/issues/242
-
+    collect(uncons dip:guard(p) swap) nip)
+def(List+.take-while(p), (*a t -- *a t Bool) *a List+(t) -- *a List(t),
+    >List take-while(p))
 
 def(List.partition-either(p), (*a t -- *a Either(t1,t2))
         *a List(t) -- *a List(t1) List(t2),
@@ -324,3 +337,8 @@ def(List.partition(p), (*a t -- *a t Bool) *a List(t) -- *a List(t) List(t),
     partition-either(p if(LEFT, RIGHT)))
 def(List+.partition(p), (*a t -- *a t Bool) *a List+(t) -- *a List(t) List(t),
     partition-either(p if(LEFT, RIGHT)))
+
+def(List.show(f), (t -- Str) List(t) -- Str,
+    Str("LIST( " ; for(f ; " ; " ;) ")" ;))
+def(List+.show(f), (t -- Str) List+(t) -- Str,
+    Str("LIST+( " ; unsnoc dip:for(f ; " ; " ;) f ; " ;+ )" ;))

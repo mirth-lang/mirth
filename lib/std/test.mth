@@ -1,0 +1,181 @@
+module(std.test)
+||| Unit testing harness. This library defines the [+Tests] and [+Test] resources,
+||| which are used to build unit tests & help locate failures. To write tests,
+||| follow this example:
+|||
+|||     def(main, +World -- +World,
+|||         +Tests.start!
+|||         "addition" test (
+|||             10 20 + => ( 30 )
+|||             2 2 + => ( 4 )
+|||         )
+|||         "subtraction" test (
+|||             10 20 - => ( -10 )
+|||             2 2 - => ( 0 )
+|||         )
+|||         "swap" test (
+|||             10 20 swap
+|||                 => ( 10 )
+|||                 => ( 20 )
+|||         )
+|||         +Tests.end!
+|||     )
+|||
+||| Here's a breakdown:
+|||
+||| 1. Use [+Tests.start!] and [+Tests.end!] to delimit your tests.
+|||    A summary will be printed, like "9 tests passed" or "1 of 9 tests failed".
+|||    If any tests failed, the program will exit, with exit code 1.
+|||
+||| 2. Use [+Tests.test] to define a test, e.g. `"name" test(...)".
+|||    The "name" is just a string name that will be useful to locate the
+|||    test if it fails. The body `...` of the test has type signature
+|||    `+Test -- +Test`. You can access the world by using the `world(f)` lens,
+|||    e.g. `world(put line)`.
+|||
+||| 3. Within a test, use `=>(f)` to pop a value off the stack and test it.
+|||    If the value is different from what is expected, the test has failed
+|||    and a message will be printed, like "expected 1, got 0".
+|||    Note that the test will continue running even after it fails.
+|||
+||| If there are multiple values to test on the stack, you can use `=>`
+||| several times, popping one value off each time. For example:
+|||
+|||     1 2 3
+|||         => ( 3 )
+|||         => ( 2 )
+|||         => ( 1 )
+|||
+||| Note how the values are tested in reverse order.
+
+import(std.prelude)
+import(std.list)
+import(std.posix)
+import(std.str)
+import(std.maybe)
+import(std.byte)
+
+data(+Tests, +Tests ->
+    ||| The testing harness.
+    ||| Construct it with [+Tests.start!].
+    ||| Run a test with [+Tests.test(f)].
+    ||| Destruct it with [+Tests.end!].
+    num-tests: Nat   ||| Number of tests so far.
+    num-failed: Nat  ||| Number of tests failed so far.
+    +World           ||| The world; access with [+Tests.world(f)].
+    )
+
+def(+Tests.world(f), (*a +World -- *b +World) *a +Tests -- *b +Tests,
+    ||| Access the [+World] resource inside [+Tests].
+    +Tests -> num-tests> num-failed> dip2(f) >num-failed >num-tests +Tests)
+
+def(+Tests.start!, +World -- +Tests,
+    ||| Construct the [+Tests] resource, begin the unit tests.
+    0 >Nat >num-tests
+    0 >Nat >num-failed
+    +Tests)
+def(+Tests.end!, +Tests -- +World,
+    ||| End the unit tests and destruct the [+Tests] resource.
+    ||| This word prints out a summary, e.g. "1 out of 9 tests failed."
+    ||| or "9 tests passed." If any of the tests failed, this word
+    ||| exits the program with exit code 1.
+    num-failed 0> if(
+        num-failed show " out of " cat
+        num-tests show cat " tests failed." cat
+        world(put line 1 prim-posix-exit),
+
+        num-tests show " tests passed." cat
+        world(put line)
+    )
+    /+Tests
+    num-tests> num-failed> drop2)
+
+def(+Tests.test(f), (+Test -- +Test) Str +Tests -- +Tests,
+    ||| Run a test. You pass the test name on the stack, and
+    ||| the body of the test as a parameter. For instance,
+    |||
+    |||     "my test" test (
+    |||         1 1 + => (2)
+    |||         2 2 + => (4)
+    |||     )
+    |||
+    ||| Note the test name `"my test"` is only shown if the test fails.
+    ||| As demonstrated here, you can run multiple checks within a test.
+    >test-name
+    F >test-failed
+    +Test
+    f
+    /+Test
+    test-name> drop
+    test-failed> then(num-failed:1+)
+    num-tests: 1+)
+
+data(+Test, +Test ->
+    ||| A single test within the broader [+Tests] resource.
+    ||| You can use [Int.=>], [Str.=>], & co within the test, to make a check.
+    ||| You can use the [+Test.world] lens to access the world.
+    test-name: Str      ||| Name of this test.
+    test-failed: Bool   ||| Did this test fail?
+    +Tests              ||| The test harness, access it with [+Test.tests].
+    )
+
+def(+Test.tests(f), (*a +Tests -- *b +Tests) *a +Test -- *b +Test,
+    ||| Access the [+Tests] resource within [+Test].
+    +Test -> test-name> test-failed> dip2(f) >test-failed >test-name +Test)
+
+def(+Test.world(f), (*a +World -- *b +World) *a +Test -- *b +Test,
+    ||| Access the [+World] resource within [+Test], via [+Tests].
+    tests:world(f))
+
+def(+Test.fail!, +Test -- +Test,
+    ||| Declare that the test has failed.
+    ||| Output `"<test name> test failed"` and set the [+Test.test-failed] flag.
+    ||| If the test already failed before, do nothing instead.
+    test-failed else(
+        T test-failed!
+        test-name show " test failed" cat world(put line)
+    ))
+def(+Test.check-equals!(feq,fshow), (a a -- Bool, a -- Str) a a +Test -- +Test,
+    ||| Check two values for equality. If they're equal, do nothing.
+    ||| If they're different, mark the test as failed (see [fail!])
+    ||| and print the values.
+    |||
+    ||| We generally prefer to use `=>` instead of this verb directly,
+    ||| see [Int.=>], [Str.=>], [Bool.=>], and so on.
+    dup2 feq if(
+        drop2,
+        fail!
+        world("  expected: " put fshow put line
+              "       got: " put fshow put line)
+    ))
+
+||| The lack of ad hoc polymorphism really hurts us here; we can't define
+||| `=>` generically until we have a way to invoke `==` and `show` generically.
+|||
+||| Instead, we define a bunch of useful cases and use suffixes to
+||| distinguish them (e.g. [Maybe.=>] vs [Maybe.=>+] vs [Maybe.=>*]).
+
+def(Int.=>(f), (-- Int) Int +Test -- +Test,
+    f check-equals!(==, show))
+def(Nat.=>(f), (-- Int) Nat +Test -- +Test,
+    f >Nat check-equals!(==, show))
+def(Bool.=>(f), (-- Bool) Bool +Test -- +Test,
+    f check-equals!(==, show))
+def(Str.=>(f), (-- Str) Str +Test -- +Test,
+    f check-equals!(==, show))
+def(Maybe.=>(f), (-- Maybe(Int)) Maybe(Int) +Test -- +Test,
+    f check-equals!(==:==, show:show))
+def(Maybe.=>s(f), (-- Maybe(Str)) Maybe(Str) +Test -- +Test,
+    f check-equals!(==:==, show:show))
+def(Maybe.=>2(f), (-- Maybe([Int Int])) Maybe([Int Int]) +Test -- +Test,
+    f check-equals!(==:pack2==(==,==), show:pack2-show(show,show)))
+def(Maybe.=>3(f), (-- Maybe([Int Int Int])) Maybe([Int Int Int]) +Test -- +Test,
+    f check-equals!(==:pack3==(==,==,==), show:pack3-show(show,show,show)))
+def(Maybe.=>*(f), (-- Maybe(List(Int))) Maybe(List(Int)) +Test -- +Test,
+    f check-equals!(==:==:==, show:show:show))
+def(Maybe.=>+(f), (-- Maybe(List+(Int))) Maybe(List+(Int)) +Test -- +Test,
+    f check-equals!(==:==:==, show:show:show))
+def(List.=>(f), (-- List(Int)) List(Int) +Test -- +Test,
+    f check-equals!(==:==, show:show))
+def(List+.=>(f), (-- List+(Int)) List+(Int) +Test -- +Test,
+    f check-equals!(==:==, show:show))

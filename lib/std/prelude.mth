@@ -1,6 +1,7 @@
 module(std.prelude)
 
 import(std.maybe)
+import(std.str)
 
 ############################################
 # not re-exported because of optimisations #
@@ -45,6 +46,8 @@ def(Bool.||, Bool Bool -- Bool, T -> drop T, F -> id)
 def(Bool.not, Bool -- Bool, T -> F, F -> T)
 def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
 def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
+def(Bool.==, Bool Bool -- Bool, if(id, not))
+def(Bool.show, Bool -- Str, if("T", "F"))
 
 alias(Bool.if(f,g), prim-if)
 def(Bool.then(f), (*a -- *a) *a Bool -- *a, T -> f, F -> id)
@@ -154,7 +157,52 @@ inline(
         dup2 dip(dip(f)))
 
     def(both(f), (a -- b) a a -- b b, dip(f) f)
-    def(both2(f), (a1 a2 -- b) a1 a2 a1 a2 -- b b, dip2(f) f)
+
+    def(on2(f,g),
+            (*a x1 -- *b x2,
+             *b y1 -- *c y2)
+            *a x1 y1 -- *c x2 y2,
+        dip(f) dip'(g))
+    def(on3(f,g,h),
+            (*a x1 -- *b x2,
+             *b y1 -- *c y2,
+             *c z1 -- *d z2)
+            *a x1 y1 z1 -- *d x2 y2 z2,
+        dip:on2(f,g) dip':dip'(h))
+    def(on4(f,g,h,i),
+            (*a x1 -- *b x2,
+             *b y1 -- *c y2,
+             *c z1 -- *d z2,
+             *d w1 -- *e w2)
+            *a x1 y1 z1 w1 -- *e x2 y2 z2 w2,
+        dip:on3(f,g,h) dip':dip':dip'(i))
+
+    def(on2(f), (*a x -- *a y) *a x x -- *a y y, on2(f,f))
+    def(on3(f), (*a x -- *a y) *a x x x -- *a y y y, on3(f,f,f))
+    def(on4(f), (*a x -- *a y) *a x x x x -- *a y y y y, on4(f,f,f,f))
+
+    def(at2(f,g),
+            (*a x1 -- *b,
+             *b y1 -- *c)
+            *a x1 y1 -- *c,
+        dip(f) g)
+    def(at3(f,g,h),
+            (*a x1 -- *b,
+             *b y1 -- *c,
+             *c z1 -- *d)
+            *a x1 y1 z1 -- *d,
+        dip:at2(f,g) h)
+    def(at4(f,g,h,i),
+            (*a x1 -- *b,
+             *b y1 -- *c,
+             *c z1 -- *d,
+             *d w1 -- *e)
+            *a x1 y1 z1 w1 -- *e,
+        dip:at3(f,g,h) i)
+
+    def(at2(f), (*a x -- *a) *a x x -- *a, at2(f,f))
+    def(at3(f), (*a x -- *a) *a x x x -- *a, at3(f,f,f))
+    def(at4(f), (*a x -- *a) *a x x x x -- *a, at4(f,f,f,f))
 
     def(drop2, a b --, drop drop)
     def(drop3, a b c --, drop drop drop)
@@ -212,6 +260,7 @@ inline(
 def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
 def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
 def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
+def(Int.show, Int -- Str, prim-int-to-str)
 
 inline(
     def(Str.compare, Str Str -- Comparison, prim-str-cmp COMPARISON)
@@ -402,6 +451,7 @@ inline (
     def(Nat.0=, Nat -- Bool, >Int 0=)
     def(Nat.max, Nat Nat -- Nat, both(>Int) max >Nat-unsafe)
     def(Nat.min, Nat Nat -- Nat, both(>Int) min >Nat-unsafe)
+    def(Nat.show, Nat -- Str, >Int show)
 )
 
 data(Size, SIZE -> Nat)
@@ -424,6 +474,7 @@ inline(
     def(Size.<>, Size Size -- Bool, both(>Nat) <>)
     def(Size.0=, Size -- Bool, >Nat 0=)
     def(Size.0>, Size -- Bool, >Nat 0>)
+    def(Size.show, Size -- Str, >Int show)
 )
 def(Size.max, Size Size -- Size, dup2 >= if(drop, nip))
 def(Size.min, Size Size -- Size, dup2 <= if(drop, nip))
@@ -449,6 +500,7 @@ inline(
     def(Offset.0=, Offset -- Bool, >Int 0=)
     def(Offset.0<, Offset -- Bool, >Int 0<)
     def(Offset.0>, Offset -- Bool, >Int 0>)
+    def(Offset.show, Offset -- Str, >Int show)
 )
 def(Offset.max, Offset Offset -- Offset, dup2 >= if(drop, nip))
 def(Offset.min, Offset Offset -- Offset, dup2 <= if(drop, nip))
@@ -473,6 +525,24 @@ def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
 def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
 def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
 def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+
+def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
+    dip:pack-uncons pack-uncons dip:swap
+    dip2:aeq rotl if(beq, drop2 F))
+
+def(pack0==, [] [] -- Bool, drop2 F)
+def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
+    on2:unpack1 aeq)
+def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
+    pack-cons==(pack1==(aeq), beq))
+def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
+        [a b c] [a b c] -- Bool,
+    pack-cons==(pack2==(aeq,beq), ceq))
+
+def(pack2-show(f,g), (a -- Str, b -- Str) [a b] -- Str,
+    Str(unpack2 dip(f ; " " ;) g ; " pack2" ;))
+def(pack3-show(f,g,h), (a -- Str, b -- Str, c -- Str) [a b c] -- Str,
+    Str(unpack3 dip(dip(f ; " " ;) g ; " " ;) h ; " pack3" ;))
 
 alias(@, prim-mut-get)
 alias(!, prim-mut-set)

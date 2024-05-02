@@ -66,7 +66,7 @@ def(print-usage-for-option, +ArgumentParser(a) ArgpOption -- +ArgumentParser(a),
 
   dup doc then-some(
     col-offset> dup >col-offset state longest-arg-length dup2 < if(
-      swap - 0 swap range for(drop " " print!),
+      swap - from: 0 for(drop " " print!),
       drop2
     )
     "    " print! print!
