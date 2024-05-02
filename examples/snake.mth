@@ -158,9 +158,7 @@ def(+SnakePlatform.init!, +World -- +World +SnakePlatform,
     create-renderer! unwrap!
 
     rdip2(
-        0 num-joysticks range
-        find(dup is-game-controller)
-        match(
+        0 to: num-joysticks find(dup is-game-controller) match(
             SOME -> game-controller-open! unwrap! +SDL_GameController?.OK!,
             NONE -> "no controller detected" +SDL_GameController?.ERROR!
         )

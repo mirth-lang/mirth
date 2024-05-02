@@ -80,11 +80,6 @@ def(+Str.push-str!, Str +Str -- +Str,
 def(Str.with-data(f), (*a Ptr Size -- *b) *a Str -- *b,
     dup dip(dup dip(prim-str-base) num-bytes f) drop)
 
-def(Int.show, Int -- Str, prim-int-to-str)
-def(Nat.show, Nat -- Str, >Int show)
-def(Size.show, Size -- Str, >Int show)
-def(Offset.show, Offset -- Str, >Int show)
-
 ||| Traverse string bytes.
 def(Str.bytes-for(f), (*a Byte -- *a) *a Str -- *a,
     with-data(>Nat repeat(
@@ -174,3 +169,17 @@ def(+Str.split-byte, Byte +Str -- List+(Str) +Str,
 
 def(Str.split-byte, Byte Str -- List(Str),
     thaw +Str.split-byte freeze drop >List)
+
+def(+Str.push-show-byte!, +Str Byte -- +Str,
+    BQUOTE -> "\\\"" ;, B'\' -> "\\\\" ;,
+    BLF -> "\n" ;, BCR -> "\r" ;, BHT -> "\t" ;,
+    _ ->
+        dup BSPACE B'~' in-range if(
+            push-byte-ascii!,
+            "\\x" ; to-hexdigits
+            at2:push-byte-ascii!
+        )
+    )
+
+def(Str.show, Str -- Str,
+    Str("\"" ; bytes-for(push-show-byte!) "\"" ;))

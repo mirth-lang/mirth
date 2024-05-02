@@ -1459,7 +1459,7 @@ def(typecheck-everything!, --,
 # TABLE #
 #########
 
-def(TABLE_MAX_COUNT, Nat, 0x20000 >Nat)
+def(TABLE_MAX_COUNT, Nat, 0x80000 >Nat)
 
 def(table-qname, Table Str Int -- QName,
     >arity >Name >name TYCON_TABLE NAMESPACE_TYCON >namespace MKQNAME)

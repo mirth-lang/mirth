@@ -14,6 +14,7 @@ import(arg-parser.state)
 
 import(std.posix)
 import(std.file)
+import(std.test)
 
 import(mirth.package)
 import(mirth.error)

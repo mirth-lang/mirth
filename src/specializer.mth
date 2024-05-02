@@ -29,7 +29,7 @@ data(+SPCheck, SPCHECK -> checklist:List(SPCheckItem))
 def(+SPCheck.begin!, -- +SPCheck, L0 >checklist SPCHECK)
 def(+SPCheck.end!, +SPCheck --, SPCHECK -> checklist> drop)
 def(+SPCheck.loop!, +SPCheck -- +SPCheck,
-    while-some(checklist:uncons?, do-item-check!))
+    while-some(checklist:uncons, do-item-check!))
 
 data(SPCheckItem,
     SPCHECK_WORD -> Word,
@@ -72,11 +72,13 @@ def(+SPCheck.check-arg!, Arg +SPCheck -- +SPCheck,
 def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
     drop dup args for(check-arg!) L1)
 def(+SPCheck.check-word-atom!, Atom Word +SPCheck -- List(Atom) +SPCheck,
+    dup push-check-word!
     over args >List+ match(
-        NONE -> push-check-word! L1,
+        NONE -> drop L1,
         SOME ->
             dup for(check-arg!)
-            dup map(free-vars) any(dup any(dup is-physical?)) if(
+            over prefer-inline? not or(
+            dup map(free-vars) any(dup any(dup is-physical?))) if(
                 # too complicated, let's skip it
                 drop2 L1,
 

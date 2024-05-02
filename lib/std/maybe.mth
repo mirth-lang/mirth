@@ -2,6 +2,7 @@ module(std.maybe)
 
 import(std.prelude)
 import(std.list)
+import(std.str)
 
 data(Maybe(t), NONE, SOME -> t)
 
@@ -83,3 +84,7 @@ def(Maybe.map2(f), (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z),
     ))
 
 def(Maybe.zip, Maybe(x) Maybe(y) -- Maybe([x y]), map2(pack2))
+
+def(Maybe.show(f), (t -- Str) Maybe(t) -- Str,
+    NONE -> "NONE",
+    SOME -> f " SOME" cat)
