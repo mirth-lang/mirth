@@ -10,37 +10,30 @@ import(arg-parser.state)
 
 import(std.terminal)
 
-data(ArgumentParser(a),
-  ArgumentParser ->
+data(ArgumentParser(a), ArgumentParser ->
     options:List(ArgpOption)
     parser:Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ])
     args-doc:Maybe(Str)
     doc:Str)
 
-data(+ArgumentParser(a), +ARGUMENTPARSER -> argument-parser:ArgumentParser(a) state:State(a))
-def(+ArgumentParser.rdrop, +ArgumentParser(a) --, /+ARGUMENTPARSER argument-parser> drop state> drop)
+data(+ArgumentParser(a), +ArgumentParser -> argument-parser:ArgumentParser(a) state:State(a))
+def(+ArgumentParser.rdrop, +ArgumentParser(a) --, /+ArgumentParser argument-parser> drop state> drop)
 
-def(+ArgumentParser.parser,
-  +ArgumentParser(a) -- +ArgumentParser(a) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
-  argument-parser ArgumentParser.parser
-)
+def(+ArgumentParser.parser, +ArgumentParser(a) -- +ArgumentParser(a)
+        Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
+    argument-parser ArgumentParser.parser)
 
 data(ArgpOptionType,
-  SHORT -> Byte,
-  LONG_ONLY -> Str,
-  POSITIONAL,
-  END
-)
+    Short -> Byte,
+    LongOnly -> Str,
+    Positional,
+    End)
 
 def(ArgpOptionType.has-short?, ArgpOptionType -- Bool,
-  match(
-    SHORT -> drop T,
-    _ -> drop F
-  )
-)
+    Short -> drop True,
+    _ -> drop False)
 
-data(ArgpOption,
-    ArgpOption ->
+data(ArgpOption, ArgpOption ->
     name:Maybe(Str)
     flag-type:ArgpOptionType
     arg-doc:Maybe(Str)
@@ -48,19 +41,15 @@ data(ArgpOption,
     group:Maybe(Int))
 
 data(ArgumentParsingError,
-  NO_ARGS_PARSED,
-  MISSING_ARGUMENT_VALUE,
-  MISSING_ARG -> Str,
-  TOO_MANY_ARGS,
-  TOO_FEW_ARGS,
-  UNKNOWN_ARG
-)
+    MissingArgValue,
+    MissingArg -> Str,
+    TooManyArgs,
+    TooFewArgs,
+    UnknownArg)
 
 def(ArgumentParsingError.show, ArgumentParsingError -- Str,
-  NO_ARGS_PARSED -> "Failed to parse any CLI arguments",
-  MISSING_ARG -> Str(FGRed show ; "Missing argument: " ; Reset show ; ;),
-  MISSING_ARGUMENT_VALUE -> "Missing associated value for flag option",
-  TOO_MANY_ARGS -> "Too many positional arguments passed",
-  TOO_FEW_ARGS -> "Too few positional arguments passed",
-  UNKNOWN_ARG -> "Got an unknown option"
-)
+    MissingArg -> Str(FGRed show ; "Missing argument: " ; Reset show ; ;),
+    MissingArgValue -> "Missing associated value for flag option",
+    TooManyArgs -> "Too many positional arguments passed",
+    TooFewArgs -> "Too few positional arguments passed",
+    UnknownArg -> "Got an unknown option")

@@ -4,15 +4,15 @@ import(std.prelude)
 import(std.str)
 import(std.byte)
 
-data(+Buffer, +BUFFER -> Size Ptr)
-def(-BUFFER, +Buffer -- Size Ptr, +BUFFER -> id)
+data(+Buffer, +Buffer -> Size Ptr)
+def(-BUFFER, +Buffer -- Size Ptr, +Buffer -> id)
 
 def(+Buffer.new, Size -- +Buffer,
-    dup dup unsafe(Ptr.alloc) +BUFFER
+    dup dup unsafe(Ptr.alloc) +Buffer
     0 >Offset swap erase-span!)
 
 def(+Buffer.resize!, Size +Buffer -- +Buffer,
-    -BUFFER dip(over dup) swap unsafe(Ptr.realloc) +BUFFER
+    -BUFFER dip(over dup) swap unsafe(Ptr.realloc) +Buffer
     dup2 >= if(
         tuck - dip(>Offset) erase-span!,
         drop2
@@ -30,9 +30,9 @@ def(+Buffer.erase-span!, Offset Size +Buffer -- +Buffer,
     dup2 check-span! swap buffer-base unsafe(offset erase))
 
 def(+Buffer.buffer-size, +Buffer -- Size +Buffer,
-    -BUFFER over dip(+BUFFER))
+    -BUFFER over dip(+Buffer))
 def(+Buffer.buffer-base, +Buffer -- Ptr +Buffer,
-    -BUFFER dup dip(+BUFFER))
+    -BUFFER dup dip(+Buffer))
 
 def(+Buffer.check-span!, Offset Size +Buffer -- +Buffer,
     over 0< or(dup2 >Offset + buffer-size >Offset >)

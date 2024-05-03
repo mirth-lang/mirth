@@ -59,7 +59,7 @@ def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
     dip(
         dip(QName.prim)
         tuck ~qname !
-        dup DEF_DATA register
+        dup DefData register
     )
     { Data List(Tag) }
     dup for(dip(over) ~data !)
@@ -67,24 +67,24 @@ def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
     { Data }
     0 over ~arity !
     L0 ready over ~params !
-    NONE over ~head? !
+    None over ~head? !
     drop)
 
 def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     @
     dip(sip(len) TT)
-    sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
+    sip(Ctx0 rotr .data TData T1 True-> ready2) sip(~ctx-type !)
     sip(~num-type-inputs !)
     sip(L0 swap ~label-inputs !)
     sip(0 >Nat swap ~num-resource-inputs !)
     sip(dip(>Nat) ~value !)
     sip(.data swap 0 data-word-qname) tuck ~qname !
-    DEF_TAG register)
+    DefTag register)
 
 def(init-data!, --,
     "Bool" 0 DATA_BOOL TAG_F TAG_T L2 make-prim-data!
-    "F" 0 L0 TAG_F make-prim-tag!
-    "T" 1 L0 TAG_T make-prim-tag!
+    "False" 0 L0 TAG_F make-prim-tag!
+    "True" 1 L0 TAG_T make-prim-tag!
 
     "U64" 0 DATA_U64 TAG_U64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 TAG_U64 make-prim-tag!
     "U32" 0 DATA_U32 TAG_U32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 TAG_U32 make-prim-tag!
@@ -123,10 +123,10 @@ field(Data.~is-transparent?, Data, Bool)
 def(Data.is-transparent?, Data -- Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
-            F,
+            False,
             dup tags /L1 match(
-                SOME -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
-                NONE -> F
+                Some -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
+                None -> False
             )
         )
     ) nip)
@@ -143,8 +143,8 @@ def(Data.is-value-type?, Data -- Bool,
 def(Data.full-type, Data -- Either(Type, Resource),
     dup sip:TData params for(TVar TApp)
     swap is-value-type? if(
-        LEFT,
-        RESOURCE RIGHT
+        Left,
+        RESOURCE Right
     ))
 
 #######

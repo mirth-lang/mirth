@@ -3,10 +3,10 @@ module(std.path)
 import(std.str)
 import(std.prelude)
 
-data(Path, PATH -> Str)
+data(Path, Path -> Str)
 inline(
-    def(Str.>Path, Str -- Path, PATH)
-    def(Path.>Str, Path -- Str, PATH -> id)
+    def(Str.>Path, Str -- Path, Path)
+    def(Path.>Str, Path -- Str, Path -> id)
     def(Path.==, Path Path -- Bool, both(>Str) ==)
     def(Path.empty?, Path -- Bool, >Str empty?)
 )

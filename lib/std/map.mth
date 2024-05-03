@@ -7,16 +7,16 @@ import(std.maybe)
 ||| Key-value map, implemented as linear search list.
 ||| TODO: switch to a comparison-based ordered map.
 |||   https://github.com/mirth-lang/mirth/issues/237
-data(Map(k,v), MAP -> List(KVPair(k,v)))
-data(KVPair(k,v), KVPAIR -> key:k value:v)
+data(Map(k,v), Map -> List(KVPair(k,v)))
+data(KVPair(k,v), KVPair -> key:k value:v)
 
-def(Map.empty, -- Map(k,v), L0 MAP)
-def(Map.pairs, Map(k,v) -- List(KVPair(k,v)), MAP -> id)
-def(Map.keys, Map(k,v) -- List(k), MAP -> map(key))
-def(Map.values, Map(k,v) -- List(v), MAP -> map(value))
+def(Map.empty, -- Map(k,v), L0 Map)
+def(Map.pairs, Map(k,v) -- List(KVPair(k,v)), Map -> id)
+def(Map.keys, Map(k,v) -- List(k), Map -> map(key))
+def(Map.values, Map(k,v) -- List(v), Map -> map(value))
 def(Map.insert, KVPair(k,v) Map(k,v) -- Map(k,v),
-    MAP -> cons MAP)
+    Map -> cons Map)
 def(Map.lookup-pair(k==), (k k -- Bool) k Map(k,v) -- Maybe(KVPair(k,v)),
-    MAP -> find(dup2 key k==) nip)
+    Map -> find(dup2 key k==) nip)
 def(Map.lookup(k==), (k k -- Bool) k Map(k,v) -- Maybe(v),
     lookup-pair(k==) map(value))

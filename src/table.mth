@@ -37,4 +37,6 @@ def(Field.value-type, Field -- Type, ~value-type force!)
 
 def(Field.dom, Field -- StackType, index-type T1)
 def(Field.cod, Field -- StackType, value-type TMut T1)
-def(Field.type, Field -- ArrowType, sip(dom) cod T->)
+def(Field.type, Field -- ArrowType, sip(dom) cod True->)
+
+def(Field.==, Field Field -- Bool, both(index) ==)

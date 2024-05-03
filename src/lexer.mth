@@ -2,7 +2,6 @@ module(mirth.lexer)
 
 import(std.prelude)
 import(std.byte)
-import(std.stack)
 import(std.path)
 import(std.str)
 import(std.maybe)
@@ -28,7 +27,7 @@ data(+Lexer, LEXER ->
     lexer-module:Module
     lexer-row:Row
     lexer-col:Col
-    lexer-stack:Stack(Token)
+    lexer-stack:List(Token)
     lexer-last-token:Token
     +Input)
 
@@ -39,25 +38,25 @@ def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
 def(lexer-stack-drop, +Lexer -- +Lexer,
     lexer-stack-pop! drop)
 def(lexer-stack-peek, +Lexer -- Maybe(Token) +Lexer,
-    lexer-stack head)
+    lexer-stack first)
 
 def-missing(+Lexer.lexer-col@, +Lexer -- +Lexer Col, lexer-col)
 def-missing(+Lexer.lexer-row@, +Lexer -- +Lexer Row, lexer-row)
 def-missing(+Lexer.lexer-module@, +Lexer -- +Lexer Module, lexer-module)
-def-missing(+Lexer.lexer-stack@, +Lexer -- +Lexer Stack(Token), lexer-stack)
+def-missing(+Lexer.lexer-stack@, +Lexer -- +Lexer List(Token), lexer-stack)
 def-missing(+Lexer.lexer-last-token@, +Lexer -- +Lexer Token, lexer-last-token)
 
 def(run-lexer!, Path +World -- Module +World,
     Module.new! dup >lexer-module
-    source-path open-file! +Input.start!
+    source-path open-file! unwrap! +Input.start!
     1 >Row >lexer-row
     1 >Col >lexer-col
-    STACK_NIL >lexer-stack
+    L0 >lexer-stack
     Token.alloc-none! dup >lexer-last-token
     LEXER
 
     while(done? not, lexer-next!)
-    TOKEN_NONE lexer-emit!
+    TokenNone lexer-emit!
     /LEXER end! close-file!
     lexer-stack> uncons drop for("Mismatched left parenthesis." emit-fatal-error!)
     lexer-row> lexer-col> lexer-last-token> drop3
@@ -88,7 +87,7 @@ def(lexer-next!, +Lexer -- +Lexer, lexer-peek match(
     BVT -> lexer-move!,
     BCR -> lexer-move!,
     BHASH -> lexer-skip-comment! lexer-move!,
-    BCOMMA -> lexer-close-colons! TOKEN_COMMA lexer-emit! lexer-move!,
+    BCOMMA -> lexer-close-colons! TokenComma lexer-emit! lexer-move!,
     BRPAREN -> lexer-close-colons! lexer-emit-rparen! lexer-move!,
     BRSQUARE -> lexer-close-colons! lexer-emit-rsquare! lexer-move!,
     BRCURLY -> lexer-close-colons! lexer-emit-rcurly! lexer-move!,
@@ -107,15 +106,15 @@ def(lexer-newline!, +Lexer -- +Lexer,
     0 >Col lexer-col!)
 
 def(lexer-emit-lcolon!, +Lexer -- +Lexer,
-    TOKEN_LCOLON_OPEN lexer-make!
+    TokenLColonOpen lexer-make!
     lexer-stack-push!)
 
 def(lexer-close-colons!, +Lexer -- +Lexer,
     while-some(
         lexer-stack-peek guard(dup lcolon-open?),
         lexer-stack-drop
-        dup TOKEN_RCOLON lexer-make!
-        TOKEN_LCOLON swap ~value !
+        dup TokenRColon lexer-make!
+        TokenLColon swap ~value !
     ))
 def(lexer-prepare-for-atom!, +Lexer -- +Lexer,
     lexer-last-token lcolon-open? else(lexer-close-colons!))
@@ -123,40 +122,40 @@ def(lexer-prepare-for-args!, +Lexer -- +Lexer,
     lexer-last-token name-or-dname? else(lexer-close-colons!))
 
 def(lexer-emit-lparen!, +Lexer -- +Lexer,
-    TOKEN_LPAREN_OPEN lexer-make!
+    TokenLParenOpen lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rparen!, +Lexer -- +Lexer,
     lexer-stack-pop! match(
-        NONE -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
-        SOME -> dup lparen-open? if(
-            dup TOKEN_RPAREN lexer-make!
-            TOKEN_LPAREN swap ~value !,
+        None -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
+        Some -> dup lparen-open? if(
+            dup TokenRParen lexer-make!
+            TokenLParen swap ~value !,
             "Mismatched right parenthesis." lexer-emit-fatal-error!
         )
     ))
 
 def(lexer-emit-lsquare!, +Lexer -- +Lexer,
-    TOKEN_LSQUARE_OPEN lexer-make!
+    TokenLSquareOpen lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rsquare!, +Lexer -- +Lexer,
     lexer-stack-pop! match(
-        NONE -> "Mismatched right square bracket." lexer-emit-fatal-error!,
-        SOME -> dup lsquare-open? if(
-            dup TOKEN_RSQUARE lexer-make!
-            TOKEN_LSQUARE swap ~value !,
+        None -> "Mismatched right square bracket." lexer-emit-fatal-error!,
+        Some -> dup lsquare-open? if(
+            dup TokenRSquare lexer-make!
+            TokenLSquare swap ~value !,
             "Mismatched right square bracket." lexer-emit-fatal-error!
         )
     ))
 
 def(lexer-emit-lcurly!, +Lexer -- +Lexer,
-    TOKEN_LCURLY_OPEN lexer-make!
+    TokenLCurlyOpen lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rcurly!, +Lexer -- +Lexer,
     lexer-stack-pop! match(
-        NONE -> "Mismatched right curly brace." lexer-emit-fatal-error!,
-        SOME -> dup lcurly-open? if(
-            dup TOKEN_RCURLY lexer-make!
-            TOKEN_LCURLY swap ~value !,
+        None -> "Mismatched right curly brace." lexer-emit-fatal-error!,
+        Some -> dup lcurly-open? if(
+            dup TokenRCurly lexer-make!
+            TokenLCurly swap ~value !,
             "Mismatched right curly brace." lexer-emit-fatal-error!
         )
     ))
@@ -180,13 +179,13 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
         #   https://github.com/mirth-lang/mirth/issues/240
 
         rdip(is-int? if(
-            int? TOKEN_INT,
+            int? TokenInt,
             dname? match(
-                SOME -> TOKEN_DNAME,
-                NONE ->
+                Some -> TokenDName,
+                None ->
                     label-token? match(
-                        SOME -> id,
-                        NONE -> name? TOKEN_NAME
+                        Some -> id,
+                        None -> name? TokenName
                     )
             )
         ))
@@ -208,26 +207,26 @@ def(+Str.drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
 def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
     0 >Offset byte@ is-lower if(
         last-byte match(
-            B'>' -> unsafe(+Str.drop-last-byte) >Name Label.new! TOKEN_LABEL_POP SOME,
-            _ -> drop NONE
+            B'>' -> unsafe(+Str.drop-last-byte) >Name Label.new! TokenLabelPop Some,
+            _ -> drop None
         ),
         1 >Offset byte@ is-lower if(
             0 >Offset byte@ match(
-                B'>' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TOKEN_LABEL_PUSH SOME,
-                B'^' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TOKEN_LABEL_LENS SOME,
-                _ -> drop NONE
+                B'>' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TokenLabelPush Some,
+                B'^' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TokenLabelLens Some,
+                _ -> drop None
             ),
-            NONE
+            None
         )
     ))
 
 def(+Str.dname?, +Str -- Maybe(DName) +Str,
     BDOT +Str.split-byte
     uncons >List+ match(
-        NONE -> drop NONE,
-        SOME ->
-            dip(dup Str.empty? if(drop NONE, >Name SOME))
-            map(>Name) DNAME SOME
+        None -> drop None,
+        Some ->
+            dip(dup Str.empty? if(drop None, >Name Some))
+            map(>Name) DName Some
     ))
 
 def(+Str.is-doc-start?, +Str -- Bool +Str,
@@ -249,7 +248,7 @@ def(+Str.is-dec-int?, +Str -- Bool +Str,
     0 >Offset # current index
     dup byte@ is-sign if(1+, id)
     while(dup byte@ is-digit, dip(1+) 1+)
-    swap 0> if(num-bytes? >Offset ==, drop F))
+    swap 0> if(num-bytes? >Offset ==, drop False))
 
 def(+Str.is-hex-int?, +Str -- Bool +Str,
     0 >Size # number of digits
@@ -265,13 +264,13 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
             while(dup byte@ is-hexdigit, dip(1+) 1+)
             swap 0> if(
                 num-bytes? >Offset ==,
-                drop F
+                drop False
             ),
 
-            drop2 F
+            drop2 False
         ),
 
-        drop2 F
+        drop2 False
     ))
 
 def(+Str.is-oct-int?, +Str -- Bool +Str,
@@ -288,13 +287,13 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
             while(dup byte@ B'0' B'7' in-range, dip(1+) 1+)
             swap 0> if(
                 num-bytes? >Offset ==,
-                drop F
+                drop False
             ),
 
-            drop2 F
+            drop2 False
         ),
 
-        drop2 F
+        drop2 False
     ))
 
 def(+Str.int?, +Str -- Int +Str,
@@ -359,7 +358,7 @@ def(hexdigit-value, Byte -- Int,
 
 def(lexer-emit-string!, +Lexer -- +Lexer,
     rdip("" thaw)
-    TOKEN_NONE lexer-make!
+    TokenNone lexer-make!
 
     lexer-move!
     lexer-peek while(dup is-string-end not,
@@ -369,7 +368,7 @@ def(lexer-emit-string!, +Lexer -- +Lexer,
     )
     drop
 
-    rdip(freeze TOKEN_STR)
+    rdip(freeze TokenStr)
     swap ~value !)
 
 def(lexer-push-string-byte!, +Str +Lexer Byte -- +Str +Lexer,
@@ -394,7 +393,7 @@ def(lexer-skip-doc!, +Lexer -- +Lexer, while(lexer-comment-end? not, lexer-move!
 
 def(lexer-comment-end?, +Lexer -- Bool +Lexer,
     done? if(
-        T,
+        True,
         lexer-peek dup BLF == nip
     ))
 
@@ -404,7 +403,7 @@ def(lexer-move!, +Lexer -- +Lexer,
     lexer-col@ >Int 1+ >Col lexer-col!)
 
 def(lexer-location, +Lexer -- Location +Lexer,
-    lexer-module@ lexer-row@ lexer-col@ LOCATION)
+    lexer-module@ lexer-row@ lexer-col@ Location)
 
 def(lexer-emit-warning!, Str +Lexer -- +Lexer, dip(lexer-location) emit-warning-at!)
 def(lexer-emit-error!, Str +Lexer -- +Lexer, dip(lexer-location) emit-error-at!)

@@ -36,34 +36,34 @@ def(init!, --,
     init-types!
     init-prims!)
 
-data(Arguments,
-    Arguments ->
-        input-file:Path
-    output-file:Maybe(Path)
-    entry-point:Maybe(Str)
-    packages:List([Str Path])
-    emit-debug-info:Bool)
+data(Arguments, Arguments ->
+    input-file: Path
+    output-file: Maybe(Path)
+    entry-point: Maybe(Str)
+    packages: List([Str Path])
+    emit-debug-info: Bool)
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
 def(Arguments.default, -- Arguments,
-    F >emit-debug-info
+    False >emit-debug-info
     "mirth.mth" >Path >input-file
-    NONE >output-file
-    "main" SOME >entry-point
+    None >output-file
+    "main" Some >entry-point
     L0 >packages
     Arguments)
 
 ||| Pretty print the contents of the arguments struct
 def(Arguments.show, Arguments -- Str,
-    /Arguments
-    "Arguments { "
-    "output-file: " cat output-file> if-some(>Str, "(none)") cat
-    ", input-file: " cat input-file> >Str cat
-    ", entry-point: " cat entry-point> unwrap-or("(none)") cat
-    ", emit-debug-info: " cat emit-debug-info> if("yes", "no") cat
-    ", packages: " cat "[" packages> for(dip(cat) unpack2 dip(Str.cat ":" cat) >Str cat " ") drop "]" cat
-    " }" cat)
+    /Arguments Str(
+        "Arguments { " ;
+        "output-file: " ; output-file> show(>Str show) ;
+        ", input-file: " ; input-file> >Str show ;
+        ", entry-point: " ; entry-point> show:show ;
+        ", emit-debug-info: " ; emit-debug-info> show ;
+        ", packages: " ; "[" packages> for(dip(;) unpack2 dip(;) ":" ; >Str ; " ") drop "]" ;
+        " }" ;
+    ))
 
 ########
 # Main #
@@ -100,13 +100,13 @@ def(compile!, Arguments +World -- +World,
     )
 
     match(
-        SOME ->
+        Some ->
             "Specializer." trace-ln!
             run-specializer!
             "Codegen." trace-ln!
             output-file> unwrap >output-path
             C99_Options.make run-output-c99!,
-        NONE ->
+        None ->
             "Skipping Codegen." trace-ln!
             emit-debug-info> drop
             output-file> drop
@@ -118,81 +118,81 @@ def(parse-package-def, Str -- [Str Path],
     unpack2 >Path pack2)
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
-    SHORT -> dip(swap) match(
-        B'o' -> output-file(drop unwrap >Path SOME),
-        B'e' -> entry-point(drop unwrap SOME),
-        B'c' -> entry-point(drop drop NONE),
+    Short -> dip(swap) match(
+        B'o' -> output-file(drop unwrap >Path Some),
+        B'e' -> entry-point(drop unwrap Some),
+        B'c' -> entry-point(drop drop None),
         B'p' -> dip(unwrap parse-package-def) packages(cons),
-        _ -> drop swap drop UNKNOWN_ARG SOME state:error!
+        _ -> drop swap drop UnknownArg Some state:error!
     ),
-    POSITIONAL -> swap state positional-index 0= if(
+    Positional -> swap state positional-index 0= if(
         input-file(drop unwrap >Path),
-        dip(drop) TOO_MANY_ARGS SOME state:error!
+        dip(drop) TooManyArgs Some state:error!
     ),
-    LONG_ONLY -> dup "debug" == if(
-        drop2 T swap emit-debug-info!,
-        drop2 UNKNOWN_ARG SOME state:error!
+    LongOnly -> dup "debug" == if(
+        drop2 True swap emit-debug-info!,
+        drop2 UnknownArg Some state:error!
     ),
-    END ->
+    End ->
         state positional-index 1 < then(
-            TOO_FEW_ARGS SOME state:error!
+            TooFewArgs Some state:error!
         )
         state arguments output-file else(
         state arguments entry-point then(
-            "output-file" MISSING_ARG SOME state:error!
+            "output-file" MissingArg Some state:error!
             )
         )
         drop,
-    _ -> drop drop UNKNOWN_ARG SOME state error! state!)
+    _ -> drop drop UnknownArg Some state error! state!)
 
 def(main, +World -- +World,
     init!
 
     Arguments.default
     LIST(
-        "output-file" SOME >name
-        B'o' SHORT >flag-type
-        "OUTPUT_FILE" SOME >arg-doc
-        "Test argument" SOME >doc
-        NONE >group
-    ArgpOption ;
+        "output-file" Some >name
+        B'o' Short >flag-type
+        "OUTPUT_FILE" Some >arg-doc
+        "Test argument" Some >doc
+        None >group
+        ArgpOption ;
 
-        "compile-only" SOME >name
-        B'c' SHORT >flag-type
-        NONE >arg-doc
-        "Compile code without running codegen step" SOME >doc
-        NONE >group
-    ArgpOption ;
+        "compile-only" Some >name
+        B'c' Short >flag-type
+        None >arg-doc
+        "Compile code without running codegen step" Some >doc
+        None >group
+        ArgpOption ;
 
-        "entry-point" SOME >name
-        B'e' SHORT >flag-type
-        "ENTRY_POINT" SOME >arg-doc
-        "Custom entry point word for compilation" SOME >doc
-        NONE >group
-    ArgpOption ;
+        "entry-point" Some >name
+        B'e' Short >flag-type
+        "ENTRY_POINT" Some >arg-doc
+        "Custom entry point word for compilation" Some >doc
+        None >group
+        ArgpOption ;
 
-    "package" SOME >name
-    B'p' SHORT >flag-type
-    "(PACKAGE:PATH)*" SOME >arg-doc
-    "Package locations" SOME >doc
-    NONE >group
-    ArgpOption ;
+        "package" Some >name
+        B'p' Short >flag-type
+        "(PACKAGE:PATH)*" Some >arg-doc
+        "Package locations" Some >doc
+        None >group
+        ArgpOption ;
 
-        "debug" SOME >name
-        "debug" LONG_ONLY >flag-type
-        NONE >arg-doc
-        "Emit debugging information during codegen" SOME >doc
-        NONE >group
-    ArgpOption ;
+        "debug" Some >name
+        "debug" LongOnly >flag-type
+        None >arg-doc
+        "Emit debugging information during codegen" Some >doc
+        None >group
+        ArgpOption ;
     ) >options
-    [ compiler-parse-args ] SOME >parser
-    "input-file" SOME >args-doc
+    [ compiler-parse-args ] Some >parser
+    "input-file" Some >args-doc
     "Mirth Compiler" >doc
     ArgumentParser
 
     parse-args match(
-        RIGHT -> ,
-        LEFT -> show panic!
+        Right -> ,
+        Left -> show panic!
     )
 
     compile!)

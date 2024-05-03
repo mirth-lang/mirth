@@ -102,7 +102,7 @@ def(+Tests.test(f), (+Test -- +Test) Str +Tests -- +Tests,
     ||| Note the test name `"my test"` is only shown if the test fails.
     ||| As demonstrated here, you can run multiple checks within a test.
     >test-name
-    F >test-failed
+    False >test-failed
     +Test
     f
     /+Test
@@ -132,7 +132,7 @@ def(+Test.fail!, +Test -- +Test,
     ||| Output `"<test name> test failed"` and set the [+Test.test-failed] flag.
     ||| If the test already failed before, do nothing instead.
     test-failed else(
-        T test-failed!
+        True test-failed!
         test-name show " test failed" cat world(put line)
     ))
 def(+Test.check-equals!(feq,fshow), (a a -- Bool, a -- Str) a a +Test -- +Test,

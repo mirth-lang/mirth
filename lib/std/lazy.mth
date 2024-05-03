@@ -4,16 +4,16 @@ import(std.prelude)
 import(std.maybe)
 
 data(Lazy(t),
-    LAZY_READY -> b,
-    LAZY_DELAY -> a [a -- b],
-    LAZY_WAIT)
+    LazyReady -> b,
+    LazyDelay -> a [a -- b],
+    LazyWait)
 
 def(ready, a -- Lazy(a),
-    LAZY_READY)
+    LazyReady)
 def(ready2, a b -- Lazy([a b]),
-    pack2 LAZY_READY)
+    pack2 LazyReady)
 
-def(delay(f), (a -- b) a -- Lazy(b), [f] LAZY_DELAY)
+def(delay(f), (a -- b) a -- Lazy(b), [f] LazyDelay)
 def(delay0(f), (-- b) -- Lazy(b), 0 delay(drop f))
 def(delay2(f), (a1 a2 -- b) a1 a2 -- Lazy(b),
     pack2 delay(unpack2 f))
@@ -24,22 +24,22 @@ def(delay4(f), (a1 a2 a3 a4 -- b) a1 a2 a3 a4 -- Lazy(b),
 
 def(force!, Mut(Lazy(a)) -- a,
     dup @ match(
-        LAZY_READY -> nip,
-        LAZY_DELAY ->
-            rotl LAZY_WAIT over !
-            dip(run dup LAZY_READY) !,
-        LAZY_WAIT ->
-            "attempted to force already running thunk" panic!
+        LazyReady -> nip,
+        LazyDelay ->
+            rotl LazyWait over !
+            dip(run dup LazyReady) !,
+        LazyWait ->
+            "recursive thunk dependency" panic!
     ))
 def(force-or!(f), (*x -- *x a) *x Mut(Lazy(a)) -- *x a,
     dup @ match(
-        LAZY_WAIT -> drop f,
+        LazyWait -> drop f,
         _ -> drop force!
     ))
 def(try-force!, Mut(Lazy(a)) -- Maybe(a),
     dup @ match(
-        LAZY_WAIT -> drop NONE,
-        _ -> drop force! SOME
+        LazyWait -> drop None,
+        _ -> drop force! Some
     ))
 
 def(force2!, Mut(Lazy([a b])) -- a b,

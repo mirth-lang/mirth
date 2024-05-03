@@ -3,10 +3,10 @@ module(std.either)
 import(std.prelude)
 import(std.maybe)
 
-data(Either(a,b), LEFT -> a, RIGHT -> b)
-def(Either.left?, Either(a,b) -- Maybe(a), LEFT -> SOME, RIGHT -> drop NONE)
-def(Either.right?, Either(a,b) -- Maybe(b), LEFT -> drop NONE, RIGHT -> SOME)
+data(Either(a,b), Left -> a, Right -> b)
+def(Either.left?, Either(a,b) -- Maybe(a), Left -> Some, Right -> drop None)
+def(Either.right?, Either(a,b) -- Maybe(b), Left -> drop None, Right -> Some)
 
 def(Either.either(f,g), (*x a -- *y, *x b -- *y) *x Either(a,b) -- *y,
-    LEFT -> f,
-    RIGHT -> g)
+    Left -> f,
+    Right -> g)

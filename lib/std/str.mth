@@ -29,19 +29,19 @@ def(cstr-num-bytes, Ptr +Unsafe -- Size +Unsafe,
     dup 0 >Size swap while(dup @U8 >Int 0>, dip(1+ 1 >Offset) offset) drop nip)
 
 
-data(+Str, +STR -> Str)
-def(Str.thaw, Str -- +Str, +STR)
-def(+Str.freeze, +Str -- Str, +STR -> id)
+data(+Str, +Str -> Str)
+def(Str.thaw, Str -- +Str, +Str)
+def(+Str.freeze, +Str -- Str, +Str -> id)
 
 def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
 inline:def(+Str.;, Str +Str -- +Str, push-str!)
 
 
 def(+Str.dup!, +Str -- Str +Str,
-    +STR -> dup dip(+STR))
+    +Str -> dup dip(+Str))
 
 def(+Str.num-bytes?, +Str -- Size +Str,
-    +STR -> dup num-bytes dip(+STR))
+    +Str -> dup num-bytes dip(+Str))
 
 def(+Str.last-byte, +Str -- Byte +Str,
     +Str.num-bytes? >Offset dup 0> if(
@@ -61,10 +61,10 @@ def(Str.byte@, Offset Str -- Byte,
     ))
 
 def(+Str.empty?, +Str -- Bool +Str,
-    +STR -> dup +STR Str.empty?)
+    +Str -> dup +Str Str.empty?)
 
 def(+Str.clear!, +Str -- +Str,
-    +STR -> drop "" +STR)
+    +Str -> drop "" +Str)
 
 def(+Str.push-byte-unsafe!, Byte +Str -- +Str,
     to-str-unsafe push-str!)
@@ -75,7 +75,7 @@ def(+Str.push-byte-ascii!, Byte +Str -- +Str,
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
 def(+Str.push-str!, Str +Str -- +Str,
-    +STR -> swap cat +STR)
+    +Str -> swap cat +Str)
 
 def(Str.with-data(f), (*a Ptr Size -- *b) *a Str -- *b,
     dup dip(dup dip(prim-str-base) num-bytes f) drop)
@@ -89,8 +89,8 @@ def(Str.bytes-for(f), (*a Byte -- *a) *a Str -- *a,
 def(Str.first-byte, Str -- Maybe(Byte),
     with-data(
         0> if(
-            unsafe(@Byte) SOME,
-            drop NONE
+            unsafe(@Byte) Some,
+            drop None
         )
     ))
 
@@ -145,14 +145,14 @@ def(+Str.drop-slice, Offset +Str +Unsafe -- Str +Str +Unsafe,
 
 ||| Find the first occurence of a string in the str buf, returning its index.
 def(+Str.find, Str +Str -- Maybe(Offset) +Str,
-    NONE swap 0 while(
+    None swap 0 while(
         over num-bytes over >Size +
         +Str.num-bytes? <= if(
             dup2 >Offset over num-bytes unsafe(+Str.slice) == if(
-                rotl drop dup >Offset SOME rotr F,
-                T
+                rotl drop dup >Offset Some rotr False,
+                True
             ),
-            F
+            False
         ),
         1+
     ) drop2)

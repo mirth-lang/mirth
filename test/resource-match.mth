@@ -10,13 +10,13 @@ data(+Foo,
     BAZ! -> +Foo)
 
 def(+Foo.reset!, +Foo -- Either(Int,Str) +World,
-    FOO! -> LEFT,
-    BAR! -> RIGHT,
+    FOO! -> Left,
+    BAR! -> Right,
     BAZ! -> reset!)
 
 def(my-trace, Either(Int,Str) +World -- +World,
-    LEFT -> trace! " LEFT" trace!,
-    RIGHT -> trace! " RIGHT" trace!)
+    Left -> trace! " Left" trace!,
+    Right -> trace! " Right" trace!)
 
 def(whatever, Either(Int,Str) +World -- +World,
     _ -> drop "whatever" trace!)
@@ -28,8 +28,8 @@ def(main, +World -- +World,
     "World." BAR! BAZ! reset! my-trace line-trace!
     "Foo" BAR! reset! whatever line-trace!)
 
-# mirth-test # perr # 10 LEFT
-# mirth-test # perr # 20 LEFT
-# mirth-test # perr # Hello. RIGHT
-# mirth-test # perr # World. RIGHT
+# mirth-test # perr # 10 Left
+# mirth-test # perr # 20 Left
+# mirth-test # perr # Hello. Right
+# mirth-test # perr # World. Right
 # mirth-test # perr # whatever

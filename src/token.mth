@@ -17,82 +17,82 @@ import(mirth.module)
 
 # mirth/data/token
 data(TokenValue,
-    TOKEN_NONE,
-    TOKEN_COMMA,
-    TOKEN_LPAREN_OPEN,
-    TOKEN_LPAREN -> Token,
-    TOKEN_RPAREN -> Token,
-    TOKEN_LSQUARE_OPEN,
-    TOKEN_LSQUARE -> Token,
-    TOKEN_RSQUARE -> Token,
-    TOKEN_LCURLY_OPEN,
-    TOKEN_LCURLY -> Token,
-    TOKEN_RCURLY -> Token,
-    TOKEN_LCOLON_OPEN,
-    TOKEN_LCOLON -> Token,
-    TOKEN_RCOLON -> Token,
-    TOKEN_INT -> Int,
-    TOKEN_STR -> Str,
-    TOKEN_NAME -> Name,
-    TOKEN_DNAME -> DName,
-    TOKEN_LABEL_POP -> Label,
-    TOKEN_LABEL_PUSH -> Label,
-    TOKEN_LABEL_LENS -> Label,
+    TokenNone,
+    TokenComma,
+    TokenLParenOpen,
+    TokenLParen -> Token,
+    TokenRParen -> Token,
+    TokenLSquareOpen,
+    TokenLSquare -> Token,
+    TokenRSquare -> Token,
+    TokenLCurlyOpen,
+    TokenLCurly -> Token,
+    TokenRCurly -> Token,
+    TokenLColonOpen,
+    TokenLColon -> Token,
+    TokenRColon -> Token,
+    TokenInt -> Int,
+    TokenStr -> Str,
+    TokenName -> Name,
+    TokenDName -> DName,
+    TokenLabelPop -> Label,
+    TokenLabelPush -> Label,
+    TokenLabelLens -> Label,
     )
 
-def(TokenValue.none?, TokenValue -- Bool, TOKEN_NONE -> T, _ -> drop F)
-def(TokenValue.comma?, TokenValue -- Bool, TOKEN_COMMA -> T, _ -> drop F)
-def(TokenValue.lparen-open?, TokenValue -- Bool, TOKEN_LPAREN_OPEN -> T, _ -> drop F)
-def(TokenValue.lparen?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> SOME, _ -> drop NONE)
-def(TokenValue.rparen?, TokenValue -- Maybe(Token), TOKEN_RPAREN -> SOME, _ -> drop NONE)
-def(TokenValue.lsquare-open?, TokenValue -- Bool, TOKEN_LSQUARE_OPEN -> T, _ -> drop F)
-def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TOKEN_LSQUARE -> SOME, _ -> drop NONE)
-def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TOKEN_RSQUARE -> SOME, _ -> drop NONE)
-def(TokenValue.lcurly-open?, TokenValue -- Bool, TOKEN_LCURLY_OPEN -> T, _ -> drop F)
-def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TOKEN_LCURLY -> SOME, _ -> drop NONE)
-def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TOKEN_RCURLY -> SOME, _ -> drop NONE)
-def(TokenValue.lcolon-open?, TokenValue -- Bool, TOKEN_LCOLON_OPEN -> T, _ -> drop F)
-def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TOKEN_LCOLON -> SOME, _ -> drop NONE)
-def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TOKEN_RCOLON -> SOME, _ -> drop NONE)
-def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> SOME, TOKEN_LCOLON -> SOME, _ -> drop NONE)
+def(TokenValue.none?, TokenValue -- Bool, TokenNone -> True, _ -> drop False)
+def(TokenValue.comma?, TokenValue -- Bool, TokenComma -> True, _ -> drop False)
+def(TokenValue.lparen-open?, TokenValue -- Bool, TokenLParenOpen -> True, _ -> drop False)
+def(TokenValue.lparen?, TokenValue -- Maybe(Token), TokenLParen -> Some, _ -> drop None)
+def(TokenValue.rparen?, TokenValue -- Maybe(Token), TokenRParen -> Some, _ -> drop None)
+def(TokenValue.lsquare-open?, TokenValue -- Bool, TokenLSquareOpen -> True, _ -> drop False)
+def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TokenLSquare -> Some, _ -> drop None)
+def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TokenRSquare -> Some, _ -> drop None)
+def(TokenValue.lcurly-open?, TokenValue -- Bool, TokenLCurlyOpen -> True, _ -> drop False)
+def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TokenLCurly -> Some, _ -> drop None)
+def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TokenRCurly -> Some, _ -> drop None)
+def(TokenValue.lcolon-open?, TokenValue -- Bool, TokenLColonOpen -> True, _ -> drop False)
+def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TokenLColon -> Some, _ -> drop None)
+def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TokenRColon -> Some, _ -> drop None)
+def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TokenLParen -> Some, TokenLColon -> Some, _ -> drop None)
 
 def(TokenValue.can-take-args?, TokenValue -- Bool,
-    TOKEN_NAME -> drop T,
-    TOKEN_DNAME -> drop T,
-    TOKEN_LABEL_LENS -> drop T,
-    _ -> drop F)
+    TokenName -> drop True,
+    TokenDName -> drop True,
+    TokenLabelLens -> drop True,
+    _ -> drop False)
 
-def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> SOME, _ -> drop NONE)
-def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> SOME, _ -> drop NONE)
-def(TokenValue.name?, TokenValue -- Maybe(Name), TOKEN_NAME -> SOME, _ -> drop NONE)
-def(TokenValue.dname?, TokenValue -- Maybe(DName), TOKEN_DNAME -> SOME, _ -> drop NONE)
+def(TokenValue.int?, TokenValue -- Maybe(Int), TokenInt -> Some, _ -> drop None)
+def(TokenValue.str?, TokenValue -- Maybe(Str), TokenStr -> Some, _ -> drop None)
+def(TokenValue.name?, TokenValue -- Maybe(Name), TokenName -> Some, _ -> drop None)
+def(TokenValue.dname?, TokenValue -- Maybe(DName), TokenDName -> Some, _ -> drop None)
 def(TokenValue.name-or-dname?, TokenValue -- Maybe(Either(Name,DName)),
-    TOKEN_NAME -> LEFT SOME,
-    TOKEN_DNAME -> RIGHT SOME,
-    _ -> drop NONE)
+    TokenName -> Left Some,
+    TokenDName -> Right Some,
+    _ -> drop None)
 def(TokenValue.last-name?, TokenValue -- Maybe(Name),
-    TOKEN_NAME -> SOME,
-    TOKEN_DNAME -> last-name SOME,
-    _ -> drop NONE)
+    TokenName -> Some,
+    TokenDName -> last-name Some,
+    _ -> drop None)
 def(TokenValue.arg-end?, TokenValue -- Bool,
-    TOKEN_COMMA -> T,
-    TOKEN_RPAREN -> drop T,
-    TOKEN_RCURLY -> drop T,
-    TOKEN_RSQUARE -> drop T,
-    TOKEN_RCOLON -> drop T,
-    _ -> drop F)
+    TokenComma -> True,
+    TokenRParen -> drop True,
+    TokenRCurly -> drop True,
+    TokenRSquare -> drop True,
+    TokenRColon -> drop True,
+    _ -> drop False)
 def(TokenValue.left-enclosure?, TokenValue -- Bool,
-    TOKEN_LPAREN -> drop T,
-    TOKEN_LSQUARE -> drop T,
-    TOKEN_LCURLY -> drop T,
-    TOKEN_LCOLON -> drop T,
-    _ -> drop F)
+    TokenLParen -> drop True,
+    TokenLSquare -> drop True,
+    TokenLCurly -> drop True,
+    TokenLColon -> drop True,
+    _ -> drop False)
 def(TokenValue.right-enclosure?, TokenValue -- Bool,
-    TOKEN_RPAREN -> drop T,
-    TOKEN_RSQUARE -> drop T,
-    TOKEN_RCURLY -> drop T,
-    TOKEN_RCOLON -> drop T,
-    _ -> drop F)
+    TokenRParen -> drop True,
+    TokenRSquare -> drop True,
+    TokenRCurly -> drop True,
+    TokenRColon -> drop True,
+    _ -> drop False)
 
 def(TokenValue.sig-type?, TokenValue -- Bool, name? and-some(could-be-type))
 def(TokenValue.sig-type-con?, TokenValue -- Bool, last-name? and-some(could-be-type-con))
@@ -160,18 +160,18 @@ def(Token.can-take-args?, Token -- Bool, value can-take-args?)
 
 def(Token.alloc-none!, Token,
     Token.alloc!
-    TOKEN_NONE over ~value !)
+    TokenNone over ~value !)
 
 def(Token.location, Token -- Location,
-    sip(.module) sip(row) col LOCATION)
+    sip(.module) sip(row) col Location)
 
 ||| Get next token, respecting nesting of tokens and arguments.
 def(Token.next, Token -- Token,
     dup value match(
-        TOKEN_LPAREN -> nip succ,
-        TOKEN_LSQUARE -> nip succ,
-        TOKEN_LCURLY -> nip succ,
-        TOKEN_LCOLON -> nip succ,
+        TokenLParen -> nip succ,
+        TokenLSquare -> nip succ,
+        TokenLCurly -> nip succ,
+        TokenLColon -> nip succ,
         _ -> can-take-args? if(
             succ dup lparen-or-lcolon? for(nip succ),
             succ
@@ -181,10 +181,10 @@ def(Token.next, Token -- Token,
 ||| Get previous token, respecting nesting of tokens and arguments.
 def(Token.prev, Token -- Token,
     pred dup value match(
-        TOKEN_RSQUARE -> nip,
-        TOKEN_RCURLY -> nip,
-        TOKEN_RPAREN -> nip dup pred can-take-args? then(pred),
-        TOKEN_RCOLON -> nip dup pred can-take-args? then(pred),
+        TokenRSquare -> nip,
+        TokenRCurly -> nip,
+        TokenRParen -> nip dup pred can-take-args? then(pred),
+        TokenRColon -> nip dup pred can-take-args? then(pred),
         _ -> drop
     ))
 
@@ -202,7 +202,7 @@ def(Token.args-start, Token -- Token,
     and(dup succ lparen-or-lcolon? >Bool) then(succ))
 
 def(Token.could-be-sig-label?, Token -- Bool,
-    dup name? if-some(could-be-label-name?, F)
+    dup name? if-some(could-be-label-name?, False)
     and(dup succ lcolon? >Bool) nip)
 
 def(Token.pattern-var?, Token -- Bool,
@@ -297,13 +297,13 @@ def(Token.module-end?, Token -- Bool, none?)
 ||| Is this a token to stop running at?
 def(Token.run-end?, Token -- Bool,
     value match(
-        TOKEN_NONE -> T,
-        TOKEN_COMMA -> T,
-        TOKEN_RPAREN -> drop T,
-        TOKEN_RSQUARE -> drop T,
-        TOKEN_RCURLY -> drop T,
-        TOKEN_RCOLON -> drop T,
-        _ -> drop F
+        TokenNone -> True,
+        TokenComma -> True,
+        TokenRParen -> drop True,
+        TokenRSquare -> drop True,
+        TokenRCurly -> drop True,
+        TokenRColon -> drop True,
+        _ -> drop False
     ))
 
 def(Token.run-tokens, Token -- List(Token),

@@ -2,8 +2,8 @@ module(mirth-tests.pack-unpack)
 import(std.prelude)
 import(std.posix)
 
-def(!!T, Bool --, if(id, "Assertion failed" panic!))
-def(!!=, Int Int --, == !!T)
+def(!!True, Bool --, if(id, "Assertion failed" panic!))
+def(!!=, Int Int --, == !!True)
 
 def(mk-int-pack, [Int Int], 10 20 pack2)
 def(swap-int-pack, [a b] -- [b a], unpack2 swap pack2)

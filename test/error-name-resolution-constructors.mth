@@ -2,38 +2,38 @@ module(mirth-tests.error-name-resolution-constructors)
 
 import(std.prelude)
 import(std.either)
-data(MyEither, LEFT -> Int, RIGHT -> Str)
-data(+MyEither, LEFT -> Int, RIGHT -> Str)
+data(MyEither, Left -> Int, Right -> Str)
+data(+MyEither, Left -> Int, Right -> Str)
 data(Foo, FOO)
 data(Bar, BAR)
 
 def(constructors-not-visible, --,
     1 >I8? match(
-        SOME -> drop,
-        NONE -> id
+        Some -> drop,
+        None -> id
     ))
 
 def(this-is-fine-1, MyEither --,
-    LEFT -> drop,
-    RIGHT -> drop)
+    Left -> drop,
+    Right -> drop)
 def(this-is-fine-2, +MyEither --,
-    LEFT -> drop,
-    RIGHT -> drop)
+    Left -> drop,
+    Right -> drop)
 def(this-is-ambiguous, MyEither +MyEither -- +MyEither,
-    LEFT -> drop,
-    RIGHT -> drop)
+    Left -> drop,
+    Right -> drop)
 def(this-is-fine-again, MyEither +MyEither -- +MyEither,
-    MyEither.LEFT -> drop,
-    MyEither.RIGHT -> drop)
+    MyEither.Left -> drop,
+    MyEither.Right -> drop)
 
 def(unknown-single, Foo --, BAR -> )
-def(unknown-multiple, Foo --, LEFT -> )
+def(unknown-multiple, Foo --, Left -> )
 
 def(main, --, id)
-# mirth-test # merr # 12:9: error: Not visible in current scope: std.maybe.Maybe/1.SOME
-# mirth-test # merr # 13:9: error: Not visible in current scope: std.maybe.Maybe/1.NONE
-# mirth-test # merr # 23:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.LEFT, mirth-tests.error-name-resolution-constructors.MyEither.LEFT
-# mirth-test # merr # 24:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.RIGHT, mirth-tests.error-name-resolution-constructors.MyEither.RIGHT
+# mirth-test # merr # 12:9: error: Not visible in current scope: std.maybe.Maybe/1.Some
+# mirth-test # merr # 13:9: error: Not visible in current scope: std.maybe.Maybe/1.None
+# mirth-test # merr # 23:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.Left, mirth-tests.error-name-resolution-constructors.MyEither.Left
+# mirth-test # merr # 24:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.Right, mirth-tests.error-name-resolution-constructors.MyEither.Right
 # mirth-test # merr # 29:29: error: Constructor is for a different type: mirth-tests.error-name-resolution-constructors.Bar.BAR
-# mirth-test # merr # 30:31: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-constructors.+MyEither.LEFT is constructor for a different type, mirth-tests.error-name-resolution-constructors.MyEither.LEFT is constructor for a different type, std.either.Either/2.LEFT is constructor for a different type
+# mirth-test # merr # 30:31: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-constructors.+MyEither.Left is constructor for a different type, mirth-tests.error-name-resolution-constructors.MyEither.Left is constructor for a different type, std.either.Either/2.Left is constructor for a different type
 # mirth-test # mret # 1

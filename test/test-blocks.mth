@@ -39,8 +39,8 @@ def(main, --,
     map(10 +)
     "[" over for(swap trace! trace! " ") drop "]" trace-ln!
     find(dup 25 >) match(
-        SOME -> trace! " found" trace-ln!,
-        NONE -> "not found" trace-ln!
+        Some -> trace! " found" trace-ln!,
+        None -> "not found" trace-ln!
     ))
 
 # mirth-test # perr # ?? 10

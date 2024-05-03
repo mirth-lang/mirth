@@ -56,6 +56,6 @@ def(Module.source-path, Module -- Path,
 ||| ( module1 module2 -- bool ) Check whether module1 is visible in module2.
 def(Module.visible, Module Module -- Bool,
     dup2 == if(
-        drop2 T, # Module is always visible to itself.
+        drop2 True, # Module is always visible to itself.
         imports any(dup2 ==) nip
     ))

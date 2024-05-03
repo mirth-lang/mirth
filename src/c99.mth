@@ -2,7 +2,6 @@ module(mirth.c99)
 
 import(std.prelude)
 import(std.str)
-import(std.stack)
 import(std.path)
 import(std.list)
 import(std.lazy)
@@ -39,46 +38,46 @@ import(mirth.def)
 # C99 #
 #######
 
-data(OutputPath, OUTPUT_PATH -> Path)
-def(OutputPath.>Str, OutputPath -- Str, OUTPUT_PATH -> >Str)
-def(OutputPath.as-relative-path, OutputPath -- Path, OUTPUT_PATH -> )
+data(OutputPath, OutputPath -> Path)
+def(OutputPath.>Str, OutputPath -- Str, OutputPath -> >Str)
+def(OutputPath.as-relative-path, OutputPath -- Path, OutputPath -> )
 
-data(EmitDebugInfo, EMIT_DEBUG_INFO -> Bool)
-def(EmitDebugInfo.>Str, EmitDebugInfo -- Str, EMIT_DEBUG_INFO -> if("yes", "no"))
-def(EmitDebugInfo.>Bool, EmitDebugInfo -- Bool, EMIT_DEBUG_INFO -> id)
+data(EmitDebugInfo, EmitDebugInfo -> Bool)
+def(EmitDebugInfo.>Str, EmitDebugInfo -- Str, EmitDebugInfo -> if("yes", "no"))
+def(EmitDebugInfo.>Bool, EmitDebugInfo -- Bool, EmitDebugInfo -> id)
 
 data(C99_Options, C99_OPTIONS -> OutputPath EmitDebugInfo)
 def(C99_Options.make, output-path:Path emit-debug-info:Bool -- C99_Options,
-    output-path> OUTPUT_PATH
-    emit-debug-info> EMIT_DEBUG_INFO
+    output-path> OutputPath
+    emit-debug-info> EmitDebugInfo
     C99_OPTIONS)
 def(C99_Options.emit-debug-info, C99_Options -- EmitDebugInfo, C99_OPTIONS -> nip)
 def(C99_Options.output-path, C99_Options -- OutputPath, C99_OPTIONS -> drop)
 
-data(+C99, MKC99 -> C99_Options Nat +Needs +Output)
+data(+C99, +C99 -> C99_Options Nat +Needs +Output)
 
-def(+C99.depth@, +C99 -- Nat +C99, /MKC99 dup dip(MKC99))
-def(+C99.depth!, Nat +C99 -- +C99, dip(/MKC99 drop) MKC99)
-def(+C99.options@, +C99 -- C99_Options +C99, /MKC99 over dip(MKC99))
+def(+C99.depth@, +C99 -- Nat +C99, /+C99 dup dip(+C99))
+def(+C99.depth!, Nat +C99 -- +C99, dip(/+C99 drop) +C99)
+def(+C99.options@, +C99 -- C99_Options +C99, /+C99 over dip(+C99))
 
 def(+C99.emit-debug-info?, +C99 -- Bool +C99, options@ emit-debug-info >Bool)
 
 def(+C99.~Needs(f), (*a +Needs -- *b +Needs) *a +C99 -- *b +C99,
-    /MKC99 dip(dip(rdip(f))) MKC99)
+    /+C99 dip(dip(rdip(f))) +C99)
 def(+C99.~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
-    /MKC99 dip(dip(rdip'(f))) MKC99)
+    /+C99 dip(dip(rdip'(f))) +C99)
 
 def(+C99.put, Str +C99 -- +C99, ~Output(put))
 def(+C99.put-byte, Byte +C99 -- +C99, ~Output(put-byte))
 def(+C99.line, +C99 -- +C99, ~Output(line))
 
 def(c99-start!, Arrow C99_Options +World -- Arrow +World +C99,
-    dup output-path as-relative-path create-file! +Output.start!
+    dup output-path as-relative-path create-file! unwrap! +Output.start!
     rdip(+Needs.new over determine-arrow-needs!)
-    0 >Nat MKC99)
+    0 >Nat +C99)
 
 def(c99-end!, +World +C99 -- +World,
-    /MKC99 drop2 rdip(rdrop) end! +File.close-file!)
+    /+C99 drop2 rdip(rdrop) end! +File.close-file!)
 
 def(run-output-c99!, Arrow C99_Options +World -- +World,
     num-errors @ 0> if(
@@ -391,27 +390,27 @@ def(c99-atom!, Atom +C99 -- +C99,
     c99-args-op!)
 
 def(c99-args-op!, List(Arg) Op +C99 -- +C99,
-    OP_NONE     -> drop,
-    OP_INT      -> nip c99-int!,
-    OP_STR      -> nip c99-str!,
-    OP_WORD     -> c99-word!,
-    OP_EXTERNAL -> cname c99-call!,
-    OP_BUFFER   -> cname c99-call!,
-    OP_VARIABLE -> cname c99-call!,
-    OP_FIELD    -> cname c99-call!,
-    OP_TAG      -> c99-tag-word!,
-    OP_PRIM     -> c99-prim!,
-    OP_MATCH    -> nip c99-match!,
-    OP_LAMBDA   -> nip c99-lambda!,
-    OP_VAR      -> nip c99-var!,
-    OP_BLOCK    -> nip c99-block-push!,
-    OP_RUN      -> nip c99-block-run!,
-    OP_COERCE   -> drop2,
-    OP_LABEL_PUSH -> nip c99-label-push!,
-    OP_LABEL_POP  -> nip c99-label-pop!,
-    OP_DATA_GET_TAG -> c99-get-data-tag!,
-    OP_DATA_GET_LABEL -> c99-tag-get-label! drop,
-    OP_DATA_SET_LABEL -> c99-tag-set-label! drop)
+    OpNone     -> drop,
+    OpInt      -> nip c99-int!,
+    OpStr      -> nip c99-str!,
+    OpWord     -> c99-word!,
+    OpExternal -> cname c99-call!,
+    OpBuffer   -> cname c99-call!,
+    OpVariable -> cname c99-call!,
+    OpField    -> cname c99-call!,
+    OpTag      -> c99-tag-word!,
+    OpPrim     -> c99-prim!,
+    OpMatch    -> nip c99-match!,
+    OpLambda   -> nip c99-lambda!,
+    OpVar      -> nip c99-var!,
+    OpBlockPush    -> nip c99-block-push!,
+    OpBlockRun      -> nip c99-block-run!,
+    OpCoerce   -> drop2,
+    OpLabelPush -> nip c99-label-push!,
+    OpLabelPop  -> nip c99-label-pop!,
+    OpDataGetTag -> c99-get-data-tag!,
+    OpDataGetLabel -> c99-tag-get-label! drop,
+    OpDataSetLabel -> c99-tag-set-label! drop)
 
 def(c99-get-data-tag!, List(Arg) Data +C99 -- +C99,
     nip dup is-enum? else(
@@ -543,7 +542,7 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
     PRIM_CORE_ID -> drop,
     PRIM_CORE_DIP ->
         dup /L1 match(
-            SOME ->
+            Some ->
                 nip
                 c99-line("{" put)
                 c99-nest(
@@ -552,13 +551,13 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                     c99-line("push_value(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
-            NONE ->
+            None ->
                 PRIM_CORE_DIP c99-prim-default!
         ),
 
     PRIM_CORE_RDIP ->
         dup /L1 match(
-            SOME ->
+            Some ->
                 nip
                 c99-line("{" put)
                 c99-nest(
@@ -567,26 +566,26 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                     c99-line("push_resource(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
-            NONE ->
+            None ->
                 PRIM_CORE_RDIP c99-prim-default!
         ),
 
     PRIM_CORE_IF ->
         dup /L2 match(
-            SOME ->
+            Some ->
                 nip unpack2
                 c99-line("if (pop_u64()) {" put)
                 c99-nest(swap c99-arg-run!)
                 c99-line("} else {" put)
                 c99-nest(c99-arg-run!)
                 c99-line("}" put),
-            NONE ->
+            None ->
                 PRIM_CORE_IF c99-prim-default!
         ),
 
     PRIM_CORE_WHILE ->
         dup /L2 match(
-            SOME ->
+            Some ->
                 nip unpack2
                 c99-line("while(1) {" put)
                 c99-nest(
@@ -596,7 +595,7 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                 )
                 c99-line("}" put),
 
-            NONE ->
+            None ->
                 PRIM_CORE_WHILE c99-prim-default!
         ),
 
@@ -609,10 +608,10 @@ def(c99-args-push!, List(Arg) +C99 -- +C99,
     for(c99-arg-push!))
 
 def(c99-arg-push!, Arg +C99 -- +C99,
-    ARG_BLOCK -> c99-block-push!)
+    ArgBlock -> c99-block-push!)
 
 def(c99-arg-run!, Arg +C99 -- +C99,
-    ARG_BLOCK -> c99-block-run!)
+    ArgBlock -> c99-block-run!)
 
 def(c99-block-run!, Block +C99 -- +C99,
     arrow c99-arrow!)
@@ -642,8 +641,8 @@ def(c99-decref-closure-vars!, List(Var) +C99 -- +C99,
 
 def(c99-block-push!, Block +C99 -- +C99,
     dup to-run-var match(
-        SOME -> nip c99-var-push!,
-        NONE ->
+        Some -> nip c99-var-push!,
+        None ->
             c99-line("push_fnptr(&" put dup cname put ");" put)
             dup free-vars c99-pack-closure-vars!
             drop
@@ -730,8 +729,8 @@ def(c99-block-enter!, Block +C99 -- +C99,
         c99-line("WORD_ENTER(" put
             dup cname put ", " put
             dup home match(
-                HOME_MAIN -> drop "block",
-                HOME_WORD -> name >Str " block" cat,
+                HomeMain -> drop "block",
+                HomeWord -> name >Str " block" cat,
             ) put-cstr ", " put
             dup token .module source-path >Str put-cstr ", " put
             dup token row >Int show put ", " put

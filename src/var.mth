@@ -33,26 +33,26 @@ def(Var.new!, Type Name -- Var,
     Var.alloc!
     tuck ~name !
     tuck ~type !
-    F over ~auto-run? !)
+    False over ~auto-run? !)
 
 def(Var.new-auto-run!, Type Name -- Var,
     Var.new!
-    T over ~auto-run? !)
+    True over ~auto-run? !)
 
 ###########
 # Context #
 ###########
 
 # A context for types and terms.
-data(Ctx, CTX -> List(Var))
-def(List.>Ctx, List(Var) -- Ctx, CTX)
-def(Ctx.>List, Ctx -- List(Var), CTX -> id)
+data(Ctx, Ctx -> List(Var))
+def(List.>Ctx, List(Var) -- Ctx, Ctx)
+def(Ctx.>List, Ctx -- List(Var), /Ctx)
 
-def(CTX0, Ctx, L0 CTX)
-def(CTX1, Var -- Ctx, L1 CTX)
-def(CTX2, Var Var -- Ctx, L2 CTX)
-def(CTX3, Var Var Var -- Ctx, L3 CTX)
-def(CTX4, Var Var Var Var -- Ctx, L4 CTX)
+def(Ctx0, Ctx, L0 Ctx)
+def(Ctx1, Var -- Ctx, L1 Ctx)
+def(Ctx2, Var Var -- Ctx, L2 Ctx)
+def(Ctx3, Var Var Var -- Ctx, L3 Ctx)
+def(Ctx4, Var Var Var Var -- Ctx, L4 Ctx)
 
 def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.snoc >Ctx)
 

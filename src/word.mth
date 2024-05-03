@@ -41,7 +41,7 @@ def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)
 def(Word.type, Word -- ArrowType, ctx-type nip)
 
-def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap-or(F))
+def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap-or(False))
 
 def(Word.new!,
     head:Token sig:Maybe(Token) body:Token
@@ -52,7 +52,7 @@ def(Word.new!,
     body> over ~body !
     arity> over ~arity !
     sig> over ~sig !
-    dup DEF_WORD register)
+    dup DefWord register)
 
 def(Word.==, Word Word -- Bool, both(index) ==)
 def(Word.compare, Word Word -- Comparison, both(index) compare)
