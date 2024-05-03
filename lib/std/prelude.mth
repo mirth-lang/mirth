@@ -294,11 +294,9 @@ inline(
     def(Ptr.is-null, Ptr -- Bool, Ptr.null ==)
     def(Ptr.sizeof, -- Size, prim-ptr-size >Size)
 
-    data(+Unsafe, +UNSAFE)
-    def(-UNSAFE, +Unsafe --, +UNSAFE -> id)
-
+    data(+Unsafe, +Unsafe)
     def(unsafe(f), (*a +Unsafe -- *b +Unsafe) *a -- *b,
-        +UNSAFE f -UNSAFE)
+        +Unsafe f /+Unsafe)
 
     ||| Add byte offset to Ptr.
     def(Ptr.offset, Offset Ptr +Unsafe -- Ptr +Unsafe, dip(>Int) prim-ptr-add)

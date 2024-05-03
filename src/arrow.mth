@@ -45,39 +45,39 @@ import(mirth.label)
 # mirth/data/arrow
 table(Block)
 
-data(Arg, ARG_BLOCK -> Block)
+data(Arg, ArgBlock -> Block)
 
 data(Op,
-    OP_NONE,
-    OP_PRIM -> Prim,
-    OP_WORD -> Word,
-    OP_EXTERNAL -> External,
-    OP_BUFFER -> Buffer,
-    OP_VARIABLE -> Variable,
-    OP_FIELD -> Field,
-    OP_INT -> Int,
-    OP_STR -> Str,
-    OP_TAG -> Tag,
-    OP_MATCH -> Match,
-    OP_LAMBDA -> Lambda,
-    OP_VAR -> Var,
-    OP_BLOCK -> Block,
-    OP_RUN -> Block,
-    OP_COERCE -> Coerce,
-    OP_LABEL_PUSH -> Label,
-    OP_LABEL_POP -> Label,
-    OP_DATA_GET_TAG -> Data,
-    OP_DATA_GET_LABEL -> Tag Label,
-    OP_DATA_SET_LABEL -> Tag Label)
+    OpNone,
+    OpPrim -> Prim,
+    OpWord -> Word,
+    OpExternal -> External,
+    OpBuffer -> Buffer,
+    OpVariable -> Variable,
+    OpField -> Field,
+    OpInt -> Int,
+    OpStr -> Str,
+    OpTag -> Tag,
+    OpMatch -> Match,
+    OpLambda -> Lambda,
+    OpVar -> Var,
+    OpBlockPush -> Block,
+    OpBlockRun -> Block,
+    OpCoerce -> Coerce,
+    OpLabelPush -> Label,
+    OpLabelPop -> Label,
+    OpDataGetTag -> Data,
+    OpDataGetLabel -> Tag Label,
+    OpDataSetLabel -> Tag Label)
 
 data(Coerce,
-    COERCE_UNSAFE)
+    CoerceUnsafe)
 
 data(Home,
-    HOME_MAIN -> Token,
-    HOME_WORD -> Word)
+    HomeMain -> Token,
+    HomeWord -> Word)
 
-data(Arrow, ARROW ->
+data(Arrow, Arrow ->
     home:Home
     token-start:Token
     token-end:Token
@@ -87,7 +87,7 @@ data(Arrow, ARROW ->
     atoms:List(Atom))
 def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
 
-data(Atom, ATOM ->
+data(Atom, Atom ->
     home:Home
     token:Token
     ctx:Ctx
@@ -97,7 +97,7 @@ data(Atom, ATOM ->
     cod:StackType
     subst:Subst)
 
-data(Lambda, LAMBDA ->
+data(Lambda, Lambda ->
     token:Token
     outer-ctx:Ctx
     dom:StackType
@@ -131,11 +131,11 @@ def(Block.infer-type!, Block -- ArrowType, arrow type)
 
 def(Block.qname, Block -- QName,
     dup ~qname memoize(dup dup home match(
-        HOME_MAIN ->
+        HomeMain ->
             .module NAMESPACE_MODULE
             swap arrow token-start index show
             dip:"entry@" cat >Name QNAME0,
-        HOME_WORD -> dup NAMESPACE_WORD
+        HomeWord -> dup NAMESPACE_WORD
             dip(dip:arrow arrow both(token-start index) - show >Name)
             swap QNAME0
     )) nip)
@@ -152,17 +152,17 @@ def(Word.inc-num-blocks!, Word -- Int,
 field(Block.~home-index, Block, Int)
 def(Block.register-home!, Block --,
     dup home match(
-        HOME_WORD ->
+        HomeWord ->
             inc-num-blocks! swap ~home-index !,
-        HOME_MAIN ->
+        HomeMain ->
             drop2
     ))
 
 field(Block.~cname, Block, Str)
 def(Block.cname, Block -- Str, dup ~cname memoize(
     dup home match(
-        HOME_WORD -> Str("mb_" ; qname mangled ; "_" ; dup ~home-index @ show ;),
-        HOME_MAIN -> drop Str("mb_" ; dup index show ;),
+        HomeWord -> Str("mb_" ; qname mangled ; "_" ; dup ~home-index @ show ;),
+        HomeMain -> drop Str("mb_" ; dup index show ;),
     )) nip)
 
 def(Block.new!, Arrow -- Block,
@@ -199,14 +199,14 @@ def(Arrow.to-run-var, Arrow -- Maybe(Var),
 
 def(Atom.to-run-var, Atom -- Maybe(Var),
     op match(
-        OP_VAR -> dup auto-run? if(Some, drop None),
+        OpVar -> dup auto-run? if(Some, drop None),
         _ -> drop None
     ))
 
 def(Arg.>Str, Arg -- Str,
-    ARG_BLOCK -> qname >Str)
+    ArgBlock -> qname >Str)
 def(Arg.==, Arg Arg -- Bool,
-    both(/ARG_BLOCK) ==)
+    both(/ArgBlock) ==)
 
 field(Block.~free-vars, Block, List(Var))
 def(Block.free-vars, Block -- List(Var),
@@ -220,29 +220,29 @@ def(Atom.free-vars, Atom -- List(Var),
     dup args map(free-vars) unions(==)
     swap op free-vars union(==))
 def(Arg.free-vars, Arg -- List(Var),
-    ARG_BLOCK -> free-vars)
+    ArgBlock -> free-vars)
 def(Op.free-vars, Op -- List(Var),
-    OP_NONE -> L0,
-    OP_PRIM -> drop L0,
-    OP_WORD -> drop L0,
-    OP_EXTERNAL -> drop L0,
-    OP_BUFFER -> drop L0,
-    OP_VARIABLE -> drop L0,
-    OP_FIELD -> drop L0,
-    OP_INT -> drop L0,
-    OP_STR -> drop L0,
-    OP_TAG -> drop L0,
-    OP_MATCH -> free-vars,
-    OP_LAMBDA -> free-vars,
-    OP_VAR -> L1,
-    OP_BLOCK -> free-vars,
-    OP_RUN -> free-vars,
-    OP_COERCE -> drop L0,
-    OP_LABEL_PUSH -> drop L0,
-    OP_LABEL_POP -> drop L0,
-    OP_DATA_GET_TAG -> drop L0,
-    OP_DATA_GET_LABEL -> drop2 L0,
-    OP_DATA_SET_LABEL -> drop2 L0)
+    OpNone -> L0,
+    OpPrim -> drop L0,
+    OpWord -> drop L0,
+    OpExternal -> drop L0,
+    OpBuffer -> drop L0,
+    OpVariable -> drop L0,
+    OpField -> drop L0,
+    OpInt -> drop L0,
+    OpStr -> drop L0,
+    OpTag -> drop L0,
+    OpMatch -> free-vars,
+    OpLambda -> free-vars,
+    OpVar -> L1,
+    OpBlockPush -> free-vars,
+    OpBlockRun -> free-vars,
+    OpCoerce -> drop L0,
+    OpLabelPush -> drop L0,
+    OpLabelPop -> drop L0,
+    OpDataGetTag -> drop L0,
+    OpDataGetLabel -> drop2 L0,
+    OpDataSetLabel -> drop2 L0)
 def(Match.free-vars, Match -- List(Var),
     cases map(free-vars) unions(==))
 def(Case.free-vars, Case -- List(Var),
@@ -252,6 +252,6 @@ def(Lambda.free-vars, Lambda -- List(Var),
     swap params difference(==))
 
 def(Arg.token, Arg -- Token,
-    ARG_BLOCK -> token)
+    ArgBlock -> token)
 def(Arg.type, Arg -- ArrowType,
-    ARG_BLOCK -> type)
+    ArgBlock -> type)

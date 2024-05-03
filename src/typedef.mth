@@ -23,4 +23,4 @@ def(TypeDef.new!, Maybe(Token) QName Type -- TypeDef,
     tuck ~target !
     tuck ~qname !
     tuck ~head? !
-    dup DEF_TYPEDEF register)
+    dup DefType register)

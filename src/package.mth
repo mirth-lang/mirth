@@ -18,7 +18,7 @@ def(Package.new!, Maybe(Path) Name -- Package,
     Package.alloc!
     tuck ~name !
     tuck ~path !
-    dup DEF_PACKAGE register)
+    dup DefPackage register)
 
 def(Package.new-or-set-path!, Path Name -- Package,
   dup Package.find match(

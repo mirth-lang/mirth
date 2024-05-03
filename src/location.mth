@@ -6,18 +6,18 @@ import(std.posix)
 import(mirth.module)
 
 # mirth/data/location
-data(Row, ROW -> Int)
-def(Int.>Row, Int -- Row, ROW)
-def(Row.>Int, Row -- Int, ROW -> id)
+data(Row, Row -> Int)
+def(Int.>Row, Int -- Row, Row)
+def(Row.>Int, Row -- Int, Row -> id)
 def(Row.trace!, Row --, >Int trace!)
 
-data(Col, COL -> Int)
-def(Int.>Col, Int -- Col, COL)
-def(Col.>Int, Col -- Int, COL -> id)
+data(Col, Col -> Int)
+def(Int.>Col, Int -- Col, Col)
+def(Col.>Int, Col -- Int, Col -> id)
 def(Col.trace!, Col --, >Int trace!)
 
-data(Location, LOCATION -> Module Row Col)
-def(Location.unpack, Location -- Module Row Col, LOCATION -> id)
+data(Location, Location -> Module Row Col)
+def(Location.unpack, Location -- Module Row Col, Location -> id)
 def(Location.trace!, Location --,
     unpack rotr swap
     source-path trace!

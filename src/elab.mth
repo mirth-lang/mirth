@@ -47,7 +47,7 @@ data(+TypeElab, TYPE_ELAB ->
 
 def(+TypeElab.type-sig-start!, Token -- +TypeElab,
     >token
-    CTX0 >ctx
+    Ctx0 >ctx
     F >allow-type-holes
     T >allow-implicit-type-vars
     TYPE_ELAB)
@@ -371,9 +371,9 @@ def(+TypeElab.resolve-type-con-name!, +TypeElab -- +TypeElab Type,
         filter-qualifiers
         L0 filter-roots
     ) map:match(
-        DEF_DATA -> TData,
-        DEF_TABLE -> TTable,
-        DEF_TYPEDEF -> target,
+        DefData -> TData,
+        DefTable -> TTable,
+        DefType -> target,
         _ ->
             drop token "compiler bug: resolve-type-con-name! doesn't understand type"
             emit-error! TYPE_ERROR,
@@ -440,7 +440,7 @@ def(elab-stack-type-unify!, StackType StackType Token -- StackType Token,
 
 def(elab-simple-type-arg!, Token -- Type,
     >token
-    CTX0 >ctx
+    Ctx0 >ctx
     F >allow-type-holes
     F >allow-implicit-type-vars
     TYPE_ELAB elab-type-arg! rdrop)
@@ -463,7 +463,7 @@ def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow,
     dup >token-start >token-end
     dup >dom >cod
     >ctx L0 >atoms
-    ARROW >arrow MKAB
+    Arrow >arrow MKAB
     f /MKAB arrow>)
 
 ||| Like ab-build! but takes a morphism type to build
@@ -473,7 +473,7 @@ def(ab-build-hom!(f), (*a StackType +AB -- *b StackType +AB) *a Ctx ArrowType To
     dip2(unpack rotr)
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a StackType +AB -- *b StackType +AB) *a Word -- *b Arrow,
-    sip(ctx-type) sip(body) HOME_WORD ab-build-hom!(f))
+    sip(ctx-type) sip(body) HomeWord ab-build-hom!(f))
 def(ab-build-word!(f), (*a +AB -- *b +AB) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck ~arrow !)
@@ -497,8 +497,8 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
 
 def(atom-accepts-args?, Atom -- Atom Bool,
     dup op match(
-        OP_WORD -> dip(dup args len >Int) arity <,
-        OP_PRIM ->
+        OpWord -> dip(dup args len >Int) arity <,
+        OpPrim ->
             match(
                 PRIM_CORE_DIP -> dup args len 1 >Nat <,
                 PRIM_CORE_RDIP -> dup args len 1 >Nat <,
@@ -514,7 +514,7 @@ def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
         None -> F,
         Some ->
             op match(
-                OP_BLOCK -> drop T,
+                OpBlockPush -> drop T,
                 _ -> drop F
             )
     ))
@@ -524,11 +524,11 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
         None -> L0,
         Some ->
             unsnoc dup op match(
-                OP_BLOCK ->
+                OpBlockPush ->
                     { Atom List(Atom) Atom Block }
                     dip(dom rotl dom!)
                     { List(Atom) Atom Block }
-                    ARG_BLOCK swap args:cons
+                    ArgBlock swap args:cons
                     swap,
                 _ -> drop List.snoc
             )
@@ -541,7 +541,7 @@ def(ab-op!, Op +AB -- +AB,
     dup >op
     elab-op-fresh-sig! dip:>subst
     ab-expand-opsig! >cod >dom
-    L0 >args ATOM ab-atom!)
+    L0 >args Atom ab-atom!)
 
 def(ab-expand-opsig!, OpSig +AB -- StackType StackType +AB,
     OPSIG_ID -> ab-type@ dup,
@@ -550,27 +550,27 @@ def(ab-expand-opsig!, OpSig +AB -- StackType StackType +AB,
         dip(ab-type@) unpack
         dip(ab-token@ elab-stack-type-unify! drop))
 
-def(ab-int!, Int +AB -- +AB, OP_INT ab-op!)
-def(ab-str!, Str +AB -- +AB, OP_STR ab-op!)
-def(ab-buffer!, Buffer +AB -- +AB, OP_BUFFER ab-op!)
-def(ab-variable!, Variable +AB -- +AB, OP_VARIABLE ab-op!)
-def(ab-field!, Field +AB -- +AB, OP_FIELD ab-op!)
-def(ab-var!, Var +AB -- +AB, OP_VAR ab-op!)
-def(ab-tag!, Tag +AB -- +AB, OP_TAG ab-op!)
+def(ab-int!, Int +AB -- +AB, OpInt ab-op!)
+def(ab-str!, Str +AB -- +AB, OpStr ab-op!)
+def(ab-buffer!, Buffer +AB -- +AB, OpBuffer ab-op!)
+def(ab-variable!, Variable +AB -- +AB, OpVariable ab-op!)
+def(ab-field!, Field +AB -- +AB, OpField ab-op!)
+def(ab-var!, Var +AB -- +AB, OpVar ab-op!)
+def(ab-tag!, Tag +AB -- +AB, OpTag ab-op!)
 def(ab-prim!, Prim +AB -- +AB,
     dup ~type mut-is-set if(
-        OP_PRIM ab-op!,
+        OpPrim ab-op!,
         ab-token@ "prim does not have type" emit-fatal-error!
     ))
-def(ab-word!, Word +AB -- +AB, OP_WORD ab-op!)
-def(ab-external!, External +AB -- +AB, OP_EXTERNAL ab-op!)
-def(ab-coerce!, Coerce +AB -- +AB, OP_COERCE ab-op!)
-def(ab-label-push!, Label +AB -- +AB, OP_LABEL_PUSH ab-op!)
-def(ab-label-pop!, Label +AB -- +AB, OP_LABEL_POP ab-op!)
+def(ab-word!, Word +AB -- +AB, OpWord ab-op!)
+def(ab-external!, External +AB -- +AB, OpExternal ab-op!)
+def(ab-coerce!, Coerce +AB -- +AB, OpCoerce ab-op!)
+def(ab-label-push!, Label +AB -- +AB, OpLabelPush ab-op!)
+def(ab-label-pop!, Label +AB -- +AB, OpLabelPop ab-op!)
 
 def(ab-block-at!(f), (*a +AB -- *b +AB) *a Token +AB -- *b +AB,
     ab-ctx@ MetaVar.new! STMeta rotl ab-home@ rdip(ab-build!(f))
-    Block.new! OP_BLOCK ab-op!)
+    Block.new! OpBlockPush ab-op!)
 
 def(ab-block!(f), (*a +AB -- *b +AB) *a +AB -- *b +AB,
     ab-token@ ab-block-at!(f))
@@ -602,7 +602,7 @@ def(ab-lambda-at!(f), (*a +AB -- *b +AB) *a Token List(Var) +AB -- *b +AB,
     ab-ctx@ >outer-ctx
     ab-type@ >dom
     ab-token@ >token
-    LAMBDA OP_LAMBDA ab-op!)
+    Lambda OpLambda ab-op!)
 
 data(OpSig,
     OPSIG_ID,
@@ -611,27 +611,27 @@ data(OpSig,
 
 def(elab-op-fresh-sig!, Op -- Subst OpSig,
     Subst.nil swap match(
-        OP_NONE -> OPSIG_ID,
-        OP_INT -> VALUE_INT TValue OPSIG_PUSH,
-        OP_STR -> VALUE_STR TValue OPSIG_PUSH,
-        OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
-        OP_VARIABLE -> type TMut OPSIG_PUSH,
-        OP_TAG -> type freshen-sig OPSIG_APPLY,
-        OP_WORD -> type freshen-sig OPSIG_APPLY,
-        OP_PRIM -> type freshen-sig OPSIG_APPLY,
-        OP_EXTERNAL -> type freshen-sig OPSIG_APPLY,
-        OP_FIELD -> type freshen-sig OPSIG_APPLY,
-        OP_BLOCK -> elab-block-sig!,
-        OP_RUN -> type semifreshen-sig OPSIG_APPLY,
-        OP_VAR -> elab-var-sig!,
-        OP_MATCH -> elab-match-sig!,
-        OP_LAMBDA -> elab-lambda-sig!,
-        OP_COERCE -> elab-coerce-sig!,
-        OP_LABEL_PUSH -> elab-label-push-sig!,
-        OP_LABEL_POP -> elab-label-pop-sig!,
-        OP_DATA_GET_TAG -> data-get-tag-type freshen-sig OPSIG_APPLY,
-        OP_DATA_GET_LABEL -> data-get-label-type freshen-sig OPSIG_APPLY,
-        OP_DATA_SET_LABEL -> data-set-label-type freshen-sig OPSIG_APPLY,
+        OpNone -> OPSIG_ID,
+        OpInt -> VALUE_INT TValue OPSIG_PUSH,
+        OpStr -> VALUE_STR TValue OPSIG_PUSH,
+        OpBuffer -> drop TYPE_PTR OPSIG_PUSH,
+        OpVariable -> type TMut OPSIG_PUSH,
+        OpTag -> type freshen-sig OPSIG_APPLY,
+        OpWord -> type freshen-sig OPSIG_APPLY,
+        OpPrim -> type freshen-sig OPSIG_APPLY,
+        OpExternal -> type freshen-sig OPSIG_APPLY,
+        OpField -> type freshen-sig OPSIG_APPLY,
+        OpBlockPush -> elab-block-sig!,
+        OpBlockRun -> type semifreshen-sig OPSIG_APPLY,
+        OpVar -> elab-var-sig!,
+        OpMatch -> elab-match-sig!,
+        OpLambda -> elab-lambda-sig!,
+        OpCoerce -> elab-coerce-sig!,
+        OpLabelPush -> elab-label-push-sig!,
+        OpLabelPop -> elab-label-pop-sig!,
+        OpDataGetTag -> data-get-tag-type freshen-sig OPSIG_APPLY,
+        OpDataGetLabel -> data-get-label-type freshen-sig OPSIG_APPLY,
+        OpDataSetLabel -> data-set-label-type freshen-sig OPSIG_APPLY,
     ))
 
 def(data-get-tag-type, Data -- ArrowType,
@@ -639,7 +639,7 @@ def(data-get-tag-type, Data -- ArrowType,
     TYPE_INT T1 T->)
 
 def(elab-coerce-sig!, Coerce -- OpSig,
-    COERCE_UNSAFE ->
+    CoerceUnsafe ->
         MetaVar.new! STMeta dup
         MetaVar.new! TMeta T* swap
         MetaVar.new! TMeta T* T-> OPSIG_APPLY)
@@ -689,15 +689,15 @@ def(elab-atoms!, +AB -- +AB,
 
 def(elab-atom!, +AB -- +AB,
     ab-token@ value match(
-        TOKEN_NAME -> elab-atom-name!,
-        TOKEN_DNAME -> elab-atom-dname!,
-        TOKEN_INT -> ab-int!,
-        TOKEN_STR -> ab-str!,
-        TOKEN_LSQUARE -> drop elab-atom-block!,
-        TOKEN_LCURLY -> drop elab-atom-assert!,
-        TOKEN_LABEL_PUSH -> ab-token@ args-0 ab-label-push!,
-        TOKEN_LABEL_POP -> ab-token@ args-0 ab-label-pop!,
-        TOKEN_LABEL_LENS -> elab-label-lens!,
+        TokenName -> elab-atom-name!,
+        TokenDName -> elab-atom-dname!,
+        TokenInt -> ab-int!,
+        TokenStr -> ab-str!,
+        TokenLSquare -> drop elab-atom-block!,
+        TokenLCurly -> drop elab-atom-assert!,
+        TokenLabelPush -> ab-token@ args-0 ab-label-push!,
+        TokenLabelPop -> ab-token@ args-0 ab-label-pop!,
+        TokenLabelLens -> elab-label-lens!,
         _ -> ab-token@ "Unexpected token in elab-atom!" emit-fatal-error!
     ))
 
@@ -720,7 +720,7 @@ def(elab-block-at!, Token +AB -- +AB,
         dup token swap
         home
         elab-arrow-hom!
-    ) OP_BLOCK ab-op!)
+    ) OpBlockPush ab-op!)
 
 def(elab-args!, +AB -- +AB,
     ab-token@ args for(elab-block-at!))
@@ -742,8 +742,8 @@ def(elab-atom-dname!, DName +AB -- +AB,
 
 def(Token.can-be-relative-name-or-dname?, Token -- Bool,
     value match(
-        TOKEN_NAME -> can-be-relative?,
-        TOKEN_DNAME -> is-relative?,
+        TokenName -> can-be-relative?,
+        TokenDName -> is-relative?,
         _ -> drop F
     ))
 
@@ -775,14 +775,14 @@ def(elab-ambiguous-name-error!, *a Token List(QName) -- *b,
     for(dip(" " cat) >Str cat) emit-fatal-error!)
 
 def(elab-atom-def!, Def +AB -- +AB,
-    DEF_ALIAS -> target elab-atom-def!,
-    DEF_BUFFER -> elab-no-args! ab-buffer!,
-    DEF_VARIABLE -> elab-no-args! ab-variable!,
-    DEF_EXTERNAL -> elab-no-args! ab-external!,
-    DEF_FIELD -> elab-no-args! ab-field!,
-    DEF_WORD -> elab-args! ab-word!,
-    DEF_TAG -> elab-args! ab-tag!,
-    DEF_PRIM -> elab-prim!,
+    DefAlias -> target elab-atom-def!,
+    DefBuffer -> elab-no-args! ab-buffer!,
+    DefVariable -> elab-no-args! ab-variable!,
+    DefExternal -> elab-no-args! ab-external!,
+    DefField -> elab-no-args! ab-field!,
+    DefWord -> elab-args! ab-word!,
+    DefTag -> elab-args! ab-tag!,
+    DefPrim -> elab-prim!,
     _ -> qname elab-atom-not-a-word!)
 
 def(elab-atom-not-a-word!, QName +AB -- +AB,
@@ -877,7 +877,7 @@ def(ab-match!(f),
     ab-token@ >token
     ab-home@ >home
     L0 >cases
-    rdip(+MATCH f freeze) OP_MATCH ab-op!)
+    rdip(+Match f freeze) OpMatch ab-op!)
 
 def(+Match.case!(mkpat,mkbod),
         (*a +Pattern -- *b +Pattern,
@@ -888,7 +888,7 @@ def(+Match.case!(mkpat,mkbod),
         home >home dup >token-start >token-end
         ctx dup >outer-ctx >inner-ctx
         L0 >saved dom dup >mid >cod L0 >atoms
-        PATTERN rdip(thaw mkpat freeze)
+        Pattern rdip(thaw mkpat freeze)
     ) swap \(pat ->
         pat inner-ctx
         pat Pattern.dom +Match.cod T->
@@ -960,7 +960,7 @@ def(elab-module-header!, Token -- Token,
         tuck ~name !
         tuck ~package !
         dup qname defined? then(drop "Module name already taken." emit-fatal-error!)
-        dup DEF_MODULE register
+        dup DefModule register
         check-module-path,
 
         dup "Expected module header." emit-fatal-error!
@@ -1026,14 +1026,14 @@ def(elab-data-header!, Data Token -- Data,
     dup sig-type-con? or(dup sig-resource-con?) else("Expected type name." emit-fatal-error!)
     dup2 elab-def-qname-undefined
     over ~qname !
-    dup DEF_DATA register
+    dup DefData register
     # TODO check header args are well-formed / elaborate them properly
     #  as part of: https://github.com/mirth-lang/mirth/issues/246
     dip(dup num-args) ~arity !
     args delay(elab-data-params!) over ~params !)
 
 def(elab-data-params!, List(Token) -- List(Var),
-    CTX0 swap for(
+    Ctx0 swap for(
         dup sig-type-var? else("expected type variable" emit-fatal-error!)
         dup name? unwrap over2 Ctx.lookup then("duplicate parameter name" emit-fatal-error!)
         name? unwrap TYPE_TYPE swap Var.new! Ctx.new
@@ -1047,7 +1047,7 @@ def(elab-data-tag!, Data Token -- Data,
     Tag.alloc!
     None over ~untag !
     tuck ~qname !
-    dup DEF_TAG register
+    dup DefTag register
     { Data Token Tag }
     dip(over) dup2 ~data !
     tuck dip(add-tag!)
@@ -1101,16 +1101,16 @@ def(elab-data-done!, Data --,
                 dat data-get-tag-type
                 ready2 tag ~ctx-type !
                 tag ab-build-word!(
-                    dat OP_DATA_GET_TAG ab-op!
+                    dat OpDataGetTag ab-op!
                 ) drop
             )
         )
 
         dat is-enum? then(
             dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
-                CTX0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
+                Ctx0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
                 ftag ab-build-word!(
-                    COERCE_UNSAFE ab-coerce!
+                    CoerceUnsafe ab-coerce!
                 ) drop
             ),
         )
@@ -1174,7 +1174,7 @@ def(create-projectors!, Tag --,
                 pack2
             ) lbl_get ~ctx-type !
             lbl_get delay(ab-build-word-arrow!(
-                tag lbl OP_DATA_GET_LABEL ab-op!
+                tag lbl OpDataGetLabel ab-op!
             )) lbl_get ~arrow !
 
             delay0(
@@ -1183,7 +1183,7 @@ def(create-projectors!, Tag --,
                 pack2
             ) lbl_set ~ctx-type !
             lbl_set delay(ab-build-word-arrow!(
-                tag lbl OP_DATA_SET_LABEL ab-op!
+                tag lbl OpDataSetLabel ab-op!
             )) lbl_set ~arrow !
 
             delay0(
@@ -1191,7 +1191,7 @@ def(create-projectors!, Tag --,
                 TYPE_STACK "*y" >Name Var.new!
                 lbl tag project-input-label unwrap
                 tag output-type \(sx sy lblty datty ->
-                    tag ctx /CTX sx sy L2 cat CTX
+                    tag ctx /Ctx sx sy L2 cat Ctx
                     sx STVar datty T*+
                         sx STVar lblty T*
                         sy STVar lblty T* T-> TMorphism T*
@@ -1263,7 +1263,7 @@ def(elab-alias!, Token -- Token,
             emit-fatal-error!
         )
         match(
-            DEF_ALIAS ->
+            DefAlias ->
                 # Detect circular aliases, e.g. `alias(x, y) alias(y, x)`,
                 # and avoid storing alias chains (so each alias points to its ultimate target directly).
                 ~target force-or!("alias points to itself, circular aliases not allowed." emit-fatal-error!) nip,
@@ -1327,10 +1327,10 @@ def(check-inline-recursion-atom!, Word Atom --,
         drop2
     ))
 def(check-inline-recursion-arg!, Word Arg --,
-    ARG_BLOCK -> arrow check-inline-recursion-arrow!)
+    ArgBlock -> arrow check-inline-recursion-arrow!)
 def(check-inline-recursion-op!, Word Op --,
-    OP_RUN -> arrow check-inline-recursion-arrow!,
-    OP_WORD ->
+    OpBlockRun -> arrow check-inline-recursion-arrow!,
+    OpWord ->
         dup2 == if(
             drop check-inline-recursion-failed!,
             dup prefer-inline? if(
@@ -1341,8 +1341,8 @@ def(check-inline-recursion-op!, Word Op --,
                 drop2
             )
         ),
-    OP_MATCH -> cases for(dip:dup body check-inline-recursion-arrow!) drop,
-    OP_LAMBDA -> body check-inline-recursion-arrow!,
+    OpMatch -> cases for(dip:dup body check-inline-recursion-arrow!) drop,
+    OpLambda -> body check-inline-recursion-arrow!,
     _ -> drop2)
 def(check-inline-recursion-failed!, Word --,
     dup prefer-inline? if(
@@ -1392,7 +1392,7 @@ def(elab-def-external!, Token -- Token,
         sig +TypeElab.type-sig-start!
         elab-type-sig! dip:ctx pack2 rdrop
     ) over ~ctx-type !
-    DEF_EXTERNAL register)
+    DefExternal register)
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
 def(elab-def-type!, Token -- Token,
@@ -1433,8 +1433,8 @@ def(elab-entry-point, QName +World -- Arrow +World,
         ) >Str cat
         emit-fatal-error!
     ) nip { Word +World }
-    dup dip(CTX0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
-    head dup HOME_MAIN ab-build-hom!(
+    dup dip(Ctx0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
+    head dup HomeMain ab-build-hom!(
         dip(ab-word!)
     ))
 
@@ -1447,7 +1447,7 @@ def(elab-embed-str!, Token +World -- Token +World,
     dup str? unwrap-or("expected source path" emit-fatal-error!)
     >Path open-file! unwrap! read-file! close-file! nip >contents
     Word.new!
-    CTX0 T0 TYPE_STR T1 T-> ready2 over ~ctx-type !
+    Ctx0 T0 TYPE_STR T1 T-> ready2 over ~ctx-type !
     ab-build-word!(contents> ab-str!) drop)
 
 ||| Ensure that everything so far has been typechecked.
@@ -1473,12 +1473,12 @@ def(table-new!, Token QName -- Table,
     tuck ~qname !
     tuck ~head !
     TABLE_MAX_COUNT over ~max-count !
-    dup DEF_TABLE register
+    dup DefTable register
 
     # Table.MAX
     dup "MAX" 0 table-word-new!
 
-    L0 CTX
+    L0 Ctx
     T0 TYPE_INT T1 T->
     ready2 over ~ctx-type !
 
@@ -1490,14 +1490,14 @@ def(table-new!, Token QName -- Table,
     # Table.nil
     dup "nil" 0 table-word-new!
 
-    L0 CTX
+    L0 Ctx
     T0 over3 TTable T1 T->
     ready2 over ~ctx-type !
 
     ab-build-word!(
         dup head ab-token!
         0 ab-int!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
     ) drop
 
     # Table.NUM
@@ -1509,58 +1509,58 @@ def(table-new!, Token QName -- Table,
     # Table.index
     dup "index" 0 table-word-new!
 
-    L0 CTX
+    L0 Ctx
     over2 TTable T1 TYPE_INT T1 T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
     ) drop
 
     # Table.from-index
     dup "from-index" 0 table-word-new!
 
-    L0 CTX
+    L0 Ctx
     over2 TTable T1 TYPE_INT T1 swap T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
     ) drop
 
     # Table.succ
     dup "succ" 0 table-word-new!
 
-    L0 CTX
+    L0 Ctx
     over2 TTable T1 dup T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         dup num-buffer ab-buffer!
         PRIM_U64_GET ab-prim!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_INT_MOD ab-prim!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
     ) drop
 
     # Table.pred
     dup "pred" 0 table-word-new!
 
-    L0 CTX
+    L0 Ctx
     over2 TTable T1 dup T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
         PRIM_INT_EQ ab-prim!
@@ -1569,7 +1569,7 @@ def(table-new!, Token QName -- Table,
             1 ab-int!
             PRIM_INT_SUB ab-prim!
         )
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
     ) drop
 
     # Table.for
@@ -1578,7 +1578,7 @@ def(table-new!, Token QName -- Table,
     TYPE_STACK "*a" >Name Var.new! dup STVar
     \(t w va a -> a t TTable T* a T-> >Type "x" >Name Var.new-auto-run!
     \(x ->
-        va CTX1
+        va Ctx1
         a a t TTable T* a T-> >Type T* a T->
         ready2 w ~ctx-type !
 
@@ -1590,14 +1590,14 @@ def(table-new!, Token QName -- Table,
                     PRIM_CORE_DUP ab-prim!
                     t num-buffer ab-buffer!
                     PRIM_U64_GET ab-prim!
-                    COERCE_UNSAFE ab-coerce!
+                    CoerceUnsafe ab-coerce!
                     1 ab-int!
                     PRIM_INT_ADD ab-prim!
                     PRIM_INT_LT ab-prim!,
 
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
-                        COERCE_UNSAFE ab-coerce!
+                        CoerceUnsafe ab-coerce!
                         x ab-var!
                     )
                     1 ab-int!
@@ -1612,7 +1612,7 @@ def(table-new!, Token QName -- Table,
     # Table.alloc!
     dup "alloc!" 0 table-word-new!
 
-    L0 CTX
+    L0 Ctx
     T0 over3 TTable T1 T->
     ready2 over ~ctx-type !
 
@@ -1620,14 +1620,14 @@ def(table-new!, Token QName -- Table,
         dup head ab-token!
         dup num-buffer ab-buffer!
         PRIM_U64_GET ab-prim!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_CORE_DUP ab-prim!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
         dup num-buffer ab-buffer!
         PRIM_U64_SET ab-prim!
-        COERCE_UNSAFE ab-coerce!
+        CoerceUnsafe ab-coerce!
     )
     drop
     )
@@ -1670,8 +1670,8 @@ def(elab-absolute-namespace, Token List(Name) -- Namespace,
     NAMESPACE_ROOT swap for(
         QNAME0 dup def? unwrap-or("unknown namespace: " swap >Str cat emit-fatal-error!)
         match(
-            DEF_PACKAGE -> NAMESPACE_PACKAGE,
-            DEF_MODULE -> NAMESPACE_MODULE,
+            DefPackage -> NAMESPACE_PACKAGE,
+            DefModule -> NAMESPACE_MODULE,
             _ -> exposed-tycon? unwrap-or("invalid namespace: " swap >Str cat emit-fatal-error!) NAMESPACE_TYCON,
         ) nip
     ) nip)
@@ -1707,4 +1707,4 @@ def(field-new!, Token Token Token QName -- Field,
     tuck ~head !
     swap delay(elab-simple-type-arg!) over ~value-type !
     swap delay(elab-simple-type-arg!) over ~index-type !
-    dup DEF_FIELD register)
+    dup DefField register)

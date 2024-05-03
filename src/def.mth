@@ -21,141 +21,141 @@ import(mirth.variable)
 import(mirth.word)
 
 data(Def,
-    DEF_ALIAS -> Alias,
-    DEF_MODULE -> Module,
-    DEF_PACKAGE -> Package,
-    DEF_DATA -> Data,
-    DEF_TABLE -> Table,
-    DEF_TYPEDEF -> TypeDef,
-    DEF_TAG -> Tag,
-    DEF_PRIM -> Prim,
-    DEF_WORD -> Word,
-    DEF_BUFFER -> Buffer,
-    DEF_VARIABLE -> Variable,
-    DEF_EXTERNAL -> External,
-    DEF_FIELD -> Field)
+    DefAlias -> Alias,
+    DefModule -> Module,
+    DefPackage -> Package,
+    DefData -> Data,
+    DefTable -> Table,
+    DefType -> TypeDef,
+    DefTag -> Tag,
+    DefPrim -> Prim,
+    DefWord -> Word,
+    DefBuffer -> Buffer,
+    DefVariable -> Variable,
+    DefExternal -> External,
+    DefField -> Field)
 
 def(Def>Module?, Def -- Maybe(Module),
-    DEF_PACKAGE -> drop None,
-    DEF_MODULE -> drop None,
-    DEF_ALIAS -> head .module Some,
-    DEF_DATA -> head? map(.module),
-    DEF_TABLE -> head .module Some,
-    DEF_TYPEDEF -> head? map(.module),
-    DEF_TAG -> .data head? map(.module),
-    DEF_PRIM -> drop None,
-    DEF_WORD -> head .module Some,
-    DEF_BUFFER -> head .module Some,
-    DEF_VARIABLE -> head .module Some,
-    DEF_EXTERNAL -> sig .module Some,
-    DEF_FIELD -> head .module Some)
+    DefPackage -> drop None,
+    DefModule -> drop None,
+    DefAlias -> head .module Some,
+    DefData -> head? map(.module),
+    DefTable -> head .module Some,
+    DefType -> head? map(.module),
+    DefTag -> .data head? map(.module),
+    DefPrim -> drop None,
+    DefWord -> head .module Some,
+    DefBuffer -> head .module Some,
+    DefVariable -> head .module Some,
+    DefExternal -> sig .module Some,
+    DefField -> head .module Some)
 
-def(Def.package?, Def -- Maybe(Package), DEF_PACKAGE -> Some, _ -> drop None)
-def(Def.module?, Def -- Maybe(Module), DEF_MODULE -> Some, _ -> drop None)
-def(Def.alias?, Def -- Maybe(Alias), DEF_ALIAS -> Some, _ -> drop None)
-def(Def.data?, Def -- Maybe(Data), DEF_DATA -> Some, _ -> drop None)
-def(Def.table?, Def -- Maybe(Table), DEF_TABLE -> Some, _ -> drop None)
-def(Def.typedef?, Def -- Maybe(TypeDef), DEF_TYPEDEF -> Some, _ -> drop None)
-def(Def.tag?, Def -- Maybe(Tag), DEF_TAG -> Some, _ -> drop None)
-def(Def.prim?, Def -- Maybe(Prim), DEF_PRIM -> Some, _ -> drop None)
-def(Def.word?, Def -- Maybe(Word), DEF_WORD -> Some, _ -> drop None)
-def(Def.buffer?, Def -- Maybe(Buffer), DEF_BUFFER -> Some, _ -> drop None)
-def(Def.variable?, Def -- Maybe(Variable), DEF_VARIABLE -> Some, _ -> drop None)
-def(Def.external?, Def -- Maybe(External), DEF_EXTERNAL -> Some, _ -> drop None)
-def(Def.field?, Def -- Maybe(Field), DEF_FIELD -> Some, _ -> drop None)
+def(Def.package?, Def -- Maybe(Package), DefPackage -> Some, _ -> drop None)
+def(Def.module?, Def -- Maybe(Module), DefModule -> Some, _ -> drop None)
+def(Def.alias?, Def -- Maybe(Alias), DefAlias -> Some, _ -> drop None)
+def(Def.data?, Def -- Maybe(Data), DefData -> Some, _ -> drop None)
+def(Def.table?, Def -- Maybe(Table), DefTable -> Some, _ -> drop None)
+def(Def.typedef?, Def -- Maybe(TypeDef), DefType -> Some, _ -> drop None)
+def(Def.tag?, Def -- Maybe(Tag), DefTag -> Some, _ -> drop None)
+def(Def.prim?, Def -- Maybe(Prim), DefPrim -> Some, _ -> drop None)
+def(Def.word?, Def -- Maybe(Word), DefWord -> Some, _ -> drop None)
+def(Def.buffer?, Def -- Maybe(Buffer), DefBuffer -> Some, _ -> drop None)
+def(Def.variable?, Def -- Maybe(Variable), DefVariable -> Some, _ -> drop None)
+def(Def.external?, Def -- Maybe(External), DefExternal -> Some, _ -> drop None)
+def(Def.field?, Def -- Maybe(Field), DefField -> Some, _ -> drop None)
 
 def(Def.typecheck!, Def --,
-    DEF_ALIAS -> target typecheck!,
-    DEF_PACKAGE -> drop,
-    DEF_MODULE -> drop,
-    DEF_BUFFER -> drop,
-    DEF_PRIM -> drop,
-    DEF_DATA -> drop,
-    DEF_TABLE -> drop,
-    DEF_TYPEDEF -> drop,
-    DEF_EXTERNAL -> type drop,
-    DEF_WORD -> dup type drop arrow drop,
-    DEF_FIELD -> type drop,
-    DEF_TAG -> type drop,
-    DEF_VARIABLE -> type drop)
+    DefAlias -> target typecheck!,
+    DefPackage -> drop,
+    DefModule -> drop,
+    DefBuffer -> drop,
+    DefPrim -> drop,
+    DefData -> drop,
+    DefTable -> drop,
+    DefType -> drop,
+    DefExternal -> type drop,
+    DefWord -> dup type drop arrow drop,
+    DefField -> type drop,
+    DefTag -> type drop,
+    DefVariable -> type drop)
 
 def(Def.callable?, Def -- Bool,
-    DEF_ALIAS -> target callable?,
-    DEF_PACKAGE -> drop F,
-    DEF_MODULE -> drop F,
-    DEF_BUFFER -> drop T,
-    DEF_PRIM -> drop T,
-    DEF_DATA -> drop F,
-    DEF_TABLE -> drop F,
-    DEF_TYPEDEF -> drop F,
-    DEF_EXTERNAL -> drop T,
-    DEF_WORD -> drop T,
-    DEF_FIELD -> drop T,
-    DEF_TAG -> drop T,
-    DEF_VARIABLE -> drop T)
+    DefAlias -> target callable?,
+    DefPackage -> drop F,
+    DefModule -> drop F,
+    DefBuffer -> drop T,
+    DefPrim -> drop T,
+    DefData -> drop F,
+    DefTable -> drop F,
+    DefType -> drop F,
+    DefExternal -> drop T,
+    DefWord -> drop T,
+    DefField -> drop T,
+    DefTag -> drop T,
+    DefVariable -> drop T)
 
 def(Def.defines-a-type?, Def -- Bool,
-    DEF_ALIAS -> target defines-a-type?,
-    DEF_PACKAGE -> drop F,
-    DEF_MODULE -> drop F,
-    DEF_BUFFER -> drop F,
-    DEF_PRIM -> drop F,
-    DEF_DATA -> drop T,
-    DEF_TABLE -> drop T,
-    DEF_TYPEDEF -> drop T,
-    DEF_EXTERNAL -> drop F,
-    DEF_WORD -> drop F,
-    DEF_FIELD -> drop F,
-    DEF_TAG -> drop F,
-    DEF_VARIABLE -> drop F)
+    DefAlias -> target defines-a-type?,
+    DefPackage -> drop F,
+    DefModule -> drop F,
+    DefBuffer -> drop F,
+    DefPrim -> drop F,
+    DefData -> drop T,
+    DefTable -> drop T,
+    DefType -> drop T,
+    DefExternal -> drop F,
+    DefWord -> drop F,
+    DefField -> drop F,
+    DefTag -> drop F,
+    DefVariable -> drop F)
 
 def(Def.exposed-tycon?, Def -- Maybe(Tycon),
-    DEF_ALIAS -> target exposed-tycon?,
-    DEF_PACKAGE -> drop None,
-    DEF_MODULE -> drop None,
-    DEF_DATA -> TYCON_DATA Some,
-    DEF_TABLE -> TYCON_TABLE Some,
-    DEF_TYPEDEF -> target tycon?,
-    DEF_BUFFER -> drop None,
-    DEF_PRIM -> drop None,
-    DEF_EXTERNAL -> drop None,
-    DEF_WORD -> drop None,
-    DEF_FIELD -> drop None,
-    DEF_TAG -> drop None,
-    DEF_VARIABLE -> drop None)
+    DefAlias -> target exposed-tycon?,
+    DefPackage -> drop None,
+    DefModule -> drop None,
+    DefData -> TYCON_DATA Some,
+    DefTable -> TYCON_TABLE Some,
+    DefType -> target tycon?,
+    DefBuffer -> drop None,
+    DefPrim -> drop None,
+    DefExternal -> drop None,
+    DefWord -> drop None,
+    DefField -> drop None,
+    DefTag -> drop None,
+    DefVariable -> drop None)
 
 def(Def.head?, Def -- Maybe(Token),
-    DEF_ALIAS -> head Some,
-    DEF_PACKAGE -> drop None,
-    DEF_MODULE -> start Some,
-    DEF_DATA -> head?,
-    DEF_TABLE -> head Some,
-    DEF_TYPEDEF -> head?,
-    DEF_BUFFER -> drop None,
-    DEF_PRIM -> drop None,
-    DEF_EXTERNAL -> head Some,
-    DEF_WORD -> head Some,
-    DEF_FIELD -> head Some,
-    DEF_TAG -> .data head?,
-    DEF_VARIABLE -> head Some)
+    DefAlias -> head Some,
+    DefPackage -> drop None,
+    DefModule -> start Some,
+    DefData -> head?,
+    DefTable -> head Some,
+    DefType -> head?,
+    DefBuffer -> drop None,
+    DefPrim -> drop None,
+    DefExternal -> head Some,
+    DefWord -> head Some,
+    DefField -> head Some,
+    DefTag -> .data head?,
+    DefVariable -> head Some)
 
 def(Def.defining-module?, Def -- Maybe(Module),
     head? map(.module))
 
 def(Def.qname, Def -- QName,
-    DEF_ALIAS -> qname,
-    DEF_PACKAGE -> qname,
-    DEF_MODULE -> qname,
-    DEF_BUFFER -> qname,
-    DEF_PRIM -> qname,
-    DEF_DATA -> qname,
-    DEF_TABLE -> qname,
-    DEF_TYPEDEF -> qname,
-    DEF_EXTERNAL -> qname,
-    DEF_WORD -> qname,
-    DEF_FIELD -> qname,
-    DEF_TAG -> qname,
-    DEF_VARIABLE -> qname)
+    DefAlias -> qname,
+    DefPackage -> qname,
+    DefModule -> qname,
+    DefBuffer -> qname,
+    DefPrim -> qname,
+    DefData -> qname,
+    DefTable -> qname,
+    DefType -> qname,
+    DefExternal -> qname,
+    DefWord -> qname,
+    DefField -> qname,
+    DefTag -> qname,
+    DefVariable -> qname)
 
 def(Def.register, Def --,
     dup qname

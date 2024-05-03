@@ -21,4 +21,4 @@ def(Buffer.new!, Token QName Size -- Buffer,
     tuck ~size !
     tuck ~qname !
     tuck ~head !
-    dup DEF_BUFFER register)
+    dup DefBuffer register)

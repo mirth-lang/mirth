@@ -22,4 +22,4 @@ def(Variable.new!, Token QName Lazy(Type) -- Variable,
     tuck ~type !
     tuck ~qname !
     tuck ~head !
-    dup DEF_VARIABLE register)
+    dup DefVariable register)

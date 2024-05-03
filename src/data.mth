@@ -59,7 +59,7 @@ def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
     dip(
         dip(QName.prim)
         tuck ~qname !
-        dup DEF_DATA register
+        dup DefData register
     )
     { Data List(Tag) }
     dup for(dip(over) ~data !)
@@ -73,13 +73,13 @@ def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
 def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     @
     dip(sip(len) TT)
-    sip(CTX0 rotr .data TData T1 T-> ready2) sip(~ctx-type !)
+    sip(Ctx0 rotr .data TData T1 T-> ready2) sip(~ctx-type !)
     sip(~num-type-inputs !)
     sip(L0 swap ~label-inputs !)
     sip(0 >Nat swap ~num-resource-inputs !)
     sip(dip(>Nat) ~value !)
     sip(.data swap 0 data-word-qname) tuck ~qname !
-    DEF_TAG register)
+    DefTag register)
 
 def(init-data!, --,
     "Bool" 0 DATA_BOOL TAG_F TAG_T L2 make-prim-data!

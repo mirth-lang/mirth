@@ -10,21 +10,21 @@ import(mirth.var)
 import(mirth.arrow)
 
 #########
-# MATCH #
+# Match #
 #########
 
-data(Match, MATCH ->
+data(Match, Match ->
     home:Home token:Token body:Token
     ctx:Ctx dom:StackType cod:StackType
     cases:List(Case))
 
-data(+Match, +MATCH ->
+data(+Match, +Match ->
     home:Home token:Token body:Token
     ctx:Ctx dom:StackType cod:StackType
     cases:List(Case))
 
-def(Match.thaw, Match -- +Match, MATCH -> +MATCH)
-def(+Match.freeze, +Match -- Match, +MATCH -> MATCH)
+def(Match.thaw, Match -- +Match, Match -> +Match)
+def(+Match.freeze, +Match -- Match, +Match -> Match)
 
 data(Case, CASE -> pattern:Pattern body:Arrow)
 def(Case.outer-ctx, Case -- Ctx, pattern outer-ctx)
@@ -62,8 +62,8 @@ def(Match.is-transparent?, Match -- Bool,
     cases /L1
     bind(pattern atoms /L1)
     and-some(op match(
-        PATOP_TAG -> .data is-transparent?,
-        PATOP_UNDERSCORE -> T
+        PatOpTag -> .data is-transparent?,
+        PatOpUnderscore -> T
     )))
 
 def(+Match.add-case, Case +Match -- +Match,
@@ -86,10 +86,10 @@ def(Case.covers?, Case Case -- Bool, both(pattern) covers?)
 def(Case.is-default-case?, Case -- Bool, pattern is-default?)
 
 ###########
-# PATTERN #
+# Pattern #
 ###########
 
-data(Pattern, PATTERN ->
+data(Pattern, Pattern ->
     home:Home
     token-start:Token
     token-end:Token
@@ -100,16 +100,16 @@ data(Pattern, PATTERN ->
     cod:StackType       # Stack type coming from outside match.
     atoms:List(PatternAtom))
 def(Pattern.dom, Pattern -- StackType, sip:mid saved for(STCons))
-def(Pattern.thaw, Pattern -- +Pattern, >pattern +PATTERN)
+def(Pattern.thaw, Pattern -- +Pattern, >pattern +Pattern)
 
 def(Pattern.single-tag?, Pattern -- Maybe(Tag),
-    atoms /L1 bind(op /PATOP_TAG))
+    atoms /L1 bind(op /PatOpTag))
 
 def(Pattern.is-default?, Pattern -- Bool,
-    atoms all(dup op /PATOP_UNDERSCORE))
+    atoms all(dup op /PatOpUnderscore))
 
-data(+Pattern, +PATTERN -> pattern:Pattern)
-def(+Pattern.freeze, +Pattern -- Pattern, /+PATTERN pattern>)
+data(+Pattern, +Pattern -> pattern:Pattern)
+def(+Pattern.freeze, +Pattern -- Pattern, /+Pattern pattern>)
 
 data(PatternAtom, PATATOM ->
     token:Token
@@ -121,19 +121,19 @@ data(PatternAtom, PATATOM ->
     op:PatternOp)
 
 data(PatternOp,
-    PATOP_UNDERSCORE,
-    PATOP_TAG -> Tag)
+    PatOpUnderscore,
+    PatOpTag -> Tag)
 
 def(+Pattern.op!, PatternOp +Pattern -- +Pattern,
-    PATOP_UNDERSCORE -> underscore!,
-    PATOP_TAG -> tag!)
+    PatOpUnderscore -> underscore!,
+    PatOpTag -> tag!)
 
 def(+Pattern.underscore!, +Pattern -- +Pattern,
     pattern token-start >token
     pattern inner-ctx >ctx
     pattern mid >cod
     SUBST_NIL >subst
-    PATOP_UNDERSCORE >op
+    PatOpUnderscore >op
     pattern mid force-cons?! match(
         None ->
             pattern token-start "pattern expects something on stack" emit-error!
@@ -146,7 +146,7 @@ def(+Pattern.underscore!, +Pattern -- +Pattern,
     PATATOM pattern:atoms:cons)
 
 def(+Pattern.tag!, +Pattern Tag -- +Pattern,
-    dup PATOP_TAG >op L0 >saved
+    dup PatOpTag >op L0 >saved
     pattern token-start >token
     pattern inner-ctx >ctx
     dip:SUBST_NIL type freshen-sig unpack
@@ -159,16 +159,16 @@ def(Pattern.covers?, Pattern Pattern -- Bool,
     both(atoms /L1) zip match(
         None -> F,
         Some -> unpack2 op match(
-            PATOP_UNDERSCORE -> drop T,
-            PATOP_TAG -> swap op match(
-                PATOP_UNDERSCORE -> drop F,
-                PATOP_TAG -> ==
+            PatOpUnderscore -> drop T,
+            PatOpTag -> swap op match(
+                PatOpUnderscore -> drop F,
+                PatOpTag -> ==
             )
         )
     ))
 
-def(PatternOp./PATOP_TAG, PatternOp -- Maybe(Tag), PATOP_TAG -> Some, _ -> drop None)
-def(PatternOp./PATOP_UNDERSCORE, PatternOp -- Bool, PATOP_UNDERSCORE -> T, _ -> drop F)
+def(PatternOp./PatOpTag, PatternOp -- Maybe(Tag), PatOpTag -> Some, _ -> drop None)
+def(PatternOp./PatOpUnderscore, PatternOp -- Bool, PatOpUnderscore -> T, _ -> drop F)
 
 ## TODO: introduce case trees
 ## https://github.com/mirth-lang/mirth/issues/238

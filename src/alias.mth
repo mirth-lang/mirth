@@ -22,4 +22,4 @@ def(Alias.new!, Token QName Lazy(Def) -- Alias,
     tuck ~target !
     tuck ~qname !
     tuck ~head !
-    dup DEF_ALIAS register)
+    dup DefAlias register)

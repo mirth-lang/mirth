@@ -68,33 +68,33 @@ def(+Needs.run-need!, Need +Needs -- +Needs,
     NEED_TAGP -> drop)
 
 def(+Needs.run-args!, List(Arg) +Needs -- +Needs, for(run-arg!))
-def(+Needs.run-arg!, Arg +Needs -- +Needs, ARG_BLOCK -> run-block!)
+def(+Needs.run-arg!, Arg +Needs -- +Needs, ArgBlock -> run-block!)
 def(+Needs.run-block!, Block +Needs -- +Needs, arrow run-arrow!)
 def(+Needs.run-word!, Word +Needs -- +Needs, arrow run-arrow!)
 def(+Needs.run-arrow!, Arrow +Needs -- +Needs, atoms for(run-atom!))
 def(+Needs.run-atom!, Atom +Needs -- +Needs, sip(args) op run-op!)
 def(+Needs.run-op!, List(Arg) Op +Needs -- +Needs,
-    OP_NONE -> drop,
-    OP_INT -> drop2,
-    OP_STR -> drop2,
-    OP_WORD -> dup prefer-inline? if(run-word!, need-word!) push-args!,
-    OP_EXTERNAL -> drop push-args!,
-    OP_BUFFER -> drop push-args!,
-    OP_VARIABLE -> drop push-args!,
-    OP_FIELD -> drop push-args!,
-    OP_TAG -> need-tag-word! push-args!,
-    OP_PRIM -> run-prim!,
-    OP_MATCH -> nip run-match!,
-    OP_LAMBDA -> nip run-lambda!,
-    OP_VAR -> drop2,
-    OP_BLOCK -> nip push-block!,
-    OP_RUN -> nip run-block!,
-    OP_COERCE -> drop2,
-    OP_LABEL_PUSH -> drop2,
-    OP_LABEL_POP -> drop2,
-    OP_DATA_GET_TAG -> drop2,
-    OP_DATA_GET_LABEL -> drop3,
-    OP_DATA_SET_LABEL -> drop3)
+    OpNone -> drop,
+    OpInt -> drop2,
+    OpStr -> drop2,
+    OpWord -> dup prefer-inline? if(run-word!, need-word!) push-args!,
+    OpExternal -> drop push-args!,
+    OpBuffer -> drop push-args!,
+    OpVariable -> drop push-args!,
+    OpField -> drop push-args!,
+    OpTag -> need-tag-word! push-args!,
+    OpPrim -> run-prim!,
+    OpMatch -> nip run-match!,
+    OpLambda -> nip run-lambda!,
+    OpVar -> drop2,
+    OpBlockPush -> nip push-block!,
+    OpBlockRun -> nip run-block!,
+    OpCoerce -> drop2,
+    OpLabelPush -> drop2,
+    OpLabelPop -> drop2,
+    OpDataGetTag -> drop2,
+    OpDataGetLabel -> drop3,
+    OpDataSetLabel -> drop3)
 def(+Needs.run-prim!, List(Arg) Prim +Needs -- +Needs,
     PRIM_CORE_DIP -> dup /L1 if(run-args!, push-args!),
     PRIM_CORE_RDIP -> dup /L1 if(run-args!, push-args!),
@@ -108,13 +108,13 @@ def(+Needs.run-lambda!, Lambda +Needs -- +Needs, body run-arrow!)
 def(+Needs.run-pattern!, Pattern +Needs -- +Needs, atoms for:run-patatom!)
 def(+Needs.run-patatom!, PatternAtom +Needs -- +Needs,
     op match(
-        PATOP_UNDERSCORE -> id,
-        PATOP_TAG -> need-tag-pat!
+        PatOpUnderscore -> id,
+        PatOpTag -> need-tag-pat!
     ))
 
 def(+Needs.push-args!, List(Arg) +Needs -- +Needs, for(push-arg!))
 def(+Needs.push-arg!, Arg +Needs -- +Needs,
-    ARG_BLOCK -> push-block!)
+    ArgBlock -> push-block!)
 def(+Needs.push-block!, Block +Needs -- +Needs,
     dup to-run-var match(
         Some -> drop2,

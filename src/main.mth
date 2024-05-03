@@ -155,35 +155,35 @@ def(main, +World -- +World,
         "OUTPUT_FILE" Some >arg-doc
         "Test argument" Some >doc
         None >group
-    ArgpOption ;
+        ArgpOption ;
 
         "compile-only" Some >name
         B'c' SHORT >flag-type
         None >arg-doc
         "Compile code without running codegen step" Some >doc
         None >group
-    ArgpOption ;
+        ArgpOption ;
 
         "entry-point" Some >name
         B'e' SHORT >flag-type
         "ENTRY_POINT" Some >arg-doc
         "Custom entry point word for compilation" Some >doc
         None >group
-    ArgpOption ;
+        ArgpOption ;
 
-    "package" Some >name
-    B'p' SHORT >flag-type
-    "(PACKAGE:PATH)*" Some >arg-doc
-    "Package locations" Some >doc
-    None >group
-    ArgpOption ;
+        "package" Some >name
+        B'p' SHORT >flag-type
+        "(PACKAGE:PATH)*" Some >arg-doc
+        "Package locations" Some >doc
+        None >group
+        ArgpOption ;
 
         "debug" Some >name
         "debug" LONG_ONLY >flag-type
         None >arg-doc
         "Emit debugging information during codegen" Some >doc
         None >group
-    ArgpOption ;
+        ArgpOption ;
     ) >options
     [ compiler-parse-args ] Some >parser
     "input-file" Some >args-doc

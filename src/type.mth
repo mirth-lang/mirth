@@ -919,7 +919,7 @@ def(StackType.num-morphisms-on-top, StackType -- Nat,
     _ -> drop 0 >Nat)
 
 ##############
-# ARROW TYPE #
+# Arrow TYPE #
 ##############
 
 data(ArrowType, ARROW_TYPE -> StackType StackType)

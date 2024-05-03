@@ -250,10 +250,9 @@ def(QName.mangled, QName -- Str, MKQNAME ->
 # Dotted Name #
 ###############
 
-data(DName, DNAME -> Maybe(Name) List+(Name))
-def(DName/DNAME, DName -- Maybe(Name) List+(Name), DNAME -> id)
-def(DName.root?, DName -- Maybe(Name), DNAME -> drop)
-def(DName.parts, DName -- List+(Name), DNAME -> nip)
+data(DName, DName -> Maybe(Name) List+(Name))
+def(DName.root?, DName -- Maybe(Name), DName -> drop)
+def(DName.parts, DName -- List+(Name), DName -> nip)
 
 def(DName.last-name, DName -- Name, parts last)
 def(DName.is-relative?, DName -- Bool, root? none?)
