@@ -54,7 +54,7 @@ def(Hash.next, Hash -- Hash, >Int 1+ >Hash)
 
 def(Hash.keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
-        None -> F,
+        None -> False,
         Some -> >Str over2 <>
     ))
 
@@ -118,11 +118,11 @@ data(Namespace,
     NAMESPACE_WORD -> Word)
 
 def(Namespace.==, Namespace Namespace -- Bool,
-    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> T, _ -> drop F),
-    NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 F),
-    NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 F),
-    NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 F),
-    NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 F))
+    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> True, _ -> drop False),
+    NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 False),
+    NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 False),
+    NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 False),
+    NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False))
 
 def(Namespace.compare, Namespace Namespace -- Comparison,
     NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> Comparison.EQ, _ -> drop Comparison.LT),

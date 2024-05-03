@@ -17,6 +17,7 @@ def(Alias.namespace, Alias -- Namespace, qname namespace)
 def(Alias.name, Alias -- Name, qname name)
 def(Alias.target, Alias -- Def, ~target force!)
 
+def(Alias.==, Alias Alias -- Bool, both(index) ==)
 def(Alias.new!, Token QName Lazy(Def) -- Alias,
     Alias.alloc!
     tuck ~target !

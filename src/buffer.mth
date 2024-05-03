@@ -16,6 +16,8 @@ def(Buffer.size, Buffer -- Size, ~size @)
 def(Buffer.qname, Buffer -- QName, ~qname @)
 def(Buffer.name, Buffer -- Name, qname name)
 
+def(Buffer.==, Buffer Buffer -- Bool, both(index) ==)
+
 def(Buffer.new!, Token QName Size -- Buffer,
     Buffer.alloc!
     tuck ~size !

@@ -29,7 +29,7 @@ def(State.init, a -- State(a),
     0 unsafe(read-from-argv) >program-name
     ArgvInfo >argv-info
 
-    F >parsing?
+    False >parsing?
     None >option
     None >option-option
     CurrentArg >arg

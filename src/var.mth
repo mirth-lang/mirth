@@ -33,11 +33,11 @@ def(Var.new!, Type Name -- Var,
     Var.alloc!
     tuck ~name !
     tuck ~type !
-    F over ~auto-run? !)
+    False over ~auto-run? !)
 
 def(Var.new-auto-run!, Type Name -- Var,
     Var.new!
-    T over ~auto-run? !)
+    True over ~auto-run? !)
 
 ###########
 # Context #

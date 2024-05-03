@@ -21,12 +21,12 @@ inline(
     def(L8,  t t t t  t t t t  -- List(t), Nil Cons Cons Cons Cons Cons Cons Cons Cons)
 )
 
-def(List./L0, List(t) -- Bool, Nil -> T, _ -> drop F)
+def(List./L0, List(t) -- Bool, Nil -> True, _ -> drop False)
 def(List./L1, List(t) -- Maybe(t), Cons -> match(Nil -> Some, _ -> drop2 None), _ -> drop None)
 def(List./L2, List(t) -- Maybe([t t]), Cons -> /L1 if-some(pack2 Some, drop None), _ -> drop None)
 def(List./L3, List(t) -- Maybe([t t t]), Cons -> /L2 if-some(unpack2 pack3 Some, drop None), _ -> drop None)
 
-def(List.empty?, List(t) -- Bool, Nil -> T, _ -> drop F)
+def(List.empty?, List(t) -- Bool, Nil -> True, _ -> drop False)
 
 data(List+(t), List+Unsafe -> List(t))
 inline(
@@ -292,7 +292,7 @@ def(List+.==(eq), (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool,
     dip(uncons) uncons
     dip(swap dip(eq)) rotl if(
         ==(eq),
-        drop2 F
+        drop2 False
     ))
 
 def(List.member(eq), (*c a a -- *c Bool) *c a List(a) -- *c Bool,

@@ -51,7 +51,7 @@ def(Match.has-default-case?, Match -- Bool,
 def(Match.scrutinee-data?, Match -- Maybe(Data),
     cases filter(dup is-default-case? not) dup
     first bind(pattern single-tag?) map(.data) if-some(
-        swap all(dup pattern single-tag? if-some(dip(over) .data ==, F)) if(
+        swap all(dup pattern single-tag? if-some(dip(over) .data ==, False)) if(
             Some,
             drop None
         ),
@@ -63,7 +63,7 @@ def(Match.is-transparent?, Match -- Bool,
     bind(pattern atoms /L1)
     and-some(op match(
         PatOpTag -> .data is-transparent?,
-        PatOpUnderscore -> T
+        PatOpUnderscore -> True
     )))
 
 def(+Match.add-case, Case +Match -- +Match,
@@ -157,18 +157,18 @@ def(+Pattern.tag!, +Pattern Tag -- +Pattern,
 ||| Asks whether the second pattern covers the first pattern.
 def(Pattern.covers?, Pattern Pattern -- Bool,
     both(atoms /L1) zip match(
-        None -> F,
+        None -> False,
         Some -> unpack2 op match(
-            PatOpUnderscore -> drop T,
+            PatOpUnderscore -> drop True,
             PatOpTag -> swap op match(
-                PatOpUnderscore -> drop F,
+                PatOpUnderscore -> drop False,
                 PatOpTag -> ==
             )
         )
     ))
 
 def(PatternOp./PatOpTag, PatternOp -- Maybe(Tag), PatOpTag -> Some, _ -> drop None)
-def(PatternOp./PatOpUnderscore, PatternOp -- Bool, PatOpUnderscore -> T, _ -> drop F)
+def(PatternOp./PatOpUnderscore, PatternOp -- Bool, PatOpUnderscore -> True, _ -> drop False)
 
 ## TODO: introduce case trees
 ## https://github.com/mirth-lang/mirth/issues/238

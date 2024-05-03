@@ -30,8 +30,8 @@ data(ArgpOptionType,
     End)
 
 def(ArgpOptionType.has-short?, ArgpOptionType -- Bool,
-    Short -> drop T,
-    _ -> drop F)
+    Short -> drop True,
+    _ -> drop False)
 
 data(ArgpOption, ArgpOption ->
     name:Maybe(Str)

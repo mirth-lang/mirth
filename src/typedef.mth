@@ -18,6 +18,8 @@ def(TypeDef.namespace, TypeDef -- Namespace, qname namespace)
 def(TypeDef.name, TypeDef -- Name, qname name)
 def(TypeDef.target, TypeDef -- Type, ~target @)
 
+def(TypeDef.==, TypeDef TypeDef -- Bool, both(index) ==)
+
 def(TypeDef.new!, Maybe(Token) QName Type -- TypeDef,
     TypeDef.alloc!
     tuck ~target !

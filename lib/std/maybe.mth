@@ -9,8 +9,8 @@ data(Maybe(t), None, Some -> t)
 inline:def(Maybe.none?, Maybe(t) -- Bool, >Bool not)
 inline:def(Maybe.some?, Maybe(t) -- Bool, >Bool)
 def(Maybe.>Bool, Maybe(t) -- Bool,
-    None -> F,
-    Some -> drop T)
+    None -> False,
+    Some -> drop True)
 
 def(Maybe.>List, Maybe(t) -- List(t),
     None -> L0,
@@ -18,7 +18,7 @@ def(Maybe.>List, Maybe(t) -- List(t),
 
 def(Maybe.==(eq), (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool,
     None -> none?,
-    Some -> swap if-some(swap eq, drop F))
+    Some -> swap if-some(swap eq, drop False))
 
 def(Maybe.if(f,g), (*a -- *b, *a -- *b) *a Maybe(t) -- *b,
     Some -> drop f,
@@ -40,10 +40,10 @@ inline:def(Maybe.not, Maybe(a) -- Bool, >Bool not)
 def(Maybe.or(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
     some? or(p))
 def(Maybe.and(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
-    None -> F,
+    None -> False,
     Some -> drop p)
 def(Maybe.and-some(p), (*c a -- *c Bool) *c Maybe(a) -- *c Bool,
-    None -> F,
+    None -> False,
     Some -> p)
 def(Maybe.guard(p), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
     None -> None,

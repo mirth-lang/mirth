@@ -41,17 +41,20 @@ alias(Int.<<, prim-int-shl)
 alias(Int.>>, prim-int-shr)
 inline:def(Int./%, Int Int -- Int Int, dup2 % dip(/))
 
-def(Bool.&&, Bool Bool -- Bool, T -> id, F -> drop F)
-def(Bool.||, Bool Bool -- Bool, T -> drop T, F -> id)
-def(Bool.not, Bool -- Bool, T -> F, F -> T)
-def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
-def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
-def(Bool.==, Bool Bool -- Bool, if(id, not))
-def(Bool.show, Bool -- Str, if("T", "F"))
-
-alias(Bool.if(f,g), prim-if)
-def(Bool.then(f), (*a -- *a) *a Bool -- *a, T -> f, F -> id)
-def(Bool.else(f), (*a -- *a) *a Bool -- *a, T -> id, F -> f)
+inline(
+    alias(Bool.if(f,g), prim-if)
+    def(Bool.&&, Bool Bool -- Bool, if(id, drop False))
+    def(Bool.||, Bool Bool -- Bool, if(drop True, id))
+    def(Bool.not, Bool -- Bool, if(False, True))
+    def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(True, p))
+    def(Bool.or(p,d), (*a -- *b Bool, *a -- *b) *a Bool -- *b Bool, if(d True, p))
+    def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, False))
+    def(Bool.and(p,d), (*a -- *b Bool, *a -- *b) *a Bool -- *b Bool, if(p, d False))
+    def(Bool.==, Bool Bool -- Bool, if(id, not))
+    def(Bool.show, Bool -- Str, if("True", "False"))
+    def(Bool.then(f), (*a -- *a) *a Bool -- *a, if(f, id))
+    def(Bool.else(f), (*a -- *a) *a Bool -- *a, if(id, f))
+)
 
 data(OS,
     OS_UNKNOWN,
@@ -59,24 +62,12 @@ data(OS,
     OS_LINUX,
     OS_MACOS)
 
-def(OS.>Int, OS -- Int,
-    OS_UNKNOWN -> 0,
-    OS_WINDOWS -> 1,
-    OS_LINUX -> 2,
-    OS_MACOS -> 3)
-
-def(Int.>OS, Int -- OS,
-    dup 1 == if(
-        drop OS_WINDOWS,
-    dup 2 == if(
-        drop OS_LINUX,
-    dup 3 == if(
-        drop OS_MACOS,
-        drop OS_UNKNOWN
-    ))))
-
-def(OS.==, OS OS -- Bool, both(>Int) ==)
-def(RUNNING_OS, OS, prim-sys-os >OS)
+def(Int.>OS, Int -- OS, dup 1 3 in-range if(OS.from-tag-unsafe, drop OS_UNKNOWN))
+inline(
+    def(OS.>Int, OS -- Int, tag)
+    def(OS.==, OS OS -- Bool, both(>Int) ==)
+    def(RUNNING_OS, OS, prim-sys-os >OS)
+)
 
 data(Arch,
     ARCH_UNKNOWN,
@@ -84,24 +75,12 @@ data(Arch,
     ARCH_AMD64,
     ARCH_ARM64)
 
-def(Arch.>Int, Arch -- Int,
-    ARCH_UNKNOWN -> 0,
-    ARCH_I386 -> 1,
-    ARCH_AMD64 -> 2,
-    ARCH_ARM64 -> 3)
-
-def(Int.>Arch, Int -- Arch,
-    dup 1 == if(
-        drop ARCH_I386,
-    dup 2 == if(
-        drop ARCH_AMD64,
-    dup 3 == if(
-        drop ARCH_ARM64,
-	drop ARCH_UNKNOWN
-    ))))
-
-def(Arch.==, Arch Arch -- Bool, both(>Int) ==)
-def(RUNNING_ARCH, Arch, prim-sys-arch >Arch)
+def(Int.>Arch, Int -- Arch, dup 1 3 in-range if(Arch.from-tag-unsafe, drop ARCH_UNKNOWN))
+inline(
+    def(Arch.>Int, Arch -- Int, tag)
+    def(Arch.==, Arch Arch -- Bool, both(>Int) ==)
+    def(RUNNING_ARCH, Arch, prim-sys-arch >Arch)
+)
 
 alias(argc, prim-sys-argc)
 alias(argv, prim-sys-argv)
@@ -239,12 +218,12 @@ inline(
     def(I32_MIN, Int, -0x80000000)
 
     data(Comparison, LT, EQ, GT)
-    def(Comparison.lt?, Comparison -- Bool, LT -> T, EQ -> F, GT -> F)
-    def(Comparison.le?, Comparison -- Bool, LT -> T, EQ -> T, GT -> F)
-    def(Comparison.eq?, Comparison -- Bool, LT -> F, EQ -> T, GT -> F)
-    def(Comparison.ge?, Comparison -- Bool, LT -> F, EQ -> T, GT -> T)
-    def(Comparison.gt?, Comparison -- Bool, LT -> F, EQ -> F, GT -> T)
-    def(Comparison.ne?, Comparison -- Bool, LT -> T, EQ -> F, GT -> T)
+    def(Comparison.lt?, Comparison -- Bool, LT -> True, EQ -> False, GT -> False)
+    def(Comparison.le?, Comparison -- Bool, LT -> True, EQ -> True, GT -> False)
+    def(Comparison.eq?, Comparison -- Bool, LT -> False, EQ -> True, GT -> False)
+    def(Comparison.ge?, Comparison -- Bool, LT -> False, EQ -> True, GT -> True)
+    def(Comparison.gt?, Comparison -- Bool, LT -> False, EQ -> False, GT -> True)
+    def(Comparison.ne?, Comparison -- Bool, LT -> True, EQ -> False, GT -> True)
 
     alias(Int.==, prim-int-eq)
     alias(Int.<, prim-int-lt)
@@ -525,9 +504,9 @@ def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
 
 def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
     dip:pack-uncons pack-uncons dip:swap
-    dip2:aeq rotl if(beq, drop2 F))
+    dip2:aeq rotl if(beq, drop2 False))
 
-def(pack0==, [] [] -- Bool, drop2 F)
+def(pack0==, [] [] -- Bool, drop2 False)
 def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
     on2:unpack1 aeq)
 def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,

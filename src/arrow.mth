@@ -85,7 +85,7 @@ data(Arrow, Arrow ->
     dom:StackType
     cod:StackType
     atoms:List(Atom))
-def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
+def(Arrow.type, Arrow -- ArrowType, sip(dom) cod True->)
 
 data(Atom, Atom ->
     home:Home
@@ -125,7 +125,7 @@ def(Block.dom, Block -- StackType, ~dom @)
 def(Block.cod, Block -- StackType, ~cod @)
 def(Block.home, Block -- Home, ~home @)
 
-def(Block.type, Block -- ArrowType, sip(dom) cod T->)
+def(Block.type, Block -- ArrowType, sip(dom) cod True->)
 def(Block.arrow, Block -- Arrow, ~arrow force!)
 def(Block.infer-type!, Block -- ArrowType, arrow type)
 

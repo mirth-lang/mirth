@@ -4,9 +4,9 @@ import(std.posix)
 
 # Assertions
 
-def(!!T, Bool --, if(id, "Assertion failed" panic!))
-def(!!F, Bool --, not !!T)
-def(!!=, Int Int --, == !!T)
+def(!!True, Bool --, if(id, "Assertion failed" panic!))
+def(!!False, Bool --, not !!True)
+def(!!=, Int Int --, == !!True)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
 def(!!001, Int Int Int --, 1 !!= 0 !!= 0 !!=)
@@ -23,8 +23,8 @@ def(test-prelude!, --,
     test+ test- test* test-while)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
-    T Bool.if(10,20) 10 !!=
-    F Bool.if(10,20) 20 !!=)
+    True Bool.if(10,20) 10 !!=
+    False Bool.if(10,20) 20 !!=)
 
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
@@ -41,58 +41,58 @@ def(test-rotl, --,
     0 0 1 rotl !!010)
 
 def(test==, --,
-    0 0 == !!T
-    0 1 == !!F
-    1 0 == !!F
-    1 1 == !!T
-    1 2 == !!F
-    2 1 == !!F
-    2 2 == !!T)
+    0 0 == !!True
+    0 1 == !!False
+    1 0 == !!False
+    1 1 == !!True
+    1 2 == !!False
+    2 1 == !!False
+    2 2 == !!True)
 def(test<, --,
-    0 0 < !!F
-    0 1 < !!T
-    1 0 < !!F
-    1 1 < !!F
-    1 2 < !!T
-    2 1 < !!F
-    2 2 < !!F)
+    0 0 < !!False
+    0 1 < !!True
+    1 0 < !!False
+    1 1 < !!False
+    1 2 < !!True
+    2 1 < !!False
+    2 2 < !!False)
 def(test<=, --,
-    0 0 <= !!T
-    0 1 <= !!T
-    1 0 <= !!F
-    1 1 <= !!T
-    1 2 <= !!T
-    2 1 <= !!F
-    2 2 <= !!T)
+    0 0 <= !!True
+    0 1 <= !!True
+    1 0 <= !!False
+    1 1 <= !!True
+    1 2 <= !!True
+    2 1 <= !!False
+    2 2 <= !!True)
 def(test-gt, --,
-    0 0 > !!F
-    0 1 > !!F
-    1 0 > !!T
-    1 1 > !!F
-    1 2 > !!F
-    2 1 > !!T
-    2 2 > !!F)
+    0 0 > !!False
+    0 1 > !!False
+    1 0 > !!True
+    1 1 > !!False
+    1 2 > !!False
+    2 1 > !!True
+    2 2 > !!False)
 def(test>=, --,
-    0 0 >= !!T
-    0 1 >= !!F
-    1 0 >= !!T
-    1 1 >= !!T
-    1 2 >= !!F
-    2 1 >= !!T
-    2 2 >= !!T
-    -1 0 >= !!F
-    -1 -1 >= !!T
-    0 -1 >= !!T
-    -1 -2 >= !!T
-    -2 -2 >= !!T
-    -2 -1 >= !!F)
+    0 0 >= !!True
+    0 1 >= !!False
+    1 0 >= !!True
+    1 1 >= !!True
+    1 2 >= !!False
+    2 1 >= !!True
+    2 2 >= !!True
+    -1 0 >= !!False
+    -1 -1 >= !!True
+    0 -1 >= !!True
+    -1 -2 >= !!True
+    -2 -2 >= !!True
+    -2 -1 >= !!False)
 
 def(test+, --,
     0 0 + !!0
     0 1 + !!1
     1 0 + !!1
-    1 1 + 2 == !!T
-    2 2 + 4 == !!T
+    1 1 + 2 == !!True
+    2 2 + 4 == !!True
     2 -2 + !!0)
 
 def(test-, --,

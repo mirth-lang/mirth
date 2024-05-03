@@ -98,22 +98,22 @@ def(+SPCheck.check-lambda!, Lambda +SPCheck -- Lambda +SPCheck,
     body:check-arrow!)
 
 def(+SPCheck.push-check-word!, Word +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap-or(F) if(
+    dup ~sp-checked @? unwrap-or(False) if(
         drop,
-        T over ~sp-checked !
+        True over ~sp-checked !
         SPCHECK_WORD checklist:cons
     ))
 def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap-or(F) if(
+    dup ~sp-checked @? unwrap-or(False) if(
         drop,
-        T over ~sp-checked !
+        True over ~sp-checked !
         SPCHECK_BLOCK checklist:cons
     ))
 
 def(ab-build-over-atom!(f), (*a +AB -- *b +AB) *a Atom -- *b Arrow,
     /Atom
     ctx>
-    dom> cod> T->
+    dom> cod> True->
     token> home>
     subst> op> args> drop3
     ab-build-hom!(dip(f)))
@@ -133,7 +133,7 @@ def(Word.sp-synthed, Word -- Map(SPKey,Word),
 ||| Those other arguments are pushed on the stack.
 def(specialize-word!, SPKey Word -- Word,
     \(k w -> k w sp-synthed lookup(==) match(
-    Some -> F over ~prefer-inline? !,
+    Some -> False over ~prefer-inline? !,
     None ->
         w head >head
         None >sig
@@ -150,7 +150,7 @@ def(specialize-word!, SPKey Word -- Word,
             k w delay2(
                 ctx-type specialize-ctx-type pack2
             ) w' ~ctx-type !
-            T w' ~prefer-inline? !
+            True w' ~prefer-inline? !
             k w w' delay3(ab-build-word-arrow!(dip(
                 synth-specialized-word!
             ))) w' ~arrow !
@@ -171,7 +171,7 @@ def(specialize-ctx-type, SPKey Ctx ArrowType -- Ctx ArrowType,
         /ArgBlock type TMorphism unify! drop2
     )
     gamma> drop
-    swap T->
+    swap True->
     dip:Ctx0 rigidify-sig!)
 
 

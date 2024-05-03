@@ -123,12 +123,12 @@ def(SDL_GameControllerButton.>SnakeButton?, SDL_GameControllerButton -- Maybe(Sn
     _ -> drop None)
 
 def(+SnakeLogic.init!, -- +SnakeLogic,
-    F >done
+    False >done
     DNORTH >direction
     DNORTH >last-direction
     random-position >mouse
     center-position L1+ >snake
-    F >dead
+    False >dead
     0 >timer
     0 >points
     SNAKE_LOGIC!)
@@ -246,7 +246,7 @@ def(+Snake.process-events!, +Snake -- +Snake,
 def(+Snake.process-event!, +Snake -- +Snake,
     SNAKE_EVENT >SDL_Event type@
     dup SDL_QUIT == if(
-        drop T logic:done!,
+        drop True logic:done!,
 
     dup SDL_KEYDOWN == if(
         drop
@@ -254,7 +254,7 @@ def(+Snake.process-event!, +Snake -- +Snake,
             id,
             SNAKE_EVENT >SDL_Event key keysym scancode@
             match(
-                SDL_SCANCODE_ESCAPE -> T logic:done!,
+                SDL_SCANCODE_ESCAPE -> True logic:done!,
                 _ -> >SnakeButton? for:logic:press!
             )
         ),
@@ -280,8 +280,8 @@ def(+SnakeLogic.tick-frames, +SnakeLogic -- +SnakeLogic Int,
 def(+SnakeLogic.tick!, +SnakeLogic -- +SnakeLogic Bool,
     timer:1+
     timer tick-frames >= if(
-        0 timer! T,
-        F
+        0 timer! True,
+        False
     ))
 
 def(+SnakeLogic.in-snake, +SnakeLogic Position -- +SnakeLogic Bool,
@@ -297,7 +297,7 @@ def(+SnakeLogic.update!, +SnakeLogic -- +SnakeLogic,
         direction last-direction!
         head direction apply
         dup in-snake if(
-            T dead! drop,
+            True dead! drop,
 
             enqueue
             head mouse == then(

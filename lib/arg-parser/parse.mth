@@ -77,7 +77,7 @@ def(print-usage-for-option, +ArgumentParser(a) ArgpOption -- +ArgumentParser(a),
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over flag-type match(
         Short -> 0 >Offset rotl byte@ ==,
-        _ -> drop drop F
+        _ -> drop drop False
     ))
 
 ||| Parse a short cli flag, possibly with a argument value
@@ -88,7 +88,7 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
         Some ->
             dup arg-doc match(
                 Some ->
-                    T state parsing?! state!
+                    True state parsing?! state!
                     drop Some state option-option! state!,
                 None -> flag-type state arguments swap None swap parser match(
                     Some -> run state arguments! state! ,
@@ -102,7 +102,7 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
 def(check-long-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over name match(
         Some -> ==,
-        None -> drop F
+        None -> drop False
     ))
 
 ||| Parse either a short or long flag
@@ -148,7 +148,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
                     drop state option-option match(
                         Some -> arg-doc match (
                             Some -> drop MissingArgValue Some,
-                            None -> F state parsing?! state! None
+                            None -> False state parsing?! state! None
                         ),
                         None -> MissingArgValue Some
                     ),
@@ -163,7 +163,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
                             None -> drop UnknownArg Some
                         ),
                         None -> drop UnknownArg Some
-                    ) F state:parsing?!,
+                    ) False state:parsing?!,
                     do-positional-option
                 )
             ),

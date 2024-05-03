@@ -64,6 +64,21 @@ def(Def.variable?, Def -- Maybe(Variable), DefVariable -> Some, _ -> drop None)
 def(Def.external?, Def -- Maybe(External), DefExternal -> Some, _ -> drop None)
 def(Def.field?, Def -- Maybe(Field), DefField -> Some, _ -> drop None)
 
+def(Def.==, Def Def -- Bool,
+    DefAlias -> Some swap alias? ==:==,
+    DefPackage -> Some swap package? ==:==,
+    DefModule -> Some swap module? ==:==,
+    DefBuffer -> Some swap buffer? ==:==,
+    DefPrim -> Some swap prim? ==:==,
+    DefData -> Some swap data? ==:==,
+    DefTable -> Some swap table? ==:==,
+    DefType -> Some swap typedef? ==:==,
+    DefExternal -> Some swap external? ==:==,
+    DefWord -> Some swap word? ==:==,
+    DefField -> Some swap field? ==:==,
+    DefTag -> Some swap tag? ==:==,
+    DefVariable -> Some swap variable? ==:==)
+
 def(Def.typecheck!, Def --,
     DefAlias -> target typecheck!,
     DefPackage -> drop,
@@ -81,33 +96,33 @@ def(Def.typecheck!, Def --,
 
 def(Def.callable?, Def -- Bool,
     DefAlias -> target callable?,
-    DefPackage -> drop F,
-    DefModule -> drop F,
-    DefBuffer -> drop T,
-    DefPrim -> drop T,
-    DefData -> drop F,
-    DefTable -> drop F,
-    DefType -> drop F,
-    DefExternal -> drop T,
-    DefWord -> drop T,
-    DefField -> drop T,
-    DefTag -> drop T,
-    DefVariable -> drop T)
+    DefPackage -> drop False,
+    DefModule -> drop False,
+    DefBuffer -> drop True,
+    DefPrim -> drop True,
+    DefData -> drop False,
+    DefTable -> drop False,
+    DefType -> drop False,
+    DefExternal -> drop True,
+    DefWord -> drop True,
+    DefField -> drop True,
+    DefTag -> drop True,
+    DefVariable -> drop True)
 
 def(Def.defines-a-type?, Def -- Bool,
     DefAlias -> target defines-a-type?,
-    DefPackage -> drop F,
-    DefModule -> drop F,
-    DefBuffer -> drop F,
-    DefPrim -> drop F,
-    DefData -> drop T,
-    DefTable -> drop T,
-    DefType -> drop T,
-    DefExternal -> drop F,
-    DefWord -> drop F,
-    DefField -> drop F,
-    DefTag -> drop F,
-    DefVariable -> drop F)
+    DefPackage -> drop False,
+    DefModule -> drop False,
+    DefBuffer -> drop False,
+    DefPrim -> drop False,
+    DefData -> drop True,
+    DefTable -> drop True,
+    DefType -> drop True,
+    DefExternal -> drop False,
+    DefWord -> drop False,
+    DefField -> drop False,
+    DefTag -> drop False,
+    DefVariable -> drop False)
 
 def(Def.exposed-tycon?, Def -- Maybe(Tycon),
     DefAlias -> target exposed-tycon?,
@@ -141,6 +156,12 @@ def(Def.head?, Def -- Maybe(Token),
 
 def(Def.defining-module?, Def -- Maybe(Module),
     head? map(.module))
+
+def(Def.same-resolved?, Def Def -- Bool,
+    both(resolve) ==)
+
+def(Def.resolve, Def -- Def,
+    while-some(dup alias?, nip target))
 
 def(Def.qname, Def -- QName,
     DefAlias -> qname,

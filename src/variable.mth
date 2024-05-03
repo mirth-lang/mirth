@@ -17,6 +17,8 @@ def(Variable.qname, Variable -- QName, ~qname @)
 def(Variable.name, Variable -- Name, qname name)
 def(Variable.type, Variable -- Type, ~type force!)
 
+def(Variable.==, Variable Variable -- Bool, both(index) ==)
+
 def(Variable.new!, Token QName Lazy(Type) -- Variable,
     Variable.alloc!
     tuck ~type !

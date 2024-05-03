@@ -149,10 +149,10 @@ def(+Str.find, Str +Str -- Maybe(Offset) +Str,
         over num-bytes over >Size +
         +Str.num-bytes? <= if(
             dup2 >Offset over num-bytes unsafe(+Str.slice) == if(
-                rotl drop dup >Offset Some rotr F,
-                T
+                rotl drop dup >Offset Some rotr False,
+                True
             ),
-            F
+            False
         ),
         1+
     ) drop2)

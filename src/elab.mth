@@ -48,8 +48,8 @@ data(+TypeElab, TYPE_ELAB ->
 def(+TypeElab.type-sig-start!, Token -- +TypeElab,
     >token
     Ctx0 >ctx
-    F >allow-type-holes
-    T >allow-implicit-type-vars
+    False >allow-type-holes
+    True >allow-implicit-type-vars
     TYPE_ELAB)
 
 def(+TypeElab.rdrop, +TypeElab --,
@@ -64,7 +64,7 @@ def(+TypeElab.elab-type-sig!, +TypeElab -- +TypeElab ArrowType,
     elab-stack-type!
     token sig-dashes? if(token:succ elab-stack-type!, dip:T0)
     token run-end? else(token "expected right paren or comma" emit-error!)
-    dip(swap for(T*)) T->)
+    dip(swap for(True*)) True->)
 
 def(+TypeElab.elab-type-sig-params!, +TypeElab -- +TypeElab List(Type),
     token lparen? if(
@@ -203,7 +203,10 @@ def(resolve-def(f), (*a +ResolveDef -- *b +ResolveDef) *a
         Nil -> resolve-def-unknown None,
         Cons -> match(
             Nil -> rdrop Some,
-            Cons -> drop3 resolve-def-ambiguous None
+            _ -> List.filter(dup2 same-resolved? not) match(
+                Nil -> rdrop Some,
+                _ -> drop2 resolve-def-ambiguous None
+            )
         )
     ))
 
@@ -328,24 +331,24 @@ def(def-is-imported-at-token?, Token Def -- Bool,
     # TODO: implement finer grained control over what is imported.
     #   https://github.com/mirth-lang/mirth/issues/243
     dup qname namespace match(
-        NAMESPACE_ROOT -> drop2 T,
-        NAMESPACE_PACKAGE -> drop3 T,
+        NAMESPACE_ROOT -> drop2 True,
+        NAMESPACE_PACKAGE -> drop3 True,
         NAMESPACE_MODULE -> nip module-visible-from-token?,
-        NAMESPACE_TYCON -> dip:swap tycon-is-visible-at-token? if(tag? >Bool, drop F),
-        NAMESPACE_WORD -> drop3 F
+        NAMESPACE_TYCON -> dip:swap tycon-is-visible-at-token? if(tag? >Bool, drop False),
+        NAMESPACE_WORD -> drop3 False
     ))
 
 def(tycon-is-visible-at-token?, Token Tycon -- Bool,
-    TYCON_DATA -> head? if-some(.module module-visible-from-token?, drop T),
+    TYCON_DATA -> head? if-some(.module module-visible-from-token?, drop True),
     TYCON_TABLE -> head .module module-visible-from-token?,
-    TYCON_PRIM -> drop2 T)
+    TYCON_PRIM -> drop2 True)
 
 def(namespace-is-imported-at-token?, Token Namespace -- Bool,
-    NAMESPACE_ROOT -> drop T,
-    NAMESPACE_PACKAGE -> drop2 T,
+    NAMESPACE_ROOT -> drop True,
+    NAMESPACE_PACKAGE -> drop2 True,
     NAMESPACE_MODULE -> module-visible-from-token?,
     NAMESPACE_TYCON -> qname namespace namespace-is-imported-at-token?,
-    NAMESPACE_WORD -> drop2 F)
+    NAMESPACE_WORD -> drop2 False)
 
 def(QName.climb-up-name?, Name QName -- Maybe(Namespace),
     tuck name == if(
@@ -363,7 +366,7 @@ def(QName.climb-up-dname?, DName QName -- Maybe(Namespace),
 
 
 def(+TypeElab.resolve-type-con-name!, +TypeElab -- +TypeElab Type,
-    F >report-ambiguous-as-warning
+    False >report-ambiguous-as-warning
     token >token "type" >sort resolve-def(
         filter(dup defines-a-type?, RD_WRONG_SORT)
         filter-arity
@@ -441,8 +444,8 @@ def(elab-stack-type-unify!, StackType StackType Token -- StackType Token,
 def(elab-simple-type-arg!, Token -- Type,
     >token
     Ctx0 >ctx
-    F >allow-type-holes
-    F >allow-implicit-type-vars
+    False >allow-type-holes
+    False >allow-implicit-type-vars
     TYPE_ELAB elab-type-arg! rdrop)
 
 ####################
@@ -504,18 +507,18 @@ def(atom-accepts-args?, Atom -- Atom Bool,
                 PRIM_CORE_RDIP -> dup args len 1 >Nat <,
                 PRIM_CORE_IF -> dup args len 2 >Nat <,
                 PRIM_CORE_WHILE -> dup args len 2 >Nat <,
-                _ -> drop F
+                _ -> drop False
             ),
-        _ -> drop F
+        _ -> drop False
     ))
 
 def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
     dup last match(
-        None -> F,
+        None -> False,
         Some ->
             op match(
-                OpBlockPush -> drop T,
-                _ -> drop F
+                OpBlockPush -> drop True,
+                _ -> drop False
             )
     ))
 
@@ -636,22 +639,22 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
 
 def(data-get-tag-type, Data -- ArrowType,
     full-type left? unwrap T1
-    TYPE_INT T1 T->)
+    TYPE_INT T1 True->)
 
 def(elab-coerce-sig!, Coerce -- OpSig,
     CoerceUnsafe ->
         MetaVar.new! STMeta dup
-        MetaVar.new! TMeta T* swap
-        MetaVar.new! TMeta T* T-> OPSIG_APPLY)
+        MetaVar.new! TMeta True* swap
+        MetaVar.new! TMeta True* True-> OPSIG_APPLY)
 
 def(elab-block-sig!, Block -- OpSig,
     VALUE_BLOCK TValue OPSIG_PUSH)
 
 def(elab-match-sig!, Match -- OpSig,
-    sip(dom) cod T-> OPSIG_APPLY)
+    sip(dom) cod True-> OPSIG_APPLY)
 
 def(elab-lambda-sig!, Lambda -- OpSig,
-    sip(dom) cod T-> OPSIG_APPLY)
+    sip(dom) cod True-> OPSIG_APPLY)
 
 def(elab-var-sig!, Var -- OpSig,
     dup auto-run? if(
@@ -661,11 +664,11 @@ def(elab-var-sig!, Var -- OpSig,
 
 def(elab-label-push-sig!, Label -- OpSig,
     dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2)
-    STConsLabel dip(STCons) T-> OPSIG_APPLY)
+    STConsLabel dip(STCons) True-> OPSIG_APPLY)
 
 def(elab-label-pop-sig!, Label -- OpSig,
     dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2)
-    STConsLabel dip(STCons) swap T-> OPSIG_APPLY)
+    STConsLabel dip(STCons) swap True-> OPSIG_APPLY)
 
 def(elab-arrow!, Ctx ArrowType Token Home -- Arrow,
     dip2(unpack) elab-arrow-hom!)
@@ -744,7 +747,7 @@ def(Token.can-be-relative-name-or-dname?, Token -- Bool,
     value match(
         TokenName -> can-be-relative?,
         TokenDName -> is-relative?,
-        _ -> drop F
+        _ -> drop False
     ))
 
 def(elab-atom-resolve-def!, +AB -- +AB,
@@ -801,8 +804,8 @@ def(elab-prim!, Prim +AB -- +AB,
 def(elab-atom-assert!, +AB -- +AB,
     ab-token@ args-1 >token
     ab-ctx@ >ctx
-    T >allow-type-holes
-    F >allow-implicit-type-vars
+    True >allow-type-holes
+    False >allow-implicit-type-vars
     TYPE_ELAB elab-stack-type! rdrop
     dip(ab-token@ GAMMA ab-type@)
     unify! drop2)
@@ -891,7 +894,7 @@ def(+Match.case!(mkpat,mkbod),
         Pattern rdip(thaw mkpat freeze)
     ) swap \(pat ->
         pat inner-ctx
-        pat Pattern.dom +Match.cod T->
+        pat Pattern.dom +Match.cod True->
         rotl
         +Match.home
         rdip(ab-build-hom!(dip(mkbod)))
@@ -914,7 +917,7 @@ def(elab-lambda-param?, Token -- Token Maybe(Var),
     and(dup succ pattern-var?)
     and(dup succ succ rsquare? >Bool) if(
         dup succ args-0 sip:next
-        dip(MetaVar.new! STMeta MetaVar.new! STMeta T-> TMorphism)
+        dip(MetaVar.new! STMeta MetaVar.new! STMeta True-> TMorphism)
         succ name? unwrap Var.new-auto-run! Some,
         None
     )))
@@ -1009,7 +1012,7 @@ def(elab-module-import!, Token +World -- Token +World,
     args-1 dup elab-module-qname
     load-module dip(.module) add-import!)
 
-||| Elaborate a data definition `data(T, ..)`
+||| Elaborate a data definition `data(True, ..)`
 def(elab-data!, Token -- Token,
     sip(
         Data.alloc!
@@ -1063,15 +1066,15 @@ def(elab-data-tag!, Data Token -- Data,
     dup delay(
         dup .data head? unwrap >token
         dup .data params >Ctx >ctx
-        T >allow-implicit-type-vars
-        F >allow-type-holes
+        True >allow-implicit-type-vars
+        False >allow-type-holes
         TYPE_ELAB
-        T0 over .data full-type T*+
+        T0 over .data full-type True*+
         swap sig? match(
             None -> T0,
             Some -> token! T0 elab-stack-type-parts!
         )
-        swap T-> dip:ctx pack2 rdrop
+        swap True-> dip:ctx pack2 rdrop
     ) over ~ctx-type !
     sip(num-type-inputs-from-sig) sip(~num-type-inputs !)
     sip(num-resource-inputs-from-sig) sip(~num-resource-inputs !)
@@ -1108,7 +1111,7 @@ def(elab-data-done!, Data --,
 
         dat is-enum? then(
             dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
-                Ctx0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
+                Ctx0 TYPE_INT T1 dat TData T1 True-> ready2 ftag ~ctx-type !
                 ftag ab-build-word!(
                     CoerceUnsafe ab-coerce!
                 ) drop
@@ -1118,7 +1121,7 @@ def(elab-data-done!, Data --,
         dat tags /L1 match(
             Some -> \(tag ->
                 dat "/" tag name >Str cat 0 data-word-new! \(untag ->
-                    tag delay(ctx-type unpack swap T-> pack2) untag ~ctx-type !
+                    tag delay(ctx-type unpack swap True-> pack2) untag ~ctx-type !
                     untag delay(ab-build-word-arrow!(
                         untag type cod >cod
                         dat head? unwrap >body
@@ -1149,17 +1152,17 @@ def(Tag.project-input-label, Label Tag -- Maybe(Type),
 
 def(data-get-label-type, Tag Label -- ArrowType,
     \(tag lbl ->
-        T0 tag output-type T*+
+        T0 tag output-type True*+
         lbl tag project-input-label unwrap T1
-        tag .data is-resource? then(tag output-type T*+)
-        T->
+        tag .data is-resource? then(tag output-type True*+)
+        True->
     ))
 
 def(data-set-label-type, Tag Label -- ArrowType,
     \(tag lbl ->
-        lbl tag project-input-label unwrap T1 tag output-type T*+
-        T0 tag output-type T*+
-        T->
+        lbl tag project-input-label unwrap T1 tag output-type True*+
+        T0 tag output-type True*+
+        True->
     ))
 
 def(create-projectors!, Tag --,
@@ -1192,11 +1195,11 @@ def(create-projectors!, Tag --,
                 lbl tag project-input-label unwrap
                 tag output-type \(sx sy lblty datty ->
                     tag ctx /Ctx sx sy L2 cat Ctx
-                    sx STVar datty T*+
-                        sx STVar lblty T*
-                        sy STVar lblty T* T-> TMorphism T*
-                    sy STVar datty T*+
-                    T-> pack2
+                    sx STVar datty True*+
+                        sx STVar lblty True*
+                        sy STVar lblty True* True-> TMorphism True*
+                    sy STVar datty True*+
+                    True-> pack2
                 )
             ) lbl_lens ~ctx-type !
             lbl_lens delay(
@@ -1280,12 +1283,12 @@ def(elab-def-missing!, Token -- Token,
 # TODO: add a +Mirth resource and keep this state in it.
 #  https://github.com/mirth-lang/mirth/issues/247
 var(~prefer-inline-defs?, Bool)
-def(prefer-inline-defs?, Bool, ~prefer-inline-defs? @? unwrap-or(F))
+def(prefer-inline-defs?, Bool, ~prefer-inline-defs? @? unwrap-or(False))
 
 def(elab-inline!, Token +World -- Token +World,
     sip:next args-1
     dip:prefer-inline-defs?
-    T ~prefer-inline-defs? !
+    True ~prefer-inline-defs? !
     while(dup arg-end? not, elab-module-decl!)
     drop ~prefer-inline-defs? !)
 
@@ -1346,7 +1349,7 @@ def(check-inline-recursion-op!, Word Op --,
     _ -> drop2)
 def(check-inline-recursion-failed!, Word --,
     dup prefer-inline? if(
-        F over ~prefer-inline? !
+        False over ~prefer-inline? !
         head "recursive word cannot be inlined" emit-warning!,
         drop
     ))
@@ -1415,7 +1418,7 @@ def(elab-variable!, Token -- Token,
     rotl delay(elab-simple-type-arg!)
     Variable.new! drop)
 
-||| Elaborate a table definition `table(T)`.
+||| Elaborate a table definition `table(True)`.
 def(elab-table!, Token -- Token,
     sip(next) args-1
     dup sig-type-con? else("expected type name" emit-fatal-error!)
@@ -1433,7 +1436,7 @@ def(elab-entry-point, QName +World -- Arrow +World,
         ) >Str cat
         emit-fatal-error!
     ) nip { Word +World }
-    dup dip(Ctx0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
+    dup dip(Ctx0 T0 RESOURCE_WORLD True+ T0 RESOURCE_WORLD True+ True->)
     head dup HomeMain ab-build-hom!(
         dip(ab-word!)
     ))
@@ -1447,7 +1450,7 @@ def(elab-embed-str!, Token +World -- Token +World,
     dup str? unwrap-or("expected source path" emit-fatal-error!)
     >Path open-file! unwrap! read-file! close-file! nip >contents
     Word.new!
-    Ctx0 T0 TYPE_STR T1 T-> ready2 over ~ctx-type !
+    Ctx0 T0 TYPE_STR T1 True-> ready2 over ~ctx-type !
     ab-build-word!(contents> ab-str!) drop)
 
 ||| Ensure that everything so far has been typechecked.
@@ -1479,7 +1482,7 @@ def(table-new!, Token QName -- Table,
     dup "MAX" 0 table-word-new!
 
     L0 Ctx
-    T0 TYPE_INT T1 T->
+    T0 TYPE_INT T1 True->
     ready2 over ~ctx-type !
 
     ab-build-word!(
@@ -1491,7 +1494,7 @@ def(table-new!, Token QName -- Table,
     dup "nil" 0 table-word-new!
 
     L0 Ctx
-    T0 over3 TTable T1 T->
+    T0 over3 TTable T1 True->
     ready2 over ~ctx-type !
 
     ab-build-word!(
@@ -1510,7 +1513,7 @@ def(table-new!, Token QName -- Table,
     dup "index" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 TYPE_INT T1 T->
+    over2 TTable T1 TYPE_INT T1 True->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1522,7 +1525,7 @@ def(table-new!, Token QName -- Table,
     dup "from-index" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 TYPE_INT T1 swap T->
+    over2 TTable T1 TYPE_INT T1 swap True->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1534,7 +1537,7 @@ def(table-new!, Token QName -- Table,
     dup "succ" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 dup T->
+    over2 TTable T1 dup True->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1555,7 +1558,7 @@ def(table-new!, Token QName -- Table,
     dup "pred" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 dup T->
+    over2 TTable T1 dup True->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1576,10 +1579,10 @@ def(table-new!, Token QName -- Table,
 
     dup "for" 1 table-word-new!
     TYPE_STACK "*a" >Name Var.new! dup STVar
-    \(t w va a -> a t TTable T* a T-> >Type "x" >Name Var.new-auto-run!
+    \(t w va a -> a t TTable True* a True-> >Type "x" >Name Var.new-auto-run!
     \(x ->
         va Ctx1
-        a a t TTable T* a T-> >Type T* a T->
+        a a t TTable True* a True-> >Type True* a True->
         ready2 w ~ctx-type !
 
         w ab-build-word! (
@@ -1613,7 +1616,7 @@ def(table-new!, Token QName -- Table,
     dup "alloc!" 0 table-word-new!
 
     L0 Ctx
-    T0 over3 TTable T1 T->
+    T0 over3 TTable T1 True->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1649,7 +1652,7 @@ def(module-visible-from-token?, Token Module -- Bool,
 
 def(def-visible-from-token?, Token Def -- Bool,
     defining-module? match(
-        None -> drop T,
+        None -> drop True,
         Some -> module-visible-from-token?
     ))
 

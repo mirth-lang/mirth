@@ -46,7 +46,7 @@ data(Arguments, Arguments ->
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
 def(Arguments.default, -- Arguments,
-    F >emit-debug-info
+    False >emit-debug-info
     "mirth.mth" >Path >input-file
     None >output-file
     "main" Some >entry-point
@@ -130,7 +130,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
         dip(drop) TooManyArgs Some state:error!
     ),
     LongOnly -> dup "debug" == if(
-        drop2 T swap emit-debug-info!,
+        drop2 True swap emit-debug-info!,
         drop2 UnknownArg Some state:error!
     ),
     End ->

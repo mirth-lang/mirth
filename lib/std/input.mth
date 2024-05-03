@@ -43,8 +43,8 @@ def(+Input.end!, +Input -- +File,
     +InputDone -> id)
 
 def(+Input.done?, +Input -- Bool +Input,
-    +InputOpen -> F +InputOpen,
-    +InputDone -> T +InputDone)
+    +InputOpen -> False +InputOpen,
+    +InputDone -> True +InputDone)
 
 def(+InputOpenState.fill-buffer!, +InputOpenState -- +Input,
     ~Buffer(buffer-base buffer-size)

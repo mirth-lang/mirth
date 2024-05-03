@@ -24,3 +24,5 @@ def(External.sig, External -- Token, ~sig @)
 def(External.ctx-type, External -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(External.ctx, External -- Ctx, ctx-type drop)
 def(External.type, External -- ArrowType, ctx-type nip)
+
+def(External.==, External External -- Bool, both(index) ==)
