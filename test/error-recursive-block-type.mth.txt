@@ -1,3 +1,6 @@
+# Disabled until unstable metavar numbers are no longer shown on type error.
+#   https://github.com/mirth-lang/mirth/issues/272
+
 module(mirth-tests.error-recursive-block-type)
 import(std.prelude)
 
