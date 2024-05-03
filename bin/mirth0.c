@@ -1352,7 +1352,6 @@ static VAL lbl_colzmoffset = MKNIL_C;
 static VAL lbl_argumentzmparser = MKNIL_C;
 static VAL lbl_state = MKNIL_C;
 static VAL lbl_doczmlength = MKNIL_C;
-static VAL lbl_index = MKNIL_C;
 static VAL lbl_argv = MKNIL_C;
 static VAL lbl_programzmname = MKNIL_C;
 static VAL lbl_argvzminfo = MKNIL_C;
@@ -1669,7 +1668,7 @@ static void mtw_argzmparser_types_ArgumentParser_1_ArgumentParser (void) {
 	tup->cells[1] = lpop(&lbl_options);
 	push_value(MKTUP(tup, 5));
 }
-static void mtw_argzmparser_types_zpArgumentParser_1_zpARGUMENTPARSER (void) {
+static void mtw_argzmparser_types_zpArgumentParser_1_zpArgumentParser (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
@@ -1677,7 +1676,7 @@ static void mtw_argzmparser_types_zpArgumentParser_1_zpARGUMENTPARSER (void) {
 	tup->cells[1] = lpop(&lbl_argumentzmparser);
 	push_resource(MKTUP(tup, 3));
 }
-static void mtp_argzmparser_types_zpArgumentParser_1_zpARGUMENTPARSER (void) {
+static void mtp_argzmparser_types_zpArgumentParser_1_zpArgumentParser (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -4681,6 +4680,7 @@ static void mw_std_list_List_1_all_1 (void);
 static void mw_std_list_collect_1 (void);
 static void mw_std_list_collectzmwhile_2 (void);
 static void mw_std_prim_Int_range (void);
+static void mw_std_prim_Int_to_1 (void);
 static void mw_std_prim_Int_from_1 (void);
 static void mw_std_list_zpList_1_zszpList (void);
 static void mw_std_list_zpListzp_1_zszpListzp (void);
@@ -4801,7 +4801,7 @@ static void mw_argzmparser_state_State_1_optionzmoptionzn (void);
 static void mw_argzmparser_types_ArgumentParser_1_argszmdoc (void);
 static void mw_argzmparser_types_ArgumentParser_1_parser (void);
 static void mw_argzmparser_types_ArgumentParser_1_options (void);
-static void mw_argzmparser_types_zpArgumentParser_1_zszpARGUMENTPARSER (void);
+static void mw_argzmparser_types_zpArgumentParser_1_zszpArgumentParser (void);
 static void mw_argzmparser_types_zpArgumentParser_1_state (void);
 static void mw_argzmparser_types_zpArgumentParser_1_statezn (void);
 static void mw_argzmparser_types_zpArgumentParser_1_state_1 (void);
@@ -4823,8 +4823,6 @@ static void mw_argzmparser_parse_parsezmflags (void);
 static void mw_argzmparser_parse_dozmpositionalzmoption (void);
 static void mw_argzmparser_parse_parsezmargs (void);
 static void mw_argzmparser_parse_readzmfromzmargv (void);
-static void mw_argzmparser_parse_incrementzmindex (void);
-static void mw_argzmparser_parse_index (void);
 static void mw_argzmparser_parse_argvzmtozmstr (void);
 static void mw_std_input_zpInputOpenState_zszpInputOpenState (void);
 static void mw_std_input_zpInputOpenState_offset (void);
@@ -5972,7 +5970,6 @@ static void mb_std_terminal_SGRColor_show_0 (void);
 static void mb_std_terminal_SGRColor_show_1 (void);
 static void mb_std_prim_Str_show_0 (void);
 static void mb_std_prim_Str_show_1 (void);
-static void mb_std_list_List_1_cat_0 (void);
 static void mb_mirth_specializzer_SPKey_zgStr_0 (void);
 static void mb_mirth_specializzer_SPKey_zgStr_2 (void);
 static void mb_mirth_main_compilezn_0 (void);
@@ -6033,6 +6030,7 @@ static void mb_mirth_elab_zpResolveDef_filter_1_2 (void);
 static void mb_std_list_List_1_filter_1_0 (void);
 static void mb_std_list_List_1_map2_1_0 (void);
 static void mb_std_maybe_Maybe_1_zzip_0 (void);
+static void mb_std_list_List_1_cat_0 (void);
 static void mb_std_list_List_1_len_0 (void);
 static void mb_std_list_List_1_len_1 (void);
 static void mb_std_list_List_1_first_0 (void);
@@ -6103,6 +6101,7 @@ static void mb_argzmparser_parse_parsezmflags_0 (void);
 static void mb_argzmparser_parse_parsezmflags_4 (void);
 static void mb_argzmparser_parse_parsezmflags_6 (void);
 static void mb_argzmparser_parse_argvzmtozmstr_0 (void);
+static void mb_argzmparser_parse_argvzmtozmstr_1 (void);
 static void mb_std_prim_Str_writezn_0 (void);
 static void mb_std_posix_slicezmwritezn_2 (void);
 static void mb_std_posix_slicezmwritezn_3 (void);
@@ -9821,6 +9820,20 @@ static void mw_std_prim_Int_range (void) {
 		push_value(d2);
 	}
 }
+static void mw_std_prim_Int_to_1 (void) {
+	{
+		VAL var_f = pop_value();
+		{
+			VAL d3 = pop_value();
+			incref(var_f);
+			run_value(var_f);
+			push_value(d3);
+		}
+		mp_primzmswap();
+		mw_std_prim_Int_range();
+		decref(var_f);
+	}
+}
 static void mw_std_prim_Int_from_1 (void) {
 	{
 		VAL var_f = pop_value();
@@ -11439,10 +11452,10 @@ static void mw_argzmparser_types_ArgumentParser_1_options (void) {
 	decref(v);
 	push_value(u);
 }
-static void mw_argzmparser_types_zpArgumentParser_1_zszpARGUMENTPARSER (void) {
+static void mw_argzmparser_types_zpArgumentParser_1_zszpArgumentParser (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +ARGUMENTPARSER
-			mtp_argzmparser_types_zpArgumentParser_1_zpARGUMENTPARSER();
+		case 0LL: // +ArgumentParser
+			mtp_argzmparser_types_zpArgumentParser_1_zpArgumentParser();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -11488,7 +11501,7 @@ static void mw_argzmparser_types_zpArgumentParser_1_argumentzmparser (void) {
 	push_value(u);
 }
 static void mw_argzmparser_types_zpArgumentParser_1_rdrop (void) {
-	mw_argzmparser_types_zpArgumentParser_1_zszpARGUMENTPARSER();
+	mw_argzmparser_types_zpArgumentParser_1_zszpArgumentParser();
 	LPOP(lbl_argumentzmparser);
 	mp_primzmdrop();
 	LPOP(lbl_state);
@@ -11988,7 +12001,7 @@ static void mw_argzmparser_parse_parsezmargs (void) {
 	LPUSH(lbl_argumentzmparser);
 	mw_argzmparser_state_State_1_init();
 	LPUSH(lbl_state);
-	mtw_argzmparser_types_zpArgumentParser_1_zpARGUMENTPARSER();
+	mtw_argzmparser_types_zpArgumentParser_1_zpArgumentParser();
 	mw_argzmparser_types_zpArgumentParser_1_argumentzmparser();
 	mw_argzmparser_types_ArgumentParser_1_options();
 	push_fnptr(&mb_argzmparser_parse_parsezmargs_0);
@@ -12052,20 +12065,12 @@ static void mw_argzmparser_parse_readzmfromzmargv (void) {
 	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmstrzmcopy();
 }
-static void mw_argzmparser_parse_incrementzmindex (void) {
-	LPOP(lbl_index);
-	push_i64(1LL);
-	mp_primzmintzmadd();
-	LPUSH(lbl_index);
-}
-static void mw_argzmparser_parse_index (void) {
-	LPOP(lbl_index);
-	mp_primzmdup();
-	LPUSH(lbl_index);
-}
 static void mw_argzmparser_parse_argvzmtozmstr (void) {
+	push_i64(1LL);
 	push_fnptr(&mb_argzmparser_parse_argvzmtozmstr_0);
-	mw_std_list_LIST_1();
+	mw_std_prim_Int_to_1();
+	push_fnptr(&mb_argzmparser_parse_argvzmtozmstr_1);
+	mw_std_list_List_1_map_1();
 }
 static void mw_std_input_zpInputOpenState_zszpInputOpenState (void) {
 	switch (get_top_resource_data_tag()) {
@@ -37776,10 +37781,6 @@ static void mb_std_prim_Str_show_0 (void) {
 static void mb_std_prim_Str_show_1 (void) {
 	mw_std_str_zpStr_pushzmshowzmbytezn();
 }
-static void mb_std_list_List_1_cat_0 (void) {
-	mp_primzmswap();
-	mtw_std_list_List_1_Cons();
-}
 static void mb_mirth_specializzer_SPKey_zgStr_0 (void) {
 	{
 		static bool vready = false;
@@ -38530,6 +38531,10 @@ static void mb_std_list_List_1_map2_1_0 (void) {
 }
 static void mb_std_maybe_Maybe_1_zzip_0 (void) {
 	mw_std_prelude_pack2();
+}
+static void mb_std_list_List_1_cat_0 (void) {
+	mp_primzmswap();
+	mtw_std_list_List_1_Cons();
 }
 static void mb_std_list_List_1_len_0 (void) {
 	mw_std_list_List_1_uncons();
@@ -39598,23 +39603,14 @@ static void mb_argzmparser_parse_parsezmflags_6 (void) {
 	mw_argzmparser_parse_checkzmshortzmflag();
 }
 static void mb_argzmparser_parse_argvzmtozmstr_0 (void) {
+	mp_primzmsyszmargc();
 	push_i64(1LL);
-	LPUSH(lbl_index);
-	while(1) {
-		mp_primzmsyszmargc();
-		mw_argzmparser_parse_index();
-		mp_primzmswap();
-		mp_primzmintzmlt();
-		if (! pop_u64()) break;
-		mw_argzmparser_parse_index();
-		push_resource(MKU64(0LL)); // +Unsafe
-		mw_argzmparser_parse_readzmfromzmargv();
-		mw_std_prelude_zpUnsafe_zszpUnsafe();
-		mw_std_list_zpList_1_pushzn();
-		mw_argzmparser_parse_incrementzmindex();
-	}
-	LPOP(lbl_index);
-	mp_primzmdrop();
+	mp_primzmintzmsub();
+}
+static void mb_argzmparser_parse_argvzmtozmstr_1 (void) {
+	push_resource(MKU64(0LL)); // +Unsafe
+	mw_argzmparser_parse_readzmfromzmargv();
+	mw_std_prelude_zpUnsafe_zszpUnsafe();
 }
 static void mb_std_prim_Str_writezn_0 (void) {
 	mw_std_posix_slicezmwritezn();

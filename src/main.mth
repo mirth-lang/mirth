@@ -36,13 +36,12 @@ def(init!, --,
     init-types!
     init-prims!)
 
-data(Arguments,
-    Arguments ->
-        input-file:Path
-    output-file:Maybe(Path)
-    entry-point:Maybe(Str)
-    packages:List([Str Path])
-    emit-debug-info:Bool)
+data(Arguments, Arguments ->
+    input-file: Path
+    output-file: Maybe(Path)
+    entry-point: Maybe(Str)
+    packages: List([Str Path])
+    emit-debug-info: Bool)
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
@@ -56,14 +55,15 @@ def(Arguments.default, -- Arguments,
 
 ||| Pretty print the contents of the arguments struct
 def(Arguments.show, Arguments -- Str,
-    /Arguments
-    "Arguments { "
-    "output-file: " cat output-file> if-some(>Str, "(none)") cat
-    ", input-file: " cat input-file> >Str cat
-    ", entry-point: " cat entry-point> unwrap-or("(none)") cat
-    ", emit-debug-info: " cat emit-debug-info> if("yes", "no") cat
-    ", packages: " cat "[" packages> for(dip(cat) unpack2 dip(Str.cat ":" cat) >Str cat " ") drop "]" cat
-    " }" cat)
+    /Arguments Str(
+        "Arguments { " ;
+        "output-file: " ; output-file> show(>Str show) ;
+        ", input-file: " ; input-file> >Str show ;
+        ", entry-point: " ; entry-point> show:show ;
+        ", emit-debug-info: " ; emit-debug-info> show ;
+        ", packages: " ; "[" packages> for(dip(;) unpack2 dip(;) ":" ; >Str ; " ") drop "]" ;
+        " }" ;
+    ))
 
 ########
 # Main #

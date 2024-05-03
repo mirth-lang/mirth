@@ -16,13 +16,12 @@ data(ArgumentParser(a), ArgumentParser ->
     args-doc:Maybe(Str)
     doc:Str)
 
-data(+ArgumentParser(a), +ARGUMENTPARSER -> argument-parser:ArgumentParser(a) state:State(a))
-def(+ArgumentParser.rdrop, +ArgumentParser(a) --, /+ARGUMENTPARSER argument-parser> drop state> drop)
+data(+ArgumentParser(a), +ArgumentParser -> argument-parser:ArgumentParser(a) state:State(a))
+def(+ArgumentParser.rdrop, +ArgumentParser(a) --, /+ArgumentParser argument-parser> drop state> drop)
 
-def(+ArgumentParser.parser,
-  +ArgumentParser(a) -- +ArgumentParser(a) Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
-  argument-parser ArgumentParser.parser
-)
+def(+ArgumentParser.parser, +ArgumentParser(a) -- +ArgumentParser(a)
+        Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
+    argument-parser ArgumentParser.parser)
 
 data(ArgpOptionType,
     Short -> Byte,
