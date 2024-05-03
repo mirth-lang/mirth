@@ -36,7 +36,7 @@ def(print-usage-for-option, +ArgumentParser(a) ArgpOption -- +ArgumentParser(a),
 
   0 >col-offset
   dup flag-type match(
-    SHORT -> dup is-printable then(
+    Short -> dup is-printable then(
         col-offset> 2 + >col-offset
         "-" print! dup to-str-unsafe print!,
     ) drop,
@@ -79,7 +79,7 @@ def(print-usage-for-option, +ArgumentParser(a) ArgpOption -- +ArgumentParser(a),
 ||| Check if the currently parsed argument is something we accept
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over flag-type match(
-        SHORT -> 0 >Offset rotl byte@ ==,
+        Short -> 0 >Offset rotl byte@ ==,
         _ -> drop drop F
     ))
 
@@ -98,7 +98,7 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
                     None -> drop drop drop
                 )
             ) None,
-        None -> UNKNOWN_ARG Some
+        None -> UnknownArg Some
     )
 )
 
@@ -118,7 +118,7 @@ def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentPars
 
 ||| Parse a positional argument, advancing the current index
 def(do-positional-option, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    state arguments swap Some POSITIONAL parser unwrap run
+    state arguments swap Some Positional parser unwrap run
     state arguments! state! None
     state positional-index 1+ state positional-index! state!)
 
@@ -129,7 +129,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
     0 >doc-length
 
     dup flag-type match(
-      SHORT -> drop doc-length> 2 + >doc-length,
+      Short -> drop doc-length> 2 + >doc-length,
       _ -> drop
     )
 
@@ -151,10 +151,10 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
         state parsing? if(
       drop state option-option match(
             Some -> arg-doc match (
-          Some -> drop MISSING_ARGUMENT_VALUE Some,
+          Some -> drop MissingArgValue Some,
           None -> F state parsing?! state! None
         ),
-        None -> MISSING_ARGUMENT_VALUE Some
+        None -> MissingArgValue Some
       ),
       parse-flags
     ),
@@ -163,9 +163,9 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
       state option-option match(
         Some -> arg-doc match(
           Some -> drop state arguments swap Some state option-option unwrap flag-type parser unwrap run state:arguments! None,
-          None -> drop UNKNOWN_ARG Some
+          None -> drop UnknownArg Some
         ),
-        None -> drop UNKNOWN_ARG Some
+        None -> drop UnknownArg Some
       ) F state:parsing?!,
           do-positional-option
     )
@@ -178,12 +178,12 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
 
   # Check if we are still waiting for an associated value for an option
   state parsing? then(
-    MISSING_ARGUMENT_VALUE Some state error! state!
+    MissingArgValue Some state error! state!
   )
 
   # Run the callback function one last time to let it clean up
   # and run final checks
-  state arguments None END parser unwrap run state:arguments!
+  state arguments None End parser unwrap run state:arguments!
 
   state arguments state error
   match(

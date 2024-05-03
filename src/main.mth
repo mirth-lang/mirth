@@ -118,32 +118,32 @@ def(parse-package-def, Str -- [Str Path],
     unpack2 >Path pack2)
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
-    SHORT -> dip(swap) match(
+    Short -> dip(swap) match(
         B'o' -> output-file(drop unwrap >Path Some),
         B'e' -> entry-point(drop unwrap Some),
         B'c' -> entry-point(drop drop None),
         B'p' -> dip(unwrap parse-package-def) packages(cons),
-        _ -> drop swap drop UNKNOWN_ARG Some state:error!
+        _ -> drop swap drop UnknownArg Some state:error!
     ),
-    POSITIONAL -> swap state positional-index 0= if(
+    Positional -> swap state positional-index 0= if(
         input-file(drop unwrap >Path),
-        dip(drop) TOO_MANY_ARGS Some state:error!
+        dip(drop) TooManyArgs Some state:error!
     ),
-    LONG_ONLY -> dup "debug" == if(
+    LongOnly -> dup "debug" == if(
         drop2 T swap emit-debug-info!,
-        drop2 UNKNOWN_ARG Some state:error!
+        drop2 UnknownArg Some state:error!
     ),
-    END ->
+    End ->
         state positional-index 1 < then(
-            TOO_FEW_ARGS Some state:error!
+            TooFewArgs Some state:error!
         )
         state arguments output-file else(
         state arguments entry-point then(
-            "output-file" MISSING_ARG Some state:error!
+            "output-file" MissingArg Some state:error!
             )
         )
         drop,
-    _ -> drop drop UNKNOWN_ARG Some state error! state!)
+    _ -> drop drop UnknownArg Some state error! state!)
 
 def(main, +World -- +World,
     init!
@@ -151,35 +151,35 @@ def(main, +World -- +World,
     Arguments.default
     LIST(
         "output-file" Some >name
-        B'o' SHORT >flag-type
+        B'o' Short >flag-type
         "OUTPUT_FILE" Some >arg-doc
         "Test argument" Some >doc
         None >group
         ArgpOption ;
 
         "compile-only" Some >name
-        B'c' SHORT >flag-type
+        B'c' Short >flag-type
         None >arg-doc
         "Compile code without running codegen step" Some >doc
         None >group
         ArgpOption ;
 
         "entry-point" Some >name
-        B'e' SHORT >flag-type
+        B'e' Short >flag-type
         "ENTRY_POINT" Some >arg-doc
         "Custom entry point word for compilation" Some >doc
         None >group
         ArgpOption ;
 
         "package" Some >name
-        B'p' SHORT >flag-type
+        B'p' Short >flag-type
         "(PACKAGE:PATH)*" Some >arg-doc
         "Package locations" Some >doc
         None >group
         ArgpOption ;
 
         "debug" Some >name
-        "debug" LONG_ONLY >flag-type
+        "debug" LongOnly >flag-type
         None >arg-doc
         "Emit debugging information during codegen" Some >doc
         None >group

@@ -1630,7 +1630,7 @@ static void mtp_std_terminal_SGRColor_RGB (void) {
 		free(tup);
 	}
 }
-static void mtw_argzmparser_state_ArgvInfo_ARGVzuINFO (void) {
+static void mtw_argzmparser_state_ArgvInfo_ArgvInfo (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
@@ -1638,7 +1638,7 @@ static void mtw_argzmparser_state_ArgvInfo_ARGVzuINFO (void) {
 	tup->cells[1] = lpop(&lbl_argv);
 	push_value(MKTUP(tup, 3));
 }
-static void mtw_argzmparser_state_CurrentArg_CURRENTzuARG (void) {
+static void mtw_argzmparser_state_CurrentArg_CurrentArg (void) {
 	TUP* tup = tup_new(4);
 	tup->size = 4;
 	tup->cells[0] = MKU64(0LL);
@@ -1647,7 +1647,7 @@ static void mtw_argzmparser_state_CurrentArg_CURRENTzuARG (void) {
 	tup->cells[1] = lpop(&lbl_parsingz63U);
 	push_value(MKTUP(tup, 4));
 }
-static void mtw_argzmparser_state_State_1_STATE (void) {
+static void mtw_argzmparser_state_State_1_State (void) {
 	TUP* tup = tup_new(7);
 	tup->size = 7;
 	tup->cells[0] = MKU64(0LL);
@@ -1691,14 +1691,14 @@ static void mtp_argzmparser_types_zpArgumentParser_1_zpARGUMENTPARSER (void) {
 		free(tup);
 	}
 }
-static void mtw_argzmparser_types_ArgpOptionType_SHORT (void) {
+static void mtw_argzmparser_types_ArgpOptionType_Short (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(0LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtp_argzmparser_types_ArgpOptionType_SHORT (void) {
+static void mtp_argzmparser_types_ArgpOptionType_Short (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1710,14 +1710,14 @@ static void mtp_argzmparser_types_ArgpOptionType_SHORT (void) {
 		free(tup);
 	}
 }
-static void mtw_argzmparser_types_ArgpOptionType_LONGzuONLY (void) {
+static void mtw_argzmparser_types_ArgpOptionType_LongOnly (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(1LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtp_argzmparser_types_ArgpOptionType_LONGzuONLY (void) {
+static void mtp_argzmparser_types_ArgpOptionType_LongOnly (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1740,14 +1740,14 @@ static void mtw_argzmparser_types_ArgpOption_ArgpOption (void) {
 	tup->cells[1] = lpop(&lbl_name);
 	push_value(MKTUP(tup, 6));
 }
-static void mtw_argzmparser_types_ArgumentParsingError_MISSINGzuARG (void) {
+static void mtw_argzmparser_types_ArgumentParsingError_MissingArg (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
-	tup->cells[0] = MKU64(2LL);
+	tup->cells[0] = MKU64(1LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtp_argzmparser_types_ArgumentParsingError_MISSINGzuARG (void) {
+static void mtp_argzmparser_types_ArgumentParsingError_MissingArg (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -11369,7 +11369,7 @@ static void mw_argzmparser_state_State_1_init (void) {
 	mw_argzmparser_parse_readzmfromzmargv();
 	mw_std_prelude_zpUnsafe_zszpUnsafe();
 	LPUSH(lbl_programzmname);
-	mtw_argzmparser_state_ArgvInfo_ARGVzuINFO();
+	mtw_argzmparser_state_ArgvInfo_ArgvInfo();
 	LPUSH(lbl_argvzminfo);
 	push_u64(0LL); // F
 	LPUSH(lbl_parsingz63U);
@@ -11377,7 +11377,7 @@ static void mw_argzmparser_state_State_1_init (void) {
 	LPUSH(lbl_option);
 	push_u64(0LL); // None
 	LPUSH(lbl_optionzmoption);
-	mtw_argzmparser_state_CurrentArg_CURRENTzuARG();
+	mtw_argzmparser_state_CurrentArg_CurrentArg();
 	LPUSH(lbl_arg);
 	LPUSH(lbl_arguments);
 	push_i64(0LL);
@@ -11386,7 +11386,7 @@ static void mw_argzmparser_state_State_1_init (void) {
 	LPUSH(lbl_longestzmargzmlength);
 	push_u64(0LL); // None
 	LPUSH(lbl_error);
-	mtw_argzmparser_state_State_1_STATE();
+	mtw_argzmparser_state_State_1_State();
 }
 static void mw_argzmparser_state_State_1_argv (void) {
 	mw_argzmparser_state_State_1_argvzminfo();
@@ -11500,8 +11500,8 @@ static void mw_argzmparser_types_zpArgumentParser_1_parser (void) {
 }
 static void mw_argzmparser_types_ArgpOptionType_haszmshortz63U (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // SHORT
-			mtp_argzmparser_types_ArgpOptionType_SHORT();
+		case 0LL: // Short
+			mtp_argzmparser_types_ArgpOptionType_Short();
 			mp_primzmdrop();
 			push_u64(1LL); // T
 			break;
@@ -11549,25 +11549,12 @@ static void mw_argzmparser_types_ArgpOption_name (void) {
 }
 static void mw_argzmparser_types_ArgumentParsingError_show (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // NO_ARGS_PARSED
-			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Failed to parse any CLI arguments", 33);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
-			break;
-		case 2LL: // MISSING_ARG
-			mtp_argzmparser_types_ArgumentParsingError_MISSINGzuARG();
+		case 1LL: // MissingArg
+			mtp_argzmparser_types_ArgumentParsingError_MissingArg();
 			push_fnptr(&mb_argzmparser_types_ArgumentParsingError_show_0);
 			mw_std_str_Str_1();
 			break;
-		case 1LL: // MISSING_ARGUMENT_VALUE
+		case 0LL: // MissingArgValue
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -11580,7 +11567,7 @@ static void mw_argzmparser_types_ArgumentParsingError_show (void) {
 				incref(v);
 			}
 			break;
-		case 3LL: // TOO_MANY_ARGS
+		case 2LL: // TooManyArgs
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -11593,7 +11580,7 @@ static void mw_argzmparser_types_ArgumentParsingError_show (void) {
 				incref(v);
 			}
 			break;
-		case 4LL: // TOO_FEW_ARGS
+		case 3LL: // TooFewArgs
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -11606,7 +11593,7 @@ static void mw_argzmparser_types_ArgumentParsingError_show (void) {
 				incref(v);
 			}
 			break;
-		case 5LL: // UNKNOWN_ARG
+		case 4LL: // UnknownArg
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -11712,8 +11699,8 @@ static void mw_argzmparser_parse_printzmusagezmforzmoption (void) {
 	mp_primzmdup();
 	mw_argzmparser_types_ArgpOption_flagzmtype();
 	switch (get_top_data_tag()) {
-		case 0LL: // SHORT
-			mtp_argzmparser_types_ArgpOptionType_SHORT();
+		case 0LL: // Short
+			mtp_argzmparser_types_ArgpOptionType_Short();
 			mp_primzmdup();
 			mw_std_byte_Byte_iszmprintable();
 			push_fnptr(&mb_argzmparser_parse_printzmusagezmforzmoption_0);
@@ -11763,8 +11750,8 @@ static void mw_argzmparser_parse_checkzmshortzmflag (void) {
 	mp_primzmswap();
 	mw_argzmparser_types_ArgpOption_flagzmtype();
 	switch (get_top_data_tag()) {
-		case 0LL: // SHORT
-			mtp_argzmparser_types_ArgpOptionType_SHORT();
+		case 0LL: // Short
+			mtp_argzmparser_types_ArgpOptionType_Short();
 			push_i64(0LL);
 			{
 				VAL d4 = pop_value();
@@ -11848,7 +11835,7 @@ static void mw_argzmparser_parse_parsezmflagszmwhere_1 (void) {
 				break;
 			case 0LL: // None
 				(void)pop_u64();
-				push_u64(5LL); // UNKNOWN_ARG
+				push_u64(4LL); // UnknownArg
 				mtw_std_maybe_Maybe_1_Some();
 				break;
 			default:
@@ -11981,7 +11968,7 @@ static void mw_argzmparser_parse_dozmpositionalzmoption (void) {
 	mw_argzmparser_state_State_1_arguments();
 	mp_primzmswap();
 	mtw_std_maybe_Maybe_1_Some();
-	push_u64(2LL); // POSITIONAL
+	push_u64(2LL); // Positional
 	mw_argzmparser_types_zpArgumentParser_1_parser();
 	mw_std_maybe_Maybe_1_unwrap();
 	mp_primzmrun();
@@ -12017,7 +12004,7 @@ static void mw_argzmparser_parse_parsezmargs (void) {
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_arguments();
 	push_u64(0LL); // None
-	push_u64(3LL); // END
+	push_u64(3LL); // End
 	mw_argzmparser_types_zpArgumentParser_1_parser();
 	mw_std_maybe_Maybe_1_unwrap();
 	mp_primzmrun();
@@ -37158,8 +37145,8 @@ static void mw_mirth_main_parsezmpackagezmdef (void) {
 }
 static void mw_mirth_main_compilerzmparsezmargs (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // SHORT
-			mtp_argzmparser_types_ArgpOptionType_SHORT();
+		case 0LL: // Short
+			mtp_argzmparser_types_ArgpOptionType_Short();
 			{
 				VAL d4 = pop_value();
 				mp_primzmswap();
@@ -37196,14 +37183,14 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 					mp_primzmdrop();
 					mp_primzmswap();
 					mp_primzmdrop();
-					push_u64(5LL); // UNKNOWN_ARG
+					push_u64(4LL); // UnknownArg
 					mtw_std_maybe_Maybe_1_Some();
 					push_fnptr(&mb_mirth_main_compilerzmparsezmargs_6);
 					mw_argzmparser_types_zpArgumentParser_1_state_1();
 					break;
 			}
 			break;
-		case 2LL: // POSITIONAL
+		case 2LL: // Positional
 			(void)pop_u64();
 			mp_primzmswap();
 			mw_argzmparser_types_zpArgumentParser_1_state();
@@ -37219,14 +37206,14 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 					mp_primzmdrop();
 					push_value(d5);
 				}
-				push_u64(3LL); // TOO_MANY_ARGS
+				push_u64(2LL); // TooManyArgs
 				mtw_std_maybe_Maybe_1_Some();
 				push_fnptr(&mb_mirth_main_compilerzmparsezmargs_11);
 				mw_argzmparser_types_zpArgumentParser_1_state_1();
 			}
 			break;
-		case 1LL: // LONG_ONLY
-			mtp_argzmparser_types_ArgpOptionType_LONGzuONLY();
+		case 1LL: // LongOnly
+			mtp_argzmparser_types_ArgpOptionType_LongOnly();
 			mp_primzmdup();
 			{
 				static bool vready = false;
@@ -37291,13 +37278,13 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 			} else {
 				mp_primzmdrop();
 				mp_primzmdrop();
-				push_u64(5LL); // UNKNOWN_ARG
+				push_u64(4LL); // UnknownArg
 				mtw_std_maybe_Maybe_1_Some();
 				push_fnptr(&mb_mirth_main_compilerzmparsezmargs_14);
 				mw_argzmparser_types_zpArgumentParser_1_state_1();
 			}
 			break;
-		case 3LL: // END
+		case 3LL: // End
 			(void)pop_u64();
 			mw_argzmparser_types_zpArgumentParser_1_state();
 			mw_argzmparser_state_State_1_positionalzmindex();
@@ -37315,7 +37302,7 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 		default:
 			mp_primzmdrop();
 			mp_primzmdrop();
-			push_u64(5LL); // UNKNOWN_ARG
+			push_u64(4LL); // UnknownArg
 			mtw_std_maybe_Maybe_1_Some();
 			mw_argzmparser_types_zpArgumentParser_1_state();
 			mw_argzmparser_state_State_1_errorzn();
@@ -37455,7 +37442,7 @@ static void mb_mirth_main_main_0 (void) {
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(111LL); // B'o'
-	mtw_argzmparser_types_ArgpOptionType_SHORT();
+	mtw_argzmparser_types_ArgpOptionType_Short();
 	LPUSH(lbl_flagzmtype);
 	{
 		static bool vready = false;
@@ -37498,7 +37485,7 @@ static void mb_mirth_main_main_0 (void) {
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(99LL); // B'c'
-	mtw_argzmparser_types_ArgpOptionType_SHORT();
+	mtw_argzmparser_types_ArgpOptionType_Short();
 	LPUSH(lbl_flagzmtype);
 	push_u64(0LL); // None
 	LPUSH(lbl_argzmdoc);
@@ -37531,7 +37518,7 @@ static void mb_mirth_main_main_0 (void) {
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(101LL); // B'e'
-	mtw_argzmparser_types_ArgpOptionType_SHORT();
+	mtw_argzmparser_types_ArgpOptionType_Short();
 	LPUSH(lbl_flagzmtype);
 	{
 		static bool vready = false;
@@ -37574,7 +37561,7 @@ static void mb_mirth_main_main_0 (void) {
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(112LL); // B'p'
-	mtw_argzmparser_types_ArgpOptionType_SHORT();
+	mtw_argzmparser_types_ArgpOptionType_Short();
 	LPUSH(lbl_flagzmtype);
 	{
 		static bool vready = false;
@@ -37626,7 +37613,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_argzmparser_types_ArgpOptionType_LONGzuONLY();
+	mtw_argzmparser_types_ArgpOptionType_LongOnly();
 	LPUSH(lbl_flagzmtype);
 	push_u64(0LL); // None
 	LPUSH(lbl_argzmdoc);
@@ -38144,7 +38131,7 @@ static void mb_mirth_main_compilerzmparsezmargs_14 (void) {
 	mw_argzmparser_state_State_1_errorzn();
 }
 static void mb_mirth_main_compilerzmparsezmargs_15 (void) {
-	push_u64(4LL); // TOO_FEW_ARGS
+	push_u64(3LL); // TooFewArgs
 	mtw_std_maybe_Maybe_1_Some();
 	push_fnptr(&mb_mirth_main_compilerzmparsezmargs_16);
 	mw_argzmparser_types_zpArgumentParser_1_state_1();
@@ -38170,7 +38157,7 @@ static void mb_mirth_main_compilerzmparsezmargs_18 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_argzmparser_types_ArgumentParsingError_MISSINGzuARG();
+	mtw_argzmparser_types_ArgumentParsingError_MissingArg();
 	mtw_std_maybe_Maybe_1_Some();
 	push_fnptr(&mb_mirth_main_compilerzmparsezmargs_19);
 	mw_argzmparser_types_zpArgumentParser_1_state_1();
@@ -38209,8 +38196,8 @@ static void mb_argzmparser_parse_parsezmargs_0 (void) {
 	mp_primzmdup();
 	mw_argzmparser_types_ArgpOption_flagzmtype();
 	switch (get_top_data_tag()) {
-		case 0LL: // SHORT
-			mtp_argzmparser_types_ArgpOptionType_SHORT();
+		case 0LL: // Short
+			mtp_argzmparser_types_ArgpOptionType_Short();
 			mp_primzmdrop();
 			LPOP(lbl_doczmlength);
 			push_i64(2LL);
@@ -38308,7 +38295,7 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 							case 1LL: // Some
 								mtp_std_maybe_Maybe_1_Some();
 								mp_primzmdrop();
-								push_u64(1LL); // MISSING_ARGUMENT_VALUE
+								push_u64(0LL); // MissingArgValue
 								mtw_std_maybe_Maybe_1_Some();
 								break;
 							case 0LL: // None
@@ -38326,7 +38313,7 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 						break;
 					case 0LL: // None
 						(void)pop_u64();
-						push_u64(1LL); // MISSING_ARGUMENT_VALUE
+						push_u64(0LL); // MissingArgValue
 						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
@@ -38368,7 +38355,7 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 							case 0LL: // None
 								(void)pop_u64();
 								mp_primzmdrop();
-								push_u64(5LL); // UNKNOWN_ARG
+								push_u64(4LL); // UnknownArg
 								mtw_std_maybe_Maybe_1_Some();
 								break;
 							default:
@@ -38379,7 +38366,7 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 					case 0LL: // None
 						(void)pop_u64();
 						mp_primzmdrop();
-						push_u64(5LL); // UNKNOWN_ARG
+						push_u64(4LL); // UnknownArg
 						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
@@ -38415,7 +38402,7 @@ static void mb_argzmparser_parse_parsezmargs_18 (void) {
 	mw_argzmparser_state_State_1_errorzn();
 }
 static void mb_argzmparser_parse_parsezmargs_19 (void) {
-	push_u64(1LL); // MISSING_ARGUMENT_VALUE
+	push_u64(0LL); // MissingArgValue
 	mtw_std_maybe_Maybe_1_Some();
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_errorzn();

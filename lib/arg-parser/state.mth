@@ -7,44 +7,38 @@ import(std.list)
 import(arg-parser.parse)
 import(arg-parser.types)
 
-data(ArgvInfo,
-  ARGV_INFO ->
+data(ArgvInfo, ArgvInfo ->
     argv:List(Str)
-    program-name:Str
-)
+    program-name:Str)
 
-data(CurrentArg,
-  CURRENT_ARG ->
+data(CurrentArg, CurrentArg ->
     parsing?:Bool
     option:Maybe(ArgpOptionType)
     option-option:Maybe(ArgpOption))
 
-data(State(a),
-  STATE ->
+data(State(a), State ->
     arguments:a
     argv-info:ArgvInfo
     arg:CurrentArg
     positional-index:Int
     longest-arg-length:Int
-    error:Maybe(ArgumentParsingError)
-)
+    error:Maybe(ArgumentParsingError))
 
 def(State.init, a -- State(a),
     argv-to-str >argv
     0 unsafe(read-from-argv) >program-name
-  ARGV_INFO >argv-info
+    ArgvInfo >argv-info
 
     F >parsing?
     None >option
     None >option-option
-  CURRENT_ARG >arg
+    CurrentArg >arg
 
-  >arguments
-  0 >positional-index
-  0 >longest-arg-length
-  None >error
-  STATE
-)
+    >arguments
+    0 >positional-index
+    0 >longest-arg-length
+    None >error
+    State)
 
 def(State.argv, State(a) -- List(Str), argv-info ArgvInfo.argv)
 def(State.program-name, State(a) -- Str, argv-info program-name)
