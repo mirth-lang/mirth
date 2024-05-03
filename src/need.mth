@@ -3,7 +3,6 @@ module(mirth.need)
 import(std.prelude)
 import(std.list)
 import(std.maybe)
-import(std.stack)
 import(std.set)
 import(mirth.prim)
 import(mirth.arrow)
@@ -21,38 +20,37 @@ data(Need,
     NEED_TAGW  -> Tag,
     NEED_TAGP  -> Tag)
 
-def(Need.>Int, Need -- Int,
-    NEED_WORD  -> index 4 *,
-    NEED_BLOCK -> index 4 * 1 +,
-    NEED_TAGW  -> index 4 * 2 +,
-    NEED_TAGP  -> index 4 * 3 +)
+def(Need.>Nat, Need -- Nat,
+    NEED_WORD  -> index 4 * >Nat,
+    NEED_BLOCK -> index 4 * 1 + >Nat,
+    NEED_TAGW  -> index 4 * 2 + >Nat,
+    NEED_TAGP  -> index 4 * 3 + >Nat)
 
 #########
 # NEEDS #
 #########
 
-data(+Needs, +NEEDS -> Stack(Need) +Set(Need))
-def(-NEEDS, +Needs -- Stack(Need) +Set(Need), +NEEDS -> id)
-def(+Needs.~Stack(f), (*a Stack(Need) -- *b Stack(Need)) *a +Needs -- *b +Needs,
-    -NEEDS rdip(f) +NEEDS)
-def(+Needs.~Set(f), (*a +Set(Need) -- *b +Set(Need)) *a +Needs -- *b +Needs,
-    -NEEDS dip(f) +NEEDS)
+data(+Needs, +Needs ->
+    stack: List(Need)
+    +Set(Need))
 
-def(+Needs.new, -- +Needs, STACK_NIL +Set.new(Need.>Int) +NEEDS)
-def(+Needs.rdrop, +Needs --, -NEEDS rdrop drop)
+def(+Needs.set(f), (*a +Set(Need) -- *b +Set(Need)) *a +Needs -- *b +Needs,
+    /+Needs stack> dip(f) >stack +Needs)
 
-def(Need.needed?, Need +Needs -- Bool +Needs, ~Set(member?))
+def(+Needs.new, -- +Needs, L0 >stack +Set.new(Need.>Nat) +Needs)
+def(+Needs.rdrop, +Needs --, /+Needs rdrop stack> drop)
+
+def(Need.needed?, Need +Needs -- Bool +Needs, set:member?)
 def(Word.needed?, Word +Needs -- Bool +Needs, NEED_WORD needed?)
 def(Block.needed?, Block +Needs -- Bool +Needs, NEED_BLOCK needed?)
 def(Tag.word-needed?, Tag +Needs -- Bool +Needs, NEED_TAGW needed?)
 def(Tag.pat-needed?, Tag +Needs -- Bool +Needs, NEED_TAGP needed?)
 
 def(+Needs.need!, Need +Needs -- +Needs,
-    dup needed? else(
-        dup ~Set(insert!)
-        dup ~Stack(STACK_CONS)
-        expect!(dup needed?, "needed? fail")
-    ) drop)
+    dup needed? if(
+        drop,
+        dup set:insert! stack:cons
+    ))
 def(+Needs.need-word!, Word +Needs -- +Needs, NEED_WORD need!)
 def(+Needs.need-block!, Block +Needs -- +Needs, NEED_BLOCK need!)
 def(+Needs.need-tag-word!, Tag +Needs -- +Needs, NEED_TAGW need!)
@@ -61,7 +59,7 @@ def(+Needs.need-tag-pat!, Tag +Needs -- +Needs, NEED_TAGP need!)
 def(+Needs.determine-arrow-needs!, Arrow +Needs -- +Needs,
     run-arrow! determine-transitive-needs!)
 def(+Needs.determine-transitive-needs!, +Needs -- +Needs,
-    while-some(~Stack(uncons), run-need!))
+    while-some(stack:uncons, run-need!))
 
 def(+Needs.run-need!, Need +Needs -- +Needs,
     NEED_BLOCK -> run-block!,
@@ -119,6 +117,6 @@ def(+Needs.push-arg!, Arg +Needs -- +Needs,
     ARG_BLOCK -> push-block!)
 def(+Needs.push-block!, Block +Needs -- +Needs,
     dup to-run-var match(
-        SOME -> drop2,
-        NONE -> need-block!
+        Some -> drop2,
+        None -> need-block!
     ))

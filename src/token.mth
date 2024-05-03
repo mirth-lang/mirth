@@ -43,18 +43,18 @@ data(TokenValue,
 def(TokenValue.none?, TokenValue -- Bool, TOKEN_NONE -> T, _ -> drop F)
 def(TokenValue.comma?, TokenValue -- Bool, TOKEN_COMMA -> T, _ -> drop F)
 def(TokenValue.lparen-open?, TokenValue -- Bool, TOKEN_LPAREN_OPEN -> T, _ -> drop F)
-def(TokenValue.lparen?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> SOME, _ -> drop NONE)
-def(TokenValue.rparen?, TokenValue -- Maybe(Token), TOKEN_RPAREN -> SOME, _ -> drop NONE)
+def(TokenValue.lparen?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> Some, _ -> drop None)
+def(TokenValue.rparen?, TokenValue -- Maybe(Token), TOKEN_RPAREN -> Some, _ -> drop None)
 def(TokenValue.lsquare-open?, TokenValue -- Bool, TOKEN_LSQUARE_OPEN -> T, _ -> drop F)
-def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TOKEN_LSQUARE -> SOME, _ -> drop NONE)
-def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TOKEN_RSQUARE -> SOME, _ -> drop NONE)
+def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TOKEN_LSQUARE -> Some, _ -> drop None)
+def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TOKEN_RSQUARE -> Some, _ -> drop None)
 def(TokenValue.lcurly-open?, TokenValue -- Bool, TOKEN_LCURLY_OPEN -> T, _ -> drop F)
-def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TOKEN_LCURLY -> SOME, _ -> drop NONE)
-def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TOKEN_RCURLY -> SOME, _ -> drop NONE)
+def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TOKEN_LCURLY -> Some, _ -> drop None)
+def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TOKEN_RCURLY -> Some, _ -> drop None)
 def(TokenValue.lcolon-open?, TokenValue -- Bool, TOKEN_LCOLON_OPEN -> T, _ -> drop F)
-def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TOKEN_LCOLON -> SOME, _ -> drop NONE)
-def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TOKEN_RCOLON -> SOME, _ -> drop NONE)
-def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> SOME, TOKEN_LCOLON -> SOME, _ -> drop NONE)
+def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TOKEN_LCOLON -> Some, _ -> drop None)
+def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TOKEN_RCOLON -> Some, _ -> drop None)
+def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TOKEN_LPAREN -> Some, TOKEN_LCOLON -> Some, _ -> drop None)
 
 def(TokenValue.can-take-args?, TokenValue -- Bool,
     TOKEN_NAME -> drop T,
@@ -62,18 +62,18 @@ def(TokenValue.can-take-args?, TokenValue -- Bool,
     TOKEN_LABEL_LENS -> drop T,
     _ -> drop F)
 
-def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> SOME, _ -> drop NONE)
-def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> SOME, _ -> drop NONE)
-def(TokenValue.name?, TokenValue -- Maybe(Name), TOKEN_NAME -> SOME, _ -> drop NONE)
-def(TokenValue.dname?, TokenValue -- Maybe(DName), TOKEN_DNAME -> SOME, _ -> drop NONE)
+def(TokenValue.int?, TokenValue -- Maybe(Int), TOKEN_INT -> Some, _ -> drop None)
+def(TokenValue.str?, TokenValue -- Maybe(Str), TOKEN_STR -> Some, _ -> drop None)
+def(TokenValue.name?, TokenValue -- Maybe(Name), TOKEN_NAME -> Some, _ -> drop None)
+def(TokenValue.dname?, TokenValue -- Maybe(DName), TOKEN_DNAME -> Some, _ -> drop None)
 def(TokenValue.name-or-dname?, TokenValue -- Maybe(Either(Name,DName)),
-    TOKEN_NAME -> LEFT SOME,
-    TOKEN_DNAME -> RIGHT SOME,
-    _ -> drop NONE)
+    TOKEN_NAME -> Left Some,
+    TOKEN_DNAME -> Right Some,
+    _ -> drop None)
 def(TokenValue.last-name?, TokenValue -- Maybe(Name),
-    TOKEN_NAME -> SOME,
-    TOKEN_DNAME -> last-name SOME,
-    _ -> drop NONE)
+    TOKEN_NAME -> Some,
+    TOKEN_DNAME -> last-name Some,
+    _ -> drop None)
 def(TokenValue.arg-end?, TokenValue -- Bool,
     TOKEN_COMMA -> T,
     TOKEN_RPAREN -> drop T,

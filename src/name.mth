@@ -39,7 +39,7 @@ def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
     >Int 8 * >Offset HASH_BUF unsafe(offset @I64) >Int
-    dup 0= if(drop NONE, Name.from-index SOME))
+    dup 0= if(drop None, Name.from-index Some))
 def(hash-name!, Name Hash --,
     dip(Name.index >I64)
     >Int 8 * >Offset HASH_BUF unsafe(offset !I64))
@@ -54,8 +54,8 @@ def(Hash.next, Hash -- Hash, >Int 1+ >Hash)
 
 def(Hash.keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
-        NONE -> F,
-        SOME -> >Str over2 <>
+        None -> F,
+        Some -> >Str over2 <>
     ))
 
 def(Name.search, Str -- Maybe(Name),
@@ -67,13 +67,13 @@ def(Str.>Name, Str -- Name,
     dup hash
     while(keep-going?, next)
     dup hash-name@ match(
-        NONE ->
+        None ->
             Name.alloc!
             tuck swap hash-name!
             tuck ~Str !
             L0 over ~defs !
             dup delay(mangle-compute!) over ~mangled !,
-        SOME ->
+        Some ->
             dip(drop2)
     ))
 
@@ -138,32 +138,32 @@ def(Namespace.compare, Namespace Namespace -- Comparison,
     ))
 
 def(Namespace.qname, Namespace -- Maybe(QName),
-    NAMESPACE_ROOT -> NONE,
-    NAMESPACE_PACKAGE -> qname SOME,
-    NAMESPACE_MODULE -> qname SOME,
-    NAMESPACE_TYCON -> qname SOME,
-    NAMESPACE_WORD -> qname SOME)
+    NAMESPACE_ROOT -> None,
+    NAMESPACE_PACKAGE -> qname Some,
+    NAMESPACE_MODULE -> qname Some,
+    NAMESPACE_TYCON -> qname Some,
+    NAMESPACE_WORD -> qname Some)
 
 def(Namespace.package?, Namespace -- Maybe(Package),
-    NAMESPACE_ROOT -> NONE,
-    NAMESPACE_PACKAGE -> SOME,
-    NAMESPACE_MODULE -> package SOME,
+    NAMESPACE_ROOT -> None,
+    NAMESPACE_PACKAGE -> Some,
+    NAMESPACE_MODULE -> package Some,
     NAMESPACE_TYCON -> qname namespace package?,
-    NAMESPACE_WORD -> drop NONE)
+    NAMESPACE_WORD -> drop None)
 
 def(Namespace.module?, Namespace -- Maybe(Module),
-    NAMESPACE_ROOT -> NONE,
-    NAMESPACE_PACKAGE -> drop NONE,
-    NAMESPACE_MODULE -> SOME,
+    NAMESPACE_ROOT -> None,
+    NAMESPACE_PACKAGE -> drop None,
+    NAMESPACE_MODULE -> Some,
     NAMESPACE_TYCON -> qname namespace module?,
-    NAMESPACE_WORD -> drop NONE)
+    NAMESPACE_WORD -> drop None)
 
 def(Namespace.tycon?, Namespace -- Maybe(Tycon),
-    NAMESPACE_ROOT -> NONE,
-    NAMESPACE_PACKAGE -> drop NONE,
-    NAMESPACE_MODULE -> drop NONE,
-    NAMESPACE_TYCON -> SOME,
-    NAMESPACE_WORD -> drop NONE)
+    NAMESPACE_ROOT -> None,
+    NAMESPACE_PACKAGE -> drop None,
+    NAMESPACE_MODULE -> drop None,
+    NAMESPACE_TYCON -> Some,
+    NAMESPACE_WORD -> drop None)
 
 def(Namespace.prim, Namespace, Module.prim NAMESPACE_MODULE)
 
@@ -199,18 +199,18 @@ def(QName.==, QName QName -- Bool,
     arity> arity> == &&
     namespace> namespace> == &&)
 
-def(QName.<=, QName QName -- Bool, compare is-le)
-def(QName.>=, QName QName -- Bool, compare is-ge)
-def(QName.<, QName QName -- Bool, compare is-lt)
-def(QName.>, QName QName -- Bool, compare is-gt)
-def(QName.<>, QName QName -- Bool, compare is-ne)
+def(QName.<=, QName QName -- Bool, compare le?)
+def(QName.>=, QName QName -- Bool, compare ge?)
+def(QName.<, QName QName -- Bool,  compare lt?)
+def(QName.>, QName QName -- Bool,  compare gt?)
+def(QName.<>, QName QName -- Bool, compare ne?)
 def(QName.compare, QName QName -- Comparison,
     /MKQNAME /MKQNAME
     arity> arity>
     name> >Str name> >Str
     namespace> namespace>
-    compare dup is-eq if(
-        drop compare dup is-eq if(
+    compare dup eq? if(
+        drop compare dup eq? if(
             drop compare,
             dip:drop2
         ),

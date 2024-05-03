@@ -35,14 +35,14 @@ def(State.init, a -- State(a),
   ARGV_INFO >argv-info
 
     F >parsing?
-    NONE >option
-    NONE >option-option
+    None >option
+    None >option-option
   CURRENT_ARG >arg
 
   >arguments
   0 >positional-index
   0 >longest-arg-length
-  NONE >error
+  None >error
   STATE
 )
 

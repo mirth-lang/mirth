@@ -67,13 +67,13 @@ def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
     { Data }
     0 over ~arity !
     L0 ready over ~params !
-    NONE over ~head? !
+    None over ~head? !
     drop)
 
 def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     @
     dip(sip(len) TT)
-    sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
+    sip(CTX0 rotr .data TData T1 T-> ready2) sip(~ctx-type !)
     sip(~num-type-inputs !)
     sip(L0 swap ~label-inputs !)
     sip(0 >Nat swap ~num-resource-inputs !)
@@ -125,8 +125,8 @@ def(Data.is-transparent?, Data -- Bool,
         dup is-resource? if(
             F,
             dup tags /L1 match(
-                SOME -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
-                NONE -> F
+                Some -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
+                None -> F
             )
         )
     ) nip)
@@ -143,8 +143,8 @@ def(Data.is-value-type?, Data -- Bool,
 def(Data.full-type, Data -- Either(Type, Resource),
     dup sip:TData params for(TVar TApp)
     swap is-value-type? if(
-        LEFT,
-        RESOURCE RIGHT
+        Left,
+        RESOURCE Right
     ))
 
 #######

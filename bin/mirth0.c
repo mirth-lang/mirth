@@ -1364,6 +1364,8 @@ static VAL lbl_arguments = MKNIL_C;
 static VAL lbl_positionalzmindex = MKNIL_C;
 static VAL lbl_longestzmargzmlength = MKNIL_C;
 static VAL lbl_error = MKNIL_C;
+static VAL lbl_length = MKNIL_C;
+static VAL lbl_offset = MKNIL_C;
 static VAL lbl_numzmtests = MKNIL_C;
 static VAL lbl_numzmfailed = MKNIL_C;
 static VAL lbl_testzmname = MKNIL_C;
@@ -1417,14 +1419,15 @@ static VAL lbl_gamma = MKNIL_C;
 static VAL lbl_spword = MKNIL_C;
 static VAL lbl_spkey = MKNIL_C;
 static VAL lbl_spmap = MKNIL_C;
-static void mtw_std_either_Either_2_LEFT (void) {
+static VAL lbl_stack = MKNIL_C;
+static void mtw_std_either_Either_2_Left (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(0LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtp_std_either_Either_2_LEFT (void) {
+static void mtp_std_either_Either_2_Left (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1436,14 +1439,14 @@ static void mtp_std_either_Either_2_LEFT (void) {
 		free(tup);
 	}
 }
-static void mtw_std_either_Either_2_RIGHT (void) {
+static void mtw_std_either_Either_2_Right (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(1LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtp_std_either_Either_2_RIGHT (void) {
+static void mtp_std_either_Either_2_Right (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1455,7 +1458,7 @@ static void mtp_std_either_Either_2_RIGHT (void) {
 		free(tup);
 	}
 }
-static void mtw_std_buffer_zpBuffer_zpBUFFER (void) {
+static void mtw_std_buffer_zpBuffer_zpBuffer (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
@@ -1463,7 +1466,7 @@ static void mtw_std_buffer_zpBuffer_zpBUFFER (void) {
 	tup->cells[1] = pop_value();
 	push_resource(MKTUP(tup, 3));
 }
-static void mtp_std_buffer_zpBuffer_zpBUFFER (void) {
+static void mtp_std_buffer_zpBuffer_zpBuffer (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1556,14 +1559,14 @@ static void mtp_std_list_zpListzp_1_zpListzp (void) {
 		free(tup);
 	}
 }
-static void mtw_std_maybe_Maybe_1_SOME (void) {
+static void mtw_std_maybe_Maybe_1_Some (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(1LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtp_std_maybe_Maybe_1_SOME (void) {
+static void mtp_std_maybe_Maybe_1_Some (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1756,24 +1759,24 @@ static void mtp_argzmparser_types_ArgumentParsingError_MISSINGzuARG (void) {
 		free(tup);
 	}
 }
-static void mtw_std_input_zpInputOpen_zpINPUTOPEN (void) {
+static void mtw_std_input_zpInputOpenState_zpInputOpenState (void) {
 	TUP* tup = tup_new(5);
 	tup->size = 5;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[4] = pop_resource();
-	tup->cells[3] = pop_resource();
-	tup->cells[2] = pop_value();
-	tup->cells[1] = pop_value();
+	tup->cells[4] = lpop(&lbl_offset);
+	tup->cells[3] = lpop(&lbl_length);
+	tup->cells[2] = pop_resource();
+	tup->cells[1] = pop_resource();
 	push_resource(MKTUP(tup, 5));
 }
-static void mtp_std_input_zpInputOpen_zpINPUTOPEN (void) {
+static void mtp_std_input_zpInputOpenState_zpInputOpenState (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
-	push_value(tup->cells[2]);
-	push_resource(tup->cells[3]);
-	push_resource(tup->cells[4]);
+	push_resource(tup->cells[1]);
+	push_resource(tup->cells[2]);
+	lpush(&lbl_length, tup->cells[3]);
+	lpush(&lbl_offset, tup->cells[4]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -1784,14 +1787,14 @@ static void mtp_std_input_zpInputOpen_zpINPUTOPEN (void) {
 		free(tup);
 	}
 }
-static void mtw_std_input_zpInput_zpINPUTzuOPEN (void) {
+static void mtw_std_input_zpInput_zpInputOpen (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(0LL);
 	tup->cells[1] = pop_resource();
 	push_resource(MKTUP(tup, 2));
 }
-static void mtp_std_input_zpInput_zpINPUTzuOPEN (void) {
+static void mtp_std_input_zpInput_zpInputOpen (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1803,14 +1806,14 @@ static void mtp_std_input_zpInput_zpINPUTzuOPEN (void) {
 		free(tup);
 	}
 }
-static void mtw_std_input_zpInput_zpINPUTzuDONE (void) {
+static void mtw_std_input_zpInput_zpInputDone (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(1LL);
 	tup->cells[1] = pop_resource();
 	push_resource(MKTUP(tup, 2));
 }
-static void mtp_std_input_zpInput_zpINPUTzuDONE (void) {
+static void mtp_std_input_zpInput_zpInputDone (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1822,14 +1825,14 @@ static void mtp_std_input_zpInput_zpINPUTzuDONE (void) {
 		free(tup);
 	}
 }
-static void mtw_std_file_zpFile_zpFILE (void) {
+static void mtw_std_file_zpFile_zpFile (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(0LL);
 	tup->cells[1] = pop_value();
 	push_resource(MKTUP(tup, 2));
 }
-static void mtp_std_file_zpFile_zpFILE (void) {
+static void mtp_std_file_zpFile_zpFile (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1841,14 +1844,52 @@ static void mtp_std_file_zpFile_zpFILE (void) {
 		free(tup);
 	}
 }
-static void mtw_std_lazzy_Lazzy_1_LAZZYzuREADY (void) {
+static void mtw_std_file_zpFilez63U_zpFileOk (void) {
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[1] = pop_resource();
+	push_resource(MKTUP(tup, 2));
+}
+static void mtp_std_file_zpFilez63U_zpFileOk (void) {
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_resource(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
+}
+static void mtw_std_file_zpFilez63U_zpFileErr (void) {
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_resource(MKTUP(tup, 2));
+}
+static void mtp_std_file_zpFilez63U_zpFileErr (void) {
+	VAL val = pop_resource();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
+}
+static void mtw_std_lazzy_Lazzy_1_LazzyReady (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(0LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtp_std_lazzy_Lazzy_1_LAZZYzuREADY (void) {
+static void mtp_std_lazzy_Lazzy_1_LazzyReady (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -1860,7 +1901,7 @@ static void mtp_std_lazzy_Lazzy_1_LAZZYzuREADY (void) {
 		free(tup);
 	}
 }
-static void mtw_std_lazzy_Lazzy_1_LAZZYzuDELAY (void) {
+static void mtw_std_lazzy_Lazzy_1_LazzyDelay (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(1LL);
@@ -1868,7 +1909,7 @@ static void mtw_std_lazzy_Lazzy_1_LAZZYzuDELAY (void) {
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 3));
 }
-static void mtp_std_lazzy_Lazzy_1_LAZZYzuDELAY (void) {
+static void mtp_std_lazzy_Lazzy_1_LazzyDelay (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -3678,28 +3719,6 @@ static void mtp_mirth_name_DName_DNAME (void) {
 		free(tup);
 	}
 }
-static void mtw_std_stack_Stack_1_STACKzuCONS (void) {
-	TUP* tup = tup_new(3);
-	tup->size = 3;
-	tup->cells[0] = MKU64(1LL);
-	tup->cells[2] = pop_value();
-	tup->cells[1] = pop_value();
-	push_value(MKTUP(tup, 3));
-}
-static void mtp_std_stack_Stack_1_STACKzuCONS (void) {
-	VAL val = pop_value();
-	ASSERT1(IS_TUP(val),val);
-	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
-	push_value(tup->cells[2]);
-	if (tup->refs > 1) {
-		incref(tup->cells[1]);
-		incref(tup->cells[2]);
-		decref(val);
-	} else {
-		free(tup);
-	}
-}
 static void mtw_mirth_lexer_zpLexer_LEXER (void) {
 	TUP* tup = tup_new(7);
 	tup->size = 7;
@@ -4062,7 +4081,7 @@ static void mtp_mirth_elab_OpSig_OPSIGzuAPPLY (void) {
 		free(tup);
 	}
 }
-static void mtw_std_map_KVPair_2_KVPAIR (void) {
+static void mtw_std_map_KVPair_2_KVPair (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
@@ -4155,7 +4174,7 @@ static void mtp_mirth_specializzer_zpSPSynth_zpSPSYNTH (void) {
 		free(tup);
 	}
 }
-static void mtw_std_output_zpOutput_zpOUTPUT (void) {
+static void mtw_std_output_zpOutput_zpOutput (void) {
 	TUP* tup = tup_new(4);
 	tup->size = 4;
 	tup->cells[0] = MKU64(0LL);
@@ -4164,7 +4183,7 @@ static void mtw_std_output_zpOutput_zpOUTPUT (void) {
 	tup->cells[1] = pop_value();
 	push_resource(MKTUP(tup, 4));
 }
-static void mtp_std_output_zpOutput_zpOUTPUT (void) {
+static void mtp_std_output_zpOutput_zpOutput (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -4180,7 +4199,7 @@ static void mtp_std_output_zpOutput_zpOUTPUT (void) {
 		free(tup);
 	}
 }
-static void mtw_std_set_zpSet_1_zpSET (void) {
+static void mtw_std_set_zpSet_1_zpSet (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
@@ -4188,7 +4207,7 @@ static void mtw_std_set_zpSet_1_zpSET (void) {
 	tup->cells[1] = pop_value();
 	push_resource(MKTUP(tup, 3));
 }
-static void mtp_std_set_zpSet_1_zpSET (void) {
+static void mtp_std_set_zpSet_1_zpSet (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -4278,20 +4297,20 @@ static void mtp_mirth_need_Need_NEEDzuTAGP (void) {
 		free(tup);
 	}
 }
-static void mtw_mirth_need_zpNeeds_zpNEEDS (void) {
+static void mtw_mirth_need_zpNeeds_zpNeeds (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[2] = pop_resource();
-	tup->cells[1] = pop_value();
+	tup->cells[2] = lpop(&lbl_stack);
+	tup->cells[1] = pop_resource();
 	push_resource(MKTUP(tup, 3));
 }
-static void mtp_mirth_need_zpNeeds_zpNEEDS (void) {
+static void mtp_mirth_need_zpNeeds_zpNeeds (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
-	push_resource(tup->cells[2]);
+	push_resource(tup->cells[1]);
+	lpush(&lbl_stack, tup->cells[2]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -4622,6 +4641,8 @@ static void mw_std_str_zpStr_takezmslice (void);
 static void mw_std_str_zpStr_dropzmslice (void);
 static void mw_std_str_zpStr_splitzmbyte (void);
 static void mw_std_prim_Str_splitzmbyte (void);
+static void mw_std_str_zpStr_pushzmshowzmbytezn (void);
+static void mw_std_prim_Str_show (void);
 static void mw_std_list_List_1_zsL1 (void);
 static void mw_std_list_List_1_zsL2 (void);
 static void mw_std_list_List_1_emptyz63U (void);
@@ -4712,9 +4733,12 @@ static void mw_std_prim_Int_show (void);
 static void mw_std_prim_Int_zgU8z63U (void);
 static void mw_std_prim_Int_zgU8 (void);
 static void mw_std_prim_Int_zgI64 (void);
+static void mw_std_prelude_Nat_zsNatUnsafe (void);
 static void mw_std_prim_Int_zgNat (void);
+static void mw_std_prelude_Sizze_zsSizze (void);
 static void mw_std_prelude_Sizze_max (void);
 static void mw_std_prelude_Sizze_min (void);
+static void mw_std_prelude_Offset_zsOffset (void);
 static void mw_std_prelude_Offset_min (void);
 static void mw_std_prelude_pack1 (void);
 static void mw_std_prelude_pack2 (void);
@@ -4801,26 +4825,28 @@ static void mw_argzmparser_parse_readzmfromzmargv (void);
 static void mw_argzmparser_parse_incrementzmindex (void);
 static void mw_argzmparser_parse_index (void);
 static void mw_argzmparser_parse_argvzmtozmstr (void);
-static void mw_std_input_zmINPUTOPEN (void);
-static void mw_std_input_zpInputOpen_lengthz64U (void);
-static void mw_std_input_zpInputOpen_lengthzn (void);
-static void mw_std_input_zpInputOpen_offsetz64U (void);
-static void mw_std_input_zpInputOpen_offsetzn (void);
-static void mw_std_input_zpInputOpen_z126UFile_1 (void);
-static void mw_std_input_zpInputOpen_z126UBuffer_1 (void);
+static void mw_std_input_zpInputOpenState_zszpInputOpenState (void);
+static void mw_std_input_zpInputOpenState_offset (void);
+static void mw_std_input_zpInputOpenState_offsetzn (void);
+static void mw_std_input_zpInputOpenState_offset_1 (void);
+static void mw_std_input_zpInputOpenState_length (void);
+static void mw_std_input_zpInputOpenState_lengthzn (void);
+static void mw_std_input_zpInputOpenState_z126UFile_1 (void);
+static void mw_std_input_zpInputOpenState_z126UBuffer_1 (void);
 static void mw_std_input_INPUTzuBUFFERzuSIZZE (void);
 static void mw_std_input_zpInput_startzn (void);
 static void mw_std_input_zpInput_stopzn (void);
 static void mw_std_input_zpInput_endzn (void);
 static void mw_std_input_zpInput_donez63U (void);
-static void mw_std_input_zpInputOpen_fillzmbufferzn (void);
+static void mw_std_input_zpInputOpenState_fillzmbufferzn (void);
 static void mw_std_input_zpInput_peek (void);
 static void mw_std_input_zpInput_movezn (void);
-static void mw_std_input_zpInputOpen_preparezmforzmmorezn (void);
+static void mw_std_input_zpInputOpenState_preparezmforzmmorezn (void);
 static void mw_std_input_zpInput_readzmchunkzn (void);
 static void mw_std_input_zpInput_readzmfilezn (void);
-static void mw_std_file_zmFILE (void);
+static void mw_std_file_zpFile_zszpFile (void);
 static void mw_std_file_zpFile_filezmdescriptor (void);
+static void mw_std_file_zpFilez63U_unwrapzn (void);
 static void mw_std_prim_zpWorld_openzmfilezn (void);
 static void mw_std_prim_zpWorld_createzmfilezn (void);
 static void mw_std_file_OzuWRONLYzbOzuCREATzbOzuTRUNC (void);
@@ -5456,9 +5482,6 @@ static void mw_mirth_package_Package_newzmorzmsetzmpathzn (void);
 static void mw_mirth_package_Package_find (void);
 static void mw_mirth_package_Package_findzmorzmnewzn (void);
 static void mw_mirth_package_Package_zeze (void);
-static void mw_std_stack_Stack_1_head (void);
-static void mw_std_stack_Stack_1_cons (void);
-static void mw_std_stack_Stack_1_uncons (void);
 static void mw_mirth_lexer_zpLexer_zsLEXER (void);
 static void mw_mirth_lexer_zpLexer_lexerzmlastzmtoken (void);
 static void mw_mirth_lexer_zpLexer_lexerzmlastzmtokenzn (void);
@@ -5763,7 +5786,7 @@ static void mw_mirth_specializzer_zpSPSynth_synthzmvarzn (void);
 static void mw_mirth_specializzer_zpSPSynth_synthzmmatchzn (void);
 static void mw_mirth_specializzer_zpSPSynth_synthzmlambdazn (void);
 static void mw_std_output_OUTPUTzuBUFFERzuSIZZE (void);
-static void mw_std_output_zmOUTPUT (void);
+static void mw_std_output_zpOutput_zszpOutput (void);
 static void mw_std_output_zpOutput_startzn (void);
 static void mw_std_output_zpOutput_endzn (void);
 static void mw_std_output_zpOutput_offsetz64U (void);
@@ -5778,7 +5801,7 @@ static void mw_std_output_zpOutput_fullz63U (void);
 static void mw_std_output_zpOutput_put (void);
 static void mw_std_output_zpOutput_putzmbyte (void);
 static void mw_std_output_zpOutput_line (void);
-static void mw_std_set_zmSET (void);
+static void mw_std_set_zpSet_1_zszpSet (void);
 static void mw_std_set_zpSet_1_z126UBuffer_1 (void);
 static void mw_std_set_zpSet_1_index (void);
 static void mw_std_set_SETzuINITIALzuSIZZE (void);
@@ -5787,10 +5810,12 @@ static void mw_std_set_zpSet_1_rdrop (void);
 static void mw_std_set_zpSet_1_offsetzmmask (void);
 static void mw_std_set_zpSet_1_memberz63U (void);
 static void mw_std_set_zpSet_1_insertzn (void);
-static void mw_mirth_need_Need_zgInt (void);
-static void mw_mirth_need_zmNEEDS (void);
-static void mw_mirth_need_zpNeeds_z126UStack_1 (void);
-static void mw_mirth_need_zpNeeds_z126USet_1 (void);
+static void mw_mirth_need_Need_zgNat (void);
+static void mw_mirth_need_zpNeeds_zszpNeeds (void);
+static void mw_mirth_need_zpNeeds_stack (void);
+static void mw_mirth_need_zpNeeds_stackzn (void);
+static void mw_mirth_need_zpNeeds_stack_1 (void);
+static void mw_mirth_need_zpNeeds_set_1 (void);
 static void mw_mirth_need_zpNeeds_new (void);
 static void mw_mirth_need_zpNeeds_rdrop (void);
 static void mw_mirth_need_Need_neededz63U (void);
@@ -5944,6 +5969,8 @@ static void mb_argzmparser_types_ArgumentParsingError_show_0 (void);
 static void mb_std_terminal_Sgr_show_0 (void);
 static void mb_std_terminal_SGRColor_show_0 (void);
 static void mb_std_terminal_SGRColor_show_1 (void);
+static void mb_std_prim_Str_show_0 (void);
+static void mb_std_prim_Str_show_1 (void);
 static void mb_std_list_List_1_cat_0 (void);
 static void mb_mirth_specializzer_SPKey_zgStr_0 (void);
 static void mb_mirth_specializzer_SPKey_zgStr_2 (void);
@@ -6074,8 +6101,6 @@ static void mb_argzmparser_state_State_1_optionzmoptionzn_0 (void);
 static void mb_argzmparser_parse_parsezmflags_0 (void);
 static void mb_argzmparser_parse_parsezmflags_4 (void);
 static void mb_argzmparser_parse_parsezmflags_6 (void);
-static void mb_std_set_zpSet_1_index_2 (void);
-static void mb_std_set_zpSet_1_index_3 (void);
 static void mb_argzmparser_parse_argvzmtozmstr_0 (void);
 static void mb_std_prim_Str_writezn_0 (void);
 static void mb_std_posix_slicezmwritezn_2 (void);
@@ -6089,11 +6114,9 @@ static void mb_std_output_zpOutput_put_4 (void);
 static void mb_mirth_c99_zpC99_line_0 (void);
 static void mb_std_terminal_csi_0 (void);
 static void mb_std_prim_zpWorld_openzmfilezn_0 (void);
-static void mb_std_prim_zpWorld_openzmfilezn_1 (void);
-static void mb_std_prim_zpWorld_openzmfilezn_2 (void);
+static void mb_std_prim_zpWorld_openzmfilezn_3 (void);
 static void mb_std_prim_zpWorld_createzmfilezn_0 (void);
-static void mb_std_prim_zpWorld_createzmfilezn_1 (void);
-static void mb_std_prim_zpWorld_createzmfilezn_2 (void);
+static void mb_std_prim_zpWorld_createzmfilezn_3 (void);
 static void mb_std_file_zpFile_closezmfilezn_0 (void);
 static void mb_std_file_zpFile_closezmfilezn_1 (void);
 static void mb_std_file_zpFile_unsafezmwritezn_3 (void);
@@ -6104,11 +6127,12 @@ static void mb_std_file_zpFile_unsafezmreadzn_1 (void);
 static void mb_std_file_zpFile_unsafezmreadzn_2 (void);
 static void mb_std_input_zpInput_readzmfilezn_0 (void);
 static void mb_std_input_zpInput_readzmfilezn_1 (void);
-static void mb_std_input_zpInputOpen_z126UFile_1_0 (void);
-static void mb_std_input_zpInputOpen_z126UBuffer_1_0 (void);
-static void mb_std_input_zpInputOpen_fillzmbufferzn_0 (void);
-static void mb_std_input_zpInputOpen_fillzmbufferzn_1 (void);
+static void mb_std_input_zpInputOpenState_z126UFile_1_0 (void);
+static void mb_std_input_zpInputOpenState_z126UBuffer_1_0 (void);
+static void mb_std_input_zpInputOpenState_fillzmbufferzn_0 (void);
+static void mb_std_input_zpInputOpenState_fillzmbufferzn_1 (void);
 static void mb_std_input_zpInput_peek_0 (void);
+static void mb_std_input_zpInput_movezn_0 (void);
 static void mb_std_input_zpInput_readzmchunkzn_0 (void);
 static void mb_mirth_arrow_Block_qname_0 (void);
 static void mb_mirth_label_Label_newzn_0 (void);
@@ -6742,11 +6766,8 @@ static void mb_std_output_zpOutput_flushzn_0 (void);
 static void mb_std_output_zpOutput_flushzn_1 (void);
 static void mb_std_output_zpOutput_capacityzmtotal_0 (void);
 static void mb_std_set_zpSet_1_memberz63U_0 (void);
-static void mb_mirth_need_zpNeeds_needzn_0 (void);
-static void mb_mirth_need_zpNeeds_needzn_1 (void);
 static void mb_mirth_need_zpNeeds_needzn_2 (void);
 static void mb_mirth_need_zpNeeds_needzn_3 (void);
-static void mb_mirth_need_zpNeeds_needzn_4 (void);
 static void mb_std_set_zpSet_1_insertzn_0 (void);
 static void mb_mirth_need_zpNeeds_runzmarrowzn_0 (void);
 static void mb_mirth_need_zpNeeds_determinezmtransitivezmneedszn_0 (void);
@@ -7774,14 +7795,14 @@ static void mfld_mirth_data_Tag_z126Uvaluezmshow (void) {
 
 static void mw_std_either_Either_2_leftz63U (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // LEFT
-			mtp_std_either_Either_2_LEFT();
-			mtw_std_maybe_Maybe_1_SOME();
+		case 0LL: // Left
+			mtp_std_either_Either_2_Left();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
-		case 1LL: // RIGHT
-			mtp_std_either_Either_2_RIGHT();
+		case 1LL: // Right
+			mtp_std_either_Either_2_Right();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -7969,10 +7990,10 @@ static void mw_std_byte_Byte_tozmasciizmstr (void) {
 	mw_std_byte_Byte_inzmrange();
 	if (pop_u64()) {
 		mw_std_byte_Byte_tozmstrzmunsafe();
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 }
 static void mw_std_byte_Byte_iszmstringzmend (void) {
@@ -8424,8 +8445,8 @@ static void mw_std_byte_Byte_zzencode (void) {
 }
 static void mw_std_buffer_zmBUFFER (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +BUFFER
-			mtp_std_buffer_zpBuffer_zpBUFFER();
+		case 0LL: // +Buffer
+			mtp_std_buffer_zpBuffer_zpBuffer();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -8436,6 +8457,7 @@ static void mw_std_buffer_zpBuffer_new (void) {
 	mp_primzmdup();
 	mp_primzmdup();
 	push_resource(MKU64(0LL)); // +UNSAFE
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmptrzmalloc();
 	switch (get_top_resource_data_tag()) {
 		case 0LL: // +UNSAFE
@@ -8445,7 +8467,7 @@ static void mw_std_buffer_zpBuffer_new (void) {
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
-	mtw_std_buffer_zpBuffer_zpBUFFER();
+	mtw_std_buffer_zpBuffer_zpBuffer();
 	push_i64(0LL);
 	mp_primzmswap();
 	mw_std_buffer_zpBuffer_erasezmspanzn();
@@ -8465,6 +8487,7 @@ static void mw_std_buffer_zpBuffer_resizzezn (void) {
 	}
 	mp_primzmswap();
 	push_resource(MKU64(0LL)); // +UNSAFE
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmptrzmrealloc();
 	switch (get_top_resource_data_tag()) {
 		case 0LL: // +UNSAFE
@@ -8474,7 +8497,7 @@ static void mw_std_buffer_zpBuffer_resizzezn (void) {
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
-	mtw_std_buffer_zpBuffer_zpBUFFER();
+	mtw_std_buffer_zpBuffer_zpBuffer();
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -8489,8 +8512,10 @@ static void mw_std_buffer_zpBuffer_resizzezn (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -8506,8 +8531,10 @@ static void mw_std_buffer_zpBuffer_resizzezn (void) {
 		}
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_value(d3);
 		}
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
 			push_value(d3);
@@ -8516,6 +8543,7 @@ static void mw_std_buffer_zpBuffer_resizzezn (void) {
 		mw_std_prim_Int_zgNat();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_value(d3);
 		}
 		mw_std_buffer_zpBuffer_erasezmspanzn();
@@ -8529,8 +8557,10 @@ static void mw_std_buffer_zpBuffer_expandzn (void) {
 	mw_std_buffer_zpBuffer_bufferzmsizze();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -8539,6 +8569,7 @@ static void mw_std_buffer_zpBuffer_expandzn (void) {
 	mp_primzmintzmlt();
 	if (pop_u64()) {
 		mw_std_buffer_zpBuffer_bufferzmsizze();
+		mw_std_prelude_Sizze_zsSizze();
 		push_i64(2LL);
 		mp_primzmintzmmul();
 		mw_std_prelude_Sizze_max();
@@ -8580,6 +8611,7 @@ static void mw_std_buffer_zpBuffer_erasezmspanzn (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -8595,6 +8627,7 @@ static void mw_std_buffer_zpBuffer_erasezmspanzn (void) {
 	}
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
 			push_value(d3);
@@ -8621,7 +8654,7 @@ static void mw_std_buffer_zpBuffer_bufferzmsizze (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
-		mtw_std_buffer_zpBuffer_zpBUFFER();
+		mtw_std_buffer_zpBuffer_zpBuffer();
 		push_value(d2);
 	}
 }
@@ -8630,7 +8663,7 @@ static void mw_std_buffer_zpBuffer_bufferzmbase (void) {
 	mp_primzmdup();
 	{
 		VAL d2 = pop_value();
-		mtw_std_buffer_zpBuffer_zpBUFFER();
+		mtw_std_buffer_zpBuffer_zpBuffer();
 		push_value(d2);
 	}
 }
@@ -8641,6 +8674,7 @@ static void mw_std_buffer_zpBuffer_checkzmspanzn (void) {
 		push_value(d2);
 	}
 	mp_primzmswap();
+	mw_std_prelude_Offset_zsOffset();
 	push_i64(0LL);
 	mp_primzmintzmlt();
 	push_fnptr(&mb_std_buffer_zpBuffer_checkzmspanzn_0);
@@ -8666,8 +8700,10 @@ static void mw_std_buffer_zpBuffer_checkzmspanzmalignzn (void) {
 	mw_std_buffer_zpBuffer_checkzmspanzn();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmintzmmod();
 	push_i64(0LL);
 	mp_primzmintzmeq();
@@ -8683,6 +8719,7 @@ static void mw_std_buffer_zpBuffer_z64UU8 (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -8705,6 +8742,7 @@ static void mw_std_buffer_zpBuffer_znU8 (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -8747,6 +8785,7 @@ static void mw_std_buffer_zpBuffer_znStr (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -8782,11 +8821,13 @@ static void mw_std_buffer_zpBuffer_z64UStr (void) {
 		VAL d2 = pop_value();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
 		mp_primzmptrzmadd();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmstrzmcopy();
 	switch (get_top_resource_data_tag()) {
 		case 0LL: // +UNSAFE
@@ -8816,6 +8857,7 @@ static void mw_std_str_cstrzmnumzmbytes (void) {
 		if (! pop_u64()) break;
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_i64(1LL);
 			mp_primzmintzmadd();
 			push_i64(1LL);
@@ -8823,6 +8865,7 @@ static void mw_std_str_cstrzmnumzmbytes (void) {
 		}
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
 		mp_primzmptrzmadd();
@@ -8903,11 +8946,14 @@ static void mw_std_str_zpStr_numzmbytesz63U (void) {
 }
 static void mw_std_str_zpStr_lastzmbyte (void) {
 	mw_std_str_zpStr_numzmbytesz63U();
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmdup();
+	mw_std_prelude_Offset_zsOffset();
 	push_i64(0LL);
 	mp_primzmswap();
 	mp_primzmintzmlt();
 	if (pop_u64()) {
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmsub();
 		mw_std_str_zpStr_bytez64U();
@@ -8996,8 +9042,10 @@ static void mw_std_prim_Str_dropzmbytes (void) {
 	mw_std_prim_Int_zgNat();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -9037,6 +9085,7 @@ static void mw_std_prim_Str_fromzmbyteszmunsafe (void) {
 	mw_std_buffer_zpBuffer_bufferzmbase();
 	mw_std_buffer_zpBuffer_bufferzmsizze();
 	push_resource(MKU64(0LL)); // +UNSAFE
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmstrzmcopy();
 	switch (get_top_resource_data_tag()) {
 		case 0LL: // +UNSAFE
@@ -9069,6 +9118,7 @@ static void mw_std_str_clampzmslicezmoffsetzmsizze (void) {
 			mp_primzmswap();
 			push_value(d3);
 		}
+		mw_std_prelude_Sizze_zsSizze();
 		mw_std_prelude_Offset_min();
 		mp_primzmdup();
 		{
@@ -9076,11 +9126,14 @@ static void mw_std_str_clampzmslicezmoffsetzmsizze (void) {
 			mp_primzmswap();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		mw_std_prim_Int_zgNat();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_value(d3);
 		}
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
 			push_value(d3);
@@ -9118,8 +9171,10 @@ static void mw_std_str_zpStr_offsetzmslice (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
+	mw_std_prelude_Offset_zsOffset();
 	mp_primzmintzmlt();
 	if (pop_u64()) {
 		{
@@ -9130,9 +9185,12 @@ static void mw_std_str_zpStr_offsetzmslice (void) {
 		mp_primzmswap();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		mp_primzmintzmsub();
+		mw_std_prelude_Offset_zsOffset();
 		mw_std_prim_Int_zgNat();
 		mw_std_str_zpStr_slice();
 	} else {
@@ -9179,6 +9237,112 @@ static void mw_std_prim_Str_splitzmbyte (void) {
 	mp_primzmdrop();
 	mw_std_list_Listzp_1_zsListzpUnsafe();
 }
+static void mw_std_str_zpStr_pushzmshowzmbytezn (void) {
+	switch (get_top_data_tag()) {
+		case 34LL: // BQUOTE
+			(void)pop_u64();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\\\"", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			mw_std_str_zpStr_pushzmstrzn();
+			break;
+		case 92LL: // B'\'
+			(void)pop_u64();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\\\\", 2);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			mw_std_str_zpStr_pushzmstrzn();
+			break;
+		case 10LL: // BLF
+			(void)pop_u64();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\n", 1);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			mw_std_str_zpStr_pushzmstrzn();
+			break;
+		case 13LL: // BCR
+			(void)pop_u64();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\r", 1);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			mw_std_str_zpStr_pushzmstrzn();
+			break;
+		case 9LL: // BHT
+			(void)pop_u64();
+			{
+				static bool vready = false;
+				static VAL v;
+				if (! vready) {
+					v = mkstr("\t", 1);
+					vready = true;
+				}
+				push_value(v);
+				incref(v);
+			}
+			mw_std_str_zpStr_pushzmstrzn();
+			break;
+		default:
+			mp_primzmdup();
+			push_u64(32LL); // BSPACE
+			push_u64(126LL); // B'~'
+			mw_std_byte_Byte_inzmrange();
+			if (pop_u64()) {
+				mw_std_str_zpStr_pushzmbytezmasciizn();
+			} else {
+				{
+					static bool vready = false;
+					static VAL v;
+					if (! vready) {
+						v = mkstr("\\x", 2);
+						vready = true;
+					}
+					push_value(v);
+					incref(v);
+				}
+				mw_std_str_zpStr_pushzmstrzn();
+				mw_std_byte_Byte_tozmhexdigits();
+				{
+					VAL d5 = pop_value();
+					mw_std_str_zpStr_pushzmbytezmasciizn();
+					push_value(d5);
+				}
+				mw_std_str_zpStr_pushzmbytezmasciizn();
+			}
+			break;
+	}
+}
+static void mw_std_prim_Str_show (void) {
+	push_fnptr(&mb_std_prim_Str_show_0);
+	mw_std_str_Str_1();
+}
 static void mw_std_list_List_1_zsL1 (void) {
 	switch (get_top_data_tag()) {
 		case 1LL: // Cons
@@ -9186,18 +9350,18 @@ static void mw_std_list_List_1_zsL1 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // Nil
 					(void)pop_u64();
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					break;
 				default:
 					mp_primzmdrop();
 					mp_primzmdrop();
-					push_u64(0LL); // NONE
+					push_u64(0LL); // None
 					break;
 			}
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -9212,7 +9376,7 @@ static void mw_std_list_List_1_zsL2 (void) {
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -9234,10 +9398,10 @@ static void mw_std_list_List_1_zgListzp (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Nil
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		default:
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 	}
 }
@@ -9254,14 +9418,14 @@ static void mw_std_list_List_1_uncons (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Nil
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			push_u64(0LL); // Nil
 			break;
 		case 1LL: // Cons
 			mtp_std_list_List_1_Cons();
 			{
 				VAL d4 = pop_value();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_value(d4);
 			}
 			break;
@@ -9583,7 +9747,7 @@ static void mw_std_list_List_1_filterzmsome_1 (void) {
 static void mw_std_list_List_1_findzmsome_1 (void) {
 	{
 		VAL var_f = pop_value();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 		mp_primzmswap();
 		push_fnptr(&mb_std_list_List_1_findzmsome_1_0);
 		push_fnptr(&mb_std_list_List_1_findzmsome_1_1);
@@ -9980,12 +10144,12 @@ static void mw_std_list_List_1_partitionzmeither_1 (void) {
 }
 static void mw_std_maybe_Maybe_1_zgBool (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // F
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdrop();
 			push_u64(1LL); // T
 			break;
@@ -9996,12 +10160,12 @@ static void mw_std_maybe_Maybe_1_zgBool (void) {
 }
 static void mw_std_maybe_Maybe_1_zgList (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // Nil
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			push_u64(0LL); // Nil
 			mtw_std_list_List_1_Cons();
 			break;
@@ -10014,13 +10178,13 @@ static void mw_std_maybe_Maybe_1_zeze_1 (void) {
 	{
 		VAL var_eq = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				mw_std_maybe_Maybe_1_zgBool();
 				mw_std_prim_Bool_not();
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmswap();
 				push_fnptr(&mb_std_maybe_Maybe_1_zeze_1_0);
 				incref(var_eq);
@@ -10041,13 +10205,13 @@ static void mw_std_maybe_Maybe_1_if_2 (void) {
 		VAL var_g = pop_value();
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmdrop();
 				incref(var_f);
 				run_value(var_f);
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				incref(var_g);
 				run_value(var_g);
@@ -10065,12 +10229,12 @@ static void mw_std_maybe_Maybe_1_ifzmsome_2 (void) {
 		VAL var_g = pop_value();
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				incref(var_f);
 				run_value(var_f);
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				incref(var_g);
 				run_value(var_g);
@@ -10087,13 +10251,13 @@ static void mw_std_maybe_Maybe_1_then_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmdrop();
 				incref(var_f);
 				run_value(var_f);
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				break;
 			default:
@@ -10107,12 +10271,12 @@ static void mw_std_maybe_Maybe_1_thenzmsome_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				incref(var_f);
 				run_value(var_f);
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				break;
 			default:
@@ -10126,11 +10290,11 @@ static void mw_std_maybe_Maybe_1_else_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmdrop();
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				incref(var_f);
 				run_value(var_f);
@@ -10146,12 +10310,12 @@ static void mw_std_maybe_Maybe_1_and_1 (void) {
 	{
 		VAL var_p = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				push_u64(0LL); // F
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmdrop();
 				incref(var_p);
 				run_value(var_p);
@@ -10167,12 +10331,12 @@ static void mw_std_maybe_Maybe_1_andzmsome_1 (void) {
 	{
 		VAL var_p = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				push_u64(0LL); // F
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				incref(var_p);
 				run_value(var_p);
 				break;
@@ -10187,19 +10351,19 @@ static void mw_std_maybe_Maybe_1_guard_1 (void) {
 	{
 		VAL var_p = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				incref(var_p);
 				run_value(var_p);
 				if (pop_u64()) {
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 				} else {
 					mp_primzmdrop();
-					push_u64(0LL); // NONE
+					push_u64(0LL); // None
 				}
 				break;
 			default:
@@ -10211,13 +10375,13 @@ static void mw_std_maybe_Maybe_1_guard_1 (void) {
 }
 static void mw_std_maybe_Maybe_1_unwrap (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				static bool vready = false;
 				static VAL v;
 				if (! vready) {
-					v = mkstr("tried to unwrap NONE", 20);
+					v = mkstr("tried to unwrap None", 20);
 					vready = true;
 				}
 				push_value(v);
@@ -10225,8 +10389,8 @@ static void mw_std_maybe_Maybe_1_unwrap (void) {
 			}
 			mw_std_prelude_paniczn();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -10237,13 +10401,13 @@ static void mw_std_maybe_Maybe_1_unwrapzmor_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				incref(var_f);
 				run_value(var_f);
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -10256,15 +10420,15 @@ static void mw_std_maybe_Maybe_1_map_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				incref(var_f);
 				run_value(var_f);
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -10277,12 +10441,12 @@ static void mw_std_maybe_Maybe_1_bind_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				incref(var_f);
 				run_value(var_f);
 				break;
@@ -10297,11 +10461,11 @@ static void mw_std_maybe_Maybe_1_for_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				incref(var_f);
 				run_value(var_f);
 				break;
@@ -10337,26 +10501,26 @@ static void mw_std_maybe_Maybe_1_map2_1 (void) {
 	{
 		VAL var_f = pop_value();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				mp_primzmdrop();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmswap();
 				switch (get_top_data_tag()) {
-					case 0LL: // NONE
+					case 0LL: // None
 						(void)pop_u64();
 						mp_primzmdrop();
-						push_u64(0LL); // NONE
+						push_u64(0LL); // None
 						break;
-					case 1LL: // SOME
-						mtp_std_maybe_Maybe_1_SOME();
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
 						mp_primzmswap();
 						incref(var_f);
 						run_value(var_f);
-						mtw_std_maybe_Maybe_1_SOME();
+						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -10544,10 +10708,10 @@ static void mw_std_prim_Int_zgU8z63U (void) {
 	push_i64(255LL);
 	mw_std_prim_Int_inzmrange();
 	if (pop_u64()) {
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 }
 static void mw_std_prim_Int_zgU8 (void) {
@@ -10557,10 +10721,14 @@ static void mw_std_prim_Int_zgU8 (void) {
 }
 static void mw_std_prim_Int_zgI64 (void) {
 }
+static void mw_std_prelude_Nat_zsNatUnsafe (void) {
+}
 static void mw_std_prim_Int_zgNat (void) {
 	push_fnptr(&mb_std_prim_Int_zgNat_0);
 	push_fnptr(&mb_std_prim_Int_zgNat_1);
 	mw_std_prelude_expectzn_2();
+}
+static void mw_std_prelude_Sizze_zsSizze (void) {
 }
 static void mw_std_prelude_Sizze_max (void) {
 	{
@@ -10577,8 +10745,10 @@ static void mw_std_prelude_Sizze_max (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -10610,8 +10780,10 @@ static void mw_std_prelude_Sizze_min (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -10629,6 +10801,8 @@ static void mw_std_prelude_Sizze_min (void) {
 		}
 	}
 }
+static void mw_std_prelude_Offset_zsOffset (void) {
+}
 static void mw_std_prelude_Offset_min (void) {
 	{
 		VAL d2 = pop_value();
@@ -10644,8 +10818,10 @@ static void mw_std_prelude_Offset_min (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
+	mw_std_prelude_Offset_zsOffset();
 	mp_primzmswap();
 	mp_primzmintzmlt();
 	mw_std_prim_Bool_not();
@@ -10747,10 +10923,10 @@ static void mw_std_prelude_z64Uz63U (void) {
 	mp_primzmmutzmiszmset();
 	if (pop_u64()) {
 		mp_primzmmutzmget();
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 }
 static void mw_std_prelude_paniczn (void) {
@@ -10801,6 +10977,7 @@ static void mw_std_path_Path_joinzmwith (void) {
 	mp_primzmswap();
 	mp_primzmstrzmnumzmbytes();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	push_i64(0LL);
 	mp_primzmintzmeq();
 	if (pop_u64()) {
@@ -10870,6 +11047,7 @@ static void mw_std_posix_slicezmwritezn (void) {
 		}
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmdup();
 	{
 		VAL d2 = pop_value();
@@ -11254,9 +11432,9 @@ static void mw_argzmparser_state_State_1_init (void) {
 	LPUSH(lbl_argvzminfo);
 	push_u64(0LL); // F
 	LPUSH(lbl_parsingz63U);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_option);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_optionzmoption);
 	mtw_argzmparser_state_CurrentArg_CURRENTzuARG();
 	LPUSH(lbl_arg);
@@ -11265,7 +11443,7 @@ static void mw_argzmparser_state_State_1_init (void) {
 	LPUSH(lbl_positionalzmindex);
 	push_i64(0LL);
 	LPUSH(lbl_longestzmargzmlength);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_error);
 	mtw_argzmparser_state_State_1_STATE();
 }
@@ -11676,41 +11854,41 @@ static void mw_argzmparser_parse_parsezmflagszmwhere_1 (void) {
 		mp_primzmswap();
 		mp_primzmdrop();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmdup();
 				mw_argzmparser_types_ArgpOption_argzmdoc();
 				switch (get_top_data_tag()) {
-					case 1LL: // SOME
-						mtp_std_maybe_Maybe_1_SOME();
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
 						push_u64(1LL); // T
 						mw_argzmparser_types_zpArgumentParser_1_state();
 						mw_argzmparser_state_State_1_parsingz63Uzn();
 						mw_argzmparser_types_zpArgumentParser_1_statezn();
 						mp_primzmdrop();
-						mtw_std_maybe_Maybe_1_SOME();
+						mtw_std_maybe_Maybe_1_Some();
 						mw_argzmparser_types_zpArgumentParser_1_state();
 						mw_argzmparser_state_State_1_optionzmoptionzn();
 						mw_argzmparser_types_zpArgumentParser_1_statezn();
 						break;
-					case 0LL: // NONE
+					case 0LL: // None
 						(void)pop_u64();
 						mw_argzmparser_types_ArgpOption_flagzmtype();
 						mw_argzmparser_types_zpArgumentParser_1_state();
 						mw_argzmparser_state_State_1_arguments();
 						mp_primzmswap();
-						push_u64(0LL); // NONE
+						push_u64(0LL); // None
 						mp_primzmswap();
 						mw_argzmparser_types_zpArgumentParser_1_parser();
 						switch (get_top_data_tag()) {
-							case 1LL: // SOME
-								mtp_std_maybe_Maybe_1_SOME();
+							case 1LL: // Some
+								mtp_std_maybe_Maybe_1_Some();
 								mp_primzmrun();
 								mw_argzmparser_types_zpArgumentParser_1_state();
 								mw_argzmparser_state_State_1_argumentszn();
 								mw_argzmparser_types_zpArgumentParser_1_statezn();
 								break;
-							case 0LL: // NONE
+							case 0LL: // None
 								(void)pop_u64();
 								mp_primzmdrop();
 								mp_primzmdrop();
@@ -11725,12 +11903,12 @@ static void mw_argzmparser_parse_parsezmflagszmwhere_1 (void) {
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 						mp_primzmpanic();
 				}
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				push_u64(5LL); // UNKNOWN_ARG
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				break;
 			default:
 				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -11748,13 +11926,54 @@ static void mw_argzmparser_parse_checkzmlongzmflag (void) {
 	mp_primzmswap();
 	mw_argzmparser_types_ArgpOption_name();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmstrzmcmp();
 			push_i64(0LL);
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
 			mp_primzmintzmeq();
+			if (pop_u64()) {
+				mp_primzmdrop();
+				mp_primzmdrop();
+				push_u64(1LL); // EQ
+			} else {
+				mp_primzmintzmlt();
+				if (pop_u64()) {
+					push_u64(0LL); // LT
+				} else {
+					push_u64(2LL); // GT
+				}
+			}
+			switch (get_top_data_tag()) {
+				case 0LL: // LT
+					(void)pop_u64();
+					push_u64(0LL); // F
+					break;
+				case 1LL: // EQ
+					(void)pop_u64();
+					push_u64(1LL); // T
+					break;
+				case 2LL: // GT
+					(void)pop_u64();
+					push_u64(0LL); // F
+					break;
+				default:
+					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					mp_primzmpanic();
+			}
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mp_primzmdrop();
 			push_u64(0LL); // F
@@ -11772,8 +11991,10 @@ static void mw_argzmparser_parse_parsezmflags (void) {
 	mw_std_prim_Int_zgNat();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -11832,7 +12053,7 @@ static void mw_argzmparser_parse_dozmpositionalzmoption (void) {
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_arguments();
 	mp_primzmswap();
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	push_u64(2LL); // POSITIONAL
 	mw_argzmparser_types_zpArgumentParser_1_parser();
 	mw_std_maybe_Maybe_1_unwrap();
@@ -11840,7 +12061,7 @@ static void mw_argzmparser_parse_dozmpositionalzmoption (void) {
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_argumentszn();
 	mw_argzmparser_types_zpArgumentParser_1_statezn();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_positionalzmindex();
 	push_i64(1LL);
@@ -11868,7 +12089,7 @@ static void mw_argzmparser_parse_parsezmargs (void) {
 	mw_std_prim_Bool_then_1();
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_arguments();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	push_u64(3LL); // END
 	mw_argzmparser_types_zpArgumentParser_1_parser();
 	mw_std_maybe_Maybe_1_unwrap();
@@ -11880,16 +12101,16 @@ static void mw_argzmparser_parse_parsezmargs (void) {
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_error();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
-			mtw_std_either_Either_2_LEFT();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			mtw_std_either_Either_2_Left();
 			mp_primzmswap();
 			mp_primzmdrop();
 			mw_argzmparser_parse_printzmusage();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
-			mtw_std_either_Either_2_RIGHT();
+			mtw_std_either_Either_2_Right();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -11900,17 +12121,21 @@ static void mw_argzmparser_parse_parsezmargs (void) {
 static void mw_argzmparser_parse_readzmfromzmargv (void) {
 	mp_primzmptrzmsizze();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmintzmmul();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmsyszmargv();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
 	mp_primzmptrzmget();
 	mp_primzmdup();
 	mw_std_str_cstrzmnumzmbytes();
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmstrzmcopy();
 }
 static void mw_argzmparser_parse_incrementzmindex (void) {
@@ -11928,90 +12153,69 @@ static void mw_argzmparser_parse_argvzmtozmstr (void) {
 	push_fnptr(&mb_argzmparser_parse_argvzmtozmstr_0);
 	mw_std_list_LIST_1();
 }
-static void mw_std_input_zmINPUTOPEN (void) {
+static void mw_std_input_zpInputOpenState_zszpInputOpenState (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +INPUTOPEN
-			mtp_std_input_zpInputOpen_zpINPUTOPEN();
+		case 0LL: // +InputOpenState
+			mtp_std_input_zpInputOpenState_zpInputOpenState();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_std_input_zpInputOpen_lengthz64U (void) {
-	mw_std_input_zmINPUTOPEN();
-	{
-		VAL d2 = pop_value();
-		mp_primzmdup();
-		push_value(d2);
-	}
-	mp_primzmswap();
-	{
-		VAL d2 = pop_value();
-		mtw_std_input_zpInputOpen_zpINPUTOPEN();
-		push_value(d2);
-	}
+static void mw_std_input_zpInputOpenState_offset (void) {
+	VAL v = top_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	VAL u = VTUP(v)->cells[4];
+	incref(u);
+	push_value(u);
 }
-static void mw_std_input_zpInputOpen_lengthzn (void) {
-	{
-		VAL d2 = pop_value();
-		mw_std_input_zmINPUTOPEN();
-		mp_primzmswap();
-		mp_primzmdrop();
-		push_value(d2);
-	}
-	mp_primzmswap();
-	mtw_std_input_zpInputOpen_zpINPUTOPEN();
+static void mw_std_input_zpInputOpenState_offsetzn (void) {
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	VAL* p = &VTUP(v)->cells[4];
+	VAL t = *p; *p = u; decref(t);
 }
-static void mw_std_input_zpInputOpen_offsetz64U (void) {
-	mw_std_input_zmINPUTOPEN();
-	mp_primzmdup();
-	{
-		VAL d2 = pop_value();
-		mtw_std_input_zpInputOpen_zpINPUTOPEN();
-		push_value(d2);
-	}
-}
-static void mw_std_input_zpInputOpen_offsetzn (void) {
-	{
-		VAL d2 = pop_value();
-		mw_std_input_zmINPUTOPEN();
-		mp_primzmdrop();
-		push_value(d2);
-	}
-	mtw_std_input_zpInputOpen_zpINPUTOPEN();
-}
-static void mw_std_input_zpInputOpen_z126UFile_1 (void) {
+static void mw_std_input_zpInputOpenState_offset_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_std_input_zmINPUTOPEN();
-		push_fnptr(&mb_std_input_zpInputOpen_z126UFile_1_0);
-		incref(var_f);
-		push_value(var_f);
-		mp_primzmpackzmcons();
+		mw_std_input_zpInputOpenState_offset();
 		{
-			VAL var_f = pop_value();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					incref(var_f);
-					run_value(var_f);
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			decref(var_f);
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
 		}
-		mtw_std_input_zpInputOpen_zpINPUTOPEN();
+		mw_std_input_zpInputOpenState_offsetzn();
 		decref(var_f);
 	}
 }
-static void mw_std_input_zpInputOpen_z126UBuffer_1 (void) {
+static void mw_std_input_zpInputOpenState_length (void) {
+	VAL v = top_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	VAL u = VTUP(v)->cells[3];
+	incref(u);
+	push_value(u);
+}
+static void mw_std_input_zpInputOpenState_lengthzn (void) {
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	VAL* p = &VTUP(v)->cells[3];
+	VAL t = *p; *p = u; decref(t);
+}
+static void mw_std_input_zpInputOpenState_z126UFile_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_std_input_zmINPUTOPEN();
-		push_fnptr(&mb_std_input_zpInputOpen_z126UBuffer_1_0);
+		mw_std_input_zpInputOpenState_zszpInputOpenState();
+		LPOP(lbl_length);
+		LPOP(lbl_offset);
+		push_fnptr(&mb_std_input_zpInputOpenState_z126UFile_1_0);
 		incref(var_f);
 		push_value(var_f);
 		mp_primzmpackzmcons();
@@ -12029,7 +12233,39 @@ static void mw_std_input_zpInputOpen_z126UBuffer_1 (void) {
 			}
 			decref(var_f);
 		}
-		mtw_std_input_zpInputOpen_zpINPUTOPEN();
+		LPUSH(lbl_offset);
+		LPUSH(lbl_length);
+		mtw_std_input_zpInputOpenState_zpInputOpenState();
+		decref(var_f);
+	}
+}
+static void mw_std_input_zpInputOpenState_z126UBuffer_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_std_input_zpInputOpenState_zszpInputOpenState();
+		LPOP(lbl_length);
+		LPOP(lbl_offset);
+		push_fnptr(&mb_std_input_zpInputOpenState_z126UBuffer_1_0);
+		incref(var_f);
+		push_value(var_f);
+		mp_primzmpackzmcons();
+		{
+			VAL var_f = pop_value();
+			{
+				VAL d4 = pop_value();
+				{
+					VAL d5 = pop_value();
+					incref(var_f);
+					run_value(var_f);
+					push_value(d5);
+				}
+				push_value(d4);
+			}
+			decref(var_f);
+		}
+		LPUSH(lbl_offset);
+		LPUSH(lbl_length);
+		mtw_std_input_zpInputOpenState_zpInputOpenState();
 		decref(var_f);
 	}
 }
@@ -12042,25 +12278,29 @@ static void mw_std_input_zpInput_startzn (void) {
 	mw_std_buffer_zpBuffer_new();
 	push_i64(0LL);
 	mw_std_prim_Int_zgNat();
+	LPUSH(lbl_length);
 	push_i64(0LL);
-	mtw_std_input_zpInputOpen_zpINPUTOPEN();
-	mw_std_input_zpInputOpen_fillzmbufferzn();
+	LPUSH(lbl_offset);
+	mtw_std_input_zpInputOpenState_zpInputOpenState();
+	mw_std_input_zpInputOpenState_fillzmbufferzn();
 }
 static void mw_std_input_zpInput_stopzn (void) {
 	mw_std_input_zpInput_endzn();
-	mtw_std_input_zpInput_zpINPUTzuDONE();
+	mtw_std_input_zpInput_zpInputDone();
 }
 static void mw_std_input_zpInput_endzn (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +INPUT_OPEN
-			mtp_std_input_zpInput_zpINPUTzuOPEN();
-			mw_std_input_zmINPUTOPEN();
+		case 0LL: // +InputOpen
+			mtp_std_input_zpInput_zpInputOpen();
+			mw_std_input_zpInputOpenState_zszpInputOpenState();
 			mw_std_buffer_zpBuffer_rdrop();
+			LPOP(lbl_length);
+			LPOP(lbl_offset);
 			mp_primzmdrop();
 			mp_primzmdrop();
 			break;
-		case 1LL: // +INPUT_DONE
-			mtp_std_input_zpInput_zpINPUTzuDONE();
+		case 1LL: // +InputDone
+			mtp_std_input_zpInput_zpInputDone();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -12069,52 +12309,53 @@ static void mw_std_input_zpInput_endzn (void) {
 }
 static void mw_std_input_zpInput_donez63U (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +INPUT_OPEN
-			mtp_std_input_zpInput_zpINPUTzuOPEN();
+		case 0LL: // +InputOpen
+			mtp_std_input_zpInput_zpInputOpen();
 			push_u64(0LL); // F
-			mtw_std_input_zpInput_zpINPUTzuOPEN();
+			mtw_std_input_zpInput_zpInputOpen();
 			break;
-		case 1LL: // +INPUT_DONE
-			mtp_std_input_zpInput_zpINPUTzuDONE();
+		case 1LL: // +InputDone
+			mtp_std_input_zpInput_zpInputDone();
 			push_u64(1LL); // T
-			mtw_std_input_zpInput_zpINPUTzuDONE();
+			mtw_std_input_zpInput_zpInputDone();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_std_input_zpInputOpen_fillzmbufferzn (void) {
-	push_fnptr(&mb_std_input_zpInputOpen_fillzmbufferzn_0);
-	mw_std_input_zpInputOpen_z126UBuffer_1();
-	push_fnptr(&mb_std_input_zpInputOpen_fillzmbufferzn_1);
-	mw_std_input_zpInputOpen_z126UFile_1();
+static void mw_std_input_zpInputOpenState_fillzmbufferzn (void) {
+	push_fnptr(&mb_std_input_zpInputOpenState_fillzmbufferzn_0);
+	mw_std_input_zpInputOpenState_z126UBuffer_1();
+	push_fnptr(&mb_std_input_zpInputOpenState_fillzmbufferzn_1);
+	mw_std_input_zpInputOpenState_z126UFile_1();
 	mp_primzmdup();
+	mw_std_prelude_Sizze_zsSizze();
 	push_i64(0LL);
 	mp_primzmswap();
 	mp_primzmintzmlt();
 	if (pop_u64()) {
-		mw_std_input_zpInputOpen_lengthzn();
+		mw_std_input_zpInputOpenState_lengthzn();
 		push_i64(0LL);
-		mw_std_input_zpInputOpen_offsetzn();
-		mtw_std_input_zpInput_zpINPUTzuOPEN();
+		mw_std_input_zpInputOpenState_offsetzn();
+		mtw_std_input_zpInput_zpInputOpen();
 	} else {
 		mp_primzmdrop();
-		mtw_std_input_zpInput_zpINPUTzuOPEN();
+		mtw_std_input_zpInput_zpInputOpen();
 		mw_std_input_zpInput_stopzn();
 	}
 }
 static void mw_std_input_zpInput_peek (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +INPUT_OPEN
-			mtp_std_input_zpInput_zpINPUTzuOPEN();
-			mw_std_input_zpInputOpen_offsetz64U();
+		case 0LL: // +InputOpen
+			mtp_std_input_zpInput_zpInputOpen();
+			mw_std_input_zpInputOpenState_offset();
 			push_fnptr(&mb_std_input_zpInput_peek_0);
-			mw_std_input_zpInputOpen_z126UBuffer_1();
-			mtw_std_input_zpInput_zpINPUTzuOPEN();
+			mw_std_input_zpInputOpenState_z126UBuffer_1();
+			mtw_std_input_zpInput_zpInputOpen();
 			break;
-		case 1LL: // +INPUT_DONE
-			mtp_std_input_zpInput_zpINPUTzuDONE();
+		case 1LL: // +InputDone
+			mtp_std_input_zpInput_zpInputDone();
 			{
 				static bool vready = false;
 				static VAL v;
@@ -12134,16 +12375,14 @@ static void mw_std_input_zpInput_peek (void) {
 }
 static void mw_std_input_zpInput_movezn (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +INPUT_OPEN
-			mtp_std_input_zpInput_zpINPUTzuOPEN();
-			mw_std_input_zpInputOpen_offsetz64U();
-			push_i64(1LL);
-			mp_primzmintzmadd();
-			mw_std_input_zpInputOpen_offsetzn();
-			mw_std_input_zpInputOpen_preparezmforzmmorezn();
+		case 0LL: // +InputOpen
+			mtp_std_input_zpInput_zpInputOpen();
+			push_fnptr(&mb_std_input_zpInput_movezn_0);
+			mw_std_input_zpInputOpenState_offset_1();
+			mw_std_input_zpInputOpenState_preparezmforzmmorezn();
 			break;
-		case 1LL: // +INPUT_DONE
-			mtp_std_input_zpInput_zpINPUTzuDONE();
+		case 1LL: // +InputDone
+			mtp_std_input_zpInput_zpInputDone();
 			{
 				static bool vready = false;
 				static VAL v;
@@ -12161,33 +12400,39 @@ static void mw_std_input_zpInput_movezn (void) {
 			mp_primzmpanic();
 	}
 }
-static void mw_std_input_zpInputOpen_preparezmforzmmorezn (void) {
-	mw_std_input_zpInputOpen_offsetz64U();
-	mw_std_input_zpInputOpen_lengthz64U();
+static void mw_std_input_zpInputOpenState_preparezmforzmmorezn (void) {
+	mw_std_input_zpInputOpenState_offset();
+	mw_std_input_zpInputOpenState_length();
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
+	mw_std_prelude_Offset_zsOffset();
 	mp_primzmintzmlt();
 	mw_std_prim_Bool_not();
 	if (pop_u64()) {
-		mw_std_input_zpInputOpen_fillzmbufferzn();
+		mw_std_input_zpInputOpenState_fillzmbufferzn();
 	} else {
-		mtw_std_input_zpInput_zpINPUTzuOPEN();
+		mtw_std_input_zpInput_zpInputOpen();
 	}
 }
 static void mw_std_input_zpInput_readzmchunkzn (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +INPUT_OPEN
-			mtp_std_input_zpInput_zpINPUTzuOPEN();
-			mw_std_input_zpInputOpen_offsetz64U();
-			mw_std_input_zpInputOpen_lengthz64U();
-			mw_std_input_zpInputOpen_offsetz64U();
+		case 0LL: // +InputOpen
+			mtp_std_input_zpInput_zpInputOpen();
+			mw_std_input_zpInputOpenState_offset();
+			mw_std_input_zpInputOpenState_length();
+			mw_std_input_zpInputOpenState_offset();
+			mw_std_prelude_Offset_zsOffset();
 			mw_std_prim_Int_zgNat();
 			{
 				VAL d4 = pop_value();
+				mw_std_prelude_Sizze_zsSizze();
 				push_value(d4);
 			}
+			mw_std_prelude_Sizze_zsSizze();
 			{
 				VAL d4 = pop_value();
 				push_value(d4);
@@ -12195,14 +12440,14 @@ static void mw_std_input_zpInput_readzmchunkzn (void) {
 			mp_primzmintzmsub();
 			mw_std_prim_Int_zgNat();
 			push_fnptr(&mb_std_input_zpInput_readzmchunkzn_0);
-			mw_std_input_zpInputOpen_z126UBuffer_1();
-			mw_std_input_zpInputOpen_fillzmbufferzn();
-			mtw_std_maybe_Maybe_1_SOME();
+			mw_std_input_zpInputOpenState_z126UBuffer_1();
+			mw_std_input_zpInputOpenState_fillzmbufferzn();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
-		case 1LL: // +INPUT_DONE
-			mtp_std_input_zpInput_zpINPUTzuDONE();
-			push_u64(0LL); // NONE
-			mtw_std_input_zpInput_zpINPUTzuDONE();
+		case 1LL: // +InputDone
+			mtp_std_input_zpInput_zpInputDone();
+			push_u64(0LL); // None
+			mtw_std_input_zpInput_zpInputDone();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -12224,10 +12469,10 @@ static void mw_std_input_zpInput_readzmfilezn (void) {
 	push_fnptr(&mb_std_input_zpInput_readzmfilezn_1);
 	mw_std_maybe_whilezmsome_2();
 }
-static void mw_std_file_zmFILE (void) {
+static void mw_std_file_zpFile_zszpFile (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +FILE
-			mtp_std_file_zpFile_zpFILE();
+		case 0LL: // +File
+			mtp_std_file_zpFile_zpFile();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -12235,25 +12480,69 @@ static void mw_std_file_zmFILE (void) {
 	}
 }
 static void mw_std_file_zpFile_filezmdescriptor (void) {
-	mw_std_file_zmFILE();
+	mw_std_file_zpFile_zszpFile();
 	mp_primzmdup();
-	mtw_std_file_zpFile_zpFILE();
+	mtw_std_file_zpFile_zpFile();
+}
+static void mw_std_file_zpFilez63U_unwrapzn (void) {
+	switch (get_top_resource_data_tag()) {
+		case 0LL: // +FileOk
+			mtp_std_file_zpFilez63U_zpFileOk();
+			break;
+		case 1LL: // +FileErr
+			mtp_std_file_zpFilez63U_zpFileErr();
+			mw_std_prelude_paniczn();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
 }
 static void mw_std_prim_zpWorld_openzmfilezn (void) {
+	mp_primzmdup();
 	push_fnptr(&mb_std_prim_zpWorld_openzmfilezn_0);
 	mw_std_prim_Str_withzmdatazmcstr_1();
-	push_fnptr(&mb_std_prim_zpWorld_openzmfilezn_1);
-	push_fnptr(&mb_std_prim_zpWorld_openzmfilezn_2);
-	mw_std_prelude_expectzn_2();
-	mtw_std_file_zpFile_zpFILE();
+	mp_primzmdup();
+	push_i64(0LL);
+	mp_primzmswap();
+	mp_primzmintzmlt();
+	if (pop_u64()) {
+		{
+			VAL d3 = pop_value();
+			mp_primzmdrop();
+			push_value(d3);
+		}
+		mtw_std_file_zpFile_zpFile();
+		mtw_std_file_zpFilez63U_zpFileOk();
+	} else {
+		mp_primzmdrop();
+		push_fnptr(&mb_std_prim_zpWorld_openzmfilezn_3);
+		mw_std_str_Str_1();
+		mtw_std_file_zpFilez63U_zpFileErr();
+	}
 }
 static void mw_std_prim_zpWorld_createzmfilezn (void) {
+	mp_primzmdup();
 	push_fnptr(&mb_std_prim_zpWorld_createzmfilezn_0);
 	mw_std_prim_Str_withzmdatazmcstr_1();
-	push_fnptr(&mb_std_prim_zpWorld_createzmfilezn_1);
-	push_fnptr(&mb_std_prim_zpWorld_createzmfilezn_2);
-	mw_std_prelude_expectzn_2();
-	mtw_std_file_zpFile_zpFILE();
+	mp_primzmdup();
+	push_i64(0LL);
+	mp_primzmswap();
+	mp_primzmintzmlt();
+	if (pop_u64()) {
+		{
+			VAL d3 = pop_value();
+			mp_primzmdrop();
+			push_value(d3);
+		}
+		mtw_std_file_zpFile_zpFile();
+		mtw_std_file_zpFilez63U_zpFileOk();
+	} else {
+		mp_primzmdrop();
+		push_fnptr(&mb_std_prim_zpWorld_createzmfilezn_3);
+		mw_std_str_Str_1();
+		mtw_std_file_zpFilez63U_zpFileErr();
+	}
 }
 static void mw_std_file_OzuWRONLYzbOzuCREATzbOzuTRUNC (void) {
 	mw_std_prelude_RUNNINGzuOS();
@@ -12290,7 +12579,7 @@ static void mw_std_file_OzuWRONLYzbOzuCREATzbOzuTRUNC (void) {
 	}
 }
 static void mw_std_file_zpFile_closezmfilezn (void) {
-	mw_std_file_zmFILE();
+	mw_std_file_zpFile_zszpFile();
 	mp_primzmposixzmclose();
 	push_fnptr(&mb_std_file_zpFile_closezmfilezn_0);
 	push_fnptr(&mb_std_file_zpFile_closezmfilezn_1);
@@ -12310,6 +12599,7 @@ static void mw_std_file_zpFile_unsafezmwritezn (void) {
 	mp_primzmdup();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		mp_primzmposixzmwrite();
 		push_value(d2);
 	}
@@ -12337,6 +12627,7 @@ static void mw_std_file_zpFile_unsafezmreadzn (void) {
 		}
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmposixzmread();
 	push_fnptr(&mb_std_file_zpFile_unsafezmreadzn_1);
 	push_fnptr(&mb_std_file_zpFile_unsafezmreadzn_2);
@@ -12349,18 +12640,18 @@ static void mw_std_file_zpFile_readzmfilezn (void) {
 	mw_std_input_zpInput_endzn();
 }
 static void mw_std_lazzy_ready (void) {
-	mtw_std_lazzy_Lazzy_1_LAZZYzuREADY();
+	mtw_std_lazzy_Lazzy_1_LazzyReady();
 }
 static void mw_std_lazzy_ready2 (void) {
 	mw_std_prelude_pack2();
-	mtw_std_lazzy_Lazzy_1_LAZZYzuREADY();
+	mtw_std_lazzy_Lazzy_1_LazzyReady();
 }
 static void mw_std_lazzy_delay_1 (void) {
 	{
 		VAL var_f = pop_value();
 		incref(var_f);
 		push_value(var_f);
-		mtw_std_lazzy_Lazzy_1_LAZZYzuDELAY();
+		mtw_std_lazzy_Lazzy_1_LazzyDelay();
 		decref(var_f);
 	}
 }
@@ -12404,23 +12695,23 @@ static void mw_std_lazzy_forcezn (void) {
 	mp_primzmdup();
 	mp_primzmmutzmget();
 	switch (get_top_data_tag()) {
-		case 0LL: // LAZY_READY
-			mtp_std_lazzy_Lazzy_1_LAZZYzuREADY();
+		case 0LL: // LazyReady
+			mtp_std_lazzy_Lazzy_1_LazzyReady();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
 				push_value(d4);
 			}
 			break;
-		case 1LL: // LAZY_DELAY
-			mtp_std_lazzy_Lazzy_1_LAZZYzuDELAY();
+		case 1LL: // LazyDelay
+			mtp_std_lazzy_Lazzy_1_LazzyDelay();
 			{
 				VAL d4 = pop_value();
 				mp_primzmswap();
 				push_value(d4);
 			}
 			mp_primzmswap();
-			push_u64(2LL); // LAZY_WAIT
+			push_u64(2LL); // LazyWait
 			{
 				VAL d4 = pop_value();
 				mp_primzmdup();
@@ -12432,18 +12723,18 @@ static void mw_std_lazzy_forcezn (void) {
 				VAL d4 = pop_value();
 				mp_primzmrun();
 				mp_primzmdup();
-				mtw_std_lazzy_Lazzy_1_LAZZYzuREADY();
+				mtw_std_lazzy_Lazzy_1_LazzyReady();
 				push_value(d4);
 			}
 			mp_primzmmutzmset();
 			break;
-		case 2LL: // LAZY_WAIT
+		case 2LL: // LazyWait
 			(void)pop_u64();
 			{
 				static bool vready = false;
 				static VAL v;
 				if (! vready) {
-					v = mkstr("attempted to force already running thunk", 40);
+					v = mkstr("recursive thunk dependency", 26);
 					vready = true;
 				}
 				push_value(v);
@@ -12462,7 +12753,7 @@ static void mw_std_lazzy_forcezmorzn_1 (void) {
 		mp_primzmdup();
 		mp_primzmmutzmget();
 		switch (get_top_data_tag()) {
-			case 2LL: // LAZY_WAIT
+			case 2LL: // LazyWait
 				(void)pop_u64();
 				mp_primzmdrop();
 				incref(var_f);
@@ -12480,15 +12771,15 @@ static void mw_std_lazzy_tryzmforcezn (void) {
 	mp_primzmdup();
 	mp_primzmmutzmget();
 	switch (get_top_data_tag()) {
-		case 2LL: // LAZY_WAIT
+		case 2LL: // LazyWait
 			(void)pop_u64();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		default:
 			mp_primzmdrop();
 			mw_std_lazzy_forcezn();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 	}
 }
@@ -13527,7 +13818,7 @@ static void mw_mirth_data_makezmprimzmdatazn (void) {
 	mp_primzmswap();
 	mfld_mirth_data_Data_z126Uparams();
 	mp_primzmmutzmset();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -13565,8 +13856,7 @@ static void mw_mirth_data_makezmprimzmtagzn (void) {
 		mtw_mirth_type_Type_TData();
 		mw_mirth_type_T1();
 		mw_mirth_type_Tzmzg();
-		mw_std_prelude_pack2();
-		mtw_std_lazzy_Lazzy_1_LAZZYzuREADY();
+		mw_std_lazzy_ready2();
 		push_value(d2);
 	}
 	mp_primzmdup();
@@ -14053,9 +14343,9 @@ static void mw_mirth_data_Data_fullzmtype (void) {
 	mp_primzmswap();
 	mw_mirth_data_Data_iszmvaluezmtypez63U();
 	if (pop_u64()) {
-		mtw_std_either_Either_2_LEFT();
+		mtw_std_either_Either_2_Left();
 	} else {
-		mtw_std_either_Either_2_RIGHT();
+		mtw_std_either_Either_2_Right();
 	}
 }
 static void mw_mirth_data_Tag_index (void) {
@@ -14822,7 +15112,7 @@ static void mw_mirth_match_zpPattern_underscorezn (void) {
 	mw_mirth_match_Pattern_mid();
 	mw_mirth_type_StackType_forcezmconsz63Uzn();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_match_zpPattern_pattern();
 			mw_mirth_match_Pattern_tokenzmstart();
@@ -14840,8 +15130,8 @@ static void mw_mirth_match_zpPattern_underscorezn (void) {
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_u64(0LL); // TYPE_ERROR
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_std_prelude_unpack2();
 			break;
 		default:
@@ -14913,12 +15203,12 @@ static void mw_mirth_match_Pattern_coversz63U (void) {
 	mw_std_list_List_1_zsL1();
 	mw_std_maybe_Maybe_1_zzip();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // F
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_std_prelude_unpack2();
 			mw_mirth_match_PatternAtom_op();
 			switch (get_top_data_tag()) {
@@ -14960,11 +15250,11 @@ static void mw_mirth_match_PatternOp_zsPATOPzuTAG (void) {
 	switch (get_top_data_tag()) {
 		case 1LL: // PATOP_TAG
 			mtp_mirth_match_PatternOp_PATOPzuTAG();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -15592,8 +15882,8 @@ static void mw_mirth_word_Word_inczmnumzmblockszn (void) {
 	mfld_mirth_word_Word_z126Unumzmblocks();
 	mw_std_prelude_z64Uz63U();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdup();
 			{
 				VAL d4 = pop_value();
@@ -15606,7 +15896,7 @@ static void mw_mirth_word_Word_inczmnumzmblockszn (void) {
 			mfld_mirth_word_Word_z126Unumzmblocks();
 			mp_primzmmutzmset();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_i64(1LL);
 			mp_primzmswap();
@@ -15853,15 +16143,15 @@ static void mw_mirth_arrow_Atom_tozmrunzmvar (void) {
 			mp_primzmdup();
 			mw_mirth_var_Var_autozmrunz63U();
 			if (pop_u64()) {
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 			} else {
 				mp_primzmdrop();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 			}
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -16121,16 +16411,16 @@ static void mw_mirth_type_Type_tyconz63U (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // TYPE_ERROR
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 1LL: // TYPE_DONT_CARE
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 2LL: // TPrim
 			mtp_mirth_type_Type_TPrim();
 			mtw_mirth_tycon_Tycon_TYCONzuPRIM();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 3LL: // TMeta
 			mtp_mirth_type_Type_TMeta();
@@ -16141,32 +16431,32 @@ static void mw_mirth_type_Type_tyconz63U (void) {
 		case 4LL: // THole
 			mtp_mirth_type_Type_THole();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 5LL: // TVar
 			mtp_mirth_type_Type_TVar();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 6LL: // TTable
 			mtp_mirth_type_Type_TTable();
 			mtw_mirth_tycon_Tycon_TYCONzuTABLE();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 7LL: // TData
 			mtp_mirth_type_Type_TData();
 			mtw_mirth_tycon_Tycon_TYCONzuDATA();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 9LL: // TMorphism
 			mtp_mirth_type_Type_TMorphism();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 8LL: // TTensor
 			mtp_mirth_type_Type_TTensor();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 10LL: // TApp
 			mtp_mirth_type_Type_TApp();
@@ -16305,19 +16595,19 @@ static void mw_mirth_type_Value_tyconz63U (void) {
 			mp_primzmdrop();
 			push_u64(3LL); // PRIM_TYPE_INT
 			mtw_mirth_tycon_Tycon_TYCONzuPRIM();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 1LL: // VALUE_STR
 			mtp_mirth_type_Value_VALUEzuSTR();
 			mp_primzmdrop();
 			push_u64(5LL); // PRIM_TYPE_STR
 			mtw_mirth_tycon_Tycon_TYCONzuPRIM();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 2LL: // VALUE_BLOCK
 			mtp_mirth_type_Value_VALUEzuBLOCK();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -16339,7 +16629,7 @@ static void mw_mirth_type_PrimType_zeze (void) {
 static void mw_mirth_type_defzmprimzmtypezn (void) {
 	{
 		VAL d2 = pop_value();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 		push_value(d2);
 	}
 	mp_primzmdup();
@@ -16368,12 +16658,12 @@ static void mw_mirth_type_Tzt (void) {
 }
 static void mw_mirth_type_Tztzp (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // LEFT
-			mtp_std_either_Either_2_LEFT();
+		case 0LL: // Left
+			mtp_std_either_Either_2_Left();
 			mw_mirth_type_Tzt();
 			break;
-		case 1LL: // RIGHT
-			mtp_std_either_Either_2_RIGHT();
+		case 1LL: // Right
+			mtp_std_either_Either_2_Right();
 			mw_mirth_type_Tzp();
 			break;
 		default:
@@ -16459,11 +16749,11 @@ static void mw_mirth_type_Type_morphismz63U (void) {
 	switch (get_top_data_tag()) {
 		case 9LL: // TMorphism
 			mtp_mirth_type_Type_TMorphism();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -16472,11 +16762,11 @@ static void mw_mirth_type_Type_primz63U (void) {
 	switch (get_top_data_tag()) {
 		case 2LL: // TPrim
 			mtp_mirth_type_Type_TPrim();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -17074,7 +17364,48 @@ static void mw_mirth_type_Value_unifyzn (void) {
 					mp_primzmswap();
 					mp_primzmstrzmcmp();
 					push_i64(0LL);
+					{
+						VAL d6 = pop_value();
+						mp_primzmdup();
+						push_value(d6);
+					}
+					mp_primzmswap();
+					{
+						VAL d6 = pop_value();
+						mp_primzmdup();
+						push_value(d6);
+					}
+					mp_primzmswap();
 					mp_primzmintzmeq();
+					if (pop_u64()) {
+						mp_primzmdrop();
+						mp_primzmdrop();
+						push_u64(1LL); // EQ
+					} else {
+						mp_primzmintzmlt();
+						if (pop_u64()) {
+							push_u64(0LL); // LT
+						} else {
+							push_u64(2LL); // GT
+						}
+					}
+					switch (get_top_data_tag()) {
+						case 0LL: // LT
+							(void)pop_u64();
+							push_u64(0LL); // F
+							break;
+						case 1LL: // EQ
+							(void)pop_u64();
+							push_u64(1LL); // T
+							break;
+						case 2LL: // GT
+							(void)pop_u64();
+							push_u64(0LL); // F
+							break;
+						default:
+							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							mp_primzmpanic();
+					}
 					if (pop_u64()) {
 						mp_primzmdrop();
 						mtw_mirth_type_Value_VALUEzuSTR();
@@ -18065,12 +18396,12 @@ static void mw_mirth_type_MetaVar_haszmmetaz63U (void) {
 	mp_primzmdup();
 	mw_mirth_type_MetaVar_typez63U();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_type_MetaVar_zeze();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -18087,7 +18418,7 @@ static void mw_mirth_type_MetaVar_tracezn (void) {
 	mp_primzmdup();
 	mw_mirth_type_MetaVar_typez63U();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -18103,8 +18434,8 @@ static void mw_mirth_type_MetaVar_tracezn (void) {
 			mw_mirth_type_MetaVar_index();
 			mw_std_prim_Int_tracezn();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -18119,7 +18450,7 @@ static void mw_mirth_type_MetaVar_tracezn (void) {
 }
 static void mw_mirth_type_MetaVar_newzn (void) {
 	mw_mirth_type_MetaVar_alloczn();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -18136,13 +18467,13 @@ static void mw_mirth_type_MetaVar_expandzmif_2 (void) {
 		mp_primzmdup();
 		mw_mirth_type_MetaVar_typez63U();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				incref(var_g);
 				run_value(var_g);
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mw_mirth_type_Type_expand();
 				mp_primzmdup();
 				{
@@ -18150,7 +18481,7 @@ static void mw_mirth_type_MetaVar_expandzmif_2 (void) {
 					mp_primzmswap();
 					push_value(d5);
 				}
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				mp_primzmswap();
 				mfld_mirth_type_MetaVar_z126Utypez63U();
 				mp_primzmmutzmset();
@@ -18174,8 +18505,8 @@ static void mw_mirth_type_MetaVar_unifyzn (void) {
 	mp_primzmdup();
 	mw_mirth_type_MetaVar_typez63U();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -18183,7 +18514,7 @@ static void mw_mirth_type_MetaVar_unifyzn (void) {
 			}
 			mw_mirth_type_Type_unifyzn();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				VAL d4 = pop_value();
@@ -18227,7 +18558,7 @@ static void mw_mirth_type_MetaVar_unifyzn (void) {
 						mp_primzmswap();
 						push_value(d6);
 					}
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					mp_primzmswap();
 					mfld_mirth_type_MetaVar_z126Utypez63U();
 					mp_primzmmutzmset();
@@ -18243,8 +18574,8 @@ static void mw_mirth_type_MetaVar_unifyzmerrorzn (void) {
 	mp_primzmdup();
 	mw_mirth_type_MetaVar_typez63U();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -18252,12 +18583,12 @@ static void mw_mirth_type_MetaVar_unifyzmerrorzn (void) {
 			}
 			mw_mirth_type_Type_unifyzmerrorzn();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				VAL d4 = pop_value();
 				push_u64(0LL); // TYPE_ERROR
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_value(d4);
 			}
 			mfld_mirth_type_MetaVar_z126Utypez63U();
@@ -18275,21 +18606,21 @@ static void mw_mirth_type_MetaVar_expandzmorzmupdatezn_1 (void) {
 		mp_primzmdup();
 		mw_mirth_type_MetaVar_typez63U();
 		switch (get_top_data_tag()) {
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				{
 					VAL d5 = pop_value();
 					incref(var_f);
 					run_value(var_f);
 					mp_primzmdup();
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					push_value(d5);
 				}
 				mfld_mirth_type_MetaVar_z126Utypez63U();
 				mp_primzmmutzmset();
 				break;
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				{
 					VAL d5 = pop_value();
 					mp_primzmdrop();
@@ -18571,7 +18902,7 @@ static void mw_mirth_type_StackType_topzmtypez63U (void) {
 				mp_primzmdrop();
 				push_value(d4);
 			}
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 6LL: // STConsLabel
 			mtp_mirth_type_StackType_STConsLabel();
@@ -18581,7 +18912,7 @@ static void mw_mirth_type_StackType_topzmtypez63U (void) {
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -18600,7 +18931,7 @@ static void mw_mirth_type_StackType_topzmresourcez63U (void) {
 				mp_primzmdrop();
 				push_value(d4);
 			}
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 5LL: // STCons
 			mtp_mirth_type_StackType_STCons();
@@ -18615,7 +18946,7 @@ static void mw_mirth_type_StackType_topzmresourcez63U (void) {
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -19178,7 +19509,7 @@ static void mw_mirth_type_StackType_forcezmconszmlabelz63Uzn (void) {
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_u64(0LL); // TYPE_ERROR
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 1LL: // STACK_TYPE_DONT_CARE
 			(void)pop_u64();
@@ -19186,18 +19517,18 @@ static void mw_mirth_type_StackType_forcezmconszmlabelz63Uzn (void) {
 			push_u64(1LL); // STACK_TYPE_DONT_CARE
 			push_u64(1LL); // TYPE_DONT_CARE
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 2LL: // STACK_TYPE_UNIT
 			(void)pop_u64();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 3LL: // STVar
 			mtp_mirth_type_StackType_STVar();
 			mp_primzmdrop();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 7LL: // STWith
 			mtp_mirth_type_StackType_STWith();
@@ -19266,7 +19597,7 @@ static void mw_mirth_type_StackType_forcezmconszmlabelz63Uzn (void) {
 				mp_primzmswap();
 				mp_primzmdrop();
 				mw_std_prelude_pack2();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 			} else {
 				{
 					VAL d5 = pop_value();
@@ -19284,8 +19615,8 @@ static void mw_mirth_type_StackType_forcezmconszmlabelz63Uzn (void) {
 				}
 				mp_primzmswap();
 				switch (get_top_data_tag()) {
-					case 1LL: // SOME
-						mtp_std_maybe_Maybe_1_SOME();
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
 						mw_std_prelude_unpack2();
 						{
 							VAL d7 = pop_value();
@@ -19299,13 +19630,13 @@ static void mw_mirth_type_StackType_forcezmconszmlabelz63Uzn (void) {
 							push_value(d7);
 						}
 						mw_std_prelude_pack2();
-						mtw_std_maybe_Maybe_1_SOME();
+						mtw_std_maybe_Maybe_1_Some();
 						break;
-					case 0LL: // NONE
+					case 0LL: // None
 						(void)pop_u64();
 						mp_primzmdrop();
 						mp_primzmdrop();
-						push_u64(0LL); // NONE
+						push_u64(0LL); // None
 						break;
 					default:
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -19339,13 +19670,13 @@ static void mw_mirth_type_StackType_forcezmconszmlabelz63Uzn (void) {
 				}
 				mtw_mirth_type_StackType_STConsLabel();
 				mw_mirth_type_StackType_zgType();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_value(d4);
 			}
 			mfld_mirth_type_MetaVar_z126Utypez63U();
 			mp_primzmmutzmset();
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -19360,28 +19691,28 @@ static void mw_mirth_type_StackType_forcezmconsz63Uzn (void) {
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_u64(0LL); // TYPE_ERROR
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 1LL: // STACK_TYPE_DONT_CARE
 			(void)pop_u64();
 			push_u64(1LL); // STACK_TYPE_DONT_CARE
 			push_u64(1LL); // TYPE_DONT_CARE
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 2LL: // STACK_TYPE_UNIT
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 3LL: // STVar
 			mtp_mirth_type_StackType_STVar();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 5LL: // STCons
 			mtp_mirth_type_StackType_STCons();
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 7LL: // STWith
 			mtp_mirth_type_StackType_STWith();
@@ -19405,8 +19736,8 @@ static void mw_mirth_type_StackType_forcezmconsz63Uzn (void) {
 			mp_primzmswap();
 			mw_mirth_type_StackType_forcezmconsz63Uzn();
 			switch (get_top_data_tag()) {
-				case 1LL: // SOME
-					mtp_std_maybe_Maybe_1_SOME();
+				case 1LL: // Some
+					mtp_std_maybe_Maybe_1_Some();
 					mw_std_prelude_unpack2();
 					{
 						VAL d6 = pop_value();
@@ -19420,13 +19751,13 @@ static void mw_mirth_type_StackType_forcezmconsz63Uzn (void) {
 						push_value(d6);
 					}
 					mw_std_prelude_pack2();
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					break;
-				case 0LL: // NONE
+				case 0LL: // None
 					(void)pop_u64();
 					mp_primzmdrop();
 					mp_primzmdrop();
-					push_u64(0LL); // NONE
+					push_u64(0LL); // None
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -19455,13 +19786,13 @@ static void mw_mirth_type_StackType_forcezmconsz63Uzn (void) {
 				mp_primzmswap();
 				mtw_mirth_type_StackType_STCons();
 				mw_mirth_type_StackType_zgType();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_value(d4);
 			}
 			mfld_mirth_type_MetaVar_z126Utypez63U();
 			mp_primzmmutzmset();
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -19476,28 +19807,28 @@ static void mw_mirth_type_StackType_forcezmwithz63Uzn (void) {
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_u64(0LL); // TYPE_ERROR
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 1LL: // STACK_TYPE_DONT_CARE
 			(void)pop_u64();
 			push_u64(1LL); // STACK_TYPE_DONT_CARE
 			push_u64(1LL); // TYPE_DONT_CARE
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 2LL: // STACK_TYPE_UNIT
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 3LL: // STVar
 			mtp_mirth_type_StackType_STVar();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 7LL: // STWith
 			mtp_mirth_type_StackType_STWith();
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 5LL: // STCons
 			mtp_mirth_type_StackType_STCons();
@@ -19521,8 +19852,8 @@ static void mw_mirth_type_StackType_forcezmwithz63Uzn (void) {
 			mp_primzmswap();
 			mw_mirth_type_StackType_forcezmwithz63Uzn();
 			switch (get_top_data_tag()) {
-				case 1LL: // SOME
-					mtp_std_maybe_Maybe_1_SOME();
+				case 1LL: // Some
+					mtp_std_maybe_Maybe_1_Some();
 					mw_std_prelude_unpack2();
 					{
 						VAL d6 = pop_value();
@@ -19536,13 +19867,13 @@ static void mw_mirth_type_StackType_forcezmwithz63Uzn (void) {
 						push_value(d6);
 					}
 					mw_std_prelude_pack2();
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					break;
-				case 0LL: // NONE
+				case 0LL: // None
 					(void)pop_u64();
 					mp_primzmdrop();
 					mp_primzmdrop();
-					push_u64(0LL); // NONE
+					push_u64(0LL); // None
 					break;
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -19571,13 +19902,13 @@ static void mw_mirth_type_StackType_forcezmwithz63Uzn (void) {
 				mp_primzmswap();
 				mtw_mirth_type_StackType_STWith();
 				mw_mirth_type_StackType_zgType();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_value(d4);
 			}
 			mfld_mirth_type_MetaVar_z126Utypez63U();
 			mp_primzmmutzmset();
 			mw_std_prelude_pack2();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -22648,11 +22979,11 @@ static void mw_mirth_token_TokenValue_lparenz63U (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // TOKEN_LPAREN
 			mtp_mirth_token_TokenValue_TOKENzuLPAREN();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22672,11 +23003,11 @@ static void mw_mirth_token_TokenValue_lsquarez63U (void) {
 	switch (get_top_data_tag()) {
 		case 6LL: // TOKEN_LSQUARE
 			mtp_mirth_token_TokenValue_TOKENzuLSQUARE();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22684,11 +23015,11 @@ static void mw_mirth_token_TokenValue_rsquarez63U (void) {
 	switch (get_top_data_tag()) {
 		case 7LL: // TOKEN_RSQUARE
 			mtp_mirth_token_TokenValue_TOKENzuRSQUARE();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22720,11 +23051,11 @@ static void mw_mirth_token_TokenValue_lcolonz63U (void) {
 	switch (get_top_data_tag()) {
 		case 12LL: // TOKEN_LCOLON
 			mtp_mirth_token_TokenValue_TOKENzuLCOLON();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22732,15 +23063,15 @@ static void mw_mirth_token_TokenValue_lparenzmorzmlcolonz63U (void) {
 	switch (get_top_data_tag()) {
 		case 3LL: // TOKEN_LPAREN
 			mtp_mirth_token_TokenValue_TOKENzuLPAREN();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 12LL: // TOKEN_LCOLON
 			mtp_mirth_token_TokenValue_TOKENzuLCOLON();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22771,11 +23102,11 @@ static void mw_mirth_token_TokenValue_intz63U (void) {
 	switch (get_top_data_tag()) {
 		case 14LL: // TOKEN_INT
 			mtp_mirth_token_TokenValue_TOKENzuINT();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22783,11 +23114,11 @@ static void mw_mirth_token_TokenValue_strz63U (void) {
 	switch (get_top_data_tag()) {
 		case 15LL: // TOKEN_STR
 			mtp_mirth_token_TokenValue_TOKENzuSTR();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22795,11 +23126,11 @@ static void mw_mirth_token_TokenValue_namez63U (void) {
 	switch (get_top_data_tag()) {
 		case 16LL: // TOKEN_NAME
 			mtp_mirth_token_TokenValue_TOKENzuNAME();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22807,11 +23138,11 @@ static void mw_mirth_token_TokenValue_dnamez63U (void) {
 	switch (get_top_data_tag()) {
 		case 17LL: // TOKEN_DNAME
 			mtp_mirth_token_TokenValue_TOKENzuDNAME();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22819,17 +23150,17 @@ static void mw_mirth_token_TokenValue_namezmorzmdnamez63U (void) {
 	switch (get_top_data_tag()) {
 		case 16LL: // TOKEN_NAME
 			mtp_mirth_token_TokenValue_TOKENzuNAME();
-			mtw_std_either_Either_2_LEFT();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_either_Either_2_Left();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 17LL: // TOKEN_DNAME
 			mtp_mirth_token_TokenValue_TOKENzuDNAME();
-			mtw_std_either_Either_2_RIGHT();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_either_Either_2_Right();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -22837,16 +23168,16 @@ static void mw_mirth_token_TokenValue_lastzmnamez63U (void) {
 	switch (get_top_data_tag()) {
 		case 16LL: // TOKEN_NAME
 			mtp_mirth_token_TokenValue_TOKENzuNAME();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 17LL: // TOKEN_DNAME
 			mtp_mirth_token_TokenValue_TOKENzuDNAME();
 			mw_mirth_name_DName_lastzmname();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -23795,11 +24126,11 @@ static void mw_mirth_def_Def_packagez63U (void) {
 	switch (get_top_data_tag()) {
 		case 2LL: // DEF_PACKAGE
 			mtp_mirth_def_Def_DEFzuPACKAGE();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -23807,11 +24138,11 @@ static void mw_mirth_def_Def_modulez63U (void) {
 	switch (get_top_data_tag()) {
 		case 1LL: // DEF_MODULE
 			mtp_mirth_def_Def_DEFzuMODULE();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -23819,11 +24150,11 @@ static void mw_mirth_def_Def_tagz63U (void) {
 	switch (get_top_data_tag()) {
 		case 6LL: // DEF_TAG
 			mtp_mirth_def_Def_DEFzuTAG();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -23831,11 +24162,11 @@ static void mw_mirth_def_Def_primz63U (void) {
 	switch (get_top_data_tag()) {
 		case 7LL: // DEF_PRIM
 			mtp_mirth_def_Def_DEFzuPRIM();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -23843,11 +24174,11 @@ static void mw_mirth_def_Def_wordz63U (void) {
 	switch (get_top_data_tag()) {
 		case 8LL: // DEF_WORD
 			mtp_mirth_def_Def_DEFzuWORD();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 	}
 }
@@ -24073,22 +24404,22 @@ static void mw_mirth_def_Def_exposedzmtyconz63U (void) {
 		case 2LL: // DEF_PACKAGE
 			mtp_mirth_def_Def_DEFzuPACKAGE();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 1LL: // DEF_MODULE
 			mtp_mirth_def_Def_DEFzuMODULE();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 3LL: // DEF_DATA
 			mtp_mirth_def_Def_DEFzuDATA();
 			mtw_mirth_tycon_Tycon_TYCONzuDATA();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 4LL: // DEF_TABLE
 			mtp_mirth_def_Def_DEFzuTABLE();
 			mtw_mirth_tycon_Tycon_TYCONzuTABLE();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 5LL: // DEF_TYPEDEF
 			mtp_mirth_def_Def_DEFzuTYPEDEF();
@@ -24098,37 +24429,37 @@ static void mw_mirth_def_Def_exposedzmtyconz63U (void) {
 		case 9LL: // DEF_BUFFER
 			mtp_mirth_def_Def_DEFzuBUFFER();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 7LL: // DEF_PRIM
 			mtp_mirth_def_Def_DEFzuPRIM();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 11LL: // DEF_EXTERNAL
 			mtp_mirth_def_Def_DEFzuEXTERNAL();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 8LL: // DEF_WORD
 			mtp_mirth_def_Def_DEFzuWORD();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 12LL: // DEF_FIELD
 			mtp_mirth_def_Def_DEFzuFIELD();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 6LL: // DEF_TAG
 			mtp_mirth_def_Def_DEFzuTAG();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 10LL: // DEF_VARIABLE
 			mtp_mirth_def_Def_DEFzuVARIABLE();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -24140,17 +24471,17 @@ static void mw_mirth_def_Def_headz63U (void) {
 		case 0LL: // DEF_ALIAS
 			mtp_mirth_def_Def_DEFzuALIAS();
 			mw_mirth_alias_Alias_head();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 2LL: // DEF_PACKAGE
 			mtp_mirth_def_Def_DEFzuPACKAGE();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 1LL: // DEF_MODULE
 			mtp_mirth_def_Def_DEFzuMODULE();
 			mw_mirth_module_Module_start();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 3LL: // DEF_DATA
 			mtp_mirth_def_Def_DEFzuDATA();
@@ -24159,7 +24490,7 @@ static void mw_mirth_def_Def_headz63U (void) {
 		case 4LL: // DEF_TABLE
 			mtp_mirth_def_Def_DEFzuTABLE();
 			mw_mirth_table_Table_head();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 5LL: // DEF_TYPEDEF
 			mtp_mirth_def_Def_DEFzuTYPEDEF();
@@ -24168,27 +24499,27 @@ static void mw_mirth_def_Def_headz63U (void) {
 		case 9LL: // DEF_BUFFER
 			mtp_mirth_def_Def_DEFzuBUFFER();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 7LL: // DEF_PRIM
 			mtp_mirth_def_Def_DEFzuPRIM();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 11LL: // DEF_EXTERNAL
 			mtp_mirth_def_Def_DEFzuEXTERNAL();
 			mw_mirth_external_External_head();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 8LL: // DEF_WORD
 			mtp_mirth_def_Def_DEFzuWORD();
 			mw_mirth_word_Word_head();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 12LL: // DEF_FIELD
 			mtp_mirth_def_Def_DEFzuFIELD();
 			mw_mirth_table_Field_head();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 6LL: // DEF_TAG
 			mtp_mirth_def_Def_DEFzuTAG();
@@ -24198,7 +24529,7 @@ static void mw_mirth_def_Def_headz63U (void) {
 		case 10LL: // DEF_VARIABLE
 			mtp_mirth_def_Def_DEFzuVARIABLE();
 			mw_mirth_variable_Variable_head();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -24358,6 +24689,7 @@ static void mw_mirth_name_hashzmnamez64U (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -24375,10 +24707,10 @@ static void mw_mirth_name_hashzmnamez64U (void) {
 	mp_primzmintzmeq();
 	if (pop_u64()) {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	} else {
 		mw_mirth_name_Name_fromzmindex();
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	}
 }
 static void mw_mirth_name_hashzmnamezn (void) {
@@ -24395,6 +24727,7 @@ static void mw_mirth_name_hashzmnamezn (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -24425,12 +24758,12 @@ static void mw_mirth_name_Hash_keepzmgoingz63U (void) {
 	mp_primzmdup();
 	mw_mirth_name_hashzmnamez64U();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // F
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_name_Name_zgStr();
 			{
 				VAL d4 = pop_value();
@@ -24445,8 +24778,48 @@ static void mw_mirth_name_Hash_keepzmgoingz63U (void) {
 			mp_primzmswap();
 			mp_primzmstrzmcmp();
 			push_i64(0LL);
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
 			mp_primzmintzmeq();
-			mw_std_prim_Bool_not();
+			if (pop_u64()) {
+				mp_primzmdrop();
+				mp_primzmdrop();
+				push_u64(1LL); // EQ
+			} else {
+				mp_primzmintzmlt();
+				if (pop_u64()) {
+					push_u64(0LL); // LT
+				} else {
+					push_u64(2LL); // GT
+				}
+			}
+			switch (get_top_data_tag()) {
+				case 0LL: // LT
+					(void)pop_u64();
+					push_u64(1LL); // T
+					break;
+				case 1LL: // EQ
+					(void)pop_u64();
+					push_u64(0LL); // F
+					break;
+				case 2LL: // GT
+					(void)pop_u64();
+					push_u64(1LL); // T
+					break;
+				default:
+					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					mp_primzmpanic();
+			}
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -24464,7 +24837,7 @@ static void mw_std_prim_Str_zgName (void) {
 	mp_primzmdup();
 	mw_mirth_name_hashzmnamez64U();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_name_Name_alloczn();
 			mp_primzmdup();
@@ -24504,8 +24877,8 @@ static void mw_std_prim_Str_zgName (void) {
 			mfld_mirth_name_Name_z126Umangled();
 			mp_primzmmutzmset();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -24724,27 +25097,27 @@ static void mw_mirth_name_Namespace_qname (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // NAMESPACE_ROOT
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 1LL: // NAMESPACE_PACKAGE
 			mtp_mirth_name_Namespace_NAMESPACEzuPACKAGE();
 			mw_mirth_package_Package_qname();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 2LL: // NAMESPACE_MODULE
 			mtp_mirth_name_Namespace_NAMESPACEzuMODULE();
 			mw_mirth_module_Module_qname();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 3LL: // NAMESPACE_TYCON
 			mtp_mirth_name_Namespace_NAMESPACEzuTYCON();
 			mw_mirth_tycon_Tycon_qname();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 4LL: // NAMESPACE_WORD
 			mtp_mirth_name_Namespace_NAMESPACEzuWORD();
 			mw_mirth_word_Word_qname();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -24755,16 +25128,16 @@ static void mw_mirth_name_Namespace_modulez63U (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // NAMESPACE_ROOT
 			(void)pop_u64();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 1LL: // NAMESPACE_PACKAGE
 			mtp_mirth_name_Namespace_NAMESPACEzuPACKAGE();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		case 2LL: // NAMESPACE_MODULE
 			mtp_mirth_name_Namespace_NAMESPACEzuMODULE();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 3LL: // NAMESPACE_TYCON
 			mtp_mirth_name_Namespace_NAMESPACEzuTYCON();
@@ -24775,7 +25148,7 @@ static void mw_mirth_name_Namespace_modulez63U (void) {
 		case 4LL: // NAMESPACE_WORD
 			mtp_mirth_name_Namespace_NAMESPACEzuWORD();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -25184,13 +25557,13 @@ static void mw_mirth_package_Package_newzmorzmsetzmpathzn (void) {
 	mp_primzmdup();
 	mw_mirth_package_Package_find();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdup();
 			mw_mirth_package_Package_path();
 			switch (get_top_data_tag()) {
-				case 1LL: // SOME
-					mtp_std_maybe_Maybe_1_SOME();
+				case 1LL: // Some
+					mtp_std_maybe_Maybe_1_Some();
 					{
 						static bool vready = false;
 						static VAL v;
@@ -25203,7 +25576,7 @@ static void mw_mirth_package_Package_newzmorzmsetzmpathzn (void) {
 					}
 					mw_std_prelude_paniczn();
 					break;
-				case 0LL: // NONE
+				case 0LL: // None
 					(void)pop_u64();
 					{
 						VAL d6 = pop_value();
@@ -25215,7 +25588,7 @@ static void mw_mirth_package_Package_newzmorzmsetzmpathzn (void) {
 						VAL d6 = pop_value();
 						{
 							VAL d7 = pop_value();
-							mtw_std_maybe_Maybe_1_SOME();
+							mtw_std_maybe_Maybe_1_Some();
 							push_value(d7);
 						}
 						mfld_mirth_package_Package_z126Upath();
@@ -25228,11 +25601,11 @@ static void mw_mirth_package_Package_newzmorzmsetzmpathzn (void) {
 					mp_primzmpanic();
 			}
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				VAL d4 = pop_value();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_value(d4);
 			}
 			mw_mirth_package_Package_newzn();
@@ -25269,45 +25642,6 @@ static void mw_mirth_package_Package_zeze (void) {
 	}
 	mw_mirth_package_Package_index();
 	mp_primzmintzmeq();
-}
-static void mw_std_stack_Stack_1_head (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // STACK_NIL
-			(void)pop_u64();
-			push_u64(0LL); // NONE
-			break;
-		case 1LL: // STACK_CONS
-			mtp_std_stack_Stack_1_STACKzuCONS();
-			mp_primzmdrop();
-			mtw_std_maybe_Maybe_1_SOME();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
-}
-static void mw_std_stack_Stack_1_cons (void) {
-	mtw_std_stack_Stack_1_STACKzuCONS();
-}
-static void mw_std_stack_Stack_1_uncons (void) {
-	switch (get_top_data_tag()) {
-		case 0LL: // STACK_NIL
-			(void)pop_u64();
-			push_u64(0LL); // NONE
-			push_u64(0LL); // STACK_NIL
-			break;
-		case 1LL: // STACK_CONS
-			mtp_std_stack_Stack_1_STACKzuCONS();
-			{
-				VAL d4 = pop_value();
-				mtw_std_maybe_Maybe_1_SOME();
-				push_value(d4);
-			}
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primzmpanic();
-	}
 }
 static void mw_mirth_lexer_zpLexer_zsLEXER (void) {
 	switch (get_top_resource_data_tag()) {
@@ -25393,12 +25727,12 @@ static void mw_mirth_lexer_zpLexer_lexerzmmodule (void) {
 }
 static void mw_mirth_lexer_lexerzmstackzmpushzn (void) {
 	mw_mirth_lexer_zpLexer_lexerzmstack();
-	mw_std_stack_Stack_1_cons();
+	mtw_std_list_List_1_Cons();
 	mw_mirth_lexer_zpLexer_lexerzmstackzn();
 }
 static void mw_mirth_lexer_lexerzmstackzmpopzn (void) {
 	mw_mirth_lexer_zpLexer_lexerzmstack();
-	mw_std_stack_Stack_1_uncons();
+	mw_std_list_List_1_uncons();
 	mw_mirth_lexer_zpLexer_lexerzmstackzn();
 }
 static void mw_mirth_lexer_lexerzmstackzmdrop (void) {
@@ -25407,7 +25741,7 @@ static void mw_mirth_lexer_lexerzmstackzmdrop (void) {
 }
 static void mw_mirth_lexer_lexerzmstackzmpeek (void) {
 	mw_mirth_lexer_zpLexer_lexerzmstack();
-	mw_std_stack_Stack_1_head();
+	mw_std_list_List_1_first();
 }
 static void mw_mirth_lexer_zpLexer_lexerzmcolz64U (void) {
 	mw_mirth_lexer_zpLexer_lexerzmcol();
@@ -25424,6 +25758,7 @@ static void mw_mirth_lexer_runzmlexerzn (void) {
 	LPUSH(lbl_lexerzmmodule);
 	mw_mirth_module_Module_sourcezmpath();
 	mw_std_prim_zpWorld_openzmfilezn();
+	mw_std_file_zpFilez63U_unwrapzn();
 	mw_std_input_zpInput_startzn();
 	push_i64(1LL);
 	mw_std_prim_Int_zgRow();
@@ -25431,7 +25766,7 @@ static void mw_mirth_lexer_runzmlexerzn (void) {
 	push_i64(1LL);
 	mw_std_prim_Int_zgCol();
 	LPUSH(lbl_lexerzmcol);
-	push_u64(0LL); // STACK_NIL
+	push_u64(0LL); // Nil
 	LPUSH(lbl_lexerzmstack);
 	mw_mirth_token_Token_alloczmnonezn();
 	mp_primzmdup();
@@ -25449,7 +25784,7 @@ static void mw_mirth_lexer_runzmlexerzn (void) {
 	mw_std_input_zpInput_endzn();
 	mw_std_file_zpFile_closezmfilezn();
 	LPOP(lbl_lexerzmstack);
-	mw_std_stack_Stack_1_uncons();
+	mw_std_list_List_1_uncons();
 	mp_primzmdrop();
 	push_fnptr(&mb_mirth_lexer_runzmlexerzn_2);
 	mw_std_maybe_Maybe_1_for_1();
@@ -25675,7 +26010,7 @@ static void mw_mirth_lexer_lexerzmemitzmlparenzn (void) {
 static void mw_mirth_lexer_lexerzmemitzmrparenzn (void) {
 	mw_mirth_lexer_lexerzmstackzmpopzn();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -25689,8 +26024,8 @@ static void mw_mirth_lexer_lexerzmemitzmrparenzn (void) {
 			}
 			mw_mirth_lexer_lexerzmemitzmfatalzmerrorzn();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdup();
 			mw_mirth_token_Token_lparenzmopenz63U();
 			if (pop_u64()) {
@@ -25728,7 +26063,7 @@ static void mw_mirth_lexer_lexerzmemitzmlsquarezn (void) {
 static void mw_mirth_lexer_lexerzmemitzmrsquarezn (void) {
 	mw_mirth_lexer_lexerzmstackzmpopzn();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -25742,8 +26077,8 @@ static void mw_mirth_lexer_lexerzmemitzmrsquarezn (void) {
 			}
 			mw_mirth_lexer_lexerzmemitzmfatalzmerrorzn();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdup();
 			mw_mirth_token_Token_lsquarezmopenz63U();
 			if (pop_u64()) {
@@ -25781,7 +26116,7 @@ static void mw_mirth_lexer_lexerzmemitzmlcurlyzn (void) {
 static void mw_mirth_lexer_lexerzmemitzmrcurlyzn (void) {
 	mw_mirth_lexer_lexerzmstackzmpopzn();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -25795,8 +26130,8 @@ static void mw_mirth_lexer_lexerzmemitzmrcurlyzn (void) {
 			}
 			mw_mirth_lexer_lexerzmemitzmfatalzmerrorzn();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdup();
 			mw_mirth_token_Token_lcurlyzmopenz63U();
 			if (pop_u64()) {
@@ -25879,18 +26214,18 @@ static void mw_mirth_lexer_lexerzmemitzmnamezn (void) {
 			} else {
 				mw_std_str_zpStr_dnamez63U();
 				switch (get_top_data_tag()) {
-					case 1LL: // SOME
-						mtp_std_maybe_Maybe_1_SOME();
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
 						mtw_mirth_token_TokenValue_TOKENzuDNAME();
 						break;
-					case 0LL: // NONE
+					case 0LL: // None
 						(void)pop_u64();
 						mw_std_str_zpStr_labelzmtokenz63U();
 						switch (get_top_data_tag()) {
-							case 1LL: // SOME
-								mtp_std_maybe_Maybe_1_SOME();
+							case 1LL: // Some
+								mtp_std_maybe_Maybe_1_Some();
 								break;
-							case 0LL: // NONE
+							case 0LL: // None
 								(void)pop_u64();
 								mw_std_str_zpStr_namez63U();
 								mtw_mirth_token_TokenValue_TOKENzuNAME();
@@ -25959,6 +26294,7 @@ static void mw_std_str_zpStr_dropzmlastzmbyte (void) {
 		mw_std_str_zpStr_numzmbytesz63U();
 		push_resource(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	push_i64(1LL);
 	mp_primzmintzmsub();
 	mw_std_prim_Int_zgNat();
@@ -25986,11 +26322,11 @@ static void mw_std_str_zpStr_labelzmtokenz63U (void) {
 				mw_std_prim_Str_zgName();
 				mw_mirth_label_Label_newzn();
 				mtw_mirth_token_TokenValue_TOKENzuLABELzuPOP();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				break;
 			default:
 				mp_primzmdrop();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				break;
 		}
 	} else {
@@ -26017,7 +26353,7 @@ static void mw_std_str_zpStr_labelzmtokenz63U (void) {
 					mw_std_prim_Str_zgName();
 					mw_mirth_label_Label_newzn();
 					mtw_mirth_token_TokenValue_TOKENzuLABELzuPUSH();
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					break;
 				case 94LL: // B'^'
 					(void)pop_u64();
@@ -26035,15 +26371,15 @@ static void mw_std_str_zpStr_labelzmtokenz63U (void) {
 					mw_std_prim_Str_zgName();
 					mw_mirth_label_Label_newzn();
 					mtw_mirth_token_TokenValue_TOKENzuLABELzuLENS();
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					break;
 				default:
 					mp_primzmdrop();
-					push_u64(0LL); // NONE
+					push_u64(0LL); // None
 					break;
 			}
 		} else {
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 		}
 	}
 }
@@ -26053,33 +26389,34 @@ static void mw_std_str_zpStr_dnamez63U (void) {
 	mw_std_list_Listzp_1_uncons();
 	mw_std_list_List_1_zgListzp();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdup();
 				mp_primzmstrzmnumzmbytes();
 				mw_std_prim_Int_zgNat();
+				mw_std_prelude_Sizze_zsSizze();
 				push_i64(0LL);
 				mp_primzmintzmeq();
 				if (pop_u64()) {
 					mp_primzmdrop();
-					push_u64(0LL); // NONE
+					push_u64(0LL); // None
 				} else {
 					mw_std_prim_Str_zgName();
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 				}
 				push_value(d4);
 			}
 			push_fnptr(&mb_std_str_zpStr_dnamez63U_3);
 			mw_std_list_Listzp_1_map_1();
 			mtw_mirth_name_DName_DNAME();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -26100,7 +26437,48 @@ static void mw_std_str_zpStr_iszmdoczmstartz63U (void) {
 	}
 	mp_primzmstrzmcmp();
 	push_i64(0LL);
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
 	mp_primzmintzmeq();
+	if (pop_u64()) {
+		mp_primzmdrop();
+		mp_primzmdrop();
+		push_u64(1LL); // EQ
+	} else {
+		mp_primzmintzmlt();
+		if (pop_u64()) {
+			push_u64(0LL); // LT
+		} else {
+			push_u64(2LL); // GT
+		}
+	}
+	switch (get_top_data_tag()) {
+		case 0LL: // LT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		case 1LL: // EQ
+			(void)pop_u64();
+			push_u64(1LL); // T
+			break;
+		case 2LL: // GT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
 }
 static void mw_std_str_zpStr_iszmintz63U (void) {
 	mw_std_str_zpStr_iszmdeczmintz63U();
@@ -26117,6 +26495,7 @@ static void mw_std_str_zpStr_iszmdeczmintz63U (void) {
 	mw_std_str_zpStr_bytez64U();
 	mw_std_byte_Byte_iszmsign();
 	if (pop_u64()) {
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 	} else {
@@ -26128,23 +26507,29 @@ static void mw_std_str_zpStr_iszmdeczmintz63U (void) {
 		if (! pop_u64()) break;
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_i64(1LL);
 			mp_primzmintzmadd();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 	}
 	mp_primzmswap();
+	mw_std_prelude_Sizze_zsSizze();
 	push_i64(0LL);
 	mp_primzmswap();
 	mp_primzmintzmlt();
 	if (pop_u64()) {
 		mw_std_str_zpStr_numzmbytesz63U();
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		mp_primzmintzmeq();
 	} else {
 		mp_primzmdrop();
@@ -26159,6 +26544,7 @@ static void mw_std_str_zpStr_iszmhexzmintz63U (void) {
 	mw_std_str_zpStr_bytez64U();
 	mw_std_byte_Byte_iszmsign();
 	if (pop_u64()) {
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 	} else {
@@ -26168,6 +26554,7 @@ static void mw_std_str_zpStr_iszmhexzmintz63U (void) {
 	push_u64(48LL); // B'0'
 	mw_std_byte_Byte_zeze();
 	if (pop_u64()) {
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 		mp_primzmdup();
@@ -26175,6 +26562,7 @@ static void mw_std_str_zpStr_iszmhexzmintz63U (void) {
 		push_u64(120LL); // B'x'
 		mw_std_byte_Byte_zeze();
 		if (pop_u64()) {
+			mw_std_prelude_Offset_zsOffset();
 			push_i64(1LL);
 			mp_primzmintzmadd();
 			while(1) {
@@ -26184,23 +26572,29 @@ static void mw_std_str_zpStr_iszmhexzmintz63U (void) {
 				if (! pop_u64()) break;
 				{
 					VAL d5 = pop_value();
+					mw_std_prelude_Sizze_zsSizze();
 					push_i64(1LL);
 					mp_primzmintzmadd();
 					push_value(d5);
 				}
+				mw_std_prelude_Offset_zsOffset();
 				push_i64(1LL);
 				mp_primzmintzmadd();
 			}
 			mp_primzmswap();
+			mw_std_prelude_Sizze_zsSizze();
 			push_i64(0LL);
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
 				mw_std_str_zpStr_numzmbytesz63U();
+				mw_std_prelude_Sizze_zsSizze();
 				{
 					VAL d5 = pop_value();
+					mw_std_prelude_Offset_zsOffset();
 					push_value(d5);
 				}
+				mw_std_prelude_Offset_zsOffset();
 				mp_primzmintzmeq();
 			} else {
 				mp_primzmdrop();
@@ -26225,6 +26619,7 @@ static void mw_std_str_zpStr_iszmoctzmintz63U (void) {
 	mw_std_str_zpStr_bytez64U();
 	mw_std_byte_Byte_iszmsign();
 	if (pop_u64()) {
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 	} else {
@@ -26234,6 +26629,7 @@ static void mw_std_str_zpStr_iszmoctzmintz63U (void) {
 	push_u64(48LL); // B'0'
 	mw_std_byte_Byte_zeze();
 	if (pop_u64()) {
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 		mp_primzmdup();
@@ -26241,6 +26637,7 @@ static void mw_std_str_zpStr_iszmoctzmintz63U (void) {
 		push_u64(111LL); // B'o'
 		mw_std_byte_Byte_zeze();
 		if (pop_u64()) {
+			mw_std_prelude_Offset_zsOffset();
 			push_i64(1LL);
 			mp_primzmintzmadd();
 			while(1) {
@@ -26252,23 +26649,29 @@ static void mw_std_str_zpStr_iszmoctzmintz63U (void) {
 				if (! pop_u64()) break;
 				{
 					VAL d5 = pop_value();
+					mw_std_prelude_Sizze_zsSizze();
 					push_i64(1LL);
 					mp_primzmintzmadd();
 					push_value(d5);
 				}
+				mw_std_prelude_Offset_zsOffset();
 				push_i64(1LL);
 				mp_primzmintzmadd();
 			}
 			mp_primzmswap();
+			mw_std_prelude_Sizze_zsSizze();
 			push_i64(0LL);
 			mp_primzmswap();
 			mp_primzmintzmlt();
 			if (pop_u64()) {
 				mw_std_str_zpStr_numzmbytesz63U();
+				mw_std_prelude_Sizze_zsSizze();
 				{
 					VAL d5 = pop_value();
+					mw_std_prelude_Offset_zsOffset();
 					push_value(d5);
 				}
+				mw_std_prelude_Offset_zsOffset();
 				mp_primzmintzmeq();
 			} else {
 				mp_primzmdrop();
@@ -26330,10 +26733,13 @@ static void mw_std_str_zpStr_deczmintz63U (void) {
 	while(1) {
 		mp_primzmdup();
 		mw_std_str_zpStr_numzmbytesz63U();
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		mp_primzmintzmlt();
 		if (! pop_u64()) break;
 		mp_primzmdup();
@@ -26352,6 +26758,7 @@ static void mw_std_str_zpStr_deczmintz63U (void) {
 			mp_primzmintzmadd();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 	}
@@ -26360,17 +26767,22 @@ static void mw_std_str_zpStr_deczmintz63U (void) {
 }
 static void mw_std_str_zpStr_hexzmintz63U (void) {
 	mw_std_str_zpStr_intzmsign();
+	mw_std_prelude_Offset_zsOffset();
 	push_i64(1LL);
 	mp_primzmintzmadd();
+	mw_std_prelude_Offset_zsOffset();
 	push_i64(1LL);
 	mp_primzmintzmadd();
 	while(1) {
 		mp_primzmdup();
 		mw_std_str_zpStr_numzmbytesz63U();
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		mp_primzmintzmlt();
 		if (! pop_u64()) break;
 		mp_primzmdup();
@@ -26387,6 +26799,7 @@ static void mw_std_str_zpStr_hexzmintz63U (void) {
 			mp_primzmintzmadd();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 	}
@@ -26395,17 +26808,22 @@ static void mw_std_str_zpStr_hexzmintz63U (void) {
 }
 static void mw_std_str_zpStr_octzmintz63U (void) {
 	mw_std_str_zpStr_intzmsign();
+	mw_std_prelude_Offset_zsOffset();
 	push_i64(1LL);
 	mp_primzmintzmadd();
+	mw_std_prelude_Offset_zsOffset();
 	push_i64(1LL);
 	mp_primzmintzmadd();
 	while(1) {
 		mp_primzmdup();
 		mw_std_str_zpStr_numzmbytesz63U();
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		mp_primzmintzmlt();
 		if (! pop_u64()) break;
 		mp_primzmdup();
@@ -26424,6 +26842,7 @@ static void mw_std_str_zpStr_octzmintz63U (void) {
 			mp_primzmintzmadd();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		push_i64(1LL);
 		mp_primzmintzmadd();
 	}
@@ -26983,8 +27402,8 @@ static void mw_mirth_elab_zpTypeElab_elabzmimplicitzmvarzn (void) {
 	mw_mirth_elab_zpTypeElab_ctx();
 	mw_mirth_var_Ctx_lookup();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdup();
 			{
 				VAL d4 = pop_value();
@@ -27008,16 +27427,16 @@ static void mw_mirth_elab_zpTypeElab_elabzmimplicitzmvarzn (void) {
 				mp_primzmdrop();
 				push_value(d4);
 			}
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_elab_zpTypeElab_allowzmimplicitzmtypezmvars();
 			if (pop_u64()) {
 				mw_mirth_var_Var_newzn();
 				push_fnptr(&mb_mirth_elab_zpTypeElab_elabzmimplicitzmvarzn_4);
 				mw_mirth_elab_zpTypeElab_ctx_1();
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 			} else {
 				mw_mirth_elab_zpTypeElab_token();
 				{
@@ -27033,7 +27452,7 @@ static void mw_mirth_elab_zpTypeElab_elabzmimplicitzmvarzn (void) {
 				mw_mirth_token_emitzmerrorzn();
 				mp_primzmdrop();
 				mp_primzmdrop();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 			}
 			break;
 		default:
@@ -27178,7 +27597,7 @@ static void mw_mirth_elab_resolvezmdef_1 (void) {
 			case 0LL: // Nil
 				(void)pop_u64();
 				mw_mirth_elab_zpResolveDef_resolvezmdefzmunknown();
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				break;
 			case 1LL: // Cons
 				mtp_std_list_List_1_Cons();
@@ -27186,7 +27605,7 @@ static void mw_mirth_elab_resolvezmdef_1 (void) {
 					case 0LL: // Nil
 						(void)pop_u64();
 						mw_mirth_elab_zpResolveDef_rdrop();
-						mtw_std_maybe_Maybe_1_SOME();
+						mtw_std_maybe_Maybe_1_Some();
 						break;
 					case 1LL: // Cons
 						mtp_std_list_List_1_Cons();
@@ -27194,7 +27613,7 @@ static void mw_mirth_elab_resolvezmdef_1 (void) {
 						mp_primzmdrop();
 						mp_primzmdrop();
 						mw_mirth_elab_zpResolveDef_resolvezmdefzmambiguous();
-						push_u64(0LL); // NONE
+						push_u64(0LL); // None
 						break;
 					default:
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -27399,10 +27818,10 @@ static void mw_mirth_name_QName_climbzmupzmnamez63U (void) {
 	mw_mirth_name_Name_zeze();
 	if (pop_u64()) {
 		mw_mirth_name_QName_namespace();
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 }
 static void mw_mirth_name_QName_climbzmupzmdnamez63U (void) {
@@ -27908,12 +28327,12 @@ static void mw_mirth_elab_atomszmhaszmlastzmblockz63U (void) {
 	mp_primzmdup();
 	mw_std_list_List_1_last();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // F
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_arrow_Atom_op();
 			switch (get_top_data_tag()) {
 				case 13LL: // OP_BLOCK
@@ -27935,12 +28354,12 @@ static void mw_mirth_elab_atomszmhaszmlastzmblockz63U (void) {
 static void mw_mirth_elab_atomszmturnzmlastzmblockzmtozmarg (void) {
 	mw_std_list_List_1_zgListzp();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // Nil
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_std_list_Listzp_1_unsnoc();
 			mp_primzmdup();
 			mw_mirth_arrow_Atom_op();
@@ -28670,12 +29089,12 @@ static void mw_mirth_elab_elabzmatomzmnamezn (void) {
 	mw_mirth_elab_abzmctxz64U();
 	mw_mirth_var_Ctx_lookup();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_elab_elabzmargszn();
 			mw_mirth_elab_abzmvarzn();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_elab_elabzmatomzmresolvezmdefzn();
 			break;
@@ -28726,12 +29145,12 @@ static void mw_mirth_elab_elabzmatomzmresolvezmdefzn (void) {
 	push_fnptr(&mb_mirth_elab_elabzmatomzmresolvezmdefzn_0);
 	mw_mirth_elab_resolvezmdef_1();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_elab_elabzmatomzmfailedzn();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_elab_elabzmatomzmdefzn();
 			break;
 		default:
@@ -29076,12 +29495,12 @@ static void mw_mirth_elab_elabzmexpandzmtensorzn (void) {
 	LPUSH(lbl_tok);
 	mw_mirth_type_StackType_forcezmconsz63Uzn();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_std_prelude_unpack2();
 			LPOP(lbl_tok);
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_u64(0LL); // TYPE_ERROR
@@ -29125,7 +29544,7 @@ static void mw_mirth_elab_elabzmlambdazmparamz63U (void) {
 		mw_mirth_token_Token_namez63U();
 		mw_std_maybe_Maybe_1_unwrap();
 		mw_mirth_var_Var_newzn();
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdup();
 		mw_mirth_token_Token_lsquarez63U();
@@ -29157,9 +29576,9 @@ static void mw_mirth_elab_elabzmlambdazmparamz63U (void) {
 			mw_mirth_token_Token_namez63U();
 			mw_std_maybe_Maybe_1_unwrap();
 			mw_mirth_var_Var_newzmautozmrunzn();
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 		} else {
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 		}
 	}
 }
@@ -29332,7 +29751,48 @@ static void mw_mirth_elab_checkzmmodulezmpath (void) {
 	}
 	mp_primzmstrzmcmp();
 	push_i64(0LL);
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
 	mp_primzmintzmeq();
+	if (pop_u64()) {
+		mp_primzmdrop();
+		mp_primzmdrop();
+		push_u64(1LL); // EQ
+	} else {
+		mp_primzmintzmlt();
+		if (pop_u64()) {
+			push_u64(0LL); // LT
+		} else {
+			push_u64(2LL); // GT
+		}
+	}
+	switch (get_top_data_tag()) {
+		case 0LL: // LT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		case 1LL: // EQ
+			(void)pop_u64();
+			push_u64(1LL); // T
+			break;
+		case 2LL: // GT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
 	push_fnptr(&mb_mirth_elab_checkzmmodulezmpath_1);
 	mw_std_prim_Bool_else_1();
 	mp_primzmdrop();
@@ -29422,8 +29882,8 @@ static void mw_mirth_elab_loadzmmodule (void) {
 	mp_primzmdup();
 	mw_mirth_name_QName_defz63U();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_def_Def_modulez63U();
 			push_fnptr(&mb_mirth_elab_loadzmmodule_0);
 			mw_std_maybe_Maybe_1_unwrapzmor_1();
@@ -29433,7 +29893,7 @@ static void mw_mirth_elab_loadzmmodule (void) {
 				push_value(d4);
 			}
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_name_QName_tozmmodulezmpath();
 			mw_mirth_lexer_runzmlexerzn();
@@ -29504,7 +29964,7 @@ static void mw_mirth_elab_elabzmdatazmheaderzn (void) {
 		push_value(d2);
 	}
 	mp_primzmswap();
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	mp_primzmswap();
 	mfld_mirth_data_Data_z126Uheadz63U();
 	mp_primzmmutzmset();
@@ -29584,7 +30044,7 @@ static void mw_mirth_elab_elabzmdatazmtagzn (void) {
 	push_i64(0LL);
 	mw_mirth_data_datazmqname();
 	mw_mirth_data_Tag_alloczn();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -29645,7 +30105,7 @@ static void mw_mirth_elab_elabzmdatazmtagzn (void) {
 	mw_mirth_token_Token_patzmarrowz63U();
 	if (pop_u64()) {
 		mw_mirth_token_Token_succ();
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 		{
 			VAL d3 = pop_value();
 			mp_primzmdup();
@@ -29659,7 +30119,7 @@ static void mw_mirth_elab_elabzmdatazmtagzn (void) {
 		mw_mirth_token_Token_runzmendz63U();
 		if (pop_u64()) {
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			{
 				VAL d4 = pop_value();
 				mp_primzmdup();
@@ -29769,7 +30229,7 @@ static void mw_mirth_elab_datazmwordzmnewzn (void) {
 	}
 	mw_mirth_data_datazmwordzmqname();
 	LPUSH(lbl_qname);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_sig);
 	mw_mirth_word_Word_newzn();
 }
@@ -29797,8 +30257,8 @@ static void mw_mirth_elab_elabzmdatazmdonezn (void) {
 		mw_mirth_data_Data_tags();
 		mw_std_list_List_1_zsL1();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				{
 					VAL var_tag = pop_value();
 					incref(var_dat);
@@ -29849,7 +30309,7 @@ static void mw_mirth_elab_elabzmdatazmdonezn (void) {
 						mp_primzmmutzmset();
 						incref(var_untag);
 						push_value(var_untag);
-						mtw_std_maybe_Maybe_1_SOME();
+						mtw_std_maybe_Maybe_1_Some();
 						incref(var_tag);
 						push_value(var_tag);
 						mfld_mirth_data_Tag_z126Uuntag();
@@ -29862,7 +30322,7 @@ static void mw_mirth_elab_elabzmdatazmdonezn (void) {
 					decref(var_tag);
 				}
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				break;
 			default:
@@ -29880,7 +30340,7 @@ static void mw_mirth_data_Tag_outputzmtype (void) {
 	switch (get_top_data_tag()) {
 		case 5LL: // STCons
 			mtp_mirth_type_StackType_STCons();
-			mtw_std_either_Either_2_LEFT();
+			mtw_std_either_Either_2_Left();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -29890,7 +30350,7 @@ static void mw_mirth_data_Tag_outputzmtype (void) {
 			break;
 		case 7LL: // STWith
 			mtp_mirth_type_StackType_STWith();
-			mtw_std_either_Either_2_RIGHT();
+			mtw_std_either_Either_2_Right();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -30182,7 +30642,7 @@ static void mw_mirth_elab_elabzmdefzn (void) {
 	push_fnptr(&mb_mirth_elab_elabzmdefzn_2);
 	mw_std_prim_Bool_else_1();
 	LPUSH(lbl_body);
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_sig);
 	mp_primzmdup();
 	LPUSH(lbl_head);
@@ -30500,7 +30960,7 @@ static void mw_mirth_elab_elabzmdefzmtypezn (void) {
 	mw_mirth_elab_elabzmdefzmqnamezmundefined();
 	{
 		VAL d2 = pop_value();
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 		push_value(d2);
 	}
 	{
@@ -30635,7 +31095,7 @@ static void mw_mirth_elab_elabzmembedzmstrzn (void) {
 	LPUSH(lbl_qname);
 	mp_primzmdup();
 	LPUSH(lbl_body);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_sig);
 	push_i64(0LL);
 	LPUSH(lbl_arity);
@@ -30644,6 +31104,7 @@ static void mw_mirth_elab_elabzmembedzmstrzn (void) {
 	push_fnptr(&mb_mirth_elab_elabzmembedzmstrzn_1);
 	mw_std_maybe_Maybe_1_unwrapzmor_1();
 	mw_std_prim_zpWorld_openzmfilezn();
+	mw_std_file_zpFilez63U_unwrapzn();
 	mw_std_file_zpFile_readzmfilezn();
 	mw_std_file_zpFile_closezmfilezn();
 	{
@@ -30706,7 +31167,7 @@ static void mw_mirth_elab_tablezmwordzmnewzn (void) {
 	mp_primzmdup();
 	LPUSH(lbl_head);
 	LPUSH(lbl_body);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_sig);
 	mp_primzmdup();
 	LPUSH(lbl_arity);
@@ -31222,13 +31683,13 @@ static void mw_mirth_elab_modulezmvisiblezmfromzmtokenz63U (void) {
 static void mw_mirth_elab_defzmvisiblezmfromzmtokenz63U (void) {
 	mw_mirth_def_Def_definingzmmodulez63U();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mp_primzmdrop();
 			push_u64(1LL); // T
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_elab_modulezmvisiblezmfromzmtokenz63U();
 			break;
 		default:
@@ -31283,8 +31744,8 @@ static void mw_mirth_elab_elabzmdefzmqname (void) {
 	push_fnptr(&mb_mirth_elab_elabzmdefzmqname_0);
 	mw_std_maybe_Maybe_1_unwrapzmor_1();
 	switch (get_top_data_tag()) {
-		case 0LL: // LEFT
-			mtp_std_either_Either_2_LEFT();
+		case 0LL: // Left
+			mtp_std_either_Either_2_Left();
 			LPUSH(lbl_name);
 			mp_primzmdup();
 			mw_mirth_token_Token_module();
@@ -31294,8 +31755,8 @@ static void mw_mirth_elab_elabzmdefzmqname (void) {
 			LPUSH(lbl_arity);
 			mtw_mirth_name_QName_MKQNAME();
 			break;
-		case 1LL: // RIGHT
-			mtp_std_either_Either_2_RIGHT();
+		case 1LL: // Right
+			mtp_std_either_Either_2_Right();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdup();
@@ -31694,14 +32155,14 @@ static void mw_mirth_specializzer_zpSPCheck_checkzmwordzmatomzn (void) {
 	mw_mirth_arrow_Atom_args();
 	mw_std_list_List_1_zgListzp();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mp_primzmdrop();
 			push_u64(0LL); // Nil
 			mtw_std_list_List_1_Cons();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdup();
 			push_fnptr(&mb_mirth_specializzer_zpSPCheck_checkzmwordzmatomzn_0);
 			mw_std_list_Listzp_1_for_1();
@@ -31856,8 +32317,8 @@ static void mw_mirth_specializzer_specializzezmwordzn (void) {
 		push_fnptr(&mb_mirth_specializzer_specializzezmwordzn_0);
 		mw_std_map_Map_2_lookup_1();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				push_u64(0LL); // F
 				{
 					VAL d5 = pop_value();
@@ -31868,13 +32329,13 @@ static void mw_mirth_specializzer_specializzezmwordzn (void) {
 				mfld_mirth_word_Word_z126Upreferzminlinez63U();
 				mp_primzmmutzmset();
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				incref(var_w);
 				push_value(var_w);
 				mw_mirth_word_Word_head();
 				LPUSH(lbl_head);
-				push_u64(0LL); // NONE
+				push_u64(0LL); // None
 				LPUSH(lbl_sig);
 				incref(var_w);
 				push_value(var_w);
@@ -31899,7 +32360,7 @@ static void mw_mirth_specializzer_specializzezmwordzn (void) {
 					incref(var_wzq);
 					push_value(var_wzq);
 					LPUSH(lbl_value);
-					mtw_std_map_KVPair_2_KVPAIR();
+					mtw_std_map_KVPair_2_KVPair();
 					incref(var_w);
 					push_value(var_w);
 					mw_mirth_word_Word_spzmsynthed();
@@ -32145,13 +32606,13 @@ static void mw_mirth_specializzer_zpSPSynth_synthzmblockzn (void) {
 	push_fnptr(&mb_mirth_specializzer_zpSPSynth_synthzmblockzn_0);
 	mw_std_maybe_Maybe_1_bind_1();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_fnptr(&mb_mirth_specializzer_zpSPSynth_synthzmblockzn_2);
 			mw_mirth_specializzer_zpSPSynth_ab_1();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -32176,8 +32637,8 @@ static void mw_mirth_specializzer_zpSPSynth_synthzmvarzn (void) {
 	push_fnptr(&mb_mirth_specializzer_zpSPSynth_synthzmvarzn_0);
 	mw_std_map_Map_2_lookup_1();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -32187,7 +32648,7 @@ static void mw_mirth_specializzer_zpSPSynth_synthzmvarzn (void) {
 			push_fnptr(&mb_mirth_specializzer_zpSPSynth_synthzmvarzn_1);
 			mw_mirth_specializzer_zpSPSynth_ab_1();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_fnptr(&mb_mirth_specializzer_zpSPSynth_synthzmvarzn_2);
 			mw_mirth_specializzer_zpSPSynth_ab_1();
@@ -32218,10 +32679,10 @@ static void mw_std_output_OUTPUTzuBUFFERzuSIZZE (void) {
 	push_i64(4096LL);
 	mw_std_prim_Int_zgNat();
 }
-static void mw_std_output_zmOUTPUT (void) {
+static void mw_std_output_zpOutput_zszpOutput (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +OUTPUT
-			mtp_std_output_zpOutput_zpOUTPUT();
+		case 0LL: // +Output
+			mtp_std_output_zpOutput_zpOutput();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -32233,39 +32694,40 @@ static void mw_std_output_zpOutput_startzn (void) {
 	mw_std_prim_Int_zgNat();
 	mw_std_output_OUTPUTzuBUFFERzuSIZZE();
 	mw_std_buffer_zpBuffer_new();
-	mtw_std_output_zpOutput_zpOUTPUT();
+	mtw_std_output_zpOutput_zpOutput();
 }
 static void mw_std_output_zpOutput_endzn (void) {
 	mw_std_output_zpOutput_flushzn();
-	mw_std_output_zmOUTPUT();
+	mw_std_output_zpOutput_zszpOutput();
 	mp_primzmdrop();
 	mw_std_buffer_zpBuffer_rdrop();
 }
 static void mw_std_output_zpOutput_offsetz64U (void) {
 	mw_std_output_zpOutput_sizzez64U();
+	mw_std_prelude_Sizze_zsSizze();
 }
 static void mw_std_output_zpOutput_sizzez64U (void) {
-	mw_std_output_zmOUTPUT();
+	mw_std_output_zpOutput_zszpOutput();
 	mp_primzmdup();
 	{
 		VAL d2 = pop_value();
-		mtw_std_output_zpOutput_zpOUTPUT();
+		mtw_std_output_zpOutput_zpOutput();
 		push_value(d2);
 	}
 }
 static void mw_std_output_zpOutput_sizzezn (void) {
 	{
 		VAL d2 = pop_value();
-		mw_std_output_zmOUTPUT();
+		mw_std_output_zpOutput_zszpOutput();
 		mp_primzmdrop();
 		push_value(d2);
 	}
-	mtw_std_output_zpOutput_zpOUTPUT();
+	mtw_std_output_zpOutput_zpOutput();
 }
 static void mw_std_output_zpOutput_z126UFile_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_std_output_zmOUTPUT();
+		mw_std_output_zpOutput_zszpOutput();
 		{
 			VAL d3 = pop_value();
 			{
@@ -32276,14 +32738,14 @@ static void mw_std_output_zpOutput_z126UFile_1 (void) {
 			}
 			push_value(d3);
 		}
-		mtw_std_output_zpOutput_zpOUTPUT();
+		mtw_std_output_zpOutput_zpOutput();
 		decref(var_f);
 	}
 }
 static void mw_std_output_zpOutput_z126UBuffer_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_std_output_zmOUTPUT();
+		mw_std_output_zpOutput_zszpOutput();
 		{
 			VAL d3 = pop_value();
 			incref(var_f);
@@ -32302,7 +32764,7 @@ static void mw_std_output_zpOutput_z126UBuffer_1 (void) {
 			}
 			push_value(d3);
 		}
-		mtw_std_output_zpOutput_zpOUTPUT();
+		mtw_std_output_zpOutput_zpOutput();
 		decref(var_f);
 	}
 }
@@ -32325,8 +32787,10 @@ static void mw_std_output_zpOutput_capacityzmremaining (void) {
 	mw_std_output_zpOutput_sizzez64U();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -32340,8 +32804,10 @@ static void mw_std_output_zpOutput_fullz63U (void) {
 	mw_std_prim_Int_zgNat();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -32357,8 +32823,10 @@ static void mw_std_output_zpOutput_put (void) {
 	mw_std_output_zpOutput_capacityzmremaining();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -32379,8 +32847,10 @@ static void mw_std_output_zpOutput_put (void) {
 		mw_std_output_zpOutput_sizzez64U();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_value(d3);
 		}
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
 			push_value(d3);
@@ -32397,6 +32867,7 @@ static void mw_std_output_zpOutput_putzmbyte (void) {
 	push_fnptr(&mb_std_output_zpOutput_putzmbyte_1);
 	mw_std_output_zpOutput_z126UBuffer_1();
 	mw_std_output_zpOutput_sizzez64U();
+	mw_std_prelude_Sizze_zsSizze();
 	push_i64(1LL);
 	mp_primzmintzmadd();
 	mw_std_output_zpOutput_sizzezn();
@@ -32405,10 +32876,10 @@ static void mw_std_output_zpOutput_line (void) {
 	push_u64(10LL); // BLF
 	mw_std_output_zpOutput_putzmbyte();
 }
-static void mw_std_set_zmSET (void) {
+static void mw_std_set_zpSet_1_zszpSet (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +SET
-			mtp_std_set_zpSet_1_zpSET();
+		case 0LL: // +Set
+			mtp_std_set_zpSet_1_zpSet();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -32418,19 +32889,19 @@ static void mw_std_set_zmSET (void) {
 static void mw_std_set_zpSet_1_z126UBuffer_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_std_set_zmSET();
+		mw_std_set_zpSet_1_zszpSet();
 		{
 			VAL d3 = pop_value();
 			incref(var_f);
 			run_value(var_f);
 			push_value(d3);
 		}
-		mtw_std_set_zpSet_1_zpSET();
+		mtw_std_set_zpSet_1_zpSet();
 		decref(var_f);
 	}
 }
 static void mw_std_set_zpSet_1_index (void) {
-	mw_std_set_zmSET();
+	mw_std_set_zpSet_1_zszpSet();
 	mp_primzmdup();
 	{
 		VAL d2 = pop_resource();
@@ -32441,10 +32912,7 @@ static void mw_std_set_zpSet_1_index (void) {
 		}
 		push_resource(d2);
 	}
-	mtw_std_set_zpSet_1_zpSET();
-	push_fnptr(&mb_std_set_zpSet_1_index_2);
-	push_fnptr(&mb_std_set_zpSet_1_index_3);
-	mw_std_prelude_expectzn_2();
+	mtw_std_set_zpSet_1_zpSet();
 }
 static void mw_std_set_SETzuINITIALzuSIZZE (void) {
 	push_i64(256LL);
@@ -32457,18 +32925,23 @@ static void mw_std_set_zpSet_1_new_1 (void) {
 		push_value(var_f);
 		mw_std_set_SETzuINITIALzuSIZZE();
 		mw_std_buffer_zpBuffer_new();
-		mtw_std_set_zpSet_1_zpSET();
+		mtw_std_set_zpSet_1_zpSet();
 		decref(var_f);
 	}
 }
 static void mw_std_set_zpSet_1_rdrop (void) {
-	mw_std_set_zmSET();
+	mw_std_set_zpSet_1_zszpSet();
 	mp_primzmdrop();
 	mw_std_buffer_zpBuffer_rdrop();
 }
 static void mw_std_set_zpSet_1_offsetzmmask (void) {
 	mw_std_set_zpSet_1_index();
 	push_i64(8LL);
+	mw_std_prim_Int_zgNat();
+	{
+		VAL d2 = pop_value();
+		push_value(d2);
+	}
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -32489,13 +32962,16 @@ static void mw_std_set_zpSet_1_offsetzmmask (void) {
 	}
 	{
 		VAL d2 = pop_value();
+		push_value(d2);
+	}
+	{
+		VAL d2 = pop_value();
 		mp_primzmdup();
 		push_value(d2);
 	}
 	mp_primzmswap();
 	push_i64(1LL);
 	mp_primzmintzmadd();
-	mw_std_prim_Int_zgNat();
 	push_fnptr(&mb_std_set_zpSet_1_offsetzmmask_0);
 	mw_std_set_zpSet_1_z126UBuffer_1();
 	{
@@ -32503,7 +32979,14 @@ static void mw_std_set_zpSet_1_offsetzmmask (void) {
 		push_value(d2);
 	}
 	push_i64(1LL);
+	mw_std_prim_Int_zgNat();
 	mp_primzmswap();
+	{
+		VAL d2 = pop_value();
+		mw_std_prelude_Nat_zsNatUnsafe();
+		push_value(d2);
+	}
+	mw_std_prelude_Nat_zsNatUnsafe();
 	mp_primzmintzmshl();
 	mw_std_prim_Int_zgU8();
 }
@@ -32525,13 +33008,14 @@ static void mw_std_set_zpSet_1_insertzn (void) {
 	push_fnptr(&mb_std_set_zpSet_1_insertzn_0);
 	mw_std_set_zpSet_1_z126UBuffer_1();
 }
-static void mw_mirth_need_Need_zgInt (void) {
+static void mw_mirth_need_Need_zgNat (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // NEED_WORD
 			mtp_mirth_need_Need_NEEDzuWORD();
 			mw_mirth_word_Word_index();
 			push_i64(4LL);
 			mp_primzmintzmmul();
+			mw_std_prim_Int_zgNat();
 			break;
 		case 1LL: // NEED_BLOCK
 			mtp_mirth_need_Need_NEEDzuBLOCK();
@@ -32540,6 +33024,7 @@ static void mw_mirth_need_Need_zgInt (void) {
 			mp_primzmintzmmul();
 			push_i64(1LL);
 			mp_primzmintzmadd();
+			mw_std_prim_Int_zgNat();
 			break;
 		case 2LL: // NEED_TAGW
 			mtp_mirth_need_Need_NEEDzuTAGW();
@@ -32548,6 +33033,7 @@ static void mw_mirth_need_Need_zgInt (void) {
 			mp_primzmintzmmul();
 			push_i64(2LL);
 			mp_primzmintzmadd();
+			mw_std_prim_Int_zgNat();
 			break;
 		case 3LL: // NEED_TAGP
 			mtp_mirth_need_Need_NEEDzuTAGP();
@@ -32556,64 +33042,85 @@ static void mw_mirth_need_Need_zgInt (void) {
 			mp_primzmintzmmul();
 			push_i64(3LL);
 			mp_primzmintzmadd();
+			mw_std_prim_Int_zgNat();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_mirth_need_zmNEEDS (void) {
+static void mw_mirth_need_zpNeeds_zszpNeeds (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // +NEEDS
-			mtp_mirth_need_zpNeeds_zpNEEDS();
+		case 0LL: // +Needs
+			mtp_mirth_need_zpNeeds_zpNeeds();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primzmpanic();
 	}
 }
-static void mw_mirth_need_zpNeeds_z126UStack_1 (void) {
+static void mw_mirth_need_zpNeeds_stack (void) {
+	VAL v = top_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL u = VTUP(v)->cells[2];
+	incref(u);
+	push_value(u);
+}
+static void mw_mirth_need_zpNeeds_stackzn (void) {
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[2];
+	VAL t = *p; *p = u; decref(t);
+}
+static void mw_mirth_need_zpNeeds_stack_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_mirth_need_zmNEEDS();
+		mw_mirth_need_zpNeeds_stack();
 		{
 			VAL d3 = pop_resource();
 			incref(var_f);
 			run_value(var_f);
 			push_resource(d3);
 		}
-		mtw_mirth_need_zpNeeds_zpNEEDS();
+		mw_mirth_need_zpNeeds_stackzn();
 		decref(var_f);
 	}
 }
-static void mw_mirth_need_zpNeeds_z126USet_1 (void) {
+static void mw_mirth_need_zpNeeds_set_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_mirth_need_zmNEEDS();
+		mw_mirth_need_zpNeeds_zszpNeeds();
+		LPOP(lbl_stack);
 		{
 			VAL d3 = pop_value();
 			incref(var_f);
 			run_value(var_f);
 			push_value(d3);
 		}
-		mtw_mirth_need_zpNeeds_zpNEEDS();
+		LPUSH(lbl_stack);
+		mtw_mirth_need_zpNeeds_zpNeeds();
 		decref(var_f);
 	}
 }
 static void mw_mirth_need_zpNeeds_new (void) {
-	push_u64(0LL); // STACK_NIL
+	push_u64(0LL); // Nil
+	LPUSH(lbl_stack);
 	push_fnptr(&mb_mirth_need_zpNeeds_new_0);
 	mw_std_set_zpSet_1_new_1();
-	mtw_mirth_need_zpNeeds_zpNEEDS();
+	mtw_mirth_need_zpNeeds_zpNeeds();
 }
 static void mw_mirth_need_zpNeeds_rdrop (void) {
-	mw_mirth_need_zmNEEDS();
+	mw_mirth_need_zpNeeds_zszpNeeds();
 	mw_std_set_zpSet_1_rdrop();
+	LPOP(lbl_stack);
 	mp_primzmdrop();
 }
 static void mw_mirth_need_Need_neededz63U (void) {
 	push_fnptr(&mb_mirth_need_Need_neededz63U_0);
-	mw_mirth_need_zpNeeds_z126USet_1();
+	mw_mirth_need_zpNeeds_set_1();
 }
 static void mw_mirth_word_Word_neededz63U (void) {
 	mtw_mirth_need_Need_NEEDzuWORD();
@@ -32634,9 +33141,15 @@ static void mw_mirth_data_Tag_patzmneededz63U (void) {
 static void mw_mirth_need_zpNeeds_needzn (void) {
 	mp_primzmdup();
 	mw_mirth_need_Need_neededz63U();
-	push_fnptr(&mb_mirth_need_zpNeeds_needzn_0);
-	mw_std_prim_Bool_else_1();
-	mp_primzmdrop();
+	if (pop_u64()) {
+		mp_primzmdrop();
+	} else {
+		mp_primzmdup();
+		push_fnptr(&mb_mirth_need_zpNeeds_needzn_2);
+		mw_mirth_need_zpNeeds_set_1();
+		push_fnptr(&mb_mirth_need_zpNeeds_needzn_3);
+		mw_mirth_need_zpNeeds_stack_1();
+	}
 }
 static void mw_mirth_need_zpNeeds_needzmwordzn (void) {
 	mtw_mirth_need_Need_NEEDzuWORD();
@@ -32937,12 +33450,12 @@ static void mw_mirth_need_zpNeeds_pushzmblockzn (void) {
 	mp_primzmdup();
 	mw_mirth_arrow_Block_tozmrunzmvar();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mp_primzmdrop();
 			mp_primzmdrop();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_need_zpNeeds_needzmblockzn();
 			break;
@@ -33102,6 +33615,7 @@ static void mw_mirth_c99_c99zmstartzn (void) {
 	mw_mirth_c99_C99zuOptions_outputzmpath();
 	mw_mirth_c99_OutputPath_aszmrelativezmpath();
 	mw_std_prim_zpWorld_createzmfilezn();
+	mw_std_file_zpFilez63U_unwrapzn();
 	mw_std_output_zpOutput_startzn();
 	{
 		VAL d2 = pop_resource();
@@ -34683,6 +35197,7 @@ static void mw_mirth_c99_c99zmbufferzn (void) {
 	mw_mirth_c99_zpC99_put();
 	mp_primzmdup();
 	mw_mirth_buffer_Buffer_sizze();
+	mw_std_prelude_Sizze_zsSizze();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_zpC99_put();
 	{
@@ -35831,8 +36346,8 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 			mp_primzmdup();
 			mw_std_list_List_1_zsL1();
 			switch (get_top_data_tag()) {
-				case 1LL: // SOME
-					mtp_std_maybe_Maybe_1_SOME();
+				case 1LL: // Some
+					mtp_std_maybe_Maybe_1_Some();
 					{
 						VAL d6 = pop_value();
 						mp_primzmdrop();
@@ -35845,7 +36360,7 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 					push_fnptr(&mb_mirth_c99_c99zmprimzn_4);
 					mw_mirth_c99_c99zmline_1();
 					break;
-				case 0LL: // NONE
+				case 0LL: // None
 					(void)pop_u64();
 					push_u64(4LL); // PRIM_CORE_DIP
 					mw_mirth_c99_c99zmprimzmdefaultzn();
@@ -35860,8 +36375,8 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 			mp_primzmdup();
 			mw_std_list_List_1_zsL1();
 			switch (get_top_data_tag()) {
-				case 1LL: // SOME
-					mtp_std_maybe_Maybe_1_SOME();
+				case 1LL: // Some
+					mtp_std_maybe_Maybe_1_Some();
 					{
 						VAL d6 = pop_value();
 						mp_primzmdrop();
@@ -35874,7 +36389,7 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 					push_fnptr(&mb_mirth_c99_c99zmprimzn_9);
 					mw_mirth_c99_c99zmline_1();
 					break;
-				case 0LL: // NONE
+				case 0LL: // None
 					(void)pop_u64();
 					push_u64(13LL); // PRIM_CORE_RDIP
 					mw_mirth_c99_c99zmprimzmdefaultzn();
@@ -35889,8 +36404,8 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 			mp_primzmdup();
 			mw_std_list_List_1_zsL2();
 			switch (get_top_data_tag()) {
-				case 1LL: // SOME
-					mtp_std_maybe_Maybe_1_SOME();
+				case 1LL: // Some
+					mtp_std_maybe_Maybe_1_Some();
 					{
 						VAL d6 = pop_value();
 						mp_primzmdrop();
@@ -35908,7 +36423,7 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 					push_fnptr(&mb_mirth_c99_c99zmprimzn_14);
 					mw_mirth_c99_c99zmline_1();
 					break;
-				case 0LL: // NONE
+				case 0LL: // None
 					(void)pop_u64();
 					push_u64(5LL); // PRIM_CORE_IF
 					mw_mirth_c99_c99zmprimzmdefaultzn();
@@ -35923,8 +36438,8 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 			mp_primzmdup();
 			mw_std_list_List_1_zsL2();
 			switch (get_top_data_tag()) {
-				case 1LL: // SOME
-					mtp_std_maybe_Maybe_1_SOME();
+				case 1LL: // Some
+					mtp_std_maybe_Maybe_1_Some();
 					{
 						VAL d6 = pop_value();
 						mp_primzmdrop();
@@ -35938,7 +36453,7 @@ static void mw_mirth_c99_c99zmprimzn (void) {
 					push_fnptr(&mb_mirth_c99_c99zmprimzn_18);
 					mw_mirth_c99_c99zmline_1();
 					break;
-				case 0LL: // NONE
+				case 0LL: // None
 					(void)pop_u64();
 					push_u64(6LL); // PRIM_CORE_WHILE
 					mw_mirth_c99_c99zmprimzmdefaultzn();
@@ -36017,8 +36532,8 @@ static void mw_mirth_c99_c99zmblockzmpushzn (void) {
 	mp_primzmdup();
 	mw_mirth_arrow_Block_tozmrunzmvar();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdrop();
@@ -36026,7 +36541,7 @@ static void mw_mirth_c99_c99zmblockzmpushzn (void) {
 			}
 			mw_mirth_c99_c99zmvarzmpushzn();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_fnptr(&mb_mirth_c99_c99zmblockzmpushzn_0);
 			mw_mirth_c99_c99zmline_1();
@@ -36572,7 +37087,7 @@ static void mw_mirth_main_Arguments_default (void) {
 		incref(v);
 	}
 	LPUSH(lbl_inputzmfile);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_outputzmfile);
 	{
 		static bool vready = false;
@@ -36584,7 +37099,7 @@ static void mw_mirth_main_Arguments_default (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_entryzmpoint);
 	push_u64(0LL); // Nil
 	LPUSH(lbl_packages);
@@ -36681,8 +37196,8 @@ static void mw_mirth_main_compilezn (void) {
 		mw_std_prim_Str_tracezmlnzn();
 	}
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			{
 				static bool vready = false;
 				static VAL v;
@@ -36712,7 +37227,7 @@ static void mw_mirth_main_compilezn (void) {
 			mw_mirth_c99_C99zuOptions_make();
 			mw_mirth_c99_runzmoutputzmc99zn();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			{
 				static bool vready = false;
@@ -36789,7 +37304,7 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 					mp_primzmswap();
 					mp_primzmdrop();
 					push_u64(5LL); // UNKNOWN_ARG
-					mtw_std_maybe_Maybe_1_SOME();
+					mtw_std_maybe_Maybe_1_Some();
 					push_fnptr(&mb_mirth_main_compilerzmparsezmargs_6);
 					mw_argzmparser_types_zpArgumentParser_1_state_1();
 					break;
@@ -36812,7 +37327,7 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 					push_value(d5);
 				}
 				push_u64(3LL); // TOO_MANY_ARGS
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_fnptr(&mb_mirth_main_compilerzmparsezmargs_11);
 				mw_argzmparser_types_zpArgumentParser_1_state_1();
 			}
@@ -36832,7 +37347,48 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 			}
 			mp_primzmstrzmcmp();
 			push_i64(0LL);
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
+			{
+				VAL d4 = pop_value();
+				mp_primzmdup();
+				push_value(d4);
+			}
+			mp_primzmswap();
 			mp_primzmintzmeq();
+			if (pop_u64()) {
+				mp_primzmdrop();
+				mp_primzmdrop();
+				push_u64(1LL); // EQ
+			} else {
+				mp_primzmintzmlt();
+				if (pop_u64()) {
+					push_u64(0LL); // LT
+				} else {
+					push_u64(2LL); // GT
+				}
+			}
+			switch (get_top_data_tag()) {
+				case 0LL: // LT
+					(void)pop_u64();
+					push_u64(0LL); // F
+					break;
+				case 1LL: // EQ
+					(void)pop_u64();
+					push_u64(1LL); // T
+					break;
+				case 2LL: // GT
+					(void)pop_u64();
+					push_u64(0LL); // F
+					break;
+				default:
+					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					mp_primzmpanic();
+			}
 			if (pop_u64()) {
 				mp_primzmdrop();
 				mp_primzmdrop();
@@ -36843,7 +37399,7 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 				mp_primzmdrop();
 				mp_primzmdrop();
 				push_u64(5LL); // UNKNOWN_ARG
-				mtw_std_maybe_Maybe_1_SOME();
+				mtw_std_maybe_Maybe_1_Some();
 				push_fnptr(&mb_mirth_main_compilerzmparsezmargs_14);
 				mw_argzmparser_types_zpArgumentParser_1_state_1();
 			}
@@ -36867,7 +37423,7 @@ static void mw_mirth_main_compilerzmparsezmargs (void) {
 			mp_primzmdrop();
 			mp_primzmdrop();
 			push_u64(5LL); // UNKNOWN_ARG
-			mtw_std_maybe_Maybe_1_SOME();
+			mtw_std_maybe_Maybe_1_Some();
 			mw_argzmparser_types_zpArgumentParser_1_state();
 			mw_argzmparser_state_State_1_errorzn();
 			mw_argzmparser_types_zpArgumentParser_1_statezn();
@@ -36881,7 +37437,7 @@ static void mw_mirth_main_main (void) {
 	mw_std_list_LIST_1();
 	LPUSH(lbl_options);
 	push_fnptr(&mb_mirth_main_main_1);
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_parser);
 	{
 		static bool vready = false;
@@ -36893,7 +37449,7 @@ static void mw_mirth_main_main (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argszmdoc);
 	{
 		static bool vready = false;
@@ -36909,11 +37465,11 @@ static void mw_mirth_main_main (void) {
 	mtw_argzmparser_types_ArgumentParser_1_ArgumentParser();
 	mw_argzmparser_parse_parsezmargs();
 	switch (get_top_data_tag()) {
-		case 1LL: // RIGHT
-			mtp_std_either_Either_2_RIGHT();
+		case 1LL: // Right
+			mtp_std_either_Either_2_Right();
 			break;
-		case 0LL: // LEFT
-			mtp_std_either_Either_2_LEFT();
+		case 0LL: // Left
+			mtp_std_either_Either_2_Left();
 			mw_argzmparser_types_ArgumentParsingError_show();
 			mw_std_prelude_paniczn();
 			break;
@@ -37003,7 +37559,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(111LL); // B'o'
 	mtw_argzmparser_types_ArgpOptionType_SHORT();
@@ -37018,7 +37574,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argzmdoc);
 	{
 		static bool vready = false;
@@ -37030,9 +37586,9 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argzmparser_types_ArgpOption_ArgpOption();
 	mw_std_list_zpList_1_pushzn();
@@ -37046,12 +37602,12 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(99LL); // B'c'
 	mtw_argzmparser_types_ArgpOptionType_SHORT();
 	LPUSH(lbl_flagzmtype);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_argzmdoc);
 	{
 		static bool vready = false;
@@ -37063,9 +37619,9 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argzmparser_types_ArgpOption_ArgpOption();
 	mw_std_list_zpList_1_pushzn();
@@ -37079,7 +37635,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(101LL); // B'e'
 	mtw_argzmparser_types_ArgpOptionType_SHORT();
@@ -37094,7 +37650,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argzmdoc);
 	{
 		static bool vready = false;
@@ -37106,9 +37662,9 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argzmparser_types_ArgpOption_ArgpOption();
 	mw_std_list_zpList_1_pushzn();
@@ -37122,7 +37678,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(112LL); // B'p'
 	mtw_argzmparser_types_ArgpOptionType_SHORT();
@@ -37137,7 +37693,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argzmdoc);
 	{
 		static bool vready = false;
@@ -37149,9 +37705,9 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argzmparser_types_ArgpOption_ArgpOption();
 	mw_std_list_zpList_1_pushzn();
@@ -37165,7 +37721,7 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	{
 		static bool vready = false;
@@ -37179,7 +37735,7 @@ static void mb_mirth_main_main_0 (void) {
 	}
 	mtw_argzmparser_types_ArgpOptionType_LONGzuONLY();
 	LPUSH(lbl_flagzmtype);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_argzmdoc);
 	{
 		static bool vready = false;
@@ -37191,9 +37747,9 @@ static void mb_mirth_main_main_0 (void) {
 		push_value(v);
 		incref(v);
 	}
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argzmparser_types_ArgpOption_ArgpOption();
 	mw_std_list_zpList_1_pushzn();
@@ -37310,6 +37866,35 @@ static void mb_std_terminal_SGRColor_show_1 (void) {
 	mw_std_str_zpStr_pushzmstrzn();
 	mw_std_prim_Int_show();
 	mw_std_str_zpStr_pushzmstrzn();
+}
+static void mb_std_prim_Str_show_0 (void) {
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\"", 1);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_str_zpStr_pushzmstrzn();
+	push_fnptr(&mb_std_prim_Str_show_1);
+	mw_std_prim_Str_byteszmfor_1();
+	{
+		static bool vready = false;
+		static VAL v;
+		if (! vready) {
+			v = mkstr("\"", 1);
+			vready = true;
+		}
+		push_value(v);
+		incref(v);
+	}
+	mw_std_str_zpStr_pushzmstrzn();
+}
+static void mb_std_prim_Str_show_1 (void) {
+	mw_std_str_zpStr_pushzmshowzmbytezn();
 }
 static void mb_std_list_List_1_cat_0 (void) {
 	mp_primzmswap();
@@ -37560,10 +38145,13 @@ static void mb_std_str_zpStr_splitzmbyte_0 (void) {
 			mw_std_str_zpStr_numzmbytesz63U();
 			push_resource(d3);
 		}
+		mw_std_prelude_Sizze_zsSizze();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
+		mw_std_prelude_Offset_zsOffset();
 		mp_primzmintzmlt();
 		if (! pop_u64()) break;
 		{
@@ -37611,10 +38199,12 @@ static void mb_std_str_zpStr_splitzmbyte_0 (void) {
 				push_resource(d4);
 			}
 			mw_std_list_zpList_1_pushzn();
+			mw_std_prelude_Offset_zsOffset();
 			push_i64(1LL);
 			mp_primzmintzmadd();
 			mp_primzmdup();
 		} else {
+			mw_std_prelude_Offset_zsOffset();
 			push_i64(1LL);
 			mp_primzmintzmadd();
 		}
@@ -37637,26 +38227,26 @@ static void mb_std_str_zpStr_splitzmbyte_0 (void) {
 }
 static void mb_std_list_List_1_zsL2_0 (void) {
 	mw_std_prelude_pack2();
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 }
 static void mb_std_list_List_1_zsL2_1 (void) {
 	mp_primzmdrop();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 }
 static void mb_mirth_main_compilerzmparsezmargs_1 (void) {
 	mp_primzmdrop();
 	mw_std_maybe_Maybe_1_unwrap();
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 }
 static void mb_mirth_main_compilerzmparsezmargs_2 (void) {
 	mp_primzmdrop();
 	mw_std_maybe_Maybe_1_unwrap();
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 }
 static void mb_mirth_main_compilerzmparsezmargs_3 (void) {
 	mp_primzmdrop();
 	mp_primzmdrop();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 }
 static void mb_mirth_main_compilerzmparsezmargs_5 (void) {
 	mtw_std_list_List_1_Cons();
@@ -37676,7 +38266,7 @@ static void mb_mirth_main_compilerzmparsezmargs_14 (void) {
 }
 static void mb_mirth_main_compilerzmparsezmargs_15 (void) {
 	push_u64(4LL); // TOO_FEW_ARGS
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	push_fnptr(&mb_mirth_main_compilerzmparsezmargs_16);
 	mw_argzmparser_types_zpArgumentParser_1_state_1();
 }
@@ -37702,7 +38292,7 @@ static void mb_mirth_main_compilerzmparsezmargs_18 (void) {
 		incref(v);
 	}
 	mtw_argzmparser_types_ArgumentParsingError_MISSINGzuARG();
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	push_fnptr(&mb_mirth_main_compilerzmparsezmargs_19);
 	mw_argzmparser_types_zpArgumentParser_1_state_1();
 }
@@ -37775,6 +38365,7 @@ static void mb_argzmparser_parse_parsezmargs_0 (void) {
 static void mb_argzmparser_parse_parsezmargs_1 (void) {
 	mp_primzmstrzmnumzmbytes();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	LPOP(lbl_doczmlength);
 	push_i64(3LL);
 	mp_primzmintzmadd();
@@ -37784,6 +38375,7 @@ static void mb_argzmparser_parse_parsezmargs_1 (void) {
 static void mb_argzmparser_parse_parsezmargs_2 (void) {
 	mp_primzmstrzmnumzmbytes();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	LPOP(lbl_doczmlength);
 	push_i64(2LL);
 	mp_primzmintzmadd();
@@ -37801,8 +38393,10 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 	mw_std_prim_Int_zgNat();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -37828,33 +38422,33 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 				mw_argzmparser_types_zpArgumentParser_1_state();
 				mw_argzmparser_state_State_1_optionzmoption();
 				switch (get_top_data_tag()) {
-					case 1LL: // SOME
-						mtp_std_maybe_Maybe_1_SOME();
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
 						mw_argzmparser_types_ArgpOption_argzmdoc();
 						switch (get_top_data_tag()) {
-							case 1LL: // SOME
-								mtp_std_maybe_Maybe_1_SOME();
+							case 1LL: // Some
+								mtp_std_maybe_Maybe_1_Some();
 								mp_primzmdrop();
 								push_u64(1LL); // MISSING_ARGUMENT_VALUE
-								mtw_std_maybe_Maybe_1_SOME();
+								mtw_std_maybe_Maybe_1_Some();
 								break;
-							case 0LL: // NONE
+							case 0LL: // None
 								(void)pop_u64();
 								push_u64(0LL); // F
 								mw_argzmparser_types_zpArgumentParser_1_state();
 								mw_argzmparser_state_State_1_parsingz63Uzn();
 								mw_argzmparser_types_zpArgumentParser_1_statezn();
-								push_u64(0LL); // NONE
+								push_u64(0LL); // None
 								break;
 							default:
 								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 								mp_primzmpanic();
 						}
 						break;
-					case 0LL: // NONE
+					case 0LL: // None
 						(void)pop_u64();
 						push_u64(1LL); // MISSING_ARGUMENT_VALUE
-						mtw_std_maybe_Maybe_1_SOME();
+						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -37870,17 +38464,17 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 				mw_argzmparser_types_zpArgumentParser_1_state();
 				mw_argzmparser_state_State_1_optionzmoption();
 				switch (get_top_data_tag()) {
-					case 1LL: // SOME
-						mtp_std_maybe_Maybe_1_SOME();
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
 						mw_argzmparser_types_ArgpOption_argzmdoc();
 						switch (get_top_data_tag()) {
-							case 1LL: // SOME
-								mtp_std_maybe_Maybe_1_SOME();
+							case 1LL: // Some
+								mtp_std_maybe_Maybe_1_Some();
 								mp_primzmdrop();
 								mw_argzmparser_types_zpArgumentParser_1_state();
 								mw_argzmparser_state_State_1_arguments();
 								mp_primzmswap();
-								mtw_std_maybe_Maybe_1_SOME();
+								mtw_std_maybe_Maybe_1_Some();
 								mw_argzmparser_types_zpArgumentParser_1_state();
 								mw_argzmparser_state_State_1_optionzmoption();
 								mw_std_maybe_Maybe_1_unwrap();
@@ -37890,24 +38484,24 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 								mp_primzmrun();
 								push_fnptr(&mb_argzmparser_parse_parsezmargs_15);
 								mw_argzmparser_types_zpArgumentParser_1_state_1();
-								push_u64(0LL); // NONE
+								push_u64(0LL); // None
 								break;
-							case 0LL: // NONE
+							case 0LL: // None
 								(void)pop_u64();
 								mp_primzmdrop();
 								push_u64(5LL); // UNKNOWN_ARG
-								mtw_std_maybe_Maybe_1_SOME();
+								mtw_std_maybe_Maybe_1_Some();
 								break;
 							default:
 								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 								mp_primzmpanic();
 						}
 						break;
-					case 0LL: // NONE
+					case 0LL: // None
 						(void)pop_u64();
 						mp_primzmdrop();
 						push_u64(5LL); // UNKNOWN_ARG
-						mtw_std_maybe_Maybe_1_SOME();
+						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
 						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -37922,7 +38516,7 @@ static void mb_argzmparser_parse_parsezmargs_6 (void) {
 		}
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 	push_fnptr(&mb_argzmparser_parse_parsezmargs_17);
 	mw_std_maybe_Maybe_1_thenzmsome_1();
@@ -37934,7 +38528,7 @@ static void mb_argzmparser_parse_parsezmargs_16 (void) {
 	mw_argzmparser_state_State_1_parsingz63Uzn();
 }
 static void mb_argzmparser_parse_parsezmargs_17 (void) {
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	push_fnptr(&mb_argzmparser_parse_parsezmargs_18);
 	mw_argzmparser_types_zpArgumentParser_1_state_1();
 }
@@ -37943,7 +38537,7 @@ static void mb_argzmparser_parse_parsezmargs_18 (void) {
 }
 static void mb_argzmparser_parse_parsezmargs_19 (void) {
 	push_u64(1LL); // MISSING_ARGUMENT_VALUE
-	mtw_std_maybe_Maybe_1_SOME();
+	mtw_std_maybe_Maybe_1_Some();
 	mw_argzmparser_types_zpArgumentParser_1_state();
 	mw_argzmparser_state_State_1_errorzn();
 	mw_argzmparser_types_zpArgumentParser_1_statezn();
@@ -38012,11 +38606,11 @@ static void mb_mirth_elab_zpResolveDef_filter_2_0 (void) {
 	incref(var_p);
 	run_value(var_p);
 	if (pop_u64()) {
-		mtw_std_either_Either_2_RIGHT();
+		mtw_std_either_Either_2_Right();
 	} else {
 		incref(var_q);
 		run_value(var_q);
-		mtw_std_either_Either_2_LEFT();
+		mtw_std_either_Either_2_Left();
 	}
 	decref(var_q);
 	decref(var_p);
@@ -38031,10 +38625,10 @@ static void mb_std_list_List_1_filter_1_0 (void) {
 	incref(var_f);
 	run_value(var_f);
 	if (pop_u64()) {
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 	decref(var_f);
 }
@@ -38200,7 +38794,7 @@ static void mb_std_list_List_1_findzmsome_1_1 (void) {
 		decref(var_f);
 	}
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			break;
 		default:
@@ -38245,10 +38839,10 @@ static void mb_std_list_Listzp_1_find_1_0 (void) {
 	incref(var_f);
 	run_value(var_f);
 	if (pop_u64()) {
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 	decref(var_f);
 }
@@ -38259,10 +38853,10 @@ static void mb_std_list_List_1_find_1_0 (void) {
 	incref(var_f);
 	run_value(var_f);
 	if (pop_u64()) {
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 	decref(var_f);
 }
@@ -38273,10 +38867,10 @@ static void mb_std_list_List_1_reversezmfind_1_0 (void) {
 	incref(var_f);
 	run_value(var_f);
 	if (pop_u64()) {
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 	decref(var_f);
 }
@@ -38517,8 +39111,8 @@ static void mb_std_list_List_1_partitionzmeither_1_0 (void) {
 		decref(var_f);
 	}
 	switch (get_top_data_tag()) {
-		case 0LL: // LEFT
-			mtp_std_either_Either_2_LEFT();
+		case 0LL: // Left
+			mtp_std_either_Either_2_Left();
 			mp_primzmswap();
 			{
 				VAL d4 = pop_value();
@@ -38531,8 +39125,8 @@ static void mb_std_list_List_1_partitionzmeither_1_0 (void) {
 				push_value(d4);
 			}
 			break;
-		case 1LL: // RIGHT
-			mtp_std_either_Either_2_RIGHT();
+		case 1LL: // Right
+			mtp_std_either_Either_2_Right();
 			mp_primzmswap();
 			mtw_std_list_List_1_Cons();
 			break;
@@ -38583,10 +39177,12 @@ static void mb_std_prim_Str_copyzmpartialzn_0 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -38594,6 +39190,7 @@ static void mb_std_prim_Str_copyzmpartialzn_0 (void) {
 		VAL d2 = pop_value();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_value(d3);
 		}
 		mp_primzmptrzmcopy();
@@ -38601,6 +39198,7 @@ static void mb_std_prim_Str_copyzmpartialzn_0 (void) {
 	}
 }
 static void mb_std_prim_Str_bytez64U_0 (void) {
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		{
@@ -38614,8 +39212,10 @@ static void mb_std_prim_Str_bytez64U_0 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
+	mw_std_prelude_Offset_zsOffset();
 	mp_primzmswap();
 	mp_primzmintzmlt();
 	mw_std_prim_Bool_not();
@@ -38627,6 +39227,7 @@ static void mb_std_prim_Str_bytez64U_0 (void) {
 		push_resource(MKU64(0LL)); // +UNSAFE
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
 		mp_primzmptrzmadd();
@@ -38645,6 +39246,7 @@ static void mb_std_prim_Str_byteszmfor_1_0 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_f = pop_value();
 	pop_value();
+	mw_std_prelude_Sizze_zsSizze();
 	push_fnptr(&mb_std_prim_Str_byteszmfor_1_1);
 	incref(var_f);
 	push_value(var_f);
@@ -38698,6 +39300,7 @@ static void mb_std_prim_Str_byteszmfor_1_1 (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -38725,8 +39328,10 @@ static void mb_std_prim_Str_dropzmbytes_2 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -38737,15 +39342,18 @@ static void mb_std_prim_Str_dropzmbytes_2 (void) {
 		VAL d2 = pop_value();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Sizze_zsSizze();
 			push_value(d3);
 		}
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
 		mp_primzmptrzmadd();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmstrzmcopy();
 }
 static void mb_std_prim_Str_fromzmbyteszmunsafe_1 (void) {
@@ -38757,16 +39365,18 @@ static void mb_std_prim_Str_fromzmbyteszmunsafe_1 (void) {
 	}
 	mp_primzmswap();
 	mw_std_buffer_zpBuffer_znU8();
+	mw_std_prelude_Offset_zsOffset();
 	push_i64(1LL);
 	mp_primzmintzmadd();
 }
 static void mb_mirth_need_zpNeeds_new_0 (void) {
-	mw_mirth_need_Need_zgInt();
+	mw_mirth_need_Need_zgNat();
 }
 static void mb_std_prim_Str_withzmdatazmcstr_1_0 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_f = pop_value();
 	pop_value();
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		mp_primzmdup();
@@ -38776,6 +39386,7 @@ static void mb_std_prim_Str_withzmdatazmcstr_1_0 (void) {
 	push_resource(MKU64(0LL)); // +UNSAFE
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
 	mp_primzmptrzmadd();
@@ -38821,11 +39432,13 @@ static void mb_std_prim_Str_slice_0 (void) {
 		VAL d2 = pop_value();
 		{
 			VAL d3 = pop_value();
+			mw_std_prelude_Offset_zsOffset();
 			push_value(d3);
 		}
 		mp_primzmptrzmadd();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	mp_primzmstrzmcopy();
 }
 static void mb_std_prim_Int_zgByte_0 (void) {
@@ -38886,16 +39499,22 @@ static void mb_std_buffer_zpBuffer_checkzmspanzn_0 (void) {
 		push_value(d2);
 	}
 	mp_primzmswap();
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
+	mw_std_prelude_Offset_zsOffset();
 	mp_primzmintzmadd();
 	mw_std_buffer_zpBuffer_bufferzmsizze();
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Offset_zsOffset();
 		push_value(d2);
 	}
+	mw_std_prelude_Offset_zsOffset();
 	mp_primzmswap();
 	mp_primzmintzmlt();
 }
@@ -39007,6 +39626,7 @@ static void mb_argzmparser_parse_printzmusagezmforzmoption_3 (void) {
 	mp_primzmdup();
 	mp_primzmstrzmnumzmbytes();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	LPOP(lbl_colzmoffset);
 	push_i64(2LL);
 	mp_primzmintzmadd();
@@ -39033,6 +39653,7 @@ static void mb_argzmparser_parse_printzmusagezmforzmoption_4 (void) {
 	mp_primzmdup();
 	mp_primzmstrzmnumzmbytes();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	LPOP(lbl_colzmoffset);
 	push_i64(1LL);
 	mp_primzmintzmadd();
@@ -39138,24 +39759,6 @@ static void mb_argzmparser_parse_parsezmflags_4 (void) {
 static void mb_argzmparser_parse_parsezmflags_6 (void) {
 	mw_argzmparser_parse_checkzmshortzmflag();
 }
-static void mb_std_set_zpSet_1_index_2 (void) {
-	mp_primzmdup();
-	push_i64(0LL);
-	mp_primzmintzmlt();
-	mw_std_prim_Bool_not();
-}
-static void mb_std_set_zpSet_1_index_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("negative index not allowed", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-}
 static void mb_argzmparser_parse_argvzmtozmstr_0 (void) {
 	push_i64(1LL);
 	LPUSH(lbl_index);
@@ -39257,46 +39860,40 @@ static void mb_std_prim_zpWorld_openzmfilezn_0 (void) {
 	push_i64(0LL);
 	mp_primzmposixzmopen();
 }
-static void mb_std_prim_zpWorld_openzmfilezn_1 (void) {
-	mp_primzmdup();
-	push_i64(0LL);
-	mp_primzmswap();
-	mp_primzmintzmlt();
-}
-static void mb_std_prim_zpWorld_openzmfilezn_2 (void) {
+static void mb_std_prim_zpWorld_openzmfilezn_3 (void) {
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("failed to open file", 19);
+			v = mkstr("failed to open file: ", 21);
 			vready = true;
 		}
 		push_value(v);
 		incref(v);
 	}
+	mw_std_str_zpStr_pushzmstrzn();
+	mw_std_prim_Str_show();
+	mw_std_str_zpStr_pushzmstrzn();
 }
 static void mb_std_prim_zpWorld_createzmfilezn_0 (void) {
 	mw_std_file_OzuWRONLYzbOzuCREATzbOzuTRUNC();
 	push_i64(438LL);
 	mp_primzmposixzmopen();
 }
-static void mb_std_prim_zpWorld_createzmfilezn_1 (void) {
-	mp_primzmdup();
-	push_i64(0LL);
-	mp_primzmswap();
-	mp_primzmintzmlt();
-}
-static void mb_std_prim_zpWorld_createzmfilezn_2 (void) {
+static void mb_std_prim_zpWorld_createzmfilezn_3 (void) {
 	{
 		static bool vready = false;
 		static VAL v;
 		if (! vready) {
-			v = mkstr("failed to create file", 21);
+			v = mkstr("failed to create file: ", 23);
 			vready = true;
 		}
 		push_value(v);
 		incref(v);
 	}
+	mw_std_str_zpStr_pushzmstrzn();
+	mw_std_prim_Str_show();
+	mw_std_str_zpStr_pushzmstrzn();
 }
 static void mb_std_file_zpFile_closezmfilezn_0 (void) {
 	mp_primzmdup();
@@ -39349,8 +39946,10 @@ static void mb_std_file_zpFile_unsafezmwritezn_5 (void) {
 	mp_primzmswap();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -39393,7 +39992,7 @@ static void mb_std_input_zpInput_readzmfilezn_0 (void) {
 static void mb_std_input_zpInput_readzmfilezn_1 (void) {
 	mp_primzmstrzmcat();
 }
-static void mb_std_input_zpInputOpen_z126UFile_1_0 (void) {
+static void mb_std_input_zpInputOpenState_z126UFile_1_0 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_f = pop_value();
 	pop_value();
@@ -39405,7 +40004,7 @@ static void mb_std_input_zpInputOpen_z126UFile_1_0 (void) {
 	}
 	decref(var_f);
 }
-static void mb_std_input_zpInputOpen_z126UBuffer_1_0 (void) {
+static void mb_std_input_zpInputOpenState_z126UBuffer_1_0 (void) {
 	mp_primzmpackzmuncons();
 	VAL var_f = pop_value();
 	pop_value();
@@ -39425,16 +40024,21 @@ static void mb_std_input_zpInputOpen_z126UBuffer_1_0 (void) {
 	}
 	decref(var_f);
 }
-static void mb_std_input_zpInputOpen_fillzmbufferzn_0 (void) {
+static void mb_std_input_zpInputOpenState_fillzmbufferzn_0 (void) {
 	mw_std_buffer_zpBuffer_bufferzmbase();
 	mw_std_buffer_zpBuffer_bufferzmsizze();
 }
-static void mb_std_input_zpInputOpen_fillzmbufferzn_1 (void) {
+static void mb_std_input_zpInputOpenState_fillzmbufferzn_1 (void) {
 	mw_std_file_zpFile_unsafezmreadzn();
 }
 static void mb_std_input_zpInput_peek_0 (void) {
 	mw_std_buffer_zpBuffer_z64UU8();
 	mw_std_prim_U8_zgByte();
+}
+static void mb_std_input_zpInput_movezn_0 (void) {
+	mw_std_prelude_Offset_zsOffset();
+	push_i64(1LL);
+	mp_primzmintzmadd();
 }
 static void mb_std_input_zpInput_readzmchunkzn_0 (void) {
 	mw_std_buffer_zpBuffer_z64UStr();
@@ -39555,7 +40159,7 @@ static void mb_mirth_name_QName_defz63U_0 (void) {
 }
 static void mb_mirth_package_Package_findzmorzmnewzn_0 (void) {
 	mp_primzmdup();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 	mp_primzmswap();
 	mw_mirth_package_Package_newzn();
 }
@@ -39603,7 +40207,7 @@ static void mb_mirth_type_Type_tyconz63U_0 (void) {
 }
 static void mb_mirth_type_Type_tyconz63U_1 (void) {
 	mp_primzmdrop();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 }
 static void mb_mirth_name_QName_tozmmodulezmpath_0 (void) {
 	{
@@ -39699,7 +40303,48 @@ static void mb_mirth_token_TokenValue_modulezmheaderz63U_0 (void) {
 	}
 	mp_primzmstrzmcmp();
 	push_i64(0LL);
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
 	mp_primzmintzmeq();
+	if (pop_u64()) {
+		mp_primzmdrop();
+		mp_primzmdrop();
+		push_u64(1LL); // EQ
+	} else {
+		mp_primzmintzmlt();
+		if (pop_u64()) {
+			push_u64(0LL); // LT
+		} else {
+			push_u64(2LL); // GT
+		}
+	}
+	switch (get_top_data_tag()) {
+		case 0LL: // LT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		case 1LL: // EQ
+			(void)pop_u64();
+			push_u64(1LL); // T
+			break;
+		case 2LL: // GT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
 }
 static void mb_mirth_token_Token_prev_0 (void) {
 	mw_mirth_token_Token_pred();
@@ -40386,8 +41031,8 @@ static void mb_mirth_data_Data_iszmtransparentz63U_0 (void) {
 		mw_mirth_data_Data_tags();
 		mw_std_list_List_1_zsL1();
 		switch (get_top_data_tag()) {
-			case 1LL: // SOME
-				mtp_std_maybe_Maybe_1_SOME();
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
 				mp_primzmdup();
 				mw_mirth_data_Tag_numzmtypezminputs();
 				push_i64(1LL);
@@ -40408,7 +41053,7 @@ static void mb_mirth_data_Data_iszmtransparentz63U_0 (void) {
 				mp_primzmintzmeq();
 				mw_std_prim_Bool_zaza();
 				break;
-			case 0LL: // NONE
+			case 0LL: // None
 				(void)pop_u64();
 				push_u64(0LL); // F
 				break;
@@ -40578,8 +41223,8 @@ static void mb_mirth_match_Match_iszmexhaustivez63U_0 (void) {
 	mp_primzmdup();
 	mw_mirth_match_Match_scrutineezmdataz63U();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_data_Data_numzmtags();
 			{
 				VAL d4 = pop_value();
@@ -40595,7 +41240,7 @@ static void mb_mirth_match_Match_iszmexhaustivez63U_0 (void) {
 			}
 			mp_primzmintzmeq();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mp_primzmdup();
 			mw_mirth_match_Match_cases();
@@ -40630,15 +41275,15 @@ static void mb_mirth_match_Match_scrutineezmdataz63U_3 (void) {
 	push_fnptr(&mb_mirth_match_Match_scrutineezmdataz63U_5);
 	mw_std_list_List_1_all_1();
 	if (pop_u64()) {
-		mtw_std_maybe_Maybe_1_SOME();
+		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 }
 static void mb_mirth_match_Match_scrutineezmdataz63U_4 (void) {
 	mp_primzmdrop();
-	push_u64(0LL); // NONE
+	push_u64(0LL); // None
 }
 static void mb_mirth_match_Match_scrutineezmdataz63U_5 (void) {
 	mp_primzmdup();
@@ -40879,7 +41524,48 @@ static void mb_mirth_elab_zpTypeElab_elabzmtypezmconzn_0 (void) {
 	}
 	mp_primzmstrzmcmp();
 	push_i64(0LL);
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
+	{
+		VAL d2 = pop_value();
+		mp_primzmdup();
+		push_value(d2);
+	}
+	mp_primzmswap();
 	mp_primzmintzmeq();
+	if (pop_u64()) {
+		mp_primzmdrop();
+		mp_primzmdrop();
+		push_u64(1LL); // EQ
+	} else {
+		mp_primzmintzmlt();
+		if (pop_u64()) {
+			push_u64(0LL); // LT
+		} else {
+			push_u64(2LL); // GT
+		}
+	}
+	switch (get_top_data_tag()) {
+		case 0LL: // LT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		case 1LL: // EQ
+			(void)pop_u64();
+			push_u64(1LL); // T
+			break;
+		case 2LL: // GT
+			(void)pop_u64();
+			push_u64(0LL); // F
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primzmpanic();
+	}
 }
 static void mb_mirth_elab_zpTypeElab_elabzmtypezmconzn_4 (void) {
 	mw_mirth_token_Token_argszm1();
@@ -41586,14 +42272,14 @@ static void mb_mirth_name_QName_climbzmupzmdnamez63U_3 (void) {
 	push_fnptr(&mb_mirth_name_QName_climbzmupzmdnamez63U_4);
 	mw_std_maybe_Maybe_1_bind_1();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_name_QName_climbzmupzmnamez63U();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mp_primzmdrop();
-			push_u64(0LL); // NONE
+			push_u64(0LL); // None
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -42133,11 +42819,11 @@ static void mb_mirth_elab_elabzmpatternzmatomzn_3 (void) {
 	push_fnptr(&mb_mirth_elab_elabzmpatternzmatomzn_16);
 	mw_std_maybe_Maybe_1_bind_1();
 	switch (get_top_data_tag()) {
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_match_zpPattern_tagzn();
 			break;
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_fnptr(&mb_mirth_elab_elabzmpatternzmatomzn_17);
@@ -42434,8 +43120,8 @@ static void mb_mirth_elab_elabzmaliaszn_4 (void) {
 	pop_value();
 	mw_std_prelude_unpack2();
 	switch (get_top_data_tag()) {
-		case 0LL: // LEFT
-			mtp_std_either_Either_2_LEFT();
+		case 0LL: // Left
+			mtp_std_either_Either_2_Left();
 			mw_mirth_name_Name_defs();
 			push_fnptr(&mb_mirth_elab_elabzmaliaszn_5);
 			mw_std_list_List_1_filter_1();
@@ -42473,8 +43159,8 @@ static void mb_mirth_elab_elabzmaliaszn_4 (void) {
 					mp_primzmpanic();
 			}
 			break;
-		case 1LL: // RIGHT
-			mtp_std_either_Either_2_RIGHT();
+		case 1LL: // Right
+			mtp_std_either_Either_2_Right();
 			{
 				VAL d4 = pop_value();
 				mp_primzmdup();
@@ -42879,12 +43565,12 @@ static void mb_mirth_elab_elabzmdatazmtagzn_7 (void) {
 	mp_primzmswap();
 	mw_mirth_data_Tag_sigz63U();
 	switch (get_top_data_tag()) {
-		case 0LL: // NONE
+		case 0LL: // None
 			(void)pop_u64();
 			mw_mirth_type_T0();
 			break;
-		case 1LL: // SOME
-			mtp_std_maybe_Maybe_1_SOME();
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
 			mw_mirth_elab_zpTypeElab_tokenzn();
 			mw_mirth_type_T0();
 			mw_mirth_elab_zpTypeElab_elabzmstackzmtypezmpartszn();
@@ -44116,7 +44802,7 @@ static void mb_mirth_elab_elabzmtycon_0 (void) {
 		mw_mirth_def_Def_exposedzmtyconz63U();
 	} else {
 		mp_primzmdrop();
-		push_u64(0LL); // NONE
+		push_u64(0LL); // None
 	}
 }
 static void mb_mirth_elab_elabzmtycon_3 (void) {
@@ -44395,7 +45081,7 @@ static void mb_mirth_specializzer_synthzmspecializzedzmwordzn_4 (void) {
 	mw_mirth_arrow_Arg_zsARGzuBLOCK();
 	LPUSH(lbl_value);
 	LPUSH(lbl_key);
-	mtw_std_map_KVPair_2_KVPAIR();
+	mtw_std_map_KVPair_2_KVPair();
 }
 static void mb_mirth_specializzer_zpSPSynth_synthzmarrowzn_0 (void) {
 	mw_mirth_specializzer_zpSPSynth_synthzmatomzn();
@@ -46544,8 +47230,10 @@ static void mb_mirth_c99_c99zmstrzn_5 (void) {
 	mw_std_prim_Int_zgNat();
 	{
 		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_zsSizze();
 		push_value(d2);
 	}
+	mw_std_prelude_Sizze_zsSizze();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -46604,6 +47292,7 @@ static void mb_mirth_c99_c99zmstrzn_11 (void) {
 	mp_primzmdup();
 	mp_primzmstrzmnumzmbytes();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_zpC99_put();
 }
@@ -46648,6 +47337,7 @@ static void mb_mirth_c99_c99zmstrzn_13 (void) {
 	mp_primzmdup();
 	mp_primzmstrzmnumzmbytes();
 	mw_std_prim_Int_zgNat();
+	mw_std_prelude_Sizze_zsSizze();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_zpC99_put();
 	{
@@ -48238,38 +48928,11 @@ static void mb_std_set_zpSet_1_memberz63U_0 (void) {
 	mp_primzmswap();
 	mw_std_buffer_zpBuffer_z64UU8();
 }
-static void mb_mirth_need_zpNeeds_needzn_0 (void) {
-	mp_primzmdup();
-	push_fnptr(&mb_mirth_need_zpNeeds_needzn_1);
-	mw_mirth_need_zpNeeds_z126USet_1();
-	mp_primzmdup();
-	push_fnptr(&mb_mirth_need_zpNeeds_needzn_2);
-	mw_mirth_need_zpNeeds_z126UStack_1();
-	push_fnptr(&mb_mirth_need_zpNeeds_needzn_3);
-	push_fnptr(&mb_mirth_need_zpNeeds_needzn_4);
-	mw_std_prelude_expectzn_2();
-}
-static void mb_mirth_need_zpNeeds_needzn_1 (void) {
+static void mb_mirth_need_zpNeeds_needzn_2 (void) {
 	mw_std_set_zpSet_1_insertzn();
 }
-static void mb_mirth_need_zpNeeds_needzn_2 (void) {
-	mtw_std_stack_Stack_1_STACKzuCONS();
-}
 static void mb_mirth_need_zpNeeds_needzn_3 (void) {
-	mp_primzmdup();
-	mw_mirth_need_Need_neededz63U();
-}
-static void mb_mirth_need_zpNeeds_needzn_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("needed? fail", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	mtw_std_list_List_1_Cons();
 }
 static void mb_std_set_zpSet_1_insertzn_0 (void) {
 	{
@@ -48292,13 +48955,13 @@ static void mb_mirth_need_zpNeeds_runzmarrowzn_0 (void) {
 }
 static void mb_mirth_need_zpNeeds_determinezmtransitivezmneedszn_0 (void) {
 	push_fnptr(&mb_mirth_need_zpNeeds_determinezmtransitivezmneedszn_2);
-	mw_mirth_need_zpNeeds_z126UStack_1();
+	mw_mirth_need_zpNeeds_stack_1();
 }
 static void mb_mirth_need_zpNeeds_determinezmtransitivezmneedszn_1 (void) {
 	mw_mirth_need_zpNeeds_runzmneedzn();
 }
 static void mb_mirth_need_zpNeeds_determinezmtransitivezmneedszn_2 (void) {
-	mw_std_stack_Stack_1_uncons();
+	mw_std_list_List_1_uncons();
 }
 static void mb_mirth_need_zpNeeds_runzmargszn_0 (void) {
 	mw_mirth_need_zpNeeds_runzmargzn();

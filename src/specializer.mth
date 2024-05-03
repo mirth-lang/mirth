@@ -74,8 +74,8 @@ def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
 def(+SPCheck.check-word-atom!, Atom Word +SPCheck -- List(Atom) +SPCheck,
     dup push-check-word!
     over args >List+ match(
-        NONE -> drop L1,
-        SOME ->
+        None -> drop L1,
+        Some ->
             dup for(check-arg!)
             over prefer-inline? not or(
             dup map(free-vars) any(dup any(dup is-physical?))) if(
@@ -133,15 +133,15 @@ def(Word.sp-synthed, Word -- Map(SPKey,Word),
 ||| Those other arguments are pushed on the stack.
 def(specialize-word!, SPKey Word -- Word,
     \(k w -> k w sp-synthed lookup(==) match(
-    SOME -> F over ~prefer-inline? !,
-    NONE ->
+    Some -> F over ~prefer-inline? !,
+    None ->
         w head >head
-        NONE >sig
+        None >sig
         w body >body
         w NAMESPACE_WORD k >Name QNAME0 >qname
         0 >arity
         Word.new! \(w' ->
-            k >key w' >value KVPAIR
+            k >key w' >value KVPair
             w sp-synthed insert w ~sp-synthed !
             # Str(w cname ; k /SPKEY
             #     for("_" ; /ARG_BLOCK index show ;)
@@ -195,7 +195,7 @@ def(synth-specialized-word!, SPKey Word +AB -- +AB,
                 over len over len ==,
                 "wrong number of lambda params in synth-specialized-word!"
             )
-            map2(/ARG_BLOCK >value >key KVPAIR) MAP >spmap
+            map2(/ARG_BLOCK >value >key KVPair) Map >spmap
             +SPSYNTH
             body synth-arrow!
             /+SPSYNTH spkey> spword> spmap> drop3,
@@ -222,8 +222,8 @@ def(+SPSynth.synth-op!, Op +SPSynth -- +SPSynth,
 def(+SPSynth.synth-block!, Block +SPSynth -- +SPSynth,
     # dup free-vars any(dup spmap lookup(==) some?) if(
         dup to-run-var bind(spmap lookup(==)) match(
-            NONE -> ab:ab-block!(+SPSYNTH arrow synth-arrow! /+SPSYNTH),
-            SOME -> nip OP_BLOCK ab:ab-op!
+            None -> ab:ab-block!(+SPSYNTH arrow synth-arrow! /+SPSYNTH),
+            Some -> nip OP_BLOCK ab:ab-op!
         ),
         # OP_BLOCK ab:ab-op!
     # ))
@@ -234,9 +234,9 @@ def(+SPSynth.synth-run!, Block +SPSynth -- +SPSynth,
 
 def(+SPSynth.synth-var!, Var +SPSynth -- +SPSynth,
     dup spmap lookup(==) match(
-        SOME -> nip OP_RUN ab:ab-op!,
-        # SOME -> nip arrow synth-arrow!,
-        NONE -> ab:ab-var!
+        Some -> nip OP_RUN ab:ab-op!,
+        # Some -> nip arrow synth-arrow!,
+        None -> ab:ab-var!
     ))
 
 def(+SPSynth.synth-match!, Match +SPSynth -- +SPSynth,

@@ -33,10 +33,10 @@ def(Case.inner-ctx, Case -- Ctx, pattern inner-ctx)
 def(Match.is-exhaustive?, Match -- Bool,
     dup has-default-case? or(
         dup scrutinee-data? match(
-            SOME ->
+            Some ->
                 num-tags
                 over cases len ==,
-            NONE ->
+            None ->
                 dup cases len 0>,
                 # presume exhaustiveness generally.
                 # and don't support empty matches for now.
@@ -52,10 +52,10 @@ def(Match.scrutinee-data?, Match -- Maybe(Data),
     cases filter(dup is-default-case? not) dup
     first bind(pattern single-tag?) map(.data) if-some(
         swap all(dup pattern single-tag? if-some(dip(over) .data ==, F)) if(
-            SOME,
-            drop NONE
+            Some,
+            drop None
         ),
-        drop NONE
+        drop None
     ))
 
 def(Match.is-transparent?, Match -- Bool,
@@ -135,10 +135,10 @@ def(+Pattern.underscore!, +Pattern -- +Pattern,
     SUBST_NIL >subst
     PATOP_UNDERSCORE >op
     pattern mid force-cons?! match(
-        NONE ->
+        None ->
             pattern token-start "pattern expects something on stack" emit-error!
             STACK_TYPE_ERROR TYPE_ERROR,
-        SOME ->
+        Some ->
             unpack2
     )
     dup pattern:saved:cons
@@ -157,8 +157,8 @@ def(+Pattern.tag!, +Pattern Tag -- +Pattern,
 ||| Asks whether the second pattern covers the first pattern.
 def(Pattern.covers?, Pattern Pattern -- Bool,
     both(atoms /L1) zip match(
-        NONE -> F,
-        SOME -> unpack2 op match(
+        None -> F,
+        Some -> unpack2 op match(
             PATOP_UNDERSCORE -> drop T,
             PATOP_TAG -> swap op match(
                 PATOP_UNDERSCORE -> drop F,
@@ -167,7 +167,7 @@ def(Pattern.covers?, Pattern Pattern -- Bool,
         )
     ))
 
-def(PatternOp./PATOP_TAG, PatternOp -- Maybe(Tag), PATOP_TAG -> SOME, _ -> drop NONE)
+def(PatternOp./PATOP_TAG, PatternOp -- Maybe(Tag), PATOP_TAG -> Some, _ -> drop None)
 def(PatternOp./PATOP_UNDERSCORE, PatternOp -- Bool, PATOP_UNDERSCORE -> T, _ -> drop F)
 
 ## TODO: introduce case trees

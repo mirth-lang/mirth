@@ -4,87 +4,87 @@ import(std.prelude)
 import(std.list)
 import(std.str)
 
-data(Maybe(t), NONE, SOME -> t)
+data(Maybe(t), None, Some -> t)
 
 inline:def(Maybe.none?, Maybe(t) -- Bool, >Bool not)
 inline:def(Maybe.some?, Maybe(t) -- Bool, >Bool)
 def(Maybe.>Bool, Maybe(t) -- Bool,
-    NONE -> F,
-    SOME -> drop T)
+    None -> F,
+    Some -> drop T)
 
 def(Maybe.>List, Maybe(t) -- List(t),
-    NONE -> L0,
-    SOME -> L1)
+    None -> L0,
+    Some -> L1)
 
 def(Maybe.==(eq), (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool,
-    NONE -> none?,
-    SOME -> swap if-some(swap eq, drop F))
+    None -> none?,
+    Some -> swap if-some(swap eq, drop F))
 
 def(Maybe.if(f,g), (*a -- *b, *a -- *b) *a Maybe(t) -- *b,
-    SOME -> drop f,
-    NONE -> g)
+    Some -> drop f,
+    None -> g)
 def(Maybe.if-some(f,g), (*a t -- *b, *a -- *b) *a Maybe(t) -- *b,
-    SOME -> f,
-    NONE -> g)
+    Some -> f,
+    None -> g)
 def(Maybe.then(f), (*a -- *a) *a Maybe(t) -- *a,
-    SOME -> drop f,
-    NONE -> id)
+    Some -> drop f,
+    None -> id)
 def(Maybe.then-some(f), (*a t -- *a) *a Maybe(t) -- *a,
-    SOME -> f,
-    NONE -> id)
+    Some -> f,
+    None -> id)
 def(Maybe.else(f), (*a -- *a) *a Maybe(t) -- *a,
-    SOME -> drop,
-    NONE -> f)
+    Some -> drop,
+    None -> f)
 
 inline:def(Maybe.not, Maybe(a) -- Bool, >Bool not)
 def(Maybe.or(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
     some? or(p))
 def(Maybe.and(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
-    NONE -> F,
-    SOME -> drop p)
+    None -> F,
+    Some -> drop p)
 def(Maybe.and-some(p), (*c a -- *c Bool) *c Maybe(a) -- *c Bool,
-    NONE -> F,
-    SOME -> p)
+    None -> F,
+    Some -> p)
 def(Maybe.guard(p), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
-    NONE -> NONE,
-    SOME -> p if(SOME, drop NONE))
+    None -> None,
+    Some -> p if(Some, drop None))
 
 def(Maybe.unwrap, Maybe(t) -- t,
-    NONE -> "tried to unwrap NONE" panic!,
-    SOME -> id)
+    None -> "tried to unwrap None" panic!,
+    Some -> id)
 
 def(Maybe.unwrap-or(f), (*a -- *a t) *a Maybe(t) -- *a t,
-    NONE -> f,
-    SOME -> id)
+    None -> f,
+    Some -> id)
 
 def(Maybe.map(f), (*c a -- *c b) *c Maybe(a) -- *c Maybe(b),
-    NONE -> NONE,
-    SOME -> f SOME)
+    None -> None,
+    Some -> f Some)
 
 def(Maybe.bind(f), (*c a -- *c Maybe(b)) *c Maybe(a) -- *c Maybe(b),
-    NONE -> NONE,
-    SOME -> f)
+    None -> None,
+    Some -> f)
 
 def(Maybe.for(f), (*c a -- *c) *c Maybe(a) -- *c,
-    NONE -> id,
-    SOME -> f)
+    None -> id,
+    Some -> f)
 
 def(Maybe.filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
-    NONE -> NONE,
-    SOME -> f if(SOME, drop NONE))
+    None -> None,
+    Some -> f if(Some, drop None))
 
 def(while-some(f,g), (*a -- *a Maybe(b), *a b -- *a) *a -- *a,
     f while(dup some?, unwrap g f) drop)
 
 def(Maybe.map2(f), (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z),
-    NONE -> drop NONE,
-    SOME -> swap match(
-        NONE -> drop NONE,
-        SOME -> swap f SOME
+    None -> drop None,
+    Some -> swap match(
+        None -> drop None,
+        Some -> swap f Some
     ))
 
 def(Maybe.zip, Maybe(x) Maybe(y) -- Maybe([x y]), map2(pack2))
 
 def(Maybe.show(f), (t -- Str) Maybe(t) -- Str,
-    NONE -> "NONE",
-    SOME -> f " SOME" cat)
+    None -> "None",
+    Some -> f " Some" cat)

@@ -49,8 +49,8 @@ data(Arguments,
 def(Arguments.default, -- Arguments,
     F >emit-debug-info
     "mirth.mth" >Path >input-file
-    NONE >output-file
-    "main" SOME >entry-point
+    None >output-file
+    "main" Some >entry-point
     L0 >packages
     Arguments)
 
@@ -100,13 +100,13 @@ def(compile!, Arguments +World -- +World,
     )
 
     match(
-        SOME ->
+        Some ->
             "Specializer." trace-ln!
             run-specializer!
             "Codegen." trace-ln!
             output-file> unwrap >output-path
             C99_Options.make run-output-c99!,
-        NONE ->
+        None ->
             "Skipping Codegen." trace-ln!
             emit-debug-info> drop
             output-file> drop
@@ -119,80 +119,80 @@ def(parse-package-def, Str -- [Str Path],
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
     SHORT -> dip(swap) match(
-        B'o' -> output-file(drop unwrap >Path SOME),
-        B'e' -> entry-point(drop unwrap SOME),
-        B'c' -> entry-point(drop drop NONE),
+        B'o' -> output-file(drop unwrap >Path Some),
+        B'e' -> entry-point(drop unwrap Some),
+        B'c' -> entry-point(drop drop None),
         B'p' -> dip(unwrap parse-package-def) packages(cons),
-        _ -> drop swap drop UNKNOWN_ARG SOME state:error!
+        _ -> drop swap drop UNKNOWN_ARG Some state:error!
     ),
     POSITIONAL -> swap state positional-index 0= if(
         input-file(drop unwrap >Path),
-        dip(drop) TOO_MANY_ARGS SOME state:error!
+        dip(drop) TOO_MANY_ARGS Some state:error!
     ),
     LONG_ONLY -> dup "debug" == if(
         drop2 T swap emit-debug-info!,
-        drop2 UNKNOWN_ARG SOME state:error!
+        drop2 UNKNOWN_ARG Some state:error!
     ),
     END ->
         state positional-index 1 < then(
-            TOO_FEW_ARGS SOME state:error!
+            TOO_FEW_ARGS Some state:error!
         )
         state arguments output-file else(
         state arguments entry-point then(
-            "output-file" MISSING_ARG SOME state:error!
+            "output-file" MISSING_ARG Some state:error!
             )
         )
         drop,
-    _ -> drop drop UNKNOWN_ARG SOME state error! state!)
+    _ -> drop drop UNKNOWN_ARG Some state error! state!)
 
 def(main, +World -- +World,
     init!
 
     Arguments.default
     LIST(
-        "output-file" SOME >name
+        "output-file" Some >name
         B'o' SHORT >flag-type
-        "OUTPUT_FILE" SOME >arg-doc
-        "Test argument" SOME >doc
-        NONE >group
+        "OUTPUT_FILE" Some >arg-doc
+        "Test argument" Some >doc
+        None >group
     ArgpOption ;
 
-        "compile-only" SOME >name
+        "compile-only" Some >name
         B'c' SHORT >flag-type
-        NONE >arg-doc
-        "Compile code without running codegen step" SOME >doc
-        NONE >group
+        None >arg-doc
+        "Compile code without running codegen step" Some >doc
+        None >group
     ArgpOption ;
 
-        "entry-point" SOME >name
+        "entry-point" Some >name
         B'e' SHORT >flag-type
-        "ENTRY_POINT" SOME >arg-doc
-        "Custom entry point word for compilation" SOME >doc
-        NONE >group
+        "ENTRY_POINT" Some >arg-doc
+        "Custom entry point word for compilation" Some >doc
+        None >group
     ArgpOption ;
 
-    "package" SOME >name
+    "package" Some >name
     B'p' SHORT >flag-type
-    "(PACKAGE:PATH)*" SOME >arg-doc
-    "Package locations" SOME >doc
-    NONE >group
+    "(PACKAGE:PATH)*" Some >arg-doc
+    "Package locations" Some >doc
+    None >group
     ArgpOption ;
 
-        "debug" SOME >name
+        "debug" Some >name
         "debug" LONG_ONLY >flag-type
-        NONE >arg-doc
-        "Emit debugging information during codegen" SOME >doc
-        NONE >group
+        None >arg-doc
+        "Emit debugging information during codegen" Some >doc
+        None >group
     ArgpOption ;
     ) >options
-    [ compiler-parse-args ] SOME >parser
-    "input-file" SOME >args-doc
+    [ compiler-parse-args ] Some >parser
+    "input-file" Some >args-doc
     "Mirth Compiler" >doc
     ArgumentParser
 
     parse-args match(
-        RIGHT -> ,
-        LEFT -> show panic!
+        Right -> ,
+        Left -> show panic!
     )
 
     compile!)

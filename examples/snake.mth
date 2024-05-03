@@ -107,20 +107,20 @@ data(SnakeButton,
     START)
 
 def(SDL_Scancode.>SnakeButton?, SDL_Scancode -- Maybe(SnakeButton),
-    SDL_SCANCODE_UP -> SnakeButton.UP SOME,
-    SDL_SCANCODE_DOWN -> SnakeButton.DOWN SOME,
-    SDL_SCANCODE_LEFT -> SnakeButton.LEFT SOME,
-    SDL_SCANCODE_RIGHT -> SnakeButton.RIGHT SOME,
-    SDL_SCANCODE_SPACE -> SnakeButton.START SOME,
-    _ -> drop NONE)
+    SDL_SCANCODE_UP -> SnakeButton.UP Some,
+    SDL_SCANCODE_DOWN -> SnakeButton.DOWN Some,
+    SDL_SCANCODE_LEFT -> SnakeButton.LEFT Some,
+    SDL_SCANCODE_RIGHT -> SnakeButton.RIGHT Some,
+    SDL_SCANCODE_SPACE -> SnakeButton.START Some,
+    _ -> drop None)
 
 def(SDL_GameControllerButton.>SnakeButton?, SDL_GameControllerButton -- Maybe(SnakeButton),
-    SDL_CONTROLLER_BUTTON_DPAD_UP -> SnakeButton.UP SOME,
-    SDL_CONTROLLER_BUTTON_DPAD_DOWN -> SnakeButton.DOWN SOME,
-    SDL_CONTROLLER_BUTTON_DPAD_LEFT -> SnakeButton.LEFT SOME,
-    SDL_CONTROLLER_BUTTON_DPAD_RIGHT -> SnakeButton.RIGHT SOME,
-    SDL_CONTROLLER_BUTTON_START -> SnakeButton.START SOME,
-    _ -> drop NONE)
+    SDL_CONTROLLER_BUTTON_DPAD_UP -> SnakeButton.UP Some,
+    SDL_CONTROLLER_BUTTON_DPAD_DOWN -> SnakeButton.DOWN Some,
+    SDL_CONTROLLER_BUTTON_DPAD_LEFT -> SnakeButton.LEFT Some,
+    SDL_CONTROLLER_BUTTON_DPAD_RIGHT -> SnakeButton.RIGHT Some,
+    SDL_CONTROLLER_BUTTON_START -> SnakeButton.START Some,
+    _ -> drop None)
 
 def(+SnakeLogic.init!, -- +SnakeLogic,
     F >done
@@ -159,8 +159,8 @@ def(+SnakePlatform.init!, +World -- +World +SnakePlatform,
 
     rdip2(
         0 to: num-joysticks find(dup is-game-controller) match(
-            SOME -> game-controller-open! unwrap! +SDL_GameController?.OK!,
-            NONE -> "no controller detected" +SDL_GameController?.ERROR!
+            Some -> game-controller-open! unwrap! +SDL_GameController?.OK!,
+            None -> "no controller detected" +SDL_GameController?.ERROR!
         )
     ) rrotl
 

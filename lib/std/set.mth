@@ -4,22 +4,20 @@ import(std.prelude)
 import(std.buffer)
 
 ||| Represents a set as a bit string.
-data(+Set(t), +SET -> [t -- Int] +Buffer)
-def(-SET, +Set(t) -- [t -- Int] +Buffer, +SET -> id)
+data(+Set(t), +Set -> [t -- Nat] +Buffer)
 def(+Set.~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Set(t) -- *b +Set(t),
-    -SET dip(f) +SET)
-def(+Set.index, t +Set(t) -- Int +Set(t),
-    -SET dup rdip(dip(run)) +SET
-    expect!(dup 0< not, "negative index not allowed"))
+    /+Set dip(f) +Set)
+def(+Set.index, t +Set(t) -- Nat +Set(t),
+    /+Set dup rdip(dip(run)) +Set)
 
 def(SET_INITIAL_SIZE, Size, 256 >Size)
 
-def(+Set.new(f), (t -- Int) -- +Set(t), [f] SET_INITIAL_SIZE +Buffer.new +SET)
-def(+Set.rdrop, +Set(t) --, -SET drop rdrop)
+def(+Set.new(f), (t -- Nat) -- +Set(t), [f] SET_INITIAL_SIZE +Buffer.new +Set)
+def(+Set.rdrop, +Set(t) --, /+Set drop rdrop)
 
 def(+Set.offset-mask, t +Set(t) -- Offset U8 +Set(t),
-    index 8 /% over 1+ >Size ~Buffer(expand!)
-    dip(>Offset) 1 swap << >U8)
+    index 8 >Nat /% over 1+ >Size ~Buffer(expand!)
+    dip(>Offset) 1 >Nat swap << >U8)
 
 def(+Set.member?, t +Set(t) -- Bool +Set(t),
     offset-mask ~Buffer(swap @U8) & >Int 0 <>)

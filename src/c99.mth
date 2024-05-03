@@ -2,7 +2,6 @@ module(mirth.c99)
 
 import(std.prelude)
 import(std.str)
-import(std.stack)
 import(std.path)
 import(std.list)
 import(std.lazy)
@@ -73,7 +72,7 @@ def(+C99.put-byte, Byte +C99 -- +C99, ~Output(put-byte))
 def(+C99.line, +C99 -- +C99, ~Output(line))
 
 def(c99-start!, Arrow C99_Options +World -- Arrow +World +C99,
-    dup output-path as-relative-path create-file! +Output.start!
+    dup output-path as-relative-path create-file! unwrap! +Output.start!
     rdip(+Needs.new over determine-arrow-needs!)
     0 >Nat MKC99)
 
@@ -543,7 +542,7 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
     PRIM_CORE_ID -> drop,
     PRIM_CORE_DIP ->
         dup /L1 match(
-            SOME ->
+            Some ->
                 nip
                 c99-line("{" put)
                 c99-nest(
@@ -552,13 +551,13 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                     c99-line("push_value(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
-            NONE ->
+            None ->
                 PRIM_CORE_DIP c99-prim-default!
         ),
 
     PRIM_CORE_RDIP ->
         dup /L1 match(
-            SOME ->
+            Some ->
                 nip
                 c99-line("{" put)
                 c99-nest(
@@ -567,26 +566,26 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                     c99-line("push_resource(d" put depth@ show put ");" put)
                 )
                 c99-line("}" put),
-            NONE ->
+            None ->
                 PRIM_CORE_RDIP c99-prim-default!
         ),
 
     PRIM_CORE_IF ->
         dup /L2 match(
-            SOME ->
+            Some ->
                 nip unpack2
                 c99-line("if (pop_u64()) {" put)
                 c99-nest(swap c99-arg-run!)
                 c99-line("} else {" put)
                 c99-nest(c99-arg-run!)
                 c99-line("}" put),
-            NONE ->
+            None ->
                 PRIM_CORE_IF c99-prim-default!
         ),
 
     PRIM_CORE_WHILE ->
         dup /L2 match(
-            SOME ->
+            Some ->
                 nip unpack2
                 c99-line("while(1) {" put)
                 c99-nest(
@@ -596,7 +595,7 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                 )
                 c99-line("}" put),
 
-            NONE ->
+            None ->
                 PRIM_CORE_WHILE c99-prim-default!
         ),
 
@@ -642,8 +641,8 @@ def(c99-decref-closure-vars!, List(Var) +C99 -- +C99,
 
 def(c99-block-push!, Block +C99 -- +C99,
     dup to-run-var match(
-        SOME -> nip c99-var-push!,
-        NONE ->
+        Some -> nip c99-var-push!,
+        None ->
             c99-line("push_fnptr(&" put dup cname put ");" put)
             dup free-vars c99-pack-closure-vars!
             drop

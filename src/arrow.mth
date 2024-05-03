@@ -145,8 +145,8 @@ def(Block.==, Block Block -- Bool, both(Block.index) ==)
 field(Word.~num-blocks, Word, Int)
 def(Word.inc-num-blocks!, Word -- Int,
     dup ~num-blocks @? match(
-        SOME -> tuck 1+ swap ~num-blocks !,
-        NONE -> 1 swap ~num-blocks ! 0
+        Some -> tuck 1+ swap ~num-blocks !,
+        None -> 1 swap ~num-blocks ! 0
     ))
 
 field(Block.~home-index, Block, Int)
@@ -199,8 +199,8 @@ def(Arrow.to-run-var, Arrow -- Maybe(Var),
 
 def(Atom.to-run-var, Atom -- Maybe(Var),
     op match(
-        OP_VAR -> dup auto-run? if(SOME, drop NONE),
-        _ -> drop NONE
+        OP_VAR -> dup auto-run? if(Some, drop None),
+        _ -> drop None
     ))
 
 def(Arg.>Str, Arg -- Str,

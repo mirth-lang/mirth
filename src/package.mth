@@ -22,11 +22,11 @@ def(Package.new!, Maybe(Path) Name -- Package,
 
 def(Package.new-or-set-path!, Path Name -- Package,
   dup Package.find match(
-    SOME -> dup path match(
-      SOME -> "Package already has path" panic!,
-      NONE -> dip(drop) dup dip(dip(SOME) ~path !)
+    Some -> dup path match(
+      Some -> "Package already has path" panic!,
+      None -> dip(drop) dup dip(dip(Some) ~path !)
     ),
-    NONE -> dip(SOME) Package.new!
+    None -> dip(Some) Package.new!
   )
 )
 
@@ -34,6 +34,6 @@ def(Package.find, Name -- Maybe(Package),
     NAMESPACE_ROOT swap QNAME0 def? bind(package?))
 
 def(Package.find-or-new!, Name -- Package,
-    dup Package.find unwrap-or(dup NONE swap Package.new!) nip)
+    dup Package.find unwrap-or(dup None swap Package.new!) nip)
 
 def(Package.==, Package Package -- Bool, both(index) ==)
