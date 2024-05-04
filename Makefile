@@ -1,6 +1,6 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
  -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Wno-infinite-recursion \
- -Werror -pedantic -O0
+ -Werror -pedantic -O0 -fmax-errors=9
 MIRTHFLAGS=-p std:lib/std -p arg-parser:lib/arg-parser -p mirth:src -p examples:examples -p mirth-tests:test
 
 CC=gcc $(C99FLAGS)
