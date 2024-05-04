@@ -105,19 +105,19 @@ def(init-types!, --,
 # Types #
 #########
 
-def(True+, StackType Resource -- StackType, STWith)
-def(True*, StackType Type -- StackType, STCons)
-def(True*+, StackType Either(Type, Resource) -- StackType, match(Left -> True*, Right -> True+))
-def(True->, StackType StackType -- ArrowType, ARROW_TYPE)
+def(T+, StackType Resource -- StackType, STWith)
+def(T*, StackType Type -- StackType, STCons)
+def(T*+, StackType Either(Type, Resource) -- StackType, match(Left -> T*, Right -> T+))
+def(T->, StackType StackType -- ArrowType, ARROW_TYPE)
 
-def(TT, List(Type) -- StackType, T0 swap for(True*))
+def(TT, List(Type) -- StackType, T0 swap for(T*))
 def(T0, StackType, STACK_TYPE_UNIT)
-def(T1, Type -- StackType, dip(T0) True*)
-def(T2, Type Type -- StackType, dip(T1) True*)
-def(T3, Type Type Type -- StackType, dip(T2) True*)
-def(T4, Type Type Type Type -- StackType, dip(T3) True*)
-def(T5, Type Type Type Type Type -- StackType, dip(T4) True*)
-def(T6, Type Type Type Type Type Type -- StackType, dip(T5) True*)
+def(T1, Type -- StackType, dip(T0) T*)
+def(T2, Type Type -- StackType, dip(T1) T*)
+def(T3, Type Type Type -- StackType, dip(T2) T*)
+def(T4, Type Type Type Type -- StackType, dip(T3) T*)
+def(T5, Type Type Type Type Type -- StackType, dip(T4) T*)
+def(T6, Type Type Type Type Type Type -- StackType, dip(T5) T*)
 
 # def(type-is-error, Type -- Bool, match(TYPE_ERROR -> True, _ -> drop False))
 # def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> True, _ -> drop False))
@@ -304,7 +304,7 @@ def(Value.unify-error!, Gamma Value -- Gamma Type,
 
 def(Type.unify-block!, Gamma Block Type -- Gamma Type,
     expand match(
-        TYPE_ERROR -> STACK_TYPE_ERROR STACK_TYPE_ERROR True-> block-unify-type! drop TYPE_ERROR,
+        TYPE_ERROR -> STACK_TYPE_ERROR STACK_TYPE_ERROR T-> block-unify-type! drop TYPE_ERROR,
         TMeta -> over dip(dip(type >Type) unify! drop) arrow type >Type,
         TMorphism -> block-unify-type! >Type,
         _ -> dip(type >Type) unify!

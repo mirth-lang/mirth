@@ -73,7 +73,7 @@ def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
 def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     @
     dip(sip(len) TT)
-    sip(Ctx0 rotr .data TData T1 True-> ready2) sip(~ctx-type !)
+    sip(Ctx0 rotr .data TData T1 T-> ready2) sip(~ctx-type !)
     sip(~num-type-inputs !)
     sip(L0 swap ~label-inputs !)
     sip(0 >Nat swap ~num-resource-inputs !)

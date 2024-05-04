@@ -64,7 +64,7 @@ def(+TypeElab.elab-type-sig!, +TypeElab -- +TypeElab ArrowType,
     elab-stack-type!
     token sig-dashes? if(token:succ elab-stack-type!, dip:T0)
     token run-end? else(token "expected right paren or comma" emit-error!)
-    dip(swap for(True*)) True->)
+    dip(swap for(T*)) T->)
 
 def(+TypeElab.elab-type-sig-params!, +TypeElab -- +TypeElab List(Type),
     token lparen? if(
@@ -639,22 +639,22 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
 
 def(data-get-tag-type, Data -- ArrowType,
     full-type left? unwrap T1
-    TYPE_INT T1 True->)
+    TYPE_INT T1 T->)
 
 def(elab-coerce-sig!, Coerce -- OpSig,
     CoerceUnsafe ->
         MetaVar.new! STMeta dup
-        MetaVar.new! TMeta True* swap
-        MetaVar.new! TMeta True* True-> OPSIG_APPLY)
+        MetaVar.new! TMeta T* swap
+        MetaVar.new! TMeta T* T-> OPSIG_APPLY)
 
 def(elab-block-sig!, Block -- OpSig,
     VALUE_BLOCK TValue OPSIG_PUSH)
 
 def(elab-match-sig!, Match -- OpSig,
-    sip(dom) cod True-> OPSIG_APPLY)
+    sip(dom) cod T-> OPSIG_APPLY)
 
 def(elab-lambda-sig!, Lambda -- OpSig,
-    sip(dom) cod True-> OPSIG_APPLY)
+    sip(dom) cod T-> OPSIG_APPLY)
 
 def(elab-var-sig!, Var -- OpSig,
     dup auto-run? if(
@@ -664,11 +664,11 @@ def(elab-var-sig!, Var -- OpSig,
 
 def(elab-label-push-sig!, Label -- OpSig,
     dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2)
-    STConsLabel dip(STCons) True-> OPSIG_APPLY)
+    STConsLabel dip(STCons) T-> OPSIG_APPLY)
 
 def(elab-label-pop-sig!, Label -- OpSig,
     dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2)
-    STConsLabel dip(STCons) swap True-> OPSIG_APPLY)
+    STConsLabel dip(STCons) swap T-> OPSIG_APPLY)
 
 def(elab-arrow!, Ctx ArrowType Token Home -- Arrow,
     dip2(unpack) elab-arrow-hom!)
@@ -894,7 +894,7 @@ def(+Match.case!(mkpat,mkbod),
         Pattern rdip(thaw mkpat freeze)
     ) swap \(pat ->
         pat inner-ctx
-        pat Pattern.dom +Match.cod True->
+        pat Pattern.dom +Match.cod T->
         rotl
         +Match.home
         rdip(ab-build-hom!(dip(mkbod)))
@@ -917,7 +917,7 @@ def(elab-lambda-param?, Token -- Token Maybe(Var),
     and(dup succ pattern-var?)
     and(dup succ succ rsquare? >Bool) if(
         dup succ args-0 sip:next
-        dip(MetaVar.new! STMeta MetaVar.new! STMeta True-> TMorphism)
+        dip(MetaVar.new! STMeta MetaVar.new! STMeta T-> TMorphism)
         succ name? unwrap Var.new-auto-run! Some,
         None
     )))
@@ -1069,12 +1069,12 @@ def(elab-data-tag!, Data Token -- Data,
         True >allow-implicit-type-vars
         False >allow-type-holes
         TYPE_ELAB
-        T0 over .data full-type True*+
+        T0 over .data full-type T*+
         swap sig? match(
             None -> T0,
             Some -> token! T0 elab-stack-type-parts!
         )
-        swap True-> dip:ctx pack2 rdrop
+        swap T-> dip:ctx pack2 rdrop
     ) over ~ctx-type !
     sip(num-type-inputs-from-sig) sip(~num-type-inputs !)
     sip(num-resource-inputs-from-sig) sip(~num-resource-inputs !)
@@ -1111,7 +1111,7 @@ def(elab-data-done!, Data --,
 
         dat is-enum? then(
             dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
-                Ctx0 TYPE_INT T1 dat TData T1 True-> ready2 ftag ~ctx-type !
+                Ctx0 TYPE_INT T1 dat TData T1 T-> ready2 ftag ~ctx-type !
                 ftag ab-build-word!(
                     CoerceUnsafe ab-coerce!
                 ) drop
@@ -1121,7 +1121,7 @@ def(elab-data-done!, Data --,
         dat tags /L1 match(
             Some -> \(tag ->
                 dat "/" tag name >Str cat 0 data-word-new! \(untag ->
-                    tag delay(ctx-type unpack swap True-> pack2) untag ~ctx-type !
+                    tag delay(ctx-type unpack swap T-> pack2) untag ~ctx-type !
                     untag delay(ab-build-word-arrow!(
                         untag type cod >cod
                         dat head? unwrap >body
@@ -1152,17 +1152,17 @@ def(Tag.project-input-label, Label Tag -- Maybe(Type),
 
 def(data-get-label-type, Tag Label -- ArrowType,
     \(tag lbl ->
-        T0 tag output-type True*+
+        T0 tag output-type T*+
         lbl tag project-input-label unwrap T1
-        tag .data is-resource? then(tag output-type True*+)
-        True->
+        tag .data is-resource? then(tag output-type T*+)
+        T->
     ))
 
 def(data-set-label-type, Tag Label -- ArrowType,
     \(tag lbl ->
-        lbl tag project-input-label unwrap T1 tag output-type True*+
-        T0 tag output-type True*+
-        True->
+        lbl tag project-input-label unwrap T1 tag output-type T*+
+        T0 tag output-type T*+
+        T->
     ))
 
 def(create-projectors!, Tag --,
@@ -1195,11 +1195,11 @@ def(create-projectors!, Tag --,
                 lbl tag project-input-label unwrap
                 tag output-type \(sx sy lblty datty ->
                     tag ctx /Ctx sx sy L2 cat Ctx
-                    sx STVar datty True*+
-                        sx STVar lblty True*
-                        sy STVar lblty True* True-> TMorphism True*
-                    sy STVar datty True*+
-                    True-> pack2
+                    sx STVar datty T*+
+                        sx STVar lblty T*
+                        sy STVar lblty T* T-> TMorphism T*
+                    sy STVar datty T*+
+                    T-> pack2
                 )
             ) lbl_lens ~ctx-type !
             lbl_lens delay(
@@ -1436,7 +1436,7 @@ def(elab-entry-point, QName +World -- Arrow +World,
         ) >Str cat
         emit-fatal-error!
     ) nip { Word +World }
-    dup dip(Ctx0 T0 RESOURCE_WORLD True+ T0 RESOURCE_WORLD True+ True->)
+    dup dip(Ctx0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
     head dup HomeMain ab-build-hom!(
         dip(ab-word!)
     ))
@@ -1450,7 +1450,7 @@ def(elab-embed-str!, Token +World -- Token +World,
     dup str? unwrap-or("expected source path" emit-fatal-error!)
     >Path open-file! unwrap! read-file! close-file! nip >contents
     Word.new!
-    Ctx0 T0 TYPE_STR T1 True-> ready2 over ~ctx-type !
+    Ctx0 T0 TYPE_STR T1 T-> ready2 over ~ctx-type !
     ab-build-word!(contents> ab-str!) drop)
 
 ||| Ensure that everything so far has been typechecked.
@@ -1482,7 +1482,7 @@ def(table-new!, Token QName -- Table,
     dup "MAX" 0 table-word-new!
 
     L0 Ctx
-    T0 TYPE_INT T1 True->
+    T0 TYPE_INT T1 T->
     ready2 over ~ctx-type !
 
     ab-build-word!(
@@ -1494,7 +1494,7 @@ def(table-new!, Token QName -- Table,
     dup "nil" 0 table-word-new!
 
     L0 Ctx
-    T0 over3 TTable T1 True->
+    T0 over3 TTable T1 T->
     ready2 over ~ctx-type !
 
     ab-build-word!(
@@ -1513,7 +1513,7 @@ def(table-new!, Token QName -- Table,
     dup "index" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 TYPE_INT T1 True->
+    over2 TTable T1 TYPE_INT T1 T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1525,7 +1525,7 @@ def(table-new!, Token QName -- Table,
     dup "from-index" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 TYPE_INT T1 swap True->
+    over2 TTable T1 TYPE_INT T1 swap T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1537,7 +1537,7 @@ def(table-new!, Token QName -- Table,
     dup "succ" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 dup True->
+    over2 TTable T1 dup T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1558,7 +1558,7 @@ def(table-new!, Token QName -- Table,
     dup "pred" 0 table-word-new!
 
     L0 Ctx
-    over2 TTable T1 dup True->
+    over2 TTable T1 dup T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
@@ -1579,10 +1579,10 @@ def(table-new!, Token QName -- Table,
 
     dup "for" 1 table-word-new!
     TYPE_STACK "*a" >Name Var.new! dup STVar
-    \(t w va a -> a t TTable True* a True-> >Type "x" >Name Var.new-auto-run!
+    \(t w va a -> a t TTable T* a T-> >Type "x" >Name Var.new-auto-run!
     \(x ->
         va Ctx1
-        a a t TTable True* a True-> >Type True* a True->
+        a a t TTable T* a T-> >Type T* a T->
         ready2 w ~ctx-type !
 
         w ab-build-word! (
@@ -1616,7 +1616,7 @@ def(table-new!, Token QName -- Table,
     dup "alloc!" 0 table-word-new!
 
     L0 Ctx
-    T0 over3 TTable T1 True->
+    T0 over3 TTable T1 T->
     ready2 over ~ctx-type !
 
     ab-build-word! (
