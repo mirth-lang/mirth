@@ -5160,10 +5160,10 @@ static void mw_mirth_type_PrimType_ZToInt (void);
 static void mw_mirth_type_PrimType_ZEqualZEqual (void);
 static void mw_mirth_type_defZ_primZ_typeZBang (void);
 static void mw_mirth_type_initZ_typesZBang (void);
-static void mw_mirth_type_TrueZPlus (void);
-static void mw_mirth_type_TrueZMul (void);
-static void mw_mirth_type_TrueZMulZPlus (void);
-static void mw_mirth_type_TrueZ_ZTo (void);
+static void mw_mirth_type_TZPlus (void);
+static void mw_mirth_type_TZMul (void);
+static void mw_mirth_type_TZMulZPlus (void);
+static void mw_mirth_type_TZ_ZTo (void);
 static void mw_mirth_type_TT (void);
 static void mw_mirth_type_T0 (void);
 static void mw_mirth_type_T1 (void);
@@ -13638,7 +13638,7 @@ static void mw_mirth_table_Field_type (void) {
 		push_value(d2);
 	}
 	mw_mirth_table_Field_cod();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 }
 static void mw_mirth_table_Field_ZEqualZEqual (void) {
 	{
@@ -13897,7 +13897,7 @@ static void mw_mirth_data_makeZ_primZ_tagZBang (void) {
 		mw_mirth_data_Tag_data();
 		mtw_mirth_type_Type_TData();
 		mw_mirth_type_T1();
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZ_ZTo();
 		mw_std_lazzy_ready2();
 		push_value(d2);
 	}
@@ -15717,7 +15717,7 @@ static void mw_mirth_arrow_Arrow_type (void) {
 		push_value(d2);
 	}
 	mw_mirth_arrow_Arrow_cod();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 }
 static void mw_mirth_arrow_Atom_ZDivAtom (void) {
 	switch (get_top_data_tag()) {
@@ -15960,7 +15960,7 @@ static void mw_mirth_arrow_Block_type (void) {
 		push_value(d2);
 	}
 	mw_mirth_arrow_Block_cod();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 }
 static void mw_mirth_arrow_Block_arrow (void) {
 	mfld_mirth_arrow_Block_ZTildearrow();
@@ -16770,28 +16770,28 @@ static void mw_mirth_type_initZ_typesZBang (void) {
 	mw_mirth_type_defZ_primZ_typeZBang();
 	mw_mirth_data_initZ_dataZBang();
 }
-static void mw_mirth_type_TrueZPlus (void) {
+static void mw_mirth_type_TZPlus (void) {
 	mtw_mirth_type_StackType_STWith();
 }
-static void mw_mirth_type_TrueZMul (void) {
+static void mw_mirth_type_TZMul (void) {
 	mtw_mirth_type_StackType_STCons();
 }
-static void mw_mirth_type_TrueZMulZPlus (void) {
+static void mw_mirth_type_TZMulZPlus (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Left
 			mtp_std_either_Either_2_Left();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			break;
 		case 1LL: // Right
 			mtp_std_either_Either_2_Right();
-			mw_mirth_type_TrueZPlus();
+			mw_mirth_type_TZPlus();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primZ_panic();
 	}
 }
-static void mw_mirth_type_TrueZ_ZTo (void) {
+static void mw_mirth_type_TZ_ZTo (void) {
 	mtw_mirth_type_ArrowType_ARROWz_TYPE();
 }
 static void mw_mirth_type_TT (void) {
@@ -16809,7 +16809,7 @@ static void mw_mirth_type_T1 (void) {
 		mw_mirth_type_T0();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mw_mirth_type_T2 (void) {
 	{
@@ -16817,7 +16817,7 @@ static void mw_mirth_type_T2 (void) {
 		mw_mirth_type_T1();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mw_mirth_type_T3 (void) {
 	{
@@ -16825,7 +16825,7 @@ static void mw_mirth_type_T3 (void) {
 		mw_mirth_type_T2();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mw_mirth_type_T4 (void) {
 	{
@@ -16833,7 +16833,7 @@ static void mw_mirth_type_T4 (void) {
 		mw_mirth_type_T3();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mw_mirth_type_T5 (void) {
 	{
@@ -16841,7 +16841,7 @@ static void mw_mirth_type_T5 (void) {
 		mw_mirth_type_T4();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mw_mirth_type_T6 (void) {
 	{
@@ -16849,7 +16849,7 @@ static void mw_mirth_type_T6 (void) {
 		mw_mirth_type_T5();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mw_mirth_type_Type_errorZAsk (void) {
 	mw_mirth_type_Type_expand();
@@ -17710,7 +17710,7 @@ static void mw_mirth_type_Type_unifyZ_blockZBang (void) {
 			(void)pop_u64();
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_u64(0LL); // STACK_TYPE_ERROR
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_arrow_blockZ_unifyZ_typeZBang();
 			mp_primZ_drop();
 			push_u64(0LL); // TYPE_ERROR
@@ -22070,7 +22070,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
@@ -22107,7 +22107,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
@@ -22256,7 +22256,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_data_TYPEz_BOOL();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
@@ -22292,7 +22292,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_STR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(26LL); // PRIM_INT_TO_STR
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22300,7 +22300,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(38LL); // PRIM_PTR_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22308,7 +22308,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_U8();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(50LL); // PRIM_U8_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22316,7 +22316,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_U16();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(52LL); // PRIM_U16_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22324,7 +22324,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_U32();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(54LL); // PRIM_U32_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22332,7 +22332,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_U64();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(56LL); // PRIM_U64_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22340,7 +22340,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_I8();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(58LL); // PRIM_I8_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22348,7 +22348,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_I16();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(60LL); // PRIM_I16_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22356,7 +22356,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_I32();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(62LL); // PRIM_I32_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22364,7 +22364,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_data_TYPEz_I64();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(64LL); // PRIM_I64_GET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22372,7 +22372,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(39LL); // PRIM_PTR_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22380,7 +22380,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(51LL); // PRIM_U8_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22388,7 +22388,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(53LL); // PRIM_U16_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22396,7 +22396,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(55LL); // PRIM_U32_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22404,7 +22404,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(57LL); // PRIM_U64_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22412,7 +22412,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(59LL); // PRIM_I8_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22420,7 +22420,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(61LL); // PRIM_I16_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22428,7 +22428,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(63LL); // PRIM_I32_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22436,7 +22436,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T2();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(65LL); // PRIM_I64_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22446,7 +22446,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T3();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(70LL); // PRIM_POSIX_READ
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22456,7 +22456,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T3();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(71LL); // PRIM_POSIX_WRITE
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22466,7 +22466,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T3();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(72LL); // PRIM_POSIX_OPEN
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22474,7 +22474,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(73LL); // PRIM_POSIX_CLOSE
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22487,14 +22487,14 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T6();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(75LL); // PRIM_POSIX_MMAP
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(34LL); // PRIM_PTR_NIL
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22503,7 +22503,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_data_TYPEz_BOOL();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(35LL); // PRIM_PTR_EQ
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22512,14 +22512,14 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(36LL); // PRIM_PTR_ADD
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(37LL); // PRIM_PTR_SIZE
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22527,7 +22527,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(40LL); // PRIM_PTR_ALLOC
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22536,14 +22536,14 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(41LL); // PRIM_PTR_REALLOC
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(42LL); // PRIM_PTR_FREE
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22552,7 +22552,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T3();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(43LL); // PRIM_PTR_COPY
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22561,7 +22561,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T3();
 	mw_mirth_type_T0();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(44LL); // PRIM_PTR_FILL
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22570,7 +22570,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_type_TYPEz_STR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(46LL); // PRIM_STR_COPY
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22578,7 +22578,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(47LL); // PRIM_STR_NUM_BYTES
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22586,7 +22586,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(48LL); // PRIM_STR_BASE
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22595,7 +22595,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_type_TYPEz_STR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(49LL); // PRIM_STR_CAT
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22604,35 +22604,35 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T2();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(45LL); // PRIM_STR_CMP
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(66LL); // PRIM_SYS_OS
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(67LL); // PRIM_SYS_ARCH
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(68LL); // PRIM_SYS_ARGC
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(69LL); // PRIM_SYS_ARGV
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
@@ -22640,7 +22640,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_type_T0();
 	mw_mirth_type_StackType_ZToType();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	push_u64(27LL); // PRIM_PACK_NIL
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_type_TYPEz_TYPE();
@@ -22778,7 +22778,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_ta);
 			mw_mirth_type_T1();
 			mw_mirth_type_T0();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(2LL); // PRIM_CORE_DROP
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_a);
@@ -22792,7 +22792,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_ta);
 			push_value(var_ta);
 			mw_mirth_type_T2();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(1LL); // PRIM_CORE_DUP
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_a);
@@ -22810,7 +22810,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_ta);
 			push_value(var_ta);
 			mw_mirth_type_T2();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(3LL); // PRIM_CORE_SWAP
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -22824,12 +22824,12 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_txs);
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_type_ArrowType_ZToType();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(9LL); // PRIM_CORE_RUN
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -22840,10 +22840,10 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_txs);
 			push_value(var_txs);
 			mw_mirth_type_TYPEz_INT();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(74LL); // PRIM_POSIX_EXIT
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -22854,10 +22854,10 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_txs);
 			push_value(var_txs);
 			mw_mirth_type_TYPEz_STR();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(8LL); // PRIM_CORE_PANIC
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -22871,20 +22871,20 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_txs);
 			incref(var_tc);
 			push_value(var_tc);
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_txs);
 			push_value(var_txs);
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_type_ArrowType_ZToType();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_tys);
 			push_value(var_tys);
 			incref(var_tc);
 			push_value(var_tc);
-			mw_mirth_type_TrueZMul();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZMul();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(4LL); // PRIM_CORE_DIP
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -22895,23 +22895,23 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_txs);
 			push_value(var_txs);
 			mw_mirth_data_TYPEz_BOOL();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_txs);
 			push_value(var_txs);
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_type_ArrowType_ZToType();
 			mp_primZ_dup();
 			{
 				VAL d4 = pop_value();
-				mw_mirth_type_TrueZMul();
+				mw_mirth_type_TZMul();
 				push_value(d4);
 			}
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(5LL); // PRIM_CORE_IF
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -22924,20 +22924,20 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_txs);
 			push_value(var_txs);
 			mw_mirth_data_TYPEz_BOOL();
-			mw_mirth_type_TrueZMul();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZMul();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_type_ArrowType_ZToType();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_txs);
 			push_value(var_txs);
 			incref(var_txs);
 			push_value(var_txs);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_type_ArrowType_ZToType();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_txs);
 			push_value(var_txs);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(6LL); // PRIM_CORE_WHILE
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_rr);
@@ -22948,18 +22948,18 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			mw_mirth_type_T0();
 			incref(var_trr);
 			push_value(var_trr);
-			mw_mirth_type_TrueZPlus();
+			mw_mirth_type_TZPlus();
 			incref(var_tsr);
 			push_value(var_tsr);
-			mw_mirth_type_TrueZPlus();
+			mw_mirth_type_TZPlus();
 			mw_mirth_type_T0();
 			incref(var_tsr);
 			push_value(var_tsr);
-			mw_mirth_type_TrueZPlus();
+			mw_mirth_type_TZPlus();
 			incref(var_trr);
 			push_value(var_trr);
-			mw_mirth_type_TrueZPlus();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZPlus();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(12LL); // PRIM_CORE_RSWAP
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -22973,20 +22973,20 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_txs);
 			incref(var_trr);
 			push_value(var_trr);
-			mw_mirth_type_TrueZPlus();
+			mw_mirth_type_TZPlus();
 			incref(var_txs);
 			push_value(var_txs);
 			incref(var_tys);
 			push_value(var_tys);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_type_ArrowType_ZToType();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_tys);
 			push_value(var_tys);
 			incref(var_trr);
 			push_value(var_trr);
-			mw_mirth_type_TrueZPlus();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZPlus();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(13LL); // PRIM_CORE_RDIP
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -23004,10 +23004,10 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_txs);
 			incref(var_tb);
 			push_value(var_tb);
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			mw_mirth_type_StackType_ZToType();
 			mw_mirth_type_T1();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(28LL); // PRIM_PACK_CONS
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
@@ -23019,7 +23019,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_txs);
 			incref(var_tb);
 			push_value(var_tb);
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			mw_mirth_type_StackType_ZToType();
 			mw_mirth_type_T1();
 			incref(var_txs);
@@ -23028,7 +23028,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_tb);
 			push_value(var_tb);
 			mw_mirth_type_T2();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(29LL); // PRIM_PACK_UNCONS
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_a);
@@ -23041,7 +23041,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_ta);
 			mtw_mirth_type_Type_TMut();
 			mw_mirth_type_T1();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(30LL); // PRIM_MUT_NEW
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_a);
@@ -23054,7 +23054,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			incref(var_ta);
 			push_value(var_ta);
 			mw_mirth_type_T1();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(31LL); // PRIM_MUT_GET
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_a);
@@ -23067,7 +23067,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			mtw_mirth_type_Type_TMut();
 			mw_mirth_type_T2();
 			mw_mirth_type_T0();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(32LL); // PRIM_MUT_SET
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_a);
@@ -23079,7 +23079,7 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			mw_mirth_type_T1();
 			mw_mirth_data_TYPEz_BOOL();
 			mw_mirth_type_T1();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			push_u64(33LL); // PRIM_MUT_IS_SET
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			decref(var_tys);
@@ -27724,7 +27724,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang (void) {
 		mw_std_list_List_1_for_1();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 }
 static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZ_paramsZBang (void) {
 	mw_mirth_elab_ZPlusTypeElab_token();
@@ -29349,7 +29349,7 @@ static void mw_mirth_elab_dataZ_getZ_tagZ_type (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 }
 static void mw_mirth_elab_elabZ_coerceZ_sigZBang (void) {
 	switch (get_top_data_tag()) {
@@ -29360,12 +29360,12 @@ static void mw_mirth_elab_elabZ_coerceZ_sigZBang (void) {
 			mp_primZ_dup();
 			mw_mirth_type_MetaVar_newZBang();
 			mtw_mirth_type_Type_TMeta();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			mp_primZ_swap();
 			mw_mirth_type_MetaVar_newZBang();
 			mtw_mirth_type_Type_TMeta();
-			mw_mirth_type_TrueZMul();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZMul();
+			mw_mirth_type_TZ_ZTo();
 			mtw_mirth_elab_OpSig_OPSIGz_APPLY();
 			break;
 		default:
@@ -29386,7 +29386,7 @@ static void mw_mirth_elab_elabZ_matchZ_sigZBang (void) {
 		push_value(d2);
 	}
 	mw_mirth_match_Match_cod();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mtw_mirth_elab_OpSig_OPSIGz_APPLY();
 }
 static void mw_mirth_elab_elabZ_lambdaZ_sigZBang (void) {
@@ -29397,7 +29397,7 @@ static void mw_mirth_elab_elabZ_lambdaZ_sigZBang (void) {
 		push_value(d2);
 	}
 	mw_mirth_arrow_Lambda_cod();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mtw_mirth_elab_OpSig_OPSIGz_APPLY();
 }
 static void mw_mirth_elab_elabZ_varZ_sigZBang (void) {
@@ -29441,7 +29441,7 @@ static void mw_mirth_elab_elabZ_labelZ_pushZ_sigZBang (void) {
 		mtw_mirth_type_StackType_STCons();
 		push_value(d2);
 	}
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mtw_mirth_elab_OpSig_OPSIGz_APPLY();
 }
 static void mw_mirth_elab_elabZ_labelZ_popZ_sigZBang (void) {
@@ -29472,7 +29472,7 @@ static void mw_mirth_elab_elabZ_labelZ_popZ_sigZBang (void) {
 		push_value(d2);
 	}
 	mp_primZ_swap();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mtw_mirth_elab_OpSig_OPSIGz_APPLY();
 }
 static void mw_mirth_elab_elabZ_arrowZ_homZBang (void) {
@@ -30050,7 +30050,7 @@ static void mw_mirth_match_ZPlusMatch_caseZBang_2 (void) {
 			push_value(var_pat);
 			mw_mirth_match_Pattern_dom();
 			mw_mirth_match_ZPlusMatch_cod();
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			{
 				VAL d4 = pop_value();
 				mp_primZ_swap();
@@ -30163,7 +30163,7 @@ static void mw_mirth_elab_elabZ_lambdaZ_paramZAsk (void) {
 				mtw_mirth_type_StackType_STMeta();
 				mw_mirth_type_MetaVar_newZBang();
 				mtw_mirth_type_StackType_STMeta();
-				mw_mirth_type_TrueZ_ZTo();
+				mw_mirth_type_TZ_ZTo();
 				mtw_mirth_type_Type_TMorphism();
 				push_value(d4);
 			}
@@ -31108,7 +31108,7 @@ static void mw_mirth_elab_dataZ_getZ_labelZ_type (void) {
 		incref(var_tag);
 		push_value(var_tag);
 		mw_mirth_data_Tag_outputZ_type();
-		mw_mirth_type_TrueZMulZPlus();
+		mw_mirth_type_TZMulZPlus();
 		incref(var_lbl);
 		push_value(var_lbl);
 		incref(var_tag);
@@ -31133,7 +31133,7 @@ static void mw_mirth_elab_dataZ_getZ_labelZ_type (void) {
 			}
 			decref(var_f);
 		}
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZ_ZTo();
 		decref(var_lbl);
 		decref(var_tag);
 	}
@@ -31152,13 +31152,13 @@ static void mw_mirth_elab_dataZ_setZ_labelZ_type (void) {
 		incref(var_tag);
 		push_value(var_tag);
 		mw_mirth_data_Tag_outputZ_type();
-		mw_mirth_type_TrueZMulZPlus();
+		mw_mirth_type_TZMulZPlus();
 		mw_mirth_type_T0();
 		incref(var_tag);
 		push_value(var_tag);
 		mw_mirth_data_Tag_outputZ_type();
-		mw_mirth_type_TrueZMulZPlus();
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZMulZPlus();
+		mw_mirth_type_TZ_ZTo();
 		decref(var_lbl);
 		decref(var_tag);
 	}
@@ -31918,11 +31918,11 @@ static void mw_mirth_elab_elabZ_entryZ_point (void) {
 		mw_mirth_var_Ctx0();
 		mw_mirth_type_T0();
 		mw_mirth_type_RESOURCEz_WORLD();
-		mw_mirth_type_TrueZPlus();
+		mw_mirth_type_TZPlus();
 		mw_mirth_type_T0();
 		mw_mirth_type_RESOURCEz_WORLD();
-		mw_mirth_type_TrueZPlus();
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZPlus();
+		mw_mirth_type_TZ_ZTo();
 		push_value(d2);
 	}
 	mw_mirth_word_Word_head();
@@ -31969,7 +31969,7 @@ static void mw_mirth_elab_elabZ_embedZ_strZBang (void) {
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_STR();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -32073,7 +32073,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -32119,7 +32119,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mp_primZ_swap();
 	mtw_mirth_type_Type_TTable();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -32192,7 +32192,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_type_T1();
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -32235,7 +32235,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_type_TYPEz_INT();
 	mw_mirth_type_T1();
 	mp_primZ_swap();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -32276,7 +32276,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mtw_mirth_type_Type_TTable();
 	mw_mirth_type_T1();
 	mp_primZ_dup();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -32317,7 +32317,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mtw_mirth_type_Type_TTable();
 	mw_mirth_type_T1();
 	mp_primZ_dup();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -32368,10 +32368,10 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 		incref(var_t);
 		push_value(var_t);
 		mtw_mirth_type_Type_TTable();
-		mw_mirth_type_TrueZMul();
+		mw_mirth_type_TZMul();
 		incref(var_a);
 		push_value(var_a);
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZ_ZTo();
 		mw_mirth_type_ArrowType_ZToType();
 		{
 			static bool vready = false;
@@ -32397,15 +32397,15 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 			incref(var_t);
 			push_value(var_t);
 			mtw_mirth_type_Type_TTable();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_a);
 			push_value(var_a);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_mirth_type_ArrowType_ZToType();
-			mw_mirth_type_TrueZMul();
+			mw_mirth_type_TZMul();
 			incref(var_a);
 			push_value(var_a);
-			mw_mirth_type_TrueZ_ZTo();
+			mw_mirth_type_TZ_ZTo();
 			mw_std_lazzy_ready2();
 			incref(var_w);
 			push_value(var_w);
@@ -32464,7 +32464,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mp_primZ_swap();
 	mtw_mirth_type_Type_TTable();
 	mw_mirth_type_T1();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_lazzy_ready2();
 	{
 		VAL d2 = pop_value();
@@ -33137,7 +33137,7 @@ static void mw_mirth_specializzer_abZ_buildZ_overZ_atomZBang_1 (void) {
 		LPOP(lbl_ctx);
 		LPOP(lbl_dom);
 		LPOP(lbl_cod);
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZ_ZTo();
 		LPOP(lbl_token);
 		LPOP(lbl_home);
 		LPOP(lbl_subst);
@@ -33328,7 +33328,7 @@ static void mw_mirth_specializzer_specializzeZ_ctxZ_type (void) {
 	LPOP(lbl_gamma);
 	mp_primZ_drop();
 	mp_primZ_swap();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	{
 		VAL d2 = pop_value();
 		mw_mirth_var_Ctx0();
@@ -41264,7 +41264,7 @@ static void mb_mirth_type_Type_isZ_physicalZAsk_1 (void) {
 	mw_std_prelude_panicZBang();
 }
 static void mb_mirth_type_TT_0 (void) {
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mb_mirth_type_MetaVar_expand_0 (void) {
 }
@@ -42118,7 +42118,7 @@ static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang_3 (void) {
 	mw_mirth_token_Token_succ();
 }
 static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang_7 (void) {
-	mw_mirth_type_TrueZMul();
+	mw_mirth_type_TZMul();
 }
 static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZ_paramsZBang_0 (void) {
 	mw_mirth_elab_ZPlusTypeElab_token();
@@ -43305,7 +43305,7 @@ static void mb_mirth_elab_dataZ_getZ_labelZ_type_0 (void) {
 	incref(var_tag);
 	push_value(var_tag);
 	mw_mirth_data_Tag_outputZ_type();
-	mw_mirth_type_TrueZMulZPlus();
+	mw_mirth_type_TZMulZPlus();
 	decref(var_tag);
 }
 static void mb_mirth_elab_elabZ_arrowZ_fwdZBang_0 (void) {
@@ -44020,7 +44020,7 @@ static void mb_mirth_elab_elabZ_dataZ_tagZBang_7 (void) {
 	mp_primZ_swap();
 	mw_mirth_data_Tag_data();
 	mw_mirth_data_Data_fullZ_type();
-	mw_mirth_type_TrueZMulZPlus();
+	mw_mirth_type_TZMulZPlus();
 	mp_primZ_swap();
 	mw_mirth_data_Tag_sigZAsk();
 	switch (get_top_data_tag()) {
@@ -44039,7 +44039,7 @@ static void mb_mirth_elab_elabZ_dataZ_tagZBang_7 (void) {
 			mp_primZ_panic();
 	}
 	mp_primZ_swap();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	{
 		VAL d2 = pop_value();
 		mw_mirth_elab_ZPlusTypeElab_ctx();
@@ -44139,7 +44139,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_2 (void) {
 		push_value(var_dat);
 		mtw_mirth_type_Type_TData();
 		mw_mirth_type_T1();
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZ_ZTo();
 		mw_std_lazzy_ready2();
 		incref(var_ftag);
 		push_value(var_ftag);
@@ -44162,7 +44162,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_4 (void) {
 	mw_mirth_data_Tag_ctxZ_type();
 	mw_mirth_type_ArrowType_unpack();
 	mp_primZ_swap();
-	mw_mirth_type_TrueZ_ZTo();
+	mw_mirth_type_TZ_ZTo();
 	mw_std_prelude_pack2();
 }
 static void mb_mirth_elab_elabZ_dataZ_doneZBang_5 (void) {
@@ -44650,29 +44650,29 @@ static void mb_mirth_elab_createZ_projectorsZBang_8 (void) {
 		mtw_mirth_type_StackType_STVar();
 		incref(var_datty);
 		push_value(var_datty);
-		mw_mirth_type_TrueZMulZPlus();
+		mw_mirth_type_TZMulZPlus();
 		incref(var_sx);
 		push_value(var_sx);
 		mtw_mirth_type_StackType_STVar();
 		incref(var_lblty);
 		push_value(var_lblty);
-		mw_mirth_type_TrueZMul();
+		mw_mirth_type_TZMul();
 		incref(var_sy);
 		push_value(var_sy);
 		mtw_mirth_type_StackType_STVar();
 		incref(var_lblty);
 		push_value(var_lblty);
-		mw_mirth_type_TrueZMul();
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZMul();
+		mw_mirth_type_TZ_ZTo();
 		mtw_mirth_type_Type_TMorphism();
-		mw_mirth_type_TrueZMul();
+		mw_mirth_type_TZMul();
 		incref(var_sy);
 		push_value(var_sy);
 		mtw_mirth_type_StackType_STVar();
 		incref(var_datty);
 		push_value(var_datty);
-		mw_mirth_type_TrueZMulZPlus();
-		mw_mirth_type_TrueZ_ZTo();
+		mw_mirth_type_TZMulZPlus();
+		mw_mirth_type_TZ_ZTo();
 		mw_std_prelude_pack2();
 		decref(var_datty);
 		decref(var_lblty);

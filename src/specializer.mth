@@ -113,7 +113,7 @@ def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
 def(ab-build-over-atom!(f), (*a +AB -- *b +AB) *a Atom -- *b Arrow,
     /Atom
     ctx>
-    dom> cod> True->
+    dom> cod> T->
     token> home>
     subst> op> args> drop3
     ab-build-hom!(dip(f)))
@@ -171,7 +171,7 @@ def(specialize-ctx-type, SPKey Ctx ArrowType -- Ctx ArrowType,
         /ArgBlock type TMorphism unify! drop2
     )
     gamma> drop
-    swap True->
+    swap T->
     dip:Ctx0 rigidify-sig!)
 
 
