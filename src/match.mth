@@ -150,7 +150,8 @@ def(+Pattern.tag!, +Pattern Tag -- +Pattern,
     pattern token-start >token
     pattern inner-ctx >ctx
     dip:SUBST_NIL type freshen-sig unpack
-    dip(pattern token-start GAMMA pattern mid) unify! >cod drop
+    dip(pattern mid)
+    pattern token-start >token +Gamma unify! rdrop >cod
     dup >dom pattern:mid!
     >subst PATATOM pattern:atoms:cons)
 

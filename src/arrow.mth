@@ -188,7 +188,7 @@ def(Block.new-deferred!(f), (Block -- Arrow) Ctx Token Home -- Block,
 def(Block.typecheck!, Block --,
     arrow drop)
 
-def(block-unify-type!, Gamma Block ArrowType -- Gamma ArrowType,
+def(block-unify-type!, +Gamma Block ArrowType -- +Gamma ArrowType,
     dip(dup type) rotl dip(unify! drop) arrow type)
 
 def(Block.to-run-var, Block -- Maybe(Var),
