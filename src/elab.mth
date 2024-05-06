@@ -147,9 +147,12 @@ def(+TypeElab.elab-type-var!, +TypeElab -- +TypeElab Type,
 def(+TypeElab.elab-resource-var!, +TypeElab -- +TypeElab Resource,
     TYPE_RESOURCE elab-implicit-var! if-some(TVar, TYPE_ERROR) RESOURCE)
 
+def(+TypeElab.gamma(f), (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab,
+    token rdip(>token +Gamma f rdrop))
+
 def(+TypeElab.elab-implicit-var!, +TypeElab Type -- +TypeElab Maybe(Var),
     token name? unwrap dup ctx lookup match(
-        Some -> sip(nip type dip2(token GAMMA) unify! drop2) Some,
+        Some -> sip(nip type gamma:unify! drop) Some,
         None ->
             allow-implicit-type-vars if(
                 Var.new! ctx(over Ctx.new) Some,
@@ -437,9 +440,9 @@ def(+TypeElab.elab-type-quote!, +TypeElab -- +TypeElab Type,
     ) token!)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
-    sip(GAMMA rotr unify! nip))
+    >token +Gamma unify! /+Gamma token>)
 def(elab-stack-type-unify!, StackType StackType Token -- StackType Token,
-    sip(GAMMA rotr unify! nip))
+    >token +Gamma unify! /+Gamma token>)
 
 def(elab-simple-type-arg!, Token -- Type,
     >token
@@ -460,6 +463,9 @@ def(ab-type@, +AB -- +AB StackType, arrow cod)
 def(ab-type!, +AB StackType -- +AB, arrow:cod!)
 def(ab-ctx@, +AB -- +AB Ctx, arrow ctx)
 def(ab-home@, +AB -- +AB Home, arrow home)
+
+def(+AB.gamma(f), (*a +Gamma -- *b +Gamma) *a +AB -- *b +AB,
+    ab-token@ rdip(>token +Gamma f rdrop))
 
 def(ab-build!(f), (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow,
     >home
@@ -482,7 +488,7 @@ def(ab-build-word!(f), (*a +AB -- *b +AB) *a Word -- *b Word,
     tuck ~arrow !)
 
 def(ab-unify-type!, StackType +AB -- +AB,
-    dip(ab-token@ GAMMA ab-type@) unify! ab-type! drop)
+    dip:ab-type@ gamma:unify! ab-type!)
 
 def(ab-atom!, Atom +AB -- +AB,
     dup token ab-token!
@@ -676,10 +682,10 @@ def(elab-arrow!, Ctx ArrowType Token Home -- Arrow,
 def(elab-arrow-hom!, Ctx StackType StackType Token Home -- Arrow,
     rotl dip(
         elab-arrow-fwd!
-        dup token-end GAMMA
-        over cod
+        dup token-end >token +Gamma
+        dup cod
     )
-    unify! drop2)
+    unify! rdrop drop)
 
 def(elab-arrow-fwd!, Ctx StackType Token Home -- Arrow,
     ab-build!(elab-atoms!))
@@ -807,8 +813,7 @@ def(elab-atom-assert!, +AB -- +AB,
     True >allow-type-holes
     False >allow-implicit-type-vars
     TYPE_ELAB elab-stack-type! rdrop
-    dip(ab-token@ GAMMA ab-type@)
-    unify! drop2)
+    dip:ab-type@ gamma:unify! drop)
 
 def(elab-atom-match!, +AB -- +AB,
     MetaVar.new! STMeta >cod

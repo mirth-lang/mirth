@@ -168,12 +168,12 @@ def(Type.expand, Type -- Type,
     TMeta -> expand,
     _ -> id)
 
-data(Gamma, GAMMA -> Token)
-def(Gamma.token, Gamma -- Token, GAMMA -> )
+data(+Gamma, +Gamma -> token: Token)
+def(+Gamma.rdrop, +Gamma --, /+Gamma token> drop)
 
 ||| Raise a type unification error.
-def(Type.unify-failed!, Gamma Type Type -- Gamma Type,
-    over2 token location trace!
+def(Type.unify-failed!, +Gamma Type Type -- +Gamma Type,
+    token location trace!
     ": error: Failed to unify " trace!
     dip(trace!)
     " with " trace!
@@ -183,7 +183,7 @@ def(Type.unify-failed!, Gamma Type Type -- Gamma Type,
     num-errors modify(1+))
 
 ||| Unify types directly, without regard to metavariables and other metatypes.
-def(Type.unify-simple!, Gamma Type Type -- Gamma Type,
+def(Type.unify-simple!, +Gamma Type Type -- +Gamma Type,
     TVar -> swap match(TVar -> unify!, _ -> dip(TVar) unify-failed!),
     TPrim -> swap match(TPrim -> unify!, _ -> dip(TPrim) unify-failed!),
     TData -> swap match(TData -> unify!, _ -> dip(TData) unify-failed!),
@@ -195,7 +195,7 @@ def(Type.unify-simple!, Gamma Type Type -- Gamma Type,
     _ -> unify-failed!)
 
 ||| Unify expanded types.
-def(Type.unify-aux!, Gamma Type Type -- Gamma Type,
+def(Type.unify-aux!, +Gamma Type Type -- +Gamma Type,
     TYPE_ERROR -> unify-error!,
     TYPE_DONT_CARE -> id,
     THole -> type-hole-unify!,
@@ -228,7 +228,7 @@ def(Type.unify-aux!, Gamma Type Type -- Gamma Type,
         )
     )
 
-def(Type.unify-error!, Gamma Type -- Gamma Type,
+def(Type.unify-error!, +Gamma Type -- +Gamma Type,
     expand match(
         TYPE_ERROR -> TYPE_ERROR,
         TYPE_DONT_CARE -> TYPE_ERROR,
@@ -246,19 +246,19 @@ def(Type.unify-error!, Gamma Type -- Gamma Type,
     ))
 
 ||| Unify two types. Raises a unification error if unification is impossible.
-def(Type.unify!, Gamma Type Type -- Gamma Type,
+def(Type.unify!, +Gamma Type Type -- +Gamma Type,
     both(expand) unify-aux!)
 
-def(Value.unify!, Gamma Value Value -- Gamma Type,
+def(Value.unify!, +Gamma Value Value -- +Gamma Type,
     swap match(
         VALUE_INT -> swap match(
             VALUE_INT -> dup2 == if(drop VALUE_INT TValue, drop2 TYPE_INT),
             VALUE_STR ->
-                drop2 dup token
+                drop2 token
                 "Can't unify int value with string value."
                 emit-error! TYPE_ERROR,
             VALUE_BLOCK ->
-                drop2 dup token
+                drop2 token
                 "Can't unify int value with block."
                 emit-error! TYPE_ERROR,
         ),
@@ -266,11 +266,11 @@ def(Value.unify!, Gamma Value Value -- Gamma Type,
         VALUE_STR -> swap match(
             VALUE_STR -> dup2 == if(drop VALUE_STR TValue, drop2 TYPE_STR),
             VALUE_INT ->
-                drop2 dup token
+                drop2 token
                 "Can't unify string value with int value."
                 emit-error! TYPE_ERROR,
             VALUE_BLOCK ->
-                drop2 dup token
+                drop2 token
                 "Can't unify string value with block."
                 emit-error! TYPE_ERROR,
         ),
@@ -282,27 +282,27 @@ def(Value.unify!, Gamma Value Value -- Gamma Type,
                     arrow type block-unify-type! >Type
                 ),
             VALUE_INT ->
-                drop2 dup token
+                drop2 token
                 "Can't unify block with int value."
                 emit-error! TYPE_ERROR,
             VALUE_STR ->
-                drop2 dup token
+                drop2 token
                 "Can't unify block with string value."
                 emit-error! TYPE_ERROR
         ),
     ))
 
-def(Value.unify-type!, Gamma Type Value -- Gamma Type,
+def(Value.unify-type!, +Gamma Type Value -- +Gamma Type,
     VALUE_INT -> drop TYPE_INT unify!,
     VALUE_STR -> drop TYPE_STR unify!,
     VALUE_BLOCK -> swap unify-block!)
 
-def(Value.unify-error!, Gamma Value -- Gamma Type,
+def(Value.unify-error!, +Gamma Value -- +Gamma Type,
     VALUE_INT -> drop TYPE_ERROR,
     VALUE_STR -> drop TYPE_ERROR,
     VALUE_BLOCK -> TYPE_ERROR unify-block!)
 
-def(Type.unify-block!, Gamma Block Type -- Gamma Type,
+def(Type.unify-block!, +Gamma Block Type -- +Gamma Type,
     expand match(
         TYPE_ERROR -> STACK_TYPE_ERROR STACK_TYPE_ERROR T-> block-unify-type! drop TYPE_ERROR,
         TMeta -> over dip(dip(type >Type) unify! drop) arrow type >Type,
@@ -310,16 +310,16 @@ def(Type.unify-block!, Gamma Block Type -- Gamma Type,
         _ -> dip(type >Type) unify!
     ))
 
-def(Type.unify2!, Gamma Type Type Type Type -- Gamma Type Type,
-    dip(swap dip(unify! swap)) unify! dip(swap))
+def(Type.unify2!, +Gamma Type Type Type Type -- +Gamma Type Type,
+    dip(swap) dip2(unify!) unify!)
 
-def(PrimType.unify!, Gamma PrimType PrimType -- Gamma Type,
+def(PrimType.unify!, +Gamma PrimType PrimType -- +Gamma Type,
     dup2 == if(drop TPrim, both(TPrim) unify-failed!))
-def(Data.unify!, Gamma Data Data -- Gamma Type,
+def(Data.unify!, +Gamma Data Data -- +Gamma Type,
     dup2 == if(drop TData, both(TData) unify-failed!))
-def(Table.unify!, Gamma Table Table -- Gamma Type,
+def(Table.unify!, +Gamma Table Table -- +Gamma Type,
     dup2 == if(drop TTable, both(TTable) unify-failed!))
-def(Var.unify!, Gamma Var Var -- Gamma Type,
+def(Var.unify!, +Gamma Var Var -- +Gamma Type,
     dup2 == if(drop TVar, both(TVar) unify-failed!))
 
 def(Type.has-meta?, MetaVar Type -- Bool,
@@ -510,7 +510,7 @@ def(MetaVar.expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
     ))
 def(MetaVar.expand, MetaVar -- Type,
     expand-if(id, TMeta))
-def(MetaVar.unify!, Gamma Type MetaVar -- Gamma Type,
+def(MetaVar.unify!, +Gamma Type MetaVar -- +Gamma Type,
     dup type? match(
         Some -> nip unify!,
         None -> dup2 swap meta= if(
@@ -521,7 +521,7 @@ def(MetaVar.unify!, Gamma Type MetaVar -- Gamma Type,
             )
         )
     ))
-def(MetaVar.unify-error!, Gamma MetaVar -- Gamma Type,
+def(MetaVar.unify-error!, +Gamma MetaVar -- +Gamma Type,
     dup type? match(
         Some -> nip unify-error!,
         None -> dip(TYPE_ERROR Some) ~type? ! TYPE_ERROR
@@ -574,9 +574,9 @@ data(Resource, RESOURCE -> Type)
 def(Resource.>Type, Resource -- Type, RESOURCE -> id)
 def(Type.>Resource, Type -- Resource, RESOURCE)
 def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
-def(Resource.unify!, Gamma Resource Resource -- Gamma Resource,
+def(Resource.unify!, +Gamma Resource Resource -- +Gamma Resource,
     both(>Type) unify! >Resource)
-def(Resource.unify-error!, Gamma Resource -- Gamma Resource,
+def(Resource.unify-error!, +Gamma Resource -- +Gamma Resource,
     >Type unify-error! >Resource)
 def(Resource.trace!, Resource --, >Type trace!)
 def(Resource.freshen, Subst Resource -- Subst Resource,
@@ -718,10 +718,10 @@ def(StackType.has-meta?, MetaVar StackType -- Bool,
         STWith -> dip(over) has-meta? if(drop2 True, has-meta?),
     ))
 
-def(StackType.unify-failed!, Gamma StackType StackType -- Gamma StackType,
+def(StackType.unify-failed!, +Gamma StackType StackType -- +Gamma StackType,
    both(>Type) unify-failed! >StackType)
 
-def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
+def(StackType.unify!, +Gamma StackType StackType -- +Gamma StackType,
     swap expand match(
         STACK_TYPE_ERROR -> unify-error!,
         STACK_TYPE_DONT_CARE -> id,
@@ -750,7 +750,7 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
             STMeta -> dip(STCons >Type) unify! >StackType,
             STACK_TYPE_DONT_CARE -> STCons,
             _ -> dup force-cons?! if-some(
-                nip unpack2 dip(swap dip(unify! swap)) unify! dip(swap) STCons,
+                nip unpack2 dip(swap) dip2(unify!) unify! STCons,
                 dip(STCons) unify-failed!
             )
         ),
@@ -759,7 +759,7 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
             STMeta -> dip(STWith >Type) unify! >StackType,
             STACK_TYPE_DONT_CARE -> STWith,
             _ -> dup force-with?! if-some(
-                nip unpack2 dip(swap dip(unify! swap)) unify! dip(swap) STWith,
+                nip unpack2 dip(swap) dip2(unify!) unify! STWith,
                 dip(STWith) unify-failed!
             )
         ),
@@ -768,13 +768,13 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
             STMeta -> dip(STConsLabel >Type) unify! >StackType,
             STACK_TYPE_DONT_CARE -> STConsLabel,
             _ -> dup2 force-cons-label?! if-some(
-                nip swap dip(unpack2 dip(swap dip(unify! swap)) unify! dip(swap)) STConsLabel,
+                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) STConsLabel,
                 dip(STConsLabel) unify-failed!
             )
         ),
     ))
 
-def(StackType.unify-error!, Gamma StackType -- Gamma StackType,
+def(StackType.unify-error!, +Gamma StackType -- +Gamma StackType,
     expand match(
         STACK_TYPE_ERROR -> STACK_TYPE_ERROR,
         STACK_TYPE_UNIT -> STACK_TYPE_ERROR,
@@ -928,12 +928,12 @@ def(ArrowType.>Type, ArrowType -- Type, TMorphism)
 def(ArrowType.unpack, ArrowType -- StackType StackType, ARROW_TYPE -> id)
 def(ArrowType.dom, ArrowType -- StackType, unpack drop)
 def(ArrowType.cod, ArrowType -- StackType, unpack nip)
-def(ArrowType.unify!, Gamma ArrowType ArrowType -- Gamma ArrowType,
+def(ArrowType.unify!, +Gamma ArrowType ArrowType -- +Gamma ArrowType,
     dip(unpack) unpack
     dip(swap dip(unify!)) rotl
     dip(unify!) swap
     ARROW_TYPE)
-def(ArrowType.unify-error!, Gamma ArrowType -- Gamma ArrowType,
+def(ArrowType.unify-error!, +Gamma ArrowType -- +Gamma ArrowType,
     unpack dip(unify-error!) dip'(unify-error!) ARROW_TYPE)
 def(ArrowType.has-meta?, MetaVar ArrowType -- Bool,
     unpack dip(over) has-meta? if(drop2 True, has-meta?))
@@ -1019,7 +1019,7 @@ def(Subst.get-var, Var Subst -- Type,
 
 ||| If variable is in subst, unify new type with type in subst.
 ||| Otherwise, create larger subst with new binding.
-def(Subst.match-var, Gamma Type Var Subst -- Gamma Subst,
+def(Subst.match-var, +Gamma Type Var Subst -- +Gamma Subst,
     dup2 has-var? if(
         sip(get-var unify! drop),
         cons

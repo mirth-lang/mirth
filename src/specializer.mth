@@ -161,16 +161,15 @@ def(specialize-word!, SPKey Word -- Word,
 def(specialize-ctx-type, SPKey Ctx ArrowType -- Ctx ArrowType,
     nip dip:SUBST_NIL freshen nip swap
     /SPKEY
-    dup first token GAMMA >gamma
+    dup first token >token +Gamma
     dip:SUBST_NIL nip
     dip(ArrowType.unpack swap) reverse-for(
         dip(force-cons?!
             unwrap-or("unexpected domain in specialize-ctx-type" panic!)
             unpack2)
-        dip2(gamma> dup >gamma)
-        /ArgBlock type TMorphism unify! drop2
+        /ArgBlock type TMorphism unify! drop
     )
-    gamma> drop
+    rdrop
     swap T->
     dip:Ctx0 rigidify-sig!)
 
