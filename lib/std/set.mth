@@ -4,24 +4,32 @@ import(std.prelude)
 import(std.buffer)
 
 ||| Represents a set as a bit string.
-data(+Set(t), +Set -> [t -- Nat] +Buffer)
-def(+Set.~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Set(t) -- *b +Set(t),
-    /+Set dip(f) +Set)
+data(+Set(t), +Set ->
+    index-fn: [t -- Nat]
+    +buffer: +Buffer)
+
 def(+Set.index, t +Set(t) -- Nat +Set(t),
-    /+Set dup rdip(dip(run)) +Set)
+    index-fn rdip(run))
 
 def(SET_INITIAL_SIZE, Size, 256 >Size)
 
-def(+Set.new(f), (t -- Nat) -- +Set(t), [f] SET_INITIAL_SIZE +Buffer.new +Set)
-def(+Set.rdrop, +Set(t) --, /+Set drop rdrop)
+def(+Set.new(f), (t -- Nat) -- +Set(t),
+    [f] >index-fn
+    SET_INITIAL_SIZE +Buffer.new >+buffer
+    +Set)
+
+def(+Set.rdrop, +Set(t) --,
+    /+Set
+    index-fn> drop
+    +buffer> rdrop)
 
 def(+Set.offset-mask, t +Set(t) -- Offset U8 +Set(t),
-    index 8 >Nat /% over 1+ >Size ~Buffer(expand!)
+    index 8 >Nat /% over 1+ >Size +buffer:expand!
     dip(>Offset) 1 >Nat swap << >U8)
 
 def(+Set.member?, t +Set(t) -- Bool +Set(t),
-    offset-mask ~Buffer(swap @U8) & >Int 0 <>)
+    offset-mask +buffer(swap @U8) & >Int 0 <>)
 def(+Set.insert!, t +Set(t) -- +Set(t),
-    offset-mask ~Buffer(over @U8 | swap !U8))
+    offset-mask +buffer(over @U8 | swap !U8))
 def(+Set.remove!, t +Set(t) -- +Set(t),
-    offset-mask 0xFF >U8 ^ ~Buffer(over @U8 & swap !U8))
+    offset-mask 0xFF >U8 ^ +buffer(over @U8 & swap !U8))

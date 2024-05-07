@@ -109,7 +109,7 @@ def(Str.drop-bytes, Size Str +Unsafe -- Str +Unsafe,
 def(Str.from-bytes-unsafe, List(Byte) -- Str,
     dup len >Size +Buffer.new
     dip(0 >Offset) for(>U8 over !U8 1+) drop
-    buffer-base buffer-size unsafe(Str.copy)
+    base size unsafe(Str.copy)
     rdrop)
 
 def(Str.with-data-cstr(f), (*a Ptr -- *b) *a Str -- *b,

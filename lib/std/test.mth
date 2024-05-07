@@ -62,15 +62,12 @@ data(+Tests, +Tests ->
     ||| Destruct it with [+Tests.end!].
     num-tests: Nat   ||| Number of tests so far.
     num-failed: Nat  ||| Number of tests failed so far.
-    +World           ||| The world; access with [+Tests.world(f)].
+    +world: +World   ||| The outside world.
     )
-
-def(+Tests.world(f), (*a +World -- *b +World) *a +Tests -- *b +Tests,
-    ||| Access the [+World] resource inside [+Tests].
-    +Tests -> num-tests> num-failed> dip2(f) >num-failed >num-tests +Tests)
 
 def(+Tests.start!, +World -- +Tests,
     ||| Construct the [+Tests] resource, begin the unit tests.
+    >+world
     0 >Nat >num-tests
     0 >Nat >num-failed
     +Tests)
@@ -82,12 +79,12 @@ def(+Tests.end!, +Tests -- +World,
     num-failed 0> if(
         num-failed show " out of " cat
         num-tests show cat " tests failed." cat
-        world(put line 1 prim-posix-exit),
+        +world(put line 1 prim-posix-exit),
 
         num-tests show " tests passed." cat
-        world(put line)
+        +world(put line)
     )
-    /+Tests
+    /+Tests +world>
     num-tests> num-failed> drop2)
 
 def(+Tests.test(f), (+Test -- +Test) Str +Tests -- +Tests,
@@ -103,9 +100,11 @@ def(+Tests.test(f), (+Test -- +Test) Str +Tests -- +Tests,
     ||| As demonstrated here, you can run multiple checks within a test.
     >test-name
     False >test-failed
+    >+tests
     +Test
     f
     /+Test
+    +tests>
     test-name> drop
     test-failed> then(num-failed:1+)
     num-tests: 1+)
@@ -116,16 +115,12 @@ data(+Test, +Test ->
     ||| You can use the [+Test.world] lens to access the world.
     test-name: Str      ||| Name of this test.
     test-failed: Bool   ||| Did this test fail?
-    +Tests              ||| The test harness, access it with [+Test.tests].
+    +tests: +Tests      ||| The test harness.
     )
 
-def(+Test.tests(f), (*a +Tests -- *b +Tests) *a +Test -- *b +Test,
-    ||| Access the [+Tests] resource within [+Test].
-    +Test -> test-name> test-failed> dip2(f) >test-failed >test-name +Test)
-
-def(+Test.world(f), (*a +World -- *b +World) *a +Test -- *b +Test,
+def(+Test.+world(f), (*a +World -- *b +World) *a +Test -- *b +Test,
     ||| Access the [+World] resource within [+Test], via [+Tests].
-    tests:world(f))
+    +tests:+world(f))
 
 def(+Test.fail!, +Test -- +Test,
     ||| Declare that the test has failed.
@@ -133,7 +128,7 @@ def(+Test.fail!, +Test -- +Test,
     ||| If the test already failed before, do nothing instead.
     test-failed else(
         True test-failed!
-        test-name show " test failed" cat world(put line)
+        test-name show " test failed" cat +world(put line)
     ))
 def(+Test.check-equals!(feq,fshow), (a a -- Bool, a -- Str) a a +Test -- +Test,
     ||| Check two values for equality. If they're equal, do nothing.
@@ -145,8 +140,8 @@ def(+Test.check-equals!(feq,fshow), (a a -- Bool, a -- Str) a a +Test -- +Test,
     dup2 feq if(
         drop2,
         fail!
-        world("  expected: " put fshow put line
-              "       got: " put fshow put line)
+        +world("  expected: " put fshow put line
+               "       got: " put fshow put line)
     ))
 
 ||| The lack of ad hoc polymorphism really hurts us here; we can't define

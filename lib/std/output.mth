@@ -7,45 +7,47 @@ import(std.buffer)
 import(std.file)
 
 def(OUTPUT_BUFFER_SIZE, Size, 4096 >Size)
-data(+Output, +Output -> Size +File +Buffer)
+data(+Output, +Output ->
+    size: Size
+    +file: +File
+    +buffer: +Buffer)
 
 def(+Output.start!, +File -- +Output,
-    0 >Size OUTPUT_BUFFER_SIZE +Buffer.new +Output)
+    >+file
+    0 >Size >size
+    OUTPUT_BUFFER_SIZE +Buffer.new >+buffer
+    +Output)
 
 def(+Output.end!, +Output -- +File,
-    flush! /+Output drop rdrop)
+    flush! /+Output
+    size> drop
+    +buffer> rdrop
+    +file>)
 
-def(+Output.offset@, +Output -- Offset +Output, size@ >Offset)
-def(+Output.size@, +Output -- Size +Output, /+Output dup dip(+Output))
-def(+Output.size!, Size +Output -- +Output, dip(/+Output drop) +Output)
-
-def(+Output.~File(f), (*a +File -- *b +File) *a +Output -- *b +Output,
-    /+Output dip(rdip(f)) +Output)
-
-def(+Output.~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Output -- *b +Output,
-    /+Output dip(rdip'(f)) +Output)
+def(+Output.offset, +Output -- Offset +Output, size >Offset)
 
 def(+Output.flush!, +Output -- +Output,
-    ~Buffer(buffer-base) size@ ~File(unsafe-write!)
+    +buffer:base size +file:unsafe-write!
     0 >Size size!)
 
-def(+Output.capacity-total, +Output -- Size +Output, ~Buffer(buffer-size))
-def(+Output.capacity-remaining, +Output -- Size +Output,
-    capacity-total size@ -)
+def(+Output.capacity-total, +Output -- Size +Output, +buffer:size)
+def(+Output.capacity-remaining, +Output -- Size +Output, capacity-total size -)
 def(+Output.full?, +Output -- Bool +Output, capacity-remaining 0 >Size <=)
 
 def(+Output.put, Str +Output -- +Output,
     dup num-bytes capacity-remaining > if(
-        flush!
-        with-data(~File(unsafe-write!)),
+        flush! dup num-bytes capacity-total >= if(
+            with-data(+file:unsafe-write!),
+            put
+        ),
 
-        dup offset@ ~Buffer(!Str)
-        num-bytes size@ + size!
+        dup offset +buffer:!Str
+        num-bytes size:+
     ))
 
 def(+Output.put-byte, Byte +Output -- +Output,
     full? then(flush!)
-    offset@ ~Buffer(!Byte)
-    size@ 1+ size!)
+    offset +buffer:!Byte
+    size:1+)
 
 def(+Output.line, +Output -- +Output, BLF put-byte)

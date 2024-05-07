@@ -105,7 +105,7 @@ def(compile!, Arguments +World -- +World,
             run-specializer!
             "Codegen." trace-ln!
             output-file> unwrap >output-path
-            C99_Options.make run-output-c99!,
+            C99_Options run-output-c99!,
         None ->
             "Skipping Codegen." trace-ln!
             emit-debug-info> drop
