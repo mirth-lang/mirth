@@ -487,6 +487,8 @@ static VAL lpop(VAL* stk) {
 static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
 #define LPOP(v) push_value(lpop(&(v)))
 #define LPUSH(v) lpush(&(v),pop_value())
+#define LPOPR(v) push_resource(lpop(&(v)))
+#define LPUSHR(v) lpush(&(v),pop_resource())
 
 static STR* str_alloc (USIZE cap) {
 	ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);

@@ -408,6 +408,8 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OpCoerce   -> drop2,
     OpLabelPush -> nip c99-label-push!,
     OpLabelPop  -> nip c99-label-pop!,
+    OpLabelPushR -> nip c99-label-push-r!,
+    OpLabelPopR  -> nip c99-label-pop-r!,
     OpDataGetTag -> c99-get-data-tag!,
     OpDataGetLabel -> c99-tag-get-label! drop,
     OpDataSetLabel -> c99-tag-set-label! drop)
@@ -479,6 +481,8 @@ def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
 def(c99-label-def!, Label +C99 -- +C99, "static VAL lbl_" put name mangled put " = MKNIL_C;" put line)
 def(c99-label-push!, Label +C99 -- +C99, c99-line("LPUSH(lbl_" put name mangled put ");" put))
 def(c99-label-pop!, Label +C99 -- +C99, c99-line("LPOP(lbl_" put name mangled put ");" put))
+def(c99-label-push-r!, Label +C99 -- +C99, c99-line("LPUSHR(lbl_" put name mangled put ");" put))
+def(c99-label-pop-r!, Label +C99 -- +C99, c99-line("LPOPR(lbl_" put name mangled put ");" put))
 
 def(c99-int!, Int +C99 -- +C99,
     c99-line("push_i64(" put show put "LL);" put))

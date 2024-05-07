@@ -62,7 +62,9 @@ def(+SPCheck.check-atom!, Atom +SPCheck -- List(Atom) +SPCheck,
         OpCoerce -> drop L1,
         OpLabelPush -> drop L1,
         OpLabelPop -> drop L1,
-	OpDataGetTag -> drop L1,
+        OpLabelPushR -> drop L1,
+        OpLabelPopR -> drop L1,
+        OpDataGetTag -> drop L1,
         OpDataGetLabel -> drop2 L1,
         OpDataSetLabel -> drop2 L1,
     ))
@@ -189,7 +191,7 @@ def(synth-specialized-word!, SPKey Word +AB -- +AB,
     op match(
         OpLambda ->
             dup params
-            spkey> dup >spkey /SPKEY >List
+            @spkey /SPKEY >List
             assert!(
                 over len over len ==,
                 "wrong number of lambda params in synth-specialized-word!"

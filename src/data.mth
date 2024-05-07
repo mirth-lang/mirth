@@ -140,7 +140,7 @@ def(Data.is-resource?, Data -- Bool,
 def(Data.is-value-type?, Data -- Bool,
     is-resource? not)
 
-def(Data.full-type, Data -- Either(Type, Resource),
+def(Data.full-type, Data -- Type/Resource,
     dup sip:TData params for(TVar TApp)
     swap is-value-type? if(
         Left,

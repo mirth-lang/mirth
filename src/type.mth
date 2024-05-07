@@ -107,7 +107,7 @@ def(init-types!, --,
 
 def(T+, StackType Resource -- StackType, STWith)
 def(T*, StackType Type -- StackType, STCons)
-def(T*+, StackType Either(Type, Resource) -- StackType, match(Left -> T*, Right -> T+))
+def(T*+, StackType Type/Resource -- StackType, match(Left -> T*, Right -> T+))
 def(T->, StackType StackType -- ArrowType, ARROW_TYPE)
 
 def(TT, List(Type) -- StackType, T0 swap for(T*))
@@ -596,7 +596,8 @@ data(StackType,
     STMeta -> MetaVar,
     STCons -> StackType Type,
     STConsLabel -> StackType Type Label,
-    STWith -> StackType Resource)
+    STWith -> StackType Resource,
+    STWithLabel -> StackType Resource Label)
 
 def(Type.>StackType, Type -- StackType,
     TYPE_ERROR -> STACK_TYPE_ERROR,
@@ -623,14 +624,17 @@ def(StackType.unit?, StackType -- Bool,
         _ -> drop False
     ))
 
+def-type(Type/Resource, Either(Type, Resource))
+
 ||| Split stack type into base, types, and resources.
-def(StackType.split4, StackType -- StackType List([Type Label]) List(Type) List(Resource),
+def(StackType.split4, StackType -- StackType List([Type/Resource Label]) List(Type) List(Resource),
     L0 L0 L0 >labels >withses >conses
     while(
         expand match(
             STCons -> conses> Cons >conses True,
             STWith -> withses> Cons >withses True,
-            STConsLabel -> pack2 labels> Cons >labels True,
+            STConsLabel -> dip:Left pack2 labels> Cons >labels True,
+            STWithLabel -> dip:Right pack2 labels> Cons >labels True,
             _ -> False
         ), id
     ) labels> conses> withses>)
@@ -639,7 +643,7 @@ def(StackType.split4, StackType -- StackType List([Type Label]) List(Type) List(
 def(StackType.base, StackType -- StackType, split4 drop3)
 
 ||| Get types with labels on stack.
-def(StackType.types-with-label, StackType -- List([Type Label]), split4 drop2 nip)
+def(StackType.labels, StackType -- List([Type/Resource Label]), split4 drop2 nip)
 
 ||| Get types on stack.
 def(StackType.types, StackType -- List(Type), split4 drop dip(drop2))
@@ -647,12 +651,31 @@ def(StackType.types, StackType -- List(Type), split4 drop dip(drop2))
 ||| Get resources on stack.
 def(StackType.resources, StackType -- List(Resource), split4 dip(drop3))
 
+||| Check if the stack label appears and return the type/resource on top.
+def(StackType.label-top?, Label StackType -- Maybe(Type/Resource),
+    expand match(
+        STCons -> drop label-top?,
+        STWith -> drop label-top?,
+        STConsLabel -> over3 over == if(drop dip:drop2 Left  Some, drop2 label-top?),
+        STWithLabel -> over3 over == if(drop dip:drop2 Right Some, drop2 label-top?),
+        _ -> drop2 None
+    ))
+
+||| Does the stack label exist and have a resource on top?
+def(StackType.label-resource-top?, Label StackType -- Maybe(Resource),
+    label-top? bind:right?)
+
+||| Does the stack label exist and have a value type on top?
+def(StackType.label-type-top?, Label StackType -- Maybe(Type),
+    label-top? bind:left?)
+
 ||| Get top stack type if possible.
 def(StackType.top-type?, StackType -- Maybe(Type),
     expand match(
         STWith -> drop top-type?,
         STCons -> nip Some,
         STConsLabel -> drop2 top-type?,
+        STWithLabel -> drop2 top-type?,
         _ -> drop None
     ))
 
@@ -666,6 +689,7 @@ def(StackType.top-resource?, StackType -- Maybe(Resource),
         STWith -> nip Some,
         STCons -> drop top-resource?,
         STConsLabel -> drop2 top-resource?,
+        STWithLabel -> drop2 top-resource?,
         _ -> drop None
     ))
 
@@ -684,9 +708,10 @@ def(StackType.top-types-are-fine?, StackType -- Bool,
 
 def(StackType.top-value-is-fine?, StackType -- Bool,
     expand match(
-        STWith -> drop top-value-is-fine?,
-        STConsLabel -> drop2 top-value-is-fine?,
         STCons -> nip Type.error? not,
+        STConsLabel -> drop2 top-value-is-fine?,
+        STWith -> drop top-value-is-fine?,
+        STWithLabel -> drop2 top-value-is-fine?,
         STMeta -> drop True,
         STVar -> drop True,
         STACK_TYPE_UNIT -> True,
@@ -696,9 +721,10 @@ def(StackType.top-value-is-fine?, StackType -- Bool,
 
 def(StackType.top-resource-is-fine?, StackType -- Bool,
     expand match(
-        STWith -> nip /RESOURCE error? not,
-        STConsLabel -> drop2 top-resource-is-fine?,
         STCons -> drop top-resource-is-fine?,
+        STConsLabel -> drop2 top-resource-is-fine?,
+        STWith -> nip /RESOURCE error? not,
+        STWithLabel -> drop2 top-resource-is-fine?,
         STMeta -> drop True,
         STVar -> drop True,
         STACK_TYPE_UNIT -> True,
@@ -716,10 +742,11 @@ def(StackType.has-meta?, MetaVar StackType -- Bool,
         STCons -> dip(over) has-meta? if(drop2 True, has-meta?),
         STConsLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
         STWith -> dip(over) has-meta? if(drop2 True, has-meta?),
+        STWithLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
     ))
 
 def(StackType.unify-failed!, +Gamma StackType StackType -- +Gamma StackType,
-   both(>Type) unify-failed! >StackType)
+    both(>Type) unify-failed! >StackType)
 
 def(StackType.unify!, +Gamma StackType StackType -- +Gamma StackType,
     swap expand match(
@@ -772,6 +799,15 @@ def(StackType.unify!, +Gamma StackType StackType -- +Gamma StackType,
                 dip(STConsLabel) unify-failed!
             )
         ),
+        STWithLabel -> rot4l expand match(
+            STACK_TYPE_ERROR -> STWithLabel unify-error!,
+            STMeta -> dip(STWithLabel >Type) unify! >StackType,
+            STACK_TYPE_DONT_CARE -> STWithLabel,
+            _ -> dup2 force-with-label?! if-some(
+                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) STWithLabel,
+                dip(STWithLabel) unify-failed!
+            )
+        ),
     ))
 
 def(StackType.unify-error!, +Gamma StackType -- +Gamma StackType,
@@ -784,6 +820,7 @@ def(StackType.unify-error!, +Gamma StackType -- +Gamma StackType,
         STCons -> dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
         STWith -> dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
         STConsLabel -> drop dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
+        STWithLabel -> drop dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
     ))
 
 def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
@@ -802,8 +839,45 @@ def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
                     None -> drop2 None
                 )
             ),
+        STWithLabel ->
+            over3 over == if(
+                drop4 None,
+                dip(dip(force-cons-label?!)) rotl match(
+                    Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
+                    None -> drop2 None
+                )
+            ),
         STMeta ->
             dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2) STConsLabel >Type Some) ~type? !
+            pack2 Some,
+    ))
+
+def(StackType.force-with-label?!, Label StackType -- Maybe([StackType Resource]),
+    expand match(
+        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR RESOURCE pack2 Some,
+        STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE RESOURCE pack2 Some,
+        STACK_TYPE_UNIT -> drop None,
+        STVar -> drop2 None,
+        STWith -> dip(force-with-label?!) swap map(unpack2 dip(over STWith) pack2) nip,
+        STCons -> dip(force-with-label?!) swap map(unpack2 dip(over STCons) pack2) nip,
+        STConsLabel ->
+            over3 over == if(
+                drop4 None,
+                dip(dip(force-with-label?!)) rotl match(
+                    Some -> unpack2 dip(rotr STConsLabel) pack2 Some,
+                    None -> drop2 None
+                )
+            ),
+        STWithLabel ->
+            over3 over == if(
+                drop rotl drop pack2 Some,
+                dip(dip(force-with-label?!)) rotl match(
+                    Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
+                    None -> drop2 None
+                )
+            ),
+        STMeta ->
+            dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta RESOURCE dup2) STWithLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -817,6 +891,10 @@ def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
         STWith -> swap force-cons?! map(unpack2 dip(over STWith) pack2) nip,
         STConsLabel -> rotl force-cons?! match(
             Some -> unpack2 dip(rotr STConsLabel) pack2 Some,
+            None -> drop2 None
+        ),
+        STWithLabel -> rotl force-cons?! match(
+            Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
             None -> drop2 None
         ),
         STMeta ->
@@ -836,6 +914,10 @@ def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
         STCons -> swap force-with?! map(unpack2 dip(over STCons) pack2) nip,
         STConsLabel -> rotl force-with?! match(
             Some -> unpack2 dip(rotr STConsLabel) pack2 Some,
+            None -> drop2 None
+        ),
+        STWithLabel -> rotl force-with?! match(
+            Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
             None -> drop2 None
         ),
         STMeta ->
@@ -870,7 +952,7 @@ def(StackType.trace-base!, StackType -- Bool,
 def(StackType.trace!, StackType --,
     split4
     dip3(trace-base!)
-    dip2(for(swap then(" " trace!) unpack2 >Str trace! ":" trace! trace! True))
+    dip2(for(swap then(" " trace!) unpack2 >Str trace! ":" trace! either(trace!, trace!) True))
     dip(for(swap then(" " trace!) trace! True))
     for(swap then(" " trace!) trace! True) drop)
 
@@ -880,6 +962,7 @@ def(StackType.semifreshen, StackType StackType -- StackType StackType,
         STCons -> dip(semifreshen) STCons,
         STWith -> dip(semifreshen) STWith,
         STConsLabel -> dip2(semifreshen) STConsLabel,
+        STWithLabel -> dip2(semifreshen) STWithLabel,
         _ -> "expected unit-based stack in semifreshen!" panic!
     ))
 
@@ -889,6 +972,7 @@ def(StackType.freshen, Subst StackType -- Subst StackType,
         STCons -> dip(freshen) swap dip(freshen) swap STCons,
         STWith -> dip(freshen) swap dip(freshen) swap STWith,
         STConsLabel -> dip(dip(freshen) swap dip(freshen) swap) STConsLabel,
+        STWithLabel -> dip(dip(freshen) swap dip(freshen) swap) STWithLabel,
         _ -> >Type freshen >StackType
     ))
 
@@ -898,6 +982,7 @@ def(StackType.freshen-aux, StackType Subst StackType -- StackType Subst StackTyp
         STCons -> dip(freshen-aux) swap dip(freshen) swap STCons,
         STWith -> dip(freshen-aux) swap dip(freshen) swap STWith,
         STConsLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) STConsLabel,
+        STWithLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) STWithLabel,
         _ -> >Type freshen >StackType
     ))
 
@@ -909,13 +994,15 @@ def(StackType.rigidify!, Ctx StackType -- Ctx StackType,
     STVar -> STVar,
     STCons -> dip(rigidify!) swap dip(rigidify!) swap STCons,
     STConsLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) STConsLabel,
-    STWith -> dip(rigidify!) swap dip(rigidify!) swap STWith)
+    STWith -> dip(rigidify!) swap dip(rigidify!) swap STWith,
+    STWithLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) STWithLabel)
 
 def(StackType.num-morphisms-on-top, StackType -- Nat,
     STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0 >Nat),
     STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0 >Nat),
     STWith -> drop num-morphisms-on-top,
     STConsLabel -> drop2 num-morphisms-on-top,
+    STWithLabel -> drop2 num-morphisms-on-top,
     _ -> drop 0 >Nat)
 
 ##############

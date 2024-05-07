@@ -37,8 +37,11 @@ data(TokenValue,
     TokenDName -> DName,
     TokenLabelPop -> Label,
     TokenLabelPush -> Label,
-    TokenLabelLens -> Label,
-    )
+    TokenLabelPopR -> Label,
+    TokenLabelPushR -> Label,
+    TokenLabelGet -> Label,
+    TokenLabelSet -> Label,
+)
 
 def(TokenValue.none?, TokenValue -- Bool, TokenNone -> True, _ -> drop False)
 def(TokenValue.comma?, TokenValue -- Bool, TokenComma -> True, _ -> drop False)
@@ -59,7 +62,7 @@ def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TokenLParen -> Som
 def(TokenValue.can-take-args?, TokenValue -- Bool,
     TokenName -> drop True,
     TokenDName -> drop True,
-    TokenLabelLens -> drop True,
+    TokenLabelGet -> drop True,
     _ -> drop False)
 
 def(TokenValue.int?, TokenValue -- Maybe(Int), TokenInt -> Some, _ -> drop None)
