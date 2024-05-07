@@ -32,15 +32,12 @@ def(Need.>Nat, Need -- Nat,
 
 data(+Needs, +Needs ->
     stack: List(Need)
-    +Set(Need))
+    +set: +Set(Need))
 
-def(+Needs.set(f), (*a +Set(Need) -- *b +Set(Need)) *a +Needs -- *b +Needs,
-    /+Needs stack> dip(f) >stack +Needs)
+def(+Needs.new, -- +Needs, L0 >stack +Set.new(Need.>Nat) >+set +Needs)
+def(+Needs.rdrop, +Needs --, /+Needs +set> rdrop stack> drop)
 
-def(+Needs.new, -- +Needs, L0 >stack +Set.new(Need.>Nat) +Needs)
-def(+Needs.rdrop, +Needs --, /+Needs rdrop stack> drop)
-
-def(Need.needed?, Need +Needs -- Bool +Needs, set:member?)
+def(Need.needed?, Need +Needs -- Bool +Needs, +set:member?)
 def(Word.needed?, Word +Needs -- Bool +Needs, NEED_WORD needed?)
 def(Block.needed?, Block +Needs -- Bool +Needs, NEED_BLOCK needed?)
 def(Tag.word-needed?, Tag +Needs -- Bool +Needs, NEED_TAGW needed?)
@@ -49,7 +46,7 @@ def(Tag.pat-needed?, Tag +Needs -- Bool +Needs, NEED_TAGP needed?)
 def(+Needs.need!, Need +Needs -- +Needs,
     dup needed? if(
         drop,
-        dup set:insert! stack:cons
+        dup +set:insert! stack:cons
     ))
 def(+Needs.need-word!, Word +Needs -- +Needs, NEED_WORD need!)
 def(+Needs.need-block!, Block +Needs -- +Needs, NEED_BLOCK need!)

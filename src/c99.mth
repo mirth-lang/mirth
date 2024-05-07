@@ -39,46 +39,32 @@ import(mirth.def)
 # C99 #
 #######
 
-data(OutputPath, OutputPath -> Path)
-def(OutputPath.>Str, OutputPath -- Str, OutputPath -> >Str)
-def(OutputPath.as-relative-path, OutputPath -- Path, OutputPath -> )
+data(C99_Options, C99_Options ->
+    output-path: Path
+    emit-debug-info: Bool)
 
-data(EmitDebugInfo, EmitDebugInfo -> Bool)
-def(EmitDebugInfo.>Str, EmitDebugInfo -- Str, EmitDebugInfo -> if("yes", "no"))
-def(EmitDebugInfo.>Bool, EmitDebugInfo -- Bool, EmitDebugInfo -> id)
+data(+C99, +C99 ->
+    options: C99_Options
+    depth: Nat
+    +needs: +Needs
+    +output: +Output)
 
-data(C99_Options, C99_OPTIONS -> OutputPath EmitDebugInfo)
-def(C99_Options.make, output-path:Path emit-debug-info:Bool -- C99_Options,
-    output-path> OutputPath
-    emit-debug-info> EmitDebugInfo
-    C99_OPTIONS)
-def(C99_Options.emit-debug-info, C99_Options -- EmitDebugInfo, C99_OPTIONS -> nip)
-def(C99_Options.output-path, C99_Options -- OutputPath, C99_OPTIONS -> drop)
-
-data(+C99, +C99 -> C99_Options Nat +Needs +Output)
-
-def(+C99.depth@, +C99 -- Nat +C99, /+C99 dup dip(+C99))
-def(+C99.depth!, Nat +C99 -- +C99, dip(/+C99 drop) +C99)
-def(+C99.options@, +C99 -- C99_Options +C99, /+C99 over dip(+C99))
-
-def(+C99.emit-debug-info?, +C99 -- Bool +C99, options@ emit-debug-info >Bool)
-
-def(+C99.~Needs(f), (*a +Needs -- *b +Needs) *a +C99 -- *b +C99,
-    /+C99 dip(dip(rdip(f))) +C99)
-def(+C99.~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
-    /+C99 dip(dip(rdip'(f))) +C99)
-
-def(+C99.put, Str +C99 -- +C99, ~Output(put))
-def(+C99.put-byte, Byte +C99 -- +C99, ~Output(put-byte))
-def(+C99.line, +C99 -- +C99, ~Output(line))
+def(+C99.put, Str +C99 -- +C99, +output:put)
+def(+C99.put-byte, Byte +C99 -- +C99, +output:put-byte)
+def(+C99.line, +C99 -- +C99, +output:line)
 
 def(c99-start!, Arrow C99_Options +World -- Arrow +World +C99,
-    dup output-path as-relative-path create-file! unwrap! +Output.start!
-    rdip(+Needs.new over determine-arrow-needs!)
-    0 >Nat +C99)
+    >options
+    0 >Nat >depth
+    @options output-path create-file! unwrap! +Output.start! >+output
+    +Needs.new dup determine-arrow-needs! >+needs
+    +C99)
 
 def(c99-end!, +World +C99 -- +World,
-    /+C99 drop2 rdip(rdrop) end! +File.close-file!)
+    /+C99
+    depth> options> drop2
+    +needs> rdrop
+    +output> end! close-file!)
 
 def(run-output-c99!, Arrow C99_Options +World -- +World,
     num-errors @ 0> if(
@@ -129,7 +115,7 @@ def(+C99.sig-put, Str +C99 -- +C99, "static void " put put " (void)" put)
 embed-str(c99-header-str, "src/mirth.h")
 def(c99-header!, +C99 -- +C99,
     "#define MIRTH_DEBUG " put
-    emit-debug-info? if("1", "0") put line
+    options emit-debug-info if("1", "0") put line
     c99-header-str put line)
 
 def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!))
@@ -149,7 +135,7 @@ def(c99-variable!, Variable +C99 -- +C99,
 
 def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
 def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
-    tag ~Needs:word-needed? then(
+    tag +needs:word-needed? then(
         tag word-cname sig-put " {" put line
         tag is-transparent? else(
             tag num-total-inputs 0= if(
@@ -203,7 +189,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
         "}" put line
     )
 
-    tag ~Needs:pat-needed? then(
+    tag +needs:pat-needed? then(
         tag pat-cname sig-put " {" put line
         tag is-transparent? else(
             tag outputs-resource? if(
@@ -394,11 +380,9 @@ def(c99-external!, External +C99 -- +C99,
     drop3)
 
 def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
-    depth@ 1+ depth!
-    f
-    depth@ 1- depth!)
+    depth:1+ f depth:1-)
 
-def(+C99.indent, +C99 -- +C99, depth@ repeat("\t" put))
+def(+C99.indent, +C99 -- +C99, depth repeat("\t" put))
 def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
 def(c99-call!, List(Arg) Str +C99 -- +C99,
@@ -407,7 +391,7 @@ def(c99-call!, List(Arg) Str +C99 -- +C99,
 
 def(c99-arrow!, Arrow +C99 -- +C99, atoms for(c99-atom!))
 def(c99-atom!, Atom +C99 -- +C99,
-    emit-debug-info? then(
+    options emit-debug-info then(
         c99-line("WORD_ATOM(" put
             dup token row >Int show put ", " put
             dup token col >Int show put ", " put
@@ -579,9 +563,9 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                 nip
                 c99-line("{" put)
                 c99-nest(
-                    c99-line("VAL d" put depth@ show put " = pop_value();" put)
+                    c99-line("VAL d" put depth show put " = pop_value();" put)
                     c99-arg-run!
-                    c99-line("push_value(d" put depth@ show put ");" put)
+                    c99-line("push_value(d" put depth show put ");" put)
                 )
                 c99-line("}" put),
             None ->
@@ -594,9 +578,9 @@ def(c99-prim!, List(Arg) Prim +C99 -- +C99,
                 nip
                 c99-line("{" put)
                 c99-nest(
-                    c99-line("VAL d" put depth@ show put " = pop_resource();" put)
+                    c99-line("VAL d" put depth show put " = pop_resource();" put)
                     c99-arg-run!
-                    c99-line("push_resource(d" put depth@ show put ");" put)
+                    c99-line("push_resource(d" put depth show put ");" put)
                 )
                 c99-line("}" put),
             None ->
@@ -748,17 +732,17 @@ def(c99-pattern!, Pattern +C99 -- +C99,
         emit-fatal-error!
     )))
 
-def(c99-word-sigs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-sig!, drop)))
+def(c99-word-sigs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-sig!, drop)))
 def(c99-word-sig!, Word +C99 -- +C99, c99-line(cname sig-put ";" put))
 
-def(c99-block-sigs!, +C99 -- +C99, Block.for(dup ~Needs(needed?) if(c99-block-sig!, drop)))
+def(c99-block-sigs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-sig!, drop)))
 def(c99-block-sig!, Block +C99 -- +C99, c99-line(cname sig-put ";" put))
 
 def(c99-field-sigs!, +C99 -- +C99, Field.for(c99-field-sig!))
 def(c99-field-sig!, Field +C99 -- +C99, c99-line(cname sig-put ";" put))
 
 def(c99-block-enter!, Block +C99 -- +C99,
-    emit-debug-info? if(
+    options emit-debug-info if(
         c99-line("WORD_ENTER(" put
             dup cname put ", " put
             dup home match(
@@ -773,12 +757,12 @@ def(c99-block-enter!, Block +C99 -- +C99,
     ))
 
 def(c99-block-exit!, Block +C99 -- +C99,
-    emit-debug-info? if(
+    options emit-debug-info if(
         c99-line("WORD_EXIT(" put cname put ");" put),
         drop
     ))
 
-def(c99-block-defs!, +C99 -- +C99, Block.for(dup ~Needs(needed?) if(c99-block-def!, drop)))
+def(c99-block-defs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-def!, drop)))
 def(c99-block-def!, Block +C99 -- +C99,
     c99-line(dup cname sig-put " {" put)
     c99-nest(
@@ -792,7 +776,7 @@ def(c99-block-def!, Block +C99 -- +C99,
     c99-line("}" put))
 
 def(c99-word-enter!, Word +C99 -- +C99,
-    emit-debug-info? if(
+    options emit-debug-info if(
         c99-line(
             "WORD_ENTER(" put
             dup cname put ", " put
@@ -805,12 +789,12 @@ def(c99-word-enter!, Word +C99 -- +C99,
     ))
 
 def(c99-word-exit!, Word +C99 -- +C99,
-    emit-debug-info? if(
+    options emit-debug-info if(
         c99-line("WORD_EXIT(" put cname put ");" put),
         drop
     ))
 
-def(c99-word-defs!, +C99 -- +C99, Word.for(dup ~Needs(needed?) if(c99-word-def!, drop)))
+def(c99-word-defs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-def!, drop)))
 def(c99-word-def!, Word +C99 -- +C99,
     c99-line(dup cname sig-put " {" put)
     c99-nest(
@@ -839,7 +823,7 @@ def(c99-main!, Arrow +C99 -- +C99,
         c99-line("global_argc = argc;" put)
         c99-line("global_argv = argv;" put)
         c99-line("push_resource(MKU64(0));" put) # world
-        emit-debug-info? then(
+        options emit-debug-info then(
             c99-line("WORD_ENTER(" put
                 "(void(*)(void))0, " put
                 "\"<main>\", " put
@@ -848,7 +832,7 @@ def(c99-main!, Arrow +C99 -- +C99,
                 dup token-start col >Int show put ");" put)
         )
         c99-arrow!
-        emit-debug-info? then(
+        options emit-debug-info then(
             c99-line("WORD_EXIT((void(*)(void))0);" put)
         )
         c99-line("return 0;" put)
