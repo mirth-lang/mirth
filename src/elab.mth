@@ -1188,23 +1188,39 @@ def(Tag.output-type, Tag -- Type/Resource,
         _ -> drop dip("Unexpected output type for constructor ") qname >Str cat panic!
     ))
 
+||| Return the tag's output type or resource in context, except for a missing field.
+def(Tag.output-type-except-field, Label Tag -- Type/Resource,
+    dup output-type map(except-field, except-field))
+
 ||| Return the input type for a tag along a given label.
-def(Tag.project-input-label, Label Tag -- Maybe(Type),
-    type dom force-cons-label?! map(unpack2 nip))
+def(Tag.project-input-label, Label Tag -- Maybe(Type/Resource),
+    type dom label-top?)
 
 def(data-get-label-type, Tag Label -- ArrowType,
     \(tag lbl ->
-        T0 tag output-type T*+
-        lbl tag project-input-label unwrap T1
-        tag .data is-resource? then(tag output-type T*+)
-        T->
+        lbl tag project-input-label unwrap match(
+            Left ->
+                T0 tag output-type T*+ swap T1
+                tag .data is-resource? then(tag output-type T*+)
+                T->,
+            Right ->
+                T0 tag output-type T*+
+                T0 rotl T+ lbl tag output-type-except-field T*+
+                T->
+        )
     ))
 
 def(data-set-label-type, Tag Label -- ArrowType,
     \(tag lbl ->
-        lbl tag project-input-label unwrap T1 tag output-type T*+
-        T0 tag output-type T*+
-        T->
+        lbl tag project-input-label unwrap match(
+            Left ->
+                T1 tag output-type T*+
+                T0 tag output-type T*+
+                T->,
+            Right ->
+                T0 swap T+ lbl tag output-type-except-field T*+
+                T0 tag output-type T*+ T->
+        )
     ))
 
 def(create-projectors!, Tag --,
@@ -1238,8 +1254,8 @@ def(create-projectors!, Tag --,
                 tag output-type \(sx sy lblty datty ->
                     tag ctx /Ctx sx sy L2 cat Ctx
                     sx STVar datty T*+
-                        sx STVar lblty T*
-                        sy STVar lblty T* T-> TMorphism T*
+                        sx STVar lblty T*+
+                        sy STVar lblty T*+ T-> TMorphism T*
                     sy STVar datty T*+
                     T-> pack2
                 )

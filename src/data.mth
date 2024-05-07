@@ -194,10 +194,17 @@ def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
         0 >Nat
     ))
 
+field(Tag.~num-label-inputs, Tag, Nat)
+def(Tag.num-label-inputs, Tag -- Nat,
+    dup ~num-label-inputs memoize(
+        dup label-inputs len
+    ) nip)
+
 def(Tag.num-total-inputs, Tag -- Nat,
-    dup label-inputs len
-    over num-type-inputs +
-    swap num-resource-inputs +)
+    >tag
+    @tag num-label-inputs
+    @tag num-type-inputs +
+    tag> num-resource-inputs +)
 
 def(Tag.is-transparent?, Tag -- Bool,
     .data is-transparent?)
@@ -211,3 +218,18 @@ def(Tag.prefer-inline?, Tag -- Bool,
     dup .data is-transparent?
     or(dup num-total-inputs 0=)
     nip)
+
+#
+# Partial Data
+#
+
+||| DataPartial represents a data type with missing parts.
+||| In general, it could represent missing fields, missing tags, etc.
+||| For now, all we need to represent is a single missing field.
+data(DataPartial, DataPartial ->
+    data:Data field:Label)
+
+def(DataPartial.==, DataPartial DataPartial -- Bool,
+    /DataPartial /DataPartial
+    data> data> ==
+    field> field> == &&)

@@ -4,7 +4,8 @@ import(std.posix)
 
 data(Person, PERSON -> age:Int name:Str)
 data(Mixed, MIXED -> msg:Str Str)
-data(+MyWorld, ENTER -> age:Int msg:Int name:Str +World)
+data(+MyWorld, +MyWorld -> age:Int msg:Int name:Str world:+World)
+data(+Deep, +Deep -> myworld:+MyWorld)
 
 def(Person.greet!, Person +World -- Person +World,
     "Hello, " trace!
@@ -25,13 +26,20 @@ def(main, +World -- +World,
     MIXED msg trace-ln!
 
     99 >age 101 >msg "me" >name
-    ENTER
+    +>world
+    +MyWorld
     "<<<" trace-ln!
     age trace-ln!
-    msg trace-ln!
+    +>myworld +Deep
+    "<<<<<" trace-ln!
+    myworld:msg trace-ln!
+    myworld rdip(name) trace-ln! myworld!
+    ">>>>>" trace-ln!
+    /+Deep myworld>+
     name trace-ln!
     ">>>" trace-ln!
-    /ENTER
+    /+MyWorld
+    world>+
     age> drop
     msg> drop
     name> drop
@@ -45,7 +53,10 @@ def(main, +World -- +World,
 # mirth-test # perr # Hello
 # mirth-test # perr # <<<
 # mirth-test # perr # 99
+# mirth-test # perr # <<<<<
 # mirth-test # perr # 101
+# mirth-test # perr # me
+# mirth-test # perr # >>>>>
 # mirth-test # perr # me
 # mirth-test # perr # >>>
 # mirth-test # perr # Hello, J. at 30!

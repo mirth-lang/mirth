@@ -29,6 +29,7 @@ data(Type,
     TVar -> Var,
     TTable -> Table,
     TData -> Data,
+    TDataPartial -> DataPartial,
     TTensor -> StackType,
     TMorphism -> ArrowType,
     TApp -> Type Type,
@@ -66,6 +67,7 @@ def(Type.tycon?, Type -- Maybe(Tycon),
     TVar -> drop None,
     TTable -> TYCON_TABLE Some,
     TData -> TYCON_DATA Some,
+    TDataPartial -> .data TYCON_DATA Some,
     TMorphism -> drop None,
     TTensor -> drop None,
     TApp -> drop tycon?,
@@ -187,6 +189,7 @@ def(Type.unify-simple!, +Gamma Type Type -- +Gamma Type,
     TVar -> swap match(TVar -> unify!, _ -> dip(TVar) unify-failed!),
     TPrim -> swap match(TPrim -> unify!, _ -> dip(TPrim) unify-failed!),
     TData -> swap match(TData -> unify!, _ -> dip(TData) unify-failed!),
+    TDataPartial -> swap match(TDataPartial -> unify!, _ -> dip(TDataPartial) unify-failed!),
     TTable -> swap match(TTable -> unify!, _ -> dip(TTable) unify-failed!),
     TTensor -> swap match(TTensor -> unify! >Type, _ -> dip(TTensor) unify-failed!),
     TMorphism -> swap match(TMorphism -> unify! TMorphism, _ -> dip(TMorphism) unify-failed!),
@@ -228,6 +231,7 @@ def(Type.unify-aux!, +Gamma Type Type -- +Gamma Type,
         )
     )
 
+||| Fill out any subterms/metavars with TYPE_ERROR.
 def(Type.unify-error!, +Gamma Type -- +Gamma Type,
     expand match(
         TYPE_ERROR -> TYPE_ERROR,
@@ -238,6 +242,7 @@ def(Type.unify-error!, +Gamma Type -- +Gamma Type,
         TVar -> drop TYPE_ERROR,
         TPrim -> drop TYPE_ERROR,
         TData -> drop TYPE_ERROR,
+        TDataPartial -> drop TYPE_ERROR,
         TTable -> drop TYPE_ERROR,
         TTensor -> unify-error! drop TYPE_ERROR,
         TMorphism -> unify-error! drop TYPE_ERROR,
@@ -317,6 +322,8 @@ def(PrimType.unify!, +Gamma PrimType PrimType -- +Gamma Type,
     dup2 == if(drop TPrim, both(TPrim) unify-failed!))
 def(Data.unify!, +Gamma Data Data -- +Gamma Type,
     dup2 == if(drop TData, both(TData) unify-failed!))
+def(DataPartial.unify!, +Gamma DataPartial DataPartial -- +Gamma Type,
+    dup2 == if(drop TDataPartial, both(TDataPartial) unify-failed!))
 def(Table.unify!, +Gamma Table Table -- +Gamma Type,
     dup2 == if(drop TTable, both(TTable) unify-failed!))
 def(Var.unify!, +Gamma Var Var -- +Gamma Type,
@@ -333,6 +340,7 @@ def(Type.has-meta?, MetaVar Type -- Bool,
     TMorphism -> has-meta?,
     TApp -> has-meta2?,
     TData -> drop2 False,
+    TDataPartial -> drop2 False,
     TTable -> drop2 False,
     TValue -> has-meta?,
     TMut -> has-meta?)
@@ -358,6 +366,7 @@ def(Type.trace!, Type --,
     TTensor -> "[" trace! trace! "]" trace!,
     TMorphism -> "[" trace! TMorphism trace-sig! "]" trace!,
     TData -> name trace!,
+    TDataPartial -> dup .data name trace! "/" trace! .field name trace!,
     TTable -> name trace!,
     THole -> trace!,
     TApp -> trace-app!,
@@ -404,6 +413,7 @@ def(Type.freshen, Subst Type -- Subst Type,
     TPrim -> TPrim,
     THole -> THole,
     TData -> TData,
+    TDataPartial -> TDataPartial,
     TTable -> TTable,
     TValue -> TValue, # no need to freshen values
     TVar -> freshen,
@@ -437,6 +447,7 @@ def(Type.rigidify!, Ctx Type -- Ctx Type,
     TVar -> TVar,
     TTable -> TTable,
     TData -> TData,
+    TDataPartial -> TDataPartial,
     TApp ->
         dip(rigidify!) swap
         dip(rigidify!) swap
@@ -479,6 +490,12 @@ def(type-max-count, Type -- Maybe(Nat),
             drop None
         ),
     _ -> drop None)
+
+def(Type.except-field, Label Tag Type -- Type,
+    TMeta -> expand-if(except-field, "Type.except-field on metavar" panic!),
+    TData -> >data drop >field DataPartial TDataPartial,
+    TApp -> dip(except-field) TApp,
+    _ -> "Type.except-field on unexpected type" panic!)
 
 ##################
 # Meta-var Types #
@@ -583,6 +600,9 @@ def(Resource.freshen, Subst Resource -- Subst Resource,
     >Type freshen >Resource)
 def(Resource.rigidify!, Ctx Resource -- Ctx Resource,
     >Type rigidify! >Resource)
+
+def(Resource.except-field, Label Tag Resource -- Resource,
+    /RESOURCE except-field RESOURCE)
 
 ##############
 # STACK TYPE #
@@ -952,7 +972,7 @@ def(StackType.trace-base!, StackType -- Bool,
 def(StackType.trace!, StackType --,
     split4
     dip3(trace-base!)
-    dip2(for(swap then(" " trace!) unpack2 >Str trace! ":" trace! either(trace!, trace!) True))
+    dip2(for(swap then(" " trace!) unpack2 >Str trace! ":" trace! for(trace!, trace!) True))
     dip(for(swap then(" " trace!) trace! True))
     for(swap then(" " trace!) trace! True) drop)
 
