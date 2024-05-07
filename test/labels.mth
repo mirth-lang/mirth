@@ -7,8 +7,8 @@ def(pop-foo, foo:x -- x, foo>)
 def(pop-bar, bar:x -- x, bar>)
 def(push-foo, x -- foo:x, >foo)
 def(push-bar, y -- bar:y, >bar)
-def(pop-mystr, mystr:+a -- +a, mystr>+)
-def(push-mystr, +a -- mystr:+a, +>mystr)
+def(pop-mystr, +mystr:+a -- +a, +mystr>)
+def(push-mystr, +a -- +mystr:+a, >+mystr)
 
 def(main, +World -- +World,
     10 20 30 >foo >bar show put " " put

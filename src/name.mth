@@ -92,7 +92,7 @@ def(Name.tail, Name -- Name,
     ) >Name)
 
 def(Name.can-be-relative?, Name -- Bool, head is-upper not)
-def(Name.could-be-label-name?, Name -- Bool, head is-lower)
+def(Name.could-be-label-name?, Name -- Bool, dup head is-lower or(dup head B'+' == and(dup tail-head is-lower)) nip)
 def(Name.could-be-type, Name -- Bool, head is-alpha)
 def(Name.could-be-pattern-var?, Name -- Bool, head is-lower)
 def(Name.could-be-type-var, Name -- Bool, head is-lower)

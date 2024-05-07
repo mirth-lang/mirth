@@ -188,7 +188,7 @@ def(Tag.num-type-inputs-from-sig, Tag -- Nat,
 
 def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
     sig? if-some(
-        run-tokens filter-some(name?)
+        run-tokens filter(dup could-be-sig-label? not) filter-some(name?)
         filter(dup could-be-resource-var or(dup could-be-resource-con))
         len,
         0 >Nat
