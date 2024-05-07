@@ -15,12 +15,12 @@ def(main, +World -- +World,
     pop-foo show put " " put
     40 push-bar
     pop-bar show put " " put
-    @bar trace! " " trace! @bar:1+
-    @bar trace! " " trace! @bar:1+
-    @bar trace! " " trace! @bar:1+
+    @bar show put " " put @bar:1+
+    @bar show put " " put @bar:1+
+    @bar show put " " put @bar:1+
     60 !bar
-    @bar trace! " " trace! @bar:1+
-    @bar trace! " " trace! @bar:1+
+    @bar show put " " put @bar:1+
+    @bar show put " " put @bar:1+
     pop-bar show put line
 
     "world" +Str
