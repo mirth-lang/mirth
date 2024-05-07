@@ -54,8 +54,8 @@ def-external(stat, Ptr Ptr -- Int)
 def(is-directory?, Path -- Bool,
     256 >Size +Buffer.new
     >Str with-data-cstr(
-        buffer-base stat
-        0= if(buffer-base unsafe(st_mode@) S_ISDIR, False)
+        base stat
+        0= if(base unsafe(st_mode@) S_ISDIR, False)
     ) rdrop)
 
 #define S_IFMT  00170000

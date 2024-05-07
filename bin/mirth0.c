@@ -1350,6 +1350,9 @@ static VAL lbl_group = MKNIL_C;
 static VAL lbl_options = MKNIL_C;
 static VAL lbl_parser = MKNIL_C;
 static VAL lbl_argsZ_doc = MKNIL_C;
+static VAL lbl_sizze = MKNIL_C;
+static VAL lbl_base = MKNIL_C;
+static VAL lbl_oldZ_sizze = MKNIL_C;
 static VAL lbl_colZ_offset = MKNIL_C;
 static VAL lbl_argumentZ_parser = MKNIL_C;
 static VAL lbl_state = MKNIL_C;
@@ -1365,12 +1368,17 @@ static VAL lbl_arguments = MKNIL_C;
 static VAL lbl_positionalZ_index = MKNIL_C;
 static VAL lbl_longestZ_argZ_length = MKNIL_C;
 static VAL lbl_error = MKNIL_C;
+static VAL lbl_fileZ_descriptor = MKNIL_C;
+static VAL lbl_ZPlusfile = MKNIL_C;
+static VAL lbl_ZPlusbuffer = MKNIL_C;
 static VAL lbl_length = MKNIL_C;
 static VAL lbl_offset = MKNIL_C;
+static VAL lbl_ZPlusworld = MKNIL_C;
 static VAL lbl_numZ_tests = MKNIL_C;
 static VAL lbl_numZ_failed = MKNIL_C;
 static VAL lbl_testZ_name = MKNIL_C;
 static VAL lbl_testZ_failed = MKNIL_C;
+static VAL lbl_ZPlustests = MKNIL_C;
 static VAL lbl_namespace = MKNIL_C;
 static VAL lbl_arity = MKNIL_C;
 static VAL lbl_token = MKNIL_C;
@@ -1423,6 +1431,7 @@ static VAL lbl_spword = MKNIL_C;
 static VAL lbl_spkey = MKNIL_C;
 static VAL lbl_spmap = MKNIL_C;
 static VAL lbl_stack = MKNIL_C;
+static VAL lbl_indexZ_fn = MKNIL_C;
 static void mtw_std_either_Either_2_Left (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
@@ -1465,16 +1474,16 @@ static void mtw_std_buffer_ZPlusBuffer_ZPlusBuffer (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[2] = pop_value();
-	tup->cells[1] = pop_value();
+	tup->cells[2] = lpop(&lbl_base);
+	tup->cells[1] = lpop(&lbl_sizze);
 	push_resource(MKTUP(tup, 3));
 }
 static void mtp_std_buffer_ZPlusBuffer_ZPlusBuffer (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
-	push_value(tup->cells[2]);
+	lpush(&lbl_sizze, tup->cells[1]);
+	lpush(&lbl_base, tup->cells[2]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -1766,20 +1775,20 @@ static void mtw_std_input_ZPlusInputOpenState_ZPlusInputOpenState (void) {
 	TUP* tup = tup_new(5);
 	tup->size = 5;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[4] = lpop(&lbl_offset);
-	tup->cells[3] = lpop(&lbl_length);
-	tup->cells[2] = pop_resource();
-	tup->cells[1] = pop_resource();
+	tup->cells[4] = lpop(&lbl_ZPlusbuffer);
+	tup->cells[3] = lpop(&lbl_ZPlusfile);
+	tup->cells[2] = lpop(&lbl_offset);
+	tup->cells[1] = lpop(&lbl_length);
 	push_resource(MKTUP(tup, 5));
 }
 static void mtp_std_input_ZPlusInputOpenState_ZPlusInputOpenState (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_resource(tup->cells[1]);
-	push_resource(tup->cells[2]);
-	lpush(&lbl_length, tup->cells[3]);
-	lpush(&lbl_offset, tup->cells[4]);
+	lpush(&lbl_length, tup->cells[1]);
+	lpush(&lbl_offset, tup->cells[2]);
+	lpush(&lbl_ZPlusfile, tup->cells[3]);
+	lpush(&lbl_ZPlusbuffer, tup->cells[4]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -1832,14 +1841,14 @@ static void mtw_std_file_ZPlusFile_ZPlusFile (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[1] = pop_value();
+	tup->cells[1] = lpop(&lbl_fileZ_descriptor);
 	push_resource(MKTUP(tup, 2));
 }
 static void mtp_std_file_ZPlusFile_ZPlusFile (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
+	lpush(&lbl_fileZ_descriptor, tup->cells[1]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		decref(val);
@@ -4383,18 +4392,18 @@ static void mtw_std_output_ZPlusOutput_ZPlusOutput (void) {
 	TUP* tup = tup_new(4);
 	tup->size = 4;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[3] = pop_resource();
-	tup->cells[2] = pop_resource();
-	tup->cells[1] = pop_value();
+	tup->cells[3] = lpop(&lbl_ZPlusbuffer);
+	tup->cells[2] = lpop(&lbl_ZPlusfile);
+	tup->cells[1] = lpop(&lbl_sizze);
 	push_resource(MKTUP(tup, 4));
 }
 static void mtp_std_output_ZPlusOutput_ZPlusOutput (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
-	push_resource(tup->cells[2]);
-	push_resource(tup->cells[3]);
+	lpush(&lbl_sizze, tup->cells[1]);
+	lpush(&lbl_ZPlusfile, tup->cells[2]);
+	lpush(&lbl_ZPlusbuffer, tup->cells[3]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -4408,16 +4417,16 @@ static void mtw_std_set_ZPlusSet_1_ZPlusSet (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[2] = pop_resource();
-	tup->cells[1] = pop_value();
+	tup->cells[2] = lpop(&lbl_ZPlusbuffer);
+	tup->cells[1] = lpop(&lbl_indexZ_fn);
 	push_resource(MKTUP(tup, 3));
 }
 static void mtp_std_set_ZPlusSet_1_ZPlusSet (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
-	push_value(tup->cells[1]);
-	push_resource(tup->cells[2]);
+	lpush(&lbl_indexZ_fn, tup->cells[1]);
+	lpush(&lbl_ZPlusbuffer, tup->cells[2]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -4808,14 +4817,17 @@ static void mw_std_byte_oneZ_hexdigitZ_byte (void);
 static void mw_std_byte_Byte_isZ_nameZ_byte (void);
 static void mw_std_byte_Byte_isZ_sign (void);
 static void mw_std_byte_Byte_zzencode (void);
-static void mw_std_buffer_Z_BUFFER (void);
+static void mw_std_buffer_ZPlusBuffer_ZDivZPlusBuffer (void);
+static void mw_std_buffer_ZPlusBuffer_base (void);
+static void mw_std_buffer_ZPlusBuffer_baseZBang (void);
+static void mw_std_buffer_ZPlusBuffer_base_1 (void);
+static void mw_std_buffer_ZPlusBuffer_sizze (void);
+static void mw_std_buffer_ZPlusBuffer_sizzeZBang (void);
 static void mw_std_buffer_ZPlusBuffer_new (void);
 static void mw_std_buffer_ZPlusBuffer_resizzeZBang (void);
 static void mw_std_buffer_ZPlusBuffer_expandZBang (void);
 static void mw_std_buffer_ZPlusBuffer_rdrop (void);
 static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (void);
-static void mw_std_buffer_ZPlusBuffer_bufferZ_sizze (void);
-static void mw_std_buffer_ZPlusBuffer_bufferZ_base (void);
 static void mw_std_buffer_ZPlusBuffer_checkZ_spanZBang (void);
 static void mw_std_buffer_ZPlusBuffer_checkZ_spanZ_alignZBang (void);
 static void mw_std_buffer_ZPlusBuffer_ZAtU8 (void);
@@ -5028,13 +5040,17 @@ static void mw_argZ_parser_parse_parseZ_args (void);
 static void mw_argZ_parser_parse_readZ_fromZ_argv (void);
 static void mw_argZ_parser_parse_argvZ_toZ_str (void);
 static void mw_std_input_ZPlusInputOpenState_ZDivZPlusInputOpenState (void);
+static void mw_std_input_ZPlusInputOpenState_ZPlusbuffer (void);
+static void mw_std_input_ZPlusInputOpenState_ZPlusbufferZBang (void);
+static void mw_std_input_ZPlusInputOpenState_ZPlusbuffer_1 (void);
+static void mw_std_input_ZPlusInputOpenState_ZPlusfile (void);
+static void mw_std_input_ZPlusInputOpenState_ZPlusfileZBang (void);
+static void mw_std_input_ZPlusInputOpenState_ZPlusfile_1 (void);
 static void mw_std_input_ZPlusInputOpenState_offset (void);
 static void mw_std_input_ZPlusInputOpenState_offsetZBang (void);
 static void mw_std_input_ZPlusInputOpenState_offset_1 (void);
 static void mw_std_input_ZPlusInputOpenState_length (void);
 static void mw_std_input_ZPlusInputOpenState_lengthZBang (void);
-static void mw_std_input_ZPlusInputOpenState_ZTildeFile_1 (void);
-static void mw_std_input_ZPlusInputOpenState_ZTildeBuffer_1 (void);
 static void mw_std_input_INPUTz_BUFFERz_SIZZE (void);
 static void mw_std_input_ZPlusInput_startZBang (void);
 static void mw_std_input_ZPlusInput_stopZBang (void);
@@ -6047,13 +6063,18 @@ static void mw_mirth_specializzer_ZPlusSPSynth_synthZ_matchZBang (void);
 static void mw_mirth_specializzer_ZPlusSPSynth_synthZ_lambdaZBang (void);
 static void mw_std_output_OUTPUTz_BUFFERz_SIZZE (void);
 static void mw_std_output_ZPlusOutput_ZDivZPlusOutput (void);
+static void mw_std_output_ZPlusOutput_ZPlusbuffer (void);
+static void mw_std_output_ZPlusOutput_ZPlusbufferZBang (void);
+static void mw_std_output_ZPlusOutput_ZPlusbuffer_1 (void);
+static void mw_std_output_ZPlusOutput_ZPlusfile (void);
+static void mw_std_output_ZPlusOutput_ZPlusfileZBang (void);
+static void mw_std_output_ZPlusOutput_ZPlusfile_1 (void);
+static void mw_std_output_ZPlusOutput_sizze (void);
+static void mw_std_output_ZPlusOutput_sizzeZBang (void);
+static void mw_std_output_ZPlusOutput_sizze_1 (void);
 static void mw_std_output_ZPlusOutput_startZBang (void);
 static void mw_std_output_ZPlusOutput_endZBang (void);
-static void mw_std_output_ZPlusOutput_offsetZAt (void);
-static void mw_std_output_ZPlusOutput_sizzeZAt (void);
-static void mw_std_output_ZPlusOutput_sizzeZBang (void);
-static void mw_std_output_ZPlusOutput_ZTildeFile_1 (void);
-static void mw_std_output_ZPlusOutput_ZTildeBuffer_1 (void);
+static void mw_std_output_ZPlusOutput_offset (void);
 static void mw_std_output_ZPlusOutput_flushZBang (void);
 static void mw_std_output_ZPlusOutput_capacityZ_total (void);
 static void mw_std_output_ZPlusOutput_capacityZ_remaining (void);
@@ -6062,7 +6083,10 @@ static void mw_std_output_ZPlusOutput_put (void);
 static void mw_std_output_ZPlusOutput_putZ_byte (void);
 static void mw_std_output_ZPlusOutput_line (void);
 static void mw_std_set_ZPlusSet_1_ZDivZPlusSet (void);
-static void mw_std_set_ZPlusSet_1_ZTildeBuffer_1 (void);
+static void mw_std_set_ZPlusSet_1_ZPlusbuffer (void);
+static void mw_std_set_ZPlusSet_1_ZPlusbufferZBang (void);
+static void mw_std_set_ZPlusSet_1_ZPlusbuffer_1 (void);
+static void mw_std_set_ZPlusSet_1_indexZ_fn (void);
 static void mw_std_set_ZPlusSet_1_index (void);
 static void mw_std_set_SETz_INITIALz_SIZZE (void);
 static void mw_std_set_ZPlusSet_1_new_1 (void);
@@ -6352,6 +6376,7 @@ static void mb_std_prim_Str_slice_0 (void);
 static void mb_std_prim_Int_ZToByte_0 (void);
 static void mb_std_prim_Int_ZToByte_1 (void);
 static void mb_std_byte_Byte_zzencode_2 (void);
+static void mb_std_buffer_ZPlusBuffer_resizzeZBang_0 (void);
 static void mb_argZ_parser_parse_printZ_usage_0 (void);
 static void mb_argZ_parser_parse_printZ_usage_1 (void);
 static void mb_argZ_parser_parse_printZ_usage_2 (void);
@@ -6373,9 +6398,10 @@ static void mb_std_posix_sliceZ_writeZBang_3 (void);
 static void mb_std_posix_sliceZ_writeZBang_4 (void);
 static void mb_std_posix_sliceZ_writeZBang_5 (void);
 static void mb_mirth_c99_ZPlusC99_put_0 (void);
-static void mb_std_output_ZPlusOutput_put_2 (void);
-static void mb_std_output_ZPlusOutput_put_3 (void);
 static void mb_std_output_ZPlusOutput_put_4 (void);
+static void mb_std_output_ZPlusOutput_put_5 (void);
+static void mb_std_output_ZPlusOutput_put_6 (void);
+static void mb_std_output_ZPlusOutput_put_7 (void);
 static void mb_mirth_c99_ZPlusC99_line_0 (void);
 static void mb_std_terminal_csi_0 (void);
 static void mb_std_prim_ZPlusWorld_openZ_fileZBang_0 (void);
@@ -6392,8 +6418,6 @@ static void mb_std_file_ZPlusFile_unsafeZ_readZBang_1 (void);
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_2 (void);
 static void mb_std_input_ZPlusInput_readZ_fileZBang_0 (void);
 static void mb_std_input_ZPlusInput_readZ_fileZBang_1 (void);
-static void mb_std_input_ZPlusInputOpenState_ZTildeFile_1_0 (void);
-static void mb_std_input_ZPlusInputOpenState_ZTildeBuffer_1_0 (void);
 static void mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_0 (void);
 static void mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_1 (void);
 static void mb_std_input_ZPlusInput_peek_0 (void);
@@ -6810,6 +6834,7 @@ static void mb_mirth_specializzer_ZPlusSPSynth_synthZ_varZBang_2 (void);
 static void mb_std_map_Map_2_lookupZ_pair_1_0 (void);
 static void mb_mirth_c99_ZPlusC99_putZ_byte_0 (void);
 static void mb_std_output_ZPlusOutput_putZ_byte_1 (void);
+static void mb_std_output_ZPlusOutput_putZ_byte_2 (void);
 static void mb_mirth_c99_c99Z_labelZ_defsZBang_0 (void);
 static void mb_mirth_c99_c99Z_tagZ_defsZBang_0 (void);
 static void mb_mirth_c99_c99Z_buffersZBang_0 (void);
@@ -8862,7 +8887,7 @@ static void mw_std_byte_Byte_zzencode (void) {
 			break;
 	}
 }
-static void mw_std_buffer_Z_BUFFER (void) {
+static void mw_std_buffer_ZPlusBuffer_ZDivZPlusBuffer (void) {
 	switch (get_top_resource_data_tag()) {
 		case 0LL: // +Buffer
 			mtp_std_buffer_ZPlusBuffer_ZPlusBuffer();
@@ -8872,49 +8897,82 @@ static void mw_std_buffer_Z_BUFFER (void) {
 			mp_primZ_panic();
 	}
 }
+static void mw_std_buffer_ZPlusBuffer_base (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[2];
+	VAL u = *p;
+	incref(u);
+	push_resource(v);
+	push_value(u);
+}
+static void mw_std_buffer_ZPlusBuffer_baseZBang (void) {
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[2];
+	VAL t = *p; *p = u; decref(t);
+}
+static void mw_std_buffer_ZPlusBuffer_base_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_std_buffer_ZPlusBuffer_base();
+		{
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
+		}
+		mw_std_buffer_ZPlusBuffer_baseZBang();
+		decref(var_f);
+	}
+}
+static void mw_std_buffer_ZPlusBuffer_sizze (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[1];
+	VAL u = *p;
+	incref(u);
+	push_resource(v);
+	push_value(u);
+}
+static void mw_std_buffer_ZPlusBuffer_sizzeZBang (void) {
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[1];
+	VAL t = *p; *p = u; decref(t);
+}
 static void mw_std_buffer_ZPlusBuffer_new (void) {
+	LPUSH(lbl_sizze);
+	LPOP(lbl_sizze);
 	mp_primZ_dup();
-	mp_primZ_dup();
+	LPUSH(lbl_sizze);
 	push_resource(MKU64(0LL)); // +Unsafe
 	mw_std_prelude_Sizze_ZDivSizze();
 	mp_primZ_ptrZ_alloc();
 	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
+	LPUSH(lbl_base);
 	mtw_std_buffer_ZPlusBuffer_ZPlusBuffer();
 	push_i64(0LL);
-	mp_primZ_swap();
+	mw_std_buffer_ZPlusBuffer_sizze();
 	mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang();
 }
 static void mw_std_buffer_ZPlusBuffer_resizzeZBang (void) {
-	mw_std_buffer_Z_BUFFER();
-	{
-		VAL d2 = pop_value();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_dup();
-			push_value(d3);
-		}
-		mp_primZ_swap();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	push_resource(MKU64(0LL)); // +Unsafe
-	mw_std_prelude_Sizze_ZDivSizze();
-	mp_primZ_ptrZ_realloc();
-	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
-	mtw_std_buffer_ZPlusBuffer_ZPlusBuffer();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
+	mw_std_buffer_ZPlusBuffer_sizze();
+	LPUSH(lbl_oldZ_sizze);
+	mw_std_buffer_ZPlusBuffer_sizzeZBang();
+	mw_std_buffer_ZPlusBuffer_sizze();
+	push_fnptr(&mb_std_buffer_ZPlusBuffer_resizzeZBang_0);
+	mw_std_buffer_ZPlusBuffer_base_1();
+	LPOP(lbl_oldZ_sizze);
+	mp_primZ_dup();
+	LPUSH(lbl_oldZ_sizze);
+	mw_std_buffer_ZPlusBuffer_sizze();
 	{
 		VAL d2 = pop_value();
 		mw_std_prelude_Sizze_ZDivSizze();
@@ -8927,17 +8985,12 @@ static void mw_std_buffer_ZPlusBuffer_resizzeZBang (void) {
 	}
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
-		push_u64(0LL); // False
-	} else {
-		push_u64(1LL); // True
-	}
-	if (pop_u64()) {
+		LPOP(lbl_oldZ_sizze);
 		mp_primZ_dup();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_swap();
-			push_value(d3);
-		}
+		LPUSH(lbl_oldZ_sizze);
+		mw_std_prelude_Sizze_ZDivSizze();
+		mw_std_buffer_ZPlusBuffer_sizze();
+		LPOP(lbl_oldZ_sizze);
 		{
 			VAL d3 = pop_value();
 			mw_std_prelude_Sizze_ZDivSizze();
@@ -8950,20 +9003,15 @@ static void mw_std_buffer_ZPlusBuffer_resizzeZBang (void) {
 		}
 		mp_primZ_intZ_sub();
 		mw_std_prim_Int_ZToNat();
-		{
-			VAL d3 = pop_value();
-			mw_std_prelude_Sizze_ZDivSizze();
-			push_value(d3);
-		}
 		mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang();
 	} else {
-		mp_primZ_drop();
+		LPOP(lbl_oldZ_sizze);
 		mp_primZ_drop();
 	}
 }
 static void mw_std_buffer_ZPlusBuffer_expandZBang (void) {
 	mp_primZ_dup();
-	mw_std_buffer_ZPlusBuffer_bufferZ_sizze();
+	mw_std_buffer_ZPlusBuffer_sizze();
 	{
 		VAL d2 = pop_value();
 		mw_std_prelude_Sizze_ZDivSizze();
@@ -8977,7 +9025,7 @@ static void mw_std_buffer_ZPlusBuffer_expandZBang (void) {
 	mp_primZ_swap();
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
-		mw_std_buffer_ZPlusBuffer_bufferZ_sizze();
+		mw_std_buffer_ZPlusBuffer_sizze();
 		mw_std_prelude_Sizze_ZDivSizze();
 		push_i64(2LL);
 		mp_primZ_intZ_mul();
@@ -8988,10 +9036,12 @@ static void mw_std_buffer_ZPlusBuffer_expandZBang (void) {
 	}
 }
 static void mw_std_buffer_ZPlusBuffer_rdrop (void) {
-	mw_std_buffer_Z_BUFFER();
+	mw_std_buffer_ZPlusBuffer_ZDivZPlusBuffer();
+	LPOP(lbl_base);
 	push_resource(MKU64(0LL)); // +Unsafe
 	mp_primZ_ptrZ_free();
 	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
+	LPOP(lbl_sizze);
 	mp_primZ_drop();
 }
 static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (void) {
@@ -9009,7 +9059,7 @@ static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (void) {
 	mp_primZ_swap();
 	mw_std_buffer_ZPlusBuffer_checkZ_spanZBang();
 	mp_primZ_swap();
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
+	mw_std_buffer_ZPlusBuffer_base();
 	push_resource(MKU64(0LL)); // +Unsafe
 	{
 		VAL d2 = pop_value();
@@ -9038,29 +9088,6 @@ static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (void) {
 	}
 	mp_primZ_ptrZ_fill();
 	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
-}
-static void mw_std_buffer_ZPlusBuffer_bufferZ_sizze (void) {
-	mw_std_buffer_Z_BUFFER();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mtw_std_buffer_ZPlusBuffer_ZPlusBuffer();
-		push_value(d2);
-	}
-}
-static void mw_std_buffer_ZPlusBuffer_bufferZ_base (void) {
-	mw_std_buffer_Z_BUFFER();
-	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mtw_std_buffer_ZPlusBuffer_ZPlusBuffer();
-		push_value(d2);
-	}
 }
 static void mw_std_buffer_ZPlusBuffer_checkZ_spanZBang (void) {
 	{
@@ -9095,7 +9122,7 @@ static void mw_std_buffer_ZPlusBuffer_checkZ_spanZBang (void) {
 		}
 		mw_std_prelude_Offset_ZDivOffset();
 		mp_primZ_intZ_add();
-		mw_std_buffer_ZPlusBuffer_bufferZ_sizze();
+		mw_std_buffer_ZPlusBuffer_sizze();
 		mw_std_prelude_Sizze_ZDivSizze();
 		{
 			VAL d3 = pop_value();
@@ -9166,7 +9193,7 @@ static void mw_std_buffer_ZPlusBuffer_ZAtU8 (void) {
 	push_i64(1LL);
 	mw_std_prim_Int_ZToNat();
 	mw_std_buffer_ZPlusBuffer_checkZ_spanZ_alignZBang();
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
+	mw_std_buffer_ZPlusBuffer_base();
 	push_resource(MKU64(0LL)); // +Unsafe
 	{
 		VAL d2 = pop_value();
@@ -9182,7 +9209,7 @@ static void mw_std_buffer_ZPlusBuffer_ZBangU8 (void) {
 	push_i64(1LL);
 	mw_std_prim_Int_ZToNat();
 	mw_std_buffer_ZPlusBuffer_checkZ_spanZ_alignZBang();
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
+	mw_std_buffer_ZPlusBuffer_base();
 	push_resource(MKU64(0LL)); // +Unsafe
 	{
 		VAL d2 = pop_value();
@@ -9218,7 +9245,7 @@ static void mw_std_buffer_ZPlusBuffer_ZBangStr (void) {
 	mp_primZ_strZ_numZ_bytes();
 	mw_std_prim_Int_ZToNat();
 	mw_std_buffer_ZPlusBuffer_checkZ_spanZBang();
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
+	mw_std_buffer_ZPlusBuffer_base();
 	push_resource(MKU64(0LL)); // +Unsafe
 	{
 		VAL d2 = pop_value();
@@ -9244,7 +9271,7 @@ static void mw_std_buffer_ZPlusBuffer_ZAtStr (void) {
 	}
 	mp_primZ_swap();
 	mw_std_buffer_ZPlusBuffer_checkZ_spanZBang();
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
+	mw_std_buffer_ZPlusBuffer_base();
 	push_resource(MKU64(0LL)); // +Unsafe
 	mp_primZ_swap();
 	{
@@ -9509,8 +9536,8 @@ static void mw_std_prim_Str_fromZ_bytesZ_unsafe (void) {
 	push_fnptr(&mb_std_prim_Str_fromZ_bytesZ_unsafe_1);
 	mw_std_list_List_1_for_1();
 	mp_primZ_drop();
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
-	mw_std_buffer_ZPlusBuffer_bufferZ_sizze();
+	mw_std_buffer_ZPlusBuffer_base();
+	mw_std_buffer_ZPlusBuffer_sizze();
 	push_resource(MKU64(0LL)); // +Unsafe
 	mw_std_prelude_Sizze_ZDivSizze();
 	mp_primZ_strZ_copy();
@@ -12575,11 +12602,83 @@ static void mw_std_input_ZPlusInputOpenState_ZDivZPlusInputOpenState (void) {
 			mp_primZ_panic();
 	}
 }
-static void mw_std_input_ZPlusInputOpenState_offset (void) {
+static void mw_std_input_ZPlusInputOpenState_ZPlusbuffer (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
 	ASSERT1(VTUPLEN(v) == 5, v);
 	VAL* p = &VTUP(v)->cells[4];
+	VAL u = *p;
+	ASSERT1(VREFS(v) == 1, v);
+	*p = (VAL){0};
+	push_resource(u);
+	push_resource(v);
+}
+static void mw_std_input_ZPlusInputOpenState_ZPlusbufferZBang (void) {
+	VAL v = pop_resource();
+	VAL u = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	ASSERT1(VREFS(v) == 1, v);
+	VAL* p = &VTUP(v)->cells[4];
+	ASSERT1(p->tag == 0, v);
+	*p = u;
+	push_resource(v);
+}
+static void mw_std_input_ZPlusInputOpenState_ZPlusbuffer_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_std_input_ZPlusInputOpenState_ZPlusbuffer();
+		{
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
+		}
+		mw_std_input_ZPlusInputOpenState_ZPlusbufferZBang();
+		decref(var_f);
+	}
+}
+static void mw_std_input_ZPlusInputOpenState_ZPlusfile (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	VAL* p = &VTUP(v)->cells[3];
+	VAL u = *p;
+	ASSERT1(VREFS(v) == 1, v);
+	*p = (VAL){0};
+	push_resource(u);
+	push_resource(v);
+}
+static void mw_std_input_ZPlusInputOpenState_ZPlusfileZBang (void) {
+	VAL v = pop_resource();
+	VAL u = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	ASSERT1(VREFS(v) == 1, v);
+	VAL* p = &VTUP(v)->cells[3];
+	ASSERT1(p->tag == 0, v);
+	*p = u;
+	push_resource(v);
+}
+static void mw_std_input_ZPlusInputOpenState_ZPlusfile_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_std_input_ZPlusInputOpenState_ZPlusfile();
+		{
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
+		}
+		mw_std_input_ZPlusInputOpenState_ZPlusfileZBang();
+		decref(var_f);
+	}
+}
+static void mw_std_input_ZPlusInputOpenState_offset (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 5, v);
+	VAL* p = &VTUP(v)->cells[2];
 	VAL u = *p;
 	incref(u);
 	push_resource(v);
@@ -12590,7 +12689,7 @@ static void mw_std_input_ZPlusInputOpenState_offsetZBang (void) {
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
 	ASSERT1(VTUPLEN(v) == 5, v);
-	VAL* p = &VTUP(v)->cells[4];
+	VAL* p = &VTUP(v)->cells[2];
 	VAL t = *p; *p = u; decref(t);
 }
 static void mw_std_input_ZPlusInputOpenState_offset_1 (void) {
@@ -12611,7 +12710,7 @@ static void mw_std_input_ZPlusInputOpenState_length (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
 	ASSERT1(VTUPLEN(v) == 5, v);
-	VAL* p = &VTUP(v)->cells[3];
+	VAL* p = &VTUP(v)->cells[1];
 	VAL u = *p;
 	incref(u);
 	push_resource(v);
@@ -12622,76 +12721,18 @@ static void mw_std_input_ZPlusInputOpenState_lengthZBang (void) {
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
 	ASSERT1(VTUPLEN(v) == 5, v);
-	VAL* p = &VTUP(v)->cells[3];
+	VAL* p = &VTUP(v)->cells[1];
 	VAL t = *p; *p = u; decref(t);
-}
-static void mw_std_input_ZPlusInputOpenState_ZTildeFile_1 (void) {
-	{
-		VAL var_f = pop_value();
-		mw_std_input_ZPlusInputOpenState_ZDivZPlusInputOpenState();
-		LPOP(lbl_length);
-		LPOP(lbl_offset);
-		push_fnptr(&mb_std_input_ZPlusInputOpenState_ZTildeFile_1_0);
-		incref(var_f);
-		push_value(var_f);
-		mp_primZ_packZ_cons();
-		{
-			VAL var_f = pop_value();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					incref(var_f);
-					run_value(var_f);
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			decref(var_f);
-		}
-		LPUSH(lbl_offset);
-		LPUSH(lbl_length);
-		mtw_std_input_ZPlusInputOpenState_ZPlusInputOpenState();
-		decref(var_f);
-	}
-}
-static void mw_std_input_ZPlusInputOpenState_ZTildeBuffer_1 (void) {
-	{
-		VAL var_f = pop_value();
-		mw_std_input_ZPlusInputOpenState_ZDivZPlusInputOpenState();
-		LPOP(lbl_length);
-		LPOP(lbl_offset);
-		push_fnptr(&mb_std_input_ZPlusInputOpenState_ZTildeBuffer_1_0);
-		incref(var_f);
-		push_value(var_f);
-		mp_primZ_packZ_cons();
-		{
-			VAL var_f = pop_value();
-			{
-				VAL d4 = pop_value();
-				{
-					VAL d5 = pop_value();
-					incref(var_f);
-					run_value(var_f);
-					push_value(d5);
-				}
-				push_value(d4);
-			}
-			decref(var_f);
-		}
-		LPUSH(lbl_offset);
-		LPUSH(lbl_length);
-		mtw_std_input_ZPlusInputOpenState_ZPlusInputOpenState();
-		decref(var_f);
-	}
 }
 static void mw_std_input_INPUTz_BUFFERz_SIZZE (void) {
 	push_i64(8192LL);
 	mw_std_prim_Int_ZToNat();
 }
 static void mw_std_input_ZPlusInput_startZBang (void) {
+	LPUSHR(lbl_ZPlusfile);
 	mw_std_input_INPUTz_BUFFERz_SIZZE();
 	mw_std_buffer_ZPlusBuffer_new();
+	LPUSHR(lbl_ZPlusbuffer);
 	push_i64(0LL);
 	mw_std_prim_Int_ZToNat();
 	LPUSH(lbl_length);
@@ -12709,11 +12750,13 @@ static void mw_std_input_ZPlusInput_endZBang (void) {
 		case 0LL: // +InputOpen
 			mtp_std_input_ZPlusInput_ZPlusInputOpen();
 			mw_std_input_ZPlusInputOpenState_ZDivZPlusInputOpenState();
+			LPOPR(lbl_ZPlusbuffer);
 			mw_std_buffer_ZPlusBuffer_rdrop();
 			LPOP(lbl_length);
 			LPOP(lbl_offset);
 			mp_primZ_drop();
 			mp_primZ_drop();
+			LPOPR(lbl_ZPlusfile);
 			break;
 		case 1LL: // +InputDone
 			mtp_std_input_ZPlusInput_ZPlusInputDone();
@@ -12742,9 +12785,9 @@ static void mw_std_input_ZPlusInput_doneZAsk (void) {
 }
 static void mw_std_input_ZPlusInputOpenState_fillZ_bufferZBang (void) {
 	push_fnptr(&mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_0);
-	mw_std_input_ZPlusInputOpenState_ZTildeBuffer_1();
+	mw_std_input_ZPlusInputOpenState_ZPlusbuffer_1();
 	push_fnptr(&mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_1);
-	mw_std_input_ZPlusInputOpenState_ZTildeFile_1();
+	mw_std_input_ZPlusInputOpenState_ZPlusfile_1();
 	mp_primZ_dup();
 	mw_std_prelude_Sizze_ZDivSizze();
 	push_i64(0LL);
@@ -12767,7 +12810,8 @@ static void mw_std_input_ZPlusInput_peek (void) {
 			mtp_std_input_ZPlusInput_ZPlusInputOpen();
 			mw_std_input_ZPlusInputOpenState_offset();
 			push_fnptr(&mb_std_input_ZPlusInput_peek_0);
-			mw_std_input_ZPlusInputOpenState_ZTildeBuffer_1();
+			mw_std_input_ZPlusInputOpenState_ZPlusbuffer_1();
+			mw_std_prim_U8_ZToByte();
 			mtw_std_input_ZPlusInput_ZPlusInputOpen();
 			break;
 		case 1LL: // +InputDone
@@ -12860,7 +12904,7 @@ static void mw_std_input_ZPlusInput_readZ_chunkZBang (void) {
 			mp_primZ_intZ_sub();
 			mw_std_prim_Int_ZToNat();
 			push_fnptr(&mb_std_input_ZPlusInput_readZ_chunkZBang_0);
-			mw_std_input_ZPlusInputOpenState_ZTildeBuffer_1();
+			mw_std_input_ZPlusInputOpenState_ZPlusbuffer_1();
 			mw_std_input_ZPlusInputOpenState_fillZ_bufferZBang();
 			mtw_std_maybe_Maybe_1_Some();
 			break;
@@ -12900,9 +12944,14 @@ static void mw_std_file_ZPlusFile_ZDivZPlusFile (void) {
 	}
 }
 static void mw_std_file_ZPlusFile_fileZ_descriptor (void) {
-	mw_std_file_ZPlusFile_ZDivZPlusFile();
-	mp_primZ_dup();
-	mtw_std_file_ZPlusFile_ZPlusFile();
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 2, v);
+	VAL* p = &VTUP(v)->cells[1];
+	VAL u = *p;
+	incref(u);
+	push_resource(v);
+	push_value(u);
 }
 static void mw_std_file_ZPlusFileZAsk_unwrapZBang (void) {
 	switch (get_top_resource_data_tag()) {
@@ -12932,6 +12981,7 @@ static void mw_std_prim_ZPlusWorld_openZ_fileZBang (void) {
 			mp_primZ_drop();
 			push_value(d3);
 		}
+		LPUSH(lbl_fileZ_descriptor);
 		mtw_std_file_ZPlusFile_ZPlusFile();
 		mtw_std_file_ZPlusFileZAsk_ZPlusFileOk();
 	} else {
@@ -12955,6 +13005,7 @@ static void mw_std_prim_ZPlusWorld_createZ_fileZBang (void) {
 			mp_primZ_drop();
 			push_value(d3);
 		}
+		LPUSH(lbl_fileZ_descriptor);
 		mtw_std_file_ZPlusFile_ZPlusFile();
 		mtw_std_file_ZPlusFileZAsk_ZPlusFileOk();
 	} else {
@@ -13001,6 +13052,7 @@ static void mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void) {
 }
 static void mw_std_file_ZPlusFile_closeZ_fileZBang (void) {
 	mw_std_file_ZPlusFile_ZDivZPlusFile();
+	LPOP(lbl_fileZ_descriptor);
 	mp_primZ_posixZ_close();
 	push_fnptr(&mb_std_file_ZPlusFile_closeZ_fileZBang_0);
 	push_fnptr(&mb_std_file_ZPlusFile_closeZ_fileZBang_1);
@@ -35450,102 +35502,150 @@ static void mw_std_output_ZPlusOutput_ZDivZPlusOutput (void) {
 			mp_primZ_panic();
 	}
 }
+static void mw_std_output_ZPlusOutput_ZPlusbuffer (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	VAL* p = &VTUP(v)->cells[3];
+	VAL u = *p;
+	ASSERT1(VREFS(v) == 1, v);
+	*p = (VAL){0};
+	push_resource(u);
+	push_resource(v);
+}
+static void mw_std_output_ZPlusOutput_ZPlusbufferZBang (void) {
+	VAL v = pop_resource();
+	VAL u = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	ASSERT1(VREFS(v) == 1, v);
+	VAL* p = &VTUP(v)->cells[3];
+	ASSERT1(p->tag == 0, v);
+	*p = u;
+	push_resource(v);
+}
+static void mw_std_output_ZPlusOutput_ZPlusbuffer_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_std_output_ZPlusOutput_ZPlusbuffer();
+		{
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
+		}
+		mw_std_output_ZPlusOutput_ZPlusbufferZBang();
+		decref(var_f);
+	}
+}
+static void mw_std_output_ZPlusOutput_ZPlusfile (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	VAL* p = &VTUP(v)->cells[2];
+	VAL u = *p;
+	ASSERT1(VREFS(v) == 1, v);
+	*p = (VAL){0};
+	push_resource(u);
+	push_resource(v);
+}
+static void mw_std_output_ZPlusOutput_ZPlusfileZBang (void) {
+	VAL v = pop_resource();
+	VAL u = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	ASSERT1(VREFS(v) == 1, v);
+	VAL* p = &VTUP(v)->cells[2];
+	ASSERT1(p->tag == 0, v);
+	*p = u;
+	push_resource(v);
+}
+static void mw_std_output_ZPlusOutput_ZPlusfile_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_std_output_ZPlusOutput_ZPlusfile();
+		{
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
+		}
+		mw_std_output_ZPlusOutput_ZPlusfileZBang();
+		decref(var_f);
+	}
+}
+static void mw_std_output_ZPlusOutput_sizze (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	VAL* p = &VTUP(v)->cells[1];
+	VAL u = *p;
+	incref(u);
+	push_resource(v);
+	push_value(u);
+}
+static void mw_std_output_ZPlusOutput_sizzeZBang (void) {
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	VAL* p = &VTUP(v)->cells[1];
+	VAL t = *p; *p = u; decref(t);
+}
+static void mw_std_output_ZPlusOutput_sizze_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_std_output_ZPlusOutput_sizze();
+		{
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
+		}
+		mw_std_output_ZPlusOutput_sizzeZBang();
+		decref(var_f);
+	}
+}
 static void mw_std_output_ZPlusOutput_startZBang (void) {
+	LPUSHR(lbl_ZPlusfile);
 	push_i64(0LL);
 	mw_std_prim_Int_ZToNat();
+	LPUSH(lbl_sizze);
 	mw_std_output_OUTPUTz_BUFFERz_SIZZE();
 	mw_std_buffer_ZPlusBuffer_new();
+	LPUSHR(lbl_ZPlusbuffer);
 	mtw_std_output_ZPlusOutput_ZPlusOutput();
 }
 static void mw_std_output_ZPlusOutput_endZBang (void) {
 	mw_std_output_ZPlusOutput_flushZBang();
 	mw_std_output_ZPlusOutput_ZDivZPlusOutput();
+	LPOP(lbl_sizze);
 	mp_primZ_drop();
+	LPOPR(lbl_ZPlusbuffer);
 	mw_std_buffer_ZPlusBuffer_rdrop();
+	LPOPR(lbl_ZPlusfile);
 }
-static void mw_std_output_ZPlusOutput_offsetZAt (void) {
-	mw_std_output_ZPlusOutput_sizzeZAt();
+static void mw_std_output_ZPlusOutput_offset (void) {
+	mw_std_output_ZPlusOutput_sizze();
 	mw_std_prelude_Sizze_ZDivSizze();
-}
-static void mw_std_output_ZPlusOutput_sizzeZAt (void) {
-	mw_std_output_ZPlusOutput_ZDivZPlusOutput();
-	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mtw_std_output_ZPlusOutput_ZPlusOutput();
-		push_value(d2);
-	}
-}
-static void mw_std_output_ZPlusOutput_sizzeZBang (void) {
-	{
-		VAL d2 = pop_value();
-		mw_std_output_ZPlusOutput_ZDivZPlusOutput();
-		mp_primZ_drop();
-		push_value(d2);
-	}
-	mtw_std_output_ZPlusOutput_ZPlusOutput();
-}
-static void mw_std_output_ZPlusOutput_ZTildeFile_1 (void) {
-	{
-		VAL var_f = pop_value();
-		mw_std_output_ZPlusOutput_ZDivZPlusOutput();
-		{
-			VAL d3 = pop_value();
-			{
-				VAL d4 = pop_resource();
-				incref(var_f);
-				run_value(var_f);
-				push_resource(d4);
-			}
-			push_value(d3);
-		}
-		mtw_std_output_ZPlusOutput_ZPlusOutput();
-		decref(var_f);
-	}
-}
-static void mw_std_output_ZPlusOutput_ZTildeBuffer_1 (void) {
-	{
-		VAL var_f = pop_value();
-		mw_std_output_ZPlusOutput_ZDivZPlusOutput();
-		{
-			VAL d3 = pop_value();
-			incref(var_f);
-			push_value(var_f);
-			{
-				VAL var_f = pop_value();
-				mp_primZ_rswap();
-				{
-					VAL d5 = pop_resource();
-					incref(var_f);
-					run_value(var_f);
-					push_resource(d5);
-				}
-				mp_primZ_rswap();
-				decref(var_f);
-			}
-			push_value(d3);
-		}
-		mtw_std_output_ZPlusOutput_ZPlusOutput();
-		decref(var_f);
-	}
 }
 static void mw_std_output_ZPlusOutput_flushZBang (void) {
 	push_fnptr(&mb_std_output_ZPlusOutput_flushZBang_0);
-	mw_std_output_ZPlusOutput_ZTildeBuffer_1();
-	mw_std_output_ZPlusOutput_sizzeZAt();
+	mw_std_output_ZPlusOutput_ZPlusbuffer_1();
+	mw_std_output_ZPlusOutput_sizze();
 	push_fnptr(&mb_std_output_ZPlusOutput_flushZBang_1);
-	mw_std_output_ZPlusOutput_ZTildeFile_1();
+	mw_std_output_ZPlusOutput_ZPlusfile_1();
 	push_i64(0LL);
 	mw_std_prim_Int_ZToNat();
 	mw_std_output_ZPlusOutput_sizzeZBang();
 }
 static void mw_std_output_ZPlusOutput_capacityZ_total (void) {
 	push_fnptr(&mb_std_output_ZPlusOutput_capacityZ_total_0);
-	mw_std_output_ZPlusOutput_ZTildeBuffer_1();
+	mw_std_output_ZPlusOutput_ZPlusbuffer_1();
 }
 static void mw_std_output_ZPlusOutput_capacityZ_remaining (void) {
 	mw_std_output_ZPlusOutput_capacityZ_total();
-	mw_std_output_ZPlusOutput_sizzeZAt();
+	mw_std_output_ZPlusOutput_sizze();
 	{
 		VAL d2 = pop_value();
 		mw_std_prelude_Sizze_ZDivSizze();
@@ -35600,16 +35700,10 @@ static void mw_std_output_ZPlusOutput_put (void) {
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
 		mw_std_output_ZPlusOutput_flushZBang();
-		push_fnptr(&mb_std_output_ZPlusOutput_put_2);
-		mw_std_prim_Str_withZ_data_1();
-	} else {
 		mp_primZ_dup();
-		mw_std_output_ZPlusOutput_offsetZAt();
-		push_fnptr(&mb_std_output_ZPlusOutput_put_4);
-		mw_std_output_ZPlusOutput_ZTildeBuffer_1();
 		mp_primZ_strZ_numZ_bytes();
 		mw_std_prim_Int_ZToNat();
-		mw_std_output_ZPlusOutput_sizzeZAt();
+		mw_std_output_ZPlusOutput_capacityZ_total();
 		{
 			VAL d3 = pop_value();
 			mw_std_prelude_Sizze_ZDivSizze();
@@ -35620,8 +35714,27 @@ static void mw_std_output_ZPlusOutput_put (void) {
 			VAL d3 = pop_value();
 			push_value(d3);
 		}
-		mp_primZ_intZ_add();
-		mw_std_output_ZPlusOutput_sizzeZBang();
+		mp_primZ_intZ_lt();
+		if (pop_u64()) {
+			push_u64(0LL); // False
+		} else {
+			push_u64(1LL); // True
+		}
+		if (pop_u64()) {
+			push_fnptr(&mb_std_output_ZPlusOutput_put_4);
+			mw_std_prim_Str_withZ_data_1();
+		} else {
+			mw_std_output_ZPlusOutput_put();
+		}
+	} else {
+		mp_primZ_dup();
+		mw_std_output_ZPlusOutput_offset();
+		push_fnptr(&mb_std_output_ZPlusOutput_put_6);
+		mw_std_output_ZPlusOutput_ZPlusbuffer_1();
+		mp_primZ_strZ_numZ_bytes();
+		mw_std_prim_Int_ZToNat();
+		push_fnptr(&mb_std_output_ZPlusOutput_put_7);
+		mw_std_output_ZPlusOutput_sizze_1();
 	}
 }
 static void mw_std_output_ZPlusOutput_putZ_byte (void) {
@@ -35630,14 +35743,11 @@ static void mw_std_output_ZPlusOutput_putZ_byte (void) {
 		mw_std_output_ZPlusOutput_flushZBang();
 	} else {
 	}
-	mw_std_output_ZPlusOutput_offsetZAt();
+	mw_std_output_ZPlusOutput_offset();
 	push_fnptr(&mb_std_output_ZPlusOutput_putZ_byte_1);
-	mw_std_output_ZPlusOutput_ZTildeBuffer_1();
-	mw_std_output_ZPlusOutput_sizzeZAt();
-	mw_std_prelude_Sizze_ZDivSizze();
-	push_i64(1LL);
-	mp_primZ_intZ_add();
-	mw_std_output_ZPlusOutput_sizzeZBang();
+	mw_std_output_ZPlusOutput_ZPlusbuffer_1();
+	push_fnptr(&mb_std_output_ZPlusOutput_putZ_byte_2);
+	mw_std_output_ZPlusOutput_sizze_1();
 }
 static void mw_std_output_ZPlusOutput_line (void) {
 	push_u64(10LL); // BLF
@@ -35653,33 +35763,59 @@ static void mw_std_set_ZPlusSet_1_ZDivZPlusSet (void) {
 			mp_primZ_panic();
 	}
 }
-static void mw_std_set_ZPlusSet_1_ZTildeBuffer_1 (void) {
+static void mw_std_set_ZPlusSet_1_ZPlusbuffer (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[2];
+	VAL u = *p;
+	ASSERT1(VREFS(v) == 1, v);
+	*p = (VAL){0};
+	push_resource(u);
+	push_resource(v);
+}
+static void mw_std_set_ZPlusSet_1_ZPlusbufferZBang (void) {
+	VAL v = pop_resource();
+	VAL u = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	ASSERT1(VREFS(v) == 1, v);
+	VAL* p = &VTUP(v)->cells[2];
+	ASSERT1(p->tag == 0, v);
+	*p = u;
+	push_resource(v);
+}
+static void mw_std_set_ZPlusSet_1_ZPlusbuffer_1 (void) {
 	{
 		VAL var_f = pop_value();
-		mw_std_set_ZPlusSet_1_ZDivZPlusSet();
+		mw_std_set_ZPlusSet_1_ZPlusbuffer();
 		{
-			VAL d3 = pop_value();
+			VAL d3 = pop_resource();
 			incref(var_f);
 			run_value(var_f);
-			push_value(d3);
+			push_resource(d3);
 		}
-		mtw_std_set_ZPlusSet_1_ZPlusSet();
+		mw_std_set_ZPlusSet_1_ZPlusbufferZBang();
 		decref(var_f);
 	}
 }
+static void mw_std_set_ZPlusSet_1_indexZ_fn (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 3, v);
+	VAL* p = &VTUP(v)->cells[1];
+	VAL u = *p;
+	incref(u);
+	push_resource(v);
+	push_value(u);
+}
 static void mw_std_set_ZPlusSet_1_index (void) {
-	mw_std_set_ZPlusSet_1_ZDivZPlusSet();
-	mp_primZ_dup();
+	mw_std_set_ZPlusSet_1_indexZ_fn();
 	{
 		VAL d2 = pop_resource();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_run();
-			push_value(d3);
-		}
+		mp_primZ_run();
 		push_resource(d2);
 	}
-	mtw_std_set_ZPlusSet_1_ZPlusSet();
 }
 static void mw_std_set_SETz_INITIALz_SIZZE (void) {
 	push_i64(256LL);
@@ -35690,15 +35826,19 @@ static void mw_std_set_ZPlusSet_1_new_1 (void) {
 		VAL var_f = pop_value();
 		incref(var_f);
 		push_value(var_f);
+		LPUSH(lbl_indexZ_fn);
 		mw_std_set_SETz_INITIALz_SIZZE();
 		mw_std_buffer_ZPlusBuffer_new();
+		LPUSHR(lbl_ZPlusbuffer);
 		mtw_std_set_ZPlusSet_1_ZPlusSet();
 		decref(var_f);
 	}
 }
 static void mw_std_set_ZPlusSet_1_rdrop (void) {
 	mw_std_set_ZPlusSet_1_ZDivZPlusSet();
+	LPOP(lbl_indexZ_fn);
 	mp_primZ_drop();
+	LPOPR(lbl_ZPlusbuffer);
 	mw_std_buffer_ZPlusBuffer_rdrop();
 }
 static void mw_std_set_ZPlusSet_1_offsetZ_mask (void) {
@@ -35740,7 +35880,7 @@ static void mw_std_set_ZPlusSet_1_offsetZ_mask (void) {
 	push_i64(1LL);
 	mp_primZ_intZ_add();
 	push_fnptr(&mb_std_set_ZPlusSet_1_offsetZ_mask_0);
-	mw_std_set_ZPlusSet_1_ZTildeBuffer_1();
+	mw_std_set_ZPlusSet_1_ZPlusbuffer_1();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -35760,7 +35900,7 @@ static void mw_std_set_ZPlusSet_1_offsetZ_mask (void) {
 static void mw_std_set_ZPlusSet_1_memberZAsk (void) {
 	mw_std_set_ZPlusSet_1_offsetZ_mask();
 	push_fnptr(&mb_std_set_ZPlusSet_1_memberZAsk_0);
-	mw_std_set_ZPlusSet_1_ZTildeBuffer_1();
+	mw_std_set_ZPlusSet_1_ZPlusbuffer_1();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
@@ -35777,7 +35917,7 @@ static void mw_std_set_ZPlusSet_1_memberZAsk (void) {
 static void mw_std_set_ZPlusSet_1_insertZBang (void) {
 	mw_std_set_ZPlusSet_1_offsetZ_mask();
 	push_fnptr(&mb_std_set_ZPlusSet_1_insertZBang_0);
-	mw_std_set_ZPlusSet_1_ZTildeBuffer_1();
+	mw_std_set_ZPlusSet_1_ZPlusbuffer_1();
 }
 static void mw_mirth_need_Need_ZToNat (void) {
 	switch (get_top_data_tag()) {
@@ -42432,6 +42572,13 @@ static void mb_std_byte_Byte_zzencode_2 (void) {
 	}
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
+static void mb_std_buffer_ZPlusBuffer_resizzeZBang_0 (void) {
+	push_resource(MKU64(0LL)); // +Unsafe
+	mp_primZ_swap();
+	mw_std_prelude_Sizze_ZDivSizze();
+	mp_primZ_ptrZ_realloc();
+	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
+}
 static void mb_argZ_parser_parse_printZ_usage_0 (void) {
 	push_u64(1LL); // Bold
 	mw_std_terminal_Sgr_show();
@@ -42658,15 +42805,28 @@ static void mb_std_posix_sliceZ_writeZBang_5 (void) {
 static void mb_mirth_c99_ZPlusC99_put_0 (void) {
 	mw_std_output_ZPlusOutput_put();
 }
-static void mb_std_output_ZPlusOutput_put_2 (void) {
-	push_fnptr(&mb_std_output_ZPlusOutput_put_3);
-	mw_std_output_ZPlusOutput_ZTildeFile_1();
+static void mb_std_output_ZPlusOutput_put_4 (void) {
+	push_fnptr(&mb_std_output_ZPlusOutput_put_5);
+	mw_std_output_ZPlusOutput_ZPlusfile_1();
 }
-static void mb_std_output_ZPlusOutput_put_3 (void) {
+static void mb_std_output_ZPlusOutput_put_5 (void) {
 	mw_std_file_ZPlusFile_unsafeZ_writeZBang();
 }
-static void mb_std_output_ZPlusOutput_put_4 (void) {
+static void mb_std_output_ZPlusOutput_put_6 (void) {
 	mw_std_buffer_ZPlusBuffer_ZBangStr();
+}
+static void mb_std_output_ZPlusOutput_put_7 (void) {
+	{
+		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_ZDivSizze();
+		push_value(d2);
+	}
+	mw_std_prelude_Sizze_ZDivSizze();
+	{
+		VAL d2 = pop_value();
+		push_value(d2);
+	}
+	mp_primZ_intZ_add();
 }
 static void mb_mirth_c99_ZPlusC99_line_0 (void) {
 	mw_std_output_ZPlusOutput_line();
@@ -42826,48 +42986,15 @@ static void mb_std_input_ZPlusInput_readZ_fileZBang_0 (void) {
 static void mb_std_input_ZPlusInput_readZ_fileZBang_1 (void) {
 	mp_primZ_strZ_cat();
 }
-static void mb_std_input_ZPlusInputOpenState_ZTildeFile_1_0 (void) {
-	mp_primZ_packZ_uncons();
-	VAL var_f = pop_value();
-	pop_value();
-	{
-		VAL d2 = pop_resource();
-		incref(var_f);
-		run_value(var_f);
-		push_resource(d2);
-	}
-	decref(var_f);
-}
-static void mb_std_input_ZPlusInputOpenState_ZTildeBuffer_1_0 (void) {
-	mp_primZ_packZ_uncons();
-	VAL var_f = pop_value();
-	pop_value();
-	incref(var_f);
-	push_value(var_f);
-	{
-		VAL var_f = pop_value();
-		mp_primZ_rswap();
-		{
-			VAL d3 = pop_resource();
-			incref(var_f);
-			run_value(var_f);
-			push_resource(d3);
-		}
-		mp_primZ_rswap();
-		decref(var_f);
-	}
-	decref(var_f);
-}
 static void mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_0 (void) {
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
-	mw_std_buffer_ZPlusBuffer_bufferZ_sizze();
+	mw_std_buffer_ZPlusBuffer_base();
+	mw_std_buffer_ZPlusBuffer_sizze();
 }
 static void mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_1 (void) {
 	mw_std_file_ZPlusFile_unsafeZ_readZBang();
 }
 static void mb_std_input_ZPlusInput_peek_0 (void) {
 	mw_std_buffer_ZPlusBuffer_ZAtU8();
-	mw_std_prim_U8_ZToByte();
 }
 static void mb_std_input_ZPlusInput_moveZBang_0 (void) {
 	mw_std_prelude_Offset_ZDivOffset();
@@ -47774,6 +47901,11 @@ static void mb_mirth_c99_ZPlusC99_putZ_byte_0 (void) {
 static void mb_std_output_ZPlusOutput_putZ_byte_1 (void) {
 	mw_std_buffer_ZPlusBuffer_ZBangByte();
 }
+static void mb_std_output_ZPlusOutput_putZ_byte_2 (void) {
+	mw_std_prelude_Sizze_ZDivSizze();
+	push_i64(1LL);
+	mp_primZ_intZ_add();
+}
 static void mb_mirth_c99_c99Z_labelZ_defsZBang_0 (void) {
 	mw_mirth_c99_c99Z_labelZ_defZBang();
 }
@@ -51791,13 +51923,13 @@ static void mb_mirth_c99_c99Z_wordZ_defZBang_2 (void) {
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_std_output_ZPlusOutput_flushZBang_0 (void) {
-	mw_std_buffer_ZPlusBuffer_bufferZ_base();
+	mw_std_buffer_ZPlusBuffer_base();
 }
 static void mb_std_output_ZPlusOutput_flushZBang_1 (void) {
 	mw_std_file_ZPlusFile_unsafeZ_writeZBang();
 }
 static void mb_std_output_ZPlusOutput_capacityZ_total_0 (void) {
-	mw_std_buffer_ZPlusBuffer_bufferZ_sizze();
+	mw_std_buffer_ZPlusBuffer_sizze();
 }
 static void mb_std_set_ZPlusSet_1_memberZAsk_0 (void) {
 	mp_primZ_swap();
