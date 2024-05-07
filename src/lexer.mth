@@ -240,8 +240,8 @@ def(+Str.label-pop-token?, +Str -- Maybe(TokenValue) +Str,
     ))
 
 def(+Str.label-pop-r-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte is-lower and(unsafe(+Str.last-two-bytes) ">+" ==) if(
-        unsafe(+Str.drop-last-two-bytes) >Name Label.new! TokenLabelPopR Some,
+    first-byte B'+' == and(second-byte is-lower and(last-byte B'>' ==)) if(
+        unsafe(+Str.drop-last-byte) >Name Label.new! TokenLabelPopR Some,
         None
     ))
 
@@ -252,13 +252,13 @@ def(+Str.label-push-token?, +Str -- Maybe(TokenValue) +Str,
     ))
 
 def(+Str.label-push-r-token?, +Str -- Maybe(TokenValue) +Str,
-    unsafe(+Str.first-two-bytes) "+>" == and(third-byte is-lower) if(
-        unsafe(+Str.drop-first-two-bytes) >Name Label.new! TokenLabelPushR Some,
+    unsafe(+Str.first-two-bytes) ">+" == and(third-byte is-lower) if(
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelPushR Some,
         None
     ))
 
 def(+Str.label-get-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte B'@' == and(second-byte is-lower) if(
+    first-byte B'@' == and(second-byte is-lower or(second-byte B'+' == and(third-byte is-lower))) if(
         unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelGet Some,
         None
     ))
