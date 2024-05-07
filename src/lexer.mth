@@ -201,23 +201,72 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
 
 def(+Str.name?, +Str -- Name +Str, dup! >Name)
 
+def(+Str.first-byte, +Str -- Byte +Str, 0 >Offset byte@)
+def(+Str.second-byte, +Str -- Byte +Str, 1 >Offset byte@)
+def(+Str.third-byte, +Str -- Byte +Str, 2 >Offset byte@)
+
+def(+Str.first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2 >Size +Str.take-slice)
+def(+Str.last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe,
+    rdip:num-bytes? >Int 2 > if(
+        rdip:num-bytes? >Offset 1- 1- +Str.drop-slice,
+        rdip:dup!
+    ))
+
+def(+Str.drop-first-byte, +Str +Unsafe -- Str +Str +Unsafe, 1 >Offset +Str.drop-slice)
+def(+Str.drop-first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2 >Offset +Str.drop-slice)
 def(+Str.drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
-    rdip(num-bytes?) 1- +Str.take-slice)
+    rdip:num-bytes? >Int 1 > if(
+        rdip:num-bytes? 1- +Str.take-slice,
+        ""
+    ))
+def(+Str.drop-last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe,
+    rdip:num-bytes? >Int 2 > if(
+        rdip:num-bytes? 1- 1- +Str.take-slice,
+        ""
+    ))
 
 def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
-    0 >Offset byte@ is-lower if(
-        last-byte match(
-            B'>' -> unsafe(+Str.drop-last-byte) >Name Label.new! TokenLabelPop Some,
-            _ -> drop None
-        ),
-        1 >Offset byte@ is-lower if(
-            0 >Offset byte@ match(
-                B'>' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TokenLabelPush Some,
-                B'^' -> 1 >Offset unsafe(+Str.drop-slice) >Name Label.new! TokenLabelLens Some,
-                _ -> drop None
-            ),
-            None
-        )
+    label-push-token?
+    or-some(label-push-r-token?)
+    or-some(label-pop-token?)
+    or-some(label-pop-r-token?)
+    or-some(label-get-token?)
+    or-some(label-set-token?))
+
+def(+Str.label-pop-token?, +Str -- Maybe(TokenValue) +Str,
+    first-byte is-lower and(last-byte B'>' ==) if(
+        unsafe(+Str.drop-last-byte) >Name Label.new! TokenLabelPop Some,
+        None
+    ))
+
+def(+Str.label-pop-r-token?, +Str -- Maybe(TokenValue) +Str,
+    first-byte is-lower and(unsafe(+Str.last-two-bytes) ">+" ==) if(
+        unsafe(+Str.drop-last-two-bytes) >Name Label.new! TokenLabelPopR Some,
+        None
+    ))
+
+def(+Str.label-push-token?, +Str -- Maybe(TokenValue) +Str,
+    first-byte B'>' == and(second-byte is-lower) if(
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelPush Some,
+        None
+    ))
+
+def(+Str.label-push-r-token?, +Str -- Maybe(TokenValue) +Str,
+    unsafe(+Str.first-two-bytes) "+>" == and(third-byte is-lower) if(
+        unsafe(+Str.drop-first-two-bytes) >Name Label.new! TokenLabelPushR Some,
+        None
+    ))
+
+def(+Str.label-get-token?, +Str -- Maybe(TokenValue) +Str,
+    first-byte B'@' == and(second-byte is-lower) if(
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelGet Some,
+        None
+    ))
+
+def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
+    first-byte B'!' == and(second-byte is-lower) if(
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelSet Some,
+        None
     ))
 
 def(+Str.dname?, +Str -- Maybe(DName) +Str,

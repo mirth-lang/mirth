@@ -92,6 +92,8 @@ def(+Needs.run-op!, List(Arg) Op +Needs -- +Needs,
     OpCoerce -> drop2,
     OpLabelPush -> drop2,
     OpLabelPop -> drop2,
+    OpLabelPushR -> drop2,
+    OpLabelPopR -> drop2,
     OpDataGetTag -> drop2,
     OpDataGetLabel -> drop3,
     OpDataSetLabel -> drop3)

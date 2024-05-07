@@ -39,6 +39,9 @@ def(Maybe.else(f), (*a -- *a) *a Maybe(t) -- *a,
 inline:def(Maybe.not, Maybe(a) -- Bool, >Bool not)
 def(Maybe.or(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
     some? or(p))
+def(Maybe.or-some(f), (*a -- *a Maybe(b)) *a Maybe(b) -- *a Maybe(b),
+    None -> f,
+    Some -> Some)
 def(Maybe.and(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
     None -> False,
     Some -> drop p)

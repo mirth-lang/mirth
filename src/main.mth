@@ -72,7 +72,7 @@ def(Arguments.show, Arguments -- Str,
 def(compile!, Arguments +World -- +World,
     /Arguments
     "Compiling " trace!
-    input-file> dup >Str trace-ln! >input-file
+    @input-file >Str trace-ln!
     packages> for(
       unpack2 swap >Name Package.new-or-set-path! drop
     )

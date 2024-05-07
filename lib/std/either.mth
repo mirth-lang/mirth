@@ -7,6 +7,25 @@ data(Either(a,b), Left -> a, Right -> b)
 def(Either.left?, Either(a,b) -- Maybe(a), Left -> Some, Right -> drop None)
 def(Either.right?, Either(a,b) -- Maybe(b), Left -> drop None, Right -> Some)
 
-def(Either.either(f,g), (*x a -- *y, *x b -- *y) *x Either(a,b) -- *y,
+def(Either.map(g), (*x b1 -- *x b2) *x Either(a,b1) -- *x Either(a,b2),
+    Left -> Left,
+    Right -> g Right)
+
+def(Either.map(f,g), (*x a1 -- *y a2, *x b1 -- *y b2) *x Either(a1,b1) -- *y Either(a2,b2),
+    Left -> f Left,
+    Right -> g Right)
+
+def(Either.for(g), (*x b -- *x) *x Either(a,b) -- *x,
+    Left -> drop,
+    Right -> g)
+
+def(Either.for(f,g), (*x a -- *y, *x b -- *y) *x Either(a,b) -- *y,
     Left -> f,
     Right -> g)
+
+def(Either.bind(g), (*x b1 -- *x Either(a,b2)) *x Either(a,b1) -- *x Either(a,b2),
+    Left -> Left,
+    Right -> g)
+
+def(Either.bind(f,g), (*x a1 -- *y Either(a2,b2), *x b1 -- *y Either(a2,b2)) *x Either(a1,b1) -- *y Either(a2,b2),
+    for(f,g))
