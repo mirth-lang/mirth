@@ -82,15 +82,27 @@ def(+TypeElab.elab-stack-type-parts!, +TypeElab StackType -- +TypeElab StackType
     while(token sig-stack-end? not, elab-stack-type-part! cons))
 
 def(+TypeElab.elab-type-arg!, +TypeElab -- +TypeElab Type,
-    elab-stack-type-part!
+    token elab-stack-type-part!
     match(
-        STPCons -> id,
-        STPConsLabel -> drop2 token "Expected type, not label." emit-error! TYPE_ERROR,
-        STPWith -> drop token "Expected type, not resource." emit-error! TYPE_ERROR,
-        STPWithLabel -> drop2 token "Expected type, not labelled resource." emit-error! TYPE_ERROR,
+        STPCons -> nip,
+        STPConsLabel -> drop2 "Expected type, not label." emit-error! TYPE_ERROR,
+        STPWith -> drop "Expected type, not resource." emit-error! TYPE_ERROR,
+        STPWithLabel -> drop2 "Expected type, not labelled resource." emit-error! TYPE_ERROR,
     )
     token arg-end? else(
-        token "Unexpected token after type." emit-fatal-error!
+        token "Unexpected token after type." emit-error!
+    ))
+
+def(+TypeElab.elab-resource-arg!, +TypeElab -- +TypeElab Resource,
+    token elab-stack-type-part!
+    match(
+        STPCons -> drop "Expected resource, not type." emit-error! TYPE_ERROR RESOURCE,
+        STPConsLabel -> drop2 "Expected resource, not label." emit-error! TYPE_ERROR RESOURCE,
+        STPWith -> nip,
+        STPWithLabel -> drop2 "Expected resource, not label." emit-error! TYPE_ERROR RESOURCE,
+    )
+    token arg-end? else(
+        token "Unexpected token after resource." emit-error!
     ))
 
 data(StackTypePart,
@@ -137,16 +149,10 @@ def(+TypeElab.elab-stack-type-part!, +TypeElab -- +TypeElab StackTypePart,
 def(+TypeElab.elab-stack-label!, +TypeElab -- +TypeElab StackTypePart,
     token next dip(
         token name? unwrap Label.new!
-        token:args-1
-
-        elab-stack-type-part!
-        match(
-            STPCons -> swap STPConsLabel,
-            STPWith -> swap STPWithLabel,
-            STPConsLabel -> drop2 token "Expected type or resource, not label." emit-error! TYPE_ERROR swap STPConsLabel,
-            STPWithLabel -> drop2 token "Expected type or resource, not label." emit-error! TYPE_ERROR RESOURCE swap STPWithLabel,
+        token:args-1 dup is-resource-label? if(
+            elab-resource-arg! swap STPWithLabel,
+            elab-type-arg! swap STPConsLabel
         )
-        token arg-end? else(token "Unexpected token." emit-fatal-error!)
     ) token!)
 
 def(+TypeElab.elab-stack-type-var!, +TypeElab -- +TypeElab StackType,
@@ -736,7 +742,7 @@ def(elab-atom!, +AB -- +AB,
     ))
 
 def(elab-label-get!, Label +AB -- +AB,
-    dup ab-type@ label-resource-top? if(
+    dup is-resource-label? if(
         dup ab-label-pop-r!
         ab-token@ dup args-1 ab-token! elab-atoms! ab-token!
         ab-label-push-r!,

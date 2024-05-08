@@ -1,5 +1,6 @@
 module(mirth.label)
 import(std.prelude)
+import(std.byte)
 import(mirth.name)
 
 table(Label)
@@ -13,3 +14,6 @@ def(Label.new!, Name -- Label,
         Label.alloc!
         dup2 ~name !
     ) nip)
+
+def(Label.is-resource-label?, Label -- Bool,
+    name head B'+' ==)
