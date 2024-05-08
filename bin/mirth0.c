@@ -1,6 +1,6 @@
 #define MIRTH_DEBUG 0
 /* MIRTH HEADER */
-#line 3 "src/mirth.h"
+// #line 3 "src/mirth.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define MIRTH_WINDOWS 1
@@ -1441,6 +1441,7 @@ static VAL lbl_spmap = MKNIL_C;
 static VAL lbl_depth = MKNIL_C;
 static VAL lbl_ZPlusoutput = MKNIL_C;
 static VAL lbl_ZPlusneeds = MKNIL_C;
+static VAL lbl_avoidZ_hexdigit = MKNIL_C;
 static VAL lbl_stack = MKNIL_C;
 static VAL lbl_ZPlusset = MKNIL_C;
 static VAL lbl_indexZ_fn = MKNIL_C;
@@ -8281,7 +8282,31 @@ static void mw_std_byte_Byte_isZ_hexdigit (void) {
 			(void)pop_u64();
 			push_u64(1LL); // True
 			break;
-		case 70LL: // B'False'
+		case 70LL: // B'F'
+			(void)pop_u64();
+			push_u64(1LL); // True
+			break;
+		case 97LL: // B'a'
+			(void)pop_u64();
+			push_u64(1LL); // True
+			break;
+		case 98LL: // B'b'
+			(void)pop_u64();
+			push_u64(1LL); // True
+			break;
+		case 99LL: // B'c'
+			(void)pop_u64();
+			push_u64(1LL); // True
+			break;
+		case 100LL: // B'd'
+			(void)pop_u64();
+			push_u64(1LL); // True
+			break;
+		case 101LL: // B'e'
+			(void)pop_u64();
+			push_u64(1LL); // True
+			break;
+		case 102LL: // B'f'
 			(void)pop_u64();
 			push_u64(1LL); // True
 			break;
@@ -33783,7 +33808,7 @@ static void mw_mirth_c99_ZPlusC99_sigZ_put (void) {
 static void mw_mirth_c99_c99Z_headerZ_str (void) {
 	STRLIT(
 		"/* MIRTH HEADER */\n"
-		"#line 3 \"src/mirth.h\"\n"
+		"// #line 3 \"src/mirth.h\"\n"
 		"\n"
 		"#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)\n"
 		"#define MIRTH_WINDOWS 1\n"
@@ -35126,7 +35151,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		33749
+		33752
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
@@ -36061,6 +36086,8 @@ static void mw_mirth_c99_c99Z_strZBang (void) {
 	mp_primZ_drop();
 }
 static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (void) {
+	push_u64(0LL); // False
+	LPUSH(lbl_avoidZ_hexdigit);
 	push_u64(34LL); // BQUOTE
 	mw_mirth_c99_ZPlusC99_putZ_byte();
 	push_u64(0LL); // BNUL
@@ -36069,15 +36096,21 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (void) {
 	mw_std_prim_Str_bytesZ_for_1();
 	push_u64(34LL); // BQUOTE
 	mw_mirth_c99_ZPlusC99_putZ_byte();
+	LPOP(lbl_avoidZ_hexdigit);
+	mp_primZ_drop();
 	mp_primZ_drop();
 }
 static void mw_mirth_c99_ZPlusC99_putZ_cstr (void) {
+	push_u64(0LL); // False
+	LPUSH(lbl_avoidZ_hexdigit);
 	push_u64(34LL); // BQUOTE
 	mw_mirth_c99_ZPlusC99_putZ_byte();
 	push_fnptr(&mb_mirth_c99_ZPlusC99_putZ_cstr_0);
 	mw_std_prim_Str_bytesZ_for_1();
 	push_u64(34LL); // BQUOTE
 	mw_mirth_c99_ZPlusC99_putZ_byte();
+	LPOP(lbl_avoidZ_hexdigit);
+	mp_primZ_drop();
 }
 static void mw_mirth_c99_c99Z_stringZ_byteZBang (void) {
 	switch (get_top_data_tag()) {
@@ -36085,26 +36118,46 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (void) {
 			(void)pop_u64();
 			STRLIT("\\\\", 2);
 			mw_mirth_c99_ZPlusC99_put();
+			push_u64(0LL); // False
+			LPOP(lbl_avoidZ_hexdigit);
+			mp_primZ_drop();
+			LPUSH(lbl_avoidZ_hexdigit);
 			break;
 		case 34LL: // BQUOTE
 			(void)pop_u64();
 			STRLIT("\\\"", 2);
 			mw_mirth_c99_ZPlusC99_put();
+			push_u64(0LL); // False
+			LPOP(lbl_avoidZ_hexdigit);
+			mp_primZ_drop();
+			LPUSH(lbl_avoidZ_hexdigit);
 			break;
 		case 9LL: // BHT
 			(void)pop_u64();
 			STRLIT("\\t", 2);
 			mw_mirth_c99_ZPlusC99_put();
+			push_u64(0LL); // False
+			LPOP(lbl_avoidZ_hexdigit);
+			mp_primZ_drop();
+			LPUSH(lbl_avoidZ_hexdigit);
 			break;
 		case 10LL: // BLF
 			(void)pop_u64();
 			STRLIT("\\n", 2);
 			mw_mirth_c99_ZPlusC99_put();
+			push_u64(0LL); // False
+			LPOP(lbl_avoidZ_hexdigit);
+			mp_primZ_drop();
+			LPUSH(lbl_avoidZ_hexdigit);
 			break;
 		case 13LL: // BCR
 			(void)pop_u64();
 			STRLIT("\\r", 2);
 			mw_mirth_c99_ZPlusC99_put();
+			push_u64(0LL); // False
+			LPOP(lbl_avoidZ_hexdigit);
+			mp_primZ_drop();
+			LPUSH(lbl_avoidZ_hexdigit);
 			break;
 		default:
 			mp_primZ_dup();
@@ -36112,7 +36165,30 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (void) {
 			push_u64(126LL); // B'~'
 			mw_std_byte_Byte_inZ_range();
 			if (pop_u64()) {
+				mp_primZ_dup();
+				mw_std_byte_Byte_isZ_hexdigit();
+				LPOP(lbl_avoidZ_hexdigit);
+				mp_primZ_dup();
+				LPUSH(lbl_avoidZ_hexdigit);
+				if (pop_u64()) {
+				} else {
+					mp_primZ_drop();
+					push_u64(0LL); // False
+				}
+				if (pop_u64()) {
+					push_u64(0LL); // False
+				} else {
+					push_u64(1LL); // True
+				}
+			} else {
+				push_u64(0LL); // False
+			}
+			if (pop_u64()) {
 				mw_mirth_c99_ZPlusC99_putZ_byte();
+				push_u64(0LL); // False
+				LPOP(lbl_avoidZ_hexdigit);
+				mp_primZ_drop();
+				LPUSH(lbl_avoidZ_hexdigit);
 			} else {
 				STRLIT("\\x", 2);
 				mw_mirth_c99_ZPlusC99_put();
@@ -36123,6 +36199,10 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (void) {
 					push_value(d5);
 				}
 				mw_mirth_c99_ZPlusC99_putZ_byte();
+				push_u64(1LL); // True
+				LPOP(lbl_avoidZ_hexdigit);
+				mp_primZ_drop();
+				LPUSH(lbl_avoidZ_hexdigit);
 			}
 			break;
 	}
