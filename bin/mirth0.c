@@ -113,6 +113,14 @@ typedef struct VAL {
 #define MKNIL_C	         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}
 #define MKNIL      ((VAL)MKNIL_C)
 
+#define STRLIT(x,n) \
+	do { \
+		static VAL mval = {0}; \
+		if (!mval.tag) mval = mkstr(x,n); \
+		incref(mval); \
+		push_value(mval); \
+	} while(0)
+
 typedef uint16_t TUPLEN;
 typedef struct TUP {
 	REFS refs;
@@ -6918,23 +6926,12 @@ static void mb_mirth_c99_c99Z_atomZBang_2 (void);
 static void mb_mirth_c99_c99Z_atomZBang_3 (void);
 static void mb_mirth_c99_ZPlusC99_putZ_cstr_0 (void);
 static void mb_mirth_c99_c99Z_intZBang_0 (void);
-static void mb_mirth_c99_c99Z_strZBang_0 (void);
-static void mb_mirth_c99_c99Z_strZBang_1 (void);
 static void mb_mirth_c99_c99Z_strZBang_2 (void);
 static void mb_mirth_c99_c99Z_strZBang_3 (void);
 static void mb_mirth_c99_c99Z_strZBang_4 (void);
 static void mb_mirth_c99_c99Z_strZBang_5 (void);
-static void mb_mirth_c99_c99Z_strZBang_8 (void);
-static void mb_mirth_c99_c99Z_strZBang_9 (void);
-static void mb_mirth_c99_c99Z_strZBang_10 (void);
-static void mb_mirth_c99_c99Z_strZBang_11 (void);
-static void mb_mirth_c99_c99Z_strZBang_12 (void);
-static void mb_mirth_c99_c99Z_strZBang_13 (void);
-static void mb_mirth_c99_c99Z_strZBang_14 (void);
-static void mb_mirth_c99_c99Z_strZBang_15 (void);
-static void mb_mirth_c99_c99Z_strZBang_16 (void);
-static void mb_mirth_c99_c99Z_strZBang_17 (void);
-static void mb_mirth_c99_c99Z_strZBang_18 (void);
+static void mb_mirth_c99_c99Z_strZBang_6 (void);
+static void mb_mirth_c99_c99Z_strZBang_7 (void);
 static void mb_mirth_c99_c99Z_tagZ_wordZBang_3 (void);
 static void mb_mirth_c99_c99Z_primZBang_0 (void);
 static void mb_mirth_c99_c99Z_primZBang_1 (void);
@@ -8424,432 +8421,135 @@ static void mw_std_byte_Byte_zzencode (void) {
 	switch (get_top_data_tag()) {
 		case 38LL: // B'&'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZAmp", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZAmp", 4);
 			break;
 		case 63LL: // B'?'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZAsk", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZAsk", 4);
 			break;
 		case 64LL: // B'@'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZAt", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZAt", 3);
 			break;
 		case 92LL: // B'\'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZBSlash", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZBSlash", 7);
 			break;
 		case 33LL: // B'!'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZBang", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZBang", 5);
 			break;
 		case 94LL: // B'^'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZCaret", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZCaret", 6);
 			break;
 		case 58LL: // BCOLON
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZColon", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZColon", 6);
 			break;
 		case 44LL: // BCOMMA
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZComma", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZComma", 6);
 			break;
 		case 47LL: // B'/'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZDiv", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZDiv", 4);
 			break;
 		case 36LL: // B'$'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZDollar", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZDollar", 7);
 			break;
 		case 46LL: // BDOT
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZDot", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZDot", 4);
 			break;
 		case 61LL: // B'='
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZEqual", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZEqual", 6);
 			break;
 		case 35LL: // BHASH
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZHash", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZHash", 5);
 			break;
 		case 123LL: // BLCURLY
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZLCurly", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZLCurly", 7);
 			break;
 		case 40LL: // BLPAREN
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZLParen", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZLParen", 7);
 			break;
 		case 91LL: // BLSQUARE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZLSquare", 8);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZLSquare", 8);
 			break;
 		case 60LL: // B'<'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZLess", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZLess", 5);
 			break;
 		case 37LL: // B'%'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZMod", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZMod", 4);
 			break;
 		case 42LL: // B'*'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZMul", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZMul", 4);
 			break;
 		case 124LL: // B'|'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZPipe", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZPipe", 5);
 			break;
 		case 43LL: // B'+'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZPlus", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZPlus", 5);
 			break;
 		case 34LL: // BQUOTE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZQuote", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZQuote", 6);
 			break;
 		case 125LL: // BRCURLY
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZRCurly", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZRCurly", 7);
 			break;
 		case 41LL: // BRPAREN
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZRParen", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZRParen", 7);
 			break;
 		case 93LL: // BRSQUARE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZRSquare", 8);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZRSquare", 8);
 			break;
 		case 59LL: // B';'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZThen", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZThen", 5);
 			break;
 		case 39LL: // BTICK
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZTick", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZTick", 5);
 			break;
 		case 126LL: // B'~'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZTilde", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZTilde", 6);
 			break;
 		case 62LL: // B'>'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZTo", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZTo", 3);
 			break;
 		case 90LL: // B'Z'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("ZZ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("ZZ", 2);
 			break;
 		case 45LL: // B'-'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Z_", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Z_", 2);
 			break;
 		case 122LL: // B'z'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("zz", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("zz", 2);
 			break;
 		case 95LL: // B'_'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("z_", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("z_", 2);
 			break;
 		default:
 			mp_primZ_dup();
@@ -9110,16 +8810,7 @@ static void mw_std_buffer_ZPlusBuffer_checkZ_spanZBang (void) {
 		mp_primZ_intZ_lt();
 	}
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("memory access out of bounds", 27);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("memory access out of bounds", 27);
 		mw_std_prelude_panicZBang();
 	} else {
 	}
@@ -9151,16 +8842,7 @@ static void mw_std_buffer_ZPlusBuffer_checkZ_spanZ_alignZBang (void) {
 	mp_primZ_intZ_eq();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("memory access unaligned", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("memory access unaligned", 23);
 		mw_std_prelude_panicZBang();
 	}
 }
@@ -9319,16 +9001,7 @@ static void mw_std_str_ZPlusStr_freezze (void) {
 static void mw_std_str_Str_1 (void) {
 	{
 		VAL var_f = pop_value();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("", 0);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("", 0);
 		mw_std_prim_Str_thaw();
 		incref(var_f);
 		run_value(var_f);
@@ -9485,16 +9158,7 @@ static void mw_std_prim_Str_dropZ_bytes (void) {
 	if (pop_u64()) {
 		mp_primZ_drop();
 		mp_primZ_drop();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("", 0);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("", 0);
 	} else {
 		push_fnptr(&mb_std_prim_Str_dropZ_bytes_2);
 		mw_std_prim_Str_withZ_data_1();
@@ -9619,16 +9283,7 @@ static void mw_std_str_ZPlusStr_offsetZ_slice (void) {
 	} else {
 		mp_primZ_drop();
 		mp_primZ_drop();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("", 0);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("", 0);
 	}
 }
 static void mw_std_str_ZPlusStr_takeZ_slice (void) {
@@ -9664,72 +9319,27 @@ static void mw_std_str_ZPlusStr_pushZ_showZ_byteZBang (void) {
 	switch (get_top_data_tag()) {
 		case 34LL: // BQUOTE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\\\"", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\\\"", 2);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 92LL: // B'\'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\\\\", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\\\\", 2);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 10LL: // BLF
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\n", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\n", 1);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 13LL: // BCR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\r", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\r", 1);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 9LL: // BHT
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\t", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\t", 1);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		default:
@@ -9740,16 +9350,7 @@ static void mw_std_str_ZPlusStr_pushZ_showZ_byteZBang (void) {
 			if (pop_u64()) {
 				mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang();
 			} else {
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\\x", 2);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\\x", 2);
 				mw_std_str_ZPlusStr_pushZ_strZBang();
 				mw_std_byte_Byte_toZ_hexdigits();
 				{
@@ -9862,16 +9463,7 @@ static void mw_std_list_ListZPlus_1_uncons (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Nil
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Nil in List+.uncons", 19);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Nil in List+.uncons", 19);
 			mw_std_prelude_panicZBang();
 			break;
 		case 1LL: // Cons
@@ -9887,16 +9479,7 @@ static void mw_std_list_ListZPlus_1_unsnoc (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Nil
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("L0 in List+.unsnoc", 18);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("L0 in List+.unsnoc", 18);
 			mw_std_prelude_panicZBang();
 			break;
 		case 1LL: // Cons
@@ -9949,16 +9532,7 @@ static void mw_std_list_ListZPlus_1_first (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Nil
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Nil at List+.first", 18);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Nil at List+.first", 18);
 			mw_std_prelude_panicZBang();
 			break;
 		case 1LL: // Cons
@@ -9975,16 +9549,7 @@ static void mw_std_list_ListZPlus_1_last (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Nil
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Nil at List+.last", 17);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Nil at List+.last", 17);
 			mw_std_prelude_panicZBang();
 			break;
 		case 1LL: // Cons
@@ -10842,16 +10407,7 @@ static void mw_std_maybe_Maybe_1_unwrap (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // None
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("tried to unwrap None", 20);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("tried to unwrap None", 20);
 			mw_std_prelude_panicZBang();
 			break;
 		case 1LL: // Some
@@ -11381,16 +10937,7 @@ static void mw_std_path_Path_joinZ_with (void) {
 static void mw_std_path_Path_joinZ_unix (void) {
 	{
 		VAL d2 = pop_value();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("/", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("/", 1);
 		push_value(d2);
 	}
 	mw_std_path_Path_joinZ_with();
@@ -11462,29 +11009,11 @@ static void mw_std_prim_Str_traceZ_lnZBang (void) {
 	mw_std_posix_lineZ_traceZBang();
 }
 static void mw_std_posix_lineZ_printZBang (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\n", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\n", 1);
 	mw_std_prim_Str_printZBang();
 }
 static void mw_std_posix_lineZ_traceZBang (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\n", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\n", 1);
 	mw_std_prim_Str_traceZBang();
 }
 static void mw_std_path_Path_traceZBang (void) {
@@ -12003,55 +11532,19 @@ static void mw_argZ_parser_types_ArgumentParsingError_show (void) {
 			break;
 		case 0LL: // MissingArgValue
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Missing associated value for flag option", 40);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Missing associated value for flag option", 40);
 			break;
 		case 2LL: // TooManyArgs
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Too many positional arguments passed", 36);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Too many positional arguments passed", 36);
 			break;
 		case 3LL: // TooFewArgs
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Too few positional arguments passed", 35);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Too few positional arguments passed", 35);
 			break;
 		case 4LL: // UnknownArg
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Got an unknown option", 21);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Got an unknown option", 21);
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -12062,84 +11555,30 @@ static void mw_argZ_parser_parse_printZ_usage (void) {
 	push_fnptr(&mb_argZ_parser_parse_printZ_usage_0);
 	mw_std_str_Str_1();
 	mw_std_prim_Str_printZ_lnZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("  ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("  ", 2);
 	mw_std_prim_Str_printZBang();
 	mw_argZ_parser_types_ZPlusArgumentParser_1_state();
 	mw_argZ_parser_state_State_1_programZ_name();
 	mw_std_prim_Str_printZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" [options] ", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" [options] ", 11);
 	mw_std_prim_Str_printZBang();
 	mw_argZ_parser_types_ZPlusArgumentParser_1_argumentZ_parser();
 	mw_argZ_parser_types_ArgumentParser_1_argsZ_doc();
 	push_fnptr(&mb_argZ_parser_parse_printZ_usage_1);
 	mw_std_maybe_Maybe_1_for_1();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("", 0);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("", 0);
 	mw_std_prim_Str_printZ_lnZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("", 0);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("", 0);
 	mw_std_prim_Str_printZ_lnZBang();
 	mw_argZ_parser_types_ZPlusArgumentParser_1_argumentZ_parser();
 	mw_argZ_parser_types_ArgumentParser_1_options();
 	push_fnptr(&mb_argZ_parser_parse_printZ_usage_2);
 	mw_std_list_List_1_for_1();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("", 0);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("", 0);
 	mw_std_prim_Str_printZ_lnZBang();
 }
 static void mw_argZ_parser_parse_printZ_usageZ_forZ_option (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("  ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("  ", 2);
 	mw_std_prim_Str_printZBang();
 	push_i64(0LL);
 	LPUSH(lbl_colZ_offset);
@@ -12155,16 +11594,7 @@ static void mw_argZ_parser_parse_printZ_usageZ_forZ_option (void) {
 				push_i64(2LL);
 				mp_primZ_intZ_add();
 				LPUSH(lbl_colZ_offset);
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("-", 1);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("-", 1);
 				mw_std_prim_Str_printZBang();
 				mp_primZ_dup();
 				mw_std_byte_Byte_toZ_strZ_unsafe();
@@ -12188,16 +11618,7 @@ static void mw_argZ_parser_parse_printZ_usageZ_forZ_option (void) {
 		push_u64(0LL); // False
 	}
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(", ", 2);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(", ", 2);
 		mw_std_prim_Str_printZBang();
 		LPOP(lbl_colZ_offset);
 		push_i64(2LL);
@@ -12215,16 +11636,7 @@ static void mw_argZ_parser_parse_printZ_usageZ_forZ_option (void) {
 	mw_std_maybe_Maybe_1_thenZ_some_1();
 	LPOP(lbl_colZ_offset);
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("", 0);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("", 0);
 	mw_std_prim_Str_printZ_lnZBang();
 	mp_primZ_drop();
 }
@@ -12792,16 +12204,7 @@ static void mw_std_input_ZPlusInput_peek (void) {
 			break;
 		case 1LL: // +InputDone
 			mtp_std_input_ZPlusInput_ZPlusInputDone();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("error: no more input", 20);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("error: no more input", 20);
 			mw_std_prelude_panicZBang();
 			break;
 		default:
@@ -12819,16 +12222,7 @@ static void mw_std_input_ZPlusInput_moveZBang (void) {
 			break;
 		case 1LL: // +InputDone
 			mtp_std_input_ZPlusInput_ZPlusInputDone();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("error: no more input", 20);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("error: no more input", 20);
 			mw_std_prelude_panicZBang();
 			break;
 		default:
@@ -12895,16 +12289,7 @@ static void mw_std_input_ZPlusInput_readZ_chunkZBang (void) {
 	}
 }
 static void mw_std_input_ZPlusInput_readZ_fileZBang (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("", 0);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("", 0);
 	push_fnptr(&mb_std_input_ZPlusInput_readZ_fileZBang_0);
 	push_fnptr(&mb_std_input_ZPlusInput_readZ_fileZBang_1);
 	mw_std_maybe_whileZ_some_2();
@@ -13009,16 +12394,7 @@ static void mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void) {
 			break;
 		case 0LL: // OS_UNKNOWN
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("O_WRONLY|O_CREAT|O_TRUNC on unknown os", 38);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("O_WRONLY|O_CREAT|O_TRUNC on unknown os", 38);
 			mw_std_prelude_panicZBang();
 			break;
 		default:
@@ -13179,16 +12555,7 @@ static void mw_std_lazzy_forceZBang (void) {
 			break;
 		case 2LL: // LazyWait
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("recursive thunk dependency", 26);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("recursive thunk dependency", 26);
 			mw_std_prelude_panicZBang();
 			break;
 		default:
@@ -13456,28 +12823,10 @@ static void mw_mirth_location_Location_traceZBang (void) {
 	mp_primZ_swap();
 	mw_mirth_module_Module_sourceZ_path();
 	mw_std_path_Path_traceZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(":", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(":", 1);
 	mw_std_prim_Str_traceZBang();
 	mw_mirth_location_Row_traceZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(":", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(":", 1);
 	mw_std_prim_Str_traceZBang();
 	mw_mirth_location_Col_traceZBang();
 }
@@ -13495,16 +12844,7 @@ static void mw_mirth_error_emitZ_warningZ_atZBang (void) {
 		mw_mirth_location_Location_traceZBang();
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(": warning: ", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(": warning: ", 11);
 	mw_std_prim_Str_traceZBang();
 	mw_std_prim_Str_traceZ_lnZBang();
 	mvar_mirth_error_numZ_warnings();
@@ -13517,16 +12857,7 @@ static void mw_mirth_error_emitZ_errorZ_atZBang (void) {
 		mw_mirth_location_Location_traceZBang();
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(": error: ", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(": error: ", 9);
 	mw_std_prim_Str_traceZBang();
 	mw_std_prim_Str_traceZ_lnZBang();
 	mvar_mirth_error_numZ_errors();
@@ -13672,16 +13003,7 @@ static void mw_mirth_var_Ctx_lookup (void) {
 }
 static void mw_mirth_var_Ctx_freshZ_nameZBang (void) {
 	push_i64(1LL);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("_x1", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("_x1", 3);
 	mw_std_prim_Str_ZToName();
 	push_fnptr(&mb_mirth_var_Ctx_freshZ_nameZBang_0);
 	push_fnptr(&mb_mirth_var_Ctx_freshZ_nameZBang_1);
@@ -14403,16 +13725,7 @@ static void mw_mirth_data_makeZ_primZ_tagZBang (void) {
 	mw_mirth_def_Def_register();
 }
 static void mw_mirth_data_initZ_dataZBang (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Bool", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Bool", 4);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_BOOL();
 	mvar_mirth_data_TAGz_F();
@@ -14421,284 +13734,122 @@ static void mw_mirth_data_initZ_dataZBang (void) {
 	mtw_std_list_List_1_Cons();
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("False", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("False", 5);
 	push_i64(0LL);
 	push_u64(0LL); // Nil
 	mvar_mirth_data_TAGz_F();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("True", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("True", 4);
 	push_i64(1LL);
 	push_u64(0LL); // Nil
 	mvar_mirth_data_TAGz_T();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("U64", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("U64", 3);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_U64();
 	mvar_mirth_data_TAGz_U64();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>U64-unsafe", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>U64-unsafe", 14);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mvar_mirth_data_TAGz_U64();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("U32", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("U32", 3);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_U32();
 	mvar_mirth_data_TAGz_U32();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>U32-unsafe", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>U32-unsafe", 14);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mvar_mirth_data_TAGz_U32();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("U16", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("U16", 3);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_U16();
 	mvar_mirth_data_TAGz_U16();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>U16-unsafe", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>U16-unsafe", 14);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mvar_mirth_data_TAGz_U16();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("U8", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("U8", 2);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_U8();
 	mvar_mirth_data_TAGz_U8();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>U8-unsafe", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>U8-unsafe", 13);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mvar_mirth_data_TAGz_U8();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("I64", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("I64", 3);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_I64();
 	mvar_mirth_data_TAGz_I64();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>I64-unsafe", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>I64-unsafe", 14);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mvar_mirth_data_TAGz_I64();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("I32", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("I32", 3);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_I32();
 	mvar_mirth_data_TAGz_I32();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>I32-unsafe", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>I32-unsafe", 14);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mvar_mirth_data_TAGz_I32();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("I16", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("I16", 3);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_I16();
 	mvar_mirth_data_TAGz_I16();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>I16-unsafe", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>I16-unsafe", 14);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mvar_mirth_data_TAGz_I16();
 	mw_mirth_data_makeZ_primZ_tagZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("I8", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("I8", 2);
 	push_i64(0LL);
 	mvar_mirth_data_DATAz_I8();
 	mvar_mirth_data_TAGz_I8();
 	push_u64(0LL); // Nil
 	mtw_std_list_List_1_Cons();
 	mw_mirth_data_makeZ_primZ_dataZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int>I8-unsafe", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int>I8-unsafe", 13);
 	push_i64(0LL);
 	mw_mirth_type_TYPEz_INT();
 	push_u64(0LL); // Nil
@@ -15379,16 +14530,7 @@ static void mw_mirth_match_ZPlusMatch_addZ_case (void) {
 	if (pop_u64()) {
 		mw_mirth_match_Case_pattern();
 		mw_mirth_match_Pattern_tokenZ_start();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Case is unreachable.", 20);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Case is unreachable.", 20);
 		mw_mirth_token_emitZ_errorZBang();
 	} else {
 		push_fnptr(&mb_mirth_match_ZPlusMatch_addZ_case_2);
@@ -15721,16 +14863,7 @@ static void mw_mirth_match_ZPlusPattern_underscoreZBang (void) {
 			(void)pop_u64();
 			mw_mirth_match_ZPlusPattern_pattern();
 			mw_mirth_match_Pattern_tokenZ_start();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("pattern expects something on stack", 34);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("pattern expects something on stack", 34);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // STACK_TYPE_ERROR
 			push_u64(0LL); // TYPE_ERROR
@@ -17151,106 +16284,43 @@ static void mw_mirth_type_PrimType_tyconZ_qname (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // PRIM_TYPE_TYPE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("TYPE", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("TYPE", 4);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
 		case 1LL: // PRIM_TYPE_STACK
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("STACK", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("STACK", 5);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
 		case 2LL: // PRIM_TYPE_RESOURCE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("RESOURCE", 8);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("RESOURCE", 8);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
 		case 3LL: // PRIM_TYPE_INT
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Int", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Int", 3);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
 		case 5LL: // PRIM_TYPE_STR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Str", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Str", 3);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
 		case 4LL: // PRIM_TYPE_PTR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Ptr", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Ptr", 3);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
 		case 6LL: // PRIM_TYPE_WORLD
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("+World", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("+World", 6);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
@@ -17542,32 +16612,14 @@ static void mw_mirth_type_Type_unifyZ_failedZBang (void) {
 	mw_mirth_type_ZPlusGamma_token();
 	mw_mirth_token_Token_location();
 	mw_mirth_location_Location_traceZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(": error: Failed to unify ", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(": error: Failed to unify ", 25);
 	mw_std_prim_Str_traceZBang();
 	{
 		VAL d2 = pop_value();
 		mw_mirth_type_Type_traceZBang();
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" with ", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" with ", 6);
 	mw_std_prim_Str_traceZBang();
 	mw_mirth_type_Type_traceZBang();
 	mw_std_posix_lineZ_traceZBang();
@@ -18012,16 +17064,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_drop();
 					mp_primZ_drop();
 					mw_mirth_type_ZPlusGamma_token();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Can't unify int value with string value.", 40);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Can't unify int value with string value.", 40);
 					mw_mirth_token_emitZ_errorZBang();
 					push_u64(0LL); // TYPE_ERROR
 					break;
@@ -18030,16 +17073,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_drop();
 					mp_primZ_drop();
 					mw_mirth_type_ZPlusGamma_token();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Can't unify int value with block.", 33);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Can't unify int value with block.", 33);
 					mw_mirth_token_emitZ_errorZBang();
 					push_u64(0LL); // TYPE_ERROR
 					break;
@@ -18125,16 +17159,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_drop();
 					mp_primZ_drop();
 					mw_mirth_type_ZPlusGamma_token();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Can't unify string value with int value.", 40);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Can't unify string value with int value.", 40);
 					mw_mirth_token_emitZ_errorZBang();
 					push_u64(0LL); // TYPE_ERROR
 					break;
@@ -18143,16 +17168,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_drop();
 					mp_primZ_drop();
 					mw_mirth_type_ZPlusGamma_token();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Can't unify string value with block.", 36);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Can't unify string value with block.", 36);
 					mw_mirth_token_emitZ_errorZBang();
 					push_u64(0LL); // TYPE_ERROR
 					break;
@@ -18196,16 +17212,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_drop();
 					mp_primZ_drop();
 					mw_mirth_type_ZPlusGamma_token();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Can't unify block with int value.", 33);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Can't unify block with int value.", 33);
 					mw_mirth_token_emitZ_errorZBang();
 					push_u64(0LL); // TYPE_ERROR
 					break;
@@ -18214,16 +17221,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_drop();
 					mp_primZ_drop();
 					mw_mirth_type_ZPlusGamma_token();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Can't unify block with string value.", 36);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Can't unify block with string value.", 36);
 					mw_mirth_token_emitZ_errorZBang();
 					push_u64(0LL); // TYPE_ERROR
 					break;
@@ -18598,16 +17596,7 @@ static void mw_mirth_type_Type_traceZ_sigZBang (void) {
 			break;
 		case 0LL: // TYPE_ERROR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("<ERROR>", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("<ERROR>", 7);
 			mw_std_prim_Str_traceZBang();
 			break;
 		case 10LL: // TMorphism
@@ -18623,30 +17612,12 @@ static void mw_mirth_type_Type_traceZBang (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // TYPE_ERROR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("<ERROR>", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("<ERROR>", 7);
 			mw_std_prim_Str_traceZBang();
 			break;
 		case 1LL: // TYPE_DONT_CARE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("_", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("_", 1);
 			mw_std_prim_Str_traceZBang();
 			break;
 		case 2LL: // TPrim
@@ -18663,55 +17634,19 @@ static void mw_mirth_type_Type_traceZBang (void) {
 			break;
 		case 9LL: // TTensor
 			mtp_mirth_type_Type_TTensor();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("[", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("[", 1);
 			mw_std_prim_Str_traceZBang();
 			mw_mirth_type_StackType_traceZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("]", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("]", 1);
 			mw_std_prim_Str_traceZBang();
 			break;
 		case 10LL: // TMorphism
 			mtp_mirth_type_Type_TMorphism();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("[", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("[", 1);
 			mw_std_prim_Str_traceZBang();
 			mtw_mirth_type_Type_TMorphism();
 			mw_mirth_type_Type_traceZ_sigZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("]", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("]", 1);
 			mw_std_prim_Str_traceZBang();
 			break;
 		case 7LL: // TData
@@ -18725,16 +17660,7 @@ static void mw_mirth_type_Type_traceZBang (void) {
 			mw_mirth_data_DataPartial_data();
 			mw_mirth_data_Data_name();
 			mw_mirth_name_Name_traceZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("/", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("/", 1);
 			mw_std_prim_Str_traceZBang();
 			mw_mirth_data_DataPartial_field();
 			mw_mirth_label_Label_name();
@@ -18760,28 +17686,10 @@ static void mw_mirth_type_Type_traceZBang (void) {
 			break;
 		case 12LL: // TMut
 			mtp_mirth_type_Type_TMut();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Mut(", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Mut(", 4);
 			mw_std_prim_Str_traceZBang();
 			mw_mirth_type_Type_traceZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(")", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(")", 1);
 			mw_std_prim_Str_traceZBang();
 			break;
 		default:
@@ -18817,94 +17725,31 @@ static void mw_mirth_type_PrimType_traceZBang (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // PRIM_TYPE_TYPE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("<TYPE>", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("<TYPE>", 6);
 			break;
 		case 1LL: // PRIM_TYPE_STACK
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("<STACK>", 7);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("<STACK>", 7);
 			break;
 		case 2LL: // PRIM_TYPE_RESOURCE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("<RESOURCE>", 10);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("<RESOURCE>", 10);
 			break;
 		case 3LL: // PRIM_TYPE_INT
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Int", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Int", 3);
 			break;
 		case 4LL: // PRIM_TYPE_PTR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Ptr", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Ptr", 3);
 			break;
 		case 5LL: // PRIM_TYPE_STR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Str", 3);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Str", 3);
 			break;
 		case 6LL: // PRIM_TYPE_WORLD
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("+World", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("+World", 6);
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -19163,16 +18008,7 @@ static void mw_mirth_type_Type_exceptZ_field (void) {
 			mtw_mirth_type_Type_TApp();
 			break;
 		default:
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Type.except-field on unexpected type", 36);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Type.except-field on unexpected type", 36);
 			mw_std_prelude_panicZBang();
 			break;
 	}
@@ -19220,16 +18056,7 @@ static void mw_mirth_type_MetaVar_traceZBang (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // None
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("?", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("?", 1);
 			mw_std_prim_Str_traceZBang();
 			mw_mirth_type_MetaVar_index();
 			mw_std_prim_Int_traceZBang();
@@ -19451,16 +18278,7 @@ static void mw_mirth_type_MetaVar_freshen (void) {
 static void mw_mirth_type_typeZ_holeZ_unifyZBang (void) {
 	mtw_mirth_type_Type_THole();
 	mw_mirth_type_Type_traceZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" ~ ", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" ~ ", 3);
 	mw_std_prim_Str_traceZBang();
 	mp_primZ_dup();
 	mw_mirth_type_Type_traceZBang();
@@ -19468,16 +18286,7 @@ static void mw_mirth_type_typeZ_holeZ_unifyZBang (void) {
 }
 static void mw_mirth_type_Type_traceZ_appZBang (void) {
 	mw_mirth_type_Type_traceZ_appZ_openZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(")", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(")", 1);
 	mw_std_prim_Str_traceZBang();
 }
 static void mw_mirth_type_Type_traceZ_appZ_openZBang (void) {
@@ -19487,31 +18296,13 @@ static void mw_mirth_type_Type_traceZ_appZ_openZBang (void) {
 		case 11LL: // TApp
 			mtp_mirth_type_Type_TApp();
 			mw_mirth_type_Type_traceZ_appZ_openZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(", ", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(", ", 2);
 			mw_std_prim_Str_traceZBang();
 			mw_mirth_type_Type_traceZBang();
 			break;
 		default:
 			mw_mirth_type_Type_traceZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("(", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("(", 1);
 			mw_std_prim_Str_traceZBang();
 			mw_mirth_type_Type_traceZBang();
 			break;
@@ -19582,16 +18373,7 @@ static void mw_mirth_type_Type_ZToStackType (void) {
 			mtp_mirth_type_Type_TTensor();
 			break;
 		default:
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("kind error! expected stack type, got regular type.", 50);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("kind error! expected stack type, got regular type.", 50);
 			mw_std_prelude_panicZBang();
 			break;
 	}
@@ -21386,16 +20168,7 @@ static void mw_mirth_type_StackType_traceZ_domZBang (void) {
 		mp_primZ_drop();
 	} else {
 		mw_mirth_type_StackType_traceZBang();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(" ", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(" ", 1);
 		mw_std_prim_Str_traceZBang();
 	}
 }
@@ -21406,16 +20179,7 @@ static void mw_mirth_type_StackType_traceZ_codZBang (void) {
 	if (pop_u64()) {
 		mp_primZ_drop();
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(" ", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(" ", 1);
 		mw_std_prim_Str_traceZBang();
 		mw_mirth_type_StackType_traceZBang();
 	}
@@ -21428,16 +20192,7 @@ static void mw_mirth_type_StackType_traceZ_baseZBang (void) {
 			break;
 		case 4LL: // STMeta
 			mtp_mirth_type_StackType_STMeta();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("*", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("*", 1);
 			mw_std_prim_Str_traceZBang();
 			mw_mirth_type_MetaVar_traceZBang();
 			push_u64(1LL); // True
@@ -21449,16 +20204,7 @@ static void mw_mirth_type_StackType_traceZ_baseZBang (void) {
 			mw_mirth_var_Var_isZ_stackZAsk();
 			if (pop_u64()) {
 			} else {
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr(" ", 1);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT(" ", 1);
 				mw_std_prim_Str_traceZBang();
 			}
 			push_u64(1LL); // True
@@ -21557,16 +20303,7 @@ static void mw_mirth_type_StackType_semifreshen (void) {
 			mtw_mirth_type_StackType_STWithLabel();
 			break;
 		default:
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected unit-based stack in semifreshen!", 41);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected unit-based stack in semifreshen!", 41);
 			mw_std_prelude_panicZBang();
 			break;
 	}
@@ -21947,16 +20684,7 @@ static void mw_mirth_type_ArrowType_traceZBang (void) {
 	mw_mirth_type_ArrowType_unpack();
 	mp_primZ_swap();
 	mw_mirth_type_StackType_traceZ_domZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("--", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("--", 2);
 	mw_std_prim_Str_traceZBang();
 	mw_mirth_type_StackType_traceZ_codZBang();
 }
@@ -22250,1225 +20978,379 @@ static void mw_mirth_prim_Prim_ctxZ_typeZBang (void) {
 }
 static void mw_mirth_prim_initZ_primsZBang (void) {
 	push_u64(76LL); // PRIM_SYNTAX_MODULE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("module", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("module", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(77LL); // PRIM_SYNTAX_IMPORT
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("import", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("import", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(79LL); // PRIM_SYNTAX_INLINE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("inline", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("inline", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(78LL); // PRIM_SYNTAX_ALIAS
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("alias", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("alias", 5);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(80LL); // PRIM_SYNTAX_DEF
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("def", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("def", 3);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(82LL); // PRIM_SYNTAX_DEF_TYPE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("def-type", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("def-type", 8);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(81LL); // PRIM_SYNTAX_DEF_MISSING
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("def-missing", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("def-missing", 11);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(83LL); // PRIM_SYNTAX_BUFFER
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("buffer", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("buffer", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(85LL); // PRIM_SYNTAX_DEF_EXTERNAL
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("def-external", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("def-external", 12);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(87LL); // PRIM_SYNTAX_TABLE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("table", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("table", 5);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(88LL); // PRIM_SYNTAX_FIELD
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("field", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("field", 5);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(86LL); // PRIM_SYNTAX_EMBED_STR
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("embed-str", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("embed-str", 9);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(89LL); // PRIM_SYNTAX_DATA
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("data", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("data", 4);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(84LL); // PRIM_SYNTAX_VARIABLE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("var", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("var", 3);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(91LL); // PRIM_SYNTAX_ARROW
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("->", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("->", 2);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(90LL); // PRIM_SYNTAX_DASHES
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("--", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("--", 2);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(4LL); // PRIM_CORE_DIP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("dip", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("dip", 3);
 	push_i64(1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(6LL); // PRIM_CORE_WHILE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("while", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("while", 5);
 	push_i64(2LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(10LL); // PRIM_CORE_MATCH
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("match", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("match", 5);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(11LL); // PRIM_CORE_LAMBDA
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\\", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\\", 1);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(0LL); // PRIM_CORE_ID
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-id", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-id", 7);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(1LL); // PRIM_CORE_DUP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-dup", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-dup", 8);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(2LL); // PRIM_CORE_DROP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-drop", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-drop", 9);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(3LL); // PRIM_CORE_SWAP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-swap", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-swap", 9);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(4LL); // PRIM_CORE_DIP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-dip", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-dip", 8);
 	push_i64(1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(5LL); // PRIM_CORE_IF
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-if", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-if", 7);
 	push_i64(2LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(6LL); // PRIM_CORE_WHILE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-while", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-while", 10);
 	push_i64(2LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(7LL); // PRIM_CORE_DEBUG
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-debug", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-debug", 10);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(8LL); // PRIM_CORE_PANIC
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-panic", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-panic", 10);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(9LL); // PRIM_CORE_RUN
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-run", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-run", 8);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(10LL); // PRIM_CORE_MATCH
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-match", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-match", 10);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(11LL); // PRIM_CORE_LAMBDA
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-lambda", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-lambda", 11);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(12LL); // PRIM_CORE_RSWAP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-rswap", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-rswap", 10);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(13LL); // PRIM_CORE_RDIP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-rdip", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-rdip", 9);
 	push_i64(1LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(16LL); // PRIM_INT_ADD
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-add", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-add", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(17LL); // PRIM_INT_SUB
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-sub", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-sub", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(18LL); // PRIM_INT_MUL
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-mul", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-mul", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(19LL); // PRIM_INT_DIV
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-div", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-div", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(20LL); // PRIM_INT_MOD
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-mod", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-mod", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(21LL); // PRIM_INT_AND
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-and", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-and", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(22LL); // PRIM_INT_OR
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-or", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-or", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(23LL); // PRIM_INT_XOR
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-xor", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-xor", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(24LL); // PRIM_INT_SHL
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-shl", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-shl", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(25LL); // PRIM_INT_SHR
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-shr", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-shr", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(26LL); // PRIM_INT_TO_STR
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-to-str", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-to-str", 15);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(14LL); // PRIM_INT_EQ
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-eq", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-eq", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(15LL); // PRIM_INT_LT
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-int-lt", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-int-lt", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(27LL); // PRIM_PACK_NIL
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-pack-nil", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-pack-nil", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(28LL); // PRIM_PACK_CONS
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-pack-cons", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-pack-cons", 14);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(29LL); // PRIM_PACK_UNCONS
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-pack-uncons", 16);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-pack-uncons", 16);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(31LL); // PRIM_MUT_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-mut-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-mut-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(32LL); // PRIM_MUT_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-mut-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-mut-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(33LL); // PRIM_MUT_IS_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-mut-is-set", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-mut-is-set", 15);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(34LL); // PRIM_PTR_NIL
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-nil", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-nil", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(35LL); // PRIM_PTR_EQ
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-eq", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-eq", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(36LL); // PRIM_PTR_ADD
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-add", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-add", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(37LL); // PRIM_PTR_SIZE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-size", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-size", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(38LL); // PRIM_PTR_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(39LL); // PRIM_PTR_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(40LL); // PRIM_PTR_ALLOC
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-alloc", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-alloc", 14);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(41LL); // PRIM_PTR_REALLOC
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-realloc", 16);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-realloc", 16);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(42LL); // PRIM_PTR_FREE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-free", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-free", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(44LL); // PRIM_PTR_FILL
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-fill", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-fill", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(43LL); // PRIM_PTR_COPY
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-ptr-copy", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-ptr-copy", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(46LL); // PRIM_STR_COPY
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-str-copy", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-str-copy", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(47LL); // PRIM_STR_NUM_BYTES
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-str-num-bytes", 18);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-str-num-bytes", 18);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(48LL); // PRIM_STR_BASE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-str-base", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-str-base", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(49LL); // PRIM_STR_CAT
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-str-cat", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-str-cat", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(45LL); // PRIM_STR_CMP
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-str-cmp", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-str-cmp", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(50LL); // PRIM_U8_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u8-get", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u8-get", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(51LL); // PRIM_U8_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u8-set", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u8-set", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(52LL); // PRIM_U16_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u16-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u16-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(53LL); // PRIM_U16_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u16-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u16-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(54LL); // PRIM_U32_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u32-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u32-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(55LL); // PRIM_U32_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u32-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u32-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(56LL); // PRIM_U64_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u64-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u64-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(57LL); // PRIM_U64_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-u64-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-u64-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(58LL); // PRIM_I8_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i8-get", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i8-get", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(59LL); // PRIM_I8_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i8-set", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i8-set", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(60LL); // PRIM_I16_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i16-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i16-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(61LL); // PRIM_I16_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i16-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i16-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(62LL); // PRIM_I32_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i32-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i32-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(63LL); // PRIM_I32_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i32-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i32-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(64LL); // PRIM_I64_GET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i64-get", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i64-get", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(65LL); // PRIM_I64_SET
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-i64-set", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-i64-set", 12);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(66LL); // PRIM_SYS_OS
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-sys-os", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-sys-os", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(67LL); // PRIM_SYS_ARCH
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-sys-arch", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-sys-arch", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(68LL); // PRIM_SYS_ARGC
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-sys-argc", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-sys-argc", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(69LL); // PRIM_SYS_ARGV
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-sys-argv", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-sys-argv", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(70LL); // PRIM_POSIX_READ
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-posix-read", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-posix-read", 15);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(71LL); // PRIM_POSIX_WRITE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-posix-write", 16);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-posix-write", 16);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(72LL); // PRIM_POSIX_OPEN
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-posix-open", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-posix-open", 15);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(73LL); // PRIM_POSIX_CLOSE
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-posix-close", 16);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-posix-close", 16);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(74LL); // PRIM_POSIX_EXIT
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim-posix-exit", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim-posix-exit", 15);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	mw_mirth_var_Ctx0();
@@ -24048,94 +21930,31 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	push_u64(27LL); // PRIM_PACK_NIL
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_type_TYPEz_TYPE();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("a", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("a", 1);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mw_mirth_type_TYPEz_TYPE();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("b", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("b", 1);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mw_mirth_type_TYPEz_TYPE();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("c", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("c", 1);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mw_mirth_type_TYPEz_RESOURCE();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("+r", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("+r", 2);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mw_mirth_type_TYPEz_RESOURCE();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("+s", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("+s", 2);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mw_mirth_type_TYPEz_STACK();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("*x", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("*x", 2);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mw_mirth_type_TYPEz_STACK();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("*y", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("*y", 2);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	{
@@ -25288,16 +23107,7 @@ static void mw_mirth_token_Token_argsZ_0 (void) {
 	if (pop_u64()) {
 		mp_primZ_drop();
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected no args", 16);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected no args", 16);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 }
@@ -25315,28 +23125,10 @@ static void mw_mirth_token_Token_argsZ_1 (void) {
 		push_i64(1LL);
 		mp_primZ_intZ_lt();
 		if (pop_u64()) {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected 1 arg, got none", 24);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected 1 arg, got none", 24);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		} else {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected 1 arg, got too many", 28);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected 1 arg, got too many", 28);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		}
 	}
@@ -25358,28 +23150,10 @@ static void mw_mirth_token_Token_argsZ_2 (void) {
 		push_i64(2LL);
 		mp_primZ_intZ_lt();
 		if (pop_u64()) {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected 2 args, got too few", 28);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected 2 args, got too few", 28);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		} else {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected 2 args, got too many", 29);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected 2 args, got too many", 29);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		}
 	}
@@ -25404,28 +23178,10 @@ static void mw_mirth_token_Token_argsZ_3 (void) {
 		push_i64(3LL);
 		mp_primZ_intZ_lt();
 		if (pop_u64()) {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected 3 args, got too few", 28);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected 3 args, got too few", 28);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		} else {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected 3 args, got too many", 29);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected 3 args, got too many", 29);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		}
 	}
@@ -26456,16 +24212,7 @@ static void mw_mirth_def_Def_register (void) {
 	mw_mirth_name_QName_undefinedZAsk();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("qualified name already has definition", 37);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("qualified name already has definition", 37);
 		mw_std_prelude_panicZBang();
 	}
 	mw_mirth_name_QName_name();
@@ -27063,16 +24810,7 @@ static void mw_mirth_name_Namespace_ZToStr (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // NAMESPACE_ROOT
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("<root>", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("<root>", 6);
 			break;
 		case 1LL: // NAMESPACE_PACKAGE
 			mtp_mirth_name_Namespace_NAMESPACEz_PACKAGE();
@@ -27103,16 +24841,7 @@ static void mw_mirth_name_Namespace_mangled (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // NAMESPACE_ROOT
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("__root__", 8);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("__root__", 8);
 			break;
 		case 1LL: // NAMESPACE_PACKAGE
 			mtp_mirth_name_Namespace_NAMESPACEz_PACKAGE();
@@ -27248,16 +24977,7 @@ static void mw_mirth_name_QName_ZToStr (void) {
 			mtp_mirth_name_QName_MKQNAME();
 			LPOP(lbl_namespace);
 			mw_mirth_name_Namespace_ZToStr();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(".", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(".", 1);
 			mp_primZ_strZ_cat();
 			LPOP(lbl_name);
 			mw_mirth_name_Name_ZToStr();
@@ -27271,16 +24991,7 @@ static void mw_mirth_name_QName_ZToStr (void) {
 			} else {
 				{
 					VAL d5 = pop_value();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("/", 1);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("/", 1);
 					push_value(d5);
 				}
 				mw_std_prim_Int_show();
@@ -27305,31 +25016,13 @@ static void mw_mirth_name_QName_toZ_moduleZ_path (void) {
 			mp_primZ_swap();
 			mw_mirth_name_QName_name();
 			mw_mirth_name_Name_ZToStr();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(".mth", 4);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(".mth", 4);
 			mp_primZ_strZ_cat();
 			mw_std_path_Path_joinZ_unix();
 			break;
 		default:
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected module name", 20);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected module name", 20);
 			mw_std_prelude_panicZBang();
 			break;
 	}
@@ -27340,16 +25033,7 @@ static void mw_mirth_name_QName_mangled (void) {
 			mtp_mirth_name_QName_MKQNAME();
 			LPOP(lbl_namespace);
 			mw_mirth_name_Namespace_mangled();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("_", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("_", 1);
 			mp_primZ_strZ_cat();
 			LPOP(lbl_name);
 			mw_mirth_name_Name_mangled();
@@ -27362,16 +25046,7 @@ static void mw_mirth_name_QName_mangled (void) {
 			if (pop_u64()) {
 				{
 					VAL d5 = pop_value();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("_", 1);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("_", 1);
 					push_value(d5);
 				}
 				mw_std_prim_Int_show();
@@ -27483,16 +25158,7 @@ static void mw_mirth_package_Package_newZ_orZ_setZ_pathZBang (void) {
 			switch (get_top_data_tag()) {
 				case 1LL: // Some
 					mtp_std_maybe_Maybe_1_Some();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Package already has path", 24);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Package already has path", 24);
 					mw_std_prelude_panicZBang();
 					break;
 				case 0LL: // None
@@ -27887,16 +25553,7 @@ static void mw_mirth_lexer_lexerZ_nextZBang (void) {
 				mw_mirth_lexer_lexerZ_prepareZ_forZ_atomZBang();
 				mw_mirth_lexer_lexerZ_emitZ_nameZBang();
 			} else {
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("Unrecognized byte.", 18);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("Unrecognized byte.", 18);
 				mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
 			}
 			break;
@@ -27947,16 +25604,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rparenZBang (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // None
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Mismatched right parenthesis.", 29);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Mismatched right parenthesis.", 29);
 			mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
 			break;
 		case 1LL: // Some
@@ -27972,16 +25620,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rparenZBang (void) {
 				mfld_mirth_token_Token_ZTildevalue();
 				mp_primZ_mutZ_set();
 			} else {
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("Mismatched right parenthesis.", 29);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("Mismatched right parenthesis.", 29);
 				mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
 			}
 			break;
@@ -28000,16 +25639,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rsquareZBang (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // None
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Mismatched right square bracket.", 32);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Mismatched right square bracket.", 32);
 			mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
 			break;
 		case 1LL: // Some
@@ -28025,16 +25655,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rsquareZBang (void) {
 				mfld_mirth_token_Token_ZTildevalue();
 				mp_primZ_mutZ_set();
 			} else {
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("Mismatched right square bracket.", 32);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("Mismatched right square bracket.", 32);
 				mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
 			}
 			break;
@@ -28053,16 +25674,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rcurlyZBang (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // None
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Mismatched right curly brace.", 29);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Mismatched right curly brace.", 29);
 			mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
 			break;
 		case 1LL: // Some
@@ -28078,16 +25690,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rcurlyZBang (void) {
 				mfld_mirth_token_Token_ZTildevalue();
 				mp_primZ_mutZ_set();
 			} else {
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("Mismatched right curly brace.", 29);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("Mismatched right curly brace.", 29);
 				mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
 			}
 			break;
@@ -28099,16 +25702,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rcurlyZBang (void) {
 static void mw_mirth_lexer_lexerZ_emitZ_nameZBang (void) {
 	{
 		VAL d2 = pop_resource();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("", 0);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("", 0);
 		mw_std_prim_Str_thaw();
 		push_resource(d2);
 	}
@@ -28266,16 +25860,7 @@ static void mw_std_str_ZPlusStr_dropZ_lastZ_byte (void) {
 		mw_std_prim_Int_ZToNat();
 		mw_std_str_ZPlusStr_takeZ_slice();
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("", 0);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("", 0);
 	}
 }
 static void mw_std_str_ZPlusStr_labelZ_tokenZAsk (void) {
@@ -28368,16 +25953,7 @@ static void mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (void) {
 	push_resource(MKU64(0LL)); // +Unsafe
 	mw_std_str_ZPlusStr_firstZ_twoZ_bytes();
 	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(">+", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(">+", 2);
 	mp_primZ_strZ_cmp();
 	push_i64(0LL);
 	{
@@ -28539,16 +26115,7 @@ static void mw_std_str_ZPlusStr_dnameZAsk (void) {
 }
 static void mw_std_str_ZPlusStr_isZ_docZ_startZAsk (void) {
 	mw_std_str_ZPlusStr_dupZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("|||", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("|||", 3);
 	mp_primZ_strZ_cmp();
 	push_i64(0LL);
 	{
@@ -28985,16 +26552,7 @@ static void mw_mirth_lexer_hexdigitZ_value (void) {
 static void mw_mirth_lexer_lexerZ_emitZ_stringZBang (void) {
 	{
 		VAL d2 = pop_resource();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("", 0);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("", 0);
 		mw_std_prim_Str_thaw();
 		push_resource(d2);
 	}
@@ -29099,16 +26657,7 @@ static void mw_mirth_lexer_lexerZ_pushZ_stringZ_escapeZ_byteZBang (void) {
 				mw_std_str_ZPlusStr_pushZ_byteZ_unsafeZBang();
 				push_resource(d4);
 			}
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Unknown character escape sequence.", 34);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Unknown character escape sequence.", 34);
 			mw_mirth_lexer_lexerZ_emitZ_warningZBang();
 			break;
 	}
@@ -29318,16 +26867,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang (void) {
 	mw_mirth_token_Token_runZ_endZAsk();
 	if (pop_u64()) {
 		mw_mirth_elab_ZPlusTypeElab_token();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected type signature", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected type signature", 23);
 		mw_mirth_token_emitZ_errorZBang();
 	} else {
 	}
@@ -29351,16 +26891,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang (void) {
 	if (pop_u64()) {
 	} else {
 		mw_mirth_elab_ZPlusTypeElab_token();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected right paren or comma", 29);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected right paren or comma", 29);
 		mw_mirth_token_emitZ_errorZBang();
 	}
 	{
@@ -29419,32 +26950,14 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_argZBang (void) {
 			mtp_mirth_elab_StackTypePart_STPConsLabel();
 			mp_primZ_drop();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Expected type, not label.", 25);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Expected type, not label.", 25);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		case 2LL: // STPWith
 			mtp_mirth_elab_StackTypePart_STPWith();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Expected type, not resource.", 28);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Expected type, not resource.", 28);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // TYPE_ERROR
 			break;
@@ -29452,16 +26965,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_argZBang (void) {
 			mtp_mirth_elab_StackTypePart_STPWithLabel();
 			mp_primZ_drop();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Expected type, not labelled resource.", 37);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Expected type, not labelled resource.", 37);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // TYPE_ERROR
 			break;
@@ -29474,16 +26978,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_argZBang (void) {
 	if (pop_u64()) {
 	} else {
 		mw_mirth_elab_ZPlusTypeElab_token();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Unexpected token after type.", 28);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Unexpected token after type.", 28);
 		mw_mirth_token_emitZ_errorZBang();
 	}
 }
@@ -29494,16 +26989,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_argZBang (void) {
 		case 0LL: // STPCons
 			mtp_mirth_elab_StackTypePart_STPCons();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Expected resource, not type.", 28);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Expected resource, not type.", 28);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // TYPE_ERROR
 			break;
@@ -29511,16 +26997,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_argZBang (void) {
 			mtp_mirth_elab_StackTypePart_STPConsLabel();
 			mp_primZ_drop();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Expected resource, not label.", 29);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Expected resource, not label.", 29);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // TYPE_ERROR
 			break;
@@ -29536,16 +27013,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_argZBang (void) {
 			mtp_mirth_elab_StackTypePart_STPWithLabel();
 			mp_primZ_drop();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Expected resource, not label.", 29);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Expected resource, not label.", 29);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // TYPE_ERROR
 			break;
@@ -29558,16 +27026,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_argZBang (void) {
 	if (pop_u64()) {
 	} else {
 		mw_mirth_elab_ZPlusTypeElab_token();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Unexpected token after resource.", 32);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Unexpected token after resource.", 32);
 		mw_mirth_token_emitZ_errorZBang();
 	}
 }
@@ -29748,16 +27207,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang (void) {
 				mtw_std_maybe_Maybe_1_Some();
 			} else {
 				mw_mirth_elab_ZPlusTypeElab_token();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("Implicit type variable not allowed here.", 40);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("Implicit type variable not allowed here.", 40);
 				mw_mirth_token_emitZ_errorZBang();
 				mp_primZ_drop();
 				mp_primZ_drop();
@@ -30178,16 +27628,7 @@ static void mw_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang (void) {
 	LPUSH(lbl_reportZ_ambiguousZ_asZ_warning);
 	mw_mirth_elab_ZPlusTypeElab_token();
 	LPUSH(lbl_token);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("type", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("type", 4);
 	LPUSH(lbl_sort);
 	push_fnptr(&mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_0);
 	mw_mirth_elab_resolveZ_def_1();
@@ -30251,16 +27692,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_holeZBang (void) {
 		mtw_mirth_type_Type_THole();
 	} else {
 		mw_mirth_elab_ZPlusTypeElab_token();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("type holes are not allowed here", 31);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("type holes are not allowed here", 31);
 		mw_mirth_token_emitZ_errorZBang();
 		push_u64(0LL); // TYPE_ERROR
 	}
@@ -30275,16 +27707,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_dontZ_careZBang (void) {
 		push_u64(1LL); // TYPE_DONT_CARE
 	} else {
 		mw_mirth_elab_ZPlusTypeElab_token();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("underscore is not allowed here", 30);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("underscore is not allowed here", 30);
 		mw_mirth_token_emitZ_errorZBang();
 		push_u64(0LL); // TYPE_ERROR
 	}
@@ -30815,16 +28238,7 @@ static void mw_mirth_elab_abZ_primZBang (void) {
 		mw_mirth_elab_abZ_opZBang();
 	} else {
 		mw_mirth_elab_abZ_tokenZAt();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("prim does not have type", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("prim does not have type", 23);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 }
@@ -31431,16 +28845,7 @@ static void mw_mirth_elab_elabZ_atomZBang (void) {
 			break;
 		default:
 			mw_mirth_elab_abZ_tokenZAt();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Unexpected token in elab-atom!", 30);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Unexpected token in elab-atom!", 30);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 			break;
 	}
@@ -31577,16 +28982,7 @@ static void mw_mirth_elab_elabZ_atomZ_resolveZ_defZBang (void) {
 	LPUSH(lbl_reportZ_ambiguousZ_asZ_warning);
 	mw_mirth_elab_abZ_tokenZAt();
 	LPUSH(lbl_token);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("word", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("word", 4);
 	LPUSH(lbl_sort);
 	push_fnptr(&mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_0);
 	mw_mirth_elab_resolveZ_def_1();
@@ -31611,16 +29007,7 @@ static void mw_mirth_elab_elabZ_atomZ_failedZBang (void) {
 static void mw_mirth_elab_elabZ_ambiguousZ_nameZ_errorZBang (void) {
 	{
 		VAL d2 = pop_value();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("name is ambiguous, can't decide between:", 40);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("name is ambiguous, can't decide between:", 40);
 		push_value(d2);
 	}
 	push_fnptr(&mb_mirth_elab_elabZ_ambiguousZ_nameZ_errorZBang_1);
@@ -31681,16 +29068,7 @@ static void mw_mirth_elab_elabZ_atomZ_notZ_aZ_wordZBang (void) {
 		{
 			VAL d3 = pop_value();
 			mw_mirth_elab_abZ_tokenZAt();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Not a word: ", 12);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Not a word: ", 12);
 			push_value(d3);
 		}
 		mw_mirth_name_QName_ZToStr();
@@ -31787,16 +29165,7 @@ static void mw_mirth_elab_elabZ_matchZ_caseZBang (void) {
 	mp_primZ_swap();
 	mw_mirth_token_Token_ZEqualZEqual();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected pattern", 16);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected pattern", 16);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	} else {
 	}
@@ -31816,16 +29185,7 @@ static void mw_mirth_elab_elabZ_matchZ_caseZBang (void) {
 	mw_mirth_token_Token_ZEqualZEqual();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("multi-part pattern not supported", 32);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("multi-part pattern not supported", 32);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	{
@@ -31979,16 +29339,7 @@ static void mw_mirth_elab_elabZ_expandZ_tensorZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			LPOP(lbl_tok);
 			mp_primZ_dup();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected tuple type", 19);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected tuple type", 19);
 			mw_mirth_token_emitZ_errorZBang();
 			break;
 		default:
@@ -32084,16 +29435,7 @@ static void mw_mirth_elab_elabZ_matchZ_exhaustiveZBang (void) {
 	} else {
 		mp_primZ_dup();
 		mw_mirth_match_Match_token();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Pattern match not exhaustive.", 29);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Pattern match not exhaustive.", 29);
 		mw_mirth_token_emitZ_errorZBang();
 	}
 	mw_mirth_match_Match_thaw();
@@ -32203,16 +29545,7 @@ static void mw_mirth_elab_elabZ_moduleZ_headerZBang (void) {
 		mw_mirth_name_QName_definedZAsk();
 		if (pop_u64()) {
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Module name already taken.", 26);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Module name already taken.", 26);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		} else {
 		}
@@ -32222,16 +29555,7 @@ static void mw_mirth_elab_elabZ_moduleZ_headerZBang (void) {
 		mw_mirth_elab_checkZ_moduleZ_path();
 	} else {
 		mp_primZ_dup();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Expected module header.", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Expected module header.", 23);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 }
@@ -32306,28 +29630,10 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 	}
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected module name to match path\n", 35);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected module name to match path\n", 35);
 		mp_primZ_swap();
 		mp_primZ_strZ_cat();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\n", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\n", 1);
 		mp_primZ_strZ_cat();
 		mp_primZ_swap();
 		mp_primZ_strZ_cat();
@@ -32402,16 +29708,7 @@ static void mw_mirth_elab_elabZ_moduleZ_declZBang (void) {
 			break;
 		default:
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("unknown declaration", 19);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("unknown declaration", 19);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 			break;
 	}
@@ -32516,16 +29813,7 @@ static void mw_mirth_elab_elabZ_dataZ_headerZBang (void) {
 	}
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Expected type name.", 19);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Expected type name.", 19);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	{
@@ -32683,16 +29971,7 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 			mfld_mirth_data_Tag_ZTildesigZAsk();
 			mp_primZ_mutZ_set();
 		} else {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Expected arrow, comma, or right paren.", 38);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Expected arrow, comma, or right paren.", 38);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		}
 	}
@@ -32776,16 +30055,7 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 		push_fnptr(&mb_mirth_elab_elabZ_dataZ_tagZBang_16);
 		mw_std_list_List_1_find_1();
 		mw_std_maybe_Maybe_1_unwrap();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Value type cannot contain resource.", 35);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Value type cannot contain resource.", 35);
 		mw_mirth_token_emitZ_errorZBang();
 	} else {
 	}
@@ -32860,16 +30130,7 @@ static void mw_mirth_elab_elabZ_dataZ_doneZBang (void) {
 					VAL var_tag = pop_value();
 					incref(var_dat);
 					push_value(var_dat);
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("/", 1);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("/", 1);
 					incref(var_tag);
 					push_value(var_tag);
 					mw_mirth_data_Tag_name();
@@ -32959,16 +30220,7 @@ static void mw_mirth_data_Tag_outputZ_type (void) {
 			mp_primZ_drop();
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("Unexpected output type for constructor ", 39);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("Unexpected output type for constructor ", 39);
 				push_value(d4);
 			}
 			mw_mirth_data_Tag_qname();
@@ -33147,16 +30399,7 @@ static void mw_mirth_elab_expectZ_tokenZ_arrow (void) {
 	mw_mirth_token_Token_patZ_arrowZAsk();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("Expected arrow.", 15);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("Expected arrow.", 15);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 }
@@ -33174,16 +30417,7 @@ static void mw_mirth_elab_tokenZ_defZ_args (void) {
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
 		mp_primZ_drop();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("def expects at least three arguments", 36);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("def expects at least three arguments", 36);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	} else {
 	}
@@ -33231,16 +30465,7 @@ static void mw_mirth_elab_elabZ_aliasZBang (void) {
 				push_value(d4);
 			}
 			mp_primZ_swap();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected comma after alias name", 31);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected comma after alias name", 31);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		}
 		{
@@ -33276,16 +30501,7 @@ static void mw_mirth_elab_elabZ_aliasZBang (void) {
 				push_value(d4);
 			}
 			mp_primZ_swap();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("expected end of argument after alias target", 43);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("expected end of argument after alias target", 43);
 			mw_mirth_token_emitZ_fatalZ_errorZBang();
 		}
 		mw_std_prelude_pack2();
@@ -33311,16 +30527,7 @@ static void mw_mirth_elab_elabZ_defZ_missingZBang (void) {
 	}
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("def-missing expects at least three arguments", 44);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("def-missing expects at least three arguments", 44);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	} else {
 	}
@@ -33391,16 +30598,7 @@ static void mw_mirth_elab_elabZ_defZBang (void) {
 	}
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected match case", 19);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected match case", 19);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	LPUSH(lbl_body);
@@ -33566,16 +30764,7 @@ static void mw_mirth_elab_checkZ_inlineZ_recursionZ_failedZBang (void) {
 		mfld_mirth_word_Word_ZTildepreferZ_inlineZAsk();
 		mp_primZ_mutZ_set();
 		mw_mirth_word_Word_head();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("recursive word cannot be inlined", 32);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("recursive word cannot be inlined", 32);
 		mw_mirth_token_emitZ_warningZBang();
 	} else {
 		mp_primZ_drop();
@@ -33718,16 +30907,7 @@ static void mw_mirth_elab_elabZ_defZ_typeZBang (void) {
 	mw_mirth_token_Token_sigZ_typeZ_conZAsk();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected type constructor", 25);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected type constructor", 25);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	mp_primZ_dup();
@@ -33811,16 +30991,7 @@ static void mw_mirth_elab_elabZ_tableZBang (void) {
 	mw_mirth_token_Token_sigZ_typeZ_conZAsk();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected type name", 18);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected type name", 18);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	mp_primZ_dup();
@@ -33831,16 +31002,7 @@ static void mw_mirth_elab_elabZ_tableZBang (void) {
 	if (pop_u64()) {
 	} else {
 		mw_mirth_token_Token_succ();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected end of argument after table name", 41);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected end of argument after table name", 41);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	mp_primZ_dup();
@@ -34005,16 +31167,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mtw_mirth_def_Def_DefTable();
 	mw_mirth_def_Def_register();
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("MAX", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("MAX", 3);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	push_u64(0LL); // Nil
@@ -34035,16 +31188,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_elab_abZ_buildZ_wordZBang_1();
 	mp_primZ_drop();
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("nil", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("nil", 3);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	push_u64(0LL); // Nil
@@ -34088,16 +31232,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 		push_value(d2);
 	}
 	mp_primZ_swap();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("NUM", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("NUM", 3);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_qname();
 	push_i64(8LL);
@@ -34112,16 +31247,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mfld_mirth_table_Table_ZTildenumZ_buffer();
 	mp_primZ_mutZ_set();
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("index", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("index", 5);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	push_u64(0LL); // Nil
@@ -34154,16 +31280,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_elab_abZ_buildZ_wordZBang_1();
 	mp_primZ_drop();
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("from-index", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("from-index", 10);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	push_u64(0LL); // Nil
@@ -34197,16 +31314,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_elab_abZ_buildZ_wordZBang_1();
 	mp_primZ_drop();
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("succ", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("succ", 4);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	push_u64(0LL); // Nil
@@ -34238,16 +31346,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_elab_abZ_buildZ_wordZBang_1();
 	mp_primZ_drop();
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("pred", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("pred", 4);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	push_u64(0LL); // Nil
@@ -34279,29 +31378,11 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 	mw_mirth_elab_abZ_buildZ_wordZBang_1();
 	mp_primZ_drop();
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("for", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("for", 3);
 	push_i64(1LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	mw_mirth_type_TYPEz_STACK();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("*a", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("*a", 2);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mp_primZ_dup();
@@ -34321,16 +31402,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 		push_value(var_a);
 		mw_mirth_type_TZ_ZTo();
 		mw_mirth_type_ArrowType_ZToType();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("x", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("x", 1);
 		mw_std_prim_Str_ZToName();
 		mw_mirth_var_Var_newZ_autoZ_runZBang();
 		{
@@ -34380,16 +31452,7 @@ static void mw_mirth_elab_tableZ_newZBang (void) {
 		decref(var_t);
 	}
 	mp_primZ_dup();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("alloc!", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("alloc!", 6);
 	push_i64(0LL);
 	mw_mirth_elab_tableZ_wordZ_newZBang();
 	push_u64(0LL); // Nil
@@ -34577,16 +31640,7 @@ static void mw_mirth_elab_elabZ_defZ_qnameZ_undefined (void) {
 	mw_mirth_name_QName_definedZAsk();
 	if (pop_u64()) {
 		mp_primZ_drop();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("name already defined", 20);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("name already defined", 20);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	} else {
 	}
@@ -35379,16 +32433,7 @@ static void mw_mirth_specializzer_synthZ_specializzedZ_wordZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("unexpected shape", 16);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("unexpected shape", 16);
 			mw_std_prelude_panicZBang();
 			break;
 	}
@@ -36729,1416 +33774,1370 @@ static void mw_mirth_prim_Prim_cname (void) {
 	}
 }
 static void mw_mirth_c99_ZPlusC99_sigZ_put (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("static void ", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("static void ", 12);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" (void)", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" (void)", 7);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mw_mirth_c99_c99Z_headerZ_str (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(
-				"/* MIRTH HEADER */\n"
-				"#line 3 \"src/mirth.h\"\n"
-				"\n"
-				"#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)\n"
-				"#define MIRTH_WINDOWS 1\n"
-				"#elif defined(__linux__)\n"
-				"#define MIRTH_LINUX 1\n"
-				"#elif defined(__APPLE__)\n"
-				"#define MIRTH_MACOS 1\n"
-				"#else\n"
-				"#error \"Platform not supported.\"\n"
-				"#endif\n"
-				"\n"
-				"#if defined(__x86_64__) || defined(_M_X64)\n"
-				"#define MIRTH_AMD64\n"
-				"#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)\n"
-				"#define MIRTH_I386\n"
-				"#elif defined(__aarch64__) || defined(_M_ARM64)\n"
-				"#define MIRTH_ARM64\n"
-				"#else\n"
-				"#error \"Architecture not supported.\"\n"
-				"#endif\n"
-				"\n"
-				"#include <stdint.h>\n"
-				"#include <stdbool.h>\n"
-				"#include <stddef.h>\n"
-				"\n"
-				"extern void* malloc(size_t);\n"
-				"extern void* calloc(size_t, size_t);\n"
-				"extern void* realloc(void*, size_t);\n"
-				"extern void* memset(void*, int, size_t);\n"
-				"extern void* memcpy(void*, const void*, size_t);\n"
-				"extern int memcmp(const void*, const void*, size_t);\n"
-				"extern int strcmp(const char*, const char*);\n"
-				"extern size_t strlen(const char*);\n"
-				"extern void free(void*);\n"
-				"extern int read(int, void*, size_t);\n"
-				"extern int write(int, const char*, size_t);\n"
-				"extern int close(int);\n"
-				"extern int open(const char*, int, ...);\n"
-				"extern void exit(int);\n"
-				"\n"
-				"typedef uint16_t TAG;\n"
-				"#define REFS_FLAG \t 0x8000\n"
-				"#define TUP_FLAG \t 0x4000\n"
-				"#define TUP_LEN_MASK 0x3FFF\n"
-				"#define TUP_LEN_MAX  0x3FFF\n"
-				"\n"
-				"#define TAG_INT 1\n"
-				"#define TAG_PTR 1\n"
-				"#define TAG_STR (2 | REFS_FLAG)\n"
-				"#define TAG_FNPTR 3\n"
-				"#define TAG_TUP_NIL TUP_FLAG\n"
-				"#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)\n"
-				"#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))\n"
-				"\n"
-				"typedef uint32_t REFS;\n"
-				"typedef uint64_t USIZE;\n"
-				"typedef void (*FNPTR)(void);\n"
-				"\n"
-				"typedef union DATA {\n"
-				"\tUSIZE usize;\n"
-				"\tuint64_t u64;\n"
-				"\tuint32_t u32;\n"
-				"\tuint16_t u16;\n"
-				"\tuint8_t u8;\n"
-				"\tint64_t i64;\n"
-				"\tint32_t i32;\n"
-				"\tint16_t i16;\n"
-				"\tint8_t i8;\n"
-				"\tvoid* ptr;\n"
-				"\tFNPTR fnptr;\n"
-				"\tREFS* refs;\n"
-				"\tstruct TUP* tup;\n"
-				"\tstruct STR* str;\n"
-				"} DATA;\n"
-				"\n"
-				"typedef struct VAL {\n"
-				"\tDATA data;\n"
-				"\tTAG tag;\n"
-				"} VAL;\n"
-				"\n"
-				"#define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))\n"
-				"\n"
-				"#define VREFS(v)  (*(v).data.refs)\n"
-				"#define VINT(v)   ((v).data.i64)\n"
-				"#define VI64(v)   ((v).data.i64)\n"
-				"#define VU64(v)   ((v).data.u64)\n"
-				"#define VPTR(v)   ((v).data.ptr)\n"
-				"#define VFNPTR(v) ((v).data.fnptr)\n"
-				"#define VSTR(v)   ((v).data.str)\n"
-				"#define VTUP(v)   ((v).data.tup)\n"
-				"#define VTUPLEN(v) (TAG_TUP_LEN((v).tag))\n"
-				"\n"
-				"#define HAS_REFS(v) ((v).tag & REFS_FLAG)\n"
-				"#define IS_INT(v)   ((v).tag == TAG_INT)\n"
-				"#define IS_U64(v)   ((v).tag == TAG_INT)\n"
-				"#define IS_I64(v)   ((v).tag == TAG_INT)\n"
-				"#define IS_PTR(v)   ((v).tag == TAG_PTR)\n"
-				"#define IS_FNPTR(v) ((v).tag == TAG_FNPTR)\n"
-				"#define IS_STR(v)   ((v).tag == TAG_STR)\n"
-				"#define IS_TUP(v)   ((v).tag & TUP_FLAG)\n"
-				"#define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))\n"
-				"\n"
-				"#define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
-				"#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
-				"#define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
-				"#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})\n"
-				"#define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})\n"
-				"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
-				"#define MKTUP(x,n) ((VAL){.tag=TAG_TUP(n), .data={.tup=(x)}})\n"
-				"#define MKNIL_C\t         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}\n"
-				"#define MKNIL      ((VAL)MKNIL_C)\n"
-				"\n"
-				"typedef uint16_t TUPLEN;\n"
-				"typedef struct TUP {\n"
-				"\tREFS refs;\n"
-				"\tTUPLEN cap;\n"
-				"\tTUPLEN size;\n"
-				"\tVAL cells[];\n"
-				"} TUP;\n"
-				"\n"
-				"typedef struct STR {\n"
-				"\tREFS refs;\n"
-				"\tUSIZE cap;\n"
-				"\tUSIZE size;\n"
-				"\tchar data[];\n"
-				"} STR;\n"
-				"\n"
-				"#define STACK_MAX 0x80000\n"
-				"static USIZE stack_counter = STACK_MAX;\n"
-				"static VAL stack [STACK_MAX] = {0};\n"
-				"static USIZE rstack_counter = STACK_MAX;\n"
-				"static VAL rstack [STACK_MAX] = {0};\n"
-				"\n"
-				"static int global_argc;\n"
-				"static char** global_argv;\n"
-				"\n"
-				"static void push_value(VAL v);\n"
-				"static void mp_primZ_debug(void);\n"
-				"static void mp_primZ_rdebug(void);\n"
-				"\n"
-				"#if MIRTH_DEBUG\n"
-				"\ttypedef struct LOC {\n"
-				"\t\tFNPTR fnptr;\n"
-				"\t\tconst char* word;\n"
-				"\t\tconst char* path;\n"
-				"\t\tUSIZE line, col;\n"
-				"\t\tconst char* atom;\n"
-				"\t} LOC;\n"
-				"\tstatic USIZE fstack_counter = 0;\n"
-				"\tstatic LOC fstack [STACK_MAX] = {\n"
-				"\t\t{\n"
-				"\t\t\t.fnptr=(void(*)(void))0,\n"
-				"\t\t\t.word=\"<word>\",\n"
-				"\t\t\t.path=\"<path>\",\n"
-				"\t\t\t.line=0, .col=0,\n"
-				"\t\t\t.atom=\"<atom>\"\n"
-				"\t\t},\n"
-				"\t};\n"
-				"\n"
-				"\t#define WORD_ENTER(_f,_w,_p,_l,_c) \\\n"
-				"\t\tdo { \\\n"
-				"\t\t\tfstack[fstack_counter].fnptr = (_f); \\\n"
-				"\t\t\tfstack[fstack_counter].word = (_w); \\\n"
-				"\t\t\tfstack[fstack_counter].path = (_p); \\\n"
-				"\t\t\tfstack[fstack_counter].line = (_l); \\\n"
-				"\t\t\tfstack[fstack_counter].col = (_c); \\\n"
-				"\t\t\tfstack[fstack_counter].atom = \"\"; \\\n"
-				"\t\t\tfstack_counter++; \\\n"
-				"\t\t} while(0)\n"
-				"\n"
-				"\t#define WORD_ATOM(_l,_c,_n) \\\n"
-				"\t\tdo { \\\n"
-				"\t\t\tif (fstack_counter > 0) { \\\n"
-				"\t\t\t\tfstack[fstack_counter-1].line = (_l); \\\n"
-				"\t\t\t\tfstack[fstack_counter-1].col = (_c); \\\n"
-				"\t\t\t\tfstack[fstack_counter-1].atom = (_n); \\\n"
-				"\t\t\t} \\\n"
-				"\t\t} while(0)\n"
-				"\n"
-				"\t#define WORD_EXIT(_f) \\\n"
-				"\t\tdo { \\\n"
-				"\t\t\tif ((fstack_counter == 0) || (fstack[fstack_counter-1].fnptr != (_f))) { \\\n"
-				"\t\t\t\tTRACE(\"mismatched WORD_EXIT, expected \" #_f \"\\n\"); \\\n"
-				"\t\t\t\texit(1); \\\n"
-				"\t\t\t} \\\n"
-				"\t\t\tfstack_counter--; \\\n"
-				"\t\t} while(0)\n"
-				"\t#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)\n"
-				"\t#define PRIM_EXIT(_f) WORD_EXIT(_f)\n"
-				"#else\n"
-				"\t#define PRIM_ENTER(_f,_w)\n"
-				"\t#define PRIM_EXIT(_f)\n"
-				"#endif\n"
-				"\n"
-				"#define TRACE(x) write(2,x,strlen(x))\n"
-				"#define _STR(x) #x\n"
-				"#define STR(x) _STR(x)\n"
-				"\n"
-				"#define EXPECT(test,msg) \\\n"
-				"\tdo { \\\n"
-				"\t\tif (!(test)) { \\\n"
-				"\t\t\tTRACE(msg \"\\n\"); \\\n"
-				"\t\t\tmp_primZ_debug(); \\\n"
-				"\t\t\tmp_primZ_rdebug(); \\\n"
-				"\t\t\texit(1); \\\n"
-				"\t\t} \\\n"
-				"\t} while(0)\n"
-				"\n"
-				"#define EXPECT1(test,msg,v1) \\\n"
-				"\tdo { \\\n"
-				"\t\tif (!(test)) { \\\n"
-				"\t\t\tTRACE(msg \"\\n\"); \\\n"
-				"\t\t\tpush_value(v1); \\\n"
-				"\t\t\tmp_primZ_debug(); \\\n"
-				"\t\t\tmp_primZ_rdebug(); \\\n"
-				"\t\t\texit(1); \\\n"
-				"\t\t} \\\n"
-				"\t} while(0)\n"
-				"\n"
-				"#define EXPECT2(test,msg,v1,v2) \\\n"
-				"\tdo { \\\n"
-				"\t\tif (!(test)) { \\\n"
-				"\t\t\tTRACE(msg \"\\n\"); \\\n"
-				"\t\t\tpush_value(v1); \\\n"
-				"\t\t\tpush_value(v2); \\\n"
-				"\t\t\tmp_primZ_debug(); \\\n"
-				"\t\t\tmp_primZ_rdebug(); \\\n"
-				"\t\t\texit(1); \\\n"
-				"\t\t} \\\n"
-				"\t} while(0)\n"
-				"\n"
-				"#define ASSERT(test) \\\n"
-				"\tEXPECT(test, __FILE__ \":\" STR(__LINE__) \": error: assertion failed (\" #test \")\")\n"
-				"#define ASSERT1(test,v) \\\n"
-				"\tEXPECT1(test, __FILE__ \":\" STR(__LINE__) \": error: assertion failed (\" #test \")\", v)\n"
-				"#define ASSERT2(test,v1,v2) \\\n"
-				"\tEXPECT2(test, __FILE__ \":\" STR(__LINE__) \": error: assertion failed (\" #test \")\", v1, v2)\n"
-				"\n"
-				"#define incref(v) do { if (HAS_REFS(v)) VREFS(v)++; } while(0)\n"
-				"#define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)\n"
-				"static void free_value(VAL v) {\n"
-				"\tASSERT(HAS_REFS(v));\n"
-				"\tASSERT(VREFS(v) == 0);\n"
-				"\tASSERT1(IS_TUP(v)||IS_STR(v), v);\n"
-				"\tif (IS_TUP(v)) {\n"
-				"\t\tTUP* tup = VTUP(v);\n"
-				"\t\tASSERT(tup);\n"
-				"\t\tfor (TUPLEN i = 0; i < tup->size; i++) {\n"
-				"\t\t\tdecref(tup->cells[i]);\n"
-				"\t\t}\n"
-				"\t\tfree(tup);\n"
-				"\t} else if (IS_STR(v)) {\n"
-				"\t\tSTR* str = VSTR(v);\n"
-				"\t\tASSERT(str);\n"
-				"\t\tfree(str);\n"
-				"\t}\n"
-				"}\n"
-				"\n"
-				"static void value_uncons(VAL val, VAL* tail, VAL* head) {\n"
-				"\tif (IS_TUP(val)) {\n"
-				"\t\tTUPLEN len = VTUPLEN(val);\n"
-				"\t\tTUP* tup = VTUP(val);\n"
-				"\t\tASSERT1((len > 0) && tup, val);\n"
-				"\t\tVAL tailval = MKTUP(tup, len-1);\n"
-				"\t\tVAL headval = tup->cells[len-1];\n"
-				"\t\tif (len == 1) {\n"
-				"\t\t\tincref(headval);\n"
-				"\t\t\tdecref(val);\n"
-				"\t\t\ttailval = MKNIL;\n"
-				"\t\t} else {\n"
-				"\t\t\tif (tup->refs == 1) {\n"
-				"\t\t\t\tfor (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }\n"
-				"\t\t\t\tmemset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));\n"
-				"\t\t\t\ttup->size = len-1;\n"
-				"\t\t\t} else {\n"
-				"\t\t\t\tincref(headval);\n"
-				"\t\t\t}\n"
-				"\t\t\tif (len == 2) {\n"
-				"\t\t\t\tVAL ptval = tup->cells[0];\n"
-				"\t\t\t\tif (!IS_TUP(ptval)) {\n"
-				"\t\t\t\t\tincref(ptval);\n"
-				"\t\t\t\t\tdecref(tailval);\n"
-				"\t\t\t\t\ttailval = ptval;\n"
-				"\t\t\t\t}\n"
-				"\t\t\t}\n"
-				"\t\t}\n"
-				"\t\t*tail = tailval;\n"
-				"\t\t*head = headval;\n"
-				"\t} else {\n"
-				"\t\t*tail = MKNIL;\n"
-				"\t\t*head = val;\n"
-				"\t}\n"
-				"}\n"
-				"\n"
-				"static uint64_t value_u64 (VAL v) {\n"
-				"\tASSERT1(IS_INT(v),v);\n"
-				"\treturn VU64(v);\n"
-				"}\n"
-				"\n"
-				"static int64_t value_i64 (VAL v) {\n"
-				"\tASSERT1(IS_INT(v),v);\n"
-				"\treturn VI64(v);\n"
-				"}\n"
-				"\n"
-				"static void* value_ptr (VAL v) {\n"
-				"\tASSERT1(IS_PTR(v),v);\n"
-				"\treturn VPTR(v);\n"
-				"}\n"
-				"\n"
-				"static FNPTR value_fnptr (VAL v) {\n"
-				"\tASSERT1(IS_FNPTR(v),v);\n"
-				"\treturn VFNPTR(v);\n"
-				"}\n"
-				"\n"
-				"#define pop_u8() ((uint8_t)pop_u64())\n"
-				"#define pop_u16() ((uint16_t)pop_u64())\n"
-				"#define pop_u32() ((uint32_t)pop_u64())\n"
-				"#define pop_u64() (value_u64(pop_value()))\n"
-				"#define pop_i8() ((int8_t)pop_i64())\n"
-				"#define pop_i16() ((int16_t)pop_i64())\n"
-				"#define pop_i32() ((int32_t)pop_i64())\n"
-				"#define pop_i64() (value_i64(pop_value()))\n"
-				"#define pop_usize() (pop_u64())\n"
-				"#define pop_bool() (pop_u64())\n"
-				"#define pop_ptr() (value_ptr(pop_value()))\n"
-				"#define pop_fnptr() (value_fnptr(pop_value()))\n"
-				"\n"
-				"#define push_u64(v) push_value(MKU64(v))\n"
-				"#define push_i64(v) push_value(MKI64(v))\n"
-				"#define push_usize(v) push_u64((uint64_t)(v))\n"
-				"#define push_bool(b) push_u64((uint64_t)((bool)(b)))\n"
-				"#define push_u8(b) push_u64((uint64_t)(b))\n"
-				"#define push_u16(b) push_u64((uint64_t)(b))\n"
-				"#define push_u32(b) push_u64((uint64_t)(b))\n"
-				"#define push_i8(b) push_i64((int64_t)(b))\n"
-				"#define push_i16(b) push_i64((int64_t)(b))\n"
-				"#define push_i32(b) push_i64((int64_t)(b))\n"
-				"#define push_ptr(p) push_value(MKPTR(p))\n"
-				"#define push_fnptr(p) push_value(MKFNPTR(p))\n"
-				"\n"
-				"static void push_value(VAL x) {\n"
-				"\tASSERT(stack_counter > 0);\n"
-				"\tstack[--stack_counter] = x;\n"
-				"}\n"
-				"\n"
-				"static VAL top_value(void) {\n"
-				"\tASSERT(stack_counter < STACK_MAX);\n"
-				"\treturn stack[stack_counter];\n"
-				"}\n"
-				"\n"
-				"static VAL pop_value(void) {\n"
-				"\tASSERT(stack_counter < STACK_MAX);\n"
-				"\treturn stack[stack_counter++];\n"
-				"}\n"
-				"\n"
-				"static void push_resource(VAL x) {\n"
-				"\tASSERT(rstack_counter > 0);\n"
-				"\trstack[--rstack_counter] = x;\n"
-				"}\n"
-				"\n"
-				"static VAL top_resource(void) {\n"
-				"\tASSERT(rstack_counter < STACK_MAX);\n"
-				"\treturn rstack[rstack_counter];\n"
-				"}\n"
-				"\n"
-				"static VAL pop_resource(void) {\n"
-				"\tASSERT(rstack_counter < STACK_MAX);\n"
-				"\treturn rstack[rstack_counter++];\n"
-				"}\n"
-				"\n"
-				"// Create a TUP with at least min(cap_hint, TUP_LEN_MAX) capacity.\n"
-				"static TUP* tup_new (TUPLEN cap_hint) {\n"
-				"\tif (cap_hint < 3) cap_hint = 3;\n"
-				"\tif (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;\n"
-				"\tTUP *new_tup = calloc(1, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);\n"
-				"\tASSERT(new_tup);\n"
-				"\tnew_tup->refs = 1;\n"
-				"\tnew_tup->cap = cap_hint;\n"
-				"\treturn new_tup;\n"
-				"}\n"
-				"\n"
-				"// Create a TUP with at least min(max(old_tup->size, cap_hint), TUP_LEN_MAX) capacity.\n"
-				"// Consume old_tup and copy its elements over to the new tuple.\n"
-				"static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {\n"
-				"\tASSERT(old_tup);\n"
-				"\tif (cap_hint < old_tup->size) cap_hint = old_tup->size;\n"
-				"\tif (old_tup->refs == 1) {\n"
-				"\t\tif (cap_hint < 3) cap_hint = 3;\n"
-				"\t\tif (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;\n"
-				"\t\tTUPLEN old_cap = old_tup->cap;\n"
-				"\t\tTUP *new_tup = realloc(old_tup, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);\n"
-				"\t\tASSERT(new_tup);\n"
-				"\t\tif (old_cap < cap_hint) {\n"
-				"\t\t\tmemset(new_tup->cells + old_cap, 0, sizeof(VAL)*(cap_hint - old_cap));\n"
-				"\t\t}\n"
-				"\t\tnew_tup->cap = cap_hint;\n"
-				"\t\treturn new_tup;\n"
-				"\t} else {\n"
-				"\t\tTUP* new_tup = tup_new(cap_hint);\n"
-				"\t\tfor (TUPLEN i = 0; i < old_tup->size; i++) {\n"
-				"\t\t\tVAL v = old_tup->cells[i];\n"
-				"\t\t\tnew_tup->cells[i] = v;\n"
-				"\t\t\tincref(v);\n"
-				"\t\t}\n"
-				"\t\tnew_tup->size = old_tup->size;\n"
-				"\t\told_tup->refs--;\n"
-				"\t\treturn new_tup;\n"
-				"\t}\n"
-				"}\n"
-				"\n"
-				"static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {\n"
-				"\tif (IS_TUP(tail) && HAS_REFS(tail)) {\n"
-				"\t\tTUPLEN tail_len = VTUPLEN(tail);\n"
-				"\t\tTUP *tail_tup = VTUP(tail);\n"
-				"\t\tASSERT1(tail_tup, tail);\n"
-				"\t\tASSERT1(tail_len <= tail_tup->size, tail);\n"
-				"\t\tif (tail_len < tail_tup->size) {\n"
-				"\t\t\tASSERT1(tail_tup->refs >= 1, tail);\n"
-				"\t\t\tif (tail_tup->refs == 1) {\n"
-				"\t\t\t\tdecref(tail_tup->cells[tail_len]);\n"
-				"\t\t\t\ttail_tup->cells[tail_len] = head;\n"
-				"\t\t\t\treturn MKTUP(tail_tup, tail_len+1);\n"
-				"\t\t\t} else {\n"
-				"\t\t\t\tVAL *cmp = &tail_tup->cells[tail_len];\n"
-				"\t\t\t\tif (VALEQ(*cmp, head)) {\n"
-				"\t\t\t\t\tdecref(head);\n"
-				"\t\t\t\t\treturn MKTUP(tail_tup, tail_len+1);\n"
-				"\t\t\t\t} else {\n"
-				"\t\t\t\t\tif (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;\n"
-				"\t\t\t\t\tTUP* new_tup = tup_new(cap_hint);\n"
-				"\t\t\t\t\tfor (TUPLEN i = 0; i < tail_len; i++) {\n"
-				"\t\t\t\t\t\tVAL v = tail_tup->cells[i];\n"
-				"\t\t\t\t\t\tnew_tup->cells[i] = v;\n"
-				"\t\t\t\t\t\tincref(v);\n"
-				"\t\t\t\t\t}\n"
-				"\t\t\t\t\tnew_tup->cells[tail_len] = head;\n"
-				"\t\t\t\t\tnew_tup->size = tail_len+1;\n"
-				"\t\t\t\t\ttail_tup->refs--;\n"
-				"\t\t\t\t\treturn MKTUP(new_tup, tail_len+1);\n"
-				"\t\t\t\t}\n"
-				"\t\t\t}\n"
-				"\t\t} else {\n"
-				"\t\t\tASSERT1(tail_len < TUP_LEN_MAX, tail);\n"
-				"\t\t\tASSERT1(tail_len <= tail_tup->cap, tail);\n"
-				"\t\t\tif (tail_len < tail_tup->cap) {\n"
-				"\t\t\t\ttail_tup->cells[tail_len] = head;\n"
-				"\t\t\t\ttail_tup->size = tail_len+1;\n"
-				"\t\t\t\treturn MKTUP(tail_tup, tail_len+1);\n"
-				"\t\t\t} else {\n"
-				"\t\t\t\tif (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;\n"
-				"\t\t\t\tTUP* new_tup = tup_resize(tail_tup, cap_hint);\n"
-				"\t\t\t\tASSERT(tail_len < new_tup->cap);\n"
-				"\t\t\t\tnew_tup->size = tail_len+1;\n"
-				"\t\t\t\tnew_tup->cells[tail_len] = head;\n"
-				"\t\t\t\treturn MKTUP(new_tup, tail_len+1);\n"
-				"\t\t\t}\n"
-				"\t\t}\n"
-				"\t} else if (IS_TUP(tail)) { // cons onto nil\n"
-				"\t\tASSERT(IS_NIL(tail));\n"
-				"\t\tif (IS_TUP(head)) {\n"
-				"\t\t\tTUP* tup = tup_new(cap_hint);\n"
-				"\t\t\ttup->size = 1;\n"
-				"\t\t\ttup->cells[0] = head;\n"
-				"\t\t\treturn MKTUP(tup,1);\n"
-				"\t\t} else { // non-tup value pretends to be unary tuple\n"
-				"\t\t\treturn head;\n"
-				"\t\t}\n"
-				"\t} else { // cons onto non-tup value pretending to be unary tuple\n"
-				"\t\tTUP* tup = tup_new(cap_hint);\n"
-				"\t\ttup->size = 2;\n"
-				"\t\ttup->cells[0] = tail;\n"
-				"\t\ttup->cells[1] = head;\n"
-				"\t\treturn MKTUP(tup,2);\n"
-				"\t}\n"
-				"}\n"
-				"static VAL mkcons(VAL tail, VAL head) {\n"
-				"\tVAL v = mkcons_hint(tail,head,3);\n"
-				"\treturn v;\n"
-				"}\n"
-				"\n"
-				"static VAL lpop(VAL* stk) {\n"
-				"\tVAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);\n"
-				"\t*stk=lcar; return lcdr;\n"
-				"}\n"
-				"static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }\n"
-				"#define LPOP(v) push_value(lpop(&(v)))\n"
-				"#define LPUSH(v) lpush(&(v),pop_value())\n"
-				"#define LPOPR(v) push_resource(lpop(&(v)))\n"
-				"#define LPUSHR(v) lpush(&(v),pop_resource())\n"
-				"\n"
-				"static STR* str_alloc (USIZE cap) {\n"
-				"\tASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);\n"
-				"\tSTR* str = calloc(1, (size_t)(cap + sizeof(STR) + 4));\n"
-				"\tEXPECT(str, \"failed to allocate string\");\n"
-				"\tstr->refs = 1;\n"
-				"\tstr->cap = cap;\n"
-				"\treturn str;\n"
-				"}\n"
-				"\n"
-				"static VAL mkstr (const char* data, USIZE size) {\n"
-				"\tASSERT(data);\n"
-				"\tASSERT(size <= SIZE_MAX - sizeof(STR) - 4);\n"
-				"\tSTR* str = str_alloc(size);\n"
-				"\tstr->size = size;\n"
-				"\tmemcpy(str->data, data, (size_t)size);\n"
-				"\treturn MKSTR(str);\n"
-				"}\n"
-				"\n"
-				"static void do_uncons(void) {\n"
-				"\tVAL val, tail, head;\n"
-				"\tval = pop_value();\n"
-				"\tvalue_uncons(val, &tail, &head);\n"
-				"\tpush_value(tail);\n"
-				"\tpush_value(head);\n"
-				"}\n"
-				"\n"
-				"static USIZE get_data_tag(VAL v) {\n"
-				"\tif (IS_TUP(v)) {\n"
-				"\t\tASSERT(VTUPLEN(v) > 0);\n"
-				"\t\treturn VU64(VTUP(v)->cells[0]);\n"
-				"\t} else {\n"
-				"\t\treturn VU64(v);\n"
-				"\t}\n"
-				"}\n"
-				"\n"
-				"static USIZE get_top_data_tag(void) {\n"
-				"\treturn get_data_tag(top_value());\n"
-				"}\n"
-				"\n"
-				"static USIZE get_top_resource_data_tag(void) {\n"
-				"\treturn get_data_tag(top_resource());\n"
-				"}\n"
-				"\n"
-				"static int str_cmp_(STR* s1, STR* s2) {\n"
-				"\tASSERT(s1 && s2);\n"
-				"\tUSIZE n1 = s1->size;\n"
-				"\tUSIZE n2 = s2->size;\n"
-				"\tUSIZE n = (n1 < n2 ? n1 : n2);\n"
-				"\tASSERT(n < SIZE_MAX);\n"
-				"\tint r = memcmp(s1->data, s2->data, (size_t)n);\n"
-				"\tif (r) return r;\n"
-				"\tif (n1 < n2) return -1;\n"
-				"\tif (n1 > n2) return 1;\n"
-				"\treturn 0;\n"
-				"}\n"
-				"\n"
-				"static void run_value(VAL v) {\n"
-				"\tif (IS_TUP(v)) {\n"
-				"\t\tVAL h = VTUP(v)->cells[0];\n"
-				"\t\tASSERT(IS_FNPTR(h));\n"
-				"\t\tpush_value(v);\n"
-				"\t\tVFNPTR(h)();\n"
-				"\t} else {\n"
-				"\t\tASSERT(IS_FNPTR(v));\n"
-				"\t\tVFNPTR(v)();\n"
-				"\t}\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_id (void) {}\n"
-				"static void mp_primZ_dup (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_dup,\"prim-dup\");\n"
-				"\tVAL v = top_value();\n"
-				"\tpush_value(v);\n"
-				"\tincref(v);\n"
-				"\tPRIM_EXIT(mp_primZ_dup);\n"
-				"}\n"
-				"static void mp_primZ_drop (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_drop,\"prim-drop\");\n"
-				"\tVAL v = pop_value();\n"
-				"\tdecref(v);\n"
-				"\tPRIM_EXIT(mp_primZ_drop);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_swap (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_swap,\"prim-swap\");\n"
-				"\tVAL a = pop_value();\n"
-				"\tVAL b = pop_value();\n"
-				"\tpush_value(a);\n"
-				"\tpush_value(b);\n"
-				"\tPRIM_EXIT(mp_primZ_swap);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_rswap (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_rswap,\"prim-rswap\");\n"
-				"\tVAL a = pop_resource();\n"
-				"\tVAL b = pop_resource();\n"
-				"\tpush_resource(a);\n"
-				"\tpush_resource(b);\n"
-				"\tPRIM_EXIT(mp_primZ_rswap);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_intZ_add (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_add,\"prim-int-add\");\n"
-				"\tint64_t b = pop_i64();\n"
-				"\tint64_t a = pop_i64();\n"
-				"\tif (b >= 0) {\n"
-				"\t\tEXPECT(a <= INT64_MAX - b, \"integer overflow during addition (too positive)\");\n"
-				"\t} else {\n"
-				"\t\tEXPECT(a >= INT64_MIN - b, \"integer overflow during addition (too negative)\");\n"
-				"\t}\n"
-				"\tpush_i64(a + b);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_add);\n"
-				"}\n"
-				"static void mp_primZ_intZ_sub (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_sub,\"prim-int-sub\");\n"
-				"\tint64_t b = pop_i64();\n"
-				"\tint64_t a = pop_i64();\n"
-				"\tif (b >= 0) {\n"
-				"\t\tEXPECT(a >= INT64_MIN + b, \"integer overflow during subtraction (too negative)\");\n"
-				"\t} else {\n"
-				"\t\tEXPECT(a <= INT64_MAX + b, \"integer overflow during subtraction (too positive)\");\n"
-				"\t}\n"
-				"\tpush_i64(a - b);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_sub);\n"
-				"}\n"
-				"static void mp_primZ_intZ_mul (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_mul,\"prim-int-mul\");\n"
-				"\tint64_t b = pop_i64();\n"
-				"\tint64_t a = pop_i64();\n"
-				"\t// overflow checks for multiplication\n"
-				"\tpush_i64(a * b);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_mul);\n"
-				"}\n"
-				"static void mp_primZ_intZ_div (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_div,\"prim-int-div\");\n"
-				"\tint64_t b = pop_i64();\n"
-				"\tint64_t a = pop_i64();\n"
-				"\tEXPECT(b != 0, \"divide by zero\");\n"
-				"\tEXPECT(!((b == -1) && (a == INT64_MIN)), \"overflow during division\");\n"
-				"\tint64_t r = a % b;\n"
-				"\tint64_t q = a / b;\n"
-				"\tif (((a < 0) ^ (b < 0)) && r) q--;\n"
-				"\tpush_i64(q);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_div);\n"
-				"}\n"
-				"static void mp_primZ_intZ_mod (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_mod,\"prim-int-mod\");\n"
-				"\tint64_t b = pop_i64();\n"
-				"\tint64_t a = pop_i64();\n"
-				"\tEXPECT(b != 0, \"divide by zero\");\n"
-				"\tif (b == -1) { push_i64(0); return; }\n"
-				"\tint64_t r = a % b;\n"
-				"\tint64_t q = a / b;\n"
-				"\tif (((a < 0) ^ (b < 0)) && r) r += b;\n"
-				"\tpush_i64(r);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_mod);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_intZ_and (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_and,\"prim-int-and\");\n"
-				"\tuint64_t b = pop_u64();\n"
-				"\tuint64_t a = pop_u64();\n"
-				"\tpush_u64(a & b);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_and);\n"
-				"}\n"
-				"static void mp_primZ_intZ_or (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_or,\"prim-int-or\");\n"
-				"\tuint64_t b = pop_u64();\n"
-				"\tuint64_t a = pop_u64();\n"
-				"\tpush_u64(a | b);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_or);\n"
-				"}\n"
-				"static void mp_primZ_intZ_xor (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_xor,\"prim-int-xor\");\n"
-				"\tuint64_t b = pop_u64();\n"
-				"\tuint64_t a = pop_u64();\n"
-				"\tpush_u64(a ^ b);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_xor);\n"
-				"}\n"
-				"static void mp_primZ_intZ_shl (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_shl,\"prim-int-shl\");\n"
-				"\tuint64_t b = pop_u64();\n"
-				"\tuint64_t a = pop_u64();\n"
-				"\tpush_u64((b >= 64) ? 0 : (a << b));\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_shl);\n"
-				"}\n"
-				"static void mp_primZ_intZ_shr (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_shr,\"prim-int-shr\");\n"
-				"\tuint64_t b = pop_u64();\n"
-				"\tuint64_t a = pop_u64();\n"
-				"\tpush_u64((b >= 64) ? 0 : (a >> b));\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_shr);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_intZ_eq (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_eq,\"prim-int-eq\");\n"
-				"\tVAL b = pop_value();\n"
-				"\tVAL a = pop_value();\n"
-				"\tASSERT1(IS_INT(a), a);\n"
-				"\tASSERT1(IS_INT(b), a);\n"
-				"\tpush_bool(VINT(a) == VINT(b));\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_eq);\n"
-				"}\n"
-				"static void mp_primZ_intZ_lt (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_lt,\"prim-int-lt\");\n"
-				"\tVAL b = pop_value();\n"
-				"\tVAL a = pop_value();\n"
-				"\tASSERT2(IS_INT(a) && IS_INT(b), a, b);\n"
-				"\tpush_bool(VINT(a) < VINT(b));\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_lt);\n"
-				"}\n"
-				"static void mp_primZ_strZ_cmp (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_strZ_cmp,\"prim-str-cmp\");\n"
-				"\tVAL b = pop_value();\n"
-				"\tVAL a = pop_value();\n"
-				"\tASSERT2(IS_STR(a) && IS_STR(b), a, b);\n"
-				"\tint64_t cmp = str_cmp_(VSTR(a), VSTR(b));\n"
-				"\tpush_i64(cmp);\n"
-				"\tdecref(a); decref(b);\n"
-				"\tPRIM_EXIT(mp_primZ_strZ_cmp);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_sysZ_argc (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_sysZ_argc,\"prim-sys-argc\");\n"
-				"\tpush_i64(global_argc);\n"
-				"\tPRIM_EXIT(mp_primZ_sysZ_argc);\n"
-				"}\n"
-				"static void mp_primZ_sysZ_argv (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_sysZ_argv,\"prim-sys-argv\");\n"
-				"\tpush_ptr(global_argv);\n"
-				"\tPRIM_EXIT(mp_primZ_sysZ_argv);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_posixZ_write (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_posixZ_write,\"prim-posix-write\");\n"
-				"\tUSIZE n = pop_usize();\n"
-				"\tVAL vp = pop_value();\n"
-				"\tvoid* p = value_ptr(vp);\n"
-				"\tint fd = (int)pop_i64();\n"
-				"\tASSERT(n <= SIZE_MAX);\n"
-				"\tpush_i64((int64_t)write(fd, p, (size_t)n));\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_posixZ_write);\n"
-				"}\n"
-				"static void mp_primZ_posixZ_read (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_posixZ_read,\"prim-posix-read\");\n"
-				"\tUSIZE n = pop_usize();\n"
-				"\tVAL vp = pop_value();\n"
-				"\tvoid* p = value_ptr(vp);\n"
-				"\tint fd = (int)pop_i64();\n"
-				"\tASSERT(n <= SIZE_MAX);\n"
-				"\tpush_i64((int64_t)read(fd, p, (size_t)n));\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_posixZ_read);\n"
-				"}\n"
-				"static void mp_primZ_posixZ_open (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_posixZ_open,\"prim-posix-open\");\n"
-				"\tint m = (int)pop_i64();\n"
-				"\tint f = (int)pop_i64();\n"
-				"\tVAL vp = pop_value();\n"
-				"\tvoid* path = value_ptr(vp);\n"
-				"\tpush_i64((int64_t)open(path,f,m));\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_posixZ_open);\n"
-				"}\n"
-				"static void mp_primZ_posixZ_close (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_posixZ_close,\"prim-posix-close\");\n"
-				"\tint fd = (int)pop_i64();\n"
-				"\tpush_i64((int64_t)close(fd));\n"
-				"\tPRIM_EXIT(mp_primZ_posixZ_close);\n"
-				"}\n"
-				"static void mp_primZ_posixZ_exit (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_posixZ_exit,\"prim-posix-exit\");\n"
-				"\tint x = (int)pop_i64();\n"
-				"\texit(x);\n"
-				"\tPRIM_EXIT(mp_primZ_posixZ_exit);\n"
-				"}\n"
-				"\n"
-				"void int_repr(int64_t y, char** out_ptr, size_t *out_size) {\n"
-				"\tstatic char c[32] = {0};\n"
-				"\tmemset(c, 0, 32);\n"
-				"\tchar* p = c+30;\n"
-				"\tsize_t n = 0;\n"
-				"\tuint64_t x;\n"
-				"\tif (y < 0) {\n"
-				"\t\tif (y == INT64_MIN) {\n"
-				"\t\t\tx = 1+(uint64_t)INT64_MAX;\n"
-				"\t\t} else {\n"
-				"\t\t\tx = (uint64_t)-y;\n"
-				"\t\t}\n"
-				"\t} else {\n"
-				"\t\tx = (uint64_t)y;\n"
-				"\t}\n"
-				"\tdo {\n"
-				"\t\t*--p = '0' + (x % 10);\n"
-				"\t\tx /= 10;\n"
-				"\t\tn++;\n"
-				"\t} while (x);\n"
-				"\tif (y < 0) {\n"
-				"\t\t*--p = '-';\n"
-				"\t\tn++;\n"
-				"\t}\n"
-				"\t*out_ptr = p;\n"
-				"\t*out_size = n;\n"
-				"}\n"
-				"\n"
-				"void int_trace_(int64_t y, int fd) {\n"
-				"\tchar* p; size_t n;\n"
-				"\tint_repr(y, &p, &n);\n"
-				"\twrite(fd, p, n);\n"
-				"}\n"
-				"\n"
-				"void mp_primZ_intZ_toZ_str(void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_toZ_str,\"prim-int-to-str\");\n"
-				"\tint64_t x = pop_i64();\n"
-				"\tbool cache = (0 <= x) && (x <= 255);\n"
-				"\tstatic VAL scache[256] = {0};\n"
-				"\tif (cache && scache[x].tag) {\n"
-				"\t\tincref(scache[x]);\n"
-				"\t\tpush_value(scache[x]);\n"
-				"\t} else {\n"
-				"\t\tchar* p; size_t n;\n"
-				"\t\tint_repr(x,&p,&n);\n"
-				"\t\tVAL out = mkstr(p,n);\n"
-				"\t\tpush_value(out);\n"
-				"\t\tif (cache) {\n"
-				"\t\t\tscache[x] = out;\n"
-				"\t\t\tincref(out);\n"
-				"\t\t}\n"
-				"\t}\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_toZ_str);\n"
-				"}\n"
-				"\n"
-				"void str_trace_(STR* str, int fd) {\n"
-				"\tASSERT(str->size <= SIZE_MAX);\n"
-				"\twrite(fd, \"\\\"\", 1);\n"
-				"\tUSIZE i0 = 0;\n"
-				"\tchar xb[4]={'\\\\','x'};\n"
-				"\tUSIZE i;\n"
-				"\tfor (i = 0; i < str->size; i++) {\n"
-				"\t\tconst char* c = NULL; size_t n=0;\n"
-				"\t\tuint8_t v=str->data[i];\n"
-				"\t\tswitch(v) {\n"
-				"\t\t\tcase '\\n': c=\"\\\\n\"; n=2; break;\n"
-				"\t\t\tcase '\\r': c=\"\\\\r\"; n=2; break;\n"
-				"\t\t\tcase '\\t': c=\"\\\\t\"; n=2; break;\n"
-				"\t\t\tcase '\\\\': c=\"\\\\\\\\\"; n=2; break;\n"
-				"\t\t\tcase '\\\"': c=\"\\\\\\\"\"; n=2; break;\n"
-				"\t\t\tdefault:\n"
-				"\t\t\t\tif (!((' ' <= v) && (v < 0x7F))) {\n"
-				"\t\t\t\t\txb[2] = '0' + (v&15) + ('A'-'9'-1)*((v&15) > 9);\n"
-				"\t\t\t\t\txb[3] = '0' + (v/16) + ('A'-'9'-1)*((v/16) > 9);\n"
-				"\t\t\t\t\tc=xb; n=4;\n"
-				"\t\t\t\t}\n"
-				"\t\t}\n"
-				"\t\tif ((n > 0) && (i0 < i)) {\n"
-				"\t\t\twrite(fd, str->data+i0, (size_t)(i-i0));\n"
-				"\t\t\ti0=i+1;\n"
-				"\t\t}\n"
-				"\t\twrite(fd, c, n);\n"
-				"\t}\n"
-				"\tif (i0 < i) write(fd, str->data+i0, (size_t)(i-i0));\n"
-				"\twrite(fd, \"\\\"\", 1);\n"
-				"}\n"
-				"\n"
-				"void value_trace_(VAL val, int fd) {\n"
-				"\tif (IS_INT(val)) {\n"
-				"\t\tint_trace_(VINT(val), fd);\n"
-				"\t} else if (IS_STR(val)) {\n"
-				"\t\tstr_trace_(VSTR(val), fd);\n"
-				"\t} else if (IS_FNPTR(val)) {\n"
-				"\t\twrite(fd, \"<fnptr>\", 7);\n"
-				"\t} else if (IS_TUP(val)) {\n"
-				"\t\tTUPLEN len = VTUPLEN(val);\n"
-				"\t\tTUP* tup = VTUP(val);\n"
-				"\t\tif (VTUPLEN(val) == 0) {\n"
-				"\t\t\twrite(fd, \"[]\", 2);\n"
-				"\t\t} else {\n"
-				"\t\t\twrite(fd, \"[ \", 2);\n"
-				"\t\t\tfor(TUPLEN i = 0; i < len; i++) {\n"
-				"\t\t\t\tif (i > 0) write(fd, \" \", 1);\n"
-				"\t\t\t\tvalue_trace_(tup->cells[i], fd);\n"
-				"\t\t\t}\n"
-				"\t\t\twrite(fd, \" ]\", 2);\n"
-				"\t\t}\n"
-				"\t} else {\n"
-				"\t\tTRACE(\"value cannot be traced\");\n"
-				"\t\texit(1);\n"
-				"\t}\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_debug (void) {\n"
-				"\tTRACE(\"??\");\n"
-				"\tfor (long i = STACK_MAX-1; i >= (long)stack_counter; i--) {\n"
-				"\t\tTRACE(\" \");\n"
-				"\t\tvalue_trace_(stack[i], 2);\n"
-				"\t}\n"
-				"\tTRACE(\"\\n\");\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_rdebug (void) {\n"
-				"\t#if MIRTH_DEBUG\n"
-				"\t\tTRACE(\"call stack:\\n\");\n"
-				"\t\tfor (USIZE i = fstack_counter; i --> 1;) {\n"
-				"\t\t\tTRACE(\"    \");\n"
-				"\t\t\tif (fstack[i-1].atom && *fstack[i-1].atom && strcmp(fstack[i-1].atom, fstack[i].word)) {\n"
-				"\t\t\t\tTRACE(fstack[i-1].atom);\n"
-				"\t\t\t\tTRACE(\" -> \");\n"
-				"\t\t\t}\n"
-				"\t\t\tTRACE(fstack[i].word);\n"
-				"\t\t\tTRACE(\" at \");\n"
-				"\t\t\tTRACE(fstack[i-1].path);\n"
-				"\t\t\tTRACE(\":\");\n"
-				"\t\t\tint_trace_((int64_t)fstack[i-1].line, 2);\n"
-				"\t\t\tTRACE(\":\");\n"
-				"\t\t\tint_trace_((int64_t)fstack[i-1].col, 2);\n"
-				"\t\t\tTRACE(\"\\n\");\n"
-				"\t\t}\n"
-				"\t#endif\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_panic(void) {\n"
-				"\tif ((stack_counter > 0) && IS_STR(top_value())) {\n"
-				"\t\tVAL v = pop_value();\n"
-				"\t\tsize_t n = (VSTR(v)->size < 2048) ? (size_t)(VSTR(v)->size) : 2048;\n"
-				"\t\twrite(2, VSTR(v)->data, n);\n"
-				"\t\tTRACE(\"\\n\");\n"
-				"\t} else {\n"
-				"\t\tTRACE(\"panic!\\n\");\n"
-				"\t}\n"
-				"\tmp_primZ_debug();\n"
-				"\tmp_primZ_rdebug();\n"
-				"\texit(1);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_ptrZ_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_get,\"prim-ptr-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tvoid **p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_ptr(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u8Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u8Z_get,\"prim-u8-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint8_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_u8(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u8Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u16Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u16Z_get,\"prim-u16-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint16_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_u16(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u16Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u32Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u32Z_get,\"prim-u32-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint32_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_u32(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u32Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u64Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u64Z_get,\"prim-u64-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint64_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_u64(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u64Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i8Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i8Z_get,\"prim-i8-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint8_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_i8(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i8Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i16Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i16Z_get,\"prim-i16-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint16_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_i16(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i16Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i32Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i32Z_get,\"prim-i32-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint32_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_i32(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i32Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i64Z_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i64Z_get,\"prim-i64-get\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint64_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to load from null pointer\");\n"
-				"\tpush_i64(*p);\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i64Z_get);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_intZ_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_intZ_set,\"prim-int-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint64_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_i64();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_intZ_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_ptrZ_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_set,\"prim-ptr-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tvoid **p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_ptr();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u8Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u8Z_set,\"prim-u8-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint8_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_u8();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u8Z_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u16Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u16Z_set,\"prim-u16-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint16_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_u16();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u16Z_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u32Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u32Z_set,\"prim-u32-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint32_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_u32();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u32Z_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_u64Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_u64Z_set,\"prim-u64-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tuint64_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_u64();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_u64Z_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i8Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i8Z_set,\"prim-i8-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint8_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_i8();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i8Z_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i16Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i16Z_set,\"prim-i16-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint16_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_i16();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i16Z_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i32Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i32Z_set,\"prim-i32-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint32_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_i32();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i32Z_set);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_i64Z_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_i64Z_set,\"prim-i64-set\");\n"
-				"\tVAL vp = pop_value();\n"
-				"\tint64_t *p = value_ptr(vp);\n"
-				"\tEXPECT(p, \"tried to write to null pointer\");\n"
-				"\t*p = pop_i64();\n"
-				"\tdecref(vp);\n"
-				"\tPRIM_EXIT(mp_primZ_i64Z_set);\n"
-				"}\n"
-				"\n"
-				"\n"
-				"#if defined(MIRTH_WINDOWS)\n"
-				"#define mp_primZ_sysZ_os() push_u64(1)\n"
-				"#elif defined(MIRTH_LINUX)\n"
-				"#define mp_primZ_sysZ_os() push_u64(2)\n"
-				"#elif defined(MIRTH_MACOS)\n"
-				"#define mp_primZ_sysZ_os() push_u64(3)\n"
-				"#else\n"
-				"#define mp_primZ_sysZ_os() push_u64(0)\n"
-				"#endif\n"
-				"\n"
-				"#if defined(MIRTH_I386)\n"
-				"#define mp_primZ_sysZ_arch() push_u64(1)\n"
-				"#elif defined(MIRTH_AMD64)\n"
-				"#define mp_primZ_sysZ_arch() push_u64(2)\n"
-				"#elif defined(MIRTH_ARM64)\n"
-				"#define mp_primZ_sysZ_arch() push_u64(3)\n"
-				"#else\n"
-				"#define mp_primZ_sysZ_arch() push_u64(0)\n"
-				"#endif\n"
-				"\n"
-				"static void mp_primZ_run (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_run,\"prim-run\");\n"
-				"\tVAL f = pop_value();\n"
-				"\trun_value(f);\n"
-				"\tPRIM_EXIT(mp_primZ_run);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_ptrZ_nil (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_nil,\"prim-ptr-nil\");\n"
-				"\tpush_ptr((void*)0);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_nil);\n"
-				"}\n"
-				"static void mp_primZ_ptrZ_eq (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_eq,\"prim-ptr-eq\");\n"
-				"\tvoid* a = pop_ptr();\n"
-				"\tvoid* b = pop_ptr();\n"
-				"\tpush_bool(a == b);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_eq);\n"
-				"}\n"
-				"static void mp_primZ_ptrZ_add (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_add,\"prim-ptr-add\");\n"
-				"\tVAL vptr = pop_value();\n"
-				"\tUSIZE n = pop_usize();\n"
-				"\tASSERT1(IS_PTR(vptr), vptr);\n"
-				"\tEXPECT(VPTR(vptr), \"attempt to add to null pointer\");\n"
-				"\tchar* ptr = (char*)VPTR(vptr);\n"
-				"\tpush_ptr(ptr + n);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_add);\n"
-				"}\n"
-				"#define mp_primZ_ptrZ_sizze() push_u64((uint64_t)sizeof(void*))\n"
-				"static void mp_primZ_ptrZ_alloc (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_alloc,\"prim-ptr-alloc\");\n"
-				"\tUSIZE n = pop_usize();\n"
-				"\tvoid* p = malloc((size_t)n);\n"
-				"\tEXPECT(p, \"failed to allocate buffer\");\n"
-				"\tpush_ptr(p);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_alloc);\n"
-				"}\n"
-				"static void mp_primZ_ptrZ_realloc (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_realloc,\"prim-ptr-realloc\");\n"
-				"\tUSIZE n = pop_usize();\n"
-				"\tvoid* p0 = pop_ptr();\n"
-				"\tvoid* p1 = realloc(p0, (size_t)n);\n"
-				"\tEXPECT(p1, \"failed to reallocate buffer\");\n"
-				"\tpush_ptr(p1);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_realloc);\n"
-				"}\n"
-				"static void mp_primZ_ptrZ_free (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_free,\"prim-ptr-free\");\n"
-				"\tvoid* p = pop_ptr();\n"
-				"\tfree(p);\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_free);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_ptrZ_copy (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_copy,\"prim-ptr-copy\");\n"
-				"\tVAL vdst = pop_value();\n"
-				"\tint64_t ilen = pop_i64();\n"
-				"\tVAL vsrc = pop_value();\n"
-				"\tASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);\n"
-				"\tvoid* src = value_ptr(vsrc);\n"
-				"\tvoid* dst = value_ptr(vdst);\n"
-				"\tif (src && dst && (ilen > 0)) {\n"
-				"\t\tASSERT((USIZE)ilen <= SIZE_MAX);\n"
-				"\t\tmemcpy(dst, src, (size_t)ilen);\n"
-				"\t}\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_copy);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_ptrZ_fill (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_ptrZ_fill,\"prim-ptr-fill\");\n"
-				"\tVAL vdst = pop_value();\n"
-				"\tASSERT1(IS_PTR(vdst), vdst);\n"
-				"\tint64_t ilen = pop_i64();\n"
-				"\tuint64_t val = pop_u64();\n"
-				"\tvoid* dst = value_ptr(vdst);\n"
-				"\tif (dst && (ilen > 0)) {\n"
-				"\t\tASSERT((USIZE)ilen <= SIZE_MAX);\n"
-				"\t\tmemset(dst, (int)val, (size_t)ilen);\n"
-				"\t}\n"
-				"\tPRIM_EXIT(mp_primZ_ptrZ_fill);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_strZ_copy (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_strZ_copy,\"prim-str-copy\");\n"
-				"\tUSIZE size = pop_usize();\n"
-				"\tchar* ptr = (char*)pop_ptr();\n"
-				"\tASSERT(size <= SIZE_MAX-sizeof(STR)-4);\n"
-				"\tASSERT(ptr);\n"
-				"\tpush_value(mkstr(ptr, size));\n"
-				"\tPRIM_EXIT(mp_primZ_strZ_copy);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_strZ_cat (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_strZ_cat,\"prim-str-cat\");\n"
-				"\tVAL v2 = pop_value();\n"
-				"\tVAL v1 = pop_value();\n"
-				"\tASSERT2(IS_STR(v1) && IS_STR(v2), v1, v2);\n"
-				"\tSTR* s1 = VSTR(v1);\n"
-				"\tSTR* s2 = VSTR(v2);\n"
-				"\tUSIZE m = s1->cap;\n"
-				"\tUSIZE n1 = s1->size;\n"
-				"\tUSIZE n2 = s2->size;\n"
-				"\tif ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {\n"
-				"\t\tASSERT(n2 <= SIZE_MAX);\n"
-				"\t\tmemcpy(s1->data + n1, s2->data, (size_t)n2);\n"
-				"\t\ts1->size += n2;\n"
-				"\t\tASSERT(s1->size + 4 <= s1->cap);\n"
-				"\t\tpush_value(v1);\n"
-				"\t\tdecref(v2);\n"
-				"\t} else {\n"
-				"\t\tUSIZE m2 = n1 + n2 + 4;\n"
-				"\t\tif ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;\n"
-				"\t\tSTR* str = str_alloc(m2);\n"
-				"\t\tstr->size = n1+n2;\n"
-				"\t\tASSERT(n1 <= SIZE_MAX);\n"
-				"\t\tASSERT(n2 <= SIZE_MAX);\n"
-				"\t\tmemcpy(str->data, s1->data, (size_t)n1);\n"
-				"\t\tmemcpy(str->data+n1, s2->data, (size_t)n2);\n"
-				"\t\tpush_value(MKSTR(str));\n"
-				"\t\tdecref(v1);\n"
-				"\t\tdecref(v2);\n"
-				"\t}\n"
-				"\tPRIM_EXIT(mp_primZ_strZ_cat);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_strZ_base (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_strZ_base,\"prim-str-base\");\n"
-				"\tVAL vstr = pop_value();\n"
-				"\tASSERT1(IS_STR(vstr) && VSTR(vstr), vstr);\n"
-				"\tpush_ptr(VSTR(vstr)->data);\n"
-				"\tdecref(vstr);\n"
-				"\tPRIM_EXIT(mp_primZ_strZ_base);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_strZ_numZ_bytes (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_strZ_numZ_bytes,\"prim-str-num-bytes\");\n"
-				"\tVAL v = pop_value();\n"
-				"\tASSERT(IS_STR(v) && VSTR(v));\n"
-				"\tpush_usize(VSTR(v)->size);\n"
-				"\tdecref(v);\n"
-				"\tPRIM_EXIT(mp_primZ_strZ_numZ_bytes);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_packZ_nil (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_packZ_nil,\"prim-pack-nil\");\n"
-				"\tpush_value(MKNIL);\n"
-				"\tPRIM_EXIT(mp_primZ_packZ_nil);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_packZ_cons (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_packZ_cons,\"prim-pack-cons\");\n"
-				"\tVAL cdr = pop_value();\n"
-				"\tVAL car = pop_value();\n"
-				"\tpush_value(mkcons(car,cdr));\n"
-				"\tPRIM_EXIT(mp_primZ_packZ_cons);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_packZ_uncons (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_packZ_uncons,\"prim-pack-uncons\");\n"
-				"\tdo_uncons();\n"
-				"\tPRIM_EXIT(mp_primZ_packZ_uncons);\n"
-				"}\n"
-				"\n"
-				"static void mp_primZ_mutZ_get (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_mutZ_get,\"prim-mut-get\");\n"
-				"\tVAL mut = pop_value();\n"
-				"\tASSERT1(IS_PTR(mut) && VPTR(mut), mut);\n"
-				"\tVAL v = *(VAL*)VPTR(mut);\n"
-				"\tEXPECT(v.tag, \"tried to read uninitialized value\");\n"
-				"\tpush_value(v);\n"
-				"\tincref(v);\n"
-				"\tPRIM_EXIT(mp_primZ_mutZ_get);\n"
-				"}\n"
-				"static void mp_primZ_mutZ_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_mutZ_set,\"prim-mut-set\");\n"
-				"\tVAL mut = pop_value();\n"
-				"\tVAL newval = pop_value();\n"
-				"\tASSERT1(IS_PTR(mut) && VPTR(mut), mut);\n"
-				"\tVAL oldval = *(VAL*)VPTR(mut);\n"
-				"\t*(VAL*)VPTR(mut) = newval;\n"
-				"\tif (oldval.tag) {\n"
-				"\t\tdecref(oldval);\n"
-				"\t}\n"
-				"\tdecref(mut);\n"
-				"\tPRIM_EXIT(mp_primZ_mutZ_set);\n"
-				"}\n"
-				"static void mp_primZ_mutZ_isZ_set (void) {\n"
-				"\tPRIM_ENTER(mp_primZ_mutZ_isZ_set,\"prim-mut-is-set\");\n"
-				"\tVAL mut = pop_value();\n"
-				"\tASSERT1(IS_PTR(mut) && VPTR(mut), mut);\n"
-				"\tVAL val = *(VAL*)VPTR(mut);\n"
-				"\tpush_bool(val.tag);\n"
-				"\tdecref(mut);\n"
-				"\tPRIM_EXIT(mp_primZ_mutZ_isZ_set);\n"
-				"}\n"
-				"\n"
-				"/* GENERATED C99 */\n",
-				33601
-			);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(
+		"/* MIRTH HEADER */\n"
+		"#line 3 \"src/mirth.h\"\n"
+		"\n"
+		"#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)\n"
+		"#define MIRTH_WINDOWS 1\n"
+		"#elif defined(__linux__)\n"
+		"#define MIRTH_LINUX 1\n"
+		"#elif defined(__APPLE__)\n"
+		"#define MIRTH_MACOS 1\n"
+		"#else\n"
+		"#error \"Platform not supported.\"\n"
+		"#endif\n"
+		"\n"
+		"#if defined(__x86_64__) || defined(_M_X64)\n"
+		"#define MIRTH_AMD64\n"
+		"#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)\n"
+		"#define MIRTH_I386\n"
+		"#elif defined(__aarch64__) || defined(_M_ARM64)\n"
+		"#define MIRTH_ARM64\n"
+		"#else\n"
+		"#error \"Architecture not supported.\"\n"
+		"#endif\n"
+		"\n"
+		"#include <stdint.h>\n"
+		"#include <stdbool.h>\n"
+		"#include <stddef.h>\n"
+		"\n"
+		"extern void* malloc(size_t);\n"
+		"extern void* calloc(size_t, size_t);\n"
+		"extern void* realloc(void*, size_t);\n"
+		"extern void* memset(void*, int, size_t);\n"
+		"extern void* memcpy(void*, const void*, size_t);\n"
+		"extern int memcmp(const void*, const void*, size_t);\n"
+		"extern int strcmp(const char*, const char*);\n"
+		"extern size_t strlen(const char*);\n"
+		"extern void free(void*);\n"
+		"extern int read(int, void*, size_t);\n"
+		"extern int write(int, const char*, size_t);\n"
+		"extern int close(int);\n"
+		"extern int open(const char*, int, ...);\n"
+		"extern void exit(int);\n"
+		"\n"
+		"typedef uint16_t TAG;\n"
+		"#define REFS_FLAG \t 0x8000\n"
+		"#define TUP_FLAG \t 0x4000\n"
+		"#define TUP_LEN_MASK 0x3FFF\n"
+		"#define TUP_LEN_MAX  0x3FFF\n"
+		"\n"
+		"#define TAG_INT 1\n"
+		"#define TAG_PTR 1\n"
+		"#define TAG_STR (2 | REFS_FLAG)\n"
+		"#define TAG_FNPTR 3\n"
+		"#define TAG_TUP_NIL TUP_FLAG\n"
+		"#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)\n"
+		"#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))\n"
+		"\n"
+		"typedef uint32_t REFS;\n"
+		"typedef uint64_t USIZE;\n"
+		"typedef void (*FNPTR)(void);\n"
+		"\n"
+		"typedef union DATA {\n"
+		"\tUSIZE usize;\n"
+		"\tuint64_t u64;\n"
+		"\tuint32_t u32;\n"
+		"\tuint16_t u16;\n"
+		"\tuint8_t u8;\n"
+		"\tint64_t i64;\n"
+		"\tint32_t i32;\n"
+		"\tint16_t i16;\n"
+		"\tint8_t i8;\n"
+		"\tvoid* ptr;\n"
+		"\tFNPTR fnptr;\n"
+		"\tREFS* refs;\n"
+		"\tstruct TUP* tup;\n"
+		"\tstruct STR* str;\n"
+		"} DATA;\n"
+		"\n"
+		"typedef struct VAL {\n"
+		"\tDATA data;\n"
+		"\tTAG tag;\n"
+		"} VAL;\n"
+		"\n"
+		"#define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))\n"
+		"\n"
+		"#define VREFS(v)  (*(v).data.refs)\n"
+		"#define VINT(v)   ((v).data.i64)\n"
+		"#define VI64(v)   ((v).data.i64)\n"
+		"#define VU64(v)   ((v).data.u64)\n"
+		"#define VPTR(v)   ((v).data.ptr)\n"
+		"#define VFNPTR(v) ((v).data.fnptr)\n"
+		"#define VSTR(v)   ((v).data.str)\n"
+		"#define VTUP(v)   ((v).data.tup)\n"
+		"#define VTUPLEN(v) (TAG_TUP_LEN((v).tag))\n"
+		"\n"
+		"#define HAS_REFS(v) ((v).tag & REFS_FLAG)\n"
+		"#define IS_INT(v)   ((v).tag == TAG_INT)\n"
+		"#define IS_U64(v)   ((v).tag == TAG_INT)\n"
+		"#define IS_I64(v)   ((v).tag == TAG_INT)\n"
+		"#define IS_PTR(v)   ((v).tag == TAG_PTR)\n"
+		"#define IS_FNPTR(v) ((v).tag == TAG_FNPTR)\n"
+		"#define IS_STR(v)   ((v).tag == TAG_STR)\n"
+		"#define IS_TUP(v)   ((v).tag & TUP_FLAG)\n"
+		"#define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))\n"
+		"\n"
+		"#define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
+		"#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
+		"#define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
+		"#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})\n"
+		"#define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})\n"
+		"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
+		"#define MKTUP(x,n) ((VAL){.tag=TAG_TUP(n), .data={.tup=(x)}})\n"
+		"#define MKNIL_C\t         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}\n"
+		"#define MKNIL      ((VAL)MKNIL_C)\n"
+		"\n"
+		"#define STRLIT(x,n) \\\n"
+		"\tdo { \\\n"
+		"\t\tstatic VAL mval = {0}; \\\n"
+		"\t\tif (!mval.tag) mval = mkstr(x,n); \\\n"
+		"\t\tincref(mval); \\\n"
+		"\t\tpush_value(mval); \\\n"
+		"\t} while(0)\n"
+		"\n"
+		"typedef uint16_t TUPLEN;\n"
+		"typedef struct TUP {\n"
+		"\tREFS refs;\n"
+		"\tTUPLEN cap;\n"
+		"\tTUPLEN size;\n"
+		"\tVAL cells[];\n"
+		"} TUP;\n"
+		"\n"
+		"typedef struct STR {\n"
+		"\tREFS refs;\n"
+		"\tUSIZE cap;\n"
+		"\tUSIZE size;\n"
+		"\tchar data[];\n"
+		"} STR;\n"
+		"\n"
+		"#define STACK_MAX 0x80000\n"
+		"static USIZE stack_counter = STACK_MAX;\n"
+		"static VAL stack [STACK_MAX] = {0};\n"
+		"static USIZE rstack_counter = STACK_MAX;\n"
+		"static VAL rstack [STACK_MAX] = {0};\n"
+		"\n"
+		"static int global_argc;\n"
+		"static char** global_argv;\n"
+		"\n"
+		"static void push_value(VAL v);\n"
+		"static void mp_primZ_debug(void);\n"
+		"static void mp_primZ_rdebug(void);\n"
+		"\n"
+		"#if MIRTH_DEBUG\n"
+		"\ttypedef struct LOC {\n"
+		"\t\tFNPTR fnptr;\n"
+		"\t\tconst char* word;\n"
+		"\t\tconst char* path;\n"
+		"\t\tUSIZE line, col;\n"
+		"\t\tconst char* atom;\n"
+		"\t} LOC;\n"
+		"\tstatic USIZE fstack_counter = 0;\n"
+		"\tstatic LOC fstack [STACK_MAX] = {\n"
+		"\t\t{\n"
+		"\t\t\t.fnptr=(void(*)(void))0,\n"
+		"\t\t\t.word=\"<word>\",\n"
+		"\t\t\t.path=\"<path>\",\n"
+		"\t\t\t.line=0, .col=0,\n"
+		"\t\t\t.atom=\"<atom>\"\n"
+		"\t\t},\n"
+		"\t};\n"
+		"\n"
+		"\t#define WORD_ENTER(_f,_w,_p,_l,_c) \\\n"
+		"\t\tdo { \\\n"
+		"\t\t\tfstack[fstack_counter].fnptr = (_f); \\\n"
+		"\t\t\tfstack[fstack_counter].word = (_w); \\\n"
+		"\t\t\tfstack[fstack_counter].path = (_p); \\\n"
+		"\t\t\tfstack[fstack_counter].line = (_l); \\\n"
+		"\t\t\tfstack[fstack_counter].col = (_c); \\\n"
+		"\t\t\tfstack[fstack_counter].atom = \"\"; \\\n"
+		"\t\t\tfstack_counter++; \\\n"
+		"\t\t} while(0)\n"
+		"\n"
+		"\t#define WORD_ATOM(_l,_c,_n) \\\n"
+		"\t\tdo { \\\n"
+		"\t\t\tif (fstack_counter > 0) { \\\n"
+		"\t\t\t\tfstack[fstack_counter-1].line = (_l); \\\n"
+		"\t\t\t\tfstack[fstack_counter-1].col = (_c); \\\n"
+		"\t\t\t\tfstack[fstack_counter-1].atom = (_n); \\\n"
+		"\t\t\t} \\\n"
+		"\t\t} while(0)\n"
+		"\n"
+		"\t#define WORD_EXIT(_f) \\\n"
+		"\t\tdo { \\\n"
+		"\t\t\tif ((fstack_counter == 0) || (fstack[fstack_counter-1].fnptr != (_f))) { \\\n"
+		"\t\t\t\tTRACE(\"mismatched WORD_EXIT, expected \" #_f \"\\n\"); \\\n"
+		"\t\t\t\texit(1); \\\n"
+		"\t\t\t} \\\n"
+		"\t\t\tfstack_counter--; \\\n"
+		"\t\t} while(0)\n"
+		"\t#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)\n"
+		"\t#define PRIM_EXIT(_f) WORD_EXIT(_f)\n"
+		"#else\n"
+		"\t#define PRIM_ENTER(_f,_w)\n"
+		"\t#define PRIM_EXIT(_f)\n"
+		"#endif\n"
+		"\n"
+		"#define TRACE(x) write(2,x,strlen(x))\n"
+		"#define _STR(x) #x\n"
+		"#define STR(x) _STR(x)\n"
+		"\n"
+		"#define EXPECT(test,msg) \\\n"
+		"\tdo { \\\n"
+		"\t\tif (!(test)) { \\\n"
+		"\t\t\tTRACE(msg \"\\n\"); \\\n"
+		"\t\t\tmp_primZ_debug(); \\\n"
+		"\t\t\tmp_primZ_rdebug(); \\\n"
+		"\t\t\texit(1); \\\n"
+		"\t\t} \\\n"
+		"\t} while(0)\n"
+		"\n"
+		"#define EXPECT1(test,msg,v1) \\\n"
+		"\tdo { \\\n"
+		"\t\tif (!(test)) { \\\n"
+		"\t\t\tTRACE(msg \"\\n\"); \\\n"
+		"\t\t\tpush_value(v1); \\\n"
+		"\t\t\tmp_primZ_debug(); \\\n"
+		"\t\t\tmp_primZ_rdebug(); \\\n"
+		"\t\t\texit(1); \\\n"
+		"\t\t} \\\n"
+		"\t} while(0)\n"
+		"\n"
+		"#define EXPECT2(test,msg,v1,v2) \\\n"
+		"\tdo { \\\n"
+		"\t\tif (!(test)) { \\\n"
+		"\t\t\tTRACE(msg \"\\n\"); \\\n"
+		"\t\t\tpush_value(v1); \\\n"
+		"\t\t\tpush_value(v2); \\\n"
+		"\t\t\tmp_primZ_debug(); \\\n"
+		"\t\t\tmp_primZ_rdebug(); \\\n"
+		"\t\t\texit(1); \\\n"
+		"\t\t} \\\n"
+		"\t} while(0)\n"
+		"\n"
+		"#define ASSERT(test) \\\n"
+		"\tEXPECT(test, __FILE__ \":\" STR(__LINE__) \": error: assertion failed (\" #test \")\")\n"
+		"#define ASSERT1(test,v) \\\n"
+		"\tEXPECT1(test, __FILE__ \":\" STR(__LINE__) \": error: assertion failed (\" #test \")\", v)\n"
+		"#define ASSERT2(test,v1,v2) \\\n"
+		"\tEXPECT2(test, __FILE__ \":\" STR(__LINE__) \": error: assertion failed (\" #test \")\", v1, v2)\n"
+		"\n"
+		"#define incref(v) do { if (HAS_REFS(v)) VREFS(v)++; } while(0)\n"
+		"#define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)\n"
+		"static void free_value(VAL v) {\n"
+		"\tASSERT(HAS_REFS(v));\n"
+		"\tASSERT(VREFS(v) == 0);\n"
+		"\tASSERT1(IS_TUP(v)||IS_STR(v), v);\n"
+		"\tif (IS_TUP(v)) {\n"
+		"\t\tTUP* tup = VTUP(v);\n"
+		"\t\tASSERT(tup);\n"
+		"\t\tfor (TUPLEN i = 0; i < tup->size; i++) {\n"
+		"\t\t\tdecref(tup->cells[i]);\n"
+		"\t\t}\n"
+		"\t\tfree(tup);\n"
+		"\t} else if (IS_STR(v)) {\n"
+		"\t\tSTR* str = VSTR(v);\n"
+		"\t\tASSERT(str);\n"
+		"\t\tfree(str);\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"static void value_uncons(VAL val, VAL* tail, VAL* head) {\n"
+		"\tif (IS_TUP(val)) {\n"
+		"\t\tTUPLEN len = VTUPLEN(val);\n"
+		"\t\tTUP* tup = VTUP(val);\n"
+		"\t\tASSERT1((len > 0) && tup, val);\n"
+		"\t\tVAL tailval = MKTUP(tup, len-1);\n"
+		"\t\tVAL headval = tup->cells[len-1];\n"
+		"\t\tif (len == 1) {\n"
+		"\t\t\tincref(headval);\n"
+		"\t\t\tdecref(val);\n"
+		"\t\t\ttailval = MKNIL;\n"
+		"\t\t} else {\n"
+		"\t\t\tif (tup->refs == 1) {\n"
+		"\t\t\t\tfor (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }\n"
+		"\t\t\t\tmemset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));\n"
+		"\t\t\t\ttup->size = len-1;\n"
+		"\t\t\t} else {\n"
+		"\t\t\t\tincref(headval);\n"
+		"\t\t\t}\n"
+		"\t\t\tif (len == 2) {\n"
+		"\t\t\t\tVAL ptval = tup->cells[0];\n"
+		"\t\t\t\tif (!IS_TUP(ptval)) {\n"
+		"\t\t\t\t\tincref(ptval);\n"
+		"\t\t\t\t\tdecref(tailval);\n"
+		"\t\t\t\t\ttailval = ptval;\n"
+		"\t\t\t\t}\n"
+		"\t\t\t}\n"
+		"\t\t}\n"
+		"\t\t*tail = tailval;\n"
+		"\t\t*head = headval;\n"
+		"\t} else {\n"
+		"\t\t*tail = MKNIL;\n"
+		"\t\t*head = val;\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"static uint64_t value_u64 (VAL v) {\n"
+		"\tASSERT1(IS_INT(v),v);\n"
+		"\treturn VU64(v);\n"
+		"}\n"
+		"\n"
+		"static int64_t value_i64 (VAL v) {\n"
+		"\tASSERT1(IS_INT(v),v);\n"
+		"\treturn VI64(v);\n"
+		"}\n"
+		"\n"
+		"static void* value_ptr (VAL v) {\n"
+		"\tASSERT1(IS_PTR(v),v);\n"
+		"\treturn VPTR(v);\n"
+		"}\n"
+		"\n"
+		"static FNPTR value_fnptr (VAL v) {\n"
+		"\tASSERT1(IS_FNPTR(v),v);\n"
+		"\treturn VFNPTR(v);\n"
+		"}\n"
+		"\n"
+		"#define pop_u8() ((uint8_t)pop_u64())\n"
+		"#define pop_u16() ((uint16_t)pop_u64())\n"
+		"#define pop_u32() ((uint32_t)pop_u64())\n"
+		"#define pop_u64() (value_u64(pop_value()))\n"
+		"#define pop_i8() ((int8_t)pop_i64())\n"
+		"#define pop_i16() ((int16_t)pop_i64())\n"
+		"#define pop_i32() ((int32_t)pop_i64())\n"
+		"#define pop_i64() (value_i64(pop_value()))\n"
+		"#define pop_usize() (pop_u64())\n"
+		"#define pop_bool() (pop_u64())\n"
+		"#define pop_ptr() (value_ptr(pop_value()))\n"
+		"#define pop_fnptr() (value_fnptr(pop_value()))\n"
+		"\n"
+		"#define push_u64(v) push_value(MKU64(v))\n"
+		"#define push_i64(v) push_value(MKI64(v))\n"
+		"#define push_usize(v) push_u64((uint64_t)(v))\n"
+		"#define push_bool(b) push_u64((uint64_t)((bool)(b)))\n"
+		"#define push_u8(b) push_u64((uint64_t)(b))\n"
+		"#define push_u16(b) push_u64((uint64_t)(b))\n"
+		"#define push_u32(b) push_u64((uint64_t)(b))\n"
+		"#define push_i8(b) push_i64((int64_t)(b))\n"
+		"#define push_i16(b) push_i64((int64_t)(b))\n"
+		"#define push_i32(b) push_i64((int64_t)(b))\n"
+		"#define push_ptr(p) push_value(MKPTR(p))\n"
+		"#define push_fnptr(p) push_value(MKFNPTR(p))\n"
+		"\n"
+		"static void push_value(VAL x) {\n"
+		"\tASSERT(stack_counter > 0);\n"
+		"\tstack[--stack_counter] = x;\n"
+		"}\n"
+		"\n"
+		"static VAL top_value(void) {\n"
+		"\tASSERT(stack_counter < STACK_MAX);\n"
+		"\treturn stack[stack_counter];\n"
+		"}\n"
+		"\n"
+		"static VAL pop_value(void) {\n"
+		"\tASSERT(stack_counter < STACK_MAX);\n"
+		"\treturn stack[stack_counter++];\n"
+		"}\n"
+		"\n"
+		"static void push_resource(VAL x) {\n"
+		"\tASSERT(rstack_counter > 0);\n"
+		"\trstack[--rstack_counter] = x;\n"
+		"}\n"
+		"\n"
+		"static VAL top_resource(void) {\n"
+		"\tASSERT(rstack_counter < STACK_MAX);\n"
+		"\treturn rstack[rstack_counter];\n"
+		"}\n"
+		"\n"
+		"static VAL pop_resource(void) {\n"
+		"\tASSERT(rstack_counter < STACK_MAX);\n"
+		"\treturn rstack[rstack_counter++];\n"
+		"}\n"
+		"\n"
+		"// Create a TUP with at least min(cap_hint, TUP_LEN_MAX) capacity.\n"
+		"static TUP* tup_new (TUPLEN cap_hint) {\n"
+		"\tif (cap_hint < 3) cap_hint = 3;\n"
+		"\tif (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;\n"
+		"\tTUP *new_tup = calloc(1, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);\n"
+		"\tASSERT(new_tup);\n"
+		"\tnew_tup->refs = 1;\n"
+		"\tnew_tup->cap = cap_hint;\n"
+		"\treturn new_tup;\n"
+		"}\n"
+		"\n"
+		"// Create a TUP with at least min(max(old_tup->size, cap_hint), TUP_LEN_MAX) capacity.\n"
+		"// Consume old_tup and copy its elements over to the new tuple.\n"
+		"static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {\n"
+		"\tASSERT(old_tup);\n"
+		"\tif (cap_hint < old_tup->size) cap_hint = old_tup->size;\n"
+		"\tif (old_tup->refs == 1) {\n"
+		"\t\tif (cap_hint < 3) cap_hint = 3;\n"
+		"\t\tif (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;\n"
+		"\t\tTUPLEN old_cap = old_tup->cap;\n"
+		"\t\tTUP *new_tup = realloc(old_tup, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);\n"
+		"\t\tASSERT(new_tup);\n"
+		"\t\tif (old_cap < cap_hint) {\n"
+		"\t\t\tmemset(new_tup->cells + old_cap, 0, sizeof(VAL)*(cap_hint - old_cap));\n"
+		"\t\t}\n"
+		"\t\tnew_tup->cap = cap_hint;\n"
+		"\t\treturn new_tup;\n"
+		"\t} else {\n"
+		"\t\tTUP* new_tup = tup_new(cap_hint);\n"
+		"\t\tfor (TUPLEN i = 0; i < old_tup->size; i++) {\n"
+		"\t\t\tVAL v = old_tup->cells[i];\n"
+		"\t\t\tnew_tup->cells[i] = v;\n"
+		"\t\t\tincref(v);\n"
+		"\t\t}\n"
+		"\t\tnew_tup->size = old_tup->size;\n"
+		"\t\told_tup->refs--;\n"
+		"\t\treturn new_tup;\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {\n"
+		"\tif (IS_TUP(tail) && HAS_REFS(tail)) {\n"
+		"\t\tTUPLEN tail_len = VTUPLEN(tail);\n"
+		"\t\tTUP *tail_tup = VTUP(tail);\n"
+		"\t\tASSERT1(tail_tup, tail);\n"
+		"\t\tASSERT1(tail_len <= tail_tup->size, tail);\n"
+		"\t\tif (tail_len < tail_tup->size) {\n"
+		"\t\t\tASSERT1(tail_tup->refs >= 1, tail);\n"
+		"\t\t\tif (tail_tup->refs == 1) {\n"
+		"\t\t\t\tdecref(tail_tup->cells[tail_len]);\n"
+		"\t\t\t\ttail_tup->cells[tail_len] = head;\n"
+		"\t\t\t\treturn MKTUP(tail_tup, tail_len+1);\n"
+		"\t\t\t} else {\n"
+		"\t\t\t\tVAL *cmp = &tail_tup->cells[tail_len];\n"
+		"\t\t\t\tif (VALEQ(*cmp, head)) {\n"
+		"\t\t\t\t\tdecref(head);\n"
+		"\t\t\t\t\treturn MKTUP(tail_tup, tail_len+1);\n"
+		"\t\t\t\t} else {\n"
+		"\t\t\t\t\tif (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;\n"
+		"\t\t\t\t\tTUP* new_tup = tup_new(cap_hint);\n"
+		"\t\t\t\t\tfor (TUPLEN i = 0; i < tail_len; i++) {\n"
+		"\t\t\t\t\t\tVAL v = tail_tup->cells[i];\n"
+		"\t\t\t\t\t\tnew_tup->cells[i] = v;\n"
+		"\t\t\t\t\t\tincref(v);\n"
+		"\t\t\t\t\t}\n"
+		"\t\t\t\t\tnew_tup->cells[tail_len] = head;\n"
+		"\t\t\t\t\tnew_tup->size = tail_len+1;\n"
+		"\t\t\t\t\ttail_tup->refs--;\n"
+		"\t\t\t\t\treturn MKTUP(new_tup, tail_len+1);\n"
+		"\t\t\t\t}\n"
+		"\t\t\t}\n"
+		"\t\t} else {\n"
+		"\t\t\tASSERT1(tail_len < TUP_LEN_MAX, tail);\n"
+		"\t\t\tASSERT1(tail_len <= tail_tup->cap, tail);\n"
+		"\t\t\tif (tail_len < tail_tup->cap) {\n"
+		"\t\t\t\ttail_tup->cells[tail_len] = head;\n"
+		"\t\t\t\ttail_tup->size = tail_len+1;\n"
+		"\t\t\t\treturn MKTUP(tail_tup, tail_len+1);\n"
+		"\t\t\t} else {\n"
+		"\t\t\t\tif (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;\n"
+		"\t\t\t\tTUP* new_tup = tup_resize(tail_tup, cap_hint);\n"
+		"\t\t\t\tASSERT(tail_len < new_tup->cap);\n"
+		"\t\t\t\tnew_tup->size = tail_len+1;\n"
+		"\t\t\t\tnew_tup->cells[tail_len] = head;\n"
+		"\t\t\t\treturn MKTUP(new_tup, tail_len+1);\n"
+		"\t\t\t}\n"
+		"\t\t}\n"
+		"\t} else if (IS_TUP(tail)) { // cons onto nil\n"
+		"\t\tASSERT(IS_NIL(tail));\n"
+		"\t\tif (IS_TUP(head)) {\n"
+		"\t\t\tTUP* tup = tup_new(cap_hint);\n"
+		"\t\t\ttup->size = 1;\n"
+		"\t\t\ttup->cells[0] = head;\n"
+		"\t\t\treturn MKTUP(tup,1);\n"
+		"\t\t} else { // non-tup value pretends to be unary tuple\n"
+		"\t\t\treturn head;\n"
+		"\t\t}\n"
+		"\t} else { // cons onto non-tup value pretending to be unary tuple\n"
+		"\t\tTUP* tup = tup_new(cap_hint);\n"
+		"\t\ttup->size = 2;\n"
+		"\t\ttup->cells[0] = tail;\n"
+		"\t\ttup->cells[1] = head;\n"
+		"\t\treturn MKTUP(tup,2);\n"
+		"\t}\n"
+		"}\n"
+		"static VAL mkcons(VAL tail, VAL head) {\n"
+		"\tVAL v = mkcons_hint(tail,head,3);\n"
+		"\treturn v;\n"
+		"}\n"
+		"\n"
+		"static VAL lpop(VAL* stk) {\n"
+		"\tVAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);\n"
+		"\t*stk=lcar; return lcdr;\n"
+		"}\n"
+		"static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }\n"
+		"#define LPOP(v) push_value(lpop(&(v)))\n"
+		"#define LPUSH(v) lpush(&(v),pop_value())\n"
+		"#define LPOPR(v) push_resource(lpop(&(v)))\n"
+		"#define LPUSHR(v) lpush(&(v),pop_resource())\n"
+		"\n"
+		"static STR* str_alloc (USIZE cap) {\n"
+		"\tASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);\n"
+		"\tSTR* str = calloc(1, (size_t)(cap + sizeof(STR) + 4));\n"
+		"\tEXPECT(str, \"failed to allocate string\");\n"
+		"\tstr->refs = 1;\n"
+		"\tstr->cap = cap;\n"
+		"\treturn str;\n"
+		"}\n"
+		"\n"
+		"static VAL mkstr (const char* data, USIZE size) {\n"
+		"\tASSERT(data);\n"
+		"\tASSERT(size <= SIZE_MAX - sizeof(STR) - 4);\n"
+		"\tSTR* str = str_alloc(size);\n"
+		"\tstr->size = size;\n"
+		"\tmemcpy(str->data, data, (size_t)size);\n"
+		"\treturn MKSTR(str);\n"
+		"}\n"
+		"\n"
+		"static void do_uncons(void) {\n"
+		"\tVAL val, tail, head;\n"
+		"\tval = pop_value();\n"
+		"\tvalue_uncons(val, &tail, &head);\n"
+		"\tpush_value(tail);\n"
+		"\tpush_value(head);\n"
+		"}\n"
+		"\n"
+		"static USIZE get_data_tag(VAL v) {\n"
+		"\tif (IS_TUP(v)) {\n"
+		"\t\tASSERT(VTUPLEN(v) > 0);\n"
+		"\t\treturn VU64(VTUP(v)->cells[0]);\n"
+		"\t} else {\n"
+		"\t\treturn VU64(v);\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"static USIZE get_top_data_tag(void) {\n"
+		"\treturn get_data_tag(top_value());\n"
+		"}\n"
+		"\n"
+		"static USIZE get_top_resource_data_tag(void) {\n"
+		"\treturn get_data_tag(top_resource());\n"
+		"}\n"
+		"\n"
+		"static int str_cmp_(STR* s1, STR* s2) {\n"
+		"\tASSERT(s1 && s2);\n"
+		"\tUSIZE n1 = s1->size;\n"
+		"\tUSIZE n2 = s2->size;\n"
+		"\tUSIZE n = (n1 < n2 ? n1 : n2);\n"
+		"\tASSERT(n < SIZE_MAX);\n"
+		"\tint r = memcmp(s1->data, s2->data, (size_t)n);\n"
+		"\tif (r) return r;\n"
+		"\tif (n1 < n2) return -1;\n"
+		"\tif (n1 > n2) return 1;\n"
+		"\treturn 0;\n"
+		"}\n"
+		"\n"
+		"static void run_value(VAL v) {\n"
+		"\tif (IS_TUP(v)) {\n"
+		"\t\tVAL h = VTUP(v)->cells[0];\n"
+		"\t\tASSERT(IS_FNPTR(h));\n"
+		"\t\tpush_value(v);\n"
+		"\t\tVFNPTR(h)();\n"
+		"\t} else {\n"
+		"\t\tASSERT(IS_FNPTR(v));\n"
+		"\t\tVFNPTR(v)();\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_id (void) {}\n"
+		"static void mp_primZ_dup (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_dup,\"prim-dup\");\n"
+		"\tVAL v = top_value();\n"
+		"\tpush_value(v);\n"
+		"\tincref(v);\n"
+		"\tPRIM_EXIT(mp_primZ_dup);\n"
+		"}\n"
+		"static void mp_primZ_drop (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_drop,\"prim-drop\");\n"
+		"\tVAL v = pop_value();\n"
+		"\tdecref(v);\n"
+		"\tPRIM_EXIT(mp_primZ_drop);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_swap (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_swap,\"prim-swap\");\n"
+		"\tVAL a = pop_value();\n"
+		"\tVAL b = pop_value();\n"
+		"\tpush_value(a);\n"
+		"\tpush_value(b);\n"
+		"\tPRIM_EXIT(mp_primZ_swap);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_rswap (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_rswap,\"prim-rswap\");\n"
+		"\tVAL a = pop_resource();\n"
+		"\tVAL b = pop_resource();\n"
+		"\tpush_resource(a);\n"
+		"\tpush_resource(b);\n"
+		"\tPRIM_EXIT(mp_primZ_rswap);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_intZ_add (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_add,\"prim-int-add\");\n"
+		"\tint64_t b = pop_i64();\n"
+		"\tint64_t a = pop_i64();\n"
+		"\tif (b >= 0) {\n"
+		"\t\tEXPECT(a <= INT64_MAX - b, \"integer overflow during addition (too positive)\");\n"
+		"\t} else {\n"
+		"\t\tEXPECT(a >= INT64_MIN - b, \"integer overflow during addition (too negative)\");\n"
+		"\t}\n"
+		"\tpush_i64(a + b);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_add);\n"
+		"}\n"
+		"static void mp_primZ_intZ_sub (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_sub,\"prim-int-sub\");\n"
+		"\tint64_t b = pop_i64();\n"
+		"\tint64_t a = pop_i64();\n"
+		"\tif (b >= 0) {\n"
+		"\t\tEXPECT(a >= INT64_MIN + b, \"integer overflow during subtraction (too negative)\");\n"
+		"\t} else {\n"
+		"\t\tEXPECT(a <= INT64_MAX + b, \"integer overflow during subtraction (too positive)\");\n"
+		"\t}\n"
+		"\tpush_i64(a - b);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_sub);\n"
+		"}\n"
+		"static void mp_primZ_intZ_mul (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_mul,\"prim-int-mul\");\n"
+		"\tint64_t b = pop_i64();\n"
+		"\tint64_t a = pop_i64();\n"
+		"\t// overflow checks for multiplication\n"
+		"\tpush_i64(a * b);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_mul);\n"
+		"}\n"
+		"static void mp_primZ_intZ_div (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_div,\"prim-int-div\");\n"
+		"\tint64_t b = pop_i64();\n"
+		"\tint64_t a = pop_i64();\n"
+		"\tEXPECT(b != 0, \"divide by zero\");\n"
+		"\tEXPECT(!((b == -1) && (a == INT64_MIN)), \"overflow during division\");\n"
+		"\tint64_t r = a % b;\n"
+		"\tint64_t q = a / b;\n"
+		"\tif (((a < 0) ^ (b < 0)) && r) q--;\n"
+		"\tpush_i64(q);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_div);\n"
+		"}\n"
+		"static void mp_primZ_intZ_mod (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_mod,\"prim-int-mod\");\n"
+		"\tint64_t b = pop_i64();\n"
+		"\tint64_t a = pop_i64();\n"
+		"\tEXPECT(b != 0, \"divide by zero\");\n"
+		"\tif (b == -1) { push_i64(0); return; }\n"
+		"\tint64_t r = a % b;\n"
+		"\tint64_t q = a / b;\n"
+		"\tif (((a < 0) ^ (b < 0)) && r) r += b;\n"
+		"\tpush_i64(r);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_mod);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_intZ_and (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_and,\"prim-int-and\");\n"
+		"\tuint64_t b = pop_u64();\n"
+		"\tuint64_t a = pop_u64();\n"
+		"\tpush_u64(a & b);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_and);\n"
+		"}\n"
+		"static void mp_primZ_intZ_or (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_or,\"prim-int-or\");\n"
+		"\tuint64_t b = pop_u64();\n"
+		"\tuint64_t a = pop_u64();\n"
+		"\tpush_u64(a | b);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_or);\n"
+		"}\n"
+		"static void mp_primZ_intZ_xor (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_xor,\"prim-int-xor\");\n"
+		"\tuint64_t b = pop_u64();\n"
+		"\tuint64_t a = pop_u64();\n"
+		"\tpush_u64(a ^ b);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_xor);\n"
+		"}\n"
+		"static void mp_primZ_intZ_shl (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_shl,\"prim-int-shl\");\n"
+		"\tuint64_t b = pop_u64();\n"
+		"\tuint64_t a = pop_u64();\n"
+		"\tpush_u64((b >= 64) ? 0 : (a << b));\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_shl);\n"
+		"}\n"
+		"static void mp_primZ_intZ_shr (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_shr,\"prim-int-shr\");\n"
+		"\tuint64_t b = pop_u64();\n"
+		"\tuint64_t a = pop_u64();\n"
+		"\tpush_u64((b >= 64) ? 0 : (a >> b));\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_shr);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_intZ_eq (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_eq,\"prim-int-eq\");\n"
+		"\tVAL b = pop_value();\n"
+		"\tVAL a = pop_value();\n"
+		"\tASSERT1(IS_INT(a), a);\n"
+		"\tASSERT1(IS_INT(b), a);\n"
+		"\tpush_bool(VINT(a) == VINT(b));\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_eq);\n"
+		"}\n"
+		"static void mp_primZ_intZ_lt (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_lt,\"prim-int-lt\");\n"
+		"\tVAL b = pop_value();\n"
+		"\tVAL a = pop_value();\n"
+		"\tASSERT2(IS_INT(a) && IS_INT(b), a, b);\n"
+		"\tpush_bool(VINT(a) < VINT(b));\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_lt);\n"
+		"}\n"
+		"static void mp_primZ_strZ_cmp (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_strZ_cmp,\"prim-str-cmp\");\n"
+		"\tVAL b = pop_value();\n"
+		"\tVAL a = pop_value();\n"
+		"\tASSERT2(IS_STR(a) && IS_STR(b), a, b);\n"
+		"\tint64_t cmp = str_cmp_(VSTR(a), VSTR(b));\n"
+		"\tpush_i64(cmp);\n"
+		"\tdecref(a); decref(b);\n"
+		"\tPRIM_EXIT(mp_primZ_strZ_cmp);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_sysZ_argc (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_sysZ_argc,\"prim-sys-argc\");\n"
+		"\tpush_i64(global_argc);\n"
+		"\tPRIM_EXIT(mp_primZ_sysZ_argc);\n"
+		"}\n"
+		"static void mp_primZ_sysZ_argv (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_sysZ_argv,\"prim-sys-argv\");\n"
+		"\tpush_ptr(global_argv);\n"
+		"\tPRIM_EXIT(mp_primZ_sysZ_argv);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_posixZ_write (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_posixZ_write,\"prim-posix-write\");\n"
+		"\tUSIZE n = pop_usize();\n"
+		"\tVAL vp = pop_value();\n"
+		"\tvoid* p = value_ptr(vp);\n"
+		"\tint fd = (int)pop_i64();\n"
+		"\tASSERT(n <= SIZE_MAX);\n"
+		"\tpush_i64((int64_t)write(fd, p, (size_t)n));\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_posixZ_write);\n"
+		"}\n"
+		"static void mp_primZ_posixZ_read (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_posixZ_read,\"prim-posix-read\");\n"
+		"\tUSIZE n = pop_usize();\n"
+		"\tVAL vp = pop_value();\n"
+		"\tvoid* p = value_ptr(vp);\n"
+		"\tint fd = (int)pop_i64();\n"
+		"\tASSERT(n <= SIZE_MAX);\n"
+		"\tpush_i64((int64_t)read(fd, p, (size_t)n));\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_posixZ_read);\n"
+		"}\n"
+		"static void mp_primZ_posixZ_open (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_posixZ_open,\"prim-posix-open\");\n"
+		"\tint m = (int)pop_i64();\n"
+		"\tint f = (int)pop_i64();\n"
+		"\tVAL vp = pop_value();\n"
+		"\tvoid* path = value_ptr(vp);\n"
+		"\tpush_i64((int64_t)open(path,f,m));\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_posixZ_open);\n"
+		"}\n"
+		"static void mp_primZ_posixZ_close (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_posixZ_close,\"prim-posix-close\");\n"
+		"\tint fd = (int)pop_i64();\n"
+		"\tpush_i64((int64_t)close(fd));\n"
+		"\tPRIM_EXIT(mp_primZ_posixZ_close);\n"
+		"}\n"
+		"static void mp_primZ_posixZ_exit (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_posixZ_exit,\"prim-posix-exit\");\n"
+		"\tint x = (int)pop_i64();\n"
+		"\texit(x);\n"
+		"\tPRIM_EXIT(mp_primZ_posixZ_exit);\n"
+		"}\n"
+		"\n"
+		"void int_repr(int64_t y, char** out_ptr, size_t *out_size) {\n"
+		"\tstatic char c[32] = {0};\n"
+		"\tmemset(c, 0, 32);\n"
+		"\tchar* p = c+30;\n"
+		"\tsize_t n = 0;\n"
+		"\tuint64_t x;\n"
+		"\tif (y < 0) {\n"
+		"\t\tif (y == INT64_MIN) {\n"
+		"\t\t\tx = 1+(uint64_t)INT64_MAX;\n"
+		"\t\t} else {\n"
+		"\t\t\tx = (uint64_t)-y;\n"
+		"\t\t}\n"
+		"\t} else {\n"
+		"\t\tx = (uint64_t)y;\n"
+		"\t}\n"
+		"\tdo {\n"
+		"\t\t*--p = '0' + (x % 10);\n"
+		"\t\tx /= 10;\n"
+		"\t\tn++;\n"
+		"\t} while (x);\n"
+		"\tif (y < 0) {\n"
+		"\t\t*--p = '-';\n"
+		"\t\tn++;\n"
+		"\t}\n"
+		"\t*out_ptr = p;\n"
+		"\t*out_size = n;\n"
+		"}\n"
+		"\n"
+		"void int_trace_(int64_t y, int fd) {\n"
+		"\tchar* p; size_t n;\n"
+		"\tint_repr(y, &p, &n);\n"
+		"\twrite(fd, p, n);\n"
+		"}\n"
+		"\n"
+		"void mp_primZ_intZ_toZ_str(void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_toZ_str,\"prim-int-to-str\");\n"
+		"\tint64_t x = pop_i64();\n"
+		"\tbool cache = (0 <= x) && (x <= 255);\n"
+		"\tstatic VAL scache[256] = {0};\n"
+		"\tif (cache && scache[x].tag) {\n"
+		"\t\tincref(scache[x]);\n"
+		"\t\tpush_value(scache[x]);\n"
+		"\t} else {\n"
+		"\t\tchar* p; size_t n;\n"
+		"\t\tint_repr(x,&p,&n);\n"
+		"\t\tVAL out = mkstr(p,n);\n"
+		"\t\tpush_value(out);\n"
+		"\t\tif (cache) {\n"
+		"\t\t\tscache[x] = out;\n"
+		"\t\t\tincref(out);\n"
+		"\t\t}\n"
+		"\t}\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_toZ_str);\n"
+		"}\n"
+		"\n"
+		"void str_trace_(STR* str, int fd) {\n"
+		"\tASSERT(str->size <= SIZE_MAX);\n"
+		"\twrite(fd, \"\\\"\", 1);\n"
+		"\tUSIZE i0 = 0;\n"
+		"\tchar xb[4]={'\\\\','x'};\n"
+		"\tUSIZE i;\n"
+		"\tfor (i = 0; i < str->size; i++) {\n"
+		"\t\tconst char* c = NULL; size_t n=0;\n"
+		"\t\tuint8_t v=str->data[i];\n"
+		"\t\tswitch(v) {\n"
+		"\t\t\tcase '\\n': c=\"\\\\n\"; n=2; break;\n"
+		"\t\t\tcase '\\r': c=\"\\\\r\"; n=2; break;\n"
+		"\t\t\tcase '\\t': c=\"\\\\t\"; n=2; break;\n"
+		"\t\t\tcase '\\\\': c=\"\\\\\\\\\"; n=2; break;\n"
+		"\t\t\tcase '\\\"': c=\"\\\\\\\"\"; n=2; break;\n"
+		"\t\t\tdefault:\n"
+		"\t\t\t\tif (!((' ' <= v) && (v < 0x7F))) {\n"
+		"\t\t\t\t\txb[2] = '0' + (v&15) + ('A'-'9'-1)*((v&15) > 9);\n"
+		"\t\t\t\t\txb[3] = '0' + (v/16) + ('A'-'9'-1)*((v/16) > 9);\n"
+		"\t\t\t\t\tc=xb; n=4;\n"
+		"\t\t\t\t}\n"
+		"\t\t}\n"
+		"\t\tif ((n > 0) && (i0 < i)) {\n"
+		"\t\t\twrite(fd, str->data+i0, (size_t)(i-i0));\n"
+		"\t\t\ti0=i+1;\n"
+		"\t\t}\n"
+		"\t\twrite(fd, c, n);\n"
+		"\t}\n"
+		"\tif (i0 < i) write(fd, str->data+i0, (size_t)(i-i0));\n"
+		"\twrite(fd, \"\\\"\", 1);\n"
+		"}\n"
+		"\n"
+		"void value_trace_(VAL val, int fd) {\n"
+		"\tif (IS_INT(val)) {\n"
+		"\t\tint_trace_(VINT(val), fd);\n"
+		"\t} else if (IS_STR(val)) {\n"
+		"\t\tstr_trace_(VSTR(val), fd);\n"
+		"\t} else if (IS_FNPTR(val)) {\n"
+		"\t\twrite(fd, \"<fnptr>\", 7);\n"
+		"\t} else if (IS_TUP(val)) {\n"
+		"\t\tTUPLEN len = VTUPLEN(val);\n"
+		"\t\tTUP* tup = VTUP(val);\n"
+		"\t\tif (VTUPLEN(val) == 0) {\n"
+		"\t\t\twrite(fd, \"[]\", 2);\n"
+		"\t\t} else {\n"
+		"\t\t\twrite(fd, \"[ \", 2);\n"
+		"\t\t\tfor(TUPLEN i = 0; i < len; i++) {\n"
+		"\t\t\t\tif (i > 0) write(fd, \" \", 1);\n"
+		"\t\t\t\tvalue_trace_(tup->cells[i], fd);\n"
+		"\t\t\t}\n"
+		"\t\t\twrite(fd, \" ]\", 2);\n"
+		"\t\t}\n"
+		"\t} else {\n"
+		"\t\tTRACE(\"value cannot be traced\");\n"
+		"\t\texit(1);\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_debug (void) {\n"
+		"\tTRACE(\"??\");\n"
+		"\tfor (long i = STACK_MAX-1; i >= (long)stack_counter; i--) {\n"
+		"\t\tTRACE(\" \");\n"
+		"\t\tvalue_trace_(stack[i], 2);\n"
+		"\t}\n"
+		"\tTRACE(\"\\n\");\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_rdebug (void) {\n"
+		"\t#if MIRTH_DEBUG\n"
+		"\t\tTRACE(\"call stack:\\n\");\n"
+		"\t\tfor (USIZE i = fstack_counter; i --> 1;) {\n"
+		"\t\t\tTRACE(\"    \");\n"
+		"\t\t\tif (fstack[i-1].atom && *fstack[i-1].atom && strcmp(fstack[i-1].atom, fstack[i].word)) {\n"
+		"\t\t\t\tTRACE(fstack[i-1].atom);\n"
+		"\t\t\t\tTRACE(\" -> \");\n"
+		"\t\t\t}\n"
+		"\t\t\tTRACE(fstack[i].word);\n"
+		"\t\t\tTRACE(\" at \");\n"
+		"\t\t\tTRACE(fstack[i-1].path);\n"
+		"\t\t\tTRACE(\":\");\n"
+		"\t\t\tint_trace_((int64_t)fstack[i-1].line, 2);\n"
+		"\t\t\tTRACE(\":\");\n"
+		"\t\t\tint_trace_((int64_t)fstack[i-1].col, 2);\n"
+		"\t\t\tTRACE(\"\\n\");\n"
+		"\t\t}\n"
+		"\t#endif\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_panic(void) {\n"
+		"\tif ((stack_counter > 0) && IS_STR(top_value())) {\n"
+		"\t\tVAL v = pop_value();\n"
+		"\t\tsize_t n = (VSTR(v)->size < 2048) ? (size_t)(VSTR(v)->size) : 2048;\n"
+		"\t\twrite(2, VSTR(v)->data, n);\n"
+		"\t\tTRACE(\"\\n\");\n"
+		"\t} else {\n"
+		"\t\tTRACE(\"panic!\\n\");\n"
+		"\t}\n"
+		"\tmp_primZ_debug();\n"
+		"\tmp_primZ_rdebug();\n"
+		"\texit(1);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_ptrZ_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_get,\"prim-ptr-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tvoid **p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_ptr(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u8Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u8Z_get,\"prim-u8-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint8_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_u8(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u8Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u16Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u16Z_get,\"prim-u16-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint16_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_u16(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u16Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u32Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u32Z_get,\"prim-u32-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint32_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_u32(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u32Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u64Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u64Z_get,\"prim-u64-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint64_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_u64(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u64Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i8Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i8Z_get,\"prim-i8-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint8_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_i8(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i8Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i16Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i16Z_get,\"prim-i16-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint16_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_i16(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i16Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i32Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i32Z_get,\"prim-i32-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint32_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_i32(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i32Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i64Z_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i64Z_get,\"prim-i64-get\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint64_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to load from null pointer\");\n"
+		"\tpush_i64(*p);\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i64Z_get);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_intZ_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_set,\"prim-int-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint64_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_i64();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_ptrZ_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_set,\"prim-ptr-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tvoid **p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_ptr();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u8Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u8Z_set,\"prim-u8-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint8_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_u8();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u8Z_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u16Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u16Z_set,\"prim-u16-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint16_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_u16();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u16Z_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u32Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u32Z_set,\"prim-u32-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint32_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_u32();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u32Z_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_u64Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_u64Z_set,\"prim-u64-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tuint64_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_u64();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_u64Z_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i8Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i8Z_set,\"prim-i8-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint8_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_i8();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i8Z_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i16Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i16Z_set,\"prim-i16-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint16_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_i16();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i16Z_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i32Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i32Z_set,\"prim-i32-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint32_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_i32();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i32Z_set);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_i64Z_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_i64Z_set,\"prim-i64-set\");\n"
+		"\tVAL vp = pop_value();\n"
+		"\tint64_t *p = value_ptr(vp);\n"
+		"\tEXPECT(p, \"tried to write to null pointer\");\n"
+		"\t*p = pop_i64();\n"
+		"\tdecref(vp);\n"
+		"\tPRIM_EXIT(mp_primZ_i64Z_set);\n"
+		"}\n"
+		"\n"
+		"\n"
+		"#if defined(MIRTH_WINDOWS)\n"
+		"#define mp_primZ_sysZ_os() push_u64(1)\n"
+		"#elif defined(MIRTH_LINUX)\n"
+		"#define mp_primZ_sysZ_os() push_u64(2)\n"
+		"#elif defined(MIRTH_MACOS)\n"
+		"#define mp_primZ_sysZ_os() push_u64(3)\n"
+		"#else\n"
+		"#define mp_primZ_sysZ_os() push_u64(0)\n"
+		"#endif\n"
+		"\n"
+		"#if defined(MIRTH_I386)\n"
+		"#define mp_primZ_sysZ_arch() push_u64(1)\n"
+		"#elif defined(MIRTH_AMD64)\n"
+		"#define mp_primZ_sysZ_arch() push_u64(2)\n"
+		"#elif defined(MIRTH_ARM64)\n"
+		"#define mp_primZ_sysZ_arch() push_u64(3)\n"
+		"#else\n"
+		"#define mp_primZ_sysZ_arch() push_u64(0)\n"
+		"#endif\n"
+		"\n"
+		"static void mp_primZ_run (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_run,\"prim-run\");\n"
+		"\tVAL f = pop_value();\n"
+		"\trun_value(f);\n"
+		"\tPRIM_EXIT(mp_primZ_run);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_ptrZ_nil (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_nil,\"prim-ptr-nil\");\n"
+		"\tpush_ptr((void*)0);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_nil);\n"
+		"}\n"
+		"static void mp_primZ_ptrZ_eq (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_eq,\"prim-ptr-eq\");\n"
+		"\tvoid* a = pop_ptr();\n"
+		"\tvoid* b = pop_ptr();\n"
+		"\tpush_bool(a == b);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_eq);\n"
+		"}\n"
+		"static void mp_primZ_ptrZ_add (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_add,\"prim-ptr-add\");\n"
+		"\tVAL vptr = pop_value();\n"
+		"\tUSIZE n = pop_usize();\n"
+		"\tASSERT1(IS_PTR(vptr), vptr);\n"
+		"\tEXPECT(VPTR(vptr), \"attempt to add to null pointer\");\n"
+		"\tchar* ptr = (char*)VPTR(vptr);\n"
+		"\tpush_ptr(ptr + n);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_add);\n"
+		"}\n"
+		"#define mp_primZ_ptrZ_sizze() push_u64((uint64_t)sizeof(void*))\n"
+		"static void mp_primZ_ptrZ_alloc (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_alloc,\"prim-ptr-alloc\");\n"
+		"\tUSIZE n = pop_usize();\n"
+		"\tvoid* p = malloc((size_t)n);\n"
+		"\tEXPECT(p, \"failed to allocate buffer\");\n"
+		"\tpush_ptr(p);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_alloc);\n"
+		"}\n"
+		"static void mp_primZ_ptrZ_realloc (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_realloc,\"prim-ptr-realloc\");\n"
+		"\tUSIZE n = pop_usize();\n"
+		"\tvoid* p0 = pop_ptr();\n"
+		"\tvoid* p1 = realloc(p0, (size_t)n);\n"
+		"\tEXPECT(p1, \"failed to reallocate buffer\");\n"
+		"\tpush_ptr(p1);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_realloc);\n"
+		"}\n"
+		"static void mp_primZ_ptrZ_free (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_free,\"prim-ptr-free\");\n"
+		"\tvoid* p = pop_ptr();\n"
+		"\tfree(p);\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_free);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_ptrZ_copy (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_copy,\"prim-ptr-copy\");\n"
+		"\tVAL vdst = pop_value();\n"
+		"\tint64_t ilen = pop_i64();\n"
+		"\tVAL vsrc = pop_value();\n"
+		"\tASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);\n"
+		"\tvoid* src = value_ptr(vsrc);\n"
+		"\tvoid* dst = value_ptr(vdst);\n"
+		"\tif (src && dst && (ilen > 0)) {\n"
+		"\t\tASSERT((USIZE)ilen <= SIZE_MAX);\n"
+		"\t\tmemcpy(dst, src, (size_t)ilen);\n"
+		"\t}\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_copy);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_ptrZ_fill (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_ptrZ_fill,\"prim-ptr-fill\");\n"
+		"\tVAL vdst = pop_value();\n"
+		"\tASSERT1(IS_PTR(vdst), vdst);\n"
+		"\tint64_t ilen = pop_i64();\n"
+		"\tuint64_t val = pop_u64();\n"
+		"\tvoid* dst = value_ptr(vdst);\n"
+		"\tif (dst && (ilen > 0)) {\n"
+		"\t\tASSERT((USIZE)ilen <= SIZE_MAX);\n"
+		"\t\tmemset(dst, (int)val, (size_t)ilen);\n"
+		"\t}\n"
+		"\tPRIM_EXIT(mp_primZ_ptrZ_fill);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_strZ_copy (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_strZ_copy,\"prim-str-copy\");\n"
+		"\tUSIZE size = pop_usize();\n"
+		"\tchar* ptr = (char*)pop_ptr();\n"
+		"\tASSERT(size <= SIZE_MAX-sizeof(STR)-4);\n"
+		"\tASSERT(ptr);\n"
+		"\tpush_value(mkstr(ptr, size));\n"
+		"\tPRIM_EXIT(mp_primZ_strZ_copy);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_strZ_cat (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_strZ_cat,\"prim-str-cat\");\n"
+		"\tVAL v2 = pop_value();\n"
+		"\tVAL v1 = pop_value();\n"
+		"\tASSERT2(IS_STR(v1) && IS_STR(v2), v1, v2);\n"
+		"\tSTR* s1 = VSTR(v1);\n"
+		"\tSTR* s2 = VSTR(v2);\n"
+		"\tUSIZE m = s1->cap;\n"
+		"\tUSIZE n1 = s1->size;\n"
+		"\tUSIZE n2 = s2->size;\n"
+		"\tif ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {\n"
+		"\t\tASSERT(n2 <= SIZE_MAX);\n"
+		"\t\tmemcpy(s1->data + n1, s2->data, (size_t)n2);\n"
+		"\t\ts1->size += n2;\n"
+		"\t\tASSERT(s1->size + 4 <= s1->cap);\n"
+		"\t\tpush_value(v1);\n"
+		"\t\tdecref(v2);\n"
+		"\t} else {\n"
+		"\t\tUSIZE m2 = n1 + n2 + 4;\n"
+		"\t\tif ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;\n"
+		"\t\tSTR* str = str_alloc(m2);\n"
+		"\t\tstr->size = n1+n2;\n"
+		"\t\tASSERT(n1 <= SIZE_MAX);\n"
+		"\t\tASSERT(n2 <= SIZE_MAX);\n"
+		"\t\tmemcpy(str->data, s1->data, (size_t)n1);\n"
+		"\t\tmemcpy(str->data+n1, s2->data, (size_t)n2);\n"
+		"\t\tpush_value(MKSTR(str));\n"
+		"\t\tdecref(v1);\n"
+		"\t\tdecref(v2);\n"
+		"\t}\n"
+		"\tPRIM_EXIT(mp_primZ_strZ_cat);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_strZ_base (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_strZ_base,\"prim-str-base\");\n"
+		"\tVAL vstr = pop_value();\n"
+		"\tASSERT1(IS_STR(vstr) && VSTR(vstr), vstr);\n"
+		"\tpush_ptr(VSTR(vstr)->data);\n"
+		"\tdecref(vstr);\n"
+		"\tPRIM_EXIT(mp_primZ_strZ_base);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_strZ_numZ_bytes (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_strZ_numZ_bytes,\"prim-str-num-bytes\");\n"
+		"\tVAL v = pop_value();\n"
+		"\tASSERT(IS_STR(v) && VSTR(v));\n"
+		"\tpush_usize(VSTR(v)->size);\n"
+		"\tdecref(v);\n"
+		"\tPRIM_EXIT(mp_primZ_strZ_numZ_bytes);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_packZ_nil (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_packZ_nil,\"prim-pack-nil\");\n"
+		"\tpush_value(MKNIL);\n"
+		"\tPRIM_EXIT(mp_primZ_packZ_nil);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_packZ_cons (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_packZ_cons,\"prim-pack-cons\");\n"
+		"\tVAL cdr = pop_value();\n"
+		"\tVAL car = pop_value();\n"
+		"\tpush_value(mkcons(car,cdr));\n"
+		"\tPRIM_EXIT(mp_primZ_packZ_cons);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_packZ_uncons (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_packZ_uncons,\"prim-pack-uncons\");\n"
+		"\tdo_uncons();\n"
+		"\tPRIM_EXIT(mp_primZ_packZ_uncons);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_mutZ_get (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_mutZ_get,\"prim-mut-get\");\n"
+		"\tVAL mut = pop_value();\n"
+		"\tASSERT1(IS_PTR(mut) && VPTR(mut), mut);\n"
+		"\tVAL v = *(VAL*)VPTR(mut);\n"
+		"\tEXPECT(v.tag, \"tried to read uninitialized value\");\n"
+		"\tpush_value(v);\n"
+		"\tincref(v);\n"
+		"\tPRIM_EXIT(mp_primZ_mutZ_get);\n"
+		"}\n"
+		"static void mp_primZ_mutZ_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_mutZ_set,\"prim-mut-set\");\n"
+		"\tVAL mut = pop_value();\n"
+		"\tVAL newval = pop_value();\n"
+		"\tASSERT1(IS_PTR(mut) && VPTR(mut), mut);\n"
+		"\tVAL oldval = *(VAL*)VPTR(mut);\n"
+		"\t*(VAL*)VPTR(mut) = newval;\n"
+		"\tif (oldval.tag) {\n"
+		"\t\tdecref(oldval);\n"
+		"\t}\n"
+		"\tdecref(mut);\n"
+		"\tPRIM_EXIT(mp_primZ_mutZ_set);\n"
+		"}\n"
+		"static void mp_primZ_mutZ_isZ_set (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_mutZ_isZ_set,\"prim-mut-is-set\");\n"
+		"\tVAL mut = pop_value();\n"
+		"\tASSERT1(IS_PTR(mut) && VPTR(mut), mut);\n"
+		"\tVAL val = *(VAL*)VPTR(mut);\n"
+		"\tpush_bool(val.tag);\n"
+		"\tdecref(mut);\n"
+		"\tPRIM_EXIT(mp_primZ_mutZ_isZ_set);\n"
+		"}\n"
+		"\n"
+		"/* GENERATED C99 */\n",
+		33749
+	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("#define MIRTH_DEBUG ", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("#define MIRTH_DEBUG ", 20);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_options();
 	mw_mirth_c99_C99z_Options_emitZ_debugZ_info();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("1", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("1", 1);
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("0", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("0", 1);
 	}
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
@@ -38154,68 +35153,23 @@ static void mw_mirth_c99_c99Z_bufferZBang (void) {
 	mp_primZ_dup();
 	mw_mirth_buffer_Buffer_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tstatic uint8_t b[", 18);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tstatic uint8_t b[", 18);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_buffer_Buffer_sizze();
 	mw_std_prelude_Sizze_ZDivSizze();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("] = {0};", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("] = {0};", 8);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tpush_ptr(&b);", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tpush_ptr(&b);", 14);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	mp_primZ_drop();
@@ -38227,52 +35181,16 @@ static void mw_mirth_c99_c99Z_variablesZBang (void) {
 static void mw_mirth_c99_c99Z_variableZBang (void) {
 	mw_mirth_variable_Variable_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tstatic VAL v = {0};", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tstatic VAL v = {0};", 20);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tpush_ptr(&v);", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tpush_ptr(&v);", 14);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 }
@@ -38547,16 +35465,7 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 		push_u64(1LL); // True
 	}
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("can't declare external with multiple return values", 50);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("can't declare external with multiple return values", 50);
 		mw_std_prelude_panicZBang();
 	} else {
 		mp_primZ_dup();
@@ -38573,27 +35482,9 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 			push_u64(1LL); // True
 		}
 		if (pop_u64()) {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("int64_t ", 8);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("int64_t ", 8);
 		} else {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("void ", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("void ", 5);
 		}
 		mw_mirth_c99_ZPlusC99_put();
 	}
@@ -38608,16 +35499,7 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 		}
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" (", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" (", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	{
 		VAL d2 = pop_value();
@@ -38630,16 +35512,7 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 	mp_primZ_swap();
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("int64_t", 7);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("int64_t", 7);
 		mw_mirth_c99_ZPlusC99_put();
 		push_i64(1LL);
 		mp_primZ_intZ_sub();
@@ -38652,16 +35525,7 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 			if (! pop_u64()) break;
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr(", int64_t", 9);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT(", int64_t", 9);
 				mw_mirth_c99_ZPlusC99_put();
 				push_value(d4);
 			}
@@ -38672,28 +35536,10 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 		mp_primZ_drop();
 	} else {
 		mp_primZ_drop();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("void", 4);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("void", 4);
 		mw_mirth_c99_ZPlusC99_put();
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	{
@@ -38707,16 +35553,7 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 		}
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	{
@@ -38741,29 +35578,11 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 			mp_primZ_dup();
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\tint64_t x", 10);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\tint64_t x", 10);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_std_prim_Int_show();
 				mw_mirth_c99_ZPlusC99_put();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr(" = pop_i64();", 13);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT(" = pop_i64();", 13);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_mirth_c99_ZPlusC99_line();
 				push_value(d4);
@@ -38781,27 +35600,9 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 	mp_primZ_swap();
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tpush_i64(", 10);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\tpush_i64(", 10);
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\t", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\t", 1);
 	}
 	mw_mirth_c99_ZPlusC99_put();
 	{
@@ -38815,16 +35616,7 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 		}
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("(", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("(", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	{
 		VAL d2 = pop_value();
@@ -38852,29 +35644,11 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 					mp_primZ_dup();
 					{
 						VAL d6 = pop_value();
-						{
-							static bool vready = false;
-							static VAL v;
-							if (! vready) {
-								v = mkstr("x", 1);
-								vready = true;
-							}
-							push_value(v);
-							incref(v);
-						}
+						STRLIT("x", 1);
 						mw_mirth_c99_ZPlusC99_put();
 						mw_std_prim_Int_show();
 						mw_mirth_c99_ZPlusC99_put();
-						{
-							static bool vready = false;
-							static VAL v;
-							if (! vready) {
-								v = mkstr(", ", 2);
-								vready = true;
-							}
-							push_value(v);
-							incref(v);
-						}
+						STRLIT(", ", 2);
 						mw_mirth_c99_ZPlusC99_put();
 						push_value(d6);
 					}
@@ -38888,16 +35662,7 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 			}
 			mp_primZ_drop();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("x", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("x", 1);
 			mw_mirth_c99_ZPlusC99_put();
 			mw_std_prim_Int_show();
 			mw_mirth_c99_ZPlusC99_put();
@@ -38905,56 +35670,20 @@ static void mw_mirth_c99_c99Z_externalZBang (void) {
 		}
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(")", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(")", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	push_i64(0LL);
 	mp_primZ_swap();
 	mp_primZ_intZ_lt();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(");", 2);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(");", 2);
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(";", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(";", 1);
 	}
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	mp_primZ_drop();
@@ -38983,16 +35712,7 @@ static void mw_mirth_c99_ZPlusC99_indent (void) {
 		if (! pop_u64()) break;
 		{
 			VAL d3 = pop_value();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\t", 1);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\t", 1);
 			mw_mirth_c99_ZPlusC99_put();
 			push_value(d3);
 		}
@@ -39280,30 +36000,12 @@ static void mw_mirth_c99_c99Z_labelZ_defsZBang (void) {
 	mw_mirth_label_Label_for_1();
 }
 static void mw_mirth_c99_c99Z_labelZ_defZBang (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("static VAL lbl_", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("static VAL lbl_", 15);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" = MKNIL_C;", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" = MKNIL_C;", 11);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 }
@@ -39328,12 +36030,34 @@ static void mw_mirth_c99_c99Z_intZBang (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mw_mirth_c99_c99Z_strZBang (void) {
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_0);
-	mw_mirth_c99_c99Z_line_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_1);
-	mw_mirth_c99_c99Z_nest_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_18);
-	mw_mirth_c99_c99Z_line_1();
+	mp_primZ_dup();
+	mp_primZ_strZ_numZ_bytes();
+	mw_std_prim_Int_ZToNat();
+	push_i64(4090LL);
+	mw_std_prim_Int_ZToNat();
+	{
+		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_ZDivSizze();
+		push_value(d2);
+	}
+	mw_std_prelude_Sizze_ZDivSizze();
+	{
+		VAL d2 = pop_value();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	mp_primZ_intZ_lt();
+	if (pop_u64()) {
+		push_fnptr(&mb_mirth_c99_c99Z_strZBang_2);
+		mw_mirth_c99_c99Z_line_1();
+		push_fnptr(&mb_mirth_c99_c99Z_strZBang_3);
+		mw_mirth_c99_c99Z_nest_1();
+		push_fnptr(&mb_mirth_c99_c99Z_strZBang_6);
+		mw_mirth_c99_c99Z_line_1();
+	} else {
+		push_fnptr(&mb_mirth_c99_c99Z_strZBang_7);
+		mw_mirth_c99_c99Z_line_1();
+	}
 	mp_primZ_drop();
 }
 static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (void) {
@@ -39359,72 +36083,27 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (void) {
 	switch (get_top_data_tag()) {
 		case 92LL: // B'\'
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\\\\", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\\\\", 2);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		case 34LL: // BQUOTE
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\\\"", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\\\"", 2);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		case 9LL: // BHT
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\\t", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\\t", 2);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		case 10LL: // BLF
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\\n", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\\n", 2);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		case 13LL: // BCR
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\\r", 2);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\\r", 2);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		default:
@@ -39435,16 +36114,7 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (void) {
 			if (pop_u64()) {
 				mw_mirth_c99_ZPlusC99_putZ_byte();
 			} else {
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\\x", 2);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\\x", 2);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_std_byte_Byte_toZ_hexdigits();
 				{
@@ -39609,16 +36279,7 @@ static void mw_mirth_c99_c99Z_blockZ_runZBang (void) {
 	mw_mirth_c99_c99Z_arrowZBang();
 }
 static void mw_mirth_c99_ZPlusC99_varZ_put (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("var_", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("var_", 4);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_var_Var_name();
 	mw_mirth_name_Name_mangled();
@@ -39857,114 +36518,33 @@ static void mw_mirth_c99_c99Z_fieldZ_defZBang (void) {
 	mp_primZ_dup();
 	mw_mirth_table_Field_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tsize_t i = (size_t)pop_u64();", 30);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tsize_t i = (size_t)pop_u64();", 30);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tstatic struct VAL * p = 0;", 27);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tstatic struct VAL * p = 0;", 27);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tsize_t m = ", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tsize_t m = ", 12);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_elab_TABLEz_MAXz_COUNT();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tif (! p) { p = calloc(m, sizeof *p); }", 39);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tif (! p) { p = calloc(m, sizeof *p); }", 39);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tEXPECT(i<m, \"table grew too big\");", 35);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tEXPECT(i<m, \"table grew too big\");", 35);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tpush_ptr(p+i);", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tpush_ptr(p+i);", 15);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	mw_mirth_c99_ZPlusC99_line();
@@ -40206,29 +36786,11 @@ static void mw_mirth_main_Arguments_inputZ_file_1 (void) {
 static void mw_mirth_main_Arguments_default (void) {
 	push_u64(0LL); // False
 	LPUSH(lbl_emitZ_debugZ_info);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mirth.mth", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mirth.mth", 9);
 	LPUSH(lbl_inputZ_file);
 	push_u64(0LL); // None
 	LPUSH(lbl_outputZ_file);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("main", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("main", 4);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_entryZ_point);
 	push_u64(0LL); // Nil
@@ -40237,16 +36799,7 @@ static void mw_mirth_main_Arguments_default (void) {
 }
 static void mw_mirth_main_compileZBang (void) {
 	mw_mirth_main_Arguments_ZDivArguments();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Compiling ", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Compiling ", 10);
 	mw_std_prim_Str_traceZBang();
 	LPOP(lbl_inputZ_file);
 	mp_primZ_dup();
@@ -40257,16 +36810,7 @@ static void mw_mirth_main_compileZBang (void) {
 	mw_std_list_List_1_for_1();
 	LPOP(lbl_inputZ_file);
 	mw_mirth_lexer_runZ_lexerZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Building.", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Building.", 9);
 	mw_std_prim_Str_traceZ_lnZBang();
 	mw_mirth_elab_elabZ_moduleZBang();
 	mw_mirth_elab_typecheckZ_everythingZBang();
@@ -40290,16 +36834,7 @@ static void mw_mirth_main_compileZBang (void) {
 		mvar_mirth_error_numZ_errors();
 		mp_primZ_mutZ_get();
 		mw_std_prim_Int_traceZBang();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(" errors.", 8);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(" errors.", 8);
 		mw_std_prim_Str_traceZ_lnZBang();
 		push_u64(0LL); // Reset
 		mw_std_terminal_Sgr_show();
@@ -40310,16 +36845,7 @@ static void mw_mirth_main_compileZBang (void) {
 		push_u64(32LL); // FGGreen
 		mw_std_terminal_Sgr_show();
 		mw_std_prim_Str_traceZBang();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("No errors.", 10);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("No errors.", 10);
 		mw_std_prim_Str_traceZBang();
 		push_u64(0LL); // Reset
 		mw_std_terminal_Sgr_show();
@@ -40328,28 +36854,10 @@ static void mw_mirth_main_compileZBang (void) {
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Specializer.", 12);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Specializer.", 12);
 			mw_std_prim_Str_traceZ_lnZBang();
 			mw_mirth_specializzer_runZ_specializzerZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Codegen.", 8);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Codegen.", 8);
 			mw_std_prim_Str_traceZ_lnZBang();
 			LPOP(lbl_outputZ_file);
 			mw_std_maybe_Maybe_1_unwrap();
@@ -40359,16 +36867,7 @@ static void mw_mirth_main_compileZBang (void) {
 			break;
 		case 0LL: // None
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Skipping Codegen.", 17);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Skipping Codegen.", 17);
 			mw_std_prim_Str_traceZ_lnZBang();
 			LPOP(lbl_emitZ_debugZ_info);
 			mp_primZ_drop();
@@ -40465,16 +36964,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 		case 1LL: // LongOnly
 			mtp_argZ_parser_types_ArgpOptionType_LongOnly();
 			mp_primZ_dup();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("debug", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("debug", 5);
 			mp_primZ_strZ_cmp();
 			push_i64(0LL);
 			{
@@ -40574,28 +37064,10 @@ static void mw_mirth_main_main (void) {
 	push_fnptr(&mb_mirth_main_main_1);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_parser);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("input-file", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("input-file", 10);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argsZ_doc);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Mirth Compiler", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Mirth Compiler", 14);
 	LPUSH(lbl_doc);
 	mtw_argZ_parser_types_ArgumentParser_1_ArgumentParser();
 	mw_argZ_parser_parse_parseZ_args();
@@ -40625,16 +37097,7 @@ static void mb_mirth_module_Module_prim_0 (void) {
 	mp_primZ_swap();
 	mfld_mirth_module_Module_ZTildeimports();
 	mp_primZ_mutZ_set();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("<prim>", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("<prim>", 6);
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
@@ -40643,16 +37106,7 @@ static void mb_mirth_module_Module_prim_0 (void) {
 	mp_primZ_swap();
 	mfld_mirth_module_Module_ZTildepath();
 	mp_primZ_mutZ_set();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("std", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("std", 3);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_package_Package_findZ_orZ_newZBang();
 	{
@@ -40663,16 +37117,7 @@ static void mb_mirth_module_Module_prim_0 (void) {
 	mp_primZ_swap();
 	mfld_mirth_module_Module_ZTildepackage();
 	mp_primZ_mutZ_set();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("prim", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("prim", 4);
 	mw_std_prim_Str_ZToName();
 	{
 		VAL d2 = pop_value();
@@ -40684,59 +37129,23 @@ static void mb_mirth_module_Module_prim_0 (void) {
 	mp_primZ_mutZ_set();
 }
 static void mb_mirth_main_main_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("output-file", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("output-file", 11);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(111LL); // B'o'
 	mtw_argZ_parser_types_ArgpOptionType_Short();
 	LPUSH(lbl_flagZ_type);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("OUTPUT_FILE", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("OUTPUT_FILE", 11);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argZ_doc);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Test argument", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Test argument", 13);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
 	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argZ_parser_types_ArgpOption_ArgpOption();
 	mw_std_list_ZPlusList_1_pushZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("compile-only", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("compile-only", 12);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(99LL); // B'c'
@@ -40744,144 +37153,54 @@ static void mb_mirth_main_main_0 (void) {
 	LPUSH(lbl_flagZ_type);
 	push_u64(0LL); // None
 	LPUSH(lbl_argZ_doc);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Compile code without running codegen step", 41);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Compile code without running codegen step", 41);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
 	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argZ_parser_types_ArgpOption_ArgpOption();
 	mw_std_list_ZPlusList_1_pushZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("entry-point", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("entry-point", 11);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(101LL); // B'e'
 	mtw_argZ_parser_types_ArgpOptionType_Short();
 	LPUSH(lbl_flagZ_type);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ENTRY_POINT", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ENTRY_POINT", 11);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argZ_doc);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Custom entry point word for compilation", 39);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Custom entry point word for compilation", 39);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
 	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argZ_parser_types_ArgpOption_ArgpOption();
 	mw_std_list_ZPlusList_1_pushZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("package", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("package", 7);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
 	push_u64(112LL); // B'p'
 	mtw_argZ_parser_types_ArgpOptionType_Short();
 	LPUSH(lbl_flagZ_type);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("(PACKAGE:PATH)*", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("(PACKAGE:PATH)*", 15);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_argZ_doc);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Package locations", 17);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Package locations", 17);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
 	push_u64(0LL); // None
 	LPUSH(lbl_group);
 	mtw_argZ_parser_types_ArgpOption_ArgpOption();
 	mw_std_list_ZPlusList_1_pushZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("debug", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("debug", 5);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("debug", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("debug", 5);
 	mtw_argZ_parser_types_ArgpOptionType_LongOnly();
 	LPUSH(lbl_flagZ_type);
 	push_u64(0LL); // None
 	LPUSH(lbl_argZ_doc);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Emit debugging information during codegen", 41);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Emit debugging information during codegen", 41);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_doc);
 	push_u64(0LL); // None
@@ -40896,16 +37215,7 @@ static void mb_argZ_parser_types_ArgumentParsingError_show_0 (void) {
 	push_u64(31LL); // FGRed
 	mw_std_terminal_Sgr_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Missing argument: ", 18);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Missing argument: ", 18);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	push_u64(0LL); // Reset
 	mw_std_terminal_Sgr_show();
@@ -40934,142 +37244,52 @@ static void mb_std_terminal_Sgr_show_0 (void) {
 			mp_primZ_drop();
 			break;
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("m", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("m", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_std_terminal_SGRColor_show_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";5;", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";5;", 3);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Int_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_std_terminal_SGRColor_show_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";2;", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";2;", 3);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Int_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Int_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Int_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_std_prim_Str_show_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\"", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\"", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	push_fnptr(&mb_std_prim_Str_show_1);
 	mw_std_prim_Str_bytesZ_for_1();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\"", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\"", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_std_prim_Str_show_1 (void) {
 	mw_std_str_ZPlusStr_pushZ_showZ_byteZBang();
 }
 static void mb_mirth_specializzer_SPKey_ZToStr_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("(", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("(", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	{
 		VAL d2 = pop_value();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("", 0);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("", 0);
 		push_value(d2);
 	}
 	push_fnptr(&mb_mirth_specializzer_SPKey_ZToStr_2);
 	mw_std_list_ListZPlus_1_for_1();
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(")", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(")", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_mirth_specializzer_SPKey_ZToStr_2 (void) {
@@ -41080,16 +37300,7 @@ static void mb_mirth_specializzer_SPKey_ZToStr_2 (void) {
 	}
 	mw_mirth_arrow_Arg_ZToStr();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(",", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(",", 1);
 }
 static void mb_mirth_main_compileZBang_0 (void) {
 	mw_std_prelude_unpack2();
@@ -41112,32 +37323,14 @@ static void mb_mirth_main_compileZBang_1 (void) {
 static void mb_mirth_type_StackType_traceZBang_2 (void) {
 	mp_primZ_swap();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(" ", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(" ", 1);
 		mw_std_prim_Str_traceZBang();
 	} else {
 	}
 	mw_std_prelude_unpack2();
 	mw_mirth_label_Label_ZToStr();
 	mw_std_prim_Str_traceZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(":", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(":", 1);
 	mw_std_prim_Str_traceZBang();
 	push_fnptr(&mb_mirth_type_StackType_traceZBang_4);
 	push_fnptr(&mb_mirth_type_StackType_traceZBang_5);
@@ -41153,16 +37346,7 @@ static void mb_mirth_type_StackType_traceZBang_5 (void) {
 static void mb_mirth_type_StackType_traceZBang_7 (void) {
 	mp_primZ_swap();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(" ", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(" ", 1);
 		mw_std_prim_Str_traceZBang();
 	} else {
 	}
@@ -41172,16 +37356,7 @@ static void mb_mirth_type_StackType_traceZBang_7 (void) {
 static void mb_mirth_type_StackType_traceZBang_9 (void) {
 	mp_primZ_swap();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(" ", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(" ", 1);
 		mw_std_prim_Str_traceZBang();
 	} else {
 	}
@@ -41192,16 +37367,7 @@ static void mb_std_prim_Str_ZToName_2 (void) {
 	mw_mirth_name_Name_mangleZ_computeZBang();
 }
 static void mb_mirth_lexer_runZ_lexerZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Mismatched left parenthesis.", 28);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Mismatched left parenthesis.", 28);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_typecheckZ_everythingZBang_0 (void) {
@@ -41235,16 +37401,7 @@ static void mb_mirth_elab_elabZ_entryZ_point_1 (void) {
 		mw_mirth_name_Namespace_moduleZAsk();
 		mw_std_maybe_Maybe_1_unwrap();
 		mw_mirth_module_Module_start();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("can't find entry point ", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("can't find entry point ", 23);
 		push_value(d2);
 	}
 	mw_mirth_name_QName_ZToStr();
@@ -41259,16 +37416,7 @@ static void mb_mirth_elab_elabZ_entryZ_point_4 (void) {
 	}
 }
 static void mb_mirth_main_parseZ_packageZ_def_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Invalid package path definition", 31);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Invalid package path definition", 31);
 	mw_std_prelude_panicZBang();
 }
 static void mb_std_str_ZPlusStr_splitZ_byte_0 (void) {
@@ -41397,16 +37545,7 @@ static void mb_mirth_main_compilerZ_parseZ_args_17 (void) {
 	mw_std_maybe_Maybe_1_then_1();
 }
 static void mb_mirth_main_compilerZ_parseZ_args_18 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("output-file", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("output-file", 11);
 	mtw_argZ_parser_types_ArgumentParsingError_MissingArg();
 	mtw_std_maybe_Maybe_1_Some();
 	push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_19);
@@ -41704,29 +37843,11 @@ static void mb_std_prim_Int_ZToNat_0 (void) {
 	}
 }
 static void mb_std_prim_Int_ZToNat_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("tried to create negative Nat", 28);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("tried to create negative Nat", 28);
 	mw_std_prelude_panicZBang();
 }
 static void mb_std_prim_Int_ZToU8_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("U8 out of bounds", 16);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("U8 out of bounds", 16);
 	mw_std_prelude_panicZBang();
 }
 static void mb_std_prelude_assertZBang_2_1 (void) {
@@ -41735,16 +37856,7 @@ static void mb_std_prelude_assertZBang_2_1 (void) {
 	pop_value();
 	incref(var_g);
 	run_value(var_g);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("assertion failed: ", 18);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("assertion failed: ", 18);
 	mp_primZ_swap();
 	mp_primZ_strZ_cat();
 	decref(var_g);
@@ -42547,16 +38659,7 @@ static void mb_std_prim_Str_withZ_dataZ_cstr_1_0 (void) {
 	mp_primZ_intZ_eq();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("tried to use string as cstring, but no null terminator", 54);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("tried to use string as cstring, but no null terminator", 54);
 		mw_std_prelude_panicZBang();
 	}
 	incref(var_f);
@@ -42591,42 +38694,15 @@ static void mb_std_prim_Int_ZToByte_0 (void) {
 	mw_std_prim_Int_inZ_range();
 }
 static void mb_std_prim_Int_ZToByte_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Int->Byte out of range", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Int->Byte out of range", 22);
 }
 static void mb_std_byte_Byte_zzencode_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Z", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Z", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_byte_Byte_ZToInt();
 	mw_std_prim_Int_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("U", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("U", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_std_buffer_ZPlusBuffer_resizzeZBang_0 (void) {
@@ -42640,16 +38716,7 @@ static void mb_argZ_parser_parse_printZ_usage_0 (void) {
 	push_u64(1LL); // Bold
 	mw_std_terminal_Sgr_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Usage:", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Usage:", 6);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	push_u64(0LL); // Reset
 	mw_std_terminal_Sgr_show();
@@ -42662,16 +38729,7 @@ static void mb_argZ_parser_parse_printZ_usage_2 (void) {
 	mw_argZ_parser_parse_printZ_usageZ_forZ_option();
 }
 static void mb_argZ_parser_parse_printZ_usageZ_forZ_option_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("--", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("--", 2);
 	mw_std_prim_Str_printZBang();
 	mp_primZ_dup();
 	mp_primZ_strZ_numZ_bytes();
@@ -42689,16 +38747,7 @@ static void mb_argZ_parser_parse_printZ_usageZ_forZ_option_3 (void) {
 	mw_std_maybe_Maybe_1_thenZ_some_1();
 }
 static void mb_argZ_parser_parse_printZ_usageZ_forZ_option_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" ", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" ", 1);
 	mw_std_prim_Str_printZBang();
 	mp_primZ_dup();
 	mp_primZ_strZ_numZ_bytes();
@@ -42741,16 +38790,7 @@ static void mb_argZ_parser_parse_printZ_usageZ_forZ_option_5 (void) {
 		mp_primZ_drop();
 		mp_primZ_drop();
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("    ", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("    ", 4);
 	mw_std_prim_Str_printZBang();
 	mw_std_prim_Str_printZBang();
 }
@@ -42759,16 +38799,7 @@ static void mb_argZ_parser_parse_printZ_usageZ_forZ_option_8 (void) {
 }
 static void mb_argZ_parser_parse_printZ_usageZ_forZ_option_9 (void) {
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" ", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" ", 1);
 	mw_std_prim_Str_printZBang();
 }
 static void mb_argZ_parser_parse_parseZ_flagsZ_where_1_0 (void) {
@@ -42821,16 +38852,7 @@ static void mb_std_posix_sliceZ_writeZBang_2 (void) {
 	}
 }
 static void mb_std_posix_sliceZ_writeZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("write failed", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("write failed", 12);
 }
 static void mb_std_posix_sliceZ_writeZBang_4 (void) {
 	{
@@ -42848,16 +38870,7 @@ static void mb_std_posix_sliceZ_writeZBang_4 (void) {
 	mp_primZ_intZ_eq();
 }
 static void mb_std_posix_sliceZ_writeZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("write output fewer bytes than expected", 38);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("write output fewer bytes than expected", 38);
 }
 static void mb_mirth_c99_ZPlusC99_put_0 (void) {
 	mw_std_output_ZPlusOutput_put();
@@ -42900,16 +38913,7 @@ static void mb_std_prim_ZPlusWorld_openZ_fileZBang_0 (void) {
 	mp_primZ_posixZ_open();
 }
 static void mb_std_prim_ZPlusWorld_openZ_fileZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("failed to open file: ", 21);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("failed to open file: ", 21);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Str_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
@@ -42920,16 +38924,7 @@ static void mb_std_prim_ZPlusWorld_createZ_fileZBang_0 (void) {
 	mp_primZ_posixZ_open();
 }
 static void mb_std_prim_ZPlusWorld_createZ_fileZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("failed to create file: ", 23);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("failed to create file: ", 23);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Str_show();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
@@ -42945,16 +38940,7 @@ static void mb_std_file_ZPlusFile_closeZ_fileZBang_0 (void) {
 	}
 }
 static void mb_std_file_ZPlusFile_closeZ_fileZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("failed to close file", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("failed to close file", 20);
 }
 static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_3 (void) {
 	mp_primZ_dup();
@@ -42967,16 +38953,7 @@ static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_3 (void) {
 	}
 }
 static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("write failed", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("write failed", 12);
 }
 static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_5 (void) {
 	{
@@ -43004,16 +38981,7 @@ static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_5 (void) {
 	mp_primZ_intZ_eq();
 }
 static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_6 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("write output fewer bytes than expected", 38);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("write output fewer bytes than expected", 38);
 }
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_1 (void) {
 	mp_primZ_dup();
@@ -43026,16 +38994,7 @@ static void mb_std_file_ZPlusFile_unsafeZ_readZBang_1 (void) {
 	}
 }
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("read failed", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("read failed", 11);
 }
 static void mb_std_input_ZPlusInput_readZ_fileZBang_0 (void) {
 	mw_std_input_ZPlusInput_readZ_chunkZBang();
@@ -43077,16 +39036,7 @@ static void mb_mirth_arrow_Block_qname_0 (void) {
 			mw_std_prim_Int_show();
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("entry@", 6);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("entry@", 6);
 				push_value(d4);
 			}
 			mp_primZ_strZ_cat();
@@ -43211,16 +39161,7 @@ static void mb_mirth_type_Type_tyconZAsk_1 (void) {
 	push_u64(0LL); // None
 }
 static void mb_mirth_name_QName_toZ_moduleZ_path_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("No path defined for package", 27);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("No path defined for package", 27);
 	mw_std_prelude_panicZBang();
 }
 static void mb_std_lazzy_delay0_1_0 (void) {
@@ -43304,16 +39245,7 @@ static void mb_mirth_token_TokenValue_patZ_underscoreZAsk_0 (void) {
 }
 static void mb_mirth_token_TokenValue_moduleZ_headerZAsk_0 (void) {
 	mw_mirth_name_Name_ZToStr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("module", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("module", 6);
 	mp_primZ_strZ_cmp();
 	push_i64(0LL);
 	{
@@ -43387,16 +39319,7 @@ static void mb_mirth_token_Token_args_3 (void) {
 	}
 }
 static void mb_mirth_token_Token_argsZPlus_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("expected 1 or more args, got none", 33);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("expected 1 or more args, got none", 33);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_error_emitZ_warningZ_atZBang_1 (void) {
@@ -43459,16 +39382,7 @@ static void mb_mirth_type_Type_isZ_physicalZAsk_0 (void) {
 	mw_mirth_type_Type_isZ_physicalZAsk();
 }
 static void mb_mirth_type_Type_isZ_physicalZAsk_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("unbound meta at Type.is-physical?", 33);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("unbound meta at Type.is-physical?", 33);
 	mw_std_prelude_panicZBang();
 }
 static void mb_mirth_type_TT_0 (void) {
@@ -43659,16 +39573,7 @@ static void mb_mirth_type_Type_exceptZ_field_0 (void) {
 	mw_mirth_type_Type_exceptZ_field();
 }
 static void mb_mirth_type_Type_exceptZ_field_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Type.except-field on metavar", 28);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Type.except-field on metavar", 28);
 	mw_std_prelude_panicZBang();
 }
 static void mb_mirth_type_StackType_topZ_tyconZAsk_0 (void) {
@@ -43797,16 +39702,7 @@ static void mb_mirth_prim_Prim_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_prim_Prim_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mp_", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mp_", 3);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_prim_Prim_name();
@@ -43818,16 +39714,7 @@ static void mb_mirth_external_External_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_external_External_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mext_", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mext_", 5);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_external_External_qname();
@@ -43839,16 +39726,7 @@ static void mb_mirth_table_Field_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_table_Field_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mfld_", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mfld_", 5);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_table_Field_qname();
@@ -43860,16 +39738,7 @@ static void mb_mirth_variable_Variable_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_variable_Variable_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mvar_", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mvar_", 5);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_variable_Variable_qname();
@@ -43881,16 +39750,7 @@ static void mb_mirth_buffer_Buffer_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_buffer_Buffer_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mbuf_", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mbuf_", 5);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_buffer_Buffer_qname();
@@ -43918,30 +39778,12 @@ static void mb_mirth_arrow_Block_cname_0 (void) {
 	}
 }
 static void mb_mirth_arrow_Block_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mb_", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mb_", 3);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_mirth_word_Word_qname();
 	mw_mirth_name_QName_mangled();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("_", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("_", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mfld_mirth_arrow_Block_ZTildehomeZ_index();
@@ -43950,16 +39792,7 @@ static void mb_mirth_arrow_Block_cname_1 (void) {
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_mirth_arrow_Block_cname_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mb_", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mb_", 3);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_index();
@@ -43971,16 +39804,7 @@ static void mb_mirth_word_Word_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_word_Word_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mw_", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mw_", 3);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_word_Word_qname();
@@ -44256,16 +40080,7 @@ static void mb_mirth_var_Ctx_freshZ_nameZBang_1 (void) {
 	mp_primZ_drop();
 	push_i64(1LL);
 	mp_primZ_intZ_add();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("_x", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("_x", 2);
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
@@ -44469,16 +40284,7 @@ static void mb_mirth_elab_ZPlusTypeElab_elabZ_stackZ_typeZ_partZBang_14 (void) {
 }
 static void mb_mirth_elab_ZPlusTypeElab_elabZ_stackZ_typeZ_partZBang_15 (void) {
 	mw_mirth_elab_ZPlusTypeElab_token();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Expected type, got unknown token.", 33);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Expected type, got unknown token.", 33);
 	mw_mirth_token_emitZ_errorZBang();
 	push_fnptr(&mb_mirth_elab_ZPlusTypeElab_elabZ_stackZ_typeZ_partZBang_16);
 	mw_mirth_elab_ZPlusTypeElab_token_1();
@@ -44499,16 +40305,7 @@ static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_varZBang_1 (void) {
 }
 static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_conZBang_0 (void) {
 	mw_mirth_name_Name_ZToStr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Mut", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Mut", 3);
 	mp_primZ_strZ_cmp();
 	push_i64(0LL);
 	{
@@ -44619,16 +40416,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // Nil
 			(void)pop_u64();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("Unknown ", 8);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("Unknown ", 8);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			{
 				VAL d4 = pop_resource();
@@ -44636,16 +40424,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 				push_resource(d4);
 			}
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" name, possibly a misspelling.", 30);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" name, possibly a misspelling.", 30);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 1LL: // Cons
@@ -44656,16 +40435,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 					switch (get_top_data_tag()) {
 						case 0LL: // RD_WRONG_SORT
 							mtp_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("Expected a ", 11);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT("Expected a ", 11);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							{
 								VAL d8 = pop_resource();
@@ -44673,30 +40443,12 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 								push_resource(d8);
 							}
 							mw_std_str_ZPlusStr_pushZ_strZBang();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr(", but ", 6);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT(", but ", 6);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_def_Def_qname();
 							mw_mirth_name_QName_ZToStr();
 							mw_std_str_ZPlusStr_pushZ_strZBang();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr(" is not a ", 10);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT(" is not a ", 10);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							{
 								VAL d8 = pop_resource();
@@ -44704,30 +40456,12 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 								push_resource(d8);
 							}
 							mw_std_str_ZPlusStr_pushZ_strZBang();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr(".", 1);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT(".", 1);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							break;
 						case 2LL: // RD_NOT_VISIBLE
 							mtp_mirth_elab_RejectedDef_RDz_NOTz_VISIBLE();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("Not visible in current scope: ", 30);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT("Not visible in current scope: ", 30);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_def_Def_qname();
 							mw_mirth_name_QName_ZToStr();
@@ -44735,16 +40469,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 							break;
 						case 3LL: // RD_NOT_IMPORTED
 							mtp_mirth_elab_RejectedDef_RDz_NOTz_IMPORTED();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("Not imported in current scope: ", 31);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT("Not imported in current scope: ", 31);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_def_Def_qname();
 							mw_mirth_name_QName_ZToStr();
@@ -44756,30 +40481,12 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 							mp_primZ_dup();
 							mw_mirth_name_QName_ZToStr();
 							mw_std_str_ZPlusStr_pushZ_strZBang();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr(" expects ", 9);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT(" expects ", 9);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_name_QName_arity();
 							mw_std_prim_Int_show();
 							mw_std_str_ZPlusStr_pushZ_strZBang();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr(" arguments, but got ", 20);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT(" arguments, but got ", 20);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							{
 								VAL d8 = pop_resource();
@@ -44789,30 +40496,12 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 							mw_mirth_token_Token_numZ_args();
 							mw_std_prim_Int_show();
 							mw_std_str_ZPlusStr_pushZ_strZBang();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr(".", 1);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT(".", 1);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							break;
 						case 4LL: // RD_WRONG_QUALIFIER
 							mtp_mirth_elab_RejectedDef_RDz_WRONGz_QUALIFIER();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("Qualified name not found. Perhaps you meant: ", 45);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT("Qualified name not found. Perhaps you meant: ", 45);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_def_Def_qname();
 							mw_mirth_name_QName_ZToStr();
@@ -44820,16 +40509,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 							break;
 						case 5LL: // RD_WRONG_CONSTRUCTOR
 							mtp_mirth_elab_RejectedDef_RDz_WRONGz_CONSTRUCTOR();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("Constructor is for a different type: ", 37);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT("Constructor is for a different type: ", 37);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_def_Def_qname();
 							mw_mirth_name_QName_ZToStr();
@@ -44837,16 +40517,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 							break;
 						case 7LL: // RD_METHOD_WRONG_TYPE
 							mtp_mirth_elab_RejectedDef_RDz_METHODz_WRONGz_TYPE();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("Method is for a different type: ", 32);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT("Method is for a different type: ", 32);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_def_Def_qname();
 							mw_mirth_name_QName_ZToStr();
@@ -44854,16 +40525,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 							break;
 						case 6LL: // RD_METHOD_NOT_AVAILABLE
 							mtp_mirth_elab_RejectedDef_RDz_METHODz_NOTz_AVAILABLE();
-							{
-								static bool vready = false;
-								static VAL v;
-								if (! vready) {
-									v = mkstr("Method is not available for current stack: ", 43);
-									vready = true;
-								}
-								push_value(v);
-								incref(v);
-							}
+							STRLIT("Method is not available for current stack: ", 43);
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							mw_mirth_def_Def_qname();
 							mw_mirth_name_QName_ZToStr();
@@ -44876,29 +40538,11 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 					break;
 				default:
 					mtw_std_list_List_1_Cons();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("Multiple definitions for name, but none are suitable:", 53);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("Multiple definitions for name, but none are suitable:", 53);
 					mw_std_str_ZPlusStr_pushZ_strZBang();
 					{
 						VAL d6 = pop_value();
-						{
-							static bool vready = false;
-							static VAL v;
-							if (! vready) {
-								v = mkstr(" ", 1);
-								vready = true;
-							}
-							push_value(v);
-							incref(v);
-						}
+						STRLIT(" ", 1);
 						push_value(d6);
 					}
 					push_fnptr(&mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7);
@@ -44921,16 +40565,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mw_mirth_def_Def_qname();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" is not a ", 10);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" is not a ", 10);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			{
 				VAL d4 = pop_resource();
@@ -44944,16 +40579,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mw_mirth_def_Def_qname();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" is not visible in current scope", 32);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" is not visible in current scope", 32);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 3LL: // RD_NOT_IMPORTED
@@ -44961,16 +40587,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mw_mirth_def_Def_qname();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" is not imported in current scope", 33);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" is not imported in current scope", 33);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 1LL: // RD_WRONG_ARITY
@@ -44979,30 +40596,12 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mp_primZ_dup();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" expects ", 9);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" expects ", 9);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			mw_mirth_name_QName_arity();
 			mw_std_prim_Int_show();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" arguments", 10);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" arguments", 10);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 4LL: // RD_WRONG_QUALIFIER
@@ -45010,16 +40609,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mw_mirth_def_Def_qname();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" doesn't match the given qualified name", 39);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" doesn't match the given qualified name", 39);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 5LL: // RD_WRONG_CONSTRUCTOR
@@ -45027,16 +40617,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mw_mirth_def_Def_qname();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" is constructor for a different type", 36);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" is constructor for a different type", 36);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 7LL: // RD_METHOD_WRONG_TYPE
@@ -45044,16 +40625,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mw_mirth_def_Def_qname();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" is method for a different type", 31);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" is method for a different type", 31);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		case 6LL: // RD_METHOD_NOT_AVAILABLE
@@ -45061,44 +40633,17 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_7 (void) {
 			mw_mirth_def_Def_qname();
 			mw_mirth_name_QName_ZToStr();
 			mw_std_str_ZPlusStr_pushZ_strZBang();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" is not avaliable for current stack", 35);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" is not avaliable for current stack", 35);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primZ_panic();
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 }
 static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Can't resolve ", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Can't resolve ", 14);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	{
 		VAL d2 = pop_resource();
@@ -45106,27 +40651,9 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_2 (void) {
 		push_resource(d2);
 	}
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" due to previous errors. Candidates are:", 40);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" due to previous errors. Candidates are:", 40);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" ", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" ", 1);
 	{
 		VAL d2 = pop_resource();
 		mw_mirth_elab_ZPlusResolveDef_candidates();
@@ -45142,28 +40669,10 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_5 (void) {
 	mw_mirth_def_Def_qname();
 	mw_mirth_name_QName_ZToStr();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 }
 static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_6 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Ambiguous ", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Ambiguous ", 10);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	{
 		VAL d2 = pop_resource();
@@ -45171,27 +40680,9 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_6 (void) {
 		push_resource(d2);
 	}
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(". Can't decide between:", 23);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(". Can't decide between:", 23);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" ", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" ", 1);
 	{
 		VAL d2 = pop_resource();
 		mw_mirth_elab_ZPlusResolveDef_candidates();
@@ -45207,16 +40698,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_9 (void) {
 	mw_mirth_def_Def_qname();
 	mw_mirth_name_QName_ZToStr();
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 }
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_0 (void) {
 	{
@@ -45515,16 +40997,7 @@ static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_3 (void) {
 		default:
 			mp_primZ_drop();
 			mw_mirth_elab_ZPlusTypeElab_token();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("compiler bug: resolve-type-con-name! doesn't understand type", 60);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("compiler bug: resolve-type-con-name! doesn't understand type", 60);
 			mw_mirth_token_emitZ_errorZBang();
 			push_u64(0LL); // TYPE_ERROR
 			break;
@@ -45696,16 +41169,7 @@ static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_2 (void) {
 static void mb_mirth_elab_elabZ_ambiguousZ_nameZ_errorZBang_1 (void) {
 	{
 		VAL d2 = pop_value();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(" ", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(" ", 1);
 		mp_primZ_strZ_cat();
 		push_value(d2);
 	}
@@ -45723,16 +41187,7 @@ static void mb_mirth_elab_elabZ_matchZ_atZBang_0 (void) {
 	mw_mirth_elab_elabZ_matchZ_exhaustiveZBang();
 }
 static void mb_mirth_elab_elabZ_matchZ_caseZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("expected arrow end", 18);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("expected arrow end", 18);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_matchZ_caseZBang_5 (void) {
@@ -45768,16 +41223,7 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_0 (void) {
 }
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_3 (void) {
 	LPUSH(lbl_token);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("constructor", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("constructor", 11);
 	LPUSH(lbl_sort);
 	mw_mirth_match_ZPlusPattern_pattern();
 	mw_mirth_match_Pattern_mid();
@@ -45809,16 +41255,7 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_3 (void) {
 	}
 }
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Expected constructor name.", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Expected constructor name.", 26);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void) {
@@ -45905,86 +41342,32 @@ static void mb_mirth_elab_elabZ_lambdaZ_paramZAsk_4 (void) {
 	mw_mirth_token_Token_patternZ_varZAsk();
 }
 static void mb_mirth_elab_elabZ_moduleZ_declZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("unknown declaration", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("unknown declaration", 19);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_moduleZ_declZBang_1 (void) {
 	mw_mirth_def_Def_primZAsk();
 }
 static void mb_mirth_elab_elabZ_moduleZ_declZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("unknown declaration", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("unknown declaration", 19);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_moduleZ_packageZ_name_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Expected module name. (1)", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Expected module name. (1)", 25);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_moduleZ_packageZ_name_1 (void) {
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Expected module name. (2)", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Expected module name. (2)", 25);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_moduleZ_packageZ_name_2 (void) {
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Expected module name. (3)", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Expected module name. (3)", 25);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_aliasZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("expected alias target, which must be a name", 43);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("expected alias target, which must be a name", 43);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_aliasZBang_4 (void) {
@@ -46001,16 +41384,7 @@ static void mb_mirth_elab_elabZ_aliasZBang_4 (void) {
 			switch (get_top_data_tag()) {
 				case 0LL: // Nil
 					(void)pop_u64();
-					{
-						static bool vready = false;
-						static VAL v;
-						if (! vready) {
-							v = mkstr("unknown alias target", 20);
-							vready = true;
-						}
-						push_value(v);
-						incref(v);
-					}
+					STRLIT("unknown alias target", 20);
 					mw_mirth_token_emitZ_fatalZ_errorZBang();
 					break;
 				case 1LL: // Cons
@@ -46074,16 +41448,7 @@ static void mb_mirth_elab_elabZ_aliasZBang_4 (void) {
 	} else {
 		{
 			VAL d3 = pop_value();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("alias target is not visible", 27);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("alias target is not visible", 27);
 			push_value(d3);
 		}
 		mw_mirth_def_Def_definingZ_moduleZAsk();
@@ -46134,16 +41499,7 @@ static void mb_mirth_elab_elabZ_aliasZBang_6 (void) {
 static void mb_mirth_elab_elabZ_aliasZBang_8 (void) {
 	{
 		VAL d2 = pop_value();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("undefined alias target ", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("undefined alias target ", 23);
 		push_value(d2);
 	}
 	mw_mirth_name_QName_ZToStr();
@@ -46153,16 +41509,7 @@ static void mb_mirth_elab_elabZ_aliasZBang_8 (void) {
 static void mb_mirth_elab_elabZ_aliasZBang_12 (void) {
 	{
 		VAL d2 = pop_value();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(", need to import ", 17);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(", need to import ", 17);
 		mp_primZ_strZ_cat();
 		push_value(d2);
 	}
@@ -46171,16 +41518,7 @@ static void mb_mirth_elab_elabZ_aliasZBang_12 (void) {
 	mp_primZ_strZ_cat();
 }
 static void mb_mirth_elab_elabZ_aliasZBang_14 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("alias points to itself, circular aliases not allowed.", 53);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("alias points to itself, circular aliases not allowed.", 53);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_defZBang_3 (void) {
@@ -46229,16 +41567,7 @@ static void mb_mirth_elab_elabZ_defZBang_10 (void) {
 	mw_mirth_elab_elabZ_defZ_bodyZBang();
 }
 static void mb_mirth_elab_elabZ_defZ_externalZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("expected external symbol name", 29);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("expected external symbol name", 29);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_defZ_externalZBang_4 (void) {
@@ -46254,16 +41583,7 @@ static void mb_mirth_elab_elabZ_defZ_externalZBang_4 (void) {
 	mw_mirth_elab_ZPlusTypeElab_rdrop();
 }
 static void mb_mirth_elab_elabZ_bufferZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("expected buffer size", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("expected buffer size", 20);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_variableZBang_1 (void) {
@@ -46273,16 +41593,7 @@ static void mb_mirth_elab_elabZ_dataZBang_2 (void) {
 	mw_mirth_elab_elabZ_dataZ_tagZBang();
 }
 static void mb_mirth_elab_elabZ_embedZ_strZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("expected source path", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("expected source path", 20);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_embedZ_strZBang_2 (void) {
@@ -46291,16 +41602,7 @@ static void mb_mirth_elab_elabZ_embedZ_strZBang_2 (void) {
 }
 static void mb_mirth_elab_loadZ_module_0 (void) {
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("module name already taken", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("module name already taken", 25);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_dataZ_headerZBang_3 (void) {
@@ -46308,16 +41610,7 @@ static void mb_mirth_elab_elabZ_dataZ_headerZBang_3 (void) {
 }
 static void mb_mirth_elab_elabZ_dataZ_tagZBang_0 (void) {
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("Expected constructor name.", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("Expected constructor name.", 26);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_dataZ_tagZBang_7 (void) {
@@ -46389,16 +41682,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_0 (void) {
 	pop_value();
 	incref(var_dat);
 	push_value(var_dat);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("tag", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("tag", 3);
 	push_i64(0LL);
 	mw_mirth_elab_dataZ_wordZ_newZBang();
 	{
@@ -46443,16 +41727,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_2 (void) {
 	pop_value();
 	incref(var_dat);
 	push_value(var_dat);
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("from-tag-unsafe", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("from-tag-unsafe", 15);
 	push_i64(0LL);
 	mw_mirth_elab_dataZ_wordZ_newZBang();
 	{
@@ -46579,16 +41854,7 @@ static void mb_mirth_elab_elabZ_dataZ_paramsZBang_0 (void) {
 	mw_mirth_token_Token_sigZ_typeZ_varZAsk();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected type variable", 22);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected type variable", 22);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	mp_primZ_dup();
@@ -46616,16 +41882,7 @@ static void mb_mirth_elab_elabZ_dataZ_paramsZBang_0 (void) {
 	mw_mirth_var_Ctx_new();
 }
 static void mb_mirth_elab_elabZ_dataZ_paramsZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("duplicate parameter name", 24);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("duplicate parameter name", 24);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_createZ_projectorsZBang_0 (void) {
@@ -46688,16 +41945,7 @@ static void mb_mirth_elab_createZ_projectorsZBang_1 (void) {
 	incref(var_lbl);
 	push_value(var_lbl);
 	mw_mirth_label_Label_ZToStr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("!", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("!", 1);
 	mp_primZ_strZ_cat();
 	push_i64(0LL);
 	mw_mirth_elab_dataZ_wordZ_newZBang();
@@ -46919,29 +42167,11 @@ static void mb_mirth_elab_createZ_projectorsZBang_8 (void) {
 	VAL var_lbl = pop_value();
 	pop_value();
 	mw_mirth_type_TYPEz_STACK();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("*x", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("*x", 2);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	mw_mirth_type_TYPEz_STACK();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("*y", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("*y", 2);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZBang();
 	incref(var_lbl);
@@ -47018,16 +42248,7 @@ static void mb_mirth_elab_createZ_projectorsZBang_9 (void) {
 		mp_primZ_drop();
 		push_value(d2);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("f", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("f", 1);
 	mw_std_prim_Str_ZToName();
 	mw_mirth_var_Var_newZ_autoZ_runZBang();
 	push_u64(0LL); // Nil
@@ -47155,44 +42376,17 @@ static void mb_mirth_data_Tag_outputZ_typeZ_exceptZ_field_1 (void) {
 static void mb_mirth_elab_elabZ_qnameZ_fromZ_nonrelativeZ_dname_0 (void) {
 	mp_primZ_drop();
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("relative name not allowed", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("relative name not allowed", 25);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_qnameZ_fromZ_nonrelativeZ_dname_3 (void) {
 	mp_primZ_drop();
 	mp_primZ_drop();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("type-qualified name has too many parts", 38);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("type-qualified name has too many parts", 38);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_defZ_qname_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("expected name", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("expected name", 13);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_preferZ_inlineZ_defsZAsk_0 (void) {
@@ -47203,16 +42397,7 @@ static void mb_mirth_elab_elabZ_defZ_paramsZBang_1 (void) {
 	mw_mirth_token_Token_sigZ_paramZ_nameZAsk();
 	if (pop_u64()) {
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected parameter name", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected parameter name", 23);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	mp_primZ_dup();
@@ -47222,16 +42407,7 @@ static void mb_mirth_elab_elabZ_defZ_paramsZBang_1 (void) {
 	if (pop_u64()) {
 		mp_primZ_drop();
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("expected right paren or comma", 29);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("expected right paren or comma", 29);
 		mw_mirth_token_emitZ_fatalZ_errorZBang();
 	}
 	mw_mirth_elab_elabZ_expandZ_tensorZBang();
@@ -47260,16 +42436,7 @@ static void mb_mirth_elab_elabZ_defZ_paramsZBang_1 (void) {
 	}
 }
 static void mb_mirth_elab_elabZ_defZ_paramsZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("need function type for param", 28);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("need function type for param", 28);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_defZ_bodyZBang_0 (void) {
@@ -47546,16 +42713,7 @@ static void mb_mirth_elab_elabZ_tycon_0 (void) {
 	}
 }
 static void mb_mirth_elab_elabZ_tycon_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("unknown type constructor: ", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("unknown type constructor: ", 26);
 	mp_primZ_swap();
 	mw_mirth_name_Name_ZToStr();
 	mp_primZ_strZ_cat();
@@ -47590,32 +42748,14 @@ static void mb_mirth_elab_elabZ_absoluteZ_namespace_0 (void) {
 	}
 }
 static void mb_mirth_elab_elabZ_absoluteZ_namespace_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("unknown namespace: ", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("unknown namespace: ", 19);
 	mp_primZ_swap();
 	mw_mirth_name_QName_ZToStr();
 	mp_primZ_strZ_cat();
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_absoluteZ_namespace_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("invalid namespace: ", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("invalid namespace: ", 19);
 	mp_primZ_swap();
 	mw_mirth_name_QName_ZToStr();
 	mp_primZ_strZ_cat();
@@ -47740,29 +42880,11 @@ static void mb_mirth_specializzer_specializzeZ_ctxZ_type_3 (void) {
 	mp_primZ_drop();
 }
 static void mb_mirth_specializzer_specializzeZ_ctxZ_type_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("unexpected domain in specialize-ctx-type", 40);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("unexpected domain in specialize-ctx-type", 40);
 	mw_std_prelude_panicZBang();
 }
 static void mb_mirth_specializzer_synthZ_specializzedZ_wordZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("unexpected shape for synth-specialized-word!", 44);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("unexpected shape for synth-specialized-word!", 44);
 	mw_std_prelude_panicZBang();
 }
 static void mb_mirth_specializzer_synthZ_specializzedZ_wordZBang_2 (void) {
@@ -47787,16 +42909,7 @@ static void mb_mirth_specializzer_synthZ_specializzedZ_wordZBang_2 (void) {
 	mp_primZ_intZ_eq();
 }
 static void mb_mirth_specializzer_synthZ_specializzedZ_wordZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("wrong number of lambda params in synth-specialized-word!", 56);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("wrong number of lambda params in synth-specialized-word!", 56);
 }
 static void mb_mirth_specializzer_synthZ_specializzedZ_wordZBang_4 (void) {
 	mw_mirth_arrow_Arg_ZDivArgBlock();
@@ -47974,16 +43087,7 @@ static void mb_mirth_c99_c99Z_fieldZ_sigsZBang_0 (void) {
 	mw_mirth_c99_c99Z_fieldZ_sigZBang();
 }
 static void mb_mirth_c99_c99Z_mainZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("int main (int argc, char** argv) {", 34);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("int main (int argc, char** argv) {", 34);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_mainZBang_1 (void) {
@@ -48012,93 +43116,30 @@ static void mb_mirth_c99_c99Z_mainZBang_1 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_mainZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("global_argc = argc;", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("global_argc = argc;", 19);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_mainZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("global_argv = argv;", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("global_argv = argv;", 19);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_mainZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_resource(MKU64(0));", 24);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_resource(MKU64(0));", 24);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_mainZBang_6 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("WORD_ENTER(", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("WORD_ENTER(", 11);
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("(void(*)(void))0, ", 18);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("(void(*)(void))0, ", 18);
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\"<main>\", ", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\"<main>\", ", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Arrow_tokenZ_start();
 	mw_mirth_token_Token_module();
 	mw_mirth_module_Module_sourceZ_path();
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Arrow_tokenZ_start();
@@ -48106,16 +43147,7 @@ static void mb_mirth_c99_c99Z_mainZBang_6 (void) {
 	mw_mirth_location_Row_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Arrow_tokenZ_start();
@@ -48123,55 +43155,19 @@ static void mb_mirth_c99_c99Z_mainZBang_6 (void) {
 	mw_mirth_location_Col_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_mainZBang_8 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("WORD_EXIT((void(*)(void))0);", 28);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("WORD_EXIT((void(*)(void))0);", 28);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_mainZBang_9 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("return 0;", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("return 0;", 9);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_mainZBang_10 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_fieldZ_defsZBang_0 (void) {
@@ -48208,16 +43204,7 @@ static void mb_mirth_data_Tag_wordZ_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_data_Tag_wordZ_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mtw_", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mtw_", 4);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_data_Tag_qname();
@@ -48229,16 +43216,7 @@ static void mb_mirth_data_Tag_patZ_cname_0 (void) {
 	mw_std_str_Str_1();
 }
 static void mb_mirth_data_Tag_patZ_cname_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("mtp_", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("mtp_", 4);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mp_primZ_dup();
 	mw_mirth_data_Tag_qname();
@@ -48296,16 +43274,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_2 (void) {
 	push_value(var_tag);
 	mw_mirth_data_Tag_wordZ_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	incref(var_tag);
@@ -48324,16 +43293,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_2 (void) {
 		}
 		decref(var_f);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	decref(var_tag);
@@ -48352,56 +43312,20 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_3 (void) {
 		push_value(var_tag);
 		mw_mirth_data_Tag_outputsZ_resourceZAsk();
 		if (pop_u64()) {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\tpush_resource(MKU64(", 21);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\tpush_resource(MKU64(", 21);
 		} else {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\tpush_value(MKU64(", 18);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\tpush_value(MKU64(", 18);
 		}
 		mw_mirth_c99_ZPlusC99_put();
 		incref(var_tag);
 		push_value(var_tag);
 		mw_mirth_data_Tag_valueZ_show();
 		mw_mirth_c99_ZPlusC99_put();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("LL));", 5);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("LL));", 5);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tTUP* tup = tup_new(", 20);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\tTUP* tup = tup_new(", 20);
 		mw_mirth_c99_ZPlusC99_put();
 		incref(var_tag);
 		push_value(var_tag);
@@ -48410,28 +43334,10 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_3 (void) {
 		mp_primZ_intZ_add();
 		mw_std_prim_Int_show();
 		mw_mirth_c99_ZPlusC99_put();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(");", 2);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(");", 2);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\ttup->size = ", 13);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\ttup->size = ", 13);
 		mw_mirth_c99_ZPlusC99_put();
 		incref(var_tag);
 		push_value(var_tag);
@@ -48440,43 +43346,16 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_3 (void) {
 		mp_primZ_intZ_add();
 		mw_std_prim_Int_show();
 		mw_mirth_c99_ZPlusC99_put();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr(";", 1);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT(";", 1);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\ttup->cells[0] = MKU64(", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\ttup->cells[0] = MKU64(", 23);
 		mw_mirth_c99_ZPlusC99_put();
 		incref(var_tag);
 		push_value(var_tag);
 		mw_mirth_data_Tag_valueZ_show();
 		mw_mirth_c99_ZPlusC99_put();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("LL);", 4);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("LL);", 4);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
 		incref(var_tag);
@@ -48498,30 +43377,12 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_3 (void) {
 			if (! pop_u64()) break;
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\ttup->cells[", 12);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\ttup->cells[", 12);
 				mw_mirth_c99_ZPlusC99_put();
 				mp_primZ_dup();
 				mw_std_prim_Int_show();
 				mw_mirth_c99_ZPlusC99_put();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("] = pop_resource();", 19);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("] = pop_resource();", 19);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_mirth_c99_ZPlusC99_line();
 				push_i64(1LL);
@@ -48545,30 +43406,12 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_3 (void) {
 			if (! pop_u64()) break;
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\ttup->cells[", 12);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\ttup->cells[", 12);
 				mw_mirth_c99_ZPlusC99_put();
 				mp_primZ_dup();
 				mw_std_prim_Int_show();
 				mw_mirth_c99_ZPlusC99_put();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("] = pop_value();", 16);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("] = pop_value();", 16);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_mirth_c99_ZPlusC99_line();
 				push_i64(1LL);
@@ -48586,27 +43429,9 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_3 (void) {
 		push_value(var_tag);
 		mw_mirth_data_Tag_outputsZ_resourceZAsk();
 		if (pop_u64()) {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\tpush_resource(MKTUP(tup, ", 26);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\tpush_resource(MKTUP(tup, ", 26);
 		} else {
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("\tpush_value(MKTUP(tup, ", 23);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("\tpush_value(MKTUP(tup, ", 23);
 		}
 		mw_mirth_c99_ZPlusC99_put();
 		incref(var_tag);
@@ -48616,32 +43441,14 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_3 (void) {
 		mp_primZ_intZ_add();
 		mw_std_prim_Int_show();
 		mw_mirth_c99_ZPlusC99_put();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("));", 3);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("));", 3);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
 	}
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_defZBang_8 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\ttup->cells[", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\ttup->cells[", 12);
 	mw_mirth_c99_ZPlusC99_put();
 	{
 		VAL d2 = pop_value();
@@ -48651,30 +43458,12 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_8 (void) {
 	mp_primZ_swap();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("] = lpop(&lbl_", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("] = lpop(&lbl_", 14);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	push_i64(1LL);
@@ -48692,16 +43481,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_14 (void) {
 	push_value(var_tag);
 	mw_mirth_data_Tag_patZ_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	incref(var_tag);
@@ -48720,16 +43500,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_14 (void) {
 		}
 		decref(var_f);
 	}
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	decref(var_tag);
@@ -48742,27 +43513,9 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_15 (void) {
 	push_value(var_tag);
 	mw_mirth_data_Tag_outputsZ_resourceZAsk();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tVAL val = pop_resource();", 26);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\tVAL val = pop_resource();", 26);
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tVAL val = pop_value();", 23);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\tVAL val = pop_value();", 23);
 	}
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
@@ -48772,41 +43525,14 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_15 (void) {
 	push_i64(0LL);
 	mp_primZ_intZ_eq();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\t(void)val;", 11);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\t(void)val;", 11);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tASSERT1(IS_TUP(val),val);", 26);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\tASSERT1(IS_TUP(val),val);", 26);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tTUP* tup = VTUP(val);", 22);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\tTUP* tup = VTUP(val);", 22);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
 		push_i64(1LL);
@@ -48821,30 +43547,12 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_15 (void) {
 			if (! pop_u64()) break;
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\tpush_value(tup->cells[", 23);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\tpush_value(tup->cells[", 23);
 				mw_mirth_c99_ZPlusC99_put();
 				mp_primZ_dup();
 				mw_std_prim_Int_show();
 				mw_mirth_c99_ZPlusC99_put();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("]);", 3);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("]);", 3);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_mirth_c99_ZPlusC99_line();
 				push_i64(1LL);
@@ -48867,30 +43575,12 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_15 (void) {
 			if (! pop_u64()) break;
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\tpush_resource(tup->cells[", 26);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\tpush_resource(tup->cells[", 26);
 				mw_mirth_c99_ZPlusC99_put();
 				mp_primZ_dup();
 				mw_std_prim_Int_show();
 				mw_mirth_c99_ZPlusC99_put();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("]);", 3);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("]);", 3);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_mirth_c99_ZPlusC99_line();
 				push_i64(1LL);
@@ -48908,16 +43598,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_15 (void) {
 		push_fnptr(&mb_mirth_c99_c99Z_tagZ_defZBang_22);
 		mw_std_list_List_1_for_1();
 		mp_primZ_drop();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\tif (tup->refs > 1) {", 21);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\tif (tup->refs > 1) {", 21);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
 		push_i64(1LL);
@@ -48932,30 +43613,12 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_15 (void) {
 			if (! pop_u64()) break;
 			{
 				VAL d4 = pop_value();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("\t\tincref(tup->cells[", 20);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("\t\tincref(tup->cells[", 20);
 				mw_mirth_c99_ZPlusC99_put();
 				mp_primZ_dup();
 				mw_std_prim_Int_show();
 				mw_mirth_c99_ZPlusC99_put();
-				{
-					static bool vready = false;
-					static VAL v;
-					if (! vready) {
-						v = mkstr("]);", 3);
-						vready = true;
-					}
-					push_value(v);
-					incref(v);
-				}
+				STRLIT("]);", 3);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_mirth_c99_ZPlusC99_line();
 				push_i64(1LL);
@@ -48968,96 +43631,33 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_15 (void) {
 		}
 		mp_primZ_drop();
 		mp_primZ_drop();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\t\tdecref(val);", 14);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\t\tdecref(val);", 14);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\t} else {", 9);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\t} else {", 9);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\t\tfree(tup);", 12);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\t\tfree(tup);", 12);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("\t}", 2);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("\t}", 2);
 		mw_mirth_c99_ZPlusC99_put();
 		mw_mirth_c99_ZPlusC99_line();
 	}
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_defZBang_22 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("\tlpush(&lbl_", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("\tlpush(&lbl_", 12);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", tup->cells[", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", tup->cells[", 13);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("]);", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("]);", 3);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	push_i64(1LL);
@@ -49096,55 +43696,19 @@ static void mb_mirth_c99_c99Z_tagZ_labelZ_index_0 (void) {
 	mw_mirth_label_Label_ZEqualZEqual();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL v = pop_resource();", 23);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL v = pop_resource();", 23);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL v = pop_value();", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL v = pop_value();", 20);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(IS_TUP(v), v);", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(IS_TUP(v), v);", 22);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(VTUPLEN(v) == ", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(VTUPLEN(v) == ", 22);
 	mw_mirth_c99_ZPlusC99_put();
 	{
 		VAL d2 = pop_value();
@@ -49157,29 +43721,11 @@ static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_5 (void) {
 	mp_primZ_intZ_add();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", v);", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", v);", 5);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_6 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL* p = &VTUP(v)->cells[", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL* p = &VTUP(v)->cells[", 25);
 	mw_mirth_c99_ZPlusC99_put();
 	{
 		VAL d2 = pop_value();
@@ -49196,201 +43742,66 @@ static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_6 (void) {
 	mw_mirth_c99_c99Z_tagZ_labelZ_index();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("];", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("];", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_7 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL u = *p;", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL u = *p;", 11);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_8 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("incref(u);", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("incref(u);", 10);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_11 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_resource(v);", 17);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_resource(v);", 17);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_12 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("decref(v);", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("decref(v);", 10);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_13 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_value(u);", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_value(u);", 14);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_14 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(VREFS(v) == 1, v);", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(VREFS(v) == 1, v);", 26);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_15 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("*p = (VAL){0};", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("*p = (VAL){0};", 14);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_16 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_resource(u);", 17);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_resource(u);", 17);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_getZ_labelZBang_17 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_resource(v);", 17);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_resource(v);", 17);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL v = top_resource();", 23);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL v = top_resource();", 23);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL v = pop_value();", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL v = pop_value();", 20);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL u = pop_value();", 20);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL u = pop_value();", 20);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(IS_TUP(v), v);", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(IS_TUP(v), v);", 22);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_6 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(VTUPLEN(v) == ", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(VTUPLEN(v) == ", 22);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49399,16 +43810,7 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_6 (void) {
 	mp_primZ_intZ_add();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", v);", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", v);", 5);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_tag);
 }
@@ -49418,16 +43820,7 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_9 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL* p = &VTUP(v)->cells[", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL* p = &VTUP(v)->cells[", 25);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49436,44 +43829,17 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_9 (void) {
 	mw_mirth_c99_c99Z_tagZ_labelZ_index();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("];", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("];", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_lbl);
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_10 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL t = *p; *p = u; decref(t);", 30);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL t = *p; *p = u; decref(t);", 30);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_11 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("if (VTUP(v)->refs == 1) {", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("if (VTUP(v)->refs == 1) {", 25);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_12 (void) {
@@ -49503,16 +43869,7 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_13 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL* p = &VTUP(v)->cells[", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL* p = &VTUP(v)->cells[", 25);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49521,57 +43878,21 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_13 (void) {
 	mw_mirth_c99_c99Z_tagZ_labelZ_index();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("];", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("];", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_lbl);
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_14 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL t = *p; *p = u; decref(t);", 30);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL t = *p; *p = u; decref(t);", 30);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_15 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_value(v);", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_value(v);", 14);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_16 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("} else {", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("} else {", 8);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_17 (void) {
@@ -49645,16 +43966,7 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_18 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("TUP *tup = tup_new(", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("TUP *tup = tup_new(", 19);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49663,16 +43975,7 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_18 (void) {
 	mp_primZ_intZ_add();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_tag);
 }
@@ -49680,16 +43983,7 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_19 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("tup->size = ", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("tup->size = ", 12);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49698,128 +43992,47 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_19 (void) {
 	mp_primZ_intZ_add();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_24 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("tup->cells[", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("tup->cells[", 11);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("] = u;", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("] = u;", 6);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_25 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("tup->cells[", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("tup->cells[", 11);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("] = VTUP(v)->cells[", 19);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("] = VTUP(v)->cells[", 19);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("]; incref(tup->cells[", 21);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("]; incref(tup->cells[", 21);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("]);", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("]);", 3);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_26 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("decref(v);", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("decref(v);", 10);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_27 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_value(MKTUP(tup,", 21);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_value(MKTUP(tup,", 21);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49828,85 +44041,31 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_27 (void) {
 	mp_primZ_intZ_add();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("));", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("));", 3);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_28 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_29 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL v = pop_resource();", 23);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL v = pop_resource();", 23);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_30 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL u = pop_resource();", 23);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL u = pop_resource();", 23);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_31 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(IS_TUP(v), v);", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(IS_TUP(v), v);", 22);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_32 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(VTUPLEN(v) == ", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(VTUPLEN(v) == ", 22);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49915,30 +44074,12 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_32 (void) {
 	mp_primZ_intZ_add();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", v);", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", v);", 5);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_33 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(VREFS(v) == 1, v);", 26);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(VREFS(v) == 1, v);", 26);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_34 (void) {
@@ -49947,16 +44088,7 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_34 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_tag = pop_value();
 	pop_value();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL* p = &VTUP(v)->cells[", 25);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL* p = &VTUP(v)->cells[", 25);
 	mw_mirth_c99_ZPlusC99_put();
 	incref(var_tag);
 	push_value(var_tag);
@@ -49965,57 +44097,21 @@ static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_34 (void) {
 	mw_mirth_c99_c99Z_tagZ_labelZ_index();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("];", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("];", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	decref(var_lbl);
 	decref(var_tag);
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_35 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("ASSERT1(p->tag == 0, v);", 24);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("ASSERT1(p->tag == 0, v);", 24);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_36 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("*p = u;", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("*p = u;", 7);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_setZ_labelZBang_37 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_resource(v);", 17);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_resource(v);", 17);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_nest_1_0 (void) {
@@ -50029,16 +44125,7 @@ static void mb_mirth_c99_c99Z_nest_1_1 (void) {
 }
 static void mb_mirth_c99_c99Z_callZBang_1 (void) {
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("();", 3);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("();", 3);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_argsZ_pushZBang_0 (void) {
@@ -50048,16 +44135,7 @@ static void mb_mirth_c99_c99Z_arrowZBang_0 (void) {
 	mw_mirth_c99_c99Z_atomZBang();
 }
 static void mb_mirth_c99_c99Z_atomZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("WORD_ATOM(", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("WORD_ATOM(", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Atom_token();
@@ -50065,16 +44143,7 @@ static void mb_mirth_c99_c99Z_atomZBang_1 (void) {
 	mw_mirth_location_Row_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Atom_token();
@@ -50082,16 +44151,7 @@ static void mb_mirth_c99_c99Z_atomZBang_1 (void) {
 	mw_mirth_location_Col_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Atom_token();
@@ -50100,241 +44160,60 @@ static void mb_mirth_c99_c99Z_atomZBang_1 (void) {
 	push_fnptr(&mb_mirth_c99_c99Z_atomZBang_3);
 	mw_std_maybe_Maybe_1_ifZ_some_2();
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_atomZBang_2 (void) {
 	mw_mirth_name_Name_ZToStr();
 }
 static void mb_mirth_c99_c99Z_atomZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("", 0);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("", 0);
 }
 static void mb_mirth_c99_ZPlusC99_putZ_cstr_0 (void) {
 	mw_mirth_c99_c99Z_stringZ_byteZBang();
 }
 static void mb_mirth_c99_c99Z_intZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_i64(", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_i64(", 9);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("LL);", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("LL);", 4);
 	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("{", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_1 (void) {
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_2);
-	mw_mirth_c99_c99Z_line_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_3);
-	mw_mirth_c99_c99Z_line_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_4);
-	mw_mirth_c99_c99Z_line_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_5);
-	mw_mirth_c99_c99Z_nest_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_15);
-	mw_mirth_c99_c99Z_line_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_16);
-	mw_mirth_c99_c99Z_line_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_17);
-	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_strZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("static bool vready = false;", 27);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("STRLIT(", 7);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_strZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("static VAL v;", 13);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
+	push_fnptr(&mb_mirth_c99_c99Z_strZBang_4);
+	mw_mirth_c99_c99Z_line_1();
+	push_fnptr(&mb_mirth_c99_c99Z_strZBang_5);
+	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_strZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("if (! vready) {", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	mp_primZ_dup();
+	mw_mirth_c99_ZPlusC99_putZ_cstrZ_long();
+	STRLIT(",", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_strZBang_5 (void) {
 	mp_primZ_dup();
 	mp_primZ_strZ_numZ_bytes();
 	mw_std_prim_Int_ZToNat();
-	push_i64(4090LL);
-	mw_std_prim_Int_ZToNat();
-	{
-		VAL d2 = pop_value();
-		mw_std_prelude_Sizze_ZDivSizze();
-		push_value(d2);
-	}
-	mw_std_prelude_Sizze_ZDivSizze();
-	{
-		VAL d2 = pop_value();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	mp_primZ_intZ_lt();
-	if (pop_u64()) {
-		push_fnptr(&mb_mirth_c99_c99Z_strZBang_8);
-		mw_mirth_c99_c99Z_line_1();
-		push_fnptr(&mb_mirth_c99_c99Z_strZBang_9);
-		mw_mirth_c99_c99Z_nest_1();
-		push_fnptr(&mb_mirth_c99_c99Z_strZBang_12);
-		mw_mirth_c99_c99Z_line_1();
-	} else {
-		push_fnptr(&mb_mirth_c99_c99Z_strZBang_13);
-		mw_mirth_c99_c99Z_line_1();
-	}
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_14);
-	mw_mirth_c99_c99Z_line_1();
-}
-static void mb_mirth_c99_c99Z_strZBang_8 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("v = mkstr(", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_9 (void) {
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_10);
-	mw_mirth_c99_c99Z_line_1();
-	push_fnptr(&mb_mirth_c99_c99Z_strZBang_11);
-	mw_mirth_c99_c99Z_line_1();
-}
-static void mb_mirth_c99_c99Z_strZBang_10 (void) {
-	mp_primZ_dup();
-	mw_mirth_c99_ZPlusC99_putZ_cstrZ_long();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(",", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_11 (void) {
-	mp_primZ_dup();
-	mp_primZ_strZ_numZ_bytes();
-	mw_std_prim_Int_ZToNat();
 	mw_std_prelude_Sizze_ZDivSizze();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
 }
-static void mb_mirth_c99_c99Z_strZBang_12 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+static void mb_mirth_c99_c99Z_strZBang_6 (void) {
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
-static void mb_mirth_c99_c99Z_strZBang_13 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("v = mkstr(", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+static void mb_mirth_c99_c99Z_strZBang_7 (void) {
+	STRLIT("STRLIT(", 7);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mp_primZ_strZ_numZ_bytes();
@@ -50342,137 +44221,27 @@ static void mb_mirth_c99_c99Z_strZBang_13 (void) {
 	mw_std_prelude_Sizze_ZDivSizze();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_14 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("vready = true;", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_15 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_16 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_value(v);", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_17 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("incref(v);", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
-	mw_mirth_c99_ZPlusC99_put();
-}
-static void mb_mirth_c99_c99Z_strZBang_18 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_wordZBang_3 (void) {
 	mp_primZ_dup();
 	mw_mirth_data_Tag_outputsZ_resourceZAsk();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("push_resource(MKU64(", 20);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("push_resource(MKU64(", 20);
 		mw_mirth_c99_ZPlusC99_put();
 		mp_primZ_dup();
 		mw_mirth_data_Tag_valueZ_show();
 		mw_mirth_c99_ZPlusC99_put();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("LL)); // ", 9);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("LL)); // ", 9);
 		mw_mirth_c99_ZPlusC99_put();
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("push_u64(", 9);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("push_u64(", 9);
 		mw_mirth_c99_ZPlusC99_put();
 		mp_primZ_dup();
 		mw_mirth_data_Tag_valueZ_show();
 		mw_mirth_c99_ZPlusC99_put();
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("LL); // ", 8);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("LL); // ", 8);
 		mw_mirth_c99_ZPlusC99_put();
 	}
 	mp_primZ_dup();
@@ -50481,16 +44250,7 @@ static void mb_mirth_c99_c99Z_tagZ_wordZBang_3 (void) {
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("{", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("{", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_1 (void) {
@@ -50501,83 +44261,29 @@ static void mb_mirth_c99_c99Z_primZBang_1 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_primZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL d", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL d", 5);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_depth();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" = pop_value();", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" = pop_value();", 15);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_value(d", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_value(d", 12);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_depth();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("{", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("{", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_6 (void) {
@@ -50588,83 +44294,29 @@ static void mb_mirth_c99_c99Z_primZBang_6 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_primZBang_7 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL d", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL d", 5);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_depth();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" = pop_resource();", 18);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" = pop_resource();", 18);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_8 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_resource(d", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_resource(d", 15);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_depth();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_9 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_10 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("if (pop_u64()) {", 16);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("if (pop_u64()) {", 16);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_11 (void) {
@@ -50672,45 +44324,18 @@ static void mb_mirth_c99_c99Z_primZBang_11 (void) {
 	mw_mirth_c99_c99Z_argZ_runZBang();
 }
 static void mb_mirth_c99_c99Z_primZBang_12 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("} else {", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("} else {", 8);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_13 (void) {
 	mw_mirth_c99_c99Z_argZ_runZBang();
 }
 static void mb_mirth_c99_c99Z_primZBang_14 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_15 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("while(1) {", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("while(1) {", 10);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_16 (void) {
@@ -50721,69 +44346,24 @@ static void mb_mirth_c99_c99Z_primZBang_16 (void) {
 	mw_mirth_c99_c99Z_argZ_runZBang();
 }
 static void mb_mirth_c99_c99Z_primZBang_17 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("if (! pop_u64()) break;", 23);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("if (! pop_u64()) break;", 23);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_primZBang_18 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_matchZBang_2 (void) {
 	mw_mirth_match_Match_token();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("non-uniform match, not supported at present", 43);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("non-uniform match, not supported at present", 43);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_c99_c99Z_matchZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("switch (get_top_resource_data_tag()) {", 38);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("switch (get_top_resource_data_tag()) {", 38);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_matchZBang_6 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("switch (get_top_data_tag()) {", 29);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("switch (get_top_data_tag()) {", 29);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_matchZBang_7 (void) {
@@ -50804,16 +44384,7 @@ static void mb_mirth_c99_c99Z_matchZBang_8 (void) {
 	mw_mirth_c99_c99Z_caseZBang();
 }
 static void mb_mirth_c99_c99Z_matchZBang_10 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("default:", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("default:", 8);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_matchZBang_11 (void) {
@@ -50825,42 +44396,15 @@ static void mb_mirth_c99_c99Z_matchZBang_11 (void) {
 	mw_mirth_c99_c99Z_callZBang();
 }
 static void mb_mirth_c99_c99Z_matchZBang_12 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32)); ", 60);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32)); ", 60);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_matchZBang_13 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_lambdaZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("{", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("{", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_lambdaZBang_1 (void) {
@@ -50880,28 +44424,10 @@ static void mb_mirth_c99_c99Z_lambdaZBang_2 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_lambdaZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL ", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL ", 4);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" = pop_value();", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" = pop_value();", 15);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_lambdaZBang_4 (void) {
@@ -50909,189 +44435,63 @@ static void mb_mirth_c99_c99Z_lambdaZBang_4 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_lambdaZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("decref(", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("decref(", 7);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_lambdaZBang_6 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_blockZ_pushZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_fnptr(&", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_fnptr(&", 12);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_cname();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_labelZ_pushZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("LPUSH(lbl_", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("LPUSH(lbl_", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_labelZ_popZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("LPOP(lbl_", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("LPOP(lbl_", 9);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_labelZ_pushZ_rZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("LPUSHR(lbl_", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("LPUSHR(lbl_", 11);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_labelZ_popZ_rZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("LPOPR(lbl_", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("LPOPR(lbl_", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
 	mw_mirth_name_Name_mangled();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("{", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("{", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_2 (void) {
@@ -51112,29 +44512,11 @@ static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_2 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_3 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL val = pop_value();", 22);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL val = pop_value();", 22);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_6 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_u64(", 9);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_u64(", 9);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_data_Data_tags();
@@ -51143,95 +44525,32 @@ static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_6 (void) {
 	mw_mirth_data_Tag_value();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("LL);", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("LL);", 4);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_7 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("USIZE tag = get_data_tag(val);", 30);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("USIZE tag = get_data_tag(val);", 30);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_8 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_u64(tag);", 14);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_u64(tag);", 14);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_9 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("decref(val);", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("decref(val);", 12);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_10 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_tagZ_caseZ_patZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("case ", 5);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("case ", 5);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_data_Tag_valueZ_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("LL: // ", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("LL: // ", 7);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_data_Tag_name();
@@ -51265,27 +44584,9 @@ static void mb_mirth_c99_c99Z_tagZ_caseZ_patZBang_5 (void) {
 	mp_primZ_dup();
 	mw_mirth_data_Tag_outputsZ_resourceZAsk();
 	if (pop_u64()) {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("(void)pop_resource();", 21);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("(void)pop_resource();", 21);
 	} else {
-		{
-			static bool vready = false;
-			static VAL v;
-			if (! vready) {
-				v = mkstr("(void)pop_u64();", 16);
-				vready = true;
-			}
-			push_value(v);
-			incref(v);
-		}
+		STRLIT("(void)pop_u64();", 16);
 	}
 	mw_mirth_c99_ZPlusC99_put();
 }
@@ -51317,55 +44618,19 @@ static void mb_mirth_c99_c99Z_packZ_closureZ_varsZBang_1 (void) {
 	mw_mirth_c99_c99Z_callZBang();
 }
 static void mb_mirth_c99_c99Z_varZ_pushZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("incref(", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("incref(", 7);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_varZ_pushZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("push_value(", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("push_value(", 11);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_unpackZ_closureZ_varsZBang_0 (void) {
@@ -51381,41 +44646,14 @@ static void mb_mirth_c99_c99Z_unpackZ_closureZ_varsZBang_3 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_unpackZ_closureZ_varsZBang_4 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("VAL ", 4);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("VAL ", 4);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" = pop_value();", 15);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" = pop_value();", 15);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_unpackZ_closureZ_varsZBang_5 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("pop_value();", 12);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("pop_value();", 12);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_decrefZ_closureZ_varsZBang_0 (void) {
@@ -51427,80 +44665,26 @@ static void mb_mirth_c99_c99Z_decrefZ_closureZ_varsZBang_1 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_decrefZ_closureZ_varsZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("decref(", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("decref(", 7);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_varZ_runZBang_0 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("incref(", 7);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("incref(", 7);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_varZ_runZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("run_value(", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("run_value(", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_c99_ZPlusC99_varZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_caseZBang_0 (void) {
@@ -51510,29 +44694,11 @@ static void mb_mirth_c99_c99Z_caseZBang_0 (void) {
 	mw_mirth_c99_c99Z_line_1();
 }
 static void mb_mirth_c99_c99Z_caseZBang_1 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("break;", 6);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("break;", 6);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_patternZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("default:", 8);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("default:", 8);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_patternZBang_3 (void) {
@@ -51545,16 +44711,7 @@ static void mb_mirth_c99_c99Z_patternZBang_3 (void) {
 }
 static void mb_mirth_c99_c99Z_patternZBang_4 (void) {
 	mw_mirth_match_Pattern_tokenZ_start();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("c99 target -- don't know how to compile this pattern", 52);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("c99 target -- don't know how to compile this pattern", 52);
 	mw_mirth_token_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_need_Need_neededZAsk_0 (void) {
@@ -51563,73 +44720,28 @@ static void mb_mirth_need_Need_neededZAsk_0 (void) {
 static void mb_mirth_c99_c99Z_wordZ_sigZBang_0 (void) {
 	mw_mirth_word_Word_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_blockZ_sigZBang_0 (void) {
 	mw_mirth_arrow_Block_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_fieldZ_sigZBang_0 (void) {
 	mw_mirth_table_Field_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(";", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(";", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_blockZ_enterZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("WORD_ENTER(", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("WORD_ENTER(", 11);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_cname();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_home();
@@ -51637,31 +44749,13 @@ static void mb_mirth_c99_c99Z_blockZ_enterZBang_2 (void) {
 		case 0LL: // HomeMain
 			mtp_mirth_arrow_Home_HomeMain();
 			mp_primZ_drop();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr("block", 5);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT("block", 5);
 			break;
 		case 1LL: // HomeWord
 			mtp_mirth_arrow_Home_HomeWord();
 			mw_mirth_word_Word_name();
 			mw_mirth_name_Name_ZToStr();
-			{
-				static bool vready = false;
-				static VAL v;
-				if (! vready) {
-					v = mkstr(" block", 6);
-					vready = true;
-				}
-				push_value(v);
-				incref(v);
-			}
+			STRLIT(" block", 6);
 			mp_primZ_strZ_cat();
 			break;
 		default:
@@ -51669,32 +44763,14 @@ static void mb_mirth_c99_c99Z_blockZ_enterZBang_2 (void) {
 			mp_primZ_panic();
 	}
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_token();
 	mw_mirth_token_Token_module();
 	mw_mirth_module_Module_sourceZ_path();
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_token();
@@ -51702,16 +44778,7 @@ static void mb_mirth_c99_c99Z_blockZ_enterZBang_2 (void) {
 	mw_mirth_location_Row_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_token();
@@ -51719,58 +44786,22 @@ static void mb_mirth_c99_c99Z_blockZ_enterZBang_2 (void) {
 	mw_mirth_location_Col_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_blockZ_exitZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("WORD_EXIT(", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("WORD_EXIT(", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_arrow_Block_cname();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_blockZ_defZBang_0 (void) {
 	mp_primZ_dup();
 	mw_mirth_arrow_Block_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_blockZ_defZBang_1 (void) {
@@ -51788,74 +44819,29 @@ static void mb_mirth_c99_c99Z_blockZ_defZBang_1 (void) {
 	mw_mirth_c99_c99Z_blockZ_exitZBang();
 }
 static void mb_mirth_c99_c99Z_blockZ_defZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_wordZ_enterZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("WORD_ENTER(", 11);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("WORD_ENTER(", 11);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_word_Word_cname();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_word_Word_name();
 	mw_mirth_name_Name_ZToStr();
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_word_Word_body();
 	mw_mirth_token_Token_module();
 	mw_mirth_module_Module_sourceZ_path();
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_word_Word_body();
@@ -51863,16 +44849,7 @@ static void mb_mirth_c99_c99Z_wordZ_enterZBang_2 (void) {
 	mw_mirth_location_Row_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(", ", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(", ", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mp_primZ_dup();
 	mw_mirth_word_Word_body();
@@ -51880,58 +44857,22 @@ static void mb_mirth_c99_c99Z_wordZ_enterZBang_2 (void) {
 	mw_mirth_location_Col_ZToInt();
 	mw_std_prim_Int_show();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_wordZ_exitZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("WORD_EXIT(", 10);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("WORD_EXIT(", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_word_Word_cname();
 	mw_mirth_c99_ZPlusC99_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(");", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_wordZ_defZBang_0 (void) {
 	mp_primZ_dup();
 	mw_mirth_word_Word_cname();
 	mw_mirth_c99_ZPlusC99_sigZ_put();
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr(" {", 2);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT(" {", 2);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_wordZ_defZBang_1 (void) {
@@ -51944,16 +44885,7 @@ static void mb_mirth_c99_c99Z_wordZ_defZBang_1 (void) {
 	mw_mirth_c99_c99Z_wordZ_exitZBang();
 }
 static void mb_mirth_c99_c99Z_wordZ_defZBang_2 (void) {
-	{
-		static bool vready = false;
-		static VAL v;
-		if (! vready) {
-			v = mkstr("}", 1);
-			vready = true;
-		}
-		push_value(v);
-		incref(v);
-	}
+	STRLIT("}", 1);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_std_output_ZPlusOutput_flushZBang_0 (void) {
