@@ -112,6 +112,14 @@ typedef struct VAL {
 #define MKNIL_C	         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}
 #define MKNIL      ((VAL)MKNIL_C)
 
+#define STRLIT(x,n) \
+	do { \
+		static VAL mval = {0}; \
+		if (!mval.tag) mval = mkstr(x,n); \
+		incref(mval); \
+		push_value(mval); \
+	} while(0)
+
 typedef uint16_t TUPLEN;
 typedef struct TUP {
 	REFS refs;

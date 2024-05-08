@@ -501,29 +501,18 @@ def(c99-int!, Int +C99 -- +C99,
     c99-line("push_i64(" put show put "LL);" put))
 
 def(c99-str!, Str +C99 -- +C99,
-    c99-line("{" put)
-    c99-nest(
-        c99-line("static bool vready = false;" put)
-        c99-line("static VAL v;" put)
-        c99-line("if (! vready) {" put)
+    dup num-bytes 4090 >Size > if(
+        c99-line("STRLIT(" put)
         c99-nest(
-            dup num-bytes 4090 >Size > if(
-                c99-line("v = mkstr(" put)
-                c99-nest(
-                    c99-line(dup put-cstr-long "," put)
-                    c99-line(dup num-bytes show put)
-                )
-                c99-line(");" put),
-                c99-line("v = mkstr(" put dup put-cstr ", " put dup num-bytes show put ");" put)
-            )
-            c99-line("vready = true;" put)
+            c99-line(dup put-cstr-long "," put)
+            c99-line(dup num-bytes show put)
         )
-        c99-line("}" put)
-        c99-line("push_value(v);" put)
-        c99-line("incref(v);" put)
-    )
-    c99-line("}" put)
-    drop)
+        c99-line(");" put),
+
+        c99-line("STRLIT(" put
+            dup put-cstr ", " put
+            dup num-bytes show put ");" put)
+    ) drop)
 
 def(+C99.put-cstr-long, Str +C99 -- +C99,
     BQUOTE put-byte
