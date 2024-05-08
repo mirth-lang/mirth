@@ -515,6 +515,7 @@ def(c99-str!, Str +C99 -- +C99,
     ) drop)
 
 def(+C99.put-cstr-long, Str +C99 -- +C99,
+    False >avoid-hexdigit
     BQUOTE put-byte
     BNUL swap bytes-for(
         swap BLF == then(
@@ -525,22 +526,26 @@ def(+C99.put-cstr-long, Str +C99 -- +C99,
         dup c99-string-byte!
     )
     BQUOTE put-byte
-    drop
-)
+    avoid-hexdigit> drop2)
 
 def(+C99.put-cstr, Str +C99 -- +C99,
-    BQUOTE put-byte bytes-for(c99-string-byte!) BQUOTE put-byte)
+    False >avoid-hexdigit
+    BQUOTE put-byte bytes-for(c99-string-byte!) BQUOTE put-byte
+    avoid-hexdigit> drop)
 
-def(c99-string-byte!, Byte +C99 -- +C99,
-    B'\' -> "\\\\" put,
-    BQUOTE -> "\\\"" put,
-    BHT -> "\\t" put,
-    BLF -> "\\n" put,
-    BCR -> "\\r" put,
+def(c99-string-byte!, Byte avoid-hexdigit:Bool +C99 -- avoid-hexdigit:Bool +C99,
+    B'\' ->   "\\\\" put False !avoid-hexdigit,
+    BQUOTE -> "\\\"" put False !avoid-hexdigit,
+    BHT ->    "\\t"  put False !avoid-hexdigit,
+    BLF ->    "\\n"  put False !avoid-hexdigit,
+    BCR ->    "\\r"  put False !avoid-hexdigit,
     _ ->
-        dup BSPACE B'~' in-range if(
-            put-byte,
+        dup BSPACE B'~' in-range
+        and(dup is-hexdigit @avoid-hexdigit && not) if(
+            put-byte
+            False !avoid-hexdigit,
             "\\x" put to-hexdigits dip(put-byte) put-byte
+            True !avoid-hexdigit
         )
     )
 
