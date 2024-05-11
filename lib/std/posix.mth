@@ -51,7 +51,7 @@ def(Nat.print-ln!, Nat --, show print-ln!)
 ########
 
 def-external(stat, Ptr Ptr -- Int)
-def(is-directory?, Path -- Bool,
+def(+World.is-directory?, +World Path -- +World Bool,
     256 >Size +Buffer.new
     >Str with-data-cstr(
         base stat
@@ -78,6 +78,6 @@ def(st_mode@, Ptr +Unsafe -- U16 +Unsafe,
     RUNNING_OS match(
         OS_LINUX -> 24, # .. this is all terrible and brittle
         OS_WINDOWS -> 6,
-	OS_MACOS -> RUNNING_ARCH ARCH_ARM64 == if(4, 8),
+        OS_MACOS -> RUNNING_ARCH ARCH_ARM64 == if(4, 8),
         _ -> drop 8
     ) >Offset swap offset @U16)

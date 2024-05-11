@@ -76,8 +76,13 @@ def(Maybe.filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
     None -> None,
     Some -> f if(Some, drop None))
 
-def(while-some(f,g), (*a -- *a Maybe(b), *a b -- *a) *a -- *a,
-    f while(dup some?, unwrap g f) drop)
+inline(
+    def(while-some(f,g), (*a -- *a Maybe(b), *a b -- *a) *a -- *a,
+        f while(dup some?, unwrap g f) drop)
+
+    def(while-none(f,g), (*a -- *a Maybe(b), *a -- *a) *a -- *a b,
+        f while(dup none?, drop g f) unwrap)
+)
 
 def(Maybe.map2(f), (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z),
     None -> drop None,

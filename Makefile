@@ -1,7 +1,6 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
  -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Wno-infinite-recursion \
  -Werror -pedantic -O0 -fmax-errors=9 -Wno-unused-command-line-argument
-MIRTHFLAGS=-p std:lib/std -p arg-parser:lib/arg-parser -p mirth:src -p examples:examples -p mirth-tests:test
 
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
@@ -94,25 +93,25 @@ bin/mirth3debug: bin/mirth3debug.c
 	$(CC) -g -o bin/mirth3debug bin/mirth3debug.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
-	bin/mirth0 $(MIRTHFLAGS) src/main.mth -o bin/mirth1.c
+	bin/mirth0 src/main.mth -o bin/mirth1.c
 
 bin/mirth2.c: bin/mirth1 $(SRCS)
-	bin/mirth1 $(MIRTHFLAGS) src/main.mth -o bin/mirth2.c
+	bin/mirth1 src/main.mth -o bin/mirth2.c
 
 bin/mirth3.c: bin/mirth2 $(SRCS)
-	bin/mirth2 $(MIRTHFLAGS) src/main.mth -o bin/mirth3.c
+	bin/mirth2 src/main.mth -o bin/mirth3.c
 
 bin/mirth1debug.c: bin/mirth0 $(SRCS)
-	bin/mirth0 $(MIRTHFLAGS) --debug src/main.mth -o bin/mirth1debug.c
+	bin/mirth0 --debug src/main.mth -o bin/mirth1debug.c
 
 bin/mirth2debug.c: bin/mirth1debug $(SRCS)
-	bin/mirth1debug $(MIRTHFLAGS) --debug src/main.mth -o bin/mirth2debug.c
+	bin/mirth1debug --debug src/main.mth -o bin/mirth2debug.c
 
 bin/mirth3debug.c: bin/mirth2debug $(SRCS)
-	bin/mirth2debug $(MIRTHFLAGS) --debug src/main.mth -o bin/mirth3debug.c
+	bin/mirth2debug --debug src/main.mth -o bin/mirth3debug.c
 
 bin/mirth3san.c: bin/mirth2san $(SRCS)
-	bin/mirth2san $(MIRTHFLAGS) src/main.mth -o bin/mirth3san.c
+	bin/mirth2san src/main.mth -o bin/mirth3san.c
 
 bin/mirth_prof.c: bin/mirth3.c
 
@@ -120,7 +119,7 @@ bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
 bin/snake.c: bin/mirth2 lib/std/* examples/snake.mth examples/sdl2.mth
-	bin/mirth2 --debug $(MIRTHFLAGS) examples/snake.mth -o bin/snake.c
+	bin/mirth2 --debug examples/snake.mth -o bin/snake.c
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`

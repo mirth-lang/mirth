@@ -74,7 +74,7 @@ def(compile!, Arguments +World -- +World,
     "Compiling " trace!
     @input-file >Str trace-ln!
     packages> for(
-      unpack2 swap >Name Package.new-or-set-path! drop
+        unpack2 swap >Name Package.new-or-path! drop
     )
     input-file> run-lexer!
     "Building." trace-ln!
@@ -114,7 +114,7 @@ def(compile!, Arguments +World -- +World,
 
 def(parse-package-def, Str -- [Str Path],
     dip(BCOLON) split-byte
-    /L2 unwrap-or("Invalid package path definition" panic!)
+    /L2+ unwrap-or("Invalid package path definition" panic!)
     unpack2 >Path pack2)
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,

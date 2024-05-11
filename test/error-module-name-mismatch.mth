@@ -2,5 +2,5 @@
 module(mirth-tests.error-module-name-mismatcg)
 
 def(main, ,)
-# mirth-test # merr # 2:8: error: expected module name to match path
+# mirth-test # merr # 2:8: error: expected module name to match file name
 # mirth-test # mret # 1

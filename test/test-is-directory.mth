@@ -3,13 +3,13 @@ import(std.prelude)
 import(std.path)
 import(std.posix)
 
-def(should-be-directory, Str --,
-   >Path is-directory? if("ok", "err") trace-ln!)
+def(should-be-directory, +World Str -- +World,
+   >Path is-directory? if("ok", "err") put line)
 
-def(should-not-be-directory, Str --,
-   >Path is-directory? if("err", "ok") trace-ln!)
+def(should-not-be-directory, +World Str -- +World,
+   >Path is-directory? if("err", "ok") put line)
 
-def(main, --,
+def(main, +World -- +World,
     "src" should-be-directory
     "bin" should-be-directory
     "tools" should-be-directory
@@ -17,9 +17,9 @@ def(main, --,
     "lib/std/prelude.mth" should-not-be-directory
     "nonsense" should-not-be-directory)
 
-# mirth-test # perr # ok
-# mirth-test # perr # ok
-# mirth-test # perr # ok
-# mirth-test # perr # ok
-# mirth-test # perr # ok
-# mirth-test # perr # ok
+# mirth-test # pout # ok
+# mirth-test # pout # ok
+# mirth-test # pout # ok
+# mirth-test # pout # ok
+# mirth-test # pout # ok
+# mirth-test # pout # ok

@@ -1003,7 +1003,7 @@ def(elab-module-qname, Token -- QName,
     elab-module-package-name dip(NAMESPACE_PACKAGE) QNAME0)
 
 ||| Check that the `module(M)` statement exists and save the name.
-def(elab-module-header!, Token -- Token,
+def(elab-module-header!, +World Token -- +World Token,
     # dup token-name@ name-str @ str-trace-ln!
     dup module-header? if(
         sip(next) args-1 dup elab-module-package-name
@@ -1017,10 +1017,19 @@ def(elab-module-header!, Token -- Token,
         dup "Expected module header." emit-fatal-error!
     ))
 
-def(check-module-path, Token Module --,
-    sip(path) qname to-module-path dup2 == else(
-        "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
-    ) drop3)
+def(check-module-path, Token Module +World -- +World,
+    dup path split-last match(
+        None ->
+            swap qname to-module-path dup2 == else(
+                "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
+            ) drop3,
+
+        Some ->
+            split-last-byte(BDOT ==) "mth" Some ==:==
+            else(over3 "expected .mth extension for mirth file" emit-warning!)
+            over2 name >Str == else(over2 "expected module name to match file name" emit-fatal-error!)
+            over package path! drop2
+    ))
 
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token +World -- Token +World,
