@@ -354,7 +354,7 @@ def(c99-external!, External +C99 -- +C99,
         "can't declare external with multiple return values" panic!,
 
         dup 1 >Nat >= if(
-            "int64_t ",
+            "intptr_t ",
             "void "
         ) put
     )
@@ -362,12 +362,12 @@ def(c99-external!, External +C99 -- +C99,
     dip2(dup symbol put)
 
     " (" put
-    over dup 0> if("int64_t" put 1- repeat(", int64_t" put), drop "void" put)
+    over dup 0> if("intptr_t" put 1- repeat(", intptr_t" put), drop "void" put)
     ");" put line
 
     dip2(dup cname sig-put) " {" put line
-    over countdown("\tint64_t x" put show put " = pop_i64();" put line)
-    dup 0> if("\tpush_i64(", "\t") put
+    over countdown("\tintptr_t x" put show put " = (intptr_t)pop_i64();" put line)
+    dup 0> if("\tpush_i64((int64_t)", "\t") put
     dip2(dup symbol put)
     "(" put
     dip(dup 0> if(

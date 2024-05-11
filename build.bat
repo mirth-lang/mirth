@@ -1,7 +1,7 @@
 @echo off
 
 cl /WX /MD /TC bin\mirth0.c /link /WX  || goto :error
-mirth0.exe -p std:lib/std -p arg-parser:lib/arg-parser -p mirth:src src/main.mth -o bin/mirth1.c || goto :error
+mirth0.exe src/main.mth -o bin/mirth1.c || goto :error
 
 cl /WX /MD /TC bin\mirth1.c /link /WX  || goto :error
 mirth1.exe src/main.mth -o bin/mirth2.c || goto :error
