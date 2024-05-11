@@ -1018,9 +1018,18 @@ def(elab-module-header!, Token -- Token,
     ))
 
 def(check-module-path, Token Module --,
-    sip(path) qname to-module-path dup2 == else(
-        "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
-    ) drop3)
+    dup path split-last match(
+        None ->
+            swap qname to-module-path dup2 == else(
+                "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
+            ) drop3,
+
+        Some ->
+            split-last-byte(BDOT ==) "mth" Some ==:==
+            else(over3 "expected .mth extension for mirth file" emit-warning!)
+            over2 name >Str == else(over2 "expected module name to match file name" emit-fatal-error!)
+            over package path! drop2
+    ))
 
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token +World -- Token +World,

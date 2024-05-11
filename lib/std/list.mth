@@ -41,6 +41,7 @@ inline(
     def(List+.>List, List+(t) -- List(t), /List+Unsafe)
     def(List+.len, List+(t) -- Nat, /List+Unsafe len)
     def(List+./L1+, List+(t) -- Maybe(t), /List+Unsafe /L1)
+    def(List+./L2+, List+(t) -- Maybe([t t]), /List+Unsafe /L2)
 )
 
 def(List.>List+, List(t) -- Maybe(List+(t)),

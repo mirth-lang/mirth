@@ -3,6 +3,7 @@ module(mirth.package)
 import(std.prelude)
 import(std.path)
 import(std.maybe)
+import(std.str)
 import(mirth.name)
 import(mirth.def)
 
@@ -14,21 +15,33 @@ def(Package.name, Package -- Name, ~name @)
 def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME0)
 def(Package.path, Package -- Maybe(Path), ~path @)
 
+def(Package.path!, Path Package --,
+    tuck path match(
+        Some ->
+            dup2 == if(
+                drop3,
+                Str(
+                    "Tried to set different path for the same package." ;
+                    "\n\tPackage: " ; rotl name >Str ;
+                    "\n\tPath 1: " ; swap /Path show ;
+                    "\n\tPath 2: " ; /Path show ;
+                ) panic!
+            ),
+        None ->
+            Some swap ~path !
+    ))
+
 def(Package.new!, Maybe(Path) Name -- Package,
     Package.alloc!
     tuck ~name !
     tuck ~path !
     dup DefPackage register)
 
-def(Package.new-or-set-path!, Path Name -- Package,
-  dup Package.find match(
-    Some -> dup path match(
-      Some -> "Package already has path" panic!,
-      None -> dip(drop) dup dip(dip(Some) ~path !)
-    ),
-    None -> dip(Some) Package.new!
-  )
-)
+def(Package.new-or-path!, Path Name -- Package,
+    dup Package.find match(
+        Some -> nip tuck path!,
+        None -> dip(Some) Package.new!
+    ))
 
 def(Package.find, Name -- Maybe(Package),
     NAMESPACE_ROOT swap QNAME0 def? bind(package?))

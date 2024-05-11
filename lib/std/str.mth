@@ -32,6 +32,7 @@ def(cstr-num-bytes, Ptr +Unsafe -- Size +Unsafe,
 data(+Str, +Str -> Str)
 def(Str.thaw, Str -- +Str, +Str)
 def(+Str.freeze, +Str -- Str, +Str -> id)
+def(+Str.rdrop, +Str --, +Str -> drop)
 
 def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
 inline:def(+Str.;, Str +Str -- +Str, push-str!)
@@ -128,6 +129,12 @@ def(Str.slice, Offset Size Str +Unsafe -- Str +Unsafe,
         swap dip(offset) Str.copy
     ))
 
+def(Str.drop-slice, Offset Str +Unsafe -- Str +Unsafe,
+    rdip:thaw +Str.drop-slice rdip:rdrop)
+
+def(Str.take-slice, Size Str +Unsafe -- Str +Unsafe,
+    rdip:thaw +Str.take-slice rdip:rdrop)
+
 def(+Str.slice, Offset Size +Str +Unsafe -- Str +Str +Unsafe,
     rdip(+Str.dup!) slice)
 
@@ -157,18 +164,38 @@ def(+Str.find, Str +Str -- Maybe(Offset) +Str,
         1+
     ) drop2)
 
-def(+Str.split-byte, Byte +Str -- List+(Str) +Str,
+inline:
+def(+Str.split-byte(p), (*a Byte -- *a Bool) *a +Str -- *a List+(Str) +Str,
     LIST+( 0 >Offset dup while(
         dup rdip(+Str.num-bytes?) >Offset <,
-        over2 over rdip(+Str.byte@) == if(
+        tuck dip2(rdip(byte@ rdip(p))) rotl if(
             tuck rdip:unsafe(+Str.offset-slice)
             ; 1+ dup,
             1+
         )
-    ) rdip:unsafe(+Str.offset-slice) ;+) nip)
+    ) rdip:unsafe(+Str.offset-slice) ;+))
 
-def(Str.split-byte, Byte Str -- List(Str),
-    thaw +Str.split-byte freeze drop >List)
+def(+Str.split-byte, Byte +Str -- List+(Str) +Str,
+    split-byte(over ==) nip)
+
+inline:
+def(Str.split-byte(p), (*a Byte -- *a Bool) *a Str -- *a List+(Str),
+    thaw +Str.split-byte(p) rdrop)
+
+def(Str.split-byte, Byte Str -- List+(Str),
+    thaw +Str.split-byte rdrop)
+
+def(+Str.find-last-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Maybe(Offset) +Str,
+    num-bytes? >Offset None while(
+        dup none? and(over 0>),
+        drop 1- sip(byte@ rdip(p)) swap if(dup Some, None)
+    ) nip)
+
+def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
+    thaw find-last-byte(p) freeze swap map(unsafe(
+        swap dup2 dip:1+ drop-slice
+        dip(dip:>Size take-slice)
+    )))
 
 def(+Str.push-show-byte!, +Str Byte -- +Str,
     BQUOTE -> "\\\"" ;, B'\' -> "\\\\" ;,

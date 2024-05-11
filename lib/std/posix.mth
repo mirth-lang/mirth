@@ -51,7 +51,7 @@ def(Nat.print-ln!, Nat --, show print-ln!)
 ########
 
 def-external(stat, Ptr Ptr -- Int)
-def(is-directory?, Path -- Bool,
+def(+World.is-directory?, +World Path -- +World Bool,
     256 >Size +Buffer.new
     >Str with-data-cstr(
         base stat
