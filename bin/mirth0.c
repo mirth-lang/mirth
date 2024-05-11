@@ -4981,8 +4981,9 @@ static void mw_std_prelude_panicZBang (void);
 static void mw_std_prelude_expectZBang_2 (void);
 static void mw_std_prelude_assertZBang_2 (void);
 static void mw_std_path_Path_ZDivPath (void);
+static void mw_std_path_PATHz_SEPARATOR (void);
 static void mw_std_path_Path_joinZ_with (void);
-static void mw_std_path_Path_joinZ_unix (void);
+static void mw_std_path_Path_join (void);
 static void mw_std_byte_Byte_isZ_pathZ_separatorZAsk (void);
 static void mw_std_path_Path_splitZ_last (void);
 static void mw_std_prim_Int_ZToFile (void);
@@ -11117,6 +11118,23 @@ static void mw_std_prelude_assertZBang_2 (void) {
 }
 static void mw_std_path_Path_ZDivPath (void) {
 }
+static void mw_std_path_PATHz_SEPARATOR (void) {
+	mp_primZ_sysZ_os();
+	mw_std_prim_Int_ZToOS();
+	push_u64(1LL); // OS_WINDOWS
+	{
+		VAL d2 = pop_value();
+		mw_std_prelude_OS_tag();
+		push_value(d2);
+	}
+	mw_std_prelude_OS_tag();
+	mp_primZ_intZ_eq();
+	if (pop_u64()) {
+		STRLIT("\\", 1);
+	} else {
+		STRLIT("/", 1);
+	}
+}
 static void mw_std_path_Path_joinZ_with (void) {
 	{
 		VAL d2 = pop_value();
@@ -11158,10 +11176,10 @@ static void mw_std_path_Path_joinZ_with (void) {
 		mp_primZ_strZ_cat();
 	}
 }
-static void mw_std_path_Path_joinZ_unix (void) {
+static void mw_std_path_Path_join (void) {
 	{
 		VAL d2 = pop_value();
-		STRLIT("/", 1);
+		mw_std_path_PATHz_SEPARATOR();
 		push_value(d2);
 	}
 	mw_std_path_Path_joinZ_with();
@@ -25425,7 +25443,7 @@ static void mw_mirth_name_QName_toZ_moduleZ_path (void) {
 			mw_mirth_name_Name_ZToStr();
 			STRLIT(".mth", 4);
 			mp_primZ_strZ_cat();
-			mw_std_path_Path_joinZ_unix();
+			mw_std_path_Path_join();
 			break;
 		default:
 			mp_primZ_drop();
@@ -39796,7 +39814,7 @@ static void mb_mirth_package_Package_pathZ_orZ_search_1 (void) {
 	mp_primZ_swap();
 	mw_mirth_package_Package_name();
 	mw_mirth_name_Name_ZToStr();
-	mw_std_path_Path_joinZ_unix();
+	mw_std_path_Path_join();
 }
 static void mb_mirth_package_Package_pathZ_orZ_search_2 (void) {
 	mp_primZ_dup();
