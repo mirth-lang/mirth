@@ -4,6 +4,8 @@ import(std.prelude)
 import(std.path)
 import(std.maybe)
 import(std.str)
+import(std.list)
+import(std.posix)
 import(mirth.name)
 import(mirth.def)
 
@@ -14,6 +16,18 @@ field(Package.~path, Package, Maybe(Path))
 def(Package.name, Package -- Name, ~name @)
 def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME0)
 def(Package.path, Package -- Maybe(Path), ~path @)
+
+var(PACKAGE_SEARCH_PATH, List(Path))
+
+def(Package.path-or-search, +World Package -- +World Maybe(Path),
+    dup path match(
+        Some -> nip Some,
+        None ->
+            PACKAGE_SEARCH_PATH memoize("lib" Path L1)
+            map(over name >Str >Path join-unix)
+            find(dup is-directory?)
+            tuck swap ~path !
+    ))
 
 def(Package.path!, Path Package --,
     tuck path match(
