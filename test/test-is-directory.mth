@@ -9,7 +9,7 @@ def(should-be-directory, +World Str -- +World,
 def(should-not-be-directory, +World Str -- +World,
    >Path is-directory? if("err", "ok") put line)
 
-def(main, --,
+def(main, +World -- +World,
     "src" should-be-directory
     "bin" should-be-directory
     "tools" should-be-directory

@@ -24,7 +24,7 @@ def(Package.path-or-search, +World Package -- +World Maybe(Path),
         Some -> nip Some,
         None ->
             PACKAGE_SEARCH_PATH memoize("lib" Path L1)
-            map(over name >Str >Path join-unix)
+            map(over name >Str >Path join)
             find(dup is-directory?)
             tuck swap ~path !
     ))
