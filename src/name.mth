@@ -237,8 +237,6 @@ def(QName.to-module-path, QName +World -- Path +World,
         NAMESPACE_PACKAGE ->
             path-or-search unwrap-or("No path defined for package" panic!)
         	swap name >Str ".mth" cat >Path join,
-                # TODO use Path.join instead? Related to issue:
-                #   https://github.com/mirth-lang/mirth/issues/199
         _ -> drop "expected module name" panic!
     ))
 def(QName.mangled, QName -- Str, MKQNAME ->
