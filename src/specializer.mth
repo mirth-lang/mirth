@@ -146,7 +146,7 @@ def(specialize-word!, SPKey Word -- Word,
             k >key w' >value KVPair
             w sp-synthed insert w ~sp-synthed !
             # Str(w cname ; k /SPKEY
-            #     for("_" ; /ArgBlock index show ;)
+            #     for("_" ; /ArgBlock index show;)
             # ) w' ~cname !
 
             k w delay2(

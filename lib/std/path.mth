@@ -34,3 +34,6 @@ def(Path.split, Path -- List+(Str),
 
 def(Path.split-last, Path -- Path Maybe(Str),
     /Path split-last-byte(is-path-separator?) dip(Path))
+
+def(Path.show;, Path +Str -- +Str,
+    /Path show; " Path" ;)

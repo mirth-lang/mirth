@@ -46,7 +46,16 @@ module(std.test)
 |||         => ( 2 )
 |||         => ( 1 )
 |||
-||| Note how the values are tested in reverse order.
+||| Note how the values are tested in reverse order. We can also test several
+||| values at once, e.g.
+|||
+|||     1 2 => (1, 2)
+|||     1 2 3 => (1, 2, 3)
+|||     "Hello" "world!" => ("Hello", "world!")
+|||
+||| Provided that => has been defined at that arity (& type). Note that when
+||| testing multiple values, they are popped right-to-left, so the tests
+||| appear in order.
 
 import(std.prelude)
 import(std.list)
@@ -128,9 +137,9 @@ def(+Test.fail!, +Test -- +Test,
     ||| If the test already failed before, do nothing instead.
     test-failed else(
         True test-failed!
-        test-name show " test failed" cat +world(put line)
+        test-name Str(show; " test failed" ;) +world(put line)
     ))
-def(+Test.check-equals!(feq,fshow), (a a -- Bool, a -- Str) a a +Test -- +Test,
+def(+Test.check-equals!(feq,fshow), (a a -- Bool, a +Str -- +Str) a a +Test -- +Test,
     ||| Check two values for equality. If they're equal, do nothing.
     ||| If they're different, mark the test as failed (see [fail!])
     ||| and print the values.
@@ -140,9 +149,24 @@ def(+Test.check-equals!(feq,fshow), (a a -- Bool, a -- Str) a a +Test -- +Test,
     dup2 feq if(
         drop2,
         fail!
-        +world("  expected: " put fshow put line
-               "       got: " put fshow put line)
+        +world("  expected: " put Str(fshow) put line
+               "       got: " put Str(fshow) put line)
     ))
+def(+Test.check-equals-2!(f1,f2,g1,g2),
+        (a a -- Bool, b b -- Bool,
+         a +Str -- +Str, b +Str -- +Str)
+        a b a b +Test -- +Test,
+    pack2 dip:pack2 check-equals!(pack2==(f1,f2), pack2-show;(g1,g2)))
+def(+Test.check-equals-3!(f1,f2,f3,g1,g2,g3),
+        (a a -- Bool, b b -- Bool, c c -- Bool,
+         a +Str -- +Str, b +Str -- +Str, c +Str -- +Str)
+        a b c a b c +Test -- +Test,
+    pack3 dip:pack3 check-equals!(pack3==(f1,f2,f3), pack3-show;-contents(g1,g2,g3)))
+def(+Test.check-equals-4!(f1,f2,f3,f4,g1,g2,g3,g4),
+        (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool,
+         a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str)
+        a b c d a b c d +Test -- +Test,
+    pack4 dip:pack4 check-equals!(pack4==(f1,f2,f3,f4), pack4-show;-contents(g1,g2,g3,g4)))
 
 ||| The lack of ad hoc polymorphism really hurts us here; we can't define
 ||| `=>` generically until we have a way to invoke `==` and `show` generically.
@@ -151,26 +175,40 @@ def(+Test.check-equals!(feq,fshow), (a a -- Bool, a -- Str) a a +Test -- +Test,
 ||| distinguish them (e.g. [Maybe.=>] vs [Maybe.=>+] vs [Maybe.=>*]).
 
 def(Int.=>(f), (-- Int) Int +Test -- +Test,
-    f check-equals!(==, show))
+    f check-equals!(==, show;))
 def(Nat.=>(f), (-- Int) Nat +Test -- +Test,
-    f >Nat check-equals!(==, show))
+    f >Nat check-equals!(==, show;))
 def(Bool.=>(f), (-- Bool) Bool +Test -- +Test,
-    f check-equals!(==, show))
+    f check-equals!(==, show;))
 def(Str.=>(f), (-- Str) Str +Test -- +Test,
-    f check-equals!(==, show))
+    f check-equals!(==, show;))
 def(Maybe.=>(f), (-- Maybe(Int)) Maybe(Int) +Test -- +Test,
-    f check-equals!(==:==, show:show))
+    f check-equals!(==:==, show;:show;))
 def(Maybe.=>s(f), (-- Maybe(Str)) Maybe(Str) +Test -- +Test,
-    f check-equals!(==:==, show:show))
+    f check-equals!(==:==, show;:show;))
 def(Maybe.=>2(f), (-- Maybe([Int Int])) Maybe([Int Int]) +Test -- +Test,
-    f check-equals!(==:pack2==(==,==), show:pack2-show(show,show)))
+    f check-equals!(==:pack2==(==,==), show;:pack2-show;(show;,show;)))
 def(Maybe.=>3(f), (-- Maybe([Int Int Int])) Maybe([Int Int Int]) +Test -- +Test,
-    f check-equals!(==:pack3==(==,==,==), show:pack3-show(show,show,show)))
+    f check-equals!(==:pack3==(==,==,==), show;:pack3-show;(show;,show;,show;)))
 def(Maybe.=>*(f), (-- Maybe(List(Int))) Maybe(List(Int)) +Test -- +Test,
-    f check-equals!(==:==:==, show:show:show))
+    f check-equals!(==:==:==, show;:show;:show;))
 def(Maybe.=>+(f), (-- Maybe(List+(Int))) Maybe(List+(Int)) +Test -- +Test,
-    f check-equals!(==:==:==, show:show:show))
+    f check-equals!(==:==:==, show;:show;:show;))
 def(List.=>(f), (-- List(Int)) List(Int) +Test -- +Test,
-    f check-equals!(==:==, show:show))
+    f check-equals!(==:==, show;:show;))
 def(List+.=>(f), (-- List+(Int)) List+(Int) +Test -- +Test,
-    f check-equals!(==:==, show:show))
+    f check-equals!(==:==, show;:show;))
+
+def(Int.=>(f,g), (-- Int, -- Int) Int Int +Test -- +Test,
+    f g check-equals-2!(==,==,show;,show;))
+def(Int.=>(f,g,h), (-- Int, -- Int, -- Int) Int Int Int +Test -- +Test,
+    f g h check-equals-3!(==,==,==,show;,show;,show;))
+def(Int.=>(f,g,h,i), (-- Int, -- Int, -- Int, -- Int) Int Int Int Int +Test -- +Test,
+    f g h i check-equals-4!(==,==,==,==,show;,show;,show;,show;))
+
+def(Str.=>(f,g), (-- Str, -- Str) Str Str +Test -- +Test,
+    f g check-equals-2!(==,==,show;,show;))
+def(Str.=>(f,g,h), (-- Str, -- Str, -- Str) Str Str Str +Test -- +Test,
+    f g h check-equals-3!(==,==,==,show;,show;,show;))
+def(Str.=>(f,g,h,i), (-- Str, -- Str, -- Str, -- Str) Str Str Str Str +Test -- +Test,
+    f g h i check-equals-4!(==,==,==,==,show;,show;,show;,show;))

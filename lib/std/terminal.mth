@@ -75,19 +75,18 @@ data(SGRColor,
     Numbered -> Int,
     RGB -> Int Int Int)
 
-def(SGRColor.show, SGRColor -- Str,
-    Numbered -> Str( ";5;" ; show ;),
-    RGB -> Str( ";2;" ; show ; ";" ; show ; ";" ; show ;)
-)
+def(SGRColor.show;, SGRColor +Str -- +Str,
+    Numbered -> ";5;" ; show;,
+    RGB -> ";2;" ; show; ";" ; show; ";" ; show;)
 
-def(Sgr.show, Sgr -- Str,
-    Str( csi ;
-    dup tag show ;
+def(Sgr.emit;, Sgr +Str -- +Str,
+    csi;
+    dup tag show;
     match(
-        FGColor -> show ;,
-	BGColor -> show ;,
+        FGColor -> show;,
+	BGColor -> show;,
     	_ -> drop
     )
-    "m" ;))
+    "m" ;)
 
-def(csi, -- Str, Str(BESC push-byte-unsafe! BLSQUARE push-byte-unsafe!))
+def(csi;, +Str -- +Str, BESC push-byte-unsafe! BLSQUARE push-byte-unsafe!)

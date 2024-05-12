@@ -54,16 +54,15 @@ def(Arguments.default, -- Arguments,
     Arguments)
 
 ||| Pretty print the contents of the arguments struct
-def(Arguments.show, Arguments -- Str,
-    /Arguments Str(
-        "Arguments { " ;
-        "output-file: " ; output-file> show(>Str show) ;
-        ", input-file: " ; input-file> >Str show ;
-        ", entry-point: " ; entry-point> show:show ;
-        ", emit-debug-info: " ; emit-debug-info> show ;
-        ", packages: " ; "[" packages> for(dip(;) unpack2 dip(;) ":" ; >Str ; " ") drop "]" ;
-        " }" ;
-    ))
+def(Arguments.show;, Arguments +Str -- +Str,
+    /Arguments
+    "Arguments { " ;
+    "output-file: " ; output-file> show;:show;
+    ", input-file: " ; input-file> >Str show;
+    ", entry-point: " ; entry-point> show;:show;
+    ", emit-debug-info: " ; emit-debug-info> show;
+    ", packages: " ; packages> show;:pack2-show;(show;,show;)
+    " }" ;)
 
 ########
 # Main #
@@ -88,15 +87,8 @@ def(compile!, Arguments +World -- +World,
     ) nip
 
     num-errors @ 0> if(
-        FGRed show trace!
-        num-errors @ trace!
-        " errors." trace-ln!
-        Reset show trace!
-        1 posix-exit!,
-
-        FGGreen show trace!
-        "No errors." trace!
-        Reset show trace-ln!
+        Str(FGRed emit; num-errors @ show; " errors.\n" ; Reset emit; ) trace! 1 posix-exit!,
+        Str(FGGreen emit; "No errors.\n" ; Reset emit; ) trace!,
     )
 
     match(
@@ -192,7 +184,7 @@ def(main, +World -- +World,
 
     parse-args match(
         Right -> ,
-        Left -> show panic!
+        Left -> Str(emit;) panic!
     )
 
     compile!)

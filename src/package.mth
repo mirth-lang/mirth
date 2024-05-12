@@ -37,8 +37,8 @@ def(Package.path!, Path Package --,
                 Str(
                     "Tried to set different path for the same package." ;
                     "\n\tPackage: " ; rotl name >Str ;
-                    "\n\tPath 1: " ; swap /Path show ;
-                    "\n\tPath 2: " ; /Path show ;
+                    "\n\tPath 1: " ; swap /Path show;
+                    "\n\tPath 2: " ; /Path show;
                 ) panic!
             ),
         None ->

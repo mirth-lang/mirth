@@ -261,8 +261,8 @@ def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
                     RD_NOT_IMPORTED ->
                         "Not imported in current scope: " ; qname >Str ; ,
                     RD_WRONG_ARITY ->
-                        qname dup >Str ; " expects " ; arity show ;
-                        " arguments, but got " ; rdip:token num-args show ; "." ; ,
+                        qname dup >Str ; " expects " ; arity show;
+                        " arguments, but got " ; rdip:token num-args show; "." ; ,
                     RD_WRONG_QUALIFIER ->
                         "Qualified name not found. Perhaps you meant: " ; qname >Str ; ,
                     RD_WRONG_CONSTRUCTOR ->
@@ -281,7 +281,7 @@ def(+ResolveDef.resolve-def-unknown, +ResolveDef --,
                             qname >Str ; " is not imported in current scope" ; ,
                         RD_WRONG_ARITY ->
                             qname dup >Str ; " expects " ;
-                            arity show ; " arguments" ; ,
+                            arity show; " arguments" ; ,
                         RD_WRONG_QUALIFIER ->
                             qname >Str ; " doesn't match the given qualified name" ; ,
                         RD_WRONG_CONSTRUCTOR ->

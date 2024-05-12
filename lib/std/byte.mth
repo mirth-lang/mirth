@@ -152,6 +152,6 @@ def(Byte.zencode, Byte -- Str,
     _ ->
         dup is-alnum if(
             to-str-unsafe,
-            Str("Z" ; >Int show ; "U" ;)
+            Str("Z" ; >Int show; "U" ;)
         )
     )
