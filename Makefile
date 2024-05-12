@@ -7,7 +7,8 @@ CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 
 SRCS=lib/std/* lib/arg-parser/* src/*
 
-.PHONY: default show showsan build buildsan debug update check checksan update-mirth install-vim install-code install profile play-snake test test-update
+.PHONY: default show showsan build buildsan debug update check checksan clean \
+ install-vim install-code install-atom install profile play-snake test-verify test-update
 
 default: show bin/snake.c
 
@@ -54,7 +55,7 @@ install-atom:
 	apm link tools/mirth-atom
 
 install: bin/mirth0
-	./install.sh bin/mirth0
+	tools/install.sh bin/mirth0
 
 profile: bin/mirth_prof
 	time bin/mirth_prof
@@ -64,10 +65,10 @@ play-snake: bin/snake
 	bin/snake
 
 test-verify:
-	bash mirth-test.sh -v
+	bash tools/mirth-test.sh -v
 
 test-update:
-	bash mirth-test.sh -u
+	bash tools/mirth-test.sh -u
 
 #########
 
