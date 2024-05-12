@@ -44,7 +44,7 @@ jobs:
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v2
-    - name: .\cibuild.bat ${{ matrix.arch }}
-      run: .\cibuild.bat ${{ matrix.arch }}
+    - name: tools\cibuild.bat ${{ matrix.arch }}
+      run: tools\cibuild.bat ${{ matrix.arch }}
     - name: make check
       run: make check
