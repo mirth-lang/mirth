@@ -17,7 +17,7 @@ import(std.file)
 import(std.test)
 
 import(mirth.package)
-import(mirth.error)
+import(mirth.mirth)
 import(mirth.prim)
 import(mirth.word)
 import(mirth.type)
@@ -31,8 +31,8 @@ import(mirth.c99)
 
 import(std.terminal)
 
-def(init!, --,
-    init-errors!
+def(init!, -- +Mirth,
+    +Mirth.init!
     init-types!
     init-prims!)
 
@@ -68,7 +68,7 @@ def(Arguments.show;, Arguments +Str -- +Str,
 # Main #
 ########
 
-def(compile!, Arguments +World -- +World,
+def(compile!, Arguments +World +Mirth -- +World +Mirth,
     /Arguments
     "Compiling " trace!
     @input-file >Str trace-ln!
@@ -86,8 +86,8 @@ def(compile!, Arguments +World -- +World,
         elab-entry-point
     ) nip
 
-    num-errors @ 0> if(
-        Str(FGRed emit; num-errors @ show; " errors.\n" ; Reset emit; ) trace! 1 posix-exit!,
+    num-errors 0> if(
+        Str(FGRed emit; rdip:num-errors show; " errors.\n" ; Reset emit; ) trace! 1 posix-exit!,
         Str(FGGreen emit; "No errors.\n" ; Reset emit; ) trace!,
     )
 
@@ -187,4 +187,5 @@ def(main, +World -- +World,
         Left -> Str(emit;) panic!
     )
 
-    compile!)
+    compile!
+    rdrop)

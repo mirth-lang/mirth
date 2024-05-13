@@ -1,7 +1,7 @@
 module(mirth.alias)
 
 import(std.prelude)
-import(std.lazy)
+import(mirth.mirth)
 import(mirth.token)
 import(mirth.name)
 import(mirth.def)
@@ -9,18 +9,17 @@ import(mirth.def)
 table(Alias)
 field(Alias.~head, Alias, Token)
 field(Alias.~qname, Alias, QName)
-field(Alias.~target, Alias, Lazy(Def))
+field(Alias.~target, Alias, Prop(Def))
 
 def(Alias.head, Alias -- Token, ~head @)
 def(Alias.qname, Alias -- QName, ~qname @)
 def(Alias.namespace, Alias -- Namespace, qname namespace)
 def(Alias.name, Alias -- Name, qname name)
-def(Alias.target, Alias -- Def, ~target force!)
+def(Alias.target, +Mirth Alias -- +Mirth Def, ~target force!)
 
 def(Alias.==, Alias Alias -- Bool, both(index) ==)
-def(Alias.new!, Token QName Lazy(Def) -- Alias,
+def(Alias.new!, Token QName -- Alias,
     Alias.alloc!
-    tuck ~target !
     tuck ~qname !
     tuck ~head !
     dup DefAlias register)

@@ -86,11 +86,11 @@ def(+Tests.end!, +Tests -- +World,
     ||| or "9 tests passed." If any of the tests failed, this word
     ||| exits the program with exit code 1.
     num-failed 0> if(
-        num-failed show " out of " cat
-        num-tests show cat " tests failed." cat
+        Str(rdip:num-failed show; " out of " ;
+            rdip:num-tests show; " tests failed." ;)
         +world(put line 1 prim-posix-exit),
 
-        num-tests show " tests passed." cat
+        Str(rdip:num-tests show; " tests passed." ;)
         +world(put line)
     )
     /+Tests +world>

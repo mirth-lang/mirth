@@ -2,6 +2,7 @@ module(mirth.prim)
 
 import(std.prelude)
 import(std.maybe)
+import(mirth.mirth)
 import(mirth.name)
 import(mirth.type)
 import(mirth.data)
@@ -117,7 +118,7 @@ data(Prim,
 field(Prim.~name, Prim, Name)
 field(Prim.~ctx, Prim, Ctx)
 field(Prim.~type, Prim, ArrowType)
-field(Prim.~decl, Prim, Maybe([Token +World -- Token +World]))
+field(Prim.~decl, Prim, Maybe([Token +World +Mirth -- Token +World +Mirth]))
 field(Prim.~arity, Prim, Int)
 
 def(Prim.qname, Prim -- QName,
@@ -127,7 +128,7 @@ def(Prim.qname, Prim -- QName,
 def(Prim.name, Prim -- Name, ~name @)
 def(Prim.ctx, Prim -- Ctx, ~ctx @)
 def(Prim.type, Prim -- ArrowType, ~type @)
-def(Prim.decl, Prim -- Maybe([Token +World -- Token +World]), ~decl @)
+def(Prim.decl, Prim -- Maybe([Token +World +Mirth -- Token +World +Mirth]), ~decl @)
 def(Prim.arity, Prim -- Int, ~arity @)
 
 def(Prim.>Int, Prim -- Int, Prim.tag)

@@ -12,7 +12,7 @@ import(std.either)
 import(std.file)
 import(std.output)
 
-import(mirth.error)
+import(mirth.mirth)
 import(mirth.module)
 import(mirth.location)
 import(mirth.token)
@@ -47,27 +47,29 @@ data(+C99, +C99 ->
     options: C99_Options
     depth: Nat
     +needs: +Needs
-    +output: +Output)
+    +output: +Output
+    +mirth: +Mirth)
 
 def(+C99.put, Str +C99 -- +C99, +output:put)
 def(+C99.put-byte, Byte +C99 -- +C99, +output:put-byte)
 def(+C99.line, +C99 -- +C99, +output:line)
 
-def(c99-start!, Arrow C99_Options +World -- Arrow +World +C99,
+def(c99-start!, Arrow C99_Options +World +Mirth -- Arrow +World +C99,
     >options
     0 >Nat >depth
+    +Needs.new dup determine-arrow-needs! >+needs >+mirth
     @options output-path create-file! unwrap! +Output.start! >+output
-    +Needs.new dup determine-arrow-needs! >+needs
     +C99)
 
-def(c99-end!, +World +C99 -- +World,
+def(c99-end!, +World +C99 -- +World +Mirth,
     /+C99
     depth> options> drop2
     +needs> rdrop
-    +output> end! close-file!)
+    +output> end! close-file!
+    +mirth>)
 
-def(run-output-c99!, Arrow C99_Options +World -- +World,
-    num-errors @ 0> if(
+def(run-output-c99!, Arrow C99_Options +World +Mirth -- +World +Mirth,
+    num-errors 0> if(
         drop2,
 
         c99-start!
@@ -257,7 +259,7 @@ def(c99-tag-get-label!, Tag Label +C99 -- +C99,
         "];" put)
     c99-line("VAL u = *p;" put)
 
-    dup2 swap project-input-label unwrap match(
+    dup2 swap +mirth:project-input-label unwrap match(
         Left -> drop
             c99-line("incref(u);" put)
             over outputs-resource? if(
@@ -274,7 +276,7 @@ def(c99-tag-get-label!, Tag Label +C99 -- +C99,
     drop2)
 
 def(c99-tag-set-label!, Tag Label +C99 -- +C99, \(tag lbl ->
-    lbl tag project-input-label unwrap match(
+    lbl tag +mirth:project-input-label unwrap match(
         Left -> drop
             tag outputs-resource? if(
                 c99-line("VAL v = top_resource();" put),
@@ -449,7 +451,7 @@ def(c99-get-data-tag!, List(Arg) Data +C99 -- +C99,
 def(c99-word!, List(Arg) Word +C99 -- +C99,
     dup prefer-inline? if(
         dip:c99-args-push!
-        arrow c99-arrow!,
+        +mirth:arrow c99-arrow!,
         cname c99-call!
     ))
 
@@ -625,7 +627,7 @@ def(c99-arg-run!, Arg +C99 -- +C99,
     ArgBlock -> c99-block-run!)
 
 def(c99-block-run!, Block +C99 -- +C99,
-    arrow c99-arrow!)
+    +mirth:arrow c99-arrow!)
 
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 
@@ -651,11 +653,11 @@ def(c99-decref-closure-vars!, List(Var) +C99 -- +C99,
     ))
 
 def(c99-block-push!, Block +C99 -- +C99,
-    dup to-run-var match(
+    dup +mirth:to-run-var match(
         Some -> nip c99-var-push!,
         None ->
             c99-line("push_fnptr(&" put dup cname put ");" put)
-            dup free-vars c99-pack-closure-vars!
+            dup +mirth:free-vars c99-pack-closure-vars!
             drop
     ))
 
@@ -690,7 +692,7 @@ def(c99-match!, Match +C99 -- +C99,
         cases first unwrap body c99-arrow!,
 
         dup scrutinee-data?
-        unwrap-or(token "non-uniform match, not supported at present" emit-fatal-error!)
+        unwrap-or(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
         is-resource? if(
             c99-line("switch (get_top_resource_data_tag()) {" put),
             c99-line("switch (get_top_data_tag()) {" put)
@@ -723,7 +725,7 @@ def(c99-pattern!, Pattern +C99 -- +C99,
         nip c99-tag-case-pat!,
 
         token-start "c99 target -- don't know how to compile this pattern"
-        emit-fatal-error!
+        +mirth:emit-fatal-error!
     )))
 
 def(c99-word-sigs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-sig!, drop)))
@@ -761,10 +763,10 @@ def(c99-block-def!, Block +C99 -- +C99,
     c99-line(dup cname sig-put " {" put)
     c99-nest(
         dup c99-block-enter!
-        dup arrow
-        dup free-vars c99-unpack-closure-vars!
+        dup +mirth:arrow
+        dup +mirth:free-vars c99-unpack-closure-vars!
         dup c99-arrow!
-        free-vars c99-decref-closure-vars!
+        +mirth:free-vars c99-decref-closure-vars!
         c99-block-exit!
     )
     c99-line("}" put))
@@ -793,7 +795,7 @@ def(c99-word-def!, Word +C99 -- +C99,
     c99-line(dup cname sig-put " {" put)
     c99-nest(
         dup c99-word-enter!
-        dup arrow c99-arrow!
+        dup +mirth:arrow c99-arrow!
         dup c99-word-exit!
     )
     c99-line("}" put)

@@ -1,0 +1,140 @@
+||| Defines the +Mirth resource.
+module(mirth.mirth)
+
+import(std.prelude)
+import(std.posix)
+import(std.list)
+import(std.str)
+import(std.terminal)
+import(std.maybe)
+
+import(mirth.mirth)
+import(mirth.location)
+import(mirth.word)
+import(mirth.arrow)
+import(mirth.token)
+import(mirth.data)
+import(mirth.alias)
+import(mirth.external)
+import(mirth.variable)
+import(mirth.table)
+
+data(+Mirth, +Mirth ->
+    num-errors: Nat
+    num-warnings: Nat
+    +diagnostics: +List(Diagnostic)
+    +propstack: +List(PropLabel))
+
+def(+Mirth.init!, -- +Mirth,
+    0 >Nat >num-errors
+    0 >Nat >num-warnings
+    L0 thaw >+diagnostics
+    L0 thaw >+propstack
+    +Mirth)
+
+def(+Mirth.rdrop, +Mirth --,
+    /+Mirth
+    num-errors> drop
+    num-warnings> drop
+    +diagnostics> freeze drop
+    +propstack> freeze drop)
+
+data(Diagnostic, Diagnostic ->
+    severity: Severity
+    location: Location
+    message: Str)
+
+data(Severity, Error, Warning)
+def(Severity.>Str, Severity -- Str,
+    Error -> "error",
+    Warning -> "warning")
+
+def(+Mirth.emit-diagnostic-at!, Location Str Severity +Mirth -- +Mirth,
+    >severity >message >location
+    @severity match(
+        Warning -> num-warnings:1+,
+        Error -> num-errors:1+
+    )
+    Diagnostic +diagnostics:push!)
+
+def(+Mirth.emit-warning-at!, Location Str +Mirth -- +Mirth, Warning emit-diagnostic-at!)
+def(+Mirth.emit-error-at!, Location Str +Mirth -- +Mirth, Error emit-diagnostic-at!)
+def(+Mirth.emit-fatal-error-at!, *a Location Str +Mirth -- *b,
+    emit-error-at! trace-all!
+    Str(FGRed emit; "Fatal error. Stopping early."; Reset emit;) panic!)
+
+def(+Mirth.emit-warning!, Token Str +Mirth -- +Mirth,
+    dip(location) emit-warning-at!)
+def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
+    dip(location) emit-error-at!)
+def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b +Mirth,
+    dip(location) emit-fatal-error-at!)
+
+def(+Mirth.trace-all!, +Mirth -- +Mirth,
+    +diagnostics(freeze L0 thaw)
+    for(trace!))
+
+def(Diagnostic.trace!, Diagnostic --,
+    /Diagnostic Str(
+        location> emit; ": " ;
+        severity> >Str ; ": " ;
+        message> ; "\n" ;
+    ) trace!)
+
+#########
+# PROPS #
+#########
+
+data(Prop(t), Prop ->
+    label: PropLabel
+    state: PropState(t))
+data(PropState(b),
+    PSReady -> b,
+    PSDelay -> a [a +Mirth -- b +Mirth],
+    PSComputing)
+data(PropLabel,
+    DataParams -> Data,
+    TagType -> Tag,
+    WordType -> Word,
+    WordParams -> Word,
+    WordArrow -> Word,
+    BlockArrow -> Block,
+    AliasTarget -> Alias,
+    ExternalType -> External,
+    VariableType -> Variable,
+    FieldValueType -> Field,
+    FieldIndexType -> Field,
+)
+
+def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,
+    >label PSReady >state Prop)
+def(PropLabel.prop2, b1 b2 PropLabel +Mirth -- Prop([b1 b2]) +Mirth,
+    dip(pack2) prop)
+def(PropLabel.prop3, b1 b2 b3 PropLabel +Mirth -- Prop([b1 b2 b3]) +Mirth,
+    dip(pack3) prop)
+
+def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
+    dip:0 prop(drop f))
+def(PropLabel.prop(f), (a +Mirth -- b +Mirth) a PropLabel +Mirth -- Prop(b) +Mirth,
+    >label [f] PSDelay >state Prop)
+def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
+    dip(pack2) prop(unpack2 f))
+def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
+    dip(pack3) prop(unpack3 f))
+
+def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
+    dup @ state match(
+        PSReady -> nip Some,
+        PSDelay ->
+            rotl
+            PSComputing over modify:state!
+            dip(run dup PSReady) modify:state!
+            Some,
+        PSComputing ->
+            drop None
+    ))
+def(Prop.force!, Mut(Prop(t)) +Mirth -- t +Mirth,
+    try-force! unwrap-or("recursive prop detected!" panic!))
+def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
+        *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
+    try-force! unwrap-or(f))

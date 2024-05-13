@@ -7,6 +7,7 @@ import(std.str)
 
 import(mirth.name)
 import(mirth.type)
+import(mirth.mirth)
 
 #######
 # VAR #
@@ -23,7 +24,7 @@ def(Var.type, Var -- Type, ~type @)
 def(Var.auto-run?, Var -- Bool, ~auto-run? @)
 
 def(Var.==, Var Var -- Bool, both(index) ==)
-def(Var.trace!, Var --, name trace!)
+def(Var.type;, +Str Var -- +Str, name >Str ;)
 def(Var.is-type?, Var -- Bool, type prim? and-some(PRIM_TYPE_TYPE ==))
 def(Var.is-stack?, Var -- Bool, type prim? and-some(PRIM_TYPE_STACK ==))
 def(Var.is-resource?, Var -- Bool, type prim? and-some(PRIM_TYPE_RESOURCE ==))
@@ -75,3 +76,13 @@ def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
 
 def(Ctx.==, Ctx Ctx -- Bool,
     both(vars) ==(==))
+
+def(Var.unify!, +Mirth +Gamma Var Var -- +Mirth +Gamma Type,
+    dup2 == if(drop TVar, both(TVar) unify-failed!))
+
+def(Var.freshen, Subst Var -- Subst Type,
+    swap dup2 has-var? if(
+        tuck get-var,
+        MetaVar.new! TMeta dup
+        dip(rotr cons)
+    ))

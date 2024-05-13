@@ -4,6 +4,7 @@ import(std.prelude)
 import(std.maybe)
 import(std.list)
 
+import(mirth.mirth)
 import(mirth.name)
 import(mirth.alias)
 import(mirth.buffer)
@@ -79,7 +80,7 @@ def(Def.==, Def Def -- Bool,
     DefTag -> Some swap tag? ==:==,
     DefVariable -> Some swap variable? ==:==)
 
-def(Def.typecheck!, Def --,
+def(Def.typecheck!, +Mirth Def -- +Mirth,
     DefAlias -> target typecheck!,
     DefPackage -> drop,
     DefModule -> drop,
@@ -94,7 +95,7 @@ def(Def.typecheck!, Def --,
     DefTag -> type drop,
     DefVariable -> type drop)
 
-def(Def.callable?, Def -- Bool,
+def(Def.callable?, +Mirth Def -- +Mirth Bool,
     DefAlias -> target callable?,
     DefPackage -> drop False,
     DefModule -> drop False,
@@ -109,7 +110,7 @@ def(Def.callable?, Def -- Bool,
     DefTag -> drop True,
     DefVariable -> drop True)
 
-def(Def.defines-a-type?, Def -- Bool,
+def(Def.defines-a-type?, +Mirth Def -- +Mirth Bool,
     DefAlias -> target defines-a-type?,
     DefPackage -> drop False,
     DefModule -> drop False,
@@ -124,7 +125,7 @@ def(Def.defines-a-type?, Def -- Bool,
     DefTag -> drop False,
     DefVariable -> drop False)
 
-def(Def.exposed-tycon?, Def -- Maybe(Tycon),
+def(Def.exposed-tycon?, +Mirth Def -- +Mirth Maybe(Tycon),
     DefAlias -> target exposed-tycon?,
     DefPackage -> drop None,
     DefModule -> drop None,
@@ -157,10 +158,10 @@ def(Def.head?, Def -- Maybe(Token),
 def(Def.defining-module?, Def -- Maybe(Module),
     head? map(.module))
 
-def(Def.same-resolved?, Def Def -- Bool,
-    both(resolve) ==)
+def(Def.same-resolved?, +Mirth Def Def -- +Mirth Bool,
+    on2(resolve) ==)
 
-def(Def.resolve, Def -- Def,
+def(Def.resolve, +Mirth Def -- +Mirth Def,
     while-some(dup alias?, nip target))
 
 def(Def.qname, Def -- QName,

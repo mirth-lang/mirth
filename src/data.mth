@@ -1,7 +1,6 @@
 module(mirth.data)
 
 import(std.prelude)
-import(std.lazy)
 import(std.list)
 import(std.maybe)
 import(std.either)
@@ -14,12 +13,13 @@ import(mirth.def)
 import(mirth.label)
 import(mirth.tycon)
 import(mirth.word)
+import(mirth.mirth)
 
 table(Data)
 field(Data.~head?, Data, Maybe(Token))
 field(Data.~qname, Data, QName)
 field(Data.~arity, Data, Int)
-field(Data.~params, Data, Lazy(List(Var)))
+field(Data.~params, Data, Prop(List(Var)))
 field(Data.~tags, Data, List(Tag))
 
 def(Data.head?, Data -- Maybe(Token), ~head? @)
@@ -27,7 +27,7 @@ def(Data.qname, Data -- QName, ~qname @)
 def(Data.namespace, Data -- Namespace, qname namespace)
 def(Data.name, Data -- Name, qname name)
 def(Data.arity, Data -- Int, ~arity @)
-def(Data.params, Data -- List(Var), ~params force!)
+def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
 def(Data.tags, Data -- List(Tag), ~tags @)
 
 var(DATA_BOOL, Data)
@@ -52,28 +52,28 @@ def(TYPE_I32, Type, DATA_I32 @ TData)
 def(TYPE_I16, Type, DATA_I16 @ TData)
 def(TYPE_I8, Type, DATA_I8 @ TData)
 
-def(make-prim-data!, Str Int Mut(Data) List(Mut(Tag)) --,
+def(make-prim-data!, +Mirth Str Int Mut(Data) List(Mut(Tag)) -- +Mirth,
     dip(dip(Data.alloc! dup) !)
     map(dip(Tag.alloc! dup) !)
-    { Str Int Data List(Tag) }
+    { +Mirth Str Int Data List(Tag) }
     dip(
         dip(QName.prim)
         tuck ~qname !
         dup DefData register
     )
-    { Data List(Tag) }
+    { +Mirth Data List(Tag) }
     dup for(dip(over) ~data !)
     over ~tags !
-    { Data }
+    { +Mirth Data }
     0 over ~arity !
-    L0 ready over ~params !
+    L0 over DataParams prop over ~params !
     None over ~head? !
     drop)
 
-def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
+def(make-prim-tag!, +Mirth Str Int List(Type) Mut(Tag) -- +Mirth,
     @
     dip(sip(len) TT)
-    sip(Ctx0 rotr .data TData T1 T-> ready2) sip(~ctx-type !)
+    sip(Ctx0 rotr .data TData T1 T->) sip(TagType prop2) sip(~ctx-type !)
     sip(~num-type-inputs !)
     sip(L0 swap ~label-inputs !)
     sip(0 >Nat swap ~num-resource-inputs !)
@@ -81,7 +81,7 @@ def(make-prim-tag!, Str Int List(Type) Mut(Tag) --,
     sip(.data swap 0 data-word-qname) tuck ~qname !
     DefTag register)
 
-def(init-data!, --,
+def(init-data!, +Mirth -- +Mirth,
     "Bool" 0 DATA_BOOL TAG_F TAG_T L2 make-prim-data!
     "False" 0 L0 TAG_F make-prim-tag!
     "True" 1 L0 TAG_T make-prim-tag!
@@ -140,7 +140,7 @@ def(Data.is-resource?, Data -- Bool,
 def(Data.is-value-type?, Data -- Bool,
     is-resource? not)
 
-def(Data.full-type, Data -- Type/Resource,
+def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
     dup sip:TData params for(TVar TApp)
     swap is-value-type? if(
         Left,
@@ -159,7 +159,7 @@ field(Tag.~label-inputs, Tag, List(Label))
 field(Tag.~num-type-inputs, Tag, Nat)
 field(Tag.~num-resource-inputs, Tag, Nat)
 field(Tag.~sig?, Tag, Maybe(Token))
-field(Tag.~ctx-type, Tag, Lazy([Ctx ArrowType]))
+field(Tag.~ctx-type, Tag, Prop([Ctx ArrowType]))
 field(Tag.~untag, Tag, Maybe(Word))
 
 def(Tag.data, Tag -- Data, ~data @)
@@ -170,9 +170,9 @@ def(Tag.label-inputs, Tag -- List(Label), ~label-inputs @)
 def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
 def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)
 def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
-def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
-def(Tag.ctx, Tag -- Ctx, ctx-type drop)
-def(Tag.type, Tag -- ArrowType, ctx-type nip)
+def(Tag.ctx-type, +Mirth Tag -- +Mirth Ctx ArrowType, ~ctx-type force! unpack2)
+def(Tag.ctx, +Mirth Tag -- +Mirth Ctx, ctx-type drop)
+def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
 def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 
 def(Tag.label-inputs-from-sig, Tag -- List(Label),
