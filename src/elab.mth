@@ -1360,17 +1360,12 @@ def(elab-def-missing!, +Mirth Token -- +Mirth Token,
     dup args len 3 >Nat < then("def-missing expects at least three arguments" emit-fatal-error!)
     dup succ succ elab-def-qname defined? if(next, elab-def!))
 
-# TODO: add a +Mirth resource and keep this state in it.
-#  https://github.com/mirth-lang/mirth/issues/247
-var(~prefer-inline-defs?, Bool)
-def(prefer-inline-defs?, Bool, ~prefer-inline-defs? @? unwrap-or(False))
-
 def(elab-inline!, Token +World +Mirth -- Token +World +Mirth,
     sip:next args-1
-    dip:prefer-inline-defs?
-    True ~prefer-inline-defs? !
+    dip:prefer-inline-defs
+    True prefer-inline-defs!
     while(dup arg-end? not, elab-module-decl!)
-    drop ~prefer-inline-defs? !)
+    drop prefer-inline-defs!)
 
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, +Mirth Token -- +Mirth Token,
@@ -1382,7 +1377,7 @@ def(elab-def!, +Mirth Token -- +Mirth Token,
     elab-def-qname-undefined >qname
     Word.new!
 
-    prefer-inline-defs? over ~prefer-inline? !
+    prefer-inline-defs over ~prefer-inline? !
 
     dup dup WordType prop(
         sig unwrap

@@ -22,12 +22,14 @@ import(mirth.table)
 data(+Mirth, +Mirth ->
     num-errors: Nat
     num-warnings: Nat
+    prefer-inline-defs: Bool
     +diagnostics: +List(Diagnostic)
     +propstack: +List(PropLabel))
 
 def(+Mirth.init!, -- +Mirth,
     0 >Nat >num-errors
     0 >Nat >num-warnings
+    False >prefer-inline-defs
     L0 thaw >+diagnostics
     L0 thaw >+propstack
     +Mirth)
@@ -36,6 +38,7 @@ def(+Mirth.rdrop, +Mirth --,
     /+Mirth
     num-errors> drop
     num-warnings> drop
+    prefer-inline-defs> drop
     +diagnostics> freeze drop
     +propstack> freeze drop)
 
