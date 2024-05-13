@@ -121,7 +121,7 @@ field(Prim.~type, Prim, ArrowType)
 field(Prim.~decl, Prim, Maybe([Token +World +Mirth -- Token +World +Mirth]))
 field(Prim.~arity, Prim, Int)
 
-def(Prim.qname, Prim -- QName,
+def(Prim.qname, +Mirth Prim -- +Mirth QName,
     Namespace.prim >namespace
     dup .name >name
     .arity >arity MKQNAME)
@@ -135,7 +135,7 @@ def(Prim.>Int, Prim -- Int, Prim.tag)
 def(Prim.==, Prim Prim -- Bool, both(>Int) ==)
 
 ||| Auxilliary word for defining primitives.
-def(def-prim!, Prim Str Int --,
+def(def-prim!, +Mirth Prim Str Int -- +Mirth,
     dip(>Name over ~name !)
     over ~arity !
     DefPrim register)
@@ -144,7 +144,7 @@ def(Prim.ctx-type!, Ctx ArrowType Prim --,
     tuck ~type ! ~ctx !)
 
 ||| Initialize name table with list of primitives.
-def(init-prims!, --,
+def(init-prims!, +Mirth -- +Mirth,
 
     PRIM_SYNTAX_MODULE "module" -1 def-prim!
     PRIM_SYNTAX_IMPORT "import" -1 def-prim!

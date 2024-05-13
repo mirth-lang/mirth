@@ -18,7 +18,7 @@ def(Alias.name, Alias -- Name, qname name)
 def(Alias.target, +Mirth Alias -- +Mirth Def, ~target force!)
 
 def(Alias.==, Alias Alias -- Bool, both(index) ==)
-def(Alias.new!, Token QName -- Alias,
+def(Alias.new!, +Mirth Token QName -- +Mirth Alias,
     Alias.alloc!
     tuck ~qname !
     tuck ~head !

@@ -164,7 +164,7 @@ def(Def.same-resolved?, +Mirth Def Def -- +Mirth Bool,
 def(Def.resolve, +Mirth Def -- +Mirth Def,
     while-some(dup alias?, nip target))
 
-def(Def.qname, Def -- QName,
+def(Def.qname, +Mirth Def -- +Mirth QName,
     DefAlias -> qname,
     DefPackage -> qname,
     DefModule -> qname,
@@ -179,10 +179,10 @@ def(Def.qname, Def -- QName,
     DefTag -> qname,
     DefVariable -> qname)
 
-def(Def.register, Def --,
+def(Def.register, +Mirth Def -- +Mirth,
     dup qname
     dup undefined? else("qualified name already has definition" panic!)
     name ~defs modify(Cons))
 
-def(Def.def-index, Def -- Nat,
+def(Def.def-index, +Mirth Def -- +Mirth Nat,
     qname dup name defs filter(dup2 qname <=) len nip)

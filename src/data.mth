@@ -30,32 +30,17 @@ def(Data.arity, Data -- Int, ~arity @)
 def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
 def(Data.tags, Data -- List(Tag), ~tags @)
 
-var(DATA_BOOL, Data)
-var(TAG_T, Tag)
-var(TAG_F, Tag)
-def(TYPE_BOOL, Type, DATA_BOOL @ TData)
+def(TYPE_BOOL, +Mirth -- +Mirth Type, builtin bool TData)
+def(TYPE_U64, +Mirth -- +Mirth Type, builtin u64 TData)
+def(TYPE_U32, +Mirth -- +Mirth Type, builtin u32 TData)
+def(TYPE_U16, +Mirth -- +Mirth Type, builtin u16 TData)
+def(TYPE_U8,  +Mirth -- +Mirth Type, builtin u8  TData)
+def(TYPE_I64, +Mirth -- +Mirth Type, builtin i64 TData)
+def(TYPE_I32, +Mirth -- +Mirth Type, builtin i32 TData)
+def(TYPE_I16, +Mirth -- +Mirth Type, builtin i16 TData)
+def(TYPE_I8,  +Mirth -- +Mirth Type, builtin i8  TData)
 
-var(DATA_U64, Data) var(TAG_U64, Tag)
-var(DATA_U32, Data) var(TAG_U32, Tag)
-var(DATA_U16, Data) var(TAG_U16, Tag)
-var(DATA_U8, Data) var(TAG_U8, Tag)
-var(DATA_I64, Data) var(TAG_I64, Tag)
-var(DATA_I32, Data) var(TAG_I32, Tag)
-var(DATA_I16, Data) var(TAG_I16, Tag)
-var(DATA_I8, Data) var(TAG_I8, Tag)
-def(TYPE_U64, Type, DATA_U64 @ TData)
-def(TYPE_U32, Type, DATA_U32 @ TData)
-def(TYPE_U16, Type, DATA_U16 @ TData)
-def(TYPE_U8, Type, DATA_U8 @ TData)
-def(TYPE_I64, Type, DATA_I64 @ TData)
-def(TYPE_I32, Type, DATA_I32 @ TData)
-def(TYPE_I16, Type, DATA_I16 @ TData)
-def(TYPE_I8, Type, DATA_I8 @ TData)
-
-def(make-prim-data!, +Mirth Str Int Mut(Data) List(Mut(Tag)) -- +Mirth,
-    dip(dip(Data.alloc! dup) !)
-    map(dip(Tag.alloc! dup) !)
-    { +Mirth Str Int Data List(Tag) }
+def(make-prim-data!, +Mirth Str Int Data List(Tag) -- +Mirth,
     dip(
         dip(QName.prim)
         tuck ~qname !
@@ -70,8 +55,7 @@ def(make-prim-data!, +Mirth Str Int Mut(Data) List(Mut(Tag)) -- +Mirth,
     None over ~head? !
     drop)
 
-def(make-prim-tag!, +Mirth Str Int List(Type) Mut(Tag) -- +Mirth,
-    @
+def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     dip(sip(len) TT)
     sip(Ctx0 rotr .data TData T1 T->) sip(TagType prop2) sip(~ctx-type !)
     sip(~num-type-inputs !)
@@ -82,18 +66,18 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Mut(Tag) -- +Mirth,
     DefTag register)
 
 def(init-data!, +Mirth -- +Mirth,
-    "Bool" 0 DATA_BOOL TAG_F TAG_T L2 make-prim-data!
-    "False" 0 L0 TAG_F make-prim-tag!
-    "True" 1 L0 TAG_T make-prim-tag!
+    "Bool" 0 builtin bool builtin true builtin false L2 make-prim-data!
+    "False" 0 L0 builtin false make-prim-tag!
+    "True" 1 L0 builtin true make-prim-tag!
 
-    "U64" 0 DATA_U64 TAG_U64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 TAG_U64 make-prim-tag!
-    "U32" 0 DATA_U32 TAG_U32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 TAG_U32 make-prim-tag!
-    "U16" 0 DATA_U16 TAG_U16 L1 make-prim-data! "Int>U16-unsafe" 0 TYPE_INT L1 TAG_U16 make-prim-tag!
-    "U8"  0 DATA_U8  TAG_U8  L1 make-prim-data! "Int>U8-unsafe"  0 TYPE_INT L1 TAG_U8  make-prim-tag!
-    "I64" 0 DATA_I64 TAG_I64 L1 make-prim-data! "Int>I64-unsafe" 0 TYPE_INT L1 TAG_I64 make-prim-tag!
-    "I32" 0 DATA_I32 TAG_I32 L1 make-prim-data! "Int>I32-unsafe" 0 TYPE_INT L1 TAG_I32 make-prim-tag!
-    "I16" 0 DATA_I16 TAG_I16 L1 make-prim-data! "Int>I16-unsafe" 0 TYPE_INT L1 TAG_I16 make-prim-tag!
-    "I8"  0 DATA_I8  TAG_I8  L1 make-prim-data! "Int>I8-unsafe"  0 TYPE_INT L1 TAG_I8  make-prim-tag!)
+    "U64" 0 builtin u64 builtin mk-u64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 builtin mk-u64 make-prim-tag!
+    "U32" 0 builtin u32 builtin mk-u32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 builtin mk-u32 make-prim-tag!
+    "U16" 0 builtin u16 builtin mk-u16 L1 make-prim-data! "Int>U16-unsafe" 0 TYPE_INT L1 builtin mk-u16 make-prim-tag!
+    "U8"  0 builtin u8  builtin mk-u8  L1 make-prim-data! "Int>U8-unsafe"  0 TYPE_INT L1 builtin mk-u8  make-prim-tag!
+    "I64" 0 builtin i64 builtin mk-i64 L1 make-prim-data! "Int>I64-unsafe" 0 TYPE_INT L1 builtin mk-i64 make-prim-tag!
+    "I32" 0 builtin i32 builtin mk-i32 L1 make-prim-data! "Int>I32-unsafe" 0 TYPE_INT L1 builtin mk-i32 make-prim-tag!
+    "I16" 0 builtin i16 builtin mk-i16 L1 make-prim-data! "Int>I16-unsafe" 0 TYPE_INT L1 builtin mk-i16 make-prim-tag!
+    "I8"  0 builtin i8  builtin mk-i8  L1 make-prim-data! "Int>I8-unsafe"  0 TYPE_INT L1 builtin mk-i8  make-prim-tag!)
 
 def(data-qname, Data Name Int -- QName,
     >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)

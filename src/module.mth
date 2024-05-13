@@ -9,6 +9,7 @@ import(std.maybe)
 import(mirth.name)
 import(mirth.package)
 import(mirth.token)
+import(mirth.mirth)
 
 # mirth/data/module
 table(Module)
@@ -29,17 +30,16 @@ def(Module.imports, Module -- List(Module), ~imports @)
 
 def(Module.==, Module Module -- Bool, both(index) ==)
 
-var(Module.prim-var, Module)
-def(Module.prim, Module,
-    Module.prim-var memoize(
-        Module.alloc!
-        L0 over ~imports !
-        "<prim>" >Path over ~path !
-        "std" >Name Package.find-or-new! over ~package !
-        "prim" >Name over ~name !
-    ))
+def(Module.prim, +Mirth -- +Mirth Module, builtin prim)
+def(init-modules!, +Mirth -- +Mirth,
+    builtin prim
+    L0 over ~imports !
+    "<prim>" >Path over ~path !
+    Package.std over ~package !
+    "prim" >Name over ~name !
+    drop)
 
-def(Module.new!, Path -- Module,
+def(Module.new!, +Mirth Path -- +Mirth Module,
     Module.alloc!
     Module.prim L1 over ~imports !
     tuck ~path !)

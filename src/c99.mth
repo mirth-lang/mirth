@@ -97,18 +97,18 @@ field(Field.~cname, Field, Str)
 field(External.~cname, External, Str)
 field(Prim.~cname, Prim, Str)
 
-def(Tag.word-cname, Tag -- Str, dup ~word-cname memoize(
-    Str("mtw_" ; dup qname mangled ;)) nip)
-def(Tag.pat-cname, Tag -- Str, dup ~pat-cname memoize(
-    Str("mtp_" ; dup qname mangled ;)) nip)
-def(Buffer.cname, Buffer -- Str, dup ~cname memoize(
-    Str("mbuf_" ; dup qname mangled ;)) nip)
-def(Variable.cname, Variable -- Str, dup ~cname memoize(
-    Str("mvar_" ; dup qname mangled ;)) nip)
-def(Field.cname, Field -- Str, dup ~cname memoize(
-    Str("mfld_" ; dup qname mangled ;)) nip)
-def(External.cname, External -- Str, dup ~cname memoize(
-    Str("mext_" ; dup qname mangled ;)) nip)
+def(Tag.word-cname, +Mirth Tag -- +Mirth Str, dup ~word-cname memoize(
+    Str("mtw_" ; dup qname rdip:mangled ;)) nip)
+def(Tag.pat-cname, +Mirth Tag -- +Mirth Str, dup ~pat-cname memoize(
+    Str("mtp_" ; dup qname rdip:mangled ;)) nip)
+def(Buffer.cname, +Mirth Buffer -- +Mirth Str, dup ~cname memoize(
+    Str("mbuf_" ; dup qname rdip:mangled ;)) nip)
+def(Variable.cname, +Mirth Variable -- +Mirth Str, dup ~cname memoize(
+    Str("mvar_" ; dup qname rdip:mangled ;)) nip)
+def(Field.cname, +Mirth Field -- +Mirth Str, dup ~cname memoize(
+    Str("mfld_" ; dup qname rdip:mangled ;)) nip)
+def(External.cname, +Mirth External -- +Mirth Str, dup ~cname memoize(
+    Str("mext_" ; dup qname rdip:mangled ;)) nip)
 def(Prim.cname, Prim -- Str, dup ~cname memoize(
     Str("mp_" ; dup name mangled ;)) nip)
 
@@ -122,7 +122,7 @@ def(c99-header!, +C99 -- +C99,
 
 def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!))
 def(c99-buffer!, Buffer +C99 -- +C99,
-    dup cname sig-put " {" put line
+    dup +mirth:cname sig-put " {" put line
     "\tstatic uint8_t b[" put dup size show put "] = {0};" put line
     "\tpush_ptr(&b);" put line
     "}" put line
@@ -130,7 +130,7 @@ def(c99-buffer!, Buffer +C99 -- +C99,
 
 def(c99-variables!, +C99 -- +C99, Variable.for(c99-variable!))
 def(c99-variable!, Variable +C99 -- +C99,
-    cname sig-put " {" put line
+    +mirth:cname sig-put " {" put line
     "\tstatic VAL v = {0};" put line
     "\tpush_ptr(&v);" put line
     "}" put line)
@@ -138,7 +138,7 @@ def(c99-variable!, Variable +C99 -- +C99,
 def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
 def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
     tag +needs:word-needed? then(
-        tag word-cname sig-put " {" put line
+        tag +mirth:word-cname sig-put " {" put line
         tag is-transparent? else(
             tag num-total-inputs 0= if(
                 tag outputs-resource? if(
@@ -192,7 +192,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
     )
 
     tag +needs:pat-needed? then(
-        tag pat-cname sig-put " {" put line
+        tag +mirth:pat-cname sig-put " {" put line
         tag is-transparent? else(
             tag outputs-resource? if(
                 "\tVAL val = pop_resource();",
@@ -367,7 +367,7 @@ def(c99-external!, External +C99 -- +C99,
     over dup 0> if("intptr_t" put 1- repeat(", intptr_t" put), drop "void" put)
     ");" put line
 
-    dip2(dup cname sig-put) " {" put line
+    dip2(dup +mirth:cname sig-put) " {" put line
     over countdown("\tintptr_t x" put show put " = (intptr_t)pop_i64();" put line)
     dup 0> if("\tpush_i64((int64_t)", "\t") put
     dip2(dup symbol put)
@@ -409,10 +409,10 @@ def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OpInt      -> nip c99-int!,
     OpStr      -> nip c99-str!,
     OpWord     -> c99-word!,
-    OpExternal -> cname c99-call!,
-    OpBuffer   -> cname c99-call!,
-    OpVariable -> cname c99-call!,
-    OpField    -> cname c99-call!,
+    OpExternal -> +mirth:cname c99-call!,
+    OpBuffer   -> +mirth:cname c99-call!,
+    OpVariable -> +mirth:cname c99-call!,
+    OpField    -> +mirth:cname c99-call!,
     OpTag      -> c99-tag-word!,
     OpPrim     -> c99-prim!,
     OpMatch    -> nip c99-match!,
@@ -452,7 +452,7 @@ def(c99-word!, List(Arg) Word +C99 -- +C99,
     dup prefer-inline? if(
         dip:c99-args-push!
         +mirth:arrow c99-arrow!,
-        cname c99-call!
+        +mirth:cname c99-call!
     ))
 
 field(Tag.~value-show, Tag, Str)
@@ -473,7 +473,7 @@ def(c99-tag-word!, List(Arg) Tag +C99 -- +C99,
                 dup name >Str put
             )
         ) drop2,
-        word-cname c99-call!
+        +mirth:word-cname c99-call!
     ))
 
 def(c99-tag-case-pat!, Tag +C99 -- +C99,
@@ -488,7 +488,7 @@ def(c99-tag-case-pat!, Tag +C99 -- +C99,
                     ) put
                 )
             ) drop,
-            dip:L0 pat-cname c99-call!
+            dip:L0 +mirth:pat-cname c99-call!
         )
     ))
 
@@ -656,7 +656,7 @@ def(c99-block-push!, Block +C99 -- +C99,
     dup +mirth:to-run-var match(
         Some -> nip c99-var-push!,
         None ->
-            c99-line("push_fnptr(&" put dup cname put ");" put)
+            c99-line("push_fnptr(&" put dup +mirth:cname put ");" put)
             dup +mirth:free-vars c99-pack-closure-vars!
             drop
     ))
@@ -729,18 +729,18 @@ def(c99-pattern!, Pattern +C99 -- +C99,
     )))
 
 def(c99-word-sigs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-sig!, drop)))
-def(c99-word-sig!, Word +C99 -- +C99, c99-line(cname sig-put ";" put))
+def(c99-word-sig!, Word +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
 
 def(c99-block-sigs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-sig!, drop)))
-def(c99-block-sig!, Block +C99 -- +C99, c99-line(cname sig-put ";" put))
+def(c99-block-sig!, Block +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
 
 def(c99-field-sigs!, +C99 -- +C99, Field.for(c99-field-sig!))
-def(c99-field-sig!, Field +C99 -- +C99, c99-line(cname sig-put ";" put))
+def(c99-field-sig!, Field +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
 
 def(c99-block-enter!, Block +C99 -- +C99,
     options emit-debug-info if(
         c99-line("WORD_ENTER(" put
-            dup cname put ", " put
+            dup +mirth:cname put ", " put
             dup home match(
                 HomeMain -> drop "block",
                 HomeWord -> name >Str " block" cat,
@@ -754,13 +754,13 @@ def(c99-block-enter!, Block +C99 -- +C99,
 
 def(c99-block-exit!, Block +C99 -- +C99,
     options emit-debug-info if(
-        c99-line("WORD_EXIT(" put cname put ");" put),
+        c99-line("WORD_EXIT(" put +mirth:cname put ");" put),
         drop
     ))
 
 def(c99-block-defs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-def!, drop)))
 def(c99-block-def!, Block +C99 -- +C99,
-    c99-line(dup cname sig-put " {" put)
+    c99-line(dup +mirth:cname sig-put " {" put)
     c99-nest(
         dup c99-block-enter!
         dup +mirth:arrow
@@ -775,7 +775,7 @@ def(c99-word-enter!, Word +C99 -- +C99,
     options emit-debug-info if(
         c99-line(
             "WORD_ENTER(" put
-            dup cname put ", " put
+            dup +mirth:cname put ", " put
             dup name >Str put-cstr ", " put
             dup body .module source-path >Str put-cstr ", " put
             dup body row >Int show put ", " put
@@ -786,13 +786,13 @@ def(c99-word-enter!, Word +C99 -- +C99,
 
 def(c99-word-exit!, Word +C99 -- +C99,
     options emit-debug-info if(
-        c99-line("WORD_EXIT(" put cname put ");" put),
+        c99-line("WORD_EXIT(" put +mirth:cname put ");" put),
         drop
     ))
 
 def(c99-word-defs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-def!, drop)))
 def(c99-word-def!, Word +C99 -- +C99,
-    c99-line(dup cname sig-put " {" put)
+    c99-line(dup +mirth:cname sig-put " {" put)
     c99-nest(
         dup c99-word-enter!
         dup +mirth:arrow c99-arrow!
@@ -803,7 +803,7 @@ def(c99-word-def!, Word +C99 -- +C99,
 
 def(c99-field-defs!, +C99 -- +C99, Field.for(c99-field-def!))
 def(c99-field-def!, Field +C99 -- +C99,
-    dup cname sig-put " {" put line
+    dup +mirth:cname sig-put " {" put line
     "\tsize_t i = (size_t)pop_u64();" put line
     "\tstatic struct VAL * p = 0;" put line
     "\tsize_t m = " put TABLE_MAX_COUNT show put ";" put line

@@ -31,11 +31,6 @@ import(mirth.c99)
 
 import(std.terminal)
 
-def(init!, -- +Mirth,
-    +Mirth.init!
-    init-types!
-    init-prims!)
-
 data(Arguments, Arguments ->
     input-file: Path
     output-file: Maybe(Path)
@@ -140,7 +135,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
     _ -> drop drop UnknownArg Some state error! state!)
 
 def(main, +World -- +World,
-    init!
+    +Mirth.init!
 
     Arguments.default
     LIST(

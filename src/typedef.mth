@@ -6,6 +6,7 @@ import(mirth.token)
 import(mirth.name)
 import(mirth.def)
 import(mirth.type)
+import(mirth.mirth)
 
 table(TypeDef)
 field(TypeDef.~head?, TypeDef, Maybe(Token))
@@ -20,7 +21,7 @@ def(TypeDef.target, TypeDef -- Type, ~target @)
 
 def(TypeDef.==, TypeDef TypeDef -- Bool, both(index) ==)
 
-def(TypeDef.new!, Maybe(Token) QName Type -- TypeDef,
+def(TypeDef.new!, +Mirth Maybe(Token) QName Type -- +Mirth TypeDef,
     TypeDef.alloc!
     tuck ~target !
     tuck ~qname !

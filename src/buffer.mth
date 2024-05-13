@@ -4,6 +4,7 @@ import(std.prelude)
 import(mirth.name)
 import(mirth.def)
 import(mirth.token)
+import(mirth.mirth)
 
 # mirth/data/buffer
 table(Buffer)
@@ -18,7 +19,7 @@ def(Buffer.name, Buffer -- Name, qname name)
 
 def(Buffer.==, Buffer Buffer -- Bool, both(index) ==)
 
-def(Buffer.new!, Token QName Size -- Buffer,
+def(Buffer.new!, +Mirth Token QName Size -- +Mirth Buffer,
     Buffer.alloc!
     tuck ~size !
     tuck ~qname !
