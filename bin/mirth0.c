@@ -5869,7 +5869,7 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang (void);
-static void mw_mirth_mirth_ZPlusMirth_traceZ_allZBang (void);
+static void mw_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang (void);
 static void mw_mirth_mirth_Diagnostic_traceZBang (void);
 static void mw_mirth_mirth_Prop_1_state (void);
 static void mw_mirth_mirth_Prop_1_stateZBang (void);
@@ -6510,6 +6510,8 @@ static void mb_std_list_List_1_map_1_1 (void);
 static void mb_mirth_elab_elabZ_entryZ_point_0 (void);
 static void mb_mirth_elab_elabZ_entryZ_point_1 (void);
 static void mb_mirth_elab_elabZ_entryZ_point_4 (void);
+static void mb_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang_0 (void);
+static void mb_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang_1 (void);
 static void mb_mirth_main_parseZ_packageZ_def_1 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_1 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_2 (void);
@@ -6680,8 +6682,6 @@ static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_0 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_1 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_2 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang_0 (void);
-static void mb_mirth_mirth_ZPlusMirth_traceZ_allZBang_0 (void);
-static void mb_mirth_mirth_ZPlusMirth_traceZ_allZBang_1 (void);
 static void mb_mirth_mirth_PropLabel_prop2_1_1 (void);
 static void mb_mirth_mirth_PropLabel_prop3_1_1 (void);
 static void mb_mirth_mirth_PropLabel_prop0_1_1 (void);
@@ -24266,7 +24266,7 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_errorZ_atZBang (void) {
 }
 static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang (void) {
 	mw_mirth_mirth_ZPlusMirth_emitZ_errorZ_atZBang();
-	mw_mirth_mirth_ZPlusMirth_traceZ_allZBang();
+	mw_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang();
 	push_fnptr(&mb_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang_0);
 	mw_std_str_Str_1();
 	mw_std_prelude_panicZBang();
@@ -24295,10 +24295,10 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang (void) {
 	}
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang();
 }
-static void mw_mirth_mirth_ZPlusMirth_traceZ_allZBang (void) {
-	push_fnptr(&mb_mirth_mirth_ZPlusMirth_traceZ_allZBang_0);
+static void mw_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang (void) {
+	push_fnptr(&mb_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang_0);
 	mw_mirth_mirth_ZPlusMirth_ZPlusdiagnostics_1();
-	push_fnptr(&mb_mirth_mirth_ZPlusMirth_traceZ_allZBang_1);
+	push_fnptr(&mb_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang_1);
 	mw_std_list_List_1_for_1();
 }
 static void mw_mirth_mirth_Diagnostic_traceZBang (void) {
@@ -38526,6 +38526,7 @@ static void mw_mirth_main_compileZBang (void) {
 		mp_primZ_drop();
 		push_value(d2);
 	}
+	mw_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang();
 	mw_mirth_mirth_ZPlusMirth_numZ_errors();
 	push_i64(0LL);
 	mp_primZ_swap();
@@ -39045,6 +39046,14 @@ static void mb_mirth_elab_elabZ_entryZ_point_4 (void) {
 		mw_mirth_elab_abZ_wordZBang();
 		push_value(d2);
 	}
+}
+static void mb_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang_0 (void) {
+	mw_std_list_ZPlusList_1_freezze();
+	push_u64(0LL); // Nil
+	mw_std_list_List_1_thaw();
+}
+static void mb_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang_1 (void) {
+	mw_mirth_mirth_Diagnostic_traceZBang();
 }
 static void mb_mirth_main_parseZ_packageZ_def_1 (void) {
 	STRLIT("Invalid package path definition", 31);
@@ -40841,14 +40850,6 @@ static void mb_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang_0 (void) {
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	push_u64(0LL); // Reset
 	mw_std_terminal_Sgr_emitZThen();
-}
-static void mb_mirth_mirth_ZPlusMirth_traceZ_allZBang_0 (void) {
-	mw_std_list_ZPlusList_1_freezze();
-	push_u64(0LL); // Nil
-	mw_std_list_List_1_thaw();
-}
-static void mb_mirth_mirth_ZPlusMirth_traceZ_allZBang_1 (void) {
-	mw_mirth_mirth_Diagnostic_traceZBang();
 }
 static void mb_mirth_mirth_PropLabel_prop2_1_1 (void) {
 	mp_primZ_packZ_uncons();

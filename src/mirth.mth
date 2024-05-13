@@ -60,7 +60,7 @@ def(+Mirth.emit-diagnostic-at!, Location Str Severity +Mirth -- +Mirth,
 def(+Mirth.emit-warning-at!, Location Str +Mirth -- +Mirth, Warning emit-diagnostic-at!)
 def(+Mirth.emit-error-at!, Location Str +Mirth -- +Mirth, Error emit-diagnostic-at!)
 def(+Mirth.emit-fatal-error-at!, *a Location Str +Mirth -- *b,
-    emit-error-at! trace-all!
+    emit-error-at! trace-all-diagnostics!
     Str(FGRed emit; "Fatal error. Stopping early."; Reset emit;) panic!)
 
 def(+Mirth.emit-warning!, Token Str +Mirth -- +Mirth,
@@ -70,7 +70,7 @@ def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
 def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b +Mirth,
     dip(location) emit-fatal-error-at!)
 
-def(+Mirth.trace-all!, +Mirth -- +Mirth,
+def(+Mirth.trace-all-diagnostics!, +Mirth -- +Mirth,
     +diagnostics(freeze L0 thaw)
     for(trace!))
 

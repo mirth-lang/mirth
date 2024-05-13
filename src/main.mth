@@ -86,6 +86,8 @@ def(compile!, Arguments +World +Mirth -- +World +Mirth,
         elab-entry-point
     ) nip
 
+    trace-all-diagnostics!
+
     num-errors 0> if(
         Str(FGRed emit; rdip:num-errors show; " errors.\n" ; Reset emit; ) trace! 1 posix-exit!,
         Str(FGGreen emit; "No errors.\n" ; Reset emit; ) trace!,
