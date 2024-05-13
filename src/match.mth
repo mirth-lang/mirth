@@ -3,6 +3,8 @@ module(mirth.match)
 import(std.prelude)
 import(std.maybe)
 import(std.list)
+
+import(mirth.mirth)
 import(mirth.type)
 import(mirth.data)
 import(mirth.token)
@@ -66,9 +68,9 @@ def(Match.is-transparent?, Match -- Bool,
         PatOpUnderscore -> True
     )))
 
-def(+Match.add-case, Case +Match -- +Match,
+def(+Match.add-case, +Mirth +Match Case -- +Mirth +Match,
     dup case-redundant? if(
-        pattern token-start "Case is unreachable." emit-error!,
+        pattern token-start "Case is unreachable." rdip:emit-error!,
         cases(swap List.snoc)
     ))
 
@@ -124,11 +126,11 @@ data(PatternOp,
     PatOpUnderscore,
     PatOpTag -> Tag)
 
-def(+Pattern.op!, PatternOp +Pattern -- +Pattern,
+def(+Pattern.op!, PatternOp +Mirth +Pattern -- +Mirth +Pattern,
     PatOpUnderscore -> underscore!,
     PatOpTag -> tag!)
 
-def(+Pattern.underscore!, +Pattern -- +Pattern,
+def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
     pattern token-start >token
     pattern inner-ctx >ctx
     pattern mid >cod
@@ -136,7 +138,7 @@ def(+Pattern.underscore!, +Pattern -- +Pattern,
     PatOpUnderscore >op
     pattern mid force-cons?! match(
         None ->
-            pattern token-start "pattern expects something on stack" emit-error!
+            pattern token-start "pattern expects something on stack" rdip:emit-error!
             STACK_TYPE_ERROR TYPE_ERROR,
         Some ->
             unpack2
@@ -145,13 +147,13 @@ def(+Pattern.underscore!, +Pattern -- +Pattern,
     L1 >saved dup >dom pattern:mid!
     PATATOM pattern:atoms:cons)
 
-def(+Pattern.tag!, +Pattern Tag -- +Pattern,
+def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
     dup PatOpTag >op L0 >saved
     pattern token-start >token
     pattern inner-ctx >ctx
-    dip:SUBST_NIL type freshen-sig unpack
+    dip:SUBST_NIL rdip:type freshen-sig unpack
     dip(pattern mid)
-    pattern token-start >token +Gamma unify! rdrop >cod
+    pattern token-start >token +Gamma rdip':unify! rdrop >cod
     dup >dom pattern:mid!
     >subst PATATOM pattern:atoms:cons)
 

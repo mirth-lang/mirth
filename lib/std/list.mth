@@ -141,6 +141,14 @@ def(List.reverse-for(f), (*c a -- *c) *c List(a) -- *c,
 def(List+.reverse-for(f), (*c a -- *c) *c List+(a) -- *c,
     /List+Unsafe reverse-for(f))
 
+||| Traverse the list, left to right, with an action between each item.
+def(List.for(f,g), (*a t -- *a, *a -- *a) *a List(t) -- *a,
+    uncons dip:for(f) for(dip(g) f))
+
+||| Traverse the list, left to right, with an action between each item.
+def(List+.for(f,g), (*a t -- *b, *b -- *a) *a List+(t) -- *b,
+    uncons dip(f) for(dip(g) f))
+
 ||| Reduce a list via binary operation.
 def(List.fold(g), (*c a a -- *c a) *c List(a) -- *c Maybe(a),
     >List+ map(fold(g)))
@@ -339,7 +347,7 @@ def(List.partition(p), (*a t -- *a t Bool) *a List(t) -- *a List(t) List(t),
 def(List+.partition(p), (*a t -- *a t Bool) *a List+(t) -- *a List(t) List(t),
     partition-either(p if(Left, Right)))
 
-def(List.show(f), (t -- Str) List(t) -- Str,
-    Str("LIST( " ; for(f ; " ; " ;) ")" ;))
-def(List+.show(f), (t -- Str) List+(t) -- Str,
-    Str("LIST+( " ; unsnoc dip:for(f ; " ; " ;) f ; " ;+ )" ;))
+def(List.show;(f), (t +Str -- +Str) List(t) +Str -- +Str,
+    "LIST( " ; for(f " ; " ;) ")" ;)
+def(List+.show;(f), (t +Str -- +Str) List+(t) +Str -- +Str,
+    "LIST+( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)

@@ -4,6 +4,7 @@ import(std.prelude)
 import(std.list)
 import(std.maybe)
 import(std.set)
+import(mirth.mirth)
 import(mirth.prim)
 import(mirth.arrow)
 import(mirth.word)
@@ -53,24 +54,24 @@ def(+Needs.need-block!, Block +Needs -- +Needs, NEED_BLOCK need!)
 def(+Needs.need-tag-word!, Tag +Needs -- +Needs, NEED_TAGW need!)
 def(+Needs.need-tag-pat!, Tag +Needs -- +Needs, NEED_TAGP need!)
 
-def(+Needs.determine-arrow-needs!, Arrow +Needs -- +Needs,
+def(+Needs.determine-arrow-needs!, Arrow +Mirth +Needs -- +Mirth +Needs,
     run-arrow! determine-transitive-needs!)
-def(+Needs.determine-transitive-needs!, +Needs -- +Needs,
+def(+Needs.determine-transitive-needs!, +Mirth +Needs -- +Mirth +Needs,
     while-some(stack:uncons, run-need!))
 
-def(+Needs.run-need!, Need +Needs -- +Needs,
+def(+Needs.run-need!, Need +Mirth +Needs -- +Mirth +Needs,
     NEED_BLOCK -> run-block!,
     NEED_WORD -> run-word!,
     NEED_TAGW -> drop,
     NEED_TAGP -> drop)
 
-def(+Needs.run-args!, List(Arg) +Needs -- +Needs, for(run-arg!))
-def(+Needs.run-arg!, Arg +Needs -- +Needs, ArgBlock -> run-block!)
-def(+Needs.run-block!, Block +Needs -- +Needs, arrow run-arrow!)
-def(+Needs.run-word!, Word +Needs -- +Needs, arrow run-arrow!)
-def(+Needs.run-arrow!, Arrow +Needs -- +Needs, atoms for(run-atom!))
-def(+Needs.run-atom!, Atom +Needs -- +Needs, sip(args) op run-op!)
-def(+Needs.run-op!, List(Arg) Op +Needs -- +Needs,
+def(+Needs.run-args!, List(Arg) +Mirth +Needs -- +Mirth +Needs, for(run-arg!))
+def(+Needs.run-arg!, Arg +Mirth +Needs -- +Mirth +Needs, ArgBlock -> run-block!)
+def(+Needs.run-block!, Block +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arrow!)
+def(+Needs.run-word!, Word +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arrow!)
+def(+Needs.run-arrow!, Arrow +Mirth +Needs -- +Mirth +Needs, atoms for(run-atom!))
+def(+Needs.run-atom!, Atom +Mirth +Needs -- +Mirth +Needs, sip(args) op run-op!)
+def(+Needs.run-op!, List(Arg) Op +Mirth +Needs -- +Mirth +Needs,
     OpNone -> drop,
     OpInt -> drop2,
     OpStr -> drop2,
@@ -94,28 +95,28 @@ def(+Needs.run-op!, List(Arg) Op +Needs -- +Needs,
     OpDataGetTag -> drop2,
     OpDataGetLabel -> drop3,
     OpDataSetLabel -> drop3)
-def(+Needs.run-prim!, List(Arg) Prim +Needs -- +Needs,
+def(+Needs.run-prim!, List(Arg) Prim +Mirth +Needs -- +Mirth +Needs,
     PRIM_CORE_DIP -> dup /L1 if(run-args!, push-args!),
     PRIM_CORE_RDIP -> dup /L1 if(run-args!, push-args!),
     PRIM_CORE_IF -> dup /L2 if(run-args!, push-args!),
     PRIM_CORE_WHILE -> dup /L2 if(run-args!, push-args!),
     _ -> drop push-args!)
-def(+Needs.run-match!, Match +Needs -- +Needs, cases for(run-case!))
-def(+Needs.run-case!, Case +Needs -- +Needs, dup pattern run-pattern! body run-arrow!)
-def(+Needs.run-lambda!, Lambda +Needs -- +Needs, body run-arrow!)
+def(+Needs.run-match!, Match +Mirth +Needs -- +Mirth +Needs, cases for(run-case!))
+def(+Needs.run-case!, Case +Mirth +Needs -- +Mirth +Needs, dup pattern run-pattern! body run-arrow!)
+def(+Needs.run-lambda!, Lambda +Mirth +Needs -- +Mirth +Needs, body run-arrow!)
 
-def(+Needs.run-pattern!, Pattern +Needs -- +Needs, atoms for:run-patatom!)
-def(+Needs.run-patatom!, PatternAtom +Needs -- +Needs,
+def(+Needs.run-pattern!, Pattern +Mirth +Needs -- +Mirth +Needs, atoms for:run-patatom!)
+def(+Needs.run-patatom!, PatternAtom +Mirth +Needs -- +Mirth +Needs,
     op match(
         PatOpUnderscore -> id,
         PatOpTag -> need-tag-pat!
     ))
 
-def(+Needs.push-args!, List(Arg) +Needs -- +Needs, for(push-arg!))
-def(+Needs.push-arg!, Arg +Needs -- +Needs,
+def(+Needs.push-args!, List(Arg) +Mirth +Needs -- +Mirth +Needs, for(push-arg!))
+def(+Needs.push-arg!, Arg +Mirth +Needs -- +Mirth +Needs,
     ArgBlock -> push-block!)
-def(+Needs.push-block!, Block +Needs -- +Needs,
-    dup to-run-var match(
+def(+Needs.push-block!, Block +Mirth +Needs -- +Mirth +Needs,
+    dup rdip:to-run-var match(
         Some -> drop2,
         None -> need-block!
     ))

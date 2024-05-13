@@ -3,9 +3,9 @@ module(mirth.arrow)
 import(std.prelude)
 import(std.maybe)
 import(std.list)
-import(std.lazy)
 import(std.str)
 
+import(mirth.mirth)
 import(mirth.token)
 import(mirth.type)
 import(mirth.data)
@@ -118,7 +118,7 @@ field(Block.~token, Block, Token)
 field(Block.~home, Block, Home)
 field(Block.~dom, Block, StackType)
 field(Block.~cod, Block, StackType)
-field(Block.~arrow, Block, Lazy(Arrow))
+field(Block.~arrow, Block, Prop(Arrow))
 field(Block.~qname, Block, QName)
 
 def(Block.ctx, Block -- Ctx, ~ctx @)
@@ -128,10 +128,10 @@ def(Block.cod, Block -- StackType, ~cod @)
 def(Block.home, Block -- Home, ~home @)
 
 def(Block.type, Block -- ArrowType, sip(dom) cod T->)
-def(Block.arrow, Block -- Arrow, ~arrow force!)
-def(Block.infer-type!, Block -- ArrowType, arrow type)
+def(Block.arrow, +Mirth Block -- +Mirth Arrow, ~arrow force!)
+def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
 
-def(Block.qname, Block -- QName,
+def(Block.qname, +Mirth Block -- +Mirth QName,
     dup ~qname memoize(dup dup home match(
         HomeMain ->
             .module NAMESPACE_MODULE
@@ -143,13 +143,6 @@ def(Block.qname, Block -- QName,
     )) nip)
 
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
-
-field(Word.~num-blocks, Word, Int)
-def(Word.inc-num-blocks!, Word -- Int,
-    dup ~num-blocks @? match(
-        Some -> tuck 1+ swap ~num-blocks !,
-        None -> 1 swap ~num-blocks ! 0
-    ))
 
 field(Block.~home-index, Block, Int)
 def(Block.register-home!, Block --,
@@ -163,11 +156,11 @@ def(Block.register-home!, Block --,
 field(Block.~cname, Block, Str)
 def(Block.cname, Block -- Str, dup ~cname memoize(
     dup home match(
-        HomeWord -> Str("mb_" ; qname mangled ; "_" ; dup ~home-index @ show ;),
-        HomeMain -> drop Str("mb_" ; dup index show ;),
+        HomeWord -> Str("mb_" ; qname mangled ; "_" ; dup ~home-index @ show;),
+        HomeMain -> drop Str("mb_" ; dup index show;),
     )) nip)
 
-def(Block.new!, Arrow -- Block,
+def(Block.new!, +Mirth Arrow -- +Mirth Block,
     Block.alloc!
     over home over ~home !
     dup register-home!
@@ -175,9 +168,9 @@ def(Block.new!, Arrow -- Block,
     over token-start over ~token !
     over dom over ~dom !
     over cod over ~cod !
-    tuck dip(ready) ~arrow !)
+    tuck dup dip(BlockArrow prop) ~arrow !)
 
-def(Block.new-deferred!(f), (Block -- Arrow) Ctx Token Home -- Block,
+def(Block.new-deferred!(f), (+Mirth Block -- +Mirth Arrow) +Mirth Ctx Token Home -- +Mirth Block,
     Block.alloc!
     tuck ~home !
     dup register-home!
@@ -185,15 +178,15 @@ def(Block.new-deferred!(f), (Block -- Arrow) Ctx Token Home -- Block,
     tuck ~ctx !
     MetaVar.new! STMeta over ~dom !
     MetaVar.new! STMeta over ~cod !
-    dup delay(f) over ~arrow !)
+    dup dup BlockArrow prop(f) over ~arrow !)
 
-def(Block.typecheck!, Block --,
+def(Block.typecheck!, +Mirth Block -- +Mirth,
     arrow drop)
 
-def(block-unify-type!, +Gamma Block ArrowType -- +Gamma ArrowType,
-    dip(dup type) rotl dip(unify! drop) arrow type)
+def(block-unify-type!, +Mirth +Gamma Block ArrowType -- +Mirth +Gamma ArrowType,
+    dip(dup type) rotl dip(unify! drop) rdip:arrow type)
 
-def(Block.to-run-var, Block -- Maybe(Var),
+def(Block.to-run-var, +Mirth Block -- +Mirth Maybe(Var),
     arrow to-run-var)
 
 def(Arrow.to-run-var, Arrow -- Maybe(Var),
@@ -205,25 +198,25 @@ def(Atom.to-run-var, Atom -- Maybe(Var),
         _ -> drop None
     ))
 
-def(Arg.>Str, Arg -- Str,
+def(Arg.>Str, +Mirth Arg -- +Mirth Str,
     ArgBlock -> qname >Str)
 def(Arg.==, Arg Arg -- Bool,
     both(/ArgBlock) ==)
 
 field(Block.~free-vars, Block, List(Var))
-def(Block.free-vars, Block -- List(Var),
+def(Block.free-vars, +Mirth Block -- +Mirth List(Var),
     dup ~free-vars memoize(
         dup arrow free-vars
     ) nip)
 
-def(Arrow.free-vars, Arrow -- List(Var),
+def(Arrow.free-vars, +Mirth Arrow -- +Mirth List(Var),
     atoms map(free-vars) unions(==))
-def(Atom.free-vars, Atom -- List(Var),
+def(Atom.free-vars, +Mirth Atom -- +Mirth List(Var),
     dup args map(free-vars) unions(==)
     swap op free-vars union(==))
-def(Arg.free-vars, Arg -- List(Var),
+def(Arg.free-vars, +Mirth Arg -- +Mirth List(Var),
     ArgBlock -> free-vars)
-def(Op.free-vars, Op -- List(Var),
+def(Op.free-vars, +Mirth Op -- +Mirth List(Var),
     OpNone -> L0,
     OpPrim -> drop L0,
     OpWord -> drop L0,
@@ -247,11 +240,11 @@ def(Op.free-vars, Op -- List(Var),
     OpDataGetTag -> drop L0,
     OpDataGetLabel -> drop2 L0,
     OpDataSetLabel -> drop2 L0)
-def(Match.free-vars, Match -- List(Var),
+def(Match.free-vars, +Mirth Match -- +Mirth List(Var),
     cases map(free-vars) unions(==))
-def(Case.free-vars, Case -- List(Var),
+def(Case.free-vars, +Mirth Case -- +Mirth List(Var),
     body free-vars)
-def(Lambda.free-vars, Lambda -- List(Var),
+def(Lambda.free-vars, +Mirth Lambda -- +Mirth List(Var),
     dup body free-vars
     swap params difference(==))
 

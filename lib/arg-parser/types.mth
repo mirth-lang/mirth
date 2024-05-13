@@ -47,9 +47,9 @@ data(ArgumentParsingError,
     TooFewArgs,
     UnknownArg)
 
-def(ArgumentParsingError.show, ArgumentParsingError -- Str,
-    MissingArg -> Str(FGRed show ; "Missing argument: " ; Reset show ; ;),
-    MissingArgValue -> "Missing associated value for flag option",
-    TooManyArgs -> "Too many positional arguments passed",
-    TooFewArgs -> "Too few positional arguments passed",
-    UnknownArg -> "Got an unknown option")
+def(ArgumentParsingError.emit;, ArgumentParsingError +Str -- +Str,
+    MissingArg -> FGRed emit; "Missing argument: " ; Reset emit; ;,
+    MissingArgValue -> "Missing associated value for flag option" ;,
+    TooManyArgs -> "Too many positional arguments passed" ;,
+    TooFewArgs -> "Too few positional arguments passed" ;,
+    UnknownArg -> "Got an unknown option" ;)

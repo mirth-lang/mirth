@@ -3,23 +3,26 @@ module(mirth.location)
 import(std.prelude)
 import(std.path)
 import(std.posix)
+import(std.str)
 import(mirth.module)
 
 # mirth/data/location
 data(Row, Row -> Int)
 def(Int.>Row, Int -- Row, Row)
-def(Row.>Int, Row -- Int, Row -> id)
-def(Row.trace!, Row --, >Int trace!)
+def(Row.>Int, Row -- Int, /Row)
+def(Row.show;, Row +Str -- +Str, /Row show;)
 
 data(Col, Col -> Int)
 def(Int.>Col, Int -- Col, Col)
 def(Col.>Int, Col -- Int, Col -> id)
-def(Col.trace!, Col --, >Int trace!)
+def(Col.show;, Col +Str -- +Str, /Col show;)
 
-data(Location, Location -> Module Row Col)
-def(Location.unpack, Location -- Module Row Col, Location -> id)
-def(Location.trace!, Location --,
-    unpack rotr swap
-    source-path trace!
-    ":" trace! trace!
-    ":" trace! trace!)
+data(Location, Location ->
+    module: Module
+    row: Row
+    col: Col)
+def(Location.emit;, Location +Str -- +Str,
+    /Location
+    module> source-path >Str ;
+    ":" ; row> show;
+    ":" ; col> show;)

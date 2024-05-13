@@ -93,6 +93,6 @@ def(Maybe.map2(f), (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z),
 
 def(Maybe.zip, Maybe(x) Maybe(y) -- Maybe([x y]), map2(pack2))
 
-def(Maybe.show(f), (t -- Str) Maybe(t) -- Str,
-    None -> "None",
-    Some -> f " Some" cat)
+def(Maybe.show;(f), (t +Str -- +Str) Maybe(t) +Str -- +Str,
+    None -> "None" ;,
+    Some -> f " Some" ;)

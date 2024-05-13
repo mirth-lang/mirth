@@ -1,7 +1,7 @@
 module(mirth.variable)
 
 import(std.prelude)
-import(std.lazy)
+import(mirth.mirth)
 import(mirth.name)
 import(mirth.def)
 import(mirth.type)
@@ -10,18 +10,17 @@ import(mirth.token)
 table(Variable)
 field(Variable.~head, Variable, Token)
 field(Variable.~qname, Variable, QName)
-field(Variable.~type, Variable, Lazy(Type))
+field(Variable.~type, Variable, Prop(Type))
 
 def(Variable.head, Variable -- Token, ~head @)
 def(Variable.qname, Variable -- QName, ~qname @)
 def(Variable.name, Variable -- Name, qname name)
-def(Variable.type, Variable -- Type, ~type force!)
+def(Variable.type, +Mirth Variable -- +Mirth Type, ~type force!)
 
 def(Variable.==, Variable Variable -- Bool, both(index) ==)
 
-def(Variable.new!, Token QName Lazy(Type) -- Variable,
+def(Variable.new!, Token QName -- Variable,
     Variable.alloc!
-    tuck ~type !
     tuck ~qname !
     tuck ~head !
     dup DefVariable register)

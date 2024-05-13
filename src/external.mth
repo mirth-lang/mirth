@@ -1,12 +1,12 @@
 module(mirth.external)
 
 import(std.prelude)
-import(std.lazy)
 
 import(mirth.type)
 import(mirth.token)
 import(mirth.name)
 import(mirth.var)
+import(mirth.mirth)
 
 # mirth/data/external
 table(External)
@@ -14,15 +14,15 @@ field(External.~qname, External, QName)
 field(External.~symbol, External, Str)
 field(External.~head, External, Token)
 field(External.~sig, External, Token)
-field(External.~ctx-type, External, Lazy([Ctx ArrowType]))
+field(External.~ctx-type, External, Prop([Ctx ArrowType]))
 
 def(External.qname, External -- QName, ~qname @)
 def(External.name, External -- Name, qname name)
 def(External.symbol, External -- Str, ~symbol @)
 def(External.head, External -- Token, ~head @)
 def(External.sig, External -- Token, ~sig @)
-def(External.ctx-type, External -- Ctx ArrowType, ~ctx-type force! unpack2)
-def(External.ctx, External -- Ctx, ctx-type drop)
-def(External.type, External -- ArrowType, ctx-type nip)
+def(External.ctx-type, +Mirth External -- +Mirth Ctx ArrowType, ~ctx-type force! unpack2)
+def(External.ctx, +Mirth External -- +Mirth Ctx, ctx-type drop)
+def(External.type, +Mirth External -- +Mirth ArrowType, ctx-type nip)
 
 def(External.==, External External -- Bool, both(index) ==)

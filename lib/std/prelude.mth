@@ -52,6 +52,7 @@ inline(
     def(Bool.and(p,d), (*a -- *b Bool, *a -- *b) *a Bool -- *b Bool, if(p, d False))
     def(Bool.==, Bool Bool -- Bool, if(id, not))
     def(Bool.show, Bool -- Str, if("True", "False"))
+    def(Bool.show;, Bool +Str -- +Str, show ;)
     def(Bool.then(f), (*a -- *a) *a Bool -- *a, if(f, id))
     def(Bool.else(f), (*a -- *a) *a Bool -- *a, if(id, f))
 )
@@ -236,9 +237,11 @@ inline(
 def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
 def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
 def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
-def(Int.show, Int -- Str, prim-int-to-str)
 
 inline(
+    def(Int.show, Int -- Str, prim-int-to-str)
+    def(Int.show;, Int +Str -- +Str, show ;)
+
     def(Str.compare, Str Str -- Comparison, prim-str-cmp 0 compare)
     def(Str.==, Str Str -- Bool, compare eq?)
     def(Str.<,  Str Str -- Bool, compare lt?)
@@ -428,6 +431,7 @@ inline (
     def(Nat.max, Nat Nat -- Nat, both(>Int) max NatUnsafe)
     def(Nat.min, Nat Nat -- Nat, both(>Int) min NatUnsafe)
     def(Nat.show, Nat -- Str, >Int show)
+    def(Nat.show;, Nat +Str -- +Str, >Int show;)
 )
 
 data(Size, Size -> Nat)
@@ -451,6 +455,7 @@ inline(
     def(Size.0=, Size -- Bool, >Nat 0=)
     def(Size.0>, Size -- Bool, >Nat 0>)
     def(Size.show, Size -- Str, >Int show)
+    def(Size.show;, Size +Str -- +Str, >Int show;)
 )
 def(Size.max, Size Size -- Size, dup2 >= if(drop, nip))
 def(Size.min, Size Size -- Size, dup2 <= if(drop, nip))
@@ -514,11 +519,24 @@ def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
 def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
         [a b c] [a b c] -- Bool,
     pack-cons==(pack2==(aeq,beq), ceq))
+def(pack4==(aeq,beq,ceq,deq),
+        (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
+        [a b c d] [a b c d] -- Bool,
+    pack-cons==(pack3==(aeq,beq,ceq), deq))
 
-def(pack2-show(f,g), (a -- Str, b -- Str) [a b] -- Str,
-    Str(unpack2 dip(f ; " " ;) g ; " pack2" ;))
-def(pack3-show(f,g,h), (a -- Str, b -- Str, c -- Str) [a b c] -- Str,
-    Str(unpack3 dip(dip(f ; " " ;) g ; " " ;) h ; " pack3" ;))
+def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+    unpack2 dip(f) " " ; g)
+def(pack3-show;-contents(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+    pack-uncons dip(pack2-show;-contents(f,g)) " " ; h)
+def(pack4-show;-contents(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+    pack-uncons dip(pack3-show;-contents(f,g,h)) " " ; i)
+
+def(pack2-show;(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+    pack2-show;-contents(f,g) " pack2" ;)
+def(pack3-show;(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+    pack3-show;-contents(f,g,h) " pack3" ;)
+def(pack4-show;(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+    pack4-show;-contents(f,g,h,i) " pack4" ;)
 
 alias(@, prim-mut-get)
 alias(!, prim-mut-set)

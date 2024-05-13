@@ -7,7 +7,7 @@ import(std.either)
 import(mirth.name)
 import(mirth.label)
 import(mirth.location)
-import(mirth.error)
+import(mirth.mirth)
 import(mirth.prim)
 import(mirth.module)
 
@@ -166,7 +166,10 @@ def(Token.alloc-none!, Token,
     TokenNone over ~value !)
 
 def(Token.location, Token -- Location,
-    sip(.module) sip(row) col Location)
+    dup .module >module
+    dup .row >row
+    .col >col
+    Location)
 
 ||| Get next token, respecting nesting of tokens and arguments.
 def(Token.next, Token -- Token,
@@ -213,7 +216,7 @@ def(Token.pattern-var?, Token -- Bool,
 
 ||| Verify that token has 0 args, and return them.
 ||| Emits a fatal error if arity is wrong.
-def(Token.args-0, Token --,
+def(Token.args-0, Token +Mirth -- +Mirth,
     dup num-args 0= if(
         drop,
         "expected no args" emit-fatal-error!
@@ -221,7 +224,7 @@ def(Token.args-0, Token --,
 
 ||| Verify that token has 1 arg, and return it.
 ||| Emits a fatal error if arity is wrong.
-def(Token.args-1, Token -- Token,
+def(Token.args-1, Token +Mirth -- Token +Mirth,
     dup num-args 1 == if(
         args-start succ,
         dup num-args 1 < if(
@@ -232,7 +235,7 @@ def(Token.args-1, Token -- Token,
 
 ||| Verify that token has 2 args, and return them.
 ||| Emits a fatal error if arity is wrong.
-def(Token.args-2, Token -- Token Token,
+def(Token.args-2, Token +Mirth -- Token Token +Mirth,
     dup num-args 2 == if(
         args-start succ
         dup next-arg-end succ,
@@ -244,7 +247,7 @@ def(Token.args-2, Token -- Token Token,
 
 ||| Verify that token has 3 args, and return them.
 ||| Emits a fatal error if arity is wrong.
-def(Token.args-3, Token -- Token Token Token,
+def(Token.args-3, Token +Mirth -- Token Token Token +Mirth,
     dup num-args 3 == if(
         args-start succ
         dup next-arg-end succ
@@ -280,15 +283,8 @@ def(Token.args-end?, Token -- Bool,
 
 ||| Get List+ of token args.
 ||| Emits a fatal error if token has no args,
-def(Token.args+, Token -- List+(Token),
+def(Token.args+, Token +Mirth -- List+(Token) +Mirth,
     dup args >List+ unwrap-or("expected 1 or more args, got none" emit-fatal-error!) nip)
-
-def(emit-warning!, Token Str --,
-    dip(location) emit-warning-at!)
-def(emit-error!, Token Str --,
-    dip(location) emit-error-at!)
-def(emit-fatal-error!, *a Token Str -- *b,
-    dip(location) emit-fatal-error-at!)
 
 ###############
 # Token Types #

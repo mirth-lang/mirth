@@ -24,8 +24,8 @@ def(slice-write!, File Ptr Size --,
 
 def(Str.print!, Str --, dip(STDOUT) write!)
 def(Str.trace!, Str --, dip(STDERR) write!)
-def(Str.print-ln!, Str --, print! line-print!)
-def(Str.trace-ln!, Str --, trace! line-trace!)
+def(Str.print-ln!, Str --, "\n" cat print!)
+def(Str.trace-ln!, Str --, "\n" cat trace!)
 def(line-print!, --, "\n" print!)
 def(line-trace!, --, "\n" trace!)
 

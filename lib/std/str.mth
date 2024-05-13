@@ -208,5 +208,5 @@ def(+Str.push-show-byte!, +Str Byte -- +Str,
         )
     )
 
-def(Str.show, Str -- Str,
-    Str("\"" ; bytes-for(push-show-byte!) "\"" ;))
+def(Str.show;, Str +Str -- +Str,
+    "\"" ; bytes-for(push-show-byte!) "\"" ;)

@@ -1,10 +1,10 @@
 module(mirth.word)
 
 import(std.prelude)
-import(std.lazy)
 import(std.maybe)
 import(std.str)
 import(std.list)
+import(mirth.mirth)
 import(mirth.token)
 import(mirth.var)
 import(mirth.name)
@@ -18,9 +18,9 @@ field(Word.~head, Word, Token)
 field(Word.~sig, Word, Maybe(Token))
 field(Word.~body, Word, Token)
 field(Word.~arity, Word, Int)
-field(Word.~ctx-type, Word, Lazy([Ctx ArrowType]))
-field(Word.~params, Word, Lazy(List(Var)))
-field(Word.~arrow, Word, Lazy(Arrow))
+field(Word.~ctx-type, Word, Prop([Ctx ArrowType]))
+field(Word.~params, Word, Prop(List(Var)))
+field(Word.~arrow, Word, Prop(Arrow))
 field(Word.~prefer-inline?, Word, Bool)
 field(Word.~cname, Word, Str)
 
@@ -31,15 +31,15 @@ def(Word.head, Word -- Token, ~head @)
 def(Word.sig, Word -- Maybe(Token), ~sig @)
 def(Word.body, Word -- Token, ~body @)
 def(Word.arity, Word -- Int, ~arity @)
-def(Word.params, Word -- List(Var), ~params force!)
-def(Word.arrow, Word -- Arrow, ~arrow force!)
+def(Word.params, Word +Mirth -- List(Var) +Mirth, ~params force!)
+def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
 
 def(Word.cname, Word -- Str, dup ~cname memoize(
     Str("mw_" ; dup qname mangled ;)) nip)
 
-def(Word.ctx-type, Word -- Ctx ArrowType, ~ctx-type force! unpack2)
-def(Word.ctx, Word -- Ctx, ctx-type drop)
-def(Word.type, Word -- ArrowType, ctx-type nip)
+def(Word.ctx-type, Word +Mirth -- Ctx ArrowType +Mirth, ~ctx-type force! unpack2)
+def(Word.ctx, Word +Mirth -- Ctx +Mirth, ctx-type drop)
+def(Word.type, Word +Mirth -- ArrowType +Mirth, ctx-type nip)
 
 def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap-or(False))
 
@@ -56,3 +56,10 @@ def(Word.new!,
 
 def(Word.==, Word Word -- Bool, both(index) ==)
 def(Word.compare, Word Word -- Comparison, both(index) compare)
+
+field(Word.~num-blocks, Word, Int)
+def(Word.inc-num-blocks!, Word -- Int,
+    dup ~num-blocks @? match(
+        Some -> tuck 1+ swap ~num-blocks !,
+        None -> 1 swap ~num-blocks ! 0
+    ))
