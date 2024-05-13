@@ -8,6 +8,7 @@ import(std.list)
 import(std.posix)
 import(mirth.name)
 import(mirth.def)
+import(mirth.mirth)
 
 table(Package)
 field(Package.~name, Package, Name)
@@ -18,6 +19,12 @@ def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME0)
 def(Package.path, Package -- Maybe(Path), ~path @)
 
 var(PACKAGE_SEARCH_PATH, List(Path))
+
+def(Package.std, +Mirth -- +Mirth Package, builtin std)
+def(init-packages!, +Mirth -- +Mirth,
+    builtin std
+    "std" >Name over ~name !
+    None swap ~path !)
 
 def(Package.path-or-search, +World Package -- +World Maybe(Path),
     dup path match(
@@ -45,22 +52,22 @@ def(Package.path!, Path Package --,
             Some swap ~path !
     ))
 
-def(Package.new!, Maybe(Path) Name -- Package,
+def(Package.new!, +Mirth Maybe(Path) Name -- +Mirth Package,
     Package.alloc!
     tuck ~name !
     tuck ~path !
     dup DefPackage register)
 
-def(Package.new-or-path!, Path Name -- Package,
+def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
     dup Package.find match(
         Some -> nip tuck path!,
         None -> dip(Some) Package.new!
     ))
 
-def(Package.find, Name -- Maybe(Package),
+def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
     NAMESPACE_ROOT swap QNAME0 def? bind(package?))
 
-def(Package.find-or-new!, Name -- Package,
+def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
     dup Package.find unwrap-or(dup None swap Package.new!) nip)
 
 def(Package.==, Package Package -- Bool, both(index) ==)

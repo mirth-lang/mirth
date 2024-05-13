@@ -14,6 +14,7 @@ import(mirth.package)
 import(mirth.tycon)
 import(mirth.label)
 import(mirth.word)
+import(mirth.mirth)
 
 #########
 # Names #
@@ -124,7 +125,7 @@ def(Namespace.==, Namespace Namespace -- Bool,
     NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 False),
     NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False))
 
-def(Namespace.compare, Namespace Namespace -- Comparison,
+def(Namespace.compare, +Mirth Namespace Namespace -- +Mirth Comparison,
     NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> Comparison.EQ, _ -> drop Comparison.LT),
     NAMESPACE_PACKAGE -> swap match(
         NAMESPACE_ROOT -> drop Comparison.GT,
@@ -137,21 +138,21 @@ def(Namespace.compare, Namespace Namespace -- Comparison,
         _ -> qname unwrap swap qname unwrap compare
     ))
 
-def(Namespace.qname, Namespace -- Maybe(QName),
+def(Namespace.qname, +Mirth Namespace -- +Mirth Maybe(QName),
     NAMESPACE_ROOT -> None,
     NAMESPACE_PACKAGE -> qname Some,
     NAMESPACE_MODULE -> qname Some,
     NAMESPACE_TYCON -> qname Some,
     NAMESPACE_WORD -> qname Some)
 
-def(Namespace.package?, Namespace -- Maybe(Package),
+def(Namespace.package?, +Mirth Namespace -- +Mirth Maybe(Package),
     NAMESPACE_ROOT -> None,
     NAMESPACE_PACKAGE -> Some,
     NAMESPACE_MODULE -> package Some,
     NAMESPACE_TYCON -> qname namespace package?,
     NAMESPACE_WORD -> drop None)
 
-def(Namespace.module?, Namespace -- Maybe(Module),
+def(Namespace.module?, +Mirth Namespace -- +Mirth Maybe(Module),
     NAMESPACE_ROOT -> None,
     NAMESPACE_PACKAGE -> drop None,
     NAMESPACE_MODULE -> Some,
@@ -165,16 +166,16 @@ def(Namespace.tycon?, Namespace -- Maybe(Tycon),
     NAMESPACE_TYCON -> Some,
     NAMESPACE_WORD -> drop None)
 
-def(Namespace.prim, Namespace, Module.prim NAMESPACE_MODULE)
+def(Namespace.prim, +Mirth -- +Mirth Namespace, Module.prim NAMESPACE_MODULE)
 
-def(Namespace.>Str, Namespace -- Str,
+def(Namespace.>Str, +Mirth Namespace -- +Mirth Str,
     NAMESPACE_ROOT -> "<root>",
     NAMESPACE_PACKAGE -> name >Str,
     NAMESPACE_MODULE -> qname >Str,
     NAMESPACE_TYCON -> qname >Str,
     NAMESPACE_WORD -> qname >Str)
 
-def(Namespace.mangled, Namespace -- Str,
+def(Namespace.mangled, +Mirth Namespace -- +Mirth Str,
     NAMESPACE_ROOT -> "__root__",
     NAMESPACE_PACKAGE -> name mangled,
     NAMESPACE_MODULE -> qname mangled,
@@ -199,12 +200,12 @@ def(QName.==, QName QName -- Bool,
     arity> arity> == &&
     namespace> namespace> == &&)
 
-def(QName.<=, QName QName -- Bool, compare le?)
-def(QName.>=, QName QName -- Bool, compare ge?)
-def(QName.<, QName QName -- Bool,  compare lt?)
-def(QName.>, QName QName -- Bool,  compare gt?)
-def(QName.<>, QName QName -- Bool, compare ne?)
-def(QName.compare, QName QName -- Comparison,
+def(QName.<=, +Mirth QName QName -- +Mirth Bool, compare le?)
+def(QName.>=, +Mirth QName QName -- +Mirth Bool, compare ge?)
+def(QName.<, +Mirth QName QName -- +Mirth Bool,  compare lt?)
+def(QName.>, +Mirth QName QName -- +Mirth Bool,  compare gt?)
+def(QName.<>, +Mirth QName QName -- +Mirth Bool, compare ne?)
+def(QName.compare, +Mirth QName QName -- +Mirth Comparison,
     /MKQNAME /MKQNAME
     arity> arity>
     name> >Str name> >Str
@@ -217,17 +218,17 @@ def(QName.compare, QName QName -- Comparison,
         dip:drop4
     ))
 
-def(QName.def?, QName -- Maybe(Def), dup name defs find(dup2 qname ==) nip)
-def(QName.defined?, QName -- Bool, def? some?)
-def(QName.undefined?, QName -- Bool, def? none?)
+def(QName.def?, +Mirth QName -- +Mirth Maybe(Def), dup name defs find(dup2 qname ==) nip)
+def(QName.defined?, +Mirth QName -- +Mirth Bool, def? some?)
+def(QName.undefined?, +Mirth QName -- +Mirth Bool, def? none?)
 
-def(QName.prim, Str Int -- QName,
+def(QName.prim, +Mirth Str Int -- +Mirth QName,
     >arity
     >Name >name
     Namespace.prim >namespace
     MKQNAME)
 
-def(QName.>Str, QName -- Str, MKQNAME ->
+def(QName.>Str, +Mirth QName -- +Mirth Str, MKQNAME ->
     namespace> >Str "." cat
     name> >Str cat
     arity> dup 0= if(drop, dip:"/" show cat cat))
@@ -239,7 +240,7 @@ def(QName.to-module-path, QName +World -- Path +World,
         	swap name >Str ".mth" cat >Path join,
         _ -> drop "expected module name" panic!
     ))
-def(QName.mangled, QName -- Str, MKQNAME ->
+def(QName.mangled, +Mirth QName -- +Mirth Str, MKQNAME ->
     namespace> mangled "_" cat
     name> mangled cat
     arity> dup 0> if(dip:"_" show cat cat, drop))

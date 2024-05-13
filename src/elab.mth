@@ -239,12 +239,12 @@ def(+ResolveDef.resolve-def-ambiguous, +Mirth +ResolveDef -- +Mirth,
     report-ambiguous-as-warning if(
         token Str(
             "Can't resolve " ; rdip:sort ; " due to previous errors. Candidates are:" ;
-            " " rdip:candidates for(swap ; qname >Str ; ", ") drop
+            " " rdip:candidates for(swap ; rdip2(qname >Str) ; ", ") drop
         ) rdip:emit-warning!,
 
         token Str(
             "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
-            " " rdip:candidates for(swap ; qname >Str ; ", ") drop
+            " " rdip:candidates for(swap ; rdip2(qname >Str) ; ", ") drop
         ) rdip:emit-error!
     ) rdrop)
 def(+ResolveDef.resolve-def-unknown, +Mirth +ResolveDef -- +Mirth,
@@ -255,41 +255,41 @@ def(+ResolveDef.resolve-def-unknown, +Mirth +ResolveDef -- +Mirth,
                 Nil -> match(
                     RD_WRONG_SORT ->
                         "Expected a " ; rdip:sort ; ", but " ;
-                        qname >Str ; " is not a " ; rdip:sort ; "." ; ,
+                        rdip2(qname >Str) ; " is not a " ; rdip:sort ; "." ; ,
                     RD_NOT_VISIBLE ->
-                        "Not visible in current scope: " ; qname >Str ; ,
+                        "Not visible in current scope: " ; rdip2(qname >Str) ; ,
                     RD_NOT_IMPORTED ->
-                        "Not imported in current scope: " ; qname >Str ; ,
+                        "Not imported in current scope: " ; rdip2(qname >Str) ; ,
                     RD_WRONG_ARITY ->
-                        qname dup >Str ; " expects " ; arity show;
+                        rdip2(qname dup >Str) ; " expects " ; arity show;
                         " arguments, but got " ; rdip:token num-args show; "." ; ,
                     RD_WRONG_QUALIFIER ->
-                        "Qualified name not found. Perhaps you meant: " ; qname >Str ; ,
+                        "Qualified name not found. Perhaps you meant: " ; rdip2(qname >Str) ; ,
                     RD_WRONG_CONSTRUCTOR ->
-                        "Constructor is for a different type: " ; qname >Str ; ,
+                        "Constructor is for a different type: " ; rdip2(qname >Str) ; ,
                     RD_METHOD_WRONG_TYPE ->
-                        "Method is for a different type: " ; qname >Str ; ,
+                        "Method is for a different type: " ; rdip2(qname >Str) ; ,
                     RD_METHOD_NOT_AVAILABLE ->
-                        "Method is not available for current stack: " ; qname >Str ; ,
+                        "Method is not available for current stack: " ; rdip2(qname >Str) ; ,
                 ),
                 _ -> Cons "Multiple definitions for name, but none are suitable:" ;
                     dip:" " for(swap ; match(
-                        RD_WRONG_SORT -> qname >Str ; " is not a " ; rdip:sort ; ,
+                        RD_WRONG_SORT -> rdip2(qname >Str) ; " is not a " ; rdip:sort ; ,
                         RD_NOT_VISIBLE ->
-                            qname >Str ; " is not visible in current scope" ; ,
+                            rdip2(qname >Str) ; " is not visible in current scope" ; ,
                         RD_NOT_IMPORTED ->
-                            qname >Str ; " is not imported in current scope" ; ,
+                            rdip2(qname >Str) ; " is not imported in current scope" ; ,
                         RD_WRONG_ARITY ->
-                            qname dup >Str ; " expects " ;
+                            rdip2(qname dup >Str) ; " expects " ;
                             arity show; " arguments" ; ,
                         RD_WRONG_QUALIFIER ->
-                            qname >Str ; " doesn't match the given qualified name" ; ,
+                            rdip2(qname >Str) ; " doesn't match the given qualified name" ; ,
                         RD_WRONG_CONSTRUCTOR ->
-                            qname >Str ; " is constructor for a different type" ; ,
+                            rdip2(qname >Str) ; " is constructor for a different type" ; ,
                         RD_METHOD_WRONG_TYPE ->
-                            qname >Str ; " is method for a different type" ; ,
+                            rdip2(qname >Str) ; " is method for a different type" ; ,
                         RD_METHOD_NOT_AVAILABLE ->
-                            qname >Str ; " is not avaliable for current stack" ; ,
+                            rdip2(qname >Str) ; " is not avaliable for current stack" ; ,
                     ) ", ") drop
             )
     )) rdip:emit-error! rdrop)
@@ -298,26 +298,26 @@ def(+ResolveDef.filter-sort(p),
         (*a Def +ResolveDef -- *a Def Bool +ResolveDef)
         *a +ResolveDef -- *a +ResolveDef,
     filter(p, RD_WRONG_SORT))
-def(+ResolveDef.filter-arity, +ResolveDef -- +ResolveDef,
+def(+ResolveDef.filter-arity, +Mirth +ResolveDef -- +Mirth +ResolveDef,
     token num-args filter(
-        dup2 qname arity arity-compatible?,
+        dup2 rdip:qname arity arity-compatible?,
         RD_WRONG_ARITY
     ) drop)
 def(+ResolveDef.filter-visible, +ResolveDef -- +ResolveDef,
     filter(token over def-visible-from-token?, RD_NOT_VISIBLE))
 
-def(+ResolveDef.filter-qualifiers, +ResolveDef -- +ResolveDef,
+def(+ResolveDef.filter-qualifiers, +Mirth +ResolveDef -- +Mirth +ResolveDef,
     token dname? for(
-        filter(dup2 qname climb-up-dname? some?, RD_WRONG_QUALIFIER)
+        filter(dup2 rdip(qname climb-up-dname?) some?, RD_WRONG_QUALIFIER)
         drop
     ))
 
-def(+ResolveDef.filter-roots, List(Namespace) +ResolveDef -- +ResolveDef,
+def(+ResolveDef.filter-roots, List(Namespace) +Mirth +ResolveDef -- +Mirth +ResolveDef,
     token name? then(
         filter(
-            dup2 qname namespace swap member(==)
-            or(token over def-is-imported-at-token?),
-            dup qname namespace match(
+            dup2 rdip:qname namespace swap member(==)
+            or(token over rdip:def-is-imported-at-token?),
+            dup rdip:qname namespace match(
                 NAMESPACE_TYCON ->
                     drop token name? unwrap can-be-relative? if(
                         over empty? if(
@@ -332,21 +332,21 @@ def(+ResolveDef.filter-roots, List(Namespace) +ResolveDef -- +ResolveDef,
     )
     token dname? for(
         dup is-relative? if(
-            filter(dup2 qname climb-up-dname? and-some(over3 member(==)),
+            filter(dup2 rdip(qname climb-up-dname?) and-some(over3 member(==)),
                 over2 empty? if(
                     RD_METHOD_NOT_AVAILABLE,
                     RD_METHOD_WRONG_TYPE
                 )
             ),
-            filter(dup2 qname climb-up-dname? and-some(
-                token swap namespace-is-imported-at-token?
+            filter(dup2 rdip(qname climb-up-dname?) and-some(
+                token swap rdip:namespace-is-imported-at-token?
             ), RD_NOT_IMPORTED)
         ) drop
     )
     drop)
 
 ||| Check whether a definition can be referred to without qualification.
-def(def-is-imported-at-token?, Token Def -- Bool,
+def(def-is-imported-at-token?, +Mirth Token Def -- +Mirth Bool,
     # TODO: implement finer grained control over what is imported.
     #   https://github.com/mirth-lang/mirth/issues/243
     dup qname namespace match(
@@ -362,7 +362,7 @@ def(tycon-is-visible-at-token?, Token Tycon -- Bool,
     TYCON_TABLE -> head .module module-visible-from-token?,
     TYCON_PRIM -> drop2 True)
 
-def(namespace-is-imported-at-token?, Token Namespace -- Bool,
+def(namespace-is-imported-at-token?, +Mirth Token Namespace -- +Mirth Bool,
     NAMESPACE_ROOT -> drop True,
     NAMESPACE_PACKAGE -> drop2 True,
     NAMESPACE_MODULE -> module-visible-from-token?,
@@ -375,7 +375,7 @@ def(QName.climb-up-name?, Name QName -- Maybe(Namespace),
         drop None
     ))
 
-def(QName.climb-up-dname?, DName QName -- Maybe(Namespace),
+def(QName.climb-up-dname?, +Mirth DName QName -- +Mirth Maybe(Namespace),
     dip(sip(root? >List) parts unsnoc dip(cat))
     climb-up-name? swap
     reverse-for(swap bind(qname) match(
@@ -839,11 +839,11 @@ def(elab-atom-def!, Def +Mirth +AB -- +Mirth +AB,
     DefWord -> elab-args! ab-word!,
     DefTag -> elab-args! ab-tag!,
     DefPrim -> elab-prim!,
-    _ -> qname elab-atom-not-a-word!)
+    _ -> rdip:qname elab-atom-not-a-word!)
 
 def(elab-atom-not-a-word!, QName +Mirth +AB -- +Mirth +AB,
     ab-type@ top-types-are-fine? if(
-        dip(ab-token@ "Not a word: ") >Str cat rdip:emit-error!,
+        dip(ab-token@ "Not a word: ") rdip:>Str cat rdip:emit-error!,
         drop
     ) elab-atom-failed!)
 
@@ -912,7 +912,7 @@ def(elab-pattern-atom!, Token +Mirth +Pattern -- +Mirth +Pattern,
             @+pat:pattern mid top-types-are-fine? then(
                 @+pat:pattern mid top-namespaces
                 token name? if(
-                    filter(dup2 qname namespace swap member(==), RD_WRONG_CONSTRUCTOR) drop,
+                    filter(dup2 rdip:qname namespace swap member(==), RD_WRONG_CONSTRUCTOR) drop,
                     filter-roots
                 )
             )
@@ -1150,7 +1150,7 @@ def(elab-data-tag!, Data Token +Mirth -- Data +Mirth,
 
     drop)
 
-def(data-word-new!, Data Str Int -- Word,
+def(data-word-new!, +Mirth Data Str Int -- +Mirth Word,
     dup >arity
     dip2(dup head? unwrap dup >body >head)
     data-word-qname >qname
@@ -1542,7 +1542,7 @@ def(TABLE_MAX_COUNT, Nat, 0x80000 >Nat)
 def(table-qname, Table Str Int -- QName,
     >arity >Name >name TYCON_TABLE NAMESPACE_TYCON >namespace MKQNAME)
 
-def(table-word-new!, Table Str Int -- Word,
+def(table-word-new!, +Mirth Table Str Int -- +Mirth Word,
     over2 head dup >head >body None >sig
     dup >arity table-qname >qname Word.new!)
 

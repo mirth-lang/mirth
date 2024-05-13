@@ -34,8 +34,8 @@ def(Word.arity, Word -- Int, ~arity @)
 def(Word.params, Word +Mirth -- List(Var) +Mirth, ~params force!)
 def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
 
-def(Word.cname, Word -- Str, dup ~cname memoize(
-    Str("mw_" ; dup qname mangled ;)) nip)
+def(Word.cname, Word +Mirth -- Str +Mirth, dup ~cname memoize(
+    Str("mw_" ; dup qname rdip:mangled ;)) nip)
 
 def(Word.ctx-type, Word +Mirth -- Ctx ArrowType +Mirth, ~ctx-type force! unpack2)
 def(Word.ctx, Word +Mirth -- Ctx +Mirth, ctx-type drop)
@@ -45,7 +45,7 @@ def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap-or(False))
 
 def(Word.new!,
     head:Token sig:Maybe(Token) body:Token
-    qname:QName arity:Int -- Word,
+    qname:QName arity:Int +Mirth -- Word +Mirth,
     Word.alloc!
     qname> over ~qname !
     head> over ~head !

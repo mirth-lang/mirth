@@ -5,14 +5,15 @@ import(mirth.name)
 import(mirth.data)
 import(mirth.table)
 import(mirth.type)
+import(mirth.mirth)
 
 data(Tycon,
     TYCON_DATA -> Data,
     TYCON_TABLE -> Table,
     TYCON_PRIM -> PrimType)
 
-def(Tycon.name, Tycon -- Name, qname name)
-def(Tycon.qname, Tycon -- QName,
+def(Tycon.name, +Mirth Tycon -- +Mirth Name, qname name)
+def(Tycon.qname, +Mirth Tycon -- +Mirth QName,
     TYCON_DATA -> qname,
     TYCON_TABLE -> qname,
     TYCON_PRIM -> tycon-qname)

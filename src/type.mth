@@ -75,7 +75,7 @@ def(Type.tycon?, Type -- Maybe(Tycon),
     TValue -> tycon?)
 
 ||| Get primitive type constructor name.
-def(PrimType.tycon-qname, PrimType -- QName,
+def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
     PRIM_TYPE_TYPE -> "TYPE" 0 QName.prim,
     PRIM_TYPE_STACK -> "STACK" 0 QName.prim,
     PRIM_TYPE_RESOURCE -> "RESOURCE" 0 QName.prim,
@@ -93,7 +93,7 @@ def(Value.tycon?, Value -- Maybe(Tycon),
 def(PrimType.>Int, PrimType -- Int, PrimType.tag)
 def(PrimType.==, PrimType PrimType -- Bool, both(>Int) ==)
 
-def(def-prim-type!, PrimType --,
+def(def-prim-type!, +Mirth PrimType -- +Mirth,
     dip(None) dup tycon-qname swap TPrim TypeDef.new! drop)
 
 def(init-types!, +Mirth -- +Mirth,
