@@ -55,6 +55,7 @@ data(+Mirth, +Mirth ->
     num-warnings: Nat
     prefer-inline-defs: Bool
     builtin: Builtin
+    error-token: Maybe(Token)
     +diagnostics: +List(Diagnostic)
     +propstack: +List(PropLabel))
 
@@ -65,6 +66,7 @@ def(+Mirth.init!, -- +Mirth,
     Builtin.alloc! >builtin
     L0 thaw >+diagnostics
     L0 thaw >+propstack
+    None >error-token
     +Mirth
     init-packages!
     init-modules!
@@ -77,6 +79,7 @@ def(+Mirth.rdrop, +Mirth --,
     num-warnings> drop
     prefer-inline-defs> drop
     builtin> drop
+    error-token> drop
     +diagnostics> freeze drop
     +propstack> freeze drop)
 
@@ -111,6 +114,17 @@ def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
 def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b +Mirth,
     dip(location) emit-fatal-error-at!)
 
+def(+Mirth.with-error-token(f), (*a +Mirth -- *b +Mirth)
+        *a Token +Mirth -- *b +Mirth,
+    error-token dip(Some error-token! f) error-token!)
+
+def(+Mirth.warning!, Str +Mirth -- +Mirth,
+    error-token unwrap swap emit-warning!)
+def(+Mirth.error!, Str +Mirth -- +Mirth,
+    error-token unwrap swap emit-error!)
+def(+Mirth.fatal-error!, Str +Mirth -- +Mirth,
+    error-token unwrap swap emit-fatal-error!)
+
 def(+Mirth.trace-all-diagnostics!, +Mirth -- +Mirth,
     +diagnostics(freeze L0 thaw)
     for(trace!))
@@ -135,6 +149,7 @@ data(PropState(b),
     PSComputing)
 data(PropLabel,
     DataParams -> Data,
+    DataCType -> Data,
     TagType -> Tag,
     WordType -> Word,
     WordParams -> Word,
@@ -142,6 +157,7 @@ data(PropLabel,
     BlockArrow -> Block,
     AliasTarget -> Alias,
     ExternalType -> External,
+    ExternalCType -> External,
     VariableType -> Variable,
     FieldValueType -> Field,
     FieldIndexType -> Field,

@@ -1096,3 +1096,114 @@ def(Subst.match-var, +Mirth +Gamma Type Var Subst -- +Mirth +Gamma Subst,
         sip(get-var unify! drop),
         cons
     ))
+
+####################
+# Stack Type Parts #
+####################
+
+data(StackTypePart,
+    STPCons -> Type,
+    STPConsLabel -> Type Label,
+    STPWith -> Resource,
+    STPWithLabel -> Resource Label)
+
+def(StackTypePart.cons, StackType StackTypePart -- StackType,
+    STPCons -> STCons,
+    STPConsLabel -> STConsLabel,
+    STPWith -> STWith,
+    STPWithLabel -> STWithLabel)
+
+def(StackType.split-parts, StackType -- StackType List(StackTypePart),
+    L0 >parts
+    while-some(
+        match(
+            STCons -> STPCons Some,
+            STConsLabel -> STPConsLabel Some,
+            STWith -> STPWith Some,
+            STWithLabel -> STPWithLabel Some,
+            _ -> None
+        ),
+        @parts:cons
+    )
+    parts>)
+
+###########
+# C Types #
+###########
+
+data(CType,
+    IntLike -> Str,
+    PtrLike -> Str,
+    Phantom)
+
+def(CType.phantom?, CType -- Bool,
+    Phantom -> True,
+    _ -> drop False)
+
+def(Resource.ctype, +Mirth Resource -- +Mirth CType,
+    /RESOURCE ctype)
+
+def(Type.ctype, +Mirth Type -- +Mirth CType,
+    dup ctype? if-some(
+        nip,
+        Str(type; " doesn't have a C representation.";) error!
+        Phantom
+    ))
+
+def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
+    expand match(
+        TPrim -> ctype?,
+        TData -> ctype?,
+        _ -> drop None,
+    ))
+
+def(PrimType.ctype?, +Mirth PrimType -- +Mirth Maybe(CType),
+    PRIM_TYPE_INT -> "intptr_t" IntLike Some,
+    PRIM_TYPE_PTR -> "void*" PtrLike Some,
+    PRIM_TYPE_WORLD -> Phantom Some,
+    _ -> drop None)
+
+data(CTypeStackPart,
+    CTSPCons      -> CType,
+    CTSPConsLabel -> CType Label,
+    CTSPWith      -> CType,
+    CTSPWithLabel -> CType Label)
+
+def(CTypeStackPart.ctype, CTypeStackPart -- CType,
+    CTSPCons -> id, CTSPConsLabel -> drop,
+    CTSPWith -> id, CTSPWithLabel -> drop)
+
+def(CTypeStackPart.label?, CTypeStackPart -- Maybe(Label),
+    CTSPCons -> drop None, CTSPConsLabel -> nip Some,
+    CTSPWith -> drop None, CTSPWithLabel -> nip Some)
+
+def(CTypeStackPart.is-resource?, CTypeStackPart -- Bool,
+    CTSPCons -> drop False, CTSPConsLabel -> drop2 False,
+    CTSPWith -> drop True,  CTSPWithLabel -> drop2 True)
+
+data(CTypeStack, CTypeStack ->
+    base?: Maybe(Var)
+    parts: List(CTypeStackPart))
+
+def(StackTypePart.ctype, StackTypePart +Mirth -- CTypeStackPart +Mirth,
+    STPCons -> ctype CTSPCons,
+    STPConsLabel -> dip(ctype) CTSPConsLabel,
+    STPWith -> ctype CTSPWith,
+    STPWithLabel -> dip(ctype) CTSPWithLabel)
+
+def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
+    split-parts map(ctype) >parts
+    match(
+        STVar -> Some,
+        STACK_TYPE_UNIT -> None,
+        STACK_TYPE_ERROR -> None,
+        _ -> "unexpected stack base in StackType.ctype" panic!,
+    ) >base?
+    CTypeStack)
+
+data(CTypeArrow, CTypeArrow ->
+    dom: CTypeStack
+    cod: CTypeStack)
+
+def(ArrowType.ctype, ArrowType +Mirth -- CTypeArrow +Mirth,
+    unpack dip(ctype >dom) ctype >cod CTypeArrow)

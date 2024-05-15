@@ -45,19 +45,19 @@ def(+Str.num-bytes?, +Str -- Size +Str,
     +Str -> dup num-bytes dip(+Str))
 
 def(+Str.last-byte, +Str -- Byte +Str,
-    +Str.num-bytes? >Offset dup 0> if(
-        1- +Str.byte@,
-        drop BNUL
-    ))
+    +Str.num-bytes? >Offset 1- +Str.byte@)
 
 def(+Str.byte@, Offset +Str -- Byte +Str,
     +Str.dup! Str.byte@)
 
+def(offset-in-bounds, Offset Size -- Bool,
+    dip(>Int 0) >Int in-range)
+
 def(Str.byte@, Offset Str -- Byte,
     with-data(
-        >Offset over2 <= if(
-            drop2 BNUL,
-            unsafe(offset @Byte)
+        dip(over) offset-in-bounds if(
+            unsafe(offset @Byte),
+            drop2 BNUL
         )
     ))
 

@@ -21,6 +21,7 @@ field(Data.~qname, Data, QName)
 field(Data.~arity, Data, Int)
 field(Data.~params, Data, Prop(List(Var)))
 field(Data.~tags, Data, List(Tag))
+field(Data.~ctype?, Data, Prop(Maybe(CType)))
 
 def(Data.head?, Data -- Maybe(Token), ~head? @)
 def(Data.qname, Data -- QName, ~qname @)
@@ -29,6 +30,7 @@ def(Data.name, Data -- Name, qname name)
 def(Data.arity, Data -- Int, ~arity @)
 def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
 def(Data.tags, Data -- List(Tag), ~tags @)
+def(Data.ctype?, Data +Mirth -- Maybe(CType) +Mirth, ~ctype? force!)
 
 def(TYPE_BOOL, +Mirth -- +Mirth Type, builtin bool TData)
 def(TYPE_U64, +Mirth -- +Mirth Type, builtin u64 TData)
@@ -40,7 +42,8 @@ def(TYPE_I32, +Mirth -- +Mirth Type, builtin i32 TData)
 def(TYPE_I16, +Mirth -- +Mirth Type, builtin i16 TData)
 def(TYPE_I8,  +Mirth -- +Mirth Type, builtin i8  TData)
 
-def(make-prim-data!, +Mirth Str Int Data List(Tag) -- +Mirth,
+def(make-prim-data!, +Mirth Str Int Data List(Tag) Maybe(CType) -- +Mirth,
+    over2 DataCType prop over2 ~ctype? !
     dip(
         dip(QName.prim)
         tuck ~qname !
@@ -66,18 +69,33 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     DefTag register)
 
 def(init-data!, +Mirth -- +Mirth,
-    "Bool" 0 builtin bool builtin true builtin false L2 make-prim-data!
+    "Bool" 0 builtin bool builtin true builtin false L2 "_Bool" IntLike Some make-prim-data!
     "False" 0 L0 builtin false make-prim-tag!
     "True" 1 L0 builtin true make-prim-tag!
 
-    "U64" 0 builtin u64 builtin mk-u64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 builtin mk-u64 make-prim-tag!
-    "U32" 0 builtin u32 builtin mk-u32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 builtin mk-u32 make-prim-tag!
-    "U16" 0 builtin u16 builtin mk-u16 L1 make-prim-data! "Int>U16-unsafe" 0 TYPE_INT L1 builtin mk-u16 make-prim-tag!
-    "U8"  0 builtin u8  builtin mk-u8  L1 make-prim-data! "Int>U8-unsafe"  0 TYPE_INT L1 builtin mk-u8  make-prim-tag!
-    "I64" 0 builtin i64 builtin mk-i64 L1 make-prim-data! "Int>I64-unsafe" 0 TYPE_INT L1 builtin mk-i64 make-prim-tag!
-    "I32" 0 builtin i32 builtin mk-i32 L1 make-prim-data! "Int>I32-unsafe" 0 TYPE_INT L1 builtin mk-i32 make-prim-tag!
-    "I16" 0 builtin i16 builtin mk-i16 L1 make-prim-data! "Int>I16-unsafe" 0 TYPE_INT L1 builtin mk-i16 make-prim-tag!
-    "I8"  0 builtin i8  builtin mk-i8  L1 make-prim-data! "Int>I8-unsafe"  0 TYPE_INT L1 builtin mk-i8  make-prim-tag!)
+    "U64" 0 builtin u64 builtin mk-u64 L1 "uint64_t" IntLike Some make-prim-data!
+    "Int>U64-unsafe" 0 TYPE_INT L1 builtin mk-u64 make-prim-tag!
+
+    "U32" 0 builtin u32 builtin mk-u32 L1 "uint32_t" IntLike Some make-prim-data!
+    "Int>U32-unsafe" 0 TYPE_INT L1 builtin mk-u32 make-prim-tag!
+
+    "U16" 0 builtin u16 builtin mk-u16 L1 "uint16_t" IntLike Some make-prim-data!
+    "Int>U16-unsafe" 0 TYPE_INT L1 builtin mk-u16 make-prim-tag!
+
+    "U8"  0 builtin u8  builtin mk-u8  L1 "uint8_t" IntLike Some make-prim-data!
+    "Int>U8-unsafe"  0 TYPE_INT L1 builtin mk-u8 make-prim-tag!
+
+    "I64" 0 builtin i64 builtin mk-i64 L1 "int64_t" IntLike Some make-prim-data!
+    "Int>I64-unsafe" 0 TYPE_INT L1 builtin mk-i64 make-prim-tag!
+
+    "I32" 0 builtin i32 builtin mk-i32 L1 "int32_t" IntLike Some make-prim-data!
+    "Int>I32-unsafe" 0 TYPE_INT L1 builtin mk-i32 make-prim-tag!
+
+    "I16" 0 builtin i16 builtin mk-i16 L1 "int16_t" IntLike Some make-prim-data!
+    "Int>I16-unsafe" 0 TYPE_INT L1 builtin mk-i16 make-prim-tag!
+
+    "I8"  0 builtin i8  builtin mk-i8  L1 "int8_t" IntLike Some make-prim-data!
+    "Int>I8-unsafe"  0 TYPE_INT L1 builtin mk-i8 make-prim-tag!)
 
 def(data-qname, Data Name Int -- QName,
     >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
