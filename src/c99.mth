@@ -140,6 +140,19 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
     tag +needs:word-needed? then(
         tag +mirth:word-cname sig-put " {" put line
         tag is-transparent? else(
+            tag is-semi-transparent? if(
+                tag outputs-resource? if(
+                    tag num-type-inputs 0> if(
+                        "\tpush_resource(pop_value());" put line,
+                        "\tpush_resource(lpop(&lbl_" put
+                        tag label-inputs /L1 unwrap name mangled put
+                        "));" put line
+                    ),
+                    "\tpush_value(lpop(&lbl_" put
+                    tag label-inputs /L1 unwrap name mangled put
+                    "));" put line
+                ),
+
             tag num-total-inputs 0= if(
                 tag outputs-resource? if(
                     "\tpush_resource(MKU64(",
@@ -186,7 +199,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
                 ) put
                     tag num-total-inputs 1+ show put
                     "));" put line
-            )
+            ))
         )
         "}" put line
     )
@@ -198,6 +211,13 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
                 "\tVAL val = pop_resource();",
                 "\tVAL val = pop_value();"
             ) put line
+            tag is-semi-transparent? if(
+                tag num-type-inputs 0> if(
+                    "\tpush_value(val);" put line,
+                    "\tlpush(&lbl_" put
+                    tag label-inputs /L1 unwrap name mangled put
+                    ", val);" put line
+                ),
             tag num-total-inputs 0= if(
                 "\t(void)val;" put line,
                 "\tASSERT1(IS_TUP(val),val);" put line
@@ -235,7 +255,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
                 "\t} else {" put line
                 "\t\tfree(tup);" put line
                 "\t}" put line
-            )
+            ))
         )
         "}" put line
     ))))
@@ -246,105 +266,133 @@ def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
     dip:drop2)
 
 def(c99-tag-get-label!, Tag Label +C99 -- +C99,
-    over outputs-resource? if(
-        c99-line("VAL v = pop_resource();" put),
-        c99-line("VAL v = pop_value();" put)
-    )
-    c99-line("ASSERT1(IS_TUP(v), v);" put)
-    c99-line("ASSERT1(VTUPLEN(v) == " put
-        over num-total-inputs 1+ show put
-        ", v);" put)
-    c99-line("VAL* p = &VTUP(v)->cells[" put
-        dup2 c99-tag-label-index show put
-        "];" put)
-    c99-line("VAL u = *p;" put)
+    over is-semi-transparent? if(
+        dup2 swap +mirth:project-input-label unwrap match(
+            Left -> drop
+                over outputs-resource? then(
+                    c99-line("VAL v = top_resource();" put)
+                    c99-line("incref(v);" put)
+                    c99-line("push_value(v);" put)
+                ),
 
-    dup2 swap +mirth:project-input-label unwrap match(
-        Left -> drop
-            c99-line("incref(u);" put)
-            over outputs-resource? if(
-                c99-line("push_resource(v);" put),
-                c99-line("decref(v);" put)
-            )
-            c99-line("push_value(u);" put),
-        Right -> drop
-            c99-line("ASSERT1(VREFS(v) == 1, v);" put)
-            c99-line("*p = (VAL){0};" put)
-            c99-line("push_resource(u);" put)
-            c99-line("push_resource(v);" put)
-    )
-    drop2)
+            Right -> drop
+                c99-line("push_resource(MKU64(0));" put)
+        ),
+
+        over outputs-resource? if(
+            c99-line("VAL v = pop_resource();" put),
+            c99-line("VAL v = pop_value();" put)
+        )
+        c99-line("ASSERT1(IS_TUP(v), v);" put)
+        c99-line("ASSERT1(VTUPLEN(v) == " put
+            over num-total-inputs 1+ show put
+            ", v);" put)
+        c99-line("VAL* p = &VTUP(v)->cells[" put
+            dup2 c99-tag-label-index show put
+            "];" put)
+        c99-line("VAL u = *p;" put)
+
+        dup2 swap +mirth:project-input-label unwrap match(
+            Left -> drop
+                c99-line("incref(u);" put)
+                over outputs-resource? if(
+                    c99-line("push_resource(v);" put),
+                    c99-line("decref(v);" put)
+                )
+                c99-line("push_value(u);" put),
+            Right -> drop
+                c99-line("ASSERT1(VREFS(v) == 1, v);" put)
+                c99-line("*p = (VAL){0};" put)
+                c99-line("push_resource(u);" put)
+                c99-line("push_resource(v);" put)
+        )
+    ) drop2)
 
 def(c99-tag-set-label!, Tag Label +C99 -- +C99, \(tag lbl ->
     lbl tag +mirth:project-input-label unwrap match(
         Left -> drop
-            tag outputs-resource? if(
-                c99-line("VAL v = top_resource();" put),
-                c99-line("VAL v = pop_value();" put)
-            )
-            c99-line("VAL u = pop_value();" put)
-            c99-line("ASSERT1(IS_TUP(v), v);" put)
-            c99-line("ASSERT1(VTUPLEN(v) == " put
-                tag num-total-inputs 1+ show put
-                ", v);" put)
-            tag outputs-resource? if(
-                c99-line("VAL* p = &VTUP(v)->cells[" put
-                    tag lbl c99-tag-label-index show put
-                    "];" put)
-                c99-line("VAL t = *p; *p = u; decref(t);" put),
+            tag is-semi-transparent? if(
+                tag outputs-resource? if(
+                    c99-line("VAL v = pop_resource();" put)
+                    c99-line("push_resource(pop_value());" put)
+                    c99-line("decref(v);" put),
 
-                c99-line("if (VTUP(v)->refs == 1) {" put)
-                c99-nest(
+                    c99-line("VAL v = pop_value();" put)
+                    c99-line("decref(v);" put)
+                ),
+
+                tag outputs-resource? if(
+                    c99-line("VAL v = top_resource();" put),
+                    c99-line("VAL v = pop_value();" put)
+                )
+                c99-line("VAL u = pop_value();" put)
+                c99-line("ASSERT1(IS_TUP(v), v);" put)
+                c99-line("ASSERT1(VTUPLEN(v) == " put
+                    tag num-total-inputs 1+ show put
+                    ", v);" put)
+                tag outputs-resource? if(
                     c99-line("VAL* p = &VTUP(v)->cells[" put
                         tag lbl c99-tag-label-index show put
                         "];" put)
-                    c99-line("VAL t = *p; *p = u; decref(t);" put)
-                    c99-line("push_value(v);" put)
+                    c99-line("VAL t = *p; *p = u; decref(t);" put),
+
+                    c99-line("if (VTUP(v)->refs == 1) {" put)
+                    c99-nest(
+                        c99-line("VAL* p = &VTUP(v)->cells[" put
+                            tag lbl c99-tag-label-index show put
+                            "];" put)
+                        c99-line("VAL t = *p; *p = u; decref(t);" put)
+                        c99-line("push_value(v);" put)
+                    )
+                    c99-line("} else {" put)
+                    c99-nest(
+                        c99-line("TUP *tup = tup_new(" put
+                            tag num-total-inputs 1+ show put
+                            ");" put)
+                        c99-line("tup->size = " put
+                            tag num-total-inputs 1+ show put
+                            ";" put)
+                        0 >Nat while(dup tag num-total-inputs <=,
+                            dup tag lbl c99-tag-label-index == if(
+                                c99-line("tup->cells[" put
+                                    dup show put
+                                    "] = u;" put),
+                                c99-line("tup->cells[" put
+                                    dup show put
+                                    "] = VTUP(v)->cells[" put
+                                    dup show put
+                                    "]; incref(tup->cells[" put
+                                    dup show put
+                                    "]);" put)
+                            )
+                            1+)
+                        drop
+                        c99-line("decref(v);" put)
+                        c99-line("push_value(MKTUP(tup," put
+                            tag num-total-inputs 1+ show put
+                            "));" put)
+                    )
+                    c99-line("}" put)
                 )
-                c99-line("} else {" put)
-                c99-nest(
-                    c99-line("TUP *tup = tup_new(" put
-                        tag num-total-inputs 1+ show put
-                        ");" put)
-                    c99-line("tup->size = " put
-                        tag num-total-inputs 1+ show put
-                        ";" put)
-                    0 >Nat while(dup tag num-total-inputs <=,
-                        dup tag lbl c99-tag-label-index == if(
-                            c99-line("tup->cells[" put
-                                dup show put
-                                "] = u;" put),
-                            c99-line("tup->cells[" put
-                                dup show put
-                                "] = VTUP(v)->cells[" put
-                                dup show put
-                                "]; incref(tup->cells[" put
-                                dup show put
-                                "]);" put)
-                        )
-                        1+)
-                    drop
-                    c99-line("decref(v);" put)
-                    c99-line("push_value(MKTUP(tup," put
-                        tag num-total-inputs 1+ show put
-                        "));" put)
-                )
-                c99-line("}" put)
             ),
         Right -> drop
-            c99-line("VAL v = pop_resource();" put)
-            c99-line("VAL u = pop_resource();" put)
-            c99-line("ASSERT1(IS_TUP(v), v);" put)
-            c99-line("ASSERT1(VTUPLEN(v) == " put
-                tag num-total-inputs 1+ show put
-                ", v);" put)
-            c99-line("ASSERT1(VREFS(v) == 1, v);" put)
-            c99-line("VAL* p = &VTUP(v)->cells[" put
-                tag lbl c99-tag-label-index show put
-                "];" put)
-            c99-line("ASSERT1(p->tag == 0, v);" put)
-            c99-line("*p = u;" put)
-            c99-line("push_resource(v);" put)
+            tag is-semi-transparent? if(
+                c99-line("(void)pop_resource();" put),
+
+                c99-line("VAL v = pop_resource();" put)
+                c99-line("VAL u = pop_resource();" put)
+                c99-line("ASSERT1(IS_TUP(v), v);" put)
+                c99-line("ASSERT1(VTUPLEN(v) == " put
+                    tag num-total-inputs 1+ show put
+                    ", v);" put)
+                c99-line("ASSERT1(VREFS(v) == 1, v);" put)
+                c99-line("VAL* p = &VTUP(v)->cells[" put
+                    tag lbl c99-tag-label-index show put
+                    "];" put)
+                c99-line("ASSERT1(p->tag == 0, v);" put)
+                c99-line("*p = u;" put)
+                c99-line("push_resource(v);" put)
+            )
     )))
 
 def(c99-externals!, +C99 -- +C99,
@@ -526,7 +574,7 @@ def(c99-get-data-tag!, List(Arg) Data +C99 -- +C99,
         c99-line("{" put)
         c99-nest(
             c99-line("VAL val = pop_value();" put)
-            dup is-transparent? if(
+            dup is-semi-transparent? if(
                 c99-line(
                     "push_u64(" put
                     dup tags /L1 unwrap value show put
@@ -783,6 +831,10 @@ def(c99-match!, Match +C99 -- +C99,
     dup is-transparent? if(
         cases first unwrap body c99-arrow!,
 
+    dup semi-transparent-tag? if-some(
+        dip:L0 +mirth:pat-cname c99-call!
+        cases first unwrap body c99-arrow!,
+
         dup scrutinee-data?
         unwrap-or(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
         is-resource? if(
@@ -800,7 +852,7 @@ def(c99-match!, Match +C99 -- +C99,
             )
         )
         c99-line("}" put)
-    ))
+    )))
 
 def(c99-case!, Case +C99 -- +C99,
     dup pattern c99-pattern!

@@ -144,6 +144,12 @@ def(Data.is-transparent?, Data -- Bool,
         )
     ) nip)
 
+field(Data.~is-semi-transparent?, Data, Bool)
+def(Data.is-semi-transparent?, Data -- Bool,
+    dup ~is-semi-transparent? memoize(
+        dup tags /L1 and-some(num-total-inputs 1 >Nat ==)
+    ) nip)
+
 field(Data.~is-resource?, Data, Bool)
 def(Data.is-resource?, Data -- Bool,
     dup ~is-resource? memoize(
@@ -221,6 +227,9 @@ def(Tag.num-total-inputs, Tag -- Nat,
 
 def(Tag.is-transparent?, Tag -- Bool,
     .data is-transparent?)
+
+def(Tag.is-semi-transparent?, Tag -- Bool,
+    .data is-semi-transparent?)
 
 def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)

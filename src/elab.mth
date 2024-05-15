@@ -1192,10 +1192,12 @@ def(elab-data-done!, +Mirth Data -- +Mirth,
                 Phantom Some,
             dat is-enum? if(
                 "int" IntLike Some,
-            dat is-transparent? if(
+            dat is-semi-transparent? if(
                 dat tags /L1 unwrap type dom match(
                     STCons -> nip ctype?,
+                    STConsLabel -> drop nip ctype?,
                     STWith -> nip ctype?,
+                    STWithLabel -> drop nip ctype?,
                     _ -> "unexpected tag inputs for transparent data" panic!
                 ),
                 None

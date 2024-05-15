@@ -68,6 +68,15 @@ def(Match.is-transparent?, Match -- Bool,
         PatOpUnderscore -> True
     )))
 
+def(Match.semi-transparent-tag?, Match -- Maybe(Tag),
+    cases /L1
+    bind(pattern atoms /L1)
+    bind(op match(
+        PatOpTag -> Some,
+        _ -> drop None
+    ))
+    guard(dup .data is-semi-transparent?))
+
 def(+Match.add-case, +Mirth +Match Case -- +Mirth +Match,
     dup case-redundant? if(
         pattern token-start "Case is unreachable." rdip:emit-error!,
