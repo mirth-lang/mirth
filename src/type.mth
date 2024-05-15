@@ -1155,6 +1155,9 @@ def(Type.ctype, +Mirth Type -- +Mirth CType,
         Phantom
     ))
 
+def(Resource.ctype?, +Mirth Resource -- +Mirth Maybe(CType),
+    /RESOURCE ctype?)
+
 def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
     expand match(
         TPrim -> ctype?,
