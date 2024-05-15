@@ -51,7 +51,12 @@ data(Builtin, Builtin ->
     culonglong: Data  mk-culonglong: Tag
     cusize:     Data  mk-cusize:     Tag
     cuintptr:   Data  mk-cuintptr:   Tag
-    )
+
+    cptr:       Data  mk-cptr:       Tag
+    cconst:     Data  mk-cconst:     Tag
+    crestrict:  Data  mk-crestrict:  Tag
+    cvolatile:  Data  mk-cvolatile:  Tag
+)
 
 def(Builtin.alloc!, -- Builtin,
     Package.alloc! >std
@@ -81,6 +86,11 @@ def(Builtin.alloc!, -- Builtin,
     Data.alloc! >culonglong  Tag.alloc! >mk-culonglong
     Data.alloc! >cusize      Tag.alloc! >mk-cusize
     Data.alloc! >cuintptr    Tag.alloc! >mk-cuintptr
+
+    Data.alloc! >cptr        Tag.alloc! >mk-cptr
+    Data.alloc! >cconst      Tag.alloc! >mk-cconst
+    Data.alloc! >crestrict   Tag.alloc! >mk-crestrict
+    Data.alloc! >cvolatile   Tag.alloc! >mk-cvolatile
 
     Builtin)
 

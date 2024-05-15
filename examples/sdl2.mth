@@ -1,6 +1,7 @@
 module(examples.sdl2)
 import(std.prelude)
 import(std.str)
+import(std.ctypes)
 
 #################
 # SDL2 Bindings #
@@ -8,7 +9,7 @@ import(std.str)
 
 def-external(+Unsafe.SDL_Init -> SDL_Init, +Unsafe SDL_InitFlags -- +Unsafe Int)
 def-external(+Unsafe.SDL_Quit -> SDL_Quit, +Unsafe -- +Unsafe)
-def-external(+Unsafe.SDL_GetError -> SDL_GetError, +Unsafe -- +Unsafe Ptr)
+def-external(+Unsafe.SDL_GetError -> SDL_GetError, +Unsafe -- +Unsafe CStr)
 
 data(+SDL, SDL!)
 data(+SDL?, OK! -> +SDL, ERROR! -> Str)
@@ -58,16 +59,16 @@ def(ms, Int -- SDL_Ticks, >U32)
 data(+SDL_Window, SDL_WINDOW! -> unsafe-ptr:Ptr)
 data(+SDL_Window?, OK! -> +SDL_Window, ERROR! -> Str)
 def(+SDL_Window?.unwrap!, +SDL_Window? -- +SDL_Window, OK! -> id, ERROR! -> panic!)
-def-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow, +Unsafe Ptr Int Int Int Int SDL_WindowFlags -- +Unsafe Ptr)
-def-external(+Unsafe.SDL_DestroyWindow -> SDL_DestroyWindow, +Unsafe Ptr -- +Unsafe)
+def-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow, +SDL +Unsafe title:CStr x:CInt y:CInt w:CInt h:CInt flags:SDL_WindowFlags -- +SDL +Unsafe Ptr)
+def-external(+Unsafe.SDL_DestroyWindow -> SDL_DestroyWindow, +SDL +Unsafe Ptr -- +SDL +Unsafe)
 def(+SDL.create-window!,
         +SDL title:Str
         x:Int y:Int
         w:Int h:Int
         flags:SDL_WindowFlags
         -- +SDL +SDL_Window?,
-    title> with-data-cstr(
-        x> y> w> h> flags>
+    title> with-cstr( >title
+        @x:CInt @y:CInt @w:CInt @h:CInt
         unsafe(.SDL_CreateWindow)
     )
     dup is-null if(

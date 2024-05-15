@@ -82,7 +82,8 @@ def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
     PRIM_TYPE_INT -> "Int" 0 QName.prim,
     PRIM_TYPE_STR -> "Str" 0 QName.prim,
     PRIM_TYPE_PTR -> "Ptr" 0 QName.prim,
-    PRIM_TYPE_WORLD -> "+World" 0 QName.prim)
+    PRIM_TYPE_WORLD -> "+World" 0 QName.prim,
+    )
 
 ||| Get value type constructor name.
 def(Value.tycon?, Value -- Maybe(Tycon),
@@ -377,7 +378,7 @@ def(PrimType.type;, +Str PrimType -- +Str,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
-        PRIM_TYPE_WORLD -> "+World"
+        PRIM_TYPE_WORLD -> "+World",
     ) ;)
 
 # ||| Freshen a type signature in preparation for type sig application.
@@ -1162,7 +1163,14 @@ def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
     expand match(
         TPrim -> ctype?,
         TData -> ctype?,
+        TApp -> ctype? bind(over ctype1?) nip,
         _ -> drop None,
+    ))
+
+def(Type.ctype1?, +Mirth CType Type -- +Mirth Maybe(CType),
+    expand match(
+        TData -> ctype1?,
+        _ -> drop2 None
     ))
 
 def(PrimType.ctype?, +Mirth PrimType -- +Mirth Maybe(CType),
@@ -1170,6 +1178,34 @@ def(PrimType.ctype?, +Mirth PrimType -- +Mirth Maybe(CType),
     PRIM_TYPE_PTR -> "void*" PtrLike Some,
     PRIM_TYPE_WORLD -> Phantom Some,
     _ -> drop None)
+
+def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
+    dup builtin cptr == if(
+        drop cname " *" cat PtrLike Some,
+
+    dup builtin cconst == if(
+        drop match(
+            IntLike -> "const " swap cat IntLike Some,
+            PtrLike -> " const" cat PtrLike Some,
+            Phantom -> Phantom Some,
+        ),
+
+    dup builtin crestrict == if(
+        drop match(
+            PtrLike -> " restrict" cat PtrLike Some,
+            IntLike -> drop None,
+            Phantom -> Phantom Some,
+        ),
+
+    dup builtin cvolatile == if(
+        drop match(
+            IntLike -> "volatile " swap cat IntLike Some,
+            PtrLike -> " volatile" cat PtrLike Some,
+            Phantom -> Phantom Some,
+        ),
+
+        drop2 None
+    )))))
 
 data(CTypeStackPart,
     CTSPCons      -> CType,

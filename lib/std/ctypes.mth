@@ -27,4 +27,23 @@ inline(
     def(CULongLong.nat, CULongLong -- Nat, CULongLong -> >Nat)
     def(CUSize.nat, CUSize -- Nat, CUSize -> >Nat)
     def(CUIntPtr.nat, CUIntPtr -- Nat, CUIntPtr -> >Nat)
+
+    def(CUSize.>Size, CUSize -- Size, nat >Size)
+
+    def(CPtr./CPtr, CPtr(t) -- Ptr, CPtr -> id)
+    def(CConst./CConst, CConst(t) -- t, CConst -> id)
+    def(CRestrict./CRestrict, CRestrict(t) -- t, CRestrict -> id)
+    def(CVolatile./CVolatile, CVolatile(t) -- t, CVolatile -> id)
+
+    def(CPtr.cast, CPtr(a) -- CPtr(b), CPtr -> CPtr)
+    def(CPtr.>Ptr, CPtr(a) -- Ptr, CPtr -> id)
+    def(Ptr.>CPtr, Ptr -- CPtr(a), CPtr)
+
+    data(CStr, CStr -> CPtr(CConst(CChar)))
+
+    def(Ptr.>CStr, Ptr -- CStr, CPtr CStr)
+    def(CPtr.>CStr, CPtr(CConst(CChar)) -- CStr, CStr)
+    def(CStr.>CPtr, CStr -- CPtr(CConst(CChar)), CStr -> id)
+    def(CStr.>Ptr, CStr -- Ptr, >CPtr /CPtr)
+    def-external(CStr.num-bytes -> strlen, +Unsafe CStr -- +Unsafe CUSize)
 )

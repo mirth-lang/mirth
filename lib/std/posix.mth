@@ -51,10 +51,10 @@ def(Nat.print-ln!, Nat --, show print-ln!)
 # STAT #
 ########
 
-def-external(posix-stat -> stat, +Unsafe Ptr Ptr -- +Unsafe CInt)
+def-external(posix-stat -> stat, +Unsafe CStr Ptr -- +Unsafe CInt)
 def(+World.is-directory?, +World Path -- +World Bool,
     256 >Size +Buffer.new
-    >Str with-data-cstr(
+    >Str with-cstr(
         base unsafe(posix-stat) /CInt
         0= if(base unsafe(st_mode@) S_ISDIR, False)
     ) rdrop)
