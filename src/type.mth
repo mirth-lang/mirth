@@ -82,7 +82,8 @@ def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
     PRIM_TYPE_INT -> "Int" 0 QName.prim,
     PRIM_TYPE_STR -> "Str" 0 QName.prim,
     PRIM_TYPE_PTR -> "Ptr" 0 QName.prim,
-    PRIM_TYPE_WORLD -> "+World" 0 QName.prim)
+    PRIM_TYPE_WORLD -> "+World" 0 QName.prim,
+    )
 
 ||| Get value type constructor name.
 def(Value.tycon?, Value -- Maybe(Tycon),
@@ -377,7 +378,7 @@ def(PrimType.type;, +Str PrimType -- +Str,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
-        PRIM_TYPE_WORLD -> "+World"
+        PRIM_TYPE_WORLD -> "+World",
     ) ;)
 
 # ||| Freshen a type signature in preparation for type sig application.
@@ -1096,3 +1097,156 @@ def(Subst.match-var, +Mirth +Gamma Type Var Subst -- +Mirth +Gamma Subst,
         sip(get-var unify! drop),
         cons
     ))
+
+####################
+# Stack Type Parts #
+####################
+
+data(StackTypePart,
+    STPCons -> Type,
+    STPConsLabel -> Type Label,
+    STPWith -> Resource,
+    STPWithLabel -> Resource Label)
+
+def(StackTypePart.cons, StackType StackTypePart -- StackType,
+    STPCons -> STCons,
+    STPConsLabel -> STConsLabel,
+    STPWith -> STWith,
+    STPWithLabel -> STWithLabel)
+
+def(StackType.split-parts, StackType -- StackType List(StackTypePart),
+    L0 >parts
+    while-some(
+        match(
+            STCons -> STPCons Some,
+            STConsLabel -> STPConsLabel Some,
+            STWith -> STPWith Some,
+            STWithLabel -> STPWithLabel Some,
+            _ -> None
+        ),
+        @parts:cons
+    )
+    parts>)
+
+###########
+# C Types #
+###########
+
+data(CType,
+    IntLike -> Str,
+    PtrLike -> Str,
+    Phantom)
+
+def(CType.cname, CType -- Str,
+    IntLike -> id,
+    PtrLike -> id,
+    Phantom -> "void")
+
+def(CType.phantom?, CType -- Bool,
+    Phantom -> True,
+    _ -> drop False)
+
+def(Resource.ctype, +Mirth Resource -- +Mirth CType,
+    /RESOURCE ctype)
+
+def(Type.ctype, +Mirth Type -- +Mirth CType,
+    dup ctype? if-some(
+        nip,
+        Str(type; " doesn't have a C representation.";) error!
+        Phantom
+    ))
+
+def(Resource.ctype?, +Mirth Resource -- +Mirth Maybe(CType),
+    /RESOURCE ctype?)
+
+def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
+    expand match(
+        TPrim -> ctype?,
+        TData -> ctype?,
+        TApp -> ctype? bind(over ctype1?) nip,
+        _ -> drop None,
+    ))
+
+def(Type.ctype1?, +Mirth CType Type -- +Mirth Maybe(CType),
+    expand match(
+        TData -> ctype1?,
+        _ -> drop2 None
+    ))
+
+def(PrimType.ctype?, +Mirth PrimType -- +Mirth Maybe(CType),
+    PRIM_TYPE_PTR -> "void*" PtrLike Some,
+    PRIM_TYPE_WORLD -> Phantom Some,
+    _ -> drop None)
+
+def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
+    dup builtin cptr == if(
+        drop cname " *" cat PtrLike Some,
+
+    dup builtin cconst == if(
+        drop match(
+            IntLike -> "const " swap cat IntLike Some,
+            PtrLike -> " const" cat PtrLike Some,
+            Phantom -> Phantom Some,
+        ),
+
+    dup builtin crestrict == if(
+        drop match(
+            PtrLike -> " restrict" cat PtrLike Some,
+            IntLike -> drop None,
+            Phantom -> Phantom Some,
+        ),
+
+    dup builtin cvolatile == if(
+        drop match(
+            IntLike -> "volatile " swap cat IntLike Some,
+            PtrLike -> " volatile" cat PtrLike Some,
+            Phantom -> Phantom Some,
+        ),
+
+        drop2 None
+    )))))
+
+data(CTypeStackPart,
+    CTSPCons      -> CType,
+    CTSPConsLabel -> CType Label,
+    CTSPWith      -> CType,
+    CTSPWithLabel -> CType Label)
+
+def(CTypeStackPart.ctype, CTypeStackPart -- CType,
+    CTSPCons -> id, CTSPConsLabel -> drop,
+    CTSPWith -> id, CTSPWithLabel -> drop)
+
+def(CTypeStackPart.label?, CTypeStackPart -- Maybe(Label),
+    CTSPCons -> drop None, CTSPConsLabel -> nip Some,
+    CTSPWith -> drop None, CTSPWithLabel -> nip Some)
+
+def(CTypeStackPart.resource?, CTypeStackPart -- Bool,
+    CTSPCons -> drop False, CTSPConsLabel -> drop2 False,
+    CTSPWith -> drop True,  CTSPWithLabel -> drop2 True)
+
+data(CTypeStack, CTypeStack ->
+    base?: Maybe(Var)
+    parts: List(CTypeStackPart))
+
+def(StackTypePart.ctype, StackTypePart +Mirth -- CTypeStackPart +Mirth,
+    STPCons -> ctype CTSPCons,
+    STPConsLabel -> dip(ctype) CTSPConsLabel,
+    STPWith -> ctype CTSPWith,
+    STPWithLabel -> dip(ctype) CTSPWithLabel)
+
+def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
+    split-parts map(ctype) >parts
+    match(
+        STVar -> Some,
+        STACK_TYPE_UNIT -> None,
+        STACK_TYPE_ERROR -> None,
+        _ -> "unexpected stack base in StackType.ctype" panic!,
+    ) >base?
+    CTypeStack)
+
+data(CTypeArrow, CTypeArrow ->
+    dom: CTypeStack
+    cod: CTypeStack)
+
+def(ArrowType.ctype, ArrowType +Mirth -- CTypeArrow +Mirth,
+    unpack dip(ctype >dom) ctype >cod CTypeArrow)

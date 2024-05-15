@@ -4,6 +4,7 @@ import(std.prelude)
 import(std.str)
 import(std.path)
 import(std.buffer)
+import(std.ctypes)
 
 data(File, FILE -> Int)
 def(Int.>File, Int -- File, FILE)
@@ -50,11 +51,11 @@ def(Nat.print-ln!, Nat --, show print-ln!)
 # STAT #
 ########
 
-def-external(stat, Ptr Ptr -- Int)
+def-external(posix-stat -> stat, +Unsafe CStr Ptr -- +Unsafe CInt)
 def(+World.is-directory?, +World Path -- +World Bool,
     256 >Size +Buffer.new
-    >Str with-data-cstr(
-        base stat
+    >Str with-cstr(
+        base unsafe(posix-stat) >Int
         0= if(base unsafe(st_mode@) S_ISDIR, False)
     ) rdrop)
 

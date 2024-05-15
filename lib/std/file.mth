@@ -5,6 +5,7 @@ import(std.path)
 import(std.str)
 import(std.posix)
 import(std.input)
+import(std.ctypes)
 
 data(+File, +File -> file-descriptor: Int)
 
@@ -14,14 +15,15 @@ def(+File?.unwrap!, +File? -- +File,
     +FileErr -> panic!)
 
 def(+World.open-file!, Path +World -- +World +File?,
-    dup >Str with-data-cstr(0 0 prim-posix-open)
+    dup >Str with-cstr(>Ptr 0 0 prim-posix-open)
     dup 0> if(
         nip >file-descriptor +File +FileOk,
         drop Str("failed to open file: " ; >Str show;) +FileErr
     ))
 
 def(+World.create-file!, Path +World -- +World +File?,
-    dup >Str with-data-cstr(
+    dup >Str with-cstr(
+        >Ptr
         O_WRONLY|O_CREAT|O_TRUNC
         0o666 prim-posix-open
     )

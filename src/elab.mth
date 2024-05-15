@@ -104,18 +104,6 @@ def(+TypeElab.elab-resource-arg!, +Mirth +TypeElab -- +Mirth +TypeElab Resource,
         token "Unexpected token after resource." rdip:emit-error!
     ))
 
-data(StackTypePart,
-    STPCons -> Type,
-    STPConsLabel -> Type Label,
-    STPWith -> Resource,
-    STPWithLabel -> Resource Label)
-
-def(StackTypePart.cons, StackType StackTypePart -- StackType,
-    STPCons -> STCons,
-    STPConsLabel -> STConsLabel,
-    STPWith -> STWith,
-    STPWithLabel -> STWithLabel)
-
 def(+TypeElab.elab-stack-type-part!, +Mirth +TypeElab -- +Mirth +TypeElab StackTypePart,
     token could-be-sig-label? if(
         elab-stack-label!,
@@ -1198,6 +1186,23 @@ def(elab-data-done!, +Mirth Data -- +Mirth,
             ),
             None -> id
         )
+
+        dat DataCType prop0(
+            dat is-unit? if(
+                Phantom Some,
+            dat is-enum? if(
+                "int" IntLike Some,
+            dat is-semi-transparent? if(
+                dat tags /L1 unwrap type dom match(
+                    STCons -> nip ctype?,
+                    STConsLabel -> drop nip ctype?,
+                    STWith -> nip ctype?,
+                    STWithLabel -> drop nip ctype?,
+                    _ -> "unexpected tag inputs for transparent data" panic!
+                ),
+                None
+            )))
+        ) dat ~ctype? !
     ))
 
 ||| Return the tag's output type or resource in context.
@@ -1470,7 +1475,22 @@ def(elab-def-external!, +Mirth Token -- +Mirth Token,
         sig +TypeElab.type-sig-start!
         elab-type-sig! dip:ctx pack2 rdrop
     ) over ~ctx-type !
+    dup dup ExternalCType prop(
+        elab-def-external-ctype
+    ) over ~ctype !
     DefExternal register)
+
+def(elab-def-external-ctype, +Mirth External -- +Mirth CTypeArrow,
+    dup head with-error-token(
+        type ctype
+        dup cod parts
+        filter(dup ctype phantom? not)
+        len 1 >Nat > then(
+            "External has too many outputs." error!
+            # TODO Allow for external resources to be used
+            # on both input and output without affecting count.
+        )
+    ))
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
 def(elab-def-type!, +Mirth Token -- +Mirth Token,
@@ -1531,7 +1551,8 @@ def(elab-embed-str!, Token +World +Mirth -- Token +World +Mirth,
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, +Mirth -- +Mirth,
     Name.for(defs for(typecheck!))
-    Block.for(typecheck!))
+    Block.for(typecheck!)
+    External.for(ctype drop))
 
 #########
 # TABLE #

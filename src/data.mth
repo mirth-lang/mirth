@@ -21,6 +21,7 @@ field(Data.~qname, Data, QName)
 field(Data.~arity, Data, Int)
 field(Data.~params, Data, Prop(List(Var)))
 field(Data.~tags, Data, List(Tag))
+field(Data.~ctype?, Data, Prop(Maybe(CType)))
 
 def(Data.head?, Data -- Maybe(Token), ~head? @)
 def(Data.qname, Data -- QName, ~qname @)
@@ -29,6 +30,7 @@ def(Data.name, Data -- Name, qname name)
 def(Data.arity, Data -- Int, ~arity @)
 def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
 def(Data.tags, Data -- List(Tag), ~tags @)
+def(Data.ctype?, Data +Mirth -- Maybe(CType) +Mirth, ~ctype? force!)
 
 def(TYPE_BOOL, +Mirth -- +Mirth Type, builtin bool TData)
 def(TYPE_U64, +Mirth -- +Mirth Type, builtin u64 TData)
@@ -40,44 +42,89 @@ def(TYPE_I32, +Mirth -- +Mirth Type, builtin i32 TData)
 def(TYPE_I16, +Mirth -- +Mirth Type, builtin i16 TData)
 def(TYPE_I8,  +Mirth -- +Mirth Type, builtin i8  TData)
 
-def(make-prim-data!, +Mirth Str Int Data List(Tag) -- +Mirth,
-    dip(
-        dip(QName.prim)
-        tuck ~qname !
-        dup DefData register
-    )
-    { +Mirth Data List(Tag) }
-    dup for(dip(over) ~data !)
-    over ~tags !
-    { +Mirth Data }
-    0 over ~arity !
-    L0 over DataParams prop over ~params !
-    None over ~head? !
-    drop)
+def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
+    >ctype >tags >data >params >name
+
+    @params len >Int dup @data ~arity !
+    name> swap QName.prim @data ~qname !
+    ctype> @data DataCType prop @data ~ctype? !
+
+    @tags for(@data swap ~data !)
+    tags> @data ~tags !
+
+    params> @data DataParams prop @data ~params !
+    None @data ~head? !
+
+    data> DefData register)
 
 def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
-    dip(sip(len) TT)
-    sip(Ctx0 rotr .data TData T1 T->) sip(TagType prop2) sip(~ctx-type !)
-    sip(~num-type-inputs !)
-    sip(L0 swap ~label-inputs !)
-    sip(0 >Nat swap ~num-resource-inputs !)
-    sip(dip(>Nat) ~value !)
-    sip(.data swap 0 data-word-qname) tuck ~qname !
-    DefTag register)
+    >tag >inputs >value >name
+
+    @tag .data name> 0 data-word-qname @tag ~qname !
+    value> >Nat @tag ~value !
+
+    @inputs len @tag ~num-type-inputs !
+    0 >Nat @tag ~num-resource-inputs !
+    L0 @tag ~label-inputs !
+
+    @tag .data params >Ctx
+    inputs> TT
+    T0 @tag .data full-type T*+ T->
+    @tag TagType prop2
+    @tag ~ctx-type !
+
+    tag> DefTag register)
+
+def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
+    >underlying >tag >tagname >data >dataname
+
+    dataname> L0 data> @tag L1 underlying> IntLike Some make-prim-data!
+    tagname> 0 TYPE_INT L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
-    "Bool" 0 builtin bool builtin true builtin false L2 make-prim-data!
+    "Bool" L0 builtin bool builtin true builtin false L2 "_Bool" IntLike Some make-prim-data!
     "False" 0 L0 builtin false make-prim-tag!
     "True" 1 L0 builtin true make-prim-tag!
 
-    "U64" 0 builtin u64 builtin mk-u64 L1 make-prim-data! "Int>U64-unsafe" 0 TYPE_INT L1 builtin mk-u64 make-prim-tag!
-    "U32" 0 builtin u32 builtin mk-u32 L1 make-prim-data! "Int>U32-unsafe" 0 TYPE_INT L1 builtin mk-u32 make-prim-tag!
-    "U16" 0 builtin u16 builtin mk-u16 L1 make-prim-data! "Int>U16-unsafe" 0 TYPE_INT L1 builtin mk-u16 make-prim-tag!
-    "U8"  0 builtin u8  builtin mk-u8  L1 make-prim-data! "Int>U8-unsafe"  0 TYPE_INT L1 builtin mk-u8  make-prim-tag!
-    "I64" 0 builtin i64 builtin mk-i64 L1 make-prim-data! "Int>I64-unsafe" 0 TYPE_INT L1 builtin mk-i64 make-prim-tag!
-    "I32" 0 builtin i32 builtin mk-i32 L1 make-prim-data! "Int>I32-unsafe" 0 TYPE_INT L1 builtin mk-i32 make-prim-tag!
-    "I16" 0 builtin i16 builtin mk-i16 L1 make-prim-data! "Int>I16-unsafe" 0 TYPE_INT L1 builtin mk-i16 make-prim-tag!
-    "I8"  0 builtin i8  builtin mk-i8  L1 make-prim-data! "Int>I8-unsafe"  0 TYPE_INT L1 builtin mk-i8  make-prim-tag!)
+    TYPE_TYPE "a" >Name Var.new! >a
+
+    "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
+    "CPtr" 0 TYPE_PTR L1 builtin mk-cptr make-prim-tag!
+    "CConst" @a L1 builtin cconst builtin mk-cconst L1 None make-prim-data!
+    "CConst" 0 @a TVar L1 builtin mk-cconst make-prim-tag!
+    "CRestrict" @a L1 builtin crestrict builtin mk-crestrict L1 None make-prim-data!
+    "CRestrict" 0 @a TVar L1 builtin mk-crestrict make-prim-tag!
+    "CVolatile" @a L1 builtin cvolatile builtin mk-cvolatile L1 None make-prim-data!
+    "CVolatile" 0 @a TVar L1 builtin mk-cvolatile make-prim-tag!
+
+    a> drop
+
+    "U64" builtin u64 "Int>U64-unsafe" builtin mk-u64 "uint64_t" make-prim-intlike!
+    "U32" builtin u32 "Int>U32-unsafe" builtin mk-u32 "uint32_t" make-prim-intlike!
+    "U16" builtin u16 "Int>U16-unsafe" builtin mk-u16 "uint16_t" make-prim-intlike!
+    "U8"  builtin u8  "Int>U8-unsafe"  builtin mk-u8  "uint8_t"  make-prim-intlike!
+
+    "I64" builtin i64 "Int>I64-unsafe" builtin mk-i64 "int64_t" make-prim-intlike!
+    "I32" builtin i32 "Int>I32-unsafe" builtin mk-i32 "int32_t" make-prim-intlike!
+    "I16" builtin i16 "Int>I16-unsafe" builtin mk-i16 "int16_t" make-prim-intlike!
+    "I8"  builtin i8  "Int>I8-unsafe"  builtin mk-i8  "int8_t"  make-prim-intlike!
+
+    "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
+    "CIChar"     builtin cichar     "CIChar"     builtin mk-cichar     "signed char"  make-prim-intlike!
+    "CShort"     builtin cshort     "CShort"     builtin mk-cshort     "short"        make-prim-intlike!
+    "CInt"       builtin cint       "CInt"       builtin mk-cint       "int"          make-prim-intlike!
+    "CLong"      builtin clong      "CLong"      builtin mk-clong      "long"         make-prim-intlike!
+    "CLongLong"  builtin clonglong  "CLongLong"  builtin mk-clonglong  "long long"    make-prim-intlike!
+    "CISize"     builtin cisize     "CISize"     builtin mk-cisize     "ssize_t"      make-prim-intlike!
+    "CIntPtr"    builtin cintptr    "CIntPtr"    builtin mk-cintptr    "intptr_t"     make-prim-intlike!
+
+    "CUChar"     builtin cuchar     "CUChar"     builtin mk-cuchar     "unsigned char"      make-prim-intlike!
+    "CUShort"    builtin cushort    "CUShort"    builtin mk-cushort    "unsigned short"     make-prim-intlike!
+    "CUInt"      builtin cuint      "CUInt"      builtin mk-cuint      "unsigned int"       make-prim-intlike!
+    "CULong"     builtin culong     "CULong"     builtin mk-culong     "unsigned long"      make-prim-intlike!
+    "CULongLong" builtin culonglong "CULongLong" builtin mk-culonglong "unsigned long long" make-prim-intlike!
+    "CUSize"     builtin cusize     "CUSize"     builtin mk-cusize     "size_t"             make-prim-intlike!
+    "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-intlike!)
 
 def(data-qname, Data Name Int -- QName,
     >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
@@ -97,22 +144,39 @@ def(Data.add-tag!, Tag Data --,
     dup2 num-tags swap ~value !
     dup tags rotr dip(List.snoc) ~tags !)
 
+field(Data.~is-unit?, Data, Bool)
+def(Data.is-unit?, Data -- Bool,
+    dup ~is-unit? memoize(
+        dup tags /L1 and-some(num-total-inputs 0=)
+    ) nip)
+
 field(Data.~is-enum?, Data, Bool)
 def(Data.is-enum?, Data -- Bool,
     dup ~is-enum? memoize(
-        dup tags all(dup num-total-inputs 0=)
+        dup is-unit? not and(
+            dup tags all(dup num-total-inputs 0=)
+        )
     ) nip)
 
 field(Data.~is-transparent?, Data, Bool)
 def(Data.is-transparent?, Data -- Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
-            False,
+            dup tags /L1 match(
+                Some -> dup num-resource-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
+                None -> False,
+            ),
             dup tags /L1 match(
                 Some -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
                 None -> False
             )
         )
+    ) nip)
+
+field(Data.~is-semi-transparent?, Data, Bool)
+def(Data.is-semi-transparent?, Data -- Bool,
+    dup ~is-semi-transparent? memoize(
+        dup tags /L1 and-some(num-total-inputs 1 >Nat ==)
     ) nip)
 
 field(Data.~is-resource?, Data, Bool)
@@ -192,6 +256,9 @@ def(Tag.num-total-inputs, Tag -- Nat,
 
 def(Tag.is-transparent?, Tag -- Bool,
     .data is-transparent?)
+
+def(Tag.is-semi-transparent?, Tag -- Bool,
+    .data is-semi-transparent?)
 
 def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)

@@ -1,0 +1,66 @@
+module(std.ctypes)
+
+import(std.prelude)
+
+inline(
+    def-missing(CChar.CChar-unsafe, Int -- CChar, CChar)
+    def-missing(CIChar.CIChar-unsafe, Int -- CIChar, CIChar)
+    def-missing(CShort.CShort-unsafe, Int -- CShort, CShort)
+    def-missing(CInt.CInt-unsafe, Int -- CInt, CInt)
+    def-missing(CLong.CLong-unsafe, Int -- CLong, CLong)
+    def-missing(CLongLong.CLongLong-unsafe, Int -- CLongLong, CLongLong)
+    def-missing(CISize.CISize-unsafe, Int -- CISize, CISize)
+    def-missing(CIntPtr.CIntPtr-unsafe, Int -- CIntPtr, CIntPtr)
+
+    def(CChar.>Int, CChar -- Int, CChar -> id)
+    def(CIChar.>Int, CIChar -- Int, CIChar -> id)
+    def(CShort.>Int, CShort -- Int, CShort -> id)
+    def(CInt.>Int, CInt -- Int, CInt -> id)
+    def(CLong.>Int, CLong -- Int, CLong -> id)
+    def(CLongLong.>Int, CLongLong -- Int, CLongLong -> id)
+    def(CISize.>Int, CISize -- Int, CISize -> id)
+    def(CIntPtr.>Int, CIntPtr -- Int, CIntPtr -> id)
+
+    def-missing(CUChar.CUChar-unsafe, Int -- CUChar, CUChar)
+    def-missing(CUShort.CUShort-unsafe, Int -- CUShort, CUShort)
+    def-missing(CUInt.CUInt-unsafe, Int -- CUInt, CUInt)
+    def-missing(CULong.CULong-unsafe, Int -- CULong, CULong)
+    def-missing(CULongLong.CULongLong-unsafe, Int -- CULongLong, CULongLong)
+    def-missing(CUSize.CUSize-unsafe, Int -- CUSize, CUSize)
+    def-missing(CUIntPtr.CUIntPtr-unsafe, Int -- CUIntPtr, CUIntPtr)
+
+    def(CUChar.>Int, CUChar -- Int, CUChar -> id)
+    def(CUShort.>Int, CUShort -- Int, CUShort -> id)
+    def(CUInt.>Int, CUInt -- Int, CUInt -> id)
+    def(CULong.>Int, CULong -- Int, CULong -> id)
+    def(CULongLong.>Int, CULongLong -- Int, CULongLong -> id)
+    def(CUSize.>Int, CUSize -- Int, CUSize -> id)
+    def(CUIntPtr.>Int, CUIntPtr -- Int, CUIntPtr -> id)
+
+    def(CUChar.>Nat, CUChar -- Nat, CUChar -> >Nat)
+    def(CUShort.>Nat, CUShort -- Nat, CUShort -> >Nat)
+    def(CUInt.>Nat, CUInt -- Nat, CUInt -> >Nat)
+    def(CULong.>Nat, CULong -- Nat, CULong -> >Nat)
+    def(CULongLong.>Nat, CULongLong -- Nat, CULongLong -> >Nat)
+    def(CUSize.>Nat, CUSize -- Nat, CUSize -> >Nat)
+    def(CUIntPtr.>Nat, CUIntPtr -- Nat, CUIntPtr -> >Nat)
+
+    def(CUSize.>Size, CUSize -- Size, >Nat >Size)
+
+    def(CPtr./CPtr, CPtr(t) -- Ptr, CPtr -> id)
+    def(CConst./CConst, CConst(t) -- t, CConst -> id)
+    def(CRestrict./CRestrict, CRestrict(t) -- t, CRestrict -> id)
+    def(CVolatile./CVolatile, CVolatile(t) -- t, CVolatile -> id)
+
+    def(CPtr.cast, CPtr(a) -- CPtr(b), CPtr -> CPtr)
+    def(CPtr.>Ptr, CPtr(a) -- Ptr, CPtr -> id)
+    def(Ptr.>CPtr, Ptr -- CPtr(a), CPtr)
+
+    data(CStr, CStr -> CPtr(CConst(CChar)))
+
+    def(Ptr.>CStr, Ptr -- CStr, CPtr CStr)
+    def(CPtr.>CStr, CPtr(CConst(CChar)) -- CStr, CStr)
+    def(CStr.>CPtr, CStr -- CPtr(CConst(CChar)), CStr -> id)
+    def(CStr.>Ptr, CStr -- Ptr, >CPtr /CPtr)
+    def-external(CStr.num-bytes -> strlen, +Unsafe CStr -- +Unsafe CUSize)
+)

@@ -9,6 +9,7 @@ import(std.byte)
 import(std.buffer)
 import(std.posix)
 import(std.terminal)
+import(std.ctypes)
 
 import(arg-parser.types)
 import(arg-parser.state)
@@ -190,7 +191,7 @@ def(parse-args, a ArgumentParser(a) -- Either(ArgumentParsingError, a),
     rdrop)
 
 def(read-from-argv, +Unsafe Int -- Str +Unsafe,
-    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr Str.copy-cstr)
+    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr CPtr CStr Str.copy-cstr)
 
 def(argv-to-str, -- List(Str),
     1 to(argc 1-) map(unsafe:read-from-argv))

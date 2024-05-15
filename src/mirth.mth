@@ -34,7 +34,29 @@ data(Builtin, Builtin ->
     i64: Data   mk-i64: Tag
     i32: Data   mk-i32: Tag
     i16: Data   mk-i16: Tag
-    i8: Data    mk-i8: Tag)
+    i8: Data    mk-i8: Tag
+
+    cchar:      Data  mk-cchar:      Tag
+    cichar:     Data  mk-cichar:     Tag
+    cshort:     Data  mk-cshort:     Tag
+    cint:       Data  mk-cint:       Tag
+    clong:      Data  mk-clong:      Tag
+    clonglong:  Data  mk-clonglong:  Tag
+    cisize:     Data  mk-cisize:     Tag
+    cintptr:    Data  mk-cintptr:    Tag
+    cuchar:     Data  mk-cuchar:     Tag
+    cushort:    Data  mk-cushort:    Tag
+    cuint:      Data  mk-cuint:      Tag
+    culong:     Data  mk-culong:     Tag
+    culonglong: Data  mk-culonglong: Tag
+    cusize:     Data  mk-cusize:     Tag
+    cuintptr:   Data  mk-cuintptr:   Tag
+
+    cptr:       Data  mk-cptr:       Tag
+    cconst:     Data  mk-cconst:     Tag
+    crestrict:  Data  mk-crestrict:  Tag
+    cvolatile:  Data  mk-cvolatile:  Tag
+)
 
 def(Builtin.alloc!, -- Builtin,
     Package.alloc! >std
@@ -48,6 +70,28 @@ def(Builtin.alloc!, -- Builtin,
     Data.alloc! >i32 Tag.alloc! >mk-i32
     Data.alloc! >i16 Tag.alloc! >mk-i16
     Data.alloc! >i8 Tag.alloc! >mk-i8
+
+    Data.alloc! >cchar       Tag.alloc! >mk-cchar
+    Data.alloc! >cichar      Tag.alloc! >mk-cichar
+    Data.alloc! >cshort      Tag.alloc! >mk-cshort
+    Data.alloc! >cint        Tag.alloc! >mk-cint
+    Data.alloc! >clong       Tag.alloc! >mk-clong
+    Data.alloc! >clonglong   Tag.alloc! >mk-clonglong
+    Data.alloc! >cisize      Tag.alloc! >mk-cisize
+    Data.alloc! >cintptr     Tag.alloc! >mk-cintptr
+    Data.alloc! >cuchar      Tag.alloc! >mk-cuchar
+    Data.alloc! >cushort     Tag.alloc! >mk-cushort
+    Data.alloc! >cuint       Tag.alloc! >mk-cuint
+    Data.alloc! >culong      Tag.alloc! >mk-culong
+    Data.alloc! >culonglong  Tag.alloc! >mk-culonglong
+    Data.alloc! >cusize      Tag.alloc! >mk-cusize
+    Data.alloc! >cuintptr    Tag.alloc! >mk-cuintptr
+
+    Data.alloc! >cptr        Tag.alloc! >mk-cptr
+    Data.alloc! >cconst      Tag.alloc! >mk-cconst
+    Data.alloc! >crestrict   Tag.alloc! >mk-crestrict
+    Data.alloc! >cvolatile   Tag.alloc! >mk-cvolatile
+
     Builtin)
 
 data(+Mirth, +Mirth ->
@@ -55,6 +99,7 @@ data(+Mirth, +Mirth ->
     num-warnings: Nat
     prefer-inline-defs: Bool
     builtin: Builtin
+    error-token: Maybe(Token)
     +diagnostics: +List(Diagnostic)
     +propstack: +List(PropLabel))
 
@@ -65,6 +110,7 @@ def(+Mirth.init!, -- +Mirth,
     Builtin.alloc! >builtin
     L0 thaw >+diagnostics
     L0 thaw >+propstack
+    None >error-token
     +Mirth
     init-packages!
     init-modules!
@@ -77,6 +123,7 @@ def(+Mirth.rdrop, +Mirth --,
     num-warnings> drop
     prefer-inline-defs> drop
     builtin> drop
+    error-token> drop
     +diagnostics> freeze drop
     +propstack> freeze drop)
 
@@ -111,6 +158,17 @@ def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
 def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b +Mirth,
     dip(location) emit-fatal-error-at!)
 
+def(+Mirth.with-error-token(f), (*a +Mirth -- *b +Mirth)
+        *a Token +Mirth -- *b +Mirth,
+    error-token dip(Some error-token! f) error-token!)
+
+def(+Mirth.warning!, Str +Mirth -- +Mirth,
+    error-token unwrap swap emit-warning!)
+def(+Mirth.error!, Str +Mirth -- +Mirth,
+    error-token unwrap swap emit-error!)
+def(+Mirth.fatal-error!, Str +Mirth -- +Mirth,
+    error-token unwrap swap emit-fatal-error!)
+
 def(+Mirth.trace-all-diagnostics!, +Mirth -- +Mirth,
     +diagnostics(freeze L0 thaw)
     for(trace!))
@@ -135,6 +193,7 @@ data(PropState(b),
     PSComputing)
 data(PropLabel,
     DataParams -> Data,
+    DataCType -> Data,
     TagType -> Tag,
     WordType -> Word,
     WordParams -> Word,
@@ -142,6 +201,7 @@ data(PropLabel,
     BlockArrow -> Block,
     AliasTarget -> Alias,
     ExternalType -> External,
+    ExternalCType -> External,
     VariableType -> Variable,
     FieldValueType -> Field,
     FieldIndexType -> Field,

@@ -5,6 +5,7 @@ import(std.list)
 import(std.maybe)
 import(std.byte)
 import(std.buffer)
+import(std.ctypes)
 
 alias(Str.cat, prim-str-cat)
 inline(
@@ -23,11 +24,8 @@ def(Str.copy-partial!, Str Ptr +Unsafe -- Ptr +Unsafe,
 
 inline(
     def(Str.copy, Ptr Size +Unsafe -- Str +Unsafe, >Int prim-str-copy)
-    def(Str.copy-cstr, Ptr +Unsafe -- Str +Unsafe, dup cstr-num-bytes Str.copy)
+    def(Str.copy-cstr, CStr +Unsafe -- Str +Unsafe, sip:>Ptr num-bytes >Size Str.copy)
 )
-def(cstr-num-bytes, Ptr +Unsafe -- Size +Unsafe,
-    dup 0 >Size swap while(dup @U8 >Int 0>, dip(1+ 1 >Offset) offset) drop nip)
-
 
 data(+Str, +Str -> Str)
 def(Str.thaw, Str -- +Str, +Str)
@@ -45,19 +43,19 @@ def(+Str.num-bytes?, +Str -- Size +Str,
     +Str -> dup num-bytes dip(+Str))
 
 def(+Str.last-byte, +Str -- Byte +Str,
-    +Str.num-bytes? >Offset dup 0> if(
-        1- +Str.byte@,
-        drop BNUL
-    ))
+    +Str.num-bytes? >Offset 1- +Str.byte@)
 
 def(+Str.byte@, Offset +Str -- Byte +Str,
     +Str.dup! Str.byte@)
 
+def(offset-in-bounds, Offset Size -- Bool,
+    dip(>Int 0) >Int in-range)
+
 def(Str.byte@, Offset Str -- Byte,
     with-data(
-        >Offset over2 <= if(
-            drop2 BNUL,
-            unsafe(offset @Byte)
+        dip(over) offset-in-bounds if(
+            unsafe(offset @Byte),
+            drop2 BNUL
         )
     ))
 
@@ -113,11 +111,11 @@ def(Str.from-bytes-unsafe, List(Byte) -- Str,
     base size unsafe(Str.copy)
     rdrop)
 
-def(Str.with-data-cstr(f), (*a Ptr -- *b) *a Str -- *b,
+def(Str.with-cstr(f), (*a CStr -- *b) *a Str -- *b,
     with-data(
         >Offset over unsafe(offset @U8) >Int
-        0= else("tried to use string as cstring, but no null terminator" panic!)
-        f
+        0= else("tried to use Str as CStr, but Str is not zero terminated" panic!)
+        CPtr CStr f
     ))
 
 def(clamp-slice-offset-size, Offset Size Size -- Offset Size,
