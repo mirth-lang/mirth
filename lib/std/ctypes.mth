@@ -1,0 +1,30 @@
+module(std.ctypes)
+
+import(std.prelude)
+
+inline(
+    def(CChar./CChar, CChar -- Int, CChar -> id)
+    def(CIChar./CIChar, CIChar -- Int, CIChar -> id)
+    def(CShort./CShort, CShort -- Int, CShort -> id)
+    def(CInt./CInt, CInt -- Int, CInt -> id)
+    def(CLong./CLong, CLong -- Int, CLong -> id)
+    def(CLongLong./CLongLong, CLongLong -- Int, CLongLong -> id)
+    def(CISize./CISize, CISize -- Int, CISize -> id)
+    def(CIntPtr./CIntPtr, CIntPtr -- Int, CIntPtr -> id)
+
+    def(CUChar./CUChar, CUChar -- Int, CUChar -> id)
+    def(CUShort./CUShort, CUShort -- Int, CUShort -> id)
+    def(CUInt./CUInt, CUInt -- Int, CUInt -> id)
+    def(CULong./CULong, CULong -- Int, CULong -> id)
+    def(CULongLong./CULongLong, CULongLong -- Int, CULongLong -> id)
+    def(CUSize./CUSize, CUSize -- Int, CUSize -> id)
+    def(CUIntPtr./CUIntPtr, CUIntPtr -- Int, CUIntPtr -> id)
+
+    def(CUChar.nat, CUChar -- Nat, CUChar -> >Nat)
+    def(CUShort.nat, CUShort -- Nat, CUShort -> >Nat)
+    def(CUInt.nat, CUInt -- Nat, CUInt -> >Nat)
+    def(CULong.nat, CULong -- Nat, CULong -> >Nat)
+    def(CULongLong.nat, CULongLong -- Nat, CULongLong -> >Nat)
+    def(CUSize.nat, CUSize -- Nat, CUSize -> >Nat)
+    def(CUIntPtr.nat, CUIntPtr -- Nat, CUIntPtr -> >Nat)
+)

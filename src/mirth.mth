@@ -34,7 +34,24 @@ data(Builtin, Builtin ->
     i64: Data   mk-i64: Tag
     i32: Data   mk-i32: Tag
     i16: Data   mk-i16: Tag
-    i8: Data    mk-i8: Tag)
+    i8: Data    mk-i8: Tag
+
+    cchar:      Data  mk-cchar:      Tag
+    cichar:     Data  mk-cichar:     Tag
+    cshort:     Data  mk-cshort:     Tag
+    cint:       Data  mk-cint:       Tag
+    clong:      Data  mk-clong:      Tag
+    clonglong:  Data  mk-clonglong:  Tag
+    cisize:     Data  mk-cisize:     Tag
+    cintptr:    Data  mk-cintptr:    Tag
+    cuchar:     Data  mk-cuchar:     Tag
+    cushort:    Data  mk-cushort:    Tag
+    cuint:      Data  mk-cuint:      Tag
+    culong:     Data  mk-culong:     Tag
+    culonglong: Data  mk-culonglong: Tag
+    cusize:     Data  mk-cusize:     Tag
+    cuintptr:   Data  mk-cuintptr:   Tag
+    )
 
 def(Builtin.alloc!, -- Builtin,
     Package.alloc! >std
@@ -48,6 +65,23 @@ def(Builtin.alloc!, -- Builtin,
     Data.alloc! >i32 Tag.alloc! >mk-i32
     Data.alloc! >i16 Tag.alloc! >mk-i16
     Data.alloc! >i8 Tag.alloc! >mk-i8
+
+    Data.alloc! >cchar       Tag.alloc! >mk-cchar
+    Data.alloc! >cichar      Tag.alloc! >mk-cichar
+    Data.alloc! >cshort      Tag.alloc! >mk-cshort
+    Data.alloc! >cint        Tag.alloc! >mk-cint
+    Data.alloc! >clong       Tag.alloc! >mk-clong
+    Data.alloc! >clonglong   Tag.alloc! >mk-clonglong
+    Data.alloc! >cisize      Tag.alloc! >mk-cisize
+    Data.alloc! >cintptr     Tag.alloc! >mk-cintptr
+    Data.alloc! >cuchar      Tag.alloc! >mk-cuchar
+    Data.alloc! >cushort     Tag.alloc! >mk-cushort
+    Data.alloc! >cuint       Tag.alloc! >mk-cuint
+    Data.alloc! >culong      Tag.alloc! >mk-culong
+    Data.alloc! >culonglong  Tag.alloc! >mk-culonglong
+    Data.alloc! >cusize      Tag.alloc! >mk-cusize
+    Data.alloc! >cuintptr    Tag.alloc! >mk-cuintptr
+
     Builtin)
 
 data(+Mirth, +Mirth ->

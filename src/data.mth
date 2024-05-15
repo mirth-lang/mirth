@@ -68,34 +68,43 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     sip(.data swap 0 data-word-qname) tuck ~qname !
     DefTag register)
 
+def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
+    >underlying >tag >tagname >data >dataname
+
+    dataname> 0 data> @tag L1 underlying> IntLike Some make-prim-data!
+    tagname> 0 TYPE_INT L1 tag> make-prim-tag!)
+
 def(init-data!, +Mirth -- +Mirth,
     "Bool" 0 builtin bool builtin true builtin false L2 "_Bool" IntLike Some make-prim-data!
     "False" 0 L0 builtin false make-prim-tag!
     "True" 1 L0 builtin true make-prim-tag!
 
-    "U64" 0 builtin u64 builtin mk-u64 L1 "uint64_t" IntLike Some make-prim-data!
-    "Int>U64-unsafe" 0 TYPE_INT L1 builtin mk-u64 make-prim-tag!
+    "U64" builtin u64 "Int>U64-unsafe" builtin mk-u64 "uint64_t" make-prim-intlike!
+    "U32" builtin u32 "Int>U32-unsafe" builtin mk-u32 "uint32_t" make-prim-intlike!
+    "U16" builtin u16 "Int>U16-unsafe" builtin mk-u16 "uint16_t" make-prim-intlike!
+    "U8"  builtin u8  "Int>U8-unsafe"  builtin mk-u8  "uint8_t"  make-prim-intlike!
 
-    "U32" 0 builtin u32 builtin mk-u32 L1 "uint32_t" IntLike Some make-prim-data!
-    "Int>U32-unsafe" 0 TYPE_INT L1 builtin mk-u32 make-prim-tag!
+    "I64" builtin i64 "Int>I64-unsafe" builtin mk-i64 "int64_t" make-prim-intlike!
+    "I32" builtin i32 "Int>I32-unsafe" builtin mk-i32 "int32_t" make-prim-intlike!
+    "I16" builtin i16 "Int>I16-unsafe" builtin mk-i16 "int16_t" make-prim-intlike!
+    "I8"  builtin i8  "Int>I8-unsafe"  builtin mk-i8  "int8_t"  make-prim-intlike!
 
-    "U16" 0 builtin u16 builtin mk-u16 L1 "uint16_t" IntLike Some make-prim-data!
-    "Int>U16-unsafe" 0 TYPE_INT L1 builtin mk-u16 make-prim-tag!
+    "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
+    "CIChar"     builtin cichar     "CIChar"     builtin mk-cichar     "signed char"  make-prim-intlike!
+    "CShort"     builtin cshort     "CShort"     builtin mk-cshort     "short"        make-prim-intlike!
+    "CInt"       builtin cint       "CInt"       builtin mk-cint       "int"          make-prim-intlike!
+    "CLong"      builtin clong      "CLong"      builtin mk-clong      "long"         make-prim-intlike!
+    "CLongLong"  builtin clonglong  "CLongLong"  builtin mk-clonglong  "long long"    make-prim-intlike!
+    "CISize"     builtin cisize     "CISize"     builtin mk-cisize     "ssize_t"      make-prim-intlike!
+    "CIntPtr"    builtin cintptr    "CIntPtr"    builtin mk-cintptr    "intptr_t"     make-prim-intlike!
 
-    "U8"  0 builtin u8  builtin mk-u8  L1 "uint8_t" IntLike Some make-prim-data!
-    "Int>U8-unsafe"  0 TYPE_INT L1 builtin mk-u8 make-prim-tag!
-
-    "I64" 0 builtin i64 builtin mk-i64 L1 "int64_t" IntLike Some make-prim-data!
-    "Int>I64-unsafe" 0 TYPE_INT L1 builtin mk-i64 make-prim-tag!
-
-    "I32" 0 builtin i32 builtin mk-i32 L1 "int32_t" IntLike Some make-prim-data!
-    "Int>I32-unsafe" 0 TYPE_INT L1 builtin mk-i32 make-prim-tag!
-
-    "I16" 0 builtin i16 builtin mk-i16 L1 "int16_t" IntLike Some make-prim-data!
-    "Int>I16-unsafe" 0 TYPE_INT L1 builtin mk-i16 make-prim-tag!
-
-    "I8"  0 builtin i8  builtin mk-i8  L1 "int8_t" IntLike Some make-prim-data!
-    "Int>I8-unsafe"  0 TYPE_INT L1 builtin mk-i8 make-prim-tag!)
+    "CUChar"     builtin cuchar     "CUChar"     builtin mk-cuchar     "unsigned char"      make-prim-intlike!
+    "CUShort"    builtin cushort    "CUShort"    builtin mk-cushort    "unsigned short"     make-prim-intlike!
+    "CUInt"      builtin cuint      "CUInt"      builtin mk-cuint      "unsigned int"       make-prim-intlike!
+    "CULong"     builtin culong     "CULong"     builtin mk-culong     "unsigned long"      make-prim-intlike!
+    "CULongLong" builtin culonglong "CULongLong" builtin mk-culonglong "unsigned long long" make-prim-intlike!
+    "CUSize"     builtin cusize     "CUSize"     builtin mk-cusize     "size_t"             make-prim-intlike!
+    "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-intlike!)
 
 def(data-qname, Data Name Int -- QName,
     >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
