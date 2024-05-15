@@ -1136,6 +1136,11 @@ data(CType,
     PtrLike -> Str,
     Phantom)
 
+def(CType.cname, CType -- Str,
+    IntLike -> id,
+    PtrLike -> id,
+    Phantom -> "void")
+
 def(CType.phantom?, CType -- Bool,
     Phantom -> True,
     _ -> drop False)
@@ -1177,7 +1182,7 @@ def(CTypeStackPart.label?, CTypeStackPart -- Maybe(Label),
     CTSPCons -> drop None, CTSPConsLabel -> nip Some,
     CTSPWith -> drop None, CTSPWithLabel -> nip Some)
 
-def(CTypeStackPart.is-resource?, CTypeStackPart -- Bool,
+def(CTypeStackPart.resource?, CTypeStackPart -- Bool,
     CTSPCons -> drop False, CTSPConsLabel -> drop2 False,
     CTSPWith -> drop True,  CTSPWithLabel -> drop2 True)
 

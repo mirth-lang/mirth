@@ -351,35 +351,127 @@ def(c99-externals!, +C99 -- +C99,
     External.for(c99-external!))
 
 def(c99-external!, External +C99 -- +C99,
-    dup sig sig-arity
-    dup 2 >Nat >= if(
-        "can't declare external with multiple return values" panic!,
+    >ext
+    @ext +mirth:ctype >cty
 
-        dup 1 >Nat >= if(
-            "intptr_t ",
-            "void "
-        ) put
-    )
-
-    dip2(dup symbol put)
+    @cty cod parts find(dup ctype phantom? not) >outty
+    @outty if-some(ctype, Phantom) cname put " " put
+    @ext symbol put
 
     " (" put
-    over dup 0> if("intptr_t" put 1- repeat(", intptr_t" put), drop "void" put)
+    @cty dom parts filter(dup ctype phantom? not)
+    match(
+        Nil -> "void" put,
+        _ -> for(ctype cname put, ", " put)
+    )
     ");" put line
 
-    dip2(dup +mirth:cname sig-put) " {" put line
-    over countdown("\tintptr_t x" put show put " = (intptr_t)pop_i64();" put line)
-    dup 0> if("\tpush_i64((int64_t)", "\t") put
-    dip2(dup symbol put)
-    "(" put
-    dip(dup 0> if(
-        dup 1- dup count("x" put show put ", " put) "x" put show put,
-        id
-    ))
-    ")" put
-    dup 0> if(");", ";") put line
+    @ext +mirth:cname sig-put " {" put line
+
+    @cty dom parts
+    dup len >arg-index
+    reverse-for(
+        dup ctype phantom? else(
+            "\t" put
+            dup ctype cname put " " put
+            dup c99-arg-name put
+            " = " put
+        )
+        c99-pop
+        ";" put line
+        @arg-index:1-
+    )
+
+    "\t" put
+    @outty for(ctype cname put " Y = " put)
+    @ext symbol put "(" put
+
+    1 >Nat !arg-index
+    @cty dom parts filter-some(
+        dup ctype phantom? if(drop None, c99-arg-name Some)
+        @arg-index:1+
+    )
+    for(put, ", " put)
+    ");" put line
+
+    @cty cod parts for(
+        "\t" put
+        dip:"Y" c99-push
+        line
+    )
+
     "}" put line
-    drop3)
+
+    arg-index> drop
+    ext> cty> outty> drop3)
+
+def(CType.c99-pop-value, CType +C99 -- +C99,
+    IntLike -> "(" put put ")pop_i64()" put,
+    PtrLike -> "(" put put ")pop_ptr()" put,
+    Phantom -> "(void)pop_value()" put )
+
+def(CType.c99-pop-resource, CType +C99 -- +C99,
+    IntLike -> "(" put put ")value_i64(pop_resource())" put,
+    PtrLike -> "(" put put ")value_ptr(pop_resource())" put,
+    Phantom -> "(void)pop_resource()" put)
+
+def(CType.c99-pop-label, Label CType +C99 -- +C99,
+    IntLike -> "(" put put ")value_i64(lpop(&lbl_" put name mangled put "))" put,
+    PtrLike -> "(" put put ")value_ptr(lpop(&lbl_" put name mangled put "))" put,
+    Phantom -> "(void)lpop(&lbl_" put name mangled put ")" put)
+
+def(CType.c99-push-value, Str CType +C99 -- +C99,
+    IntLike -> drop "push_i64((int64_t)(" put put "));" put,
+    PtrLike -> drop "push_ptr((void*)(" put put "));" put,
+    Phantom -> drop "push_i64(0);" put)
+
+def(CType.c99-push-resource, Str CType +C99 -- +C99,
+    IntLike -> drop "push_resource(MKI64((int64_t)(" put put ")));" put,
+    PtrLike -> drop "push_resource(MKPTR((void*)(" put put ")));" put,
+    Phantom -> drop "push_resource(MKI64(0));" put)
+
+def(CType.c99-push-label, Str Label CType +C99 -- +C99,
+    IntLike ->
+        drop "lpush(&lbl_" put name mangled put ", " put
+        "MKI64((int64_t)(" put put ")));" put,
+    PtrLike ->
+        drop "lpush(&lbl_" put name mangled put ", " put
+        "MKI64((int64_t)(" put put ")));" put,
+    Phantom ->
+        nip "lpush(&lbl_" put name mangled put ", " put
+        "MKI64((int64_t)(0)));" put,
+    )
+
+def(CTypeStackPart.c99-arg-name, arg-index:Nat CTypeStackPart +C99 -- arg-index:Nat Str +C99,
+    label? if-some(
+        name mangled,
+        Str("X" ; @arg-index show;)
+    ))
+
+def(CTypeStackPart.c99-pop, CTypeStackPart +C99 -- +C99,
+    CTSPCons -> c99-pop-value,
+    CTSPWith -> c99-pop-resource,
+    CTSPConsLabel -> swap c99-pop-label,
+    CTSPWithLabel -> swap c99-pop-label)
+
+def(CTypeStackPart.c99-push, Str CTypeStackPart +C99 -- +C99,
+    CTSPCons -> c99-push-value,
+    CTSPWith -> c99-push-resource,
+    CTSPConsLabel -> swap c99-push-label,
+    CTSPWithLabel -> swap c99-push-label)
+
+    # over countdown("\tintptr_t x" put show put " = (intptr_t)pop_i64();" put line)
+    # dup 0> if("\tpush_i64((int64_t)", "\t") put
+    # dip2(dup symbol put)
+    # "(" put
+    # dip(dup 0> if(
+    #     dup 1- dup count("x" put show put ", " put) "x" put show put,
+    #     id
+    # ))
+    # ")" put
+    # dup 0> if(");", ";") put line
+    # "}" put line
+    # drop3)
 
 def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
     depth:1+ f depth:1-)
