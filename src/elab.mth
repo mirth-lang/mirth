@@ -1187,19 +1187,19 @@ def(elab-data-done!, +Mirth Data -- +Mirth,
             None -> id
         )
 
-        dat is-enum? if(
-            "int" IntLike Some dat DataCType prop dat ~ctype? !,
+        dat DataCType prop0(
+            dat is-phantom? if(
+                Phantom Some,
+            dat is-enum? if(
+                "int" IntLike Some,
             dat is-transparent? if(
-                dat dat DataCType prop(
-                    tags /L1 unwrap type dom match(
-                        STCons -> nip ctype?,
-                        _ -> "unexpected tag inputs for transparent data" panic!
-                    )
-                ) dat ~ctype? !,
-
-                None dat DataCType prop dat ~ctype? !
-            )
-        )
+                dat tags /L1 unwrap type dom match(
+                    STCons -> nip ctype?,
+                    _ -> "unexpected tag inputs for transparent data" panic!
+                ),
+                None
+            )))
+        ) dat ~ctype? !
     ))
 
 ||| Return the tag's output type or resource in context.

@@ -6,9 +6,9 @@ import(std.str)
 # SDL2 Bindings #
 #################
 
-def-external(+Unsafe.SDL_Init -> SDL_Init, SDL_InitFlags -- Int)
-def-external(+Unsafe.SDL_Quit -> SDL_Quit, --)
-def-external(+Unsafe.SDL_GetError -> SDL_GetError, -- Ptr)
+def-external(+Unsafe.SDL_Init -> SDL_Init, +Unsafe SDL_InitFlags -- +Unsafe Int)
+def-external(+Unsafe.SDL_Quit -> SDL_Quit, +Unsafe -- +Unsafe)
+def-external(+Unsafe.SDL_GetError -> SDL_GetError, +Unsafe -- +Unsafe Ptr)
 
 data(+SDL, SDL!)
 data(+SDL?, OK! -> +SDL, ERROR! -> Str)
@@ -50,18 +50,16 @@ def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_EVENTS |
     SDL_INIT_SENSOR |)
 
-def-external(+Unsafe.SDL_Delay, SDL_Ticks --)
-def-external(+Unsafe.SDL_GetTicks, -- SDL_Ticks)
-def(+SDL.delay!, +SDL SDL_Ticks -- +SDL, unsafe(.SDL_Delay))
-def(+SDL.get-ticks!, +SDL -- SDL_Ticks +SDL, unsafe(.SDL_GetTicks))
+def-external(+SDL.delay! -> SDL_Delay, +SDL SDL_Ticks -- +SDL)
+def-external(+SDL.get-ticks! -> SDL_GetTicks, +SDL -- +SDL SDL_Ticks)
 def-type(SDL_Ticks, U32)
 def(ms, Int -- SDL_Ticks, >U32)
 
 data(+SDL_Window, SDL_WINDOW! -> unsafe-ptr:Ptr)
 data(+SDL_Window?, OK! -> +SDL_Window, ERROR! -> Str)
 def(+SDL_Window?.unwrap!, +SDL_Window? -- +SDL_Window, OK! -> id, ERROR! -> panic!)
-def-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow, Ptr Int Int Int Int SDL_WindowFlags -- Ptr)
-def-external(+Unsafe.SDL_DestroyWindow -> SDL_DestroyWindow, Ptr --)
+def-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow, +Unsafe Ptr Int Int Int Int SDL_WindowFlags -- +Unsafe Ptr)
+def-external(+Unsafe.SDL_DestroyWindow -> SDL_DestroyWindow, +Unsafe Ptr -- +Unsafe)
 def(+SDL.create-window!,
         +SDL title:Str
         x:Int y:Int

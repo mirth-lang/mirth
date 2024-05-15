@@ -115,10 +115,21 @@ def(Data.add-tag!, Tag Data --,
     dup2 num-tags swap ~value !
     dup tags rotr dip(List.snoc) ~tags !)
 
+
+field(Data.~is-phantom?, Data, Bool)
+def(Data.is-phantom?, Data -- Bool,
+    dup ~is-phantom? memoize(
+        dup is-resource? and(
+            dup tags /L1 and-some(num-total-inputs 0=)
+        )
+    ) nip)
+
 field(Data.~is-enum?, Data, Bool)
 def(Data.is-enum?, Data -- Bool,
     dup ~is-enum? memoize(
-        dup tags all(dup num-total-inputs 0=)
+        dup is-phantom? not and(
+            dup tags all(dup num-total-inputs 0=)
+        )
     ) nip)
 
 field(Data.~is-transparent?, Data, Bool)
