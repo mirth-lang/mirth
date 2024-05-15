@@ -7,7 +7,7 @@ import(std.ctypes)
 # SDL2 Bindings #
 #################
 
-def-external(+Unsafe.SDL_Init -> SDL_Init, +Unsafe SDL_InitFlags -- +Unsafe Int)
+def-external(+Unsafe.SDL_Init -> SDL_Init, +Unsafe SDL_InitFlags -- +Unsafe CInt)
 def-external(+Unsafe.SDL_Quit -> SDL_Quit, +Unsafe -- +Unsafe)
 def-external(+Unsafe.SDL_GetError -> SDL_GetError, +Unsafe -- +Unsafe CStr)
 
@@ -18,7 +18,7 @@ def(+SDL?.unwrap!, +SDL? -- +SDL, OK! -> id, ERROR! -> panic!)
 def(+SDL.get-error!, -- Str, unsafe(.SDL_GetError Str.copy-cstr))
 
 def(+SDL.init!, +World SDL_InitFlags -- +World +SDL?,
-    unsafe(.SDL_Init) 0= if(
+    unsafe(.SDL_Init) >Int 0= if(
         SDL! +SDL?.OK!,
         +SDL.get-error! +SDL?.ERROR!
     ))
@@ -60,7 +60,7 @@ data(+SDL_Window, SDL_WINDOW! -> unsafe-ptr:Ptr)
 data(+SDL_Window?, OK! -> +SDL_Window, ERROR! -> Str)
 def(+SDL_Window?.unwrap!, +SDL_Window? -- +SDL_Window, OK! -> id, ERROR! -> panic!)
 def-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow, +SDL +Unsafe title:CStr x:CInt y:CInt w:CInt h:CInt flags:SDL_WindowFlags -- +SDL +Unsafe Ptr)
-def-external(+Unsafe.SDL_DestroyWindow -> SDL_DestroyWindow, +SDL +Unsafe Ptr -- +SDL +Unsafe)
+def-external(+SDL_Window.destroy! -> SDL_DestroyWindow, +SDL +SDL_Window -- +SDL)
 def(+SDL.create-window!,
         +SDL title:Str
         x:Int y:Int
@@ -75,8 +75,6 @@ def(+SDL.create-window!,
         drop get-error! +SDL_Window?.ERROR!,
         >unsafe-ptr SDL_WINDOW! +SDL_Window?.OK!
     ))
-def(+SDL_Window.destroy!, +SDL +SDL_Window -- +SDL,
-    /SDL_WINDOW! unsafe-ptr> unsafe(.SDL_DestroyWindow))
 
 data(SDL_WindowFlags, SDL_WINDOW_FLAGS -> U32)
 inline(
@@ -124,13 +122,13 @@ data(+SDL_Renderer, SDL_RENDERER! -> unsafe-ptr:Ptr)
 data(+SDL_Renderer?, OK! -> +SDL_Renderer, ERROR! -> Str)
 def(+SDL_Renderer?.unwrap!, +SDL_Renderer? -- +SDL_Renderer, OK! -> id, ERROR! -> panic!)
 
-def-external(+Unsafe.SDL_CreateRenderer, Ptr Int SDL_RendererFlags -- Ptr)
+def-external(+Unsafe.SDL_CreateRenderer, Ptr CInt SDL_RendererFlags -- Ptr)
 def-external(+Unsafe.SDL_DestroyRenderer, Ptr --)
 
 def(+SDL_Window.create-renderer!,
         +SDL +SDL_Window index:Int flags:SDL_RendererFlags
         -- +SDL +SDL_Window +SDL_Renderer?,
-    .unsafe-ptr index> flags> unsafe(.SDL_CreateRenderer)
+    .unsafe-ptr index> CInt flags> unsafe(.SDL_CreateRenderer)
     dup is-null if(
         drop rdip:get-error! +SDL_Renderer?.ERROR!,
         >unsafe-ptr SDL_RENDERER! +SDL_Renderer?.OK!
@@ -149,7 +147,7 @@ def(SDL_RENDERER_TARGETTEXTURE, SDL_RendererFlags, 0x8 >U32)
 
 def-external(SDL_RenderClear, SDL_Renderer* --)
 def-external(SDL_RenderPresent, SDL_Renderer* --)
-def-external(SDL_SetRenderDrawColor, SDL_Renderer* Int Int Int Int --)
+def-external(SDL_SetRenderDrawColor, SDL_Renderer* CInt CInt CInt CInt --)
 def-external(SDL_RenderFillRect, SDL_Renderer* SDL_Rect* --)
 def-type(SDL_Rect*, Ptr)
 
@@ -160,7 +158,7 @@ data(SDL_Event, WRAP_SDL_EVENT -> Ptr)
 def(SDL_Event.unwrap, SDL_Event -- Ptr, WRAP_SDL_EVENT -> id)
 def(Ptr.>SDL_Event, Ptr -- SDL_Event, WRAP_SDL_EVENT)
 def(SDL_Event.>Ptr, SDL_Event -- Ptr, unwrap)
-def-external(SDL_PollEvent, SDL_Event -- Int)
+def-external(SDL_PollEvent, SDL_Event -- CInt)
 
 data(SDL_EventType, WRAP_SDL_EVENTTYPE -> U32)
 def(U32.>SDL_EventType, U32 -- SDL_EventType, WRAP_SDL_EVENTTYPE)
@@ -526,13 +524,13 @@ def(SDL_JoystickID.>, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) >)
 def(SDL_JoystickID.1+, SDL_JoystickID -- SDL_JoystickID, >Int 1+ >SDL_JoystickID)
 def(SDL_JoystickID.==, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) ==)
 
-def-external(+Unsafe.SDL_NumJoysticks, Int)
-def-external(+Unsafe.SDL_IsGameController, Int -- Bool)
-def-external(+Unsafe.SDL_GameControllerOpen, Int -- Ptr)
+def-external(+Unsafe.SDL_NumJoysticks, CInt)
+def-external(+Unsafe.SDL_IsGameController, CInt -- Bool)
+def-external(+Unsafe.SDL_GameControllerOpen, CInt -- Ptr)
 def-external(+Unsafe.SDL_GameControllerClose, Ptr --)
 
-def(+SDL.num-joysticks, +SDL -- +SDL Int, unsafe(.SDL_NumJoysticks))
-def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, unsafe(.SDL_IsGameController))
+def(+SDL.num-joysticks, +SDL -- +SDL Int, unsafe(.SDL_NumJoysticks) >Int)
+def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, CInt unsafe(.SDL_IsGameController))
 
 data(+SDL_GameController, SDL_GAME_CONTROLLER! -> unsafe-ptr:Ptr)
 data(+SDL_GameController?, OK! -> +SDL_GameController, ERROR! -> Str)
@@ -545,7 +543,7 @@ def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameCon
     ERROR! -> drop)
 
 def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
-    unsafe(.SDL_GameControllerOpen)
+    CInt unsafe(.SDL_GameControllerOpen)
     dup is-null if(
         drop get-error! +SDL_GameController?.ERROR!,
         >unsafe-ptr SDL_GAME_CONTROLLER! +SDL_GameController?.OK!

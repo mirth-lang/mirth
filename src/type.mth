@@ -1174,7 +1174,6 @@ def(Type.ctype1?, +Mirth CType Type -- +Mirth Maybe(CType),
     ))
 
 def(PrimType.ctype?, +Mirth PrimType -- +Mirth Maybe(CType),
-    PRIM_TYPE_INT -> "intptr_t" IntLike Some,
     PRIM_TYPE_PTR -> "void*" PtrLike Some,
     PRIM_TYPE_WORLD -> Phantom Some,
     _ -> drop None)

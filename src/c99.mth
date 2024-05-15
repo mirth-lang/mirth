@@ -533,7 +533,7 @@ def(c99-call!, List(Arg) Str +C99 -- +C99,
 
 def(c99-arrow!, Arrow +C99 -- +C99, atoms for(c99-atom!))
 def(c99-atom!, Atom +C99 -- +C99,
-    options emit-debug-info then(
+    options emit-debug-info and(dup show-in-stack-trace?) then(
         c99-line("WORD_ATOM(" put
             dup token row >Int show put ", " put
             dup token col >Int show put ", " put
@@ -543,6 +543,33 @@ def(c99-atom!, Atom +C99 -- +C99,
     )
     sip(args) op
     c99-args-op!)
+
+def(Atom.show-in-stack-trace?, Atom -- Bool,
+    op match(
+        OpNone -> False,
+        OpInt -> drop False,
+        OpStr -> drop False,
+        OpWord -> prefer-inline? not,
+        OpExternal -> drop True,
+        OpBuffer -> drop False,
+        OpVariable -> drop False,
+        OpField -> drop False,
+        OpTag -> prefer-inline? not,
+        OpPrim -> drop True,
+        OpMatch -> drop False,
+        OpLambda -> drop False,
+        OpVar -> drop False,
+        OpBlockPush -> drop False,
+        OpBlockRun -> drop False,
+        OpCoerce -> drop False,
+        OpLabelPush -> drop False,
+        OpLabelPop -> drop False,
+        OpLabelPushR -> drop False,
+        OpLabelPopR -> drop False,
+        OpDataGetTag -> drop False,
+        OpDataGetLabel -> drop2 False,
+        OpDataSetLabel -> drop2 False
+    ))
 
 def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OpNone     -> drop,

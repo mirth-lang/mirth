@@ -4,6 +4,7 @@ import(examples.sdl2)
 import(std.prelude)
 import(std.list)
 import(std.maybe)
+import(std.ctypes)
 
 ##############
 # Snake Game #
@@ -15,17 +16,8 @@ def(main, +World -- +World,
     quit!)
 
 data(+Snake, +Snake ->
-    +SnakePlatform
-    +SnakeLogic)
-
-def(+Snake.platform(f),
-        (*a +SnakePlatform -- *b +SnakePlatform)
-        *a +Snake -- *b +Snake,
-    /+Snake rdip:f +Snake)
-def(+Snake.logic(f),
-        (*a +SnakeLogic -- *b +SnakeLogic)
-        *a +Snake -- *b +Snake,
-    /+Snake rswap rdip:f rswap +Snake)
+    +platform: +SnakePlatform
+    +logic: +SnakeLogic)
 
 data(+SnakePlatform, +SnakePlatform ->
     +SDL
@@ -122,7 +114,7 @@ def(SDL_GameControllerButton.>SnakeButton?, SDL_GameControllerButton -- Maybe(Sn
     SDL_CONTROLLER_BUTTON_START -> SnakeButton.Start Some,
     _ -> drop None)
 
-def(+SnakeLogic.init!, -- +SnakeLogic,
+def(+SnakeLogic.init!, +World -- +World +SnakeLogic,
     False >done
     North >direction
     North >last-direction
@@ -140,7 +132,7 @@ def(+SnakeLogic.rdrop, +SnakeLogic --,
     mouse> direction> drop2
     last-direction> done> drop2)
 
-def(+SnakeLogic.reset!, +SnakeLogic -- +SnakeLogic,
+def(+SnakeLogic.reset!, +World +SnakeLogic -- +World +SnakeLogic,
     rdrop +SnakeLogic.init!)
 
 def(+SnakePlatform.init!, +World -- +World +SnakePlatform,
@@ -171,21 +163,21 @@ def(SNAKE_INIT_FLAGS, SDL_InitFlags,
     SDL_INIT_GAMECONTROLLER |)
 
 def(+Snake.init!, +World -- +World +Snake,
-    +SnakePlatform.init!
-    +SnakeLogic.init!
+    +SnakeLogic.init! >+logic
+    +SnakePlatform.init! >+platform
     +Snake)
 
-def(+Snake.loop!, +Snake -- +Snake,
+def(+Snake.loop!, +World +Snake -- +World +Snake,
     process-events!
-    while(logic:done not,
+    while(+logic:done not,
         present!
-        10 ms platform:sdl:delay!
+        10 ms +platform:sdl:delay!
         process-events!
-        logic:update!
+        +logic:update!
     ))
 
 def(+Snake.quit!, +World +Snake -- +World,
-    /+Snake rdrop quit!)
+    /+Snake +logic> rdrop +platform> quit!)
 
 def(+SnakePlatform.quit!, +World +SnakePlatform -- +World,
     /+SnakePlatform
@@ -225,28 +217,28 @@ def(snake-rect-cell!, Position --,
     snake-rect!)
 
 def(+Snake.present!, +Snake -- +Snake,
-    platform:window:show!
-    platform:clear!
-    logic:snake for(platform:draw-cell!)
-    logic:mouse platform:draw-cell!
-    platform:renderer:unsafe-ptr SDL_RenderPresent)
+    +platform:window:show!
+    +platform:clear!
+    +logic:snake for(+platform:draw-cell!)
+    +logic:mouse +platform:draw-cell!
+    +platform:renderer:unsafe-ptr SDL_RenderPresent)
 
 def(+SnakePlatform.clear!, +SnakePlatform -- +SnakePlatform,
-    renderer:unsafe-ptr snake-background-color SDL_SetRenderDrawColor
+    renderer:unsafe-ptr snake-background-color on4(CInt) SDL_SetRenderDrawColor
     renderer:unsafe-ptr SDL_RenderClear
-    renderer:unsafe-ptr snake-foreground-color SDL_SetRenderDrawColor)
+    renderer:unsafe-ptr snake-foreground-color on4(CInt) SDL_SetRenderDrawColor)
 
 def(+SnakePlatform.draw-cell!, +SnakePlatform Position -- +SnakePlatform,
     snake-rect-cell!
     renderer:unsafe-ptr SNAKE_RECT SDL_RenderFillRect)
 
-def(+Snake.process-events!, +Snake -- +Snake,
-    while(SNAKE_EVENT >SDL_Event SDL_PollEvent 0>, process-event!))
+def(+Snake.process-events!, +World +Snake -- +World +Snake,
+    while(SNAKE_EVENT >SDL_Event SDL_PollEvent >Int 0>, process-event!))
 
-def(+Snake.process-event!, +Snake -- +Snake,
+def(+Snake.process-event!, +World +Snake -- +World +Snake,
     SNAKE_EVENT >SDL_Event type@
     dup SDL_QUIT == if(
-        drop True logic:done!,
+        drop True +logic:done!,
 
     dup SDL_KEYDOWN == if(
         drop
@@ -254,20 +246,20 @@ def(+Snake.process-event!, +Snake -- +Snake,
             id,
             SNAKE_EVENT >SDL_Event key keysym scancode@
             match(
-                SDL_SCANCODE_ESCAPE -> True logic:done!,
-                _ -> >SnakeButton? for:logic:press!
+                SDL_SCANCODE_ESCAPE -> True +logic:done!,
+                _ -> >SnakeButton? for:+logic:press!
             )
         ),
 
     dup SDL_CONTROLLERBUTTONDOWN == if(
         drop
         SNAKE_EVENT >SDL_Event cbutton button@
-        >SnakeButton? for:logic:press!,
+        >SnakeButton? for:+logic:press!,
 
         drop
     ))))
 
-def(+SnakeLogic.press!, +SnakeLogic SnakeButton -- +SnakeLogic,
+def(+SnakeLogic.press!, +World +SnakeLogic SnakeButton -- +World +SnakeLogic,
     Up -> North turn!,
     Left -> West turn!,
     Down -> South turn!,
@@ -287,12 +279,12 @@ def(+SnakeLogic.tick!, +SnakeLogic -- +SnakeLogic Bool,
 def(+SnakeLogic.in-snake, +SnakeLogic Position -- +SnakeLogic Bool,
     snake member(==))
 
-def(+SnakeLogic.randomize-mouse!, +SnakeLogic -- +SnakeLogic,
-    random-position
-    while(dup in-snake, drop random-position)
+def(+SnakeLogic.randomize-mouse!, +World +SnakeLogic -- +World +SnakeLogic,
+    rdip:random-position
+    while(dup in-snake, drop rdip:random-position)
     mouse!)
 
-def(+SnakeLogic.update!, +SnakeLogic -- +SnakeLogic,
+def(+SnakeLogic.update!, +World +SnakeLogic -- +World +SnakeLogic,
     dead not and(tick!) then(
         direction last-direction!
         head direction apply
@@ -313,10 +305,10 @@ def(+SnakeLogic.update!, +SnakeLogic -- +SnakeLogic,
 
 def(+SnakeLogic.desired-length, +SnakeLogic -- +SnakeLogic Nat, points 5 + >Nat)
 
-def-external(libc-rand -> rand, Int)
-def(random-position, -- Position,
-    libc-rand SNAKE_W % >x
-    libc-rand SNAKE_H % >y
+def-external(libc-rand -> rand, +World -- +World CInt)
+def(random-position, +World -- +World Position,
+    libc-rand >Int SNAKE_W % >x
+    libc-rand >Int SNAKE_H % >y
     Position)
 def(center-position, -- Position,
     SNAKE_W 2/ >x
