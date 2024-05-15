@@ -5781,7 +5781,7 @@ static void mw_mirth_type_MetaVar_freshen (void);
 static void mw_mirth_type_typeZ_holeZ_unifyZBang (void);
 static void mw_mirth_type_Type_appZ_typeZThenZThen (void);
 static void mw_mirth_type_Type_appZ_typeZ_openZThenZThen (void);
-static void mw_mirth_type_Resource_ZDivRESOURCE (void);
+static void mw_mirth_type_Resource_ZDivResource (void);
 static void mw_mirth_type_Resource_ZToType (void);
 static void mw_mirth_type_Type_ZToResource (void);
 static void mw_mirth_type_Resource_hasZ_metaZAsk (void);
@@ -17260,7 +17260,7 @@ static void mw_mirth_type_PrimType_tyconZ_qname (void) {
 			break;
 		case 2LL: // PRIM_TYPE_RESOURCE
 			(void)pop_u64();
-			STRLIT("RESOURCE", 8);
+			STRLIT("Resource", 8);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
@@ -18667,7 +18667,7 @@ static void mw_mirth_type_PrimType_typeZThen (void) {
 			break;
 		case 2LL: // PRIM_TYPE_RESOURCE
 			(void)pop_u64();
-			STRLIT("<RESOURCE>", 10);
+			STRLIT("<Resource>", 10);
 			break;
 		case 3LL: // PRIM_TYPE_INT
 			(void)pop_u64();
@@ -19199,7 +19199,7 @@ static void mw_mirth_type_Type_appZ_typeZ_openZThenZThen (void) {
 			break;
 	}
 }
-static void mw_mirth_type_Resource_ZDivRESOURCE (void) {
+static void mw_mirth_type_Resource_ZDivResource (void) {
 }
 static void mw_mirth_type_Resource_ZToType (void) {
 }
@@ -19239,7 +19239,7 @@ static void mw_mirth_type_Resource_rigidifyZBang (void) {
 	mw_mirth_type_Type_ZToResource();
 }
 static void mw_mirth_type_Resource_exceptZ_field (void) {
-	mw_mirth_type_Resource_ZDivRESOURCE();
+	mw_mirth_type_Resource_ZDivResource();
 	mw_mirth_type_Type_exceptZ_field();
 }
 static void mw_mirth_type_Type_ZToStackType (void) {
@@ -19665,7 +19665,7 @@ static void mw_mirth_type_StackType_topZ_resourceZ_isZ_fineZAsk (void) {
 				mp_primZ_drop();
 				push_value(d4);
 			}
-			mw_mirth_type_Resource_ZDivRESOURCE();
+			mw_mirth_type_Resource_ZDivResource();
 			mw_mirth_type_Type_errorZAsk();
 			if (pop_u64()) {
 				push_u64(0LL); // False
@@ -21914,7 +21914,7 @@ static void mw_mirth_type_CType_phantomZAsk (void) {
 	}
 }
 static void mw_mirth_type_Resource_ctype (void) {
-	mw_mirth_type_Resource_ZDivRESOURCE();
+	mw_mirth_type_Resource_ZDivResource();
 	mw_mirth_type_Type_ctype();
 }
 static void mw_mirth_type_Type_ctype (void) {
@@ -21925,7 +21925,7 @@ static void mw_mirth_type_Type_ctype (void) {
 	mw_std_maybe_Maybe_1_ifZ_some_2();
 }
 static void mw_mirth_type_Resource_ctypeZAsk (void) {
-	mw_mirth_type_Resource_ZDivRESOURCE();
+	mw_mirth_type_Resource_ZDivResource();
 	mw_mirth_type_Type_ctypeZAsk();
 }
 static void mw_mirth_type_Type_ctypeZAsk (void) {

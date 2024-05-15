@@ -192,7 +192,7 @@ def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
     dup sip:TData params for(TVar TApp)
     swap is-value-type? if(
         Left,
-        RESOURCE Right
+        Resource Right
     ))
 
 #######

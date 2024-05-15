@@ -78,7 +78,7 @@ def(Type.tycon?, Type -- Maybe(Tycon),
 def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
     PRIM_TYPE_TYPE -> "TYPE" 0 QName.prim,
     PRIM_TYPE_STACK -> "STACK" 0 QName.prim,
-    PRIM_TYPE_RESOURCE -> "RESOURCE" 0 QName.prim,
+    PRIM_TYPE_RESOURCE -> "Resource" 0 QName.prim,
     PRIM_TYPE_INT -> "Int" 0 QName.prim,
     PRIM_TYPE_STR -> "Str" 0 QName.prim,
     PRIM_TYPE_PTR -> "Ptr" 0 QName.prim,
@@ -165,7 +165,7 @@ def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but no
 # def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
 # def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
 def(TYPE_WORLD, Type, PRIM_TYPE_WORLD TPrim)
-def(RESOURCE_WORLD, Resource, TYPE_WORLD RESOURCE)
+def(RESOURCE_WORLD, Resource, TYPE_WORLD Resource)
 
 def(Type.expand, Type -- Type,
     TMeta -> expand,
@@ -374,7 +374,7 @@ def(PrimType.type;, +Str PrimType -- +Str,
     match(
         PRIM_TYPE_TYPE -> "<TYPE>",
         PRIM_TYPE_STACK -> "<STACK>",
-        PRIM_TYPE_RESOURCE -> "<RESOURCE>",
+        PRIM_TYPE_RESOURCE -> "<Resource>",
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
@@ -561,12 +561,12 @@ def(Type.app-type-open;;, +Str Type Type -- +Str,
     ))
 
 #################
-# RESOURCE TYPE #
+# Resource TYPE #
 #################
 
-data(Resource, RESOURCE -> Type)
-def(Resource.>Type, Resource -- Type, RESOURCE -> id)
-def(Type.>Resource, Type -- Resource, RESOURCE)
+data(Resource, Resource -> Type)
+def(Resource.>Type, Resource -- Type, Resource -> id)
+def(Type.>Resource, Type -- Resource, Resource)
 def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
 def(Resource.unify!, +Mirth +Gamma Resource Resource -- +Mirth +Gamma Resource,
     both(>Type) unify! >Resource)
@@ -579,7 +579,7 @@ def(Resource.rigidify!, +Mirth Ctx Resource -- +Mirth Ctx Resource,
     >Type rigidify! >Resource)
 
 def(Resource.except-field, Label Tag Resource -- Resource,
-    /RESOURCE except-field RESOURCE)
+    /Resource except-field Resource)
 
 ##############
 # STACK TYPE #
@@ -720,7 +720,7 @@ def(StackType.top-resource-is-fine?, StackType -- Bool,
     expand match(
         STCons -> drop top-resource-is-fine?,
         STConsLabel -> drop2 top-resource-is-fine?,
-        STWith -> nip /RESOURCE error? not,
+        STWith -> nip /Resource error? not,
         STWithLabel -> drop2 top-resource-is-fine?,
         STMeta -> drop True,
         STVar -> drop True,
@@ -851,8 +851,8 @@ def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
 
 def(StackType.force-with-label?!, Label StackType -- Maybe([StackType Resource]),
     expand match(
-        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR RESOURCE pack2 Some,
-        STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE RESOURCE pack2 Some,
+        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR Resource pack2 Some,
+        STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE Resource pack2 Some,
         STACK_TYPE_UNIT -> drop None,
         STVar -> drop2 None,
         STWith -> dip(force-with-label?!) swap map(unpack2 dip(over STWith) pack2) nip,
@@ -874,7 +874,7 @@ def(StackType.force-with-label?!, Label StackType -- Maybe([StackType Resource])
                 )
             ),
         STMeta ->
-            dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta RESOURCE dup2) STWithLabel >Type Some) ~type? !
+            dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta Resource dup2) STWithLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -903,8 +903,8 @@ def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
 
 def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
     expand match(
-        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR RESOURCE pack2 Some,
-        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE RESOURCE pack2 Some,
+        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR Resource pack2 Some,
+        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE Resource pack2 Some,
         STACK_TYPE_UNIT -> None,
         STVar -> drop None,
         STWith -> pack2 Some,
@@ -919,7 +919,7 @@ def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
         ),
         STMeta ->
             dip(MetaVar.new! STMeta
-                MetaVar.new! TMeta RESOURCE
+                MetaVar.new! TMeta Resource
                 dup2 STWith >Type Some) ~type? !
             pack2 Some,
     ))
@@ -1147,7 +1147,7 @@ def(CType.phantom?, CType -- Bool,
     _ -> drop False)
 
 def(Resource.ctype, +Mirth Resource -- +Mirth CType,
-    /RESOURCE ctype)
+    /Resource ctype)
 
 def(Type.ctype, +Mirth Type -- +Mirth CType,
     dup ctype? if-some(
@@ -1157,7 +1157,7 @@ def(Type.ctype, +Mirth Type -- +Mirth CType,
     ))
 
 def(Resource.ctype?, +Mirth Resource -- +Mirth Maybe(CType),
-    /RESOURCE ctype?)
+    /Resource ctype?)
 
 def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
     expand match(

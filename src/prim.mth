@@ -389,7 +389,7 @@ def(init-prims!, +Mirth -- +Mirth,
     TYPE_STACK "*y" >Name Var.new!
     \( a b c rr sr xs ys ->
         a TVar b TVar c TVar
-        rr TVar RESOURCE sr TVar RESOURCE
+        rr TVar Resource sr TVar Resource
         xs STVar ys STVar
     \( ta tb tc trr tsr txs tys ->
         a Ctx1
