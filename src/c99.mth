@@ -456,26 +456,31 @@ def(c99-external!, External +C99 -- +C99,
 def(CType.c99-pop-value, CType +C99 -- +C99,
     IntLike -> "(" put put ")pop_i64()" put,
     PtrLike -> "(" put put ")pop_ptr()" put,
+    FnPtr   -> "(" put put ")pop_fnptr()" put,
     Phantom -> "(void)pop_value()" put )
 
 def(CType.c99-pop-resource, CType +C99 -- +C99,
     IntLike -> "(" put put ")value_i64(pop_resource())" put,
     PtrLike -> "(" put put ")value_ptr(pop_resource())" put,
+    FnPtr   -> "(" put put ")value_fnptr(pop_resource())" put,
     Phantom -> "(void)pop_resource()" put)
 
 def(CType.c99-pop-label, Label CType +C99 -- +C99,
     IntLike -> "(" put put ")value_i64(lpop(&lbl_" put name mangled put "))" put,
     PtrLike -> "(" put put ")value_ptr(lpop(&lbl_" put name mangled put "))" put,
+    FnPtr   -> "(" put put ")value_fnptr(lpop(&lbl_" put name mangled put "))" put,
     Phantom -> "(void)lpop(&lbl_" put name mangled put ")" put)
 
 def(CType.c99-push-value, Str CType +C99 -- +C99,
     IntLike -> drop "push_i64((int64_t)(" put put "));" put,
     PtrLike -> drop "push_ptr((void*)(" put put "));" put,
+    FnPtr   -> drop "push_fnptr((FNPTR)(" put put "));" put,
     Phantom -> drop "push_i64(0);" put)
 
 def(CType.c99-push-resource, Str CType +C99 -- +C99,
     IntLike -> drop "push_resource(MKI64((int64_t)(" put put ")));" put,
     PtrLike -> drop "push_resource(MKPTR((void*)(" put put ")));" put,
+    FnPtr   -> drop "push_resource(MKFNPTR((FNPTR)(" put put ")));" put,
     Phantom -> drop "push_resource(MKI64(0));" put)
 
 def(CType.c99-push-label, Str Label CType +C99 -- +C99,
@@ -485,6 +490,9 @@ def(CType.c99-push-label, Str Label CType +C99 -- +C99,
     PtrLike ->
         drop "lpush(&lbl_" put name mangled put ", " put
         "MKI64((int64_t)(" put put ")));" put,
+    FnPtr ->
+        drop "lpush(&lbl_" put name mangled put ", " put
+        "MKFNPTR((FNPTR)(" put put ")));" put,
     Phantom ->
         nip "lpush(&lbl_" put name mangled put ", " put
         "MKI64((int64_t)(0)));" put,

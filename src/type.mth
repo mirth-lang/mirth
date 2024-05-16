@@ -1135,11 +1135,13 @@ def(StackType.split-parts, StackType -- StackType List(StackTypePart),
 data(CType,
     IntLike -> Str,
     PtrLike -> Str,
+    FnPtr   -> Str,
     Phantom)
 
 def(CType.cname, CType -- Str,
     IntLike -> id,
     PtrLike -> id,
+    FnPtr   -> id,
     Phantom -> "void")
 
 def(CType.phantom?, CType -- Bool,
@@ -1163,6 +1165,7 @@ def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
     expand match(
         TPrim -> ctype?,
         TData -> ctype?,
+        TMorphism -> drop "FNPTR" FnPtr Some,
         TApp -> ctype? bind(over ctype1?) nip,
         _ -> drop None,
     ))
@@ -1185,20 +1188,23 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cconst == if(
         drop match(
             IntLike -> "const " swap cat IntLike Some,
+            FnPtr   -> "const " swap cat FnPtr Some,
             PtrLike -> " const" cat PtrLike Some,
             Phantom -> Phantom Some,
         ),
 
     dup builtin crestrict == if(
         drop match(
+            IntLike -> "restrict " swap cat IntLike Some,
+            FnPtr   -> "restrict " swap cat FnPtr Some,
             PtrLike -> " restrict" cat PtrLike Some,
-            IntLike -> drop None,
             Phantom -> Phantom Some,
         ),
 
     dup builtin cvolatile == if(
         drop match(
             IntLike -> "volatile " swap cat IntLike Some,
+            FnPtr   -> "volatile " swap cat FnPtr Some,
             PtrLike -> " volatile" cat PtrLike Some,
             Phantom -> Phantom Some,
         ),
@@ -1234,15 +1240,34 @@ def(StackTypePart.ctype, StackTypePart +Mirth -- CTypeStackPart +Mirth,
     STPWith -> ctype CTSPWith,
     STPWithLabel -> dip(ctype) CTSPWithLabel)
 
-def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
-    split-parts map(ctype) >parts
-    match(
+def(StackTypePart.ctype?, StackTypePart +Mirth -- Maybe(CTypeStackPart) +Mirth,
+    STPCons -> ctype? map(CTSPCons),
+    STPConsLabel -> >x ctype? map(@x CTSPConsLabel) x> drop,
+    STPWith -> ctype? map(CTSPWith),
+    STPWithLabel -> >x ctype? map(@x CTSPWithLabel) x> drop)
+
+def(StackType.base-ctype?, StackType +Mirth -- Maybe(Var) +Mirth,
+    expand match(
         STVar -> Some,
         STACK_TYPE_UNIT -> None,
         STACK_TYPE_ERROR -> None,
-        _ -> "unexpected stack base in StackType.ctype" panic!,
-    ) >base?
+        _ -> "unexpected stack base in StackType.base-ctype" panic!,
+    ))
+
+def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
+    split-parts
+    map(ctype) >parts
+    base-ctype? >base?
     CTypeStack)
+
+def(StackType.ctype?, StackType +Mirth -- Maybe(CTypeStack) +Mirth,
+    split-parts map(ctype?) dup all(dup some?) if(
+        map(unwrap) >parts
+        base-ctype? >base?
+        CTypeStack Some,
+
+        drop2 None
+    ))
 
 data(CTypeArrow, CTypeArrow ->
     dom: CTypeStack
@@ -1250,3 +1275,6 @@ data(CTypeArrow, CTypeArrow ->
 
 def(ArrowType.ctype, ArrowType +Mirth -- CTypeArrow +Mirth,
     unpack dip(ctype >dom) ctype >cod CTypeArrow)
+
+def(ArrowType.ctype?, ArrowType +Mirth -- Maybe(CTypeArrow) +Mirth,
+    unpack on2(ctype?) map2(>cod >dom CTypeArrow))
