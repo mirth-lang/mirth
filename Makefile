@@ -40,7 +40,7 @@ checksan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c
 
 clean:
 	cp bin/mirth0.c mirth0.c
-	rm -rf bin/*.c bin/*.exe bin/eval
+	rm -rf bin/*.c bin/*.exe bin/eval bin/test
 	mv mirth0.c bin/
 
 install-vim:
