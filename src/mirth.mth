@@ -56,6 +56,7 @@ data(Builtin, Builtin ->
     cconst:     Data  mk-cconst:     Tag
     crestrict:  Data  mk-crestrict:  Tag
     cvolatile:  Data  mk-cvolatile:  Tag
+    cvoid:      Data  mk-cvoid:      Tag
 )
 
 def(Builtin.alloc!, -- Builtin,
@@ -91,6 +92,7 @@ def(Builtin.alloc!, -- Builtin,
     Data.alloc! >cconst      Tag.alloc! >mk-cconst
     Data.alloc! >crestrict   Tag.alloc! >mk-crestrict
     Data.alloc! >cvolatile   Tag.alloc! >mk-cvolatile
+    Data.alloc! >cvoid       Tag.alloc! >mk-cvoid
 
     Builtin)
 

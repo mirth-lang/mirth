@@ -87,7 +87,6 @@ def(init-data!, +Mirth -- +Mirth,
     "True" 1 L0 builtin true make-prim-tag!
 
     TYPE_TYPE "a" >Name Var.new! >a
-
     "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
     "CPtr" 0 TYPE_PTR L1 builtin mk-cptr make-prim-tag!
     "CConst" @a L1 builtin cconst builtin mk-cconst L1 None make-prim-data!
@@ -96,8 +95,10 @@ def(init-data!, +Mirth -- +Mirth,
     "CRestrict" 0 @a TVar L1 builtin mk-crestrict make-prim-tag!
     "CVolatile" @a L1 builtin cvolatile builtin mk-cvolatile L1 None make-prim-data!
     "CVolatile" 0 @a TVar L1 builtin mk-cvolatile make-prim-tag!
-
     a> drop
+
+    "CVoid" L0 builtin cvoid builtin mk-cvoid L1 Phantom Some make-prim-data!
+    "CVoid" 0 L0 builtin mk-cvoid make-prim-tag!
 
     "U64" builtin u64 "Int>U64-unsafe" builtin mk-u64 "uint64_t" make-prim-intlike!
     "U32" builtin u32 "Int>U32-unsafe" builtin mk-u32 "uint32_t" make-prim-intlike!
@@ -192,7 +193,7 @@ def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
     dup sip:TData params for(TVar TApp)
     swap is-value-type? if(
         Left,
-        RESOURCE Right
+        Resource Right
     ))
 
 #######

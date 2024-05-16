@@ -78,7 +78,7 @@ def(Type.tycon?, Type -- Maybe(Tycon),
 def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
     PRIM_TYPE_TYPE -> "TYPE" 0 QName.prim,
     PRIM_TYPE_STACK -> "STACK" 0 QName.prim,
-    PRIM_TYPE_RESOURCE -> "RESOURCE" 0 QName.prim,
+    PRIM_TYPE_RESOURCE -> "Resource" 0 QName.prim,
     PRIM_TYPE_INT -> "Int" 0 QName.prim,
     PRIM_TYPE_STR -> "Str" 0 QName.prim,
     PRIM_TYPE_PTR -> "Ptr" 0 QName.prim,
@@ -165,7 +165,7 @@ def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but no
 # def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
 # def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
 def(TYPE_WORLD, Type, PRIM_TYPE_WORLD TPrim)
-def(RESOURCE_WORLD, Resource, TYPE_WORLD RESOURCE)
+def(RESOURCE_WORLD, Resource, TYPE_WORLD Resource)
 
 def(Type.expand, Type -- Type,
     TMeta -> expand,
@@ -374,7 +374,7 @@ def(PrimType.type;, +Str PrimType -- +Str,
     match(
         PRIM_TYPE_TYPE -> "<TYPE>",
         PRIM_TYPE_STACK -> "<STACK>",
-        PRIM_TYPE_RESOURCE -> "<RESOURCE>",
+        PRIM_TYPE_RESOURCE -> "<Resource>",
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
@@ -561,12 +561,12 @@ def(Type.app-type-open;;, +Str Type Type -- +Str,
     ))
 
 #################
-# RESOURCE TYPE #
+# Resource TYPE #
 #################
 
-data(Resource, RESOURCE -> Type)
-def(Resource.>Type, Resource -- Type, RESOURCE -> id)
-def(Type.>Resource, Type -- Resource, RESOURCE)
+data(Resource, Resource -> Type)
+def(Resource.>Type, Resource -- Type, Resource -> id)
+def(Type.>Resource, Type -- Resource, Resource)
 def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
 def(Resource.unify!, +Mirth +Gamma Resource Resource -- +Mirth +Gamma Resource,
     both(>Type) unify! >Resource)
@@ -579,7 +579,7 @@ def(Resource.rigidify!, +Mirth Ctx Resource -- +Mirth Ctx Resource,
     >Type rigidify! >Resource)
 
 def(Resource.except-field, Label Tag Resource -- Resource,
-    /RESOURCE except-field RESOURCE)
+    /Resource except-field Resource)
 
 ##############
 # STACK TYPE #
@@ -720,7 +720,7 @@ def(StackType.top-resource-is-fine?, StackType -- Bool,
     expand match(
         STCons -> drop top-resource-is-fine?,
         STConsLabel -> drop2 top-resource-is-fine?,
-        STWith -> nip /RESOURCE error? not,
+        STWith -> nip /Resource error? not,
         STWithLabel -> drop2 top-resource-is-fine?,
         STMeta -> drop True,
         STVar -> drop True,
@@ -851,8 +851,8 @@ def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
 
 def(StackType.force-with-label?!, Label StackType -- Maybe([StackType Resource]),
     expand match(
-        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR RESOURCE pack2 Some,
-        STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE RESOURCE pack2 Some,
+        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR Resource pack2 Some,
+        STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE Resource pack2 Some,
         STACK_TYPE_UNIT -> drop None,
         STVar -> drop2 None,
         STWith -> dip(force-with-label?!) swap map(unpack2 dip(over STWith) pack2) nip,
@@ -874,7 +874,7 @@ def(StackType.force-with-label?!, Label StackType -- Maybe([StackType Resource])
                 )
             ),
         STMeta ->
-            dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta RESOURCE dup2) STWithLabel >Type Some) ~type? !
+            dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta Resource dup2) STWithLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -903,8 +903,8 @@ def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
 
 def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
     expand match(
-        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR RESOURCE pack2 Some,
-        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE RESOURCE pack2 Some,
+        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR Resource pack2 Some,
+        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE Resource pack2 Some,
         STACK_TYPE_UNIT -> None,
         STVar -> drop None,
         STWith -> pack2 Some,
@@ -919,7 +919,7 @@ def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
         ),
         STMeta ->
             dip(MetaVar.new! STMeta
-                MetaVar.new! TMeta RESOURCE
+                MetaVar.new! TMeta Resource
                 dup2 STWith >Type Some) ~type? !
             pack2 Some,
     ))
@@ -1135,11 +1135,13 @@ def(StackType.split-parts, StackType -- StackType List(StackTypePart),
 data(CType,
     IntLike -> Str,
     PtrLike -> Str,
+    FnPtr   -> Str,
     Phantom)
 
 def(CType.cname, CType -- Str,
     IntLike -> id,
     PtrLike -> id,
+    FnPtr   -> id,
     Phantom -> "void")
 
 def(CType.phantom?, CType -- Bool,
@@ -1147,7 +1149,7 @@ def(CType.phantom?, CType -- Bool,
     _ -> drop False)
 
 def(Resource.ctype, +Mirth Resource -- +Mirth CType,
-    /RESOURCE ctype)
+    /Resource ctype)
 
 def(Type.ctype, +Mirth Type -- +Mirth CType,
     dup ctype? if-some(
@@ -1157,12 +1159,13 @@ def(Type.ctype, +Mirth Type -- +Mirth CType,
     ))
 
 def(Resource.ctype?, +Mirth Resource -- +Mirth Maybe(CType),
-    /RESOURCE ctype?)
+    /Resource ctype?)
 
 def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
     expand match(
         TPrim -> ctype?,
         TData -> ctype?,
+        TMorphism -> drop "FNPTR" FnPtr Some,
         TApp -> ctype? bind(over ctype1?) nip,
         _ -> drop None,
     ))
@@ -1185,20 +1188,23 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cconst == if(
         drop match(
             IntLike -> "const " swap cat IntLike Some,
+            FnPtr   -> "const " swap cat FnPtr Some,
             PtrLike -> " const" cat PtrLike Some,
             Phantom -> Phantom Some,
         ),
 
     dup builtin crestrict == if(
         drop match(
+            IntLike -> "restrict " swap cat IntLike Some,
+            FnPtr   -> "restrict " swap cat FnPtr Some,
             PtrLike -> " restrict" cat PtrLike Some,
-            IntLike -> drop None,
             Phantom -> Phantom Some,
         ),
 
     dup builtin cvolatile == if(
         drop match(
             IntLike -> "volatile " swap cat IntLike Some,
+            FnPtr   -> "volatile " swap cat FnPtr Some,
             PtrLike -> " volatile" cat PtrLike Some,
             Phantom -> Phantom Some,
         ),
@@ -1234,15 +1240,34 @@ def(StackTypePart.ctype, StackTypePart +Mirth -- CTypeStackPart +Mirth,
     STPWith -> ctype CTSPWith,
     STPWithLabel -> dip(ctype) CTSPWithLabel)
 
-def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
-    split-parts map(ctype) >parts
-    match(
+def(StackTypePart.ctype?, StackTypePart +Mirth -- Maybe(CTypeStackPart) +Mirth,
+    STPCons -> ctype? map(CTSPCons),
+    STPConsLabel -> >x ctype? map(@x CTSPConsLabel) x> drop,
+    STPWith -> ctype? map(CTSPWith),
+    STPWithLabel -> >x ctype? map(@x CTSPWithLabel) x> drop)
+
+def(StackType.base-ctype?, StackType +Mirth -- Maybe(Var) +Mirth,
+    expand match(
         STVar -> Some,
         STACK_TYPE_UNIT -> None,
         STACK_TYPE_ERROR -> None,
-        _ -> "unexpected stack base in StackType.ctype" panic!,
-    ) >base?
+        _ -> "unexpected stack base in StackType.base-ctype" panic!,
+    ))
+
+def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
+    split-parts
+    map(ctype) >parts
+    base-ctype? >base?
     CTypeStack)
+
+def(StackType.ctype?, StackType +Mirth -- Maybe(CTypeStack) +Mirth,
+    split-parts map(ctype?) dup all(dup some?) if(
+        map(unwrap) >parts
+        base-ctype? >base?
+        CTypeStack Some,
+
+        drop2 None
+    ))
 
 data(CTypeArrow, CTypeArrow ->
     dom: CTypeStack
@@ -1250,3 +1275,6 @@ data(CTypeArrow, CTypeArrow ->
 
 def(ArrowType.ctype, ArrowType +Mirth -- CTypeArrow +Mirth,
     unpack dip(ctype >dom) ctype >cod CTypeArrow)
+
+def(ArrowType.ctype?, ArrowType +Mirth -- Maybe(CTypeArrow) +Mirth,
+    unpack on2(ctype?) map2(>cod >dom CTypeArrow))

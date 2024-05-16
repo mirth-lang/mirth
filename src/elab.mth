@@ -95,10 +95,10 @@ def(+TypeElab.elab-type-arg!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
 def(+TypeElab.elab-resource-arg!, +Mirth +TypeElab -- +Mirth +TypeElab Resource,
     token elab-stack-type-part!
     match(
-        STPCons -> drop "Expected resource, not type." rdip:emit-error! TYPE_ERROR RESOURCE,
-        STPConsLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR RESOURCE,
+        STPCons -> drop "Expected resource, not type." rdip:emit-error! TYPE_ERROR Resource,
+        STPConsLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR Resource,
         STPWith -> nip,
-        STPWithLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR RESOURCE,
+        STPWithLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR Resource,
     )
     token arg-end? else(
         token "Unexpected token after resource." rdip:emit-error!
@@ -149,7 +149,7 @@ def(+TypeElab.elab-type-var!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
     TYPE_TYPE elab-implicit-var! if-some(TVar, TYPE_ERROR))
 
 def(+TypeElab.elab-resource-var!, +Mirth +TypeElab -- +Mirth +TypeElab Resource,
-    TYPE_RESOURCE elab-implicit-var! if-some(TVar, TYPE_ERROR) RESOURCE)
+    TYPE_RESOURCE elab-implicit-var! if-some(TVar, TYPE_ERROR) Resource)
 
 def(+TypeElab.gamma(f), (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab,
     token rdip(>token +Gamma f rdrop))
@@ -401,7 +401,7 @@ def(+TypeElab.elab-type-con!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
     ))
 
 def(+TypeElab.elab-resource-con!, +Mirth +TypeElab -- +Mirth +TypeElab Resource,
-    elab-type-con! RESOURCE)
+    elab-type-con! Resource)
 
 def(+TypeElab.elab-type-args!, +Mirth +TypeElab Type -- +Mirth +TypeElab Type,
     token has-args? if(
@@ -689,11 +689,11 @@ def(elab-label-pop-sig!, Label -- OpSig,
     STConsLabel dip(STCons) swap T-> OPSIG_APPLY)
 
 def(elab-label-push-r-sig!, Label -- OpSig,
-    dip(MetaVar.new! STMeta MetaVar.new! TMeta RESOURCE dup2)
+    dip(MetaVar.new! STMeta MetaVar.new! TMeta Resource dup2)
     STWithLabel dip(STWith) T-> OPSIG_APPLY)
 
 def(elab-label-pop-r-sig!, Label -- OpSig,
-    dip(MetaVar.new! STMeta MetaVar.new! TMeta RESOURCE dup2)
+    dip(MetaVar.new! STMeta MetaVar.new! TMeta Resource dup2)
     STWithLabel dip(STWith) swap T-> OPSIG_APPLY)
 
 def(elab-arrow!, +Mirth Ctx ArrowType Token Home -- +Mirth Arrow,

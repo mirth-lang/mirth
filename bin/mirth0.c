@@ -1448,6 +1448,8 @@ static VAL lbl_crestrict = MKNIL_C;
 static VAL lbl_mkZ_crestrict = MKNIL_C;
 static VAL lbl_cvolatile = MKNIL_C;
 static VAL lbl_mkZ_cvolatile = MKNIL_C;
+static VAL lbl_cvoid = MKNIL_C;
+static VAL lbl_mkZ_cvoid = MKNIL_C;
 static VAL lbl_numZ_errors = MKNIL_C;
 static VAL lbl_numZ_warnings = MKNIL_C;
 static VAL lbl_preferZ_inlineZ_defs = MKNIL_C;
@@ -1469,6 +1471,7 @@ static VAL lbl_labels = MKNIL_C;
 static VAL lbl_withses = MKNIL_C;
 static VAL lbl_conses = MKNIL_C;
 static VAL lbl_parts = MKNIL_C;
+static VAL lbl_x = MKNIL_C;
 static VAL lbl_baseZAsk = MKNIL_C;
 static VAL lbl_dom = MKNIL_C;
 static VAL lbl_cod = MKNIL_C;
@@ -3332,6 +3335,25 @@ static void mtp_mirth_type_CType_PtrLike (void) {
 		free(tup);
 	}
 }
+static void mtw_mirth_type_CType_FnPtr (void) {
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
+}
+static void mtp_mirth_type_CType_FnPtr (void) {
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
+}
 static void mtw_mirth_type_CTypeStackPart_CTSPCons (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
@@ -3798,9 +3820,11 @@ static void mtp_mirth_location_Location_Location (void) {
 	}
 }
 static void mtw_mirth_mirth_Builtin_Builtin (void) {
-	TUP* tup = tup_new(60);
-	tup->size = 60;
+	TUP* tup = tup_new(62);
+	tup->size = 62;
 	tup->cells[0] = MKU64(0LL);
+	tup->cells[61] = lpop(&lbl_mkZ_cvoid);
+	tup->cells[60] = lpop(&lbl_cvoid);
 	tup->cells[59] = lpop(&lbl_mkZ_cvolatile);
 	tup->cells[58] = lpop(&lbl_cvolatile);
 	tup->cells[57] = lpop(&lbl_mkZ_crestrict);
@@ -3860,7 +3884,7 @@ static void mtw_mirth_mirth_Builtin_Builtin (void) {
 	tup->cells[3] = lpop(&lbl_bool);
 	tup->cells[2] = lpop(&lbl_prim);
 	tup->cells[1] = lpop(&lbl_std);
-	push_value(MKTUP(tup, 60));
+	push_value(MKTUP(tup, 62));
 }
 static void mtw_mirth_mirth_ZPlusMirth_ZPlusMirth (void) {
 	TUP* tup = tup_new(8);
@@ -5781,7 +5805,7 @@ static void mw_mirth_type_MetaVar_freshen (void);
 static void mw_mirth_type_typeZ_holeZ_unifyZBang (void);
 static void mw_mirth_type_Type_appZ_typeZThenZThen (void);
 static void mw_mirth_type_Type_appZ_typeZ_openZThenZThen (void);
-static void mw_mirth_type_Resource_ZDivRESOURCE (void);
+static void mw_mirth_type_Resource_ZDivResource (void);
 static void mw_mirth_type_Resource_ZToType (void);
 static void mw_mirth_type_Type_ZToResource (void);
 static void mw_mirth_type_Resource_hasZ_metaZAsk (void);
@@ -5857,6 +5881,7 @@ static void mw_mirth_type_CTypeStackPart_ctype (void);
 static void mw_mirth_type_CTypeStackPart_labelZAsk (void);
 static void mw_mirth_type_CTypeStack_parts (void);
 static void mw_mirth_type_StackTypePart_ctype (void);
+static void mw_mirth_type_StackType_baseZ_ctypeZAsk (void);
 static void mw_mirth_type_StackType_ctype (void);
 static void mw_mirth_type_CTypeArrow_cod (void);
 static void mw_mirth_type_CTypeArrow_dom (void);
@@ -6002,6 +6027,8 @@ static void mw_mirth_alias_Alias_qname (void);
 static void mw_mirth_alias_Alias_target (void);
 static void mw_mirth_alias_Alias_ZEqualZEqual (void);
 static void mw_mirth_alias_Alias_newZBang (void);
+static void mw_mirth_mirth_Builtin_mkZ_cvoid (void);
+static void mw_mirth_mirth_Builtin_cvoid (void);
 static void mw_mirth_mirth_Builtin_mkZ_cvolatile (void);
 static void mw_mirth_mirth_Builtin_cvolatile (void);
 static void mw_mirth_mirth_Builtin_mkZ_crestrict (void);
@@ -14625,6 +14652,23 @@ static void mw_mirth_data_initZ_dataZBang (void) {
 	mw_mirth_data_makeZ_primZ_tagZBang();
 	LPOP(lbl_a);
 	mp_primZ_drop();
+	STRLIT("CVoid", 5);
+	push_u64(0LL); // Nil
+	mw_mirth_mirth_ZPlusMirth_builtin();
+	mw_mirth_mirth_Builtin_cvoid();
+	mw_mirth_mirth_ZPlusMirth_builtin();
+	mw_mirth_mirth_Builtin_mkZ_cvoid();
+	push_u64(0LL); // Nil
+	mtw_std_list_List_1_Cons();
+	push_u64(3LL); // Phantom
+	mtw_std_maybe_Maybe_1_Some();
+	mw_mirth_data_makeZ_primZ_dataZBang();
+	STRLIT("CVoid", 5);
+	push_i64(0LL);
+	push_u64(0LL); // Nil
+	mw_mirth_mirth_ZPlusMirth_builtin();
+	mw_mirth_mirth_Builtin_mkZ_cvoid();
+	mw_mirth_data_makeZ_primZ_tagZBang();
 	STRLIT("U64", 3);
 	mw_mirth_mirth_ZPlusMirth_builtin();
 	mw_mirth_mirth_Builtin_u64();
@@ -17260,7 +17304,7 @@ static void mw_mirth_type_PrimType_tyconZ_qname (void) {
 			break;
 		case 2LL: // PRIM_TYPE_RESOURCE
 			(void)pop_u64();
-			STRLIT("RESOURCE", 8);
+			STRLIT("Resource", 8);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
@@ -18667,7 +18711,7 @@ static void mw_mirth_type_PrimType_typeZThen (void) {
 			break;
 		case 2LL: // PRIM_TYPE_RESOURCE
 			(void)pop_u64();
-			STRLIT("<RESOURCE>", 10);
+			STRLIT("<Resource>", 10);
 			break;
 		case 3LL: // PRIM_TYPE_INT
 			(void)pop_u64();
@@ -19199,7 +19243,7 @@ static void mw_mirth_type_Type_appZ_typeZ_openZThenZThen (void) {
 			break;
 	}
 }
-static void mw_mirth_type_Resource_ZDivRESOURCE (void) {
+static void mw_mirth_type_Resource_ZDivResource (void) {
 }
 static void mw_mirth_type_Resource_ZToType (void) {
 }
@@ -19239,7 +19283,7 @@ static void mw_mirth_type_Resource_rigidifyZBang (void) {
 	mw_mirth_type_Type_ZToResource();
 }
 static void mw_mirth_type_Resource_exceptZ_field (void) {
-	mw_mirth_type_Resource_ZDivRESOURCE();
+	mw_mirth_type_Resource_ZDivResource();
 	mw_mirth_type_Type_exceptZ_field();
 }
 static void mw_mirth_type_Type_ZToStackType (void) {
@@ -19665,7 +19709,7 @@ static void mw_mirth_type_StackType_topZ_resourceZ_isZ_fineZAsk (void) {
 				mp_primZ_drop();
 				push_value(d4);
 			}
-			mw_mirth_type_Resource_ZDivRESOURCE();
+			mw_mirth_type_Resource_ZDivResource();
 			mw_mirth_type_Type_errorZAsk();
 			if (pop_u64()) {
 				push_u64(0LL); // False
@@ -21892,7 +21936,10 @@ static void mw_mirth_type_CType_cname (void) {
 		case 1LL: // PtrLike
 			mtp_mirth_type_CType_PtrLike();
 			break;
-		case 2LL: // Phantom
+		case 2LL: // FnPtr
+			mtp_mirth_type_CType_FnPtr();
+			break;
+		case 3LL: // Phantom
 			(void)pop_u64();
 			STRLIT("void", 4);
 			break;
@@ -21903,7 +21950,7 @@ static void mw_mirth_type_CType_cname (void) {
 }
 static void mw_mirth_type_CType_phantomZAsk (void) {
 	switch (get_top_data_tag()) {
-		case 2LL: // Phantom
+		case 3LL: // Phantom
 			(void)pop_u64();
 			push_u64(1LL); // True
 			break;
@@ -21914,7 +21961,7 @@ static void mw_mirth_type_CType_phantomZAsk (void) {
 	}
 }
 static void mw_mirth_type_Resource_ctype (void) {
-	mw_mirth_type_Resource_ZDivRESOURCE();
+	mw_mirth_type_Resource_ZDivResource();
 	mw_mirth_type_Type_ctype();
 }
 static void mw_mirth_type_Type_ctype (void) {
@@ -21925,7 +21972,7 @@ static void mw_mirth_type_Type_ctype (void) {
 	mw_std_maybe_Maybe_1_ifZ_some_2();
 }
 static void mw_mirth_type_Resource_ctypeZAsk (void) {
-	mw_mirth_type_Resource_ZDivRESOURCE();
+	mw_mirth_type_Resource_ZDivResource();
 	mw_mirth_type_Type_ctypeZAsk();
 }
 static void mw_mirth_type_Type_ctypeZAsk (void) {
@@ -21938,6 +21985,13 @@ static void mw_mirth_type_Type_ctypeZAsk (void) {
 		case 7LL: // TData
 			mtp_mirth_type_Type_TData();
 			mw_mirth_data_Data_ctypeZAsk();
+			break;
+		case 10LL: // TMorphism
+			mtp_mirth_type_Type_TMorphism();
+			mp_primZ_drop();
+			STRLIT("FNPTR", 5);
+			mtw_mirth_type_CType_FnPtr();
+			mtw_std_maybe_Maybe_1_Some();
 			break;
 		case 11LL: // TApp
 			mtp_mirth_type_Type_TApp();
@@ -21980,7 +22034,7 @@ static void mw_mirth_type_PrimType_ctypeZAsk (void) {
 			break;
 		case 6LL: // PRIM_TYPE_WORLD
 			(void)pop_u64();
-			push_u64(2LL); // Phantom
+			push_u64(3LL); // Phantom
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
@@ -22017,6 +22071,14 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 					mtw_mirth_type_CType_IntLike();
 					mtw_std_maybe_Maybe_1_Some();
 					break;
+				case 2LL: // FnPtr
+					mtp_mirth_type_CType_FnPtr();
+					STRLIT("const ", 6);
+					mp_primZ_swap();
+					mp_primZ_strZ_cat();
+					mtw_mirth_type_CType_FnPtr();
+					mtw_std_maybe_Maybe_1_Some();
+					break;
 				case 1LL: // PtrLike
 					mtp_mirth_type_CType_PtrLike();
 					STRLIT(" const", 6);
@@ -22024,9 +22086,9 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 					mtw_mirth_type_CType_PtrLike();
 					mtw_std_maybe_Maybe_1_Some();
 					break;
-				case 2LL: // Phantom
+				case 3LL: // Phantom
 					(void)pop_u64();
-					push_u64(2LL); // Phantom
+					push_u64(3LL); // Phantom
 					mtw_std_maybe_Maybe_1_Some();
 					break;
 				default:
@@ -22041,6 +22103,22 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 			if (pop_u64()) {
 				mp_primZ_drop();
 				switch (get_top_data_tag()) {
+					case 0LL: // IntLike
+						mtp_mirth_type_CType_IntLike();
+						STRLIT("restrict ", 9);
+						mp_primZ_swap();
+						mp_primZ_strZ_cat();
+						mtw_mirth_type_CType_IntLike();
+						mtw_std_maybe_Maybe_1_Some();
+						break;
+					case 2LL: // FnPtr
+						mtp_mirth_type_CType_FnPtr();
+						STRLIT("restrict ", 9);
+						mp_primZ_swap();
+						mp_primZ_strZ_cat();
+						mtw_mirth_type_CType_FnPtr();
+						mtw_std_maybe_Maybe_1_Some();
+						break;
 					case 1LL: // PtrLike
 						mtp_mirth_type_CType_PtrLike();
 						STRLIT(" restrict", 9);
@@ -22048,14 +22126,9 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 						mtw_mirth_type_CType_PtrLike();
 						mtw_std_maybe_Maybe_1_Some();
 						break;
-					case 0LL: // IntLike
-						mtp_mirth_type_CType_IntLike();
-						mp_primZ_drop();
-						push_u64(0LL); // None
-						break;
-					case 2LL: // Phantom
+					case 3LL: // Phantom
 						(void)pop_u64();
-						push_u64(2LL); // Phantom
+						push_u64(3LL); // Phantom
 						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
@@ -22078,6 +22151,14 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 							mtw_mirth_type_CType_IntLike();
 							mtw_std_maybe_Maybe_1_Some();
 							break;
+						case 2LL: // FnPtr
+							mtp_mirth_type_CType_FnPtr();
+							STRLIT("volatile ", 9);
+							mp_primZ_swap();
+							mp_primZ_strZ_cat();
+							mtw_mirth_type_CType_FnPtr();
+							mtw_std_maybe_Maybe_1_Some();
+							break;
 						case 1LL: // PtrLike
 							mtp_mirth_type_CType_PtrLike();
 							STRLIT(" volatile", 9);
@@ -22085,9 +22166,9 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 							mtw_mirth_type_CType_PtrLike();
 							mtw_std_maybe_Maybe_1_Some();
 							break;
-						case 2LL: // Phantom
+						case 3LL: // Phantom
 							(void)pop_u64();
-							push_u64(2LL); // Phantom
+							push_u64(3LL); // Phantom
 							mtw_std_maybe_Maybe_1_Some();
 							break;
 						default:
@@ -22204,11 +22285,8 @@ static void mw_mirth_type_StackTypePart_ctype (void) {
 			mp_primZ_panic();
 	}
 }
-static void mw_mirth_type_StackType_ctype (void) {
-	mw_mirth_type_StackType_splitZ_parts();
-	push_fnptr(&mb_mirth_type_StackType_ctype_0);
-	mw_std_list_List_1_map_1();
-	LPUSH(lbl_parts);
+static void mw_mirth_type_StackType_baseZ_ctypeZAsk (void) {
+	mw_mirth_type_StackType_expand();
 	switch (get_top_data_tag()) {
 		case 3LL: // STVar
 			mtp_mirth_type_StackType_STVar();
@@ -22223,10 +22301,17 @@ static void mw_mirth_type_StackType_ctype (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			STRLIT("unexpected stack base in StackType.ctype", 40);
+			STRLIT("unexpected stack base in StackType.base-ctype", 45);
 			mw_std_prelude_panicZBang();
 			break;
 	}
+}
+static void mw_mirth_type_StackType_ctype (void) {
+	mw_mirth_type_StackType_splitZ_parts();
+	push_fnptr(&mb_mirth_type_StackType_ctype_0);
+	mw_std_list_List_1_map_1();
+	LPUSH(lbl_parts);
+	mw_mirth_type_StackType_baseZ_ctypeZAsk();
 	LPUSH(lbl_baseZAsk);
 	mtw_mirth_type_CTypeStack_CTypeStack();
 }
@@ -24980,10 +25065,30 @@ static void mw_mirth_alias_Alias_newZBang (void) {
 	mtw_mirth_def_Def_DefAlias();
 	mw_mirth_def_Def_register();
 }
+static void mw_mirth_mirth_Builtin_mkZ_cvoid (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 62, v);
+	VAL* p = &VTUP(v)->cells[61];
+	VAL u = *p;
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_mirth_Builtin_cvoid (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 62, v);
+	VAL* p = &VTUP(v)->cells[60];
+	VAL u = *p;
+	incref(u);
+	decref(v);
+	push_value(u);
+}
 static void mw_mirth_mirth_Builtin_mkZ_cvolatile (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[59];
 	VAL u = *p;
 	incref(u);
@@ -24993,7 +25098,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cvolatile (void) {
 static void mw_mirth_mirth_Builtin_cvolatile (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[58];
 	VAL u = *p;
 	incref(u);
@@ -25003,7 +25108,7 @@ static void mw_mirth_mirth_Builtin_cvolatile (void) {
 static void mw_mirth_mirth_Builtin_mkZ_crestrict (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[57];
 	VAL u = *p;
 	incref(u);
@@ -25013,7 +25118,7 @@ static void mw_mirth_mirth_Builtin_mkZ_crestrict (void) {
 static void mw_mirth_mirth_Builtin_crestrict (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[56];
 	VAL u = *p;
 	incref(u);
@@ -25023,7 +25128,7 @@ static void mw_mirth_mirth_Builtin_crestrict (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cconst (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[55];
 	VAL u = *p;
 	incref(u);
@@ -25033,7 +25138,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cconst (void) {
 static void mw_mirth_mirth_Builtin_cconst (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[54];
 	VAL u = *p;
 	incref(u);
@@ -25043,7 +25148,7 @@ static void mw_mirth_mirth_Builtin_cconst (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cptr (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[53];
 	VAL u = *p;
 	incref(u);
@@ -25053,7 +25158,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cptr (void) {
 static void mw_mirth_mirth_Builtin_cptr (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[52];
 	VAL u = *p;
 	incref(u);
@@ -25063,7 +25168,7 @@ static void mw_mirth_mirth_Builtin_cptr (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cuintptr (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[51];
 	VAL u = *p;
 	incref(u);
@@ -25073,7 +25178,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cuintptr (void) {
 static void mw_mirth_mirth_Builtin_cuintptr (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[50];
 	VAL u = *p;
 	incref(u);
@@ -25083,7 +25188,7 @@ static void mw_mirth_mirth_Builtin_cuintptr (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cusizze (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[49];
 	VAL u = *p;
 	incref(u);
@@ -25093,7 +25198,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cusizze (void) {
 static void mw_mirth_mirth_Builtin_cusizze (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[48];
 	VAL u = *p;
 	incref(u);
@@ -25103,7 +25208,7 @@ static void mw_mirth_mirth_Builtin_cusizze (void) {
 static void mw_mirth_mirth_Builtin_mkZ_culonglong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[47];
 	VAL u = *p;
 	incref(u);
@@ -25113,7 +25218,7 @@ static void mw_mirth_mirth_Builtin_mkZ_culonglong (void) {
 static void mw_mirth_mirth_Builtin_culonglong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[46];
 	VAL u = *p;
 	incref(u);
@@ -25123,7 +25228,7 @@ static void mw_mirth_mirth_Builtin_culonglong (void) {
 static void mw_mirth_mirth_Builtin_mkZ_culong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[45];
 	VAL u = *p;
 	incref(u);
@@ -25133,7 +25238,7 @@ static void mw_mirth_mirth_Builtin_mkZ_culong (void) {
 static void mw_mirth_mirth_Builtin_culong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[44];
 	VAL u = *p;
 	incref(u);
@@ -25143,7 +25248,7 @@ static void mw_mirth_mirth_Builtin_culong (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cuint (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[43];
 	VAL u = *p;
 	incref(u);
@@ -25153,7 +25258,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cuint (void) {
 static void mw_mirth_mirth_Builtin_cuint (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[42];
 	VAL u = *p;
 	incref(u);
@@ -25163,7 +25268,7 @@ static void mw_mirth_mirth_Builtin_cuint (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cushort (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[41];
 	VAL u = *p;
 	incref(u);
@@ -25173,7 +25278,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cushort (void) {
 static void mw_mirth_mirth_Builtin_cushort (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[40];
 	VAL u = *p;
 	incref(u);
@@ -25183,7 +25288,7 @@ static void mw_mirth_mirth_Builtin_cushort (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cuchar (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[39];
 	VAL u = *p;
 	incref(u);
@@ -25193,7 +25298,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cuchar (void) {
 static void mw_mirth_mirth_Builtin_cuchar (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[38];
 	VAL u = *p;
 	incref(u);
@@ -25203,7 +25308,7 @@ static void mw_mirth_mirth_Builtin_cuchar (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cintptr (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[37];
 	VAL u = *p;
 	incref(u);
@@ -25213,7 +25318,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cintptr (void) {
 static void mw_mirth_mirth_Builtin_cintptr (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[36];
 	VAL u = *p;
 	incref(u);
@@ -25223,7 +25328,7 @@ static void mw_mirth_mirth_Builtin_cintptr (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cisizze (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[35];
 	VAL u = *p;
 	incref(u);
@@ -25233,7 +25338,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cisizze (void) {
 static void mw_mirth_mirth_Builtin_cisizze (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[34];
 	VAL u = *p;
 	incref(u);
@@ -25243,7 +25348,7 @@ static void mw_mirth_mirth_Builtin_cisizze (void) {
 static void mw_mirth_mirth_Builtin_mkZ_clonglong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[33];
 	VAL u = *p;
 	incref(u);
@@ -25253,7 +25358,7 @@ static void mw_mirth_mirth_Builtin_mkZ_clonglong (void) {
 static void mw_mirth_mirth_Builtin_clonglong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[32];
 	VAL u = *p;
 	incref(u);
@@ -25263,7 +25368,7 @@ static void mw_mirth_mirth_Builtin_clonglong (void) {
 static void mw_mirth_mirth_Builtin_mkZ_clong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[31];
 	VAL u = *p;
 	incref(u);
@@ -25273,7 +25378,7 @@ static void mw_mirth_mirth_Builtin_mkZ_clong (void) {
 static void mw_mirth_mirth_Builtin_clong (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[30];
 	VAL u = *p;
 	incref(u);
@@ -25283,7 +25388,7 @@ static void mw_mirth_mirth_Builtin_clong (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cint (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[29];
 	VAL u = *p;
 	incref(u);
@@ -25293,7 +25398,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cint (void) {
 static void mw_mirth_mirth_Builtin_cint (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[28];
 	VAL u = *p;
 	incref(u);
@@ -25303,7 +25408,7 @@ static void mw_mirth_mirth_Builtin_cint (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cshort (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[27];
 	VAL u = *p;
 	incref(u);
@@ -25313,7 +25418,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cshort (void) {
 static void mw_mirth_mirth_Builtin_cshort (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[26];
 	VAL u = *p;
 	incref(u);
@@ -25323,7 +25428,7 @@ static void mw_mirth_mirth_Builtin_cshort (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cichar (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[25];
 	VAL u = *p;
 	incref(u);
@@ -25333,7 +25438,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cichar (void) {
 static void mw_mirth_mirth_Builtin_cichar (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[24];
 	VAL u = *p;
 	incref(u);
@@ -25343,7 +25448,7 @@ static void mw_mirth_mirth_Builtin_cichar (void) {
 static void mw_mirth_mirth_Builtin_mkZ_cchar (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[23];
 	VAL u = *p;
 	incref(u);
@@ -25353,7 +25458,7 @@ static void mw_mirth_mirth_Builtin_mkZ_cchar (void) {
 static void mw_mirth_mirth_Builtin_cchar (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[22];
 	VAL u = *p;
 	incref(u);
@@ -25363,7 +25468,7 @@ static void mw_mirth_mirth_Builtin_cchar (void) {
 static void mw_mirth_mirth_Builtin_mkZ_i8 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[21];
 	VAL u = *p;
 	incref(u);
@@ -25373,7 +25478,7 @@ static void mw_mirth_mirth_Builtin_mkZ_i8 (void) {
 static void mw_mirth_mirth_Builtin_i8 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[20];
 	VAL u = *p;
 	incref(u);
@@ -25383,7 +25488,7 @@ static void mw_mirth_mirth_Builtin_i8 (void) {
 static void mw_mirth_mirth_Builtin_mkZ_i16 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[19];
 	VAL u = *p;
 	incref(u);
@@ -25393,7 +25498,7 @@ static void mw_mirth_mirth_Builtin_mkZ_i16 (void) {
 static void mw_mirth_mirth_Builtin_i16 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[18];
 	VAL u = *p;
 	incref(u);
@@ -25403,7 +25508,7 @@ static void mw_mirth_mirth_Builtin_i16 (void) {
 static void mw_mirth_mirth_Builtin_mkZ_i32 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[17];
 	VAL u = *p;
 	incref(u);
@@ -25413,7 +25518,7 @@ static void mw_mirth_mirth_Builtin_mkZ_i32 (void) {
 static void mw_mirth_mirth_Builtin_i32 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[16];
 	VAL u = *p;
 	incref(u);
@@ -25423,7 +25528,7 @@ static void mw_mirth_mirth_Builtin_i32 (void) {
 static void mw_mirth_mirth_Builtin_mkZ_i64 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[15];
 	VAL u = *p;
 	incref(u);
@@ -25433,7 +25538,7 @@ static void mw_mirth_mirth_Builtin_mkZ_i64 (void) {
 static void mw_mirth_mirth_Builtin_i64 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[14];
 	VAL u = *p;
 	incref(u);
@@ -25443,7 +25548,7 @@ static void mw_mirth_mirth_Builtin_i64 (void) {
 static void mw_mirth_mirth_Builtin_mkZ_u8 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[13];
 	VAL u = *p;
 	incref(u);
@@ -25453,7 +25558,7 @@ static void mw_mirth_mirth_Builtin_mkZ_u8 (void) {
 static void mw_mirth_mirth_Builtin_u8 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[12];
 	VAL u = *p;
 	incref(u);
@@ -25463,7 +25568,7 @@ static void mw_mirth_mirth_Builtin_u8 (void) {
 static void mw_mirth_mirth_Builtin_mkZ_u16 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[11];
 	VAL u = *p;
 	incref(u);
@@ -25473,7 +25578,7 @@ static void mw_mirth_mirth_Builtin_mkZ_u16 (void) {
 static void mw_mirth_mirth_Builtin_u16 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[10];
 	VAL u = *p;
 	incref(u);
@@ -25483,7 +25588,7 @@ static void mw_mirth_mirth_Builtin_u16 (void) {
 static void mw_mirth_mirth_Builtin_mkZ_u32 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[9];
 	VAL u = *p;
 	incref(u);
@@ -25493,7 +25598,7 @@ static void mw_mirth_mirth_Builtin_mkZ_u32 (void) {
 static void mw_mirth_mirth_Builtin_u32 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[8];
 	VAL u = *p;
 	incref(u);
@@ -25503,7 +25608,7 @@ static void mw_mirth_mirth_Builtin_u32 (void) {
 static void mw_mirth_mirth_Builtin_mkZ_u64 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[7];
 	VAL u = *p;
 	incref(u);
@@ -25513,7 +25618,7 @@ static void mw_mirth_mirth_Builtin_mkZ_u64 (void) {
 static void mw_mirth_mirth_Builtin_u64 (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[6];
 	VAL u = *p;
 	incref(u);
@@ -25523,7 +25628,7 @@ static void mw_mirth_mirth_Builtin_u64 (void) {
 static void mw_mirth_mirth_Builtin_false (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[5];
 	VAL u = *p;
 	incref(u);
@@ -25533,7 +25638,7 @@ static void mw_mirth_mirth_Builtin_false (void) {
 static void mw_mirth_mirth_Builtin_true (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[4];
 	VAL u = *p;
 	incref(u);
@@ -25543,7 +25648,7 @@ static void mw_mirth_mirth_Builtin_true (void) {
 static void mw_mirth_mirth_Builtin_bool (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[3];
 	VAL u = *p;
 	incref(u);
@@ -25553,7 +25658,7 @@ static void mw_mirth_mirth_Builtin_bool (void) {
 static void mw_mirth_mirth_Builtin_prim (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[2];
 	VAL u = *p;
 	incref(u);
@@ -25563,7 +25668,7 @@ static void mw_mirth_mirth_Builtin_prim (void) {
 static void mw_mirth_mirth_Builtin_std (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 60, v);
+	ASSERT1(VTUPLEN(v) == 62, v);
 	VAL* p = &VTUP(v)->cells[1];
 	VAL u = *p;
 	incref(u);
@@ -25689,6 +25794,10 @@ static void mw_mirth_mirth_Builtin_allocZBang (void) {
 	LPUSH(lbl_cvolatile);
 	mw_mirth_data_Tag_allocZBang();
 	LPUSH(lbl_mkZ_cvolatile);
+	mw_mirth_data_Data_allocZBang();
+	LPUSH(lbl_cvoid);
+	mw_mirth_data_Tag_allocZBang();
+	LPUSH(lbl_mkZ_cvoid);
 	mtw_mirth_mirth_Builtin_Builtin();
 }
 static void mw_mirth_mirth_ZPlusMirth_ZDivZPlusMirth (void) {
@@ -39033,7 +39142,15 @@ static void mw_mirth_type_CType_c99Z_popZ_value (void) {
 			STRLIT(")pop_ptr()", 10);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
-		case 2LL: // Phantom
+		case 2LL: // FnPtr
+			mtp_mirth_type_CType_FnPtr();
+			STRLIT("(", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(")pop_fnptr()", 12);
+			mw_mirth_c99_ZPlusC99_put();
+			break;
+		case 3LL: // Phantom
 			(void)pop_u64();
 			STRLIT("(void)pop_value()", 17);
 			mw_mirth_c99_ZPlusC99_put();
@@ -39061,7 +39178,15 @@ static void mw_mirth_type_CType_c99Z_popZ_resource (void) {
 			STRLIT(")value_ptr(pop_resource())", 26);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
-		case 2LL: // Phantom
+		case 2LL: // FnPtr
+			mtp_mirth_type_CType_FnPtr();
+			STRLIT("(", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(")value_fnptr(pop_resource())", 28);
+			mw_mirth_c99_ZPlusC99_put();
+			break;
+		case 3LL: // Phantom
 			(void)pop_u64();
 			STRLIT("(void)pop_resource()", 20);
 			mw_mirth_c99_ZPlusC99_put();
@@ -39099,7 +39224,20 @@ static void mw_mirth_type_CType_c99Z_popZ_label (void) {
 			STRLIT("))", 2);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
-		case 2LL: // Phantom
+		case 2LL: // FnPtr
+			mtp_mirth_type_CType_FnPtr();
+			STRLIT("(", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(")value_fnptr(lpop(&lbl_", 23);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_label_Label_name();
+			mw_mirth_name_Name_mangled();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT("))", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			break;
+		case 3LL: // Phantom
 			(void)pop_u64();
 			STRLIT("(void)lpop(&lbl_", 16);
 			mw_mirth_c99_ZPlusC99_put();
@@ -39134,7 +39272,16 @@ static void mw_mirth_type_CType_c99Z_pushZ_value (void) {
 			STRLIT("));", 3);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
-		case 2LL: // Phantom
+		case 2LL: // FnPtr
+			mtp_mirth_type_CType_FnPtr();
+			mp_primZ_drop();
+			STRLIT("push_fnptr((FNPTR)(", 19);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT("));", 3);
+			mw_mirth_c99_ZPlusC99_put();
+			break;
+		case 3LL: // Phantom
 			(void)pop_u64();
 			mp_primZ_drop();
 			STRLIT("push_i64(0);", 12);
@@ -39165,7 +39312,16 @@ static void mw_mirth_type_CType_c99Z_pushZ_resource (void) {
 			STRLIT(")));", 4);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
-		case 2LL: // Phantom
+		case 2LL: // FnPtr
+			mtp_mirth_type_CType_FnPtr();
+			mp_primZ_drop();
+			STRLIT("push_resource(MKFNPTR((FNPTR)(", 30);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(")));", 4);
+			mw_mirth_c99_ZPlusC99_put();
+			break;
+		case 3LL: // Phantom
 			(void)pop_u64();
 			mp_primZ_drop();
 			STRLIT("push_resource(MKI64(0));", 24);
@@ -39210,7 +39366,23 @@ static void mw_mirth_type_CType_c99Z_pushZ_label (void) {
 			STRLIT(")));", 4);
 			mw_mirth_c99_ZPlusC99_put();
 			break;
-		case 2LL: // Phantom
+		case 2LL: // FnPtr
+			mtp_mirth_type_CType_FnPtr();
+			mp_primZ_drop();
+			STRLIT("lpush(&lbl_", 11);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_label_Label_name();
+			mw_mirth_name_Name_mangled();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(", ", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT("MKFNPTR((FNPTR)(", 16);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(")));", 4);
+			mw_mirth_c99_ZPlusC99_put();
+			break;
+		case 3LL: // Phantom
 			(void)pop_u64();
 			{
 				VAL d4 = pop_value();
@@ -43631,7 +43803,7 @@ static void mb_mirth_type_Type_ctype_1 (void) {
 	push_fnptr(&mb_mirth_type_Type_ctype_2);
 	mw_std_str_Str_1();
 	mw_mirth_mirth_ZPlusMirth_errorZBang();
-	push_u64(2LL); // Phantom
+	push_u64(3LL); // Phantom
 }
 static void mb_mirth_type_Type_ctype_2 (void) {
 	mw_mirth_type_Type_typeZThen();
@@ -46005,7 +46177,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_11 (void) {
 	push_value(var_dat);
 	mw_mirth_data_Data_isZ_unitZAsk();
 	if (pop_u64()) {
-		push_u64(2LL); // Phantom
+		push_u64(3LL); // Phantom
 		mtw_std_maybe_Maybe_1_Some();
 	} else {
 		incref(var_dat);
@@ -48551,7 +48723,7 @@ static void mb_mirth_c99_c99Z_externalZBang_2 (void) {
 	mw_mirth_type_CTypeStackPart_ctype();
 }
 static void mb_mirth_c99_c99Z_externalZBang_3 (void) {
-	push_u64(2LL); // Phantom
+	push_u64(3LL); // Phantom
 }
 static void mb_mirth_c99_c99Z_externalZBang_4 (void) {
 	mp_primZ_dup();
