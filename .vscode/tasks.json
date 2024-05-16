@@ -6,7 +6,7 @@
         {
             "label": "make",
             "type": "shell",
-            "command": "make && bin/mirth2 -c '${relativeFile}'",
+            "command": "tools/build.sh '${relativeFile}'",
             "group": {
                 "kind": "build",
                 "isDefault": true
