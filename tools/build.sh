@@ -2,15 +2,44 @@
 
 set -euo pipefail
 
+DirName="$(dirname "$1")"
+BaseName="$(basename "$1")"
+
 make
-case "$1" in
-    test/*.mth )
-        bash tools/run.sh "$1"
+case "$DirName" in
+    test )
+        case "$BaseName" in
+            *.mth )
+                bash tools/mirth-test.sh -u "$DirName/$BaseName"
+                ;;
+        esac
         ;;
-    examples/snake.mth )
-        make play-snake
+    examples )
+        case "$BaseName" in
+            snake.mth )
+                make play-snake
+                ;;
+            *.mth )
+                bin/mirth2 -c "$DirName/$BaseName"
+                ;;
+        esac
         ;;
-    *.mth )
-        bin/mirth2 -c "$1"
+    tools )
+        case "$BaseName" in
+            mirth-test.sh )
+                bash tools/mirth-test.sh -v
+                ;;
+            build32.bat|build64.bat )
+                powershell $1
+                diff --strip-trailing-cr bin/mirth3.c bin/wmirth3.c
+                ;;
+        esac
+        ;;
+    * )
+        case "$BaseName" in
+            *.mth )
+                bin/mirth2 -c "$1"
+                ;;
+        esac
         ;;
 esac

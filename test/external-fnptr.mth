@@ -1,0 +1,13 @@
+module(mirth-tests.external-fnptr)
+
+import(std.prelude)
+import(std.posix)
+
+def-external(atexit, [ +World -- +World ] +World -- +World)
+
+def(main, +World -- +World,
+    [ "goodbye world" put line ] atexit
+    "hello world" put line)
+
+# mirth-test # pout # hello world
+# mirth-test # pout # goodbye world
