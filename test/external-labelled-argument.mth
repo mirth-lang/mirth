@@ -1,0 +1,15 @@
+module(mirth-tests.external-labelled-argument)
+
+import(std.prelude)
+import(std.str)
+import(std.ctypes)
+
+def-external(
+    my-puts -> puts,
+    weird-name: CStr +World -- +World CInt
+)
+
+def(main, +World -- +World,
+    "hello" with-cstr(>weird-name my-puts drop))
+
+# mirth-test # pout # hello
