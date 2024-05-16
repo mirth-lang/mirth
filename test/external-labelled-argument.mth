@@ -6,10 +6,10 @@ import(std.ctypes)
 
 def-external(
     my-puts -> puts,
-    weird-name: CStr +World -- +World
+    weird-name: +World CStr -- +World CInt
 )
 
 def(main, +World -- +World,
-    "hello" with-cstr(>weird-name my-puts))
+    "hello" with-cstr(>weird-name my-puts drop))
 
 # mirth-test # pout # hello
