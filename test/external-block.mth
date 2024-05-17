@@ -1,9 +1,9 @@
 module(test.external-block)
 
 external(
-    "#include <stdio.h>",
-    "void go (void) { printf(\"Hello, world!\\n\"); }",
-    go, +World -- +World
+    "#include <stdio.h>"
+    "void go (void) { printf(\"Hello, world!\\n\"); }"
+    go [+World -- +World]
 )
 
 def(main, +World -- +World, go)

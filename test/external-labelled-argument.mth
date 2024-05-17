@@ -4,9 +4,8 @@ import(std.prelude)
 import(std.str)
 import(std.ctypes)
 
-external
-    my-puts -> puts,
-    weird-name: CStr +World -- +World CInt
+external(
+    my-puts -> puts [+World weird-name:CStr -- +World CInt]
 )
 
 def(main, +World -- +World,

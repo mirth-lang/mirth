@@ -1484,7 +1484,6 @@ def(parse-external-decl-part, +Mirth Token -- +Mirth Token ExternalDeclPart,
     dup str? if-some(
         >code dup >token
         succ
-        dup arg-end? else("expected comma" emit-fatal-error!)
         EDPCode,
 
         dup >head
@@ -1497,11 +1496,16 @@ def(parse-external-decl-part, +Mirth Token -- +Mirth Token ExternalDeclPart,
 
             None >symbol
         )
-        dup comma? else("expected comma before type signature" emit-fatal-error!)
-        succ
-        dup arg-end? then("expected type signature" emit-fatal-error!)
-        dup >sig
-        next-arg-end
+        dup lsquare? if(
+            dup args-1 >sig
+            next,
+
+            dup comma? else("expected type signature" emit-fatal-error!)
+            succ
+            dup arg-end? then("expected type signature" emit-fatal-error!)
+            dup >sig
+            next-arg-end
+        )
         EDPDef
     )
     dip(dup comma? then(succ)))
