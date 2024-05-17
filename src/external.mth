@@ -33,6 +33,7 @@ def(External.==, External External -- Bool, both(index) ==)
 table(ExternalBlock)
 field(ExternalBlock.~token, ExternalBlock, Token)
 field(ExternalBlock.~parts, ExternalBlock, List(ExternalBlockPart))
+def(ExternalBlock.parts, ExternalBlock -- List(ExternalBlockPart), ~parts @)
 
 data(ExternalBlockPart,
     EBPCode -> Str,
