@@ -7379,8 +7379,10 @@ static void mb_mirth_elab_parseZ_externalZ_decl_2 (void);
 static void mb_mirth_elab_parseZ_externalZ_decl_3 (void);
 static void mb_mirth_elab_parseZ_externalZ_declZ_part_0 (void);
 static void mb_mirth_elab_parseZ_externalZ_declZ_part_1 (void);
-static void mb_mirth_elab_parseZ_externalZ_declZ_part_3 (void);
+static void mb_mirth_elab_parseZ_externalZ_declZ_part_2 (void);
+static void mb_mirth_elab_parseZ_externalZ_declZ_part_5 (void);
 static void mb_mirth_elab_parseZ_externalZ_declZ_part_6 (void);
+static void mb_mirth_elab_parseZ_externalZ_declZ_part_7 (void);
 static void mb_mirth_elab_elabZ_externalZ_defZBang_0 (void);
 static void mb_mirth_elab_elabZ_externalZ_defZBang_1 (void);
 static void mb_mirth_elab_elabZ_externalZ_defZBang_2 (void);
@@ -47183,13 +47185,6 @@ static void mb_mirth_elab_parseZ_externalZ_declZ_part_0 (void) {
 	mp_primZ_dup();
 	LPUSH(lbl_token);
 	mw_mirth_token_Token_succ();
-	mp_primZ_dup();
-	mw_mirth_token_Token_argZ_endZAsk();
-	if (pop_u64()) {
-	} else {
-		STRLIT("expected comma", 14);
-		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
-	}
 	mtw_mirth_elab_ExternalDeclPart_EDPCode();
 }
 static void mb_mirth_elab_parseZ_externalZ_declZ_part_1 (void) {
@@ -47197,7 +47192,7 @@ static void mb_mirth_elab_parseZ_externalZ_declZ_part_1 (void) {
 	LPUSH(lbl_head);
 	mp_primZ_dup();
 	mw_mirth_token_Token_nameZ_orZ_dnameZAsk();
-	push_fnptr(&mb_mirth_elab_parseZ_externalZ_declZ_part_3);
+	push_fnptr(&mb_mirth_elab_parseZ_externalZ_declZ_part_2);
 	mw_std_maybe_Maybe_1_else_1();
 	mw_mirth_token_Token_succ();
 	mp_primZ_dup();
@@ -47206,7 +47201,7 @@ static void mb_mirth_elab_parseZ_externalZ_declZ_part_1 (void) {
 		mw_mirth_token_Token_succ();
 		mp_primZ_dup();
 		mw_mirth_token_Token_nameZAsk();
-		push_fnptr(&mb_mirth_elab_parseZ_externalZ_declZ_part_6);
+		push_fnptr(&mb_mirth_elab_parseZ_externalZ_declZ_part_5);
 		mw_std_maybe_Maybe_1_else_1();
 		mp_primZ_dup();
 		mtw_std_maybe_Maybe_1_Some();
@@ -47217,10 +47212,32 @@ static void mb_mirth_elab_parseZ_externalZ_declZ_part_1 (void) {
 		LPUSH(lbl_symbol);
 	}
 	mp_primZ_dup();
+	mw_mirth_token_Token_lsquareZAsk();
+	push_fnptr(&mb_mirth_elab_parseZ_externalZ_declZ_part_6);
+	push_fnptr(&mb_mirth_elab_parseZ_externalZ_declZ_part_7);
+	mw_std_maybe_Maybe_1_if_2();
+	mtw_mirth_elab_ExternalDeclPart_EDPDef();
+}
+static void mb_mirth_elab_parseZ_externalZ_declZ_part_2 (void) {
+	STRLIT("expected external word name", 27);
+	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+}
+static void mb_mirth_elab_parseZ_externalZ_declZ_part_5 (void) {
+	STRLIT("expected external symbol name", 29);
+	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+}
+static void mb_mirth_elab_parseZ_externalZ_declZ_part_6 (void) {
+	mp_primZ_dup();
+	mw_mirth_token_Token_argsZ_1();
+	LPUSH(lbl_sig);
+	mw_mirth_token_Token_next();
+}
+static void mb_mirth_elab_parseZ_externalZ_declZ_part_7 (void) {
+	mp_primZ_dup();
 	mw_mirth_token_Token_commaZAsk();
 	if (pop_u64()) {
 	} else {
-		STRLIT("expected comma before type signature", 36);
+		STRLIT("expected type signature", 23);
 		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 	}
 	mw_mirth_token_Token_succ();
@@ -47234,15 +47251,6 @@ static void mb_mirth_elab_parseZ_externalZ_declZ_part_1 (void) {
 	mp_primZ_dup();
 	LPUSH(lbl_sig);
 	mw_mirth_token_Token_nextZ_argZ_end();
-	mtw_mirth_elab_ExternalDeclPart_EDPDef();
-}
-static void mb_mirth_elab_parseZ_externalZ_declZ_part_3 (void) {
-	STRLIT("expected external word name", 27);
-	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
-}
-static void mb_mirth_elab_parseZ_externalZ_declZ_part_6 (void) {
-	STRLIT("expected external symbol name", 29);
-	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_externalZ_defZBang_0 (void) {
 	mw_mirth_token_Token_nameZAsk();
