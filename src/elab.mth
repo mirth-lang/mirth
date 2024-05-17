@@ -9,6 +9,7 @@ import(std.path)
 import(std.byte)
 import(std.posix)
 import(std.file)
+import(std.terminal)
 
 import(mirth.mirth)
 import(mirth.name)
@@ -1034,7 +1035,10 @@ def(elab-module-decl!, Token +World +Mirth -- Token +World +Mirth,
         PRIM_SYNTAX_DEF -> elab-def!,
         PRIM_SYNTAX_DEF_MISSING -> elab-def-missing!,
         PRIM_SYNTAX_DEF_TYPE -> elab-def-type!,
-        PRIM_SYNTAX_DEF_EXTERNAL -> elab-def-external!,
+        PRIM_SYNTAX_DEF_EXTERNAL ->
+            dup "def-external" >old "external" >new emit-deprecated!
+            elab-external!,
+        PRIM_SYNTAX_EXTERNAL -> elab-external!,
         PRIM_SYNTAX_BUFFER -> elab-buffer!,
         PRIM_SYNTAX_VARIABLE -> elab-variable!,
         PRIM_SYNTAX_TABLE -> elab-table!,
@@ -1456,29 +1460,92 @@ def(elab-def-body!, StackType +Mirth +AB -- StackType +Mirth +AB,
         elab-atoms!
     ))
 
-||| Elaborate an external declaration `def-external(w, t)` or `def-external(w -> sym, t)`
-def(elab-def-external!, +Mirth Token -- +Mirth Token,
-    sip(next) args-2
-    over dup elab-def-qname-undefined
-    swap succ dup comma? if(
-        drop dup name,
-        expect-token-arrow succ
-        dup name? unwrap-or("expected external symbol name" emit-fatal-error!) nip
-    ) >Str swap
+data(ExternalDeclPart,
+    EDPCode -> token:Token code:Str,
+    EDPDef  -> head:Token symbol:Maybe(Token) sig:Token)
 
-    External.alloc!
-    tuck ~qname !
-    tuck ~symbol !
-    tuck ~sig !
-    tuck ~head !
-    dup dup ExternalType prop(
+def(parse-external-decl, +Mirth Token -- +Mirth Token List(ExternalDeclPart),
+    sip(next)
+    succ dup lparen-or-lcolon? else(
+        pred Str(
+            FGCyan emit; "external"; Reset emit;
+            " requires arguments";
+        )
+        emit-fatal-error!
+    )
+    LIST(
+        succ
+        while(dup args-end? not,
+            rdip(parse-external-decl-part) ;)
+        drop
+    ))
+
+def(parse-external-decl-part, +Mirth Token -- +Mirth Token ExternalDeclPart,
+    dup str? if-some(
+        >code dup >token
+        succ
+        EDPCode,
+
+        dup >head
+        dup name-or-dname? else("expected external word name" emit-fatal-error!)
+        succ
+        dup pat-arrow? if(
+            succ dup name? else("expected external symbol name" emit-fatal-error!)
+            dup Some >symbol
+            succ,
+
+            None >symbol
+        )
+        dup lsquare? if(
+            dup args-1 >sig
+            next,
+
+            dup comma? else("expected type signature" emit-fatal-error!)
+            succ
+            dup arg-end? then("expected type signature" emit-fatal-error!)
+            dup >sig
+            next-arg-end
+        )
+        EDPDef
+    )
+    dip(dup comma? then(succ)))
+
+||| Elaborate an external declaration.
+def(elab-external!, +Mirth Token -- +Mirth Token,
+    dup >token
+    parse-external-decl
+    map(elab-external-block-part!) >parts
+    ExternalBlock.alloc! >extblock
+    token> @extblock ~token !
+    parts> @extblock ~parts !
+    extblock> drop)
+
+def(elab-external-block-part!, +Mirth ExternalDeclPart -- +Mirth ExternalBlockPart,
+    EDPCode -> token> drop code> EBPCode,
+    EDPDef -> elab-external-def! EBPDef)
+
+def(elab-external-def!, +Mirth head:Token symbol:Maybe(Token) sig:Token -- +Mirth External,
+    @head elab-def-qname-undefined >qname
+
+    symbol> if-some(
+        name? unwrap,
+        @qname name
+    ) >Str >symbol
+
+    External.alloc! >external
+    qname> @external ~qname !
+    symbol> @external ~symbol !
+    sig> @external ~sig !
+    head> @external ~head !
+    @external dup ExternalType prop(
         sig +TypeElab.type-sig-start!
         elab-type-sig! dip:ctx pack2 rdrop
-    ) over ~ctx-type !
-    dup dup ExternalCType prop(
+    ) @external ~ctx-type !
+    @external dup ExternalCType prop(
         elab-def-external-ctype
-    ) over ~ctype !
-    DefExternal register)
+    ) @external ~ctype !
+    @external DefExternal register
+    external>)
 
 def(elab-def-external-ctype, +Mirth External -- +Mirth CTypeArrow,
     dup head with-error-token(

@@ -1,6 +1,7 @@
 module(mirth.external)
 
 import(std.prelude)
+import(std.list)
 
 import(mirth.type)
 import(mirth.token)
@@ -28,3 +29,12 @@ def(External.type, +Mirth External -- +Mirth ArrowType, ctx-type nip)
 def(External.ctype, +Mirth External -- +Mirth CTypeArrow, ~ctype force!)
 
 def(External.==, External External -- Bool, both(index) ==)
+
+table(ExternalBlock)
+field(ExternalBlock.~token, ExternalBlock, Token)
+field(ExternalBlock.~parts, ExternalBlock, List(ExternalBlockPart))
+def(ExternalBlock.parts, ExternalBlock -- List(ExternalBlockPart), ~parts @)
+
+data(ExternalBlockPart,
+    EBPCode -> Str,
+    EBPDef -> External)

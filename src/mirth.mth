@@ -160,6 +160,12 @@ def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
 def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b +Mirth,
     dip(location) emit-fatal-error-at!)
 
+def(+Mirth.emit-deprecated!, Token old:Str new:Str +Mirth -- +Mirth,
+    Str(FGCyan emit; old> ; Reset emit;
+        " is deprecated, please use ";
+        FGCyan emit; new> ; Reset emit;
+        " instead.";) emit-warning!)
+
 def(+Mirth.with-error-token(f), (*a +Mirth -- *b +Mirth)
         *a Token +Mirth -- *b +Mirth,
     error-token dip(Some error-token! f) error-token!)

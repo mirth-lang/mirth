@@ -62,5 +62,5 @@ inline(
     def(CPtr.>CStr, CPtr(CConst(CChar)) -- CStr, CStr)
     def(CStr.>CPtr, CStr -- CPtr(CConst(CChar)), CStr -> id)
     def(CStr.>Ptr, CStr -- Ptr, >CPtr /CPtr)
-    def-external(CStr.num-bytes -> strlen, +Unsafe CStr -- +Unsafe CUSize)
+    external(CStr.num-bytes -> strlen [ +Unsafe CStr -- +Unsafe CUSize ])
 )

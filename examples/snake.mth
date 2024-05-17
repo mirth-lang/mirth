@@ -305,7 +305,7 @@ def(+SnakeLogic.update!, +World +SnakeLogic -- +World +SnakeLogic,
 
 def(+SnakeLogic.desired-length, +SnakeLogic -- +SnakeLogic Nat, points 5 + >Nat)
 
-def-external(libc-rand -> rand, +World -- +World CInt)
+external(libc-rand -> rand [+World -- +World CInt])
 def(random-position, +World -- +World Position,
     libc-rand >Int SNAKE_W % >x
     libc-rand >Int SNAKE_H % >y

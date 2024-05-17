@@ -78,7 +78,7 @@ def(run-output-c99!, Arrow C99_Options +World +Mirth -- +World +Mirth,
         c99-tag-defs!
         c99-buffers!
         c99-variables!
-        c99-externals!
+        c99-external-blocks!
         c99-word-sigs!
         c99-block-sigs!
         c99-field-sigs!
@@ -395,10 +395,16 @@ def(c99-tag-set-label!, Tag Label +C99 -- +C99, \(tag lbl ->
             )
     )))
 
-def(c99-externals!, +C99 -- +C99,
-    External.for(c99-external!))
+def(c99-external-blocks!, +C99 -- +C99,
+    ExternalBlock.for(c99-external-block!))
 
-def(c99-external!, External +C99 -- +C99,
+def(c99-external-block!, ExternalBlock +C99 -- +C99,
+    parts for(match(
+        EBPCode -> put line,
+        EBPDef -> c99-external-def!
+    )))
+
+def(c99-external-def!, External +C99 -- +C99,
     >ext
     @ext +mirth:ctype >cty
 
