@@ -108,6 +108,7 @@ data(Prim,
     PRIM_SYNTAX_DEF_TYPE,
     PRIM_SYNTAX_BUFFER,
     PRIM_SYNTAX_VARIABLE,
+    PRIM_SYNTAX_EXTERNAL,
     PRIM_SYNTAX_DEF_EXTERNAL,
     PRIM_SYNTAX_EMBED_STR,
     PRIM_SYNTAX_TABLE,
@@ -155,6 +156,7 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_SYNTAX_DEF_MISSING "def-missing" -1 def-prim!
     PRIM_SYNTAX_BUFFER "buffer" -1 def-prim!
     PRIM_SYNTAX_DEF_EXTERNAL "def-external" -1 def-prim!
+    PRIM_SYNTAX_EXTERNAL "external" -1 def-prim!
     PRIM_SYNTAX_TABLE "table" -1 def-prim!
     PRIM_SYNTAX_FIELD "field" -1 def-prim!
     PRIM_SYNTAX_EMBED_STR "embed-str" -1 def-prim!
