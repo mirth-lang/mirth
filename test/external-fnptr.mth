@@ -3,7 +3,9 @@ module(mirth-tests.external-fnptr)
 import(std.prelude)
 import(std.posix)
 
-external(atexit, [ +World -- +World ] +World -- +World)
+external(
+    atexit [ +World [ +World -- +World ] -- +World ]
+)
 
 def(main, +World -- +World,
     [ "goodbye world" put line ] atexit

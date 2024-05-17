@@ -1510,13 +1510,7 @@ def(parse-external-decl-part, +Mirth Token -- +Mirth Token ExternalDeclPart,
     )
     dip(dup comma? then(succ)))
 
-# external(
-#     "#include <SDL.h>",
-#     SDL_Init :: +SDL flags:U32 -- +SDL?
-#     SDL_Quit :: +SDL +SDL_
-# )
-
-||| Elaborate an external declaration `external(w -> sym, t)` or `external(w -> sym, t, code)`
+||| Elaborate an external declaration.
 def(elab-external!, +Mirth Token -- +Mirth Token,
     dup >token
     parse-external-decl
