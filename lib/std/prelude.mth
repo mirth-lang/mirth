@@ -18,30 +18,28 @@ import(std.str)
 # lambda
 ##################################################
 
-# Re-exported primitives.
-alias(id, prim-id)
-alias(??, prim-debug)
-alias(swap, prim-swap)
-alias(dup, prim-dup)
-alias(drop, prim-drop)
-alias(run, prim-run)
-
-alias(rswap, prim-rswap)
-alias(rdip(f), prim-rdip)
-
-alias(Int.+, prim-int-add)
-alias(Int.-, prim-int-sub)
-alias(Int.*, prim-int-mul)
-alias(Int./, prim-int-div)
-alias(Int.%, prim-int-mod)
-alias(Int.&, prim-int-and)
-alias(Int.|, prim-int-or)
-alias(Int.^, prim-int-xor)
-alias(Int.<<, prim-int-shl)
-alias(Int.>>, prim-int-shr)
-inline:def(Int./%, Int Int -- Int Int, dup2 % dip(/))
-
 inline(
+    def(id, --, ,)
+    def(??, *a -- *a, prim-debug)
+    def(swap, a b -- b a, prim-swap)
+    def(dup, a -- a a, prim-dup)
+    def(drop, a --, prim-drop)
+    def(run, *a [*a -- *b] -- *b, prim-run)
+    def(rswap, +a +b -- +b +a, prim-rswap)
+    def(rdip(f), (*a -- *b) *a +r -- *b +r, prim-rdip(f))
+
+    def(Int.+, Int Int -- Int, prim-int-add)
+    def(Int.-, Int Int -- Int, prim-int-sub)
+    def(Int.*, Int Int -- Int, prim-int-mul)
+    def(Int./, Int Int -- Int, prim-int-div)
+    def(Int.%, Int Int -- Int, prim-int-mod)
+    def(Int.&, Int Int -- Int, prim-int-and)
+    def(Int.|, Int Int -- Int, prim-int-or)
+    def(Int.^, Int Int -- Int, prim-int-xor)
+    def(Int.<<, Int Int -- Int, prim-int-shl)
+    def(Int.>>, Int Int -- Int, prim-int-shr)
+    def(Int./%, Int Int -- Int Int, dup2 % dip(/))
+
     alias(Bool.if(f,g), prim-if)
     def(Bool.&&, Bool Bool -- Bool, if(id, drop False))
     def(Bool.||, Bool Bool -- Bool, if(drop True, id))
@@ -83,18 +81,22 @@ inline(
     def(RUNNING_ARCH, Arch, prim-sys-arch >Arch)
 )
 
-alias(argc, prim-sys-argc)
-alias(argv, prim-sys-argv)
+inline(
+    def(argc, Int, prim-sys-argc)
+    def(argv, Ptr, prim-sys-argv)
 
-alias(posix-read!, prim-posix-read)
-alias(posix-write!, prim-posix-write)
+    alias(posix-read!, prim-posix-read)
+    alias(posix-write!, prim-posix-write)
+
+    def(posix-close!, Int -- Int, prim-posix-close)
+    def(posix-exit!, *a Int -- *b, prim-posix-exit)
+)
+
 def(posix-open!, Str Int Int -- Int,
     rotl dup dip(
         prim-str-base rotr
         prim-posix-open
     ) drop)
-alias(posix-close!, prim-posix-close)
-alias(posix-exit!, prim-posix-exit)
 
 inline(
     def(rotr, a b c -- c a b, swap dip(swap))
@@ -226,19 +228,18 @@ inline(
     def(Comparison.gt?, Comparison -- Bool, LT -> False, EQ -> False, GT -> True)
     def(Comparison.ne?, Comparison -- Bool, LT -> True, EQ -> False, GT -> True)
 
-    alias(Int.==, prim-int-eq)
-    alias(Int.<, prim-int-lt)
+    def(Int.==, Int Int -- Bool, prim-int-eq)
+    def(Int.<,  Int Int -- Bool, prim-int-lt)
     def(Int.>,  Int Int -- Bool, swap <)
     def(Int.>=, Int Int -- Bool, < not)
     def(Int.<=, Int Int -- Bool, swap < not)
     def(Int.<>, Int Int -- Bool, == not)
     def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
-)
-def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
-def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
-def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 
-inline(
+    def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
+    def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
+    def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
+
     def(Int.show, Int -- Str, prim-int-to-str)
     def(Int.show;, Int +Str -- +Str, show ;)
 
@@ -249,19 +250,17 @@ inline(
     def(Str.<=, Str Str -- Bool, compare le?)
     def(Str.>=, Str Str -- Bool, compare ge?)
     def(Str.<>, Str Str -- Bool, compare ne?)
-)
-def(Str.max, Str Str -- Str, dup2 < if(nip, drop))
-def(Str.min, Str Str -- Str, dup2 < if(drop, nip))
+    def(Str.max, Str Str -- Str, dup2 < if(nip, drop))
+    def(Str.min, Str Str -- Str, dup2 < if(drop, nip))
 
-inline(
     def-missing(prim-int-succ, Int -- Int, 1 +)
     def-missing(prim-int-pred, Int -- Int, 1 -)
     def-missing(prim-int-negate, Int -- Int, -1 *)
-    alias(Int.1+, prim-int-succ)
-    alias(Int.1-, prim-int-pred)
-    alias(Int.negate, prim-int-negate)
-    alias(Int.succ, prim-int-succ)
-    alias(Int.pred, prim-int-pred)
+    def(Int.1+, Int -- Int, prim-int-succ)
+    def(Int.1-, Int -- Int, prim-int-pred)
+    def(Int.negate, Int -- Int, prim-int-negate)
+    def(Int.succ, Int -- Int, prim-int-succ)
+    def(Int.pred, Int -- Int, prim-int-pred)
     def(Int.2*, Int -- Int, 2 *)
     def(Int.2/, Int -- Int, 2 /)
     def(Int.0=, Int -- Bool, 0 ==)
@@ -271,9 +270,25 @@ inline(
     def(Int.0>=, Int -- Bool, 0 >=)
     def(Int.0<>, Int -- Bool, 0 <>)
 
-    alias(Ptr.null, prim-ptr-nil)
-    alias(Ptr.==, prim-ptr-eq)
-    def(Ptr.is-null, Ptr -- Bool, Ptr.null ==)
+    data(Ptr?, Ptr?-unsafe -> Ptr)
+
+    def(Ptr?.Null, Ptr?, prim-ptr-nil Ptr?-unsafe)
+    def(Ptr?.==, Ptr? Ptr? -- Bool, both(/Ptr?-unsafe) prim-ptr-eq)
+    def(Ptr?.null?, Ptr? -- Bool, Ptr?.Null ==)
+    def(Ptr?.>Bool, Ptr? -- Bool, null? not)
+    def(Ptr?.>Maybe, Ptr? -- Maybe(Ptr),
+        dup null? if(drop None, /Ptr?-unsafe Some))
+    def(Ptr?.none?, Ptr? -- Bool, null?)
+    def(Ptr?.some?, Ptr? -- Bool, null? not)
+    def(Ptr?.unwrap-or(f), (*a -- *a Ptr) *a Ptr? -- *a Ptr,
+        dup null? if(drop f, /Ptr?-unsafe))
+    def(Ptr?.unwrap, Ptr? -- Ptr,
+        unwrap-or("tried to unwrap null pointer" panic!))
+    def(Ptr?.if-some(f,g), (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b,
+        dup null? if(drop g, /Ptr?-unsafe f))
+
+    def(Ptr.>Ptr?, Ptr -- Ptr?, Ptr?-unsafe)
+    def(Ptr.==, Ptr Ptr -- Bool, prim-ptr-eq)
     def(Ptr.sizeof, -- Size, prim-ptr-size >Size)
 
     data(+Unsafe, +Unsafe)
@@ -386,38 +401,38 @@ inline(
 # NAT #
 #######
 
-data(Nat, NatUnsafe -> Int)
+data(Nat, Nat-unsafe -> Int)
 
-def(Int.>Nat, Int -- Nat, expect!(dup 0< not, "tried to create negative Nat" panic!) NatUnsafe)
+def(Int.>Nat, Int -- Nat, expect!(dup 0< not, "tried to create negative Nat" panic!) Nat-unsafe)
 inline (
-    def(Nat.>Int, Nat -- Int, NatUnsafe -> id)
+    def(Nat.>Int, Nat -- Int, Nat-unsafe -> id)
 
     def(Nat.>U8,  Nat -- U8,  >Int >U8)
     def(Nat.>U16, Nat -- U16, >Int >U16)
     def(Nat.>U32, Nat -- U32, >Int >U32)
     def(Nat.>U64, Nat -- U64, >Int >U64-unsafe)
 
-    def(U8.>Nat,  U8  -- Nat, >Int NatUnsafe)
-    def(U16.>Nat, U16 -- Nat, >Int NatUnsafe)
-    def(U32.>Nat, U32 -- Nat, >Int NatUnsafe)
-    def(U64.>Nat, U64 -- Nat, >Int-unsafe NatUnsafe)
+    def(U8.>Nat,  U8  -- Nat, >Int Nat-unsafe)
+    def(U16.>Nat, U16 -- Nat, >Int Nat-unsafe)
+    def(U32.>Nat, U32 -- Nat, >Int Nat-unsafe)
+    def(U64.>Nat, U64 -- Nat, >Int-unsafe Nat-unsafe)
 
-    def(Nat.+, Nat Nat -- Nat, both(>Int) + NatUnsafe)
+    def(Nat.+, Nat Nat -- Nat, both(>Int) + Nat-unsafe)
     def(Nat.-, Nat Nat -- Nat, both(>Int) - >Nat)
-    def(Nat.*, Nat Nat -- Nat, both(>Int) * NatUnsafe)
-    def(Nat./, Nat Nat -- Nat, both(>Int) / NatUnsafe)
-    def(Nat.%, Nat Nat -- Nat, both(>Int) % NatUnsafe)
-    def(Nat./%, Nat Nat -- Nat Nat, both(>Int) /% both(NatUnsafe))
-    def(Nat.&, Nat Nat -- Nat, both(>Int) & NatUnsafe)
-    def(Nat.|, Nat Nat -- Nat, both(>Int) | NatUnsafe)
-    def(Nat.^, Nat Nat -- Nat, both(>Int) ^ NatUnsafe)
-    def(Nat.<<, Nat Nat -- Nat, both(/NatUnsafe) << NatUnsafe)
-    def(Nat.>>, Nat Nat -- Nat, both(/NatUnsafe) >> NatUnsafe)
+    def(Nat.*, Nat Nat -- Nat, both(>Int) * Nat-unsafe)
+    def(Nat./, Nat Nat -- Nat, both(>Int) / Nat-unsafe)
+    def(Nat.%, Nat Nat -- Nat, both(>Int) % Nat-unsafe)
+    def(Nat./%, Nat Nat -- Nat Nat, both(>Int) /% both(Nat-unsafe))
+    def(Nat.&, Nat Nat -- Nat, both(>Int) & Nat-unsafe)
+    def(Nat.|, Nat Nat -- Nat, both(>Int) | Nat-unsafe)
+    def(Nat.^, Nat Nat -- Nat, both(>Int) ^ Nat-unsafe)
+    def(Nat.<<, Nat Nat -- Nat, both(/Nat-unsafe) << Nat-unsafe)
+    def(Nat.>>, Nat Nat -- Nat, both(/Nat-unsafe) >> Nat-unsafe)
 
-    def(Nat.1+, Nat -- Nat, >Int 1+ NatUnsafe)
+    def(Nat.1+, Nat -- Nat, >Int 1+ Nat-unsafe)
     def(Nat.1-, Nat -- Nat, >Int 1- >Nat)
-    def(Nat.2*, Nat -- Nat, >Int 2* NatUnsafe)
-    def(Nat.2/, Nat -- Nat, >Int 2/ NatUnsafe)
+    def(Nat.2*, Nat -- Nat, >Int 2* Nat-unsafe)
+    def(Nat.2/, Nat -- Nat, >Int 2/ Nat-unsafe)
 
     def(Nat.compare, Nat Nat -- Comparison, both(>Int) compare)
     def(Nat.==, Nat Nat -- Bool, both(>Int) ==)
@@ -428,8 +443,8 @@ inline (
     def(Nat.<>, Nat Nat -- Bool, both(>Int) <>)
     def(Nat.0>, Nat -- Bool, >Int 0>)
     def(Nat.0=, Nat -- Bool, >Int 0=)
-    def(Nat.max, Nat Nat -- Nat, both(>Int) max NatUnsafe)
-    def(Nat.min, Nat Nat -- Nat, both(>Int) min NatUnsafe)
+    def(Nat.max, Nat Nat -- Nat, both(>Int) max Nat-unsafe)
+    def(Nat.min, Nat Nat -- Nat, both(>Int) min Nat-unsafe)
     def(Nat.show, Nat -- Str, >Int show)
     def(Nat.show;, Nat +Str -- +Str, >Int show;)
 )
@@ -490,22 +505,24 @@ def(Offset.min, Offset Offset -- Offset, dup2 <= if(drop, nip))
 # TUPLES #
 ##########
 
-alias(pack-cons, prim-pack-cons)
-alias(pack-uncons, prim-pack-uncons)
+inline(
+    def(pack-cons, [*a] b -- [*a b], prim-pack-cons)
+    def(pack-uncons, [*a b] -- [*a] b, prim-pack-uncons)
 
-alias(pack0, prim-pack-nil)
-def(pack1, a -- [a], dip(pack0) pack-cons)
-def(pack2, a b -- [a b], dip(pack1) pack-cons)
-def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
-def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
-def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
+    def(pack0, [], prim-pack-nil)
+    def(pack1, a -- [a], dip(pack0) pack-cons)
+    def(pack2, a b -- [a b], dip(pack1) pack-cons)
+    def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
+    def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
+    def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
 
-inline:def(unpack0, [] --, drop)
-def(unpack1, [a] -- a, pack-uncons nip)
-def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
-def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
-def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
-def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+    def(unpack0, [] --, drop)
+    def(unpack1, [a] -- a, pack-uncons nip)
+    def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
+    def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
+    def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
+    def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+)
 
 def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
     dip:pack-uncons pack-uncons dip:swap
@@ -538,9 +555,11 @@ def(pack3-show;(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c]
 def(pack4-show;(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
     pack4-show;-contents(f,g,h,i) " pack4" ;)
 
-alias(@, prim-mut-get)
-alias(!, prim-mut-set)
-alias(mut-is-set, prim-mut-is-set)
+inline(
+    def(@, Mut(t) -- t, prim-mut-get)
+    def(!, t Mut(t) --, prim-mut-set)
+    def(mut-is-set, Mut(t) -- Bool, prim-mut-is-set)
+)
 def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
 def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
     dup mut-is-set if(

@@ -11,4 +11,8 @@ external(
 def(main, +World -- +World,
     "hello" with-cstr(>weird-name my-puts drop))
 
+
+def(mait, ...,
+    external(Foo -- Bar))
+
 # mirth-test # pout # hello

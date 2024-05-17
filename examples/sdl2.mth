@@ -8,61 +8,64 @@ import(std.ctypes)
 #################
 
 external (
-    +Unsafe.SDL_Init [ +Unsafe SDL_InitFlags -- +Unsafe CInt ]
-    +Unsafe.SDL_Quit [ +Unsafe -- +Unsafe ]
-    +Unsafe.SDL_GetError [ +Unsafe -- +Unsafe CStr ]
+    SDL_Init [ +World flags:SDL_InitFlags -- +World +SDL? ]
+    SDL_Quit [ +World +SDL -- +World ]
+    SDL_GetError [ +SDL -- +SDL CStr ]
 )
 
-data(+SDL, SDL!)
-data(+SDL?, OK! -> +SDL, ERROR! -> Str)
-def(+SDL?.unwrap!, +SDL? -- +SDL, OK! -> id, ERROR! -> panic!)
+data(+SDL, +SDL)
+data(+SDL?, +SDL? -> CInt)
 
-def(+SDL.get-error!, -- Str, unsafe(.SDL_GetError Str.copy-cstr))
-
-def(+SDL.init!, +World SDL_InitFlags -- +World +SDL?,
-    unsafe(.SDL_Init) >Int 0= if(
-        SDL! +SDL?.OK!,
-        +SDL.get-error! +SDL?.ERROR!
+def(+SDL?.if-ok!(f,g), (*a +SDL -- *b, *a Str -- *b) *a +SDL? -- *b,
+    /+SDL? >Int 0= if(
+        +SDL f,
+        +SDL SDL_GetError unsafe(Str.copy-cstr) /+SDL g
     ))
+def(+SDL?.unwrap!, +SDL? -- +SDL,
+    if-ok!(id, panic!))
 
-def(+SDL.quit!, +World +SDL -- +World,
-    /SDL! unsafe(.SDL_Quit))
+def(+SDL.get-error!, +SDL -- +SDL Str, SDL_GetError unsafe(Str.copy-cstr))
 
-data(SDL_InitFlags, WRAP -> U32)
+data(SDL_InitFlags, SDL_InitFlags -> U32)
 inline(
-    def(U32.>SDL_InitFlags, U32 -- SDL_InitFlags, SDL_InitFlags.WRAP)
-    def(SDL_InitFlags.>U32, SDL_InitFlags -- U32, /WRAP)
+    def(U32.>SDL_InitFlags, U32 -- SDL_InitFlags, SDL_InitFlags)
+    def(SDL_InitFlags.>U32, SDL_InitFlags -- U32, /SDL_InitFlags)
     def(SDL_InitFlags.|, SDL_InitFlags SDL_InitFlags -- SDL_InitFlags,
-        both(>U32) | >SDL_InitFlags)
+        both(/SDL_InitFlags) | SDL_InitFlags)
 )
-def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 >U32 >SDL_InitFlags)
-def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 >U32 >SDL_InitFlags)
-def(SDL_INIT_VIDEO, SDL_InitFlags, 0x0020 >U32 >SDL_InitFlags)
-def(SDL_INIT_JOYSTICK, SDL_InitFlags, 0x200 >U32 >SDL_InitFlags)
-def(SDL_INIT_HAPTIC, SDL_InitFlags, 0x1000 >U32 >SDL_InitFlags)
-def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32 >SDL_InitFlags)
-def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 >U32 >SDL_InitFlags)
-def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << >U32 >SDL_InitFlags)
-def(SDL_INIT_EVERYTHING, SDL_InitFlags,
-    SDL_INIT_TIMER
-    SDL_INIT_AUDIO |
-    SDL_INIT_VIDEO |
-    SDL_INIT_JOYSTICK |
-    SDL_INIT_HAPTIC |
-    SDL_INIT_GAMECONTROLLER |
-    SDL_INIT_EVENTS |
-    SDL_INIT_SENSOR |)
+def(SDL_INIT_TIMER,          SDL_InitFlags, 0x0001 >U32 SDL_InitFlags)
+def(SDL_INIT_AUDIO,          SDL_InitFlags, 0x0010 >U32 SDL_InitFlags)
+def(SDL_INIT_VIDEO,          SDL_InitFlags, 0x0020 >U32 SDL_InitFlags)
+def(SDL_INIT_JOYSTICK,       SDL_InitFlags, 0x0200 >U32 SDL_InitFlags)
+def(SDL_INIT_HAPTIC,         SDL_InitFlags, 0x1000 >U32 SDL_InitFlags)
+def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32 SDL_InitFlags)
+def(SDL_INIT_EVENTS,         SDL_InitFlags, 0x4000 >U32 SDL_InitFlags)
+def(SDL_INIT_SENSOR,         SDL_InitFlags, 0x8000 >U32 SDL_InitFlags)
+def(SDL_INIT_EVERYTHING,     SDL_InitFlags, 0xF231 >U32 SDL_InitFlags)
 
-external(+SDL.delay! -> SDL_Delay [ +SDL SDL_Ticks -- +SDL ] )
-external(+SDL.get-ticks! -> SDL_GetTicks [ +SDL -- +SDL SDL_Ticks ])
-def-type(SDL_Ticks, U32)
-def(ms, Int -- SDL_Ticks, >U32)
+external(
+    SDL_Delay [ +SDL ticks:U32 -- +SDL ]
+    SDL_GetTicks [ +SDL -- +SDL U32 ]
+)
 
-data(+SDL_Window, SDL_WINDOW! -> unsafe-ptr:Ptr)
-data(+SDL_Window?, OK! -> +SDL_Window, ERROR! -> Str)
-def(+SDL_Window?.unwrap!, +SDL_Window? -- +SDL_Window, OK! -> id, ERROR! -> panic!)
-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow [ +SDL +Unsafe title:CStr x:CInt y:CInt w:CInt h:CInt flags:SDL_WindowFlags -- +SDL +Unsafe Ptr ])
-external(+SDL_Window.destroy! -> SDL_DestroyWindow [ +SDL +SDL_Window -- +SDL ])
+data(+SDL_Window, +SDL_Window -> Ptr)
+data(+SDL_Window?, +SDL_Window? -> Ptr?)
+def(+SDL_Window?.unwrap!, +SDL +SDL_Window? -- +SDL +SDL_Window,
+    +SDL_Window? -> unwrap-or(+SDL.get-error! panic!) +SDL_Window)
+
+data(SDL_Window, +SDL_Window -- +SDL_Window SDL_Window)
+def(+SDL_Window.handle, +SDL_Window -- +SDL_Window SDL_Window,
+    +SDL_Window -> dup +SDL_Window SDL_Window)
+
+
+external(
+    SDL_CreateWindow [
+        +SDL title:CStr x:CInt y:CInt w:CInt h:CInt flags:SDL_WindowFlags
+        -- +SDL +SDL_Window?
+    ]
+    SDL_DestroyWindow [ +SDL +window:+SDL_Window -- +SDL ]
+)
+
 def(+SDL.create-window!,
         +SDL title:Str
         x:Int y:Int
@@ -71,12 +74,9 @@ def(+SDL.create-window!,
         -- +SDL +SDL_Window?,
     title> with-cstr( >title
         @x:CInt @y:CInt @w:CInt @h:CInt
-        unsafe(.SDL_CreateWindow)
-    )
-    dup is-null if(
-        drop get-error! +SDL_Window?.ERROR!,
-        >unsafe-ptr SDL_WINDOW! +SDL_Window?.OK!
+        SDL_CreateWindow
     ))
+inline:def(+SDL.destroy-window!, +SDL +SDL_Window -- +SDL, SDL_DestroyWindow)
 
 data(SDL_WindowFlags, SDL_WINDOW_FLAGS -> U32)
 inline(
@@ -113,23 +113,31 @@ def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << >SDL_WindowFlags)
 def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << >SDL_WindowFlags)
 def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << >SDL_WindowFlags)
 
-external(+Unsafe.SDL_ShowWindow [Ptr --])
-external(+Unsafe.SDL_HideWindow [Ptr --])
-external(+Unsafe.SDL_RaiseWindow [Ptr --])
-def(+SDL_Window.show!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_ShowWindow))
-def(+SDL_Window.hide!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_HideWindow))
-def(+SDL_Window.raise!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_RaiseWindow))
+external(+Unsafe.SDL_ShowWindow [+SDL window:SDL_Window -- +SDL])
+external(+Unsafe.SDL_HideWindow [+SDL window:SDL_Window -- +SDL])
+external(+Unsafe.SDL_RaiseWindow [+SDL window:SDL_Window -- +SDL])
 
-data(+SDL_Renderer, SDL_RENDERER! -> unsafe-ptr:Ptr)
-data(+SDL_Renderer?, OK! -> +SDL_Renderer, ERROR! -> Str)
-def(+SDL_Renderer?.unwrap!, +SDL_Renderer? -- +SDL_Renderer, OK! -> id, ERROR! -> panic!)
+data(+SDL_Renderer, +SDL_Renderer -> Ptr)
+data(+SDL_Renderer?, +SDL_Renderer? -> Ptr?)
 
-external(+Unsafe.SDL_CreateRenderer [Ptr CInt SDL_RendererFlags -- Ptr])
+def(+SDL_Renderer?.unwrap!, +SDL_Renderer? -- +SDL_Renderer,
+    +SDL_Renderer? -> unwrap-or(+SDL.get-error! panic!) +SDL_Renderer)
+
+external(
+    SDL_CreateRenderer [
+        +SDL window:SDL_Window index:CInt flags:SDL_RendererFlags
+        -- +SDL +SDL_Renderer?
+    ]
+    SDL_DestroyRenderer [
+        +SDL +renderer:+SDL_Renderer -- +SDL
+    ]
+)
+
 external(+Unsafe.SDL_DestroyRenderer [Ptr --])
 
 def(+SDL_Window.create-renderer!,
-        +SDL +SDL_Window index:Int flags:SDL_RendererFlags
-        -- +SDL +SDL_Window +SDL_Renderer?,
+        +SDL +window:+SDL_Window index:Int flags:SDL_RendererFlags
+        -- +SDL +window:+SDL_Window +renderer:+SDL_Renderer?,
     .unsafe-ptr index> CInt flags> unsafe(.SDL_CreateRenderer)
     dup is-null if(
         drop rdip:get-error! +SDL_Renderer?.ERROR!,
