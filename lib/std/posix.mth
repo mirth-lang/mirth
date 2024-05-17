@@ -51,7 +51,7 @@ def(Nat.print-ln!, Nat --, show print-ln!)
 # STAT #
 ########
 
-def-external(posix-stat -> stat, +Unsafe CStr Ptr -- +Unsafe CInt)
+external(posix-stat -> stat, +Unsafe CStr Ptr -- +Unsafe CInt)
 def(+World.is-directory?, +World Path -- +World Bool,
     256 >Size +Buffer.new
     >Str with-cstr(

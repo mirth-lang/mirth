@@ -1036,7 +1036,7 @@ def(elab-module-decl!, Token +World +Mirth -- Token +World +Mirth,
         PRIM_SYNTAX_DEF_MISSING -> elab-def-missing!,
         PRIM_SYNTAX_DEF_TYPE -> elab-def-type!,
         PRIM_SYNTAX_DEF_EXTERNAL ->
-            # dup "def-external" >old "external" >new emit-deprecated!
+            dup "def-external" >old "external" >new emit-deprecated!
             elab-external!,
         PRIM_SYNTAX_EXTERNAL -> elab-external!,
         PRIM_SYNTAX_BUFFER -> elab-buffer!,

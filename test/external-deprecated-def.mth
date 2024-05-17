@@ -1,0 +1,8 @@
+module(test.external-deprecated-def)
+
+import(std.ctypes)
+def-external(my-exit -> exit, *a CInt +World -- *b)
+
+def(main, +World -- +World, 10 CInt my-exit)
+# mirth-test # merr # 4:1: warning: [36mdef-external[0m is deprecated, please use [36mexternal[0m instead.
+# mirth-test # pret # 10

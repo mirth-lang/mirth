@@ -6213,6 +6213,7 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang (void);
+static void mw_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_withZ_errorZ_token_1 (void);
 static void mw_mirth_mirth_ZPlusMirth_errorZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_traceZ_allZ_diagnosticsZBang (void);
@@ -7043,6 +7044,7 @@ static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_0 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_1 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_2 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang_0 (void);
+static void mb_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang_0 (void);
 static void mb_mirth_mirth_PropLabel_prop2_1_1 (void);
 static void mb_mirth_mirth_PropLabel_prop3_1_1 (void);
 static void mb_mirth_mirth_PropLabel_prop0_1_1 (void);
@@ -26266,6 +26268,11 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang (void) {
 	}
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang();
 }
+static void mw_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang (void) {
+	push_fnptr(&mb_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang_0);
+	mw_std_str_Str_1();
+	mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang();
+}
 static void mw_mirth_mirth_ZPlusMirth_withZ_errorZ_token_1 (void) {
 	{
 		VAL var_f = pop_value();
@@ -33137,6 +33144,12 @@ static void mw_mirth_elab_elabZ_moduleZ_declZBang (void) {
 			break;
 		case 86LL: // PRIM_SYNTAX_DEF_EXTERNAL
 			(void)pop_u64();
+			mp_primZ_dup();
+			STRLIT("def-external", 12);
+			LPUSH(lbl_old);
+			STRLIT("external", 8);
+			LPUSH(lbl_new);
+			mw_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang();
 			mw_mirth_elab_elabZ_externalZBang();
 			break;
 		case 85LL: // PRIM_SYNTAX_EXTERNAL
@@ -43305,6 +43318,24 @@ static void mb_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang_0 (void) {
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	push_u64(0LL); // Reset
 	mw_std_terminal_Sgr_emitZThen();
+}
+static void mb_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang_0 (void) {
+	push_u64(36LL); // FGCyan
+	mw_std_terminal_Sgr_emitZThen();
+	LPOP(lbl_old);
+	mw_std_str_ZPlusStr_pushZ_strZBang();
+	push_u64(0LL); // Reset
+	mw_std_terminal_Sgr_emitZThen();
+	STRLIT(" is deprecated, please use ", 27);
+	mw_std_str_ZPlusStr_pushZ_strZBang();
+	push_u64(36LL); // FGCyan
+	mw_std_terminal_Sgr_emitZThen();
+	LPOP(lbl_new);
+	mw_std_str_ZPlusStr_pushZ_strZBang();
+	push_u64(0LL); // Reset
+	mw_std_terminal_Sgr_emitZThen();
+	STRLIT(" instead.", 9);
+	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_mirth_mirth_PropLabel_prop2_1_1 (void) {
 	mp_primZ_packZ_uncons();
