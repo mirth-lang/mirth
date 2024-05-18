@@ -10,34 +10,28 @@ import(std.file)
 import(std.input)
 import(std.output)
 
-def(+World.put, Str +World -- +World, stdout:put)
-def(+World.line, +World -- +World, "\n" put)
-def(+World.put-line, Str +World -- +World, "\n" cat put)
+def(+World.print-, Str +World -- +World, stdout-file with-data(unsafe-write!) close-file!)
+def(+World.trace-, Str +World -- +World, stderr-file with-data(unsafe-write!) close-file!)
+def(+World.print, Str +World -- +World, "\n" cat print-)
+def(+World.trace, Str +World -- +World, "\n" cat trace-)
 
-def(+World.trace, +World Str -- +World, stderr:put)
-def(+World.trace-line, +World Str -- +World, stderr:put-line)
+inline(
+    def(+World.print(f), (*a +World +Str -- *b +World +Str) *a +World -- *b +World, Str(f) print)
+    def(+World.trace(f), (*a +World +Str -- *b +World +Str) *a +World -- *b +World, Str(f) trace)
+)
 
 def(+World.stdin(f), (*a +World +Input -- *b +World +Input) *a +World -- *b +World,
-    stdin-file
-    +Input.start!
-    f
-    +Input.end!
+    stdin-file input(f)
     expect!(is-stdin?, "expected stdin leaving +World.stdin(f) but got different file")
     close-file!)
 
 def(+World.stdout(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +World,
-    stdout-file
-    +Output.start!
-    f
-    +Output.end!
+    stdout-file output(f)
     expect!(is-stdout?, "expected stdout leaving +World.stdout(f) but got different file")
     close-file!)
 
 def(+World.stderr(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +World,
-    stderr-file
-    +Output.start!
-    f
-    +Output.end!
+    stderr-file output(f)
     expect!(is-stderr?, "expected stderr leaving +World.stderr(f) but got different file")
     close-file!)
 

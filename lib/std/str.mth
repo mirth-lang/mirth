@@ -42,6 +42,9 @@ def(+Str.dup!, +Str -- Str +Str,
 def(+Str.num-bytes?, +Str -- Size +Str,
     +Str -> dup num-bytes dip(+Str))
 
+def(Str.last-byte, Str -- Byte,
+    sip(num-bytes >Offset 1-) Str.byte@)
+
 def(+Str.last-byte, +Str -- Byte +Str,
     +Str.num-bytes? >Offset 1- +Str.byte@)
 

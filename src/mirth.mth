@@ -187,14 +187,13 @@ def(+Mirth.fatal-error!, Str +Mirth -- +Mirth,
 
 def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
     pop-diagnostics Str(
-        for(diagnostic;)
+        for(diagnostic; "\n";)
         FGRed emit; "Fatal error. Stopping early."; Reset emit;
     ) panic!)
 
 def(+Mirth.trace-diagnostics!, +World +Mirth -- +World +Mirth,
     pop-diagnostics
-    Str(for(diagnostic;))
-    rdip:stderr:put)
+    for(rdip:trace(diagnostic;)))
 
 def(+Mirth.pop-diagnostics, +Mirth -- +Mirth List(Diagnostic),
     +diagnostics(freeze L0 thaw))
@@ -203,7 +202,7 @@ def(Diagnostic.diagnostic;, +Str Diagnostic -- +Str,
     /Diagnostic
     location> emit; ": " ;
     severity> >Str ; ": " ;
-    message> ; "\n" ;)
+    message> ;)
 
 #########
 # PROPS #

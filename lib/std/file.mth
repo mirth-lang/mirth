@@ -5,6 +5,7 @@ import(std.path)
 import(std.str)
 import(std.posix)
 import(std.input)
+import(std.output)
 import(std.ctypes)
 
 data(+File, +File ->
@@ -77,3 +78,17 @@ def(+File.read-file!, +File -- Str +File,
     +Input.start!
     read-file!
     end!)
+
+def(+File.input(f), (*a +Input -- *b +Input) *a +File -- *b +File,
+    file-descriptor dip(
+        +Input.start! f +Input.end!
+    )
+    expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.input(f)")
+    drop)
+
+def(+File.output(f), (*a +Output -- *b +Output) *a +File -- *b +File,
+    file-descriptor dip(
+        +Output.start! f +Output.end!
+    )
+    expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.output(f)")
+    drop)

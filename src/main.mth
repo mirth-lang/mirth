@@ -66,14 +66,13 @@ def(Arguments.show;, Arguments +Str -- +Str,
 
 def(compile!, Arguments +World +Mirth -- +World +Mirth,
     /Arguments
-    "Compiling " rdip:stderr:put
-    @input-file >Str rdip:stderr:put-line
+    rdip:trace("Compiling "; @input-file path;)
     packages> for(
         unpack2 swap >Name Package.new-or-path! drop
     )
     input-file> run-lexer!
-    "Building." rdip:stderr:put-line
 
+    rdip:trace("Building.";)
     elab-module!
     typecheck-everything!
 
@@ -85,19 +84,19 @@ def(compile!, Arguments +World +Mirth -- +World +Mirth,
     trace-diagnostics!
 
     num-errors 0> if(
-        Str(FGRed emit; rdip:num-errors show; " errors.\n" ; Reset emit; ) rdip:stderr:put 1 posix-exit!,
-        Str(FGGreen emit; "No errors.\n" ; Reset emit; ) rdip:stderr:put,
+        num-errors rdip:trace(FGRed emit; show; " errors." ; Reset emit;) 1 posix-exit!,
+        rdip:trace(FGGreen emit; "No errors." ; Reset emit;),
     )
 
     match(
         Some ->
-            "Specializer." rdip:stderr:put-line
+            "Specializer." rdip:trace
             run-specializer!
-            "Codegen." rdip:stderr:put-line
+            "Codegen." rdip:trace
             output-file> unwrap >output-path
             C99_Options run-output-c99!,
         None ->
-            "Skipping Codegen." rdip:stderr:put-line
+            "Skipping Codegen." rdip:trace
             emit-debug-info> drop
             output-file> drop
     ))
@@ -128,8 +127,8 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
             TooFewArgs Some state:error!
         )
         state arguments output-file else(
-        state arguments entry-point then(
-            "output-file" MissingArg Some state:error!
+            state arguments entry-point then(
+                "output-file" MissingArg Some state:error!
             )
         )
         drop,
@@ -182,7 +181,7 @@ def(main, +World -- +World,
 
     parse-args match(
         Right -> ,
-        Left -> unpack2 rdip:stderr:put Str(emit;) panic!
+        Left -> unpack2 rdip:trace(emit;) panic!
     )
 
     compile!

@@ -3,4 +3,4 @@ import(std.prelude)
 import(std.posix)
 
 def(main, +World -- +World,
-    "Hello, world!" put line)
+    "Hello, world!" print)
