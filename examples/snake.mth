@@ -21,33 +21,14 @@ data(+Snake, +Snake ->
 
 data(+SnakePlatform, +SnakePlatform ->
     +SDL
-    +SDL_Window
-    +SDL_Renderer
-    +SDL_GameController?)
-
-def(+SnakePlatform.controller?(f),
-    (*a +SDL +SDL_GameController? -- *b +SDL +SDL_GameController?)
-    *a +SnakePlatform -- *b +SnakePlatform,
-    /+SnakePlatform
-    rrotr rdip2(f) rrotl
-    +SnakePlatform)
-
-def(+SnakePlatform.renderer(f),
-        (*a +SDL +SDL_Window +SDL_Renderer -- *b +SDL +SDL_Window +SDL_Renderer)
-        *a +SnakePlatform -- *b +SnakePlatform,
-    /+SnakePlatform
-    rdip(f)
-    +SnakePlatform)
-
-def(+SnakePlatform.window(f),
-        (*a +SDL +SDL_Window -- *b +SDL +SDL_Window)
-        *a +SnakePlatform -- *b +SnakePlatform,
-    renderer:rdip:f)
+    +window: +SDL_Window
+    +renderer: +SDL_Renderer)
 
 def(+SnakePlatform.sdl(f),
-        (*a +SDL -- *b +SDL)
+        (*a +SDL +window:+SDL_Window +renderer:+SDL_Renderer --
+         *b +SDL +window:+SDL_Window +renderer:+SDL_Renderer)
         *a +SnakePlatform -- *b +SnakePlatform,
-    window:rdip:f)
+    /+SnakePlatform f +SnakePlatform)
 
 buffer(SNAKE_EVENT, 0x100) # TODO: fold into +SnakePlatform, or perhaps get rid of it via SDL bindings.
 buffer(SNAKE_RECT, 16) # TODO: incorporate into platform or into bindings
@@ -136,7 +117,8 @@ def(+SnakeLogic.reset!, +World +SnakeLogic -- +World +SnakeLogic,
     rdrop +SnakeLogic.init!)
 
 def(+SnakePlatform.init!, +World -- +World +SnakePlatform,
-    SNAKE_INIT_FLAGS +SDL.init! unwrap!
+    SNAKE_INIT_FLAGS >flags
+    SDL_Init unwrap!
 
     "Snake!" >title
     100 >x 100 >y
@@ -144,23 +126,17 @@ def(+SnakePlatform.init!, +World -- +World +SnakePlatform,
     SNAKE_WINDOW_H >h
     SNAKE_WINDOW_FLAGS >flags
     create-window! unwrap!
+    >+window
 
     -1 >index
     SNAKE_RENDERER_FLAGS >flags
     create-renderer! unwrap!
-
-    rdip2(
-        0 to: num-joysticks find(dup is-game-controller) match(
-            Some -> game-controller-open! unwrap! +SDL_GameController?.OK!,
-            None -> "no controller detected" +SDL_GameController?.ERROR!
-        )
-    ) rrotl
+    >+renderer
 
     +SnakePlatform)
 
 def(SNAKE_INIT_FLAGS, SDL_InitFlags,
-    SDL_INIT_VIDEO
-    SDL_INIT_GAMECONTROLLER |)
+    SDL_INIT_VIDEO)
 
 def(+Snake.init!, +World -- +World +Snake,
     +SnakeLogic.init! >+logic
@@ -171,7 +147,7 @@ def(+Snake.loop!, +World +Snake -- +World +Snake,
     process-events!
     while(+logic:done not,
         present!
-        10 ms +platform:sdl:delay!
+        10 >U32 >ticks +platform:sdl:delay!
         process-events!
         +logic:update!
     ))
@@ -181,19 +157,13 @@ def(+Snake.quit!, +World +Snake -- +World,
 
 def(+SnakePlatform.quit!, +World +SnakePlatform -- +World,
     /+SnakePlatform
-    for!(rrotr rdip2(close!))
-    destroy! destroy! quit!)
+    destroy-renderer!
+    destroy-window!
+    quit!)
 
-def-type(R, Int)
-def-type(G, Int)
-def-type(B, Int)
-def-type(A, Int)
-
-def(snake-background-color, R G B A,
-    140 100 150 255)
-
-def(snake-foreground-color, R G B A,
-    255 255 255 255)
+def(rgba, Int Int Int Int -- r:CInt g:CInt b:CInt a:CInt, CInt >a CInt >b CInt >g CInt >r)
+def(snake-background-color, r:CInt g:CInt b:CInt a:CInt, 140 100 150 255 rgba)
+def(snake-foreground-color, r:CInt g:CInt b:CInt a:CInt, 255 255 255 255 rgba)
 
 def-type(X, Int)
 def-type(Y, Int)
@@ -217,20 +187,20 @@ def(snake-rect-cell!, Position --,
     snake-rect!)
 
 def(+Snake.present!, +Snake -- +Snake,
-    +platform:window:show!
+    +platform:sdl:show-window!
     +platform:clear!
     +logic:snake for(+platform:draw-cell!)
     +logic:mouse +platform:draw-cell!
-    +platform:renderer:unsafe-ptr SDL_RenderPresent)
+    +platform:sdl:SDL_RenderPresent)
 
 def(+SnakePlatform.clear!, +SnakePlatform -- +SnakePlatform,
-    renderer:unsafe-ptr snake-background-color on4(CInt) SDL_SetRenderDrawColor
-    renderer:unsafe-ptr SDL_RenderClear
-    renderer:unsafe-ptr snake-foreground-color on4(CInt) SDL_SetRenderDrawColor)
+    snake-background-color sdl:SDL_SetRenderDrawColor
+    sdl:SDL_RenderClear
+    snake-foreground-color sdl:SDL_SetRenderDrawColor)
 
 def(+SnakePlatform.draw-cell!, +SnakePlatform Position -- +SnakePlatform,
-    snake-rect-cell!
-    renderer:unsafe-ptr SNAKE_RECT SDL_RenderFillRect)
+    snake-rect-cell! SNAKE_RECT >rect
+    sdl:SDL_RenderFillRect)
 
 def(+Snake.process-events!, +World +Snake -- +World +Snake,
     while(SNAKE_EVENT >SDL_Event SDL_PollEvent >Int 0>, process-event!))

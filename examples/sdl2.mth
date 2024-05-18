@@ -7,26 +7,76 @@ import(std.ctypes)
 # SDL2 Bindings #
 #################
 
-external (
-    +Unsafe.SDL_Init [ +Unsafe SDL_InitFlags -- +Unsafe CInt ]
-    +Unsafe.SDL_Quit [ +Unsafe -- +Unsafe ]
-    +Unsafe.SDL_GetError [ +Unsafe -- +Unsafe CStr ]
+data(+SDL, +SDL)
+data(+SDL?, +SDL? -> CInt)
+def(+SDL?.if-ok!(f,g), (*a +SDL -- *b, *a Str -- *b) *a +SDL? -- *b,
+    +SDL? -> >Int 0= if(+SDL f, +SDL get-error! /+SDL g))
+def(+SDL?.unwrap!, +SDL? -- +SDL, if-ok!(id, panic!))
+
+data(+SDL_Window, +SDL_Window -> Ptr)
+data(+SDL_Window?, +SDL_Window? -> Ptr?)
+def(+SDL_Window?.if-ok!(f,g),
+        (*a +SDL +SDL_Window -- *b, *a +SDL Str -- *b)
+        *a +SDL +SDL_Window? -- *b,
+    +SDL_Window? -> if-some(+SDL_Window f, get-error! g))
+def(+SDL_Window?.unwrap!, +SDL +SDL_Window? -- +SDL +SDL_Window, if-ok!(id, panic!))
+
+data(+SDL_Renderer, +SDL_Renderer -> Ptr)
+data(+SDL_Renderer?, +SDL_Renderer? -> Ptr?)
+def(+SDL_Renderer?.if-ok!(f,g),
+        (*a +SDL +SDL_Renderer -- *b, *a +SDL Str -- *b)
+        *a +SDL +SDL_Renderer? -- *b,
+    +SDL_Renderer? -> if-some(+SDL_Renderer f, get-error! g))
+def(+SDL_Renderer?.unwrap!, +SDL +SDL_Renderer? -- +SDL +SDL_Renderer, if-ok!(id, panic!))
+
+external(
+    SDL_Init [ +World flags:SDL_InitFlags -- +World +SDL? ]
+    SDL_Quit [ +World +SDL -- +World ]
+    SDL_GetError [ +SDL -- +SDL CStr ]
+    SDL_Delay [ +SDL ticks:U32 -- +SDL ]
+    SDL_GetTicks [ +SDL -- +SDL U32 ]
+
+    SDL_CreateWindow [ +SDL title:CStr x:CInt y:CInt w:CInt h:CInt flags:SDL_WindowFlags -- +SDL +SDL_Window? ]
+    SDL_DestroyWindow [ +SDL +window:+SDL_Window -- +SDL ]
+    SDL_ShowWindow [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ]
+    SDL_HideWindow [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ]
+    SDL_RaiseWindow [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ]
+
+    SDL_CreateRenderer [
+        +SDL +window:+SDL_Window index:CInt flags:SDL_RendererFlags --
+        +SDL +window:+SDL_Window +SDL_Renderer?
+    ]
+    SDL_DestroyRenderer [ +SDL +renderer:+SDL_Renderer -- +SDL ]
+
+    SDL_RenderClear [+SDL +renderer:+SDL_Renderer -- +SDL +renderer:+SDL_Renderer ]
+    SDL_RenderPresent [ +SDL +renderer:+SDL_Renderer -- +SDL +renderer:+SDL_Renderer ]
+    SDL_SetRenderDrawColor [ +SDL +renderer:+SDL_Renderer r:CInt g:CInt b:CInt a:CInt -- +SDL +renderer:+SDL_Renderer ]
+    SDL_RenderFillRect [ +SDL +renderer:+SDL_Renderer rect:Ptr -- +SDL +renderer:+SDL_Renderer ]
 )
 
-data(+SDL, SDL!)
-data(+SDL?, OK! -> +SDL, ERROR! -> Str)
-def(+SDL?.unwrap!, +SDL? -- +SDL, OK! -> id, ERROR! -> panic!)
+inline(
+    def(+SDL.init!, +World flags:SDL_InitFlags -- +World +SDL?, SDL_Init)
+    def(+SDL.quit!, +World +SDL -- +World, SDL_Quit)
+    def(+SDL.get-error!, +SDL -- +SDL Str, SDL_GetError unsafe(Str.copy-cstr))
+    def(+SDL.delay!, +SDL ticks:U32 -- +SDL, SDL_Delay)
+    def(+SDL.get-ticks!, +SDL -- +SDL U32, SDL_GetTicks)
 
-def(+SDL.get-error!, -- Str, unsafe(.SDL_GetError Str.copy-cstr))
+    def(+SDL.create-window!, +SDL title:Str x:Int y:Int w:Int h:Int flags:SDL_WindowFlags -- +SDL +SDL_Window?,
+        title> with-cstr( >title
+            @x:CInt @y:CInt @w:CInt @h:CInt
+            SDL_CreateWindow
+        ))
+    def(+SDL.destroy-window!, +SDL +window:+SDL_Window -- +SDL, SDL_DestroyWindow)
+    def(+SDL.show-window!, +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window, SDL_ShowWindow)
+    def(+SDL.hide-window!, +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window, SDL_HideWindow)
+    def(+SDL.raise-window!, +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window, SDL_RaiseWindow)
 
-def(+SDL.init!, +World SDL_InitFlags -- +World +SDL?,
-    unsafe(.SDL_Init) >Int 0= if(
-        SDL! +SDL?.OK!,
-        +SDL.get-error! +SDL?.ERROR!
-    ))
-
-def(+SDL.quit!, +World +SDL -- +World,
-    /SDL! unsafe(.SDL_Quit))
+    def(+SDL.create-renderer!,
+            +SDL +window:+SDL_Window index:Int flags:SDL_RendererFlags --
+            +SDL +window:+SDL_Window +SDL_Renderer?,
+        @index:CInt SDL_CreateRenderer)
+    def(+SDL.destroy-renderer!, +SDL +renderer:+SDL_Renderer -- +SDL, SDL_DestroyRenderer)
+)
 
 data(SDL_InitFlags, WRAP -> U32)
 inline(
@@ -52,31 +102,6 @@ def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_GAMECONTROLLER |
     SDL_INIT_EVENTS |
     SDL_INIT_SENSOR |)
-
-external(+SDL.delay! -> SDL_Delay [ +SDL SDL_Ticks -- +SDL ] )
-external(+SDL.get-ticks! -> SDL_GetTicks [ +SDL -- +SDL SDL_Ticks ])
-def-type(SDL_Ticks, U32)
-def(ms, Int -- SDL_Ticks, >U32)
-
-data(+SDL_Window, SDL_WINDOW! -> unsafe-ptr:Ptr)
-data(+SDL_Window?, OK! -> +SDL_Window, ERROR! -> Str)
-def(+SDL_Window?.unwrap!, +SDL_Window? -- +SDL_Window, OK! -> id, ERROR! -> panic!)
-external(+Unsafe.SDL_CreateWindow -> SDL_CreateWindow [ +SDL +Unsafe title:CStr x:CInt y:CInt w:CInt h:CInt flags:SDL_WindowFlags -- +SDL +Unsafe Ptr ])
-external(+SDL_Window.destroy! -> SDL_DestroyWindow [ +SDL +SDL_Window -- +SDL ])
-def(+SDL.create-window!,
-        +SDL title:Str
-        x:Int y:Int
-        w:Int h:Int
-        flags:SDL_WindowFlags
-        -- +SDL +SDL_Window?,
-    title> with-cstr( >title
-        @x:CInt @y:CInt @w:CInt @h:CInt
-        unsafe(.SDL_CreateWindow)
-    )
-    dup is-null if(
-        drop get-error! +SDL_Window?.ERROR!,
-        >unsafe-ptr SDL_WINDOW! +SDL_Window?.OK!
-    ))
 
 data(SDL_WindowFlags, SDL_WINDOW_FLAGS -> U32)
 inline(
@@ -113,47 +138,11 @@ def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << >SDL_WindowFlags)
 def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << >SDL_WindowFlags)
 def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << >SDL_WindowFlags)
 
-external(+Unsafe.SDL_ShowWindow [Ptr --])
-external(+Unsafe.SDL_HideWindow [Ptr --])
-external(+Unsafe.SDL_RaiseWindow [Ptr --])
-def(+SDL_Window.show!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_ShowWindow))
-def(+SDL_Window.hide!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_HideWindow))
-def(+SDL_Window.raise!, +SDL_Window -- +SDL_Window, .unsafe-ptr unsafe(.SDL_RaiseWindow))
-
-data(+SDL_Renderer, SDL_RENDERER! -> unsafe-ptr:Ptr)
-data(+SDL_Renderer?, OK! -> +SDL_Renderer, ERROR! -> Str)
-def(+SDL_Renderer?.unwrap!, +SDL_Renderer? -- +SDL_Renderer, OK! -> id, ERROR! -> panic!)
-
-external(+Unsafe.SDL_CreateRenderer [Ptr CInt SDL_RendererFlags -- Ptr])
-external(+Unsafe.SDL_DestroyRenderer [Ptr --])
-
-def(+SDL_Window.create-renderer!,
-        +SDL +SDL_Window index:Int flags:SDL_RendererFlags
-        -- +SDL +SDL_Window +SDL_Renderer?,
-    .unsafe-ptr index> CInt flags> unsafe(.SDL_CreateRenderer)
-    dup is-null if(
-        drop rdip:get-error! +SDL_Renderer?.ERROR!,
-        >unsafe-ptr SDL_RENDERER! +SDL_Renderer?.OK!
-    ))
-def(+SDL_Renderer.destroy!,
-        +SDL +SDL_Window +SDL_Renderer
-        -- +SDL +SDL_Window,
-    /SDL_RENDERER! unsafe-ptr> unsafe(.SDL_DestroyRenderer))
-
-def-type(SDL_Renderer*, Ptr)
 def-type(SDL_RendererFlags, U32)
 def(SDL_RENDERER_SOFTWARE, SDL_RendererFlags, 0x1 >U32)
 def(SDL_RENDERER_ACCELERATED, SDL_RendererFlags, 0x2 >U32)
 def(SDL_RENDERER_PRESENTVSYNC, SDL_RendererFlags, 0x4 >U32)
 def(SDL_RENDERER_TARGETTEXTURE, SDL_RendererFlags, 0x8 >U32)
-
-external(
-    SDL_RenderClear [SDL_Renderer* --]
-    SDL_RenderPresent [SDL_Renderer* --]
-    SDL_SetRenderDrawColor [SDL_Renderer* CInt CInt CInt CInt --]
-    SDL_RenderFillRect [SDL_Renderer* SDL_Rect* --]
-)
-def-type(SDL_Rect*, Ptr)
 
 # Size of SDL_Event structure.
 def(SDL_EVENT_SIZE, Size, 56 >Size)
@@ -531,7 +520,7 @@ def(SDL_JoystickID.==, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) ==)
 external(
     SDL_NumJoysticks        [+Unsafe      -- CInt +Unsafe]
     SDL_IsGameController    [+Unsafe CInt -- Bool +Unsafe]
-    SDL_GameControllerOpen  [+Unsafe CInt -- Ptr  +Unsafe]
+    SDL_GameControllerOpen  [+Unsafe CInt -- Ptr? +Unsafe]
     SDL_GameControllerClose [+Unsafe Ptr  --      +Unsafe]
 )
 
@@ -550,9 +539,9 @@ def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameCon
 
 def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
     CInt unsafe(SDL_GameControllerOpen)
-    dup is-null if(
-        drop get-error! +SDL_GameController?.ERROR!,
-        >unsafe-ptr SDL_GAME_CONTROLLER! +SDL_GameController?.OK!
+    if-some(
+        >unsafe-ptr SDL_GAME_CONTROLLER! +SDL_GameController?.OK!,
+        get-error! +SDL_GameController?.ERROR!,
     ))
 def(+SDL_GameController.close!, +SDL +SDL_GameController -- +SDL,
     /SDL_GAME_CONTROLLER! unsafe-ptr> unsafe(SDL_GameControllerClose))
