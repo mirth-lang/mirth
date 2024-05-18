@@ -544,8 +544,8 @@ def(MetaVar.freshen, Subst MetaVar -- Subst Type,
 # Type Holes #
 ##############
 
-def(type-hole-unify!, Type Name -- Type,
-    Str(THole type; " ~ "; dup type; "\n" ;) trace!)
+def(type-hole-unify!, +Mirth +Gamma Type Name -- +Mirth +Gamma Type,
+    Str(THole type; " ~ "; dup type; "\n" ;) rdip:info!)
 
 ############
 # APP TYPE #

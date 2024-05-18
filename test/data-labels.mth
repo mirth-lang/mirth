@@ -1,6 +1,7 @@
 module(mirth-tests.data-labels)
 import(std.prelude)
 import(std.posix)
+import(std.str)
 
 data(Person, PERSON -> age:Int name:Str)
 data(Mixed, MIXED -> msg:Str Str)
@@ -8,28 +9,24 @@ data(+MyWorld, +MyWorld -> age:Int msg:Int name:Str +world:+World)
 data(+Deep, +Deep -> +myworld:+MyWorld)
 
 def(Person.greet!, Person +World -- Person +World,
-    "Hello, " trace!
-    dup name trace!
-    " at " trace!
-    dup age trace!
-    "!" trace-ln!)
+    Str("Hello, "; dup name ; " at "; dup age show; "!";) put line)
 
 def(main, +World -- +World,
     "John" >name
     30 >age
     PERSON
-    dup age trace-ln!
-    dup name trace-ln!
+    dup age show put line
+    dup name show put line
     drop
 
     "Hello" >msg "Goodbye"
-    MIXED msg trace-ln!
+    MIXED msg put line
 
     99 >age 101 >msg "me" >name
     >+world
     +MyWorld
-    "<<<" trace-ln!
-    age trace-ln!
+    "<<<" put line
+    age show put line
     >+myworld +Deep
     "<<<<<" trace-ln!
     +myworld:msg trace-ln!

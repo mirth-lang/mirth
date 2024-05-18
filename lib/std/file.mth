@@ -7,7 +7,9 @@ import(std.posix)
 import(std.input)
 import(std.ctypes)
 
-data(+File, +File -> file-descriptor: Int)
+data(+File, +File ->
+    file-descriptor: Int
+    owned: Bool)
 
 data(+File?, +FileOk -> +File, +FileErr -> Str)
 def(+File?.unwrap!, +File? -- +File,
@@ -17,7 +19,7 @@ def(+File?.unwrap!, +File? -- +File,
 def(+World.open-file!, Path +World -- +World +File?,
     dup >Str with-cstr(>Ptr 0 0 prim-posix-open)
     dup 0> if(
-        nip >file-descriptor +File +FileOk,
+        nip >file-descriptor True >owned +File +FileOk,
         drop Str("failed to open file: " ; >Str show;) +FileErr
     ))
 
@@ -28,9 +30,20 @@ def(+World.create-file!, Path +World -- +World +File?,
         0o666 prim-posix-open
     )
     dup 0> if(
-        nip >file-descriptor +File +FileOk,
+        nip >file-descriptor True >owned +File +FileOk,
         drop Str("failed to create file: " ; >Str show;) +FileErr
     ))
+
+def(+World.stdin-file, +World -- +World +File,
+    0 >file-descriptor False >owned +File)
+def(+World.stdout-file, +World -- +World +File,
+    1 >file-descriptor False >owned +File)
+def(+World.stderr-file, +World -- +World +File,
+    2 >file-descriptor False >owned +File)
+
+def(+File.is-stdin?,  +File -- +File Bool, file-descriptor 0=)
+def(+File.is-stdout?, +File -- +File Bool, file-descriptor 1 ==)
+def(+File.is-stderr?, +File -- +File Bool, file-descriptor 2 ==)
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS match(
@@ -41,9 +54,13 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     ))
 
 def(+File.close-file!, +World +File -- +World,
-    /+File file-descriptor> prim-posix-close
-    expect!(dup 0< not, "failed to close file")
-    drop)
+    /+File owned> if(
+        file-descriptor> prim-posix-close
+        expect!(dup 0< not, "failed to close file")
+        drop,
+
+        file-descriptor> drop
+    ))
 
 def(+File.unsafe-write!, Ptr Size +File -- +File,
     dip2(file-descriptor) dup dip(>Int posix-write!)

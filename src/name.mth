@@ -82,8 +82,6 @@ def(Str.>Name, Str -- Name,
 def(Name.cat, Name Str -- Name,
     dip(>Str) cat >Name)
 
-def(Name.trace!, Name --, >Str trace!)
-
 def(Name.head, Name -- Byte, >Str dip(0 >Offset) byte@)
 def(Name.tail-head, Name -- Byte, >Str dip(1 >Offset) byte@)
 def(Name.tail, Name -- Name,

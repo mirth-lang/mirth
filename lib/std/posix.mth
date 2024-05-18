@@ -6,46 +6,40 @@ import(std.path)
 import(std.buffer)
 import(std.ctypes)
 
-data(File, FILE -> Int)
-def(Int.>File, Int -- File, FILE)
-def(File.>Int, File -- Int, FILE -> id)
+import(std.file)
+import(std.input)
+import(std.output)
 
-def(STDIN, File, 0 >File)
-def(STDOUT, File, 1 >File)
-def(STDERR, File, 2 >File)
+def(+World.put, Str +World -- +World, stdout:put)
+def(+World.line, +World -- +World, "\n" put)
+def(+World.put-line, Str +World -- +World, "\n" cat put)
 
-def(Str.write!, File Str --,
-    with-data(slice-write!))
+def(+World.trace, +World Str -- +World, stderr:put)
+def(+World.trace-line, +World Str -- +World, stderr:put-line)
 
-def(slice-write!, File Ptr Size --,
-    dip2(>Int) >Int dup dip(posix-write!)
-    expect!(dup 0 >=, "write failed")
-    expect!(dup2 ==, "write output fewer bytes than expected")
-    drop2)
+def(+World.stdin(f), (*a +World +Input -- *b +World +Input) *a +World -- *b +World,
+    stdin-file
+    +Input.start!
+    f
+    +Input.end!
+    expect!(is-stdin?, "expected stdin leaving +World.stdin(f) but got different file")
+    close-file!)
 
-def(Str.print!, Str --, dip(STDOUT) write!)
-def(Str.trace!, Str --, dip(STDERR) write!)
-def(Str.print-ln!, Str --, "\n" cat print!)
-def(Str.trace-ln!, Str --, "\n" cat trace!)
-def(line-print!, --, "\n" print!)
-def(line-trace!, --, "\n" trace!)
+def(+World.stdout(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +World,
+    stdout-file
+    +Output.start!
+    f
+    +Output.end!
+    expect!(is-stdout?, "expected stdout leaving +World.stdout(f) but got different file")
+    close-file!)
 
-def(+World.put, Str +World -- +World, print!)
-def(+World.line, +World -- +World, "\n" print!)
-
-def(Path.trace!, Path --, >Str trace!)
-
-def(Int.write!, File Int --, show write!)
-def(Int.print!, Int --, show print!)
-def(Int.trace!, Int --, show trace!)
-def(Int.print-ln!, Int --, show print-ln!)
-def(Int.trace-ln!, Int --, show trace-ln!)
-
-def(Nat.write!, File Nat --, show write!)
-def(Nat.trace!, Nat --, show trace!)
-def(Nat.trace-ln!, Nat --, show trace-ln!)
-def(Nat.print!, Nat --, show print!)
-def(Nat.print-ln!, Nat --, show print-ln!)
+def(+World.stderr(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +World,
+    stderr-file
+    +Output.start!
+    f
+    +Output.end!
+    expect!(is-stderr?, "expected stderr leaving +World.stderr(f) but got different file")
+    close-file!)
 
 ########
 # STAT #

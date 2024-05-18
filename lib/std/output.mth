@@ -51,3 +51,5 @@ def(+Output.put-byte, Byte +Output -- +Output,
     size:1+)
 
 def(+Output.line, +Output -- +Output, BLF put-byte)
+
+def(+Output.put-line, Str +Output -- +Output, put line)
