@@ -408,7 +408,7 @@ def(c99-external-def!, External +C99 -- +C99,
     >ext
     @ext +mirth:ctype >cty
 
-    @cty cod parts find(dup ctype phantom? not) >outty
+    @cty cod parts find(dup label? none? and(dup ctype phantom? not)) >outty
     @outty if-some(ctype, Phantom) cname put " " put
     @ext symbol put
 
@@ -450,7 +450,8 @@ def(c99-external-def!, External +C99 -- +C99,
 
     @cty cod parts for(
         "\t" put
-        dip:"Y" c99-push
+        sip(label? if-some(name mangled, "Y"))
+        c99-push
         line
     )
 

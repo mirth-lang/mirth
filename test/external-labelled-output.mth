@@ -1,0 +1,47 @@
+module(test.external-labelled-output)
+
+import(std.prelude)
+import(std.posix)
+import(std.ctypes)
+
+data(+Resource1, +Resource1 -> CInt)
+data(+Resource2, +Resource2 -> CInt)
+
+external(
+    foo [
+        +foo:+Resource1
+        --
+        +foo:+Resource1 +Resource2  # labelled outputs in "external" are considered pass-through arguments
+    ],
+    "int foo(int x) { return x + 1; }"
+)
+
+external(
+    bar [
+        +bar:+Resource2
+        --
+        +bar:+Resource2
+    ]
+
+    "#include <stdio.h>"
+    "void bar(int y) { printf(\"%d (in bar)\\n\", y); fflush(stdout); }"
+)
+
+def(main, +World -- +World,
+    "foo" put line
+    10 CInt +Resource1 >+foo
+    foo   /+Resource2 >Int "+Resource2: " put show put line
+    +foo> /+Resource1 >Int "+Resource1: " put show put line
+
+    "bar" put line
+    30 CInt +Resource2 >+bar
+    bar
+    +bar> /+Resource2 >Int "+Resource2: " put show put line
+)
+
+# mirth-test # pout # foo
+# mirth-test # pout # +Resource2: 11
+# mirth-test # pout # +Resource1: 10
+# mirth-test # pout # bar
+# mirth-test # pout # 30 (in bar)
+# mirth-test # pout # +Resource2: 30

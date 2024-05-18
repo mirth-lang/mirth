@@ -1,0 +1,17 @@
+module(test.external-too-many-outputs)
+
+data(+Res, +Res -> Ptr)
+
+external(
+    bad1 [ CInt -- CInt CInt ]
+    bad2 [ +Res -- +Res CInt ]
+    bad3 [ +Res -- +Res +Res ]
+    ok1 [ +World CInt -- +World CVoid CVoid CInt CVoid ] # fine because only 1 non-phantom output
+    ok2 [ +World x:CInt +y:+Res -- +World x:CInt CInt +y:+Res ] # fine because only 1 non-phantom non-labelled output
+)
+
+def(main, --, ,)
+# mirth-test # merr # 6:5: error: External has too many outputs.
+# mirth-test # merr # 7:5: error: External has too many outputs.
+# mirth-test # merr # 8:5: error: External has too many outputs.
+# mirth-test # mret # 1
