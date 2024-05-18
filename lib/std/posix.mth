@@ -12,10 +12,10 @@ import(std.output)
 
 def(+World.print-, Str +World -- +World, stdout-file with-data(unsafe-write!) close-file!)
 def(+World.trace-, Str +World -- +World, stderr-file with-data(unsafe-write!) close-file!)
-def(+World.print, Str +World -- +World, "\n" cat print-)
-def(+World.trace, Str +World -- +World, "\n" cat trace-)
 
 inline(
+    def(+World.print, Str +World -- +World, "\n" cat print-)
+    def(+World.trace, Str +World -- +World, "\n" cat trace-)
     def(+World.print(f), (*a +World +Str -- *b +World +Str) *a +World -- *b +World, Str(f) print)
     def(+World.trace(f), (*a +World +Str -- *b +World +Str) *a +World -- *b +World, Str(f) trace)
 )

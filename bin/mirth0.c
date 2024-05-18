@@ -5499,15 +5499,12 @@ static void mw_std_file_ZPlusFileZAsk_unwrapZBang (void);
 static void mw_std_prim_ZPlusWorld_openZ_fileZBang (void);
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (void);
 static void mw_std_prim_ZPlusWorld_stderrZ_file (void);
-static void mw_std_file_ZPlusFile_isZ_stderrZAsk (void);
 static void mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void);
 static void mw_std_file_ZPlusFile_closeZ_fileZBang (void);
 static void mw_std_file_ZPlusFile_unsafeZ_writeZBang (void);
 static void mw_std_file_ZPlusFile_unsafeZ_readZBang (void);
 static void mw_std_file_ZPlusFile_readZ_fileZBang (void);
-static void mw_std_file_ZPlusFile_output_1 (void);
-static void mw_std_prim_ZPlusWorld_trace (void);
-static void mw_std_prim_ZPlusWorld_stderr_1 (void);
+static void mw_std_prim_ZPlusWorld_traceZ_ (void);
 static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (void);
 static void mw_std_posix_Sz_IFMT (void);
 static void mw_std_posix_Sz_IFDIR (void);
@@ -6870,9 +6867,6 @@ static void mw_mirth_main_main (void);
 static void mb_mirth_main_main_0 (void);
 static void mb_mirth_main_main_1 (void);
 static void mb_mirth_main_main_3 (void);
-static void mb_mirth_main_main_4 (void);
-static void mb_std_file_ZPlusFile_output_1_1 (void);
-static void mb_std_file_ZPlusFile_output_1_2 (void);
 static void mb_std_prim_Str_showZThen_0 (void);
 static void mb_mirth_specializzer_SPKey_ZToStr_0 (void);
 static void mb_mirth_specializzer_SPKey_ZToStr_2 (void);
@@ -6882,7 +6876,6 @@ static void mb_mirth_main_compileZBang_4 (void);
 static void mb_mirth_main_compileZBang_5 (void);
 static void mb_mirth_main_compileZBang_10 (void);
 static void mb_mirth_main_compileZBang_12 (void);
-static void mb_std_prim_ZPlusWorld_trace_0 (void);
 static void mb_std_list_List_1_for_2_2 (void);
 static void mb_std_prim_Str_ZToName_2 (void);
 static void mb_mirth_lexer_runZ_lexerZBang_4 (void);
@@ -6936,13 +6929,6 @@ static void mb_argZ_parser_parse_parseZ_args_16 (void);
 static void mb_argZ_parser_parse_parseZ_args_17 (void);
 static void mb_argZ_parser_parse_parseZ_args_18 (void);
 static void mb_argZ_parser_parse_parseZ_args_20 (void);
-static void mb_std_prim_ZPlusWorld_stderr_1_1 (void);
-static void mb_std_prim_ZPlusWorld_stderr_1_2 (void);
-static void mb_mirth_c99_ZPlusC99_put_0 (void);
-static void mb_std_output_ZPlusOutput_put_4 (void);
-static void mb_std_output_ZPlusOutput_put_5 (void);
-static void mb_std_output_ZPlusOutput_put_6 (void);
-static void mb_std_output_ZPlusOutput_put_7 (void);
 static void mb_std_prim_Int_ZToNat_0 (void);
 static void mb_std_prim_Int_ZToNat_1 (void);
 static void mb_std_prim_Int_ZToU8_0 (void);
@@ -7004,18 +6990,18 @@ static void mb_std_prim_Int_ZToByte_1 (void);
 static void mb_std_byte_Byte_zzencode_2 (void);
 static void mb_std_buffer_ZPlusBuffer_resizzeZBang_0 (void);
 static void mb_std_path_Path_splitZ_last_0 (void);
-static void mb_mirth_c99_ZPlusC99_line_0 (void);
+static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_3 (void);
+static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_4 (void);
+static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_5 (void);
+static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_6 (void);
 static void mb_std_file_ZPlusFile_closeZ_fileZBang_2 (void);
 static void mb_std_file_ZPlusFile_closeZ_fileZBang_3 (void);
+static void mb_std_prim_ZPlusWorld_traceZ__0 (void);
 static void mb_std_prim_ZPlusWorld_isZ_directoryZAsk_0 (void);
 static void mb_std_prim_ZPlusWorld_openZ_fileZBang_0 (void);
 static void mb_std_prim_ZPlusWorld_openZ_fileZBang_3 (void);
 static void mb_std_prim_ZPlusWorld_createZ_fileZBang_0 (void);
 static void mb_std_prim_ZPlusWorld_createZ_fileZBang_3 (void);
-static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_3 (void);
-static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_4 (void);
-static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_5 (void);
-static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_6 (void);
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_1 (void);
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_2 (void);
 static void mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_0 (void);
@@ -7027,9 +7013,15 @@ static void mb_std_input_ZPlusInput_readZ_chunkZBang_0 (void);
 static void mb_std_output_ZPlusOutput_flushZBang_0 (void);
 static void mb_std_output_ZPlusOutput_flushZBang_1 (void);
 static void mb_std_output_ZPlusOutput_capacityZ_total_0 (void);
+static void mb_mirth_c99_ZPlusC99_put_0 (void);
+static void mb_std_output_ZPlusOutput_put_4 (void);
+static void mb_std_output_ZPlusOutput_put_5 (void);
+static void mb_std_output_ZPlusOutput_put_6 (void);
+static void mb_std_output_ZPlusOutput_put_7 (void);
 static void mb_mirth_c99_ZPlusC99_putZ_byte_0 (void);
 static void mb_std_output_ZPlusOutput_putZ_byte_1 (void);
 static void mb_std_output_ZPlusOutput_putZ_byte_2 (void);
+static void mb_mirth_c99_ZPlusC99_line_0 (void);
 static void mb_argZ_parser_types_ZPlusArgumentParser_1_usage_0 (void);
 static void mb_argZ_parser_types_ZPlusArgumentParser_1_usage_3 (void);
 static void mb_argZ_parser_types_ZPlusArgumentParser_1_usage_5 (void);
@@ -12609,11 +12601,6 @@ static void mw_std_prim_ZPlusWorld_stderrZ_file (void) {
 	LPUSH(lbl_owned);
 	mtw_std_file_ZPlusFile_ZPlusFile();
 }
-static void mw_std_file_ZPlusFile_isZ_stderrZAsk (void) {
-	mw_std_file_ZPlusFile_fileZ_descriptor();
-	push_i64(2LL);
-	mp_primZ_intZ_eq();
-}
 static void mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void) {
 	mp_primZ_sysZ_os();
 	mw_std_prim_Int_ZToOS();
@@ -12708,42 +12695,11 @@ static void mw_std_file_ZPlusFile_readZ_fileZBang (void) {
 	mw_std_input_ZPlusInput_readZ_fileZBang();
 	mw_std_input_ZPlusInput_endZBang();
 }
-static void mw_std_file_ZPlusFile_output_1 (void) {
-	{
-		VAL var_f = pop_value();
-		mw_std_file_ZPlusFile_fileZ_descriptor();
-		{
-			VAL d3 = pop_value();
-			mw_std_output_ZPlusOutput_startZBang();
-			incref(var_f);
-			run_value(var_f);
-			mw_std_output_ZPlusOutput_endZBang();
-			push_value(d3);
-		}
-		push_fnptr(&mb_std_file_ZPlusFile_output_1_1);
-		push_fnptr(&mb_std_file_ZPlusFile_output_1_2);
-		mw_std_prelude_expectZBang_2();
-		mp_primZ_drop();
-		decref(var_f);
-	}
-}
-static void mw_std_prim_ZPlusWorld_trace (void) {
-	push_fnptr(&mb_std_prim_ZPlusWorld_trace_0);
-	mw_std_prim_ZPlusWorld_stderr_1();
-}
-static void mw_std_prim_ZPlusWorld_stderr_1 (void) {
-	{
-		VAL var_f = pop_value();
-		mw_std_prim_ZPlusWorld_stderrZ_file();
-		incref(var_f);
-		push_value(var_f);
-		mw_std_file_ZPlusFile_output_1();
-		push_fnptr(&mb_std_prim_ZPlusWorld_stderr_1_1);
-		push_fnptr(&mb_std_prim_ZPlusWorld_stderr_1_2);
-		mw_std_prelude_expectZBang_2();
-		mw_std_file_ZPlusFile_closeZ_fileZBang();
-		decref(var_f);
-	}
+static void mw_std_prim_ZPlusWorld_traceZ_ (void) {
+	mw_std_prim_ZPlusWorld_stderrZ_file();
+	push_fnptr(&mb_std_prim_ZPlusWorld_traceZ__0);
+	mw_std_prim_Str_withZ_data_1();
+	mw_std_file_ZPlusFile_closeZ_fileZBang();
 }
 static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (void) {
 	push_i64(256LL);
@@ -41069,7 +41025,9 @@ static void mw_mirth_main_compileZBang (void) {
 		VAL d2 = pop_resource();
 		push_fnptr(&mb_mirth_main_compileZBang_1);
 		mw_std_str_Str_1();
-		mw_std_prim_ZPlusWorld_trace();
+		STRLIT("\n", 1);
+		mp_primZ_strZ_cat();
+		mw_std_prim_ZPlusWorld_traceZ_();
 		push_resource(d2);
 	}
 	LPOP(lbl_packages);
@@ -41081,7 +41039,9 @@ static void mw_mirth_main_compileZBang (void) {
 		VAL d2 = pop_resource();
 		push_fnptr(&mb_mirth_main_compileZBang_4);
 		mw_std_str_Str_1();
-		mw_std_prim_ZPlusWorld_trace();
+		STRLIT("\n", 1);
+		mp_primZ_strZ_cat();
+		mw_std_prim_ZPlusWorld_traceZ_();
 		push_resource(d2);
 	}
 	mw_mirth_elab_elabZ_moduleZBang();
@@ -41105,7 +41065,9 @@ static void mw_mirth_main_compileZBang (void) {
 			VAL d3 = pop_resource();
 			push_fnptr(&mb_mirth_main_compileZBang_10);
 			mw_std_str_Str_1();
-			mw_std_prim_ZPlusWorld_trace();
+			STRLIT("\n", 1);
+			mp_primZ_strZ_cat();
+			mw_std_prim_ZPlusWorld_traceZ_();
 			push_resource(d3);
 		}
 		push_i64(1LL);
@@ -41115,7 +41077,9 @@ static void mw_mirth_main_compileZBang (void) {
 			VAL d3 = pop_resource();
 			push_fnptr(&mb_mirth_main_compileZBang_12);
 			mw_std_str_Str_1();
-			mw_std_prim_ZPlusWorld_trace();
+			STRLIT("\n", 1);
+			mp_primZ_strZ_cat();
+			mw_std_prim_ZPlusWorld_traceZ_();
 			push_resource(d3);
 		}
 	}
@@ -41125,14 +41089,18 @@ static void mw_mirth_main_compileZBang (void) {
 			STRLIT("Specializer.", 12);
 			{
 				VAL d4 = pop_resource();
-				mw_std_prim_ZPlusWorld_trace();
+				STRLIT("\n", 1);
+				mp_primZ_strZ_cat();
+				mw_std_prim_ZPlusWorld_traceZ_();
 				push_resource(d4);
 			}
 			mw_mirth_specializzer_runZ_specializzerZBang();
 			STRLIT("Codegen.", 8);
 			{
 				VAL d4 = pop_resource();
-				mw_std_prim_ZPlusWorld_trace();
+				STRLIT("\n", 1);
+				mp_primZ_strZ_cat();
+				mw_std_prim_ZPlusWorld_traceZ_();
 				push_resource(d4);
 			}
 			LPOP(lbl_outputZ_file);
@@ -41146,7 +41114,9 @@ static void mw_mirth_main_compileZBang (void) {
 			STRLIT("Skipping Codegen.", 17);
 			{
 				VAL d4 = pop_resource();
-				mw_std_prim_ZPlusWorld_trace();
+				STRLIT("\n", 1);
+				mp_primZ_strZ_cat();
+				mw_std_prim_ZPlusWorld_traceZ_();
 				push_resource(d4);
 			}
 			LPOP(lbl_emitZ_debugZ_info);
@@ -41358,16 +41328,17 @@ static void mw_mirth_main_main (void) {
 			break;
 		case 0LL: // Left
 			mtp_std_either_Either_2_Left();
-			mw_std_prelude_unpack2();
 			{
 				VAL d4 = pop_resource();
 				push_fnptr(&mb_mirth_main_main_3);
-				mw_std_prim_ZPlusWorld_stderr_1();
+				mw_std_str_Str_1();
+				STRLIT("\n", 1);
+				mp_primZ_strZ_cat();
+				mw_std_prim_ZPlusWorld_traceZ_();
 				push_resource(d4);
 			}
-			push_fnptr(&mb_mirth_main_main_4);
-			mw_std_str_Str_1();
-			mw_std_prelude_panicZBang();
+			push_i64(1LL);
+			mp_primZ_posixZ_exit();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -41460,18 +41431,9 @@ static void mb_mirth_main_main_1 (void) {
 	mw_mirth_main_compilerZ_parseZ_args();
 }
 static void mb_mirth_main_main_3 (void) {
-	mw_std_output_ZPlusOutput_put();
-}
-static void mb_mirth_main_main_4 (void) {
+	mw_std_prelude_unpack2();
+	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_argZ_parser_types_ArgumentParsingError_emitZThen();
-}
-static void mb_std_file_ZPlusFile_output_1_1 (void) {
-	mp_primZ_dup();
-	mw_std_file_ZPlusFile_fileZ_descriptor();
-	mp_primZ_intZ_eq();
-}
-static void mb_std_file_ZPlusFile_output_1_2 (void) {
-	STRLIT("file descriptor changed unexpectedly during +File.output(f)", 59);
 }
 static void mb_std_prim_Str_showZThen_0 (void) {
 	mw_std_str_ZPlusStr_pushZ_showZ_byteZBang();
@@ -41552,10 +41514,6 @@ static void mb_mirth_main_compileZBang_12 (void) {
 	push_u64(0LL); // Reset
 	mw_std_terminal_Sgr_emitZThen();
 }
-static void mb_std_prim_ZPlusWorld_trace_0 (void) {
-	mw_std_output_ZPlusOutput_put();
-	mw_std_output_ZPlusOutput_line();
-}
 static void mb_std_list_List_1_for_2_2 (void) {
 	mp_primZ_packZ_uncons();
 	VAL var_f = pop_value();
@@ -41634,7 +41592,9 @@ static void mb_mirth_mirth_ZPlusMirth_traceZ_diagnosticsZBang_0 (void) {
 		VAL d2 = pop_resource();
 		push_fnptr(&mb_mirth_mirth_ZPlusMirth_traceZ_diagnosticsZBang_2);
 		mw_std_str_Str_1();
-		mw_std_prim_ZPlusWorld_trace();
+		STRLIT("\n", 1);
+		mp_primZ_strZ_cat();
+		mw_std_prim_ZPlusWorld_traceZ_();
 		push_resource(d2);
 	}
 }
@@ -41973,38 +41933,6 @@ static void mb_argZ_parser_parse_parseZ_args_18 (void) {
 }
 static void mb_argZ_parser_parse_parseZ_args_20 (void) {
 	mw_argZ_parser_state_State_1_argumentsZBang();
-}
-static void mb_std_prim_ZPlusWorld_stderr_1_1 (void) {
-	mw_std_file_ZPlusFile_isZ_stderrZAsk();
-}
-static void mb_std_prim_ZPlusWorld_stderr_1_2 (void) {
-	STRLIT("expected stderr leaving +World.stderr(f) but got different file", 63);
-}
-static void mb_mirth_c99_ZPlusC99_put_0 (void) {
-	mw_std_output_ZPlusOutput_put();
-}
-static void mb_std_output_ZPlusOutput_put_4 (void) {
-	push_fnptr(&mb_std_output_ZPlusOutput_put_5);
-	mw_std_output_ZPlusOutput_ZPlusfile_1();
-}
-static void mb_std_output_ZPlusOutput_put_5 (void) {
-	mw_std_file_ZPlusFile_unsafeZ_writeZBang();
-}
-static void mb_std_output_ZPlusOutput_put_6 (void) {
-	mw_std_buffer_ZPlusBuffer_ZBangStr();
-}
-static void mb_std_output_ZPlusOutput_put_7 (void) {
-	{
-		VAL d2 = pop_value();
-		mw_std_prelude_Sizze_ZDivSizze();
-		push_value(d2);
-	}
-	mw_std_prelude_Sizze_ZDivSizze();
-	{
-		VAL d2 = pop_value();
-		push_value(d2);
-	}
-	mp_primZ_intZ_add();
 }
 static void mb_std_prim_Int_ZToNat_0 (void) {
 	mp_primZ_dup();
@@ -42925,59 +42853,6 @@ static void mb_std_buffer_ZPlusBuffer_resizzeZBang_0 (void) {
 static void mb_std_path_Path_splitZ_last_0 (void) {
 	mw_std_byte_Byte_isZ_pathZ_separatorZAsk();
 }
-static void mb_mirth_c99_ZPlusC99_line_0 (void) {
-	mw_std_output_ZPlusOutput_line();
-}
-static void mb_std_file_ZPlusFile_closeZ_fileZBang_2 (void) {
-	mp_primZ_dup();
-	push_i64(0LL);
-	mp_primZ_intZ_lt();
-	if (pop_u64()) {
-		push_u64(0LL); // False
-	} else {
-		push_u64(1LL); // True
-	}
-}
-static void mb_std_file_ZPlusFile_closeZ_fileZBang_3 (void) {
-	STRLIT("failed to close file", 20);
-}
-static void mb_std_prim_ZPlusWorld_isZ_directoryZAsk_0 (void) {
-	mw_std_buffer_ZPlusBuffer_base();
-	push_resource(MKU64(0LL)); // +Unsafe
-	mext_std_posix_posixZ_stat();
-	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
-	push_i64(0LL);
-	mp_primZ_intZ_eq();
-	if (pop_u64()) {
-		mw_std_buffer_ZPlusBuffer_base();
-		push_resource(MKU64(0LL)); // +Unsafe
-		mw_std_posix_stz_modeZAt();
-		mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
-		mw_std_posix_Sz_ISDIR();
-	} else {
-		push_u64(0LL); // False
-	}
-}
-static void mb_std_prim_ZPlusWorld_openZ_fileZBang_0 (void) {
-	push_i64(0LL);
-	push_i64(0LL);
-	mp_primZ_posixZ_open();
-}
-static void mb_std_prim_ZPlusWorld_openZ_fileZBang_3 (void) {
-	STRLIT("failed to open file: ", 21);
-	mw_std_str_ZPlusStr_pushZ_strZBang();
-	mw_std_prim_Str_showZThen();
-}
-static void mb_std_prim_ZPlusWorld_createZ_fileZBang_0 (void) {
-	mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
-	push_i64(438LL);
-	mp_primZ_posixZ_open();
-}
-static void mb_std_prim_ZPlusWorld_createZ_fileZBang_3 (void) {
-	STRLIT("failed to create file: ", 23);
-	mw_std_str_ZPlusStr_pushZ_strZBang();
-	mw_std_prim_Str_showZThen();
-}
 static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_3 (void) {
 	mp_primZ_dup();
 	push_i64(0LL);
@@ -43018,6 +42893,59 @@ static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_5 (void) {
 }
 static void mb_std_file_ZPlusFile_unsafeZ_writeZBang_6 (void) {
 	STRLIT("write output fewer bytes than expected", 38);
+}
+static void mb_std_file_ZPlusFile_closeZ_fileZBang_2 (void) {
+	mp_primZ_dup();
+	push_i64(0LL);
+	mp_primZ_intZ_lt();
+	if (pop_u64()) {
+		push_u64(0LL); // False
+	} else {
+		push_u64(1LL); // True
+	}
+}
+static void mb_std_file_ZPlusFile_closeZ_fileZBang_3 (void) {
+	STRLIT("failed to close file", 20);
+}
+static void mb_std_prim_ZPlusWorld_traceZ__0 (void) {
+	mw_std_file_ZPlusFile_unsafeZ_writeZBang();
+}
+static void mb_std_prim_ZPlusWorld_isZ_directoryZAsk_0 (void) {
+	mw_std_buffer_ZPlusBuffer_base();
+	push_resource(MKU64(0LL)); // +Unsafe
+	mext_std_posix_posixZ_stat();
+	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
+	push_i64(0LL);
+	mp_primZ_intZ_eq();
+	if (pop_u64()) {
+		mw_std_buffer_ZPlusBuffer_base();
+		push_resource(MKU64(0LL)); // +Unsafe
+		mw_std_posix_stz_modeZAt();
+		mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
+		mw_std_posix_Sz_ISDIR();
+	} else {
+		push_u64(0LL); // False
+	}
+}
+static void mb_std_prim_ZPlusWorld_openZ_fileZBang_0 (void) {
+	push_i64(0LL);
+	push_i64(0LL);
+	mp_primZ_posixZ_open();
+}
+static void mb_std_prim_ZPlusWorld_openZ_fileZBang_3 (void) {
+	STRLIT("failed to open file: ", 21);
+	mw_std_str_ZPlusStr_pushZ_strZBang();
+	mw_std_prim_Str_showZThen();
+}
+static void mb_std_prim_ZPlusWorld_createZ_fileZBang_0 (void) {
+	mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
+	push_i64(438LL);
+	mp_primZ_posixZ_open();
+}
+static void mb_std_prim_ZPlusWorld_createZ_fileZBang_3 (void) {
+	STRLIT("failed to create file: ", 23);
+	mw_std_str_ZPlusStr_pushZ_strZBang();
+	mw_std_prim_Str_showZThen();
 }
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_1 (void) {
 	mp_primZ_dup();
@@ -43062,6 +42990,32 @@ static void mb_std_output_ZPlusOutput_flushZBang_1 (void) {
 static void mb_std_output_ZPlusOutput_capacityZ_total_0 (void) {
 	mw_std_buffer_ZPlusBuffer_sizze();
 }
+static void mb_mirth_c99_ZPlusC99_put_0 (void) {
+	mw_std_output_ZPlusOutput_put();
+}
+static void mb_std_output_ZPlusOutput_put_4 (void) {
+	push_fnptr(&mb_std_output_ZPlusOutput_put_5);
+	mw_std_output_ZPlusOutput_ZPlusfile_1();
+}
+static void mb_std_output_ZPlusOutput_put_5 (void) {
+	mw_std_file_ZPlusFile_unsafeZ_writeZBang();
+}
+static void mb_std_output_ZPlusOutput_put_6 (void) {
+	mw_std_buffer_ZPlusBuffer_ZBangStr();
+}
+static void mb_std_output_ZPlusOutput_put_7 (void) {
+	{
+		VAL d2 = pop_value();
+		mw_std_prelude_Sizze_ZDivSizze();
+		push_value(d2);
+	}
+	mw_std_prelude_Sizze_ZDivSizze();
+	{
+		VAL d2 = pop_value();
+		push_value(d2);
+	}
+	mp_primZ_intZ_add();
+}
 static void mb_mirth_c99_ZPlusC99_putZ_byte_0 (void) {
 	mw_std_output_ZPlusOutput_putZ_byte();
 }
@@ -43072,6 +43026,9 @@ static void mb_std_output_ZPlusOutput_putZ_byte_2 (void) {
 	mw_std_prelude_Sizze_ZDivSizze();
 	push_i64(1LL);
 	mp_primZ_intZ_add();
+}
+static void mb_mirth_c99_ZPlusC99_line_0 (void) {
+	mw_std_output_ZPlusOutput_line();
 }
 static void mb_argZ_parser_types_ZPlusArgumentParser_1_usage_0 (void) {
 	push_u64(1LL); // Bold

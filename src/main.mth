@@ -181,7 +181,7 @@ def(main, +World -- +World,
 
     parse-args match(
         Right -> ,
-        Left -> unpack2 rdip:trace(emit;) panic!
+        Left -> rdip:trace(unpack2 ; emit;) 1 posix-exit!
     )
 
     compile!
