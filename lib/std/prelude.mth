@@ -271,9 +271,19 @@ inline(
     def(Int.0>=, Int -- Bool, 0 >=)
     def(Int.0<>, Int -- Bool, 0 <>)
 
-    alias(Ptr.null, prim-ptr-nil)
-    alias(Ptr.==, prim-ptr-eq)
-    def(Ptr.is-null, Ptr -- Bool, Ptr.null ==)
+    ||| Nullable pointer.
+    data(Ptr?, Ptr?-unsafe -> Ptr)
+    def(Ptr?.Null, -- Ptr?, prim-ptr-nil Ptr?-unsafe)
+    def(Ptr?.null?, Ptr? -- Bool, Ptr?-unsafe -> prim-ptr-nil ==)
+    def(Ptr?.==, Ptr? Ptr? -- Bool, both(/Ptr?-unsafe) ==)
+    def(Ptr?.if-some(f,g), (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b, dup null? if(drop g, /Ptr?-unsafe f))
+    def(Ptr?.for(f), (*a Ptr -- *a) *a Ptr? -- *a, if-some(f, id))
+    def(Ptr?.unwrap-or(f), (*a -- *a Ptr) *a Ptr? -- *a Ptr, if-some(id, f))
+    def(Ptr?.unwrap, Ptr? -- Ptr, unwrap-or("Tried to unwrap null pointer." panic!))
+    def(Ptr?.>Ptr, Ptr? -- Ptr, unwrap)
+
+    def(Ptr.==, Ptr Ptr -- Bool, prim-ptr-eq)
+    def(Ptr.>Ptr?, Ptr -- Ptr?, Ptr?-unsafe)
     def(Ptr.sizeof, -- Size, prim-ptr-size >Size)
 
     data(+Unsafe, +Unsafe)
