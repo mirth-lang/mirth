@@ -5,7 +5,7 @@ external(
     bar [ extra2:CInt -- extra1:CInt extra2:CInt extra3:CInt ]
 )
 def(main, --, ,)
-# mirth-test # merr # 4:5: error: Output label extra1 not present in input!
-# mirth-test # merr # 5:5: error: Output label extra1 not present in input!
-# mirth-test # merr # 5:5: error: Output label extra3 not present in input!
+# mirth-test # merr # 4:5: error: Output label extra1 not present in input
+# mirth-test # merr # 5:5: error: Output label extra1 not present in input
+# mirth-test # merr # 5:5: error: Output label extra3 not present in input
 # mirth-test # mret # 1
