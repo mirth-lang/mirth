@@ -1551,11 +1551,16 @@ def(elab-def-external-ctype, +Mirth External -- +Mirth CTypeArrow,
     dup head with-error-token(
         type ctype
         dup cod parts
+        filter(dup label? none?)
         filter(dup ctype phantom? not)
         len 1 >Nat > then(
             "External has too many outputs." error!
-            # TODO Allow for external resources to be used
-            # on both input and output without affecting count.
+        )
+
+        dup dom parts filter-some(label?)
+        over cod parts filter-some(label?)
+        swap difference(==) for(
+            Str("Output label "; name >Str ; " not present in input";) error!
         )
     ))
 
