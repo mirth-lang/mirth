@@ -11,13 +11,13 @@ This repository is a **work-in-progress** implementation of Mirth. If you are in
 ### Hello, world!
 
 ```mirth
-||| A simple hello world program to show off the mirth language.
+||| A simple hello world program to show off the Mirth language.
 module(examples.hello-world)
 import(std.prelude)
-import(posix.posix)
+import(std.world)
 
 def(main, +World -- +World,
-    "Hello, World!" put line)
+    "Hello, world!" print)
 ```
 
 ## Tools

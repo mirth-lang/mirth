@@ -2,7 +2,8 @@ module(mirth-tests.resource-match)
 
 import(std.prelude)
 import(std.either)
-import(std.posix)
+import(std.world)
+import(std.str)
 
 data(+Foo,
     FOO! -> Int +World,
@@ -15,18 +16,18 @@ def(+Foo.reset!, +Foo -- Either(Int,Str) +World,
     BAZ! -> reset!)
 
 def(my-trace, Either(Int,Str) +World -- +World,
-    Left -> trace! " Left" trace!,
-    Right -> trace! " Right" trace!)
+    Left -> trace(show; " Left";),
+    Right -> trace(; " Right";))
 
 def(whatever, Either(Int,Str) +World -- +World,
-    _ -> drop "whatever" trace!)
+    _ -> drop "whatever" trace)
 
 def(main, +World -- +World,
-    10 FOO! reset! my-trace line-trace!
-    20 FOO! reset! my-trace line-trace!
-    "Hello." BAR! reset! my-trace line-trace!
-    "World." BAR! BAZ! reset! my-trace line-trace!
-    "Foo" BAR! reset! whatever line-trace!)
+    10 FOO! reset! my-trace
+    20 FOO! reset! my-trace
+    "Hello." BAR! reset! my-trace
+    "World." BAR! BAZ! reset! my-trace
+    "Foo" BAR! reset! whatever)
 
 # mirth-test # perr # 10 Left
 # mirth-test # perr # 20 Left

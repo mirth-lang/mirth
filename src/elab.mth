@@ -7,7 +7,7 @@ import(std.maybe)
 import(std.either)
 import(std.path)
 import(std.byte)
-import(std.posix)
+import(std.world)
 import(std.file)
 import(std.terminal)
 
@@ -997,7 +997,6 @@ def(elab-module-qname, +Mirth Token -- +Mirth QName,
 
 ||| Check that the `module(M)` statement exists and save the name.
 def(elab-module-header!, +World +Mirth Token -- +World +Mirth Token,
-    # dup token-name@ name-str @ str-trace-ln!
     dup module-header? if(
         sip(next) args-1 dup elab-module-package-name
         over2 .module

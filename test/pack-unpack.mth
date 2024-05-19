@@ -1,6 +1,6 @@
 module(mirth-tests.pack-unpack)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 def(!!True, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, Int Int --, == !!True)

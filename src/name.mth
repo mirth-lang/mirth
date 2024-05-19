@@ -7,7 +7,7 @@ import(std.list)
 import(std.lazy)
 import(std.maybe)
 import(std.path)
-import(std.posix)
+import(std.world)
 import(mirth.def)
 import(mirth.module)
 import(mirth.package)
@@ -81,8 +81,6 @@ def(Str.>Name, Str -- Name,
 ||| Add string to name, creating new name.
 def(Name.cat, Name Str -- Name,
     dip(>Str) cat >Name)
-
-def(Name.trace!, Name --, >Str trace!)
 
 def(Name.head, Name -- Byte, >Str dip(0 >Offset) byte@)
 def(Name.tail-head, Name -- Byte, >Str dip(1 >Offset) byte@)

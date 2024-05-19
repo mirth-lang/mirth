@@ -1,7 +1,7 @@
 ||| Errors should short-circuit the codegen.
 module(mirth-tests.error-shortcircuit)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 def(main, --, id)
 def(spam, Int, "hello")

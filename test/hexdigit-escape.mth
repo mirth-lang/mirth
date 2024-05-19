@@ -1,9 +1,9 @@
 ||| Check that hexdigits are escaped correctly in C99 string literals.
 module(mirth-tests.hexdigit-escape)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 def(main, +World -- +World,
-    "édead ÁBEEF" put line)
+    "édead ÁBEEF" print)
 
 # mirth-test # pout # édead ÁBEEF

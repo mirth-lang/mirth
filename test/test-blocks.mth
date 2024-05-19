@@ -2,7 +2,8 @@ module(mirth-tests.test-blocks)
 import(std.prelude)
 import(std.list)
 import(std.maybe)
-import(std.posix)
+import(std.world)
+import(std.str)
 
 def(compose, [*a -- *b] [*b -- *c] -- [*a -- *c], \([f] [g] -> [f g]))
 
@@ -24,7 +25,7 @@ def(mul2add10, [Int -- Int],
 def(comprun(f,g), (*a -- *b, *b -- *c) *a -- *c,
     f g)
 
-def(main, --,
+def(main, +World -- +World,
     10 ??
     add10 run1 ??
     add10 run1 ??
@@ -35,12 +36,12 @@ def(main, --,
     drop
 
     10 20 30 L3
-    "[" over for(swap trace! trace! " ") drop "]" trace-ln!
+    trace("[" over for(swap ; show; " ") drop "]" ;)
     map(10 +)
-    "[" over for(swap trace! trace! " ") drop "]" trace-ln!
+    trace("[" over for(swap ; show; " ") drop "]" ;)
     find(dup 25 >) match(
-        Some -> trace! " found" trace-ln!,
-        None -> "not found" trace-ln!
+        Some -> trace(show; " found";),
+        None -> "not found" trace
     ))
 
 # mirth-test # perr # ?? 10

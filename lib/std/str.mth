@@ -42,6 +42,9 @@ def(+Str.dup!, +Str -- Str +Str,
 def(+Str.num-bytes?, +Str -- Size +Str,
     +Str -> dup num-bytes dip(+Str))
 
+def(Str.last-byte, Str -- Byte,
+    sip(num-bytes >Offset 1-) Str.byte@)
+
 def(+Str.last-byte, +Str -- Byte +Str,
     +Str.num-bytes? >Offset 1- +Str.byte@)
 
@@ -195,16 +198,21 @@ def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
         dip(dip:>Size take-slice)
     )))
 
-def(+Str.push-show-byte!, +Str Byte -- +Str,
-    BQUOTE -> "\\\"" ;, B'\' -> "\\\\" ;,
-    BLF -> "\n" ;, BCR -> "\r" ;, BHT -> "\t" ;,
+def(+Str.push-show-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
+    BQUOTE -> "\\\"" ; False !escape-hex,
+    B'\' -> "\\\\" ; False !escape-hex,
+    BLF -> "\n" ; False !escape-hex,
+    BCR -> "\r" ; False !escape-hex,
+    BHT -> "\t" ; False !escape-hex,
     _ ->
-        dup BSPACE B'~' in-range if(
-            push-byte-ascii!,
+        dup BSPACE B'~' in-range and(@escape-hex and(dup is-hexdigit) not) if(
+            push-byte-ascii!
+            False !escape-hex,
             "\\x" ; to-hexdigits
             at2:push-byte-ascii!
+            True !escape-hex
         )
     )
 
 def(Str.show;, Str +Str -- +Str,
-    "\"" ; bytes-for(push-show-byte!) "\"" ;)
+    "\"" ; False >escape-hex bytes-for(push-show-byte!) escape-hex> drop "\"" ;)

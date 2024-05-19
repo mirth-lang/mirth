@@ -2,11 +2,12 @@
 module(mirth.mirth)
 
 import(std.prelude)
-import(std.posix)
+import(std.world)
 import(std.list)
 import(std.str)
 import(std.terminal)
 import(std.maybe)
+import(std.output)
 
 import(mirth.mirth)
 import(mirth.location)
@@ -134,25 +135,30 @@ data(Diagnostic, Diagnostic ->
     location: Location
     message: Str)
 
-data(Severity, Error, Warning)
+data(Severity, Error, Warning, Info)
 def(Severity.>Str, Severity -- Str,
     Error -> "error",
-    Warning -> "warning")
+    Warning -> "warning",
+    Info -> "info",
+)
 
 def(+Mirth.emit-diagnostic-at!, Location Str Severity +Mirth -- +Mirth,
     >severity >message >location
     @severity match(
         Warning -> num-warnings:1+,
-        Error -> num-errors:1+
+        Error -> num-errors:1+,
+        _ -> drop
     )
     Diagnostic +diagnostics:push!)
 
+def(+Mirth.emit-info-at!, Location Str +Mirth -- +Mirth, Info emit-diagnostic-at!)
 def(+Mirth.emit-warning-at!, Location Str +Mirth -- +Mirth, Warning emit-diagnostic-at!)
 def(+Mirth.emit-error-at!, Location Str +Mirth -- +Mirth, Error emit-diagnostic-at!)
 def(+Mirth.emit-fatal-error-at!, *a Location Str +Mirth -- *b,
-    emit-error-at! trace-all-diagnostics!
-    Str(FGRed emit; "Fatal error. Stopping early."; Reset emit;) panic!)
+    emit-error-at! panic-diagnostics!)
 
+def(+Mirth.emit-info!, Token Str +Mirth -- +Mirth,
+    dip(location) emit-info-at!)
 def(+Mirth.emit-warning!, Token Str +Mirth -- +Mirth,
     dip(location) emit-warning-at!)
 def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
@@ -170,6 +176,8 @@ def(+Mirth.with-error-token(f), (*a +Mirth -- *b +Mirth)
         *a Token +Mirth -- *b +Mirth,
     error-token dip(Some error-token! f) error-token!)
 
+def(+Mirth.info!, Str +Mirth -- +Mirth,
+    error-token unwrap swap emit-info!)
 def(+Mirth.warning!, Str +Mirth -- +Mirth,
     error-token unwrap swap emit-warning!)
 def(+Mirth.error!, Str +Mirth -- +Mirth,
@@ -177,16 +185,24 @@ def(+Mirth.error!, Str +Mirth -- +Mirth,
 def(+Mirth.fatal-error!, Str +Mirth -- +Mirth,
     error-token unwrap swap emit-fatal-error!)
 
-def(+Mirth.trace-all-diagnostics!, +Mirth -- +Mirth,
-    +diagnostics(freeze L0 thaw)
-    for(trace!))
+def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
+    pop-diagnostics Str(
+        for(diagnostic; "\n";)
+        FGRed emit; "Fatal error. Stopping early."; Reset emit;
+    ) panic!)
 
-def(Diagnostic.trace!, Diagnostic --,
-    /Diagnostic Str(
-        location> emit; ": " ;
-        severity> >Str ; ": " ;
-        message> ; "\n" ;
-    ) trace!)
+def(+Mirth.trace-diagnostics!, +World +Mirth -- +World +Mirth,
+    pop-diagnostics
+    for(rdip:trace(diagnostic;)))
+
+def(+Mirth.pop-diagnostics, +Mirth -- +Mirth List(Diagnostic),
+    +diagnostics(freeze L0 thaw))
+
+def(Diagnostic.diagnostic;, +Str Diagnostic -- +Str,
+    /Diagnostic
+    location> emit; ": " ;
+    severity> >Str ; ": " ;
+    message> ;)
 
 #########
 # PROPS #

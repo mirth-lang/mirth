@@ -6,7 +6,7 @@ import(std.maybe)
 import(std.list)
 import(std.str)
 import(std.either)
-import(std.posix)
+import(std.world)
 import(mirth.name)
 import(mirth.token)
 import(mirth.arrow)
@@ -544,8 +544,8 @@ def(MetaVar.freshen, Subst MetaVar -- Subst Type,
 # Type Holes #
 ##############
 
-def(type-hole-unify!, Type Name -- Type,
-    Str(THole type; " ~ "; dup type; "\n" ;) trace!)
+def(type-hole-unify!, +Mirth +Gamma Type Name -- +Mirth +Gamma Type,
+    Str(THole type; " ~ "; dup type; "\n" ;) dip:token rdip:emit-info!)
 
 ############
 # APP TYPE #

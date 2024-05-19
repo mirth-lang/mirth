@@ -7,14 +7,15 @@ import(std.list)
 import(std.byte)
 import(std.maybe)
 import(std.either)
+import(std.world)
+import(std.output)
+import(std.file)
+import(std.test)
 
 import(arg-parser.parse)
 import(arg-parser.types)
 import(arg-parser.state)
 
-import(std.posix)
-import(std.file)
-import(std.test)
 
 import(mirth.package)
 import(mirth.mirth)
@@ -65,14 +66,13 @@ def(Arguments.show;, Arguments +Str -- +Str,
 
 def(compile!, Arguments +World +Mirth -- +World +Mirth,
     /Arguments
-    "Compiling " trace!
-    @input-file >Str trace-ln!
+    rdip:trace("Compiling "; @input-file path;)
     packages> for(
         unpack2 swap >Name Package.new-or-path! drop
     )
     input-file> run-lexer!
-    "Building." trace-ln!
 
+    rdip:trace("Building.";)
     elab-module!
     typecheck-everything!
 
@@ -81,22 +81,22 @@ def(compile!, Arguments +World +Mirth -- +World +Mirth,
         elab-entry-point
     ) nip
 
-    trace-all-diagnostics!
+    trace-diagnostics!
 
     num-errors 0> if(
-        Str(FGRed emit; rdip:num-errors show; " errors.\n" ; Reset emit; ) trace! 1 posix-exit!,
-        Str(FGGreen emit; "No errors.\n" ; Reset emit; ) trace!,
+        num-errors rdip:trace(FGRed emit; show; " errors." ; Reset emit;) 1 posix-exit!,
+        rdip:trace(FGGreen emit; "No errors." ; Reset emit;),
     )
 
     match(
         Some ->
-            "Specializer." trace-ln!
+            "Specializer." rdip:trace
             run-specializer!
-            "Codegen." trace-ln!
+            "Codegen." rdip:trace
             output-file> unwrap >output-path
             C99_Options run-output-c99!,
         None ->
-            "Skipping Codegen." trace-ln!
+            "Skipping Codegen." rdip:trace
             emit-debug-info> drop
             output-file> drop
     ))
@@ -127,8 +127,8 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
             TooFewArgs Some state:error!
         )
         state arguments output-file else(
-        state arguments entry-point then(
-            "output-file" MissingArg Some state:error!
+            state arguments entry-point then(
+                "output-file" MissingArg Some state:error!
             )
         )
         drop,
@@ -181,7 +181,7 @@ def(main, +World -- +World,
 
     parse-args match(
         Right -> ,
-        Left -> Str(emit;) panic!
+        Left -> rdip:trace(unpack2 ; emit;) 1 posix-exit!
     )
 
     compile!

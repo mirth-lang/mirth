@@ -1,6 +1,7 @@
 module(mirth-tests.data-labels)
 import(std.prelude)
-import(std.posix)
+import(std.world)
+import(std.str)
 
 data(Person, PERSON -> age:Int name:Str)
 data(Mixed, MIXED -> msg:Str Str)
@@ -8,36 +9,32 @@ data(+MyWorld, +MyWorld -> age:Int msg:Int name:Str +world:+World)
 data(+Deep, +Deep -> +myworld:+MyWorld)
 
 def(Person.greet!, Person +World -- Person +World,
-    "Hello, " trace!
-    dup name trace!
-    " at " trace!
-    dup age trace!
-    "!" trace-ln!)
+    print("Hello, "; dup name ; " at "; dup age show; "!";))
 
 def(main, +World -- +World,
     "John" >name
     30 >age
     PERSON
-    dup age trace-ln!
-    dup name trace-ln!
+    dup age show print
+    dup name print
     drop
 
     "Hello" >msg "Goodbye"
-    MIXED msg trace-ln!
+    MIXED msg print
 
     99 >age 101 >msg "me" >name
     >+world
     +MyWorld
-    "<<<" trace-ln!
-    age trace-ln!
+    "<<<" +world:print
+    age show +world:print
     >+myworld +Deep
-    "<<<<<" trace-ln!
-    +myworld:msg trace-ln!
-    +myworld rdip(name) trace-ln! +myworld!
-    ">>>>>" trace-ln!
+    "<<<<<" +myworld:+world:print
+    +myworld:msg +myworld:+world:print:show;
+    +myworld rdip(name +world rdip:print +world!) +myworld!
+    +myworld:+world:print(">>>>>" ;)
     /+Deep +myworld>
-    name trace-ln!
-    ">>>" trace-ln!
+    name +world:print
+    ">>>" +world:print
     /+MyWorld
     +world>
     age> drop
@@ -48,17 +45,17 @@ def(main, +World -- +World,
     "Jane" swap name! greet!
     31 swap age! greet!
     drop)
-# mirth-test # perr # 30
-# mirth-test # perr # John
-# mirth-test # perr # Hello
-# mirth-test # perr # <<<
-# mirth-test # perr # 99
-# mirth-test # perr # <<<<<
-# mirth-test # perr # 101
-# mirth-test # perr # me
-# mirth-test # perr # >>>>>
-# mirth-test # perr # me
-# mirth-test # perr # >>>
-# mirth-test # perr # Hello, J. at 30!
-# mirth-test # perr # Hello, Jane at 30!
-# mirth-test # perr # Hello, Jane at 31!
+# mirth-test # pout # 30
+# mirth-test # pout # John
+# mirth-test # pout # Hello
+# mirth-test # pout # <<<
+# mirth-test # pout # 99
+# mirth-test # pout # <<<<<
+# mirth-test # pout # 101
+# mirth-test # pout # me
+# mirth-test # pout # >>>>>
+# mirth-test # pout # me
+# mirth-test # pout # >>>
+# mirth-test # pout # Hello, J. at 30!
+# mirth-test # pout # Hello, Jane at 30!
+# mirth-test # pout # Hello, Jane at 31!

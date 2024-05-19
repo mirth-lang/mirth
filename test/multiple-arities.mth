@@ -1,11 +1,11 @@
 module(mirth-tests.multiple-arities)
 import(std.prelude)
 import(std.str)
-import(std.posix)
-def(hello, +World -- +World, "Hello world!" put line)
-def(hello(f), (-- Str) +World -- +World, "Hello " f cat "!" cat put line)
-def(hello(f,g), (-- Str, -- Str) +World -- +World, "Hello " f cat " and " cat g cat "!" cat put line)
-def(hello(f,g,h), (-- Str, -- Str, -- Str) +World -- +World, "Hello " f cat " and " cat g cat " and " cat h cat "!" cat put line)
+import(std.world)
+def(hello, +World -- +World, "Hello world!" print)
+def(hello(f), (-- Str) +World -- +World, "Hello " f cat "!" cat print)
+def(hello(f,g), (-- Str, -- Str) +World -- +World, "Hello " f cat " and " cat g cat "!" cat print)
+def(hello(f,g,h), (-- Str, -- Str, -- Str) +World -- +World, "Hello " f cat " and " cat g cat " and " cat h cat "!" cat print)
 
 def(main, +World -- +World,
     hello

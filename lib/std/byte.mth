@@ -75,6 +75,9 @@ def(Byte.is-hexdigit, Byte -- Bool,
     B'd' -> True, B'e' -> True, B'f' -> True,
     _ -> drop False)
 
+def(Byte.emit-unsafe;, +Str Byte -- +Str, push-byte-unsafe!)
+def(Byte.emit-ascii;, +Str Byte -- +Str, push-byte-ascii!)
+
 def(Byte.to-str-unsafe, Byte -- Str,
     L1 Str.from-bytes-unsafe)
 def(Byte.to-ascii-str, Byte -- Maybe(Str),

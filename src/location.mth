@@ -2,7 +2,7 @@ module(mirth.location)
 
 import(std.prelude)
 import(std.path)
-import(std.posix)
+import(std.world)
 import(std.str)
 import(mirth.module)
 

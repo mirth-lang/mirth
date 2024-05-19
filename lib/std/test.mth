@@ -31,7 +31,7 @@ module(std.test)
 |||    The "name" is just a string name that will be useful to locate the
 |||    test if it fails. The body `...` of the test has type signature
 |||    `+Test -- +Test`. You can access the world by using the `world(f)` lens,
-|||    e.g. `world(put line)`.
+|||    e.g. `world(print)`.
 |||
 ||| 3. Within a test, use `=>(f)` to pop a value off the stack and test it.
 |||    If the value is different from what is expected, the test has failed
@@ -59,7 +59,7 @@ module(std.test)
 
 import(std.prelude)
 import(std.list)
-import(std.posix)
+import(std.world)
 import(std.str)
 import(std.maybe)
 import(std.byte)
@@ -88,10 +88,10 @@ def(+Tests.end!, +Tests -- +World,
     num-failed 0> if(
         Str(rdip:num-failed show; " out of " ;
             rdip:num-tests show; " tests failed." ;)
-        +world(put line 1 prim-posix-exit),
+        +world(print 1 prim-posix-exit),
 
         Str(rdip:num-tests show; " tests passed." ;)
-        +world(put line)
+        +world:print
     )
     /+Tests +world>
     num-tests> num-failed> drop2)
@@ -137,7 +137,7 @@ def(+Test.fail!, +Test -- +Test,
     ||| If the test already failed before, do nothing instead.
     test-failed else(
         True test-failed!
-        test-name Str(show; " test failed" ;) +world(put line)
+        test-name +world:print(show; " test failed" ;)
     ))
 def(+Test.check-equals!(feq,fshow), (a a -- Bool, a +Str -- +Str) a a +Test -- +Test,
     ||| Check two values for equality. If they're equal, do nothing.
@@ -149,8 +149,8 @@ def(+Test.check-equals!(feq,fshow), (a a -- Bool, a +Str -- +Str) a a +Test -- +
     dup2 feq if(
         drop2,
         fail!
-        +world("  expected: " put Str(fshow) put line
-               "       got: " put Str(fshow) put line)
+        +world:print("  expected: " ; fshow "\n" ;
+                     "       got: " ; fshow "\n" ;)
     ))
 def(+Test.check-equals-2!(f1,f2,g1,g2),
         (a a -- Bool, b b -- Bool,

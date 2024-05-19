@@ -1,8 +1,9 @@
 module(test.external-labelled-output)
 
 import(std.prelude)
-import(std.posix)
+import(std.world)
 import(std.ctypes)
+import(std.str)
 
 data(+Resource1, +Resource1 -> CInt)
 data(+Resource2, +Resource2 -> CInt)
@@ -28,15 +29,15 @@ external(
 )
 
 def(main, +World -- +World,
-    "foo" put line
+    "foo" print
     10 CInt +Resource1 >+foo
-    foo   /+Resource2 >Int "+Resource2: " put show put line
-    +foo> /+Resource1 >Int "+Resource1: " put show put line
+    foo   /+Resource2 >Int print("+Resource2: " ; show;)
+    +foo> /+Resource1 >Int print("+Resource1: " ; show;)
 
-    "bar" put line
+    "bar" print
     30 CInt +Resource2 >+bar
     bar
-    +bar> /+Resource2 >Int "+Resource2: " put show put line
+    +bar> /+Resource2 >Int print("+Resource2: " ; show;)
 )
 
 # mirth-test # pout # foo
