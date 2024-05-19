@@ -10,7 +10,7 @@ def(ok-fn, std.prim.Int -- error-name-resolution-types.Int, 1+ drop "0" MY_INT)
 def(bad-again, badstd.Bool -- failstd.prim.Int, id)
 def(main, --, id)
 # mirth-test # merr # 5:10: error: Ambiguous type. Can't decide between: mirth-tests.error-name-resolution-types.Int, std.prim.Int
-# mirth-test # merr # 5:17: error: Not visible in current scope: std.maybe.Maybe/1
+# mirth-test # merr # 5:17: error: Not imported in current scope: std.maybe.Maybe/1
 # mirth-test # merr # 6:10: error: std.prim.Bool expects 0 arguments, but got 1.
 # mirth-test # merr # 6:24: error: Unknown type name, possibly a misspelling.
 # mirth-test # merr # 7:10: error: Expected a type, but mirth-tests.error-name-resolution-types.Foo is not a type.

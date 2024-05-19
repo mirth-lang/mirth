@@ -7,7 +7,7 @@ data(+MyEither, Left -> Int, Right -> Str)
 data(Foo, FOO)
 data(Bar, BAR)
 
-def(constructors-not-visible, --,
+def(constructors-not-visible-but-ok, --,
     1 >I8? match(
         Some -> drop,
         None -> id
@@ -30,8 +30,6 @@ def(unknown-single, Foo --, BAR -> )
 def(unknown-multiple, Foo --, Left -> )
 
 def(main, --, id)
-# mirth-test # merr # 12:9: error: Not visible in current scope: std.maybe.Maybe/1.Some
-# mirth-test # merr # 13:9: error: Not visible in current scope: std.maybe.Maybe/1.None
 # mirth-test # merr # 23:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.Left, mirth-tests.error-name-resolution-constructors.MyEither.Left
 # mirth-test # merr # 24:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.Right, mirth-tests.error-name-resolution-constructors.MyEither.Right
 # mirth-test # merr # 29:29: error: Constructor is for a different type: mirth-tests.error-name-resolution-constructors.Bar.BAR
