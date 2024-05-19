@@ -1900,17 +1900,22 @@ def(elab-def-head,
     dup num-args >arity
     [elab-def-qname-undefined] PSDelay >state)
 
+||| Parse a field definition, `field(f, T1, T2)`
+def(parse-field,
+        +Mirth Token -- +Mirth Token
+        head:Token index-type:Token value-type:Token,
+    sip(next) args-3 >value-type >index-type >head
+    @head name-or-dname? else(@head "expected field name" emit-fatal-error!)
+    @head args-0)
+
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, +Mirth Token -- +Mirth Token,
-    sip(next) args-3
-    rotl dup elab-def-qname-undefined
-    field-new! drop)
-
-def(field-new!, +Mirth Token Token Token QName -- +Mirth Field,
+    parse-field head> elab-def-head
     Field.alloc! >fld
-    @fld ~qname !
-    @fld ~head !
-    @fld FieldValueType prop(elab-simple-type-arg!) @fld ~value-type !
-    @fld FieldIndexType prop(elab-simple-type-arg!) @fld ~index-type !
-    @fld DefField register
-    fld>)
+    name> @fld ~name !
+    head> @fld ~head !
+    arity> expect!(dup 0=, "expected arity 0 in elab-field!" panic!) drop
+    @fld FieldQName >label Prop @fld ~qname !
+    index-type> @fld FieldIndexType prop(elab-simple-type-arg!) @fld ~index-type !
+    value-type> @fld FieldValueType prop(elab-simple-type-arg!) @fld ~value-type !
+    fld> DefField register)

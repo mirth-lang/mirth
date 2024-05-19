@@ -206,7 +206,7 @@ def(Def.qname-soft, +Mirth Def -- +Mirth Maybe(QName),
     DefType -> qname Some,
     DefExternal -> qname-soft,
     DefWord -> qname-soft,
-    DefField -> qname Some,
+    DefField -> qname-soft,
     DefTag -> qname Some,
     DefVariable -> qname Some)
 
@@ -221,7 +221,7 @@ def(Def.qname-hard, +Mirth Def -- +Mirth QName,
     DefType -> qname,
     DefExternal -> qname-hard,
     DefWord -> qname-hard,
-    DefField -> qname,
+    DefField -> qname-hard,
     DefTag -> qname,
     DefVariable -> qname)
 

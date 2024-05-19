@@ -1,6 +1,8 @@
 module(mirth.table)
 
 import(std.prelude)
+import(std.maybe)
+
 import(mirth.name)
 import(mirth.type)
 import(mirth.buffer)
@@ -25,13 +27,15 @@ def(Table.==, Table Table -- Bool, both(index) ==)
 
 table(Field)
 field(Field.~head, Field, Token)
-field(Field.~qname, Field, QName)
+field(Field.~name, Field, Name)
+field(Field.~qname, Field, Prop(QName))
 field(Field.~index-type, Field, Prop(Type))
 field(Field.~value-type, Field, Prop(Type))
 
 def(Field.head, Field -- Token, ~head @)
-def(Field.qname, Field -- QName, ~qname @)
-def(Field.name, Field -- Name, qname name)
+def(Field.name, Field -- Name, ~name @)
+def(Field.qname-soft, Field -- Maybe(QName), ~qname @? bind(ready?))
+def(Field.qname-hard, +Mirth Field -- +Mirth QName, ~qname force!)
 def(Field.index-type, +Mirth Field -- +Mirth Type, ~index-type force!)
 def(Field.value-type, +Mirth Field -- +Mirth Type, ~value-type force!)
 

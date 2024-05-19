@@ -230,6 +230,7 @@ data(PropLabel,
     ExternalType -> External,
     ExternalCType -> External,
     VariableType -> Variable,
+    FieldQName -> Field,
     FieldValueType -> Field,
     FieldIndexType -> Field,
 )

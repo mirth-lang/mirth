@@ -10,13 +10,14 @@ import(std.ctypes)
 
 # These definitions rely on MyTable, which isn't defined yet.
 def(MyTable.test-ok, MyTable -- Int, drop 0)
+field(MyTable.my-field, MyTable, Int)
 alias(MyTable.my-drop, drop)
 external(MyTable.my-exit -> exit [CInt --])
 
 # We can use those words. Note the body is deferred as usual.
 def(main, --,
     MyTable.alloc! test-ok drop
-    MyTable.alloc! my-drop
+    MyTable.alloc! 10 over my-field ! my-drop
     42 CInt MyTable.my-exit)
 
 # Now we finally define MyTable.

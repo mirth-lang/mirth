@@ -1536,6 +1536,8 @@ static VAL lbl_tbl = MKNIL_C;
 static VAL lbl_word = MKNIL_C;
 static VAL lbl_va = MKNIL_C;
 static VAL lbl_vx = MKNIL_C;
+static VAL lbl_valueZ_type = MKNIL_C;
+static VAL lbl_indexZ_type = MKNIL_C;
 static VAL lbl_fld = MKNIL_C;
 static VAL lbl_checklist = MKNIL_C;
 static VAL lbl_w = MKNIL_C;
@@ -4184,17 +4186,24 @@ static void mtw_mirth_mirth_PropLabel_VariableType (void) {
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtw_mirth_mirth_PropLabel_FieldValueType (void) {
+static void mtw_mirth_mirth_PropLabel_FieldQName (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(14LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtw_mirth_mirth_PropLabel_FieldIndexType (void) {
+static void mtw_mirth_mirth_PropLabel_FieldValueType (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(15LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
+}
+static void mtw_mirth_mirth_PropLabel_FieldIndexType (void) {
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(16LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
@@ -5657,8 +5666,9 @@ static void mw_mirth_table_Field_index (void);
 static void mw_mirth_table_Field_for_1 (void);
 static void mw_mirth_table_Field_allocZBang (void);
 static void mw_mirth_table_Field_head (void);
-static void mw_mirth_table_Field_qname (void);
 static void mw_mirth_table_Field_name (void);
+static void mw_mirth_table_Field_qnameZ_soft (void);
+static void mw_mirth_table_Field_qnameZ_hard (void);
 static void mw_mirth_table_Field_indexZ_type (void);
 static void mw_mirth_table_Field_valueZ_type (void);
 static void mw_mirth_table_Field_dom (void);
@@ -6671,8 +6681,8 @@ static void mw_mirth_elab_elabZ_absoluteZ_qname (void);
 static void mw_mirth_elab_elabZ_defZ_qname (void);
 static void mw_mirth_elab_elabZ_defZ_qnameZ_undefined (void);
 static void mw_mirth_elab_elabZ_defZ_head (void);
+static void mw_mirth_elab_parseZ_field (void);
 static void mw_mirth_elab_elabZ_fieldZBang (void);
-static void mw_mirth_elab_fieldZ_newZBang (void);
 static void mw_std_map_KVPair_2_value (void);
 static void mw_std_map_KVPair_2_key (void);
 static void mw_std_map_Map_2_empty (void);
@@ -7094,6 +7104,7 @@ static void mb_mirth_type_Type_tyconZAsk_1 (void);
 static void mb_mirth_name_QName_defZ_hardZAsk_0 (void);
 static void mb_mirth_alias_Alias_qnameZ_soft_0 (void);
 static void mb_mirth_external_External_qnameZ_soft_0 (void);
+static void mb_mirth_table_Field_qnameZ_soft_0 (void);
 static void mb_mirth_word_Word_qnameZ_soft_0 (void);
 static void mb_mirth_name_QName_toZ_moduleZ_path_0 (void);
 static void mb_mirth_mirth_Prop_1_tryZ_forceZBang_0 (void);
@@ -7383,6 +7394,10 @@ static void mb_mirth_elab_elabZ_defZBang_11 (void);
 static void mb_mirth_elab_elabZ_externalZBang_0 (void);
 static void mb_mirth_elab_elabZ_bufferZBang_1 (void);
 static void mb_mirth_elab_elabZ_variableZBang_1 (void);
+static void mb_mirth_elab_elabZ_fieldZBang_0 (void);
+static void mb_mirth_elab_elabZ_fieldZBang_1 (void);
+static void mb_mirth_elab_elabZ_fieldZBang_2 (void);
+static void mb_mirth_elab_elabZ_fieldZBang_3 (void);
 static void mb_mirth_elab_elabZ_dataZBang_2 (void);
 static void mb_mirth_elab_elabZ_embedZ_strZBang_1 (void);
 static void mb_mirth_elab_elabZ_embedZ_strZBang_2 (void);
@@ -7483,8 +7498,7 @@ static void mb_mirth_elab_elabZ_tycon_3 (void);
 static void mb_mirth_elab_elabZ_absoluteZ_namespace_0 (void);
 static void mb_mirth_elab_elabZ_absoluteZ_namespace_1 (void);
 static void mb_mirth_elab_elabZ_absoluteZ_namespace_2 (void);
-static void mb_mirth_elab_fieldZ_newZBang_0 (void);
-static void mb_mirth_elab_fieldZ_newZBang_1 (void);
+static void mb_mirth_elab_parseZ_field_1 (void);
 static void mb_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang_0 (void);
 static void mb_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang_1 (void);
 static void mb_mirth_specializzer_ZPlusSPCheck_loopZBang_2 (void);
@@ -7831,6 +7845,7 @@ static void mfld_mirth_table_Table_ZTildeqname (void);
 static void mfld_mirth_table_Table_ZTildenumZ_buffer (void);
 static void mfld_mirth_table_Table_ZTildemaxZ_count (void);
 static void mfld_mirth_table_Field_ZTildehead (void);
+static void mfld_mirth_table_Field_ZTildename (void);
 static void mfld_mirth_table_Field_ZTildeqname (void);
 static void mfld_mirth_table_Field_ZTildeindexZ_type (void);
 static void mfld_mirth_table_Field_ZTildevalueZ_type (void);
@@ -8134,6 +8149,15 @@ static void mfld_mirth_table_Table_ZTildemaxZ_count (void) {
 }
 
 static void mfld_mirth_table_Field_ZTildehead (void) {
+	size_t i = (size_t)pop_u64();
+	static struct VAL * p = 0;
+	size_t m = 524288;
+	if (! p) { p = calloc(m, sizeof *p); }
+	EXPECT(i<m, "table grew too big");
+	push_ptr(p+i);
+}
+
+static void mfld_mirth_table_Field_ZTildename (void) {
 	size_t i = (size_t)pop_u64();
 	static struct VAL * p = 0;
 	size_t m = 524288;
@@ -14698,13 +14722,19 @@ static void mw_mirth_table_Field_head (void) {
 	mfld_mirth_table_Field_ZTildehead();
 	mp_primZ_mutZ_get();
 }
-static void mw_mirth_table_Field_qname (void) {
-	mfld_mirth_table_Field_ZTildeqname();
+static void mw_mirth_table_Field_name (void) {
+	mfld_mirth_table_Field_ZTildename();
 	mp_primZ_mutZ_get();
 }
-static void mw_mirth_table_Field_name (void) {
-	mw_mirth_table_Field_qname();
-	mw_mirth_name_QName_name();
+static void mw_mirth_table_Field_qnameZ_soft (void) {
+	mfld_mirth_table_Field_ZTildeqname();
+	mw_std_prelude_ZAtZAsk();
+	push_fnptr(&mb_mirth_table_Field_qnameZ_soft_0);
+	mw_std_maybe_Maybe_1_bind_1();
+}
+static void mw_mirth_table_Field_qnameZ_hard (void) {
+	mfld_mirth_table_Field_ZTildeqname();
+	mw_mirth_mirth_Prop_1_forceZBang();
 }
 static void mw_mirth_table_Field_indexZ_type (void) {
 	mfld_mirth_table_Field_ZTildeindexZ_type();
@@ -27824,8 +27854,7 @@ static void mw_mirth_def_Def_qnameZ_soft (void) {
 			break;
 		case 12LL: // DefField
 			mtp_mirth_def_Def_DefField();
-			mw_mirth_table_Field_qname();
-			mtw_std_maybe_Maybe_1_Some();
+			mw_mirth_table_Field_qnameZ_soft();
 			break;
 		case 6LL: // DefTag
 			mtp_mirth_def_Def_DefTag();
@@ -27886,7 +27915,7 @@ static void mw_mirth_def_Def_qnameZ_hard (void) {
 			break;
 		case 12LL: // DefField
 			mtp_mirth_def_Def_DefField();
-			mw_mirth_table_Field_qname();
+			mw_mirth_table_Field_qnameZ_hard();
 			break;
 		case 6LL: // DefTag
 			mtp_mirth_def_Def_DefTag();
@@ -36069,7 +36098,7 @@ static void mw_mirth_elab_elabZ_defZ_head (void) {
 	mtw_mirth_mirth_PropState_1_PSDelay();
 	LPUSH(lbl_state);
 }
-static void mw_mirth_elab_elabZ_fieldZBang (void) {
+static void mw_mirth_elab_parseZ_field (void) {
 	mp_primZ_dup();
 	{
 		VAL d2 = pop_value();
@@ -36077,35 +36106,72 @@ static void mw_mirth_elab_elabZ_fieldZBang (void) {
 		push_value(d2);
 	}
 	mw_mirth_token_Token_argsZ_3();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_swap();
-		push_value(d2);
-	}
-	mp_primZ_swap();
+	LPUSH(lbl_valueZ_type);
+	LPUSH(lbl_indexZ_type);
+	LPUSH(lbl_head);
+	LPOP(lbl_head);
 	mp_primZ_dup();
-	mw_mirth_elab_elabZ_defZ_qnameZ_undefined();
-	mw_mirth_elab_fieldZ_newZBang();
-	mp_primZ_drop();
+	LPUSH(lbl_head);
+	mw_mirth_token_Token_nameZ_orZ_dnameZAsk();
+	push_fnptr(&mb_mirth_elab_parseZ_field_1);
+	mw_std_maybe_Maybe_1_else_1();
+	LPOP(lbl_head);
+	mp_primZ_dup();
+	LPUSH(lbl_head);
+	mw_mirth_token_Token_argsZ_0();
 }
-static void mw_mirth_elab_fieldZ_newZBang (void) {
+static void mw_mirth_elab_elabZ_fieldZBang (void) {
+	mw_mirth_elab_parseZ_field();
+	LPOP(lbl_head);
+	mw_mirth_elab_elabZ_defZ_head();
 	mw_mirth_table_Field_allocZBang();
 	LPUSH(lbl_fld);
+	LPOP(lbl_name);
 	LPOP(lbl_fld);
 	mp_primZ_dup();
 	LPUSH(lbl_fld);
-	mfld_mirth_table_Field_ZTildeqname();
+	mfld_mirth_table_Field_ZTildename();
 	mp_primZ_mutZ_set();
+	LPOP(lbl_head);
 	LPOP(lbl_fld);
 	mp_primZ_dup();
 	LPUSH(lbl_fld);
 	mfld_mirth_table_Field_ZTildehead();
 	mp_primZ_mutZ_set();
+	LPOP(lbl_arity);
+	push_fnptr(&mb_mirth_elab_elabZ_fieldZBang_0);
+	push_fnptr(&mb_mirth_elab_elabZ_fieldZBang_1);
+	mw_std_prelude_expectZBang_2();
+	mp_primZ_drop();
+	LPOP(lbl_fld);
+	mp_primZ_dup();
+	LPUSH(lbl_fld);
+	mtw_mirth_mirth_PropLabel_FieldQName();
+	LPUSH(lbl_label);
+	mtw_mirth_mirth_Prop_1_Prop();
+	LPOP(lbl_fld);
+	mp_primZ_dup();
+	LPUSH(lbl_fld);
+	mfld_mirth_table_Field_ZTildeqname();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_indexZ_type);
+	LPOP(lbl_fld);
+	mp_primZ_dup();
+	LPUSH(lbl_fld);
+	mtw_mirth_mirth_PropLabel_FieldIndexType();
+	push_fnptr(&mb_mirth_elab_elabZ_fieldZBang_2);
+	mw_mirth_mirth_PropLabel_prop_1();
+	LPOP(lbl_fld);
+	mp_primZ_dup();
+	LPUSH(lbl_fld);
+	mfld_mirth_table_Field_ZTildeindexZ_type();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_valueZ_type);
 	LPOP(lbl_fld);
 	mp_primZ_dup();
 	LPUSH(lbl_fld);
 	mtw_mirth_mirth_PropLabel_FieldValueType();
-	push_fnptr(&mb_mirth_elab_fieldZ_newZBang_0);
+	push_fnptr(&mb_mirth_elab_elabZ_fieldZBang_3);
 	mw_mirth_mirth_PropLabel_prop_1();
 	LPOP(lbl_fld);
 	mp_primZ_dup();
@@ -36113,22 +36179,8 @@ static void mw_mirth_elab_fieldZ_newZBang (void) {
 	mfld_mirth_table_Field_ZTildevalueZ_type();
 	mp_primZ_mutZ_set();
 	LPOP(lbl_fld);
-	mp_primZ_dup();
-	LPUSH(lbl_fld);
-	mtw_mirth_mirth_PropLabel_FieldIndexType();
-	push_fnptr(&mb_mirth_elab_fieldZ_newZBang_1);
-	mw_mirth_mirth_PropLabel_prop_1();
-	LPOP(lbl_fld);
-	mp_primZ_dup();
-	LPUSH(lbl_fld);
-	mfld_mirth_table_Field_ZTildeindexZ_type();
-	mp_primZ_mutZ_set();
-	LPOP(lbl_fld);
-	mp_primZ_dup();
-	LPUSH(lbl_fld);
 	mtw_mirth_def_Def_DefField();
 	mw_mirth_def_Def_register();
-	LPOP(lbl_fld);
 }
 static void mw_std_map_KVPair_2_value (void) {
 	VAL v = pop_value();
@@ -43967,6 +44019,9 @@ static void mb_mirth_alias_Alias_qnameZ_soft_0 (void) {
 static void mb_mirth_external_External_qnameZ_soft_0 (void) {
 	mw_mirth_mirth_Prop_1_readyZAsk();
 }
+static void mb_mirth_table_Field_qnameZ_soft_0 (void) {
+	mw_mirth_mirth_Prop_1_readyZAsk();
+}
 static void mb_mirth_word_Word_qnameZ_soft_0 (void) {
 	mw_mirth_mirth_Prop_1_readyZAsk();
 }
@@ -44630,19 +44685,15 @@ static void mb_mirth_external_External_cname_1 (void) {
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_mirth_table_Field_cname_0 (void) {
+	mp_primZ_dup();
+	mw_mirth_table_Field_qnameZ_hard();
+	mw_mirth_name_QName_mangled();
 	push_fnptr(&mb_mirth_table_Field_cname_1);
 	mw_std_str_Str_1();
 }
 static void mb_mirth_table_Field_cname_1 (void) {
 	STRLIT("mfld_", 5);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	mp_primZ_dup();
-	mw_mirth_table_Field_qname();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_name_QName_mangled();
-		push_resource(d2);
-	}
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_mirth_variable_Variable_cname_0 (void) {
@@ -46740,6 +46791,21 @@ static void mb_mirth_elab_elabZ_bufferZBang_1 (void) {
 static void mb_mirth_elab_elabZ_variableZBang_1 (void) {
 	mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang();
 }
+static void mb_mirth_elab_elabZ_fieldZBang_0 (void) {
+	mp_primZ_dup();
+	push_i64(0LL);
+	mp_primZ_intZ_eq();
+}
+static void mb_mirth_elab_elabZ_fieldZBang_1 (void) {
+	STRLIT("expected arity 0 in elab-field!", 31);
+	mw_std_prelude_panicZBang();
+}
+static void mb_mirth_elab_elabZ_fieldZBang_2 (void) {
+	mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang();
+}
+static void mb_mirth_elab_elabZ_fieldZBang_3 (void) {
+	mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang();
+}
 static void mb_mirth_elab_elabZ_dataZBang_2 (void) {
 	mw_mirth_elab_elabZ_dataZ_tagZBang();
 }
@@ -48268,11 +48334,12 @@ static void mb_mirth_elab_elabZ_absoluteZ_namespace_2 (void) {
 	mp_primZ_strZ_cat();
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 }
-static void mb_mirth_elab_fieldZ_newZBang_0 (void) {
-	mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang();
-}
-static void mb_mirth_elab_fieldZ_newZBang_1 (void) {
-	mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang();
+static void mb_mirth_elab_parseZ_field_1 (void) {
+	LPOP(lbl_head);
+	mp_primZ_dup();
+	LPUSH(lbl_head);
+	STRLIT("expected field name", 19);
+	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang_0 (void) {
 	push_fnptr(&mb_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang_1);
