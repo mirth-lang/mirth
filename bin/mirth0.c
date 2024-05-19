@@ -5567,7 +5567,7 @@ static void mw_argZ_parser_parse_parseZ_args (void);
 static void mw_argZ_parser_parse_readZ_fromZ_argv (void);
 static void mw_argZ_parser_parse_argvZ_toZ_str (void);
 static void mw_std_lazzy_delay_1 (void);
-static void mw_std_lazzy_forceZBang (void);
+static void mw_std_lazzy_Lazzy_1_forceZBang (void);
 static void mw_mirth_label_Label_index (void);
 static void mw_mirth_label_Label_for_1 (void);
 static void mw_mirth_label_Label_allocZBang (void);
@@ -13819,7 +13819,7 @@ static void mw_std_lazzy_delay_1 (void) {
 		decref(var_f);
 	}
 }
-static void mw_std_lazzy_forceZBang (void) {
+static void mw_std_lazzy_Lazzy_1_forceZBang (void) {
 	mp_primZ_dup();
 	mp_primZ_mutZ_get();
 	switch (get_top_data_tag()) {
@@ -27596,7 +27596,7 @@ static void mw_mirth_name_Name_defs (void) {
 }
 static void mw_mirth_name_Name_mangled (void) {
 	mfld_mirth_name_Name_ZTildemangled();
-	mw_std_lazzy_forceZBang();
+	mw_std_lazzy_Lazzy_1_forceZBang();
 }
 static void mw_mirth_name_Name_ZEqualZEqual (void) {
 	{

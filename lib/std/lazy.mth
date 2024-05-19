@@ -22,7 +22,7 @@ def(delay3(f), (a1 a2 a3 -- b) a1 a2 a3 -- Lazy(b),
 def(delay4(f), (a1 a2 a3 a4 -- b) a1 a2 a3 a4 -- Lazy(b),
     pack4 delay(unpack4 f))
 
-def(force!, Mut(Lazy(a)) -- a,
+def(Lazy.force!, Mut(Lazy(a)) -- a,
     dup @ match(
         LazyReady -> nip,
         LazyDelay ->
@@ -31,19 +31,19 @@ def(force!, Mut(Lazy(a)) -- a,
         LazyWait ->
             "recursive thunk dependency" panic!
     ))
-def(force-or!(f), (*x -- *x a) *x Mut(Lazy(a)) -- *x a,
+def(Lazy.force-or!(f), (*x -- *x a) *x Mut(Lazy(a)) -- *x a,
     dup @ match(
         LazyWait -> drop f,
         _ -> drop force!
     ))
-def(try-force!, Mut(Lazy(a)) -- Maybe(a),
+def(Lazy.try-force!, Mut(Lazy(a)) -- Maybe(a),
     dup @ match(
         LazyWait -> drop None,
         _ -> drop force! Some
     ))
 
-def(force2!, Mut(Lazy([a b])) -- a b,
+def(Lazy.force2!, Mut(Lazy([a b])) -- a b,
     force! unpack2)
 
-def(force-or2!(f), (*x -- *x a b) *x Mut(Lazy([a b])) -- *x a b,
+def(Lazy.force-or2!(f), (*x -- *x a b) *x Mut(Lazy([a b])) -- *x a b,
     force-or!(f pack2) unpack2)
