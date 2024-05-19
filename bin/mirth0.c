@@ -6289,6 +6289,7 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_withZ_errorZ_token_1 (void);
 static void mw_mirth_mirth_ZPlusMirth_errorZBang (void);
+static void mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_traceZ_diagnosticsZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_popZ_diagnostics (void);
@@ -7109,6 +7110,9 @@ static void mb_mirth_word_Word_qnameZ_soft_0 (void);
 static void mb_mirth_name_QName_toZ_moduleZ_path_0 (void);
 static void mb_mirth_mirth_Prop_1_tryZ_forceZBang_0 (void);
 static void mb_mirth_mirth_Prop_1_tryZ_forceZBang_2 (void);
+static void mb_mirth_def_Def_callableZAsk_0 (void);
+static void mb_mirth_def_Def_definesZ_aZ_typeZAsk_0 (void);
+static void mb_mirth_def_Def_exposedZ_tyconZAsk_0 (void);
 static void mb_mirth_def_Def_definingZ_moduleZAsk_0 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_0 (void);
 static void mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_1 (void);
@@ -7382,10 +7386,8 @@ static void mb_mirth_elab_elabZ_aliasZBang_0 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_1 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_2 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_3 (void);
-static void mb_mirth_elab_elabZ_aliasZBang_7 (void);
-static void mb_mirth_elab_elabZ_aliasZBang_8 (void);
-static void mb_mirth_elab_elabZ_aliasZBang_10 (void);
-static void mb_mirth_elab_elabZ_aliasZBang_11 (void);
+static void mb_mirth_elab_elabZ_aliasZBang_5 (void);
+static void mb_mirth_elab_elabZ_aliasZBang_6 (void);
 static void mb_mirth_elab_elabZ_defZBang_3 (void);
 static void mb_mirth_elab_elabZ_defZBang_5 (void);
 static void mb_mirth_elab_elabZ_defZBang_6 (void);
@@ -26805,6 +26807,12 @@ static void mw_mirth_mirth_ZPlusMirth_errorZBang (void) {
 	mp_primZ_swap();
 	mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
 }
+static void mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang (void) {
+	mw_mirth_mirth_ZPlusMirth_errorZ_token();
+	mw_std_maybe_Maybe_1_unwrap();
+	mp_primZ_swap();
+	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+}
 static void mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang (void) {
 	mw_mirth_mirth_ZPlusMirth_popZ_diagnostics();
 	push_fnptr(&mb_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang_0);
@@ -27356,8 +27364,10 @@ static void mw_mirth_def_Def_callableZAsk (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // DefAlias
 			mtp_mirth_def_Def_DefAlias();
-			mw_mirth_alias_Alias_target();
-			mw_mirth_def_Def_callableZAsk();
+			mfld_mirth_alias_Alias_ZTildetarget();
+			mw_mirth_mirth_Prop_1_tryZ_forceZBang();
+			push_fnptr(&mb_mirth_def_Def_callableZAsk_0);
+			mw_std_maybe_Maybe_1_andZ_some_1();
 			break;
 		case 2LL: // DefPackage
 			mtp_mirth_def_Def_DefPackage();
@@ -27428,8 +27438,10 @@ static void mw_mirth_def_Def_definesZ_aZ_typeZAsk (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // DefAlias
 			mtp_mirth_def_Def_DefAlias();
-			mw_mirth_alias_Alias_target();
-			mw_mirth_def_Def_definesZ_aZ_typeZAsk();
+			mfld_mirth_alias_Alias_ZTildetarget();
+			mw_mirth_mirth_Prop_1_tryZ_forceZBang();
+			push_fnptr(&mb_mirth_def_Def_definesZ_aZ_typeZAsk_0);
+			mw_std_maybe_Maybe_1_andZ_some_1();
 			break;
 		case 2LL: // DefPackage
 			mtp_mirth_def_Def_DefPackage();
@@ -27500,8 +27512,10 @@ static void mw_mirth_def_Def_exposedZ_tyconZAsk (void) {
 	switch (get_top_data_tag()) {
 		case 0LL: // DefAlias
 			mtp_mirth_def_Def_DefAlias();
-			mw_mirth_alias_Alias_target();
-			mw_mirth_def_Def_exposedZ_tyconZAsk();
+			mfld_mirth_alias_Alias_ZTildetarget();
+			mw_mirth_mirth_Prop_1_tryZ_forceZBang();
+			push_fnptr(&mb_mirth_def_Def_exposedZ_tyconZAsk_0);
+			mw_std_maybe_Maybe_1_bind_1();
 			break;
 		case 2LL: // DefPackage
 			mtp_mirth_def_Def_DefPackage();
@@ -43952,8 +43966,8 @@ static void mb_mirth_package_Package_findZ_orZ_newZBang_0 (void) {
 	mw_mirth_package_Package_newZBang();
 }
 static void mb_mirth_mirth_Prop_1_forceZBang_0 (void) {
-	STRLIT("recursive prop detected!", 24);
-	mw_std_prelude_panicZBang();
+	STRLIT("Recursive prop detected!", 24);
+	mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang();
 }
 static void mb_std_prim_Str_hash_0 (void) {
 	mw_std_byte_Byte_ZToInt();
@@ -44034,6 +44048,15 @@ static void mb_mirth_mirth_Prop_1_tryZ_forceZBang_0 (void) {
 }
 static void mb_mirth_mirth_Prop_1_tryZ_forceZBang_2 (void) {
 	mw_mirth_mirth_Prop_1_stateZBang();
+}
+static void mb_mirth_def_Def_callableZAsk_0 (void) {
+	mw_mirth_def_Def_callableZAsk();
+}
+static void mb_mirth_def_Def_definesZ_aZ_typeZAsk_0 (void) {
+	mw_mirth_def_Def_definesZ_aZ_typeZAsk();
+}
+static void mb_mirth_def_Def_exposedZ_tyconZAsk_0 (void) {
+	mw_mirth_def_Def_exposedZ_tyconZAsk();
 }
 static void mb_mirth_def_Def_definingZ_moduleZAsk_0 (void) {
 	mw_mirth_token_Token_module();
@@ -46639,19 +46662,19 @@ static void mb_mirth_elab_elabZ_aliasZBang_0 (void) {
 	mp_primZ_dup();
 	LPUSH(lbl_target);
 	LPUSH(lbl_token);
-	STRLIT("name", 4);
+	STRLIT("target", 6);
 	LPUSH(lbl_sort);
 	push_u64(0LL); // False
 	LPUSH(lbl_reportZ_ambiguousZ_asZ_warning);
 	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_1);
 	mw_mirth_elab_resolveZ_def_1();
-	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_10);
+	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_5);
 	mw_std_maybe_Maybe_1_unwrapZ_or_1();
 	switch (get_top_data_tag()) {
 		case 0LL: // DefAlias
 			mtp_mirth_def_Def_DefAlias();
 			mfld_mirth_alias_Alias_ZTildetarget();
-			push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_11);
+			push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_6);
 			mw_mirth_mirth_Prop_1_forceZ_orZBang_1();
 			break;
 		default:
@@ -46661,13 +46684,10 @@ static void mb_mirth_elab_elabZ_aliasZBang_0 (void) {
 	mp_primZ_drop();
 }
 static void mb_mirth_elab_elabZ_aliasZBang_1 (void) {
-	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_2);
-	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_3);
-	mw_mirth_elab_ZPlusResolveDef_filter_2();
 	LPOP(lbl_alias);
 	mw_mirth_alias_Alias_arity();
-	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_7);
-	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_8);
+	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_2);
+	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_3);
 	mw_mirth_elab_ZPlusResolveDef_filter_2();
 	mp_primZ_drop();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
@@ -46675,27 +46695,6 @@ static void mb_mirth_elab_elabZ_aliasZBang_1 (void) {
 	mw_mirth_elab_ZPlusResolveDef_filterZ_roots();
 }
 static void mb_mirth_elab_elabZ_aliasZBang_2 (void) {
-	mp_primZ_dup();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_definesZ_aZ_typeZAsk();
-		push_resource(d2);
-	}
-	if (pop_u64()) {
-		push_u64(1LL); // True
-	} else {
-		mp_primZ_dup();
-		{
-			VAL d3 = pop_resource();
-			mw_mirth_def_Def_callableZAsk();
-			push_resource(d3);
-		}
-	}
-}
-static void mb_mirth_elab_elabZ_aliasZBang_3 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
-}
-static void mb_mirth_elab_elabZ_aliasZBang_7 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
@@ -46715,21 +46714,17 @@ static void mb_mirth_elab_elabZ_aliasZBang_7 (void) {
 	}
 	mw_mirth_elab_arityZ_compatibleZAsk();
 }
-static void mb_mirth_elab_elabZ_aliasZBang_8 (void) {
+static void mb_mirth_elab_elabZ_aliasZBang_3 (void) {
 	mtw_mirth_elab_RejectedDef_RDz_WRONGz_ARITY();
 }
-static void mb_mirth_elab_elabZ_aliasZBang_10 (void) {
-	LPOP(lbl_target);
-	mp_primZ_dup();
-	LPUSH(lbl_target);
-	STRLIT("can't resolve alias target", 26);
-	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+static void mb_mirth_elab_elabZ_aliasZBang_5 (void) {
+	mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang();
 }
-static void mb_mirth_elab_elabZ_aliasZBang_11 (void) {
+static void mb_mirth_elab_elabZ_aliasZBang_6 (void) {
 	LPOP(lbl_target);
 	mp_primZ_dup();
 	LPUSH(lbl_target);
-	STRLIT("alias points to itself, circular aliases not allowed.", 53);
+	STRLIT("Alias points to itself, circular aliases are not allowed.", 57);
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 }
 static void mb_mirth_elab_elabZ_defZBang_3 (void) {

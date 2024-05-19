@@ -97,7 +97,7 @@ def(Def.typecheck!, +Mirth Def -- +Mirth,
     DefVariable -> type drop)
 
 def(Def.callable?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> target callable?,
+    DefAlias -> ~target try-force! and-some(callable?),
     DefPackage -> drop False,
     DefModule -> drop False,
     DefBuffer -> drop True,
@@ -112,7 +112,7 @@ def(Def.callable?, +Mirth Def -- +Mirth Bool,
     DefVariable -> drop True)
 
 def(Def.defines-a-type?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> target defines-a-type?,
+    DefAlias -> ~target try-force! and-some(defines-a-type?),
     DefPackage -> drop False,
     DefModule -> drop False,
     DefBuffer -> drop False,
@@ -127,7 +127,7 @@ def(Def.defines-a-type?, +Mirth Def -- +Mirth Bool,
     DefVariable -> drop False)
 
 def(Def.exposed-tycon?, +Mirth Def -- +Mirth Maybe(Tycon),
-    DefAlias -> target exposed-tycon?,
+    DefAlias -> ~target try-force! bind(exposed-tycon?),
     DefPackage -> drop None,
     DefModule -> drop None,
     DefData -> TYCON_DATA Some,

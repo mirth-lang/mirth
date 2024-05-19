@@ -3,5 +3,5 @@ import(std.prelude)
 alias(foo, bar)
 alias(bar, foo)
 def(main, --, id)
-# mirth-test # merr # 4:12: error: alias points to itself, circular aliases not allowed.
+# mirth-test # merr # 4:12: error: Alias points to itself, circular aliases are not allowed.
 # mirth-test # mret # 1

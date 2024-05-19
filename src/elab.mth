@@ -1349,10 +1349,9 @@ def(elab-alias!, +Mirth Token -- +Mirth Token,
     target> over dup AliasTarget prop2(
         >alias >target
         @target >token
-        "name" >sort
+        "target" >sort
         False >report-ambiguous-as-warning
         resolve-def(
-            filter(dup rdip:defines-a-type? or(dup rdip:callable?), RD_WRONG_SORT)
             alias> arity filter(
                 dup2 rdip:arity arity-compatible?,
                 RD_WRONG_ARITY
@@ -1360,12 +1359,14 @@ def(elab-alias!, +Mirth Token -- +Mirth Token,
             filter-qualifiers
             L0 filter-roots
         )
-        unwrap-or( @target "can't resolve alias target" emit-fatal-error! )
+        unwrap-or( panic-diagnostics! )
         match(
             DefAlias ->
-                ~target force-or!(@target
-                    "alias points to itself, circular aliases not allowed."
-                    emit-fatal-error!),
+                ~target force-or!(
+                    @target
+                    "Alias points to itself, circular aliases are not allowed."
+                    emit-fatal-error!
+                ),
             _ -> id
         )
         target> drop

@@ -1,6 +1,0 @@
-module(mirth-tests.error-alias-circular-1)
-import(std.prelude)
-alias(foo, foo)
-def(main, --, id)
-# mirth-test # merr # 3:12: error: alias points to itself, circular aliases not allowed.
-# mirth-test # mret # 1
