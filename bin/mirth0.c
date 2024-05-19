@@ -1358,6 +1358,7 @@ static VAL lbl_group = MKNIL_C;
 static VAL lbl_options = MKNIL_C;
 static VAL lbl_parser = MKNIL_C;
 static VAL lbl_argsZ_doc = MKNIL_C;
+static VAL lbl_escapeZ_hex = MKNIL_C;
 static VAL lbl_sizze = MKNIL_C;
 static VAL lbl_base = MKNIL_C;
 static VAL lbl_oldZ_sizze = MKNIL_C;
@@ -5244,7 +5245,7 @@ static void mext_std_ctypes_CStr_numZ_bytes (void) {
 	push_i64((int64_t)(Y));
 }
 int stat (const char *, void*);
-static void mext_std_posix_posixZ_stat (void) {
+static void mext_std_world_posixZ_stat (void) {
 	void* X3 = (void*)pop_ptr();
 	const char * X2 = (const char *)pop_ptr();
 (void)pop_resource();
@@ -5506,10 +5507,10 @@ static void mw_std_file_ZPlusFile_unsafeZ_readZBang (void);
 static void mw_std_file_ZPlusFile_readZ_fileZBang (void);
 static void mw_std_prim_ZPlusWorld_traceZ_ (void);
 static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (void);
-static void mw_std_posix_Sz_IFMT (void);
-static void mw_std_posix_Sz_IFDIR (void);
-static void mw_std_posix_Sz_ISDIR (void);
-static void mw_std_posix_stz_modeZAt (void);
+static void mw_std_world_Sz_IFMT (void);
+static void mw_std_world_Sz_IFDIR (void);
+static void mw_std_world_Sz_ISDIR (void);
+static void mw_std_world_stz_modeZAt (void);
 static void mw_std_terminal_Sgr_tag (void);
 static void mw_std_terminal_SGRColor_showZThen (void);
 static void mw_std_terminal_Sgr_emitZThen (void);
@@ -10168,26 +10169,46 @@ static void mw_std_str_ZPlusStr_pushZ_showZ_byteZBang (void) {
 			(void)pop_u64();
 			STRLIT("\\\"", 2);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
+			push_u64(0LL); // False
+			LPOP(lbl_escapeZ_hex);
+			mp_primZ_drop();
+			LPUSH(lbl_escapeZ_hex);
 			break;
 		case 92LL: // B'\'
 			(void)pop_u64();
 			STRLIT("\\\\", 2);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
+			push_u64(0LL); // False
+			LPOP(lbl_escapeZ_hex);
+			mp_primZ_drop();
+			LPUSH(lbl_escapeZ_hex);
 			break;
 		case 10LL: // BLF
 			(void)pop_u64();
 			STRLIT("\n", 1);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
+			push_u64(0LL); // False
+			LPOP(lbl_escapeZ_hex);
+			mp_primZ_drop();
+			LPUSH(lbl_escapeZ_hex);
 			break;
 		case 13LL: // BCR
 			(void)pop_u64();
 			STRLIT("\r", 1);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
+			push_u64(0LL); // False
+			LPOP(lbl_escapeZ_hex);
+			mp_primZ_drop();
+			LPUSH(lbl_escapeZ_hex);
 			break;
 		case 9LL: // BHT
 			(void)pop_u64();
 			STRLIT("\t", 1);
 			mw_std_str_ZPlusStr_pushZ_strZBang();
+			push_u64(0LL); // False
+			LPOP(lbl_escapeZ_hex);
+			mp_primZ_drop();
+			LPUSH(lbl_escapeZ_hex);
 			break;
 		default:
 			mp_primZ_dup();
@@ -10195,7 +10216,29 @@ static void mw_std_str_ZPlusStr_pushZ_showZ_byteZBang (void) {
 			push_u64(126LL); // B'~'
 			mw_std_byte_Byte_inZ_range();
 			if (pop_u64()) {
+				LPOP(lbl_escapeZ_hex);
+				mp_primZ_dup();
+				LPUSH(lbl_escapeZ_hex);
+				if (pop_u64()) {
+					mp_primZ_dup();
+					mw_std_byte_Byte_isZ_hexdigit();
+				} else {
+					push_u64(0LL); // False
+				}
+				if (pop_u64()) {
+					push_u64(0LL); // False
+				} else {
+					push_u64(1LL); // True
+				}
+			} else {
+				push_u64(0LL); // False
+			}
+			if (pop_u64()) {
 				mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang();
+				push_u64(0LL); // False
+				LPOP(lbl_escapeZ_hex);
+				mp_primZ_drop();
+				LPUSH(lbl_escapeZ_hex);
 			} else {
 				STRLIT("\\x", 2);
 				mw_std_str_ZPlusStr_pushZ_strZBang();
@@ -10206,6 +10249,10 @@ static void mw_std_str_ZPlusStr_pushZ_showZ_byteZBang (void) {
 					push_value(d5);
 				}
 				mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang();
+				push_u64(1LL); // True
+				LPOP(lbl_escapeZ_hex);
+				mp_primZ_drop();
+				LPUSH(lbl_escapeZ_hex);
 			}
 			break;
 	}
@@ -10213,8 +10260,12 @@ static void mw_std_str_ZPlusStr_pushZ_showZ_byteZBang (void) {
 static void mw_std_prim_Str_showZThen (void) {
 	STRLIT("\"", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
+	push_u64(0LL); // False
+	LPUSH(lbl_escapeZ_hex);
 	push_fnptr(&mb_std_prim_Str_showZThen_0);
 	mw_std_prim_Str_bytesZ_for_1();
+	LPOP(lbl_escapeZ_hex);
+	mp_primZ_drop();
 	STRLIT("\"", 1);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
@@ -12709,29 +12760,29 @@ static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (void) {
 	mw_std_prim_Str_withZ_cstr_1();
 	mw_std_buffer_ZPlusBuffer_rdrop();
 }
-static void mw_std_posix_Sz_IFMT (void) {
+static void mw_std_world_Sz_IFMT (void) {
 	push_i64(61440LL);
 	mw_std_prim_Int_ZToU16();
 }
-static void mw_std_posix_Sz_IFDIR (void) {
+static void mw_std_world_Sz_IFDIR (void) {
 	push_i64(16384LL);
 	mw_std_prim_Int_ZToU16();
 }
-static void mw_std_posix_Sz_ISDIR (void) {
-	mw_std_posix_Sz_IFMT();
+static void mw_std_world_Sz_ISDIR (void) {
+	mw_std_world_Sz_IFMT();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
 	}
 	mp_primZ_intZ_and();
-	mw_std_posix_Sz_IFDIR();
+	mw_std_world_Sz_IFDIR();
 	{
 		VAL d2 = pop_value();
 		push_value(d2);
 	}
 	mp_primZ_intZ_eq();
 }
-static void mw_std_posix_stz_modeZAt (void) {
+static void mw_std_world_stz_modeZAt (void) {
 	mp_primZ_sysZ_os();
 	mw_std_prim_Int_ZToOS();
 	switch (get_top_data_tag()) {
@@ -42913,16 +42964,16 @@ static void mb_std_prim_ZPlusWorld_traceZ__0 (void) {
 static void mb_std_prim_ZPlusWorld_isZ_directoryZAsk_0 (void) {
 	mw_std_buffer_ZPlusBuffer_base();
 	push_resource(MKU64(0LL)); // +Unsafe
-	mext_std_posix_posixZ_stat();
+	mext_std_world_posixZ_stat();
 	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
 	push_i64(0LL);
 	mp_primZ_intZ_eq();
 	if (pop_u64()) {
 		mw_std_buffer_ZPlusBuffer_base();
 		push_resource(MKU64(0LL)); // +Unsafe
-		mw_std_posix_stz_modeZAt();
+		mw_std_world_stz_modeZAt();
 		mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
-		mw_std_posix_Sz_ISDIR();
+		mw_std_world_Sz_ISDIR();
 	} else {
 		push_u64(0LL); // False
 	}
