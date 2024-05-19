@@ -156,7 +156,7 @@ def(Block.register-home!, Block --,
 field(Block.~cname, Block, Str)
 def(Block.cname, +Mirth Block -- +Mirth Str, dup ~cname memoize(
     dup home match(
-        HomeWord -> Str("mb_" ; qname rdip:mangled ; "_" ; dup ~home-index @ show;),
+        HomeWord -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ show;),
         HomeMain -> drop Str("mb_" ; dup index show;),
     )) nip)
 

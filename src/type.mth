@@ -941,7 +941,7 @@ def(StackType.base;, +Str StackType -- +Str Bool,
 def(StackType.stack;, +Str StackType -- +Str,
     split4
     dip3(base;)
-    dip2(for(swap then(" " ;) unpack2 >Str ; ":" ; for(type;, type;) True))
+    dip2(for(swap then(" " ;) unpack2 >Str ; ":" ; either(type;, type;) True))
     dip(for(swap then(" " ;) type; True))
     for(swap then(" " ;) type; True) drop)
 

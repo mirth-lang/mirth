@@ -65,7 +65,7 @@ def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
     ))
 
 def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
-    NAMESPACE_ROOT swap QNAME0 def? bind(package?))
+    NAMESPACE_ROOT swap QNAME0 def-soft? bind(package?))
 
 def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
     dup Package.find unwrap-or(dup None swap Package.new!) nip)

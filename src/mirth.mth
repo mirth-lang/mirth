@@ -219,6 +219,7 @@ data(PropLabel,
     DataParams -> Data,
     DataCType -> Data,
     TagType -> Tag,
+    WordQName -> Word,
     WordType -> Word,
     WordParams -> Word,
     WordArrow -> Word,
@@ -246,6 +247,12 @@ def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Pro
     dip(pack2) prop(unpack2 f))
 def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
     dip(pack3) prop(unpack3 f))
+
+def(Prop.ready?, Prop(t) -- Maybe(t),
+    state match(
+        PSReady -> Some,
+        _ -> drop None
+    ))
 
 def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
     dup @ state match(

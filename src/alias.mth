@@ -15,6 +15,7 @@ def(Alias.head, Alias -- Token, ~head @)
 def(Alias.qname, Alias -- QName, ~qname @)
 def(Alias.namespace, Alias -- Namespace, qname namespace)
 def(Alias.name, Alias -- Name, qname name)
+def(Alias.arity, Alias -- Int, qname arity)
 def(Alias.target, +Mirth Alias -- +Mirth Def, ~target force!)
 
 def(Alias.==, Alias Alias -- Bool, both(index) ==)

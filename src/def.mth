@@ -165,7 +165,52 @@ def(Def.same-resolved?, +Mirth Def Def -- +Mirth Bool,
 def(Def.resolve, +Mirth Def -- +Mirth Def,
     while-some(dup alias?, nip target))
 
-def(Def.qname, +Mirth Def -- +Mirth QName,
+def(Def.name, Def -- Name,
+    DefAlias -> name,
+    DefPackage -> name,
+    DefModule -> name,
+    DefBuffer -> name,
+    DefPrim -> name,
+    DefData -> name,
+    DefTable -> name,
+    DefType -> name,
+    DefExternal -> name,
+    DefWord -> name,
+    DefField -> name,
+    DefTag -> name,
+    DefVariable -> name)
+
+def(Def.arity, Def -- Int,
+    DefAlias -> arity,
+    DefPackage -> drop 0,
+    DefModule -> drop 0,
+    DefBuffer -> drop 0,
+    DefPrim -> arity,
+    DefData -> arity,
+    DefTable -> drop 0,
+    DefType -> drop 0,
+    DefExternal -> drop 0,
+    DefWord -> arity,
+    DefField -> drop 0,
+    DefTag -> drop 0,
+    DefVariable -> drop 0)
+
+def(Def.qname-soft, +Mirth Def -- +Mirth Maybe(QName),
+    DefAlias -> qname Some,
+    DefPackage -> qname Some,
+    DefModule -> qname Some,
+    DefBuffer -> qname Some,
+    DefPrim -> qname Some,
+    DefData -> qname Some,
+    DefTable -> qname Some,
+    DefType -> qname Some,
+    DefExternal -> qname Some,
+    DefWord -> qname-soft,
+    DefField -> qname Some,
+    DefTag -> qname Some,
+    DefVariable -> qname Some)
+
+def(Def.qname-hard, +Mirth Def -- +Mirth QName,
     DefAlias -> qname,
     DefPackage -> qname,
     DefModule -> qname,
@@ -175,15 +220,18 @@ def(Def.qname, +Mirth Def -- +Mirth QName,
     DefTable -> qname,
     DefType -> qname,
     DefExternal -> qname,
-    DefWord -> qname,
+    DefWord -> qname-hard,
     DefField -> qname,
     DefTag -> qname,
     DefVariable -> qname)
 
 def(Def.register, +Mirth Def -- +Mirth,
-    dup qname
-    dup undefined? else(>Str "qualified name already has definition: " swap cat panic!)
-    name ~defs modify(Cons))
+    dup qname-soft for(
+        dup undefined-soft? else(
+            >Str "qualified name already has definition: " swap cat panic!
+        ) drop
+    )
+    dup name ~defs modify(Cons))
 
 def(Def.def-index, +Mirth Def -- +Mirth Nat,
-    qname dup name defs filter(dup2 qname <=) len nip)
+    qname-hard dup name defs filter(dup2 qname-hard <=) len nip)

@@ -1,0 +1,12 @@
+module(test.deferred-namespace-resolution)
+||| When we define a word, we can specify a type or namespace for that word's definition.
+||| Usually this is very straightforward, but sometimes the type is not known at the time
+||| the definition is first encountered. This test verifies that the compiler can defer
+||| the resolution of the definition's namespace until such time as it is needed.
+
+import(std.prelude)
+
+def(MyTable.test-ok, MyTable -- Int, drop 0)
+table(MyTable)
+
+def(main, --, MyTable.alloc! test-ok drop)
