@@ -1,4 +1,4 @@
-module(mirth-tests.error-alias-circular-2)
+module(mirth-tests.error-alias-circular-2-old)
 import(std.prelude)
 alias(foo, bar)
 alias(bar, foo)

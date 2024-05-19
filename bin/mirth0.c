@@ -42161,6 +42161,9 @@ static void mb_mirth_elab_typecheckZ_everythingZBang_0 (void) {
 	mw_std_list_List_1_for_1();
 }
 static void mb_mirth_elab_typecheckZ_everythingZBang_1 (void) {
+	mp_primZ_dup();
+	mw_mirth_def_Def_qnameZ_hard();
+	mp_primZ_drop();
 	mw_mirth_def_Def_typecheckZBang();
 }
 static void mb_mirth_elab_typecheckZ_everythingZBang_2 (void) {

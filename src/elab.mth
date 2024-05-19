@@ -1631,7 +1631,7 @@ def(elab-embed-str!, Token +World +Mirth -- Token +World +Mirth,
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, +Mirth -- +Mirth,
-    Name.for(defs for(typecheck!))
+    Name.for(defs for(dup qname-hard drop typecheck!))
     Block.for(typecheck!)
     External.for(ctype drop))
 
