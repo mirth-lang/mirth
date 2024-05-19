@@ -1322,43 +1322,54 @@ def(token-def-args, +Mirth Token -- +Mirth Token Token List+(Token),
     >List+ unwrap uncons
     >List+ unwrap)
 
-||| Elaborate an alias `alias(w1,w2)`
+||| Parse an alias declaration.
+||| Either `alias(head, target)` or `alias head target`.
+||| Both `head` and `target` are names (or dnames), with `head` taking
+||| an optional argument list (for the arity), and `target` taking no arguments.
+def(parse-alias, +Mirth Token -- +Mirth Token head:Token target:Token,
+    dup succ lparen? >Bool >has-paren
+    @has-paren if(
+        sip(next) args-2 >target >head,
+        next dup >head next dup >target next
+    )
+    @head name-or-dname? else(@head "expected alias name" emit-fatal-error!)
+    @target name-or-dname? else(@target "expected alias target, which must be a name" emit-fatal-error!)
+    @target args-0
+    @has-paren then(
+        @head next arg-end? else(@head "expected comma after alias name" emit-fatal-error!)
+        @target succ arg-end? else(@head "expected end of arguments after alias target" emit-fatal-error!)
+    )
+    has-paren> drop)
+
+||| Elaborate an alias declaration.
 def(elab-alias!, +Mirth Token -- +Mirth Token,
-    sip(next) args-2 swap
-    dup elab-def-qname-undefined dup \(aliasqname ->
-    over next arg-end? else(over "expected comma after alias name" emit-fatal-error!)
-    rotl dup name-or-dname? unwrap-or("expected alias target, which must be a name" emit-fatal-error!)
-    over args-0 over succ arg-end? else(over "expected end of argument after alias target" emit-fatal-error!)
-    dip2(Alias.new!)
-    over2 AliasTarget prop2(
-        match(
-            Left ->
-                defs filter(dup2 def-visible-from-token?) match(
-                    Nil -> "unknown alias target" emit-fatal-error!,
-                    Cons -> match(
-                        Nil -> id,
-                        _ -> Cons map(qname-hard) elab-ambiguous-name-error!
-                    )
-                ),
-            Right ->
-                dip(dup) aliasqname arity elab-qname-from-nonrelative-dname
-                dup def-hard? unwrap-or(dip("undefined alias target ") >Str cat emit-fatal-error!) nip
+    parse-alias head> elab-def-head Alias.new!
+    dup AliasQName >label Prop over ~qname !
+
+    target> over dup AliasTarget prop2(
+        >alias >target
+        @target >token
+        "name" >sort
+        False >report-ambiguous-as-warning
+        resolve-def(
+            filter(dup rdip:defines-a-type? or(dup rdip:callable?), RD_WRONG_SORT)
+            alias> arity filter(
+                dup2 rdip:arity arity-compatible?,
+                RD_WRONG_ARITY
+            ) drop
+            filter-qualifiers
+            L0 filter-roots
         )
-        dup2 def-visible-from-token? else(
-            dip("alias target is not visible")
-            defining-module? for(dip(", need to import " cat) qname >Str cat)
-            emit-fatal-error!
-        )
+        unwrap-or( @target "can't resolve alias target" emit-fatal-error! )
         match(
             DefAlias ->
-                # Detect circular aliases, e.g. `alias(x, y) alias(y, x)`,
-                # and avoid storing alias chains (so each alias points to its ultimate target directly).
-                ~target force-or!("alias points to itself, circular aliases not allowed." emit-fatal-error!) nip,
-            _ -> nip,
+                ~target force-or!(@target
+                    "alias points to itself, circular aliases not allowed."
+                    emit-fatal-error!),
+            _ -> id
         )
-    )
-    over ~target !
-    drop))
+        target> drop
+    ) swap ~target !)
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, +Mirth Token -- +Mirth Token,
@@ -1377,13 +1388,10 @@ def(elab-def!, +Mirth Token -- +Mirth Token,
     sip(next) token-def-args
     uncons empty? or(dup run-arrow? >Bool) else("expected match case" emit-fatal-error!) >body
     Some >sig
-    dup >head
-    dup num-args >arity
-    dup name-or-dname? unwrap-or("expected name" emit-fatal-error!) either(id, parts last) >name
-    Word.new!
+    elab-def-head Word.new!
+    dup WordQName >label Prop over ~qname !
 
     prefer-inline-defs over ~prefer-inline? !
-    tuck WordQName prop(elab-def-qname-undefined) over ~qname !
 
     dup dup WordType prop(
         sig unwrap
@@ -1879,6 +1887,19 @@ def(elab-def-qname-undefined, +Mirth Token -- +Mirth QName,
     dup elab-def-qname
     dup defined-soft? then(drop "name already defined" emit-fatal-error!)
     nip)
+
+||| Elaborate the head, i.e. the name-giving token, of a definition.
+||| We defer the full resolution of the qualified name, but otherwise
+||| we collect arity and (simple) name data from the head token.
+def(elab-def-head,
+        +Mirth Token --
+        +Mirth head:Token name:Name arity:Int state:PropState(QName),
+    dup >head
+    dup name-or-dname?
+        unwrap-or("expected name" emit-fatal-error!)
+        either(id, parts last) >name
+    dup num-args >arity
+    [elab-def-qname-undefined] PSDelay >state)
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, +Mirth Token -- +Mirth Token,

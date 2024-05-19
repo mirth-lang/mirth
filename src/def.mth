@@ -196,7 +196,7 @@ def(Def.arity, Def -- Int,
     DefVariable -> drop 0)
 
 def(Def.qname-soft, +Mirth Def -- +Mirth Maybe(QName),
-    DefAlias -> qname Some,
+    DefAlias -> qname-soft,
     DefPackage -> qname Some,
     DefModule -> qname Some,
     DefBuffer -> qname Some,
@@ -211,7 +211,7 @@ def(Def.qname-soft, +Mirth Def -- +Mirth Maybe(QName),
     DefVariable -> qname Some)
 
 def(Def.qname-hard, +Mirth Def -- +Mirth QName,
-    DefAlias -> qname,
+    DefAlias -> qname-hard,
     DefPackage -> qname,
     DefModule -> qname,
     DefBuffer -> qname,
