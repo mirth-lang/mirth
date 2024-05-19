@@ -22,7 +22,7 @@ def(main, +World -- +World,
         60 !bar
         @bar show; " " ; @bar:1+
         @bar show; " " ; @bar:1+
-        pop-bar shoow;
+        pop-bar show;
     )
 
     "world" +Str
@@ -31,5 +31,6 @@ def(main, +World -- +World,
     pop-mystr freeze print
 )
 
-# mirth-test # merr # 25:17: error: Unknown word name, possibly a misspelling.
-# mirth-test # mret # 1
+# mirth-test # pout # 10 30 40 20 21 22 60 61 62
+# mirth-test # pout # world!
+# mirth-test # pout # hello

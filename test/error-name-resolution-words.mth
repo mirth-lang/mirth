@@ -10,9 +10,9 @@ def(+Type2.method, +Type2 -- +Type2, id)
 def(1+, Int -- Int, 1 +)
 def(+Type2.method2, +Type2 -- +Type2, id)
 
-def(not-visible-1, --, 10 >I8? none? drop)
-def(not-visible-2, --, 10 >I8? .none? drop)
-def(not-visible-3, --, 10 >I8? Maybe.none? drop)
+def(not-visible-but-ok-1, --, 10 >I8? none? drop)
+def(not-visible-but-ok-2, --, 10 >I8? .none? drop)
+def(not-visible-not-ok-3, --, 10 >I8? Maybe.none? drop)
 def(unknown-1, --, foobarbaz)
 def(unknown-2, --, std.prelude.foo)
 def(ambiguous-1a, Type1 +Type2 -- Type1 +Type2, method)
@@ -44,9 +44,7 @@ def(error-chaining-3-detects-error-again, --, "Hello" + method2 /TYPE3)
 def(error-chaining-4-still-ambiguous, --, "Hello" 1- method2 /TYPE2 1-)
 
 def(main, --, id)
-# mirth-test # merr # 13:32: error: Not visible in current scope: std.maybe.Maybe/1.none?
-# mirth-test # merr # 14:32: error: Not visible in current scope: std.maybe.Maybe/1.none?
-# mirth-test # merr # 15:32: error: Not visible in current scope: std.maybe.Maybe/1.none?
+# mirth-test # merr # 15:39: error: Not imported in current scope: std.maybe.Maybe/1.none?
 # mirth-test # merr # 16:20: error: Unknown word name, possibly a misspelling.
 # mirth-test # merr # 17:20: error: Unknown word name, possibly a misspelling.
 # mirth-test # merr # 18:49: error: Ambiguous word. Can't decide between: mirth-tests.error-name-resolution-words.+Type2.method, mirth-tests.error-name-resolution-words.Type1.method

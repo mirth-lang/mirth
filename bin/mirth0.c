@@ -4675,13 +4675,6 @@ static void mtp_mirth_elab_RejectedDef_RDz_WRONGz_ARITY (void) {
 		free(tup);
 	}
 }
-static void mtw_mirth_elab_RejectedDef_RDz_NOTz_VISIBLE (void) {
-	TUP* tup = tup_new(2);
-	tup->size = 2;
-	tup->cells[0] = MKU64(2LL);
-	tup->cells[1] = pop_value();
-	push_value(MKTUP(tup, 2));
-}
 static void mtp_mirth_elab_RejectedDef_RDz_NOTz_VISIBLE (void) {
 	VAL val = pop_value();
 	ASSERT1(IS_TUP(val),val);
@@ -6469,7 +6462,6 @@ static void mw_mirth_elab_ZPlusResolveDef_rdrop (void);
 static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (void);
 static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown (void);
 static void mw_mirth_elab_ZPlusResolveDef_filterZ_arity (void);
-static void mw_mirth_elab_ZPlusResolveDef_filterZ_visible (void);
 static void mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers (void);
 static void mw_mirth_elab_ZPlusResolveDef_filterZ_roots (void);
 static void mw_mirth_elab_defZ_isZ_importedZ_atZ_tokenZAsk (void);
@@ -7253,8 +7245,6 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_8 (void);
 static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_11 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_0 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_1 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_visible_0 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_visible_1 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_0 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_1 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_2 (void);
@@ -30999,11 +30989,6 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_arity (void) {
 	mw_mirth_elab_ZPlusResolveDef_filter_2();
 	mp_primZ_drop();
 }
-static void mw_mirth_elab_ZPlusResolveDef_filterZ_visible (void) {
-	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_visible_0);
-	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_visible_1);
-	mw_mirth_elab_ZPlusResolveDef_filter_2();
-}
 static void mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers (void) {
 	mw_mirth_elab_ZPlusResolveDef_token();
 	mw_mirth_token_Token_dnameZAsk();
@@ -45325,19 +45310,6 @@ static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_0 (void) {
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_1 (void) {
 	mtw_mirth_elab_RejectedDef_RDz_WRONGz_ARITY();
 }
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_visible_0 (void) {
-	mw_mirth_elab_ZPlusResolveDef_token();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	mw_mirth_elab_defZ_visibleZ_fromZ_tokenZAsk();
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_visible_1 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_NOTz_VISIBLE();
-}
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_0 (void) {
 	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_1);
 	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_2);
@@ -45601,7 +45573,6 @@ static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_1 (void) {
 	push_fnptr(&mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_3);
 	mw_mirth_elab_ZPlusResolveDef_filter_2();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_arity();
-	mw_mirth_elab_ZPlusResolveDef_filterZ_visible();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
 	push_u64(0LL); // Nil
 	mw_mirth_elab_ZPlusResolveDef_filterZ_roots();
@@ -45781,7 +45752,6 @@ static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_0 (void) {
 	push_fnptr(&mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_2);
 	mw_mirth_elab_ZPlusResolveDef_filter_2();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_arity();
-	mw_mirth_elab_ZPlusResolveDef_filterZ_visible();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
 	mw_mirth_elab_ZPlusResolveDef_token();
 	mw_mirth_token_Token_canZ_beZ_relativeZ_nameZ_orZ_dnameZAsk();
@@ -45925,7 +45895,6 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void) {
 	push_fnptr(&mb_mirth_elab_elabZ_patternZ_atomZBang_7);
 	mw_mirth_elab_ZPlusResolveDef_filter_2();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_arity();
-	mw_mirth_elab_ZPlusResolveDef_filterZ_visible();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
 	LPOPR(lbl_ZPluspat);
 	mw_mirth_match_ZPlusPattern_pattern();

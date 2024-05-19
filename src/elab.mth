@@ -5,10 +5,7 @@ import(std.str)
 import(std.list)
 import(std.maybe)
 import(std.either)
-import(std.path)
 import(std.byte)
-import(std.world)
-import(std.file)
 import(std.terminal)
 
 import(mirth.mirth)
@@ -377,7 +374,6 @@ def(+TypeElab.resolve-type-con-name!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
     token >token "type" >sort rdip:resolve-def(
         filter(dup rdip:defines-a-type?, RD_WRONG_SORT)
         filter-arity
-        filter-visible
         filter-qualifiers
         L0 filter-roots
     ) map:match(
@@ -799,7 +795,6 @@ def(elab-atom-resolve-def!, +Mirth +AB -- +Mirth +AB,
     >+ab resolve-def(
         filter(dup rdip:callable?, RD_WRONG_SORT)
         filter-arity
-        filter-visible
         filter-qualifiers
         token can-be-relative-name-or-dname? if(
             @+ab:ab-type@ top-types-are-fine? then(
@@ -896,7 +891,6 @@ def(elab-pattern-atom!, Token +Mirth +Pattern -- +Mirth +Pattern,
         >+pat resolve-def(
             filter(dup tag? some?, RD_WRONG_SORT)
             filter-arity
-            filter-visible
             filter-qualifiers
             @+pat:pattern mid top-types-are-fine? then(
                 @+pat:pattern mid top-namespaces
