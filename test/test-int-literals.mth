@@ -1,19 +1,21 @@
 module(mirth-tests.test-int-literals)
 import(std.prelude)
 import(std.posix)
+import(std.str)
 
-def(expect==!, Str Int Int --,
+def(expect==!, +World Str Int Int -- +World,
     dup2 == if(
         drop3,
 
-        "failed: " print!
-        dip2(print!)
-        " (expected: " print! print!
-        ", got: " print! print!
-        ")" print-ln!
+        print(
+            "failed: " ; rotl ;
+            " (expected: " ; show;
+            " , got: " ; show;
+            ")" ;
+        )
     ))
 
-def(int-literals-test, --,
+def(main, +World -- +World,
     "0o666 438" 0o666 438 expect==!
 
     "0x0"   0x0 0 expect==!
@@ -48,5 +50,3 @@ def(int-literals-test, --,
     "-0o10"  -0o10 -8 expect==!
     "-0o100" -0o100 -64 expect==!
 )
-
-def(main, +World -- +World, int-literals-test)

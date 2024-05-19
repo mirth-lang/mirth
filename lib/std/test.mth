@@ -31,7 +31,7 @@ module(std.test)
 |||    The "name" is just a string name that will be useful to locate the
 |||    test if it fails. The body `...` of the test has type signature
 |||    `+Test -- +Test`. You can access the world by using the `world(f)` lens,
-|||    e.g. `world(put line)`.
+|||    e.g. `world(print)`.
 |||
 ||| 3. Within a test, use `=>(f)` to pop a value off the stack and test it.
 |||    If the value is different from what is expected, the test has failed

@@ -6,10 +6,10 @@ module(mirth-tests.hello-world)
 import(std.prelude)
 import(std.posix)
 
-def(main, --,
-    "Hello, world!" print-ln!
-    "Hello, world, too!" trace-ln!
-    "Goodbye!" print-ln! 1 posix-exit!)
+def(main, +World -- +World,
+    "Hello, world!" print
+    "Hello, world, too!" trace
+    "Goodbye!" print 1 posix-exit!)
 
 # mirth-test # pout # Hello, world!
 # mirth-test # pout # Goodbye!

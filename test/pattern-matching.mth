@@ -2,6 +2,7 @@
 module(mirth-tests.pattern-matching)
 import(std.prelude)
 import(std.posix)
+import(std.str)
 
 data(Foo,
     FOO0,
@@ -18,36 +19,25 @@ def(foo-sum, Foo -- Int,
     ))
 
 def(foo-tag, Foo -- Str,
-    match(
-        FOO0 -> "FOO0",
-        FOO1 -> drop "FOO1",
-        FOO2 -> drop2 "FOO2",
-        _ -> drop "FOO3"
+    FOO0 -> "FOO0",
+    FOO1 -> drop "FOO1",
+    FOO2 -> drop2 "FOO2",
+    _ -> drop "FOO3")
+
+def(foo-display, +World Foo -- +World,
+    print(
+        dup foo-tag ;
+        ", sum = " ; dup foo-sum show;
+        ", values = " ;
+        match(
+            FOO0 -> "[]";,
+            FOO1 -> "[ "; show; " ]" ;,
+            FOO2 -> "[ "; dip(show;) " "; show; " ]";,
+            FOO3 -> "[ "; dip2(show;) " "; dip(show;) " "; show; " ]";,
+        )
     ))
 
-def(foo-display, Foo --,
-    dup foo-tag print!
-    ", sum = " print!
-    dup foo-sum print!
-    ", values = " print!
-    match(
-        FOO0 ->
-            "[]" print-ln!,
-        FOO1 ->
-            "[ " print!
-            print! " ]" print-ln!,
-        FOO2 ->
-            "[ " print!
-            dip(print!) " " print!
-            print! " ]" print-ln!,
-        FOO3 ->
-            "[ " print!
-            dip2(print!) " " print!
-            dip(print!) " " print!
-            print! " ]" print-ln!,
-    ))
-
-def(main, --,
+def(main, +World -- +World,
     FOO0 foo-display
     10 FOO1 foo-display
     20 FOO1 foo-display

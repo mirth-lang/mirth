@@ -14,18 +14,19 @@ def(MkFoo,
     +Foo)
 
 data(+Bar, +Bar)
+def(+World.baz, +World -- +World, id)
 
 def(main, +World -- +World,
     [ "foo" @+foo:Int.1+ ] drop
-    [ +Bar @foo:+World.line ] drop
-    [ +Bar @foo +World.line ] drop
-    [ +Bar !foo +World.line ] drop)
+    [ +Bar @foo:+World.baz ] drop
+    [ +Bar @foo +World.baz ] drop
+    [ +Bar !foo +World.baz ] drop)
 # mirth-test # merr # 7:19: error: Expected type, not resource.
 # mirth-test # merr # 8:22: error: Expected resource, not type.
 # mirth-test # merr # 11:23: error: Expected type, not resource.
 # mirth-test # merr # 12:26: error: Expected resource, not type.
-# mirth-test # merr # 19:19: error: Failed to unify Str with Int
-# mirth-test # merr # 20:17: error: Failed to unify +Bar with +World
+# mirth-test # merr # 20:19: error: Failed to unify Str with Int
 # mirth-test # merr # 21:17: error: Failed to unify +Bar with +World
 # mirth-test # merr # 22:17: error: Failed to unify +Bar with +World
+# mirth-test # merr # 23:17: error: Failed to unify +Bar with +World
 # mirth-test # mret # 1

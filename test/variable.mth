@@ -4,16 +4,16 @@ import(std.posix)
 
 var(myvar, Int)
 var(myvar2, Int)
-def(main, --,
+def(main, +World -- +World,
     0 myvar !
-    myvar @ trace-ln!
+    myvar @ show trace
     10 myvar !
-    myvar @ trace-ln!
+    myvar @ show trace
     20 myvar !
-    myvar @ trace-ln!
-    myvar @ trace-ln!
+    myvar @ show trace
+    myvar @ show trace
     30 myvar !
-    myvar @ trace-ln!
+    myvar @ show trace
 
     myvar2 @ drop)
 

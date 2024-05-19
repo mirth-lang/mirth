@@ -1,22 +1,24 @@
 module(mirth-tests.test-arithmetic)
 import(std.prelude)
 import(std.posix)
+import(std.str)
 
-def(expect==!, Str Int Int --,
+def(expect==!, +World Str Int Int -- +World,
     dup2 == if(
         drop3,
 
-        "failed: " print!
-        dip2(print!)
-        " (expected: " print! print!
-        ", got: " print! print!
-        ")" print-ln!
+        print(
+            "failed: " ; rotl ;
+            " (expected: " ; show;
+            " , got: " ; show;
+            ")" ;
+        )
     ))
 
-def(mod-div-property, Str Int Int --,
+def(mod-div-property, +World Str Int Int -- +World,
     \(a b -> a b / b * a b % + a expect==!))
 
-def(arithmetic-test, --,
+def(arithmetic-test, +World -- +World,
     # Addition
     " 10 10 +" 10 10 + 20 expect==!
 

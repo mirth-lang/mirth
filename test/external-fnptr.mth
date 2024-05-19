@@ -8,8 +8,8 @@ external(
 )
 
 def(main, +World -- +World,
-    [ "goodbye world" put line ] atexit
-    "hello world" put line)
+    [ "goodbye world" print ] atexit
+    "hello world" print)
 
 # mirth-test # pout # hello world
 # mirth-test # pout # goodbye world

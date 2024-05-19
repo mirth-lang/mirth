@@ -2,17 +2,17 @@ module(mirth-tests.test-unicode-names)
 import(std.prelude)
 import(std.posix)
 
-def(Olá-Mundo, --, "Hello world!" print-ln!)
+def(Olá-Mundo, +World -- +World, "Hello world!" print)
 def(Luís, Int, 1)
 def(João, Int, 2)
 def(綴, Int Int -- Int, *)
-def(🤷‍♀️, --, "...whatever" print-ln!)
+def(🤷‍♀️, +World -- +World, "...whatever" print)
 
-def(main, --,
+def(main, +World -- +World,
     Olá-Mundo
-    Luís print-ln!
-    João print-ln!
-    10 20 綴 print-ln!
+    Luís show print
+    João show print
+    10 20 綴 show print
     🤷‍♀️)
 
 # mirth-test # pout # Hello world!

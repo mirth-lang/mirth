@@ -4,6 +4,6 @@ import(std.prelude)
 import(std.posix)
 
 def(main, +World -- +World,
-    "édead ÁBEEF" put line)
+    "édead ÁBEEF" print)
 
 # mirth-test # pout # édead ÁBEEF

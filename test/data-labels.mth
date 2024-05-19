@@ -9,32 +9,32 @@ data(+MyWorld, +MyWorld -> age:Int msg:Int name:Str +world:+World)
 data(+Deep, +Deep -> +myworld:+MyWorld)
 
 def(Person.greet!, Person +World -- Person +World,
-    Str("Hello, "; dup name ; " at "; dup age show; "!";) put line)
+    print("Hello, "; dup name ; " at "; dup age show; "!";))
 
 def(main, +World -- +World,
     "John" >name
     30 >age
     PERSON
-    dup age show put line
-    dup name show put line
+    dup age show print
+    dup name print
     drop
 
     "Hello" >msg "Goodbye"
-    MIXED msg put line
+    MIXED msg print
 
     99 >age 101 >msg "me" >name
     >+world
     +MyWorld
-    "<<<" put line
-    age show put line
+    "<<<" +world:print
+    age show +world:print
     >+myworld +Deep
-    "<<<<<" trace-ln!
-    +myworld:msg trace-ln!
-    +myworld rdip(name) trace-ln! +myworld!
-    ">>>>>" trace-ln!
+    "<<<<<" +myworld:+world:print
+    +myworld:msg +myworld:+world:print:show;
+    +myworld rdip(name +world rdip:print +world!) +myworld!
+    +myworld:+world:print(">>>>>" ;)
     /+Deep +myworld>
-    name trace-ln!
-    ">>>" trace-ln!
+    name +world:print
+    ">>>" +world:print
     /+MyWorld
     +world>
     age> drop
@@ -45,17 +45,17 @@ def(main, +World -- +World,
     "Jane" swap name! greet!
     31 swap age! greet!
     drop)
-# mirth-test # perr # 30
-# mirth-test # perr # John
-# mirth-test # perr # Hello
-# mirth-test # perr # <<<
-# mirth-test # perr # 99
-# mirth-test # perr # <<<<<
-# mirth-test # perr # 101
-# mirth-test # perr # me
-# mirth-test # perr # >>>>>
-# mirth-test # perr # me
-# mirth-test # perr # >>>
-# mirth-test # perr # Hello, J. at 30!
-# mirth-test # perr # Hello, Jane at 30!
-# mirth-test # perr # Hello, Jane at 31!
+# mirth-test # pout # 30
+# mirth-test # pout # John
+# mirth-test # pout # Hello
+# mirth-test # pout # <<<
+# mirth-test # pout # 99
+# mirth-test # pout # <<<<<
+# mirth-test # pout # 101
+# mirth-test # pout # me
+# mirth-test # pout # >>>>>
+# mirth-test # pout # me
+# mirth-test # pout # >>>
+# mirth-test # pout # Hello, J. at 30!
+# mirth-test # pout # Hello, Jane at 30!
+# mirth-test # pout # Hello, Jane at 31!
