@@ -163,7 +163,7 @@ def(+Mirth.emit-warning!, Token Str +Mirth -- +Mirth,
     dip(location) emit-warning-at!)
 def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
     dip(location) emit-error-at!)
-def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b +Mirth,
+def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b,
     dip(location) emit-fatal-error-at!)
 
 def(+Mirth.emit-deprecated!, Token old:Str new:Str +Mirth -- +Mirth,
@@ -182,7 +182,7 @@ def(+Mirth.warning!, Str +Mirth -- +Mirth,
     error-token unwrap swap emit-warning!)
 def(+Mirth.error!, Str +Mirth -- +Mirth,
     error-token unwrap swap emit-error!)
-def(+Mirth.fatal-error!, Str +Mirth -- +Mirth,
+def(+Mirth.fatal-error!, *a Str +Mirth -- *b,
     error-token unwrap swap emit-fatal-error!)
 
 def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
@@ -219,14 +219,18 @@ data(PropLabel,
     DataParams -> Data,
     DataCType -> Data,
     TagType -> Tag,
+    WordQName -> Word,
     WordType -> Word,
     WordParams -> Word,
     WordArrow -> Word,
     BlockArrow -> Block,
+    AliasQName -> Alias,
     AliasTarget -> Alias,
+    ExternalQName -> External,
     ExternalType -> External,
     ExternalCType -> External,
     VariableType -> Variable,
+    FieldQName -> Field,
     FieldValueType -> Field,
     FieldIndexType -> Field,
 )
@@ -247,6 +251,12 @@ def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Pro
 def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
     dip(pack3) prop(unpack3 f))
 
+def(Prop.ready?, Prop(t) -- Maybe(t),
+    state match(
+        PSReady -> Some,
+        _ -> drop None
+    ))
+
 def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
     dup @ state match(
         PSReady -> nip Some,
@@ -259,7 +269,7 @@ def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
             drop None
     ))
 def(Prop.force!, Mut(Prop(t)) +Mirth -- t +Mirth,
-    try-force! unwrap-or("recursive prop detected!" panic!))
+    try-force! unwrap-or("Recursive prop detected!" fatal-error!))
 def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
         *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
     try-force! unwrap-or(f))

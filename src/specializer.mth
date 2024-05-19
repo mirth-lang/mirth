@@ -140,9 +140,11 @@ def(specialize-word!, +Mirth SPKey Word -- +Mirth Word,
         w head >head
         None >sig
         w body >body
-        w NAMESPACE_WORD k >Name QNAME0 >qname
+        k >Name >name
         0 >arity
         Word.new! \(w' ->
+            w NAMESPACE_WORD k >Name QNAME0 w' WordQName prop w' ~qname !
+
             k >key w' >value KVPair
             w sp-synthed insert w ~sp-synthed !
             # Str(w cname ; k /SPKEY

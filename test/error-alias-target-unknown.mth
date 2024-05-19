@@ -2,5 +2,5 @@ module(mirth-tests.error-alias-target-unknown)
 import(std.prelude)
 alias(foo, something-unknown)
 def(main, --, id)
-# mirth-test # merr # 3:12: error: unknown alias target
+# mirth-test # merr # 3:12: error: Unknown target name, possibly a misspelling.
 # mirth-test # mret # 1

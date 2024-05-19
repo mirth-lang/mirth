@@ -1,0 +1,7 @@
+module(mirth-tests.error-name-already-defined-1)
+import(std.prelude)
+def(foo, Int, 0)
+def(foo, Int, 2)
+def(main, +World -- +World, foo drop)
+# mirth-test # merr # 3:5: error: name already defined
+# mirth-test # mret # 1

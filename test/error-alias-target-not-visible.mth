@@ -1,6 +1,0 @@
-module(mirth-tests.error-alias-target-not-visible)
-import(std.prelude)
-alias(mwhile(f,g), std.maybe.while-some)
-def(main, --, id)
-# mirth-test # merr # 3:20: error: alias target is not visible, need to import std.maybe
-# mirth-test # mret # 1

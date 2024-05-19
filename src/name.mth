@@ -141,7 +141,7 @@ def(Namespace.qname, +Mirth Namespace -- +Mirth Maybe(QName),
     NAMESPACE_PACKAGE -> qname Some,
     NAMESPACE_MODULE -> qname Some,
     NAMESPACE_TYCON -> qname Some,
-    NAMESPACE_WORD -> qname Some)
+    NAMESPACE_WORD -> qname-hard Some)
 
 def(Namespace.package?, +Mirth Namespace -- +Mirth Maybe(Package),
     NAMESPACE_ROOT -> None,
@@ -171,14 +171,14 @@ def(Namespace.>Str, +Mirth Namespace -- +Mirth Str,
     NAMESPACE_PACKAGE -> name >Str,
     NAMESPACE_MODULE -> qname >Str,
     NAMESPACE_TYCON -> qname >Str,
-    NAMESPACE_WORD -> qname >Str)
+    NAMESPACE_WORD -> qname-hard >Str)
 
 def(Namespace.mangled, +Mirth Namespace -- +Mirth Str,
     NAMESPACE_ROOT -> "__root__",
     NAMESPACE_PACKAGE -> name mangled,
     NAMESPACE_MODULE -> qname mangled,
     NAMESPACE_TYCON -> qname mangled,
-    NAMESPACE_WORD -> qname mangled)
+    NAMESPACE_WORD -> qname-hard mangled)
 
 ##################
 # Qualified Name #
@@ -216,9 +216,13 @@ def(QName.compare, +Mirth QName QName -- +Mirth Comparison,
         dip:drop4
     ))
 
-def(QName.def?, +Mirth QName -- +Mirth Maybe(Def), dup name defs find(dup2 qname ==) nip)
-def(QName.defined?, +Mirth QName -- +Mirth Bool, def? some?)
-def(QName.undefined?, +Mirth QName -- +Mirth Bool, def? none?)
+def(QName.def-hard?, +Mirth QName -- +Mirth Maybe(Def), dup name defs find(dup2 qname-hard ==) nip)
+def(QName.defined-hard?, +Mirth QName -- +Mirth Bool, def-hard? some?)
+def(QName.undefined-hard?, +Mirth QName -- +Mirth Bool, def-hard? none?)
+
+def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) find(dup2 qname-soft ==:==) nip)
+def(QName.defined-soft?, +Mirth QName -- +Mirth Bool, def-soft? some?)
+def(QName.undefined-soft?, +Mirth QName -- +Mirth Bool, def-soft? none?)
 
 def(QName.prim, +Mirth Str Int -- +Mirth QName,
     >arity

@@ -1,0 +1,25 @@
+module(test.deferred-namespace-resolution)
+||| When we define a word, we can specify a type (or other namespace) for that
+||| word's definition. Usually this is straightforward, but sometimes the type
+||| is not known at the time the definition is first encountered. This test
+||| verifies that the compiler can defer the resolution of the definition's
+||| namespace until such time as it is needed.
+
+import(std.prelude)
+import(std.ctypes)
+
+# These definitions rely on MyTable, which isn't defined yet.
+def(MyTable.test-ok, MyTable -- Int, drop 0)
+field(MyTable.my-field, MyTable, Int)
+alias(MyTable.my-drop, drop)
+external(MyTable.my-exit -> exit [CInt --])
+
+# We can use those words. Note the body is deferred as usual.
+def(main, --,
+    MyTable.alloc! test-ok drop
+    MyTable.alloc! 10 over my-field ! my-drop
+    42 CInt MyTable.my-exit)
+
+# Now we finally define MyTable.
+table(MyTable)
+# mirth-test # pret # 42

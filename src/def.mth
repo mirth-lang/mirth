@@ -97,7 +97,7 @@ def(Def.typecheck!, +Mirth Def -- +Mirth,
     DefVariable -> type drop)
 
 def(Def.callable?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> target callable?,
+    DefAlias -> ~target try-force! and-some(callable?),
     DefPackage -> drop False,
     DefModule -> drop False,
     DefBuffer -> drop True,
@@ -112,7 +112,7 @@ def(Def.callable?, +Mirth Def -- +Mirth Bool,
     DefVariable -> drop True)
 
 def(Def.defines-a-type?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> target defines-a-type?,
+    DefAlias -> ~target try-force! and-some(defines-a-type?),
     DefPackage -> drop False,
     DefModule -> drop False,
     DefBuffer -> drop False,
@@ -127,7 +127,7 @@ def(Def.defines-a-type?, +Mirth Def -- +Mirth Bool,
     DefVariable -> drop False)
 
 def(Def.exposed-tycon?, +Mirth Def -- +Mirth Maybe(Tycon),
-    DefAlias -> target exposed-tycon?,
+    DefAlias -> ~target try-force! bind(exposed-tycon?),
     DefPackage -> drop None,
     DefModule -> drop None,
     DefData -> TYCON_DATA Some,
@@ -165,8 +165,53 @@ def(Def.same-resolved?, +Mirth Def Def -- +Mirth Bool,
 def(Def.resolve, +Mirth Def -- +Mirth Def,
     while-some(dup alias?, nip target))
 
-def(Def.qname, +Mirth Def -- +Mirth QName,
-    DefAlias -> qname,
+def(Def.name, Def -- Name,
+    DefAlias -> name,
+    DefPackage -> name,
+    DefModule -> name,
+    DefBuffer -> name,
+    DefPrim -> name,
+    DefData -> name,
+    DefTable -> name,
+    DefType -> name,
+    DefExternal -> name,
+    DefWord -> name,
+    DefField -> name,
+    DefTag -> name,
+    DefVariable -> name)
+
+def(Def.arity, Def -- Int,
+    DefAlias -> arity,
+    DefPackage -> drop 0,
+    DefModule -> drop 0,
+    DefBuffer -> drop 0,
+    DefPrim -> arity,
+    DefData -> arity,
+    DefTable -> drop 0,
+    DefType -> drop 0,
+    DefExternal -> arity,
+    DefWord -> arity,
+    DefField -> drop 0,
+    DefTag -> drop 0,
+    DefVariable -> drop 0)
+
+def(Def.qname-soft, +Mirth Def -- +Mirth Maybe(QName),
+    DefAlias -> qname-soft,
+    DefPackage -> qname Some,
+    DefModule -> qname Some,
+    DefBuffer -> qname Some,
+    DefPrim -> qname Some,
+    DefData -> qname Some,
+    DefTable -> qname Some,
+    DefType -> qname Some,
+    DefExternal -> qname-soft,
+    DefWord -> qname-soft,
+    DefField -> qname-soft,
+    DefTag -> qname Some,
+    DefVariable -> qname Some)
+
+def(Def.qname-hard, +Mirth Def -- +Mirth QName,
+    DefAlias -> qname-hard,
     DefPackage -> qname,
     DefModule -> qname,
     DefBuffer -> qname,
@@ -174,16 +219,19 @@ def(Def.qname, +Mirth Def -- +Mirth QName,
     DefData -> qname,
     DefTable -> qname,
     DefType -> qname,
-    DefExternal -> qname,
-    DefWord -> qname,
-    DefField -> qname,
+    DefExternal -> qname-hard,
+    DefWord -> qname-hard,
+    DefField -> qname-hard,
     DefTag -> qname,
     DefVariable -> qname)
 
 def(Def.register, +Mirth Def -- +Mirth,
-    dup qname
-    dup undefined? else(>Str "qualified name already has definition: " swap cat panic!)
-    name ~defs modify(Cons))
+    dup qname-soft for(
+        dup undefined-soft? else(
+            >Str "qualified name already has definition: " swap cat panic!
+        ) drop
+    )
+    dup name ~defs modify(Cons))
 
 def(Def.def-index, +Mirth Def -- +Mirth Nat,
-    qname dup name defs filter(dup2 qname <=) len nip)
+    qname-hard dup name defs filter(dup2 qname-hard <=) len nip)
