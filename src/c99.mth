@@ -108,7 +108,7 @@ def(Variable.cname, +Mirth Variable -- +Mirth Str, dup ~cname memoize(
 def(Field.cname, +Mirth Field -- +Mirth Str, dup ~cname memoize(
     Str("mfld_" ; dup qname rdip:mangled ;)) nip)
 def(External.cname, +Mirth External -- +Mirth Str, dup ~cname memoize(
-    Str("mext_" ; dup qname rdip:mangled ;)) nip)
+    dup qname-hard mangled Str("mext_" ; ;)) nip)
 def(Prim.cname, Prim -- Str, dup ~cname memoize(
     Str("mp_" ; dup name mangled ;)) nip)
 

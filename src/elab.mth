@@ -1530,15 +1530,14 @@ def(elab-external-block-part!, +Mirth ExternalDeclPart -- +Mirth ExternalBlockPa
     EDPDef -> elab-external-def! EBPDef)
 
 def(elab-external-def!, +Mirth head:Token symbol:Maybe(Token) sig:Token -- +Mirth External,
-    @head elab-def-qname-undefined >qname
+    head> elab-def-head
 
-    symbol> if-some(
-        name? unwrap,
-        @qname name
-    ) >Str >symbol
+    symbol> if-some(name? unwrap, @name) >Str >symbol
 
     External.alloc! >external
-    qname> @external ~qname !
+    name> @external ~name !
+    arity> @external ~arity !
+    @external ExternalQName >label Prop @external ~qname !
     symbol> @external ~symbol !
     sig> @external ~sig !
     head> @external ~head !

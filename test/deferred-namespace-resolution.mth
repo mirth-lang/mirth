@@ -6,15 +6,19 @@ module(test.deferred-namespace-resolution)
 ||| namespace until such time as it is needed.
 
 import(std.prelude)
+import(std.ctypes)
 
 # These definitions rely on MyTable, which isn't defined yet.
 def(MyTable.test-ok, MyTable -- Int, drop 0)
 alias(MyTable.my-drop, drop)
+external(MyTable.my-exit -> exit [CInt --])
 
 # We can use those words. Note the body is deferred as usual.
 def(main, --,
     MyTable.alloc! test-ok drop
-    MyTable.alloc! my-drop)
+    MyTable.alloc! my-drop
+    42 CInt MyTable.my-exit)
 
 # Now we finally define MyTable.
 table(MyTable)
+# mirth-test # pret # 42

@@ -4156,38 +4156,45 @@ static void mtw_mirth_mirth_PropLabel_AliasTarget (void) {
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtw_mirth_mirth_PropLabel_ExternalType (void) {
+static void mtw_mirth_mirth_PropLabel_ExternalQName (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(10LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtw_mirth_mirth_PropLabel_ExternalCType (void) {
+static void mtw_mirth_mirth_PropLabel_ExternalType (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(11LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtw_mirth_mirth_PropLabel_VariableType (void) {
+static void mtw_mirth_mirth_PropLabel_ExternalCType (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(12LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtw_mirth_mirth_PropLabel_FieldValueType (void) {
+static void mtw_mirth_mirth_PropLabel_VariableType (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(13LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
-static void mtw_mirth_mirth_PropLabel_FieldIndexType (void) {
+static void mtw_mirth_mirth_PropLabel_FieldValueType (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(14LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
+}
+static void mtw_mirth_mirth_PropLabel_FieldIndexType (void) {
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(15LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
@@ -5783,8 +5790,10 @@ static void mw_mirth_match_PatternOp_ZDivPatOpUnderscore (void);
 static void mw_mirth_external_External_index (void);
 static void mw_mirth_external_External_for_1 (void);
 static void mw_mirth_external_External_allocZBang (void);
-static void mw_mirth_external_External_qname (void);
+static void mw_mirth_external_External_qnameZ_soft (void);
+static void mw_mirth_external_External_qnameZ_hard (void);
 static void mw_mirth_external_External_name (void);
+static void mw_mirth_external_External_arity (void);
 static void mw_mirth_external_External_symbol (void);
 static void mw_mirth_external_External_head (void);
 static void mw_mirth_external_External_sig (void);
@@ -7084,6 +7093,7 @@ static void mb_mirth_type_Type_tyconZAsk_0 (void);
 static void mb_mirth_type_Type_tyconZAsk_1 (void);
 static void mb_mirth_name_QName_defZ_hardZAsk_0 (void);
 static void mb_mirth_alias_Alias_qnameZ_soft_0 (void);
+static void mb_mirth_external_External_qnameZ_soft_0 (void);
 static void mb_mirth_word_Word_qnameZ_soft_0 (void);
 static void mb_mirth_name_QName_toZ_moduleZ_path_0 (void);
 static void mb_mirth_mirth_Prop_1_tryZ_forceZBang_0 (void);
@@ -7845,6 +7855,8 @@ static void mfld_mirth_data_Tag_ZTildesigZAsk (void);
 static void mfld_mirth_data_Tag_ZTildectxZ_type (void);
 static void mfld_mirth_data_Tag_ZTildeuntag (void);
 static void mfld_mirth_data_Tag_ZTildenumZ_labelZ_inputs (void);
+static void mfld_mirth_external_External_ZTildename (void);
+static void mfld_mirth_external_External_ZTildearity (void);
 static void mfld_mirth_external_External_ZTildeqname (void);
 static void mfld_mirth_external_External_ZTildesymbol (void);
 static void mfld_mirth_external_External_ZTildehead (void);
@@ -8338,6 +8350,24 @@ static void mfld_mirth_data_Tag_ZTildeuntag (void) {
 }
 
 static void mfld_mirth_data_Tag_ZTildenumZ_labelZ_inputs (void) {
+	size_t i = (size_t)pop_u64();
+	static struct VAL * p = 0;
+	size_t m = 524288;
+	if (! p) { p = calloc(m, sizeof *p); }
+	EXPECT(i<m, "table grew too big");
+	push_ptr(p+i);
+}
+
+static void mfld_mirth_external_External_ZTildename (void) {
+	size_t i = (size_t)pop_u64();
+	static struct VAL * p = 0;
+	size_t m = 524288;
+	if (! p) { p = calloc(m, sizeof *p); }
+	EXPECT(i<m, "table grew too big");
+	push_ptr(p+i);
+}
+
+static void mfld_mirth_external_External_ZTildearity (void) {
 	size_t i = (size_t)pop_u64();
 	static struct VAL * p = 0;
 	size_t m = 524288;
@@ -16599,13 +16629,23 @@ static void mw_mirth_external_External_allocZBang (void) {
 	mbuf_mirth_external_External_NUM();
 	mp_primZ_u64Z_set();
 }
-static void mw_mirth_external_External_qname (void) {
+static void mw_mirth_external_External_qnameZ_soft (void) {
 	mfld_mirth_external_External_ZTildeqname();
-	mp_primZ_mutZ_get();
+	mw_std_prelude_ZAtZAsk();
+	push_fnptr(&mb_mirth_external_External_qnameZ_soft_0);
+	mw_std_maybe_Maybe_1_bind_1();
+}
+static void mw_mirth_external_External_qnameZ_hard (void) {
+	mfld_mirth_external_External_ZTildeqname();
+	mw_mirth_mirth_Prop_1_forceZBang();
 }
 static void mw_mirth_external_External_name (void) {
-	mw_mirth_external_External_qname();
-	mw_mirth_name_QName_name();
+	mfld_mirth_external_External_ZTildename();
+	mp_primZ_mutZ_get();
+}
+static void mw_mirth_external_External_arity (void) {
+	mfld_mirth_external_External_ZTildearity();
+	mp_primZ_mutZ_get();
 }
 static void mw_mirth_external_External_symbol (void) {
 	mfld_mirth_external_External_ZTildesymbol();
@@ -27707,8 +27747,7 @@ static void mw_mirth_def_Def_arity (void) {
 			break;
 		case 11LL: // DefExternal
 			mtp_mirth_def_Def_DefExternal();
-			mp_primZ_drop();
-			push_i64(0LL);
+			mw_mirth_external_External_arity();
 			break;
 		case 8LL: // DefWord
 			mtp_mirth_def_Def_DefWord();
@@ -27777,8 +27816,7 @@ static void mw_mirth_def_Def_qnameZ_soft (void) {
 			break;
 		case 11LL: // DefExternal
 			mtp_mirth_def_Def_DefExternal();
-			mw_mirth_external_External_qname();
-			mtw_std_maybe_Maybe_1_Some();
+			mw_mirth_external_External_qnameZ_soft();
 			break;
 		case 8LL: // DefWord
 			mtp_mirth_def_Def_DefWord();
@@ -27840,7 +27878,7 @@ static void mw_mirth_def_Def_qnameZ_hard (void) {
 			break;
 		case 11LL: // DefExternal
 			mtp_mirth_def_Def_DefExternal();
-			mw_mirth_external_External_qname();
+			mw_mirth_external_External_qnameZ_hard();
 			break;
 		case 8LL: // DefWord
 			mtp_mirth_def_Def_DefWord();
@@ -35116,10 +35154,7 @@ static void mw_mirth_elab_elabZ_externalZ_blockZ_partZBang (void) {
 }
 static void mw_mirth_elab_elabZ_externalZ_defZBang (void) {
 	LPOP(lbl_head);
-	mp_primZ_dup();
-	LPUSH(lbl_head);
-	mw_mirth_elab_elabZ_defZ_qnameZ_undefined();
-	LPUSH(lbl_qname);
+	mw_mirth_elab_elabZ_defZ_head();
 	LPOP(lbl_symbol);
 	push_fnptr(&mb_mirth_elab_elabZ_externalZ_defZBang_0);
 	push_fnptr(&mb_mirth_elab_elabZ_externalZ_defZBang_1);
@@ -35128,7 +35163,24 @@ static void mw_mirth_elab_elabZ_externalZ_defZBang (void) {
 	LPUSH(lbl_symbol);
 	mw_mirth_external_External_allocZBang();
 	LPUSH(lbl_external);
-	LPOP(lbl_qname);
+	LPOP(lbl_name);
+	LPOP(lbl_external);
+	mp_primZ_dup();
+	LPUSH(lbl_external);
+	mfld_mirth_external_External_ZTildename();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_arity);
+	LPOP(lbl_external);
+	mp_primZ_dup();
+	LPUSH(lbl_external);
+	mfld_mirth_external_External_ZTildearity();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_external);
+	mp_primZ_dup();
+	LPUSH(lbl_external);
+	mtw_mirth_mirth_PropLabel_ExternalQName();
+	LPUSH(lbl_label);
+	mtw_mirth_mirth_Prop_1_Prop();
 	LPOP(lbl_external);
 	mp_primZ_dup();
 	LPUSH(lbl_external);
@@ -43912,6 +43964,9 @@ static void mb_mirth_name_QName_defZ_hardZAsk_0 (void) {
 static void mb_mirth_alias_Alias_qnameZ_soft_0 (void) {
 	mw_mirth_mirth_Prop_1_readyZAsk();
 }
+static void mb_mirth_external_External_qnameZ_soft_0 (void) {
+	mw_mirth_mirth_Prop_1_readyZAsk();
+}
 static void mb_mirth_word_Word_qnameZ_soft_0 (void) {
 	mw_mirth_mirth_Prop_1_readyZAsk();
 }
@@ -44563,19 +44618,15 @@ static void mb_mirth_prim_Prim_cname_1 (void) {
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_mirth_external_External_cname_0 (void) {
+	mp_primZ_dup();
+	mw_mirth_external_External_qnameZ_hard();
+	mw_mirth_name_QName_mangled();
 	push_fnptr(&mb_mirth_external_External_cname_1);
 	mw_std_str_Str_1();
 }
 static void mb_mirth_external_External_cname_1 (void) {
 	STRLIT("mext_", 5);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
-	mp_primZ_dup();
-	mw_mirth_external_External_qname();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_name_QName_mangled();
-		push_resource(d2);
-	}
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
 static void mb_mirth_table_Field_cname_0 (void) {
@@ -47834,10 +47885,9 @@ static void mb_mirth_elab_elabZ_externalZ_defZBang_0 (void) {
 	mw_std_maybe_Maybe_1_unwrap();
 }
 static void mb_mirth_elab_elabZ_externalZ_defZBang_1 (void) {
-	LPOP(lbl_qname);
+	LPOP(lbl_name);
 	mp_primZ_dup();
-	LPUSH(lbl_qname);
-	mw_mirth_name_QName_name();
+	LPUSH(lbl_name);
 }
 static void mb_mirth_elab_elabZ_externalZ_defZBang_2 (void) {
 	mw_mirth_external_External_sig();
