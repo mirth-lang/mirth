@@ -1,7 +1,7 @@
 
 module(mirth-tests.pattern-matching)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 import(std.str)
 
 data(Foo,

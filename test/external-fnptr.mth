@@ -1,7 +1,7 @@
 module(mirth-tests.external-fnptr)
 
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 external(
     atexit [ +World [ +World -- +World ] -- +World ]

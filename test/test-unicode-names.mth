@@ -1,6 +1,6 @@
 module(mirth-tests.test-unicode-names)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 def(Olá-Mundo, +World -- +World, "Hello world!" print)
 def(Luís, Int, 1)

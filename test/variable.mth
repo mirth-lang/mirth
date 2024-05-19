@@ -1,6 +1,6 @@
 module(mirth-tests.variable)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 var(myvar, Int)
 var(myvar2, Int)

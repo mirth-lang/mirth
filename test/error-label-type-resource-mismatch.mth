@@ -1,7 +1,7 @@
 module(mirth-tests.error-label-type-resource-mismatch)
 
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 data(+Foo, +Foo ->
     normal-label: +World

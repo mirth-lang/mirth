@@ -1,6 +1,6 @@
 module(mirth-tests.test-prelude)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 # Assertions
 

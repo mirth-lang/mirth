@@ -2,7 +2,7 @@
 module(mirth.mirth)
 
 import(std.prelude)
-import(std.posix)
+import(std.world)
 import(std.list)
 import(std.str)
 import(std.terminal)

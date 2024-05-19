@@ -1,6 +1,6 @@
 module(mirth-tests.test-arithmetic)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 import(std.str)
 
 def(expect==!, +World Str Int Int -- +World,

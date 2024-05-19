@@ -1,6 +1,6 @@
 module(mirth-tests.lens-syntax)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 import(std.str)
 
 data(Foo, FOO -> bar:Int)

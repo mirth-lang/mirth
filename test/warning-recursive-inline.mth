@@ -2,7 +2,7 @@ module(mirth-tests.warning-recursive-inline)
 
 import(std.prelude)
 import(std.str)
-import(std.posix)
+import(std.world)
 
 inline:def(factorial, Int -- Int,
     dup 0 <= if(drop 1, dup 1- factorial *))

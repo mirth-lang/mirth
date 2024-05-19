@@ -1,7 +1,7 @@
 module(mirth-tests.test-is-directory)
 import(std.prelude)
 import(std.path)
-import(std.posix)
+import(std.world)
 
 def(should-be-directory, +World Str -- +World,
    >Path is-directory? if("ok", "err") print)

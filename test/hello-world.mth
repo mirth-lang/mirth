@@ -4,7 +4,7 @@
 ||| and exit codes.
 module(mirth-tests.hello-world)
 import(std.prelude)
-import(std.posix)
+import(std.world)
 
 def(main, +World -- +World,
     "Hello, world!" print

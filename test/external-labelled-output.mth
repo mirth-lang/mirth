@@ -1,7 +1,7 @@
 module(test.external-labelled-output)
 
 import(std.prelude)
-import(std.posix)
+import(std.world)
 import(std.ctypes)
 import(std.str)
 

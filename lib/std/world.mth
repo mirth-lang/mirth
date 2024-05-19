@@ -1,4 +1,4 @@
-module(std.posix)
+module(std.world)
 
 import(std.prelude)
 import(std.str)

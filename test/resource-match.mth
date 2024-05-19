@@ -2,7 +2,7 @@ module(mirth-tests.resource-match)
 
 import(std.prelude)
 import(std.either)
-import(std.posix)
+import(std.world)
 import(std.str)
 
 data(+Foo,

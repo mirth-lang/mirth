@@ -14,7 +14,7 @@ This repository is a **work-in-progress** implementation of Mirth. If you are in
 ||| A simple hello world program to show off the Mirth language.
 module(examples.hello-world)
 import(std.prelude)
-import(posix.posix)
+import(std.world)
 
 def(main, +World -- +World,
     "Hello, world!" print)
