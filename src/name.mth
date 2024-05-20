@@ -256,4 +256,9 @@ def(DName.root?, DName -- Maybe(Name), DName -> drop)
 def(DName.parts, DName -- List+(Name), DName -> nip)
 
 def(DName.last-name, DName -- Name, parts last)
+def(DName.penultimate-name?, DName -- Maybe(Name),
+    DName -> unsnoc drop last match(
+        Some -> nip Some,
+        None -> id
+    ))
 def(DName.is-relative?, DName -- Bool, root? none?)

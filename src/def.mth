@@ -225,6 +225,16 @@ def(Def.qname-hard, +Mirth Def -- +Mirth QName,
     DefTag -> qname,
     DefVariable -> qname)
 
+def(Def.as-namespace?, +Mirth Def -- +Mirth Maybe(Namespace),
+    DefAlias -> ~target try-force! bind(as-namespace?),
+    DefPackage -> NAMESPACE_PACKAGE Some,
+    DefModule -> NAMESPACE_MODULE Some,
+    DefData -> TYCON_DATA NAMESPACE_TYCON Some,
+    DefTable -> TYCON_TABLE NAMESPACE_TYCON Some,
+    DefType -> target tycon? map(NAMESPACE_TYCON),
+    DefWord -> NAMESPACE_WORD Some,
+    _ -> drop None)
+
 def(Def.register, +Mirth Def -- +Mirth,
     dup qname-soft for(
         dup undefined-soft? else(

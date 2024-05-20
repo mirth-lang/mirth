@@ -174,6 +174,7 @@ data(+ResolveDef, RESOLVE_DEF ->
     token: Token
     candidates: List(Def)
     rejected: List(RejectedDef)
+    ignore-last-name: Bool
     report-ambiguous-as-warning: Bool)
 
 def(+ResolveDef.filter(p),
@@ -198,9 +199,16 @@ data(RejectedDef,
     RD_METHOD_WRONG_TYPE -> Def)
 
 def(resolve-def(f), (*a +Mirth +ResolveDef -- *b +Mirth +ResolveDef)
-        *a +Mirth sort:Str token:Token report-ambiguous-as-warning:Bool
+        *a +Mirth
+        sort:Str
+        token:Token
+        report-ambiguous-as-warning:Bool
+        ignore-last-name:Bool
         -- *b +Mirth Maybe(Def),
-    @token last-name? unwrap defs >candidates
+    @ignore-last-name if(
+        @token penultimate-name?,
+        @token last-name?
+    ) unwrap defs >candidates
     L0 >rejected
     RESOLVE_DEF
     f
@@ -219,7 +227,8 @@ def(+ResolveDef.rdrop, +ResolveDef --,
     /RESOLVE_DEF
     sort> token> drop2
     candidates> rejected> drop2
-    report-ambiguous-as-warning> drop)
+    report-ambiguous-as-warning> drop
+    ignore-last-name> drop)
 
 def(+ResolveDef.resolve-def-ambiguous, +Mirth +ResolveDef -- +Mirth,
     report-ambiguous-as-warning if(
@@ -294,7 +303,7 @@ def(+ResolveDef.filter-visible, +ResolveDef -- +ResolveDef,
 
 def(+ResolveDef.filter-qualifiers, +Mirth +ResolveDef -- +Mirth +ResolveDef,
     token dname? for(
-        filter(dup2 rdip(qname-hard climb-up-dname?) some?, RD_WRONG_QUALIFIER)
+        filter(dup2 rdip:qname-hard climb-up-dname? some?, RD_WRONG_QUALIFIER)
         drop
     ))
 
@@ -317,14 +326,14 @@ def(+ResolveDef.filter-roots, List(Namespace) +Mirth +ResolveDef -- +Mirth +Reso
         )
     )
     token dname? for(
-        dup is-relative? if(
-            filter(dup2 rdip(qname-hard climb-up-dname?) and-some(over3 member(==)),
+        dup is-relative? and(ignore-last-name not) if(
+            filter(dup2 rdip:qname-hard climb-up-dname? and-some(over3 member(==)),
                 over2 empty? if(
                     RD_METHOD_NOT_AVAILABLE,
                     RD_METHOD_WRONG_TYPE
                 )
             ),
-            filter(dup2 rdip(qname-hard climb-up-dname?) and-some(
+            filter(dup2 rdip:qname-hard climb-up-dname? and-some(
                 token swap rdip:namespace-is-imported-at-token?
             ), RD_NOT_IMPORTED)
         ) drop
@@ -361,16 +370,19 @@ def(QName.climb-up-name?, Name QName -- Maybe(Namespace),
         drop None
     ))
 
-def(QName.climb-up-dname?, +Mirth DName QName -- +Mirth Maybe(Namespace),
-    dip(sip(root? >List) parts unsnoc dip(cat))
+def(QName.climb-up-dname?, +Mirth +ResolveDef DName QName -- +Mirth +ResolveDef Maybe(Namespace),
+    dip(sip(root? >List) parts unsnoc dip(cat)
+        ignore-last-name then(drop unsnoc unwrap)
+    )
     climb-up-name? swap
-    reverse-for(swap bind(qname) match(
+    reverse-for(swap bind(rdip:qname) match(
         Some -> climb-up-name?,
         None -> drop None
     )))
 
 def(+TypeElab.resolve-type-con-name!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
     False >report-ambiguous-as-warning
+    False >ignore-last-name
     token >token "type" >sort rdip:resolve-def(
         filter(dup rdip:defines-a-type?, RD_WRONG_SORT)
         filter-arity
@@ -792,6 +804,7 @@ def(elab-atom-resolve-def!, +Mirth +AB -- +Mirth +AB,
     ab-type@ top-types-are-fine? not >report-ambiguous-as-warning
     ab-token@ >token
     "word" >sort
+    False >ignore-last-name
     >+ab resolve-def(
         filter(dup rdip:callable?, RD_WRONG_SORT)
         filter-arity
@@ -888,6 +901,7 @@ def(elab-pattern-atom!, Token +Mirth +Pattern -- +Mirth +Pattern,
         >token
         "constructor" >sort
         pattern mid top-types-are-fine? not >report-ambiguous-as-warning
+        False >ignore-last-name
         >+pat resolve-def(
             filter(dup tag? some?, RD_WRONG_SORT)
             filter-arity
@@ -1351,6 +1365,7 @@ def(elab-alias!, +Mirth Token -- +Mirth Token,
         @target >token
         "target" >sort
         False >report-ambiguous-as-warning
+        False >ignore-last-name
         resolve-def(
             alias> arity filter(
                 dup2 rdip:arity arity-compatible?,
@@ -1617,14 +1632,13 @@ def(elab-entry-point, QName +Mirth -- Arrow +Mirth,
 ||| The path is relative to compiler's cwd, not source root.
 def(elab-embed-str!, Token +World +Mirth -- Token +World +Mirth,
     sip:next args-2 swap
-    dup >head
-    dup name-or-dname? unwrap-or("expected name" emit-fatal-error!) either(id, parts last) >name
-    args-0 0 >arity
+    elab-def-head
+    @arity 0= else(@head "expected no arguments" emit-fatal-error!)
     dup >body None >sig
     dup str? unwrap-or("expected source path" emit-fatal-error!)
     >Path rdip(open-file! unwrap! read-file! close-file! nip >contents)
     Word.new!
-    dup head over WordQName prop(elab-def-qname-undefined) over ~qname !
+    dup WordQName >label Prop over ~qname !
 
     Ctx0 T0 TYPE_STR T1 T-> over2 WordType prop2 over ~ctx-type !
     ab-build-word!(contents> ab-str!) drop)
@@ -1829,13 +1843,24 @@ def(table-new!, +Mirth Token QName -- +Mirth Table,
 # FIELD #
 #########
 
+def(resolve-def-namespace, +Mirth Token -- +Mirth Maybe(Namespace),
+    >token
+    "namespace" >sort
+    True >ignore-last-name
+    False >report-ambiguous-as-warning
+    resolve-def(
+        filter-sort(dup rdip:exposed-tycon? >Bool)
+        filter-qualifiers
+        L0 filter-roots
+    )
+    bind(as-namespace?))
+
 def(elab-qname-from-nonrelative-dname, +Mirth Token DName Int -- +Mirth QName,
-    over root? unwrap-or(drop2 "relative name not allowed" emit-fatal-error!)
-    dup could-be-type-or-resource-con if(
-        rotl parts /L1+ unwrap-or(drop2 "type-qualified name has too many parts" emit-fatal-error!)
-        rotl elab-tycon-qname,
-        rotr dip(parts cons+) elab-absolute-qname
-    ))
+    >arity
+    dup root? else(drop "relative name not allowed" emit-fatal-error!)
+    last-name >name
+    dup resolve-def-namespace unwrap-or(panic-diagnostics!) >namespace
+    drop MKQNAME)
 
 def(module-visible-from-token?, Token Module -- Bool,
     swap .module visible)
@@ -1845,33 +1870,6 @@ def(def-visible-from-token?, Token Def -- Bool,
         None -> drop True,
         Some -> module-visible-from-token?
     ))
-
-def(elab-tycon, +Mirth Token Name -- +Mirth Tycon,
-    dup defs find-some(
-        over2 over def-visible-from-token? if(
-            exposed-tycon?,
-            drop None
-        )
-    )
-    unwrap-or("unknown type constructor: " swap >Str cat emit-fatal-error!)
-    dip(drop2))
-
-def(elab-tycon-qname, +Mirth Token Name Name Int -- +Mirth QName,
-    >arity >name elab-tycon NAMESPACE_TYCON >namespace MKQNAME)
-
-def(elab-absolute-namespace, +Mirth Token List(Name) -- +Mirth Namespace,
-    NAMESPACE_ROOT swap for(
-        QNAME0 dup def-hard? unwrap-or("unknown namespace: " swap >Str cat emit-fatal-error!)
-        match(
-            DefPackage -> NAMESPACE_PACKAGE,
-            DefModule -> NAMESPACE_MODULE,
-            _ -> exposed-tycon? unwrap-or("invalid namespace: " swap >Str cat emit-fatal-error!) NAMESPACE_TYCON,
-        ) nip
-    ) nip)
-
-def(elab-absolute-qname, +Mirth Token List+(Name) Int -- +Mirth QName,
-    >arity unsnoc >name
-    elab-absolute-namespace >namespace MKQNAME)
 
 ||| Elaborate the qname for a word definition.
 ||| Generally speaking this is going to use the module namespace.

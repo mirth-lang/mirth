@@ -13,11 +13,13 @@ def(MyTable.test-ok, MyTable -- Int, drop 0)
 field(MyTable.my-field, MyTable, Int)
 alias(MyTable.my-drop, drop)
 external(MyTable.my-exit -> exit [CInt --])
+embed-str(MyTable.this, "test/deferred-namespace-resolution.mth")
 
 # We can use those words. Note the body is deferred as usual.
 def(main, --,
     MyTable.alloc! test-ok drop
     MyTable.alloc! 10 over my-field ! my-drop
+    MyTable.this drop
     42 CInt MyTable.my-exit)
 
 # Now we finally define MyTable.
