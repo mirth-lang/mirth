@@ -63,6 +63,7 @@ import(std.world)
 import(std.str)
 import(std.maybe)
 import(std.byte)
+import(std.posix)
 
 data(+Tests, +Tests ->
     ||| The testing harness.

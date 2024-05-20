@@ -2,7 +2,6 @@ module(std.prelude)
 
 import(std.maybe)
 import(std.str)
-import(std.ctypes)
 
 ############################################
 # not re-exported because of optimisations #
@@ -86,30 +85,6 @@ inline(
 
 alias(argc, prim-sys-argc)
 alias(argv, prim-sys-argv)
-
-external(
-  external-posix-read -> read [ CInt Ptr CUSize -- CInt ]
-  external-posix-write -> write [ CInt CStr CUSize -- CInt ]
-  external-posix-close -> close [ CInt -- CInt ]
-  external-posix-exit -> exit [ *a CInt -- *b ]
-
-  "int open_internal(const char* path, int flags, int mode) { return open(path, flags, mode); }"
-  internal-posix-open -> open_internal [ CStr CInt CInt -- CInt ]
-)
-
-inline(
-  def(posix-read!, Int Ptr Int -- Int, CUSize dip2:CInt external-posix-read >Int)
-  def(posix-write!, Int Ptr Int -- Int, CUSize dip:>CStr dip2:CInt external-posix-write >Int)
-  def(posix-close!, Int -- Int, CInt external-posix-close >Int)
-  def(posix-exit!, *a Int -- *b, CInt external-posix-exit)
-)
-
-def(posix-open!, Str Int Int -- Int,
-    rotl dup dip(
-        prim-str-base rotr
-	CInt dip:CInt dip2:>CStr
-        internal-posix-open >Int
-    ) drop)
 
 inline(
     def(rotr, a b c -- c a b, swap dip(swap))

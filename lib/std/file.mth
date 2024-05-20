@@ -6,6 +6,7 @@ import(std.str)
 import(std.world)
 import(std.input)
 import(std.output)
+import(std.posix)
 import(std.ctypes)
 
 data(+File, +File ->
