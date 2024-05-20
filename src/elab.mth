@@ -361,7 +361,7 @@ def(namespace-is-imported-at-token?, +Mirth Token Namespace -- +Mirth Bool,
     NAMESPACE_ROOT -> drop True,
     NAMESPACE_PACKAGE -> drop2 True,
     NAMESPACE_MODULE -> module-visible-from-token?,
-    NAMESPACE_TYCON -> qname namespace namespace-is-imported-at-token?,
+    NAMESPACE_TYCON -> qname-hard namespace namespace-is-imported-at-token?,
     NAMESPACE_WORD -> drop2 False)
 
 def(QName.climb-up-name?, Name QName -- Maybe(Namespace),
@@ -1085,16 +1085,21 @@ def(elab-data!, Token +Mirth -- Token +Mirth,
 
 ||| Get the header, name, arity for a data type.
 def(elab-data-header!, Data Token +Mirth -- Data +Mirth,
-    dup2 Some swap ~head? !
-    dup sig-type-con? or(dup sig-resource-con?) else("Expected type name." emit-fatal-error!)
-    dup2 elab-def-qname-undefined
-    over ~qname !
-    dup DefData register
-    # TODO check header args are well-formed / elaborate them properly
-    #  as part of: https://github.com/mirth-lang/mirth/issues/246
-    dip(dup num-args) ~arity !
-    args over DataParams prop(elab-data-params!) over ~params !)
+    >head >data
+    @head last-name? and-some(could-be-type-or-resource-con)
+        else(@head "Expected type name." emit-fatal-error!)
+    head> elab-def-head
+    @head Some @data ~head? !
+    arity> @data ~arity !
+    name> @data ~name !
+    @data DataQName >label Prop @data ~qname !
+    @head args @data DataParams prop(elab-data-params!) @data ~params !
+    @data DefData register
+    head> drop
+    data>)
 
+# TODO check header args are well-formed / elaborate them properly
+#  as part of: https://github.com/mirth-lang/mirth/issues/246
 def(elab-data-params!, List(Token) +Mirth -- List(Var) +Mirth,
     Ctx0 swap for(
         dup sig-type-var? else("expected type variable" emit-fatal-error!)

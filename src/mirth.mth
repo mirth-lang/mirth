@@ -216,6 +216,7 @@ data(PropState(b),
     PSDelay -> a [a +Mirth -- b +Mirth],
     PSComputing)
 data(PropLabel,
+    DataQName -> Data,
     DataParams -> Data,
     DataCType -> Data,
     TagType -> Tag,

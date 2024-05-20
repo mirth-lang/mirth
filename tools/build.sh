@@ -26,6 +26,9 @@ case "$DirName" in
         ;;
     tools )
         case "$BaseName" in
+            make-update.sh )
+                bash tools/make-update.sh
+                ;;
             mirth-test.sh )
                 bash tools/mirth-test.sh -v
                 ;;

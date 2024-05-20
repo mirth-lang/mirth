@@ -140,21 +140,21 @@ def(Namespace.qname, +Mirth Namespace -- +Mirth Maybe(QName),
     NAMESPACE_ROOT -> None,
     NAMESPACE_PACKAGE -> qname Some,
     NAMESPACE_MODULE -> qname Some,
-    NAMESPACE_TYCON -> qname Some,
+    NAMESPACE_TYCON -> qname-hard Some,
     NAMESPACE_WORD -> qname-hard Some)
 
 def(Namespace.package?, +Mirth Namespace -- +Mirth Maybe(Package),
     NAMESPACE_ROOT -> None,
     NAMESPACE_PACKAGE -> Some,
     NAMESPACE_MODULE -> package Some,
-    NAMESPACE_TYCON -> qname namespace package?,
+    NAMESPACE_TYCON -> qname-hard namespace package?,
     NAMESPACE_WORD -> drop None)
 
 def(Namespace.module?, +Mirth Namespace -- +Mirth Maybe(Module),
     NAMESPACE_ROOT -> None,
     NAMESPACE_PACKAGE -> drop None,
     NAMESPACE_MODULE -> Some,
-    NAMESPACE_TYCON -> qname namespace module?,
+    NAMESPACE_TYCON -> qname-hard namespace module?,
     NAMESPACE_WORD -> drop None)
 
 def(Namespace.tycon?, Namespace -- Maybe(Tycon),
@@ -170,14 +170,14 @@ def(Namespace.>Str, +Mirth Namespace -- +Mirth Str,
     NAMESPACE_ROOT -> "<root>",
     NAMESPACE_PACKAGE -> name >Str,
     NAMESPACE_MODULE -> qname >Str,
-    NAMESPACE_TYCON -> qname >Str,
+    NAMESPACE_TYCON -> qname-hard >Str,
     NAMESPACE_WORD -> qname-hard >Str)
 
 def(Namespace.mangled, +Mirth Namespace -- +Mirth Str,
     NAMESPACE_ROOT -> "__root__",
     NAMESPACE_PACKAGE -> name mangled,
     NAMESPACE_MODULE -> qname mangled,
-    NAMESPACE_TYCON -> qname mangled,
+    NAMESPACE_TYCON -> qname-hard mangled,
     NAMESPACE_WORD -> qname-hard mangled)
 
 ##################
