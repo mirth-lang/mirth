@@ -731,51 +731,6 @@ static void mp_primZ_sysZ_argv (void) {
 	PRIM_EXIT(mp_primZ_sysZ_argv);
 }
 
-static void mp_primZ_posixZ_write (void) {
-	PRIM_ENTER(mp_primZ_posixZ_write,"prim-posix-write");
-	USIZE n = pop_usize();
-	VAL vp = pop_value();
-	void* p = value_ptr(vp);
-	int fd = (int)pop_i64();
-	ASSERT(n <= SIZE_MAX);
-	push_i64((int64_t)write(fd, p, (size_t)n));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_write);
-}
-static void mp_primZ_posixZ_read (void) {
-	PRIM_ENTER(mp_primZ_posixZ_read,"prim-posix-read");
-	USIZE n = pop_usize();
-	VAL vp = pop_value();
-	void* p = value_ptr(vp);
-	int fd = (int)pop_i64();
-	ASSERT(n <= SIZE_MAX);
-	push_i64((int64_t)read(fd, p, (size_t)n));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_read);
-}
-static void mp_primZ_posixZ_open (void) {
-	PRIM_ENTER(mp_primZ_posixZ_open,"prim-posix-open");
-	int m = (int)pop_i64();
-	int f = (int)pop_i64();
-	VAL vp = pop_value();
-	void* path = value_ptr(vp);
-	push_i64((int64_t)open(path,f,m));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_open);
-}
-static void mp_primZ_posixZ_close (void) {
-	PRIM_ENTER(mp_primZ_posixZ_close,"prim-posix-close");
-	int fd = (int)pop_i64();
-	push_i64((int64_t)close(fd));
-	PRIM_EXIT(mp_primZ_posixZ_close);
-}
-static void mp_primZ_posixZ_exit (void) {
-	PRIM_ENTER(mp_primZ_posixZ_exit,"prim-posix-exit");
-	int x = (int)pop_i64();
-	exit(x);
-	PRIM_EXIT(mp_primZ_posixZ_exit);
-}
-
 void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
 	static char c[32] = {0};
 	memset(c, 0, 32);

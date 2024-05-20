@@ -63,6 +63,7 @@ import(std.world)
 import(std.str)
 import(std.maybe)
 import(std.byte)
+import(std.posix)
 
 data(+Tests, +Tests ->
     ||| The testing harness.
@@ -88,7 +89,7 @@ def(+Tests.end!, +Tests -- +World,
     num-failed 0> if(
         Str(rdip:num-failed show; " out of " ;
             rdip:num-tests show; " tests failed." ;)
-        +world(print 1 prim-posix-exit),
+        +world(print 1 posix-exit!),
 
         Str(rdip:num-tests show; " tests passed." ;)
         +world:print

@@ -732,51 +732,6 @@ static void mp_primZ_sysZ_argv (void) {
 	PRIM_EXIT(mp_primZ_sysZ_argv);
 }
 
-static void mp_primZ_posixZ_write (void) {
-	PRIM_ENTER(mp_primZ_posixZ_write,"prim-posix-write");
-	USIZE n = pop_usize();
-	VAL vp = pop_value();
-	void* p = value_ptr(vp);
-	int fd = (int)pop_i64();
-	ASSERT(n <= SIZE_MAX);
-	push_i64((int64_t)write(fd, p, (size_t)n));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_write);
-}
-static void mp_primZ_posixZ_read (void) {
-	PRIM_ENTER(mp_primZ_posixZ_read,"prim-posix-read");
-	USIZE n = pop_usize();
-	VAL vp = pop_value();
-	void* p = value_ptr(vp);
-	int fd = (int)pop_i64();
-	ASSERT(n <= SIZE_MAX);
-	push_i64((int64_t)read(fd, p, (size_t)n));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_read);
-}
-static void mp_primZ_posixZ_open (void) {
-	PRIM_ENTER(mp_primZ_posixZ_open,"prim-posix-open");
-	int m = (int)pop_i64();
-	int f = (int)pop_i64();
-	VAL vp = pop_value();
-	void* path = value_ptr(vp);
-	push_i64((int64_t)open(path,f,m));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_open);
-}
-static void mp_primZ_posixZ_close (void) {
-	PRIM_ENTER(mp_primZ_posixZ_close,"prim-posix-close");
-	int fd = (int)pop_i64();
-	push_i64((int64_t)close(fd));
-	PRIM_EXIT(mp_primZ_posixZ_close);
-}
-static void mp_primZ_posixZ_exit (void) {
-	PRIM_ENTER(mp_primZ_posixZ_exit,"prim-posix-exit");
-	int x = (int)pop_i64();
-	exit(x);
-	PRIM_EXIT(mp_primZ_posixZ_exit);
-}
-
 void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
 	static char c[32] = {0};
 	memset(c, 0, 32);
@@ -5270,6 +5225,42 @@ static void mext_std_ctypes_CStr_numZ_bytes (void) {
 	push_resource(MKI64(0));
 	push_i64((int64_t)(Y));
 }
+int read (int, void*, size_t);
+static void mext_std_posix_externalZ_posixZ_read (void) {
+	size_t X3 = (size_t)pop_i64();
+	void* X2 = (void*)pop_ptr();
+	int X1 = (int)pop_i64();
+	int Y = read(X1, X2, X3);
+	push_i64((int64_t)(Y));
+}
+int write (int, const char *, size_t);
+static void mext_std_posix_externalZ_posixZ_write (void) {
+	size_t X3 = (size_t)pop_i64();
+	const char * X2 = (const char *)pop_ptr();
+	int X1 = (int)pop_i64();
+	int Y = write(X1, X2, X3);
+	push_i64((int64_t)(Y));
+}
+int close (int);
+static void mext_std_posix_externalZ_posixZ_close (void) {
+	int X1 = (int)pop_i64();
+	int Y = close(X1);
+	push_i64((int64_t)(Y));
+}
+void exit (int);
+static void mext_std_posix_externalZ_posixZ_exit (void) {
+	int X1 = (int)pop_i64();
+	exit(X1);
+}
+int open_internal(const char* path, int flags, int mode) { return open(path, flags, mode); }
+int open_internal (const char *, int, int);
+static void mext_std_posix_internalZ_posixZ_open (void) {
+	int X3 = (int)pop_i64();
+	int X2 = (int)pop_i64();
+	const char * X1 = (const char *)pop_ptr();
+	int Y = open_internal(X1, X2, X3);
+	push_i64((int64_t)(Y));
+}
 int stat (const char *, void*);
 static void mext_std_world_posixZ_stat (void) {
 	void* X3 = (void*)pop_ptr();
@@ -5520,6 +5511,7 @@ static void mw_std_output_ZPlusOutput_fullZAsk (void);
 static void mw_std_output_ZPlusOutput_put (void);
 static void mw_std_output_ZPlusOutput_putZ_byte (void);
 static void mw_std_output_ZPlusOutput_line (void);
+static void mw_std_posix_posixZ_openZBang (void);
 static void mw_std_file_ZPlusFile_ZDivZPlusFile (void);
 static void mw_std_file_ZPlusFile_fileZ_descriptor (void);
 static void mw_std_file_ZPlusFileZAsk_unwrapZBang (void);
@@ -5910,9 +5902,6 @@ static void mw_mirth_type_T0 (void);
 static void mw_mirth_type_T1 (void);
 static void mw_mirth_type_T2 (void);
 static void mw_mirth_type_T3 (void);
-static void mw_mirth_type_T4 (void);
-static void mw_mirth_type_T5 (void);
-static void mw_mirth_type_T6 (void);
 static void mw_mirth_type_Type_errorZAsk (void);
 static void mw_mirth_type_Type_morphismZAsk (void);
 static void mw_mirth_type_Type_primZAsk (void);
@@ -7045,10 +7034,8 @@ static void mb_std_file_ZPlusFile_closeZ_fileZBang_2 (void);
 static void mb_std_file_ZPlusFile_closeZ_fileZBang_3 (void);
 static void mb_std_prim_ZPlusWorld_traceZ__0 (void);
 static void mb_std_prim_ZPlusWorld_isZ_directoryZAsk_0 (void);
-static void mb_std_prim_ZPlusWorld_openZ_fileZBang_0 (void);
-static void mb_std_prim_ZPlusWorld_openZ_fileZBang_3 (void);
-static void mb_std_prim_ZPlusWorld_createZ_fileZBang_0 (void);
-static void mb_std_prim_ZPlusWorld_createZ_fileZBang_3 (void);
+static void mb_std_prim_ZPlusWorld_openZ_fileZBang_2 (void);
+static void mb_std_prim_ZPlusWorld_createZ_fileZBang_2 (void);
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_1 (void);
 static void mb_std_file_ZPlusFile_unsafeZ_readZBang_2 (void);
 static void mb_std_input_ZPlusInputOpenState_fillZ_bufferZBang_0 (void);
@@ -12684,6 +12671,40 @@ static void mw_std_output_ZPlusOutput_line (void) {
 	push_u64(10LL); // BLF
 	mw_std_output_ZPlusOutput_putZ_byte();
 }
+static void mw_std_posix_posixZ_openZBang (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_swap();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	mp_primZ_dup();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_strZ_base();
+		mp_primZ_swap();
+		{
+			VAL d3 = pop_value();
+			mp_primZ_swap();
+			push_value(d3);
+		}
+		{
+			VAL d3 = pop_value();
+			push_value(d3);
+		}
+		{
+			VAL d3 = pop_value();
+			{
+				VAL d4 = pop_value();
+				push_value(d4);
+			}
+			push_value(d3);
+		}
+		mext_std_posix_internalZ_posixZ_open();
+		push_value(d2);
+	}
+	mp_primZ_drop();
+}
 static void mw_std_file_ZPlusFile_ZDivZPlusFile (void) {
 	switch (get_top_resource_data_tag()) {
 		case 0LL: // +File
@@ -12720,8 +12741,9 @@ static void mw_std_file_ZPlusFileZAsk_unwrapZBang (void) {
 }
 static void mw_std_prim_ZPlusWorld_openZ_fileZBang (void) {
 	mp_primZ_dup();
-	push_fnptr(&mb_std_prim_ZPlusWorld_openZ_fileZBang_0);
-	mw_std_prim_Str_withZ_cstr_1();
+	push_i64(0LL);
+	push_i64(0LL);
+	mw_std_posix_posixZ_openZBang();
 	mp_primZ_dup();
 	push_i64(0LL);
 	mp_primZ_swap();
@@ -12739,15 +12761,16 @@ static void mw_std_prim_ZPlusWorld_openZ_fileZBang (void) {
 		mtw_std_file_ZPlusFileZAsk_ZPlusFileOk();
 	} else {
 		mp_primZ_drop();
-		push_fnptr(&mb_std_prim_ZPlusWorld_openZ_fileZBang_3);
+		push_fnptr(&mb_std_prim_ZPlusWorld_openZ_fileZBang_2);
 		mw_std_str_Str_1();
 		mtw_std_file_ZPlusFileZAsk_ZPlusFileErr();
 	}
 }
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (void) {
 	mp_primZ_dup();
-	push_fnptr(&mb_std_prim_ZPlusWorld_createZ_fileZBang_0);
-	mw_std_prim_Str_withZ_cstr_1();
+	mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
+	push_i64(438LL);
+	mw_std_posix_posixZ_openZBang();
 	mp_primZ_dup();
 	push_i64(0LL);
 	mp_primZ_swap();
@@ -12765,7 +12788,7 @@ static void mw_std_prim_ZPlusWorld_createZ_fileZBang (void) {
 		mtw_std_file_ZPlusFileZAsk_ZPlusFileOk();
 	} else {
 		mp_primZ_drop();
-		push_fnptr(&mb_std_prim_ZPlusWorld_createZ_fileZBang_3);
+		push_fnptr(&mb_std_prim_ZPlusWorld_createZ_fileZBang_2);
 		mw_std_str_Str_1();
 		mtw_std_file_ZPlusFileZAsk_ZPlusFileErr();
 	}
@@ -12808,7 +12831,7 @@ static void mw_std_file_ZPlusFile_closeZ_fileZBang (void) {
 	LPOP(lbl_owned);
 	if (pop_u64()) {
 		LPOP(lbl_fileZ_descriptor);
-		mp_primZ_posixZ_close();
+		mext_std_posix_externalZ_posixZ_close();
 		push_fnptr(&mb_std_file_ZPlusFile_closeZ_fileZBang_2);
 		push_fnptr(&mb_std_file_ZPlusFile_closeZ_fileZBang_3);
 		mw_std_prelude_expectZBang_2();
@@ -12832,7 +12855,19 @@ static void mw_std_file_ZPlusFile_unsafeZ_writeZBang (void) {
 	{
 		VAL d2 = pop_value();
 		mw_std_prelude_Sizze_ZDivSizze();
-		mp_primZ_posixZ_write();
+		{
+			VAL d3 = pop_value();
+			push_value(d3);
+		}
+		{
+			VAL d3 = pop_value();
+			{
+				VAL d4 = pop_value();
+				push_value(d4);
+			}
+			push_value(d3);
+		}
+		mext_std_posix_externalZ_posixZ_write();
 		push_value(d2);
 	}
 	{
@@ -12860,7 +12895,15 @@ static void mw_std_file_ZPlusFile_unsafeZ_readZBang (void) {
 		push_value(d2);
 	}
 	mw_std_prelude_Sizze_ZDivSizze();
-	mp_primZ_posixZ_read();
+	{
+		VAL d2 = pop_value();
+		{
+			VAL d3 = pop_value();
+			push_value(d3);
+		}
+		push_value(d2);
+	}
+	mext_std_posix_externalZ_posixZ_read();
 	push_fnptr(&mb_std_file_ZPlusFile_unsafeZ_readZBang_1);
 	push_fnptr(&mb_std_file_ZPlusFile_unsafeZ_readZBang_2);
 	mw_std_prelude_expectZBang_2();
@@ -18095,30 +18138,6 @@ static void mw_mirth_type_T3 (void) {
 	}
 	mw_mirth_type_TZMul();
 }
-static void mw_mirth_type_T4 (void) {
-	{
-		VAL d2 = pop_value();
-		mw_mirth_type_T3();
-		push_value(d2);
-	}
-	mw_mirth_type_TZMul();
-}
-static void mw_mirth_type_T5 (void) {
-	{
-		VAL d2 = pop_value();
-		mw_mirth_type_T4();
-		push_value(d2);
-	}
-	mw_mirth_type_TZMul();
-}
-static void mw_mirth_type_T6 (void) {
-	{
-		VAL d2 = pop_value();
-		mw_mirth_type_T5();
-		push_value(d2);
-	}
-	mw_mirth_type_TZMul();
-}
 static void mw_mirth_type_Type_errorZAsk (void) {
 	mw_mirth_type_Type_expand();
 	switch (get_top_data_tag()) {
@@ -23069,71 +23088,71 @@ static void mw_mirth_prim_Prim_ctxZ_typeZBang (void) {
 	mp_primZ_mutZ_set();
 }
 static void mw_mirth_prim_initZ_primsZBang (void) {
-	push_u64(76LL); // PRIM_SYNTAX_MODULE
+	push_u64(70LL); // PRIM_SYNTAX_MODULE
 	STRLIT("module", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(77LL); // PRIM_SYNTAX_IMPORT
+	push_u64(71LL); // PRIM_SYNTAX_IMPORT
 	STRLIT("import", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(79LL); // PRIM_SYNTAX_INLINE
+	push_u64(73LL); // PRIM_SYNTAX_INLINE
 	STRLIT("inline", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(78LL); // PRIM_SYNTAX_ALIAS
+	push_u64(72LL); // PRIM_SYNTAX_ALIAS
 	STRLIT("alias", 5);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(80LL); // PRIM_SYNTAX_DEF
+	push_u64(74LL); // PRIM_SYNTAX_DEF
 	STRLIT("def", 3);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(82LL); // PRIM_SYNTAX_DEF_TYPE
+	push_u64(76LL); // PRIM_SYNTAX_DEF_TYPE
 	STRLIT("def-type", 8);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(81LL); // PRIM_SYNTAX_DEF_MISSING
+	push_u64(75LL); // PRIM_SYNTAX_DEF_MISSING
 	STRLIT("def-missing", 11);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(83LL); // PRIM_SYNTAX_BUFFER
+	push_u64(77LL); // PRIM_SYNTAX_BUFFER
 	STRLIT("buffer", 6);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(86LL); // PRIM_SYNTAX_DEF_EXTERNAL
+	push_u64(80LL); // PRIM_SYNTAX_DEF_EXTERNAL
 	STRLIT("def-external", 12);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(85LL); // PRIM_SYNTAX_EXTERNAL
+	push_u64(79LL); // PRIM_SYNTAX_EXTERNAL
 	STRLIT("external", 8);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(88LL); // PRIM_SYNTAX_TABLE
+	push_u64(82LL); // PRIM_SYNTAX_TABLE
 	STRLIT("table", 5);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(89LL); // PRIM_SYNTAX_FIELD
+	push_u64(83LL); // PRIM_SYNTAX_FIELD
 	STRLIT("field", 5);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(87LL); // PRIM_SYNTAX_EMBED_STR
+	push_u64(81LL); // PRIM_SYNTAX_EMBED_STR
 	STRLIT("embed-str", 9);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(90LL); // PRIM_SYNTAX_DATA
+	push_u64(84LL); // PRIM_SYNTAX_DATA
 	STRLIT("data", 4);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(84LL); // PRIM_SYNTAX_VARIABLE
+	push_u64(78LL); // PRIM_SYNTAX_VARIABLE
 	STRLIT("var", 3);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(92LL); // PRIM_SYNTAX_ARROW
+	push_u64(86LL); // PRIM_SYNTAX_ARROW
 	STRLIT("->", 2);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(91LL); // PRIM_SYNTAX_DASHES
+	push_u64(85LL); // PRIM_SYNTAX_DASHES
 	STRLIT("--", 2);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
@@ -23429,26 +23448,6 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	STRLIT("prim-sys-argv", 13);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(70LL); // PRIM_POSIX_READ
-	STRLIT("prim-posix-read", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(71LL); // PRIM_POSIX_WRITE
-	STRLIT("prim-posix-write", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(72LL); // PRIM_POSIX_OPEN
-	STRLIT("prim-posix-open", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(73LL); // PRIM_POSIX_CLOSE
-	STRLIT("prim-posix-close", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(74LL); // PRIM_POSIX_EXIT
-	STRLIT("prim-posix-exit", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
 	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_T0();
@@ -23822,57 +23821,6 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	push_u64(65LL); // PRIM_I64_SET
 	mw_mirth_prim_Prim_ctxZ_typeZBang();
 	mw_mirth_var_Ctx0();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_TYPEz_PTR();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T3();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T1();
-	mw_mirth_type_TZ_ZTo();
-	push_u64(70LL); // PRIM_POSIX_READ
-	mw_mirth_prim_Prim_ctxZ_typeZBang();
-	mw_mirth_var_Ctx0();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_TYPEz_PTR();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T3();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T1();
-	mw_mirth_type_TZ_ZTo();
-	push_u64(71LL); // PRIM_POSIX_WRITE
-	mw_mirth_prim_Prim_ctxZ_typeZBang();
-	mw_mirth_var_Ctx0();
-	mw_mirth_type_TYPEz_PTR();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T3();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T1();
-	mw_mirth_type_TZ_ZTo();
-	push_u64(72LL); // PRIM_POSIX_OPEN
-	mw_mirth_prim_Prim_ctxZ_typeZBang();
-	mw_mirth_var_Ctx0();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T1();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T1();
-	mw_mirth_type_TZ_ZTo();
-	push_u64(73LL); // PRIM_POSIX_CLOSE
-	mw_mirth_prim_Prim_ctxZ_typeZBang();
-	mw_mirth_var_Ctx0();
-	mw_mirth_type_TYPEz_PTR();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_TYPEz_INT();
-	mw_mirth_type_T6();
-	mw_mirth_type_TYPEz_PTR();
-	mw_mirth_type_T1();
-	mw_mirth_type_TZ_ZTo();
-	push_u64(75LL); // PRIM_POSIX_MMAP
-	mw_mirth_prim_Prim_ctxZ_typeZBang();
-	mw_mirth_var_Ctx0();
 	mw_mirth_type_T0();
 	mw_mirth_type_TYPEz_PTR();
 	mw_mirth_type_T1();
@@ -24150,20 +24098,6 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 			push_value(var_tys);
 			mw_mirth_type_TZ_ZTo();
 			push_u64(9LL); // PRIM_CORE_RUN
-			mw_mirth_prim_Prim_ctxZ_typeZBang();
-			incref(var_xs);
-			push_value(var_xs);
-			incref(var_ys);
-			push_value(var_ys);
-			mw_mirth_var_Ctx2();
-			incref(var_txs);
-			push_value(var_txs);
-			mw_mirth_type_TYPEz_INT();
-			mw_mirth_type_TZMul();
-			incref(var_tys);
-			push_value(var_tys);
-			mw_mirth_type_TZ_ZTo();
-			push_u64(74LL); // PRIM_POSIX_EXIT
 			mw_mirth_prim_Prim_ctxZ_typeZBang();
 			incref(var_xs);
 			push_value(var_xs);
@@ -33865,31 +33799,31 @@ static void mw_mirth_elab_elabZ_moduleZ_declZBang (void) {
 	push_fnptr(&mb_mirth_elab_elabZ_moduleZ_declZBang_2);
 	mw_std_maybe_Maybe_1_unwrapZ_or_1();
 	switch (get_top_data_tag()) {
-		case 77LL: // PRIM_SYNTAX_IMPORT
+		case 71LL: // PRIM_SYNTAX_IMPORT
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_moduleZ_importZBang();
 			break;
-		case 78LL: // PRIM_SYNTAX_ALIAS
+		case 72LL: // PRIM_SYNTAX_ALIAS
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_aliasZBang();
 			break;
-		case 79LL: // PRIM_SYNTAX_INLINE
+		case 73LL: // PRIM_SYNTAX_INLINE
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_inlineZBang();
 			break;
-		case 80LL: // PRIM_SYNTAX_DEF
+		case 74LL: // PRIM_SYNTAX_DEF
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_defZBang();
 			break;
-		case 81LL: // PRIM_SYNTAX_DEF_MISSING
+		case 75LL: // PRIM_SYNTAX_DEF_MISSING
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_defZ_missingZBang();
 			break;
-		case 82LL: // PRIM_SYNTAX_DEF_TYPE
+		case 76LL: // PRIM_SYNTAX_DEF_TYPE
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_defZ_typeZBang();
 			break;
-		case 86LL: // PRIM_SYNTAX_DEF_EXTERNAL
+		case 80LL: // PRIM_SYNTAX_DEF_EXTERNAL
 			(void)pop_u64();
 			mp_primZ_dup();
 			STRLIT("def-external", 12);
@@ -33899,31 +33833,31 @@ static void mw_mirth_elab_elabZ_moduleZ_declZBang (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_deprecatedZBang();
 			mw_mirth_elab_elabZ_externalZBang();
 			break;
-		case 85LL: // PRIM_SYNTAX_EXTERNAL
+		case 79LL: // PRIM_SYNTAX_EXTERNAL
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_externalZBang();
 			break;
-		case 83LL: // PRIM_SYNTAX_BUFFER
+		case 77LL: // PRIM_SYNTAX_BUFFER
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_bufferZBang();
 			break;
-		case 84LL: // PRIM_SYNTAX_VARIABLE
+		case 78LL: // PRIM_SYNTAX_VARIABLE
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_variableZBang();
 			break;
-		case 88LL: // PRIM_SYNTAX_TABLE
+		case 82LL: // PRIM_SYNTAX_TABLE
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_tableZBang();
 			break;
-		case 89LL: // PRIM_SYNTAX_FIELD
+		case 83LL: // PRIM_SYNTAX_FIELD
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_fieldZBang();
 			break;
-		case 90LL: // PRIM_SYNTAX_DATA
+		case 84LL: // PRIM_SYNTAX_DATA
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_dataZBang();
 			break;
-		case 87LL: // PRIM_SYNTAX_EMBED_STR
+		case 81LL: // PRIM_SYNTAX_EMBED_STR
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_embedZ_strZBang();
 			break;
@@ -38846,51 +38780,6 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tPRIM_EXIT(mp_primZ_sysZ_argv);\n"
 		"}\n"
 		"\n"
-		"static void mp_primZ_posixZ_write (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_write,\"prim-posix-write\");\n"
-		"\tUSIZE n = pop_usize();\n"
-		"\tVAL vp = pop_value();\n"
-		"\tvoid* p = value_ptr(vp);\n"
-		"\tint fd = (int)pop_i64();\n"
-		"\tASSERT(n <= SIZE_MAX);\n"
-		"\tpush_i64((int64_t)write(fd, p, (size_t)n));\n"
-		"\tdecref(vp);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_write);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_read (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_read,\"prim-posix-read\");\n"
-		"\tUSIZE n = pop_usize();\n"
-		"\tVAL vp = pop_value();\n"
-		"\tvoid* p = value_ptr(vp);\n"
-		"\tint fd = (int)pop_i64();\n"
-		"\tASSERT(n <= SIZE_MAX);\n"
-		"\tpush_i64((int64_t)read(fd, p, (size_t)n));\n"
-		"\tdecref(vp);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_read);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_open (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_open,\"prim-posix-open\");\n"
-		"\tint m = (int)pop_i64();\n"
-		"\tint f = (int)pop_i64();\n"
-		"\tVAL vp = pop_value();\n"
-		"\tvoid* path = value_ptr(vp);\n"
-		"\tpush_i64((int64_t)open(path,f,m));\n"
-		"\tdecref(vp);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_open);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_close (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_close,\"prim-posix-close\");\n"
-		"\tint fd = (int)pop_i64();\n"
-		"\tpush_i64((int64_t)close(fd));\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_close);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_exit (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_exit,\"prim-posix-exit\");\n"
-		"\tint x = (int)pop_i64();\n"
-		"\texit(x);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_exit);\n"
-		"}\n"
-		"\n"
 		"void int_repr(int64_t y, char** out_ptr, size_t *out_size) {\n"
 		"\tstatic char c[32] = {0};\n"
 		"\tmemset(c, 0, 32);\n"
@@ -39457,7 +39346,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		33752
+		32484
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
@@ -41688,7 +41577,7 @@ static void mw_mirth_main_compileZBang (void) {
 			push_resource(d3);
 		}
 		push_i64(1LL);
-		mp_primZ_posixZ_exit();
+		mext_std_posix_externalZ_posixZ_exit();
 	} else {
 		{
 			VAL d3 = pop_resource();
@@ -41955,7 +41844,7 @@ static void mw_mirth_main_main (void) {
 				push_resource(d4);
 			}
 			push_i64(1LL);
-			mp_primZ_posixZ_exit();
+			mext_std_posix_externalZ_posixZ_exit();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -43547,22 +43436,12 @@ static void mb_std_prim_ZPlusWorld_isZ_directoryZAsk_0 (void) {
 		push_u64(0LL); // False
 	}
 }
-static void mb_std_prim_ZPlusWorld_openZ_fileZBang_0 (void) {
-	push_i64(0LL);
-	push_i64(0LL);
-	mp_primZ_posixZ_open();
-}
-static void mb_std_prim_ZPlusWorld_openZ_fileZBang_3 (void) {
+static void mb_std_prim_ZPlusWorld_openZ_fileZBang_2 (void) {
 	STRLIT("failed to open file: ", 21);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Str_showZThen();
 }
-static void mb_std_prim_ZPlusWorld_createZ_fileZBang_0 (void) {
-	mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
-	push_i64(438LL);
-	mp_primZ_posixZ_open();
-}
-static void mb_std_prim_ZPlusWorld_createZ_fileZBang_3 (void) {
+static void mb_std_prim_ZPlusWorld_createZ_fileZBang_2 (void) {
 	STRLIT("failed to create file: ", 23);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	mw_std_prim_Str_showZThen();
@@ -44180,12 +44059,12 @@ static void mb_mirth_token_TokenValue_sigZ_resourceZ_conZAsk_0 (void) {
 	mw_mirth_name_Name_couldZ_beZ_resourceZ_con();
 }
 static void mb_mirth_token_TokenValue_sigZ_dashesZAsk_0 (void) {
-	push_u64(91LL); // PRIM_SYNTAX_DASHES
+	push_u64(85LL); // PRIM_SYNTAX_DASHES
 	mw_mirth_prim_Prim_name();
 	mw_mirth_name_Name_ZEqualZEqual();
 }
 static void mb_mirth_token_TokenValue_patZ_arrowZAsk_0 (void) {
-	push_u64(92LL); // PRIM_SYNTAX_ARROW
+	push_u64(86LL); // PRIM_SYNTAX_ARROW
 	mw_mirth_prim_Prim_name();
 	mw_mirth_name_Name_ZEqualZEqual();
 }

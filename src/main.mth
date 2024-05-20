@@ -9,6 +9,7 @@ import(std.maybe)
 import(std.either)
 import(std.world)
 import(std.output)
+import(std.posix)
 import(std.file)
 import(std.test)
 

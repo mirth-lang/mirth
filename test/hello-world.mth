@@ -5,6 +5,7 @@
 module(mirth-tests.hello-world)
 import(std.prelude)
 import(std.world)
+import(std.posix)
 
 def(main, +World -- +World,
     "Hello, world!" print

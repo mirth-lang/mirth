@@ -86,16 +86,6 @@ inline(
 alias(argc, prim-sys-argc)
 alias(argv, prim-sys-argv)
 
-alias(posix-read!, prim-posix-read)
-alias(posix-write!, prim-posix-write)
-def(posix-open!, Str Int Int -- Int,
-    rotl dup dip(
-        prim-str-base rotr
-        prim-posix-open
-    ) drop)
-alias(posix-close!, prim-posix-close)
-alias(posix-exit!, prim-posix-exit)
-
 inline(
     def(rotr, a b c -- c a b, swap dip(swap))
     def(rotl, a b c -- b c a, dip(swap) swap)
