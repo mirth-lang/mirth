@@ -5226,7 +5226,7 @@ static void mext_std_ctypes_CStr_numZ_bytes (void) {
 	push_i64((int64_t)(Y));
 }
 int read (int, void*, size_t);
-static void mext_std_prelude_externalZ_posixZ_read (void) {
+static void mext_std_posix_externalZ_posixZ_read (void) {
 	size_t X3 = (size_t)pop_i64();
 	void* X2 = (void*)pop_ptr();
 	int X1 = (int)pop_i64();
@@ -5234,7 +5234,7 @@ static void mext_std_prelude_externalZ_posixZ_read (void) {
 	push_i64((int64_t)(Y));
 }
 int write (int, const char *, size_t);
-static void mext_std_prelude_externalZ_posixZ_write (void) {
+static void mext_std_posix_externalZ_posixZ_write (void) {
 	size_t X3 = (size_t)pop_i64();
 	const char * X2 = (const char *)pop_ptr();
 	int X1 = (int)pop_i64();
@@ -5242,19 +5242,19 @@ static void mext_std_prelude_externalZ_posixZ_write (void) {
 	push_i64((int64_t)(Y));
 }
 int close (int);
-static void mext_std_prelude_externalZ_posixZ_close (void) {
+static void mext_std_posix_externalZ_posixZ_close (void) {
 	int X1 = (int)pop_i64();
 	int Y = close(X1);
 	push_i64((int64_t)(Y));
 }
 void exit (int);
-static void mext_std_prelude_externalZ_posixZ_exit (void) {
+static void mext_std_posix_externalZ_posixZ_exit (void) {
 	int X1 = (int)pop_i64();
 	exit(X1);
 }
 int open_internal(const char* path, int flags, int mode) { return open(path, flags, mode); }
 int open_internal (const char *, int, int);
-static void mext_std_prelude_internalZ_posixZ_open (void) {
+static void mext_std_posix_internalZ_posixZ_open (void) {
 	int X3 = (int)pop_i64();
 	int X2 = (int)pop_i64();
 	const char * X1 = (const char *)pop_ptr();
@@ -5434,7 +5434,6 @@ static void mw_std_prim_Int_ZToOS (void);
 static void mw_std_prelude_Arch_tag (void);
 static void mw_std_prelude_Arch_fromZ_tagZ_unsafe (void);
 static void mw_std_prim_Int_ZToArch (void);
-static void mw_std_prelude_posixZ_openZBang (void);
 static void mw_std_prim_Int_inZ_range (void);
 static void mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe (void);
 static void mw_std_prim_Int_ZToU8ZAsk (void);
@@ -5512,6 +5511,7 @@ static void mw_std_output_ZPlusOutput_fullZAsk (void);
 static void mw_std_output_ZPlusOutput_put (void);
 static void mw_std_output_ZPlusOutput_putZ_byte (void);
 static void mw_std_output_ZPlusOutput_line (void);
+static void mw_std_posix_posixZ_openZBang (void);
 static void mw_std_file_ZPlusFile_ZDivZPlusFile (void);
 static void mw_std_file_ZPlusFile_fileZ_descriptor (void);
 static void mw_std_file_ZPlusFileZAsk_unwrapZBang (void);
@@ -11645,40 +11645,6 @@ static void mw_std_prim_Int_ZToArch (void) {
 		push_u64(0LL); // ARCH_UNKNOWN
 	}
 }
-static void mw_std_prelude_posixZ_openZBang (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_swap();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_strZ_base();
-		mp_primZ_swap();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_swap();
-			push_value(d3);
-		}
-		{
-			VAL d3 = pop_value();
-			push_value(d3);
-		}
-		{
-			VAL d3 = pop_value();
-			{
-				VAL d4 = pop_value();
-				push_value(d4);
-			}
-			push_value(d3);
-		}
-		mext_std_prelude_internalZ_posixZ_open();
-		push_value(d2);
-	}
-	mp_primZ_drop();
-}
 static void mw_std_prim_Int_inZ_range (void) {
 	{
 		VAL d2 = pop_value();
@@ -12705,6 +12671,40 @@ static void mw_std_output_ZPlusOutput_line (void) {
 	push_u64(10LL); // BLF
 	mw_std_output_ZPlusOutput_putZ_byte();
 }
+static void mw_std_posix_posixZ_openZBang (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_swap();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	mp_primZ_dup();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_strZ_base();
+		mp_primZ_swap();
+		{
+			VAL d3 = pop_value();
+			mp_primZ_swap();
+			push_value(d3);
+		}
+		{
+			VAL d3 = pop_value();
+			push_value(d3);
+		}
+		{
+			VAL d3 = pop_value();
+			{
+				VAL d4 = pop_value();
+				push_value(d4);
+			}
+			push_value(d3);
+		}
+		mext_std_posix_internalZ_posixZ_open();
+		push_value(d2);
+	}
+	mp_primZ_drop();
+}
 static void mw_std_file_ZPlusFile_ZDivZPlusFile (void) {
 	switch (get_top_resource_data_tag()) {
 		case 0LL: // +File
@@ -12743,7 +12743,7 @@ static void mw_std_prim_ZPlusWorld_openZ_fileZBang (void) {
 	mp_primZ_dup();
 	push_i64(0LL);
 	push_i64(0LL);
-	mw_std_prelude_posixZ_openZBang();
+	mw_std_posix_posixZ_openZBang();
 	mp_primZ_dup();
 	push_i64(0LL);
 	mp_primZ_swap();
@@ -12770,7 +12770,7 @@ static void mw_std_prim_ZPlusWorld_createZ_fileZBang (void) {
 	mp_primZ_dup();
 	mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
 	push_i64(438LL);
-	mw_std_prelude_posixZ_openZBang();
+	mw_std_posix_posixZ_openZBang();
 	mp_primZ_dup();
 	push_i64(0LL);
 	mp_primZ_swap();
@@ -12831,7 +12831,7 @@ static void mw_std_file_ZPlusFile_closeZ_fileZBang (void) {
 	LPOP(lbl_owned);
 	if (pop_u64()) {
 		LPOP(lbl_fileZ_descriptor);
-		mext_std_prelude_externalZ_posixZ_close();
+		mext_std_posix_externalZ_posixZ_close();
 		push_fnptr(&mb_std_file_ZPlusFile_closeZ_fileZBang_2);
 		push_fnptr(&mb_std_file_ZPlusFile_closeZ_fileZBang_3);
 		mw_std_prelude_expectZBang_2();
@@ -12867,7 +12867,7 @@ static void mw_std_file_ZPlusFile_unsafeZ_writeZBang (void) {
 			}
 			push_value(d3);
 		}
-		mext_std_prelude_externalZ_posixZ_write();
+		mext_std_posix_externalZ_posixZ_write();
 		push_value(d2);
 	}
 	{
@@ -12903,7 +12903,7 @@ static void mw_std_file_ZPlusFile_unsafeZ_readZBang (void) {
 		}
 		push_value(d2);
 	}
-	mext_std_prelude_externalZ_posixZ_read();
+	mext_std_posix_externalZ_posixZ_read();
 	push_fnptr(&mb_std_file_ZPlusFile_unsafeZ_readZBang_1);
 	push_fnptr(&mb_std_file_ZPlusFile_unsafeZ_readZBang_2);
 	mw_std_prelude_expectZBang_2();
@@ -41577,7 +41577,7 @@ static void mw_mirth_main_compileZBang (void) {
 			push_resource(d3);
 		}
 		push_i64(1LL);
-		mext_std_prelude_externalZ_posixZ_exit();
+		mext_std_posix_externalZ_posixZ_exit();
 	} else {
 		{
 			VAL d3 = pop_resource();
@@ -41844,7 +41844,7 @@ static void mw_mirth_main_main (void) {
 				push_resource(d4);
 			}
 			push_i64(1LL);
-			mext_std_prelude_externalZ_posixZ_exit();
+			mext_std_posix_externalZ_posixZ_exit();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
