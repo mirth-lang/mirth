@@ -732,51 +732,6 @@ static void mp_primZ_sysZ_argv (void) {
 	PRIM_EXIT(mp_primZ_sysZ_argv);
 }
 
-static void mp_primZ_posixZ_write (void) {
-	PRIM_ENTER(mp_primZ_posixZ_write,"prim-posix-write");
-	USIZE n = pop_usize();
-	VAL vp = pop_value();
-	void* p = value_ptr(vp);
-	int fd = (int)pop_i64();
-	ASSERT(n <= SIZE_MAX);
-	push_i64((int64_t)write(fd, p, (size_t)n));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_write);
-}
-static void mp_primZ_posixZ_read (void) {
-	PRIM_ENTER(mp_primZ_posixZ_read,"prim-posix-read");
-	USIZE n = pop_usize();
-	VAL vp = pop_value();
-	void* p = value_ptr(vp);
-	int fd = (int)pop_i64();
-	ASSERT(n <= SIZE_MAX);
-	push_i64((int64_t)read(fd, p, (size_t)n));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_read);
-}
-static void mp_primZ_posixZ_open (void) {
-	PRIM_ENTER(mp_primZ_posixZ_open,"prim-posix-open");
-	int m = (int)pop_i64();
-	int f = (int)pop_i64();
-	VAL vp = pop_value();
-	void* path = value_ptr(vp);
-	push_i64((int64_t)open(path,f,m));
-	decref(vp);
-	PRIM_EXIT(mp_primZ_posixZ_open);
-}
-static void mp_primZ_posixZ_close (void) {
-	PRIM_ENTER(mp_primZ_posixZ_close,"prim-posix-close");
-	int fd = (int)pop_i64();
-	push_i64((int64_t)close(fd));
-	PRIM_EXIT(mp_primZ_posixZ_close);
-}
-static void mp_primZ_posixZ_exit (void) {
-	PRIM_ENTER(mp_primZ_posixZ_exit,"prim-posix-exit");
-	int x = (int)pop_i64();
-	exit(x);
-	PRIM_EXIT(mp_primZ_posixZ_exit);
-}
-
 void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
 	static char c[32] = {0};
 	memset(c, 0, 32);
@@ -38825,51 +38780,6 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tPRIM_EXIT(mp_primZ_sysZ_argv);\n"
 		"}\n"
 		"\n"
-		"static void mp_primZ_posixZ_write (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_write,\"prim-posix-write\");\n"
-		"\tUSIZE n = pop_usize();\n"
-		"\tVAL vp = pop_value();\n"
-		"\tvoid* p = value_ptr(vp);\n"
-		"\tint fd = (int)pop_i64();\n"
-		"\tASSERT(n <= SIZE_MAX);\n"
-		"\tpush_i64((int64_t)write(fd, p, (size_t)n));\n"
-		"\tdecref(vp);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_write);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_read (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_read,\"prim-posix-read\");\n"
-		"\tUSIZE n = pop_usize();\n"
-		"\tVAL vp = pop_value();\n"
-		"\tvoid* p = value_ptr(vp);\n"
-		"\tint fd = (int)pop_i64();\n"
-		"\tASSERT(n <= SIZE_MAX);\n"
-		"\tpush_i64((int64_t)read(fd, p, (size_t)n));\n"
-		"\tdecref(vp);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_read);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_open (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_open,\"prim-posix-open\");\n"
-		"\tint m = (int)pop_i64();\n"
-		"\tint f = (int)pop_i64();\n"
-		"\tVAL vp = pop_value();\n"
-		"\tvoid* path = value_ptr(vp);\n"
-		"\tpush_i64((int64_t)open(path,f,m));\n"
-		"\tdecref(vp);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_open);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_close (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_close,\"prim-posix-close\");\n"
-		"\tint fd = (int)pop_i64();\n"
-		"\tpush_i64((int64_t)close(fd));\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_close);\n"
-		"}\n"
-		"static void mp_primZ_posixZ_exit (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_posixZ_exit,\"prim-posix-exit\");\n"
-		"\tint x = (int)pop_i64();\n"
-		"\texit(x);\n"
-		"\tPRIM_EXIT(mp_primZ_posixZ_exit);\n"
-		"}\n"
-		"\n"
 		"void int_repr(int64_t y, char** out_ptr, size_t *out_size) {\n"
 		"\tstatic char c[32] = {0};\n"
 		"\tmemset(c, 0, 32);\n"
@@ -39436,7 +39346,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		33752
+		32484
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
