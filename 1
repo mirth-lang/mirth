@@ -87,29 +87,22 @@ inline(
 alias(argc, prim-sys-argc)
 alias(argv, prim-sys-argv)
 
+alias(posix-read!, prim-posix-read)
+
 external(
-  external-posix-read -> read [ CInt Ptr CUSize -- CInt ]
-  external-posix-write -> write [ CInt CStr CUSize -- CInt ]
-  external-posix-close -> close [ CInt -- CInt ]
-  external-posix-exit -> exit [ *a CInt -- *b ]
-
-  "int open_internal(const char* path, int flags, int mode) { return open(path, flags, mode); }"
-  internal-posix-open -> open_internal [ CStr CInt CInt -- CInt ]
+  external-posix-read -> read [ CInt Ptr CInt -- CInt ]
 )
 
-inline(
-  def(posix-read!, Int Ptr Int -- Int, CUSize dip2:CInt external-posix-read >Int)
-  def(posix-write!, Int Ptr Int -- Int, CUSize dip:>CStr dip2:CInt external-posix-write >Int)
-  def(posix-close!, Int -- Int, CInt external-posix-close >Int)
-  def(posix-exit!, *a Int -- *b, CInt external-posix-exit)
-)
+inline:def(posix-read!, Int Ptr Int -- Int, CInt dip2:CInt external-posix-read >Int)
 
+alias(posix-write!, prim-posix-write)
 def(posix-open!, Str Int Int -- Int,
     rotl dup dip(
         prim-str-base rotr
-	CInt dip:CInt dip2:>CStr
-        internal-posix-open >Int
+        prim-posix-open
     ) drop)
+alias(posix-close!, prim-posix-close)
+alias(posix-exit!, prim-posix-exit)
 
 inline(
     def(rotr, a b c -- c a b, swap dip(swap))

@@ -92,13 +92,6 @@ data(Prim,
     PRIM_SYS_ARGC,
     PRIM_SYS_ARGV,
 
-    PRIM_POSIX_READ,
-    PRIM_POSIX_WRITE,
-    PRIM_POSIX_OPEN,
-    PRIM_POSIX_CLOSE,
-    PRIM_POSIX_EXIT,
-    PRIM_POSIX_MMAP,
-
     PRIM_SYNTAX_MODULE,
     PRIM_SYNTAX_IMPORT,
     PRIM_SYNTAX_ALIAS,
@@ -249,12 +242,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_SYS_ARGC "prim-sys-argc" 0 def-prim!
     PRIM_SYS_ARGV "prim-sys-argv" 0 def-prim!
 
-    PRIM_POSIX_READ "prim-posix-read" 0 def-prim!
-    PRIM_POSIX_WRITE "prim-posix-write" 0 def-prim!
-    PRIM_POSIX_OPEN "prim-posix-open" 0 def-prim!
-    PRIM_POSIX_CLOSE "prim-posix-close" 0 def-prim!
-    PRIM_POSIX_EXIT "prim-posix-exit" 0 def-prim!
-
     #
     # monomorphic prims
     #
@@ -303,23 +290,6 @@ def(init-prims!, +Mirth -- +Mirth,
     Ctx0 TYPE_I16 TYPE_PTR T2 T0 T-> PRIM_I16_SET ctx-type!
     Ctx0 TYPE_I32 TYPE_PTR T2 T0 T-> PRIM_I32_SET ctx-type!
     Ctx0 TYPE_I64 TYPE_PTR T2 T0 T-> PRIM_I64_SET ctx-type!
-
-    Ctx0 TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
-    PRIM_POSIX_READ ctx-type!
-
-    Ctx0 TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
-    PRIM_POSIX_WRITE ctx-type!
-
-    Ctx0 TYPE_PTR TYPE_INT TYPE_INT T3 TYPE_INT T1 T->
-    PRIM_POSIX_OPEN ctx-type!
-
-    Ctx0 TYPE_INT T1 TYPE_INT T1 T->
-    PRIM_POSIX_CLOSE ctx-type!
-
-    Ctx0
-    TYPE_PTR TYPE_INT TYPE_INT TYPE_INT TYPE_INT TYPE_INT T6
-    TYPE_PTR T1 T->
-    PRIM_POSIX_MMAP ctx-type!
 
     Ctx0 T0 TYPE_PTR T1 T->
     PRIM_PTR_NIL ctx-type!
@@ -409,10 +379,6 @@ def(init-prims!, +Mirth -- +Mirth,
         xs ys Ctx2
         txs txs tys T-> >Type T* tys T->
         PRIM_CORE_RUN ctx-type!
-
-        xs ys Ctx2
-        txs TYPE_INT T* tys T->
-        PRIM_POSIX_EXIT ctx-type!
 
         xs ys Ctx2
         txs TYPE_STR T* tys T->

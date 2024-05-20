@@ -18,18 +18,16 @@ def(+File?.unwrap!, +File? -- +File,
     +FileErr -> panic!)
 
 def(+World.open-file!, Path +World -- +World +File?,
-    dup >Str with-cstr(>Ptr 0 0 prim-posix-open)
+    dup >Str 0 0 posix-open!
     dup 0> if(
         nip >file-descriptor True >owned +File +FileOk,
         drop Str("failed to open file: " ; >Str show;) +FileErr
     ))
 
 def(+World.create-file!, Path +World -- +World +File?,
-    dup >Str with-cstr(
-        >Ptr
-        O_WRONLY|O_CREAT|O_TRUNC
-        0o666 prim-posix-open
-    )
+    dup >Str 
+    O_WRONLY|O_CREAT|O_TRUNC
+    0o666 posix-open!
     dup 0> if(
         nip >file-descriptor True >owned +File +FileOk,
         drop Str("failed to create file: " ; >Str show;) +FileErr
@@ -56,7 +54,7 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
 def(+File.close-file!, +World +File -- +World,
     /+File owned> if(
-        file-descriptor> prim-posix-close
+        file-descriptor> posix-close! 
         expect!(dup 0< not, "failed to close file")
         drop,
 
