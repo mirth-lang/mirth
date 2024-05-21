@@ -508,8 +508,66 @@ def(ab-build-hom!(f), (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
         *a Ctx ArrowType Token Home +Mirth -- *b Arrow +Mirth,
     dip2(unpack rotr)
     ab-build!(f ab-unify-type!))
+
+||| Build the arrow for a word. If the word type and context are available, use that.
+||| Otherwise, we are in a situation where type and context were not given, so we infer them.
+|||
+||| To infer ctx-type, we start with an initial guess based on the word head (with lots
+||| of metavariables). We temporarily set that as our ctx-type. Then we elaborate the word
+||| body. After elaboration, we rigidify the type to obtain a generalized definition, by
+||| replacing any free metavariables with universally quantified variables.
 def(ab-build-word-arrow!(f), (*a StackType +Mirth +AB -- *b StackType +Mirth +AB) *a Word +Mirth -- *b Arrow +Mirth,
-    sip(ctx-type) sip(body) HomeWord ab-build-hom!(f))
+    dup ~ctx-type try-force! match(
+        Some ->
+            unpack2 rotl sip(body) HomeWord ab-build-hom!(f),
+        None ->
+            sip(
+                sip(guess-initial-ctx-type)
+                sip(body) HomeWord ab-build-hom!(f)
+            )
+            >word >arrow
+
+            @arrow Arrow.ctx-type rigidify-sig!
+
+            dup2 pack2 @word WordType prop @word ~ctx-type !
+            False @word ~inferring-type? !
+            word> drop
+
+            unpack arrow> cod! dom! ctx!
+    ))
+
+def(guess-initial-ctx-type, +Mirth Word -- +Mirth Ctx ArrowType,
+    >word
+    Ctx0 >ctx
+    MetaVar.new! STMeta >dom
+    MetaVar.new! STMeta >cod
+    @word namespace-hard match(
+        NAMESPACE_TYCON ->
+            full-type-fresh
+            @word name can-be-relative? if(
+                @dom(swap T*+),
+                @cod(swap T*+)
+            ),
+        NAMESPACE_MODULE ->
+            drop
+            @word name >Str "main" == then(
+                T0 RESOURCE_WORLD T+ !dom
+                T0 RESOURCE_WORLD T+ !cod
+            ),
+        _ ->
+            drop
+    )
+    @word arity >Nat count(
+        drop @dom(
+            MetaVar.new! STMeta
+            MetaVar.new! STMeta T-> >Type T*
+        )
+    )
+    ctx> dom> cod> T->
+    dup2 pack2 @word WordType prop @word ~ctx-type !
+    True @word ~inferring-type? !
+    word> drop)
+
 def(ab-build-word!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Word +Mirth -- *b Word +Mirth,
     sip(ab-build-word-arrow!(dip(f))) sip(WordArrow prop)
     tuck ~arrow !)
@@ -659,7 +717,7 @@ def(elab-op-fresh-sig!, +Mirth Op -- +Mirth Subst OpSig,
         OpBuffer -> drop TYPE_PTR OPSIG_PUSH,
         OpVariable -> type TMut OPSIG_PUSH,
         OpTag -> type freshen-sig OPSIG_APPLY,
-        OpWord -> type freshen-sig OPSIG_APPLY,
+        OpWord -> dup inferring-type? if(type, type freshen-sig) OPSIG_APPLY,
         OpPrim -> type freshen-sig OPSIG_APPLY,
         OpExternal -> type freshen-sig OPSIG_APPLY,
         OpField -> type freshen-sig OPSIG_APPLY,
@@ -1452,11 +1510,16 @@ def(elab-def!, +Mirth Token -- +Mirth Token,
     prefer-inline-defs @word ~prefer-inline? !
 
     @word @word WordType prop(
-        sig unwrap
-        +TypeElab.type-sig-start!
-        elab-type-sig!
-        dip:ctx pack2
-        rdrop
+        dup sig match(
+            Some ->
+                nip
+                +TypeElab.type-sig-start!
+                elab-type-sig!
+                dip:ctx pack2
+                rdrop,
+            None ->
+                arrow ctx-type pack2
+        )
     ) @word ~ctx-type !
     @word @word WordParams prop(elab-def-params!) @word ~params !
     @word @word WordArrow prop(

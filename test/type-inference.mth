@@ -1,0 +1,46 @@
+module(test.type-inference)
+
+import(std.prelude)
+import(std.world)
+import(std.maybe)
+import(std.list)
+
+def zero { 0 }
+def Int.square { dup * }
+def Maybe.nothing? { none? }
+def Maybe.Zero { 0 None }
+def List.map(f,g) {
+    uncons dip(map(f))
+    swap dip(map(dip(g) f))
+    for(swap cons)
+}
+
+def Maybe.another-map(f) {
+    None -> None,
+    Some -> f Some
+}
+
+def fact  { 1 swap fact* }
+def fact* {
+    dup 1 < if(
+        drop,
+        tuck * swap 1- fact*
+    )
+}
+
+def fib {
+    dup 2 < if(
+        id,
+        dup dip(1- fib) dip'(2 - fib) Int.+
+    )
+}
+
+def main {
+    "Hello world!" print
+    print("[ "; 1 to: 10 for(fact show; " ";) "]";)
+    print("[ "; 1 to: 15 for(fib  show; " ";) "]";)
+}
+
+# mirth-test # pout # Hello world!
+# mirth-test # pout # [ 1 2 6 24 120 720 5040 40320 362880 3628800 ]
+# mirth-test # pout # [ 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 ]

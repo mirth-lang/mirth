@@ -24,6 +24,7 @@ field(Word.~params, Word, Prop(List(Var)))
 field(Word.~arrow, Word, Prop(Arrow))
 field(Word.~prefer-inline?, Word, Bool)
 field(Word.~cname, Word, Str)
+field(Word.~inferring-type?, Word, Bool)
 
 def(Word.qname-soft, Word -- Maybe(QName), ~qname @? bind(ready?))
 def(Word.qname-hard, Word +Mirth -- QName +Mirth, ~qname force!)
@@ -36,6 +37,8 @@ def(Word.body, Word -- Token, ~body @)
 def(Word.arity, Word -- Int, ~arity @)
 def(Word.params, Word +Mirth -- List(Var) +Mirth, ~params force!)
 def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
+def(Word.inferring-type?, Word -- Bool,
+    ~inferring-type? @? unwrap-or(False))
 
 def(Word.cname, Word +Mirth -- Str +Mirth,
     dup ~cname memoize(
