@@ -47160,7 +47160,7 @@ static void mb_mirth_elab_elabZ_matchZ_casesZ_curlyZBang_0 (void) {
 	mp_primZ_drop();
 }
 static void mb_mirth_elab_elabZ_matchZ_casesZ_curlyZBang_1 (void) {
-	STRLIT("Expected a match case of the form { ... -> ... }", 48);
+	STRLIT("Expected a pattern match case of the form { ... -> ... }", 56);
 	{
 		VAL d2 = pop_resource();
 		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
@@ -47168,7 +47168,7 @@ static void mb_mirth_elab_elabZ_matchZ_casesZ_curlyZBang_1 (void) {
 	}
 }
 static void mb_mirth_elab_elabZ_matchZ_caseZBang_0 (void) {
-	STRLIT("expected arrow end", 18);
+	STRLIT("Expected pattern match case ... -> ...", 38);
 	{
 		VAL d2 = pop_resource();
 		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();

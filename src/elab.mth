@@ -959,7 +959,7 @@ def(elab-match-cases!, +Mirth +Match -- +Mirth +Match,
 def elab-match-cases-curly! [ +Mirth +Match -- +Mirth +Match ] {
     body run-tokens for(
         dup lcurly?
-        else("Expected a match case of the form { ... -> ... }" rdip:emit-fatal-error!)
+        else("Expected a pattern match case of the form { ... -> ... }" rdip:emit-fatal-error!)
         rdip:args-1 elab-match-case!
         drop
     )
@@ -971,7 +971,7 @@ def elab-match-cases-args! [ +Mirth +Match -- +Mirth +Match ] {
 
 ||| Elaborate match case based on starting token.
 def(elab-match-case!, Token +Mirth +Match -- Token +Mirth +Match,
-    dup run-arrow? unwrap-or("expected arrow end" rdip:emit-fatal-error!)
+    dup run-arrow? unwrap-or("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
     dup2 == then("expected pattern" rdip:emit-fatal-error!)
     dup2 prev == else("multi-part pattern not supported" rdip:emit-fatal-error!)
     dip:pat-tokens sip:prev succ +Match.case!(
