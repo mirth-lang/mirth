@@ -933,7 +933,11 @@ def(elab-atom-assert!, +Mirth +AB -- +Mirth +AB,
 
 def(elab-atom-match!, +Mirth +AB -- +Mirth +AB,
     MetaVar.new! STMeta >cod
-    ab-token@ rdip:args+ first >body
+    ab-token@ succ lcurly? if(
+        ab-token@ succ succ >body
+        ab-token@ succ ab-token!,
+        ab-token@ rdip:args+ first >body
+    )
     elab-match-at!)
 
 ||| Elaborate a match body within AB. Takes the output stack type,
@@ -947,11 +951,27 @@ def(elab-match-at!, cod:StackType body:Token +Mirth +AB -- +Mirth +AB,
 
 ||| Elaborate match cases.
 def(elab-match-cases!, +Mirth +Match -- +Mirth +Match,
-    body while(dup args-end? not, elab-match-case!) drop)
+    body lcurly? if(
+        elab-match-cases-curly!,
+        elab-match-cases-args!
+    ))
+
+def elab-match-cases-curly! [ +Mirth +Match -- +Mirth +Match ] {
+    body run-tokens for(
+        dup lcurly?
+        else("Expected a pattern match case of the form { ... -> ... }" rdip:emit-fatal-error!)
+        rdip:args-1 elab-match-case!
+        drop
+    )
+}
+
+def elab-match-cases-args! [ +Mirth +Match -- +Mirth +Match ] {
+    body while(dup args-end? not, elab-match-case!) drop
+}
 
 ||| Elaborate match case based on starting token.
 def(elab-match-case!, Token +Mirth +Match -- Token +Mirth +Match,
-    dup run-arrow? unwrap-or("expected arrow end" rdip:emit-fatal-error!)
+    dup run-arrow? unwrap-or("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
     dup2 == then("expected pattern" rdip:emit-fatal-error!)
     dup2 prev == else("multi-part pattern not supported" rdip:emit-fatal-error!)
     dip:pat-tokens sip:prev succ +Match.case!(
@@ -1582,7 +1602,7 @@ def(elab-def-params!, +Mirth Word -- +Mirth List(Var),
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,
 ||| and the rest from the AB environment.
 def(elab-def-body!, StackType +Mirth +AB -- StackType +Mirth +AB,
-    ab-token@ run-arrow? if(
+    ab-token@ run-arrow? or(ab-token@ lcurly? some?) if(
         dup >cod ab-token@ >body elab-match-at!,
         elab-atoms!
     ))
