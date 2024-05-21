@@ -216,11 +216,11 @@ def(QName.compare, +Mirth QName QName -- +Mirth Comparison,
         dip:drop4
     ))
 
-def(QName.def-hard?, +Mirth QName -- +Mirth Maybe(Def), dup name defs find(dup2 qname-hard ==) nip)
+def(QName.def-hard?, +Mirth QName -- +Mirth Maybe(Def), dup name defs lookup(qname-hard ==))
 def(QName.defined-hard?, +Mirth QName -- +Mirth Bool, def-hard? some?)
 def(QName.undefined-hard?, +Mirth QName -- +Mirth Bool, def-hard? none?)
 
-def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) find(dup2 qname-soft ==:==) nip)
+def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) lookup(qname-soft ==:==))
 def(QName.defined-soft?, +Mirth QName -- +Mirth Bool, def-soft? some?)
 def(QName.undefined-soft?, +Mirth QName -- +Mirth Bool, def-soft? none?)
 
@@ -238,7 +238,7 @@ def(QName.>Str, +Mirth QName -- +Mirth Str, MKQNAME ->
 def(QName.to-module-path, QName +World -- Path +World,
     dup namespace match(
         NAMESPACE_PACKAGE ->
-            path-or-search unwrap-or("No path defined for package" panic!)
+            path-or-search unwrap("No path defined for package" panic!)
         	swap name >Str ".mth" cat >Path join,
         _ -> drop "expected module name" panic!
     ))

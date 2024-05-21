@@ -1271,7 +1271,7 @@ def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
     CTypeStack)
 
 def(StackType.ctype?, StackType +Mirth -- Maybe(CTypeStack) +Mirth,
-    split-parts map(ctype?) dup all(dup some?) if(
+    split-parts map(ctype?) dup all(some?) if(
         map(unwrap) >parts
         base-ctype? >base?
         CTypeStack Some,

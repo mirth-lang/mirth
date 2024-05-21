@@ -46,14 +46,14 @@ def(Match.is-exhaustive?, Match -- Bool,
     ) nip)
 
 def(Match.has-default-case?, Match -- Bool,
-    cases any(dup is-default-case?))
+    cases has(is-default-case?))
 
 ||| Get "data" associated with scrutinee. Only returns Data if all the
 ||| TAG patterns use it.
 def(Match.scrutinee-data?, Match -- Maybe(Data),
-    cases filter(dup is-default-case? not) dup
+    cases filter(is-default-case? not) dup
     first bind(pattern single-tag?) map(.data) if-some(
-        swap all(dup pattern single-tag? if-some(dip(over) .data ==, False)) if(
+        swap all(pattern single-tag? if-some(dip:dup .data ==, False)) if(
             Some,
             drop None
         ),
@@ -63,7 +63,7 @@ def(Match.scrutinee-data?, Match -- Maybe(Data),
 def(Match.is-transparent?, Match -- Bool,
     cases /L1
     bind(pattern atoms /L1)
-    and-some(op match(
+    has(op match(
         PatOpTag -> .data is-transparent?,
         PatOpUnderscore -> True
     )))
@@ -75,7 +75,7 @@ def(Match.semi-transparent-tag?, Match -- Maybe(Tag),
         PatOpTag -> Some,
         _ -> drop None
     ))
-    guard(dup .data is-semi-transparent?))
+    filter(.data is-semi-transparent?))
 
 def(+Match.add-case, +Mirth +Match Case -- +Mirth +Match,
     dup case-redundant? if(
@@ -84,7 +84,7 @@ def(+Match.add-case, +Mirth +Match Case -- +Mirth +Match,
     ))
 
 def(+Match.case-redundant?, Case +Match -- Bool +Match,
-    cases any(dup2 covers?) nip)
+    cases member(covers?))
 
 ########
 # CASE #
@@ -117,7 +117,7 @@ def(Pattern.single-tag?, Pattern -- Maybe(Tag),
     atoms /L1 bind(op /PatOpTag))
 
 def(Pattern.is-default?, Pattern -- Bool,
-    atoms all(dup op /PatOpUnderscore))
+    atoms all(op /PatOpUnderscore))
 
 data(+Pattern, +Pattern -> pattern:Pattern)
 def(+Pattern.freeze, +Pattern -- Pattern, /+Pattern pattern>)

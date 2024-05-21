@@ -216,7 +216,7 @@ def(resolve-def(f), (*a +Mirth +ResolveDef -- *b +Mirth +ResolveDef)
         Nil -> resolve-def-unknown None,
         Cons -> match(
             Nil -> rdrop Some,
-            _ -> List.filter(dup2 rdip:same-resolved? not) match(
+            _ -> List.filter(over rdip:same-resolved? not) match(
                 Nil -> rdrop Some,
                 _ -> drop2 resolve-def-ambiguous None
             )
@@ -327,14 +327,14 @@ def(+ResolveDef.filter-roots, List(Namespace) +Mirth +ResolveDef -- +Mirth +Reso
     )
     token dname? for(
         dup is-relative? and(ignore-last-name not) if(
-            filter(dup2 rdip:qname-hard climb-up-dname? any(dup over4 member(==)),
+            filter(dup2 rdip:qname-hard climb-up-dname? has(over3 member(==)),
                 over2 empty? if(
                     RD_METHOD_NOT_AVAILABLE,
                     RD_METHOD_WRONG_TYPE
                 )
             ),
-            filter(dup2 rdip:qname-hard climb-up-dname? any(
-                token over rdip:namespace-is-imported-at-token?
+            filter(dup2 rdip:qname-hard climb-up-dname? has(
+                dip:token rdip:namespace-is-imported-at-token?
             ), RD_NOT_IMPORTED)
         ) drop
     )
@@ -378,7 +378,7 @@ def(QName.climb-up-name?, +Mirth Name QName -- +Mirth List(Namespace),
                 drop
             ),
         DefType ->
-            dup target tycon? and-some(qname-hard @qname ==) if(
+            dup target tycon? has(qname-hard @qname ==) if(
                 namespace @accum:cons,
                 drop
             ),
@@ -409,10 +409,10 @@ def(+TypeElab.resolve-type-con-name!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
         _ ->
             drop token "compiler bug: resolve-type-con-name! doesn't understand type"
             rdip:emit-error! TYPE_ERROR,
-    ) unwrap-or(TYPE_ERROR))
+    ) unwrap(TYPE_ERROR))
 
 def(+TypeElab.elab-type-con!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
-    token name? and-some(>Str "Mut" ==) if(
+    token name? has(>Str "Mut" ==) if(
         token next dip(
             token:args-1
             elab-type-arg!
@@ -971,7 +971,7 @@ def elab-match-cases-args! [ +Mirth +Match -- +Mirth +Match ] {
 
 ||| Elaborate match case based on starting token.
 def(elab-match-case!, Token +Mirth +Match -- Token +Mirth +Match,
-    dup run-arrow? unwrap-or("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
+    dup run-arrow? unwrap("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
     dup2 == then("expected pattern" rdip:emit-fatal-error!)
     dup2 prev == else("multi-part pattern not supported" rdip:emit-fatal-error!)
     dip:pat-tokens sip:prev succ +Match.case!(
@@ -1087,9 +1087,9 @@ def(elab-module!, Module +World +Mirth -- Module +World +Mirth,
     drop)
 
 def(elab-module-package-name, Token +Mirth -- Package Name +Mirth,
-    dup dname? unwrap-or("Expected module name. (1)" emit-fatal-error!) over args-0
-    dup root? unwrap-or(drop "Expected module name. (2)" emit-fatal-error!)
-    swap parts /L1+ unwrap-or(drop "Expected module name. (3)" emit-fatal-error!)
+    dup dname? unwrap("Expected module name. (1)" emit-fatal-error!) over args-0
+    dup root? unwrap(drop "Expected module name. (2)" emit-fatal-error!)
+    swap parts /L1+ unwrap(drop "Expected module name. (3)" emit-fatal-error!)
     dip(Package.find-or-new! nip))
 
 def(elab-module-qname, +Mirth Token -- +Mirth QName,
@@ -1125,8 +1125,8 @@ def(check-module-path, Token Module +World +Mirth -- +World +Mirth,
 
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token +World +Mirth -- Token +World +Mirth,
-    dup name? unwrap-or("unknown declaration" emit-fatal-error!)
-    defs find-some(prim?) unwrap-or("unknown declaration" emit-fatal-error!)
+    dup name? unwrap("unknown declaration" emit-fatal-error!)
+    defs find-some(prim?) unwrap("unknown declaration" emit-fatal-error!)
     match(
         PRIM_SYNTAX_IMPORT -> elab-module-import!,
         PRIM_SYNTAX_ALIAS -> elab-alias!,
@@ -1149,7 +1149,7 @@ def(elab-module-decl!, Token +World +Mirth -- Token +World +Mirth,
 
 def(load-module, Token QName +World +Mirth -- Token Module +World +Mirth,
     dup def-soft? match(
-        Some -> module? unwrap-or(drop "module name already taken" emit-fatal-error!) nip,
+        Some -> module? unwrap(drop "module name already taken" emit-fatal-error!) nip,
         None ->
             rdip:to-module-path run-lexer!
             elab-module!
@@ -1178,7 +1178,7 @@ def(elab-data!, Token +Mirth -- Token +Mirth,
 ||| Get the header, name, arity for a data type.
 def(elab-data-header!, Data Token +Mirth -- Data +Mirth,
     >head >data
-    @head last-name? and-some(could-be-type-or-resource-con)
+    @head last-name? has(could-be-type-or-resource-con)
         else(@head "Expected type name." emit-fatal-error!)
     elab-def-head
     @head Some @data ~head? !
@@ -1202,7 +1202,7 @@ def(elab-data-params!, List(Token) +Mirth -- List(Var) +Mirth,
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 .. TYPEN".
 def(elab-data-tag!, Data Token +Mirth -- Data +Mirth,
-    dup2 name? unwrap-or(drop "Expected constructor name." emit-fatal-error!)
+    dup2 name? unwrap(drop "Expected constructor name." emit-fatal-error!)
     0 data-qname
     Tag.alloc!
     None over ~untag !
@@ -1240,7 +1240,7 @@ def(elab-data-tag!, Data Token +Mirth -- Data +Mirth,
     dup outputs-resource? not
     over num-resource-inputs 0> && then(
         dup sig? unwrap run-tokens find(
-            dup sig-resource-con? or(dup sig-resource-var?)
+            dup sig-resource-con? or(dup sig-resource-var?) nip
         ) unwrap "Value type cannot contain resource." emit-error!
     )
 
@@ -1461,7 +1461,7 @@ def(elab-alias!, +Mirth Token -- +Mirth Token,
             filter-qualifiers
             L0 filter-roots
         )
-        unwrap-or( panic-diagnostics! )
+        unwrap( panic-diagnostics! )
         match(
             DefAlias ->
                 ~target force-or!(
@@ -1697,8 +1697,8 @@ def(elab-def-external-ctype, +Mirth External -- +Mirth CTypeArrow,
     dup head with-error-token(
         type ctype
         dup cod parts
-        filter(dup label? none?)
-        filter(dup ctype phantom? not)
+        filter(label? none?)
+        filter(ctype phantom? not)
         len 1 >Nat > then(
             "External has too many outputs." error!
         )
@@ -1724,7 +1724,7 @@ def(elab-def-type!, +Mirth Token -- +Mirth Token,
 def(elab-buffer!, +Mirth Token -- +Mirth Token,
     sip(next) args-2
     swap dup elab-def-qname-undefined
-    rotl dup int? unwrap-or("expected buffer size" emit-fatal-error!) nip
+    rotl dup int? unwrap("expected buffer size" emit-fatal-error!) nip
    >Size Buffer.new! drop)
 
 ||| Elaborate a var declaration `var(v, type)`.
@@ -1746,7 +1746,7 @@ def(elab-table!, +Mirth Token -- +Mirth Token,
 
 ||| Create entry point based on word name.
 def(elab-entry-point, QName +Mirth -- Arrow +Mirth,
-    dup def-hard? bind(word?) unwrap-or(
+    dup def-hard? bind(word?) unwrap(
         dup dip(
             namespace module? unwrap start
             "can't find entry point "
@@ -1765,7 +1765,7 @@ def(elab-embed-str!, Token +World +Mirth -- Token +World +Mirth,
     >head elab-def-head
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
     dup >body None >sig
-    dup str? unwrap-or("expected source path" emit-fatal-error!)
+    dup str? unwrap("expected source path" emit-fatal-error!)
     >Path rdip(open-file! unwrap! read-file! close-file! nip >contents)
     Word.new!
     dup WordQName >label Prop over ~qname !
@@ -1990,7 +1990,7 @@ def(elab-qname-from-nonrelative-dname, +Mirth Token DName Int -- +Mirth QName,
     >arity
     dup root? else(drop "relative name not allowed" emit-fatal-error!)
     last-name >name
-    dup resolve-def-namespace unwrap-or(panic-diagnostics!) >namespace
+    dup resolve-def-namespace unwrap(panic-diagnostics!) >namespace
     drop MKQNAME)
 
 def(module-visible-from-token?, Token Module -- Bool,
@@ -2005,7 +2005,7 @@ def(def-visible-from-token?, Token Def -- Bool,
 ||| Elaborate the qname for a word definition.
 ||| Generally speaking this is going to use the module namespace.
 def(elab-def-qname, +Mirth Token -- +Mirth QName,
-    dup name-or-dname? unwrap-or("expected name" emit-fatal-error!)
+    dup name-or-dname? unwrap("expected name" emit-fatal-error!)
     match(
         Left -> >name dup .module NAMESPACE_MODULE >namespace num-args >arity MKQNAME,
         Right -> over num-args elab-qname-from-nonrelative-dname
@@ -2024,7 +2024,7 @@ def(elab-def-head,
         +Mirth head:Token --
         +Mirth head:Token name:Name arity:Int state:PropState(QName),
     @head name-or-dname?
-        unwrap-or(@head "expected name" emit-fatal-error!)
+        unwrap(@head "expected name" emit-fatal-error!)
         either(id, parts last) >name
     @head num-args >arity
     @head [elab-def-qname-undefined] PSDelay >state)

@@ -262,7 +262,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
 
 def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
     over num-total-inputs 1+
-    over2 label-inputs reverse-find(dip(1-) over2 over ==) drop
+    over2 label-inputs reverse-find(dip(1- over) ==) drop
     dip:drop2)
 
 def(c99-tag-get-label!, Tag Label +C99 -- +C99,
@@ -408,12 +408,12 @@ def(c99-external-def!, External +C99 -- +C99,
     >ext
     @ext +mirth:ctype >cty
 
-    @cty cod parts find(dup label? none? and(dup ctype phantom? not)) >outty
+    @cty cod parts find(and(label? none?, ctype phantom? not)) >outty
     @outty if-some(ctype, Phantom) cname put " " put
     @ext symbol put
 
     " (" put
-    @cty dom parts filter(dup ctype phantom? not)
+    @cty dom parts filter(ctype phantom? not)
     match(
         Nil -> "void" put,
         _ -> for(ctype cname put, ", " put)
@@ -814,13 +814,13 @@ def(c99-block-run!, Block +C99 -- +C99,
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 
 def(c99-pack-closure-vars!, List(Var) +C99 -- +C99,
-    filter(dup is-physical?) for(
+    filter(is-physical?) for(
         c99-var-push!
         L0 PRIM_PACK_CONS cname c99-call!
     ))
 
 def(c99-unpack-closure-vars!, List(Var) +C99 -- +C99,
-    filter(dup is-physical?) dup empty? if(
+    filter(is-physical?) dup empty? if(
         drop,
         reverse-for(
             L0 PRIM_PACK_UNCONS cname c99-call!
@@ -830,7 +830,7 @@ def(c99-unpack-closure-vars!, List(Var) +C99 -- +C99,
     ))
 
 def(c99-decref-closure-vars!, List(Var) +C99 -- +C99,
-    filter(dup is-physical?) reverse-for(
+    filter(is-physical?) reverse-for(
         c99-line("decref(" put var-put ");" put)
     ))
 
@@ -878,7 +878,7 @@ def(c99-match!, Match +C99 -- +C99,
         cases first unwrap body c99-arrow!,
 
         dup scrutinee-data?
-        unwrap-or(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
+        unwrap(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
         is-resource? if(
             c99-line("switch (get_top_resource_data_tag()) {" put),
             c99-line("switch (get_top_data_tag()) {" put)

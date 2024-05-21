@@ -151,14 +151,14 @@ def(Data.add-tag!, Tag Data --,
 field(Data.~is-unit?, Data, Bool)
 def(Data.is-unit?, Data -- Bool,
     dup ~is-unit? memoize(
-        dup tags /L1 and-some(num-total-inputs 0=)
+        dup tags /L1 has(num-total-inputs 0=)
     ) nip)
 
 field(Data.~is-enum?, Data, Bool)
 def(Data.is-enum?, Data -- Bool,
     dup ~is-enum? memoize(
         dup is-unit? not and(
-            dup tags all(dup num-total-inputs 0=)
+            dup tags all(num-total-inputs 0=)
         )
     ) nip)
 
@@ -180,7 +180,7 @@ def(Data.is-transparent?, Data -- Bool,
 field(Data.~is-semi-transparent?, Data, Bool)
 def(Data.is-semi-transparent?, Data -- Bool,
     dup ~is-semi-transparent? memoize(
-        dup tags /L1 and-some(num-total-inputs 1 >Nat ==)
+        dup tags /L1 has(num-total-inputs 1 >Nat ==)
     ) nip)
 
 field(Data.~is-resource?, Data, Bool)
@@ -228,7 +228,7 @@ def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
 def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 
 def(Tag.label-inputs-from-sig, Tag -- List(Label),
-    sig? if-some(run-tokens filter(dup could-be-sig-label?) map(name? unwrap Label.new!), L0))
+    sig? if-some(run-tokens filter(could-be-sig-label?) map(name? unwrap Label.new!), L0))
 
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
@@ -240,8 +240,8 @@ def(Tag.num-type-inputs-from-sig, Tag -- Nat,
 
 def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
     sig? if-some(
-        run-tokens filter(dup could-be-sig-label? not) filter-some(name?)
-        filter(dup could-be-resource-var or(dup could-be-resource-con))
+        run-tokens filter(could-be-sig-label? not) filter-some(name?)
+        filter(or(could-be-resource-var, could-be-resource-con))
         len,
         0 >Nat
     ))

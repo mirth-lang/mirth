@@ -274,7 +274,7 @@ def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
             drop None
     ))
 def(Prop.force!, Mut(Prop(t)) +Mirth -- t +Mirth,
-    try-force! unwrap-or("Recursive prop detected!" fatal-error!))
+    try-force! unwrap("Recursive prop detected!" fatal-error!))
 def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
         *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
-    try-force! unwrap-or(f))
+    try-force! unwrap(f))

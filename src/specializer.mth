@@ -80,7 +80,7 @@ def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List
         Some ->
             dup for(check-arg!)
             over prefer-inline? not or(
-            dup map(rdip:free-vars) any(dup any(dup is-physical?))) if(
+            dup has(rdip:free-vars has(is-physical?))) if(
                 # too complicated, let's skip it
                 drop2 L1,
 
@@ -100,13 +100,13 @@ def(+SPCheck.check-lambda!, Lambda +Mirth +SPCheck -- Lambda +Mirth +SPCheck,
     body:check-arrow!)
 
 def(+SPCheck.push-check-word!, Word +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap-or(False) if(
+    dup ~sp-checked @? unwrap(False) if(
         drop,
         True over ~sp-checked !
         SPCHECK_WORD checklist:cons
     ))
 def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap-or(False) if(
+    dup ~sp-checked @? unwrap(False) if(
         drop,
         True over ~sp-checked !
         SPCHECK_BLOCK checklist:cons
@@ -129,7 +129,7 @@ def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
 
 field(Word.~sp-synthed, Word, Map(SPKey,Word))
 def(Word.sp-synthed, Word -- Map(SPKey,Word),
-    ~sp-synthed @? unwrap-or(Map.empty))
+    ~sp-synthed @? unwrap(Map.empty))
 
 ||| Specialize a word to a particular list of arguments.
 ||| Those other arguments are pushed on the stack.
@@ -169,7 +169,7 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
     dip:SUBST_NIL nip
     dip(ArrowType.unpack swap) reverse-for(
         dip(force-cons?!
-            unwrap-or("unexpected domain in specialize-ctx-type" panic!)
+            unwrap("unexpected domain in specialize-ctx-type" panic!)
             unpack2)
         /ArgBlock type TMorphism unify! drop
     )
@@ -189,7 +189,7 @@ def(+SPSynth.ab(f),
 def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
     dup >spword dip(>spkey)
     rdip:Word.arrow atoms /L1
-    unwrap-or("unexpected shape for synth-specialized-word!" panic!)
+    unwrap("unexpected shape for synth-specialized-word!" panic!)
     op match(
         OpLambda ->
             dup params
@@ -223,7 +223,7 @@ def(+SPSynth.synth-op!, +Mirth +SPSynth Op -- +Mirth +SPSynth,
     _ -> ab:ab-op!)
 
 def(+SPSynth.synth-block!, +Mirth +SPSynth Block -- +Mirth +SPSynth,
-    # dup free-vars any(dup spmap lookup(==) some?) if(
+    # dup free-vars has(dup spmap lookup(==) some?) if(
         dup rdip:to-run-var bind(spmap lookup(==)) match(
             None -> ab:ab-block!(+SPSYNTH synth-run! /+SPSYNTH),
             Some -> nip OpBlockPush ab:ab-op!

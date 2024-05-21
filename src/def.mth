@@ -97,7 +97,7 @@ def(Def.typecheck!, +Mirth Def -- +Mirth,
     DefVariable -> type drop)
 
 def(Def.callable?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> ~target try-force! and-some(callable?),
+    DefAlias -> ~target try-force! has(callable?),
     DefPackage -> drop False,
     DefModule -> drop False,
     DefBuffer -> drop True,
@@ -112,7 +112,7 @@ def(Def.callable?, +Mirth Def -- +Mirth Bool,
     DefVariable -> drop True)
 
 def(Def.defines-a-type?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> ~target try-force! and-some(defines-a-type?),
+    DefAlias -> ~target try-force! has(defines-a-type?),
     DefPackage -> drop False,
     DefModule -> drop False,
     DefBuffer -> drop False,
@@ -244,4 +244,4 @@ def(Def.register, +Mirth Def -- +Mirth,
     dup name ~defs modify(Cons))
 
 def(Def.def-index, +Mirth Def -- +Mirth Nat,
-    qname-hard dup name defs filter(dup2 qname-hard <=) len nip)
+    qname-hard dup name defs filter(qname-hard over >=) len nip)

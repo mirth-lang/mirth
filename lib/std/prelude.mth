@@ -55,6 +55,13 @@ inline(
     def(Bool.show;, Bool +Str -- +Str, show ;)
     def(Bool.then(f), (*a -- *a) *a Bool -- *a, if(f, id))
     def(Bool.else(f), (*a -- *a) *a Bool -- *a, if(id, f))
+
+    def or(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
+        dup dip(f) swap if(drop True, g)
+    }
+    def and(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
+        dup dip(f) swap if(g, drop False)
+    }
 )
 
 data(OS,
@@ -268,8 +275,8 @@ inline(
     def(Ptr?.==, Ptr? Ptr? -- Bool, both(/Ptr?-unsafe) ==)
     def(Ptr?.if-some(f,g), (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b, dup null? if(drop g, /Ptr?-unsafe f))
     def(Ptr?.for(f), (*a Ptr -- *a) *a Ptr? -- *a, if-some(f, id))
-    def(Ptr?.unwrap-or(f), (*a -- *a Ptr) *a Ptr? -- *a Ptr, if-some(id, f))
-    def(Ptr?.unwrap, Ptr? -- Ptr, unwrap-or("Tried to unwrap null pointer." panic!))
+    def(Ptr?.unwrap(f), (*a -- *a Ptr) *a Ptr? -- *a Ptr, if-some(id, f))
+    def(Ptr?.unwrap, Ptr? -- Ptr, unwrap("Tried to unwrap null pointer." panic!))
     def(Ptr?.>Ptr, Ptr? -- Ptr, unwrap)
 
     def(Ptr.==, Ptr Ptr -- Bool, prim-ptr-eq)
@@ -316,7 +323,7 @@ inline(
     def(U32.>Int, U32 -- Int, Int>U32-unsafe -> id)
     def(U64.>Int-unsafe, U64 -- Int, Int>U64-unsafe -> id)
     def(U64.>Int?, U64 -- Maybe(Int), Int>U64-unsafe -> dup 0 >= if(Some, drop None))
-    def(U64.>Int!, U64 -- Int, >Int? unwrap-or("U64 cannot be safely represented by Int" panic!))
+    def(U64.>Int!, U64 -- Int, >Int? unwrap("U64 cannot be safely represented by Int" panic!))
 
     def(I8.>Int,  I8  -- Int, Int>I8-unsafe -> id)
     def(I16.>Int, I16 -- Int, Int>I16-unsafe -> id)
@@ -342,18 +349,18 @@ def(Int.>U8?,  Int -- Maybe( U8), dup U8_MIN  U8_MAX  .in-range if(Int>U8-unsafe
 def(Int.>U16?, Int -- Maybe(U16), dup U16_MIN U16_MAX .in-range if(Int>U16-unsafe Some, drop None))
 def(Int.>U32?, Int -- Maybe(U32), dup U32_MIN U32_MAX .in-range if(Int>U32-unsafe Some, drop None))
 def(Int.>U64?, Int -- Maybe(U64), dup 0 >= if(Int>U64-unsafe Some, drop None))
-def(Int.>U8,  Int --  U8, >U8?  unwrap-or( "U8 out of bounds" panic!))
-def(Int.>U16, Int -- U16, >U16? unwrap-or("U16 out of bounds" panic!))
-def(Int.>U32, Int -- U32, >U32? unwrap-or("U32 out of bounds" panic!))
-def(Int.>U64, Int -- U64, >U64? unwrap-or("U64 out of bounds" panic!))
+def(Int.>U8,  Int --  U8, >U8?  unwrap( "U8 out of bounds" panic!))
+def(Int.>U16, Int -- U16, >U16? unwrap("U16 out of bounds" panic!))
+def(Int.>U32, Int -- U32, >U32? unwrap("U32 out of bounds" panic!))
+def(Int.>U64, Int -- U64, >U64? unwrap("U64 out of bounds" panic!))
 
 def(Int.>I8?,  Int -- Maybe( I8), dup I8_MIN  I8_MAX  .in-range if(Int>I8-unsafe Some, drop None))
 def(Int.>I16?, Int -- Maybe(I16), dup I16_MIN I16_MAX .in-range if(Int>I16-unsafe Some, drop None))
 def(Int.>I32?, Int -- Maybe(I32), dup I32_MIN I32_MAX .in-range if(Int>I32-unsafe Some, drop None))
 def(Int.>I64?, Int -- Maybe(I64), Int>I64-unsafe Some)
-def(Int.>I8,  Int -- I8,  >I8?  unwrap-or( "I8 out of bounds" panic!))
-def(Int.>I16, Int -- I16, >I16? unwrap-or("I16 out of bounds" panic!))
-def(Int.>I32, Int -- I32, >I32? unwrap-or("I32 out of bounds" panic!))
+def(Int.>I8,  Int -- I8,  >I8?  unwrap( "I8 out of bounds" panic!))
+def(Int.>I16, Int -- I16, >I16? unwrap("I16 out of bounds" panic!))
+def(Int.>I32, Int -- I32, >I32? unwrap("I32 out of bounds" panic!))
 def(Int.>I64, Int -- I64, Int>I64-unsafe)
 
 inline(

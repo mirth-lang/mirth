@@ -25,9 +25,9 @@ def(Var.auto-run?, Var -- Bool, ~auto-run? @)
 
 def(Var.==, Var Var -- Bool, both(index) ==)
 def(Var.type;, +Str Var -- +Str, name >Str ;)
-def(Var.is-type?, Var -- Bool, type prim? and-some(PRIM_TYPE_TYPE ==))
-def(Var.is-stack?, Var -- Bool, type prim? and-some(PRIM_TYPE_STACK ==))
-def(Var.is-resource?, Var -- Bool, type prim? and-some(PRIM_TYPE_RESOURCE ==))
+def(Var.is-type?, Var -- Bool, type prim? has(PRIM_TYPE_TYPE ==))
+def(Var.is-stack?, Var -- Bool, type prim? has(PRIM_TYPE_STACK ==))
+def(Var.is-resource?, Var -- Bool, type prim? has(PRIM_TYPE_RESOURCE ==))
 def(Var.is-physical?, Var -- Bool, type is-physical?)
 
 def(Var.new!, Type Name -- Var,
@@ -58,9 +58,9 @@ def(Ctx4, Var Var Var Var -- Ctx, L4 Ctx)
 def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.snoc >Ctx)
 
 def(Ctx.vars, Ctx -- List(Var), >List)
-def(Ctx.physical-vars, Ctx -- List(Var), vars filter(dup is-physical?))
+def(Ctx.physical-vars, Ctx -- List(Var), vars filter(is-physical?))
 def(Ctx.physically-empty?, Ctx -- Bool, physical-vars empty?)
-def(Ctx.lookup, Name Ctx -- Maybe(Var), >List reverse-find(dup2 name ==) nip)
+def(Ctx.lookup, Name Ctx -- Maybe(Var), >List reverse-lookup(name ==))
 def(Ctx.len, Ctx -- Nat, >List len)
 def(Ctx.fresh-name!, Ctx -- Ctx Name,
     1 "_x1" >Name while-some(

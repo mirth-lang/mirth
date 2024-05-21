@@ -213,3 +213,6 @@ def(Str.=>(f,g,h), (-- Str, -- Str, -- Str) Str Str Str +Test -- +Test,
     f g h check-equals-3!(==,==,==,show;,show;,show;))
 def(Str.=>(f,g,h,i), (-- Str, -- Str, -- Str, -- Str) Str Str Str Str +Test -- +Test,
     f g h i check-equals-4!(==,==,==,==,show;,show;,show;,show;))
+
+def(List.=>(f,g), (-- List(Int), -- List(Int)) List(Int) List(Int) +Test -- +Test,
+    f g check-equals-2!(==:==,==:==,show;:show;,show;:show;))
