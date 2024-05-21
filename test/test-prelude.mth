@@ -134,6 +134,7 @@ def(test-stack-assertions, --,
 )
 
 def(test-stack-assertions-var, a b -- a b,
+    id
     { a b }
     swap
     { b a }
@@ -149,6 +150,7 @@ def(test-stack-assertions-var-2, a b -- a b,
 )
 
 def(test-stack-assertions-dont-care, a b -- a b,
+    id
     { a b }
     { a _ }
     { _ b }
