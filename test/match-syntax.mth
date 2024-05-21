@@ -1,0 +1,34 @@
+module(test.match-syntax)
+
+import(std.prelude)
+import(std.maybe)
+import(std.list)
+
+def(Maybe.sum, Maybe(Int) -- Int, { None -> 0 } { Some -> id })
+def List.sum {
+    { Nil -> 0 }
+    { Cons -> dip'(sum) + }
+}
+
+def List.very-slow-reverse {
+    match {
+        { Nil -> Nil }
+        { Cons -> swap dip(very-slow-reverse) List.snoc }
+    }
+}
+
+def Maybe.another-match-1 {
+    match (
+        { Some -> Some }
+        { None -> None }
+    )
+}
+
+def Maybe.another-match-2 {
+    match {
+        Some -> Some,
+        None -> None
+    }
+}
+
+def main {}
