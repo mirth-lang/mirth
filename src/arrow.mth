@@ -87,6 +87,7 @@ data(Arrow, Arrow ->
     dom:StackType
     cod:StackType
     atoms:List(Atom))
+def(Arrow.ctx-type, Arrow -- Ctx ArrowType, sip(ctx) type)
 def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
 
 data(Atom, Atom ->

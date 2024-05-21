@@ -51,6 +51,11 @@ data(PrimType,
     PRIM_TYPE_WORLD,
     )
 
+def PrimType.is-resource? [ PrimType -- Bool ] {
+    PRIM_TYPE_WORLD -> True,
+    _ -> drop False
+}
+
 def(PrimType.is-physical?, PrimType -- Bool,
     PRIM_TYPE_TYPE -> False,
     PRIM_TYPE_STACK -> False,

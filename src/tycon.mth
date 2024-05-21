@@ -2,6 +2,7 @@ module(mirth.tycon)
 
 import(std.prelude)
 import(std.maybe)
+import(std.either)
 
 import(mirth.name)
 import(mirth.data)
@@ -36,3 +37,8 @@ def(Tycon.>Type, Tycon -- Type,
     TYCON_DATA -> TData,
     TYCON_TABLE -> TTable,
     TYCON_PRIM -> TPrim)
+
+def(Tycon.full-type-fresh, +Mirth Tycon -- +Mirth Type/Resource,
+    TYCON_DATA -> dip:SUBST_NIL full-type map(freshen, freshen) nip,
+    TYCON_PRIM -> dup is-resource? if(TPrim Resource Right, TPrim Left),
+    TYCON_TABLE -> TTable Left)
