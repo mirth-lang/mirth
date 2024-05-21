@@ -878,7 +878,7 @@ def(c99-match!, Match +C99 -- +C99,
         cases first unwrap body c99-arrow!,
 
         dup scrutinee-data?
-        unwrap-or(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
+        unwrap(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
         is-resource? if(
             c99-line("switch (get_top_resource_data_tag()) {" put),
             c99-line("switch (get_top_data_tag()) {" put)

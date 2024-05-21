@@ -238,7 +238,7 @@ def(QName.>Str, +Mirth QName -- +Mirth Str, MKQNAME ->
 def(QName.to-module-path, QName +World -- Path +World,
     dup namespace match(
         NAMESPACE_PACKAGE ->
-            path-or-search unwrap-or("No path defined for package" panic!)
+            path-or-search unwrap("No path defined for package" panic!)
         	swap name >Str ".mth" cat >Path join,
         _ -> drop "expected module name" panic!
     ))

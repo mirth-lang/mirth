@@ -111,7 +111,7 @@ def(lexer-emit-lcolon!, +Lexer -- +Lexer,
 
 def(lexer-close-colons!, +Lexer -- +Lexer,
     while-some(
-        lexer-stack-peek guard(dup lcolon-open?),
+        lexer-stack-peek filter(dup lcolon-open?),
         lexer-stack-drop
         dup TokenRColon lexer-make!
         TokenLColon swap ~value !

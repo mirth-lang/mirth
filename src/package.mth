@@ -68,6 +68,6 @@ def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
     NAMESPACE_ROOT swap QNAME0 def-soft? bind(package?))
 
 def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
-    dup Package.find unwrap-or(dup None swap Package.new!) nip)
+    dup Package.find unwrap(dup None swap Package.new!) nip)
 
 def(Package.==, Package Package -- Bool, both(index) ==)

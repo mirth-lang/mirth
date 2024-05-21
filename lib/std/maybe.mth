@@ -4,95 +4,79 @@ import(std.prelude)
 import(std.list)
 import(std.str)
 
-data(Maybe(t), None, Some -> t)
+inline (
+    data (Maybe(t), None, Some -> t)
 
-inline:def(Maybe.none?, Maybe(t) -- Bool, >Bool not)
-inline:def(Maybe.some?, Maybe(t) -- Bool, >Bool)
-def(Maybe.>Bool, Maybe(t) -- Bool,
-    None -> False,
-    Some -> drop True)
+    def Maybe.none? [ Maybe(t) -- Bool ] {
+        { None -> True }
+        { Some -> drop False }
+    }
+    def Maybe.some? [ Maybe(t) -- Bool ] {
+        { None -> False }
+        { Some -> drop True }
+    }
+    def Maybe.>Bool [ Maybe(t) -- Bool ] {
+        some?
+    }
+    def Maybe.>List [ Maybe(t) -- List(t) ] {
+        { None -> L0 }
+        { Some -> L1 }
+    }
+    def Maybe.==(eq) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {
+        { None -> none? }
+        { Some -> swap if-some(swap eq, drop False) }
+    }
 
-def(Maybe.>List, Maybe(t) -- List(t),
-    None -> L0,
-    Some -> L1)
+    def Maybe.if(f,g) { { Some -> drop f     } { None -> g     } }
+    def Maybe.then(f) { { Some -> drop f     } { None -> id    } }
+    def Maybe.else(g) { { Some -> drop       } { None -> g     } }
+    def Maybe.and(f)  { { Some -> drop f     } { None -> False } }
+    def Maybe.or(f)   { { Some -> drop True  } { None -> f     } }
+    def Maybe.not     { { Some -> drop False } { None -> True  } }
 
-def(Maybe.==(eq), (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool,
-    None -> none?,
-    Some -> swap if-some(swap eq, drop False))
+    def Maybe.if-some(f,g)  { { Some -> f    } { None -> g     } }
+    def Maybe.then-some(f)  { { Some -> f    } { None -> id    } }
+    def Maybe.and-some(f)   { { Some -> f    } { None -> False } }
+    def Maybe.or-some(f)    { { Some -> Some } { None -> f     } }
 
-def(Maybe.if(f,g), (*a -- *b, *a -- *b) *a Maybe(t) -- *b,
-    Some -> drop f,
-    None -> g)
-def(Maybe.if-some(f,g), (*a t -- *b, *a -- *b) *a Maybe(t) -- *b,
-    Some -> f,
-    None -> g)
-def(Maybe.then(f), (*a -- *a) *a Maybe(t) -- *a,
-    Some -> drop f,
-    None -> id)
-def(Maybe.then-some(f), (*a t -- *a) *a Maybe(t) -- *a,
-    Some -> f,
-    None -> id)
-def(Maybe.else(f), (*a -- *a) *a Maybe(t) -- *a,
-    Some -> drop,
-    None -> f)
+    def Maybe.unwrap(f)     { { Some -> id } { None -> f } }
+    def Maybe.unwrap        { unwrap("tried to unwrap None" panic!) }
 
-inline:def(Maybe.not, Maybe(a) -- Bool, >Bool not)
-def(Maybe.or(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
-    some? or(p))
-def(Maybe.or-some(f), (*a -- *a Maybe(b)) *a Maybe(b) -- *a Maybe(b),
-    None -> f,
-    Some -> Some)
-def(Maybe.and(p), (*c -- *c Bool) *c Maybe(a) -- *c Bool,
-    None -> False,
-    Some -> drop p)
-def(Maybe.and-some(p), (*c a -- *c Bool) *c Maybe(a) -- *c Bool,
-    None -> False,
-    Some -> p)
-def(Maybe.guard(p), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
-    None -> None,
-    Some -> p if(Some, drop None))
+    def Maybe.map(f)    { { Some -> f Some } { None -> None } }
+    def Maybe.bind(f)   { { Some -> f      } { None -> None } }
+    def Maybe.for(f)    { { Some -> f      } { None -> id   } }
 
-def(Maybe.unwrap, Maybe(t) -- t,
-    None -> "tried to unwrap None" panic!,
-    Some -> id)
+    def Maybe.filter(f) [ (*a b -- *a b Bool) *a Maybe(b) -- *a Maybe(b) ] {
+        { Some -> f if(Some, drop None) }
+        { None -> None }
+    }
 
-def(Maybe.unwrap-or(f), (*a -- *a t) *a Maybe(t) -- *a t,
-    None -> f,
-    Some -> id)
+    def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
+        f while(dup some?, unwrap g f) drop
+    }
 
-def(Maybe.map(f), (*c a -- *c b) *c Maybe(a) -- *c Maybe(b),
-    None -> None,
-    Some -> f Some)
+    def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {
+        f while(dup none?, drop g f) unwrap
+    }
 
-def(Maybe.bind(f), (*c a -- *c Maybe(b)) *c Maybe(a) -- *c Maybe(b),
-    None -> None,
-    Some -> f)
+    def Maybe.map2(f) [ (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z) ] {
+        { None -> drop None }
+        { Some ->
+            swap match {
+                { None -> drop None }
+                { Some -> swap f Some }
+            }
+        }
+    }
 
-def(Maybe.for(f), (*c a -- *c) *c Maybe(a) -- *c,
-    None -> id,
-    Some -> f)
+    def Maybe.zip [ Maybe(x) Maybe(y) -- Maybe([x y]) ] { map2(pack2) }
 
-def(Maybe.filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
-    None -> None,
-    Some -> f if(Some, drop None))
+    def Maybe.show;(f) [ (t +Str -- +Str) Maybe(t) +Str -- +Str ] {
+        { None -> "None" ; }
+        { Some -> f " Some" ; }
+    }
 
-inline(
-    def(while-some(f,g), (*a -- *a Maybe(b), *a b -- *a) *a -- *a,
-        f while(dup some?, unwrap g f) drop)
-
-    def(while-none(f,g), (*a -- *a Maybe(b), *a -- *a) *a -- *a b,
-        f while(dup none?, drop g f) unwrap)
+    def Maybe.show(f) [ (t +Str -- +Str) Maybe(t) -- Str ] {
+        Str( show;(f) )
+    }
 )
-
-def(Maybe.map2(f), (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z),
-    None -> drop None,
-    Some -> swap match(
-        None -> drop None,
-        Some -> swap f Some
-    ))
-
-def(Maybe.zip, Maybe(x) Maybe(y) -- Maybe([x y]), map2(pack2))
-
-def(Maybe.show;(f), (t +Str -- +Str) Maybe(t) +Str -- +Str,
-    None -> "None" ;,
-    Some -> f " Some" ;)

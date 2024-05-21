@@ -319,7 +319,7 @@ def(List.union(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
     over dip(swap difference(eq)) swap cat)
 
 def(List.unions(eq), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
-    fold(union(eq)) unwrap-or(L0))
+    fold(union(eq)) unwrap(L0))
 
 def(List.map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
     collect(uncons dip(dip:uncons swap dip:map2:f) rotl) dip:drop2)
@@ -327,7 +327,7 @@ def(List+.map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
     dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons+)
 
 def(List.take-while(p), (*a t -- *a t Bool) *a List(t) -- *a List(t),
-    collect(uncons dip:guard(p) swap) nip)
+    collect(uncons dip:filter(p) swap) nip)
 def(List+.take-while(p), (*a t -- *a t Bool) *a List+(t) -- *a List(t),
     >List take-while(p))
 

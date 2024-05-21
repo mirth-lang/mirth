@@ -104,7 +104,7 @@ def(compile!, Arguments +World +Mirth -- +World +Mirth,
 
 def(parse-package-def, Str -- [Str Path],
     dip(BCOLON) split-byte
-    /L2+ unwrap-or("Invalid package path definition" panic!)
+    /L2+ unwrap("Invalid package path definition" panic!)
     unpack2 >Path pack2)
 
 def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
