@@ -16,15 +16,15 @@ data(Tycon,
 
 def(Tycon.name, +Mirth Tycon -- +Mirth Name,
     TYCON_DATA -> name,
-    TYCON_TABLE -> qname name,
+    TYCON_TABLE -> name,
     TYCON_PRIM -> tycon-qname name)
 def(Tycon.qname-soft, +Mirth Tycon -- +Mirth Maybe(QName),
     TYCON_DATA -> qname-soft,
-    TYCON_TABLE -> qname Some,
+    TYCON_TABLE -> qname-soft,
     TYCON_PRIM -> tycon-qname Some)
 def(Tycon.qname-hard, +Mirth Tycon -- +Mirth QName,
     TYCON_DATA -> qname-hard,
-    TYCON_TABLE -> qname,
+    TYCON_TABLE -> qname-hard,
     TYCON_PRIM -> tycon-qname)
 
 def(Tycon.==, Tycon Tycon -- Bool,

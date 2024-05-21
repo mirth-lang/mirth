@@ -15,12 +15,14 @@ alias(MyTable.my-drop, drop)
 external(MyTable.my-exit -> exit [CInt --])
 embed-str(MyTable.this, "test/deferred-namespace-resolution.mth")
 data(MyTable.MyData, MyTag -> Int)
+table(MyTable.YourTable)
 
 # We can use those words. Note the body is deferred as usual.
 def(main, --,
     MyTable.alloc! test-ok drop
     MyTable.alloc! 10 over my-field ! my-drop
     MyTable.this drop
+    MyTable.YourTable.alloc! drop
     10 MyTag drop
     20 MyData.MyTag drop
     30 MyTable.MyData.MyTag drop

@@ -1616,7 +1616,8 @@ def(elab-table!, +Mirth Token -- +Mirth Token,
     dup sig-type-con? else("expected type name" emit-fatal-error!)
     dup args-0
     dup succ arg-end? else(succ "expected end of argument after table name" emit-fatal-error!)
-    dup elab-def-qname-undefined
+    elab-def-head
+    arity> drop
     table-new! drop)
 
 ||| Create entry point based on word name.
@@ -1668,10 +1669,11 @@ def(table-word-new!, +Mirth Table Str Int -- +Mirth Word,
     dup >arity over >Name >name table-qname >qname Word.new!
     qname> over WordQName prop over ~qname !)
 
-def(table-new!, +Mirth Token QName -- +Mirth Table,
+def(table-new!, +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Table,
     Table.alloc! >tbl
-    @tbl ~qname !
-    @tbl ~head !
+    @tbl TableQName >label Prop @tbl ~qname !
+    head> @tbl ~head !
+    name> @tbl ~name !
     TABLE_MAX_COUNT @tbl ~max-count !
     @tbl DefTable register
 
