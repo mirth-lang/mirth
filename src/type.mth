@@ -95,7 +95,12 @@ def(PrimType.>Int, PrimType -- Int, PrimType.tag)
 def(PrimType.==, PrimType PrimType -- Bool, both(>Int) ==)
 
 def(def-prim-type!, +Mirth PrimType -- +Mirth,
-    dip(None) dup tycon-qname swap TPrim TypeDef.new! drop)
+    >pty
+    None >head
+    @pty tycon-qname dup PSReady >state
+                         name >name
+    TypeDef.new!
+    pty> TPrim over TypeDefTarget prop swap ~target !)
 
 def(init-types!, +Mirth -- +Mirth,
     PRIM_TYPE_INT def-prim-type!

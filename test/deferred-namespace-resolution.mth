@@ -16,8 +16,10 @@ external(MyTable.my-exit -> exit [CInt --])
 embed-str(MyTable.this, "test/deferred-namespace-resolution.mth")
 data(MyTable.MyData, MyTag -> Int)
 table(MyTable.YourTable)
+def-type(MyTable.MySelf, MyTable)
 
 # We can use those words. Note the body is deferred as usual.
+def(foo, MyTable.MySelf --, drop)
 def(main, --,
     MyTable.alloc! test-ok drop
     MyTable.alloc! 10 over my-field ! my-drop
