@@ -35,19 +35,19 @@ inline (
     def Maybe.not     { { Some -> drop False } { None -> True  } }
 
     def Maybe.if-some(f,g)  { { Some -> f    } { None -> g     } }
-    def Maybe.then-some(f)  { { Some -> f    } { None -> id    } }
-    def Maybe.and-some(f)   { { Some -> f    } { None -> False } }
     def Maybe.or-some(f)    { { Some -> Some } { None -> f     } }
 
     def Maybe.unwrap(f)     { { Some -> id } { None -> f } }
     def Maybe.unwrap        { unwrap("tried to unwrap None" panic!) }
 
-    def Maybe.map(f)    { { Some -> f Some } { None -> None } }
-    def Maybe.bind(f)   { { Some -> f      } { None -> None } }
-    def Maybe.for(f)    { { Some -> f      } { None -> id   } }
+    def Maybe.map(f)  { { Some -> f Some } { None -> None  } }
+    def Maybe.bind(f) { { Some -> f      } { None -> None  } }
+    def Maybe.for(f)  { { Some -> f      } { None -> id    } }
+    def Maybe.has(f)  { { Some -> f      } { None -> False } }
+    def Maybe.all(f)  { { Some -> f      } { None -> True  } }
 
-    def Maybe.filter(f) [ (*a b -- *a b Bool) *a Maybe(b) -- *a Maybe(b) ] {
-        { Some -> f if(Some, drop None) }
+    def Maybe.filter(f) [ (*a b -- *a Bool) *a Maybe(b) -- *a Maybe(b) ] {
+        { Some -> dup dip(f) swap if(Some, drop None) }
         { None -> None }
     }
 

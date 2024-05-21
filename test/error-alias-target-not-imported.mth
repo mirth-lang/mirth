@@ -1,6 +1,6 @@
 module(mirth-tests.error-alias-target-not-imported)
 import(std.prelude)
-alias(mand(f), Maybe.and-some)
+alias(mand(f), Maybe.has)
 def(main, --, id)
-# mirth-test # merr # 3:16: error: Not imported in current scope: std.maybe.Maybe/1.and-some/1
+# mirth-test # merr # 3:16: error: Not imported in current scope: std.maybe.Maybe/1.has/1
 # mirth-test # mret # 1

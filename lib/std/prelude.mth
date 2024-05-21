@@ -55,6 +55,13 @@ inline(
     def(Bool.show;, Bool +Str -- +Str, show ;)
     def(Bool.then(f), (*a -- *a) *a Bool -- *a, if(f, id))
     def(Bool.else(f), (*a -- *a) *a Bool -- *a, if(id, f))
+
+    def or(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
+        dup dip(f) swap if(drop True, g)
+    }
+    def and(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
+        dup dip(f) swap if(g, drop False)
+    }
 )
 
 data(OS,

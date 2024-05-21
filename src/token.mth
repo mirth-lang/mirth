@@ -100,18 +100,18 @@ def(TokenValue.right-enclosure?, TokenValue -- Bool,
     TokenRColon -> drop True,
     _ -> drop False)
 
-def(TokenValue.sig-type?, TokenValue -- Bool, name? and-some(could-be-type))
-def(TokenValue.sig-type-con?, TokenValue -- Bool, last-name? and-some(could-be-type-con))
-def(TokenValue.sig-type-hole?, TokenValue -- Bool, name? and-some(is-type-hole))
-def(TokenValue.sig-type-var?, TokenValue -- Bool, name? and-some(could-be-type-var))
+def(TokenValue.sig-type?, TokenValue -- Bool, name? has(could-be-type))
+def(TokenValue.sig-type-con?, TokenValue -- Bool, last-name? has(could-be-type-con))
+def(TokenValue.sig-type-hole?, TokenValue -- Bool, name? has(is-type-hole))
+def(TokenValue.sig-type-var?, TokenValue -- Bool, name? has(could-be-type-var))
 def(TokenValue.sig-param-name?, TokenValue -- Bool, sig-type-var?)
-def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? and-some(could-be-stack-var))
-def(TokenValue.sig-resource-var?, TokenValue -- Bool, name? and-some(could-be-resource-var))
-def(TokenValue.sig-resource-con?, TokenValue -- Bool, last-name? and-some(could-be-resource-con))
-def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES name ==))
-def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW name ==))
-def(TokenValue.pat-underscore?, TokenValue -- Bool, name? and-some(is-underscore))
-def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(>Str "module" ==))
+def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? has(could-be-stack-var))
+def(TokenValue.sig-resource-var?, TokenValue -- Bool, name? has(could-be-resource-var))
+def(TokenValue.sig-resource-con?, TokenValue -- Bool, last-name? has(could-be-resource-con))
+def(TokenValue.sig-dashes?, TokenValue -- Bool, name? has(PRIM_SYNTAX_DASHES name ==))
+def(TokenValue.pat-arrow?, TokenValue -- Bool, name? has(PRIM_SYNTAX_ARROW name ==))
+def(TokenValue.pat-underscore?, TokenValue -- Bool, name? has(is-underscore))
+def(TokenValue.module-header?, TokenValue -- Bool, name? has(>Str "module" ==))
 
 table(Token)
 field(Token.~value, Token, TokenValue)
@@ -216,7 +216,7 @@ def(Token.could-be-sig-label?, Token -- Bool,
     and(dup succ lcolon? >Bool) nip)
 
 def(Token.pattern-var?, Token -- Bool,
-    name? and-some: could-be-pattern-var?)
+    name? has: could-be-pattern-var?)
 
 ||| Verify that token has 0 args, and return them.
 ||| Emits a fatal error if arity is wrong.
@@ -316,7 +316,7 @@ def(Token.run-length, Token -- Nat,
     dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop)
 
 def(Token.run-arrow?, Token -- Maybe(Token),
-    run-tokens find(dup pat-arrow?))
+    run-tokens find(pat-arrow?))
 
 ###################
 # Type Signatures #
@@ -352,4 +352,4 @@ def(Token.sig-skip-dashes, Token -- Token,
     dup sig-has-dashes? then(sig-next-stack-end next))
 
 def(Token.pat-tokens, Token -- List(Token),
-    run-tokens take-while(dup pat-arrow? not))
+    run-tokens take-while(pat-arrow? not))

@@ -17,6 +17,6 @@ def(Map.values, Map(k,v) -- List(v), Map -> map(value))
 def(Map.insert, KVPair(k,v) Map(k,v) -- Map(k,v),
     Map -> cons Map)
 def(Map.lookup-pair(k==), (k k -- Bool) k Map(k,v) -- Maybe(KVPair(k,v)),
-    Map -> find(dup2 key k==) nip)
+    Map -> lookup(key k==))
 def(Map.lookup(k==), (k k -- Bool) k Map(k,v) -- Maybe(v),
     lookup-pair(k==) map(value))

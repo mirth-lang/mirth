@@ -75,7 +75,7 @@ def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) Ar
 def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool)
         +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
     argument-parser options
-    find(over f) swap drop match(
+    find(over f nip) swap drop match(
         Some ->
             dup arg-doc match(
                 Some ->
@@ -120,8 +120,8 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
             _ -> drop
         )
 
-        dup name then-some(num-bytes >Int doc-length> 3 + + >doc-length)
-        arg-doc then-some(num-bytes >Int doc-length> 1 + + >doc-length)
+        dup name for(num-bytes >Int doc-length> 3 + + >doc-length)
+        arg-doc for(num-bytes >Int doc-length> 1 + + >doc-length)
 
 
         doc-length> dup state longest-arg-length > if(
@@ -159,7 +159,7 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
                 )
             ),
             drop None
-        ) then-some(
+        ) for(
             Some state:error!,
         )
     )

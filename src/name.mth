@@ -216,11 +216,11 @@ def(QName.compare, +Mirth QName QName -- +Mirth Comparison,
         dip:drop4
     ))
 
-def(QName.def-hard?, +Mirth QName -- +Mirth Maybe(Def), dup name defs find(dup2 qname-hard ==) nip)
+def(QName.def-hard?, +Mirth QName -- +Mirth Maybe(Def), dup name defs lookup(qname-hard ==))
 def(QName.defined-hard?, +Mirth QName -- +Mirth Bool, def-hard? some?)
 def(QName.undefined-hard?, +Mirth QName -- +Mirth Bool, def-hard? none?)
 
-def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) find(dup2 qname-soft ==:==) nip)
+def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) lookup(qname-soft ==:==))
 def(QName.defined-soft?, +Mirth QName -- +Mirth Bool, def-soft? some?)
 def(QName.undefined-soft?, +Mirth QName -- +Mirth Bool, def-soft? none?)
 

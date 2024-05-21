@@ -39,7 +39,7 @@ def(main, +World -- +World,
     trace("[" over for(swap ; show; " ") drop "]" ;)
     map(10 +)
     trace("[" over for(swap ; show; " ") drop "]" ;)
-    find(dup 25 >) match(
+    find(25 >) match(
         Some -> trace(show; " found";),
         None -> "not found" trace
     ))

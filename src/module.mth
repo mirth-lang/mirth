@@ -57,5 +57,5 @@ def(Module.source-path, Module -- Path,
 def(Module.visible, Module Module -- Bool,
     dup2 == if(
         drop2 True, # Module is always visible to itself.
-        imports any(dup2 ==) nip
+        imports member(==)
     ))

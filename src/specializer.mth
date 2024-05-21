@@ -80,7 +80,7 @@ def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List
         Some ->
             dup for(check-arg!)
             over prefer-inline? not or(
-            dup map(rdip:free-vars) any(dup any(dup is-physical?))) if(
+            dup has(rdip:free-vars has(is-physical?))) if(
                 # too complicated, let's skip it
                 drop2 L1,
 
@@ -223,7 +223,7 @@ def(+SPSynth.synth-op!, +Mirth +SPSynth Op -- +Mirth +SPSynth,
     _ -> ab:ab-op!)
 
 def(+SPSynth.synth-block!, +Mirth +SPSynth Block -- +Mirth +SPSynth,
-    # dup free-vars any(dup spmap lookup(==) some?) if(
+    # dup free-vars has(dup spmap lookup(==) some?) if(
         dup rdip:to-run-var bind(spmap lookup(==)) match(
             None -> ab:ab-block!(+SPSYNTH synth-run! /+SPSYNTH),
             Some -> nip OpBlockPush ab:ab-op!

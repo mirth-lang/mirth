@@ -216,7 +216,7 @@ def(resolve-def(f), (*a +Mirth +ResolveDef -- *b +Mirth +ResolveDef)
         Nil -> resolve-def-unknown None,
         Cons -> match(
             Nil -> rdrop Some,
-            _ -> List.filter(dup2 rdip:same-resolved? not) match(
+            _ -> List.filter(over rdip:same-resolved? not) match(
                 Nil -> rdrop Some,
                 _ -> drop2 resolve-def-ambiguous None
             )
@@ -327,14 +327,14 @@ def(+ResolveDef.filter-roots, List(Namespace) +Mirth +ResolveDef -- +Mirth +Reso
     )
     token dname? for(
         dup is-relative? and(ignore-last-name not) if(
-            filter(dup2 rdip:qname-hard climb-up-dname? any(dup over4 member(==)),
+            filter(dup2 rdip:qname-hard climb-up-dname? has(over3 member(==)),
                 over2 empty? if(
                     RD_METHOD_NOT_AVAILABLE,
                     RD_METHOD_WRONG_TYPE
                 )
             ),
-            filter(dup2 rdip:qname-hard climb-up-dname? any(
-                token over rdip:namespace-is-imported-at-token?
+            filter(dup2 rdip:qname-hard climb-up-dname? has(
+                dip:token rdip:namespace-is-imported-at-token?
             ), RD_NOT_IMPORTED)
         ) drop
     )
@@ -378,7 +378,7 @@ def(QName.climb-up-name?, +Mirth Name QName -- +Mirth List(Namespace),
                 drop
             ),
         DefType ->
-            dup target tycon? and-some(qname-hard @qname ==) if(
+            dup target tycon? has(qname-hard @qname ==) if(
                 namespace @accum:cons,
                 drop
             ),
@@ -412,7 +412,7 @@ def(+TypeElab.resolve-type-con-name!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
     ) unwrap(TYPE_ERROR))
 
 def(+TypeElab.elab-type-con!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
-    token name? and-some(>Str "Mut" ==) if(
+    token name? has(>Str "Mut" ==) if(
         token next dip(
             token:args-1
             elab-type-arg!
@@ -1178,7 +1178,7 @@ def(elab-data!, Token +Mirth -- Token +Mirth,
 ||| Get the header, name, arity for a data type.
 def(elab-data-header!, Data Token +Mirth -- Data +Mirth,
     >head >data
-    @head last-name? and-some(could-be-type-or-resource-con)
+    @head last-name? has(could-be-type-or-resource-con)
         else(@head "Expected type name." emit-fatal-error!)
     elab-def-head
     @head Some @data ~head? !
@@ -1240,7 +1240,7 @@ def(elab-data-tag!, Data Token +Mirth -- Data +Mirth,
     dup outputs-resource? not
     over num-resource-inputs 0> && then(
         dup sig? unwrap run-tokens find(
-            dup sig-resource-con? or(dup sig-resource-var?)
+            dup sig-resource-con? or(dup sig-resource-var?) nip
         ) unwrap "Value type cannot contain resource." emit-error!
     )
 
@@ -1697,8 +1697,8 @@ def(elab-def-external-ctype, +Mirth External -- +Mirth CTypeArrow,
     dup head with-error-token(
         type ctype
         dup cod parts
-        filter(dup label? none?)
-        filter(dup ctype phantom? not)
+        filter(label? none?)
+        filter(ctype phantom? not)
         len 1 >Nat > then(
             "External has too many outputs." error!
         )
