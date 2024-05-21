@@ -1717,9 +1717,9 @@ def(elab-variable!, +Mirth Token -- +Mirth Token,
 ||| Elaborate a table definition `table(True)`.
 def(elab-table!, +Mirth Token -- +Mirth Token,
     sip(next) args-1 >head
-    @head sig-type-con? else("expected type name" emit-fatal-error!)
+    @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
     @head args-0
-    @head succ arg-end? else(succ "expected end of argument after table name" emit-fatal-error!)
+    @head succ arg-end? else(@head succ "expected end of argument after table name" emit-fatal-error!)
     elab-def-head
     arity> drop
     table-new! drop)

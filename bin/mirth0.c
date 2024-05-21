@@ -36018,6 +36018,9 @@ static void mw_mirth_elab_elabZ_tableZBang (void) {
 	mw_mirth_token_Token_sigZ_typeZ_conZAsk();
 	if (pop_u64()) {
 	} else {
+		LPOP(lbl_head);
+		mp_primZ_dup();
+		LPUSH(lbl_head);
 		STRLIT("expected type name", 18);
 		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 	}
@@ -36032,6 +36035,9 @@ static void mw_mirth_elab_elabZ_tableZBang (void) {
 	mw_mirth_token_Token_argZ_endZAsk();
 	if (pop_u64()) {
 	} else {
+		LPOP(lbl_head);
+		mp_primZ_dup();
+		LPUSH(lbl_head);
 		mw_mirth_token_Token_succ();
 		STRLIT("expected end of argument after table name", 41);
 		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
