@@ -168,6 +168,8 @@ def(List+.filter(f), (*c a -- *c a Bool) *c List+(a) -- *c List(a),
 def(List.flatmap(f), (*c a -- *c List(b)) *c List(a) -- *c List(b),
     LIST(for(rdip(f) for(;))))
 
+alias(List.bind(f), List.flatmap)
+
 def(List+.flatmap(f), (*c a -- *c List(b)) *c List+(a) -- *c List(b),
     /List+Unsafe flatmap(f))
 

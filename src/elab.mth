@@ -303,7 +303,7 @@ def(+ResolveDef.filter-visible, +ResolveDef -- +ResolveDef,
 
 def(+ResolveDef.filter-qualifiers, +Mirth +ResolveDef -- +Mirth +ResolveDef,
     token dname? for(
-        filter(dup2 rdip:qname-hard climb-up-dname? some?, RD_WRONG_QUALIFIER)
+        filter(dup2 rdip:qname-hard climb-up-dname? empty? not, RD_WRONG_QUALIFIER)
         drop
     ))
 
@@ -327,14 +327,14 @@ def(+ResolveDef.filter-roots, List(Namespace) +Mirth +ResolveDef -- +Mirth +Reso
     )
     token dname? for(
         dup is-relative? and(ignore-last-name not) if(
-            filter(dup2 rdip:qname-hard climb-up-dname? and-some(over3 member(==)),
+            filter(dup2 rdip:qname-hard climb-up-dname? any(dup over4 member(==)),
                 over2 empty? if(
                     RD_METHOD_NOT_AVAILABLE,
                     RD_METHOD_WRONG_TYPE
                 )
             ),
-            filter(dup2 rdip:qname-hard climb-up-dname? and-some(
-                token swap rdip:namespace-is-imported-at-token?
+            filter(dup2 rdip:qname-hard climb-up-dname? any(
+                token over rdip:namespace-is-imported-at-token?
             ), RD_NOT_IMPORTED)
         ) drop
     )
@@ -364,21 +364,35 @@ def(namespace-is-imported-at-token?, +Mirth Token Namespace -- +Mirth Bool,
     NAMESPACE_TYCON -> qname-hard namespace namespace-is-imported-at-token?,
     NAMESPACE_WORD -> drop2 False)
 
-def(QName.climb-up-name?, Name QName -- Maybe(Namespace),
-    tuck name == if(
-        namespace Some,
-        drop None
-    ))
+def(QName.climb-up-name?, +Mirth Name QName -- +Mirth List(Namespace),
+    >qname >name
 
-def(QName.climb-up-dname?, +Mirth +ResolveDef DName QName -- +Mirth +ResolveDef Maybe(Namespace),
+    @qname name @name == if(
+        @qname namespace L1,
+        L0
+    ) >accum
+    name> defs for(match(
+        DefAlias ->
+            dup target qname-hard @qname == if(
+                namespace-hard @accum:cons,
+                drop
+            ),
+        DefType ->
+            dup target tycon? and-some(qname-hard @qname ==) if(
+                namespace @accum:cons,
+                drop
+            ),
+        _ -> drop
+    ))
+    qname> drop
+    accum>)
+
+def(QName.climb-up-dname?, +Mirth +ResolveDef DName QName -- +Mirth +ResolveDef List(Namespace),
     dip(sip(root? >List) parts unsnoc dip(cat)
         ignore-last-name then(drop unsnoc unwrap)
     )
-    climb-up-name? swap
-    reverse-for(swap bind(rdip:qname) match(
-        Some -> climb-up-name?,
-        None -> drop None
-    )))
+    rdip:climb-up-name? swap
+    reverse-for(swap bind(rdip:qname if-some(dip(dup) rdip:climb-up-name?, L0)) nip))
 
 def(+TypeElab.resolve-type-con-name!, +Mirth +TypeElab -- +Mirth +TypeElab Type,
     False >report-ambiguous-as-warning

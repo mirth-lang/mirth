@@ -12,6 +12,7 @@ import(std.ctypes)
 def(MyTable.test-ok, MyTable -- Int, drop 0)
 field(MyTable.my-field, MyTable, Int)
 alias(MyTable.my-drop, drop)
+alias(MyTable.Alias, MyTable)
 external(MyTable.my-exit -> exit [CInt --])
 embed-str(MyTable.this, "test/deferred-namespace-resolution.mth")
 data(MyTable.MyData, MyTag -> Int)
@@ -28,6 +29,8 @@ def(main, --,
     10 MyTag drop
     20 MyData.MyTag drop
     30 MyTable.MyData.MyTag drop
+    MyTable.Alias.alloc! drop
+    MyTable.MySelf.this drop
     42 CInt MyTable.my-exit)
 
 # Now we finally define MyTable.
