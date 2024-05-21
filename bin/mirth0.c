@@ -27404,6 +27404,7 @@ static void mw_mirth_def_Def_typecheckZBang (void) {
 			break;
 		case 5LL: // DefType
 			mtp_mirth_def_Def_DefType();
+			mw_mirth_typedef_TypeDef_target();
 			mp_primZ_drop();
 			break;
 		case 11LL: // DefExternal
@@ -35432,9 +35433,9 @@ static void mw_mirth_elab_elabZ_defZ_typeZBang (void) {
 	mp_primZ_dup();
 	LPUSH(lbl_head);
 	mw_mirth_token_Token_argsZ_0();
-	LPOP(lbl_target);
+	LPOP(lbl_head);
 	mp_primZ_dup();
-	LPUSH(lbl_target);
+	LPUSH(lbl_head);
 	mw_mirth_token_Token_sigZ_typeZ_conZAsk();
 	if (pop_u64()) {
 	} else {

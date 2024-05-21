@@ -1607,7 +1607,7 @@ def(elab-def-external-ctype, +Mirth External -- +Mirth CTypeArrow,
 def(elab-def-type!, +Mirth Token -- +Mirth Token,
     sip(next) args-2 >target >head
     @head args-0
-    @target sig-type-con? else("expected type constructor" emit-fatal-error!)
+    @head sig-type-con? else("expected type constructor" emit-fatal-error!)
     head> elab-def-head @head:Some
     arity> drop
     TypeDef.new!
