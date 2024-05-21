@@ -17,16 +17,18 @@ import(mirth.mirth)
 
 table(Data)
 field(Data.~head?, Data, Maybe(Token))
-field(Data.~qname, Data, QName)
+field(Data.~qname, Data, Prop(QName))
+field(Data.~name, Data, Name)
 field(Data.~arity, Data, Int)
 field(Data.~params, Data, Prop(List(Var)))
 field(Data.~tags, Data, List(Tag))
 field(Data.~ctype?, Data, Prop(Maybe(CType)))
 
 def(Data.head?, Data -- Maybe(Token), ~head? @)
-def(Data.qname, Data -- QName, ~qname @)
-def(Data.namespace, Data -- Namespace, qname namespace)
-def(Data.name, Data -- Name, qname name)
+def(Data.name, Data -- Name, ~name @)
+def(Data.qname-soft, Data -- Maybe(QName), ~qname @? bind(ready?))
+def(Data.qname-hard, +Mirth Data -- +Mirth QName, ~qname force!)
+def(Data.namespace-hard, +Mirth Data -- +Mirth Namespace, qname-hard namespace)
 def(Data.arity, Data -- Int, ~arity @)
 def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
 def(Data.tags, Data -- List(Tag), ~tags @)
@@ -46,7 +48,8 @@ def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
     >ctype >tags >data >params >name
 
     @params len >Int dup @data ~arity !
-    name> swap QName.prim @data ~qname !
+    @name >Name @data ~name !
+    name> swap QName.prim @data DataQName prop @data ~qname !
     ctype> @data DataCType prop @data ~ctype? !
 
     @tags for(@data swap ~data !)

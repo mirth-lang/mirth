@@ -1,6 +1,8 @@
 module(mirth.tycon)
 
 import(std.prelude)
+import(std.maybe)
+
 import(mirth.name)
 import(mirth.data)
 import(mirth.table)
@@ -12,10 +14,17 @@ data(Tycon,
     TYCON_TABLE -> Table,
     TYCON_PRIM -> PrimType)
 
-def(Tycon.name, +Mirth Tycon -- +Mirth Name, qname name)
-def(Tycon.qname, +Mirth Tycon -- +Mirth QName,
-    TYCON_DATA -> qname,
-    TYCON_TABLE -> qname,
+def(Tycon.name, +Mirth Tycon -- +Mirth Name,
+    TYCON_DATA -> name,
+    TYCON_TABLE -> name,
+    TYCON_PRIM -> tycon-qname name)
+def(Tycon.qname-soft, +Mirth Tycon -- +Mirth Maybe(QName),
+    TYCON_DATA -> qname-soft,
+    TYCON_TABLE -> qname-soft,
+    TYCON_PRIM -> tycon-qname Some)
+def(Tycon.qname-hard, +Mirth Tycon -- +Mirth QName,
+    TYCON_DATA -> qname-hard,
+    TYCON_TABLE -> qname-hard,
     TYCON_PRIM -> tycon-qname)
 
 def(Tycon.==, Tycon Tycon -- Bool,

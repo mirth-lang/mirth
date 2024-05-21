@@ -10,20 +10,22 @@ import(mirth.mirth)
 
 table(TypeDef)
 field(TypeDef.~head?, TypeDef, Maybe(Token))
-field(TypeDef.~qname, TypeDef, QName)
-field(TypeDef.~target, TypeDef, Type)
+field(TypeDef.~name, TypeDef, Name)
+field(TypeDef.~qname, TypeDef, Prop(QName))
+field(TypeDef.~target, TypeDef, Prop(Type))
 
 def(TypeDef.head?, TypeDef -- Maybe(Token), ~head? @)
-def(TypeDef.qname, TypeDef -- QName, ~qname @)
-def(TypeDef.namespace, TypeDef -- Namespace, qname namespace)
-def(TypeDef.name, TypeDef -- Name, qname name)
-def(TypeDef.target, TypeDef -- Type, ~target @)
+def(TypeDef.qname-soft, TypeDef -- Maybe(QName), ~qname @? bind(ready?))
+def(TypeDef.qname-hard, +Mirth TypeDef -- +Mirth QName, ~qname force!)
+def(TypeDef.namespace, +Mirth TypeDef -- +Mirth Namespace, qname-hard namespace)
+def(TypeDef.name, TypeDef -- Name, ~name @)
+def(TypeDef.target, +Mirth TypeDef -- +Mirth Type, ~target force!)
 
 def(TypeDef.==, TypeDef TypeDef -- Bool, both(index) ==)
 
-def(TypeDef.new!, +Mirth Maybe(Token) QName Type -- +Mirth TypeDef,
+def(TypeDef.new!, +Mirth head:Maybe(Token) name:Name state:PropState(QName) -- +Mirth TypeDef,
     TypeDef.alloc!
-    tuck ~target !
-    tuck ~qname !
-    tuck ~head? !
+    head> over ~head? !
+    name> over ~name !
+    dup TypeDefQName >label Prop over ~qname !
     dup DefType register)

@@ -77,6 +77,9 @@ def(TokenValue.last-name?, TokenValue -- Maybe(Name),
     TokenName -> Some,
     TokenDName -> last-name Some,
     _ -> drop None)
+def(TokenValue.penultimate-name?, TokenValue -- Maybe(Name),
+    TokenDName -> penultimate-name?,
+    _ -> drop None)
 def(TokenValue.arg-end?, TokenValue -- Bool,
     TokenComma -> True,
     TokenRParen -> drop True,
@@ -144,6 +147,7 @@ def(Token.name?, Token -- Maybe(Name), value name?)
 def(Token.dname?, Token -- Maybe(DName), value dname?)
 def(Token.name-or-dname?, Token -- Maybe(Either(Name,DName)), value name-or-dname?)
 def(Token.last-name?, Token -- Maybe(Name), value last-name?)
+def(Token.penultimate-name?, Token -- Maybe(Name), value penultimate-name?)
 def(Token.arg-end?, Token -- Bool, value arg-end?)
 def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
 def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)

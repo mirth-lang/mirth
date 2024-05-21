@@ -22,6 +22,7 @@ import(mirth.table)
 import(mirth.package)
 import(mirth.module)
 import(mirth.type)
+import(mirth.typedef)
 import(mirth.prim)
 
 data(Builtin, Builtin ->
@@ -216,9 +217,13 @@ data(PropState(b),
     PSDelay -> a [a +Mirth -- b +Mirth],
     PSComputing)
 data(PropLabel,
+    DataQName -> Data,
     DataParams -> Data,
     DataCType -> Data,
     TagType -> Tag,
+    TableQName -> Table,
+    TypeDefQName -> TypeDef,
+    TypeDefTarget -> TypeDef,
     WordQName -> Word,
     WordType -> Word,
     WordParams -> Word,
