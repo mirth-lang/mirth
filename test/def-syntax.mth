@@ -1,0 +1,17 @@
+module(test.def-syntax)
+
+import(std.prelude)
+import(std.maybe)
+import(std.world)
+
+def square [ Int -- Int ] { dup * }
+def my-map(f) [ (a -- b) Maybe(a) -- Maybe(b) ] {
+    None -> None,
+    Some -> f Some,
+}
+def noop [--] {}
+def main [+World -- +World] {
+    "hello" print
+}
+
+# mirth-test # pout # hello

@@ -1102,7 +1102,7 @@ def(elab-data-header!, Data Token +Mirth -- Data +Mirth,
     >head >data
     @head last-name? and-some(could-be-type-or-resource-con)
         else(@head "Expected type name." emit-fatal-error!)
-    head> elab-def-head
+    elab-def-head
     @head Some @data ~head? !
     arity> @data ~arity !
     name> @data ~name !
@@ -1345,16 +1345,6 @@ def(create-projectors!, +Mirth Tag -- +Mirth,
 def(expect-token-arrow, +Mirth Token -- +Mirth Token,
     dup pat-arrow? else("Expected arrow." emit-fatal-error!))
 
-||| Break apart the arguments for `def` into three categories:
-|||     - head: the name of the definition, plus params
-|||     - sig: the type signature
-|||     - body: a nonempty list of body arguments
-def(token-def-args, +Mirth Token -- +Mirth Token Token List+(Token),
-    dup args dup len 3 >Nat < then(drop "def expects at least three arguments" emit-fatal-error!) nip
-    >List+ unwrap uncons
-    >List+ unwrap uncons
-    >List+ unwrap)
-
 ||| Parse an alias declaration.
 ||| Either `alias(head, target)` or `alias head target`.
 ||| Both `head` and `target` are names (or dnames), with `head` taking
@@ -1376,7 +1366,7 @@ def(parse-alias, +Mirth Token -- +Mirth Token head:Token target:Token,
 
 ||| Elaborate an alias declaration.
 def(elab-alias!, +Mirth Token -- +Mirth Token,
-    parse-alias head> elab-def-head Alias.new!
+    parse-alias elab-def-head Alias.new!
     dup AliasQName >label Prop over ~qname !
 
     target> over dup AliasTarget prop2(
@@ -1418,32 +1408,66 @@ def(elab-inline!, Token +World +Mirth -- Token +World +Mirth,
     while(dup arg-end? not, elab-module-decl!)
     drop prefer-inline-defs!)
 
+||| Parse a word definition! It will look like one of these:
+|||
+|||     def(word, sig, body...)
+|||     def word [ sig ] { body... }
+|||     def word { body... }
+|||
+||| Returns the next token after the definition.
+def parse-def [ +Mirth Token -- +Mirth Token
+                head: Token sig: Maybe(Token) body: Token ]
+{
+    dup args empty? if(
+        next
+        dup >head next
+        dup lsquare? if(dup args-1 Some >sig next, None >sig)
+        dup lcurly? else("expected { ... }" emit-fatal-error!)
+        dup args+ >body
+        next,
+
+        sip(next)
+        dup args dup len 3 >Nat <
+            then(drop
+                 "def(...) expects at least three arguments"
+                 emit-fatal-error!)
+            nip
+        >List+ unwrap uncons dip(>head)
+        >List+ unwrap uncons dip(Some >sig)
+        >List+ unwrap >body
+
+        @head next arg-end? else(
+            @head next "expected comma after word name" emit-fatal-error!
+        )
+    )
+    body> uncons empty? or(dup run-arrow? >Bool)
+        else("expected match case" emit-fatal-error!) >body
+}
+
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, +Mirth Token -- +Mirth Token,
-    sip(next) token-def-args
-    uncons empty? or(dup run-arrow? >Bool) else("expected match case" emit-fatal-error!) >body
-    Some >sig
-    elab-def-head Word.new!
-    dup WordQName >label Prop over ~qname !
+    parse-def elab-def-head Word.new! >word
+    @word WordQName >label Prop @word ~qname !
 
-    prefer-inline-defs over ~prefer-inline? !
+    prefer-inline-defs @word ~prefer-inline? !
 
-    dup dup WordType prop(
+    @word @word WordType prop(
         sig unwrap
         +TypeElab.type-sig-start!
         elab-type-sig!
         dip:ctx pack2
         rdrop
-    ) over ~ctx-type !
-    dup dup WordParams prop(elab-def-params!) over ~params !
-    dup dup WordArrow prop(
+    ) @word ~ctx-type !
+    @word @word WordParams prop(elab-def-params!) @word ~params !
+    @word @word WordArrow prop(
         dup dup ab-build-word-arrow!(
             swap rdip:params dup empty? if(
                 drop elab-def-body!,
                 ab-lambda!(elab-def-body!)
             )
         ) tuck check-inline-recursion-arrow!
-    ) swap ~arrow !)
+    ) @word ~arrow !
+    word> drop)
 
 def(check-inline-recursion-arrow!, +Mirth Word Arrow -- +Mirth,
     atoms for(dip:dup check-inline-recursion-atom!) drop)
@@ -1565,7 +1589,7 @@ def(elab-external-block-part!, +Mirth ExternalDeclPart -- +Mirth ExternalBlockPa
     EDPDef -> elab-external-def! EBPDef)
 
 def(elab-external-def!, +Mirth head:Token symbol:Maybe(Token) sig:Token -- +Mirth External,
-    head> elab-def-head
+    elab-def-head
 
     symbol> if-some(name? unwrap, @name) >Str >symbol
 
@@ -1608,7 +1632,7 @@ def(elab-def-type!, +Mirth Token -- +Mirth Token,
     sip(next) args-2 >target >head
     @head args-0
     @head sig-type-con? else("expected type constructor" emit-fatal-error!)
-    head> elab-def-head @head:Some
+    elab-def-head @head:Some
     arity> drop
     TypeDef.new!
     target> over TypeDefTarget prop(elab-simple-type-arg!) swap ~target !)
@@ -1629,10 +1653,10 @@ def(elab-variable!, +Mirth Token -- +Mirth Token,
 
 ||| Elaborate a table definition `table(True)`.
 def(elab-table!, +Mirth Token -- +Mirth Token,
-    sip(next) args-1
-    dup sig-type-con? else("expected type name" emit-fatal-error!)
-    dup args-0
-    dup succ arg-end? else(succ "expected end of argument after table name" emit-fatal-error!)
+    sip(next) args-1 >head
+    @head sig-type-con? else("expected type name" emit-fatal-error!)
+    @head args-0
+    @head succ arg-end? else(succ "expected end of argument after table name" emit-fatal-error!)
     elab-def-head
     arity> drop
     table-new! drop)
@@ -1655,7 +1679,7 @@ def(elab-entry-point, QName +Mirth -- Arrow +Mirth,
 ||| The path is relative to compiler's cwd, not source root.
 def(elab-embed-str!, Token +World +Mirth -- Token +World +Mirth,
     sip:next args-2 swap
-    elab-def-head
+    >head elab-def-head
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
     dup >body None >sig
     dup str? unwrap-or("expected source path" emit-fatal-error!)
@@ -1914,14 +1938,13 @@ def(elab-def-qname-undefined, +Mirth Token -- +Mirth QName,
 ||| We defer the full resolution of the qualified name, but otherwise
 ||| we collect arity and (simple) name data from the head token.
 def(elab-def-head,
-        +Mirth Token --
+        +Mirth head:Token --
         +Mirth head:Token name:Name arity:Int state:PropState(QName),
-    dup >head
-    dup name-or-dname?
-        unwrap-or("expected name" emit-fatal-error!)
+    @head name-or-dname?
+        unwrap-or(@head "expected name" emit-fatal-error!)
         either(id, parts last) >name
-    dup num-args >arity
-    [elab-def-qname-undefined] PSDelay >state)
+    @head num-args >arity
+    @head [elab-def-qname-undefined] PSDelay >state)
 
 ||| Parse a field definition, `field(f, T1, T2)`
 def(parse-field,
@@ -1933,7 +1956,7 @@ def(parse-field,
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, +Mirth Token -- +Mirth Token,
-    parse-field head> elab-def-head
+    parse-field elab-def-head
     Field.alloc! >fld
     name> @fld ~name !
     head> @fld ~head !
