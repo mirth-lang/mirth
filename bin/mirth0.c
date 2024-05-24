@@ -32595,7 +32595,19 @@ static void mw_mirth_lexer_lexerZ_emitZ_stringZBang (void) {
 		mw_mirth_lexer_lexerZ_moveZBang();
 		mw_mirth_lexer_lexerZ_peek();
 	}
-	mp_primZ_drop();
+	push_u64(34LL); // BQUOTE
+	mw_std_byte_Byte_ZEqualZEqual();
+	if (pop_u64()) {
+	} else {
+		STRLIT("String literal is missing end quote (\").", 40);
+		mp_primZ_rswap();
+		{
+			VAL d3 = pop_resource();
+			mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang();
+			push_resource(d3);
+		}
+		mp_primZ_rswap();
+	}
 	{
 		VAL d2 = pop_resource();
 		mw_std_str_ZPlusStr_freezze();
@@ -32627,6 +32639,7 @@ static void mw_mirth_lexer_lexerZ_pushZ_stringZ_escapeZ_byteZBang (void) {
 	switch (get_top_data_tag()) {
 		case 10LL: // BLF
 			(void)pop_u64();
+			mw_mirth_lexer_lexerZ_newlineZBang();
 			break;
 		case 110LL: // B'n'
 			(void)pop_u64();

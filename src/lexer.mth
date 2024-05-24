@@ -415,7 +415,10 @@ def(lexer-emit-string!, +Mirth +Lexer -- +Mirth +Lexer,
         lexer-move!
         lexer-peek
     )
-    drop
+    BQUOTE == else(
+        "String literal is missing end quote (\")."
+        rdip':lexer-emit-fatal-error!
+    )
 
     rdip(freeze TokenStr)
     swap ~value !)
@@ -425,7 +428,7 @@ def(lexer-push-string-byte!, +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer,
     _ -> rdip(push-byte-unsafe!))
 
 def(lexer-push-string-escape-byte!, +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer,
-    BLF -> id,
+    BLF -> lexer-newline!,
     B'n' -> BLF rdip(push-byte-ascii!),
     B'r' -> BCR rdip(push-byte-ascii!),
     B't' -> BHT rdip(push-byte-ascii!),
