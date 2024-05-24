@@ -1,4 +1,4 @@
-module(examples.snake)
+module(examples.snake-infer-types)
 
 import(examples.sdl2)
 import(std.prelude)
@@ -43,17 +43,16 @@ data(+SnakeLogic, +SnakeLogic ->
 data(Position, Position -> x:Int y:Int)
 def Position.wrap { x(SNAKE_W %) y(SNAKE_H %) }
 
-def Position.== [ Position Position -- Bool ] {
-    /Position /Position x> x> == y> y> == &&
+def Position.== {
+    /Position Position./Position x> x> == y> y> == &&
 }
 
 data(Direction, North, East, South, West)
-
-def Direction.apply [ Position Direction -- Position ] {
-    { North -> y:1- wrap }
-    { South -> y:1+ wrap }
-    { West  -> x:1- wrap }
-    { East  -> x:1+ wrap }
+def Direction.apply {
+    { North -> Position.y:1- wrap }
+    { South -> Position.y:1+ wrap }
+    { West  -> Position.x:1- wrap }
+    { East  -> Position.x:1+ wrap }
 }
 
 def +SnakeLogic.enqueue { snake:cons+ }
@@ -93,7 +92,7 @@ def SDL_GameControllerButton.>SnakeButton? {
     { _ -> drop None }
 }
 
-def +SnakeLogic.Init! [ +World -- +World +SnakeLogic ] {
+def +SnakeLogic.Init! {
     False >done
     North >direction
     North >last-direction
@@ -113,11 +112,11 @@ def +SnakeLogic.rdrop {
     last-direction> done> drop2
 }
 
-def +SnakeLogic.reset! [ +World +SnakeLogic -- +World +SnakeLogic ] {
+def +SnakeLogic.reset! {
     rdrop +SnakeLogic.Init!
 }
 
-def +SnakePlatform.Init! [ +World -- +World +SnakePlatform ] {
+def +SnakePlatform.Init! {
     SDL_INIT_VIDEO >flags
     SDL_Init unwrap!
 
@@ -140,13 +139,13 @@ def +SnakePlatform.Init! [ +World -- +World +SnakePlatform ] {
     +SnakePlatform
 }
 
-def +Snake.Init! [ +World -- +World +Snake ] {
+def +Snake.Init! {
     +SnakeLogic.Init! >+logic
     +SnakePlatform.Init! >+platform
     +Snake
 }
 
-def +Snake.loop! [ +World +Snake -- +World +Snake ] {
+def +Snake.loop! {
     process-events!
     while(+logic:done not,
         present!
@@ -156,11 +155,11 @@ def +Snake.loop! [ +World +Snake -- +World +Snake ] {
     )
 }
 
-def +Snake.quit! [ +World +Snake -- +World ] {
+def +Snake.quit! {
     /+Snake +logic> rdrop +platform> quit!
 }
 
-def +SnakePlatform.quit! [ +World +SnakePlatform -- +World ] {
+def +SnakePlatform.quit! {
     /+SnakePlatform
     +event-buffer> rdrop
     +rect-buffer> rdrop
@@ -173,15 +172,15 @@ def rgba { CInt >a CInt >b CInt >g CInt >r }
 def snake-background-color { 140 100 150 255 rgba }
 def snake-foreground-color { 255 255 255 255 rgba }
 
-def +SnakePlatform.snake-rect! [ +SnakePlatform x:I32 y:I32 w:I32 h:I32 -- +SnakePlatform ] {
+def +SnakePlatform.snake-rect! {
     h> 12 >Offset +rect-buffer:!I32
     w>  8 >Offset +rect-buffer:!I32
     y>  4 >Offset +rect-buffer:!I32
     x>  0 >Offset +rect-buffer:!I32
 }
 
-def +SnakePlatform.snake-rect-cell! [ +SnakePlatform Position -- +SnakePlatform ] {
-    /Position
+def +SnakePlatform.snake-rect-cell! {
+    Position./Position
     x> SNAKE_CELL_SIZE * >I32 >x
     y> SNAKE_CELL_SIZE * >I32 >y
     SNAKE_CELL_SIZE >I32 >w
@@ -189,7 +188,7 @@ def +SnakePlatform.snake-rect-cell! [ +SnakePlatform Position -- +SnakePlatform 
     snake-rect!
 }
 
-def +Snake.present! [ +Snake -- +Snake ] {
+def +Snake.present! {
     +platform:sdl:show-window!
     +platform:clear!
     +logic:snake for(+platform:draw-cell!)
@@ -197,26 +196,25 @@ def +Snake.present! [ +Snake -- +Snake ] {
     +platform:sdl:SDL_RenderPresent
 }
 
-def +SnakePlatform.clear! [ +SnakePlatform -- +SnakePlatform ] {
+def +SnakePlatform.clear! {
     snake-background-color sdl:SDL_SetRenderDrawColor
     sdl:SDL_RenderClear
     snake-foreground-color sdl:SDL_SetRenderDrawColor
 }
 
-def +SnakePlatform.draw-cell! [ Position +SnakePlatform -- +SnakePlatform ] {
+def +SnakePlatform.draw-cell! {
     snake-rect-cell! +rect-buffer:base >rect
     sdl:SDL_RenderFillRect
 }
 
-def +Snake.&event [ +Snake -- +Snake SDL_Event ] {
-    +platform:+event-buffer:base SDL_Event
-}
+def +Snake.&event { +platform:+event-buffer:base SDL_Event }
 
-def +Snake.process-events! [ +World +Snake -- +World +Snake ] {
+def +Snake.process-events! {
     while(&event +platform:sdl:SDL_PollEvent >Int 0>, process-event!)
 }
 
-def +Snake.process-event! [ +World +Snake -- +World +Snake ] {
+
+def +Snake.process-event! {
     &event type@
     dup SDL_QUIT == if(
         drop True +logic:done!,
@@ -241,16 +239,17 @@ def +Snake.process-event! [ +World +Snake -- +World +Snake ] {
     )))
 }
 
-def +SnakeLogic.press! [ +World +SnakeLogic SnakeButton -- +World +SnakeLogic ] {
-    { Up -> North turn! }
-    { Left -> West turn! }
-    { Down -> South turn! }
-    { Right -> East turn! }
-    { Start -> dead then(reset!) }
+def +SnakeLogic.press! {
+    { SnakeButton.Up -> North turn! }
+    { SnakeButton.Left -> West turn! }
+    { SnakeButton.Down -> South turn! }
+    { SnakeButton.Right -> East turn! }
+    { SnakeButton.Start -> dead then(reset!) }
 }
 
 def +SnakeLogic.tick-frames { 40 points 5 + / 2 + }
-def +SnakeLogic.tick! [ +SnakeLogic -- +SnakeLogic Bool ] {
+
+def +SnakeLogic.tick! {
     timer:1+
     timer tick-frames >= if(
         0 timer! True,
@@ -259,13 +258,13 @@ def +SnakeLogic.tick! [ +SnakeLogic -- +SnakeLogic Bool ] {
 }
 
 def +SnakeLogic.in-snake { snake member(==) }
-def +SnakeLogic.randomize-mouse! [ +World +SnakeLogic -- +World +SnakeLogic ] {
+def +SnakeLogic.randomize-mouse! {
     rdip:Position.Random!
     while(dup in-snake, drop rdip:Position.Random!)
     mouse!
 }
 
-def +SnakeLogic.update! [ +World +SnakeLogic -- +World +SnakeLogic ] {
+def +SnakeLogic.update! {
     dead not and(tick!) then(
         direction last-direction!
         head direction apply
@@ -289,7 +288,7 @@ def +SnakeLogic.desired-length { points 5 + >Nat }
 
 external(libc-rand -> rand [+World -- +World CInt])
 
-def Position.Random! [ +World -- +World Position ] {
+def Position.Random! {
     libc-rand >Int SNAKE_W % >x
     libc-rand >Int SNAKE_H % >y
     Position
@@ -301,6 +300,9 @@ def Position.Center {
     Position
 }
 
+def Direction.>Int { tag }
+def Direction.== { both(tag) == }
+
 def +SnakeLogic.turn! {
     dup last-direction flip == if(
         drop, # can't turn backwards directly
@@ -308,8 +310,6 @@ def +SnakeLogic.turn! {
     )
 }
 
-def Direction.>Int { tag }
-def Direction.== { both(tag) == }
 def Direction.flip {
     North -> South,
     West -> East,

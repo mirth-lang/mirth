@@ -2,5 +2,6 @@ module(examples.hello)
 import(std.prelude)
 import(std.world)
 
-def(main, +World -- +World,
-    "Hello, world!" print)
+def main {
+    "Hello, world!" print
+}

@@ -20,10 +20,10 @@ jobs:
       run: make build
     - name: make check
       run: make check
-    - name: make bin/snake.c
-      run: make bin/snake.c
     - name: make test-verify
       run: make test-verify
+    - name: make examples
+      run: make examples
 
   build-san:
     strategy:

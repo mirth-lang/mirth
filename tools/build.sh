@@ -20,12 +20,24 @@ case "$DirName" in
                 make play-snake
                 ;;
             *.mth )
-                bin/mirth2 -c "$DirName/$BaseName"
+                ctarget="bin/${BaseName%.*}.c"
+                bintarget="bin/${BaseName%.*}"
+                makerules="$(cat Makefile | grep "$bintarget" | grep "$ctarget")"
+                if [ -n "$makerules" ] ; then
+                    bin/mirth2 --debug "$DirName/$BaseName" -o "$ctarget"
+                    make "$bintarget"
+                    "$bintarget"
+                else
+                    bin/mirth2 -c "$DirName/$BaseName"
+                fi
                 ;;
         esac
         ;;
     tools )
         case "$BaseName" in
+            build.sh )
+                echo "Hi :-)"
+                ;;
             make-update.sh )
                 bash tools/make-update.sh
                 ;;
@@ -35,6 +47,9 @@ case "$DirName" in
             build32.bat|build64.bat )
                 powershell $1
                 diff --strip-trailing-cr bin/mirth3.c bin/wmirth3.c
+                ;;
+            *.sh )
+                bash tools/$BaseName
                 ;;
         esac
         ;;

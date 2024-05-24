@@ -5351,7 +5351,7 @@ static void mw_std_buffer_ZPlusBuffer_ZBangU8 (void);
 static void mw_std_buffer_ZPlusBuffer_ZBangByte (void);
 static void mw_std_buffer_ZPlusBuffer_ZBangStr (void);
 static void mw_std_buffer_ZPlusBuffer_ZAtStr (void);
-static void mw_std_prim_Str_copyZ_partialZBang (void);
+static void mw_std_prim_Ptr_ZBangStrZPlus (void);
 static void mw_std_prim_Str_thaw (void);
 static void mw_std_str_ZPlusStr_freezze (void);
 static void mw_std_str_ZPlusStr_rdrop (void);
@@ -7009,7 +7009,7 @@ static void mb_std_list_List_1_unions_1_0 (void);
 static void mb_std_list_List_1_takeZ_while_1_0 (void);
 static void mb_std_list_List_1_partitionZ_either_1_0 (void);
 static void mb_std_list_List_1_partitionZ_either_1_1 (void);
-static void mb_std_prim_Str_copyZ_partialZBang_0 (void);
+static void mb_std_prim_Ptr_ZBangStrZPlus_0 (void);
 static void mb_std_prim_Str_byteZAt_0 (void);
 static void mb_std_prim_Str_bytesZ_for_1_0 (void);
 static void mb_std_prim_Str_bytesZ_for_1_1 (void);
@@ -9693,7 +9693,7 @@ static void mw_std_buffer_ZPlusBuffer_ZBangStr (void) {
 		push_value(d2);
 	}
 	mp_primZ_ptrZ_add();
-	mw_std_prim_Str_copyZ_partialZBang();
+	mw_std_prim_Ptr_ZBangStrZPlus();
 	mp_primZ_drop();
 	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
 }
@@ -9728,9 +9728,9 @@ static void mw_std_buffer_ZPlusBuffer_ZAtStr (void) {
 	mp_primZ_strZ_copy();
 	mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe();
 }
-static void mw_std_prim_Str_copyZ_partialZBang (void) {
+static void mw_std_prim_Ptr_ZBangStrZPlus (void) {
 	mp_primZ_swap();
-	push_fnptr(&mb_std_prim_Str_copyZ_partialZBang_0);
+	push_fnptr(&mb_std_prim_Ptr_ZBangStrZPlus_0);
 	mw_std_prim_Str_withZ_data_1();
 }
 static void mw_std_prim_Str_thaw (void) {
@@ -47135,7 +47135,7 @@ static void mb_std_list_List_1_partitionZ_either_1_1 (void) {
 	}
 	decref(var_p);
 }
-static void mb_std_prim_Str_copyZ_partialZBang_0 (void) {
+static void mb_std_prim_Ptr_ZBangStrZPlus_0 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primZ_swap();

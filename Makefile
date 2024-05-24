@@ -8,7 +8,8 @@ CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 SRCS=lib/std/* lib/arg-parser/* src/*
 
 .PHONY: default show showsan build buildsan debug update check checksan clean \
- install-vim install-code install-atom install profile play-snake test-verify test-update
+ install-vim install-code install-atom install profile play-snake test-verify test-update \
+ examples
 
 default: show bin/snake.c
 
@@ -59,10 +60,12 @@ install: bin/mirth0
 
 profile: bin/mirth_prof
 	time bin/mirth_prof
-	rm -f bin/mirth.c
 
 play-snake: bin/snake
 	bin/snake
+
+examples: bin/mirth2
+	bash tools/build-examples.sh
 
 test-verify:
 	bash tools/mirth-test.sh -v
@@ -123,4 +126,10 @@ bin/snake.c: bin/mirth2 lib/std/* examples/snake.mth examples/sdl2.mth
 	bin/mirth2 --debug examples/snake.mth -o bin/snake.c
 
 bin/snake: bin/snake.c
-	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`
+	$(CC) -o bin/snake bin/snake.c `pkg-config --cflags --libs sdl2`
+
+bin/snake-infer-types: bin/snake-infer-types.c
+	$(CC) -o bin/snake-infer-types bin/snake-infer-types.c `pkg-config --cflags --libs sdl2`
+
+bin/hello: bin/hello.c
+	$(CC) -o bin/hello bin/hello.c
