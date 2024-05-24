@@ -53,6 +53,15 @@ def(+Buffer.@U32, Offset +Buffer -- U32 +Buffer,
 def(+Buffer.@U64, Offset +Buffer -- U64 +Buffer,
     dup 8 >Size check-span-align! base unsafe(offset Ptr.@U64))
 
+def(+Buffer.@I8, Offset +Buffer -- I8 +Buffer,
+    dup 1 >Size check-span-align! base unsafe(offset Ptr.@I8))
+def(+Buffer.@I16, Offset +Buffer -- I16 +Buffer,
+    dup 2 >Size check-span-align! base unsafe(offset Ptr.@I16))
+def(+Buffer.@I32, Offset +Buffer -- I32 +Buffer,
+    dup 4 >Size check-span-align! base unsafe(offset Ptr.@I32))
+def(+Buffer.@I64, Offset +Buffer -- I64 +Buffer,
+    dup 8 >Size check-span-align! base unsafe(offset Ptr.@I64))
+
 def(+Buffer.!U8, U8 Offset +Buffer -- +Buffer,
     dup 1 >Size check-span-align! base unsafe(offset Ptr.!U8))
 def(+Buffer.!U16, U16 Offset +Buffer -- +Buffer,
@@ -62,13 +71,22 @@ def(+Buffer.!U32, U32 Offset +Buffer -- +Buffer,
 def(+Buffer.!U64, U64 Offset +Buffer -- +Buffer,
     dup 8 >Size check-span-align! base unsafe(offset Ptr.!U64))
 
+def(+Buffer.!I8, I8 Offset +Buffer -- +Buffer,
+    dup 1 >Size check-span-align! base unsafe(offset Ptr.!I8))
+def(+Buffer.!I16, I16 Offset +Buffer -- +Buffer,
+    dup 2 >Size check-span-align! base unsafe(offset Ptr.!I16))
+def(+Buffer.!I32, I32 Offset +Buffer -- +Buffer,
+    dup 4 >Size check-span-align! base unsafe(offset Ptr.!I32))
+def(+Buffer.!I64, I64 Offset +Buffer -- +Buffer,
+    dup 8 >Size check-span-align! base unsafe(offset Ptr.!I64))
+
 def(+Buffer.!Byte, Byte Offset +Buffer -- +Buffer,
     dip(>U8) !U8)
 
 def(+Buffer.!Str, Str Offset +Buffer -- +Buffer,
     dup2 swap num-bytes check-span!
-    base unsafe(offset Str.copy-partial! drop))
+    base unsafe(offset !Str+ drop))
 
 def(+Buffer.@Str, Offset Size +Buffer -- Str +Buffer,
     dup2 check-span!
-    base unsafe(swap dip(offset) Str.copy))
+    base unsafe(swap dip(offset) Str.ClonePtrSlice))

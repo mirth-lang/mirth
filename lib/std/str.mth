@@ -13,9 +13,9 @@ inline(
     def(Str.empty?, Str -- Bool, num-bytes 0=)
 )
 
-||| Copy string bytes to second argument without adding 0 at end.
+||| Copy string bytes to pointer location (without adding 0 at end).
 ||| Return first unwritten location in second argument.
-def(Str.copy-partial!, Str Ptr +Unsafe -- Ptr +Unsafe,
+def(Ptr.!Str+, Str Ptr +Unsafe -- Ptr +Unsafe,
     swap with-data(
         rotl
         dup2 dip(>Offset) offset
@@ -23,8 +23,8 @@ def(Str.copy-partial!, Str Ptr +Unsafe -- Ptr +Unsafe,
     ))
 
 inline(
-    def(Str.copy, Ptr Size +Unsafe -- Str +Unsafe, >Int prim-str-copy)
-    def(Str.copy-cstr, CStr +Unsafe -- Str +Unsafe, sip:>Ptr num-bytes >Size Str.copy)
+    def(Str.ClonePtrSlice, Ptr Size +Unsafe -- Str +Unsafe, >Int prim-str-copy)
+    def(Str.CloneCStr, CStr +Unsafe -- Str +Unsafe, sip:>Ptr num-bytes >Size Str.ClonePtrSlice)
 )
 
 data(+Str, +Str -> Str)
@@ -104,14 +104,14 @@ def(Str.drop-bytes, Size Str +Unsafe -- Str +Unsafe,
        with-data(
           dip(over) swap -
           dip(dip(>Offset) offset)
-          Str.copy
+          Str.ClonePtrSlice
        )
     ))
 
 def(Str.from-bytes-unsafe, List(Byte) -- Str,
     dup len >Size +Buffer.new
     dip(0 >Offset) for(>U8 over !U8 1+) drop
-    base size unsafe(Str.copy)
+    base size unsafe(Str.ClonePtrSlice)
     rdrop)
 
 def(Str.with-cstr(f), (*a CStr -- *b) *a Str -- *b,
@@ -127,7 +127,7 @@ def(clamp-slice-offset-size, Offset Size Size -- Offset Size,
 def(Str.slice, Offset Size Str +Unsafe -- Str +Unsafe,
     with-data(
         swap dip(clamp-slice-offset-size)
-        swap dip(offset) Str.copy
+        swap dip(offset) Str.ClonePtrSlice
     ))
 
 def(Str.drop-slice, Offset Str +Unsafe -- Str +Unsafe,

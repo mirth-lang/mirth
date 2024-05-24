@@ -9,25 +9,46 @@ import(std.ctypes)
 
 data(+SDL, +SDL)
 data(+SDL?, +SDL? -> CInt)
-def(+SDL?.if-ok!(f,g), (*a +SDL -- *b, *a Str -- *b) *a +SDL? -- *b,
-    +SDL? -> >Int 0= if(+SDL f, +SDL get-error! /+SDL g))
-def(+SDL?.unwrap!, +SDL? -- +SDL, if-ok!(id, panic!))
+
+inline (
+    def +SDL?.if-ok!(f,g) [ (*a +SDL -- *b, *a Str -- *b) *a +SDL? -- *b ] {
+        +SDL? -> >Int 0= if(
+            +SDL f,
+            +SDL get-error! /+SDL g
+        )
+    }
+)
+def +SDL?.unwrap! [ +SDL? -- +SDL ] {
+    +SDL?.if-ok!(id, panic!)
+}
 
 data(+SDL_Window, +SDL_Window -> Ptr)
 data(+SDL_Window?, +SDL_Window? -> Ptr?)
-def(+SDL_Window?.if-ok!(f,g),
-        (*a +SDL +SDL_Window -- *b, *a +SDL Str -- *b)
-        *a +SDL +SDL_Window? -- *b,
-    +SDL_Window? -> if-some(+SDL_Window f, get-error! g))
-def(+SDL_Window?.unwrap!, +SDL +SDL_Window? -- +SDL +SDL_Window, if-ok!(id, panic!))
+inline (
+    def +SDL_Window?.if-ok!(f,g) [
+        ( *a +SDL +SDL_Window -- *b, *a +SDL Str -- *b )
+        *a +SDL +SDL_Window? -- *b
+    ] {
+        +SDL_Window? -> if-some(+SDL_Window f, +SDL.get-error! g)
+    }
+)
+def +SDL_Window?.unwrap! [ +SDL +SDL_Window? -- +SDL +SDL_Window ] {
+    if-ok!(id, panic!)
+}
 
 data(+SDL_Renderer, +SDL_Renderer -> Ptr)
 data(+SDL_Renderer?, +SDL_Renderer? -> Ptr?)
-def(+SDL_Renderer?.if-ok!(f,g),
+inline (
+    def +SDL_Renderer?.if-ok!(f,g) [
         (*a +SDL +SDL_Renderer -- *b, *a +SDL Str -- *b)
-        *a +SDL +SDL_Renderer? -- *b,
-    +SDL_Renderer? -> if-some(+SDL_Renderer f, get-error! g))
-def(+SDL_Renderer?.unwrap!, +SDL +SDL_Renderer? -- +SDL +SDL_Renderer, if-ok!(id, panic!))
+        *a +SDL +SDL_Renderer? -- *b
+    ] {
+        +SDL_Renderer? -> if-some(+SDL_Renderer f, get-error! g)
+    }
+)
+def +SDL_Renderer?.unwrap! [ +SDL +SDL_Renderer? -- +SDL +SDL_Renderer ] {
+    if-ok!(id, panic!)
+}
 
 external(
     SDL_Init [ +World flags:SDL_InitFlags -- +World +SDL? ]
@@ -55,135 +76,198 @@ external(
 )
 
 inline(
-    def(+SDL.init!, +World flags:SDL_InitFlags -- +World +SDL?, SDL_Init)
-    def(+SDL.quit!, +World +SDL -- +World, SDL_Quit)
-    def(+SDL.get-error!, +SDL -- +SDL Str, SDL_GetError unsafe(Str.copy-cstr))
-    def(+SDL.delay!, +SDL ticks:U32 -- +SDL, SDL_Delay)
-    def(+SDL.get-ticks!, +SDL -- +SDL U32, SDL_GetTicks)
+    def +SDL.init! [ +World flags:SDL_InitFlags -- +World +SDL? ] { SDL_Init }
+    def +SDL.quit! [ +World +SDL -- +World ] { SDL_Quit }
+    def +SDL.get-error! [ +SDL -- +SDL Str ] { SDL_GetError unsafe(Str.CloneCStr) }
+    def +SDL.delay! [ +SDL ticks:U32 -- +SDL] { SDL_Delay }
+    def +SDL.get-ticks! [ +SDL -- +SDL U32 ] { SDL_GetTicks }
 
-    def(+SDL.create-window!, +SDL title:Str x:Int y:Int w:Int h:Int flags:SDL_WindowFlags -- +SDL +SDL_Window?,
+    def +SDL.create-window! [
+        +SDL title:Str x:Int y:Int w:Int h:Int flags:SDL_WindowFlags
+        -- +SDL +SDL_Window?
+    ] {
         title> with-cstr( >title
             @x:CInt @y:CInt @w:CInt @h:CInt
             SDL_CreateWindow
-        ))
-    def(+SDL.destroy-window!, +SDL +window:+SDL_Window -- +SDL, SDL_DestroyWindow)
-    def(+SDL.show-window!, +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window, SDL_ShowWindow)
-    def(+SDL.hide-window!, +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window, SDL_HideWindow)
-    def(+SDL.raise-window!, +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window, SDL_RaiseWindow)
+        )
+    }
+    def +SDL.destroy-window! [ +SDL +window:+SDL_Window -- +SDL ] { SDL_DestroyWindow }
+    def +SDL.show-window! [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ] { SDL_ShowWindow }
+    def +SDL.hide-window! [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ] { SDL_HideWindow }
+    def +SDL.raise-window! [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ] { SDL_RaiseWindow }
 
-    def(+SDL.create-renderer!,
-            +SDL +window:+SDL_Window index:Int flags:SDL_RendererFlags --
-            +SDL +window:+SDL_Window +SDL_Renderer?,
-        @index:CInt SDL_CreateRenderer)
-    def(+SDL.destroy-renderer!, +SDL +renderer:+SDL_Renderer -- +SDL, SDL_DestroyRenderer)
+    def +SDL.create-renderer! [
+        +SDL +window:+SDL_Window index:Int flags:SDL_RendererFlags --
+        +SDL +window:+SDL_Window +SDL_Renderer?
+    ] {
+        @index:CInt SDL_CreateRenderer
+    }
+    def +SDL.destroy-renderer! [ +SDL +renderer:+SDL_Renderer -- +SDL ] { SDL_DestroyRenderer }
 )
 
-data(SDL_InitFlags, WRAP -> U32)
-inline(
-    def(U32.>SDL_InitFlags, U32 -- SDL_InitFlags, SDL_InitFlags.WRAP)
-    def(SDL_InitFlags.>U32, SDL_InitFlags -- U32, /WRAP)
-    def(SDL_InitFlags.|, SDL_InitFlags SDL_InitFlags -- SDL_InitFlags,
-        both(>U32) | >SDL_InitFlags)
-)
-def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 >U32 >SDL_InitFlags)
-def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 >U32 >SDL_InitFlags)
-def(SDL_INIT_VIDEO, SDL_InitFlags, 0x0020 >U32 >SDL_InitFlags)
-def(SDL_INIT_JOYSTICK, SDL_InitFlags, 0x200 >U32 >SDL_InitFlags)
-def(SDL_INIT_HAPTIC, SDL_InitFlags, 0x1000 >U32 >SDL_InitFlags)
-def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32 >SDL_InitFlags)
-def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 >U32 >SDL_InitFlags)
-def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << >U32 >SDL_InitFlags)
-def(SDL_INIT_EVERYTHING, SDL_InitFlags,
-    SDL_INIT_TIMER
-    SDL_INIT_AUDIO |
-    SDL_INIT_VIDEO |
-    SDL_INIT_JOYSTICK |
-    SDL_INIT_HAPTIC |
-    SDL_INIT_GAMECONTROLLER |
-    SDL_INIT_EVENTS |
-    SDL_INIT_SENSOR |)
-
-data(SDL_WindowFlags, SDL_WINDOW_FLAGS -> U32)
-inline(
-    def(Int.>SDL_WindowFlags, Int -- SDL_WindowFlags, >U32 >SDL_WindowFlags)
-    def(U32.>SDL_WindowFlags, U32 -- SDL_WindowFlags, SDL_WINDOW_FLAGS)
-    def(SDL_WindowFlags.>U32, SDL_WindowFlags -- U32, /SDL_WINDOW_FLAGS)
-    def(SDL_WindowFlags.|, SDL_WindowFlags SDL_WindowFlags -- SDL_WindowFlags,
-        both(>U32) | >SDL_WindowFlags)
+data(SDL_InitFlags, SDL_InitFlags -> U32)
+inline (
+    def SDL_InitFlags.| {
+        both(/SDL_InitFlags) | SDL_InitFlags
+    }
+    def SDL_INIT_TIMER          [ SDL_InitFlags ] { 0x0001 >U32 SDL_InitFlags }
+    def SDL_INIT_AUDIO          [ SDL_InitFlags ] { 0x0010 >U32 SDL_InitFlags }
+    def SDL_INIT_VIDEO          [ SDL_InitFlags ] { 0x0020 >U32 SDL_InitFlags }
+    def SDL_INIT_JOYSTICK       [ SDL_InitFlags ] { 0x0200 >U32 SDL_InitFlags }
+    def SDL_INIT_HAPTIC         [ SDL_InitFlags ] { 0x1000 >U32 SDL_InitFlags }
+    def SDL_INIT_GAMECONTROLLER [ SDL_InitFlags ] { 0x2000 >U32 SDL_InitFlags }
+    def SDL_INIT_EVENTS         [ SDL_InitFlags ] { 0x4000 >U32 SDL_InitFlags }
+    def SDL_INIT_SENSOR         [ SDL_InitFlags ] { 0x8000 >U32 SDL_InitFlags }
+    def SDL_INIT_EVERYTHING     [ SDL_InitFlags ] { 0xF231 >U32 SDL_InitFlags }
 )
 
 def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
 def(SDL_WINDOWPOS_CENTERED, Int, 0x2FFF 16 <<)
 
-def(SDL_WINDOW_NONE, SDL_WindowFlags, 0 >SDL_WindowFlags)
-def(SDL_WINDOW_FULLSCREEN, SDL_WindowFlags, 0x1 >SDL_WindowFlags)
-def(SDL_WINDOW_OPENGL, SDL_WindowFlags, 0x2 >SDL_WindowFlags)
-def(SDL_WINDOW_SHOWN, SDL_WindowFlags, 0x4 >SDL_WindowFlags)
-def(SDL_WINDOW_HIDDEN, SDL_WindowFlags, 0x8 >SDL_WindowFlags)
-def(SDL_WINDOW_BORDERLESS, SDL_WindowFlags, 0x10 >SDL_WindowFlags)
-def(SDL_WINDOW_RESIZABLE, SDL_WindowFlags, 0x20 >SDL_WindowFlags)
-def(SDL_WINDOW_MINIMIZED, SDL_WindowFlags, 0x40 >SDL_WindowFlags)
-def(SDL_WINDOW_MAXIMIZED, SDL_WindowFlags, 0x80 >SDL_WindowFlags)
-def(SDL_WINDOW_INPUT_GRABBED, SDL_WindowFlags, 0x100 >SDL_WindowFlags)
-def(SDL_WINDOW_INPUT_FOCUS, SDL_WindowFlags, 0x200 >SDL_WindowFlags)
-def(SDL_WINDOW_MOUSE_FOCUS, SDL_WindowFlags, 0x400 >SDL_WindowFlags)
-def(SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WindowFlags, 0x1001 >SDL_WindowFlags)
-def(SDL_WINDOW_FOREIGN, SDL_WindowFlags, 0x800 >SDL_WindowFlags)
-def(SDL_WINDOW_ALLOW_HIGHDPI, SDL_WindowFlags, 0x2000 >SDL_WindowFlags)
-def(SDL_WINDOW_MOUSE_CAPTURE, SDL_WindowFlags, 0x4000 >SDL_WindowFlags)
-def(SDL_WINDOW_ALWAYS_ON_TOP, SDL_WindowFlags, 1 15 << >SDL_WindowFlags)
-def(SDL_WINDOW_SKIP_TASKBAR, SDL_WindowFlags, 1 16 << >SDL_WindowFlags)
-def(SDL_WINDOW_UTILITY, SDL_WindowFlags, 1 17 << >SDL_WindowFlags)
-def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << >SDL_WindowFlags)
-def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << >SDL_WindowFlags)
-def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << >SDL_WindowFlags)
+data(SDL_WindowFlags, SDL_WindowFlags -> U32)
+inline (
+    def SDL_WindowFlags.| [ SDL_WindowFlags SDL_WindowFlags -- SDL_WindowFlags ] {
+        both(/SDL_WindowFlags) | SDL_WindowFlags
+    }
+    def SDL_WINDOW_FULLSCREEN         [ SDL_WindowFlags ] { 0x00000001 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_OPENGL             [ SDL_WindowFlags ] { 0x00000002 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_SHOWN              [ SDL_WindowFlags ] { 0x00000004 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_HIDDEN             [ SDL_WindowFlags ] { 0x00000008 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_BORDERLESS         [ SDL_WindowFlags ] { 0x00000010 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_RESIZABLE          [ SDL_WindowFlags ] { 0x00000020 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_MINIMIZED          [ SDL_WindowFlags ] { 0x00000040 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_MAXIMIZED          [ SDL_WindowFlags ] { 0x00000080 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_MOUSE_GRABBED      [ SDL_WindowFlags ] { 0x00000100 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_INPUT_GRABBED      [ SDL_WindowFlags ] { 0x00000100 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_INPUT_FOCUS        [ SDL_WindowFlags ] { 0x00000200 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_MOUSE_FOCUS        [ SDL_WindowFlags ] { 0x00000400 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_FOREIGN            [ SDL_WindowFlags ] { 0x00000800 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_FULLSCREEN_DESKTOP [ SDL_WindowFlags ] { 0x00001001 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_ALLOW_HIGHDPI      [ SDL_WindowFlags ] { 0x00002000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_MOUSE_CAPTURE      [ SDL_WindowFlags ] { 0x00004000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_ALWAYS_ON_TOP      [ SDL_WindowFlags ] { 0x00008000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_SKIP_TASKBAR       [ SDL_WindowFlags ] { 0x00010000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_UTILITY            [ SDL_WindowFlags ] { 0x00020000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_TOOLTIP            [ SDL_WindowFlags ] { 0x00040000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_POPUP_MENU         [ SDL_WindowFlags ] { 0x00080000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_KEYBOARD_GRABBED   [ SDL_WindowFlags ] { 0x00100000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_VULKAN             [ SDL_WindowFlags ] { 0x10000000 >U32 SDL_WindowFlags }
+    def SDL_WINDOW_METAL              [ SDL_WindowFlags ] { 0x20000000 >U32 SDL_WindowFlags }
+)
 
-def-type(SDL_RendererFlags, U32)
-def(SDL_RENDERER_SOFTWARE, SDL_RendererFlags, 0x1 >U32)
-def(SDL_RENDERER_ACCELERATED, SDL_RendererFlags, 0x2 >U32)
-def(SDL_RENDERER_PRESENTVSYNC, SDL_RendererFlags, 0x4 >U32)
-def(SDL_RENDERER_TARGETTEXTURE, SDL_RendererFlags, 0x8 >U32)
+data(SDL_RendererFlags, SDL_RendererFlags -> U32)
+inline (
+    def SDL_RendererFlags.| {
+        both(/SDL_RendererFlags) | SDL_RendererFlags
+    }
+    def SDL_RENDERER_SOFTWARE      [ SDL_RendererFlags ] { 0x00000001 >U32 SDL_RendererFlags }
+    def SDL_RENDERER_ACCELERATED   [ SDL_RendererFlags ] { 0x00000002 >U32 SDL_RendererFlags }
+    def SDL_RENDERER_PRESENTVSYNC  [ SDL_RendererFlags ] { 0x00000004 >U32 SDL_RendererFlags }
+    def SDL_RENDERER_TARGETTEXTURE [ SDL_RendererFlags ] { 0x00000008 >U32 SDL_RendererFlags }
+)
 
 # Size of SDL_Event structure.
-def(SDL_EVENT_SIZE, Size, 56 >Size)
+def SDL_EVENT_SIZE [ Size ] { 56 >Size }
 
-data(SDL_Event, WRAP_SDL_EVENT -> Ptr)
-def(SDL_Event.unwrap, SDL_Event -- Ptr, WRAP_SDL_EVENT -> id)
-def(Ptr.>SDL_Event, Ptr -- SDL_Event, WRAP_SDL_EVENT)
-def(SDL_Event.>Ptr, SDL_Event -- Ptr, unwrap)
-external(SDL_PollEvent [SDL_Event -- CInt])
+data(SDL_Event, SDL_Event -> Ptr)
 
-data(SDL_EventType, WRAP_SDL_EVENTTYPE -> U32)
-def(U32.>SDL_EventType, U32 -- SDL_EventType, WRAP_SDL_EVENTTYPE)
-def(Int.>SDL_EventType, Int -- SDL_EventType, >U32 >SDL_EventType)
-def(SDL_EventType.unwrap, SDL_EventType -- U32, WRAP_SDL_EVENTTYPE -> id)
-def(SDL_EventType.>U32, SDL_EventType -- U32, unwrap)
-def(SDL_EventType.==, SDL_EventType SDL_EventType -- Bool, both(>U32) ==)
+external( SDL_PollEvent [ +SDL SDL_Event -- +SDL CInt ] )
 
-def(SDL_Event.type@, SDL_Event -- SDL_EventType, unwrap unsafe(@U32) >SDL_EventType)
-def(SDL_QUIT, SDL_EventType, 0x100 >SDL_EventType)
-def(SDL_KEYDOWN, SDL_EventType, 0x300 >SDL_EventType)
-def(SDL_KEYUP, SDL_EventType, 0x301 >SDL_EventType)
-def(SDL_CONTROLLERAXISMOTION, SDL_EventType, 0x650 >SDL_EventType)
-def(SDL_CONTROLLERBUTTONDOWN, SDL_EventType, 0x651 >SDL_EventType)
-def(SDL_CONTROLLERBUTTONUP, SDL_EventType, 0x652 >SDL_EventType)
-def(SDL_CONTROLLERDEVICEADDED, SDL_EventType, 0x653 >SDL_EventType)
-def(SDL_CONTROLLERDEVICEREMOVED, SDL_EventType, 0x654 >SDL_EventType)
-def(SDL_CONTROLLERDEVICEREMAPPED, SDL_EventType, 0x655 >SDL_EventType)
+data(SDL_EventType, SDL_EventType -> U32)
+inline(
+    def SDL_EventType.== [ SDL_EventType SDL_EventType -- Bool ] { both(/SDL_EventType) == }
+    def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) SDL_EventType }
 
-data(SDL_KeyboardEvent, WRAP -> Ptr)
-def(SDL_KeyboardEvent.unwrap, SDL_KeyboardEvent -- Ptr, WRAP -> id)
-def(SDL_Event.key, SDL_Event -- SDL_KeyboardEvent, unwrap SDL_KeyboardEvent.WRAP)
-def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, unwrap dip(4 >Offset) unsafe(offset))
+    def SDL_FIRSTEVENT                   [ SDL_EventType ] { 0x0000 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_QUIT                         [ SDL_EventType ] { 0x0100 >U32 SDL_EventType }
+    def SDL_APP_TERMINATING              [ SDL_EventType ] { 0x0101 >U32 SDL_EventType }
+    def SDL_APP_LOWMEMORY                [ SDL_EventType ] { 0x0102 >U32 SDL_EventType }
+    def SDL_APP_WILLENTERBACKGROUND      [ SDL_EventType ] { 0x0103 >U32 SDL_EventType }
+    def SDL_APP_DIDENTERBACKGROUND       [ SDL_EventType ] { 0x0104 >U32 SDL_EventType }
+    def SDL_APP_WILLENTERFOREGROUND      [ SDL_EventType ] { 0x0105 >U32 SDL_EventType }
+    def SDL_APP_DIDENTERFOREGROUND       [ SDL_EventType ] { 0x0106 >U32 SDL_EventType }
+    def SDL_LOCALECHANGED                [ SDL_EventType ] { 0x0107 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_DISPLAYEVENT                 [ SDL_EventType ] { 0x0150 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_WINDOWEVENT                  [ SDL_EventType ] { 0x0200 >U32 SDL_EventType }
+    def SDL_SYSWMEVENT                   [ SDL_EventType ] { 0x0201 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_KEYDOWN                      [ SDL_EventType ] { 0x0300 >U32 SDL_EventType }
+    def SDL_KEYUP                        [ SDL_EventType ] { 0x0301 >U32 SDL_EventType }
+    def SDL_TEXTEDITING                  [ SDL_EventType ] { 0x0302 >U32 SDL_EventType }
+    def SDL_TEXTINPUT                    [ SDL_EventType ] { 0x0303 >U32 SDL_EventType }
+    def SDL_KEYMAPCHANGED                [ SDL_EventType ] { 0x0304 >U32 SDL_EventType }
+    def SDL_TEXTEDITING_EXT              [ SDL_EventType ] { 0x0305 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_MOUSEMOTION                  [ SDL_EventType ] { 0x0400 >U32 SDL_EventType }
+    def SDL_MOUSEBUTTONDOWN              [ SDL_EventType ] { 0x0401 >U32 SDL_EventType }
+    def SDL_MOUSEBUTTONUP                [ SDL_EventType ] { 0x0402 >U32 SDL_EventType }
+    def SDL_MOUSEWHEEL                   [ SDL_EventType ] { 0x0403 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_JOYAXISMOTION                [ SDL_EventType ] { 0x0600 >U32 SDL_EventType }
+    def SDL_JOYBALLMOTION                [ SDL_EventType ] { 0x0601 >U32 SDL_EventType }
+    def SDL_JOYHATMOTION                 [ SDL_EventType ] { 0x0602 >U32 SDL_EventType }
+    def SDL_JOYBUTTONDOWN                [ SDL_EventType ] { 0x0603 >U32 SDL_EventType }
+    def SDL_JOYBUTTONUP                  [ SDL_EventType ] { 0x0604 >U32 SDL_EventType }
+    def SDL_JOYDEVICEADDED               [ SDL_EventType ] { 0x0605 >U32 SDL_EventType }
+    def SDL_JOYDEVICEREMOVED             [ SDL_EventType ] { 0x0606 >U32 SDL_EventType }
+    def SDL_JOYBATTERYUPDATED            [ SDL_EventType ] { 0x0607 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_CONTROLLERAXISMOTION         [ SDL_EventType ] { 0x0650 >U32 SDL_EventType }
+    def SDL_CONTROLLERBUTTONDOWN         [ SDL_EventType ] { 0x0651 >U32 SDL_EventType }
+    def SDL_CONTROLLERBUTTONUP           [ SDL_EventType ] { 0x0652 >U32 SDL_EventType }
+    def SDL_CONTROLLERDEVICEADDED        [ SDL_EventType ] { 0x0653 >U32 SDL_EventType }
+    def SDL_CONTROLLERDEVICEREMOVED      [ SDL_EventType ] { 0x0654 >U32 SDL_EventType }
+    def SDL_CONTROLLERDEVICEREMAPPED     [ SDL_EventType ] { 0x0655 >U32 SDL_EventType }
+    def SDL_CONTROLLERTOUCHPADDOWN       [ SDL_EventType ] { 0x0656 >U32 SDL_EventType }
+    def SDL_CONTROLLERTOUCHPADMOTION     [ SDL_EventType ] { 0x0657 >U32 SDL_EventType }
+    def SDL_CONTROLLERTOUCHPADUP         [ SDL_EventType ] { 0x0658 >U32 SDL_EventType }
+    def SDL_CONTROLLERSENSORUPDATE       [ SDL_EventType ] { 0x0659 >U32 SDL_EventType }
+    def SDL_CONTROLLERUPDATECOMPLETE     [ SDL_EventType ] { 0x0660 >U32 SDL_EventType }
+    def SDL_CONTROLLERSTEAMHANDLEUPDATED [ SDL_EventType ] { 0x0661 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_FINGERDOWN                   [ SDL_EventType ] { 0x0700 >U32 SDL_EventType }
+    def SDL_FINGERUP                     [ SDL_EventType ] { 0x0701 >U32 SDL_EventType }
+    def SDL_FINGERMOTION                 [ SDL_EventType ] { 0x0702 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_DOLLARGESTUR                 [ SDL_EventType ] { 0x0800 >U32 SDL_EventType }
+    def SDL_DOLLARRECORD                 [ SDL_EventType ] { 0x0801 >U32 SDL_EventType }
+    def SDL_MULTIGESTURE                 [ SDL_EventType ] { 0x0802 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_CLIPBOARDUPDATE              [ SDL_EventType ] { 0x0900 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_DROPFILE                     [ SDL_EventType ] { 0x1000 >U32 SDL_EventType }
+    def SDL_DROPTEXT                     [ SDL_EventType ] { 0x1001 >U32 SDL_EventType }
+    def SDL_DROPBEGIN                    [ SDL_EventType ] { 0x1002 >U32 SDL_EventType }
+    def SDL_DROPCOMPLETE                 [ SDL_EventType ] { 0x1003 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_AUDIODEVICEADDED             [ SDL_EventType ] { 0x1100 >U32 SDL_EventType }
+    def SDL_AUDIODEVICEREMOVED           [ SDL_EventType ] { 0x1101 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_SENSORUPDATE                 [ SDL_EventType ] { 0x1200 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_RENDER_TARGETS_RESET         [ SDL_EventType ] { 0x2000 >U32 SDL_EventType }
+    def SDL_RENDER_DEVICE_RESET          [ SDL_EventType ] { 0x2001 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_USEREVENT                    [ SDL_EventType ] { 0x8000 >U32 SDL_EventType }
+    #################################### [               ] {                           }
+    def SDL_LASTEVENT                    [ SDL_EventType ] { 0xFFFF >U32 SDL_EventType }
+)
+
+data(SDL_KeyboardEvent, SDL_KeyboardEvent -> Ptr)
+def(SDL_Event.key, SDL_Event -- SDL_KeyboardEvent, /SDL_Event SDL_KeyboardEvent)
+def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(4 >Offset) unsafe(offset))
 def(SDL_KeyboardEvent.timestamp@, SDL_KeyboardEvent -- U32, timestamp& unsafe(@U32))
 def(SDL_KeyboardEvent.timestamp!, U32 SDL_KeyboardEvent --, timestamp& unsafe(!U32))
-def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, unwrap dip(8 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(8 >Offset) unsafe(offset))
 def(SDL_KeyboardEvent.windowID@, SDL_KeyboardEvent -- U32, windowID& unsafe(@U32))
 def(SDL_KeyboardEvent.windowID!, U32 SDL_KeyboardEvent --, windowID& unsafe(!U32))
-def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, unwrap dip(12 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(12 >Offset) unsafe(offset))
 def(SDL_KeyboardEvent.state@, SDL_KeyboardEvent -- U8, state& unsafe(@U8))
 def(SDL_KeyboardEvent.state!, U8 SDL_KeyboardEvent --, state& unsafe(!U8))
-def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, unwrap dip(13 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(13 >Offset) unsafe(offset))
 def(SDL_KeyboardEvent.repeat@, SDL_KeyboardEvent -- U8, repeat& unsafe(@U8))
 def(SDL_KeyboardEvent.repeat!, U8 SDL_KeyboardEvent --, repeat& unsafe(!U8))
 
@@ -192,7 +276,7 @@ def(Ptr.>SDL_Keysym, Ptr -- SDL_Keysym, WRAP_SDL_KEYSYM)
 def(SDL_Keysym.unwrap, SDL_Keysym -- Ptr, WRAP_SDL_KEYSYM -> id)
 def(SDL_Keysym.>Ptr, SDL_Keysym -- Ptr, unwrap)
 def(SDL_KeyboardEvent.keysym, SDL_KeyboardEvent -- SDL_Keysym,
-    unwrap dip(16 >Offset) unsafe(offset) >SDL_Keysym)
+    /SDL_KeyboardEvent dip(16 >Offset) unsafe(offset) >SDL_Keysym)
 
 def(SDL_Keysym.scancode&, SDL_Keysym -- Ptr, unwrap)
 def(SDL_Keysym.scancode@, SDL_Keysym -- SDL_Scancode, scancode& unsafe(@U16) >SDL_Scancode)
@@ -203,7 +287,7 @@ def(SDL_ControllerButtonEvent.unwrap, SDL_ControllerButtonEvent -- Ptr, WRAP_SDL
 def(SDL_ControllerButtonEvent.>Ptr,  SDL_ControllerButtonEvent -- Ptr, unwrap)
 
 def(SDL_Event.cbutton, SDL_Event -- SDL_ControllerButtonEvent,
-   >Ptr >SDL_ControllerButtonEvent)
+    /SDL_Event >SDL_ControllerButtonEvent)
 def(SDL_ControllerButtonEvent.which&, SDL_ControllerButtonEvent -- Ptr,
     dip(8 >Offset) >Ptr unsafe(offset))
 def(SDL_ControllerButtonEvent.which@, SDL_ControllerButtonEvent -- SDL_JoystickID,

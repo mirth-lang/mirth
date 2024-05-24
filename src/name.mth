@@ -85,10 +85,7 @@ def(Name.cat, Name Str -- Name,
 def(Name.head, Name -- Byte, >Str dip(0 >Offset) byte@)
 def(Name.tail-head, Name -- Byte, >Str dip(1 >Offset) byte@)
 def(Name.tail, Name -- Name,
-    >Str with-data(
-        dup 2 >Size >=
-        if(unsafe(dip(dip(1 >Offset) offset) 1- Str.copy), drop2 "")
-    ) >Name)
+    >Str dip(1 >Size) unsafe(drop-bytes) >Name)
 
 def(Name.can-be-relative?, Name -- Bool, head is-upper not)
 def(Name.could-be-label-name?, Name -- Bool, dup head is-lower or(dup head B'+' == and(dup tail-head is-lower)) nip)
