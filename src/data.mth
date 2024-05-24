@@ -2,6 +2,7 @@ module(mirth.data)
 
 import(std.prelude)
 import(std.list)
+import(std.str)
 import(std.maybe)
 import(std.either)
 
@@ -64,7 +65,7 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     >tag >inputs >value >name
 
     @tag .data name> 0 data-word-qname @tag ~qname !
-    value> >Nat @tag ~value !
+    value> @tag ~value !
 
     @inputs len @tag ~num-type-inputs !
     0 >Nat @tag ~num-resource-inputs !
@@ -143,10 +144,25 @@ def(data-word-qname, Data Str Int -- QName,
 def(Data.==, Data Data -- Bool, both(index) ==)
 def(Data.num-tags, Data -- Nat, tags len)
 
-||| Adds constructor to data type, and gives tag its rank.
-def(Data.add-tag!, Tag Data --,
-    dup2 num-tags swap ~value !
-    dup tags rotr dip(List.snoc) ~tags !)
+field(Data.~last-tag-value, Data, Int)
+
+||| Adds constructor to data type, and gives tag its value.
+def(Data.add-tag!, +Mirth Tag Data -- +Mirth,
+    over ~value memoize(
+        dup ~last-tag-value @? if-some(1+, 0)
+    )
+    over tags find(value over ==) for(
+        Str("Constructors ";
+            name rdip:>Str ;
+            " and " ;
+            over2 name rdip:>Str ;
+            " have the same tag value." ;
+        )
+        over2 head? unwrap(error-token unwrap(panic!))
+        swap emit-error!
+    )
+    over ~last-tag-value !
+    sip(tags swap List.snoc) ~tags !)
 
 field(Data.~is-unit?, Data, Bool)
 def(Data.is-unit?, Data -- Bool,
@@ -206,7 +222,7 @@ def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
 table(Tag)
 field(Tag.~data, Tag, Data)
 field(Tag.~qname, Tag, QName)
-field(Tag.~value, Tag, Nat)
+field(Tag.~value, Tag, Int)
 field(Tag.~label-inputs, Tag, List(Label))
 field(Tag.~num-type-inputs, Tag, Nat)
 field(Tag.~num-resource-inputs, Tag, Nat)
@@ -217,7 +233,7 @@ field(Tag.~untag, Tag, Maybe(Word))
 def(Tag.data, Tag -- Data, ~data @)
 def(Tag.qname, Tag -- QName, ~qname @)
 def(Tag.name, Tag -- Name, qname name)
-def(Tag.value, Tag -- Nat, ~value @)
+def(Tag.value, Tag -- Int, ~value @)
 def(Tag.label-inputs, Tag -- List(Label), ~label-inputs @)
 def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
 def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)

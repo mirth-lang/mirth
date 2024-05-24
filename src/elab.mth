@@ -1202,9 +1202,14 @@ def(elab-data-params!, List(Token) +Mirth -- List(Var) +Mirth,
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 .. TYPEN".
 def(elab-data-tag!, Data Token +Mirth -- Data +Mirth,
+    dup int? if-some(
+        Some >value succ,
+        None >value
+    )
     dup2 name? unwrap(drop "Expected constructor name." emit-fatal-error!)
     0 data-qname
     Tag.alloc!
+    value> for(over ~value !)
     None over ~untag !
     tuck ~qname !
     dup DefTag register

@@ -1,0 +1,9 @@
+module(test.error-data-tag-overlap)
+
+data(Foo, Foo0a, 0 Foo0b)
+data(Bar, 11 Bar11, 10 Bar10, BarOops)
+
+def main {}
+# mirth-test # merr # 3:6: error: Constructors Foo0a and Foo0b have the same tag value.
+# mirth-test # merr # 4:6: error: Constructors Bar11 and BarOops have the same tag value.
+# mirth-test # mret # 1
