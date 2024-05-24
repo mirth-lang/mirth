@@ -1,0 +1,9 @@
+module(test.error-string-literal-unfinished)
+
+def main {
+    "Hello, world!
+    "
+    print
+}
+# mirth-test # merr # 4:19: error: String literal is missing end quote (").
+# mirth-test # mret # 1

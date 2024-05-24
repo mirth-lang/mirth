@@ -1,0 +1,16 @@
+module(test.string-continuation)
+import(std.prelude)
+import(std.world)
+
+def main {
+    "Hello, \
+world!"
+    print
+}
+
+# Use a recursive inline word because it generates a warning,
+# and we want to check that the line numbers are handled correctly
+inline ( def recursive { recursive } )
+
+# mirth-test # merr # 13:14: warning: recursive word cannot be inlined
+# mirth-test # pout # Hello, world!
