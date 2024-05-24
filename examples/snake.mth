@@ -217,28 +217,24 @@ def +Snake.process-events! [ +World +Snake -- +World +Snake ] {
 }
 
 def +Snake.process-event! [ +World +Snake -- +World +Snake ] {
-    &event type@
-    dup SDL_QUIT == if(
-        drop True +logic:done!,
-
-    dup SDL_KEYDOWN == if(
-        drop
-        &event key repeat@ >Int 0> if(
-            id,
-            &event key keysym scancode@
-            match(
-                SDL_SCANCODE_ESCAPE -> True +logic:done!,
-                _ -> >SnakeButton? for:+logic:press!
+    &event type@ match {
+        { SDL_QUIT ->
+            True +logic:done! }
+        { SDL_KEYDOWN ->
+            &event key repeat@ >Int 0> if(
+                id,
+                &event key keysym scancode@
+                match(
+                    SDL_SCANCODE_ESCAPE -> True +logic:done!,
+                    _ -> >SnakeButton? for:+logic:press!
+                )
             )
-        ),
-
-    dup SDL_CONTROLLERBUTTONDOWN == if(
-        drop
-        &event cbutton button@
-        >SnakeButton? for:+logic:press!,
-
-        drop
-    )))
+        }
+        { SDL_CONTROLLERBUTTONDOWN ->
+            &event cbutton button@
+            >SnakeButton? for:+logic:press! }
+        { _ -> drop }
+    }
 }
 
 def +SnakeLogic.press! [ +World +SnakeLogic SnakeButton -- +World +SnakeLogic ] {
