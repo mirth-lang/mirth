@@ -6,6 +6,12 @@ data(Bar, Bar0, Bar1 -> Int)
 data(Baz, Baz -> Foo)
 data(MyStr, MyStr -> Str)
 
+data(CustomEnum,
+    1 One, Two, Three,
+    400 FourHundred, FourHundredOne,
+    -10 NegativeTen, NegativeNine, NegativeEight,
+)
+
 def(main, --,
     assert!(Foo0 tag 0 ==, "Foo0 tag 0 ==")
     assert!(Foo1 tag 1 ==, "Foo1 tag 1 ==")
@@ -19,4 +25,13 @@ def(main, --,
     assert!(Foo2 Baz tag 0 ==, "Foo2 Baz tag 0 ==")
     assert!("Hello" MyStr tag 0 ==, "\"Hello\" MyStr tag 0 ==")
     assert!("World" MyStr tag 0 ==, "\"World\" MyStr tag 0 ==")
+
+    assert!(One tag 1 ==, "One tag 1 ==")
+    assert!(Two tag 2 ==, "Two tag 2 ==")
+    assert!(Three tag 3 ==, "Three tag 3 ==")
+    assert!(FourHundred tag 400 ==, "FourHundred tag 400 ==")
+    assert!(FourHundredOne tag 401 ==, "FourHundredOne tag 401 ==")
+    assert!(NegativeTen tag -10 ==, "NegativeTen tag -10 ==")
+    assert!(NegativeNine tag -9 ==, "NegativeNine tag -9 ==")
+    assert!(NegativeEight tag -8 ==, "NegativeNine tag -8 ==")
 )
