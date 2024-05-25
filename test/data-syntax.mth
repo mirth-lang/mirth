@@ -14,10 +14,15 @@ data(TJ, J1, J2 -> Int,)
 data(TK)
 data(TL,)
 
-data(Foo, Foo [ Int ])
-data(Bar, Bar1, Bar2 [ Str x:Str ])
+data(Foo, Foo1 Foo2 [ Int ])
+data Bar { Bar1 Bar2 [ Str x:Str ] }
+struct Baz { something:Int something-else:Str }
 
-def(main, --,
-    10 Foo drop
+def main {
+    Foo1 drop
+    10 Foo2 drop
     "hi" "bye" >x Bar2 drop
-    Bar1 drop)
+    Bar1 drop
+    10 >something "here" >something-else
+    Baz drop
+}
