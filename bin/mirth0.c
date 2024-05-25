@@ -1482,6 +1482,11 @@ static VAL lbl_word = MKNIL_C;
 static VAL lbl_ZPlusab = MKNIL_C;
 static VAL lbl_ZPluspat = MKNIL_C;
 static VAL lbl_tok = MKNIL_C;
+static VAL lbl_header = MKNIL_C;
+static VAL lbl_valueZAsk = MKNIL_C;
+static VAL lbl_sigZAsk = MKNIL_C;
+static VAL lbl_syn = MKNIL_C;
+static VAL lbl_dat = MKNIL_C;
 static VAL lbl_f = MKNIL_C;
 static VAL lbl_hasZ_paren = MKNIL_C;
 static VAL lbl_target = MKNIL_C;
@@ -4597,7 +4602,7 @@ static void mtp_mirth_lexer_ZPlusLexer_ZPlusLexer (void) {
 		free(tup);
 	}
 }
-static void mtw_mirth_elab_ZPlusTypeElab_TYPEz_ELAB (void) {
+static void mtw_mirth_elab_ZPlusTypeElab_ZPlusTypeElab (void) {
 	TUP* tup = tup_new(5);
 	tup->size = 5;
 	tup->cells[0] = MKU64(0LL);
@@ -4607,7 +4612,7 @@ static void mtw_mirth_elab_ZPlusTypeElab_TYPEz_ELAB (void) {
 	tup->cells[1] = lpop(&lbl_ctx);
 	push_resource(MKTUP(tup, 5));
 }
-static void mtp_mirth_elab_ZPlusTypeElab_TYPEz_ELAB (void) {
+static void mtp_mirth_elab_ZPlusTypeElab_ZPlusTypeElab (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -4625,7 +4630,7 @@ static void mtp_mirth_elab_ZPlusTypeElab_TYPEz_ELAB (void) {
 		free(tup);
 	}
 }
-static void mtw_mirth_elab_ZPlusResolveDef_RESOLVEz_DEF (void) {
+static void mtw_mirth_elab_ZPlusResolveDef_ZPlusResolveDef (void) {
 	TUP* tup = tup_new(7);
 	tup->size = 7;
 	tup->cells[0] = MKU64(0LL);
@@ -4637,7 +4642,7 @@ static void mtw_mirth_elab_ZPlusResolveDef_RESOLVEz_DEF (void) {
 	tup->cells[1] = lpop(&lbl_sort);
 	push_resource(MKTUP(tup, 7));
 }
-static void mtp_mirth_elab_ZPlusResolveDef_RESOLVEz_DEF (void) {
+static void mtp_mirth_elab_ZPlusResolveDef_ZPlusResolveDef (void) {
 	VAL val = pop_resource();
 	ASSERT1(IS_TUP(val),val);
 	TUP* tup = VTUP(val);
@@ -4804,10 +4809,10 @@ static void mtp_mirth_elab_RejectedDef_RDz_METHODz_WRONGz_TYPE (void) {
 		free(tup);
 	}
 }
-static void mtw_mirth_elab_ZPlusAB_MKAB (void) {
+static void mtw_mirth_elab_ZPlusAB_ZPlusAB (void) {
 	push_resource(lpop(&lbl_arrow));
 }
-static void mtp_mirth_elab_ZPlusAB_MKAB (void) {
+static void mtp_mirth_elab_ZPlusAB_ZPlusAB (void) {
 	VAL val = pop_resource();
 	lpush(&lbl_arrow, val);
 }
@@ -4848,6 +4853,44 @@ static void mtp_mirth_elab_OpSig_OPSIGz_APPLY (void) {
 	} else {
 		free(tup);
 	}
+}
+static void mtw_mirth_elab_SyntaxData_SyntaxData (void) {
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = lpop(&lbl_tags);
+	tup->cells[1] = lpop(&lbl_header);
+	push_value(MKTUP(tup, 3));
+}
+static void mtp_mirth_elab_SyntaxData_SyntaxData (void) {
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_header, tup->cells[1]);
+	lpush(&lbl_tags, tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
+}
+static void mtw_mirth_elab_SyntaxDataHeader_SyntaxDataHeader (void) {
+	push_value(lpop(&lbl_head));
+}
+static void mtp_mirth_elab_SyntaxDataHeader_SyntaxDataHeader (void) {
+	VAL val = pop_value();
+	lpush(&lbl_head, val);
+}
+static void mtw_mirth_elab_SyntaxDataTag_SyntaxDataTag (void) {
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[3] = lpop(&lbl_sigZAsk);
+	tup->cells[2] = lpop(&lbl_name);
+	tup->cells[1] = lpop(&lbl_valueZAsk);
+	push_value(MKTUP(tup, 4));
 }
 static void mtw_mirth_elab_ExternalDeclPart_EDPCode (void) {
 	TUP* tup = tup_new(3);
@@ -6081,11 +6124,13 @@ static void mw_mirth_token_TokenValue_noneZAsk (void);
 static void mw_mirth_token_TokenValue_commaZAsk (void);
 static void mw_mirth_token_TokenValue_lparenZ_openZAsk (void);
 static void mw_mirth_token_TokenValue_lparenZAsk (void);
+static void mw_mirth_token_TokenValue_rparenZAsk (void);
 static void mw_mirth_token_TokenValue_lsquareZ_openZAsk (void);
 static void mw_mirth_token_TokenValue_lsquareZAsk (void);
 static void mw_mirth_token_TokenValue_rsquareZAsk (void);
 static void mw_mirth_token_TokenValue_lcurlyZ_openZAsk (void);
 static void mw_mirth_token_TokenValue_lcurlyZAsk (void);
+static void mw_mirth_token_TokenValue_rcurlyZAsk (void);
 static void mw_mirth_token_TokenValue_lcolonZ_openZAsk (void);
 static void mw_mirth_token_TokenValue_lcolonZAsk (void);
 static void mw_mirth_token_TokenValue_lparenZ_orZ_lcolonZAsk (void);
@@ -6108,7 +6153,7 @@ static void mw_mirth_token_TokenValue_sigZ_stackZ_varZAsk (void);
 static void mw_mirth_token_TokenValue_sigZ_resourceZ_varZAsk (void);
 static void mw_mirth_token_TokenValue_sigZ_resourceZ_conZAsk (void);
 static void mw_mirth_token_TokenValue_sigZ_dashesZAsk (void);
-static void mw_mirth_token_TokenValue_patZ_arrowZAsk (void);
+static void mw_mirth_token_TokenValue_arrowZAsk (void);
 static void mw_mirth_token_TokenValue_patZ_underscoreZAsk (void);
 static void mw_mirth_token_TokenValue_moduleZ_headerZAsk (void);
 static void mw_mirth_token_Token_index (void);
@@ -6124,11 +6169,13 @@ static void mw_mirth_token_Token_noneZAsk (void);
 static void mw_mirth_token_Token_commaZAsk (void);
 static void mw_mirth_token_Token_lparenZ_openZAsk (void);
 static void mw_mirth_token_Token_lparenZAsk (void);
+static void mw_mirth_token_Token_rparenZAsk (void);
 static void mw_mirth_token_Token_lsquareZ_openZAsk (void);
 static void mw_mirth_token_Token_lsquareZAsk (void);
 static void mw_mirth_token_Token_rsquareZAsk (void);
 static void mw_mirth_token_Token_lcurlyZ_openZAsk (void);
 static void mw_mirth_token_Token_lcurlyZAsk (void);
+static void mw_mirth_token_Token_rcurlyZAsk (void);
 static void mw_mirth_token_Token_lcolonZ_openZAsk (void);
 static void mw_mirth_token_Token_lcolonZAsk (void);
 static void mw_mirth_token_Token_lparenZ_orZ_lcolonZAsk (void);
@@ -6150,7 +6197,7 @@ static void mw_mirth_token_Token_sigZ_stackZ_varZAsk (void);
 static void mw_mirth_token_Token_sigZ_resourceZ_varZAsk (void);
 static void mw_mirth_token_Token_sigZ_resourceZ_conZAsk (void);
 static void mw_mirth_token_Token_sigZ_dashesZAsk (void);
-static void mw_mirth_token_Token_patZ_arrowZAsk (void);
+static void mw_mirth_token_Token_arrowZAsk (void);
 static void mw_mirth_token_Token_patZ_underscoreZAsk (void);
 static void mw_mirth_token_Token_moduleZ_headerZAsk (void);
 static void mw_mirth_token_Token_canZ_takeZ_argsZAsk (void);
@@ -6380,7 +6427,7 @@ static void mw_mirth_name_Name_isZ_underscore (void);
 static void mw_mirth_name_Name_couldZ_beZ_stackZ_var (void);
 static void mw_mirth_name_Name_couldZ_beZ_resourceZ_var (void);
 static void mw_mirth_name_Name_couldZ_beZ_resourceZ_con (void);
-static void mw_mirth_name_Name_couldZ_beZ_typeZ_orZ_resourceZ_con (void);
+static void mw_mirth_name_Name_couldZ_beZ_constructor (void);
 static void mw_mirth_name_Name_mangleZ_computeZBang (void);
 static void mw_mirth_name_Namespace_ZEqualZEqual (void);
 static void mw_mirth_name_Namespace_qname (void);
@@ -6494,7 +6541,7 @@ static void mw_mirth_lexer_lexerZ_moveZBang (void);
 static void mw_mirth_lexer_lexerZ_location (void);
 static void mw_mirth_lexer_lexerZ_emitZ_warningZBang (void);
 static void mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang (void);
-static void mw_mirth_elab_ZPlusTypeElab_ZDivTYPEz_ELAB (void);
+static void mw_mirth_elab_ZPlusTypeElab_ZDivZPlusTypeElab (void);
 static void mw_mirth_elab_ZPlusTypeElab_allowZ_implicitZ_typeZ_vars (void);
 static void mw_mirth_elab_ZPlusTypeElab_allowZ_typeZ_holes (void);
 static void mw_mirth_elab_ZPlusTypeElab_token (void);
@@ -6518,7 +6565,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_varZBang (void);
 static void mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_varZBang (void);
 static void mw_mirth_elab_ZPlusTypeElab_gamma_1 (void);
 static void mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang (void);
-static void mw_mirth_elab_ZPlusResolveDef_ZDivRESOLVEz_DEF (void);
+static void mw_mirth_elab_ZPlusResolveDef_ZDivZPlusResolveDef (void);
 static void mw_mirth_elab_ZPlusResolveDef_reportZ_ambiguousZ_asZ_warning (void);
 static void mw_mirth_elab_ZPlusResolveDef_ignoreZ_lastZ_name (void);
 static void mw_mirth_elab_ZPlusResolveDef_rejected (void);
@@ -6528,8 +6575,6 @@ static void mw_mirth_elab_ZPlusResolveDef_candidates (void);
 static void mw_mirth_elab_ZPlusResolveDef_candidatesZBang (void);
 static void mw_mirth_elab_ZPlusResolveDef_token (void);
 static void mw_mirth_elab_ZPlusResolveDef_sort (void);
-static void mw_mirth_elab_ZPlusResolveDef_filter_1 (void);
-static void mw_mirth_elab_ZPlusResolveDef_filter_2 (void);
 static void mw_mirth_elab_resolveZ_def_1 (void);
 static void mw_mirth_elab_ZPlusResolveDef_rdrop (void);
 static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (void);
@@ -6553,7 +6598,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_quoteZBang (void);
 static void mw_mirth_elab_elabZ_typeZ_unifyZBang (void);
 static void mw_mirth_elab_elabZ_stackZ_typeZ_unifyZBang (void);
 static void mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang (void);
-static void mw_mirth_elab_ZPlusAB_ZDivMKAB (void);
+static void mw_mirth_elab_ZPlusAB_ZDivZPlusAB (void);
 static void mw_mirth_elab_ZPlusAB_arrow (void);
 static void mw_mirth_elab_ZPlusAB_arrowZBang (void);
 static void mw_mirth_elab_ZPlusAB_arrow_1 (void);
@@ -6653,7 +6698,21 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void);
 static void mw_mirth_elab_elabZ_moduleZ_declZBang (void);
 static void mw_mirth_elab_loadZ_module (void);
 static void mw_mirth_elab_elabZ_moduleZ_importZBang (void);
+static void mw_mirth_elab_parseZ_data (void);
+static void mw_mirth_elab_parseZ_dataZ_header (void);
+static void mw_mirth_elab_parseZ_dataZ_tags (void);
+static void mw_mirth_elab_parseZ_dataZ_tag (void);
+static void mw_mirth_elab_parseZ_struct (void);
+static void mw_mirth_elab_parseZ_structZ_tag (void);
+static void mw_mirth_elab_SyntaxData_ZDivSyntaxData (void);
+static void mw_mirth_elab_SyntaxDataHeader_ZDivSyntaxDataHeader (void);
+static void mw_mirth_elab_SyntaxDataHeader_head (void);
+static void mw_mirth_elab_SyntaxDataTag_sigZAsk (void);
+static void mw_mirth_elab_SyntaxDataTag_name (void);
+static void mw_mirth_elab_SyntaxDataTag_valueZAsk (void);
 static void mw_mirth_elab_elabZ_dataZBang (void);
+static void mw_mirth_elab_elabZ_structZBang (void);
+static void mw_mirth_elab_elabZ_dataZ_auxZBang (void);
 static void mw_mirth_elab_elabZ_dataZ_headerZBang (void);
 static void mw_mirth_elab_elabZ_dataZ_paramsZBang (void);
 static void mw_mirth_elab_elabZ_dataZ_tagZBang (void);
@@ -7202,26 +7261,14 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_5 (void);
 static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_8 (void);
 static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_11 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_sort_1_1 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_0 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_1 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_1 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_2 (void);
 static void mb_mirth_name_QName_climbZ_upZ_dnameZAsk_5 (void);
 static void mb_mirth_name_QName_climbZ_upZ_dnameZAsk_6 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_1 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_2 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_4 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_16 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_17 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_19 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_20 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_23 (void);
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_24 (void);
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_26 (void);
 static void mb_mirth_name_QName_climbZ_upZ_nameZAsk_2 (void);
 static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_1 (void);
-static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_2 (void);
-static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_3 (void);
 static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_argsZBang_3 (void);
 static void mb_mirth_elab_abZ_tokenZBang_0 (void);
 static void mb_mirth_elab_abZ_typeZBang_0 (void);
@@ -7240,8 +7287,6 @@ static void mb_mirth_elab_elabZ_atomZ_assertZBang_3 (void);
 static void mb_mirth_elab_elabZ_blockZ_atZBang_1 (void);
 static void mb_mirth_elab_elabZ_argsZBang_0 (void);
 static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_0 (void);
-static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_1 (void);
-static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_2 (void);
 static void mb_mirth_elab_elabZ_atomZ_lambdaZBang_1 (void);
 static void mb_mirth_elab_elabZ_atomZ_lambdaZBang_5 (void);
 static void mb_mirth_elab_elabZ_matchZ_atZBang_0 (void);
@@ -7252,18 +7297,12 @@ static void mb_mirth_match_ZPlusMatch_caseZBang_2_3 (void);
 static void mb_mirth_elab_elabZ_patternZBang_0 (void);
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_0 (void);
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void);
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_6 (void);
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_7 (void);
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_11 (void);
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_12 (void);
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_14 (void);
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_16 (void);
 static void mb_mirth_elab_elabZ_moduleZ_declZBang_1 (void);
 static void mb_mirth_elab_checkZ_moduleZ_path_2 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_0 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_1 (void);
-static void mb_mirth_elab_elabZ_aliasZBang_2 (void);
-static void mb_mirth_elab_elabZ_aliasZBang_3 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_6 (void);
 static void mb_mirth_elab_elabZ_defZBang_0 (void);
 static void mb_mirth_elab_elabZ_defZBang_2 (void);
@@ -7277,11 +7316,13 @@ static void mb_mirth_elab_elabZ_fieldZBang_0 (void);
 static void mb_mirth_elab_elabZ_fieldZBang_1 (void);
 static void mb_mirth_elab_elabZ_fieldZBang_2 (void);
 static void mb_mirth_elab_elabZ_fieldZBang_3 (void);
-static void mb_mirth_elab_elabZ_dataZBang_2 (void);
 static void mb_mirth_elab_elabZ_embedZ_strZBang_4 (void);
+static void mb_mirth_elab_parseZ_dataZ_tags_0 (void);
+static void mb_mirth_elab_parseZ_dataZ_tags_1 (void);
+static void mb_mirth_elab_elabZ_dataZ_auxZBang_0 (void);
 static void mb_mirth_elab_elabZ_dataZ_headerZBang_2 (void);
-static void mb_mirth_elab_elabZ_dataZ_tagZBang_10 (void);
-static void mb_mirth_elab_elabZ_dataZ_tagZBang_20 (void);
+static void mb_mirth_elab_elabZ_dataZ_tagZBang_1 (void);
+static void mb_mirth_elab_elabZ_dataZ_tagZBang_5 (void);
 static void mb_mirth_elab_elabZ_dataZ_doneZBang_0 (void);
 static void mb_mirth_elab_elabZ_dataZ_doneZBang_1 (void);
 static void mb_mirth_elab_elabZ_dataZ_doneZBang_2 (void);
@@ -7638,6 +7679,26 @@ static void mb_mirth_need_ZPlusNeeds_pushZ_argsZBang_0 (void);
 static void mb_mirth_need_ZPlusNeeds_runZ_matchZBang_0 (void);
 static void mb_mirth_need_ZPlusNeeds_runZ_patternZBang_0 (void);
 static void mb_std_set_ZPlusSet_1_offsetZ_mask_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot105ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot123ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot105ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot123ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot78ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot93ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot78ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot93ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot27ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot27ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot15ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot15ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot4ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot11ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot4ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot11ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot14ZCommamirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot20ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot14ZCommamirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot20ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot59ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot71ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot59ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot71ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot31ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot35ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot31ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot35ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot15ZCommamirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot21ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot15ZCommamirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot21ZRParenZDot0ZRParen_0 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_aliasZBangZDot32ZCommamirthZDotelabZDotelabZ_aliasZBangZDot39ZRParen_2 (void);
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_aliasZBangZDot32ZCommamirthZDotelabZDotelabZ_aliasZBangZDot39ZRParenZDot0ZRParen_0 (void);
 static void mb_std_str_ZPlusStr_splitZ_byte_1_ZLParenstdZDotstrZDotZPlusStrZDotsplitZ_byteZDot2ZRParen_11 (void);
 static void mfld_mirth_label_Label_ZTildename (void);
 static void mfld_mirth_var_Var_ZTildename (void);
@@ -24139,15 +24200,19 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	STRLIT("data", 4);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
+	push_u64(85LL); // PRIM_SYNTAX_STRUCT
+	STRLIT("struct", 6);
+	push_i64(-1LL);
+	mw_mirth_prim_defZ_primZBang();
 	push_u64(78LL); // PRIM_SYNTAX_VARIABLE
 	STRLIT("var", 3);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(86LL); // PRIM_SYNTAX_ARROW
+	push_u64(87LL); // PRIM_SYNTAX_ARROW
 	STRLIT("->", 2);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
-	push_u64(85LL); // PRIM_SYNTAX_DASHES
+	push_u64(86LL); // PRIM_SYNTAX_DASHES
 	STRLIT("--", 2);
 	push_i64(-1LL);
 	mw_mirth_prim_defZ_primZBang();
@@ -25395,6 +25460,18 @@ static void mw_mirth_token_TokenValue_lparenZAsk (void) {
 			break;
 	}
 }
+static void mw_mirth_token_TokenValue_rparenZAsk (void) {
+	switch (get_top_data_tag()) {
+		case 4LL: // TokenRParen
+			mtp_mirth_token_TokenValue_TokenRParen();
+			mtw_std_maybe_Maybe_1_Some();
+			break;
+		default:
+			mp_primZ_drop();
+			push_u64(0LL); // None
+			break;
+	}
+}
 static void mw_mirth_token_TokenValue_lsquareZ_openZAsk (void) {
 	switch (get_top_data_tag()) {
 		case 5LL: // TokenLSquareOpen
@@ -25447,6 +25524,18 @@ static void mw_mirth_token_TokenValue_lcurlyZAsk (void) {
 	switch (get_top_data_tag()) {
 		case 9LL: // TokenLCurly
 			mtp_mirth_token_TokenValue_TokenLCurly();
+			mtw_std_maybe_Maybe_1_Some();
+			break;
+		default:
+			mp_primZ_drop();
+			push_u64(0LL); // None
+			break;
+	}
+}
+static void mw_mirth_token_TokenValue_rcurlyZAsk (void) {
+	switch (get_top_data_tag()) {
+		case 10LL: // TokenRCurly
+			mtp_mirth_token_TokenValue_TokenRCurly();
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
@@ -25805,7 +25894,7 @@ static void mw_mirth_token_TokenValue_sigZ_dashesZAsk (void) {
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
-			push_u64(85LL); // PRIM_SYNTAX_DASHES
+			push_u64(86LL); // PRIM_SYNTAX_DASHES
 			mw_mirth_prim_Prim_name();
 			mw_mirth_name_Name_ZEqualZEqual();
 			break;
@@ -25818,12 +25907,12 @@ static void mw_mirth_token_TokenValue_sigZ_dashesZAsk (void) {
 			mp_primZ_panic();
 	}
 }
-static void mw_mirth_token_TokenValue_patZ_arrowZAsk (void) {
+static void mw_mirth_token_TokenValue_arrowZAsk (void) {
 	mw_mirth_token_TokenValue_nameZAsk();
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
-			push_u64(86LL); // PRIM_SYNTAX_ARROW
+			push_u64(87LL); // PRIM_SYNTAX_ARROW
 			mw_mirth_prim_Prim_name();
 			mw_mirth_name_Name_ZEqualZEqual();
 			break;
@@ -25984,6 +26073,10 @@ static void mw_mirth_token_Token_lparenZAsk (void) {
 	mw_mirth_token_Token_value();
 	mw_mirth_token_TokenValue_lparenZAsk();
 }
+static void mw_mirth_token_Token_rparenZAsk (void) {
+	mw_mirth_token_Token_value();
+	mw_mirth_token_TokenValue_rparenZAsk();
+}
 static void mw_mirth_token_Token_lsquareZ_openZAsk (void) {
 	mw_mirth_token_Token_value();
 	mw_mirth_token_TokenValue_lsquareZ_openZAsk();
@@ -26003,6 +26096,10 @@ static void mw_mirth_token_Token_lcurlyZ_openZAsk (void) {
 static void mw_mirth_token_Token_lcurlyZAsk (void) {
 	mw_mirth_token_Token_value();
 	mw_mirth_token_TokenValue_lcurlyZAsk();
+}
+static void mw_mirth_token_Token_rcurlyZAsk (void) {
+	mw_mirth_token_Token_value();
+	mw_mirth_token_TokenValue_rcurlyZAsk();
 }
 static void mw_mirth_token_Token_lcolonZ_openZAsk (void) {
 	mw_mirth_token_Token_value();
@@ -26088,9 +26185,9 @@ static void mw_mirth_token_Token_sigZ_dashesZAsk (void) {
 	mw_mirth_token_Token_value();
 	mw_mirth_token_TokenValue_sigZ_dashesZAsk();
 }
-static void mw_mirth_token_Token_patZ_arrowZAsk (void) {
+static void mw_mirth_token_Token_arrowZAsk (void) {
 	mw_mirth_token_Token_value();
-	mw_mirth_token_TokenValue_patZ_arrowZAsk();
+	mw_mirth_token_TokenValue_arrowZAsk();
 }
 static void mw_mirth_token_Token_patZ_underscoreZAsk (void) {
 	mw_mirth_token_Token_value();
@@ -30207,19 +30304,23 @@ static void mw_mirth_name_Name_couldZ_beZ_resourceZ_con (void) {
 		push_u64(0LL); // False
 	}
 }
-static void mw_mirth_name_Name_couldZ_beZ_typeZ_orZ_resourceZ_con (void) {
+static void mw_mirth_name_Name_couldZ_beZ_constructor (void) {
 	mp_primZ_dup();
-	mw_mirth_name_Name_couldZ_beZ_typeZ_con();
-	if (pop_u64()) {
-		push_u64(1LL); // True
-	} else {
-		mp_primZ_dup();
-		mw_mirth_name_Name_couldZ_beZ_resourceZ_con();
-	}
-	{
-		VAL d2 = pop_value();
-		mp_primZ_drop();
-		push_value(d2);
+	mw_mirth_name_Name_head();
+	switch (get_top_data_tag()) {
+		case 43LL: // B'+'
+			(void)pop_u64();
+			mw_mirth_name_Name_tailZ_head();
+			mw_std_byte_Byte_isZ_upper();
+			break;
+		default:
+			{
+				VAL d4 = pop_value();
+				mp_primZ_drop();
+				push_value(d4);
+			}
+			mw_std_byte_Byte_isZ_upper();
+			break;
 	}
 }
 static void mw_mirth_name_Name_mangleZ_computeZBang (void) {
@@ -32794,10 +32895,10 @@ static void mw_mirth_lexer_lexerZ_emitZ_fatalZ_errorZBang (void) {
 	mp_primZ_rswap();
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang();
 }
-static void mw_mirth_elab_ZPlusTypeElab_ZDivTYPEz_ELAB (void) {
+static void mw_mirth_elab_ZPlusTypeElab_ZDivZPlusTypeElab (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // TYPE_ELAB
-			mtp_mirth_elab_ZPlusTypeElab_TYPEz_ELAB();
+		case 0LL: // +TypeElab
+			mtp_mirth_elab_ZPlusTypeElab_ZPlusTypeElab();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -32896,10 +32997,10 @@ static void mw_mirth_elab_ZPlusTypeElab_typeZ_sigZ_startZBang (void) {
 	LPUSH(lbl_allowZ_typeZ_holes);
 	push_u64(1LL); // True
 	LPUSH(lbl_allowZ_implicitZ_typeZ_vars);
-	mtw_mirth_elab_ZPlusTypeElab_TYPEz_ELAB();
+	mtw_mirth_elab_ZPlusTypeElab_ZPlusTypeElab();
 }
 static void mw_mirth_elab_ZPlusTypeElab_rdrop (void) {
-	mw_mirth_elab_ZPlusTypeElab_ZDivTYPEz_ELAB();
+	mw_mirth_elab_ZPlusTypeElab_ZDivZPlusTypeElab();
 	LPOP(lbl_ctx);
 	LPOP(lbl_token);
 	mp_primZ_drop();
@@ -33392,10 +33493,10 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang (void) {
 	push_fnptr(&mb_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang_7);
 	mw_mirth_elab_ZPlusTypeElab_token_1();
 }
-static void mw_mirth_elab_ZPlusResolveDef_ZDivRESOLVEz_DEF (void) {
+static void mw_mirth_elab_ZPlusResolveDef_ZDivZPlusResolveDef (void) {
 	switch (get_top_resource_data_tag()) {
-		case 0LL: // RESOLVE_DEF
-			mtp_mirth_elab_ZPlusResolveDef_RESOLVEz_DEF();
+		case 0LL: // +ResolveDef
+			mtp_mirth_elab_ZPlusResolveDef_ZPlusResolveDef();
 			break;
 		default:
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
@@ -33492,39 +33593,6 @@ static void mw_mirth_elab_ZPlusResolveDef_sort (void) {
 	push_resource(v);
 	push_value(u);
 }
-static void mw_mirth_elab_ZPlusResolveDef_filter_1 (void) {
-	{
-		VAL var_p = pop_value();
-		mw_mirth_elab_ZPlusResolveDef_candidates();
-		incref(var_p);
-		push_value(var_p);
-		mw_std_list_List_1_partitionZ_either_1();
-		{
-			VAL d3 = pop_value();
-			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_2);
-			mw_mirth_elab_ZPlusResolveDef_rejected_1();
-			push_value(d3);
-		}
-		mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
-		decref(var_p);
-	}
-}
-static void mw_mirth_elab_ZPlusResolveDef_filter_2 (void) {
-	{
-		VAL var_q = pop_value();
-		VAL var_p = pop_value();
-		push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_0);
-		incref(var_p);
-		push_value(var_p);
-		mp_primZ_packZ_cons();
-		incref(var_q);
-		push_value(var_q);
-		mp_primZ_packZ_cons();
-		mw_mirth_elab_ZPlusResolveDef_filter_1();
-		decref(var_q);
-		decref(var_p);
-	}
-}
 static void mw_mirth_elab_resolveZ_def_1 (void) {
 	{
 		VAL var_f = pop_value();
@@ -33559,7 +33627,7 @@ static void mw_mirth_elab_resolveZ_def_1 (void) {
 		LPUSH(lbl_candidates);
 		push_u64(0LL); // Nil
 		LPUSH(lbl_rejected);
-		mtw_mirth_elab_ZPlusResolveDef_RESOLVEz_DEF();
+		mtw_mirth_elab_ZPlusResolveDef_ZPlusResolveDef();
 		incref(var_f);
 		run_value(var_f);
 		mw_mirth_elab_ZPlusResolveDef_candidates();
@@ -33604,7 +33672,7 @@ static void mw_mirth_elab_resolveZ_def_1 (void) {
 	}
 }
 static void mw_mirth_elab_ZPlusResolveDef_rdrop (void) {
-	mw_mirth_elab_ZPlusResolveDef_ZDivRESOLVEz_DEF();
+	mw_mirth_elab_ZPlusResolveDef_ZDivZPlusResolveDef();
 	LPOP(lbl_sort);
 	LPOP(lbl_token);
 	mp_primZ_drop();
@@ -33658,16 +33726,50 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_sort_1 (void) {
 		incref(var_p);
 		push_value(var_p);
 		push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_sort_1_1);
-		mw_mirth_elab_ZPlusResolveDef_filter_2();
+		{
+			VAL var_q = pop_value();
+			VAL var_p = pop_value();
+			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_0);
+			incref(var_p);
+			push_value(var_p);
+			mp_primZ_packZ_cons();
+			incref(var_q);
+			push_value(var_q);
+			mp_primZ_packZ_cons();
+			{
+				VAL var_p = pop_value();
+				mw_mirth_elab_ZPlusResolveDef_candidates();
+				incref(var_p);
+				push_value(var_p);
+				mw_std_list_List_1_partitionZ_either_1();
+				{
+					VAL d5 = pop_value();
+					push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_2);
+					mw_mirth_elab_ZPlusResolveDef_rejected_1();
+					push_value(d5);
+				}
+				mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
+				decref(var_p);
+			}
+			decref(var_q);
+			decref(var_p);
+		}
 		decref(var_p);
 	}
 }
 static void mw_mirth_elab_ZPlusResolveDef_filterZ_arity (void) {
 	mw_mirth_elab_ZPlusResolveDef_token();
 	mw_mirth_token_Token_numZ_args();
-	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_arity_0);
-	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_arity_1);
-	mw_mirth_elab_ZPlusResolveDef_filter_2();
+	mw_mirth_elab_ZPlusResolveDef_candidates();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot4ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot11ZRParen_2);
+	mw_std_list_List_1_partitionZ_either_1();
+	{
+		VAL d2 = pop_value();
+		push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot4ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot11ZRParenZDot0ZRParen_0);
+		mw_mirth_elab_ZPlusResolveDef_rejected_1();
+		push_value(d2);
+	}
+	mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 	mp_primZ_drop();
 }
 static void mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers (void) {
@@ -33676,9 +33778,16 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers (void) {
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
-			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_1);
-			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_2);
-			mw_mirth_elab_ZPlusResolveDef_filter_2();
+			mw_mirth_elab_ZPlusResolveDef_candidates();
+			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot15ZRParen_2);
+			mw_std_list_List_1_partitionZ_either_1();
+			{
+				VAL d4 = pop_value();
+				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot15ZRParenZDot0ZRParen_0);
+				mw_mirth_elab_ZPlusResolveDef_rejected_1();
+				push_value(d4);
+			}
+			mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 			mp_primZ_drop();
 			break;
 		case 0LL: // None
@@ -33696,9 +33805,16 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_roots (void) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
 			mp_primZ_drop();
-			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_1);
-			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_2);
-			mw_mirth_elab_ZPlusResolveDef_filter_2();
+			mw_mirth_elab_ZPlusResolveDef_candidates();
+			push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot27ZRParen_2);
+			mw_std_list_List_1_partitionZ_either_1();
+			{
+				VAL d4 = pop_value();
+				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot27ZRParenZDot0ZRParen_0);
+				mw_mirth_elab_ZPlusResolveDef_rejected_1();
+				push_value(d4);
+			}
+			mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 			break;
 		case 0LL: // None
 			(void)pop_u64();
@@ -33725,13 +33841,27 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_roots (void) {
 				push_u64(0LL); // False
 			}
 			if (pop_u64()) {
-				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_16);
-				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_17);
-				mw_mirth_elab_ZPlusResolveDef_filter_2();
+				mw_mirth_elab_ZPlusResolveDef_candidates();
+				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot78ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot93ZRParen_2);
+				mw_std_list_List_1_partitionZ_either_1();
+				{
+					VAL d5 = pop_value();
+					push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot78ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot93ZRParenZDot0ZRParen_0);
+					mw_mirth_elab_ZPlusResolveDef_rejected_1();
+					push_value(d5);
+				}
+				mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 			} else {
-				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_23);
-				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_24);
-				mw_mirth_elab_ZPlusResolveDef_filter_2();
+				mw_mirth_elab_ZPlusResolveDef_candidates();
+				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot105ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot123ZRParen_2);
+				mw_std_list_List_1_partitionZ_either_1();
+				{
+					VAL d5 = pop_value();
+					push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot105ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot123ZRParenZDot0ZRParen_0);
+					mw_mirth_elab_ZPlusResolveDef_rejected_1();
+					push_value(d5);
+				}
+				mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 			}
 			mp_primZ_drop();
 			break;
@@ -34247,12 +34377,12 @@ static void mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang (void) {
 	LPUSH(lbl_allowZ_typeZ_holes);
 	push_u64(0LL); // False
 	LPUSH(lbl_allowZ_implicitZ_typeZ_vars);
-	mtw_mirth_elab_ZPlusTypeElab_TYPEz_ELAB();
+	mtw_mirth_elab_ZPlusTypeElab_ZPlusTypeElab();
 	mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_argZBang();
 	mw_mirth_elab_ZPlusTypeElab_rdrop();
 }
-static void mw_mirth_elab_ZPlusAB_ZDivMKAB (void) {
-	mtp_mirth_elab_ZPlusAB_MKAB();
+static void mw_mirth_elab_ZPlusAB_ZDivZPlusAB (void) {
+	mtp_mirth_elab_ZPlusAB_ZPlusAB();
 }
 static void mw_mirth_elab_ZPlusAB_arrow (void) {
 	VAL v = top_resource();
@@ -34333,10 +34463,10 @@ static void mw_mirth_elab_abZ_buildZBang_1 (void) {
 		LPUSH(lbl_atoms);
 		mtw_mirth_arrow_Arrow_Arrow();
 		LPUSH(lbl_arrow);
-		mtw_mirth_elab_ZPlusAB_MKAB();
+		mtw_mirth_elab_ZPlusAB_ZPlusAB();
 		incref(var_f);
 		run_value(var_f);
-		mw_mirth_elab_ZPlusAB_ZDivMKAB();
+		mw_mirth_elab_ZPlusAB_ZDivZPlusAB();
 		LPOP(lbl_arrow);
 		decref(var_f);
 	}
@@ -35950,7 +36080,7 @@ static void mw_mirth_elab_elabZ_atomZ_assertZBang (void) {
 	LPUSH(lbl_allowZ_typeZ_holes);
 	push_u64(0LL); // False
 	LPUSH(lbl_allowZ_implicitZ_typeZ_vars);
-	mtw_mirth_elab_ZPlusTypeElab_TYPEz_ELAB();
+	mtw_mirth_elab_ZPlusTypeElab_ZPlusTypeElab();
 	mp_primZ_rswap();
 	{
 		VAL d2 = pop_resource();
@@ -37018,6 +37148,10 @@ static void mw_mirth_elab_elabZ_moduleZ_declZBang (void) {
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_dataZBang();
 			break;
+		case 85LL: // PRIM_SYNTAX_STRUCT
+			(void)pop_u64();
+			mw_mirth_elab_elabZ_structZBang();
+			break;
 		case 81LL: // PRIM_SYNTAX_EMBED_STR
 			(void)pop_u64();
 			mw_mirth_elab_elabZ_embedZ_strZBang();
@@ -37089,37 +37223,490 @@ static void mw_mirth_elab_elabZ_moduleZ_importZBang (void) {
 	}
 	mw_mirth_module_Module_addZ_importZBang();
 }
-static void mw_mirth_elab_elabZ_dataZBang (void) {
+static void mw_mirth_elab_parseZ_data (void) {
 	mp_primZ_dup();
+	mw_mirth_token_Token_numZ_args();
+	push_i64(0LL);
+	mp_primZ_swap();
+	mp_primZ_intZ_lt();
+	if (pop_u64()) {
+		mw_mirth_token_Token_succ();
+		mp_primZ_dup();
+		mw_mirth_token_Token_lparenZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				STRLIT("expected left parenthesis '('", 29);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+		mw_mirth_elab_parseZ_dataZ_header();
+		LPUSH(lbl_header);
+		mp_primZ_dup();
+		mw_mirth_token_Token_commaZAsk();
+		if (pop_u64()) {
+			mw_mirth_token_Token_succ();
+		} else {
+		}
+		mw_mirth_elab_parseZ_dataZ_tags();
+		LPUSH(lbl_tags);
+		mp_primZ_dup();
+		mw_mirth_token_Token_rparenZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				STRLIT("expected right parenthesis ')'", 30);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+	} else {
+		mw_mirth_token_Token_succ();
+		mw_mirth_elab_parseZ_dataZ_header();
+		LPUSH(lbl_header);
+		mp_primZ_dup();
+		mw_mirth_token_Token_lcurlyZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				STRLIT("expected left curly brace '{'", 29);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+		mw_mirth_elab_parseZ_dataZ_tags();
+		LPUSH(lbl_tags);
+		mp_primZ_dup();
+		mw_mirth_token_Token_rcurlyZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				STRLIT("expected right curly brace '}'", 30);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+	}
+	mtw_mirth_elab_SyntaxData_SyntaxData();
+}
+static void mw_mirth_elab_parseZ_dataZ_header (void) {
+	mp_primZ_dup();
+	LPUSH(lbl_head);
+	mw_mirth_token_Token_next();
+	LPOP(lbl_head);
+	mp_primZ_dup();
+	LPUSH(lbl_head);
+	mw_mirth_token_Token_lastZ_nameZAsk();
+	switch (get_top_data_tag()) {
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			mw_mirth_name_Name_couldZ_beZ_constructor();
+			break;
+		case 0LL: // None
+			(void)pop_u64();
+			push_u64(0LL); // False
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+	if (pop_u64()) {
+	} else {
+		LPOP(lbl_head);
+		mp_primZ_dup();
+		LPUSH(lbl_head);
+		STRLIT("Expected type name.", 19);
+		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+	}
+	mtw_mirth_elab_SyntaxDataHeader_SyntaxDataHeader();
+}
+static void mw_mirth_elab_parseZ_dataZ_tags (void) {
+	push_fnptr(&mb_mirth_elab_parseZ_dataZ_tags_0);
+	push_fnptr(&mb_mirth_elab_parseZ_dataZ_tags_1);
+	mw_std_list_collectZ_while_2();
+}
+static void mw_mirth_elab_parseZ_dataZ_tag (void) {
+	mp_primZ_dup();
+	mw_mirth_token_Token_intZAsk();
+	mp_primZ_dup();
+	LPUSH(lbl_valueZAsk);
+	switch (get_top_data_tag()) {
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			mp_primZ_drop();
+			mw_mirth_token_Token_succ();
+			break;
+		case 0LL: // None
+			(void)pop_u64();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+	mp_primZ_dup();
+	mw_mirth_token_Token_nameZAsk();
+	switch (get_top_data_tag()) {
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			mp_primZ_dup();
+			{
+				VAL d4 = pop_value();
+				mw_mirth_name_Name_couldZ_beZ_constructor();
+				push_value(d4);
+			}
+			mp_primZ_swap();
+			if (pop_u64()) {
+				mtw_std_maybe_Maybe_1_Some();
+			} else {
+				mp_primZ_drop();
+				push_u64(0LL); // None
+			}
+			break;
+		case 0LL: // None
+			(void)pop_u64();
+			push_u64(0LL); // None
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+	switch (get_top_data_tag()) {
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			break;
+		case 0LL: // None
+			(void)pop_u64();
+			STRLIT("Expected constructor name.", 26);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+	LPUSH(lbl_name);
+	mw_mirth_token_Token_succ();
+	mp_primZ_dup();
+	mw_mirth_token_Token_arrowZAsk();
+	if (pop_u64()) {
+		mw_mirth_token_Token_succ();
+		mp_primZ_dup();
+		mtw_std_maybe_Maybe_1_Some();
+		LPUSH(lbl_sigZAsk);
+		mw_mirth_token_Token_sigZ_nextZ_stackZ_end();
+		mp_primZ_dup();
+		mw_mirth_token_Token_argZ_endZAsk();
+		if (pop_u64()) {
+		} else {
+			STRLIT("Expected comma.", 15);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+		}
+	} else {
+		mp_primZ_dup();
+		mw_mirth_token_Token_lsquareZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				mw_mirth_token_Token_succ();
+				mp_primZ_dup();
+				mtw_std_maybe_Maybe_1_Some();
+				LPUSH(lbl_sigZAsk);
+				mw_mirth_token_Token_sigZ_nextZ_stackZ_end();
+				mp_primZ_dup();
+				mw_mirth_token_Token_rsquareZAsk();
+				switch (get_top_data_tag()) {
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
+						mp_primZ_drop();
+						break;
+					case 0LL: // None
+						(void)pop_u64();
+						STRLIT("Expected right square bracket ']'", 33);
+						mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+						break;
+					default:
+						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						mp_primZ_panic();
+				}
+				mw_mirth_token_Token_succ();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				push_u64(0LL); // None
+				LPUSH(lbl_sigZAsk);
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+	}
+	mp_primZ_dup();
+	mw_mirth_token_Token_commaZAsk();
+	if (pop_u64()) {
+		mw_mirth_token_Token_succ();
+	} else {
+	}
+	mtw_mirth_elab_SyntaxDataTag_SyntaxDataTag();
+}
+static void mw_mirth_elab_parseZ_struct (void) {
+	mp_primZ_dup();
+	mw_mirth_token_Token_numZ_args();
+	push_i64(0LL);
+	mp_primZ_swap();
+	mp_primZ_intZ_lt();
+	if (pop_u64()) {
+		mw_mirth_token_Token_succ();
+		mp_primZ_dup();
+		mw_mirth_token_Token_lparenZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				STRLIT("Expected left parenthesis '('", 29);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+		mw_mirth_elab_parseZ_dataZ_header();
+		LPUSH(lbl_header);
+		mp_primZ_dup();
+		mw_mirth_token_Token_commaZAsk();
+		if (pop_u64()) {
+			mw_mirth_token_Token_succ();
+		} else {
+		}
+		mw_mirth_elab_parseZ_structZ_tag();
+		push_u64(0LL); // Nil
+		mtw_std_list_List_1_Cons();
+		LPUSH(lbl_tags);
+		mp_primZ_dup();
+		mw_mirth_token_Token_rparenZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				STRLIT("Expected right parenthesis ')'", 30);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+	} else {
+		mw_mirth_token_Token_succ();
+		mw_mirth_elab_parseZ_dataZ_header();
+		LPUSH(lbl_header);
+		mp_primZ_dup();
+		mw_mirth_token_Token_lcurlyZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				STRLIT("expected left curly brace '{'", 29);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+		mw_mirth_elab_parseZ_structZ_tag();
+		push_u64(0LL); // Nil
+		mtw_std_list_List_1_Cons();
+		LPUSH(lbl_tags);
+		mp_primZ_dup();
+		mw_mirth_token_Token_rcurlyZAsk();
+		switch (get_top_data_tag()) {
+			case 1LL: // Some
+				mtp_std_maybe_Maybe_1_Some();
+				mp_primZ_drop();
+				break;
+			case 0LL: // None
+				(void)pop_u64();
+				STRLIT("expected right curly brace '}'", 30);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+				break;
+			default:
+				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				mp_primZ_panic();
+		}
+		mw_mirth_token_Token_succ();
+	}
+	mtw_mirth_elab_SyntaxData_SyntaxData();
+}
+static void mw_mirth_elab_parseZ_structZ_tag (void) {
+	LPOP(lbl_header);
+	mp_primZ_dup();
+	LPUSH(lbl_header);
+	mw_mirth_elab_SyntaxDataHeader_head();
+	mw_mirth_token_Token_lastZ_nameZAsk();
+	switch (get_top_data_tag()) {
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			mp_primZ_dup();
+			{
+				VAL d4 = pop_value();
+				mw_mirth_name_Name_couldZ_beZ_constructor();
+				push_value(d4);
+			}
+			mp_primZ_swap();
+			if (pop_u64()) {
+				mtw_std_maybe_Maybe_1_Some();
+			} else {
+				mp_primZ_drop();
+				push_u64(0LL); // None
+			}
+			break;
+		case 0LL: // None
+			(void)pop_u64();
+			push_u64(0LL); // None
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+	switch (get_top_data_tag()) {
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			break;
+		case 0LL: // None
+			(void)pop_u64();
+			LPOP(lbl_header);
+			mp_primZ_dup();
+			LPUSH(lbl_header);
+			mw_mirth_elab_SyntaxDataHeader_head();
+			STRLIT("expected constructor name", 25);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+	LPUSH(lbl_name);
+	push_u64(0LL); // None
+	LPUSH(lbl_valueZAsk);
+	mp_primZ_dup();
+	mtw_std_maybe_Maybe_1_Some();
+	LPUSH(lbl_sigZAsk);
+	mw_mirth_token_Token_sigZ_nextZ_stackZ_end();
+	mtw_mirth_elab_SyntaxDataTag_SyntaxDataTag();
+}
+static void mw_mirth_elab_SyntaxData_ZDivSyntaxData (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // SyntaxData
+			mtp_mirth_elab_SyntaxData_SyntaxData();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+}
+static void mw_mirth_elab_SyntaxDataHeader_ZDivSyntaxDataHeader (void) {
+	mtp_mirth_elab_SyntaxDataHeader_SyntaxDataHeader();
+}
+static void mw_mirth_elab_SyntaxDataHeader_head (void) {
+}
+static void mw_mirth_elab_SyntaxDataTag_sigZAsk (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	VAL* p = &VTUP(v)->cells[3];
+	VAL u = *p;
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_elab_SyntaxDataTag_name (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	VAL* p = &VTUP(v)->cells[2];
+	VAL u = *p;
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_elab_SyntaxDataTag_valueZAsk (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 4, v);
+	VAL* p = &VTUP(v)->cells[1];
+	VAL u = *p;
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_elab_elabZ_dataZBang (void) {
+	mw_mirth_elab_parseZ_data();
+	mw_mirth_elab_elabZ_dataZ_auxZBang();
+}
+static void mw_mirth_elab_elabZ_structZBang (void) {
+	mw_mirth_elab_parseZ_struct();
+	mw_mirth_elab_elabZ_dataZ_auxZBang();
+}
+static void mw_mirth_elab_elabZ_dataZ_auxZBang (void) {
+	mw_mirth_elab_SyntaxData_ZDivSyntaxData();
+	mw_mirth_data_Data_allocZBang();
+	push_u64(0LL); // Nil
 	{
 		VAL d2 = pop_value();
-		mw_mirth_data_Data_allocZBang();
-		push_u64(0LL); // Nil
-		{
-			VAL d3 = pop_value();
-			mp_primZ_dup();
-			push_value(d3);
-		}
-		mp_primZ_swap();
-		mfld_mirth_data_Data_ZTildetags();
-		mp_primZ_mutZ_set();
-		mp_primZ_swap();
-		mw_mirth_token_Token_argsZPlus();
-		mw_std_list_ListZPlus_1_uncons();
-		{
-			VAL d3 = pop_value();
-			mw_mirth_elab_elabZ_dataZ_headerZBang();
-			push_value(d3);
-		}
-		push_fnptr(&mb_mirth_elab_elabZ_dataZBang_2);
-		mw_std_list_List_1_for_1();
-		mw_mirth_elab_elabZ_dataZ_doneZBang();
+		mp_primZ_dup();
 		push_value(d2);
 	}
-	mw_mirth_token_Token_next();
+	mp_primZ_swap();
+	mfld_mirth_data_Data_ZTildetags();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_header);
+	mw_mirth_elab_elabZ_dataZ_headerZBang();
+	LPOP(lbl_tags);
+	push_fnptr(&mb_mirth_elab_elabZ_dataZ_auxZBang_0);
+	mw_std_list_List_1_for_1();
+	mw_mirth_elab_elabZ_dataZ_doneZBang();
 }
 static void mw_mirth_elab_elabZ_dataZ_headerZBang (void) {
-	LPUSH(lbl_head);
+	mw_mirth_elab_SyntaxDataHeader_ZDivSyntaxDataHeader();
 	LPUSH(lbl_data);
 	LPOP(lbl_head);
 	mp_primZ_dup();
@@ -37128,7 +37715,7 @@ static void mw_mirth_elab_elabZ_dataZ_headerZBang (void) {
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
-			mw_mirth_name_Name_couldZ_beZ_typeZ_orZ_resourceZ_con();
+			mw_mirth_name_Name_couldZ_beZ_constructor();
 			break;
 		case 0LL: // None
 			(void)pop_u64();
@@ -37211,64 +37798,43 @@ static void mw_mirth_elab_elabZ_dataZ_paramsZBang (void) {
 	mw_mirth_var_Ctx_ZToList();
 }
 static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
+	LPUSH(lbl_syn);
+	LPUSH(lbl_dat);
+	mw_mirth_data_Tag_allocZBang();
+	LPUSH(lbl_tag);
+	LPOP(lbl_dat);
 	mp_primZ_dup();
-	mw_mirth_token_Token_intZAsk();
-	switch (get_top_data_tag()) {
-		case 1LL: // Some
-			mtp_std_maybe_Maybe_1_Some();
-			mtw_std_maybe_Maybe_1_Some();
-			LPUSH(lbl_value);
-			mw_mirth_token_Token_succ();
-			break;
-		case 0LL: // None
-			(void)pop_u64();
-			push_u64(0LL); // None
-			LPUSH(lbl_value);
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primZ_panic();
-	}
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	mw_mirth_token_Token_nameZAsk();
-	switch (get_top_data_tag()) {
-		case 1LL: // Some
-			mtp_std_maybe_Maybe_1_Some();
-			break;
-		case 0LL: // None
-			(void)pop_u64();
-			mp_primZ_drop();
-			STRLIT("Expected constructor name.", 26);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primZ_panic();
-	}
+	LPUSH(lbl_dat);
+	LPOP(lbl_syn);
+	mp_primZ_dup();
+	LPUSH(lbl_syn);
+	mw_mirth_elab_SyntaxDataTag_name();
 	push_i64(0LL);
 	mw_mirth_data_dataZ_qname();
-	mw_mirth_data_Tag_allocZBang();
-	LPOP(lbl_value);
+	LPOP(lbl_tag);
+	mp_primZ_dup();
+	LPUSH(lbl_tag);
+	mfld_mirth_data_Tag_ZTildeqname();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_syn);
+	mp_primZ_dup();
+	LPUSH(lbl_syn);
+	mw_mirth_elab_SyntaxDataTag_sigZAsk();
+	LPOP(lbl_tag);
+	mp_primZ_dup();
+	LPUSH(lbl_tag);
+	mfld_mirth_data_Tag_ZTildesigZAsk();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_syn);
+	mp_primZ_dup();
+	LPUSH(lbl_syn);
+	mw_mirth_elab_SyntaxDataTag_valueZAsk();
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
-			{
-				VAL d4 = pop_value();
-				mp_primZ_dup();
-				push_value(d4);
-			}
-			mp_primZ_swap();
+			LPOP(lbl_tag);
+			mp_primZ_dup();
+			LPUSH(lbl_tag);
 			mfld_mirth_data_Tag_ZTildevalue();
 			mp_primZ_mutZ_set();
 			break;
@@ -37279,160 +37845,79 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 			mp_primZ_panic();
 	}
-	push_u64(0LL); // None
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	mfld_mirth_data_Tag_ZTildeuntag();
-	mp_primZ_mutZ_set();
+	LPOP(lbl_dat);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_swap();
-		push_value(d2);
-	}
-	mfld_mirth_data_Tag_ZTildeqname();
-	mp_primZ_mutZ_set();
+	LPUSH(lbl_dat);
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	mtw_mirth_def_Def_DefTag();
-	mw_mirth_def_Def_register();
-	{
-		VAL d2 = pop_value();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_dup();
-			push_value(d3);
-		}
-		mp_primZ_swap();
-		push_value(d2);
-	}
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
+	LPUSH(lbl_tag);
 	mfld_mirth_data_Tag_ZTildedata();
 	mp_primZ_mutZ_set();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_swap();
-		push_value(d2);
-	}
-	{
-		VAL d2 = pop_value();
-		mw_mirth_data_Data_addZ_tagZBang();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	mw_mirth_token_Token_succ();
+	LPUSH(lbl_tag);
+	LPOP(lbl_dat);
 	mp_primZ_dup();
-	mw_mirth_token_Token_patZ_arrowZAsk();
-	if (pop_u64()) {
-		mw_mirth_token_Token_succ();
-		mtw_std_maybe_Maybe_1_Some();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_dup();
-			push_value(d3);
-		}
-		mp_primZ_swap();
-		mfld_mirth_data_Tag_ZTildesigZAsk();
-		mp_primZ_mutZ_set();
-	} else {
-		mp_primZ_dup();
-		mw_mirth_token_Token_runZ_endZAsk();
-		if (pop_u64()) {
-			mp_primZ_drop();
-			push_u64(0LL); // None
-			{
-				VAL d4 = pop_value();
-				mp_primZ_dup();
-				push_value(d4);
-			}
-			mp_primZ_swap();
-			mfld_mirth_data_Tag_ZTildesigZAsk();
-			mp_primZ_mutZ_set();
-		} else {
-			STRLIT("Expected arrow, comma, or right paren.", 38);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
-		}
-	}
+	LPUSH(lbl_dat);
+	mw_mirth_data_Data_addZ_tagZBang();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
+	LPUSH(lbl_tag);
+	mtw_mirth_def_Def_DefTag();
+	mw_mirth_def_Def_register();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
+	LPUSH(lbl_tag);
+	LPOP(lbl_tag);
+	mp_primZ_dup();
+	LPUSH(lbl_tag);
 	mtw_mirth_mirth_PropLabel_TagType();
-	push_fnptr(&mb_mirth_elab_elabZ_dataZ_tagZBang_10);
+	push_fnptr(&mb_mirth_elab_elabZ_dataZ_tagZBang_1);
 	mw_mirth_mirth_PropLabel_prop_1();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
+	LPOP(lbl_tag);
+	mp_primZ_dup();
+	LPUSH(lbl_tag);
 	mfld_mirth_data_Tag_ZTildectxZ_type();
 	mp_primZ_mutZ_set();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mw_mirth_data_Tag_numZ_typeZ_inputsZ_fromZ_sig();
-		push_value(d2);
-	}
+	LPUSH(lbl_tag);
+	mw_mirth_data_Tag_numZ_typeZ_inputsZ_fromZ_sig();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mfld_mirth_data_Tag_ZTildenumZ_typeZ_inputs();
-		mp_primZ_mutZ_set();
-		push_value(d2);
-	}
+	LPUSH(lbl_tag);
+	mfld_mirth_data_Tag_ZTildenumZ_typeZ_inputs();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mw_mirth_data_Tag_numZ_resourceZ_inputsZ_fromZ_sig();
-		push_value(d2);
-	}
+	LPUSH(lbl_tag);
+	mw_mirth_data_Tag_numZ_resourceZ_inputsZ_fromZ_sig();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mfld_mirth_data_Tag_ZTildenumZ_resourceZ_inputs();
-		mp_primZ_mutZ_set();
-		push_value(d2);
-	}
+	LPUSH(lbl_tag);
+	mfld_mirth_data_Tag_ZTildenumZ_resourceZ_inputs();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mw_mirth_data_Tag_labelZ_inputsZ_fromZ_sig();
-		push_value(d2);
-	}
+	LPUSH(lbl_tag);
+	mw_mirth_data_Tag_labelZ_inputsZ_fromZ_sig();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
-	{
-		VAL d2 = pop_value();
-		mfld_mirth_data_Tag_ZTildelabelZ_inputs();
-		mp_primZ_mutZ_set();
-		push_value(d2);
-	}
+	LPUSH(lbl_tag);
+	mfld_mirth_data_Tag_ZTildelabelZ_inputs();
+	mp_primZ_mutZ_set();
+	LPOP(lbl_tag);
 	mp_primZ_dup();
+	LPUSH(lbl_tag);
 	mw_mirth_data_Tag_outputsZ_resourceZAsk();
 	if (pop_u64()) {
 		push_u64(0LL); // False
 	} else {
 		push_u64(1LL); // True
 	}
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
+	LPOP(lbl_tag);
+	mp_primZ_dup();
+	LPUSH(lbl_tag);
 	mw_mirth_data_Tag_numZ_resourceZ_inputs();
 	push_i64(0LL);
 	mp_primZ_swap();
@@ -37443,7 +37928,9 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 		push_u64(0LL); // False
 	}
 	if (pop_u64()) {
+		LPOP(lbl_tag);
 		mp_primZ_dup();
+		LPUSH(lbl_tag);
 		mw_mirth_data_Tag_sigZAsk();
 		switch (get_top_data_tag()) {
 			case 1LL: // Some
@@ -37459,7 +37946,7 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_runZ_tokens();
-		push_fnptr(&mb_mirth_elab_elabZ_dataZ_tagZBang_20);
+		push_fnptr(&mb_mirth_elab_elabZ_dataZ_tagZBang_5);
 		mw_std_list_List_1_find_1();
 		switch (get_top_data_tag()) {
 			case 1LL: // Some
@@ -37478,7 +37965,11 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
 	} else {
 	}
+	LPOP(lbl_tag);
+	LPOP(lbl_syn);
 	mp_primZ_drop();
+	mp_primZ_drop();
+	LPOP(lbl_dat);
 }
 static void mw_mirth_elab_dataZ_wordZ_newZBang (void) {
 	mp_primZ_dup();
@@ -37906,7 +38397,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (void) {
 }
 static void mw_mirth_elab_expectZ_tokenZ_arrow (void) {
 	mp_primZ_dup();
-	mw_mirth_token_Token_patZ_arrowZAsk();
+	mw_mirth_token_Token_arrowZAsk();
 	if (pop_u64()) {
 	} else {
 		STRLIT("Expected arrow.", 15);
@@ -38635,7 +39126,7 @@ static void mw_mirth_elab_parseZ_externalZ_declZ_part (void) {
 			}
 			mw_mirth_token_Token_succ();
 			mp_primZ_dup();
-			mw_mirth_token_Token_patZ_arrowZAsk();
+			mw_mirth_token_Token_arrowZAsk();
 			if (pop_u64()) {
 				mw_mirth_token_Token_succ();
 				mp_primZ_dup();
@@ -48128,10 +48619,10 @@ static void mb_mirth_token_Token_runZ_tokens_1 (void) {
 	}
 }
 static void mb_mirth_token_Token_runZ_arrowZAsk_0 (void) {
-	mw_mirth_token_Token_patZ_arrowZAsk();
+	mw_mirth_token_Token_arrowZAsk();
 }
 static void mb_mirth_token_Token_patZ_tokens_0 (void) {
-	mw_mirth_token_Token_patZ_arrowZAsk();
+	mw_mirth_token_Token_arrowZAsk();
 	if (pop_u64()) {
 		push_u64(0LL); // False
 	} else {
@@ -49305,58 +49796,6 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous_11 (void) {
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_sort_1_1 (void) {
 	mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
 }
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_0 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_arity();
-		push_resource(d2);
-	}
-	mw_mirth_elab_arityZ_compatibleZAsk();
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_arity_1 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_ARITY();
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_1 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_qnameZ_hard();
-		push_resource(d2);
-	}
-	mw_mirth_name_QName_climbZ_upZ_dnameZAsk();
-	mw_std_list_List_1_emptyZAsk();
-	if (pop_u64()) {
-		push_u64(0LL); // False
-	} else {
-		push_u64(1LL); // True
-	}
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_qualifiers_2 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_QUALIFIER();
-}
 static void mb_mirth_name_QName_climbZ_upZ_dnameZAsk_5 (void) {
 	mp_primZ_swap();
 	push_fnptr(&mb_mirth_name_QName_climbZ_upZ_dnameZAsk_6);
@@ -49396,139 +49835,8 @@ static void mb_mirth_name_QName_climbZ_upZ_dnameZAsk_6 (void) {
 			mp_primZ_panic();
 	}
 }
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_1 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_qnameZ_hard();
-		push_resource(d2);
-	}
-	mw_mirth_name_QName_namespace();
-	mp_primZ_swap();
-	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_4);
-	mw_std_list_List_1_member_1();
-	if (pop_u64()) {
-		push_u64(1LL); // True
-	} else {
-		mw_mirth_elab_ZPlusResolveDef_token();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_dup();
-			push_value(d3);
-		}
-		mp_primZ_swap();
-		{
-			VAL d3 = pop_resource();
-			mw_mirth_elab_defZ_isZ_importedZ_atZ_tokenZAsk();
-			push_resource(d3);
-		}
-	}
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_2 (void) {
-	mp_primZ_dup();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_qnameZ_hard();
-		push_resource(d2);
-	}
-	mw_mirth_name_QName_namespace();
-	switch (get_top_data_tag()) {
-		case 3LL: // NAMESPACE_TYCON
-			mtp_mirth_name_Namespace_NAMESPACEz_TYCON();
-			mp_primZ_drop();
-			mw_mirth_elab_ZPlusResolveDef_token();
-			mw_mirth_token_Token_nameZAsk();
-			switch (get_top_data_tag()) {
-				case 1LL: // Some
-					mtp_std_maybe_Maybe_1_Some();
-					break;
-				case 0LL: // None
-					(void)pop_u64();
-					STRLIT("tried to unwrap None", 20);
-					mw_std_prelude_panicZBang();
-					break;
-				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-					mp_primZ_panic();
-			}
-			mw_mirth_name_Name_canZ_beZ_relativeZAsk();
-			if (pop_u64()) {
-				{
-					VAL d5 = pop_value();
-					mp_primZ_dup();
-					push_value(d5);
-				}
-				mp_primZ_swap();
-				mw_std_list_List_1_emptyZAsk();
-				if (pop_u64()) {
-					mtw_mirth_elab_RejectedDef_RDz_METHODz_NOTz_AVAILABLE();
-				} else {
-					mtw_mirth_elab_RejectedDef_RDz_METHODz_WRONGz_TYPE();
-				}
-			} else {
-				mtw_mirth_elab_RejectedDef_RDz_NOTz_IMPORTED();
-			}
-			break;
-		default:
-			mp_primZ_drop();
-			mtw_mirth_elab_RejectedDef_RDz_NOTz_IMPORTED();
-			break;
-	}
-}
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_4 (void) {
 	mw_mirth_name_Namespace_ZEqualZEqual();
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_16 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_qnameZ_hard();
-		push_resource(d2);
-	}
-	mw_mirth_name_QName_climbZ_upZ_dnameZAsk();
-	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_19);
-	mw_std_list_List_1_has_1();
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_17 (void) {
-	{
-		VAL d2 = pop_value();
-		{
-			VAL d3 = pop_value();
-			mp_primZ_dup();
-			push_value(d3);
-		}
-		mp_primZ_swap();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	mw_std_list_List_1_emptyZAsk();
-	if (pop_u64()) {
-		mtw_mirth_elab_RejectedDef_RDz_METHODz_NOTz_AVAILABLE();
-	} else {
-		mtw_mirth_elab_RejectedDef_RDz_METHODz_WRONGz_TYPE();
-	}
 }
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_19 (void) {
 	{
@@ -49552,31 +49860,6 @@ static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_19 (void) {
 }
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_20 (void) {
 	mw_mirth_name_Namespace_ZEqualZEqual();
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_23 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_qnameZ_hard();
-		push_resource(d2);
-	}
-	mw_mirth_name_QName_climbZ_upZ_dnameZAsk();
-	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_26);
-	mw_std_list_List_1_has_1();
-}
-static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_24 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_NOTz_IMPORTED();
 }
 static void mb_mirth_elab_ZPlusResolveDef_filterZ_roots_26 (void) {
 	{
@@ -49647,24 +49930,20 @@ static void mb_mirth_name_QName_climbZ_upZ_nameZAsk_2 (void) {
 	}
 }
 static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_1 (void) {
-	push_fnptr(&mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_2);
-	push_fnptr(&mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_3);
-	mw_mirth_elab_ZPlusResolveDef_filter_2();
+	mw_mirth_elab_ZPlusResolveDef_candidates();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot14ZCommamirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot20ZRParen_2);
+	mw_std_list_List_1_partitionZ_either_1();
+	{
+		VAL d2 = pop_value();
+		push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot14ZCommamirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot20ZRParenZDot0ZRParen_0);
+		mw_mirth_elab_ZPlusResolveDef_rejected_1();
+		push_value(d2);
+	}
+	mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_arity();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
 	push_u64(0LL); // Nil
 	mw_mirth_elab_ZPlusResolveDef_filterZ_roots();
-}
-static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_2 (void) {
-	mp_primZ_dup();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_definesZ_aZ_typeZAsk();
-		push_resource(d2);
-	}
-}
-static void mb_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang_3 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
 }
 static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_argsZBang_3 (void) {
 	mw_mirth_elab_ZPlusTypeElab_tokenZBang();
@@ -49818,9 +50097,16 @@ static void mb_mirth_elab_elabZ_argsZBang_0 (void) {
 	mw_mirth_elab_elabZ_blockZ_atZBang();
 }
 static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_0 (void) {
-	push_fnptr(&mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_1);
-	push_fnptr(&mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_2);
-	mw_mirth_elab_ZPlusResolveDef_filter_2();
+	mw_mirth_elab_ZPlusResolveDef_candidates();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot15ZCommamirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot21ZRParen_2);
+	mw_std_list_List_1_partitionZ_either_1();
+	{
+		VAL d2 = pop_value();
+		push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot15ZCommamirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot21ZRParenZDot0ZRParen_0);
+		mw_mirth_elab_ZPlusResolveDef_rejected_1();
+		push_value(d2);
+	}
+	mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_arity();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
 	mw_mirth_elab_ZPlusResolveDef_token();
@@ -49842,17 +50128,6 @@ static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_0 (void) {
 		push_u64(0LL); // Nil
 		mw_mirth_elab_ZPlusResolveDef_filterZ_roots();
 	}
-}
-static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_1 (void) {
-	mp_primZ_dup();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_callableZAsk();
-		push_resource(d2);
-	}
-}
-static void mb_mirth_elab_elabZ_atomZ_resolveZ_defZBang_2 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
 }
 static void mb_mirth_elab_elabZ_atomZ_lambdaZBang_1 (void) {
 	{
@@ -49929,9 +50204,16 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_0 (void) {
 	mw_mirth_match_Pattern_tokenZ_startZBang();
 }
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void) {
-	push_fnptr(&mb_mirth_elab_elabZ_patternZ_atomZBang_6);
-	push_fnptr(&mb_mirth_elab_elabZ_patternZ_atomZBang_7);
-	mw_mirth_elab_ZPlusResolveDef_filter_2();
+	mw_mirth_elab_ZPlusResolveDef_candidates();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot31ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot35ZRParen_2);
+	mw_std_list_List_1_partitionZ_either_1();
+	{
+		VAL d2 = pop_value();
+		push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot31ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot35ZRParenZDot0ZRParen_0);
+		mw_mirth_elab_ZPlusResolveDef_rejected_1();
+		push_value(d2);
+	}
+	mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_arity();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
 	LPOPR(lbl_ZPluspat);
@@ -49951,9 +50233,16 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void) {
 			case 1LL: // Some
 				mtp_std_maybe_Maybe_1_Some();
 				mp_primZ_drop();
-				push_fnptr(&mb_mirth_elab_elabZ_patternZ_atomZBang_11);
-				push_fnptr(&mb_mirth_elab_elabZ_patternZ_atomZBang_12);
-				mw_mirth_elab_ZPlusResolveDef_filter_2();
+				mw_mirth_elab_ZPlusResolveDef_candidates();
+				push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot59ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot71ZRParen_2);
+				mw_std_list_List_1_partitionZ_either_1();
+				{
+					VAL d5 = pop_value();
+					push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot59ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot71ZRParenZDot0ZRParen_0);
+					mw_mirth_elab_ZPlusResolveDef_rejected_1();
+					push_value(d5);
+				}
+				mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 				mp_primZ_drop();
 				break;
 			case 0LL: // None
@@ -49966,53 +50255,6 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void) {
 		}
 	} else {
 	}
-}
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_6 (void) {
-	mp_primZ_dup();
-	mw_mirth_def_Def_tagZAsk();
-	switch (get_top_data_tag()) {
-		case 0LL: // None
-			(void)pop_u64();
-			push_u64(0LL); // False
-			break;
-		case 1LL: // Some
-			mtp_std_maybe_Maybe_1_Some();
-			mp_primZ_drop();
-			push_u64(1LL); // True
-			break;
-		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
-			mp_primZ_panic();
-	}
-}
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_7 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
-}
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_11 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_qnameZ_hard();
-		push_resource(d2);
-	}
-	mw_mirth_name_QName_namespace();
-	mp_primZ_swap();
-	push_fnptr(&mb_mirth_elab_elabZ_patternZ_atomZBang_14);
-	mw_std_list_List_1_member_1();
-}
-static void mb_mirth_elab_elabZ_patternZ_atomZBang_12 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_CONSTRUCTOR();
 }
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_14 (void) {
 	mw_mirth_name_Namespace_ZEqualZEqual();
@@ -50070,36 +50312,20 @@ static void mb_mirth_elab_elabZ_aliasZBang_0 (void) {
 static void mb_mirth_elab_elabZ_aliasZBang_1 (void) {
 	LPOP(lbl_alias);
 	mw_mirth_alias_Alias_arity();
-	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_2);
-	push_fnptr(&mb_mirth_elab_elabZ_aliasZBang_3);
-	mw_mirth_elab_ZPlusResolveDef_filter_2();
+	mw_mirth_elab_ZPlusResolveDef_candidates();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_aliasZBangZDot32ZCommamirthZDotelabZDotelabZ_aliasZBangZDot39ZRParen_2);
+	mw_std_list_List_1_partitionZ_either_1();
+	{
+		VAL d2 = pop_value();
+		push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_aliasZBangZDot32ZCommamirthZDotelabZDotelabZ_aliasZBangZDot39ZRParenZDot0ZRParen_0);
+		mw_mirth_elab_ZPlusResolveDef_rejected_1();
+		push_value(d2);
+	}
+	mw_mirth_elab_ZPlusResolveDef_candidatesZBang();
 	mp_primZ_drop();
 	mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers();
 	push_u64(0LL); // Nil
 	mw_mirth_elab_ZPlusResolveDef_filterZ_roots();
-}
-static void mb_mirth_elab_elabZ_aliasZBang_2 (void) {
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_value();
-		mp_primZ_dup();
-		push_value(d2);
-	}
-	mp_primZ_swap();
-	{
-		VAL d2 = pop_resource();
-		mw_mirth_def_Def_arity();
-		push_resource(d2);
-	}
-	mw_mirth_elab_arityZ_compatibleZAsk();
-}
-static void mb_mirth_elab_elabZ_aliasZBang_3 (void) {
-	mtw_mirth_elab_RejectedDef_RDz_WRONGz_ARITY();
 }
 static void mb_mirth_elab_elabZ_aliasZBang_6 (void) {
 	LPOP(lbl_target);
@@ -50200,17 +50426,29 @@ static void mb_mirth_elab_elabZ_fieldZBang_2 (void) {
 static void mb_mirth_elab_elabZ_fieldZBang_3 (void) {
 	mw_mirth_elab_elabZ_simpleZ_typeZ_argZBang();
 }
-static void mb_mirth_elab_elabZ_dataZBang_2 (void) {
-	mw_mirth_elab_elabZ_dataZ_tagZBang();
-}
 static void mb_mirth_elab_elabZ_embedZ_strZBang_4 (void) {
 	LPOP(lbl_contents);
 	mw_mirth_elab_abZ_strZBang();
 }
+static void mb_mirth_elab_parseZ_dataZ_tags_0 (void) {
+	mp_primZ_dup();
+	mw_mirth_token_Token_argZ_endZAsk();
+	if (pop_u64()) {
+		push_u64(0LL); // False
+	} else {
+		push_u64(1LL); // True
+	}
+}
+static void mb_mirth_elab_parseZ_dataZ_tags_1 (void) {
+	mw_mirth_elab_parseZ_dataZ_tag();
+}
+static void mb_mirth_elab_elabZ_dataZ_auxZBang_0 (void) {
+	mw_mirth_elab_elabZ_dataZ_tagZBang();
+}
 static void mb_mirth_elab_elabZ_dataZ_headerZBang_2 (void) {
 	mw_mirth_elab_elabZ_dataZ_paramsZBang();
 }
-static void mb_mirth_elab_elabZ_dataZ_tagZBang_10 (void) {
+static void mb_mirth_elab_elabZ_dataZ_tagZBang_1 (void) {
 	mp_primZ_dup();
 	mw_mirth_data_Tag_data();
 	mw_mirth_data_Data_headZAsk();
@@ -50237,7 +50475,7 @@ static void mb_mirth_elab_elabZ_dataZ_tagZBang_10 (void) {
 	LPUSH(lbl_allowZ_implicitZ_typeZ_vars);
 	push_u64(0LL); // False
 	LPUSH(lbl_allowZ_typeZ_holes);
-	mtw_mirth_elab_ZPlusTypeElab_TYPEz_ELAB();
+	mtw_mirth_elab_ZPlusTypeElab_ZPlusTypeElab();
 	mw_mirth_type_T0();
 	{
 		VAL d2 = pop_value();
@@ -50279,19 +50517,19 @@ static void mb_mirth_elab_elabZ_dataZ_tagZBang_10 (void) {
 	mw_std_prelude_pack2();
 	mw_mirth_elab_ZPlusTypeElab_rdrop();
 }
-static void mb_mirth_elab_elabZ_dataZ_tagZBang_20 (void) {
+static void mb_mirth_elab_elabZ_dataZ_tagZBang_5 (void) {
 	mp_primZ_dup();
-	mw_mirth_token_Token_sigZ_resourceZ_conZAsk();
-	if (pop_u64()) {
-		push_u64(1LL); // True
-	} else {
-		mp_primZ_dup();
-		mw_mirth_token_Token_sigZ_resourceZ_varZAsk();
-	}
 	{
 		VAL d2 = pop_value();
-		mp_primZ_drop();
+		mw_mirth_token_Token_sigZ_resourceZ_conZAsk();
 		push_value(d2);
+	}
+	mp_primZ_swap();
+	if (pop_u64()) {
+		mp_primZ_drop();
+		push_u64(1LL); // True
+	} else {
+		mw_mirth_token_Token_sigZ_resourceZ_varZAsk();
 	}
 }
 static void mb_mirth_elab_elabZ_dataZ_doneZBang_0 (void) {
@@ -54227,6 +54465,366 @@ static void mb_mirth_need_ZPlusNeeds_runZ_patternZBang_0 (void) {
 }
 static void mb_std_set_ZPlusSet_1_offsetZ_mask_0 (void) {
 	mw_std_buffer_ZPlusBuffer_expandZBang();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot105ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot123ZRParen_2 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_qnameZ_hard();
+		push_resource(d2);
+	}
+	mw_mirth_name_QName_climbZ_upZ_dnameZAsk();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_26);
+	mw_std_list_List_1_has_1();
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_NOTz_IMPORTED();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot105ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot123ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot78ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot93ZRParen_2 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_qnameZ_hard();
+		push_resource(d2);
+	}
+	mw_mirth_name_QName_climbZ_upZ_dnameZAsk();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_19);
+	mw_std_list_List_1_has_1();
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		{
+			VAL d3 = pop_value();
+			{
+				VAL d4 = pop_value();
+				mp_primZ_dup();
+				push_value(d4);
+			}
+			mp_primZ_swap();
+			push_value(d3);
+		}
+		mp_primZ_swap();
+		mw_std_list_List_1_emptyZAsk();
+		if (pop_u64()) {
+			mtw_mirth_elab_RejectedDef_RDz_METHODz_NOTz_AVAILABLE();
+		} else {
+			mtw_mirth_elab_RejectedDef_RDz_METHODz_WRONGz_TYPE();
+		}
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot78ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot93ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot27ZRParen_2 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_qnameZ_hard();
+		push_resource(d2);
+	}
+	mw_mirth_name_QName_namespace();
+	mp_primZ_swap();
+	push_fnptr(&mb_mirth_elab_ZPlusResolveDef_filterZ_roots_4);
+	mw_std_list_List_1_member_1();
+	if (pop_u64()) {
+		push_u64(1LL); // True
+	} else {
+		mw_mirth_elab_ZPlusResolveDef_token();
+		{
+			VAL d3 = pop_value();
+			mp_primZ_dup();
+			push_value(d3);
+		}
+		mp_primZ_swap();
+		{
+			VAL d3 = pop_resource();
+			mw_mirth_elab_defZ_isZ_importedZ_atZ_tokenZAsk();
+			push_resource(d3);
+		}
+	}
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mp_primZ_dup();
+		{
+			VAL d3 = pop_resource();
+			mw_mirth_def_Def_qnameZ_hard();
+			push_resource(d3);
+		}
+		mw_mirth_name_QName_namespace();
+		switch (get_top_data_tag()) {
+			case 3LL: // NAMESPACE_TYCON
+				mtp_mirth_name_Namespace_NAMESPACEz_TYCON();
+				mp_primZ_drop();
+				mw_mirth_elab_ZPlusResolveDef_token();
+				mw_mirth_token_Token_nameZAsk();
+				switch (get_top_data_tag()) {
+					case 1LL: // Some
+						mtp_std_maybe_Maybe_1_Some();
+						break;
+					case 0LL: // None
+						(void)pop_u64();
+						STRLIT("tried to unwrap None", 20);
+						mw_std_prelude_panicZBang();
+						break;
+					default:
+						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						mp_primZ_panic();
+				}
+				mw_mirth_name_Name_canZ_beZ_relativeZAsk();
+				if (pop_u64()) {
+					{
+						VAL d6 = pop_value();
+						mp_primZ_dup();
+						push_value(d6);
+					}
+					mp_primZ_swap();
+					mw_std_list_List_1_emptyZAsk();
+					if (pop_u64()) {
+						mtw_mirth_elab_RejectedDef_RDz_METHODz_NOTz_AVAILABLE();
+					} else {
+						mtw_mirth_elab_RejectedDef_RDz_METHODz_WRONGz_TYPE();
+					}
+				} else {
+					mtw_mirth_elab_RejectedDef_RDz_NOTz_IMPORTED();
+				}
+				break;
+			default:
+				mp_primZ_drop();
+				mtw_mirth_elab_RejectedDef_RDz_NOTz_IMPORTED();
+				break;
+		}
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_rootsZDot27ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot15ZRParen_2 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_qnameZ_hard();
+		push_resource(d2);
+	}
+	mw_mirth_name_QName_climbZ_upZ_dnameZAsk();
+	mw_std_list_List_1_emptyZAsk();
+	if (pop_u64()) {
+		push_u64(0LL); // False
+	} else {
+		push_u64(1LL); // True
+	}
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_WRONGz_QUALIFIER();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot6ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_qualifiersZDot15ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot4ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot11ZRParen_2 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_arity();
+		push_resource(d2);
+	}
+	mw_mirth_elab_arityZ_compatibleZAsk();
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_WRONGz_ARITY();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot4ZCommamirthZDotelabZDotZPlusResolveDefZDotfilterZ_arityZDot11ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot14ZCommamirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot20ZRParen_2 (void) {
+	mp_primZ_dup();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_definesZ_aZ_typeZAsk();
+		push_resource(d2);
+	}
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot14ZCommamirthZDotelabZDotZPlusTypeElabZDotresolveZ_typeZ_conZ_nameZBangZDot20ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot59ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot71ZRParen_2 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_qnameZ_hard();
+		push_resource(d2);
+	}
+	mw_mirth_name_QName_namespace();
+	mp_primZ_swap();
+	push_fnptr(&mb_mirth_elab_elabZ_patternZ_atomZBang_14);
+	mw_std_list_List_1_member_1();
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_WRONGz_CONSTRUCTOR();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot59ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot71ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot31ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot35ZRParen_2 (void) {
+	mp_primZ_dup();
+	mw_mirth_def_Def_tagZAsk();
+	switch (get_top_data_tag()) {
+		case 0LL: // None
+			(void)pop_u64();
+			push_u64(0LL); // False
+			break;
+		case 1LL: // Some
+			mtp_std_maybe_Maybe_1_Some();
+			mp_primZ_drop();
+			push_u64(1LL); // True
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			mp_primZ_panic();
+	}
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_patternZ_atomZBangZDot31ZCommamirthZDotelabZDotelabZ_patternZ_atomZBangZDot35ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot15ZCommamirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot21ZRParen_2 (void) {
+	mp_primZ_dup();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_callableZAsk();
+		push_resource(d2);
+	}
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_WRONGz_SORT();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot15ZCommamirthZDotelabZDotelabZ_atomZ_resolveZ_defZBangZDot21ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ_aliasZBangZDot32ZCommamirthZDotelabZDotelabZ_aliasZBangZDot39ZRParen_2 (void) {
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_value();
+		mp_primZ_dup();
+		push_value(d2);
+	}
+	mp_primZ_swap();
+	{
+		VAL d2 = pop_resource();
+		mw_mirth_def_Def_arity();
+		push_resource(d2);
+	}
+	mw_mirth_elab_arityZ_compatibleZAsk();
+	if (pop_u64()) {
+		mtw_std_either_Either_2_Right();
+	} else {
+		mtw_mirth_elab_RejectedDef_RDz_WRONGz_ARITY();
+		mtw_std_either_Either_2_Left();
+	}
+}
+static void mb_mirth_elab_ZPlusResolveDef_filter_1_ZLParenmirthZDotelabZDotZPlusResolveDefZDotfilterZDiv2ZDotZLParenmirthZDotelabZDotelabZ_aliasZBangZDot32ZCommamirthZDotelabZDotelabZ_aliasZBangZDot39ZRParenZDot0ZRParen_0 (void) {
+	mw_std_list_List_1_cat();
 }
 static void mb_std_str_ZPlusStr_splitZ_byte_1_ZLParenstdZDotstrZDotZPlusStrZDotsplitZ_byteZDot2ZRParen_11 (void) {
 	push_i64(0LL);

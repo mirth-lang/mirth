@@ -109,7 +109,7 @@ def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? has(could-be-stack-var)
 def(TokenValue.sig-resource-var?, TokenValue -- Bool, name? has(could-be-resource-var))
 def(TokenValue.sig-resource-con?, TokenValue -- Bool, last-name? has(could-be-resource-con))
 def(TokenValue.sig-dashes?, TokenValue -- Bool, name? has(PRIM_SYNTAX_DASHES name ==))
-def(TokenValue.pat-arrow?, TokenValue -- Bool, name? has(PRIM_SYNTAX_ARROW name ==))
+def(TokenValue.arrow?, TokenValue -- Bool, name? has(PRIM_SYNTAX_ARROW name ==))
 def(TokenValue.pat-underscore?, TokenValue -- Bool, name? has(is-underscore))
 def(TokenValue.module-header?, TokenValue -- Bool, name? has(>Str "module" ==))
 
@@ -160,7 +160,7 @@ def(Token.sig-stack-var?, Token -- Bool, value sig-stack-var?)
 def(Token.sig-resource-var?, Token -- Bool, value sig-resource-var?)
 def(Token.sig-resource-con?, Token -- Bool, value sig-resource-con?)
 def(Token.sig-dashes?, Token -- Bool, value sig-dashes?)
-def(Token.pat-arrow?, Token -- Bool, value pat-arrow?)
+def(Token.arrow?, Token -- Bool, value arrow?)
 def(Token.pat-underscore?, Token -- Bool, value pat-underscore?)
 def(Token.module-header?, Token -- Bool, value module-header?)
 def(Token.can-take-args?, Token -- Bool, value can-take-args?)
@@ -316,7 +316,7 @@ def(Token.run-length, Token -- Nat,
     dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop)
 
 def(Token.run-arrow?, Token -- Maybe(Token),
-    run-tokens find(pat-arrow?))
+    run-tokens find(arrow?))
 
 ###################
 # Type Signatures #
@@ -352,4 +352,4 @@ def(Token.sig-skip-dashes, Token -- Token,
     dup sig-has-dashes? then(sig-next-stack-end next))
 
 def(Token.pat-tokens, Token -- List(Token),
-    run-tokens take-while(pat-arrow? not))
+    run-tokens take-while(arrow? not))

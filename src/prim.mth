@@ -107,6 +107,7 @@ data(Prim,
     PRIM_SYNTAX_TABLE,
     PRIM_SYNTAX_FIELD,
     PRIM_SYNTAX_DATA,
+    PRIM_SYNTAX_STRUCT,
     PRIM_SYNTAX_DASHES,
     PRIM_SYNTAX_ARROW)
 field(Prim.~name, Prim, Name)
@@ -154,6 +155,7 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_SYNTAX_FIELD "field" -1 def-prim!
     PRIM_SYNTAX_EMBED_STR "embed-str" -1 def-prim!
     PRIM_SYNTAX_DATA "data" -1 def-prim!
+    PRIM_SYNTAX_STRUCT "struct" -1 def-prim!
     PRIM_SYNTAX_VARIABLE "var" -1 def-prim!
     PRIM_SYNTAX_ARROW "->" -1 def-prim!
     PRIM_SYNTAX_DASHES "--" -1 def-prim!
