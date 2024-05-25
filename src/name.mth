@@ -98,7 +98,14 @@ def(Name.is-underscore, Name -- Bool, dup head B'_' == swap tail-head BNUL == &&
 def(Name.could-be-stack-var, Name -- Bool, dup head B'*' == swap tail-head is-lower &&)
 def(Name.could-be-resource-var, Name -- Bool, dup head B'+' == swap tail-head is-lower &&)
 def(Name.could-be-resource-con, Name -- Bool, dup head B'+' == swap tail-head is-upper &&)
-def(Name.could-be-type-or-resource-con, Name -- Bool, dup could-be-type-con or(dup could-be-resource-con) nip)
+
+def Name.could-be-constructor [ Name -- Bool ] {
+    dup head match(
+        B'+' -> tail-head is-upper,
+        _ -> nip is-upper,
+    )
+}
+
 def(Name.mangle-compute!, Name -- Str,
     Str(>Str bytes-for(zencode ;)))
 

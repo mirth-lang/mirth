@@ -14,4 +14,10 @@ data(TJ, J1, J2 -> Int,)
 data(TK)
 data(TL,)
 
-def(main, --, id)
+data(Foo, Foo [ Int ])
+data(Bar, Bar1, Bar2 [ Str x:Str ])
+
+def(main, --,
+    10 Foo drop
+    "hi" "bye" >x Bar2 drop
+    Bar1 drop)
