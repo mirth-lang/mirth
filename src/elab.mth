@@ -475,15 +475,13 @@ def +TypeElab.elab-resource-con! [ +Mirth +TypeElab -- +Mirth +TypeElab Resource
 }
 
 def +TypeElab.elab-type-args! [ +Mirth +TypeElab Type -- +Mirth +TypeElab Type ] {
-    token has-args? if(
+    token has-args? then(
         token dip(
             token args for(
                 token!
                 elab-type-arg! TApp
             )
-        ) token!,
-
-        id
+        ) token!
     )
 }
 
@@ -620,8 +618,8 @@ def guess-initial-ctx-type [ +Mirth Word -- +Mirth Ctx ArrowType ] {
         _ ->
             drop
     )
-    @word arity >Nat count(
-        drop @dom(
+    @word arity >Nat repeat(
+        @dom(
             MetaVar.new! STMeta
             MetaVar.new! STMeta T-> >Type T*
         )

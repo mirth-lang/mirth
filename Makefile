@@ -52,6 +52,9 @@ install-vim:
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
+update-code:
+	cd tools/mirth-code && vsce package
+
 install-atom:
 	apm link tools/mirth-atom
 

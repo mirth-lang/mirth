@@ -22,7 +22,7 @@
 		"token": {
 			"patterns": [{
 				"name": "token.mirth",
-				"match": "([:\\(\\)\\[\\]\\{\\},]|[^\\s\\\":()\\[\\]\\{\\},]+)",
+				"match": "([\\.:\\(\\)\\[\\]\\{\\},]|[^\\s\\\"\\.:()\\[\\]\\{\\},]+)",
 				"captures": {"0": {"patterns": [
 					{"include": "#keyword"},
 					{"include": "#entity"}
@@ -32,31 +32,34 @@
 		"keyword": {
 			"patterns": [{
 				"name": "keyword.control.mirth",
-				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(module|import|data|end|def|table|field|buffer|def-type)(?![^\\s\\\":()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])(module|import|inline|alias|data|struct|def|def-type|def-missing|def-external|external|table|field|embed-str|buffer|var)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
 			}, {
 				"name": "keyword.operator.mirth",
-				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(\\$|->|--|\\\\|=|_)(?![^\\s\\\":()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])(\\$|->|--|\\\\|=|_)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
 			}, {
 				"name": "keyword.operator.mirth",
-				"match": "[:\\(\\)\\[\\]\\{\\},]"
+				"match": "[\\.:\\(\\)\\[\\]\\{\\},]"
+			}, {
+				"name": "keyword.operator.mirth",
+				"match": "([@!>]\\+?[a-z].*|[a-z].*>)"
 			}]
 		},
 		"entity": {
 			"patterns": [{
 				"name": "constant.numeric.dec.mirth",
-				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])([+-]?[0-9]+)(?![^\\s\\\":()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])([+-]?[0-9]+)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
 			}, {
 				"name": "constant.numeric.hex.mirth",
-				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])([+-]?0[xX][a-zA-Z0-9]+)(?![^\\s\\\":()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])([+-]?0[xX][a-zA-Z0-9]+)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
 			}, {
 				"name": "entity.name.type.mirth",
-				"match": "[\\?!\\+][A-Z][^\\s\\\":()\\[\\]\\{\\},]*"
+				"match": "[\\?!\\+]?[A-Z][^\\s\\\"\\.:()\\[\\]\\{\\},]*"
 			}, {
 				"name": "entity.name.function.mirth",
-				"match": "[A-Z][^\\s\\\":()\\[\\]\\{\\},]*"
+				"match": "[A-Z][^\\s\\\"\\.:()\\[\\]\\{\\},]*"
 			}, {
 				"name": "support.function.mirth",
-				"match": "[^\\s\\\":()\\[\\]\\{\\},]+"
+				"match": "[^\\s\\\"\\.:()\\[\\]\\{\\},]+"
 			}]
 		},
 		"string": {
