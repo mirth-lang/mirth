@@ -8,20 +8,19 @@ endif
 
 " all the characters that can be in a word
 " i.e. the ascii letters, digits, and symbols
-" excluding ,()[]{}\`
-" but also allowing : for the sake of reserving that syntax
-syntax iskeyword 33,36-39,42-43,45-57,59-90,94-95,97-122,124,126
+" excluding ,()[]{}\`.:
+syntax iskeyword 33,36-39,42-43,45,47-57,59-90,94-95,97-122,124,126
 
 " reserved words -- these have special syntactic meaning
-syntax keyword mirthReserved export import type data end = --
+syntax keyword mirthReserved module import inline alias data struct def def-type def-missing def-external external table field embed-str buffer var --
 syntax keyword mirthSpecial -> \\
 
 " prelude words
 syntax keyword mirthWord dup drop id swap dip nip tuck over rotl rotr par both
 syntax keyword mirthWord dup2 drop2 swap2 dip2 nip2 tuck2 over2
 syntax keyword mirthWord dup3 drop3
-syntax keyword mirthWord true false if and or not xor while iff? and? or? xor? implies? iff?
-syntax keyword mirthWord inpack pack2 unpack2 pack0 unpack0 pack1 unpack1 pack3 unpack3 pack4 unpack4
+syntax keyword mirthWord if and or not xor while
+syntax keyword mirthWord pack2 unpack2 pack0 unpack0 pack1 unpack1 pack3 unpack3 pack4 unpack4
 
 " words, numbers, and types
 " atrocious logic to try and lex numbers as numbers and not as words.
