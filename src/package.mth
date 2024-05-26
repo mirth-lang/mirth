@@ -18,21 +18,19 @@ def(Package.name, Package -- Name, ~name @)
 def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME0)
 def(Package.path, Package -- Maybe(Path), ~path @)
 
-var(PACKAGE_SEARCH_PATH, List(Path))
-
 def(Package.std, +Mirth -- +Mirth Package, builtin std)
 def(init-packages!, +Mirth -- +Mirth,
     builtin std
     "std" >Name over ~name !
     None swap ~path !)
 
-def(Package.path-or-search, +World Package -- +World Maybe(Path),
+def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
     dup path match(
         Some -> nip Some,
         None ->
-            PACKAGE_SEARCH_PATH memoize("lib" Path L1)
+            package-search-paths
             map(over name >Str >Path join)
-            find(is-directory?)
+            find(rdip:is-directory?)
             tuck swap ~path !
     ))
 
