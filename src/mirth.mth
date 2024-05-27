@@ -8,6 +8,7 @@ import(std.str)
 import(std.terminal)
 import(std.maybe)
 import(std.output)
+import(std.path)
 
 import(mirth.mirth)
 import(mirth.location)
@@ -25,7 +26,7 @@ import(mirth.type)
 import(mirth.typedef)
 import(mirth.prim)
 
-data(Builtin, Builtin ->
+struct Builtin {
     std: Package
     prim: Module
     bool: Data  true: Tag   false: Tag
@@ -59,7 +60,7 @@ data(Builtin, Builtin ->
     crestrict:  Data  mk-crestrict:  Tag
     cvolatile:  Data  mk-cvolatile:  Tag
     cvoid:      Data  mk-cvoid:      Tag
-)
+}
 
 def(Builtin.alloc!, -- Builtin,
     Package.alloc! >std
@@ -98,20 +99,23 @@ def(Builtin.alloc!, -- Builtin,
 
     Builtin)
 
-data(+Mirth, +Mirth ->
+struct +Mirth {
     num-errors: Nat
     num-warnings: Nat
     prefer-inline-defs: Bool
     builtin: Builtin
     error-token: Maybe(Token)
+    package-search-paths: List(Path)
     +diagnostics: +List(Diagnostic)
-    +propstack: +List(PropLabel))
+    +propstack: +List(PropLabel)
+}
 
 def(+Mirth.init!, -- +Mirth,
     0 >Nat >num-errors
     0 >Nat >num-warnings
     False >prefer-inline-defs
     Builtin.alloc! >builtin
+    L0 >package-search-paths
     L0 thaw >+diagnostics
     L0 thaw >+propstack
     None >error-token
@@ -128,13 +132,15 @@ def(+Mirth.rdrop, +Mirth --,
     prefer-inline-defs> drop
     builtin> drop
     error-token> drop
+    package-search-paths> drop
     +diagnostics> freeze drop
     +propstack> freeze drop)
 
-data(Diagnostic, Diagnostic ->
+struct Diagnostic {
     severity: Severity
     location: Location
-    message: Str)
+    message: Str
+}
 
 data(Severity, Error, Warning, Info)
 def(Severity.>Str, Severity -- Str,

@@ -1304,6 +1304,7 @@ static VAL lbl_inputZ_file = MKNIL_C;
 static VAL lbl_outputZ_file = MKNIL_C;
 static VAL lbl_entryZ_point = MKNIL_C;
 static VAL lbl_packages = MKNIL_C;
+static VAL lbl_packageZ_searchZ_paths = MKNIL_C;
 static VAL lbl_outputZ_path = MKNIL_C;
 static VAL lbl_name = MKNIL_C;
 static VAL lbl_flagZ_type = MKNIL_C;
@@ -3941,17 +3942,18 @@ static void mtw_mirth_mirth_Builtin_Builtin (void) {
 	push_value(MKTUP(tup, 62));
 }
 static void mtw_mirth_mirth_ZPlusMirth_ZPlusMirth (void) {
-	TUP* tup = tup_new(8);
-	tup->size = 8;
+	TUP* tup = tup_new(9);
+	tup->size = 9;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[7] = lpop(&lbl_ZPluspropstack);
-	tup->cells[6] = lpop(&lbl_ZPlusdiagnostics);
+	tup->cells[8] = lpop(&lbl_ZPluspropstack);
+	tup->cells[7] = lpop(&lbl_ZPlusdiagnostics);
+	tup->cells[6] = lpop(&lbl_packageZ_searchZ_paths);
 	tup->cells[5] = lpop(&lbl_errorZ_token);
 	tup->cells[4] = lpop(&lbl_builtin);
 	tup->cells[3] = lpop(&lbl_preferZ_inlineZ_defs);
 	tup->cells[2] = lpop(&lbl_numZ_warnings);
 	tup->cells[1] = lpop(&lbl_numZ_errors);
-	push_resource(MKTUP(tup, 8));
+	push_resource(MKTUP(tup, 9));
 }
 static void mtp_mirth_mirth_ZPlusMirth_ZPlusMirth (void) {
 	VAL val = pop_resource();
@@ -3962,8 +3964,9 @@ static void mtp_mirth_mirth_ZPlusMirth_ZPlusMirth (void) {
 	lpush(&lbl_preferZ_inlineZ_defs, tup->cells[3]);
 	lpush(&lbl_builtin, tup->cells[4]);
 	lpush(&lbl_errorZ_token, tup->cells[5]);
-	lpush(&lbl_ZPlusdiagnostics, tup->cells[6]);
-	lpush(&lbl_ZPluspropstack, tup->cells[7]);
+	lpush(&lbl_packageZ_searchZ_paths, tup->cells[6]);
+	lpush(&lbl_ZPlusdiagnostics, tup->cells[7]);
+	lpush(&lbl_ZPluspropstack, tup->cells[8]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
@@ -3972,6 +3975,7 @@ static void mtp_mirth_mirth_ZPlusMirth_ZPlusMirth (void) {
 		incref(tup->cells[5]);
 		incref(tup->cells[6]);
 		incref(tup->cells[7]);
+		incref(tup->cells[8]);
 		decref(val);
 	} else {
 		free(tup);
@@ -5180,15 +5184,16 @@ static void mtp_mirth_c99_ZPlusC99_ZPlusC99 (void) {
 	}
 }
 static void mtw_mirth_main_Arguments_Arguments (void) {
-	TUP* tup = tup_new(6);
-	tup->size = 6;
+	TUP* tup = tup_new(7);
+	tup->size = 7;
 	tup->cells[0] = MKU64(0LL);
-	tup->cells[5] = lpop(&lbl_emitZ_debugZ_info);
+	tup->cells[6] = lpop(&lbl_emitZ_debugZ_info);
+	tup->cells[5] = lpop(&lbl_packageZ_searchZ_paths);
 	tup->cells[4] = lpop(&lbl_packages);
 	tup->cells[3] = lpop(&lbl_entryZ_point);
 	tup->cells[2] = lpop(&lbl_outputZ_file);
 	tup->cells[1] = lpop(&lbl_inputZ_file);
-	push_value(MKTUP(tup, 6));
+	push_value(MKTUP(tup, 7));
 }
 static void mtp_mirth_main_Arguments_Arguments (void) {
 	VAL val = pop_value();
@@ -5198,13 +5203,15 @@ static void mtp_mirth_main_Arguments_Arguments (void) {
 	lpush(&lbl_outputZ_file, tup->cells[2]);
 	lpush(&lbl_entryZ_point, tup->cells[3]);
 	lpush(&lbl_packages, tup->cells[4]);
-	lpush(&lbl_emitZ_debugZ_info, tup->cells[5]);
+	lpush(&lbl_packageZ_searchZ_paths, tup->cells[5]);
+	lpush(&lbl_emitZ_debugZ_info, tup->cells[6]);
 	if (tup->refs > 1) {
 		incref(tup->cells[1]);
 		incref(tup->cells[2]);
 		incref(tup->cells[3]);
 		incref(tup->cells[4]);
 		incref(tup->cells[5]);
+		incref(tup->cells[6]);
 		decref(val);
 	} else {
 		free(tup);
@@ -5289,10 +5296,6 @@ static void mbuf_mirth_name_HASHz_BUF (void) {
 static void mbuf_mirth_package_Package_NUM (void) {
 	static uint8_t b[8] = {0};
 	push_ptr(&b);
-}
-static void mvar_mirth_package_PACKAGEz_SEARCHz_PATH (void) {
-	static VAL v = {0};
-	push_ptr(&v);
 }
 size_t strlen (const char *);
 static void mext_std_ctypes_CStr_numZ_bytes (void) {
@@ -6328,6 +6331,9 @@ static void mw_mirth_mirth_ZPlusMirth_ZDivZPlusMirth (void);
 static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnostics (void);
 static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnosticsZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnostics_1 (void);
+static void mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_paths (void);
+static void mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_pathsZBang (void);
+static void mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_paths_1 (void);
 static void mw_mirth_mirth_ZPlusMirth_errorZ_token (void);
 static void mw_mirth_mirth_ZPlusMirth_errorZ_tokenZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_builtin (void);
@@ -6973,6 +6979,9 @@ static void mw_mirth_c99_c99Z_fieldZ_defZBang (void);
 static void mw_mirth_c99_c99Z_mainZBang (void);
 static void mw_mirth_main_Arguments_ZDivArguments (void);
 static void mw_mirth_main_Arguments_emitZ_debugZ_infoZBang (void);
+static void mw_mirth_main_Arguments_packageZ_searchZ_paths (void);
+static void mw_mirth_main_Arguments_packageZ_searchZ_pathsZBang (void);
+static void mw_mirth_main_Arguments_packageZ_searchZ_paths_1 (void);
 static void mw_mirth_main_Arguments_packages (void);
 static void mw_mirth_main_Arguments_packagesZBang (void);
 static void mw_mirth_main_Arguments_packages_1 (void);
@@ -6996,11 +7005,12 @@ static void mb_mirth_main_main_3 (void);
 static void mb_std_prim_Str_showZThen_0 (void);
 static void mb_mirth_specializzer_SPKey_ZToStr_0 (void);
 static void mb_mirth_specializzer_SPKey_ZToStr_2 (void);
-static void mb_mirth_main_compileZBang_1 (void);
+static void mb_mirth_main_compileZBang_0 (void);
 static void mb_mirth_main_compileZBang_2 (void);
-static void mb_mirth_main_compileZBang_4 (void);
-static void mb_mirth_main_compileZBang_10 (void);
-static void mb_mirth_main_compileZBang_12 (void);
+static void mb_mirth_main_compileZBang_3 (void);
+static void mb_mirth_main_compileZBang_5 (void);
+static void mb_mirth_main_compileZBang_11 (void);
+static void mb_mirth_main_compileZBang_13 (void);
 static void mb_std_list_List_1_for_2_2 (void);
 static void mb_std_prim_Str_ZToName_2 (void);
 static void mb_mirth_elab_typecheckZ_everythingZBang_0 (void);
@@ -7015,12 +7025,14 @@ static void mb_mirth_main_compilerZ_parseZ_args_1 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_2 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_3 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_5 (void);
-static void mb_mirth_main_compilerZ_parseZ_args_6 (void);
-static void mb_mirth_main_compilerZ_parseZ_args_9 (void);
+static void mb_mirth_main_compilerZ_parseZ_args_7 (void);
+static void mb_mirth_main_compilerZ_parseZ_args_8 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_11 (void);
-static void mb_mirth_main_compilerZ_parseZ_args_14 (void);
+static void mb_mirth_main_compilerZ_parseZ_args_13 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_16 (void);
-static void mb_mirth_main_compilerZ_parseZ_args_19 (void);
+static void mb_mirth_main_compilerZ_parseZ_args_18 (void);
+static void mb_mirth_main_compilerZ_parseZ_args_21 (void);
+static void mb_mirth_main_compilerZ_parseZ_args_24 (void);
 static void mb_mirth_specializzer_SPKey_ZEqualZEqual_1 (void);
 static void mb_std_maybe_Maybe_1_ZEqualZEqual_1_0 (void);
 static void mb_std_maybe_Maybe_1_ZEqualZEqual_1_1 (void);
@@ -7127,7 +7139,6 @@ static void mb_argZ_parser_parse_argvZ_toZ_str_1 (void);
 static void mb_mirth_arrow_Block_qname_0 (void);
 static void mb_mirth_package_Package_pathZ_orZ_search_0 (void);
 static void mb_mirth_package_Package_pathZ_orZ_search_1 (void);
-static void mb_mirth_package_Package_pathZ_orZ_search_2 (void);
 static void mb_mirth_package_Package_pathZBang_2 (void);
 static void mb_mirth_label_Label_newZBang_0 (void);
 static void mb_mirth_def_Def_register_2 (void);
@@ -7300,7 +7311,7 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void);
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_14 (void);
 static void mb_mirth_elab_elabZ_patternZ_atomZBang_16 (void);
 static void mb_mirth_elab_elabZ_moduleZ_declZBang_1 (void);
-static void mb_mirth_elab_checkZ_moduleZ_path_2 (void);
+static void mb_mirth_elab_checkZ_moduleZ_path_1 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_0 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_1 (void);
 static void mb_mirth_elab_elabZ_aliasZBang_6 (void);
@@ -27799,8 +27810,8 @@ static void mw_mirth_mirth_ZPlusMirth_ZDivZPlusMirth (void) {
 static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnostics (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
-	VAL* p = &VTUP(v)->cells[6];
+	ASSERT1(VTUPLEN(v) == 9, v);
+	VAL* p = &VTUP(v)->cells[7];
 	VAL u = *p;
 	ASSERT1(VREFS(v) == 1, v);
 	*p = (VAL){0};
@@ -27811,9 +27822,9 @@ static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnosticsZBang (void) {
 	VAL v = pop_resource();
 	VAL u = pop_resource();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	ASSERT1(VREFS(v) == 1, v);
-	VAL* p = &VTUP(v)->cells[6];
+	VAL* p = &VTUP(v)->cells[7];
 	ASSERT1(p->tag == 0, v);
 	*p = u;
 	push_resource(v);
@@ -27832,10 +27843,42 @@ static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnostics_1 (void) {
 		decref(var_f);
 	}
 }
+static void mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_paths (void) {
+	VAL v = pop_resource();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 9, v);
+	VAL* p = &VTUP(v)->cells[6];
+	VAL u = *p;
+	incref(u);
+	push_resource(v);
+	push_value(u);
+}
+static void mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_pathsZBang (void) {
+	VAL v = top_resource();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 9, v);
+	VAL* p = &VTUP(v)->cells[6];
+	VAL t = *p; *p = u; decref(t);
+}
+static void mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_paths_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_paths();
+		{
+			VAL d3 = pop_resource();
+			incref(var_f);
+			run_value(var_f);
+			push_resource(d3);
+		}
+		mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_pathsZBang();
+		decref(var_f);
+	}
+}
 static void mw_mirth_mirth_ZPlusMirth_errorZ_token (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[5];
 	VAL u = *p;
 	incref(u);
@@ -27846,14 +27889,14 @@ static void mw_mirth_mirth_ZPlusMirth_errorZ_tokenZBang (void) {
 	VAL v = top_resource();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[5];
 	VAL t = *p; *p = u; decref(t);
 }
 static void mw_mirth_mirth_ZPlusMirth_builtin (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[4];
 	VAL u = *p;
 	incref(u);
@@ -27863,7 +27906,7 @@ static void mw_mirth_mirth_ZPlusMirth_builtin (void) {
 static void mw_mirth_mirth_ZPlusMirth_preferZ_inlineZ_defs (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[3];
 	VAL u = *p;
 	incref(u);
@@ -27874,14 +27917,14 @@ static void mw_mirth_mirth_ZPlusMirth_preferZ_inlineZ_defsZBang (void) {
 	VAL v = top_resource();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[3];
 	VAL t = *p; *p = u; decref(t);
 }
 static void mw_mirth_mirth_ZPlusMirth_numZ_warnings (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[2];
 	VAL u = *p;
 	incref(u);
@@ -27892,7 +27935,7 @@ static void mw_mirth_mirth_ZPlusMirth_numZ_warningsZBang (void) {
 	VAL v = top_resource();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[2];
 	VAL t = *p; *p = u; decref(t);
 }
@@ -27913,7 +27956,7 @@ static void mw_mirth_mirth_ZPlusMirth_numZ_warnings_1 (void) {
 static void mw_mirth_mirth_ZPlusMirth_numZ_errors (void) {
 	VAL v = pop_resource();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[1];
 	VAL u = *p;
 	incref(u);
@@ -27924,7 +27967,7 @@ static void mw_mirth_mirth_ZPlusMirth_numZ_errorsZBang (void) {
 	VAL v = top_resource();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 8, v);
+	ASSERT1(VTUPLEN(v) == 9, v);
 	VAL* p = &VTUP(v)->cells[1];
 	VAL t = *p; *p = u; decref(t);
 }
@@ -27954,6 +27997,8 @@ static void mw_mirth_mirth_ZPlusMirth_initZBang (void) {
 	mw_mirth_mirth_Builtin_allocZBang();
 	LPUSH(lbl_builtin);
 	push_u64(0LL); // Nil
+	LPUSH(lbl_packageZ_searchZ_paths);
+	push_u64(0LL); // Nil
 	mw_std_list_List_1_thaw();
 	LPUSHR(lbl_ZPlusdiagnostics);
 	push_u64(0LL); // Nil
@@ -27978,6 +28023,8 @@ static void mw_mirth_mirth_ZPlusMirth_rdrop (void) {
 	LPOP(lbl_builtin);
 	mp_primZ_drop();
 	LPOP(lbl_errorZ_token);
+	mp_primZ_drop();
+	LPOP(lbl_packageZ_searchZ_paths);
 	mp_primZ_drop();
 	LPOPR(lbl_ZPlusdiagnostics);
 	mw_std_list_ZPlusList_1_freezze();
@@ -30927,12 +30974,10 @@ static void mw_mirth_package_Package_pathZ_orZ_search (void) {
 			break;
 		case 0LL: // None
 			(void)pop_u64();
-			mvar_mirth_package_PACKAGEz_SEARCHz_PATH();
+			mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_paths();
 			push_fnptr(&mb_mirth_package_Package_pathZ_orZ_search_0);
-			mw_std_prelude_memoizze_1();
-			push_fnptr(&mb_mirth_package_Package_pathZ_orZ_search_1);
 			mw_std_list_List_1_map_1();
-			push_fnptr(&mb_mirth_package_Package_pathZ_orZ_search_2);
+			push_fnptr(&mb_mirth_package_Package_pathZ_orZ_search_1);
 			mw_std_list_List_1_find_1();
 			mp_primZ_dup();
 			{
@@ -36765,11 +36810,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 			(void)pop_u64();
 			mp_primZ_swap();
 			mw_mirth_module_Module_qname();
-			{
-				VAL d4 = pop_resource();
-				mw_mirth_name_QName_toZ_moduleZ_path();
-				push_resource(d4);
-			}
+			mw_mirth_name_QName_toZ_moduleZ_path();
 			{
 				VAL d4 = pop_value();
 				mp_primZ_dup();
@@ -36847,7 +36888,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 			break;
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
-			push_fnptr(&mb_mirth_elab_checkZ_moduleZ_path_2);
+			push_fnptr(&mb_mirth_elab_checkZ_moduleZ_path_1);
 			mw_std_prim_Str_splitZ_lastZ_byte_1();
 			STRLIT("mth", 3);
 			mtw_std_maybe_Maybe_1_Some();
@@ -37180,11 +37221,7 @@ static void mw_mirth_elab_loadZ_module (void) {
 			break;
 		case 0LL: // None
 			(void)pop_u64();
-			{
-				VAL d4 = pop_resource();
-				mw_mirth_name_QName_toZ_moduleZ_path();
-				push_resource(d4);
-			}
+			mw_mirth_name_QName_toZ_moduleZ_path();
 			mw_mirth_lexer_runZ_lexerZBang();
 			mw_mirth_elab_elabZ_moduleZBang();
 			break;
@@ -45855,28 +45892,77 @@ static void mw_mirth_main_Arguments_emitZ_debugZ_infoZBang (void) {
 	VAL v = pop_value();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
+	if (VTUP(v)->refs == 1) {
+		VAL* p = &VTUP(v)->cells[6];
+		VAL t = *p; *p = u; decref(t);
+		push_value(v);
+	} else {
+		TUP *tup = tup_new(7);
+		tup->size = 7;
+		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
+		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
+		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
+		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
+		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
+		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		tup->cells[6] = u;
+		decref(v);
+		push_value(MKTUP(tup,7));
+	}
+}
+static void mw_mirth_main_Arguments_packageZ_searchZ_paths (void) {
+	VAL v = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 7, v);
+	VAL* p = &VTUP(v)->cells[5];
+	VAL u = *p;
+	incref(u);
+	decref(v);
+	push_value(u);
+}
+static void mw_mirth_main_Arguments_packageZ_searchZ_pathsZBang (void) {
+	VAL v = pop_value();
+	VAL u = pop_value();
+	ASSERT1(IS_TUP(v), v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	if (VTUP(v)->refs == 1) {
 		VAL* p = &VTUP(v)->cells[5];
 		VAL t = *p; *p = u; decref(t);
 		push_value(v);
 	} else {
-		TUP *tup = tup_new(6);
-		tup->size = 6;
+		TUP *tup = tup_new(7);
+		tup->size = 7;
 		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
 		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
 		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
 		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
 		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
 		tup->cells[5] = u;
+		tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
 		decref(v);
-		push_value(MKTUP(tup,6));
+		push_value(MKTUP(tup,7));
+	}
+}
+static void mw_mirth_main_Arguments_packageZ_searchZ_paths_1 (void) {
+	{
+		VAL var_f = pop_value();
+		mp_primZ_dup();
+		{
+			VAL d3 = pop_value();
+			mw_mirth_main_Arguments_packageZ_searchZ_paths();
+			incref(var_f);
+			run_value(var_f);
+			push_value(d3);
+		}
+		mw_mirth_main_Arguments_packageZ_searchZ_pathsZBang();
+		decref(var_f);
 	}
 }
 static void mw_mirth_main_Arguments_packages (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	VAL* p = &VTUP(v)->cells[4];
 	VAL u = *p;
 	incref(u);
@@ -45887,22 +45973,23 @@ static void mw_mirth_main_Arguments_packagesZBang (void) {
 	VAL v = pop_value();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	if (VTUP(v)->refs == 1) {
 		VAL* p = &VTUP(v)->cells[4];
 		VAL t = *p; *p = u; decref(t);
 		push_value(v);
 	} else {
-		TUP *tup = tup_new(6);
-		tup->size = 6;
+		TUP *tup = tup_new(7);
+		tup->size = 7;
 		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
 		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
 		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
 		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
 		tup->cells[4] = u;
 		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
 		decref(v);
-		push_value(MKTUP(tup,6));
+		push_value(MKTUP(tup,7));
 	}
 }
 static void mw_mirth_main_Arguments_packages_1 (void) {
@@ -45923,7 +46010,7 @@ static void mw_mirth_main_Arguments_packages_1 (void) {
 static void mw_mirth_main_Arguments_entryZ_point (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	VAL* p = &VTUP(v)->cells[3];
 	VAL u = *p;
 	incref(u);
@@ -45934,22 +46021,23 @@ static void mw_mirth_main_Arguments_entryZ_pointZBang (void) {
 	VAL v = pop_value();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	if (VTUP(v)->refs == 1) {
 		VAL* p = &VTUP(v)->cells[3];
 		VAL t = *p; *p = u; decref(t);
 		push_value(v);
 	} else {
-		TUP *tup = tup_new(6);
-		tup->size = 6;
+		TUP *tup = tup_new(7);
+		tup->size = 7;
 		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
 		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
 		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
 		tup->cells[3] = u;
 		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
 		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
 		decref(v);
-		push_value(MKTUP(tup,6));
+		push_value(MKTUP(tup,7));
 	}
 }
 static void mw_mirth_main_Arguments_entryZ_point_1 (void) {
@@ -45970,7 +46058,7 @@ static void mw_mirth_main_Arguments_entryZ_point_1 (void) {
 static void mw_mirth_main_Arguments_outputZ_file (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	VAL* p = &VTUP(v)->cells[2];
 	VAL u = *p;
 	incref(u);
@@ -45981,22 +46069,23 @@ static void mw_mirth_main_Arguments_outputZ_fileZBang (void) {
 	VAL v = pop_value();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	if (VTUP(v)->refs == 1) {
 		VAL* p = &VTUP(v)->cells[2];
 		VAL t = *p; *p = u; decref(t);
 		push_value(v);
 	} else {
-		TUP *tup = tup_new(6);
-		tup->size = 6;
+		TUP *tup = tup_new(7);
+		tup->size = 7;
 		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
 		tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
 		tup->cells[2] = u;
 		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
 		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
 		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
 		decref(v);
-		push_value(MKTUP(tup,6));
+		push_value(MKTUP(tup,7));
 	}
 }
 static void mw_mirth_main_Arguments_outputZ_file_1 (void) {
@@ -46017,7 +46106,7 @@ static void mw_mirth_main_Arguments_outputZ_file_1 (void) {
 static void mw_mirth_main_Arguments_inputZ_file (void) {
 	VAL v = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	VAL* p = &VTUP(v)->cells[1];
 	VAL u = *p;
 	incref(u);
@@ -46028,22 +46117,23 @@ static void mw_mirth_main_Arguments_inputZ_fileZBang (void) {
 	VAL v = pop_value();
 	VAL u = pop_value();
 	ASSERT1(IS_TUP(v), v);
-	ASSERT1(VTUPLEN(v) == 6, v);
+	ASSERT1(VTUPLEN(v) == 7, v);
 	if (VTUP(v)->refs == 1) {
 		VAL* p = &VTUP(v)->cells[1];
 		VAL t = *p; *p = u; decref(t);
 		push_value(v);
 	} else {
-		TUP *tup = tup_new(6);
-		tup->size = 6;
+		TUP *tup = tup_new(7);
+		tup->size = 7;
 		tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
 		tup->cells[1] = u;
 		tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
 		tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
 		tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
 		tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
+		tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
 		decref(v);
-		push_value(MKTUP(tup,6));
+		push_value(MKTUP(tup,7));
 	}
 }
 static void mw_mirth_main_Arguments_inputZ_file_1 (void) {
@@ -46073,13 +46163,18 @@ static void mw_mirth_main_Arguments_default (void) {
 	LPUSH(lbl_entryZ_point);
 	push_u64(0LL); // Nil
 	LPUSH(lbl_packages);
+	push_u64(0LL); // Nil
+	LPUSH(lbl_packageZ_searchZ_paths);
 	mtw_mirth_main_Arguments_Arguments();
 }
 static void mw_mirth_main_compileZBang (void) {
 	mw_mirth_main_Arguments_ZDivArguments();
+	LPOP(lbl_packageZ_searchZ_paths);
+	push_fnptr(&mb_mirth_main_compileZBang_0);
+	mw_mirth_mirth_ZPlusMirth_packageZ_searchZ_paths_1();
 	{
 		VAL d2 = pop_resource();
-		push_fnptr(&mb_mirth_main_compileZBang_1);
+		push_fnptr(&mb_mirth_main_compileZBang_2);
 		mw_std_str_Str_1();
 		STRLIT("\n", 1);
 		mp_primZ_strZ_cat();
@@ -46087,13 +46182,13 @@ static void mw_mirth_main_compileZBang (void) {
 		push_resource(d2);
 	}
 	LPOP(lbl_packages);
-	push_fnptr(&mb_mirth_main_compileZBang_2);
+	push_fnptr(&mb_mirth_main_compileZBang_3);
 	mw_std_list_List_1_for_1();
 	LPOP(lbl_inputZ_file);
 	mw_mirth_lexer_runZ_lexerZBang();
 	{
 		VAL d2 = pop_resource();
-		push_fnptr(&mb_mirth_main_compileZBang_4);
+		push_fnptr(&mb_mirth_main_compileZBang_5);
 		mw_std_str_Str_1();
 		STRLIT("\n", 1);
 		mp_primZ_strZ_cat();
@@ -46139,7 +46234,7 @@ static void mw_mirth_main_compileZBang (void) {
 		mw_mirth_mirth_ZPlusMirth_numZ_errors();
 		{
 			VAL d3 = pop_resource();
-			push_fnptr(&mb_mirth_main_compileZBang_10);
+			push_fnptr(&mb_mirth_main_compileZBang_11);
 			mw_std_str_Str_1();
 			STRLIT("\n", 1);
 			mp_primZ_strZ_cat();
@@ -46151,7 +46246,7 @@ static void mw_mirth_main_compileZBang (void) {
 	} else {
 		{
 			VAL d3 = pop_resource();
-			push_fnptr(&mb_mirth_main_compileZBang_12);
+			push_fnptr(&mb_mirth_main_compileZBang_13);
 			mw_std_str_Str_1();
 			STRLIT("\n", 1);
 			mp_primZ_strZ_cat();
@@ -46290,13 +46385,35 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_5);
 					mw_mirth_main_Arguments_packages_1();
 					break;
+				case 80LL: // B'P'
+					(void)pop_u64();
+					{
+						VAL d6 = pop_value();
+						switch (get_top_data_tag()) {
+							case 1LL: // Some
+								mtp_std_maybe_Maybe_1_Some();
+								break;
+							case 0LL: // None
+								(void)pop_u64();
+								STRLIT("tried to unwrap None", 20);
+								mw_std_prelude_panicZBang();
+								break;
+							default:
+								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								mp_primZ_panic();
+						}
+						push_value(d6);
+					}
+					push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_7);
+					mw_mirth_main_Arguments_packageZ_searchZ_paths_1();
+					break;
 				default:
 					mp_primZ_drop();
 					mp_primZ_swap();
 					mp_primZ_drop();
 					push_u64(4LL); // UnknownArg
 					mtw_std_maybe_Maybe_1_Some();
-					push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_6);
+					push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_8);
 					mw_argZ_parser_types_ZPlusArgumentParser_1_state_1();
 					break;
 			}
@@ -46309,7 +46426,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 			push_i64(0LL);
 			mp_primZ_intZ_eq();
 			if (pop_u64()) {
-				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_9);
+				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_11);
 				mw_mirth_main_Arguments_inputZ_file_1();
 			} else {
 				{
@@ -46319,7 +46436,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 				}
 				push_u64(2LL); // TooManyArgs
 				mtw_std_maybe_Maybe_1_Some();
-				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_11);
+				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_13);
 				mw_argZ_parser_types_ZPlusArgumentParser_1_state_1();
 			}
 			break;
@@ -46382,7 +46499,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 				mp_primZ_drop();
 				push_u64(4LL); // UnknownArg
 				mtw_std_maybe_Maybe_1_Some();
-				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_14);
+				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_16);
 				mw_argZ_parser_types_ZPlusArgumentParser_1_state_1();
 			}
 			break;
@@ -46395,7 +46512,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 			if (pop_u64()) {
 				push_u64(3LL); // TooFewArgs
 				mtw_std_maybe_Maybe_1_Some();
-				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_16);
+				push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_18);
 				mw_argZ_parser_types_ZPlusArgumentParser_1_state_1();
 			} else {
 			}
@@ -46419,7 +46536,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 							STRLIT("output-file", 11);
 							mtw_argZ_parser_types_ArgumentParsingError_MissingArg();
 							mtw_std_maybe_Maybe_1_Some();
-							push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_19);
+							push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_21);
 							mw_argZ_parser_types_ZPlusArgumentParser_1_state_1();
 							break;
 						case 0LL: // None
@@ -46433,6 +46550,21 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 				default:
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 					mp_primZ_panic();
+			}
+			mw_argZ_parser_types_ZPlusArgumentParser_1_state();
+			mw_argZ_parser_state_State_1_arguments();
+			mw_mirth_main_Arguments_packageZ_searchZ_paths();
+			mw_std_list_List_1_emptyZAsk();
+			if (pop_u64()) {
+				{
+					VAL d5 = pop_value();
+					push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_24);
+					mw_std_list_LIST_1();
+					mp_primZ_swap();
+					mw_mirth_main_Arguments_packageZ_searchZ_pathsZBang();
+					push_value(d5);
+				}
+			} else {
 			}
 			mp_primZ_drop();
 			break;
@@ -46552,6 +46684,22 @@ static void mb_mirth_main_main_0 (void) {
 	LPUSH(lbl_group);
 	mtw_argZ_parser_types_ArgpOption_ArgpOption();
 	mw_std_list_ZPlusList_1_pushZBang();
+	STRLIT("package-search-path", 19);
+	mtw_std_maybe_Maybe_1_Some();
+	LPUSH(lbl_name);
+	push_u64(80LL); // B'P'
+	mtw_argZ_parser_types_ArgpOptionType_Short();
+	LPUSH(lbl_flagZ_type);
+	STRLIT("SEARCH_PATH*", 12);
+	mtw_std_maybe_Maybe_1_Some();
+	LPUSH(lbl_argZ_doc);
+	STRLIT("Package search paths", 20);
+	mtw_std_maybe_Maybe_1_Some();
+	LPUSH(lbl_doc);
+	push_u64(0LL); // None
+	LPUSH(lbl_group);
+	mtw_argZ_parser_types_ArgpOption_ArgpOption();
+	mw_std_list_ZPlusList_1_pushZBang();
 	STRLIT("debug", 5);
 	mtw_std_maybe_Maybe_1_Some();
 	LPUSH(lbl_name);
@@ -46607,7 +46755,10 @@ static void mb_mirth_specializzer_SPKey_ZToStr_2 (void) {
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	STRLIT(",", 1);
 }
-static void mb_mirth_main_compileZBang_1 (void) {
+static void mb_mirth_main_compileZBang_0 (void) {
+	mp_primZ_drop();
+}
+static void mb_mirth_main_compileZBang_2 (void) {
 	STRLIT("Compiling ", 10);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 	LPOP(lbl_inputZ_file);
@@ -46615,18 +46766,18 @@ static void mb_mirth_main_compileZBang_1 (void) {
 	LPUSH(lbl_inputZ_file);
 	mw_std_path_Path_pathZThen();
 }
-static void mb_mirth_main_compileZBang_2 (void) {
+static void mb_mirth_main_compileZBang_3 (void) {
 	mw_std_prelude_unpack2();
 	mp_primZ_swap();
 	mw_std_prim_Str_ZToName();
 	mw_mirth_package_Package_newZ_orZ_pathZBang();
 	mp_primZ_drop();
 }
-static void mb_mirth_main_compileZBang_4 (void) {
+static void mb_mirth_main_compileZBang_5 (void) {
 	STRLIT("Building.", 9);
 	mw_std_str_ZPlusStr_pushZ_strZBang();
 }
-static void mb_mirth_main_compileZBang_10 (void) {
+static void mb_mirth_main_compileZBang_11 (void) {
 	push_u64(31LL); // FGRed
 	mw_std_terminal_Sgr_emitZThen();
 	mp_primZ_intZ_toZ_str();
@@ -46636,7 +46787,7 @@ static void mb_mirth_main_compileZBang_10 (void) {
 	push_u64(0LL); // Reset
 	mw_std_terminal_Sgr_emitZThen();
 }
-static void mb_mirth_main_compileZBang_12 (void) {
+static void mb_mirth_main_compileZBang_13 (void) {
 	push_u64(32LL); // FGGreen
 	mw_std_terminal_Sgr_emitZThen();
 	STRLIT("No errors.", 10);
@@ -46754,10 +46905,13 @@ static void mb_mirth_main_compilerZ_parseZ_args_3 (void) {
 static void mb_mirth_main_compilerZ_parseZ_args_5 (void) {
 	mtw_std_list_List_1_Cons();
 }
-static void mb_mirth_main_compilerZ_parseZ_args_6 (void) {
+static void mb_mirth_main_compilerZ_parseZ_args_7 (void) {
+	mtw_std_list_List_1_Cons();
+}
+static void mb_mirth_main_compilerZ_parseZ_args_8 (void) {
 	mw_argZ_parser_state_State_1_errorZBang();
 }
-static void mb_mirth_main_compilerZ_parseZ_args_9 (void) {
+static void mb_mirth_main_compilerZ_parseZ_args_11 (void) {
 	mp_primZ_drop();
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
@@ -46773,17 +46927,21 @@ static void mb_mirth_main_compilerZ_parseZ_args_9 (void) {
 			mp_primZ_panic();
 	}
 }
-static void mb_mirth_main_compilerZ_parseZ_args_11 (void) {
-	mw_argZ_parser_state_State_1_errorZBang();
-}
-static void mb_mirth_main_compilerZ_parseZ_args_14 (void) {
+static void mb_mirth_main_compilerZ_parseZ_args_13 (void) {
 	mw_argZ_parser_state_State_1_errorZBang();
 }
 static void mb_mirth_main_compilerZ_parseZ_args_16 (void) {
 	mw_argZ_parser_state_State_1_errorZBang();
 }
-static void mb_mirth_main_compilerZ_parseZ_args_19 (void) {
+static void mb_mirth_main_compilerZ_parseZ_args_18 (void) {
 	mw_argZ_parser_state_State_1_errorZBang();
+}
+static void mb_mirth_main_compilerZ_parseZ_args_21 (void) {
+	mw_argZ_parser_state_State_1_errorZBang();
+}
+static void mb_mirth_main_compilerZ_parseZ_args_24 (void) {
+	STRLIT("lib", 3);
+	mw_std_list_ZPlusList_1_pushZBang();
 }
 static void mb_mirth_specializzer_SPKey_ZEqualZEqual_1 (void) {
 	mw_mirth_arrow_Arg_ZEqualZEqual();
@@ -48336,11 +48494,6 @@ static void mb_mirth_arrow_Block_qname_0 (void) {
 	}
 }
 static void mb_mirth_package_Package_pathZ_orZ_search_0 (void) {
-	STRLIT("lib", 3);
-	push_u64(0LL); // Nil
-	mtw_std_list_List_1_Cons();
-}
-static void mb_mirth_package_Package_pathZ_orZ_search_1 (void) {
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
@@ -48351,8 +48504,12 @@ static void mb_mirth_package_Package_pathZ_orZ_search_1 (void) {
 	mw_mirth_name_Name_ZToStr();
 	mw_std_path_Path_join();
 }
-static void mb_mirth_package_Package_pathZ_orZ_search_2 (void) {
-	mw_std_prim_ZPlusWorld_isZ_directoryZAsk();
+static void mb_mirth_package_Package_pathZ_orZ_search_1 (void) {
+	{
+		VAL d2 = pop_resource();
+		mw_std_prim_ZPlusWorld_isZ_directoryZAsk();
+		push_resource(d2);
+	}
 }
 static void mb_mirth_package_Package_pathZBang_2 (void) {
 	STRLIT("Tried to set different path for the same package.", 49);
@@ -50253,7 +50410,7 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_16 (void) {
 static void mb_mirth_elab_elabZ_moduleZ_declZBang_1 (void) {
 	mw_mirth_def_Def_primZAsk();
 }
-static void mb_mirth_elab_checkZ_moduleZ_path_2 (void) {
+static void mb_mirth_elab_checkZ_moduleZ_path_1 (void) {
 	push_u64(46LL); // BDOT
 	mw_std_byte_Byte_ZEqualZEqual();
 }
