@@ -137,8 +137,9 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
                 "output-file" MissingArg Some state:error!
             )
         )
+
 	state arguments package-search-paths empty? then(
-	  "lib" >Path L1 state:arguments:package-search-paths!
+	  dip(LIST("lib" >Path ;) swap package-search-paths!)
 	)
         drop,
     _ -> drop drop UnknownArg Some state error! state!)
@@ -199,8 +200,6 @@ def(main, +World -- +World,
         Right -> ,
         Left -> rdip:trace(unpack2 ; emit;) 1 posix-exit!
     )
-
-    dup rdip:print(show;)
 
     compile!
     rdrop)

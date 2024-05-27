@@ -7032,6 +7032,7 @@ static void mb_mirth_main_compilerZ_parseZ_args_13 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_16 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_18 (void);
 static void mb_mirth_main_compilerZ_parseZ_args_21 (void);
+static void mb_mirth_main_compilerZ_parseZ_args_24 (void);
 static void mb_mirth_specializzer_SPKey_ZEqualZEqual_1 (void);
 static void mb_std_maybe_Maybe_1_ZEqualZEqual_1_0 (void);
 static void mb_std_maybe_Maybe_1_ZEqualZEqual_1_1 (void);
@@ -46162,9 +46163,7 @@ static void mw_mirth_main_Arguments_default (void) {
 	LPUSH(lbl_entryZ_point);
 	push_u64(0LL); // Nil
 	LPUSH(lbl_packages);
-	STRLIT("lib", 3);
 	push_u64(0LL); // Nil
-	mtw_std_list_List_1_Cons();
 	LPUSH(lbl_packageZ_searchZ_paths);
 	mtw_mirth_main_Arguments_Arguments();
 }
@@ -46552,6 +46551,21 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
 					mp_primZ_panic();
 			}
+			mw_argZ_parser_types_ZPlusArgumentParser_1_state();
+			mw_argZ_parser_state_State_1_arguments();
+			mw_mirth_main_Arguments_packageZ_searchZ_paths();
+			mw_std_list_List_1_emptyZAsk();
+			if (pop_u64()) {
+				{
+					VAL d5 = pop_value();
+					push_fnptr(&mb_mirth_main_compilerZ_parseZ_args_24);
+					mw_std_list_LIST_1();
+					mp_primZ_swap();
+					mw_mirth_main_Arguments_packageZ_searchZ_pathsZBang();
+					push_value(d5);
+				}
+			} else {
+			}
 			mp_primZ_drop();
 			break;
 		default:
@@ -46924,6 +46938,10 @@ static void mb_mirth_main_compilerZ_parseZ_args_18 (void) {
 }
 static void mb_mirth_main_compilerZ_parseZ_args_21 (void) {
 	mw_argZ_parser_state_State_1_errorZBang();
+}
+static void mb_mirth_main_compilerZ_parseZ_args_24 (void) {
+	STRLIT("lib", 3);
+	mw_std_list_ZPlusList_1_pushZBang();
 }
 static void mb_mirth_specializzer_SPKey_ZEqualZEqual_1 (void) {
 	mw_mirth_arrow_Arg_ZEqualZEqual();
