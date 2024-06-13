@@ -1247,7 +1247,7 @@ def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
 def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
     dup path split-last match(
         None ->
-            swap qname rdip:to-module-path dup2 == else(
+            swap qname to-module-path dup2 == else(
                 "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
             ) drop3,
 
@@ -1289,7 +1289,7 @@ def load-module [ Token QName +World +Mirth -- Token Module +World +Mirth ] {
     dup def-soft? match(
         Some -> module? unwrap(drop "module name already taken" emit-fatal-error!) nip,
         None ->
-            rdip:to-module-path run-lexer!
+            to-module-path run-lexer!
             elab-module!
                 # TODO: avoid elaborating here,
                 # use a single loop to dispatch top-level module elaboration.

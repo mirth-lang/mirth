@@ -38,6 +38,7 @@ data(Arguments, Arguments ->
     output-file: Maybe(Path)
     entry-point: Maybe(Str)
     packages: List([Str Path])
+    package-search-paths: List(Path)
     emit-debug-info: Bool)
 
 ||| Create a default initialized arguments table
@@ -48,6 +49,7 @@ def(Arguments.default, -- Arguments,
     None >output-file
     "main" Some >entry-point
     L0 >packages
+    L0 >package-search-paths
     Arguments)
 
 ||| Pretty print the contents of the arguments struct
@@ -59,6 +61,7 @@ def(Arguments.show;, Arguments +Str -- +Str,
     ", entry-point: " ; entry-point> show;:show;
     ", emit-debug-info: " ; emit-debug-info> show;
     ", packages: " ; packages> show;:pack2-show;(show;,show;)
+    ", package-search-path: " ; package-search-paths> show;:show;
     " }" ;)
 
 ########
@@ -67,6 +70,7 @@ def(Arguments.show;, Arguments +Str -- +Str,
 
 def(compile!, Arguments +World +Mirth -- +World +Mirth,
     /Arguments
+    package-search-paths> package-search-paths:drop
     rdip:trace("Compiling "; @input-file path;)
     packages> for(
         unpack2 swap >Name Package.new-or-path! drop
@@ -113,6 +117,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
         B'e' -> entry-point(drop unwrap Some),
         B'c' -> entry-point(drop drop None),
         B'p' -> dip(unwrap parse-package-def) packages(cons),
+	B'P' -> dip(unwrap >Path) package-search-paths(cons),
         _ -> drop swap drop UnknownArg Some state:error!
     ),
     Positional -> swap state positional-index 0= if(
@@ -132,6 +137,10 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
                 "output-file" MissingArg Some state:error!
             )
         )
+
+	state arguments package-search-paths empty? then(
+	  dip(LIST("lib" >Path ;) swap package-search-paths!)
+	)
         drop,
     _ -> drop drop UnknownArg Some state error! state!)
 
@@ -167,6 +176,13 @@ def(main, +World -- +World,
         "Package locations" Some >doc
         None >group
         ArgpOption ;
+
+	"package-search-path" Some >name
+	B'P' Short >flag-type
+	"SEARCH_PATH*" Some >arg-doc
+	"Package search paths" Some >doc
+	None >group
+	ArgpOption ;
 
         "debug" Some >name
         "debug" LongOnly >flag-type

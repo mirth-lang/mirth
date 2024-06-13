@@ -8,6 +8,7 @@ import(std.str)
 import(std.terminal)
 import(std.maybe)
 import(std.output)
+import(std.path)
 
 import(mirth.mirth)
 import(mirth.location)
@@ -105,6 +106,7 @@ struct +Mirth {
     prefer-inline-defs: Bool
     builtin: Builtin
     error-token: Maybe(Token)
+    package-search-paths: List(Path)
     +diagnostics: +List(Diagnostic)
     +propstack: +List(PropLabel)
 }
@@ -114,6 +116,7 @@ def +Mirth.Init! {
     0 >Nat >num-warnings
     False >prefer-inline-defs
     Builtin.Alloc! >builtin
+    L0 >package-search-paths
     +L0 >+diagnostics
     +L0 >+propstack
     None >error-token
@@ -131,6 +134,7 @@ def +Mirth.rdrop [ +Mirth -- ] {
     prefer-inline-defs> drop
     builtin> drop
     error-token> drop
+    package-search-paths> drop
     +diagnostics> freeze drop
     +propstack> freeze drop
 }

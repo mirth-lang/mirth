@@ -239,7 +239,7 @@ def(QName.>Str, +Mirth QName -- +Mirth Str, MKQNAME ->
     name> >Str cat
     arity> dup 0= if(drop, dip:"/" show cat cat))
 
-def(QName.to-module-path, QName +World -- Path +World,
+def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
     dup namespace match(
         NAMESPACE_PACKAGE ->
             path-or-search unwrap("No path defined for package" panic!)
