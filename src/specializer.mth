@@ -138,7 +138,7 @@ def(specialize-word!, +Mirth SPKey Word -- +Mirth Word,
     Some -> False over ~prefer-inline? !,
     None ->
         w head >head
-        None >sig
+        None >sig?
         w body >body
         k >Name >name
         0 >arity

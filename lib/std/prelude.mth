@@ -94,26 +94,25 @@ alias(argc, prim-sys-argc)
 alias(argv, prim-sys-argv)
 
 inline(
-    def(rotr, a b c -- c a b, swap dip(swap))
-    def(rotl, a b c -- b c a, dip(swap) swap)
+    def rotr [ a b c -- c a b ] { swap dip(swap) }
+    def rotl [ a b c -- b c a ] { dip(swap) swap }
 
-    def(rrotr, +a +b +c -- +c +a +b, rswap rdip(rswap))
-    def(rrotl, +a +b +c -- +b +c +a, rdip(rswap) rswap)
+    def rrotr [ +a +b +c -- +c +a +b ] { rswap rdip(rswap) }
+    def rrotl [ +a +b +c -- +b +c +a ] { rdip(rswap) rswap }
 
-    def(over, a b -- a b a, dip(dup) swap)
-    def(over2, a b1 b2 -- a b1 b2 a, dip(over) swap)
-    def(over3, a b1 b2 b3 -- a b1 b2 b3 a, dip(over2) swap)
-    def(over4, a b1 b2 b3 b4 -- a b1 b2 b3 b4 a, dip(over3) swap)
+    def over  [ a b           -- a b           a ] { dip(dup)   swap }
+    def over2 [ a b1 b2       -- a b1 b2       a ] { dip(over)  swap }
+    def over3 [ a b1 b2 b3    -- a b1 b2 b3    a ] { dip(over2) swap }
+    def over4 [ a b1 b2 b3 b4 -- a b1 b2 b3 b4 a ] { dip(over3) swap }
 
-    def(tuck, a b -- b a b, dup dip(swap))
+    def tuck [ a b -- b a b ] { dup dip(swap) }
 
-    def(nip, a b -- b, dip(drop))
+    def nip [ a b -- b ] { dip(drop) }
 
-    def(dup2, a b   -- a b    a b  , over over)
-    def(dup3, a b c -- a b c  a b c, dup dip(dip(dup2) rotr))
+    def dup2 [ a b -- a b a b ] { over over }
+    def dup3 [ a b c -- a b c a b c ] { dup dip(dip(dup2) rotr) }
 
-    def(dip?(f), (*a -- *a Bool) *a c -- *a c Bool, dip(f) swap)
-    def(dip'(f), (*a x -- *b y) *a c x -- *b c y, swap dip(f) swap)
+    def dip'(f) [ (*a x -- *b y) *a c x -- *b c y ] { swap dip(f) swap }
 
     def(dip2(f), (*a -- *b) *a c1 c2 -- *b c1 c2,
         dip(dip(f)))
@@ -190,6 +189,9 @@ inline(
 
     def(rrot4r, +a +b +c +d -- +d +a +b +c, rswap rdip(rrotr))
     def(rrot4l, +a +b +c +d -- +b +c +d +a, rdip(rrotl) rswap)
+
+    def flip3 [ a b c   --   c b a ] { >x1 >x2 >x3     x1> x2> x3>     }
+    def flip4 [ a b c d -- d c b a ] { >x1 >x2 >x3 >x4 x1> x2> x3> x4> }
 
     def(repeat(f), (*a -- *a) *a Nat -- *a,
         while(dup 0>, dip(f) 1-) drop)

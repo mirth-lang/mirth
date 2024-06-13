@@ -650,7 +650,7 @@ def ab-atom! [ Atom +AB -- +AB ] {
 
 ||| Add an atom to a list of atoms .. smartly.
 def ab-optimized-snoc! [ List(Atom) Atom -- List(Atom) ] {
-    while(dip?(atoms-has-last-block?) and(atom-accepts-args?),
+    while(over atoms-has-last-block? and(atom-accepts-args?),
         swap atoms-turn-last-block-to-arg swap)
     List.snoc
 }
@@ -670,8 +670,8 @@ def atom-accepts-args? [ Atom -- Atom Bool ] {
     )
 }
 
-def atoms-has-last-block? [ List(Atom) -- List(Atom) Bool ] {
-    dup last match(
+def atoms-has-last-block? [ List(Atom) -- Bool ] {
+    last match(
         None -> False,
         Some ->
             op match(
@@ -1490,7 +1490,7 @@ def data-word-new! [ +Mirth Data Str Int -- +Mirth Word ] {
     over >Name >name
     dip2(dup head? unwrap dup >body >head)
     data-word-qname >qname
-    None >sig
+    None >sig?
     Word.new!
 
     qname> over WordQName prop over ~qname !
@@ -1738,6 +1738,12 @@ def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
     drop prefer-inline-defs!
 }
 
+struct SyntaxDef {
+    head: Token
+    sig?: Maybe(Token)
+    body: Token
+}
+
 ||| Parse a word definition. It looks like one of these:
 |||
 |||     def(word, sig, body...)
@@ -1745,13 +1751,12 @@ def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
 |||     def word { body... }
 |||
 ||| Returns the next token after the definition.
-def parse-def [ +Mirth Token -- +Mirth Token
-                head: Token sig: Maybe(Token) body: Token ]
+def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ]
 {
     dup args empty? if(
         next
         dup >head next
-        dup lsquare? if(dup args-1 Some >sig next, None >sig)
+        dup lsquare? if(dup args-1 Some >sig? next, None >sig?)
         dup lcurly? else("expected { ... }" emit-fatal-error!)
         dup args+ >body
         next,
@@ -1763,7 +1768,7 @@ def parse-def [ +Mirth Token -- +Mirth Token
                  emit-fatal-error!)
             nip
         >List+ unwrap uncons dip(>head)
-        >List+ unwrap uncons dip(Some >sig)
+        >List+ unwrap uncons dip(Some >sig?)
         >List+ unwrap >body
 
         @head next arg-end? else(
@@ -1772,17 +1777,19 @@ def parse-def [ +Mirth Token -- +Mirth Token
     )
     body> uncons empty? or(dup run-arrow? >Bool)
         else("expected match case" emit-fatal-error!) >body
+    SyntaxDef
 }
 
 ||| Elaborate a word definition.
 def elab-def! [ +Mirth Token -- +Mirth Token ] {
-    parse-def elab-def-head Word.new! >word
+    parse-def /SyntaxDef
+    elab-def-head Word.new! >word
     @word WordQName >label Prop @word ~qname !
 
     prefer-inline-defs @word ~prefer-inline? !
 
     @word @word WordType prop(
-        dup sig match(
+        dup sig? match(
             Some ->
                 nip
                 +TypeElab.type-sig-start!
@@ -2036,7 +2043,7 @@ def elab-embed-str! [ Token +World +Mirth -- Token +World +Mirth ] {
     sip:next args-2 swap
     >head elab-def-head
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
-    dup >body None >sig
+    dup >body None >sig?
     dup str? unwrap("expected source path" emit-fatal-error!)
     >Path rdip(open-file! unwrap! read-file! close-file! nip >contents)
     Word.new!
@@ -2064,7 +2071,7 @@ def table-qname [ Table Str Int -- QName ] {
 }
 
 def table-word-new! [ +Mirth Table Str Int -- +Mirth Word ] {
-    over2 head dup >head >body None >sig
+    over2 head dup >head >body None >sig?
     dup >arity over >Name >name table-qname >qname Word.new!
     qname> over WordQName prop over ~qname !
 }

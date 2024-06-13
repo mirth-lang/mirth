@@ -136,7 +136,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
     _ -> drop drop UnknownArg Some state error! state!)
 
 def(main, +World -- +World,
-    +Mirth.init!
+    +Mirth.Init!
 
     Arguments.default
     LIST(

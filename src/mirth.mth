@@ -25,7 +25,7 @@ import(mirth.type)
 import(mirth.typedef)
 import(mirth.prim)
 
-data(Builtin, Builtin ->
+struct Builtin {
     std: Package
     prim: Module
     bool: Data  true: Tag   false: Tag
@@ -59,9 +59,9 @@ data(Builtin, Builtin ->
     crestrict:  Data  mk-crestrict:  Tag
     cvolatile:  Data  mk-cvolatile:  Tag
     cvoid:      Data  mk-cvoid:      Tag
-)
+}
 
-def(Builtin.alloc!, -- Builtin,
+def Builtin.Alloc! [ -- Builtin ] {
     Package.alloc! >std
     Module.alloc! >prim
     Data.alloc! >bool Tag.alloc! >true Tag.alloc! >false
@@ -96,32 +96,35 @@ def(Builtin.alloc!, -- Builtin,
     Data.alloc! >cvolatile   Tag.alloc! >mk-cvolatile
     Data.alloc! >cvoid       Tag.alloc! >mk-cvoid
 
-    Builtin)
+    Builtin
+}
 
-data(+Mirth, +Mirth ->
+struct +Mirth {
     num-errors: Nat
     num-warnings: Nat
     prefer-inline-defs: Bool
     builtin: Builtin
     error-token: Maybe(Token)
     +diagnostics: +List(Diagnostic)
-    +propstack: +List(PropLabel))
+    +propstack: +List(PropLabel)
+}
 
-def(+Mirth.init!, -- +Mirth,
+def +Mirth.Init! {
     0 >Nat >num-errors
     0 >Nat >num-warnings
     False >prefer-inline-defs
-    Builtin.alloc! >builtin
-    L0 thaw >+diagnostics
-    L0 thaw >+propstack
+    Builtin.Alloc! >builtin
+    +L0 >+diagnostics
+    +L0 >+propstack
     None >error-token
     +Mirth
     init-packages!
     init-modules!
     init-types!
-    init-prims!)
+    init-prims!
+}
 
-def(+Mirth.rdrop, +Mirth --,
+def +Mirth.rdrop [ +Mirth -- ] {
     /+Mirth
     num-errors> drop
     num-warnings> drop
@@ -129,28 +132,31 @@ def(+Mirth.rdrop, +Mirth --,
     builtin> drop
     error-token> drop
     +diagnostics> freeze drop
-    +propstack> freeze drop)
+    +propstack> freeze drop
+}
 
-data(Diagnostic, Diagnostic ->
+struct Diagnostic {
     severity: Severity
     location: Location
-    message: Str)
+    message: Str
+}
 
-data(Severity, Error, Warning, Info)
-def(Severity.>Str, Severity -- Str,
-    Error -> "error",
-    Warning -> "warning",
-    Info -> "info",
-)
+data Severity { Info, Warning, Error }
+def Severity.>Str {
+    { Info    -> "info"    }
+    { Warning -> "warning" }
+    { Error   -> "error"   }
+}
 
-def(+Mirth.emit-diagnostic-at!, Location Str Severity +Mirth -- +Mirth,
+def +Mirth.emit-diagnostic-at! [ Location Str Severity +Mirth -- +Mirth ] {
     >severity >message >location
-    @severity match(
-        Warning -> num-warnings:1+,
-        Error -> num-errors:1+,
-        _ -> drop
-    )
-    Diagnostic +diagnostics:push!)
+    @severity match {
+        { Info    -> id }
+        { Warning -> num-warnings:1+ }
+        { Error   -> num-errors:1+ }
+    }
+    Diagnostic +diagnostics:push!
+}
 
 def(+Mirth.emit-info-at!, Location Str +Mirth -- +Mirth, Info emit-diagnostic-at!)
 def(+Mirth.emit-warning-at!, Location Str +Mirth -- +Mirth, Warning emit-diagnostic-at!)
