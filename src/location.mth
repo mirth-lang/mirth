@@ -7,22 +7,25 @@ import(std.str)
 import(mirth.module)
 
 # mirth/data/location
-data(Row, Row -> Int)
-def(Int.>Row, Int -- Row, Row)
-def(Row.>Int, Row -- Int, /Row)
-def(Row.show;, Row +Str -- +Str, /Row show;)
+struct Row { Int }
+def Int.>Row [ Int -- Row ] { Row }
+def Row.>Int [ Row -- Int ] { /Row }
+def Row.show; [ +Str Row -- +Str ] { /Row show; }
 
-data(Col, Col -> Int)
-def(Int.>Col, Int -- Col, Col)
-def(Col.>Int, Col -- Int, Col -> id)
-def(Col.show;, Col +Str -- +Str, /Col show;)
+struct Col { Int }
+def Int.>Col [ Int -- Col ] { Col }
+def Col.>Int [ Col -- Int ] { /Col }
+def Col.show; [ +Str Col -- +Str ] { /Col show; }
 
-data(Location, Location ->
+struct Location {
     module: Module
     row: Row
-    col: Col)
-def(Location.emit;, Location +Str -- +Str,
+    col: Col
+}
+
+def Location.emit; [ +Str Location -- +Str ] {
     /Location
     module> source-path >Str ;
     ":" ; row> show;
-    ":" ; col> show;)
+    ":" ; col> show;
+}

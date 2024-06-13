@@ -276,8 +276,13 @@ def(Int.from(f), (*a -- *a Int) *a Int -- *a List(Int),
     |||     4 from: 1 => ( 1 2 3 4 L4 )
     dip(f) range)
 
-data(+List(t), +List -> List(t))
-data(+List+(t), +List+ -> List+(t))
+struct +List(t) { List(t) }
+struct +List+(t) { List+(t) }
+
+def +L0 [       -- +List(t) ] { L0 +List }
+def +L1 [     t -- +List(t) ] { L1 +List }
+def +L2 [   t t -- +List(t) ] { swap L2 +List }
+def +L3 [ t t t -- +List(t) ] { flip3 L3 +List }
 
 def(List.thaw, List(t) -- +List(t), reverse +List)
 def(+List.freeze, +List(t) -- List(t), /+List reverse)

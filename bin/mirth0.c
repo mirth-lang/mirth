@@ -1314,6 +1314,10 @@ static VAL lbl_group = MKNIL_C;
 static VAL lbl_options = MKNIL_C;
 static VAL lbl_parser = MKNIL_C;
 static VAL lbl_argsZ_doc = MKNIL_C;
+static VAL lbl_x1 = MKNIL_C;
+static VAL lbl_x2 = MKNIL_C;
+static VAL lbl_x3 = MKNIL_C;
+static VAL lbl_x4 = MKNIL_C;
 static VAL lbl_escapeZ_hex = MKNIL_C;
 static VAL lbl_sizze = MKNIL_C;
 static VAL lbl_base = MKNIL_C;
@@ -1448,7 +1452,7 @@ static VAL lbl_tagname = MKNIL_C;
 static VAL lbl_dataname = MKNIL_C;
 static VAL lbl_a = MKNIL_C;
 static VAL lbl_body = MKNIL_C;
-static VAL lbl_sig = MKNIL_C;
+static VAL lbl_sigZAsk = MKNIL_C;
 static VAL lbl_pattern = MKNIL_C;
 static VAL lbl_ctx = MKNIL_C;
 static VAL lbl_subst = MKNIL_C;
@@ -1485,7 +1489,6 @@ static VAL lbl_ZPluspat = MKNIL_C;
 static VAL lbl_tok = MKNIL_C;
 static VAL lbl_header = MKNIL_C;
 static VAL lbl_valueZAsk = MKNIL_C;
-static VAL lbl_sigZAsk = MKNIL_C;
 static VAL lbl_syn = MKNIL_C;
 static VAL lbl_dat = MKNIL_C;
 static VAL lbl_f = MKNIL_C;
@@ -1494,6 +1497,7 @@ static VAL lbl_target = MKNIL_C;
 static VAL lbl_alias = MKNIL_C;
 static VAL lbl_code = MKNIL_C;
 static VAL lbl_symbol = MKNIL_C;
+static VAL lbl_sig = MKNIL_C;
 static VAL lbl_extblock = MKNIL_C;
 static VAL lbl_external = MKNIL_C;
 static VAL lbl_contents = MKNIL_C;
@@ -4896,6 +4900,31 @@ static void mtw_mirth_elab_SyntaxDataTag_SyntaxDataTag (void) {
 	tup->cells[1] = lpop(&lbl_valueZAsk);
 	push_value(MKTUP(tup, 4));
 }
+static void mtw_mirth_elab_SyntaxDef_SyntaxDef (void) {
+	TUP* tup = tup_new(4);
+	tup->size = 4;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[3] = lpop(&lbl_body);
+	tup->cells[2] = lpop(&lbl_sigZAsk);
+	tup->cells[1] = lpop(&lbl_head);
+	push_value(MKTUP(tup, 4));
+}
+static void mtp_mirth_elab_SyntaxDef_SyntaxDef (void) {
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_head, tup->cells[1]);
+	lpush(&lbl_sigZAsk, tup->cells[2]);
+	lpush(&lbl_body, tup->cells[3]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		incref(tup->cells[3]);
+		decref(val);
+	} else {
+		free(tup);
+	}
+}
 static void mtw_mirth_elab_ExternalDeclPart_EDPCode (void) {
 	TUP* tup = tup_new(3);
 	tup->size = 3;
@@ -5474,6 +5503,7 @@ static void mw_std_prim_Int_to_1 (void);
 static void mw_std_prim_Int_from_1 (void);
 static void mw_std_list_ZPlusList_1_ZDivZPlusList (void);
 static void mw_std_list_ZPlusListZPlus_1_ZDivZPlusListZPlus (void);
+static void mw_std_list_ZPlusL0 (void);
 static void mw_std_list_List_1_thaw (void);
 static void mw_std_list_ZPlusList_1_freezze (void);
 static void mw_std_list_ZPlusList_1_pushZBang (void);
@@ -5700,7 +5730,7 @@ static void mw_mirth_word_Word_qnameZ_hard (void);
 static void mw_mirth_word_Word_namespaceZ_hard (void);
 static void mw_mirth_word_Word_name (void);
 static void mw_mirth_word_Word_head (void);
-static void mw_mirth_word_Word_sig (void);
+static void mw_mirth_word_Word_sigZAsk (void);
 static void mw_mirth_word_Word_body (void);
 static void mw_mirth_word_Word_arity (void);
 static void mw_mirth_word_Word_params (void);
@@ -6326,7 +6356,7 @@ static void mw_mirth_mirth_Builtin_true (void);
 static void mw_mirth_mirth_Builtin_bool (void);
 static void mw_mirth_mirth_Builtin_prim (void);
 static void mw_mirth_mirth_Builtin_std (void);
-static void mw_mirth_mirth_Builtin_allocZBang (void);
+static void mw_mirth_mirth_Builtin_AllocZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_ZDivZPlusMirth (void);
 static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnostics (void);
 static void mw_mirth_mirth_ZPlusMirth_ZPlusdiagnosticsZBang (void);
@@ -6345,7 +6375,7 @@ static void mw_mirth_mirth_ZPlusMirth_numZ_warnings_1 (void);
 static void mw_mirth_mirth_ZPlusMirth_numZ_errors (void);
 static void mw_mirth_mirth_ZPlusMirth_numZ_errorsZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_numZ_errors_1 (void);
-static void mw_mirth_mirth_ZPlusMirth_initZBang (void);
+static void mw_mirth_mirth_ZPlusMirth_InitZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_rdrop (void);
 static void mw_mirth_mirth_Diagnostic_ZDivDiagnostic (void);
 static void mw_mirth_mirth_Severity_ZToStr (void);
@@ -6735,6 +6765,7 @@ static void mw_mirth_elab_parseZ_alias (void);
 static void mw_mirth_elab_elabZ_aliasZBang (void);
 static void mw_mirth_elab_elabZ_defZ_missingZBang (void);
 static void mw_mirth_elab_elabZ_inlineZBang (void);
+static void mw_mirth_elab_SyntaxDef_ZDivSyntaxDef (void);
 static void mw_mirth_elab_parseZ_def (void);
 static void mw_mirth_elab_elabZ_defZBang (void);
 static void mw_mirth_elab_checkZ_inlineZ_recursionZ_arrowZBang (void);
@@ -7722,7 +7753,7 @@ static void mfld_mirth_word_Word_ZTildename (void);
 static void mfld_mirth_word_Word_ZTildearity (void);
 static void mfld_mirth_word_Word_ZTildeqname (void);
 static void mfld_mirth_word_Word_ZTildehead (void);
-static void mfld_mirth_word_Word_ZTildesig (void);
+static void mfld_mirth_word_Word_ZTildesigZAsk (void);
 static void mfld_mirth_word_Word_ZTildebody (void);
 static void mfld_mirth_word_Word_ZTildectxZ_type (void);
 static void mfld_mirth_word_Word_ZTildeparams (void);
@@ -7935,7 +7966,7 @@ static void mfld_mirth_word_Word_ZTildehead (void) {
 	push_ptr(p+i);
 }
 
-static void mfld_mirth_word_Word_ZTildesig (void) {
+static void mfld_mirth_word_Word_ZTildesigZAsk (void) {
 	size_t i = (size_t)pop_u64();
 	static struct VAL * p = 0;
 	size_t m = 524288;
@@ -8910,7 +8941,7 @@ static void mw_std_either_Either_2_leftZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -8932,7 +8963,7 @@ static void mw_std_either_Either_2_map_2 (void) {
 				mtw_std_either_Either_2_Right();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_g);
@@ -8955,7 +8986,7 @@ static void mw_std_either_Either_2_either_2 (void) {
 				run_value(var_g);
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_g);
@@ -9436,7 +9467,7 @@ static void mw_std_buffer_ZPlusBuffer_ZDivZPlusBuffer (void) {
 			mtp_std_buffer_ZPlusBuffer_ZPlusBuffer();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -9901,7 +9932,7 @@ static void mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_std_str_ZPlusStr_pushZ_strZBang();
@@ -10179,7 +10210,7 @@ static void mw_std_str_ZPlusStr_findZ_lastZ_byte_1 (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -10285,7 +10316,7 @@ static void mw_std_prim_Str_splitZ_lastZ_byte_1 (void) {
 				push_u64(0LL); // None
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_p);
@@ -10436,7 +10467,7 @@ static void mw_std_list_List_1_ZDivL2 (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -10490,7 +10521,7 @@ static void mw_std_list_List_1_len (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -10504,7 +10535,7 @@ static void mw_std_list_List_1_len (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mp_primZ_drop();
@@ -10536,7 +10567,7 @@ static void mw_std_list_List_1_uncons (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -10552,7 +10583,7 @@ static void mw_std_list_ListZPlus_1_uncons (void) {
 			mtp_std_list_List_1_Cons();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -10596,7 +10627,7 @@ static void mw_std_list_ListZPlus_1_unsnoc (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -10625,7 +10656,7 @@ static void mw_std_list_List_1_first (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -10642,7 +10673,7 @@ static void mw_std_list_List_1_last (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -10659,7 +10690,7 @@ static void mw_std_list_ListZPlus_1_first (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -10688,7 +10719,7 @@ static void mw_std_list_ListZPlus_1_last (void) {
 						push_u64(1LL); // True
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				if (! pop_u64()) break;
@@ -10702,7 +10733,7 @@ static void mw_std_list_ListZPlus_1_last (void) {
 						mw_std_prelude_panicZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				{
@@ -10722,7 +10753,7 @@ static void mw_std_list_ListZPlus_1_last (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -10767,7 +10798,7 @@ static void mw_std_list_List_1_map_1 (void) {
 				mtw_std_list_List_1_Cons();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -10803,7 +10834,7 @@ static void mw_std_list_List_1_for_1 (void) {
 				mw_std_list_List_1_for_1();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -10860,7 +10891,7 @@ static void mw_std_list_List_1_for_2 (void) {
 						(void)pop_u64();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				decref(var_f);
@@ -10901,7 +10932,7 @@ static void mw_std_list_List_1_fold_1 (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			decref(var_f);
@@ -10980,7 +11011,7 @@ static void mw_std_list_List_1_findZ_some_1 (void) {
 						push_u64(1LL); // True
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				if (! pop_u64()) break;
@@ -10994,7 +11025,7 @@ static void mw_std_list_List_1_findZ_some_1 (void) {
 						mw_std_prelude_panicZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				incref(var_g);
@@ -11080,7 +11111,7 @@ static void mw_std_list_List_1_has_1 (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -11103,7 +11134,7 @@ static void mw_std_list_ListZPlus_1_has_1 (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -11128,7 +11159,7 @@ static void mw_std_list_List_1_all_1 (void) {
 				push_u64(0LL); // False
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -11205,6 +11236,10 @@ static void mw_std_list_ZPlusList_1_ZDivZPlusList (void) {
 static void mw_std_list_ZPlusListZPlus_1_ZDivZPlusListZPlus (void) {
 	mtp_std_list_ZPlusListZPlus_1_ZPlusListZPlus();
 }
+static void mw_std_list_ZPlusL0 (void) {
+	push_u64(0LL); // Nil
+	mtw_std_list_ZPlusList_1_ZPlusList();
+}
 static void mw_std_list_List_1_thaw (void) {
 	mw_std_list_List_1_reverse();
 	mtw_std_list_ZPlusList_1_ZPlusList();
@@ -11279,7 +11314,7 @@ static void mw_std_list_List_1_ZEqualZEqual_1 (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -11306,7 +11341,7 @@ static void mw_std_list_List_1_ZEqualZEqual_1 (void) {
 								run_value(var_g);
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						decref(var_g);
@@ -11314,7 +11349,7 @@ static void mw_std_list_List_1_ZEqualZEqual_1 (void) {
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			decref(var_eq);
@@ -11409,7 +11444,7 @@ static void mw_std_list_List_1_member_1 (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_p);
@@ -11471,7 +11506,7 @@ static void mw_std_list_List_1_unions_1 (void) {
 				push_u64(0LL); // Nil
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_eq);
@@ -11607,7 +11642,7 @@ static void mw_std_prelude_ZPlusUnsafe_ZDivZPlusUnsafe (void) {
 			(void)pop_resource();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -11647,7 +11682,7 @@ static void mw_std_prim_Int_ZToU8 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -11663,7 +11698,7 @@ static void mw_std_prim_Int_ZToU16 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12035,7 +12070,7 @@ static void mw_std_input_ZPlusInputOpenState_ZDivZPlusInputOpenState (void) {
 			mtp_std_input_ZPlusInputOpenState_ZPlusInputOpenState();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12199,7 +12234,7 @@ static void mw_std_input_ZPlusInput_endZBang (void) {
 			mtp_std_input_ZPlusInput_ZPlusInputDone();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12216,7 +12251,7 @@ static void mw_std_input_ZPlusInput_doneZAsk (void) {
 			mtw_std_input_ZPlusInput_ZPlusInputDone();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12257,7 +12292,7 @@ static void mw_std_input_ZPlusInput_peek (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12275,7 +12310,7 @@ static void mw_std_input_ZPlusInput_moveZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12333,7 +12368,7 @@ static void mw_std_input_ZPlusInput_readZ_chunkZBang (void) {
 			mtw_std_input_ZPlusInput_ZPlusInputDone();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12353,7 +12388,7 @@ static void mw_std_input_ZPlusInput_readZ_fileZBang (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -12367,7 +12402,7 @@ static void mw_std_input_ZPlusInput_readZ_fileZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mp_primZ_strZ_cat();
@@ -12385,7 +12420,7 @@ static void mw_std_output_ZPlusOutput_ZDivZPlusOutput (void) {
 			mtp_std_output_ZPlusOutput_ZPlusOutput();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12680,7 +12715,7 @@ static void mw_std_file_ZPlusFile_ZDivZPlusFile (void) {
 			mtp_std_file_ZPlusFile_ZPlusFile();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12704,7 +12739,7 @@ static void mw_std_file_ZPlusFileZAsk_unwrapZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12791,7 +12826,7 @@ static void mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -12996,7 +13031,7 @@ static void mw_std_terminal_SGRColor_showZThen (void) {
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -13385,7 +13420,7 @@ static void mw_argZ_parser_types_ZPlusArgumentParser_1_ZDivZPlusArgumentParser (
 			mtp_argZ_parser_types_ZPlusArgumentParser_1_ZPlusArgumentParser();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -13528,7 +13563,7 @@ static void mw_argZ_parser_types_ArgumentParsingError_emitZThen (void) {
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -13582,7 +13617,7 @@ static void mw_argZ_parser_types_ArgpOption_usageZThen (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	} else {
@@ -13636,7 +13671,7 @@ static void mw_argZ_parser_types_ArgpOption_usageZThen (void) {
 					(void)pop_u64();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -13644,7 +13679,7 @@ static void mw_argZ_parser_types_ArgpOption_usageZThen (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_dup();
@@ -13693,7 +13728,7 @@ static void mw_argZ_parser_types_ArgpOption_usageZThen (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_colZ_offset);
@@ -13784,12 +13819,12 @@ static void mw_argZ_parser_parse_parseZ_flagsZ_where_1 (void) {
 								mp_primZ_drop();
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				push_u64(0LL); // None
@@ -13800,7 +13835,7 @@ static void mw_argZ_parser_parse_parseZ_flagsZ_where_1 (void) {
 				mtw_std_maybe_Maybe_1_Some();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -13858,7 +13893,7 @@ static void mw_argZ_parser_parse_checkZ_longZ_flag (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -13868,7 +13903,7 @@ static void mw_argZ_parser_parse_checkZ_longZ_flag (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -13957,7 +13992,7 @@ static void mw_argZ_parser_parse_doZ_positionalZ_option (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_run();
@@ -14011,7 +14046,7 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_run();
@@ -14038,7 +14073,7 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 			mtw_std_either_Either_2_Right();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_argZ_parser_types_ZPlusArgumentParser_1_rdrop();
@@ -14127,7 +14162,7 @@ static void mw_std_lazzy_Lazzy_1_forceZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -14253,7 +14288,7 @@ static void mw_mirth_var_Var_isZ_stackZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -14377,7 +14412,7 @@ static void mw_mirth_var_Ctx_freshZ_nameZBang (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -14391,7 +14426,7 @@ static void mw_mirth_var_Ctx_freshZ_nameZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mp_primZ_drop();
@@ -14672,7 +14707,7 @@ static void mw_mirth_word_Word_qnameZ_soft (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -14692,8 +14727,8 @@ static void mw_mirth_word_Word_head (void) {
 	mfld_mirth_word_Word_ZTildehead();
 	mp_primZ_mutZ_get();
 }
-static void mw_mirth_word_Word_sig (void) {
-	mfld_mirth_word_Word_ZTildesig();
+static void mw_mirth_word_Word_sigZAsk (void) {
+	mfld_mirth_word_Word_ZTildesigZAsk();
 	mp_primZ_mutZ_get();
 }
 static void mw_mirth_word_Word_body (void) {
@@ -14724,7 +14759,7 @@ static void mw_mirth_word_Word_inferringZ_typeZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -14764,7 +14799,7 @@ static void mw_mirth_word_Word_preferZ_inlineZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -14806,14 +14841,14 @@ static void mw_mirth_word_Word_newZBang (void) {
 	mp_primZ_swap();
 	mfld_mirth_word_Word_ZTildearity();
 	mp_primZ_mutZ_set();
-	LPOP(lbl_sig);
+	LPOP(lbl_sigZAsk);
 	{
 		VAL d2 = pop_value();
 		mp_primZ_dup();
 		push_value(d2);
 	}
 	mp_primZ_swap();
-	mfld_mirth_word_Word_ZTildesig();
+	mfld_mirth_word_Word_ZTildesigZAsk();
 	mp_primZ_mutZ_set();
 	mp_primZ_dup();
 	mtw_mirth_def_Def_DefWord();
@@ -14856,7 +14891,7 @@ static void mw_mirth_word_Word_incZ_numZ_blocksZBang (void) {
 			push_i64(0LL);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -14888,7 +14923,7 @@ static void mw_mirth_table_Table_qnameZ_soft (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -14967,7 +15002,7 @@ static void mw_mirth_table_Field_qnameZ_soft (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -15026,7 +15061,7 @@ static void mw_mirth_tycon_Tycon_qnameZ_hard (void) {
 			mw_mirth_type_PrimType_tyconZ_qname();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -15078,7 +15113,7 @@ static void mw_mirth_tycon_Tycon_ZEqualZEqual (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -15119,7 +15154,7 @@ static void mw_mirth_tycon_Tycon_fullZ_typeZ_fresh (void) {
 			mtw_std_either_Either_2_Left();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -15155,7 +15190,7 @@ static void mw_mirth_data_Data_qnameZ_soft (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -15821,12 +15856,12 @@ static void mw_mirth_data_Data_addZ_tagZBang (void) {
 							mw_std_prelude_panicZBang();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mp_primZ_swap();
@@ -15836,7 +15871,7 @@ static void mw_mirth_data_Data_addZ_tagZBang (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -16048,7 +16083,7 @@ static void mw_mirth_data_Tag_labelZ_inputsZ_fromZ_sig (void) {
 			push_u64(0LL); // Nil
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16089,7 +16124,7 @@ static void mw_mirth_data_Tag_numZ_typeZ_inputsZ_fromZ_sig (void) {
 			mw_std_prim_Int_ZToNat();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16113,7 +16148,7 @@ static void mw_mirth_data_Tag_numZ_resourceZ_inputsZ_fromZ_sig (void) {
 			mw_std_prim_Int_ZToNat();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16196,7 +16231,7 @@ static void mw_mirth_data_DataPartial_ZDivDataPartial (void) {
 			mtp_mirth_data_DataPartial_DataPartial();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16413,7 +16448,7 @@ static void mw_mirth_match_Match_thaw (void) {
 			mtw_mirth_match_ZPlusMatch_ZPlusMatch();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16424,7 +16459,7 @@ static void mw_mirth_match_ZPlusMatch_freezze (void) {
 			mtw_mirth_match_Match_Match();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16518,7 +16553,7 @@ static void mw_mirth_match_Match_isZ_exhaustiveZAsk (void) {
 				mp_primZ_intZ_lt();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -16550,7 +16585,7 @@ static void mw_mirth_match_Match_scrutineeZ_dataZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -16564,7 +16599,7 @@ static void mw_mirth_match_Match_scrutineeZ_dataZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -16586,7 +16621,7 @@ static void mw_mirth_match_Match_scrutineeZ_dataZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16605,7 +16640,7 @@ static void mw_mirth_match_Match_isZ_transparentZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -16623,7 +16658,7 @@ static void mw_mirth_match_Match_isZ_transparentZAsk (void) {
 					push_u64(1LL); // True
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -16632,7 +16667,7 @@ static void mw_mirth_match_Match_isZ_transparentZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16651,7 +16686,7 @@ static void mw_mirth_match_Match_semiZ_transparentZ_tagZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -16674,7 +16709,7 @@ static void mw_mirth_match_Match_semiZ_transparentZ_tagZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -16700,7 +16735,7 @@ static void mw_mirth_match_Match_semiZ_transparentZ_tagZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -16952,7 +16987,7 @@ static void mw_mirth_match_Pattern_singleZ_tagZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -17013,7 +17048,7 @@ static void mw_mirth_match_ZPlusPattern_opZBang (void) {
 			mw_mirth_match_ZPlusPattern_tagZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -17053,7 +17088,7 @@ static void mw_mirth_match_ZPlusPattern_underscoreZBang (void) {
 			mw_std_prelude_unpack2();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_dup();
@@ -17153,12 +17188,12 @@ static void mw_mirth_match_Pattern_coversZAsk (void) {
 					mtw_std_maybe_Maybe_1_Some();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -17191,17 +17226,17 @@ static void mw_mirth_match_Pattern_coversZAsk (void) {
 							mw_mirth_data_Tag_ZEqualZEqual();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -17279,7 +17314,7 @@ static void mw_mirth_external_External_qnameZ_soft (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -17721,7 +17756,7 @@ static void mw_mirth_arrow_Atom_ZDivAtom (void) {
 			mtp_mirth_arrow_Atom_Atom();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18007,7 +18042,7 @@ static void mw_mirth_arrow_Block_registerZ_homeZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18231,7 +18266,7 @@ static void mw_mirth_arrow_Arrow_toZ_runZ_var (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18417,7 +18452,7 @@ static void mw_mirth_arrow_Op_freeZ_vars (void) {
 			push_u64(0LL); // Nil
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18468,7 +18503,7 @@ static void mw_mirth_typedef_TypeDef_qnameZ_soft (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18638,7 +18673,7 @@ static void mw_mirth_type_Type_tyconZAsk (void) {
 			mw_mirth_type_Value_tyconZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18687,7 +18722,7 @@ static void mw_mirth_type_PrimType_tyconZ_qname (void) {
 			mw_mirth_name_QName_prim();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18713,7 +18748,7 @@ static void mw_mirth_type_Value_tyconZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -18785,7 +18820,7 @@ static void mw_mirth_type_TZMulZPlus (void) {
 			mw_mirth_type_TZPlus();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -19350,7 +19385,7 @@ static void mw_mirth_type_Type_unifyZ_errorZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -19422,7 +19457,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					push_u64(0LL); // TYPE_ERROR
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -19485,7 +19520,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					if (pop_u64()) {
@@ -19525,7 +19560,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					push_u64(0LL); // TYPE_ERROR
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -19590,12 +19625,12 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					push_u64(0LL); // TYPE_ERROR
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -19619,7 +19654,7 @@ static void mw_mirth_type_Value_unifyZ_typeZBang (void) {
 			mw_mirth_type_Type_unifyZ_blockZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -19641,7 +19676,7 @@ static void mw_mirth_type_Value_unifyZ_errorZBang (void) {
 			mw_mirth_type_Type_unifyZ_blockZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -19899,7 +19934,7 @@ static void mw_mirth_type_Type_hasZ_metaZAsk (void) {
 			mw_mirth_type_Type_hasZ_metaZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20016,7 +20051,7 @@ static void mw_mirth_type_Type_typeZThen (void) {
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20040,7 +20075,7 @@ static void mw_mirth_type_Value_type (void) {
 			mw_mirth_type_ArrowType_ZToType();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20075,7 +20110,7 @@ static void mw_mirth_type_PrimType_typeZThen (void) {
 			STRLIT("+World", 6);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_std_str_ZPlusStr_pushZ_strZBang();
@@ -20143,7 +20178,7 @@ static void mw_mirth_type_Type_freshen (void) {
 			mtw_mirth_type_Type_TMut();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20237,7 +20272,7 @@ static void mw_mirth_type_Type_rigidifyZBang (void) {
 			mtw_mirth_type_Type_TMut();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20261,7 +20296,7 @@ static void mw_mirth_type_Value_rigidifyZBang (void) {
 			mw_mirth_type_ArrowType_ZToType();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20329,7 +20364,7 @@ static void mw_mirth_type_MetaVar_hasZ_metaZAsk (void) {
 			mw_mirth_type_Type_hasZ_metaZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20355,7 +20390,7 @@ static void mw_mirth_type_MetaVar_typeZThen (void) {
 			mw_mirth_type_Type_typeZThen();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20400,7 +20435,7 @@ static void mw_mirth_type_MetaVar_expandZ_if_2 (void) {
 				run_value(var_f);
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_g);
@@ -20477,7 +20512,7 @@ static void mw_mirth_type_MetaVar_unifyZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20507,7 +20542,7 @@ static void mw_mirth_type_MetaVar_unifyZ_errorZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20539,7 +20574,7 @@ static void mw_mirth_type_MetaVar_expandZ_orZ_updateZBang_1 (void) {
 				}
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -20929,7 +20964,7 @@ static void mw_mirth_type_StackType_topZ_tyconZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -20981,7 +21016,7 @@ static void mw_mirth_type_StackType_topZ_resourceZ_tyconZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -21061,7 +21096,7 @@ static void mw_mirth_type_StackType_topZ_valueZ_isZ_fineZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -21123,7 +21158,7 @@ static void mw_mirth_type_StackType_topZ_resourceZ_isZ_fineZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -21242,7 +21277,7 @@ static void mw_mirth_type_StackType_hasZ_metaZAsk (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -21440,7 +21475,7 @@ static void mw_mirth_type_StackType_unifyZBang (void) {
 							mw_mirth_type_StackType_unifyZ_failedZBang();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -21515,7 +21550,7 @@ static void mw_mirth_type_StackType_unifyZBang (void) {
 							mw_mirth_type_StackType_unifyZ_failedZBang();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -21611,7 +21646,7 @@ static void mw_mirth_type_StackType_unifyZBang (void) {
 							mw_mirth_type_StackType_unifyZ_failedZBang();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -21707,14 +21742,14 @@ static void mw_mirth_type_StackType_unifyZBang (void) {
 							mw_mirth_type_StackType_unifyZ_failedZBang();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -21794,7 +21829,7 @@ static void mw_mirth_type_StackType_unifyZ_errorZBang (void) {
 			push_u64(0LL); // STACK_TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -21859,7 +21894,7 @@ static void mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -21899,7 +21934,7 @@ static void mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -21985,7 +22020,7 @@ static void mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (void) {
 						push_u64(0LL); // None
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			}
@@ -22062,7 +22097,7 @@ static void mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (void) {
 						push_u64(0LL); // None
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			}
@@ -22102,7 +22137,7 @@ static void mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -22167,7 +22202,7 @@ static void mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -22207,7 +22242,7 @@ static void mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -22288,7 +22323,7 @@ static void mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (void) {
 						push_u64(0LL); // None
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			}
@@ -22370,7 +22405,7 @@ static void mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (void) {
 						push_u64(0LL); // None
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			}
@@ -22410,7 +22445,7 @@ static void mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -22472,7 +22507,7 @@ static void mw_mirth_type_StackType_forceZ_consZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -22515,7 +22550,7 @@ static void mw_mirth_type_StackType_forceZ_consZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -22553,7 +22588,7 @@ static void mw_mirth_type_StackType_forceZ_consZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -22588,7 +22623,7 @@ static void mw_mirth_type_StackType_forceZ_consZAskZBang (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -22650,7 +22685,7 @@ static void mw_mirth_type_StackType_forceZ_withZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -22693,7 +22728,7 @@ static void mw_mirth_type_StackType_forceZ_withZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -22731,7 +22766,7 @@ static void mw_mirth_type_StackType_forceZ_withZAskZBang (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -22766,7 +22801,7 @@ static void mw_mirth_type_StackType_forceZ_withZAskZBang (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23195,7 +23230,7 @@ static void mw_mirth_type_StackType_rigidifyZBang (void) {
 			mtw_mirth_type_StackType_STWithLabel();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23208,7 +23243,7 @@ static void mw_mirth_type_ArrowType_unpack (void) {
 			mtp_mirth_type_ArrowType_ARROWz_TYPE();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23468,7 +23503,7 @@ static void mw_mirth_type_Subst_hasZ_varZAsk (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23511,7 +23546,7 @@ static void mw_mirth_type_Subst_getZ_var (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23534,7 +23569,7 @@ static void mw_mirth_type_StackTypePart_cons (void) {
 			mtw_mirth_type_StackType_STWithLabel();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23579,7 +23614,7 @@ static void mw_mirth_type_StackType_splitZ_parts (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -23593,7 +23628,7 @@ static void mw_mirth_type_StackType_splitZ_parts (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		LPOP(lbl_parts);
@@ -23644,7 +23679,7 @@ static void mw_mirth_type_CType_cname (void) {
 			STRLIT("void", 4);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23684,7 +23719,7 @@ static void mw_mirth_type_Type_ctype (void) {
 			push_u64(3LL); // Phantom
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23729,7 +23764,7 @@ static void mw_mirth_type_Type_ctypeZAsk (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -23826,7 +23861,7 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 					mtw_std_maybe_Maybe_1_Some();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 		} else {
@@ -23866,7 +23901,7 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			} else {
@@ -23906,7 +23941,7 @@ static void mw_mirth_data_Data_ctype1ZAsk (void) {
 							mtw_std_maybe_Maybe_1_Some();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 				} else {
@@ -23935,7 +23970,7 @@ static void mw_mirth_type_CTypeStackPart_ctype (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -23970,7 +24005,7 @@ static void mw_mirth_type_CTypeStackPart_labelZAsk (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -24015,7 +24050,7 @@ static void mw_mirth_type_StackTypePart_ctype (void) {
 			mtw_mirth_type_CTypeStackPart_CTSPWithLabel();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25813,7 +25848,7 @@ static void mw_mirth_token_TokenValue_sigZ_typeZ_conZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25829,7 +25864,7 @@ static void mw_mirth_token_TokenValue_sigZ_typeZ_holeZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25845,7 +25880,7 @@ static void mw_mirth_token_TokenValue_sigZ_typeZ_varZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25864,7 +25899,7 @@ static void mw_mirth_token_TokenValue_sigZ_stackZ_varZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25880,7 +25915,7 @@ static void mw_mirth_token_TokenValue_sigZ_resourceZ_varZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25896,7 +25931,7 @@ static void mw_mirth_token_TokenValue_sigZ_resourceZ_conZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25914,7 +25949,7 @@ static void mw_mirth_token_TokenValue_sigZ_dashesZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25932,7 +25967,7 @@ static void mw_mirth_token_TokenValue_arrowZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -25948,7 +25983,7 @@ static void mw_mirth_token_TokenValue_patZ_underscoreZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -26000,7 +26035,7 @@ static void mw_mirth_token_TokenValue_moduleZ_headerZAsk (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -26009,7 +26044,7 @@ static void mw_mirth_token_TokenValue_moduleZ_headerZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -26295,7 +26330,7 @@ static void mw_mirth_token_Token_next (void) {
 						(void)pop_u64();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			} else {
@@ -26392,7 +26427,7 @@ static void mw_mirth_token_Token_hasZ_argsZAsk (void) {
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -26414,7 +26449,7 @@ static void mw_mirth_token_Token_argsZ_start (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	} else {
@@ -26438,7 +26473,7 @@ static void mw_mirth_token_Token_couldZ_beZ_sigZ_labelZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -26456,7 +26491,7 @@ static void mw_mirth_token_Token_couldZ_beZ_sigZ_labelZAsk (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	} else {
@@ -26480,7 +26515,7 @@ static void mw_mirth_token_Token_patternZ_varZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -26646,7 +26681,7 @@ static void mw_mirth_token_Token_argsZPlus (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -26942,6 +26977,7 @@ static void mw_mirth_location_Col_ZDivCol (void) {
 static void mw_std_prim_Int_ZToCol (void) {
 }
 static void mw_mirth_location_Col_ZToInt (void) {
+	mw_mirth_location_Col_ZDivCol();
 }
 static void mw_mirth_location_Col_showZThen (void) {
 	mw_mirth_location_Col_ZDivCol();
@@ -26954,7 +26990,7 @@ static void mw_mirth_location_Location_ZDivLocation (void) {
 			mtp_mirth_location_Location_Location();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -26996,7 +27032,7 @@ static void mw_mirth_alias_Alias_qnameZ_soft (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -27672,7 +27708,7 @@ static void mw_mirth_mirth_Builtin_std (void) {
 	decref(v);
 	push_value(u);
 }
-static void mw_mirth_mirth_Builtin_allocZBang (void) {
+static void mw_mirth_mirth_Builtin_AllocZBang (void) {
 	mw_mirth_package_Package_allocZBang();
 	LPUSH(lbl_std);
 	mw_mirth_module_Module_allocZBang();
@@ -27803,7 +27839,7 @@ static void mw_mirth_mirth_ZPlusMirth_ZDivZPlusMirth (void) {
 			mtp_mirth_mirth_ZPlusMirth_ZPlusMirth();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -27985,7 +28021,7 @@ static void mw_mirth_mirth_ZPlusMirth_numZ_errors_1 (void) {
 		decref(var_f);
 	}
 }
-static void mw_mirth_mirth_ZPlusMirth_initZBang (void) {
+static void mw_mirth_mirth_ZPlusMirth_InitZBang (void) {
 	push_i64(0LL);
 	mw_std_prim_Int_ZToNat();
 	LPUSH(lbl_numZ_errors);
@@ -27994,15 +28030,13 @@ static void mw_mirth_mirth_ZPlusMirth_initZBang (void) {
 	LPUSH(lbl_numZ_warnings);
 	push_u64(0LL); // False
 	LPUSH(lbl_preferZ_inlineZ_defs);
-	mw_mirth_mirth_Builtin_allocZBang();
+	mw_mirth_mirth_Builtin_AllocZBang();
 	LPUSH(lbl_builtin);
 	push_u64(0LL); // Nil
 	LPUSH(lbl_packageZ_searchZ_paths);
-	push_u64(0LL); // Nil
-	mw_std_list_List_1_thaw();
+	mw_std_list_ZPlusL0();
 	LPUSHR(lbl_ZPlusdiagnostics);
-	push_u64(0LL); // Nil
-	mw_std_list_List_1_thaw();
+	mw_std_list_ZPlusL0();
 	LPUSHR(lbl_ZPluspropstack);
 	push_u64(0LL); // None
 	LPUSH(lbl_errorZ_token);
@@ -28039,26 +28073,26 @@ static void mw_mirth_mirth_Diagnostic_ZDivDiagnostic (void) {
 			mtp_mirth_mirth_Diagnostic_Diagnostic();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
 static void mw_mirth_mirth_Severity_ZToStr (void) {
 	switch (get_top_data_tag()) {
-		case 0LL: // Error
+		case 0LL: // Info
 			(void)pop_u64();
-			STRLIT("error", 5);
+			STRLIT("info", 4);
 			break;
 		case 1LL: // Warning
 			(void)pop_u64();
 			STRLIT("warning", 7);
 			break;
-		case 2LL: // Info
+		case 2LL: // Error
 			(void)pop_u64();
-			STRLIT("info", 4);
+			STRLIT("error", 5);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -28070,26 +28104,29 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang (void) {
 	mp_primZ_dup();
 	LPUSH(lbl_severity);
 	switch (get_top_data_tag()) {
+		case 0LL: // Info
+			(void)pop_u64();
+			break;
 		case 1LL: // Warning
 			(void)pop_u64();
 			push_fnptr(&mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_0);
 			mw_mirth_mirth_ZPlusMirth_numZ_warnings_1();
 			break;
-		case 0LL: // Error
+		case 2LL: // Error
 			(void)pop_u64();
 			push_fnptr(&mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_1);
 			mw_mirth_mirth_ZPlusMirth_numZ_errors_1();
 			break;
 		default:
-			mp_primZ_drop();
-			break;
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			mp_primZ_panic();
 	}
 	mtw_mirth_mirth_Diagnostic_Diagnostic();
 	push_fnptr(&mb_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang_2);
 	mw_mirth_mirth_ZPlusMirth_ZPlusdiagnostics_1();
 }
 static void mw_mirth_mirth_ZPlusMirth_emitZ_infoZ_atZBang (void) {
-	push_u64(2LL); // Info
+	push_u64(0LL); // Info
 	mw_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang();
 }
 static void mw_mirth_mirth_ZPlusMirth_emitZ_warningZ_atZBang (void) {
@@ -28097,7 +28134,7 @@ static void mw_mirth_mirth_ZPlusMirth_emitZ_warningZ_atZBang (void) {
 	mw_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang();
 }
 static void mw_mirth_mirth_ZPlusMirth_emitZ_errorZ_atZBang (void) {
-	push_u64(0LL); // Error
+	push_u64(2LL); // Error
 	mw_mirth_mirth_ZPlusMirth_emitZ_diagnosticZ_atZBang();
 }
 static void mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang (void) {
@@ -28169,7 +28206,7 @@ static void mw_mirth_mirth_ZPlusMirth_errorZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_swap();
@@ -28187,7 +28224,7 @@ static void mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_swap();
@@ -28386,7 +28423,7 @@ static void mw_mirth_mirth_Prop_1_tryZ_forceZBang (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -28402,7 +28439,7 @@ static void mw_mirth_mirth_Prop_1_forceZBang (void) {
 			mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -28424,7 +28461,7 @@ static void mw_mirth_mirth_Prop_1_forceZ_orZBang_1 (void) {
 					run_value(var_f);
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			decref(var_f);
@@ -28609,7 +28646,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28628,12 +28665,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28656,7 +28693,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28675,12 +28712,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28703,7 +28740,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28722,12 +28759,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28750,7 +28787,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28769,12 +28806,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28797,7 +28834,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28816,12 +28853,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28844,7 +28881,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28863,12 +28900,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28891,7 +28928,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28910,12 +28947,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28938,7 +28975,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -28957,12 +28994,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -28985,7 +29022,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -29004,12 +29041,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29032,7 +29069,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -29051,12 +29088,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29079,7 +29116,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -29098,12 +29135,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29126,7 +29163,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -29145,12 +29182,12 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29173,7 +29210,7 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -29192,17 +29229,17 @@ static void mw_mirth_def_Def_ZEqualZEqual (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29271,7 +29308,7 @@ static void mw_mirth_def_Def_typecheckZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29291,7 +29328,7 @@ static void mw_mirth_def_Def_callableZAsk (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29356,7 +29393,7 @@ static void mw_mirth_def_Def_callableZAsk (void) {
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29376,7 +29413,7 @@ static void mw_mirth_def_Def_definesZ_aZ_typeZAsk (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29441,7 +29478,7 @@ static void mw_mirth_def_Def_definesZ_aZ_typeZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29461,7 +29498,7 @@ static void mw_mirth_def_Def_exposedZ_tyconZAsk (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29526,7 +29563,7 @@ static void mw_mirth_def_Def_exposedZ_tyconZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29561,7 +29598,7 @@ static void mw_mirth_def_Def_resolve (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -29575,7 +29612,7 @@ static void mw_mirth_def_Def_resolve (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		{
@@ -29644,7 +29681,7 @@ static void mw_mirth_def_Def_name (void) {
 			mw_mirth_variable_Variable_name();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29711,7 +29748,7 @@ static void mw_mirth_def_Def_arity (void) {
 			push_i64(0LL);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29776,7 +29813,7 @@ static void mw_mirth_def_Def_qnameZ_soft (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29835,7 +29872,7 @@ static void mw_mirth_def_Def_qnameZ_hard (void) {
 			mw_mirth_variable_Variable_qname();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -29855,7 +29892,7 @@ static void mw_mirth_def_Def_asZ_namespaceZAsk (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29896,7 +29933,7 @@ static void mw_mirth_def_Def_asZ_namespaceZAsk (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -29933,7 +29970,7 @@ static void mw_mirth_def_Def_register (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_dup();
@@ -30133,12 +30170,12 @@ static void mw_mirth_name_Hash_keepZ_goingZAsk (void) {
 					push_u64(1LL); // True
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30203,7 +30240,7 @@ static void mw_std_prim_Str_ZToName (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30454,7 +30491,7 @@ static void mw_mirth_name_Namespace_ZEqualZEqual (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30485,7 +30522,7 @@ static void mw_mirth_name_Namespace_qname (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30516,7 +30553,7 @@ static void mw_mirth_name_Namespace_moduleZAsk (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30551,7 +30588,7 @@ static void mw_mirth_name_Namespace_ZToStr (void) {
 			mw_mirth_name_QName_ZToStr();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30582,7 +30619,7 @@ static void mw_mirth_name_Namespace_mangled (void) {
 			mw_mirth_name_QName_mangled();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30592,7 +30629,7 @@ static void mw_mirth_name_QName_ZDivMKQNAME (void) {
 			mtp_mirth_name_QName_MKQNAME();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30676,7 +30713,7 @@ static void mw_mirth_name_QName_definedZ_hardZAsk (void) {
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30705,7 +30742,7 @@ static void mw_mirth_name_QName_definedZ_softZAsk (void) {
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30722,7 +30759,7 @@ static void mw_mirth_name_QName_undefinedZ_softZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30763,7 +30800,7 @@ static void mw_mirth_name_QName_ZToStr (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30784,7 +30821,7 @@ static void mw_mirth_name_QName_toZ_moduleZ_path (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mp_primZ_swap();
@@ -30831,7 +30868,7 @@ static void mw_mirth_name_QName_mangled (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30842,7 +30879,7 @@ static void mw_mirth_name_DName_rootZAsk (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30857,7 +30894,7 @@ static void mw_mirth_name_DName_parts (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30886,12 +30923,12 @@ static void mw_mirth_name_DName_penultimateZ_nameZAsk (void) {
 					(void)pop_u64();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30908,7 +30945,7 @@ static void mw_mirth_name_DName_isZ_relativeZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -30990,7 +31027,7 @@ static void mw_mirth_package_Package_pathZ_orZ_search (void) {
 			mp_primZ_mutZ_set();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31062,7 +31099,7 @@ static void mw_mirth_package_Package_pathZBang (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -31083,7 +31120,7 @@ static void mw_mirth_package_Package_pathZBang (void) {
 			mp_primZ_mutZ_set();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31138,7 +31175,7 @@ static void mw_mirth_package_Package_newZ_orZ_pathZBang (void) {
 			mw_mirth_package_Package_newZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31157,7 +31194,7 @@ static void mw_mirth_package_Package_find (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31176,7 +31213,7 @@ static void mw_mirth_package_Package_findZ_orZ_newZBang (void) {
 			mw_mirth_package_Package_newZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -31200,7 +31237,7 @@ static void mw_mirth_lexer_ZPlusLexer_ZDivZPlusLexer (void) {
 			mtp_mirth_lexer_ZPlusLexer_ZPlusLexer();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31398,7 +31435,7 @@ static void mw_mirth_lexer_runZ_lexerZBang (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_lexerZ_row);
@@ -31612,7 +31649,7 @@ static void mw_mirth_lexer_lexerZ_closeZ_colonsZBang (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	while(1) {
@@ -31628,7 +31665,7 @@ static void mw_mirth_lexer_lexerZ_closeZ_colonsZBang (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -31642,7 +31679,7 @@ static void mw_mirth_lexer_lexerZ_closeZ_colonsZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_lexer_lexerZ_stackZ_drop();
@@ -31676,7 +31713,7 @@ static void mw_mirth_lexer_lexerZ_closeZ_colonsZBang (void) {
 				push_u64(0LL); // None
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -31703,7 +31740,7 @@ static void mw_mirth_lexer_lexerZ_prepareZ_forZ_argsZBang (void) {
 			mw_mirth_lexer_lexerZ_closeZ_colonsZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31738,7 +31775,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rparenZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31773,7 +31810,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rsquareZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31808,7 +31845,7 @@ static void mw_mirth_lexer_lexerZ_emitZ_rcurlyZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -31873,12 +31910,12 @@ static void mw_mirth_lexer_lexerZ_emitZ_nameZBang (void) {
 								mtw_mirth_token_TokenValue_TokenName();
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			}
@@ -31988,7 +32025,7 @@ static void mw_std_str_ZPlusStr_labelZ_tokenZAsk (void) {
 			mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -32001,7 +32038,7 @@ static void mw_std_str_ZPlusStr_labelZ_tokenZAsk (void) {
 			mw_std_str_ZPlusStr_labelZ_popZ_tokenZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -32014,7 +32051,7 @@ static void mw_std_str_ZPlusStr_labelZ_tokenZAsk (void) {
 			mw_std_str_ZPlusStr_labelZ_popZ_rZ_tokenZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -32027,7 +32064,7 @@ static void mw_std_str_ZPlusStr_labelZ_tokenZAsk (void) {
 			mw_std_str_ZPlusStr_labelZ_getZ_tokenZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -32040,7 +32077,7 @@ static void mw_std_str_ZPlusStr_labelZ_tokenZAsk (void) {
 			mw_std_str_ZPlusStr_labelZ_setZ_tokenZAsk();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -32163,7 +32200,7 @@ static void mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -32277,7 +32314,7 @@ static void mw_std_str_ZPlusStr_dnameZAsk (void) {
 			mtw_std_maybe_Maybe_1_Some();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -32325,7 +32362,7 @@ static void mw_std_str_ZPlusStr_isZ_docZ_startZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -32946,7 +32983,7 @@ static void mw_mirth_elab_ZPlusTypeElab_ZDivZPlusTypeElab (void) {
 			mtp_mirth_elab_ZPlusTypeElab_ZPlusTypeElab();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -33128,7 +33165,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZ_paramsZBang (void) {
 			push_u64(0LL); // Nil
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -33204,7 +33241,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_argZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_elab_ZPlusTypeElab_token();
@@ -33268,7 +33305,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_argZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_elab_ZPlusTypeElab_token();
@@ -33350,7 +33387,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_stackZ_typeZ_partZBang (void) {
 										mtw_mirth_type_StackTypePart_STPCons();
 										break;
 									default:
-										push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+										push_value(mkstr("unexpected fallthrough in match\n", 32));
 										mp_primZ_panic();
 								}
 							}
@@ -33378,7 +33415,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_stackZ_labelZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_label_Label_newZBang();
@@ -33412,7 +33449,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_stackZ_typeZ_varZBang (void) {
 			push_u64(0LL); // STACK_TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -33429,7 +33466,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_varZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -33446,7 +33483,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_varZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -33479,7 +33516,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_dup();
@@ -33526,7 +33563,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_elab_ZPlusTypeElab_token();
@@ -33544,7 +33581,7 @@ static void mw_mirth_elab_ZPlusResolveDef_ZDivZPlusResolveDef (void) {
 			mtp_mirth_elab_ZPlusResolveDef_ZPlusResolveDef();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -33665,7 +33702,7 @@ static void mw_mirth_elab_resolveZ_def_1 (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_name_Name_defs();
@@ -33710,7 +33747,7 @@ static void mw_mirth_elab_resolveZ_def_1 (void) {
 				}
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -33839,7 +33876,7 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_qualifiers (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -33865,7 +33902,7 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_roots (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_elab_ZPlusResolveDef_token();
@@ -33914,7 +33951,7 @@ static void mw_mirth_elab_ZPlusResolveDef_filterZ_roots (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_drop();
@@ -33967,7 +34004,7 @@ static void mw_mirth_elab_defZ_isZ_importedZ_atZ_tokenZAsk (void) {
 						push_u64(1LL); // True
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			} else {
@@ -33983,7 +34020,7 @@ static void mw_mirth_elab_defZ_isZ_importedZ_atZ_tokenZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -34004,7 +34041,7 @@ static void mw_mirth_elab_tyconZ_isZ_visibleZ_atZ_tokenZAsk (void) {
 					push_u64(1LL); // True
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -34021,7 +34058,7 @@ static void mw_mirth_elab_tyconZ_isZ_visibleZ_atZ_tokenZAsk (void) {
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -34055,7 +34092,7 @@ static void mw_mirth_elab_namespaceZ_isZ_importedZ_atZ_tokenZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -34107,7 +34144,7 @@ static void mw_mirth_name_QName_climbZ_upZ_dnameZAsk (void) {
 					mtw_std_list_List_1_Cons();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			push_value(d3);
@@ -34133,7 +34170,7 @@ static void mw_mirth_name_QName_climbZ_upZ_dnameZAsk (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 		} else {
@@ -34203,7 +34240,7 @@ static void mw_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -34215,7 +34252,7 @@ static void mw_mirth_elab_ZPlusTypeElab_resolveZ_typeZ_conZ_nameZBang (void) {
 			push_u64(0LL); // TYPE_ERROR
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -34268,7 +34305,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_conZBang (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -34277,7 +34314,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_conZBang (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -34340,7 +34377,7 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_holeZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mtw_mirth_type_Type_THole();
@@ -34631,7 +34668,7 @@ static void mw_mirth_elab_abZ_buildZ_wordZ_arrowZBang_1 (void) {
 				mw_mirth_arrow_Arrow_ctxZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -34722,7 +34759,7 @@ static void mw_mirth_elab_guessZ_initialZ_ctxZ_type (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -34870,10 +34907,11 @@ static void mw_mirth_elab_abZ_optimizzedZ_snocZBang (void) {
 	while(1) {
 		{
 			VAL d3 = pop_value();
-			mw_mirth_elab_atomsZ_hasZ_lastZ_blockZAsk();
+			mp_primZ_dup();
 			push_value(d3);
 		}
 		mp_primZ_swap();
+		mw_mirth_elab_atomsZ_hasZ_lastZ_blockZAsk();
 		if (pop_u64()) {
 			mw_mirth_elab_atomZ_acceptsZ_argsZAsk();
 		} else {
@@ -34972,7 +35010,6 @@ static void mw_mirth_elab_atomZ_acceptsZ_argsZAsk (void) {
 	}
 }
 static void mw_mirth_elab_atomsZ_hasZ_lastZ_blockZAsk (void) {
-	mp_primZ_dup();
 	mw_std_list_List_1_last();
 	switch (get_top_data_tag()) {
 		case 0LL: // None
@@ -34995,7 +35032,7 @@ static void mw_mirth_elab_atomsZ_hasZ_lastZ_blockZAsk (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -35040,7 +35077,7 @@ static void mw_mirth_elab_atomsZ_turnZ_lastZ_blockZ_toZ_arg (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -35109,7 +35146,7 @@ static void mw_mirth_elab_abZ_expandZ_opsigZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -35467,7 +35504,7 @@ static void mw_mirth_elab_elabZ_opZ_freshZ_sigZBang (void) {
 			mtw_mirth_elab_OpSig_OPSIGz_APPLY();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -35484,7 +35521,7 @@ static void mw_mirth_elab_dataZ_getZ_tagZ_type (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_type_T1();
@@ -35510,7 +35547,7 @@ static void mw_mirth_elab_elabZ_coerceZ_sigZBang (void) {
 			mtw_mirth_elab_OpSig_OPSIGz_APPLY();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -35557,7 +35594,7 @@ static void mw_mirth_elab_elabZ_varZ_sigZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_type_ArrowType_semifreshenZ_sig();
@@ -35940,7 +35977,7 @@ static void mw_mirth_elab_elabZ_atomZ_nameZBang (void) {
 			mw_mirth_elab_elabZ_atomZ_resolveZ_defZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -35994,7 +36031,7 @@ static void mw_mirth_elab_elabZ_atomZ_resolveZ_defZBang (void) {
 			mw_mirth_elab_elabZ_atomZ_defZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -36162,7 +36199,7 @@ static void mw_mirth_elab_elabZ_atomZ_matchZBang (void) {
 			LPUSH(lbl_body);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_elab_elabZ_matchZ_atZBang();
@@ -36185,7 +36222,7 @@ static void mw_mirth_elab_elabZ_matchZ_casesZBang (void) {
 			mw_mirth_elab_elabZ_matchZ_casesZ_argsZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -36227,7 +36264,7 @@ static void mw_mirth_elab_elabZ_matchZ_caseZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -36339,7 +36376,7 @@ static void mw_mirth_elab_elabZ_patternZ_atomZBang (void) {
 						push_u64(0LL); // None
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				switch (get_top_data_tag()) {
@@ -36354,7 +36391,7 @@ static void mw_mirth_elab_elabZ_patternZ_atomZBang (void) {
 						mw_mirth_match_ZPlusPattern_pattern_1();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				break;
@@ -36368,7 +36405,7 @@ static void mw_mirth_elab_elabZ_patternZ_atomZBang (void) {
 				}
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -36491,7 +36528,7 @@ static void mw_mirth_elab_elabZ_expandZ_tensorZBang (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -36524,7 +36561,7 @@ static void mw_mirth_elab_elabZ_lambdaZ_paramZAsk (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_var_Var_newZBang();
@@ -36545,7 +36582,7 @@ static void mw_mirth_elab_elabZ_lambdaZ_paramZAsk (void) {
 				push_u64(0LL); // False
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (pop_u64()) {
@@ -36564,7 +36601,7 @@ static void mw_mirth_elab_elabZ_lambdaZ_paramZAsk (void) {
 					push_u64(1LL); // True
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 		} else {
@@ -36602,7 +36639,7 @@ static void mw_mirth_elab_elabZ_lambdaZ_paramZAsk (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mw_mirth_var_Var_newZ_autoZ_runZBang();
@@ -36677,7 +36714,7 @@ static void mw_mirth_elab_elabZ_moduleZ_packageZ_name (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -36700,7 +36737,7 @@ static void mw_mirth_elab_elabZ_moduleZ_packageZ_name (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_swap();
@@ -36718,7 +36755,7 @@ static void mw_mirth_elab_elabZ_moduleZ_packageZ_name (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -36868,7 +36905,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -36906,7 +36943,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -36958,7 +36995,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 									push_u64(0LL); // False
 									break;
 								default:
-									push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+									push_value(mkstr("unexpected fallthrough in match\n", 32));
 									mp_primZ_panic();
 							}
 							break;
@@ -36968,12 +37005,12 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 							push_u64(0LL); // False
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -37051,7 +37088,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -37082,7 +37119,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -37099,7 +37136,7 @@ static void mw_mirth_elab_elabZ_moduleZ_declZBang (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_name_Name_defs();
@@ -37115,7 +37152,7 @@ static void mw_mirth_elab_elabZ_moduleZ_declZBang (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -37210,7 +37247,7 @@ static void mw_mirth_elab_loadZ_module (void) {
 					mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			{
@@ -37226,7 +37263,7 @@ static void mw_mirth_elab_loadZ_module (void) {
 			mw_mirth_elab_elabZ_moduleZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -37269,7 +37306,7 @@ static void mw_mirth_elab_parseZ_data (void) {
 				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37296,7 +37333,7 @@ static void mw_mirth_elab_parseZ_data (void) {
 				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37317,7 +37354,7 @@ static void mw_mirth_elab_parseZ_data (void) {
 				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37336,7 +37373,7 @@ static void mw_mirth_elab_parseZ_data (void) {
 				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37361,7 +37398,7 @@ static void mw_mirth_elab_parseZ_dataZ_header (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -37394,7 +37431,7 @@ static void mw_mirth_elab_parseZ_dataZ_tag (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_dup();
@@ -37421,7 +37458,7 @@ static void mw_mirth_elab_parseZ_dataZ_tag (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -37434,7 +37471,7 @@ static void mw_mirth_elab_parseZ_dataZ_tag (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPUSH(lbl_name);
@@ -37479,7 +37516,7 @@ static void mw_mirth_elab_parseZ_dataZ_tag (void) {
 						mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mw_mirth_token_Token_succ();
@@ -37490,7 +37527,7 @@ static void mw_mirth_elab_parseZ_dataZ_tag (void) {
 				LPUSH(lbl_sigZAsk);
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -37523,7 +37560,7 @@ static void mw_mirth_elab_parseZ_struct (void) {
 				(void)pop_u64();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37552,7 +37589,7 @@ static void mw_mirth_elab_parseZ_struct (void) {
 				(void)pop_u64();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37573,7 +37610,7 @@ static void mw_mirth_elab_parseZ_struct (void) {
 				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37594,7 +37631,7 @@ static void mw_mirth_elab_parseZ_struct (void) {
 				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_succ();
@@ -37629,7 +37666,7 @@ static void mw_mirth_elab_parseZ_structZ_tag (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -37646,7 +37683,7 @@ static void mw_mirth_elab_parseZ_structZ_tag (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPUSH(lbl_name);
@@ -37664,7 +37701,7 @@ static void mw_mirth_elab_SyntaxData_ZDivSyntaxData (void) {
 			mtp_mirth_elab_SyntaxData_SyntaxData();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -37747,7 +37784,7 @@ static void mw_mirth_elab_elabZ_dataZ_headerZBang (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -37867,7 +37904,7 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_dat);
@@ -37967,7 +38004,7 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_token_Token_runZ_tokens();
@@ -37983,7 +38020,7 @@ static void mw_mirth_elab_elabZ_dataZ_tagZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		STRLIT("Value type cannot contain resource.", 35);
@@ -38023,7 +38060,7 @@ static void mw_mirth_elab_dataZ_wordZ_newZBang (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mp_primZ_dup();
@@ -38036,7 +38073,7 @@ static void mw_mirth_elab_dataZ_wordZ_newZBang (void) {
 	mw_mirth_data_dataZ_wordZ_qname();
 	LPUSH(lbl_qname);
 	push_u64(0LL); // None
-	LPUSH(lbl_sig);
+	LPUSH(lbl_sigZAsk);
 	mw_mirth_word_Word_newZBang();
 	LPOP(lbl_qname);
 	{
@@ -38162,7 +38199,7 @@ static void mw_mirth_elab_elabZ_dataZ_doneZBang (void) {
 				(void)pop_u64();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		incref(var_dat);
@@ -38251,7 +38288,7 @@ static void mw_mirth_elab_dataZ_getZ_labelZ_type (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		switch (get_top_data_tag()) {
@@ -38307,7 +38344,7 @@ static void mw_mirth_elab_dataZ_getZ_labelZ_type (void) {
 				mw_mirth_type_TZ_ZTo();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_lbl);
@@ -38333,7 +38370,7 @@ static void mw_mirth_elab_dataZ_setZ_labelZ_type (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		switch (get_top_data_tag()) {
@@ -38370,7 +38407,7 @@ static void mw_mirth_elab_dataZ_setZ_labelZ_type (void) {
 				mw_mirth_type_TZ_ZTo();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_lbl);
@@ -38397,7 +38434,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -38444,7 +38481,7 @@ static void mw_mirth_elab_parseZ_alias (void) {
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPUSH(lbl_hasZ_paren);
@@ -38488,7 +38525,7 @@ static void mw_mirth_elab_parseZ_alias (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_target);
@@ -38509,7 +38546,7 @@ static void mw_mirth_elab_parseZ_alias (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_target);
@@ -38638,6 +38675,16 @@ static void mw_mirth_elab_elabZ_inlineZBang (void) {
 	mp_primZ_drop();
 	mw_mirth_mirth_ZPlusMirth_preferZ_inlineZ_defsZBang();
 }
+static void mw_mirth_elab_SyntaxDef_ZDivSyntaxDef (void) {
+	switch (get_top_data_tag()) {
+		case 0LL: // SyntaxDef
+			mtp_mirth_elab_SyntaxDef_SyntaxDef();
+			break;
+		default:
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			mp_primZ_panic();
+	}
+}
 static void mw_mirth_elab_parseZ_def (void) {
 	mp_primZ_dup();
 	mw_mirth_token_Token_args();
@@ -38656,16 +38703,16 @@ static void mw_mirth_elab_parseZ_def (void) {
 				mp_primZ_dup();
 				mw_mirth_token_Token_argsZ_1();
 				mtw_std_maybe_Maybe_1_Some();
-				LPUSH(lbl_sig);
+				LPUSH(lbl_sigZAsk);
 				mw_mirth_token_Token_next();
 				break;
 			case 0LL: // None
 				(void)pop_u64();
 				push_u64(0LL); // None
-				LPUSH(lbl_sig);
+				LPUSH(lbl_sigZAsk);
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mp_primZ_dup();
@@ -38681,7 +38728,7 @@ static void mw_mirth_elab_parseZ_def (void) {
 				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mp_primZ_dup();
@@ -38728,7 +38775,7 @@ static void mw_mirth_elab_parseZ_def (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_std_list_ListZPlus_1_uncons();
@@ -38748,14 +38795,14 @@ static void mw_mirth_elab_parseZ_def (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_std_list_ListZPlus_1_uncons();
 		{
 			VAL d3 = pop_value();
 			mtw_std_maybe_Maybe_1_Some();
-			LPUSH(lbl_sig);
+			LPUSH(lbl_sigZAsk);
 			push_value(d3);
 		}
 		mw_std_list_List_1_ZToListZPlus();
@@ -38769,7 +38816,7 @@ static void mw_mirth_elab_parseZ_def (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		LPUSH(lbl_body);
@@ -38807,7 +38854,7 @@ static void mw_mirth_elab_parseZ_def (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -38817,9 +38864,11 @@ static void mw_mirth_elab_parseZ_def (void) {
 		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 	}
 	LPUSH(lbl_body);
+	mtw_mirth_elab_SyntaxDef_SyntaxDef();
 }
 static void mw_mirth_elab_elabZ_defZBang (void) {
 	mw_mirth_elab_parseZ_def();
+	mw_mirth_elab_SyntaxDef_ZDivSyntaxDef();
 	mw_mirth_elab_elabZ_defZ_head();
 	mw_mirth_word_Word_newZBang();
 	LPUSH(lbl_word);
@@ -38968,7 +39017,7 @@ static void mw_mirth_elab_checkZ_inlineZ_recursionZ_opZBang (void) {
 							mw_mirth_elab_checkZ_inlineZ_recursionZ_failedZBang();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 				} else {
@@ -39070,12 +39119,12 @@ static void mw_mirth_elab_elabZ_defZ_bodyZBang (void) {
 					push_u64(1LL); // True
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -39111,7 +39160,7 @@ static void mw_mirth_elab_parseZ_externalZ_decl (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	push_fnptr(&mb_mirth_elab_parseZ_externalZ_decl_3);
@@ -39146,7 +39195,7 @@ static void mw_mirth_elab_parseZ_externalZ_declZ_part (void) {
 					mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mw_mirth_token_Token_succ();
@@ -39167,7 +39216,7 @@ static void mw_mirth_elab_parseZ_externalZ_declZ_part (void) {
 						mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mp_primZ_dup();
@@ -39211,13 +39260,13 @@ static void mw_mirth_elab_parseZ_externalZ_declZ_part (void) {
 					mw_mirth_token_Token_nextZ_argZ_end();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mtw_mirth_elab_ExternalDeclPart_EDPDef();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -39270,7 +39319,7 @@ static void mw_mirth_elab_elabZ_externalZ_blockZ_partZBang (void) {
 			mtw_mirth_external_ExternalBlockPart_EBPDef();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -39291,7 +39340,7 @@ static void mw_mirth_elab_elabZ_externalZ_defZBang (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -39302,7 +39351,7 @@ static void mw_mirth_elab_elabZ_externalZ_defZBang (void) {
 			LPUSH(lbl_name);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_name_Name_ZToStr();
@@ -39460,7 +39509,7 @@ static void mw_mirth_elab_elabZ_bufferZBang (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -39561,7 +39610,7 @@ static void mw_mirth_elab_elabZ_entryZ_point (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -39585,7 +39634,7 @@ static void mw_mirth_elab_elabZ_entryZ_point (void) {
 						mw_std_prelude_panicZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mw_mirth_module_Module_start();
@@ -39597,7 +39646,7 @@ static void mw_mirth_elab_elabZ_entryZ_point (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -39651,7 +39700,7 @@ static void mw_mirth_elab_elabZ_embedZ_strZBang (void) {
 	mp_primZ_dup();
 	LPUSH(lbl_body);
 	push_u64(0LL); // None
-	LPUSH(lbl_sig);
+	LPUSH(lbl_sigZAsk);
 	mp_primZ_dup();
 	mw_mirth_token_Token_strZAsk();
 	switch (get_top_data_tag()) {
@@ -39664,7 +39713,7 @@ static void mw_mirth_elab_elabZ_embedZ_strZBang (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -39762,7 +39811,7 @@ static void mw_mirth_elab_tableZ_wordZ_newZBang (void) {
 	LPUSH(lbl_head);
 	LPUSH(lbl_body);
 	push_u64(0LL); // None
-	LPUSH(lbl_sig);
+	LPUSH(lbl_sigZAsk);
 	mp_primZ_dup();
 	LPUSH(lbl_arity);
 	{
@@ -40156,7 +40205,7 @@ static void mw_mirth_elab_resolveZ_defZ_namespace (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -40176,7 +40225,7 @@ static void mw_mirth_elab_elabZ_qnameZ_fromZ_nonrelativeZ_dname (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_name_DName_lastZ_name();
@@ -40192,7 +40241,7 @@ static void mw_mirth_elab_elabZ_qnameZ_fromZ_nonrelativeZ_dname (void) {
 			mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPUSH(lbl_namespace);
@@ -40217,7 +40266,7 @@ static void mw_mirth_elab_elabZ_defZ_qname (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -40244,7 +40293,7 @@ static void mw_mirth_elab_elabZ_defZ_qname (void) {
 			mw_mirth_elab_elabZ_qnameZ_fromZ_nonrelativeZ_dname();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -40283,7 +40332,7 @@ static void mw_mirth_elab_elabZ_defZ_head (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	push_fnptr(&mb_mirth_elab_elabZ_defZ_head_1);
@@ -40331,7 +40380,7 @@ static void mw_mirth_elab_parseZ_field (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_head);
@@ -40454,7 +40503,7 @@ static void mw_std_map_Map_2_lookup_1 (void) {
 				push_u64(0LL); // None
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_kZEqualZEqual);
@@ -40516,7 +40565,7 @@ static void mw_mirth_specializzer_ZPlusSPCheck_loopZBang (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -40530,7 +40579,7 @@ static void mw_mirth_specializzer_ZPlusSPCheck_loopZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_specializzer_ZPlusSPCheck_doZ_itemZ_checkZBang();
@@ -40592,7 +40641,7 @@ static void mw_mirth_specializzer_ZPlusSPCheck_doZ_itemZ_checkZBang (void) {
 			mp_primZ_mutZ_set();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -40746,7 +40795,7 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_atomZBang (void) {
 			mtw_std_list_List_1_Cons();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -40829,7 +40878,7 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_wordZ_atomZBang (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -40858,7 +40907,7 @@ static void mw_mirth_specializzer_ZPlusSPCheck_pushZ_checkZ_wordZBang (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -40891,7 +40940,7 @@ static void mw_mirth_specializzer_ZPlusSPCheck_pushZ_checkZ_blockZBang (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
@@ -40967,7 +41016,7 @@ static void mw_mirth_word_Word_spZ_synthed (void) {
 			mw_std_map_Map_2_empty();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41002,7 +41051,7 @@ static void mw_mirth_specializzer_specializzeZ_wordZBang (void) {
 				mw_mirth_word_Word_head();
 				LPUSH(lbl_head);
 				push_u64(0LL); // None
-				LPUSH(lbl_sig);
+				LPUSH(lbl_sigZAsk);
 				incref(var_w);
 				push_value(var_w);
 				mw_mirth_word_Word_body();
@@ -41085,7 +41134,7 @@ static void mw_mirth_specializzer_specializzeZ_wordZBang (void) {
 				}
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_w);
@@ -41150,7 +41199,7 @@ static void mw_mirth_specializzer_ZPlusSPSynth_ZDivZPlusSPSYNTH (void) {
 			mtp_mirth_specializzer_ZPlusSPSynth_ZPlusSPSYNTH();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41175,7 +41224,7 @@ static void mw_mirth_specializzer_ZPlusSPSynth_ab_1 (void) {
 				mtw_mirth_specializzer_ZPlusSPSynth_ZPlusSPSYNTH();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_f);
@@ -41206,7 +41255,7 @@ static void mw_mirth_specializzer_synthZ_specializzedZ_wordZBang (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_arrow_Atom_op();
@@ -41310,7 +41359,7 @@ static void mw_mirth_specializzer_ZPlusSPSynth_synthZ_blockZBang (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -41331,7 +41380,7 @@ static void mw_mirth_specializzer_ZPlusSPSynth_synthZ_blockZBang (void) {
 			mw_mirth_specializzer_ZPlusSPSynth_ab_1();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41366,7 +41415,7 @@ static void mw_mirth_specializzer_ZPlusSPSynth_synthZ_varZBang (void) {
 			mw_mirth_specializzer_ZPlusSPSynth_ab_1();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41393,7 +41442,7 @@ static void mw_std_set_ZPlusSet_1_ZDivZPlusSet (void) {
 			mtp_std_set_ZPlusSet_1_ZPlusSet();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41590,7 +41639,7 @@ static void mw_mirth_need_Need_ZToNat (void) {
 			mw_std_prim_Int_ZToNat();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41600,7 +41649,7 @@ static void mw_mirth_need_ZPlusNeeds_ZDivZPlusNeeds (void) {
 			mtp_mirth_need_ZPlusNeeds_ZPlusNeeds();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41756,7 +41805,7 @@ static void mw_mirth_need_ZPlusNeeds_determineZ_transitiveZ_needsZBang (void) {
 				push_u64(1LL); // True
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		if (! pop_u64()) break;
@@ -41770,7 +41819,7 @@ static void mw_mirth_need_ZPlusNeeds_determineZ_transitiveZ_needsZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_need_ZPlusNeeds_runZ_needZBang();
@@ -41798,7 +41847,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_needZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -41980,7 +42029,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_opZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -42001,7 +42050,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (void) {
 					mw_mirth_need_ZPlusNeeds_pushZ_argsZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -42020,7 +42069,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (void) {
 					mw_mirth_need_ZPlusNeeds_pushZ_argsZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -42039,7 +42088,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (void) {
 					mw_mirth_need_ZPlusNeeds_pushZ_argsZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -42058,7 +42107,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (void) {
 					mw_mirth_need_ZPlusNeeds_pushZ_argsZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -42100,7 +42149,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_patatomZBang (void) {
 			mw_mirth_need_ZPlusNeeds_needZ_tagZ_patZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -42129,7 +42178,7 @@ static void mw_mirth_need_ZPlusNeeds_pushZ_blockZBang (void) {
 			mw_mirth_need_ZPlusNeeds_needZ_blockZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -42159,7 +42208,7 @@ static void mw_mirth_c99_ZPlusC99_ZDivZPlusC99 (void) {
 			mtp_mirth_c99_ZPlusC99_ZPlusC99();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -43931,7 +43980,7 @@ static void mw_mirth_c99_c99Z_tagZ_getZ_labelZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		switch (get_top_data_tag()) {
@@ -43962,7 +44011,7 @@ static void mw_mirth_c99_c99Z_tagZ_getZ_labelZBang (void) {
 				mw_mirth_c99_c99Z_line_1();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	} else {
@@ -44013,7 +44062,7 @@ static void mw_mirth_c99_c99Z_tagZ_getZ_labelZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		switch (get_top_data_tag()) {
@@ -44052,7 +44101,7 @@ static void mw_mirth_c99_c99Z_tagZ_getZ_labelZBang (void) {
 				mw_mirth_c99_c99Z_line_1();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -44079,7 +44128,7 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		switch (get_top_data_tag()) {
@@ -44206,7 +44255,7 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 				}
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		decref(var_lbl);
@@ -44251,7 +44300,7 @@ static void mw_mirth_c99_c99Z_externalZ_defZBang (void) {
 			push_u64(3LL); // Phantom
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_type_CType_cname();
@@ -44324,7 +44373,7 @@ static void mw_mirth_c99_c99Z_externalZ_defZBang (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_ext);
@@ -44403,7 +44452,7 @@ static void mw_mirth_type_CType_c99Z_popZ_value (void) {
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44439,7 +44488,7 @@ static void mw_mirth_type_CType_c99Z_popZ_resource (void) {
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44495,7 +44544,7 @@ static void mw_mirth_type_CType_c99Z_popZ_label (void) {
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44535,7 +44584,7 @@ static void mw_mirth_type_CType_c99Z_pushZ_value (void) {
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44575,7 +44624,7 @@ static void mw_mirth_type_CType_c99Z_pushZ_resource (void) {
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44647,7 +44696,7 @@ static void mw_mirth_type_CType_c99Z_pushZ_label (void) {
 			mw_mirth_c99_ZPlusC99_put();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44665,7 +44714,7 @@ static void mw_mirth_type_CTypeStackPart_c99Z_argZ_name (void) {
 			mw_std_str_Str_1();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44690,7 +44739,7 @@ static void mw_mirth_type_CTypeStackPart_c99Z_pop (void) {
 			mw_mirth_type_CType_c99Z_popZ_label();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44715,7 +44764,7 @@ static void mw_mirth_type_CTypeStackPart_c99Z_push (void) {
 			mw_mirth_type_CType_c99Z_pushZ_label();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -44926,7 +44975,7 @@ static void mw_mirth_arrow_Atom_showZ_inZ_stackZ_traceZAsk (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -45091,7 +45140,7 @@ static void mw_mirth_c99_c99Z_argsZ_opZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -45393,7 +45442,7 @@ static void mw_mirth_c99_c99Z_primZBang (void) {
 					mw_mirth_c99_c99Z_primZ_defaultZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -45422,7 +45471,7 @@ static void mw_mirth_c99_c99Z_primZBang (void) {
 					mw_mirth_c99_c99Z_primZ_defaultZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -45456,7 +45505,7 @@ static void mw_mirth_c99_c99Z_primZBang (void) {
 					mw_mirth_c99_c99Z_primZ_defaultZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -45486,7 +45535,7 @@ static void mw_mirth_c99_c99Z_primZBang (void) {
 					mw_mirth_c99_c99Z_primZ_defaultZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -45572,7 +45621,7 @@ static void mw_mirth_c99_c99Z_blockZ_pushZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -45623,7 +45672,7 @@ static void mw_mirth_c99_c99Z_matchZBang (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_mirth_match_Case_body();
@@ -45654,7 +45703,7 @@ static void mw_mirth_c99_c99Z_matchZBang (void) {
 						mw_std_prelude_panicZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mw_mirth_match_Case_body();
@@ -45676,7 +45725,7 @@ static void mw_mirth_c99_c99Z_matchZBang (void) {
 						mw_mirth_c99_ZPlusC99_ZPlusmirth_1();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mw_mirth_data_Data_isZ_resourceZAsk();
@@ -45693,7 +45742,7 @@ static void mw_mirth_c99_c99Z_matchZBang (void) {
 				mw_mirth_c99_c99Z_line_1();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -45733,7 +45782,7 @@ static void mw_mirth_c99_c99Z_patternZBang (void) {
 				mw_mirth_c99_ZPlusC99_ZPlusmirth_1();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -45884,7 +45933,7 @@ static void mw_mirth_main_Arguments_ZDivArguments (void) {
 			mtp_mirth_main_Arguments_Arguments();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -46217,7 +46266,7 @@ static void mw_mirth_main_compileZBang (void) {
 			push_u64(0LL); // None
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -46285,7 +46334,7 @@ static void mw_mirth_main_compileZBang (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			LPUSH(lbl_outputZ_path);
@@ -46308,7 +46357,7 @@ static void mw_mirth_main_compileZBang (void) {
 			mp_primZ_drop();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -46331,7 +46380,7 @@ static void mw_mirth_main_parseZ_packageZ_def (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_std_prelude_unpack2();
@@ -46376,7 +46425,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 								mw_std_prelude_panicZBang();
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						mw_mirth_main_parseZ_packageZ_def();
@@ -46399,7 +46448,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 								mw_std_prelude_panicZBang();
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						push_value(d6);
@@ -46485,7 +46534,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -46543,12 +46592,12 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 							(void)pop_u64();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mw_argZ_parser_types_ZPlusArgumentParser_1_state();
@@ -46580,7 +46629,7 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 	}
 }
 static void mw_mirth_main_main (void) {
-	mw_mirth_mirth_ZPlusMirth_initZBang();
+	mw_mirth_mirth_ZPlusMirth_InitZBang();
 	mw_mirth_main_Arguments_default();
 	push_fnptr(&mb_mirth_main_main_0);
 	mw_std_list_LIST_1();
@@ -46614,7 +46663,7 @@ static void mw_mirth_main_main (void) {
 			mext_std_posix_externalZ_posixZ_exit();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_main_compileZBang();
@@ -46875,7 +46924,7 @@ static void mb_mirth_main_compilerZ_parseZ_args_1 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mtw_std_maybe_Maybe_1_Some();
@@ -46892,7 +46941,7 @@ static void mb_mirth_main_compilerZ_parseZ_args_2 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mtw_std_maybe_Maybe_1_Some();
@@ -46923,7 +46972,7 @@ static void mb_mirth_main_compilerZ_parseZ_args_11 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -47004,7 +47053,7 @@ static void mb_argZ_parser_parse_parseZ_args_0 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_argZ_parser_types_ArgpOption_argZ_doc();
@@ -47024,7 +47073,7 @@ static void mb_argZ_parser_parse_parseZ_args_0 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPOP(lbl_docZ_length);
@@ -47099,7 +47148,7 @@ static void mb_argZ_parser_parse_parseZ_args_6 (void) {
 								push_u64(0LL); // None
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						break;
@@ -47109,7 +47158,7 @@ static void mb_argZ_parser_parse_parseZ_args_6 (void) {
 						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 			} else {
@@ -47145,7 +47194,7 @@ static void mb_argZ_parser_parse_parseZ_args_6 (void) {
 										mw_std_prelude_panicZBang();
 										break;
 									default:
-										push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+										push_value(mkstr("unexpected fallthrough in match\n", 32));
 										mp_primZ_panic();
 								}
 								mw_argZ_parser_types_ArgpOption_flagZ_type();
@@ -47160,7 +47209,7 @@ static void mb_argZ_parser_parse_parseZ_args_6 (void) {
 										mw_std_prelude_panicZBang();
 										break;
 									default:
-										push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+										push_value(mkstr("unexpected fallthrough in match\n", 32));
 										mp_primZ_panic();
 								}
 								mp_primZ_run();
@@ -47175,7 +47224,7 @@ static void mb_argZ_parser_parse_parseZ_args_6 (void) {
 								mtw_std_maybe_Maybe_1_Some();
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						break;
@@ -47186,7 +47235,7 @@ static void mb_argZ_parser_parse_parseZ_args_6 (void) {
 						mtw_std_maybe_Maybe_1_Some();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				push_u64(0LL); // False
@@ -47211,7 +47260,7 @@ static void mb_argZ_parser_parse_parseZ_args_6 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -47376,12 +47425,12 @@ static void mb_std_list_List_1_map2_1_0 (void) {
 								mtw_std_maybe_Maybe_1_Some();
 								break;
 							default:
-								push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+								push_value(mkstr("unexpected fallthrough in match\n", 32));
 								mp_primZ_panic();
 						}
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				decref(var_f);
@@ -47445,7 +47494,7 @@ static void mb_std_list_List_1_filterZ_some_1_1 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	decref(var_p);
@@ -47597,7 +47646,7 @@ static void mb_std_list_collect_1_0 (void) {
 					push_u64(1LL); // True
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (! pop_u64()) break;
@@ -47611,7 +47660,7 @@ static void mb_std_list_collect_1_0 (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			incref(var_g);
@@ -47815,7 +47864,7 @@ static void mb_std_list_List_1_takeZ_while_1_0 (void) {
 					push_u64(0LL); // None
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			decref(var_f);
@@ -47866,7 +47915,7 @@ static void mb_std_list_List_1_partitionZ_either_1_0 (void) {
 			mtw_std_list_List_1_Cons();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	decref(var_p);
@@ -48369,7 +48418,7 @@ static void mb_argZ_parser_types_ZPlusArgumentParser_1_usage_0 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	STRLIT("\n\n", 2);
@@ -48489,7 +48538,7 @@ static void mb_mirth_arrow_Block_qname_0 (void) {
 			mw_mirth_name_QNAME0();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -48571,7 +48620,7 @@ static void mb_mirth_name_QName_defZ_softZAsk_1 (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
@@ -48590,12 +48639,12 @@ static void mb_mirth_name_QName_defZ_softZAsk_1 (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -48917,7 +48966,7 @@ static void mb_mirth_type_StackType_topZ_namespaces_0 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_type_StackType_topZ_resourceZ_tyconZAsk();
@@ -48931,7 +48980,7 @@ static void mb_mirth_type_StackType_topZ_namespaces_0 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -49024,7 +49073,7 @@ static void mb_mirth_arrow_Block_cname_0 (void) {
 			mw_std_str_Str_1();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -49124,7 +49173,7 @@ static void mb_mirth_data_Data_addZ_tagZBang_0 (void) {
 			push_i64(0LL);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -49187,7 +49236,7 @@ static void mb_mirth_data_Data_isZ_unitZAsk_0 (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -49230,7 +49279,7 @@ static void mb_mirth_data_Data_isZ_transparentZAsk_0 (void) {
 				push_u64(0LL); // False
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	} else {
@@ -49269,7 +49318,7 @@ static void mb_mirth_data_Data_isZ_transparentZAsk_0 (void) {
 				push_u64(0LL); // False
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	}
@@ -49295,7 +49344,7 @@ static void mb_mirth_data_Data_isZ_semiZ_transparentZAsk_0 (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -49314,7 +49363,7 @@ static void mb_mirth_data_Tag_labelZ_inputsZ_fromZ_sig_3 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_label_Label_newZBang();
@@ -49386,7 +49435,7 @@ static void mb_mirth_match_Match_scrutineeZ_dataZAsk_5 (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -49690,7 +49739,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 							mw_std_str_ZPlusStr_pushZ_strZBang();
 							break;
 						default:
-							push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+							push_value(mkstr("unexpected fallthrough in match\n", 32));
 							mp_primZ_panic();
 					}
 					break;
@@ -49710,7 +49759,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_0 (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -49859,7 +49908,7 @@ static void mb_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown_15 (void) {
 			mw_std_str_ZPlusStr_pushZ_strZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	STRLIT(", ", 2);
@@ -49976,7 +50025,7 @@ static void mb_mirth_name_QName_climbZ_upZ_dnameZAsk_6 (void) {
 			push_u64(0LL); // Nil
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -50057,7 +50106,7 @@ static void mb_mirth_name_QName_climbZ_upZ_nameZAsk_2 (void) {
 					push_u64(0LL); // False
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			if (pop_u64()) {
@@ -50306,7 +50355,7 @@ static void mb_mirth_elab_elabZ_matchZ_casesZ_curlyZBang_0 (void) {
 			}
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -50395,7 +50444,7 @@ static void mb_mirth_elab_elabZ_patternZ_atomZBang_5 (void) {
 				mw_mirth_elab_ZPlusResolveDef_filterZ_roots();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 	} else {
@@ -50438,7 +50487,7 @@ static void mb_mirth_elab_elabZ_aliasZBang_0 (void) {
 			mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	switch (get_top_data_tag()) {
@@ -50481,7 +50530,7 @@ static void mb_mirth_elab_elabZ_aliasZBang_6 (void) {
 }
 static void mb_mirth_elab_elabZ_defZBang_0 (void) {
 	mp_primZ_dup();
-	mw_mirth_word_Word_sig();
+	mw_mirth_word_Word_sigZAsk();
 	switch (get_top_data_tag()) {
 		case 1LL: // Some
 			mtp_std_maybe_Maybe_1_Some();
@@ -50507,7 +50556,7 @@ static void mb_mirth_elab_elabZ_defZBang_0 (void) {
 			mw_std_prelude_pack2();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -50607,7 +50656,7 @@ static void mb_mirth_elab_elabZ_dataZ_tagZBang_1 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPUSH(lbl_token);
@@ -50649,7 +50698,7 @@ static void mb_mirth_elab_elabZ_dataZ_tagZBang_1 (void) {
 			mw_mirth_elab_ZPlusTypeElab_elabZ_stackZ_typeZ_partsZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_swap();
@@ -50825,7 +50874,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_6 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPUSH(lbl_body);
@@ -50860,7 +50909,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_8 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mp_primZ_dup();
@@ -50921,7 +50970,7 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_11 (void) {
 						mw_std_prelude_panicZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mw_mirth_data_Tag_type();
@@ -51006,7 +51055,7 @@ static void mb_mirth_elab_elabZ_dataZ_paramsZBang_0 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	{
@@ -51032,7 +51081,7 @@ static void mb_mirth_elab_elabZ_dataZ_paramsZBang_0 (void) {
 			(void)pop_u64();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_token_Token_nameZAsk();
@@ -51046,7 +51095,7 @@ static void mb_mirth_elab_elabZ_dataZ_paramsZBang_0 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_type_TYPEz_TYPE();
@@ -51375,7 +51424,7 @@ static void mb_mirth_elab_createZ_projectorsZBang_8 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	incref(var_tag);
@@ -51449,7 +51498,7 @@ static void mb_mirth_elab_createZ_projectorsZBang_9 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_std_prelude_unpack2();
@@ -51546,7 +51595,7 @@ static void mb_mirth_elab_createZ_projectorsZBang_13 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	LPUSH(lbl_f);
@@ -51636,7 +51685,7 @@ static void mb_mirth_elab_elabZ_defZ_paramsZBang_1 (void) {
 			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_token_Token_nameZAsk();
@@ -51650,7 +51699,7 @@ static void mb_mirth_elab_elabZ_defZ_paramsZBang_1 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_var_Var_newZ_autoZ_runZBang();
@@ -51794,7 +51843,7 @@ static void mb_mirth_elab_elabZ_defZ_externalZ_ctype_1 (void) {
 			push_u64(0LL); // False
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -52044,7 +52093,7 @@ static void mb_mirth_elab_resolveZ_defZ_namespace_1 (void) {
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -52143,7 +52192,7 @@ static void mb_mirth_specializzer_specializzeZ_ctxZ_type_3 (void) {
 				mw_std_prelude_panicZBang();
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		mw_std_prelude_unpack2();
@@ -52594,7 +52643,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_4 (void) {
 						mw_std_prelude_panicZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mw_mirth_label_Label_name();
@@ -52621,7 +52670,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_4 (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mw_mirth_label_Label_name();
@@ -52885,7 +52934,7 @@ static void mb_mirth_c99_c99Z_tagZ_defZBang_23 (void) {
 					mw_std_prelude_panicZBang();
 					break;
 				default:
-					push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
 					mp_primZ_panic();
 			}
 			mw_mirth_label_Label_name();
@@ -53551,7 +53600,7 @@ static void mb_mirth_c99_c99Z_externalZ_blockZBang_0 (void) {
 			mw_mirth_c99_c99Z_externalZ_defZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 }
@@ -53574,7 +53623,7 @@ static void mb_mirth_c99_c99Z_externalZ_defZBang_1 (void) {
 				push_u64(0LL); // False
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		push_value(d2);
@@ -53685,7 +53734,7 @@ static void mb_mirth_c99_c99Z_externalZ_defZBang_18 (void) {
 				STRLIT("Y", 1);
 				break;
 			default:
-				push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+				push_value(mkstr("unexpected fallthrough in match\n", 32));
 				mp_primZ_panic();
 		}
 		push_value(d2);
@@ -53745,7 +53794,7 @@ static void mb_mirth_c99_c99Z_atomZBang_2 (void) {
 			STRLIT("", 0);
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
@@ -54001,7 +54050,7 @@ static void mb_mirth_c99_c99Z_matchZBang_16 (void) {
 	mw_mirth_c99_c99Z_callZBang();
 }
 static void mb_mirth_c99_c99Z_matchZBang_17 (void) {
-	STRLIT("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32)); ", 60);
+	STRLIT("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32));", 59);
 	mw_mirth_c99_ZPlusC99_put();
 }
 static void mb_mirth_c99_c99Z_matchZBang_18 (void) {
@@ -54149,7 +54198,7 @@ static void mb_mirth_c99_c99Z_getZ_dataZ_tagZBang_7 (void) {
 			mw_std_prelude_panicZBang();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_data_Tag_value();
@@ -54393,7 +54442,7 @@ static void mb_mirth_c99_c99Z_blockZ_enterZBang_2 (void) {
 			mp_primZ_strZ_cat();
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	mw_mirth_c99_ZPlusC99_putZ_cstr();
@@ -54753,7 +54802,7 @@ static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotZPlus
 						mw_std_prelude_panicZBang();
 						break;
 					default:
-						push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+						push_value(mkstr("unexpected fallthrough in match\n", 32));
 						mp_primZ_panic();
 				}
 				mw_mirth_name_Name_canZ_beZ_relativeZAsk();
@@ -54912,7 +54961,7 @@ static void mb_mirth_elab_ZPlusResolveDef_filter_2_ZLParenmirthZDotelabZDotelabZ
 			push_u64(1LL); // True
 			break;
 		default:
-			push_value(mkstr("unexpected fallthrough in match\n", 32)); 
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
 			mp_primZ_panic();
 	}
 	if (pop_u64()) {
