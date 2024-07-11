@@ -50,6 +50,8 @@ typedef uint16_t TAG;
 #define TAG_PTR 1
 #define TAG_STR (2 | REFS_FLAG)
 #define TAG_FNPTR 3
+#define TAG_FSINGLE 4
+#define TAG_FDOUBLE 5
 #define TAG_TUP_NIL TUP_FLAG
 #define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
 #define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
@@ -68,6 +70,8 @@ typedef union DATA {
 	int32_t i32;
 	int16_t i16;
 	int8_t i8;
+	float fsingle;
+	double fdouble;
 	void* ptr;
 	FNPTR fnptr;
 	REFS* refs;
@@ -86,6 +90,8 @@ typedef struct VAL {
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VU64(v)   ((v).data.u64)
+#define VFSINGLE(v)   ((v).data.fsingle)
+#define VFDOUBLE(v)   ((v).data.fdouble)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 #define VSTR(v)   ((v).data.str)
@@ -96,6 +102,8 @@ typedef struct VAL {
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_U64(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
+#define IS_FSINGLE(v)   ((v).tag == TAG_FSINGLE)
+#define IS_FDOUBLE(v)   ((v).tag == TAG_FDOUBLE)
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
@@ -105,6 +113,8 @@ typedef struct VAL {
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKFSINGLE(x)   ((VAL){.tag=TAG_FSINGLE, .data={.fsingle=(x)}})
+#define MKFDOUBLE(x)   ((VAL){.tag=TAG_FDOUBLE, .data={.fdouble=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
@@ -312,6 +322,16 @@ static int64_t value_i64 (VAL v) {
 	return VI64(v);
 }
 
+static float value_fsingle (VAL v) {
+	ASSERT1(IS_FSINGLE(v), v);
+	return VFSINGLE(v);
+}
+
+static float value_fdouble (VAL v) {
+	ASSERT1(IS_FDOUBLE(v), v);
+	return VFDOUBLE(v);
+}
+
 static void* value_ptr (VAL v) {
 	ASSERT1(IS_PTR(v),v);
 	return VPTR(v);
@@ -331,6 +351,8 @@ static FNPTR value_fnptr (VAL v) {
 #define pop_i32() ((int32_t)pop_i64())
 #define pop_i64() (value_i64(pop_value()))
 #define pop_usize() (pop_u64())
+#define pop_fsingle() (value_fsingle(pop_value()))
+#define pip_fdouble() (value_fdouble(pop_value()))
 #define pop_bool() (pop_u64())
 #define pop_ptr() (value_ptr(pop_value()))
 #define pop_fnptr() (value_fnptr(pop_value()))
@@ -345,6 +367,8 @@ static FNPTR value_fnptr (VAL v) {
 #define push_i8(b) push_i64((int64_t)(b))
 #define push_i16(b) push_i64((int64_t)(b))
 #define push_i32(b) push_i64((int64_t)(b))
+#define push_fsingle(f) push_value(MKFSINGLE(f))
+#define push_fdouble(f) push_value(MKFDOUBLE(f))
 #define push_ptr(p) push_value(MKPTR(p))
 #define push_fnptr(p) push_value(MKFNPTR(p))
 

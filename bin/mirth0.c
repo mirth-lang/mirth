@@ -51,6 +51,8 @@ typedef uint16_t TAG;
 #define TAG_PTR 1
 #define TAG_STR (2 | REFS_FLAG)
 #define TAG_FNPTR 3
+#define TAG_FSINGLE 4
+#define TAG_FDOUBLE 5
 #define TAG_TUP_NIL TUP_FLAG
 #define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
 #define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
@@ -69,6 +71,8 @@ typedef union DATA {
 	int32_t i32;
 	int16_t i16;
 	int8_t i8;
+	float fsingle;
+	double fdouble;
 	void* ptr;
 	FNPTR fnptr;
 	REFS* refs;
@@ -87,6 +91,8 @@ typedef struct VAL {
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VU64(v)   ((v).data.u64)
+#define VFSINGLE(v)   ((v).data.fsingle)
+#define VFDOUBLE(v)   ((v).data.fdouble)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 #define VSTR(v)   ((v).data.str)
@@ -97,6 +103,8 @@ typedef struct VAL {
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_U64(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
+#define IS_FSINGLE(v)   ((v).tag == TAG_FSINGLE)
+#define IS_FDOUBLE(v)   ((v).tag == TAG_FDOUBLE)
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
@@ -106,6 +114,8 @@ typedef struct VAL {
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKFSINGLE(x)   ((VAL){.tag=TAG_FSINGLE, .data={.fsingle=(x)}})
+#define MKFDOUBLE(x)   ((VAL){.tag=TAG_FDOUBLE, .data={.fdouble=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
@@ -313,6 +323,16 @@ static int64_t value_i64 (VAL v) {
 	return VI64(v);
 }
 
+static float value_fsingle (VAL v) {
+	ASSERT1(IS_FSINGLE(v), v);
+	return VFSINGLE(v);
+}
+
+static float value_fdouble (VAL v) {
+	ASSERT1(IS_FDOUBLE(v), v);
+	return VFDOUBLE(v);
+}
+
 static void* value_ptr (VAL v) {
 	ASSERT1(IS_PTR(v),v);
 	return VPTR(v);
@@ -332,6 +352,8 @@ static FNPTR value_fnptr (VAL v) {
 #define pop_i32() ((int32_t)pop_i64())
 #define pop_i64() (value_i64(pop_value()))
 #define pop_usize() (pop_u64())
+#define pop_fsingle() (value_fsingle(pop_value()))
+#define pip_fdouble() (value_fdouble(pop_value()))
 #define pop_bool() (pop_u64())
 #define pop_ptr() (value_ptr(pop_value()))
 #define pop_fnptr() (value_fnptr(pop_value()))
@@ -346,6 +368,8 @@ static FNPTR value_fnptr (VAL v) {
 #define push_i8(b) push_i64((int64_t)(b))
 #define push_i16(b) push_i64((int64_t)(b))
 #define push_i32(b) push_i64((int64_t)(b))
+#define push_fsingle(f) push_value(MKFSINGLE(f))
+#define push_fdouble(f) push_value(MKFDOUBLE(f))
 #define push_ptr(p) push_value(MKPTR(p))
 #define push_fnptr(p) push_value(MKFNPTR(p))
 
@@ -3050,10 +3074,48 @@ static void mtp_mirth_type_Value_VALUEz_INT (void) {
 		free(tup);
 	}
 }
-static void mtw_mirth_type_Value_VALUEz_STR (void) {
+static void mtw_mirth_type_Value_VALUEz_FLOATz_SINGLE (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
 	tup->cells[0] = MKU64(1LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
+}
+static void mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE (void) {
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
+}
+static void mtw_mirth_type_Value_VALUEz_FLOATz_DOUBLE (void) {
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(2LL);
+	tup->cells[1] = pop_value();
+	push_value(MKTUP(tup, 2));
+}
+static void mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE (void) {
+	VAL val = pop_value();
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	push_value(tup->cells[1]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		decref(val);
+	} else {
+		free(tup);
+	}
+}
+static void mtw_mirth_type_Value_VALUEz_STR (void) {
+	TUP* tup = tup_new(2);
+	tup->size = 2;
+	tup->cells[0] = MKU64(3LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
@@ -3072,7 +3134,7 @@ static void mtp_mirth_type_Value_VALUEz_STR (void) {
 static void mtw_mirth_type_Value_VALUEz_BLOCK (void) {
 	TUP* tup = tup_new(2);
 	tup->size = 2;
-	tup->cells[0] = MKU64(2LL);
+	tup->cells[0] = MKU64(4LL);
 	tup->cells[1] = pop_value();
 	push_value(MKTUP(tup, 2));
 }
@@ -6013,6 +6075,7 @@ static void mw_mirth_type_TYPEz_TYPE (void);
 static void mw_mirth_type_TYPEz_STACK (void);
 static void mw_mirth_type_TYPEz_RESOURCE (void);
 static void mw_mirth_type_TYPEz_INT (void);
+static void mw_mirth_type_TYPEz_FLOAT (void);
 static void mw_mirth_type_TYPEz_PTR (void);
 static void mw_mirth_type_TYPEz_STR (void);
 static void mw_mirth_type_TYPEz_WORLD (void);
@@ -18572,7 +18635,7 @@ static void mw_mirth_type_PrimType_tag (void) {
 }
 static void mw_mirth_type_PrimType_isZ_resourceZAsk (void) {
 	switch (get_top_data_tag()) {
-		case 6LL: // PRIM_TYPE_WORLD
+		case 8LL: // PRIM_TYPE_WORLD
 			(void)pop_u64();
 			push_u64(1LL); // True
 			break;
@@ -18703,19 +18766,31 @@ static void mw_mirth_type_PrimType_tyconZ_qname (void) {
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
-		case 5LL: // PRIM_TYPE_STR
+		case 4LL: // PRIM_TYPE_FLOAT_SINGLE
+			(void)pop_u64();
+			STRLIT("Float", 5);
+			push_i64(0LL);
+			mw_mirth_name_QName_prim();
+			break;
+		case 5LL: // PRIM_TYPE_FLOAT_DOUBLE
+			(void)pop_u64();
+			STRLIT("Double", 6);
+			push_i64(0LL);
+			mw_mirth_name_QName_prim();
+			break;
+		case 7LL: // PRIM_TYPE_STR
 			(void)pop_u64();
 			STRLIT("Str", 3);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
-		case 4LL: // PRIM_TYPE_PTR
+		case 6LL: // PRIM_TYPE_PTR
 			(void)pop_u64();
 			STRLIT("Ptr", 3);
 			push_i64(0LL);
 			mw_mirth_name_QName_prim();
 			break;
-		case 6LL: // PRIM_TYPE_WORLD
+		case 8LL: // PRIM_TYPE_WORLD
 			(void)pop_u64();
 			STRLIT("+World", 6);
 			push_i64(0LL);
@@ -18735,14 +18810,28 @@ static void mw_mirth_type_Value_tyconZAsk (void) {
 			mtw_mirth_tycon_Tycon_TYCONz_PRIM();
 			mtw_std_maybe_Maybe_1_Some();
 			break;
-		case 1LL: // VALUE_STR
-			mtp_mirth_type_Value_VALUEz_STR();
+		case 1LL: // VALUE_FLOAT_SINGLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
 			mp_primZ_drop();
-			push_u64(5LL); // PRIM_TYPE_STR
+			push_u64(4LL); // PRIM_TYPE_FLOAT_SINGLE
 			mtw_mirth_tycon_Tycon_TYCONz_PRIM();
 			mtw_std_maybe_Maybe_1_Some();
 			break;
-		case 2LL: // VALUE_BLOCK
+		case 2LL: // VALUE_FLOAT_DOUBLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+			mp_primZ_drop();
+			push_u64(5LL); // PRIM_TYPE_FLOAT_DOUBLE
+			mtw_mirth_tycon_Tycon_TYCONz_PRIM();
+			mtw_std_maybe_Maybe_1_Some();
+			break;
+		case 3LL: // VALUE_STR
+			mtp_mirth_type_Value_VALUEz_STR();
+			mp_primZ_drop();
+			push_u64(7LL); // PRIM_TYPE_STR
+			mtw_mirth_tycon_Tycon_TYCONz_PRIM();
+			mtw_std_maybe_Maybe_1_Some();
+			break;
+		case 4LL: // VALUE_BLOCK
 			mtp_mirth_type_Value_VALUEz_BLOCK();
 			mp_primZ_drop();
 			push_u64(0LL); // None
@@ -18795,11 +18884,15 @@ static void mw_mirth_type_defZ_primZ_typeZBang (void) {
 static void mw_mirth_type_initZ_typesZBang (void) {
 	push_u64(3LL); // PRIM_TYPE_INT
 	mw_mirth_type_defZ_primZ_typeZBang();
-	push_u64(4LL); // PRIM_TYPE_PTR
+	push_u64(4LL); // PRIM_TYPE_FLOAT_SINGLE
 	mw_mirth_type_defZ_primZ_typeZBang();
-	push_u64(5LL); // PRIM_TYPE_STR
+	push_u64(5LL); // PRIM_TYPE_FLOAT_DOUBLE
 	mw_mirth_type_defZ_primZ_typeZBang();
-	push_u64(6LL); // PRIM_TYPE_WORLD
+	push_u64(6LL); // PRIM_TYPE_PTR
+	mw_mirth_type_defZ_primZ_typeZBang();
+	push_u64(7LL); // PRIM_TYPE_STR
+	mw_mirth_type_defZ_primZ_typeZBang();
+	push_u64(8LL); // PRIM_TYPE_WORLD
 	mw_mirth_type_defZ_primZ_typeZBang();
 	mw_mirth_data_initZ_dataZBang();
 }
@@ -18946,16 +19039,20 @@ static void mw_mirth_type_TYPEz_INT (void) {
 	push_u64(3LL); // PRIM_TYPE_INT
 	mtw_mirth_type_Type_TPrim();
 }
+static void mw_mirth_type_TYPEz_FLOAT (void) {
+	push_u64(5LL); // PRIM_TYPE_FLOAT_DOUBLE
+	mtw_mirth_type_Type_TPrim();
+}
 static void mw_mirth_type_TYPEz_PTR (void) {
-	push_u64(4LL); // PRIM_TYPE_PTR
+	push_u64(6LL); // PRIM_TYPE_PTR
 	mtw_mirth_type_Type_TPrim();
 }
 static void mw_mirth_type_TYPEz_STR (void) {
-	push_u64(5LL); // PRIM_TYPE_STR
+	push_u64(7LL); // PRIM_TYPE_STR
 	mtw_mirth_type_Type_TPrim();
 }
 static void mw_mirth_type_TYPEz_WORLD (void) {
-	push_u64(6LL); // PRIM_TYPE_WORLD
+	push_u64(8LL); // PRIM_TYPE_WORLD
 	mtw_mirth_type_Type_TPrim();
 }
 static void mw_mirth_type_RESOURCEz_WORLD (void) {
@@ -19430,7 +19527,7 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 						mw_mirth_type_TYPEz_INT();
 					}
 					break;
-				case 1LL: // VALUE_STR
+				case 3LL: // VALUE_STR
 					mtp_mirth_type_Value_VALUEz_STR();
 					mp_primZ_drop();
 					mp_primZ_drop();
@@ -19443,7 +19540,33 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					}
 					push_u64(0LL); // TYPE_ERROR
 					break;
-				case 2LL: // VALUE_BLOCK
+				case 1LL: // VALUE_FLOAT_SINGLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify int value with single precision float value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 2LL: // VALUE_FLOAT_DOUBLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify int value with double precision float value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 4LL: // VALUE_BLOCK
 					mtp_mirth_type_Value_VALUEz_BLOCK();
 					mp_primZ_drop();
 					mp_primZ_drop();
@@ -19461,11 +19584,11 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_panic();
 			}
 			break;
-		case 1LL: // VALUE_STR
+		case 3LL: // VALUE_STR
 			mtp_mirth_type_Value_VALUEz_STR();
 			mp_primZ_swap();
 			switch (get_top_data_tag()) {
-				case 1LL: // VALUE_STR
+				case 3LL: // VALUE_STR
 					mtp_mirth_type_Value_VALUEz_STR();
 					{
 						VAL d6 = pop_value();
@@ -19546,7 +19669,33 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					}
 					push_u64(0LL); // TYPE_ERROR
 					break;
-				case 2LL: // VALUE_BLOCK
+				case 1LL: // VALUE_FLOAT_SINGLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify int value with single precision float value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 2LL: // VALUE_FLOAT_DOUBLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify int value with double precision float value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 4LL: // VALUE_BLOCK
 					mtp_mirth_type_Value_VALUEz_BLOCK();
 					mp_primZ_drop();
 					mp_primZ_drop();
@@ -19564,11 +19713,11 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					mp_primZ_panic();
 			}
 			break;
-		case 2LL: // VALUE_BLOCK
+		case 4LL: // VALUE_BLOCK
 			mtp_mirth_type_Value_VALUEz_BLOCK();
 			mp_primZ_swap();
 			switch (get_top_data_tag()) {
-				case 2LL: // VALUE_BLOCK
+				case 4LL: // VALUE_BLOCK
 					mtp_mirth_type_Value_VALUEz_BLOCK();
 					{
 						VAL d6 = pop_value();
@@ -19611,12 +19760,210 @@ static void mw_mirth_type_Value_unifyZBang (void) {
 					}
 					push_u64(0LL); // TYPE_ERROR
 					break;
-				case 1LL: // VALUE_STR
+				case 1LL: // VALUE_FLOAT_SINGLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify int value with single precision float value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 2LL: // VALUE_FLOAT_DOUBLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify int value with double precision float value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 3LL: // VALUE_STR
 					mtp_mirth_type_Value_VALUEz_STR();
 					mp_primZ_drop();
 					mp_primZ_drop();
 					mw_mirth_type_ZPlusGamma_token();
 					STRLIT("Can't unify block with string value.", 36);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				default:
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
+					mp_primZ_panic();
+			}
+			break;
+		case 1LL: // VALUE_FLOAT_SINGLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+			mp_primZ_swap();
+			switch (get_top_data_tag()) {
+				case 1LL: // VALUE_FLOAT_SINGLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+					{
+						VAL d6 = pop_value();
+						mp_primZ_dup();
+						push_value(d6);
+					}
+					mp_primZ_swap();
+					{
+						VAL d6 = pop_value();
+						mp_primZ_dup();
+						push_value(d6);
+					}
+					mp_primZ_swap();
+					mp_primZ_intZ_eq();
+					if (pop_u64()) {
+						mp_primZ_drop();
+						mtw_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+						mtw_mirth_type_Type_TValue();
+					} else {
+						mp_primZ_drop();
+						mp_primZ_drop();
+						mw_mirth_type_TYPEz_FLOAT();
+					}
+					break;
+				case 0LL: // VALUE_INT
+					mtp_mirth_type_Value_VALUEz_INT();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify single precision float value with int value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 4LL: // VALUE_BLOCK
+					mtp_mirth_type_Value_VALUEz_BLOCK();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify single precision float value with block.", 52);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 2LL: // VALUE_FLOAT_DOUBLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify single precision float value with double precision float value.", 75);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 3LL: // VALUE_STR
+					mtp_mirth_type_Value_VALUEz_STR();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify single precision float value with string value.", 59);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				default:
+					push_value(mkstr("unexpected fallthrough in match\n", 32));
+					mp_primZ_panic();
+			}
+			break;
+		case 2LL: // VALUE_FLOAT_DOUBLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+			mp_primZ_swap();
+			switch (get_top_data_tag()) {
+				case 2LL: // VALUE_FLOAT_DOUBLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+					{
+						VAL d6 = pop_value();
+						mp_primZ_dup();
+						push_value(d6);
+					}
+					mp_primZ_swap();
+					{
+						VAL d6 = pop_value();
+						mp_primZ_dup();
+						push_value(d6);
+					}
+					mp_primZ_swap();
+					mp_primZ_intZ_eq();
+					if (pop_u64()) {
+						mp_primZ_drop();
+						mtw_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+						mtw_mirth_type_Type_TValue();
+					} else {
+						mp_primZ_drop();
+						mp_primZ_drop();
+						mw_mirth_type_TYPEz_FLOAT();
+					}
+					break;
+				case 0LL: // VALUE_INT
+					mtp_mirth_type_Value_VALUEz_INT();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify double precision float value with int value.", 56);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 4LL: // VALUE_BLOCK
+					mtp_mirth_type_Value_VALUEz_BLOCK();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify double precision float value with block.", 52);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 1LL: // VALUE_FLOAT_SINGLE
+					mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify double precision float value with single precision float value.", 75);
+					{
+						VAL d6 = pop_resource();
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
+						push_resource(d6);
+					}
+					push_u64(0LL); // TYPE_ERROR
+					break;
+				case 3LL: // VALUE_STR
+					mtp_mirth_type_Value_VALUEz_STR();
+					mp_primZ_drop();
+					mp_primZ_drop();
+					mw_mirth_type_ZPlusGamma_token();
+					STRLIT("Can't unify double precision float value with string value.", 59);
 					{
 						VAL d6 = pop_resource();
 						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang();
@@ -19642,13 +19989,25 @@ static void mw_mirth_type_Value_unifyZ_typeZBang (void) {
 			mw_mirth_type_TYPEz_INT();
 			mw_mirth_type_Type_unifyZBang();
 			break;
-		case 1LL: // VALUE_STR
+		case 3LL: // VALUE_STR
 			mtp_mirth_type_Value_VALUEz_STR();
 			mp_primZ_drop();
 			mw_mirth_type_TYPEz_STR();
 			mw_mirth_type_Type_unifyZBang();
 			break;
-		case 2LL: // VALUE_BLOCK
+		case 1LL: // VALUE_FLOAT_SINGLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+			mp_primZ_drop();
+			mw_mirth_type_TYPEz_FLOAT();
+			mw_mirth_type_Type_unifyZBang();
+			break;
+		case 2LL: // VALUE_FLOAT_DOUBLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+			mp_primZ_drop();
+			mw_mirth_type_TYPEz_FLOAT();
+			mw_mirth_type_Type_unifyZBang();
+			break;
+		case 4LL: // VALUE_BLOCK
 			mtp_mirth_type_Value_VALUEz_BLOCK();
 			mp_primZ_swap();
 			mw_mirth_type_Type_unifyZ_blockZBang();
@@ -19665,12 +20024,22 @@ static void mw_mirth_type_Value_unifyZ_errorZBang (void) {
 			mp_primZ_drop();
 			push_u64(0LL); // TYPE_ERROR
 			break;
-		case 1LL: // VALUE_STR
+		case 3LL: // VALUE_STR
 			mtp_mirth_type_Value_VALUEz_STR();
 			mp_primZ_drop();
 			push_u64(0LL); // TYPE_ERROR
 			break;
-		case 2LL: // VALUE_BLOCK
+		case 1LL: // VALUE_FLOAT_SINGLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+			mp_primZ_drop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 2LL: // VALUE_FLOAT_DOUBLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+			mp_primZ_drop();
+			push_u64(0LL); // TYPE_ERROR
+			break;
+		case 4LL: // VALUE_BLOCK
 			mtp_mirth_type_Value_VALUEz_BLOCK();
 			push_u64(0LL); // TYPE_ERROR
 			mw_mirth_type_Type_unifyZ_blockZBang();
@@ -20063,13 +20432,25 @@ static void mw_mirth_type_Value_type (void) {
 			push_u64(3LL); // PRIM_TYPE_INT
 			mtw_mirth_type_Type_TPrim();
 			break;
-		case 1LL: // VALUE_STR
-			mtp_mirth_type_Value_VALUEz_STR();
+		case 1LL: // VALUE_FLOAT_SINGLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
 			mp_primZ_drop();
-			push_u64(5LL); // PRIM_TYPE_STR
+			push_u64(4LL); // PRIM_TYPE_FLOAT_SINGLE
 			mtw_mirth_type_Type_TPrim();
 			break;
-		case 2LL: // VALUE_BLOCK
+		case 2LL: // VALUE_FLOAT_DOUBLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+			mp_primZ_drop();
+			push_u64(5LL); // PRIM_TYPE_FLOAT_DOUBLE
+			mtw_mirth_type_Type_TPrim();
+			break;
+		case 3LL: // VALUE_STR
+			mtp_mirth_type_Value_VALUEz_STR();
+			mp_primZ_drop();
+			push_u64(7LL); // PRIM_TYPE_STR
+			mtw_mirth_type_Type_TPrim();
+			break;
+		case 4LL: // VALUE_BLOCK
 			mtp_mirth_type_Value_VALUEz_BLOCK();
 			mw_mirth_arrow_Block_type();
 			mw_mirth_type_ArrowType_ZToType();
@@ -20097,15 +20478,23 @@ static void mw_mirth_type_PrimType_typeZThen (void) {
 			(void)pop_u64();
 			STRLIT("Int", 3);
 			break;
-		case 4LL: // PRIM_TYPE_PTR
+		case 4LL: // PRIM_TYPE_FLOAT_SINGLE
+			(void)pop_u64();
+			STRLIT("Float", 5);
+			break;
+		case 5LL: // PRIM_TYPE_FLOAT_DOUBLE
+			(void)pop_u64();
+			STRLIT("Double", 6);
+			break;
+		case 6LL: // PRIM_TYPE_PTR
 			(void)pop_u64();
 			STRLIT("Ptr", 3);
 			break;
-		case 5LL: // PRIM_TYPE_STR
+		case 7LL: // PRIM_TYPE_STR
 			(void)pop_u64();
 			STRLIT("Str", 3);
 			break;
-		case 6LL: // PRIM_TYPE_WORLD
+		case 8LL: // PRIM_TYPE_WORLD
 			(void)pop_u64();
 			STRLIT("+World", 6);
 			break;
@@ -20283,12 +20672,22 @@ static void mw_mirth_type_Value_rigidifyZBang (void) {
 			mtw_mirth_type_Value_VALUEz_INT();
 			mtw_mirth_type_Type_TValue();
 			break;
-		case 1LL: // VALUE_STR
+		case 3LL: // VALUE_STR
 			mtp_mirth_type_Value_VALUEz_STR();
 			mtw_mirth_type_Value_VALUEz_STR();
 			mtw_mirth_type_Type_TValue();
 			break;
-		case 2LL: // VALUE_BLOCK
+		case 1LL: // VALUE_FLOAT_SINGLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+			mtw_mirth_type_Value_VALUEz_FLOATz_SINGLE();
+			mtw_mirth_type_Type_TValue();
+			break;
+		case 2LL: // VALUE_FLOAT_DOUBLE
+			mtp_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+			mtw_mirth_type_Value_VALUEz_FLOATz_DOUBLE();
+			mtw_mirth_type_Type_TValue();
+			break;
+		case 4LL: // VALUE_BLOCK
 			mtp_mirth_type_Value_VALUEz_BLOCK();
 			mw_mirth_arrow_Block_arrow();
 			mw_mirth_arrow_Arrow_type();
@@ -23795,13 +24194,13 @@ static void mw_mirth_type_Type_ctype1ZAsk (void) {
 }
 static void mw_mirth_type_PrimType_ctypeZAsk (void) {
 	switch (get_top_data_tag()) {
-		case 4LL: // PRIM_TYPE_PTR
+		case 6LL: // PRIM_TYPE_PTR
 			(void)pop_u64();
 			STRLIT("void*", 5);
 			mtw_mirth_type_CType_PtrLike();
 			mtw_std_maybe_Maybe_1_Some();
 			break;
-		case 6LL: // PRIM_TYPE_WORLD
+		case 8LL: // PRIM_TYPE_WORLD
 			(void)pop_u64();
 			push_u64(3LL); // Phantom
 			mtw_std_maybe_Maybe_1_Some();
@@ -42571,6 +42970,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define TAG_PTR 1\n"
 		"#define TAG_STR (2 | REFS_FLAG)\n"
 		"#define TAG_FNPTR 3\n"
+		"#define TAG_FSINGLE 4\n"
+		"#define TAG_FDOUBLE 5\n"
 		"#define TAG_TUP_NIL TUP_FLAG\n"
 		"#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)\n"
 		"#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))\n"
@@ -42589,6 +42990,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tint32_t i32;\n"
 		"\tint16_t i16;\n"
 		"\tint8_t i8;\n"
+		"\tfloat fsingle;\n"
+		"\tdouble fdouble;\n"
 		"\tvoid* ptr;\n"
 		"\tFNPTR fnptr;\n"
 		"\tREFS* refs;\n"
@@ -42607,6 +43010,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define VINT(v)   ((v).data.i64)\n"
 		"#define VI64(v)   ((v).data.i64)\n"
 		"#define VU64(v)   ((v).data.u64)\n"
+		"#define VFSINGLE(v)   ((v).data.fsingle)\n"
+		"#define VFDOUBLE(v)   ((v).data.fdouble)\n"
 		"#define VPTR(v)   ((v).data.ptr)\n"
 		"#define VFNPTR(v) ((v).data.fnptr)\n"
 		"#define VSTR(v)   ((v).data.str)\n"
@@ -42617,6 +43022,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define IS_INT(v)   ((v).tag == TAG_INT)\n"
 		"#define IS_U64(v)   ((v).tag == TAG_INT)\n"
 		"#define IS_I64(v)   ((v).tag == TAG_INT)\n"
+		"#define IS_FSINGLE(v)   ((v).tag == TAG_FSINGLE)\n"
+		"#define IS_FDOUBLE(v)   ((v).tag == TAG_FDOUBLE)\n"
 		"#define IS_PTR(v)   ((v).tag == TAG_PTR)\n"
 		"#define IS_FNPTR(v) ((v).tag == TAG_FNPTR)\n"
 		"#define IS_STR(v)   ((v).tag == TAG_STR)\n"
@@ -42626,6 +43033,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
 		"#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
 		"#define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
+		"#define MKFSINGLE(x)   ((VAL){.tag=TAG_FSINGLE, .data={.fsingle=(x)}})\n"
+		"#define MKFDOUBLE(x)   ((VAL){.tag=TAG_FDOUBLE, .data={.fdouble=(x)}})\n"
 		"#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})\n"
 		"#define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})\n"
 		"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
@@ -42833,6 +43242,16 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\treturn VI64(v);\n"
 		"}\n"
 		"\n"
+		"static float value_fsingle (VAL v) {\n"
+		"\tASSERT1(IS_FSINGLE(v), v);\n"
+		"\treturn VFSINGLE(v);\n"
+		"}\n"
+		"\n"
+		"static float value_fdouble (VAL v) {\n"
+		"\tASSERT1(IS_FDOUBLE(v), v);\n"
+		"\treturn VFDOUBLE(v);\n"
+		"}\n"
+		"\n"
 		"static void* value_ptr (VAL v) {\n"
 		"\tASSERT1(IS_PTR(v),v);\n"
 		"\treturn VPTR(v);\n"
@@ -42852,6 +43271,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define pop_i32() ((int32_t)pop_i64())\n"
 		"#define pop_i64() (value_i64(pop_value()))\n"
 		"#define pop_usize() (pop_u64())\n"
+		"#define pop_fsingle() (value_fsingle(pop_value()))\n"
+		"#define pip_fdouble() (value_fdouble(pop_value()))\n"
 		"#define pop_bool() (pop_u64())\n"
 		"#define pop_ptr() (value_ptr(pop_value()))\n"
 		"#define pop_fnptr() (value_fnptr(pop_value()))\n"
@@ -42866,6 +43287,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define push_i8(b) push_i64((int64_t)(b))\n"
 		"#define push_i16(b) push_i64((int64_t)(b))\n"
 		"#define push_i32(b) push_i64((int64_t)(b))\n"
+		"#define push_fsingle(f) push_value(MKFSINGLE(f))\n"
+		"#define push_fdouble(f) push_value(MKFDOUBLE(f))\n"
 		"#define push_ptr(p) push_value(MKPTR(p))\n"
 		"#define push_fnptr(p) push_value(MKFNPTR(p))\n"
 		"\n"
@@ -43818,7 +44241,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		32484
+		33261
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
