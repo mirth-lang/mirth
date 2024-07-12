@@ -39,6 +39,7 @@ extern int write(int, const char*, size_t);
 extern int close(int);
 extern int open(const char*, int, ...);
 extern void exit(int);
+extern int snprintf (char * s, size_t n, const char * format, ...);
 
 typedef uint16_t TAG;
 #define REFS_FLAG 	 0x8000
@@ -352,7 +353,7 @@ static FNPTR value_fnptr (VAL v) {
 #define pop_i64() (value_i64(pop_value()))
 #define pop_usize() (pop_u64())
 #define pop_fsingle() (value_fsingle(pop_value()))
-#define pip_fdouble() (value_fdouble(pop_value()))
+#define pop_fdouble() (value_fdouble(pop_value()))
 #define pop_bool() (pop_u64())
 #define pop_ptr() (value_ptr(pop_value()))
 #define pop_fnptr() (value_fnptr(pop_value()))
@@ -742,6 +743,25 @@ static void mp_primZ_strZ_cmp (void) {
 	push_i64(cmp);
 	decref(a); decref(b);
 	PRIM_EXIT(mp_primZ_strZ_cmp);
+}
+
+static void mp_primZ_doubleZ_add (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_add,"prim-double-add");
+	double b = pop_fdouble();
+	double a = pop_fdouble();
+	push_fdouble(a + b);
+	PRIM_EXIT(mp_primZ_doubleZ_add);
+}
+
+static void mp_primZ_doubleZ_toZ_str (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_toZ_str, "prim-double-to-str");
+	double d = pop_fdouble();
+	int len = snprintf(NULL, 0, "%lf", d);
+	char* result = malloc(len+1);
+	snprintf(result, len+1, "%lf", d);
+	push_value(mkstr(result, len));
+	free(result);
+	PRIM_EXIT(mp_primZ_doubleZ_toZ_str);
 }
 
 static void mp_primZ_sysZ_argc (void) {

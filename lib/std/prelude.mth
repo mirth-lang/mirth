@@ -41,6 +41,10 @@ alias(Int.<<, prim-int-shl)
 alias(Int.>>, prim-int-shr)
 inline:def(Int./%, Int Int -- Int Int, dup2 % dip(/))
 
+alias(Double.+, prim-double-add)
+
+alias(Double.>Str, prim-double-to-str)
+
 inline(
     alias(Bool.if(f,g), prim-if)
     def(Bool.&&, Bool Bool -- Bool, if(id, drop False))
