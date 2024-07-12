@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <float.h>
 
 extern void* malloc(size_t);
 extern void* calloc(size_t, size_t);
@@ -734,6 +735,21 @@ static void mp_primZ_intZ_lt (void) {
 	push_bool(VINT(a) < VINT(b));
 	PRIM_EXIT(mp_primZ_intZ_lt);
 }
+
+static void mp_primZ_intZ_toZ_double (void) {
+	PRIM_ENTER(mp_primZ_intZ_toZ_double, "prim-int-to-double");
+	int64_t i = pop_i64();
+	push_fdouble((double)i);
+	PRIM_EXIT(mp_primZ_intZ_toZ_double);
+}
+
+static void mp_primZ_doubleZ_toZ_int (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_toZ_int, "prim-double-to-int");
+	double d = pop_fdouble();
+	push_i64((int64_t)d);
+	PRIM_EXIT(mp_primZ_doubleZ_toZ_int);
+}
+
 static void mp_primZ_strZ_cmp (void) {
 	PRIM_ENTER(mp_primZ_strZ_cmp,"prim-str-cmp");
 	VAL b = pop_value();
@@ -753,12 +769,36 @@ static void mp_primZ_doubleZ_add (void) {
 	PRIM_EXIT(mp_primZ_doubleZ_add);
 }
 
+static void mp_primZ_doubleZ_sub (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_sub,"prim-double-sub");
+	double b = pop_fdouble();
+	double a = pop_fdouble();
+	push_fdouble(a - b);
+	PRIM_EXIT(mp_primZ_doubleZ_sub);
+}
+
+static void mp_primZ_doubleZ_mul (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_mul,"prim-double-mul");
+	double b = pop_fdouble();
+	double a = pop_fdouble();
+	push_fdouble(a * b);
+	PRIM_EXIT(mp_primZ_doubleZ_mul);
+}
+
+static void mp_primZ_doubleZ_div (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_div,"prim-double-div");
+	double b = pop_fdouble();
+	double a = pop_fdouble();
+	push_fdouble(a / b);
+	PRIM_EXIT(mp_primZ_doubleZ_div);
+}
+
 static void mp_primZ_doubleZ_toZ_str (void) {
 	PRIM_ENTER(mp_primZ_doubleZ_toZ_str, "prim-double-to-str");
 	double d = pop_fdouble();
-	int len = snprintf(NULL, 0, "%lf", d);
+	int len = snprintf(NULL, 0, "%.*f", DBL_DIG, d);
 	char* result = malloc(len+1);
-	snprintf(result, len+1, "%lf", d);
+	snprintf(result, len+1, "%.*f", DBL_DIG,  d);
 	push_value(mkstr(result, len));
 	free(result);
 	PRIM_EXIT(mp_primZ_doubleZ_toZ_str);

@@ -147,7 +147,7 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
 def(main, +World -- +World,
     +Mirth.Init!
 
-    3.1415 >Str rdip:print 
+    1 >Double 2 >Double / >Str rdip:print 
 
     Arguments.default
     LIST(

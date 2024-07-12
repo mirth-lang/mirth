@@ -46,13 +46,21 @@ data(Prim,
 
     PRIM_FLOAT_EQ,
     PRIM_FLOAT_ADD,
+    PRIM_FLOAT_SUB,
+    PRIM_FLOAT_MUL,
+    PRIM_FLOAT_DIV,
     PRIM_FLOAT_TO_INT,
     PRIM_FLOAT_TO_STR,
+    PRIM_FLOAT_TO_DOUBLE,
 
     PRIM_DOUBLE_EQ,
     PRIM_DOUBLE_ADD,
+    PRIM_DOUBLE_SUB,
+    PRIM_DOUBLE_MUL,
+    PRIM_DOUBLE_DIV,
     PRIM_DOUBLE_TO_INT,
     PRIM_DOUBLE_TO_STR,
+    PRIM_DOUBLE_TO_FLOAT,
 
     PRIM_PACK_NIL,
     PRIM_PACK_CONS,
@@ -80,8 +88,6 @@ data(Prim,
     PRIM_STR_NUM_BYTES,
     PRIM_STR_BASE,
     PRIM_STR_CAT,
-    PRIM_STR_TO_FLOAT,
-    PRIM_STR_TO_DOUBLE,
 
     PRIM_U8_GET,
     PRIM_U8_SET,
@@ -213,13 +219,21 @@ def(init-prims!, +Mirth -- +Mirth,
 
     PRIM_FLOAT_EQ "prim-float-eq" 0 def-prim!
     PRIM_FLOAT_ADD "prim-float-add" 0 def-prim!
+    PRIM_FLOAT_SUB "prim-float-sub" 0 def-prim!
+    PRIM_FLOAT_MUL "prim-float-mul" 0 def-prim!
+    PRIM_FLOAT_DIV "prim-float-div" 0 def-prim!
     PRIM_FLOAT_TO_INT "prim-float-to-int" 0 def-prim!
     PRIM_FLOAT_TO_STR "prim-float-to-str" 0 def-prim!
+    PRIM_FLOAT_TO_DOUBLE "prim-float-to-double" 0 def-prim!
 
     PRIM_DOUBLE_EQ "prim-double-eq" 0 def-prim!
     PRIM_DOUBLE_ADD "prim-double-add" 0 def-prim!
+    PRIM_DOUBLE_SUB "prim-double-sub" 0 def-prim!
+    PRIM_DOUBLE_MUL "prim-double-mul" 0 def-prim!
+    PRIM_DOUBLE_DIV "prim-double-div" 0 def-prim!
     PRIM_DOUBLE_TO_INT "prim-double-to-int" 0 def-prim!
     PRIM_DOUBLE_TO_STR "prim-double-to-str" 0 def-prim!
+    PRIM_DOUBLE_TO_FLOAT "prim-double-to-float" 0 def-prim!
 
     PRIM_PACK_NIL "prim-pack-nil" 0 def-prim!
     PRIM_PACK_CONS "prim-pack-cons" 0 def-prim!
@@ -246,7 +260,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_STR_BASE "prim-str-base" 0 def-prim!
     PRIM_STR_CAT "prim-str-cat" 0 def-prim!
     PRIM_STR_CMP "prim-str-cmp" 0 def-prim!
-    PRIM_STR_TO_DOUBLE "prim-str-to-double" 0 def-prim!
 
     PRIM_U8_GET "prim-u8-get" 0 def-prim!
     PRIM_U8_SET "prim-u8-set" 0 def-prim!
@@ -298,12 +311,21 @@ def(init-prims!, +Mirth -- +Mirth,
     dup2 PRIM_INT_LT ctx-type!
     drop2
 
-    Ctx0 TYPE_FLOAT TYPE_FLOAT T2 TYPE_BOOL T1 T->
-    dup2 PRIM_FLOAT_EQ ctx-type!
+    Ctx0 TYPE_FLOAT TYPE_FLOAT T2 TYPE_BOOL T1 T-> PRIM_FLOAT_EQ ctx-type!
+    Ctx0 TYPE_DOUBLE TYPE_DOUBLE T2 TYPE_BOOL T1 T-> PRIM_DOUBLE_EQ ctx-type!
+
+    Ctx0 TYPE_FLOAT TYPE_FLOAT T2 TYPE_FLOAT T1 T-> 
+    dup2 PRIM_FLOAT_ADD ctx-type!
+    dup2 PRIM_FLOAT_SUB ctx-type!
+    dup2 PRIM_FLOAT_MUL ctx-type!
+    dup2 PRIM_FLOAT_DIV ctx-type!
     drop2
 
-    Ctx0 TYPE_DOUBLE TYPE_DOUBLE T2 TYPE_BOOL T1 T->
-    dup2 PRIM_DOUBLE_EQ ctx-type!
+    Ctx0 TYPE_DOUBLE TYPE_DOUBLE T2 TYPE_DOUBLE T1 T-> 
+    dup2 PRIM_DOUBLE_ADD ctx-type!
+    dup2 PRIM_DOUBLE_SUB ctx-type!
+    dup2 PRIM_DOUBLE_MUL ctx-type!
+    dup2 PRIM_DOUBLE_DIV ctx-type!
     drop2
 
     Ctx0 TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR ctx-type!

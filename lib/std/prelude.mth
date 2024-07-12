@@ -42,7 +42,11 @@ alias(Int.>>, prim-int-shr)
 inline:def(Int./%, Int Int -- Int Int, dup2 % dip(/))
 
 alias(Double.+, prim-double-add)
+alias(Double.-, prim-double-sub)
+alias(Double.*, prim-double-mul)
+alias(Double./, prim-double-div)
 
+alias(Double.>Int, prim-double-to-int)
 alias(Double.>Str, prim-double-to-str)
 
 inline(
@@ -244,6 +248,7 @@ def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 inline(
     def(Int.show, Int -- Str, prim-int-to-str)
     def(Int.show;, Int +Str -- +Str, show ;)
+    def(Int.>Double, Int -- Double, prim-int-to-double)
 
     def(Str.compare, Str Str -- Comparison, prim-str-cmp 0 compare)
     def(Str.==, Str Str -- Bool, compare eq?)
