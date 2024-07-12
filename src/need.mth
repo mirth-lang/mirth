@@ -74,6 +74,7 @@ def(+Needs.run-atom!, Atom +Mirth +Needs -- +Mirth +Needs, sip(args) op run-op!)
 def(+Needs.run-op!, List(Arg) Op +Mirth +Needs -- +Mirth +Needs,
     OpNone -> drop,
     OpInt -> drop2,
+    OpFloat -> drop2,
     OpStr -> drop2,
     OpWord -> dup prefer-inline? if(run-word!, need-word!) push-args!,
     OpExternal -> drop push-args!,

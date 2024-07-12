@@ -38,8 +38,7 @@ data(Type,
 
 data(Value,
     VALUE_INT -> Int,
-    VALUE_FLOAT_SINGLE -> Int,
-    VALUE_FLOAT_DOUBLE -> Int,
+    VALUE_FLOAT -> Str,
     VALUE_STR -> Str,
     VALUE_BLOCK -> Block)
 
@@ -99,8 +98,7 @@ def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
 ||| Get value type constructor name.
 def(Value.tycon?, Value -- Maybe(Tycon),
     VALUE_INT -> drop PRIM_TYPE_INT TYCON_PRIM Some,
-    VALUE_FLOAT_SINGLE -> drop PRIM_TYPE_FLOAT_SINGLE TYCON_PRIM Some,
-    VALUE_FLOAT_DOUBLE -> drop PRIM_TYPE_FLOAT_DOUBLE TYCON_PRIM Some,
+    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT_DOUBLE TYCON_PRIM Some,
     VALUE_STR -> drop PRIM_TYPE_STR TYCON_PRIM Some,
     VALUE_BLOCK -> drop None)
 
@@ -277,13 +275,9 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
                 drop2 token
                 "Can't unify int value with string value."
                 rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_SINGLE ->
+            VALUE_FLOAT ->
                 drop2 token
-                "Can't unify int value with single precision float value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_DOUBLE ->
-                drop2 token
-                "Can't unify int value with double precision float value."
+                "Can't unify int value with float value."
                 rdip:emit-error! TYPE_ERROR,
             VALUE_BLOCK ->
                 drop2 token
@@ -297,14 +291,11 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
                 drop2 token
                 "Can't unify string value with int value."
                 rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_SINGLE ->
+            VALUE_FLOAT ->
                 drop2 token
-                "Can't unify int value with single precision float value."
+                "Can't unify int value with float value."
                 rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_DOUBLE ->
-                drop2 token
-                "Can't unify int value with double precision float value."
-                rdip:emit-error! TYPE_ERROR,            VALUE_BLOCK ->
+            VALUE_BLOCK ->
                 drop2 token
                 "Can't unify string value with block."
                 rdip:emit-error! TYPE_ERROR,
@@ -320,13 +311,9 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
                 drop2 token
                 "Can't unify block with int value."
                 rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_SINGLE ->
+            VALUE_FLOAT ->
                 drop2 token
-                "Can't unify int value with single precision float value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_DOUBLE ->
-                drop2 token
-                "Can't unify int value with double precision float value."
+                "Can't unify int value with float value."
                 rdip:emit-error! TYPE_ERROR,            
             VALUE_STR ->
                 drop2 token
@@ -334,47 +321,19 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
                 rdip:emit-error! TYPE_ERROR
         ),
 
-        VALUE_FLOAT_SINGLE -> swap match(
-            VALUE_FLOAT_SINGLE ->
+        VALUE_FLOAT -> swap match(
+            VALUE_FLOAT ->
                 dup2 == if(
-                    drop VALUE_FLOAT_SINGLE TValue,
+                    drop VALUE_FLOAT TValue,
                     drop2 TYPE_FLOAT
                 ),
             VALUE_INT ->
                 drop2 token
-                "Can't unify single precision float value with int value."
+                "Can't unify float value with int value."
                 rdip:emit-error! TYPE_ERROR,
             VALUE_BLOCK ->
                 drop2 token
-                "Can't unify single precision float value with block."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_DOUBLE ->
-                drop2 token
-                "Can't unify single precision float value with double precision float value."
-                rdip:emit-error! TYPE_ERROR,            
-            VALUE_STR ->
-                drop2 token
-                "Can't unify single precision float value with string value."
-                rdip:emit-error! TYPE_ERROR
-        ),
-
-        VALUE_FLOAT_DOUBLE -> swap match(
-            VALUE_FLOAT_DOUBLE ->
-                dup2 == if(
-                    drop VALUE_FLOAT_DOUBLE TValue,
-                    drop2 TYPE_FLOAT
-                ),
-            VALUE_INT ->
-                drop2 token
-                "Can't unify double precision float value with int value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_BLOCK ->
-                drop2 token
-                "Can't unify double precision float value with block."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_FLOAT_SINGLE  ->
-                drop2 token
-                "Can't unify double precision float value with single precision float value."
+                "Can't unify float value with block."
                 rdip:emit-error! TYPE_ERROR,            
             VALUE_STR ->
                 drop2 token
@@ -385,15 +344,13 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
 def(Value.unify-type!, +Mirth +Gamma Type Value -- +Mirth +Gamma Type,
     VALUE_INT -> drop TYPE_INT unify!,
     VALUE_STR -> drop TYPE_STR unify!,
-    VALUE_FLOAT_SINGLE -> drop TYPE_FLOAT unify!,
-    VALUE_FLOAT_DOUBLE -> drop TYPE_FLOAT unify!,
+    VALUE_FLOAT -> drop TYPE_FLOAT unify!,
     VALUE_BLOCK -> swap unify-block!)
 
 def(Value.unify-error!, +Mirth +Gamma Value -- +Mirth +Gamma Type,
     VALUE_INT -> drop TYPE_ERROR,
     VALUE_STR -> drop TYPE_ERROR,
-    VALUE_FLOAT_SINGLE -> drop TYPE_ERROR,
-    VALUE_FLOAT_DOUBLE -> drop TYPE_ERROR,
+    VALUE_FLOAT -> drop TYPE_ERROR,
     VALUE_BLOCK -> TYPE_ERROR unify-block!)
 
 def(Type.unify-block!, +Mirth +Gamma Block Type -- +Mirth +Gamma Type,
@@ -462,8 +419,7 @@ def(Type.type;, Type +Str -- +Str,
 
 def(Value.type, Value -- Type,
     VALUE_INT -> drop PRIM_TYPE_INT TPrim,
-    VALUE_FLOAT_SINGLE -> drop PRIM_TYPE_FLOAT_SINGLE TPrim,
-    VALUE_FLOAT_DOUBLE -> drop PRIM_TYPE_FLOAT_DOUBLE TPrim,
+    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT_DOUBLE TPrim,
     VALUE_STR -> drop PRIM_TYPE_STR TPrim,
     VALUE_BLOCK -> type >Type)
 
@@ -545,8 +501,7 @@ def(Type.rigidify!, +Mirth Ctx Type -- +Mirth Ctx Type,
 def(Value.rigidify!, +Mirth Ctx Value -- +Mirth Ctx Type,
     VALUE_INT -> VALUE_INT TValue,
     VALUE_STR -> VALUE_STR TValue,
-    VALUE_FLOAT_SINGLE -> VALUE_FLOAT_SINGLE TValue,
-    VALUE_FLOAT_DOUBLE -> VALUE_FLOAT_DOUBLE TValue,
+    VALUE_FLOAT -> VALUE_FLOAT TValue,
     VALUE_BLOCK -> arrow type rigidify! >Type)
 
 ||| How many types does this type take as an argument?

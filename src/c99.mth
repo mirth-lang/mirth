@@ -563,6 +563,7 @@ def(Atom.show-in-stack-trace?, Atom -- Bool,
     op match(
         OpNone -> False,
         OpInt -> drop False,
+        OpFloat -> drop False,
         OpStr -> drop False,
         OpWord -> prefer-inline? not,
         OpExternal -> drop True,
@@ -589,6 +590,7 @@ def(Atom.show-in-stack-trace?, Atom -- Bool,
 def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OpNone     -> drop,
     OpInt      -> nip c99-int!,
+    OpFloat    -> nip c99-float!,
     OpStr      -> nip c99-str!,
     OpWord     -> c99-word!,
     OpExternal -> +mirth:cname c99-call!,
@@ -683,6 +685,9 @@ def(c99-label-pop-r!, Label +C99 -- +C99, c99-line("LPOPR(lbl_" put name mangled
 
 def(c99-int!, Int +C99 -- +C99,
     c99-line("push_i64(" put show put "LL);" put))
+
+def(c99-float!, Str +C99 -- +C99,
+    c99-line("push_fdouble(" put put ");" put))
 
 def(c99-str!, Str +C99 -- +C99,
     dup num-bytes 4090 >Size > if(

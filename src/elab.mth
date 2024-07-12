@@ -716,6 +716,7 @@ def ab-expand-opsig! [ OpSig +Mirth +AB -- StackType StackType +Mirth +AB ] {
 }
 
 def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { OpInt ab-op! }
+def ab-float! [ Str +Mirth +AB -- +Mirth +AB ] { OpFloat ab-op! }
 def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { OpStr ab-op! }
 def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { OpBuffer ab-op! }
 def ab-variable! [ Variable +Mirth +AB -- +Mirth +AB ] { OpVariable ab-op! }
@@ -799,6 +800,7 @@ def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
     Subst.nil swap match(
         OpNone -> OPSIG_ID,
         OpInt -> VALUE_INT TValue OPSIG_PUSH,
+        OpFloat -> VALUE_FLOAT TValue OPSIG_PUSH,
         OpStr -> VALUE_STR TValue OPSIG_PUSH,
         OpBuffer -> drop TYPE_PTR OPSIG_PUSH,
         OpVariable -> type TMut OPSIG_PUSH,
@@ -904,6 +906,7 @@ def elab-atom! [ +Mirth +AB -- +Mirth +AB ] {
         TokenDName -> elab-atom-dname!,
         TokenInt -> ab-int!,
         TokenStr -> ab-str!,
+        TokenFloat -> ab-float!,
         TokenLSquare -> drop elab-atom-block!,
         TokenLCurly -> drop elab-atom-assert!,
         TokenLabelPush -> ab-token@ rdip:args-0 ab-label-push!,

@@ -178,15 +178,18 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
         # TODO: save the doc in the token-doc field for the next token
         #   https://github.com/mirth-lang/mirth/issues/240
 
-        rdip(is-int? if(
-            int? TokenInt,
-            dname? match(
-                Some -> TokenDName,
-                None ->
-                    label-token? match(
-                        Some -> id,
-                        None -> name? TokenName
-                    )
+        rdip(is-float? if(
+            float? TokenFloat,
+            is-int? if(
+                int? TokenInt,
+                dname? match(
+                    Some -> TokenDName,
+                    None ->
+                        label-token? match(
+                            Some -> id,
+                            None -> name? TokenName
+                        )
+                )
             )
         ))
 
@@ -286,6 +289,31 @@ def(+Str.is-arrow?, +Str -- Bool +Str,
 
 def(+Str.is-dashes?, +Str -- Bool +Str,
     dup! "--" ==)
+
+def(+Str.is-float?, +Str -- Bool +Str,
+    0 >Size
+    0 >Offset
+    
+    while(dup byte@ is-digit, dip(1+) 1+)
+
+    dup byte@ BDOT == if(
+        dip(1+) 1+ while(dup byte@ is-digit, dip(1+) 1+)
+        swap >Int 3 >= if(
+            num-bytes? >Offset ==,
+            drop False
+        ),
+        drop2 False
+    )
+)
+
+def(+Str.float?, +Str -- Str +Str,
+    "" thaw rswap 0 >Offset
+    while(dup num-bytes? >Offset <,
+        sip(
+            byte@ rdip:push-byte-ascii!
+        )
+        1+)
+    drop rswap freeze)
 
 def(+Str.is-int?, +Str -- Bool +Str,
     is-dec-int?
