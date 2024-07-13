@@ -320,7 +320,11 @@ def(byte-sign-value-index-float, Byte -- Byte Offset,
     _ -> drop B'+' 0 >Offset)
 
 external(
-    strtod [ CStr Ptr? -- CFloat64 ]
+    "double strtod(const char*, char**);"
+    "double string_to_float64(const char* float64_str) {"
+    "    return strtod(float64_str, 0);"
+    "}"
+    string_to_float64 [ CStr -- CFloat64 ]
 )
 
 def(+Str.float?, +Str -- Float64 +Str,
@@ -331,7 +335,7 @@ def(+Str.float?, +Str -- Float64 +Str,
             byte@ rdip:push-byte-ascii!
         )
         1+)
-    drop rswap freeze with-cstr(Ptr?.Null strtod) >Float64)
+    drop rswap freeze with-cstr(string_to_float64) >Float64)
 
 def(+Str.is-int?, +Str -- Bool +Str,
     is-dec-int?

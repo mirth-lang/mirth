@@ -5561,11 +5561,14 @@ static void mext_std_world_posixZ_stat (void) {
 	push_resource(MKI64(0));
 	push_i64((int64_t)(Y));
 }
-double strtod (const char *, void*);
-static void mext_mirth_lexer_strtod (void) {
-	void* X2 = (void*)pop_ptr();
+double strtod(const char*, char**);
+double string_to_float64(const char* float64_str) {
+    return strtod(float64_str, 0);
+}
+double string_to_float64 (const char *);
+static void mext_mirth_lexer_stringz_toz_float64 (void) {
 	const char * X1 = (const char *)pop_ptr();
-	double Y = strtod(X1, X2);
+	double Y = string_to_float64(X1);
 	push_f64((double)(Y));
 }
 static void mw_std_either_Either_2_leftZAsk (void);
@@ -50665,8 +50668,7 @@ static void mb_mirth_lexer_lexerZ_moveZBang_0 (void) {
 	mw_std_input_ZPlusInput_moveZBang();
 }
 static void mb_std_str_ZPlusStr_floatZAsk_6 (void) {
-	mp_primZ_ptrZ_nil();
-	mext_mirth_lexer_strtod();
+	mext_mirth_lexer_stringz_toz_float64();
 }
 static void mb_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang_4 (void) {
 	mw_mirth_token_Token_succ();
