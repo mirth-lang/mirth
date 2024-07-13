@@ -11,7 +11,7 @@ SRCS=lib/std/* lib/arg-parser/* src/*
  install-vim install-code install-atom install profile play-snake test-verify test-update \
  examples
 
-default: show bin/snake.c
+default: show bin/snake.c bin/fractal.c
 
 show: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
@@ -130,6 +130,13 @@ bin/snake.c: bin/mirth2 lib/std/* examples/snake.mth examples/sdl2.mth
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --cflags --libs sdl2`
+	
+bin/fractal.c: bin/mirth2 lib/std/* examples/fractal.mth examples/sdl2.mth
+	bin/mirth2 --debug examples/fractal.mth -o bin/fractal.c
+
+bin/fractal: bin/fractal.c examples/fractal-extern.c
+	$(CC) -o bin/fractal bin/fractal.c examples/fractal-extern.c `pkg-config --cflags --libs sdl2` -lm
+
 
 bin/snake-infer-types: bin/snake-infer-types.c
 	$(CC) -o bin/snake-infer-types bin/snake-infer-types.c `pkg-config --cflags --libs sdl2`

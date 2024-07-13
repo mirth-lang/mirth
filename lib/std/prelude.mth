@@ -240,6 +240,10 @@ inline(
     def(Int.<=, Int Int -- Bool, swap < not)
     def(Int.<>, Int Int -- Bool, == not)
     def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
+
+    alias(Double.==, prim-double-eq)
+    alias(Double.<, prim-double-lt)
+    def(Double.<=, Double Double -- Bool, swap < not)
 )
 def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
 def(Int.min, Int Int -- Int, dup2 < if(drop, nip))

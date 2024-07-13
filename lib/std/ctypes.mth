@@ -47,6 +47,8 @@ inline(
 
     def(CUSize.>Size, CUSize -- Size, >Nat >Size)
 
+    def(CDouble.>Double, CDouble -- Double, CDouble -> id)
+
     def(CPtr./CPtr, CPtr(t) -- Ptr, CPtr -> id)
     def(CConst./CConst, CConst(t) -- t, CConst -> id)
     def(CRestrict./CRestrict, CRestrict(t) -- t, CRestrict -> id)

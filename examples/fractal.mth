@@ -1,0 +1,233 @@
+module(examples.fractal)
+
+import(examples.sdl2)
+import(std.prelude)
+import(std.world)
+import(std.list)
+import(std.maybe)
+import(std.ctypes)
+import(std.buffer)
+
+##############
+# Mandelbrot Game #
+##############
+
+def main {
+    +Mandelbrot.Init!
+    loop!
+    quit!
+}
+
+data(+Mandelbrot, +Mandelbrot -> +platform:+FractalUI running:Bool)
+
+data(+FractalUI, +FractalUI ->
+    +SDL
+    +window: +SDL_Window
+    +surface: +SDL_Surface
+    +renderer: +SDL_Renderer
+    +event-buffer: +Buffer
+    +rects:+Buffer
+    )
+
+def +FractalUI.sdl(f) { /+FractalUI f +FractalUI }
+
+data(Complex, Complex -> real:Double imag:Double)
+
+def CENTER { -0.5 >imag 0.0 >real Complex }
+
+data(Position, Position -> x:Int y:Int)
+
+def Position.== [ Position Position -- Bool ] {
+    /Position /Position x> x> == y> y> == &&
+}
+
+def WIDTH { 400 }
+def HEIGHT { 400 }
+def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
+def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC | }
+
+def +FractalUI.Init! [ +World -- +World +FractalUI ] {
+    SDL_INIT_VIDEO >flags
+    SDL_Init unwrap!
+
+    "Mandelbrot!" >title
+    100 >x 100 >y
+    WIDTH >w
+    HEIGHT >h
+    SNAKE_WINDOW_FLAGS >flags
+    create-window! unwrap!
+    >+window
+
+    -1 >index
+    SNAKE_RENDERER_FLAGS >flags
+    create-renderer! unwrap!
+    >+renderer
+
+    SDL_GetWindowSurface >+surface
+
+    256 >Size +Buffer.new >+event-buffer
+    HEIGHT FLIPS / 16 * >Size +Buffer.new >+rects
+
+    +FractalUI
+}
+
+def +FractalUI.rect! [ +FractalUI x:I32 y:I32 w:I32 h:I32 index:Int -- +FractalUI ] {
+    index> 16 * >Offset >index
+    h> 12 >Offset @index + +rects:!I32
+    w> 8 >Offset @index + +rects:!I32
+    y> 4 >Offset @index + +rects:!I32
+    x> 0 >Offset @index + +rects:!I32
+    index> drop
+}
+
+def +Mandelbrot.Init! [ +World -- +World +Mandelbrot ] {
+    +FractalUI.Init! >+platform
+    True >running
+    +Mandelbrot
+}
+
+def +Mandelbrot.loop! [ +World +Mandelbrot -- +World +Mandelbrot ] {
+    process-events!
+    present!
+    while(running,
+        10 >U32 >ticks +platform:sdl:delay!
+        process-events!
+    )
+}
+
+def +Mandelbrot.quit! [ +World +Mandelbrot -- +World ] {
+    /+Mandelbrot running> drop +platform> quit!
+}
+
+def +FractalUI.quit! [ +World +FractalUI -- +World ] {
+    /+FractalUI
+    destroy-renderer!
+    destroy-window!
+
+    +event-buffer> rdrop
+    +rects> rdrop
+    +surface> /+SDL_Surface drop
+    
+    quit!
+}
+
+def rgba { CInt >a CInt >b CInt >g CInt >r }
+def background-color { 0 0 0 255 rgba }
+
+def BAIL_OUT { 2.0 }
+def FLIPS { 24 }
+
+def center [ Int Int -- Complex ] {
+    WIDTH 2 / - >Double
+    CENTER real + >real
+
+    HEIGHT 2 / - >Double
+    CENTER imag + >imag
+
+    Complex
+}
+
+def X [ Complex -- Double ] { real }
+def Y [ Complex -- Double ] { imag }
+
+external(
+    cpow -> pow [ CDouble CDouble -- CDouble ]
+    clog10 -> log10 [ CDouble -- CDouble ]
+    cset_pixel -> set_pixel [ +surface:+SDL_Surface CInt CInt CInt -- +surface:+SDL_Surface ]
+)
+
+def set_pixel [ +surface:+SDL_Surface Int Int Int -- +surface:+SDL_Surface ] {
+    dip(dip:CInt CInt) CInt cset_pixel
+}
+
+def pow [ Double Double -- Double ] {
+    dip:CDouble CDouble cpow >Double
+}
+
+def log10 [ Double -- Double] {
+    CDouble clog10 >Double
+}
+
+def +Mandelbrot.plot! [ +Mandelbrot x:Int y:Int Int -- +Mandelbrot ] {
+    >iterations x> y> iterations> +platform:sdl:set_pixel
+}
+
+def scale_x [ Int -- Double ] {
+    >Double     
+    2.47 800.0 / * 
+    2.0 -
+}
+
+def scale_y [ Int -- Double ] {
+    >Double     
+    2.24 800.0 / *
+    1.12 -
+}
+
+def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
+    +platform:sdl:show-window!
+    +platform:clear!
+
+    0 >px while(
+        @px WIDTH <,
+        0 >py while(
+            @py HEIGHT <,
+
+            @px scale_x >x0
+            @py scale_y >y0
+
+            0.0 >x
+            0.0 >y
+
+            0 >iteration
+            while(
+                @x 2.0 pow 
+                @y 2.0 pow + 
+                2.0 2.0 pow <= and(@iteration 1000 <),
+
+                @x 2.0 pow
+                @y 2.0 pow -
+                @x0 + >xtemp
+                2.0 @x * @y * @y0 + y> drop >y
+                x> drop xtemp> >x
+                iteration> 1+ >iteration
+            )
+
+            # rdip:print("pixel: "; @px show; " "; @py show; " iterations: "; @iteration show;)
+
+            x> drop
+            y> drop
+            x0> drop
+            y0> drop
+            @px >x @py >y iteration> dup 1000 < if(plot!, x> drop y> drop drop)
+
+            py> 1+ >py
+        )
+        py> drop
+        px> 1+ >px
+    )
+    px> drop
+
+    +platform:sdl:SDL_UpdateWindowSurface drop
+}
+
+def +FractalUI.clear! [ +FractalUI -- +FractalUI ] {
+    background-color sdl:SDL_SetRenderDrawColor
+    sdl:SDL_RenderClear
+}
+
+def +Mandelbrot.&event [ +Mandelbrot -- +Mandelbrot SDL_Event ] {
+    +platform:+event-buffer:base SDL_Event
+}
+
+def +Mandelbrot.process-events! [ +World +Mandelbrot -- +World +Mandelbrot ] {
+    while(&event +platform:sdl:SDL_PollEvent >Int 0>, process-event!)
+}
+
+def +Mandelbrot.process-event! [ +World +Mandelbrot -- +World +Mandelbrot ] {
+    &event type@ match {
+        { SDL_QUIT ->
+            False running! }
+        { _ -> drop }
+    }
+}

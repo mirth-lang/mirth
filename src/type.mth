@@ -1191,12 +1191,14 @@ def(StackType.split-parts, StackType -- StackType List(StackTypePart),
 
 data(CType,
     IntLike -> Str,
+    FloatLike -> Str,
     PtrLike -> Str,
     FnPtr   -> Str,
     Phantom)
 
 def(CType.cname, CType -- Str,
     IntLike -> id,
+    FloatLike -> id,
     PtrLike -> id,
     FnPtr   -> id,
     Phantom -> "void")
@@ -1245,6 +1247,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cconst == if(
         drop match(
             IntLike -> "const " swap cat IntLike Some,
+            FloatLike -> "const " swap cat FloatLike Some,
             FnPtr   -> "const " swap cat FnPtr Some,
             PtrLike -> " const" cat PtrLike Some,
             Phantom -> Phantom Some,
@@ -1253,6 +1256,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin crestrict == if(
         drop match(
             IntLike -> "restrict " swap cat IntLike Some,
+            FloatLike -> "restrict " swap cat FloatLike Some,
             FnPtr   -> "restrict " swap cat FnPtr Some,
             PtrLike -> " restrict" cat PtrLike Some,
             Phantom -> Phantom Some,
@@ -1261,6 +1265,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cvolatile == if(
         drop match(
             IntLike -> "volatile " swap cat IntLike Some,
+            FloatLike -> "volatile " swap cat FloatLike Some,
             FnPtr   -> "volatile " swap cat FnPtr Some,
             PtrLike -> " volatile" cat PtrLike Some,
             Phantom -> Phantom Some,

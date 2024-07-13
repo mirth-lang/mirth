@@ -761,6 +761,24 @@ static void mp_primZ_strZ_cmp (void) {
 	PRIM_EXIT(mp_primZ_strZ_cmp);
 }
 
+static void mp_primZ_doubleZ_eq (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_eq,"prim-double-eq");
+	VAL b = pop_value();
+	VAL a = pop_value();
+	ASSERT1(IS_FDOUBLE(a), a);
+	ASSERT1(IS_FDOUBLE(b), a);
+	push_bool(VFDOUBLE(a) == VFDOUBLE(b));
+	PRIM_EXIT(mp_primZ_doubleZ_eq);
+}
+static void mp_primZ_doubleZ_lt (void) {
+	PRIM_ENTER(mp_primZ_doubleZ_lt,"prim-double-lt");
+	VAL b = pop_value();
+	VAL a = pop_value();
+	ASSERT2(IS_FDOUBLE(a) && IS_FDOUBLE(b), a, b);
+	push_bool(VFDOUBLE(a) < VFDOUBLE(b));
+	PRIM_EXIT(mp_primZ_doubleZ_lt);
+}
+
 static void mp_primZ_doubleZ_add (void) {
 	PRIM_ENTER(mp_primZ_doubleZ_add,"prim-double-add");
 	double b = pop_fdouble();

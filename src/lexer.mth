@@ -293,6 +293,8 @@ def(+Str.is-dashes?, +Str -- Bool +Str,
 def(+Str.is-float?, +Str -- Bool +Str,
     0 >Size
     0 >Offset
+
+    dup byte@ is-sign if(1+, id)
     
     while(dup byte@ is-digit, dip(1+) 1+)
 
@@ -306,8 +308,20 @@ def(+Str.is-float?, +Str -- Bool +Str,
     )
 )
 
+||| process int sign and return initial state for rest of int lexing.
+||| returns: (sign multiplier) (accumulated value == 0) (str-buf index)
+def(+Str.float-sign, +Str -- Byte Offset +Str,
+    0 >Offset byte@ byte-sign-value-index-float)
+
+def(byte-sign-value-index-float, Byte -- Byte Offset,
+    B'-' -> B'-' 1 >Offset,
+    B'+' -> B'+' 1 >Offset,
+    _ -> drop B'+' 0 >Offset)
+
+
 def(+Str.float?, +Str -- Str +Str,
     "" thaw rswap 0 >Offset
+    float-sign rdip:dip:push-byte-ascii! +
     while(dup num-bytes? >Offset <,
         sip(
             byte@ rdip:push-byte-ascii!

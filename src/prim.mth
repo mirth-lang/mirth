@@ -54,6 +54,8 @@ data(Prim,
     PRIM_FLOAT_TO_DOUBLE,
 
     PRIM_DOUBLE_EQ,
+    PRIM_DOUBLE_LT,
+    PRIM_DOUBLE_LTE,
     PRIM_DOUBLE_ADD,
     PRIM_DOUBLE_SUB,
     PRIM_DOUBLE_MUL,
@@ -227,6 +229,8 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_FLOAT_TO_DOUBLE "prim-float-to-double" 0 def-prim!
 
     PRIM_DOUBLE_EQ "prim-double-eq" 0 def-prim!
+    PRIM_DOUBLE_LT "prim-double-lt" 0 def-prim!
+    PRIM_DOUBLE_LTE "prim-double-lte" 0 def-prim!
     PRIM_DOUBLE_ADD "prim-double-add" 0 def-prim!
     PRIM_DOUBLE_SUB "prim-double-sub" 0 def-prim!
     PRIM_DOUBLE_MUL "prim-double-mul" 0 def-prim!
@@ -312,7 +316,11 @@ def(init-prims!, +Mirth -- +Mirth,
     drop2
 
     Ctx0 TYPE_FLOAT TYPE_FLOAT T2 TYPE_BOOL T1 T-> PRIM_FLOAT_EQ ctx-type!
-    Ctx0 TYPE_DOUBLE TYPE_DOUBLE T2 TYPE_BOOL T1 T-> PRIM_DOUBLE_EQ ctx-type!
+    Ctx0 TYPE_DOUBLE TYPE_DOUBLE T2 TYPE_BOOL T1 T-> 
+    dup2 PRIM_DOUBLE_EQ ctx-type!
+    dup2 PRIM_DOUBLE_LT ctx-type!
+    dup2 PRIM_DOUBLE_LTE ctx-type!
+    drop2
 
     Ctx0 TYPE_FLOAT TYPE_FLOAT T2 TYPE_FLOAT T1 T-> 
     dup2 PRIM_FLOAT_ADD ctx-type!

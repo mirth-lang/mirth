@@ -147,8 +147,6 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
 def(main, +World -- +World,
     +Mirth.Init!
 
-    1 >Double 2 >Double / >Str rdip:print 
-
     Arguments.default
     LIST(
         "output-file" Some >name

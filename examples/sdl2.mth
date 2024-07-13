@@ -22,6 +22,8 @@ def +SDL?.unwrap! [ +SDL? -- +SDL ] {
     +SDL?.if-ok!(id, panic!)
 }
 
+data(+SDL_Surface, +SDL_Surface -> Ptr)
+
 data(+SDL_Window, +SDL_Window -> Ptr)
 data(+SDL_Window?, +SDL_Window? -> Ptr?)
 inline (
@@ -62,6 +64,8 @@ external(
     SDL_ShowWindow [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ]
     SDL_HideWindow [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ]
     SDL_RaiseWindow [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window ]
+    SDL_GetWindowSurface [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window +SDL_Surface ]
+    SDL_UpdateWindowSurface [ +SDL +window:+SDL_Window -- +SDL +window:+SDL_Window CInt ]
 
     SDL_CreateRenderer [
         +SDL +window:+SDL_Window index:CInt flags:SDL_RendererFlags --
