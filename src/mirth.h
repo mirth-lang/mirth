@@ -329,7 +329,7 @@ static float value_fsingle (VAL v) {
 	return VFSINGLE(v);
 }
 
-static float value_fdouble (VAL v) {
+static double value_fdouble (VAL v) {
 	ASSERT1(IS_FDOUBLE(v), v);
 	return VFDOUBLE(v);
 }

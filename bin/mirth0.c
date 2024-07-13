@@ -330,7 +330,7 @@ static float value_fsingle (VAL v) {
 	return VFSINGLE(v);
 }
 
-static float value_fdouble (VAL v) {
+static double value_fdouble (VAL v) {
 	ASSERT1(IS_FDOUBLE(v), v);
 	return VFDOUBLE(v);
 }
@@ -43865,7 +43865,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\treturn VFSINGLE(v);\n"
 		"}\n"
 		"\n"
-		"static float value_fdouble (VAL v) {\n"
+		"static double value_fdouble (VAL v) {\n"
 		"\tASSERT1(IS_FDOUBLE(v), v);\n"
 		"\treturn VFDOUBLE(v);\n"
 		"}\n"
@@ -44935,7 +44935,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		35454
+		35455
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
