@@ -716,7 +716,7 @@ def ab-expand-opsig! [ OpSig +Mirth +AB -- StackType StackType +Mirth +AB ] {
 }
 
 def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { OpInt ab-op! }
-def ab-float! [ Str +Mirth +AB -- +Mirth +AB ] { OpFloat ab-op! }
+def ab-float! [ Float64 +Mirth +AB -- +Mirth +AB ] { OpFloat ab-op! }
 def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { OpStr ab-op! }
 def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { OpBuffer ab-op! }
 def ab-variable! [ Variable +Mirth +AB -- +Mirth +AB ] { OpVariable ab-op! }

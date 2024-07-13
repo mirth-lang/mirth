@@ -38,7 +38,7 @@ data(Type,
 
 data(Value,
     VALUE_INT -> Int,
-    VALUE_FLOAT -> Str,
+    VALUE_FLOAT -> Float64,
     VALUE_STR -> Str,
     VALUE_BLOCK -> Block)
 
