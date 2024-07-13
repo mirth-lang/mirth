@@ -31,7 +31,7 @@ data(+FractalUI, +FractalUI ->
 
 def +FractalUI.sdl(f) { /+FractalUI f +FractalUI }
 
-data(Complex, Complex -> real:Double imag:Double)
+data(Complex, Complex -> real:Float64 imag:Float64)
 
 def CENTER { -0.5 >imag 0.0 >real Complex }
 
@@ -41,8 +41,8 @@ def Position.== [ Position Position -- Bool ] {
     /Position /Position x> x> == y> y> == &&
 }
 
-def WIDTH { 400 }
-def HEIGHT { 400 }
+def WIDTH { 800 }
+def HEIGHT { 800 }
 def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
 def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC | }
 
@@ -118,21 +118,21 @@ def BAIL_OUT { 2.0 }
 def FLIPS { 24 }
 
 def center [ Int Int -- Complex ] {
-    WIDTH 2 / - >Double
+    WIDTH 2 / - >Float64
     CENTER real + >real
 
-    HEIGHT 2 / - >Double
+    HEIGHT 2 / - >Float64
     CENTER imag + >imag
 
     Complex
 }
 
-def X [ Complex -- Double ] { real }
-def Y [ Complex -- Double ] { imag }
+def X [ Complex -- Float64 ] { real }
+def Y [ Complex -- Float64 ] { imag }
 
 external(
-    cpow -> pow [ CDouble CDouble -- CDouble ]
-    clog10 -> log10 [ CDouble -- CDouble ]
+    cpow -> pow [ CFloat64 CFloat64 -- CFloat64 ]
+    clog10 -> log10 [ CFloat64 -- CFloat64 ]
     cset_pixel -> set_pixel [ +surface:+SDL_Surface CInt CInt CInt -- +surface:+SDL_Surface ]
 )
 
@@ -140,26 +140,26 @@ def set_pixel [ +surface:+SDL_Surface Int Int Int -- +surface:+SDL_Surface ] {
     dip(dip:CInt CInt) CInt cset_pixel
 }
 
-def pow [ Double Double -- Double ] {
-    dip:CDouble CDouble cpow >Double
+def pow [ Float64 Float64 -- Float64 ] {
+    dip:CFloat64 CFloat64 cpow >Float64
 }
 
-def log10 [ Double -- Double] {
-    CDouble clog10 >Double
+def log10 [ Float64 -- Float64] {
+    CFloat64 clog10 >Float64
 }
 
 def +Mandelbrot.plot! [ +Mandelbrot x:Int y:Int Int -- +Mandelbrot ] {
     >iterations x> y> iterations> +platform:sdl:set_pixel
 }
 
-def scale_x [ Int -- Double ] {
-    >Double     
+def scale_x [ Int -- Float64 ] {
+    >Float64     
     2.47 800.0 / * 
     2.0 -
 }
 
-def scale_y [ Int -- Double ] {
-    >Double     
+def scale_y [ Int -- Float64 ] {
+    >Float64     
     2.24 800.0 / *
     1.12 -
 }
@@ -183,7 +183,7 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
             while(
                 @x 2.0 pow 
                 @y 2.0 pow + 
-                2.0 2.0 pow <= and(@iteration 1000 <),
+                2.0 2.0 pow <= and(@iteration 250 <),
 
                 @x 2.0 pow
                 @y 2.0 pow -
@@ -192,19 +192,17 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
                 x> drop xtemp> >x
                 iteration> 1+ >iteration
             )
-
-            # rdip:print("pixel: "; @px show; " "; @py show; " iterations: "; @iteration show;)
-
             x> drop
             y> drop
             x0> drop
             y0> drop
-            @px >x @py >y iteration> dup 1000 < if(plot!, x> drop y> drop drop)
+            @px >x @py >y iteration> dup 250 < if(plot!, x> drop y> drop drop)
 
             py> 1+ >py
         )
         py> drop
         px> 1+ >px
+        rdip:print("row: "; @px show;)
     )
     px> drop
 

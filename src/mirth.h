@@ -52,8 +52,8 @@ typedef uint16_t TAG;
 #define TAG_PTR 1
 #define TAG_STR (2 | REFS_FLAG)
 #define TAG_FNPTR 3
-#define TAG_FSINGLE 4
-#define TAG_FDOUBLE 5
+#define TAG_FLOAT32 4
+#define TAG_FLOAT64 5
 #define TAG_TUP_NIL TUP_FLAG
 #define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
 #define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
@@ -72,8 +72,8 @@ typedef union DATA {
 	int32_t i32;
 	int16_t i16;
 	int8_t i8;
-	float fsingle;
-	double fdouble;
+	float f32;
+	double f64;
 	void* ptr;
 	FNPTR fnptr;
 	REFS* refs;
@@ -92,8 +92,8 @@ typedef struct VAL {
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VU64(v)   ((v).data.u64)
-#define VFSINGLE(v)   ((v).data.fsingle)
-#define VFDOUBLE(v)   ((v).data.fdouble)
+#define VFLOAT32(v)   ((v).data.f32)
+#define VFLOAT64(v)   ((v).data.f64)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 #define VSTR(v)   ((v).data.str)
@@ -104,8 +104,8 @@ typedef struct VAL {
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_U64(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
-#define IS_FSINGLE(v)   ((v).tag == TAG_FSINGLE)
-#define IS_FDOUBLE(v)   ((v).tag == TAG_FDOUBLE)
+#define IS_FLOAT32(v)   ((v).tag == TAG_FLOAT32)
+#define IS_FLOAT64(v)   ((v).tag == TAG_FLOAT64)
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
@@ -115,8 +115,8 @@ typedef struct VAL {
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
-#define MKFSINGLE(x)   ((VAL){.tag=TAG_FSINGLE, .data={.fsingle=(x)}})
-#define MKFDOUBLE(x)   ((VAL){.tag=TAG_FDOUBLE, .data={.fdouble=(x)}})
+#define MKFLOAT32(x)   ((VAL){.tag=TAG_FLOAT32, .data={.f32=(x)}})
+#define MKFLOAT64(x)   ((VAL){.tag=TAG_FLOAT64, .data={.f64=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
@@ -324,14 +324,14 @@ static int64_t value_i64 (VAL v) {
 	return VI64(v);
 }
 
-static float value_fsingle (VAL v) {
-	ASSERT1(IS_FSINGLE(v), v);
-	return VFSINGLE(v);
+static float value_f32 (VAL v) {
+	ASSERT1(IS_FLOAT32(v), v);
+	return VFLOAT32(v);
 }
 
-static double value_fdouble (VAL v) {
-	ASSERT1(IS_FDOUBLE(v), v);
-	return VFDOUBLE(v);
+static double value_f64 (VAL v) {
+	ASSERT1(IS_FLOAT64(v), v);
+	return VFLOAT64(v);
 }
 
 static void* value_ptr (VAL v) {
@@ -353,8 +353,8 @@ static FNPTR value_fnptr (VAL v) {
 #define pop_i32() ((int32_t)pop_i64())
 #define pop_i64() (value_i64(pop_value()))
 #define pop_usize() (pop_u64())
-#define pop_fsingle() (value_fsingle(pop_value()))
-#define pop_fdouble() (value_fdouble(pop_value()))
+#define pop_f32() (value_f32(pop_value()))
+#define pop_f64() (value_f64(pop_value()))
 #define pop_bool() (pop_u64())
 #define pop_ptr() (value_ptr(pop_value()))
 #define pop_fnptr() (value_fnptr(pop_value()))
@@ -369,8 +369,8 @@ static FNPTR value_fnptr (VAL v) {
 #define push_i8(b) push_i64((int64_t)(b))
 #define push_i16(b) push_i64((int64_t)(b))
 #define push_i32(b) push_i64((int64_t)(b))
-#define push_fsingle(f) push_value(MKFSINGLE(f))
-#define push_fdouble(f) push_value(MKFDOUBLE(f))
+#define push_f32(f) push_value(MKFLOAT32(f))
+#define push_f64(f) push_value(MKFLOAT64(f))
 #define push_ptr(p) push_value(MKPTR(p))
 #define push_fnptr(p) push_value(MKFNPTR(p))
 
@@ -736,18 +736,18 @@ static void mp_primZ_intZ_lt (void) {
 	PRIM_EXIT(mp_primZ_intZ_lt);
 }
 
-static void mp_primZ_intZ_toZ_double (void) {
-	PRIM_ENTER(mp_primZ_intZ_toZ_double, "prim-int-to-double");
+static void mp_primZ_intZ_toZ_float64 (void) {
+	PRIM_ENTER(mp_primZ_intZ_toZ_float64, "prim-int-to-float64");
 	int64_t i = pop_i64();
-	push_fdouble((double)i);
-	PRIM_EXIT(mp_primZ_intZ_toZ_double);
+	push_f64((double)i);
+	PRIM_EXIT(mp_primZ_intZ_toZ_float64);
 }
 
-static void mp_primZ_doubleZ_toZ_int (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_toZ_int, "prim-double-to-int");
-	double d = pop_fdouble();
+static void mp_primZ_float64Z_toZ_int (void) {
+	PRIM_ENTER(mp_primZ_float64Z_toZ_int, "prim-float64-to-int");
+	double d = pop_f64();
 	push_i64((int64_t)d);
-	PRIM_EXIT(mp_primZ_doubleZ_toZ_int);
+	PRIM_EXIT(mp_primZ_float64Z_toZ_int);
 }
 
 static void mp_primZ_strZ_cmp (void) {
@@ -761,65 +761,65 @@ static void mp_primZ_strZ_cmp (void) {
 	PRIM_EXIT(mp_primZ_strZ_cmp);
 }
 
-static void mp_primZ_doubleZ_eq (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_eq,"prim-double-eq");
+static void mp_primZ_float64Z_eq (void) {
+	PRIM_ENTER(mp_primZ_float64Z_eq,"prim-float64-eq");
 	VAL b = pop_value();
 	VAL a = pop_value();
-	ASSERT1(IS_FDOUBLE(a), a);
-	ASSERT1(IS_FDOUBLE(b), a);
-	push_bool(VFDOUBLE(a) == VFDOUBLE(b));
-	PRIM_EXIT(mp_primZ_doubleZ_eq);
+	ASSERT1(IS_FLOAT64(a), a);
+	ASSERT1(IS_FLOAT64(b), a);
+	push_bool(VFLOAT64(a) == VFLOAT64(b));
+	PRIM_EXIT(mp_primZ_float64Z_eq);
 }
-static void mp_primZ_doubleZ_lt (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_lt,"prim-double-lt");
+static void mp_primZ_float64Z_lt (void) {
+	PRIM_ENTER(mp_primZ_float64Z_lt,"prim-float64-lt");
 	VAL b = pop_value();
 	VAL a = pop_value();
-	ASSERT2(IS_FDOUBLE(a) && IS_FDOUBLE(b), a, b);
-	push_bool(VFDOUBLE(a) < VFDOUBLE(b));
-	PRIM_EXIT(mp_primZ_doubleZ_lt);
+	ASSERT2(IS_FLOAT64(a) && IS_FLOAT64(b), a, b);
+	push_bool(VFLOAT64(a) < VFLOAT64(b));
+	PRIM_EXIT(mp_primZ_float64Z_lt);
 }
 
-static void mp_primZ_doubleZ_add (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_add,"prim-double-add");
-	double b = pop_fdouble();
-	double a = pop_fdouble();
-	push_fdouble(a + b);
-	PRIM_EXIT(mp_primZ_doubleZ_add);
+static void mp_primZ_float64Z_add (void) {
+	PRIM_ENTER(mp_primZ_float64Z_add,"prim-float64-add");
+	double b = pop_f64();
+	double a = pop_f64();
+	push_f64(a + b);
+	PRIM_EXIT(mp_primZ_float64Z_add);
 }
 
-static void mp_primZ_doubleZ_sub (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_sub,"prim-double-sub");
-	double b = pop_fdouble();
-	double a = pop_fdouble();
-	push_fdouble(a - b);
-	PRIM_EXIT(mp_primZ_doubleZ_sub);
+static void mp_primZ_float64Z_sub (void) {
+	PRIM_ENTER(mp_primZ_float64Z_sub,"prim-float64-sub");
+	double b = pop_f64();
+	double a = pop_f64();
+	push_f64(a - b);
+	PRIM_EXIT(mp_primZ_float64Z_sub);
 }
 
-static void mp_primZ_doubleZ_mul (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_mul,"prim-double-mul");
-	double b = pop_fdouble();
-	double a = pop_fdouble();
-	push_fdouble(a * b);
-	PRIM_EXIT(mp_primZ_doubleZ_mul);
+static void mp_primZ_float64Z_mul (void) {
+	PRIM_ENTER(mp_primZ_float64Z_mul,"prim-float64-mul");
+	double b = pop_f64();
+	double a = pop_f64();
+	push_f64(a * b);
+	PRIM_EXIT(mp_primZ_float64Z_mul);
 }
 
-static void mp_primZ_doubleZ_div (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_div,"prim-double-div");
-	double b = pop_fdouble();
-	double a = pop_fdouble();
-	push_fdouble(a / b);
-	PRIM_EXIT(mp_primZ_doubleZ_div);
+static void mp_primZ_float64Z_div (void) {
+	PRIM_ENTER(mp_primZ_float64Z_div,"prim-float64-div");
+	double b = pop_f64();
+	double a = pop_f64();
+	push_f64(a / b);
+	PRIM_EXIT(mp_primZ_float64Z_div);
 }
 
-static void mp_primZ_doubleZ_toZ_str (void) {
-	PRIM_ENTER(mp_primZ_doubleZ_toZ_str, "prim-double-to-str");
-	double d = pop_fdouble();
+static void mp_primZ_float64Z_toZ_str (void) {
+	PRIM_ENTER(mp_primZ_float64Z_toZ_str, "prim-float64-to-str");
+	double d = pop_f64();
 	int len = snprintf(NULL, 0, "%.*f", DBL_DIG, d);
 	char* result = malloc(len+1);
 	snprintf(result, len+1, "%.*f", DBL_DIG,  d);
 	push_value(mkstr(result, len));
 	free(result);
-	PRIM_EXIT(mp_primZ_doubleZ_toZ_str);
+	PRIM_EXIT(mp_primZ_float64Z_toZ_str);
 }
 
 static void mp_primZ_sysZ_argc (void) {

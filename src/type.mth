@@ -47,8 +47,8 @@ data(PrimType,
     PRIM_TYPE_STACK,
     PRIM_TYPE_RESOURCE,
     PRIM_TYPE_INT,
-    PRIM_TYPE_FLOAT_SINGLE,
-    PRIM_TYPE_FLOAT_DOUBLE,
+    PRIM_TYPE_FLOAT32,
+    PRIM_TYPE_FLOAT64,
     PRIM_TYPE_PTR,
     PRIM_TYPE_STR,
     PRIM_TYPE_WORLD,
@@ -88,8 +88,8 @@ def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
     PRIM_TYPE_STACK -> "STACK" 0 QName.prim,
     PRIM_TYPE_RESOURCE -> "Resource" 0 QName.prim,
     PRIM_TYPE_INT -> "Int" 0 QName.prim,
-    PRIM_TYPE_FLOAT_SINGLE -> "Float" 0 QName.prim,
-    PRIM_TYPE_FLOAT_DOUBLE -> "Double" 0 QName.prim,
+    PRIM_TYPE_FLOAT32 -> "Float32" 0 QName.prim,
+    PRIM_TYPE_FLOAT64 -> "Float64" 0 QName.prim,
     PRIM_TYPE_STR -> "Str" 0 QName.prim,
     PRIM_TYPE_PTR -> "Ptr" 0 QName.prim,
     PRIM_TYPE_WORLD -> "+World" 0 QName.prim,
@@ -98,7 +98,7 @@ def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
 ||| Get value type constructor name.
 def(Value.tycon?, Value -- Maybe(Tycon),
     VALUE_INT -> drop PRIM_TYPE_INT TYCON_PRIM Some,
-    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT_DOUBLE TYCON_PRIM Some,
+    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT64 TYCON_PRIM Some,
     VALUE_STR -> drop PRIM_TYPE_STR TYCON_PRIM Some,
     VALUE_BLOCK -> drop None)
 
@@ -115,8 +115,8 @@ def(def-prim-type!, +Mirth PrimType -- +Mirth,
 
 def(init-types!, +Mirth -- +Mirth,
     PRIM_TYPE_INT def-prim-type!
-    PRIM_TYPE_FLOAT_SINGLE def-prim-type!
-    PRIM_TYPE_FLOAT_DOUBLE def-prim-type!
+    PRIM_TYPE_FLOAT32 def-prim-type!
+    PRIM_TYPE_FLOAT64 def-prim-type!
     PRIM_TYPE_PTR def-prim-type!
     PRIM_TYPE_STR def-prim-type!
     PRIM_TYPE_WORLD def-prim-type!
@@ -172,8 +172,8 @@ def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_RESOURCE, Type, PRIM_TYPE_RESOURCE TPrim) # type of (linear) resources
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
-def(TYPE_FLOAT, Type, PRIM_TYPE_FLOAT_DOUBLE TPrim) # generic float type for float literals
-def(TYPE_DOUBLE, Type, PRIM_TYPE_FLOAT_DOUBLE TPrim)
+def(TYPE_FLOAT32, Type, PRIM_TYPE_FLOAT32 TPrim)
+def(TYPE_FLOAT64, Type, PRIM_TYPE_FLOAT64 TPrim)
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
 # def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
@@ -326,7 +326,7 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
             VALUE_FLOAT ->
                 dup2 == if(
                     drop VALUE_FLOAT TValue,
-                    drop2 TYPE_FLOAT
+                    drop2 TYPE_FLOAT64
                 ),
             VALUE_INT ->
                 drop2 token
@@ -345,7 +345,7 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
 def(Value.unify-type!, +Mirth +Gamma Type Value -- +Mirth +Gamma Type,
     VALUE_INT -> drop TYPE_INT unify!,
     VALUE_STR -> drop TYPE_STR unify!,
-    VALUE_FLOAT -> drop TYPE_FLOAT unify!,
+    VALUE_FLOAT -> drop TYPE_FLOAT64 unify!,
     VALUE_BLOCK -> swap unify-block!)
 
 def(Value.unify-error!, +Mirth +Gamma Value -- +Mirth +Gamma Type,
@@ -420,7 +420,7 @@ def(Type.type;, Type +Str -- +Str,
 
 def(Value.type, Value -- Type,
     VALUE_INT -> drop PRIM_TYPE_INT TPrim,
-    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT_DOUBLE TPrim,
+    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT64 TPrim,
     VALUE_STR -> drop PRIM_TYPE_STR TPrim,
     VALUE_BLOCK -> type >Type)
 
@@ -430,8 +430,8 @@ def(PrimType.type;, +Str PrimType -- +Str,
         PRIM_TYPE_STACK -> "<STACK>",
         PRIM_TYPE_RESOURCE -> "<Resource>",
         PRIM_TYPE_INT -> "Int",
-        PRIM_TYPE_FLOAT_SINGLE -> "Float",
-        PRIM_TYPE_FLOAT_DOUBLE -> "Double",
+        PRIM_TYPE_FLOAT32 -> "Float32",
+        PRIM_TYPE_FLOAT64 -> "Float64",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
         PRIM_TYPE_WORLD -> "+World",

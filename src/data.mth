@@ -90,7 +90,7 @@ def(make-prim-floatlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     >underlying >tag >tagname >data >dataname
 
     dataname> L0 data> @tag L1 underlying> FloatLike Some make-prim-data!
-    tagname> 0 TYPE_DOUBLE L1 tag> make-prim-tag!)
+    tagname> 0 TYPE_FLOAT64 L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
     "Bool" L0 builtin bool builtin true builtin false L2 "_Bool" IntLike Some make-prim-data!
@@ -121,7 +121,7 @@ def(init-data!, +Mirth -- +Mirth,
     "I16" builtin i16 "Int>I16-unsafe" builtin mk-i16 "int16_t" make-prim-intlike!
     "I8"  builtin i8  "Int>I8-unsafe"  builtin mk-i8  "int8_t"  make-prim-intlike!
 
-    "CDouble"    builtin cdouble    "CDouble"    builtin mk-cdouble    "double"       make-prim-floatlike!
+    "CFloat64"   builtin cfloat64   "CFloat64"   builtin mk-cfloat64   "double"       make-prim-floatlike!
 
     "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
     "CIChar"     builtin cichar     "CIChar"     builtin mk-cichar     "signed char"  make-prim-intlike!
