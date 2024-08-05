@@ -814,9 +814,8 @@ static void mp_primZ_float64Z_div (void) {
 static void mp_primZ_float64Z_toZ_str (void) {
 	PRIM_ENTER(mp_primZ_float64Z_toZ_str, "prim-float64-to-str");
 	double d = pop_f64();
-	int len = snprintf(NULL, 0, "%.*f", DBL_DIG, d);
-	char* result = malloc(len+1);
-	snprintf(result, len+1, "%.*f", DBL_DIG,  d);
+	char result[DBL_DIG+32] = {0};
+	int len = sprintf(result,"%.*g", DBL_DIG,  d);
 	push_value(mkstr(result, len));
 	free(result);
 	PRIM_EXIT(mp_primZ_float64Z_toZ_str);
