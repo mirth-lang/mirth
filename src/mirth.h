@@ -817,7 +817,6 @@ static void mp_primZ_float64Z_toZ_str (void) {
 	char result[DBL_DIG+32] = {0};
 	int len = sprintf(result,"%.*g", DBL_DIG,  d);
 	push_value(mkstr(result, len));
-	free(result);
 	PRIM_EXIT(mp_primZ_float64Z_toZ_str);
 }
 
