@@ -40,7 +40,7 @@ extern int write(int, const char*, size_t);
 extern int close(int);
 extern int open(const char*, int, ...);
 extern void exit(int);
-extern int snprintf (char * s, size_t n, const char * format, ...);
+extern int sprintf (char * s, const char * format, ...);
 
 typedef uint16_t TAG;
 #define REFS_FLAG 	 0x8000
