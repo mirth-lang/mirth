@@ -41,7 +41,7 @@ extern int write(int, const char*, size_t);
 extern int close(int);
 extern int open(const char*, int, ...);
 extern void exit(int);
-extern int snprintf (char * s, size_t n, const char * format, ...);
+extern int sprintf (char * s, const char * format, ...);
 
 typedef uint16_t TAG;
 #define REFS_FLAG 	 0x8000
@@ -815,11 +815,9 @@ static void mp_primZ_float64Z_div (void) {
 static void mp_primZ_float64Z_toZ_str (void) {
 	PRIM_ENTER(mp_primZ_float64Z_toZ_str, "prim-float64-to-str");
 	double d = pop_f64();
-	int len = snprintf(NULL, 0, "%.*f", DBL_DIG, d);
-	char* result = malloc(len+1);
-	snprintf(result, len+1, "%.*f", DBL_DIG,  d);
+	char result[DBL_DIG+32] = {0};
+	int len = sprintf(result,"%.*g", DBL_DIG,  d);
 	push_value(mkstr(result, len));
-	free(result);
 	PRIM_EXIT(mp_primZ_float64Z_toZ_str);
 }
 
@@ -43560,7 +43558,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"extern int close(int);\n"
 		"extern int open(const char*, int, ...);\n"
 		"extern void exit(int);\n"
-		"extern int snprintf (char * s, size_t n, const char * format, ...);\n"
+		"extern int sprintf (char * s, const char * format, ...);\n"
 		"\n"
 		"typedef uint16_t TAG;\n"
 		"#define REFS_FLAG \t 0x8000\n"
@@ -44334,11 +44332,9 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static void mp_primZ_float64Z_toZ_str (void) {\n"
 		"\tPRIM_ENTER(mp_primZ_float64Z_toZ_str, \"prim-float64-to-str\");\n"
 		"\tdouble d = pop_f64();\n"
-		"\tint len = snprintf(NULL, 0, \"%.*f\", DBL_DIG, d);\n"
-		"\tchar* result = malloc(len+1);\n"
-		"\tsnprintf(result, len+1, \"%.*f\", DBL_DIG,  d);\n"
+		"\tchar result[DBL_DIG+32] = {0};\n"
+		"\tint len = sprintf(result,\"%.*g\", DBL_DIG,  d);\n"
 		"\tpush_value(mkstr(result, len));\n"
-		"\tfree(result);\n"
 		"\tPRIM_EXIT(mp_primZ_float64Z_toZ_str);\n"
 		"}\n"
 		"\n"
@@ -44919,7 +44915,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		35375
+		35301
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
