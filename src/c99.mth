@@ -462,30 +462,35 @@ def(c99-external-def!, External +C99 -- +C99,
 
 def(CType.c99-pop-value, CType +C99 -- +C99,
     IntLike -> "(" put put ")pop_i64()" put,
+    FloatLike -> "(" put put ")pop_f64()" put,
     PtrLike -> "(" put put ")pop_ptr()" put,
     FnPtr   -> "(" put put ")pop_fnptr()" put,
     Phantom -> "(void)pop_value()" put )
 
 def(CType.c99-pop-resource, CType +C99 -- +C99,
     IntLike -> "(" put put ")value_i64(pop_resource())" put,
+    FloatLike -> "(" put put ")value_f64(pop_resource())" put,
     PtrLike -> "(" put put ")value_ptr(pop_resource())" put,
     FnPtr   -> "(" put put ")value_fnptr(pop_resource())" put,
     Phantom -> "(void)pop_resource()" put)
 
 def(CType.c99-pop-label, Label CType +C99 -- +C99,
     IntLike -> "(" put put ")value_i64(lpop(&lbl_" put name mangled put "))" put,
+    FloatLike -> "(" put put ")value_f64(lpop(&lbl_" put name mangled put "))" put,
     PtrLike -> "(" put put ")value_ptr(lpop(&lbl_" put name mangled put "))" put,
     FnPtr   -> "(" put put ")value_fnptr(lpop(&lbl_" put name mangled put "))" put,
     Phantom -> "(void)lpop(&lbl_" put name mangled put ")" put)
 
 def(CType.c99-push-value, Str CType +C99 -- +C99,
     IntLike -> drop "push_i64((int64_t)(" put put "));" put,
+    FloatLike -> drop "push_f64((double)(" put put "));" put,
     PtrLike -> drop "push_ptr((void*)(" put put "));" put,
     FnPtr   -> drop "push_fnptr((FNPTR)(" put put "));" put,
     Phantom -> drop "push_i64(0);" put)
 
 def(CType.c99-push-resource, Str CType +C99 -- +C99,
     IntLike -> drop "push_resource(MKI64((int64_t)(" put put ")));" put,
+    FloatLike -> drop "push_resource(MKFLOAT64((double)(" put put ")));" put,
     PtrLike -> drop "push_resource(MKPTR((void*)(" put put ")));" put,
     FnPtr   -> drop "push_resource(MKFNPTR((FNPTR)(" put put ")));" put,
     Phantom -> drop "push_resource(MKI64(0));" put)
@@ -494,6 +499,9 @@ def(CType.c99-push-label, Str Label CType +C99 -- +C99,
     IntLike ->
         drop "lpush(&lbl_" put name mangled put ", " put
         "MKI64((int64_t)(" put put ")));" put,
+    FloatLike ->
+        drop "lpush(&lbl_" put name mangled put ", " put
+        "MKFLOAT64((double)(" put put ")));" put,
     PtrLike ->
         drop "lpush(&lbl_" put name mangled put ", " put
         "MKI64((int64_t)(" put put ")));" put,
@@ -563,6 +571,7 @@ def(Atom.show-in-stack-trace?, Atom -- Bool,
     op match(
         OpNone -> False,
         OpInt -> drop False,
+        OpFloat -> drop False,
         OpStr -> drop False,
         OpWord -> prefer-inline? not,
         OpExternal -> drop True,
@@ -589,6 +598,7 @@ def(Atom.show-in-stack-trace?, Atom -- Bool,
 def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OpNone     -> drop,
     OpInt      -> nip c99-int!,
+    OpFloat    -> nip c99-float!,
     OpStr      -> nip c99-str!,
     OpWord     -> c99-word!,
     OpExternal -> +mirth:cname c99-call!,
@@ -683,6 +693,9 @@ def(c99-label-pop-r!, Label +C99 -- +C99, c99-line("LPOPR(lbl_" put name mangled
 
 def(c99-int!, Int +C99 -- +C99,
     c99-line("push_i64(" put show put "LL);" put))
+
+def(c99-float!, Float64 +C99 -- +C99,
+    c99-line("push_f64(" put >Str put ");" put))
 
 def(c99-str!, Str +C99 -- +C99,
     dup num-bytes 4090 >Size > if(

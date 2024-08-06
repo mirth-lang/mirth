@@ -38,6 +38,7 @@ data(Type,
 
 data(Value,
     VALUE_INT -> Int,
+    VALUE_FLOAT -> Float64,
     VALUE_STR -> Str,
     VALUE_BLOCK -> Block)
 
@@ -46,6 +47,8 @@ data(PrimType,
     PRIM_TYPE_STACK,
     PRIM_TYPE_RESOURCE,
     PRIM_TYPE_INT,
+    PRIM_TYPE_FLOAT32,
+    PRIM_TYPE_FLOAT64,
     PRIM_TYPE_PTR,
     PRIM_TYPE_STR,
     PRIM_TYPE_WORLD,
@@ -85,6 +88,8 @@ def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
     PRIM_TYPE_STACK -> "STACK" 0 QName.prim,
     PRIM_TYPE_RESOURCE -> "Resource" 0 QName.prim,
     PRIM_TYPE_INT -> "Int" 0 QName.prim,
+    PRIM_TYPE_FLOAT32 -> "Float32" 0 QName.prim,
+    PRIM_TYPE_FLOAT64 -> "Float64" 0 QName.prim,
     PRIM_TYPE_STR -> "Str" 0 QName.prim,
     PRIM_TYPE_PTR -> "Ptr" 0 QName.prim,
     PRIM_TYPE_WORLD -> "+World" 0 QName.prim,
@@ -93,6 +98,7 @@ def(PrimType.tycon-qname, +Mirth PrimType -- +Mirth QName,
 ||| Get value type constructor name.
 def(Value.tycon?, Value -- Maybe(Tycon),
     VALUE_INT -> drop PRIM_TYPE_INT TYCON_PRIM Some,
+    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT64 TYCON_PRIM Some,
     VALUE_STR -> drop PRIM_TYPE_STR TYCON_PRIM Some,
     VALUE_BLOCK -> drop None)
 
@@ -109,6 +115,8 @@ def(def-prim-type!, +Mirth PrimType -- +Mirth,
 
 def(init-types!, +Mirth -- +Mirth,
     PRIM_TYPE_INT def-prim-type!
+    PRIM_TYPE_FLOAT32 def-prim-type!
+    PRIM_TYPE_FLOAT64 def-prim-type!
     PRIM_TYPE_PTR def-prim-type!
     PRIM_TYPE_STR def-prim-type!
     PRIM_TYPE_WORLD def-prim-type!
@@ -164,6 +172,8 @@ def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_RESOURCE, Type, PRIM_TYPE_RESOURCE TPrim) # type of (linear) resources
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
+def(TYPE_FLOAT32, Type, PRIM_TYPE_FLOAT32 TPrim)
+def(TYPE_FLOAT64, Type, PRIM_TYPE_FLOAT64 TPrim)
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
 # def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
@@ -266,6 +276,10 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
                 drop2 token
                 "Can't unify int value with string value."
                 rdip:emit-error! TYPE_ERROR,
+            VALUE_FLOAT ->
+                drop2 token
+                "Can't unify int value with float value."
+                rdip:emit-error! TYPE_ERROR,
             VALUE_BLOCK ->
                 drop2 token
                 "Can't unify int value with block."
@@ -277,6 +291,10 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
             VALUE_INT ->
                 drop2 token
                 "Can't unify string value with int value."
+                rdip:emit-error! TYPE_ERROR,
+            VALUE_FLOAT ->
+                drop2 token
+                "Can't unify int value with float value."
                 rdip:emit-error! TYPE_ERROR,
             VALUE_BLOCK ->
                 drop2 token
@@ -294,21 +312,46 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
                 drop2 token
                 "Can't unify block with int value."
                 rdip:emit-error! TYPE_ERROR,
+            VALUE_FLOAT ->
+                drop2 token
+                "Can't unify int value with float value."
+                rdip:emit-error! TYPE_ERROR,            
             VALUE_STR ->
                 drop2 token
                 "Can't unify block with string value."
                 rdip:emit-error! TYPE_ERROR
         ),
-    ))
+
+        VALUE_FLOAT -> swap match(
+            VALUE_FLOAT ->
+                dup2 == if(
+                    drop VALUE_FLOAT TValue,
+                    drop2 TYPE_FLOAT64
+                ),
+            VALUE_INT ->
+                drop2 token
+                "Can't unify float value with int value."
+                rdip:emit-error! TYPE_ERROR,
+            VALUE_BLOCK ->
+                drop2 token
+                "Can't unify float value with block."
+                rdip:emit-error! TYPE_ERROR,            
+            VALUE_STR ->
+                drop2 token
+                "Can't unify double precision float value with string value."
+                rdip:emit-error! TYPE_ERROR
+        )))
 
 def(Value.unify-type!, +Mirth +Gamma Type Value -- +Mirth +Gamma Type,
     VALUE_INT -> drop TYPE_INT unify!,
     VALUE_STR -> drop TYPE_STR unify!,
+    VALUE_FLOAT -> drop TYPE_FLOAT64 unify!,
     VALUE_BLOCK -> swap unify-block!)
 
 def(Value.unify-error!, +Mirth +Gamma Value -- +Mirth +Gamma Type,
     VALUE_INT -> drop TYPE_ERROR,
     VALUE_STR -> drop TYPE_ERROR,
+    VALUE_FLOAT -> drop TYPE_ERROR,
     VALUE_BLOCK -> TYPE_ERROR unify-block!)
 
 def(Type.unify-block!, +Mirth +Gamma Block Type -- +Mirth +Gamma Type,
@@ -377,6 +420,7 @@ def(Type.type;, Type +Str -- +Str,
 
 def(Value.type, Value -- Type,
     VALUE_INT -> drop PRIM_TYPE_INT TPrim,
+    VALUE_FLOAT -> drop PRIM_TYPE_FLOAT64 TPrim,
     VALUE_STR -> drop PRIM_TYPE_STR TPrim,
     VALUE_BLOCK -> type >Type)
 
@@ -386,6 +430,8 @@ def(PrimType.type;, +Str PrimType -- +Str,
         PRIM_TYPE_STACK -> "<STACK>",
         PRIM_TYPE_RESOURCE -> "<Resource>",
         PRIM_TYPE_INT -> "Int",
+        PRIM_TYPE_FLOAT32 -> "Float32",
+        PRIM_TYPE_FLOAT64 -> "Float64",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
         PRIM_TYPE_WORLD -> "+World",
@@ -456,6 +502,7 @@ def(Type.rigidify!, +Mirth Ctx Type -- +Mirth Ctx Type,
 def(Value.rigidify!, +Mirth Ctx Value -- +Mirth Ctx Type,
     VALUE_INT -> VALUE_INT TValue,
     VALUE_STR -> VALUE_STR TValue,
+    VALUE_FLOAT -> VALUE_FLOAT TValue,
     VALUE_BLOCK -> arrow type rigidify! >Type)
 
 ||| How many types does this type take as an argument?
@@ -1144,12 +1191,14 @@ def(StackType.split-parts, StackType -- StackType List(StackTypePart),
 
 data(CType,
     IntLike -> Str,
+    FloatLike -> Str,
     PtrLike -> Str,
     FnPtr   -> Str,
     Phantom)
 
 def(CType.cname, CType -- Str,
     IntLike -> id,
+    FloatLike -> id,
     PtrLike -> id,
     FnPtr   -> id,
     Phantom -> "void")
@@ -1198,6 +1247,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cconst == if(
         drop match(
             IntLike -> "const " swap cat IntLike Some,
+            FloatLike -> "const " swap cat FloatLike Some,
             FnPtr   -> "const " swap cat FnPtr Some,
             PtrLike -> " const" cat PtrLike Some,
             Phantom -> Phantom Some,
@@ -1206,6 +1256,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin crestrict == if(
         drop match(
             IntLike -> "restrict " swap cat IntLike Some,
+            FloatLike -> "restrict " swap cat FloatLike Some,
             FnPtr   -> "restrict " swap cat FnPtr Some,
             PtrLike -> " restrict" cat PtrLike Some,
             Phantom -> Phantom Some,
@@ -1214,6 +1265,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cvolatile == if(
         drop match(
             IntLike -> "volatile " swap cat IntLike Some,
+            FloatLike -> "volatile " swap cat FloatLike Some,
             FnPtr   -> "volatile " swap cat FnPtr Some,
             PtrLike -> " volatile" cat PtrLike Some,
             Phantom -> Phantom Some,
