@@ -52,6 +52,21 @@ def +SDL_Renderer?.unwrap! [ +SDL +SDL_Renderer? -- +SDL +SDL_Renderer ] {
     if-ok!(id, panic!)
 }
 
+data(+SDL_Texture, +SDL_Texture -> Ptr)
+data(+SDL_TextureLocked, +SDL_TextureLocked -> Ptr)
+data(+SDL_Texture?, +SDL_Texture? -> Ptr?)
+inline (
+    def +SDL_Texture?.if-ok!(f,g) [
+        (*a +SDL +SDL_Texture -- *b, *a +SDL Str -- *b)
+        *a +SDL +SDL_Texture? -- *b
+    ] {
+        +SDL_Texture? -> if-some(+SDL_Texture f, get-error! g)
+    }
+)
+def +SDL_Texture?.unwrap! [ +SDL +SDL_Texture? -- +SDL +SDL_Texture ] {
+    if-ok!(id, panic!)
+}
+
 external(
     SDL_Init [ +World flags:SDL_InitFlags -- +World +SDL? ]
     SDL_Quit [ +World +SDL -- +World ]
@@ -77,6 +92,31 @@ external(
     SDL_RenderPresent [ +SDL +renderer:+SDL_Renderer -- +SDL +renderer:+SDL_Renderer ]
     SDL_SetRenderDrawColor [ +SDL +renderer:+SDL_Renderer r:CInt g:CInt b:CInt a:CInt -- +SDL +renderer:+SDL_Renderer ]
     SDL_RenderFillRect [ +SDL +renderer:+SDL_Renderer rect:Ptr -- +SDL +renderer:+SDL_Renderer ]
+
+    SDL_CreateTexture [
+        +SDL +renderer:+SDL_Renderer format:SDL_PixelFormat access:SDL_TextureAccess w:CInt h:CInt --
+        +SDL +renderer:+SDL_Renderer +SDL_Texture?
+    ]
+    SDL_CreateTextureFromSurface [
+        +SDL +renderer:+SDL_Renderer +surface:+SDL_Surface --
+        +SDL +renderer:+SDL_Renderer +surface:+SDL_Surface +SDL_Texture?
+    ]
+    SDL_DestroyTexture [
+        +SDL +texture:+SDL_Texture -- +SDL
+    ]
+    SDL_UpdateTexture [
+        +SDL +texture:+SDL_Texture rect:Ptr pixels:Ptr pitch:CInt --
+        +SDL +texture:+SDL_Texture CInt
+    ]
+
+    SDL_LockTexture [
+        +SDL +texture:+SDL_Texture rect:Ptr pixels:CPtr(Ptr) pitch:CPtr(CInt) --
+        +SDL +texture:+SDL_Texture CInt
+    ]
+    SDL_UnlockTexture [
+        +SDL +texture:+SDL_Texture --
+        +SDL +texture:+SDL_Texture
+    ]
 )
 
 inline(
@@ -169,6 +209,80 @@ inline (
     def SDL_RENDERER_PRESENTVSYNC  [ SDL_RendererFlags ] { 0x00000004 >U32 SDL_RendererFlags }
     def SDL_RENDERER_TARGETTEXTURE [ SDL_RendererFlags ] { 0x00000008 >U32 SDL_RendererFlags }
 )
+
+data SDL_TextureAccess {
+    0x0000 SDL_TEXTUREACCESS_STATIC,
+    0x0001 SDL_TEXTUREACCESS_STREAMING,
+    0x0002 SDL_TEXTUREACCESS_TARGET,
+}
+
+data SDL_PixelFormat {
+    0x00000000 SDL_PIXELFORMAT_UNKNOWN,
+    0x11100100 SDL_PIXELFORMAT_INDEX1LSB,
+    0x11200100 SDL_PIXELFORMAT_INDEX1MSB,
+    0x1c100200 SDL_PIXELFORMAT_INDEX2LSB,
+    0x1c200200 SDL_PIXELFORMAT_INDEX2MSB,
+    0x12100400 SDL_PIXELFORMAT_INDEX4LSB,
+    0x12200400 SDL_PIXELFORMAT_INDEX4MSB,
+    0x13000801 SDL_PIXELFORMAT_INDEX8,
+    0x14110801 SDL_PIXELFORMAT_RGB332,
+    0x15120c02 SDL_PIXELFORMAT_XRGB4444,
+    0x15520c02 SDL_PIXELFORMAT_XBGR4444,
+    0x15130f02 SDL_PIXELFORMAT_XRGB1555,
+    0x15530f02 SDL_PIXELFORMAT_XBGR1555,
+    0x15321002 SDL_PIXELFORMAT_ARGB4444,
+    0x15421002 SDL_PIXELFORMAT_RGBA4444,
+    0x15721002 SDL_PIXELFORMAT_ABGR4444,
+    0x15821002 SDL_PIXELFORMAT_BGRA4444,
+    0x15331002 SDL_PIXELFORMAT_ARGB1555,
+    0x15441002 SDL_PIXELFORMAT_RGBA5551,
+    0x15731002 SDL_PIXELFORMAT_ABGR1555,
+    0x15841002 SDL_PIXELFORMAT_BGRA5551,
+    0x15151002 SDL_PIXELFORMAT_RGB565,
+    0x15551002 SDL_PIXELFORMAT_BGR565,
+    0x17101803 SDL_PIXELFORMAT_RGB24,
+    0x17401803 SDL_PIXELFORMAT_BGR24,
+    0x16161804 SDL_PIXELFORMAT_XRGB8888,
+    0x16261804 SDL_PIXELFORMAT_RGBX8888,
+    0x16561804 SDL_PIXELFORMAT_XBGR8888,
+    0x16661804 SDL_PIXELFORMAT_BGRX8888,
+    0x16362004 SDL_PIXELFORMAT_ARGB8888,
+    0x16462004 SDL_PIXELFORMAT_RGBA8888,
+    0x16762004 SDL_PIXELFORMAT_ABGR8888,
+    0x16862004 SDL_PIXELFORMAT_BGRA8888,
+    0x16172004 SDL_PIXELFORMAT_XRGB2101010,
+    0x16572004 SDL_PIXELFORMAT_XBGR2101010,
+    0x16372004 SDL_PIXELFORMAT_ARGB2101010,
+    0x16772004 SDL_PIXELFORMAT_ABGR2101010,
+    0x18103006 SDL_PIXELFORMAT_RGB48,
+    0x18403006 SDL_PIXELFORMAT_BGR48,
+    0x18204008 SDL_PIXELFORMAT_RGBA64,
+    0x18304008 SDL_PIXELFORMAT_ARGB64,
+    0x18504008 SDL_PIXELFORMAT_BGRA64,
+    0x18604008 SDL_PIXELFORMAT_ABGR64,
+    0x1a103006 SDL_PIXELFORMAT_RGB48_FLOAT,
+    0x1a403006 SDL_PIXELFORMAT_BGR48_FLOAT,
+    0x1a204008 SDL_PIXELFORMAT_RGBA64_FLOAT,
+    0x1a304008 SDL_PIXELFORMAT_ARGB64_FLOAT,
+    0x1a504008 SDL_PIXELFORMAT_BGRA64_FLOAT,
+    0x1a604008 SDL_PIXELFORMAT_ABGR64_FLOAT,
+    0x1b10600c SDL_PIXELFORMAT_RGB96_FLOAT,
+    0x1b40600c SDL_PIXELFORMAT_BGR96_FLOAT,
+    0x1b208010 SDL_PIXELFORMAT_RGBA128_FLOAT,
+    0x1b308010 SDL_PIXELFORMAT_ARGB128_FLOAT,
+    0x1b508010 SDL_PIXELFORMAT_BGRA128_FLOAT,
+    0x1b608010 SDL_PIXELFORMAT_ABGR128_FLOAT,
+    0x32315659 SDL_PIXELFORMAT_YV12,
+    0x56555949 SDL_PIXELFORMAT_IYUV,
+    0x32595559 SDL_PIXELFORMAT_YUY2,
+    0x59565955 SDL_PIXELFORMAT_UYVY,
+    0x55595659 SDL_PIXELFORMAT_YVYU,
+    0x3231564e SDL_PIXELFORMAT_NV12,
+    0x3132564e SDL_PIXELFORMAT_NV21,
+    0x30313050 SDL_PIXELFORMAT_P010,
+    0x2053454f SDL_PIXELFORMAT_EXTERNAL_OES,
+}
+
 
 # Size of SDL_Event structure.
 def SDL_EVENT_SIZE [ Size ] { 56 >Size }

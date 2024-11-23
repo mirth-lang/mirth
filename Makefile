@@ -67,6 +67,9 @@ profile: bin/mirth_prof
 play-snake: bin/snake
 	bin/snake
 
+play-fractal: bin/fractal
+	bin/fractal
+
 examples: bin/mirth2
 	bash tools/build-examples.sh
 
@@ -130,16 +133,15 @@ bin/snake.c: bin/mirth2 lib/std/* examples/snake.mth examples/sdl2.mth
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --cflags --libs sdl2`
-	
+
+bin/snake-infer-types: bin/snake-infer-types.c
+	$(CC) -o bin/snake-infer-types bin/snake-infer-types.c `pkg-config --cflags --libs sdl2`
+
 bin/fractal.c: bin/mirth2 lib/std/* examples/fractal.mth examples/sdl2.mth
 	bin/mirth2 --debug examples/fractal.mth -o bin/fractal.c
 
 bin/fractal: bin/fractal.c examples/fractal-extern.c
 	$(CC) -o bin/fractal bin/fractal.c examples/fractal-extern.c `pkg-config --cflags --libs sdl2` -lm
-
-
-bin/snake-infer-types: bin/snake-infer-types.c
-	$(CC) -o bin/snake-infer-types bin/snake-infer-types.c `pkg-config --cflags --libs sdl2`
 
 bin/hello: bin/hello.c
 	$(CC) -o bin/hello bin/hello.c

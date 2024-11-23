@@ -16,6 +16,9 @@ case "$DirName" in
         ;;
     examples )
         case "$BaseName" in
+            fractal.mth )
+                make play-fractal
+                ;;
             snake.mth )
                 make play-snake
                 ;;

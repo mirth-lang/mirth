@@ -18,22 +18,20 @@ def main {
     quit!
 }
 
-data(+Mandelbrot, +Mandelbrot -> +platform:+FractalUI running:Bool)
+struct +Mandelbrot {
+    +platform: +FractalUI
+    running: Bool
+}
 
-data(+FractalUI, +FractalUI ->
+struct +FractalUI {
     +SDL
     +window: +SDL_Window
     +surface: +SDL_Surface
     +renderer: +SDL_Renderer
     +event-buffer: +Buffer
-    +rects:+Buffer
-    )
+}
 
 def +FractalUI.sdl(f) { /+FractalUI f +FractalUI }
-
-data(Complex, Complex -> real:Float64 imag:Float64)
-
-def CENTER { -0.5 >imag 0.0 >real Complex }
 
 data(Position, Position -> x:Int y:Int)
 
@@ -41,8 +39,8 @@ def Position.== [ Position Position -- Bool ] {
     /Position /Position x> x> == y> y> == &&
 }
 
-def WIDTH { 800 }
-def HEIGHT { 800 }
+def WIDTH { 400 }
+def HEIGHT { 400 }
 def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
 def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC | }
 
@@ -66,18 +64,8 @@ def +FractalUI.Init! [ +World -- +World +FractalUI ] {
     SDL_GetWindowSurface >+surface
 
     256 >Size +Buffer.new >+event-buffer
-    HEIGHT FLIPS / 16 * >Size +Buffer.new >+rects
 
     +FractalUI
-}
-
-def +FractalUI.rect! [ +FractalUI x:I32 y:I32 w:I32 h:I32 index:Int -- +FractalUI ] {
-    index> 16 * >Offset >index
-    h> 12 >Offset @index + +rects:!I32
-    w> 8 >Offset @index + +rects:!I32
-    y> 4 >Offset @index + +rects:!I32
-    x> 0 >Offset @index + +rects:!I32
-    index> drop
 }
 
 def +Mandelbrot.Init! [ +World -- +World +Mandelbrot ] {
@@ -105,9 +93,8 @@ def +FractalUI.quit! [ +World +FractalUI -- +World ] {
     destroy-window!
 
     +event-buffer> rdrop
-    +rects> rdrop
     +surface> /+SDL_Surface drop
-    
+
     quit!
 }
 
@@ -116,19 +103,6 @@ def background-color { 0 0 0 255 rgba }
 
 def BAIL_OUT { 2.0 }
 def FLIPS { 24 }
-
-def center [ Int Int -- Complex ] {
-    WIDTH 2 / - >Float64
-    CENTER real + >real
-
-    HEIGHT 2 / - >Float64
-    CENTER imag + >imag
-
-    Complex
-}
-
-def X [ Complex -- Float64 ] { real }
-def Y [ Complex -- Float64 ] { imag }
 
 external(
     cpow -> pow [ CFloat64 CFloat64 -- CFloat64 ]
@@ -153,14 +127,14 @@ def +Mandelbrot.plot! [ +Mandelbrot x:Int y:Int Int -- +Mandelbrot ] {
 }
 
 def scale_x [ Int -- Float64 ] {
-    >Float64     
-    2.47 800.0 / * 
+    >Float64
+    2.47 WIDTH >Float64 / *
     2.0 -
 }
 
 def scale_y [ Int -- Float64 ] {
-    >Float64     
-    2.24 800.0 / *
+    >Float64
+    2.24 HEIGHT >Float64 / *
     1.12 -
 }
 
@@ -168,10 +142,10 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
     +platform:sdl:show-window!
     +platform:clear!
 
-    0 >px while(
-        @px WIDTH <,
-        0 >py while(
-            @py HEIGHT <,
+    0 >py while(
+        @py HEIGHT <,
+        0 >px while(
+            @px WIDTH <,
 
             @px scale_x >x0
             @py scale_y >y0
@@ -181,15 +155,22 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
 
             0 >iteration
             while(
-                @x 2.0 pow 
-                @y 2.0 pow + 
-                2.0 2.0 pow <= and(@iteration 250 <),
+                @iteration 250 <
 
-                @x 2.0 pow
-                @y 2.0 pow -
-                @x0 + >xtemp
-                2.0 @x * @y * @y0 + y> drop >y
-                x> drop xtemp> >x
+                @x @x *
+                @y @y * +
+                4.0 <= &&,
+
+                @x @x *
+                @y @y * -
+                @x0 +
+
+                2.0 @x * @y *
+                @y0 +
+
+                !y
+                !x
+
                 iteration> 1+ >iteration
             )
             x> drop
@@ -198,13 +179,12 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
             y0> drop
             @px >x @py >y iteration> dup 250 < if(plot!, x> drop y> drop drop)
 
-            py> 1+ >py
+            px> 1+ >px
         )
-        py> drop
-        px> 1+ >px
-        rdip:print("row: "; @px show;)
+        px> drop
+        py> 1+ >py
     )
-    px> drop
+    py> drop
 
     +platform:sdl:SDL_UpdateWindowSurface drop
 }
