@@ -14,18 +14,27 @@ field(TypeDef.~name, TypeDef, Name)
 field(TypeDef.~qname, TypeDef, Prop(QName))
 field(TypeDef.~target, TypeDef, Prop(Type))
 
-def(TypeDef.head?, TypeDef -- Maybe(Token), ~head? @)
-def(TypeDef.qname-soft, TypeDef -- Maybe(QName), ~qname @? bind(ready?))
-def(TypeDef.qname-hard, +Mirth TypeDef -- +Mirth QName, ~qname force!)
-def(TypeDef.namespace, +Mirth TypeDef -- +Mirth Namespace, qname-hard namespace)
-def(TypeDef.name, TypeDef -- Name, ~name @)
-def(TypeDef.target, +Mirth TypeDef -- +Mirth Type, ~target force!)
+def TypeDef.head? [ TypeDef -- Maybe(Token) ] { ~head? @ }
+def TypeDef.qname-soft [ TypeDef -- Maybe(QName) ] { ~qname @? bind(ready?) }
+def TypeDef.qname-hard [ +Mirth TypeDef -- +Mirth QName ] { ~qname force! }
+def TypeDef.namespace [ +Mirth TypeDef -- +Mirth Namespace ] { qname-hard namespace }
+def TypeDef.name [ TypeDef -- Name ] { ~name @ }
+def TypeDef.target [ +Mirth TypeDef -- +Mirth Type ] { ~target force! }
 
-def(TypeDef.==, TypeDef TypeDef -- Bool, both(index) ==)
+def TypeDef.== [ TypeDef TypeDef -- Bool ] { both(index) == }
 
-def(TypeDef.new!, +Mirth head:Maybe(Token) name:Name state:PropState(QName) -- +Mirth TypeDef,
+def TypeDef.new! [ +Mirth head:Maybe(Token) name:Name state:PropState(QName) -- +Mirth TypeDef ] {
     TypeDef.alloc!
     head> over ~head? !
     name> over ~name !
     dup TypeDefQName >label Prop over ~qname !
-    dup DefType register)
+    dup DefType register
+}
+
+def +Mirth.def-type! [ +Mirth qname:QName type:Type -- +Mirth ] {
+    None >head
+    qname> dup name >name
+    PSReady >state
+    TypeDef.new!
+    type> over TypeDefTarget prop swap ~target !
+}

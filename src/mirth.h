@@ -736,18 +736,18 @@ static void mp_primZ_intZ_lt (void) {
 	PRIM_EXIT(mp_primZ_intZ_lt);
 }
 
-static void mp_primZ_intZ_toZ_float64 (void) {
-	PRIM_ENTER(mp_primZ_intZ_toZ_float64, "prim-int-to-float64");
+static void mp_primZ_intZ_toZ_f64 (void) {
+	PRIM_ENTER(mp_primZ_intZ_toZ_f64, "prim-int-to-f64");
 	int64_t i = pop_i64();
 	push_f64((double)i);
-	PRIM_EXIT(mp_primZ_intZ_toZ_float64);
+	PRIM_EXIT(mp_primZ_intZ_toZ_f64);
 }
 
-static void mp_primZ_float64Z_toZ_int (void) {
-	PRIM_ENTER(mp_primZ_float64Z_toZ_int, "prim-float64-to-int");
+static void mp_primZ_f64Z_toZ_int (void) {
+	PRIM_ENTER(mp_primZ_f64Z_toZ_int, "prim-f64-to-int");
 	double d = pop_f64();
 	push_i64((int64_t)d);
-	PRIM_EXIT(mp_primZ_float64Z_toZ_int);
+	PRIM_EXIT(mp_primZ_f64Z_toZ_int);
 }
 
 static void mp_primZ_strZ_cmp (void) {
@@ -761,63 +761,63 @@ static void mp_primZ_strZ_cmp (void) {
 	PRIM_EXIT(mp_primZ_strZ_cmp);
 }
 
-static void mp_primZ_float64Z_eq (void) {
-	PRIM_ENTER(mp_primZ_float64Z_eq,"prim-float64-eq");
+static void mp_primZ_f64Z_eq (void) {
+	PRIM_ENTER(mp_primZ_f64Z_eq,"prim-f64-eq");
 	VAL b = pop_value();
 	VAL a = pop_value();
 	ASSERT1(IS_FLOAT64(a), a);
 	ASSERT1(IS_FLOAT64(b), a);
 	push_bool(VFLOAT64(a) == VFLOAT64(b));
-	PRIM_EXIT(mp_primZ_float64Z_eq);
+	PRIM_EXIT(mp_primZ_f64Z_eq);
 }
-static void mp_primZ_float64Z_lt (void) {
-	PRIM_ENTER(mp_primZ_float64Z_lt,"prim-float64-lt");
+static void mp_primZ_f64Z_lt (void) {
+	PRIM_ENTER(mp_primZ_f64Z_lt,"prim-f64-lt");
 	VAL b = pop_value();
 	VAL a = pop_value();
 	ASSERT2(IS_FLOAT64(a) && IS_FLOAT64(b), a, b);
 	push_bool(VFLOAT64(a) < VFLOAT64(b));
-	PRIM_EXIT(mp_primZ_float64Z_lt);
+	PRIM_EXIT(mp_primZ_f64Z_lt);
 }
 
-static void mp_primZ_float64Z_add (void) {
-	PRIM_ENTER(mp_primZ_float64Z_add,"prim-float64-add");
+static void mp_primZ_f64Z_add (void) {
+	PRIM_ENTER(mp_primZ_f64Z_add,"prim-f64-add");
 	double b = pop_f64();
 	double a = pop_f64();
 	push_f64(a + b);
-	PRIM_EXIT(mp_primZ_float64Z_add);
+	PRIM_EXIT(mp_primZ_f64Z_add);
 }
 
-static void mp_primZ_float64Z_sub (void) {
-	PRIM_ENTER(mp_primZ_float64Z_sub,"prim-float64-sub");
+static void mp_primZ_f64Z_sub (void) {
+	PRIM_ENTER(mp_primZ_f64Z_sub,"prim-f64-sub");
 	double b = pop_f64();
 	double a = pop_f64();
 	push_f64(a - b);
-	PRIM_EXIT(mp_primZ_float64Z_sub);
+	PRIM_EXIT(mp_primZ_f64Z_sub);
 }
 
-static void mp_primZ_float64Z_mul (void) {
-	PRIM_ENTER(mp_primZ_float64Z_mul,"prim-float64-mul");
+static void mp_primZ_f64Z_mul (void) {
+	PRIM_ENTER(mp_primZ_f64Z_mul,"prim-f64-mul");
 	double b = pop_f64();
 	double a = pop_f64();
 	push_f64(a * b);
-	PRIM_EXIT(mp_primZ_float64Z_mul);
+	PRIM_EXIT(mp_primZ_f64Z_mul);
 }
 
-static void mp_primZ_float64Z_div (void) {
-	PRIM_ENTER(mp_primZ_float64Z_div,"prim-float64-div");
+static void mp_primZ_f64Z_div (void) {
+	PRIM_ENTER(mp_primZ_f64Z_div,"prim-f64-div");
 	double b = pop_f64();
 	double a = pop_f64();
 	push_f64(a / b);
-	PRIM_EXIT(mp_primZ_float64Z_div);
+	PRIM_EXIT(mp_primZ_f64Z_div);
 }
 
-static void mp_primZ_float64Z_toZ_str (void) {
-	PRIM_ENTER(mp_primZ_float64Z_toZ_str, "prim-float64-to-str");
+static void mp_primZ_f64Z_toZ_str (void) {
+	PRIM_ENTER(mp_primZ_f64Z_toZ_str, "prim-f64-to-str");
 	double d = pop_f64();
 	char result[DBL_DIG+32] = {0};
 	int len = sprintf(result,"%.*g", DBL_DIG,  d);
 	push_value(mkstr(result, len));
-	PRIM_EXIT(mp_primZ_float64Z_toZ_str);
+	PRIM_EXIT(mp_primZ_f64Z_toZ_str);
 }
 
 static void mp_primZ_sysZ_argc (void) {

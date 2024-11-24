@@ -800,7 +800,7 @@ def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
     Subst.nil swap match(
         OpNone -> OPSIG_ID,
         OpInt -> VALUE_INT TValue OPSIG_PUSH,
-        OpFloat -> VALUE_FLOAT TValue OPSIG_PUSH,
+        OpFloat -> VALUE_F64 TValue OPSIG_PUSH,
         OpStr -> VALUE_STR TValue OPSIG_PUSH,
         OpBuffer -> drop TYPE_PTR OPSIG_PUSH,
         OpVariable -> type TMut OPSIG_PUSH,
