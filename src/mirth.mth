@@ -54,7 +54,6 @@ struct Builtin {
     culonglong: Data  mk-culonglong: Tag
     cusize:     Data  mk-cusize:     Tag
     cuintptr:   Data  mk-cuintptr:   Tag
-    cfloat64:   Data  mk-cfloat64:   Tag
 
     cptr:       Data  mk-cptr:       Tag
     cconst:     Data  mk-cconst:     Tag
@@ -91,7 +90,6 @@ def Builtin.Alloc! [ -- Builtin ] {
     Data.alloc! >culonglong  Tag.alloc! >mk-culonglong
     Data.alloc! >cusize      Tag.alloc! >mk-cusize
     Data.alloc! >cuintptr    Tag.alloc! >mk-cuintptr
-    Data.alloc! >cfloat64    Tag.alloc! >mk-cfloat64
 
     Data.alloc! >cptr        Tag.alloc! >mk-cptr
     Data.alloc! >cconst      Tag.alloc! >mk-cconst

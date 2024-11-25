@@ -33,12 +33,6 @@ struct +FractalUI {
 
 def +FractalUI.sdl(f) { /+FractalUI f +FractalUI }
 
-data(Position, Position -> x:Int y:Int)
-
-def Position.== [ Position Position -- Bool ] {
-    /Position /Position x> x> == y> y> == &&
-}
-
 def WIDTH { 400 }
 def HEIGHT { 400 }
 def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
@@ -105,8 +99,8 @@ def BAIL_OUT { 2.0 }
 def FLIPS { 24 }
 
 external(
-    cpow -> pow [ CFloat64 CFloat64 -- CFloat64 ]
-    clog10 -> log10 [ CFloat64 -- CFloat64 ]
+    F64.pow -> pow [ F64 F64 -- F64 ]
+    F64.log10 -> log10 [ F64 -- F64 ]
     cset_pixel -> set_pixel [ +surface:+SDL_Surface CInt CInt CInt -- +surface:+SDL_Surface ]
 )
 
@@ -114,27 +108,19 @@ def set_pixel [ +surface:+SDL_Surface Int Int Int -- +surface:+SDL_Surface ] {
     dip(dip:CInt CInt) CInt cset_pixel
 }
 
-def pow [ Float64 Float64 -- Float64 ] {
-    dip:CFloat64 CFloat64 cpow >Float64
-}
-
-def log10 [ Float64 -- Float64] {
-    CFloat64 clog10 >Float64
-}
-
 def +Mandelbrot.plot! [ +Mandelbrot x:Int y:Int Int -- +Mandelbrot ] {
     >iterations x> y> iterations> +platform:sdl:set_pixel
 }
 
-def scale_x [ Int -- Float64 ] {
-    >Float64
-    2.47 WIDTH >Float64 / *
+def scale_x [ Int -- F64 ] {
+    >F64
+    2.47 WIDTH >F64 / *
     2.0 -
 }
 
-def scale_y [ Int -- Float64 ] {
-    >Float64
-    2.24 HEIGHT >Float64 / *
+def scale_y [ Int -- F64 ] {
+    >F64
+    2.24 HEIGHT >F64 / *
     1.12 -
 }
 
@@ -157,12 +143,12 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
             while(
                 @iteration 250 <
 
-                @x @x *
-                @y @y * +
+                @x 2.0 pow
+                @y 2.0 pow +
                 4.0 <= &&,
 
-                @x @x *
-                @y @y * -
+                @x 2.0 pow
+                @y 2.0 pow -
                 @x0 +
 
                 2.0 @x * @y *

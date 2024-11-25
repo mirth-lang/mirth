@@ -41,13 +41,13 @@ alias(Int.<<, prim-int-shl)
 alias(Int.>>, prim-int-shr)
 inline:def(Int./%, Int Int -- Int Int, dup2 % dip(/))
 
-alias(Float64.+, prim-float64-add)
-alias(Float64.-, prim-float64-sub)
-alias(Float64.*, prim-float64-mul)
-alias(Float64./, prim-float64-div)
+alias(F64.+, prim-f64-add)
+alias(F64.-, prim-f64-sub)
+alias(F64.*, prim-f64-mul)
+alias(F64./, prim-f64-div)
 
-alias(Float64.>Int, prim-float64-to-int)
-alias(Float64.>Str, prim-float64-to-str)
+alias(F64.>Int, prim-f64-to-int)
+alias(F64.>Str, prim-f64-to-str)
 
 inline(
     alias(Bool.if(f,g), prim-if)
@@ -241,9 +241,11 @@ inline(
     def(Int.<>, Int Int -- Bool, == not)
     def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
 
-    alias(Float64.==, prim-float64-eq)
-    alias(Float64.<, prim-float64-lt)
-    def(Float64.<=, Float64 Float64 -- Bool, swap < not)
+    alias(F64.==, prim-f64-eq)
+    alias(F64.<, prim-f64-lt)
+    def(F64.>, F64 F64 -- Bool, swap <)
+    def(F64.<=, F64 F64 -- Bool, swap < not)
+    def(F64.>=, F64 F64 -- Bool, < not)
 )
 def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
 def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
@@ -252,7 +254,7 @@ def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 inline(
     def(Int.show, Int -- Str, prim-int-to-str)
     def(Int.show;, Int +Str -- +Str, show ;)
-    def(Int.>Float64, Int -- Float64, prim-int-to-float64)
+    def(Int.>F64, Int -- F64, prim-int-to-f64)
 
     def(Str.compare, Str Str -- Comparison, prim-str-cmp 0 compare)
     def(Str.==, Str Str -- Bool, compare eq?)

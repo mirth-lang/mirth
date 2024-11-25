@@ -121,8 +121,6 @@ def(init-data!, +Mirth -- +Mirth,
     "I16" builtin i16 "Int>I16-unsafe" builtin mk-i16 "int16_t" make-prim-intlike!
     "I8"  builtin i8  "Int>I8-unsafe"  builtin mk-i8  "int8_t"  make-prim-intlike!
 
-    "CFloat64"   builtin cfloat64   "CFloat64"   builtin mk-cfloat64   "double"       make-prim-floatlike!
-
     "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
     "CIChar"     builtin cichar     "CIChar"     builtin mk-cichar     "signed char"  make-prim-intlike!
     "CShort"     builtin cshort     "CShort"     builtin mk-cshort     "short"        make-prim-intlike!
