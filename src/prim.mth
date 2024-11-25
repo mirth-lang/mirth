@@ -221,18 +221,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_INT_TO_F32 "prim-int-to-f32" 0 def-prim!
     PRIM_INT_TO_F64 "prim-int-to-f64" 0 def-prim!
 
-
-    PRIM_F32_EQ     "prim-float32-eq"     0 def-prim!
-    PRIM_F32_LT     "prim-float32-lt"     0 def-prim!
-    PRIM_F32_ADD    "prim-float32-add"    0 def-prim!
-    PRIM_F32_SUB    "prim-float32-sub"    0 def-prim!
-    PRIM_F32_MUL    "prim-float32-mul"    0 def-prim!
-    PRIM_F32_DIV    "prim-float32-div"    0 def-prim!
-    PRIM_F32_TO_INT "prim-float32-to-int" 0 def-prim!
-    PRIM_F32_TO_STR "prim-float32-to-str" 0 def-prim!
-    PRIM_F32_TO_F64 "prim-float32-to-f64" 0 def-prim!
-
-
     PRIM_F32_EQ     "prim-f32-eq"     0 def-prim!
     PRIM_F32_LT     "prim-f32-lt"     0 def-prim!
     PRIM_F32_ADD    "prim-f32-add"    0 def-prim!
@@ -242,17 +230,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_F32_TO_INT "prim-f32-to-int" 0 def-prim!
     PRIM_F32_TO_STR "prim-f32-to-str" 0 def-prim!
     PRIM_F32_TO_F64 "prim-f32-to-f64" 0 def-prim!
-
-    PRIM_F64_EQ     "prim-float64-eq"     0 def-prim!
-    PRIM_F64_LT     "prim-float64-lt"     0 def-prim!
-    PRIM_F64_ADD    "prim-float64-add"    0 def-prim!
-    PRIM_F64_SUB    "prim-float64-sub"    0 def-prim!
-    PRIM_F64_MUL    "prim-float64-mul"    0 def-prim!
-    PRIM_F64_DIV    "prim-float64-div"    0 def-prim!
-    PRIM_F64_TO_INT "prim-float64-to-int" 0 def-prim!
-    PRIM_F64_TO_STR "prim-float64-to-str" 0 def-prim!
-    PRIM_F64_TO_F32 "prim-float64-to-f32" 0 def-prim!
-
 
     PRIM_F64_EQ     "prim-f64-eq"     0 def-prim!
     PRIM_F64_LT     "prim-f64-lt"     0 def-prim!

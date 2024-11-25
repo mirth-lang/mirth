@@ -41,11 +41,19 @@ alias(Int.<<, prim-int-shl)
 alias(Int.>>, prim-int-shr)
 inline:def(Int./%, Int Int -- Int Int, dup2 % dip(/))
 
+alias(F32.+, prim-f32-add)
+alias(F32.-, prim-f32-sub)
+alias(F32.*, prim-f32-mul)
+alias(F32./, prim-f32-div)
+alias(F32.>F64, prim-f32-to-f64)
+alias(F32.>Int, prim-f32-to-int)
+alias(F32.>Str, prim-f32-to-str)
+
 alias(F64.+, prim-f64-add)
 alias(F64.-, prim-f64-sub)
 alias(F64.*, prim-f64-mul)
 alias(F64./, prim-f64-div)
-
+alias(F64.>F32, prim-f64-to-f32)
 alias(F64.>Int, prim-f64-to-int)
 alias(F64.>Str, prim-f64-to-str)
 
@@ -246,6 +254,12 @@ inline(
     def(F64.>, F64 F64 -- Bool, swap <)
     def(F64.<=, F64 F64 -- Bool, swap < not)
     def(F64.>=, F64 F64 -- Bool, < not)
+
+    alias(F32.==, prim-f32-eq)
+    alias(F32.<, prim-f32-lt)
+    def(F32.>, F32 F32 -- Bool, swap <)
+    def(F32.<=, F32 F32 -- Bool, swap < not)
+    def(F32.>=, F32 F32 -- Bool, < not)
 )
 def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
 def(Int.min, Int Int -- Int, dup2 < if(drop, nip))

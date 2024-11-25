@@ -737,6 +737,34 @@ static void mp_primZ_intZ_lt (void) {
 	PRIM_EXIT(mp_primZ_intZ_lt);
 }
 
+static void mp_primZ_f32Z_toZ_f64 (void) {
+	PRIM_ENTER(mp_primZ_f32Z_toZ_f64, "prim-f32-to-f64");
+	float x = pop_f32();
+	push_f64((double)x);
+	PRIM_EXIT(mp_primZ_f32Z_toZ_f64);
+}
+
+static void mp_primZ_f64Z_toZ_f32 (void) {
+	PRIM_ENTER(mp_primZ_f64Z_toZ_f32, "prim-f64-to-f32");
+	double x = pop_f64();
+	push_f32((float)x);
+	PRIM_EXIT(mp_primZ_f64Z_toZ_f32);
+}
+
+static void mp_primZ_intZ_toZ_f32 (void) {
+	PRIM_ENTER(mp_primZ_intZ_toZ_f32, "prim-int-to-f32");
+	int64_t i = pop_i64();
+	push_f32((float)i);
+	PRIM_EXIT(mp_primZ_intZ_toZ_f32);
+}
+
+static void mp_primZ_f32Z_toZ_int (void) {
+	PRIM_ENTER(mp_primZ_f32Z_toZ_int, "prim-f32-to-int");
+	float d = pop_f32();
+	push_i64((int64_t)d);
+	PRIM_EXIT(mp_primZ_f32Z_toZ_int);
+}
+
 static void mp_primZ_intZ_toZ_f64 (void) {
 	PRIM_ENTER(mp_primZ_intZ_toZ_f64, "prim-int-to-f64");
 	int64_t i = pop_i64();
@@ -760,6 +788,65 @@ static void mp_primZ_strZ_cmp (void) {
 	push_i64(cmp);
 	decref(a); decref(b);
 	PRIM_EXIT(mp_primZ_strZ_cmp);
+}
+
+static void mp_primZ_f32Z_eq (void) {
+	PRIM_ENTER(mp_primZ_f32Z_eq,"prim-f32-eq");
+	VAL b = pop_value();
+	VAL a = pop_value();
+	ASSERT1(IS_F32(a), a);
+	ASSERT1(IS_F32(b), a);
+	push_bool(VF32(a) == VF32(b));
+	PRIM_EXIT(mp_primZ_f32Z_eq);
+}
+static void mp_primZ_f32Z_lt (void) {
+	PRIM_ENTER(mp_primZ_f32Z_lt,"prim-f32-lt");
+	VAL b = pop_value();
+	VAL a = pop_value();
+	ASSERT2(IS_F32(a) && IS_F32(b), a, b);
+	push_bool(VF32(a) < VF32(b));
+	PRIM_EXIT(mp_primZ_f32Z_lt);
+}
+
+static void mp_primZ_f32Z_add (void) {
+	PRIM_ENTER(mp_primZ_f32Z_add,"prim-f32-add");
+	double b = pop_f32();
+	double a = pop_f32();
+	push_f32(a + b);
+	PRIM_EXIT(mp_primZ_f32Z_add);
+}
+
+static void mp_primZ_f32Z_sub (void) {
+	PRIM_ENTER(mp_primZ_f32Z_sub,"prim-f32-sub");
+	double b = pop_f32();
+	double a = pop_f32();
+	push_f32(a - b);
+	PRIM_EXIT(mp_primZ_f32Z_sub);
+}
+
+static void mp_primZ_f32Z_mul (void) {
+	PRIM_ENTER(mp_primZ_f32Z_mul,"prim-f32-mul");
+	double b = pop_f32();
+	double a = pop_f32();
+	push_f32(a * b);
+	PRIM_EXIT(mp_primZ_f32Z_mul);
+}
+
+static void mp_primZ_f32Z_div (void) {
+	PRIM_ENTER(mp_primZ_f32Z_div,"prim-f32-div");
+	double b = pop_f32();
+	double a = pop_f32();
+	push_f32(a / b);
+	PRIM_EXIT(mp_primZ_f32Z_div);
+}
+
+static void mp_primZ_f32Z_toZ_str (void) {
+	PRIM_ENTER(mp_primZ_f32Z_toZ_str, "prim-f32-to-str");
+	double d = pop_f32();
+	char result[DBL_DIG+32] = {0};
+	int len = sprintf(result,"%.*g", DBL_DIG,  d);
+	push_value(mkstr(result, len));
+	PRIM_EXIT(mp_primZ_f32Z_toZ_str);
 }
 
 static void mp_primZ_f64Z_eq (void) {
@@ -24889,42 +24976,6 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(29LL); // PRIM_F32_EQ
-	STRLIT("prim-float32-eq", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(30LL); // PRIM_F32_LT
-	STRLIT("prim-float32-lt", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(31LL); // PRIM_F32_ADD
-	STRLIT("prim-float32-add", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(32LL); // PRIM_F32_SUB
-	STRLIT("prim-float32-sub", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(33LL); // PRIM_F32_MUL
-	STRLIT("prim-float32-mul", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(34LL); // PRIM_F32_DIV
-	STRLIT("prim-float32-div", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(35LL); // PRIM_F32_TO_INT
-	STRLIT("prim-float32-to-int", 19);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(36LL); // PRIM_F32_TO_STR
-	STRLIT("prim-float32-to-str", 19);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(37LL); // PRIM_F32_TO_F64
-	STRLIT("prim-float32-to-f64", 19);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(29LL); // PRIM_F32_EQ
 	STRLIT("prim-f32-eq", 11);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
@@ -24958,42 +25009,6 @@ static void mw_mirth_prim_initZ_primsZBang (void) {
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(37LL); // PRIM_F32_TO_F64
 	STRLIT("prim-f32-to-f64", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(38LL); // PRIM_F64_EQ
-	STRLIT("prim-float64-eq", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(39LL); // PRIM_F64_LT
-	STRLIT("prim-float64-lt", 15);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(40LL); // PRIM_F64_ADD
-	STRLIT("prim-float64-add", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(41LL); // PRIM_F64_SUB
-	STRLIT("prim-float64-sub", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(42LL); // PRIM_F64_MUL
-	STRLIT("prim-float64-mul", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(43LL); // PRIM_F64_DIV
-	STRLIT("prim-float64-div", 16);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(44LL); // PRIM_F64_TO_INT
-	STRLIT("prim-float64-to-int", 19);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(45LL); // PRIM_F64_TO_STR
-	STRLIT("prim-float64-to-str", 19);
-	push_i64(0LL);
-	mw_mirth_prim_defZ_primZBang();
-	push_u64(46LL); // PRIM_F64_TO_F32
-	STRLIT("prim-float64-to-f32", 19);
 	push_i64(0LL);
 	mw_mirth_prim_defZ_primZBang();
 	push_u64(38LL); // PRIM_F64_EQ
@@ -44374,6 +44389,34 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tPRIM_EXIT(mp_primZ_intZ_lt);\n"
 		"}\n"
 		"\n"
+		"static void mp_primZ_f32Z_toZ_f64 (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_toZ_f64, \"prim-f32-to-f64\");\n"
+		"\tfloat x = pop_f32();\n"
+		"\tpush_f64((double)x);\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_toZ_f64);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f64Z_toZ_f32 (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f64Z_toZ_f32, \"prim-f64-to-f32\");\n"
+		"\tdouble x = pop_f64();\n"
+		"\tpush_f32((float)x);\n"
+		"\tPRIM_EXIT(mp_primZ_f64Z_toZ_f32);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_intZ_toZ_f32 (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_intZ_toZ_f32, \"prim-int-to-f32\");\n"
+		"\tint64_t i = pop_i64();\n"
+		"\tpush_f32((float)i);\n"
+		"\tPRIM_EXIT(mp_primZ_intZ_toZ_f32);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f32Z_toZ_int (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_toZ_int, \"prim-f32-to-int\");\n"
+		"\tfloat d = pop_f32();\n"
+		"\tpush_i64((int64_t)d);\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_toZ_int);\n"
+		"}\n"
+		"\n"
 		"static void mp_primZ_intZ_toZ_f64 (void) {\n"
 		"\tPRIM_ENTER(mp_primZ_intZ_toZ_f64, \"prim-int-to-f64\");\n"
 		"\tint64_t i = pop_i64();\n"
@@ -44397,6 +44440,65 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tpush_i64(cmp);\n"
 		"\tdecref(a); decref(b);\n"
 		"\tPRIM_EXIT(mp_primZ_strZ_cmp);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f32Z_eq (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_eq,\"prim-f32-eq\");\n"
+		"\tVAL b = pop_value();\n"
+		"\tVAL a = pop_value();\n"
+		"\tASSERT1(IS_F32(a), a);\n"
+		"\tASSERT1(IS_F32(b), a);\n"
+		"\tpush_bool(VF32(a) == VF32(b));\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_eq);\n"
+		"}\n"
+		"static void mp_primZ_f32Z_lt (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_lt,\"prim-f32-lt\");\n"
+		"\tVAL b = pop_value();\n"
+		"\tVAL a = pop_value();\n"
+		"\tASSERT2(IS_F32(a) && IS_F32(b), a, b);\n"
+		"\tpush_bool(VF32(a) < VF32(b));\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_lt);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f32Z_add (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_add,\"prim-f32-add\");\n"
+		"\tdouble b = pop_f32();\n"
+		"\tdouble a = pop_f32();\n"
+		"\tpush_f32(a + b);\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_add);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f32Z_sub (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_sub,\"prim-f32-sub\");\n"
+		"\tdouble b = pop_f32();\n"
+		"\tdouble a = pop_f32();\n"
+		"\tpush_f32(a - b);\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_sub);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f32Z_mul (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_mul,\"prim-f32-mul\");\n"
+		"\tdouble b = pop_f32();\n"
+		"\tdouble a = pop_f32();\n"
+		"\tpush_f32(a * b);\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_mul);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f32Z_div (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_div,\"prim-f32-div\");\n"
+		"\tdouble b = pop_f32();\n"
+		"\tdouble a = pop_f32();\n"
+		"\tpush_f32(a / b);\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_div);\n"
+		"}\n"
+		"\n"
+		"static void mp_primZ_f32Z_toZ_str (void) {\n"
+		"\tPRIM_ENTER(mp_primZ_f32Z_toZ_str, \"prim-f32-to-str\");\n"
+		"\tdouble d = pop_f32();\n"
+		"\tchar result[DBL_DIG+32] = {0};\n"
+		"\tint len = sprintf(result,\"%.*g\", DBL_DIG,  d);\n"
+		"\tpush_value(mkstr(result, len));\n"
+		"\tPRIM_EXIT(mp_primZ_f32Z_toZ_str);\n"
 		"}\n"
 		"\n"
 		"static void mp_primZ_f64Z_eq (void) {\n"
@@ -45035,7 +45137,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		35053
+		37253
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {

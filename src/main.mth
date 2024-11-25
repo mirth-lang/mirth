@@ -17,7 +17,6 @@ import(arg-parser.parse)
 import(arg-parser.types)
 import(arg-parser.state)
 
-
 import(mirth.package)
 import(mirth.mirth)
 import(mirth.prim)
@@ -33,27 +32,29 @@ import(mirth.c99)
 
 import(std.terminal)
 
-data(Arguments, Arguments ->
+struct Arguments {
     input-file: Path
     output-file: Maybe(Path)
     entry-point: Maybe(Str)
     packages: List([Str Path])
     package-search-paths: List(Path)
-    emit-debug-info: Bool)
+    emit-debug-info: Bool
+}
 
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
-def(Arguments.default, -- Arguments,
+def Arguments.default [ -- Arguments ] {
     False >emit-debug-info
     "mirth.mth" >Path >input-file
     None >output-file
     "main" Some >entry-point
     L0 >packages
     L0 >package-search-paths
-    Arguments)
+    Arguments
+}
 
 ||| Pretty print the contents of the arguments struct
-def(Arguments.show;, Arguments +Str -- +Str,
+def Arguments.show; [ Arguments +Str -- +Str ] {
     /Arguments
     "Arguments { " ;
     "output-file: " ; output-file> show;:show;
@@ -62,13 +63,14 @@ def(Arguments.show;, Arguments +Str -- +Str,
     ", emit-debug-info: " ; emit-debug-info> show;
     ", packages: " ; packages> show;:pack2-show;(show;,show;)
     ", package-search-path: " ; package-search-paths> show;:show;
-    " }" ;)
+    " }" ;
+}
 
 ########
 # Main #
 ########
 
-def(compile!, Arguments +World +Mirth -- +World +Mirth,
+def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
     /Arguments
     package-search-paths> package-search-paths:drop
     rdip:trace("Compiling "; @input-file path;)
@@ -104,22 +106,26 @@ def(compile!, Arguments +World +Mirth -- +World +Mirth,
             "Skipping Codegen." rdip:trace
             emit-debug-info> drop
             output-file> drop
-    ))
+    )
+}
 
-def(parse-package-def, Str -- [Str Path],
+def parse-package-def [ Str -- [Str Path] ] {
     dip(BCOLON) split-byte
     /L2+ unwrap("Invalid package path definition" panic!)
-    unpack2 >Path pack2)
+    unpack2 >Path pack2
+}
 
-def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType -- +ArgumentParser(Arguments) Arguments,
-    Short -> dip(swap) match(
-        B'o' -> output-file(drop unwrap >Path Some),
-        B'e' -> entry-point(drop unwrap Some),
-        B'c' -> entry-point(drop drop None),
-        B'p' -> dip(unwrap parse-package-def) packages(cons),
-	B'P' -> dip(unwrap >Path) package-search-paths(cons),
-        _ -> drop swap drop UnknownArg Some state:error!
-    ),
+def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType --
+                          +ArgumentParser(Arguments) Arguments ]
+{
+    Short -> dip(swap) match {
+        { B'o' -> output-file(drop unwrap >Path Some) }
+        { B'e' -> entry-point(drop unwrap Some) }
+        { B'c' -> entry-point(drop drop None) }
+        { B'p' -> dip(unwrap parse-package-def) packages(cons) }
+        { B'P' -> dip(unwrap >Path) package-search-paths(cons) }
+        { _ -> drop swap drop UnknownArg Some state:error! }
+    },
     Positional -> swap state positional-index 0= if(
         input-file(drop unwrap >Path),
         dip(drop) TooManyArgs Some state:error!
@@ -137,14 +143,14 @@ def(compiler-parse-args, +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOpt
                 "output-file" MissingArg Some state:error!
             )
         )
-
-	state arguments package-search-paths empty? then(
-	  dip(LIST("lib" >Path ;) swap package-search-paths!)
-	)
+        state arguments package-search-paths empty? then(
+            dip(LIST("lib" >Path ;) swap package-search-paths!)
+        )
         drop,
-    _ -> drop drop UnknownArg Some state error! state!)
+    _ -> drop drop UnknownArg Some state error! state!
+}
 
-def(main, +World -- +World,
+def main [ +World -- +World ] {
     +Mirth.Init!
 
     Arguments.default
@@ -177,12 +183,12 @@ def(main, +World -- +World,
         None >group
         ArgpOption ;
 
-	"package-search-path" Some >name
-	B'P' Short >flag-type
-	"SEARCH_PATH*" Some >arg-doc
-	"Package search paths" Some >doc
-	None >group
-	ArgpOption ;
+        "package-search-path" Some >name
+        B'P' Short >flag-type
+        "SEARCH_PATH*" Some >arg-doc
+        "Package search paths" Some >doc
+        None >group
+        ArgpOption ;
 
         "debug" Some >name
         "debug" LongOnly >flag-type
@@ -196,10 +202,11 @@ def(main, +World -- +World,
     "Mirth Compiler" >doc
     ArgumentParser
 
-    parse-args match(
-        Right -> ,
-        Left -> rdip:trace(unpack2 ; emit;) 1 posix-exit!
-    )
+    parse-args match {
+        { Right -> }
+        { Left -> rdip:trace(unpack2 ; emit;) 1 posix-exit! }
+    }
 
     compile!
-    rdrop)
+    rdrop
+}
