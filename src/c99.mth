@@ -490,7 +490,7 @@ def(CType.c99-push-value, Str CType +C99 -- +C99,
 
 def(CType.c99-push-resource, Str CType +C99 -- +C99,
     IntLike -> drop "push_resource(MKI64((int64_t)(" put put ")));" put,
-    FloatLike -> drop "push_resource(MKFLOAT64((double)(" put put ")));" put,
+    FloatLike -> drop "push_resource(MKF64((double)(" put put ")));" put,
     PtrLike -> drop "push_resource(MKPTR((void*)(" put put ")));" put,
     FnPtr   -> drop "push_resource(MKFNPTR((FNPTR)(" put put ")));" put,
     Phantom -> drop "push_resource(MKI64(0));" put)
@@ -501,7 +501,7 @@ def(CType.c99-push-label, Str Label CType +C99 -- +C99,
         "MKI64((int64_t)(" put put ")));" put,
     FloatLike ->
         drop "lpush(&lbl_" put name mangled put ", " put
-        "MKFLOAT64((double)(" put put ")));" put,
+        "MKF64((double)(" put put ")));" put,
     PtrLike ->
         drop "lpush(&lbl_" put name mangled put ", " put
         "MKI64((int64_t)(" put put ")));" put,

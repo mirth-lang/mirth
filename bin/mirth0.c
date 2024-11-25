@@ -53,8 +53,8 @@ typedef uint16_t TAG;
 #define TAG_PTR 1
 #define TAG_STR (2 | REFS_FLAG)
 #define TAG_FNPTR 3
-#define TAG_FLOAT32 4
-#define TAG_FLOAT64 5
+#define TAG_F32 4
+#define TAG_F64 5
 #define TAG_TUP_NIL TUP_FLAG
 #define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
 #define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
@@ -93,8 +93,8 @@ typedef struct VAL {
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VU64(v)   ((v).data.u64)
-#define VFLOAT32(v)   ((v).data.f32)
-#define VFLOAT64(v)   ((v).data.f64)
+#define VF32(v)   ((v).data.f32)
+#define VF64(v)   ((v).data.f64)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 #define VSTR(v)   ((v).data.str)
@@ -105,8 +105,8 @@ typedef struct VAL {
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_U64(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
-#define IS_FLOAT32(v)   ((v).tag == TAG_FLOAT32)
-#define IS_FLOAT64(v)   ((v).tag == TAG_FLOAT64)
+#define IS_F32(v)   ((v).tag == TAG_F32)
+#define IS_F64(v)   ((v).tag == TAG_F64)
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
@@ -116,8 +116,8 @@ typedef struct VAL {
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
-#define MKFLOAT32(x)   ((VAL){.tag=TAG_FLOAT32, .data={.f32=(x)}})
-#define MKFLOAT64(x)   ((VAL){.tag=TAG_FLOAT64, .data={.f64=(x)}})
+#define MKF32(x)   ((VAL){.tag=TAG_F32, .data={.f32=(x)}})
+#define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
@@ -326,13 +326,13 @@ static int64_t value_i64 (VAL v) {
 }
 
 static float value_f32 (VAL v) {
-	ASSERT1(IS_FLOAT32(v), v);
-	return VFLOAT32(v);
+	ASSERT1(IS_F32(v), v);
+	return VF32(v);
 }
 
 static double value_f64 (VAL v) {
-	ASSERT1(IS_FLOAT64(v), v);
-	return VFLOAT64(v);
+	ASSERT1(IS_F64(v), v);
+	return VF64(v);
 }
 
 static void* value_ptr (VAL v) {
@@ -370,8 +370,8 @@ static FNPTR value_fnptr (VAL v) {
 #define push_i8(b) push_i64((int64_t)(b))
 #define push_i16(b) push_i64((int64_t)(b))
 #define push_i32(b) push_i64((int64_t)(b))
-#define push_f32(f) push_value(MKFLOAT32(f))
-#define push_f64(f) push_value(MKFLOAT64(f))
+#define push_f32(f) push_value(MKF32(f))
+#define push_f64(f) push_value(MKF64(f))
 #define push_ptr(p) push_value(MKPTR(p))
 #define push_fnptr(p) push_value(MKFNPTR(p))
 
@@ -766,17 +766,17 @@ static void mp_primZ_f64Z_eq (void) {
 	PRIM_ENTER(mp_primZ_f64Z_eq,"prim-f64-eq");
 	VAL b = pop_value();
 	VAL a = pop_value();
-	ASSERT1(IS_FLOAT64(a), a);
-	ASSERT1(IS_FLOAT64(b), a);
-	push_bool(VFLOAT64(a) == VFLOAT64(b));
+	ASSERT1(IS_F64(a), a);
+	ASSERT1(IS_F64(b), a);
+	push_bool(VF64(a) == VF64(b));
 	PRIM_EXIT(mp_primZ_f64Z_eq);
 }
 static void mp_primZ_f64Z_lt (void) {
 	PRIM_ENTER(mp_primZ_f64Z_lt,"prim-f64-lt");
 	VAL b = pop_value();
 	VAL a = pop_value();
-	ASSERT2(IS_FLOAT64(a) && IS_FLOAT64(b), a, b);
-	push_bool(VFLOAT64(a) < VFLOAT64(b));
+	ASSERT2(IS_F64(a) && IS_F64(b), a, b);
+	push_bool(VF64(a) < VF64(b));
 	PRIM_EXIT(mp_primZ_f64Z_lt);
 }
 
@@ -43644,8 +43644,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define TAG_PTR 1\n"
 		"#define TAG_STR (2 | REFS_FLAG)\n"
 		"#define TAG_FNPTR 3\n"
-		"#define TAG_FLOAT32 4\n"
-		"#define TAG_FLOAT64 5\n"
+		"#define TAG_F32 4\n"
+		"#define TAG_F64 5\n"
 		"#define TAG_TUP_NIL TUP_FLAG\n"
 		"#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)\n"
 		"#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))\n"
@@ -43684,8 +43684,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define VINT(v)   ((v).data.i64)\n"
 		"#define VI64(v)   ((v).data.i64)\n"
 		"#define VU64(v)   ((v).data.u64)\n"
-		"#define VFLOAT32(v)   ((v).data.f32)\n"
-		"#define VFLOAT64(v)   ((v).data.f64)\n"
+		"#define VF32(v)   ((v).data.f32)\n"
+		"#define VF64(v)   ((v).data.f64)\n"
 		"#define VPTR(v)   ((v).data.ptr)\n"
 		"#define VFNPTR(v) ((v).data.fnptr)\n"
 		"#define VSTR(v)   ((v).data.str)\n"
@@ -43696,8 +43696,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define IS_INT(v)   ((v).tag == TAG_INT)\n"
 		"#define IS_U64(v)   ((v).tag == TAG_INT)\n"
 		"#define IS_I64(v)   ((v).tag == TAG_INT)\n"
-		"#define IS_FLOAT32(v)   ((v).tag == TAG_FLOAT32)\n"
-		"#define IS_FLOAT64(v)   ((v).tag == TAG_FLOAT64)\n"
+		"#define IS_F32(v)   ((v).tag == TAG_F32)\n"
+		"#define IS_F64(v)   ((v).tag == TAG_F64)\n"
 		"#define IS_PTR(v)   ((v).tag == TAG_PTR)\n"
 		"#define IS_FNPTR(v) ((v).tag == TAG_FNPTR)\n"
 		"#define IS_STR(v)   ((v).tag == TAG_STR)\n"
@@ -43707,8 +43707,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
 		"#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
 		"#define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
-		"#define MKFLOAT32(x)   ((VAL){.tag=TAG_FLOAT32, .data={.f32=(x)}})\n"
-		"#define MKFLOAT64(x)   ((VAL){.tag=TAG_FLOAT64, .data={.f64=(x)}})\n"
+		"#define MKF32(x)   ((VAL){.tag=TAG_F32, .data={.f32=(x)}})\n"
+		"#define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})\n"
 		"#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})\n"
 		"#define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})\n"
 		"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
@@ -43917,13 +43917,13 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"static float value_f32 (VAL v) {\n"
-		"\tASSERT1(IS_FLOAT32(v), v);\n"
-		"\treturn VFLOAT32(v);\n"
+		"\tASSERT1(IS_F32(v), v);\n"
+		"\treturn VF32(v);\n"
 		"}\n"
 		"\n"
 		"static double value_f64 (VAL v) {\n"
-		"\tASSERT1(IS_FLOAT64(v), v);\n"
-		"\treturn VFLOAT64(v);\n"
+		"\tASSERT1(IS_F64(v), v);\n"
+		"\treturn VF64(v);\n"
 		"}\n"
 		"\n"
 		"static void* value_ptr (VAL v) {\n"
@@ -43961,8 +43961,8 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define push_i8(b) push_i64((int64_t)(b))\n"
 		"#define push_i16(b) push_i64((int64_t)(b))\n"
 		"#define push_i32(b) push_i64((int64_t)(b))\n"
-		"#define push_f32(f) push_value(MKFLOAT32(f))\n"
-		"#define push_f64(f) push_value(MKFLOAT64(f))\n"
+		"#define push_f32(f) push_value(MKF32(f))\n"
+		"#define push_f64(f) push_value(MKF64(f))\n"
 		"#define push_ptr(p) push_value(MKPTR(p))\n"
 		"#define push_fnptr(p) push_value(MKFNPTR(p))\n"
 		"\n"
@@ -44357,17 +44357,17 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tPRIM_ENTER(mp_primZ_f64Z_eq,\"prim-f64-eq\");\n"
 		"\tVAL b = pop_value();\n"
 		"\tVAL a = pop_value();\n"
-		"\tASSERT1(IS_FLOAT64(a), a);\n"
-		"\tASSERT1(IS_FLOAT64(b), a);\n"
-		"\tpush_bool(VFLOAT64(a) == VFLOAT64(b));\n"
+		"\tASSERT1(IS_F64(a), a);\n"
+		"\tASSERT1(IS_F64(b), a);\n"
+		"\tpush_bool(VF64(a) == VF64(b));\n"
 		"\tPRIM_EXIT(mp_primZ_f64Z_eq);\n"
 		"}\n"
 		"static void mp_primZ_f64Z_lt (void) {\n"
 		"\tPRIM_ENTER(mp_primZ_f64Z_lt,\"prim-f64-lt\");\n"
 		"\tVAL b = pop_value();\n"
 		"\tVAL a = pop_value();\n"
-		"\tASSERT2(IS_FLOAT64(a) && IS_FLOAT64(b), a, b);\n"
-		"\tpush_bool(VFLOAT64(a) < VFLOAT64(b));\n"
+		"\tASSERT2(IS_F64(a) && IS_F64(b), a, b);\n"
+		"\tpush_bool(VF64(a) < VF64(b));\n"
 		"\tPRIM_EXIT(mp_primZ_f64Z_lt);\n"
 		"}\n"
 		"\n"
@@ -44989,7 +44989,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		35157
+		35053
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
@@ -45811,7 +45811,7 @@ static void mw_mirth_type_CType_c99Z_pushZ_resource (void) {
 		case 1LL: // FloatLike
 			mtp_mirth_type_CType_FloatLike();
 			mp_primZ_drop();
-			STRLIT("push_resource(MKFLOAT64((double)(", 33);
+			STRLIT("push_resource(MKF64((double)(", 29);
 			mw_mirth_c99_ZPlusC99_put();
 			mw_mirth_c99_ZPlusC99_put();
 			STRLIT(")));", 4);
@@ -45874,7 +45874,7 @@ static void mw_mirth_type_CType_c99Z_pushZ_label (void) {
 			mw_mirth_c99_ZPlusC99_put();
 			STRLIT(", ", 2);
 			mw_mirth_c99_ZPlusC99_put();
-			STRLIT("MKFLOAT64((double)(", 19);
+			STRLIT("MKF64((double)(", 15);
 			mw_mirth_c99_ZPlusC99_put();
 			mw_mirth_c99_ZPlusC99_put();
 			STRLIT(")));", 4);
