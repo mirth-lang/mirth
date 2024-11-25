@@ -1201,14 +1201,16 @@ def(StackType.split-parts, StackType -- StackType List(StackTypePart),
 
 data(CType,
     IntLike -> Str,
-    FloatLike -> Str,
+    F32Like -> Str,
+    F64Like -> Str,
     PtrLike -> Str,
     FnPtr   -> Str,
     Phantom)
 
 def(CType.cname, CType -- Str,
     IntLike -> id,
-    FloatLike -> id,
+    F32Like -> id,
+    F64Like -> id,
     PtrLike -> id,
     FnPtr   -> id,
     Phantom -> "void")
@@ -1245,12 +1247,13 @@ def(Type.ctype1?, +Mirth CType Type -- +Mirth Maybe(CType),
         _ -> drop2 None
     ))
 
-def(PrimType.ctype?, +Mirth PrimType -- +Mirth Maybe(CType),
-    PRIM_TYPE_PTR -> "void*" PtrLike Some,
-    PRIM_TYPE_WORLD -> Phantom Some,
-    PRIM_TYPE_F32 -> "float" FloatLike Some,
-    PRIM_TYPE_F64 -> "double" FloatLike Some,
-    _ -> drop None)
+def PrimType.ctype? [ +Mirth PrimType -- +Mirth Maybe(CType) ] {
+    { PRIM_TYPE_PTR -> "void*" PtrLike Some }
+    { PRIM_TYPE_WORLD -> Phantom Some }
+    { PRIM_TYPE_F32 -> "float" F32Like Some }
+    { PRIM_TYPE_F64 -> "double" F64Like Some }
+    { _ -> drop None }
+}
 
 def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cptr == if(
@@ -1259,7 +1262,8 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cconst == if(
         drop match(
             IntLike -> "const " swap cat IntLike Some,
-            FloatLike -> "const " swap cat FloatLike Some,
+            F32Like -> "const " swap cat F32Like Some,
+            F64Like -> "const " swap cat F64Like Some,
             FnPtr   -> "const " swap cat FnPtr Some,
             PtrLike -> " const" cat PtrLike Some,
             Phantom -> Phantom Some,
@@ -1268,7 +1272,8 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin crestrict == if(
         drop match(
             IntLike -> "restrict " swap cat IntLike Some,
-            FloatLike -> "restrict " swap cat FloatLike Some,
+            F32Like -> "restrict " swap cat F32Like Some,
+            F64Like -> "restrict " swap cat F64Like Some,
             FnPtr   -> "restrict " swap cat FnPtr Some,
             PtrLike -> " restrict" cat PtrLike Some,
             Phantom -> Phantom Some,
@@ -1277,7 +1282,8 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cvolatile == if(
         drop match(
             IntLike -> "volatile " swap cat IntLike Some,
-            FloatLike -> "volatile " swap cat FloatLike Some,
+            F32Like -> "volatile " swap cat F32Like Some,
+            F64Like -> "volatile " swap cat F64Like Some,
             FnPtr   -> "volatile " swap cat FnPtr Some,
             PtrLike -> " volatile" cat PtrLike Some,
             Phantom -> Phantom Some,

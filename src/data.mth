@@ -85,13 +85,6 @@ def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     dataname> L0 data> @tag L1 underlying> IntLike Some make-prim-data!
     tagname> 0 TYPE_INT L1 tag> make-prim-tag!)
 
-
-def(make-prim-floatlike!, Str Data Str Tag Str +Mirth -- +Mirth,
-    >underlying >tag >tagname >data >dataname
-
-    dataname> L0 data> @tag L1 underlying> FloatLike Some make-prim-data!
-    tagname> 0 TYPE_F64 L1 tag> make-prim-tag!)
-
 def(init-data!, +Mirth -- +Mirth,
     "Bool" L0 builtin bool builtin true builtin false L2 "_Bool" IntLike Some make-prim-data!
     "False" 0 L0 builtin false make-prim-tag!
