@@ -39,16 +39,19 @@ import(mirth.def)
 # C99 #
 #######
 
-data(C99_Options, C99_Options ->
+struct C99_Options {
     output-path: Path
-    emit-debug-info: Bool)
+    emit-debug-info: Bool
+}
 
-data(+C99, +C99 ->
+struct +C99 {
     options: C99_Options
     depth: Nat
+    fresh-counter: Nat
     +needs: +Needs
     +output: +Output
-    +mirth: +Mirth)
+    +mirth: +Mirth
+}
 
 def(+C99.put, Str +C99 -- +C99, +output:put)
 def(+C99.put-byte, Byte +C99 -- +C99, +output:put-byte)
@@ -57,16 +60,34 @@ def(+C99.line, +C99 -- +C99, +output:line)
 def(c99-start!, Arrow C99_Options +World +Mirth -- Arrow +World +C99,
     >options
     0 >Nat >depth
+    0 >Nat >fresh-counter
     +Needs.new dup determine-arrow-needs! >+needs >+mirth
     @options output-path create-file! unwrap! +Output.start! >+output
     +C99)
 
 def(c99-end!, +World +C99 -- +World +Mirth,
     /+C99
-    depth> options> drop2
+    depth> fresh-counter> options> drop3
     +needs> rdrop
     +output> end! close-file!
     +mirth>)
+
+def +C99.reset-fresh-counter! [ +C99 -- +C99 ] {
+    0 >Nat fresh-counter!
+}
+
+def +C99.fresh-nat! [ +C99 -- Nat +C99 ] {
+    fresh-counter
+    dup 1+ fresh-counter!
+}
+
+def +C99.fresh-name! [ +C99 -- Str +C99 ] {
+    fresh-nat! Str("v"; show;)
+}
+
+def +C99.fresh-resource-name! [ +C99 -- Str +C99 ] {
+    fresh-nat! Str("r"; show;)
+}
 
 def(run-output-c99!, Arrow C99_Options +World +Mirth -- +World +Mirth,
     num-errors 0> if(
@@ -139,6 +160,7 @@ def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
 def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
     tag +needs:word-needed? then(
         tag +mirth:word-cname sig-put " {" put line
+        reset-fresh-counter!
         tag is-transparent? else(
             tag is-semi-transparent? if(
                 tag outputs-resource? if(
@@ -206,6 +228,7 @@ def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
 
     tag +needs:pat-needed? then(
         tag +mirth:pat-cname sig-put " {" put line
+        reset-fresh-counter!
         tag is-transparent? else(
             tag outputs-resource? if(
                 "\tVAL val = pop_resource();",
@@ -421,6 +444,7 @@ def(c99-external-def!, External +C99 -- +C99,
     ");" put line
 
     @ext +mirth:cname sig-put " {" put line
+    reset-fresh-counter!
 
     @cty dom parts
     dup len >arg-index
@@ -526,19 +550,6 @@ def(CTypeStackPart.c99-push, Str CTypeStackPart +C99 -- +C99,
     CTSPWith -> c99-push-resource,
     CTSPConsLabel -> swap c99-push-label,
     CTSPWithLabel -> swap c99-push-label)
-
-    # over countdown("\tintptr_t x" put show put " = (intptr_t)pop_i64();" put line)
-    # dup 0> if("\tpush_i64((int64_t)", "\t") put
-    # dip2(dup symbol put)
-    # "(" put
-    # dip(dup 0> if(
-    #     dup 1- dup count("x" put show put ", " put) "x" put show put,
-    #     id
-    # ))
-    # ")" put
-    # dup 0> if(");", ";") put line
-    # "}" put line
-    # drop3)
 
 def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
     depth:1+ f depth:1-)
@@ -665,7 +676,7 @@ def(c99-tag-word!, List(Arg) Tag +C99 -- +C99,
     ))
 
 def(c99-tag-case-pat!, Tag +C99 -- +C99,
-    c99-line("case " put dup value-show put "LL: // " put dup name >Str put)
+    c99-line("case " put dup value-show put "LL: { // " put dup name >Str put)
     c99-nest(
         dup prefer-inline? if(
             dup .data is-transparent? else(
@@ -742,68 +753,289 @@ def(c99-string-byte!, Byte avoid-hexdigit:Bool +C99 -- avoid-hexdigit:Bool +C99,
         )
     )
 
-def(c99-prim!, List(Arg) Prim +C99 -- +C99,
-    PRIM_CORE_ID -> drop,
-    PRIM_CORE_DIP ->
+data C99ReprType {
+    C99RT_VAL
+    C99RT_I64
+    C99RT_U64
+    C99RT_F32
+    C99RT_F64
+    C99RT_BOOL
+}
+
+def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
+    { C99RT_VAL -> "VAL" }
+    { C99RT_I64 -> "int64_t" }
+    { C99RT_U64 -> "uint64_t" }
+    { C99RT_F32 -> "float" }
+    { C99RT_F64 -> "double" }
+    { C99RT_BOOL -> "bool" }
+}
+
+def C99ReprType.is-macro [ C99ReprType -- Str ] {
+    { C99RT_VAL -> "IS_VAL" }
+    { C99RT_I64 -> "IS_I64" }
+    { C99RT_U64 -> "IS_U64" }
+    { C99RT_F32 -> "IS_F32" }
+    { C99RT_F64 -> "IS_F64" }
+    { C99RT_BOOL -> "IS_BOOL" }
+}
+
+def C99ReprType.v-macro [ C99ReprType -- Str ] {
+    { C99RT_VAL -> "VVAL" }
+    { C99RT_I64 -> "VI64" }
+    { C99RT_U64 -> "VU64" }
+    { C99RT_F32 -> "VF32" }
+    { C99RT_F64 -> "VF64" }
+    { C99RT_BOOL -> "VBOOL" }
+}
+
+def C99ReprType.mk-macro [ C99ReprType -- Str ] {
+    { C99RT_VAL -> "MKVAL" }
+    { C99RT_I64 -> "MKI64" }
+    { C99RT_U64 -> "MKU64" }
+    { C99RT_F32 -> "MKF32" }
+    { C99RT_F64 -> "MKF64" }
+    { C99RT_BOOL -> "MKBOOL" }
+}
+
+def C99ReprType.pop-macro [ C99ReprType -- Str ] {
+    { C99RT_VAL -> "pop_value" }
+    { C99RT_I64 -> "pop_i64" }
+    { C99RT_U64 -> "pop_u64" }
+    { C99RT_F32 -> "pop_f32" }
+    { C99RT_F64 -> "pop_f64" }
+    { C99RT_BOOL -> "pop_bool" }
+}
+
+def C99ReprType.push-macro [ C99ReprType -- Str ] {
+    { C99RT_VAL -> "push_value" }
+    { C99RT_I64 -> "push_i64" }
+    { C99RT_U64 -> "push_u64" }
+    { C99RT_F32 -> "push_f32" }
+    { C99RT_F64 -> "push_f64" }
+    { C99RT_BOOL -> "push_bool" }
+}
+
+struct +C99Local {
+    local-repr: C99ReprType
+    local-name: Str
+}
+
+def C99ReprType.pop-to-local! [ C99ReprType +C99 -- +C99 +C99Local ] {
+    >local-repr
+    fresh-name! >local-name
+    c99-line(@local-repr underlying-c99-type put " " put
+             @local-name put " = " put
+             @local-repr pop-macro put "();" put)
+    +C99Local
+}
+
+def +C99.pop-local! [ +C99 -- +C99 +C99Local ] {
+    C99RT_VAL pop-to-local!
+}
+
+||| Push a value with a certain repr type on the stack.
+||| `f` must emit the C99 expression that calculates the value,
+||| which must be of the underlying C99 repr type.
+def C99ReprType.push-expression!(f) [
+    (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99
+] {
+    # TODO: turn into local, and push that
+    c99-line(push-macro put "(" put f ");" put)
+}
+
+def +C99Local.push-local! [ +C99 +C99Local -- +C99 ] {
+    # TODO: cache locals
+    /+C99Local c99-line(
+        local-repr> push-macro put "(" put
+        local-name> put ");" put
+    )
+}
+
+def +C99Local.consume [ +C99Local -- Str ] {
+    /+C99Local local-repr> drop local-name>
+}
+
+def +C99Local.drop-local! [ +C99 +C99Local -- +C99 ] {
+    local-repr match {
+        { C99RT_VAL -> >+x c99-line("decref(" put +x> consume put ");" put) }
+        { C99RT_I64 -> consume drop }
+        { C99RT_U64 -> consume drop }
+        { C99RT_F32 -> consume drop }
+        { C99RT_F64 -> consume drop }
+        { C99RT_BOOL -> consume drop }
+    }
+}
+def +C99Local.dup-local! [ +C99 +C99Local -- +C99 +C99Local +C99Local ] {
+    local-repr >+x match {
+        { C99RT_VAL -> c99-line("incref(" put @+x:local-name put ");" put) }
+        { C99RT_I64 -> }
+        { C99RT_U64 -> }
+        { C99RT_F32 -> }
+        { C99RT_F64 -> }
+        { C99RT_BOOL -> }
+    }
+    +x>
+    local-repr >local-repr
+    local-name >local-name
+    +C99Local
+}
+
+struct +C99LocalResource {
+    local-resource-name: Str
+}
+
+def +C99.pop-local-resource! [ +C99 -- +C99 +C99LocalResource ] {
+    fresh-resource-name! >local-resource-name
+    c99-line("VAL " put @local-resource-name put " = pop_resource();" put)
+    +C99LocalResource
+}
+
+def +C99LocalResource.push-local-resource! [ +C99 +C99LocalResource -- +C99 ] {
+    /+C99LocalResource
+    c99-line("push_resource(" put local-resource-name> put ");" put)
+}
+
+struct C99BinOp {
+    operator: Str
+    precedence: Int
+    arg1-type: C99ReprType
+    arg2-type: C99ReprType
+    out-type: C99ReprType
+}
+
+def C99BinOp.Mk [ Str Int C99ReprType C99ReprType C99ReprType -- C99BinOp ] {
+    >out-type >arg2-type >arg1-type
+    >precedence >operator
+    C99BinOp
+}
+
+def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
+    { PRIM_INT_MUL -> "*"  3  C99RT_I64 C99RT_I64 C99RT_I64 C99BinOp.Mk Some }
+    # { PRIM_INT_DIV -> "/"  3  C99RT_I64 C99RT_I64 C99RT_I64  C99BinOp.Mk Some }
+    # { PRIM_INT_MOD -> "%"  3  C99RT_I64 C99RT_I64 C99RT_I64  C99BinOp.Mk Some }
+    # { PRIM_INT_ADD -> "+"  4  C99RT_I64 C99RT_I64 C99RT_I64 C99BinOp.Mk Some }
+    # { PRIM_INT_SUB -> "-"  4  C99RT_I64 C99RT_I64 C99RT_I64 C99BinOp.Mk Some }
+    # { PRIM_INT_SHL -> "<<" 5 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
+    # { PRIM_INT_SHR -> ">>" 5 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
+    { PRIM_INT_LT  -> "<"  6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_INT_EQ  -> "==" 7  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_INT_AND -> "&"  8  C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
+    { PRIM_INT_XOR -> "^"  9  C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
+    { PRIM_INT_OR  -> "|"  10 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
+
+    { PRIM_F32_ADD -> "+"  4  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
+    { PRIM_F32_SUB -> "-"  4  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
+    { PRIM_F32_MUL -> "*"  3  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
+    { PRIM_F32_DIV -> "/"  3  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
+    { PRIM_F32_LT  -> "<"  6  C99RT_F32 C99RT_F32 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_F32_EQ  -> "==" 7  C99RT_F32 C99RT_F32 C99RT_BOOL C99BinOp.Mk Some }
+
+    { PRIM_F64_ADD -> "+"  4  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
+    { PRIM_F64_SUB -> "-"  4  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
+    { PRIM_F64_MUL -> "*"  3  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
+    { PRIM_F64_DIV -> "/"  3  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
+    { PRIM_F64_LT  -> "<"  6  C99RT_F64 C99RT_F64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_F64_EQ  -> "==" 7  C99RT_F64 C99RT_F64 C99RT_BOOL C99BinOp.Mk Some }
+
+    { _ -> drop None }
+}
+
+def c99-prim! [ List(Arg) Prim +C99 -- +C99 ] {
+    { PRIM_CORE_ID -> drop }
+    { PRIM_CORE_DROP -> drop pop-local! drop-local! }
+    { PRIM_CORE_DUP -> drop pop-local! dup-local! rdip:push-local! push-local! }
+    { PRIM_CORE_SWAP ->
+        drop
+        pop-local! >+b
+        pop-local! >+a
+        +b> push-local!
+        +a> push-local!
+    }
+    { PRIM_CORE_RSWAP ->
+        drop
+        pop-local-resource! >+b
+        pop-local-resource! >+a
+        +b> push-local-resource!
+        +a> push-local-resource!
+    }
+    { PRIM_CORE_DIP ->
         dup /L1 match(
             Some ->
                 nip
-                c99-line("{" put)
-                c99-nest(
-                    c99-line("VAL d" put depth show put " = pop_value();" put)
-                    c99-arg-run!
-                    c99-line("push_value(d" put depth show put ");" put)
-                )
-                c99-line("}" put),
+                pop-local! >+dipped
+                c99-arg-run!
+                +dipped> push-local!,
             None ->
                 PRIM_CORE_DIP c99-prim-default!
-        ),
-
-    PRIM_CORE_RDIP ->
+        )
+    }
+    { PRIM_CORE_RDIP ->
         dup /L1 match(
             Some ->
                 nip
-                c99-line("{" put)
-                c99-nest(
-                    c99-line("VAL d" put depth show put " = pop_resource();" put)
-                    c99-arg-run!
-                    c99-line("push_resource(d" put depth show put ");" put)
-                )
-                c99-line("}" put),
+                pop-local-resource! >+dipped
+                c99-arg-run!
+                +dipped> push-local-resource!,
             None ->
                 PRIM_CORE_RDIP c99-prim-default!
-        ),
-
-    PRIM_CORE_IF ->
+        )
+    }
+    { PRIM_CORE_IF ->
         dup /L2 match(
             Some ->
                 nip unpack2
-                c99-line("if (pop_u64()) {" put)
+                C99RT_BOOL pop-to-local! >+cond
+                c99-line("if (" put +cond> consume put ") {" put)
                 c99-nest(swap c99-arg-run!)
                 c99-line("} else {" put)
                 c99-nest(c99-arg-run!)
                 c99-line("}" put),
             None ->
                 PRIM_CORE_IF c99-prim-default!
-        ),
-
-    PRIM_CORE_WHILE ->
+        )
+    }
+    { PRIM_CORE_WHILE ->
         dup /L2 match(
             Some ->
                 nip unpack2
                 c99-line("while(1) {" put)
                 c99-nest(
                     swap c99-arg-run!
-                    c99-line("if (! pop_u64()) break;" put)
+                    C99RT_BOOL pop-to-local! >+cond
+                    c99-line("if (!" put +cond> consume put ") break;" put)
                     c99-arg-run!
                 )
                 c99-line("}" put),
 
             None ->
                 PRIM_CORE_WHILE c99-prim-default!
-        ),
+        )
+    }
 
-    _ -> c99-prim-default!)
+    { _ ->
+        over empty? if(
+            dup c99-prim-binop? if-some(
+                dip:drop2 c99-binop!,
+                c99-prim-default!
+            ),
+            c99-prim-default!
+        )
+    }
+}
+
+def c99-binop! [ C99BinOp +C99 -- +C99 ] {
+    /C99BinOp
+    arg2-type> pop-to-local! >+arg2
+    arg1-type> pop-to-local! >+arg1
+    out-type> push-expression!(
+        +arg1> consume put
+        " " put operator> put " " put
+        +arg2> consume put
+    )
+
+    precedence> drop
+}
 
 def(c99-prim-default!, List(Arg) Prim +C99 -- +C99,
     cname c99-call!)
@@ -895,11 +1127,12 @@ def(c99-match!, Match +C99 -- +C99,
         c99-nest(
             dup cases for(c99-case!)
             has-default-case? else(
-                c99-line("default:" put)
+                c99-line("default: {" put)
                 c99-nest(
                     c99-line("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32));" put)
                     L0 PRIM_CORE_PANIC cname c99-call!
                 )
+                c99-line("}" put)
             )
         )
         c99-line("}" put)
@@ -910,11 +1143,12 @@ def(c99-case!, Case +C99 -- +C99,
     c99-nest(
         body c99-arrow!
         c99-line("break;" put)
-    ))
+    )
+    c99-line("}" put))
 
 def(c99-pattern!, Pattern +C99 -- +C99,
     dup is-default? if(
-        drop c99-line("default:" put),
+        drop c99-line("default: {" put),
 
     dup single-tag? if-some(
         nip c99-tag-case-pat!,
@@ -956,6 +1190,7 @@ def(c99-block-exit!, Block +C99 -- +C99,
 def(c99-block-defs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-def!, drop)))
 def(c99-block-def!, Block +C99 -- +C99,
     c99-line(dup +mirth:cname sig-put " {" put)
+    reset-fresh-counter!
     c99-nest(
         dup c99-block-enter!
         dup +mirth:arrow
@@ -988,6 +1223,7 @@ def(c99-word-exit!, Word +C99 -- +C99,
 def(c99-word-defs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-def!, drop)))
 def(c99-word-def!, Word +C99 -- +C99,
     c99-line(dup +mirth:cname sig-put " {" put)
+    reset-fresh-counter!
     c99-nest(
         dup c99-word-enter!
         dup +mirth:arrow c99-arrow!
@@ -999,6 +1235,7 @@ def(c99-word-def!, Word +C99 -- +C99,
 def(c99-field-defs!, +C99 -- +C99, Field.for(c99-field-def!))
 def(c99-field-def!, Field +C99 -- +C99,
     dup +mirth:cname sig-put " {" put line
+    reset-fresh-counter!
     "\tsize_t i = (size_t)pop_u64();" put line
     "\tstatic struct VAL * p = 0;" put line
     "\tsize_t m = " put TABLE_MAX_COUNT show put ";" put line
@@ -1010,6 +1247,7 @@ def(c99-field-def!, Field +C99 -- +C99,
 
 def(c99-main!, Arrow +C99 -- +C99,
     c99-line("int main (int argc, char** argv) {" put)
+    reset-fresh-counter!
     c99-nest(
         c99-line("global_argc = argc;" put)
         c99-line("global_argv = argv;" put)
