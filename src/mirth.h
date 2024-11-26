@@ -93,7 +93,7 @@ typedef struct VAL {
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VU64(v)   ((v).data.u64)
-#define VBOOL(v)  ((v).data.u64)
+#define VBOOL(v)  ((_Bool)((v).data.u64))
 #define VF32(v)   ((v).data.f32)
 #define VF64(v)   ((v).data.f64)
 #define VPTR(v)   ((v).data.ptr)
