@@ -1606,97 +1606,112 @@ def Tag.project-input-label [ +Mirth Label Tag -- +Mirth Maybe(Type/Resource) ] 
 }
 
 def data-get-label-type [ +Mirth Tag Label -- +Mirth ArrowType ] {
-    \(tag lbl ->
-        lbl tag project-input-label unwrap match(
-            Left ->
-                T0 tag output-type T*+ swap T1
-                tag .data is-resource? then(tag output-type T*+)
-                T->,
-            Right ->
-                T0 tag output-type T*+
-                T0 rotl T+ lbl tag output-type-except-field T*+
-                T->
-        )
+    >lbl >tag
+    @lbl @tag project-input-label unwrap match(
+        Left ->
+            T0 @tag output-type T*+ swap T1
+            @tag .data is-resource? then(@tag output-type T*+)
+            T->,
+        Right ->
+            T0 @tag output-type T*+
+            T0 rotl T+ @lbl @tag output-type-except-field T*+
+            T->
     )
+    lbl> tag> drop2
 }
 
 def data-set-label-type [ +Mirth Tag Label -- +Mirth ArrowType ] {
-    \(tag lbl ->
-        lbl tag project-input-label unwrap match(
-            Left ->
-                T1 tag output-type T*+
-                T0 tag output-type T*+
-                T->,
-            Right ->
-                T0 swap T+ lbl tag output-type-except-field T*+
-                T0 tag output-type T*+ T->
-        )
+    >lbl >tag
+    @lbl @tag project-input-label unwrap match(
+        Left ->
+            T1 @tag output-type T*+
+            T0 @tag output-type T*+
+            T->,
+        Right ->
+            T0 swap T+ @lbl @tag output-type-except-field T*+
+            T0 @tag output-type T*+ T->
     )
+    lbl> tag> drop2
 }
 
 def create-projectors! [ +Mirth Tag -- +Mirth ] {
-    dup .data over .untag unwrap \(tag dat untag ->
-    tag label-inputs reverse-for(\(lbl -> dat lbl name 0 data-qname undefined-soft? then(
-        dat lbl >Str 0 data-word-new!
-        dat lbl >Str "!" cat 0 data-word-new!
-        dat lbl >Str 1 data-word-new! \(lbl_get lbl_set lbl_lens ->
-            lbl_get make-inline!
-            lbl_get WordType prop0(
-                tag ctx
-                tag lbl data-get-label-type
-                pack2
-            ) lbl_get ~ctx-type !
-            lbl_get dup WordArrow prop(ab-build-word-arrow!(
-                tag lbl OpDataGetLabel ab-op!
-            )) lbl_get ~arrow !
+    >tag
+    @tag .data >dat
+    @tag label-inputs reverse-for(
+        >lbl
+        @dat @lbl name 0 data-qname undefined-soft? then(
+            @dat @lbl >Str 0 data-word-new! >lbl_get
+            @dat @lbl >Str "!" cat 0 data-word-new! >lbl_set
+            @dat @lbl >Str 1 data-word-new! >lbl_lens
 
-            lbl_set make-inline!
-            lbl_set WordType prop0(
-                tag ctx
-                tag lbl data-set-label-type
+            @lbl_get make-inline!
+            @tag @lbl @lbl_get WordType prop2(
+                dip(dup dip(ctx))
+                data-get-label-type
                 pack2
-            ) lbl_set ~ctx-type !
-            lbl_set dup WordArrow prop(ab-build-word-arrow!(
-                tag lbl OpDataSetLabel ab-op!
-            )) lbl_set ~arrow !
+            ) @lbl_get ~ctx-type !
+            @tag @lbl @lbl_get dup WordArrow prop3(ab-build-word-arrow!(
+                dip(OpDataGetLabel ab-op!)
+            )) @lbl_get ~arrow !
 
-            lbl_lens make-inline!
-            lbl_lens WordType prop0(
-                TYPE_STACK "*x" >Name Var.new!
-                TYPE_STACK "*y" >Name Var.new!
-                lbl tag project-input-label unwrap
-                tag output-type \(sx sy lblty datty ->
-                    tag ctx /Ctx sx sy L2 cat Ctx
-                    sx STVar datty T*+
-                        sx STVar lblty T*+
-                        sy STVar lblty T*+ T-> TMorphism T*
-                    sy STVar datty T*+
-                    T-> pack2
-                )
-            ) lbl_lens ~ctx-type !
-            lbl_lens dup WordParams prop(
+            @lbl_set make-inline!
+            @tag @lbl @lbl_set WordType prop2(
+                dip(dup dip(ctx))
+                data-set-label-type
+                pack2
+            ) @lbl_set ~ctx-type !
+            @tag @lbl @lbl_set dup WordArrow prop3(ab-build-word-arrow!(
+                dip(OpDataSetLabel ab-op!)
+            )) @lbl_set ~arrow !
+
+            @lbl_lens make-inline!
+            @tag @lbl @lbl_lens WordType prop2(
+                >lbl >tag
+                TYPE_STACK "*x" >Name Var.new! >sx
+                TYPE_STACK "*y" >Name Var.new! >sy
+                lbl> @tag project-input-label unwrap >lblty
+                @tag output-type >datty
+
+                @tag ctx /Ctx @sx @sy L2 cat Ctx
+                @sx STVar @datty T*+
+                    @sx STVar @lblty T*+
+                    @sy STVar @lblty T*+ T-> TMorphism T*
+                @sy STVar @datty T*+
+                T-> pack2
+
+                sx> sy> drop2
+                lblty> datty> drop2
+                tag> drop
+            ) @lbl_lens ~ctx-type !
+            @lbl_lens dup WordParams prop(
                 type dom force-cons?! unwrap unpack2 nip "f" >Name Var.new-auto-run! L1
-            ) lbl_lens ~params !
+            ) @lbl_lens ~params !
 
-            lbl_lens dup WordArrow prop(ab-build-word-arrow!(
-                lbl_lens rdip:params dup ab-lambda!(
-                    /L1 unwrap >f
-                    dat is-resource? if(
-                        lbl_get ab-word!
-                        ab-rdip!(f> ab-var!)
-                        lbl_set ab-word!,
+            @dat @lbl_get @lbl_set @lbl_lens dup WordArrow prop4(
+                >lbl_lens >lbl_set >lbl_get >dat
+                @lbl_lens ab-build-word-arrow!(
+                    lbl_lens> rdip:params dup ab-lambda!(
+                        /L1 unwrap >f
+                        dat> is-resource? if(
+                            lbl_get> ab-word!
+                            ab-rdip!(f> ab-var!)
+                            lbl_set> ab-word!,
 
-                        PRIM_CORE_DUP ab-prim!
-                        ab-dip!(
-                            lbl_get ab-word!
-                            f> ab-var!
+                            PRIM_CORE_DUP ab-prim!
+                            ab-dip!(
+                                lbl_get> ab-word!
+                                f> ab-var!
+                            )
+                            lbl_set> ab-word!
                         )
-                        lbl_set ab-word!
                     )
                 )
-            )) lbl_lens ~arrow !
+            ) @lbl_lens ~arrow !
+            lbl_get> lbl_set> lbl_lens> drop3
         )
-    ))))
+        lbl> drop
+    )
+    dat> tag> drop2
 }
 
 def expect-token-arrow [ +Mirth Token -- +Mirth Token ] {

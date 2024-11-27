@@ -432,81 +432,93 @@ def(init-prims!, +Mirth -- +Mirth,
     # polymorphic prims
     #
 
-    TYPE_TYPE "a" >Name Var.new!
-    TYPE_TYPE "b" >Name Var.new!
-    TYPE_TYPE "c" >Name Var.new!
-    TYPE_RESOURCE "+r" >Name Var.new!
-    TYPE_RESOURCE "+s" >Name Var.new!
-    TYPE_STACK "*x" >Name Var.new!
-    TYPE_STACK "*y" >Name Var.new!
-    \( a b c rr sr xs ys ->
-        a TVar b TVar c TVar
-        rr TVar Resource sr TVar Resource
-        xs STVar ys STVar
-    \( ta tb tc trr tsr txs tys ->
-        a Ctx1
-        ta T1 T0 T->
-        PRIM_CORE_DROP ctx-type!
+    TYPE_TYPE "a" >Name Var.new! >a
+    TYPE_TYPE "b" >Name Var.new! >b
+    TYPE_TYPE "c" >Name Var.new! >c
+    TYPE_RESOURCE "+r" >Name Var.new! >rr
+    TYPE_RESOURCE "+s" >Name Var.new! >sr
+    TYPE_STACK "*x" >Name Var.new! >xs
+    TYPE_STACK "*y" >Name Var.new! >ys
 
-        a Ctx1
-        ta T1 ta ta T2 T->
-        PRIM_CORE_DUP ctx-type!
+    @a TVar >ta
+    @b TVar >tb
+    @c TVar >tc
+    @rr TVar Resource >trr
+    @sr TVar Resource >tsr
+    @xs STVar >txs
+    @ys STVar >tys
 
-        a b Ctx2
-        ta tb T2 tb ta T2 T->
-        PRIM_CORE_SWAP ctx-type!
+    @a Ctx1
+    @ta T1 T0 T->
+    PRIM_CORE_DROP ctx-type!
 
-        xs ys Ctx2
-        txs txs tys T-> >Type T* tys T->
-        PRIM_CORE_RUN ctx-type!
+    @a Ctx1
+    @ta T1 @ta @ta T2 T->
+    PRIM_CORE_DUP ctx-type!
 
-        xs ys Ctx2
-        txs TYPE_STR T* tys T->
-        PRIM_CORE_PANIC ctx-type!
+    @a @b Ctx2
+    @ta @tb T2 @tb @ta T2 T->
+    PRIM_CORE_SWAP ctx-type!
 
-        xs ys c Ctx3
-        txs tc T* txs tys T-> >Type T* tys tc T* T->
-        PRIM_CORE_DIP ctx-type!
+    @xs @ys Ctx2
+    @txs @txs @tys T-> TMorphism T* @tys T->
+    PRIM_CORE_RUN ctx-type!
 
-        xs ys Ctx2
-        txs TYPE_BOOL T* txs tys T-> >Type sip(T*) T* tys T->
-        PRIM_CORE_IF ctx-type!
+    @xs @ys Ctx2
+    @txs TYPE_STR T* @tys T->
+    PRIM_CORE_PANIC ctx-type!
 
-        xs Ctx1
-        txs txs txs TYPE_BOOL T* T-> >Type T*
-            txs txs T-> >Type T*
-        txs T->
-        PRIM_CORE_WHILE ctx-type!
+    @xs @ys @c Ctx3
+    @txs @tc T* @txs @tys T-> TMorphism T* @tys @tc T* T->
+    PRIM_CORE_DIP ctx-type!
 
-        rr sr Ctx2
-        T0 trr T+ tsr T+ T0 tsr T+ trr T+ T->
-        PRIM_CORE_RSWAP ctx-type!
+    @xs @ys Ctx2
+    @txs TYPE_BOOL T* @txs @tys T-> TMorphism sip(T*) T* @tys T->
+    PRIM_CORE_IF ctx-type!
 
-        xs ys rr Ctx3
-        txs trr T+ txs tys T-> >Type T* tys trr T+ T->
-        PRIM_CORE_RDIP ctx-type!
+    @xs Ctx1
+    @txs
+        @txs @txs TYPE_BOOL T* T-> TMorphism T*
+        @txs @txs T-> TMorphism T*
+    @txs T->
+    PRIM_CORE_WHILE ctx-type!
 
-        xs b Ctx2
-        txs >Type tb T2 txs tb T* >Type T1 T->
-        PRIM_PACK_CONS ctx-type!
+    @rr @sr Ctx2
+    T0 @trr T+ @tsr T+ T0 @tsr T+ @trr T+ T->
+    PRIM_CORE_RSWAP ctx-type!
 
-        xs b Ctx2
-        txs tb T* >Type T1 txs >Type tb T2 T->
-        PRIM_PACK_UNCONS ctx-type!
+    @xs @ys @rr Ctx3
+    @txs @trr T+ @txs @tys T-> TMorphism T* @tys @trr T+ T->
+    PRIM_CORE_RDIP ctx-type!
 
-        a Ctx1
-        ta T1 ta TMut T1 T->
-        PRIM_MUT_NEW ctx-type!
+    @xs @b Ctx2
+    @txs >Type @tb T2 @txs @tb T* >Type T1 T->
+    PRIM_PACK_CONS ctx-type!
 
-        a Ctx1
-        ta TMut T1 ta T1 T->
-        PRIM_MUT_GET ctx-type!
+    @xs @b Ctx2
+    @txs @tb T* >Type T1 @txs >Type @tb T2 T->
+    PRIM_PACK_UNCONS ctx-type!
 
-        a Ctx1
-        ta ta TMut T2 T0 T->
-        PRIM_MUT_SET ctx-type!
+    @a Ctx1
+    @ta T1 @ta TMut T1 T->
+    PRIM_MUT_NEW ctx-type!
 
-        a Ctx1
-        ta TMut T1 TYPE_BOOL T1 T->
-        PRIM_MUT_IS_SET ctx-type!
-    )))
+    @a Ctx1
+    @ta TMut T1 @ta T1 T->
+    PRIM_MUT_GET ctx-type!
+
+    @a Ctx1
+    @ta @ta TMut T2 T0 T->
+    PRIM_MUT_SET ctx-type!
+
+    @a Ctx1
+    @ta TMut T1 TYPE_BOOL T1 T->
+    PRIM_MUT_IS_SET ctx-type!
+
+    a> b> c> drop3
+    rr> sr> drop2
+    xs> ys> drop2
+    ta> tb> tc> drop3
+    trr> tsr> drop2
+    txs> tys> drop2
+)

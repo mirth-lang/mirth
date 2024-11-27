@@ -259,14 +259,18 @@ def(PropLabel.prop2, b1 b2 PropLabel +Mirth -- Prop([b1 b2]) +Mirth,
 def(PropLabel.prop3, b1 b2 b3 PropLabel +Mirth -- Prop([b1 b2 b3]) +Mirth,
     dip(pack3) prop)
 
-def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
-    dip:0 prop(drop f))
 def(PropLabel.prop(f), (a +Mirth -- b +Mirth) a PropLabel +Mirth -- Prop(b) +Mirth,
     >label [f] PSDelay >state Prop)
-def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
-    dip(pack2) prop(unpack2 f))
-def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
-    dip(pack3) prop(unpack3 f))
+inline(
+    def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
+        dip:0 prop(drop f))
+    def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
+        dip(pack2) prop(unpack2 f))
+    def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
+        dip(pack3) prop(unpack3 f))
+    def(PropLabel.prop4(f), (a1 a2 a3 a4 +Mirth -- b +Mirth) a1 a2 a3 a4 PropLabel +Mirth -- Prop(b) +Mirth,
+        dip(pack4) prop(unpack4 f))
+)
 
 def(Prop.ready?, Prop(t) -- Maybe(t),
     state match(
@@ -287,6 +291,8 @@ def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
     ))
 def(Prop.force!, Mut(Prop(t)) +Mirth -- t +Mirth,
     try-force! unwrap("Recursive prop detected!" fatal-error!))
-def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
-        *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
-    try-force! unwrap(f))
+inline (
+    def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
+            *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
+        try-force! unwrap(f))
+)
