@@ -1181,20 +1181,17 @@ inline (
         *a Token Token +Mirth +Match -- *c +Mirth +Match,
     ] {
         dip(
-            home >home dup >token-start >token-end
-            ctx dup >outer-ctx >inner-ctx
-            L0 >saved dom dup >mid >cod L0 >atoms
-            Pattern rdip(thaw mkpat freeze)
-        ) swap \(pat ->
-            pat inner-ctx
-            pat Pattern.dom +Match.cod T->
-            rotl
-            +Match.home
-            rdip(ab-build-hom!(dip(mkbod)))
-            >body
-            pat >pattern
-            CASE add-case
+            +Match.home >home dup >token-start >token-end
+            +Match.ctx dup >outer-ctx >inner-ctx
+            L0 >saved +Match.dom dup >mid >cod L0 >atoms
+            Pattern rdip(thaw mkpat freeze) >pattern
         )
+        @pattern inner-ctx
+        @pattern Pattern.dom +Match.cod T->
+        rotl
+        +Match.home
+        @pattern:dip:rdip(ab-build-hom!(dip(mkbod)))
+        >body CASE add-case
     }
 )
 
@@ -1524,65 +1521,69 @@ def data-word-new! [ +Mirth Data Str Int -- +Mirth Word ] {
 }
 
 def elab-data-done! [ +Mirth Data -- +Mirth ] {
-    \(dat ->
-        dat is-value-type? then(
-            dat "tag" 0 data-word-new! \(tag ->
-                dat params >Ctx
-                dat data-get-tag-type
-                tag WordType prop2 tag ~ctx-type !
-                tag ab-build-word!(
-                    dat OpDataGetTag ab-op!
-                ) make-inline!
-            )
-        )
-
-        dat is-enum? then(
-            dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
-                Ctx0 TYPE_INT T1 dat TData T1 T->
-                ftag WordType prop2 ftag ~ctx-type !
-                ftag ab-build-word!(
-                    CoerceUnsafe ab-coerce!
-                ) make-inline!
-            ),
-        )
-
-        dat tags /L1 match(
-            Some -> \(tag ->
-                dat "/" tag name >Str cat 0 data-word-new! \(untag ->
-                    tag untag WordType prop(ctx-type unpack swap T-> pack2) untag ~ctx-type !
-                    untag untag WordArrow prop(ab-build-word-arrow!(
-                        untag rdip:type cod >cod
-                        dat head? unwrap >body
-                        ab-match!(
-                            dat head? unwrap dup
-                            case!(tag +Pattern.tag!, id)
-                        )
-                    )) untag ~arrow !
-                    untag Some tag ~untag !
-                    untag make-inline!
-                    tag create-projectors!
-                )
-            ),
-            None -> id
-        )
-
-        dat DataCType prop0(
-            dat is-unit? if(
-                Phantom Some,
-            dat is-enum? if(
-                "int" IntLike Some,
-            dat is-semi-transparent? if(
-                dat tags /L1 unwrap type dom match(
-                    STCons -> nip ctype?,
-                    STConsLabel -> drop nip ctype?,
-                    STWith -> nip ctype?,
-                    STWithLabel -> drop nip ctype?,
-                    _ -> "unexpected tag inputs for transparent data" panic!
-                ),
-                None
-            )))
-        ) dat ~ctype? !
+    >dat
+    @dat is-value-type? then (
+        @dat "tag" 0 data-word-new! >tag
+        @dat params >Ctx
+        @dat data-get-tag-type
+        @tag WordType prop2 @tag ~ctx-type !
+        @tag ab-build-word!(
+            @dat OpDataGetTag ab-op!
+        ) make-inline!
+        tag> drop
     )
+
+    @dat is-enum? then (
+        @dat "from-tag-unsafe" 0 data-word-new! >ftag
+        Ctx0 TYPE_INT T1 @dat TData T1 T->
+        @ftag WordType prop2 @ftag ~ctx-type !
+        @ftag ab-build-word!(
+            CoerceUnsafe ab-coerce!
+        ) make-inline!
+        ftag> drop
+    )
+
+    @dat tags /L1 for(
+        >tag
+        @dat "/" @tag name >Str cat 0 data-word-new! >untag
+        @untag Some @tag ~untag !
+        @tag @untag WordType prop(ctx-type unpack swap T-> pack2) @untag ~ctx-type !
+        @tag @untag WordArrow prop(
+            >tag
+            @tag .untag unwrap ab-build-word-arrow!(
+                @tag rdip:type dom >cod
+                @tag .data head? unwrap >body
+                ab-match!(
+                    @tag .data head? unwrap dup
+                    case!(@tag +Pattern.tag!, id)
+                )
+            )
+            tag> drop
+        ) @untag ~arrow !
+        @untag make-inline!
+        @tag create-projectors!
+        tag> untag> drop2
+    )
+
+    @dat @dat DataCType prop(
+        >dat
+        @dat is-unit? if(
+            Phantom Some,
+        @dat is-enum? if(
+            "int" IntLike Some,
+        @dat is-semi-transparent? if(
+            @dat tags /L1 unwrap type dom match(
+                STCons -> nip ctype?,
+                STConsLabel -> drop nip ctype?,
+                STWith -> nip ctype?,
+                STWithLabel -> drop nip ctype?,
+                _ -> "unexpected tag inputs for transparent data" panic!
+            ),
+            None
+        )))
+        dat> drop
+    ) @dat ~ctype? !
+    dat> drop
 }
 
 ||| Return the tag's output type or resource in context.

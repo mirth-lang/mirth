@@ -157,131 +157,136 @@ def(c99-variable!, Variable +C99 -- +C99,
     "}" put line)
 
 def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
-def(c99-tag-def!, Tag +C99 -- +C99, \(tag -> tag prefer-inline? else(
-    tag +needs:word-needed? then(
-        tag +mirth:word-cname sig-put " {" put line
-        reset-fresh-counter!
-        tag is-transparent? else(
-            tag is-semi-transparent? if(
-                tag outputs-resource? if(
-                    tag num-type-inputs 0> if(
-                        "\tpush_resource(pop_value());" put line,
-                        "\tpush_resource(lpop(&lbl_" put
-                        tag label-inputs /L1 unwrap name mangled put
+
+def c99-tag-def! [ Tag +C99 -- +C99 ] {
+    >tag
+    @tag prefer-inline? else(
+        @tag +needs:word-needed? then(
+            @tag +mirth:word-cname sig-put " {" put line
+            reset-fresh-counter!
+            @tag is-transparent? else(
+                @tag is-semi-transparent? if(
+                    @tag outputs-resource? if(
+                        @tag num-type-inputs 0> if(
+                            "\tpush_resource(pop_value());" put line,
+                            "\tpush_resource(lpop(&lbl_" put
+                            @tag label-inputs /L1 unwrap name mangled put
+                            "));" put line
+                        ),
+                        "\tpush_value(lpop(&lbl_" put
+                        @tag label-inputs /L1 unwrap name mangled put
                         "));" put line
                     ),
-                    "\tpush_value(lpop(&lbl_" put
-                    tag label-inputs /L1 unwrap name mangled put
-                    "));" put line
-                ),
 
-            tag num-total-inputs 0= if(
-                tag outputs-resource? if(
-                    "\tpush_resource(MKU64(",
-                    "\tpush_value(MKU64("
-                ) put
-                    tag value-show put
-                    "LL));" put line
-                ,
+                @tag num-total-inputs 0= if(
+                    @tag outputs-resource? if(
+                        "\tpush_resource(MKU64(",
+                        "\tpush_value(MKU64("
+                    ) put
+                        @tag value-show put
+                        "LL));" put line
+                    ,
 
-                "\tTUP* tup = tup_new(" put
-                    tag num-total-inputs 1+ show put
-                    ");" put line
-                "\ttup->size = " put
-                    tag num-total-inputs 1+ show put
-                    ";" put line
-                "\ttup->cells[0] = MKU64(" put
-                    tag value-show put
-                    "LL);" put line
-                tag num-total-inputs
-                tag label-inputs reverse-for(
-                    "\ttup->cells[" put
-                        over show put
-                        "] = lpop(&lbl_" put
-                        name mangled put
+                    "\tTUP* tup = tup_new(" put
+                        @tag num-total-inputs 1+ show put
                         ");" put line
-                    1-
-                )
-                tag num-resource-inputs repeat(
-                    "\ttup->cells[" put
-                        dup show put
-                        "] = pop_resource();" put line
-                    1-
-                )
-                tag num-type-inputs repeat(
-                    "\ttup->cells[" put
-                        dup show put
-                        "] = pop_value();" put line
-                    1-
-                )
-                drop
-                tag outputs-resource? if(
-                    "\tpush_resource(MKTUP(tup, ",
-                    "\tpush_value(MKTUP(tup, "
-                ) put
-                    tag num-total-inputs 1+ show put
-                    "));" put line
-            ))
+                    "\ttup->size = " put
+                        @tag num-total-inputs 1+ show put
+                        ";" put line
+                    "\ttup->cells[0] = MKU64(" put
+                        @tag value-show put
+                        "LL);" put line
+                    @tag num-total-inputs
+                    @tag label-inputs reverse-for(
+                        "\ttup->cells[" put
+                            over show put
+                            "] = lpop(&lbl_" put
+                            name mangled put
+                            ");" put line
+                        1-
+                    )
+                    @tag num-resource-inputs repeat(
+                        "\ttup->cells[" put
+                            dup show put
+                            "] = pop_resource();" put line
+                        1-
+                    )
+                    @tag num-type-inputs repeat(
+                        "\ttup->cells[" put
+                            dup show put
+                            "] = pop_value();" put line
+                        1-
+                    )
+                    drop
+                    @tag outputs-resource? if(
+                        "\tpush_resource(MKTUP(tup, ",
+                        "\tpush_value(MKTUP(tup, "
+                    ) put
+                        @tag num-total-inputs 1+ show put
+                        "));" put line
+                ))
+            )
+            "}" put line
         )
-        "}" put line
-    )
 
-    tag +needs:pat-needed? then(
-        tag +mirth:pat-cname sig-put " {" put line
-        reset-fresh-counter!
-        tag is-transparent? else(
-            tag outputs-resource? if(
-                "\tVAL val = pop_resource();",
-                "\tVAL val = pop_value();"
-            ) put line
-            tag is-semi-transparent? if(
-                tag num-type-inputs 0> if(
-                    "\tpush_value(val);" put line,
-                    "\tlpush(&lbl_" put
-                    tag label-inputs /L1 unwrap name mangled put
-                    ", val);" put line
-                ),
-            tag num-total-inputs 0= if(
-                "\t(void)val;" put line,
-                "\tASSERT1(IS_TUP(val),val);" put line
-                "\tTUP* tup = VTUP(val);" put line
-                1
-                tag num-type-inputs repeat(
-                    "\tpush_value(tup->cells[" put
-                        dup show put
-                        "]);" put line
-                    1+
-                )
-                tag num-resource-inputs repeat(
-                    "\tpush_resource(tup->cells[" put
-                        dup show put
-                        "]);" put line
-                    1+
-                )
-                tag label-inputs for(
-                    "\tlpush(&lbl_" put
-                        name mangled put
-                        ", tup->cells[" put
-                        dup show put
-                        "]);" put line
-                    1+
-                )
-                drop
-                "\tif (tup->refs > 1) {" put line
-                1 tag num-total-inputs repeat(
-                    "\t\tincref(tup->cells[" put
-                        dup show put
-                        "]);" put line
-                    1+
-                ) drop
-                "\t\tdecref(val);" put line
-                "\t} else {" put line
-                "\t\tfree(tup);" put line
-                "\t}" put line
-            ))
+        @tag +needs:pat-needed? then(
+            @tag +mirth:pat-cname sig-put " {" put line
+            reset-fresh-counter!
+            @tag is-transparent? else(
+                @tag outputs-resource? if(
+                    "\tVAL val = pop_resource();",
+                    "\tVAL val = pop_value();"
+                ) put line
+                @tag is-semi-transparent? if(
+                    @tag num-type-inputs 0> if(
+                        "\tpush_value(val);" put line,
+                        "\tlpush(&lbl_" put
+                        @tag label-inputs /L1 unwrap name mangled put
+                        ", val);" put line
+                    ),
+                @tag num-total-inputs 0= if(
+                    "\t(void)val;" put line,
+                    "\tASSERT1(IS_TUP(val),val);" put line
+                    "\tTUP* tup = VTUP(val);" put line
+                    1
+                    @tag num-type-inputs repeat(
+                        "\tpush_value(tup->cells[" put
+                            dup show put
+                            "]);" put line
+                        1+
+                    )
+                    @tag num-resource-inputs repeat(
+                        "\tpush_resource(tup->cells[" put
+                            dup show put
+                            "]);" put line
+                        1+
+                    )
+                    @tag label-inputs for(
+                        "\tlpush(&lbl_" put
+                            name mangled put
+                            ", tup->cells[" put
+                            dup show put
+                            "]);" put line
+                        1+
+                    )
+                    drop
+                    "\tif (tup->refs > 1) {" put line
+                    1 @tag num-total-inputs repeat(
+                        "\t\tincref(tup->cells[" put
+                            dup show put
+                            "]);" put line
+                        1+
+                    ) drop
+                    "\t\tdecref(val);" put line
+                    "\t} else {" put line
+                    "\t\tfree(tup);" put line
+                    "\t}" put line
+                ))
+            )
+            "}" put line
         )
-        "}" put line
-    ))))
+    ) tag> drop
+}
 
 def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
     over num-total-inputs 1+
@@ -337,15 +342,15 @@ def(c99-tag-get-label!, Tag Label +C99Branch -- +C99Branch,
     c99-line("}" put)
     start-branch!)
 
-def(c99-tag-set-label!, Tag Label +C99Branch -- +C99Branch, \(tag lbl ->
+def c99-tag-set-label! [ Tag Label +C99Branch -- +C99Branch ] {
+    >lbl >tag
     end-branch!
     c99-line("{" put)
     c99-nest(
-
-        lbl tag +mirth:project-input-label unwrap match(
+        @lbl @tag +mirth:project-input-label unwrap match(
             Left -> drop
-                tag is-semi-transparent? if(
-                    tag outputs-resource? if(
+                @tag is-semi-transparent? if(
+                    @tag outputs-resource? if(
                         c99-line("VAL v = pop_resource();" put)
                         c99-line("push_resource(pop_value());" put)
                         c99-line("decref(v);" put),
@@ -354,25 +359,25 @@ def(c99-tag-set-label!, Tag Label +C99Branch -- +C99Branch, \(tag lbl ->
                         c99-line("decref(v);" put)
                     ),
 
-                    tag outputs-resource? if(
+                    @tag outputs-resource? if(
                         c99-line("VAL v = top_resource();" put),
                         c99-line("VAL v = pop_value();" put)
                     )
                     c99-line("VAL u = pop_value();" put)
                     c99-line("ASSERT1(IS_TUP(v), v);" put)
                     c99-line("ASSERT1(VTUPLEN(v) == " put
-                        tag num-total-inputs 1+ show put
+                        @tag num-total-inputs 1+ show put
                         ", v);" put)
-                    tag outputs-resource? if(
+                    @tag outputs-resource? if(
                         c99-line("VAL* p = &VTUP(v)->cells[" put
-                            tag lbl c99-tag-label-index show put
+                            @tag @lbl c99-tag-label-index show put
                             "];" put)
                         c99-line("VAL t = *p; *p = u; decref(t);" put),
 
                         c99-line("if (VTUP(v)->refs == 1) {" put)
                         c99-nest(
                             c99-line("VAL* p = &VTUP(v)->cells[" put
-                                tag lbl c99-tag-label-index show put
+                                @tag @lbl c99-tag-label-index show put
                                 "];" put)
                             c99-line("VAL t = *p; *p = u; decref(t);" put)
                             c99-line("push_value(v);" put)
@@ -380,13 +385,13 @@ def(c99-tag-set-label!, Tag Label +C99Branch -- +C99Branch, \(tag lbl ->
                         c99-line("} else {" put)
                         c99-nest(
                             c99-line("TUP *tup = tup_new(" put
-                                tag num-total-inputs 1+ show put
+                                @tag num-total-inputs 1+ show put
                                 ");" put)
                             c99-line("tup->size = " put
-                                tag num-total-inputs 1+ show put
+                                @tag num-total-inputs 1+ show put
                                 ";" put)
-                            0 >Nat while(dup tag num-total-inputs <=,
-                                dup tag lbl c99-tag-label-index == if(
+                            0 >Nat while(dup @tag num-total-inputs <=,
+                                dup @tag @lbl c99-tag-label-index == if(
                                     c99-line("tup->cells[" put
                                         dup show put
                                         "] = u;" put),
@@ -402,34 +407,36 @@ def(c99-tag-set-label!, Tag Label +C99Branch -- +C99Branch, \(tag lbl ->
                             drop
                             c99-line("decref(v);" put)
                             c99-line("push_value(MKTUP(tup," put
-                                tag num-total-inputs 1+ show put
+                                @tag num-total-inputs 1+ show put
                                 "));" put)
                         )
                         c99-line("}" put)
                     )
                 ),
             Right -> drop
-                tag is-semi-transparent? if(
+                @tag is-semi-transparent? if(
                     c99-line("(void)pop_resource();" put),
 
                     c99-line("VAL v = pop_resource();" put)
                     c99-line("VAL u = pop_resource();" put)
                     c99-line("ASSERT1(IS_TUP(v), v);" put)
                     c99-line("ASSERT1(VTUPLEN(v) == " put
-                        tag num-total-inputs 1+ show put
+                        @tag num-total-inputs 1+ show put
                         ", v);" put)
                     c99-line("ASSERT1(VREFS(v) == 1, v);" put)
                     c99-line("VAL* p = &VTUP(v)->cells[" put
-                        tag lbl c99-tag-label-index show put
+                        @tag @lbl c99-tag-label-index show put
                         "];" put)
                     c99-line("ASSERT1(p->tag == 0, v);" put)
                     c99-line("*p = u;" put)
                     c99-line("push_resource(v);" put)
                 )
-        ))
+        )
     )
     c99-line("}" put)
-    start-branch!)
+    start-branch!
+    lbl> tag> drop2
+}
 
 def(c99-external-blocks!, +C99 -- +C99,
     ExternalBlock.for(c99-external-block!))
