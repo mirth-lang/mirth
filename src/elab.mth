@@ -582,41 +582,47 @@ inline (
         dip2(unpack rotr)
         ab-build!(f ab-unify-type!)
     }
+
+    ||| Build the arrow for a word. If the word type and context are available, use that.
+    ||| Otherwise, we are in a situation where type and context were not given, so we infer them.
+    |||
+    ||| To infer ctx-type, we start with an initial guess based on the word head (with lots
+    ||| of metavariables). We temporarily set that as our ctx-type. Then we elaborate the word
+    ||| body. After elaboration, we rigidify the type to obtain a generalized definition, by
+    ||| replacing any free metavariables with universally quantified variables.
+    def ab-build-word-arrow!(f) [
+        (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
+        *a Word +Mirth -- *b Arrow +Mirth
+    ] {
+        initial-ctx-type-body-home
+        dip:ab-build-hom!(f)
+        finalize-word-arrow
+    }
 )
 
-||| Build the arrow for a word. If the word type and context are available, use that.
-||| Otherwise, we are in a situation where type and context were not given, so we infer them.
-|||
-||| To infer ctx-type, we start with an initial guess based on the word head (with lots
-||| of metavariables). We temporarily set that as our ctx-type. Then we elaborate the word
-||| body. After elaboration, we rigidify the type to obtain a generalized definition, by
-||| replacing any free metavariables with universally quantified variables.
-def ab-build-word-arrow!(f) [
-    (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
-    *a Word +Mirth -- *b Arrow +Mirth
-] {
-    dup ~ctx-type try-force! match(
-        Some ->
-            unpack2 rotl sip(body) HomeWord ab-build-hom!(f),
-        None ->
-            sip(
-                sip(guess-initial-ctx-type)
-                sip(body) HomeWord ab-build-hom!(f)
-            )
-            >word >arrow
-
-            @arrow Arrow.ctx-type rigidify-sig!
-
-            dup2 pack2 @word WordType prop @word ~ctx-type !
-            False @word ~inferring-type? !
-            word> drop
-
-            unpack arrow> cod! dom! ctx!
-    )
+def initial-ctx-type-body-home [ +Mirth Word -- +Mirth Ctx ArrowType Token Home Word ] {
+    >word
+    @word ~ctx-type try-force!
+    match(Some -> unpack2, None -> guess-initial-ctx-type)
+    @word body
+    @word HomeWord
+    word>
 }
 
-def guess-initial-ctx-type [ +Mirth Word -- +Mirth Ctx ArrowType ] {
-    >word
+def finalize-word-arrow [ +Mirth Arrow Word -- +Mirth Arrow ] {
+    >word >arrow
+    @word inferring-type? if(
+        @arrow Arrow.ctx-type rigidify-sig!
+        dup2 pack2 @word WordType prop @word ~ctx-type !
+        False @word ~inferring-type? !
+        unpack arrow> cod! dom! ctx!,
+
+        arrow>
+    )
+    word> drop
+}
+
+def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word ] {
     Ctx0 >ctx
     MetaVar.new! STMeta >dom
     MetaVar.new! STMeta >cod
@@ -645,7 +651,6 @@ def guess-initial-ctx-type [ +Mirth Word -- +Mirth Ctx ArrowType ] {
     ctx> dom> cod> T->
     dup2 pack2 @word WordType prop @word ~ctx-type !
     True @word ~inferring-type? !
-    word> drop
 }
 
 inline (
