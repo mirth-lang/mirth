@@ -528,69 +528,75 @@ def(Offset.min, Offset Offset -- Offset, dup2 <= if(drop, nip))
 # TUPLES #
 ##########
 
-alias(pack-cons, prim-pack-cons)
-alias(pack-uncons, prim-pack-uncons)
+inline(
+    alias(pack-cons, prim-pack-cons)
+    alias(pack-uncons, prim-pack-uncons)
 
-alias(pack0, prim-pack-nil)
-def(pack1, a -- [a], dip(pack0) pack-cons)
-def(pack2, a b -- [a b], dip(pack1) pack-cons)
-def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
-def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
-def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
+    alias(pack0, prim-pack-nil)
+    def(pack1, a -- [a], dip(pack0) pack-cons)
+    def(pack2, a b -- [a b], dip(pack1) pack-cons)
+    def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
+    def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
+    def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
 
-inline:def(unpack0, [] --, drop)
-def(unpack1, [a] -- a, pack-uncons nip)
-def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
-def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
-def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
-def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+    inline:def(unpack0, [] --, drop)
+    def(unpack1, [a] -- a, pack-uncons nip)
+    def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
+    def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
+    def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
+    def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
 
-def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
-    dip:pack-uncons pack-uncons dip:swap
-    dip2:aeq rotl if(beq, drop2 False))
+    def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
+        dip:pack-uncons pack-uncons dip:swap
+        dip2:aeq rotl if(beq, drop2 False))
 
-def(pack0==, [] [] -- Bool, drop2 False)
-def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
-    on2:unpack1 aeq)
-def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
-    pack-cons==(pack1==(aeq), beq))
-def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
-        [a b c] [a b c] -- Bool,
-    pack-cons==(pack2==(aeq,beq), ceq))
-def(pack4==(aeq,beq,ceq,deq),
-        (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
-        [a b c d] [a b c d] -- Bool,
-    pack-cons==(pack3==(aeq,beq,ceq), deq))
+    def(pack0==, [] [] -- Bool, drop2 False)
+    def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
+        on2:unpack1 aeq)
+    def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
+        pack-cons==(pack1==(aeq), beq))
+    def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
+            [a b c] [a b c] -- Bool,
+        pack-cons==(pack2==(aeq,beq), ceq))
+    def(pack4==(aeq,beq,ceq,deq),
+            (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
+            [a b c d] [a b c d] -- Bool,
+        pack-cons==(pack3==(aeq,beq,ceq), deq))
 
-def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
-    unpack2 dip(f) " " ; g)
-def(pack3-show;-contents(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
-    pack-uncons dip(pack2-show;-contents(f,g)) " " ; h)
-def(pack4-show;-contents(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
-    pack-uncons dip(pack3-show;-contents(f,g,h)) " " ; i)
+    def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+        unpack2 dip(f) " " ; g)
+    def(pack3-show;-contents(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+        pack-uncons dip(pack2-show;-contents(f,g)) " " ; h)
+    def(pack4-show;-contents(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+        pack-uncons dip(pack3-show;-contents(f,g,h)) " " ; i)
 
-def(pack2-show;(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
-    pack2-show;-contents(f,g) " pack2" ;)
-def(pack3-show;(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
-    pack3-show;-contents(f,g,h) " pack3" ;)
-def(pack4-show;(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
-    pack4-show;-contents(f,g,h,i) " pack4" ;)
+    def(pack2-show;(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+        pack2-show;-contents(f,g) " pack2" ;)
+    def(pack3-show;(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+        pack3-show;-contents(f,g,h) " pack3" ;)
+    def(pack4-show;(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+        pack4-show;-contents(f,g,h,i) " pack4" ;)
+)
 
-alias(@, prim-mut-get)
-alias(!, prim-mut-set)
-alias(mut-is-set, prim-mut-is-set)
-def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
-def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
-    dup mut-is-set if(
-        @,
-        dip(f dup) !
-    ))
+inline(
+    alias(@, prim-mut-get)
+    alias(!, prim-mut-set)
+    alias(mut-is-set, prim-mut-is-set)
+    def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
+    def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
+        dup mut-is-set if(
+            @,
+            dip(f dup) !
+        ))
+)
 def(@?, Mut(t) -- Maybe(t),
     dup mut-is-set if(@ Some, drop None))
 
-def(panic!, *a Str -- *b, prim-panic)
-def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
-    f if(id, g panic!))
-def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
-    expect!(f,g "assertion failed: " swap prim-str-cat))
+inline(
+    def(panic!, *a Str -- *b, prim-panic)
+    def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
+        f if(id, g panic!))
+    def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
+        expect!(f,g "assertion failed: " swap prim-str-cat))
+)
 def(todo!, *a -- *b, "TODO" panic!)

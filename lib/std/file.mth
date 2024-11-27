@@ -26,7 +26,7 @@ def(+World.open-file!, Path +World -- +World +File?,
     ))
 
 def(+World.create-file!, Path +World -- +World +File?,
-    dup >Str 
+    dup >Str
     O_WRONLY|O_CREAT|O_TRUNC
     0o666 posix-open!
     dup 0> if(
@@ -55,7 +55,7 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
 def(+File.close-file!, +World +File -- +World,
     /+File owned> if(
-        file-descriptor> posix-close! 
+        file-descriptor> posix-close!
         expect!(dup 0< not, "failed to close file")
         drop,
 
@@ -78,16 +78,18 @@ def(+File.read-file!, +File -- Str +File,
     read-file!
     end!)
 
-def(+File.input(f), (*a +Input -- *b +Input) *a +File -- *b +File,
-    file-descriptor dip(
-        +Input.start! f +Input.end!
-    )
-    expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.input(f)")
-    drop)
+inline (
+    def(+File.input(f), (*a +Input -- *b +Input) *a +File -- *b +File,
+        file-descriptor dip(
+            +Input.start! f +Input.end!
+        )
+        expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.input(f)")
+        drop)
 
-def(+File.output(f), (*a +Output -- *b +Output) *a +File -- *b +File,
-    file-descriptor dip(
-        +Output.start! f +Output.end!
-    )
-    expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.output(f)")
-    drop)
+    def(+File.output(f), (*a +Output -- *b +Output) *a +File -- *b +File,
+        file-descriptor dip(
+            +Output.start! f +Output.end!
+        )
+        expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.output(f)")
+        drop)
+)

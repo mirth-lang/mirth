@@ -28,13 +28,14 @@ inline(
 )
 
 data(+Str, +Str -> Str)
-def(Str.thaw, Str -- +Str, +Str)
-def(+Str.freeze, +Str -- Str, +Str -> id)
-def(+Str.rdrop, +Str --, +Str -> drop)
 
-def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
-inline:def(+Str.;, Str +Str -- +Str, push-str!)
-
+inline (
+    def(Str.thaw, Str -- +Str, +Str)
+    def(+Str.freeze, +Str -- Str, +Str -> id)
+    def(+Str.rdrop, +Str --, +Str -> drop)
+    def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
+    def(+Str.;, Str +Str -- +Str, push-str!)
+)
 
 def(+Str.dup!, +Str -- Str +Str,
     +Str -> dup dip(+Str))
@@ -79,11 +80,11 @@ def(+Str.push-byte-ascii!, Byte +Str -- +Str,
 def(+Str.push-str!, Str +Str -- +Str,
     +Str -> swap cat +Str)
 
-def(Str.with-data(f), (*a Ptr Size -- *b) *a Str -- *b,
+inline:def(Str.with-data(f), (*a Ptr Size -- *b) *a Str -- *b,
     dup dip(dup dip(prim-str-base) num-bytes f) drop)
 
 ||| Traverse string bytes.
-def(Str.bytes-for(f), (*a Byte -- *a) *a Str -- *a,
+inline:def(Str.bytes-for(f), (*a Byte -- *a) *a Str -- *a,
     with-data(>Nat repeat(
         dup dip(unsafe(@Byte) f 1 >Offset) unsafe(offset)
     ) drop))
@@ -114,7 +115,7 @@ def(Str.from-bytes-unsafe, List(Byte) -- Str,
     base size unsafe(Str.ClonePtrSlice)
     rdrop)
 
-def(Str.with-cstr(f), (*a CStr -- *b) *a Str -- *b,
+inline:def(Str.with-cstr(f), (*a CStr -- *b) *a Str -- *b,
     with-data(
         >Offset over unsafe(offset @U8) >Int
         0= else("tried to use Str as CStr, but Str is not zero terminated" panic!)
@@ -186,13 +187,13 @@ def(Str.split-byte(p), (*a Byte -- *a Bool) *a Str -- *a List+(Str),
 def(Str.split-byte, Byte Str -- List+(Str),
     thaw +Str.split-byte rdrop)
 
-def(+Str.find-last-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Maybe(Offset) +Str,
+inline:def(+Str.find-last-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Maybe(Offset) +Str,
     num-bytes? >Offset None while(
         dup none? and(over 0>),
         drop 1- sip(byte@ rdip(p)) swap if(dup Some, None)
     ) nip)
 
-def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
+inline:def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
     thaw find-last-byte(p) freeze swap map(unsafe(
         swap dup2 dip:1+ drop-slice
         dip(dip:>Size take-slice)

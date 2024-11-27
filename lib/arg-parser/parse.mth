@@ -72,6 +72,7 @@ def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) Ar
     ))
 
 ||| Parse a short cli flag, possibly with a argument value
+inline:
 def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool)
         +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
     argument-parser options

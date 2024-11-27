@@ -573,11 +573,14 @@ def(MetaVar.new!, MetaVar,
     MetaVar.alloc!
     None over ~type? !)
 
-def(MetaVar.expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
-    dup type? match(
-        None -> g,
-        Some -> expand tuck Some swap ~type? ! f
-    ))
+inline (
+    def(MetaVar.expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
+        dup type? match(
+            None -> g,
+            Some -> expand tuck Some swap ~type? ! f
+        ))
+)
+
 def(MetaVar.expand, MetaVar -- Type,
     expand-if(id, TMeta))
 def(MetaVar.unify!, +Mirth +Gamma Type MetaVar -- +Mirth +Gamma Type,
@@ -596,11 +599,14 @@ def(MetaVar.unify-error!, +Mirth +Gamma MetaVar -- +Mirth +Gamma Type,
         Some -> nip unify-error!,
         None -> dip(TYPE_ERROR Some) ~type? ! TYPE_ERROR
     ))
-def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
-    dup type? match(
-        None -> dip(f dup Some) ~type? !,
-        Some -> nip
-    ))
+
+inline (
+    def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
+        dup type? match(
+            None -> dip(f dup Some) ~type? !,
+            Some -> nip
+        ))
+)
 
 def(MetaVar.==, MetaVar MetaVar -- Bool, both(index) ==)
 
