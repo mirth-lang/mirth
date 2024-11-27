@@ -1174,29 +1174,29 @@ inline (
         L0 >cases
         rdip(+Match f freeze) OpMatch ab-op!
     }
-)
 
-def +Match.case!(mkpat,mkbod) [
-    (*a +Mirth +Pattern -- *b +Mirth +Pattern,
-        *b +Mirth +AB -- *c +Mirth +AB)
-    *a Token Token +Mirth +Match -- *c +Mirth +Match,
-] {
-    dip(
-        home >home dup >token-start >token-end
-        ctx dup >outer-ctx >inner-ctx
-        L0 >saved dom dup >mid >cod L0 >atoms
-        Pattern rdip(thaw mkpat freeze)
-    ) swap \(pat ->
-        pat inner-ctx
-        pat Pattern.dom +Match.cod T->
-        rotl
-        +Match.home
-        rdip(ab-build-hom!(dip(mkbod)))
-        >body
-        pat >pattern
-        CASE add-case
-    )
-}
+    def +Match.case!(mkpat,mkbod) [
+        (*a +Mirth +Pattern -- *b +Mirth +Pattern,
+            *b +Mirth +AB -- *c +Mirth +AB)
+        *a Token Token +Mirth +Match -- *c +Mirth +Match,
+    ] {
+        dip(
+            home >home dup >token-start >token-end
+            ctx dup >outer-ctx >inner-ctx
+            L0 >saved dom dup >mid >cod L0 >atoms
+            Pattern rdip(thaw mkpat freeze)
+        ) swap \(pat ->
+            pat inner-ctx
+            pat Pattern.dom +Match.cod T->
+            rotl
+            +Match.home
+            rdip(ab-build-hom!(dip(mkbod)))
+            >body
+            pat >pattern
+            CASE add-case
+        )
+    }
+)
 
 def elab-expand-tensor! [ +Mirth StackType Token -- +Mirth StackType Type Token ] {
     >tok force-cons?! match(
@@ -2233,6 +2233,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @vx L1
     @word WordParams prop
     @word ~params !
+    @word make-inline!
 
     word> ab-build-word! (
         @tbl head ab-token!

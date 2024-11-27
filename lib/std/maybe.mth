@@ -4,24 +4,25 @@ import(std.prelude)
 import(std.list)
 import(std.str)
 
-inline (
-    data (Maybe(t), None, Some -> t)
+data (Maybe(t), None, Some -> t)
 
-    def Maybe.none? [ Maybe(t) -- Bool ] {
-        { None -> True }
-        { Some -> drop False }
-    }
-    def Maybe.some? [ Maybe(t) -- Bool ] {
-        { None -> False }
-        { Some -> drop True }
-    }
-    def Maybe.>Bool [ Maybe(t) -- Bool ] {
-        some?
-    }
-    def Maybe.>List [ Maybe(t) -- List(t) ] {
-        { None -> L0 }
-        { Some -> L1 }
-    }
+def Maybe.none? [ Maybe(t) -- Bool ] {
+    { None -> True }
+    { Some -> drop False }
+}
+def Maybe.some? [ Maybe(t) -- Bool ] {
+    { None -> False }
+    { Some -> drop True }
+}
+def Maybe.>Bool [ Maybe(t) -- Bool ] {
+    some?
+}
+def Maybe.>List [ Maybe(t) -- List(t) ] {
+    { None -> L0 }
+    { Some -> L1 }
+}
+
+inline (
     def Maybe.==(eq) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {
         { None -> none? }
         { Some -> swap if-some(swap eq, drop False) }
@@ -32,14 +33,18 @@ inline (
     def Maybe.else(g) { { Some -> drop       } { None -> g     } }
     def Maybe.and(f)  { { Some -> drop f     } { None -> False } }
     def Maybe.or(f)   { { Some -> drop True  } { None -> f     } }
-    def Maybe.not     { { Some -> drop False } { None -> True  } }
+)
 
+def Maybe.not     { { Some -> drop False } { None -> True  } }
+
+inline(
     def Maybe.if-some(f,g)  { { Some -> f    } { None -> g     } }
     def Maybe.or-some(f)    { { Some -> Some } { None -> f     } }
-
     def Maybe.unwrap(f)     { { Some -> id } { None -> f } }
-    def Maybe.unwrap        { unwrap("tried to unwrap None" panic!) }
+)
+def Maybe.unwrap        { unwrap("tried to unwrap None" panic!) }
 
+inline (
     def Maybe.map(f)  { { Some -> f Some } { None -> None  } }
     def Maybe.bind(f) { { Some -> f      } { None -> None  } }
     def Maybe.for(f)  { { Some -> f      } { None -> id    } }
@@ -68,9 +73,11 @@ inline (
             }
         }
     }
+)
 
-    def Maybe.zip [ Maybe(x) Maybe(y) -- Maybe([x y]) ] { map2(pack2) }
+def Maybe.zip [ Maybe(x) Maybe(y) -- Maybe([x y]) ] { map2(pack2) }
 
+inline (
     def Maybe.show;(f) [ (t +Str -- +Str) Maybe(t) +Str -- +Str ] {
         { None -> "None" ; }
         { Some -> f " Some" ; }

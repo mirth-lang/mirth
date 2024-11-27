@@ -113,7 +113,7 @@ def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
         SPCHECK_BLOCK checklist:cons
     ))
 
-def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
+inline:def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
     /Atom
     ctx>
     dom> cod> T->
@@ -181,6 +181,8 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
 
 data(+SPSynth, +SPSYNTH ->
     spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)
+
+inline:
 def(+SPSynth.ab(f),
         (*a spkey:SPKey spword:Word spmap:Map(Var,Block) +AB --
          *b spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)

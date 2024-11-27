@@ -564,11 +564,11 @@ def(CTypeStackPart.c99-push, Str CTypeStackPart +C99 -- +C99,
     CTSPConsLabel -> swap c99-push-label,
     CTSPWithLabel -> swap c99-push-label)
 
-def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
-    depth:1+ f depth:1-)
-
+inline (
+    def(+C99.c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, depth:1+ f depth:1-)
+    def(+C99.c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
+)
 def(+C99.indent, +C99 -- +C99, depth repeat("\t" put))
-def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
 def(c99-call!, List(Arg) Str +C99Branch -- +C99Branch,
     dip(c99-args-push!)
@@ -882,39 +882,41 @@ def +C99.pop-local-direct! [ +C99 -- +C99 +C99Local ] {
     C99RT_VAL pop-to-local-direct!
 }
 
-||| Push a value with a certain repr type on the stack.
-||| `f` must emit the C99 expression that calculates the value,
-||| which must be of the underlying C99 repr type.
-def C99ReprType.push-expression!(f) [
-    (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
-] {
-    +core:local-expression!(f) rswap push-local!
-}
+inline (
+    ||| Push a value with a certain repr type on the stack.
+    ||| `f` must emit the C99 expression that calculates the value,
+    ||| which must be of the underlying C99 repr type.
+    def C99ReprType.push-expression!(f) [
+        (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
+    ] {
+        +core:local-expression!(f) rswap push-local!
+    }
 
-def push-resource-expression!(f) [
-    (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch
-] {
-    +core:local-resource-expression!(f) rswap push-local-resource!
-}
+    def push-resource-expression!(f) [
+        (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch
+    ] {
+        +core:local-resource-expression!(f) rswap push-local-resource!
+    }
 
-def C99ReprType.local-expression!(f) [
-    (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99Local +C99
-] {
-    >local-repr
-    fresh-name! >local-name
-    rdip:+C99Local
-    c99-line(rdip:local-repr underlying-c99-type put " " put
-             rdip:local-name put " = (" put
-             rswap rdip:f rswap ");" put)
-}
+    def C99ReprType.local-expression!(f) [
+        (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99Local +C99
+    ] {
+        >local-repr
+        fresh-name! >local-name
+        rdip:+C99Local
+        c99-line(rdip:local-repr underlying-c99-type put " " put
+                rdip:local-name put " = (" put
+                rswap rdip:f rswap ");" put)
+    }
 
-def local-resource-expression!(f) [
-    (*a +C99 -- *b +C99) *a +C99 -- *b +C99LocalResource +C99
-] {
-    fresh-name! >local-resource-name rdip:+C99LocalResource
-    c99-line("VAL " put rdip:local-resource-name put " = (" put
-        rswap rdip:f rswap ");" put)
-}
+    def local-resource-expression!(f) [
+        (*a +C99 -- *b +C99) *a +C99 -- *b +C99LocalResource +C99
+    ] {
+        fresh-name! >local-resource-name rdip:+C99LocalResource
+        c99-line("VAL " put rdip:local-resource-name put " = (" put
+            rswap rdip:f rswap ");" put)
+    }
+)
 
 def +C99Local.push-local-direct! [ +C99 +C99Local -- +C99 ] {
     /+C99Local c99-line(
