@@ -221,36 +221,40 @@ def(Diagnostic.diagnostic;, +Str Diagnostic -- +Str,
 # PROPS #
 #########
 
-data(Prop(t), Prop ->
+struct Prop(t) {
     label: PropLabel
-    state: PropState(t))
-data(PropState(b),
-    PSReady -> b,
-    PSDelay -> a [a +Mirth -- b +Mirth],
-    PSComputing)
-data(PropLabel,
-    DataQName -> Data,
-    DataParams -> Data,
-    DataCType -> Data,
-    TagType -> Tag,
-    TableQName -> Table,
-    TypeDefQName -> TypeDef,
-    TypeDefTarget -> TypeDef,
-    WordQName -> Word,
-    WordType -> Word,
-    WordParams -> Word,
-    WordArrow -> Word,
-    BlockArrow -> Block,
-    AliasQName -> Alias,
-    AliasTarget -> Alias,
-    ExternalQName -> External,
-    ExternalType -> External,
-    ExternalCType -> External,
-    VariableType -> Variable,
-    FieldQName -> Field,
-    FieldValueType -> Field,
-    FieldIndexType -> Field,
-)
+    state: PropState(t)
+}
+
+data PropState(b) {
+    PSReady [ b ]
+    PSDelay [ a [ a +Mirth -- b +Mirth ] ]
+    PSComputing
+}
+
+data PropLabel {
+    DataQName      [ Data ]
+    DataParams     [ Data ]
+    DataCType      [ Data ]
+    TagType        [ Tag ]
+    TableQName     [ Table ]
+    TypeDefQName   [ TypeDef ]
+    TypeDefTarget  [ TypeDef ]
+    WordQName      [ Word ]
+    WordType       [ Word ]
+    WordParams     [ Word ]
+    WordArrow      [ Word ]
+    BlockArrow     [ Block ]
+    AliasQName     [ Alias ]
+    AliasTarget    [ Alias ]
+    ExternalQName  [ External ]
+    ExternalType   [ External ]
+    ExternalCType  [ External ]
+    VariableType   [ Variable ]
+    FieldQName     [ Field ]
+    FieldValueType [ Field ]
+    FieldIndexType [ Field ]
+}
 
 def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,
     >label PSReady >state Prop)
