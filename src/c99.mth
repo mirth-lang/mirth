@@ -873,6 +873,39 @@ def C99ReprType.push-macro [ C99ReprType -- Str ] {
     { C99RT_BOOL -> "push_bool" }
 }
 
+def Type.>C99ReprType [ Type -- C99ReprType ] {
+    { TYPE_ERROR -> C99RT_VAL }
+    { TYPE_DONT_CARE -> C99RT_VAL }
+    { TPrim -> >C99ReprType }
+    { TMeta -> expand-if(>C99ReprType, drop C99RT_VAL) }
+    { THole -> drop C99RT_VAL }
+    { TVar -> drop C99RT_VAL }
+    { TTable -> drop C99RT_U64 }
+    { TData -> >C99ReprType }
+    { TDataPartial -> .data >C99ReprType }
+    { TMorphism -> drop C99RT_VAL }
+    { TTensor -> drop C99RT_VAL }
+    { TApp -> drop >C99ReprType }
+    { TMut -> drop C99RT_VAL }
+    { TValue -> drop C99RT_VAL }
+}
+
+def PrimType.>C99ReprType [ PrimType -- C99ReprType ] {
+    { PRIM_TYPE_TYPE -> C99RT_VAL }
+    { PRIM_TYPE_STACK -> C99RT_VAL }
+    { PRIM_TYPE_RESOURCE -> C99RT_VAL }
+    { PRIM_TYPE_INT -> C99RT_I64 }
+    { PRIM_TYPE_F32 -> C99RT_F32 }
+    { PRIM_TYPE_F64 -> C99RT_F64 }
+    { PRIM_TYPE_STR -> C99RT_VAL }
+    { PRIM_TYPE_PTR -> C99RT_VAL }
+    { PRIM_TYPE_WORLD -> C99RT_VAL }
+}
+
+def Data.>C99ReprType [ Data -- C99ReprType ] {
+    is-enum? if(C99RT_U64, C99RT_VAL)
+}
+
 struct +C99Local {
     local-repr: C99ReprType
     local-name: Str
@@ -1106,9 +1139,9 @@ def +C99LocalValue/Resource.rdrop  [ +C99LocalValue/Resource -- ] {
 }
 
 def +C99Branch.pop-local-value/resource-data! [ Data +C99Branch -- +C99Branch +C99LocalValue/Resource ] {
-    is-resource? if(
-        pop-local-resource! +C99LocalValue/Resource.+Right,
-        pop-local! +C99LocalValue/Resource.+Left
+    dup is-resource? if(
+        drop pop-local-resource! +C99LocalValue/Resource.+Right,
+        >C99ReprType pop-to-local! +C99LocalValue/Resource.+Left
     )
 }
 
@@ -1237,6 +1270,13 @@ def +C99Branch.flush-cache! [ +C99Branch -- +C99Branch ] {
     start-branch!
 }
 
+def +C99Branch.pop-to-local! [ +C99Branch C99ReprType -- +C99Branch +C99Local ] {
+    +stack(pop-local?) rswap match {
+        { +C99LocalSome -> drop }
+        { +C99LocalNone -> +core(pop-to-local-direct! rswap) rswap }
+    }
+}
+
 def +C99Branch.pop-local! [ +C99Branch -- +C99Branch +C99Local ] {
     +stack(pop-local?) rswap match {
         { +C99LocalSome -> }
@@ -1296,6 +1336,10 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     # { PRIM_INT_SHL -> "<<" 5 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
     # { PRIM_INT_SHR -> ">>" 5 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
     { PRIM_INT_LT  -> "<"  6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_INT_LE  -> "<=" 6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_INT_GT  -> ">"  6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_INT_GE  -> ">=" 6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_INT_NE  -> "!=" 7  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
     { PRIM_INT_EQ  -> "==" 7  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
     { PRIM_INT_AND -> "&"  8  C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
     { PRIM_INT_XOR -> "^"  9  C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
@@ -1362,7 +1406,7 @@ def c99-prim! [ List(Arg) Prim +C99Branch -- +C99Branch ] {
         dup /L2 match(
             Some ->
                 nip unpack2
-                pop-local! >+cond
+                C99RT_BOOL pop-to-local! >+cond
 
                 begin-branch-split!
                 c99-line("if (" put +cond> consume-as-BOOL put ") {" put)
@@ -1384,7 +1428,7 @@ def c99-prim! [ List(Arg) Prim +C99Branch -- +C99Branch ] {
                 c99-nest(
                     start-branch!
                     swap c99-arg-run!
-                    pop-local! >+cond
+                    C99RT_BOOL pop-to-local! >+cond
                     end-branch!
                     c99-line("if (!" put +cond> consume-as-BOOL put ") break;" put)
                     start-branch!
@@ -1412,8 +1456,8 @@ def c99-prim! [ List(Arg) Prim +C99Branch -- +C99Branch ] {
 
 def c99-binop! [ C99BinOp +C99Branch -- +C99Branch ] {
     /C99BinOp
-    pop-local! >+arg2
-    pop-local! >+arg1
+    @arg1-type pop-to-local! >+arg2
+    @arg2-type pop-to-local! >+arg1
     out-type> push-expression!(
         +arg1> arg1-type> consume-as put
         " " put operator> put " " put
@@ -1447,7 +1491,7 @@ def(c99-pack-closure-vars!, List(Var) +C99Branch -- +C99Branch,
     ))
 
 def c99-pop-to-var! [ Var +C99Branch -- +C99Branch ] {
-    pop-local! consume-as-VAL swap
+    dup .type >C99ReprType pop-to-local! consume-as-VAL swap
     +core:c99-line("VAL " put var-put " = " put put ";" put)
 }
 

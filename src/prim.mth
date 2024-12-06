@@ -30,6 +30,10 @@ data(Prim,
 
     PRIM_INT_EQ,
     PRIM_INT_LT,
+    PRIM_INT_LE,
+    PRIM_INT_GT,
+    PRIM_INT_GE,
+    PRIM_INT_NE,
     PRIM_INT_ADD,
     PRIM_INT_SUB,
     PRIM_INT_MUL,
@@ -215,6 +219,10 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_INT_SHR    "prim-int-shr"    0 def-prim!
     PRIM_INT_EQ     "prim-int-eq"     0 def-prim!
     PRIM_INT_LT     "prim-int-lt"     0 def-prim!
+    PRIM_INT_LE     "prim-int-le"     0 def-prim!
+    PRIM_INT_GT     "prim-int-gt"     0 def-prim!
+    PRIM_INT_GE     "prim-int-ge"     0 def-prim!
+    PRIM_INT_NE     "prim-int-ne"     0 def-prim!
     PRIM_INT_TO_STR "prim-int-to-str" 0 def-prim!
     PRIM_INT_TO_F32 "prim-int-to-float32" 0 def-prim!
     PRIM_INT_TO_F64 "prim-int-to-float64" 0 def-prim!
@@ -315,6 +323,10 @@ def(init-prims!, +Mirth -- +Mirth,
     Ctx0 TYPE_INT TYPE_INT T2 TYPE_BOOL T1 T->
     dup2 PRIM_INT_EQ ctx-type!
     dup2 PRIM_INT_LT ctx-type!
+    dup2 PRIM_INT_LE ctx-type!
+    dup2 PRIM_INT_GT ctx-type!
+    dup2 PRIM_INT_GE ctx-type!
+    dup2 PRIM_INT_NE ctx-type!
     drop2
 
     Ctx0 TYPE_F32 TYPE_F32 T2 TYPE_BOOL T1 T->

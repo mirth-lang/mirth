@@ -40,24 +40,27 @@ data(Byte,
     BxF0, BxF1, BxF2, BxF3, BxF4, BxF5, BxF6, BxF7,
     BxF8, BxF9, BxFA, BxFB, BxFC, BxFD, BxFE, BxFF)
 
-def(Byte.>Int, Byte -- Int, Byte.tag)
+inline (
+    def(Byte.>Int, Byte -- Int, Byte.tag)
+    def(Byte.>U8, Byte -- U8, >Int >U8)
+
+    def(Byte.compare, Byte Byte -- Comparison, both(>Int) .compare)
+    def(Byte.==,  Byte Byte -- Bool, both(>Int) ==)
+    def(Byte.<,  Byte Byte -- Bool, both(>Int) <)
+    def(Byte.>,  Byte Byte -- Bool, both(>Int) >)
+    def(Byte.<=, Byte Byte -- Bool, both(>Int) <=)
+    def(Byte.>=, Byte Byte -- Bool, both(>Int) >=)
+    def(Byte.<>, Byte Byte -- Bool, both(>Int) <>)
+    def(Byte.in-range, Byte Byte Byte -- Bool, dip(both(>Int)) >Int in-range)
+)
+
 def(Int.>Byte, Int -- Byte,
     assert!(dup 0 255 in-range, "Int->Byte out of range")
     Byte.from-tag-unsafe)
-def(Byte.>U8, Byte -- U8, >Int >U8)
 def(U8.>Byte, U8 -- Byte, >Int >Byte)
 
 def(Ptr.@Byte, Ptr +Unsafe -- Byte +Unsafe, @U8 >Byte)
 def(Ptr.!Byte, Byte Ptr +Unsafe -- +Unsafe, dip(>U8) !U8)
-
-def(Byte.compare, Byte Byte -- Comparison, both(>Int) .compare)
-def(Byte.==,  Byte Byte -- Bool, both(>Int) ==)
-def(Byte.<,  Byte Byte -- Bool, both(>Int) <)
-def(Byte.>,  Byte Byte -- Bool, both(>Int) >)
-def(Byte.<=, Byte Byte -- Bool, both(>Int) <=)
-def(Byte.>=, Byte Byte -- Bool, both(>Int) >=)
-def(Byte.<>, Byte Byte -- Bool, both(>Int) <>)
-def(Byte.in-range, Byte Byte Byte -- Bool, dip(both(>Int)) >Int in-range)
 
 def(Byte.is-upper, Byte -- Bool, B'A' B'Z' in-range)
 def(Byte.is-lower, Byte -- Bool, B'a' B'z' in-range)

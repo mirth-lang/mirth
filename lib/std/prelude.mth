@@ -242,11 +242,11 @@ inline(
     def(Comparison.ne?, Comparison -- Bool, LT -> True, EQ -> False, GT -> True)
 
     alias(Int.==, prim-int-eq)
-    alias(Int.<, prim-int-lt)
-    def(Int.>,  Int Int -- Bool, swap <)
-    def(Int.>=, Int Int -- Bool, < not)
-    def(Int.<=, Int Int -- Bool, swap < not)
-    def(Int.<>, Int Int -- Bool, == not)
+    alias(Int.<,  prim-int-lt)
+    alias(Int.<=, prim-int-le)
+    alias(Int.>,  prim-int-gt)
+    alias(Int.>=, prim-int-ge)
+    alias(Int.<>, prim-int-ne)
     def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
 
     alias(F64.==, prim-f64-eq)
@@ -260,10 +260,11 @@ inline(
     def(F32.>, F32 F32 -- Bool, swap <)
     def(F32.<=, F32 F32 -- Bool, swap < not)
     def(F32.>=, F32 F32 -- Bool, < not)
+
+    def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
+    def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
+    def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 )
-def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
-def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
-def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 
 inline(
     def(Int.show, Int -- Str, prim-int-to-str)
