@@ -702,16 +702,13 @@ def(c99-tag-word!, List(Arg) Tag +C99Branch -- +C99Branch,
         +core:+mirth:word-cname c99-call!
     ))
 
-def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
+def c99-reverse-tag! [ Tag +C99Branch +scrutinee:+C99LocalValue/Resource -- +C99Branch ] {
     dup prefer-inline? if (
-        dup .data is-transparent? else(
-            +core:c99-line(
-                dup outputs-resource? if(
-                    "(void)pop_resource();",
-                    "(void)pop_u64();"
-                ) put
-            )
-        ) drop,
+        .data is-transparent? if(
+            +scrutinee> push-local-value/resource!,
+            +scrutinee> rdrop # it's an int, no need to decref
+        ),
+        +scrutinee> push-local-value/resource!
         dip:L0 +core:+mirth:pat-cname c99-call!
     )
 }
@@ -881,7 +878,7 @@ struct +C99Local {
     local-name: Str
 }
 
-def +C99Local.clone! [ +C99Local -- +C99Local +C99Local ] {
+def +C99Local.rdup [ +C99Local -- +C99Local +C99Local ] {
     local-repr >local-repr
     local-name >local-name
     +C99Local
@@ -1055,7 +1052,7 @@ struct +C99LocalResource {
     local-resource-name: Str
 }
 
-def +C99LocalResource.clone! [ +C99LocalResource -- +C99LocalResource +C99LocalResource ] {
+def +C99LocalResource.rdup [ +C99LocalResource -- +C99LocalResource +C99LocalResource ] {
     local-resource-name >local-resource-name
     +C99LocalResource
 }
@@ -1095,9 +1092,24 @@ def +C99LocalValue/Resource.push-local-value/resource! {
     { +Left -> push-local! }
     { +Right -> push-local-resource! }
 }
-def +C99LocalValue/Resource.peek-data-tag {
+def +C99LocalValue/Resource.peek-data-tag [ +C99LocalValue/Resource -- +C99LocalValue/Resource Str ] {
     { +Left -> peek-data-tag +Left }
     { +Right -> peek-data-tag +Right }
+}
+def +C99LocalValue/Resource.rdup [ +C99LocalValue/Resource -- +C99LocalValue/Resource +C99LocalValue/Resource ] {
+    { +Left -> rdup +Left rdip(+Left) }
+    { +Right -> rdup +Right rdip(+Right) }
+}
+def +C99LocalValue/Resource.rdrop  [ +C99LocalValue/Resource -- ] {
+    { +Left -> rdrop }
+    { +Right -> rdrop }
+}
+
+def +C99Branch.pop-local-value/resource-data! [ Data +C99Branch -- +C99Branch +C99LocalValue/Resource ] {
+    is-resource? if(
+        pop-local-resource! +C99LocalValue/Resource.+Right,
+        pop-local! +C99LocalValue/Resource.+Left
+    )
 }
 
 data +C99Local? {
@@ -1168,12 +1180,12 @@ def +C99StackCache.flush-all! [ +C99 +C99StackCache -- +C99 ] {
     { +SCWithLabel -> rdip:flush-all! push-local-resource-label-direct! }
 }
 
-def +C99StackCache.clone! [ +C99StackCache -- +C99StackCache +C99StackCache ] {
+def +C99StackCache.rdup [ +C99StackCache -- +C99StackCache +C99StackCache ] {
     { +SCNil -> +SCNil +SCNil }
-    { +SCCons -> rdip:clone! clone! rdip:rswap +SCCons rdip:+SCCons }
-    { +SCWith -> rdip:clone! clone! rdip:rswap +SCWith rdip:+SCWith }
-    { +SCConsLabel -> dup rdip:clone! clone! rdip:rswap +SCConsLabel rdip:+SCConsLabel }
-    { +SCWithLabel -> dup rdip:clone! clone! rdip:rswap +SCWithLabel rdip:+SCWithLabel }
+    { +SCCons -> rdip:rdup rdup rdip:rswap +SCCons rdip:+SCCons }
+    { +SCWith -> rdip:rdup rdup rdip:rswap +SCWith rdip:+SCWith }
+    { +SCConsLabel -> dup rdip:rdup rdup rdip:rswap +SCConsLabel rdip:+SCConsLabel }
+    { +SCWithLabel -> dup rdip:rdup rdup rdip:rswap +SCWithLabel rdip:+SCWithLabel }
 }
 
 def +C99StackCache.rdrop [ +C99StackCache -- ] {
@@ -1199,7 +1211,7 @@ def +C99BranchSplit.end-branch-split! [ +C99BranchSplit -- +C99Branch ] {
 }
 def +C99BranchSplit.sub-branch(f)
     [ (*a +C99Branch -- *b +C99Branch) *a +C99BranchSplit -- *b +C99BranchSplit ]
-    { /+C99BranchSplit +stack> clone! >+stack
+    { /+C99BranchSplit +stack> rdup >+stack
       rdip(+C99Branch f end-branch! >+core) >+stack +C99BranchSplit }
 
 inline (
@@ -1502,50 +1514,46 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
         dip:L0 +core:+mirth:pat-cname c99-call!
         cases first unwrap body c99-arrow!,
 
-        end-branch!
         dup scrutinee-data?
-        unwrap(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
-        is-resource? if(
-            c99-line("switch (get_top_resource_data_tag()) {" put),
-            c99-line("switch (get_top_data_tag()) {" put)
-        )
+        unwrap(token "non-uniform match, not supported at present" +core:+mirth:emit-fatal-error!)
+        pop-local-value/resource-data! >+scrutinee
+        begin-branch-split!
+        c99-line("switch (" put @+scrutinee:peek-data-tag put ") {" put)
         c99-nest(
-            dup cases for(c99-case!)
+            dup cases for(@+scrutinee:rdup >+scrutinee c99-case!)
             has-default-case? else(
                 c99-line("default: {" put)
-                c99-nest(
+                c99-nest:sub-branch(
                     c99-line("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32));" put)
-                    start-branch! L0 PRIM_CORE_PANIC c99-prim! end-branch!
+                    L0 PRIM_CORE_PANIC c99-prim!
                 )
                 c99-line("}" put)
             )
+            +scrutinee> rdrop
         )
         c99-line("}" put)
-        start-branch!
+        end-branch-split!
     )))
 
-def c99-case! [ Case +C99 -- +C99 ] {
+def c99-case! [ Case +C99BranchSplit +scrutinee:+C99LocalValue/Resource -- +C99BranchSplit ] {
     dup pattern is-default? if(
         c99-line("default: {" put)
-        c99-nest(
-            start-branch!
+        c99-nest:sub-branch(
+            +scrutinee> push-local-value/resource!
             body c99-arrow!
-            end-branch!
         )
         c99-line("} break;" put),
 
     dup pattern single-tag? if-some(
         c99-line("case " put dup value-show put "LL: { // " put dup name >Str put)
-        c99-nest(
-            start-branch!
+        c99-nest:sub-branch(
             c99-reverse-tag!
             body c99-arrow!
-            end-branch!
         )
         c99-line("} break;" put),
 
         pattern token-start "c99 target -- don't know how to compile this pattern"
-        +mirth:emit-fatal-error!
+        +core:+mirth:emit-fatal-error!
     ))
 }
 
