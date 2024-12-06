@@ -143,9 +143,6 @@ def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOp
                 "output-file" MissingArg Some state:error!
             )
         )
-        state arguments package-search-paths empty? then(
-            dip(LIST("lib" >Path ;) swap package-search-paths!)
-        )
         drop,
     _ -> drop drop UnknownArg Some state error! state!
 }
@@ -206,6 +203,13 @@ def main [ +World -- +World ] {
         { Right -> }
         { Left -> rdip:trace(unpack2 ; emit;) 1 posix-exit! }
     }
+
+    dup Arguments.package-search-paths empty? then(
+        LIST(
+            "lib" >Path ;
+            rdip:mirth-base-lib-path for(;)
+        ) swap Arguments.package-search-paths!
+    )
 
     compile!
     rdrop

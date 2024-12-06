@@ -106,6 +106,7 @@ struct +Mirth {
     prefer-inline-defs: Bool
     builtin: Builtin
     error-token: Maybe(Token)
+    mirth-base-path: Maybe(Path)
     package-search-paths: List(Path)
     +diagnostics: +List(Diagnostic)
     +propstack: +List(PropLabel)
@@ -116,6 +117,7 @@ def +Mirth.Init! {
     0 >Nat >num-warnings
     False >prefer-inline-defs
     Builtin.Alloc! >builtin
+    None >mirth-base-path
     L0 >package-search-paths
     +L0 >+diagnostics
     +L0 >+propstack
@@ -134,9 +136,14 @@ def +Mirth.rdrop [ +Mirth -- ] {
     prefer-inline-defs> drop
     builtin> drop
     error-token> drop
+    mirth-base-path> drop
     package-search-paths> drop
     +diagnostics> freeze drop
     +propstack> freeze drop
+}
+
+def +Mirth.mirth-base-lib-path [ +Mirth -- +Mirth Maybe(Path) ] {
+    mirth-base-path map("lib" >Path join)
 }
 
 struct Diagnostic {

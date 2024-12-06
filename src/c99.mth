@@ -574,6 +574,11 @@ def(CTypeStackPart.c99-push, Str CTypeStackPart +C99 -- +C99,
 inline (
     def(+C99.c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, depth:1+ f depth:1-)
     def(+C99.c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
+
+    def +C99Branch.c99-line(f) [ (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch ]
+        { +core:c99-line(f) }
+    def +C99Branch.c99-nest(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Branch -- *b +C99Branch ]
+        { +core:depth:1+ f +core:depth:1- }
 )
 def(+C99.indent, +C99 -- +C99, depth repeat("\t" put))
 
@@ -876,6 +881,18 @@ struct +C99Local {
     local-name: Str
 }
 
+def +C99Local.clone! [ +C99Local -- +C99Local +C99Local ] {
+    local-repr >local-repr
+    local-name >local-name
+    +C99Local
+}
+
+def +C99Local.rdrop [ +C99Local -- ] {
+    /+C99Local
+    local-repr> drop
+    local-name> drop
+}
+
 def C99ReprType.pop-to-local-direct! [ C99ReprType +C99 -- +C99 +C99Local ] {
     >local-repr
     fresh-name! >local-name
@@ -1023,8 +1040,28 @@ def +C99Local.dup-local! [ +C99Branch +C99Local -- +C99Branch +C99Local +C99Loca
     +C99Local
 }
 
+def +C99Local.peek-data-tag [ +C99Local -- +C99Local Str ] {
+    local-repr match {
+        { C99RT_VAL -> local-name Str("get_data_tag(" ; ; ")" ;) }
+        { C99RT_I64 -> local-name }
+        { C99RT_U64 -> local-name }
+        { C99RT_BOOL -> local-name }
+        { C99RT_F32 -> local-name }
+        { C99RT_F64 -> local-name }
+    }
+}
+
 struct +C99LocalResource {
     local-resource-name: Str
+}
+
+def +C99LocalResource.clone! [ +C99LocalResource -- +C99LocalResource +C99LocalResource ] {
+    local-resource-name >local-resource-name
+    +C99LocalResource
+}
+
+def +C99LocalResource.rdrop [ +C99LocalResource -- ] {
+    consume drop
 }
 
 def +C99LocalResource.consume [ +C99LocalResource -- Str ] {
@@ -1040,6 +1077,27 @@ def +C99.pop-local-resource-direct! [ +C99 -- +C99 +C99LocalResource ] {
 def +C99LocalResource.push-local-resource-direct! [ +C99 +C99LocalResource -- +C99 ] {
     /+C99LocalResource
     c99-line("push_resource(" put local-resource-name> put ");" put)
+}
+
+def +C99LocalResource.peek-data-tag [ +C99LocalResource -- +C99LocalResource Str ] {
+    local-resource-name
+    Str("get_data_tag(" ; ; ")" ;)
+}
+
+data +C99LocalValue/Resource {
+    +Left  [ +C99Local ]
+    +Right [ +C99LocalResource ]
+}
+
+def +C99Local.>Value/Resource { +C99LocalValue/Resource.+Left }
+def +C99LocalResource.>Value/Resource { +C99LocalValue/Resource.+Right }
+def +C99LocalValue/Resource.push-local-value/resource! {
+    { +Left -> push-local! }
+    { +Right -> push-local-resource! }
+}
+def +C99LocalValue/Resource.peek-data-tag {
+    { +Left -> peek-data-tag +Left }
+    { +Right -> peek-data-tag +Right }
 }
 
 data +C99Local? {
@@ -1109,6 +1167,45 @@ def +C99StackCache.flush-all! [ +C99 +C99StackCache -- +C99 ] {
     { +SCConsLabel -> rdip:flush-all! push-local-label-direct! }
     { +SCWithLabel -> rdip:flush-all! push-local-resource-label-direct! }
 }
+
+def +C99StackCache.clone! [ +C99StackCache -- +C99StackCache +C99StackCache ] {
+    { +SCNil -> +SCNil +SCNil }
+    { +SCCons -> rdip:clone! clone! rdip:rswap +SCCons rdip:+SCCons }
+    { +SCWith -> rdip:clone! clone! rdip:rswap +SCWith rdip:+SCWith }
+    { +SCConsLabel -> dup rdip:clone! clone! rdip:rswap +SCConsLabel rdip:+SCConsLabel }
+    { +SCWithLabel -> dup rdip:clone! clone! rdip:rswap +SCWithLabel rdip:+SCWithLabel }
+}
+
+def +C99StackCache.rdrop [ +C99StackCache -- ] {
+    { +SCNil -> }
+    { +SCCons -> rdrop rdrop }
+    { +SCWith -> rdrop rdrop }
+    { +SCConsLabel -> drop rdrop rdrop }
+    { +SCWithLabel -> drop rdrop rdrop }
+}
+
+struct +C99BranchSplit {
+    +core: +C99
+    +stack: +C99StackCache
+}
+
+def +C99Branch.begin-branch-split! [ +C99Branch -- +C99BranchSplit ] {
+    /+C99Branch +C99BranchSplit
+}
+def +C99BranchSplit.end-branch-split! [ +C99BranchSplit -- +C99Branch ] {
+    /+C99BranchSplit
+    +stack> rdrop
+    +core> start-branch!
+}
+def +C99BranchSplit.sub-branch(f)
+    [ (*a +C99Branch -- *b +C99Branch) *a +C99BranchSplit -- *b +C99BranchSplit ]
+    { /+C99BranchSplit +stack> clone! >+stack
+      rdip(+C99Branch f end-branch! >+core) >+stack +C99BranchSplit }
+
+inline (
+    def +C99BranchSplit.c99-line(f) { +core:c99-line(f) }
+    def +C99BranchSplit.c99-nest(f) { +core:depth:1+ f +C99BranchSplit.+core:depth:1- }
+)
 
 struct +C99Branch {
     +core: +C99
@@ -1254,13 +1351,14 @@ def c99-prim! [ List(Arg) Prim +C99Branch -- +C99Branch ] {
             Some ->
                 nip unpack2
                 pop-local! >+cond
-                end-branch!
+
+                begin-branch-split!
                 c99-line("if (" put +cond> consume-as-BOOL put ") {" put)
-                c99-nest(start-branch! swap c99-arg-run! end-branch!)
+                c99-nest:sub-branch(swap c99-arg-run!)
                 c99-line("} else {" put)
-                c99-nest(start-branch! c99-arg-run! end-branch!)
+                c99-nest:sub-branch(c99-arg-run!)
                 c99-line("}" put)
-                start-branch!,
+                end-branch-split!,
             None ->
                 PRIM_CORE_IF c99-prim-default!
         )
