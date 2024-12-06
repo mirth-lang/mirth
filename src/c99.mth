@@ -873,24 +873,28 @@ def C99ReprType.push-macro [ C99ReprType -- Str ] {
     { C99RT_BOOL -> "push_bool" }
 }
 
-def Type.>C99ReprType [ Type -- C99ReprType ] {
+def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
+    >Type c99-repr
+}
+
+def Type.c99-repr [ Type +Mirth -- C99ReprType +Mirth ] {
     { TYPE_ERROR -> C99RT_VAL }
     { TYPE_DONT_CARE -> C99RT_VAL }
-    { TPrim -> >C99ReprType }
-    { TMeta -> expand-if(>C99ReprType, drop C99RT_VAL) }
+    { TPrim -> c99-repr }
+    { TMeta -> expand-if(c99-repr, drop C99RT_VAL) }
     { THole -> drop C99RT_VAL }
     { TVar -> drop C99RT_VAL }
     { TTable -> drop C99RT_U64 }
-    { TData -> >C99ReprType }
-    { TDataPartial -> .data >C99ReprType }
+    { TData -> c99-repr }
+    { TDataPartial -> .data c99-repr }
     { TMorphism -> drop C99RT_VAL }
     { TTensor -> drop C99RT_VAL }
-    { TApp -> drop >C99ReprType }
+    { TApp -> drop c99-repr }
     { TMut -> drop C99RT_VAL }
     { TValue -> drop C99RT_VAL }
 }
 
-def PrimType.>C99ReprType [ PrimType -- C99ReprType ] {
+def PrimType.c99-repr [ PrimType -- C99ReprType ] {
     { PRIM_TYPE_TYPE -> C99RT_VAL }
     { PRIM_TYPE_STACK -> C99RT_VAL }
     { PRIM_TYPE_RESOURCE -> C99RT_VAL }
@@ -902,8 +906,25 @@ def PrimType.>C99ReprType [ PrimType -- C99ReprType ] {
     { PRIM_TYPE_WORLD -> C99RT_VAL }
 }
 
-def Data.>C99ReprType [ Data -- C99ReprType ] {
-    is-enum? if(C99RT_U64, C99RT_VAL)
+def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
+    dup is-enum? if(drop C99RT_U64,
+        dup is-semi-transparent? if(
+            tags /L1 unwrap type dom c99-repr-semi-transparent,
+            drop C99RT_VAL
+        )
+    )
+}
+
+def StackType.c99-repr-semi-transparent [ StackType +Mirth -- C99ReprType +Mirth ] {
+    { STACK_TYPE_ERROR -> C99RT_VAL }
+    { STACK_TYPE_DONT_CARE -> C99RT_VAL }
+    { STACK_TYPE_UNIT -> C99RT_VAL }
+    { STVar -> drop C99RT_VAL }
+    { STMeta -> expand-if(>StackType c99-repr-semi-transparent, drop C99RT_VAL) }
+    { STCons -> nip c99-repr }
+    { STConsLabel -> drop nip c99-repr }
+    { STWith -> nip c99-repr }
+    { STWithLabel -> drop nip c99-repr }
 }
 
 struct +C99Local {
@@ -1141,7 +1162,7 @@ def +C99LocalValue/Resource.rdrop  [ +C99LocalValue/Resource -- ] {
 def +C99Branch.pop-local-value/resource-data! [ Data +C99Branch -- +C99Branch +C99LocalValue/Resource ] {
     dup is-resource? if(
         drop pop-local-resource! +C99LocalValue/Resource.+Right,
-        >C99ReprType pop-to-local! +C99LocalValue/Resource.+Left
+        +core:+mirth:c99-repr pop-to-local! +C99LocalValue/Resource.+Left
     )
 }
 
@@ -1491,7 +1512,7 @@ def(c99-pack-closure-vars!, List(Var) +C99Branch -- +C99Branch,
     ))
 
 def c99-pop-to-var! [ Var +C99Branch -- +C99Branch ] {
-    dup .type >C99ReprType pop-to-local! consume-as-VAL swap
+    dup .type +core:+mirth:c99-repr pop-to-local! consume-as-VAL swap
     +core:c99-line("VAL " put var-put " = " put put ";" put)
 }
 
