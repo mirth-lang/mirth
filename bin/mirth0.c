@@ -1744,6 +1744,7 @@ static VAL lbl_ZPlusscrutinee = MKNIL_C;
 static VAL lbl_avoidZ_hexdigit = MKNIL_C;
 static VAL lbl_localZ_repr = MKNIL_C;
 static VAL lbl_localZ_name = MKNIL_C;
+static VAL lbl_localZ_resourceZ_repr = MKNIL_C;
 static VAL lbl_localZ_resourceZ_name = MKNIL_C;
 static VAL lbl_ZPlusx = MKNIL_C;
 static VAL lbl_ZPlusstack = MKNIL_C;
@@ -5556,11 +5557,26 @@ static void mtp_mirth_c99_ZPlusC99Local_ZPlusC99Local (void) {
 	}
 }
 static void mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource (void) {
-	push_resource(lpop(&lbl_localZ_resourceZ_name));
+	TUP* tup = tup_new(3);
+	tup->size = 3;
+	tup->cells[0] = MKU64(0LL);
+	tup->cells[2] = lpop(&lbl_localZ_resourceZ_name);
+	tup->cells[1] = lpop(&lbl_localZ_resourceZ_repr);
+	push_resource(MKTUP(tup, 3));
 }
 static void mtp_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource (void) {
 	VAL val = pop_resource();
-	lpush(&lbl_localZ_resourceZ_name, val);
+	ASSERT1(IS_TUP(val),val);
+	TUP* tup = VTUP(val);
+	lpush(&lbl_localZ_resourceZ_repr, tup->cells[1]);
+	lpush(&lbl_localZ_resourceZ_name, tup->cells[2]);
+	if (tup->refs > 1) {
+		incref(tup->cells[1]);
+		incref(tup->cells[2]);
+		decref(val);
+	} else {
+		free(tup);
+	}
 }
 static void mtw_mirth_c99_ZPlusC99LocalValueZDivResource_ZPlusLeft (void) {
 	TUP* tup = tup_new(2);
@@ -7176,6 +7192,7 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (void);
 static void mw_mirth_c99_ZPlusC99_putZ_cstr (void);
 static void mw_mirth_c99_c99Z_stringZ_byteZBang (void);
 static void mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type (void);
+static void mw_mirth_c99_C99ReprType_vZ_macro (void);
 static void mw_mirth_c99_C99ReprType_mkZ_macro (void);
 static void mw_mirth_c99_C99ReprType_popZ_macro (void);
 static void mw_mirth_c99_C99ReprType_pushZ_macro (void);
@@ -7203,6 +7220,7 @@ static void mw_mirth_c99_ZPlusC99Local_peekZ_dataZ_tag (void);
 static void mw_mirth_c99_ZPlusC99LocalResource_rdup (void);
 static void mw_mirth_c99_ZPlusC99LocalResource_rdrop (void);
 static void mw_mirth_c99_ZPlusC99LocalResource_consume (void);
+static void mw_mirth_c99_ZPlusC99LocalResource_consumeZ_asZ_VAL (void);
 static void mw_mirth_c99_ZPlusC99_popZ_localZ_resourceZ_directZBang (void);
 static void mw_mirth_c99_ZPlusC99LocalResource_pushZ_localZ_resourceZ_directZBang (void);
 static void mw_mirth_c99_ZPlusC99LocalResource_peekZ_dataZ_tag (void);
@@ -7227,6 +7245,7 @@ static void mw_mirth_c99_ZPlusC99Branch_flushZ_cacheZBang (void);
 static void mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang (void);
 static void mw_mirth_c99_ZPlusC99Branch_popZ_localZBang (void);
 static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_labelZBang (void);
+static void mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZ_resourceZBang (void);
 static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_resourceZBang (void);
 static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_resourceZ_labelZBang (void);
 static void mw_mirth_c99_ZPlusC99Local_pushZ_localZBang (void);
@@ -7428,8 +7447,8 @@ static void mfld_mirth_data_Tag_ZTildevalueZ_show (void);
 int main (int argc, char** argv) {
 	global_argc = argc;
 	global_argv = argv;
-	VAL v0 = (MKU64(0) /* The World! */);
-	push_resource(v0);
+	uint64_t v0 = (0 /* The World! */);
+	push_resource(MKU64(v0));
 	mw_mirth_main_main();
 	return 0;
 }
@@ -9022,10 +9041,10 @@ static void mw_std_byte_Byte_zzencode (void) {
 static void mw_std_buffer_ZPlusBuffer_new (void) {
 	VAL v0 = pop_value();
 	incref(v0);
-	VAL v1 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v1 = (0LL /* +Unsafe */);
 	push_value(v0);
 	lpush(&lbl_sizze, v0);
-	push_resource(v1);
+	push_resource(MKU64(v1));
 	mp_primZ_ptrZ_alloc();
 	VAL r2 = pop_resource();
 	switch (get_data_tag(r2)) {
@@ -9095,10 +9114,10 @@ static void mw_std_buffer_ZPlusBuffer_resizzeZBang (void) {
 		push_value(u);
 	}
 	VAL r1 = pop_resource();
-	VAL v2 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v2 = (0LL /* +Unsafe */);
 	VAL v3 = pop_value();
 	VAL v4 = pop_value();
-	push_resource(v2);
+	push_resource(MKU64(v2));
 	push_value(v3);
 	push_value(v4);
 	mp_primZ_ptrZ_realloc();
@@ -9215,9 +9234,9 @@ static void mw_std_buffer_ZPlusBuffer_rdrop (void) {
 		}
 	}
 	VAL v1 = (lpop(&lbl_base));
-	VAL v2 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v2 = (0LL /* +Unsafe */);
 	push_value(v1);
-	push_resource(v2);
+	push_resource(MKU64(v2));
 	mp_primZ_ptrZ_free();
 	VAL r3 = pop_resource();
 	switch (get_data_tag(r3)) {
@@ -9255,9 +9274,9 @@ static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL v4 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v4 = (0LL /* +Unsafe */);
 	VAL v5 = pop_value();
-	push_resource(v4);
+	push_resource(MKU64(v4));
 	push_value(v5);
 	mp_primZ_ptrZ_add();
 	VAL v6 = pop_value();
@@ -9364,9 +9383,9 @@ static void mw_std_buffer_ZPlusBuffer_ZAtU8 (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL v2 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v2 = (0LL /* +Unsafe */);
 	VAL v3 = pop_value();
-	push_resource(v2);
+	push_resource(MKU64(v2));
 	push_value(v3);
 	mp_primZ_ptrZ_add();
 	mp_primZ_u8Z_get();
@@ -9399,9 +9418,9 @@ static void mw_std_buffer_ZPlusBuffer_ZBangU8 (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL v2 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v2 = (0LL /* +Unsafe */);
 	VAL v3 = pop_value();
-	push_resource(v2);
+	push_resource(MKU64(v2));
 	push_value(v3);
 	mp_primZ_ptrZ_add();
 	mp_primZ_u8Z_set();
@@ -9443,9 +9462,9 @@ static void mw_std_buffer_ZPlusBuffer_ZBangStr (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL v2 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v2 = (0LL /* +Unsafe */);
 	VAL v3 = pop_value();
-	push_resource(v2);
+	push_resource(MKU64(v2));
 	push_value(v3);
 	mp_primZ_ptrZ_add();
 	mw_std_prim_Ptr_ZBangStrZPlus();
@@ -9481,10 +9500,10 @@ static void mw_std_buffer_ZPlusBuffer_ZAtStr (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL v2 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v2 = (0LL /* +Unsafe */);
 	VAL v3 = pop_value();
 	VAL v4 = pop_value();
-	push_resource(v2);
+	push_resource(MKU64(v2));
 	push_value(v3);
 	mp_primZ_ptrZ_add();
 	push_value(v4);
@@ -9593,9 +9612,9 @@ static void mw_std_prim_Str_byteZAt (void) {
 	mw_std_str_offsetZ_inZ_bounds();
 	bool v4 = pop_bool();
 	if (v4) {
-		VAL v5 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v5 = (0LL /* +Unsafe */);
 		VAL v6 = pop_value();
-		push_resource(v5);
+		push_resource(MKU64(v5));
 		push_value(v6);
 		mp_primZ_ptrZ_add();
 		mw_std_prim_Ptr_ZAtByte();
@@ -9756,8 +9775,8 @@ static void mw_std_prim_Str_fromZ_bytesZ_unsafe (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL v17 = (MKU64(0LL /* +Unsafe */));
-	push_resource(v17);
+	uint64_t v17 = (0LL /* +Unsafe */);
+	push_resource(MKU64(v17));
 	mp_primZ_strZ_copy();
 	VAL r18 = pop_resource();
 	switch (get_data_tag(r18)) {
@@ -9907,13 +9926,13 @@ static void mw_std_str_ZPlusStr_splitZ_byte (void) {
 		bool v13 = (VI64(v11) == VI64(v12));
 		if (v13) {
 			incref(v7);
-			VAL v14 = (MKU64(0LL /* +Unsafe */));
+			uint64_t v14 = (0LL /* +Unsafe */);
 			push_value(v12);
 			push_resource(r10);
 			push_value(v7);
 			push_value(v8);
 			push_value(v7);
-			push_resource(v14);
+			push_resource(MKU64(v14));
 			mw_std_str_ZPlusStr_offsetZ_slice();
 			VAL r15 = pop_resource();
 			switch (get_data_tag(r15)) {
@@ -9947,8 +9966,8 @@ static void mw_std_str_ZPlusStr_splitZ_byte (void) {
 		}
 	}
 	VAL r19 = pop_resource();
-	VAL v20 = (MKU64(0LL /* +Unsafe */));
-	push_resource(v20);
+	uint64_t v20 = (0LL /* +Unsafe */);
+	push_resource(MKU64(v20));
 	mw_std_str_ZPlusStr_offsetZ_slice();
 	VAL r21 = pop_resource();
 	switch (get_data_tag(r21)) {
@@ -10107,9 +10126,9 @@ static void mw_std_prim_Str_showZThen (void) {
 		VAL v5 = pop_value();
 		VAL v6 = pop_value();
 		incref(v6);
-		VAL v7 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v7 = (0LL /* +Unsafe */);
 		push_value(v6);
-		push_resource(v7);
+		push_resource(MKU64(v7));
 		mw_std_prim_Ptr_ZAtByte();
 		VAL r8 = pop_resource();
 		switch (get_data_tag(r8)) {
@@ -10122,9 +10141,9 @@ static void mw_std_prim_Str_showZThen (void) {
 		}
 		mw_std_str_ZPlusStr_pushZ_showZ_byteZBang();
 		int64_t v9 = (1LL);
-		VAL v10 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v10 = (0LL /* +Unsafe */);
 		push_i64(v9);
-		push_resource(v10);
+		push_resource(MKU64(v10));
 		push_value(v6);
 		mp_primZ_ptrZ_add();
 		VAL r11 = pop_resource();
@@ -11083,13 +11102,13 @@ static void mw_std_path_Path_splitZ_last (void) {
 			push_value(v17);
 			push_value(v18);
 			mtp_std_maybe_Maybe_1_Some();
-			VAL v19 = (MKU64(0LL /* +Unsafe */));
+			uint64_t v19 = (0LL /* +Unsafe */);
 			VAL v20 = pop_value();
 			VAL v21 = pop_value();
 			incref(v20);
 			incref(v21);
 			int64_t v22 = (1LL);
-			push_resource(v19);
+			push_resource(MKU64(v19));
 			push_value(v20);
 			push_value(v21);
 			push_value(v20);
@@ -12231,10 +12250,10 @@ static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (void) {
 	VAL v2 = pop_value();
 	VAL v3 = pop_value();
 	incref(v3);
-	VAL v4 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v4 = (0LL /* +Unsafe */);
 	push_value(v3);
 	push_value(v2);
-	push_resource(v4);
+	push_resource(MKU64(v4));
 	push_value(v3);
 	mp_primZ_ptrZ_add();
 	mp_primZ_u8Z_get();
@@ -12265,8 +12284,8 @@ static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL v9 = (MKU64(0LL /* +Unsafe */));
-	push_resource(v9);
+	uint64_t v9 = (0LL /* +Unsafe */);
+	push_resource(MKU64(v9));
 	mext_std_world_posixZ_stat();
 	VAL r10 = pop_resource();
 	switch (get_data_tag(r10)) {
@@ -12291,8 +12310,8 @@ static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (void) {
 			push_resource(v);
 			push_value(u);
 		}
-		VAL v14 = (MKU64(0LL /* +Unsafe */));
-		push_resource(v14);
+		uint64_t v14 = (0LL /* +Unsafe */);
+		push_resource(MKU64(v14));
 		mw_std_world_stz_modeZAt();
 		VAL r15 = pop_resource();
 		switch (get_data_tag(r15)) {
@@ -12450,10 +12469,10 @@ static void mw_argZ_parser_state_State_1_init (void) {
 	mw_argZ_parser_parse_argvZ_toZ_str();
 	VAL v0 = pop_value();
 	int64_t v1 = (0LL);
-	VAL v2 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v2 = (0LL /* +Unsafe */);
 	lpush(&lbl_argv, v0);
 	push_i64(v1);
-	push_resource(v2);
+	push_resource(MKU64(v2));
 	mw_argZ_parser_parse_readZ_fromZ_argv();
 	VAL r3 = pop_resource();
 	switch (get_data_tag(r3)) {
@@ -13366,11 +13385,11 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 		VAL v13 = pop_value();
 		VAL v14 = pop_value();
 		incref(v14);
-		VAL v15 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v15 = (0LL /* +Unsafe */);
 		push_value(v14);
 		push_value(v13);
 		push_value(v14);
-		push_resource(v15);
+		push_resource(MKU64(v15));
 		mw_std_prim_Str_dropZ_bytes();
 		VAL r16 = pop_resource();
 		switch (get_data_tag(r16)) {
@@ -13659,11 +13678,11 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 		VAL v52 = pop_value();
 		VAL v53 = pop_value();
 		incref(v53);
-		VAL v54 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v54 = (0LL /* +Unsafe */);
 		push_value(v53);
 		push_value(v52);
 		push_value(v53);
-		push_resource(v54);
+		push_resource(MKU64(v54));
 		mw_std_prim_Str_dropZ_bytes();
 		VAL r55 = pop_resource();
 		switch (get_data_tag(r55)) {
@@ -14988,9 +15007,9 @@ static void mw_argZ_parser_parse_argvZ_toZ_str (void) {
 		VAL v8 = pop_value();
 		VAL v9 = pop_value();
 		VAL r10 = pop_resource();
-		VAL v11 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v11 = (0LL /* +Unsafe */);
 		push_value(v8);
-		push_resource(v11);
+		push_resource(MKU64(v11));
 		mw_argZ_parser_parse_readZ_fromZ_argv();
 		VAL r12 = pop_resource();
 		switch (get_data_tag(r12)) {
@@ -37785,9 +37804,9 @@ static void mw_mirth_name_hashZ_nameZAt (void) {
 	int64_t v2 = (v1 * v0);
 	push_i64(v2);
 	mbuf_mirth_name_HASHz_BUF();
-	VAL v3 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v3 = (0LL /* +Unsafe */);
 	VAL v4 = pop_value();
-	push_resource(v3);
+	push_resource(MKU64(v3));
 	push_value(v4);
 	mp_primZ_ptrZ_add();
 	mp_primZ_i64Z_get();
@@ -37825,9 +37844,9 @@ static void mw_mirth_name_hashZ_nameZBang (void) {
 	int64_t v3 = (v2 * v1);
 	push_i64(v3);
 	mbuf_mirth_name_HASHz_BUF();
-	VAL v4 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v4 = (0LL /* +Unsafe */);
 	VAL v5 = pop_value();
-	push_resource(v4);
+	push_resource(MKU64(v4));
 	push_value(v5);
 	mp_primZ_ptrZ_add();
 	mp_primZ_i64Z_set();
@@ -37862,9 +37881,9 @@ static void mw_std_prim_Str_hash (void) {
 		VAL v5 = pop_value();
 		VAL v6 = pop_value();
 		incref(v6);
-		VAL v7 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v7 = (0LL /* +Unsafe */);
 		push_value(v6);
-		push_resource(v7);
+		push_resource(MKU64(v7));
 		mw_std_prim_Ptr_ZAtByte();
 		VAL r8 = pop_resource();
 		switch (get_data_tag(r8)) {
@@ -37899,10 +37918,10 @@ static void mw_std_prim_Str_hash (void) {
 		uint64_t v20 = pop_u64();
 		uint64_t v21 = (v20 ^ v19);
 		int64_t v22 = (1LL);
-		VAL v23 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v23 = (0LL /* +Unsafe */);
 		push_u64(v21);
 		push_i64(v22);
-		push_resource(v23);
+		push_resource(MKU64(v23));
 		push_value(v6);
 		mp_primZ_ptrZ_add();
 		VAL r24 = pop_resource();
@@ -38328,9 +38347,9 @@ static void mw_mirth_name_Name_mangleZ_computeZBang (void) {
 		VAL v4 = pop_value();
 		VAL v5 = pop_value();
 		incref(v5);
-		VAL v6 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v6 = (0LL /* +Unsafe */);
 		push_value(v5);
-		push_resource(v6);
+		push_resource(MKU64(v6));
 		mw_std_prim_Ptr_ZAtByte();
 		VAL r7 = pop_resource();
 		switch (get_data_tag(r7)) {
@@ -38344,9 +38363,9 @@ static void mw_mirth_name_Name_mangleZ_computeZBang (void) {
 		mw_std_byte_Byte_zzencode();
 		mw_std_str_ZPlusStr_pushZ_strZBang();
 		int64_t v8 = (1LL);
-		VAL v9 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v9 = (0LL /* +Unsafe */);
 		push_i64(v8);
-		push_resource(v9);
+		push_resource(MKU64(v9));
 		push_value(v5);
 		mp_primZ_ptrZ_add();
 		VAL r10 = pop_resource();
@@ -40617,8 +40636,8 @@ static void mw_std_str_ZPlusStr_labelZ_popZ_tokenZAsk (void) {
 	}
 	bool v5 = pop_bool();
 	if (v5) {
-		VAL v6 = (MKU64(0LL /* +Unsafe */));
-		push_resource(v6);
+		uint64_t v6 = (0LL /* +Unsafe */);
+		push_resource(MKU64(v6));
 		mw_std_str_ZPlusStr_dropZ_lastZ_byte();
 		VAL r7 = pop_resource();
 		switch (get_data_tag(r7)) {
@@ -40663,8 +40682,8 @@ static void mw_std_str_ZPlusStr_labelZ_popZ_rZ_tokenZAsk (void) {
 	}
 	bool v9 = pop_bool();
 	if (v9) {
-		VAL v10 = (MKU64(0LL /* +Unsafe */));
-		push_resource(v10);
+		uint64_t v10 = (0LL /* +Unsafe */);
+		push_resource(MKU64(v10));
 		mw_std_str_ZPlusStr_dropZ_lastZ_byte();
 		VAL r11 = pop_resource();
 		switch (get_data_tag(r11)) {
@@ -40698,8 +40717,8 @@ static void mw_std_str_ZPlusStr_labelZ_pushZ_tokenZAsk (void) {
 	}
 	bool v4 = pop_bool();
 	if (v4) {
-		VAL v5 = (MKU64(0LL /* +Unsafe */));
-		push_resource(v5);
+		uint64_t v5 = (0LL /* +Unsafe */);
+		push_resource(MKU64(v5));
 		mw_std_str_ZPlusStr_dropZ_firstZ_byte();
 		VAL r6 = pop_resource();
 		switch (get_data_tag(r6)) {
@@ -40720,8 +40739,8 @@ static void mw_std_str_ZPlusStr_labelZ_pushZ_tokenZAsk (void) {
 	}
 }
 static void mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (void) {
-	VAL v0 = (MKU64(0LL /* +Unsafe */));
-	push_resource(v0);
+	uint64_t v0 = (0LL /* +Unsafe */);
+	push_resource(MKU64(v0));
 	mw_std_str_ZPlusStr_firstZ_twoZ_bytes();
 	VAL r1 = pop_resource();
 	switch (get_data_tag(r1)) {
@@ -40781,8 +40800,8 @@ static void mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (void) {
 	}
 	bool v15 = pop_bool();
 	if (v15) {
-		VAL v16 = (MKU64(0LL /* +Unsafe */));
-		push_resource(v16);
+		uint64_t v16 = (0LL /* +Unsafe */);
+		push_resource(MKU64(v16));
 		mw_std_str_ZPlusStr_dropZ_firstZ_byte();
 		VAL r17 = pop_resource();
 		switch (get_data_tag(r17)) {
@@ -40833,8 +40852,8 @@ static void mw_std_str_ZPlusStr_labelZ_getZ_tokenZAsk (void) {
 	}
 	bool v10 = pop_bool();
 	if (v10) {
-		VAL v11 = (MKU64(0LL /* +Unsafe */));
-		push_resource(v11);
+		uint64_t v11 = (0LL /* +Unsafe */);
+		push_resource(MKU64(v11));
 		mw_std_str_ZPlusStr_dropZ_firstZ_byte();
 		VAL r12 = pop_resource();
 		switch (get_data_tag(r12)) {
@@ -40868,8 +40887,8 @@ static void mw_std_str_ZPlusStr_labelZ_setZ_tokenZAsk (void) {
 	}
 	bool v4 = pop_bool();
 	if (v4) {
-		VAL v5 = (MKU64(0LL /* +Unsafe */));
-		push_resource(v5);
+		uint64_t v5 = (0LL /* +Unsafe */);
+		push_resource(MKU64(v5));
 		mw_std_str_ZPlusStr_dropZ_firstZ_byte();
 		VAL r6 = pop_resource();
 		switch (get_data_tag(r6)) {
@@ -41196,10 +41215,10 @@ static void mw_std_str_ZPlusStr_floatZAsk (void) {
 	VAL v16 = pop_value();
 	VAL v17 = pop_value();
 	incref(v17);
-	VAL v18 = (MKU64(0LL /* +Unsafe */));
+	uint64_t v18 = (0LL /* +Unsafe */);
 	push_value(v17);
 	push_value(v16);
-	push_resource(v18);
+	push_resource(MKU64(v18));
 	push_value(v17);
 	mp_primZ_ptrZ_add();
 	mp_primZ_u8Z_get();
@@ -50152,13 +50171,13 @@ static void mw_mirth_elab_checkZ_moduleZ_path (void) {
 					push_value(v44);
 					push_value(v45);
 					mtp_std_maybe_Maybe_1_Some();
-					VAL v46 = (MKU64(0LL /* +Unsafe */));
+					uint64_t v46 = (0LL /* +Unsafe */);
 					VAL v47 = pop_value();
 					VAL v48 = pop_value();
 					incref(v47);
 					incref(v48);
 					int64_t v49 = (1LL);
-					push_resource(v46);
+					push_resource(MKU64(v46));
 					push_value(v47);
 					push_value(v48);
 					push_value(v47);
@@ -67668,6 +67687,8 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 			mw_mirth_data_Tag_outputsZ_resourceZAsk();
 			bool v5 = pop_bool();
 			if (v5) {
+				uint64_t v6 = (2LL /* C99RT_U64 */);
+				push_u64(v6);
 				{
 					VAL v = pop_resource();
 					ASSERT1(IS_TUP(v), v);
@@ -67679,96 +67700,17 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 					push_resource(u);
 					push_resource(v);
 				}
-				VAL r6 = pop_resource();
+				VAL r7 = pop_resource();
+				VAL v8 = pop_value();
+				lpush(&lbl_localZ_resourceZ_repr, v8);
 				mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
-				VAL v7 = pop_value();
-				VAL r8 = pop_resource();
-				lpush(&lbl_localZ_resourceZ_name, v7);
-				mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
-				push_resource(r8);
-				mw_mirth_c99_ZPlusC99_indent();
-				STRLIT("VAL ", 4);
-				mw_mirth_c99_ZPlusC99_put();
-				VAL r9 = pop_resource();
-				{
-					VAL v = top_resource();
-					incref(v);
-					push_value(v);
-				}
-				push_resource(r9);
-				mw_mirth_c99_ZPlusC99_put();
-				STRLIT(" = (", 4);
-				mw_mirth_c99_ZPlusC99_put();
+				VAL v9 = pop_value();
 				VAL r10 = pop_resource();
-				VAL r11 = pop_resource();
+				lpush(&lbl_localZ_resourceZ_name, v9);
+				mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
 				push_resource(r10);
-				STRLIT("MKU64(", 6);
-				mw_mirth_c99_ZPlusC99_put();
-				VAL v12 = pop_value();
-				incref(v12);
-				push_value(v12);
-				push_value(v12);
-				mw_mirth_data_Tag_valueZ_show();
-				mw_mirth_c99_ZPlusC99_put();
-				STRLIT("LL /* ", 6);
-				mw_mirth_c99_ZPlusC99_put();
-				VAL v13 = pop_value();
-				incref(v13);
-				push_value(v13);
-				push_value(v13);
-				mw_mirth_data_Tag_name();
-				mw_mirth_name_Name_ZToStr();
-				mw_mirth_c99_ZPlusC99_put();
-				STRLIT(" */)", 4);
-				mw_mirth_c99_ZPlusC99_put();
-				VAL r14 = pop_resource();
-				push_resource(r11);
-				push_resource(r14);
-				STRLIT(");", 2);
-				mw_mirth_c99_ZPlusC99_put();
-				mw_mirth_c99_ZPlusC99_line();
-				push_resource(r6);
-				{
-					VAL v = pop_resource();
-					VAL u = pop_resource();
-					ASSERT1(IS_TUP(v), v);
-					ASSERT1(VTUPLEN(v) == 3, v);
-					ASSERT1(VREFS(v) == 1, v);
-					VAL* p = &VTUP(v)->cells[1];
-					ASSERT1(p->tag == 0, v);
-					*p = u;
-					push_resource(v);
-				}
-				VAL r15 = pop_resource();
-				VAL r16 = pop_resource();
-				push_resource(r15);
-				push_resource(r16);
-				mw_mirth_c99_ZPlusC99LocalResource_pushZ_localZ_resourceZBang();
-			} else {
-				uint64_t v17 = (2LL /* C99RT_U64 */);
-				push_u64(v17);
-				{
-					VAL v = pop_resource();
-					ASSERT1(IS_TUP(v), v);
-					ASSERT1(VTUPLEN(v) == 3, v);
-					VAL* p = &VTUP(v)->cells[1];
-					VAL u = *p;
-					ASSERT1(VREFS(v) == 1, v);
-					*p = (VAL){0};
-					push_resource(u);
-					push_resource(v);
-				}
-				VAL r18 = pop_resource();
-				VAL v19 = pop_value();
-				lpush(&lbl_localZ_repr, v19);
-				mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
-				VAL v20 = pop_value();
-				VAL r21 = pop_resource();
-				lpush(&lbl_localZ_name, v20);
-				mtw_mirth_c99_ZPlusC99Local_ZPlusC99Local();
-				push_resource(r21);
 				mw_mirth_c99_ZPlusC99_indent();
-				VAL r22 = pop_resource();
+				VAL r11 = pop_resource();
 				{
 					VAL v = pop_resource();
 					ASSERT1(IS_TUP(v), v);
@@ -67779,12 +67721,12 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 					push_resource(v);
 					push_value(u);
 				}
-				push_resource(r22);
+				push_resource(r11);
 				mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
 				mw_mirth_c99_ZPlusC99_put();
 				STRLIT(" ", 1);
 				mw_mirth_c99_ZPlusC99_put();
-				VAL r23 = pop_resource();
+				VAL r12 = pop_resource();
 				{
 					VAL v = pop_resource();
 					ASSERT1(IS_TUP(v), v);
@@ -67795,37 +67737,37 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 					push_resource(v);
 					push_value(u);
 				}
-				push_resource(r23);
+				push_resource(r12);
 				mw_mirth_c99_ZPlusC99_put();
 				STRLIT(" = (", 4);
 				mw_mirth_c99_ZPlusC99_put();
-				VAL r24 = pop_resource();
-				VAL r25 = pop_resource();
-				VAL v26 = pop_value();
-				incref(v26);
-				push_resource(r24);
-				push_value(v26);
-				push_value(v26);
+				VAL r13 = pop_resource();
+				VAL r14 = pop_resource();
+				VAL v15 = pop_value();
+				incref(v15);
+				push_resource(r13);
+				push_value(v15);
+				push_value(v15);
 				mw_mirth_data_Tag_valueZ_show();
 				mw_mirth_c99_ZPlusC99_put();
 				STRLIT("LL /* ", 6);
 				mw_mirth_c99_ZPlusC99_put();
-				VAL v27 = pop_value();
-				incref(v27);
-				push_value(v27);
-				push_value(v27);
+				VAL v16 = pop_value();
+				incref(v16);
+				push_value(v16);
+				push_value(v16);
 				mw_mirth_data_Tag_name();
 				mw_mirth_name_Name_ZToStr();
 				mw_mirth_c99_ZPlusC99_put();
 				STRLIT(" */", 3);
 				mw_mirth_c99_ZPlusC99_put();
-				VAL r28 = pop_resource();
-				push_resource(r25);
-				push_resource(r28);
+				VAL r17 = pop_resource();
+				push_resource(r14);
+				push_resource(r17);
 				STRLIT(");", 2);
 				mw_mirth_c99_ZPlusC99_put();
 				mw_mirth_c99_ZPlusC99_line();
-				push_resource(r18);
+				push_resource(r7);
 				{
 					VAL v = pop_resource();
 					VAL u = pop_resource();
@@ -67837,17 +67779,115 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 					*p = u;
 					push_resource(v);
 				}
-				VAL r29 = pop_resource();
-				VAL r30 = pop_resource();
-				push_resource(r29);
-				push_resource(r30);
+				VAL r18 = pop_resource();
+				VAL r19 = pop_resource();
+				push_resource(r18);
+				push_resource(r19);
+				mw_mirth_c99_ZPlusC99LocalResource_pushZ_localZ_resourceZBang();
+			} else {
+				uint64_t v20 = (2LL /* C99RT_U64 */);
+				push_u64(v20);
+				{
+					VAL v = pop_resource();
+					ASSERT1(IS_TUP(v), v);
+					ASSERT1(VTUPLEN(v) == 3, v);
+					VAL* p = &VTUP(v)->cells[1];
+					VAL u = *p;
+					ASSERT1(VREFS(v) == 1, v);
+					*p = (VAL){0};
+					push_resource(u);
+					push_resource(v);
+				}
+				VAL r21 = pop_resource();
+				VAL v22 = pop_value();
+				lpush(&lbl_localZ_repr, v22);
+				mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
+				VAL v23 = pop_value();
+				VAL r24 = pop_resource();
+				lpush(&lbl_localZ_name, v23);
+				mtw_mirth_c99_ZPlusC99Local_ZPlusC99Local();
+				push_resource(r24);
+				mw_mirth_c99_ZPlusC99_indent();
+				VAL r25 = pop_resource();
+				{
+					VAL v = pop_resource();
+					ASSERT1(IS_TUP(v), v);
+					ASSERT1(VTUPLEN(v) == 3, v);
+					VAL* p = &VTUP(v)->cells[1];
+					VAL u = *p;
+					incref(u);
+					push_resource(v);
+					push_value(u);
+				}
+				push_resource(r25);
+				mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
+				mw_mirth_c99_ZPlusC99_put();
+				STRLIT(" ", 1);
+				mw_mirth_c99_ZPlusC99_put();
+				VAL r26 = pop_resource();
+				{
+					VAL v = pop_resource();
+					ASSERT1(IS_TUP(v), v);
+					ASSERT1(VTUPLEN(v) == 3, v);
+					VAL* p = &VTUP(v)->cells[2];
+					VAL u = *p;
+					incref(u);
+					push_resource(v);
+					push_value(u);
+				}
+				push_resource(r26);
+				mw_mirth_c99_ZPlusC99_put();
+				STRLIT(" = (", 4);
+				mw_mirth_c99_ZPlusC99_put();
+				VAL r27 = pop_resource();
+				VAL r28 = pop_resource();
+				VAL v29 = pop_value();
+				incref(v29);
+				push_resource(r27);
+				push_value(v29);
+				push_value(v29);
+				mw_mirth_data_Tag_valueZ_show();
+				mw_mirth_c99_ZPlusC99_put();
+				STRLIT("LL /* ", 6);
+				mw_mirth_c99_ZPlusC99_put();
+				VAL v30 = pop_value();
+				incref(v30);
+				push_value(v30);
+				push_value(v30);
+				mw_mirth_data_Tag_name();
+				mw_mirth_name_Name_ZToStr();
+				mw_mirth_c99_ZPlusC99_put();
+				STRLIT(" */", 3);
+				mw_mirth_c99_ZPlusC99_put();
+				VAL r31 = pop_resource();
+				push_resource(r28);
+				push_resource(r31);
+				STRLIT(");", 2);
+				mw_mirth_c99_ZPlusC99_put();
+				mw_mirth_c99_ZPlusC99_line();
+				push_resource(r21);
+				{
+					VAL v = pop_resource();
+					VAL u = pop_resource();
+					ASSERT1(IS_TUP(v), v);
+					ASSERT1(VTUPLEN(v) == 3, v);
+					ASSERT1(VREFS(v) == 1, v);
+					VAL* p = &VTUP(v)->cells[1];
+					ASSERT1(p->tag == 0, v);
+					*p = u;
+					push_resource(v);
+				}
+				VAL r32 = pop_resource();
+				VAL r33 = pop_resource();
+				push_resource(r32);
+				push_resource(r33);
 				mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
 			}
 		}
-		VAL v31 = pop_value();
-		decref(v31);
-		VAL v32 = pop_value();
-		decref(v32);
+		VAL v34 = pop_value();
+		decref(v34);
+		VAL v35 = pop_value();
+		decref(v35);
 	} else {
 		{
 			VAL v = pop_resource();
@@ -67860,7 +67900,7 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 			push_resource(u);
 			push_resource(v);
 		}
-		VAL r33 = pop_resource();
+		VAL r36 = pop_resource();
 		{
 			VAL v = pop_resource();
 			ASSERT1(IS_TUP(v), v);
@@ -67872,9 +67912,9 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 			push_resource(u);
 			push_resource(v);
 		}
-		VAL r34 = pop_resource();
+		VAL r37 = pop_resource();
 		mw_mirth_data_Tag_wordZ_cname();
-		push_resource(r34);
+		push_resource(r37);
 		{
 			VAL v = pop_resource();
 			VAL u = pop_resource();
@@ -67886,7 +67926,7 @@ static void mw_mirth_c99_c99Z_tagZ_wordZBang (void) {
 			*p = u;
 			push_resource(v);
 		}
-		push_resource(r33);
+		push_resource(r36);
 		{
 			VAL v = pop_resource();
 			VAL u = pop_resource();
@@ -68075,7 +68115,7 @@ static void mw_mirth_c99_pushZ_localZ_labelZBang (void) {
 	}
 }
 static void mw_mirth_c99_pushZ_localZ_resourceZ_labelZ_directZBang (void) {
-	mw_mirth_c99_ZPlusC99LocalResource_consume();
+	mw_mirth_c99_ZPlusC99LocalResource_consumeZ_asZ_VAL();
 	VAL v0 = pop_value();
 	VAL v1 = pop_value();
 	push_value(v0);
@@ -68191,28 +68231,49 @@ static void mw_mirth_c99_popZ_localZ_labelZ_directZBang (void) {
 	push_resource(r9);
 }
 static void mw_mirth_c99_popZ_localZ_resourceZ_labelZ_directZBang (void) {
+	uint64_t v0 = (0LL /* C99RT_VAL */);
+	lpush(&lbl_localZ_resourceZ_repr, MKU64(v0));
 	mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
-	VAL v0 = pop_value();
-	VAL r1 = pop_resource();
-	lpush(&lbl_localZ_resourceZ_name, v0);
-	mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
-	push_resource(r1);
-	mw_mirth_c99_ZPlusC99_indent();
-	STRLIT("VAL ", 4);
-	mw_mirth_c99_ZPlusC99_put();
+	VAL v1 = pop_value();
 	VAL r2 = pop_resource();
-	{
-		VAL v = top_resource();
-		incref(v);
-		push_value(v);
-	}
+	lpush(&lbl_localZ_resourceZ_name, v1);
+	mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
 	push_resource(r2);
+	mw_mirth_c99_ZPlusC99_indent();
+	VAL r3 = pop_resource();
+	{
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[1];
+		VAL u = *p;
+		incref(u);
+		push_resource(v);
+		push_value(u);
+	}
+	push_resource(r3);
+	mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
+	mw_mirth_c99_ZPlusC99_put();
+	STRLIT(" ", 1);
+	mw_mirth_c99_ZPlusC99_put();
+	VAL r4 = pop_resource();
+	{
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[2];
+		VAL u = *p;
+		incref(u);
+		push_resource(v);
+		push_value(u);
+	}
+	push_resource(r4);
 	mw_mirth_c99_ZPlusC99_put();
 	STRLIT(" = (", 4);
 	mw_mirth_c99_ZPlusC99_put();
-	VAL r3 = pop_resource();
-	VAL r4 = pop_resource();
-	push_resource(r3);
+	VAL r5 = pop_resource();
+	VAL r6 = pop_resource();
+	push_resource(r5);
 	STRLIT("lpop(&lbl_", 10);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_label_Label_name();
@@ -68220,16 +68281,16 @@ static void mw_mirth_c99_popZ_localZ_resourceZ_labelZ_directZBang (void) {
 	mw_mirth_c99_ZPlusC99_put();
 	STRLIT(")", 1);
 	mw_mirth_c99_ZPlusC99_put();
-	VAL r5 = pop_resource();
-	push_resource(r4);
-	push_resource(r5);
-	STRLIT(");", 2);
-	mw_mirth_c99_ZPlusC99_put();
-	mw_mirth_c99_ZPlusC99_line();
-	VAL r6 = pop_resource();
 	VAL r7 = pop_resource();
 	push_resource(r6);
 	push_resource(r7);
+	STRLIT(");", 2);
+	mw_mirth_c99_ZPlusC99_put();
+	mw_mirth_c99_ZPlusC99_line();
+	VAL r8 = pop_resource();
+	VAL r9 = pop_resource();
+	push_resource(r8);
+	push_resource(r9);
 }
 static void mw_mirth_c99_c99Z_labelZ_pushZBang (void) {
 	mw_mirth_c99_ZPlusC99Branch_popZ_localZBang();
@@ -68559,9 +68620,9 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (void) {
 		VAL v7 = pop_value();
 		VAL v8 = pop_value();
 		incref(v8);
-		VAL v9 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v9 = (0LL /* +Unsafe */);
 		push_value(v8);
-		push_resource(v9);
+		push_resource(MKU64(v9));
 		mw_std_prim_Ptr_ZAtByte();
 		VAL r10 = pop_resource();
 		switch (get_data_tag(r10)) {
@@ -68595,9 +68656,9 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (void) {
 		push_value(v17);
 		mw_mirth_c99_c99Z_stringZ_byteZBang();
 		int64_t v18 = (1LL);
-		VAL v19 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v19 = (0LL /* +Unsafe */);
 		push_i64(v18);
-		push_resource(v19);
+		push_resource(MKU64(v19));
 		push_value(v8);
 		mp_primZ_ptrZ_add();
 		VAL r20 = pop_resource();
@@ -68652,9 +68713,9 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstr (void) {
 		VAL v6 = pop_value();
 		VAL v7 = pop_value();
 		incref(v7);
-		VAL v8 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v8 = (0LL /* +Unsafe */);
 		push_value(v7);
-		push_resource(v8);
+		push_resource(MKU64(v8));
 		mw_std_prim_Ptr_ZAtByte();
 		VAL r9 = pop_resource();
 		switch (get_data_tag(r9)) {
@@ -68667,9 +68728,9 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstr (void) {
 		}
 		mw_mirth_c99_c99Z_stringZ_byteZBang();
 		int64_t v10 = (1LL);
-		VAL v11 = (MKU64(0LL /* +Unsafe */));
+		uint64_t v11 = (0LL /* +Unsafe */);
 		push_i64(v10);
-		push_resource(v11);
+		push_resource(MKU64(v11));
 		push_value(v7);
 		mp_primZ_ptrZ_add();
 		VAL r12 = pop_resource();
@@ -68827,6 +68888,33 @@ static void mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type (void) {
 		} break;
 		case 5LL: { // C99RT_BOOL
 			STRLIT("bool", 4);
+		} break;
+		default: {
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			mp_primZ_panic();
+		}
+	}
+}
+static void mw_mirth_c99_C99ReprType_vZ_macro (void) {
+	uint64_t v0 = pop_u64();
+	switch (v0) {
+		case 0LL: { // C99RT_VAL
+			STRLIT("VVAL", 4);
+		} break;
+		case 1LL: { // C99RT_I64
+			STRLIT("VI64", 4);
+		} break;
+		case 2LL: { // C99RT_U64
+			STRLIT("VU64", 4);
+		} break;
+		case 3LL: { // C99RT_F32
+			STRLIT("VF32", 4);
+		} break;
+		case 4LL: { // C99RT_F64
+			STRLIT("VF64", 4);
+		} break;
+		case 5LL: { // C99RT_BOOL
+			STRLIT("VBOOL", 5);
 		} break;
 		default: {
 			push_value(mkstr("unexpected fallthrough in match\n", 32));
@@ -69987,12 +70075,29 @@ static void mw_mirth_c99_ZPlusC99Local_peekZ_dataZ_tag (void) {
 }
 static void mw_mirth_c99_ZPlusC99LocalResource_rdup (void) {
 	{
-		VAL v = top_resource();
-		incref(v);
-		push_value(v);
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[1];
+		VAL u = *p;
+		incref(u);
+		push_resource(v);
+		push_value(u);
 	}
 	VAL v0 = pop_value();
-	lpush(&lbl_localZ_resourceZ_name, v0);
+	lpush(&lbl_localZ_resourceZ_repr, v0);
+	{
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[2];
+		VAL u = *p;
+		incref(u);
+		push_resource(v);
+		push_value(u);
+	}
+	VAL v1 = pop_value();
+	lpush(&lbl_localZ_resourceZ_name, v1);
 	mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
 }
 static void mw_mirth_c99_ZPlusC99LocalResource_rdrop (void) {
@@ -70001,53 +70106,238 @@ static void mw_mirth_c99_ZPlusC99LocalResource_rdrop (void) {
 	decref(v0);
 }
 static void mw_mirth_c99_ZPlusC99LocalResource_consume (void) {
-	mtp_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
-	VAL v0 = (lpop(&lbl_localZ_resourceZ_name));
-	push_value(v0);
+	VAL r0 = pop_resource();
+	switch (get_data_tag(r0)) {
+		case 0LL: { // +C99LocalResource
+			push_resource(r0);
+			mtp_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
+		} break;
+		default: {
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			mp_primZ_panic();
+		}
+	}
+	VAL v1 = (lpop(&lbl_localZ_resourceZ_repr));
+	decref(v1);
+	VAL v2 = (lpop(&lbl_localZ_resourceZ_name));
+	push_value(v2);
+}
+static void mw_mirth_c99_ZPlusC99LocalResource_consumeZ_asZ_VAL (void) {
+	VAL r0 = pop_resource();
+	switch (get_data_tag(r0)) {
+		case 0LL: { // +C99LocalResource
+			push_resource(r0);
+			mtp_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
+		} break;
+		default: {
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			mp_primZ_panic();
+		}
+	}
+	VAL v1 = (lpop(&lbl_localZ_resourceZ_repr));
+	switch (get_data_tag(v1)) {
+		case 0LL: { // C99RT_VAL
+			VAL v2 = (lpop(&lbl_localZ_resourceZ_name));
+			push_value(v2);
+		} break;
+		default: {
+			push_value(v1);
+			STRLIT("", 0);
+			mtw_std_str_ZPlusStr_ZPlusStr();
+			mw_mirth_c99_C99ReprType_mkZ_macro();
+			mw_std_str_ZPlusStr_pushZ_strZBang();
+			STRLIT("(", 1);
+			mw_std_str_ZPlusStr_pushZ_strZBang();
+			VAL v3 = (lpop(&lbl_localZ_resourceZ_name));
+			push_value(v3);
+			mw_std_str_ZPlusStr_pushZ_strZBang();
+			STRLIT(")", 1);
+			mw_std_str_ZPlusStr_pushZ_strZBang();
+			mtp_std_str_ZPlusStr_ZPlusStr();
+		} break;
+	}
 }
 static void mw_mirth_c99_ZPlusC99_popZ_localZ_resourceZ_directZBang (void) {
-	mw_mirth_c99_ZPlusC99_freshZ_resourceZ_nameZBang();
 	VAL v0 = pop_value();
-	lpush(&lbl_localZ_resourceZ_name, v0);
-	mw_mirth_c99_ZPlusC99_indent();
-	STRLIT("VAL ", 4);
-	mw_mirth_c99_ZPlusC99_put();
-	VAL v1 = (lpop(&lbl_localZ_resourceZ_name));
-	incref(v1);
-	push_value(v1);
+	lpush(&lbl_localZ_resourceZ_repr, v0);
+	mw_mirth_c99_ZPlusC99_freshZ_resourceZ_nameZBang();
+	VAL v1 = pop_value();
 	lpush(&lbl_localZ_resourceZ_name, v1);
+	mw_mirth_c99_ZPlusC99_indent();
+	VAL v2 = (lpop(&lbl_localZ_resourceZ_repr));
+	incref(v2);
+	push_value(v2);
+	lpush(&lbl_localZ_resourceZ_repr, v2);
+	mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
 	mw_mirth_c99_ZPlusC99_put();
-	STRLIT(" = pop_resource();", 18);
+	STRLIT(" ", 1);
+	mw_mirth_c99_ZPlusC99_put();
+	VAL v3 = (lpop(&lbl_localZ_resourceZ_name));
+	incref(v3);
+	push_value(v3);
+	lpush(&lbl_localZ_resourceZ_name, v3);
+	mw_mirth_c99_ZPlusC99_put();
+	STRLIT(" = ", 3);
+	mw_mirth_c99_ZPlusC99_put();
+	VAL v4 = (lpop(&lbl_localZ_resourceZ_repr));
+	incref(v4);
+	switch (get_data_tag(v4)) {
+		case 0LL: { // C99RT_VAL
+			lpush(&lbl_localZ_resourceZ_repr, v4);
+			STRLIT("pop_resource()", 14);
+			mw_mirth_c99_ZPlusC99_put();
+		} break;
+		default: {
+			lpush(&lbl_localZ_resourceZ_repr, v4);
+			push_value(v4);
+			mw_mirth_c99_C99ReprType_vZ_macro();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT("(pop_resource())", 16);
+			mw_mirth_c99_ZPlusC99_put();
+		} break;
+	}
+	STRLIT(";", 1);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
 }
 static void mw_mirth_c99_ZPlusC99LocalResource_pushZ_localZ_resourceZ_directZBang (void) {
-	mtp_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
+	VAL r0 = pop_resource();
+	switch (get_data_tag(r0)) {
+		case 0LL: { // +C99LocalResource
+			push_resource(r0);
+			mtp_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
+		} break;
+		default: {
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			mp_primZ_panic();
+		}
+	}
 	mw_mirth_c99_ZPlusC99_indent();
 	STRLIT("push_resource(", 14);
 	mw_mirth_c99_ZPlusC99_put();
-	VAL v0 = (lpop(&lbl_localZ_resourceZ_name));
-	push_value(v0);
-	mw_mirth_c99_ZPlusC99_put();
+	VAL v1 = (lpop(&lbl_localZ_resourceZ_repr));
+	switch (get_data_tag(v1)) {
+		case 0LL: { // C99RT_VAL
+			VAL v2 = (lpop(&lbl_localZ_resourceZ_name));
+			push_value(v2);
+			mw_mirth_c99_ZPlusC99_put();
+		} break;
+		default: {
+			push_value(v1);
+			mw_mirth_c99_C99ReprType_mkZ_macro();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT("(", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v3 = (lpop(&lbl_localZ_resourceZ_name));
+			push_value(v3);
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(")", 1);
+			mw_mirth_c99_ZPlusC99_put();
+		} break;
+	}
 	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 }
 static void mw_mirth_c99_ZPlusC99LocalResource_peekZ_dataZ_tag (void) {
 	{
-		VAL v = top_resource();
-		incref(v);
-		push_value(v);
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[1];
+		VAL u = *p;
+		incref(u);
+		push_resource(v);
+		push_value(u);
 	}
-	STRLIT("", 0);
-	mtw_std_str_ZPlusStr_ZPlusStr();
-	STRLIT("get_data_tag(", 13);
-	mw_std_str_ZPlusStr_pushZ_strZBang();
-	mw_std_str_ZPlusStr_pushZ_strZBang();
-	STRLIT(")", 1);
-	mw_std_str_ZPlusStr_pushZ_strZBang();
-	mtp_std_str_ZPlusStr_ZPlusStr();
+	uint64_t v0 = pop_u64();
+	switch (v0) {
+		case 0LL: { // C99RT_VAL
+			{
+				VAL v = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				VAL* p = &VTUP(v)->cells[2];
+				VAL u = *p;
+				incref(u);
+				push_resource(v);
+				push_value(u);
+			}
+			STRLIT("", 0);
+			mtw_std_str_ZPlusStr_ZPlusStr();
+			STRLIT("get_data_tag(", 13);
+			mw_std_str_ZPlusStr_pushZ_strZBang();
+			mw_std_str_ZPlusStr_pushZ_strZBang();
+			STRLIT(")", 1);
+			mw_std_str_ZPlusStr_pushZ_strZBang();
+			mtp_std_str_ZPlusStr_ZPlusStr();
+		} break;
+		case 1LL: { // C99RT_I64
+			{
+				VAL v = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				VAL* p = &VTUP(v)->cells[2];
+				VAL u = *p;
+				incref(u);
+				push_resource(v);
+				push_value(u);
+			}
+		} break;
+		case 2LL: { // C99RT_U64
+			{
+				VAL v = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				VAL* p = &VTUP(v)->cells[2];
+				VAL u = *p;
+				incref(u);
+				push_resource(v);
+				push_value(u);
+			}
+		} break;
+		case 5LL: { // C99RT_BOOL
+			{
+				VAL v = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				VAL* p = &VTUP(v)->cells[2];
+				VAL u = *p;
+				incref(u);
+				push_resource(v);
+				push_value(u);
+			}
+		} break;
+		case 3LL: { // C99RT_F32
+			{
+				VAL v = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				VAL* p = &VTUP(v)->cells[2];
+				VAL u = *p;
+				incref(u);
+				push_resource(v);
+				push_value(u);
+			}
+		} break;
+		case 4LL: { // C99RT_F64
+			{
+				VAL v = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				VAL* p = &VTUP(v)->cells[2];
+				VAL u = *p;
+				incref(u);
+				push_resource(v);
+				push_value(u);
+			}
+		} break;
+		default: {
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			mp_primZ_panic();
+		}
+	}
 }
 static void mw_mirth_c99_ZPlusC99LocalValueZDivResource_pushZ_localZ_valueZDivresourceZBang (void) {
 	VAL r0 = pop_resource();
@@ -70143,9 +70433,56 @@ static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_valueZDivresourceZ_dataZBang
 	mw_mirth_data_Data_isZ_resourceZAsk();
 	bool v1 = pop_bool();
 	if (v1) {
-		VAL v2 = pop_value();
-		decref(v2);
-		mw_mirth_c99_ZPlusC99Branch_popZ_localZ_resourceZBang();
+		{
+			VAL v = pop_resource();
+			ASSERT1(IS_TUP(v), v);
+			ASSERT1(VTUPLEN(v) == 3, v);
+			VAL* p = &VTUP(v)->cells[1];
+			VAL u = *p;
+			ASSERT1(VREFS(v) == 1, v);
+			*p = (VAL){0};
+			push_resource(u);
+			push_resource(v);
+		}
+		VAL r2 = pop_resource();
+		{
+			VAL v = pop_resource();
+			ASSERT1(IS_TUP(v), v);
+			ASSERT1(VTUPLEN(v) == 7, v);
+			VAL* p = &VTUP(v)->cells[6];
+			VAL u = *p;
+			ASSERT1(VREFS(v) == 1, v);
+			*p = (VAL){0};
+			push_resource(u);
+			push_resource(v);
+		}
+		VAL r3 = pop_resource();
+		mw_mirth_data_Data_c99Z_repr();
+		push_resource(r3);
+		{
+			VAL v = pop_resource();
+			VAL u = pop_resource();
+			ASSERT1(IS_TUP(v), v);
+			ASSERT1(VTUPLEN(v) == 7, v);
+			ASSERT1(VREFS(v) == 1, v);
+			VAL* p = &VTUP(v)->cells[6];
+			ASSERT1(p->tag == 0, v);
+			*p = u;
+			push_resource(v);
+		}
+		push_resource(r2);
+		{
+			VAL v = pop_resource();
+			VAL u = pop_resource();
+			ASSERT1(IS_TUP(v), v);
+			ASSERT1(VTUPLEN(v) == 3, v);
+			ASSERT1(VREFS(v) == 1, v);
+			VAL* p = &VTUP(v)->cells[1];
+			ASSERT1(p->tag == 0, v);
+			*p = u;
+			push_resource(v);
+		}
+		mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZ_resourceZBang();
 		mtw_mirth_c99_ZPlusC99LocalValueZDivResource_ZPlusRight();
 	} else {
 		{
@@ -70159,7 +70496,7 @@ static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_valueZDivresourceZ_dataZBang
 			push_resource(u);
 			push_resource(v);
 		}
-		VAL r3 = pop_resource();
+		VAL r4 = pop_resource();
 		{
 			VAL v = pop_resource();
 			ASSERT1(IS_TUP(v), v);
@@ -70171,9 +70508,9 @@ static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_valueZDivresourceZ_dataZBang
 			push_resource(u);
 			push_resource(v);
 		}
-		VAL r4 = pop_resource();
+		VAL r5 = pop_resource();
 		mw_mirth_data_Data_c99Z_repr();
-		push_resource(r4);
+		push_resource(r5);
 		{
 			VAL v = pop_resource();
 			VAL u = pop_resource();
@@ -70185,7 +70522,7 @@ static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_valueZDivresourceZ_dataZBang
 			*p = u;
 			push_resource(v);
 		}
-		push_resource(r3);
+		push_resource(r4);
 		{
 			VAL v = pop_resource();
 			VAL u = pop_resource();
@@ -70205,10 +70542,10 @@ static void mw_mirth_c99_ZPlusC99StackCache_popZ_localZAsk (void) {
 	VAL r0 = pop_resource();
 	switch (get_data_tag(r0)) {
 		case 0LL: { // +SCNil
-			VAL v1 = (MKU64(0LL /* +C99LocalNone */));
-			VAL v2 = (MKU64(0LL /* +SCNil */));
-			push_resource(v1);
-			push_resource(v2);
+			uint64_t v1 = (0LL /* +C99LocalNone */);
+			uint64_t v2 = (0LL /* +SCNil */);
+			push_resource(MKU64(v1));
+			push_resource(MKU64(v2));
 		} break;
 		case 1LL: { // +SCCons
 			push_resource(r0);
@@ -70253,10 +70590,10 @@ static void mw_mirth_c99_ZPlusC99StackCache_popZ_localZ_resourceZAsk (void) {
 	VAL r0 = pop_resource();
 	switch (get_data_tag(r0)) {
 		case 0LL: { // +SCNil
-			VAL v1 = (MKU64(0LL /* +C99LocalResourceNone */));
-			VAL v2 = (MKU64(0LL /* +SCNil */));
-			push_resource(v1);
-			push_resource(v2);
+			uint64_t v1 = (0LL /* +C99LocalResourceNone */);
+			uint64_t v2 = (0LL /* +SCNil */);
+			push_resource(MKU64(v1));
+			push_resource(MKU64(v2));
 		} break;
 		case 2LL: { // +SCWith
 			push_resource(r0);
@@ -70301,10 +70638,10 @@ static void mw_mirth_c99_ZPlusC99StackCache_popZ_localZ_labelZAsk (void) {
 	VAL r0 = pop_resource();
 	switch (get_data_tag(r0)) {
 		case 0LL: { // +SCNil
-			VAL v1 = (MKU64(0LL /* +C99LocalNone */));
-			VAL v2 = (MKU64(0LL /* +SCNil */));
-			push_resource(v1);
-			push_resource(v2);
+			uint64_t v1 = (0LL /* +C99LocalNone */);
+			uint64_t v2 = (0LL /* +SCNil */);
+			push_resource(MKU64(v1));
+			push_resource(MKU64(v2));
 		} break;
 		case 1LL: { // +SCCons
 			push_resource(r0);
@@ -70372,10 +70709,10 @@ static void mw_mirth_c99_ZPlusC99StackCache_popZ_localZ_resourceZ_labelZAsk (voi
 	VAL r0 = pop_resource();
 	switch (get_data_tag(r0)) {
 		case 0LL: { // +SCNil
-			VAL v1 = (MKU64(0LL /* +C99LocalResourceNone */));
-			VAL v2 = (MKU64(0LL /* +SCNil */));
-			push_resource(v1);
-			push_resource(v2);
+			uint64_t v1 = (0LL /* +C99LocalResourceNone */);
+			uint64_t v2 = (0LL /* +SCNil */);
+			push_resource(MKU64(v1));
+			push_resource(MKU64(v2));
 		} break;
 		case 1LL: { // +SCCons
 			push_resource(r0);
@@ -70486,10 +70823,10 @@ static void mw_mirth_c99_ZPlusC99StackCache_rdup (void) {
 	VAL r0 = pop_resource();
 	switch (get_data_tag(r0)) {
 		case 0LL: { // +SCNil
-			VAL v1 = (MKU64(0LL /* +SCNil */));
-			VAL v2 = (MKU64(0LL /* +SCNil */));
-			push_resource(v1);
-			push_resource(v2);
+			uint64_t v1 = (0LL /* +SCNil */);
+			uint64_t v2 = (0LL /* +SCNil */);
+			push_resource(MKU64(v1));
+			push_resource(MKU64(v2));
 		} break;
 		case 1LL: { // +SCCons
 			push_resource(r0);
@@ -70683,9 +71020,9 @@ static void mw_mirth_c99_ZPlusC99BranchSplit_subZ_branch_1 (void) {
 }
 static void mw_mirth_c99_ZPlusC99_startZ_branchZBang (void) {
 	VAL r0 = pop_resource();
-	VAL v1 = (MKU64(0LL /* +SCNil */));
+	uint64_t v1 = (0LL /* +SCNil */);
 	lpush(&lbl_ZPluscore, r0);
-	lpush(&lbl_ZPlusstack, v1);
+	lpush(&lbl_ZPlusstack, MKU64(v1));
 	mtw_mirth_c99_ZPlusC99Branch_ZPlusC99Branch();
 }
 static void mw_mirth_c99_ZPlusC99Branch_endZ_branchZBang (void) {
@@ -70945,6 +71282,85 @@ static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_labelZBang (void) {
 		}
 	}
 }
+static void mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZ_resourceZBang (void) {
+	{
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[2];
+		VAL u = *p;
+		ASSERT1(VREFS(v) == 1, v);
+		*p = (VAL){0};
+		push_resource(u);
+		push_resource(v);
+	}
+	VAL r0 = pop_resource();
+	mw_mirth_c99_ZPlusC99StackCache_popZ_localZ_resourceZAsk();
+	push_resource(r0);
+	{
+		VAL v = pop_resource();
+		VAL u = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		ASSERT1(VREFS(v) == 1, v);
+		VAL* p = &VTUP(v)->cells[2];
+		ASSERT1(p->tag == 0, v);
+		*p = u;
+		push_resource(v);
+	}
+	VAL r1 = pop_resource();
+	VAL r2 = pop_resource();
+	switch (get_data_tag(r2)) {
+		case 1LL: { // +C99LocalResourceSome
+			push_resource(r1);
+			push_resource(r2);
+			mtp_mirth_c99_ZPlusC99LocalResourceZAsk_ZPlusC99LocalResourceSome();
+			VAL v3 = pop_value();
+			decref(v3);
+		} break;
+		case 0LL: { // +C99LocalResourceNone
+			push_resource(r1);
+			{
+				VAL v = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				VAL* p = &VTUP(v)->cells[1];
+				VAL u = *p;
+				ASSERT1(VREFS(v) == 1, v);
+				*p = (VAL){0};
+				push_resource(u);
+				push_resource(v);
+			}
+			VAL r4 = pop_resource();
+			mw_mirth_c99_ZPlusC99_popZ_localZ_resourceZ_directZBang();
+			VAL r5 = pop_resource();
+			VAL r6 = pop_resource();
+			push_resource(r5);
+			push_resource(r6);
+			push_resource(r4);
+			{
+				VAL v = pop_resource();
+				VAL u = pop_resource();
+				ASSERT1(IS_TUP(v), v);
+				ASSERT1(VTUPLEN(v) == 3, v);
+				ASSERT1(VREFS(v) == 1, v);
+				VAL* p = &VTUP(v)->cells[1];
+				ASSERT1(p->tag == 0, v);
+				*p = u;
+				push_resource(v);
+			}
+			VAL r7 = pop_resource();
+			VAL r8 = pop_resource();
+			push_resource(r7);
+			push_resource(r8);
+		} break;
+		default: {
+			push_value(mkstr("unexpected fallthrough in match\n", 32));
+			push_resource(r1);
+			mp_primZ_panic();
+		}
+	}
+}
 static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_resourceZBang (void) {
 	{
 		VAL v = pop_resource();
@@ -70993,11 +71409,13 @@ static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_resourceZBang (void) {
 				push_resource(v);
 			}
 			VAL r3 = pop_resource();
+			uint64_t v4 = (0LL /* C99RT_VAL */);
+			push_u64(v4);
 			mw_mirth_c99_ZPlusC99_popZ_localZ_resourceZ_directZBang();
-			VAL r4 = pop_resource();
 			VAL r5 = pop_resource();
-			push_resource(r4);
+			VAL r6 = pop_resource();
 			push_resource(r5);
+			push_resource(r6);
 			push_resource(r3);
 			{
 				VAL v = pop_resource();
@@ -71010,10 +71428,10 @@ static void mw_mirth_c99_ZPlusC99Branch_popZ_localZ_resourceZBang (void) {
 				*p = u;
 				push_resource(v);
 			}
-			VAL r6 = pop_resource();
 			VAL r7 = pop_resource();
-			push_resource(r6);
+			VAL r8 = pop_resource();
 			push_resource(r7);
+			push_resource(r8);
 		} break;
 		default: {
 			push_value(mkstr("unexpected fallthrough in match\n", 32));
@@ -75795,6 +76213,8 @@ static void mw_mirth_c99_c99Z_mainZBang (void) {
 	} else {
 	}
 	mw_mirth_c99_ZPlusC99_startZ_branchZBang();
+	uint64_t v6 = (2LL /* C99RT_U64 */);
+	push_u64(v6);
 	{
 		VAL v = pop_resource();
 		ASSERT1(IS_TUP(v), v);
@@ -75806,38 +76226,59 @@ static void mw_mirth_c99_c99Z_mainZBang (void) {
 		push_resource(u);
 		push_resource(v);
 	}
-	VAL r6 = pop_resource();
+	VAL r7 = pop_resource();
+	VAL v8 = pop_value();
+	lpush(&lbl_localZ_resourceZ_repr, v8);
 	mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
-	VAL v7 = pop_value();
-	VAL r8 = pop_resource();
-	lpush(&lbl_localZ_resourceZ_name, v7);
+	VAL v9 = pop_value();
+	VAL r10 = pop_resource();
+	lpush(&lbl_localZ_resourceZ_name, v9);
 	mtw_mirth_c99_ZPlusC99LocalResource_ZPlusC99LocalResource();
-	push_resource(r8);
+	push_resource(r10);
 	mw_mirth_c99_ZPlusC99_indent();
-	STRLIT("VAL ", 4);
-	mw_mirth_c99_ZPlusC99_put();
-	VAL r9 = pop_resource();
+	VAL r11 = pop_resource();
 	{
-		VAL v = top_resource();
-		incref(v);
-		push_value(v);
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[1];
+		VAL u = *p;
+		incref(u);
+		push_resource(v);
+		push_value(u);
 	}
-	push_resource(r9);
+	push_resource(r11);
+	mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
+	mw_mirth_c99_ZPlusC99_put();
+	STRLIT(" ", 1);
+	mw_mirth_c99_ZPlusC99_put();
+	VAL r12 = pop_resource();
+	{
+		VAL v = pop_resource();
+		ASSERT1(IS_TUP(v), v);
+		ASSERT1(VTUPLEN(v) == 3, v);
+		VAL* p = &VTUP(v)->cells[2];
+		VAL u = *p;
+		incref(u);
+		push_resource(v);
+		push_value(u);
+	}
+	push_resource(r12);
 	mw_mirth_c99_ZPlusC99_put();
 	STRLIT(" = (", 4);
 	mw_mirth_c99_ZPlusC99_put();
-	VAL r10 = pop_resource();
-	VAL r11 = pop_resource();
-	push_resource(r10);
-	STRLIT("MKU64(0) /* The World! */", 25);
+	VAL r13 = pop_resource();
+	VAL r14 = pop_resource();
+	push_resource(r13);
+	STRLIT("0 /* The World! */", 18);
 	mw_mirth_c99_ZPlusC99_put();
-	VAL r12 = pop_resource();
-	push_resource(r11);
-	push_resource(r12);
+	VAL r15 = pop_resource();
+	push_resource(r14);
+	push_resource(r15);
 	STRLIT(");", 2);
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
-	push_resource(r6);
+	push_resource(r7);
 	{
 		VAL v = pop_resource();
 		VAL u = pop_resource();
@@ -75849,10 +76290,10 @@ static void mw_mirth_c99_c99Z_mainZBang (void) {
 		*p = u;
 		push_resource(v);
 	}
-	VAL r13 = pop_resource();
-	VAL r14 = pop_resource();
-	push_resource(r13);
-	push_resource(r14);
+	VAL r16 = pop_resource();
+	VAL r17 = pop_resource();
+	push_resource(r16);
+	push_resource(r17);
 	mw_mirth_c99_ZPlusC99LocalResource_pushZ_localZ_resourceZBang();
 	mw_mirth_c99_c99Z_arrowZBang();
 	mw_mirth_c99_ZPlusC99Branch_endZ_branchZBang();
@@ -75876,8 +76317,8 @@ static void mw_mirth_c99_c99Z_mainZBang (void) {
 		decref(v);
 		push_value(u);
 	}
-	bool v15 = pop_bool();
-	if (v15) {
+	bool v18 = pop_bool();
+	if (v18) {
 		mw_mirth_c99_ZPlusC99_indent();
 		STRLIT("WORD_EXIT((void(*)(void))0);", 28);
 		mw_mirth_c99_ZPlusC99_put();
@@ -75898,12 +76339,12 @@ static void mw_mirth_c99_c99Z_mainZBang (void) {
 		push_resource(v);
 		push_value(u);
 	}
-	VAL r16 = pop_resource();
-	int64_t v17 = (1LL);
-	push_i64(v17);
+	VAL r19 = pop_resource();
+	int64_t v20 = (1LL);
+	push_i64(v20);
 	mp_primZ_intZ_sub();
 	mw_std_prim_Int_ZToNat();
-	push_resource(r16);
+	push_resource(r19);
 	{
 		VAL v = top_resource();
 		VAL u = pop_value();

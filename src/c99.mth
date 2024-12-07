@@ -688,10 +688,9 @@ def(c99-tag-word!, List(Arg) Tag +C99Branch -- +C99Branch,
     dup prefer-inline? if(
         dup .data is-transparent? else(
             dup outputs-resource? if(
-                push-resource-expression!(
-                    "MKU64(" put
+                C99RT_U64 push-resource-expression!(
                     dup value-show put "LL /* " put
-                    dup name >Str put " */)" put
+                    dup name >Str put " */" put
                 ),
                 C99RT_U64 push-expression!(
                     dup value-show put "LL /* " put
@@ -724,20 +723,19 @@ def push-local-label! [ Label +C99Branch +C99Local -- +C99Branch ] {
     rswap +stack(rswap +SCConsLabel)
 }
 def push-local-resource-label-direct! [ Label +C99 +C99LocalResource -- +C99 ] {
-    consume swap
+    consume-as-VAL swap
     c99-line("lpush(&lbl_" put name mangled put ", " put put ");" put)
 }
 def push-local-resource-label! [ Label +C99Branch +C99LocalResource -- +C99Branch ] {
     rswap +stack(rswap +SCWithLabel)
 }
 
-
 def pop-local-label-direct! [ Label +C99 -- +C99 +C99Local ] {
     C99RT_VAL local-expression!("lpop(&lbl_" put name mangled put ")" put) rswap
 }
 
 def pop-local-resource-label-direct! [ Label +C99 -- +C99 +C99LocalResource ] {
-    local-resource-expression!("lpop(&lbl_" put name mangled put ")" put) rswap
+    C99RT_VAL local-resource-expression!("lpop(&lbl_" put name mangled put ")" put) rswap
 }
 
 def c99-label-push! [ Label +C99Branch -- +C99Branch ] {
@@ -968,7 +966,7 @@ inline (
     }
 
     def push-resource-expression!(f) [
-        (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch
+        (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
     ] {
         +core:local-resource-expression!(f) rswap push-local-resource!
     }
@@ -985,11 +983,13 @@ inline (
     }
 
     def local-resource-expression!(f) [
-        (*a +C99 -- *b +C99) *a +C99 -- *b +C99LocalResource +C99
+        (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99LocalResource +C99
     ] {
+        >local-resource-repr
         fresh-name! >local-resource-name rdip:+C99LocalResource
-        c99-line("VAL " put rdip:local-resource-name put " = (" put
-            rswap rdip:f rswap ");" put)
+        c99-line(rdip:local-resource-repr underlying-c99-type put " " put
+                 rdip:local-resource-name put " = (" put
+                 rswap rdip:f rswap ");" put)
     }
 )
 
@@ -1103,10 +1103,12 @@ def +C99Local.peek-data-tag [ +C99Local -- +C99Local Str ] {
 }
 
 struct +C99LocalResource {
+    local-resource-repr: C99ReprType
     local-resource-name: Str
 }
 
 def +C99LocalResource.rdup [ +C99LocalResource -- +C99LocalResource +C99LocalResource ] {
+    local-resource-repr >local-resource-repr
     local-resource-name >local-resource-name
     +C99LocalResource
 }
@@ -1116,23 +1118,54 @@ def +C99LocalResource.rdrop [ +C99LocalResource -- ] {
 }
 
 def +C99LocalResource.consume [ +C99LocalResource -- Str ] {
-    /+C99LocalResource local-resource-name>
+    /+C99LocalResource
+    local-resource-repr> drop
+    local-resource-name>
 }
 
-def +C99.pop-local-resource-direct! [ +C99 -- +C99 +C99LocalResource ] {
+def +C99LocalResource.consume-as-VAL [ +C99LocalResource -- Str ] {
+    /+C99LocalResource local-resource-repr> match {
+        C99RT_VAL -> local-resource-name>,
+        _ -> Str(mk-macro ; "(" ; local-resource-name> ; ")";)
+    }
+}
+
+def +C99.pop-local-resource-direct! [ +C99 C99ReprType -- +C99 +C99LocalResource ] {
+    >local-resource-repr
     fresh-resource-name! >local-resource-name
-    c99-line("VAL " put @local-resource-name put " = pop_resource();" put)
+    c99-line(
+        @local-resource-repr underlying-c99-type put " " put
+        @local-resource-name put " = " put
+        @local-resource-repr match {
+            { C99RT_VAL -> "pop_resource()" put }
+            { _ -> v-macro put "(pop_resource())" put }
+        }
+        ";" put
+    )
     +C99LocalResource
 }
 
 def +C99LocalResource.push-local-resource-direct! [ +C99 +C99LocalResource -- +C99 ] {
     /+C99LocalResource
-    c99-line("push_resource(" put local-resource-name> put ");" put)
+    c99-line(
+        "push_resource(" put
+        local-resource-repr> match {
+            { C99RT_VAL -> local-resource-name> put }
+            { _ -> mk-macro put "(" put local-resource-name> put ")" put }
+        }
+        ");" put
+    )
 }
 
 def +C99LocalResource.peek-data-tag [ +C99LocalResource -- +C99LocalResource Str ] {
-    local-resource-name
-    Str("get_data_tag(" ; ; ")" ;)
+    local-resource-repr match {
+        { C99RT_VAL -> local-resource-name Str("get_data_tag(" ; ; ")" ;) }
+        { C99RT_I64 -> local-resource-name }
+        { C99RT_U64 -> local-resource-name }
+        { C99RT_BOOL -> local-resource-name }
+        { C99RT_F32 -> local-resource-name }
+        { C99RT_F64 -> local-resource-name }
+    }
 }
 
 data +C99LocalValue/Resource {
@@ -1161,7 +1194,7 @@ def +C99LocalValue/Resource.rdrop  [ +C99LocalValue/Resource -- ] {
 
 def +C99Branch.pop-local-value/resource-data! [ Data +C99Branch -- +C99Branch +C99LocalValue/Resource ] {
     dup is-resource? if(
-        drop pop-local-resource! +C99LocalValue/Resource.+Right,
+        +core:+mirth:c99-repr pop-to-local-resource! +C99LocalValue/Resource.+Right,
         +core:+mirth:c99-repr pop-to-local! +C99LocalValue/Resource.+Left
     )
 }
@@ -1312,10 +1345,17 @@ def +C99Branch.pop-local-label! [ Label +C99Branch -- +C99Branch +C99Local ] {
     }
 }
 
+def +C99Branch.pop-to-local-resource! [ +C99Branch C99ReprType -- +C99Branch +C99LocalResource ] {
+    +stack(pop-local-resource?) rswap match {
+        { +C99LocalResourceSome -> drop }
+        { +C99LocalResourceNone -> +core(pop-local-resource-direct! rswap) rswap }
+    }
+}
+
 def +C99Branch.pop-local-resource! [ +C99Branch -- +C99Branch +C99LocalResource ] {
     +stack(pop-local-resource?) rswap match {
         { +C99LocalResourceSome -> }
-        { +C99LocalResourceNone -> +core(pop-local-resource-direct! rswap) rswap }
+        { +C99LocalResourceNone -> +core(C99RT_VAL pop-local-resource-direct! rswap) rswap }
     }
 }
 
@@ -1729,7 +1769,7 @@ def(c99-main!, Arrow +C99 -- +C99,
                 dup token-start col >Int show put ");" put)
         )
         start-branch!
-        push-resource-expression!("MKU64(0) /* The World! */" put)
+        C99RT_U64 push-resource-expression!("0 /* The World! */" put)
         c99-arrow!
         end-branch!
         options emit-debug-info then(
