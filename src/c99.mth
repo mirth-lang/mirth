@@ -293,54 +293,60 @@ def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
     over2 label-inputs reverse-find(dip(1- over) ==) drop
     dip:drop2)
 
-def(c99-tag-get-label!, Tag Label +C99Branch -- +C99Branch,
-    end-branch!
-    c99-line("{" put)
-    c99-nest(
-        over is-semi-transparent? if(
-            dup2 swap +mirth:project-input-label unwrap match(
-                Left -> drop
-                    over outputs-resource? then(
-                        c99-line("VAL v = top_resource();" put)
-                        c99-line("incref(v);" put)
-                        c99-line("push_value(v);" put)
-                    ),
+def c99-tag-get-label! [ Tag Label +C99Branch -- +C99Branch ] {
+    >label >tag
+    @label @tag +core:+mirth:project-input-label unwrap >fieldty
+    @tag is-semi-transparent? if(
+        fieldty> match {
+            { Left -> # field is value
+                @tag outputs-resource? if(
+                    # wrapper is resource
+                    type-to-c99-repr pop-to-local-resource!
+                    dup-local-resource-as-value!
+                    rdip(push-local-resource!) push-local!,
 
-                Right -> drop
-                    c99-line("push_resource(MKU64(0));" put)
-            ),
+                    # wrapper is value
+                    drop
+                )
+            }
 
-            over outputs-resource? if(
-                c99-line("VAL v = pop_resource();" put),
-                c99-line("VAL v = pop_value();" put)
-            )
-            c99-line("ASSERT1(IS_TUP(v), v);" put)
-            c99-line("ASSERT1(VTUPLEN(v) == " put
-                over num-total-inputs 1+ show put
-                ", v);" put)
-            c99-line("VAL* p = &VTUP(v)->cells[" put
-                dup2 c99-tag-label-index show put
-                "];" put)
-            c99-line("VAL u = *p;" put)
+            { Right -> # field and wrapper are both resources
+                drop
+                C99RT_U64 push-resource-expression!("0" put)
+            }
+        },
 
-            dup2 swap +mirth:project-input-label unwrap match(
-                Left -> drop
-                    c99-line("incref(u);" put)
-                    over outputs-resource? if(
-                        c99-line("push_resource(v);" put),
-                        c99-line("decref(v);" put)
-                    )
-                    c99-line("push_value(u);" put),
-                Right -> drop
-                    c99-line("ASSERT1(VREFS(v) == 1, v);" put)
-                    c99-line("*p = (VAL){0};" put)
-                    c99-line("push_resource(u);" put)
-                    c99-line("push_resource(v);" put)
-            )
-        ) drop2
+        @tag .data pop-local-value/resource-data! >+tuplevar
+        fieldty> match {
+            { Left -> # field is value
+                type-to-c99-repr >fieldrepr
+                @fieldrepr +core:local-expression!(
+                    fieldrepr> v-macro put
+                    "(VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
+                    @tag @label c99-tag-label-index show put
+                    "])" put
+                ) rswap dup-local! rdrop push-local!
+                +tuplevar> match {
+                    { +Left -> # tuple is value
+                        drop-local! }
+                    { +Right -> # tuple is resource
+                        push-local-resource! }
+                }
+            }
+            { Right -> # field and tuple are resources
+                resource-to-c99-repr >fieldrepr
+                @fieldrepr push-resource-expression!(
+                    fieldrepr> v-macro put
+                    "(VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
+                    @tag @label c99-tag-label-index show put
+                    "])" put
+                )
+                +tuplevar> push-local-value/resource!
+            }
+        }
     )
-    c99-line("}" put)
-    start-branch!)
+    label> tag> drop2
+}
 
 def c99-tag-set-label! [ Tag Label +C99Branch -- +C99Branch ] {
     >lbl >tag
@@ -427,7 +433,7 @@ def c99-tag-set-label! [ Tag Label +C99Branch -- +C99Branch ] {
                     c99-line("VAL* p = &VTUP(v)->cells[" put
                         @tag @lbl c99-tag-label-index show put
                         "];" put)
-                    c99-line("ASSERT1(p->tag == 0, v);" put)
+                    # c99-line("ASSERT1(p->tag == 0, v);" put)
                     c99-line("*p = u;" put)
                     c99-line("push_resource(v);" put)
                 )
@@ -1131,6 +1137,22 @@ def +C99LocalResource.rdrop [ +C99LocalResource -- ] {
     consume drop
 }
 
+def +C99LocalResource.dup-local-resource-as-value! [ +C99Branch +C99LocalResource -- +C99Branch +C99LocalResource +C99Local ] {
+    local-resource-repr >+x match {
+        { C99RT_VAL -> +core:c99-line("incref(" put @+x:local-resource-name put ");" put) }
+        { C99RT_I64 -> }
+        { C99RT_U64 -> }
+        { C99RT_F32 -> }
+        { C99RT_F64 -> }
+        { C99RT_BOOL -> }
+    }
+    +x>
+    local-resource-repr >local-repr
+    local-resource-name >local-name
+    +C99Local
+}
+
+
 def +C99LocalResource.consume [ +C99LocalResource -- Str ] {
     /+C99LocalResource
     local-resource-repr> drop
@@ -1204,6 +1226,10 @@ def +C99LocalValue/Resource.rdup [ +C99LocalValue/Resource -- +C99LocalValue/Res
 def +C99LocalValue/Resource.rdrop  [ +C99LocalValue/Resource -- ] {
     { +Left -> rdrop }
     { +Right -> rdrop }
+}
+def +C99LocalValue/Resource.consume-as-VAL [ +C99LocalValue/Resource -- Str ] {
+    { +Left -> consume-as-VAL }
+    { +Right -> consume-as-VAL }
 }
 
 def +C99Branch.pop-local-value/resource-data! [ Data +C99Branch -- +C99Branch +C99LocalValue/Resource ] {
