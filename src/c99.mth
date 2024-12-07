@@ -816,6 +816,7 @@ data C99ReprType {
     C99RT_F32
     C99RT_F64
     C99RT_BOOL
+    C99RT_PTR
 }
 
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
@@ -825,6 +826,7 @@ def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
    { C99RT_F32 -> False }
    { C99RT_F64 -> False }
    { C99RT_BOOL -> False }
+   { C99RT_PTR -> False }
 }
 
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
@@ -834,6 +836,7 @@ def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
     { C99RT_F32 -> "float" }
     { C99RT_F64 -> "double" }
     { C99RT_BOOL -> "bool" }
+    { C99RT_PTR -> "void*" }
 }
 
 def C99ReprType.is-macro [ C99ReprType -- Str ] {
@@ -843,6 +846,7 @@ def C99ReprType.is-macro [ C99ReprType -- Str ] {
     { C99RT_F32 -> "IS_F32" }
     { C99RT_F64 -> "IS_F64" }
     { C99RT_BOOL -> "IS_BOOL" }
+    { C99RT_PTR -> "IS_PTR" }
 }
 
 def C99ReprType.v-macro [ C99ReprType -- Str ] {
@@ -852,6 +856,7 @@ def C99ReprType.v-macro [ C99ReprType -- Str ] {
     { C99RT_F32 -> "VF32" }
     { C99RT_F64 -> "VF64" }
     { C99RT_BOOL -> "VBOOL" }
+    { C99RT_PTR -> "VPTR" }
 }
 
 def C99ReprType.mk-macro [ C99ReprType -- Str ] {
@@ -861,6 +866,7 @@ def C99ReprType.mk-macro [ C99ReprType -- Str ] {
     { C99RT_F32 -> "MKF32" }
     { C99RT_F64 -> "MKF64" }
     { C99RT_BOOL -> "MKBOOL" }
+    { C99RT_PTR -> "MKPTR" }
 }
 
 def C99ReprType.pop-macro [ C99ReprType -- Str ] {
@@ -870,6 +876,7 @@ def C99ReprType.pop-macro [ C99ReprType -- Str ] {
     { C99RT_F32 -> "pop_f32" }
     { C99RT_F64 -> "pop_f64" }
     { C99RT_BOOL -> "pop_bool" }
+    { C99RT_PTR -> "pop_ptr" }
 }
 
 def C99ReprType.push-macro [ C99ReprType -- Str ] {
@@ -879,6 +886,7 @@ def C99ReprType.push-macro [ C99ReprType -- Str ] {
     { C99RT_F32 -> "push_f32" }
     { C99RT_F64 -> "push_f64" }
     { C99RT_BOOL -> "push_bool" }
+    { C99RT_PTR -> "push_ptr" }
 }
 
 def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
@@ -1067,6 +1075,16 @@ def +C99Local.consume-as-F64 [ +C99Local -- Str ] {
     }
 }
 
+def +C99Local.consume-as-PTR [ +C99Local -- Str ] {
+    /+C99Local local-name> local-repr> match {
+        { C99RT_VAL -> Str( "VPTR(" ; ; ")" ; ) }
+        { C99RT_I64 -> Str( "(void*)(uintptr_t)(" ; ; ")" ; ) }
+        { C99RT_U64 -> Str( "(void*)(uintptr_t)(" ; ; ")" ; ) }
+        { C99RT_PTR -> }
+        { _ -> "attempted to consume non-pointer as pointer" panic! }
+    }
+}
+
 def +C99Local.consume-as [ C99ReprType +C99Local -- Str ] {
     C99RT_VAL  -> consume-as-VAL,
     C99RT_I64  -> consume-as-I64,
@@ -1074,31 +1092,21 @@ def +C99Local.consume-as [ C99ReprType +C99Local -- Str ] {
     C99RT_BOOL -> consume-as-BOOL,
     C99RT_F32  -> consume-as-F32,
     C99RT_F64  -> consume-as-F64,
+    C99RT_PTR  -> consume-as-PTR,
 }
 
 def +C99Local.drop-local! [ +C99Branch +C99Local -- +C99Branch ] {
-    local-repr match {
-        { C99RT_VAL -> >+x +core:c99-line("decref(" put +x> consume put ");" put) }
-        { C99RT_I64 -> consume drop }
-        { C99RT_U64 -> consume drop }
-        { C99RT_F32 -> consume drop }
-        { C99RT_F64 -> consume drop }
-        { C99RT_BOOL -> consume drop }
-    }
+    local-repr needs-refcounting? if(
+        consume-as-VAL +core:c99-line("decref(" put put ");" put),
+        rdrop
+    )
 }
+
 def +C99Local.dup-local! [ +C99Branch +C99Local -- +C99Branch +C99Local +C99Local ] {
-    local-repr >+x match {
-        { C99RT_VAL -> +core:c99-line("incref(" put @+x:local-name put ");" put) }
-        { C99RT_I64 -> }
-        { C99RT_U64 -> }
-        { C99RT_F32 -> }
-        { C99RT_F64 -> }
-        { C99RT_BOOL -> }
-    }
-    +x>
-    local-repr >local-repr
-    local-name >local-name
-    +C99Local
+    local-repr needs-refcounting? then(
+        rdup consume-as-VAL rdip:+core:c99-line("incref(" put put ");" put)
+    )
+    rdup
 }
 
 def +C99Local.peek-data-tag [ +C99Local -- +C99Local Str ] {
@@ -1109,6 +1117,7 @@ def +C99Local.peek-data-tag [ +C99Local -- +C99Local Str ] {
         { C99RT_BOOL -> local-name }
         { C99RT_F32 -> local-name }
         { C99RT_F64 -> local-name }
+        { C99RT_PTR -> local-name }
     }
 }
 
@@ -1197,6 +1206,7 @@ def +C99LocalResource.peek-data-tag [ +C99LocalResource -- +C99LocalResource Str
         { C99RT_BOOL -> local-resource-name }
         { C99RT_F32 -> local-resource-name }
         { C99RT_F64 -> local-resource-name }
+        { C99RT_PTR -> local-resource-name }
     }
 }
 
@@ -1404,11 +1414,25 @@ struct C99BinOp {
     out-type: C99ReprType
 }
 
+def c99-binop! [ C99BinOp +C99Branch -- +C99Branch ] {
+    /C99BinOp
+    @arg1-type pop-to-local! >+arg2
+    @arg2-type pop-to-local! >+arg1
+    out-type> push-expression!(
+        +arg1> arg1-type> consume-as put
+        " " put operator> put " " put
+        +arg2> arg2-type> consume-as put
+    )
+
+    precedence> drop
+}
+
 def C99BinOp.Mk [ Str Int C99ReprType C99ReprType C99ReprType -- C99BinOp ] {
     >out-type >arg2-type >arg1-type
     >precedence >operator
     C99BinOp
 }
+
 
 def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_INT_MUL -> "*"  3  C99RT_I64 C99RT_I64 C99RT_I64 C99BinOp.Mk Some }
@@ -1454,12 +1478,30 @@ struct C99UnOp {
     out-type: C99ReprType
 }
 
+def c99-unop! [ C99UnOp +C99Branch -- +C99Branch ] {
+    /C99UnOp
+    @arg-type pop-to-local! >+arg
+    out-type> push-expression! (
+        operator> put "(" put
+        +arg> arg-type> consume-as put ")" put
+    )
+}
+
 def C99UnOp.Mk [ Str C99ReprType C99ReprType -- C99UnOp ] {
     >out-type >arg-type >operator C99UnOp
 }
 
 def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
     { PRIM_BOOL_NOT -> "!" C99RT_BOOL C99RT_BOOL C99UnOp.Mk Some }
+    { PRIM_I64_GET -> "*(int64_t*)"  C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
+    { PRIM_I32_GET -> "*(int32_t*)"  C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
+    { PRIM_I16_GET -> "*(int16_t*)"  C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
+    { PRIM_I8_GET  -> "*(int8_t*)"   C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
+    { PRIM_U64_GET -> "*(uint64_t*)" C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
+    { PRIM_U32_GET -> "*(uint32_t*)" C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
+    { PRIM_U16_GET -> "*(uint16_t*)" C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
+    { PRIM_U8_GET  -> "*(uint8_t*)"  C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
+    { PRIM_PTR_GET -> "*(void**)"    C99RT_PTR C99RT_PTR C99UnOp.Mk Some }
     { _ -> drop None }
 }
 
@@ -1583,28 +1625,6 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
             c99-prim-default!
         )
     }
-}
-
-def c99-unop! [ C99UnOp +C99Branch -- +C99Branch ] {
-    /C99UnOp
-    @arg-type pop-to-local! >+arg
-    out-type> push-expression! (
-        operator> put "(" put
-        +arg> arg-type> consume-as put ")" put
-    )
-}
-
-def c99-binop! [ C99BinOp +C99Branch -- +C99Branch ] {
-    /C99BinOp
-    @arg1-type pop-to-local! >+arg2
-    @arg2-type pop-to-local! >+arg1
-    out-type> push-expression!(
-        +arg1> arg1-type> consume-as put
-        " " put operator> put " " put
-        +arg2> arg2-type> consume-as put
-    )
-
-    precedence> drop
 }
 
 def(c99-prim-default!, List(Arg) Prim +C99Branch -- +C99Branch,

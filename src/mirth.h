@@ -742,24 +742,6 @@ static void mp_primZ_intZ_shr (void) {
 	PRIM_EXIT(mp_primZ_intZ_shr);
 }
 
-static void mp_primZ_intZ_eq (void) {
-	PRIM_ENTER(mp_primZ_intZ_eq,"prim-int-eq");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT1(IS_INT(a), a);
-	ASSERT1(IS_INT(b), a);
-	push_bool(VINT(a) == VINT(b));
-	PRIM_EXIT(mp_primZ_intZ_eq);
-}
-static void mp_primZ_intZ_lt (void) {
-	PRIM_ENTER(mp_primZ_intZ_lt,"prim-int-lt");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT2(IS_INT(a) && IS_INT(b), a, b);
-	push_bool(VINT(a) < VINT(b));
-	PRIM_EXIT(mp_primZ_intZ_lt);
-}
-
 static void mp_primZ_f32Z_toZ_f64 (void) {
 	PRIM_ENTER(mp_primZ_f32Z_toZ_f64, "prim-f32-to-f64");
 	float x = pop_f32();
@@ -813,56 +795,6 @@ static void mp_primZ_strZ_cmp (void) {
 	PRIM_EXIT(mp_primZ_strZ_cmp);
 }
 
-static void mp_primZ_f32Z_eq (void) {
-	PRIM_ENTER(mp_primZ_f32Z_eq,"prim-f32-eq");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT1(IS_F32(a), a);
-	ASSERT1(IS_F32(b), a);
-	push_bool(VF32(a) == VF32(b));
-	PRIM_EXIT(mp_primZ_f32Z_eq);
-}
-static void mp_primZ_f32Z_lt (void) {
-	PRIM_ENTER(mp_primZ_f32Z_lt,"prim-f32-lt");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT2(IS_F32(a) && IS_F32(b), a, b);
-	push_bool(VF32(a) < VF32(b));
-	PRIM_EXIT(mp_primZ_f32Z_lt);
-}
-
-static void mp_primZ_f32Z_add (void) {
-	PRIM_ENTER(mp_primZ_f32Z_add,"prim-f32-add");
-	double b = pop_f32();
-	double a = pop_f32();
-	push_f32(a + b);
-	PRIM_EXIT(mp_primZ_f32Z_add);
-}
-
-static void mp_primZ_f32Z_sub (void) {
-	PRIM_ENTER(mp_primZ_f32Z_sub,"prim-f32-sub");
-	double b = pop_f32();
-	double a = pop_f32();
-	push_f32(a - b);
-	PRIM_EXIT(mp_primZ_f32Z_sub);
-}
-
-static void mp_primZ_f32Z_mul (void) {
-	PRIM_ENTER(mp_primZ_f32Z_mul,"prim-f32-mul");
-	double b = pop_f32();
-	double a = pop_f32();
-	push_f32(a * b);
-	PRIM_EXIT(mp_primZ_f32Z_mul);
-}
-
-static void mp_primZ_f32Z_div (void) {
-	PRIM_ENTER(mp_primZ_f32Z_div,"prim-f32-div");
-	double b = pop_f32();
-	double a = pop_f32();
-	push_f32(a / b);
-	PRIM_EXIT(mp_primZ_f32Z_div);
-}
-
 static void mp_primZ_f32Z_toZ_str (void) {
 	PRIM_ENTER(mp_primZ_f32Z_toZ_str, "prim-f32-to-str");
 	double d = pop_f32();
@@ -870,56 +802,6 @@ static void mp_primZ_f32Z_toZ_str (void) {
 	int len = sprintf(result,"%.*g", DBL_DIG,  d);
 	push_value(mkstr(result, len));
 	PRIM_EXIT(mp_primZ_f32Z_toZ_str);
-}
-
-static void mp_primZ_f64Z_eq (void) {
-	PRIM_ENTER(mp_primZ_f64Z_eq,"prim-f64-eq");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT1(IS_F64(a), a);
-	ASSERT1(IS_F64(b), a);
-	push_bool(VF64(a) == VF64(b));
-	PRIM_EXIT(mp_primZ_f64Z_eq);
-}
-static void mp_primZ_f64Z_lt (void) {
-	PRIM_ENTER(mp_primZ_f64Z_lt,"prim-f64-lt");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT2(IS_F64(a) && IS_F64(b), a, b);
-	push_bool(VF64(a) < VF64(b));
-	PRIM_EXIT(mp_primZ_f64Z_lt);
-}
-
-static void mp_primZ_f64Z_add (void) {
-	PRIM_ENTER(mp_primZ_f64Z_add,"prim-f64-add");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a + b);
-	PRIM_EXIT(mp_primZ_f64Z_add);
-}
-
-static void mp_primZ_f64Z_sub (void) {
-	PRIM_ENTER(mp_primZ_f64Z_sub,"prim-f64-sub");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a - b);
-	PRIM_EXIT(mp_primZ_f64Z_sub);
-}
-
-static void mp_primZ_f64Z_mul (void) {
-	PRIM_ENTER(mp_primZ_f64Z_mul,"prim-f64-mul");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a * b);
-	PRIM_EXIT(mp_primZ_f64Z_mul);
-}
-
-static void mp_primZ_f64Z_div (void) {
-	PRIM_ENTER(mp_primZ_f64Z_div,"prim-f64-div");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a / b);
-	PRIM_EXIT(mp_primZ_f64Z_div);
 }
 
 static void mp_primZ_f64Z_toZ_str (void) {
@@ -1097,106 +979,6 @@ static void mp_primZ_panic(void) {
 	mp_primZ_debug();
 	mp_primZ_rdebug();
 	exit(1);
-}
-
-static void mp_primZ_ptrZ_get (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_get,"prim-ptr-get");
-	VAL vp = pop_value();
-	void **p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_ptr(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_ptrZ_get);
-}
-
-static void mp_primZ_u8Z_get (void) {
-	PRIM_ENTER(mp_primZ_u8Z_get,"prim-u8-get");
-	VAL vp = pop_value();
-	uint8_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u8(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u8Z_get);
-}
-
-static void mp_primZ_u16Z_get (void) {
-	PRIM_ENTER(mp_primZ_u16Z_get,"prim-u16-get");
-	VAL vp = pop_value();
-	uint16_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u16(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u16Z_get);
-}
-
-static void mp_primZ_u32Z_get (void) {
-	PRIM_ENTER(mp_primZ_u32Z_get,"prim-u32-get");
-	VAL vp = pop_value();
-	uint32_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u32(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u32Z_get);
-}
-
-static void mp_primZ_u64Z_get (void) {
-	PRIM_ENTER(mp_primZ_u64Z_get,"prim-u64-get");
-	VAL vp = pop_value();
-	uint64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u64(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u64Z_get);
-}
-
-static void mp_primZ_i8Z_get (void) {
-	PRIM_ENTER(mp_primZ_i8Z_get,"prim-i8-get");
-	VAL vp = pop_value();
-	int8_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i8(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i8Z_get);
-}
-
-static void mp_primZ_i16Z_get (void) {
-	PRIM_ENTER(mp_primZ_i16Z_get,"prim-i16-get");
-	VAL vp = pop_value();
-	int16_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i16(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i16Z_get);
-}
-
-static void mp_primZ_i32Z_get (void) {
-	PRIM_ENTER(mp_primZ_i32Z_get,"prim-i32-get");
-	VAL vp = pop_value();
-	int32_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i32(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i32Z_get);
-}
-
-static void mp_primZ_i64Z_get (void) {
-	PRIM_ENTER(mp_primZ_i64Z_get,"prim-i64-get");
-	VAL vp = pop_value();
-	int64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i64(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i64Z_get);
-}
-
-static void mp_primZ_intZ_set (void) {
-	PRIM_ENTER(mp_primZ_intZ_set,"prim-int-set");
-	VAL vp = pop_value();
-	int64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_i64();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_intZ_set);
 }
 
 static void mp_primZ_ptrZ_set (void) {
