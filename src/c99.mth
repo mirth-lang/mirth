@@ -645,10 +645,10 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { OpBlockPush     -> nip c99-block-push! }
     { OpBlockRun      -> nip c99-block-run! }
     { OpCoerce        -> drop2 }
-    { OpLabelPush     -> nip c99-label-push! }
-    { OpLabelPop      -> nip c99-label-pop! }
-    { OpLabelPushR    -> nip c99-label-push-r! }
-    { OpLabelPopR     -> nip c99-label-pop-r! }
+    { OpLabelPush     -> c99-label-push! }
+    { OpLabelPop      -> c99-label-pop! }
+    { OpLabelPushR    -> c99-label-push-r! }
+    { OpLabelPopR     -> c99-label-pop-r! }
     { OpDataGetTag    -> nip c99-get-data-tag! }
     { OpDataGetLabel  -> c99-tag-get-label! drop }
     { OpDataSetLabel  -> c99-tag-set-label! drop }
@@ -731,25 +731,39 @@ def push-local-resource-label! [ Label +C99Branch +C99LocalResource -- +C99Branc
     rswap +stack(rswap +SCWithLabel)
 }
 
-def pop-local-label-direct! [ Label +C99 -- +C99 +C99Local ] {
-    C99RT_VAL local-expression!("lpop(&lbl_" put name mangled put ")" put) rswap
+def pop-local-label-direct! [ C99ReprType Label +C99 -- +C99 +C99Local ] {
+    swap dup local-expression!(
+        match {
+            { C99RT_VAL -> "lpop(&lbl_" put name mangled put ")" put }
+            { _ -> v-macro put "(lpop(&lbl_" put name mangled put "))" put }
+        }
+    ) rswap
 }
 
-def pop-local-resource-label-direct! [ Label +C99 -- +C99 +C99LocalResource ] {
-    C99RT_VAL local-resource-expression!("lpop(&lbl_" put name mangled put ")" put) rswap
+def pop-local-resource-label-direct! [ C99ReprType Label +C99 -- +C99 +C99LocalResource ] {
+    swap dup local-resource-expression!(
+        match {
+            { C99RT_VAL -> "lpop(&lbl_" put name mangled put ")" put }
+            { _ -> v-macro put "(lpop(&lbl_" put name mangled put "))" put }
+        }
+    ) rswap
 }
 
-def c99-label-push! [ Label +C99Branch -- +C99Branch ] {
-    pop-local! push-local-label!
+def c99-label-push! [ Atom Label +C99Branch -- +C99Branch ] {
+    swap dom pop-local-from-stack-type! drop
+    push-local-label!
 }
-def c99-label-push-r! [ Label +C99Branch -- +C99Branch ] {
-    pop-local-resource! push-local-resource-label!
+def c99-label-push-r! [ Atom Label +C99Branch -- +C99Branch ] {
+    swap dom pop-local-resource-from-stack-type! drop
+    push-local-resource-label!
 }
-def c99-label-pop! [ Label +C99Branch -- +C99Branch ] {
-    pop-local-label! push-local!
+def c99-label-pop! [ Atom Label +C99Branch -- +C99Branch ] {
+    swap dom pop-local-label-from-stack-type! drop
+    push-local!
 }
-def c99-label-pop-r! [ Label +C99Branch -- +C99Branch ] {
-    pop-local-resource-label! push-local-resource!
+def c99-label-pop-r! [ Atom Label +C99Branch -- +C99Branch ] {
+    swap dom pop-local-resource-label-from-stack-type! drop
+    push-local-resource!
 }
 
 def(c99-int!, Int +C99Branch -- +C99Branch,
@@ -1332,16 +1346,9 @@ def +C99Branch.pop-to-local! [ +C99Branch C99ReprType -- +C99Branch +C99Local ] 
     }
 }
 
-def +C99Branch.pop-local! [ +C99Branch -- +C99Branch +C99Local ] {
-    +stack(pop-local?) rswap match {
-        { +C99LocalSome -> }
-        { +C99LocalNone -> +core(pop-local-direct! rswap) rswap }
-    }
-}
-
-def +C99Branch.pop-local-label! [ Label +C99Branch -- +C99Branch +C99Local ] {
+def +C99Branch.pop-to-local-label! [ C99ReprType Label +C99Branch -- +C99Branch +C99Local ] {
     +stack(pop-local-label?) rswap match {
-        { +C99LocalSome -> drop }
+        { +C99LocalSome -> drop2 }
         { +C99LocalNone -> +core(pop-local-label-direct! rswap) rswap }
     }
 }
@@ -1353,16 +1360,9 @@ def +C99Branch.pop-to-local-resource! [ +C99Branch C99ReprType -- +C99Branch +C9
     }
 }
 
-def +C99Branch.pop-local-resource! [ +C99Branch -- +C99Branch +C99LocalResource ] {
-    +stack(pop-local-resource?) rswap match {
-        { +C99LocalResourceSome -> }
-        { +C99LocalResourceNone -> +core(C99RT_VAL pop-local-resource-direct! rswap) rswap }
-    }
-}
-
-def +C99Branch.pop-local-resource-label! [ Label +C99Branch -- +C99Branch +C99LocalResource ] {
+def +C99Branch.pop-to-local-resource-label! [ C99ReprType Label +C99Branch -- +C99Branch +C99LocalResource ] {
     +stack(pop-local-resource-label?) rswap match {
-        { +C99LocalResourceSome -> drop }
+        { +C99LocalResourceSome -> drop2 }
         { +C99LocalResourceNone -> +core(pop-local-resource-label-direct! rswap) rswap }
     }
 }
@@ -1434,6 +1434,16 @@ def +C99Branch.pop-local-from-stack-type! [ StackType +C99Branch -- StackType +C
 def +C99Branch.pop-local-resource-from-stack-type! [ StackType +C99Branch -- StackType +C99Branch +C99LocalResource ] {
     force-with?! unwrap unpack2
     resource-to-c99-repr pop-to-local-resource!
+}
+
+def +C99Branch.pop-local-label-from-stack-type! [ Label StackType +C99Branch -- StackType +C99Branch +C99Local ] {
+    dip:dup force-cons-label?! unwrap unpack2 type-to-c99-repr
+    rotl pop-to-local-label!
+}
+
+def +C99Branch.pop-local-resource-label-from-stack-type! [ Label StackType +C99Branch -- StackType +C99Branch +C99LocalResource ] {
+    dip:dup force-with-label?! unwrap unpack2 resource-to-c99-repr
+    rotl pop-to-local-resource-label!
 }
 
 def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
