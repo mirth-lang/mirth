@@ -1776,7 +1776,6 @@ static VAL lbl_arg2Z_type = MKNIL_C;
 static VAL lbl_arg1Z_type = MKNIL_C;
 static VAL lbl_precedence = MKNIL_C;
 static VAL lbl_operator = MKNIL_C;
-
 static VAL lbl_argZ_type = MKNIL_C;
 static VAL lbl_ZPlusb = MKNIL_C;
 static VAL lbl_ZPlusa = MKNIL_C;
