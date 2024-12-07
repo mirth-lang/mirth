@@ -596,8 +596,8 @@ def(c99-atom!, Atom +C99Branch -- +C99Branch,
             ");" put
         )
     )
-    sip(args) op
-    c99-args-op!)
+    dup op
+    c99-atom-op!)
 
 def(Atom.show-in-stack-trace?, Atom -- Bool,
     op match(
@@ -627,34 +627,35 @@ def(Atom.show-in-stack-trace?, Atom -- Bool,
         OpDataSetLabel -> drop2 False
     ))
 
-def(c99-args-op!, List(Arg) Op +C99Branch -- +C99Branch,
-    OpNone     -> drop,
-    OpInt      -> nip c99-int!,
-    OpF64      -> nip c99-f64!,
-    OpStr      -> nip c99-str!,
-    OpWord     -> c99-word!,
-    OpExternal -> +core:+mirth:cname c99-call!,
-    OpBuffer   -> +core:+mirth:cname c99-call!,
-    OpVariable -> +core:+mirth:cname c99-call!,
-    OpField    -> +core:+mirth:cname c99-call!,
-    OpTag      -> c99-tag-word!,
-    OpPrim     -> c99-prim!,
-    OpMatch    -> nip c99-match!,
-    OpLambda   -> nip c99-lambda!,
-    OpVar      -> nip c99-var!,
-    OpBlockPush    -> nip c99-block-push!,
-    OpBlockRun      -> nip c99-block-run!,
-    OpCoerce   -> drop2,
-    OpLabelPush -> nip c99-label-push!,
-    OpLabelPop  -> nip c99-label-pop!,
-    OpLabelPushR -> nip c99-label-push-r!,
-    OpLabelPopR  -> nip c99-label-pop-r!,
-    OpDataGetTag -> c99-get-data-tag!,
-    OpDataGetLabel -> c99-tag-get-label! drop,
-    OpDataSetLabel -> c99-tag-set-label! drop)
+def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
+    { OpNone          -> drop }
+    { OpInt           -> nip c99-int! }
+    { OpF64           -> nip c99-f64! }
+    { OpStr           -> nip c99-str! }
+    { OpWord          -> dip:args c99-word! }
+    { OpExternal      -> dip:args +core:+mirth:cname c99-call! }
+    { OpBuffer        -> dip:args +core:+mirth:cname c99-call! }
+    { OpVariable      -> dip:args +core:+mirth:cname c99-call! }
+    { OpField         -> dip:args +core:+mirth:cname c99-call! }
+    { OpTag           -> dip:args c99-tag-word! }
+    { OpPrim          -> c99-prim! }
+    { OpMatch         -> nip c99-match! }
+    { OpLambda        -> nip c99-lambda! }
+    { OpVar           -> nip c99-var! }
+    { OpBlockPush     -> nip c99-block-push! }
+    { OpBlockRun      -> nip c99-block-run! }
+    { OpCoerce        -> drop2 }
+    { OpLabelPush     -> nip c99-label-push! }
+    { OpLabelPop      -> nip c99-label-pop! }
+    { OpLabelPushR    -> nip c99-label-push-r! }
+    { OpLabelPopR     -> nip c99-label-pop-r! }
+    { OpDataGetTag    -> nip c99-get-data-tag! }
+    { OpDataGetLabel  -> c99-tag-get-label! drop }
+    { OpDataSetLabel  -> c99-tag-set-label! drop }
+}
 
-def(c99-get-data-tag!, List(Arg) Data +C99Branch -- +C99Branch,
-    nip dup is-enum? or(dup is-unit?) else(
+def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
+    dup is-enum? or(dup is-unit?) else(
         end-branch!
         c99-line("{" put)
         c99-nest(
@@ -1423,48 +1424,66 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { _ -> drop None }
 }
 
-def c99-prim! [ List(Arg) Prim +C99Branch -- +C99Branch ] {
+def +C99Branch.type-to-c99-repr [ Type +C99Branch -- C99ReprType +C99Branch ] { +core:+mirth:c99-repr }
+def +C99Branch.resource-to-c99-repr [ Resource +C99Branch -- C99ReprType +C99Branch ] { +core:+mirth:c99-repr }
+
+def +C99Branch.pop-local-from-stack-type! [ StackType +C99Branch -- StackType +C99Branch +C99Local ] {
+    force-cons?! unwrap unpack2
+    type-to-c99-repr pop-to-local!
+}
+def +C99Branch.pop-local-resource-from-stack-type! [ StackType +C99Branch -- StackType +C99Branch +C99LocalResource ] {
+    force-with?! unwrap unpack2
+    resource-to-c99-repr pop-to-local-resource!
+}
+
+def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { PRIM_CORE_ID -> drop }
-    { PRIM_CORE_DROP -> drop pop-local! drop-local! }
-    { PRIM_CORE_DUP -> drop pop-local! dup-local! rdip:push-local! push-local! }
+    { PRIM_CORE_DROP ->
+        dom pop-local-from-stack-type! drop
+        drop-local!
+    }
+    { PRIM_CORE_DUP ->
+        dom pop-local-from-stack-type! drop
+        dup-local! rdip:push-local! push-local!
+    }
     { PRIM_CORE_SWAP ->
+        dom
+        pop-local-from-stack-type! >+b
+        pop-local-from-stack-type! >+a
         drop
-        pop-local! >+b
-        pop-local! >+a
         +b> push-local!
         +a> push-local!
     }
     { PRIM_CORE_RSWAP ->
+        dom
+        pop-local-resource-from-stack-type! >+b
+        pop-local-resource-from-stack-type! >+a
         drop
-        pop-local-resource! >+b
-        pop-local-resource! >+a
         +b> push-local-resource!
         +a> push-local-resource!
     }
     { PRIM_CORE_DIP ->
-        dup /L1 match(
+        dup args /L1 match(
             Some ->
-                nip
-                pop-local! >+dipped
+                swap dom pop-local-from-stack-type! drop >+dipped
                 c99-arg-run!
                 +dipped> push-local!,
             None ->
-                PRIM_CORE_DIP c99-prim-default!
+                args PRIM_CORE_DIP c99-prim-default!
         )
     }
     { PRIM_CORE_RDIP ->
-        dup /L1 match(
+        dup args /L1 match(
             Some ->
-                nip
-                pop-local-resource! >+dipped
+                swap dom pop-local-resource-from-stack-type! drop >+dipped
                 c99-arg-run!
                 +dipped> push-local-resource!,
             None ->
-                PRIM_CORE_RDIP c99-prim-default!
+                args PRIM_CORE_RDIP c99-prim-default!
         )
     }
     { PRIM_CORE_IF ->
-        dup /L2 match(
+        args dup /L2 match(
             Some ->
                 nip unpack2
                 C99RT_BOOL pop-to-local! >+cond
@@ -1481,7 +1500,7 @@ def c99-prim! [ List(Arg) Prim +C99Branch -- +C99Branch ] {
         )
     }
     { PRIM_CORE_WHILE ->
-        dup /L2 match(
+        args dup /L2 match(
             Some ->
                 nip unpack2
                 end-branch!
@@ -1505,7 +1524,7 @@ def c99-prim! [ List(Arg) Prim +C99Branch -- +C99Branch ] {
     }
 
     { _ ->
-        over empty? if(
+        dip(args) over empty? if(
             dup c99-prim-binop? if-some(
                 dip:drop2 c99-binop!,
                 c99-prim-default!
@@ -1548,7 +1567,7 @@ def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 def(c99-pack-closure-vars!, List(Var) +C99Branch -- +C99Branch,
     filter(is-physical?) for(
         c99-var-push!
-        L0 PRIM_PACK_CONS c99-prim!
+        L0 PRIM_PACK_CONS c99-prim-default!
     ))
 
 def c99-pop-to-var! [ Var +C99Branch -- +C99Branch ] {
@@ -1560,10 +1579,10 @@ def(c99-unpack-closure-vars!, List(Var) +C99Branch -- +C99Branch,
     filter(is-physical?) dup empty? if(
         drop,
         reverse-for(
-            L0 PRIM_PACK_UNCONS c99-prim!
+            L0 PRIM_PACK_UNCONS c99-prim-default!
             c99-pop-to-var!
         )
-        L0 PRIM_CORE_DROP c99-prim!
+        L0 PRIM_CORE_DROP c99-prim-default!
     ))
 
 def(c99-decref-closure-vars!, List(Var) +C99Branch -- +C99Branch,
@@ -1630,7 +1649,7 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
                 c99-line("default: {" put)
                 c99-nest:sub-branch(
                     c99-line("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32));" put)
-                    L0 PRIM_CORE_PANIC c99-prim!
+                    L0 PRIM_CORE_PANIC c99-prim-default!
                 )
                 c99-line("}" put)
             )
