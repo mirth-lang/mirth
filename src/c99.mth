@@ -1442,6 +1442,24 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_F64_LT  -> "<"  6  C99RT_F64 C99RT_F64 C99RT_BOOL C99BinOp.Mk Some }
     { PRIM_F64_EQ  -> "==" 7  C99RT_F64 C99RT_F64 C99RT_BOOL C99BinOp.Mk Some }
 
+    { PRIM_BOOL_AND -> "&&" 11 C99RT_BOOL C99RT_BOOL C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_BOOL_OR  -> "||" 12 C99RT_BOOL C99RT_BOOL C99RT_BOOL C99BinOp.Mk Some }
+
+    { _ -> drop None }
+}
+
+struct C99UnOp {
+    operator: Str
+    arg-type: C99ReprType
+    out-type: C99ReprType
+}
+
+def C99UnOp.Mk [ Str C99ReprType C99ReprType -- C99UnOp ] {
+    >out-type >arg-type >operator C99UnOp
+}
+
+def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
+    { PRIM_BOOL_NOT -> "!" C99RT_BOOL C99RT_BOOL C99UnOp.Mk Some }
     { _ -> drop None }
 }
 
@@ -1558,11 +1576,22 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         dip(args) over empty? if(
             dup c99-prim-binop? if-some(
                 dip:drop2 c99-binop!,
+            dup c99-prim-unop? if-some(
+                dip:drop2 c99-unop!,
                 c99-prim-default!
-            ),
+            )),
             c99-prim-default!
         )
     }
+}
+
+def c99-unop! [ C99UnOp +C99Branch -- +C99Branch ] {
+    /C99UnOp
+    @arg-type pop-to-local! >+arg
+    out-type> push-expression! (
+        operator> put "(" put
+        +arg> arg-type> consume-as put ")" put
+    )
 }
 
 def c99-binop! [ C99BinOp +C99Branch -- +C99Branch ] {

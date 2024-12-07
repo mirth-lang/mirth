@@ -68,6 +68,10 @@ data(Prim,
     PRIM_F64_TO_STR,
     PRIM_F64_TO_F32,
 
+    PRIM_BOOL_AND,
+    PRIM_BOOL_OR,
+    PRIM_BOOL_NOT,
+
     PRIM_PACK_NIL,
     PRIM_PACK_CONS,
     PRIM_PACK_UNCONS,
@@ -249,6 +253,10 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_F64_TO_STR "prim-f64-to-str" 0 def-prim!
     PRIM_F64_TO_F32 "prim-f64-to-f32" 0 def-prim!
 
+    PRIM_BOOL_AND "prim-bool-and" 0 def-prim!
+    PRIM_BOOL_OR  "prim-bool-or"  0 def-prim!
+    PRIM_BOOL_NOT "prim-bool-not" 0 def-prim!
+
     PRIM_PACK_NIL "prim-pack-nil" 0 def-prim!
     PRIM_PACK_CONS "prim-pack-cons" 0 def-prim!
     PRIM_PACK_UNCONS "prim-pack-uncons" 0 def-prim!
@@ -353,6 +361,14 @@ def(init-prims!, +Mirth -- +Mirth,
     dup2 PRIM_F64_DIV ctx-type!
     drop2
 
+    Ctx0 TYPE_BOOL TYPE_BOOL T2 TYPE_BOOL T1 T->
+    dup2 PRIM_BOOL_AND ctx-type!
+    dup2 PRIM_BOOL_OR  ctx-type!
+    drop2
+
+    Ctx0 TYPE_BOOL T1 TYPE_BOOL T1 T->
+    PRIM_BOOL_NOT ctx-type!
+    
     Ctx0 TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR ctx-type!
     Ctx0 TYPE_INT T1 TYPE_F32 T1 T-> PRIM_INT_TO_F32 ctx-type!
     Ctx0 TYPE_INT T1 TYPE_F64 T1 T-> PRIM_INT_TO_F64 ctx-type!
