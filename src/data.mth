@@ -280,6 +280,9 @@ def(Tag.is-transparent?, Tag -- Bool,
 def(Tag.is-semi-transparent?, Tag -- Bool,
     .data is-semi-transparent?)
 
+def(Tag.is-unit?, Tag -- Bool,
+    .data is-unit?)
+
 def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)
 

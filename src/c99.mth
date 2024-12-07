@@ -1648,6 +1648,13 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
         dip:L0 +core:+mirth:pat-cname c99-call!
         cases first unwrap body c99-arrow!,
 
+    dup unit-tag? if-some(
+        .data pop-local-value/resource-data! rdrop
+        cases first unwrap body c99-arrow!,
+
+    dup cases /L1 if-some(
+        nip c99-single-case!,
+
         dup scrutinee-data?
         unwrap(token "non-uniform match, not supported at present" +core:+mirth:emit-fatal-error!)
         pop-local-value/resource-data! >+scrutinee
@@ -1667,7 +1674,21 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
         )
         c99-line("}" put)
         end-branch-split!
-    )))
+    )))))
+
+def c99-single-case! [ Case +C99Branch -- +C99Branch ] {
+    dup pattern is-default? if(
+        body c99-arrow!,
+
+    dup pattern single-tag? if-some(
+        dup .data pop-local-value/resource-data! >+scrutinee
+        c99-reverse-tag!
+        body c99-arrow!,
+
+        pattern token-start "c99 target -- don't know how to compile this pattern"
+        +core:+mirth:emit-fatal-error!
+    ))
+}
 
 def c99-case! [ Case +C99BranchSplit +scrutinee:+C99LocalValue/Resource -- +C99BranchSplit ] {
     dup pattern is-default? if(
