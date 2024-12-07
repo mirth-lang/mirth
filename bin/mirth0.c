@@ -451,6 +451,24 @@ static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {
 	}
 }
 
+static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
+	ASSERT(IS_TUP(tup));
+	TUPLEN n = VTUPLEN(tup);
+	ASSERT(i < n);
+	if (VTUP(tup)->refs > 1) {
+		TUP* newtup = tup_new(n);
+		newtup->size = n;
+		memcpy(newtup->cells, VTUP(tup)->cells, n*sizeof(VAL));
+		for (TUPLEN j=0; j<n; j++) incref(newtup->cells[j]);
+		decref(tup);
+		tup = MKTUP(newtup, n);
+	}
+	VAL u = VTUP(tup)->cells[i];
+	VTUP(tup)->cells[i] = v;
+	decref(u);
+	return tup;
+}
+
 static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {
 	if (IS_TUP(tail) && HAS_REFS(tail)) {
 		TUPLEN tail_len = VTUPLEN(tail);
@@ -11921,20 +11939,8 @@ static void mw_argZ_parser_state_State_1_parsingZAskZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 4, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[1];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(4);
-			tup->size = 4;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = u;
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			decref(v);
-			push_value(MKTUP(tup,4));
-		}
+		v = tup_replace(v, 1, u);
+		push_value(v);
 	}
 	push_value(v0);
 	{
@@ -11942,23 +11948,8 @@ static void mw_argZ_parser_state_State_1_parsingZAskZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 7, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[3];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(7);
-			tup->size = 7;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = u;
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			decref(v);
-			push_value(MKTUP(tup,7));
-		}
+		v = tup_replace(v, 3, u);
+		push_value(v);
 	}
 }
 static void mw_argZ_parser_state_State_1_optionZ_option (void) {
@@ -11983,20 +11974,8 @@ static void mw_argZ_parser_state_State_1_optionZ_optionZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 4, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[3];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(4);
-			tup->size = 4;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = u;
-			decref(v);
-			push_value(MKTUP(tup,4));
-		}
+		v = tup_replace(v, 3, u);
+		push_value(v);
 	}
 	push_value(v0);
 	{
@@ -12004,23 +11983,8 @@ static void mw_argZ_parser_state_State_1_optionZ_optionZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 7, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[3];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(7);
-			tup->size = 7;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = u;
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			decref(v);
-			push_value(MKTUP(tup,7));
-		}
+		v = tup_replace(v, 3, u);
+		push_value(v);
 	}
 }
 static void mw_argZ_parser_types_ZPlusArgumentParser_1_rdrop (void) {
@@ -12722,23 +12686,8 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 									VAL u = pop_value();
 									ASSERT1(IS_TUP(v), v);
 									ASSERT1(VTUPLEN(v) == 7, v);
-									if (VTUP(v)->refs == 1) {
-										VAL* p = &VTUP(v)->cells[1];
-										VAL t = *p; *p = u; decref(t);
-										push_value(v);
-									} else {
-										TUP *tup = tup_new(7);
-										tup->size = 7;
-										tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-										tup->cells[1] = u;
-										tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-										tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-										tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-										tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-										tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-										decref(v);
-										push_value(MKTUP(tup,7));
-									}
+									v = tup_replace(v, 1, u);
+									push_value(v);
 								}
 								{
 									VAL v = top_resource();
@@ -12948,23 +12897,8 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 									VAL u = pop_value();
 									ASSERT1(IS_TUP(v), v);
 									ASSERT1(VTUPLEN(v) == 7, v);
-									if (VTUP(v)->refs == 1) {
-										VAL* p = &VTUP(v)->cells[1];
-										VAL t = *p; *p = u; decref(t);
-										push_value(v);
-									} else {
-										TUP *tup = tup_new(7);
-										tup->size = 7;
-										tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-										tup->cells[1] = u;
-										tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-										tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-										tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-										tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-										tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-										decref(v);
-										push_value(MKTUP(tup,7));
-									}
+									v = tup_replace(v, 1, u);
+									push_value(v);
 								}
 								{
 									VAL v = top_resource();
@@ -13041,23 +12975,8 @@ static void mw_argZ_parser_parse_doZ_positionalZ_option (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 7, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[1];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(7);
-			tup->size = 7;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = u;
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			decref(v);
-			push_value(MKTUP(tup,7));
-		}
+		v = tup_replace(v, 1, u);
+		push_value(v);
 	}
 	{
 		VAL v = top_resource();
@@ -13089,23 +13008,8 @@ static void mw_argZ_parser_parse_doZ_positionalZ_option (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 7, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[4];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(7);
-			tup->size = 7;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = u;
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			decref(v);
-			push_value(MKTUP(tup,7));
-		}
+		v = tup_replace(v, 4, u);
+		push_value(v);
 	}
 	{
 		VAL v = top_resource();
@@ -13246,23 +13150,8 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 				VAL u = pop_value();
 				ASSERT1(IS_TUP(v), v);
 				ASSERT1(VTUPLEN(v) == 7, v);
-				if (VTUP(v)->refs == 1) {
-					VAL* p = &VTUP(v)->cells[5];
-					VAL t = *p; *p = u; decref(t);
-					push_value(v);
-				} else {
-					TUP *tup = tup_new(7);
-					tup->size = 7;
-					tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-					tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-					tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-					tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-					tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-					tup->cells[5] = u;
-					tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-					decref(v);
-					push_value(MKTUP(tup,7));
-				}
+				v = tup_replace(v, 5, u);
+				push_value(v);
 			}
 			push_resource(r28);
 			{
@@ -13471,23 +13360,8 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 										VAL u = pop_value();
 										ASSERT1(IS_TUP(v), v);
 										ASSERT1(VTUPLEN(v) == 7, v);
-										if (VTUP(v)->refs == 1) {
-											VAL* p = &VTUP(v)->cells[1];
-											VAL t = *p; *p = u; decref(t);
-											push_value(v);
-										} else {
-											TUP *tup = tup_new(7);
-											tup->size = 7;
-											tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-											tup->cells[1] = u;
-											tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-											tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-											tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-											tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-											tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-											decref(v);
-											push_value(MKTUP(tup,7));
-										}
+										v = tup_replace(v, 1, u);
+										push_value(v);
 									}
 									push_resource(r87);
 									{
@@ -13567,23 +13441,8 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 					VAL u = pop_value();
 					ASSERT1(IS_TUP(v), v);
 					ASSERT1(VTUPLEN(v) == 7, v);
-					if (VTUP(v)->refs == 1) {
-						VAL* p = &VTUP(v)->cells[6];
-						VAL t = *p; *p = u; decref(t);
-						push_value(v);
-					} else {
-						TUP *tup = tup_new(7);
-						tup->size = 7;
-						tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-						tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-						tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-						tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-						tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-						tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-						tup->cells[6] = u;
-						decref(v);
-						push_value(MKTUP(tup,7));
-					}
+					v = tup_replace(v, 6, u);
+					push_value(v);
 				}
 				push_resource(r100);
 				{
@@ -13634,23 +13493,8 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 			VAL u = pop_value();
 			ASSERT1(IS_TUP(v), v);
 			ASSERT1(VTUPLEN(v) == 7, v);
-			if (VTUP(v)->refs == 1) {
-				VAL* p = &VTUP(v)->cells[6];
-				VAL t = *p; *p = u; decref(t);
-				push_value(v);
-			} else {
-				TUP *tup = tup_new(7);
-				tup->size = 7;
-				tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-				tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-				tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-				tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-				tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-				tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-				tup->cells[6] = u;
-				decref(v);
-				push_value(MKTUP(tup,7));
-			}
+			v = tup_replace(v, 6, u);
+			push_value(v);
 		}
 		{
 			VAL v = top_resource();
@@ -13686,23 +13530,8 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 7, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[1];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(7);
-			tup->size = 7;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = u;
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			decref(v);
-			push_value(MKTUP(tup,7));
-		}
+		v = tup_replace(v, 1, u);
+		push_value(v);
 	}
 	push_resource(r117);
 	{
@@ -18309,26 +18138,8 @@ static void mw_mirth_match_ZPlusPattern_underscoreZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 10, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[6];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(10);
-			tup->size = 10;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = u;
-			tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-			tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-			tup->cells[9] = VTUP(v)->cells[9]; incref(tup->cells[9]);
-			decref(v);
-			push_value(MKTUP(tup,10));
-		}
+		v = tup_replace(v, 6, u);
+		push_value(v);
 	}
 	push_resource(r17);
 	{
@@ -18353,26 +18164,8 @@ static void mw_mirth_match_ZPlusPattern_underscoreZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 10, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[7];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(10);
-			tup->size = 10;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = u;
-			tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-			tup->cells[9] = VTUP(v)->cells[9]; incref(tup->cells[9]);
-			decref(v);
-			push_value(MKTUP(tup,10));
-		}
+		v = tup_replace(v, 7, u);
+		push_value(v);
 	}
 	push_resource(r22);
 	{
@@ -18395,26 +18188,8 @@ static void mw_mirth_match_ZPlusPattern_underscoreZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 10, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[9];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(10);
-			tup->size = 10;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-			tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-			tup->cells[9] = u;
-			decref(v);
-			push_value(MKTUP(tup,10));
-		}
+		v = tup_replace(v, 9, u);
+		push_value(v);
 	}
 	push_resource(r23);
 	{
@@ -18486,26 +18261,8 @@ static void mw_mirth_match_ZPlusPattern_tagZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 10, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[7];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(10);
-			tup->size = 10;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = u;
-			tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-			tup->cells[9] = VTUP(v)->cells[9]; incref(tup->cells[9]);
-			decref(v);
-			push_value(MKTUP(tup,10));
-		}
+		v = tup_replace(v, 7, u);
+		push_value(v);
 	}
 	push_resource(r17);
 	{
@@ -18530,26 +18287,8 @@ static void mw_mirth_match_ZPlusPattern_tagZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 10, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[9];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(10);
-			tup->size = 10;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-			tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-			tup->cells[9] = u;
-			decref(v);
-			push_value(MKTUP(tup,10));
-		}
+		v = tup_replace(v, 9, u);
+		push_value(v);
 	}
 	push_resource(r19);
 	{
@@ -21113,20 +20852,8 @@ static void mw_mirth_mirth_ZPlusMirth_defZ_primZ_typeZ_aliasZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 4, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[2];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(4);
-			tup->size = 4;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = u;
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			decref(v);
-			push_value(MKTUP(tup,4));
-		}
+		v = tup_replace(v, 2, u);
+		push_value(v);
 	}
 	VAL v2 = pop_value();
 	lpush(&lbl_qname, v2);
@@ -32545,19 +32272,8 @@ static void mw_mirth_mirth_Prop_1_tryZ_forceZBang (void) {
 				VAL u = pop_value();
 				ASSERT1(IS_TUP(v), v);
 				ASSERT1(VTUPLEN(v) == 3, v);
-				if (VTUP(v)->refs == 1) {
-					VAL* p = &VTUP(v)->cells[2];
-					VAL t = *p; *p = u; decref(t);
-					push_value(v);
-				} else {
-					TUP *tup = tup_new(3);
-					tup->size = 3;
-					tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-					tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-					tup->cells[2] = u;
-					decref(v);
-					push_value(MKTUP(tup,3));
-				}
+				v = tup_replace(v, 2, u);
+				push_value(v);
 			}
 			push_value(v7);
 			mp_primZ_mutZ_set();
@@ -32576,19 +32292,8 @@ static void mw_mirth_mirth_Prop_1_tryZ_forceZBang (void) {
 				VAL u = pop_value();
 				ASSERT1(IS_TUP(v), v);
 				ASSERT1(VTUPLEN(v) == 3, v);
-				if (VTUP(v)->refs == 1) {
-					VAL* p = &VTUP(v)->cells[2];
-					VAL t = *p; *p = u; decref(t);
-					push_value(v);
-				} else {
-					TUP *tup = tup_new(3);
-					tup->size = 3;
-					tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-					tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-					tup->cells[2] = u;
-					decref(v);
-					push_value(MKTUP(tup,3));
-				}
+				v = tup_replace(v, 2, u);
+				push_value(v);
 			}
 			push_value(v9);
 			mp_primZ_mutZ_set();
@@ -41628,24 +41333,8 @@ static void mw_mirth_elab_abZ_tokenZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 8, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[3];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(8);
-			tup->size = 8;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = u;
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-			decref(v);
-			push_value(MKTUP(tup,8));
-		}
+		v = tup_replace(v, 3, u);
+		push_value(v);
 	}
 	push_resource(r0);
 	{
@@ -41672,24 +41361,8 @@ static void mw_mirth_elab_abZ_typeZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 8, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[6];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(8);
-			tup->size = 8;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = u;
-			tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-			decref(v);
-			push_value(MKTUP(tup,8));
-		}
+		v = tup_replace(v, 6, u);
+		push_value(v);
 	}
 	push_resource(r0);
 	{
@@ -41806,72 +41479,24 @@ static void mw_mirth_elab_finalizzeZ_wordZ_arrow (void) {
 			VAL u = pop_value();
 			ASSERT1(IS_TUP(v), v);
 			ASSERT1(VTUPLEN(v) == 8, v);
-			if (VTUP(v)->refs == 1) {
-				VAL* p = &VTUP(v)->cells[6];
-				VAL t = *p; *p = u; decref(t);
-				push_value(v);
-			} else {
-				TUP *tup = tup_new(8);
-				tup->size = 8;
-				tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-				tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-				tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-				tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-				tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-				tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-				tup->cells[6] = u;
-				tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-				decref(v);
-				push_value(MKTUP(tup,8));
-			}
+			v = tup_replace(v, 6, u);
+			push_value(v);
 		}
 		{
 			VAL v = pop_value();
 			VAL u = pop_value();
 			ASSERT1(IS_TUP(v), v);
 			ASSERT1(VTUPLEN(v) == 8, v);
-			if (VTUP(v)->refs == 1) {
-				VAL* p = &VTUP(v)->cells[5];
-				VAL t = *p; *p = u; decref(t);
-				push_value(v);
-			} else {
-				TUP *tup = tup_new(8);
-				tup->size = 8;
-				tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-				tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-				tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-				tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-				tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-				tup->cells[5] = u;
-				tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-				tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-				decref(v);
-				push_value(MKTUP(tup,8));
-			}
+			v = tup_replace(v, 5, u);
+			push_value(v);
 		}
 		{
 			VAL v = pop_value();
 			VAL u = pop_value();
 			ASSERT1(IS_TUP(v), v);
 			ASSERT1(VTUPLEN(v) == 8, v);
-			if (VTUP(v)->refs == 1) {
-				VAL* p = &VTUP(v)->cells[4];
-				VAL t = *p; *p = u; decref(t);
-				push_value(v);
-			} else {
-				TUP *tup = tup_new(8);
-				tup->size = 8;
-				tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-				tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-				tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-				tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-				tup->cells[4] = u;
-				tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-				tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-				tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-				decref(v);
-				push_value(MKTUP(tup,8));
-			}
+			v = tup_replace(v, 4, u);
+			push_value(v);
 		}
 	} else {
 		VAL v11 = (lpop(&lbl_arrow));
@@ -42108,24 +41733,8 @@ static void mw_mirth_elab_abZ_atomZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 8, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[7];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(8);
-			tup->size = 8;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = u;
-			decref(v);
-			push_value(MKTUP(tup,8));
-		}
+		v = tup_replace(v, 7, u);
+		push_value(v);
 	}
 	push_resource(r4);
 	{
@@ -42355,25 +41964,8 @@ static void mw_mirth_elab_atomsZ_turnZ_lastZ_blockZ_toZ_arg (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 9, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[6];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(9);
-							tup->size = 9;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-							tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-							tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-							tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-							tup->cells[6] = u;
-							tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-							tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-							decref(v);
-							push_value(MKTUP(tup,9));
-						}
+						v = tup_replace(v, 6, u);
+						push_value(v);
 					}
 					VAL v9 = pop_value();
 					incref(v9);
@@ -42389,25 +41981,8 @@ static void mw_mirth_elab_atomsZ_turnZ_lastZ_blockZ_toZ_arg (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 9, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[5];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(9);
-							tup->size = 9;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-							tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-							tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-							tup->cells[5] = u;
-							tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-							tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-							tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-							decref(v);
-							push_value(MKTUP(tup,9));
-						}
+						v = tup_replace(v, 5, u);
+						push_value(v);
 					}
 					VAL v11 = pop_value();
 					VAL v12 = pop_value();
@@ -44003,26 +43578,8 @@ static void mw_mirth_elab_elabZ_patternZ_atomZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 10, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[2];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(10);
-			tup->size = 10;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = u;
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-			tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-			tup->cells[9] = VTUP(v)->cells[9]; incref(tup->cells[9]);
-			decref(v);
-			push_value(MKTUP(tup,10));
-		}
+		v = tup_replace(v, 2, u);
+		push_value(v);
 	}
 	push_resource(r1);
 	{
@@ -44461,26 +44018,8 @@ static void mw_mirth_elab_elabZ_patternZ_atomZBang (void) {
 							VAL u = pop_value();
 							ASSERT1(IS_TUP(v), v);
 							ASSERT1(VTUPLEN(v) == 10, v);
-							if (VTUP(v)->refs == 1) {
-								VAL* p = &VTUP(v)->cells[7];
-								VAL t = *p; *p = u; decref(t);
-								push_value(v);
-							} else {
-								TUP *tup = tup_new(10);
-								tup->size = 10;
-								tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-								tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-								tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-								tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-								tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-								tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-								tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-								tup->cells[7] = u;
-								tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-								tup->cells[9] = VTUP(v)->cells[9]; incref(tup->cells[9]);
-								decref(v);
-								push_value(MKTUP(tup,10));
-							}
+							v = tup_replace(v, 7, u);
+							push_value(v);
 						}
 						push_resource(r111);
 						{
@@ -51586,24 +51125,8 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 8, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[7];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(8);
-			tup->size = 8;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = u;
-			decref(v);
-			push_value(MKTUP(tup,8));
-		}
+		v = tup_replace(v, 7, u);
+		push_value(v);
 	}
 }
 static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_atomZBang (void) {
@@ -51719,25 +51242,8 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_atomZBang (void) {
 				VAL u = pop_value();
 				ASSERT1(IS_TUP(v), v);
 				ASSERT1(VTUPLEN(v) == 9, v);
-				if (VTUP(v)->refs == 1) {
-					VAL* p = &VTUP(v)->cells[4];
-					VAL t = *p; *p = u; decref(t);
-					push_value(v);
-				} else {
-					TUP *tup = tup_new(9);
-					tup->size = 9;
-					tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-					tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-					tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-					tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-					tup->cells[4] = u;
-					tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-					tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-					tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-					tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-					decref(v);
-					push_value(MKTUP(tup,9));
-				}
+				v = tup_replace(v, 4, u);
+				push_value(v);
 			}
 			uint64_t v21 = (0LL /* Nil */);
 			push_u64(v21);
@@ -51758,25 +51264,8 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_atomZBang (void) {
 				VAL u = pop_value();
 				ASSERT1(IS_TUP(v), v);
 				ASSERT1(VTUPLEN(v) == 9, v);
-				if (VTUP(v)->refs == 1) {
-					VAL* p = &VTUP(v)->cells[4];
-					VAL t = *p; *p = u; decref(t);
-					push_value(v);
-				} else {
-					TUP *tup = tup_new(9);
-					tup->size = 9;
-					tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-					tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-					tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-					tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-					tup->cells[4] = u;
-					tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-					tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-					tup->cells[7] = VTUP(v)->cells[7]; incref(tup->cells[7]);
-					tup->cells[8] = VTUP(v)->cells[8]; incref(tup->cells[8]);
-					decref(v);
-					push_value(MKTUP(tup,9));
-				}
+				v = tup_replace(v, 4, u);
+				push_value(v);
 			}
 			uint64_t v24 = (0LL /* Nil */);
 			push_u64(v24);
@@ -52268,24 +51757,8 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_matchZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 8, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[7];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(8);
-			tup->size = 8;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-			tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-			tup->cells[7] = u;
-			decref(v);
-			push_value(MKTUP(tup,8));
-		}
+		v = tup_replace(v, 7, u);
+		push_value(v);
 	}
 }
 static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_caseZBang (void) {
@@ -52302,19 +51775,8 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_caseZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 3, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[2];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(3);
-			tup->size = 3;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = u;
-			decref(v);
-			push_value(MKTUP(tup,3));
-		}
+		v = tup_replace(v, 2, u);
+		push_value(v);
 	}
 }
 static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_lambdaZBang (void) {
@@ -52331,22 +51793,8 @@ static void mw_mirth_specializzer_ZPlusSPCheck_checkZ_lambdaZBang (void) {
 		VAL u = pop_value();
 		ASSERT1(IS_TUP(v), v);
 		ASSERT1(VTUPLEN(v) == 6, v);
-		if (VTUP(v)->refs == 1) {
-			VAL* p = &VTUP(v)->cells[5];
-			VAL t = *p; *p = u; decref(t);
-			push_value(v);
-		} else {
-			TUP *tup = tup_new(6);
-			tup->size = 6;
-			tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-			tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-			tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-			tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-			tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-			tup->cells[5] = u;
-			decref(v);
-			push_value(MKTUP(tup,6));
-		}
+		v = tup_replace(v, 5, u);
+		push_value(v);
 	}
 }
 static void mw_mirth_specializzer_ZPlusSPCheck_pushZ_checkZ_wordZBang (void) {
@@ -55806,6 +55254,24 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\t}\n"
 		"}\n"
 		"\n"
+		"static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {\n"
+		"\tASSERT(IS_TUP(tup));\n"
+		"\tTUPLEN n = VTUPLEN(tup);\n"
+		"\tASSERT(i < n);\n"
+		"\tif (VTUP(tup)->refs > 1) {\n"
+		"\t\tTUP* newtup = tup_new(n);\n"
+		"\t\tnewtup->size = n;\n"
+		"\t\tmemcpy(newtup->cells, VTUP(tup)->cells, n*sizeof(VAL));\n"
+		"\t\tfor (TUPLEN j=0; j<n; j++) incref(newtup->cells[j]);\n"
+		"\t\tdecref(tup);\n"
+		"\t\ttup = MKTUP(newtup, n);\n"
+		"\t}\n"
+		"\tVAL u = VTUP(tup)->cells[i];\n"
+		"\tVTUP(tup)->cells[i] = v;\n"
+		"\tdecref(u);\n"
+		"\treturn tup;\n"
+		"}\n"
+		"\n"
 		"static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {\n"
 		"\tif (IS_TUP(tail) && HAS_REFS(tail)) {\n"
 		"\t\tTUPLEN tail_len = VTUPLEN(tail);\n"
@@ -56846,7 +56312,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		37470
+		37903
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
@@ -58251,221 +57717,22 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 					mw_mirth_c99_ZPlusC99_line();
 				} else {
 					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("if (VTUP(v)->refs == 1) {", 25);
+					STRLIT("v = tup_replace(v, ", 19);
 					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					VAL r23 = pop_resource();
-					int64_t v24 = (VI64(VTUP(r23)->cells[2]));
-					int64_t v25 = (1LL);
-					push_i64(v24);
-					push_i64(v25);
-					mp_primZ_intZ_add();
-					push_resource(r23);
-					{
-						VAL v = top_resource();
-						VAL u = pop_value();
-						ASSERT1(IS_TUP(v), v);
-						ASSERT1(VTUPLEN(v) == 7, v);
-						VAL* p = &VTUP(v)->cells[2];
-						VAL t = *p; *p = u; decref(t);
-					}
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("VAL* p = &VTUP(v)->cells[", 25);
-					mw_mirth_c99_ZPlusC99_put();
-					uint64_t v26 = (VU64(lpop(&lbl_tag)));
-					uint64_t v27 = (VU64(lpop(&lbl_lbl)));
-					push_u64(v26);
-					lpush(&lbl_tag, MKU64(v26));
-					push_u64(v27);
-					lpush(&lbl_lbl, MKU64(v27));
+					uint64_t v23 = (VU64(lpop(&lbl_tag)));
+					uint64_t v24 = (VU64(lpop(&lbl_lbl)));
+					push_u64(v23);
+					lpush(&lbl_tag, MKU64(v23));
+					push_u64(v24);
+					lpush(&lbl_lbl, MKU64(v24));
 					mw_mirth_c99_c99Z_tagZ_labelZ_index();
 					mp_primZ_intZ_toZ_str();
 					mw_mirth_c99_ZPlusC99_put();
-					STRLIT("];", 2);
-					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("VAL t = *p; *p = u; decref(t);", 30);
+					STRLIT(", u);", 5);
 					mw_mirth_c99_ZPlusC99_put();
 					mw_mirth_c99_ZPlusC99_line();
 					mw_mirth_c99_ZPlusC99_indent();
 					STRLIT("push_value(v);", 14);
-					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					VAL r28 = pop_resource();
-					int64_t v29 = (VI64(VTUP(r28)->cells[2]));
-					int64_t v30 = (1LL);
-					push_i64(v29);
-					push_i64(v30);
-					mp_primZ_intZ_sub();
-					mw_std_prim_Int_ZToNat();
-					push_resource(r28);
-					{
-						VAL v = top_resource();
-						VAL u = pop_value();
-						ASSERT1(IS_TUP(v), v);
-						ASSERT1(VTUPLEN(v) == 7, v);
-						VAL* p = &VTUP(v)->cells[2];
-						VAL t = *p; *p = u; decref(t);
-					}
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("} else {", 8);
-					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					VAL r31 = pop_resource();
-					int64_t v32 = (VI64(VTUP(r31)->cells[2]));
-					int64_t v33 = (1LL);
-					push_i64(v32);
-					push_i64(v33);
-					mp_primZ_intZ_add();
-					push_resource(r31);
-					{
-						VAL v = top_resource();
-						VAL u = pop_value();
-						ASSERT1(IS_TUP(v), v);
-						ASSERT1(VTUPLEN(v) == 7, v);
-						VAL* p = &VTUP(v)->cells[2];
-						VAL t = *p; *p = u; decref(t);
-					}
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("TUP *tup = tup_new(", 19);
-					mw_mirth_c99_ZPlusC99_put();
-					uint64_t v34 = (VU64(lpop(&lbl_tag)));
-					push_u64(v34);
-					lpush(&lbl_tag, MKU64(v34));
-					mw_mirth_data_Tag_numZ_totalZ_inputs();
-					int64_t v35 = (1LL);
-					push_i64(v35);
-					mp_primZ_intZ_add();
-					mp_primZ_intZ_toZ_str();
-					mw_mirth_c99_ZPlusC99_put();
-					STRLIT(");", 2);
-					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("tup->size = ", 12);
-					mw_mirth_c99_ZPlusC99_put();
-					uint64_t v36 = (VU64(lpop(&lbl_tag)));
-					push_u64(v36);
-					lpush(&lbl_tag, MKU64(v36));
-					mw_mirth_data_Tag_numZ_totalZ_inputs();
-					int64_t v37 = (1LL);
-					push_i64(v37);
-					mp_primZ_intZ_add();
-					mp_primZ_intZ_toZ_str();
-					mw_mirth_c99_ZPlusC99_put();
-					STRLIT(";", 1);
-					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					int64_t v38 = (0LL);
-					push_i64(v38);
-					mw_std_prim_Int_ZToNat();
-					while(1) {
-						int64_t v39 = pop_i64();
-						uint64_t v40 = (VU64(lpop(&lbl_tag)));
-						push_i64(v39);
-						push_i64(v39);
-						push_u64(v40);
-						lpush(&lbl_tag, MKU64(v40));
-						mw_mirth_data_Tag_numZ_totalZ_inputs();
-						int64_t v41 = pop_i64();
-						int64_t v42 = pop_i64();
-						bool v43 = (v42 <= v41);
-						if (!v43) break;
-						int64_t v44 = pop_i64();
-						uint64_t v45 = (VU64(lpop(&lbl_tag)));
-						uint64_t v46 = (VU64(lpop(&lbl_lbl)));
-						push_i64(v44);
-						push_i64(v44);
-						push_u64(v45);
-						lpush(&lbl_tag, MKU64(v45));
-						push_u64(v46);
-						lpush(&lbl_lbl, MKU64(v46));
-						mw_mirth_c99_c99Z_tagZ_labelZ_index();
-						int64_t v47 = pop_i64();
-						int64_t v48 = pop_i64();
-						bool v49 = (v48 == v47);
-						if (v49) {
-							mw_mirth_c99_ZPlusC99_indent();
-							STRLIT("tup->cells[", 11);
-							mw_mirth_c99_ZPlusC99_put();
-							int64_t v50 = pop_i64();
-							push_i64(v50);
-							push_i64(v50);
-							mp_primZ_intZ_toZ_str();
-							mw_mirth_c99_ZPlusC99_put();
-							STRLIT("] = u;", 6);
-							mw_mirth_c99_ZPlusC99_put();
-							mw_mirth_c99_ZPlusC99_line();
-						} else {
-							mw_mirth_c99_ZPlusC99_indent();
-							STRLIT("tup->cells[", 11);
-							mw_mirth_c99_ZPlusC99_put();
-							int64_t v51 = pop_i64();
-							push_i64(v51);
-							push_i64(v51);
-							mp_primZ_intZ_toZ_str();
-							mw_mirth_c99_ZPlusC99_put();
-							STRLIT("] = VTUP(v)->cells[", 19);
-							mw_mirth_c99_ZPlusC99_put();
-							int64_t v52 = pop_i64();
-							push_i64(v52);
-							push_i64(v52);
-							mp_primZ_intZ_toZ_str();
-							mw_mirth_c99_ZPlusC99_put();
-							STRLIT("]; incref(tup->cells[", 21);
-							mw_mirth_c99_ZPlusC99_put();
-							int64_t v53 = pop_i64();
-							push_i64(v53);
-							push_i64(v53);
-							mp_primZ_intZ_toZ_str();
-							mw_mirth_c99_ZPlusC99_put();
-							STRLIT("]);", 3);
-							mw_mirth_c99_ZPlusC99_put();
-							mw_mirth_c99_ZPlusC99_line();
-						}
-						int64_t v54 = (1LL);
-						push_i64(v54);
-						mp_primZ_intZ_add();
-					}
-					int64_t v55 = pop_i64();
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("decref(v);", 10);
-					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("push_value(MKTUP(tup,", 21);
-					mw_mirth_c99_ZPlusC99_put();
-					uint64_t v56 = (VU64(lpop(&lbl_tag)));
-					push_u64(v56);
-					lpush(&lbl_tag, MKU64(v56));
-					mw_mirth_data_Tag_numZ_totalZ_inputs();
-					int64_t v57 = (1LL);
-					push_i64(v57);
-					mp_primZ_intZ_add();
-					mp_primZ_intZ_toZ_str();
-					mw_mirth_c99_ZPlusC99_put();
-					STRLIT("));", 3);
-					mw_mirth_c99_ZPlusC99_put();
-					mw_mirth_c99_ZPlusC99_line();
-					VAL r58 = pop_resource();
-					int64_t v59 = (VI64(VTUP(r58)->cells[2]));
-					int64_t v60 = (1LL);
-					push_i64(v59);
-					push_i64(v60);
-					mp_primZ_intZ_sub();
-					mw_std_prim_Int_ZToNat();
-					push_resource(r58);
-					{
-						VAL v = top_resource();
-						VAL u = pop_value();
-						ASSERT1(IS_TUP(v), v);
-						ASSERT1(VTUPLEN(v) == 7, v);
-						VAL* p = &VTUP(v)->cells[2];
-						VAL t = *p; *p = u; decref(t);
-					}
-					mw_mirth_c99_ZPlusC99_indent();
-					STRLIT("}", 1);
 					mw_mirth_c99_ZPlusC99_put();
 					mw_mirth_c99_ZPlusC99_line();
 				}
@@ -58474,14 +57741,14 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 		case 1LL: { // Right
 			push_value(v9);
 			mtp_std_either_Either_2_Right();
-			VAL v61 = pop_value();
-			decref(v61);
-			uint64_t v62 = (VU64(lpop(&lbl_tag)));
-			push_u64(v62);
-			lpush(&lbl_tag, MKU64(v62));
+			VAL v25 = pop_value();
+			decref(v25);
+			uint64_t v26 = (VU64(lpop(&lbl_tag)));
+			push_u64(v26);
+			lpush(&lbl_tag, MKU64(v26));
 			mw_mirth_data_Tag_isZ_semiZ_transparentZAsk();
-			bool v63 = pop_bool();
-			if (v63) {
+			bool v27 = pop_bool();
+			if (v27) {
 				mw_mirth_c99_ZPlusC99_indent();
 				STRLIT("(void)pop_resource();", 21);
 				mw_mirth_c99_ZPlusC99_put();
@@ -58502,12 +57769,12 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 				mw_mirth_c99_ZPlusC99_indent();
 				STRLIT("ASSERT1(VTUPLEN(v) == ", 22);
 				mw_mirth_c99_ZPlusC99_put();
-				uint64_t v64 = (VU64(lpop(&lbl_tag)));
-				push_u64(v64);
-				lpush(&lbl_tag, MKU64(v64));
+				uint64_t v28 = (VU64(lpop(&lbl_tag)));
+				push_u64(v28);
+				lpush(&lbl_tag, MKU64(v28));
 				mw_mirth_data_Tag_numZ_totalZ_inputs();
-				int64_t v65 = (1LL);
-				push_i64(v65);
+				int64_t v29 = (1LL);
+				push_i64(v29);
 				mp_primZ_intZ_add();
 				mp_primZ_intZ_toZ_str();
 				mw_mirth_c99_ZPlusC99_put();
@@ -58521,12 +57788,12 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 				mw_mirth_c99_ZPlusC99_indent();
 				STRLIT("VAL* p = &VTUP(v)->cells[", 25);
 				mw_mirth_c99_ZPlusC99_put();
-				uint64_t v66 = (VU64(lpop(&lbl_tag)));
-				uint64_t v67 = (VU64(lpop(&lbl_lbl)));
-				push_u64(v66);
-				lpush(&lbl_tag, MKU64(v66));
-				push_u64(v67);
-				lpush(&lbl_lbl, MKU64(v67));
+				uint64_t v30 = (VU64(lpop(&lbl_tag)));
+				uint64_t v31 = (VU64(lpop(&lbl_lbl)));
+				push_u64(v30);
+				lpush(&lbl_tag, MKU64(v30));
+				push_u64(v31);
+				lpush(&lbl_lbl, MKU64(v31));
 				mw_mirth_c99_c99Z_tagZ_labelZ_index();
 				mp_primZ_intZ_toZ_str();
 				mw_mirth_c99_ZPlusC99_put();
@@ -58548,14 +57815,14 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 			mp_primZ_panic();
 		}
 	}
-	VAL r68 = pop_resource();
-	int64_t v69 = (VI64(VTUP(r68)->cells[2]));
-	int64_t v70 = (1LL);
-	push_i64(v69);
-	push_i64(v70);
+	VAL r32 = pop_resource();
+	int64_t v33 = (VI64(VTUP(r32)->cells[2]));
+	int64_t v34 = (1LL);
+	push_i64(v33);
+	push_i64(v34);
 	mp_primZ_intZ_sub();
 	mw_std_prim_Int_ZToNat();
-	push_resource(r68);
+	push_resource(r32);
 	{
 		VAL v = top_resource();
 		VAL u = pop_value();
@@ -58569,8 +57836,8 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (void) {
 	mw_mirth_c99_ZPlusC99_put();
 	mw_mirth_c99_ZPlusC99_line();
 	mw_mirth_c99_ZPlusC99_startZ_branchZBang();
-	uint64_t v71 = (VU64(lpop(&lbl_lbl)));
-	uint64_t v72 = (VU64(lpop(&lbl_tag)));
+	uint64_t v35 = (VU64(lpop(&lbl_lbl)));
+	uint64_t v36 = (VU64(lpop(&lbl_tag)));
 }
 static void mw_mirth_c99_c99Z_externalZ_blocksZBang (void) {
 	int64_t v0 = (1LL);
@@ -68012,23 +67279,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 7, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[2];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(7);
-							tup->size = 7;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = u;
-							tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-							tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-							tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-							tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-							decref(v);
-							push_value(MKTUP(tup,7));
-						}
+						v = tup_replace(v, 2, u);
+						push_value(v);
 					}
 				} break;
 				case 101LL: { // B'e'
@@ -68046,23 +67298,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 7, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[3];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(7);
-							tup->size = 7;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-							tup->cells[3] = u;
-							tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-							tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-							tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-							decref(v);
-							push_value(MKTUP(tup,7));
-						}
+						v = tup_replace(v, 3, u);
+						push_value(v);
 					}
 				} break;
 				case 99LL: { // B'c'
@@ -68080,23 +67317,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 7, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[3];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(7);
-							tup->size = 7;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-							tup->cells[3] = u;
-							tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-							tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-							tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-							decref(v);
-							push_value(MKTUP(tup,7));
-						}
+						v = tup_replace(v, 3, u);
+						push_value(v);
 					}
 				} break;
 				case 112LL: { // B'p'
@@ -68115,23 +67337,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 7, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[4];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(7);
-							tup->size = 7;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-							tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-							tup->cells[4] = u;
-							tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-							tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-							decref(v);
-							push_value(MKTUP(tup,7));
-						}
+						v = tup_replace(v, 4, u);
+						push_value(v);
 					}
 				} break;
 				case 80LL: { // B'P'
@@ -68149,23 +67356,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 7, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[5];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(7);
-							tup->size = 7;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-							tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-							tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-							tup->cells[5] = u;
-							tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-							decref(v);
-							push_value(MKTUP(tup,7));
-						}
+						v = tup_replace(v, 5, u);
+						push_value(v);
 					}
 				} break;
 				default: {
@@ -68183,23 +67375,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 						VAL u = pop_value();
 						ASSERT1(IS_TUP(v), v);
 						ASSERT1(VTUPLEN(v) == 7, v);
-						if (VTUP(v)->refs == 1) {
-							VAL* p = &VTUP(v)->cells[6];
-							VAL t = *p; *p = u; decref(t);
-							push_value(v);
-						} else {
-							TUP *tup = tup_new(7);
-							tup->size = 7;
-							tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-							tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-							tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-							tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-							tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-							tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-							tup->cells[6] = u;
-							decref(v);
-							push_value(MKTUP(tup,7));
-						}
+						v = tup_replace(v, 6, u);
+						push_value(v);
 					}
 					push_resource(r11);
 					{
@@ -68238,23 +67415,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					VAL u = pop_value();
 					ASSERT1(IS_TUP(v), v);
 					ASSERT1(VTUPLEN(v) == 7, v);
-					if (VTUP(v)->refs == 1) {
-						VAL* p = &VTUP(v)->cells[1];
-						VAL t = *p; *p = u; decref(t);
-						push_value(v);
-					} else {
-						TUP *tup = tup_new(7);
-						tup->size = 7;
-						tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-						tup->cells[1] = u;
-						tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-						tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-						tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-						tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-						tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-						decref(v);
-						push_value(MKTUP(tup,7));
-					}
+					v = tup_replace(v, 1, u);
+					push_value(v);
 				}
 			} else {
 				decref(v13);
@@ -68272,23 +67434,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					VAL u = pop_value();
 					ASSERT1(IS_TUP(v), v);
 					ASSERT1(VTUPLEN(v) == 7, v);
-					if (VTUP(v)->refs == 1) {
-						VAL* p = &VTUP(v)->cells[6];
-						VAL t = *p; *p = u; decref(t);
-						push_value(v);
-					} else {
-						TUP *tup = tup_new(7);
-						tup->size = 7;
-						tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-						tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-						tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-						tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-						tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-						tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-						tup->cells[6] = u;
-						decref(v);
-						push_value(MKTUP(tup,7));
-					}
+					v = tup_replace(v, 6, u);
+					push_value(v);
 				}
 				push_resource(r22);
 				{
@@ -68362,23 +67509,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					VAL u = pop_value();
 					ASSERT1(IS_TUP(v), v);
 					ASSERT1(VTUPLEN(v) == 7, v);
-					if (VTUP(v)->refs == 1) {
-						VAL* p = &VTUP(v)->cells[6];
-						VAL t = *p; *p = u; decref(t);
-						push_value(v);
-					} else {
-						TUP *tup = tup_new(7);
-						tup->size = 7;
-						tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-						tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-						tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-						tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-						tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-						tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-						tup->cells[6] = u;
-						decref(v);
-						push_value(MKTUP(tup,7));
-					}
+					v = tup_replace(v, 6, u);
+					push_value(v);
 				}
 			} else {
 				VAL v41 = pop_value();
@@ -68397,23 +67529,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					VAL u = pop_value();
 					ASSERT1(IS_TUP(v), v);
 					ASSERT1(VTUPLEN(v) == 7, v);
-					if (VTUP(v)->refs == 1) {
-						VAL* p = &VTUP(v)->cells[6];
-						VAL t = *p; *p = u; decref(t);
-						push_value(v);
-					} else {
-						TUP *tup = tup_new(7);
-						tup->size = 7;
-						tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-						tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-						tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-						tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-						tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-						tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-						tup->cells[6] = u;
-						decref(v);
-						push_value(MKTUP(tup,7));
-					}
+					v = tup_replace(v, 6, u);
+					push_value(v);
 				}
 				push_resource(r44);
 				{
@@ -68448,23 +67565,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 					VAL u = pop_value();
 					ASSERT1(IS_TUP(v), v);
 					ASSERT1(VTUPLEN(v) == 7, v);
-					if (VTUP(v)->refs == 1) {
-						VAL* p = &VTUP(v)->cells[6];
-						VAL t = *p; *p = u; decref(t);
-						push_value(v);
-					} else {
-						TUP *tup = tup_new(7);
-						tup->size = 7;
-						tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-						tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-						tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-						tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-						tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-						tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-						tup->cells[6] = u;
-						decref(v);
-						push_value(MKTUP(tup,7));
-					}
+					v = tup_replace(v, 6, u);
+					push_value(v);
 				}
 				push_resource(r52);
 				{
@@ -68523,23 +67625,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 								VAL u = pop_value();
 								ASSERT1(IS_TUP(v), v);
 								ASSERT1(VTUPLEN(v) == 7, v);
-								if (VTUP(v)->refs == 1) {
-									VAL* p = &VTUP(v)->cells[6];
-									VAL t = *p; *p = u; decref(t);
-									push_value(v);
-								} else {
-									TUP *tup = tup_new(7);
-									tup->size = 7;
-									tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-									tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-									tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-									tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-									tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-									tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-									tup->cells[6] = u;
-									decref(v);
-									push_value(MKTUP(tup,7));
-								}
+								v = tup_replace(v, 6, u);
+								push_value(v);
 							}
 							push_resource(r63);
 							{
@@ -68587,23 +67674,8 @@ static void mw_mirth_main_compilerZ_parseZ_args (void) {
 				VAL u = pop_value();
 				ASSERT1(IS_TUP(v), v);
 				ASSERT1(VTUPLEN(v) == 7, v);
-				if (VTUP(v)->refs == 1) {
-					VAL* p = &VTUP(v)->cells[6];
-					VAL t = *p; *p = u; decref(t);
-					push_value(v);
-				} else {
-					TUP *tup = tup_new(7);
-					tup->size = 7;
-					tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-					tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-					tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-					tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-					tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-					tup->cells[5] = VTUP(v)->cells[5]; incref(tup->cells[5]);
-					tup->cells[6] = u;
-					decref(v);
-					push_value(MKTUP(tup,7));
-				}
+				v = tup_replace(v, 6, u);
+				push_value(v);
 			}
 			{
 				VAL v = top_resource();
@@ -68860,23 +67932,8 @@ static void mw_mirth_main_main (void) {
 			VAL u = pop_value();
 			ASSERT1(IS_TUP(v), v);
 			ASSERT1(VTUPLEN(v) == 7, v);
-			if (VTUP(v)->refs == 1) {
-				VAL* p = &VTUP(v)->cells[5];
-				VAL t = *p; *p = u; decref(t);
-				push_value(v);
-			} else {
-				TUP *tup = tup_new(7);
-				tup->size = 7;
-				tup->cells[0] = VTUP(v)->cells[0]; incref(tup->cells[0]);
-				tup->cells[1] = VTUP(v)->cells[1]; incref(tup->cells[1]);
-				tup->cells[2] = VTUP(v)->cells[2]; incref(tup->cells[2]);
-				tup->cells[3] = VTUP(v)->cells[3]; incref(tup->cells[3]);
-				tup->cells[4] = VTUP(v)->cells[4]; incref(tup->cells[4]);
-				tup->cells[5] = u;
-				tup->cells[6] = VTUP(v)->cells[6]; incref(tup->cells[6]);
-				decref(v);
-				push_value(MKTUP(tup,7));
-			}
+			v = tup_replace(v, 5, u);
+			push_value(v);
 		}
 	} else {
 	}

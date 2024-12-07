@@ -450,6 +450,24 @@ static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {
 	}
 }
 
+static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
+	ASSERT(IS_TUP(tup));
+	TUPLEN n = VTUPLEN(tup);
+	ASSERT(i < n);
+	if (VTUP(tup)->refs > 1) {
+		TUP* newtup = tup_new(n);
+		newtup->size = n;
+		memcpy(newtup->cells, VTUP(tup)->cells, n*sizeof(VAL));
+		for (TUPLEN j=0; j<n; j++) incref(newtup->cells[j]);
+		decref(tup);
+		tup = MKTUP(newtup, n);
+	}
+	VAL u = VTUP(tup)->cells[i];
+	VTUP(tup)->cells[i] = v;
+	decref(u);
+	return tup;
+}
+
 static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {
 	if (IS_TUP(tail) && HAS_REFS(tail)) {
 		TUPLEN tail_len = VTUPLEN(tail);

@@ -380,43 +380,10 @@ def c99-tag-set-label! [ Tag Label +C99Branch -- +C99Branch ] {
                             "];" put)
                         c99-line("VAL t = *p; *p = u; decref(t);" put),
 
-                        c99-line("if (VTUP(v)->refs == 1) {" put)
-                        c99-nest(
-                            c99-line("VAL* p = &VTUP(v)->cells[" put
-                                @tag @lbl c99-tag-label-index show put
-                                "];" put)
-                            c99-line("VAL t = *p; *p = u; decref(t);" put)
-                            c99-line("push_value(v);" put)
-                        )
-                        c99-line("} else {" put)
-                        c99-nest(
-                            c99-line("TUP *tup = tup_new(" put
-                                @tag num-total-inputs 1+ show put
-                                ");" put)
-                            c99-line("tup->size = " put
-                                @tag num-total-inputs 1+ show put
-                                ";" put)
-                            0 >Nat while(dup @tag num-total-inputs <=,
-                                dup @tag @lbl c99-tag-label-index == if(
-                                    c99-line("tup->cells[" put
-                                        dup show put
-                                        "] = u;" put),
-                                    c99-line("tup->cells[" put
-                                        dup show put
-                                        "] = VTUP(v)->cells[" put
-                                        dup show put
-                                        "]; incref(tup->cells[" put
-                                        dup show put
-                                        "]);" put)
-                                )
-                                1+)
-                            drop
-                            c99-line("decref(v);" put)
-                            c99-line("push_value(MKTUP(tup," put
-                                @tag num-total-inputs 1+ show put
-                                "));" put)
-                        )
-                        c99-line("}" put)
+                        c99-line("v = tup_replace(v, " put
+                            @tag @lbl c99-tag-label-index show put
+                            ", u);" put)
+                        c99-line("push_value(v);" put)
                     )
                 ),
             Right -> drop
