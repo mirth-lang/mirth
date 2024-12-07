@@ -702,13 +702,12 @@ def(c99-tag-word!, List(Arg) Tag +C99Branch -- +C99Branch,
         +core:+mirth:word-cname c99-call!
     ))
 
-def c99-reverse-tag! [ Tag +C99Branch +scrutinee:+C99LocalValue/Resource -- +C99Branch ] {
+def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
     dup prefer-inline? if (
-        .data is-transparent? if(
-            +scrutinee> push-local-value/resource!,
-            +scrutinee> rdrop # it's an int, no need to decref
+        .data dup is-transparent? if(
+            drop,
+            pop-local-value/resource-data! rdrop # it's a unit
         ),
-        +scrutinee> push-local-value/resource!
         dip:L0 +core:+mirth:pat-cname c99-call!
     )
 }
@@ -1681,7 +1680,6 @@ def c99-single-case! [ Case +C99Branch -- +C99Branch ] {
         body c99-arrow!,
 
     dup pattern single-tag? if-some(
-        dup .data pop-local-value/resource-data! >+scrutinee
         c99-reverse-tag!
         body c99-arrow!,
 
@@ -1702,6 +1700,7 @@ def c99-case! [ Case +C99BranchSplit +scrutinee:+C99LocalValue/Resource -- +C99B
     dup pattern single-tag? if-some(
         c99-line("case " put dup value-show put "LL: { // " put dup name >Str put)
         c99-nest:sub-branch(
+            +scrutinee> push-local-value/resource!
             c99-reverse-tag!
             body c99-arrow!
         )
