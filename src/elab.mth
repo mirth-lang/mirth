@@ -2263,11 +2263,9 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
             ab-while!(
                 PRIM_CORE_DUP ab-prim!
                 @tbl num-buffer ab-buffer!
-                PRIM_U64_GET ab-prim!
+                PRIM_I64_GET ab-prim!
                 CoerceUnsafe ab-coerce!
-                1 ab-int!
-                PRIM_INT_ADD ab-prim!
-                PRIM_INT_LT ab-prim!,
+                PRIM_INT_LE ab-prim!,
 
                 PRIM_CORE_DUP ab-prim!
                 ab-dip! (

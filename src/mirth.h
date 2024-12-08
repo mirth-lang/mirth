@@ -638,71 +638,31 @@ static void run_value(VAL v) {
 	}
 }
 
-static void mp_primZ_id (void) {}
-static void mp_primZ_dup (void) {
-	PRIM_ENTER(mp_primZ_dup,"prim-dup");
-	VAL v = top_value();
-	push_value(v);
-	incref(v);
-	PRIM_EXIT(mp_primZ_dup);
-}
-static void mp_primZ_drop (void) {
-	PRIM_ENTER(mp_primZ_drop,"prim-drop");
-	VAL v = pop_value();
-	decref(v);
-	PRIM_EXIT(mp_primZ_drop);
+static int64_t i64_add (int64_t a, int64_t b) {
+	EXPECT(((b >= 0) && (a <= INT64_MAX - b))
+		|| ((b <  0) && (a >= INT64_MIN - b)),
+		"overflow during integer addition");
+	return a + b;
 }
 
-static void mp_primZ_swap (void) {
-	PRIM_ENTER(mp_primZ_swap,"prim-swap");
-	VAL a = pop_value();
-	VAL b = pop_value();
-	push_value(a);
-	push_value(b);
-	PRIM_EXIT(mp_primZ_swap);
+static int64_t i64_sub (int64_t a, int64_t b) {
+	EXPECT(((b >= 0) && (a >= INT64_MIN + b))
+		|| ((b <  0) && (a <= INT64_MAX + b)),
+		"overflow during integer subtraction");
+	return a - b;
 }
 
-static void mp_primZ_rswap (void) {
-	PRIM_ENTER(mp_primZ_rswap,"prim-rswap");
-	VAL a = pop_resource();
-	VAL b = pop_resource();
-	push_resource(a);
-	push_resource(b);
-	PRIM_EXIT(mp_primZ_rswap);
+static int64_t i64_mul (int64_t a, int64_t b) {
+	EXPECT((a == 0) || (b == 0) ||
+		((a > 0) && (b > 0) && (a <= INT64_MAX/b)) ||
+		((a > 0) && (b < 0) && (a <= INT64_MIN/b)) ||
+		((a < 0) && (b > 0) && (a >= INT64_MIN/b)) ||
+		((a < 0) && (b < 0) && (a >= INT64_MAX/b)),
+		"overflow during integer multiplication"
+	);
+	return a * b;
 }
 
-static void mp_primZ_intZ_add (void) {
-	PRIM_ENTER(mp_primZ_intZ_add,"prim-int-add");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
-	if (b >= 0) {
-		EXPECT(a <= INT64_MAX - b, "integer overflow during addition (too positive)");
-	} else {
-		EXPECT(a >= INT64_MIN - b, "integer overflow during addition (too negative)");
-	}
-	push_i64(a + b);
-	PRIM_EXIT(mp_primZ_intZ_add);
-}
-static void mp_primZ_intZ_sub (void) {
-	PRIM_ENTER(mp_primZ_intZ_sub,"prim-int-sub");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
-	if (b >= 0) {
-		EXPECT(a >= INT64_MIN + b, "integer overflow during subtraction (too negative)");
-	} else {
-		EXPECT(a <= INT64_MAX + b, "integer overflow during subtraction (too positive)");
-	}
-	push_i64(a - b);
-	PRIM_EXIT(mp_primZ_intZ_sub);
-}
-static void mp_primZ_intZ_mul (void) {
-	PRIM_ENTER(mp_primZ_intZ_mul,"prim-int-mul");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
-	// overflow checks for multiplication
-	push_i64(a * b);
-	PRIM_EXIT(mp_primZ_intZ_mul);
-}
 static void mp_primZ_intZ_div (void) {
 	PRIM_ENTER(mp_primZ_intZ_div,"prim-int-div");
 	int64_t b = pop_i64();
@@ -1033,23 +993,6 @@ static void mp_primZ_ptrZ_nil (void) {
 	PRIM_ENTER(mp_primZ_ptrZ_nil,"prim-ptr-nil");
 	push_ptr((void*)0);
 	PRIM_EXIT(mp_primZ_ptrZ_nil);
-}
-static void mp_primZ_ptrZ_eq (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_eq,"prim-ptr-eq");
-	void* a = pop_ptr();
-	void* b = pop_ptr();
-	push_bool(a == b);
-	PRIM_EXIT(mp_primZ_ptrZ_eq);
-}
-static void mp_primZ_ptrZ_add (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_add,"prim-ptr-add");
-	VAL vptr = pop_value();
-	USIZE n = pop_usize();
-	ASSERT1(IS_PTR(vptr), vptr);
-	EXPECT(VPTR(vptr), "attempt to add to null pointer");
-	char* ptr = (char*)VPTR(vptr);
-	push_ptr(ptr + n);
-	PRIM_EXIT(mp_primZ_ptrZ_add);
 }
 #define mp_primZ_ptrZ_sizze() push_u64((uint64_t)sizeof(void*))
 static void mp_primZ_ptrZ_alloc (void) {

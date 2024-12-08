@@ -1437,11 +1437,11 @@ def C99BinOp.Mk [ Str C99ReprType Str C99ReprType Str Bool Maybe(C99ReprType) --
 }
 
 def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
-    { PRIM_INT_MUL -> "(" C99RT_I64 " * "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    { PRIM_INT_ADD -> "i64_add(" C99RT_I64 ", "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    { PRIM_INT_SUB -> "i64_sub(" C99RT_I64 ", "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    { PRIM_INT_MUL -> "i64_mul(" C99RT_I64 ", "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
     # { PRIM_INT_DIV -> "(" C99RT_I64 " / "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
     # { PRIM_INT_MOD -> "(" C99RT_I64 " % "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
-    # { PRIM_INT_ADD -> "(" C99RT_I64 " + "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
-    # { PRIM_INT_SUB -> "(" C99RT_I64 " - "  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
     # { PRIM_INT_SHL -> "(" C99RT_U64 " << " C99RT_U64 ")" False C99RT_U64 Some C99BinOp.Mk Some }
     # { PRIM_INT_SHR -> "(" C99RT_U64 " >> " C99RT_U64 ")" False C99RT_U64 Some C99BinOp.Mk Some }
     { PRIM_INT_LT  -> "(" C99RT_I64 " < "  C99RT_I64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
@@ -1478,6 +1478,9 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_STR_GT  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") > 0)"  False C99RT_BOOL Some C99BinOp.Mk Some }
     { PRIM_STR_GE  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") >= 0)" False C99RT_BOOL Some C99BinOp.Mk Some }
     { PRIM_STR_NE  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") != 0)" False C99RT_BOOL Some C99BinOp.Mk Some }
+
+    { PRIM_PTR_ADD -> "(void*)(" C99RT_I64 " + (char*)" C99RT_PTR ")" False C99RT_PTR Some C99BinOp.Mk Some }
+    { PRIM_PTR_EQ  -> "(" C99RT_PTR " == " C99RT_PTR ")" False C99RT_BOOL Some C99BinOp.Mk Some }
 
     # { PRIM_F32_SET -> "*(float*)"    C99RT_PTR " = " C99RT_F32 ";" True None C99BinOp.Mk Some }
     # { PRIM_F64_SET -> "*(double*)"   C99RT_PTR " = " C99RT_F64 ";" True None C99BinOp.Mk Some }
@@ -1532,6 +1535,14 @@ def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
     { PRIM_U16_GET  -> "*(uint16_t*)" C99RT_PTR "" C99RT_U16 Some C99UnOp.Mk Some }
     { PRIM_U8_GET   -> "*(uint8_t*)"  C99RT_PTR "" C99RT_U8  Some C99UnOp.Mk Some }
     { PRIM_PTR_GET  -> "*(void**)"    C99RT_PTR "" C99RT_PTR Some C99UnOp.Mk Some }
+
+    { PRIM_INT_TO_F32 -> "(float)"   C99RT_I64 "" C99RT_F32 Some C99UnOp.Mk Some }
+    { PRIM_INT_TO_F64 -> "(double)"  C99RT_I64 "" C99RT_F64 Some C99UnOp.Mk Some }
+    { PRIM_F32_TO_INT -> "(int64_t)" C99RT_F32 "" C99RT_I64 Some C99UnOp.Mk Some }
+    { PRIM_F32_TO_F64 -> "(double)"  C99RT_F32 "" C99RT_F64 Some C99UnOp.Mk Some }
+    { PRIM_F64_TO_INT -> "(int64_t)" C99RT_F64 "" C99RT_I64 Some C99UnOp.Mk Some }
+    { PRIM_F64_TO_F32 -> "(float)"   C99RT_F64 "" C99RT_F32 Some C99UnOp.Mk Some }
+
     { _ -> drop None }
 }
 
