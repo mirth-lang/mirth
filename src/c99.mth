@@ -996,8 +996,8 @@ inline (
         fresh-name! >local-name
         rdip:+C99Local
         c99-line(rdip:local-repr underlying-c99-type put " " put
-                rdip:local-name put " = (" put
-                rswap rdip:f rswap ");" put)
+                rdip:local-name put " = " put
+                rswap rdip:f rswap ";" put)
     }
 
     def local-resource-expression!(f) [
@@ -1407,101 +1407,137 @@ def +C99LocalResource.push-local-resource! [ +C99Branch +C99LocalResource -- +C9
 }
 
 struct C99BinOp {
+    prefix: Str
     operator: Str
-    precedence: Int
+    suffix: Str
     arg1-type: C99ReprType
     arg2-type: C99ReprType
-    out-type: C99ReprType
+    args-swapped: Bool
+    out-type: Maybe(C99ReprType)
+}
+
+def c99-binop-expr! [ C99BinOp +arg1:+C99Local +arg2:+C99Local +C99 -- +C99 ] {
+    /C99BinOp
+    prefix> put
+    +arg1> arg1-type> consume-as put
+    " " put
+    operator> put
+    " " put
+    +arg2> arg2-type> consume-as put
+    suffix> put
+    args-swapped> drop
+    out-type> drop
 }
 
 def c99-binop! [ C99BinOp +C99Branch -- +C99Branch ] {
-    /C99BinOp
-    @arg1-type pop-to-local! >+arg2
-    @arg2-type pop-to-local! >+arg1
-    out-type> push-expression!(
-        +arg1> arg1-type> consume-as put
-        " " put operator> put " " put
-        +arg2> arg2-type> consume-as put
+    dup args-swapped if(
+        dup arg1-type pop-to-local! >+arg1
+        dup arg2-type pop-to-local! >+arg2,
+
+        dup arg2-type pop-to-local! >+arg2
+        dup arg1-type pop-to-local! >+arg1
     )
 
-    precedence> drop
+    dup out-type match {
+        { Some -> push-expression!(c99-binop-expr!) }
+        { None -> c99-line(c99-binop-expr!) }
+    }
 }
 
-def C99BinOp.Mk [ Str Int C99ReprType C99ReprType C99ReprType -- C99BinOp ] {
-    >out-type >arg2-type >arg1-type
-    >precedence >operator
+def C99BinOp.Mk [ Str C99ReprType Str C99ReprType Str Bool Maybe(C99ReprType) -- C99BinOp ] {
+    >out-type >args-swapped
+    >suffix >arg2-type >operator >arg1-type >prefix
     C99BinOp
 }
 
-
 def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
-    { PRIM_INT_MUL -> "*"  3  C99RT_I64 C99RT_I64 C99RT_I64 C99BinOp.Mk Some }
-    # { PRIM_INT_DIV -> "/"  3  C99RT_I64 C99RT_I64 C99RT_I64  C99BinOp.Mk Some }
-    # { PRIM_INT_MOD -> "%"  3  C99RT_I64 C99RT_I64 C99RT_I64  C99BinOp.Mk Some }
-    # { PRIM_INT_ADD -> "+"  4  C99RT_I64 C99RT_I64 C99RT_I64 C99BinOp.Mk Some }
-    # { PRIM_INT_SUB -> "-"  4  C99RT_I64 C99RT_I64 C99RT_I64 C99BinOp.Mk Some }
-    # { PRIM_INT_SHL -> "<<" 5 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
-    # { PRIM_INT_SHR -> ">>" 5 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
-    { PRIM_INT_LT  -> "<"  6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_INT_LE  -> "<=" 6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_INT_GT  -> ">"  6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_INT_GE  -> ">=" 6  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_INT_NE  -> "!=" 7  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_INT_EQ  -> "==" 7  C99RT_I64 C99RT_I64 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_INT_AND -> "&"  8  C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
-    { PRIM_INT_XOR -> "^"  9  C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
-    { PRIM_INT_OR  -> "|"  10 C99RT_U64 C99RT_U64 C99RT_U64 C99BinOp.Mk Some }
+    { PRIM_INT_MUL -> "(" C99RT_I64 "*"  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    # { PRIM_INT_DIV -> "(" C99RT_I64 "/"  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    # { PRIM_INT_MOD -> "(" C99RT_I64 "%"  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    # { PRIM_INT_ADD -> "(" C99RT_I64 "+"  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    # { PRIM_INT_SUB -> "(" C99RT_I64 "-"  C99RT_I64 ")" False C99RT_I64 Some C99BinOp.Mk Some }
+    # { PRIM_INT_SHL -> "(" C99RT_U64 "<<" C99RT_U64 ")" False C99RT_U64 Some C99BinOp.Mk Some }
+    # { PRIM_INT_SHR -> "(" C99RT_U64 ">>" C99RT_U64 ")" False C99RT_U64 Some C99BinOp.Mk Some }
+    { PRIM_INT_LT  -> "(" C99RT_I64 "<"  C99RT_I64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_INT_LE  -> "(" C99RT_I64 "<=" C99RT_I64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_INT_GT  -> "(" C99RT_I64 ">"  C99RT_I64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_INT_GE  -> "(" C99RT_I64 ">=" C99RT_I64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_INT_NE  -> "(" C99RT_I64 "!=" C99RT_I64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_INT_EQ  -> "(" C99RT_I64 "==" C99RT_I64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_INT_AND -> "(" C99RT_U64 "&"  C99RT_U64 ")" False C99RT_U64  Some C99BinOp.Mk Some }
+    { PRIM_INT_XOR -> "(" C99RT_U64 "^"  C99RT_U64 ")" False C99RT_U64  Some C99BinOp.Mk Some }
+    { PRIM_INT_OR  -> "(" C99RT_U64 "|"  C99RT_U64 ")" False C99RT_U64  Some C99BinOp.Mk Some }
 
-    { PRIM_F32_ADD -> "+"  4  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
-    { PRIM_F32_SUB -> "-"  4  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
-    { PRIM_F32_MUL -> "*"  3  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
-    { PRIM_F32_DIV -> "/"  3  C99RT_F32 C99RT_F32 C99RT_F32  C99BinOp.Mk Some }
-    { PRIM_F32_LT  -> "<"  6  C99RT_F32 C99RT_F32 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_F32_EQ  -> "==" 7  C99RT_F32 C99RT_F32 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_F32_ADD -> "(" C99RT_F32 "+"  C99RT_F32 ")" False C99RT_F32  Some C99BinOp.Mk Some }
+    { PRIM_F32_SUB -> "(" C99RT_F32 "-"  C99RT_F32 ")" False C99RT_F32  Some C99BinOp.Mk Some }
+    { PRIM_F32_MUL -> "(" C99RT_F32 "*"  C99RT_F32 ")" False C99RT_F32  Some C99BinOp.Mk Some }
+    { PRIM_F32_DIV -> "(" C99RT_F32 "/"  C99RT_F32 ")" False C99RT_F32  Some C99BinOp.Mk Some }
+    { PRIM_F32_LT  -> "(" C99RT_F32 "<"  C99RT_F32 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_F32_EQ  -> "(" C99RT_F32 "==" C99RT_F32 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
 
-    { PRIM_F64_ADD -> "+"  4  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
-    { PRIM_F64_SUB -> "-"  4  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
-    { PRIM_F64_MUL -> "*"  3  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
-    { PRIM_F64_DIV -> "/"  3  C99RT_F64 C99RT_F64 C99RT_F64  C99BinOp.Mk Some }
-    { PRIM_F64_LT  -> "<"  6  C99RT_F64 C99RT_F64 C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_F64_EQ  -> "==" 7  C99RT_F64 C99RT_F64 C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_F64_ADD -> "(" C99RT_F64 "+"  C99RT_F64 ")" False C99RT_F64  Some C99BinOp.Mk Some }
+    { PRIM_F64_SUB -> "(" C99RT_F64 "-"  C99RT_F64 ")" False C99RT_F64  Some C99BinOp.Mk Some }
+    { PRIM_F64_MUL -> "(" C99RT_F64 "*"  C99RT_F64 ")" False C99RT_F64  Some C99BinOp.Mk Some }
+    { PRIM_F64_DIV -> "(" C99RT_F64 "/"  C99RT_F64 ")" False C99RT_F64  Some C99BinOp.Mk Some }
+    { PRIM_F64_LT  -> "(" C99RT_F64 "<"  C99RT_F64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_F64_EQ  -> "(" C99RT_F64 "==" C99RT_F64 ")" False C99RT_BOOL Some C99BinOp.Mk Some }
 
-    { PRIM_BOOL_AND -> "&&" 11 C99RT_BOOL C99RT_BOOL C99RT_BOOL C99BinOp.Mk Some }
-    { PRIM_BOOL_OR  -> "||" 12 C99RT_BOOL C99RT_BOOL C99RT_BOOL C99BinOp.Mk Some }
+    { PRIM_BOOL_AND -> "(" C99RT_BOOL "&&" C99RT_BOOL ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+    { PRIM_BOOL_OR  -> "(" C99RT_BOOL "||" C99RT_BOOL ")" False C99RT_BOOL Some C99BinOp.Mk Some }
+
+    # { PRIM_F32_SET -> "*(float*)"    C99RT_PTR "=" C99RT_F32 ";" True None C99BinOp.Mk Some }
+    # { PRIM_F64_SET -> "*(double*)"   C99RT_PTR "=" C99RT_F64 ";" True None C99BinOp.Mk Some }
+    { PRIM_U64_SET -> "*(uint64_t*)" C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
+    { PRIM_U32_SET -> "*(uint32_t*)" C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
+    { PRIM_U16_SET -> "*(uint16_t*)" C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
+    { PRIM_U8_SET  -> "*(uint8_t*)"  C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
+    { PRIM_I64_SET -> "*(int64_t*)"  C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
+    { PRIM_I32_SET -> "*(int32_t*)"  C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
+    { PRIM_I16_SET -> "*(int16_t*)"  C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
+    { PRIM_I8_SET  -> "*(int8_t*)"   C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
+    { PRIM_PTR_SET -> "*(void**)"    C99RT_PTR "=" C99RT_PTR ";" True None C99BinOp.Mk Some }
 
     { _ -> drop None }
 }
 
 struct C99UnOp {
-    operator: Str
+    prefix:   Str
     arg-type: C99ReprType
-    out-type: C99ReprType
+    suffix:   Str
+    out-type: Maybe(C99ReprType)
+}
+
+def c99-unop-expr! [ C99UnOp +arg:+C99Local +C99 -- +C99 ] {
+    /C99UnOp
+    prefix> put
+    +arg> arg-type> consume-as put
+    suffix> put
+    out-type> drop
 }
 
 def c99-unop! [ C99UnOp +C99Branch -- +C99Branch ] {
-    /C99UnOp
-    @arg-type pop-to-local! >+arg
-    out-type> push-expression! (
-        operator> put "(" put
-        +arg> arg-type> consume-as put ")" put
-    )
+    dup arg-type pop-to-local! >+arg
+    dup out-type match {
+        { Some -> push-expression!(c99-unop-expr!) }
+        { None -> c99-line(c99-unop-expr!) }
+    }
 }
 
-def C99UnOp.Mk [ Str C99ReprType C99ReprType -- C99UnOp ] {
-    >out-type >arg-type >operator C99UnOp
+def C99UnOp.Mk [ Str C99ReprType Str Maybe(C99ReprType) -- C99UnOp ] {
+    >out-type >suffix >arg-type >prefix C99UnOp
 }
 
 def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
-    { PRIM_BOOL_NOT -> "!" C99RT_BOOL C99RT_BOOL C99UnOp.Mk Some }
-    { PRIM_I64_GET -> "*(int64_t*)"  C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
-    { PRIM_I32_GET -> "*(int32_t*)"  C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
-    { PRIM_I16_GET -> "*(int16_t*)"  C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
-    { PRIM_I8_GET  -> "*(int8_t*)"   C99RT_PTR C99RT_I64 C99UnOp.Mk Some }
-    { PRIM_U64_GET -> "*(uint64_t*)" C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
-    { PRIM_U32_GET -> "*(uint32_t*)" C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
-    { PRIM_U16_GET -> "*(uint16_t*)" C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
-    { PRIM_U8_GET  -> "*(uint8_t*)"  C99RT_PTR C99RT_U64 C99UnOp.Mk Some }
-    { PRIM_PTR_GET -> "*(void**)"    C99RT_PTR C99RT_PTR C99UnOp.Mk Some }
+    { PRIM_BOOL_NOT -> "!" C99RT_BOOL "" C99RT_BOOL Some C99UnOp.Mk Some }
+    { PRIM_I64_GET  -> "*(int64_t*)"  C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
+    { PRIM_I32_GET  -> "*(int32_t*)"  C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
+    { PRIM_I16_GET  -> "*(int16_t*)"  C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
+    { PRIM_I8_GET   -> "*(int8_t*)"   C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
+    { PRIM_U64_GET  -> "*(uint64_t*)" C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
+    { PRIM_U32_GET  -> "*(uint32_t*)" C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
+    { PRIM_U16_GET  -> "*(uint16_t*)" C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
+    { PRIM_U8_GET   -> "*(uint8_t*)"  C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
+    { PRIM_PTR_GET  -> "*(void**)"    C99RT_PTR "" C99RT_PTR Some C99UnOp.Mk Some }
     { _ -> drop None }
 }
 
