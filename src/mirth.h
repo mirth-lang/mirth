@@ -586,14 +586,6 @@ static STR* str_make (const char* data, USIZE size) {
 }
 #define mkstr(x,n) MKSTR(str_make((x), (n)))
 
-static void do_uncons(void) {
-	VAL val, tail, head;
-	val = pop_value();
-	value_uncons(val, &tail, &head);
-	push_value(tail);
-	push_value(head);
-}
-
 static USIZE get_data_tag(VAL v) {
 	if (IS_TUP(v)) {
 		ASSERT(VTUPLEN(v) > 0);
@@ -663,135 +655,44 @@ static int64_t i64_mul (int64_t a, int64_t b) {
 	return a * b;
 }
 
-static void mp_primZ_intZ_div (void) {
-	PRIM_ENTER(mp_primZ_intZ_div,"prim-int-div");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
+static int64_t i64_div (int64_t a, int64_t b) {
 	EXPECT(b != 0, "divide by zero");
-	EXPECT(!((b == -1) && (a == INT64_MIN)), "overflow during division");
+	EXPECT(!((b == -1) && (a == INT64_MIN)), "overflow during integer division");
 	int64_t r = a % b;
 	int64_t q = a / b;
 	if (((a < 0) ^ (b < 0)) && r) q--;
-	push_i64(q);
-	PRIM_EXIT(mp_primZ_intZ_div);
+	return q;
 }
-static void mp_primZ_intZ_mod (void) {
-	PRIM_ENTER(mp_primZ_intZ_mod,"prim-int-mod");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
+
+static int64_t i64_mod (int64_t a, int64_t b) {
 	EXPECT(b != 0, "divide by zero");
-	if (b == -1) { push_i64(0); return; }
+	EXPECT(!((b == -1) && (a == INT64_MIN)), "overflow during integer division");
 	int64_t r = a % b;
 	int64_t q = a / b;
 	if (((a < 0) ^ (b < 0)) && r) r += b;
-	push_i64(r);
-	PRIM_EXIT(mp_primZ_intZ_mod);
+	return r;
 }
 
-static void mp_primZ_intZ_and (void) {
-	PRIM_ENTER(mp_primZ_intZ_and,"prim-int-and");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64(a & b);
-	PRIM_EXIT(mp_primZ_intZ_and);
-}
-static void mp_primZ_intZ_or (void) {
-	PRIM_ENTER(mp_primZ_intZ_or,"prim-int-or");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64(a | b);
-	PRIM_EXIT(mp_primZ_intZ_or);
-}
-static void mp_primZ_intZ_xor (void) {
-	PRIM_ENTER(mp_primZ_intZ_xor,"prim-int-xor");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64(a ^ b);
-	PRIM_EXIT(mp_primZ_intZ_xor);
-}
-static void mp_primZ_intZ_shl (void) {
-	PRIM_ENTER(mp_primZ_intZ_shl,"prim-int-shl");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64((b >= 64) ? 0 : (a << b));
-	PRIM_EXIT(mp_primZ_intZ_shl);
-}
-static void mp_primZ_intZ_shr (void) {
-	PRIM_ENTER(mp_primZ_intZ_shr,"prim-int-shr");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64((b >= 64) ? 0 : (a >> b));
-	PRIM_EXIT(mp_primZ_intZ_shr);
+static uint64_t u64_shl (uint64_t a, uint64_t b) {
+	if (b >= 64) return 0;
+	return (a << b);
 }
 
-static void mp_primZ_f32Z_toZ_f64 (void) {
-	PRIM_ENTER(mp_primZ_f32Z_toZ_f64, "prim-f32-to-f64");
-	float x = pop_f32();
-	push_f64((double)x);
-	PRIM_EXIT(mp_primZ_f32Z_toZ_f64);
+static uint64_t u64_shr (uint64_t a, uint64_t b) {
+	if (b >= 64) return 0;
+	return (a >> b);
 }
 
-static void mp_primZ_f64Z_toZ_f32 (void) {
-	PRIM_ENTER(mp_primZ_f64Z_toZ_f32, "prim-f64-to-f32");
-	double x = pop_f64();
-	push_f32((float)x);
-	PRIM_EXIT(mp_primZ_f64Z_toZ_f32);
+static STR* f32_show (float d) {
+ 	char result[DBL_DIG+32] = {0};
+	int len = sprintf(result, "%.*g", DBL_DIG, d);
+	return str_make(result, len);
 }
 
-static void mp_primZ_intZ_toZ_f32 (void) {
-	PRIM_ENTER(mp_primZ_intZ_toZ_f32, "prim-int-to-f32");
-	int64_t i = pop_i64();
-	push_f32((float)i);
-	PRIM_EXIT(mp_primZ_intZ_toZ_f32);
-}
-
-static void mp_primZ_f32Z_toZ_int (void) {
-	PRIM_ENTER(mp_primZ_f32Z_toZ_int, "prim-f32-to-int");
-	float d = pop_f32();
-	push_i64((int64_t)d);
-	PRIM_EXIT(mp_primZ_f32Z_toZ_int);
-}
-
-static void mp_primZ_intZ_toZ_f64 (void) {
-	PRIM_ENTER(mp_primZ_intZ_toZ_f64, "prim-int-to-f64");
-	int64_t i = pop_i64();
-	push_f64((double)i);
-	PRIM_EXIT(mp_primZ_intZ_toZ_f64);
-}
-
-static void mp_primZ_f64Z_toZ_int (void) {
-	PRIM_ENTER(mp_primZ_f64Z_toZ_int, "prim-f64-to-int");
-	double d = pop_f64();
-	push_i64((int64_t)d);
-	PRIM_EXIT(mp_primZ_f64Z_toZ_int);
-}
-
-static void mp_primZ_strZ_cmp (void) {
-	PRIM_ENTER(mp_primZ_strZ_cmp,"prim-str-cmp");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT2(IS_STR(a) && IS_STR(b), a, b);
-	int64_t cmp = str_cmp(VSTR(a), VSTR(b));
-	push_i64(cmp);
-	PRIM_EXIT(mp_primZ_strZ_cmp);
-}
-
-static void mp_primZ_f32Z_toZ_str (void) {
-	PRIM_ENTER(mp_primZ_f32Z_toZ_str, "prim-f32-to-str");
-	double d = pop_f32();
-	char result[DBL_DIG+32] = {0};
-	int len = sprintf(result,"%.*g", DBL_DIG,  d);
-	push_value(mkstr(result, len));
-	PRIM_EXIT(mp_primZ_f32Z_toZ_str);
-}
-
-static void mp_primZ_f64Z_toZ_str (void) {
-	PRIM_ENTER(mp_primZ_f64Z_toZ_str, "prim-f64-to-str");
-	double d = pop_f64();
-	char result[DBL_DIG+32] = {0};
-	int len = sprintf(result,"%.*g", DBL_DIG,  d);
-	push_value(mkstr(result, len));
-	PRIM_EXIT(mp_primZ_f64Z_toZ_str);
+static STR* f64_show (double d) {
+ 	char result[DBL_DIG+32] = {0};
+	int len = sprintf(result, "%.*g", DBL_DIG, d);
+	return str_make(result, len);
 }
 
 static void mp_primZ_sysZ_argc (void) {
@@ -839,25 +740,23 @@ void int_trace_(int64_t y, int fd) {
 	write(fd, p, n);
 }
 
-void mp_primZ_intZ_toZ_str(void) {
-	PRIM_ENTER(mp_primZ_intZ_toZ_str,"prim-int-to-str");
-	int64_t x = pop_i64();
+STR* i64_show (int64_t x) {
 	bool cache = (0 <= x) && (x <= 255);
-	static VAL scache[256] = {0};
-	if (cache && scache[x].tag) {
-		incref(scache[x]);
-		push_value(scache[x]);
+	static STR* scache[256] = {0};
+	if (cache && scache[x]) {
+		STR* s = scache[x];
+		incref(MKSTR(s));
+		return s;
 	} else {
 		char* p; size_t n;
 		int_repr(x,&p,&n);
-		VAL out = mkstr(p,n);
-		push_value(out);
+		STR* s = str_make(p,n);
 		if (cache) {
-			scache[x] = out;
-			incref(out);
+			scache[x] = s;
+			incref(MKSTR(s));
 		}
+		return s;
 	}
-	PRIM_EXIT(mp_primZ_intZ_toZ_str);
 }
 
 void str_trace_(STR* str, int fd) {
@@ -1121,12 +1020,6 @@ static void mp_primZ_packZ_cons (void) {
 	VAL car = pop_value();
 	push_value(mkcons(car,cdr));
 	PRIM_EXIT(mp_primZ_packZ_cons);
-}
-
-static void mp_primZ_packZ_uncons (void) {
-	PRIM_ENTER(mp_primZ_packZ_uncons,"prim-pack-uncons");
-	do_uncons();
-	PRIM_EXIT(mp_primZ_packZ_uncons);
 }
 
 static void mp_primZ_mutZ_get (void) {
