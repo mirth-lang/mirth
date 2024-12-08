@@ -811,82 +811,112 @@ def(c99-string-byte!, Byte avoid-hexdigit:Bool +C99 -- avoid-hexdigit:Bool +C99,
 
 data C99ReprType {
     C99RT_VAL
-    C99RT_I64
-    C99RT_U64
-    C99RT_F32
-    C99RT_F64
+    C99RT_I64 C99RT_I32 C99RT_I16 C99RT_I8
+    C99RT_U64 C99RT_U32 C99RT_U16 C99RT_U8
+    C99RT_F64 C99RT_F32
     C99RT_BOOL
     C99RT_PTR
 }
 
+inline (
+    def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] { both(tag) == }
+)
+
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
    { C99RT_VAL -> True }
-   { C99RT_I64 -> False }
-   { C99RT_U64 -> False }
-   { C99RT_F32 -> False }
-   { C99RT_F64 -> False }
-   { C99RT_BOOL -> False }
-   { C99RT_PTR -> False }
+   { _ -> drop False }
+}
+
+def C99ReprType.is-int-like? [ C99ReprType -- Bool ] {
+    { C99RT_I64 -> True } { C99RT_I32 -> True } { C99RT_I16 -> True } { C99RT_I8 -> True }
+    { C99RT_U64 -> True } { C99RT_U32 -> True } { C99RT_U16 -> True } { C99RT_U8 -> True }
+    { C99RT_BOOL -> True }
+    { _ -> drop False }
+}
+
+def C99ReprType.is-float-like? [ C99ReprType -- Bool ] {
+    { C99RT_F64 -> True } { C99RT_F32 -> True }
+    { _ -> drop False }
 }
 
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
-    { C99RT_VAL -> "VAL" }
-    { C99RT_I64 -> "int64_t" }
-    { C99RT_U64 -> "uint64_t" }
-    { C99RT_F32 -> "float" }
-    { C99RT_F64 -> "double" }
+    { C99RT_VAL  -> "VAL" }
+    { C99RT_I64  -> "int64_t" }
+    { C99RT_I32  -> "int32_t" }
+    { C99RT_I16  -> "int16_t" }
+    { C99RT_I8   -> "int8_t" }
+    { C99RT_U64  -> "uint64_t" }
+    { C99RT_U32  -> "uint32_t" }
+    { C99RT_U16  -> "uint16_t" }
+    { C99RT_U8   -> "uint8_t" }
+    { C99RT_F64  -> "double" }
+    { C99RT_F32  -> "float" }
     { C99RT_BOOL -> "bool" }
-    { C99RT_PTR -> "void*" }
-}
-
-def C99ReprType.is-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL -> "IS_VAL" }
-    { C99RT_I64 -> "IS_I64" }
-    { C99RT_U64 -> "IS_U64" }
-    { C99RT_F32 -> "IS_F32" }
-    { C99RT_F64 -> "IS_F64" }
-    { C99RT_BOOL -> "IS_BOOL" }
-    { C99RT_PTR -> "IS_PTR" }
+    { C99RT_PTR  -> "void*" }
 }
 
 def C99ReprType.v-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL -> "VVAL" }
-    { C99RT_I64 -> "VI64" }
-    { C99RT_U64 -> "VU64" }
-    { C99RT_F32 -> "VF32" }
-    { C99RT_F64 -> "VF64" }
+    { C99RT_VAL  -> "VVAL"  }
+    { C99RT_I64  -> "VI64"  }
+    { C99RT_I32  -> "VI32"  }
+    { C99RT_I16  -> "VI16"  }
+    { C99RT_I8   -> "VI8"   }
+    { C99RT_U64  -> "VU64"  }
+    { C99RT_U32  -> "VU32"  }
+    { C99RT_U16  -> "VU16"  }
+    { C99RT_U8   -> "VU8"   }
+    { C99RT_F64  -> "VF64"  }
+    { C99RT_F32  -> "VF32"  }
     { C99RT_BOOL -> "VBOOL" }
-    { C99RT_PTR -> "VPTR" }
+    { C99RT_PTR  -> "VPTR"  }
 }
 
 def C99ReprType.mk-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL -> "MKVAL" }
-    { C99RT_I64 -> "MKI64" }
-    { C99RT_U64 -> "MKU64" }
-    { C99RT_F32 -> "MKF32" }
-    { C99RT_F64 -> "MKF64" }
+    { C99RT_VAL  -> "MKVAL"  }
+    { C99RT_I64  -> "MKI64"  }
+    { C99RT_I32  -> "MKI32"  }
+    { C99RT_I16  -> "MKI16"  }
+    { C99RT_I8   -> "MKI8"   }
+    { C99RT_U64  -> "MKU64"  }
+    { C99RT_U32  -> "MKU32"  }
+    { C99RT_U16  -> "MKU16"  }
+    { C99RT_U8   -> "MKU8"   }
+    { C99RT_F32  -> "MKF32"  }
+    { C99RT_F64  -> "MKF64"  }
     { C99RT_BOOL -> "MKBOOL" }
-    { C99RT_PTR -> "MKPTR" }
+    { C99RT_PTR  -> "MKPTR"  }
 }
 
 def C99ReprType.pop-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL -> "pop_value" }
-    { C99RT_I64 -> "pop_i64" }
-    { C99RT_U64 -> "pop_u64" }
-    { C99RT_F32 -> "pop_f32" }
-    { C99RT_F64 -> "pop_f64" }
-    { C99RT_BOOL -> "pop_bool" }
-    { C99RT_PTR -> "pop_ptr" }
+    { C99RT_VAL  -> "pop_value" }
+    { C99RT_I64  -> "pop_i64"   }
+    { C99RT_I32  -> "pop_i32"   }
+    { C99RT_I16  -> "pop_i16"   }
+    { C99RT_I8   -> "pop_i8"    }
+    { C99RT_U64  -> "pop_u64"   }
+    { C99RT_U32  -> "pop_u32"   }
+    { C99RT_U16  -> "pop_u16"   }
+    { C99RT_U8   -> "pop_u8"    }
+    { C99RT_F64  -> "pop_f64"   }
+    { C99RT_F32  -> "pop_f32"   }
+    { C99RT_BOOL -> "pop_bool"  }
+    { C99RT_PTR  -> "pop_ptr"   }
 }
 
 def C99ReprType.push-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL -> "push_value" }
-    { C99RT_I64 -> "push_i64" }
-    { C99RT_U64 -> "push_u64" }
-    { C99RT_F32 -> "push_f32" }
-    { C99RT_F64 -> "push_f64" }
-    { C99RT_BOOL -> "push_bool" }
-    { C99RT_PTR -> "push_ptr" }
+    { C99RT_VAL  -> "push_value" }
+    { C99RT_I64  -> "push_i64"   }
+    { C99RT_I32  -> "push_i32"   }
+    { C99RT_I16  -> "push_i16"   }
+    { C99RT_I8   -> "push_i8"    }
+    { C99RT_U64  -> "push_u64"   }
+    { C99RT_U32  -> "push_u32"   }
+    { C99RT_U16  -> "push_u16"   }
+    { C99RT_U8   -> "push_u8"    }
+    { C99RT_F64  -> "push_f64"   }
+    { C99RT_F32  -> "push_f32"   }
+    { C99RT_BOOL -> "push_bool"  }
+    { C99RT_PTR  -> "push_ptr"   }
 }
 
 def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
@@ -1029,70 +1059,24 @@ def +C99Local.consume-as-VAL [ +C99Local -- Str ] {
     }
 }
 
-def +C99Local.consume-as-I64 [ +C99Local -- Str ] {
-    /+C99Local local-name> local-repr> match {
-        { C99RT_VAL  -> Str("VI64(" ; ; ")";) }
-        { C99RT_I64  -> }
-        { C99RT_U64  -> Str("((int64_t)(" ; ; "))";) }
-        { C99RT_BOOL -> Str("((int64_t)(" ; ; "))";) }
-        { _ -> "attempted to consume non-I64 as I64" panic! }
-    }
-}
-
-def +C99Local.consume-as-U64 [ +C99Local -- Str ] {
-    /+C99Local local-name> local-repr> match {
-        { C99RT_VAL  -> Str("VU64(" ; ; ")";) }
-        { C99RT_U64  -> }
-        { C99RT_I64  -> Str("((uint64_t)(" ; ; "))";) }
-        { C99RT_BOOL -> Str("((uint64_t)(" ; ; "))";) }
-        { _ -> "attempted to consume non-U64 as U64" panic! }
-    }
-}
-
-def +C99Local.consume-as-BOOL [ +C99Local -- Str ] {
-    /+C99Local local-name> local-repr> match {
-        { C99RT_VAL  -> Str("VBOOL(" ; ; ")";) }
-        { C99RT_BOOL -> }
-        { C99RT_I64  -> Str("((_Bool)(" ; ; "))";) }
-        { C99RT_U64  -> Str("((_Bool)(" ; ; "))";) }
-        { _ -> "attempted to consume non-U64 as U64" panic! }
-    }
-}
-
-def +C99Local.consume-as-F32 [ +C99Local -- Str ] {
-    /+C99Local local-name> local-repr> match {
-        { C99RT_VAL -> Str("VF32(" ; ; ")";) }
-        { C99RT_F32 -> }
-        { _ -> "attempted to consume non-F32 as F32" panic! }
-    }
-}
-
-def +C99Local.consume-as-F64 [ +C99Local -- Str ] {
-    /+C99Local local-name> local-repr> match {
-        { C99RT_VAL -> Str("VF64(" ; ; ")";) }
-        { C99RT_F64 -> }
-        { _ -> "attempted to consume non-F64 as F64" panic! }
-    }
-}
-
-def +C99Local.consume-as-PTR [ +C99Local -- Str ] {
-    /+C99Local local-name> local-repr> match {
-        { C99RT_VAL -> Str( "VPTR(" ; ; ")" ; ) }
-        { C99RT_I64 -> Str( "(void*)(uintptr_t)(" ; ; ")" ; ) }
-        { C99RT_U64 -> Str( "(void*)(uintptr_t)(" ; ; ")" ; ) }
-        { C99RT_PTR -> }
-        { _ -> "attempted to consume non-pointer as pointer" panic! }
-    }
-}
-
 def +C99Local.consume-as [ C99ReprType +C99Local -- Str ] {
-    C99RT_VAL  -> consume-as-VAL,
-    C99RT_I64  -> consume-as-I64,
-    C99RT_U64  -> consume-as-U64,
-    C99RT_BOOL -> consume-as-BOOL,
-    C99RT_F32  -> consume-as-F32,
-    C99RT_F64  -> consume-as-F64,
-    C99RT_PTR  -> consume-as-PTR,
+    { C99RT_VAL -> consume-as-VAL }
+    { _ ->
+        /+C99Local
+        @local-repr match {
+            { C99RT_VAL -> Str( v-macro ; "(" ; local-name> ; ")" ; ) }
+            { _ ->
+                over == if(
+                    drop local-name>,
+                    dup is-int-like? @local-repr is-int-like? && if(
+                        Str( "(" ; underlying-c99-type ; ")(" ; local-name> ; ")" ; ),
+                        "attempted to cast between incompatible C99 repr types" panic!
+                    )
+                )
+            }
+        }
+        local-repr> drop
+    }
 }
 
 def +C99Local.drop-local! [ +C99Branch +C99Local -- +C99Branch ] {
@@ -1112,12 +1096,7 @@ def +C99Local.dup-local! [ +C99Branch +C99Local -- +C99Branch +C99Local +C99Loca
 def +C99Local.peek-data-tag [ +C99Local -- +C99Local Str ] {
     local-repr match {
         { C99RT_VAL -> local-name Str("get_data_tag(" ; ; ")" ;) }
-        { C99RT_I64 -> local-name }
-        { C99RT_U64 -> local-name }
-        { C99RT_BOOL -> local-name }
-        { C99RT_F32 -> local-name }
-        { C99RT_F64 -> local-name }
-        { C99RT_PTR -> local-name }
+        { _ -> drop local-name }
     }
 }
 
@@ -1201,12 +1180,7 @@ def +C99LocalResource.push-local-resource-direct! [ +C99 +C99LocalResource -- +C
 def +C99LocalResource.peek-data-tag [ +C99LocalResource -- +C99LocalResource Str ] {
     local-resource-repr match {
         { C99RT_VAL -> local-resource-name Str("get_data_tag(" ; ; ")" ;) }
-        { C99RT_I64 -> local-resource-name }
-        { C99RT_U64 -> local-resource-name }
-        { C99RT_BOOL -> local-resource-name }
-        { C99RT_F32 -> local-resource-name }
-        { C99RT_F64 -> local-resource-name }
-        { C99RT_PTR -> local-resource-name }
+        { _ -> drop local-resource-name }
     }
 }
 
@@ -1488,13 +1462,13 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     # { PRIM_F32_SET -> "*(float*)"    C99RT_PTR "=" C99RT_F32 ";" True None C99BinOp.Mk Some }
     # { PRIM_F64_SET -> "*(double*)"   C99RT_PTR "=" C99RT_F64 ";" True None C99BinOp.Mk Some }
     { PRIM_U64_SET -> "*(uint64_t*)" C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
-    { PRIM_U32_SET -> "*(uint32_t*)" C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
-    { PRIM_U16_SET -> "*(uint16_t*)" C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
-    { PRIM_U8_SET  -> "*(uint8_t*)"  C99RT_PTR "=" C99RT_U64 ";" True None C99BinOp.Mk Some }
+    { PRIM_U32_SET -> "*(uint32_t*)" C99RT_PTR "=" C99RT_U32 ";" True None C99BinOp.Mk Some }
+    { PRIM_U16_SET -> "*(uint16_t*)" C99RT_PTR "=" C99RT_U16 ";" True None C99BinOp.Mk Some }
+    { PRIM_U8_SET  -> "*(uint8_t*)"  C99RT_PTR "=" C99RT_U8  ";" True None C99BinOp.Mk Some }
     { PRIM_I64_SET -> "*(int64_t*)"  C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
-    { PRIM_I32_SET -> "*(int32_t*)"  C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
-    { PRIM_I16_SET -> "*(int16_t*)"  C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
-    { PRIM_I8_SET  -> "*(int8_t*)"   C99RT_PTR "=" C99RT_I64 ";" True None C99BinOp.Mk Some }
+    { PRIM_I32_SET -> "*(int32_t*)"  C99RT_PTR "=" C99RT_I32 ";" True None C99BinOp.Mk Some }
+    { PRIM_I16_SET -> "*(int16_t*)"  C99RT_PTR "=" C99RT_I16 ";" True None C99BinOp.Mk Some }
+    { PRIM_I8_SET  -> "*(int8_t*)"   C99RT_PTR "=" C99RT_I8  ";" True None C99BinOp.Mk Some }
     { PRIM_PTR_SET -> "*(void**)"    C99RT_PTR "=" C99RT_PTR ";" True None C99BinOp.Mk Some }
 
     { _ -> drop None }
@@ -1530,13 +1504,13 @@ def C99UnOp.Mk [ Str C99ReprType Str Maybe(C99ReprType) -- C99UnOp ] {
 def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
     { PRIM_BOOL_NOT -> "!" C99RT_BOOL "" C99RT_BOOL Some C99UnOp.Mk Some }
     { PRIM_I64_GET  -> "*(int64_t*)"  C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
-    { PRIM_I32_GET  -> "*(int32_t*)"  C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
-    { PRIM_I16_GET  -> "*(int16_t*)"  C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
-    { PRIM_I8_GET   -> "*(int8_t*)"   C99RT_PTR "" C99RT_I64 Some C99UnOp.Mk Some }
+    { PRIM_I32_GET  -> "*(int32_t*)"  C99RT_PTR "" C99RT_I32 Some C99UnOp.Mk Some }
+    { PRIM_I16_GET  -> "*(int16_t*)"  C99RT_PTR "" C99RT_I16 Some C99UnOp.Mk Some }
+    { PRIM_I8_GET   -> "*(int8_t*)"   C99RT_PTR "" C99RT_I8  Some C99UnOp.Mk Some }
     { PRIM_U64_GET  -> "*(uint64_t*)" C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
-    { PRIM_U32_GET  -> "*(uint32_t*)" C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
-    { PRIM_U16_GET  -> "*(uint16_t*)" C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
-    { PRIM_U8_GET   -> "*(uint8_t*)"  C99RT_PTR "" C99RT_U64 Some C99UnOp.Mk Some }
+    { PRIM_U32_GET  -> "*(uint32_t*)" C99RT_PTR "" C99RT_U32 Some C99UnOp.Mk Some }
+    { PRIM_U16_GET  -> "*(uint16_t*)" C99RT_PTR "" C99RT_U16 Some C99UnOp.Mk Some }
+    { PRIM_U8_GET   -> "*(uint8_t*)"  C99RT_PTR "" C99RT_U8  Some C99UnOp.Mk Some }
     { PRIM_PTR_GET  -> "*(void**)"    C99RT_PTR "" C99RT_PTR Some C99UnOp.Mk Some }
     { _ -> drop None }
 }
@@ -1616,7 +1590,7 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
                 C99RT_BOOL pop-to-local! >+cond
 
                 begin-branch-split!
-                c99-line("if (" put +cond> consume-as-BOOL put ") {" put)
+                c99-line("if (" put +cond> C99RT_BOOL consume-as put ") {" put)
                 c99-nest:sub-branch(swap c99-arg-run!)
                 c99-line("} else {" put)
                 c99-nest:sub-branch(c99-arg-run!)
@@ -1637,7 +1611,7 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
                     swap c99-arg-run!
                     C99RT_BOOL pop-to-local! >+cond
                     end-branch!
-                    c99-line("if (!" put +cond> consume-as-BOOL put ") break;" put)
+                    c99-line("if (!" put +cond> C99RT_BOOL consume-as put ") break;" put)
                     start-branch!
                     c99-arg-run!
                     end-branch!
