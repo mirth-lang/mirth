@@ -180,8 +180,8 @@ def c99-tag-def! [ Tag +C99 -- +C99 ] {
 
                 @tag num-total-inputs 0= if(
                     @tag outputs-resource? if(
-                        "\tpush_resource(MKU64(",
-                        "\tpush_value(MKU64("
+                        "\tpush_resource(MKI64(",
+                        "\tpush_value(MKI64("
                     ) put
                         @tag value-show put
                         "LL));" put line
@@ -193,7 +193,7 @@ def c99-tag-def! [ Tag +C99 -- +C99 ] {
                     "\ttup->size = " put
                         @tag num-total-inputs 1+ show put
                         ";" put line
-                    "\ttup->cells[0] = MKU64(" put
+                    "\ttup->cells[0] = MKI64(" put
                         @tag value-show put
                         "LL);" put line
                     @tag num-total-inputs
@@ -312,7 +312,7 @@ def c99-tag-get-label! [ Tag Label +C99Branch -- +C99Branch ] {
 
             { Right -> # field and wrapper are both resources
                 drop
-                C99RT_U64 push-resource-expression!("0" put)
+                C99RT_I64 push-resource-expression!("0" put)
             }
         },
 
@@ -364,7 +364,7 @@ def c99-tag-set-label! [ Tag Label +C99Branch -- +C99Branch ] {
                 }
             }
             { Right -> # field and wrapper are resource
-                C99RT_U64 pop-to-local-resource! rdrop # vacant wrapper is unit
+                C99RT_I64 pop-to-local-resource! rdrop # vacant wrapper is unit
                 drop
             }
         },
@@ -676,11 +676,11 @@ def(c99-tag-word!, List(Arg) Tag +C99Branch -- +C99Branch,
     dup prefer-inline? if(
         dup .data is-transparent? else(
             dup outputs-resource? if(
-                C99RT_U64 push-resource-expression!(
+                C99RT_I64 push-resource-expression!(
                     dup value-show put "LL /* " put
                     dup name >Str put " */" put
                 ),
-                C99RT_U64 push-expression!(
+                C99RT_I64 push-expression!(
                     dup value-show put "LL /* " put
                     dup name >Str put " */" put
                 )
@@ -818,6 +818,7 @@ data C99ReprType {
     C99RT_F64 C99RT_F32
     C99RT_BOOL
     C99RT_PTR
+    C99RT_FNPTR
 }
 
 def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
@@ -843,88 +844,93 @@ def C99ReprType.is-float-like? [ C99ReprType -- Bool ] {
 }
 
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
-    { C99RT_VAL  -> "VAL" }
-    { C99RT_STR  -> "STR*" }
-    { C99RT_I64  -> "int64_t" }
-    { C99RT_I32  -> "int32_t" }
-    { C99RT_I16  -> "int16_t" }
-    { C99RT_I8   -> "int8_t" }
-    { C99RT_U64  -> "uint64_t" }
-    { C99RT_U32  -> "uint32_t" }
-    { C99RT_U16  -> "uint16_t" }
-    { C99RT_U8   -> "uint8_t" }
-    { C99RT_F64  -> "double" }
-    { C99RT_F32  -> "float" }
-    { C99RT_BOOL -> "bool" }
-    { C99RT_PTR  -> "void*" }
+    { C99RT_VAL   -> "VAL"      }
+    { C99RT_STR   -> "STR*"     }
+    { C99RT_I64   -> "int64_t"  }
+    { C99RT_I32   -> "int32_t"  }
+    { C99RT_I16   -> "int16_t"  }
+    { C99RT_I8    -> "int8_t"   }
+    { C99RT_U64   -> "uint64_t" }
+    { C99RT_U32   -> "uint32_t" }
+    { C99RT_U16   -> "uint16_t" }
+    { C99RT_U8    -> "uint8_t"  }
+    { C99RT_F64   -> "double"   }
+    { C99RT_F32   -> "float"    }
+    { C99RT_BOOL  -> "bool"     }
+    { C99RT_PTR   -> "void*"    }
+    { C99RT_FNPTR -> "FNPTR"    }
 }
 
 def C99ReprType.v-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL  -> "VVAL"  }
-    { C99RT_STR  -> "VSTR"  }
-    { C99RT_I64  -> "VI64"  }
-    { C99RT_I32  -> "VI32"  }
-    { C99RT_I16  -> "VI16"  }
-    { C99RT_I8   -> "VI8"   }
-    { C99RT_U64  -> "VU64"  }
-    { C99RT_U32  -> "VU32"  }
-    { C99RT_U16  -> "VU16"  }
-    { C99RT_U8   -> "VU8"   }
-    { C99RT_F64  -> "VF64"  }
-    { C99RT_F32  -> "VF32"  }
-    { C99RT_BOOL -> "VBOOL" }
-    { C99RT_PTR  -> "VPTR"  }
+    { C99RT_VAL   -> "VVAL"   }
+    { C99RT_STR   -> "VSTR"   }
+    { C99RT_I64   -> "VI64"   }
+    { C99RT_I32   -> "VI32"   }
+    { C99RT_I16   -> "VI16"   }
+    { C99RT_I8    -> "VI8"    }
+    { C99RT_U64   -> "VU64"   }
+    { C99RT_U32   -> "VU32"   }
+    { C99RT_U16   -> "VU16"   }
+    { C99RT_U8    -> "VU8"    }
+    { C99RT_F64   -> "VF64"   }
+    { C99RT_F32   -> "VF32"   }
+    { C99RT_BOOL  -> "VBOOL"  }
+    { C99RT_PTR   -> "VPTR"   }
+    { C99RT_FNPTR -> "VFNPTR" }
 }
 
 def C99ReprType.mk-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL  -> "MKVAL"  }
-    { C99RT_STR  -> "MKSTR"  }
-    { C99RT_I64  -> "MKI64"  }
-    { C99RT_I32  -> "MKI32"  }
-    { C99RT_I16  -> "MKI16"  }
-    { C99RT_I8   -> "MKI8"   }
-    { C99RT_U64  -> "MKU64"  }
-    { C99RT_U32  -> "MKU32"  }
-    { C99RT_U16  -> "MKU16"  }
-    { C99RT_U8   -> "MKU8"   }
-    { C99RT_F32  -> "MKF32"  }
-    { C99RT_F64  -> "MKF64"  }
-    { C99RT_BOOL -> "MKBOOL" }
-    { C99RT_PTR  -> "MKPTR"  }
+    { C99RT_VAL   -> "MKVAL"   }
+    { C99RT_STR   -> "MKSTR"   }
+    { C99RT_I64   -> "MKI64"   }
+    { C99RT_I32   -> "MKI32"   }
+    { C99RT_I16   -> "MKI16"   }
+    { C99RT_I8    -> "MKI8"    }
+    { C99RT_U64   -> "MKU64"   }
+    { C99RT_U32   -> "MKU32"   }
+    { C99RT_U16   -> "MKU16"   }
+    { C99RT_U8    -> "MKU8"    }
+    { C99RT_F32   -> "MKF32"   }
+    { C99RT_F64   -> "MKF64"   }
+    { C99RT_BOOL  -> "MKBOOL"  }
+    { C99RT_PTR   -> "MKPTR"   }
+    { C99RT_FNPTR -> "MKFNPTR" }
 }
 
 def C99ReprType.pop-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL  -> "pop_value" }
-    { C99RT_STR  -> "pop_str"   }
-    { C99RT_I64  -> "pop_i64"   }
-    { C99RT_I32  -> "pop_i32"   }
-    { C99RT_I16  -> "pop_i16"   }
-    { C99RT_I8   -> "pop_i8"    }
-    { C99RT_U64  -> "pop_u64"   }
-    { C99RT_U32  -> "pop_u32"   }
-    { C99RT_U16  -> "pop_u16"   }
-    { C99RT_U8   -> "pop_u8"    }
-    { C99RT_F64  -> "pop_f64"   }
-    { C99RT_F32  -> "pop_f32"   }
-    { C99RT_BOOL -> "pop_bool"  }
-    { C99RT_PTR  -> "pop_ptr"   }
+    { C99RT_VAL   -> "pop_value" }
+    { C99RT_STR   -> "pop_str"   }
+    { C99RT_I64   -> "pop_i64"   }
+    { C99RT_I32   -> "pop_i32"   }
+    { C99RT_I16   -> "pop_i16"   }
+    { C99RT_I8    -> "pop_i8"    }
+    { C99RT_U64   -> "pop_u64"   }
+    { C99RT_U32   -> "pop_u32"   }
+    { C99RT_U16   -> "pop_u16"   }
+    { C99RT_U8    -> "pop_u8"    }
+    { C99RT_F64   -> "pop_f64"   }
+    { C99RT_F32   -> "pop_f32"   }
+    { C99RT_BOOL  -> "pop_bool"  }
+    { C99RT_PTR   -> "pop_ptr"   }
+    { C99RT_FNPTR -> "pop_fnptr" }
 }
 
 def C99ReprType.push-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL  -> "push_value" }
-    { C99RT_STR  -> "push_str"   }
-    { C99RT_I64  -> "push_i64"   }
-    { C99RT_I32  -> "push_i32"   }
-    { C99RT_I16  -> "push_i16"   }
-    { C99RT_I8   -> "push_i8"    }
-    { C99RT_U64  -> "push_u64"   }
-    { C99RT_U32  -> "push_u32"   }
-    { C99RT_U16  -> "push_u16"   }
-    { C99RT_U8   -> "push_u8"    }
-    { C99RT_F64  -> "push_f64"   }
-    { C99RT_F32  -> "push_f32"   }
-    { C99RT_BOOL -> "push_bool"  }
-    { C99RT_PTR  -> "push_ptr"   }
+    { C99RT_VAL   -> "push_value" }
+    { C99RT_STR   -> "push_str"   }
+    { C99RT_I64   -> "push_i64"   }
+    { C99RT_I32   -> "push_i32"   }
+    { C99RT_I16   -> "push_i16"   }
+    { C99RT_I8    -> "push_i8"    }
+    { C99RT_U64   -> "push_u64"   }
+    { C99RT_U32   -> "push_u32"   }
+    { C99RT_U16   -> "push_u16"   }
+    { C99RT_U8    -> "push_u8"    }
+    { C99RT_F64   -> "push_f64"   }
+    { C99RT_F32   -> "push_f32"   }
+    { C99RT_BOOL  -> "push_bool"  }
+    { C99RT_PTR   -> "push_ptr"   }
+    { C99RT_FNPTR -> "push_fnptr" }
 }
 
 def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
@@ -961,7 +967,7 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
 }
 
 def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
-    dup is-enum? if(drop C99RT_U64,
+    dup is-enum? if(drop C99RT_I64,
         dup is-semi-transparent? if(
             tags /L1 unwrap type dom c99-repr-semi-transparent,
             drop C99RT_VAL
@@ -1698,14 +1704,14 @@ def(c99-block-push!, Block +C99Branch -- +C99Branch,
     dup +core:+mirth:to-run-var match(
         Some -> nip c99-var-push!,
         None ->
-            flush-cache!
-            C99RT_VAL push-expression!("MKFNPTR(&" put dup +mirth:cname put ")" put)
+            C99RT_FNPTR push-expression!("&" put dup +mirth:cname put)
             dup +core:+mirth:free-vars c99-pack-closure-vars!
             drop
     ))
 
 def(c99-var!, Var +C99Branch -- +C99Branch,
     dup auto-run? if(c99-var-run!, c99-var-push!))
+
 
 def(c99-var-run!, Var +C99Branch -- +C99Branch,
     flush-cache!
@@ -1714,7 +1720,6 @@ def(c99-var-run!, Var +C99Branch -- +C99Branch,
     drop)
 
 def(c99-var-push!, Var +C99Branch -- +C99Branch,
-    flush-cache!
     +core:c99-line("incref(" put dup var-put ");" put)
     C99RT_VAL push-expression!(dup var-put)
     drop)
@@ -1913,7 +1918,7 @@ def(c99-main!, Arrow +C99 -- +C99,
                 dup token-start col >Int show put ");" put)
         )
         start-branch!
-        C99RT_U64 push-resource-expression!("0 /* The World! */" put)
+        C99RT_I64 push-resource-expression!("0 /* The World! */" put)
         c99-arrow!
         end-branch!
         options emit-debug-info then(
