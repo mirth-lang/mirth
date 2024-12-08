@@ -362,6 +362,11 @@ static FNPTR value_fnptr (VAL v) {
 	return VFNPTR(v);
 }
 
+static STR* value_str (VAL v) {
+	ASSERT1(IS_STR(v),v);
+	return VSTR(v);
+}
+
 #define pop_u8() ((uint8_t)pop_u64())
 #define pop_u16() ((uint16_t)pop_u64())
 #define pop_u32() ((uint32_t)pop_u64())
@@ -374,6 +379,7 @@ static FNPTR value_fnptr (VAL v) {
 #define pop_f32() (value_f32(pop_value()))
 #define pop_f64() (value_f64(pop_value()))
 #define pop_bool() ((bool)pop_u64())
+#define pop_str() (value_str(pop_value()))
 #define pop_ptr() (value_ptr(pop_value()))
 #define pop_fnptr() (value_fnptr(pop_value()))
 
@@ -389,6 +395,7 @@ static FNPTR value_fnptr (VAL v) {
 #define push_i32(b) push_i64((int64_t)(b))
 #define push_f32(f) push_value(MKF32(f))
 #define push_f64(f) push_value(MKF64(f))
+#define push_str(p) push_value(MKSTR(p))
 #define push_ptr(p) push_value(MKPTR(p))
 #define push_fnptr(p) push_value(MKFNPTR(p))
 
@@ -569,14 +576,15 @@ static STR* str_alloc (USIZE cap) {
 	return str;
 }
 
-static VAL mkstr (const char* data, USIZE size) {
+static STR* str_make (const char* data, USIZE size) {
 	ASSERT(data);
 	ASSERT(size <= SIZE_MAX - sizeof(STR) - 4);
 	STR* str = str_alloc(size);
 	str->size = size;
 	memcpy(str->data, data, (size_t)size);
-	return MKSTR(str);
+	return str;
 }
+#define mkstr(x,n) MKSTR(str_make((x), (n)))
 
 static void do_uncons(void) {
 	VAL val, tail, head;
@@ -603,13 +611,15 @@ static USIZE get_top_resource_data_tag(void) {
 	return get_data_tag(top_resource());
 }
 
-static int str_cmp_(STR* s1, STR* s2) {
+static int str_cmp(STR* s1, STR* s2) {
 	ASSERT(s1 && s2);
 	USIZE n1 = s1->size;
 	USIZE n2 = s2->size;
 	USIZE n = (n1 < n2 ? n1 : n2);
 	ASSERT(n < SIZE_MAX);
 	int r = memcmp(s1->data, s2->data, (size_t)n);
+	decref(MKSTR(s1));
+	decref(MKSTR(s2));
 	if (r) return r;
 	if (n1 < n2) return -1;
 	if (n1 > n2) return 1;
@@ -801,9 +811,8 @@ static void mp_primZ_strZ_cmp (void) {
 	VAL b = pop_value();
 	VAL a = pop_value();
 	ASSERT2(IS_STR(a) && IS_STR(b), a, b);
-	int64_t cmp = str_cmp_(VSTR(a), VSTR(b));
+	int64_t cmp = str_cmp(VSTR(a), VSTR(b));
 	push_i64(cmp);
-	decref(a); decref(b);
 	PRIM_EXIT(mp_primZ_strZ_cmp);
 }
 

@@ -93,11 +93,17 @@ data(Prim,
     PRIM_PTR_COPY,
     PRIM_PTR_FILL,
 
-    PRIM_STR_CMP,
     PRIM_STR_COPY,
     PRIM_STR_NUM_BYTES,
     PRIM_STR_BASE,
     PRIM_STR_CAT,
+    PRIM_STR_CMP,
+    PRIM_STR_EQ,
+    PRIM_STR_LT,
+    PRIM_STR_LE,
+    PRIM_STR_GT,
+    PRIM_STR_GE,
+    PRIM_STR_NE,
 
     PRIM_U8_GET,
     PRIM_U8_SET,
@@ -282,6 +288,12 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_STR_BASE "prim-str-base" 0 def-prim!
     PRIM_STR_CAT "prim-str-cat" 0 def-prim!
     PRIM_STR_CMP "prim-str-cmp" 0 def-prim!
+    PRIM_STR_EQ "prim-str-eq" 0 def-prim!
+    PRIM_STR_LT "prim-str-lt" 0 def-prim!
+    PRIM_STR_LE "prim-str-le" 0 def-prim!
+    PRIM_STR_GT "prim-str-gt" 0 def-prim!
+    PRIM_STR_GE "prim-str-ge" 0 def-prim!
+    PRIM_STR_NE "prim-str-ne" 0 def-prim!
 
     PRIM_U8_GET "prim-u8-get" 0 def-prim!
     PRIM_U8_SET "prim-u8-set" 0 def-prim!
@@ -368,7 +380,7 @@ def(init-prims!, +Mirth -- +Mirth,
 
     Ctx0 TYPE_BOOL T1 TYPE_BOOL T1 T->
     PRIM_BOOL_NOT ctx-type!
-    
+
     Ctx0 TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR ctx-type!
     Ctx0 TYPE_INT T1 TYPE_F32 T1 T-> PRIM_INT_TO_F32 ctx-type!
     Ctx0 TYPE_INT T1 TYPE_F64 T1 T-> PRIM_INT_TO_F64 ctx-type!
@@ -440,6 +452,15 @@ def(init-prims!, +Mirth -- +Mirth,
 
     Ctx0 TYPE_STR TYPE_STR T2 TYPE_INT T1 T->
     PRIM_STR_CMP ctx-type!
+
+    Ctx0 TYPE_STR TYPE_STR T2 TYPE_BOOL T1 T->
+    dup2 PRIM_STR_EQ ctx-type!
+    dup2 PRIM_STR_LT ctx-type!
+    dup2 PRIM_STR_LE ctx-type!
+    dup2 PRIM_STR_GT ctx-type!
+    dup2 PRIM_STR_GE ctx-type!
+    dup2 PRIM_STR_NE ctx-type!
+    drop2
 
     Ctx0 T0 TYPE_INT T1 T->
     PRIM_SYS_OS ctx-type!
