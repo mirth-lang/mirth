@@ -882,80 +882,34 @@ static void mp_primZ_panic(void) {
 #define mp_primZ_sysZ_arch() push_u64(0)
 #endif
 
-static void mp_primZ_run (void) {
-	PRIM_ENTER(mp_primZ_run,"prim-run");
-	VAL f = pop_value();
-	run_value(f);
-	PRIM_EXIT(mp_primZ_run);
-}
-
-static void mp_primZ_ptrZ_nil (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_nil,"prim-ptr-nil");
-	push_ptr((void*)0);
-	PRIM_EXIT(mp_primZ_ptrZ_nil);
-}
-#define mp_primZ_ptrZ_sizze() push_u64((uint64_t)sizeof(void*))
-static void mp_primZ_ptrZ_alloc (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_alloc,"prim-ptr-alloc");
-	USIZE n = pop_usize();
+static void* ptr_alloc (uint64_t n) {
+	EXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), "invalid size in prim-ptr-alloc");
 	void* p = malloc((size_t)n);
-	EXPECT(p, "failed to allocate buffer");
-	push_ptr(p);
-	PRIM_EXIT(mp_primZ_ptrZ_alloc);
-}
-static void mp_primZ_ptrZ_realloc (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_realloc,"prim-ptr-realloc");
-	USIZE n = pop_usize();
-	void* p0 = pop_ptr();
-	void* p1 = realloc(p0, (size_t)n);
-	EXPECT(p1, "failed to reallocate buffer");
-	push_ptr(p1);
-	PRIM_EXIT(mp_primZ_ptrZ_realloc);
-}
-static void mp_primZ_ptrZ_free (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_free,"prim-ptr-free");
-	void* p = pop_ptr();
-	free(p);
-	PRIM_EXIT(mp_primZ_ptrZ_free);
+	EXPECT(p, "failed to allocate in prim-ptr-alloc");
+	return p;
 }
 
-static void mp_primZ_ptrZ_copy (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_copy,"prim-ptr-copy");
-	VAL vdst = pop_value();
-	int64_t ilen = pop_i64();
-	VAL vsrc = pop_value();
-	ASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);
-	void* src = value_ptr(vsrc);
-	void* dst = value_ptr(vdst);
-	if (src && dst && (ilen > 0)) {
-		ASSERT((USIZE)ilen <= SIZE_MAX);
-		memcpy(dst, src, (size_t)ilen);
+static void* ptr_realloc (void* p, uint64_t n) {
+	EXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), "invalid size in prim-ptr-realloc");
+	void* p2 = realloc(p, n);
+	EXPECT(p2, "failed to reallocate in prim-ptr-realloc");
+	return p2;
+}
+
+static void ptr_copy (void* src, uint64_t len, void* dst) {
+	if (len > 0) {
+		EXPECT(len <= SIZE_MAX, "invalid size in prim-ptr-copy");
+		EXPECT(src && dst, "invalid pointer in prim-ptr-copy");
+		memcpy(dst, src, (size_t)len);
 	}
-	PRIM_EXIT(mp_primZ_ptrZ_copy);
 }
 
-static void mp_primZ_ptrZ_fill (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_fill,"prim-ptr-fill");
-	VAL vdst = pop_value();
-	ASSERT1(IS_PTR(vdst), vdst);
-	int64_t ilen = pop_i64();
-	uint64_t val = pop_u64();
-	void* dst = value_ptr(vdst);
-	if (dst && (ilen > 0)) {
-		ASSERT((USIZE)ilen <= SIZE_MAX);
-		memset(dst, (int)val, (size_t)ilen);
+static void ptr_fill (uint8_t val, uint64_t len, void* dst) {
+	if (len > 0) {
+		EXPECT(len <= SIZE_MAX, "invalid size in prim-ptr-fill");
+		EXPECT(dst, "invalid pointer in prim-ptr-fill");
+		memset(dst, (int)val, (size_t)len);
 	}
-	PRIM_EXIT(mp_primZ_ptrZ_fill);
-}
-
-static void mp_primZ_strZ_copy (void) {
-	PRIM_ENTER(mp_primZ_strZ_copy,"prim-str-copy");
-	USIZE size = pop_usize();
-	char* ptr = (char*)pop_ptr();
-	ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
-	ASSERT(ptr);
-	push_value(mkstr(ptr, size));
-	PRIM_EXIT(mp_primZ_strZ_copy);
 }
 
 static void mp_primZ_strZ_cat (void) {
@@ -1007,20 +961,6 @@ static void mp_primZ_strZ_numZ_bytes (void) {
 	push_usize(VSTR(v)->size);
 	decref(v);
 	PRIM_EXIT(mp_primZ_strZ_numZ_bytes);
-}
-
-static void mp_primZ_packZ_nil (void) {
-	PRIM_ENTER(mp_primZ_packZ_nil,"prim-pack-nil");
-	push_value(MKNIL);
-	PRIM_EXIT(mp_primZ_packZ_nil);
-}
-
-static void mp_primZ_packZ_cons (void) {
-	PRIM_ENTER(mp_primZ_packZ_cons,"prim-pack-cons");
-	VAL cdr = pop_value();
-	VAL car = pop_value();
-	push_value(mkcons(car,cdr));
-	PRIM_EXIT(mp_primZ_packZ_cons);
 }
 
 static void mp_primZ_mutZ_get (void) {
@@ -1333,9 +1273,14 @@ static VAL lbl_ZPlusb = MKNIL_C;
 static VAL lbl_ZPlusa = MKNIL_C;
 static VAL lbl_ZPlusdipped = MKNIL_C;
 static VAL lbl_ZPluscond = MKNIL_C;
+static VAL lbl_ZPlusclosure = MKNIL_C;
 static VAL lbl_ZPluscons = MKNIL_C;
 static VAL lbl_ZPlustail = MKNIL_C;
 static VAL lbl_ZPlushead = MKNIL_C;
+static VAL lbl_ZPlusdst = MKNIL_C;
+static VAL lbl_ZPluslen = MKNIL_C;
+static VAL lbl_ZPlussrc = MKNIL_C;
+static VAL lbl_ZPlusval = MKNIL_C;
 static VAL lbl_ZPlusscrutinee = MKNIL_C;
 static VAL lbl_stack = MKNIL_C;
 static VAL lbl_ZPlusset = MKNIL_C;
@@ -8630,20 +8575,16 @@ static void mw_std_byte_Byte_zzencode (void) {
 static void mw_std_buffer_ZPlusBuffer_new (void) {
 	int64_t v0 = pop_i64();
 	int64_t v1 = (0LL /* +Unsafe */);
-	push_i64(v0);
+	void* v2 = ptr_alloc((uint64_t)(v0));;
 	lpush(&lbl_sizze, MKI64(v0));
-	push_resource(MKI64(v1));
-	mp_primZ_ptrZ_alloc();
-	VAL r2 = pop_resource();
-	VAL v3 = pop_value();
-	lpush(&lbl_base, v3);
+	lpush(&lbl_base, MKPTR(v2));
 	mtw_std_buffer_ZPlusBuffer_ZPlusBuffer();
-	int64_t v4 = 0LL;
-	VAL r5 = pop_resource();
-	int64_t v6 = VI64(VTUP(r5)->cells[1]);
-	push_i64(v4);
-	push_i64(v6);
-	push_resource(r5);
+	int64_t v3 = 0LL;
+	VAL r4 = pop_resource();
+	int64_t v5 = VI64(VTUP(r4)->cells[1]);
+	push_i64(v3);
+	push_i64(v5);
+	push_resource(r4);
 	mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang();
 }
 static void mw_std_buffer_ZPlusBuffer_resizzeZBang (void) {
@@ -8655,25 +8596,18 @@ static void mw_std_buffer_ZPlusBuffer_resizzeZBang (void) {
 	VAL v4 = VVAL(VTUP(r0)->cells[2]);
 	incref(v4);
 	int64_t v5 = (0LL /* +Unsafe */);
-	lpush(&lbl_oldZ_sizze, MKI64(v1));
-	push_resource(MKI64(v5));
-	push_value(v4);
-	push_i64(v3);
-	mp_primZ_ptrZ_realloc();
-	VAL r6 = pop_resource();
-	VAL v7 = pop_value();
-	VAL v8 = VTUP(r0)->cells[2];
-	decref(v8);
-	VTUP(r0)->cells[2] = v7;
-	int64_t v9 = VI64(lpop(&lbl_oldZ_sizze));
-	int64_t v10 = VI64(VTUP(r0)->cells[1]);
-	bool v11 = (v9 < v10);
-	if (v11) {
-		int64_t v12 = VI64(VTUP(r0)->cells[1]);
-		int64_t v13 = i64_sub(v12, v9);
-		push_i64(v9);
+	void* v6 = ptr_realloc(VPTR(v4),(uint64_t)(v3));
+	VAL v7 = VTUP(r0)->cells[2];
+	decref(v7);
+	VTUP(r0)->cells[2] = MKPTR(v6);
+	int64_t v8 = VI64(VTUP(r0)->cells[1]);
+	bool v9 = (v1 < v8);
+	if (v9) {
+		int64_t v10 = VI64(VTUP(r0)->cells[1]);
+		int64_t v11 = i64_sub(v10, v1);
+		push_i64(v1);
 		push_resource(r0);
-		push_i64(v13);
+		push_i64(v11);
 		mw_std_prim_Int_ZToNat();
 		mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang();
 	} else {
@@ -8702,11 +8636,8 @@ static void mw_std_buffer_ZPlusBuffer_rdrop (void) {
 	mtp_std_buffer_ZPlusBuffer_ZPlusBuffer();
 	VAL v0 = lpop(&lbl_base);
 	int64_t v1 = (0LL /* +Unsafe */);
-	push_value(v0);
-	push_resource(MKI64(v1));
-	mp_primZ_ptrZ_free();
-	VAL r2 = pop_resource();
-	int64_t v3 = VI64(lpop(&lbl_sizze));
+	free(VPTR(v0));
+	int64_t v2 = VI64(lpop(&lbl_sizze));
 }
 static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (void) {
 	VAL v0 = pop_value();
@@ -8730,10 +8661,9 @@ static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (void) {
 	push_resource(MKI64(v6));
 	push_i64(v8);
 	mw_std_prim_Int_ZToU8();
-	push_i64(v2);
-	push_ptr(v7);
-	mp_primZ_ptrZ_fill();
-	VAL r9 = pop_resource();
+	uint8_t v9 = pop_u8();
+	ptr_fill(v9, (uint64_t)(v2), v7);
+	VAL r10 = pop_resource();
 }
 static void mw_std_buffer_ZPlusBuffer_checkZ_spanZBang (void) {
 	VAL v0 = pop_value();
@@ -8875,12 +8805,9 @@ static void mw_std_buffer_ZPlusBuffer_ZAtStr (void) {
 	int64_t v5 = pop_i64();
 	int64_t v6 = pop_i64();
 	void* v7 = (void*)(v6 + (char*)VPTR(v3));
+	STR* v8 = str_make(v7, (uint64_t)(v5));
 	push_resource(r2);
-	push_resource(MKI64(v4));
-	push_ptr(v7);
-	push_i64(v5);
-	mp_primZ_strZ_copy();
-	VAL r8 = pop_resource();
+	push_str(v8);
 }
 static void mw_std_prim_Ptr_ZBangStrZPlus (void) {
 	VAL v0 = pop_value();
@@ -8899,10 +8826,7 @@ static void mw_std_prim_Ptr_ZBangStrZPlus (void) {
 	incref(v2);
 	incref(v4);
 	void* v5 = (void*)(VI64(v2) + (char*)VPTR(v4));
-	push_value(v3);
-	push_value(v2);
-	push_value(v4);
-	mp_primZ_ptrZ_copy();
+	ptr_copy(VPTR(v3), VU64(v2), VPTR(v4));
 	decref(v1);
 	push_ptr(v5);
 }
@@ -9046,10 +8970,9 @@ static void mw_std_prim_Str_dropZ_bytes (void) {
 		VAL v13 = pop_value();
 		int64_t v14 = pop_i64();
 		void* v15 = (void*)(v14 + (char*)VPTR(v13));
-		push_ptr(v15);
-		push_i64(v12);
-		mp_primZ_strZ_copy();
+		STR* v16 = str_make(v15, (uint64_t)(v12));
 		decref(v7);
+		push_str(v16);
 	}
 }
 static void mw_std_prim_Str_fromZ_bytesZ_unsafe (void) {
@@ -9109,12 +9032,9 @@ static void mw_std_prim_Str_fromZ_bytesZ_unsafe (void) {
 	incref(v20);
 	int64_t v21 = VI64(VTUP(r19)->cells[1]);
 	int64_t v22 = (0LL /* +Unsafe */);
-	push_value(v20);
-	push_i64(v21);
+	STR* v23 = str_make(VPTR(v20), (uint64_t)(v21));
 	push_resource(r19);
-	push_resource(MKI64(v22));
-	mp_primZ_strZ_copy();
-	VAL r23 = pop_resource();
+	push_str(v23);
 	mw_std_buffer_ZPlusBuffer_rdrop();
 }
 static void mw_std_str_clampZ_sliceZ_offsetZ_sizze (void) {
@@ -9156,10 +9076,9 @@ static void mw_std_prim_Str_slice (void) {
 	int64_t v3 = pop_i64();
 	int64_t v4 = pop_i64();
 	void* v5 = (void*)(v4 + (char*)VPTR(v2));
-	push_ptr(v5);
-	push_i64(v3);
-	mp_primZ_strZ_copy();
+	STR* v6 = str_make(v5, (uint64_t)(v3));
 	decref(v0);
+	push_str(v6);
 }
 static void mw_std_prim_Str_dropZ_slice (void) {
 	VAL r0 = pop_resource();
@@ -11928,24 +11847,25 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 							case 1LL: { // Some
 								push_value(v59);
 								mtp_std_maybe_Maybe_1_Some();
-								mp_primZ_run();
-								VAL r60 = pop_resource();
-								VAL v61 = VVAL(VTUP(r60)->cells[2]);
-								incref(v61);
-								VAL v62 = pop_value();
-								VAL v63 = tup_replace(v61, 1, v62);
-								VAL v64 = VTUP(r60)->cells[2];
-								decref(v64);
-								VTUP(r60)->cells[2] = v63;
-								push_resource(r60);
+								VAL v60 = pop_value();
+								run_value(v60);
+								VAL r61 = pop_resource();
+								VAL v62 = VVAL(VTUP(r61)->cells[2]);
+								incref(v62);
+								VAL v63 = pop_value();
+								VAL v64 = tup_replace(v62, 1, v63);
+								VAL v65 = VTUP(r61)->cells[2];
+								decref(v65);
+								VTUP(r61)->cells[2] = v64;
+								push_resource(r61);
 							} break;
 							case 0LL: { // None
-								VAL v65 = pop_value();
-								decref(v65);
 								VAL v66 = pop_value();
 								decref(v66);
 								VAL v67 = pop_value();
 								decref(v67);
+								VAL v68 = pop_value();
+								decref(v68);
 							} break;
 							default: {
 								push_value(mkstr("unexpected fallthrough in match\n", 32));
@@ -11959,12 +11879,12 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 						mp_primZ_panic();
 					}
 				}
-				int64_t v68 = 0LL /* None */;
-				push_i64(v68);
+				int64_t v69 = 0LL /* None */;
+				push_i64(v69);
 			} break;
 			case 0LL: { // None
-				int64_t v69 = 4LL /* UnknownArg */;
-				push_i64(v69);
+				int64_t v70 = 4LL /* UnknownArg */;
+				push_i64(v70);
 				mtw_std_maybe_Maybe_1_Some();
 			} break;
 			default: {
@@ -11973,174 +11893,175 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 			}
 		}
 	} else {
-		int64_t v70 = 1LL;
-		push_i64(v70);
+		int64_t v71 = 1LL;
+		push_i64(v71);
 		mw_std_prim_Int_ZToNat();
-		VAL v71 = pop_value();
 		VAL v72 = pop_value();
-		incref(v72);
-		int64_t v73 = (0LL /* +Unsafe */);
+		VAL v73 = pop_value();
+		incref(v73);
+		int64_t v74 = (0LL /* +Unsafe */);
+		push_value(v73);
 		push_value(v72);
-		push_value(v71);
-		push_value(v72);
-		push_resource(MKI64(v73));
+		push_value(v73);
+		push_resource(MKI64(v74));
 		mw_std_prim_Str_dropZ_bytes();
-		VAL r74 = pop_resource();
 		VAL r75 = pop_resource();
-		VAL v76 = VVAL(VTUP(r75)->cells[1]);
-		incref(v76);
-		VAL v77 = VVAL(VTUP(v76)->cells[1]);
+		VAL r76 = pop_resource();
+		VAL v77 = VVAL(VTUP(r76)->cells[1]);
 		incref(v77);
-		decref(v76);
-		int64_t v78 = 0LL /* None */;
-		push_resource(r75);
-		push_i64(v78);
-		push_value(v77);
+		VAL v78 = VVAL(VTUP(v77)->cells[1]);
+		incref(v78);
+		decref(v77);
+		int64_t v79 = 0LL /* None */;
+		push_resource(r76);
+		push_i64(v79);
+		push_value(v78);
 		mw_std_list_List_1_uncons();
-		VAL v79 = pop_value();
 		VAL v80 = pop_value();
-		push_value(v79);
+		VAL v81 = pop_value();
 		push_value(v80);
+		push_value(v81);
 		while(1) {
-			VAL v81 = pop_value();
-			incref(v81);
-			push_value(v81);
-			push_value(v81);
+			VAL v82 = pop_value();
+			incref(v82);
+			push_value(v82);
+			push_value(v82);
 			mw_std_maybe_Maybe_1_someZAsk();
-			bool v82 = pop_bool();
-			if (!v82) break;
+			bool v83 = pop_bool();
+			if (!v83) break;
 			mw_std_maybe_Maybe_1_unwrap();
-			VAL v83 = pop_value();
 			VAL v84 = pop_value();
 			VAL v85 = pop_value();
-			incref(v83);
 			VAL v86 = pop_value();
-			incref(v86);
-			push_value(v86);
-			push_value(v83);
-			push_value(v86);
-			mw_argZ_parser_parse_checkZ_shortZ_flag();
+			incref(v84);
 			VAL v87 = pop_value();
+			incref(v87);
+			push_value(v87);
+			push_value(v84);
+			push_value(v87);
+			mw_argZ_parser_parse_checkZ_shortZ_flag();
 			VAL v88 = pop_value();
-			decref(v88);
-			if (VBOOL(v87)) {
-				push_value(v83);
+			VAL v89 = pop_value();
+			decref(v89);
+			if (VBOOL(v88)) {
+				push_value(v84);
 				mtw_std_maybe_Maybe_1_Some();
 			} else {
-				decref(v83);
-				int64_t v89 = 0LL /* None */;
-				push_i64(v89);
+				decref(v84);
+				int64_t v90 = 0LL /* None */;
+				push_i64(v90);
 			}
-			VAL v90 = pop_value();
-			switch (get_data_tag(v90)) {
+			VAL v91 = pop_value();
+			switch (get_data_tag(v91)) {
 				case 0LL: { // None
+					push_value(v86);
 					push_value(v85);
-					push_value(v84);
 				} break;
 				default: {
-					decref(v84);
 					decref(v85);
-					int64_t v91 = 0LL /* Nil */;
-					push_value(v90);
-					push_i64(v91);
+					decref(v86);
+					int64_t v92 = 0LL /* Nil */;
+					push_value(v91);
+					push_i64(v92);
 				} break;
 			}
 			mw_std_list_List_1_uncons();
-			VAL v92 = pop_value();
 			VAL v93 = pop_value();
-			push_value(v92);
+			VAL v94 = pop_value();
 			push_value(v93);
+			push_value(v94);
 		}
-		VAL v94 = pop_value();
-		decref(v94);
 		VAL v95 = pop_value();
 		decref(v95);
 		VAL v96 = pop_value();
+		decref(v96);
 		VAL v97 = pop_value();
-		decref(v97);
-		switch (get_data_tag(v96)) {
+		VAL v98 = pop_value();
+		decref(v98);
+		switch (get_data_tag(v97)) {
 			case 1LL: { // Some
-				push_value(v96);
+				push_value(v97);
 				mtp_std_maybe_Maybe_1_Some();
-				VAL v98 = pop_value();
-				incref(v98);
-				VAL v99 = VVAL(VTUP(v98)->cells[3]);
+				VAL v99 = pop_value();
 				incref(v99);
-				decref(v98);
-				switch (get_data_tag(v99)) {
+				VAL v100 = VVAL(VTUP(v99)->cells[3]);
+				incref(v100);
+				decref(v99);
+				switch (get_data_tag(v100)) {
 					case 1LL: { // Some
-						push_value(v98);
 						push_value(v99);
+						push_value(v100);
 						mtp_std_maybe_Maybe_1_Some();
-						int64_t v100 = 1LL /* True */;
-						VAL r101 = pop_resource();
-						VAL v102 = VVAL(VTUP(r101)->cells[2]);
-						incref(v102);
-						push_i64(v100);
-						push_value(v102);
-						push_resource(r101);
+						int64_t v101 = 1LL /* True */;
+						VAL r102 = pop_resource();
+						VAL v103 = VVAL(VTUP(r102)->cells[2]);
+						incref(v103);
+						push_i64(v101);
+						push_value(v103);
+						push_resource(r102);
 						mw_argZ_parser_state_State_1_parsingZAskZBang();
-						VAL r103 = pop_resource();
-						VAL v104 = pop_value();
-						VAL v105 = VTUP(r103)->cells[2];
-						decref(v105);
-						VTUP(r103)->cells[2] = v104;
-						VAL v106 = pop_value();
+						VAL r104 = pop_resource();
+						VAL v105 = pop_value();
+						VAL v106 = VTUP(r104)->cells[2];
 						decref(v106);
-						push_resource(r103);
+						VTUP(r104)->cells[2] = v105;
+						VAL v107 = pop_value();
+						decref(v107);
+						push_resource(r104);
 						mtw_std_maybe_Maybe_1_Some();
-						VAL r107 = pop_resource();
-						VAL v108 = VVAL(VTUP(r107)->cells[2]);
-						incref(v108);
-						push_value(v108);
-						push_resource(r107);
+						VAL r108 = pop_resource();
+						VAL v109 = VVAL(VTUP(r108)->cells[2]);
+						incref(v109);
+						push_value(v109);
+						push_resource(r108);
 						mw_argZ_parser_state_State_1_optionZ_optionZBang();
-						VAL r109 = pop_resource();
-						VAL v110 = pop_value();
-						VAL v111 = VTUP(r109)->cells[2];
-						decref(v111);
-						VTUP(r109)->cells[2] = v110;
-						push_resource(r109);
+						VAL r110 = pop_resource();
+						VAL v111 = pop_value();
+						VAL v112 = VTUP(r110)->cells[2];
+						decref(v112);
+						VTUP(r110)->cells[2] = v111;
+						push_resource(r110);
 					} break;
 					case 0LL: { // None
-						VAL v112 = VVAL(VTUP(v98)->cells[2]);
-						incref(v112);
-						decref(v98);
-						VAL r113 = pop_resource();
-						VAL v114 = VVAL(VTUP(r113)->cells[2]);
-						incref(v114);
-						VAL v115 = VVAL(VTUP(v114)->cells[1]);
+						VAL v113 = VVAL(VTUP(v99)->cells[2]);
+						incref(v113);
+						decref(v99);
+						VAL r114 = pop_resource();
+						VAL v115 = VVAL(VTUP(r114)->cells[2]);
 						incref(v115);
-						decref(v114);
-						int64_t v116 = 0LL /* None */;
-						push_resource(r113);
-						push_value(v115);
-						push_i64(v116);
-						push_value(v112);
+						VAL v116 = VVAL(VTUP(v115)->cells[1]);
+						incref(v116);
+						decref(v115);
+						int64_t v117 = 0LL /* None */;
+						push_resource(r114);
+						push_value(v116);
+						push_i64(v117);
+						push_value(v113);
 						mw_argZ_parser_types_ZPlusArgumentParser_1_parser();
-						VAL v117 = pop_value();
-						switch (get_data_tag(v117)) {
+						VAL v118 = pop_value();
+						switch (get_data_tag(v118)) {
 							case 1LL: { // Some
-								push_value(v117);
+								push_value(v118);
 								mtp_std_maybe_Maybe_1_Some();
-								mp_primZ_run();
-								VAL r118 = pop_resource();
-								VAL v119 = VVAL(VTUP(r118)->cells[2]);
-								incref(v119);
-								VAL v120 = pop_value();
-								VAL v121 = tup_replace(v119, 1, v120);
-								VAL v122 = VTUP(r118)->cells[2];
-								decref(v122);
-								VTUP(r118)->cells[2] = v121;
-								push_resource(r118);
+								VAL v119 = pop_value();
+								run_value(v119);
+								VAL r120 = pop_resource();
+								VAL v121 = VVAL(VTUP(r120)->cells[2]);
+								incref(v121);
+								VAL v122 = pop_value();
+								VAL v123 = tup_replace(v121, 1, v122);
+								VAL v124 = VTUP(r120)->cells[2];
+								decref(v124);
+								VTUP(r120)->cells[2] = v123;
+								push_resource(r120);
 							} break;
 							case 0LL: { // None
-								VAL v123 = pop_value();
-								decref(v123);
-								VAL v124 = pop_value();
-								decref(v124);
 								VAL v125 = pop_value();
 								decref(v125);
+								VAL v126 = pop_value();
+								decref(v126);
+								VAL v127 = pop_value();
+								decref(v127);
 							} break;
 							default: {
 								push_value(mkstr("unexpected fallthrough in match\n", 32));
@@ -12150,16 +12071,16 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 					} break;
 					default: {
 						push_value(mkstr("unexpected fallthrough in match\n", 32));
-						push_value(v98);
+						push_value(v99);
 						mp_primZ_panic();
 					}
 				}
-				int64_t v126 = 0LL /* None */;
-				push_i64(v126);
+				int64_t v128 = 0LL /* None */;
+				push_i64(v128);
 			} break;
 			case 0LL: { // None
-				int64_t v127 = 4LL /* UnknownArg */;
-				push_i64(v127);
+				int64_t v129 = 4LL /* UnknownArg */;
+				push_i64(v129);
 				mtw_std_maybe_Maybe_1_Some();
 			} break;
 			default: {
@@ -12168,10 +12089,10 @@ static void mw_argZ_parser_parse_parseZ_flags (void) {
 			}
 		}
 	}
-	VAL v128 = pop_value();
-	VAL v129 = pop_value();
-	decref(v129);
-	push_value(v128);
+	VAL v130 = pop_value();
+	VAL v131 = pop_value();
+	decref(v131);
+	push_value(v130);
 }
 static void mw_argZ_parser_parse_doZ_positionalZ_option (void) {
 	VAL r0 = pop_resource();
@@ -12189,30 +12110,31 @@ static void mw_argZ_parser_parse_doZ_positionalZ_option (void) {
 	push_i64(v4);
 	mw_argZ_parser_types_ZPlusArgumentParser_1_parser();
 	mw_std_maybe_Maybe_1_unwrap();
-	mp_primZ_run();
-	VAL r5 = pop_resource();
-	VAL v6 = VVAL(VTUP(r5)->cells[2]);
-	incref(v6);
-	VAL v7 = pop_value();
-	VAL v8 = tup_replace(v6, 1, v7);
-	VAL v9 = VTUP(r5)->cells[2];
-	decref(v9);
-	VTUP(r5)->cells[2] = v8;
-	int64_t v10 = 0LL /* None */;
-	VAL v11 = VVAL(VTUP(r5)->cells[2]);
-	incref(v11);
-	int64_t v12 = VI64(VTUP(v11)->cells[4]);
-	decref(v11);
-	int64_t v13 = 1LL;
-	int64_t v14 = i64_add(v12, v13);
-	VAL v15 = VVAL(VTUP(r5)->cells[2]);
-	incref(v15);
-	VAL v16 = tup_replace(v15, 4, MKI64(v14));
-	VAL v17 = VTUP(r5)->cells[2];
-	decref(v17);
-	VTUP(r5)->cells[2] = v16;
-	push_i64(v10);
-	push_resource(r5);
+	VAL v5 = pop_value();
+	run_value(v5);
+	VAL r6 = pop_resource();
+	VAL v7 = VVAL(VTUP(r6)->cells[2]);
+	incref(v7);
+	VAL v8 = pop_value();
+	VAL v9 = tup_replace(v7, 1, v8);
+	VAL v10 = VTUP(r6)->cells[2];
+	decref(v10);
+	VTUP(r6)->cells[2] = v9;
+	int64_t v11 = 0LL /* None */;
+	VAL v12 = VVAL(VTUP(r6)->cells[2]);
+	incref(v12);
+	int64_t v13 = VI64(VTUP(v12)->cells[4]);
+	decref(v12);
+	int64_t v14 = 1LL;
+	int64_t v15 = i64_add(v13, v14);
+	VAL v16 = VVAL(VTUP(r6)->cells[2]);
+	incref(v16);
+	VAL v17 = tup_replace(v16, 4, MKI64(v15));
+	VAL v18 = VTUP(r6)->cells[2];
+	decref(v18);
+	VTUP(r6)->cells[2] = v17;
+	push_i64(v11);
+	push_resource(r6);
 }
 static void mw_argZ_parser_parse_parseZ_args (void) {
 	VAL v0 = pop_value();
@@ -12521,24 +12443,25 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 									push_value(v95);
 									mw_argZ_parser_types_ZPlusArgumentParser_1_parser();
 									mw_std_maybe_Maybe_1_unwrap();
-									mp_primZ_run();
-									VAL r96 = pop_resource();
-									VAL v97 = VVAL(VTUP(r96)->cells[2]);
-									incref(v97);
-									VAL v98 = pop_value();
-									VAL v99 = tup_replace(v97, 1, v98);
-									VAL v100 = VTUP(r96)->cells[2];
-									decref(v100);
-									VTUP(r96)->cells[2] = v99;
-									int64_t v101 = 0LL /* None */;
-									push_resource(r96);
-									push_i64(v101);
+									VAL v96 = pop_value();
+									run_value(v96);
+									VAL r97 = pop_resource();
+									VAL v98 = VVAL(VTUP(r97)->cells[2]);
+									incref(v98);
+									VAL v99 = pop_value();
+									VAL v100 = tup_replace(v98, 1, v99);
+									VAL v101 = VTUP(r97)->cells[2];
+									decref(v101);
+									VTUP(r97)->cells[2] = v100;
+									int64_t v102 = 0LL /* None */;
+									push_resource(r97);
+									push_i64(v102);
 								} break;
 								case 0LL: { // None
-									VAL v102 = pop_value();
-									decref(v102);
-									int64_t v103 = 4LL /* UnknownArg */;
-									push_i64(v103);
+									VAL v103 = pop_value();
+									decref(v103);
+									int64_t v104 = 4LL /* UnknownArg */;
+									push_i64(v104);
 									mtw_std_maybe_Maybe_1_Some();
 								} break;
 								default: {
@@ -12548,10 +12471,10 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 							}
 						} break;
 						case 0LL: { // None
-							VAL v104 = pop_value();
-							decref(v104);
-							int64_t v105 = 4LL /* UnknownArg */;
-							push_i64(v105);
+							VAL v105 = pop_value();
+							decref(v105);
+							int64_t v106 = 4LL /* UnknownArg */;
+							push_i64(v106);
 							mtw_std_maybe_Maybe_1_Some();
 						} break;
 						default: {
@@ -12559,43 +12482,43 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 							mp_primZ_panic();
 						}
 					}
-					int64_t v106 = 0LL /* False */;
-					VAL r107 = pop_resource();
-					VAL v108 = VVAL(VTUP(r107)->cells[2]);
-					incref(v108);
-					push_i64(v106);
-					push_value(v108);
+					int64_t v107 = 0LL /* False */;
+					VAL r108 = pop_resource();
+					VAL v109 = VVAL(VTUP(r108)->cells[2]);
+					incref(v109);
+					push_i64(v107);
+					push_value(v109);
 					mw_argZ_parser_state_State_1_parsingZAskZBang();
-					VAL v109 = pop_value();
-					VAL v110 = VTUP(r107)->cells[2];
-					decref(v110);
-					VTUP(r107)->cells[2] = v109;
-					push_resource(r107);
+					VAL v110 = pop_value();
+					VAL v111 = VTUP(r108)->cells[2];
+					decref(v111);
+					VTUP(r108)->cells[2] = v110;
+					push_resource(r108);
 				} else {
 					mw_argZ_parser_parse_doZ_positionalZ_option();
 				}
 			}
 		} else {
-			VAL v111 = pop_value();
-			decref(v111);
-			int64_t v112 = 0LL /* None */;
-			push_i64(v112);
+			VAL v112 = pop_value();
+			decref(v112);
+			int64_t v113 = 0LL /* None */;
+			push_i64(v113);
 		}
-		VAL v113 = pop_value();
-		switch (get_data_tag(v113)) {
+		VAL v114 = pop_value();
+		switch (get_data_tag(v114)) {
 			case 1LL: { // Some
-				push_value(v113);
+				push_value(v114);
 				mtp_std_maybe_Maybe_1_Some();
 				mtw_std_maybe_Maybe_1_Some();
-				VAL r114 = pop_resource();
-				VAL v115 = VVAL(VTUP(r114)->cells[2]);
-				incref(v115);
-				VAL v116 = pop_value();
-				VAL v117 = tup_replace(v115, 6, v116);
-				VAL v118 = VTUP(r114)->cells[2];
-				decref(v118);
-				VTUP(r114)->cells[2] = v117;
-				push_resource(r114);
+				VAL r115 = pop_resource();
+				VAL v116 = VVAL(VTUP(r115)->cells[2]);
+				incref(v116);
+				VAL v117 = pop_value();
+				VAL v118 = tup_replace(v116, 6, v117);
+				VAL v119 = VTUP(r115)->cells[2];
+				decref(v119);
+				VTUP(r115)->cells[2] = v118;
+				push_resource(r115);
 			} break;
 			case 0LL: { // None
 			} break;
@@ -12606,121 +12529,126 @@ static void mw_argZ_parser_parse_parseZ_args (void) {
 		}
 		push_value(v50);
 		mw_std_list_List_1_uncons();
-		VAL v119 = pop_value();
 		VAL v120 = pop_value();
-		push_value(v119);
+		VAL v121 = pop_value();
 		push_value(v120);
+		push_value(v121);
 	}
-	VAL v121 = pop_value();
-	decref(v121);
 	VAL v122 = pop_value();
 	decref(v122);
-	VAL r123 = pop_resource();
-	VAL v124 = VVAL(VTUP(r123)->cells[2]);
-	incref(v124);
-	push_value(v124);
-	push_resource(r123);
+	VAL v123 = pop_value();
+	decref(v123);
+	VAL r124 = pop_resource();
+	VAL v125 = VVAL(VTUP(r124)->cells[2]);
+	incref(v125);
+	push_value(v125);
+	push_resource(r124);
 	mw_argZ_parser_state_State_1_parsingZAsk();
-	bool v125 = pop_bool();
-	if (v125) {
-		int64_t v126 = 0LL /* MissingArgValue */;
-		push_i64(v126);
+	bool v126 = pop_bool();
+	if (v126) {
+		int64_t v127 = 0LL /* MissingArgValue */;
+		push_i64(v127);
 		mtw_std_maybe_Maybe_1_Some();
-		VAL r127 = pop_resource();
-		VAL v128 = VVAL(VTUP(r127)->cells[2]);
-		incref(v128);
-		VAL v129 = pop_value();
-		VAL v130 = tup_replace(v128, 6, v129);
-		VAL v131 = VTUP(r127)->cells[2];
-		decref(v131);
-		VTUP(r127)->cells[2] = v130;
-		push_resource(r127);
+		VAL r128 = pop_resource();
+		VAL v129 = VVAL(VTUP(r128)->cells[2]);
+		incref(v129);
+		VAL v130 = pop_value();
+		VAL v131 = tup_replace(v129, 6, v130);
+		VAL v132 = VTUP(r128)->cells[2];
+		decref(v132);
+		VTUP(r128)->cells[2] = v131;
+		push_resource(r128);
 	} else {
 	}
-	VAL r132 = pop_resource();
-	VAL v133 = VVAL(VTUP(r132)->cells[2]);
-	incref(v133);
-	VAL v134 = VVAL(VTUP(v133)->cells[1]);
+	VAL r133 = pop_resource();
+	VAL v134 = VVAL(VTUP(r133)->cells[2]);
 	incref(v134);
-	decref(v133);
-	int64_t v135 = 0LL /* None */;
-	int64_t v136 = 3LL /* End */;
-	push_resource(r132);
-	push_value(v134);
-	push_i64(v135);
+	VAL v135 = VVAL(VTUP(v134)->cells[1]);
+	incref(v135);
+	decref(v134);
+	int64_t v136 = 0LL /* None */;
+	int64_t v137 = 3LL /* End */;
+	push_resource(r133);
+	push_value(v135);
 	push_i64(v136);
+	push_i64(v137);
 	mw_argZ_parser_types_ZPlusArgumentParser_1_parser();
 	mw_std_maybe_Maybe_1_unwrap();
-	mp_primZ_run();
-	VAL r137 = pop_resource();
-	VAL v138 = VVAL(VTUP(r137)->cells[2]);
-	incref(v138);
-	VAL v139 = pop_value();
-	VAL v140 = tup_replace(v138, 1, v139);
-	VAL v141 = VTUP(r137)->cells[2];
-	decref(v141);
-	VTUP(r137)->cells[2] = v140;
-	VAL v142 = VVAL(VTUP(r137)->cells[2]);
-	incref(v142);
-	VAL v143 = VVAL(VTUP(v142)->cells[1]);
-	incref(v143);
-	decref(v142);
-	VAL v144 = VVAL(VTUP(r137)->cells[2]);
+	VAL v138 = pop_value();
+	run_value(v138);
+	VAL r139 = pop_resource();
+	VAL v140 = VVAL(VTUP(r139)->cells[2]);
+	incref(v140);
+	VAL v141 = pop_value();
+	VAL v142 = tup_replace(v140, 1, v141);
+	VAL v143 = VTUP(r139)->cells[2];
+	decref(v143);
+	VTUP(r139)->cells[2] = v142;
+	VAL v144 = VVAL(VTUP(r139)->cells[2]);
 	incref(v144);
-	VAL v145 = VVAL(VTUP(v144)->cells[6]);
+	VAL v145 = VVAL(VTUP(v144)->cells[1]);
 	incref(v145);
 	decref(v144);
-	switch (get_data_tag(v145)) {
+	VAL v146 = VVAL(VTUP(r139)->cells[2]);
+	incref(v146);
+	VAL v147 = VVAL(VTUP(v146)->cells[6]);
+	incref(v147);
+	decref(v146);
+	switch (get_data_tag(v147)) {
 		case 1LL: { // Some
-			push_value(v143);
-			push_resource(r137);
 			push_value(v145);
+			push_resource(r139);
+			push_value(v147);
 			mtp_std_maybe_Maybe_1_Some();
 			mw_argZ_parser_types_ZPlusArgumentParser_1_usage();
-			VAL v146 = pop_value();
-			VAL v147 = pop_value();
-			VAL v148 = MKNIL;
-			VAL v149 = mkcons(v148, v147);
-			VAL v150 = mkcons(v149, v146);
-			push_value(v150);
+			VAL v148 = pop_value();
+			VAL v149 = pop_value();
+			VAL v150 = MKNIL;
+			VAL v151 = mkcons(v150, v149);
+			VAL v152 = mkcons(v151, v148);
+			push_value(v152);
 			mtw_std_either_Either_2_Left();
-			VAL v151 = pop_value();
-			VAL v152 = pop_value();
-			decref(v152);
-			push_value(v151);
+			VAL v153 = pop_value();
+			VAL v154 = pop_value();
+			decref(v154);
+			push_value(v153);
 		} break;
 		case 0LL: { // None
-			push_value(v143);
-			push_resource(r137);
+			push_value(v145);
+			push_resource(r139);
 			mtw_std_either_Either_2_Right();
 		} break;
 		default: {
 			push_value(mkstr("unexpected fallthrough in match\n", 32));
-			push_value(v143);
-			push_resource(r137);
+			push_value(v145);
+			push_resource(r139);
 			mp_primZ_panic();
 		}
 	}
 	mw_argZ_parser_types_ZPlusArgumentParser_1_rdrop();
 }
 static void mw_argZ_parser_parse_readZ_fromZ_argv (void) {
-	mp_primZ_ptrZ_sizze();
+	uint64_t v0 = sizeof(void*);
+	push_u64(v0);
 	mw_std_prim_Int_ZToNat();
-	int64_t v0 = pop_i64();
 	int64_t v1 = pop_i64();
-	int64_t v2 = i64_mul(v1, v0);
-	push_i64(v2);
+	int64_t v2 = pop_i64();
+	int64_t v3 = i64_mul(v2, v1);
+	push_i64(v3);
 	mw_std_prim_Int_ZToNat();
 	mp_primZ_sysZ_argv();
-	VAL v3 = pop_value();
-	int64_t v4 = pop_i64();
-	void* v5 = (void*)(v4 + (char*)VPTR(v3));
-	void* v6 = *(void**)v5;
-	push_ptr(v6);
-	push_ptr(v6);
+	VAL v4 = pop_value();
+	int64_t v5 = pop_i64();
+	void* v6 = (void*)(v5 + (char*)VPTR(v4));
+	void* v7 = *(void**)v6;
+	push_ptr(v7);
+	push_ptr(v7);
 	mext_std_ctypes_CStr_numZ_bytes();
 	mw_std_prim_Int_ZToNat();
-	mp_primZ_strZ_copy();
+	uint64_t v8 = pop_u64();
+	void* v9 = pop_ptr();
+	STR* v10 = str_make(v9, v8);
+	push_str(v10);
 }
 static void mw_argZ_parser_parse_argvZ_toZ_str (void) {
 	int64_t v0 = 1LL;
@@ -12806,11 +12734,12 @@ static void mw_std_lazzy_Lazzy_1_forceZBang (void) {
 			push_value(v6);
 			mp_primZ_mutZ_set();
 			VAL v8 = pop_value();
-			mp_primZ_run();
 			VAL v9 = pop_value();
-			incref(v9);
-			push_value(v9);
-			push_value(v9);
+			run_value(v9);
+			VAL v10 = pop_value();
+			incref(v10);
+			push_value(v10);
+			push_value(v10);
 			mtw_std_lazzy_Lazzy_1_LazzyReady();
 			push_value(v8);
 			mp_primZ_mutZ_set();
@@ -31264,28 +31193,29 @@ static void mw_mirth_mirth_Prop_1_tryZ_forceZBang (void) {
 			push_value(v7);
 			mp_primZ_mutZ_set();
 			VAL v12 = pop_value();
-			mp_primZ_run();
 			VAL v13 = pop_value();
-			incref(v13);
-			push_value(v13);
-			push_value(v13);
+			run_value(v13);
+			VAL v14 = pop_value();
+			incref(v14);
+			push_value(v14);
+			push_value(v14);
 			mtw_mirth_mirth_PropState_1_PSReady();
 			incref(v12);
 			push_value(v12);
 			mp_primZ_mutZ_get();
-			VAL v14 = pop_value();
 			VAL v15 = pop_value();
-			VAL v16 = tup_replace(v14, 2, v15);
-			push_value(v16);
+			VAL v16 = pop_value();
+			VAL v17 = tup_replace(v15, 2, v16);
+			push_value(v17);
 			push_value(v12);
 			mp_primZ_mutZ_set();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
 		case 2LL: { // PSComputing
-			VAL v17 = pop_value();
-			decref(v17);
-			int64_t v18 = 0LL /* None */;
-			push_i64(v18);
+			VAL v18 = pop_value();
+			decref(v18);
+			int64_t v19 = 0LL /* None */;
+			push_i64(v19);
 		} break;
 		default: {
 			push_value(mkstr("unexpected fallthrough in match\n", 32));
@@ -53567,80 +53497,34 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define mp_primZ_sysZ_arch() push_u64(0)\n"
 		"#endif\n"
 		"\n"
-		"static void mp_primZ_run (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_run,\"prim-run\");\n"
-		"\tVAL f = pop_value();\n"
-		"\trun_value(f);\n"
-		"\tPRIM_EXIT(mp_primZ_run);\n"
-		"}\n"
-		"\n"
-		"static void mp_primZ_ptrZ_nil (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_ptrZ_nil,\"prim-ptr-nil\");\n"
-		"\tpush_ptr((void*)0);\n"
-		"\tPRIM_EXIT(mp_primZ_ptrZ_nil);\n"
-		"}\n"
-		"#define mp_primZ_ptrZ_sizze() push_u64((uint64_t)sizeof(void*))\n"
-		"static void mp_primZ_ptrZ_alloc (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_ptrZ_alloc,\"prim-ptr-alloc\");\n"
-		"\tUSIZE n = pop_usize();\n"
+		"static void* ptr_alloc (uint64_t n) {\n"
+		"\tEXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), \"invalid size in prim-ptr-alloc\");\n"
 		"\tvoid* p = malloc((size_t)n);\n"
-		"\tEXPECT(p, \"failed to allocate buffer\");\n"
-		"\tpush_ptr(p);\n"
-		"\tPRIM_EXIT(mp_primZ_ptrZ_alloc);\n"
-		"}\n"
-		"static void mp_primZ_ptrZ_realloc (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_ptrZ_realloc,\"prim-ptr-realloc\");\n"
-		"\tUSIZE n = pop_usize();\n"
-		"\tvoid* p0 = pop_ptr();\n"
-		"\tvoid* p1 = realloc(p0, (size_t)n);\n"
-		"\tEXPECT(p1, \"failed to reallocate buffer\");\n"
-		"\tpush_ptr(p1);\n"
-		"\tPRIM_EXIT(mp_primZ_ptrZ_realloc);\n"
-		"}\n"
-		"static void mp_primZ_ptrZ_free (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_ptrZ_free,\"prim-ptr-free\");\n"
-		"\tvoid* p = pop_ptr();\n"
-		"\tfree(p);\n"
-		"\tPRIM_EXIT(mp_primZ_ptrZ_free);\n"
+		"\tEXPECT(p, \"failed to allocate in prim-ptr-alloc\");\n"
+		"\treturn p;\n"
 		"}\n"
 		"\n"
-		"static void mp_primZ_ptrZ_copy (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_ptrZ_copy,\"prim-ptr-copy\");\n"
-		"\tVAL vdst = pop_value();\n"
-		"\tint64_t ilen = pop_i64();\n"
-		"\tVAL vsrc = pop_value();\n"
-		"\tASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);\n"
-		"\tvoid* src = value_ptr(vsrc);\n"
-		"\tvoid* dst = value_ptr(vdst);\n"
-		"\tif (src && dst && (ilen > 0)) {\n"
-		"\t\tASSERT((USIZE)ilen <= SIZE_MAX);\n"
-		"\t\tmemcpy(dst, src, (size_t)ilen);\n"
+		"static void* ptr_realloc (void* p, uint64_t n) {\n"
+		"\tEXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), \"invalid size in prim-ptr-realloc\");\n"
+		"\tvoid* p2 = realloc(p, n);\n"
+		"\tEXPECT(p2, \"failed to reallocate in prim-ptr-realloc\");\n"
+		"\treturn p2;\n"
+		"}\n"
+		"\n"
+		"static void ptr_copy (void* src, uint64_t len, void* dst) {\n"
+		"\tif (len > 0) {\n"
+		"\t\tEXPECT(len <= SIZE_MAX, \"invalid size in prim-ptr-copy\");\n"
+		"\t\tEXPECT(src && dst, \"invalid pointer in prim-ptr-copy\");\n"
+		"\t\tmemcpy(dst, src, (size_t)len);\n"
 		"\t}\n"
-		"\tPRIM_EXIT(mp_primZ_ptrZ_copy);\n"
 		"}\n"
 		"\n"
-		"static void mp_primZ_ptrZ_fill (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_ptrZ_fill,\"prim-ptr-fill\");\n"
-		"\tVAL vdst = pop_value();\n"
-		"\tASSERT1(IS_PTR(vdst), vdst);\n"
-		"\tint64_t ilen = pop_i64();\n"
-		"\tuint64_t val = pop_u64();\n"
-		"\tvoid* dst = value_ptr(vdst);\n"
-		"\tif (dst && (ilen > 0)) {\n"
-		"\t\tASSERT((USIZE)ilen <= SIZE_MAX);\n"
-		"\t\tmemset(dst, (int)val, (size_t)ilen);\n"
+		"static void ptr_fill (uint8_t val, uint64_t len, void* dst) {\n"
+		"\tif (len > 0) {\n"
+		"\t\tEXPECT(len <= SIZE_MAX, \"invalid size in prim-ptr-fill\");\n"
+		"\t\tEXPECT(dst, \"invalid pointer in prim-ptr-fill\");\n"
+		"\t\tmemset(dst, (int)val, (size_t)len);\n"
 		"\t}\n"
-		"\tPRIM_EXIT(mp_primZ_ptrZ_fill);\n"
-		"}\n"
-		"\n"
-		"static void mp_primZ_strZ_copy (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_strZ_copy,\"prim-str-copy\");\n"
-		"\tUSIZE size = pop_usize();\n"
-		"\tchar* ptr = (char*)pop_ptr();\n"
-		"\tASSERT(size <= SIZE_MAX-sizeof(STR)-4);\n"
-		"\tASSERT(ptr);\n"
-		"\tpush_value(mkstr(ptr, size));\n"
-		"\tPRIM_EXIT(mp_primZ_strZ_copy);\n"
 		"}\n"
 		"\n"
 		"static void mp_primZ_strZ_cat (void) {\n"
@@ -53694,20 +53578,6 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tPRIM_EXIT(mp_primZ_strZ_numZ_bytes);\n"
 		"}\n"
 		"\n"
-		"static void mp_primZ_packZ_nil (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_packZ_nil,\"prim-pack-nil\");\n"
-		"\tpush_value(MKNIL);\n"
-		"\tPRIM_EXIT(mp_primZ_packZ_nil);\n"
-		"}\n"
-		"\n"
-		"static void mp_primZ_packZ_cons (void) {\n"
-		"\tPRIM_ENTER(mp_primZ_packZ_cons,\"prim-pack-cons\");\n"
-		"\tVAL cdr = pop_value();\n"
-		"\tVAL car = pop_value();\n"
-		"\tpush_value(mkcons(car,cdr));\n"
-		"\tPRIM_EXIT(mp_primZ_packZ_cons);\n"
-		"}\n"
-		"\n"
 		"static void mp_primZ_mutZ_get (void) {\n"
 		"\tPRIM_ENTER(mp_primZ_mutZ_get,\"prim-mut-get\");\n"
 		"\tVAL mut = pop_value();\n"
@@ -53742,7 +53612,7 @@ static void mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		26676
+		25175
 	);
 }
 static void mw_mirth_c99_c99Z_headerZBang (void) {
@@ -60639,46 +60509,46 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 76LL: { // PRIM_STR_CMP
-			STRLIT("str_cmp(", 8);
-			int64_t v121 = 1LL /* C99RT_STR */;
+		case 72LL: { // PRIM_STR_COPY
+			STRLIT("str_make(", 9);
+			int64_t v121 = 13LL /* C99RT_PTR */;
 			push_i64(v121);
 			STRLIT(", ", 2);
-			int64_t v122 = 1LL /* C99RT_STR */;
+			int64_t v122 = 6LL /* C99RT_U64 */;
 			push_i64(v122);
 			STRLIT(")", 1);
 			int64_t v123 = 0LL /* False */;
-			int64_t v124 = 2LL /* C99RT_I64 */;
+			int64_t v124 = 1LL /* C99RT_STR */;
 			push_i64(v123);
 			push_i64(v124);
 			mtw_std_maybe_Maybe_1_Some();
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 77LL: { // PRIM_STR_EQ
-			STRLIT("(str_cmp(", 9);
+		case 76LL: { // PRIM_STR_CMP
+			STRLIT("str_cmp(", 8);
 			int64_t v125 = 1LL /* C99RT_STR */;
 			push_i64(v125);
 			STRLIT(", ", 2);
 			int64_t v126 = 1LL /* C99RT_STR */;
 			push_i64(v126);
-			STRLIT(") == 0)", 7);
+			STRLIT(")", 1);
 			int64_t v127 = 0LL /* False */;
-			int64_t v128 = 12LL /* C99RT_BOOL */;
+			int64_t v128 = 2LL /* C99RT_I64 */;
 			push_i64(v127);
 			push_i64(v128);
 			mtw_std_maybe_Maybe_1_Some();
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 78LL: { // PRIM_STR_LT
+		case 77LL: { // PRIM_STR_EQ
 			STRLIT("(str_cmp(", 9);
 			int64_t v129 = 1LL /* C99RT_STR */;
 			push_i64(v129);
 			STRLIT(", ", 2);
 			int64_t v130 = 1LL /* C99RT_STR */;
 			push_i64(v130);
-			STRLIT(") < 0)", 6);
+			STRLIT(") == 0)", 7);
 			int64_t v131 = 0LL /* False */;
 			int64_t v132 = 12LL /* C99RT_BOOL */;
 			push_i64(v131);
@@ -60687,14 +60557,14 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 79LL: { // PRIM_STR_LE
+		case 78LL: { // PRIM_STR_LT
 			STRLIT("(str_cmp(", 9);
 			int64_t v133 = 1LL /* C99RT_STR */;
 			push_i64(v133);
 			STRLIT(", ", 2);
 			int64_t v134 = 1LL /* C99RT_STR */;
 			push_i64(v134);
-			STRLIT(") <= 0)", 7);
+			STRLIT(") < 0)", 6);
 			int64_t v135 = 0LL /* False */;
 			int64_t v136 = 12LL /* C99RT_BOOL */;
 			push_i64(v135);
@@ -60703,14 +60573,14 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 80LL: { // PRIM_STR_GT
+		case 79LL: { // PRIM_STR_LE
 			STRLIT("(str_cmp(", 9);
 			int64_t v137 = 1LL /* C99RT_STR */;
 			push_i64(v137);
 			STRLIT(", ", 2);
 			int64_t v138 = 1LL /* C99RT_STR */;
 			push_i64(v138);
-			STRLIT(") > 0)", 6);
+			STRLIT(") <= 0)", 7);
 			int64_t v139 = 0LL /* False */;
 			int64_t v140 = 12LL /* C99RT_BOOL */;
 			push_i64(v139);
@@ -60719,14 +60589,14 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 81LL: { // PRIM_STR_GE
+		case 80LL: { // PRIM_STR_GT
 			STRLIT("(str_cmp(", 9);
 			int64_t v141 = 1LL /* C99RT_STR */;
 			push_i64(v141);
 			STRLIT(", ", 2);
 			int64_t v142 = 1LL /* C99RT_STR */;
 			push_i64(v142);
-			STRLIT(") >= 0)", 7);
+			STRLIT(") > 0)", 6);
 			int64_t v143 = 0LL /* False */;
 			int64_t v144 = 12LL /* C99RT_BOOL */;
 			push_i64(v143);
@@ -60735,14 +60605,14 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 82LL: { // PRIM_STR_NE
+		case 81LL: { // PRIM_STR_GE
 			STRLIT("(str_cmp(", 9);
 			int64_t v145 = 1LL /* C99RT_STR */;
 			push_i64(v145);
 			STRLIT(", ", 2);
 			int64_t v146 = 1LL /* C99RT_STR */;
 			push_i64(v146);
-			STRLIT(") != 0)", 7);
+			STRLIT(") >= 0)", 7);
 			int64_t v147 = 0LL /* False */;
 			int64_t v148 = 12LL /* C99RT_BOOL */;
 			push_i64(v147);
@@ -60751,90 +60621,92 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 63LL: { // PRIM_PTR_ADD
-			STRLIT("(void*)(", 8);
-			int64_t v149 = 2LL /* C99RT_I64 */;
+		case 82LL: { // PRIM_STR_NE
+			STRLIT("(str_cmp(", 9);
+			int64_t v149 = 1LL /* C99RT_STR */;
 			push_i64(v149);
-			STRLIT(" + (char*)", 10);
-			int64_t v150 = 13LL /* C99RT_PTR */;
+			STRLIT(", ", 2);
+			int64_t v150 = 1LL /* C99RT_STR */;
 			push_i64(v150);
-			STRLIT(")", 1);
+			STRLIT(") != 0)", 7);
 			int64_t v151 = 0LL /* False */;
-			int64_t v152 = 13LL /* C99RT_PTR */;
+			int64_t v152 = 12LL /* C99RT_BOOL */;
 			push_i64(v151);
 			push_i64(v152);
 			mtw_std_maybe_Maybe_1_Some();
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 62LL: { // PRIM_PTR_EQ
-			STRLIT("(", 1);
+		case 68LL: { // PRIM_PTR_REALLOC
+			STRLIT("ptr_realloc(", 12);
 			int64_t v153 = 13LL /* C99RT_PTR */;
 			push_i64(v153);
-			STRLIT(" == ", 4);
-			int64_t v154 = 13LL /* C99RT_PTR */;
+			STRLIT(",", 1);
+			int64_t v154 = 6LL /* C99RT_U64 */;
 			push_i64(v154);
 			STRLIT(")", 1);
 			int64_t v155 = 0LL /* False */;
-			int64_t v156 = 12LL /* C99RT_BOOL */;
+			int64_t v156 = 13LL /* C99RT_PTR */;
 			push_i64(v155);
 			push_i64(v156);
 			mtw_std_maybe_Maybe_1_Some();
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 55LL: { // PRIM_PACK_CONS
-			STRLIT("mkcons(", 7);
-			int64_t v157 = 0LL /* C99RT_VAL */;
+		case 63LL: { // PRIM_PTR_ADD
+			STRLIT("(void*)(", 8);
+			int64_t v157 = 2LL /* C99RT_I64 */;
 			push_i64(v157);
-			STRLIT(", ", 2);
-			int64_t v158 = 0LL /* C99RT_VAL */;
+			STRLIT(" + (char*)", 10);
+			int64_t v158 = 13LL /* C99RT_PTR */;
 			push_i64(v158);
 			STRLIT(")", 1);
 			int64_t v159 = 0LL /* False */;
-			int64_t v160 = 0LL /* C99RT_VAL */;
+			int64_t v160 = 13LL /* C99RT_PTR */;
 			push_i64(v159);
 			push_i64(v160);
 			mtw_std_maybe_Maybe_1_Some();
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 90LL: { // PRIM_U64_SET
-			STRLIT("*(uint64_t*)", 12);
+		case 62LL: { // PRIM_PTR_EQ
+			STRLIT("(", 1);
 			int64_t v161 = 13LL /* C99RT_PTR */;
 			push_i64(v161);
-			STRLIT(" = ", 3);
-			int64_t v162 = 6LL /* C99RT_U64 */;
+			STRLIT(" == ", 4);
+			int64_t v162 = 13LL /* C99RT_PTR */;
 			push_i64(v162);
-			STRLIT(";", 1);
-			int64_t v163 = 1LL /* True */;
-			int64_t v164 = 0LL /* None */;
+			STRLIT(")", 1);
+			int64_t v163 = 0LL /* False */;
+			int64_t v164 = 12LL /* C99RT_BOOL */;
 			push_i64(v163);
 			push_i64(v164);
+			mtw_std_maybe_Maybe_1_Some();
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 88LL: { // PRIM_U32_SET
-			STRLIT("*(uint32_t*)", 12);
-			int64_t v165 = 13LL /* C99RT_PTR */;
+		case 55LL: { // PRIM_PACK_CONS
+			STRLIT("mkcons(", 7);
+			int64_t v165 = 0LL /* C99RT_VAL */;
 			push_i64(v165);
-			STRLIT(" = ", 3);
-			int64_t v166 = 7LL /* C99RT_U32 */;
+			STRLIT(", ", 2);
+			int64_t v166 = 0LL /* C99RT_VAL */;
 			push_i64(v166);
-			STRLIT(";", 1);
-			int64_t v167 = 1LL /* True */;
-			int64_t v168 = 0LL /* None */;
+			STRLIT(")", 1);
+			int64_t v167 = 0LL /* False */;
+			int64_t v168 = 0LL /* C99RT_VAL */;
 			push_i64(v167);
 			push_i64(v168);
+			mtw_std_maybe_Maybe_1_Some();
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 86LL: { // PRIM_U16_SET
-			STRLIT("*(uint16_t*)", 12);
+		case 90LL: { // PRIM_U64_SET
+			STRLIT("*(uint64_t*)", 12);
 			int64_t v169 = 13LL /* C99RT_PTR */;
 			push_i64(v169);
 			STRLIT(" = ", 3);
-			int64_t v170 = 8LL /* C99RT_U16 */;
+			int64_t v170 = 6LL /* C99RT_U64 */;
 			push_i64(v170);
 			STRLIT(";", 1);
 			int64_t v171 = 1LL /* True */;
@@ -60844,12 +60716,12 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 84LL: { // PRIM_U8_SET
-			STRLIT("*(uint8_t*)", 11);
+		case 88LL: { // PRIM_U32_SET
+			STRLIT("*(uint32_t*)", 12);
 			int64_t v173 = 13LL /* C99RT_PTR */;
 			push_i64(v173);
 			STRLIT(" = ", 3);
-			int64_t v174 = 9LL /* C99RT_U8 */;
+			int64_t v174 = 7LL /* C99RT_U32 */;
 			push_i64(v174);
 			STRLIT(";", 1);
 			int64_t v175 = 1LL /* True */;
@@ -60859,12 +60731,12 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 98LL: { // PRIM_I64_SET
-			STRLIT("*(int64_t*)", 11);
+		case 86LL: { // PRIM_U16_SET
+			STRLIT("*(uint16_t*)", 12);
 			int64_t v177 = 13LL /* C99RT_PTR */;
 			push_i64(v177);
 			STRLIT(" = ", 3);
-			int64_t v178 = 2LL /* C99RT_I64 */;
+			int64_t v178 = 8LL /* C99RT_U16 */;
 			push_i64(v178);
 			STRLIT(";", 1);
 			int64_t v179 = 1LL /* True */;
@@ -60874,12 +60746,12 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 96LL: { // PRIM_I32_SET
-			STRLIT("*(int32_t*)", 11);
+		case 84LL: { // PRIM_U8_SET
+			STRLIT("*(uint8_t*)", 11);
 			int64_t v181 = 13LL /* C99RT_PTR */;
 			push_i64(v181);
 			STRLIT(" = ", 3);
-			int64_t v182 = 3LL /* C99RT_I32 */;
+			int64_t v182 = 9LL /* C99RT_U8 */;
 			push_i64(v182);
 			STRLIT(";", 1);
 			int64_t v183 = 1LL /* True */;
@@ -60889,12 +60761,12 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 94LL: { // PRIM_I16_SET
-			STRLIT("*(int16_t*)", 11);
+		case 98LL: { // PRIM_I64_SET
+			STRLIT("*(int64_t*)", 11);
 			int64_t v185 = 13LL /* C99RT_PTR */;
 			push_i64(v185);
 			STRLIT(" = ", 3);
-			int64_t v186 = 4LL /* C99RT_I16 */;
+			int64_t v186 = 2LL /* C99RT_I64 */;
 			push_i64(v186);
 			STRLIT(";", 1);
 			int64_t v187 = 1LL /* True */;
@@ -60904,12 +60776,12 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 92LL: { // PRIM_I8_SET
-			STRLIT("*(int8_t*)", 10);
+		case 96LL: { // PRIM_I32_SET
+			STRLIT("*(int32_t*)", 11);
 			int64_t v189 = 13LL /* C99RT_PTR */;
 			push_i64(v189);
 			STRLIT(" = ", 3);
-			int64_t v190 = 5LL /* C99RT_I8 */;
+			int64_t v190 = 3LL /* C99RT_I32 */;
 			push_i64(v190);
 			STRLIT(";", 1);
 			int64_t v191 = 1LL /* True */;
@@ -60919,12 +60791,12 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		case 66LL: { // PRIM_PTR_SET
-			STRLIT("*(void**)", 9);
+		case 94LL: { // PRIM_I16_SET
+			STRLIT("*(int16_t*)", 11);
 			int64_t v193 = 13LL /* C99RT_PTR */;
 			push_i64(v193);
 			STRLIT(" = ", 3);
-			int64_t v194 = 13LL /* C99RT_PTR */;
+			int64_t v194 = 4LL /* C99RT_I16 */;
 			push_i64(v194);
 			STRLIT(";", 1);
 			int64_t v195 = 1LL /* True */;
@@ -60934,9 +60806,39 @@ static void mw_mirth_c99_c99Z_primZ_binopZAsk (void) {
 			mw_mirth_c99_C99BinOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		default: {
-			int64_t v197 = 0LL /* None */;
+		case 92LL: { // PRIM_I8_SET
+			STRLIT("*(int8_t*)", 10);
+			int64_t v197 = 13LL /* C99RT_PTR */;
 			push_i64(v197);
+			STRLIT(" = ", 3);
+			int64_t v198 = 5LL /* C99RT_I8 */;
+			push_i64(v198);
+			STRLIT(";", 1);
+			int64_t v199 = 1LL /* True */;
+			int64_t v200 = 0LL /* None */;
+			push_i64(v199);
+			push_i64(v200);
+			mw_mirth_c99_C99BinOp_Mk();
+			mtw_std_maybe_Maybe_1_Some();
+		} break;
+		case 66LL: { // PRIM_PTR_SET
+			STRLIT("*(void**)", 9);
+			int64_t v201 = 13LL /* C99RT_PTR */;
+			push_i64(v201);
+			STRLIT(" = ", 3);
+			int64_t v202 = 13LL /* C99RT_PTR */;
+			push_i64(v202);
+			STRLIT(";", 1);
+			int64_t v203 = 1LL /* True */;
+			int64_t v204 = 0LL /* None */;
+			push_i64(v203);
+			push_i64(v204);
+			mw_mirth_c99_C99BinOp_Mk();
+			mtw_std_maybe_Maybe_1_Some();
+		} break;
+		default: {
+			int64_t v205 = 0LL /* None */;
+			push_i64(v205);
 		} break;
 	}
 }
@@ -61270,9 +61172,30 @@ static void mw_mirth_c99_c99Z_primZ_unopZAsk (void) {
 			mw_mirth_c99_C99UnOp_Mk();
 			mtw_std_maybe_Maybe_1_Some();
 		} break;
-		default: {
-			int64_t v39 = 0LL /* None */;
+		case 67LL: { // PRIM_PTR_ALLOC
+			STRLIT("ptr_alloc(", 10);
+			int64_t v39 = 6LL /* C99RT_U64 */;
 			push_i64(v39);
+			STRLIT(");", 2);
+			int64_t v40 = 13LL /* C99RT_PTR */;
+			push_i64(v40);
+			mtw_std_maybe_Maybe_1_Some();
+			mw_mirth_c99_C99UnOp_Mk();
+			mtw_std_maybe_Maybe_1_Some();
+		} break;
+		case 69LL: { // PRIM_PTR_FREE
+			STRLIT("free(", 5);
+			int64_t v41 = 13LL /* C99RT_PTR */;
+			push_i64(v41);
+			STRLIT(");", 2);
+			int64_t v42 = 0LL /* None */;
+			push_i64(v42);
+			mw_mirth_c99_C99UnOp_Mk();
+			mtw_std_maybe_Maybe_1_Some();
+		} break;
+		default: {
+			int64_t v43 = 0LL /* None */;
+			push_i64(v43);
 		} break;
 	}
 }
@@ -61762,161 +61685,419 @@ static void mw_mirth_c99_c99Z_primZBang (void) {
 				}
 			}
 		} break;
-		case 54LL: { // PRIM_PACK_NIL
+		case 9LL: { // PRIM_CORE_RUN
 			VAL v115 = pop_value();
+			incref(v115);
+			VAL v116 = VVAL(VTUP(v115)->cells[5]);
+			incref(v116);
 			decref(v115);
-			int64_t v116 = 0LL /* C99RT_VAL */;
-			VAL r117 = pop_resource();
-			VAL v118 = (VVAL(VTUP(r117)->cells[1]));
-			push_resource(v118);
-			lpush(&lbl_localZ_repr, MKI64(v116));
-			mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
-			VAL v119 = pop_value();
-			VAL r120 = pop_resource();
-			lpush(&lbl_localZ_name, v119);
-			mtw_mirth_c99_ZPlusC99Local_ZPlusC99Local();
-			push_resource(r120);
-			mw_mirth_c99_ZPlusC99_indent();
-			VAL r121 = pop_resource();
-			VAL r122 = pop_resource();
-			int64_t v123 = VI64(VTUP(r122)->cells[1]);
-			push_i64(v123);
-			push_resource(r122);
-			push_resource(r121);
-			mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
-			mw_mirth_c99_ZPlusC99_put();
-			STRLIT(" ", 1);
-			mw_mirth_c99_ZPlusC99_put();
-			VAL r124 = pop_resource();
-			VAL r125 = pop_resource();
-			VAL v126 = VVAL(VTUP(r125)->cells[2]);
-			incref(v126);
-			push_value(v126);
-			push_resource(r125);
-			push_resource(r124);
-			mw_mirth_c99_ZPlusC99_put();
-			STRLIT(" = ", 3);
-			mw_mirth_c99_ZPlusC99_put();
-			VAL r127 = pop_resource();
-			VAL r128 = pop_resource();
-			push_resource(r127);
-			STRLIT("MKNIL", 5);
-			mw_mirth_c99_ZPlusC99_put();
-			VAL r129 = pop_resource();
-			push_resource(r128);
-			push_resource(r129);
-			STRLIT(";", 1);
-			mw_mirth_c99_ZPlusC99_put();
-			mw_mirth_c99_ZPlusC99_line();
-			VAL r130 = pop_resource();
-			VTUP(r117)->cells[1] = r130;
-			VAL r131 = pop_resource();
-			push_resource(r117);
-			push_resource(r131);
-			mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
-		} break;
-		case 56LL: { // PRIM_PACK_UNCONS
-			VAL v132 = pop_value();
-			decref(v132);
-			int64_t v133 = 0LL /* C99RT_VAL */;
-			push_i64(v133);
+			push_value(v115);
+			push_value(v116);
+			mw_std_list_List_1_emptyZAsk();
+			bool v117 = pop_bool();
+			if (v117) {
+			} else {
+				STRLIT("expected no arguments to prim-core-run", 38);
+				STRLIT("assertion failed: ", 18);
+				VAL v118 = pop_value();
+				VAL v119 = pop_value();
+				push_value(v118);
+				push_value(v119);
+				mp_primZ_strZ_cat();
+				mp_primZ_panic();
+			}
+			VAL v120 = pop_value();
+			decref(v120);
+			int64_t v121 = 0LL /* C99RT_VAL */;
+			push_i64(v121);
 			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
-			VAL r134 = pop_resource();
-			int64_t v135 = 0LL /* C99RT_VAL */;
-			lpush(&lbl_ZPluscons, r134);
-			push_i64(v135);
-			mw_mirth_c99_C99ReprType_newZ_localZBang();
-			VAL r136 = pop_resource();
-			int64_t v137 = 0LL /* C99RT_VAL */;
-			lpush(&lbl_ZPlustail, r136);
-			push_i64(v137);
-			mw_mirth_c99_C99ReprType_newZ_localZBang();
-			VAL r138 = pop_resource();
-			VAL r139 = pop_resource();
-			VAL v140 = (VVAL(VTUP(r139)->cells[1]));
-			lpush(&lbl_ZPlushead, r138);
-			push_resource(v140);
+			VAL r122 = pop_resource();
+			lpush(&lbl_ZPlusclosure, r122);
+			mw_mirth_c99_ZPlusC99Branch_flushZ_cacheZBang();
+			VAL r123 = pop_resource();
+			VAL v124 = (VVAL(VTUP(r123)->cells[1]));
+			push_resource(v124);
 			mw_mirth_c99_ZPlusC99_indent();
-			STRLIT("value_uncons(", 13);
+			STRLIT("run_value(", 10);
 			mw_mirth_c99_ZPlusC99_put();
-			VAL v141 = (lpop(&lbl_ZPluscons));
-			push_resource(v141);
+			VAL v125 = (lpop(&lbl_ZPlusclosure));
+			push_resource(v125);
 			mw_mirth_c99_ZPlusC99Local_consumeZ_asZ_VAL();
-			mw_mirth_c99_ZPlusC99_put();
-			STRLIT(", &", 3);
-			mw_mirth_c99_ZPlusC99_put();
-			VAL v142 = (lpop(&lbl_ZPlustail));
-			VAL v143 = VVAL(VTUP(v142)->cells[2]);
-			incref(v143);
-			push_value(v143);
-			lpush(&lbl_ZPlustail, v142);
-			mw_mirth_c99_ZPlusC99_put();
-			STRLIT(", &", 3);
-			mw_mirth_c99_ZPlusC99_put();
-			VAL v144 = (lpop(&lbl_ZPlushead));
-			VAL v145 = VVAL(VTUP(v144)->cells[2]);
-			incref(v145);
-			push_value(v145);
-			lpush(&lbl_ZPlushead, v144);
 			mw_mirth_c99_ZPlusC99_put();
 			STRLIT(");", 2);
 			mw_mirth_c99_ZPlusC99_put();
 			mw_mirth_c99_ZPlusC99_line();
-			VAL r146 = pop_resource();
-			VTUP(r139)->cells[1] = r146;
-			VAL v147 = (lpop(&lbl_ZPlustail));
+			VAL r126 = pop_resource();
+			VTUP(r123)->cells[1] = r126;
+			push_resource(r123);
+		} break;
+		case 54LL: { // PRIM_PACK_NIL
+			VAL v127 = pop_value();
+			decref(v127);
+			int64_t v128 = 0LL /* C99RT_VAL */;
+			VAL r129 = pop_resource();
+			VAL v130 = (VVAL(VTUP(r129)->cells[1]));
+			push_resource(v130);
+			lpush(&lbl_localZ_repr, MKI64(v128));
+			mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
+			VAL v131 = pop_value();
+			VAL r132 = pop_resource();
+			lpush(&lbl_localZ_name, v131);
+			mtw_mirth_c99_ZPlusC99Local_ZPlusC99Local();
+			push_resource(r132);
+			mw_mirth_c99_ZPlusC99_indent();
+			VAL r133 = pop_resource();
+			VAL r134 = pop_resource();
+			int64_t v135 = VI64(VTUP(r134)->cells[1]);
+			push_i64(v135);
+			push_resource(r134);
+			push_resource(r133);
+			mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(" ", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r136 = pop_resource();
+			VAL r137 = pop_resource();
+			VAL v138 = VVAL(VTUP(r137)->cells[2]);
+			incref(v138);
+			push_value(v138);
+			push_resource(r137);
+			push_resource(r136);
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(" = ", 3);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r139 = pop_resource();
+			VAL r140 = pop_resource();
 			push_resource(r139);
-			push_resource(v147);
-			mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
-			VAL v148 = (lpop(&lbl_ZPlushead));
-			push_resource(v148);
+			STRLIT("MKNIL", 5);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r141 = pop_resource();
+			push_resource(r140);
+			push_resource(r141);
+			STRLIT(";", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_line();
+			VAL r142 = pop_resource();
+			VTUP(r129)->cells[1] = r142;
+			VAL r143 = pop_resource();
+			push_resource(r129);
+			push_resource(r143);
 			mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
 		} break;
+		case 56LL: { // PRIM_PACK_UNCONS
+			VAL v144 = pop_value();
+			decref(v144);
+			int64_t v145 = 0LL /* C99RT_VAL */;
+			push_i64(v145);
+			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
+			VAL r146 = pop_resource();
+			int64_t v147 = 0LL /* C99RT_VAL */;
+			lpush(&lbl_ZPluscons, r146);
+			push_i64(v147);
+			mw_mirth_c99_C99ReprType_newZ_localZBang();
+			VAL r148 = pop_resource();
+			int64_t v149 = 0LL /* C99RT_VAL */;
+			lpush(&lbl_ZPlustail, r148);
+			push_i64(v149);
+			mw_mirth_c99_C99ReprType_newZ_localZBang();
+			VAL r150 = pop_resource();
+			VAL r151 = pop_resource();
+			VAL v152 = (VVAL(VTUP(r151)->cells[1]));
+			lpush(&lbl_ZPlushead, r150);
+			push_resource(v152);
+			mw_mirth_c99_ZPlusC99_indent();
+			STRLIT("value_uncons(", 13);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v153 = (lpop(&lbl_ZPluscons));
+			push_resource(v153);
+			mw_mirth_c99_ZPlusC99Local_consumeZ_asZ_VAL();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(", &", 3);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v154 = (lpop(&lbl_ZPlustail));
+			VAL v155 = VVAL(VTUP(v154)->cells[2]);
+			incref(v155);
+			push_value(v155);
+			lpush(&lbl_ZPlustail, v154);
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(", &", 3);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v156 = (lpop(&lbl_ZPlushead));
+			VAL v157 = VVAL(VTUP(v156)->cells[2]);
+			incref(v157);
+			push_value(v157);
+			lpush(&lbl_ZPlushead, v156);
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(");", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_line();
+			VAL r158 = pop_resource();
+			VTUP(r151)->cells[1] = r158;
+			VAL v159 = (lpop(&lbl_ZPlustail));
+			push_resource(r151);
+			push_resource(v159);
+			mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
+			VAL v160 = (lpop(&lbl_ZPlushead));
+			push_resource(v160);
+			mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
+		} break;
+		case 61LL: { // PRIM_PTR_NIL
+			VAL v161 = pop_value();
+			decref(v161);
+			int64_t v162 = 13LL /* C99RT_PTR */;
+			VAL r163 = pop_resource();
+			VAL v164 = (VVAL(VTUP(r163)->cells[1]));
+			push_resource(v164);
+			lpush(&lbl_localZ_repr, MKI64(v162));
+			mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
+			VAL v165 = pop_value();
+			VAL r166 = pop_resource();
+			lpush(&lbl_localZ_name, v165);
+			mtw_mirth_c99_ZPlusC99Local_ZPlusC99Local();
+			push_resource(r166);
+			mw_mirth_c99_ZPlusC99_indent();
+			VAL r167 = pop_resource();
+			VAL r168 = pop_resource();
+			int64_t v169 = VI64(VTUP(r168)->cells[1]);
+			push_i64(v169);
+			push_resource(r168);
+			push_resource(r167);
+			mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(" ", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r170 = pop_resource();
+			VAL r171 = pop_resource();
+			VAL v172 = VVAL(VTUP(r171)->cells[2]);
+			incref(v172);
+			push_value(v172);
+			push_resource(r171);
+			push_resource(r170);
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(" = ", 3);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r173 = pop_resource();
+			VAL r174 = pop_resource();
+			push_resource(r173);
+			STRLIT("(void*)0", 8);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r175 = pop_resource();
+			push_resource(r174);
+			push_resource(r175);
+			STRLIT(";", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_line();
+			VAL r176 = pop_resource();
+			VTUP(r163)->cells[1] = r176;
+			VAL r177 = pop_resource();
+			push_resource(r163);
+			push_resource(r177);
+			mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
+		} break;
+		case 64LL: { // PRIM_PTR_SIZE
+			VAL v178 = pop_value();
+			decref(v178);
+			int64_t v179 = 6LL /* C99RT_U64 */;
+			VAL r180 = pop_resource();
+			VAL v181 = (VVAL(VTUP(r180)->cells[1]));
+			push_resource(v181);
+			lpush(&lbl_localZ_repr, MKI64(v179));
+			mw_mirth_c99_ZPlusC99_freshZ_nameZBang();
+			VAL v182 = pop_value();
+			VAL r183 = pop_resource();
+			lpush(&lbl_localZ_name, v182);
+			mtw_mirth_c99_ZPlusC99Local_ZPlusC99Local();
+			push_resource(r183);
+			mw_mirth_c99_ZPlusC99_indent();
+			VAL r184 = pop_resource();
+			VAL r185 = pop_resource();
+			int64_t v186 = VI64(VTUP(r185)->cells[1]);
+			push_i64(v186);
+			push_resource(r185);
+			push_resource(r184);
+			mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(" ", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r187 = pop_resource();
+			VAL r188 = pop_resource();
+			VAL v189 = VVAL(VTUP(r188)->cells[2]);
+			incref(v189);
+			push_value(v189);
+			push_resource(r188);
+			push_resource(r187);
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(" = ", 3);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r190 = pop_resource();
+			VAL r191 = pop_resource();
+			push_resource(r190);
+			STRLIT("sizeof(void*)", 13);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL r192 = pop_resource();
+			push_resource(r191);
+			push_resource(r192);
+			STRLIT(";", 1);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_line();
+			VAL r193 = pop_resource();
+			VTUP(r180)->cells[1] = r193;
+			VAL r194 = pop_resource();
+			push_resource(r180);
+			push_resource(r194);
+			mw_mirth_c99_ZPlusC99Local_pushZ_localZBang();
+		} break;
+		case 70LL: { // PRIM_PTR_COPY
+			VAL v195 = pop_value();
+			decref(v195);
+			int64_t v196 = 13LL /* C99RT_PTR */;
+			push_i64(v196);
+			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
+			VAL r197 = pop_resource();
+			int64_t v198 = 6LL /* C99RT_U64 */;
+			lpush(&lbl_ZPlusdst, r197);
+			push_i64(v198);
+			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
+			VAL r199 = pop_resource();
+			int64_t v200 = 13LL /* C99RT_PTR */;
+			lpush(&lbl_ZPluslen, r199);
+			push_i64(v200);
+			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
+			VAL r201 = pop_resource();
+			VAL r202 = pop_resource();
+			VAL v203 = (VVAL(VTUP(r202)->cells[1]));
+			lpush(&lbl_ZPlussrc, r201);
+			push_resource(v203);
+			mw_mirth_c99_ZPlusC99_indent();
+			STRLIT("ptr_copy(", 9);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v204 = (lpop(&lbl_ZPlussrc));
+			int64_t v205 = 13LL /* C99RT_PTR */;
+			push_resource(v204);
+			push_i64(v205);
+			mw_mirth_c99_ZPlusC99Local_consumeZ_as();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(", ", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v206 = (lpop(&lbl_ZPluslen));
+			int64_t v207 = 6LL /* C99RT_U64 */;
+			push_resource(v206);
+			push_i64(v207);
+			mw_mirth_c99_ZPlusC99Local_consumeZ_as();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(", ", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v208 = (lpop(&lbl_ZPlusdst));
+			int64_t v209 = 13LL /* C99RT_PTR */;
+			push_resource(v208);
+			push_i64(v209);
+			mw_mirth_c99_ZPlusC99Local_consumeZ_as();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(");", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_line();
+			VAL r210 = pop_resource();
+			VTUP(r202)->cells[1] = r210;
+			push_resource(r202);
+		} break;
+		case 71LL: { // PRIM_PTR_FILL
+			VAL v211 = pop_value();
+			decref(v211);
+			int64_t v212 = 13LL /* C99RT_PTR */;
+			push_i64(v212);
+			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
+			VAL r213 = pop_resource();
+			int64_t v214 = 6LL /* C99RT_U64 */;
+			lpush(&lbl_ZPlusdst, r213);
+			push_i64(v214);
+			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
+			VAL r215 = pop_resource();
+			int64_t v216 = 9LL /* C99RT_U8 */;
+			lpush(&lbl_ZPluslen, r215);
+			push_i64(v216);
+			mw_mirth_c99_ZPlusC99Branch_popZ_toZ_localZBang();
+			VAL r217 = pop_resource();
+			VAL r218 = pop_resource();
+			VAL v219 = (VVAL(VTUP(r218)->cells[1]));
+			lpush(&lbl_ZPlusval, r217);
+			push_resource(v219);
+			mw_mirth_c99_ZPlusC99_indent();
+			STRLIT("ptr_fill(", 9);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v220 = (lpop(&lbl_ZPlusval));
+			int64_t v221 = 9LL /* C99RT_U8 */;
+			push_resource(v220);
+			push_i64(v221);
+			mw_mirth_c99_ZPlusC99Local_consumeZ_as();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(", ", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v222 = (lpop(&lbl_ZPluslen));
+			int64_t v223 = 6LL /* C99RT_U64 */;
+			push_resource(v222);
+			push_i64(v223);
+			mw_mirth_c99_ZPlusC99Local_consumeZ_as();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(", ", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			VAL v224 = (lpop(&lbl_ZPlusdst));
+			int64_t v225 = 13LL /* C99RT_PTR */;
+			push_resource(v224);
+			push_i64(v225);
+			mw_mirth_c99_ZPlusC99Local_consumeZ_as();
+			mw_mirth_c99_ZPlusC99_put();
+			STRLIT(");", 2);
+			mw_mirth_c99_ZPlusC99_put();
+			mw_mirth_c99_ZPlusC99_line();
+			VAL r226 = pop_resource();
+			VTUP(r218)->cells[1] = r226;
+			push_resource(r218);
+		} break;
 		default: {
-			VAL v149 = pop_value();
-			VAL v150 = VVAL(VTUP(v149)->cells[5]);
-			incref(v150);
-			decref(v149);
-			incref(v150);
-			push_value(v150);
+			VAL v227 = pop_value();
+			VAL v228 = VVAL(VTUP(v227)->cells[5]);
+			incref(v228);
+			decref(v227);
+			incref(v228);
+			push_value(v228);
 			push_i64(v0);
-			push_value(v150);
+			push_value(v228);
 			mw_std_list_List_1_emptyZAsk();
-			bool v151 = pop_bool();
-			if (v151) {
-				int64_t v152 = pop_i64();
-				push_i64(v152);
-				push_i64(v152);
+			bool v229 = pop_bool();
+			if (v229) {
+				int64_t v230 = pop_i64();
+				push_i64(v230);
+				push_i64(v230);
 				mw_mirth_c99_c99Z_primZ_binopZAsk();
-				VAL v153 = pop_value();
-				switch (get_data_tag(v153)) {
+				VAL v231 = pop_value();
+				switch (get_data_tag(v231)) {
 					case 1LL: { // Some
-						push_value(v153);
+						push_value(v231);
 						mtp_std_maybe_Maybe_1_Some();
-						VAL v154 = pop_value();
-						VAL v155 = pop_value();
-						decref(v155);
-						VAL v156 = pop_value();
-						decref(v156);
-						push_value(v154);
+						VAL v232 = pop_value();
+						VAL v233 = pop_value();
+						decref(v233);
+						VAL v234 = pop_value();
+						decref(v234);
+						push_value(v232);
 						mw_mirth_c99_c99Z_binopZBang();
 					} break;
 					case 0LL: { // None
-						int64_t v157 = pop_i64();
-						push_i64(v157);
-						push_i64(v157);
+						int64_t v235 = pop_i64();
+						push_i64(v235);
+						push_i64(v235);
 						mw_mirth_c99_c99Z_primZ_unopZAsk();
-						VAL v158 = pop_value();
-						switch (get_data_tag(v158)) {
+						VAL v236 = pop_value();
+						switch (get_data_tag(v236)) {
 							case 1LL: { // Some
-								push_value(v158);
+								push_value(v236);
 								mtp_std_maybe_Maybe_1_Some();
-								VAL v159 = pop_value();
-								VAL v160 = pop_value();
-								decref(v160);
-								VAL v161 = pop_value();
-								decref(v161);
-								push_value(v159);
+								VAL v237 = pop_value();
+								VAL v238 = pop_value();
+								decref(v238);
+								VAL v239 = pop_value();
+								decref(v239);
+								push_value(v237);
 								mw_mirth_c99_c99Z_unopZBang();
 							} break;
 							case 0LL: { // None

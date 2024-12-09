@@ -1479,6 +1479,7 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_BOOL_AND -> "(" C99RT_BOOL " && " C99RT_BOOL ")" False C99RT_BOOL Some C99BinOp.Mk Some }
     { PRIM_BOOL_OR  -> "(" C99RT_BOOL " || " C99RT_BOOL ")" False C99RT_BOOL Some C99BinOp.Mk Some }
 
+    { PRIM_STR_COPY -> "str_make(" C99RT_PTR ", " C99RT_U64 ")" False C99RT_STR Some C99BinOp.Mk Some }
     { PRIM_STR_CMP -> "str_cmp(" C99RT_STR ", " C99RT_STR ")" False C99RT_I64 Some C99BinOp.Mk Some }
     { PRIM_STR_EQ  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") == 0)" False C99RT_BOOL Some C99BinOp.Mk Some }
     { PRIM_STR_LT  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") < 0)"  False C99RT_BOOL Some C99BinOp.Mk Some }
@@ -1487,6 +1488,7 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_STR_GE  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") >= 0)" False C99RT_BOOL Some C99BinOp.Mk Some }
     { PRIM_STR_NE  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") != 0)" False C99RT_BOOL Some C99BinOp.Mk Some }
 
+    { PRIM_PTR_REALLOC -> "ptr_realloc(" C99RT_PTR "," C99RT_U64 ")" False C99RT_PTR Some C99BinOp.Mk Some }
     { PRIM_PTR_ADD -> "(void*)(" C99RT_I64 " + (char*)" C99RT_PTR ")" False C99RT_PTR Some C99BinOp.Mk Some }
     { PRIM_PTR_EQ  -> "(" C99RT_PTR " == " C99RT_PTR ")" False C99RT_BOOL Some C99BinOp.Mk Some }
 
@@ -1555,6 +1557,9 @@ def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
     { PRIM_F64_TO_INT -> "(int64_t)" C99RT_F64 ""  C99RT_I64 Some C99UnOp.Mk Some }
     { PRIM_F64_TO_F32 -> "(float)"   C99RT_F64 ""  C99RT_F32 Some C99UnOp.Mk Some }
     { PRIM_F64_TO_STR -> "f64_show(" C99RT_F64 ")" C99RT_STR Some C99UnOp.Mk Some }
+
+    { PRIM_PTR_ALLOC -> "ptr_alloc(" C99RT_U64 ");" C99RT_PTR Some C99UnOp.Mk Some }
+    { PRIM_PTR_FREE -> "free(" C99RT_PTR ");" None C99UnOp.Mk Some }
 
     { _ -> drop None }
 }
@@ -1667,6 +1672,13 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
                 PRIM_CORE_WHILE c99-prim-default!
         )
     }
+    { PRIM_CORE_RUN ->
+        assert!(dup args empty?, "expected no arguments to prim-core-run") drop
+        C99RT_VAL pop-to-local! >+closure
+        flush-cache!
+        c99-line("run_value(" put +closure> consume-as-VAL put ");" put)
+    }
+
     { PRIM_PACK_NIL -> drop C99RT_VAL push-expression!("MKNIL" put) }
     { PRIM_PACK_UNCONS ->
         drop
@@ -1684,6 +1696,39 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         )
         +tail> push-local!
         +head> push-local! }
+
+    { PRIM_PTR_NIL -> drop C99RT_PTR push-expression!("(void*)0" put) }
+    { PRIM_PTR_SIZE -> drop C99RT_U64 push-expression!("sizeof(void*)" put) }
+    { PRIM_PTR_COPY ->
+        drop
+        C99RT_PTR pop-to-local! >+dst
+        C99RT_U64 pop-to-local! >+len
+        C99RT_PTR pop-to-local! >+src
+        c99-line (
+            "ptr_copy(" put
+                +src> C99RT_PTR consume-as put
+            ", " put
+                +len> C99RT_U64 consume-as put
+            ", " put
+                +dst> C99RT_PTR consume-as put
+            ");" put
+        )
+    }
+    { PRIM_PTR_FILL ->
+        drop
+        C99RT_PTR pop-to-local! >+dst
+        C99RT_U64 pop-to-local! >+len
+        C99RT_U8  pop-to-local! >+val
+        c99-line (
+            "ptr_fill(" put
+                +val> C99RT_U8  consume-as put
+            ", " put
+                +len> C99RT_U64 consume-as put
+            ", " put
+                +dst> C99RT_PTR consume-as put
+            ");" put
+        )
+    }
 
     { _ ->
         dip(args) over empty? if(

@@ -881,80 +881,34 @@ static void mp_primZ_panic(void) {
 #define mp_primZ_sysZ_arch() push_u64(0)
 #endif
 
-static void mp_primZ_run (void) {
-	PRIM_ENTER(mp_primZ_run,"prim-run");
-	VAL f = pop_value();
-	run_value(f);
-	PRIM_EXIT(mp_primZ_run);
-}
-
-static void mp_primZ_ptrZ_nil (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_nil,"prim-ptr-nil");
-	push_ptr((void*)0);
-	PRIM_EXIT(mp_primZ_ptrZ_nil);
-}
-#define mp_primZ_ptrZ_sizze() push_u64((uint64_t)sizeof(void*))
-static void mp_primZ_ptrZ_alloc (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_alloc,"prim-ptr-alloc");
-	USIZE n = pop_usize();
+static void* ptr_alloc (uint64_t n) {
+	EXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), "invalid size in prim-ptr-alloc");
 	void* p = malloc((size_t)n);
-	EXPECT(p, "failed to allocate buffer");
-	push_ptr(p);
-	PRIM_EXIT(mp_primZ_ptrZ_alloc);
-}
-static void mp_primZ_ptrZ_realloc (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_realloc,"prim-ptr-realloc");
-	USIZE n = pop_usize();
-	void* p0 = pop_ptr();
-	void* p1 = realloc(p0, (size_t)n);
-	EXPECT(p1, "failed to reallocate buffer");
-	push_ptr(p1);
-	PRIM_EXIT(mp_primZ_ptrZ_realloc);
-}
-static void mp_primZ_ptrZ_free (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_free,"prim-ptr-free");
-	void* p = pop_ptr();
-	free(p);
-	PRIM_EXIT(mp_primZ_ptrZ_free);
+	EXPECT(p, "failed to allocate in prim-ptr-alloc");
+	return p;
 }
 
-static void mp_primZ_ptrZ_copy (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_copy,"prim-ptr-copy");
-	VAL vdst = pop_value();
-	int64_t ilen = pop_i64();
-	VAL vsrc = pop_value();
-	ASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);
-	void* src = value_ptr(vsrc);
-	void* dst = value_ptr(vdst);
-	if (src && dst && (ilen > 0)) {
-		ASSERT((USIZE)ilen <= SIZE_MAX);
-		memcpy(dst, src, (size_t)ilen);
+static void* ptr_realloc (void* p, uint64_t n) {
+	EXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), "invalid size in prim-ptr-realloc");
+	void* p2 = realloc(p, n);
+	EXPECT(p2, "failed to reallocate in prim-ptr-realloc");
+	return p2;
+}
+
+static void ptr_copy (void* src, uint64_t len, void* dst) {
+	if (len > 0) {
+		EXPECT(len <= SIZE_MAX, "invalid size in prim-ptr-copy");
+		EXPECT(src && dst, "invalid pointer in prim-ptr-copy");
+		memcpy(dst, src, (size_t)len);
 	}
-	PRIM_EXIT(mp_primZ_ptrZ_copy);
 }
 
-static void mp_primZ_ptrZ_fill (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_fill,"prim-ptr-fill");
-	VAL vdst = pop_value();
-	ASSERT1(IS_PTR(vdst), vdst);
-	int64_t ilen = pop_i64();
-	uint64_t val = pop_u64();
-	void* dst = value_ptr(vdst);
-	if (dst && (ilen > 0)) {
-		ASSERT((USIZE)ilen <= SIZE_MAX);
-		memset(dst, (int)val, (size_t)ilen);
+static void ptr_fill (uint8_t val, uint64_t len, void* dst) {
+	if (len > 0) {
+		EXPECT(len <= SIZE_MAX, "invalid size in prim-ptr-fill");
+		EXPECT(dst, "invalid pointer in prim-ptr-fill");
+		memset(dst, (int)val, (size_t)len);
 	}
-	PRIM_EXIT(mp_primZ_ptrZ_fill);
-}
-
-static void mp_primZ_strZ_copy (void) {
-	PRIM_ENTER(mp_primZ_strZ_copy,"prim-str-copy");
-	USIZE size = pop_usize();
-	char* ptr = (char*)pop_ptr();
-	ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
-	ASSERT(ptr);
-	push_value(mkstr(ptr, size));
-	PRIM_EXIT(mp_primZ_strZ_copy);
 }
 
 static void mp_primZ_strZ_cat (void) {
@@ -1006,20 +960,6 @@ static void mp_primZ_strZ_numZ_bytes (void) {
 	push_usize(VSTR(v)->size);
 	decref(v);
 	PRIM_EXIT(mp_primZ_strZ_numZ_bytes);
-}
-
-static void mp_primZ_packZ_nil (void) {
-	PRIM_ENTER(mp_primZ_packZ_nil,"prim-pack-nil");
-	push_value(MKNIL);
-	PRIM_EXIT(mp_primZ_packZ_nil);
-}
-
-static void mp_primZ_packZ_cons (void) {
-	PRIM_ENTER(mp_primZ_packZ_cons,"prim-pack-cons");
-	VAL cdr = pop_value();
-	VAL car = pop_value();
-	push_value(mkcons(car,cdr));
-	PRIM_EXIT(mp_primZ_packZ_cons);
 }
 
 static void mp_primZ_mutZ_get (void) {
