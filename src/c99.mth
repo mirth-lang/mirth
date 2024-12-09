@@ -130,8 +130,8 @@ def(Field.cname, +Mirth Field -- +Mirth Str, dup ~cname memoize(
     dup qname-hard mangled Str("mfld_" ; ;)) nip)
 def(External.cname, +Mirth External -- +Mirth Str, dup ~cname memoize(
     dup qname-hard mangled Str("mext_" ; ;)) nip)
-def(Prim.cname, Prim -- Str, dup ~cname memoize(
-    Str("mp_" ; dup name mangled ;)) nip)
+# def(Prim.cname, Prim -- Str, dup ~cname memoize(
+#     Str("mp_" ; dup name mangled ;)) nip)
 
 def(+C99.sig-put, Str +C99 -- +C99, "static void " put put " (void)" put)
 
@@ -1091,7 +1091,7 @@ def +C99Local.consume-as [ C99ReprType +C99Local -- Str ] {
                 over == if(
                     drop local-name>,
                     dup is-int-like? @local-repr is-int-like? && if(
-                        Str( "(" ; underlying-c99-type ; ")(" ; local-name> ; ")" ; ),
+                        Str( "((" ; underlying-c99-type ; ")" ; local-name> ; ")" ; ),
                         "attempted to cast between incompatible C99 repr types" panic!
                     )
                 )
@@ -1480,6 +1480,7 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_BOOL_OR  -> "(" C99RT_BOOL " || " C99RT_BOOL ")" False C99RT_BOOL Some C99BinOp.Mk Some }
 
     { PRIM_STR_COPY -> "str_make(" C99RT_PTR ", " C99RT_U64 ")" False C99RT_STR Some C99BinOp.Mk Some }
+    { PRIM_STR_CAT -> "str_cat(" C99RT_STR ", " C99RT_STR ")" False C99RT_STR Some C99BinOp.Mk Some }
     { PRIM_STR_CMP -> "str_cmp(" C99RT_STR ", " C99RT_STR ")" False C99RT_I64 Some C99BinOp.Mk Some }
     { PRIM_STR_EQ  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") == 0)" False C99RT_BOOL Some C99BinOp.Mk Some }
     { PRIM_STR_LT  -> "(str_cmp(" C99RT_STR ", " C99RT_STR ") < 0)"  False C99RT_BOOL Some C99BinOp.Mk Some }
@@ -1505,6 +1506,8 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_I16_SET -> "*(int16_t*)"  C99RT_PTR " = " C99RT_I16 ";" True None C99BinOp.Mk Some }
     { PRIM_I8_SET  -> "*(int8_t*)"   C99RT_PTR " = " C99RT_I8  ";" True None C99BinOp.Mk Some }
     { PRIM_PTR_SET -> "*(void**)"    C99RT_PTR " = " C99RT_PTR ";" True None C99BinOp.Mk Some }
+
+    { PRIM_MUT_SET -> "mut_set(" C99RT_VAL ", " C99RT_VAL ");" False None C99BinOp.Mk Some }
 
     { _ -> drop None }
 }
@@ -1561,6 +1564,11 @@ def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
     { PRIM_PTR_ALLOC -> "ptr_alloc(" C99RT_U64 ");" C99RT_PTR Some C99UnOp.Mk Some }
     { PRIM_PTR_FREE -> "free(" C99RT_PTR ");" None C99UnOp.Mk Some }
 
+    { PRIM_STR_BASE -> "str_base(" C99RT_STR ")" C99RT_PTR Some C99UnOp.Mk Some }
+    { PRIM_STR_NUM_BYTES -> "str_size(" C99RT_STR ")" C99RT_U64 Some C99UnOp.Mk Some }
+    { PRIM_MUT_GET -> "mut_get(" C99RT_VAL ")" C99RT_VAL Some C99UnOp.Mk Some }
+    { PRIM_MUT_IS_SET -> "mut_is_set(" C99RT_VAL ")" C99RT_BOOL Some C99UnOp.Mk Some }
+
     { _ -> drop None }
 }
 
@@ -1613,64 +1621,47 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         +a> push-local-resource!
     }
     { PRIM_CORE_DIP ->
-        dup args /L1 match(
-            Some ->
-                swap dom pop-local-from-stack-type! drop >+dipped
-                c99-arg-run!
-                +dipped> push-local!,
-            None ->
-                args PRIM_CORE_DIP c99-prim-default!
-        )
+        dup args /L1 unwrap("unexpected number of arguments to PRIM_CORE_DIP" panic!)
+        swap dom pop-local-from-stack-type! drop >+dipped
+        c99-arg-run!
+        +dipped> push-local!
     }
     { PRIM_CORE_RDIP ->
-        dup args /L1 match(
-            Some ->
-                swap dom pop-local-resource-from-stack-type! drop >+dipped
-                c99-arg-run!
-                +dipped> push-local-resource!,
-            None ->
-                args PRIM_CORE_RDIP c99-prim-default!
-        )
+        dup args /L1 unwrap("unexpected number of arguments to PRIM_CORE_RDIP" panic!)
+        swap dom pop-local-resource-from-stack-type! drop >+dipped
+        c99-arg-run!
+        +dipped> push-local-resource!
     }
     { PRIM_CORE_IF ->
-        args dup /L2 match(
-            Some ->
-                nip unpack2
-                C99RT_BOOL pop-to-local! >+cond
+        args dup /L2 unwrap("unexpected number of arguments to PRIM_CORE_IF" panic!)
+        nip unpack2
+        C99RT_BOOL pop-to-local! >+cond
 
-                begin-branch-split!
-                c99-line("if (" put +cond> C99RT_BOOL consume-as put ") {" put)
-                c99-nest:sub-branch(swap c99-arg-run!)
-                c99-line("} else {" put)
-                c99-nest:sub-branch(c99-arg-run!)
-                c99-line("}" put)
-                end-branch-split!,
-            None ->
-                PRIM_CORE_IF c99-prim-default!
-        )
+        begin-branch-split!
+        c99-line("if (" put +cond> C99RT_BOOL consume-as put ") {" put)
+        c99-nest:sub-branch(swap c99-arg-run!)
+        c99-line("} else {" put)
+        c99-nest:sub-branch(c99-arg-run!)
+        c99-line("}" put)
+        end-branch-split!
     }
     { PRIM_CORE_WHILE ->
-        args dup /L2 match(
-            Some ->
-                nip unpack2
-                end-branch!
-                c99-line("while(1) {" put)
-                c99-nest(
-                    start-branch!
-                    swap c99-arg-run!
-                    C99RT_BOOL pop-to-local! >+cond
-                    end-branch!
-                    c99-line("if (!" put +cond> C99RT_BOOL consume-as put ") break;" put)
-                    start-branch!
-                    c99-arg-run!
-                    end-branch!
-                )
-                c99-line("}" put)
-                start-branch!,
-
-            None ->
-                PRIM_CORE_WHILE c99-prim-default!
+        args dup /L2 unwrap("unexpected number of arguments to PRIM_CORE_WHILE" panic!)
+        nip unpack2
+        end-branch!
+        c99-line("while(1) {" put)
+        c99-nest(
+            start-branch!
+            swap c99-arg-run!
+            C99RT_BOOL pop-to-local! >+cond
+            end-branch!
+            c99-line("if (!" put +cond> C99RT_BOOL consume-as put ") break;" put)
+            start-branch!
+            c99-arg-run!
+            end-branch!
         )
+        c99-line("}" put)
+        start-branch!
     }
     { PRIM_CORE_RUN ->
         assert!(dup args empty?, "expected no arguments to prim-core-run") drop
@@ -1678,6 +1669,8 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         flush-cache!
         c99-line("run_value(" put +closure> consume-as-VAL put ");" put)
     }
+    { PRIM_CORE_DEBUG -> drop flush-cache! c99-line("trace_stack();" put) }
+    { PRIM_CORE_PANIC -> drop flush-cache! c99-line("do_panic();" put) }
 
     { PRIM_PACK_NIL -> drop C99RT_VAL push-expression!("MKNIL" put) }
     { PRIM_PACK_UNCONS ->
@@ -1695,8 +1688,8 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
             ");" put
         )
         +tail> push-local!
-        +head> push-local! }
-
+        +head> push-local!
+    }
     { PRIM_PTR_NIL -> drop C99RT_PTR push-expression!("(void*)0" put) }
     { PRIM_PTR_SIZE -> drop C99RT_U64 push-expression!("sizeof(void*)" put) }
     { PRIM_PTR_COPY ->
@@ -1730,21 +1723,23 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         )
     }
 
+    { PRIM_SYS_OS   -> drop C99RT_I64 push-expression!("RUNNING_OS" put) }
+    { PRIM_SYS_ARCH -> drop C99RT_I64 push-expression!("RUNNING_ARCH" put) }
+    { PRIM_SYS_ARGC -> drop C99RT_I64 push-expression!("global_argc" put) }
+    { PRIM_SYS_ARGV -> drop C99RT_PTR push-expression!("global_argv" put) }
+
     { _ ->
         dip(args) over empty? if(
             dup c99-prim-binop? if-some(
                 dip:drop2 c99-binop!,
             dup c99-prim-unop? if-some(
                 dip:drop2 c99-unop!,
-                c99-prim-default!
+                "unimplemented prim" panic!
             )),
-            c99-prim-default!
+            "unexpected number of arguments!" panic!
         )
     }
 }
-
-def(c99-prim-default!, List(Arg) Prim +C99Branch -- +C99Branch,
-    cname c99-call!)
 
 def(c99-args-push!, List(Arg) +C99Branch -- +C99Branch,
     for(c99-arg-push!))
@@ -1761,9 +1756,25 @@ def(c99-block-run!, Block +C99Branch -- +C99Branch,
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 
 def(c99-pack-closure-vars!, List(Var) +C99Branch -- +C99Branch,
-    filter(is-physical?) for(
-        c99-var-push!
-        L0 PRIM_PACK_CONS c99-prim-default!
+    filter(is-physical?) dup empty? if(
+        drop,
+        C99RT_FNPTR pop-to-local! >+fnptr
+        C99RT_VAL +core:local-expression!("tup_new(" put dup len 1+ show put ")" put) rswap >+tup
+        c99-line(
+            "VTUP(" put @+tup:rdup consume-as-VAL put
+            ")->cells[0] = " put +fnptr> consume-as-VAL put ";" put
+        )
+        1 >i for(
+            >var
+            c99-line(
+                "VTUP(" put @+tup:rdup consume-as-VAL put
+                ")->cells[" put @i show put "] = " put
+                @var var-put "; incref(" put var> var-put ");" put
+            )
+            @i:1+
+        )
+        i> drop
+        +tup> push-local!
     ))
 
 def c99-pop-to-var! [ Var +C99Branch -- +C99Branch ] {
@@ -1774,11 +1785,19 @@ def c99-pop-to-var! [ Var +C99Branch -- +C99Branch ] {
 def(c99-unpack-closure-vars!, List(Var) +C99Branch -- +C99Branch,
     filter(is-physical?) dup empty? if(
         drop,
-        reverse-for(
-            L0 PRIM_PACK_UNCONS c99-prim-default!
-            c99-pop-to-var!
+        C99RT_VAL pop-to-local! >+tup
+        1 >i
+        for(
+            >var
+            c99-line(
+                "VAL " put @var var-put " = VTUP(" put
+                @+tup:rdup consume-as-VAL put ")->cells[" put
+                @i show put "]; incref(" put var> var-put ");" put
+            )
+            @i:1+
         )
-        L0 PRIM_CORE_DROP c99-prim-default!
+        i> drop
+        +tup> drop-local!
     ))
 
 def(c99-decref-closure-vars!, List(Var) +C99Branch -- +C99Branch,
@@ -1851,7 +1870,7 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
                 c99-line("default: {" put)
                 c99-nest:sub-branch(
                     c99-line("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32));" put)
-                    L0 PRIM_CORE_PANIC c99-prim-default!
+                    c99-line("do_panic();" put)
                 )
                 c99-line("}" put)
             )

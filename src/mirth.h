@@ -175,8 +175,8 @@ static int global_argc;
 static char** global_argv;
 
 static void push_value(VAL v);
-static void mp_primZ_debug(void);
-static void mp_primZ_rdebug(void);
+static void trace_stack(void);
+static void trace_rstack(void);
 
 #if MIRTH_DEBUG
 	typedef struct LOC {
@@ -240,8 +240,8 @@ static void mp_primZ_rdebug(void);
 	do { \
 		if (!(test)) { \
 			TRACE(msg "\n"); \
-			mp_primZ_debug(); \
-			mp_primZ_rdebug(); \
+			trace_stack(); \
+			trace_rstack(); \
 			exit(1); \
 		} \
 	} while(0)
@@ -251,8 +251,8 @@ static void mp_primZ_rdebug(void);
 		if (!(test)) { \
 			TRACE(msg "\n"); \
 			push_value(v1); \
-			mp_primZ_debug(); \
-			mp_primZ_rdebug(); \
+			trace_stack(); \
+			trace_rstack(); \
 			exit(1); \
 		} \
 	} while(0)
@@ -263,8 +263,8 @@ static void mp_primZ_rdebug(void);
 			TRACE(msg "\n"); \
 			push_value(v1); \
 			push_value(v2); \
-			mp_primZ_debug(); \
-			mp_primZ_rdebug(); \
+			trace_stack(); \
+			trace_rstack(); \
 			exit(1); \
 		} \
 	} while(0)
@@ -586,6 +586,33 @@ static STR* str_make (const char* data, USIZE size) {
 }
 #define mkstr(x,n) MKSTR(str_make((x), (n)))
 
+static STR* str_cat (STR* s1, STR* s2) {
+	EXPECT(s1 && s2, "invalid strings in prim-str-cat");
+	USIZE m = s1->cap;
+	USIZE n1 = s1->size;
+	USIZE n2 = s2->size;
+	if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
+		ASSERT(n2 <= SIZE_MAX);
+		memcpy(s1->data + n1, s2->data, (size_t)n2);
+		s1->size += n2;
+		ASSERT(s1->size + 4 <= s1->cap);
+		decref(MKSTR(s2));
+		return s1;
+	} else {
+		USIZE m2 = n1 + n2 + 4;
+		if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;
+		STR* str = str_alloc(m2);
+		str->size = n1+n2;
+		ASSERT(n1 <= SIZE_MAX);
+		ASSERT(n2 <= SIZE_MAX);
+		memcpy(str->data, s1->data, (size_t)n1);
+		memcpy(str->data+n1, s2->data, (size_t)n2);
+		decref(MKSTR(s1));
+		decref(MKSTR(s2));
+		return str;
+	}
+}
+
 static USIZE get_data_tag(VAL v) {
 	if (IS_TUP(v)) {
 		ASSERT(VTUPLEN(v) > 0);
@@ -693,17 +720,6 @@ static STR* f64_show (double d) {
  	char result[DBL_DIG+32] = {0};
 	int len = sprintf(result, "%.*g", DBL_DIG, d);
 	return str_make(result, len);
-}
-
-static void mp_primZ_sysZ_argc (void) {
-	PRIM_ENTER(mp_primZ_sysZ_argc,"prim-sys-argc");
-	push_i64(global_argc);
-	PRIM_EXIT(mp_primZ_sysZ_argc);
-}
-static void mp_primZ_sysZ_argv (void) {
-	PRIM_ENTER(mp_primZ_sysZ_argv,"prim-sys-argv");
-	push_ptr(global_argv);
-	PRIM_EXIT(mp_primZ_sysZ_argv);
 }
 
 void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
@@ -817,7 +833,7 @@ void value_trace_(VAL val, int fd) {
 	}
 }
 
-static void mp_primZ_debug (void) {
+static void trace_stack (void) {
 	TRACE("??");
 	for (long i = STACK_MAX-1; i >= (long)stack_counter; i--) {
 		TRACE(" ");
@@ -826,7 +842,7 @@ static void mp_primZ_debug (void) {
 	TRACE("\n");
 }
 
-static void mp_primZ_rdebug (void) {
+static void trace_rstack (void) {
 	#if MIRTH_DEBUG
 		TRACE("call stack:\n");
 		for (USIZE i = fstack_counter; i --> 1;) {
@@ -847,7 +863,7 @@ static void mp_primZ_rdebug (void) {
 	#endif
 }
 
-static void mp_primZ_panic(void) {
+static void do_panic(void) {
 	if ((stack_counter > 0) && IS_STR(top_value())) {
 		VAL v = pop_value();
 		size_t n = (VSTR(v)->size < 2048) ? (size_t)(VSTR(v)->size) : 2048;
@@ -856,29 +872,29 @@ static void mp_primZ_panic(void) {
 	} else {
 		TRACE("panic!\n");
 	}
-	mp_primZ_debug();
-	mp_primZ_rdebug();
+	trace_stack();
+	trace_rstack();
 	exit(1);
 }
 
 #if defined(MIRTH_WINDOWS)
-#define mp_primZ_sysZ_os() push_u64(1)
+#define RUNNING_OS 1
 #elif defined(MIRTH_LINUX)
-#define mp_primZ_sysZ_os() push_u64(2)
+#define RUNNING_OS 2
 #elif defined(MIRTH_MACOS)
-#define mp_primZ_sysZ_os() push_u64(3)
+#define RUNNING_OS 3
 #else
-#define mp_primZ_sysZ_os() push_u64(0)
+#define RUNNING_OS 0
 #endif
 
 #if defined(MIRTH_I386)
-#define mp_primZ_sysZ_arch() push_u64(1)
+#define RUNNING_ARCH 1
 #elif defined(MIRTH_AMD64)
-#define mp_primZ_sysZ_arch() push_u64(2)
+#define RUNNING_ARCH 2
 #elif defined(MIRTH_ARM64)
-#define mp_primZ_sysZ_arch() push_u64(3)
+#define RUNNING_ARCH 3
 #else
-#define mp_primZ_sysZ_arch() push_u64(0)
+#define RUNNING_ARCH 0
 #endif
 
 static void* ptr_alloc (uint64_t n) {
@@ -911,88 +927,40 @@ static void ptr_fill (uint8_t val, uint64_t len, void* dst) {
 	}
 }
 
-static void mp_primZ_strZ_cat (void) {
-	PRIM_ENTER(mp_primZ_strZ_cat,"prim-str-cat");
-	VAL v2 = pop_value();
-	VAL v1 = pop_value();
-	ASSERT2(IS_STR(v1) && IS_STR(v2), v1, v2);
-	STR* s1 = VSTR(v1);
-	STR* s2 = VSTR(v2);
-	USIZE m = s1->cap;
-	USIZE n1 = s1->size;
-	USIZE n2 = s2->size;
-	if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
-		ASSERT(n2 <= SIZE_MAX);
-		memcpy(s1->data + n1, s2->data, (size_t)n2);
-		s1->size += n2;
-		ASSERT(s1->size + 4 <= s1->cap);
-		push_value(v1);
-		decref(v2);
-	} else {
-		USIZE m2 = n1 + n2 + 4;
-		if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;
-		STR* str = str_alloc(m2);
-		str->size = n1+n2;
-		ASSERT(n1 <= SIZE_MAX);
-		ASSERT(n2 <= SIZE_MAX);
-		memcpy(str->data, s1->data, (size_t)n1);
-		memcpy(str->data+n1, s2->data, (size_t)n2);
-		push_value(MKSTR(str));
-		decref(v1);
-		decref(v2);
-	}
-	PRIM_EXIT(mp_primZ_strZ_cat);
+static void* str_base (STR* s) {
+	EXPECT(s && (s->refs > 1), "invalid string for prim-str-base");
+	s->refs--;
+	return s->data;
 }
 
-static void mp_primZ_strZ_base (void) {
-	PRIM_ENTER(mp_primZ_strZ_base,"prim-str-base");
-	VAL vstr = pop_value();
-	ASSERT1(IS_STR(vstr) && VSTR(vstr), vstr);
-	push_ptr(VSTR(vstr)->data);
-	decref(vstr);
-	PRIM_EXIT(mp_primZ_strZ_base);
+static uint64_t str_size (STR* s) {
+	EXPECT(s, "invalid string for prim-str-size");
+	uint64_t n = s->size;
+	decref(MKSTR(s));
+	return n;
 }
 
-static void mp_primZ_strZ_numZ_bytes (void) {
-	PRIM_ENTER(mp_primZ_strZ_numZ_bytes,"prim-str-num-bytes");
-	VAL v = pop_value();
-	ASSERT(IS_STR(v) && VSTR(v));
-	push_usize(VSTR(v)->size);
-	decref(v);
-	PRIM_EXIT(mp_primZ_strZ_numZ_bytes);
-}
-
-static void mp_primZ_mutZ_get (void) {
-	PRIM_ENTER(mp_primZ_mutZ_get,"prim-mut-get");
-	VAL mut = pop_value();
+static VAL mut_get (VAL mut) {
 	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
 	VAL v = *(VAL*)VPTR(mut);
 	EXPECT(v.tag, "tried to read uninitialized value");
-	push_value(v);
 	incref(v);
-	PRIM_EXIT(mp_primZ_mutZ_get);
+	return v;
 }
-static void mp_primZ_mutZ_set (void) {
-	PRIM_ENTER(mp_primZ_mutZ_set,"prim-mut-set");
-	VAL mut = pop_value();
-	VAL newval = pop_value();
+
+static void mut_set (VAL newval, VAL mut) {
 	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
 	VAL oldval = *(VAL*)VPTR(mut);
 	*(VAL*)VPTR(mut) = newval;
 	if (oldval.tag) {
 		decref(oldval);
 	}
-	decref(mut);
-	PRIM_EXIT(mp_primZ_mutZ_set);
 }
-static void mp_primZ_mutZ_isZ_set (void) {
-	PRIM_ENTER(mp_primZ_mutZ_isZ_set,"prim-mut-is-set");
-	VAL mut = pop_value();
+
+static bool mut_is_set (VAL mut) {
 	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
 	VAL val = *(VAL*)VPTR(mut);
-	push_bool(val.tag);
-	decref(mut);
-	PRIM_EXIT(mp_primZ_mutZ_isZ_set);
+	return (val.tag != 0);
 }
 
 /* GENERATED C99 */
