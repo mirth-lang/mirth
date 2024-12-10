@@ -141,19 +141,25 @@ def(c99-header!, +C99 -- +C99,
     options emit-debug-info if("1", "0") put line
     c99-header-str put line)
 
-def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!))
+def c99-buffers! [ +C99 -- +C99 ] { Buffer.for(c99-buffer!) }
 def c99-buffer! [ Buffer +C99 -- +C99 ] {
-    "static uint8_t " put
+    "static char " put
     dup +mirth:cname put
     "[" put size show put "] = {0};" put line
 }
+def c99-buffer-call! [ Buffer +C99Branch -- +C99Branch ] {
+    C99RT_PTR push-expression!(+mirth:cname put)
+}
 
-def(c99-variables!, +C99 -- +C99, Variable.for(c99-variable!))
-def(c99-variable!, Variable +C99 -- +C99,
-    +mirth:cname sig-put " {" put line
-    "\tstatic VAL v = {0};" put line
-    "\tpush_ptr(&v);" put line
-    "}" put line)
+def c99-variables! [ +C99 -- +C99 ] { Variable.for(c99-variable!) }
+def c99-variable! [ Variable +C99 -- +C99 ] {
+    "static VAL " put
+    +mirth:cname put
+    " = {0};" put line
+}
+def c99-variable-call! [ Variable +C99Branch -- +C99Branch ] {
+    C99RT_PTR push-expression!(+mirth:cname put)
+}
 
 def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
 
@@ -621,7 +627,7 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { OpWord          -> dip:args c99-word! }
     { OpExternal      -> dip:args +core:+mirth:cname c99-call! }
     { OpBuffer        -> nip c99-buffer-call! }
-    { OpVariable      -> dip:args +core:+mirth:cname c99-call! }
+    { OpVariable      -> nip c99-variable-call! }
     { OpField         -> dip:args +core:+mirth:cname c99-call! }
     { OpTag           -> dip:args c99-tag-word! }
     { OpPrim          -> c99-prim! }
@@ -638,10 +644,6 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { OpDataGetTag    -> nip c99-get-data-tag! }
     { OpDataGetLabel  -> c99-tag-get-label! drop }
     { OpDataSetLabel  -> c99-tag-set-label! drop }
-}
-
-def c99-buffer-call! [ Buffer +C99Branch -- +C99Branch ] {
-    C99RT_PTR push-expression!(+mirth:cname put)
 }
 
 def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
