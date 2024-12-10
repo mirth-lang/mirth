@@ -646,28 +646,28 @@ struct C99API {
     must-flush?: Bool
 }
 
-def +Mirth.stack-type-to-c99-api-params-reverse [ StackType +Mirth -- Bool List(C99APIArg) +Mirth ] {
+def +Mirth.stack-type-to-c99-api-params-aux [ StackType +Mirth -- Bool List(C99APIArg) +Mirth ] {
     { STACK_TYPE_UNIT -> False L0 }
     { STACK_TYPE_ERROR -> True L0 }
     { STACK_TYPE_DONT_CARE -> True L0 }
-    { STMeta -> expand-if(>StackType stack-type-to-c99-api-params-reverse, drop True L0) }
+    { STMeta -> expand-if(>StackType stack-type-to-c99-api-params-aux, drop True L0) }
     { STVar -> drop True L0 }
     { STCons ->
         C99AAS_Value >source c99-repr >repr C99APIArg
-        dip:stack-type-to-c99-api-params-reverse swap cons }
+        dip:stack-type-to-c99-api-params-aux swap cons }
     { STWith ->
         C99AAS_Resource >source c99-repr >repr C99APIArg
-        dip:stack-type-to-c99-api-params-reverse swap cons }
+        dip:stack-type-to-c99-api-params-aux swap cons }
     { STConsLabel ->
         C99AAS_ValueLabel >source c99-repr >repr C99APIArg
-        dip:stack-type-to-c99-api-params-reverse swap cons }
+        dip:stack-type-to-c99-api-params-aux swap cons }
     { STWithLabel ->
         C99AAS_ResourceLabel >source c99-repr >repr C99APIArg
-        dip:stack-type-to-c99-api-params-reverse swap cons }
+        dip:stack-type-to-c99-api-params-aux swap cons }
 }
 
 def +Mirth.stack-type-to-c99-api-params [ StackType +Mirth -- Bool List(C99APIArg) +Mirth ] {
-    +Mirth.stack-type-to-c99-api-params-reverse reverse
+    +Mirth.stack-type-to-c99-api-params-aux reverse
 }
 
 def +Mirth.cname-type-to-c99-api [ Str ArrowType +Mirth -- C99API +Mirth ] {
@@ -683,9 +683,13 @@ def +Mirth.cname-type-to-c99-api [ Str ArrowType +Mirth -- C99API +Mirth ] {
 def(c99-smart-call!, List(Arg) C99API +C99Branch -- +C99Branch,
     >api
     c99-args-push!
+    @api in-params reverse map(pop-consume!) reverse >popped-inputs
     flush-cache!
     Str(
         @api cname ; "(" ;
+        "" >sep
+        popped-inputs> for(sep> ; ", " >sep ;)
+        sep> drop
         ")" ;
     )
     @api return-param if-some(push-to!, c99-line(put ";" put))
@@ -700,7 +704,17 @@ def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     )
     " " put
     @api cname put
-    " (void)" put
+    " (" put
+    "" >sep 1 >i
+    @api in-params for(
+        sep> put ", " >sep
+        repr underlying-c99-type put
+        " x" put @i show put
+        i> 1+ >i
+    )
+    i> drop
+    sep> empty? then("void" put)
+    ")" put
     api> drop
 }
 
@@ -711,7 +725,14 @@ def c99-smart-sig! [ C99API +C99 -- +C99 ] {
 def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
     reset-fresh-counter!
     start-branch!
-    type dom expose-stack-type!
+
+    >api 1 >i
+    @api in-params for(
+        Str( "x" ; @i show ; ) swap push-to!
+        @i:1+
+    )
+    i> drop
+    api> drop
 }
 
 def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
