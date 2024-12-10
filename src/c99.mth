@@ -163,130 +163,169 @@ def c99-variable-call! [ Variable +C99Branch -- +C99Branch ] {
 
 def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
 
+def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
+    >tag
+    @tag is-transparent? else(
+        @tag is-semi-transparent? if(
+            @tag label-inputs /L1 if-some(
+                >label
+                @label @tag +core:+mirth:project-input-label unwrap match {
+                    { Left -> # field is value
+                        type-to-c99-repr @label pop-to-local-label! >+field
+                        @tag outputs-resource? if(
+                            +field> turn-into-resource! push-local-resource!,
+                            +field> push-local!
+                        )
+                    }
+                    { Right -> # field is resource, wrapper is resource
+                        resource-to-c99-repr @label pop-to-local-resource-label!
+                        push-local-resource!
+                    }
+                }
+                label> drop,
+
+                @tag +core:+mirth:type dom top-type? unwrap
+                type-to-c99-repr pop-to-local!
+                turn-into-resource! push-local-resource!
+            ),
+
+        @tag num-total-inputs 0= if(
+            @tag outputs-resource? if(
+                C99RT_I64 push-resource-expression!(
+                    @tag value-show put "LL /* " put
+                    @tag name >Str put " */" put
+                ),
+                C99RT_I64 push-expression!(
+                    @tag value-show put "LL /* " put
+                    @tag name >Str put " */" put
+                )
+            ),
+
+            c99-line(
+                fresh-name! >tup
+                "TUP* " put @tup put " = tup_new(" put
+                @tag num-total-inputs 1+ show put
+                ");" put
+            )
+            c99-line(
+                @tup put "->size = " put
+                @tag num-total-inputs 1+ show put
+                ";" put
+            )
+            c99-line(
+                @tup put "->cells[0] = MKI64(" put
+                @tag value-show put
+                "LL /* " put @tag name >Str put " */);" put
+            )
+            @tag num-total-inputs >i
+            @tag label-inputs reverse-for(
+                >label
+                @label is-resource-label? if(
+                    C99RT_VAL label> pop-to-local-resource-label! consume-as-VAL,
+                    C99RT_VAL label> pop-to-local-label! consume-as-VAL
+                )
+                c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+                @i:1-
+            )
+            @tag num-resource-inputs repeat(
+                C99RT_VAL pop-to-local-resource! consume-as-VAL
+                c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+                @i:1-
+            )
+            @tag num-type-inputs repeat(
+                C99RT_VAL pop-to-local! consume-as-VAL
+                c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+                @i:1-
+            )
+            i> drop
+            @tag outputs-resource? if(
+                C99RT_VAL push-resource-expression!(
+                    "MKTUP(" put tup> put
+                    ", " put @tag num-total-inputs 1+ show put
+                    ")" put
+                ),
+                C99RT_VAL push-expression!(
+                    "MKTUP(" put tup> put
+                    ", " put @tag num-total-inputs 1+ show put
+                    ")" put
+                )
+            )
+        ))
+    )
+    tag> drop
+}
+
+def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
+    >tag
+    @tag is-transparent? else(
+        @tag is-semi-transparent? if(
+            @tag label-inputs /L1 if-some(
+                >label
+                @label @tag +core:+mirth:project-input-label unwrap match {
+                    { Left -> # field is value
+                        type-to-c99-repr
+                        @tag outputs-resource? if(
+                            pop-to-local-resource! turn-into-value!,
+                            pop-to-local!
+                        )
+                        label> push-local-label!
+                    }
+                    { Right -> # field is resource, wrapper is resource
+                        resource-to-c99-repr pop-to-local-resource!
+                        label> push-local-resource-label!
+                    }
+                },
+
+                @tag +core:+mirth:type dom top-type? unwrap
+                type-to-c99-repr pop-to-local-resource!
+                turn-into-value! push-local!
+            ),
+
+        @tag num-total-inputs 0= if(
+            @tag .data pop-local-value/resource-data! rdrop, # decref is unnecessary
+
+            @tag .data pop-local-value/resource-data! consume-as-VAL
+            Str("VTUP(" ; ; ")" ;) >tup
+            1 >i
+            @tag num-type-inputs repeat(
+                C99RT_VAL push-expression!(@tup put "->cells[" put @i show put "]" put)
+                @i:1+
+            )
+            @tag num-resource-inputs repeat(
+                C99RT_VAL push-resource-expression!(@tup put "->cells[" put @i show put "]" put)
+                @i:1+
+            )
+            @tag label-inputs for(
+                C99RT_VAL swap push-label-expression!(@tup put "->cells[" put @i show put "]" put)
+                @i:1+
+            )
+            c99-line("tup_decref_outer(" put tup> put "," put i> show put ");" put)
+        ))
+    )
+    tag> drop
+}
+
 def c99-tag-def! [ Tag +C99 -- +C99 ] {
     >tag
     @tag prefer-inline? else(
         @tag +needs:word-needed? then(
             @tag +mirth:word-cname sig-put " {" put line
-            reset-fresh-counter!
-            @tag is-transparent? else(
-                @tag is-semi-transparent? if(
-                    @tag outputs-resource? if(
-                        @tag num-type-inputs 0> if(
-                            "\tpush_resource(pop_value());" put line,
-                            "\tpush_resource(lpop(&lbl_" put
-                            @tag label-inputs /L1 unwrap name mangled put
-                            "));" put line
-                        ),
-                        "\tpush_value(lpop(&lbl_" put
-                        @tag label-inputs /L1 unwrap name mangled put
-                        "));" put line
-                    ),
-
-                @tag num-total-inputs 0= if(
-                    @tag outputs-resource? if(
-                        "\tpush_resource(MKI64(",
-                        "\tpush_value(MKI64("
-                    ) put
-                        @tag value-show put
-                        "LL));" put line
-                    ,
-
-                    "\tTUP* tup = tup_new(" put
-                        @tag num-total-inputs 1+ show put
-                        ");" put line
-                    "\ttup->size = " put
-                        @tag num-total-inputs 1+ show put
-                        ";" put line
-                    "\ttup->cells[0] = MKI64(" put
-                        @tag value-show put
-                        "LL);" put line
-                    @tag num-total-inputs
-                    @tag label-inputs reverse-for(
-                        "\ttup->cells[" put
-                            over show put
-                            "] = lpop(&lbl_" put
-                            name mangled put
-                            ");" put line
-                        1-
-                    )
-                    @tag num-resource-inputs repeat(
-                        "\ttup->cells[" put
-                            dup show put
-                            "] = pop_resource();" put line
-                        1-
-                    )
-                    @tag num-type-inputs repeat(
-                        "\ttup->cells[" put
-                            dup show put
-                            "] = pop_value();" put line
-                        1-
-                    )
-                    drop
-                    @tag outputs-resource? if(
-                        "\tpush_resource(MKTUP(tup, ",
-                        "\tpush_value(MKTUP(tup, "
-                    ) put
-                        @tag num-total-inputs 1+ show put
-                        "));" put line
-                ))
+            c99-nest(
+                reset-fresh-counter!
+                start-branch!
+                @tag c99-tag-body!
+                end-branch!
             )
             "}" put line
         )
 
         @tag +needs:pat-needed? then(
             @tag +mirth:pat-cname sig-put " {" put line
-            reset-fresh-counter!
-            @tag is-transparent? else(
-                @tag outputs-resource? if(
-                    "\tVAL val = pop_resource();",
-                    "\tVAL val = pop_value();"
-                ) put line
-                @tag is-semi-transparent? if(
-                    @tag num-type-inputs 0> if(
-                        "\tpush_value(val);" put line,
-                        "\tlpush(&lbl_" put
-                        @tag label-inputs /L1 unwrap name mangled put
-                        ", val);" put line
-                    ),
-                @tag num-total-inputs 0= if(
-                    "\t(void)val;" put line,
-                    "\tASSERT1(IS_TUP(val),val);" put line
-                    "\tTUP* tup = VTUP(val);" put line
-                    1
-                    @tag num-type-inputs repeat(
-                        "\tpush_value(tup->cells[" put
-                            dup show put
-                            "]);" put line
-                        1+
-                    )
-                    @tag num-resource-inputs repeat(
-                        "\tpush_resource(tup->cells[" put
-                            dup show put
-                            "]);" put line
-                        1+
-                    )
-                    @tag label-inputs for(
-                        "\tlpush(&lbl_" put
-                            name mangled put
-                            ", tup->cells[" put
-                            dup show put
-                            "]);" put line
-                        1+
-                    )
-                    drop
-                    "\tif (tup->refs > 1) {" put line
-                    1 @tag num-total-inputs repeat(
-                        "\t\tincref(tup->cells[" put
-                            dup show put
-                            "]);" put line
-                        1+
-                    ) drop
-                    "\t\tdecref(val);" put line
-                    "\t} else {" put line
-                    "\t\tfree(tup);" put line
-                    "\t}" put line
-                ))
+            c99-nest(
+                reset-fresh-counter!
+                start-branch!
+                @tag c99-reverse-tag-body!
+                end-branch!
             )
             "}" put line
         )
@@ -678,81 +717,17 @@ field(Tag.~value-show, Tag, Str)
 def(Tag.value-show, Tag -- Str, dup ~value-show memoize(dup value show) nip)
 
 def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
-    >tag >args
-    @tag is-transparent? else(
-        @tag is-semi-transparent? if(
-            @tag label-inputs /L1 if-some(
-                >label
-                @label @tag +core:+mirth:project-input-label unwrap match {
-                    { Left -> # field is value
-                        type-to-c99-repr @label pop-to-local-label! >+field
-                        @tag outputs-resource? if(
-                            +field> turn-into-resource! push-local-resource!,
-                            +field> push-local!
-                        )
-                    }
-                    { Right -> # field is resource, wrapper is resource
-                        resource-to-c99-repr @label pop-to-local-resource-label!
-                        push-local-resource!
-                    }
-                }
-                label> drop,
-
-                @tag +core:+mirth:type dom top-type? unwrap
-                type-to-c99-repr pop-to-local!
-                turn-into-resource! push-local-resource!
-            ),
-
-        @tag num-total-inputs 0= if(
-            @tag outputs-resource? if(
-                C99RT_I64 push-resource-expression!(
-                    @tag value-show put "LL /* " put
-                    @tag name >Str put " */" put
-                ),
-                C99RT_I64 push-expression!(
-                    @tag value-show put "LL /* " put
-                    @tag name >Str put " */" put
-                )
-            ),
-            @args @tag +core:+mirth:word-cname c99-call!
-        ))
+    dup prefer-inline? if(
+        nip c99-tag-body!,
+        +core:+mirth:word-cname c99-call!
     )
-    tag> args> drop2
 }
 
 def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
-    >tag
-    @tag is-transparent? else(
-        @tag is-semi-transparent? if(
-            @tag label-inputs /L1 if-some(
-                >label
-                @label @tag +core:+mirth:project-input-label unwrap match {
-                    { Left -> # field is value
-                        type-to-c99-repr
-                        @tag outputs-resource? if(
-                            pop-to-local-resource! turn-into-value!,
-                            pop-to-local!
-                        )
-                        label> push-local-label!
-                    }
-                    { Right -> # field is resource, wrapper is resource
-                        resource-to-c99-repr pop-to-local-resource!
-                        label> push-local-resource-label!
-                    }
-                },
-
-                @tag +core:+mirth:type dom top-type? unwrap
-                type-to-c99-repr pop-to-local-resource!
-                turn-into-value! push-local!
-            ),
-
-        @tag num-total-inputs 0= if(
-            @tag .data pop-local-value/resource-data! rdrop, # decref is unnecessary
-
-            L0 @tag +core:+mirth:pat-cname c99-call!
-        ))
+    dup prefer-inline? if(
+        c99-reverse-tag-body!,
+        dip:L0 +core:+mirth:pat-cname c99-call!
     )
-    tag> drop
 }
 
 def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
@@ -1098,6 +1073,16 @@ inline (
         (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
     ] {
         +core:local-resource-expression!(f) rswap push-local-resource!
+    }
+
+    def push-label-expression!(f) [
+        (*a +C99 -- *b +C99) *a C99ReprType Label +C99Branch -- *b +C99Branch
+    ] {
+        dip:+core:local-expression!(f) rswap
+        dup is-resource-label? if(
+            turn-into-resource! push-local-resource-label!,
+            push-local-label!
+        )
     }
 
     def C99ReprType.local-expression!(f) [
@@ -1904,17 +1889,6 @@ def(c99-lambda!, Lambda +C99Branch -- +C99Branch,
     start-branch!)
 
 def(c99-match!, Match +C99Branch -- +C99Branch,
-    dup is-transparent? if(
-        cases first unwrap body c99-arrow!,
-
-    dup semi-transparent-tag? if-some(
-        dip:L0 +core:+mirth:pat-cname c99-call!
-        cases first unwrap body c99-arrow!,
-
-    dup unit-tag? if-some(
-        .data pop-local-value/resource-data! rdrop
-        cases first unwrap body c99-arrow!,
-
     dup cases /L1 if-some(
         nip c99-single-case!,
 
@@ -1937,7 +1911,7 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
         )
         c99-line("}" put)
         end-branch-split!
-    )))))
+    ))
 
 def c99-single-case! [ Case +C99Branch -- +C99Branch ] {
     dup pattern is-default? if(

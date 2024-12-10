@@ -296,6 +296,20 @@ static void free_value(VAL v) {
 	}
 }
 
+static void tup_decref_outer(TUP* tup, size_t n) {
+	if (tup->refs == 1) {
+		for (size_t i = n; i < tup->size; i++) {
+			decref(tup->cells[i]);
+		}
+		free(tup);
+	} else {
+		for (size_t i = 0; i < n; i++) {
+			incref(tup->cells[i]);
+		}
+		if (!--tup->refs) free_value(MKTUP(tup,n));
+	}
+}
+
 static void value_uncons(VAL val, VAL* tail, VAL* head) {
 	if (IS_TUP(val)) {
 		TUPLEN len = VTUPLEN(val);

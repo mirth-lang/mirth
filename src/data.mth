@@ -289,7 +289,7 @@ def(Tag.outputs-resource?, Tag -- Bool,
 def(Tag.==, Tag Tag -- Bool, both(index) ==)
 
 def(Tag.prefer-inline?, Tag -- Bool,
-    dup .data is-transparent?
+    dup .data is-semi-transparent?
     or(dup num-total-inputs 0=)
     nip)
 
