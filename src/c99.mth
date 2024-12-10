@@ -309,13 +309,13 @@ def c99-tag-def! [ Tag +C99 -- +C99 ] {
     >tag
     @tag prefer-inline? else(
         @tag +needs:word-needed? then(
-            @tag +mirth:word-cname-type c99-smart-def!(
+            @tag +mirth:word-c99-api c99-smart-def!(
                 @tag c99-tag-body!
             )
         )
 
         @tag +needs:pat-needed? then(
-            @tag +mirth:pat-cname-type c99-smart-def!(
+            @tag +mirth:pat-c99-api c99-smart-def!(
                 @tag c99-reverse-tag-body!
             )
         )
@@ -607,25 +607,131 @@ def(c99-call!, List(Arg) Str +C99Branch -- +C99Branch,
     dip(c99-args-push!)
     flush-cache! +core:c99-line(put "();" put))
 
-def(c99-smart-call!, List(Arg) Str ArrowType +C99Branch -- +C99Branch,
-    drop c99-call!)
+data C99APIArgSource {
+    C99AAS_Value
+    C99AAS_ValueLabel [ Label ]
+    C99AAS_Resource
+    C99AAS_ResourceLabel [ Label ]
+}
 
-def(+C99.smart-sig-put, Str ArrowType +C99 -- +C99,
-    drop sig-put)
+struct C99APIArg {
+    source: C99APIArgSource
+    repr: C99ReprType
+}
 
-def c99-smart-sig! [ Str ArrowType +C99 -- +C99 ] {
+def C99APIArg.pop-consume! [ C99APIArg +C99Branch -- +C99Branch Str ] {
+    /C99APIArg repr> dup source> match {
+        { C99AAS_Value -> pop-to-local! consume-as }
+        { C99AAS_Resource -> pop-to-local-resource! turn-into-value! consume-as }
+        { C99AAS_ValueLabel -> pop-to-local-label! consume-as }
+        { C99AAS_ResourceLabel -> pop-to-local-resource-label! turn-into-value! consume-as }
+    }
+}
+
+def C99APIArg.push-to! [ Str C99APIArg +C99Branch -- +C99Branch ] {
+    /C99APIArg repr> source> match {
+        { C99AAS_Value -> push-expression!(put) }
+        { C99AAS_Resource -> push-resource-expression!(put) }
+        { C99AAS_ValueLabel -> push-label-expression!(put) }
+        { C99AAS_ResourceLabel -> push-label-expression!(put) }
+    }
+}
+
+struct C99API {
+    cname: Str
+    type: ArrowType
+    in-params: List(C99APIArg)
+    out-params: List(C99APIArg)
+    return-param: Maybe(C99APIArg)
+    must-flush?: Bool
+}
+
+def +Mirth.stack-type-to-c99-api-params-reverse [ StackType +Mirth -- Bool List(C99APIArg) +Mirth ] {
+    { STACK_TYPE_UNIT -> False L0 }
+    { STACK_TYPE_ERROR -> True L0 }
+    { STACK_TYPE_DONT_CARE -> True L0 }
+    { STMeta -> expand-if(>StackType stack-type-to-c99-api-params-reverse, drop True L0) }
+    { STVar -> drop True L0 }
+    { STCons ->
+        C99AAS_Value >source c99-repr >repr C99APIArg
+        dip:stack-type-to-c99-api-params-reverse swap cons }
+    { STWith ->
+        C99AAS_Resource >source c99-repr >repr C99APIArg
+        dip:stack-type-to-c99-api-params-reverse swap cons }
+    { STConsLabel ->
+        C99AAS_ValueLabel >source c99-repr >repr C99APIArg
+        dip:stack-type-to-c99-api-params-reverse swap cons }
+    { STWithLabel ->
+        C99AAS_ResourceLabel >source c99-repr >repr C99APIArg
+        dip:stack-type-to-c99-api-params-reverse swap cons }
+}
+
+def +Mirth.stack-type-to-c99-api-params [ StackType +Mirth -- Bool List(C99APIArg) +Mirth ] {
+    +Mirth.stack-type-to-c99-api-params-reverse reverse
+}
+
+def +Mirth.cname-type-to-c99-api [ Str ArrowType +Mirth -- C99API +Mirth ] {
+    >type >cname
+    @type dom stack-type-to-c99-api-params >in-params
+    @type cod stack-type-to-c99-api-params
+    dup /L1 >return-param
+    @return-param then(drop L0) >out-params
+    || >must-flush?
+    C99API
+}
+
+def(c99-smart-call!, List(Arg) C99API +C99Branch -- +C99Branch,
+    >api
+    c99-args-push!
+    flush-cache!
+    Str(
+        @api cname ; "(" ;
+        ")" ;
+    )
+    @api return-param if-some(push-to!, c99-line(put ";" put))
+    api> drop)
+
+def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
+    >api
+    "static " put
+    @api return-param if-some(
+        repr underlying-c99-type put,
+        "void" put
+    )
+    " " put
+    @api cname put
+    " (void)" put
+    api> drop
+}
+
+def c99-smart-sig! [ C99API +C99 -- +C99 ] {
     c99-line(smart-sig-put ";" put)
 }
 
-inline (
-    def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a Str ArrowType +C99 -- *b +C99 ] {
-        c99-line(tuck smart-sig-put " {" put)
-        c99-nest(
-            reset-fresh-counter!
-            start-branch!
-            dom expose-stack-type!
-            f
+def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
+    reset-fresh-counter!
+    start-branch!
+    type dom expose-stack-type!
+}
+
+def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
+    return-param match {
+        { Some ->
+            pop-consume!
+            end-branch! c99-line("return " put put ";" put)
+        }
+        { None ->
             end-branch!
+        }
+    }
+}
+
+inline (
+    def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a C99API +C99 -- *b +C99 ] {
+        c99-line(dup smart-sig-put " {" put)
+        c99-nest(
+            dup dip(c99-api-enter! f)
+            c99-api-exit!
         )
         c99-line("}" put)
     }
@@ -724,7 +830,7 @@ def(c99-word!, List(Arg) Word +C99Branch -- +C99Branch,
     dup prefer-inline? if(
         dip:c99-args-push!
         +core:+mirth:arrow c99-arrow!,
-        +core:+mirth:cname-type c99-smart-call!
+        +core:+mirth:c99-api c99-smart-call!
     ))
 
 field(Tag.~value-show, Tag, Str)
@@ -733,14 +839,14 @@ def(Tag.value-show, Tag -- Str, dup ~value-show memoize(dup value show) nip)
 def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
     dup prefer-inline? if(
         nip c99-tag-body!,
-        +core:+mirth:word-cname-type c99-smart-call!
+        +core:+mirth:word-c99-api c99-smart-call!
     )
 }
 
 def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
     dup prefer-inline? if(
         c99-reverse-tag-body!,
-        dip:L0 +core:+mirth:pat-cname-type c99-smart-call!
+        dip:L0 +core:+mirth:pat-c99-api c99-smart-call!
     )
 }
 
@@ -1967,8 +2073,23 @@ def Tag.word-cname-type [ Tag +Mirth -- Str ArrowType +Mirth ] { sip:word-cname 
 def Tag.pat-cname-type [ Tag +Mirth -- Str ArrowType +Mirth ] { sip:pat-cname type invert }
 def Word.cname-type [ Word +Mirth -- Str ArrowType +Mirth ] { sip:cname type }
 
+field(Tag.~word-c99-api, Tag, C99API)
+def Tag.word-c99-api [ Tag +Mirth -- C99API +Mirth ] {
+    dup ~word-c99-api memoize(dup word-cname-type cname-type-to-c99-api) nip
+}
+
+field(Tag.~pat-c99-api, Tag, C99API)
+def Tag.pat-c99-api [ Tag +Mirth -- C99API +Mirth ] {
+    dup ~pat-c99-api memoize(dup pat-cname-type cname-type-to-c99-api) nip
+}
+
+field(Word.~c99-api, Word, C99API)
+def Word.c99-api [ Word +Mirth -- C99API +Mirth ] {
+    dup ~c99-api memoize(dup cname-type cname-type-to-c99-api) nip
+}
+
 def(c99-word-sigs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-sig!, drop)))
-def c99-word-sig! [ Word +C99 -- +C99 ] { +mirth:cname-type c99-smart-sig! }
+def c99-word-sig! [ Word +C99 -- +C99 ] { +mirth:c99-api c99-smart-sig! }
 
 def(c99-block-sigs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-sig!, drop)))
 def(c99-block-sig!, Block +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
@@ -2044,7 +2165,7 @@ def(c99-word-exit!, Word +C99Branch -- +C99Branch,
 
 def(c99-word-defs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-def!, drop)))
 def(c99-word-def!, Word +C99 -- +C99,
-    dup +mirth:cname-type c99-smart-def! (
+    dup +mirth:c99-api c99-smart-def! (
         dup c99-word-enter!
         dup +core:+mirth:arrow c99-arrow!
         dup c99-word-exit!
