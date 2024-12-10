@@ -1073,6 +1073,7 @@ def(StackType.num-morphisms-on-top, StackType -- Nat,
 
 data(ArrowType, ARROW_TYPE -> StackType StackType)
 def(ArrowType.>Type, ArrowType -- Type, TMorphism)
+def ArrowType.invert [ ArrowType -- ArrowType ] { ARROW_TYPE -> swap ARROW_TYPE }
 
 def(ArrowType.unpack, ArrowType -- StackType StackType, ARROW_TYPE -> id)
 def(ArrowType.dom, ArrowType -- StackType, unpack drop)

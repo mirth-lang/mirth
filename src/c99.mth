@@ -309,25 +309,15 @@ def c99-tag-def! [ Tag +C99 -- +C99 ] {
     >tag
     @tag prefer-inline? else(
         @tag +needs:word-needed? then(
-            @tag +mirth:word-cname sig-put " {" put line
-            c99-nest(
-                reset-fresh-counter!
-                start-branch!
+            @tag +mirth:word-cname-type c99-smart-def!(
                 @tag c99-tag-body!
-                end-branch!
             )
-            "}" put line
         )
 
         @tag +needs:pat-needed? then(
-            @tag +mirth:pat-cname sig-put " {" put line
-            c99-nest(
-                reset-fresh-counter!
-                start-branch!
+            @tag +mirth:pat-cname-type c99-smart-def!(
                 @tag c99-reverse-tag-body!
-                end-branch!
             )
-            "}" put line
         )
     ) tag> drop
 }
@@ -617,6 +607,30 @@ def(c99-call!, List(Arg) Str +C99Branch -- +C99Branch,
     dip(c99-args-push!)
     flush-cache! +core:c99-line(put "();" put))
 
+def(c99-smart-call!, List(Arg) Str ArrowType +C99Branch -- +C99Branch,
+    drop c99-call!)
+
+def(+C99.smart-sig-put, Str ArrowType +C99 -- +C99,
+    drop sig-put)
+
+def c99-smart-sig! [ Str ArrowType +C99 -- +C99 ] {
+    c99-line(smart-sig-put ";" put)
+}
+
+inline (
+    def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a Str ArrowType +C99 -- *b +C99 ] {
+        c99-line(tuck smart-sig-put " {" put)
+        c99-nest(
+            reset-fresh-counter!
+            start-branch!
+            dom expose-stack-type!
+            f
+            end-branch!
+        )
+        c99-line("}" put)
+    }
+)
+
 def(c99-arrow!, Arrow +C99Branch -- +C99Branch, atoms for(c99-atom!))
 def(c99-atom!, Atom +C99Branch -- +C99Branch,
     +core:options emit-debug-info and(dup show-in-stack-trace?) then(
@@ -710,7 +724,7 @@ def(c99-word!, List(Arg) Word +C99Branch -- +C99Branch,
     dup prefer-inline? if(
         dip:c99-args-push!
         +core:+mirth:arrow c99-arrow!,
-        +core:+mirth:cname c99-call!
+        +core:+mirth:cname-type c99-smart-call!
     ))
 
 field(Tag.~value-show, Tag, Str)
@@ -719,14 +733,14 @@ def(Tag.value-show, Tag -- Str, dup ~value-show memoize(dup value show) nip)
 def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
     dup prefer-inline? if(
         nip c99-tag-body!,
-        +core:+mirth:word-cname c99-call!
+        +core:+mirth:word-cname-type c99-smart-call!
     )
 }
 
 def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
     dup prefer-inline? if(
         c99-reverse-tag-body!,
-        dip:L0 +core:+mirth:pat-cname c99-call!
+        dip:L0 +core:+mirth:pat-cname-type c99-smart-call!
     )
 }
 
@@ -1949,8 +1963,12 @@ def c99-case! [ Case +C99BranchSplit +scrutinee:+C99LocalValue/Resource -- +C99B
     ))
 }
 
+def Tag.word-cname-type [ Tag +Mirth -- Str ArrowType +Mirth ] { sip:word-cname type }
+def Tag.pat-cname-type [ Tag +Mirth -- Str ArrowType +Mirth ] { sip:pat-cname type invert }
+def Word.cname-type [ Word +Mirth -- Str ArrowType +Mirth ] { sip:cname type }
+
 def(c99-word-sigs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-sig!, drop)))
-def(c99-word-sig!, Word +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
+def c99-word-sig! [ Word +C99 -- +C99 ] { +mirth:cname-type c99-smart-sig! }
 
 def(c99-block-sigs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-sig!, drop)))
 def(c99-block-sig!, Block +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
@@ -2006,8 +2024,8 @@ def expose-stack-type! [ StackType +C99Branch -- +C99Branch ] {
     { _ -> drop }
 }
 
-def(c99-word-enter!, Word +C99 -- +C99Branch,
-    options emit-debug-info then(
+def(c99-word-enter!, Word +C99Branch -- +C99Branch,
+    +core:options emit-debug-info then(
         c99-line(
             "WORD_ENTER(" put
             dup +mirth:cname put ", " put
@@ -2016,27 +2034,21 @@ def(c99-word-enter!, Word +C99 -- +C99Branch,
             dup body row >Int show put ", " put
             dup body col >Int show put ");" put
         )
-    )
-    start-branch!
-    +core:+mirth:type dom expose-stack-type!)
+    ) drop)
 
-def(c99-word-exit!, Word +C99Branch -- +C99,
-    end-branch!
-    options emit-debug-info if(
+def(c99-word-exit!, Word +C99Branch -- +C99Branch,
+    +core:options emit-debug-info if(
         c99-line("WORD_EXIT(" put +mirth:cname put ");" put),
         drop
     ))
 
 def(c99-word-defs!, +C99 -- +C99, Word.for(dup +needs(needed?) if(c99-word-def!, drop)))
 def(c99-word-def!, Word +C99 -- +C99,
-    c99-line(dup +mirth:cname sig-put " {" put)
-    reset-fresh-counter!
-    c99-nest(
+    dup +mirth:cname-type c99-smart-def! (
         dup c99-word-enter!
         dup +core:+mirth:arrow c99-arrow!
         dup c99-word-exit!
     )
-    c99-line("}" put)
     drop)
 
 def field-sig-put [ Field +C99 -- +C99 ] { "static void* " put +mirth:cname put " (uint64_t i)" put }
