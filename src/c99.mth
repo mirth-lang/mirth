@@ -768,10 +768,11 @@ def c99-smart-sig! [ C99API +C99 -- +C99 ] {
 }
 
 def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
-    reset-fresh-counter!
-    start-branch!
-
     >api
+    @api in-params len
+    @api out-params len +
+    1+ fresh-counter!
+    start-branch!
     @api in-params for(push-as-local!)
     api> drop
 }
