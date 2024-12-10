@@ -758,10 +758,10 @@ def(c99-int!, Int +C99Branch -- +C99Branch,
 def(c99-f64!, F64 +C99Branch -- +C99Branch,
     C99RT_F64 push-expression!(>Str put))
 
-def(c99-str!, Str +C99Branch -- +C99Branch,
-    end-branch! # TODO: do something smarter
+def c99-str! [ Str +C99Branch -- +C99Branch ] {
+    C99RT_STR new-local! >+str
     dup num-bytes 4090 >Size > if(
-        c99-line("STRLIT(" put)
+        c99-line("STRLIT(" put @+str:rdup consume put "," put)
         c99-nest(
             c99-line(dup put-cstr-long "," put)
             c99-line(dup num-bytes show put)
@@ -769,10 +769,13 @@ def(c99-str!, Str +C99Branch -- +C99Branch,
         c99-line(");" put),
 
         c99-line("STRLIT(" put
+            @+str:rdup consume put ", " put
             dup put-cstr ", " put
             dup num-bytes show put ");" put)
     ) drop
-    start-branch!)
+
+    +str> push-local!
+}
 
 def(+C99.put-cstr-long, Str +C99 -- +C99,
     False >avoid-hexdigit
