@@ -204,14 +204,19 @@ def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
             ),
 
         @tag num-total-inputs 0= if(
+            @tag .data is-enum-or-unit? if(C99RT_I64 "" >pfx "" >sfx, C99RT_VAL "MKI64(" >pfx ")" >sfx)
             @tag outputs-resource? if(
-                C99RT_I64 push-resource-expression!(
+                push-resource-expression!(
+                    pfx> put
                     @tag value-show put "LL /* " put
                     @tag name >Str put " */" put
+                    sfx> put
                 ),
-                C99RT_I64 push-expression!(
+                push-expression!(
+                    pfx> put
                     @tag value-show put "LL /* " put
                     @tag name >Str put " */" put
+                    sfx> put
                 )
             ),
 
@@ -882,7 +887,7 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
 }
 
 def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
-    dup is-enum? or(dup is-unit?) else(
+    dup is-enum-or-unit? else(
         end-branch!
         c99-line("{" put)
         c99-nest(
@@ -1197,7 +1202,7 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
 }
 
 def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
-    dup is-enum? if(drop C99RT_I64,
+    dup is-enum-or-unit? if(drop C99RT_I64,
         dup is-semi-transparent? if(
             tags /L1 unwrap type dom c99-repr-semi-transparent,
             drop C99RT_VAL

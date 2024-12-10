@@ -164,6 +164,10 @@ def(Data.add-tag!, +Mirth Tag Data -- +Mirth,
     over ~last-tag-value !
     sip(tags swap List.snoc) ~tags !)
 
+def Data.is-enum-or-unit? [ Data -- Bool ] {
+    dup is-enum? dip(is-unit?) ||
+}
+
 field(Data.~is-unit?, Data, Bool)
 def(Data.is-unit?, Data -- Bool,
     dup ~is-unit? memoize(

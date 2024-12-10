@@ -538,7 +538,7 @@ def(type-max-count, Type -- Maybe(Nat),
     TApp -> drop type-max-count,
     TTable -> max-count 1+ Some,
     TData ->
-        dup is-enum? if(
+        dup is-enum-or-unit? if(
             num-tags Some,
             drop None
         ),
