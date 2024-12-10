@@ -714,19 +714,27 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
     C99API
 }
 
+def C99APIArg.reserve-as-new-local! [ C99APIArg +C99Branch -- C99APIArg +C99Branch ] {
+    dup repr new-local!
+    consume swap name!
+}
+
 def(c99-smart-call!, List(Arg) C99API +C99Branch -- +C99Branch,
     >api
     c99-args-push!
     @api in-params reverse map(pop-consume!) reverse >popped-inputs
-    flush-cache!
+    @api must-flush? then(flush-cache!)
+    @api out-params map(reserve-as-new-local!) >reserved-outputs
     Str(
         @api cname ; "(" ;
         "" >sep
         popped-inputs> for(sep> ; ", " >sep ;)
+        @reserved-outputs for(sep> ; ", " >sep "&" ; name ;)
         sep> drop
         ")" ;
     )
     @api return-param if-some(push-to!, c99-line(put ";" put))
+    reserved-outputs> for(push-as-local!)
     api> drop)
 
 def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
@@ -744,6 +752,11 @@ def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
         sep> put ", " >sep
         dup repr underlying-c99-type put
         " " put name put
+    )
+    @api out-params for(
+        sep> put ", " >sep
+        dup repr underlying-c99-type put
+        " *" put name put
     )
     sep> empty? then("void" put)
     ")" put
@@ -764,15 +777,14 @@ def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
 }
 
 def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
-    return-param match {
-        { Some ->
-            pop-consume!
-            end-branch! c99-line("return " put put ";" put)
-        }
-        { None ->
-            end-branch!
-        }
-    }
+    >api
+    @api out-params reverse-for(
+        dup pop-consume! swap name
+        c99-line("*" put put " = " put put ";" put)
+    )
+    @api return-param map(pop-consume!)
+    end-branch! for(c99-line("return " put put ";" put))
+    api> drop
 }
 
 inline (
@@ -2070,7 +2082,7 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
             dup cases for(@+scrutinee:rdup >+scrutinee c99-case!)
             has-default-case? else(
                 c99-line("default: {" put)
-                c99-nest:sub-branch(
+                c99-nest(
                     c99-line("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32));" put)
                     c99-line("do_panic();" put)
                 )
