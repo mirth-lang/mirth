@@ -35,14 +35,14 @@ inline (
     def Maybe.or(f)   { { Some -> drop True  } { None -> f     } }
 )
 
-def Maybe.not     { { Some -> drop False } { None -> True  } }
+def Maybe.not [ Maybe(t) -- Bool ] { { Some -> drop False } { None -> True  } }
 
 inline(
     def Maybe.if-some(f,g)  { { Some -> f    } { None -> g     } }
     def Maybe.or-some(f)    { { Some -> Some } { None -> f     } }
     def Maybe.unwrap(f)     { { Some -> id } { None -> f } }
 )
-def Maybe.unwrap        { unwrap("tried to unwrap None" panic!) }
+def Maybe.unwrap [ Maybe(t) -- t ]  { unwrap("tried to unwrap None" panic!) }
 
 inline (
     def Maybe.map(f)  { { Some -> f Some } { None -> None  } }
