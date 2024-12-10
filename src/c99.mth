@@ -1959,14 +1959,28 @@ def(c99-block-def!, Block +C99 -- +C99,
         dup c99-block-enter!
         dup +core:+mirth:arrow
         dup +core:+mirth:free-vars c99-unpack-closure-vars!
+        dup +core:+mirth:type dom expose-stack-type!
         dup c99-arrow!
         +core:+mirth:free-vars c99-decref-closure-vars!
         c99-block-exit!
     )
     c99-line("}" put))
 
+def expose-stack-type! [ StackType +C99Branch -- +C99Branch ] {
+    { STMeta -> expand-if(>StackType expose-stack-type!, drop) }
+    { STCons -> type-to-c99-repr pop-to-local! rdip:expose-stack-type! push-local! }
+    { STWith -> resource-to-c99-repr pop-to-local-resource! rdip:expose-stack-type! push-local-resource! }
+    { STConsLabel ->
+        >label type-to-c99-repr @label pop-to-local-label!
+        rdip:expose-stack-type! label> push-local-label! }
+    { STWithLabel ->
+        >label resource-to-c99-repr @label pop-to-local-resource-label!
+        rdip:expose-stack-type! label> push-local-resource-label! }
+    { _ -> drop }
+}
+
 def(c99-word-enter!, Word +C99 -- +C99Branch,
-    options emit-debug-info if(
+    options emit-debug-info then(
         c99-line(
             "WORD_ENTER(" put
             dup +mirth:cname put ", " put
@@ -1974,10 +1988,10 @@ def(c99-word-enter!, Word +C99 -- +C99Branch,
             dup body .module source-path >Str put-cstr ", " put
             dup body row >Int show put ", " put
             dup body col >Int show put ");" put
-        ) drop,
-        drop
+        )
     )
-    start-branch!)
+    start-branch!
+    +core:+mirth:type dom expose-stack-type!)
 
 def(c99-word-exit!, Word +C99Branch -- +C99,
     end-branch!
