@@ -629,7 +629,7 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { OpBuffer        -> nip c99-buffer-call! }
     { OpVariable      -> nip c99-variable-call! }
     { OpField         -> nip c99-field-call! }
-    { OpTag           -> dip:args c99-tag-word! }
+    { OpTag           -> dip:args c99-tag-call! }
     { OpPrim          -> c99-prim! }
     { OpMatch         -> nip c99-match! }
     { OpLambda        -> nip c99-lambda! }
@@ -677,31 +677,61 @@ def(c99-word!, List(Arg) Word +C99Branch -- +C99Branch,
 field(Tag.~value-show, Tag, Str)
 def(Tag.value-show, Tag -- Str, dup ~value-show memoize(dup value show) nip)
 
-def(c99-tag-word!, List(Arg) Tag +C99Branch -- +C99Branch,
-    dup prefer-inline? if(
-        dup .data is-transparent? else(
-            dup outputs-resource? if(
+def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
+    >tag >args
+    @tag is-transparent? else(
+        @tag is-semi-transparent? if(
+            @tag label-inputs dup empty? if(
+                drop
+                @tag +core:+mirth:type dom top-type? unwrap type-to-c99-repr pop-to-local!
+                turn-into-resource! push-local-resource!,
+
+                /L1 unwrap >label
+                @label @tag +core:+mirth:project-input-label unwrap match {
+                    { Left -> # field is value
+                        type-to-c99-repr @label pop-to-local-label! >+field
+                        @tag outputs-resource? if(
+                            +field> turn-into-resource! push-local-resource!,
+                            +field> push-local!
+                        )
+                    }
+                    { Right -> # field is resource, output is resource
+                        resource-to-c99-repr @label pop-to-local-resource-label!
+                        push-local-resource!
+                    }
+                }
+                label> drop
+            ),
+
+        @tag num-total-inputs 0= if(
+            @tag outputs-resource? if(
                 C99RT_I64 push-resource-expression!(
-                    dup value-show put "LL /* " put
-                    dup name >Str put " */" put
+                    @tag value-show put "LL /* " put
+                    @tag name >Str put " */" put
                 ),
                 C99RT_I64 push-expression!(
-                    dup value-show put "LL /* " put
-                    dup name >Str put " */" put
+                    @tag value-show put "LL /* " put
+                    @tag name >Str put " */" put
                 )
-            )
-        ) drop2,
-        +core:+mirth:word-cname c99-call!
-    ))
+            ),
+            @args @tag +core:+mirth:word-cname c99-call!
+        ))
+    )
+    tag> args> drop2
+}
 
 def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
-    dup prefer-inline? if (
-        .data dup is-transparent? if(
-            drop,
-            pop-local-value/resource-data! rdrop # it's a unit
-        ),
-        dip:L0 +core:+mirth:pat-cname c99-call!
+    >tag
+    @tag is-transparent? else(
+
+
+        @tag num-total-inputs 0= if(
+            @tag .data pop-local-value/resource-data! rdrop, # decref is unnecessary
+
+            L0 @tag +core:+mirth:pat-cname c99-call!
+        )
     )
+    tag> drop
 }
 
 def(c99-label-defs!, +C99 -- +C99, Label.for(c99-label-def!))
