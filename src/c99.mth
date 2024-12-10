@@ -681,12 +681,8 @@ def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
     >tag >args
     @tag is-transparent? else(
         @tag is-semi-transparent? if(
-            @tag label-inputs dup empty? if(
-                drop
-                @tag +core:+mirth:type dom top-type? unwrap type-to-c99-repr pop-to-local!
-                turn-into-resource! push-local-resource!,
-
-                /L1 unwrap >label
+            @tag label-inputs /L1 if-some(
+                >label
                 @label @tag +core:+mirth:project-input-label unwrap match {
                     { Left -> # field is value
                         type-to-c99-repr @label pop-to-local-label! >+field
@@ -695,12 +691,16 @@ def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
                             +field> push-local!
                         )
                     }
-                    { Right -> # field is resource, output is resource
+                    { Right -> # field is resource, wrapper is resource
                         resource-to-c99-repr @label pop-to-local-resource-label!
                         push-local-resource!
                     }
                 }
-                label> drop
+                label> drop,
+
+                @tag +core:+mirth:type dom top-type? unwrap
+                type-to-c99-repr pop-to-local!
+                turn-into-resource! push-local-resource!
             ),
 
         @tag num-total-inputs 0= if(
@@ -723,13 +723,34 @@ def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
 def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
     >tag
     @tag is-transparent? else(
+        @tag is-semi-transparent? if(
+            @tag label-inputs /L1 if-some(
+                >label
+                @label @tag +core:+mirth:project-input-label unwrap match {
+                    { Left -> # field is value
+                        type-to-c99-repr
+                        @tag outputs-resource? if(
+                            pop-to-local-resource! turn-into-value!,
+                            pop-to-local!
+                        )
+                        label> push-local-label!
+                    }
+                    { Right -> # field is resource, wrapper is resource
+                        resource-to-c99-repr pop-to-local-resource!
+                        label> push-local-resource-label!
+                    }
+                },
 
+                @tag +core:+mirth:type dom top-type? unwrap
+                type-to-c99-repr pop-to-local-resource!
+                turn-into-value! push-local!
+            ),
 
         @tag num-total-inputs 0= if(
             @tag .data pop-local-value/resource-data! rdrop, # decref is unnecessary
 
             L0 @tag +core:+mirth:pat-cname c99-call!
-        )
+        ))
     )
     tag> drop
 }
