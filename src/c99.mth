@@ -643,6 +643,11 @@ def C99APIArg.pop-consume! [ C99APIArg +C99Branch -- +C99Branch Str ] {
     }
 }
 
+def C99APIArg.pop-to-reserved! [ C99APIArg +C99Branch -- +C99Branch ] {
+    dup pop-consume!
+    c99-line(swap name put " = " put put ";" put)
+}
+
 def C99APIArg.push-to! [ Str C99APIArg +C99Branch -- +C99Branch ] {
     /C99APIArg name> drop repr> source> match {
         { C99AAS_Value -> push-expression!(put) }
@@ -717,6 +722,15 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
 def C99APIArg.reserve-as-new-local! [ C99APIArg +C99Branch -- C99APIArg +C99Branch ] {
     dup repr new-local!
     consume swap name!
+}
+
+def C99APIArg.reserve-as-is! [ C99APIArg +C99Branch -- +C99Branch ] {
+    /C99APIArg
+    c99-line(
+        repr> underlying-c99-type put " " put
+        name> put ";" put
+    )
+    source> drop
 }
 
 def(c99-smart-call!, List(Arg) C99API +C99Branch -- +C99Branch,
@@ -1554,22 +1568,32 @@ def +C99StackCache.rdrop [ +C99StackCache -- ] {
 struct +C99BranchSplit {
     +core: +C99
     +stack: +C99StackCache
+    branch-split-target: List(C99APIArg)
+    branch-split-must-flush?: Bool
 }
 
-def +C99Branch.begin-branch-split! [ +C99Branch -- +C99BranchSplit ] {
+def +C99Branch.begin-branch-split! [ StackType +C99Branch -- +C99BranchSplit ] {
+    +core:stack-type-to-c99-api-params >branch-split-target >branch-split-must-flush?
+    @branch-split-target for(reserve-as-is!)
     /+C99Branch +C99BranchSplit
 }
 def +C99BranchSplit.end-branch-split! [ +C99BranchSplit -- +C99Branch ] {
     /+C99BranchSplit
     +stack> rdrop
     +core> start-branch!
+    branch-split-target> for(push-as-local!)
+    branch-split-must-flush?> drop
 }
-def +C99BranchSplit.sub-branch(f)
-    [ (*a +C99Branch -- *b +C99Branch) *a +C99BranchSplit -- *b +C99BranchSplit ]
-    { /+C99BranchSplit +stack> rdup >+stack
-      rdip(+C99Branch f end-branch! >+core) >+stack +C99BranchSplit }
-
 inline (
+    def +C99BranchSplit.sub-branch(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99BranchSplit -- *b +C99BranchSplit ] {
+        +stack(rdup >+stack) branch-split-target
+        +core(
+            >+core +C99Branch dip:f
+            reverse-for(pop-to-reserved!)
+            end-branch!
+        )
+    }
+
     def +C99BranchSplit.c99-line(f) { +core:c99-line(f) }
     def +C99BranchSplit.c99-nest(f) { +core:depth:1+ f +C99BranchSplit.+core:depth:1- }
 )
@@ -1859,10 +1883,10 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         +dipped> push-local-resource!
     }
     { PRIM_CORE_IF ->
-        args dup /L2 unwrap("unexpected number of arguments to PRIM_CORE_IF" panic!)
-        nip unpack2
+        dup args /L2 unwrap("unexpected number of arguments to PRIM_CORE_IF" panic!) unpack2
         C99RT_BOOL pop-to-local! >+cond
 
+        rotl +core:+mirth:cod
         begin-branch-split!
         c99-line("if (" put +cond> C99RT_BOOL consume-as put ") {" put)
         c99-nest:sub-branch(swap c99-arg-run!)
@@ -1896,7 +1920,11 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         c99-line("run_value(" put +closure> consume-as-VAL put ");" put)
     }
     { PRIM_CORE_DEBUG -> drop flush-cache! c99-line("trace_stack();" put) }
-    { PRIM_CORE_PANIC -> drop flush-cache! c99-line("do_panic();" put) }
+    { PRIM_CORE_PANIC ->
+        drop
+        C99RT_STR dup pop-to-local! consume-as
+        flush-cache! c99-line("do_panic(" put put ");" put)
+    }
 
     { PRIM_PACK_NIL -> drop C99RT_VAL push-expression!("MKNIL" put) }
     { PRIM_PACK_UNCONS ->
@@ -1985,7 +2013,7 @@ def(c99-pack-closure-vars!, List(Var) +C99Branch -- +C99Branch,
     filter(is-physical?) dup empty? if(
         drop,
         C99RT_FNPTR pop-to-local! >+fnptr
-        C99RT_VAL +core:local-expression!("tup_new(" put dup len 1+ show put ")" put) rswap >+tup
+        C99RT_VAL +core:local-expression!("MKTUP(tup_new(" put dup len 1+ show dup put "), " put put ")" put) rswap >+tup
         c99-line(
             "VTUP(" put @+tup:rdup consume-as-VAL put
             ")->cells[0] = " put +fnptr> consume-as-VAL put ";" put
@@ -2077,15 +2105,14 @@ def(c99-match!, Match +C99Branch -- +C99Branch,
         dup scrutinee-data?
         unwrap(token "non-uniform match, not supported at present" +core:+mirth:emit-fatal-error!)
         pop-local-value/resource-data! >+scrutinee
-        begin-branch-split!
+        dup cod begin-branch-split!
         c99-line("switch (" put @+scrutinee:peek-data-tag put ") {" put)
         c99-nest(
             dup cases for(@+scrutinee:rdup >+scrutinee c99-case!)
             has-default-case? else(
                 c99-line("default: {" put)
                 c99-nest(
-                    c99-line("push_value(mkstr(\"unexpected fallthrough in match\\n\", 32));" put)
-                    c99-line("do_panic();" put)
+                    c99-line("do_panic(str_make(\"unexpected fallthrough in match\\n\", 32));" put)
                 )
                 c99-line("}" put)
             )

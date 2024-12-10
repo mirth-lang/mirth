@@ -877,11 +877,10 @@ static void trace_rstack (void) {
 	#endif
 }
 
-static void do_panic(void) {
-	if ((stack_counter > 0) && IS_STR(top_value())) {
-		VAL v = pop_value();
-		size_t n = (VSTR(v)->size < 2048) ? (size_t)(VSTR(v)->size) : 2048;
-		write(2, VSTR(v)->data, n);
+static void do_panic(STR* m) {
+	if (m) {
+		size_t n = (m->size < 2048) ? (size_t)(m->size) : 2048;
+		write(2, m->data, n);
 		TRACE("\n");
 	} else {
 		TRACE("panic!\n");

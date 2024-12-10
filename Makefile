@@ -1,6 +1,6 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
- -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Wno-infinite-recursion \
- -Werror -pedantic -O0 -fmax-errors=9 -Wno-unused-command-line-argument
+ -Wno-unused-value -Wno-unused-but-set-variable -Wno-missing-braces -Wno-overlength-strings \
+ -Wno-infinite-recursion -Werror -pedantic -O0 -fmax-errors=9 -Wno-unused-command-line-argument
 
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
