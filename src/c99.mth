@@ -628,7 +628,7 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { OpExternal      -> dip:args +core:+mirth:cname c99-call! }
     { OpBuffer        -> nip c99-buffer-call! }
     { OpVariable      -> nip c99-variable-call! }
-    { OpField         -> dip:args +core:+mirth:cname c99-call! }
+    { OpField         -> nip c99-field-call! }
     { OpTag           -> dip:args c99-tag-word! }
     { OpPrim          -> c99-prim! }
     { OpMatch         -> nip c99-match! }
@@ -1930,9 +1930,6 @@ def(c99-word-sig!, Word +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
 def(c99-block-sigs!, +C99 -- +C99, Block.for(dup +needs(needed?) if(c99-block-sig!, drop)))
 def(c99-block-sig!, Block +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
 
-def(c99-field-sigs!, +C99 -- +C99, Field.for(c99-field-sig!))
-def(c99-field-sig!, Field +C99 -- +C99, c99-line(+mirth:cname sig-put ";" put))
-
 def(c99-block-enter!, Block +C99 -- +C99Branch,
     options emit-debug-info if(
         c99-line("WORD_ENTER(" put
@@ -2017,18 +2014,31 @@ def(c99-word-def!, Word +C99 -- +C99,
     c99-line("}" put)
     drop)
 
-def(c99-field-defs!, +C99 -- +C99, Field.for(c99-field-def!))
-def(c99-field-def!, Field +C99 -- +C99,
-    dup +mirth:cname sig-put " {" put line
-    reset-fresh-counter!
-    "\tsize_t i = (size_t)pop_u64();" put line
+def field-sig-put [ Field +C99 -- +C99 ] { "static void* " put +mirth:cname put " (uint64_t i)" put }
+
+def c99-field-sigs! [ +C99 -- +C99 ] { Field.for(c99-field-sig!) }
+def c99-field-sig! [ Field +C99 -- +C99 ] { c99-line(field-sig-put ";" put) }
+
+def c99-field-defs! [ +C99 -- +C99 ] { Field.for(c99-field-def!) }
+def c99-field-def! [ Field +C99 -- +C99 ] {
+    dup field-sig-put " {" put line
     "\tstatic struct VAL * p = 0;" put line
     "\tsize_t m = " put TABLE_MAX_COUNT show put ";" put line
     "\tif (! p) { p = calloc(m, sizeof *p); }" put line
     "\tEXPECT(i<m, \"table grew too big\");" put line
-    "\tpush_ptr(p+i);" put line
+    "\treturn (void*)(p+i);" put line
     "}" put line line
-    drop)
+    drop
+}
+
+def c99-field-call! [ Field +C99Branch -- +C99Branch ] {
+    C99RT_U64 pop-to-local! >+index
+    C99RT_PTR push-expression! (
+        +mirth:cname put "(" put
+        +index> C99RT_U64 consume-as put
+        ")" put
+    )
+}
 
 def(c99-main!, Arrow +C99 -- +C99,
     c99-line("int main (int argc, char** argv) {" put)
