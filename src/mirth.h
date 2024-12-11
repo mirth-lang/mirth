@@ -180,7 +180,6 @@ static void trace_rstack(void);
 
 #if MIRTH_DEBUG
 	typedef struct LOC {
-		FNPTR fnptr;
 		const char* word;
 		const char* path;
 		USIZE line, col;
@@ -189,7 +188,6 @@ static void trace_rstack(void);
 	static USIZE fstack_counter = 0;
 	static LOC fstack [STACK_MAX] = {
 		{
-			.fnptr=(void(*)(void))0,
 			.word="<word>",
 			.path="<path>",
 			.line=0, .col=0,
@@ -197,9 +195,8 @@ static void trace_rstack(void);
 		},
 	};
 
-	#define WORD_ENTER(_f,_w,_p,_l,_c) \
+	#define WORD_ENTER(_w,_p,_l,_c) \
 		do { \
-			fstack[fstack_counter].fnptr = (_f); \
 			fstack[fstack_counter].word = (_w); \
 			fstack[fstack_counter].path = (_p); \
 			fstack[fstack_counter].line = (_l); \
@@ -217,19 +214,14 @@ static void trace_rstack(void);
 			} \
 		} while(0)
 
-	#define WORD_EXIT(_f) \
+	#define WORD_EXIT \
 		do { \
-			if ((fstack_counter == 0) || (fstack[fstack_counter-1].fnptr != (_f))) { \
-				TRACE("mismatched WORD_EXIT, expected " #_f "\n"); \
+			if (fstack_counter == 0) { \
+				TRACE("mismatched WORD_EXIT\n"); \
 				exit(1); \
 			} \
 			fstack_counter--; \
 		} while(0)
-	#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)
-	#define PRIM_EXIT(_f) WORD_EXIT(_f)
-#else
-	#define PRIM_ENTER(_f,_w)
-	#define PRIM_EXIT(_f)
 #endif
 
 #define TRACE(x) write(2,x,strlen(x))
