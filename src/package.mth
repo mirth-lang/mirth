@@ -34,17 +34,18 @@ def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
             tuck swap ~path !
     ))
 
-def(Package.path!, Path Package --,
+def(Package.path!, +Mirth Path Package -- +Mirth,
     tuck path match(
         Some ->
             dup2 == if(
                 drop3,
                 Str(
-                    "Tried to set different path for the same package." ;
-                    "\n\tPackage: " ; rotl name >Str ;
-                    "\n\tPath 1: " ; swap /Path show;
-                    "\n\tPath 2: " ; /Path show;
-                ) panic!
+                    "Tried to set different path for the same package " ;
+                    "(package = " ; rotl name >Str ;
+                    ", path 1 = " ; swap /Path show;
+                    ", path 2 = " ; /Path show;
+                    ")." ;
+                ) fatal-error!
             ),
         None ->
             Some swap ~path !

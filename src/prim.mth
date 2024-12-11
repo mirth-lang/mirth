@@ -16,7 +16,9 @@ data(Prim,
     PRIM_CORE_DUP,
     PRIM_CORE_DROP,
     PRIM_CORE_SWAP,
+    PRIM_CORE_RSWAP,
     PRIM_CORE_DIP,
+    PRIM_CORE_RDIP,
     PRIM_CORE_IF,
     PRIM_CORE_WHILE,
     PRIM_CORE_DEBUG,
@@ -24,9 +26,6 @@ data(Prim,
     PRIM_CORE_RUN,
     PRIM_CORE_MATCH,
     PRIM_CORE_LAMBDA,
-
-    PRIM_CORE_RSWAP,
-    PRIM_CORE_RDIP,
 
     PRIM_INT_EQ,
     PRIM_INT_LT,
@@ -76,7 +75,6 @@ data(Prim,
     PRIM_PACK_CONS,
     PRIM_PACK_UNCONS,
 
-    PRIM_MUT_NEW,
     PRIM_MUT_GET,
     PRIM_MUT_SET,
     PRIM_MUT_IS_SET,
@@ -85,8 +83,6 @@ data(Prim,
     PRIM_PTR_EQ,
     PRIM_PTR_ADD,
     PRIM_PTR_SIZE,
-    PRIM_PTR_GET,
-    PRIM_PTR_SET,
     PRIM_PTR_ALLOC,
     PRIM_PTR_REALLOC,
     PRIM_PTR_FREE,
@@ -106,22 +102,24 @@ data(Prim,
     PRIM_STR_NE,
 
     PRIM_U8_GET,
-    PRIM_U8_SET,
     PRIM_U16_GET,
-    PRIM_U16_SET,
     PRIM_U32_GET,
-    PRIM_U32_SET,
     PRIM_U64_GET,
-    PRIM_U64_SET,
-
     PRIM_I8_GET,
-    PRIM_I8_SET,
     PRIM_I16_GET,
-    PRIM_I16_SET,
     PRIM_I32_GET,
-    PRIM_I32_SET,
     PRIM_I64_GET,
+    PRIM_PTR_GET,
+
+    PRIM_U8_SET,
+    PRIM_U16_SET,
+    PRIM_U32_SET,
+    PRIM_U64_SET,
+    PRIM_I8_SET,
+    PRIM_I16_SET,
+    PRIM_I32_SET,
     PRIM_I64_SET,
+    PRIM_PTR_SET,
 
     PRIM_SYS_OS,
     PRIM_SYS_ARCH,
@@ -547,10 +545,6 @@ def(init-prims!, +Mirth -- +Mirth,
     @xs @b Ctx2
     @txs @tb T* >Type T1 @txs >Type @tb T2 T->
     PRIM_PACK_UNCONS ctx-type!
-
-    @a Ctx1
-    @ta T1 @ta TMut T1 T->
-    PRIM_MUT_NEW ctx-type!
 
     @a Ctx1
     @ta TMut T1 @ta T1 T->

@@ -49,7 +49,7 @@ def-missing(+Lexer.lexer-last-token, +Lexer -- +Lexer Token, lexer-last-token)
 
 def(run-lexer!, Path +World +Mirth -- Module +World +Mirth,
     Module.new! dup >lexer-module
-    source-path rdip(open-file! unwrap! +Input.start! >+input)
+    source-path rswap open-file! unwrap!(rswap fatal-error!) +Input.start! >+input rswap
     1 >Row >lexer-row
     1 >Col >lexer-col
     L0 >lexer-stack
