@@ -1337,7 +1337,8 @@ def +C99Local.consume-as [ C99ReprType +C99Local -- Str ] {
                     drop local-name>,
                     dup is-int-like? @local-repr is-int-like? && if(
                         Str( "((" ; underlying-c99-type ; ")" ; local-name> ; ")" ; ),
-                        "attempted to cast between incompatible C99 repr types" panic!
+                        Str( "(\n#error \"attempted to cast " ; local-name> ; " to incompatible C99 repr type " ;
+                            underlying-c99-type ; "\"\n" ; )
                     )
                 )
             }
@@ -1494,6 +1495,60 @@ data +C99Local? {
 data +C99LocalResource? {
     +C99LocalResourceNone
     +C99LocalResourceSome [ +C99LocalResource ]
+}
+
+def +C99Branch.refresh-branch! [ +C99Branch -- +C99Branch ] {
+    /+C99Branch
+    +core> +stack>
+    refresh-all!
+}
+
+def +C99StackCache.refresh-all! [ +C99 +C99StackCache -- +C99Branch ] {
+    { +SCNil -> start-branch! }
+    { +SCCons ->
+        >+x refresh-all!
+        @+x:local-repr push-expression!(+x> consume put)
+    }
+    { +SCWith ->
+        >+x refresh-all!
+        @+x:local-resource-repr push-resource-expression!(+x> consume put)
+    }
+    { +SCConsLabel ->
+        >+x refresh-all!
+        @+x:local-repr swap push-label-expression!(+x> consume put)
+    }
+    { +SCWithLabel ->
+        >+x refresh-all!
+        @+x:local-resource-repr swap push-label-expression!(+x> consume put)
+    }
+}
+
+def +C99StackCache.tie-knot! [ +C99Branch +C99StackCache -- +C99Branch ] {
+    { +SCNil -> flush-cache! }
+    { +SCCons ->
+        local-repr dup rdip2(pop-to-local! consume-as)
+        local-name rdip2:c99-line(put " = " put put ";" put)
+        rdip:tie-knot!
+        push-local!
+    }
+    { +SCWith ->
+        local-resource-repr dup rdip2(pop-to-local-resource! turn-into-value! consume-as)
+        local-resource-name rdip2:c99-line(put " = " put put ";" put)
+        rdip:tie-knot!
+        push-local-resource!
+    }
+    { +SCConsLabel -> >label
+        local-repr dup rdip2(@label pop-to-local-label! consume-as)
+        local-name rdip2:c99-line(put " = " put put ";" put)
+        rdip:tie-knot!
+        label> push-local-label!
+    }
+    { +SCWithLabel -> >label
+        local-resource-repr dup rdip2(@label pop-to-local-resource-label! turn-into-value! consume-as)
+        local-resource-name rdip2:c99-line(put " = " put put ";" put)
+        rdip:tie-knot!
+        label> push-local-resource-label!
+    }
 }
 
 data +C99StackCache {
@@ -1901,22 +1956,35 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         end-branch-split!
     }
     { PRIM_CORE_WHILE ->
-        args dup /L2 unwrap("unexpected number of arguments to PRIM_CORE_WHILE" panic!)
-        nip unpack2
-        end-branch!
-        c99-line("while(1) {" put)
+        args /L2 unwrap("unexpected number of arguments to PRIM_CORE_WHILE" panic!) unpack2
+        over c99-arg-run!
+        C99RT_BOOL pop-to-local! push-local!
+        refresh-branch! +stack(rdup >+knot)
+        C99RT_BOOL dup pop-to-local! consume-as
+        c99-line("while (" put put ") {" put)
         c99-nest(
-            start-branch!
-            swap c99-arg-run!
-            C99RT_BOOL pop-to-local! >+cond
-            end-branch!
-            c99-line("if (!" put +cond> C99RT_BOOL consume-as put ") break;" put)
-            start-branch!
+            refresh-branch!
             c99-arg-run!
-            end-branch!
+            c99-arg-run!
+            +knot> tie-knot!
         )
         c99-line("}" put)
-        start-branch!
+        C99RT_BOOL pop-to-local! rdrop
+
+        # end-branch!
+        # c99-line("while(1) {" put)
+        # c99-nest(
+        #     start-branch!
+        #     swap c99-arg-run!
+        #     C99RT_BOOL pop-to-local! >+cond
+        #     end-branch!
+        #     c99-line("if (!" put +cond> C99RT_BOOL consume-as put ") break;" put)
+        #     start-branch!
+        #     c99-arg-run!
+        #     end-branch!
+        # )
+        # c99-line("}" put)
+        # start-branch!
     }
     { PRIM_CORE_RUN ->
         assert!(dup args empty?, "expected no arguments to prim-core-run") drop
