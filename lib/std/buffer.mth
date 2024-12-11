@@ -4,6 +4,7 @@ import(std.prelude)
 import(std.str)
 import(std.byte)
 
+inline:
 data(+Buffer, +Buffer ->
     size: Size
     base: Ptr)

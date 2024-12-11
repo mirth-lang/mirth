@@ -163,9 +163,11 @@ def +TypeElab.elab-resource-var! [ +Mirth +TypeElab -- +Mirth +TypeElab Resource
     TYPE_RESOURCE elab-implicit-var! if-some(TVar, TYPE_ERROR) Resource
 }
 
-def +TypeElab.gamma(f) [ (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab ] {
-    token rdip(>token +Gamma f rdrop)
-}
+inline (
+    def +TypeElab.gamma(f) [ (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab ] {
+        token rdip(>token +Gamma f rdrop)
+    }
+)
 
 def +TypeElab.elab-implicit-var! [ +Mirth +TypeElab Type -- +Mirth +TypeElab Maybe(Var) ] {
     token name? unwrap dup ctx lookup match(
@@ -224,15 +226,9 @@ data RejectedDef {
     RD_METHOD_WRONG_TYPE    [ Def ]
 }
 
-def resolve-def(f) [
-    (*a +Mirth +ResolveDef -- *b +Mirth +ResolveDef)
-    *a +Mirth
-    sort:Str
-    token:Token
-    report-ambiguous-as-warning:Bool
-    ignore-last-name:Bool
-    --
-    *b +Mirth Maybe(Def),
+def resolve-def-begin! [
+    sort:Str token:Token report-ambiguous-as-warning:Bool ignore-last-name:Bool +Mirth
+    -- +Mirth +ResolveDef
 ] {
     @ignore-last-name if(
         @token penultimate-name?,
@@ -240,7 +236,9 @@ def resolve-def(f) [
     ) unwrap defs >candidates
     L0 >rejected
     +ResolveDef
-    f
+}
+
+def resolve-def-end! [ +Mirth +ResolveDef -- +Mirth Maybe(Def) ] {
     candidates match(
         Nil -> resolve-def-unknown None,
         Cons -> match(
@@ -252,6 +250,22 @@ def resolve-def(f) [
         )
     )
 }
+
+
+inline (
+    def resolve-def(f) [
+        (*a +Mirth +ResolveDef -- *b +Mirth +ResolveDef)
+        *a +Mirth
+        sort:Str
+        token:Token
+        report-ambiguous-as-warning:Bool
+        ignore-last-name:Bool
+        --
+        *b +Mirth Maybe(Def),
+    ] {
+        resolve-def-begin! f resolve-def-end!
+    }
+)
 
 def +ResolveDef.rdrop [ +ResolveDef -- ] {
     /+ResolveDef
@@ -322,12 +336,14 @@ def +ResolveDef.resolve-def-unknown [ +Mirth +ResolveDef -- +Mirth ] {
     )) rdip:emit-error! rdrop
 }
 
-def +ResolveDef.filter-sort(p) [
-    (*a Def +ResolveDef -- *a Def Bool +ResolveDef)
-    *a +ResolveDef -- *a +ResolveDef
-] {
-    filter(p, RD_WRONG_SORT)
-}
+inline(
+    def +ResolveDef.filter-sort(p) [
+        (*a Def +ResolveDef -- *a Def Bool +ResolveDef)
+        *a +ResolveDef -- *a +ResolveDef
+    ] {
+        filter(p, RD_WRONG_SORT)
+    }
+)
 
 def +ResolveDef.filter-arity [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
     token num-args filter(
@@ -542,63 +558,71 @@ def ab-type! [ +AB StackType -- +AB ] { arrow:cod! }
 def ab-ctx@ [ +AB -- +AB Ctx ] { arrow ctx }
 def ab-home@ [ +AB -- +AB Home ] { arrow home }
 
-def +AB.gamma(f) [ (*a +Gamma -- *b +Gamma) *a +AB -- *b +AB ] {
-    ab-token@ rdip(>token +Gamma f rdrop)
-}
+inline (
+    def +AB.gamma(f) [ (*a +Gamma -- *b +Gamma) *a +AB -- *b +AB ] {
+        ab-token@ rdip(>token +Gamma f rdrop)
+    }
 
-def ab-build!(f) [ (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow ] {
-    >home
-    dup >token-start >token-end
-    dup >dom >cod
-    >ctx L0 >atoms
-    Arrow >arrow +AB
-    f /+AB arrow>
-}
+    def ab-build!(f) [ (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow ] {
+        >home
+        dup >token-start >token-end
+        dup >dom >cod
+        >ctx L0 >atoms
+        Arrow >arrow +AB
+        f /+AB arrow>
+    }
 
-||| Like ab-build! but takes a morphism type to build
-||| instead of just the domain. The codomain is placed
-||| on the stack for (in)convenience. (You can ignore it with dip.)
-def ab-build-hom!(f) [
-    (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
-    *a Ctx ArrowType Token Home +Mirth -- *b Arrow +Mirth
-] {
-    dip2(unpack rotr)
-    ab-build!(f ab-unify-type!)
-}
+    ||| Like ab-build! but takes a morphism type to build
+    ||| instead of just the domain. The codomain is placed
+    ||| on the stack for (in)convenience. (You can ignore it with dip.)
+    def ab-build-hom!(f) [
+        (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
+        *a Ctx ArrowType Token Home +Mirth -- *b Arrow +Mirth
+    ] {
+        dip2(unpack rotr)
+        ab-build!(f ab-unify-type!)
+    }
 
-||| Build the arrow for a word. If the word type and context are available, use that.
-||| Otherwise, we are in a situation where type and context were not given, so we infer them.
-|||
-||| To infer ctx-type, we start with an initial guess based on the word head (with lots
-||| of metavariables). We temporarily set that as our ctx-type. Then we elaborate the word
-||| body. After elaboration, we rigidify the type to obtain a generalized definition, by
-||| replacing any free metavariables with universally quantified variables.
-def ab-build-word-arrow!(f) [
-    (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
-    *a Word +Mirth -- *b Arrow +Mirth
-] {
-    dup ~ctx-type try-force! match(
-        Some ->
-            unpack2 rotl sip(body) HomeWord ab-build-hom!(f),
-        None ->
-            sip(
-                sip(guess-initial-ctx-type)
-                sip(body) HomeWord ab-build-hom!(f)
-            )
-            >word >arrow
+    ||| Build the arrow for a word. If the word type and context are available, use that.
+    ||| Otherwise, we are in a situation where type and context were not given, so we infer them.
+    |||
+    ||| To infer ctx-type, we start with an initial guess based on the word head (with lots
+    ||| of metavariables). We temporarily set that as our ctx-type. Then we elaborate the word
+    ||| body. After elaboration, we rigidify the type to obtain a generalized definition, by
+    ||| replacing any free metavariables with universally quantified variables.
+    def ab-build-word-arrow!(f) [
+        (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
+        *a Word +Mirth -- *b Arrow +Mirth
+    ] {
+        initial-ctx-type-body-home
+        dip:ab-build-hom!(f)
+        finalize-word-arrow
+    }
+)
 
-            @arrow Arrow.ctx-type rigidify-sig!
-
-            dup2 pack2 @word WordType prop @word ~ctx-type !
-            False @word ~inferring-type? !
-            word> drop
-
-            unpack arrow> cod! dom! ctx!
-    )
-}
-
-def guess-initial-ctx-type [ +Mirth Word -- +Mirth Ctx ArrowType ] {
+def initial-ctx-type-body-home [ +Mirth Word -- +Mirth Ctx ArrowType Token Home Word ] {
     >word
+    @word ~ctx-type try-force!
+    match(Some -> unpack2, None -> guess-initial-ctx-type)
+    @word body
+    @word HomeWord
+    word>
+}
+
+def finalize-word-arrow [ +Mirth Arrow Word -- +Mirth Arrow ] {
+    >word >arrow
+    @word inferring-type? if(
+        @arrow Arrow.ctx-type rigidify-sig!
+        dup2 pack2 @word WordType prop @word ~ctx-type !
+        False @word ~inferring-type? !
+        unpack arrow> cod! dom! ctx!,
+
+        arrow>
+    )
+    word> drop
+}
+
+def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word ] {
     Ctx0 >ctx
     MetaVar.new! STMeta >dom
     MetaVar.new! STMeta >cod
@@ -627,13 +651,14 @@ def guess-initial-ctx-type [ +Mirth Word -- +Mirth Ctx ArrowType ] {
     ctx> dom> cod> T->
     dup2 pack2 @word WordType prop @word ~ctx-type !
     True @word ~inferring-type? !
-    word> drop
 }
 
-def ab-build-word!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Word +Mirth -- *b Word +Mirth ] {
-    sip(ab-build-word-arrow!(dip(f))) sip(WordArrow prop)
-    tuck ~arrow !
-}
+inline (
+    def ab-build-word!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Word +Mirth -- *b Word +Mirth ] {
+        sip(ab-build-word-arrow!(dip(f))) sip(WordArrow prop)
+        tuck ~arrow !
+    }
+)
 
 def ab-unify-type! [ StackType +Mirth +AB -- +Mirth +AB ] {
     dip:ab-type@ gamma:unify! ab-type!
@@ -716,7 +741,7 @@ def ab-expand-opsig! [ OpSig +Mirth +AB -- StackType StackType +Mirth +AB ] {
 }
 
 def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { OpInt ab-op! }
-def ab-float! [ Float64 +Mirth +AB -- +Mirth +AB ] { OpFloat ab-op! }
+def ab-f64! [ F64 +Mirth +AB -- +Mirth +AB ] { OpF64 ab-op! }
 def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { OpStr ab-op! }
 def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { OpBuffer ab-op! }
 def ab-variable! [ Variable +Mirth +AB -- +Mirth +AB ] { OpVariable ab-op! }
@@ -737,58 +762,60 @@ def ab-label-pop! [ Label +Mirth +AB -- +Mirth +AB ] { OpLabelPop ab-op! }
 def ab-label-push-r! [ Label +Mirth +AB -- +Mirth +AB ] { OpLabelPushR ab-op! }
 def ab-label-pop-r! [ Label +Mirth +AB -- +Mirth +AB ] { OpLabelPopR ab-op! }
 
-def ab-block-at!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Token +Mirth +AB -- *b +Mirth +AB ] {
-    ab-ctx@ MetaVar.new! STMeta rotl ab-home@ rdip(ab-build!(f))
-    rdip:Block.new! OpBlockPush ab-op!
-}
+inline (
+    def ab-block-at!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Token +Mirth +AB -- *b +Mirth +AB ] {
+        ab-ctx@ MetaVar.new! STMeta rotl ab-home@ rdip(ab-build!(f))
+        rdip:Block.new! OpBlockPush ab-op!
+    }
 
-def ab-block!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
-    ab-token@ ab-block-at!(f)
-}
+    def ab-block!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
+        ab-token@ ab-block-at!(f)
+    }
 
-def ab-dip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
-    ab-block!(f) PRIM_CORE_DIP ab-prim!
-}
+    def ab-dip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
+        ab-block!(f) PRIM_CORE_DIP ab-prim!
+    }
 
-def ab-rdip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
-    ab-block!(f) PRIM_CORE_RDIP ab-prim!
-}
+    def ab-rdip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
+        ab-block!(f) PRIM_CORE_RDIP ab-prim!
+    }
 
-def ab-if!(f,g) [
-    (*a +Mirth +AB -- *b +Mirth +AB,
-     *b +Mirth +AB -- *c +Mirth +AB)
-    *a +Mirth +AB -- *c +Mirth +AB
-] {
-    ab-block!(f) ab-block!(g) PRIM_CORE_IF ab-prim!
-}
+    def ab-if!(f,g) [
+        (*a +Mirth +AB -- *b +Mirth +AB,
+        *b +Mirth +AB -- *c +Mirth +AB)
+        *a +Mirth +AB -- *c +Mirth +AB
+    ] {
+        ab-block!(f) ab-block!(g) PRIM_CORE_IF ab-prim!
+    }
 
-def ab-while!(f,g) [
-    (*a +Mirth +AB -- *b +Mirth +AB,
-     *b +Mirth +AB -- *c +Mirth +AB)
-    *a +Mirth +AB -- *c +Mirth +AB
-] {
-    ab-block!(f) ab-block!(g) PRIM_CORE_WHILE ab-prim!
-}
+    def ab-while!(f,g) [
+        (*a +Mirth +AB -- *b +Mirth +AB,
+        *b +Mirth +AB -- *c +Mirth +AB)
+        *a +Mirth +AB -- *c +Mirth +AB
+    ] {
+        ab-block!(f) ab-block!(g) PRIM_CORE_WHILE ab-prim!
+    }
 
-def ab-lambda!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a List(Var) +Mirth +AB -- *b +Mirth +AB ] {
-    dip(ab-token@) ab-lambda-at!(f)
-}
+    def ab-lambda!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a List(Var) +Mirth +AB -- *b +Mirth +AB ] {
+        dip(ab-token@) ab-lambda-at!(f)
+    }
 
-def ab-lambda-at!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Token List(Var) +Mirth +AB -- *b +Mirth +AB ] {
-    dup dip(
-        dip(ab-ctx@ ab-type@) reverse-for(
-            swap dip(dup dip(Ctx.new))
-            ab-token@ rdip:elab-expand-tensor!
-            dip(rotl type) rdip:elab-type-unify! drop2
+    def ab-lambda-at!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Token List(Var) +Mirth +AB -- *b +Mirth +AB ] {
+        dup dip(
+            dip(ab-ctx@ ab-type@) reverse-for(
+                swap dip(dup dip(Ctx.new))
+                ab-token@ rdip:elab-expand-tensor!
+                dip(rotl type) rdip:elab-type-unify! drop2
+            )
+            rotl ab-home@ rdip(ab-build!(f))
         )
-        rotl ab-home@ rdip(ab-build!(f))
-    )
-    >params >body
-    ab-ctx@ >outer-ctx
-    ab-type@ >dom
-    ab-token@ >token
-    Lambda OpLambda ab-op!
-}
+        >params >body
+        ab-ctx@ >outer-ctx
+        ab-type@ >dom
+        ab-token@ >token
+        Lambda OpLambda ab-op!
+    }
+)
 
 data OpSig {
     OPSIG_ID
@@ -800,7 +827,7 @@ def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
     Subst.nil swap match(
         OpNone -> OPSIG_ID,
         OpInt -> VALUE_INT TValue OPSIG_PUSH,
-        OpFloat -> VALUE_FLOAT TValue OPSIG_PUSH,
+        OpF64 -> VALUE_F64 TValue OPSIG_PUSH,
         OpStr -> VALUE_STR TValue OPSIG_PUSH,
         OpBuffer -> drop TYPE_PTR OPSIG_PUSH,
         OpVariable -> type TMut OPSIG_PUSH,
@@ -906,7 +933,7 @@ def elab-atom! [ +Mirth +AB -- +Mirth +AB ] {
         TokenDName -> elab-atom-dname!,
         TokenInt -> ab-int!,
         TokenStr -> ab-str!,
-        TokenFloat -> ab-float!,
+        TokenF64 -> ab-f64!,
         TokenLSquare -> drop elab-atom-block!,
         TokenLCurly -> drop elab-atom-assert!,
         TokenLabelPush -> ab-token@ rdip:args-0 ab-label-push!,
@@ -1140,39 +1167,38 @@ def elab-pattern-atom! [ Token +Mirth +Pattern -- +Mirth +Pattern ] {
     ))
 }
 
-def ab-match!(f) [
-    (*a +Mirth +Match -- *b +Mirth +Match)
-    *a cod:StackType body:Token +Mirth +AB -- *b +Mirth +AB
-] {
-    ab-ctx@ >ctx
-    ab-type@ >dom
-    ab-token@ >token
-    ab-home@ >home
-    L0 >cases
-    rdip(+Match f freeze) OpMatch ab-op!
- }
+inline (
+    def ab-match!(f) [
+        (*a +Mirth +Match -- *b +Mirth +Match)
+        *a cod:StackType body:Token +Mirth +AB -- *b +Mirth +AB
+    ] {
+        ab-ctx@ >ctx
+        ab-type@ >dom
+        ab-token@ >token
+        ab-home@ >home
+        L0 >cases
+        rdip(+Match f freeze) OpMatch ab-op!
+    }
 
-def +Match.case!(mkpat,mkbod) [
-    (*a +Mirth +Pattern -- *b +Mirth +Pattern,
-        *b +Mirth +AB -- *c +Mirth +AB)
-    *a Token Token +Mirth +Match -- *c +Mirth +Match,
-] {
-    dip(
-        home >home dup >token-start >token-end
-        ctx dup >outer-ctx >inner-ctx
-        L0 >saved dom dup >mid >cod L0 >atoms
-        Pattern rdip(thaw mkpat freeze)
-    ) swap \(pat ->
-        pat inner-ctx
-        pat Pattern.dom +Match.cod T->
+    def +Match.case!(mkpat,mkbod) [
+        (*a +Mirth +Pattern -- *b +Mirth +Pattern,
+            *b +Mirth +AB -- *c +Mirth +AB)
+        *a Token Token +Mirth +Match -- *c +Mirth +Match,
+    ] {
+        dip(
+            +Match.home >home dup >token-start >token-end
+            +Match.ctx dup >outer-ctx >inner-ctx
+            L0 >saved +Match.dom dup >mid >cod L0 >atoms
+            Pattern rdip(thaw mkpat freeze) >pattern
+        )
+        @pattern inner-ctx
+        @pattern Pattern.dom +Match.cod T->
         rotl
         +Match.home
-        rdip(ab-build-hom!(dip(mkbod)))
-        >body
-        pat >pattern
-        CASE add-case
-    )
-}
+        @pattern:dip:rdip(ab-build-hom!(dip(mkbod)))
+        >body CASE add-case
+    }
+)
 
 def elab-expand-tensor! [ +Mirth StackType Token -- +Mirth StackType Type Token ] {
     >tok force-cons?! match(
@@ -1500,64 +1526,69 @@ def data-word-new! [ +Mirth Data Str Int -- +Mirth Word ] {
 }
 
 def elab-data-done! [ +Mirth Data -- +Mirth ] {
-    \(dat ->
-        dat is-value-type? then(
-            dat "tag" 0 data-word-new! \(tag ->
-                dat params >Ctx
-                dat data-get-tag-type
-                tag WordType prop2 tag ~ctx-type !
-                tag ab-build-word!(
-                    dat OpDataGetTag ab-op!
-                ) drop
-            )
-        )
-
-        dat is-enum? then(
-            dat "from-tag-unsafe" 0 data-word-new! \(ftag ->
-                Ctx0 TYPE_INT T1 dat TData T1 T->
-                ftag WordType prop2 ftag ~ctx-type !
-                ftag ab-build-word!(
-                    CoerceUnsafe ab-coerce!
-                ) drop
-            ),
-        )
-
-        dat tags /L1 match(
-            Some -> \(tag ->
-                dat "/" tag name >Str cat 0 data-word-new! \(untag ->
-                    tag untag WordType prop(ctx-type unpack swap T-> pack2) untag ~ctx-type !
-                    untag untag WordArrow prop(ab-build-word-arrow!(
-                        untag rdip:type cod >cod
-                        dat head? unwrap >body
-                        ab-match!(
-                            dat head? unwrap dup
-                            case!(tag +Pattern.tag!, id)
-                        )
-                    )) untag ~arrow !
-                    untag Some tag ~untag !
-                    tag create-projectors!
-                )
-            ),
-            None -> id
-        )
-
-        dat DataCType prop0(
-            dat is-unit? if(
-                Phantom Some,
-            dat is-enum? if(
-                "int" IntLike Some,
-            dat is-semi-transparent? if(
-                dat tags /L1 unwrap type dom match(
-                    STCons -> nip ctype?,
-                    STConsLabel -> drop nip ctype?,
-                    STWith -> nip ctype?,
-                    STWithLabel -> drop nip ctype?,
-                    _ -> "unexpected tag inputs for transparent data" panic!
-                ),
-                None
-            )))
-        ) dat ~ctype? !
+    >dat
+    @dat is-value-type? then (
+        @dat "tag" 0 data-word-new! >tag
+        @dat params >Ctx
+        @dat data-get-tag-type
+        @tag WordType prop2 @tag ~ctx-type !
+        @tag ab-build-word!(
+            @dat OpDataGetTag ab-op!
+        ) make-inline!
+        tag> drop
     )
+
+    @dat is-enum? then (
+        @dat "from-tag-unsafe" 0 data-word-new! >ftag
+        Ctx0 TYPE_INT T1 @dat TData T1 T->
+        @ftag WordType prop2 @ftag ~ctx-type !
+        @ftag ab-build-word!(
+            CoerceUnsafe ab-coerce!
+        ) make-inline!
+        ftag> drop
+    )
+
+    @dat tags /L1 for(
+        >tag
+        @dat "/" @tag name >Str cat 0 data-word-new! >untag
+        @untag Some @tag ~untag !
+        @tag @untag WordType prop(ctx-type unpack swap T-> pack2) @untag ~ctx-type !
+        @tag @untag WordArrow prop(
+            >tag
+            @tag .untag unwrap ab-build-word-arrow!(
+                @tag rdip:type dom >cod
+                @tag .data head? unwrap >body
+                ab-match!(
+                    @tag .data head? unwrap dup
+                    case!(@tag +Pattern.tag!, id)
+                )
+            )
+            tag> drop
+        ) @untag ~arrow !
+        @untag make-inline!
+        @tag create-projectors!
+        tag> untag> drop2
+    )
+
+    @dat @dat DataCType prop(
+        >dat
+        @dat is-unit? if(
+            Phantom Some,
+        @dat is-enum? if(
+            "int" IntLike Some,
+        @dat is-semi-transparent? if(
+            @dat tags /L1 unwrap type dom match(
+                STCons -> nip ctype?,
+                STConsLabel -> drop nip ctype?,
+                STWith -> nip ctype?,
+                STWithLabel -> drop nip ctype?,
+                _ -> "unexpected tag inputs for transparent data" panic!
+            ),
+            None
+        )))
+        dat> drop
+    ) @dat ~ctype? !
+    dat> drop
 }
 
 ||| Return the tag's output type or resource in context.
@@ -1580,94 +1611,112 @@ def Tag.project-input-label [ +Mirth Label Tag -- +Mirth Maybe(Type/Resource) ] 
 }
 
 def data-get-label-type [ +Mirth Tag Label -- +Mirth ArrowType ] {
-    \(tag lbl ->
-        lbl tag project-input-label unwrap match(
-            Left ->
-                T0 tag output-type T*+ swap T1
-                tag .data is-resource? then(tag output-type T*+)
-                T->,
-            Right ->
-                T0 tag output-type T*+
-                T0 rotl T+ lbl tag output-type-except-field T*+
-                T->
-        )
+    >lbl >tag
+    @lbl @tag project-input-label unwrap match(
+        Left ->
+            T0 @tag output-type T*+ swap T1
+            @tag .data is-resource? then(@tag output-type T*+)
+            T->,
+        Right ->
+            T0 @tag output-type T*+
+            T0 rotl T+ @lbl @tag output-type-except-field T*+
+            T->
     )
+    lbl> tag> drop2
 }
 
 def data-set-label-type [ +Mirth Tag Label -- +Mirth ArrowType ] {
-    \(tag lbl ->
-        lbl tag project-input-label unwrap match(
-            Left ->
-                T1 tag output-type T*+
-                T0 tag output-type T*+
-                T->,
-            Right ->
-                T0 swap T+ lbl tag output-type-except-field T*+
-                T0 tag output-type T*+ T->
-        )
+    >lbl >tag
+    @lbl @tag project-input-label unwrap match(
+        Left ->
+            T1 @tag output-type T*+
+            T0 @tag output-type T*+
+            T->,
+        Right ->
+            T0 swap T+ @lbl @tag output-type-except-field T*+
+            T0 @tag output-type T*+ T->
     )
+    lbl> tag> drop2
 }
 
 def create-projectors! [ +Mirth Tag -- +Mirth ] {
-    dup .data over .untag unwrap \(tag dat untag ->
-    tag label-inputs reverse-for(\(lbl -> dat lbl name 0 data-qname undefined-soft? then(
-        dat lbl >Str 0 data-word-new!
-        dat lbl >Str "!" cat 0 data-word-new!
-        dat lbl >Str 1 data-word-new! \(lbl_get lbl_set lbl_lens ->
-            lbl_get WordType prop0(
-                tag ctx
-                tag lbl data-get-label-type
-                pack2
-            ) lbl_get ~ctx-type !
-            lbl_get dup WordArrow prop(ab-build-word-arrow!(
-                tag lbl OpDataGetLabel ab-op!
-            )) lbl_get ~arrow !
+    >tag
+    @tag .data >dat
+    @tag label-inputs reverse-for(
+        >lbl
+        @dat @lbl name 0 data-qname undefined-soft? then(
+            @dat @lbl >Str 0 data-word-new! >lbl_get
+            @dat @lbl >Str "!" cat 0 data-word-new! >lbl_set
+            @dat @lbl >Str 1 data-word-new! >lbl_lens
 
-            lbl_set WordType prop0(
-                tag ctx
-                tag lbl data-set-label-type
+            @lbl_get make-inline!
+            @tag @lbl @lbl_get WordType prop2(
+                dip(dup dip(ctx))
+                data-get-label-type
                 pack2
-            ) lbl_set ~ctx-type !
-            lbl_set dup WordArrow prop(ab-build-word-arrow!(
-                tag lbl OpDataSetLabel ab-op!
-            )) lbl_set ~arrow !
+            ) @lbl_get ~ctx-type !
+            @tag @lbl @lbl_get dup WordArrow prop3(ab-build-word-arrow!(
+                dip(OpDataGetLabel ab-op!)
+            )) @lbl_get ~arrow !
 
-            lbl_lens WordType prop0(
-                TYPE_STACK "*x" >Name Var.new!
-                TYPE_STACK "*y" >Name Var.new!
-                lbl tag project-input-label unwrap
-                tag output-type \(sx sy lblty datty ->
-                    tag ctx /Ctx sx sy L2 cat Ctx
-                    sx STVar datty T*+
-                        sx STVar lblty T*+
-                        sy STVar lblty T*+ T-> TMorphism T*
-                    sy STVar datty T*+
-                    T-> pack2
-                )
-            ) lbl_lens ~ctx-type !
-            lbl_lens dup WordParams prop(
+            @lbl_set make-inline!
+            @tag @lbl @lbl_set WordType prop2(
+                dip(dup dip(ctx))
+                data-set-label-type
+                pack2
+            ) @lbl_set ~ctx-type !
+            @tag @lbl @lbl_set dup WordArrow prop3(ab-build-word-arrow!(
+                dip(OpDataSetLabel ab-op!)
+            )) @lbl_set ~arrow !
+
+            @lbl_lens make-inline!
+            @tag @lbl @lbl_lens WordType prop2(
+                >lbl >tag
+                TYPE_STACK "*x" >Name Var.new! >sx
+                TYPE_STACK "*y" >Name Var.new! >sy
+                lbl> @tag project-input-label unwrap >lblty
+                @tag output-type >datty
+
+                @tag ctx /Ctx @sx @sy L2 cat Ctx
+                @sx STVar @datty T*+
+                    @sx STVar @lblty T*+
+                    @sy STVar @lblty T*+ T-> TMorphism T*
+                @sy STVar @datty T*+
+                T-> pack2
+
+                sx> sy> drop2
+                lblty> datty> drop2
+                tag> drop
+            ) @lbl_lens ~ctx-type !
+            @lbl_lens dup WordParams prop(
                 type dom force-cons?! unwrap unpack2 nip "f" >Name Var.new-auto-run! L1
-            ) lbl_lens ~params !
+            ) @lbl_lens ~params !
 
-            lbl_lens dup WordArrow prop(ab-build-word-arrow!(
-                lbl_lens rdip:params dup ab-lambda!(
-                    /L1 unwrap >f
-                    dat is-resource? if(
-                        lbl_get ab-word!
-                        ab-rdip!(f> ab-var!)
-                        lbl_set ab-word!,
+            @dat @lbl_get @lbl_set @lbl_lens dup WordArrow prop4(
+                >lbl_lens >lbl_set >lbl_get >dat
+                @lbl_lens ab-build-word-arrow!(
+                    lbl_lens> rdip:params dup ab-lambda!(
+                        /L1 unwrap >f
+                        dat> is-resource? if(
+                            lbl_get> ab-word!
+                            ab-rdip!(f> ab-var!)
+                            lbl_set> ab-word!,
 
-                        PRIM_CORE_DUP ab-prim!
-                        ab-dip!(
-                            lbl_get ab-word!
-                            f> ab-var!
+                            PRIM_CORE_DUP ab-prim!
+                            ab-dip!(
+                                lbl_get> ab-word!
+                                f> ab-var!
+                            )
+                            lbl_set> ab-word!
                         )
-                        lbl_set ab-word!
                     )
                 )
-            )) lbl_lens ~arrow !
+            ) @lbl_lens ~arrow !
+            lbl_get> lbl_set> lbl_lens> drop3
         )
-    ))))
+        lbl> drop
+    )
+    dat> tag> drop2
 }
 
 def expect-token-arrow [ +Mirth Token -- +Mirth Token ] {
@@ -2205,6 +2254,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @vx L1
     @word WordParams prop
     @word ~params !
+    @word make-inline!
 
     word> ab-build-word! (
         @tbl head ab-token!
@@ -2213,11 +2263,9 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
             ab-while!(
                 PRIM_CORE_DUP ab-prim!
                 @tbl num-buffer ab-buffer!
-                PRIM_U64_GET ab-prim!
+                PRIM_I64_GET ab-prim!
                 CoerceUnsafe ab-coerce!
-                1 ab-int!
-                PRIM_INT_ADD ab-prim!
-                PRIM_INT_LT ab-prim!,
+                PRIM_INT_LE ab-prim!,
 
                 PRIM_CORE_DUP ab-prim!
                 ab-dip! (

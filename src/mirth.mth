@@ -54,7 +54,6 @@ struct Builtin {
     culonglong: Data  mk-culonglong: Tag
     cusize:     Data  mk-cusize:     Tag
     cuintptr:   Data  mk-cuintptr:   Tag
-    cfloat64:   Data  mk-cfloat64:   Tag
 
     cptr:       Data  mk-cptr:       Tag
     cconst:     Data  mk-cconst:     Tag
@@ -91,7 +90,6 @@ def Builtin.Alloc! [ -- Builtin ] {
     Data.alloc! >culonglong  Tag.alloc! >mk-culonglong
     Data.alloc! >cusize      Tag.alloc! >mk-cusize
     Data.alloc! >cuintptr    Tag.alloc! >mk-cuintptr
-    Data.alloc! >cfloat64    Tag.alloc! >mk-cfloat64
 
     Data.alloc! >cptr        Tag.alloc! >mk-cptr
     Data.alloc! >cconst      Tag.alloc! >mk-cconst
@@ -108,6 +106,7 @@ struct +Mirth {
     prefer-inline-defs: Bool
     builtin: Builtin
     error-token: Maybe(Token)
+    mirth-base-path: Maybe(Path)
     package-search-paths: List(Path)
     +diagnostics: +List(Diagnostic)
     +propstack: +List(PropLabel)
@@ -118,6 +117,7 @@ def +Mirth.Init! {
     0 >Nat >num-warnings
     False >prefer-inline-defs
     Builtin.Alloc! >builtin
+    None >mirth-base-path
     L0 >package-search-paths
     +L0 >+diagnostics
     +L0 >+propstack
@@ -136,9 +136,14 @@ def +Mirth.rdrop [ +Mirth -- ] {
     prefer-inline-defs> drop
     builtin> drop
     error-token> drop
+    mirth-base-path> drop
     package-search-paths> drop
     +diagnostics> freeze drop
     +propstack> freeze drop
+}
+
+def +Mirth.mirth-base-lib-path [ +Mirth -- +Mirth Maybe(Path) ] {
+    mirth-base-path map("lib" >Path join)
 }
 
 struct Diagnostic {
@@ -185,9 +190,11 @@ def(+Mirth.emit-deprecated!, Token old:Str new:Str +Mirth -- +Mirth,
         FGCyan emit; new> ; Reset emit;
         " instead.";) emit-warning!)
 
-def(+Mirth.with-error-token(f), (*a +Mirth -- *b +Mirth)
-        *a Token +Mirth -- *b +Mirth,
-    error-token dip(Some error-token! f) error-token!)
+inline (
+    def(+Mirth.with-error-token(f), (*a +Mirth -- *b +Mirth)
+            *a Token +Mirth -- *b +Mirth,
+        error-token dip(Some error-token! f) error-token!)
+)
 
 def(+Mirth.info!, Str +Mirth -- +Mirth,
     error-token unwrap swap emit-info!)
@@ -221,36 +228,40 @@ def(Diagnostic.diagnostic;, +Str Diagnostic -- +Str,
 # PROPS #
 #########
 
-data(Prop(t), Prop ->
+struct Prop(t) {
     label: PropLabel
-    state: PropState(t))
-data(PropState(b),
-    PSReady -> b,
-    PSDelay -> a [a +Mirth -- b +Mirth],
-    PSComputing)
-data(PropLabel,
-    DataQName -> Data,
-    DataParams -> Data,
-    DataCType -> Data,
-    TagType -> Tag,
-    TableQName -> Table,
-    TypeDefQName -> TypeDef,
-    TypeDefTarget -> TypeDef,
-    WordQName -> Word,
-    WordType -> Word,
-    WordParams -> Word,
-    WordArrow -> Word,
-    BlockArrow -> Block,
-    AliasQName -> Alias,
-    AliasTarget -> Alias,
-    ExternalQName -> External,
-    ExternalType -> External,
-    ExternalCType -> External,
-    VariableType -> Variable,
-    FieldQName -> Field,
-    FieldValueType -> Field,
-    FieldIndexType -> Field,
-)
+    state: PropState(t)
+}
+
+data PropState(b) {
+    PSReady [ b ]
+    PSDelay [ a [ a +Mirth -- b +Mirth ] ]
+    PSComputing
+}
+
+data PropLabel {
+    DataQName      [ Data ]
+    DataParams     [ Data ]
+    DataCType      [ Data ]
+    TagType        [ Tag ]
+    TableQName     [ Table ]
+    TypeDefQName   [ TypeDef ]
+    TypeDefTarget  [ TypeDef ]
+    WordQName      [ Word ]
+    WordType       [ Word ]
+    WordParams     [ Word ]
+    WordArrow      [ Word ]
+    BlockArrow     [ Block ]
+    AliasQName     [ Alias ]
+    AliasTarget    [ Alias ]
+    ExternalQName  [ External ]
+    ExternalType   [ External ]
+    ExternalCType  [ External ]
+    VariableType   [ Variable ]
+    FieldQName     [ Field ]
+    FieldValueType [ Field ]
+    FieldIndexType [ Field ]
+}
 
 def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,
     >label PSReady >state Prop)
@@ -259,14 +270,18 @@ def(PropLabel.prop2, b1 b2 PropLabel +Mirth -- Prop([b1 b2]) +Mirth,
 def(PropLabel.prop3, b1 b2 b3 PropLabel +Mirth -- Prop([b1 b2 b3]) +Mirth,
     dip(pack3) prop)
 
-def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
-    dip:0 prop(drop f))
 def(PropLabel.prop(f), (a +Mirth -- b +Mirth) a PropLabel +Mirth -- Prop(b) +Mirth,
     >label [f] PSDelay >state Prop)
-def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
-    dip(pack2) prop(unpack2 f))
-def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
-    dip(pack3) prop(unpack3 f))
+inline(
+    def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
+        dip:0 prop(drop f))
+    def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
+        dip(pack2) prop(unpack2 f))
+    def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
+        dip(pack3) prop(unpack3 f))
+    def(PropLabel.prop4(f), (a1 a2 a3 a4 +Mirth -- b +Mirth) a1 a2 a3 a4 PropLabel +Mirth -- Prop(b) +Mirth,
+        dip(pack4) prop(unpack4 f))
+)
 
 def(Prop.ready?, Prop(t) -- Maybe(t),
     state match(
@@ -287,6 +302,8 @@ def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
     ))
 def(Prop.force!, Mut(Prop(t)) +Mirth -- t +Mirth,
     try-force! unwrap("Recursive prop detected!" fatal-error!))
-def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
-        *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
-    try-force! unwrap(f))
+inline (
+    def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
+            *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
+        try-force! unwrap(f))
+)

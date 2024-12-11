@@ -50,6 +50,7 @@ def(Word.ctx, Word +Mirth -- Ctx +Mirth, ctx-type drop)
 def(Word.type, Word +Mirth -- ArrowType +Mirth, ctx-type nip)
 
 def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap(False))
+def Word.make-inline! [ Word -- ] { dip:True ~prefer-inline? ! }
 
 def(Word.new!,
     head:Token sig?:Maybe(Token) body:Token

@@ -180,7 +180,7 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
         #   https://github.com/mirth-lang/mirth/issues/240
 
         rdip(is-float? if(
-            float? TokenFloat,
+            float? TokenF64,
             is-int? if(
                 int? TokenInt,
                 dname? match(
@@ -296,7 +296,7 @@ def(+Str.is-float?, +Str -- Bool +Str,
     0 >Offset
 
     dup byte@ is-sign if(1+, id)
-    
+
     while(dup byte@ is-digit, dip(1+) 1+)
 
     dup byte@ BDOT == if(
@@ -324,10 +324,10 @@ external(
     "double string_to_float64(const char* float64_str) {"
     "    return strtod(float64_str, 0);"
     "}"
-    string_to_float64 [ CStr -- CFloat64 ]
+    string_to_float64 [ CStr -- F64 ]
 )
 
-def(+Str.float?, +Str -- Float64 +Str,
+def(+Str.float?, +Str -- F64 +Str,
     "" thaw rswap 0 >Offset
     float-sign rdip:dip:push-byte-ascii! +
     while(dup num-bytes? >Offset <,
@@ -335,7 +335,7 @@ def(+Str.float?, +Str -- Float64 +Str,
             byte@ rdip:push-byte-ascii!
         )
         1+)
-    drop rswap freeze with-cstr(string_to_float64) >Float64)
+    drop rswap freeze with-cstr(string_to_float64))
 
 def(+Str.is-int?, +Str -- Bool +Str,
     is-dec-int?

@@ -52,11 +52,11 @@ typedef uint16_t TAG;
 #define TAG_PTR 1
 #define TAG_STR (2 | REFS_FLAG)
 #define TAG_FNPTR 3
-#define TAG_FLOAT32 4
-#define TAG_FLOAT64 5
+#define TAG_F32 4
+#define TAG_F64 5
 #define TAG_TUP_NIL TUP_FLAG
 #define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
-#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
+#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (TAG)(n))
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
@@ -89,11 +89,19 @@ typedef struct VAL {
 #define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
 
 #define VREFS(v)  (*(v).data.refs)
+#define VVAL(v)   (v)
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
+#define VI32(v)   ((v).data.i32)
+#define VI16(v)   ((v).data.i16)
+#define VI8(v)    ((v).data.i8)
 #define VU64(v)   ((v).data.u64)
-#define VFLOAT32(v)   ((v).data.f32)
-#define VFLOAT64(v)   ((v).data.f64)
+#define VU32(v)   ((v).data.u32)
+#define VU16(v)   ((v).data.u16)
+#define VU8(v)    ((v).data.u8)
+#define VBOOL(v)  ((_Bool)((v).data.u64))
+#define VF32(v)   ((v).data.f32)
+#define VF64(v)   ((v).data.f64)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 #define VSTR(v)   ((v).data.str)
@@ -101,22 +109,32 @@ typedef struct VAL {
 #define VTUPLEN(v) (TAG_TUP_LEN((v).tag))
 
 #define HAS_REFS(v) ((v).tag & REFS_FLAG)
+#define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
-#define IS_U64(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
-#define IS_FLOAT32(v)   ((v).tag == TAG_FLOAT32)
-#define IS_FLOAT64(v)   ((v).tag == TAG_FLOAT64)
+#define IS_U64(v)   ((v).tag == TAG_INT)
+#define IS_BOOL(v)  ((v).tag == TAG_INT)
+#define IS_F32(v)   ((v).tag == TAG_F32)
+#define IS_F64(v)   ((v).tag == TAG_F64)
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
 #define IS_TUP(v)   ((v).tag & TUP_FLAG)
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
 
+#define MKVAL(x)   (x)
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
+#define MKI32(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
+#define MKI16(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
+#define MKI8(x)    ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
 #define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
-#define MKFLOAT32(x)   ((VAL){.tag=TAG_FLOAT32, .data={.f32=(x)}})
-#define MKFLOAT64(x)   ((VAL){.tag=TAG_FLOAT64, .data={.f64=(x)}})
+#define MKU32(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKU16(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKU8(x)    ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKBOOL(x)  ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKF32(x)   ((VAL){.tag=TAG_F32, .data={.f32=(x)}})
+#define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
@@ -124,12 +142,12 @@ typedef struct VAL {
 #define MKNIL_C	         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}
 #define MKNIL      ((VAL)MKNIL_C)
 
-#define STRLIT(x,n) \
+#define STRLIT(v,x,n) \
 	do { \
-		static VAL mval = {0}; \
-		if (!mval.tag) mval = mkstr(x,n); \
-		incref(mval); \
-		push_value(mval); \
+		static STR* mval = 0; \
+		if (!mval) mval = str_make(x,n); \
+		incref(MKSTR(mval)); \
+		v = mval; \
 	} while(0)
 
 typedef uint16_t TUPLEN;
@@ -157,12 +175,11 @@ static int global_argc;
 static char** global_argv;
 
 static void push_value(VAL v);
-static void mp_primZ_debug(void);
-static void mp_primZ_rdebug(void);
+static void trace_stack(void);
+static void trace_rstack(void);
 
 #if MIRTH_DEBUG
 	typedef struct LOC {
-		FNPTR fnptr;
 		const char* word;
 		const char* path;
 		USIZE line, col;
@@ -171,7 +188,6 @@ static void mp_primZ_rdebug(void);
 	static USIZE fstack_counter = 0;
 	static LOC fstack [STACK_MAX] = {
 		{
-			.fnptr=(void(*)(void))0,
 			.word="<word>",
 			.path="<path>",
 			.line=0, .col=0,
@@ -179,9 +195,8 @@ static void mp_primZ_rdebug(void);
 		},
 	};
 
-	#define WORD_ENTER(_f,_w,_p,_l,_c) \
+	#define WORD_ENTER(_w,_p,_l,_c) \
 		do { \
-			fstack[fstack_counter].fnptr = (_f); \
 			fstack[fstack_counter].word = (_w); \
 			fstack[fstack_counter].path = (_p); \
 			fstack[fstack_counter].line = (_l); \
@@ -199,19 +214,14 @@ static void mp_primZ_rdebug(void);
 			} \
 		} while(0)
 
-	#define WORD_EXIT(_f) \
+	#define WORD_EXIT \
 		do { \
-			if ((fstack_counter == 0) || (fstack[fstack_counter-1].fnptr != (_f))) { \
-				TRACE("mismatched WORD_EXIT, expected " #_f "\n"); \
+			if (fstack_counter == 0) { \
+				TRACE("mismatched WORD_EXIT\n"); \
 				exit(1); \
 			} \
 			fstack_counter--; \
 		} while(0)
-	#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)
-	#define PRIM_EXIT(_f) WORD_EXIT(_f)
-#else
-	#define PRIM_ENTER(_f,_w)
-	#define PRIM_EXIT(_f)
 #endif
 
 #define TRACE(x) write(2,x,strlen(x))
@@ -222,8 +232,8 @@ static void mp_primZ_rdebug(void);
 	do { \
 		if (!(test)) { \
 			TRACE(msg "\n"); \
-			mp_primZ_debug(); \
-			mp_primZ_rdebug(); \
+			trace_stack(); \
+			trace_rstack(); \
 			exit(1); \
 		} \
 	} while(0)
@@ -233,8 +243,8 @@ static void mp_primZ_rdebug(void);
 		if (!(test)) { \
 			TRACE(msg "\n"); \
 			push_value(v1); \
-			mp_primZ_debug(); \
-			mp_primZ_rdebug(); \
+			trace_stack(); \
+			trace_rstack(); \
 			exit(1); \
 		} \
 	} while(0)
@@ -245,8 +255,8 @@ static void mp_primZ_rdebug(void);
 			TRACE(msg "\n"); \
 			push_value(v1); \
 			push_value(v2); \
-			mp_primZ_debug(); \
-			mp_primZ_rdebug(); \
+			trace_stack(); \
+			trace_rstack(); \
 			exit(1); \
 		} \
 	} while(0)
@@ -275,6 +285,20 @@ static void free_value(VAL v) {
 		STR* str = VSTR(v);
 		ASSERT(str);
 		free(str);
+	}
+}
+
+static void tup_decref_outer(TUP* tup, size_t n) {
+	if (tup->refs == 1) {
+		for (size_t i = n; i < tup->size; i++) {
+			decref(tup->cells[i]);
+		}
+		free(tup);
+	} else {
+		for (size_t i = 0; i < n; i++) {
+			incref(tup->cells[i]);
+		}
+		if (!--tup->refs) free_value(MKTUP(tup,n));
 	}
 }
 
@@ -325,13 +349,13 @@ static int64_t value_i64 (VAL v) {
 }
 
 static float value_f32 (VAL v) {
-	ASSERT1(IS_FLOAT32(v), v);
-	return VFLOAT32(v);
+	ASSERT1(IS_F32(v), v);
+	return VF32(v);
 }
 
 static double value_f64 (VAL v) {
-	ASSERT1(IS_FLOAT64(v), v);
-	return VFLOAT64(v);
+	ASSERT1(IS_F64(v), v);
+	return VF64(v);
 }
 
 static void* value_ptr (VAL v) {
@@ -342,6 +366,11 @@ static void* value_ptr (VAL v) {
 static FNPTR value_fnptr (VAL v) {
 	ASSERT1(IS_FNPTR(v),v);
 	return VFNPTR(v);
+}
+
+static STR* value_str (VAL v) {
+	ASSERT1(IS_STR(v),v);
+	return VSTR(v);
 }
 
 #define pop_u8() ((uint8_t)pop_u64())
@@ -355,7 +384,8 @@ static FNPTR value_fnptr (VAL v) {
 #define pop_usize() (pop_u64())
 #define pop_f32() (value_f32(pop_value()))
 #define pop_f64() (value_f64(pop_value()))
-#define pop_bool() (pop_u64())
+#define pop_bool() ((bool)pop_u64())
+#define pop_str() (value_str(pop_value()))
 #define pop_ptr() (value_ptr(pop_value()))
 #define pop_fnptr() (value_fnptr(pop_value()))
 
@@ -369,8 +399,9 @@ static FNPTR value_fnptr (VAL v) {
 #define push_i8(b) push_i64((int64_t)(b))
 #define push_i16(b) push_i64((int64_t)(b))
 #define push_i32(b) push_i64((int64_t)(b))
-#define push_f32(f) push_value(MKFLOAT32(f))
-#define push_f64(f) push_value(MKFLOAT64(f))
+#define push_f32(f) push_value(MKF32(f))
+#define push_f64(f) push_value(MKF64(f))
+#define push_str(p) push_value(MKSTR(p))
 #define push_ptr(p) push_value(MKPTR(p))
 #define push_fnptr(p) push_value(MKFNPTR(p))
 
@@ -442,6 +473,24 @@ static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {
 		old_tup->refs--;
 		return new_tup;
 	}
+}
+
+static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
+	ASSERT(IS_TUP(tup));
+	TUPLEN n = VTUPLEN(tup);
+	ASSERT(i < n);
+	if (VTUP(tup)->refs > 1) {
+		TUP* newtup = tup_new(n);
+		newtup->size = n;
+		memcpy(newtup->cells, VTUP(tup)->cells, n*sizeof(VAL));
+		for (TUPLEN j=0; j<n; j++) incref(newtup->cells[j]);
+		decref(tup);
+		tup = MKTUP(newtup, n);
+	}
+	VAL u = VTUP(tup)->cells[i];
+	VTUP(tup)->cells[i] = v;
+	decref(u);
+	return tup;
 }
 
 static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {
@@ -533,21 +582,41 @@ static STR* str_alloc (USIZE cap) {
 	return str;
 }
 
-static VAL mkstr (const char* data, USIZE size) {
+static STR* str_make (const char* data, USIZE size) {
 	ASSERT(data);
 	ASSERT(size <= SIZE_MAX - sizeof(STR) - 4);
 	STR* str = str_alloc(size);
 	str->size = size;
 	memcpy(str->data, data, (size_t)size);
-	return MKSTR(str);
+	return str;
 }
+#define mkstr(x,n) MKSTR(str_make((x), (n)))
 
-static void do_uncons(void) {
-	VAL val, tail, head;
-	val = pop_value();
-	value_uncons(val, &tail, &head);
-	push_value(tail);
-	push_value(head);
+static STR* str_cat (STR* s1, STR* s2) {
+	EXPECT(s1 && s2, "invalid strings in prim-str-cat");
+	USIZE m = s1->cap;
+	USIZE n1 = s1->size;
+	USIZE n2 = s2->size;
+	if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
+		ASSERT(n2 <= SIZE_MAX);
+		memcpy(s1->data + n1, s2->data, (size_t)n2);
+		s1->size += n2;
+		ASSERT(s1->size + 4 <= s1->cap);
+		decref(MKSTR(s2));
+		return s1;
+	} else {
+		USIZE m2 = n1 + n2 + 4;
+		if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;
+		STR* str = str_alloc(m2);
+		str->size = n1+n2;
+		ASSERT(n1 <= SIZE_MAX);
+		ASSERT(n2 <= SIZE_MAX);
+		memcpy(str->data, s1->data, (size_t)n1);
+		memcpy(str->data+n1, s2->data, (size_t)n2);
+		decref(MKSTR(s1));
+		decref(MKSTR(s2));
+		return str;
+	}
 }
 
 static USIZE get_data_tag(VAL v) {
@@ -567,13 +636,15 @@ static USIZE get_top_resource_data_tag(void) {
 	return get_data_tag(top_resource());
 }
 
-static int str_cmp_(STR* s1, STR* s2) {
+static int str_cmp(STR* s1, STR* s2) {
 	ASSERT(s1 && s2);
 	USIZE n1 = s1->size;
 	USIZE n2 = s2->size;
 	USIZE n = (n1 < n2 ? n1 : n2);
 	ASSERT(n < SIZE_MAX);
 	int r = memcmp(s1->data, s2->data, (size_t)n);
+	decref(MKSTR(s1));
+	decref(MKSTR(s2));
 	if (r) return r;
 	if (n1 < n2) return -1;
 	if (n1 > n2) return 1;
@@ -592,243 +663,69 @@ static void run_value(VAL v) {
 	}
 }
 
-static void mp_primZ_id (void) {}
-static void mp_primZ_dup (void) {
-	PRIM_ENTER(mp_primZ_dup,"prim-dup");
-	VAL v = top_value();
-	push_value(v);
-	incref(v);
-	PRIM_EXIT(mp_primZ_dup);
-}
-static void mp_primZ_drop (void) {
-	PRIM_ENTER(mp_primZ_drop,"prim-drop");
-	VAL v = pop_value();
-	decref(v);
-	PRIM_EXIT(mp_primZ_drop);
+static int64_t i64_add (int64_t a, int64_t b) {
+	EXPECT(((b >= 0) && (a <= INT64_MAX - b))
+		|| ((b <  0) && (a >= INT64_MIN - b)),
+		"overflow during integer addition");
+	return a + b;
 }
 
-static void mp_primZ_swap (void) {
-	PRIM_ENTER(mp_primZ_swap,"prim-swap");
-	VAL a = pop_value();
-	VAL b = pop_value();
-	push_value(a);
-	push_value(b);
-	PRIM_EXIT(mp_primZ_swap);
+static int64_t i64_sub (int64_t a, int64_t b) {
+	EXPECT(((b >= 0) && (a >= INT64_MIN + b))
+		|| ((b <  0) && (a <= INT64_MAX + b)),
+		"overflow during integer subtraction");
+	return a - b;
 }
 
-static void mp_primZ_rswap (void) {
-	PRIM_ENTER(mp_primZ_rswap,"prim-rswap");
-	VAL a = pop_resource();
-	VAL b = pop_resource();
-	push_resource(a);
-	push_resource(b);
-	PRIM_EXIT(mp_primZ_rswap);
+static int64_t i64_mul (int64_t a, int64_t b) {
+	EXPECT((a == 0) || (b == 0) ||
+		((a > 0) && (b > 0) && (a <= INT64_MAX/b)) ||
+		((a > 0) && (b < 0) && (a <= INT64_MIN/b)) ||
+		((a < 0) && (b > 0) && (a >= INT64_MIN/b)) ||
+		((a < 0) && (b < 0) && (a >= INT64_MAX/b)),
+		"overflow during integer multiplication"
+	);
+	return a * b;
 }
 
-static void mp_primZ_intZ_add (void) {
-	PRIM_ENTER(mp_primZ_intZ_add,"prim-int-add");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
-	if (b >= 0) {
-		EXPECT(a <= INT64_MAX - b, "integer overflow during addition (too positive)");
-	} else {
-		EXPECT(a >= INT64_MIN - b, "integer overflow during addition (too negative)");
-	}
-	push_i64(a + b);
-	PRIM_EXIT(mp_primZ_intZ_add);
-}
-static void mp_primZ_intZ_sub (void) {
-	PRIM_ENTER(mp_primZ_intZ_sub,"prim-int-sub");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
-	if (b >= 0) {
-		EXPECT(a >= INT64_MIN + b, "integer overflow during subtraction (too negative)");
-	} else {
-		EXPECT(a <= INT64_MAX + b, "integer overflow during subtraction (too positive)");
-	}
-	push_i64(a - b);
-	PRIM_EXIT(mp_primZ_intZ_sub);
-}
-static void mp_primZ_intZ_mul (void) {
-	PRIM_ENTER(mp_primZ_intZ_mul,"prim-int-mul");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
-	// overflow checks for multiplication
-	push_i64(a * b);
-	PRIM_EXIT(mp_primZ_intZ_mul);
-}
-static void mp_primZ_intZ_div (void) {
-	PRIM_ENTER(mp_primZ_intZ_div,"prim-int-div");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
+static int64_t i64_div (int64_t a, int64_t b) {
 	EXPECT(b != 0, "divide by zero");
-	EXPECT(!((b == -1) && (a == INT64_MIN)), "overflow during division");
+	EXPECT(!((b == -1) && (a == INT64_MIN)), "overflow during integer division");
 	int64_t r = a % b;
 	int64_t q = a / b;
 	if (((a < 0) ^ (b < 0)) && r) q--;
-	push_i64(q);
-	PRIM_EXIT(mp_primZ_intZ_div);
+	return q;
 }
-static void mp_primZ_intZ_mod (void) {
-	PRIM_ENTER(mp_primZ_intZ_mod,"prim-int-mod");
-	int64_t b = pop_i64();
-	int64_t a = pop_i64();
+
+static int64_t i64_mod (int64_t a, int64_t b) {
 	EXPECT(b != 0, "divide by zero");
-	if (b == -1) { push_i64(0); return; }
+	EXPECT(!((b == -1) && (a == INT64_MIN)), "overflow during integer division");
 	int64_t r = a % b;
 	int64_t q = a / b;
 	if (((a < 0) ^ (b < 0)) && r) r += b;
-	push_i64(r);
-	PRIM_EXIT(mp_primZ_intZ_mod);
+	return r;
 }
 
-static void mp_primZ_intZ_and (void) {
-	PRIM_ENTER(mp_primZ_intZ_and,"prim-int-and");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64(a & b);
-	PRIM_EXIT(mp_primZ_intZ_and);
-}
-static void mp_primZ_intZ_or (void) {
-	PRIM_ENTER(mp_primZ_intZ_or,"prim-int-or");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64(a | b);
-	PRIM_EXIT(mp_primZ_intZ_or);
-}
-static void mp_primZ_intZ_xor (void) {
-	PRIM_ENTER(mp_primZ_intZ_xor,"prim-int-xor");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64(a ^ b);
-	PRIM_EXIT(mp_primZ_intZ_xor);
-}
-static void mp_primZ_intZ_shl (void) {
-	PRIM_ENTER(mp_primZ_intZ_shl,"prim-int-shl");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64((b >= 64) ? 0 : (a << b));
-	PRIM_EXIT(mp_primZ_intZ_shl);
-}
-static void mp_primZ_intZ_shr (void) {
-	PRIM_ENTER(mp_primZ_intZ_shr,"prim-int-shr");
-	uint64_t b = pop_u64();
-	uint64_t a = pop_u64();
-	push_u64((b >= 64) ? 0 : (a >> b));
-	PRIM_EXIT(mp_primZ_intZ_shr);
+static uint64_t u64_shl (uint64_t a, uint64_t b) {
+	if (b >= 64) return 0;
+	return (a << b);
 }
 
-static void mp_primZ_intZ_eq (void) {
-	PRIM_ENTER(mp_primZ_intZ_eq,"prim-int-eq");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT1(IS_INT(a), a);
-	ASSERT1(IS_INT(b), a);
-	push_bool(VINT(a) == VINT(b));
-	PRIM_EXIT(mp_primZ_intZ_eq);
-}
-static void mp_primZ_intZ_lt (void) {
-	PRIM_ENTER(mp_primZ_intZ_lt,"prim-int-lt");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT2(IS_INT(a) && IS_INT(b), a, b);
-	push_bool(VINT(a) < VINT(b));
-	PRIM_EXIT(mp_primZ_intZ_lt);
+static uint64_t u64_shr (uint64_t a, uint64_t b) {
+	if (b >= 64) return 0;
+	return (a >> b);
 }
 
-static void mp_primZ_intZ_toZ_float64 (void) {
-	PRIM_ENTER(mp_primZ_intZ_toZ_float64, "prim-int-to-float64");
-	int64_t i = pop_i64();
-	push_f64((double)i);
-	PRIM_EXIT(mp_primZ_intZ_toZ_float64);
+static STR* f32_show (float d) {
+ 	char result[DBL_DIG+32] = {0};
+	int len = sprintf(result, "%.*g", DBL_DIG, d);
+	return str_make(result, len);
 }
 
-static void mp_primZ_float64Z_toZ_int (void) {
-	PRIM_ENTER(mp_primZ_float64Z_toZ_int, "prim-float64-to-int");
-	double d = pop_f64();
-	push_i64((int64_t)d);
-	PRIM_EXIT(mp_primZ_float64Z_toZ_int);
-}
-
-static void mp_primZ_strZ_cmp (void) {
-	PRIM_ENTER(mp_primZ_strZ_cmp,"prim-str-cmp");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT2(IS_STR(a) && IS_STR(b), a, b);
-	int64_t cmp = str_cmp_(VSTR(a), VSTR(b));
-	push_i64(cmp);
-	decref(a); decref(b);
-	PRIM_EXIT(mp_primZ_strZ_cmp);
-}
-
-static void mp_primZ_float64Z_eq (void) {
-	PRIM_ENTER(mp_primZ_float64Z_eq,"prim-float64-eq");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT1(IS_FLOAT64(a), a);
-	ASSERT1(IS_FLOAT64(b), a);
-	push_bool(VFLOAT64(a) == VFLOAT64(b));
-	PRIM_EXIT(mp_primZ_float64Z_eq);
-}
-static void mp_primZ_float64Z_lt (void) {
-	PRIM_ENTER(mp_primZ_float64Z_lt,"prim-float64-lt");
-	VAL b = pop_value();
-	VAL a = pop_value();
-	ASSERT2(IS_FLOAT64(a) && IS_FLOAT64(b), a, b);
-	push_bool(VFLOAT64(a) < VFLOAT64(b));
-	PRIM_EXIT(mp_primZ_float64Z_lt);
-}
-
-static void mp_primZ_float64Z_add (void) {
-	PRIM_ENTER(mp_primZ_float64Z_add,"prim-float64-add");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a + b);
-	PRIM_EXIT(mp_primZ_float64Z_add);
-}
-
-static void mp_primZ_float64Z_sub (void) {
-	PRIM_ENTER(mp_primZ_float64Z_sub,"prim-float64-sub");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a - b);
-	PRIM_EXIT(mp_primZ_float64Z_sub);
-}
-
-static void mp_primZ_float64Z_mul (void) {
-	PRIM_ENTER(mp_primZ_float64Z_mul,"prim-float64-mul");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a * b);
-	PRIM_EXIT(mp_primZ_float64Z_mul);
-}
-
-static void mp_primZ_float64Z_div (void) {
-	PRIM_ENTER(mp_primZ_float64Z_div,"prim-float64-div");
-	double b = pop_f64();
-	double a = pop_f64();
-	push_f64(a / b);
-	PRIM_EXIT(mp_primZ_float64Z_div);
-}
-
-static void mp_primZ_float64Z_toZ_str (void) {
-	PRIM_ENTER(mp_primZ_float64Z_toZ_str, "prim-float64-to-str");
-	double d = pop_f64();
-	char result[DBL_DIG+32] = {0};
-	int len = sprintf(result,"%.*g", DBL_DIG,  d);
-	push_value(mkstr(result, len));
-	PRIM_EXIT(mp_primZ_float64Z_toZ_str);
-}
-
-static void mp_primZ_sysZ_argc (void) {
-	PRIM_ENTER(mp_primZ_sysZ_argc,"prim-sys-argc");
-	push_i64(global_argc);
-	PRIM_EXIT(mp_primZ_sysZ_argc);
-}
-static void mp_primZ_sysZ_argv (void) {
-	PRIM_ENTER(mp_primZ_sysZ_argv,"prim-sys-argv");
-	push_ptr(global_argv);
-	PRIM_EXIT(mp_primZ_sysZ_argv);
+static STR* f64_show (double d) {
+ 	char result[DBL_DIG+32] = {0};
+	int len = sprintf(result, "%.*g", DBL_DIG, d);
+	return str_make(result, len);
 }
 
 void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
@@ -865,25 +762,23 @@ void int_trace_(int64_t y, int fd) {
 	write(fd, p, n);
 }
 
-void mp_primZ_intZ_toZ_str(void) {
-	PRIM_ENTER(mp_primZ_intZ_toZ_str,"prim-int-to-str");
-	int64_t x = pop_i64();
+STR* i64_show (int64_t x) {
 	bool cache = (0 <= x) && (x <= 255);
-	static VAL scache[256] = {0};
-	if (cache && scache[x].tag) {
-		incref(scache[x]);
-		push_value(scache[x]);
+	static STR* scache[256] = {0};
+	if (cache && scache[x]) {
+		STR* s = scache[x];
+		incref(MKSTR(s));
+		return s;
 	} else {
 		char* p; size_t n;
 		int_repr(x,&p,&n);
-		VAL out = mkstr(p,n);
-		push_value(out);
+		STR* s = str_make(p,n);
 		if (cache) {
-			scache[x] = out;
-			incref(out);
+			scache[x] = s;
+			incref(MKSTR(s));
 		}
+		return s;
 	}
-	PRIM_EXIT(mp_primZ_intZ_toZ_str);
 }
 
 void str_trace_(STR* str, int fd) {
@@ -944,7 +839,7 @@ void value_trace_(VAL val, int fd) {
 	}
 }
 
-static void mp_primZ_debug (void) {
+static void trace_stack (void) {
 	TRACE("??");
 	for (long i = STACK_MAX-1; i >= (long)stack_counter; i--) {
 		TRACE(" ");
@@ -953,7 +848,7 @@ static void mp_primZ_debug (void) {
 	TRACE("\n");
 }
 
-static void mp_primZ_rdebug (void) {
+static void trace_rstack (void) {
 	#if MIRTH_DEBUG
 		TRACE("call stack:\n");
 		for (USIZE i = fstack_counter; i --> 1;) {
@@ -974,426 +869,103 @@ static void mp_primZ_rdebug (void) {
 	#endif
 }
 
-static void mp_primZ_panic(void) {
-	if ((stack_counter > 0) && IS_STR(top_value())) {
-		VAL v = pop_value();
-		size_t n = (VSTR(v)->size < 2048) ? (size_t)(VSTR(v)->size) : 2048;
-		write(2, VSTR(v)->data, n);
+static void do_panic(STR* m) {
+	if (m) {
+		size_t n = (m->size < 2048) ? (size_t)(m->size) : 2048;
+		write(2, m->data, n);
 		TRACE("\n");
 	} else {
 		TRACE("panic!\n");
 	}
-	mp_primZ_debug();
-	mp_primZ_rdebug();
+	trace_stack();
+	trace_rstack();
 	exit(1);
 }
 
-static void mp_primZ_ptrZ_get (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_get,"prim-ptr-get");
-	VAL vp = pop_value();
-	void **p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_ptr(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_ptrZ_get);
-}
-
-static void mp_primZ_u8Z_get (void) {
-	PRIM_ENTER(mp_primZ_u8Z_get,"prim-u8-get");
-	VAL vp = pop_value();
-	uint8_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u8(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u8Z_get);
-}
-
-static void mp_primZ_u16Z_get (void) {
-	PRIM_ENTER(mp_primZ_u16Z_get,"prim-u16-get");
-	VAL vp = pop_value();
-	uint16_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u16(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u16Z_get);
-}
-
-static void mp_primZ_u32Z_get (void) {
-	PRIM_ENTER(mp_primZ_u32Z_get,"prim-u32-get");
-	VAL vp = pop_value();
-	uint32_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u32(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u32Z_get);
-}
-
-static void mp_primZ_u64Z_get (void) {
-	PRIM_ENTER(mp_primZ_u64Z_get,"prim-u64-get");
-	VAL vp = pop_value();
-	uint64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_u64(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u64Z_get);
-}
-
-static void mp_primZ_i8Z_get (void) {
-	PRIM_ENTER(mp_primZ_i8Z_get,"prim-i8-get");
-	VAL vp = pop_value();
-	int8_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i8(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i8Z_get);
-}
-
-static void mp_primZ_i16Z_get (void) {
-	PRIM_ENTER(mp_primZ_i16Z_get,"prim-i16-get");
-	VAL vp = pop_value();
-	int16_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i16(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i16Z_get);
-}
-
-static void mp_primZ_i32Z_get (void) {
-	PRIM_ENTER(mp_primZ_i32Z_get,"prim-i32-get");
-	VAL vp = pop_value();
-	int32_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i32(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i32Z_get);
-}
-
-static void mp_primZ_i64Z_get (void) {
-	PRIM_ENTER(mp_primZ_i64Z_get,"prim-i64-get");
-	VAL vp = pop_value();
-	int64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to load from null pointer");
-	push_i64(*p);
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i64Z_get);
-}
-
-static void mp_primZ_intZ_set (void) {
-	PRIM_ENTER(mp_primZ_intZ_set,"prim-int-set");
-	VAL vp = pop_value();
-	int64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_i64();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_intZ_set);
-}
-
-static void mp_primZ_ptrZ_set (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_set,"prim-ptr-set");
-	VAL vp = pop_value();
-	void **p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_ptr();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_ptrZ_set);
-}
-
-static void mp_primZ_u8Z_set (void) {
-	PRIM_ENTER(mp_primZ_u8Z_set,"prim-u8-set");
-	VAL vp = pop_value();
-	uint8_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_u8();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u8Z_set);
-}
-
-static void mp_primZ_u16Z_set (void) {
-	PRIM_ENTER(mp_primZ_u16Z_set,"prim-u16-set");
-	VAL vp = pop_value();
-	uint16_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_u16();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u16Z_set);
-}
-
-static void mp_primZ_u32Z_set (void) {
-	PRIM_ENTER(mp_primZ_u32Z_set,"prim-u32-set");
-	VAL vp = pop_value();
-	uint32_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_u32();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u32Z_set);
-}
-
-static void mp_primZ_u64Z_set (void) {
-	PRIM_ENTER(mp_primZ_u64Z_set,"prim-u64-set");
-	VAL vp = pop_value();
-	uint64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_u64();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_u64Z_set);
-}
-
-static void mp_primZ_i8Z_set (void) {
-	PRIM_ENTER(mp_primZ_i8Z_set,"prim-i8-set");
-	VAL vp = pop_value();
-	int8_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_i8();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i8Z_set);
-}
-
-static void mp_primZ_i16Z_set (void) {
-	PRIM_ENTER(mp_primZ_i16Z_set,"prim-i16-set");
-	VAL vp = pop_value();
-	int16_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_i16();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i16Z_set);
-}
-
-static void mp_primZ_i32Z_set (void) {
-	PRIM_ENTER(mp_primZ_i32Z_set,"prim-i32-set");
-	VAL vp = pop_value();
-	int32_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_i32();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i32Z_set);
-}
-
-static void mp_primZ_i64Z_set (void) {
-	PRIM_ENTER(mp_primZ_i64Z_set,"prim-i64-set");
-	VAL vp = pop_value();
-	int64_t *p = value_ptr(vp);
-	EXPECT(p, "tried to write to null pointer");
-	*p = pop_i64();
-	decref(vp);
-	PRIM_EXIT(mp_primZ_i64Z_set);
-}
-
-
 #if defined(MIRTH_WINDOWS)
-#define mp_primZ_sysZ_os() push_u64(1)
+#define RUNNING_OS 1
 #elif defined(MIRTH_LINUX)
-#define mp_primZ_sysZ_os() push_u64(2)
+#define RUNNING_OS 2
 #elif defined(MIRTH_MACOS)
-#define mp_primZ_sysZ_os() push_u64(3)
+#define RUNNING_OS 3
 #else
-#define mp_primZ_sysZ_os() push_u64(0)
+#define RUNNING_OS 0
 #endif
 
 #if defined(MIRTH_I386)
-#define mp_primZ_sysZ_arch() push_u64(1)
+#define RUNNING_ARCH 1
 #elif defined(MIRTH_AMD64)
-#define mp_primZ_sysZ_arch() push_u64(2)
+#define RUNNING_ARCH 2
 #elif defined(MIRTH_ARM64)
-#define mp_primZ_sysZ_arch() push_u64(3)
+#define RUNNING_ARCH 3
 #else
-#define mp_primZ_sysZ_arch() push_u64(0)
+#define RUNNING_ARCH 0
 #endif
 
-static void mp_primZ_run (void) {
-	PRIM_ENTER(mp_primZ_run,"prim-run");
-	VAL f = pop_value();
-	run_value(f);
-	PRIM_EXIT(mp_primZ_run);
-}
-
-static void mp_primZ_ptrZ_nil (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_nil,"prim-ptr-nil");
-	push_ptr((void*)0);
-	PRIM_EXIT(mp_primZ_ptrZ_nil);
-}
-static void mp_primZ_ptrZ_eq (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_eq,"prim-ptr-eq");
-	void* a = pop_ptr();
-	void* b = pop_ptr();
-	push_bool(a == b);
-	PRIM_EXIT(mp_primZ_ptrZ_eq);
-}
-static void mp_primZ_ptrZ_add (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_add,"prim-ptr-add");
-	VAL vptr = pop_value();
-	USIZE n = pop_usize();
-	ASSERT1(IS_PTR(vptr), vptr);
-	EXPECT(VPTR(vptr), "attempt to add to null pointer");
-	char* ptr = (char*)VPTR(vptr);
-	push_ptr(ptr + n);
-	PRIM_EXIT(mp_primZ_ptrZ_add);
-}
-#define mp_primZ_ptrZ_sizze() push_u64((uint64_t)sizeof(void*))
-static void mp_primZ_ptrZ_alloc (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_alloc,"prim-ptr-alloc");
-	USIZE n = pop_usize();
+static void* ptr_alloc (uint64_t n) {
+	EXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), "invalid size in prim-ptr-alloc");
 	void* p = malloc((size_t)n);
-	EXPECT(p, "failed to allocate buffer");
-	push_ptr(p);
-	PRIM_EXIT(mp_primZ_ptrZ_alloc);
-}
-static void mp_primZ_ptrZ_realloc (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_realloc,"prim-ptr-realloc");
-	USIZE n = pop_usize();
-	void* p0 = pop_ptr();
-	void* p1 = realloc(p0, (size_t)n);
-	EXPECT(p1, "failed to reallocate buffer");
-	push_ptr(p1);
-	PRIM_EXIT(mp_primZ_ptrZ_realloc);
-}
-static void mp_primZ_ptrZ_free (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_free,"prim-ptr-free");
-	void* p = pop_ptr();
-	free(p);
-	PRIM_EXIT(mp_primZ_ptrZ_free);
+	EXPECT(p, "failed to allocate in prim-ptr-alloc");
+	return p;
 }
 
-static void mp_primZ_ptrZ_copy (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_copy,"prim-ptr-copy");
-	VAL vdst = pop_value();
-	int64_t ilen = pop_i64();
-	VAL vsrc = pop_value();
-	ASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);
-	void* src = value_ptr(vsrc);
-	void* dst = value_ptr(vdst);
-	if (src && dst && (ilen > 0)) {
-		ASSERT((USIZE)ilen <= SIZE_MAX);
-		memcpy(dst, src, (size_t)ilen);
+static void* ptr_realloc (void* p, uint64_t n) {
+	EXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), "invalid size in prim-ptr-realloc");
+	void* p2 = realloc(p, (size_t)n);
+	EXPECT(p2, "failed to reallocate in prim-ptr-realloc");
+	return p2;
+}
+
+static void ptr_copy (void* src, uint64_t len, void* dst) {
+	if (len > 0) {
+		EXPECT(len <= SIZE_MAX, "invalid size in prim-ptr-copy");
+		EXPECT(src && dst, "invalid pointer in prim-ptr-copy");
+		memcpy(dst, src, (size_t)len);
 	}
-	PRIM_EXIT(mp_primZ_ptrZ_copy);
 }
 
-static void mp_primZ_ptrZ_fill (void) {
-	PRIM_ENTER(mp_primZ_ptrZ_fill,"prim-ptr-fill");
-	VAL vdst = pop_value();
-	ASSERT1(IS_PTR(vdst), vdst);
-	int64_t ilen = pop_i64();
-	uint64_t val = pop_u64();
-	void* dst = value_ptr(vdst);
-	if (dst && (ilen > 0)) {
-		ASSERT((USIZE)ilen <= SIZE_MAX);
-		memset(dst, (int)val, (size_t)ilen);
+static void ptr_fill (uint8_t val, uint64_t len, void* dst) {
+	if (len > 0) {
+		EXPECT(len <= SIZE_MAX, "invalid size in prim-ptr-fill");
+		EXPECT(dst, "invalid pointer in prim-ptr-fill");
+		memset(dst, (int)val, (size_t)len);
 	}
-	PRIM_EXIT(mp_primZ_ptrZ_fill);
 }
 
-static void mp_primZ_strZ_copy (void) {
-	PRIM_ENTER(mp_primZ_strZ_copy,"prim-str-copy");
-	USIZE size = pop_usize();
-	char* ptr = (char*)pop_ptr();
-	ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
-	ASSERT(ptr);
-	push_value(mkstr(ptr, size));
-	PRIM_EXIT(mp_primZ_strZ_copy);
+static void* str_base (STR* s) {
+	EXPECT(s && (s->refs > 1), "invalid string for prim-str-base");
+	s->refs--;
+	return s->data;
 }
 
-static void mp_primZ_strZ_cat (void) {
-	PRIM_ENTER(mp_primZ_strZ_cat,"prim-str-cat");
-	VAL v2 = pop_value();
-	VAL v1 = pop_value();
-	ASSERT2(IS_STR(v1) && IS_STR(v2), v1, v2);
-	STR* s1 = VSTR(v1);
-	STR* s2 = VSTR(v2);
-	USIZE m = s1->cap;
-	USIZE n1 = s1->size;
-	USIZE n2 = s2->size;
-	if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
-		ASSERT(n2 <= SIZE_MAX);
-		memcpy(s1->data + n1, s2->data, (size_t)n2);
-		s1->size += n2;
-		ASSERT(s1->size + 4 <= s1->cap);
-		push_value(v1);
-		decref(v2);
-	} else {
-		USIZE m2 = n1 + n2 + 4;
-		if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;
-		STR* str = str_alloc(m2);
-		str->size = n1+n2;
-		ASSERT(n1 <= SIZE_MAX);
-		ASSERT(n2 <= SIZE_MAX);
-		memcpy(str->data, s1->data, (size_t)n1);
-		memcpy(str->data+n1, s2->data, (size_t)n2);
-		push_value(MKSTR(str));
-		decref(v1);
-		decref(v2);
-	}
-	PRIM_EXIT(mp_primZ_strZ_cat);
+static uint64_t str_size (STR* s) {
+	EXPECT(s, "invalid string for prim-str-size");
+	uint64_t n = s->size;
+	decref(MKSTR(s));
+	return n;
 }
 
-static void mp_primZ_strZ_base (void) {
-	PRIM_ENTER(mp_primZ_strZ_base,"prim-str-base");
-	VAL vstr = pop_value();
-	ASSERT1(IS_STR(vstr) && VSTR(vstr), vstr);
-	push_ptr(VSTR(vstr)->data);
-	decref(vstr);
-	PRIM_EXIT(mp_primZ_strZ_base);
-}
-
-static void mp_primZ_strZ_numZ_bytes (void) {
-	PRIM_ENTER(mp_primZ_strZ_numZ_bytes,"prim-str-num-bytes");
-	VAL v = pop_value();
-	ASSERT(IS_STR(v) && VSTR(v));
-	push_usize(VSTR(v)->size);
-	decref(v);
-	PRIM_EXIT(mp_primZ_strZ_numZ_bytes);
-}
-
-static void mp_primZ_packZ_nil (void) {
-	PRIM_ENTER(mp_primZ_packZ_nil,"prim-pack-nil");
-	push_value(MKNIL);
-	PRIM_EXIT(mp_primZ_packZ_nil);
-}
-
-static void mp_primZ_packZ_cons (void) {
-	PRIM_ENTER(mp_primZ_packZ_cons,"prim-pack-cons");
-	VAL cdr = pop_value();
-	VAL car = pop_value();
-	push_value(mkcons(car,cdr));
-	PRIM_EXIT(mp_primZ_packZ_cons);
-}
-
-static void mp_primZ_packZ_uncons (void) {
-	PRIM_ENTER(mp_primZ_packZ_uncons,"prim-pack-uncons");
-	do_uncons();
-	PRIM_EXIT(mp_primZ_packZ_uncons);
-}
-
-static void mp_primZ_mutZ_get (void) {
-	PRIM_ENTER(mp_primZ_mutZ_get,"prim-mut-get");
-	VAL mut = pop_value();
-	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
-	VAL v = *(VAL*)VPTR(mut);
+static VAL mut_get (void* mut) {
+	EXPECT(mut, "invalid pointer in prim-mut-get");
+	VAL v = *(VAL*)mut;
 	EXPECT(v.tag, "tried to read uninitialized value");
-	push_value(v);
 	incref(v);
-	PRIM_EXIT(mp_primZ_mutZ_get);
+	return v;
 }
-static void mp_primZ_mutZ_set (void) {
-	PRIM_ENTER(mp_primZ_mutZ_set,"prim-mut-set");
-	VAL mut = pop_value();
-	VAL newval = pop_value();
-	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
-	VAL oldval = *(VAL*)VPTR(mut);
-	*(VAL*)VPTR(mut) = newval;
+
+static void mut_set (VAL newval, void* mut) {
+	EXPECT(mut, "invalid pointer in prim-mut-set");
+	VAL oldval = *(VAL*)mut;
+	*(VAL*)mut = newval;
 	if (oldval.tag) {
 		decref(oldval);
 	}
-	decref(mut);
-	PRIM_EXIT(mp_primZ_mutZ_set);
 }
-static void mp_primZ_mutZ_isZ_set (void) {
-	PRIM_ENTER(mp_primZ_mutZ_isZ_set,"prim-mut-is-set");
-	VAL mut = pop_value();
-	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
-	VAL val = *(VAL*)VPTR(mut);
-	push_bool(val.tag);
-	decref(mut);
-	PRIM_EXIT(mp_primZ_mutZ_isZ_set);
+
+static bool mut_is_set (void* mut) {
+	EXPECT(mut, "invalid pointer in prim-mut-is-set");
+	VAL val = *(VAL*)mut;
+	return (val.tag != 0);
 }
 
 /* GENERATED C99 */

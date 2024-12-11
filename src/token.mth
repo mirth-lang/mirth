@@ -16,33 +16,33 @@ import(mirth.module)
 ##########
 
 # mirth/data/token
-data(TokenValue,
-    TokenNone,
-    TokenComma,
-    TokenLParenOpen,
-    TokenLParen -> Token,
-    TokenRParen -> Token,
-    TokenLSquareOpen,
-    TokenLSquare -> Token,
-    TokenRSquare -> Token,
-    TokenLCurlyOpen,
-    TokenLCurly -> Token,
-    TokenRCurly -> Token,
-    TokenLColonOpen,
-    TokenLColon -> Token,
-    TokenRColon -> Token,
-    TokenInt -> Int,
-    TokenFloat -> Float64,
-    TokenStr -> Str,
-    TokenName -> Name,
-    TokenDName -> DName,
-    TokenLabelPop -> Label,
-    TokenLabelPush -> Label,
-    TokenLabelPopR -> Label,
-    TokenLabelPushR -> Label,
-    TokenLabelGet -> Label,
-    TokenLabelSet -> Label,
-)
+data TokenValue {
+    TokenNone
+    TokenComma
+    TokenLParenOpen
+    TokenLSquareOpen
+    TokenLCurlyOpen
+    TokenLColonOpen
+    TokenLParen     [ Token ]
+    TokenRParen     [ Token ]
+    TokenLSquare    [ Token ]
+    TokenRSquare    [ Token ]
+    TokenLCurly     [ Token ]
+    TokenRCurly     [ Token ]
+    TokenLColon     [ Token ]
+    TokenRColon     [ Token ]
+    TokenInt        [ Int ]
+    TokenF64        [ F64 ]
+    TokenStr        [ Str ]
+    TokenName       [ Name ]
+    TokenDName      [ DName ]
+    TokenLabelPop   [ Label ]
+    TokenLabelPush  [ Label ]
+    TokenLabelPopR  [ Label ]
+    TokenLabelPushR [ Label ]
+    TokenLabelGet   [ Label ]
+    TokenLabelSet   [ Label ]
+}
 
 def(TokenValue.none?, TokenValue -- Bool, TokenNone -> True, _ -> drop False)
 def(TokenValue.comma?, TokenValue -- Bool, TokenComma -> True, _ -> drop False)

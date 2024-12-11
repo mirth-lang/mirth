@@ -52,7 +52,7 @@ def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
         OpVariable -> drop L1,
         OpField -> drop L1,
         OpInt -> drop L1,
-        OpFloat -> drop L1,
+        OpF64 -> drop L1,
         OpStr -> drop L1,
         OpTag -> drop L1,
         OpMatch -> check-match! OpMatch swap op! L1,
@@ -113,7 +113,7 @@ def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
         SPCHECK_BLOCK checklist:cons
     ))
 
-def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
+inline:def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
     /Atom
     ctx>
     dom> cod> T->
@@ -134,34 +134,34 @@ def(Word.sp-synthed, Word -- Map(SPKey,Word),
 
 ||| Specialize a word to a particular list of arguments.
 ||| Those other arguments are pushed on the stack.
-def(specialize-word!, +Mirth SPKey Word -- +Mirth Word,
-    \(k w -> k w sp-synthed lookup(==) match(
-    Some -> False over ~prefer-inline? !,
-    None ->
-        w head >head
-        None >sig?
-        w body >body
-        k >Name >name
-        0 >arity
-        Word.new! \(w' ->
-            w NAMESPACE_WORD k >Name QNAME0 w' WordQName prop w' ~qname !
+def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
+    >word >key
+    @key @word sp-synthed lookup(==) match(
+        Some -> False over ~prefer-inline? !,
+        None ->
+            @word head >head
+            None >sig?
+            @word body >body
+            @key >Name >name
+            0 >arity
+            Word.new! >word'
 
-            k >key w' >value KVPair
-            w sp-synthed insert w ~sp-synthed !
-            # Str(w cname ; k /SPKEY
-            #     for("_" ; /ArgBlock index show;)
-            # ) w' ~cname !
+            @word NAMESPACE_WORD @key >Name QNAME0 @word' WordQName prop @word' ~qname !
 
-            k w w WordType prop2(
+            @key >key @word' >value KVPair
+            @word sp-synthed insert @word ~sp-synthed !
+
+            @key @word @word' WordType prop2(
                 ctx-type specialize-ctx-type pack2
-            ) w' ~ctx-type !
-            True w' ~prefer-inline? !
-            k w w' w' WordArrow prop3(ab-build-word-arrow!(dip(
+            ) @word' ~ctx-type !
+            True @word' ~prefer-inline? !
+            @key @word @word' dup WordArrow prop3(ab-build-word-arrow!(dip(
                 synth-specialized-word!
-            ))) w' ~arrow !
-            w'
-        )
-    )))
+            ))) @word' ~arrow !
+            word'>
+    )
+    key> word> drop2
+}
 
 def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
     nip dip:SUBST_NIL freshen nip swap
@@ -181,6 +181,8 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
 
 data(+SPSynth, +SPSYNTH ->
     spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)
+
+inline:
 def(+SPSynth.ab(f),
         (*a spkey:SPKey spword:Word spmap:Map(Var,Block) +AB --
          *b spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)

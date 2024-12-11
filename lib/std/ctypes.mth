@@ -47,8 +47,6 @@ inline(
 
     def(CUSize.>Size, CUSize -- Size, >Nat >Size)
 
-    def(CFloat64.>Float64, CFloat64 -- Float64, CFloat64 -> id)
-
     def(CPtr./CPtr, CPtr(t) -- Ptr, CPtr -> id)
     def(CConst./CConst, CConst(t) -- t, CConst -> id)
     def(CRestrict./CRestrict, CRestrict(t) -- t, CRestrict -> id)

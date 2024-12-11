@@ -1,6 +1,7 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
- -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Wno-infinite-recursion \
- -Werror -pedantic -O0 -fmax-errors=9 -Wno-unused-command-line-argument
+ -Wno-unused-value -Wno-unused-but-set-variable -Wno-missing-braces -Wno-overlength-strings \
+ -Wno-sometimes-uninitialized -Wno-infinite-recursion -Werror -pedantic -O0 -fmax-errors=9 \
+ -Wno-unused-command-line-argument
 
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
@@ -67,6 +68,9 @@ profile: bin/mirth_prof
 play-snake: bin/snake
 	bin/snake
 
+play-fractal: bin/fractal
+	bin/fractal
+
 examples: bin/mirth2
 	bash tools/build-examples.sh
 
@@ -130,16 +134,15 @@ bin/snake.c: bin/mirth2 lib/std/* examples/snake.mth examples/sdl2.mth
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --cflags --libs sdl2`
-	
+
+bin/snake-infer-types: bin/snake-infer-types.c
+	$(CC) -o bin/snake-infer-types bin/snake-infer-types.c `pkg-config --cflags --libs sdl2`
+
 bin/fractal.c: bin/mirth2 lib/std/* examples/fractal.mth examples/sdl2.mth
 	bin/mirth2 --debug examples/fractal.mth -o bin/fractal.c
 
 bin/fractal: bin/fractal.c examples/fractal-extern.c
 	$(CC) -o bin/fractal bin/fractal.c examples/fractal-extern.c `pkg-config --cflags --libs sdl2` -lm
-
-
-bin/snake-infer-types: bin/snake-infer-types.c
-	$(CC) -o bin/snake-infer-types bin/snake-infer-types.c `pkg-config --cflags --libs sdl2`
 
 bin/hello: bin/hello.c
 	$(CC) -o bin/hello bin/hello.c

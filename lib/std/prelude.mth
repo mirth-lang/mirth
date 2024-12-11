@@ -41,23 +41,29 @@ alias(Int.<<, prim-int-shl)
 alias(Int.>>, prim-int-shr)
 inline:def(Int./%, Int Int -- Int Int, dup2 % dip(/))
 
-alias(Float64.+, prim-float64-add)
-alias(Float64.-, prim-float64-sub)
-alias(Float64.*, prim-float64-mul)
-alias(Float64./, prim-float64-div)
+alias(F32.+, prim-f32-add)
+alias(F32.-, prim-f32-sub)
+alias(F32.*, prim-f32-mul)
+alias(F32./, prim-f32-div)
+alias(F32.>F64, prim-f32-to-f64)
+alias(F32.>Int, prim-f32-to-int)
+alias(F32.>Str, prim-f32-to-str)
 
-alias(Float64.>Int, prim-float64-to-int)
-alias(Float64.>Str, prim-float64-to-str)
+alias(F64.+, prim-f64-add)
+alias(F64.-, prim-f64-sub)
+alias(F64.*, prim-f64-mul)
+alias(F64./, prim-f64-div)
+alias(F64.>F32, prim-f64-to-f32)
+alias(F64.>Int, prim-f64-to-int)
+alias(F64.>Str, prim-f64-to-str)
 
 inline(
     alias(Bool.if(f,g), prim-if)
-    def(Bool.&&, Bool Bool -- Bool, if(id, drop False))
-    def(Bool.||, Bool Bool -- Bool, if(drop True, id))
-    def(Bool.not, Bool -- Bool, if(False, True))
+    alias(Bool.&&, prim-bool-and)
+    alias(Bool.||, prim-bool-or)
+    alias(Bool.not, prim-bool-not)
     def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(True, p))
-    def(Bool.or(p,d), (*a -- *b Bool, *a -- *b) *a Bool -- *b Bool, if(d True, p))
     def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, False))
-    def(Bool.and(p,d), (*a -- *b Bool, *a -- *b) *a Bool -- *b Bool, if(p, d False))
     def(Bool.==, Bool Bool -- Bool, if(id, not))
     def(Bool.show, Bool -- Str, if("True", "False"))
     def(Bool.show;, Bool +Str -- +Str, show ;)
@@ -234,33 +240,42 @@ inline(
     def(Comparison.ne?, Comparison -- Bool, LT -> True, EQ -> False, GT -> True)
 
     alias(Int.==, prim-int-eq)
-    alias(Int.<, prim-int-lt)
-    def(Int.>,  Int Int -- Bool, swap <)
-    def(Int.>=, Int Int -- Bool, < not)
-    def(Int.<=, Int Int -- Bool, swap < not)
-    def(Int.<>, Int Int -- Bool, == not)
+    alias(Int.<,  prim-int-lt)
+    alias(Int.<=, prim-int-le)
+    alias(Int.>,  prim-int-gt)
+    alias(Int.>=, prim-int-ge)
+    alias(Int.<>, prim-int-ne)
     def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
 
-    alias(Float64.==, prim-float64-eq)
-    alias(Float64.<, prim-float64-lt)
-    def(Float64.<=, Float64 Float64 -- Bool, swap < not)
+    alias(F64.==, prim-f64-eq)
+    alias(F64.<, prim-f64-lt)
+    def(F64.>, F64 F64 -- Bool, swap <)
+    def(F64.<=, F64 F64 -- Bool, swap < not)
+    def(F64.>=, F64 F64 -- Bool, < not)
+
+    alias(F32.==, prim-f32-eq)
+    alias(F32.<, prim-f32-lt)
+    def(F32.>, F32 F32 -- Bool, swap <)
+    def(F32.<=, F32 F32 -- Bool, swap < not)
+    def(F32.>=, F32 F32 -- Bool, < not)
+
+    def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
+    def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
+    def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 )
-def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
-def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
-def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 
 inline(
     def(Int.show, Int -- Str, prim-int-to-str)
     def(Int.show;, Int +Str -- +Str, show ;)
-    def(Int.>Float64, Int -- Float64, prim-int-to-float64)
+    def(Int.>F64, Int -- F64, prim-int-to-f64)
 
-    def(Str.compare, Str Str -- Comparison, prim-str-cmp 0 compare)
-    def(Str.==, Str Str -- Bool, compare eq?)
-    def(Str.<,  Str Str -- Bool, compare lt?)
-    def(Str.>,  Str Str -- Bool, compare gt?)
-    def(Str.<=, Str Str -- Bool, compare le?)
-    def(Str.>=, Str Str -- Bool, compare ge?)
-    def(Str.<>, Str Str -- Bool, compare ne?)
+    def(Str.compare, Str Str -- Comparison, prim-str-cmp dup 0= if(drop EQ, 0< if(LT, GT)))
+    alias(Str.==, prim-str-eq)
+    alias(Str.<,  prim-str-lt)
+    alias(Str.<=, prim-str-le)
+    alias(Str.>,  prim-str-gt)
+    alias(Str.>=, prim-str-ge)
+    alias(Str.<>, prim-str-ne)
 )
 def(Str.max, Str Str -- Str, dup2 < if(nip, drop))
 def(Str.min, Str Str -- Str, dup2 < if(drop, nip))
@@ -512,69 +527,75 @@ def(Offset.min, Offset Offset -- Offset, dup2 <= if(drop, nip))
 # TUPLES #
 ##########
 
-alias(pack-cons, prim-pack-cons)
-alias(pack-uncons, prim-pack-uncons)
+inline(
+    alias(pack-cons, prim-pack-cons)
+    alias(pack-uncons, prim-pack-uncons)
 
-alias(pack0, prim-pack-nil)
-def(pack1, a -- [a], dip(pack0) pack-cons)
-def(pack2, a b -- [a b], dip(pack1) pack-cons)
-def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
-def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
-def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
+    alias(pack0, prim-pack-nil)
+    def(pack1, a -- [a], dip(pack0) pack-cons)
+    def(pack2, a b -- [a b], dip(pack1) pack-cons)
+    def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
+    def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
+    def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
 
-inline:def(unpack0, [] --, drop)
-def(unpack1, [a] -- a, pack-uncons nip)
-def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
-def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
-def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
-def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+    inline:def(unpack0, [] --, drop)
+    def(unpack1, [a] -- a, pack-uncons nip)
+    def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
+    def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
+    def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
+    def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
 
-def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
-    dip:pack-uncons pack-uncons dip:swap
-    dip2:aeq rotl if(beq, drop2 False))
+    def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
+        dip:pack-uncons pack-uncons dip:swap
+        dip2:aeq rotl if(beq, drop2 False))
 
-def(pack0==, [] [] -- Bool, drop2 False)
-def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
-    on2:unpack1 aeq)
-def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
-    pack-cons==(pack1==(aeq), beq))
-def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
-        [a b c] [a b c] -- Bool,
-    pack-cons==(pack2==(aeq,beq), ceq))
-def(pack4==(aeq,beq,ceq,deq),
-        (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
-        [a b c d] [a b c d] -- Bool,
-    pack-cons==(pack3==(aeq,beq,ceq), deq))
+    def(pack0==, [] [] -- Bool, drop2 False)
+    def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
+        on2:unpack1 aeq)
+    def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
+        pack-cons==(pack1==(aeq), beq))
+    def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
+            [a b c] [a b c] -- Bool,
+        pack-cons==(pack2==(aeq,beq), ceq))
+    def(pack4==(aeq,beq,ceq,deq),
+            (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
+            [a b c d] [a b c d] -- Bool,
+        pack-cons==(pack3==(aeq,beq,ceq), deq))
 
-def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
-    unpack2 dip(f) " " ; g)
-def(pack3-show;-contents(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
-    pack-uncons dip(pack2-show;-contents(f,g)) " " ; h)
-def(pack4-show;-contents(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
-    pack-uncons dip(pack3-show;-contents(f,g,h)) " " ; i)
+    def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+        unpack2 dip(f) " " ; g)
+    def(pack3-show;-contents(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+        pack-uncons dip(pack2-show;-contents(f,g)) " " ; h)
+    def(pack4-show;-contents(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+        pack-uncons dip(pack3-show;-contents(f,g,h)) " " ; i)
 
-def(pack2-show;(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
-    pack2-show;-contents(f,g) " pack2" ;)
-def(pack3-show;(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
-    pack3-show;-contents(f,g,h) " pack3" ;)
-def(pack4-show;(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
-    pack4-show;-contents(f,g,h,i) " pack4" ;)
+    def(pack2-show;(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+        pack2-show;-contents(f,g) " pack2" ;)
+    def(pack3-show;(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+        pack3-show;-contents(f,g,h) " pack3" ;)
+    def(pack4-show;(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+        pack4-show;-contents(f,g,h,i) " pack4" ;)
+)
 
-alias(@, prim-mut-get)
-alias(!, prim-mut-set)
-alias(mut-is-set, prim-mut-is-set)
-def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
-def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
-    dup mut-is-set if(
-        @,
-        dip(f dup) !
-    ))
+inline(
+    alias(@, prim-mut-get)
+    alias(!, prim-mut-set)
+    alias(mut-is-set, prim-mut-is-set)
+    def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
+    def(memoize(f), (*a -- *a t) *a Mut(t) -- *a t,
+        dup mut-is-set if(
+            @,
+            dip(f dup) !
+        ))
+)
 def(@?, Mut(t) -- Maybe(t),
     dup mut-is-set if(@ Some, drop None))
 
-def(panic!, *a Str -- *b, prim-panic)
-def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
-    f if(id, g panic!))
-def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
-    expect!(f,g "assertion failed: " swap prim-str-cat))
+inline(
+    def(panic!, *a Str -- *b, prim-panic)
+    def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
+        f if(id, g panic!))
+    def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
+        expect!(f,g "assertion failed: " swap prim-str-cat))
+)
 def(todo!, *a -- *b, "TODO" panic!)
