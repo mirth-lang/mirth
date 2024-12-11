@@ -1970,21 +1970,6 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         )
         c99-line("}" put)
         C99RT_BOOL pop-to-local! rdrop
-
-        # end-branch!
-        # c99-line("while(1) {" put)
-        # c99-nest(
-        #     start-branch!
-        #     swap c99-arg-run!
-        #     C99RT_BOOL pop-to-local! >+cond
-        #     end-branch!
-        #     c99-line("if (!" put +cond> C99RT_BOOL consume-as put ") break;" put)
-        #     start-branch!
-        #     c99-arg-run!
-        #     end-branch!
-        # )
-        # c99-line("}" put)
-        # start-branch!
     }
     { PRIM_CORE_RUN ->
         assert!(dup args empty?, "expected no arguments to prim-core-run") drop
