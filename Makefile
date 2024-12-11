@@ -1,6 +1,6 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
  -Wno-unused-value -Wno-unused-but-set-variable -Wno-missing-braces -Wno-overlength-strings \
- -Wno-sometimes-initialized -Wno-infinite-recursion -Werror -pedantic -O0 -fmax-errors=9 \
+ -Wno-sometimes-uninitialized -Wno-infinite-recursion -Werror -pedantic -O0 -fmax-errors=9 \
  -Wno-unused-command-line-argument
 
 CC=gcc $(C99FLAGS)
