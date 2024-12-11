@@ -945,26 +945,26 @@ static uint64_t str_size (STR* s) {
 	return n;
 }
 
-static VAL mut_get (VAL mut) {
-	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
-	VAL v = *(VAL*)VPTR(mut);
+static VAL mut_get (void* mut) {
+	EXPECT(mut, "invalid pointer in prim-mut-get");
+	VAL v = *(VAL*)mut;
 	EXPECT(v.tag, "tried to read uninitialized value");
 	incref(v);
 	return v;
 }
 
-static void mut_set (VAL newval, VAL mut) {
-	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
-	VAL oldval = *(VAL*)VPTR(mut);
-	*(VAL*)VPTR(mut) = newval;
+static void mut_set (VAL newval, void* mut) {
+	EXPECT(mut, "invalid pointer in prim-mut-set");
+	VAL oldval = *(VAL*)mut;
+	*(VAL*)mut = newval;
 	if (oldval.tag) {
 		decref(oldval);
 	}
 }
 
-static bool mut_is_set (VAL mut) {
-	ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
-	VAL val = *(VAL*)VPTR(mut);
+static bool mut_is_set (void* mut) {
+	EXPECT(mut, "invalid pointer in prim-mut-is-set");
+	VAL val = *(VAL*)mut;
 	return (val.tag != 0);
 }
 

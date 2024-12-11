@@ -172,7 +172,7 @@ def c99-variable! [ Variable +C99 -- +C99 ] {
     " = {0};" put line
 }
 def c99-variable-call! [ Variable +C99Branch -- +C99Branch ] {
-    C99RT_PTR push-expression!(+mirth:cname put)
+    C99RT_PTR push-expression!("&" put +mirth:cname put)
 }
 
 def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
@@ -1154,7 +1154,7 @@ def Type.c99-repr [ Type +Mirth -- C99ReprType +Mirth ] {
     { TMorphism -> drop C99RT_VAL }
     { TTensor -> drop C99RT_VAL }
     { TApp -> drop c99-repr }
-    { TMut -> drop C99RT_VAL }
+    { TMut -> drop C99RT_PTR }
     { TValue -> drop C99RT_VAL }
 }
 
@@ -1786,7 +1786,7 @@ def c99-prim-binop? [ Prim -- Maybe(C99BinOp) ] {
     { PRIM_I8_SET  -> "*(int8_t*)"   C99RT_PTR " = " C99RT_I8  ";" True None C99BinOp.Mk Some }
     { PRIM_PTR_SET -> "*(void**)"    C99RT_PTR " = " C99RT_PTR ";" True None C99BinOp.Mk Some }
 
-    { PRIM_MUT_SET -> "mut_set(" C99RT_VAL ", " C99RT_VAL ");" False None C99BinOp.Mk Some }
+    { PRIM_MUT_SET -> "mut_set(" C99RT_VAL ", " C99RT_PTR ");" False None C99BinOp.Mk Some }
 
     { _ -> drop None }
 }
@@ -1845,8 +1845,8 @@ def c99-prim-unop? [ Prim -- Maybe(C99UnOp) ] {
 
     { PRIM_STR_BASE -> "str_base(" C99RT_STR ")" C99RT_PTR Some C99UnOp.Mk Some }
     { PRIM_STR_NUM_BYTES -> "str_size(" C99RT_STR ")" C99RT_U64 Some C99UnOp.Mk Some }
-    { PRIM_MUT_GET -> "mut_get(" C99RT_VAL ")" C99RT_VAL Some C99UnOp.Mk Some }
-    { PRIM_MUT_IS_SET -> "mut_is_set(" C99RT_VAL ")" C99RT_BOOL Some C99UnOp.Mk Some }
+    { PRIM_MUT_GET -> "mut_get(" C99RT_PTR ")" C99RT_VAL Some C99UnOp.Mk Some }
+    { PRIM_MUT_IS_SET -> "mut_is_set(" C99RT_PTR ")" C99RT_BOOL Some C99UnOp.Mk Some }
 
     { _ -> drop None }
 }
