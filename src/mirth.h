@@ -56,7 +56,7 @@ typedef uint16_t TAG;
 #define TAG_F64 5
 #define TAG_TUP_NIL TUP_FLAG
 #define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
-#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (n))
+#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (TAG)(n))
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
@@ -911,7 +911,7 @@ static void* ptr_alloc (uint64_t n) {
 
 static void* ptr_realloc (void* p, uint64_t n) {
 	EXPECT((n > 0) && ((uint64_t)n <= SIZE_MAX), "invalid size in prim-ptr-realloc");
-	void* p2 = realloc(p, n);
+	void* p2 = realloc(p, (size_t)n);
 	EXPECT(p2, "failed to reallocate in prim-ptr-realloc");
 	return p2;
 }
