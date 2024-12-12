@@ -91,7 +91,7 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
     trace-diagnostics!
 
     num-errors 0> if(
-        num-errors rdip:trace(FGRed emit; show; " errors." ; Reset emit;) 1 posix-exit!,
+        num-errors rdip:trace(FGRed emit; show ; " errors." ; Reset emit;) 1 posix-exit!,
         rdip:trace(FGGreen emit; "No errors." ; Reset emit;),
     )
 

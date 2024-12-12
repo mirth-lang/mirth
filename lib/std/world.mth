@@ -41,7 +41,7 @@ def(+World.stderr(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +
 
 external(posix-stat -> stat [+Unsafe CStr Ptr -- +Unsafe CInt])
 def(+World.is-directory?, +World Path -- +World Bool,
-    256 >Size +Buffer.new
+    256u >USize +Buffer.new
     >Str with-cstr(
         base unsafe(posix-stat) >Int
         0= if(base unsafe(st_mode@) S_ISDIR, False)
@@ -65,8 +65,8 @@ def(S_ISDIR, U16 -- Bool, S_IFMT & S_IFDIR ==)
 
 def(st_mode@, Ptr +Unsafe -- U16 +Unsafe,
     RUNNING_OS match(
-        OS_LINUX -> 24, # .. this is all terrible and brittle
-        OS_WINDOWS -> 6,
-        OS_MACOS -> RUNNING_ARCH ARCH_ARM64 == if(4, 8),
-        _ -> drop 8
-    ) >Offset swap offset @U16)
+        OS_LINUX -> 24u, # .. this is all terrible and brittle
+        OS_WINDOWS -> 6u,
+        OS_MACOS -> RUNNING_ARCH ARCH_ARM64 == if(4u, 8u),
+        _ -> drop 8u
+    ) >UOffset swap uoffset @U16)

@@ -285,7 +285,7 @@ data SDL_PixelFormat {
 
 
 # Size of SDL_Event structure.
-def SDL_EVENT_SIZE [ Size ] { 56 >Size }
+def SDL_EVENT_SIZE [ USize ] { 56 .u >USize }
 
 data(SDL_Event, SDL_Event -> Ptr)
 
@@ -379,16 +379,16 @@ inline(
 
 data(SDL_KeyboardEvent, SDL_KeyboardEvent -> Ptr)
 def(SDL_Event.key, SDL_Event -- SDL_KeyboardEvent, /SDL_Event SDL_KeyboardEvent)
-def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(4 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(4u >UOffset) unsafe(uoffset))
 def(SDL_KeyboardEvent.timestamp@, SDL_KeyboardEvent -- U32, timestamp& unsafe(@U32))
 def(SDL_KeyboardEvent.timestamp!, U32 SDL_KeyboardEvent --, timestamp& unsafe(!U32))
-def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(8 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(8u >UOffset) unsafe(uoffset))
 def(SDL_KeyboardEvent.windowID@, SDL_KeyboardEvent -- U32, windowID& unsafe(@U32))
 def(SDL_KeyboardEvent.windowID!, U32 SDL_KeyboardEvent --, windowID& unsafe(!U32))
-def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(12 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(12u >UOffset) unsafe(uoffset))
 def(SDL_KeyboardEvent.state@, SDL_KeyboardEvent -- U8, state& unsafe(@U8))
 def(SDL_KeyboardEvent.state!, U8 SDL_KeyboardEvent --, state& unsafe(!U8))
-def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(13 >Offset) unsafe(offset))
+def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(13u >UOffset) unsafe(uoffset))
 def(SDL_KeyboardEvent.repeat@, SDL_KeyboardEvent -- U8, repeat& unsafe(@U8))
 def(SDL_KeyboardEvent.repeat!, U8 SDL_KeyboardEvent --, repeat& unsafe(!U8))
 
@@ -397,7 +397,7 @@ def(Ptr.>SDL_Keysym, Ptr -- SDL_Keysym, WRAP_SDL_KEYSYM)
 def(SDL_Keysym.unwrap, SDL_Keysym -- Ptr, WRAP_SDL_KEYSYM -> id)
 def(SDL_Keysym.>Ptr, SDL_Keysym -- Ptr, unwrap)
 def(SDL_KeyboardEvent.keysym, SDL_KeyboardEvent -- SDL_Keysym,
-    /SDL_KeyboardEvent dip(16 >Offset) unsafe(offset) >SDL_Keysym)
+    /SDL_KeyboardEvent dip(16u >UOffset) unsafe(uoffset) >SDL_Keysym)
 
 def(SDL_Keysym.scancode&, SDL_Keysym -- Ptr, unwrap)
 def(SDL_Keysym.scancode@, SDL_Keysym -- SDL_Scancode, scancode& unsafe(@U16) >SDL_Scancode)
@@ -410,14 +410,14 @@ def(SDL_ControllerButtonEvent.>Ptr,  SDL_ControllerButtonEvent -- Ptr, unwrap)
 def(SDL_Event.cbutton, SDL_Event -- SDL_ControllerButtonEvent,
     /SDL_Event >SDL_ControllerButtonEvent)
 def(SDL_ControllerButtonEvent.which&, SDL_ControllerButtonEvent -- Ptr,
-    dip(8 >Offset) >Ptr unsafe(offset))
+    dip(8u >UOffset) >Ptr unsafe(uoffset))
 def(SDL_ControllerButtonEvent.which@, SDL_ControllerButtonEvent -- SDL_JoystickID,
     which& unsafe(@I32) >SDL_JoystickID)
 def(SDL_ControllerButtonEvent.which!, SDL_JoystickID SDL_ControllerButtonEvent --,
     dip(>I32) which& unsafe(!I32))
 
 def(SDL_ControllerButtonEvent.button&, SDL_ControllerButtonEvent -- Ptr,
-    dip(12 >Offset) >Ptr unsafe(offset))
+    dip(12u >UOffset) >Ptr unsafe(uoffset))
 def(SDL_ControllerButtonEvent.button@, SDL_ControllerButtonEvent -- SDL_GameControllerButton,
     button& unsafe(@I8) >SDL_GameControllerButton)
 def(SDL_ControllerButtonEvent.button!, SDL_GameControllerButton SDL_ControllerButtonEvent --,

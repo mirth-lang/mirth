@@ -113,8 +113,8 @@ struct +Mirth {
 }
 
 def +Mirth.Init! {
-    0 >Nat >num-errors
-    0 >Nat >num-warnings
+    0u >num-errors
+    0u >num-warnings
     False >prefer-inline-defs
     Builtin.Alloc! >builtin
     None >mirth-base-path

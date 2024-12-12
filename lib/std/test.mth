@@ -78,8 +78,8 @@ data(+Tests, +Tests ->
 def(+Tests.start!, +World -- +Tests,
     ||| Construct the [+Tests] resource, begin the unit tests.
     >+world
-    0 >Nat >num-tests
-    0 >Nat >num-failed
+    0u >num-tests
+    0u >num-failed
     +Tests)
 def(+Tests.end!, +Tests -- +World,
     ||| End the unit tests and destruct the [+Tests] resource.
@@ -87,11 +87,11 @@ def(+Tests.end!, +Tests -- +World,
     ||| or "9 tests passed." If any of the tests failed, this word
     ||| exits the program with exit code 1.
     num-failed 0> if(
-        Str(rdip:num-failed show; " out of " ;
-            rdip:num-tests show; " tests failed." ;)
+        Str(rdip:num-failed show ; " out of " ;
+            rdip:num-tests show ; " tests failed." ;)
         +world(print 1 posix-exit!),
 
-        Str(rdip:num-tests show; " tests passed." ;)
+        Str(rdip:num-tests show ; " tests passed." ;)
         +world:print
     )
     /+Tests +world>
@@ -177,8 +177,8 @@ def(+Test.check-equals-4!(f1,f2,f3,f4,g1,g2,g3,g4),
 
 def(Int.=>(f), (-- Int) Int +Test -- +Test,
     f check-equals!(==, show;))
-def(Nat.=>(f), (-- Int) Nat +Test -- +Test,
-    f >Nat check-equals!(==, show;))
+def(Nat.=>(f), (-- Nat) Nat +Test -- +Test,
+    f check-equals!(==, show;))
 def(Bool.=>(f), (-- Bool) Bool +Test -- +Test,
     f check-equals!(==, show;))
 def(Str.=>(f), (-- Str) Str +Test -- +Test,

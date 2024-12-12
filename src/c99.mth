@@ -59,10 +59,10 @@ def(+C99.line, +C99 -- +C99, +output:line)
 
 def(c99-start!, Arrow C99_Options +World +Mirth -- Arrow +World +C99,
     >options
-    0 >Nat >depth
-    0 >Nat >fresh-counter
+    0u >depth
+    0u >fresh-counter
     +Needs.new dup determine-arrow-needs! >+needs >+mirth
-    @options output-path create-file! unwrap! +Output.start! >+output
+    @options output-path create-file! unwrap!(+mirth> fatal-error!) +Output.start! >+output
     +C99)
 
 def(c99-end!, +World +C99 -- +World +Mirth,
@@ -73,7 +73,7 @@ def(c99-end!, +World +C99 -- +World +Mirth,
     +mirth>)
 
 def +C99.reset-fresh-counter! [ +C99 -- +C99 ] {
-    0 >Nat fresh-counter!
+    0u fresh-counter!
 }
 
 def +C99.fresh-nat! [ +C99 -- Nat +C99 ] {
@@ -244,17 +244,17 @@ def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
                     C99RT_VAL label> pop-to-local-label! consume-as-VAL
                 )
                 c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-                @i:1-
+                @i:pred
             )
             @tag num-resource-inputs repeat(
                 C99RT_VAL pop-to-local-resource! consume-as-VAL
                 c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-                @i:1-
+                @i:pred
             )
             @tag num-type-inputs repeat(
                 C99RT_VAL pop-to-local! consume-as-VAL
                 c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-                @i:1-
+                @i:pred
             )
             i> drop
             @tag outputs-resource? if(
@@ -343,7 +343,7 @@ def c99-tag-def! [ Tag +C99 -- +C99 ] {
 
 def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
     over num-total-inputs 1+
-    over2 label-inputs reverse-find(dip(1- over) ==) drop
+    over2 label-inputs reverse-find(dip(pred over) ==) drop
     dip:drop2)
 
 def c99-tag-get-label! [ Tag Label +C99Branch -- +C99Branch ] {
@@ -532,14 +532,14 @@ def(c99-external-def!, External +C99 -- +C99,
                 )
             )
             drop
-            @arg-index:1-
+            @arg-index:pred
         )
 
         c99-line(
             @outty for(ctype cname put " Y = " put)
             @ext symbol put "(" put
 
-            1 >Nat !arg-index
+            1u !arg-index
             @cty dom parts filter-some(
                 dup ctype phantom? if(drop None, c99-arg-name Some)
                 @arg-index:1+
@@ -585,13 +585,13 @@ def(CTypeStackPart.c99-push, Str CTypeStackPart +C99Branch -- +C99Branch,
     CTSPWithLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put))
 
 inline (
-    def(+C99.c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, depth:1+ f depth:1-)
+    def(+C99.c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, depth:1+ f depth:pred)
     def(+C99.c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
     def +C99Branch.c99-line(f) [ (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch ]
         { +core:c99-line(f) }
     def +C99Branch.c99-nest(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Branch -- *b +C99Branch ]
-        { +core:depth:1+ f +core:depth:1- }
+        { +core:depth:1+ f +core:depth:pred }
 )
 def(+C99.indent, +C99 -- +C99, depth repeat("\t" put))
 
@@ -683,7 +683,7 @@ def +C99.stack-type-to-c99-api-params [ StackType +C99 -- Bool List(C99APIArg) +
 
 def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
     >type >cname
-    1 >Nat with-fresh-counter (
+    1u with-fresh-counter (
         @type dom stack-type-to-c99-api-params >in-params
         @type cod stack-type-to-c99-api-params
         dup /L1 >return-param
@@ -961,7 +961,7 @@ def(c99-f64!, F64 +C99Branch -- +C99Branch,
 
 def c99-str! [ Str +C99Branch -- +C99Branch ] {
     C99RT_STR new-local! >+str
-    dup num-bytes 4090 >Size > if(
+    dup num-bytes 4090 .u >USize > if(
         c99-line("STRLIT(" put @+str:rdup consume put "," put)
         c99-nest(
             c99-line(dup put-cstr-long "," put)
@@ -1624,7 +1624,7 @@ inline (
     }
 
     def +C99BranchSplit.c99-line(f) { +core:c99-line(f) }
-    def +C99BranchSplit.c99-nest(f) { +core:depth:1+ f +C99BranchSplit.+core:depth:1- }
+    def +C99BranchSplit.c99-nest(f) { +core:depth:1+ f +C99BranchSplit.+core:depth:pred }
 )
 
 struct +C99Branch {

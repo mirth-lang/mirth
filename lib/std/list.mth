@@ -49,7 +49,7 @@ def(List.>List+, List(t) -- Maybe(List+(t)),
     Nil -> None, _ -> List+Unsafe Some)
 
 def(List.len, List(t) -- Nat,
-    0 >Nat swap for(drop 1+))
+    0u swap for(drop 1+))
 
 inline(
     def(List.cons, t List(t) -- List(t), Cons)

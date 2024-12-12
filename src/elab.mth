@@ -347,7 +347,7 @@ inline(
 
 def +ResolveDef.filter-arity [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
     token num-args filter(
-        dup2 rdip:arity arity-compatible?,
+        dup2 rdip:arity dip(>Int) arity-compatible?,
         RD_WRONG_ARITY
     ) drop
 }
@@ -642,7 +642,7 @@ def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word 
         _ ->
             drop
     )
-    @word arity >Nat repeat(
+    @word arity repeat(
         @dom(
             MetaVar.new! STMeta
             MetaVar.new! STMeta T-> >Type T*
@@ -682,13 +682,13 @@ def ab-optimized-snoc! [ List(Atom) Atom -- List(Atom) ] {
 
 def atom-accepts-args? [ Atom -- Atom Bool ] {
     dup op match(
-        OpWord -> dip(dup args len >Int) arity <,
+        OpWord -> dip(dup args len) arity <,
         OpPrim ->
             match(
-                PRIM_CORE_DIP -> dup args len 1 >Nat <,
-                PRIM_CORE_RDIP -> dup args len 1 >Nat <,
-                PRIM_CORE_IF -> dup args len 2 >Nat <,
-                PRIM_CORE_WHILE -> dup args len 2 >Nat <,
+                PRIM_CORE_DIP -> dup args len 1u <,
+                PRIM_CORE_RDIP -> dup args len 1u <,
+                PRIM_CORE_IF -> dup args len 2u <,
+                PRIM_CORE_WHILE -> dup args len 2u <,
                 _ -> drop False
             ),
         _ -> drop False
@@ -1457,7 +1457,7 @@ def elab-data-header! [ Data SyntaxDataHeader +Mirth -- Data +Mirth ] {
         else(@head "Expected type name." emit-fatal-error!)
     elab-def-head
     @head Some @data ~head? !
-    arity> @data ~arity !
+    arity> >Int @data ~arity !
     name> @data ~name !
     @data DataQName >label Prop @data ~qname !
     @head args @data DataParams prop(elab-data-params!) @data ~params !
@@ -1516,7 +1516,7 @@ def elab-data-tag! [ Data SyntaxDataTag +Mirth -- Data +Mirth ] {
     dat>
 }
 
-def data-word-new! [ +Mirth Data Str Int -- +Mirth Word ] {
+def data-word-new! [ +Mirth Data Str Nat -- +Mirth Word ] {
     dup >arity
     over >Name >name
     dip2(dup head? unwrap dup >body >head)
@@ -1530,7 +1530,7 @@ def data-word-new! [ +Mirth Data Str Int -- +Mirth Word ] {
 def elab-data-done! [ +Mirth Data -- +Mirth ] {
     >dat
     @dat is-value-type? then (
-        @dat "tag" 0 data-word-new! >tag
+        @dat "tag" 0u data-word-new! >tag
         @dat params >Ctx
         @dat data-get-tag-type
         @tag WordType prop2 @tag ~ctx-type !
@@ -1541,7 +1541,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
     )
 
     @dat is-enum? then (
-        @dat "from-tag-unsafe" 0 data-word-new! >ftag
+        @dat "from-tag-unsafe" 0u data-word-new! >ftag
         Ctx0 TYPE_INT T1 @dat TData T1 T->
         @ftag WordType prop2 @ftag ~ctx-type !
         @ftag ab-build-word!(
@@ -1552,7 +1552,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
 
     @dat tags /L1 for(
         >tag
-        @dat "/" @tag name >Str cat 0 data-word-new! >untag
+        @dat "/" @tag name >Str cat 0u data-word-new! >untag
         @untag Some @tag ~untag !
         @tag @untag WordType prop(ctx-type unpack swap T-> pack2) @untag ~ctx-type !
         @tag @untag WordArrow prop(
@@ -1661,9 +1661,9 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
     @tag label-inputs reverse-for(
         >lbl
         @dat @lbl name 0 data-qname undefined-soft? then(
-            @dat @lbl >Str 0 data-word-new! >lbl_get
-            @dat @lbl >Str "!" cat 0 data-word-new! >lbl_set
-            @dat @lbl >Str 1 data-word-new! >lbl_lens
+            @dat @lbl >Str 0u data-word-new! >lbl_get
+            @dat @lbl >Str "!" cat 0u data-word-new! >lbl_set
+            @dat @lbl >Str 1u data-word-new! >lbl_lens
 
             @lbl_get make-inline!
             @tag @lbl @lbl_get WordType prop2(
@@ -1761,7 +1761,7 @@ def parse-alias [ +Mirth Token -- +Mirth Token head:Token target:Token ] {
 
 ||| Elaborate an alias declaration.
 def elab-alias! [ +Mirth Token -- +Mirth Token ] {
-    parse-alias elab-def-head Alias.new!
+    parse-alias elab-def-head @arity:>Int Alias.new!
     dup AliasQName >label Prop over ~qname !
 
     target> over dup AliasTarget prop2(
@@ -1794,7 +1794,7 @@ def elab-alias! [ +Mirth Token -- +Mirth Token ] {
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def elab-def-missing! [ +Mirth Token -- +Mirth Token ] {
-    dup args len 3 >Nat < then("def-missing expects at least three arguments" emit-fatal-error!)
+    dup args len 3u < then("def-missing expects at least three arguments" emit-fatal-error!)
     dup succ succ elab-def-qname defined-hard? if(next, elab-def!)
 }
 
@@ -1830,7 +1830,7 @@ def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ]
         next,
 
         sip(next)
-        dup args dup len 3 >Nat <
+        dup args dup len 3u <
             then(drop
                  "def(...) expects at least three arguments"
                  emit-fatal-error!)
@@ -2018,7 +2018,7 @@ def elab-external-def! [ +Mirth head:Token symbol:Maybe(Token) sig:Token -- +Mir
 
     External.alloc! >external
     name> @external ~name !
-    arity> @external ~arity !
+    arity> >Int @external ~arity !
     @external ExternalQName >label Prop @external ~qname !
     symbol> @external ~symbol !
     sig> @external ~sig !
@@ -2040,7 +2040,7 @@ def elab-def-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
         dup cod parts
         filter(label? none?)
         filter(ctype phantom? not)
-        len 1 >Nat > then(
+        len 1u > then(
             "External has too many outputs." error!
         )
 
@@ -2067,8 +2067,8 @@ def elab-def-type! [ +Mirth Token -- +Mirth Token ] {
 def elab-buffer! [ +Mirth Token -- +Mirth Token ] {
     sip(next) args-2
     swap dup elab-def-qname-undefined
-    rotl dup int? unwrap("expected buffer size" emit-fatal-error!) nip
-    >Size Buffer.new! drop
+    rotl dup int? unwrap("expected buffer size" emit-fatal-error!)
+    >USize(nip, drop "buffer size must not be negative" emit-error! 0u >USize) Buffer.new! drop
 }
 
 ||| Elaborate a var declaration `var(v, type)`.
@@ -2113,7 +2113,7 @@ def elab-embed-str! [ Token +World +Mirth -- Token +World +Mirth ] {
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
     dup >body None >sig?
     dup str? unwrap("expected source path" emit-fatal-error!)
-    >Path rdip(open-file! unwrap! read-file! close-file! nip >contents)
+    >Path >+mirth open-file! unwrap!(+mirth> fatal-error!) read-file! close-file! nip >contents +mirth>
     Word.new!
     dup WordQName >label Prop over ~qname !
 
@@ -2132,15 +2132,15 @@ def typecheck-everything! [ +Mirth -- +Mirth ] {
 # TABLE #
 #########
 
-def TABLE_MAX_COUNT { 0x80000 >Nat }
+def TABLE_MAX_COUNT { 0x80000 .u }
 
 def table-qname [ Table Str Int -- QName ] {
     >arity >Name >name TYCON_TABLE NAMESPACE_TYCON >namespace MKQNAME
 }
 
-def table-word-new! [ +Mirth Table Str Int -- +Mirth Word ] {
+def table-word-new! [ +Mirth Table Str Nat -- +Mirth Word ] {
     over2 head dup >head >body None >sig?
-    dup >arity over >Name >name table-qname >qname Word.new!
+    dup >arity over >Name >name >Int table-qname >qname Word.new!
     qname> over WordQName prop over ~qname !
 }
 
@@ -2153,7 +2153,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @tbl DefTable register
 
     # Table.MAX
-    @tbl "MAX" 0 table-word-new! >word
+    @tbl "MAX" 0u table-word-new! >word
 
     L0 Ctx
     T0 TYPE_INT T1 T->
@@ -2166,7 +2166,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     ) drop
 
     # Table.nil
-    @tbl "nil" 0 table-word-new! >word
+    @tbl "nil" 0u table-word-new! >word
 
     L0 Ctx
     T0 @tbl TTable T1 T->
@@ -2182,11 +2182,11 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     # Table.NUM
     @tbl head
     @tbl "NUM" 0 table-qname
-    8 >Size Buffer.new!
+    8u >USize Buffer.new!
     @tbl ~num-buffer !
 
     # Table.index
-    @tbl "index" 0 table-word-new! >word
+    @tbl "index" 0u table-word-new! >word
 
     L0 Ctx
     @tbl TTable T1 TYPE_INT T1 T->
@@ -2199,7 +2199,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     ) drop
 
     # Table.from-index
-    @tbl "from-index" 0 table-word-new! >word
+    @tbl "from-index" 0u table-word-new! >word
 
     L0 Ctx
     @tbl TTable T1 TYPE_INT T1 swap T->
@@ -2212,7 +2212,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     ) drop
 
     # Table.succ
-    @tbl "succ" 0 table-word-new! >word
+    @tbl "succ" 0u table-word-new! >word
 
     L0 Ctx
     @tbl TTable T1 dup T->
@@ -2234,7 +2234,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     ) drop
 
     # Table.pred
-    @tbl "pred" 0 table-word-new! >word
+    @tbl "pred" 0u table-word-new! >word
 
     L0 Ctx
     @tbl TTable T1 dup T->
@@ -2258,7 +2258,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     { +Mirth tbl:Table }
 
     # Table.for
-    @tbl "for" 1 table-word-new! >word
+    @tbl "for" 1u table-word-new! >word
     TYPE_STACK "*a" >Name Var.new! >va
     @va STVar @tbl TTable T* @va STVar T-> >Type "f" >Name Var.new-auto-run! >vx
 
@@ -2297,7 +2297,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     va> vx> drop2
 
     # Table.alloc!
-    @tbl "alloc!" 0 table-word-new! >word
+    @tbl "alloc!" 0u table-word-new! >word
 
     L0 Ctx
     T0 @tbl TTable T1 T->
@@ -2362,8 +2362,8 @@ def def-visible-from-token? [ Token Def -- Bool ] {
 def elab-def-qname [ +Mirth Token -- +Mirth QName ] {
     dup name-or-dname? unwrap("expected name" emit-fatal-error!)
     match(
-        Left -> >name dup .module NAMESPACE_MODULE >namespace num-args >arity MKQNAME,
-        Right -> over num-args elab-qname-from-nonrelative-dname
+        Left -> >name dup .module NAMESPACE_MODULE >namespace num-args >Int >arity MKQNAME,
+        Right -> over num-args >Int elab-qname-from-nonrelative-dname
     )
 }
 
@@ -2379,7 +2379,7 @@ def elab-def-qname-undefined [ +Mirth Token -- +Mirth QName ] {
 ||| we collect arity and (simple) name data from the head token.
 def elab-def-head [
     +Mirth head:Token --
-    +Mirth head:Token name:Name arity:Int state:PropState(QName)
+    +Mirth head:Token name:Name arity:Nat state:PropState(QName)
 ] {
     @head name-or-dname?
         unwrap(@head "expected name" emit-fatal-error!)

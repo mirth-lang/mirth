@@ -230,9 +230,9 @@ def(Token.args-0, Token +Mirth -- +Mirth,
 ||| Verify that token has 1 arg, and return it.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-1, Token +Mirth -- Token +Mirth,
-    dup num-args 1 == if(
+    dup num-args 1u = if(
         args-start succ,
-        dup num-args 1 < if(
+        dup num-args 1u < if(
             "expected 1 arg, got none" emit-fatal-error!,
             "expected 1 arg, got too many" emit-fatal-error!
         )
@@ -241,10 +241,10 @@ def(Token.args-1, Token +Mirth -- Token +Mirth,
 ||| Verify that token has 2 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-2, Token +Mirth -- Token Token +Mirth,
-    dup num-args 2 == if(
+    dup num-args 2u = if(
         args-start succ
         dup next-arg-end succ,
-        dup num-args 2 < if(
+        dup num-args 2u < if(
             "expected 2 args, got too few" emit-fatal-error!,
             "expected 2 args, got too many" emit-fatal-error!
         )
@@ -253,24 +253,24 @@ def(Token.args-2, Token +Mirth -- Token Token +Mirth,
 ||| Verify that token has 3 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-3, Token +Mirth -- Token Token Token +Mirth,
-    dup num-args 3 == if(
+    dup num-args 3u = if(
         args-start succ
         dup next-arg-end succ
         dup next-arg-end succ,
-        dup num-args 3 < if(
+        dup num-args 3u < if(
             "expected 3 args, got too few" emit-fatal-error!,
             "expected 3 args, got too many" emit-fatal-error!
         )
     ))
 
 ||| Get number of arguments or number of components in enclosed token.
-def(Token.num-args, Token -- Int,
+def(Token.num-args, Token -- Nat,
     args-start dup left-enclosure? if(
-        dip(0)
+        dip(0u)
         while(dup args-end? not,
             dip(1+) succ next-arg-end)
         drop,
-        drop 0
+        drop 0u
     ))
 
 ||| Get List of token args.
@@ -314,7 +314,7 @@ def(Token.run-tokens, Token -- List(Token),
     collect-while(dup run-end? not, sip(next)) nip)
 
 def(Token.run-length, Token -- Nat,
-    dip(0 >Nat) while(dup run-end? not, next dip(1+)) drop)
+    dip(0u) while(dup run-end? not, next dip(1+)) drop)
 
 def(Token.run-arrow?, Token -- Maybe(Token),
     run-tokens find(arrow?))
@@ -340,11 +340,11 @@ def(Token.sig-arity, Token -- Nat Nat,
         drop,
 
         sig-count-types
-        drop 0 >Nat swap
+        drop 0u swap
     ))
 
 def(Token.sig-count-types, Token -- Nat Token,
-    0 >Nat swap while(dup sig-stack-end? not,
+    0u swap while(dup sig-stack-end? not,
         dup sig-type? then(dip(1+))
         next
     ))

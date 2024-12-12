@@ -12,73 +12,78 @@ import(std.file)
 # Input #
 #########
 
-data(+InputOpenState, +InputOpenState ->
-    length: Size
-    offset: Offset
-    +file: +File
-    +buffer: +Buffer)
+struct +InputOpenState {
+    length: USize
+    offset: UOffset
+    +file:   +File
+    +buffer: +Buffer
+}
+
+def +InputOpenState.end! [ +InputOpenState -- +File ] {
+    /+InputOpenState
+    length> offset> drop2
+    +buffer> rdrop
+    +file>
+}
 
 data(+Input,
     +InputOpen -> +InputOpenState,
     +InputDone -> +File)
 
-def(INPUT_BUFFER_SIZE, Size, 0x2000 >Size)
+def(INPUT_BUFFER_SIZE, USize, 0x2000 .u >USize)
 
 def(+Input.start!, +File -- +Input,
     >+file
     INPUT_BUFFER_SIZE +Buffer.new >+buffer
-    0 >Size >length
-    0 >Offset >offset
-    +InputOpenState fill-buffer!)
+    0u >USize   >length
+    0u >UOffset >offset
+    +InputOpenState refill-buffer!)
 
 def(+Input.stop!, +Input -- +Input,
     end! +InputDone)
 
 def(+Input.end!, +Input -- +File,
-    +InputOpen -> /+InputOpenState +buffer> rdrop length> offset> drop2 +file>,
+    +InputOpen -> end!,
     +InputDone -> id)
 
 def(+Input.done?, +Input -- Bool +Input,
     +InputOpen -> False +InputOpen,
     +InputDone -> True +InputDone)
 
-def(+InputOpenState.fill-buffer!, +InputOpenState -- +Input,
+def +InputOpenState.refill-buffer! [ +InputOpenState -- +Input ] {
     +buffer(base size) +file:unsafe-read! dup 0> if(
         length!
-        0 >Offset offset!
+        0u >UOffset offset!
         +InputOpen,
-        drop +InputOpen stop!
-    ))
+        drop end! +InputDone
+    )
+}
 
 ||| Return the current char in the input buffer.
-||| Panics if file is exhausted.
+||| Returns NUL if the file is already exhausted.
 def(+Input.peek, +Input -- Byte +Input,
     +InputOpen -> offset +buffer:@U8 >Byte +InputOpen,
-    +InputDone -> "error: no more input" panic!)
+    +InputDone -> BNUL +InputDone)
 
 ||| Move to next char in input buffer.
-||| Panics if file is exhausted.
-def(+Input.move!, +Input -- +Input,
-    +InputOpen -> offset:1+ prepare-for-more!,
-    +InputDone -> "error: no more input" panic!)
+||| Does nothing if the file is already exhausted.
+def +Input.move! [ +Input -- +Input ] {
+    { +InputOpen -> length:pred offset:1+ prepare-for-more! }
+    { +InputDone -> +InputDone }
+}
 
-||| Refill input buffer.
+||| Refill input buffer if empty.
 def(+InputOpenState.prepare-for-more!, +InputOpenState -- +Input,
-    offset length >Offset >= if(
-        fill-buffer!,
-        +InputOpen
-    ))
+    length 0= if(refill-buffer!, +InputOpen))
 
 ||| Read a chunk of input.
-def(+Input.read-chunk!, +Input -- Maybe(Str) +Input,
-    +InputOpen ->
-        offset
-        length offset >Int >Size -
-        +buffer:@Str
-        fill-buffer!
-        Some,
-    +InputDone ->
-        None +InputDone)
+def +Input.read-chunk! [ +Input -- Maybe(Str) +Input ] {
+    { +InputOpen ->
+        offset length +buffer:@Str Some
+        refill-buffer! }
+    { +InputDone ->
+        None +InputDone }
+}
 
 ||| Read the whole file.
 def(+Input.read-file!, +Input -- Str +Input,

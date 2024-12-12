@@ -1060,12 +1060,12 @@ def(StackType.rigidify!, +Mirth Ctx StackType -- +Mirth Ctx StackType,
     STWithLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) STWithLabel)
 
 def(StackType.num-morphisms-on-top, StackType -- Nat,
-    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0 >Nat),
-    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0 >Nat),
+    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0u),
+    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0u),
     STWith -> drop num-morphisms-on-top,
     STConsLabel -> drop2 num-morphisms-on-top,
     STWithLabel -> drop2 num-morphisms-on-top,
-    _ -> drop 0 >Nat)
+    _ -> drop 0u)
 
 ##############
 # Arrow TYPE #

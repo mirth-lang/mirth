@@ -67,7 +67,7 @@ def(ArgpOption.usage;, +ArgumentParser(a) +Str ArgpOption -- +ArgumentParser(a) 
 ||| Check if the currently parsed argument is something we accept
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over flag-type match(
-        Short -> 0 >Offset rotl byte@ ==,
+        Short -> 0u >UOffset rotl byte@ ==,
         _ -> drop drop False
     ))
 
@@ -99,9 +99,9 @@ def(check-long-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) Arg
 
 ||| Parse either a short or long flag
 def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    dup num-bytes 2 >Size >= and(1 >Offset over byte@ B'-' ==) if(
-        2 >Size over unsafe(drop-bytes) parse-flags-where(check-long-flag),
-        1 >Size over unsafe(drop-bytes) parse-flags-where(check-short-flag)
+    dup num-bytes 2u >USize >= and(1u >UOffset over byte@ B'-' ==) if(
+        2u >USize over unsafe(drop-bytes) parse-flags-where(check-long-flag),
+        1u >USize over unsafe(drop-bytes) parse-flags-where(check-short-flag)
     ) swap drop)
 
 ||| Parse a positional argument, advancing the current index
@@ -132,8 +132,8 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
     )
 
     state State.argv for(
-        dup num-bytes 1 >Size > if(
-            0 >Offset over byte@ B'-' == if(
+        dup num-bytes 1u >USize > if(
+            0u >UOffset over byte@ B'-' == if(
                 # if in the middle of currently parsing an option when we shouldn't be,
                 # turn it off, otherwise error because need an option value
                 state parsing? if(
@@ -182,7 +182,10 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
     rdrop)
 
 def(read-from-argv, +Unsafe Int -- Str +Unsafe,
-    Ptr.sizeof >Int * >Size >Offset argv offset @Ptr CPtr CStr >Str)
+    >UIndex(
+        |Ptr| * argv uoffset @Ptr CPtr CStr >Str,
+        drop ""
+    ))
 
 def(argv-to-str, -- List(Str),
     1 to(argc 1-) map(unsafe:read-from-argv))

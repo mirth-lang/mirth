@@ -9,17 +9,17 @@ import(mirth.mirth)
 # mirth/data/buffer
 table(Buffer)
 field(Buffer.~head, Buffer, Token)
-field(Buffer.~size, Buffer, Size)
+field(Buffer.~size, Buffer, USize)
 field(Buffer.~qname, Buffer, QName)
 
 def(Buffer.head, Buffer -- Token, ~head @)
-def(Buffer.size, Buffer -- Size, ~size @)
+def(Buffer.size, Buffer -- USize, ~size @)
 def(Buffer.qname, Buffer -- QName, ~qname @)
 def(Buffer.name, Buffer -- Name, qname name)
 
 def(Buffer.==, Buffer Buffer -- Bool, both(index) ==)
 
-def(Buffer.new!, +Mirth Token QName Size -- +Mirth Buffer,
+def(Buffer.new!, +Mirth Token QName USize -- +Mirth Buffer,
     Buffer.alloc!
     tuck ~size !
     tuck ~qname !

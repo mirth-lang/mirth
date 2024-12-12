@@ -143,7 +143,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             None >sig?
             @word body >body
             @key >Name >name
-            0 >arity
+            0u >arity
             Word.new! >word'
 
             @word NAMESPACE_WORD @key >Name QNAME0 @word' WordQName prop @word' ~qname !

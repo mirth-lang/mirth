@@ -14,9 +14,7 @@ data(+File, +File ->
     owned: Bool)
 
 data(+File?, +FileOk -> +File, +FileErr -> Str)
-def +File?.unwrap! [ +File? -- +File ] {
-    unwrap!(panic!)
-}
+def +File?.unwrap-or-panic! [ +File? -- +File ] { unwrap!(panic!) }
 inline(
     def +File?.unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
         { +FileOk -> id }
@@ -68,16 +66,15 @@ def(+File.close-file!, +World +File -- +World,
         file-descriptor> drop
     ))
 
-def(+File.unsafe-write!, Ptr Size +File -- +File,
+def(+File.unsafe-write!, Ptr USize +File -- +File,
     dip2(file-descriptor) dup dip(>Int posix-write!)
-    dip(expect!(dup 0< not, "write failed") >Size)
+    dip(>USize(id, "write failed" panic!))
     expect!(dup2 ==, "write output fewer bytes than expected")
     drop2)
 
-def(+File.unsafe-read!, Ptr Size +File -- Size +File,
+def(+File.unsafe-read!, Ptr USize +File -- USize +File,
     dip2(file-descriptor) >Int posix-read!
-    expect!(dup 0< not, "read failed")
-    >Size)
+    >USize(id, "read failed" panic!))
 
 def(+File.read-file!, +File -- Str +File,
     +Input.start!

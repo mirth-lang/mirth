@@ -64,11 +64,11 @@ def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
 def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     >tag >inputs >value >name
 
-    @tag .data name> 0 data-word-qname @tag ~qname !
+    @tag .data name> 0u data-word-qname @tag ~qname !
     value> @tag ~value !
 
     @inputs len @tag ~num-type-inputs !
-    0 >Nat @tag ~num-resource-inputs !
+    0u @tag ~num-resource-inputs !
     L0 @tag ~label-inputs !
 
     @tag .data params >Ctx
@@ -134,8 +134,8 @@ def(init-data!, +Mirth -- +Mirth,
 def(data-qname, Data Name Int -- QName,
     >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
 
-def(data-word-qname, Data Str Int -- QName,
-    dip(>Name) data-qname)
+def(data-word-qname, Data Str Nat -- QName,
+    dip(>Name) >Int data-qname)
 
 ########
 # DATA #
@@ -188,11 +188,11 @@ def(Data.is-transparent?, Data -- Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
             dup tags /L1 match(
-                Some -> dup num-resource-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
+                Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == &&,
                 None -> False,
             ),
             dup tags /L1 match(
-                Some -> dup num-type-inputs 1 >Nat == swap num-total-inputs 1 >Nat == &&,
+                Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == &&,
                 None -> False
             )
         )
@@ -201,7 +201,7 @@ def(Data.is-transparent?, Data -- Bool,
 field(Data.~is-semi-transparent?, Data, Bool)
 def(Data.is-semi-transparent?, Data -- Bool,
     dup ~is-semi-transparent? memoize(
-        dup tags /L1 has(num-total-inputs 1 >Nat ==)
+        dup tags /L1 has(num-total-inputs 1u ==)
     ) nip)
 
 field(Data.~is-resource?, Data, Bool)
@@ -254,9 +254,9 @@ def(Tag.label-inputs-from-sig, Tag -- List(Label),
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
-        over num-resource-inputs-from-sig -
-        swap label-inputs-from-sig len -,
-        drop 0 >Nat
+        over num-resource-inputs-from-sig - .u
+        swap label-inputs-from-sig len - .u,
+        drop 0u
     ))
 
 def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
@@ -264,7 +264,7 @@ def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
         run-tokens filter(could-be-sig-label? not) filter-some(name?)
         filter(or(could-be-resource-var, could-be-resource-con))
         len,
-        0 >Nat
+        0u
     ))
 
 field(Tag.~num-label-inputs, Tag, Nat)
