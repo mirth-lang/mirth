@@ -70,14 +70,14 @@ def(main, +World -- +World,
     )
 
     "len" test (
-        L0 len => ( 0 )
-        1 L1 len => ( 1 )
-        2 3 L2 len => ( 2 )
-        4 5 6 L3 len => ( 3 )
+        L0 len => ( 0u )
+        1 L1 len => ( 1u )
+        2 3 L2 len => ( 2u )
+        4 5 6 L3 len => ( 3u )
 
-        7 L1+ len => ( 1 )
-        8 9 L2+ len => ( 2 )
-        8 7 6 L3+ len => ( 3 )
+        7 L1+ len => ( 1u )
+        8 9 L2+ len => ( 2u )
+        8 7 6 L3+ len => ( 3u )
     )
 
     ">List" test (
