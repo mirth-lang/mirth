@@ -1584,7 +1584,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
                 STConsLabel -> drop nip ctype?,
                 STWith -> nip ctype?,
                 STWithLabel -> drop nip ctype?,
-                _ -> "unexpected tag inputs for transparent data" panic!
+                _ -> "unexpected tag inputs for transparent data" fatal-error!
             ),
             None
         )))
@@ -1594,12 +1594,26 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
 }
 
 ||| Return the tag's output type or resource in context.
+field(Tag.~output-type, Tag, Type/Resource)
 def Tag.output-type [ +Mirth Tag -- +Mirth Type/Resource ] {
-    dup type cod expand match(
-        STCons -> Left dip(drop2),
-        STWith -> Right dip(drop2),
-        _ -> drop dip("Unexpected output type for constructor ") qname >Str cat panic!
+    >tag
+    @tag ~output-type memoize(
+        @tag type cod expand match {
+            { STCons -> nip Left }
+            { STWith -> nip Right }
+            { _ ->
+                drop
+                "Unexpected output type for constructor "
+                @tag qname >Str cat
+                @tag .data head? if-some(swap emit-error!, error!)
+                TYPE_ERROR @tag .data is-resource? if(
+                    Resource Right,
+                    Left
+                )
+            }
+        }
     )
+    tag> drop
 }
 
 ||| Return the tag's output type or resource in context, except for a missing field.
@@ -2390,7 +2404,7 @@ def elab-field! [ +Mirth Token -- +Mirth Token ] {
     Field.alloc! >fld
     name> @fld ~name !
     head> @fld ~head !
-    arity> expect!(dup 0=, "expected arity 0 in elab-field!" panic!) drop
+    arity> 0= else(@fld head "Field cannot take arguments." emit-error!)
     @fld FieldQName >label Prop @fld ~qname !
     index-type> @fld FieldIndexType prop(elab-simple-type-arg!) @fld ~index-type !
     value-type> @fld FieldValueType prop(elab-simple-type-arg!) @fld ~value-type !

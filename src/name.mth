@@ -242,9 +242,11 @@ def(QName.>Str, +Mirth QName -- +Mirth Str, MKQNAME ->
 def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
     dup namespace match(
         NAMESPACE_PACKAGE ->
-            path-or-search unwrap("No path defined for package" panic!)
-        	swap name >Str ".mth" cat >Path join,
-        _ -> drop "expected module name" panic!
+            dup path-or-search
+            unwrap("No path defined for package "
+                swap name >Str fatal-error!)
+        	nip swap name >Str ".mth" cat >Path join,
+        _ -> drop "expected module name in QName.to-module-path" panic!
     ))
 def(QName.mangled, +Mirth QName -- +Mirth Str, MKQNAME ->
     namespace> mangled "_" cat

@@ -4639,6 +4639,7 @@ static uint64_t mw_mirth_table_Table_numZ_buffer (uint64_t x1);
 static int64_t mw_mirth_table_Table_ZEqualZEqual (uint64_t x1, uint64_t x2);
 static int64_t mw_mirth_table_Field_index (uint64_t x1);
 static uint64_t mw_mirth_table_Field_allocZBang (void);
+static uint64_t mw_mirth_table_Field_head (uint64_t x1);
 static uint64_t mw_mirth_table_Field_name (uint64_t x1);
 static VAL mw_mirth_table_Field_qnameZ_soft (uint64_t x1);
 static void mw_mirth_table_Field_qnameZ_hard (VAL x1, uint64_t x2, VAL *x3, VAL *x4);
@@ -5746,8 +5747,8 @@ static void mb_mirth_elab_elabZ_defZBang_2 (void);
 static void mb_mirth_elab_elabZ_defZBang_3 (void);
 static void mb_mirth_elab_elabZ_defZ_typeZBang_2 (void);
 static void mb_mirth_elab_elabZ_variableZBang_1 (void);
+static void mb_mirth_elab_elabZ_fieldZBang_1 (void);
 static void mb_mirth_elab_elabZ_fieldZBang_2 (void);
-static void mb_mirth_elab_elabZ_fieldZBang_3 (void);
 static void mb_mirth_elab_elabZ_dataZ_headerZBang_2 (void);
 static void mb_mirth_elab_elabZ_dataZ_tagZBang_1 (void);
 static void mb_mirth_elab_elabZ_dataZ_doneZBang_5 (void);
@@ -5873,6 +5874,7 @@ static void* mfld_mirth_name_Name_ZTildemangled (uint64_t i);
 static void* mfld_mirth_name_Name_ZTildelabel (uint64_t i);
 static void* mfld_mirth_package_Package_ZTildename (uint64_t i);
 static void* mfld_mirth_package_Package_ZTildepath (uint64_t i);
+static void* mfld_mirth_data_Tag_ZTildeoutputZ_type (uint64_t i);
 static void* mfld_mirth_word_Word_ZTildespZ_checked (uint64_t i);
 static void* mfld_mirth_arrow_Block_ZTildespZ_checked (uint64_t i);
 static void* mfld_mirth_word_Word_ZTildespZ_synthed (uint64_t i);
@@ -6745,6 +6747,14 @@ static void* mfld_mirth_package_Package_ZTildename (uint64_t i) {
 }
 
 static void* mfld_mirth_package_Package_ZTildepath (uint64_t i) {
+	static struct VAL * p = 0;
+	size_t m = 524288;
+	if (! p) { p = calloc(m, sizeof *p); }
+	EXPECT(i<m, "table grew too big");
+	return (void*)(p+i);
+}
+
+static void* mfld_mirth_data_Tag_ZTildeoutputZ_type (uint64_t i) {
 	static struct VAL * p = 0;
 	size_t m = 524288;
 	if (! p) { p = calloc(m, sizeof *p); }
@@ -12183,6 +12193,11 @@ static uint64_t mw_mirth_table_Field_allocZBang (void) {
 	*(uint64_t*)v5 = ((uint64_t)v4);
 	return ((uint64_t)v4);
 }
+static uint64_t mw_mirth_table_Field_head (uint64_t x1) {
+	void* v2 = mfld_mirth_table_Field_ZTildehead(x1);
+	VAL v3 = mut_get(v2);
+	return VU64(v3);
+}
 static uint64_t mw_mirth_table_Field_name (uint64_t x1) {
 	void* v2 = mfld_mirth_table_Field_ZTildename(x1);
 	VAL v3 = mut_get(v2);
@@ -13285,8 +13300,8 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 	if (v5) {
 		VAL v10 = mut_get(v4);
 		x9 = VI64(v10);
-		x8 = x3;
-		x7 = x2;
+		x8 = x2;
+		x7 = x3;
 		x6 = x1;
 	} else {
 		void* v11 = mfld_mirth_data_Data_ZTildelastZ_tagZ_value(x3);
@@ -13318,11 +13333,11 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 		}
 		mut_set(MKI64(x16), v4);
 		x9 = x16;
-		x8 = x15;
-		x7 = x14;
+		x8 = x14;
+		x7 = x15;
 		x6 = x13;
 	}
-	VAL v21 = mw_mirth_data_Data_tags(x8);
+	VAL v21 = mw_mirth_data_Data_tags(x7);
 	VAL v22 = MKI64(0LL /* None */);
 	VAL v23;
 	VAL v24;
@@ -13330,9 +13345,9 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 	incref(v23);
 	int64_t v25 = mw_std_maybe_Maybe_1_someZAsk(v23);
 	VAL v26 = (x6);
-	uint64_t v27 = x7;
-	uint64_t v28 = x8;
-	int64_t v29 = x9;
+	uint64_t v27 = x8;
+	int64_t v28 = x9;
+	uint64_t v29 = x7;
 	VAL v30 = v22;
 	VAL v31 = v24;
 	VAL v32 = v23;
@@ -13340,19 +13355,19 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 	while (((bool)v33)) {
 		VAL v34 = (v26);
 		uint64_t v35 = v27;
-		uint64_t v36 = v28;
-		int64_t v37 = v29;
+		int64_t v36 = v28;
+		uint64_t v37 = v29;
 		VAL v38 = v30;
 		VAL v39 = v31;
 		VAL v40 = v32;
 		VAL v41 = mw_std_maybe_Maybe_1_unwrap(v40);
 		incref(v41);
 		int64_t v42 = mw_mirth_data_Tag_value(VU64(v41));
-		bool v43 = (v42 == v37);
+		bool v43 = (v42 == v36);
 		VAL x44;
 		uint64_t x45;
-		uint64_t x46;
-		int64_t x47;
+		int64_t x46;
+		uint64_t x47;
 		VAL x48;
 		if (v43) {
 			VAL v49 = mtw_std_maybe_Maybe_1_Some(v41);
@@ -13372,8 +13387,8 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 		}
 		VAL x51;
 		uint64_t x52;
-		uint64_t x53;
-		int64_t x54;
+		int64_t x53;
+		uint64_t x54;
 		VAL x55;
 		VAL x56;
 		switch (get_data_tag(x48)) {
@@ -13415,8 +13430,8 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 	decref(v31);
 	VAL x61;
 	uint64_t x62;
-	uint64_t x63;
-	int64_t x64;
+	int64_t x63;
+	uint64_t x64;
 	switch (get_data_tag(v30)) {
 		case 1LL: { // Some
 			VAL v65 = mtp_std_maybe_Maybe_1_Some(v30);
@@ -13437,81 +13452,35 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 			STR* v77;
 			STRLIT(v77, " have the same tag value.", 25);
 			VAL v78 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v77), v76));
-			VAL v79 = mw_mirth_data_Data_headZAsk(v28);
-			VAL x80;
+			VAL v79 = mw_mirth_data_Data_headZAsk(v29);
+			int64_t x80;
 			uint64_t x81;
 			uint64_t x82;
-			int64_t x83;
-			VAL x84;
-			uint64_t x85;
+			VAL x83;
 			switch (get_data_tag(v79)) {
 				case 1LL: { // Some
-					VAL v86 = mtp_std_maybe_Maybe_1_Some(v79);
-					x85 = VU64(v86);
-					x84 = v78;
-					x83 = v29;
-					x82 = v28;
+					VAL v84 = mtp_std_maybe_Maybe_1_Some(v79);
+					VAL v85 = (mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(VU64(v84), v78, v26));
+					x83 = v85;
+					x82 = v29;
 					x81 = v27;
-					x80 = v26;
+					x80 = v28;
 				} break;
 				case 0LL: { // None
-					VAL v87 = VVAL(VTUP(v26)->cells[5]);
-					incref(v87);
-					uint64_t x88;
-					uint64_t x89;
-					int64_t x90;
-					VAL x91;
-					VAL x92;
-					uint64_t x93;
-					switch (get_data_tag(v87)) {
-						case 1LL: { // Some
-							VAL v94 = mtp_std_maybe_Maybe_1_Some(v87);
-							x93 = VU64(v94);
-							x92 = v26;
-							x91 = v78;
-							x90 = v29;
-							x89 = v28;
-							x88 = v27;
-						} break;
-						case 0LL: { // None
-							push_u64(v27);
-							push_u64(v28);
-							push_i64(v29);
-							push_resource(v26);
-							do_panic(VSTR(v78));
-							uint64_t v95 = pop_u64();
-							x93 = v95;
-							VAL r96 = pop_resource();
-							x92 = r96;
-							VAL v97 = pop_value();
-							x91 = v97;
-							int64_t v98 = pop_i64();
-							x90 = v98;
-							uint64_t v99 = pop_u64();
-							x89 = v99;
-							uint64_t v100 = pop_u64();
-							x88 = v100;
-						} break;
-						default: {
-							do_panic(str_make("unexpected fallthrough in match\n", 32));
-						}
-					}
-					x85 = x93;
-					x84 = x91;
-					x83 = x90;
-					x82 = x89;
-					x81 = x88;
-					x80 = x92;
+					VAL v86 = (mw_mirth_mirth_ZPlusMirth_errorZBang(v78, v26));
+					x83 = v86;
+					x82 = v29;
+					x81 = v27;
+					x80 = v28;
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
 				}
 			}
-			VAL v101 = (mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(x85, x84, x80));
-			x64 = x83;
-			x63 = x82;
+			x64 = x82;
+			x63 = x80;
 			x62 = x81;
-			x61 = v101;
+			x61 = x83;
 		} break;
 		case 0LL: { // None
 			x64 = v29;
@@ -13523,14 +13492,14 @@ static VAL mw_mirth_data_Data_addZ_tagZBang (VAL x1, uint64_t x2, uint64_t x3) {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	void* v102 = mfld_mirth_data_Data_ZTildelastZ_tagZ_value(x63);
-	mut_set(MKI64(x64), v102);
-	VAL v103 = mw_mirth_data_Data_tags(x63);
-	VAL v104 = MKI64(0LL /* Nil */);
-	VAL v105 = mtw_std_list_List_1_Cons(MKU64(x62), v104);
-	VAL v106 = mw_std_list_List_1_cat(v103, v105);
-	void* v107 = mfld_mirth_data_Data_ZTildetags(x63);
-	mut_set(v106, v107);
+	void* v87 = mfld_mirth_data_Data_ZTildelastZ_tagZ_value(x64);
+	mut_set(MKI64(x63), v87);
+	void* v88 = mfld_mirth_data_Data_ZTildetags(x64);
+	VAL v89 = mut_get(v88);
+	VAL v90 = MKI64(0LL /* Nil */);
+	VAL v91 = mtw_std_list_List_1_Cons(MKU64(x62), v90);
+	VAL v92 = mw_std_list_List_1_cat(v89, v91);
+	mut_set(v92, v88);
 	return x61;
 }
 static int64_t mw_mirth_data_Data_isZ_enumZ_orZ_unitZAsk (uint64_t x1) {
@@ -30003,8 +29972,7 @@ static VAL mw_mirth_def_Def_register (VAL x1, VAL x2) {
 				STRLIT(v15, "qualified name already has definition: ", 39);
 				STR* v16 = str_cat(v15, VSTR(v14));
 				push_value(x2);
-				push_resource(v13);
-				do_panic(v16);
+				mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(MKSTR(v16), v13);
 				VAL r17 = pop_resource();
 				x12 = r17;
 				VAL v18 = pop_value();
@@ -31026,62 +30994,68 @@ static void mw_mirth_name_QName_toZ_moduleZ_path (VAL x1, int64_t x2, VAL x3, VA
 			VAL v14;
 			mw_mirth_package_Package_pathZ_orZ_search(x2, x3, v11, &v12, &v13, &v14);
 			VAL x15;
-			int64_t x16;
-			VAL x17;
+			uint64_t x16;
+			int64_t x17;
 			VAL x18;
+			VAL x19;
 			switch (get_data_tag(v14)) {
 				case 1LL: { // Some
-					VAL v19 = mtp_std_maybe_Maybe_1_Some(v14);
-					x18 = v19;
-					x17 = v13;
-					x16 = v12;
+					VAL v20 = mtp_std_maybe_Maybe_1_Some(v14);
+					x19 = v20;
+					x18 = v13;
+					x17 = v12;
+					x16 = v11;
 					x15 = x1;
 				} break;
 				case 0LL: { // None
-					STR* v20;
-					STRLIT(v20, "No path defined for package", 27);
+					STR* v21;
+					STRLIT(v21, "No path defined for package ", 28);
+					uint64_t v22 = mw_mirth_package_Package_name(v11);
+					VAL v23 = mw_mirth_name_Name_ZToStr(v22);
 					push_value(x1);
 					push_resource(MKI64(v12));
-					push_resource(v13);
-					do_panic(v20);
-					VAL v21 = pop_value();
-					x18 = v21;
-					VAL r22 = pop_resource();
-					x17 = r22;
-					int64_t r23 = VI64(pop_resource());
-					x16 = r23;
+					push_str(v21);
+					mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(v23, v13);
 					VAL v24 = pop_value();
-					x15 = v24;
+					x19 = v24;
+					VAL r25 = pop_resource();
+					x18 = r25;
+					int64_t r26 = VI64(pop_resource());
+					x17 = r26;
+					uint64_t v27 = pop_u64();
+					x16 = v27;
+					VAL v28 = pop_value();
+					x15 = v28;
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
 				}
 			}
-			uint64_t v25 = VU64(VTUP(x15)->cells[2]);
+			uint64_t v29 = VU64(VTUP(x15)->cells[2]);
 			decref(x15);
-			VAL v26 = mw_mirth_name_Name_ZToStr(v25);
-			STR* v27;
-			STRLIT(v27, ".mth", 4);
-			STR* v28 = str_cat(VSTR(v26), v27);
-			VAL v29 = mw_std_path_Path_join(x18, MKSTR(v28));
-			x10 = v29;
-			x9 = x17;
-			x8 = x16;
+			VAL v30 = mw_mirth_name_Name_ZToStr(v29);
+			STR* v31;
+			STRLIT(v31, ".mth", 4);
+			STR* v32 = str_cat(VSTR(v30), v31);
+			VAL v33 = mw_std_path_Path_join(x19, MKSTR(v32));
+			x10 = v33;
+			x9 = x18;
+			x8 = x17;
 		} break;
 		default: {
 			decref(v7);
-			STR* v30;
-			STRLIT(v30, "expected module name", 20);
+			STR* v34;
+			STRLIT(v34, "expected module name in QName.to-module-path", 44);
 			push_resource(MKI64(x2));
 			push_resource(x3);
 			push_value(x1);
-			do_panic(v30);
-			VAL v31 = pop_value();
-			x10 = v31;
-			VAL r32 = pop_resource();
-			x9 = r32;
-			int64_t r33 = VI64(pop_resource());
-			x8 = r33;
+			do_panic(v34);
+			VAL v35 = pop_value();
+			x10 = v35;
+			VAL r36 = pop_resource();
+			x9 = r36;
+			int64_t r37 = VI64(pop_resource());
+			x8 = r37;
 		} break;
 	}
 	*x6 = x9;
@@ -43316,51 +43290,105 @@ static VAL mw_mirth_elab_elabZ_dataZ_doneZBang (VAL x1, uint64_t x2) {
 	return v106;
 }
 static void mw_mirth_data_Tag_outputZ_type (VAL x1, uint64_t x2, VAL *x3, VAL *x4) {
-	VAL v5;
-	VAL v6;
-	mw_mirth_data_Tag_type(x1, x2, &v5, &v6);
-	VAL v7 = mw_mirth_type_ArrowType_cod(v6);
-	VAL v8 = mw_mirth_type_StackType_expand(v7);
+	void* v5 = mfld_mirth_data_Tag_ZTildeoutputZ_type(x2);
+	bool v6 = mut_is_set(v5);
+	VAL x7;
+	uint64_t x8;
 	VAL x9;
-	VAL x10;
-	switch (get_data_tag(v8)) {
-		case 5LL: { // STCons
-			VAL v11;
-			VAL v12;
-			mtp_mirth_type_StackType_STCons(v8, &v11, &v12);
-			VAL v13 = mtw_std_either_Either_2_Left(v12);
-			decref(v11);
-			x10 = v13;
-			x9 = v5;
-		} break;
-		case 7LL: { // STWith
-			VAL v14;
-			VAL v15;
-			mtp_mirth_type_StackType_STWith(v8, &v14, &v15);
-			VAL v16 = mtw_std_either_Either_2_Right(v15);
-			decref(v14);
-			x10 = v16;
-			x9 = v5;
-		} break;
-		default: {
-			decref(v8);
-			STR* v17;
-			STRLIT(v17, "Unexpected output type for constructor ", 39);
-			VAL v18 = mw_mirth_data_Tag_qname(x2);
-			VAL v19;
-			VAL v20;
-			mw_mirth_name_QName_ZToStr(v5, v18, &v19, &v20);
-			STR* v21 = str_cat(v17, VSTR(v20));
-			push_resource(v19);
-			do_panic(v21);
-			VAL v22 = pop_value();
-			x10 = v22;
-			VAL r23 = pop_resource();
-			x9 = r23;
-		} break;
+	if (v6) {
+		VAL v10 = mut_get(v5);
+		x9 = v10;
+		x8 = x2;
+		x7 = x1;
+	} else {
+		VAL v11;
+		VAL v12;
+		mw_mirth_data_Tag_type(x1, x2, &v11, &v12);
+		VAL v13 = mw_mirth_type_ArrowType_cod(v12);
+		VAL v14 = mw_mirth_type_StackType_expand(v13);
+		uint64_t x15;
+		VAL x16;
+		VAL x17;
+		switch (get_data_tag(v14)) {
+			case 5LL: { // STCons
+				VAL v18;
+				VAL v19;
+				mtp_mirth_type_StackType_STCons(v14, &v18, &v19);
+				decref(v18);
+				VAL v20 = mtw_std_either_Either_2_Left(v19);
+				x17 = v20;
+				x16 = v11;
+				x15 = x2;
+			} break;
+			case 7LL: { // STWith
+				VAL v21;
+				VAL v22;
+				mtp_mirth_type_StackType_STWith(v14, &v21, &v22);
+				decref(v21);
+				VAL v23 = mtw_std_either_Either_2_Right(v22);
+				x17 = v23;
+				x16 = v11;
+				x15 = x2;
+			} break;
+			default: {
+				decref(v14);
+				STR* v24;
+				STRLIT(v24, "Unexpected output type for constructor ", 39);
+				VAL v25 = mw_mirth_data_Tag_qname(x2);
+				VAL v26;
+				VAL v27;
+				mw_mirth_name_QName_ZToStr(v11, v25, &v26, &v27);
+				STR* v28 = str_cat(v24, VSTR(v27));
+				uint64_t v29 = mw_mirth_data_Tag_data(x2);
+				VAL v30 = mw_mirth_data_Data_headZAsk(v29);
+				uint64_t x31;
+				VAL x32;
+				switch (get_data_tag(v30)) {
+					case 1LL: { // Some
+						VAL v33 = mtp_std_maybe_Maybe_1_Some(v30);
+						VAL v34 = (mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(VU64(v33), MKSTR(v28), v26));
+						x32 = v34;
+						x31 = x2;
+					} break;
+					case 0LL: { // None
+						VAL v35 = (mw_mirth_mirth_ZPlusMirth_errorZBang(MKSTR(v28), v26));
+						x32 = v35;
+						x31 = x2;
+					} break;
+					default: {
+						do_panic(str_make("unexpected fallthrough in match\n", 32));
+					}
+				}
+				VAL v36 = MKI64(0LL /* TYPE_ERROR */);
+				uint64_t v37 = mw_mirth_data_Tag_data(x31);
+				int64_t v38 = mw_mirth_data_Data_isZ_resourceZAsk(v37);
+				VAL x39;
+				uint64_t x40;
+				VAL x41;
+				if (((bool)v38)) {
+					VAL v42 = mtw_std_either_Either_2_Right(v36);
+					x41 = v42;
+					x40 = x31;
+					x39 = x32;
+				} else {
+					VAL v43 = mtw_std_either_Either_2_Left(v36);
+					x41 = v43;
+					x40 = x31;
+					x39 = x32;
+				}
+				x17 = x41;
+				x16 = x39;
+				x15 = x40;
+			} break;
+		}
+		incref(x17);
+		mut_set(x17, v5);
+		x9 = x17;
+		x8 = x15;
+		x7 = x16;
 	}
-	*x4 = x10;
-	*x3 = x9;
+	*x4 = x9;
+	*x3 = x7;
 }
 static void mw_mirth_data_Tag_outputZ_typeZ_exceptZ_field (VAL x1, uint64_t x2, uint64_t x3, VAL *x4, VAL *x5) {
 	VAL v6;
@@ -47528,9 +47556,7 @@ static void mw_mirth_elab_elabZ_fieldZBang (VAL x1, uint64_t x2, VAL *x3, uint64
 	VAL x23;
 	VAL x24;
 	uint64_t x25;
-	int64_t x26;
 	if (v19) {
-		x26 = v13;
 		x25 = v15;
 		x24 = v14;
 		x23 = v10;
@@ -47538,55 +47564,39 @@ static void mw_mirth_elab_elabZ_fieldZBang (VAL x1, uint64_t x2, VAL *x3, uint64
 		x21 = v8;
 		x20 = v6;
 	} else {
+		uint64_t v26 = mw_mirth_table_Field_head(v15);
 		STR* v27;
-		STRLIT(v27, "expected arity 0 in elab-field!", 31);
-		push_u64(v6);
-		lpush(&lbl_indexZ_type, MKU64(v8));
-		lpush(&lbl_valueZ_type, MKU64(v9));
-		push_resource(v10);
-		lpush(&lbl_state, v14);
-		lpush(&lbl_fld, MKU64(v15));
-		push_i64(v13);
-		do_panic(v27);
-		STR* v28 = pop_str();
-		do_panic(v28);
-		int64_t v29 = pop_i64();
-		x26 = v29;
-		uint64_t v30 = VU64(lpop(&lbl_fld));
-		x25 = v30;
-		VAL v31 = lpop(&lbl_state);
-		x24 = v31;
-		VAL r32 = pop_resource();
-		x23 = r32;
-		uint64_t v33 = VU64(lpop(&lbl_valueZ_type));
-		x22 = v33;
-		uint64_t v34 = VU64(lpop(&lbl_indexZ_type));
-		x21 = v34;
-		uint64_t v35 = pop_u64();
-		x20 = v35;
+		STRLIT(v27, "Field cannot take arguments.", 28);
+		VAL v28 = (mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v26, MKSTR(v27), v10));
+		x25 = v15;
+		x24 = v14;
+		x23 = v28;
+		x22 = v9;
+		x21 = v8;
+		x20 = v6;
 	}
-	VAL v36 = mtw_mirth_mirth_PropLabel_FieldQName(x25);
-	VAL v37 = mtw_mirth_mirth_Prop_1_Prop(v36, x24);
-	void* v38 = mfld_mirth_table_Field_ZTildeqname(x25);
-	mut_set(v37, v38);
-	VAL v39 = mtw_mirth_mirth_PropLabel_FieldIndexType(x25);
-	FNPTR v40 = &mb_mirth_elab_elabZ_fieldZBang_2;
-	VAL v41;
-	VAL v42;
-	mw_mirth_mirth_PropLabel_prop_1(MKU64(x21), v39, x23, MKFNPTR(v40), &v41, &v42);
-	void* v43 = mfld_mirth_table_Field_ZTildeindexZ_type(x25);
-	mut_set(v41, v43);
-	VAL v44 = mtw_mirth_mirth_PropLabel_FieldValueType(x25);
-	FNPTR v45 = &mb_mirth_elab_elabZ_fieldZBang_3;
-	VAL v46;
-	VAL v47;
-	mw_mirth_mirth_PropLabel_prop_1(MKU64(x22), v44, v42, MKFNPTR(v45), &v46, &v47);
-	void* v48 = mfld_mirth_table_Field_ZTildevalueZ_type(x25);
-	mut_set(v46, v48);
-	VAL v49 = mtw_mirth_def_Def_DefField(x25);
-	VAL v50 = (mw_mirth_def_Def_register(v47, v49));
+	VAL v29 = mtw_mirth_mirth_PropLabel_FieldQName(x25);
+	VAL v30 = mtw_mirth_mirth_Prop_1_Prop(v29, x24);
+	void* v31 = mfld_mirth_table_Field_ZTildeqname(x25);
+	mut_set(v30, v31);
+	VAL v32 = mtw_mirth_mirth_PropLabel_FieldIndexType(x25);
+	FNPTR v33 = &mb_mirth_elab_elabZ_fieldZBang_1;
+	VAL v34;
+	VAL v35;
+	mw_mirth_mirth_PropLabel_prop_1(MKU64(x21), v32, x23, MKFNPTR(v33), &v34, &v35);
+	void* v36 = mfld_mirth_table_Field_ZTildeindexZ_type(x25);
+	mut_set(v34, v36);
+	VAL v37 = mtw_mirth_mirth_PropLabel_FieldValueType(x25);
+	FNPTR v38 = &mb_mirth_elab_elabZ_fieldZBang_2;
+	VAL v39;
+	VAL v40;
+	mw_mirth_mirth_PropLabel_prop_1(MKU64(x22), v37, v35, MKFNPTR(v38), &v39, &v40);
+	void* v41 = mfld_mirth_table_Field_ZTildevalueZ_type(x25);
+	mut_set(v39, v41);
+	VAL v42 = mtw_mirth_def_Def_DefField(x25);
+	VAL v43 = (mw_mirth_def_Def_register(v40, v42));
 	*x4 = x20;
-	*x3 = v50;
+	*x3 = v43;
 }
 static VAL mw_std_map_Map_2_empty (void) {
 	VAL v1 = MKI64(0LL /* Nil */);
@@ -66110,7 +66120,7 @@ static void mb_mirth_elab_elabZ_variableZBang_1 (void) {
 	push_resource(v2);
 	push_value(v3);
 }
-static void mb_mirth_elab_elabZ_fieldZBang_2 (void) {
+static void mb_mirth_elab_elabZ_fieldZBang_1 (void) {
 	VAL r0 = pop_resource();
 	uint64_t v1 = pop_u64();
 	VAL v2;
@@ -66119,7 +66129,7 @@ static void mb_mirth_elab_elabZ_fieldZBang_2 (void) {
 	push_resource(v2);
 	push_value(v3);
 }
-static void mb_mirth_elab_elabZ_fieldZBang_3 (void) {
+static void mb_mirth_elab_elabZ_fieldZBang_2 (void) {
 	VAL r0 = pop_resource();
 	uint64_t v1 = pop_u64();
 	VAL v2;
@@ -66410,9 +66420,8 @@ static void mb_mirth_elab_elabZ_dataZ_doneZBang_12 (void) {
 						STR* v46;
 						STRLIT(v46, "unexpected tag inputs for transparent data", 42);
 						lpush(&lbl_dat, MKU64(v1));
-						push_resource(v22);
 						push_value(v24);
-						do_panic(v46);
+						mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(MKSTR(v46), v22);
 						VAL v47 = pop_value();
 						x27 = v47;
 						VAL r48 = pop_resource();

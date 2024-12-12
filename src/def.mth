@@ -238,7 +238,7 @@ def(Def.as-namespace?, +Mirth Def -- +Mirth Maybe(Namespace),
 def(Def.register, +Mirth Def -- +Mirth,
     dup qname-soft for(
         dup undefined-soft? else(
-            >Str "qualified name already has definition: " swap cat panic!
+            >Str "qualified name already has definition: " swap cat fatal-error!
         ) drop
     )
     dup name ~defs modify(Cons))

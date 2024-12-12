@@ -147,22 +147,23 @@ def(Data.num-tags, Data -- Nat, tags len)
 field(Data.~last-tag-value, Data, Int)
 
 ||| Adds constructor to data type, and gives tag its value.
-def(Data.add-tag!, +Mirth Tag Data -- +Mirth,
-    over ~value memoize(
-        dup ~last-tag-value @? if-some(1+, 0)
+def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
+    >data >tag
+    @tag ~value memoize(
+        @data ~last-tag-value @? if-some(1+, 0)
     )
-    over tags find(value over ==) for(
+    @data tags find(value over ==) for(
         Str("Constructors ";
             name rdip:>Str ;
             " and " ;
-            over2 name rdip:>Str ;
+            @tag name rdip:>Str ;
             " have the same tag value." ;
         )
-        over2 head? unwrap(error-token unwrap(panic!))
-        swap emit-error!
+        @data head? if-some(swap emit-error!, error!)
     )
-    over ~last-tag-value !
-    sip(tags swap List.snoc) ~tags !)
+    @data ~last-tag-value !
+    data> ~tags modify(tag> List.snoc)
+}
 
 def Data.is-enum-or-unit? [ Data -- Bool ] {
     dup is-enum? dip(is-unit?) ||
