@@ -1595,35 +1595,6 @@ static VAL mtp_argZ_parser_types_ArgumentParsingError_MissingArg (VAL x1) {
 	tup_decref_outer(VTUP(x1),2);
 	return v2;
 }
-static VAL mtw_std_lazzy_Lazzy_1_LazzyReady (VAL x1) {
-	TUP* v2 = tup_new(2);
-	v2->size = 2;
-	v2->cells[0] = MKI64(0LL /* LazyReady */);
-	v2->cells[1] = x1;
-	VAL v3 = MKTUP(v2, 2);
-	return v3;
-}
-static VAL mtp_std_lazzy_Lazzy_1_LazzyReady (VAL x1) {
-	VAL v2 = VTUP(x1)->cells[1];
-	tup_decref_outer(VTUP(x1),2);
-	return v2;
-}
-static VAL mtw_std_lazzy_Lazzy_1_LazzyDelay (VAL x1, VAL x2) {
-	TUP* v3 = tup_new(3);
-	v3->size = 3;
-	v3->cells[0] = MKI64(1LL /* LazyDelay */);
-	v3->cells[2] = x2;
-	v3->cells[1] = x1;
-	VAL v4 = MKTUP(v3, 3);
-	return v4;
-}
-static void mtp_std_lazzy_Lazzy_1_LazzyDelay (VAL x1, VAL *x2, VAL *x3) {
-	VAL v4 = VTUP(x1)->cells[1];
-	VAL v5 = VTUP(x1)->cells[2];
-	tup_decref_outer(VTUP(x1),3);
-	*x3 = v5;
-	*x2 = v4;
-}
 static VAL mtw_mirth_tycon_Tycon_TYCONz_DATA (uint64_t x1) {
 	TUP* v2 = tup_new(2);
 	v2->size = 2;
@@ -4566,7 +4537,6 @@ static void mw_argZ_parser_parse_doZ_positionalZ_option (VAL x1, VAL x2, VAL *x3
 static VAL mw_argZ_parser_parse_parseZ_args (VAL x1, VAL x2);
 static void mw_argZ_parser_parse_readZ_fromZ_argv (int64_t x1, int64_t x2, VAL *x3, int64_t *x4);
 static VAL mw_argZ_parser_parse_argvZ_toZ_str (void);
-static VAL mw_std_lazzy_Lazzy_1_forceZBang (void* x1);
 static int64_t mw_mirth_label_Label_index (uint64_t x1);
 static uint64_t mw_mirth_label_Label_allocZBang (void);
 static uint64_t mw_mirth_label_Label_name (uint64_t x1);
@@ -5739,7 +5709,6 @@ static VAL mw_mirth_main_parseZ_packageZ_def (VAL x1);
 static void mw_mirth_main_compilerZ_parseZ_args (VAL x1, VAL x2, VAL x3, VAL x4, VAL *x5, VAL *x6);
 static int64_t mw_mirth_main_main (int64_t x1);
 static void mb_mirth_main_main_1 (void);
-static void mb_std_prim_Str_ZToName_2 (void);
 static void mb_mirth_elab_elabZ_blockZ_atZBang_1 (void);
 static void mb_mirth_elab_elabZ_defZBang_0 (void);
 static void mb_mirth_elab_elabZ_defZBang_2 (void);
@@ -11786,42 +11755,6 @@ static VAL mw_argZ_parser_parse_argvZ_toZ_str (void) {
 	decref(v12);
 	VAL v26 = mw_std_list_List_1_reverse(v11);
 	return v26;
-}
-static VAL mw_std_lazzy_Lazzy_1_forceZBang (void* x1) {
-	VAL v2 = mut_get(x1);
-	VAL x3;
-	switch (get_data_tag(v2)) {
-		case 0LL: { // LazyReady
-			VAL v4 = mtp_std_lazzy_Lazzy_1_LazzyReady(v2);
-			x3 = v4;
-		} break;
-		case 1LL: { // LazyDelay
-			VAL v5;
-			VAL v6;
-			mtp_std_lazzy_Lazzy_1_LazzyDelay(v2, &v5, &v6);
-			VAL v7 = MKI64(2LL /* LazyWait */);
-			mut_set(v7, x1);
-			push_value(v5);
-			run_value(v6);
-			VAL v8 = pop_value();
-			incref(v8);
-			VAL v9 = mtw_std_lazzy_Lazzy_1_LazzyReady(v8);
-			mut_set(v9, x1);
-			x3 = v8;
-		} break;
-		case 2LL: { // LazyWait
-			STR* v10;
-			STRLIT(v10, "recursive thunk dependency", 26);
-			push_ptr(x1);
-			do_panic(v10);
-			VAL v11 = pop_value();
-			x3 = v11;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	return x3;
 }
 static int64_t mw_mirth_label_Label_index (uint64_t x1) {
 	return ((int64_t)x1);
@@ -30381,8 +30314,21 @@ static VAL mw_mirth_name_Name_defs (uint64_t x1) {
 }
 static VAL mw_mirth_name_Name_mangled (uint64_t x1) {
 	void* v2 = mfld_mirth_name_Name_ZTildemangled(x1);
-	VAL v3 = mw_std_lazzy_Lazzy_1_forceZBang(v2);
-	return v3;
+	bool v3 = mut_is_set(v2);
+	uint64_t x4;
+	VAL x5;
+	if (v3) {
+		VAL v6 = mut_get(v2);
+		x5 = v6;
+		x4 = x1;
+	} else {
+		VAL v7 = mw_mirth_name_Name_mangleZ_computeZBang(x1);
+		incref(v7);
+		mut_set(v7, v2);
+		x5 = v7;
+		x4 = x1;
+	}
+	return x5;
 }
 static int64_t mw_mirth_name_Name_ZEqualZEqual (uint64_t x1, uint64_t x2) {
 	int64_t v3 = mw_mirth_name_Name_index(x1);
@@ -30580,16 +30526,12 @@ static uint64_t mw_std_prim_Str_ZToName (VAL x1) {
 			VAL v19 = MKI64(0LL /* Nil */);
 			void* v20 = mfld_mirth_name_Name_ZTildedefs(v17);
 			mut_set(v19, v20);
-			FNPTR v21 = &mb_std_prim_Str_ZToName_2;
-			VAL v22 = mtw_std_lazzy_Lazzy_1_LazzyDelay(MKU64(v17), MKFNPTR(v21));
-			void* v23 = mfld_mirth_name_Name_ZTildemangled(v17);
-			mut_set(v22, v23);
 			x16 = v17;
 		} break;
 		case 1LL: { // Some
-			VAL v24 = mtp_std_maybe_Maybe_1_Some(v15);
+			VAL v21 = mtp_std_maybe_Maybe_1_Some(v15);
 			decref(v6);
-			x16 = VU64(v24);
+			x16 = VU64(v21);
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -66961,11 +66903,6 @@ static void mb_mirth_main_main_1 (void) {
 	mw_mirth_main_compilerZ_parseZ_args(r3, v2, v1, v0, &v4, &v5);
 	push_resource(v4);
 	push_value(v5);
-}
-static void mb_std_prim_Str_ZToName_2 (void) {
-	uint64_t v0 = pop_u64();
-	VAL v1 = mw_mirth_name_Name_mangleZ_computeZBang(v0);
-	push_value(v1);
 }
 static void mb_mirth_elab_elabZ_blockZ_atZBang_1 (void) {
 	uint64_t v0 = pop_u64();

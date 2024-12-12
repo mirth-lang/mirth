@@ -14,7 +14,7 @@ data(+File, +File ->
     owned: Bool)
 
 data(+File?, +FileOk -> +File, +FileErr -> Str)
-def +File?.unwrap-or-panic! [ +File? -- +File ] { unwrap!(panic!) }
+# def +File?.unwrap-or-panic! [ +File? -- +File ] { unwrap!(panic!) }
 inline(
     def +File?.unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
         { +FileOk -> id }

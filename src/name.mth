@@ -4,7 +4,6 @@ import(std.prelude)
 import(std.byte)
 import(std.str)
 import(std.list)
-import(std.lazy)
 import(std.maybe)
 import(std.path)
 import(std.world)
@@ -23,12 +22,12 @@ import(mirth.mirth)
 table(Name)
 field(Name.~Str, Name, Str)
 field(Name.~defs, Name, List(Def))
-field(Name.~mangled, Name, Lazy(Str))
+field(Name.~mangled, Name, Str)
 field(Name.~label, Name, Label)
 
 def(Name.>Str, Name -- Str, ~Str @)
 def(Name.defs, Name -- List(Def), ~defs @)
-def(Name.mangled, Name -- Str, ~mangled force!)
+def(Name.mangled, Name -- Str, dup ~mangled memoize(dup mangle-compute!) nip)
 
 def(Name.==, Name Name -- Bool, both(Name.index) ==)
 
@@ -73,8 +72,7 @@ def(Str.>Name, Str -- Name,
             Name.alloc!
             tuck swap hash-name!
             tuck ~Str !
-            L0 over ~defs !
-            dup delay(mangle-compute!) over ~mangled !,
+            L0 over ~defs !,
         Some ->
             dip(drop2)
     ))
