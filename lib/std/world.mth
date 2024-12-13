@@ -10,8 +10,8 @@ import(std.file)
 import(std.input)
 import(std.output)
 
-def(+World.print-, Str +World -- +World, stdout-file with-data(unsafe-write!) close-file!)
-def(+World.trace-, Str +World -- +World, stderr-file with-data(unsafe-write!) close-file!)
+def(+World.print-, Str +World -- +World, stdout-file with-data:unsafe:write-bytes! drop2 close-file!)
+def(+World.trace-, Str +World -- +World, stderr-file with-data:unsafe:write-bytes! drop2 close-file!)
 
 inline(
     def(+World.print, Str +World -- +World, "\n" cat print-)

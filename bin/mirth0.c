@@ -998,6 +998,10 @@ static VAL lbl_origZ_sizze = MKNIL_C;
 static VAL lbl_origZ_offset = MKNIL_C;
 static VAL lbl_fileZ_descriptor = MKNIL_C;
 static VAL lbl_owned = MKNIL_C;
+static VAL lbl_sliceZ_sizze = MKNIL_C;
+static VAL lbl_sliceZ_base = MKNIL_C;
+static VAL lbl_success = MKNIL_C;
+static VAL lbl_wroteZ_bytes = MKNIL_C;
 static VAL lbl_length = MKNIL_C;
 static VAL lbl_offset = MKNIL_C;
 static VAL lbl_ZPlusbuffer = MKNIL_C;
@@ -4503,10 +4507,10 @@ static int64_t mw_std_posix_posixZ_openZBang (VAL x1, int64_t x2, int64_t x3);
 static void mw_std_prim_ZPlusWorld_openZ_fileZBang (VAL x1, int64_t x2, int64_t *x3, VAL *x4);
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (VAL x1, int64_t x2, int64_t *x3, VAL *x4);
 static void mw_std_prim_ZPlusWorld_stderrZ_file (int64_t x1, int64_t *x2, VAL *x3);
-static int64_t mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void);
+static VAL mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void);
 static int64_t mw_std_file_ZPlusFile_closeZ_fileZBang (int64_t x1, VAL x2);
-static VAL mw_std_file_ZPlusFile_unsafeZ_writeZBang (void* x1, int64_t x2, VAL x3);
-static void mw_std_file_ZPlusFile_unsafeZ_readZBang (void* x1, int64_t x2, VAL x3, int64_t *x4, VAL *x5);
+static void mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* x1, int64_t x2, VAL x3, int64_t x4, int64_t *x5, int64_t *x6, VAL *x7, int64_t *x8);
+static void mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang (void* x1, int64_t x2, VAL x3, int64_t x4, int64_t *x5, int64_t *x6, VAL *x7, int64_t *x8);
 static void mw_std_file_ZPlusFile_readZ_fileZBang (VAL x1, VAL *x2, VAL *x3);
 static int64_t mw_std_prim_ZPlusWorld_traceZ_ (VAL x1, int64_t x2);
 static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (int64_t x1, VAL x2, int64_t *x3, int64_t *x4);
@@ -9219,25 +9223,29 @@ static VAL mw_std_input_ZPlusInputOpenState_refillZ_bufferZBang (VAL x1) {
 	int64_t v4 = VI64(VTUP(v2)->cells[1]);
 	VTUP(x1)->cells[4] = v2;
 	VAL v5 = (VVAL(VTUP(x1)->cells[3]));
-	int64_t v6;
-	VAL v7;
-	mw_std_file_ZPlusFile_unsafeZ_readZBang(v3, v4, v5, &v6, &v7);
-	VTUP(x1)->cells[3] = v7;
-	int64_t v8 = 0LL;
-	bool v9 = (v6 > v8);
-	VAL x10;
-	if (v9) {
-		VTUP(x1)->cells[1] = MKI64(v6);
-		int64_t v11 = 0LL;
-		VTUP(x1)->cells[2] = MKI64(v11);
-		VAL v12 = (mtw_std_input_ZPlusInput_ZPlusInputOpen(x1));
-		x10 = v12;
+	int64_t v6 = (0LL /* +Unsafe */);
+	int64_t v7;
+	int64_t v8;
+	VAL v9;
+	int64_t v10;
+	mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang(v3, v4, v5, v6, &v7, &v8, &v9, &v10);
+	VTUP(x1)->cells[3] = v9;
+	int64_t v11 = 0LL;
+	bool v12 = (v7 > v11);
+	bool v13 = (((bool)v8) && v12);
+	VAL x14;
+	if (v13) {
+		VTUP(x1)->cells[1] = MKI64(v7);
+		int64_t v15 = 0LL;
+		VTUP(x1)->cells[2] = MKI64(v15);
+		VAL v16 = (mtw_std_input_ZPlusInput_ZPlusInputOpen(x1));
+		x14 = v16;
 	} else {
-		VAL v13 = (mw_std_input_ZPlusInputOpenState_endZBang(x1));
-		VAL v14 = (mtw_std_input_ZPlusInput_ZPlusInputDone(v13));
-		x10 = v14;
+		VAL v17 = (mw_std_input_ZPlusInputOpenState_endZBang(x1));
+		VAL v18 = (mtw_std_input_ZPlusInput_ZPlusInputDone(v17));
+		x14 = v18;
 	}
-	return x10;
+	return x14;
 }
 static void mw_std_input_ZPlusInput_peek (VAL x1, int64_t *x2, VAL *x3) {
 	int64_t x4;
@@ -9418,10 +9426,15 @@ static VAL mw_std_output_ZPlusOutput_flushZBang (VAL x1) {
 	VTUP(x1)->cells[3] = v2;
 	int64_t v4 = VI64(VTUP(x1)->cells[1]);
 	VAL v5 = (VVAL(VTUP(x1)->cells[2]));
-	VAL v6 = (mw_std_file_ZPlusFile_unsafeZ_writeZBang(v3, v4, v5));
-	VTUP(x1)->cells[2] = v6;
-	int64_t v7 = 0LL;
-	VTUP(x1)->cells[1] = MKI64(v7);
+	int64_t v6 = (0LL /* +Unsafe */);
+	int64_t v7;
+	int64_t v8;
+	VAL v9;
+	int64_t v10;
+	mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang(v3, v4, v5, v6, &v7, &v8, &v9, &v10);
+	VTUP(x1)->cells[2] = v9;
+	int64_t v11 = 0LL;
+	VTUP(x1)->cells[1] = MKI64(v11);
 	return x1;
 }
 static void mw_std_output_ZPlusOutput_offset (VAL x1, VAL *x2, int64_t *x3) {
@@ -9530,42 +9543,47 @@ static VAL mw_std_output_ZPlusOutput_put (VAL x1, VAL x2) {
 			}
 			VAL r29 = pop_resource();
 			VAL v30 = (VVAL(VTUP(r29)->cells[2]));
-			void* v31 = pop_ptr();
-			VAL v32 = (mw_std_file_ZPlusFile_unsafeZ_writeZBang(v31, x28, v30));
-			VTUP(r29)->cells[2] = v32;
+			int64_t v31 = (0LL /* +Unsafe */);
+			void* v32 = pop_ptr();
+			int64_t v33;
+			int64_t v34;
+			VAL v35;
+			int64_t v36;
+			mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang(v32, x28, v30, v31, &v33, &v34, &v35, &v36);
+			VTUP(r29)->cells[2] = v35;
 			decref(v23);
 			x22 = r29;
 		} else {
-			VAL v33 = pop_value();
-			VAL v34 = (mw_std_output_ZPlusOutput_put(v33, v20));
-			x22 = v34;
+			VAL v37 = pop_value();
+			VAL v38 = (mw_std_output_ZPlusOutput_put(v37, v20));
+			x22 = v38;
 		}
 		x11 = x22;
 	} else {
-		VAL v35 = pop_value();
-		incref(v35);
-		VAL v36;
-		int64_t v37;
-		mw_std_output_ZPlusOutput_offset(v9, &v36, &v37);
-		VAL v38 = (VVAL(VTUP(v36)->cells[3]));
-		VAL v39 = (mw_std_buffer_ZPlusBuffer_ZBangStr(v35, v37, v38));
-		VTUP(v36)->cells[3] = v39;
-		uint64_t v40 = str_size(VSTR(v35));
-		int64_t v41 = 0LL;
-		bool v42 = (((int64_t)v40) < v41);
-		int64_t x43;
-		if (v42) {
-			x43 = v41;
-			push_resource(v36);
+		VAL v39 = pop_value();
+		incref(v39);
+		VAL v40;
+		int64_t v41;
+		mw_std_output_ZPlusOutput_offset(v9, &v40, &v41);
+		VAL v42 = (VVAL(VTUP(v40)->cells[3]));
+		VAL v43 = (mw_std_buffer_ZPlusBuffer_ZBangStr(v39, v41, v42));
+		VTUP(v40)->cells[3] = v43;
+		uint64_t v44 = str_size(VSTR(v39));
+		int64_t v45 = 0LL;
+		bool v46 = (((int64_t)v44) < v45);
+		int64_t x47;
+		if (v46) {
+			x47 = v45;
+			push_resource(v40);
 		} else {
-			x43 = ((int64_t)v40);
-			push_resource(v36);
+			x47 = ((int64_t)v44);
+			push_resource(v40);
 		}
-		VAL r44 = pop_resource();
-		int64_t v45 = VI64(VTUP(r44)->cells[1]);
-		int64_t v46 = i64_add(x43, v45);
-		VTUP(r44)->cells[1] = MKI64(v46);
-		x11 = r44;
+		VAL r48 = pop_resource();
+		int64_t v49 = VI64(VTUP(r48)->cells[1]);
+		int64_t v50 = i64_add(x47, v49);
+		VTUP(r48)->cells[1] = MKI64(v50);
+		x11 = r48;
 	}
 	return x11;
 }
@@ -9627,7 +9645,7 @@ static void mw_std_prim_ZPlusWorld_openZ_fileZBang (VAL x1, int64_t x2, int64_t 
 		STR* v15;
 		STRLIT(v15, "", 0);
 		STR* v16;
-		STRLIT(v16, "failed to open file: ", 21);
+		STRLIT(v16, "Failed to open file: ", 21);
 		VAL v17 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v16), MKSTR(v15)));
 		VAL v18 = (mw_std_prim_Str_showZThen(x1, v17));
 		VAL v19 = (mtw_std_file_ZPlusFileZAsk_ZPlusFileErr(v18));
@@ -9639,33 +9657,54 @@ static void mw_std_prim_ZPlusWorld_openZ_fileZBang (VAL x1, int64_t x2, int64_t 
 }
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (VAL x1, int64_t x2, int64_t *x3, VAL *x4) {
 	incref(x1);
-	int64_t v5 = mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
-	int64_t v6 = 438LL;
-	int64_t v7 = mw_std_posix_posixZ_openZBang(x1, v5, v6);
-	int64_t v8 = 0LL;
-	bool v9 = (v7 > v8);
-	int64_t x10;
-	VAL x11;
-	if (v9) {
-		decref(x1);
-		int64_t v12 = 1LL /* True */;
-		VAL v13 = (mtw_std_file_ZPlusFile_ZPlusFile(v7, v12));
-		VAL v14 = (mtw_std_file_ZPlusFileZAsk_ZPlusFileOk(v13));
-		x11 = v14;
-		x10 = x2;
-	} else {
-		STR* v15;
-		STRLIT(v15, "", 0);
-		STR* v16;
-		STRLIT(v16, "failed to create file: ", 23);
-		VAL v17 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v16), MKSTR(v15)));
-		VAL v18 = (mw_std_prim_Str_showZThen(x1, v17));
-		VAL v19 = (mtw_std_file_ZPlusFileZAsk_ZPlusFileErr(v18));
-		x11 = v19;
-		x10 = x2;
+	VAL v5 = mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
+	int64_t x6;
+	VAL x7;
+	switch (get_data_tag(v5)) {
+		case 1LL: { // Some
+			VAL v8 = mtp_std_maybe_Maybe_1_Some(v5);
+			int64_t v9 = 438LL;
+			int64_t v10 = mw_std_posix_posixZ_openZBang(x1, VI64(v8), v9);
+			int64_t v11 = 0LL;
+			bool v12 = (v10 > v11);
+			int64_t x13;
+			VAL x14;
+			if (v12) {
+				decref(x1);
+				int64_t v15 = 1LL /* True */;
+				VAL v16 = (mtw_std_file_ZPlusFile_ZPlusFile(v10, v15));
+				VAL v17 = (mtw_std_file_ZPlusFileZAsk_ZPlusFileOk(v16));
+				x14 = v17;
+				x13 = x2;
+			} else {
+				STR* v18;
+				STRLIT(v18, "", 0);
+				STR* v19;
+				STRLIT(v19, "Failed to create file: ", 23);
+				VAL v20 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v19), MKSTR(v18)));
+				VAL v21 = (mw_std_prim_Str_showZThen(x1, v20));
+				VAL v22 = (mtw_std_file_ZPlusFileZAsk_ZPlusFileErr(v21));
+				x14 = v22;
+				x13 = x2;
+			}
+			x7 = x14;
+			x6 = x13;
+		} break;
+		case 0LL: { // None
+			decref(x1);
+			decref(x1);
+			STR* v23;
+			STRLIT(v23, "Don't know how to create file on unknown OS.", 44);
+			VAL v24 = (mtw_std_file_ZPlusFileZAsk_ZPlusFileErr(MKSTR(v23)));
+			x7 = v24;
+			x6 = x2;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
 	}
-	*x4 = x11;
-	*x3 = x10;
+	*x4 = x7;
+	*x3 = x6;
 }
 static void mw_std_prim_ZPlusWorld_stderrZ_file (int64_t x1, int64_t *x2, VAL *x3) {
 	int64_t v4 = 2LL;
@@ -9674,35 +9713,35 @@ static void mw_std_prim_ZPlusWorld_stderrZ_file (int64_t x1, int64_t *x2, VAL *x
 	*x3 = v6;
 	*x2 = x1;
 }
-static int64_t mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void) {
+static VAL mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void) {
 	int64_t v1 = RUNNING_OS;
 	int64_t v2 = mw_std_prim_Int_ZToOS(v1);
 	VAL x3;
 	switch (v2) {
 		case 3LL: { // OS_MACOS
 			int64_t v4 = 1537LL;
-			x3 = MKI64(v4);
+			VAL v5 = mtw_std_maybe_Maybe_1_Some(MKI64(v4));
+			x3 = v5;
 		} break;
 		case 2LL: { // OS_LINUX
-			int64_t v5 = 577LL;
-			x3 = MKI64(v5);
+			int64_t v6 = 577LL;
+			VAL v7 = mtw_std_maybe_Maybe_1_Some(MKI64(v6));
+			x3 = v7;
 		} break;
 		case 1LL: { // OS_WINDOWS
-			int64_t v6 = 769LL;
-			x3 = MKI64(v6);
+			int64_t v8 = 769LL;
+			VAL v9 = mtw_std_maybe_Maybe_1_Some(MKI64(v8));
+			x3 = v9;
 		} break;
 		case 0LL: { // OS_UNKNOWN
-			STR* v7;
-			STRLIT(v7, "O_WRONLY|O_CREAT|O_TRUNC on unknown os", 38);
-			do_panic(v7);
-			VAL v8 = pop_value();
-			x3 = v8;
+			VAL v10 = MKI64(0LL /* None */);
+			x3 = v10;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	return VI64(x3);
+	return x3;
 }
 static int64_t mw_std_file_ZPlusFile_closeZ_fileZBang (int64_t x1, VAL x2) {
 	int64_t v3;
@@ -9712,98 +9751,145 @@ static int64_t mw_std_file_ZPlusFile_closeZ_fileZBang (int64_t x1, VAL x2) {
 	if (((bool)v4)) {
 		int64_t v6 = mext_std_posix_externalZ_posixZ_close(v3);
 		int64_t v7 = 0LL;
-		bool v8 = (v6 < v7);
-		bool v9 = !v8;
+		bool v8 = (v6 >= v7);
+		int64_t x9;
 		int64_t x10;
-		int64_t x11;
-		if (v9) {
-			x11 = v6;
-			x10 = x1;
+		if (v8) {
+			x10 = v6;
+			x9 = x1;
 		} else {
-			STR* v12;
-			STRLIT(v12, "failed to close file", 20);
+			STR* v11;
+			STRLIT(v11, "Error while closing file.", 25);
 			push_resource(MKI64(x1));
 			push_i64(v6);
-			do_panic(v12);
-			int64_t v13 = pop_i64();
-			x11 = v13;
-			int64_t r14 = VI64(pop_resource());
-			x10 = r14;
+			do_panic(v11);
+			int64_t v12 = pop_i64();
+			x10 = v12;
+			int64_t r13 = VI64(pop_resource());
+			x9 = r13;
 		}
-		x5 = x10;
+		x5 = x9;
 	} else {
 		x5 = x1;
 	}
 	return x5;
 }
-static VAL mw_std_file_ZPlusFile_unsafeZ_writeZBang (void* x1, int64_t x2, VAL x3) {
-	int64_t v4 = VI64(VTUP(x3)->cells[1]);
-	int64_t v5 = mext_std_posix_externalZ_posixZ_write(v4, x1, x2);
-	int64_t v6 = 0LL;
-	bool v7 = (v5 < v6);
-	VAL x8;
-	int64_t x9;
-	if (v7) {
-		STR* v10;
-		STRLIT(v10, "write failed", 12);
-		push_resource(x3);
-		push_i64(v5);
-		do_panic(v10);
-		int64_t v11 = pop_i64();
-		x9 = v11;
-		VAL r12 = pop_resource();
-		x8 = r12;
-	} else {
-		x9 = v5;
-		x8 = x3;
+static void mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* x1, int64_t x2, VAL x3, int64_t x4, int64_t *x5, int64_t *x6, VAL *x7, int64_t *x8) {
+	int64_t v9 = 1LL /* True */;
+	int64_t v10 = 0LL;
+	int64_t v11 = 0LL;
+	bool v12 = (x2 > v11);
+	bool v13 = (v12 && ((bool)v9));
+	VAL v14 = (x3);
+	int64_t v15 = (x4);
+	void* v16 = x1;
+	int64_t v17 = v10;
+	int64_t v18 = x2;
+	int64_t v19 = v9;
+	bool v20 = v13;
+	while (v20) {
+		VAL v21 = (v14);
+		int64_t v22 = (v15);
+		void* v23 = v16;
+		int64_t v24 = v17;
+		int64_t v25 = v18;
+		int64_t v26 = v19;
+		int64_t v27 = VI64(VTUP(v21)->cells[1]);
+		int64_t v28 = mext_std_posix_externalZ_posixZ_write(v27, v23, v25);
+		int64_t v29 = 0LL;
+		bool v30 = (v28 < v29);
+		int64_t x31;
+		VAL x32;
+		int64_t x33;
+		int64_t x34;
+		void* x35;
+		int64_t x36;
+		if (v30) {
+			int64_t v37 = 0LL /* False */;
+			x36 = v25;
+			x35 = v23;
+			x34 = v22;
+			x33 = v24;
+			x32 = v21;
+			x31 = v37;
+		} else {
+			int64_t v38 = i64_add(v28, v24);
+			void* v39 = (void*)(v28 + (char*)v23);
+			int64_t v40 = i64_sub(v25, v28);
+			int64_t v41 = 0LL;
+			bool v42 = (v40 < v41);
+			int64_t x43;
+			VAL x44;
+			int64_t x45;
+			int64_t x46;
+			void* x47;
+			int64_t x48;
+			if (v42) {
+				int64_t v49 = 0LL;
+				x48 = v49;
+				x47 = v39;
+				x46 = v22;
+				x45 = v38;
+				x44 = v21;
+				x43 = v26;
+			} else {
+				x48 = v40;
+				x47 = v39;
+				x46 = v22;
+				x45 = v38;
+				x44 = v21;
+				x43 = v26;
+			}
+			x36 = x48;
+			x35 = x47;
+			x34 = x46;
+			x33 = x45;
+			x32 = x44;
+			x31 = x43;
+		}
+		int64_t v50 = 0LL;
+		bool v51 = (x36 > v50);
+		bool v52 = (v51 && ((bool)x31));
+		v20 = v52;
+		v19 = x31;
+		v18 = x36;
+		v17 = x33;
+		v16 = x35;
+		v15 = x34;
+		v14 = x32;
 	}
-	bool v13 = (x9 == x2);
-	VAL x14;
+	*x8 = v15;
+	*x7 = v14;
+	*x6 = v19;
+	*x5 = v17;
+}
+static void mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang (void* x1, int64_t x2, VAL x3, int64_t x4, int64_t *x5, int64_t *x6, VAL *x7, int64_t *x8) {
+	int64_t v9 = VI64(VTUP(x3)->cells[1]);
+	int64_t v10 = mext_std_posix_externalZ_posixZ_read(v9, x1, x2);
+	int64_t v11 = 0LL;
+	bool v12 = (v10 < v11);
+	VAL x13;
+	int64_t x14;
 	int64_t x15;
 	int64_t x16;
-	if (v13) {
-		x16 = x2;
-		x15 = x9;
-		x14 = x8;
-	} else {
-		STR* v17;
-		STRLIT(v17, "write output fewer bytes than expected", 38);
-		push_resource(x8);
-		push_i64(x9);
-		push_i64(x2);
-		do_panic(v17);
-		int64_t v18 = pop_i64();
+	if (v12) {
+		int64_t v17 = 0LL;
+		int64_t v18 = 0LL /* False */;
 		x16 = v18;
-		int64_t v19 = pop_i64();
-		x15 = v19;
-		VAL r20 = pop_resource();
-		x14 = r20;
-	}
-	return x14;
-}
-static void mw_std_file_ZPlusFile_unsafeZ_readZBang (void* x1, int64_t x2, VAL x3, int64_t *x4, VAL *x5) {
-	int64_t v6 = VI64(VTUP(x3)->cells[1]);
-	int64_t v7 = mext_std_posix_externalZ_posixZ_read(v6, x1, x2);
-	int64_t v8 = 0LL;
-	bool v9 = (v7 < v8);
-	VAL x10;
-	int64_t x11;
-	if (v9) {
-		STR* v12;
-		STRLIT(v12, "read failed", 11);
-		push_resource(x3);
-		push_i64(v7);
-		do_panic(v12);
-		int64_t v13 = pop_i64();
-		x11 = v13;
-		VAL r14 = pop_resource();
-		x10 = r14;
+		x15 = v17;
+		x14 = x4;
+		x13 = x3;
 	} else {
-		x11 = v7;
-		x10 = x3;
+		int64_t v19 = 1LL /* True */;
+		x16 = v19;
+		x15 = v10;
+		x14 = x4;
+		x13 = x3;
 	}
-	*x5 = x10;
-	*x4 = x11;
+	*x8 = x14;
+	*x7 = x13;
+	*x6 = x16;
+	*x5 = x15;
 }
 static void mw_std_file_ZPlusFile_readZ_fileZBang (VAL x1, VAL *x2, VAL *x3) {
 	VAL v4 = (mw_std_input_ZPlusInput_startZBang(x1));
@@ -9836,13 +9922,18 @@ static int64_t mw_std_prim_ZPlusWorld_traceZ_ (VAL x1, int64_t x2) {
 		push_resource(v4);
 		push_ptr(v5);
 	}
-	VAL r10 = pop_resource();
-	void* v11 = pop_ptr();
-	VAL v12 = (mw_std_file_ZPlusFile_unsafeZ_writeZBang(v11, x9, r10));
+	int64_t v10 = (0LL /* +Unsafe */);
+	VAL r11 = pop_resource();
+	void* v12 = pop_ptr();
+	int64_t v13;
+	int64_t v14;
+	VAL v15;
+	int64_t v16;
+	mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang(v12, x9, r11, v10, &v13, &v14, &v15, &v16);
 	decref(x1);
-	int64_t r13 = VI64(pop_resource());
-	int64_t v14 = (mw_std_file_ZPlusFile_closeZ_fileZBang(r13, v12));
-	return v14;
+	int64_t r17 = VI64(pop_resource());
+	int64_t v18 = (mw_std_file_ZPlusFile_closeZ_fileZBang(r17, v15));
+	return v18;
 }
 static void mw_std_prim_ZPlusWorld_isZ_directoryZAsk (int64_t x1, VAL x2, int64_t *x3, int64_t *x4) {
 	int64_t v5 = 256LL;

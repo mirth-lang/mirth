@@ -757,4 +757,3 @@ inline(
     def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
         expect!(f,g "assertion failed: " swap prim-str-cat))
 )
-def(todo!, *a -- *b, "TODO" panic!)

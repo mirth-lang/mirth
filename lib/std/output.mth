@@ -25,7 +25,7 @@ def(+Output.end!, +Output -- +File,
     +file>)
 
 def(+Output.flush!, +Output -- +Output,
-    +buffer:base size +file:unsafe-write!
+    +buffer:base size +file:unsafe:write-bytes! drop2
     0u >USize size!)
 
 def(+Output.offset, +Output -- +Output UOffset, size >UOffset)
@@ -37,7 +37,7 @@ def(+Output.full?, +Output -- Bool +Output, capacity-remaining 0=)
 def(+Output.put, Str +Output -- +Output,
     dup num-bytes capacity-remaining > if(
         flush! dup num-bytes capacity-total >= if(
-            with-data(+file:unsafe-write!),
+            with-data(+file:unsafe:write-bytes! drop2),
             put
         ),
 

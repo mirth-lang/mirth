@@ -26,32 +26,37 @@ def +InputOpenState.end! [ +InputOpenState -- +File ] {
     +file>
 }
 
-data(+Input,
-    +InputOpen -> +InputOpenState,
-    +InputDone -> +File)
+data +Input {
+    +InputOpen [ +InputOpenState ]
+    +InputDone [ +File ]
+}
 
-def(INPUT_BUFFER_SIZE, USize, 0x2000 .u >USize)
+def INPUT_BUFFER_SIZE [ USize ] { 0x2000 .u >USize }
 
-def(+Input.start!, +File -- +Input,
+def +Input.start! [ +File -- +Input ] {
     >+file
     INPUT_BUFFER_SIZE +Buffer.new >+buffer
     0u >USize   >length
     0u >UOffset >offset
-    +InputOpenState refill-buffer!)
+    +InputOpenState refill-buffer!
+}
 
-def(+Input.stop!, +Input -- +Input,
-    end! +InputDone)
+def +Input.stop! [ +Input -- +Input ] {
+    end! +InputDone
+}
 
-def(+Input.end!, +Input -- +File,
-    +InputOpen -> end!,
-    +InputDone -> id)
+def +Input.end! [ +Input -- +File ] {
+    { +InputOpen -> end! }
+    { +InputDone -> id }
+}
 
-def(+Input.done?, +Input -- Bool +Input,
-    +InputOpen -> False +InputOpen,
-    +InputDone -> True +InputDone)
+def +Input.done? [ +Input -- Bool +Input ] {
+    { +InputOpen -> False +InputOpen }
+    { +InputDone -> True +InputDone }
+}
 
 def +InputOpenState.refill-buffer! [ +InputOpenState -- +Input ] {
-    +buffer(base size) +file:unsafe-read! dup 0> if(
+    +buffer(base size) +file:unsafe:read-bytes! over 0> && if(
         length!
         0u >UOffset offset!
         +InputOpen,
@@ -61,9 +66,10 @@ def +InputOpenState.refill-buffer! [ +InputOpenState -- +Input ] {
 
 ||| Return the current char in the input buffer.
 ||| Returns NUL if the file is already exhausted.
-def(+Input.peek, +Input -- Byte +Input,
-    +InputOpen -> offset +buffer:@U8 >Byte +InputOpen,
-    +InputDone -> BNUL +InputDone)
+def +Input.peek [ +Input -- Byte +Input ] {
+    { +InputOpen -> offset +buffer:@U8 >Byte +InputOpen }
+    { +InputDone -> BNUL +InputDone }
+ }
 
 ||| Move to next char in input buffer.
 ||| Does nothing if the file is already exhausted.
@@ -73,8 +79,9 @@ def +Input.move! [ +Input -- +Input ] {
 }
 
 ||| Refill input buffer if empty.
-def(+InputOpenState.prepare-for-more!, +InputOpenState -- +Input,
-    length 0= if(refill-buffer!, +InputOpen))
+def +InputOpenState.prepare-for-more! [ +InputOpenState -- +Input ] {
+    length 0= if(refill-buffer!, +InputOpen)
+}
 
 ||| Read a chunk of input.
 def +Input.read-chunk! [ +Input -- Maybe(Str) +Input ] {
@@ -86,5 +93,6 @@ def +Input.read-chunk! [ +Input -- Maybe(Str) +Input ] {
 }
 
 ||| Read the whole file.
-def(+Input.read-file!, +Input -- Str +Input,
-    "" while-some(read-chunk!, cat))
+def +Input.read-file! [ +Input -- Str +Input ] {
+    "" while-some(read-chunk!, cat)
+}
