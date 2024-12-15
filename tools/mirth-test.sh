@@ -48,9 +48,9 @@ do
     rm -f "${targetpath}"
     $TMP/mirth --debug "$filepath" -o "${targetpath}"> $TMP/test/mout 2> $TMP/test/merr
     MIRTH_BUILD_FAILED=$?
-    cat $TMP/test/mout | sed 's/^/# mirth-test # mout # /' >> $TMP/test/actual
+    cat $TMP/test/mout | sed 's/\\\\/\//g' | sed 's/^/# mirth-test # mout # /' >> $TMP/test/actual
     # cat $TMP/test/merr | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual
-    cat $TMP/test/merr | egrep ': (error|warning):' | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual
+    cat $TMP/test/merr | egrep ': (error|warning):' | sed 's/\\\\/\//g' | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual
     if [ "$MIRTH_BUILD_FAILED" != "0" ] ; then
         echo "# mirth-test # mret # $MIRTH_BUILD_FAILED" >> $TMP/test/actual
     else
