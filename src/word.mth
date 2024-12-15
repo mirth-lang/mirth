@@ -14,7 +14,7 @@ import(mirth.arrow)
 
 table(Word)
 field(Word.~name, Word, Name)
-field(Word.~arity, Word, Int)
+field(Word.~arity, Word, Nat)
 field(Word.~qname, Word, Prop(QName))
 field(Word.~head, Word, Token)
 field(Word.~sig?, Word, Maybe(Token))
@@ -34,7 +34,7 @@ def(Word.name, Word -- Name, ~name @)
 def(Word.head, Word -- Token, ~head @)
 def(Word.sig?, Word -- Maybe(Token), ~sig? @)
 def(Word.body, Word -- Token, ~body @)
-def(Word.arity, Word -- Int, ~arity @)
+def(Word.arity, Word -- Nat, ~arity @)
 def(Word.params, Word +Mirth -- List(Var) +Mirth, ~params force!)
 def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
 def(Word.inferring-type?, Word -- Bool,
@@ -54,7 +54,7 @@ def Word.make-inline! [ Word -- ] { dip:True ~prefer-inline? ! }
 
 def(Word.new!,
     head:Token sig?:Maybe(Token) body:Token
-    name:Name arity:Int +Mirth -- Word +Mirth,
+    name:Name arity:Nat +Mirth -- Word +Mirth,
     Word.alloc!
     name> over ~name !
     head> over ~head !

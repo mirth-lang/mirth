@@ -68,14 +68,15 @@ def(Match.is-transparent?, Match -- Bool,
         PatOpUnderscore -> True
     )))
 
-def(Match.semi-transparent-tag?, Match -- Maybe(Tag),
+def Match.semi-transparent-tag? [ +Mirth Match -- +Mirth Maybe(SemiTransparentData) ] {
     cases /L1
     bind(pattern atoms /L1)
     bind(op match(
         PatOpTag -> Some,
         _ -> drop None
     ))
-    filter(.data is-semi-transparent?))
+    bind(.data semi-transparent?)
+}
 
 def(Match.unit-tag?, Match -- Maybe(Tag),
     cases /L1

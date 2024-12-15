@@ -10,8 +10,8 @@ import(std.file)
 import(std.input)
 import(std.output)
 
-def(+World.print-, Str +World -- +World, stdout-file with-data(unsafe-write!) close-file!)
-def(+World.trace-, Str +World -- +World, stderr-file with-data(unsafe-write!) close-file!)
+def(+World.print-, Str +World -- +World, stdout-file with-data:unsafe:write-bytes! drop2 close-file!)
+def(+World.trace-, Str +World -- +World, stderr-file with-data:unsafe:write-bytes! drop2 close-file!)
 
 inline(
     def(+World.print, Str +World -- +World, "\n" cat print-)
@@ -41,7 +41,7 @@ def(+World.stderr(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +
 
 external(posix-stat -> stat [+Unsafe CStr Ptr -- +Unsafe CInt])
 def(+World.is-directory?, +World Path -- +World Bool,
-    256 >Size +Buffer.new
+    256u >USize +Buffer.new
     >Str with-cstr(
         base unsafe(posix-stat) >Int
         0= if(base unsafe(st_mode@) S_ISDIR, False)
@@ -54,19 +54,19 @@ def(+World.is-directory?, +World Path -- +World Bool,
 #define S_IFBLK  0060000
 #define S_IFDIR  0040000
 
-def(S_IFMT,   U16, 0xF000 >U16)
-def(S_IFDIR,  U16, 0x4000 >U16)
-def(S_IFBLK,  U16, 0x6000 >U16)
-def(S_IFREG,  U16, 0x8000 >U16)
-def(S_IFLNK,  U16, 0xA000 >U16)
-def(S_IFSOCK, U16, 0xC000 >U16)
+def(S_IFMT,   U16, 0xF000 >U16-unsafe)
+def(S_IFDIR,  U16, 0x4000 >U16-unsafe)
+def(S_IFBLK,  U16, 0x6000 >U16-unsafe)
+def(S_IFREG,  U16, 0x8000 >U16-unsafe)
+def(S_IFLNK,  U16, 0xA000 >U16-unsafe)
+def(S_IFSOCK, U16, 0xC000 >U16-unsafe)
 
 def(S_ISDIR, U16 -- Bool, S_IFMT & S_IFDIR ==)
 
 def(st_mode@, Ptr +Unsafe -- U16 +Unsafe,
     RUNNING_OS match(
-        OS_LINUX -> 24, # .. this is all terrible and brittle
-        OS_WINDOWS -> 6,
-        OS_MACOS -> RUNNING_ARCH ARCH_ARM64 == if(4, 8),
-        _ -> drop 8
-    ) >Offset swap offset @U16)
+        OS_LINUX -> 24u, # .. this is all terrible and brittle
+        OS_WINDOWS -> 6u,
+        OS_MACOS -> RUNNING_ARCH ARCH_ARM64 == if(4u, 8u),
+        _ -> drop 8u
+    ) >UOffset swap uoffset @U16)

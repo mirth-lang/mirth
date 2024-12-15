@@ -6,15 +6,15 @@ import(std.byte)
 import(std.buffer)
 import(std.file)
 
-def(OUTPUT_BUFFER_SIZE, Size, 4096 >Size)
+def(OUTPUT_BUFFER_SIZE, USize, 4096 .u >USize)
 data(+Output, +Output ->
-    size: Size
+    size: USize
     +file: +File
     +buffer: +Buffer)
 
 def(+Output.start!, +File -- +Output,
     >+file
-    0 >Size >size
+    0u >USize >size
     OUTPUT_BUFFER_SIZE +Buffer.new >+buffer
     +Output)
 
@@ -24,20 +24,20 @@ def(+Output.end!, +Output -- +File,
     +buffer> rdrop
     +file>)
 
-def(+Output.offset, +Output -- Offset +Output, size >Offset)
-
 def(+Output.flush!, +Output -- +Output,
-    +buffer:base size +file:unsafe-write!
-    0 >Size size!)
+    +buffer:base size +file:unsafe:write-bytes! drop2
+    0u >USize size!)
 
-def(+Output.capacity-total, +Output -- Size +Output, +buffer:size)
-def(+Output.capacity-remaining, +Output -- Size +Output, capacity-total size -)
-def(+Output.full?, +Output -- Bool +Output, capacity-remaining 0 >Size <=)
+def(+Output.offset, +Output -- +Output UOffset, size >UOffset)
+
+def(+Output.capacity-total, +Output -- USize +Output, +buffer:size)
+def(+Output.capacity-remaining, +Output -- USize +Output, capacity-total size - >USize(id, drop 0u >USize))
+def(+Output.full?, +Output -- Bool +Output, capacity-remaining 0=)
 
 def(+Output.put, Str +Output -- +Output,
     dup num-bytes capacity-remaining > if(
         flush! dup num-bytes capacity-total >= if(
-            with-data(+file:unsafe-write!),
+            with-data(+file:unsafe:write-bytes! drop2),
             put
         ),
 

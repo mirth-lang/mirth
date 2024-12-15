@@ -21,11 +21,12 @@ data(Need,
     NEED_TAGW  -> Tag,
     NEED_TAGP  -> Tag)
 
-def(Need.>Nat, Need -- Nat,
-    NEED_WORD  -> index 4 * >Nat,
-    NEED_BLOCK -> index 4 * 1 + >Nat,
-    NEED_TAGW  -> index 4 * 2 + >Nat,
-    NEED_TAGP  -> index 4 * 3 + >Nat)
+def Need.>Nat [ Need -- Nat ] {
+    { NEED_WORD  -> index .u 4u *      }
+    { NEED_BLOCK -> index .u 4u * 1u + }
+    { NEED_TAGW  -> index .u 4u * 2u + }
+    { NEED_TAGP  -> index .u 4u * 3u + }
+}
 
 #########
 # NEEDS #
@@ -94,8 +95,8 @@ def(+Needs.run-op!, List(Arg) Op +Mirth +Needs -- +Mirth +Needs,
     OpLabelPushR -> drop2,
     OpLabelPopR -> drop2,
     OpDataGetTag -> drop2,
-    OpDataGetLabel -> drop3,
-    OpDataSetLabel -> drop3)
+    OpDataGetLabel -> drop2,
+    OpDataSetLabel -> drop2)
 def(+Needs.run-prim!, List(Arg) Prim +Mirth +Needs -- +Mirth +Needs,
     PRIM_CORE_DIP -> dup /L1 if(run-args!, push-args!),
     PRIM_CORE_RDIP -> dup /L1 if(run-args!, push-args!),

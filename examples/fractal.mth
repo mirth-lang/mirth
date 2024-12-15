@@ -33,8 +33,8 @@ struct +FractalUI {
 
 def +FractalUI.sdl(f) { /+FractalUI f +FractalUI }
 
-def WIDTH { 400 }
-def HEIGHT { 400 }
+def WIDTH { 800 }
+def HEIGHT { 800 }
 def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
 def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC | }
 
@@ -57,7 +57,7 @@ def +FractalUI.Init! [ +World -- +World +FractalUI ] {
 
     SDL_GetWindowSurface >+surface
 
-    256 >Size +Buffer.new >+event-buffer
+    256u >USize +Buffer.new >+event-buffer
 
     +FractalUI
 }
@@ -72,7 +72,7 @@ def +Mandelbrot.loop! [ +World +Mandelbrot -- +World +Mandelbrot ] {
     process-events!
     present!
     while(running,
-        10 >U32 >ticks +platform:sdl:delay!
+        10 u32 >ticks +platform:sdl:delay!
         process-events!
     )
 }

@@ -8,31 +8,38 @@ import(std.input)
 import(std.output)
 import(std.posix)
 import(std.ctypes)
+import(std.maybe)
 
 data(+File, +File ->
     file-descriptor: Int
     owned: Bool)
 
 data(+File?, +FileOk -> +File, +FileErr -> Str)
-def(+File?.unwrap!, +File? -- +File,
-    +FileOk -> id,
-    +FileErr -> panic!)
+inline(
+    def +File?.unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
+        { +FileOk -> id }
+        { +FileErr -> f }
+    }
+)
 
 def(+World.open-file!, Path +World -- +World +File?,
     dup >Str 0 0 posix-open!
     dup 0> if(
         nip >file-descriptor True >owned +File +FileOk,
-        drop Str("failed to open file: " ; >Str show;) +FileErr
+        drop Str("Failed to open file: " ; >Str show;) +FileErr
     ))
 
-def(+World.create-file!, Path +World -- +World +File?,
+def +World.create-file! [ Path +World -- +World +File? ] {
     dup >Str
-    O_WRONLY|O_CREAT|O_TRUNC
-    0o666 posix-open!
-    dup 0> if(
-        nip >file-descriptor True >owned +File +FileOk,
-        drop Str("failed to create file: " ; >Str show;) +FileErr
-    ))
+    O_WRONLY|O_CREAT|O_TRUNC if-some(
+        0o666 posix-open!
+        dup 0> if(
+            nip >file-descriptor True >owned +File +FileOk,
+            drop Str("Failed to create file: " ; >Str show;) +FileErr
+        ),
+        drop2 "Don't know how to create file on unknown OS." +FileErr
+    )
+}
 
 def(+World.stdin-file, +World -- +World +File,
     0 >file-descriptor False >owned +File)
@@ -45,33 +52,68 @@ def(+File.is-stdin?,  +File -- +File Bool, file-descriptor 0=)
 def(+File.is-stdout?, +File -- +File Bool, file-descriptor 1 ==)
 def(+File.is-stderr?, +File -- +File Bool, file-descriptor 2 ==)
 
-def(O_WRONLY|O_CREAT|O_TRUNC, Int,
+def O_WRONLY|O_CREAT|O_TRUNC [ Maybe(Int) ] {
     RUNNING_OS match(
-        OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
-        OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
-        OS_WINDOWS -> 0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
-        OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" panic!
-    ))
+        { OS_MACOS -> 0x601 Some } # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
+        { OS_LINUX -> 0x241 Some } # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
+        { OS_WINDOWS -> 0x301 Some } # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
+        { OS_UNKNOWN -> None }
+    )
+}
 
-def(+File.close-file!, +World +File -- +World,
+||| Close an open file.
+||| This function does not close stdin, stdout, stderr file handles.
+def +File.close-file! [ +World +File -- +World ] {
     /+File owned> if(
         file-descriptor> posix-close!
-        expect!(dup 0< not, "failed to close file")
+        expect!(dup 0 >=, "Error while closing file.")
         drop,
-
         file-descriptor> drop
-    ))
+    )
+}
 
-def(+File.unsafe-write!, Ptr Size +File -- +File,
-    dip2(file-descriptor) dup dip(>Int posix-write!)
-    dip(expect!(dup 0< not, "write failed") >Size)
-    expect!(dup2 ==, "write output fewer bytes than expected")
-    drop2)
+||| Write some bytes to an open file.
+|||
+||| This function will continue trying to write until either all bytes
+||| have been written, or an error has occured, whichever comes first.
+|||
+||| Returns: (# of bytes written) (whether the operation was succesful)
+||| So the possible outcomes are:
+|||
+||| * Nothing has been written and an error occured when trying to write. [ 0 False ]
+||| * Something was written but an error occured before everything could be written. [ m False ]
+||| * Everything was written and no error occured. [ n True ]
+||| * Stuck in a loop trying to write but no bytes are being written and no error occurs.
+def +Unsafe.write-bytes! [ Ptr USize +File +Unsafe -- USize Bool +File +Unsafe ] {
+    >slice-size >slice-base
+    True >success
+    0u >USize >wrote-bytes
+    while(
+        @slice-size 0> @success &&,
 
-def(+File.unsafe-read!, Ptr Size +File -- Size +File,
-    dip2(file-descriptor) >Int posix-read!
-    expect!(dup 0< not, "read failed")
-    >Size)
+        rdip:file-descriptor @slice-base @slice-size >Int posix-write!
+        >USize (
+            dup @wrote-bytes:+
+            dup >UOffset @slice-base:uoffset
+            @slice-size(swap - >USize(id, drop 0u >USize)),
+
+            drop False !success
+        )
+    )
+    slice-size> slice-base> drop2
+    wrote-bytes> success>
+}
+
+||| Read from an open file into a buffer.
+|||
+||| Returns: (# of bytes read) (whether an error has occurred).
+||| The possible outcomes are:
+|||
+||| * File was read from succesfully. [ n True ]
+||| * An error has occurred while trying to read. [ 0 False ]
+def(+Unsafe.read-bytes!, Ptr USize +File +Unsafe -- USize Bool +File +Unsafe,
+    dip2(rdip:file-descriptor) >Int posix-read!
+    >USize(True, drop 0u >USize False))
 
 def(+File.read-file!, +File -- Str +File,
     +Input.start!
@@ -79,17 +121,11 @@ def(+File.read-file!, +File -- Str +File,
     end!)
 
 inline (
-    def(+File.input(f), (*a +Input -- *b +Input) *a +File -- *b +File,
-        file-descriptor dip(
-            +Input.start! f +Input.end!
-        )
-        expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.input(f)")
-        drop)
+    def +File.input(f) [ (*a +Input -- *b +Input) *a +File -- *b +File ] {
+        +Input.start! f +Input.end!
+    }
 
-    def(+File.output(f), (*a +Output -- *b +Output) *a +File -- *b +File,
-        file-descriptor dip(
-            +Output.start! f +Output.end!
-        )
-        expect!(dup file-descriptor ==, "file descriptor changed unexpectedly during +File.output(f)")
-        drop)
+    def +File.output(f) [ (*a +Output -- *b +Output) *a +File -- *b +File ] {
+        +Output.start! f +Output.end!
+    }
 )

@@ -49,7 +49,7 @@ def-missing(+Lexer.lexer-last-token, +Lexer -- +Lexer Token, lexer-last-token)
 
 def(run-lexer!, Path +World +Mirth -- Module +World +Mirth,
     Module.new! dup >lexer-module
-    source-path rdip(open-file! unwrap! +Input.start! >+input)
+    source-path rswap open-file! unwrap!(rswap fatal-error!) +Input.start! >+input rswap
     1 >Row >lexer-row
     1 >Col >lexer-col
     L0 >lexer-stack
@@ -120,7 +120,7 @@ def(lexer-close-colons!, +Lexer -- +Lexer,
 def(lexer-prepare-for-atom!, +Lexer -- +Lexer,
     lexer-last-token lcolon-open? else(lexer-close-colons!))
 def(lexer-prepare-for-args!, +Lexer -- +Lexer,
-    lexer-last-token name-or-dname? else(lexer-close-colons!))
+    lexer-last-token name/dname? else(lexer-close-colons!))
 
 def(lexer-emit-lparen!, +Lexer -- +Lexer,
     TokenLParenOpen lexer-make!
@@ -205,29 +205,20 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
 
 def(+Str.name?, +Str -- Name +Str, dup! >Name)
 
-def(+Str.first-byte, +Str -- Byte +Str, 0 >Offset byte@)
-def(+Str.second-byte, +Str -- Byte +Str, 1 >Offset byte@)
-def(+Str.third-byte, +Str -- Byte +Str, 2 >Offset byte@)
+def(+Str.first-byte, +Str -- Byte +Str, 0u >UOffset byte@)
+def(+Str.second-byte, +Str -- Byte +Str, 1u >UOffset byte@)
+def(+Str.third-byte, +Str -- Byte +Str, 2u >UOffset byte@)
 
-def(+Str.first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2 >Size +Str.take-slice)
+def(+Str.first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2u >USize +Str.take-slice)
 def(+Str.last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe,
-    rdip:num-bytes? >Int 2 > if(
-        rdip:num-bytes? >Offset 1- 1- +Str.drop-slice,
-        rdip:dup!
-    ))
+    rdip:num-bytes? >UOffset pred pred +Str.drop-slice)
 
-def(+Str.drop-first-byte, +Str +Unsafe -- Str +Str +Unsafe, 1 >Offset +Str.drop-slice)
-def(+Str.drop-first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2 >Offset +Str.drop-slice)
+def(+Str.drop-first-byte, +Str +Unsafe -- Str +Str +Unsafe, 1u >UOffset +Str.drop-slice)
+def(+Str.drop-first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2u >UOffset +Str.drop-slice)
 def(+Str.drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
-    rdip:num-bytes? >Int 1 > if(
-        rdip:num-bytes? 1- +Str.take-slice,
-        ""
-    ))
+    rdip:num-bytes? pred +Str.take-slice)
 def(+Str.drop-last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe,
-    rdip:num-bytes? >Int 2 > if(
-        rdip:num-bytes? 1- 1- +Str.take-slice,
-        ""
-    ))
+    rdip:num-bytes? pred pred +Str.take-slice)
 
 def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
     label-push-token?
@@ -292,8 +283,8 @@ def(+Str.is-dashes?, +Str -- Bool +Str,
     dup! "--" ==)
 
 def(+Str.is-float?, +Str -- Bool +Str,
-    0 >Size
-    0 >Offset
+    0u >USize
+    0u >UOffset
 
     dup byte@ is-sign if(1+, id)
 
@@ -302,22 +293,23 @@ def(+Str.is-float?, +Str -- Bool +Str,
     dup byte@ BDOT == if(
         dip(1+) 1+ while(dup byte@ is-digit, dip(1+) 1+)
         swap >Int 3 >= if(
-            num-bytes? >Offset ==,
+            num-bytes? >UOffset ==,
             drop False
         ),
         drop2 False
     )
 )
 
-||| process int sign and return initial state for rest of int lexing.
-||| returns: (sign multiplier) (accumulated value == 0) (str-buf index)
-def(+Str.float-sign, +Str -- Byte Offset +Str,
-    0 >Offset byte@ byte-sign-value-index-float)
+||| Process float sign and return initial state for rest float lexing.
+||| returns: (sign multiplier) (str-buf index)
+def(+Str.float-sign, +Str -- Byte UOffset +Str,
+    0u >UOffset byte@ byte-sign-value-index-float)
 
-def(byte-sign-value-index-float, Byte -- Byte Offset,
-    B'-' -> B'-' 1 >Offset,
-    B'+' -> B'+' 1 >Offset,
-    _ -> drop B'+' 0 >Offset)
+def byte-sign-value-index-float [ Byte -- Byte UOffset ] {
+    { B'-' -> B'-' 1u >UOffset }
+    { B'+' -> B'+' 1u >UOffset }
+    { _ -> drop B'+' 0u >UOffset }
+}
 
 external(
     "double strtod(const char*, char**);"
@@ -328,9 +320,9 @@ external(
 )
 
 def(+Str.float?, +Str -- F64 +Str,
-    "" thaw rswap 0 >Offset
+    "" thaw rswap 0u >UOffset
     float-sign rdip:dip:push-byte-ascii! +
-    while(dup num-bytes? >Offset <,
+    while(dup num-bytes? >UOffset <,
         sip(
             byte@ rdip:push-byte-ascii!
         )
@@ -343,15 +335,15 @@ def(+Str.is-int?, +Str -- Bool +Str,
     or(is-oct-int?))
 
 def(+Str.is-dec-int?, +Str -- Bool +Str,
-    0 >Size # number of digits
-    0 >Offset # current index
+    0u >USize # number of digits
+    0u >UOffset # current index
     dup byte@ is-sign if(1+, id)
     while(dup byte@ is-digit, dip(1+) 1+)
-    swap 0> if(num-bytes? >Offset ==, drop False))
+    swap 0> if(num-bytes? >UOffset ==, drop False))
 
 def(+Str.is-hex-int?, +Str -- Bool +Str,
-    0 >Size # number of digits
-    0 >Offset # current index
+    0u >USize # number of digits
+    0u >UOffset # current index
     dup byte@ is-sign if(
         1+,
         id
@@ -362,7 +354,7 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
             1+
             while(dup byte@ is-hexdigit, dip(1+) 1+)
             swap 0> if(
-                num-bytes? >Offset ==,
+                num-bytes? >UOffset ==,
                 drop False
             ),
 
@@ -373,8 +365,8 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
     ))
 
 def(+Str.is-oct-int?, +Str -- Bool +Str,
-    0 >Size # number of digits
-    0 >Offset # current index
+    0u >USize # number of digits
+    0u >UOffset # current index
     dup byte@ is-sign if(
         1+,
         id
@@ -385,7 +377,7 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
             1+
             while(dup byte@ B'0' B'7' in-range, dip(1+) 1+)
             swap 0> if(
-                num-bytes? >Offset ==,
+                num-bytes? >UOffset =,
                 drop False
             ),
 
@@ -404,24 +396,19 @@ def(+Str.int?, +Str -- Int +Str,
 	)
     ))
 
-def(byte-sign-multiplier, Byte -- Int,
-    B'-' -> -1,
-    B'+' -> +1,
-    _ -> drop "unexpected byte in byte-sign-multiplier" panic!)
-
 ||| process int sign and return initial state for rest of int lexing.
 ||| returns: (sign multiplier) (accumulated value == 0) (str-buf index)
-def(+Str.int-sign, +Str -- Int Int Offset +Str,
-    0 >Offset byte@ byte-sign-value-index)
+def(+Str.int-sign, +Str -- Int Int UOffset +Str,
+    0u >UOffset byte@ byte-sign-value-index)
 
-def(byte-sign-value-index, Byte -- Int Int Offset,
-    B'-' -> -1 0 1 >Offset,
-    B'+' -> +1 0 1 >Offset,
-    _ -> drop +1 0 0 >Offset)
+def(byte-sign-value-index, Byte -- Int Int UOffset,
+    B'-' -> -1 0 1u >UOffset,
+    B'+' -> +1 0 1u >UOffset,
+    _ -> drop +1 0 0u >UOffset)
 
 def(+Str.dec-int?, +Str -- Int +Str,
     int-sign
-    while(dup num-bytes? >Offset <,
+    while(dup num-bytes? >UOffset <,
         sip(
             byte@ >Int
             dip(10 *) 48 - +
@@ -431,7 +418,7 @@ def(+Str.dec-int?, +Str -- Int +Str,
 
 def(+Str.hex-int?, +Str -- Int +Str,
     int-sign 1+ 1+ # skip 0x prefix
-    while(dup num-bytes? >Offset <,
+    while(dup num-bytes? >UOffset <,
         sip(
             byte@
             dip(16 *) hexdigit-value +
@@ -441,7 +428,7 @@ def(+Str.hex-int?, +Str -- Int +Str,
 
 def(+Str.oct-int?, +Str -- Int +Str,
     int-sign 1+ 1+ # skip 0x prefix
-    while(dup num-bytes? >Offset <,
+    while(dup num-bytes? >UOffset <,
         sip(
             byte@ >Int
             dip(8 *) 48 - +

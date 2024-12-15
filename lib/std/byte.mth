@@ -41,8 +41,17 @@ data(Byte,
     BxF8, BxF9, BxFA, BxFB, BxFC, BxFD, BxFE, BxFF)
 
 inline (
-    def(Byte.>Int, Byte -- Int, Byte.tag)
-    def(Byte.>U8, Byte -- U8, >Int >U8)
+    def(Byte.>Int, Byte -- Int, Byte.cons-value)
+    def(Byte.>U8, Byte -- U8, >Int >U8-unsafe)
+
+    def(Int.>Byte-unsafe, Int -- Byte, Byte.from-cons-value-unsafe)
+    def(U8.>Byte, U8 -- Byte, >Int >Byte-unsafe)
+
+    def(Int.>Byte?, Int -- Maybe(Byte),
+        dup 0 255 in-range if(>Byte-unsafe Some, drop None))
+    def(Int.>Byte&, Int -- Byte, >U8& >Byte)
+    def(Int.>Byte(f), (*a Int -- *a Byte) *a Int -- *a Byte,
+        >U8(f >U8) >Byte)
 
     def(Byte.compare, Byte Byte -- Comparison, both(>Int) .compare)
     def(Byte.==,  Byte Byte -- Bool, both(>Int) ==)
@@ -52,12 +61,8 @@ inline (
     def(Byte.>=, Byte Byte -- Bool, both(>Int) >=)
     def(Byte.<>, Byte Byte -- Bool, both(>Int) <>)
     def(Byte.in-range, Byte Byte Byte -- Bool, dip(both(>Int)) >Int in-range)
+    def(Byte.clamp, Byte Byte Byte -- Byte, dip(both(>Int)) >Int clamp >Byte-unsafe)
 )
-
-def(Int.>Byte, Int -- Byte,
-    assert!(dup 0 255 in-range, "Int->Byte out of range")
-    Byte.from-tag-unsafe)
-def(U8.>Byte, U8 -- Byte, >Int >Byte)
 
 def(Ptr.@Byte, Ptr +Unsafe -- Byte +Unsafe, @U8 >Byte)
 def(Ptr.!Byte, Byte Ptr +Unsafe -- +Unsafe, dip(>U8) !U8)
@@ -93,16 +98,16 @@ def(Byte.is-string-end, Byte -- Bool,
     BQUOTE -> True, BLF -> True, BNUL -> True, _ -> drop False)
 
 def(Byte.to-lower, Byte -- Byte,
-    dup is-upper if(>Int 0x20 + >Byte, id))
+    dup is-upper if(>Int 0x20 + >Byte-unsafe, id))
 def(Byte.to-upper, Byte -- Byte,
-    dup is-lower if(>Int 0x20 - >Byte, id))
+    dup is-lower if(>Int 0x20 - >Byte-unsafe, id))
 
 def(Byte.to-hexdigits, Byte -- Byte Byte,
     >Int
     dup 4 >> one-hexdigit-byte
     swap 0xF & one-hexdigit-byte)
 def(one-hexdigit-byte, Int -- Byte,
-    dup 9 > if(55, 48) + >Byte)
+    dup 9 > if(55, 48) + >Byte-unsafe)
 
 def(Byte.is-name-byte, Byte -- Bool,
     BLPAREN -> False,

@@ -871,7 +871,7 @@ static void trace_rstack (void) {
 
 static void do_panic(STR* m) {
 	if (m) {
-		size_t n = (m->size < 2048) ? (size_t)(m->size) : 2048;
+		size_t n = (m->size < SIZE_MAX) ? (size_t)(m->size) : SIZE_MAX;
 		write(2, m->data, n);
 		TRACE("\n");
 	} else {

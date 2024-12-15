@@ -1,0 +1,9 @@
+# reproduction for issue: https://github.com/mirth-lang/mirth/issues/315
+module(test.error-wrong-package)
+
+import(std.prelude)
+import(test.error-wrong-package-aux)
+
+def(main, --, id)
+# mirth-test # merr # 1:1: error: Tried to set different path for the same package (package = std, path 1 = "test", path 2 = "lib/std").
+# mirth-test # mret # 1

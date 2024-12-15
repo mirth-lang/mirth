@@ -17,11 +17,11 @@ import(mirth.mirth)
 table(Var)
 field(Var.~name, Var, Name)
 field(Var.~type, Var, Type)
-field(Var.~auto-run?, Var, Bool) # run variable by default
+field(Var.~auto-run?, Var, Maybe(ArrowType)) # run variable by default
 
 def(Var.name, Var -- Name, ~name @)
 def(Var.type, Var -- Type, ~type @)
-def(Var.auto-run?, Var -- Bool, ~auto-run? @)
+def(Var.auto-run?, Var -- Maybe(ArrowType), ~auto-run? @)
 
 def(Var.==, Var Var -- Bool, both(index) ==)
 def(Var.type;, +Str Var -- +Str, name >Str ;)
@@ -34,11 +34,11 @@ def(Var.new!, Type Name -- Var,
     Var.alloc!
     tuck ~name !
     tuck ~type !
-    False over ~auto-run? !)
+    None over ~auto-run? !)
 
-def(Var.new-auto-run!, Type Name -- Var,
-    Var.new!
-    True over ~auto-run? !)
+def(Var.new-auto-run!, ArrowType Name -- Var,
+    dip(dup TMorphism) Var.new!
+    dip(Some) tuck ~auto-run? !)
 
 ###########
 # Context #

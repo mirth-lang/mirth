@@ -43,4 +43,13 @@ inline (
         { Left -> Left }
         { Right -> g }
     }
+
+    def while-left(f) [ (*c a -- *c Either(a,b)) *c a -- *c b ] {
+        f while-some(dup left?, nip f)
+        right? unwrap(impossible!)
+    }
+    def while-right(f) [ (*c b -- *c Either(a,b)) *c b -- *c a ] {
+        f while-some(dup right?, nip f)
+        left? unwrap(impossible!)
+    }
 )

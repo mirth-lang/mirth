@@ -190,7 +190,7 @@ def(Def.arity, Def -- Int,
     DefTable -> drop 0,
     DefType -> drop 0,
     DefExternal -> arity,
-    DefWord -> arity,
+    DefWord -> arity >Int,
     DefField -> drop 0,
     DefTag -> drop 0,
     DefVariable -> drop 0)
@@ -238,7 +238,7 @@ def(Def.as-namespace?, +Mirth Def -- +Mirth Maybe(Namespace),
 def(Def.register, +Mirth Def -- +Mirth,
     dup qname-soft for(
         dup undefined-soft? else(
-            >Str "qualified name already has definition: " swap cat panic!
+            >Str "qualified name already has definition: " swap cat fatal-error!
         ) drop
     )
     dup name ~defs modify(Cons))

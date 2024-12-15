@@ -70,8 +70,8 @@ data(Op,
     OpLabelPushR -> Label,
     OpLabelPopR -> Label,
     OpDataGetTag -> Data,
-    OpDataGetLabel -> Tag Label,
-    OpDataSetLabel -> Tag Label)
+    OpDataGetLabel -> TagField,
+    OpDataSetLabel -> TagField)
 
 data(Coerce,
     CoerceUnsafe)
@@ -241,8 +241,8 @@ def(Op.free-vars, +Mirth Op -- +Mirth List(Var),
     OpLabelPushR -> drop L0,
     OpLabelPopR -> drop L0,
     OpDataGetTag -> drop L0,
-    OpDataGetLabel -> drop2 L0,
-    OpDataSetLabel -> drop2 L0)
+    OpDataGetLabel -> drop L0,
+    OpDataSetLabel -> drop L0)
 def(Match.free-vars, +Mirth Match -- +Mirth List(Var),
     cases map(free-vars) unions(==))
 def(Case.free-vars, +Mirth Case -- +Mirth List(Var),

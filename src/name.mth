@@ -4,7 +4,6 @@ import(std.prelude)
 import(std.byte)
 import(std.str)
 import(std.list)
-import(std.lazy)
 import(std.maybe)
 import(std.path)
 import(std.world)
@@ -23,27 +22,28 @@ import(mirth.mirth)
 table(Name)
 field(Name.~Str, Name, Str)
 field(Name.~defs, Name, List(Def))
-field(Name.~mangled, Name, Lazy(Str))
+field(Name.~mangled, Name, Str)
 field(Name.~label, Name, Label)
 
 def(Name.>Str, Name -- Str, ~Str @)
 def(Name.defs, Name -- List(Def), ~defs @)
-def(Name.mangled, Name -- Str, ~mangled force!)
+def(Name.mangled, Name -- Str, dup ~mangled memoize(dup mangle-compute!) nip)
 
 def(Name.==, Name Name -- Bool, both(Name.index) ==)
 
-data(Hash, HASH -> Int)
-def(Hash.>Int, Hash -- Int, HASH -> id)
-def(Int.>Hash, Int -- Hash, HASH_MAX % HASH)
+data(Hash, HASH -> UIndex)
+def(Hash.>Int, Hash -- Int, HASH -> >Int)
+def(Int.>Hash, Int -- Hash, HASH_MAX & .u >UIndex HASH)
+def(Hash.offset, Hash -- UOffset, HASH -> |U64| *)
 
-def(HASH_MAX, Int, 0x10000)
+def(HASH_MAX, Int, 0xFFFF)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
-    >Int 8 * >Offset HASH_BUF unsafe(offset @I64) >Int
+    offset HASH_BUF unsafe(uoffset @I64) >Int
     dup 0= if(drop None, Name.from-index Some))
 def(hash-name!, Name Hash --,
     dip(Name.index >I64)
-    >Int 8 * >Offset HASH_BUF unsafe(offset !I64))
+    offset HASH_BUF unsafe(uoffset !I64))
 
 ||| Get hash for string.
 def(Str.hash, Str -- Hash,
@@ -72,8 +72,7 @@ def(Str.>Name, Str -- Name,
             Name.alloc!
             tuck swap hash-name!
             tuck ~Str !
-            L0 over ~defs !
-            dup delay(mangle-compute!) over ~mangled !,
+            L0 over ~defs !,
         Some ->
             dip(drop2)
     ))
@@ -82,10 +81,9 @@ def(Str.>Name, Str -- Name,
 def(Name.cat, Name Str -- Name,
     dip(>Str) cat >Name)
 
-def(Name.head, Name -- Byte, >Str dip(0 >Offset) byte@)
-def(Name.tail-head, Name -- Byte, >Str dip(1 >Offset) byte@)
-def(Name.tail, Name -- Name,
-    >Str dip(1 >Size) unsafe(drop-bytes) >Name)
+def(Name.head, Name -- Byte, >Str dip(0u >UOffset) byte@)
+def(Name.tail-head, Name -- Byte, >Str dip(1u >UOffset) byte@)
+def(Name.tail, Name +Unsafe -- Name +Unsafe, >Str dip(1u >USize) drop-bytes >Name)
 
 def(Name.can-be-relative?, Name -- Bool, head is-upper not)
 def(Name.could-be-label-name?, Name -- Bool, dup head is-lower or(dup head B'+' == and(dup tail-head is-lower)) nip)
@@ -128,17 +126,7 @@ def(Namespace.==, Namespace Namespace -- Bool,
     NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False))
 
 def(Namespace.compare, +Mirth Namespace Namespace -- +Mirth Comparison,
-    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> Comparison.EQ, _ -> drop Comparison.LT),
-    NAMESPACE_PACKAGE -> swap match(
-        NAMESPACE_ROOT -> drop Comparison.GT,
-        NAMESPACE_PACKAGE -> name >Str swap name >Str compare,
-        _ -> drop2 Comparison.LT
-    ),
-    _ -> match(
-        NAMESPACE_ROOT -> drop Comparison.GT,
-        NAMESPACE_PACKAGE -> drop2 Comparison.GT,
-        _ -> qname unwrap swap qname unwrap compare
-    ))
+    dip:qname qname compare:compare)
 
 def(Namespace.qname, +Mirth Namespace -- +Mirth Maybe(QName),
     NAMESPACE_ROOT -> None,
@@ -242,9 +230,11 @@ def(QName.>Str, +Mirth QName -- +Mirth Str, MKQNAME ->
 def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
     dup namespace match(
         NAMESPACE_PACKAGE ->
-            path-or-search unwrap("No path defined for package" panic!)
-        	swap name >Str ".mth" cat >Path join,
-        _ -> drop "expected module name" panic!
+            dup path-or-search
+            unwrap("No path defined for package "
+                swap name >Str fatal-error!)
+        	nip swap name >Str ".mth" cat >Path join,
+        _ -> drop "expected module name in QName.to-module-path" fatal-error!
     ))
 def(QName.mangled, +Mirth QName -- +Mirth Str, MKQNAME ->
     namespace> mangled "_" cat
