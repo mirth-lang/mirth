@@ -107,7 +107,7 @@ def Value.tycon? [ Value -- Maybe(Tycon) ] {
     { VALUE_BLOCK -> drop None }
 }
 
-def PrimType.>Int [ PrimType -- Int ] { PrimType.tag }
+def PrimType.>Int [ PrimType -- Int ] { PrimType.cons-value }
 def PrimType.== [ PrimType PrimType -- Bool ] { both(>Int) == }
 
 def +Mirth.def-prim-type! [ +Mirth PrimType -- +Mirth ] {

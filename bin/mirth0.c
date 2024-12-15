@@ -56111,7 +56111,7 @@ static VAL mw_mirth_elab_elabZ_dataZ_doneZBang (VAL x1, uint64_t x2) {
 	uint64_t x5;
 	if (((bool)v3)) {
 		STR* v6;
-		STRLIT(v6, "tag", 3);
+		STRLIT(v6, "cons-value", 10);
 		int64_t v7 = 0LL;
 		VAL v8;
 		uint64_t v9;
@@ -56170,7 +56170,7 @@ static VAL mw_mirth_elab_elabZ_dataZ_doneZBang (VAL x1, uint64_t x2) {
 	uint64_t x42;
 	if (((bool)v40)) {
 		STR* v43;
-		STRLIT(v43, "from-tag-unsafe", 15);
+		STRLIT(v43, "from-cons-value-unsafe", 22);
 		int64_t v44 = 0LL;
 		VAL v45;
 		uint64_t v46;

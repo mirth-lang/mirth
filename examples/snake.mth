@@ -305,8 +305,8 @@ def +SnakeLogic.turn! {
     )
 }
 
-def Direction.>Int { tag }
-def Direction.== { both(tag) == }
+def Direction.>Int { cons-value }
+def Direction.== { both(cons-value) == }
 def Direction.flip {
     North -> South,
     West -> East,

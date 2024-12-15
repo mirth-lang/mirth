@@ -41,7 +41,7 @@ data(Byte,
     BxF8, BxF9, BxFA, BxFB, BxFC, BxFD, BxFE, BxFF)
 
 inline (
-    def(Byte.>Int, Byte -- Int, Byte.tag)
+    def(Byte.>Int, Byte -- Int, Byte.cons-value)
     def(Byte.>U8, Byte -- U8, >Int >U8)
 
     def(Byte.compare, Byte Byte -- Comparison, both(>Int) .compare)
@@ -56,7 +56,7 @@ inline (
 
 def(Int.>Byte, Int -- Byte,
     assert!(dup 0 255 in-range, "Int->Byte out of range")
-    Byte.from-tag-unsafe)
+    Byte.from-cons-value-unsafe)
 def(U8.>Byte, U8 -- Byte, >Int >Byte)
 
 def(Ptr.@Byte, Ptr +Unsafe -- Byte +Unsafe, @U8 >Byte)

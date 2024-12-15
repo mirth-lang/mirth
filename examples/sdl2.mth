@@ -371,8 +371,8 @@ data(SDL_EventType,
 )
 
 inline(
-    def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { tag >U32 }
-    def U32.>SDL_EventType [ U32 -- SDL_EventType ] { >Int SDL_EventType.from-tag-unsafe }
+    def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { cons-value >U32 }
+    def U32.>SDL_EventType [ U32 -- SDL_EventType ] { >Int SDL_EventType.from-cons-value-unsafe }
     def SDL_EventType.== [ SDL_EventType SDL_EventType -- Bool ] { both(>U32) == }
     def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) >SDL_EventType }
 )
@@ -424,7 +424,7 @@ def(SDL_ControllerButtonEvent.button!, SDL_GameControllerButton SDL_ControllerBu
     dip(>I8) button& unsafe(!I8))
 
 def(U16.>SDL_Scancode, U16 -- SDL_Scancode,
-   >Int SDL_Scancode.from-tag-unsafe)
+   >Int SDL_Scancode.from-cons-value-unsafe)
 
 data(SDL_Scancode,
     0 SDL_SCANCODE_UNKNOWN,
@@ -756,6 +756,6 @@ data(SDL_GameControllerButton,
     SDL_CONTROLLER_BUTTON_TOUCHPAD,)
 
 def(I8.>SDL_GameControllerButton, I8 -- SDL_GameControllerButton,
-   >Int SDL_GameControllerButton.from-tag-unsafe)
-def(SDL_GameControllerButton.>I8, SDL_GameControllerButton -- I8, tag >I8)
-def(SDL_GameControllerButton.==, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(tag) ==)
+   >Int SDL_GameControllerButton.from-cons-value-unsafe)
+def(SDL_GameControllerButton.>I8, SDL_GameControllerButton -- I8, cons-value >I8)
+def(SDL_GameControllerButton.==, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(cons-value) ==)

@@ -1557,7 +1557,7 @@ def data-word-new! [ +Mirth Data Str Nat -- +Mirth Word ] {
 def elab-data-done! [ +Mirth Data -- +Mirth ] {
     >dat
     @dat is-value-type? then (
-        @dat "tag" 0u data-word-new! >tag
+        @dat "cons-value" 0u data-word-new! >tag
         @dat params >Ctx
         @dat data-get-tag-type
         @tag WordType prop2 @tag ~ctx-type !
@@ -1568,7 +1568,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
     )
 
     @dat is-enum? then (
-        @dat "from-tag-unsafe" 0u data-word-new! >ftag
+        @dat "from-cons-value-unsafe" 0u data-word-new! >ftag
         Ctx0 TYPE_INT T1 @dat TData T1 T->
         @ftag WordType prop2 @ftag ~ctx-type !
         @ftag ab-build-word!(

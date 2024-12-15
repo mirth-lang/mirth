@@ -1027,7 +1027,7 @@ data C99ReprType {
 }
 
 def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
-    both(tag) ==
+    both(cons-value) ==
 }
 
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {

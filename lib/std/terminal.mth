@@ -81,7 +81,7 @@ def(SGRColor.show;, SGRColor +Str -- +Str,
 
 def(Sgr.emit;, Sgr +Str -- +Str,
     csi;
-    dup tag show;
+    dup cons-value show;
     match(
         FGColor -> show;,
 	BGColor -> show;,
