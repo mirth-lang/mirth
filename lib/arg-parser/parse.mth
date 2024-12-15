@@ -82,10 +82,8 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
                 Some ->
                     True state parsing?! state!
                     drop Some state option-option! state!,
-                None -> flag-type state arguments swap None swap parser match(
-                    Some -> run state arguments! state! ,
-                    None -> drop drop drop
-                )
+                None -> flag-type state arguments swap None swap parser
+                run state arguments! state!
             ) None,
         None -> UnknownArg Some
     ))
@@ -106,7 +104,7 @@ def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentPars
 
 ||| Parse a positional argument, advancing the current index
 def(do-positional-option, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    state arguments swap Some Positional parser unwrap run
+    state arguments swap Some Positional parser run
     state arguments! state! None
     state positional-index 1+ state positional-index! state!)
 
@@ -150,9 +148,9 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
                 # Parse the associated value for an option
                 state parsing? if(
                     state option-option match(
-                        Some -> arg-doc match(
-                            Some -> drop state arguments swap Some state option-option unwrap flag-type parser unwrap run state:arguments! None,
-                            None -> drop UnknownArg Some
+                        Some -> dup >oo arg-doc match(
+                            Some -> drop state arguments swap Some oo> flag-type parser run state:arguments! None,
+                            None -> oo> drop2 UnknownArg Some
                         ),
                         None -> drop UnknownArg Some
                     ) False state:parsing?!,
@@ -172,7 +170,7 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
 
     # Run the callback function one last time to let it clean up
     # and run final checks
-    state arguments None End parser unwrap run state:arguments!
+    state arguments None End parser run state:arguments!
 
     state arguments state error
     match(

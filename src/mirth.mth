@@ -197,13 +197,13 @@ inline (
 )
 
 def(+Mirth.info!, Str +Mirth -- +Mirth,
-    error-token unwrap swap emit-info!)
+    error-token unwrap(panic!) swap emit-info!)
 def(+Mirth.warning!, Str +Mirth -- +Mirth,
-    error-token unwrap swap emit-warning!)
+    error-token unwrap(panic!) swap emit-warning!)
 def(+Mirth.error!, Str +Mirth -- +Mirth,
-    error-token unwrap swap emit-error!)
+    error-token unwrap(panic!) swap emit-error!)
 def(+Mirth.fatal-error!, *a Str +Mirth -- *b,
-    error-token unwrap swap emit-fatal-error!)
+    error-token unwrap(panic!) swap emit-fatal-error!)
 
 def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
     pop-diagnostics Str(

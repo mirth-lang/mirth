@@ -120,7 +120,7 @@ def(lexer-close-colons!, +Lexer -- +Lexer,
 def(lexer-prepare-for-atom!, +Lexer -- +Lexer,
     lexer-last-token lcolon-open? else(lexer-close-colons!))
 def(lexer-prepare-for-args!, +Lexer -- +Lexer,
-    lexer-last-token name-or-dname? else(lexer-close-colons!))
+    lexer-last-token name/dname? else(lexer-close-colons!))
 
 def(lexer-emit-lparen!, +Lexer -- +Lexer,
     TokenLParenOpen lexer-make!

@@ -1176,11 +1176,20 @@ def(Subst.match-var, +Mirth +Gamma Type Var Subst -- +Mirth +Gamma Subst,
 # Stack Type Parts #
 ####################
 
-data(StackTypePart,
-    STPCons -> Type,
-    STPConsLabel -> Type Label,
-    STPWith -> Resource,
-    STPWithLabel -> Resource Label)
+data StackTypeBase {
+    STB_ERROR
+    STB_DONT_CARE
+    STB_UNIT
+    STBVar [ Var ]
+    STBMeta [ MetaVar ]
+}
+
+data StackTypePart {
+    STPCons      [ Type ]
+    STPConsLabel [ Type Label ]
+    STPWith      [ Resource ]
+    STPWithLabel [ Resource Label ]
+}
 
 def(StackTypePart.cons, StackType StackTypePart -- StackType,
     STPCons -> STCons,
@@ -1188,19 +1197,37 @@ def(StackTypePart.cons, StackType StackTypePart -- StackType,
     STPWith -> STWith,
     STPWithLabel -> STWithLabel)
 
-def(StackType.split-parts, StackType -- StackType List(StackTypePart),
+def(StackType.split-parts, StackType -- StackTypeBase List(StackTypePart),
     L0 >parts
-    while-some(
-        match(
-            STCons -> STPCons Some,
-            STConsLabel -> STPConsLabel Some,
-            STWith -> STPWith Some,
-            STWithLabel -> STPWithLabel Some,
-            _ -> None
-        ),
-        @parts:cons
+    while-right(
+        match {
+            { STACK_TYPE_ERROR -> STB_ERROR Left }
+            { STACK_TYPE_DONT_CARE -> STB_DONT_CARE Left }
+            { STACK_TYPE_UNIT -> STB_UNIT Left }
+            { STVar -> STBVar Left }
+            { STMeta -> expand-if(>StackType Right, STBMeta Left) }
+            { STCons -> STPCons @parts:cons Right }
+            { STConsLabel -> STPConsLabel @parts:cons Right }
+            { STWith -> STPWith @parts:cons Right }
+            { STWithLabel -> STPWithLabel @parts:cons Right }
+        }
     )
     parts>)
+
+def StackTypePart.type/resource [ StackTypePart -- Type/Resource ] {
+    { STPCons -> Left  }
+    { STPWith -> Right }
+    { STPConsLabel -> drop Left  }
+    { STPWithLabel -> drop Right }
+}
+
+def StackTypePart.label [ StackTypePart -- Maybe(Label) ] {
+    { STPCons -> drop None }
+    { STPWith -> drop None }
+    { STPConsLabel -> nip Some }
+    { STPWithLabel -> nip Some }
+}
+
 
 ###########
 # C Types #
@@ -1333,27 +1360,27 @@ def(StackTypePart.ctype?, StackTypePart +Mirth -- Maybe(CTypeStackPart) +Mirth,
     STPWith -> ctype? map(CTSPWith),
     STPWithLabel -> >x ctype? map(@x CTSPWithLabel) x> drop)
 
-def(StackType.base-ctype?, StackType +Mirth -- Maybe(Var) +Mirth,
-    expand match(
-        STVar -> Some,
-        STACK_TYPE_UNIT -> None,
-        STACK_TYPE_ERROR -> None,
-        _ -> "unexpected stack base in StackType.base-ctype" panic!,
-    ))
+def StackTypeBase.ctype? [ StackTypeBase +Mirth -- Maybe(Var) +Mirth ] {
+    { STB_ERROR -> None }
+    { STB_DONT_CARE -> None }
+    { STB_UNIT -> None }
+    { STBMeta -> drop None }
+    { STBVar -> Some }
+}
 
 def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
     split-parts
     map(ctype) >parts
-    base-ctype? >base?
+    ctype? >base?
     CTypeStack)
 
 def(StackType.ctype?, StackType +Mirth -- Maybe(CTypeStack) +Mirth,
-    split-parts map(ctype?) dup all(some?) if(
-        map(unwrap) >parts
-        base-ctype? >base?
+    split-parts all-some(ctype?) if-some(
+        >parts
+        ctype? >base?
         CTypeStack Some,
 
-        drop2 None
+        drop None
     ))
 
 data(CTypeArrow, CTypeArrow ->

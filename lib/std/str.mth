@@ -73,33 +73,51 @@ def(+Str.empty?, +Str -- Bool +Str,
 def(+Str.clear!, +Str -- +Str,
     +Str -> drop "" +Str)
 
-def(+Str.push-byte-unsafe!, Byte +Str -- +Str,
-    to-str-unsafe push-str!)
+||| Push any byte to the end of the string buffer.
+||| This is unsafe because it breaks UTF-8 encoding when pushing a non-ascii byte.
+||| So it's up to you to ensure a valid encoding is swiftly restored.
+def +Str.push-byte-unsafe! [ Byte +Str -- +Str ] {
+    to-str-unsafe push-str!
+}
 
-def(+Str.push-byte-ascii!, Byte +Str -- +Str,
-    to-ascii-str unwrap push-str!)
+||| Push an ascii byte to the end of the string buffer.
+||| Ignores non-ascii bytes.
+def +Str.push-byte-ascii! [ Byte +Str -- +Str ] {
+    to-ascii-str for(push-str!)
+}
 
-||| Append the given string into STR_BUF. If the string is
-||| too large it gets truncated.
-def(+Str.push-str!, Str +Str -- +Str,
-    +Str -> swap cat +Str)
+||| Append the given string into the string buffer.
+def +Str.push-str! [ Str +Str -- +Str ] {
+    +Str -> swap cat +Str
+}
 
-inline:def(Str.with-data(f), (*a Ptr USize -- *b) *a Str -- *b,
-    dup dip(dup dip(prim-str-base) num-bytes f) drop)
+inline (
+    ||| Access the string's byte data. This function ensures the
+    ||| string won't be garbage collected while inspecting its data.
+    def Str.with-data(f) [ (*a Ptr USize -- *b) *a Str -- *b ] {
+        dup dip(dup dip(prim-str-base) num-bytes f) drop
+    }
 
-||| Traverse string bytes.
-inline:def(Str.bytes-for(f), (*a Byte -- *a) *a Str -- *a,
-    with-data(>Nat repeat(
-        dup dip(unsafe(@Byte) f 1u >UOffset) unsafe(uoffset)
-    ) drop))
+    ||| Traverse a string's bytes.
+    def Str.bytes-for(f) [ (*a Byte -- *a) *a Str -- *a ] {
+        with-data(
+            >Nat repeat(
+                dup dip(unsafe(@Byte) f 1u >UOffset) unsafe(uoffset)
+            ) drop
+        )
+    }
+)
 
-def(Str.first-byte, Str -- Maybe(Byte),
+||| Get the string's first byte.
+||| Returns None if the string is empty.
+def Str.first-byte [ Str -- Maybe(Byte) ] {
     with-data(
         0> if(
             unsafe(@Byte) Some,
             drop None
         )
-    ))
+    )
+}
 
 ||| Drop n bytes from the beginning of a string.
 ||| This is unsafe because it can break UTF-8.

@@ -198,10 +198,19 @@ def(Data.is-transparent?, Data -- Bool,
         )
     ) nip)
 
-field(Data.~is-semi-transparent?, Data, Bool)
-def(Data.is-semi-transparent?, Data -- Bool,
-    dup ~is-semi-transparent? memoize(
-        dup tags /L1 has(num-total-inputs 1u ==)
+struct SemiTransparentData {
+    ftag: Tag
+    input: StackTypePart
+}
+
+field(Data.~semi-transparent?, Data, Maybe(SemiTransparentData))
+def(Data.semi-transparent?, +Mirth Data -- +Mirth Maybe(SemiTransparentData),
+    dup ~semi-transparent? memoize(
+        dup tags /L1 bind(
+            dup inputs /L1 map(
+                >input dup >ftag SemiTransparentData
+            ) nip
+        )
     ) nip)
 
 field(Data.~is-resource?, Data, Bool)
@@ -248,8 +257,9 @@ def(Tag.ctx, +Mirth Tag -- +Mirth Ctx, ctx-type drop)
 def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
 def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 
-def(Tag.label-inputs-from-sig, Tag -- List(Label),
-    sig? if-some(run-tokens filter(could-be-sig-label?) map(name? unwrap Label.new!), L0))
+def Tag.label-inputs-from-sig [ Tag -- List(Label) ] {
+    sig? if-some(run-tokens filter-some(sig-label?), L0)
+}
 
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
@@ -282,8 +292,14 @@ def(Tag.num-total-inputs, Tag -- Nat,
 def(Tag.is-transparent?, Tag -- Bool,
     .data is-transparent?)
 
-def(Tag.is-semi-transparent?, Tag -- Bool,
-    .data is-semi-transparent?)
+field(Tag.~inputs, Tag, List(StackTypePart))
+def(Tag.inputs, +Mirth Tag -- +Mirth List(StackTypePart),
+    dup ~inputs memoize (
+        dup type dom split-parts nip
+    ) nip)
+
+def(Tag.semi-transparent?, +Mirth Tag -- +Mirth Maybe(SemiTransparentData),
+    .data semi-transparent?)
 
 def(Tag.is-unit?, Tag -- Bool,
     .data is-unit?)
@@ -293,10 +309,11 @@ def(Tag.outputs-resource?, Tag -- Bool,
 
 def(Tag.==, Tag Tag -- Bool, both(index) ==)
 
-def(Tag.prefer-inline?, Tag -- Bool,
-    dup .data is-semi-transparent?
+def Tag.prefer-inline? [ +Mirth Tag -- +Mirth Bool ] {
+    dup .data semi-transparent?
     or(dup num-total-inputs 0=)
-    nip)
+    nip
+}
 
 #
 # Partial Data
@@ -312,3 +329,25 @@ def(DataPartial.==, DataPartial DataPartial -- Bool,
     /DataPartial /DataPartial
     data> data> ==
     field> field> == &&)
+
+struct TagField {
+    ftag: Tag
+    label: Label
+    type/resource: Type/Resource
+}
+
+field(Tag.~fields, Tag, List(TagField))
+def Tag.fields [ +Mirth Tag -- +Mirth List(TagField) ] {
+    >tag
+    @tag ~fields memoize (
+        @tag type dom split-parts nip filter-some(
+            match {
+                { STPCons -> drop None }
+                { STPWith -> drop None }
+                { STPConsLabel -> @tag >ftag >label Left  >type/resource TagField Some }
+                { STPWithLabel -> @tag >ftag >label Right >type/resource TagField Some }
+            }
+        )
+    )
+    tag> drop
+}

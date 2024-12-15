@@ -100,8 +100,12 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
             "Specializer." rdip:trace
             run-specializer!
             "Codegen." rdip:trace
-            output-file> unwrap >output-path
-            C99_Options run-output-c99!,
+            output-file> if-some(
+                >output-path
+                C99_Options run-output-c99!,
+
+                emit-debug-info> drop2
+            ),
         None ->
             "Skipping Codegen." rdip:trace
             emit-debug-info> drop
@@ -119,15 +123,15 @@ def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOp
                           +ArgumentParser(Arguments) Arguments ]
 {
     Short -> dip(swap) match {
-        { B'o' -> output-file(drop unwrap >Path Some) }
-        { B'e' -> entry-point(drop unwrap Some) }
-        { B'c' -> entry-point(drop drop None) }
-        { B'p' -> dip(unwrap parse-package-def) packages(cons) }
-        { B'P' -> dip(unwrap >Path) package-search-paths(cons) }
+        { B'o' -> dip:map(>Path) output-file! }
+        { B'e' -> entry-point! }
+        { B'c' -> nip None swap entry-point! }
+        { B'p' -> swap for(parse-package-def swap packages:cons) }
+        { B'P' -> swap for(>Path swap package-search-paths:cons) }
         { _ -> drop swap drop UnknownArg Some state:error! }
     },
     Positional -> swap state positional-index 0= if(
-        input-file(drop unwrap >Path),
+        swap for(>Path swap input-file!),
         dip(drop) TooManyArgs Some state:error!
     ),
     LongOnly -> dup "debug" == if(
@@ -194,7 +198,7 @@ def main [ +World -- +World ] {
         None >group
         ArgpOption ;
     ) >options
-    [ compiler-parse-args ] Some >parser
+    [ compiler-parse-args ] >parser
     "input-file" Some >args-doc
     "Mirth Compiler" >doc
     ArgumentParser

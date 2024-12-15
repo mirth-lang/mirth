@@ -28,6 +28,17 @@ inline (
         { Some -> swap if-some(swap eq, drop False) }
     }
 
+    def Maybe.compare(cmp) [ (*c a a -- *c Comparison) *c Maybe(a) Maybe(a) -- *c Comparison ] {
+        { None -> match {
+            { None -> EQ }
+            { Some -> drop GT }
+        } }
+        { Some -> swap match {
+            { None -> drop LT }
+            { Some -> swap cmp }
+        }}
+    }
+
     def Maybe.if(f,g) { { Some -> drop f     } { None -> g     } }
     def Maybe.then(f) { { Some -> drop f     } { None -> id    } }
     def Maybe.else(g) { { Some -> drop       } { None -> g     } }
@@ -42,7 +53,7 @@ inline(
     def Maybe.or-some(f)    { { Some -> Some } { None -> f     } }
     def Maybe.unwrap(f)     { { Some -> id } { None -> f } }
 )
-def Maybe.unwrap [ Maybe(t) -- t ]  { unwrap("tried to unwrap None" panic!) }
+# def Maybe.unwrap [ Maybe(t) -- t ]  { unwrap("tried to unwrap None" panic!) }
 
 inline (
     def Maybe.map(f)  { { Some -> f Some } { None -> None  } }
@@ -57,11 +68,12 @@ inline (
     }
 
     def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
-        f while(dup some?, unwrap g f) drop
+        while(f if-some(g True, False), id)
     }
 
     def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {
-        f while(dup none?, drop g f) unwrap
+        f while(dup none?, drop g f)
+        unwrap("Maybe.while-none/2 has logic error" panic!)
     }
 
     def Maybe.map2(f) [ (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z) ] {

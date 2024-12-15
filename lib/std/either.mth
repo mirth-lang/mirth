@@ -43,4 +43,12 @@ inline (
         { Left -> Left }
         { Right -> g }
     }
+
+    def while-right(f) [ (*c b -- *c Either(a,b)) *c b -- *c a ] {
+        f while-some(
+            dup right?,
+            nip f
+        )
+        left? unwrap("logic error in Either.while-right" panic!)
+    }
 )

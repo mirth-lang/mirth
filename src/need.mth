@@ -95,8 +95,8 @@ def(+Needs.run-op!, List(Arg) Op +Mirth +Needs -- +Mirth +Needs,
     OpLabelPushR -> drop2,
     OpLabelPopR -> drop2,
     OpDataGetTag -> drop2,
-    OpDataGetLabel -> drop3,
-    OpDataSetLabel -> drop3)
+    OpDataGetLabel -> drop2,
+    OpDataSetLabel -> drop2)
 def(+Needs.run-prim!, List(Arg) Prim +Mirth +Needs -- +Mirth +Needs,
     PRIM_CORE_DIP -> dup /L1 if(run-args!, push-args!),
     PRIM_CORE_RDIP -> dup /L1 if(run-args!, push-args!),

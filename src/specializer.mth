@@ -66,8 +66,8 @@ def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
         OpLabelPushR -> drop L1,
         OpLabelPopR -> drop L1,
         OpDataGetTag -> drop L1,
-        OpDataGetLabel -> drop2 L1,
-        OpDataSetLabel -> drop2 L1,
+        OpDataGetLabel -> drop L1,
+        OpDataSetLabel -> drop L1,
     ))
 
 def(+SPCheck.check-arg!, Arg +SPCheck -- +SPCheck,

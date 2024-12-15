@@ -279,6 +279,20 @@ inline(
         find(f not) none?
     }
 
+    ||| If the predicate matches all elements of the list, return the result. Otherwise return None.
+    def List.all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
+        >rest True >ok +L0 while-some(
+            @rest:uncons,
+            @rest(@ok(dip2:rdip(f))) if-some(
+                ; ,
+                False !ok
+                L0 !rest
+            )
+        )
+        rest> drop
+        ok> if(freeze Some, rdrop None)
+    }
+
     ||| Build a list through repetition, stopping at the first None.
     def collect(f) [ (*a -- *a Maybe(b)) *a -- *a List(b) ] {
         LIST(while-some(rdip(f), ;))
@@ -328,6 +342,12 @@ struct +List(t) { List(t) }
 struct +List+(t) { List+(t) }
 
 inline(
+    def +List.rdrop  [ +List (t) -- ] { +List  -> drop }
+    def +List+.rdrop [ +List+(t) -- ] { +List+ -> drop }
+    
+    def +List.rdup  [ +List (t) -- +List (t) +List (t) ] { +List  -> dup dip(+List)  +List  }
+    def +List+.rdup [ +List+(t) -- +List+(t) +List+(t) ] { +List+ -> dup dip(+List+) +List+ }
+
     def +L0 [       -- +List(t) ] { L0 +List }
     def +L1 [     t -- +List(t) ] { L1 +List }
     def +L2 [   t t -- +List(t) ] { swap L2 +List }

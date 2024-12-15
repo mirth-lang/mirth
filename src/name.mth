@@ -126,17 +126,7 @@ def(Namespace.==, Namespace Namespace -- Bool,
     NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False))
 
 def(Namespace.compare, +Mirth Namespace Namespace -- +Mirth Comparison,
-    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> Comparison.EQ, _ -> drop Comparison.LT),
-    NAMESPACE_PACKAGE -> swap match(
-        NAMESPACE_ROOT -> drop Comparison.GT,
-        NAMESPACE_PACKAGE -> name >Str swap name >Str compare,
-        _ -> drop2 Comparison.LT
-    ),
-    _ -> match(
-        NAMESPACE_ROOT -> drop Comparison.GT,
-        NAMESPACE_PACKAGE -> drop2 Comparison.GT,
-        _ -> qname unwrap swap qname unwrap compare
-    ))
+    dip:qname qname compare:compare)
 
 def(Namespace.qname, +Mirth Namespace -- +Mirth Maybe(QName),
     NAMESPACE_ROOT -> None,

@@ -58,7 +58,7 @@ def Direction.apply [ Position Direction -- Position ] {
 }
 
 def +SnakeLogic.enqueue { snake:cons+ }
-def +SnakeLogic.dequeue { snake(unsnoc swap >List+ unwrap) }
+def +SnakeLogic.dequeue { snake(unsnoc swap >List+ unwrap("logic error: expected snake to have more segments" panic!) ) }
 def +SnakeLogic.head    { snake first }
 
 def SNAKE_W { 20 }

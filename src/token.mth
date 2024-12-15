@@ -66,11 +66,13 @@ def(TokenValue.can-take-args?, TokenValue -- Bool,
     TokenLabelGet -> drop True,
     _ -> drop False)
 
+def-type(Name/DName, Either(Name,DName))
+
 def(TokenValue.int?, TokenValue -- Maybe(Int), TokenInt -> Some, _ -> drop None)
 def(TokenValue.str?, TokenValue -- Maybe(Str), TokenStr -> Some, _ -> drop None)
 def(TokenValue.name?, TokenValue -- Maybe(Name), TokenName -> Some, _ -> drop None)
 def(TokenValue.dname?, TokenValue -- Maybe(DName), TokenDName -> Some, _ -> drop None)
-def(TokenValue.name-or-dname?, TokenValue -- Maybe(Either(Name,DName)),
+def(TokenValue.name/dname?, TokenValue -- Maybe(Name/DName),
     TokenName -> Left Some,
     TokenDName -> Right Some,
     _ -> drop None)
@@ -101,14 +103,22 @@ def(TokenValue.right-enclosure?, TokenValue -- Bool,
     TokenRColon -> drop True,
     _ -> drop False)
 
-def(TokenValue.sig-type?, TokenValue -- Bool, name? has(could-be-type))
-def(TokenValue.sig-type-con?, TokenValue -- Bool, last-name? has(could-be-type-con))
-def(TokenValue.sig-type-hole?, TokenValue -- Bool, name? has(is-type-hole))
-def(TokenValue.sig-type-var?, TokenValue -- Bool, name? has(could-be-type-var))
-def(TokenValue.sig-param-name?, TokenValue -- Bool, sig-type-var?)
-def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? has(could-be-stack-var))
-def(TokenValue.sig-resource-var?, TokenValue -- Bool, name? has(could-be-resource-var))
-def(TokenValue.sig-resource-con?, TokenValue -- Bool, last-name? has(could-be-resource-con))
+def name/dname-last-name [ Name/DName -- Name ] {
+    { Left -> id }
+    { Right -> last-name }
+}
+def name/dname-penultimate-name? [ Name/DName -- Maybe(Name) ] {
+    { Left -> drop None }
+    { Right -> penultimate-name? }
+}
+
+def(TokenValue.sig-type-con?, TokenValue -- Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-type-con))
+def(TokenValue.sig-type-hole?, TokenValue -- Maybe(Name), name? filter(is-type-hole))
+def(TokenValue.sig-type-var?, TokenValue -- Maybe(Name), name? filter(could-be-type-var))
+def(TokenValue.sig-param-name?, TokenValue -- Maybe(Name), sig-type-var?)
+def(TokenValue.sig-stack-var?, TokenValue -- Maybe(Name), name? filter(could-be-stack-var))
+def(TokenValue.sig-resource-var?, TokenValue -- Maybe(Name), name? filter(could-be-resource-var))
+def(TokenValue.sig-resource-con?, TokenValue -- Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-resource-con))
 def(TokenValue.sig-dashes?, TokenValue -- Bool, name? has(PRIM_SYNTAX_DASHES name ==))
 def(TokenValue.arrow?, TokenValue -- Bool, name? has(PRIM_SYNTAX_ARROW name ==))
 def(TokenValue.pat-underscore?, TokenValue -- Bool, name? has(is-underscore))
@@ -146,20 +156,19 @@ def(Token.int?, Token -- Maybe(Int), value int?)
 def(Token.str?, Token -- Maybe(Str), value str?)
 def(Token.name?, Token -- Maybe(Name), value name?)
 def(Token.dname?, Token -- Maybe(DName), value dname?)
-def(Token.name-or-dname?, Token -- Maybe(Either(Name,DName)), value name-or-dname?)
+def(Token.name/dname?, Token -- Maybe(Either(Name,DName)), value name/dname?)
 def(Token.last-name?, Token -- Maybe(Name), value last-name?)
 def(Token.penultimate-name?, Token -- Maybe(Name), value penultimate-name?)
 def(Token.arg-end?, Token -- Bool, value arg-end?)
 def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
 def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)
-def(Token.sig-type?, Token -- Bool, value sig-type?)
-def(Token.sig-type-con?, Token -- Bool, value sig-type-con?)
-def(Token.sig-type-hole?, Token -- Bool, value sig-type-hole?)
-def(Token.sig-type-var?, Token -- Bool, value sig-type-var?)
-def(Token.sig-param-name?, Token -- Bool, value sig-param-name?)
-def(Token.sig-stack-var?, Token -- Bool, value sig-stack-var?)
-def(Token.sig-resource-var?, Token -- Bool, value sig-resource-var?)
-def(Token.sig-resource-con?, Token -- Bool, value sig-resource-con?)
+def(Token.sig-type-con?, Token -- Maybe(Name/DName), value sig-type-con?)
+def(Token.sig-type-hole?, Token -- Maybe(Name), value sig-type-hole?)
+def(Token.sig-type-var?, Token -- Maybe(Name), value sig-type-var?)
+def(Token.sig-param-name?, Token -- Maybe(Name), value sig-param-name?)
+def(Token.sig-stack-var?, Token -- Maybe(Name), value sig-stack-var?)
+def(Token.sig-resource-var?, Token -- Maybe(Name), value sig-resource-var?)
+def(Token.sig-resource-con?, Token -- Maybe(Name/DName), value sig-resource-con?)
 def(Token.sig-dashes?, Token -- Bool, value sig-dashes?)
 def(Token.arrow?, Token -- Bool, value arrow?)
 def(Token.pat-underscore?, Token -- Bool, value pat-underscore?)
@@ -216,8 +225,25 @@ def(Token.could-be-sig-label?, Token -- Bool,
     dup name? if-some(could-be-label-name?, False)
     and(dup succ lcolon? >Bool) nip)
 
-def(Token.pattern-var?, Token -- Bool,
-    name? has: could-be-pattern-var?)
+def Token.sig-label? [ Token -- Maybe(Label) ] {
+    dup name? filter(
+        could-be-label-name?
+        and(dup succ lcolon? >Bool)
+    ) map(Label.new!) nip
+}
+
+def Token.pattern-var? [ Token -- Maybe(Name) ] {
+    name? filter: could-be-pattern-var?
+}
+
+def Token.pattern-auto-run-var? [ Token -- Maybe(Name) ] {
+    >token
+    @token lsquare? >Bool
+    @token succ succ rsquare? >Bool && if(
+        token> succ pattern-var?,
+        token> drop None
+    )
+}
 
 ||| Verify that token has 0 args, and return them.
 ||| Emits a fatal error if arity is wrong.
@@ -331,23 +357,6 @@ def(Token.sig-next-stack-end, Token -- Token,
 
 def(Token.sig-has-dashes?, Token -- Bool,
     sig-next-stack-end sig-dashes?)
-
-def(Token.sig-arity, Token -- Nat Nat,
-    dup sig-has-dashes? if(
-        sig-count-types
-        next
-        sig-count-types
-        drop,
-
-        sig-count-types
-        drop 0u swap
-    ))
-
-def(Token.sig-count-types, Token -- Nat Token,
-    0u swap while(dup sig-stack-end? not,
-        dup sig-type? then(dip(1+))
-        next
-    ))
 
 def(Token.sig-skip-dashes, Token -- Token,
     dup sig-has-dashes? then(sig-next-stack-end next))

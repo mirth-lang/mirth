@@ -10,17 +10,18 @@ import(arg-parser.state)
 
 import(std.terminal)
 
-data(ArgumentParser(a), ArgumentParser ->
+struct ArgumentParser(a) {
     options:List(ArgpOption)
-    parser:Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ])
+    parser:[ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]
     args-doc:Maybe(Str)
-    doc:Str)
+    doc:Str
+}
 
 data(+ArgumentParser(a), +ArgumentParser -> argument-parser:ArgumentParser(a) state:State(a))
 def(+ArgumentParser.rdrop, +ArgumentParser(a) --, /+ArgumentParser argument-parser> drop state> drop)
 
 def(+ArgumentParser.parser, +ArgumentParser(a) -- +ArgumentParser(a)
-        Maybe([ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]),
+        [ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ],
     argument-parser ArgumentParser.parser)
 
 data(ArgpOptionType,

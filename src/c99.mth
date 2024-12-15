@@ -178,154 +178,159 @@ def(c99-tag-defs!, +C99 -- +C99, Tag.for(c99-tag-def!))
 
 def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
     >tag
-    @tag is-transparent? else(
-        @tag is-semi-transparent? if(
-            @tag label-inputs /L1 if-some(
-                >label
-                @label @tag +core:+mirth:project-input-label unwrap match {
-                    { Left -> # field is value
-                        type-to-c99-repr @label pop-to-local-label! >+field
-                        @tag outputs-resource? if(
-                            +field> turn-into-resource! push-local-resource!,
-                            +field> push-local!
-                        )
-                    }
-                    { Right -> # field is resource, wrapper is resource
-                        resource-to-c99-repr @label pop-to-local-resource-label!
-                        push-local-resource!
-                    }
-                }
-                label> drop,
-
-                @tag +core:+mirth:type dom top-type? unwrap
+    @tag +core:+mirth:semi-transparent? if-some(
+        input match {
+            { STPConsLabel ->
+                dip:type-to-c99-repr pop-to-local-label!
+                @tag outputs-resource? if(
+                    turn-into-resource! push-local-resource!,
+                    push-local!
+                )
+            }
+            { STPWithLabel ->
+                dip:resource-to-c99-repr pop-to-local-resource-label!
+                push-local-resource!
+            }
+            { STPCons ->
                 type-to-c99-repr pop-to-local!
-                turn-into-resource! push-local-resource!
-            ),
+                @tag outputs-resource? if(
+                    turn-into-resource! push-local-resource!,
+                    push-local!
+                )
+            }
+            { STPWith ->
+                resource-to-c99-repr pop-to-local-resource!
+                push-local-resource!
+            }
+        },
 
-        @tag num-total-inputs 0= if(
-            @tag .data is-enum-or-unit? if(C99RT_I64 "" >pfx "" >sfx, C99RT_VAL "MKI64(" >pfx ")" >sfx)
-            @tag outputs-resource? if(
-                push-resource-expression!(
-                    pfx> put
-                    @tag value-show put "LL /* " put
-                    @tag name >Str put " */" put
-                    sfx> put
-                ),
-                push-expression!(
-                    pfx> put
-                    @tag value-show put "LL /* " put
-                    @tag name >Str put " */" put
-                    sfx> put
-                )
+    @tag num-total-inputs 0= if(
+        @tag .data is-enum-or-unit? if(C99RT_I64 "" >pfx "" >sfx, C99RT_VAL "MKI64(" >pfx ")" >sfx)
+        @tag outputs-resource? if(
+            push-resource-expression!(
+                pfx> put
+                @tag value-show put "LL /* " put
+                @tag name >Str put " */" put
+                sfx> put
             ),
+            push-expression!(
+                pfx> put
+                @tag value-show put "LL /* " put
+                @tag name >Str put " */" put
+                sfx> put
+            )
+        ),
 
-            c99-line(
-                fresh-name! >tup
-                "TUP* " put @tup put " = tup_new(" put
-                @tag num-total-inputs 1+ show put
-                ");" put
+        c99-line(
+            fresh-name! >tup
+            "TUP* " put @tup put " = tup_new(" put
+            @tag num-total-inputs 1+ show put
+            ");" put
+        )
+        c99-line(
+            @tup put "->size = " put
+            @tag num-total-inputs 1+ show put
+            ";" put
+        )
+        c99-line(
+            @tup put "->cells[0] = MKI64(" put
+            @tag value-show put
+            "LL /* " put @tag name >Str put " */);" put
+        )
+        @tag num-total-inputs >i
+        @tag label-inputs reverse-for(
+            >label
+            @label is-resource-label? if(
+                C99RT_VAL label> pop-to-local-resource-label! consume-as-VAL,
+                C99RT_VAL label> pop-to-local-label! consume-as-VAL
             )
-            c99-line(
-                @tup put "->size = " put
-                @tag num-total-inputs 1+ show put
-                ";" put
+            c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+            @i:pred
+        )
+        @tag num-resource-inputs repeat(
+            C99RT_VAL pop-to-local-resource! consume-as-VAL
+            c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+            @i:pred
+        )
+        @tag num-type-inputs repeat(
+            C99RT_VAL pop-to-local! consume-as-VAL
+            c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+            @i:pred
+        )
+        i> drop
+        @tag outputs-resource? if(
+            C99RT_VAL push-resource-expression!(
+                "MKTUP(" put tup> put
+                ", " put @tag num-total-inputs 1+ show put
+                ")" put
+            ),
+            C99RT_VAL push-expression!(
+                "MKTUP(" put tup> put
+                ", " put @tag num-total-inputs 1+ show put
+                ")" put
             )
-            c99-line(
-                @tup put "->cells[0] = MKI64(" put
-                @tag value-show put
-                "LL /* " put @tag name >Str put " */);" put
-            )
-            @tag num-total-inputs >i
-            @tag label-inputs reverse-for(
-                >label
-                @label is-resource-label? if(
-                    C99RT_VAL label> pop-to-local-resource-label! consume-as-VAL,
-                    C99RT_VAL label> pop-to-local-label! consume-as-VAL
-                )
-                c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-                @i:pred
-            )
-            @tag num-resource-inputs repeat(
-                C99RT_VAL pop-to-local-resource! consume-as-VAL
-                c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-                @i:pred
-            )
-            @tag num-type-inputs repeat(
-                C99RT_VAL pop-to-local! consume-as-VAL
-                c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-                @i:pred
-            )
-            i> drop
-            @tag outputs-resource? if(
-                C99RT_VAL push-resource-expression!(
-                    "MKTUP(" put tup> put
-                    ", " put @tag num-total-inputs 1+ show put
-                    ")" put
-                ),
-                C99RT_VAL push-expression!(
-                    "MKTUP(" put tup> put
-                    ", " put @tag num-total-inputs 1+ show put
-                    ")" put
-                )
-            )
-        ))
-    )
+        )
+    ))
     tag> drop
 }
 
 def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
     >tag
-    @tag is-transparent? else(
-        @tag is-semi-transparent? if(
-            @tag label-inputs /L1 if-some(
-                >label
-                @label @tag +core:+mirth:project-input-label unwrap match {
-                    { Left -> # field is value
-                        type-to-c99-repr
-                        @tag outputs-resource? if(
-                            pop-to-local-resource! turn-into-value!,
-                            pop-to-local!
-                        )
-                        label> push-local-label!
-                    }
-                    { Right -> # field is resource, wrapper is resource
-                        resource-to-c99-repr pop-to-local-resource!
-                        label> push-local-resource-label!
-                    }
-                },
+    @tag +core:+mirth:semi-transparent? if-some(
+        input match {
+            { STPConsLabel ->
+                swap type-to-c99-repr
+                @tag outputs-resource? if(
+                    pop-to-local-resource! turn-into-value!,
+                    pop-to-local!
+                )
+                push-local-label!
+            }
+            { STPWithLabel ->
+                swap resource-to-c99-repr
+                pop-to-local-resource!
+                push-local-resource-label!
+            }
+            { STPCons ->
+                type-to-c99-repr
+                @tag outputs-resource? if(
+                    pop-to-local-resource! turn-into-value!,
+                    pop-to-local!
+                )
+                push-local!
+            }
+            { STPWith ->
+                resource-to-c99-repr pop-to-local-resource!
+                push-local-resource!
+            }
+        },
 
-                @tag +core:+mirth:type dom top-type? unwrap
-                type-to-c99-repr pop-to-local-resource!
-                turn-into-value! push-local!
-            ),
+    @tag num-total-inputs 0= if(
+        @tag .data pop-local-value/resource-data! rdrop, # decref is unnecessary
 
-        @tag num-total-inputs 0= if(
-            @tag .data pop-local-value/resource-data! rdrop, # decref is unnecessary
-
-            @tag .data pop-local-value/resource-data! consume-as-VAL
-            Str("VTUP(" ; ; ")" ;) >tup
-            1 >i
-            @tag num-type-inputs repeat(
-                C99RT_VAL push-expression!(@tup put "->cells[" put @i show put "]" put)
-                @i:1+
-            )
-            @tag num-resource-inputs repeat(
-                C99RT_VAL push-resource-expression!(@tup put "->cells[" put @i show put "]" put)
-                @i:1+
-            )
-            @tag label-inputs for(
-                C99RT_VAL swap push-label-expression!(@tup put "->cells[" put @i show put "]" put)
-                @i:1+
-            )
-            c99-line("tup_decref_outer(" put tup> put "," put i> show put ");" put)
-        ))
-    )
+        @tag .data pop-local-value/resource-data! consume-as-VAL
+        Str("VTUP(" ; ; ")" ;) >tup
+        1 >i
+        @tag num-type-inputs repeat(
+            C99RT_VAL push-expression!(@tup put "->cells[" put @i show put "]" put)
+            @i:1+
+        )
+        @tag num-resource-inputs repeat(
+            C99RT_VAL push-resource-expression!(@tup put "->cells[" put @i show put "]" put)
+            @i:1+
+        )
+        @tag label-inputs for(
+            C99RT_VAL swap push-label-expression!(@tup put "->cells[" put @i show put "]" put)
+            @i:1+
+        )
+        c99-line("tup_decref_outer(" put tup> put "," put i> show put ");" put)
+    ))
     tag> drop
 }
 
 def c99-tag-def! [ Tag +C99 -- +C99 ] {
     >tag
-    @tag prefer-inline? else(
+    @tag +mirth:prefer-inline? else(
         @tag +needs:word-needed? then(
             @tag word-c99-api c99-smart-def!(
                 @tag c99-tag-body!
@@ -345,10 +350,11 @@ def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
     over2 label-inputs reverse-find(dip(pred over) ==) drop
     dip:drop2)
 
-def c99-tag-get-label! [ Tag Label +C99Branch -- +C99Branch ] {
-    >label >tag
-    @label @tag +core:+mirth:project-input-label unwrap >fieldty
-    @tag is-semi-transparent? if(
+def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
+    /TagField
+    ftag> >tag
+    type/resource> >fieldty
+    @tag +core:+mirth:semi-transparent? if(
         fieldty> match {
             { Left -> # field is value
                 @tag outputs-resource? if(
@@ -400,10 +406,11 @@ def c99-tag-get-label! [ Tag Label +C99Branch -- +C99Branch ] {
     label> tag> drop2
 }
 
-def c99-tag-set-label! [ Tag Label +C99Branch -- +C99Branch ] {
-    >label >tag
-    @label @tag +core:+mirth:project-input-label unwrap >fieldty
-    @tag is-semi-transparent? if(
+def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
+    /TagField
+    ftag> >tag
+    type/resource> >fieldty
+    @tag +core:+mirth:semi-transparent? if(
         fieldty> match {
             { Left -> # field is value
                 @tag .data pop-local-value/resource-data! match {
@@ -810,7 +817,7 @@ def(Atom.show-in-stack-trace?, Atom -- Bool,
         OpBuffer -> drop False,
         OpVariable -> drop False,
         OpField -> drop False,
-        OpTag -> prefer-inline? not,
+        OpTag -> drop False,
         OpPrim -> drop True,
         OpMatch -> drop False,
         OpLambda -> drop False,
@@ -823,8 +830,8 @@ def(Atom.show-in-stack-trace?, Atom -- Bool,
         OpLabelPushR -> drop False,
         OpLabelPopR -> drop False,
         OpDataGetTag -> drop False,
-        OpDataGetLabel -> drop2 False,
-        OpDataSetLabel -> drop2 False
+        OpDataGetLabel -> drop False,
+        OpDataSetLabel -> drop False
     ))
 
 def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
@@ -854,16 +861,16 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { OpDataSetLabel  -> c99-tag-set-label! drop }
 }
 
-def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
+def(c99-get-data-tag!, Data +C99Branch -- +C99Branch, # TODO convert to use the branch.
     dup is-enum-or-unit? else(
         end-branch!
         c99-line("{" put)
         c99-nest(
             c99-line("VAL val = pop_value();" put)
-            dup is-semi-transparent? if(
+            dup +mirth:semi-transparent? if-some(
                 c99-line(
                     "push_u64(" put
-                    dup tags /L1 unwrap value show put
+                    ftag value show put
                     "LL);" put),
 
                 c99-line("USIZE tag = get_data_tag(val);" put)
@@ -886,14 +893,14 @@ field(Tag.~value-show, Tag, Str)
 def(Tag.value-show, Tag -- Str, dup ~value-show memoize(dup value show) nip)
 
 def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
-    dup prefer-inline? if(
+    dup +core:+mirth:prefer-inline? if(
         nip c99-tag-body!,
         +core:word-c99-api c99-smart-call!
     )
 }
 
 def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
-    dup prefer-inline? if(
+    dup +core:+mirth:prefer-inline? if(
         c99-reverse-tag-body!,
         dip:L0 +core:pat-c99-api c99-smart-call!
     )
@@ -1171,23 +1178,11 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
 
 def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
     dup is-enum-or-unit? if(drop C99RT_I64,
-        dup is-semi-transparent? if(
-            tags /L1 unwrap type dom c99-repr-semi-transparent,
-            drop C99RT_VAL
+        semi-transparent? if-some(
+            input type/resource either(c99-repr, c99-repr),
+            C99RT_VAL
         )
     )
-}
-
-def StackType.c99-repr-semi-transparent [ StackType +Mirth -- C99ReprType +Mirth ] {
-    { STACK_TYPE_ERROR -> C99RT_VAL }
-    { STACK_TYPE_DONT_CARE -> C99RT_VAL }
-    { STACK_TYPE_UNIT -> C99RT_VAL }
-    { STVar -> drop C99RT_VAL }
-    { STMeta -> expand-if(>StackType c99-repr-semi-transparent, drop C99RT_VAL) }
-    { STCons -> nip c99-repr }
-    { STConsLabel -> drop nip c99-repr }
-    { STWith -> nip c99-repr }
-    { STWithLabel -> drop nip c99-repr }
 }
 
 struct +C99Local {
@@ -1684,21 +1679,21 @@ def +C99Branch.type-to-c99-repr [ Type +C99Branch -- C99ReprType +C99Branch ] { 
 def +C99Branch.resource-to-c99-repr [ Resource +C99Branch -- C99ReprType +C99Branch ] { +core:+mirth:c99-repr }
 
 def +C99Branch.pop-local-from-stack-type! [ StackType +C99Branch -- StackType +C99Branch +C99Local ] {
-    force-cons?! unwrap unpack2
+    force-cons?! unwrap("c99 error: tried to pop from invalid stack type" +core:+mirth:fatal-error!) unpack2
     type-to-c99-repr pop-to-local!
 }
 def +C99Branch.pop-local-resource-from-stack-type! [ StackType +C99Branch -- StackType +C99Branch +C99LocalResource ] {
-    force-with?! unwrap unpack2
+    force-with?! unwrap("c99 error: tried to pop from invalid stack type" +core:+mirth:fatal-error!) unpack2
     resource-to-c99-repr pop-to-local-resource!
 }
 
 def +C99Branch.pop-local-label-from-stack-type! [ Label StackType +C99Branch -- StackType +C99Branch +C99Local ] {
-    dip:dup force-cons-label?! unwrap unpack2 type-to-c99-repr
+    dip:dup force-cons-label?! unwrap("c99 error: tried to pop from invalid stack type" +core:+mirth:fatal-error!) unpack2 type-to-c99-repr
     rotl pop-to-local-label!
 }
 
 def +C99Branch.pop-local-resource-label-from-stack-type! [ Label StackType +C99Branch -- StackType +C99Branch +C99LocalResource ] {
-    dip:dup force-with-label?! unwrap unpack2 resource-to-c99-repr
+    dip:dup force-with-label?! unwrap("c99 error: tried to pop from invalid stack type" +core:+mirth:fatal-error!) unpack2 resource-to-c99-repr
     rotl pop-to-local-resource-label!
 }
 
