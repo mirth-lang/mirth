@@ -72,7 +72,7 @@ inline (
 
     def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {
         f while(dup none?, drop g f)
-        unwrap("Maybe.while-none/2 has logic error" panic!)
+        unwrap(impossible!)
     }
 
     def Maybe.map2(f) [ (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z) ] {

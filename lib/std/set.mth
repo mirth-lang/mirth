@@ -18,11 +18,11 @@ def(+Set.rdrop, +Set --,
 
 def(+Set.offset-mask, Nat +Set -- UOffset U8 +Set,
     8u /% dip(>UOffset)
-    1u swap << >U8)
+    1u swap << >U8&)
 
 def(+Set.member?, Nat +Set -- Bool +Set,
     offset-mask +buffer(swap @U8) & >Int 0 <>)
 def(+Set.insert!, Nat +Set -- +Set,
     offset-mask +buffer(over @U8 | swap !U8))
 def(+Set.remove!, Nat +Set -- +Set,
-    offset-mask 0xFF >U8 ^ +buffer(over @U8 & swap !U8))
+    offset-mask 0xFF >U8& ^ +buffer(over @U8 & swap !U8))

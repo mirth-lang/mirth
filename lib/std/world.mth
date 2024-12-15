@@ -54,12 +54,12 @@ def(+World.is-directory?, +World Path -- +World Bool,
 #define S_IFBLK  0060000
 #define S_IFDIR  0040000
 
-def(S_IFMT,   U16, 0xF000 >U16)
-def(S_IFDIR,  U16, 0x4000 >U16)
-def(S_IFBLK,  U16, 0x6000 >U16)
-def(S_IFREG,  U16, 0x8000 >U16)
-def(S_IFLNK,  U16, 0xA000 >U16)
-def(S_IFSOCK, U16, 0xC000 >U16)
+def(S_IFMT,   U16, 0xF000 >U16-unsafe)
+def(S_IFDIR,  U16, 0x4000 >U16-unsafe)
+def(S_IFBLK,  U16, 0x6000 >U16-unsafe)
+def(S_IFREG,  U16, 0x8000 >U16-unsafe)
+def(S_IFLNK,  U16, 0xA000 >U16-unsafe)
+def(S_IFSOCK, U16, 0xC000 >U16-unsafe)
 
 def(S_ISDIR, U16 -- Bool, S_IFMT & S_IFDIR ==)
 

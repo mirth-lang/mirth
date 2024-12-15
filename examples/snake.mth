@@ -151,7 +151,7 @@ def +Snake.loop! [ +World +Snake -- +World +Snake ] {
     process-events!
     while(+logic:done not,
         present!
-        10 >U32 >ticks +platform:sdl:delay!
+        10 >U32-unsafe >ticks +platform:sdl:delay!
         process-events!
         +logic:update!
     )
@@ -183,10 +183,9 @@ def +SnakePlatform.snake-rect! [ +SnakePlatform x:I32 y:I32 w:I32 h:I32 -- +Snak
 
 def +SnakePlatform.snake-rect-cell! [ +SnakePlatform Position -- +SnakePlatform ] {
     /Position
-    x> SNAKE_CELL_SIZE * >I32 >x
-    y> SNAKE_CELL_SIZE * >I32 >y
-    SNAKE_CELL_SIZE >I32 >w
-    SNAKE_CELL_SIZE >I32 >h
+    x> SNAKE_CELL_SIZE * i32 >x
+    y> SNAKE_CELL_SIZE * i32 >y
+    SNAKE_CELL_SIZE i32 dup >w >h
     snake-rect!
 }
 

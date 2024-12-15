@@ -1879,9 +1879,9 @@ def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ]
                  "def(...) expects at least three arguments"
                  emit-fatal-error!)
             nip
-        >List+ unwrap("logic error in parse-def" panic!) uncons dip(>head)
-        >List+ unwrap("logic error in parse-def" panic!) uncons dip(Some >sig?)
-        >List+ unwrap("logic error in parse-def" panic!) >body
+        >List+ unwrap(impossible!) uncons dip(>head)
+        >List+ unwrap(impossible!) uncons dip(Some >sig?)
+        >List+ unwrap(impossible!) >body
 
         @head next arg-end? else(
             @head next "expected comma after word name" emit-fatal-error!

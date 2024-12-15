@@ -267,6 +267,7 @@ inline(
     def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
     def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
     def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
+    def(Int.clamp, Int Int Int -- Int, dip(max) min)
 )
 
 inline(
@@ -312,8 +313,7 @@ inline(
     def(Ptr?.if-some(f,g), (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b, dup null? if(drop g, /Ptr?-unsafe f))
     def(Ptr?.for(f), (*a Ptr -- *a) *a Ptr? -- *a, if-some(f, id))
     def(Ptr?.unwrap(f), (*a -- *a Ptr) *a Ptr? -- *a Ptr, if-some(id, f))
-    def(Ptr?.unwrap, Ptr? -- Ptr, unwrap("Tried to unwrap null pointer." panic!))
-    def(Ptr?.>Ptr, Ptr? -- Ptr, unwrap)
+    def(Ptr?.>Ptr, Ptr? -- Maybe(Ptr),  if-some(Some, None))
 
     def(Ptr.==, Ptr Ptr -- Bool, prim-ptr-eq)
     def(Ptr.>Ptr?, Ptr -- Ptr?, Ptr?-unsafe)
@@ -353,14 +353,13 @@ inline(
     def(Ptr.free, Ptr +Unsafe -- +Unsafe, prim-ptr-free)
     def(Ptr.copy, Ptr USize Ptr +Unsafe -- +Unsafe, dip(>Int) prim-ptr-copy)
     def(Ptr.fill, U8 USize Ptr +Unsafe -- +Unsafe, dip(>Int dip(>Int)) prim-ptr-fill)
-    def(Ptr.erase, USize Ptr +Unsafe -- +Unsafe, dip2(0 >U8) fill)
+    def(Ptr.erase, USize Ptr +Unsafe -- +Unsafe, dip2(0u8) fill)
 
     def(U8.>Int,  U8  -- Int, Int>U8-unsafe -> id)
     def(U16.>Int, U16 -- Int, Int>U16-unsafe -> id)
     def(U32.>Int, U32 -- Int, Int>U32-unsafe -> id)
     def(U64.>Int-unsafe, U64 -- Int, Int>U64-unsafe -> id)
     def(U64.>Int?, U64 -- Maybe(Int), Int>U64-unsafe -> dup 0 >= if(Some, drop None))
-    def(U64.>Int!, U64 -- Int, >Int? unwrap("U64 cannot be safely represented by Int" panic!))
 
     def(I8.>Int,  I8  -- Int, Int>I8-unsafe -> id)
     def(I16.>Int, I16 -- Int, Int>I16-unsafe -> id)
@@ -376,29 +375,48 @@ inline(
     def(Int.>I32-unsafe, Int -- I32, Int>I32-unsafe)
     def(Int.>I64-unsafe, Int -- I64, Int>I64-unsafe)
 
-    def(Int.>U8%,  Int --  U8,  U8_MAX & >U8-unsafe)
-    def(Int.>U16%, Int -- U16, U16_MAX & >U16-unsafe)
-    def(Int.>U32%, Int -- U32, U32_MAX & >U32-unsafe)
-    def(Int.>U64%, Int -- U64,           >U64-unsafe)
+    def(Int.>U8&,  Int --  U8,  U8_MAX & >U8-unsafe)
+    def(Int.>U16&, Int -- U16, U16_MAX & >U16-unsafe)
+    def(Int.>U32&, Int -- U32, U32_MAX & >U32-unsafe)
+    def(Int.>U64&, Int -- U64,           >U64-unsafe)
 )
 
 def(Int.>U8?,  Int -- Maybe( U8), dup U8_MIN  U8_MAX  .in-range if(Int>U8-unsafe Some, drop None))
 def(Int.>U16?, Int -- Maybe(U16), dup U16_MIN U16_MAX .in-range if(Int>U16-unsafe Some, drop None))
 def(Int.>U32?, Int -- Maybe(U32), dup U32_MIN U32_MAX .in-range if(Int>U32-unsafe Some, drop None))
 def(Int.>U64?, Int -- Maybe(U64), dup 0 >= if(Int>U64-unsafe Some, drop None))
-def(Int.>U8,  Int --  U8, >U8?  unwrap( "U8 out of bounds" panic!))
-def(Int.>U16, Int -- U16, >U16? unwrap("U16 out of bounds" panic!))
-def(Int.>U32, Int -- U32, >U32? unwrap("U32 out of bounds" panic!))
-def(Int.>U64, Int -- U64, >U64? unwrap("U64 out of bounds" panic!))
 
-def(Int.>I8?,  Int -- Maybe( I8), dup I8_MIN  I8_MAX  .in-range if(Int>I8-unsafe Some, drop None))
-def(Int.>I16?, Int -- Maybe(I16), dup I16_MIN I16_MAX .in-range if(Int>I16-unsafe Some, drop None))
-def(Int.>I32?, Int -- Maybe(I32), dup I32_MIN I32_MAX .in-range if(Int>I32-unsafe Some, drop None))
-def(Int.>I64?, Int -- Maybe(I64), Int>I64-unsafe Some)
-def(Int.>I8,  Int -- I8,  >I8?  unwrap( "I8 out of bounds" panic!))
-def(Int.>I16, Int -- I16, >I16? unwrap("I16 out of bounds" panic!))
-def(Int.>I32, Int -- I32, >I32? unwrap("I32 out of bounds" panic!))
-def(Int.>I64, Int -- I64, Int>I64-unsafe)
+inline(
+    def 0u8 [ U8 ] { 0 Int>U8-unsafe }
+
+    def(Int.u8,  Int -- U8,  0 U8_MAX  clamp >U8-unsafe)
+    def(Int.u16, Int -- U16, 0 U16_MAX clamp >U16-unsafe)
+    def(Int.u32, Int -- U32, 0 U32_MAX clamp >U32-unsafe)
+    def(Int.u64, Int -- U64, 0 max >U64-unsafe)
+
+    def(Int.i8,   Int -- I8,   I8_MIN  I8_MAX  clamp >I8-unsafe )
+    def(Int.i16,  Int -- I16,  I16_MIN I16_MAX clamp >I16-unsafe)
+    def(Int.i32,  Int -- I32,  I32_MIN I32_MAX clamp >I32-unsafe)
+    def(Int.i64,  Int -- I64,  >I64-unsafe)
+)
+
+inline (
+    def(Int.>I8?,  Int -- Maybe( I8), dup I8_MIN  I8_MAX  .in-range if(Int>I8-unsafe Some, drop None))
+    def(Int.>I16?, Int -- Maybe(I16), dup I16_MIN I16_MAX .in-range if(Int>I16-unsafe Some, drop None))
+    def(Int.>I32?, Int -- Maybe(I32), dup I32_MIN I32_MAX .in-range if(Int>I32-unsafe Some, drop None))
+    def(Int.>I64?, Int -- Maybe(I64), Int>I64-unsafe Some)
+    def(Int.>I64, Int -- I64, Int>I64-unsafe)
+
+    def(Int.>I8(f),  (*a Int -- *a I8 ) *a Int -- *a I8 , dup I8_MIN  I8_MAX  .in-range if(Int>I8-unsafe,  f))
+    def(Int.>I16(f), (*a Int -- *a I16) *a Int -- *a I16, dup I16_MIN I16_MAX .in-range if(Int>I16-unsafe, f))
+    def(Int.>I32(f), (*a Int -- *a I32) *a Int -- *a I32, dup I32_MIN I32_MAX .in-range if(Int>I32-unsafe, f))
+
+    def(Int.>U8(f),  (*a Int -- *a U8 ) *a Int -- *a U8 , dup 0 U8_MAX  .in-range if(Int>U8-unsafe,  f))
+    def(Int.>U16(f), (*a Int -- *a U16) *a Int -- *a U16, dup 0 U16_MAX .in-range if(Int>U16-unsafe, f))
+    def(Int.>U32(f), (*a Int -- *a U32) *a Int -- *a U32, dup 0 U32_MAX .in-range if(Int>U32-unsafe, f))
+    def(Int.>U64(f), (*a Int -- *a U64) *a Int -- *a U64, dup 0 >= if(Int>U64-unsafe, f))
+)
+
 
 inline(
     def(U8.|,   U8  U8 --  U8, both(>Int) | >U8-unsafe)
@@ -461,15 +479,20 @@ inline (
 
     def Nat.>Int [ Nat -- Int ] { /NatUnsafe }
 
-    def Nat.>U8  [ Nat -- U8  ] { >Int >U8  }
-    def Nat.>U16 [ Nat -- U16 ] { >Int >U16 }
-    def Nat.>U32 [ Nat -- U32 ] { >Int >U32 }
-    def Nat.>U64 [ Nat -- U64 ] { >Int >U64-unsafe }
+    def Nat.>U8?  [ Nat -- Maybe(U8) ]  { >Int >U8?  }
+    def Nat.>U16? [ Nat -- Maybe(U16) ] { >Int >U16? }
+    def Nat.>U32? [ Nat -- Maybe(U32) ] { >Int >U32? }
+    def Nat.>U64  [ Nat -- U64 ] { >Int >U64-unsafe }
+
+    def Nat.>U8&  [ Nat -- U8  ] { >Int >U8& }
+    def Nat.>U16& [ Nat -- U16 ] { >Int >U16& }
+    def Nat.>U32& [ Nat -- U32 ] { >Int >U32& }
+    def Nat.>U64& [ Nat -- U64 ] { >Int >U64-unsafe }
 
     def U8.>Nat  [ U8  -- Nat ] { >Int NatUnsafe }
     def U16.>Nat [ U16 -- Nat ] { >Int NatUnsafe }
     def U32.>Nat [ U32 -- Nat ] { >Int NatUnsafe }
-    def U64.>Nat [ U64 -- Nat ] { >Int-unsafe NatUnsafe }
+    # def U64.>Nat [ U64 -- Nat ] { >Int-unsafe NatUnsafe }
 
     def Nat.+ [ Nat Nat -- Nat ] { both(>Int) + NatUnsafe }
     def Nat.- [ Nat Nat -- Int ] { both(>Int) - }
@@ -752,6 +775,7 @@ def(@?, Mut(t) -- Maybe(t),
 
 inline(
     def(panic!, *a Str -- *b, prim-panic)
+    def(impossible!, *a -- *b, "Impossible! The impossible has occured!" panic!)
     def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
         f if(id, g panic!))
     def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,

@@ -1764,7 +1764,7 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         flush-cache! c99-line("do_panic(" put put ");" put)
     }
     { PRIM_CORE_RUN ->
-        assert!(dup args empty?, "expected no arguments to prim-core-run") drop
+        dup args empty? else(token "expected no arguments to prim-core-run" +core:+mirth:emit-fatal-error!) drop
         C99RT_VAL pop-to-local! >+closure
         flush-cache!
         c99-line("run_value(" put +closure> consume-as-VAL put ");" put)

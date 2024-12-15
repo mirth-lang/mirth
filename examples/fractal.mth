@@ -72,7 +72,7 @@ def +Mandelbrot.loop! [ +World +Mandelbrot -- +World +Mandelbrot ] {
     process-events!
     present!
     while(running,
-        10 >U32 >ticks +platform:sdl:delay!
+        10 u32 >ticks +platform:sdl:delay!
         process-events!
     )
 }

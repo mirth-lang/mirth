@@ -170,7 +170,7 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
     dip:SUBST_NIL nip
     dip(ArrowType.unpack swap) reverse-for(
         dip(force-cons?!
-            unwrap("unexpected domain in specialize-ctx-type" panic!)
+            unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
             unpack2)
         /ArgBlock type TMorphism unify! drop
     )
@@ -192,20 +192,20 @@ def(+SPSynth.ab(f),
 def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
     dup >spword dip(>spkey)
     rdip:Word.arrow atoms /L1
-    unwrap("unexpected shape for synth-specialized-word!" panic!)
+    unwrap("unexpected shape for synth-specialized-word!" rdip:fatal-error!)
     op match(
         OpLambda ->
             dup params
             @spkey /SPKEY >List
-            assert!(
-                over len over len ==,
+            dup2 dip:len len == else(
                 "wrong number of lambda params in synth-specialized-word!"
+                rdip:fatal-error!
             )
             map2(/ArgBlock >value >key KVPair) Map >spmap
             +SPSYNTH
             body synth-arrow!
             /+SPSYNTH spkey> spword> spmap> drop3,
-        _ -> "unexpected shape" panic!
+        _ -> "unexpected shape" rdip:fatal-error!
     ))
 
 def(+SPSynth.synth-arrow!, +Mirth +SPSynth Arrow -- +Mirth +SPSynth,

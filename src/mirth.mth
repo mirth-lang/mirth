@@ -196,14 +196,21 @@ inline (
         error-token dip(Some error-token! f) error-token!)
 )
 
-def(+Mirth.info!, Str +Mirth -- +Mirth,
-    error-token unwrap(panic!) swap emit-info!)
-def(+Mirth.warning!, Str +Mirth -- +Mirth,
-    error-token unwrap(panic!) swap emit-warning!)
-def(+Mirth.error!, Str +Mirth -- +Mirth,
-    error-token unwrap(panic!) swap emit-error!)
-def(+Mirth.fatal-error!, *a Str +Mirth -- *b,
-    error-token unwrap(panic!) swap emit-fatal-error!)
+def +Mirth.default-error-location [ +Mirth -- +Mirth Location ] {
+    builtin prim >module
+    0 Row >row
+    0 Col >col
+    Location
+}
+
+def +Mirth.error-location [ +Mirth -- +Mirth Location ] {
+    error-token if-some(location, default-error-location)
+}
+
+def +Mirth.info!    [ Str +Mirth -- +Mirth ] { error-location swap emit-info-at!    }
+def +Mirth.warning! [ Str +Mirth -- +Mirth ] { error-location swap emit-warning-at! }
+def +Mirth.error!   [ Str +Mirth -- +Mirth ] { error-location swap emit-error-at!   }
+def +Mirth.fatal-error! [ *a Str +Mirth -- *b ] { error-location swap emit-fatal-error-at! }
 
 def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
     pop-diagnostics Str(

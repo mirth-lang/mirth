@@ -234,7 +234,7 @@ def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
             unwrap("No path defined for package "
                 swap name >Str fatal-error!)
         	nip swap name >Str ".mth" cat >Path join,
-        _ -> drop "expected module name in QName.to-module-path" panic!
+        _ -> drop "expected module name in QName.to-module-path" fatal-error!
     ))
 def(QName.mangled, +Mirth QName -- +Mirth Str, MKQNAME ->
     namespace> mangled "_" cat
