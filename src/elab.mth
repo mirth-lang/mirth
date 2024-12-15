@@ -1557,24 +1557,24 @@ def data-word-new! [ +Mirth Data Str Nat -- +Mirth Word ] {
 def elab-data-done! [ +Mirth Data -- +Mirth ] {
     >dat
     @dat is-value-type? then (
-        @dat "cons-value" 0u data-word-new! >tag
+        @dat "cons-value" 0u data-word-new! >word
         @dat params >Ctx
         @dat data-get-tag-type
-        @tag WordType prop2 @tag ~ctx-type !
-        @tag ab-build-word!(
+        @word WordType prop2 @word ~ctx-type !
+        @word ab-build-word!(
             @dat OpDataGetTag ab-op!
         ) make-inline!
-        tag> drop
+        word> drop
     )
 
     @dat is-enum? then (
-        @dat "from-cons-value-unsafe" 0u data-word-new! >ftag
+        @dat "from-cons-value-unsafe" 0u data-word-new! >word
         Ctx0 TYPE_INT T1 @dat TData T1 T->
-        @ftag WordType prop2 @ftag ~ctx-type !
-        @ftag ab-build-word!(
+        @word WordType prop2 @word ~ctx-type !
+        @word ab-build-word!(
             CoerceUnsafe ab-coerce!
         ) make-inline!
-        ftag> drop
+        word> drop
     )
 
     @dat tags /L1 for(
@@ -1653,7 +1653,7 @@ def Tag.project-input-label [ +Mirth Label Tag -- +Mirth Maybe(Type/Resource) ] 
 
 def Tag.project-tag-field [ +Mirth Label Tag -- +Mirth Maybe(TagField) ] {
     dup2 project-input-label if-some (
-        >type/resource >ftag >label TagField Some,
+        >type/resource >tag >label TagField Some,
         drop2 None
     )
 }
@@ -1662,30 +1662,30 @@ def data-get-label-type [ +Mirth TagField -- +Mirth ArrowType ] {
     /TagField
     type/resource> match {
         { Left ->
-            T0 @ftag output-type T*+ swap T1
-            @ftag .data is-resource? then(@ftag output-type T*+)
+            T0 @tag output-type T*+ swap T1
+            @tag .data is-resource? then(@tag output-type T*+)
             T-> }
         { Right ->
-            T0 @ftag output-type T*+
-            T0 rotl T+ @label @ftag output-type-except-field T*+
+            T0 @tag output-type T*+
+            T0 rotl T+ @label @tag output-type-except-field T*+
             T-> }
     }
-    label> ftag> drop2
+    label> tag> drop2
 }
 
 def data-set-label-type [ +Mirth TagField -- +Mirth ArrowType ] {
     /TagField
     type/resource> match {
         { Left ->
-            T1 @ftag output-type T*+
-            T0 @ftag output-type T*+
+            T1 @tag output-type T*+
+            T0 @tag output-type T*+
             T-> }
         { Right ->
-            T0 swap T+ @label @ftag output-type-except-field T*+
-            T0 @ftag output-type T*+
+            T0 swap T+ @label @tag output-type-except-field T*+
+            T0 @tag output-type T*+
             T-> }
     }
-    label> ftag> drop2
+    label> tag> drop2
 }
 
 def create-projectors! [ +Mirth Tag -- +Mirth ] {

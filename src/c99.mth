@@ -352,7 +352,6 @@ def(c99-tag-label-index, Tag Label +C99 -- Nat +C99,
 
 def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
     /TagField
-    ftag> >tag
     type/resource> >fieldty
     @tag +core:+mirth:semi-transparent? if(
         fieldty> match {
@@ -408,7 +407,6 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
 
 def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
     /TagField
-    ftag> >tag
     type/resource> >fieldty
     @tag +core:+mirth:semi-transparent? if(
         fieldty> match {
@@ -866,7 +864,7 @@ def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
     @data is-enum-or-unit? else(
         @data TData type-to-c99-repr pop-to-local! >+local
         @data +core:+mirth:semi-transparent? if-some(
-            C99RT_I64 push-expression!(ftag value show put "LL" put),
+            C99RT_I64 push-expression!(tag value show put "LL" put),
             C99RT_I64 push-expression!(
                 "get_data_tag(" put
                 @+local:rdup consume-as-VAL put

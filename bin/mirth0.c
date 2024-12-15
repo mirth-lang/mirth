@@ -1149,7 +1149,6 @@ static VAL lbl_underlying = MKNIL_C;
 static VAL lbl_tagname = MKNIL_C;
 static VAL lbl_dataname = MKNIL_C;
 static VAL lbl_input = MKNIL_C;
-static VAL lbl_ftag = MKNIL_C;
 static VAL lbl_typeZDivresource = MKNIL_C;
 static VAL lbl_body = MKNIL_C;
 static VAL lbl_sigZAsk = MKNIL_C;

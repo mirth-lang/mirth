@@ -199,7 +199,7 @@ def(Data.is-transparent?, Data -- Bool,
     ) nip)
 
 struct SemiTransparentData {
-    ftag: Tag
+    tag: Tag
     input: StackTypePart
 }
 
@@ -208,7 +208,7 @@ def(Data.semi-transparent?, +Mirth Data -- +Mirth Maybe(SemiTransparentData),
     dup ~semi-transparent? memoize(
         dup tags /L1 bind(
             dup inputs /L1 map(
-                >input dup >ftag SemiTransparentData
+                >input dup >tag SemiTransparentData
             ) nip
         )
     ) nip)
@@ -331,7 +331,7 @@ def(DataPartial.==, DataPartial DataPartial -- Bool,
     field> field> == &&)
 
 struct TagField {
-    ftag: Tag
+    tag: Tag
     label: Label
     type/resource: Type/Resource
 }
@@ -344,8 +344,8 @@ def Tag.fields [ +Mirth Tag -- +Mirth List(TagField) ] {
             match {
                 { STPCons -> drop None }
                 { STPWith -> drop None }
-                { STPConsLabel -> @tag >ftag >label Left  >type/resource TagField Some }
-                { STPWithLabel -> @tag >ftag >label Right >type/resource TagField Some }
+                { STPConsLabel -> @tag >tag >label Left  >type/resource TagField Some }
+                { STPWithLabel -> @tag >tag >label Right >type/resource TagField Some }
             }
         )
     )
