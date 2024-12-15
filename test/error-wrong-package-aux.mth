@@ -1,5 +1,5 @@
 module(std.error-wrong-package-aux)
 import(std.prelude)
 def(main, --, )
-# mirth-test # merr # 2:1: error: failed to open file: "test\\prelude.mth"
+# mirth-test # merr # 2:1: error: Failed to open file: "test\\prelude.mth"
 # mirth-test # mret # 1
