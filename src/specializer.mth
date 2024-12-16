@@ -113,7 +113,7 @@ def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
         SPCHECK_BLOCK checklist:cons
     ))
 
-inline:def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
+def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
     /Atom
     ctx>
     dom> cod> T->
@@ -190,8 +190,12 @@ def(Word.sp-synthed, Word -- Map(SPKey,Word),
 def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
     >word >key
     @key @word sp-synthed lookup(similar) match(
-        Some -> False over ~prefer-inline? !,
+        Some ->
+            # This specialization has already been done. So inline this
+            # specialization only if the word was marked as inline.
+            @word prefer-inline? over ~prefer-inline? !,
         None ->
+            # This word has not been specialized with these arguments before.
             @word head >head
             None >sig?
             @word body >body
@@ -241,7 +245,6 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
 data(+SPSynth, +SPSYNTH ->
     spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)
 
-inline:
 def(+SPSynth.ab(f),
         (*a spkey:SPKey spword:Word spmap:Map(Var,Block) +AB --
          *b spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)

@@ -80,11 +80,9 @@ def +C99.fresh-nat! [ +C99 -- Nat +C99 ] {
     dup 1+ fresh-counter!
 }
 
-inline (
-    def +C99.with-fresh-counter(f) [ ( *a +C99 -- *b +C99 ) *a Nat +C99 -- *b Nat +C99 ] {
-        fresh-counter dip(fresh-counter! f fresh-counter) fresh-counter!
-    }
-)
+def +C99.with-fresh-counter(f) [ ( *a +C99 -- *b +C99 ) *a Nat +C99 -- *b Nat +C99 ] {
+    fresh-counter dip(fresh-counter! f fresh-counter) fresh-counter!
+}
 
 def +C99.fresh-name! [ +C99 -- Str +C99 ] {
     "v" fresh-name-on!
@@ -590,15 +588,13 @@ def(CTypeStackPart.c99-push, Str CTypeStackPart +C99Branch -- +C99Branch,
     CTSPConsLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put),
     CTSPWithLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put))
 
-inline (
-    def(+C99.c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, depth:1+ f depth:pred)
-    def(+C99.c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
+def(+C99.c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, depth:1+ f depth:pred)
+def(+C99.c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
-    def +C99Branch.c99-line(f) [ (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch ]
-        { +core:c99-line(f) }
-    def +C99Branch.c99-nest(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Branch -- *b +C99Branch ]
-        { +core:depth:1+ f +core:depth:pred }
-)
+def +C99Branch.c99-line(f) [ (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch ]
+    { +core:c99-line(f) }
+def +C99Branch.c99-nest(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Branch -- *b +C99Branch ]
+    { +core:depth:1+ f +core:depth:pred }
 def(+C99.indent, +C99 -- +C99, depth repeat("\t" put))
 
 data C99APIArgSource {
@@ -782,16 +778,14 @@ def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
     api> drop
 }
 
-inline (
-    def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a C99API +C99 -- *b +C99 ] {
-        c99-line(dup smart-sig-put " {" put)
-        c99-nest(
-            dup dip(c99-api-enter! f)
-            c99-api-exit!
-        )
-        c99-line("}" put)
-    }
-)
+def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a C99API +C99 -- *b +C99 ] {
+    c99-line(dup smart-sig-put " {" put)
+    c99-nest(
+        dup dip(c99-api-enter! f)
+        c99-api-exit!
+    )
+    c99-line("}" put)
+}
 
 def(c99-arrow!, Arrow +C99Branch -- +C99Branch, atoms for(c99-atom!))
 def(c99-atom!, Atom +C99Branch -- +C99Branch,
@@ -1218,53 +1212,51 @@ def +C99.pop-local-direct! [ +C99 -- +C99 +C99Local ] {
     C99RT_VAL pop-to-local-direct!
 }
 
-inline (
-    ||| Push a value with a certain repr type on the stack.
-    ||| `f` must emit the C99 expression that calculates the value,
-    ||| which must be of the underlying C99 repr type.
-    def C99ReprType.push-expression!(f) [
-        (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
-    ] {
-        +core:local-expression!(f) rswap push-local!
-    }
+||| Push a value with a certain repr type on the stack.
+||| `f` must emit the C99 expression that calculates the value,
+||| which must be of the underlying C99 repr type.
+def C99ReprType.push-expression!(f) [
+    (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
+] {
+    +core:local-expression!(f) rswap push-local!
+}
 
-    def push-resource-expression!(f) [
-        (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
-    ] {
-        +core:local-resource-expression!(f) rswap push-local-resource!
-    }
+def push-resource-expression!(f) [
+    (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch
+] {
+    +core:local-resource-expression!(f) rswap push-local-resource!
+}
 
-    def push-label-expression!(f) [
-        (*a +C99 -- *b +C99) *a C99ReprType Label +C99Branch -- *b +C99Branch
-    ] {
-        dip:+core:local-expression!(f) rswap
-        dup is-resource-label? if(
-            turn-into-resource! push-local-resource-label!,
-            push-local-label!
-        )
-    }
+def push-label-expression!(f) [
+    (*a +C99 -- *b +C99) *a C99ReprType Label +C99Branch -- *b +C99Branch
+] {
+    dip:+core:local-expression!(f) rswap
+    dup is-resource-label? if(
+        turn-into-resource! push-local-resource-label!,
+        push-local-label!
+    )
+}
 
-    def C99ReprType.local-expression!(f) [
-        (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99Local +C99
-    ] {
-        >local-repr
-        fresh-name! >local-name
-        rdip:+C99Local
-        c99-line(rdip:local-repr underlying-c99-type put " " put
-                rdip:local-name put " = " put
-                rswap rdip:f rswap ";" put)
-    }
+def C99ReprType.local-expression!(f) [
+    (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99Local +C99
+] {
+    >local-repr
+    fresh-name! >local-name
+    rdip:+C99Local
+    c99-line(rdip:local-repr underlying-c99-type put " " put
+            rdip:local-name put " = " put
+            rswap rdip:f rswap ";" put)
+}
 
-    def local-resource-expression!(f) [
-        (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99LocalResource +C99
-    ] {
-        >local-resource-repr
-        fresh-name! >local-resource-name rdip:+C99LocalResource
-        c99-line(rdip:local-resource-repr underlying-c99-type put " " put
-                 rdip:local-resource-name put " = (" put
-                 rswap rdip:f rswap ");" put)
-    }
-)
+def local-resource-expression!(f) [
+    (*a +C99 -- *b +C99) *a C99ReprType +C99 -- *b +C99LocalResource +C99
+] {
+    >local-resource-repr
+    fresh-name! >local-resource-name rdip:+C99LocalResource
+    c99-line(rdip:local-resource-repr underlying-c99-type put " " put
+                rdip:local-resource-name put " = (" put
+                rswap rdip:f rswap ");" put)
+}
 
 def +C99Local.push-local-direct! [ +C99 +C99Local -- +C99 ] {
     /+C99Local c99-line(
@@ -1602,19 +1594,18 @@ def +C99BranchSplit.end-branch-split! [ +C99BranchSplit -- +C99Branch ] {
     branch-split-target> for(push-as-local!)
     branch-split-must-flush?> drop
 }
-inline (
-    def +C99BranchSplit.sub-branch(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99BranchSplit -- *b +C99BranchSplit ] {
-        +stack(rdup >+stack) branch-split-target
-        +core(
-            >+core +C99Branch dip:f
-            reverse-for(pop-to-reserved!)
-            end-branch!
-        )
-    }
 
-    def +C99BranchSplit.c99-line(f) { +core:c99-line(f) }
-    def +C99BranchSplit.c99-nest(f) { +core:depth:1+ f +C99BranchSplit.+core:depth:pred }
-)
+def +C99BranchSplit.sub-branch(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99BranchSplit -- *b +C99BranchSplit ] {
+    +stack(rdup >+stack) branch-split-target
+    +core(
+        >+core +C99Branch dip:f
+        reverse-for(pop-to-reserved!)
+        end-branch!
+    )
+}
+
+def +C99BranchSplit.c99-line(f) { +core:c99-line(f) }
+def +C99BranchSplit.c99-nest(f) { +core:depth:1+ f +C99BranchSplit.+core:depth:pred }
 
 struct +C99Branch {
     +core: +C99

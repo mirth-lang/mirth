@@ -65,8 +65,6 @@ inline(
     def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(True, p))
     def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, False))
     def(Bool.==, Bool Bool -- Bool, if(id, not))
-    def(Bool.show, Bool -- Str, if("True", "False"))
-    def(Bool.show;, Bool +Str -- +Str, show ;)
     def(Bool.then(f), (*a -- *a) *a Bool -- *a, if(f, id))
     def(Bool.else(f), (*a -- *a) *a Bool -- *a, if(id, f))
 
@@ -81,6 +79,8 @@ inline(
         True while(dup, drop f) drop
     }
 )
+def(Bool.show, Bool -- Str, if("True", "False"))
+def(Bool.show;, Bool +Str -- +Str, show ;)
 
 data(OS,
     OS_UNKNOWN,
@@ -237,13 +237,13 @@ inline(
     alias(Int.>,  prim-int-gt)
     alias(Int.>=, prim-int-ge)
     alias(Int.<>, prim-int-ne)
+
+    def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 )
 
 def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
-
 def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
 def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
-def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 def(Int.clamp, Int Int Int -- Int, dip(max) min)
 
 inline(
@@ -767,11 +767,10 @@ inline(
 def(@?, Mut(t) -- Maybe(t),
     dup mut-is-set if(@ Some, drop None))
 
-inline(
-    def(panic!, *a Str -- *b, prim-panic)
-    def(impossible!, *a -- *b, "Impossible! The impossible has occured!" panic!)
-    def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
-        f if(id, g panic!))
-    def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
-        expect!(f,g "assertion failed: " swap prim-str-cat))
-)
+inline:def(panic!, *a Str -- *b, prim-panic)
+
+def(impossible!, *a -- *b, "Impossible! The impossible has occured!" panic!)
+def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
+    f if(id, g panic!))
+def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
+    expect!(f,g "assertion failed: " swap prim-str-cat))
