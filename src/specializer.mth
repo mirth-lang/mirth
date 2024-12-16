@@ -80,11 +80,9 @@ def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List
     over args >List+ match(
         None -> drop L1,
         Some ->
-            over prefer-inline? not or(
-            dup has(rdip:free-vars has(is-physical?)))
-            if(
+            dup has(rdip:free-vars has(is-physical?)) if(
+                # can't specialize, just check the args
                 dup for(check-arg!)
-                # too complicated, let's skip it
                 drop2 L1,
 
                 # boot up the specializer for real!
