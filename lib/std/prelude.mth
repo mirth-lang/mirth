@@ -111,8 +111,14 @@ inline(
     def rotr [ a b c -- c a b ] { swap dip(swap) }
     def rotl [ a b c -- b c a ] { dip(swap) swap }
 
+    def rot4r [ a b c d -- d a b c ] { swap dip(rotr) }
+    def rot4l [ a b c d -- b c d a ] { dip(rotl) swap }
+
     def rrotr [ +a +b +c -- +c +a +b ] { rswap rdip(rswap) }
     def rrotl [ +a +b +c -- +b +c +a ] { rdip(rswap) rswap }
+
+    def rrot4r [ +a +b +c +d -- +d +a +b +c ] { rswap rdip(rrotr) }
+    def rrot4l [ +a +b +c +d -- +b +c +d +a ] { rdip(rrotl) rswap }
 
     def over  [ a b           -- a b           a ] { dip(dup)   swap }
     def over2 [ a b1 b2       -- a b1 b2       a ] { dip(over)  swap }
@@ -127,93 +133,74 @@ inline(
     def dup3 [ a b c -- a b c a b c ] { dup dip(dip(dup2) rotr) }
 
     def dip'(f) [ (*a x -- *b y) *a c x -- *b c y ] { swap dip(f) swap }
+    def dip2(f) [ (*a -- *b) *a c1 c2 -- *b c1 c2 ] { dip(dip(f)) }
+    def dip3(f) [ (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3 ] { dip(dip(dip(f))) }
 
-    def(dip2(f), (*a -- *b) *a c1 c2 -- *b c1 c2,
-        dip(dip(f)))
-    def(dip3(f), (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3,
-        dip(dip(dip(f))))
+    def rdip'(f) [ (*a +r1 -- *b +r2) *a +c +r1 -- *b +c +r2 ] { rswap rdip(f) rswap }
+    def rdip2(f) [ (*a -- *b) *a +c1 +c2 -- *b +c1 +c2 ] { rdip(rdip(f)) }
+    def rdip3(f) [ (*a -- *b) *a +c1 +c2 +c3 -- *b +c1 +c2 +c3 ] { rdip(rdip(rdip(f))) }
 
-    def(rdip'(f), (*a +r1 -- *b +r2) *a +c +r1 -- *b +c +r2,
-        rswap rdip(f) rswap)
+    def sip(f)  [ (*a x     -- *b) *a x     -- *b x     ] { dup  dip(f)  }
+    def sip2(f) [ (*a x1 x2 -- *b) *a x1 x2 -- *b x1 x2 ] { dup2 dip2(f) }
 
-    def(rdip2(f), (*a -- *b) *a +c1 +c2 -- *b +c1 +c2,
-        rdip(rdip(f)))
-    def(rdip3(f), (*a -- *b) *a +c1 +c2 +c3 -- *b +c1 +c2 +c3,
-        rdip(rdip(rdip(f))))
+    def both(f) [ (a -- b) a a -- b b ] { dip(f) f }
 
-    def(sip(f), (*a x -- *b) *a x -- *b x,
-        dup dip(f))
-    def(sip2(f), (*a x1 x2 -- *b) *a x1 x2 -- *b x1 x2,
-        dup2 dip(dip(f)))
+    def on2(f,g) [
+        ( *a x1 -- *b x2
+        , *b y1 -- *c y2
+        ) *a x1 y1 -- *c x2 y2 ]
+        { dip(f) dip'(g) }
+    def on3(f,g,h) [
+        ( *a x1 -- *b x2
+        , *b y1 -- *c y2
+        , *c z1 -- *d z2
+        ) *a x1 y1 z1 -- *d x2 y2 z2 ]
+        { dip:on2(f,g) dip':dip'(h) }
+    def on4(f,g,h,i) [
+        ( *a x1 -- *b x2
+        , *b y1 -- *c y2
+        , *c z1 -- *d z2
+        , *d w1 -- *e w2
+        ) *a x1 y1 z1 w1 -- *e x2 y2 z2 w2 ]
+        { dip:on3(f,g,h) dip':dip':dip'(i) }
 
-    def(both(f), (a -- b) a a -- b b, dip(f) f)
+    def on2(f) [ (*a x -- *a y) *a x x     -- *a y y     ] { on2(f,f)     }
+    def on3(f) [ (*a x -- *a y) *a x x x   -- *a y y y   ] { on3(f,f,f)   }
+    def on4(f) [ (*a x -- *a y) *a x x x x -- *a y y y y ] { on4(f,f,f,f) }
 
-    def(on2(f,g),
-            (*a x1 -- *b x2,
-             *b y1 -- *c y2)
-            *a x1 y1 -- *c x2 y2,
-        dip(f) dip'(g))
-    def(on3(f,g,h),
-            (*a x1 -- *b x2,
-             *b y1 -- *c y2,
-             *c z1 -- *d z2)
-            *a x1 y1 z1 -- *d x2 y2 z2,
-        dip:on2(f,g) dip':dip'(h))
-    def(on4(f,g,h,i),
-            (*a x1 -- *b x2,
-             *b y1 -- *c y2,
-             *c z1 -- *d z2,
-             *d w1 -- *e w2)
-            *a x1 y1 z1 w1 -- *e x2 y2 z2 w2,
-        dip:on3(f,g,h) dip':dip':dip'(i))
+    def at2(f,g) [
+        ( *a x1 -- *b
+        , *b y1 -- *c
+        ) *a x1 y1 -- *c ]
+        { dip(f) g }
+    def at3(f,g,h) [
+        ( *a x1 -- *b
+        , *b y1 -- *c
+        , *c z1 -- *d
+        ) *a x1 y1 z1 -- *d ]
+        { dip:at2(f,g) h }
+    def at4(f,g,h,i) [
+        ( *a x1 -- *b
+        , *b y1 -- *c
+        , *c z1 -- *d
+        , *d w1 -- *e
+        ) *a x1 y1 z1 w1 -- *e ]
+        { dip:at3(f,g,h) i }
 
-    def(on2(f), (*a x -- *a y) *a x x -- *a y y, on2(f,f))
-    def(on3(f), (*a x -- *a y) *a x x x -- *a y y y, on3(f,f,f))
-    def(on4(f), (*a x -- *a y) *a x x x x -- *a y y y y, on4(f,f,f,f))
+    def at2(f) [ (*a x -- *a) *a x x     -- *a ] { at2(f,f)     }
+    def at3(f) [ (*a x -- *a) *a x x x   -- *a ] { at3(f,f,f)   }
+    def at4(f) [ (*a x -- *a) *a x x x x -- *a ] { at4(f,f,f,f) }
 
-    def(at2(f,g),
-            (*a x1 -- *b,
-             *b y1 -- *c)
-            *a x1 y1 -- *c,
-        dip(f) g)
-    def(at3(f,g,h),
-            (*a x1 -- *b,
-             *b y1 -- *c,
-             *c z1 -- *d)
-            *a x1 y1 z1 -- *d,
-        dip:at2(f,g) h)
-    def(at4(f,g,h,i),
-            (*a x1 -- *b,
-             *b y1 -- *c,
-             *c z1 -- *d,
-             *d w1 -- *e)
-            *a x1 y1 z1 w1 -- *e,
-        dip:at3(f,g,h) i)
-
-    def(at2(f), (*a x -- *a) *a x x -- *a, at2(f,f))
-    def(at3(f), (*a x -- *a) *a x x x -- *a, at3(f,f,f))
-    def(at4(f), (*a x -- *a) *a x x x x -- *a, at4(f,f,f,f))
-
-    def(drop2, a b --, drop drop)
-    def(drop3, a b c --, drop drop drop)
-    def(drop4, a b c d --, drop drop drop drop)
-
-    def(rot4r, a b c d -- d a b c, swap dip(rotr))
-    def(rot4l, a b c d -- b c d a, dip(rotl) swap)
-
-    def(rrot4r, +a +b +c +d -- +d +a +b +c, rswap rdip(rrotr))
-    def(rrot4l, +a +b +c +d -- +b +c +d +a, rdip(rrotl) rswap)
+    def drop2 [ a b     -- ] { drop drop           }
+    def drop3 [ a b c   -- ] { drop drop drop      }
+    def drop4 [ a b c d -- ] { drop drop drop drop }
 
     def flip3 [ a b c   --   c b a ] { >x1 >x2 >x3     x1> x2> x3>     }
     def flip4 [ a b c d -- d c b a ] { >x1 >x2 >x3 >x4 x1> x2> x3> x4> }
 
-    def(repeat(f), (*a -- *a) *a Nat -- *a,
-        while(dup 0>, dip(f) pred) drop)
-
-    def(count(f), (*a Nat -- *a) *a Nat -- *a,
-        0u swap repeat(dup dip(f) 1+) drop)
-    def(countdown(f), (*a Nat -- *a) *a Nat -- *a,
-        dup swap repeat(pred dup dip(f)) drop)
+    def repeat(f)    [ (*a -- *a)     *a Nat -- *a ] { while(dup 0>, dip(f) pred) drop }
+    def count(f)     [ (*a Nat -- *a) *a Nat -- *a ] { 0u  swap repeat(dup dip(f) 1+)   drop }
+    def countdown(f) [ (*a Nat -- *a) *a Nat -- *a ] { dup swap repeat(pred dup dip(f)) drop }
 
     def(U8_MAX, Int, 0xFF)
     def(U16_MAX, Int, 0xFFFF)
@@ -246,8 +233,16 @@ inline(
     alias(Int.>,  prim-int-gt)
     alias(Int.>=, prim-int-ge)
     alias(Int.<>, prim-int-ne)
-    def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
+)
 
+def(Int.compare, Int Int -- Comparison, dup2 == if(drop2 EQ, < if(LT, GT)))
+
+def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
+def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
+def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
+def(Int.clamp, Int Int Int -- Int, dip(max) min)
+
+inline(
     alias(F64.==, prim-f64-eq)
     alias(F64.=, prim-f64-eq)
     alias(F64.<, prim-f64-lt)
@@ -263,11 +258,6 @@ inline(
     def(F32.<=, F32 F32 -- Bool, swap < not)
     def(F32.>=, F32 F32 -- Bool, < not)
     def(F32.<>, F32 F32 -- Bool, = not)
-
-    def(Int.max, Int Int -- Int, dup2 < if(nip, drop))
-    def(Int.min, Int Int -- Int, dup2 < if(drop, nip))
-    def(Int.in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
-    def(Int.clamp, Int Int Int -- Int, dip(max) min)
 )
 
 inline(

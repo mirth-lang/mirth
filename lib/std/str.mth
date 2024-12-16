@@ -9,18 +9,21 @@ import(std.ctypes)
 
 alias(Str.cat, prim-str-cat)
 inline(
-    def(Str.num-bytes, Str -- USize, prim-str-num-bytes .u >USize)
-    def(Str.empty?, Str -- Bool, num-bytes 0=)
+    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes NatUnsafe >USize }
+    def Str.empty? [ Str -- Bool ] { num-bytes 0= }
 )
 
 ||| Copy string bytes to pointer location (without adding 0 at end).
 ||| Return first unwritten location in second argument.
-def(Ptr.!Str+, Str Ptr +Unsafe -- Ptr +Unsafe,
-    swap with-data(
-        rotl
-        dup2 dip(>UOffset) uoffset
-        dip(copy)
-    ))
+def Ptr.!Str+ [ Str Ptr +Unsafe -- Ptr +Unsafe ] {
+    dup2 dip(num-bytes >UOffset)
+    uoffset dip(!Str)
+}
+
+||| Copy string bytes to pointer location.
+def Ptr.!Str [ Str Ptr +Unsafe -- +Unsafe ] {
+    swap with-data(rotl copy)
+}
 
 inline(
     def(Str.ClonePtrSlice, Ptr USize +Unsafe -- Str +Unsafe, >Int prim-str-copy)
