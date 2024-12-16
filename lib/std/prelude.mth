@@ -76,6 +76,10 @@ inline(
     def and(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
         dup dip(f) swap if(g, drop False)
     }
+
+    def while(f) [ (*x -- *x Bool) *x -- *x ] {
+        True while(dup, drop f) drop
+    }
 )
 
 data(OS,

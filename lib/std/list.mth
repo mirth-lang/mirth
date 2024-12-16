@@ -108,7 +108,7 @@ def List+.last  [ List+(t) -- t ] { uncons for(nip) }
 
 ||| Reverse the list.
 def List.reverse [ List(a) -- List(a) ] {
-    L0 swap for(swap Cons)
+    Nil swap for(swap Cons)
 }
 
 def List+.reverse [ List+(t) -- List+(t) ] {
@@ -130,9 +130,14 @@ inline(
         cons+
     }
 
+    def List.if-cons(f,g) [ (*a x List(x) -- *b, *a -- *b) *a List(x) -- *b ] {
+        { Cons -> f }
+        { Nil -> g }
+    }
+
     ||| Traverse the list, left to right.
     def List.for(f) [ (*c a -- *c) *c List(a) -- *c ] {
-        while-some(uncons swap, swap dip(f)) drop
+        while(if-cons(dip(f) True, Nil False)) drop
     }
 
     ||| Traverse the list, left to right.
@@ -172,7 +177,7 @@ inline(
 
     ||| Filter away any list elements that don't satisfy the predicate.
     def List.filter(f) [ (*c a -- *c Bool) *c List(a) -- *c List(a) ] {
-        filter-some(dup dip(f) swap if(Some, drop None))
+        LIST(for(dup dip:rdip(f) swap if(;, drop)))
     }
 
     ||| Filter away any list elements that don't satisfy the predicate.
@@ -344,7 +349,7 @@ struct +List+(t) { List+(t) }
 inline(
     def +List.rdrop  [ +List (t) -- ] { +List  -> drop }
     def +List+.rdrop [ +List+(t) -- ] { +List+ -> drop }
-    
+
     def +List.rdup  [ +List (t) -- +List (t) +List (t) ] { +List  -> dup dip(+List)  +List  }
     def +List+.rdup [ +List+(t) -- +List+(t) +List+(t) ] { +List+ -> dup dip(+List+) +List+ }
 

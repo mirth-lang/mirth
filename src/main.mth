@@ -99,12 +99,17 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
         Some ->
             "Specializer." rdip:trace
             run-specializer!
-            "Codegen." rdip:trace
-            output-file> if-some(
-                >output-path
-                C99_Options run-output-c99!,
+            num-errors 0> if(
+                trace-diagnostics!
+                num-errors rdip:trace(FGRed emit; show ; " errors during specializer." ; Reset emit;) 1 posix-exit!,
 
-                emit-debug-info> drop2
+                "Codegen." rdip:trace
+                output-file> if-some(
+                    >output-path
+                    C99_Options run-output-c99!,
+
+                    emit-debug-info> drop2
+                )
             ),
         None ->
             "Skipping Codegen." rdip:trace

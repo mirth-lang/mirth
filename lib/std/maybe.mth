@@ -67,7 +67,7 @@ inline (
     }
 
     def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
-        while(f if-some(g True, False), id)
+        True while(dup, drop f if-some(g True, False)) drop
     }
 
     def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {

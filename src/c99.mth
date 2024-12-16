@@ -104,6 +104,8 @@ def +C99.fresh-name-on! [ Str +C99 -- Str +C99 ] {
 
 def(run-output-c99!, Arrow C99_Options +World +Mirth -- +World +Mirth,
     num-errors 0> if(
+        "There were errors, so codegen stopped." rdip:trace
+        panic-diagnostics!
         drop2,
 
         c99-start!

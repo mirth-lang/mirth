@@ -2081,8 +2081,7 @@ def elab-def-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
     dup head with-error-token(
         type ctype
         dup cod parts
-        filter(label? none?)
-        filter(ctype phantom? not)
+        filter(sip(label? none?) ctype phantom? not &&)
         len 1u > then(
             "External has too many outputs." error!
         )

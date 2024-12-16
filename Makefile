@@ -17,11 +17,11 @@ default: show bin/snake.c bin/fractal.c
 show: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
-	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
+	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c | head -n 10
 showsan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
-	diff --strip-trailing-cr bin/mirth2.c bin/mirth3san.c
+	diff --strip-trailing-cr bin/mirth2.c bin/mirth3san.c | head -n 10
 
 build: bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth1.c bin/mirth2.c bin/mirth3.c
 buildsan: bin/mirth0 bin/mirth1 bin/mirth2san bin/mirth1.c bin/mirth2.c bin/mirth3san.c
@@ -107,10 +107,10 @@ bin/mirth1.c: bin/mirth0 $(SRCS)
 	bin/mirth0 src/main.mth -o bin/mirth1.c
 
 bin/mirth2.c: bin/mirth1 $(SRCS)
-	bin/mirth1 src/main.mth -o bin/mirth2.c
+	rm -f bin/mirth2.c && bin/mirth1 src/main.mth -o bin/mirth2.c
 
 bin/mirth3.c: bin/mirth2 $(SRCS)
-	bin/mirth2 src/main.mth -o bin/mirth3.c
+	rm -f bin/mirth3.c && bin/mirth2 src/main.mth -o bin/mirth3.c
 
 bin/mirth1debug.c: bin/mirth0 $(SRCS)
 	bin/mirth0 --debug src/main.mth -o bin/mirth1debug.c
