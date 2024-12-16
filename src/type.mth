@@ -1199,6 +1199,11 @@ data StackTypeBase {
     STBMeta [ MetaVar ]
 }
 
+def StackTypeBase.unit? [ StackTypeBase -- Bool ] {
+    { STB_UNIT -> True }
+    { _ -> drop False }
+}
+
 data StackTypePart {
     STPCons      [ Type ]
     STPConsLabel [ Type Label ]

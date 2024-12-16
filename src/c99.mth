@@ -787,6 +787,67 @@ def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a C99API +C99 -- *b +
     c99-line("}" put)
 }
 
+def c99-codip-arrow! [ Arrow +C99Branch -- +C99Branch ] {
+    dup +core:+mirth:type unpack
+    split-parts >cod-parts >cod-base
+    split-parts >dom-parts >dom-base
+    cod-base> unit? dom-base> unit? && if(
+        dom-parts> dip-parts( +stack(+SCNil) )
+        c99-arrow!
+        cod-parts> dip-parts(
+            +stack(
+                match {
+                    { +SCNil -> id }
+                    { +SCCons -> impossible! }
+                    { +SCWith -> impossible! }
+                    { +SCConsLabel -> impossible! }
+                    { +SCWithLabel -> impossible! }
+                }
+            )
+        ),
+
+        cod-parts> dom-parts> drop2
+        c99-arrow!
+    )
+}
+
+def +C99Branch.dip-parts(f) [
+    ( *a +C99Branch -- *b +C99Branch )
+    *a List(StackTypePart) +C99Branch -- *b +C99Branch
+] {
+    pop-stack!
+    rdip (f)
+    push-stack!
+}
+
+||| Pop stack parts (right-to-left) into a separate stack cache.
+def +C99Branch.pop-stack! [ List(StackTypePart) +C99Branch -- +C99Branch +C99StackCache ] {
+    +SCNil reverse-for(pop-stack-part!)
+}
+
+||| Pop a part from branch to separate stack.
+def +C99StackCache.pop-stack-part! [ StackTypePart +C99Branch +C99StackCache -- +C99Branch +C99StackCache ] {
+    { STPCons -> rdip(type-to-c99-repr pop-to-local!) rswap +SCCons }
+    { STPWith -> rdip(resource-to-c99-repr pop-to-local-resource!) rswap +SCWith }
+    { STPConsLabel -> rdip(dip:type-to-c99-repr tuck pop-to-local-label!) rswap +SCConsLabel }
+    { STPWithLabel -> rdip(dip:resource-to-c99-repr tuck pop-to-local-resource-label!) rswap +SCWithLabel }
+}
+
+def +C99StackCache.reverse-cat! [ +C99StackCache +C99StackCache -- +C99StackCache ] {
+    while ( match {
+        { +SCNil -> +SCNil False }
+        { +SCCons -> rswap rdip:+SCCons True }
+        { +SCWith -> rswap rdip:+SCWith True }
+        { +SCConsLabel -> rswap rdip:+SCConsLabel True }
+        { +SCWithLabel -> rswap rdip:+SCWithLabel True }
+    } ) rdrop
+}
+
+||| Push stack onto branch, right to left.
+def +C99StackCache.push-stack! [ +C99Branch +C99StackCache -- +C99Branch ] {
+    rswap +stack(rswap reverse-cat!)
+}
+
 def(c99-arrow!, Arrow +C99Branch -- +C99Branch, atoms for(c99-atom!))
 def(c99-atom!, Atom +C99Branch -- +C99Branch,
     +core:options emit-debug-info and(dup show-in-stack-trace?) then(
@@ -874,7 +935,7 @@ def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
 def(c99-word!, List(Arg) Word +C99Branch -- +C99Branch,
     dup prefer-inline? if(
         dip:c99-args-push!
-        +core:+mirth:arrow c99-arrow!,
+        +core:+mirth:arrow c99-codip-arrow!,
         +core:c99-api c99-smart-call!
     ))
 
@@ -1973,7 +2034,7 @@ def(c99-arg-run!, Arg +C99Branch -- +C99Branch,
     ArgBlock -> c99-block-run!)
 
 def(c99-block-run!, Block +C99Branch -- +C99Branch,
-    +core:+mirth:arrow c99-arrow!)
+    +core:+mirth:arrow c99-codip-arrow!)
 
 def(+C99.var-put, Var +C99 -- +C99, "var_" put name mangled put)
 
