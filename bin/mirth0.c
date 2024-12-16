@@ -4456,22 +4456,12 @@ static double mext_mirth_lexer_stringz_toz_float64 (void* x1) {
 }
 static VAL mw_std_either_Either_2_leftZAsk (VAL x1);
 static VAL mw_std_either_Either_2_rightZAsk (VAL x1);
-static void mw_std_prim_Ptr_ZAtByte (void* x1, int64_t x2, int64_t *x3, int64_t *x4);
-static int64_t mw_std_byte_Byte_isZ_upper (int64_t x1);
-static int64_t mw_std_byte_Byte_isZ_lower (int64_t x1);
-static int64_t mw_std_byte_Byte_isZ_digit (int64_t x1);
-static int64_t mw_std_byte_Byte_isZ_alpha (int64_t x1);
-static int64_t mw_std_byte_Byte_isZ_alnum (int64_t x1);
-static int64_t mw_std_byte_Byte_isZ_printable (int64_t x1);
-static int64_t mw_std_byte_Byte_isZ_hexdigit (int64_t x1);
-static VAL mw_std_byte_Byte_emitZ_asciiZThen (VAL x1, int64_t x2);
 static VAL mw_std_byte_Byte_toZ_strZ_unsafe (int64_t x1);
 static VAL mw_std_byte_Byte_toZ_asciiZ_str (int64_t x1);
 static int64_t mw_std_byte_Byte_isZ_stringZ_end (int64_t x1);
 static void mw_std_byte_Byte_toZ_hexdigits (int64_t x1, int64_t *x2, int64_t *x3);
 static int64_t mw_std_byte_oneZ_hexdigitZ_byte (int64_t x1);
 static int64_t mw_std_byte_Byte_isZ_nameZ_byte (int64_t x1);
-static int64_t mw_std_byte_Byte_isZ_sign (int64_t x1);
 static VAL mw_std_byte_Byte_zzencode (int64_t x1);
 static VAL mw_std_buffer_ZPlusBuffer_new (int64_t x1);
 static VAL mw_std_buffer_ZPlusBuffer_resizzeZBang (int64_t x1, VAL x2);
@@ -7021,169 +7011,6 @@ static VAL mw_std_either_Either_2_rightZAsk (VAL x1) {
 	}
 	return x2;
 }
-static void mw_std_prim_Ptr_ZAtByte (void* x1, int64_t x2, int64_t *x3, int64_t *x4) {
-	uint8_t v5 = *(uint8_t*)x1;
-	*x4 = x2;
-	*x3 = ((int64_t)v5);
-}
-static int64_t mw_std_byte_Byte_isZ_upper (int64_t x1) {
-	int64_t v2 = 65LL /* B'A' */;
-	int64_t v3 = 90LL /* B'Z' */;
-	bool v4 = (x1 >= v2);
-	bool v5 = (x1 <= v3);
-	bool v6 = (v4 && v5);
-	return ((int64_t)v6);
-}
-static int64_t mw_std_byte_Byte_isZ_lower (int64_t x1) {
-	int64_t v2 = 97LL /* B'a' */;
-	int64_t v3 = 122LL /* B'z' */;
-	bool v4 = (x1 >= v2);
-	bool v5 = (x1 <= v3);
-	bool v6 = (v4 && v5);
-	return ((int64_t)v6);
-}
-static int64_t mw_std_byte_Byte_isZ_digit (int64_t x1) {
-	int64_t v2 = 48LL /* B'0' */;
-	int64_t v3 = 57LL /* B'9' */;
-	bool v4 = (x1 >= v2);
-	bool v5 = (x1 <= v3);
-	bool v6 = (v4 && v5);
-	return ((int64_t)v6);
-}
-static int64_t mw_std_byte_Byte_isZ_alpha (int64_t x1) {
-	int64_t v2 = mw_std_byte_Byte_isZ_upper(x1);
-	int64_t x3;
-	if (((bool)v2)) {
-		int64_t v4 = 1LL /* True */;
-		x3 = v4;
-	} else {
-		int64_t v5 = mw_std_byte_Byte_isZ_lower(x1);
-		x3 = v5;
-	}
-	return x3;
-}
-static int64_t mw_std_byte_Byte_isZ_alnum (int64_t x1) {
-	int64_t v2 = mw_std_byte_Byte_isZ_digit(x1);
-	int64_t x3;
-	if (((bool)v2)) {
-		int64_t v4 = 1LL /* True */;
-		x3 = v4;
-	} else {
-		int64_t v5 = mw_std_byte_Byte_isZ_alpha(x1);
-		x3 = v5;
-	}
-	return x3;
-}
-static int64_t mw_std_byte_Byte_isZ_printable (int64_t x1) {
-	int64_t v2 = 33LL /* B'!' */;
-	int64_t v3 = 126LL /* B'~' */;
-	bool v4 = (x1 >= v2);
-	bool v5 = (x1 <= v3);
-	bool v6 = (v4 && v5);
-	return ((int64_t)v6);
-}
-static int64_t mw_std_byte_Byte_isZ_hexdigit (int64_t x1) {
-	int64_t x2;
-	switch (x1) {
-		case 48LL: { // B'0'
-			int64_t v3 = 1LL /* True */;
-			x2 = v3;
-		} break;
-		case 49LL: { // B'1'
-			int64_t v4 = 1LL /* True */;
-			x2 = v4;
-		} break;
-		case 50LL: { // B'2'
-			int64_t v5 = 1LL /* True */;
-			x2 = v5;
-		} break;
-		case 51LL: { // B'3'
-			int64_t v6 = 1LL /* True */;
-			x2 = v6;
-		} break;
-		case 52LL: { // B'4'
-			int64_t v7 = 1LL /* True */;
-			x2 = v7;
-		} break;
-		case 53LL: { // B'5'
-			int64_t v8 = 1LL /* True */;
-			x2 = v8;
-		} break;
-		case 54LL: { // B'6'
-			int64_t v9 = 1LL /* True */;
-			x2 = v9;
-		} break;
-		case 55LL: { // B'7'
-			int64_t v10 = 1LL /* True */;
-			x2 = v10;
-		} break;
-		case 56LL: { // B'8'
-			int64_t v11 = 1LL /* True */;
-			x2 = v11;
-		} break;
-		case 57LL: { // B'9'
-			int64_t v12 = 1LL /* True */;
-			x2 = v12;
-		} break;
-		case 65LL: { // B'A'
-			int64_t v13 = 1LL /* True */;
-			x2 = v13;
-		} break;
-		case 66LL: { // B'B'
-			int64_t v14 = 1LL /* True */;
-			x2 = v14;
-		} break;
-		case 67LL: { // B'C'
-			int64_t v15 = 1LL /* True */;
-			x2 = v15;
-		} break;
-		case 68LL: { // B'D'
-			int64_t v16 = 1LL /* True */;
-			x2 = v16;
-		} break;
-		case 69LL: { // B'E'
-			int64_t v17 = 1LL /* True */;
-			x2 = v17;
-		} break;
-		case 70LL: { // B'F'
-			int64_t v18 = 1LL /* True */;
-			x2 = v18;
-		} break;
-		case 97LL: { // B'a'
-			int64_t v19 = 1LL /* True */;
-			x2 = v19;
-		} break;
-		case 98LL: { // B'b'
-			int64_t v20 = 1LL /* True */;
-			x2 = v20;
-		} break;
-		case 99LL: { // B'c'
-			int64_t v21 = 1LL /* True */;
-			x2 = v21;
-		} break;
-		case 100LL: { // B'd'
-			int64_t v22 = 1LL /* True */;
-			x2 = v22;
-		} break;
-		case 101LL: { // B'e'
-			int64_t v23 = 1LL /* True */;
-			x2 = v23;
-		} break;
-		case 102LL: { // B'f'
-			int64_t v24 = 1LL /* True */;
-			x2 = v24;
-		} break;
-		default: {
-			int64_t v25 = 0LL /* False */;
-			x2 = v25;
-		} break;
-	}
-	return x2;
-}
-static VAL mw_std_byte_Byte_emitZ_asciiZThen (VAL x1, int64_t x2) {
-	VAL v3 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(x2, x1));
-	return v3;
-}
 static VAL mw_std_byte_Byte_toZ_strZ_unsafe (int64_t x1) {
 	VAL v2 = MKI64(0LL /* Nil */);
 	VAL v3 = mtw_std_list_List_1_Cons(MKI64(x1), v2);
@@ -7303,24 +7130,6 @@ static int64_t mw_std_byte_Byte_isZ_nameZ_byte (int64_t x1) {
 			int64_t v13 = 32LL /* BSPACE */;
 			bool v14 = (x1 > v13);
 			x2 = ((int64_t)v14);
-		} break;
-	}
-	return x2;
-}
-static int64_t mw_std_byte_Byte_isZ_sign (int64_t x1) {
-	int64_t x2;
-	switch (x1) {
-		case 45LL: { // B'-'
-			int64_t v3 = 1LL /* True */;
-			x2 = v3;
-		} break;
-		case 43LL: { // B'+'
-			int64_t v4 = 1LL /* True */;
-			x2 = v4;
-		} break;
-		default: {
-			int64_t v5 = 0LL /* False */;
-			x2 = v5;
 		} break;
 	}
 	return x2;
@@ -7494,25 +7303,41 @@ static VAL mw_std_byte_Byte_zzencode (int64_t x1) {
 			x2 = MKSTR(v35);
 		} break;
 		default: {
-			int64_t v36 = mw_std_byte_Byte_isZ_alnum(x1);
-			VAL x37;
-			if (((bool)v36)) {
-				VAL v38 = mw_std_byte_Byte_toZ_strZ_unsafe(x1);
-				x37 = v38;
+			int64_t v36 = 48LL /* B'0' */;
+			int64_t v37 = 57LL /* B'9' */;
+			bool v38 = (x1 >= v36);
+			bool v39 = (x1 <= v37);
+			bool v40 = (v38 && v39);
+			int64_t v41 = 65LL /* B'A' */;
+			int64_t v42 = 90LL /* B'Z' */;
+			bool v43 = (x1 >= v41);
+			bool v44 = (x1 <= v42);
+			bool v45 = (v43 && v44);
+			int64_t v46 = 97LL /* B'a' */;
+			int64_t v47 = 122LL /* B'z' */;
+			bool v48 = (x1 >= v46);
+			bool v49 = (x1 <= v47);
+			bool v50 = (v48 && v49);
+			bool v51 = (v45 || v50);
+			bool v52 = (v40 || v51);
+			VAL x53;
+			if (v52) {
+				VAL v54 = mw_std_byte_Byte_toZ_strZ_unsafe(x1);
+				x53 = v54;
 			} else {
-				STR* v39;
-				STRLIT(v39, "", 0);
-				STR* v40;
-				STRLIT(v40, "Z", 1);
-				VAL v41 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v40), MKSTR(v39)));
-				STR* v42 = i64_show(x1);
-				VAL v43 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v42), v41));
-				STR* v44;
-				STRLIT(v44, "U", 1);
-				VAL v45 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v44), v43));
-				x37 = v45;
+				STR* v55;
+				STRLIT(v55, "", 0);
+				STR* v56;
+				STRLIT(v56, "Z", 1);
+				VAL v57 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v56), MKSTR(v55)));
+				STR* v58 = i64_show(x1);
+				VAL v59 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v58), v57));
+				STR* v60;
+				STRLIT(v60, "U", 1);
+				VAL v61 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v60), v59));
+				x53 = v61;
 			}
-			x2 = x37;
+			x2 = x53;
 		} break;
 	}
 	return x2;
@@ -7718,13 +7543,11 @@ static int64_t mw_std_prim_Str_byteZAt (int64_t x1, VAL x2) {
 	if (((bool)v5)) {
 		int64_t v7 = (0LL /* +Unsafe */);
 		void* v8 = (void*)(x1 + (char*)v3);
-		int64_t v9;
-		int64_t v10;
-		mw_std_prim_Ptr_ZAtByte(v8, v7, &v9, &v10);
-		x6 = v9;
+		uint8_t v9 = *(uint8_t*)v8;
+		x6 = ((int64_t)v9);
 	} else {
-		int64_t v11 = 0LL /* BNUL */;
-		x6 = v11;
+		int64_t v10 = 0LL /* BNUL */;
+		x6 = v10;
 	}
 	decref(x2);
 	return x6;
@@ -8083,54 +7906,70 @@ static void mw_std_str_ZPlusStr_pushZ_showZ_byteZBang (VAL x1, int64_t x2, int64
 				int64_t x31;
 				int64_t x32;
 				if (((bool)x2)) {
-					int64_t v33 = mw_std_byte_Byte_isZ_hexdigit(x3);
-					x32 = v33;
+					int64_t v33 = 48LL /* B'0' */;
+					int64_t v34 = 57LL /* B'9' */;
+					bool v35 = (x3 >= v33);
+					bool v36 = (x3 <= v34);
+					bool v37 = (v35 && v36);
+					int64_t v38 = 65LL /* B'A' */;
+					int64_t v39 = 70LL /* B'F' */;
+					bool v40 = (x3 >= v38);
+					bool v41 = (x3 <= v39);
+					bool v42 = (v40 && v41);
+					int64_t v43 = 97LL /* B'a' */;
+					int64_t v44 = 102LL /* B'f' */;
+					bool v45 = (x3 >= v43);
+					bool v46 = (x3 <= v44);
+					bool v47 = (v45 && v46);
+					bool v48 = (v42 || v47);
+					bool v49 = (v37 || v48);
+					x32 = ((int64_t)v49);
 					x31 = x3;
 					push_resource(x1);
 					lpush(&lbl_escapeZ_hex, MKI64(x2));
 				} else {
-					int64_t v34 = 0LL /* False */;
-					x32 = v34;
+					int64_t v50 = 0LL /* False */;
+					x32 = v50;
 					x31 = x3;
 					push_resource(x1);
 					lpush(&lbl_escapeZ_hex, MKI64(x2));
 				}
-				bool v35 = !((bool)x32);
-				x30 = ((int64_t)v35);
-				int64_t v36 = VI64(lpop(&lbl_escapeZ_hex));
-				x29 = v36;
+				bool v51 = !((bool)x32);
+				x30 = ((int64_t)v51);
+				int64_t v52 = VI64(lpop(&lbl_escapeZ_hex));
+				x29 = v52;
 				x28 = x31;
 			} else {
-				int64_t v37 = 0LL /* False */;
-				x30 = v37;
+				int64_t v53 = 0LL /* False */;
+				x30 = v53;
 				x29 = x2;
 				x28 = x3;
 				push_resource(x1);
 			}
-			VAL x38;
-			int64_t x39;
+			VAL x54;
+			int64_t x55;
 			if (((bool)x30)) {
-				VAL r40 = pop_resource();
-				VAL v41 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(x28, r40));
-				int64_t v42 = 0LL /* False */;
-				x39 = v42;
-				x38 = v41;
+				VAL r56 = pop_resource();
+				VAL v57 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(x28, r56));
+				int64_t v58 = 0LL /* False */;
+				x55 = v58;
+				x54 = v57;
 			} else {
-				STR* v43;
-				STRLIT(v43, "\\x", 2);
-				VAL r44 = pop_resource();
-				VAL v45 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v43), r44));
-				int64_t v46;
-				int64_t v47;
-				mw_std_byte_Byte_toZ_hexdigits(x28, &v46, &v47);
-				VAL v48 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(v46, v45));
-				VAL v49 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(v47, v48));
-				int64_t v50 = 1LL /* True */;
-				x39 = v50;
-				x38 = v49;
+				STR* v59;
+				STRLIT(v59, "\\x", 2);
+				VAL r60 = pop_resource();
+				VAL v61 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v59), r60));
+				int64_t v62;
+				int64_t v63;
+				mw_std_byte_Byte_toZ_hexdigits(x28, &v62, &v63);
+				VAL v64 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(v62, v61));
+				VAL v65 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(v63, v64));
+				int64_t v66 = 1LL /* True */;
+				x55 = v66;
+				x54 = v65;
 			}
-			x7 = x38;
-			x6 = x39;
+			x7 = x54;
+			x6 = x55;
 		} break;
 	}
 	*x5 = x7;
@@ -8158,48 +7997,46 @@ static VAL mw_std_prim_Str_showZThen (VAL x1, VAL x2) {
 		void* v17 = v12;
 		uint64_t v18 = v13;
 		int64_t v19 = (0LL /* +Unsafe */);
-		int64_t v20;
+		uint8_t v20 = *(uint8_t*)v17;
 		int64_t v21;
-		mw_std_prim_Ptr_ZAtByte(v17, v19, &v20, &v21);
-		int64_t v22;
-		VAL v23;
-		mw_std_str_ZPlusStr_pushZ_showZ_byteZBang(v15, v16, v20, &v22, &v23);
-		int64_t v24 = 1LL;
-		int64_t v25 = (0LL /* +Unsafe */);
-		void* v26 = (void*)(v24 + (char*)v17);
-		int64_t v27 = 1LL;
-		int64_t v28 = i64_sub(((int64_t)v18), v27);
-		int64_t v29 = 0LL;
-		bool v30 = (v28 < v29);
-		int64_t x31;
-		if (v30) {
-			int64_t v32 = 0LL;
-			x31 = v32;
-			lpush(&lbl_escapeZ_hex, MKI64(v22));
-			push_resource(v23);
-			push_ptr(v26);
+		VAL v22;
+		mw_std_str_ZPlusStr_pushZ_showZ_byteZBang(v15, v16, ((int64_t)v20), &v21, &v22);
+		int64_t v23 = 1LL;
+		int64_t v24 = (0LL /* +Unsafe */);
+		void* v25 = (void*)(v23 + (char*)v17);
+		int64_t v26 = 1LL;
+		int64_t v27 = i64_sub(((int64_t)v18), v26);
+		int64_t v28 = 0LL;
+		bool v29 = (v27 < v28);
+		int64_t x30;
+		if (v29) {
+			int64_t v31 = 0LL;
+			x30 = v31;
+			lpush(&lbl_escapeZ_hex, MKI64(v21));
+			push_resource(v22);
+			push_ptr(v25);
 		} else {
-			x31 = v28;
-			lpush(&lbl_escapeZ_hex, MKI64(v22));
-			push_resource(v23);
-			push_ptr(v26);
+			x30 = v27;
+			lpush(&lbl_escapeZ_hex, MKI64(v21));
+			push_resource(v22);
+			push_ptr(v25);
 		}
-		int64_t v33 = 0LL;
-		bool v34 = (x31 > v33);
-		v14 = v34;
-		v13 = ((uint64_t)x31);
-		void* v35 = pop_ptr();
-		v12 = v35;
-		int64_t v36 = VI64(lpop(&lbl_escapeZ_hex));
-		v11 = v36;
-		VAL r37 = pop_resource();
-		v10 = r37;
+		int64_t v32 = 0LL;
+		bool v33 = (x30 > v32);
+		v14 = v33;
+		v13 = ((uint64_t)x30);
+		void* v34 = pop_ptr();
+		v12 = v34;
+		int64_t v35 = VI64(lpop(&lbl_escapeZ_hex));
+		v11 = v35;
+		VAL r36 = pop_resource();
+		v10 = r36;
 	}
 	decref(x1);
-	STR* v38;
-	STRLIT(v38, "\"", 1);
-	VAL v39 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v38), v10));
-	return v39;
+	STR* v37;
+	STRLIT(v37, "\"", 1);
+	VAL v38 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v37), v10));
+	return v38;
 }
 static VAL mw_std_list_L3 (VAL x1, VAL x2, VAL x3) {
 	VAL v4 = MKI64(0LL /* Nil */);
@@ -10129,35 +9966,39 @@ static void mw_argZ_parser_types_ArgpOption_usageZThen (VAL x1, VAL x2, VAL x3, 
 	switch (get_data_tag(v9)) {
 		case 0LL: { // Short
 			int64_t v14 = mtp_argZ_parser_types_ArgpOptionType_Short(v9);
-			int64_t v15 = mw_std_byte_Byte_isZ_printable(v14);
-			int64_t x16;
-			int64_t x17;
-			VAL x18;
-			if (((bool)v15)) {
-				int64_t v19 = 2LL;
-				int64_t v20 = i64_add(v8, v19);
-				STR* v21;
-				STRLIT(v21, "-", 1);
-				VAL v22 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v21), v7));
-				VAL v23 = (mw_std_byte_Byte_emitZ_asciiZThen(v22, v14));
-				x18 = v23;
-				x17 = v14;
-				x16 = v20;
+			int64_t v15 = 33LL /* B'!' */;
+			int64_t v16 = 126LL /* B'~' */;
+			bool v17 = (v14 >= v15);
+			bool v18 = (v14 <= v16);
+			bool v19 = (v17 && v18);
+			int64_t x20;
+			int64_t x21;
+			VAL x22;
+			if (v19) {
+				int64_t v23 = 2LL;
+				int64_t v24 = i64_add(v8, v23);
+				STR* v25;
+				STRLIT(v25, "-", 1);
+				VAL v26 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v25), v7));
+				VAL v27 = (mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(v14, v26));
+				x22 = v27;
+				x21 = v14;
+				x20 = v24;
 				push_resource(x1);
 				push_value(x3);
 			} else {
-				x18 = v7;
-				x17 = v14;
-				x16 = v8;
+				x22 = v7;
+				x21 = v14;
+				x20 = v8;
 				push_resource(x1);
 				push_value(x3);
 			}
-			VAL v24 = pop_value();
-			x13 = v24;
-			x12 = x16;
-			x11 = x18;
-			VAL r25 = pop_resource();
-			x10 = r25;
+			VAL v28 = pop_value();
+			x13 = v28;
+			x12 = x20;
+			x11 = x22;
+			VAL r29 = pop_resource();
+			x10 = r29;
 		} break;
 		default: {
 			decref(v9);
@@ -10168,248 +10009,248 @@ static void mw_argZ_parser_types_ArgpOption_usageZThen (VAL x1, VAL x2, VAL x3, 
 		} break;
 	}
 	incref(x13);
-	VAL v26 = VVAL(VTUP(x13)->cells[2]);
-	incref(v26);
+	VAL v30 = VVAL(VTUP(x13)->cells[2]);
+	incref(v30);
 	decref(x13);
-	int64_t v27 = mw_argZ_parser_types_ArgpOptionType_hasZ_shortZAsk(v26);
-	VAL x28;
-	int64_t x29;
-	if (((bool)v27)) {
+	int64_t v31 = mw_argZ_parser_types_ArgpOptionType_hasZ_shortZAsk(v30);
+	VAL x32;
+	int64_t x33;
+	if (((bool)v31)) {
 		incref(x13);
-		VAL v30 = VVAL(VTUP(x13)->cells[1]);
-		incref(v30);
+		VAL v34 = VVAL(VTUP(x13)->cells[1]);
+		incref(v34);
 		decref(x13);
-		int64_t v31 = get_data_tag(v30);
-		decref(v30);
-		int64_t v32 = 1LL;
-		bool v33 = (v31 == v32);
-		x29 = ((int64_t)v33);
-		x28 = x13;
+		int64_t v35 = get_data_tag(v34);
+		decref(v34);
+		int64_t v36 = 1LL;
+		bool v37 = (v35 == v36);
+		x33 = ((int64_t)v37);
+		x32 = x13;
 		push_resource(x10);
 		push_resource(x11);
 		lpush(&lbl_colZ_offset, MKI64(x12));
 	} else {
-		int64_t v34 = 0LL /* False */;
-		x29 = v34;
-		x28 = x13;
+		int64_t v38 = 0LL /* False */;
+		x33 = v38;
+		x32 = x13;
 		push_resource(x10);
 		push_resource(x11);
 		lpush(&lbl_colZ_offset, MKI64(x12));
 	}
-	VAL x35;
-	int64_t x36;
-	if (((bool)x29)) {
-		STR* v37;
-		STRLIT(v37, ", ", 2);
-		VAL r38 = pop_resource();
-		VAL v39 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v37), r38));
-		int64_t v40 = VI64(lpop(&lbl_colZ_offset));
-		int64_t v41 = 2LL;
-		int64_t v42 = i64_add(v40, v41);
-		x36 = v42;
-		x35 = v39;
-		push_value(x28);
+	VAL x39;
+	int64_t x40;
+	if (((bool)x33)) {
+		STR* v41;
+		STRLIT(v41, ", ", 2);
+		VAL r42 = pop_resource();
+		VAL v43 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v41), r42));
+		int64_t v44 = VI64(lpop(&lbl_colZ_offset));
+		int64_t v45 = 2LL;
+		int64_t v46 = i64_add(v44, v45);
+		x40 = v46;
+		x39 = v43;
+		push_value(x32);
 	} else {
-		int64_t v43 = VI64(lpop(&lbl_colZ_offset));
-		x36 = v43;
-		VAL r44 = pop_resource();
-		x35 = r44;
-		push_value(x28);
+		int64_t v47 = VI64(lpop(&lbl_colZ_offset));
+		x40 = v47;
+		VAL r48 = pop_resource();
+		x39 = r48;
+		push_value(x32);
 	}
-	VAL v45 = pop_value();
-	incref(v45);
-	VAL v46 = VVAL(VTUP(v45)->cells[1]);
-	incref(v46);
-	decref(v45);
-	int64_t x47;
-	VAL x48;
-	VAL x49;
-	switch (get_data_tag(v46)) {
+	VAL v49 = pop_value();
+	incref(v49);
+	VAL v50 = VVAL(VTUP(v49)->cells[1]);
+	incref(v50);
+	decref(v49);
+	int64_t x51;
+	VAL x52;
+	VAL x53;
+	switch (get_data_tag(v50)) {
 		case 1LL: { // Some
-			VAL v50 = mtp_std_maybe_Maybe_1_Some(v46);
-			incref(v50);
-			uint64_t v51 = str_size(VSTR(v50));
-			int64_t v52 = 2LL;
-			int64_t v53 = i64_add(x36, v52);
-			int64_t v54 = i64_add(((int64_t)v51), v53);
-			STR* v55;
-			STRLIT(v55, "--", 2);
-			VAL v56 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v55), x35));
-			VAL v57 = (mw_std_str_ZPlusStr_pushZ_strZBang(v50, v56));
-			incref(v45);
-			VAL v58 = VVAL(VTUP(v45)->cells[3]);
-			incref(v58);
-			decref(v45);
-			int64_t x59;
-			VAL x60;
-			switch (get_data_tag(v58)) {
+			VAL v54 = mtp_std_maybe_Maybe_1_Some(v50);
+			incref(v54);
+			uint64_t v55 = str_size(VSTR(v54));
+			int64_t v56 = 2LL;
+			int64_t v57 = i64_add(x40, v56);
+			int64_t v58 = i64_add(((int64_t)v55), v57);
+			STR* v59;
+			STRLIT(v59, "--", 2);
+			VAL v60 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v59), x39));
+			VAL v61 = (mw_std_str_ZPlusStr_pushZ_strZBang(v54, v60));
+			incref(v49);
+			VAL v62 = VVAL(VTUP(v49)->cells[3]);
+			incref(v62);
+			decref(v49);
+			int64_t x63;
+			VAL x64;
+			switch (get_data_tag(v62)) {
 				case 1LL: { // Some
-					VAL v61 = mtp_std_maybe_Maybe_1_Some(v58);
-					incref(v61);
-					uint64_t v62 = str_size(VSTR(v61));
-					int64_t v63 = 1LL;
-					int64_t v64 = i64_add(v54, v63);
-					int64_t v65 = i64_add(((int64_t)v62), v64);
-					STR* v66;
-					STRLIT(v66, " ", 1);
-					VAL v67 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v66), v57));
-					VAL v68 = (mw_std_str_ZPlusStr_pushZ_strZBang(v61, v67));
-					x60 = v68;
-					x59 = v65;
-					push_value(v45);
+					VAL v65 = mtp_std_maybe_Maybe_1_Some(v62);
+					incref(v65);
+					uint64_t v66 = str_size(VSTR(v65));
+					int64_t v67 = 1LL;
+					int64_t v68 = i64_add(v58, v67);
+					int64_t v69 = i64_add(((int64_t)v66), v68);
+					STR* v70;
+					STRLIT(v70, " ", 1);
+					VAL v71 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v70), v61));
+					VAL v72 = (mw_std_str_ZPlusStr_pushZ_strZBang(v65, v71));
+					x64 = v72;
+					x63 = v69;
+					push_value(v49);
 				} break;
 				case 0LL: { // None
-					x60 = v57;
-					x59 = v54;
-					push_value(v45);
+					x64 = v61;
+					x63 = v58;
+					push_value(v49);
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
 				}
 			}
-			VAL v69 = pop_value();
-			x49 = v69;
-			x48 = x60;
-			x47 = x59;
+			VAL v73 = pop_value();
+			x53 = v73;
+			x52 = x64;
+			x51 = x63;
 		} break;
 		case 0LL: { // None
-			x49 = v45;
-			x48 = x35;
-			x47 = x36;
+			x53 = v49;
+			x52 = x39;
+			x51 = x40;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	incref(x49);
-	VAL v70 = VVAL(VTUP(x49)->cells[4]);
-	incref(v70);
-	decref(x49);
-	int64_t x71;
-	VAL x72;
-	VAL x73;
-	switch (get_data_tag(v70)) {
+	incref(x53);
+	VAL v74 = VVAL(VTUP(x53)->cells[4]);
+	incref(v74);
+	decref(x53);
+	int64_t x75;
+	VAL x76;
+	VAL x77;
+	switch (get_data_tag(v74)) {
 		case 1LL: { // Some
-			VAL v74 = mtp_std_maybe_Maybe_1_Some(v70);
-			VAL r75 = pop_resource();
-			VAL v76 = VVAL(VTUP(r75)->cells[2]);
-			incref(v76);
-			int64_t v77 = VI64(VTUP(v76)->cells[5]);
-			decref(v76);
-			bool v78 = (x47 < v77);
-			VAL x79;
-			int64_t x80;
-			VAL x81;
-			VAL x82;
-			if (v78) {
-				int64_t v83 = i64_sub(v77, x47);
-				int64_t v84 = 0LL;
-				VAL v85 = mw_std_prim_Int_range(v84, v83);
-				int64_t v86 = 1LL /* True */;
-				VAL v87 = x49;
-				VAL v88 = v74;
-				int64_t v89 = x47;
-				VAL v90 = (r75);
-				VAL v91 = (x48);
-				VAL v92 = v85;
-				int64_t v93 = v86;
-				int64_t v94 = v86;
-				while (((bool)v94)) {
-					VAL v95 = v87;
-					VAL v96 = v88;
-					int64_t v97 = v89;
-					VAL v98 = (v90);
-					VAL v99 = (v91);
+			VAL v78 = mtp_std_maybe_Maybe_1_Some(v74);
+			VAL r79 = pop_resource();
+			VAL v80 = VVAL(VTUP(r79)->cells[2]);
+			incref(v80);
+			int64_t v81 = VI64(VTUP(v80)->cells[5]);
+			decref(v80);
+			bool v82 = (x51 < v81);
+			VAL x83;
+			int64_t x84;
+			VAL x85;
+			VAL x86;
+			if (v82) {
+				int64_t v87 = i64_sub(v81, x51);
+				int64_t v88 = 0LL;
+				VAL v89 = mw_std_prim_Int_range(v88, v87);
+				int64_t v90 = 1LL /* True */;
+				VAL v91 = x53;
+				VAL v92 = v78;
+				int64_t v93 = x51;
+				VAL v94 = (r79);
+				VAL v95 = (x52);
+				VAL v96 = v89;
+				int64_t v97 = v90;
+				int64_t v98 = v90;
+				while (((bool)v98)) {
+					VAL v99 = v91;
 					VAL v100 = v92;
 					int64_t v101 = v93;
-					VAL x102;
-					VAL x103;
-					int64_t x104;
-					switch (get_data_tag(v100)) {
+					VAL v102 = (v94);
+					VAL v103 = (v95);
+					VAL v104 = v96;
+					int64_t v105 = v97;
+					VAL x106;
+					VAL x107;
+					int64_t x108;
+					switch (get_data_tag(v104)) {
 						case 1LL: { // Cons
-							VAL v105;
-							VAL v106;
-							mtp_std_list_List_1_Cons(v100, &v105, &v106);
-							decref(v105);
-							STR* v107;
-							STRLIT(v107, " ", 1);
-							VAL v108 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v107), v99));
-							int64_t v109 = 1LL /* True */;
-							x104 = v109;
-							x103 = v106;
-							x102 = v108;
-							push_value(v95);
-							push_value(v96);
-							lpush(&lbl_colZ_offset, MKI64(v97));
-							push_resource(v98);
+							VAL v109;
+							VAL v110;
+							mtp_std_list_List_1_Cons(v104, &v109, &v110);
+							decref(v109);
+							STR* v111;
+							STRLIT(v111, " ", 1);
+							VAL v112 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v111), v103));
+							int64_t v113 = 1LL /* True */;
+							x108 = v113;
+							x107 = v110;
+							x106 = v112;
+							push_value(v99);
+							push_value(v100);
+							lpush(&lbl_colZ_offset, MKI64(v101));
+							push_resource(v102);
 						} break;
 						case 0LL: { // Nil
-							VAL v110 = MKI64(0LL /* Nil */);
-							int64_t v111 = 0LL /* False */;
-							x104 = v111;
-							x103 = v110;
-							x102 = v99;
-							push_value(v95);
-							push_value(v96);
-							lpush(&lbl_colZ_offset, MKI64(v97));
-							push_resource(v98);
+							VAL v114 = MKI64(0LL /* Nil */);
+							int64_t v115 = 0LL /* False */;
+							x108 = v115;
+							x107 = v114;
+							x106 = v103;
+							push_value(v99);
+							push_value(v100);
+							lpush(&lbl_colZ_offset, MKI64(v101));
+							push_resource(v102);
 						} break;
 						default: {
 							do_panic(str_make("unexpected fallthrough in match\n", 32));
 						}
 					}
-					v94 = x104;
-					v93 = x104;
-					v92 = x103;
-					v91 = x102;
-					VAL r112 = pop_resource();
-					v90 = r112;
-					int64_t v113 = VI64(lpop(&lbl_colZ_offset));
-					v89 = v113;
-					VAL v114 = pop_value();
-					v88 = v114;
-					VAL v115 = pop_value();
-					v87 = v115;
+					v98 = x108;
+					v97 = x108;
+					v96 = x107;
+					v95 = x106;
+					VAL r116 = pop_resource();
+					v94 = r116;
+					int64_t v117 = VI64(lpop(&lbl_colZ_offset));
+					v93 = v117;
+					VAL v118 = pop_value();
+					v92 = v118;
+					VAL v119 = pop_value();
+					v91 = v119;
 				}
-				decref(v92);
-				x82 = v91;
-				x81 = v90;
-				x80 = v89;
-				x79 = v88;
-				push_value(v87);
+				decref(v96);
+				x86 = v95;
+				x85 = v94;
+				x84 = v93;
+				x83 = v92;
+				push_value(v91);
 			} else {
-				x82 = x48;
-				x81 = r75;
-				x80 = x47;
-				x79 = v74;
-				push_value(x49);
+				x86 = x52;
+				x85 = r79;
+				x84 = x51;
+				x83 = v78;
+				push_value(x53);
 			}
-			STR* v116;
-			STRLIT(v116, "    ", 4);
-			VAL v117 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v116), x82));
-			VAL v118 = (mw_std_str_ZPlusStr_pushZ_strZBang(x79, v117));
-			x73 = v118;
-			x72 = x81;
-			x71 = x80;
+			STR* v120;
+			STRLIT(v120, "    ", 4);
+			VAL v121 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v120), x86));
+			VAL v122 = (mw_std_str_ZPlusStr_pushZ_strZBang(x83, v121));
+			x77 = v122;
+			x76 = x85;
+			x75 = x84;
 		} break;
 		case 0LL: { // None
-			x73 = x48;
-			VAL r119 = pop_resource();
-			x72 = r119;
-			x71 = x47;
-			push_value(x49);
+			x77 = x52;
+			VAL r123 = pop_resource();
+			x76 = r123;
+			x75 = x51;
+			push_value(x53);
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	STR* v120;
-	STRLIT(v120, "\n", 1);
-	VAL v121 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v120), x73));
-	VAL v122 = pop_value();
-	decref(v122);
-	*x5 = v121;
-	*x4 = x72;
+	STR* v124;
+	STRLIT(v124, "\n", 1);
+	VAL v125 = (mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v124), x77));
+	VAL v126 = pop_value();
+	decref(v126);
+	*x5 = v125;
+	*x4 = x76;
 }
 static void mw_argZ_parser_parse_checkZ_shortZ_flag (VAL x1, VAL x2, VAL x3, VAL *x4, VAL *x5, int64_t *x6) {
 	incref(x2);
@@ -29420,47 +29261,45 @@ static int64_t mw_std_prim_Str_hash (VAL x1) {
 		void* v12 = v8;
 		uint64_t v13 = v9;
 		int64_t v14 = (0LL /* +Unsafe */);
-		int64_t v15;
-		int64_t v16;
-		mw_std_prim_Ptr_ZAtByte(v12, v14, &v15, &v16);
-		int64_t v17 = 17LL;
-		int64_t v18 = i64_mul(v15, v17);
-		int64_t v19 = 7LL;
-		uint64_t v20 = u64_shl(((uint64_t)v11), ((uint64_t)v19));
-		uint64_t v21 = (((uint64_t)v18) ^ v20);
-		int64_t v22 = 27LL;
-		uint64_t v23 = u64_shr(((uint64_t)v11), ((uint64_t)v22));
-		uint64_t v24 = (v21 ^ v23);
-		int64_t v25 = 1LL;
-		int64_t v26 = (0LL /* +Unsafe */);
-		void* v27 = (void*)(v25 + (char*)v12);
-		int64_t v28 = 1LL;
-		int64_t v29 = i64_sub(((int64_t)v13), v28);
-		int64_t v30 = 0LL;
-		bool v31 = (v29 < v30);
-		int64_t x32;
-		if (v31) {
-			int64_t v33 = 0LL;
-			x32 = v33;
-			push_u64(v24);
-			push_ptr(v27);
+		uint8_t v15 = *(uint8_t*)v12;
+		int64_t v16 = 17LL;
+		int64_t v17 = i64_mul(((int64_t)v15), v16);
+		int64_t v18 = 7LL;
+		uint64_t v19 = u64_shl(((uint64_t)v11), ((uint64_t)v18));
+		uint64_t v20 = (((uint64_t)v17) ^ v19);
+		int64_t v21 = 27LL;
+		uint64_t v22 = u64_shr(((uint64_t)v11), ((uint64_t)v21));
+		uint64_t v23 = (v20 ^ v22);
+		int64_t v24 = 1LL;
+		int64_t v25 = (0LL /* +Unsafe */);
+		void* v26 = (void*)(v24 + (char*)v12);
+		int64_t v27 = 1LL;
+		int64_t v28 = i64_sub(((int64_t)v13), v27);
+		int64_t v29 = 0LL;
+		bool v30 = (v28 < v29);
+		int64_t x31;
+		if (v30) {
+			int64_t v32 = 0LL;
+			x31 = v32;
+			push_u64(v23);
+			push_ptr(v26);
 		} else {
-			x32 = v29;
-			push_u64(v24);
-			push_ptr(v27);
+			x31 = v28;
+			push_u64(v23);
+			push_ptr(v26);
 		}
-		int64_t v34 = 0LL;
-		bool v35 = (x32 > v34);
-		v10 = v35;
-		v9 = ((uint64_t)x32);
-		void* v36 = pop_ptr();
-		v8 = v36;
-		int64_t v37 = pop_i64();
-		v7 = v37;
+		int64_t v33 = 0LL;
+		bool v34 = (x31 > v33);
+		v10 = v34;
+		v9 = ((uint64_t)x31);
+		void* v35 = pop_ptr();
+		v8 = v35;
+		int64_t v36 = pop_i64();
+		v7 = v36;
 	}
 	decref(x1);
-	int64_t v38 = mw_std_prim_Int_ZToHash(v7);
-	return v38;
+	int64_t v37 = mw_std_prim_Int_ZToHash(v7);
+	return v37;
 }
 static int64_t mw_mirth_name_Hash_next (int64_t x1) {
 	int64_t v2 = mw_mirth_name_Hash_ZToInt(x1);
@@ -29558,54 +29397,78 @@ static int64_t mw_mirth_name_Name_tailZ_head (uint64_t x1) {
 }
 static int64_t mw_mirth_name_Name_canZ_beZ_relativeZAsk (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
-	int64_t v3 = mw_std_byte_Byte_isZ_upper(v2);
-	bool v4 = !((bool)v3);
-	return ((int64_t)v4);
+	int64_t v3 = 65LL /* B'A' */;
+	int64_t v4 = 90LL /* B'Z' */;
+	bool v5 = (v2 >= v3);
+	bool v6 = (v2 <= v4);
+	bool v7 = (v5 && v6);
+	bool v8 = !v7;
+	return ((int64_t)v8);
 }
 static int64_t mw_mirth_name_Name_couldZ_beZ_labelZ_nameZAsk (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
-	int64_t v3 = mw_std_byte_Byte_isZ_lower(v2);
-	uint64_t x4;
-	int64_t x5;
-	if (((bool)v3)) {
-		int64_t v6 = 1LL /* True */;
-		x5 = v6;
-		x4 = x1;
+	int64_t v3 = 97LL /* B'a' */;
+	int64_t v4 = 122LL /* B'z' */;
+	bool v5 = (v2 >= v3);
+	bool v6 = (v2 <= v4);
+	bool v7 = (v5 && v6);
+	uint64_t x8;
+	int64_t x9;
+	if (v7) {
+		int64_t v10 = 1LL /* True */;
+		x9 = v10;
+		x8 = x1;
 	} else {
-		int64_t v7 = mw_mirth_name_Name_head(x1);
-		int64_t v8 = 43LL /* B'+' */;
-		bool v9 = (v7 == v8);
-		uint64_t x10;
-		int64_t x11;
-		if (v9) {
-			int64_t v12 = mw_mirth_name_Name_tailZ_head(x1);
-			int64_t v13 = mw_std_byte_Byte_isZ_lower(v12);
-			x11 = v13;
-			x10 = x1;
+		int64_t v11 = mw_mirth_name_Name_head(x1);
+		int64_t v12 = 43LL /* B'+' */;
+		bool v13 = (v11 == v12);
+		uint64_t x14;
+		int64_t x15;
+		if (v13) {
+			int64_t v16 = mw_mirth_name_Name_tailZ_head(x1);
+			int64_t v17 = 97LL /* B'a' */;
+			int64_t v18 = 122LL /* B'z' */;
+			bool v19 = (v16 >= v17);
+			bool v20 = (v16 <= v18);
+			bool v21 = (v19 && v20);
+			x15 = ((int64_t)v21);
+			x14 = x1;
 		} else {
-			int64_t v14 = 0LL /* False */;
-			x11 = v14;
-			x10 = x1;
+			int64_t v22 = 0LL /* False */;
+			x15 = v22;
+			x14 = x1;
 		}
-		x5 = x11;
-		x4 = x10;
+		x9 = x15;
+		x8 = x14;
 	}
-	return x5;
+	return x9;
 }
 static int64_t mw_mirth_name_Name_couldZ_beZ_patternZ_varZAsk (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
-	int64_t v3 = mw_std_byte_Byte_isZ_lower(v2);
-	return v3;
+	int64_t v3 = 97LL /* B'a' */;
+	int64_t v4 = 122LL /* B'z' */;
+	bool v5 = (v2 >= v3);
+	bool v6 = (v2 <= v4);
+	bool v7 = (v5 && v6);
+	return ((int64_t)v7);
 }
 static int64_t mw_mirth_name_Name_couldZ_beZ_typeZ_var (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
-	int64_t v3 = mw_std_byte_Byte_isZ_lower(v2);
-	return v3;
+	int64_t v3 = 97LL /* B'a' */;
+	int64_t v4 = 122LL /* B'z' */;
+	bool v5 = (v2 >= v3);
+	bool v6 = (v2 <= v4);
+	bool v7 = (v5 && v6);
+	return ((int64_t)v7);
 }
 static int64_t mw_mirth_name_Name_couldZ_beZ_typeZ_con (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
-	int64_t v3 = mw_std_byte_Byte_isZ_upper(v2);
-	return v3;
+	int64_t v3 = 65LL /* B'A' */;
+	int64_t v4 = 90LL /* B'Z' */;
+	bool v5 = (v2 >= v3);
+	bool v6 = (v2 <= v4);
+	bool v7 = (v5 && v6);
+	return ((int64_t)v7);
 }
 static int64_t mw_mirth_name_Name_isZ_typeZ_hole (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
@@ -29614,10 +29477,14 @@ static int64_t mw_mirth_name_Name_isZ_typeZ_hole (uint64_t x1) {
 	int64_t v5 = mw_mirth_name_Name_tailZ_head(x1);
 	int64_t v6 = 0LL /* BNUL */;
 	bool v7 = (v5 == v6);
-	int64_t v8 = mw_std_byte_Byte_isZ_lower(v5);
-	bool v9 = (v7 || ((bool)v8));
-	bool v10 = (v4 && v9);
-	return ((int64_t)v10);
+	int64_t v8 = 97LL /* B'a' */;
+	int64_t v9 = 122LL /* B'z' */;
+	bool v10 = (v5 >= v8);
+	bool v11 = (v5 <= v9);
+	bool v12 = (v10 && v11);
+	bool v13 = (v7 || v12);
+	bool v14 = (v4 && v13);
+	return ((int64_t)v14);
 }
 static int64_t mw_mirth_name_Name_isZ_underscore (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
@@ -29634,27 +29501,39 @@ static int64_t mw_mirth_name_Name_couldZ_beZ_stackZ_var (uint64_t x1) {
 	int64_t v3 = 42LL /* B'*' */;
 	bool v4 = (v2 == v3);
 	int64_t v5 = mw_mirth_name_Name_tailZ_head(x1);
-	int64_t v6 = mw_std_byte_Byte_isZ_lower(v5);
-	bool v7 = (v4 && ((bool)v6));
-	return ((int64_t)v7);
+	int64_t v6 = 97LL /* B'a' */;
+	int64_t v7 = 122LL /* B'z' */;
+	bool v8 = (v5 >= v6);
+	bool v9 = (v5 <= v7);
+	bool v10 = (v8 && v9);
+	bool v11 = (v4 && v10);
+	return ((int64_t)v11);
 }
 static int64_t mw_mirth_name_Name_couldZ_beZ_resourceZ_var (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
 	int64_t v3 = 43LL /* B'+' */;
 	bool v4 = (v2 == v3);
 	int64_t v5 = mw_mirth_name_Name_tailZ_head(x1);
-	int64_t v6 = mw_std_byte_Byte_isZ_lower(v5);
-	bool v7 = (v4 && ((bool)v6));
-	return ((int64_t)v7);
+	int64_t v6 = 97LL /* B'a' */;
+	int64_t v7 = 122LL /* B'z' */;
+	bool v8 = (v5 >= v6);
+	bool v9 = (v5 <= v7);
+	bool v10 = (v8 && v9);
+	bool v11 = (v4 && v10);
+	return ((int64_t)v11);
 }
 static int64_t mw_mirth_name_Name_couldZ_beZ_resourceZ_con (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
 	int64_t v3 = 43LL /* B'+' */;
 	bool v4 = (v2 == v3);
 	int64_t v5 = mw_mirth_name_Name_tailZ_head(x1);
-	int64_t v6 = mw_std_byte_Byte_isZ_upper(v5);
-	bool v7 = (v4 && ((bool)v6));
-	return ((int64_t)v7);
+	int64_t v6 = 65LL /* B'A' */;
+	int64_t v7 = 90LL /* B'Z' */;
+	bool v8 = (v5 >= v6);
+	bool v9 = (v5 <= v7);
+	bool v10 = (v8 && v9);
+	bool v11 = (v4 && v10);
+	return ((int64_t)v11);
 }
 static int64_t mw_mirth_name_Name_couldZ_beZ_constructor (uint64_t x1) {
 	int64_t v2 = mw_mirth_name_Name_head(x1);
@@ -29662,12 +29541,20 @@ static int64_t mw_mirth_name_Name_couldZ_beZ_constructor (uint64_t x1) {
 	switch (v2) {
 		case 43LL: { // B'+'
 			int64_t v4 = mw_mirth_name_Name_tailZ_head(x1);
-			int64_t v5 = mw_std_byte_Byte_isZ_upper(v4);
-			x3 = v5;
+			int64_t v5 = 65LL /* B'A' */;
+			int64_t v6 = 90LL /* B'Z' */;
+			bool v7 = (v4 >= v5);
+			bool v8 = (v4 <= v6);
+			bool v9 = (v7 && v8);
+			x3 = ((int64_t)v9);
 		} break;
 		default: {
-			int64_t v6 = mw_std_byte_Byte_isZ_upper(v2);
-			x3 = v6;
+			int64_t v10 = 65LL /* B'A' */;
+			int64_t v11 = 90LL /* B'Z' */;
+			bool v12 = (v2 >= v10);
+			bool v13 = (v2 <= v11);
+			bool v14 = (v12 && v13);
+			x3 = ((int64_t)v14);
 		} break;
 	}
 	return x3;
@@ -29691,37 +29578,35 @@ static VAL mw_mirth_name_Name_mangleZ_computeZBang (uint64_t x1) {
 		void* v13 = v9;
 		uint64_t v14 = v10;
 		int64_t v15 = (0LL /* +Unsafe */);
-		int64_t v16;
-		int64_t v17;
-		mw_std_prim_Ptr_ZAtByte(v13, v15, &v16, &v17);
-		VAL v18 = mw_std_byte_Byte_zzencode(v16);
-		VAL v19 = (mw_std_str_ZPlusStr_pushZ_strZBang(v18, MKSTR(v12)));
-		int64_t v20 = 1LL;
-		int64_t v21 = (0LL /* +Unsafe */);
-		void* v22 = (void*)(v20 + (char*)v13);
-		int64_t v23 = 1LL;
-		int64_t v24 = i64_sub(((int64_t)v14), v23);
-		int64_t v25 = 0LL;
-		bool v26 = (v24 < v25);
-		int64_t x27;
-		if (v26) {
-			int64_t v28 = 0LL;
-			x27 = v28;
-			push_resource(v19);
-			push_ptr(v22);
+		uint8_t v16 = *(uint8_t*)v13;
+		VAL v17 = mw_std_byte_Byte_zzencode(((int64_t)v16));
+		VAL v18 = (mw_std_str_ZPlusStr_pushZ_strZBang(v17, MKSTR(v12)));
+		int64_t v19 = 1LL;
+		int64_t v20 = (0LL /* +Unsafe */);
+		void* v21 = (void*)(v19 + (char*)v13);
+		int64_t v22 = 1LL;
+		int64_t v23 = i64_sub(((int64_t)v14), v22);
+		int64_t v24 = 0LL;
+		bool v25 = (v23 < v24);
+		int64_t x26;
+		if (v25) {
+			int64_t v27 = 0LL;
+			x26 = v27;
+			push_resource(v18);
+			push_ptr(v21);
 		} else {
-			x27 = v24;
-			push_resource(v19);
-			push_ptr(v22);
+			x26 = v23;
+			push_resource(v18);
+			push_ptr(v21);
 		}
-		int64_t v29 = 0LL;
-		bool v30 = (x27 > v29);
-		v11 = v30;
-		v10 = ((uint64_t)x27);
-		void* v31 = pop_ptr();
-		v9 = v31;
-		STR* r32 = VSTR(pop_resource());
-		v8 = r32;
+		int64_t v28 = 0LL;
+		bool v29 = (x26 > v28);
+		v11 = v29;
+		v10 = ((uint64_t)x26);
+		void* v30 = pop_ptr();
+		v9 = v30;
+		STR* r31 = VSTR(pop_resource());
+		v8 = r31;
 	}
 	decref(v3);
 	return MKSTR(v8);
@@ -31942,43 +31827,47 @@ static void mw_std_str_ZPlusStr_labelZ_popZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3)
 	int64_t v4;
 	VAL v5;
 	mw_std_str_ZPlusStr_firstZ_byte(x1, &v4, &v5);
-	int64_t v6 = mw_std_byte_Byte_isZ_lower(v4);
-	VAL x7;
-	int64_t x8;
-	if (((bool)v6)) {
-		int64_t v9;
-		VAL v10;
-		mw_std_str_ZPlusStr_lastZ_byte(v5, &v9, &v10);
-		int64_t v11 = 62LL /* B'>' */;
-		bool v12 = (v9 == v11);
-		x8 = ((int64_t)v12);
-		x7 = v10;
+	int64_t v6 = 97LL /* B'a' */;
+	int64_t v7 = 122LL /* B'z' */;
+	bool v8 = (v4 >= v6);
+	bool v9 = (v4 <= v7);
+	bool v10 = (v8 && v9);
+	VAL x11;
+	int64_t x12;
+	if (v10) {
+		int64_t v13;
+		VAL v14;
+		mw_std_str_ZPlusStr_lastZ_byte(v5, &v13, &v14);
+		int64_t v15 = 62LL /* B'>' */;
+		bool v16 = (v13 == v15);
+		x12 = ((int64_t)v16);
+		x11 = v14;
 	} else {
-		int64_t v13 = 0LL /* False */;
-		x8 = v13;
-		x7 = v5;
+		int64_t v17 = 0LL /* False */;
+		x12 = v17;
+		x11 = v5;
 	}
-	VAL x14;
-	VAL x15;
-	if (((bool)x8)) {
-		int64_t v16 = (0LL /* +Unsafe */);
-		VAL v17;
-		VAL v18;
-		int64_t v19;
-		mw_std_str_ZPlusStr_dropZ_lastZ_byte(x7, v16, &v17, &v18, &v19);
-		uint64_t v20 = mw_std_prim_Str_ZToName(v17);
-		uint64_t v21 = mw_mirth_label_Label_newZBang(v20);
-		VAL v22 = mtw_mirth_token_TokenValue_TokenLabelPop(v21);
-		VAL v23 = mtw_std_maybe_Maybe_1_Some(v22);
-		x15 = v23;
-		x14 = v18;
+	VAL x18;
+	VAL x19;
+	if (((bool)x12)) {
+		int64_t v20 = (0LL /* +Unsafe */);
+		VAL v21;
+		VAL v22;
+		int64_t v23;
+		mw_std_str_ZPlusStr_dropZ_lastZ_byte(x11, v20, &v21, &v22, &v23);
+		uint64_t v24 = mw_std_prim_Str_ZToName(v21);
+		uint64_t v25 = mw_mirth_label_Label_newZBang(v24);
+		VAL v26 = mtw_mirth_token_TokenValue_TokenLabelPop(v25);
+		VAL v27 = mtw_std_maybe_Maybe_1_Some(v26);
+		x19 = v27;
+		x18 = v22;
 	} else {
-		VAL v24 = MKI64(0LL /* None */);
-		x15 = v24;
-		x14 = x7;
+		VAL v28 = MKI64(0LL /* None */);
+		x19 = v28;
+		x18 = x11;
 	}
-	*x3 = x14;
-	*x2 = x15;
+	*x3 = x18;
+	*x2 = x19;
 }
 static void mw_std_str_ZPlusStr_labelZ_popZ_rZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3) {
 	int64_t v4;
@@ -31992,50 +31881,54 @@ static void mw_std_str_ZPlusStr_labelZ_popZ_rZ_tokenZAsk (VAL x1, VAL *x2, VAL *
 		int64_t v10;
 		VAL v11;
 		mw_std_str_ZPlusStr_secondZ_byte(v5, &v10, &v11);
-		int64_t v12 = mw_std_byte_Byte_isZ_lower(v10);
-		VAL x13;
-		int64_t x14;
-		if (((bool)v12)) {
-			int64_t v15;
-			VAL v16;
-			mw_std_str_ZPlusStr_lastZ_byte(v11, &v15, &v16);
-			int64_t v17 = 62LL /* B'>' */;
-			bool v18 = (v15 == v17);
-			x14 = ((int64_t)v18);
-			x13 = v16;
+		int64_t v12 = 97LL /* B'a' */;
+		int64_t v13 = 122LL /* B'z' */;
+		bool v14 = (v10 >= v12);
+		bool v15 = (v10 <= v13);
+		bool v16 = (v14 && v15);
+		VAL x17;
+		int64_t x18;
+		if (v16) {
+			int64_t v19;
+			VAL v20;
+			mw_std_str_ZPlusStr_lastZ_byte(v11, &v19, &v20);
+			int64_t v21 = 62LL /* B'>' */;
+			bool v22 = (v19 == v21);
+			x18 = ((int64_t)v22);
+			x17 = v20;
 		} else {
-			int64_t v19 = 0LL /* False */;
-			x14 = v19;
-			x13 = v11;
+			int64_t v23 = 0LL /* False */;
+			x18 = v23;
+			x17 = v11;
 		}
-		x9 = x14;
-		x8 = x13;
+		x9 = x18;
+		x8 = x17;
 	} else {
-		int64_t v20 = 0LL /* False */;
-		x9 = v20;
+		int64_t v24 = 0LL /* False */;
+		x9 = v24;
 		x8 = v5;
 	}
-	VAL x21;
-	VAL x22;
+	VAL x25;
+	VAL x26;
 	if (((bool)x9)) {
-		int64_t v23 = (0LL /* +Unsafe */);
-		VAL v24;
-		VAL v25;
-		int64_t v26;
-		mw_std_str_ZPlusStr_dropZ_lastZ_byte(x8, v23, &v24, &v25, &v26);
-		uint64_t v27 = mw_std_prim_Str_ZToName(v24);
-		uint64_t v28 = mw_mirth_label_Label_newZBang(v27);
-		VAL v29 = mtw_mirth_token_TokenValue_TokenLabelPopR(v28);
-		VAL v30 = mtw_std_maybe_Maybe_1_Some(v29);
-		x22 = v30;
-		x21 = v25;
+		int64_t v27 = (0LL /* +Unsafe */);
+		VAL v28;
+		VAL v29;
+		int64_t v30;
+		mw_std_str_ZPlusStr_dropZ_lastZ_byte(x8, v27, &v28, &v29, &v30);
+		uint64_t v31 = mw_std_prim_Str_ZToName(v28);
+		uint64_t v32 = mw_mirth_label_Label_newZBang(v31);
+		VAL v33 = mtw_mirth_token_TokenValue_TokenLabelPopR(v32);
+		VAL v34 = mtw_std_maybe_Maybe_1_Some(v33);
+		x26 = v34;
+		x25 = v29;
 	} else {
-		VAL v31 = MKI64(0LL /* None */);
-		x22 = v31;
-		x21 = x8;
+		VAL v35 = MKI64(0LL /* None */);
+		x26 = v35;
+		x25 = x8;
 	}
-	*x3 = x21;
-	*x2 = x22;
+	*x3 = x25;
+	*x2 = x26;
 }
 static void mw_std_str_ZPlusStr_labelZ_pushZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3) {
 	int64_t v4;
@@ -32049,35 +31942,39 @@ static void mw_std_str_ZPlusStr_labelZ_pushZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3
 		int64_t v10;
 		VAL v11;
 		mw_std_str_ZPlusStr_secondZ_byte(v5, &v10, &v11);
-		int64_t v12 = mw_std_byte_Byte_isZ_lower(v10);
-		x9 = v12;
+		int64_t v12 = 97LL /* B'a' */;
+		int64_t v13 = 122LL /* B'z' */;
+		bool v14 = (v10 >= v12);
+		bool v15 = (v10 <= v13);
+		bool v16 = (v14 && v15);
+		x9 = ((int64_t)v16);
 		x8 = v11;
 	} else {
-		int64_t v13 = 0LL /* False */;
-		x9 = v13;
+		int64_t v17 = 0LL /* False */;
+		x9 = v17;
 		x8 = v5;
 	}
-	VAL x14;
-	VAL x15;
+	VAL x18;
+	VAL x19;
 	if (((bool)x9)) {
-		int64_t v16 = (0LL /* +Unsafe */);
-		VAL v17;
-		VAL v18;
-		int64_t v19;
-		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x8, v16, &v17, &v18, &v19);
-		uint64_t v20 = mw_std_prim_Str_ZToName(v17);
-		uint64_t v21 = mw_mirth_label_Label_newZBang(v20);
-		VAL v22 = mtw_mirth_token_TokenValue_TokenLabelPush(v21);
-		VAL v23 = mtw_std_maybe_Maybe_1_Some(v22);
-		x15 = v23;
-		x14 = v18;
+		int64_t v20 = (0LL /* +Unsafe */);
+		VAL v21;
+		VAL v22;
+		int64_t v23;
+		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x8, v20, &v21, &v22, &v23);
+		uint64_t v24 = mw_std_prim_Str_ZToName(v21);
+		uint64_t v25 = mw_mirth_label_Label_newZBang(v24);
+		VAL v26 = mtw_mirth_token_TokenValue_TokenLabelPush(v25);
+		VAL v27 = mtw_std_maybe_Maybe_1_Some(v26);
+		x19 = v27;
+		x18 = v22;
 	} else {
-		VAL v24 = MKI64(0LL /* None */);
-		x15 = v24;
-		x14 = x8;
+		VAL v28 = MKI64(0LL /* None */);
+		x19 = v28;
+		x18 = x8;
 	}
-	*x3 = x14;
-	*x2 = x15;
+	*x3 = x18;
+	*x2 = x19;
 }
 static void mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3) {
 	int64_t v4 = (0LL /* +Unsafe */);
@@ -32094,35 +31991,39 @@ static void mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (VAL x1, VAL *x2, VAL 
 		int64_t v12;
 		VAL v13;
 		mw_std_str_ZPlusStr_thirdZ_byte(v6, &v12, &v13);
-		int64_t v14 = mw_std_byte_Byte_isZ_lower(v12);
-		x11 = v14;
+		int64_t v14 = 97LL /* B'a' */;
+		int64_t v15 = 122LL /* B'z' */;
+		bool v16 = (v12 >= v14);
+		bool v17 = (v12 <= v15);
+		bool v18 = (v16 && v17);
+		x11 = ((int64_t)v18);
 		x10 = v13;
 	} else {
-		int64_t v15 = 0LL /* False */;
-		x11 = v15;
+		int64_t v19 = 0LL /* False */;
+		x11 = v19;
 		x10 = v6;
 	}
-	VAL x16;
-	VAL x17;
+	VAL x20;
+	VAL x21;
 	if (((bool)x11)) {
-		int64_t v18 = (0LL /* +Unsafe */);
-		VAL v19;
-		VAL v20;
-		int64_t v21;
-		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x10, v18, &v19, &v20, &v21);
-		uint64_t v22 = mw_std_prim_Str_ZToName(v19);
-		uint64_t v23 = mw_mirth_label_Label_newZBang(v22);
-		VAL v24 = mtw_mirth_token_TokenValue_TokenLabelPushR(v23);
-		VAL v25 = mtw_std_maybe_Maybe_1_Some(v24);
-		x17 = v25;
-		x16 = v20;
+		int64_t v22 = (0LL /* +Unsafe */);
+		VAL v23;
+		VAL v24;
+		int64_t v25;
+		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x10, v22, &v23, &v24, &v25);
+		uint64_t v26 = mw_std_prim_Str_ZToName(v23);
+		uint64_t v27 = mw_mirth_label_Label_newZBang(v26);
+		VAL v28 = mtw_mirth_token_TokenValue_TokenLabelPushR(v27);
+		VAL v29 = mtw_std_maybe_Maybe_1_Some(v28);
+		x21 = v29;
+		x20 = v24;
 	} else {
-		VAL v26 = MKI64(0LL /* None */);
-		x17 = v26;
-		x16 = x10;
+		VAL v30 = MKI64(0LL /* None */);
+		x21 = v30;
+		x20 = x10;
 	}
-	*x3 = x16;
-	*x2 = x17;
+	*x3 = x20;
+	*x2 = x21;
 }
 static void mw_std_str_ZPlusStr_labelZ_getZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3) {
 	int64_t v4;
@@ -32136,64 +32037,72 @@ static void mw_std_str_ZPlusStr_labelZ_getZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3)
 		int64_t v10;
 		VAL v11;
 		mw_std_str_ZPlusStr_secondZ_byte(v5, &v10, &v11);
-		int64_t v12 = mw_std_byte_Byte_isZ_lower(v10);
-		VAL x13;
-		int64_t x14;
-		if (((bool)v12)) {
-			int64_t v15 = 1LL /* True */;
-			x14 = v15;
-			x13 = v11;
+		int64_t v12 = 97LL /* B'a' */;
+		int64_t v13 = 122LL /* B'z' */;
+		bool v14 = (v10 >= v12);
+		bool v15 = (v10 <= v13);
+		bool v16 = (v14 && v15);
+		VAL x17;
+		int64_t x18;
+		if (v16) {
+			int64_t v19 = 1LL /* True */;
+			x18 = v19;
+			x17 = v11;
 		} else {
-			int64_t v16;
-			VAL v17;
-			mw_std_str_ZPlusStr_secondZ_byte(v11, &v16, &v17);
-			int64_t v18 = 43LL /* B'+' */;
-			bool v19 = (v16 == v18);
-			VAL x20;
-			int64_t x21;
-			if (v19) {
-				int64_t v22;
-				VAL v23;
-				mw_std_str_ZPlusStr_thirdZ_byte(v17, &v22, &v23);
-				int64_t v24 = mw_std_byte_Byte_isZ_lower(v22);
-				x21 = v24;
-				x20 = v23;
+			int64_t v20;
+			VAL v21;
+			mw_std_str_ZPlusStr_secondZ_byte(v11, &v20, &v21);
+			int64_t v22 = 43LL /* B'+' */;
+			bool v23 = (v20 == v22);
+			VAL x24;
+			int64_t x25;
+			if (v23) {
+				int64_t v26;
+				VAL v27;
+				mw_std_str_ZPlusStr_thirdZ_byte(v21, &v26, &v27);
+				int64_t v28 = 97LL /* B'a' */;
+				int64_t v29 = 122LL /* B'z' */;
+				bool v30 = (v26 >= v28);
+				bool v31 = (v26 <= v29);
+				bool v32 = (v30 && v31);
+				x25 = ((int64_t)v32);
+				x24 = v27;
 			} else {
-				int64_t v25 = 0LL /* False */;
-				x21 = v25;
-				x20 = v17;
+				int64_t v33 = 0LL /* False */;
+				x25 = v33;
+				x24 = v21;
 			}
-			x14 = x21;
-			x13 = x20;
+			x18 = x25;
+			x17 = x24;
 		}
-		x9 = x14;
-		x8 = x13;
+		x9 = x18;
+		x8 = x17;
 	} else {
-		int64_t v26 = 0LL /* False */;
-		x9 = v26;
+		int64_t v34 = 0LL /* False */;
+		x9 = v34;
 		x8 = v5;
 	}
-	VAL x27;
-	VAL x28;
+	VAL x35;
+	VAL x36;
 	if (((bool)x9)) {
-		int64_t v29 = (0LL /* +Unsafe */);
-		VAL v30;
-		VAL v31;
-		int64_t v32;
-		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x8, v29, &v30, &v31, &v32);
-		uint64_t v33 = mw_std_prim_Str_ZToName(v30);
-		uint64_t v34 = mw_mirth_label_Label_newZBang(v33);
-		VAL v35 = mtw_mirth_token_TokenValue_TokenLabelGet(v34);
-		VAL v36 = mtw_std_maybe_Maybe_1_Some(v35);
-		x28 = v36;
-		x27 = v31;
+		int64_t v37 = (0LL /* +Unsafe */);
+		VAL v38;
+		VAL v39;
+		int64_t v40;
+		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x8, v37, &v38, &v39, &v40);
+		uint64_t v41 = mw_std_prim_Str_ZToName(v38);
+		uint64_t v42 = mw_mirth_label_Label_newZBang(v41);
+		VAL v43 = mtw_mirth_token_TokenValue_TokenLabelGet(v42);
+		VAL v44 = mtw_std_maybe_Maybe_1_Some(v43);
+		x36 = v44;
+		x35 = v39;
 	} else {
-		VAL v37 = MKI64(0LL /* None */);
-		x28 = v37;
-		x27 = x8;
+		VAL v45 = MKI64(0LL /* None */);
+		x36 = v45;
+		x35 = x8;
 	}
-	*x3 = x27;
-	*x2 = x28;
+	*x3 = x35;
+	*x2 = x36;
 }
 static void mw_std_str_ZPlusStr_labelZ_setZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3) {
 	int64_t v4;
@@ -32207,35 +32116,39 @@ static void mw_std_str_ZPlusStr_labelZ_setZ_tokenZAsk (VAL x1, VAL *x2, VAL *x3)
 		int64_t v10;
 		VAL v11;
 		mw_std_str_ZPlusStr_secondZ_byte(v5, &v10, &v11);
-		int64_t v12 = mw_std_byte_Byte_isZ_lower(v10);
-		x9 = v12;
+		int64_t v12 = 97LL /* B'a' */;
+		int64_t v13 = 122LL /* B'z' */;
+		bool v14 = (v10 >= v12);
+		bool v15 = (v10 <= v13);
+		bool v16 = (v14 && v15);
+		x9 = ((int64_t)v16);
 		x8 = v11;
 	} else {
-		int64_t v13 = 0LL /* False */;
-		x9 = v13;
+		int64_t v17 = 0LL /* False */;
+		x9 = v17;
 		x8 = v5;
 	}
-	VAL x14;
-	VAL x15;
+	VAL x18;
+	VAL x19;
 	if (((bool)x9)) {
-		int64_t v16 = (0LL /* +Unsafe */);
-		VAL v17;
-		VAL v18;
-		int64_t v19;
-		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x8, v16, &v17, &v18, &v19);
-		uint64_t v20 = mw_std_prim_Str_ZToName(v17);
-		uint64_t v21 = mw_mirth_label_Label_newZBang(v20);
-		VAL v22 = mtw_mirth_token_TokenValue_TokenLabelSet(v21);
-		VAL v23 = mtw_std_maybe_Maybe_1_Some(v22);
-		x15 = v23;
-		x14 = v18;
+		int64_t v20 = (0LL /* +Unsafe */);
+		VAL v21;
+		VAL v22;
+		int64_t v23;
+		mw_std_str_ZPlusStr_dropZ_firstZ_byte(x8, v20, &v21, &v22, &v23);
+		uint64_t v24 = mw_std_prim_Str_ZToName(v21);
+		uint64_t v25 = mw_mirth_label_Label_newZBang(v24);
+		VAL v26 = mtw_mirth_token_TokenValue_TokenLabelSet(v25);
+		VAL v27 = mtw_std_maybe_Maybe_1_Some(v26);
+		x19 = v27;
+		x18 = v22;
 	} else {
-		VAL v24 = MKI64(0LL /* None */);
-		x15 = v24;
-		x14 = x8;
+		VAL v28 = MKI64(0LL /* None */);
+		x19 = v28;
+		x18 = x8;
 	}
-	*x3 = x14;
-	*x2 = x15;
+	*x3 = x18;
+	*x2 = x19;
 }
 static void mw_std_str_ZPlusStr_dnameZAsk (VAL x1, VAL *x2, VAL *x3) {
 	int64_t v4 = 46LL /* BDOT */;
@@ -32361,107 +32274,127 @@ static void mw_std_str_ZPlusStr_isZ_floatZAsk (VAL x1, int64_t *x2, VAL *x3) {
 	int64_t v6;
 	VAL v7;
 	mw_std_str_ZPlusStr_byteZAt(v5, x1, &v6, &v7);
-	int64_t v8 = mw_std_byte_Byte_isZ_sign(v6);
-	int64_t x9;
-	VAL x10;
-	int64_t x11;
-	if (((bool)v8)) {
-		int64_t v12 = 1LL;
-		int64_t v13 = i64_add(v5, v12);
-		x11 = v13;
-		x10 = v7;
-		x9 = v4;
+	int64_t v8 = 45LL /* B'-' */;
+	bool v9 = (v6 == v8);
+	int64_t v10 = 43LL /* B'+' */;
+	bool v11 = (v6 == v10);
+	bool v12 = (v9 || v11);
+	int64_t x13;
+	VAL x14;
+	int64_t x15;
+	if (v12) {
+		int64_t v16 = 1LL;
+		int64_t v17 = i64_add(v5, v16);
+		x15 = v17;
+		x14 = v7;
+		x13 = v4;
 	} else {
-		x11 = v5;
-		x10 = v7;
-		x9 = v4;
+		x15 = v5;
+		x14 = v7;
+		x13 = v4;
 	}
-	int64_t v14;
-	VAL v15;
-	mw_std_str_ZPlusStr_byteZAt(x11, x10, &v14, &v15);
-	int64_t v16 = mw_std_byte_Byte_isZ_digit(v14);
-	int64_t v17 = x9;
-	int64_t v18 = x11;
-	VAL v19 = (v15);
-	int64_t v20 = v16;
-	while (((bool)v20)) {
-		int64_t v21 = v17;
-		int64_t v22 = v18;
-		VAL v23 = (v19);
-		int64_t v24 = 1LL;
-		int64_t v25 = i64_add(v21, v24);
-		int64_t v26 = 1LL;
-		int64_t v27 = i64_add(v22, v26);
-		int64_t v28;
-		VAL v29;
-		mw_std_str_ZPlusStr_byteZAt(v27, v23, &v28, &v29);
-		int64_t v30 = mw_std_byte_Byte_isZ_digit(v28);
-		v20 = v30;
-		v19 = v29;
-		v18 = v27;
-		v17 = v25;
+	int64_t v18;
+	VAL v19;
+	mw_std_str_ZPlusStr_byteZAt(x15, x14, &v18, &v19);
+	int64_t v20 = 48LL /* B'0' */;
+	int64_t v21 = 57LL /* B'9' */;
+	bool v22 = (v18 >= v20);
+	bool v23 = (v18 <= v21);
+	bool v24 = (v22 && v23);
+	int64_t v25 = x13;
+	int64_t v26 = x15;
+	VAL v27 = (v19);
+	bool v28 = v24;
+	while (v28) {
+		int64_t v29 = v25;
+		int64_t v30 = v26;
+		VAL v31 = (v27);
+		int64_t v32 = 1LL;
+		int64_t v33 = i64_add(v29, v32);
+		int64_t v34 = 1LL;
+		int64_t v35 = i64_add(v30, v34);
+		int64_t v36;
+		VAL v37;
+		mw_std_str_ZPlusStr_byteZAt(v35, v31, &v36, &v37);
+		int64_t v38 = 48LL /* B'0' */;
+		int64_t v39 = 57LL /* B'9' */;
+		bool v40 = (v36 >= v38);
+		bool v41 = (v36 <= v39);
+		bool v42 = (v40 && v41);
+		v28 = v42;
+		v27 = v37;
+		v26 = v35;
+		v25 = v33;
 	}
-	int64_t v31;
-	VAL v32;
-	mw_std_str_ZPlusStr_byteZAt(v18, v19, &v31, &v32);
-	int64_t v33 = 46LL /* BDOT */;
-	bool v34 = (v31 == v33);
-	VAL x35;
-	int64_t x36;
-	if (v34) {
-		int64_t v37 = 1LL;
-		int64_t v38 = i64_add(v17, v37);
-		int64_t v39 = 1LL;
-		int64_t v40 = i64_add(v18, v39);
-		int64_t v41;
-		VAL v42;
-		mw_std_str_ZPlusStr_byteZAt(v40, v32, &v41, &v42);
-		int64_t v43 = mw_std_byte_Byte_isZ_digit(v41);
-		int64_t v44 = v38;
-		int64_t v45 = v40;
-		VAL v46 = (v42);
-		int64_t v47 = v43;
-		while (((bool)v47)) {
-			int64_t v48 = v44;
-			int64_t v49 = v45;
-			VAL v50 = (v46);
-			int64_t v51 = 1LL;
-			int64_t v52 = i64_add(v48, v51);
-			int64_t v53 = 1LL;
-			int64_t v54 = i64_add(v49, v53);
-			int64_t v55;
-			VAL v56;
-			mw_std_str_ZPlusStr_byteZAt(v54, v50, &v55, &v56);
-			int64_t v57 = mw_std_byte_Byte_isZ_digit(v55);
-			v47 = v57;
-			v46 = v56;
-			v45 = v54;
-			v44 = v52;
+	int64_t v43;
+	VAL v44;
+	mw_std_str_ZPlusStr_byteZAt(v26, v27, &v43, &v44);
+	int64_t v45 = 46LL /* BDOT */;
+	bool v46 = (v43 == v45);
+	VAL x47;
+	int64_t x48;
+	if (v46) {
+		int64_t v49 = 1LL;
+		int64_t v50 = i64_add(v25, v49);
+		int64_t v51 = 1LL;
+		int64_t v52 = i64_add(v26, v51);
+		int64_t v53;
+		VAL v54;
+		mw_std_str_ZPlusStr_byteZAt(v52, v44, &v53, &v54);
+		int64_t v55 = 48LL /* B'0' */;
+		int64_t v56 = 57LL /* B'9' */;
+		bool v57 = (v53 >= v55);
+		bool v58 = (v53 <= v56);
+		bool v59 = (v57 && v58);
+		int64_t v60 = v50;
+		int64_t v61 = v52;
+		VAL v62 = (v54);
+		bool v63 = v59;
+		while (v63) {
+			int64_t v64 = v60;
+			int64_t v65 = v61;
+			VAL v66 = (v62);
+			int64_t v67 = 1LL;
+			int64_t v68 = i64_add(v64, v67);
+			int64_t v69 = 1LL;
+			int64_t v70 = i64_add(v65, v69);
+			int64_t v71;
+			VAL v72;
+			mw_std_str_ZPlusStr_byteZAt(v70, v66, &v71, &v72);
+			int64_t v73 = 48LL /* B'0' */;
+			int64_t v74 = 57LL /* B'9' */;
+			bool v75 = (v71 >= v73);
+			bool v76 = (v71 <= v74);
+			bool v77 = (v75 && v76);
+			v63 = v77;
+			v62 = v72;
+			v61 = v70;
+			v60 = v68;
 		}
-		int64_t v58 = 3LL;
-		bool v59 = (v44 >= v58);
-		VAL x60;
-		int64_t x61;
-		if (v59) {
-			incref(v46);
-			uint64_t v62 = str_size(VSTR(v46));
-			bool v63 = (v45 == ((int64_t)v62));
-			x61 = ((int64_t)v63);
-			x60 = v46;
+		int64_t v78 = 3LL;
+		bool v79 = (v60 >= v78);
+		VAL x80;
+		int64_t x81;
+		if (v79) {
+			incref(v62);
+			uint64_t v82 = str_size(VSTR(v62));
+			bool v83 = (v61 == ((int64_t)v82));
+			x81 = ((int64_t)v83);
+			x80 = v62;
 		} else {
-			int64_t v64 = 0LL /* False */;
-			x61 = v64;
-			x60 = v46;
+			int64_t v84 = 0LL /* False */;
+			x81 = v84;
+			x80 = v62;
 		}
-		x36 = x61;
-		x35 = x60;
+		x48 = x81;
+		x47 = x80;
 	} else {
-		int64_t v65 = 0LL /* False */;
-		x36 = v65;
-		x35 = v32;
+		int64_t v85 = 0LL /* False */;
+		x48 = v85;
+		x47 = v44;
 	}
-	*x3 = x35;
-	*x2 = x36;
+	*x3 = x47;
+	*x2 = x48;
 }
 static void mw_std_str_ZPlusStr_floatZ_sign (VAL x1, int64_t *x2, int64_t *x3, VAL *x4) {
 	int64_t v5 = 0LL;
@@ -32601,63 +32534,75 @@ static void mw_std_str_ZPlusStr_isZ_decZ_intZAsk (VAL x1, int64_t *x2, VAL *x3) 
 	int64_t v6;
 	VAL v7;
 	mw_std_str_ZPlusStr_byteZAt(v5, x1, &v6, &v7);
-	int64_t v8 = mw_std_byte_Byte_isZ_sign(v6);
-	int64_t x9;
-	VAL x10;
-	int64_t x11;
-	if (((bool)v8)) {
-		int64_t v12 = 1LL;
-		int64_t v13 = i64_add(v5, v12);
-		x11 = v13;
-		x10 = v7;
-		x9 = v4;
+	int64_t v8 = 45LL /* B'-' */;
+	bool v9 = (v6 == v8);
+	int64_t v10 = 43LL /* B'+' */;
+	bool v11 = (v6 == v10);
+	bool v12 = (v9 || v11);
+	int64_t x13;
+	VAL x14;
+	int64_t x15;
+	if (v12) {
+		int64_t v16 = 1LL;
+		int64_t v17 = i64_add(v5, v16);
+		x15 = v17;
+		x14 = v7;
+		x13 = v4;
 	} else {
-		x11 = v5;
-		x10 = v7;
-		x9 = v4;
+		x15 = v5;
+		x14 = v7;
+		x13 = v4;
 	}
-	int64_t v14;
-	VAL v15;
-	mw_std_str_ZPlusStr_byteZAt(x11, x10, &v14, &v15);
-	int64_t v16 = mw_std_byte_Byte_isZ_digit(v14);
-	int64_t v17 = x9;
-	int64_t v18 = x11;
-	VAL v19 = (v15);
-	int64_t v20 = v16;
-	while (((bool)v20)) {
-		int64_t v21 = v17;
-		int64_t v22 = v18;
-		VAL v23 = (v19);
-		int64_t v24 = 1LL;
-		int64_t v25 = i64_add(v21, v24);
-		int64_t v26 = 1LL;
-		int64_t v27 = i64_add(v22, v26);
-		int64_t v28;
-		VAL v29;
-		mw_std_str_ZPlusStr_byteZAt(v27, v23, &v28, &v29);
-		int64_t v30 = mw_std_byte_Byte_isZ_digit(v28);
-		v20 = v30;
-		v19 = v29;
-		v18 = v27;
-		v17 = v25;
+	int64_t v18;
+	VAL v19;
+	mw_std_str_ZPlusStr_byteZAt(x15, x14, &v18, &v19);
+	int64_t v20 = 48LL /* B'0' */;
+	int64_t v21 = 57LL /* B'9' */;
+	bool v22 = (v18 >= v20);
+	bool v23 = (v18 <= v21);
+	bool v24 = (v22 && v23);
+	int64_t v25 = x13;
+	int64_t v26 = x15;
+	VAL v27 = (v19);
+	bool v28 = v24;
+	while (v28) {
+		int64_t v29 = v25;
+		int64_t v30 = v26;
+		VAL v31 = (v27);
+		int64_t v32 = 1LL;
+		int64_t v33 = i64_add(v29, v32);
+		int64_t v34 = 1LL;
+		int64_t v35 = i64_add(v30, v34);
+		int64_t v36;
+		VAL v37;
+		mw_std_str_ZPlusStr_byteZAt(v35, v31, &v36, &v37);
+		int64_t v38 = 48LL /* B'0' */;
+		int64_t v39 = 57LL /* B'9' */;
+		bool v40 = (v36 >= v38);
+		bool v41 = (v36 <= v39);
+		bool v42 = (v40 && v41);
+		v28 = v42;
+		v27 = v37;
+		v26 = v35;
+		v25 = v33;
 	}
-	int64_t v31 = 0LL;
-	bool v32 = (v17 > v31);
-	VAL x33;
-	int64_t x34;
-	if (v32) {
-		incref(v19);
-		uint64_t v35 = str_size(VSTR(v19));
-		bool v36 = (v18 == ((int64_t)v35));
-		x34 = ((int64_t)v36);
-		x33 = v19;
+	int64_t v43 = 0LL;
+	bool v44 = (v25 > v43);
+	VAL x45;
+	int64_t x46;
+	if (v44) {
+		incref(v27);
+		uint64_t v47 = str_size(VSTR(v27));
+		bool v48 = (v26 == ((int64_t)v47));
+		x46 = ((int64_t)v48);
+		x45 = v27;
 	} else {
-		int64_t v37 = 0LL /* False */;
-		x34 = v37;
-		x33 = v19;
+		int64_t v49 = 0LL /* False */;
+		x46 = v49;
+		x45 = v27;
 	}
-	*x3 = x33;
-	*x2 = x34;
+	*x3 = x45;
+	*x2 = x46;
 }
 static void mw_std_str_ZPlusStr_isZ_hexZ_intZAsk (VAL x1, int64_t *x2, VAL *x3) {
 	int64_t v4 = 0LL;
@@ -32665,97 +32610,133 @@ static void mw_std_str_ZPlusStr_isZ_hexZ_intZAsk (VAL x1, int64_t *x2, VAL *x3) 
 	int64_t v6;
 	VAL v7;
 	mw_std_str_ZPlusStr_byteZAt(v5, x1, &v6, &v7);
-	int64_t v8 = mw_std_byte_Byte_isZ_sign(v6);
-	int64_t x9;
-	VAL x10;
-	int64_t x11;
-	if (((bool)v8)) {
-		int64_t v12 = 1LL;
-		int64_t v13 = i64_add(v5, v12);
-		x11 = v13;
-		x10 = v7;
-		x9 = v4;
+	int64_t v8 = 45LL /* B'-' */;
+	bool v9 = (v6 == v8);
+	int64_t v10 = 43LL /* B'+' */;
+	bool v11 = (v6 == v10);
+	bool v12 = (v9 || v11);
+	int64_t x13;
+	VAL x14;
+	int64_t x15;
+	if (v12) {
+		int64_t v16 = 1LL;
+		int64_t v17 = i64_add(v5, v16);
+		x15 = v17;
+		x14 = v7;
+		x13 = v4;
 	} else {
-		x11 = v5;
-		x10 = v7;
-		x9 = v4;
+		x15 = v5;
+		x14 = v7;
+		x13 = v4;
 	}
-	int64_t v14;
-	VAL v15;
-	mw_std_str_ZPlusStr_byteZAt(x11, x10, &v14, &v15);
-	int64_t v16 = 48LL /* B'0' */;
-	bool v17 = (v14 == v16);
-	VAL x18;
-	int64_t x19;
-	if (v17) {
-		int64_t v20 = 1LL;
-		int64_t v21 = i64_add(x11, v20);
-		int64_t v22;
-		VAL v23;
-		mw_std_str_ZPlusStr_byteZAt(v21, v15, &v22, &v23);
-		int64_t v24 = 120LL /* B'x' */;
-		bool v25 = (v22 == v24);
-		VAL x26;
-		int64_t x27;
-		if (v25) {
-			int64_t v28 = 1LL;
-			int64_t v29 = i64_add(v21, v28);
-			int64_t v30;
-			VAL v31;
-			mw_std_str_ZPlusStr_byteZAt(v29, v23, &v30, &v31);
-			int64_t v32 = mw_std_byte_Byte_isZ_hexdigit(v30);
-			int64_t v33 = x9;
-			int64_t v34 = v29;
-			VAL v35 = (v31);
-			int64_t v36 = v32;
-			while (((bool)v36)) {
-				int64_t v37 = v33;
-				int64_t v38 = v34;
-				VAL v39 = (v35);
-				int64_t v40 = 1LL;
-				int64_t v41 = i64_add(v37, v40);
-				int64_t v42 = 1LL;
-				int64_t v43 = i64_add(v38, v42);
-				int64_t v44;
-				VAL v45;
-				mw_std_str_ZPlusStr_byteZAt(v43, v39, &v44, &v45);
-				int64_t v46 = mw_std_byte_Byte_isZ_hexdigit(v44);
-				v36 = v46;
-				v35 = v45;
-				v34 = v43;
-				v33 = v41;
+	int64_t v18;
+	VAL v19;
+	mw_std_str_ZPlusStr_byteZAt(x15, x14, &v18, &v19);
+	int64_t v20 = 48LL /* B'0' */;
+	bool v21 = (v18 == v20);
+	VAL x22;
+	int64_t x23;
+	if (v21) {
+		int64_t v24 = 1LL;
+		int64_t v25 = i64_add(x15, v24);
+		int64_t v26;
+		VAL v27;
+		mw_std_str_ZPlusStr_byteZAt(v25, v19, &v26, &v27);
+		int64_t v28 = 120LL /* B'x' */;
+		bool v29 = (v26 == v28);
+		VAL x30;
+		int64_t x31;
+		if (v29) {
+			int64_t v32 = 1LL;
+			int64_t v33 = i64_add(v25, v32);
+			int64_t v34;
+			VAL v35;
+			mw_std_str_ZPlusStr_byteZAt(v33, v27, &v34, &v35);
+			int64_t v36 = 48LL /* B'0' */;
+			int64_t v37 = 57LL /* B'9' */;
+			bool v38 = (v34 >= v36);
+			bool v39 = (v34 <= v37);
+			bool v40 = (v38 && v39);
+			int64_t v41 = 65LL /* B'A' */;
+			int64_t v42 = 70LL /* B'F' */;
+			bool v43 = (v34 >= v41);
+			bool v44 = (v34 <= v42);
+			bool v45 = (v43 && v44);
+			int64_t v46 = 97LL /* B'a' */;
+			int64_t v47 = 102LL /* B'f' */;
+			bool v48 = (v34 >= v46);
+			bool v49 = (v34 <= v47);
+			bool v50 = (v48 && v49);
+			bool v51 = (v45 || v50);
+			bool v52 = (v40 || v51);
+			int64_t v53 = x13;
+			int64_t v54 = v33;
+			VAL v55 = (v35);
+			bool v56 = v52;
+			while (v56) {
+				int64_t v57 = v53;
+				int64_t v58 = v54;
+				VAL v59 = (v55);
+				int64_t v60 = 1LL;
+				int64_t v61 = i64_add(v57, v60);
+				int64_t v62 = 1LL;
+				int64_t v63 = i64_add(v58, v62);
+				int64_t v64;
+				VAL v65;
+				mw_std_str_ZPlusStr_byteZAt(v63, v59, &v64, &v65);
+				int64_t v66 = 48LL /* B'0' */;
+				int64_t v67 = 57LL /* B'9' */;
+				bool v68 = (v64 >= v66);
+				bool v69 = (v64 <= v67);
+				bool v70 = (v68 && v69);
+				int64_t v71 = 65LL /* B'A' */;
+				int64_t v72 = 70LL /* B'F' */;
+				bool v73 = (v64 >= v71);
+				bool v74 = (v64 <= v72);
+				bool v75 = (v73 && v74);
+				int64_t v76 = 97LL /* B'a' */;
+				int64_t v77 = 102LL /* B'f' */;
+				bool v78 = (v64 >= v76);
+				bool v79 = (v64 <= v77);
+				bool v80 = (v78 && v79);
+				bool v81 = (v75 || v80);
+				bool v82 = (v70 || v81);
+				v56 = v82;
+				v55 = v65;
+				v54 = v63;
+				v53 = v61;
 			}
-			int64_t v47 = 0LL;
-			bool v48 = (v33 > v47);
-			VAL x49;
-			int64_t x50;
-			if (v48) {
-				incref(v35);
-				uint64_t v51 = str_size(VSTR(v35));
-				bool v52 = (v34 == ((int64_t)v51));
-				x50 = ((int64_t)v52);
-				x49 = v35;
+			int64_t v83 = 0LL;
+			bool v84 = (v53 > v83);
+			VAL x85;
+			int64_t x86;
+			if (v84) {
+				incref(v55);
+				uint64_t v87 = str_size(VSTR(v55));
+				bool v88 = (v54 == ((int64_t)v87));
+				x86 = ((int64_t)v88);
+				x85 = v55;
 			} else {
-				int64_t v53 = 0LL /* False */;
-				x50 = v53;
-				x49 = v35;
+				int64_t v89 = 0LL /* False */;
+				x86 = v89;
+				x85 = v55;
 			}
-			x27 = x50;
-			x26 = x49;
+			x31 = x86;
+			x30 = x85;
 		} else {
-			int64_t v54 = 0LL /* False */;
-			x27 = v54;
-			x26 = v23;
+			int64_t v90 = 0LL /* False */;
+			x31 = v90;
+			x30 = v27;
 		}
-		x19 = x27;
-		x18 = x26;
+		x23 = x31;
+		x22 = x30;
 	} else {
-		int64_t v55 = 0LL /* False */;
-		x19 = v55;
-		x18 = v15;
+		int64_t v91 = 0LL /* False */;
+		x23 = v91;
+		x22 = v19;
 	}
-	*x3 = x18;
-	*x2 = x19;
+	*x3 = x22;
+	*x2 = x23;
 }
 static void mw_std_str_ZPlusStr_isZ_octZ_intZAsk (VAL x1, int64_t *x2, VAL *x3) {
 	int64_t v4 = 0LL;
@@ -32763,105 +32744,109 @@ static void mw_std_str_ZPlusStr_isZ_octZ_intZAsk (VAL x1, int64_t *x2, VAL *x3) 
 	int64_t v6;
 	VAL v7;
 	mw_std_str_ZPlusStr_byteZAt(v5, x1, &v6, &v7);
-	int64_t v8 = mw_std_byte_Byte_isZ_sign(v6);
-	int64_t x9;
-	VAL x10;
-	int64_t x11;
-	if (((bool)v8)) {
-		int64_t v12 = 1LL;
-		int64_t v13 = i64_add(v5, v12);
-		x11 = v13;
-		x10 = v7;
-		x9 = v4;
+	int64_t v8 = 45LL /* B'-' */;
+	bool v9 = (v6 == v8);
+	int64_t v10 = 43LL /* B'+' */;
+	bool v11 = (v6 == v10);
+	bool v12 = (v9 || v11);
+	int64_t x13;
+	VAL x14;
+	int64_t x15;
+	if (v12) {
+		int64_t v16 = 1LL;
+		int64_t v17 = i64_add(v5, v16);
+		x15 = v17;
+		x14 = v7;
+		x13 = v4;
 	} else {
-		x11 = v5;
-		x10 = v7;
-		x9 = v4;
+		x15 = v5;
+		x14 = v7;
+		x13 = v4;
 	}
-	int64_t v14;
-	VAL v15;
-	mw_std_str_ZPlusStr_byteZAt(x11, x10, &v14, &v15);
-	int64_t v16 = 48LL /* B'0' */;
-	bool v17 = (v14 == v16);
-	VAL x18;
-	int64_t x19;
-	if (v17) {
-		int64_t v20 = 1LL;
-		int64_t v21 = i64_add(x11, v20);
-		int64_t v22;
-		VAL v23;
-		mw_std_str_ZPlusStr_byteZAt(v21, v15, &v22, &v23);
-		int64_t v24 = 111LL /* B'o' */;
-		bool v25 = (v22 == v24);
-		VAL x26;
-		int64_t x27;
-		if (v25) {
-			int64_t v28 = 1LL;
-			int64_t v29 = i64_add(v21, v28);
-			int64_t v30;
-			VAL v31;
-			mw_std_str_ZPlusStr_byteZAt(v29, v23, &v30, &v31);
-			int64_t v32 = 48LL /* B'0' */;
-			int64_t v33 = 55LL /* B'7' */;
-			bool v34 = (v30 >= v32);
-			bool v35 = (v30 <= v33);
-			bool v36 = (v34 && v35);
-			int64_t v37 = x9;
-			int64_t v38 = v29;
-			VAL v39 = (v31);
-			bool v40 = v36;
-			while (v40) {
-				int64_t v41 = v37;
-				int64_t v42 = v38;
-				VAL v43 = (v39);
-				int64_t v44 = 1LL;
-				int64_t v45 = i64_add(v41, v44);
-				int64_t v46 = 1LL;
-				int64_t v47 = i64_add(v42, v46);
-				int64_t v48;
-				VAL v49;
-				mw_std_str_ZPlusStr_byteZAt(v47, v43, &v48, &v49);
-				int64_t v50 = 48LL /* B'0' */;
-				int64_t v51 = 55LL /* B'7' */;
-				bool v52 = (v48 >= v50);
-				bool v53 = (v48 <= v51);
-				bool v54 = (v52 && v53);
-				v40 = v54;
-				v39 = v49;
-				v38 = v47;
-				v37 = v45;
+	int64_t v18;
+	VAL v19;
+	mw_std_str_ZPlusStr_byteZAt(x15, x14, &v18, &v19);
+	int64_t v20 = 48LL /* B'0' */;
+	bool v21 = (v18 == v20);
+	VAL x22;
+	int64_t x23;
+	if (v21) {
+		int64_t v24 = 1LL;
+		int64_t v25 = i64_add(x15, v24);
+		int64_t v26;
+		VAL v27;
+		mw_std_str_ZPlusStr_byteZAt(v25, v19, &v26, &v27);
+		int64_t v28 = 111LL /* B'o' */;
+		bool v29 = (v26 == v28);
+		VAL x30;
+		int64_t x31;
+		if (v29) {
+			int64_t v32 = 1LL;
+			int64_t v33 = i64_add(v25, v32);
+			int64_t v34;
+			VAL v35;
+			mw_std_str_ZPlusStr_byteZAt(v33, v27, &v34, &v35);
+			int64_t v36 = 48LL /* B'0' */;
+			int64_t v37 = 55LL /* B'7' */;
+			bool v38 = (v34 >= v36);
+			bool v39 = (v34 <= v37);
+			bool v40 = (v38 && v39);
+			int64_t v41 = x13;
+			int64_t v42 = v33;
+			VAL v43 = (v35);
+			bool v44 = v40;
+			while (v44) {
+				int64_t v45 = v41;
+				int64_t v46 = v42;
+				VAL v47 = (v43);
+				int64_t v48 = 1LL;
+				int64_t v49 = i64_add(v45, v48);
+				int64_t v50 = 1LL;
+				int64_t v51 = i64_add(v46, v50);
+				int64_t v52;
+				VAL v53;
+				mw_std_str_ZPlusStr_byteZAt(v51, v47, &v52, &v53);
+				int64_t v54 = 48LL /* B'0' */;
+				int64_t v55 = 55LL /* B'7' */;
+				bool v56 = (v52 >= v54);
+				bool v57 = (v52 <= v55);
+				bool v58 = (v56 && v57);
+				v44 = v58;
+				v43 = v53;
+				v42 = v51;
+				v41 = v49;
 			}
-			int64_t v55 = 0LL;
-			bool v56 = (v37 > v55);
-			VAL x57;
-			int64_t x58;
-			if (v56) {
-				incref(v39);
-				uint64_t v59 = str_size(VSTR(v39));
-				bool v60 = (v38 == ((int64_t)v59));
-				x58 = ((int64_t)v60);
-				x57 = v39;
+			int64_t v59 = 0LL;
+			bool v60 = (v41 > v59);
+			VAL x61;
+			int64_t x62;
+			if (v60) {
+				incref(v43);
+				uint64_t v63 = str_size(VSTR(v43));
+				bool v64 = (v42 == ((int64_t)v63));
+				x62 = ((int64_t)v64);
+				x61 = v43;
 			} else {
-				int64_t v61 = 0LL /* False */;
-				x58 = v61;
-				x57 = v39;
+				int64_t v65 = 0LL /* False */;
+				x62 = v65;
+				x61 = v43;
 			}
-			x27 = x58;
-			x26 = x57;
+			x31 = x62;
+			x30 = x61;
 		} else {
-			int64_t v62 = 0LL /* False */;
-			x27 = v62;
-			x26 = v23;
+			int64_t v66 = 0LL /* False */;
+			x31 = v66;
+			x30 = v27;
 		}
-		x19 = x27;
-		x18 = x26;
+		x23 = x31;
+		x22 = x30;
 	} else {
-		int64_t v63 = 0LL /* False */;
-		x19 = v63;
-		x18 = v15;
+		int64_t v67 = 0LL /* False */;
+		x23 = v67;
+		x22 = v19;
 	}
-	*x3 = x18;
-	*x2 = x19;
+	*x3 = x22;
+	*x2 = x23;
 }
 static void mw_std_str_ZPlusStr_intZAsk (VAL x1, int64_t *x2, VAL *x3) {
 	int64_t v4;
@@ -33082,18 +33067,22 @@ static void mw_std_str_ZPlusStr_octZ_intZAsk (VAL x1, int64_t *x2, VAL *x3) {
 	*x2 = v34;
 }
 static int64_t mw_mirth_lexer_hexdigitZ_value (int64_t x1) {
-	int64_t v2 = mw_std_byte_Byte_isZ_digit(x1);
-	int64_t x3;
-	if (((bool)v2)) {
-		int64_t v4 = 48LL;
-		int64_t v5 = i64_sub(x1, v4);
-		x3 = v5;
+	int64_t v2 = 48LL /* B'0' */;
+	int64_t v3 = 57LL /* B'9' */;
+	bool v4 = (x1 >= v2);
+	bool v5 = (x1 <= v3);
+	bool v6 = (v4 && v5);
+	int64_t x7;
+	if (v6) {
+		int64_t v8 = 48LL;
+		int64_t v9 = i64_sub(x1, v8);
+		x7 = v9;
 	} else {
-		int64_t v6 = 55LL;
-		int64_t v7 = i64_sub(x1, v6);
-		x3 = v7;
+		int64_t v10 = 55LL;
+		int64_t v11 = i64_sub(x1, v10);
+		x7 = v11;
 	}
-	return x3;
+	return x7;
 }
 static void mw_mirth_lexer_lexerZ_emitZ_stringZBang (VAL x1, VAL x2, VAL *x3, VAL *x4) {
 	STR* v5;
@@ -57189,71 +57178,69 @@ static VAL mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (VAL x1, VAL x2) {
 		void* v20 = v14;
 		uint64_t v21 = v15;
 		int64_t v22 = (0LL /* +Unsafe */);
-		int64_t v23;
-		int64_t v24;
-		mw_std_prim_Ptr_ZAtByte(v20, v22, &v23, &v24);
-		int64_t v25 = 10LL /* BLF */;
-		bool v26 = (v19 == v25);
-		VAL x27;
-		if (v26) {
-			int64_t v28 = 34LL /* BQUOTE */;
-			VAL v29 = (mw_mirth_c99_ZPlusC99_putZ_byte(v28, v18));
-			VAL v30 = (mw_mirth_c99_ZPlusC99_line(v29));
-			VAL v31 = (mw_mirth_c99_ZPlusC99_indent(v30));
-			int64_t v32 = 34LL /* BQUOTE */;
-			VAL v33 = (mw_mirth_c99_ZPlusC99_putZ_byte(v32, v31));
-			x27 = v33;
+		uint8_t v23 = *(uint8_t*)v20;
+		int64_t v24 = 10LL /* BLF */;
+		bool v25 = (v19 == v24);
+		VAL x26;
+		if (v25) {
+			int64_t v27 = 34LL /* BQUOTE */;
+			VAL v28 = (mw_mirth_c99_ZPlusC99_putZ_byte(v27, v18));
+			VAL v29 = (mw_mirth_c99_ZPlusC99_line(v28));
+			VAL v30 = (mw_mirth_c99_ZPlusC99_indent(v29));
+			int64_t v31 = 34LL /* BQUOTE */;
+			VAL v32 = (mw_mirth_c99_ZPlusC99_putZ_byte(v31, v30));
+			x26 = v32;
 			lpush(&lbl_avoidZ_hexdigit, MKI64(v17));
-			push_i64(v23);
+			push_u8(v23);
 		} else {
-			x27 = v18;
+			x26 = v18;
 			lpush(&lbl_avoidZ_hexdigit, MKI64(v17));
-			push_i64(v23);
+			push_u8(v23);
 		}
-		int64_t v34 = pop_i64();
-		int64_t v35 = VI64(lpop(&lbl_avoidZ_hexdigit));
-		int64_t v36;
-		VAL v37;
-		mw_mirth_c99_c99Z_stringZ_byteZBang(v34, v35, x27, &v36, &v37);
-		int64_t v38 = 1LL;
-		int64_t v39 = (0LL /* +Unsafe */);
-		void* v40 = (void*)(v38 + (char*)v20);
-		int64_t v41 = 1LL;
-		int64_t v42 = i64_sub(((int64_t)v21), v41);
-		int64_t v43 = 0LL;
-		bool v44 = (v42 < v43);
-		int64_t x45;
-		if (v44) {
-			int64_t v46 = 0LL;
-			x45 = v46;
-			push_i64(v34);
-			lpush(&lbl_avoidZ_hexdigit, MKI64(v36));
-			push_resource(v37);
-			push_ptr(v40);
+		int64_t v33 = pop_i64();
+		int64_t v34 = VI64(lpop(&lbl_avoidZ_hexdigit));
+		int64_t v35;
+		VAL v36;
+		mw_mirth_c99_c99Z_stringZ_byteZBang(v33, v34, x26, &v35, &v36);
+		int64_t v37 = 1LL;
+		int64_t v38 = (0LL /* +Unsafe */);
+		void* v39 = (void*)(v37 + (char*)v20);
+		int64_t v40 = 1LL;
+		int64_t v41 = i64_sub(((int64_t)v21), v40);
+		int64_t v42 = 0LL;
+		bool v43 = (v41 < v42);
+		int64_t x44;
+		if (v43) {
+			int64_t v45 = 0LL;
+			x44 = v45;
+			push_i64(v33);
+			lpush(&lbl_avoidZ_hexdigit, MKI64(v35));
+			push_resource(v36);
+			push_ptr(v39);
 		} else {
-			x45 = v42;
-			push_i64(v34);
-			lpush(&lbl_avoidZ_hexdigit, MKI64(v36));
-			push_resource(v37);
-			push_ptr(v40);
+			x44 = v41;
+			push_i64(v33);
+			lpush(&lbl_avoidZ_hexdigit, MKI64(v35));
+			push_resource(v36);
+			push_ptr(v39);
 		}
-		int64_t v47 = 0LL;
-		bool v48 = (x45 > v47);
-		v16 = v48;
-		v15 = ((uint64_t)x45);
-		void* v49 = pop_ptr();
-		v14 = v49;
-		int64_t v50 = pop_i64();
-		v13 = v50;
-		VAL r51 = pop_resource();
-		v12 = r51;
-		int64_t v52 = VI64(lpop(&lbl_avoidZ_hexdigit));
-		v11 = v52;
+		int64_t v46 = 0LL;
+		bool v47 = (x44 > v46);
+		v16 = v47;
+		v15 = ((uint64_t)x44);
+		void* v48 = pop_ptr();
+		v14 = v48;
+		int64_t v49 = pop_i64();
+		v13 = v49;
+		VAL r50 = pop_resource();
+		v12 = r50;
+		int64_t v51 = VI64(lpop(&lbl_avoidZ_hexdigit));
+		v11 = v51;
 	}
 	decref(x1);
-	int64_t v53 = 34LL /* BQUOTE */;
-	VAL v54 = (mw_mirth_c99_ZPlusC99_putZ_byte(v53, v12));
-	return v54;
+	int64_t v52 = 34LL /* BQUOTE */;
+	VAL v53 = (mw_mirth_c99_ZPlusC99_putZ_byte(v52, v12));
+	return v53;
 }
 static VAL mw_mirth_c99_ZPlusC99_putZ_cstr (VAL x1, VAL x2) {
 	int64_t v3 = 0LL /* False */;
@@ -57276,47 +57263,45 @@ static VAL mw_mirth_c99_ZPlusC99_putZ_cstr (VAL x1, VAL x2) {
 		void* v17 = v12;
 		uint64_t v18 = v13;
 		int64_t v19 = (0LL /* +Unsafe */);
-		int64_t v20;
+		uint8_t v20 = *(uint8_t*)v17;
 		int64_t v21;
-		mw_std_prim_Ptr_ZAtByte(v17, v19, &v20, &v21);
-		int64_t v22;
-		VAL v23;
-		mw_mirth_c99_c99Z_stringZ_byteZBang(v20, v15, v16, &v22, &v23);
-		int64_t v24 = 1LL;
-		int64_t v25 = (0LL /* +Unsafe */);
-		void* v26 = (void*)(v24 + (char*)v17);
-		int64_t v27 = 1LL;
-		int64_t v28 = i64_sub(((int64_t)v18), v27);
-		int64_t v29 = 0LL;
-		bool v30 = (v28 < v29);
-		int64_t x31;
-		if (v30) {
-			int64_t v32 = 0LL;
-			x31 = v32;
-			lpush(&lbl_avoidZ_hexdigit, MKI64(v22));
-			push_resource(v23);
-			push_ptr(v26);
+		VAL v22;
+		mw_mirth_c99_c99Z_stringZ_byteZBang(((int64_t)v20), v15, v16, &v21, &v22);
+		int64_t v23 = 1LL;
+		int64_t v24 = (0LL /* +Unsafe */);
+		void* v25 = (void*)(v23 + (char*)v17);
+		int64_t v26 = 1LL;
+		int64_t v27 = i64_sub(((int64_t)v18), v26);
+		int64_t v28 = 0LL;
+		bool v29 = (v27 < v28);
+		int64_t x30;
+		if (v29) {
+			int64_t v31 = 0LL;
+			x30 = v31;
+			lpush(&lbl_avoidZ_hexdigit, MKI64(v21));
+			push_resource(v22);
+			push_ptr(v25);
 		} else {
-			x31 = v28;
-			lpush(&lbl_avoidZ_hexdigit, MKI64(v22));
-			push_resource(v23);
-			push_ptr(v26);
+			x30 = v27;
+			lpush(&lbl_avoidZ_hexdigit, MKI64(v21));
+			push_resource(v22);
+			push_ptr(v25);
 		}
-		int64_t v33 = 0LL;
-		bool v34 = (x31 > v33);
-		v14 = v34;
-		v13 = ((uint64_t)x31);
-		void* v35 = pop_ptr();
-		v12 = v35;
-		VAL r36 = pop_resource();
-		v11 = r36;
-		int64_t v37 = VI64(lpop(&lbl_avoidZ_hexdigit));
-		v10 = v37;
+		int64_t v32 = 0LL;
+		bool v33 = (x30 > v32);
+		v14 = v33;
+		v13 = ((uint64_t)x30);
+		void* v34 = pop_ptr();
+		v12 = v34;
+		VAL r35 = pop_resource();
+		v11 = r35;
+		int64_t v36 = VI64(lpop(&lbl_avoidZ_hexdigit));
+		v10 = v36;
 	}
 	decref(x1);
-	int64_t v38 = 34LL /* BQUOTE */;
-	VAL v39 = (mw_mirth_c99_ZPlusC99_putZ_byte(v38, v11));
-	return v39;
+	int64_t v37 = 34LL /* BQUOTE */;
+	VAL v38 = (mw_mirth_c99_ZPlusC99_putZ_byte(v37, v11));
+	return v38;
 }
 static void mw_mirth_c99_c99Z_stringZ_byteZBang (int64_t x1, int64_t x2, VAL x3, int64_t *x4, VAL *x5) {
 	int64_t x6;
@@ -57372,44 +57357,60 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (int64_t x1, int64_t x2, VAL x3,
 			int64_t x29;
 			int64_t x30;
 			if (v27) {
-				int64_t v31 = mw_std_byte_Byte_isZ_hexdigit(x1);
-				bool v32 = (((bool)v31) && ((bool)x2));
-				bool v33 = !v32;
-				x30 = ((int64_t)v33);
+				int64_t v31 = 48LL /* B'0' */;
+				int64_t v32 = 57LL /* B'9' */;
+				bool v33 = (x1 >= v31);
+				bool v34 = (x1 <= v32);
+				bool v35 = (v33 && v34);
+				int64_t v36 = 65LL /* B'A' */;
+				int64_t v37 = 70LL /* B'F' */;
+				bool v38 = (x1 >= v36);
+				bool v39 = (x1 <= v37);
+				bool v40 = (v38 && v39);
+				int64_t v41 = 97LL /* B'a' */;
+				int64_t v42 = 102LL /* B'f' */;
+				bool v43 = (x1 >= v41);
+				bool v44 = (x1 <= v42);
+				bool v45 = (v43 && v44);
+				bool v46 = (v40 || v45);
+				bool v47 = (v35 || v46);
+				bool v48 = (v47 && ((bool)x2));
+				bool v49 = !v48;
+				x30 = ((int64_t)v49);
 				x29 = x2;
 				x28 = x1;
 				push_resource(x3);
 			} else {
-				int64_t v34 = 0LL /* False */;
-				x30 = v34;
+				int64_t v50 = 0LL /* False */;
+				x30 = v50;
 				x29 = x2;
 				x28 = x1;
 				push_resource(x3);
 			}
-			VAL x35;
-			int64_t x36;
+			VAL x51;
+			int64_t x52;
 			if (((bool)x30)) {
-				VAL r37 = pop_resource();
-				VAL v38 = (mw_mirth_c99_ZPlusC99_putZ_byte(x28, r37));
-				int64_t v39 = 0LL /* False */;
-				x36 = v39;
-				x35 = v38;
+				VAL r53 = pop_resource();
+				VAL v54 = (mw_mirth_c99_ZPlusC99_putZ_byte(x28, r53));
+				int64_t v55 = 0LL /* False */;
+				x52 = v55;
+				x51 = v54;
 			} else {
-				STR* v40;
-				STRLIT(v40, "\\x", 2);
-				VAL r41 = pop_resource();
-				VAL v42 = (mw_mirth_c99_ZPlusC99_put(MKSTR(v40), r41));
-				int64_t v43;
-				int64_t v44;
-				mw_std_byte_Byte_toZ_hexdigits(x28, &v43, &v44);
-				VAL v45 = (mw_mirth_c99_ZPlusC99_putZ_byte(v43, v42));
-				VAL v46 = (mw_mirth_c99_ZPlusC99_putZ_byte(v44, v45));
-				int64_t v47 = 1LL /* True */;
-				x36 = v47;
-				x35 = v46;
+				STR* v56;
+				STRLIT(v56, "\\x", 2);
+				VAL r57 = pop_resource();
+				VAL v58 = (mw_mirth_c99_ZPlusC99_put(MKSTR(v56), r57));
+				int64_t v59;
+				int64_t v60;
+				mw_std_byte_Byte_toZ_hexdigits(x28, &v59, &v60);
+				VAL v61 = (mw_mirth_c99_ZPlusC99_putZ_byte(v59, v58));
+				VAL v62 = (mw_mirth_c99_ZPlusC99_putZ_byte(v60, v61));
+				int64_t v63 = 1LL /* True */;
+				x52 = v63;
+				x51 = v62;
 			}
-			x7 = x35;
-			x6 = x36;
+			x7 = x51;
+			x6 = x52;
 		} break;
 	}
 	*x5 = x7;
