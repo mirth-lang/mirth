@@ -1067,6 +1067,18 @@ def(StackType.num-morphisms-on-top, StackType -- Nat,
     STWithLabel -> drop2 num-morphisms-on-top,
     _ -> drop 0u)
 
+def StackType.linear-base-meta? [ StackType -- Maybe(MetaVar) ] {
+    { STACK_TYPE_ERROR -> None }
+    { STACK_TYPE_DONT_CARE -> None }
+    { STACK_TYPE_UNIT -> None }
+    { STMeta -> expand-if(>StackType linear-base-meta?, Some) }
+    { STVar -> drop None }
+    { STCons -> swap linear-base-meta? filter(over has-meta? not) nip }
+    { STWith -> swap linear-base-meta? filter(over has-meta? not) nip }
+    { STConsLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
+    { STWithLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
+}
+
 ##############
 # Arrow TYPE #
 ##############
@@ -1132,11 +1144,18 @@ def(ArrowType.rigidify!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
     ARROW_TYPE)
 
 def(ArrowType.rigidify-sig!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
+    dup
+    unpack linear-base-meta? if-some(
+        swap linear-base-meta? if-some(
+            over == if(
+                TYPE_UNIT Some swap ~type? !,
+                drop
+            ),
+            drop
+        ),
+        drop
+    )
     rigidify!)
-    # TODO check if both stack bases are the same metavar,
-    # and that this metavar appears nowhere else in the sig,
-    # and if so, unify that metavar with STACK_TYPE_UNIT.
-    #   https://github.com/mirth-lang/mirth/issues/239
 
 def(ArrowType.max-num-params, ArrowType -- Nat,
     dom num-morphisms-on-top)
