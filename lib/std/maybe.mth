@@ -59,11 +59,11 @@ def Maybe.filter(f) [ (*a b -- *a Bool) *a Maybe(b) -- *a Maybe(b) ] {
 
 inline (
     def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
-        True while(dup, drop f if-some(g True, False)) drop
+        while(f if-some(g True, False))
     }
 
     def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {
-        f while(dup none?, drop g f)
+        None while(drop f dup if(False, dip:g True))
         unwrap(impossible!)
     }
 )

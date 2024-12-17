@@ -709,7 +709,7 @@ def C99APIArg.reserve-as-is! [ C99APIArg +C99Branch -- +C99Branch ] {
     source> drop
 }
 
-def(c99-smart-call!, List(Arg) C99API +C99Branch -- +C99Branch,
+def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
     >api
     c99-args-push!
     @api in-params reverse map(pop-consume!) reverse >popped-inputs
@@ -725,7 +725,8 @@ def(c99-smart-call!, List(Arg) C99API +C99Branch -- +C99Branch,
     )
     @api return-param if-some(push-to!, c99-line(put ";" put))
     reserved-outputs> for(push-as-local!)
-    api> drop)
+    api> drop
+}
 
 def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     >api
