@@ -23,7 +23,10 @@ def(Var.name, Var -- Name, ~name @)
 def(Var.type, Var -- Type, ~type @)
 def(Var.auto-run?, Var -- Maybe(ArrowType), ~auto-run? @)
 
-def(Var.==, Var Var -- Bool, both(index) ==)
+inline (
+    def Var.== [ Var Var -- Bool ] { both(index) == }
+    def Var.<> [ Var Var -- Bool ] { == not }
+)
 def(Var.type;, +Str Var -- +Str, name >Str ;)
 def(Var.is-type?, Var -- Bool, type prim? has(PRIM_TYPE_TYPE ==))
 def(Var.is-stack?, Var -- Bool, type prim? has(PRIM_TYPE_STACK ==))
