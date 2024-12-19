@@ -5,136 +5,150 @@ import(std.maybe)
 import(std.str)
 import(std.list)
 
-data(Byte,
-    BNUL, BSOH, BSTX, BETX, BEOT, BENQ, BACK, BBEL,
-    BBS,  BHT,  BLF,  BVT,  BFF,  BCR,  BSO,  BSI,
-    BDLE, BDC1, BDC2, BDC3, BDC4, BNAK, BSYN, BETB,
-    BCAN, BEM,  BSUB, BESC, BFS,  BGS,  BRS,  BUS,
-    BSPACE,  B'!', BQUOTE, BHASH, B'$', B'%', B'&', BTICK,
-    BLPAREN, BRPAREN, B'*', B'+', BCOMMA, B'-', BDOT, B'/',
-    B'0', B'1', B'2', B'3', B'4', B'5', B'6', B'7',
-    B'8', B'9', BCOLON, B';', B'<', B'=', B'>', B'?',
-    B'@', B'A', B'B', B'C', B'D', B'E', B'F', B'G',
-    B'H', B'I', B'J', B'K', B'L', B'M', B'N', B'O',
-    B'P', B'Q', B'R', B'S', B'T', B'U', B'V', B'W',
-    B'X', B'Y', B'Z', BLSQUARE, B'\', BRSQUARE, B'^', B'_',
-    B'`', B'a', B'b', B'c', B'd', B'e', B'f', B'g',
-    B'h', B'i', B'j', B'k', B'l', B'm', B'n', B'o',
-    B'p', B'q', B'r', B's', B't', B'u', B'v', B'w',
-    B'x', B'y', B'z', BLCURLY, B'|', BRCURLY, B'~', BDEL,
+data Byte {
+    0x00 BNUL,    BSOH,    BSTX,   BETX,     BEOT,   BENQ,     BACK, BBEL,
+    0x08 BBS,     BHT,     BLF,    BVT,      BFF,    BCR,      BSO,  BSI,
+    0x10 BDLE,    BDC1,    BDC2,   BDC3,     BDC4,   BNAK,     BSYN, BETB,
+    0x18 BCAN,    BEM,     BSUB,   BESC,     BFS,    BGS,      BRS,  BUS,
+    0x20 BSPACE,  B'!',    BQUOTE, BHASH,    B'$',   B'%',     B'&', BTICK,
+    0x28 BLPAREN, BRPAREN, B'*',   B'+',     BCOMMA, B'-',     BDOT, B'/',
+    0x30 B'0',    B'1',    B'2',   B'3',     B'4',   B'5',     B'6', B'7',
+    0x38 B'8',    B'9',    BCOLON, B';',     B'<',   B'=',     B'>', B'?',
+    0x40 B'@',    B'A',    B'B',   B'C',     B'D',   B'E',     B'F', B'G',
+    0x48 B'H',    B'I',    B'J',   B'K',     B'L',   B'M',     B'N', B'O',
+    0x50 B'P',    B'Q',    B'R',   B'S',     B'T',   B'U',     B'V', B'W',
+    0x58 B'X',    B'Y',    B'Z',   BLSQUARE, B'\',   BRSQUARE, B'^', B'_',
+    0x60 B'`',    B'a',    B'b',   B'c',     B'd',   B'e',     B'f', B'g',
+    0x68 B'h',    B'i',    B'j',   B'k',     B'l',   B'm',     B'n', B'o',
+    0x70 B'p',    B'q',    B'r',   B's',     B't',   B'u',     B'v', B'w',
+    0x78 B'x',    B'y',    B'z',   BLCURLY,  B'|',   BRCURLY,  B'~', BDEL,
 
-    Bx80, Bx81, Bx82, Bx83, Bx84, Bx85, Bx86, Bx87,
-    Bx88, Bx89, Bx8A, Bx8B, Bx8C, Bx8D, Bx8E, Bx8F,
-    Bx90, Bx91, Bx92, Bx93, Bx94, Bx95, Bx96, Bx97,
-    Bx98, Bx99, Bx9A, Bx9B, Bx9C, Bx9D, Bx9E, Bx9F,
-    BxA0, BxA1, BxA2, BxA3, BxA4, BxA5, BxA6, BxA7,
-    BxA8, BxA9, BxAA, BxAB, BxAC, BxAD, BxAE, BxAF,
-    BxB0, BxB1, BxB2, BxB3, BxB4, BxB5, BxB6, BxB7,
-    BxB8, BxB9, BxBA, BxBB, BxBC, BxBD, BxBE, BxBF,
-    BxC0, BxC1, BxC2, BxC3, BxC4, BxC5, BxC6, BxC7,
-    BxC8, BxC9, BxCA, BxCB, BxCC, BxCD, BxCE, BxCF,
-    BxD0, BxD1, BxD2, BxD3, BxD4, BxD5, BxD6, BxD7,
-    BxD8, BxD9, BxDA, BxDB, BxDC, BxDD, BxDE, BxDF,
-    BxE0, BxE1, BxE2, BxE3, BxE4, BxE5, BxE6, BxE7,
-    BxE8, BxE9, BxEA, BxEB, BxEC, BxED, BxEE, BxEF,
-    BxF0, BxF1, BxF2, BxF3, BxF4, BxF5, BxF6, BxF7,
-    BxF8, BxF9, BxFA, BxFB, BxFC, BxFD, BxFE, BxFF)
+    0x80 Bx80 Bx81 Bx82 Bx83 Bx84 Bx85 Bx86 Bx87
+    0x88 Bx88 Bx89 Bx8A Bx8B Bx8C Bx8D Bx8E Bx8F
+    0x90 Bx90 Bx91 Bx92 Bx93 Bx94 Bx95 Bx96 Bx97
+    0x98 Bx98 Bx99 Bx9A Bx9B Bx9C Bx9D Bx9E Bx9F
+    0xA0 BxA0 BxA1 BxA2 BxA3 BxA4 BxA5 BxA6 BxA7
+    0xA8 BxA8 BxA9 BxAA BxAB BxAC BxAD BxAE BxAF
+    0xB0 BxB0 BxB1 BxB2 BxB3 BxB4 BxB5 BxB6 BxB7
+    0xB8 BxB8 BxB9 BxBA BxBB BxBC BxBD BxBE BxBF
+    0xC0 BxC0 BxC1 BxC2 BxC3 BxC4 BxC5 BxC6 BxC7
+    0xC8 BxC8 BxC9 BxCA BxCB BxCC BxCD BxCE BxCF
+    0xD0 BxD0 BxD1 BxD2 BxD3 BxD4 BxD5 BxD6 BxD7
+    0xD8 BxD8 BxD9 BxDA BxDB BxDC BxDD BxDE BxDF
+    0xE0 BxE0 BxE1 BxE2 BxE3 BxE4 BxE5 BxE6 BxE7
+    0xE8 BxE8 BxE9 BxEA BxEB BxEC BxED BxEE BxEF
+    0xF0 BxF0 BxF1 BxF2 BxF3 BxF4 BxF5 BxF6 BxF7
+    0xF8 BxF8 BxF9 BxFA BxFB BxFC BxFD BxFE BxFF
+}
 
 inline (
-    def(Byte.>Int, Byte -- Int, Byte.cons-value)
-    def(Byte.>U8, Byte -- U8, >Int >U8-unsafe)
+    def Byte.>Int [ Byte -- Int ] { Byte.cons-value }
+    def Byte.>U8  [ Byte -- U8  ] { >Int >U8-unsafe }
 
-    def(Int.>Byte-unsafe, Int -- Byte, Byte.from-cons-value-unsafe)
-    def(U8.>Byte, U8 -- Byte, >Int >Byte-unsafe)
+    def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-cons-value-unsafe }
+    def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
 
-    def(Int.>Byte?, Int -- Maybe(Byte),
-        dup 0 255 in-range if(>Byte-unsafe Some, drop None))
-    def(Int.>Byte&, Int -- Byte, >U8& >Byte)
-    def(Int.>Byte(f), (*a Int -- *a Byte) *a Int -- *a Byte,
-        >U8(f >U8) >Byte)
+    def Int.>Byte& [ Int -- Byte ] { >U8& >Byte }
 
-    def(Byte.compare, Byte Byte -- Comparison, both(>Int) .compare)
-    def(Byte.==,  Byte Byte -- Bool, both(>Int) ==)
-    def(Byte.<,  Byte Byte -- Bool, both(>Int) <)
-    def(Byte.>,  Byte Byte -- Bool, both(>Int) >)
-    def(Byte.<=, Byte Byte -- Bool, both(>Int) <=)
-    def(Byte.>=, Byte Byte -- Bool, both(>Int) >=)
-    def(Byte.<>, Byte Byte -- Bool, both(>Int) <>)
-    def(Byte.in-range, Byte Byte Byte -- Bool, dip(both(>Int)) >Int in-range)
-    def(Byte.clamp, Byte Byte Byte -- Byte, dip(both(>Int)) >Int clamp >Byte-unsafe)
+    def Int.>Byte(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] {
+        dup 0 255 in-range if(>Byte-unsafe f, g)
+    }
+    def Int.>Byte(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] {
+        >U8(f >U8) >Byte
+    }
+    def Int.>Byte? [ Int -- Maybe(Byte) ] {
+        >Byte(Some, drop None)
+    }
+
+    def Byte.compare  [ Byte Byte -- Comparison ] { on2(>Int) .compare }
+    def Byte.==       [ Byte Byte -- Bool ] { on2(>Int) == }
+    def Byte.<        [ Byte Byte -- Bool ] { on2(>Int) <  }
+    def Byte.>        [ Byte Byte -- Bool ] { on2(>Int) >  }
+    def Byte.<=       [ Byte Byte -- Bool ] { on2(>Int) <= }
+    def Byte.>=       [ Byte Byte -- Bool ] { on2(>Int) >= }
+    def Byte.<>       [ Byte Byte -- Bool ] { on2(>Int) <> }
+    def Byte.in-range [ Byte Byte Byte -- Bool ] { on3(>Int) in-range }
+    def Byte.clamp    [ Byte Byte Byte -- Byte ] { on3(>Int) clamp >Byte-unsafe }
+
+    def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
+    def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
+
+    def Byte.is-upper [ Byte -- Bool ] { B'A' B'Z' in-range }
+    def Byte.is-lower [ Byte -- Bool ] { B'a' B'z' in-range }
+    def Byte.is-digit [ Byte -- Bool ] { B'0' B'9' in-range }
+    def Byte.is-alpha [ Byte -- Bool ] { dup on2(is-upper, is-lower) || }
+    def Byte.is-alnum [ Byte -- Bool ] { dup on2(is-digit, is-alpha) || }
+    def Byte.is-printable [ Byte -- Bool ] { B'!' B'~' in-range }
+    def Byte.is-hexdigit [ Byte -- Bool ] {
+        dup dup on3(is-digit, B'A' B'F' in-range, B'a' B'f' in-range) || ||
+    }
+    def Byte.is-ascii [ Byte -- Bool ] { BNUL BDEL in-range }
+    def Byte.is-upper-or-underscore [ Byte -- Bool ] {
+        dup on2(is-upper, B'_' ==) ||
+    }
+    def Byte.is-overload-trigger [ Byte -- Bool ] {
+        is-upper-or-underscore not
+    }
+    def Byte.is-sign [ Byte -- Bool ] {
+        dup on2(B'-' ==, B'+' ==) ||
+    }
+
+    def Byte.emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }
+    def Byte.emit-ascii;  [ +Str Byte -- +Str ] { push-byte-ascii!  }
+
 )
 
-def(Ptr.@Byte, Ptr +Unsafe -- Byte +Unsafe, @U8 >Byte)
-def(Ptr.!Byte, Byte Ptr +Unsafe -- +Unsafe, dip(>U8) !U8)
+def Byte.to-str-unsafe [ Byte -- Str ] {
+    L1 Str.from-bytes-unsafe
+}
 
-def(Byte.is-upper, Byte -- Bool, B'A' B'Z' in-range)
-def(Byte.is-lower, Byte -- Bool, B'a' B'z' in-range)
-def(Byte.is-digit, Byte -- Bool, B'0' B'9' in-range)
-def(Byte.is-alpha, Byte -- Bool, dup is-upper if(drop True, is-lower))
-def(Byte.is-alnum, Byte -- Bool, dup is-digit if(drop True, is-alpha))
-def(Byte.is-printable, Byte -- Bool, B'!' B'~' in-range)
-
-def(Byte.is-hexdigit, Byte -- Bool,
-    B'0' -> True, B'1' -> True, B'2' -> True, B'3' -> True,
-    B'4' -> True, B'5' -> True, B'6' -> True, B'7' -> True,
-    B'8' -> True, B'9' -> True, B'A' -> True, B'B' -> True,
-    B'C' -> True, B'D' -> True, B'E' -> True, B'F' -> True,
-    B'a' -> True, B'b' -> True, B'c' -> True,
-    B'd' -> True, B'e' -> True, B'f' -> True,
-    _ -> drop False)
-
-def(Byte.emit-unsafe;, +Str Byte -- +Str, push-byte-unsafe!)
-def(Byte.emit-ascii;, +Str Byte -- +Str, push-byte-ascii!)
-
-def(Byte.to-str-unsafe, Byte -- Str,
-    L1 Str.from-bytes-unsafe)
-def(Byte.to-ascii-str, Byte -- Maybe(Str),
+def Byte.to-ascii-str [ Byte -- Maybe(Str) ] {
     dup BNUL BDEL in-range if(
         to-str-unsafe Some,
         drop None
-    ))
+    )
+}
 
-def(Byte.is-string-end, Byte -- Bool,
-    BQUOTE -> True, BLF -> True, BNUL -> True, _ -> drop False)
+def Byte.is-string-end [ Byte -- Bool ] {
+    { BQUOTE -> True }
+    { BLF -> True }
+    { BNUL -> True }
+    { _ -> drop False }
+}
 
-def(Byte.to-lower, Byte -- Byte,
-    dup is-upper if(>Int 0x20 + >Byte-unsafe, id))
-def(Byte.to-upper, Byte -- Byte,
-    dup is-lower if(>Int 0x20 - >Byte-unsafe, id))
+def Byte.to-lower [ Byte -- Byte ] {
+    dup is-upper then(>Int 0x20 + >Byte-unsafe)
+}
 
-def(Byte.to-hexdigits, Byte -- Byte Byte,
+def Byte.to-upper [ Byte -- Byte ] {
+    dup is-lower then(>Int 0x20 - >Byte-unsafe)
+}
+
+def Byte.to-hexdigits [ Byte -- Byte Byte ] {
     >Int
     dup 4 >> one-hexdigit-byte
-    swap 0xF & one-hexdigit-byte)
-def(one-hexdigit-byte, Int -- Byte,
-    dup 9 > if(55, 48) + >Byte-unsafe)
+    swap 0xF & one-hexdigit-byte
+}
 
-def(Byte.is-name-byte, Byte -- Bool,
-    BLPAREN -> False,
-    BRPAREN -> False,
-    BLSQUARE -> False,
-    BRSQUARE -> False,
-    BLCURLY -> False,
-    BRCURLY -> False,
-    BCOMMA -> False,
-    BQUOTE -> False,
-    BCOLON -> False,
-    BDEL -> False,
-    _ -> BSPACE >)
+def one-hexdigit-byte [ Int -- Byte ] {
+    dup 9 > if(55, 48) + >Byte-unsafe
+}
 
-def(Byte.is-sign, Byte -- Bool,
-    B'-' -> True,
-    B'+' -> True,
-    _ -> drop False)
+def Byte.is-name-byte [ Byte -- Bool ] {
+    { BLPAREN -> False }
+    { BRPAREN -> False }
+    { BLSQUARE -> False }
+    { BRSQUARE -> False }
+    { BLCURLY -> False }
+    { BRCURLY -> False }
+    { BCOMMA -> False }
+    { BQUOTE -> False }
+    { BCOLON -> False }
+    { BDEL -> False }
+    { _ -> BSPACE > }
+}
 
-def(Byte.is-upper-or-underscore, Byte -- Bool,
-    B'_' -> True,
-    _ -> is-upper)
-
-def(Byte.is-overload-trigger, Byte -- Bool,
-    is-upper-or-underscore not)
-
-def(Byte.zencode, Byte -- Str,
+def Byte.zencode [ Byte -- Str ] {
     ||| Encode byte as a readable string of alphanumeric or underscore characters.
     ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
     ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
@@ -144,25 +158,35 @@ def(Byte.zencode, Byte -- Str,
     # is unique. To help enforce the invariant, keep these cases in
     # lexicographical order.
 
-    B'&' -> "ZAmp", B'?' -> "ZAsk", B'@' -> "ZAt",
-    B'\' -> "ZBSlash", B'!' -> "ZBang",
-    B'^' -> "ZCaret", BCOLON -> "ZColon", BCOMMA -> "ZComma",
-    B'/' -> "ZDiv", B'$' -> "ZDollar", BDOT -> "ZDot",
-    B'=' -> "ZEqual",
-    BHASH -> "ZHash",
-    BLCURLY  -> "ZLCurly", BLPAREN  -> "ZLParen", BLSQUARE -> "ZLSquare", B'<'  -> "ZLess",
-    B'%' -> "ZMod", B'*' -> "ZMul",
-    B'|' -> "ZPipe", B'+' -> "ZPlus",
-    BQUOTE -> "ZQuote",
-    BRCURLY  -> "ZRCurly", BRPAREN  -> "ZRParen", BRSQUARE -> "ZRSquare",
-    B';' -> "ZThen", BTICK -> "ZTick", B'~' -> "ZTilde", B'>' -> "ZTo",
+    { B'&' -> "ZAmp" } { B'?' -> "ZAsk" } { B'@' -> "ZAt" }
+    { B'\' -> "ZBSlash" } { B'!' -> "ZBang" }
+    { B'^' -> "ZCaret" } { BCOLON -> "ZColon" } { BCOMMA -> "ZComma" }
+    { B'/' -> "ZDiv" } { B'$' -> "ZDollar" } { BDOT -> "ZDot" }
+    { B'=' -> "ZEqual" }
+    { BHASH -> "ZHash" }
+    { BLCURLY  -> "ZLCurly" }
+    { BLPAREN  -> "ZLParen" }
+    { BLSQUARE -> "ZLSquare" }
+    { B'<'  -> "ZLess" }
+    { B'%' -> "ZMod" }
+    { B'*' -> "ZMul" }
+    { B'|' -> "ZPipe" }
+    { B'+' -> "ZPlus" }
+    { BQUOTE -> "ZQuote" }
+    { BRCURLY  -> "ZRCurly" }
+    { BRPAREN  -> "ZRParen" }
+    { BRSQUARE -> "ZRSquare" }
+    { B';' -> "ZThen" }
+    { BTICK -> "ZTick" }
+    { B'~' -> "ZTilde" }
+    { B'>' -> "ZTo" }
 
-    B'Z' -> "ZZ", B'-'  -> "Z_",
-    B'z' -> "zz", B'_' -> "z_",
+    { B'Z' -> "ZZ" } { B'-'  -> "Z_" }
+    { B'z' -> "zz" } { B'_' -> "z_" }
 
-    _ ->
+    { _ ->
         dup is-alnum if(
             to-str-unsafe,
             Str("Z" ; >Int show; "U" ;)
-        )
-    )
+        ) }
+}

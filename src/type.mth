@@ -406,6 +406,31 @@ def(Type.has-meta2?, MetaVar Type Type -- Bool,
 def(Value.has-meta?, MetaVar Value -- Bool,
     type has-meta?)
 
+def Type.has-var? [ Var Type -- Bool ] {
+    { TYPE_ERROR -> drop True }
+    { TYPE_DONT_CARE -> drop True }
+    { TVar -> == }
+    { TMeta -> has-var? }
+    { TPrim -> drop2 False }
+    { THole -> drop2 False }
+    { TTensor -> has-var? }
+    { TMorphism -> has-var? }
+    { TApp -> has-var2? }
+    { TData -> drop2 False }
+    { TDataPartial -> drop2 False }
+    { TTable -> drop2 False }
+    { TValue -> has-var? }
+    { TMut -> has-var? }
+}
+
+def Type.has-var2? [ Var Type Type -- Bool ] {
+    dip(over) has-var? if(drop2 True, has-var?)
+}
+
+def Value.has-var? [ Var Value -- Bool ] {
+    type has-var?
+}
+
 def(Type.sig;, Type +Str -- +Str,
     TMeta -> expand-if(sig;, type;),
     TYPE_ERROR -> "<ERROR>" ;,
@@ -563,6 +588,9 @@ def(MetaVar.has-meta?, MetaVar MetaVar -- Bool,
         None -> ==,
         Some -> nip has-meta?
     ))
+def MetaVar.has-var? [ Var MetaVar -- Bool ] {
+    type? if-some(has-var?, drop False)
+}
 
 def(MetaVar.type;, +Str MetaVar -- +Str,
     dup type? match(
@@ -573,13 +601,11 @@ def(MetaVar.new!, MetaVar,
     MetaVar.alloc!
     None over ~type? !)
 
-inline (
-    def(MetaVar.expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
-        dup type? match(
-            None -> g,
-            Some -> expand tuck Some swap ~type? ! f
-        ))
-)
+def(MetaVar.expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
+    dup type? match(
+        None -> g,
+        Some -> expand tuck Some swap ~type? ! f
+    ))
 
 def(MetaVar.expand, MetaVar -- Type,
     expand-if(id, TMeta))
@@ -600,13 +626,11 @@ def(MetaVar.unify-error!, +Mirth +Gamma MetaVar -- +Mirth +Gamma Type,
         None -> dip(TYPE_ERROR Some) ~type? ! TYPE_ERROR
     ))
 
-inline (
-    def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
-        dup type? match(
-            None -> dip(f dup Some) ~type? !,
-            Some -> nip
-        ))
-)
+def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
+    dup type? match(
+        None -> dip(f dup Some) ~type? !,
+        Some -> nip
+    ))
 
 def(MetaVar.==, MetaVar MetaVar -- Bool, both(index) ==)
 
@@ -641,6 +665,7 @@ data(Resource, Resource -> Type)
 def(Resource.>Type, Resource -- Type, Resource -> id)
 def(Type.>Resource, Type -- Resource, Resource)
 def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
+def Resource.has-var? [ Var Resource -- Bool ] { >Type has-var? }
 def(Resource.unify!, +Mirth +Gamma Resource Resource -- +Mirth +Gamma Resource,
     both(>Type) unify! >Resource)
 def(Resource.unify-error!, +Mirth +Gamma Resource -- +Mirth +Gamma Resource,
@@ -814,6 +839,18 @@ def(StackType.has-meta?, MetaVar StackType -- Bool,
         STWith -> dip(over) has-meta? if(drop2 True, has-meta?),
         STWithLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
     ))
+
+def StackType.has-var? [ Var StackType -- Bool ] {
+    { STACK_TYPE_ERROR -> drop False }
+    { STACK_TYPE_DONT_CARE -> drop False }
+    { STACK_TYPE_UNIT -> drop False }
+    { STMeta -> has-var? }
+    { STVar -> == }
+    { STCons -> dip(over) has-var? if(drop2 True, has-var?) }
+    { STWith -> dip(over) has-var? if(drop2 True, has-var?) }
+    { STConsLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
+    { STWithLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
+}
 
 def(StackType.unify-failed!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackType,
     both(>Type) unify-failed! >StackType)
@@ -1067,6 +1104,30 @@ def(StackType.num-morphisms-on-top, StackType -- Nat,
     STWithLabel -> drop2 num-morphisms-on-top,
     _ -> drop 0u)
 
+def StackType.linear-base-meta? [ StackType -- Maybe(MetaVar) ] {
+    { STACK_TYPE_ERROR -> None }
+    { STACK_TYPE_DONT_CARE -> None }
+    { STACK_TYPE_UNIT -> None }
+    { STMeta -> expand-if(>StackType linear-base-meta?, Some) }
+    { STVar -> drop None }
+    { STCons -> swap linear-base-meta? filter(over has-meta? not) nip }
+    { STWith -> swap linear-base-meta? filter(over has-meta? not) nip }
+    { STConsLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
+    { STWithLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
+}
+
+def StackType.linear-base-var? [ StackType -- Maybe(Var) ] {
+    { STACK_TYPE_ERROR -> None }
+    { STACK_TYPE_DONT_CARE -> None }
+    { STACK_TYPE_UNIT -> None }
+    { STMeta -> expand-if(>StackType linear-base-var?, drop None) }
+    { STVar -> Some }
+    { STCons -> swap linear-base-var? filter(over has-var? not) nip }
+    { STWith -> swap linear-base-var? filter(over has-var? not) nip }
+    { STConsLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
+    { STWithLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
+}
+
 ##############
 # Arrow TYPE #
 ##############
@@ -1087,6 +1148,10 @@ def(ArrowType.unify-error!, +Mirth +Gamma ArrowType -- +Mirth +Gamma ArrowType,
     unpack dip(unify-error!) dip'(unify-error!) ARROW_TYPE)
 def(ArrowType.has-meta?, MetaVar ArrowType -- Bool,
     unpack dip(over) has-meta? if(drop2 True, has-meta?))
+def ArrowType.has-var? [ Var ArrowType -- Bool ] {
+    unpack
+    dip(over) has-var? if(drop2 True, has-var?)
+}
 
 def(ArrowType.sig;, +Str ArrowType -- +Str,
     unpack swap dom; "--"; cod;)
@@ -1132,11 +1197,18 @@ def(ArrowType.rigidify!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
     ARROW_TYPE)
 
 def(ArrowType.rigidify-sig!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
+    dup
+    unpack linear-base-meta? if-some(
+        swap linear-base-meta? if-some(
+            over == if(
+                TYPE_UNIT Some swap ~type? !,
+                drop
+            ),
+            drop
+        ),
+        drop
+    )
     rigidify!)
-    # TODO check if both stack bases are the same metavar,
-    # and that this metavar appears nowhere else in the sig,
-    # and if so, unify that metavar with STACK_TYPE_UNIT.
-    #   https://github.com/mirth-lang/mirth/issues/239
 
 def(ArrowType.max-num-params, ArrowType -- Nat,
     dom num-morphisms-on-top)
@@ -1182,6 +1254,11 @@ data StackTypeBase {
     STB_UNIT
     STBVar [ Var ]
     STBMeta [ MetaVar ]
+}
+
+def StackTypeBase.unit? [ StackTypeBase -- Bool ] {
+    { STB_UNIT -> True }
+    { _ -> drop False }
 }
 
 data StackTypePart {

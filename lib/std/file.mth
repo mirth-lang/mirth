@@ -15,12 +15,10 @@ data(+File, +File ->
     owned: Bool)
 
 data(+File?, +FileOk -> +File, +FileErr -> Str)
-inline(
-    def +File?.unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
-        { +FileOk -> id }
-        { +FileErr -> f }
-    }
-)
+def +File?.unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
+    { +FileOk -> id }
+    { +FileErr -> f }
+}
 
 def(+World.open-file!, Path +World -- +World +File?,
     dup >Str 0 0 posix-open!
