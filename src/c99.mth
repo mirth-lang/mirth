@@ -744,7 +744,16 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
         sep> drop
         ")" ;
     )
-    @api return-param if-some(push-to!, c99-line(put ";" put))
+    @api return-param if-some(
+        @api doesnt-return if(
+            swap c99-line(put ";" put)
+            False reachable!
+            "" swap push-to!,
+
+            push-to!
+        ),
+        c99-line(put ";" put)
+    )
     @api doesnt-return not reachable:&&
     reserved-outputs> for(push-api-arg!)
     api> drop
@@ -753,7 +762,9 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
 def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     >api
     "static " put
-    @api return-param if-some(
+    @api return-param
+    @api doesnt-return then(drop None)
+    if-some(
         repr underlying-c99-type put,
         "void" put
     )
@@ -798,9 +809,19 @@ def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
         c99-line("*" put put " = " put put ";" put)
     )
     @api return-param map(pop-consume!)
-    end-branch! for(c99-line("return " put put ";" put))
+    end-branch!
+    reachable> if(
+        for(c99-line("return " put put ";" put)),
+
+        drop
+        @api return-param
+        @api doesnt-return then(drop None)
+        for(
+            repr dummy-value
+            c99-line("return " put put "; /* unreachable */" put)
+        )
+    )
     api> drop
-    reachable> drop
 }
 
 def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a C99API +C99 -- *b +C99 ] {
@@ -1118,6 +1139,24 @@ def C99ReprType.is-int-like? [ C99ReprType -- Bool ] {
 def C99ReprType.is-float-like? [ C99ReprType -- Bool ] {
     { C99RT_F64 -> True } { C99RT_F32 -> True }
     { _ -> drop False }
+}
+
+def C99ReprType.dummy-value [ C99ReprType -- Str ] {
+    { C99RT_VAL   -> "(VAL){0}" }
+    { C99RT_STR   -> "NULL"     }
+    { C99RT_I64   -> "0"        }
+    { C99RT_I32   -> "0"        }
+    { C99RT_I16   -> "0"        }
+    { C99RT_I8    -> "0"        }
+    { C99RT_U64   -> "0"        }
+    { C99RT_U32   -> "0"        }
+    { C99RT_U16   -> "0"        }
+    { C99RT_U8    -> "0"        }
+    { C99RT_F64   -> "0.0"      }
+    { C99RT_F32   -> "0.0"      }
+    { C99RT_BOOL  -> "0"        }
+    { C99RT_PTR   -> "NULL"     }
+    { C99RT_FNPTR -> "NULL"     }
 }
 
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
