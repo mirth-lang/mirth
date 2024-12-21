@@ -672,8 +672,9 @@ struct C99API {
     cname: Str
     type: ArrowType
     in-params: List(C99APIArg)
-    out-params: List(C99APIArg)
+    out-params-1: List(C99APIArg)
     return-param: Maybe(C99APIArg)
+    out-params-2: List(C99APIArg)
     must-flush: Bool
     doesnt-return: Bool
 }
@@ -710,9 +711,8 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
     >type >cname
     1u with-fresh-counter (
         @type dom stack-type-to-c99-api-params >in-params
-        @type cod stack-type-to-c99-api-params
-        dup /L1 >return-param
-        @return-param then(drop L0) >out-params
+        @type cod stack-type-to-c99-api-params split-at(repr is-physical?)
+        uncons >out-params-2 >return-param >out-params-1
     ) drop
     must-flush> must-flush> || >must-flush
     @type cod linear-base-var? if-some(
@@ -746,34 +746,46 @@ def C99APIArg.reserve-as-is! [ C99APIArg +C99Branch -- +C99Branch ] {
     )
 }
 
+def C99APIArg.reserve-new-expression! [ Str C99APIArg +C99Branch -- C99APIArg +C99Branch ] {
+    >arg
+    +c99:fresh-name! @arg:name!
+    c99-line (
+        @arg repr underlying-c99-type put " " put
+        @arg name put " = " put
+        put ";" put
+    )
+    arg>
+}
+
 def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
     >api
     c99-args-push!
     @api in-params reverse map(pop-consume-physical!) reverse >popped-inputs
     @api must-flush then(flush-cache!)
-    @api out-params map(reserve-as-new-value!) >reserved-outputs
+    @api out-params-1 map(reserve-as-new-value!) >reserved-outputs-1
+    @api out-params-2 map(reserve-as-new-value!) >reserved-outputs-2
     Str(
         @api cname ; "(" ;
         "" >sep
         popped-inputs> for:for(sep> ; ", " >sep ;)
-        @reserved-outputs for(dup repr is-physical?
-            if(sep> ; ", " >sep "&" ; name ;, drop))
+        @reserved-outputs-1 @reserved-outputs-2 cat for(
+            dup repr is-physical?
+            if(sep> ; ", " >sep "&" ; name ;, drop)
+        )
         sep> drop
         ")" ;
     )
     @api return-param if-some(
         @api doesnt-return if(
-            swap c99-line("(void)" put put ";" put)
-            False reachable!
-            "" swap push-to!,
-
-            push-to!
+            swap c99-line("(void)" put put ";" put) Some,
+            reserve-new-expression! Some
         ),
-        c99-line(put ";" put)
-    )
-    @api doesnt-return not reachable:&&
-    reserved-outputs> for(push-api-arg!)
-    api> drop
+        c99-line(put ";" put) None
+    ) >reserved-return
+    api> doesnt-return not reachable:&&
+    reserved-outputs-1> for(push-api-arg!)
+    reserved-return>    for(push-api-arg!)
+    reserved-outputs-2> for(push-api-arg!)
 }
 
 def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
@@ -792,7 +804,7 @@ def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
         dup repr underlying-c99-type put
         " " put name put
     )
-    @api out-params filter(repr is-physical?) for(
+    @api out-params-1 @api out-params-2 cat filter(repr is-physical?) for(
         sep> put ", " >sep
         dup repr underlying-c99-type put
         " *" put name put
@@ -809,7 +821,9 @@ def c99-smart-sig! [ C99API +C99 -- +C99 ] {
 def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
     >api
     @api in-params len
-    @api out-params len +
+    @api out-params-1 len +
+    @api out-params-2 len +
+    @api return-param then(1+)
     1+ fresh-counter!
     True >reachable
     start-branch!
@@ -819,19 +833,23 @@ def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
 
 def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
     >api
-    @api out-params reverse-for(
+    @api out-params-2 reverse-for(
         dup pop-consume-physical! if-some(
             swap name c99-line("*" put put " = " put put ";" put),
             drop
         )
     )
     @api return-param map(pop-consume!)
+    @api out-params-1 reverse-for(
+        dup pop-consume-physical! if-some(
+            swap name c99-line("*" put put " = " put put ";" put),
+            drop
+        )
+    )
     end-branch!
     reachable> if(
         for(c99-line("return " put put ";" put)),
-
-        drop
-        @api return-param for(
+        drop @api return-param for(
             repr dummy-value
             c99-line("return " put put "; /* unreachable */" put)
         )

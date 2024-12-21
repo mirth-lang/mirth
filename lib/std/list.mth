@@ -426,6 +426,20 @@ def(List.take-while(p), (*a t -- *a Bool) *a List(t) -- *a List(t),
 def(List+.take-while(p), (*a t -- *a Bool) *a List+(t) -- *a List(t),
     >List take-while(p))
 
+def List.split-at(p) [ (*a t -- *a Bool) *a List(t) -- *a List(t) List(t) ] {
+    LIST(
+        while (
+            if-cons(
+                dip:sip:rdip(p) rotl if(
+                    Cons False,
+                    dip(;) True
+                ),
+                L0 False
+            )
+        )
+    ) swap
+}
+
 def(List.partition-either(p), (*a t -- *a Either(t1,t2))
         *a List(t) -- *a List(t1) List(t2),
     L0 L0 rotl for(
