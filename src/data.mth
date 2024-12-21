@@ -166,13 +166,13 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
 }
 
 def Data.is-enum-or-unit? [ Data -- Bool ] {
-    dup is-enum? dip(is-unit?) ||
+    dup is-enum? dip(is-unit? >Bool) ||
 }
 
-field(Data.~is-unit?, Data, Bool)
-def(Data.is-unit?, Data -- Bool,
+field(Data.~is-unit?, Data, Maybe(Tag))
+def(Data.is-unit?, Data -- Maybe(Tag),
     dup ~is-unit? memoize(
-        dup tags /L1 has(num-total-inputs 0=)
+        dup tags /L1 filter(num-total-inputs 0=)
     ) nip)
 
 field(Data.~is-enum?, Data, Bool)
@@ -302,7 +302,7 @@ def(Tag.semi-transparent?, +Mirth Tag -- +Mirth Maybe(SemiTransparentData),
     .data semi-transparent?)
 
 def(Tag.is-unit?, Tag -- Bool,
-    .data is-unit?)
+    .data is-unit? >Bool)
 
 def(Tag.outputs-resource?, Tag -- Bool,
     .data is-resource?)

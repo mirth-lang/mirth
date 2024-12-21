@@ -7,12 +7,25 @@ import(std.prelude)
 import(std.world)
 import(std.posix)
 
+def +World.indirect [ a +World -- a +World ] { id }
+
 def(main, +World -- +World,
     "Hello, world!" print
     "Hello, world, too!" trace
+    10u repeat("Hi!" indirect print)
     "Goodbye!" print 1 posix-exit!)
 
 # mirth-test # pout # Hello, world!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
+# mirth-test # pout # Hi!
 # mirth-test # pout # Goodbye!
 # mirth-test # perr # Hello, world, too!
 # mirth-test # pret # 1

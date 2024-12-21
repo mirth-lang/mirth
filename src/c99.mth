@@ -631,9 +631,19 @@ def C99APIArg.pop-consume! [ C99APIArg +C99Branch -- +C99Branch Str ] {
     }
 }
 
+def C99APIArg.pop-consume-physical! [ C99APIArg +C99Branch -- +C99Branch Maybe(Str) ] {
+    sip:pop-consume!
+    repr is-physical? if(
+        Some,
+        drop None
+    )
+}
+
 def C99APIArg.pop-to-reserved! [ C99APIArg +C99Branch -- +C99Branch ] {
-    dup pop-consume!
-    c99-line(swap name put " = " put put ";" put)
+    dup pop-consume-physical! if-some(
+        c99-line(swap name put " = " put put ";" put),
+        drop
+    )
 }
 
 def C99APIArg.push-to! [ Str C99APIArg +C99Branch -- +C99Branch ] {
@@ -677,19 +687,19 @@ def +C99.stack-type-to-c99-api-params-aux [ StackType +C99 -- must-flush:Bool Li
     { STCons ->
         C99AAS_Value >source +mirth:c99-repr >repr
         stack-type-to-c99-api-params-aux
-        fresh-arg-name! >name C99APIArg swap cons }
+        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
     { STWith ->
         C99AAS_Resource >source +mirth:c99-repr >repr
         stack-type-to-c99-api-params-aux
-        fresh-arg-name! >name C99APIArg swap cons }
+        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
     { STConsLabel ->
         C99AAS_ValueLabel >source +mirth:c99-repr >repr
         stack-type-to-c99-api-params-aux
-        fresh-arg-name! >name C99APIArg swap cons }
+        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
     { STWithLabel ->
         C99AAS_ResourceLabel >source +mirth:c99-repr >repr
         stack-type-to-c99-api-params-aux
-        fresh-arg-name! >name C99APIArg swap cons }
+        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
 }
 
 def +C99.stack-type-to-c99-api-params [ StackType +C99 -- must-flush:Bool List(C99APIArg) +C99 ] {
@@ -717,30 +727,37 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
 }
 
 def C99APIArg.reserve-as-new-value! [ C99APIArg +C99Branch -- C99APIArg +C99Branch ] {
-    dup repr new-value!
-    consume swap name!
+    dup repr is-physical? if(
+        dup repr new-value!
+        consume swap name!,
+        "0" swap name!
+    )
 }
 
 def C99APIArg.reserve-as-is! [ C99APIArg +C99Branch -- +C99Branch ] {
-    /C99APIArg
-    c99-line(
-        repr> underlying-c99-type put " " put
-        name> put ";" put
+    dup repr is-physical? if(
+        /C99APIArg
+        c99-line(
+            repr> underlying-c99-type put " " put
+            name> put ";" put
+        )
+        source> drop,
+        drop
     )
-    source> drop
 }
 
 def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
     >api
     c99-args-push!
-    @api in-params reverse map(pop-consume!) reverse >popped-inputs
+    @api in-params reverse map(pop-consume-physical!) reverse >popped-inputs
     @api must-flush then(flush-cache!)
     @api out-params map(reserve-as-new-value!) >reserved-outputs
     Str(
         @api cname ; "(" ;
         "" >sep
-        popped-inputs> for(sep> ; ", " >sep ;)
-        @reserved-outputs for(sep> ; ", " >sep "&" ; name ;)
+        popped-inputs> for:for(sep> ; ", " >sep ;)
+        @reserved-outputs for(dup repr is-physical?
+            if(sep> ; ", " >sep "&" ; name ;, drop))
         sep> drop
         ")" ;
     )
@@ -770,12 +787,12 @@ def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     @api cname put
     " (" put
     "" >sep
-    @api in-params for(
+    @api in-params filter(repr is-physical?) for(
         sep> put ", " >sep
         dup repr underlying-c99-type put
         " " put name put
     )
-    @api out-params for(
+    @api out-params filter(repr is-physical?) for(
         sep> put ", " >sep
         dup repr underlying-c99-type put
         " *" put name put
@@ -803,8 +820,10 @@ def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
 def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
     >api
     @api out-params reverse-for(
-        dup pop-consume! swap name
-        c99-line("*" put put " = " put put ";" put)
+        dup pop-consume-physical! if-some(
+            swap name c99-line("*" put put " = " put put ";" put),
+            drop
+        )
     )
     @api return-param map(pop-consume!)
     end-branch!
@@ -945,15 +964,18 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { OpLabelPop      -> c99-label-pop! }
     { OpLabelPushR    -> c99-label-push-r! }
     { OpLabelPopR     -> c99-label-pop-r! }
-    { OpDataGetTag    -> nip c99-get-data-tag! }
+    { OpDataGetTag    -> nip c99-get-cons-value! }
     { OpDataGetLabel  -> c99-tag-get-label! drop }
     { OpDataSetLabel  -> c99-tag-set-label! drop }
 }
 
-def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
+def(c99-get-cons-value!, Data +C99Branch -- +C99Branch,
     >data
-    @data is-enum-or-unit? else(
+    @data is-enum? else(
         @data TData type-to-c99-repr pop-value! >+scrutinee
+        @data is-unit? if-some(
+            C99RT_I64 push-value-expression!(value show put "LL" put),
+
         @data +mirth:semi-transparent? if-some(
             C99RT_I64 push-value-expression!(tag value show put "LL" put),
             C99RT_I64 push-value-expression!(
@@ -961,7 +983,7 @@ def(c99-get-data-tag!, Data +C99Branch -- +C99Branch,
                 @+scrutinee:rdup consume-as-VAL put
                 ")" put
             )
-        )
+        ))
         +scrutinee> drop-value!
     )
     data> drop)
@@ -1107,6 +1129,7 @@ data C99ReprType {
     C99RT_VAL
     C99RT_STR
 
+    C99RT_UNIT
     C99RT_I64 C99RT_I32 C99RT_I16 C99RT_I8
     C99RT_U64 C99RT_U32 C99RT_U16 C99RT_U8
     C99RT_F64 C99RT_F32
@@ -1115,9 +1138,12 @@ data C99ReprType {
     C99RT_FNPTR
 }
 
-def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
-    both(cons-value) ==
-}
+inline (
+    def C99ReprType.is-unit? [ C99ReprType -- Bool ] { C99RT_UNIT == }
+    def C99ReprType.is-physical? [ C99ReprType -- Bool ] { C99RT_UNIT <> }
+    def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] { both(cons-value) == }
+    def C99ReprType.<> [ C99ReprType C99ReprType -- Bool ] { both(cons-value) <> }
+)
 
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
    { C99RT_VAL -> True }
@@ -1140,6 +1166,7 @@ def C99ReprType.is-float-like? [ C99ReprType -- Bool ] {
 def C99ReprType.dummy-value [ C99ReprType -- Str ] {
     { C99RT_VAL   -> "(VAL){0}" }
     { C99RT_STR   -> "NULL"     }
+    { C99RT_UNIT  -> "0"        }
     { C99RT_I64   -> "0"        }
     { C99RT_I32   -> "0"        }
     { C99RT_I16   -> "0"        }
@@ -1158,6 +1185,7 @@ def C99ReprType.dummy-value [ C99ReprType -- Str ] {
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
     { C99RT_VAL   -> "VAL"      }
     { C99RT_STR   -> "STR*"     }
+    { C99RT_UNIT  -> "int64_t"  }
     { C99RT_I64   -> "int64_t"  }
     { C99RT_I32   -> "int32_t"  }
     { C99RT_I16   -> "int16_t"  }
@@ -1176,6 +1204,7 @@ def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
 def C99ReprType.v-macro [ C99ReprType -- Str ] {
     { C99RT_VAL   -> "VVAL"   }
     { C99RT_STR   -> "VSTR"   }
+    { C99RT_UNIT  -> "VI64"   }
     { C99RT_I64   -> "VI64"   }
     { C99RT_I32   -> "VI32"   }
     { C99RT_I16   -> "VI16"   }
@@ -1194,6 +1223,7 @@ def C99ReprType.v-macro [ C99ReprType -- Str ] {
 def C99ReprType.mk-macro [ C99ReprType -- Str ] {
     { C99RT_VAL   -> "MKVAL"   }
     { C99RT_STR   -> "MKSTR"   }
+    { C99RT_UNIT  -> "MKI64"   }
     { C99RT_I64   -> "MKI64"   }
     { C99RT_I32   -> "MKI32"   }
     { C99RT_I16   -> "MKI16"   }
@@ -1212,6 +1242,7 @@ def C99ReprType.mk-macro [ C99ReprType -- Str ] {
 def C99ReprType.pop-macro [ C99ReprType -- Str ] {
     { C99RT_VAL   -> "pop_value" }
     { C99RT_STR   -> "pop_str"   }
+    { C99RT_UNIT  -> "pop_i64"   }
     { C99RT_I64   -> "pop_i64"   }
     { C99RT_I32   -> "pop_i32"   }
     { C99RT_I16   -> "pop_i16"   }
@@ -1230,6 +1261,7 @@ def C99ReprType.pop-macro [ C99ReprType -- Str ] {
 def C99ReprType.push-macro [ C99ReprType -- Str ] {
     { C99RT_VAL   -> "push_value" }
     { C99RT_STR   -> "push_str"   }
+    { C99RT_UNIT  -> "push_i64"   }
     { C99RT_I64   -> "push_i64"   }
     { C99RT_I32   -> "push_i32"   }
     { C99RT_I16   -> "push_i16"   }
@@ -1275,16 +1307,18 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
     { PRIM_TYPE_F64 -> C99RT_F64 }
     { PRIM_TYPE_STR -> C99RT_VAL }
     { PRIM_TYPE_PTR -> C99RT_PTR }
-    { PRIM_TYPE_WORLD -> C99RT_I64 }
+    { PRIM_TYPE_WORLD -> C99RT_UNIT }
 }
 
 def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
-    dup is-enum-or-unit? if(drop C99RT_I64,
-        semi-transparent? if-some(
-            input type/resource either(c99-repr, c99-repr),
-            C99RT_VAL
-        )
-    )
+    >dat
+    @dat is-unit? if(C99RT_UNIT,
+    @dat is-enum? if(C99RT_I64,
+    @dat semi-transparent? if-some(
+        input type/resource either(c99-repr, c99-repr),
+        C99RT_VAL
+    )))
+    dat> drop
 }
 
 struct +C99Value {
@@ -1390,6 +1424,7 @@ def +C99Value.consume-as-VAL [ +C99Value -- Str ] {
 
 def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
     { C99RT_VAL -> consume-as-VAL }
+    { C99RT_UNIT -> rdrop "0" }
     { _ ->
         /+C99Value
         @value-repr match {
