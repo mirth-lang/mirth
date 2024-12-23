@@ -95,10 +95,6 @@ def +C99.fresh-resource-name! [ +C99 -- Str +C99 ] {
     "r" fresh-name-on!
 }
 
-def +C99.fresh-arg-name! [ +C99 -- Str +C99 ] {
-    "x" fresh-name-on!
-}
-
 def +C99.fresh-name-on! [ Str +C99 -- Str +C99 ] {
     fresh-nat! show cat
 }
@@ -616,14 +612,44 @@ data C99APIArgSource {
     C99AAS_ResourceLabel [ Label ]
 }
 
+data C99APIArgMode {
+    In
+    Out
+    InOut
+    Branch
+}
+
+def C99APIArgMode.mode-arg-prefix {
+    { In     -> "in_"    }
+    { Out    -> "out_"   }
+    { InOut  -> "inout_" }
+    { Branch -> "branch_"  }
+}
+
 struct C99APIArg {
+    mode: C99APIArgMode
     source: C99APIArgSource
     repr: C99ReprType
     name: Str
 }
 
+def C99APIArg.is-physical? [ C99APIArg -- Bool ] {
+    repr is-physical?
+}
+
+def C99APIArg.is-physical-value? [ C99APIArg -- Bool ] {
+    dup is-physical? if(
+        source match {
+            { C99AAS_Value -> True }
+            { C99AAS_ValueLabel -> drop False }
+            { _ -> drop False }
+        },
+        drop False
+    )
+}
+
 def C99APIArg.pop-consume! [ C99APIArg +C99Branch -- +C99Branch Str ] {
-    /C99APIArg name> drop repr> dup source> match {
+    /C99APIArg mode> name> drop2 repr> dup source> match {
         { C99AAS_Value -> pop-value! consume-as }
         { C99AAS_Resource -> pop-resource! turn-into-value! consume-as }
         { C99AAS_ValueLabel -> pop-value-label! consume-as }
@@ -647,7 +673,7 @@ def C99APIArg.pop-to-reserved! [ C99APIArg +C99Branch -- +C99Branch ] {
 }
 
 def C99APIArg.push-to! [ Str C99APIArg +C99Branch -- +C99Branch ] {
-    /C99APIArg name> drop repr> source> match {
+    /C99APIArg name> mode> drop2 repr> source> match {
         { C99AAS_Value -> push-value-expression!(put) }
         { C99AAS_Resource -> push-resource-expression!(put) }
         { C99AAS_ValueLabel -> push-label-expression!(put) }
@@ -659,6 +685,7 @@ def C99APIArg.push-api-arg! [ C99APIArg +C99Branch -- +C99Branch ] {
     /C99APIArg
     name> >value-name
     repr> >value-repr
+    mode> drop
     +C99Value
     source> match {
         { C99AAS_Value -> push-value! }
@@ -679,40 +706,72 @@ struct C99API {
     doesnt-return: Bool
 }
 
-def +C99.stack-type-to-c99-api-params-aux [ StackType +C99 -- must-flush:Bool List(C99APIArg) +C99 ] {
+def name-arg-prefix [ Name -- Str ] {
+    mangled "_" cat
+}
+
+def type-arg-prefix [ Type -- Str ] {
+    { TMeta -> expand-if(type-arg-prefix, drop "") }
+    { TVar -> name name-arg-prefix }
+    { TTable -> name name-arg-prefix }
+    { TData -> name name-arg-prefix }
+    { TDataPartial -> .data name name-arg-prefix }
+    { TApp -> drop type-arg-prefix }
+    { TMut -> dip("Mut") type-arg-prefix cat }
+    { TPrim -> match {
+        { PRIM_TYPE_TYPE -> "TYPE_" }
+        { PRIM_TYPE_STACK -> "STACK_" }
+        { PRIM_TYPE_RESOURCE -> "RESOURCE_" }
+        { PRIM_TYPE_INT -> "Int_" }
+        { PRIM_TYPE_F32 -> "F32_" }
+        { PRIM_TYPE_F64 -> "F64_" }
+        { PRIM_TYPE_PTR -> "Ptr_" }
+        { PRIM_TYPE_STR -> "Str_" }
+        { PRIM_TYPE_WORLD -> "World_" }
+    } }
+    { _ -> drop "_" }
+}
+
+def fresh-arg-name! [ +C99 mode:C99APIArgMode repr:C99ReprType Type -- +C99 mode:C99APIArgMode  repr:C99ReprType Str ] {
+    @repr is-physical? if(
+        dip(@mode mode-arg-prefix) type-arg-prefix cat fresh-name-on!,
+        drop "0"
+    )
+}
+
+def cons-fresh-arg! [ +C99 List(C99APIArg) Type C99APIArgSource mode:C99APIArgMode -- +C99 List(C99APIArg) mode:C99APIArgMode ] {
+    >source
+    dup +mirth:c99-repr >repr
+    fresh-arg-name! >name
+    @mode >mode
+    C99APIArg swap cons
+}
+
+def +C99.stack-type-to-c99-api-params-aux [ StackType mode:C99APIArgMode +C99 -- mode:C99APIArgMode must-flush:Bool List(C99APIArg) +C99 ] {
     { STACK_TYPE_UNIT -> False >must-flush L0 }
     { STACK_TYPE_ERROR -> True >must-flush L0 }
     { STACK_TYPE_DONT_CARE -> True >must-flush L0 }
     { STMeta -> expand-if(>StackType stack-type-to-c99-api-params-aux, drop True >must-flush L0) }
     { STVar -> drop True >must-flush L0 }
-    { STCons ->
-        C99AAS_Value >source +mirth:c99-repr >repr
-        stack-type-to-c99-api-params-aux
-        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
-    { STWith ->
-        C99AAS_Resource >source +mirth:c99-repr >repr
-        stack-type-to-c99-api-params-aux
-        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
-    { STConsLabel ->
-        C99AAS_ValueLabel >source +mirth:c99-repr >repr
-        stack-type-to-c99-api-params-aux
-        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
-    { STWithLabel ->
-        C99AAS_ResourceLabel >source +mirth:c99-repr >repr
-        stack-type-to-c99-api-params-aux
-        @repr is-physical? if(fresh-arg-name!, "0") >name C99APIArg swap cons }
+    { STCons -> C99AAS_Value dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { STWith -> C99AAS_Resource dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { STConsLabel -> C99AAS_ValueLabel dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { STWithLabel -> C99AAS_ResourceLabel dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
 }
 
-def +C99.stack-type-to-c99-api-params [ StackType +C99 -- must-flush:Bool List(C99APIArg) +C99 ] {
+def +C99.stack-type-to-c99-api-params [ StackType C99APIArgMode +C99 -- must-flush:Bool List(C99APIArg) +C99 ] {
+    >mode
     +C99.stack-type-to-c99-api-params-aux reverse
+    mode> drop
 }
 
 def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
     >type >cname
     1u with-fresh-counter (
-        @type dom stack-type-to-c99-api-params >in-params
-        @type cod stack-type-to-c99-api-params split-at(repr is-physical?)
-        uncons >out-params-2 >return-param >out-params-1
+        @type dom In  stack-type-to-c99-api-params >in-params
+        @type cod Out stack-type-to-c99-api-params
+        split-at(is-physical-value?) uncons
+        >out-params-2 >return-param >out-params-1
     ) drop
     must-flush> must-flush> || >must-flush
     @type cod linear-base-var? if-some(
@@ -727,7 +786,7 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
 }
 
 def C99APIArg.reserve-as-new-value! [ C99APIArg +C99Branch -- C99APIArg +C99Branch ] {
-    dup repr is-physical? if(
+    dup is-physical? if(
         dup repr new-value!
         consume swap name!,
         "0" swap name!
@@ -735,13 +794,13 @@ def C99APIArg.reserve-as-new-value! [ C99APIArg +C99Branch -- C99APIArg +C99Bran
 }
 
 def C99APIArg.reserve-as-is! [ C99APIArg +C99Branch -- +C99Branch ] {
-    dup repr is-physical? if(
+    dup is-physical? if(
         /C99APIArg
         c99-line(
             repr> underlying-c99-type put " " put
             name> put ";" put
         )
-        source> drop,
+        source> mode> drop2,
         drop
     )
 }
@@ -769,7 +828,7 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
         "" >sep
         popped-inputs> for:for(sep> ; ", " >sep ;)
         @reserved-outputs-1 @reserved-outputs-2 cat for(
-            dup repr is-physical?
+            dup is-physical?
             if(sep> ; ", " >sep "&" ; name ;, drop)
         )
         sep> drop
@@ -799,12 +858,12 @@ def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     @api cname put
     " (" put
     "" >sep
-    @api in-params filter(repr is-physical?) for(
+    @api in-params filter(is-physical?) for(
         sep> put ", " >sep
         dup repr underlying-c99-type put
         " " put name put
     )
-    @api out-params-1 @api out-params-2 cat filter(repr is-physical?) for(
+    @api out-params-1 @api out-params-2 cat filter(is-physical?) for(
         sep> put ", " >sep
         dup repr underlying-c99-type put
         " *" put name put
@@ -1751,7 +1810,7 @@ struct +C99BranchSplit {
 def +C99BranchSplit.+mirth(f) { +c99:+mirth(f) }
 
 def +C99Branch.begin-branch-split! [ StackType +C99Branch -- +C99BranchSplit ] {
-    +c99:stack-type-to-c99-api-params >branch-split-target
+    Branch +c99:stack-type-to-c99-api-params >branch-split-target
     must-flush> drop
     @branch-split-target for(reserve-as-is!)
     /+C99Branch
@@ -1778,6 +1837,7 @@ def +C99BranchSplit.sub-branch(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Bran
     )
     reachable> reachable-out:||
 }
+
 
 def +C99BranchSplit.c99-line(f) { reachable-in +c99:c99-line-if(f) }
 def +C99BranchSplit.c99-nest(f) { +c99:depth:1+ f +C99BranchSplit.+c99:depth:pred }
