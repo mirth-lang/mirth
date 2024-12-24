@@ -681,6 +681,7 @@ inline (
     def Nat.2* [ Nat -- Nat ] { >Int 2* NatUnsafe }
     def Nat.2/ [ Nat -- Nat ] { >Int 2/ NatUnsafe }
 
+    def Nat.succ  [ Nat     -- Nat ] { 1+ }
     def Nat.pred  [ Nat     -- Nat ] { 1- >Nat ( id, drop 0u ) }
     def Nat.minus [ Nat Nat -- Nat ] { - >Nat ( id, drop 0u ) }
 
