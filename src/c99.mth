@@ -601,6 +601,11 @@ def +C99.c99-line-if(f) [ (*a +C99 -- *b +C99) *a Bool +C99 -- *b +C99 ] {
 def +C99Branch.c99-line(f) [ (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch ] {
     reachable +c99:c99-line-if(f)
 }
+def +C99Branch.c99-line-if(f) [ (*a +C99 -- *b +C99) *a Bool +C99Branch -- *b +C99Branch ] {
+    reachable && +c99:c99-line-if(f)
+}
+
+
 def +C99Branch.c99-nest(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Branch -- *b +C99Branch ]
     { +c99:depth:1+ f +c99:depth:pred }
 def(+C99.indent, +C99 -- +C99, depth repeat("\t" put))
@@ -1460,9 +1465,9 @@ def push-label-expression!(f) [
 def C99ReprType.value-expression!(f) [
     (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch +C99Value
 ] {
-    >value-repr
-    +c99:fresh-name! >value-name
-    c99-line(
+    dup >value-repr is-physical? dup
+    if(+c99:fresh-name!, "0") >value-name
+    c99-line-if(
         @value-repr underlying-c99-type put " " put
         @value-name put " = " put
         +C99Value rdip:f rswap ";" put
@@ -1472,9 +1477,9 @@ def C99ReprType.value-expression!(f) [
 def C99ReprType.resource-expression!(f) [
     (*a +C99 -- *b +C99) *a C99ReprType +C99Branch -- *b +C99Branch +C99Resource
 ] {
-    >resource-repr
-    +c99:fresh-name! >resource-name
-    c99-line(
+    dup >resource-repr is-physical? dup
+    if(+c99:fresh-name!, "0") >resource-name
+    c99-line-if(
         @resource-repr underlying-c99-type put " " put
         @resource-name put " = " put
         +C99Resource rdip:f rswap ";" put
@@ -1701,25 +1706,33 @@ def +C99Stack.tie-knot! [ +C99Branch +C99Stack -- +C99Branch ] {
     { +SNil -> flush-cache! }
     { +SCons ->
         value-repr dup rdip2(pop-value! consume-as)
-        value-name rdip2:c99-line(put " = " put put ";" put)
+        value-name
+        value-repr is-physical?
+        rdip2:c99-line-if(put " = " put put ";" put)
         rdip:tie-knot!
         push-value!
     }
     { +SWith ->
         resource-repr dup rdip2(pop-resource! turn-into-value! consume-as)
-        resource-name rdip2:c99-line(put " = " put put ";" put)
+        resource-name
+        resource-repr is-physical?
+        rdip2:c99-line-if(put " = " put put ";" put)
         rdip:tie-knot!
         push-resource!
     }
     { +SConsLabel -> >label
         value-repr dup rdip2(@label pop-value-label! consume-as)
-        value-name rdip2:c99-line(put " = " put put ";" put)
+        value-name
+        value-repr is-physical?
+        rdip2:c99-line-if(put " = " put put ";" put)
         rdip:tie-knot!
         label> push-value-label!
     }
     { +SWithLabel -> >label
         resource-repr dup rdip2(@label pop-resource-label! turn-into-value! consume-as)
-        resource-name rdip2:c99-line(put " = " put put ";" put)
+        resource-name
+        resource-repr is-physical?
+        rdip2:c99-line-if(put " = " put put ";" put)
         rdip:tie-knot!
         label> push-resource-label!
     }
@@ -1840,6 +1853,7 @@ def +C99BranchSplit.sub-branch(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Bran
 
 
 def +C99BranchSplit.c99-line(f) { reachable-in +c99:c99-line-if(f) }
+def +C99BranchSplit.c99-line-if(f) { reachable-in && +c99:c99-line-if(f) }
 def +C99BranchSplit.c99-nest(f) { +c99:depth:1+ f +C99BranchSplit.+c99:depth:pred }
 
 ||| This resource represents a single active branch.
