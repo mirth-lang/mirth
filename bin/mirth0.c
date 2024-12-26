@@ -342,50 +342,25 @@ static void value_uncons(VAL val, VAL* tail, VAL* head) {
 static uint64_t value_u64 (VAL v) { ASSERT1(IS_INT(v),v); return VU64(v); }
 static uint32_t value_u32 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT32_MAX, v); return (uint32_t)x; }
 static uint16_t value_u16 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT16_MAX, v); return (uint16_t)x; }
-static uint8_t  value_u8  (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }
+static uint8_t value_u8 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }
 
 static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }
 static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }
 static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }
-static int8_t  value_i8  (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }
+static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }
 
 static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }
-static float  value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
+static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
 
 static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }
 static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }
 static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }
 static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && VTUPLEN(v) == n, v); return VTUP(v); }
 
-static void push_value(VAL x) {
-	ASSERT(stack_counter > 0);
-	stack[--stack_counter] = x;
-}
-
-static VAL top_value(void) {
-	ASSERT(stack_counter < STACK_MAX);
-	return stack[stack_counter];
-}
-
-static VAL pop_value(void) {
-	ASSERT(stack_counter < STACK_MAX);
-	return stack[stack_counter++];
-}
-
-static void push_resource(VAL x) {
-	ASSERT(rstack_counter > 0);
-	rstack[--rstack_counter] = x;
-}
-
-static VAL top_resource(void) {
-	ASSERT(rstack_counter < STACK_MAX);
-	return rstack[rstack_counter];
-}
-
-static VAL pop_resource(void) {
-	ASSERT(rstack_counter < STACK_MAX);
-	return rstack[rstack_counter++];
-}
+static void push_value (VAL x) { ASSERT(stack_counter > 0); stack[--stack_counter] = x; }
+static void push_resource (VAL x) { ASSERT(rstack_counter > 0); rstack[--rstack_counter] = x; }
+static VAL pop_value (void) { ASSERT(stack_counter < STACK_MAX); return stack[stack_counter++]; }
+static VAL pop_resource (void) { ASSERT(rstack_counter < STACK_MAX); return rstack[rstack_counter++]; }
 
 // Create a TUP with at least min(cap_hint, TUP_LEN_MAX) capacity.
 static TUP* tup_new (TUPLEN cap_hint) {
@@ -574,14 +549,6 @@ static USIZE get_data_tag(VAL v) {
 	} else {
 		return VU64(v);
 	}
-}
-
-static USIZE get_top_data_tag(void) {
-	return get_data_tag(top_value());
-}
-
-static USIZE get_top_resource_data_tag(void) {
-	return get_data_tag(top_resource());
 }
 
 static int str_cmp(STR* s1, STR* s2) {
@@ -48721,50 +48688,25 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static uint64_t value_u64 (VAL v) { ASSERT1(IS_INT(v),v); return VU64(v); }\n"
 		"static uint32_t value_u32 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT32_MAX, v); return (uint32_t)x; }\n"
 		"static uint16_t value_u16 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT16_MAX, v); return (uint16_t)x; }\n"
-		"static uint8_t  value_u8  (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }\n"
+		"static uint8_t value_u8 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }\n"
 		"\n"
 		"static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }\n"
 		"static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }\n"
 		"static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }\n"
-		"static int8_t  value_i8  (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }\n"
+		"static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }\n"
 		"\n"
 		"static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }\n"
-		"static float  value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }\n"
+		"static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }\n"
 		"\n"
 		"static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }\n"
 		"static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }\n"
 		"static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }\n"
 		"static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && VTUPLEN(v) == n, v); return VTUP(v); }\n"
 		"\n"
-		"static void push_value(VAL x) {\n"
-		"\tASSERT(stack_counter > 0);\n"
-		"\tstack[--stack_counter] = x;\n"
-		"}\n"
-		"\n"
-		"static VAL top_value(void) {\n"
-		"\tASSERT(stack_counter < STACK_MAX);\n"
-		"\treturn stack[stack_counter];\n"
-		"}\n"
-		"\n"
-		"static VAL pop_value(void) {\n"
-		"\tASSERT(stack_counter < STACK_MAX);\n"
-		"\treturn stack[stack_counter++];\n"
-		"}\n"
-		"\n"
-		"static void push_resource(VAL x) {\n"
-		"\tASSERT(rstack_counter > 0);\n"
-		"\trstack[--rstack_counter] = x;\n"
-		"}\n"
-		"\n"
-		"static VAL top_resource(void) {\n"
-		"\tASSERT(rstack_counter < STACK_MAX);\n"
-		"\treturn rstack[rstack_counter];\n"
-		"}\n"
-		"\n"
-		"static VAL pop_resource(void) {\n"
-		"\tASSERT(rstack_counter < STACK_MAX);\n"
-		"\treturn rstack[rstack_counter++];\n"
-		"}\n"
+		"static void push_value (VAL x) { ASSERT(stack_counter > 0); stack[--stack_counter] = x; }\n"
+		"static void push_resource (VAL x) { ASSERT(rstack_counter > 0); rstack[--rstack_counter] = x; }\n"
+		"static VAL pop_value (void) { ASSERT(stack_counter < STACK_MAX); return stack[stack_counter++]; }\n"
+		"static VAL pop_resource (void) { ASSERT(rstack_counter < STACK_MAX); return rstack[rstack_counter++]; }\n"
 		"\n"
 		"// Create a TUP with at least min(cap_hint, TUP_LEN_MAX) capacity.\n"
 		"static TUP* tup_new (TUPLEN cap_hint) {\n"
@@ -48953,14 +48895,6 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\t} else {\n"
 		"\t\treturn VU64(v);\n"
 		"\t}\n"
-		"}\n"
-		"\n"
-		"static USIZE get_top_data_tag(void) {\n"
-		"\treturn get_data_tag(top_value());\n"
-		"}\n"
-		"\n"
-		"static USIZE get_top_resource_data_tag(void) {\n"
-		"\treturn get_data_tag(top_resource());\n"
 		"}\n"
 		"\n"
 		"static int str_cmp(STR* s1, STR* s2) {\n"
@@ -49296,7 +49230,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		23271
+		22893
 	);
 	return MKSTR(v2);
 }
