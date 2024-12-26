@@ -338,72 +338,23 @@ static void value_uncons(VAL val, VAL* tail, VAL* head) {
 	}
 }
 
-static uint64_t value_u64 (VAL v) {
-	ASSERT1(IS_INT(v),v);
-	return VU64(v);
-}
+static uint64_t value_u64 (VAL v) { ASSERT1(IS_INT(v),v); return VU64(v); }
+static uint32_t value_u32 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT32_MAX, v); return (uint32_t)x; }
+static uint16_t value_u16 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT16_MAX, v); return (uint16_t)x; }
+static uint8_t  value_u8  (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }
 
-static int64_t value_i64 (VAL v) {
-	ASSERT1(IS_INT(v),v);
-	return VI64(v);
-}
+static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }
+static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }
+static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }
+static int8_t  value_i8  (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }
 
-static float value_f32 (VAL v) {
-	ASSERT1(IS_F32(v), v);
-	return VF32(v);
-}
+static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }
+static float  value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
 
-static double value_f64 (VAL v) {
-	ASSERT1(IS_F64(v), v);
-	return VF64(v);
-}
-
-static void* value_ptr (VAL v) {
-	ASSERT1(IS_PTR(v),v);
-	return VPTR(v);
-}
-
-static FNPTR value_fnptr (VAL v) {
-	ASSERT1(IS_FNPTR(v),v);
-	return VFNPTR(v);
-}
-
-static STR* value_str (VAL v) {
-	ASSERT1(IS_STR(v),v);
-	return VSTR(v);
-}
-
-#define pop_u8() ((uint8_t)pop_u64())
-#define pop_u16() ((uint16_t)pop_u64())
-#define pop_u32() ((uint32_t)pop_u64())
-#define pop_u64() (value_u64(pop_value()))
-#define pop_i8() ((int8_t)pop_i64())
-#define pop_i16() ((int16_t)pop_i64())
-#define pop_i32() ((int32_t)pop_i64())
-#define pop_i64() (value_i64(pop_value()))
-#define pop_usize() (pop_u64())
-#define pop_f32() (value_f32(pop_value()))
-#define pop_f64() (value_f64(pop_value()))
-#define pop_bool() ((bool)pop_u64())
-#define pop_str() (value_str(pop_value()))
-#define pop_ptr() (value_ptr(pop_value()))
-#define pop_fnptr() (value_fnptr(pop_value()))
-
-#define push_u64(v) push_value(MKU64(v))
-#define push_i64(v) push_value(MKI64(v))
-#define push_usize(v) push_u64((uint64_t)(v))
-#define push_bool(b) push_u64((uint64_t)((bool)(b)))
-#define push_u8(b) push_u64((uint64_t)(b))
-#define push_u16(b) push_u64((uint64_t)(b))
-#define push_u32(b) push_u64((uint64_t)(b))
-#define push_i8(b) push_i64((int64_t)(b))
-#define push_i16(b) push_i64((int64_t)(b))
-#define push_i32(b) push_i64((int64_t)(b))
-#define push_f32(f) push_value(MKF32(f))
-#define push_f64(f) push_value(MKF64(f))
-#define push_str(p) push_value(MKSTR(p))
-#define push_ptr(p) push_value(MKPTR(p))
-#define push_fnptr(p) push_value(MKFNPTR(p))
+static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }
+static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }
+static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }
+static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && VTUPLEN(v) == n, v); return VTUP(v); }
 
 static void push_value(VAL x) {
 	ASSERT(stack_counter > 0);
@@ -568,10 +519,6 @@ static VAL lpop(VAL* stk) {
 	*stk=lcar; return lcdr;
 }
 static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
-#define LPOP(v) push_value(lpop(&(v)))
-#define LPUSH(v) lpush(&(v),pop_value())
-#define LPOPR(v) push_resource(lpop(&(v)))
-#define LPUSHR(v) lpush(&(v),pop_resource())
 
 static STR* str_alloc (USIZE cap) {
 	ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);

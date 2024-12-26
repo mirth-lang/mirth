@@ -377,10 +377,11 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
             { Left -> # field is value
                 type-to-c99-repr >fieldrepr
                 @fieldrepr value-expression!(
-                    fieldrepr> v-macro put
-                    "(VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
-                    @tag @label c99-tag-label-index show put
-                    "])" put
+                    fieldrepr> v-macro(
+                        "VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
+                        @tag @label c99-tag-label-index show put
+                        "]" put
+                    )
                 ) dup-value! rdrop push-value!
                 +tuplevar> match {
                     { +Left -> # tuple is value
@@ -392,10 +393,11 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
             { Right -> # field and tuple are resources
                 resource-to-c99-repr >fieldrepr
                 @fieldrepr push-resource-expression!(
-                    fieldrepr> v-macro put
-                    "(VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
-                    @tag @label c99-tag-label-index show put
-                    "])" put
+                    fieldrepr> v-macro (
+                        "VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
+                        @tag @label c99-tag-label-index show put
+                        "]" put
+                    )
                 )
                 +tuplevar> push-value-value/resource!
             }
@@ -1123,19 +1125,13 @@ def push-resource-label! [ Label +C99Branch +C99Resource -- +C99Branch ] {
 
 def pop-value-label-direct! [ C99ReprType Label +C99Branch -- +C99Branch +C99Value ] {
     swap dup value-expression!(
-        match {
-            { C99RT_VAL -> "lpop(&lbl_" put name mangled put ")" put }
-            { _ -> v-macro put "(lpop(&lbl_" put name mangled put "))" put }
-        }
+        v-macro("lpop(&lbl_" put name mangled put ")" put)
     )
 }
 
 def pop-resource-label-direct! [ C99ReprType Label +C99Branch -- +C99Branch +C99Resource ] {
     swap dup resource-expression!(
-        match {
-            { C99RT_VAL -> "lpop(&lbl_" put name mangled put ")" put }
-            { _ -> v-macro put "(lpop(&lbl_" put name mangled put "))" put }
-        }
+        v-macro("lpop(&lbl_" put name mangled put ")" put)
     )
 }
 
@@ -1221,24 +1217,35 @@ def c99-string-byte! [ Byte avoid-hexdigit:Bool +C99 -- avoid-hexdigit:Bool +C99
     }
 }
 
+struct C99Tuple { num-fields: Nat }
+def C99Tuple.== { on2:num-fields == }
+def C99Tuple.<> { on2:num-fields <> }
+
 data C99ReprType {
+    0 C99RT_UNIT
+
     C99RT_VAL
     C99RT_STR
 
-    C99RT_UNIT
     C99RT_I64 C99RT_I32 C99RT_I16 C99RT_I8
     C99RT_U64 C99RT_U32 C99RT_U16 C99RT_U8
     C99RT_F64 C99RT_F32
     C99RT_BOOL
     C99RT_PTR
     C99RT_FNPTR
+
+    C99RT_TUP [ C99Tuple ]
+}
+
+def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
+    { C99RT_TUP -> swap match { C99RT_TUP -> ==, _ -> drop2 False } }
+    { _ -> on2:cons-value == }
 }
 
 inline (
-    def C99ReprType.is-unit? [ C99ReprType -- Bool ] { C99RT_UNIT == }
-    def C99ReprType.is-physical? [ C99ReprType -- Bool ] { C99RT_UNIT <> }
-    def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] { both(cons-value) == }
-    def C99ReprType.<> [ C99ReprType C99ReprType -- Bool ] { both(cons-value) <> }
+    def C99ReprType.is-unit? [ C99ReprType -- Bool ] { cons-value 0= }
+    def C99ReprType.is-physical? [ C99ReprType -- Bool ] { cons-value 0 <> }
+    def C99ReprType.<> [ C99ReprType C99ReprType -- Bool ] { == not }
 )
 
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
@@ -1260,22 +1267,23 @@ def C99ReprType.is-float-like? [ C99ReprType -- Bool ] {
 }
 
 def C99ReprType.dummy-value [ C99ReprType -- Str ] {
-    { C99RT_VAL   -> "(VAL){0}" }
-    { C99RT_STR   -> "NULL"     }
-    { C99RT_UNIT  -> "0"        }
-    { C99RT_I64   -> "0"        }
-    { C99RT_I32   -> "0"        }
-    { C99RT_I16   -> "0"        }
-    { C99RT_I8    -> "0"        }
-    { C99RT_U64   -> "0"        }
-    { C99RT_U32   -> "0"        }
-    { C99RT_U16   -> "0"        }
-    { C99RT_U8    -> "0"        }
-    { C99RT_F64   -> "0.0"      }
-    { C99RT_F32   -> "0.0"      }
-    { C99RT_BOOL  -> "0"        }
-    { C99RT_PTR   -> "NULL"     }
-    { C99RT_FNPTR -> "NULL"     }
+    { C99RT_VAL   -> "(VAL){0}"  }
+    { C99RT_STR   -> "NULL"      }
+    { C99RT_UNIT  -> "0"         }
+    { C99RT_I64   -> "0"         }
+    { C99RT_I32   -> "0"         }
+    { C99RT_I16   -> "0"         }
+    { C99RT_I8    -> "0"         }
+    { C99RT_U64   -> "0"         }
+    { C99RT_U32   -> "0"         }
+    { C99RT_U16   -> "0"         }
+    { C99RT_U8    -> "0"         }
+    { C99RT_F64   -> "0.0"       }
+    { C99RT_F32   -> "0.0"       }
+    { C99RT_BOOL  -> "0"         }
+    { C99RT_PTR   -> "NULL"      }
+    { C99RT_FNPTR -> "NULL"      }
+    { C99RT_TUP   -> drop "NULL" }
 }
 
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
@@ -1295,82 +1303,52 @@ def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
     { C99RT_BOOL  -> "bool"     }
     { C99RT_PTR   -> "void*"    }
     { C99RT_FNPTR -> "FNPTR"    }
+    { C99RT_TUP   -> drop "TUP*"  }
 }
 
-def C99ReprType.v-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL   -> "VVAL"   }
-    { C99RT_STR   -> "VSTR"   }
-    { C99RT_UNIT  -> "VI64"   }
-    { C99RT_I64   -> "VI64"   }
-    { C99RT_I32   -> "VI32"   }
-    { C99RT_I16   -> "VI16"   }
-    { C99RT_I8    -> "VI8"    }
-    { C99RT_U64   -> "VU64"   }
-    { C99RT_U32   -> "VU32"   }
-    { C99RT_U16   -> "VU16"   }
-    { C99RT_U8    -> "VU8"    }
-    { C99RT_F64   -> "VF64"   }
-    { C99RT_F32   -> "VF32"   }
-    { C99RT_BOOL  -> "VBOOL"  }
-    { C99RT_PTR   -> "VPTR"   }
-    { C99RT_FNPTR -> "VFNPTR" }
+def C99ReprType.v-macro(f) [ (*a +C99 -- *b +C99) *a +C99 C99ReprType -- *b +C99 ] {
+    v-macro-prefix-suffix
+    dip(put f) put
 }
 
-def C99ReprType.mk-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL   -> "MKVAL"   }
-    { C99RT_STR   -> "MKSTR"   }
-    { C99RT_UNIT  -> "MKI64"   }
-    { C99RT_I64   -> "MKI64"   }
-    { C99RT_I32   -> "MKI32"   }
-    { C99RT_I16   -> "MKI16"   }
-    { C99RT_I8    -> "MKI8"    }
-    { C99RT_U64   -> "MKU64"   }
-    { C99RT_U32   -> "MKU32"   }
-    { C99RT_U16   -> "MKU16"   }
-    { C99RT_U8    -> "MKU8"    }
-    { C99RT_F32   -> "MKF32"   }
-    { C99RT_F64   -> "MKF64"   }
-    { C99RT_BOOL  -> "MKBOOL"  }
-    { C99RT_PTR   -> "MKPTR"   }
-    { C99RT_FNPTR -> "MKFNPTR" }
+def C99ReprType.v-macro-prefix-suffix [ C99ReprType -- Str Str ] {
+    { C99RT_VAL   -> "" "" }
+    { C99RT_STR   -> "value_str(" ")" }
+    { C99RT_UNIT  -> "(" ", 0)" }
+    { C99RT_I64   -> "value_i64(" ")" }
+    { C99RT_I32   -> "value_i32(" ")" }
+    { C99RT_I16   -> "value_i16(" ")" }
+    { C99RT_I8    -> "value_i8(" ")" }
+    { C99RT_U64   -> "value_u64(" ")" }
+    { C99RT_U32   -> "value_u32(" ")" }
+    { C99RT_U16   -> "value_u16(" ")" }
+    { C99RT_U8    -> "value_u8(" ")" }
+    { C99RT_F64   -> "value_f64(" ")" }
+    { C99RT_F32   -> "value_f32(" ")" }
+    { C99RT_BOOL  -> "value_bool(" ")" }
+    { C99RT_PTR   -> "value_ptr(" ")" }
+    { C99RT_FNPTR -> "value_fnptr(" ")" }
+    { C99RT_TUP   -> "value_tup(" swap Str(", "; num-fields show ; ")";) }
 }
 
-def C99ReprType.pop-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL   -> "pop_value" }
-    { C99RT_STR   -> "pop_str"   }
-    { C99RT_UNIT  -> "pop_i64"   }
-    { C99RT_I64   -> "pop_i64"   }
-    { C99RT_I32   -> "pop_i32"   }
-    { C99RT_I16   -> "pop_i16"   }
-    { C99RT_I8    -> "pop_i8"    }
-    { C99RT_U64   -> "pop_u64"   }
-    { C99RT_U32   -> "pop_u32"   }
-    { C99RT_U16   -> "pop_u16"   }
-    { C99RT_U8    -> "pop_u8"    }
-    { C99RT_F64   -> "pop_f64"   }
-    { C99RT_F32   -> "pop_f32"   }
-    { C99RT_BOOL  -> "pop_bool"  }
-    { C99RT_PTR   -> "pop_ptr"   }
-    { C99RT_FNPTR -> "pop_fnptr" }
-}
-
-def C99ReprType.push-macro [ C99ReprType -- Str ] {
-    { C99RT_VAL   -> "push_value" }
-    { C99RT_STR   -> "push_str"   }
-    { C99RT_UNIT  -> "push_i64"   }
-    { C99RT_I64   -> "push_i64"   }
-    { C99RT_I32   -> "push_i32"   }
-    { C99RT_I16   -> "push_i16"   }
-    { C99RT_I8    -> "push_i8"    }
-    { C99RT_U64   -> "push_u64"   }
-    { C99RT_U32   -> "push_u32"   }
-    { C99RT_U16   -> "push_u16"   }
-    { C99RT_U8    -> "push_u8"    }
-    { C99RT_F64   -> "push_f64"   }
-    { C99RT_F32   -> "push_f32"   }
-    { C99RT_BOOL  -> "push_bool"  }
-    { C99RT_PTR   -> "push_ptr"   }
-    { C99RT_FNPTR -> "push_fnptr" }
+def C99ReprType.mk-macro [ Str C99ReprType -- Str ] {
+    { C99RT_VAL   -> id }
+    { C99RT_STR   -> Str( "MKSTR(" ; ; ")" ; ) }
+    { C99RT_UNIT  -> Str( "MKI64(" ; ; ")" ; ) }
+    { C99RT_I64   -> Str( "MKI64(" ; ; ")" ; ) }
+    { C99RT_I32   -> Str( "MKI32(" ; ; ")" ; ) }
+    { C99RT_I16   -> Str( "MKI16(" ; ; ")" ; ) }
+    { C99RT_I8    -> Str( "MKI8("  ; ; ")" ; ) }
+    { C99RT_U64   -> Str( "MKU64(" ; ; ")" ; ) }
+    { C99RT_U32   -> Str( "MKU32(" ; ; ")" ; ) }
+    { C99RT_U16   -> Str( "MKU16(" ; ; ")" ; ) }
+    { C99RT_U8    -> Str( "MKU8(" ; ; ")" ; ) }
+    { C99RT_F64   -> Str( "MKF64(" ; ; ")" ; ) }
+    { C99RT_F32   -> Str( "MKF32(" ; ; ")" ; ) }
+    { C99RT_BOOL  -> Str( "MKBOOL(" ; ; ")" ; ) }
+    { C99RT_PTR   -> Str( "MKPTR(" ; ; ")" ; ) }
+    { C99RT_FNPTR -> Str( "MKFNPTR(" ; ; ")" ; ) }
+    { C99RT_TUP   -> swap Str( "MKTUP(" ; ; "," ; num-fields show ; ")" ; ) }
 }
 
 def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
@@ -1447,7 +1425,7 @@ def C99ReprType.pop-value-direct! [ C99ReprType +C99Branch -- +C99Branch +C99Val
     +c99:fresh-name! >value-name
     c99-line(@value-repr underlying-c99-type put " " put
              @value-name put " = " put
-             @value-repr pop-macro put "();" put)
+             @value-repr v-macro ( "pop_value()" put ) ";" put)
     +C99Value
 }
 
@@ -1501,10 +1479,8 @@ def C99ReprType.resource-expression!(f) [
 }
 
 def +C99Value.push-value-direct! [ +C99Branch +C99Value -- +C99Branch ] {
-    /+C99Value c99-line(
-        value-repr> push-macro put "(" put
-        value-name> put ");" put
-    )
+    consume-as-VAL
+    c99-line("push_value(" put put ");" put)
 }
 
 def +C99Value.consume [ +C99Value -- Str ] {
@@ -1512,10 +1488,7 @@ def +C99Value.consume [ +C99Value -- Str ] {
 }
 
 def +C99Value.consume-as-VAL [ +C99Value -- Str ] {
-    /+C99Value value-repr> match {
-        C99RT_VAL -> value-name>,
-        _ -> Str(mk-macro ; "(" ; value-name> ; ")";)
-    }
+    /+C99Value value-name> value-repr> mk-macro
 }
 
 def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
@@ -1524,7 +1497,7 @@ def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
     { _ ->
         /+C99Value
         @value-repr match {
-            { C99RT_VAL -> Str( v-macro ; "(" ; value-name> ; ")" ; ) }
+            { C99RT_VAL -> Str( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
             { _ ->
                 over == if(
                     drop value-name>,
@@ -1605,10 +1578,7 @@ def +C99Resource.consume [ +C99Resource -- Str ] {
 }
 
 def +C99Resource.consume-as-VAL [ +C99Resource -- Str ] {
-    /+C99Resource resource-repr> match {
-        C99RT_VAL -> resource-name>,
-        _ -> Str(mk-macro ; "(" ; resource-name> ; ")";)
-    }
+    /+C99Resource resource-name> resource-repr> mk-macro
 }
 
 def +C99Branch.pop-resource-direct! [ +C99Branch C99ReprType -- +C99Branch +C99Resource ] {
@@ -1617,25 +1587,15 @@ def +C99Branch.pop-resource-direct! [ +C99Branch C99ReprType -- +C99Branch +C99R
     c99-line(
         @resource-repr underlying-c99-type put " " put
         @resource-name put " = " put
-        @resource-repr match {
-            { C99RT_VAL -> "pop_resource()" put }
-            { _ -> v-macro put "(pop_resource())" put }
-        }
+        @resource-repr v-macro( "pop_resource()" put )
         ";" put
     )
     +C99Resource
 }
 
 def +C99Resource.push-resource-direct! [ +C99Branch +C99Resource -- +C99Branch ] {
-    /+C99Resource
-    c99-line(
-        "push_resource(" put
-        resource-repr> match {
-            { C99RT_VAL -> resource-name> put }
-            { _ -> mk-macro put "(" put resource-name> put ")" put }
-        }
-        ");" put
-    )
+    consume-as-VAL
+    c99-line("push_resource(" put put ");" put)
 }
 
 def +C99Resource.peek-data-tag [ +C99Resource -- +C99Resource Str ] {
@@ -2321,12 +2281,13 @@ def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+C99V
         for(
             dup type type-to-c99-repr
             dup value-expression! (
-                v-macro put
-                "(VTUP(" put
-                @+tup:rdup consume-as-VAL put
-                ")->cells[" put
-                @i show put
-                "])" put
+                v-macro (
+                    "VTUP(" put
+                    @+tup:rdup consume-as-VAL put
+                    ")->cells[" put
+                    @i show put
+                    "]" put
+                )
             )
             push-to-env!
             @i:1+
