@@ -383,42 +383,6 @@ static void tup_decref_outer(TUP* tup, size_t n) {
 	}
 }
 
-static void value_uncons(VAL val, VAL* tail, VAL* head) {
-	if (IS_TUP(val)) {
-		TUPLEN len = VTUPLEN(val);
-		TUP* tup = VTUP(val);
-		ASSERT1((len > 0) && tup, val);
-		VAL tailval = MKTUP(tup, len-1);
-		VAL headval = tup->cells[len-1];
-		if (len == 1) {
-			incref(headval);
-			decref(val);
-			tailval = MKNIL;
-		} else {
-			if (tup->refs == 1) {
-				for (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }
-				memset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));
-				tup->size = len-1;
-			} else {
-				incref(headval);
-			}
-			if (len == 2) {
-				VAL ptval = tup->cells[0];
-				if (!IS_TUP(ptval)) {
-					incref(ptval);
-					decref(tailval);
-					tailval = ptval;
-				}
-			}
-		}
-		*tail = tailval;
-		*head = headval;
-	} else {
-		*tail = MKNIL;
-		*head = val;
-	}
-}
-
 static uint64_t value_u64 (VAL v) { ASSERT1(IS_INT(v),v); return VU64(v); }
 static uint32_t value_u32 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT32_MAX, v); return (uint32_t)x; }
 static uint16_t value_u16 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT16_MAX, v); return (uint16_t)x; }
@@ -453,33 +417,21 @@ static TUP* tup_new (TUPLEN cap_hint) {
 	return new_tup;
 }
 
-// Create a TUP with at least min(max(old_tup->size, cap_hint), TUP_LEN_MAX) capacity.
-// Consume old_tup and copy its elements over to the new tuple.
-static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {
-	ASSERT(old_tup);
-	if (cap_hint < old_tup->size) cap_hint = old_tup->size;
-	if (old_tup->refs == 1) {
-		if (cap_hint < 3) cap_hint = 3;
-		if (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;
-		TUPLEN old_cap = old_tup->cap;
-		TUP *new_tup = realloc(old_tup, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);
-		ASSERT(new_tup);
-		if (old_cap < cap_hint) {
-			memset(new_tup->cells + old_cap, 0, sizeof(VAL)*(cap_hint - old_cap));
-		}
-		new_tup->cap = cap_hint;
-		return new_tup;
-	} else {
-		TUP* new_tup = tup_new(cap_hint);
-		for (TUPLEN i = 0; i < old_tup->size; i++) {
-			VAL v = old_tup->cells[i];
-			new_tup->cells[i] = v;
-			incref(v);
-		}
-		new_tup->size = old_tup->size;
-		old_tup->refs--;
-		return new_tup;
+static TUP* tup_pack (TUPLEN count, VAL const* vals) {
+	TUP* tup = tup_new(count);
+	tup->size = count;
+	for (TUPLEN i = 0; i < count; i++) {
+		tup->cells[i] = vals[i];
 	}
+	return tup;
+}
+
+static void tup_unpack (TUP* tup, TUPLEN count, VAL* const* vals) {
+	ASSERT(tup); ASSERT(tup->size == count);
+	for (TUPLEN i = 0; i < count; i++) {
+		if(vals[i]) *vals[i] = tup->cells[i];
+	}
+	tup_decref_outer(tup, count);
 }
 
 static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
@@ -500,82 +452,24 @@ static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
 	return tup;
 }
 
-static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {
-	if (IS_TUP(tail) && HAS_REFS(tail)) {
-		TUPLEN tail_len = VTUPLEN(tail);
-		TUP *tail_tup = VTUP(tail);
-		ASSERT1(tail_tup, tail);
-		ASSERT1(tail_len <= tail_tup->size, tail);
-		if (tail_len < tail_tup->size) {
-			ASSERT1(tail_tup->refs >= 1, tail);
-			if (tail_tup->refs == 1) {
-				decref(tail_tup->cells[tail_len]);
-				tail_tup->cells[tail_len] = head;
-				return MKTUP(tail_tup, tail_len+1);
-			} else {
-				VAL *cmp = &tail_tup->cells[tail_len];
-				if (VALEQ(*cmp, head)) {
-					decref(head);
-					return MKTUP(tail_tup, tail_len+1);
-				} else {
-					if (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;
-					TUP* new_tup = tup_new(cap_hint);
-					for (TUPLEN i = 0; i < tail_len; i++) {
-						VAL v = tail_tup->cells[i];
-						new_tup->cells[i] = v;
-						incref(v);
-					}
-					new_tup->cells[tail_len] = head;
-					new_tup->size = tail_len+1;
-					tail_tup->refs--;
-					return MKTUP(new_tup, tail_len+1);
-				}
-			}
-		} else {
-			ASSERT1(tail_len < TUP_LEN_MAX, tail);
-			ASSERT1(tail_len <= tail_tup->cap, tail);
-			if (tail_len < tail_tup->cap) {
-				tail_tup->cells[tail_len] = head;
-				tail_tup->size = tail_len+1;
-				return MKTUP(tail_tup, tail_len+1);
-			} else {
-				if (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;
-				TUP* new_tup = tup_resize(tail_tup, cap_hint);
-				ASSERT(tail_len < new_tup->cap);
-				new_tup->size = tail_len+1;
-				new_tup->cells[tail_len] = head;
-				return MKTUP(new_tup, tail_len+1);
-			}
-		}
-	} else if (IS_TUP(tail)) { // cons onto nil
-		ASSERT(IS_NIL(tail));
-		if (IS_TUP(head)) {
-			TUP* tup = tup_new(cap_hint);
-			tup->size = 1;
-			tup->cells[0] = head;
-			return MKTUP(tup,1);
-		} else { // non-tup value pretends to be unary tuple
-			return head;
-		}
-	} else { // cons onto non-tup value pretending to be unary tuple
-		TUP* tup = tup_new(cap_hint);
-		tup->size = 2;
-		tup->cells[0] = tail;
-		tup->cells[1] = head;
-		return MKTUP(tup,2);
-	}
-}
-static VAL mkcons(VAL tail, VAL head) {
-	VAL v = mkcons_hint(tail,head,3);
-	return v;
-}
+typedef struct STACK {
+	size_t cap;
+	size_t len;
+	VAL* val;
+} STACK;
 
-static VAL lpop(VAL* stk) {
-	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
-	*stk=lcar; return lcdr;
+static VAL lpop(STACK* stk) {
+	ASSERT(stk->len > 0);
+	return stk->val[--stk->len];
 }
-static void lpush(VAL* stk, VAL cdr) {
-	*stk = mkcons(stk->tag ? *stk : MKNIL, cdr);
+static void lpush(STACK* stk, VAL val) {
+	if (stk->len >= stk->cap) {
+		stk->cap = stk->cap * 2 + 4;
+		VAL* newval = realloc(stk->val, stk->cap * sizeof(VAL));
+		ASSERT(newval);
+		stk->val = newval;
+	}
+	stk->val[stk->len++] = val;
 }
 
 static STR* str_alloc (USIZE cap) {

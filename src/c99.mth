@@ -1106,7 +1106,7 @@ def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
 }
 
 def c99-label-defs! [ +C99 -- +C99 ] { Label.for(c99-label-def!) }
-def c99-label-def! [ Label +C99 -- +C99 ] { "static VAL lbl_" put name mangled put " = {0};" put line }
+def c99-label-def! [ Label +C99 -- +C99 ] { "static STACK lbl_" put name mangled put " = {0};" put line }
 
 def push-value-label-direct! [ Label +C99Branch +C99Value -- +C99Branch ] {
     consume-as-VAL swap
@@ -2071,26 +2071,6 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { PRIM_BOOL_OR  -> drop "(" C99RT_BOOL " || " C99RT_BOOL ")" False C99RT_BOOL Some c99-binop! }
     { PRIM_BOOL_NOT -> drop "!" C99RT_BOOL "" C99RT_BOOL Some c99-unop! }
 
-    { PRIM_PACK_NIL -> drop C99RT_VAL push-value-expression!("MKNIL" put) }
-    { PRIM_PACK_CONS -> drop "mkcons(" C99RT_VAL ", " C99RT_VAL ")" False C99RT_VAL Some c99-binop! }
-    { PRIM_PACK_UNCONS ->
-        drop
-        C99RT_VAL pop-value! >+cons
-        C99RT_VAL new-value! >+tail
-        C99RT_VAL new-value! >+head
-        c99-line (
-            "value_uncons(" put
-            +cons> consume-as-VAL put
-            ", &" put
-            @+tail:value-name put
-            ", &" put
-            @+head:value-name put
-            ");" put
-        )
-        +tail> push-value!
-        +head> push-value!
-    }
-
     { PRIM_TUP_PACK0 -> drop 0u C99RT_TUP push-value-expression!("NULL" put) }
     { PRIM_TUP_PACK1 -> drop 1u c99-tup-pack! }
     { PRIM_TUP_PACK2 -> drop 2u c99-tup-pack! }
@@ -2212,12 +2192,13 @@ def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
     >arity
     L0 >args
     @arity repeat(C99RT_VAL pop-value! consume-as-VAL @args:cons)
-    @arity C99RT_TUP value-expression!("tup_new(" put @arity show put ")" put) >+tup
-    c99-line(@+tup:value-name put "->size = " put arity> show put ";" put)
-    0 >i
-    args> for(c99-line(@+tup:value-name put "->cells[" put @i show put "] = " put put ";" put) @i:1+)
-    i> drop
-    +tup> push-value!
+    @arity C99RT_TUP push-value-expression!(
+        "tup_pack(" put
+        arity> show put
+        ", (VAL[]){" put
+        args> for(put, "," put)
+        "})" put
+    )
 }
 
 def c99-tup-unpack! [ Nat +C99Branch -- +C99Branch ] {

@@ -884,9 +884,6 @@ inline(
 ##########
 
 inline(
-    alias(pack-cons, prim-pack-cons)
-    alias(pack-uncons, prim-pack-uncons)
-
     def(pack0,           -- [         ], prim-tup-pack0)
     def(pack1, a         -- [a        ], prim-tup-pack1)
     def(pack2, a b       -- [a b      ], prim-tup-pack2)
@@ -900,10 +897,6 @@ inline(
     def(unpack3, [a b c    ] -- a b c    , prim-tup-unpack3)
     def(unpack4, [a b c d  ] -- a b c d  , prim-tup-unpack4)
     def(unpack5, [a b c d e] -- a b c d e, prim-tup-unpack5)
-
-    def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
-        dip:pack-uncons pack-uncons dip:swap
-        dip2:aeq rotl if(beq, drop2 False))
 
     def(pack0==, [] [] -- Bool, drop2 False)
     def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
@@ -924,10 +917,10 @@ inline(
     def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
         unpack2 dip(f) " " ; g)
     def(pack3-show;-contents(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
-        pack-uncons dip(pack2-show;-contents(f,g)) " " ; h)
+        unpack3 dip2(f) " " ; dip(g) " " ; h)
     def(pack4-show;-contents(f,g,h,i),
         (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
-        pack-uncons dip(pack3-show;-contents(f,g,h)) " " ; i)
+        unpack4 dip3(f) " " ; dip2(g) " " ; dip(h) " " ; i)
 
     def(pack2-show;(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
         pack2-show;-contents(f,g) " pack2" ;)

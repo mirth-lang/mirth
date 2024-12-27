@@ -71,11 +71,6 @@ data(Prim,
     PRIM_BOOL_OR,
     PRIM_BOOL_NOT,
 
-    PRIM_PACK_NIL,
-    PRIM_PACK_CONS,
-    PRIM_PACK_UNCONS,
-
-
     PRIM_TUP_PACK0,
     PRIM_TUP_PACK1,
     PRIM_TUP_PACK2,
@@ -275,10 +270,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_BOOL_AND "prim-bool-and" 0 def-prim!
     PRIM_BOOL_OR  "prim-bool-or"  0 def-prim!
     PRIM_BOOL_NOT "prim-bool-not" 0 def-prim!
-
-    PRIM_PACK_NIL "prim-pack-nil" 0 def-prim!
-    PRIM_PACK_CONS "prim-pack-cons" 0 def-prim!
-    PRIM_PACK_UNCONS "prim-pack-uncons" 0 def-prim!
 
     PRIM_TUP_PACK0 "prim-tup-pack0" 0 def-prim!
     PRIM_TUP_PACK1 "prim-tup-pack1" 0 def-prim!
@@ -501,9 +492,6 @@ def(init-prims!, +Mirth -- +Mirth,
     Ctx0 T0 TYPE_PTR T1 T->
     PRIM_SYS_ARGV ctx-type!
 
-    Ctx0 T0 T0 >Type T1 T->
-    PRIM_PACK_NIL ctx-type!
-
     #
     # polymorphic prims
     #
@@ -570,14 +558,6 @@ def(init-prims!, +Mirth -- +Mirth,
     @xs @ys @rr Ctx3
     @txs @trr T+ @txs @tys T-> TMorphism T* @tys @trr T+ T->
     PRIM_CORE_RDIP ctx-type!
-
-    @xs @b Ctx2
-    @txs >Type @tb T2 @txs @tb T* >Type T1 T->
-    PRIM_PACK_CONS ctx-type!
-
-    @xs @b Ctx2
-    @txs @tb T* >Type T1 @txs >Type @tb T2 T->
-    PRIM_PACK_UNCONS ctx-type!
 
     Ctx0
     T0
