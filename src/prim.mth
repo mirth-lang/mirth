@@ -75,6 +75,21 @@ data(Prim,
     PRIM_PACK_CONS,
     PRIM_PACK_UNCONS,
 
+
+    PRIM_TUP_PACK0,
+    PRIM_TUP_PACK1,
+    PRIM_TUP_PACK2,
+    PRIM_TUP_PACK3,
+    PRIM_TUP_PACK4,
+    PRIM_TUP_PACK5,
+
+    PRIM_TUP_UNPACK0,
+    PRIM_TUP_UNPACK1,
+    PRIM_TUP_UNPACK2,
+    PRIM_TUP_UNPACK3,
+    PRIM_TUP_UNPACK4,
+    PRIM_TUP_UNPACK5,
+
     PRIM_MUT_GET,
     PRIM_MUT_SET,
     PRIM_MUT_IS_SET,
@@ -264,6 +279,20 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_PACK_NIL "prim-pack-nil" 0 def-prim!
     PRIM_PACK_CONS "prim-pack-cons" 0 def-prim!
     PRIM_PACK_UNCONS "prim-pack-uncons" 0 def-prim!
+
+    PRIM_TUP_PACK0 "prim-tup-pack0" 0 def-prim!
+    PRIM_TUP_PACK1 "prim-tup-pack1" 0 def-prim!
+    PRIM_TUP_PACK2 "prim-tup-pack2" 0 def-prim!
+    PRIM_TUP_PACK3 "prim-tup-pack3" 0 def-prim!
+    PRIM_TUP_PACK4 "prim-tup-pack4" 0 def-prim!
+    PRIM_TUP_PACK5 "prim-tup-pack5" 0 def-prim!
+
+    PRIM_TUP_UNPACK0 "prim-tup-unpack0" 0 def-prim!
+    PRIM_TUP_UNPACK1 "prim-tup-unpack1" 0 def-prim!
+    PRIM_TUP_UNPACK2 "prim-tup-unpack2" 0 def-prim!
+    PRIM_TUP_UNPACK3 "prim-tup-unpack3" 0 def-prim!
+    PRIM_TUP_UNPACK4 "prim-tup-unpack4" 0 def-prim!
+    PRIM_TUP_UNPACK5 "prim-tup-unpack5" 0 def-prim!
 
     PRIM_MUT_GET "prim-mut-get" 0 def-prim!
     PRIM_MUT_SET "prim-mut-set" 0 def-prim!
@@ -482,6 +511,8 @@ def(init-prims!, +Mirth -- +Mirth,
     TYPE_TYPE "a" >Name Var.new! >a
     TYPE_TYPE "b" >Name Var.new! >b
     TYPE_TYPE "c" >Name Var.new! >c
+    TYPE_TYPE "d" >Name Var.new! >d
+    TYPE_TYPE "e" >Name Var.new! >e
     TYPE_RESOURCE "+r" >Name Var.new! >rr
     TYPE_RESOURCE "+s" >Name Var.new! >sr
     TYPE_STACK "*x" >Name Var.new! >xs
@@ -490,6 +521,8 @@ def(init-prims!, +Mirth -- +Mirth,
     @a TVar >ta
     @b TVar >tb
     @c TVar >tc
+    @d TVar >td
+    @e TVar >te
     @rr TVar Resource >trr
     @sr TVar Resource >tsr
     @xs STVar >txs
@@ -546,6 +579,42 @@ def(init-prims!, +Mirth -- +Mirth,
     @txs @tb T* >Type T1 @txs >Type @tb T2 T->
     PRIM_PACK_UNCONS ctx-type!
 
+    Ctx0
+    T0
+    dup >Type T1
+    dup3 T-> PRIM_TUP_PACK0 ctx-type!
+    swap T-> PRIM_TUP_UNPACK0 ctx-type!
+
+    @a Ctx1
+    @ta T1
+    dup >Type T1
+    dup3 T-> PRIM_TUP_PACK1 ctx-type!
+    swap T-> PRIM_TUP_UNPACK1 ctx-type!
+
+    @a @b Ctx2
+    @ta @tb T2
+    dup >Type T1
+    dup3 T-> PRIM_TUP_PACK2 ctx-type!
+    swap T-> PRIM_TUP_UNPACK2 ctx-type!
+
+    @a @b @c Ctx3
+    @ta @tb @tc T3
+    dup >Type T1
+    dup3 T-> PRIM_TUP_PACK3 ctx-type!
+    swap T-> PRIM_TUP_UNPACK3 ctx-type!
+
+    @a @b @c @d Ctx4
+    @ta @tb @tc @td T4
+    dup >Type T1
+    dup3 T-> PRIM_TUP_PACK4 ctx-type!
+    swap T-> PRIM_TUP_UNPACK4 ctx-type!
+
+    @a @b @c @d @e Ctx5
+    @ta @tb @tc @td @te T5
+    dup >Type T1
+    dup3 T-> PRIM_TUP_PACK5 ctx-type!
+    swap T-> PRIM_TUP_UNPACK5 ctx-type!
+
     @a Ctx1
     @ta TMut T1 @ta T1 T->
     PRIM_MUT_GET ctx-type!
@@ -558,10 +627,10 @@ def(init-prims!, +Mirth -- +Mirth,
     @ta TMut T1 TYPE_BOOL T1 T->
     PRIM_MUT_IS_SET ctx-type!
 
-    a> b> c> drop3
+    a> b> c> d> e> drop5
     rr> sr> drop2
     xs> ys> drop2
-    ta> tb> tc> drop3
+    ta> tb> tc> td> te> drop5
     trr> tsr> drop2
     txs> tys> drop2
 )

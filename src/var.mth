@@ -57,6 +57,7 @@ def(Ctx1, Var -- Ctx, L1 Ctx)
 def(Ctx2, Var Var -- Ctx, L2 Ctx)
 def(Ctx3, Var Var Var -- Ctx, L3 Ctx)
 def(Ctx4, Var Var Var Var -- Ctx, L4 Ctx)
+def(Ctx5, Var Var Var Var Var -- Ctx, L5 Ctx)
 
 def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.snoc >Ctx)
 

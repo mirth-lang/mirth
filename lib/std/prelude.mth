@@ -195,9 +195,11 @@ inline(
     def at3(f) [ (*a x -- *a) *a x x x   -- *a ] { at3(f,f,f)   }
     def at4(f) [ (*a x -- *a) *a x x x x -- *a ] { at4(f,f,f,f) }
 
-    def drop2 [ a b     -- ] { drop drop           }
-    def drop3 [ a b c   -- ] { drop drop drop      }
-    def drop4 [ a b c d -- ] { drop drop drop drop }
+    def drop2 [ a b         -- ] { drop drop                     }
+    def drop3 [ a b c       -- ] { drop drop drop                }
+    def drop4 [ a b c d     -- ] { drop drop drop drop           }
+    def drop5 [ a b c d e   -- ] { drop drop drop drop drop      }
+    def drop6 [ a b c d e f -- ] { drop drop drop drop drop drop }
 
     def flip3 [ a b c   --   c b a ] { >x1 >x2 >x3     x1> x2> x3>     }
     def flip4 [ a b c d -- d c b a ] { >x1 >x2 >x3 >x4 x1> x2> x3> x4> }
@@ -885,19 +887,19 @@ inline(
     alias(pack-cons, prim-pack-cons)
     alias(pack-uncons, prim-pack-uncons)
 
-    alias(pack0, prim-pack-nil)
-    def(pack1, a -- [a], dip(pack0) pack-cons)
-    def(pack2, a b -- [a b], dip(pack1) pack-cons)
-    def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
-    def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
-    def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
+    def(pack0,           -- [         ], prim-tup-pack0)
+    def(pack1, a         -- [a        ], prim-tup-pack1)
+    def(pack2, a b       -- [a b      ], prim-tup-pack2)
+    def(pack3, a b c     -- [a b c    ], prim-tup-pack3)
+    def(pack4, a b c d   -- [a b c d  ], prim-tup-pack4)
+    def(pack5, a b c d e -- [a b c d e], prim-tup-pack5)
 
-    inline:def(unpack0, [] --, drop)
-    def(unpack1, [a] -- a, pack-uncons nip)
-    def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
-    def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
-    def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
-    def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+    def(unpack0, [         ] --          , prim-tup-unpack0)
+    def(unpack1, [a        ] -- a        , prim-tup-unpack1)
+    def(unpack2, [a b      ] -- a b      , prim-tup-unpack2)
+    def(unpack3, [a b c    ] -- a b c    , prim-tup-unpack3)
+    def(unpack4, [a b c d  ] -- a b c d  , prim-tup-unpack4)
+    def(unpack5, [a b c d e] -- a b c d e, prim-tup-unpack5)
 
     def(pack-cons==(aeq,beq), ([*a] [*a] -- Bool, b b -- Bool) [*a b] [*a b] -- Bool,
         dip:pack-uncons pack-uncons dip:swap
@@ -907,14 +909,17 @@ inline(
     def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
         on2:unpack1 aeq)
     def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
-        pack-cons==(pack1==(aeq), beq))
+        dip:unpack2 unpack2 dip:swap
+        beq if(aeq, drop2 False))
     def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
             [a b c] [a b c] -- Bool,
-        pack-cons==(pack2==(aeq,beq), ceq))
+        dip:unpack3 unpack3 dip2:rotr dip:swap
+        ceq if(beq if(aeq, drop2 False), drop4 False))
     def(pack4==(aeq,beq,ceq,deq),
             (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
             [a b c d] [a b c d] -- Bool,
-        pack-cons==(pack3==(aeq,beq,ceq), deq))
+        dip:unpack4 unpack4 dip3:rot4r dip2:rotr dip:swap
+        deq if(ceq if(beq if(aeq, drop2 False), drop4 False), drop2 drop4 False))
 
     def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
         unpack2 dip(f) " " ; g)
