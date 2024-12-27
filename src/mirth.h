@@ -42,25 +42,12 @@ extern int open(const char*, int, ...);
 extern void exit(int);
 extern int sprintf (char * s, const char * format, ...);
 
-typedef uint16_t TAG;
-#define REFS_FLAG 	 0x8000
-#define TUP_FLAG 	 0x4000
-#define TUP_LEN_MASK 0x3FFF
-#define TUP_LEN_MAX  0x3FFF
-
-#define TAG_INT 1
-#define TAG_PTR 1
-#define TAG_STR (2 | REFS_FLAG)
-#define TAG_FNPTR 3
-#define TAG_F32 4
-#define TAG_F64 5
-#define TAG_TUP_NIL TUP_FLAG
-#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
-#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (TAG)(n))
+typedef uint64_t TAG;
+#define REFS_FLAG 0x0001
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
-typedef void (*FNPTR)(void);
+typedef void (*FNPTR)();
 
 typedef union DATA {
 	USIZE usize;
@@ -77,7 +64,6 @@ typedef union DATA {
 	void* ptr;
 	FNPTR fnptr;
 	REFS* refs;
-	struct TUP* tup;
 	struct STR* str;
 } DATA;
 
@@ -86,10 +72,92 @@ typedef struct VAL {
 	TAG tag;
 } VAL;
 
+typedef struct TYPE {
+	const char* name;
+	uint64_t flags;
+	void (*free)(VAL v);
+	void (*trace_)(VAL v, int fd);
+	void (*run)(VAL v);
+} TYPE;
+
+static void default_free   (VAL v);
+static void default_trace_ (VAL v, int fd);
+static void default_run    (VAL v);
+
+static void int_trace_ (VAL v, int fd);
+static TYPE TYPE_INT = {
+	.name = "Int",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = int_trace_,
+	.run = default_run,
+};
+
+static void fnptr_run (VAL v);
+static TYPE TYPE_FNPTR = {
+	.name = "FnPtr",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = fnptr_run,
+};
+
+static TYPE TYPE_F64 = {
+	.name = "F64",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = default_run,
+};
+
+static TYPE TYPE_F32 = {
+	.name = "F32",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = default_run,
+};
+
+static void str_free (VAL v);
+static void str_trace_ (VAL v, int fd);
+static TYPE TYPE_STR = {
+	.name = "Str",
+	.flags = REFS_FLAG,
+	.free = str_free,
+	.trace_ = str_trace_,
+	.run = default_run,
+};
+
+static void tup_free (VAL v);
+static void tup_trace_ (VAL v, int fd);
+static void tup_run (VAL v);
+static TYPE TYPE_TUP = {
+	.name = "Tup",
+	.flags = REFS_FLAG,
+	.free = tup_free,
+	.trace_ = tup_trace_,
+	.run = tup_run,
+};
+
+#define TAG_INT ((TAG)&TYPE_INT)
+#define TAG_PTR TAG_INT
+#define TAG_FNPTR ((TAG)&TYPE_FNPTR)
+#define TAG_F64 ((TAG)&TYPE_F64)
+#define TAG_F32 ((TAG)&TYPE_F32)
+#define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)
+#define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)
+
+#define VL48(v) (((v).data.u64) & 0xFFFFFFFFFFFF)
+#define VP46(v) ((void*)(uintptr_t)(((v).data.u64) & 0xFFFFFFFFFFFC))
+#define VL32(v) (((v).data.u64) & 0x0000FFFFFFFF)
+#define VH16(v) (((v).data.u64) >> 48)
+#define VH32(v) (((v).data.u64) >> 32)
+
 #define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
 
-#define VREFS(v)  (*(v).data.refs)
-#define VVAL(v)   (v)
+#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFC))
+#define VREFS(v)  (*(REFS*)VP46(v))
+
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VI32(v)   ((v).data.i32)
@@ -104,11 +172,8 @@ typedef struct VAL {
 #define VF64(v)   ((v).data.f64)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
-#define VSTR(v)   ((v).data.str)
-#define VTUP(v)   ((v).data.tup)
-#define VTUPLEN(v) (TAG_TUP_LEN((v).tag))
 
-#define HAS_REFS(v) ((v).tag & REFS_FLAG)
+#define HAS_REFS(v) (((v).tag & REFS_FLAG) && VP46(v))
 #define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
@@ -119,7 +184,7 @@ typedef struct VAL {
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
-#define IS_TUP(v)   ((v).tag & TUP_FLAG)
+#define IS_TUP(v)   ((v).tag == TAG_TUP)
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
 
 #define MKVAL(x)   (x)
@@ -137,10 +202,16 @@ typedef struct VAL {
 #define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
+
+#define VSTR(v)    ((v).data.str)
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
-#define MKTUP(x,n) ((VAL){.tag=TAG_TUP(n), .data={.tup=(x)}})
-#define MKNIL_C	         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}
-#define MKNIL      ((VAL)MKNIL_C)
+
+#define VTUP(v)    ((TUP*)(VP46(v)))
+#define VTUPLEN(v) (VH16(v))
+#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.u64=((uint64_t)(n) << 48) | (uint64_t)(uintptr_t)(x)}})
+#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.u64=0}})
+
+#define TUP_LEN_MAX 0x3FFF
 
 #define STRLIT(v,x,n) \
 	do { \
@@ -273,18 +344,28 @@ static void trace_rstack(void);
 static void free_value(VAL v) {
 	ASSERT(HAS_REFS(v));
 	ASSERT(VREFS(v) == 0);
-	ASSERT1(IS_TUP(v)||IS_STR(v), v);
-	if (IS_TUP(v)) {
-		TUP* tup = VTUP(v);
-		ASSERT(tup);
+	if (VTYPE(v)->free) VTYPE(v)->free(v);
+}
+
+static void default_free (VAL v) {
+	TRACE("panic! tried to free ");
+	TRACE(VTYPE(v)->name);
+	TRACE(" value\n");
+	exit(1);
+}
+
+static void str_free (VAL v) {
+	STR* str = VSTR(v);
+	free(str);
+}
+
+static void tup_free (VAL v) {
+	TUP* tup = VTUP(v);
+	if (tup) {
 		for (TUPLEN i = 0; i < tup->size; i++) {
 			decref(tup->cells[i]);
 		}
 		free(tup);
-	} else if (IS_STR(v)) {
-		STR* str = VSTR(v);
-		ASSERT(str);
-		free(str);
 	}
 }
 
@@ -493,7 +574,9 @@ static VAL lpop(VAL* stk) {
 	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
 	*stk=lcar; return lcdr;
 }
-static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
+static void lpush(VAL* stk, VAL cdr) {
+	*stk = mkcons(stk->tag ? *stk : MKNIL, cdr);
+}
 
 static STR* str_alloc (USIZE cap) {
 	ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);
@@ -565,16 +648,29 @@ static int str_cmp(STR* s1, STR* s2) {
 	return 0;
 }
 
+static void default_run(VAL v) {
+	TRACE("panic! tried to run ");
+	TRACE(VTYPE(v)->name);
+	TRACE("value\n");
+	exit(1);
+}
+
+static void tup_run(VAL v) {
+	ASSERT(VTUPLEN(v)>0);
+	VAL h = VTUP(v)->cells[0];
+	ASSERT(IS_FNPTR(h));
+	push_value(v);
+	VFNPTR(h)();
+}
+
+static void fnptr_run(VAL v) {
+	VFNPTR(v)();
+}
+
 static void run_value(VAL v) {
-	if (IS_TUP(v)) {
-		VAL h = VTUP(v)->cells[0];
-		ASSERT(IS_FNPTR(h));
-		push_value(v);
-		VFNPTR(h)();
-	} else {
-		ASSERT(IS_FNPTR(v));
-		VFNPTR(v)();
-	}
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->run);
+	VTYPE(v)->run(v);
 }
 
 static int64_t i64_add (int64_t a, int64_t b) {
@@ -670,9 +766,9 @@ void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
 	*out_size = n;
 }
 
-void int_trace_(int64_t y, int fd) {
+void int_trace_(VAL v, int fd) {
 	char* p; size_t n;
-	int_repr(y, &p, &n);
+	int_repr(VINT(v), &p, &n);
 	write(fd, p, n);
 }
 
@@ -695,7 +791,8 @@ STR* i64_show (int64_t x) {
 	}
 }
 
-void str_trace_(STR* str, int fd) {
+void str_trace_(VAL v, int fd) {
+	STR* str = VSTR(v);
 	ASSERT(str->size <= SIZE_MAX);
 	write(fd, "\"", 1);
 	USIZE i0 = 0;
@@ -727,29 +824,29 @@ void str_trace_(STR* str, int fd) {
 	write(fd, "\"", 1);
 }
 
-void value_trace_(VAL val, int fd) {
-	if (IS_INT(val)) {
-		int_trace_(VINT(val), fd);
-	} else if (IS_STR(val)) {
-		str_trace_(VSTR(val), fd);
-	} else if (IS_FNPTR(val)) {
-		write(fd, "<fnptr>", 7);
-	} else if (IS_TUP(val)) {
-		TUPLEN len = VTUPLEN(val);
-		TUP* tup = VTUP(val);
-		if (VTUPLEN(val) == 0) {
-			write(fd, "[]", 2);
-		} else {
-			write(fd, "[ ", 2);
-			for(TUPLEN i = 0; i < len; i++) {
-				if (i > 0) write(fd, " ", 1);
-				value_trace_(tup->cells[i], fd);
-			}
-			write(fd, " ]", 2);
-		}
+static void value_trace_(VAL v, int fd) {
+	VTYPE(v)->trace_(v,fd);
+}
+
+static void default_trace_(VAL v, int fd) {
+	const char* name = VTYPE(v)->name;
+	write(fd, "<", 1);
+	write(fd, name, strlen(name));
+	write(fd, ">", 1);
+}
+
+static void tup_trace_(VAL v, int fd) {
+	TUPLEN len = VTUPLEN(v);
+	TUP* tup = VTUP(v);
+	if (len == 0) {
+		write(fd, "[]", 2);
 	} else {
-		TRACE("value cannot be traced");
-		exit(1);
+		write(fd, "[ ", 2);
+		for(TUPLEN i = 0; i < len; i++) {
+			if (i > 0) write(fd, " ", 1);
+			value_trace_(tup->cells[i], fd);
+		}
+		write(fd, " ]", 2);
 	}
 }
 

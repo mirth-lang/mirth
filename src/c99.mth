@@ -1106,7 +1106,7 @@ def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
 }
 
 def c99-label-defs! [ +C99 -- +C99 ] { Label.for(c99-label-def!) }
-def c99-label-def! [ Label +C99 -- +C99 ] { "static VAL lbl_" put name mangled put " = MKNIL_C;" put line }
+def c99-label-def! [ Label +C99 -- +C99 ] { "static VAL lbl_" put name mangled put " = {0};" put line }
 
 def push-value-label-direct! [ Label +C99Branch +C99Value -- +C99Branch ] {
     consume-as-VAL swap

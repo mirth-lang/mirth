@@ -43,25 +43,12 @@ extern int open(const char*, int, ...);
 extern void exit(int);
 extern int sprintf (char * s, const char * format, ...);
 
-typedef uint16_t TAG;
-#define REFS_FLAG 	 0x8000
-#define TUP_FLAG 	 0x4000
-#define TUP_LEN_MASK 0x3FFF
-#define TUP_LEN_MAX  0x3FFF
-
-#define TAG_INT 1
-#define TAG_PTR 1
-#define TAG_STR (2 | REFS_FLAG)
-#define TAG_FNPTR 3
-#define TAG_F32 4
-#define TAG_F64 5
-#define TAG_TUP_NIL TUP_FLAG
-#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
-#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (TAG)(n))
+typedef uint64_t TAG;
+#define REFS_FLAG 0x0001
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
-typedef void (*FNPTR)(void);
+typedef void (*FNPTR)();
 
 typedef union DATA {
 	USIZE usize;
@@ -78,7 +65,6 @@ typedef union DATA {
 	void* ptr;
 	FNPTR fnptr;
 	REFS* refs;
-	struct TUP* tup;
 	struct STR* str;
 } DATA;
 
@@ -87,10 +73,92 @@ typedef struct VAL {
 	TAG tag;
 } VAL;
 
+typedef struct TYPE {
+	const char* name;
+	uint64_t flags;
+	void (*free)(VAL v);
+	void (*trace_)(VAL v, int fd);
+	void (*run)(VAL v);
+} TYPE;
+
+static void default_free   (VAL v);
+static void default_trace_ (VAL v, int fd);
+static void default_run    (VAL v);
+
+static void int_trace_ (VAL v, int fd);
+static TYPE TYPE_INT = {
+	.name = "Int",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = int_trace_,
+	.run = default_run,
+};
+
+static void fnptr_run (VAL v);
+static TYPE TYPE_FNPTR = {
+	.name = "FnPtr",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = fnptr_run,
+};
+
+static TYPE TYPE_F64 = {
+	.name = "F64",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = default_run,
+};
+
+static TYPE TYPE_F32 = {
+	.name = "F32",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = default_run,
+};
+
+static void str_free (VAL v);
+static void str_trace_ (VAL v, int fd);
+static TYPE TYPE_STR = {
+	.name = "Str",
+	.flags = REFS_FLAG,
+	.free = str_free,
+	.trace_ = str_trace_,
+	.run = default_run,
+};
+
+static void tup_free (VAL v);
+static void tup_trace_ (VAL v, int fd);
+static void tup_run (VAL v);
+static TYPE TYPE_TUP = {
+	.name = "Tup",
+	.flags = REFS_FLAG,
+	.free = tup_free,
+	.trace_ = tup_trace_,
+	.run = tup_run,
+};
+
+#define TAG_INT ((TAG)&TYPE_INT)
+#define TAG_PTR TAG_INT
+#define TAG_FNPTR ((TAG)&TYPE_FNPTR)
+#define TAG_F64 ((TAG)&TYPE_F64)
+#define TAG_F32 ((TAG)&TYPE_F32)
+#define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)
+#define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)
+
+#define VL48(v) (((v).data.u64) & 0xFFFFFFFFFFFF)
+#define VP46(v) ((void*)(uintptr_t)(((v).data.u64) & 0xFFFFFFFFFFFC))
+#define VL32(v) (((v).data.u64) & 0x0000FFFFFFFF)
+#define VH16(v) (((v).data.u64) >> 48)
+#define VH32(v) (((v).data.u64) >> 32)
+
 #define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
 
-#define VREFS(v)  (*(v).data.refs)
-#define VVAL(v)   (v)
+#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFC))
+#define VREFS(v)  (*(REFS*)VP46(v))
+
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VI32(v)   ((v).data.i32)
@@ -105,11 +173,8 @@ typedef struct VAL {
 #define VF64(v)   ((v).data.f64)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
-#define VSTR(v)   ((v).data.str)
-#define VTUP(v)   ((v).data.tup)
-#define VTUPLEN(v) (TAG_TUP_LEN((v).tag))
 
-#define HAS_REFS(v) ((v).tag & REFS_FLAG)
+#define HAS_REFS(v) (((v).tag & REFS_FLAG) && VP46(v))
 #define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
@@ -120,7 +185,7 @@ typedef struct VAL {
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
-#define IS_TUP(v)   ((v).tag & TUP_FLAG)
+#define IS_TUP(v)   ((v).tag == TAG_TUP)
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
 
 #define MKVAL(x)   (x)
@@ -138,10 +203,16 @@ typedef struct VAL {
 #define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
+
+#define VSTR(v)    ((v).data.str)
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
-#define MKTUP(x,n) ((VAL){.tag=TAG_TUP(n), .data={.tup=(x)}})
-#define MKNIL_C	         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}
-#define MKNIL      ((VAL)MKNIL_C)
+
+#define VTUP(v)    ((TUP*)(VP46(v)))
+#define VTUPLEN(v) (VH16(v))
+#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.u64=((uint64_t)(n) << 48) | (uint64_t)(uintptr_t)(x)}})
+#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.u64=0}})
+
+#define TUP_LEN_MAX 0x3FFF
 
 #define STRLIT(v,x,n) \
 	do { \
@@ -274,18 +345,28 @@ static void trace_rstack(void);
 static void free_value(VAL v) {
 	ASSERT(HAS_REFS(v));
 	ASSERT(VREFS(v) == 0);
-	ASSERT1(IS_TUP(v)||IS_STR(v), v);
-	if (IS_TUP(v)) {
-		TUP* tup = VTUP(v);
-		ASSERT(tup);
+	if (VTYPE(v)->free) VTYPE(v)->free(v);
+}
+
+static void default_free (VAL v) {
+	TRACE("panic! tried to free ");
+	TRACE(VTYPE(v)->name);
+	TRACE(" value\n");
+	exit(1);
+}
+
+static void str_free (VAL v) {
+	STR* str = VSTR(v);
+	free(str);
+}
+
+static void tup_free (VAL v) {
+	TUP* tup = VTUP(v);
+	if (tup) {
 		for (TUPLEN i = 0; i < tup->size; i++) {
 			decref(tup->cells[i]);
 		}
 		free(tup);
-	} else if (IS_STR(v)) {
-		STR* str = VSTR(v);
-		ASSERT(str);
-		free(str);
 	}
 }
 
@@ -494,7 +575,9 @@ static VAL lpop(VAL* stk) {
 	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
 	*stk=lcar; return lcdr;
 }
-static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
+static void lpush(VAL* stk, VAL cdr) {
+	*stk = mkcons(stk->tag ? *stk : MKNIL, cdr);
+}
 
 static STR* str_alloc (USIZE cap) {
 	ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);
@@ -566,16 +649,29 @@ static int str_cmp(STR* s1, STR* s2) {
 	return 0;
 }
 
+static void default_run(VAL v) {
+	TRACE("panic! tried to run ");
+	TRACE(VTYPE(v)->name);
+	TRACE("value\n");
+	exit(1);
+}
+
+static void tup_run(VAL v) {
+	ASSERT(VTUPLEN(v)>0);
+	VAL h = VTUP(v)->cells[0];
+	ASSERT(IS_FNPTR(h));
+	push_value(v);
+	VFNPTR(h)();
+}
+
+static void fnptr_run(VAL v) {
+	VFNPTR(v)();
+}
+
 static void run_value(VAL v) {
-	if (IS_TUP(v)) {
-		VAL h = VTUP(v)->cells[0];
-		ASSERT(IS_FNPTR(h));
-		push_value(v);
-		VFNPTR(h)();
-	} else {
-		ASSERT(IS_FNPTR(v));
-		VFNPTR(v)();
-	}
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->run);
+	VTYPE(v)->run(v);
 }
 
 static int64_t i64_add (int64_t a, int64_t b) {
@@ -671,9 +767,9 @@ void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
 	*out_size = n;
 }
 
-void int_trace_(int64_t y, int fd) {
+void int_trace_(VAL v, int fd) {
 	char* p; size_t n;
-	int_repr(y, &p, &n);
+	int_repr(VINT(v), &p, &n);
 	write(fd, p, n);
 }
 
@@ -696,7 +792,8 @@ STR* i64_show (int64_t x) {
 	}
 }
 
-void str_trace_(STR* str, int fd) {
+void str_trace_(VAL v, int fd) {
+	STR* str = VSTR(v);
 	ASSERT(str->size <= SIZE_MAX);
 	write(fd, "\"", 1);
 	USIZE i0 = 0;
@@ -728,29 +825,29 @@ void str_trace_(STR* str, int fd) {
 	write(fd, "\"", 1);
 }
 
-void value_trace_(VAL val, int fd) {
-	if (IS_INT(val)) {
-		int_trace_(VINT(val), fd);
-	} else if (IS_STR(val)) {
-		str_trace_(VSTR(val), fd);
-	} else if (IS_FNPTR(val)) {
-		write(fd, "<fnptr>", 7);
-	} else if (IS_TUP(val)) {
-		TUPLEN len = VTUPLEN(val);
-		TUP* tup = VTUP(val);
-		if (VTUPLEN(val) == 0) {
-			write(fd, "[]", 2);
-		} else {
-			write(fd, "[ ", 2);
-			for(TUPLEN i = 0; i < len; i++) {
-				if (i > 0) write(fd, " ", 1);
-				value_trace_(tup->cells[i], fd);
-			}
-			write(fd, " ]", 2);
-		}
+static void value_trace_(VAL v, int fd) {
+	VTYPE(v)->trace_(v,fd);
+}
+
+static void default_trace_(VAL v, int fd) {
+	const char* name = VTYPE(v)->name;
+	write(fd, "<", 1);
+	write(fd, name, strlen(name));
+	write(fd, ">", 1);
+}
+
+static void tup_trace_(VAL v, int fd) {
+	TUPLEN len = VTUPLEN(v);
+	TUP* tup = VTUP(v);
+	if (len == 0) {
+		write(fd, "[]", 2);
 	} else {
-		TRACE("value cannot be traced");
-		exit(1);
+		write(fd, "[ ", 2);
+		for(TUPLEN i = 0; i < len; i++) {
+			if (i > 0) write(fd, " ", 1);
+			value_trace_(tup->cells[i], fd);
+		}
+		write(fd, " ]", 2);
 	}
 }
 
@@ -885,340 +982,340 @@ static bool mut_is_set (void* mut) {
 
 /* GENERATED C99 */
 
-static VAL lbl_emitZ_debugZ_info = MKNIL_C;
-static VAL lbl_inputZ_file = MKNIL_C;
-static VAL lbl_outputZ_file = MKNIL_C;
-static VAL lbl_entryZ_point = MKNIL_C;
-static VAL lbl_packages = MKNIL_C;
-static VAL lbl_packageZ_searchZ_paths = MKNIL_C;
-static VAL lbl_outputZ_path = MKNIL_C;
-static VAL lbl_name = MKNIL_C;
-static VAL lbl_flagZ_type = MKNIL_C;
-static VAL lbl_argZ_doc = MKNIL_C;
-static VAL lbl_doc = MKNIL_C;
-static VAL lbl_group = MKNIL_C;
-static VAL lbl_options = MKNIL_C;
-static VAL lbl_parser = MKNIL_C;
-static VAL lbl_argsZ_doc = MKNIL_C;
-static VAL lbl_x1 = MKNIL_C;
-static VAL lbl_x2 = MKNIL_C;
-static VAL lbl_x3 = MKNIL_C;
-static VAL lbl_x4 = MKNIL_C;
-static VAL lbl_tail = MKNIL_C;
-static VAL lbl_head = MKNIL_C;
-static VAL lbl_x = MKNIL_C;
-static VAL lbl_rest = MKNIL_C;
-static VAL lbl_ok = MKNIL_C;
-static VAL lbl_escapeZ_hex = MKNIL_C;
-static VAL lbl_sizze = MKNIL_C;
-static VAL lbl_base = MKNIL_C;
-static VAL lbl_oldZ_sizze = MKNIL_C;
-static VAL lbl_origZ_sizze = MKNIL_C;
-static VAL lbl_origZ_offset = MKNIL_C;
-static VAL lbl_fileZ_descriptor = MKNIL_C;
-static VAL lbl_owned = MKNIL_C;
-static VAL lbl_sliceZ_sizze = MKNIL_C;
-static VAL lbl_sliceZ_base = MKNIL_C;
-static VAL lbl_success = MKNIL_C;
-static VAL lbl_wroteZ_bytes = MKNIL_C;
-static VAL lbl_length = MKNIL_C;
-static VAL lbl_offset = MKNIL_C;
-static VAL lbl_ZPlusbuffer = MKNIL_C;
-static VAL lbl_ZPlusfile = MKNIL_C;
-static VAL lbl_ZPlusworld = MKNIL_C;
-static VAL lbl_numZ_tests = MKNIL_C;
-static VAL lbl_numZ_failed = MKNIL_C;
-static VAL lbl_testZ_name = MKNIL_C;
-static VAL lbl_testZ_failed = MKNIL_C;
-static VAL lbl_ZPlustests = MKNIL_C;
-static VAL lbl_colZ_offset = MKNIL_C;
-static VAL lbl_argumentZ_parser = MKNIL_C;
-static VAL lbl_state = MKNIL_C;
-static VAL lbl_docZ_length = MKNIL_C;
-static VAL lbl_oo = MKNIL_C;
-static VAL lbl_argv = MKNIL_C;
-static VAL lbl_programZ_name = MKNIL_C;
-static VAL lbl_argvZ_info = MKNIL_C;
-static VAL lbl_parsingZAsk = MKNIL_C;
-static VAL lbl_option = MKNIL_C;
-static VAL lbl_optionZ_option = MKNIL_C;
-static VAL lbl_arg = MKNIL_C;
-static VAL lbl_arguments = MKNIL_C;
-static VAL lbl_positionalZ_index = MKNIL_C;
-static VAL lbl_longestZ_argZ_length = MKNIL_C;
-static VAL lbl_error = MKNIL_C;
-static VAL lbl_namespace = MKNIL_C;
-static VAL lbl_arity = MKNIL_C;
-static VAL lbl_std = MKNIL_C;
-static VAL lbl_prim = MKNIL_C;
-static VAL lbl_bool = MKNIL_C;
-static VAL lbl_true = MKNIL_C;
-static VAL lbl_false = MKNIL_C;
-static VAL lbl_u64 = MKNIL_C;
-static VAL lbl_mkZ_u64 = MKNIL_C;
-static VAL lbl_u32 = MKNIL_C;
-static VAL lbl_mkZ_u32 = MKNIL_C;
-static VAL lbl_u16 = MKNIL_C;
-static VAL lbl_mkZ_u16 = MKNIL_C;
-static VAL lbl_u8 = MKNIL_C;
-static VAL lbl_mkZ_u8 = MKNIL_C;
-static VAL lbl_i64 = MKNIL_C;
-static VAL lbl_mkZ_i64 = MKNIL_C;
-static VAL lbl_i32 = MKNIL_C;
-static VAL lbl_mkZ_i32 = MKNIL_C;
-static VAL lbl_i16 = MKNIL_C;
-static VAL lbl_mkZ_i16 = MKNIL_C;
-static VAL lbl_i8 = MKNIL_C;
-static VAL lbl_mkZ_i8 = MKNIL_C;
-static VAL lbl_cchar = MKNIL_C;
-static VAL lbl_mkZ_cchar = MKNIL_C;
-static VAL lbl_cichar = MKNIL_C;
-static VAL lbl_mkZ_cichar = MKNIL_C;
-static VAL lbl_cshort = MKNIL_C;
-static VAL lbl_mkZ_cshort = MKNIL_C;
-static VAL lbl_cint = MKNIL_C;
-static VAL lbl_mkZ_cint = MKNIL_C;
-static VAL lbl_clong = MKNIL_C;
-static VAL lbl_mkZ_clong = MKNIL_C;
-static VAL lbl_clonglong = MKNIL_C;
-static VAL lbl_mkZ_clonglong = MKNIL_C;
-static VAL lbl_cisizze = MKNIL_C;
-static VAL lbl_mkZ_cisizze = MKNIL_C;
-static VAL lbl_cintptr = MKNIL_C;
-static VAL lbl_mkZ_cintptr = MKNIL_C;
-static VAL lbl_cuchar = MKNIL_C;
-static VAL lbl_mkZ_cuchar = MKNIL_C;
-static VAL lbl_cushort = MKNIL_C;
-static VAL lbl_mkZ_cushort = MKNIL_C;
-static VAL lbl_cuint = MKNIL_C;
-static VAL lbl_mkZ_cuint = MKNIL_C;
-static VAL lbl_culong = MKNIL_C;
-static VAL lbl_mkZ_culong = MKNIL_C;
-static VAL lbl_culonglong = MKNIL_C;
-static VAL lbl_mkZ_culonglong = MKNIL_C;
-static VAL lbl_cusizze = MKNIL_C;
-static VAL lbl_mkZ_cusizze = MKNIL_C;
-static VAL lbl_cuintptr = MKNIL_C;
-static VAL lbl_mkZ_cuintptr = MKNIL_C;
-static VAL lbl_cptr = MKNIL_C;
-static VAL lbl_mkZ_cptr = MKNIL_C;
-static VAL lbl_cconst = MKNIL_C;
-static VAL lbl_mkZ_cconst = MKNIL_C;
-static VAL lbl_crestrict = MKNIL_C;
-static VAL lbl_mkZ_crestrict = MKNIL_C;
-static VAL lbl_cvolatile = MKNIL_C;
-static VAL lbl_mkZ_cvolatile = MKNIL_C;
-static VAL lbl_cvoid = MKNIL_C;
-static VAL lbl_mkZ_cvoid = MKNIL_C;
-static VAL lbl_numZ_errors = MKNIL_C;
-static VAL lbl_numZ_warnings = MKNIL_C;
-static VAL lbl_preferZ_inlineZ_defs = MKNIL_C;
-static VAL lbl_builtin = MKNIL_C;
-static VAL lbl_mirthZ_baseZ_path = MKNIL_C;
-static VAL lbl_ZPlusdiagnostics = MKNIL_C;
-static VAL lbl_ZPluspropstack = MKNIL_C;
-static VAL lbl_errorZ_token = MKNIL_C;
-static VAL lbl_severity = MKNIL_C;
-static VAL lbl_message = MKNIL_C;
-static VAL lbl_location = MKNIL_C;
-static VAL lbl_old = MKNIL_C;
-static VAL lbl_new = MKNIL_C;
-static VAL lbl_module = MKNIL_C;
-static VAL lbl_row = MKNIL_C;
-static VAL lbl_col = MKNIL_C;
-static VAL lbl_label = MKNIL_C;
-static VAL lbl_token = MKNIL_C;
-static VAL lbl_a = MKNIL_C;
-static VAL lbl_b = MKNIL_C;
-static VAL lbl_c = MKNIL_C;
-static VAL lbl_rr = MKNIL_C;
-static VAL lbl_sr = MKNIL_C;
-static VAL lbl_xs = MKNIL_C;
-static VAL lbl_ys = MKNIL_C;
-static VAL lbl_ta = MKNIL_C;
-static VAL lbl_tb = MKNIL_C;
-static VAL lbl_tc = MKNIL_C;
-static VAL lbl_trr = MKNIL_C;
-static VAL lbl_tsr = MKNIL_C;
-static VAL lbl_txs = MKNIL_C;
-static VAL lbl_tys = MKNIL_C;
-static VAL lbl_qname = MKNIL_C;
-static VAL lbl_type = MKNIL_C;
-static VAL lbl_data = MKNIL_C;
-static VAL lbl_field = MKNIL_C;
-static VAL lbl_labels = MKNIL_C;
-static VAL lbl_withses = MKNIL_C;
-static VAL lbl_conses = MKNIL_C;
-static VAL lbl_parts = MKNIL_C;
-static VAL lbl_baseZAsk = MKNIL_C;
-static VAL lbl_dom = MKNIL_C;
-static VAL lbl_cod = MKNIL_C;
-static VAL lbl_ctype = MKNIL_C;
-static VAL lbl_tags = MKNIL_C;
-static VAL lbl_params = MKNIL_C;
-static VAL lbl_tag = MKNIL_C;
-static VAL lbl_inputs = MKNIL_C;
-static VAL lbl_value = MKNIL_C;
-static VAL lbl_underlying = MKNIL_C;
-static VAL lbl_tagname = MKNIL_C;
-static VAL lbl_dataname = MKNIL_C;
-static VAL lbl_input = MKNIL_C;
-static VAL lbl_typeZDivresource = MKNIL_C;
-static VAL lbl_body = MKNIL_C;
-static VAL lbl_sigZAsk = MKNIL_C;
-static VAL lbl_pattern = MKNIL_C;
-static VAL lbl_ctx = MKNIL_C;
-static VAL lbl_subst = MKNIL_C;
-static VAL lbl_op = MKNIL_C;
-static VAL lbl_saved = MKNIL_C;
-static VAL lbl_home = MKNIL_C;
-static VAL lbl_cases = MKNIL_C;
-static VAL lbl_tokenZ_start = MKNIL_C;
-static VAL lbl_tokenZ_end = MKNIL_C;
-static VAL lbl_outerZ_ctx = MKNIL_C;
-static VAL lbl_innerZ_ctx = MKNIL_C;
-static VAL lbl_mid = MKNIL_C;
-static VAL lbl_atoms = MKNIL_C;
-static VAL lbl_args = MKNIL_C;
-static VAL lbl_lexerZ_module = MKNIL_C;
-static VAL lbl_ZPlusinput = MKNIL_C;
-static VAL lbl_lexerZ_row = MKNIL_C;
-static VAL lbl_lexerZ_col = MKNIL_C;
-static VAL lbl_lexerZ_stack = MKNIL_C;
-static VAL lbl_lexerZ_lastZ_token = MKNIL_C;
-static VAL lbl_allowZ_typeZ_holes = MKNIL_C;
-static VAL lbl_allowZ_implicitZ_typeZ_vars = MKNIL_C;
-static VAL lbl_ignoreZ_lastZ_name = MKNIL_C;
-static VAL lbl_nameZDivdname = MKNIL_C;
-static VAL lbl_candidates = MKNIL_C;
-static VAL lbl_rejected = MKNIL_C;
-static VAL lbl_sort = MKNIL_C;
-static VAL lbl_reportZ_ambiguousZ_asZ_warning = MKNIL_C;
-static VAL lbl_accum = MKNIL_C;
-static VAL lbl_arrow = MKNIL_C;
-static VAL lbl_word = MKNIL_C;
-static VAL lbl_ZPlusab = MKNIL_C;
-static VAL lbl_ZPluspat = MKNIL_C;
-static VAL lbl_tok = MKNIL_C;
-static VAL lbl_header = MKNIL_C;
-static VAL lbl_valueZAsk = MKNIL_C;
-static VAL lbl_syn = MKNIL_C;
-static VAL lbl_dat = MKNIL_C;
-static VAL lbl_untag = MKNIL_C;
-static VAL lbl_lbl = MKNIL_C;
-static VAL lbl_lblz_get = MKNIL_C;
-static VAL lbl_lblz_set = MKNIL_C;
-static VAL lbl_lblz_lens = MKNIL_C;
-static VAL lbl_sx = MKNIL_C;
-static VAL lbl_sy = MKNIL_C;
-static VAL lbl_lblty = MKNIL_C;
-static VAL lbl_datty = MKNIL_C;
-static VAL lbl_f = MKNIL_C;
-static VAL lbl_hasZ_paren = MKNIL_C;
-static VAL lbl_target = MKNIL_C;
-static VAL lbl_alias = MKNIL_C;
-static VAL lbl_code = MKNIL_C;
-static VAL lbl_symbol = MKNIL_C;
-static VAL lbl_sig = MKNIL_C;
-static VAL lbl_extblock = MKNIL_C;
-static VAL lbl_external = MKNIL_C;
-static VAL lbl_ZPlusmirth = MKNIL_C;
-static VAL lbl_contents = MKNIL_C;
-static VAL lbl_tbl = MKNIL_C;
-static VAL lbl_va = MKNIL_C;
-static VAL lbl_vx = MKNIL_C;
-static VAL lbl_valueZ_type = MKNIL_C;
-static VAL lbl_indexZ_type = MKNIL_C;
-static VAL lbl_fld = MKNIL_C;
-static VAL lbl_checklist = MKNIL_C;
-static VAL lbl_w = MKNIL_C;
-static VAL lbl_key = MKNIL_C;
-static VAL lbl_wordZTick = MKNIL_C;
-static VAL lbl_spword = MKNIL_C;
-static VAL lbl_spkey = MKNIL_C;
-static VAL lbl_spmap = MKNIL_C;
-static VAL lbl_depth = MKNIL_C;
-static VAL lbl_freshZ_counter = MKNIL_C;
-static VAL lbl_putZ_enabled = MKNIL_C;
-static VAL lbl_ZPlusneeds = MKNIL_C;
-static VAL lbl_ZPlusoutput = MKNIL_C;
-static VAL lbl_pfx = MKNIL_C;
-static VAL lbl_sfx = MKNIL_C;
-static VAL lbl_tup = MKNIL_C;
-static VAL lbl_i = MKNIL_C;
-static VAL lbl_fieldty = MKNIL_C;
-static VAL lbl_ZPlustuplevar = MKNIL_C;
-static VAL lbl_fieldrepr = MKNIL_C;
-static VAL lbl_fieldval = MKNIL_C;
-static VAL lbl_tupleval = MKNIL_C;
-static VAL lbl_ext = MKNIL_C;
-static VAL lbl_cty = MKNIL_C;
-static VAL lbl_outty = MKNIL_C;
-static VAL lbl_argZ_index = MKNIL_C;
-static VAL lbl_expr = MKNIL_C;
-static VAL lbl_mode = MKNIL_C;
-static VAL lbl_repr = MKNIL_C;
-static VAL lbl_source = MKNIL_C;
-static VAL lbl_valueZ_name = MKNIL_C;
-static VAL lbl_valueZ_repr = MKNIL_C;
-static VAL lbl_mustZ_flush = MKNIL_C;
-static VAL lbl_cname = MKNIL_C;
-static VAL lbl_inZ_params = MKNIL_C;
-static VAL lbl_outZ_paramsZ_2 = MKNIL_C;
-static VAL lbl_returnZ_param = MKNIL_C;
-static VAL lbl_outZ_paramsZ_1 = MKNIL_C;
-static VAL lbl_doesntZ_return = MKNIL_C;
-static VAL lbl_api = MKNIL_C;
-static VAL lbl_poppedZ_inputs = MKNIL_C;
-static VAL lbl_reservedZ_outputsZ_1 = MKNIL_C;
-static VAL lbl_reservedZ_outputsZ_2 = MKNIL_C;
-static VAL lbl_sep = MKNIL_C;
-static VAL lbl_reservedZ_return = MKNIL_C;
-static VAL lbl_reachable = MKNIL_C;
-static VAL lbl_env = MKNIL_C;
-static VAL lbl_codZ_parts = MKNIL_C;
-static VAL lbl_codZ_base = MKNIL_C;
-static VAL lbl_domZ_parts = MKNIL_C;
-static VAL lbl_domZ_base = MKNIL_C;
-static VAL lbl_ZPlusscrutinee = MKNIL_C;
-static VAL lbl_ZPlusstr = MKNIL_C;
-static VAL lbl_avoidZ_hexdigit = MKNIL_C;
-static VAL lbl_resourceZ_repr = MKNIL_C;
-static VAL lbl_resourceZ_name = MKNIL_C;
-static VAL lbl_ZPlusc99 = MKNIL_C;
-static VAL lbl_ZPlusstack = MKNIL_C;
-static VAL lbl_ZPlusx = MKNIL_C;
-static VAL lbl_branchZ_splitZ_target = MKNIL_C;
-static VAL lbl_reachableZ_in = MKNIL_C;
-static VAL lbl_reachableZ_out = MKNIL_C;
-static VAL lbl_varZ_var = MKNIL_C;
-static VAL lbl_ZPlusb = MKNIL_C;
-static VAL lbl_ZPlusa = MKNIL_C;
-static VAL lbl_ZPlusdipped = MKNIL_C;
-static VAL lbl_ZPluscond = MKNIL_C;
-static VAL lbl_ZPlusknot = MKNIL_C;
-static VAL lbl_ZPluscons = MKNIL_C;
-static VAL lbl_ZPlustail = MKNIL_C;
-static VAL lbl_ZPlushead = MKNIL_C;
-static VAL lbl_ZPlusdst = MKNIL_C;
-static VAL lbl_ZPluslen = MKNIL_C;
-static VAL lbl_ZPlussrc = MKNIL_C;
-static VAL lbl_ZPlusval = MKNIL_C;
-static VAL lbl_outZ_type = MKNIL_C;
-static VAL lbl_argsZ_swapped = MKNIL_C;
-static VAL lbl_arg2Z_type = MKNIL_C;
-static VAL lbl_arg1Z_type = MKNIL_C;
-static VAL lbl_arg1 = MKNIL_C;
-static VAL lbl_arg2 = MKNIL_C;
-static VAL lbl_argZ_type = MKNIL_C;
-static VAL lbl_ZPlusfnptr = MKNIL_C;
-static VAL lbl_ZPlustup = MKNIL_C;
-static VAL lbl_var = MKNIL_C;
-static VAL lbl_ZPlusclosure = MKNIL_C;
-static VAL lbl_ZPlusindex = MKNIL_C;
-static VAL lbl_stack = MKNIL_C;
-static VAL lbl_ZPlusset = MKNIL_C;
-static VAL lbl_numZ_fields = MKNIL_C;
+static VAL lbl_emitZ_debugZ_info = {0};
+static VAL lbl_inputZ_file = {0};
+static VAL lbl_outputZ_file = {0};
+static VAL lbl_entryZ_point = {0};
+static VAL lbl_packages = {0};
+static VAL lbl_packageZ_searchZ_paths = {0};
+static VAL lbl_outputZ_path = {0};
+static VAL lbl_name = {0};
+static VAL lbl_flagZ_type = {0};
+static VAL lbl_argZ_doc = {0};
+static VAL lbl_doc = {0};
+static VAL lbl_group = {0};
+static VAL lbl_options = {0};
+static VAL lbl_parser = {0};
+static VAL lbl_argsZ_doc = {0};
+static VAL lbl_x1 = {0};
+static VAL lbl_x2 = {0};
+static VAL lbl_x3 = {0};
+static VAL lbl_x4 = {0};
+static VAL lbl_tail = {0};
+static VAL lbl_head = {0};
+static VAL lbl_x = {0};
+static VAL lbl_rest = {0};
+static VAL lbl_ok = {0};
+static VAL lbl_escapeZ_hex = {0};
+static VAL lbl_sizze = {0};
+static VAL lbl_base = {0};
+static VAL lbl_oldZ_sizze = {0};
+static VAL lbl_origZ_sizze = {0};
+static VAL lbl_origZ_offset = {0};
+static VAL lbl_fileZ_descriptor = {0};
+static VAL lbl_owned = {0};
+static VAL lbl_sliceZ_sizze = {0};
+static VAL lbl_sliceZ_base = {0};
+static VAL lbl_success = {0};
+static VAL lbl_wroteZ_bytes = {0};
+static VAL lbl_length = {0};
+static VAL lbl_offset = {0};
+static VAL lbl_ZPlusbuffer = {0};
+static VAL lbl_ZPlusfile = {0};
+static VAL lbl_ZPlusworld = {0};
+static VAL lbl_numZ_tests = {0};
+static VAL lbl_numZ_failed = {0};
+static VAL lbl_testZ_name = {0};
+static VAL lbl_testZ_failed = {0};
+static VAL lbl_ZPlustests = {0};
+static VAL lbl_colZ_offset = {0};
+static VAL lbl_argumentZ_parser = {0};
+static VAL lbl_state = {0};
+static VAL lbl_docZ_length = {0};
+static VAL lbl_oo = {0};
+static VAL lbl_argv = {0};
+static VAL lbl_programZ_name = {0};
+static VAL lbl_argvZ_info = {0};
+static VAL lbl_parsingZAsk = {0};
+static VAL lbl_option = {0};
+static VAL lbl_optionZ_option = {0};
+static VAL lbl_arg = {0};
+static VAL lbl_arguments = {0};
+static VAL lbl_positionalZ_index = {0};
+static VAL lbl_longestZ_argZ_length = {0};
+static VAL lbl_error = {0};
+static VAL lbl_namespace = {0};
+static VAL lbl_arity = {0};
+static VAL lbl_std = {0};
+static VAL lbl_prim = {0};
+static VAL lbl_bool = {0};
+static VAL lbl_true = {0};
+static VAL lbl_false = {0};
+static VAL lbl_u64 = {0};
+static VAL lbl_mkZ_u64 = {0};
+static VAL lbl_u32 = {0};
+static VAL lbl_mkZ_u32 = {0};
+static VAL lbl_u16 = {0};
+static VAL lbl_mkZ_u16 = {0};
+static VAL lbl_u8 = {0};
+static VAL lbl_mkZ_u8 = {0};
+static VAL lbl_i64 = {0};
+static VAL lbl_mkZ_i64 = {0};
+static VAL lbl_i32 = {0};
+static VAL lbl_mkZ_i32 = {0};
+static VAL lbl_i16 = {0};
+static VAL lbl_mkZ_i16 = {0};
+static VAL lbl_i8 = {0};
+static VAL lbl_mkZ_i8 = {0};
+static VAL lbl_cchar = {0};
+static VAL lbl_mkZ_cchar = {0};
+static VAL lbl_cichar = {0};
+static VAL lbl_mkZ_cichar = {0};
+static VAL lbl_cshort = {0};
+static VAL lbl_mkZ_cshort = {0};
+static VAL lbl_cint = {0};
+static VAL lbl_mkZ_cint = {0};
+static VAL lbl_clong = {0};
+static VAL lbl_mkZ_clong = {0};
+static VAL lbl_clonglong = {0};
+static VAL lbl_mkZ_clonglong = {0};
+static VAL lbl_cisizze = {0};
+static VAL lbl_mkZ_cisizze = {0};
+static VAL lbl_cintptr = {0};
+static VAL lbl_mkZ_cintptr = {0};
+static VAL lbl_cuchar = {0};
+static VAL lbl_mkZ_cuchar = {0};
+static VAL lbl_cushort = {0};
+static VAL lbl_mkZ_cushort = {0};
+static VAL lbl_cuint = {0};
+static VAL lbl_mkZ_cuint = {0};
+static VAL lbl_culong = {0};
+static VAL lbl_mkZ_culong = {0};
+static VAL lbl_culonglong = {0};
+static VAL lbl_mkZ_culonglong = {0};
+static VAL lbl_cusizze = {0};
+static VAL lbl_mkZ_cusizze = {0};
+static VAL lbl_cuintptr = {0};
+static VAL lbl_mkZ_cuintptr = {0};
+static VAL lbl_cptr = {0};
+static VAL lbl_mkZ_cptr = {0};
+static VAL lbl_cconst = {0};
+static VAL lbl_mkZ_cconst = {0};
+static VAL lbl_crestrict = {0};
+static VAL lbl_mkZ_crestrict = {0};
+static VAL lbl_cvolatile = {0};
+static VAL lbl_mkZ_cvolatile = {0};
+static VAL lbl_cvoid = {0};
+static VAL lbl_mkZ_cvoid = {0};
+static VAL lbl_numZ_errors = {0};
+static VAL lbl_numZ_warnings = {0};
+static VAL lbl_preferZ_inlineZ_defs = {0};
+static VAL lbl_builtin = {0};
+static VAL lbl_mirthZ_baseZ_path = {0};
+static VAL lbl_ZPlusdiagnostics = {0};
+static VAL lbl_ZPluspropstack = {0};
+static VAL lbl_errorZ_token = {0};
+static VAL lbl_severity = {0};
+static VAL lbl_message = {0};
+static VAL lbl_location = {0};
+static VAL lbl_old = {0};
+static VAL lbl_new = {0};
+static VAL lbl_module = {0};
+static VAL lbl_row = {0};
+static VAL lbl_col = {0};
+static VAL lbl_label = {0};
+static VAL lbl_token = {0};
+static VAL lbl_a = {0};
+static VAL lbl_b = {0};
+static VAL lbl_c = {0};
+static VAL lbl_rr = {0};
+static VAL lbl_sr = {0};
+static VAL lbl_xs = {0};
+static VAL lbl_ys = {0};
+static VAL lbl_ta = {0};
+static VAL lbl_tb = {0};
+static VAL lbl_tc = {0};
+static VAL lbl_trr = {0};
+static VAL lbl_tsr = {0};
+static VAL lbl_txs = {0};
+static VAL lbl_tys = {0};
+static VAL lbl_qname = {0};
+static VAL lbl_type = {0};
+static VAL lbl_data = {0};
+static VAL lbl_field = {0};
+static VAL lbl_labels = {0};
+static VAL lbl_withses = {0};
+static VAL lbl_conses = {0};
+static VAL lbl_parts = {0};
+static VAL lbl_baseZAsk = {0};
+static VAL lbl_dom = {0};
+static VAL lbl_cod = {0};
+static VAL lbl_ctype = {0};
+static VAL lbl_tags = {0};
+static VAL lbl_params = {0};
+static VAL lbl_tag = {0};
+static VAL lbl_inputs = {0};
+static VAL lbl_value = {0};
+static VAL lbl_underlying = {0};
+static VAL lbl_tagname = {0};
+static VAL lbl_dataname = {0};
+static VAL lbl_input = {0};
+static VAL lbl_typeZDivresource = {0};
+static VAL lbl_body = {0};
+static VAL lbl_sigZAsk = {0};
+static VAL lbl_pattern = {0};
+static VAL lbl_ctx = {0};
+static VAL lbl_subst = {0};
+static VAL lbl_op = {0};
+static VAL lbl_saved = {0};
+static VAL lbl_home = {0};
+static VAL lbl_cases = {0};
+static VAL lbl_tokenZ_start = {0};
+static VAL lbl_tokenZ_end = {0};
+static VAL lbl_outerZ_ctx = {0};
+static VAL lbl_innerZ_ctx = {0};
+static VAL lbl_mid = {0};
+static VAL lbl_atoms = {0};
+static VAL lbl_args = {0};
+static VAL lbl_lexerZ_module = {0};
+static VAL lbl_ZPlusinput = {0};
+static VAL lbl_lexerZ_row = {0};
+static VAL lbl_lexerZ_col = {0};
+static VAL lbl_lexerZ_stack = {0};
+static VAL lbl_lexerZ_lastZ_token = {0};
+static VAL lbl_allowZ_typeZ_holes = {0};
+static VAL lbl_allowZ_implicitZ_typeZ_vars = {0};
+static VAL lbl_ignoreZ_lastZ_name = {0};
+static VAL lbl_nameZDivdname = {0};
+static VAL lbl_candidates = {0};
+static VAL lbl_rejected = {0};
+static VAL lbl_sort = {0};
+static VAL lbl_reportZ_ambiguousZ_asZ_warning = {0};
+static VAL lbl_accum = {0};
+static VAL lbl_arrow = {0};
+static VAL lbl_word = {0};
+static VAL lbl_ZPlusab = {0};
+static VAL lbl_ZPluspat = {0};
+static VAL lbl_tok = {0};
+static VAL lbl_header = {0};
+static VAL lbl_valueZAsk = {0};
+static VAL lbl_syn = {0};
+static VAL lbl_dat = {0};
+static VAL lbl_untag = {0};
+static VAL lbl_lbl = {0};
+static VAL lbl_lblz_get = {0};
+static VAL lbl_lblz_set = {0};
+static VAL lbl_lblz_lens = {0};
+static VAL lbl_sx = {0};
+static VAL lbl_sy = {0};
+static VAL lbl_lblty = {0};
+static VAL lbl_datty = {0};
+static VAL lbl_f = {0};
+static VAL lbl_hasZ_paren = {0};
+static VAL lbl_target = {0};
+static VAL lbl_alias = {0};
+static VAL lbl_code = {0};
+static VAL lbl_symbol = {0};
+static VAL lbl_sig = {0};
+static VAL lbl_extblock = {0};
+static VAL lbl_external = {0};
+static VAL lbl_ZPlusmirth = {0};
+static VAL lbl_contents = {0};
+static VAL lbl_tbl = {0};
+static VAL lbl_va = {0};
+static VAL lbl_vx = {0};
+static VAL lbl_valueZ_type = {0};
+static VAL lbl_indexZ_type = {0};
+static VAL lbl_fld = {0};
+static VAL lbl_checklist = {0};
+static VAL lbl_w = {0};
+static VAL lbl_key = {0};
+static VAL lbl_wordZTick = {0};
+static VAL lbl_spword = {0};
+static VAL lbl_spkey = {0};
+static VAL lbl_spmap = {0};
+static VAL lbl_depth = {0};
+static VAL lbl_freshZ_counter = {0};
+static VAL lbl_putZ_enabled = {0};
+static VAL lbl_ZPlusneeds = {0};
+static VAL lbl_ZPlusoutput = {0};
+static VAL lbl_pfx = {0};
+static VAL lbl_sfx = {0};
+static VAL lbl_tup = {0};
+static VAL lbl_i = {0};
+static VAL lbl_fieldty = {0};
+static VAL lbl_ZPlustuplevar = {0};
+static VAL lbl_fieldrepr = {0};
+static VAL lbl_fieldval = {0};
+static VAL lbl_tupleval = {0};
+static VAL lbl_ext = {0};
+static VAL lbl_cty = {0};
+static VAL lbl_outty = {0};
+static VAL lbl_argZ_index = {0};
+static VAL lbl_expr = {0};
+static VAL lbl_mode = {0};
+static VAL lbl_repr = {0};
+static VAL lbl_source = {0};
+static VAL lbl_valueZ_name = {0};
+static VAL lbl_valueZ_repr = {0};
+static VAL lbl_mustZ_flush = {0};
+static VAL lbl_cname = {0};
+static VAL lbl_inZ_params = {0};
+static VAL lbl_outZ_paramsZ_2 = {0};
+static VAL lbl_returnZ_param = {0};
+static VAL lbl_outZ_paramsZ_1 = {0};
+static VAL lbl_doesntZ_return = {0};
+static VAL lbl_api = {0};
+static VAL lbl_poppedZ_inputs = {0};
+static VAL lbl_reservedZ_outputsZ_1 = {0};
+static VAL lbl_reservedZ_outputsZ_2 = {0};
+static VAL lbl_sep = {0};
+static VAL lbl_reservedZ_return = {0};
+static VAL lbl_reachable = {0};
+static VAL lbl_env = {0};
+static VAL lbl_codZ_parts = {0};
+static VAL lbl_codZ_base = {0};
+static VAL lbl_domZ_parts = {0};
+static VAL lbl_domZ_base = {0};
+static VAL lbl_ZPlusscrutinee = {0};
+static VAL lbl_ZPlusstr = {0};
+static VAL lbl_avoidZ_hexdigit = {0};
+static VAL lbl_resourceZ_repr = {0};
+static VAL lbl_resourceZ_name = {0};
+static VAL lbl_ZPlusc99 = {0};
+static VAL lbl_ZPlusstack = {0};
+static VAL lbl_ZPlusx = {0};
+static VAL lbl_branchZ_splitZ_target = {0};
+static VAL lbl_reachableZ_in = {0};
+static VAL lbl_reachableZ_out = {0};
+static VAL lbl_varZ_var = {0};
+static VAL lbl_ZPlusb = {0};
+static VAL lbl_ZPlusa = {0};
+static VAL lbl_ZPlusdipped = {0};
+static VAL lbl_ZPluscond = {0};
+static VAL lbl_ZPlusknot = {0};
+static VAL lbl_ZPluscons = {0};
+static VAL lbl_ZPlustail = {0};
+static VAL lbl_ZPlushead = {0};
+static VAL lbl_ZPlusdst = {0};
+static VAL lbl_ZPluslen = {0};
+static VAL lbl_ZPlussrc = {0};
+static VAL lbl_ZPlusval = {0};
+static VAL lbl_outZ_type = {0};
+static VAL lbl_argsZ_swapped = {0};
+static VAL lbl_arg2Z_type = {0};
+static VAL lbl_arg1Z_type = {0};
+static VAL lbl_arg1 = {0};
+static VAL lbl_arg2 = {0};
+static VAL lbl_argZ_type = {0};
+static VAL lbl_ZPlusfnptr = {0};
+static VAL lbl_ZPlustup = {0};
+static VAL lbl_var = {0};
+static VAL lbl_ZPlusclosure = {0};
+static VAL lbl_ZPlusindex = {0};
+static VAL lbl_stack = {0};
+static VAL lbl_ZPlusset = {0};
+static VAL lbl_numZ_fields = {0};
 static VAL mtw_std_either_Either_2_Left (VAL in_a_1) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
@@ -48389,25 +48486,12 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"extern void exit(int);\n"
 		"extern int sprintf (char * s, const char * format, ...);\n"
 		"\n"
-		"typedef uint16_t TAG;\n"
-		"#define REFS_FLAG \t 0x8000\n"
-		"#define TUP_FLAG \t 0x4000\n"
-		"#define TUP_LEN_MASK 0x3FFF\n"
-		"#define TUP_LEN_MAX  0x3FFF\n"
-		"\n"
-		"#define TAG_INT 1\n"
-		"#define TAG_PTR 1\n"
-		"#define TAG_STR (2 | REFS_FLAG)\n"
-		"#define TAG_FNPTR 3\n"
-		"#define TAG_F32 4\n"
-		"#define TAG_F64 5\n"
-		"#define TAG_TUP_NIL TUP_FLAG\n"
-		"#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)\n"
-		"#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (TAG)(n))\n"
+		"typedef uint64_t TAG;\n"
+		"#define REFS_FLAG 0x0001\n"
 		"\n"
 		"typedef uint32_t REFS;\n"
 		"typedef uint64_t USIZE;\n"
-		"typedef void (*FNPTR)(void);\n"
+		"typedef void (*FNPTR)();\n"
 		"\n"
 		"typedef union DATA {\n"
 		"\tUSIZE usize;\n"
@@ -48424,7 +48508,6 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tvoid* ptr;\n"
 		"\tFNPTR fnptr;\n"
 		"\tREFS* refs;\n"
-		"\tstruct TUP* tup;\n"
 		"\tstruct STR* str;\n"
 		"} DATA;\n"
 		"\n"
@@ -48433,10 +48516,92 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tTAG tag;\n"
 		"} VAL;\n"
 		"\n"
+		"typedef struct TYPE {\n"
+		"\tconst char* name;\n"
+		"\tuint64_t flags;\n"
+		"\tvoid (*free)(VAL v);\n"
+		"\tvoid (*trace_)(VAL v, int fd);\n"
+		"\tvoid (*run)(VAL v);\n"
+		"} TYPE;\n"
+		"\n"
+		"static void default_free   (VAL v);\n"
+		"static void default_trace_ (VAL v, int fd);\n"
+		"static void default_run    (VAL v);\n"
+		"\n"
+		"static void int_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_INT = {\n"
+		"\t.name = \"Int\",\n"
+		"\t.flags = 0,\n"
+		"\t.free = default_free,\n"
+		"\t.trace_ = int_trace_,\n"
+		"\t.run = default_run,\n"
+		"};\n"
+		"\n"
+		"static void fnptr_run (VAL v);\n"
+		"static TYPE TYPE_FNPTR = {\n"
+		"\t.name = \"FnPtr\",\n"
+		"\t.flags = 0,\n"
+		"\t.free = default_free,\n"
+		"\t.trace_ = default_trace_,\n"
+		"\t.run = fnptr_run,\n"
+		"};\n"
+		"\n"
+		"static TYPE TYPE_F64 = {\n"
+		"\t.name = \"F64\",\n"
+		"\t.flags = 0,\n"
+		"\t.free = default_free,\n"
+		"\t.trace_ = default_trace_,\n"
+		"\t.run = default_run,\n"
+		"};\n"
+		"\n"
+		"static TYPE TYPE_F32 = {\n"
+		"\t.name = \"F32\",\n"
+		"\t.flags = 0,\n"
+		"\t.free = default_free,\n"
+		"\t.trace_ = default_trace_,\n"
+		"\t.run = default_run,\n"
+		"};\n"
+		"\n"
+		"static void str_free (VAL v);\n"
+		"static void str_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_STR = {\n"
+		"\t.name = \"Str\",\n"
+		"\t.flags = REFS_FLAG,\n"
+		"\t.free = str_free,\n"
+		"\t.trace_ = str_trace_,\n"
+		"\t.run = default_run,\n"
+		"};\n"
+		"\n"
+		"static void tup_free (VAL v);\n"
+		"static void tup_trace_ (VAL v, int fd);\n"
+		"static void tup_run (VAL v);\n"
+		"static TYPE TYPE_TUP = {\n"
+		"\t.name = \"Tup\",\n"
+		"\t.flags = REFS_FLAG,\n"
+		"\t.free = tup_free,\n"
+		"\t.trace_ = tup_trace_,\n"
+		"\t.run = tup_run,\n"
+		"};\n"
+		"\n"
+		"#define TAG_INT ((TAG)&TYPE_INT)\n"
+		"#define TAG_PTR TAG_INT\n"
+		"#define TAG_FNPTR ((TAG)&TYPE_FNPTR)\n"
+		"#define TAG_F64 ((TAG)&TYPE_F64)\n"
+		"#define TAG_F32 ((TAG)&TYPE_F32)\n"
+		"#define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)\n"
+		"#define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)\n"
+		"\n"
+		"#define VL48(v) (((v).data.u64) & 0xFFFFFFFFFFFF)\n"
+		"#define VP46(v) ((void*)(uintptr_t)(((v).data.u64) & 0xFFFFFFFFFFFC))\n"
+		"#define VL32(v) (((v).data.u64) & 0x0000FFFFFFFF)\n"
+		"#define VH16(v) (((v).data.u64) >> 48)\n"
+		"#define VH32(v) (((v).data.u64) >> 32)\n"
+		"\n"
 		"#define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))\n"
 		"\n"
-		"#define VREFS(v)  (*(v).data.refs)\n"
-		"#define VVAL(v)   (v)\n"
+		"#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFC))\n"
+		"#define VREFS(v)  (*(REFS*)VP46(v))\n"
+		"\n"
 		"#define VINT(v)   ((v).data.i64)\n"
 		"#define VI64(v)   ((v).data.i64)\n"
 		"#define VI32(v)   ((v).data.i32)\n"
@@ -48451,11 +48616,8 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define VF64(v)   ((v).data.f64)\n"
 		"#define VPTR(v)   ((v).data.ptr)\n"
 		"#define VFNPTR(v) ((v).data.fnptr)\n"
-		"#define VSTR(v)   ((v).data.str)\n"
-		"#define VTUP(v)   ((v).data.tup)\n"
-		"#define VTUPLEN(v) (TAG_TUP_LEN((v).tag))\n"
 		"\n"
-		"#define HAS_REFS(v) ((v).tag & REFS_FLAG)\n"
+		"#define HAS_REFS(v) (((v).tag & REFS_FLAG) && VP46(v))\n"
 		"#define IS_VAL(v)   (1)\n"
 		"#define IS_INT(v)   ((v).tag == TAG_INT)\n"
 		"#define IS_I64(v)   ((v).tag == TAG_INT)\n"
@@ -48466,7 +48628,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define IS_PTR(v)   ((v).tag == TAG_PTR)\n"
 		"#define IS_FNPTR(v) ((v).tag == TAG_FNPTR)\n"
 		"#define IS_STR(v)   ((v).tag == TAG_STR)\n"
-		"#define IS_TUP(v)   ((v).tag & TUP_FLAG)\n"
+		"#define IS_TUP(v)   ((v).tag == TAG_TUP)\n"
 		"#define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))\n"
 		"\n"
 		"#define MKVAL(x)   (x)\n"
@@ -48484,10 +48646,16 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})\n"
 		"#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})\n"
 		"#define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})\n"
+		"\n"
+		"#define VSTR(v)    ((v).data.str)\n"
 		"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
-		"#define MKTUP(x,n) ((VAL){.tag=TAG_TUP(n), .data={.tup=(x)}})\n"
-		"#define MKNIL_C\t         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}\n"
-		"#define MKNIL      ((VAL)MKNIL_C)\n"
+		"\n"
+		"#define VTUP(v)    ((TUP*)(VP46(v)))\n"
+		"#define VTUPLEN(v) (VH16(v))\n"
+		"#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.u64=((uint64_t)(n) << 48) | (uint64_t)(uintptr_t)(x)}})\n"
+		"#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.u64=0}})\n"
+		"\n"
+		"#define TUP_LEN_MAX 0x3FFF\n"
 		"\n"
 		"#define STRLIT(v,x,n) \\\n"
 		"\tdo { \\\n"
@@ -48620,18 +48788,28 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static void free_value(VAL v) {\n"
 		"\tASSERT(HAS_REFS(v));\n"
 		"\tASSERT(VREFS(v) == 0);\n"
-		"\tASSERT1(IS_TUP(v)||IS_STR(v), v);\n"
-		"\tif (IS_TUP(v)) {\n"
-		"\t\tTUP* tup = VTUP(v);\n"
-		"\t\tASSERT(tup);\n"
+		"\tif (VTYPE(v)->free) VTYPE(v)->free(v);\n"
+		"}\n"
+		"\n"
+		"static void default_free (VAL v) {\n"
+		"\tTRACE(\"panic! tried to free \");\n"
+		"\tTRACE(VTYPE(v)->name);\n"
+		"\tTRACE(\" value\\n\");\n"
+		"\texit(1);\n"
+		"}\n"
+		"\n"
+		"static void str_free (VAL v) {\n"
+		"\tSTR* str = VSTR(v);\n"
+		"\tfree(str);\n"
+		"}\n"
+		"\n"
+		"static void tup_free (VAL v) {\n"
+		"\tTUP* tup = VTUP(v);\n"
+		"\tif (tup) {\n"
 		"\t\tfor (TUPLEN i = 0; i < tup->size; i++) {\n"
 		"\t\t\tdecref(tup->cells[i]);\n"
 		"\t\t}\n"
 		"\t\tfree(tup);\n"
-		"\t} else if (IS_STR(v)) {\n"
-		"\t\tSTR* str = VSTR(v);\n"
-		"\t\tASSERT(str);\n"
-		"\t\tfree(str);\n"
 		"\t}\n"
 		"}\n"
 		"\n"
@@ -48840,7 +49018,9 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tVAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);\n"
 		"\t*stk=lcar; return lcdr;\n"
 		"}\n"
-		"static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }\n"
+		"static void lpush(VAL* stk, VAL cdr) {\n"
+		"\t*stk = mkcons(stk->tag ? *stk : MKNIL, cdr);\n"
+		"}\n"
 		"\n"
 		"static STR* str_alloc (USIZE cap) {\n"
 		"\tASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);\n"
@@ -48912,16 +49092,29 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\treturn 0;\n"
 		"}\n"
 		"\n"
+		"static void default_run(VAL v) {\n"
+		"\tTRACE(\"panic! tried to run \");\n"
+		"\tTRACE(VTYPE(v)->name);\n"
+		"\tTRACE(\"value\\n\");\n"
+		"\texit(1);\n"
+		"}\n"
+		"\n"
+		"static void tup_run(VAL v) {\n"
+		"\tASSERT(VTUPLEN(v)>0);\n"
+		"\tVAL h = VTUP(v)->cells[0];\n"
+		"\tASSERT(IS_FNPTR(h));\n"
+		"\tpush_value(v);\n"
+		"\tVFNPTR(h)();\n"
+		"}\n"
+		"\n"
+		"static void fnptr_run(VAL v) {\n"
+		"\tVFNPTR(v)();\n"
+		"}\n"
+		"\n"
 		"static void run_value(VAL v) {\n"
-		"\tif (IS_TUP(v)) {\n"
-		"\t\tVAL h = VTUP(v)->cells[0];\n"
-		"\t\tASSERT(IS_FNPTR(h));\n"
-		"\t\tpush_value(v);\n"
-		"\t\tVFNPTR(h)();\n"
-		"\t} else {\n"
-		"\t\tASSERT(IS_FNPTR(v));\n"
-		"\t\tVFNPTR(v)();\n"
-		"\t}\n"
+		"\tASSERT(VTYPE(v));\n"
+		"\tASSERT(VTYPE(v)->run);\n"
+		"\tVTYPE(v)->run(v);\n"
 		"}\n"
 		"\n"
 		"static int64_t i64_add (int64_t a, int64_t b) {\n"
@@ -49017,9 +49210,9 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\t*out_size = n;\n"
 		"}\n"
 		"\n"
-		"void int_trace_(int64_t y, int fd) {\n"
+		"void int_trace_(VAL v, int fd) {\n"
 		"\tchar* p; size_t n;\n"
-		"\tint_repr(y, &p, &n);\n"
+		"\tint_repr(VINT(v), &p, &n);\n"
 		"\twrite(fd, p, n);\n"
 		"}\n"
 		"\n"
@@ -49042,7 +49235,8 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\t}\n"
 		"}\n"
 		"\n"
-		"void str_trace_(STR* str, int fd) {\n"
+		"void str_trace_(VAL v, int fd) {\n"
+		"\tSTR* str = VSTR(v);\n"
 		"\tASSERT(str->size <= SIZE_MAX);\n"
 		"\twrite(fd, \"\\\"\", 1);\n"
 		"\tUSIZE i0 = 0;\n"
@@ -49074,29 +49268,29 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\twrite(fd, \"\\\"\", 1);\n"
 		"}\n"
 		"\n"
-		"void value_trace_(VAL val, int fd) {\n"
-		"\tif (IS_INT(val)) {\n"
-		"\t\tint_trace_(VINT(val), fd);\n"
-		"\t} else if (IS_STR(val)) {\n"
-		"\t\tstr_trace_(VSTR(val), fd);\n"
-		"\t} else if (IS_FNPTR(val)) {\n"
-		"\t\twrite(fd, \"<fnptr>\", 7);\n"
-		"\t} else if (IS_TUP(val)) {\n"
-		"\t\tTUPLEN len = VTUPLEN(val);\n"
-		"\t\tTUP* tup = VTUP(val);\n"
-		"\t\tif (VTUPLEN(val) == 0) {\n"
-		"\t\t\twrite(fd, \"[]\", 2);\n"
-		"\t\t} else {\n"
-		"\t\t\twrite(fd, \"[ \", 2);\n"
-		"\t\t\tfor(TUPLEN i = 0; i < len; i++) {\n"
-		"\t\t\t\tif (i > 0) write(fd, \" \", 1);\n"
-		"\t\t\t\tvalue_trace_(tup->cells[i], fd);\n"
-		"\t\t\t}\n"
-		"\t\t\twrite(fd, \" ]\", 2);\n"
-		"\t\t}\n"
+		"static void value_trace_(VAL v, int fd) {\n"
+		"\tVTYPE(v)->trace_(v,fd);\n"
+		"}\n"
+		"\n"
+		"static void default_trace_(VAL v, int fd) {\n"
+		"\tconst char* name = VTYPE(v)->name;\n"
+		"\twrite(fd, \"<\", 1);\n"
+		"\twrite(fd, name, strlen(name));\n"
+		"\twrite(fd, \">\", 1);\n"
+		"}\n"
+		"\n"
+		"static void tup_trace_(VAL v, int fd) {\n"
+		"\tTUPLEN len = VTUPLEN(v);\n"
+		"\tTUP* tup = VTUP(v);\n"
+		"\tif (len == 0) {\n"
+		"\t\twrite(fd, \"[]\", 2);\n"
 		"\t} else {\n"
-		"\t\tTRACE(\"value cannot be traced\");\n"
-		"\t\texit(1);\n"
+		"\t\twrite(fd, \"[ \", 2);\n"
+		"\t\tfor(TUPLEN i = 0; i < len; i++) {\n"
+		"\t\t\tif (i > 0) write(fd, \" \", 1);\n"
+		"\t\t\tvalue_trace_(tup->cells[i], fd);\n"
+		"\t\t}\n"
+		"\t\twrite(fd, \" ]\", 2);\n"
 		"\t}\n"
 		"}\n"
 		"\n"
@@ -49230,7 +49424,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		22893
+		24723
 	);
 	return MKSTR(v2);
 }
@@ -55611,7 +55805,7 @@ static void mw_mirth_c99_c99Z_labelZ_defZBang (uint64_t in_Label_1, VAL in_ZPlus
 	VAL v8;
 	mw_mirth_c99_ZPlusC99_put(v7, v5, &v8);
 	STR* v9;
-	STRLIT(v9, " = MKNIL_C;", 11);
+	STRLIT(v9, " = {0};", 7);
 	VAL v10;
 	mw_mirth_c99_ZPlusC99_put(MKSTR(v9), v8, &v10);
 	VAL v11;
