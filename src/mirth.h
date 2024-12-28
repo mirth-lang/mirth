@@ -42,21 +42,8 @@ extern int open(const char*, int, ...);
 extern void exit(int);
 extern int sprintf (char * s, const char * format, ...);
 
-typedef uint16_t TAG;
-#define REFS_FLAG 	 0x8000
-#define TUP_FLAG 	 0x4000
-#define TUP_LEN_MASK 0x3FFF
-#define TUP_LEN_MAX  0x3FFF
-
-#define TAG_INT 1
-#define TAG_PTR 1
-#define TAG_STR (2 | REFS_FLAG)
-#define TAG_FNPTR 3
-#define TAG_F32 4
-#define TAG_F64 5
-#define TAG_TUP_NIL TUP_FLAG
-#define TAG_TUP_LEN(t) ((t) & TUP_LEN_MASK)
-#define TAG_TUP(n) (TUP_FLAG | REFS_FLAG | (TAG)(n))
+typedef uint64_t TAG;
+#define REFS_FLAG 0x0001
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
@@ -77,8 +64,8 @@ typedef union DATA {
 	void* ptr;
 	FNPTR fnptr;
 	REFS* refs;
-	struct TUP* tup;
 	struct STR* str;
+	struct TUP* tup;
 } DATA;
 
 typedef struct VAL {
@@ -86,10 +73,86 @@ typedef struct VAL {
 	TAG tag;
 } VAL;
 
+typedef struct TYPE {
+	const char* name;
+	uint64_t flags;
+	void (*free)(VAL v);
+	void (*trace_)(VAL v, int fd);
+	void (*run)(VAL v);
+} TYPE;
+
+static void default_free   (VAL v);
+static void default_trace_ (VAL v, int fd);
+static void default_run    (VAL v);
+
+static void int_trace_ (VAL v, int fd);
+static TYPE TYPE_INT = {
+	.name = "Int",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = int_trace_,
+	.run = default_run,
+};
+
+static void fnptr_run (VAL v);
+static TYPE TYPE_FNPTR = {
+	.name = "FnPtr",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = fnptr_run,
+};
+
+static TYPE TYPE_F64 = {
+	.name = "F64",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = default_run,
+};
+
+static TYPE TYPE_F32 = {
+	.name = "F32",
+	.flags = 0,
+	.free = default_free,
+	.trace_ = default_trace_,
+	.run = default_run,
+};
+
+static void str_free (VAL v);
+static void str_trace_ (VAL v, int fd);
+static TYPE TYPE_STR = {
+	.name = "Str",
+	.flags = REFS_FLAG,
+	.free = str_free,
+	.trace_ = str_trace_,
+	.run = default_run,
+};
+
+static void tup_free (VAL v);
+static void tup_trace_ (VAL v, int fd);
+static void tup_run (VAL v);
+static TYPE TYPE_TUP = {
+	.name = "Tup",
+	.flags = REFS_FLAG,
+	.free = tup_free,
+	.trace_ = tup_trace_,
+	.run = tup_run,
+};
+
+#define TAG_INT ((TAG)&TYPE_INT)
+#define TAG_PTR TAG_INT
+#define TAG_FNPTR ((TAG)&TYPE_FNPTR)
+#define TAG_F64 ((TAG)&TYPE_F64)
+#define TAG_F32 ((TAG)&TYPE_F32)
+#define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)
+#define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)
+
 #define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
 
+#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFFFFFC))
 #define VREFS(v)  (*(v).data.refs)
-#define VVAL(v)   (v)
+
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
 #define VI32(v)   ((v).data.i32)
@@ -104,11 +167,8 @@ typedef struct VAL {
 #define VF64(v)   ((v).data.f64)
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
-#define VSTR(v)   ((v).data.str)
-#define VTUP(v)   ((v).data.tup)
-#define VTUPLEN(v) (TAG_TUP_LEN((v).tag))
 
-#define HAS_REFS(v) ((v).tag & REFS_FLAG)
+#define HAS_REFS(v) (((v).tag & REFS_FLAG) && (v).data.refs)
 #define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
@@ -119,7 +179,7 @@ typedef struct VAL {
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
-#define IS_TUP(v)   ((v).tag & TUP_FLAG)
+#define IS_TUP(v)   ((v).tag == TAG_TUP)
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
 
 #define MKVAL(x)   (x)
@@ -137,10 +197,16 @@ typedef struct VAL {
 #define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})
 #define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
+
+#define VSTR(v)    ((v).data.str)
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
-#define MKTUP(x,n) ((VAL){.tag=TAG_TUP(n), .data={.tup=(x)}})
-#define MKNIL_C	         {.tag=TAG_TUP_NIL, .data={.tup=NULL}}
-#define MKNIL      ((VAL)MKNIL_C)
+
+#define VTUP(v)    ((v).data.tup)
+#define VTUPLEN(v) (tup_len_(VTUP(v)))
+#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.tup=(x)}})
+#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.tup=NULL}})
+
+#define TUP_LEN_MAX 0x3FFF
 
 #define STRLIT(v,x,n) \
 	do { \
@@ -271,169 +337,78 @@ static void trace_rstack(void);
 #define incref(v) do { if (HAS_REFS(v)) VREFS(v)++; } while(0)
 #define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)
 static void free_value(VAL v) {
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->free);
 	ASSERT(HAS_REFS(v));
 	ASSERT(VREFS(v) == 0);
-	ASSERT1(IS_TUP(v)||IS_STR(v), v);
-	if (IS_TUP(v)) {
-		TUP* tup = VTUP(v);
-		ASSERT(tup);
+	VTYPE(v)->free(v);
+}
+
+static void default_free (VAL v) {
+	TRACE("panic! tried to free ");
+	TRACE(VTYPE(v)->name);
+	TRACE(" value\n");
+	exit(1);
+}
+
+static void str_free (VAL v) {
+	STR* str = VSTR(v);
+	free(str);
+}
+
+static void tup_free (VAL v) {
+	TUP* tup = VTUP(v);
+	if (tup) {
 		for (TUPLEN i = 0; i < tup->size; i++) {
 			decref(tup->cells[i]);
 		}
 		free(tup);
-	} else if (IS_STR(v)) {
-		STR* str = VSTR(v);
-		ASSERT(str);
-		free(str);
 	}
 }
 
 static void tup_decref_outer(TUP* tup, size_t n) {
+	ASSERT(tup);
+	ASSERT(tup->size == n);
 	if (tup->refs == 1) {
-		for (size_t i = n; i < tup->size; i++) {
-			decref(tup->cells[i]);
-		}
 		free(tup);
 	} else {
 		for (size_t i = 0; i < n; i++) {
 			incref(tup->cells[i]);
 		}
-		if (!--tup->refs) free_value(MKTUP(tup,n));
+		if (!--tup->refs) tup_free(MKTUP(tup,n));
 	}
 }
 
-static void value_uncons(VAL val, VAL* tail, VAL* head) {
-	if (IS_TUP(val)) {
-		TUPLEN len = VTUPLEN(val);
-		TUP* tup = VTUP(val);
-		ASSERT1((len > 0) && tup, val);
-		VAL tailval = MKTUP(tup, len-1);
-		VAL headval = tup->cells[len-1];
-		if (len == 1) {
-			incref(headval);
-			decref(val);
-			tailval = MKNIL;
-		} else {
-			if (tup->refs == 1) {
-				for (TUPLEN i=len; i < tup->size; i++) { decref(tup->cells[i]); }
-				memset(tup->cells + (len-1), 0, sizeof(VAL)*(tup->size - (len-1)));
-				tup->size = len-1;
-			} else {
-				incref(headval);
-			}
-			if (len == 2) {
-				VAL ptval = tup->cells[0];
-				if (!IS_TUP(ptval)) {
-					incref(ptval);
-					decref(tailval);
-					tailval = ptval;
-				}
-			}
-		}
-		*tail = tailval;
-		*head = headval;
+static TUPLEN tup_len_ (TUP* tup) {
+	if (tup) {
+		return tup->size;
 	} else {
-		*tail = MKNIL;
-		*head = val;
+		return 0;
 	}
 }
 
-static uint64_t value_u64 (VAL v) {
-	ASSERT1(IS_INT(v),v);
-	return VU64(v);
-}
+static uint64_t value_u64 (VAL v) { ASSERT1(IS_INT(v),v); return VU64(v); }
+static uint32_t value_u32 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT32_MAX, v); return (uint32_t)x; }
+static uint16_t value_u16 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT16_MAX, v); return (uint16_t)x; }
+static uint8_t value_u8 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }
 
-static int64_t value_i64 (VAL v) {
-	ASSERT1(IS_INT(v),v);
-	return VI64(v);
-}
+static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }
+static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }
+static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }
+static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }
 
-static float value_f32 (VAL v) {
-	ASSERT1(IS_F32(v), v);
-	return VF32(v);
-}
+static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }
+static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
 
-static double value_f64 (VAL v) {
-	ASSERT1(IS_F64(v), v);
-	return VF64(v);
-}
+static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }
+static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }
+static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }
+static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && (VTUPLEN(v) == n), v); return VTUP(v); }
 
-static void* value_ptr (VAL v) {
-	ASSERT1(IS_PTR(v),v);
-	return VPTR(v);
-}
-
-static FNPTR value_fnptr (VAL v) {
-	ASSERT1(IS_FNPTR(v),v);
-	return VFNPTR(v);
-}
-
-static STR* value_str (VAL v) {
-	ASSERT1(IS_STR(v),v);
-	return VSTR(v);
-}
-
-#define pop_u8() ((uint8_t)pop_u64())
-#define pop_u16() ((uint16_t)pop_u64())
-#define pop_u32() ((uint32_t)pop_u64())
-#define pop_u64() (value_u64(pop_value()))
-#define pop_i8() ((int8_t)pop_i64())
-#define pop_i16() ((int16_t)pop_i64())
-#define pop_i32() ((int32_t)pop_i64())
-#define pop_i64() (value_i64(pop_value()))
-#define pop_usize() (pop_u64())
-#define pop_f32() (value_f32(pop_value()))
-#define pop_f64() (value_f64(pop_value()))
-#define pop_bool() ((bool)pop_u64())
-#define pop_str() (value_str(pop_value()))
-#define pop_ptr() (value_ptr(pop_value()))
-#define pop_fnptr() (value_fnptr(pop_value()))
-
-#define push_u64(v) push_value(MKU64(v))
-#define push_i64(v) push_value(MKI64(v))
-#define push_usize(v) push_u64((uint64_t)(v))
-#define push_bool(b) push_u64((uint64_t)((bool)(b)))
-#define push_u8(b) push_u64((uint64_t)(b))
-#define push_u16(b) push_u64((uint64_t)(b))
-#define push_u32(b) push_u64((uint64_t)(b))
-#define push_i8(b) push_i64((int64_t)(b))
-#define push_i16(b) push_i64((int64_t)(b))
-#define push_i32(b) push_i64((int64_t)(b))
-#define push_f32(f) push_value(MKF32(f))
-#define push_f64(f) push_value(MKF64(f))
-#define push_str(p) push_value(MKSTR(p))
-#define push_ptr(p) push_value(MKPTR(p))
-#define push_fnptr(p) push_value(MKFNPTR(p))
-
-static void push_value(VAL x) {
-	ASSERT(stack_counter > 0);
-	stack[--stack_counter] = x;
-}
-
-static VAL top_value(void) {
-	ASSERT(stack_counter < STACK_MAX);
-	return stack[stack_counter];
-}
-
-static VAL pop_value(void) {
-	ASSERT(stack_counter < STACK_MAX);
-	return stack[stack_counter++];
-}
-
-static void push_resource(VAL x) {
-	ASSERT(rstack_counter > 0);
-	rstack[--rstack_counter] = x;
-}
-
-static VAL top_resource(void) {
-	ASSERT(rstack_counter < STACK_MAX);
-	return rstack[rstack_counter];
-}
-
-static VAL pop_resource(void) {
-	ASSERT(rstack_counter < STACK_MAX);
-	return rstack[rstack_counter++];
-}
+static void push_value (VAL x) { ASSERT(stack_counter > 0); stack[--stack_counter] = x; }
+static void push_resource (VAL x) { ASSERT(rstack_counter > 0); rstack[--rstack_counter] = x; }
+static VAL pop_value (void) { ASSERT(stack_counter < STACK_MAX); return stack[stack_counter++]; }
+static VAL pop_resource (void) { ASSERT(rstack_counter < STACK_MAX); return rstack[rstack_counter++]; }
 
 // Create a TUP with at least min(cap_hint, TUP_LEN_MAX) capacity.
 static TUP* tup_new (TUPLEN cap_hint) {
@@ -446,33 +421,50 @@ static TUP* tup_new (TUPLEN cap_hint) {
 	return new_tup;
 }
 
-// Create a TUP with at least min(max(old_tup->size, cap_hint), TUP_LEN_MAX) capacity.
-// Consume old_tup and copy its elements over to the new tuple.
-static TUP* tup_resize (TUP* old_tup, TUPLEN cap_hint) {
-	ASSERT(old_tup);
-	if (cap_hint < old_tup->size) cap_hint = old_tup->size;
-	if (old_tup->refs == 1) {
-		if (cap_hint < 3) cap_hint = 3;
-		if (cap_hint > TUP_LEN_MAX) cap_hint = TUP_LEN_MAX;
-		TUPLEN old_cap = old_tup->cap;
-		TUP *new_tup = realloc(old_tup, sizeof(TUP) + sizeof(VAL)*(USIZE)cap_hint);
-		ASSERT(new_tup);
-		if (old_cap < cap_hint) {
-			memset(new_tup->cells + old_cap, 0, sizeof(VAL)*(cap_hint - old_cap));
-		}
-		new_tup->cap = cap_hint;
-		return new_tup;
-	} else {
-		TUP* new_tup = tup_new(cap_hint);
-		for (TUPLEN i = 0; i < old_tup->size; i++) {
-			VAL v = old_tup->cells[i];
-			new_tup->cells[i] = v;
-			incref(v);
-		}
-		new_tup->size = old_tup->size;
-		old_tup->refs--;
-		return new_tup;
-	}
+static TUP* tup_pack1 (VAL v1) {
+	TUP* tup = tup_new(1);
+	ASSERT(tup); ASSERT(tup->cap >= 1);
+	tup->size = 1;
+	tup->cells[0] = v1;
+	return tup;
+}
+static TUP* tup_pack2 (VAL v1, VAL v2) {
+	TUP* tup = tup_new(2);
+	ASSERT(tup); ASSERT(tup->cap >= 2);
+	tup->size = 2;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	return tup;
+}
+static TUP* tup_pack3 (VAL v1, VAL v2, VAL v3) {
+	TUP* tup = tup_new(3);
+	ASSERT(tup); ASSERT(tup->cap >= 3);
+	tup->size = 3;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	return tup;
+}
+static TUP* tup_pack4 (VAL v1, VAL v2, VAL v3, VAL v4) {
+	TUP* tup = tup_new(4);
+	ASSERT(tup); ASSERT(tup->cap >= 4);
+	tup->size = 4;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	tup->cells[3] = v4;
+	return tup;
+}
+static TUP* tup_pack5 (VAL v1, VAL v2, VAL v3, VAL v4, VAL v5) {
+	TUP* tup = tup_new(5);
+	ASSERT(tup); ASSERT(tup->cap >= 5);
+	tup->size = 5;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	tup->cells[3] = v4;
+	tup->cells[4] = v5;
+	return tup;
 }
 
 static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
@@ -493,85 +485,25 @@ static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
 	return tup;
 }
 
-static VAL mkcons_hint (VAL tail, VAL head, TUPLEN cap_hint) {
-	if (IS_TUP(tail) && HAS_REFS(tail)) {
-		TUPLEN tail_len = VTUPLEN(tail);
-		TUP *tail_tup = VTUP(tail);
-		ASSERT1(tail_tup, tail);
-		ASSERT1(tail_len <= tail_tup->size, tail);
-		if (tail_len < tail_tup->size) {
-			ASSERT1(tail_tup->refs >= 1, tail);
-			if (tail_tup->refs == 1) {
-				decref(tail_tup->cells[tail_len]);
-				tail_tup->cells[tail_len] = head;
-				return MKTUP(tail_tup, tail_len+1);
-			} else {
-				VAL *cmp = &tail_tup->cells[tail_len];
-				if (VALEQ(*cmp, head)) {
-					decref(head);
-					return MKTUP(tail_tup, tail_len+1);
-				} else {
-					if (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;
-					TUP* new_tup = tup_new(cap_hint);
-					for (TUPLEN i = 0; i < tail_len; i++) {
-						VAL v = tail_tup->cells[i];
-						new_tup->cells[i] = v;
-						incref(v);
-					}
-					new_tup->cells[tail_len] = head;
-					new_tup->size = tail_len+1;
-					tail_tup->refs--;
-					return MKTUP(new_tup, tail_len+1);
-				}
-			}
-		} else {
-			ASSERT1(tail_len < TUP_LEN_MAX, tail);
-			ASSERT1(tail_len <= tail_tup->cap, tail);
-			if (tail_len < tail_tup->cap) {
-				tail_tup->cells[tail_len] = head;
-				tail_tup->size = tail_len+1;
-				return MKTUP(tail_tup, tail_len+1);
-			} else {
-				if (cap_hint < tail_len+1) cap_hint = 2*tail_len+1;
-				TUP* new_tup = tup_resize(tail_tup, cap_hint);
-				ASSERT(tail_len < new_tup->cap);
-				new_tup->size = tail_len+1;
-				new_tup->cells[tail_len] = head;
-				return MKTUP(new_tup, tail_len+1);
-			}
-		}
-	} else if (IS_TUP(tail)) { // cons onto nil
-		ASSERT(IS_NIL(tail));
-		if (IS_TUP(head)) {
-			TUP* tup = tup_new(cap_hint);
-			tup->size = 1;
-			tup->cells[0] = head;
-			return MKTUP(tup,1);
-		} else { // non-tup value pretends to be unary tuple
-			return head;
-		}
-	} else { // cons onto non-tup value pretending to be unary tuple
-		TUP* tup = tup_new(cap_hint);
-		tup->size = 2;
-		tup->cells[0] = tail;
-		tup->cells[1] = head;
-		return MKTUP(tup,2);
-	}
-}
-static VAL mkcons(VAL tail, VAL head) {
-	VAL v = mkcons_hint(tail,head,3);
-	return v;
-}
+typedef struct STACK {
+	size_t cap;
+	size_t len;
+	VAL* val;
+} STACK;
 
-static VAL lpop(VAL* stk) {
-	VAL cons=*stk, lcar, lcdr; value_uncons(cons, &lcar, &lcdr);
-	*stk=lcar; return lcdr;
+static VAL lpop(STACK* stk) {
+	ASSERT(stk->len > 0);
+	return stk->val[--stk->len];
 }
-static void lpush(VAL* stk, VAL cdr) { *stk = mkcons(*stk, cdr); }
-#define LPOP(v) push_value(lpop(&(v)))
-#define LPUSH(v) lpush(&(v),pop_value())
-#define LPOPR(v) push_resource(lpop(&(v)))
-#define LPUSHR(v) lpush(&(v),pop_resource())
+static void lpush(STACK* stk, VAL val) {
+	if (stk->len >= stk->cap) {
+		stk->cap = stk->cap * 2 + 4;
+		VAL* newval = realloc(stk->val, stk->cap * sizeof(VAL));
+		ASSERT(newval);
+		stk->val = newval;
+	}
+	stk->val[stk->len++] = val;
+}
 
 static STR* str_alloc (USIZE cap) {
 	ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);
@@ -628,14 +560,6 @@ static USIZE get_data_tag(VAL v) {
 	}
 }
 
-static USIZE get_top_data_tag(void) {
-	return get_data_tag(top_value());
-}
-
-static USIZE get_top_resource_data_tag(void) {
-	return get_data_tag(top_resource());
-}
-
 static int str_cmp(STR* s1, STR* s2) {
 	ASSERT(s1 && s2);
 	USIZE n1 = s1->size;
@@ -651,16 +575,29 @@ static int str_cmp(STR* s1, STR* s2) {
 	return 0;
 }
 
+static void default_run(VAL v) {
+	TRACE("panic! tried to run ");
+	TRACE(VTYPE(v)->name);
+	TRACE("value\n");
+	exit(1);
+}
+
+static void tup_run(VAL v) {
+	ASSERT(VTUPLEN(v)>0);
+	VAL h = VTUP(v)->cells[0];
+	ASSERT(IS_FNPTR(h));
+	push_value(v);
+	VFNPTR(h)();
+}
+
+static void fnptr_run(VAL v) {
+	VFNPTR(v)();
+}
+
 static void run_value(VAL v) {
-	if (IS_TUP(v)) {
-		VAL h = VTUP(v)->cells[0];
-		ASSERT(IS_FNPTR(h));
-		push_value(v);
-		VFNPTR(h)();
-	} else {
-		ASSERT(IS_FNPTR(v));
-		VFNPTR(v)();
-	}
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->run);
+	VTYPE(v)->run(v);
 }
 
 static int64_t i64_add (int64_t a, int64_t b) {
@@ -756,9 +693,9 @@ void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
 	*out_size = n;
 }
 
-void int_trace_(int64_t y, int fd) {
+void int_trace_(VAL v, int fd) {
 	char* p; size_t n;
-	int_repr(y, &p, &n);
+	int_repr(VINT(v), &p, &n);
 	write(fd, p, n);
 }
 
@@ -781,7 +718,8 @@ STR* i64_show (int64_t x) {
 	}
 }
 
-void str_trace_(STR* str, int fd) {
+void str_trace_(VAL v, int fd) {
+	STR* str = VSTR(v);
 	ASSERT(str->size <= SIZE_MAX);
 	write(fd, "\"", 1);
 	USIZE i0 = 0;
@@ -813,29 +751,31 @@ void str_trace_(STR* str, int fd) {
 	write(fd, "\"", 1);
 }
 
-void value_trace_(VAL val, int fd) {
-	if (IS_INT(val)) {
-		int_trace_(VINT(val), fd);
-	} else if (IS_STR(val)) {
-		str_trace_(VSTR(val), fd);
-	} else if (IS_FNPTR(val)) {
-		write(fd, "<fnptr>", 7);
-	} else if (IS_TUP(val)) {
-		TUPLEN len = VTUPLEN(val);
-		TUP* tup = VTUP(val);
-		if (VTUPLEN(val) == 0) {
-			write(fd, "[]", 2);
-		} else {
-			write(fd, "[ ", 2);
-			for(TUPLEN i = 0; i < len; i++) {
-				if (i > 0) write(fd, " ", 1);
-				value_trace_(tup->cells[i], fd);
-			}
-			write(fd, " ]", 2);
-		}
+static void value_trace_(VAL v, int fd) {
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->trace_);
+	VTYPE(v)->trace_(v,fd);
+}
+
+static void default_trace_(VAL v, int fd) {
+	const char* name = VTYPE(v)->name;
+	write(fd, "<", 1);
+	write(fd, name, strlen(name));
+	write(fd, ">", 1);
+}
+
+static void tup_trace_(VAL v, int fd) {
+	TUPLEN len = VTUPLEN(v);
+	TUP* tup = VTUP(v);
+	if (len == 0) {
+		write(fd, "[]", 2);
 	} else {
-		TRACE("value cannot be traced");
-		exit(1);
+		write(fd, "[ ", 2);
+		for(TUPLEN i = 0; i < len; i++) {
+			if (i > 0) write(fd, " ", 1);
+			value_trace_(tup->cells[i], fd);
+		}
+		write(fd, " ]", 2);
 	}
 }
 
@@ -861,9 +801,9 @@ static void trace_rstack (void) {
 			TRACE(" at ");
 			TRACE(fstack[i-1].path);
 			TRACE(":");
-			int_trace_((int64_t)fstack[i-1].line, 2);
+			int_trace_(MKI64(fstack[i-1].line), 2);
 			TRACE(":");
-			int_trace_((int64_t)fstack[i-1].col, 2);
+			int_trace_(MKI64(fstack[i-1].col), 2);
 			TRACE("\n");
 		}
 	#endif

@@ -85,7 +85,7 @@ def(Match.unit-tag?, Match -- Maybe(Tag),
         PatOpTag -> Some,
         _ -> drop None
     ))
-    filter(.data is-unit?))
+    filter(is-unit?))
 
 def(+Match.add-case, +Mirth +Match Case -- +Mirth +Match,
     dup case-redundant? if(
