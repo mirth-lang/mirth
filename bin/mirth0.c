@@ -203,7 +203,7 @@ static TYPE TYPE_TUP = {
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
 
 #define VTUP(v)    ((v).data.tup)
-#define VTUPLEN(v) ((v).data.tup ? (v).data.tup->size : 0)
+#define VTUPLEN(v) (tup_len_(VTUP(v)))
 #define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.tup=(x)}})
 #define MKNIL      ((VAL){.tag=TAG_TUP, .data={.tup=NULL}})
 
@@ -368,16 +368,23 @@ static void tup_free (VAL v) {
 }
 
 static void tup_decref_outer(TUP* tup, size_t n) {
+	ASSERT(tup);
+	ASSERT(tup->size == n);
 	if (tup->refs == 1) {
-		for (size_t i = n; i < tup->size; i++) {
-			decref(tup->cells[i]);
-		}
 		free(tup);
 	} else {
 		for (size_t i = 0; i < n; i++) {
 			incref(tup->cells[i]);
 		}
-		if (!--tup->refs) free_value(MKTUP(tup,n));
+		if (!--tup->refs) tup_free(MKTUP(tup,n));
+	}
+}
+
+static TUPLEN tup_len_ (TUP* tup) {
+	if (tup) {
+		return tup->size;
+	} else {
+		return 0;
 	}
 }
 
@@ -397,7 +404,7 @@ static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
 static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }
 static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }
 static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }
-static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && VTUPLEN(v) == n, v); return VTUP(v); }
+static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && (VTUPLEN(v) == n), v); return VTUP(v); }
 
 static void push_value (VAL x) { ASSERT(stack_counter > 0); stack[--stack_counter] = x; }
 static void push_resource (VAL x) { ASSERT(rstack_counter > 0); rstack[--rstack_counter] = x; }
@@ -415,21 +422,50 @@ static TUP* tup_new (TUPLEN cap_hint) {
 	return new_tup;
 }
 
-static TUP* tup_pack (TUPLEN count, VAL const* vals) {
-	TUP* tup = tup_new(count);
-	tup->size = count;
-	for (TUPLEN i = 0; i < count; i++) {
-		tup->cells[i] = vals[i];
-	}
+static TUP* tup_pack1 (VAL v1) {
+	TUP* tup = tup_new(1);
+	ASSERT(tup); ASSERT(tup->cap >= 1);
+	tup->size = 1;
+	tup->cells[0] = v1;
 	return tup;
 }
-
-static void tup_unpack (TUP* tup, TUPLEN count, VAL* const* vals) {
-	ASSERT(tup); ASSERT(tup->size == count);
-	for (TUPLEN i = 0; i < count; i++) {
-		if(vals[i]) *vals[i] = tup->cells[i];
-	}
-	tup_decref_outer(tup, count);
+static TUP* tup_pack2 (VAL v1, VAL v2) {
+	TUP* tup = tup_new(2);
+	ASSERT(tup); ASSERT(tup->cap >= 2);
+	tup->size = 2;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	return tup;
+}
+static TUP* tup_pack3 (VAL v1, VAL v2, VAL v3) {
+	TUP* tup = tup_new(3);
+	ASSERT(tup); ASSERT(tup->cap >= 3);
+	tup->size = 3;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	return tup;
+}
+static TUP* tup_pack4 (VAL v1, VAL v2, VAL v3, VAL v4) {
+	TUP* tup = tup_new(4);
+	ASSERT(tup); ASSERT(tup->cap >= 4);
+	tup->size = 4;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	tup->cells[3] = v4;
+	return tup;
+}
+static TUP* tup_pack5 (VAL v1, VAL v2, VAL v3, VAL v4, VAL v5) {
+	TUP* tup = tup_new(5);
+	ASSERT(tup); ASSERT(tup->cap >= 5);
+	tup->size = 5;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	tup->cells[3] = v4;
+	tup->cells[4] = v5;
+	return tup;
 }
 
 static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
@@ -4072,7 +4108,7 @@ static VAL mtw_mirth_c99_C99API_C99API (VAL in_Str_1, VAL in_ArrowType_2, VAL in
 static VAL mtw_mirth_c99_C99ReprType_C99RTz_TUP (int64_t in_Nat_1) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
-	v3->cells[0] = MKI64(16LL /* C99RT_TUP */);
+	v3->cells[0] = MKI64(3LL /* C99RT_TUP */);
 	v3->cells[1] = MKI64(in_Nat_1);
 	VAL v4 = MKTUP(v3, 2);
 	return v4;
@@ -5651,6 +5687,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_2);
 static VAL mw_mirth_type_Resource_c99Z_repr (VAL in_Resource_1, VAL in_ZPlusMirth_2, VAL *out_ZPlusMirth_4);
 static VAL mw_mirth_type_Type_c99Z_repr (VAL in_Type_1, VAL in_ZPlusMirth_2, VAL *out_ZPlusMirth_4);
+static VAL mw_mirth_type_StackType_tupleZ_c99Z_repr (VAL in_StackType_1);
 static VAL mw_mirth_type_PrimType_c99Z_repr (int64_t in_PrimType_1);
 static VAL mw_mirth_data_Data_c99Z_repr (uint64_t in_Data_1, VAL in_ZPlusMirth_2, VAL *out_ZPlusMirth_4);
 static void mw_mirth_c99_ZPlusC99Value_rdup (VAL in_ZPlusC99Value_1, VAL *out_ZPlusC99Value_2, VAL *out_ZPlusC99Value_3);
@@ -5767,7 +5804,7 @@ static void mw_mirth_c99_c99Z_fieldZ_callZBang (uint64_t in_Field_1, VAL in_ZPlu
 static void mw_mirth_c99_c99Z_mainZBang (VAL in_Arrow_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_3);
 static VAL mw_mirth_main_Arguments_default (void);
 static void mw_mirth_main_compileZBang (VAL in_Arguments_1, VAL in_ZPlusMirth_2, VAL *out_ZPlusMirth_3);
-static VAL mw_mirth_main_parseZ_packageZ_def (VAL in_Str_1);
+static TUP* mw_mirth_main_parseZ_packageZ_def (VAL in_Str_1);
 static VAL mw_mirth_main_compilerZ_parseZ_args (VAL in_ZPlusArgumentParser_1, VAL in_Arguments_2, VAL in_Maybe_3, VAL in_ArgpOptionType_4, VAL *out_ZPlusArgumentParser_5);
 static void mw_mirth_main_main (void);
 static VAL mw_std_list_List_1_for_1_sp1 (VAL in_List_1, VAL in_List_2);
@@ -5790,7 +5827,7 @@ static VAL mw_std_list_List_1_union_1_sp1 (VAL in_List_1, VAL in_List_2);
 static VAL mw_std_list_List_1_difference_1_sp1 (VAL in_List_1, VAL in_List_2);
 static void mw_mirth_c99_ZPlusC99BranchSplit_c99Z_line_1_sp2 (VAL in_ZPlusC99BranchSplit_1, VAL *out_ZPlusC99BranchSplit_2);
 static void mw_std_list_List_1_for_1_sp16 (VAL in_ZPlusC99Branch_1, VAL in_List_2, VAL *out_ZPlusC99Branch_3);
-static void mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp22 (int64_t in_Bool_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_3);
+static void mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp23 (int64_t in_Bool_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_3);
 static void mw_mirth_c99_ZPlusC99BranchSplit_c99Z_line_1_sp3 (VAL in_ZPlusC99BranchSplit_1, VAL *out_ZPlusC99BranchSplit_2);
 static void mw_mirth_c99_ZPlusC99BranchSplit_c99Z_line_1_sp6 (VAL in_ZPlusC99BranchSplit_1, VAL *out_ZPlusC99BranchSplit_2);
 static void mw_std_list_List_1_reverseZ_for_1_sp4 (VAL in_ZPlusC99Branch_1, VAL in_List_2, VAL *out_ZPlusC99Branch_3);
@@ -5801,18 +5838,18 @@ static VAL mw_std_maybe_Maybe_1_filter_1_sp3 (VAL in_Resource_1, VAL in_Maybe_2,
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp10 (int64_t in_Int_1, VAL in_Str_2, VAL in_ZPlusC99Branch_3, VAL in_C99ReprType_4, VAL *out_Str_5, int64_t *out_Int_6, VAL *out_ZPlusC99Branch_7, VAL *out_ZPlusC99Value_8);
 static VAL mw_std_str_Str_1_sp28 (VAL in_Str_1);
 static void mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp13 (uint64_t in_Token_1, VAL in_Str_2, VAL in_ZPlusC99Branch_3, VAL *out_ZPlusC99Branch_4);
-static void mw_std_maybe_Maybe_1_for_1_sp3 (VAL in_ZPlusC99_1, VAL in_Maybe_2, VAL *out_ZPlusC99_3);
+static void mw_std_list_List_1_for_2_sp1 (VAL in_ZPlusC99_1, VAL in_List_2, VAL *out_ZPlusC99_3);
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp23 (VAL in_ZPlusC99Value_1, VAL in_ZPlusC99Branch_2, VAL in_C99ReprType_3, VAL *out_ZPlusC99Branch_4, VAL *out_ZPlusC99Value_5);
-static void mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp29 (VAL in_Str_1, int64_t in_Nat_2, VAL in_Str_3, VAL in_ZPlusC99Branch_4, VAL *out_Str_5, int64_t *out_Nat_6, VAL *out_ZPlusC99Branch_7);
+static void mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp30 (VAL in_Str_1, int64_t in_Nat_2, VAL in_Str_3, VAL in_ZPlusC99Branch_4, VAL *out_Str_5, int64_t *out_Nat_6, VAL *out_ZPlusC99Branch_7);
 static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp15 (uint64_t in_Word_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_4);
-static VAL mw_mirth_c99_ZPlusC99_c99Z_line_1_sp87 (VAL in_C99API_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_4);
+static VAL mw_mirth_c99_ZPlusC99_c99Z_line_1_sp88 (VAL in_C99API_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_4);
 static void mw_std_list_List_1_reverseZ_for_1_sp6 (VAL in_ZPlusC99Branch_1, VAL in_List_2, VAL *out_ZPlusC99Branch_3);
 static VAL mw_std_list_List_1_filter_1_sp4 (VAL in_List_1);
 static void mw_mirth_c99_pushZ_labelZ_expressionZBang_1_sp4 (VAL in_Str_1, VAL in_C99ReprType_2, VAL in_C99ReprType_3, VAL in_ZPlusC99Branch_4, uint64_t in_Label_5, VAL *out_ZPlusC99Branch_6);
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp32 (VAL in_Str_1, VAL in_C99ReprType_2, VAL in_ZPlusC99Branch_3, VAL in_C99ReprType_4, VAL *out_ZPlusC99Branch_5, VAL *out_ZPlusC99Value_6);
 static void mw_std_maybe_Maybe_1_for_1_sp7 (VAL in_ZPlusList_1, VAL in_Maybe_2, VAL *out_ZPlusList_3);
 static void mw_std_file_ZPlusFileZAsk_unwrapZBang_1_sp1 (VAL in_ZPlusMirth_1, VAL in_ZPlusFileZAsk_2, VAL *out_ZPlusMirth_3, VAL *out_ZPlusFile_4);
-static void mw_std_list_List_1_for_1_sp47 (VAL in_ZPlusList_1, VAL in_List_2, VAL *out_ZPlusList_3);
+static void mw_std_list_List_1_for_1_sp46 (VAL in_ZPlusList_1, VAL in_List_2, VAL *out_ZPlusList_3);
 static VAL mw_mirth_elab_abZ_buildZ_homZBang_1_sp1 (uint64_t in_Word_1, VAL in_ZPlusMirth_2, VAL in_Ctx_3, VAL in_ArrowType_4, uint64_t in_Token_5, VAL in_Home_6, VAL *out_ZPlusMirth_7);
 static VAL mw_mirth_elab_ZPlusAB_gamma_1_sp1 (VAL in_ZPlusMirth_1, VAL in_StackType_2, VAL in_StackType_3, VAL in_ZPlusAB_4, VAL *out_ZPlusMirth_5, VAL *out_ZPlusAB_7);
 static VAL mw_std_maybe_Maybe_1_filter_1_sp4 (VAL in_Type_1, VAL in_Maybe_2, VAL *out_Maybe_4);
@@ -5821,11 +5858,11 @@ static VAL mw_std_maybe_Maybe_1_map_1_sp10 (VAL in_Maybe_1);
 static VAL mw_std_list_List_1_reverseZ_for_1_sp8 (VAL in_ZPlusMirth_1, VAL in_ZPlusAB_2, VAL in_Ctx_3, VAL in_StackType_4, VAL in_List_5, VAL *out_ZPlusMirth_6, VAL *out_ZPlusAB_7, VAL *out_StackType_9);
 static VAL mw_std_maybe_Maybe_1_bind_1_sp5 (VAL in_Maybe_1);
 static int64_t mw_std_list_List_1_ZEqualZEqual_1_sp1 (VAL in_ZPlusMirth_1, VAL in_List_2, VAL in_List_3, VAL *out_ZPlusMirth_4);
-static void mw_std_list_List_1_for_1_sp61 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3);
+static void mw_std_list_List_1_for_1_sp60 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3);
 static VAL mw_std_maybe_Maybe_1_bind_1_sp7 (VAL in_ZPlusMirth_1, VAL in_Maybe_2, VAL *out_ZPlusMirth_3);
-static VAL mw_std_list_List_1_for_1_sp64 (VAL in_ZPlusMirth_1, VAL in_z_x1_2, VAL in_ZPlusStr_3, VAL in_Str_4, VAL in_List_5, VAL *out_ZPlusMirth_6, VAL *out_z_x1_7, VAL *out_ZPlusStr_8);
+static VAL mw_std_list_List_1_for_1_sp63 (VAL in_ZPlusMirth_1, VAL in_z_x1_2, VAL in_ZPlusStr_3, VAL in_Str_4, VAL in_List_5, VAL *out_ZPlusMirth_6, VAL *out_z_x1_7, VAL *out_ZPlusStr_8);
 static int64_t mw_std_list_List_1_member_1_sp4 (VAL in_Namespace_1, VAL in_List_2);
-static VAL mw_std_list_List_1_for_1_sp81 (VAL in_StackType_1, VAL in_List_2);
+static VAL mw_std_list_List_1_for_1_sp80 (VAL in_StackType_1, VAL in_List_2);
 static int64_t mw_std_maybe_Maybe_1_has_1_sp7 (VAL in_Maybe_1);
 static VAL mw_std_maybe_Maybe_1_filter_1_sp13 (VAL in_Maybe_1);
 static VAL mw_mirth_mirth_PropLabel_prop_1_sp15 (uint64_t in_Token_1, VAL in_PropLabel_2);
@@ -8100,7 +8137,7 @@ static VAL mw_std_list_List_1_ZDivL2 (VAL in_List_1) {
 			switch (get_data_tag(v6)) {
 				case 1LL: { // Some
 					VAL v8 = mtp_std_maybe_Maybe_1_Some(v6);
-					TUP* v9 = tup_pack(2, (VAL[]){v5,v8});
+					TUP* v9 = tup_pack2(v5, v8);
 					VAL v10 = mtw_std_maybe_Maybe_1_Some(MKTUP(v9, 2));
 					branch_Maybe_7 = v10;
 				} break;
@@ -8210,7 +8247,7 @@ static VAL mw_std_list_ListZPlus_1_ZDivL2ZPlus (VAL in_ListZPlus_1) {
 		case 1LL: { // Some
 			VAL v8 = mtp_std_maybe_Maybe_1_Some(v5);
 			incref(v3);
-			TUP* v9 = tup_pack(2, (VAL[]){v3,v8});
+			TUP* v9 = tup_pack2(v3, v8);
 			VAL v10 = mtw_std_maybe_Maybe_1_Some(MKTUP(v9, 2));
 			branch_Maybe_7 = v10;
 			branch_z_x1_6 = v3;
@@ -8517,7 +8554,7 @@ static VAL mw_std_maybe_Maybe_1_zzip (VAL in_Maybe_1, VAL in_Maybe_2) {
 				} break;
 				case 1LL: { // Some
 					VAL v9 = mtp_std_maybe_Maybe_1_Some(in_Maybe_1);
-					TUP* v10 = tup_pack(2, (VAL[]){v9,v6});
+					TUP* v10 = tup_pack2(v9, v6);
 					VAL v11 = mtw_std_maybe_Maybe_1_Some(MKTUP(v10, 2));
 					branch_Maybe_7 = v11;
 				} break;
@@ -11089,7 +11126,7 @@ static VAL mw_argZ_parser_parse_parseZ_args (VAL in_a_1, VAL in_ArgumentParser_2
 			VAL v173 = mtp_std_maybe_Maybe_1_Some(v170);
 			VAL v174;
 			VAL v175 = mw_argZ_parser_types_ZPlusArgumentParser_1_usage(r162, &v174);
-			TUP* v176 = tup_pack(2, (VAL[]){v173,v175});
+			TUP* v176 = tup_pack2(v173, v175);
 			VAL v177 = mtw_std_either_Either_2_Left(MKTUP(v176, 2));
 			decref(v168);
 			branch_Either_172 = v177;
@@ -16129,7 +16166,7 @@ static VAL mw_mirth_type_TZ_ZTo (VAL in_StackType_1, VAL in_StackType_2) {
 }
 static VAL mw_mirth_type_TT (VAL in_List_1) {
 	VAL v3 = mw_mirth_type_T0();
-	VAL v4 = mw_std_list_List_1_for_1_sp81(v3, in_List_1);
+	VAL v4 = mw_std_list_List_1_for_1_sp80(v3, in_List_1);
 	return v4;
 }
 static VAL mw_mirth_type_T0 (void) {
@@ -18893,7 +18930,7 @@ static VAL mw_mirth_type_StackType_split4 (VAL in_StackType_1, VAL *out_List_3, 
 			uint64_t v24;
 			VAL v25 = mtp_mirth_type_StackType_STConsLabel(v9, &v23, &v24);
 			VAL v26 = mtw_std_either_Either_2_Left(v23);
-			TUP* v27 = tup_pack(2, (VAL[]){v26,MKU64(v24)});
+			TUP* v27 = tup_pack2(v26, MKU64(v24));
 			VAL v28 = mtw_std_list_List_1_Cons(MKTUP(v27, 2), v8);
 			int64_t v29 = 1LL /* True */;
 			branch_Bool_14 = v29;
@@ -18907,7 +18944,7 @@ static VAL mw_mirth_type_StackType_split4 (VAL in_StackType_1, VAL *out_List_3, 
 			uint64_t v31;
 			VAL v32 = mtp_mirth_type_StackType_STWithLabel(v9, &v30, &v31);
 			VAL v33 = mtw_std_either_Either_2_Right(v30);
-			TUP* v34 = tup_pack(2, (VAL[]){v33,MKU64(v31)});
+			TUP* v34 = tup_pack2(v33, MKU64(v31));
 			VAL v35 = mtw_std_list_List_1_Cons(MKTUP(v34, 2), v8);
 			int64_t v36 = 1LL /* True */;
 			branch_Bool_14 = v36;
@@ -18969,7 +19006,7 @@ static VAL mw_mirth_type_StackType_split4 (VAL in_StackType_1, VAL *out_List_3, 
 				uint64_t v62;
 				VAL v63 = mtp_mirth_type_StackType_STConsLabel(v47, &v61, &v62);
 				VAL v64 = mtw_std_either_Either_2_Left(v61);
-				TUP* v65 = tup_pack(2, (VAL[]){v64,MKU64(v62)});
+				TUP* v65 = tup_pack2(v64, MKU64(v62));
 				VAL v66 = mtw_std_list_List_1_Cons(MKTUP(v65, 2), v43);
 				int64_t v67 = 1LL /* True */;
 				branch_Bool_52 = v67;
@@ -18983,7 +19020,7 @@ static VAL mw_mirth_type_StackType_split4 (VAL in_StackType_1, VAL *out_List_3, 
 				uint64_t v69;
 				VAL v70 = mtp_mirth_type_StackType_STWithLabel(v47, &v68, &v69);
 				VAL v71 = mtw_std_either_Either_2_Right(v68);
-				TUP* v72 = tup_pack(2, (VAL[]){v71,MKU64(v69)});
+				TUP* v72 = tup_pack2(v71, MKU64(v69));
 				VAL v73 = mtw_std_list_List_1_Cons(MKTUP(v72, 2), v43);
 				int64_t v74 = 1LL /* True */;
 				branch_Bool_52 = v74;
@@ -20191,14 +20228,14 @@ static VAL mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (uint64_t in_Labe
 		case 0LL: { // STACK_TYPE_ERROR
 			VAL v6 = MKI64(0LL /* STACK_TYPE_ERROR */);
 			VAL v7 = MKI64(0LL /* TYPE_ERROR */);
-			TUP* v8 = tup_pack(2, (VAL[]){v6,v7});
+			TUP* v8 = tup_pack2(v6, v7);
 			VAL v9 = mtw_std_maybe_Maybe_1_Some(MKTUP(v8, 2));
 			branch_Maybe_5 = v9;
 		} break;
 		case 1LL: { // STACK_TYPE_DONT_CARE
 			VAL v10 = MKI64(1LL /* STACK_TYPE_DONT_CARE */);
 			VAL v11 = MKI64(1LL /* TYPE_DONT_CARE */);
-			TUP* v12 = tup_pack(2, (VAL[]){v10,v11});
+			TUP* v12 = tup_pack2(v10, v11);
 			VAL v13 = mtw_std_maybe_Maybe_1_Some(MKTUP(v12, 2));
 			branch_Maybe_5 = v13;
 		} break;
@@ -20236,7 +20273,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (uint64_t in_Labe
 			int64_t v30 = mw_mirth_label_Label_ZEqualZEqual(in_Label_1, v28);
 			VAL branch_Maybe_31;
 			if (((bool)v30)) {
-				TUP* v32 = tup_pack(2, (VAL[]){v29,v27});
+				TUP* v32 = tup_pack2(v29, v27);
 				VAL v33 = mtw_std_maybe_Maybe_1_Some(MKTUP(v32, 2));
 				branch_Maybe_31 = v33;
 			} else {
@@ -20249,7 +20286,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (uint64_t in_Labe
 						VAL v38 = value_tup(v36, 2)->cells[1];
 						tup_decref_outer(value_tup(v36, 2), 2);
 						VAL v39 = mtw_mirth_type_StackType_STConsLabel(v37, v27, v28);
-						TUP* v40 = tup_pack(2, (VAL[]){v39,v38});
+						TUP* v40 = tup_pack2(v39, v38);
 						VAL v41 = mtw_std_maybe_Maybe_1_Some(MKTUP(v40, 2));
 						branch_Maybe_35 = v41;
 					} break;
@@ -20287,7 +20324,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (uint64_t in_Labe
 						VAL v53 = value_tup(v51, 2)->cells[1];
 						tup_decref_outer(value_tup(v51, 2), 2);
 						VAL v54 = mtw_mirth_type_StackType_STWithLabel(v52, v43, v44);
-						TUP* v55 = tup_pack(2, (VAL[]){v54,v53});
+						TUP* v55 = tup_pack2(v54, v53);
 						VAL v56 = mtw_std_maybe_Maybe_1_Some(MKTUP(v55, 2));
 						branch_Maybe_50 = v56;
 					} break;
@@ -20317,7 +20354,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (uint64_t in_Labe
 			VAL v65 = mtw_std_maybe_Maybe_1_Some(v64);
 			void* v66 = mfld_mirth_type_MetaVar_ZTildetypeZAsk(v58);
 			mut_set(v65, v66);
-			TUP* v67 = tup_pack(2, (VAL[]){v60,v62});
+			TUP* v67 = tup_pack2(v60, v62);
 			VAL v68 = mtw_std_maybe_Maybe_1_Some(MKTUP(v67, 2));
 			branch_Maybe_5 = v68;
 		} break;
@@ -20334,14 +20371,14 @@ static VAL mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (uint64_t in_Labe
 		case 0LL: { // STACK_TYPE_ERROR
 			VAL v6 = MKI64(0LL /* STACK_TYPE_ERROR */);
 			VAL v7 = MKI64(0LL /* TYPE_ERROR */);
-			TUP* v8 = tup_pack(2, (VAL[]){v6,v7});
+			TUP* v8 = tup_pack2(v6, v7);
 			VAL v9 = mtw_std_maybe_Maybe_1_Some(MKTUP(v8, 2));
 			branch_Maybe_5 = v9;
 		} break;
 		case 1LL: { // STACK_TYPE_DONT_CARE
 			VAL v10 = MKI64(1LL /* STACK_TYPE_DONT_CARE */);
 			VAL v11 = MKI64(1LL /* TYPE_DONT_CARE */);
-			TUP* v12 = tup_pack(2, (VAL[]){v10,v11});
+			TUP* v12 = tup_pack2(v10, v11);
 			VAL v13 = mtw_std_maybe_Maybe_1_Some(MKTUP(v12, 2));
 			branch_Maybe_5 = v13;
 		} break;
@@ -20393,7 +20430,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (uint64_t in_Labe
 						VAL v37 = value_tup(v35, 2)->cells[1];
 						tup_decref_outer(value_tup(v35, 2), 2);
 						VAL v38 = mtw_mirth_type_StackType_STConsLabel(v36, v27, v28);
-						TUP* v39 = tup_pack(2, (VAL[]){v38,v37});
+						TUP* v39 = tup_pack2(v38, v37);
 						VAL v40 = mtw_std_maybe_Maybe_1_Some(MKTUP(v39, 2));
 						branch_Maybe_34 = v40;
 					} break;
@@ -20417,7 +20454,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (uint64_t in_Labe
 			int64_t v45 = mw_mirth_label_Label_ZEqualZEqual(in_Label_1, v43);
 			VAL branch_Maybe_46;
 			if (((bool)v45)) {
-				TUP* v47 = tup_pack(2, (VAL[]){v44,v42});
+				TUP* v47 = tup_pack2(v44, v42);
 				VAL v48 = mtw_std_maybe_Maybe_1_Some(MKTUP(v47, 2));
 				branch_Maybe_46 = v48;
 			} else {
@@ -20430,7 +20467,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (uint64_t in_Labe
 						VAL v53 = value_tup(v51, 2)->cells[1];
 						tup_decref_outer(value_tup(v51, 2), 2);
 						VAL v54 = mtw_mirth_type_StackType_STWithLabel(v52, v42, v43);
-						TUP* v55 = tup_pack(2, (VAL[]){v54,v53});
+						TUP* v55 = tup_pack2(v54, v53);
 						VAL v56 = mtw_std_maybe_Maybe_1_Some(MKTUP(v55, 2));
 						branch_Maybe_50 = v56;
 					} break;
@@ -20460,7 +20497,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (uint64_t in_Labe
 			VAL v65 = mtw_std_maybe_Maybe_1_Some(v64);
 			void* v66 = mfld_mirth_type_MetaVar_ZTildetypeZAsk(v58);
 			mut_set(v65, v66);
-			TUP* v67 = tup_pack(2, (VAL[]){v60,v62});
+			TUP* v67 = tup_pack2(v60, v62);
 			VAL v68 = mtw_std_maybe_Maybe_1_Some(MKTUP(v67, 2));
 			branch_Maybe_5 = v68;
 		} break;
@@ -20477,14 +20514,14 @@ static VAL mw_mirth_type_StackType_forceZ_consZAskZBang (VAL in_StackType_1) {
 		case 0LL: { // STACK_TYPE_ERROR
 			VAL v5 = MKI64(0LL /* STACK_TYPE_ERROR */);
 			VAL v6 = MKI64(0LL /* TYPE_ERROR */);
-			TUP* v7 = tup_pack(2, (VAL[]){v5,v6});
+			TUP* v7 = tup_pack2(v5, v6);
 			VAL v8 = mtw_std_maybe_Maybe_1_Some(MKTUP(v7, 2));
 			branch_Maybe_4 = v8;
 		} break;
 		case 1LL: { // STACK_TYPE_DONT_CARE
 			VAL v9 = MKI64(1LL /* STACK_TYPE_DONT_CARE */);
 			VAL v10 = MKI64(1LL /* TYPE_DONT_CARE */);
-			TUP* v11 = tup_pack(2, (VAL[]){v9,v10});
+			TUP* v11 = tup_pack2(v9, v10);
 			VAL v12 = mtw_std_maybe_Maybe_1_Some(MKTUP(v11, 2));
 			branch_Maybe_4 = v12;
 		} break;
@@ -20500,7 +20537,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZAskZBang (VAL in_StackType_1) {
 		case 5LL: { // STCons
 			VAL v16;
 			VAL v17 = mtp_mirth_type_StackType_STCons(v3, &v16);
-			TUP* v18 = tup_pack(2, (VAL[]){v17,v16});
+			TUP* v18 = tup_pack2(v17, v16);
 			VAL v19 = mtw_std_maybe_Maybe_1_Some(MKTUP(v18, 2));
 			branch_Maybe_4 = v19;
 		} break;
@@ -20526,7 +20563,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZAskZBang (VAL in_StackType_1) {
 					VAL v32 = value_tup(v30, 2)->cells[1];
 					tup_decref_outer(value_tup(v30, 2), 2);
 					VAL v33 = mtw_mirth_type_StackType_STConsLabel(v31, v25, v26);
-					TUP* v34 = tup_pack(2, (VAL[]){v33,v32});
+					TUP* v34 = tup_pack2(v33, v32);
 					VAL v35 = mtw_std_maybe_Maybe_1_Some(MKTUP(v34, 2));
 					branch_Maybe_29 = v35;
 				} break;
@@ -20554,7 +20591,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZAskZBang (VAL in_StackType_1) {
 					VAL v44 = value_tup(v42, 2)->cells[1];
 					tup_decref_outer(value_tup(v42, 2), 2);
 					VAL v45 = mtw_mirth_type_StackType_STWithLabel(v43, v37, v38);
-					TUP* v46 = tup_pack(2, (VAL[]){v45,v44});
+					TUP* v46 = tup_pack2(v45, v44);
 					VAL v47 = mtw_std_maybe_Maybe_1_Some(MKTUP(v46, 2));
 					branch_Maybe_41 = v47;
 				} break;
@@ -20582,7 +20619,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZAskZBang (VAL in_StackType_1) {
 			VAL v56 = mtw_std_maybe_Maybe_1_Some(v55);
 			void* v57 = mfld_mirth_type_MetaVar_ZTildetypeZAsk(v49);
 			mut_set(v56, v57);
-			TUP* v58 = tup_pack(2, (VAL[]){v51,v53});
+			TUP* v58 = tup_pack2(v51, v53);
 			VAL v59 = mtw_std_maybe_Maybe_1_Some(MKTUP(v58, 2));
 			branch_Maybe_4 = v59;
 		} break;
@@ -20599,14 +20636,14 @@ static VAL mw_mirth_type_StackType_forceZ_withZAskZBang (VAL in_StackType_1) {
 		case 0LL: { // STACK_TYPE_ERROR
 			VAL v5 = MKI64(0LL /* STACK_TYPE_ERROR */);
 			VAL v6 = MKI64(0LL /* TYPE_ERROR */);
-			TUP* v7 = tup_pack(2, (VAL[]){v5,v6});
+			TUP* v7 = tup_pack2(v5, v6);
 			VAL v8 = mtw_std_maybe_Maybe_1_Some(MKTUP(v7, 2));
 			branch_Maybe_4 = v8;
 		} break;
 		case 1LL: { // STACK_TYPE_DONT_CARE
 			VAL v9 = MKI64(1LL /* STACK_TYPE_DONT_CARE */);
 			VAL v10 = MKI64(1LL /* TYPE_DONT_CARE */);
-			TUP* v11 = tup_pack(2, (VAL[]){v9,v10});
+			TUP* v11 = tup_pack2(v9, v10);
 			VAL v12 = mtw_std_maybe_Maybe_1_Some(MKTUP(v11, 2));
 			branch_Maybe_4 = v12;
 		} break;
@@ -20622,7 +20659,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZAskZBang (VAL in_StackType_1) {
 		case 7LL: { // STWith
 			VAL v16;
 			VAL v17 = mtp_mirth_type_StackType_STWith(v3, &v16);
-			TUP* v18 = tup_pack(2, (VAL[]){v17,v16});
+			TUP* v18 = tup_pack2(v17, v16);
 			VAL v19 = mtw_std_maybe_Maybe_1_Some(MKTUP(v18, 2));
 			branch_Maybe_4 = v19;
 		} break;
@@ -20648,7 +20685,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZAskZBang (VAL in_StackType_1) {
 					VAL v32 = value_tup(v30, 2)->cells[1];
 					tup_decref_outer(value_tup(v30, 2), 2);
 					VAL v33 = mtw_mirth_type_StackType_STConsLabel(v31, v25, v26);
-					TUP* v34 = tup_pack(2, (VAL[]){v33,v32});
+					TUP* v34 = tup_pack2(v33, v32);
 					VAL v35 = mtw_std_maybe_Maybe_1_Some(MKTUP(v34, 2));
 					branch_Maybe_29 = v35;
 				} break;
@@ -20676,7 +20713,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZAskZBang (VAL in_StackType_1) {
 					VAL v44 = value_tup(v42, 2)->cells[1];
 					tup_decref_outer(value_tup(v42, 2), 2);
 					VAL v45 = mtw_mirth_type_StackType_STWithLabel(v43, v37, v38);
-					TUP* v46 = tup_pack(2, (VAL[]){v45,v44});
+					TUP* v46 = tup_pack2(v45, v44);
 					VAL v47 = mtw_std_maybe_Maybe_1_Some(MKTUP(v46, 2));
 					branch_Maybe_41 = v47;
 				} break;
@@ -20704,7 +20741,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZAskZBang (VAL in_StackType_1) {
 			VAL v56 = mtw_std_maybe_Maybe_1_Some(v55);
 			void* v57 = mfld_mirth_type_MetaVar_ZTildetypeZAsk(v49);
 			mut_set(v56, v57);
-			TUP* v58 = tup_pack(2, (VAL[]){v51,v53});
+			TUP* v58 = tup_pack2(v51, v53);
 			VAL v59 = mtw_std_maybe_Maybe_1_Some(MKTUP(v58, 2));
 			branch_Maybe_4 = v59;
 		} break;
@@ -27157,7 +27194,7 @@ static VAL mw_mirth_mirth_PropLabel_prop (VAL in_b_1, VAL in_PropLabel_2, VAL in
 	return v7;
 }
 static VAL mw_mirth_mirth_PropLabel_prop2 (VAL in_b1_1, VAL in_b2_2, VAL in_PropLabel_3, VAL in_ZPlusMirth_4, VAL *out_ZPlusMirth_6) {
-	TUP* v7 = tup_pack(2, (VAL[]){in_b1_1,in_b2_2});
+	TUP* v7 = tup_pack2(in_b1_1, in_b2_2);
 	VAL v8;
 	VAL v9 = mw_mirth_mirth_PropLabel_prop(MKTUP(v7, 2), in_PropLabel_3, in_ZPlusMirth_4, &v8);
 	*out_ZPlusMirth_6 = v8;
@@ -32930,7 +32967,7 @@ static VAL mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang (VAL in_ZPlusMirth_1
 		branch_ZPlusTypeElab_35 = branch_ZPlusTypeElab_24;
 		branch_ZPlusMirth_34 = v38;
 	}
-	VAL v39 = mw_std_list_List_1_for_1_sp81(branch_StackType_22, branch_List_21);
+	VAL v39 = mw_std_list_List_1_for_1_sp80(branch_StackType_22, branch_List_21);
 	VAL v40 = mw_mirth_type_TZ_ZTo(v39, branch_StackType_25);
 	*out_ZPlusTypeElab_4 = branch_ZPlusTypeElab_35;
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_34;
@@ -33854,7 +33891,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (VAL in_ZPlusM
 		VAL v17;
 		VAL v18;
 		VAL v19;
-		VAL v20 = mw_std_list_List_1_for_1_sp64(in_ZPlusMirth_1, in_ZPlusResolveDef_2, v14, MKSTR(v15), v16, &v17, &v18, &v19);
+		VAL v20 = mw_std_list_List_1_for_1_sp63(in_ZPlusMirth_1, in_ZPlusResolveDef_2, v14, MKSTR(v15), v16, &v17, &v18, &v19);
 		decref(v20);
 		VAL v21;
 		mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang(v7, v19, v17, &v21);
@@ -33883,7 +33920,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (VAL in_ZPlusM
 		VAL v32;
 		VAL v33;
 		VAL v34;
-		VAL v35 = mw_std_list_List_1_for_1_sp64(in_ZPlusMirth_1, in_ZPlusResolveDef_2, v29, MKSTR(v30), v31, &v32, &v33, &v34);
+		VAL v35 = mw_std_list_List_1_for_1_sp63(in_ZPlusMirth_1, in_ZPlusResolveDef_2, v29, MKSTR(v30), v31, &v32, &v33, &v34);
 		decref(v35);
 		VAL v36;
 		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v22, v34, v32, &v36);
@@ -35857,7 +35894,7 @@ static VAL mw_mirth_name_QName_climbZ_upZ_dnameZAsk (VAL in_ZPlusMirth_1, VAL in
 								}
 							}
 							VAL v85;
-							mw_std_list_List_1_for_1_sp47(v64, branch_List_79, &v85);
+							mw_std_list_List_1_for_1_sp46(v64, branch_List_79, &v85);
 							int64_t v86 = 1LL /* True */;
 							branch_Bool_72 = v86;
 							branch_List_71 = v73;
@@ -36504,7 +36541,7 @@ static VAL mw_mirth_elab_finalizzeZ_wordZ_arrow (VAL in_ZPlusMirth_1, VAL in_Arr
 		VAL v14 = mw_mirth_type_ArrowType_rigidifyZ_sigZBang(in_ZPlusMirth_1, v11, v10, &v12, &v13);
 		incref(v14);
 		incref(v13);
-		TUP* v15 = tup_pack(2, (VAL[]){v14,v13});
+		TUP* v15 = tup_pack2(v14, v13);
 		VAL v16 = mtw_mirth_mirth_PropLabel_WordType(in_Word_3);
 		VAL v17;
 		VAL v18 = mw_mirth_mirth_PropLabel_prop(MKTUP(v15, 2), v16, v12, &v17);
@@ -36650,7 +36687,7 @@ static VAL mw_mirth_elab_guessZ_initialZ_ctxZ_type (VAL in_ZPlusMirth_1, uint64_
 	VAL v67 = mw_mirth_type_TZ_ZTo(v47, branch_StackType_15);
 	incref(branch_Ctx_14);
 	incref(v67);
-	TUP* v68 = tup_pack(2, (VAL[]){branch_Ctx_14,v67});
+	TUP* v68 = tup_pack2(branch_Ctx_14, v67);
 	VAL v69 = mtw_mirth_mirth_PropLabel_WordType(branch_Word_17);
 	VAL v70;
 	VAL v71 = mw_mirth_mirth_PropLabel_prop(MKTUP(v68, 2), v69, branch_ZPlusMirth_16, &v70);
@@ -40637,7 +40674,7 @@ static uint64_t mw_mirth_elab_elabZ_dataZ_tagZBang (uint64_t in_Data_1, VAL in_S
 	uint64_t v21 = value_u64(VTUP(in_SyntaxDataTag_2)->cells[1]);
 	decref(in_SyntaxDataTag_2);
 	VAL v22 = mtw_mirth_mirth_PropLabel_TagType(branch_Tag_14);
-	TUP* v23 = tup_pack(2, (VAL[]){MKU64(v21),MKU64(branch_Tag_14)});
+	TUP* v23 = tup_pack2(MKU64(v21), MKU64(branch_Tag_14));
 	FNPTR v24 = &mb_mirth_mirth_PropLabel_prop_1_sp13_2;
 	VAL v25 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v23, 2), MKFNPTR(v24));
 	VAL v26 = mtw_mirth_mirth_Prop_1_Prop(v22, v25);
@@ -40949,7 +40986,7 @@ static void mw_mirth_elab_elabZ_dataZ_doneZBang (VAL in_ZPlusMirth_1, uint64_t i
 			mut_set(v96, v97);
 			incref(v83);
 			VAL v98 = mtw_mirth_mirth_PropLabel_WordArrow(v90);
-			TUP* v99 = tup_pack(2, (VAL[]){v83,MKU64(v90)});
+			TUP* v99 = tup_pack2(v83, MKU64(v90));
 			FNPTR v100 = &mb_mirth_mirth_PropLabel_prop_1_sp12_7;
 			VAL v101 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v99, 2), MKFNPTR(v100));
 			VAL v102 = mtw_mirth_mirth_Prop_1_Prop(v98, v101);
@@ -41301,7 +41338,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (VAL in_ZPlusMirth_1, uint64_t
 					mw_mirth_word_Word_makeZ_inlineZBang(v38);
 					incref(v25);
 					VAL v49 = mtw_mirth_mirth_PropLabel_WordType(v38);
-					TUP* v50 = tup_pack(2, (VAL[]){MKU64(v14),v25});
+					TUP* v50 = tup_pack2(MKU64(v14), v25);
 					FNPTR v51 = &mb_mirth_mirth_PropLabel_prop_1_sp11_3;
 					VAL v52 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v50, 2), MKFNPTR(v51));
 					VAL v53 = mtw_mirth_mirth_Prop_1_Prop(v49, v52);
@@ -41309,7 +41346,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (VAL in_ZPlusMirth_1, uint64_t
 					mut_set(v53, v54);
 					incref(v25);
 					VAL v55 = mtw_mirth_mirth_PropLabel_WordArrow(v38);
-					TUP* v56 = tup_pack(3, (VAL[]){MKU64(v14),v25,MKU64(v38)});
+					TUP* v56 = tup_pack3(MKU64(v14), v25, MKU64(v38));
 					FNPTR v57 = &mb_mirth_mirth_PropLabel_prop_1_sp10_5;
 					VAL v58 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v56, 3), MKFNPTR(v57));
 					VAL v59 = mtw_mirth_mirth_Prop_1_Prop(v55, v58);
@@ -41318,7 +41355,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (VAL in_ZPlusMirth_1, uint64_t
 					mw_mirth_word_Word_makeZ_inlineZBang(v44);
 					incref(v25);
 					VAL v61 = mtw_mirth_mirth_PropLabel_WordType(v44);
-					TUP* v62 = tup_pack(2, (VAL[]){MKU64(v14),v25});
+					TUP* v62 = tup_pack2(MKU64(v14), v25);
 					FNPTR v63 = &mb_mirth_mirth_PropLabel_prop_1_sp9_3;
 					VAL v64 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v62, 2), MKFNPTR(v63));
 					VAL v65 = mtw_mirth_mirth_Prop_1_Prop(v61, v64);
@@ -41326,7 +41363,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (VAL in_ZPlusMirth_1, uint64_t
 					mut_set(v65, v66);
 					incref(v25);
 					VAL v67 = mtw_mirth_mirth_PropLabel_WordArrow(v44);
-					TUP* v68 = tup_pack(3, (VAL[]){MKU64(v14),v25,MKU64(v44)});
+					TUP* v68 = tup_pack3(MKU64(v14), v25, MKU64(v44));
 					FNPTR v69 = &mb_mirth_mirth_PropLabel_prop_1_sp8_5;
 					VAL v70 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v68, 3), MKFNPTR(v69));
 					VAL v71 = mtw_mirth_mirth_Prop_1_Prop(v67, v70);
@@ -41335,7 +41372,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (VAL in_ZPlusMirth_1, uint64_t
 					mw_mirth_word_Word_makeZ_inlineZBang(v48);
 					incref(v25);
 					VAL v73 = mtw_mirth_mirth_PropLabel_WordType(v48);
-					TUP* v74 = tup_pack(2, (VAL[]){MKU64(v14),v25});
+					TUP* v74 = tup_pack2(MKU64(v14), v25);
 					FNPTR v75 = &mb_mirth_mirth_PropLabel_prop_1_sp7_1;
 					VAL v76 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v74, 2), MKFNPTR(v75));
 					VAL v77 = mtw_mirth_mirth_Prop_1_Prop(v73, v76);
@@ -41348,7 +41385,7 @@ static void mw_mirth_elab_createZ_projectorsZBang (VAL in_ZPlusMirth_1, uint64_t
 					void* v83 = mfld_mirth_word_Word_ZTildeparams(v48);
 					mut_set(v82, v83);
 					VAL v84 = mtw_mirth_mirth_PropLabel_WordArrow(v48);
-					TUP* v85 = tup_pack(4, (VAL[]){MKU64(v16),MKU64(v38),MKU64(v44),MKU64(v48)});
+					TUP* v85 = tup_pack4(MKU64(v16), MKU64(v38), MKU64(v44), MKU64(v48));
 					FNPTR v86 = &mb_mirth_mirth_PropLabel_prop_1_sp6_9;
 					VAL v87 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v85, 4), MKFNPTR(v86));
 					VAL v88 = mtw_mirth_mirth_Prop_1_Prop(v84, v87);
@@ -41539,7 +41576,7 @@ static uint64_t mw_mirth_elab_elabZ_aliasZBang (VAL in_ZPlusMirth_1, uint64_t in
 	void* v19 = mfld_mirth_alias_Alias_ZTildeqname(v16);
 	mut_set(v18, v19);
 	VAL v20 = mtw_mirth_mirth_PropLabel_AliasTarget(v16);
-	TUP* v21 = tup_pack(3, (VAL[]){v8,MKU64(v7),MKU64(v16)});
+	TUP* v21 = tup_pack3(v8, MKU64(v7), MKU64(v16));
 	FNPTR v22 = &mb_mirth_mirth_PropLabel_prop_1_sp22_6;
 	VAL v23 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v21, 3), MKFNPTR(v22));
 	VAL v24 = mtw_mirth_mirth_Prop_1_Prop(v20, v23);
@@ -44577,7 +44614,7 @@ static VAL mw_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang (VAL in_Arrow_1,
 				VAL v30;
 				VAL v31 = mw_mirth_specializzer_ZPlusSPCheck_checkZ_atomZBang(v28, v17, v18, &v29, &v30);
 				VAL v32;
-				mw_std_list_List_1_for_1_sp47(v19, v31, &v32);
+				mw_std_list_List_1_for_1_sp46(v19, v31, &v32);
 				int64_t v33 = 1LL /* True */;
 				branch_Bool_26 = v33;
 				branch_List_25 = v27;
@@ -44849,7 +44886,7 @@ static VAL mw_mirth_specializzer_ZPlusSPCheck_checkZ_primZ_atomZBang (VAL in_Ato
 	incref(v6);
 	decref(in_Atom_1);
 	VAL v7;
-	mw_std_list_List_1_for_1_sp61(in_ZPlusSPCheck_3, v6, &v7);
+	mw_std_list_List_1_for_1_sp60(in_ZPlusSPCheck_3, v6, &v7);
 	VAL v8 = MKI64(0LL /* Nil */);
 	VAL v9 = mtw_std_list_List_1_Cons(in_Atom_1, v8);
 	*out_ZPlusSPCheck_5 = v7;
@@ -45054,7 +45091,7 @@ static VAL mw_mirth_specializzer_ZPlusSPCheck_checkZ_wordZ_atomZBang (VAL in_ZPl
 				VAL v90;
 				mw_mirth_specializzer_ZPlusSPCheck_checkZ_argZBang(value_u64(v89), v23, &v90);
 				VAL v91;
-				mw_std_list_List_1_for_1_sp61(v90, v88, &v91);
+				mw_std_list_List_1_for_1_sp60(v90, v88, &v91);
 				decref(v16);
 				VAL v92 = MKI64(0LL /* Nil */);
 				VAL v93 = mtw_std_list_List_1_Cons(in_Atom_3, v92);
@@ -46157,7 +46194,7 @@ static uint64_t mw_mirth_specializzer_specializzeZ_wordZBang (VAL in_ZPlusMirth_
 			mut_set(MKI64(v83), v84);
 			incref(in_SPKey_2);
 			VAL v85 = mtw_mirth_mirth_PropLabel_WordArrow(v66);
-			TUP* v86 = tup_pack(3, (VAL[]){in_SPKey_2,MKU64(in_Word_3),MKU64(v66)});
+			TUP* v86 = tup_pack3(in_SPKey_2, MKU64(in_Word_3), MKU64(v66));
 			FNPTR v87 = &mb_mirth_mirth_PropLabel_prop_1_sp2_2;
 			VAL v88 = mtw_mirth_mirth_PropState_1_PSDelay(MKTUP(v86, 3), MKFNPTR(v87));
 			VAL v89 = mtw_mirth_mirth_Prop_1_Prop(v85, v88);
@@ -48547,7 +48584,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
 		"\n"
 		"#define VTUP(v)    ((v).data.tup)\n"
-		"#define VTUPLEN(v) ((v).data.tup ? (v).data.tup->size : 0)\n"
+		"#define VTUPLEN(v) (tup_len_(VTUP(v)))\n"
 		"#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.tup=(x)}})\n"
 		"#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.tup=NULL}})\n"
 		"\n"
@@ -48712,16 +48749,23 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"static void tup_decref_outer(TUP* tup, size_t n) {\n"
+		"\tASSERT(tup);\n"
+		"\tASSERT(tup->size == n);\n"
 		"\tif (tup->refs == 1) {\n"
-		"\t\tfor (size_t i = n; i < tup->size; i++) {\n"
-		"\t\t\tdecref(tup->cells[i]);\n"
-		"\t\t}\n"
 		"\t\tfree(tup);\n"
 		"\t} else {\n"
 		"\t\tfor (size_t i = 0; i < n; i++) {\n"
 		"\t\t\tincref(tup->cells[i]);\n"
 		"\t\t}\n"
-		"\t\tif (!--tup->refs) free_value(MKTUP(tup,n));\n"
+		"\t\tif (!--tup->refs) tup_free(MKTUP(tup,n));\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"static TUPLEN tup_len_ (TUP* tup) {\n"
+		"\tif (tup) {\n"
+		"\t\treturn tup->size;\n"
+		"\t} else {\n"
+		"\t\treturn 0;\n"
 		"\t}\n"
 		"}\n"
 		"\n"
@@ -48741,7 +48785,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }\n"
 		"static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }\n"
 		"static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }\n"
-		"static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && VTUPLEN(v) == n, v); return VTUP(v); }\n"
+		"static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && (VTUPLEN(v) == n), v); return VTUP(v); }\n"
 		"\n"
 		"static void push_value (VAL x) { ASSERT(stack_counter > 0); stack[--stack_counter] = x; }\n"
 		"static void push_resource (VAL x) { ASSERT(rstack_counter > 0); rstack[--rstack_counter] = x; }\n"
@@ -48759,21 +48803,50 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\treturn new_tup;\n"
 		"}\n"
 		"\n"
-		"static TUP* tup_pack (TUPLEN count, VAL const* vals) {\n"
-		"\tTUP* tup = tup_new(count);\n"
-		"\ttup->size = count;\n"
-		"\tfor (TUPLEN i = 0; i < count; i++) {\n"
-		"\t\ttup->cells[i] = vals[i];\n"
-		"\t}\n"
+		"static TUP* tup_pack1 (VAL v1) {\n"
+		"\tTUP* tup = tup_new(1);\n"
+		"\tASSERT(tup); ASSERT(tup->cap >= 1);\n"
+		"\ttup->size = 1;\n"
+		"\ttup->cells[0] = v1;\n"
 		"\treturn tup;\n"
 		"}\n"
-		"\n"
-		"static void tup_unpack (TUP* tup, TUPLEN count, VAL* const* vals) {\n"
-		"\tASSERT(tup); ASSERT(tup->size == count);\n"
-		"\tfor (TUPLEN i = 0; i < count; i++) {\n"
-		"\t\tif(vals[i]) *vals[i] = tup->cells[i];\n"
-		"\t}\n"
-		"\ttup_decref_outer(tup, count);\n"
+		"static TUP* tup_pack2 (VAL v1, VAL v2) {\n"
+		"\tTUP* tup = tup_new(2);\n"
+		"\tASSERT(tup); ASSERT(tup->cap >= 2);\n"
+		"\ttup->size = 2;\n"
+		"\ttup->cells[0] = v1;\n"
+		"\ttup->cells[1] = v2;\n"
+		"\treturn tup;\n"
+		"}\n"
+		"static TUP* tup_pack3 (VAL v1, VAL v2, VAL v3) {\n"
+		"\tTUP* tup = tup_new(3);\n"
+		"\tASSERT(tup); ASSERT(tup->cap >= 3);\n"
+		"\ttup->size = 3;\n"
+		"\ttup->cells[0] = v1;\n"
+		"\ttup->cells[1] = v2;\n"
+		"\ttup->cells[2] = v3;\n"
+		"\treturn tup;\n"
+		"}\n"
+		"static TUP* tup_pack4 (VAL v1, VAL v2, VAL v3, VAL v4) {\n"
+		"\tTUP* tup = tup_new(4);\n"
+		"\tASSERT(tup); ASSERT(tup->cap >= 4);\n"
+		"\ttup->size = 4;\n"
+		"\ttup->cells[0] = v1;\n"
+		"\ttup->cells[1] = v2;\n"
+		"\ttup->cells[2] = v3;\n"
+		"\ttup->cells[3] = v4;\n"
+		"\treturn tup;\n"
+		"}\n"
+		"static TUP* tup_pack5 (VAL v1, VAL v2, VAL v3, VAL v4, VAL v5) {\n"
+		"\tTUP* tup = tup_new(5);\n"
+		"\tASSERT(tup); ASSERT(tup->cap >= 5);\n"
+		"\ttup->size = 5;\n"
+		"\ttup->cells[0] = v1;\n"
+		"\ttup->cells[1] = v2;\n"
+		"\ttup->cells[2] = v3;\n"
+		"\ttup->cells[3] = v4;\n"
+		"\ttup->cells[4] = v5;\n"
+		"\treturn tup;\n"
 		"}\n"
 		"\n"
 		"static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {\n"
@@ -49218,7 +49291,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		21388
+		22039
 	);
 	return MKSTR(v2);
 }
@@ -49307,7 +49380,7 @@ static void mw_mirth_c99_c99Z_bufferZBang (uint64_t in_Buffer_1, VAL in_ZPlusC99
 	*out_ZPlusC99_3 = v17;
 }
 static void mw_mirth_c99_c99Z_bufferZ_callZBang (uint64_t in_Buffer_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3) {
-	VAL v4 = MKI64(14LL /* C99RT_PTR */);
+	VAL v4 = MKI64(15LL /* C99RT_PTR */);
 	incref(v4);
 	int64_t v5 = get_data_tag(v4);
 	decref(v4);
@@ -49424,7 +49497,7 @@ static void mw_mirth_c99_c99Z_variableZBang (uint64_t in_Variable_1, VAL in_ZPlu
 	*out_ZPlusC99_3 = v12;
 }
 static void mw_mirth_c99_c99Z_variableZ_callZBang (uint64_t in_Variable_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3) {
-	VAL v4 = MKI64(14LL /* C99RT_PTR */);
+	VAL v4 = MKI64(15LL /* C99RT_PTR */);
 	incref(v4);
 	int64_t v5 = get_data_tag(v4);
 	decref(v4);
@@ -49546,7 +49619,7 @@ static void mw_mirth_c99_c99Z_tagZ_defZBang (uint64_t in_Tag_1, VAL in_ZPlusC99_
 			VAL v14;
 			VAL v15 = mw_mirth_data_Tag_wordZ_c99Z_api(in_Tag_1, in_ZPlusC99_2, &v14);
 			VAL v16;
-			VAL v17 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp87(v15, v14, &v16);
+			VAL v17 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp88(v15, v14, &v16);
 			int64_t v18 = value_i64(VTUP(v16)->cells[2]);
 			int64_t v19 = 1LL;
 			int64_t v20 = i64_add(v18, v19);
@@ -49589,7 +49662,7 @@ static void mw_mirth_c99_c99Z_tagZ_defZBang (uint64_t in_Tag_1, VAL in_ZPlusC99_
 			VAL v37;
 			VAL v38 = mw_mirth_data_Tag_patZ_c99Z_api(branch_Tag_12, branch_ZPlusC99_13, &v37);
 			VAL v39;
-			VAL v40 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp87(v38, v37, &v39);
+			VAL v40 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp88(v38, v37, &v39);
 			int64_t v41 = value_i64(VTUP(v39)->cells[2]);
 			int64_t v42 = 1LL;
 			int64_t v43 = i64_add(v41, v42);
@@ -49741,7 +49814,7 @@ static void mw_mirth_c99_c99Z_tagZ_bodyZBang (uint64_t in_Tag_1, VAL in_ZPlusC99
 				VAL branch_Str_58;
 				VAL branch_Str_59;
 				if (((bool)v54)) {
-					VAL v60 = MKI64(3LL /* C99RT_I64 */);
+					VAL v60 = MKI64(4LL /* C99RT_I64 */);
 					STR* v61;
 					STRLIT(v61, "", 0);
 					STR* v62;
@@ -50104,7 +50177,7 @@ static void mw_mirth_c99_c99Z_tagZ_bodyZBang (uint64_t in_Tag_1, VAL in_ZPlusC99
 							VAL v244;
 							int64_t v245;
 							VAL v246;
-							mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp29(branch_Str_235, branch_Nat_232, branch_Str_233, branch_ZPlusC99Branch_234, &v244, &v245, &v246);
+							mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp30(branch_Str_235, branch_Nat_232, branch_Str_233, branch_ZPlusC99Branch_234, &v244, &v245, &v246);
 							int64_t v247 = 1LL;
 							int64_t v248 = i64_sub(v245, v247);
 							int64_t v249 = 0LL;
@@ -50165,7 +50238,7 @@ static void mw_mirth_c99_c99Z_tagZ_bodyZBang (uint64_t in_Tag_1, VAL in_ZPlusC99
 					VAL v272;
 					int64_t v273;
 					VAL v274;
-					mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp29(v271, v264, v265, v269, &v272, &v273, &v274);
+					mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp30(v271, v264, v265, v269, &v272, &v273, &v274);
 					int64_t v275 = 1LL;
 					int64_t v276 = i64_sub(v273, v275);
 					int64_t v277 = 0LL;
@@ -50217,7 +50290,7 @@ static void mw_mirth_c99_c99Z_tagZ_bodyZBang (uint64_t in_Tag_1, VAL in_ZPlusC99
 					VAL v305;
 					int64_t v306;
 					VAL v307;
-					mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp29(v304, v297, v298, v302, &v305, &v306, &v307);
+					mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp30(v304, v297, v298, v302, &v305, &v306, &v307);
 					int64_t v308 = 1LL;
 					int64_t v309 = i64_sub(v306, v308);
 					int64_t v310 = 0LL;
@@ -51031,7 +51104,7 @@ static void mw_mirth_c99_c99Z_tagZ_getZ_labelZBang (VAL in_TagField_1, VAL in_ZP
 			case 1LL: { // Right
 				VAL v32 = mtp_std_either_Either_2_Right(v6);
 				decref(v32);
-				VAL v33 = MKI64(3LL /* C99RT_I64 */);
+				VAL v33 = MKI64(4LL /* C99RT_I64 */);
 				incref(v33);
 				int64_t v34 = get_data_tag(v33);
 				decref(v33);
@@ -51401,7 +51474,7 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (VAL in_TagField_1, VAL in_ZP
 			} break;
 			case 1LL: { // Right
 				VAL v35 = mtp_std_either_Either_2_Right(v6);
-				VAL v36 = MKI64(3LL /* C99RT_I64 */);
+				VAL v36 = MKI64(4LL /* C99RT_I64 */);
 				VAL v37;
 				VAL v38;
 				mw_mirth_c99_ZPlusC99Branch_popZ_resourceZBang(v7, v36, &v37, &v38);
@@ -52191,7 +52264,7 @@ static void mw_mirth_c99_c99Z_externalZ_defZBang (uint64_t in_External_1, VAL in
 	VAL v116;
 	VAL v117 = mw_mirth_external_External_c99Z_api(branch_External_80, v115, &v116);
 	VAL v118;
-	VAL v119 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp87(v117, v116, &v118);
+	VAL v119 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp88(v117, v116, &v118);
 	int64_t v120 = value_i64(VTUP(v118)->cells[2]);
 	int64_t v121 = 1LL;
 	int64_t v122 = i64_add(v120, v121);
@@ -52452,159 +52525,113 @@ static void mw_mirth_c99_c99Z_externalZ_defZBang (uint64_t in_External_1, VAL in
 	decref(v210);
 	VAL v241 = mw_std_list_List_1_reverse(v209);
 	VAL v242;
-	VAL v243 = mw_std_list_List_1_uncons(v241, &v242);
+	mw_std_list_List_1_for_2_sp1(v208, v241, &v242);
+	STR* v243;
+	STRLIT(v243, ");", 2);
 	VAL v244;
-	mw_std_maybe_Maybe_1_for_1_sp3(v208, v243, &v244);
-	int64_t v245 = 1LL /* True */;
-	VAL v246 = v244;
-	VAL v247 = v242;
-	int64_t v248 = v245;
-	int64_t v249 = v245;
-	while (((bool)v249)) {
-		VAL v250 = v246;
-		VAL v251 = v247;
-		int64_t v252 = v248;
-		VAL branch_ZPlusC99_253;
-		VAL branch_List_254;
-		int64_t branch_Bool_255;
-		switch (get_data_tag(v251)) {
-			case 1LL: { // Cons
-				VAL v256;
-				VAL v257 = mtp_std_list_List_1_Cons(v251, &v256);
-				STR* v258;
-				STRLIT(v258, ", ", 2);
-				VAL v259;
-				mw_mirth_c99_ZPlusC99_put(MKSTR(v258), v250, &v259);
-				VAL v260;
-				mw_mirth_c99_ZPlusC99_put(v257, v259, &v260);
-				int64_t v261 = 1LL /* True */;
-				branch_Bool_255 = v261;
-				branch_List_254 = v256;
-				branch_ZPlusC99_253 = v260;
-			} break;
-			case 0LL: { // Nil
-				VAL v262 = MKI64(0LL /* Nil */);
-				int64_t v263 = 0LL /* False */;
-				branch_Bool_255 = v263;
-				branch_List_254 = v262;
-				branch_ZPlusC99_253 = v250;
-			} break;
-			default: {
-				do_panic(str_make("unexpected fallthrough in match\n", 32));
-			}
-		}
-		v249 = branch_Bool_255;
-		v248 = branch_Bool_255;
-		v247 = branch_List_254;
-		v246 = branch_ZPlusC99_253;
-	}
-	decref(v247);
-	STR* v264;
-	STRLIT(v264, ");", 2);
-	VAL v265;
-	mw_mirth_c99_ZPlusC99_put(MKSTR(v264), v246, &v265);
-	VAL v266;
-	mw_mirth_c99_ZPlusC99_line(v265, &v266);
-	VTUP(v266)->cells[4] = MKI64(v187);
-	VTUP(v130)->cells[1] = v266;
+	mw_mirth_c99_ZPlusC99_put(MKSTR(v243), v242, &v244);
+	VAL v245;
+	mw_mirth_c99_ZPlusC99_line(v244, &v245);
+	VTUP(v245)->cells[4] = MKI64(v187);
+	VTUP(v130)->cells[1] = v245;
 	incref(branch_CTypeArrow_81);
-	VAL v267 = VTUP(branch_CTypeArrow_81)->cells[2];
-	incref(v267);
+	VAL v246 = VTUP(branch_CTypeArrow_81)->cells[2];
+	incref(v246);
 	decref(branch_CTypeArrow_81);
-	VAL v268 = VTUP(v267)->cells[2];
-	incref(v268);
-	decref(v267);
-	int64_t v269 = 1LL /* True */;
-	VAL v270 = v130;
-	VAL v271 = v268;
-	int64_t v272 = v269;
-	int64_t v273 = v269;
-	while (((bool)v273)) {
-		VAL v274 = v270;
-		VAL v275 = v271;
-		int64_t v276 = v272;
-		VAL branch_ZPlusC99Branch_277;
-		VAL branch_List_278;
-		int64_t branch_Bool_279;
-		switch (get_data_tag(v275)) {
+	VAL v247 = VTUP(v246)->cells[2];
+	incref(v247);
+	decref(v246);
+	int64_t v248 = 1LL /* True */;
+	VAL v249 = v130;
+	VAL v250 = v247;
+	int64_t v251 = v248;
+	int64_t v252 = v248;
+	while (((bool)v252)) {
+		VAL v253 = v249;
+		VAL v254 = v250;
+		int64_t v255 = v251;
+		VAL branch_ZPlusC99Branch_256;
+		VAL branch_List_257;
+		int64_t branch_Bool_258;
+		switch (get_data_tag(v254)) {
 			case 1LL: { // Cons
-				VAL v280;
-				VAL v281 = mtp_std_list_List_1_Cons(v275, &v280);
-				incref(v281);
-				incref(v281);
-				VAL v282 = mw_mirth_type_CTypeStackPart_ctype(v281);
-				int64_t v283 = mw_mirth_type_CType_phantomZAsk(v282);
-				VAL branch__284;
-				if (((bool)v283)) {
-					decref(v281);
-					STR* v285;
-					STRLIT(v285, "0", 1);
-					branch__284 = MKSTR(v285);
+				VAL v259;
+				VAL v260 = mtp_std_list_List_1_Cons(v254, &v259);
+				incref(v260);
+				incref(v260);
+				VAL v261 = mw_mirth_type_CTypeStackPart_ctype(v260);
+				int64_t v262 = mw_mirth_type_CType_phantomZAsk(v261);
+				VAL branch__263;
+				if (((bool)v262)) {
+					decref(v260);
+					STR* v264;
+					STRLIT(v264, "0", 1);
+					branch__263 = MKSTR(v264);
 				} else {
-					VAL v286 = mw_mirth_type_CTypeStackPart_labelZAsk(v281);
-					VAL branch_Str_287;
-					switch (get_data_tag(v286)) {
+					VAL v265 = mw_mirth_type_CTypeStackPart_labelZAsk(v260);
+					VAL branch_Str_266;
+					switch (get_data_tag(v265)) {
 						case 1LL: { // Some
-							VAL v288 = mtp_std_maybe_Maybe_1_Some(v286);
-							uint64_t v289 = mw_mirth_label_Label_name(value_u64(v288));
-							VAL v290 = mw_mirth_name_Name_mangled(v289);
-							branch_Str_287 = v290;
+							VAL v267 = mtp_std_maybe_Maybe_1_Some(v265);
+							uint64_t v268 = mw_mirth_label_Label_name(value_u64(v267));
+							VAL v269 = mw_mirth_name_Name_mangled(v268);
+							branch_Str_266 = v269;
 						} break;
 						case 0LL: { // None
-							STR* v291;
-							STRLIT(v291, "Y", 1);
-							branch_Str_287 = MKSTR(v291);
+							STR* v270;
+							STRLIT(v270, "Y", 1);
+							branch_Str_266 = MKSTR(v270);
 						} break;
 						default: {
 							do_panic(str_make("unexpected fallthrough in match\n", 32));
 						}
 					}
-					branch__284 = branch_Str_287;
+					branch__263 = branch_Str_266;
 				}
-				VAL v292;
-				mw_mirth_type_CTypeStackPart_c99Z_push(branch__284, v281, v274, &v292);
-				int64_t v293 = 1LL /* True */;
-				branch_Bool_279 = v293;
-				branch_List_278 = v280;
-				branch_ZPlusC99Branch_277 = v292;
+				VAL v271;
+				mw_mirth_type_CTypeStackPart_c99Z_push(branch__263, v260, v253, &v271);
+				int64_t v272 = 1LL /* True */;
+				branch_Bool_258 = v272;
+				branch_List_257 = v259;
+				branch_ZPlusC99Branch_256 = v271;
 			} break;
 			case 0LL: { // Nil
-				VAL v294 = MKI64(0LL /* Nil */);
-				int64_t v295 = 0LL /* False */;
-				branch_Bool_279 = v295;
-				branch_List_278 = v294;
-				branch_ZPlusC99Branch_277 = v274;
+				VAL v273 = MKI64(0LL /* Nil */);
+				int64_t v274 = 0LL /* False */;
+				branch_Bool_258 = v274;
+				branch_List_257 = v273;
+				branch_ZPlusC99Branch_256 = v253;
 			} break;
 			default: {
 				do_panic(str_make("unexpected fallthrough in match\n", 32));
 			}
 		}
-		v273 = branch_Bool_279;
-		v272 = branch_Bool_279;
-		v271 = branch_List_278;
-		v270 = branch_ZPlusC99Branch_277;
+		v252 = branch_Bool_258;
+		v251 = branch_Bool_258;
+		v250 = branch_List_257;
+		v249 = branch_ZPlusC99Branch_256;
 	}
-	decref(v271);
-	VAL v296;
-	mw_mirth_c99_c99Z_apiZ_exitZBang(v119, v270, &v296);
-	int64_t v297 = value_i64(VTUP(v296)->cells[2]);
-	int64_t v298 = 1LL;
-	int64_t v299 = i64_sub(v297, v298);
-	int64_t v300 = 0LL;
-	bool v301 = (v299 < v300);
-	int64_t branch_Nat_302;
-	if (v301) {
-		int64_t v303 = 0LL;
-		branch_Nat_302 = v303;
+	decref(v250);
+	VAL v275;
+	mw_mirth_c99_c99Z_apiZ_exitZBang(v119, v249, &v275);
+	int64_t v276 = value_i64(VTUP(v275)->cells[2]);
+	int64_t v277 = 1LL;
+	int64_t v278 = i64_sub(v276, v277);
+	int64_t v279 = 0LL;
+	bool v280 = (v278 < v279);
+	int64_t branch_Nat_281;
+	if (v280) {
+		int64_t v282 = 0LL;
+		branch_Nat_281 = v282;
 	} else {
-		branch_Nat_302 = v299;
+		branch_Nat_281 = v278;
 	}
-	VTUP(v296)->cells[2] = MKI64(branch_Nat_302);
-	VAL v304;
-	mw_mirth_c99_ZPlusC99_c99Z_line_1_sp2(v296, &v304);
+	VTUP(v275)->cells[2] = MKI64(branch_Nat_281);
+	VAL v283;
+	mw_mirth_c99_ZPlusC99_c99Z_line_1_sp2(v275, &v283);
 	decref(branch_Maybe_79);
 	decref(branch_CTypeArrow_81);
-	*out_ZPlusC99_3 = v304;
+	*out_ZPlusC99_3 = v283;
 }
 static VAL mw_mirth_type_CTypeStackPart_c99Z_argZ_name (int64_t in_Nat_1, VAL in_CTypeStackPart_2, VAL in_ZPlusC99_3, int64_t *out_Nat_4, VAL *out_ZPlusC99_6) {
 	VAL v7 = mw_mirth_type_CTypeStackPart_labelZAsk(in_CTypeStackPart_2);
@@ -52645,35 +52672,35 @@ static VAL mw_mirth_type_CType_ZToC99ReprType (VAL in_CType_1) {
 		case 0LL: { // IntLike
 			VAL v4 = mtp_mirth_type_CType_IntLike(in_CType_1);
 			decref(v4);
-			VAL v5 = MKI64(3LL /* C99RT_I64 */);
+			VAL v5 = MKI64(4LL /* C99RT_I64 */);
 			branch_C99ReprType_3 = v5;
 		} break;
 		case 1LL: { // F32Like
 			VAL v6 = mtp_mirth_type_CType_F32Like(in_CType_1);
 			decref(v6);
-			VAL v7 = MKI64(12LL /* C99RT_F32 */);
+			VAL v7 = MKI64(13LL /* C99RT_F32 */);
 			branch_C99ReprType_3 = v7;
 		} break;
 		case 2LL: { // F64Like
 			VAL v8 = mtp_mirth_type_CType_F64Like(in_CType_1);
 			decref(v8);
-			VAL v9 = MKI64(11LL /* C99RT_F64 */);
+			VAL v9 = MKI64(12LL /* C99RT_F64 */);
 			branch_C99ReprType_3 = v9;
 		} break;
 		case 3LL: { // PtrLike
 			VAL v10 = mtp_mirth_type_CType_PtrLike(in_CType_1);
 			decref(v10);
-			VAL v11 = MKI64(14LL /* C99RT_PTR */);
+			VAL v11 = MKI64(15LL /* C99RT_PTR */);
 			branch_C99ReprType_3 = v11;
 		} break;
 		case 4LL: { // FnPtr
 			VAL v12 = mtp_mirth_type_CType_FnPtr(in_CType_1);
 			decref(v12);
-			VAL v13 = MKI64(15LL /* C99RT_FNPTR */);
+			VAL v13 = MKI64(16LL /* C99RT_FNPTR */);
 			branch_C99ReprType_3 = v13;
 		} break;
 		case 5LL: { // Phantom
-			VAL v14 = MKI64(3LL /* C99RT_I64 */);
+			VAL v14 = MKI64(4LL /* C99RT_I64 */);
 			branch_C99ReprType_3 = v14;
 		} break;
 		default: {
@@ -55202,7 +55229,7 @@ static void mw_mirth_c99_c99Z_getZ_consZ_valueZBang (uint64_t in_Data_1, VAL in_
 		switch (get_data_tag(v12)) {
 			case 1LL: { // Some
 				VAL v16 = mtp_std_maybe_Maybe_1_Some(v12);
-				VAL v17 = MKI64(3LL /* C99RT_I64 */);
+				VAL v17 = MKI64(4LL /* C99RT_I64 */);
 				incref(v17);
 				int64_t v18 = get_data_tag(v17);
 				decref(v17);
@@ -55291,7 +55318,7 @@ static void mw_mirth_c99_c99Z_getZ_consZ_valueZBang (uint64_t in_Data_1, VAL in_
 				switch (get_data_tag(v56)) {
 					case 1LL: { // Some
 						VAL v59 = mtp_std_maybe_Maybe_1_Some(v56);
-						VAL v60 = MKI64(3LL /* C99RT_I64 */);
+						VAL v60 = MKI64(4LL /* C99RT_I64 */);
 						incref(v60);
 						int64_t v61 = get_data_tag(v60);
 						decref(v60);
@@ -55370,7 +55397,7 @@ static void mw_mirth_c99_c99Z_getZ_consZ_valueZBang (uint64_t in_Data_1, VAL in_
 						branch_ZPlusC99Value_57 = v11;
 					} break;
 					case 0LL: { // None
-						VAL v97 = MKI64(3LL /* C99RT_I64 */);
+						VAL v97 = MKI64(4LL /* C99RT_I64 */);
 						incref(v97);
 						int64_t v98 = get_data_tag(v97);
 						decref(v97);
@@ -55812,7 +55839,7 @@ static void mw_mirth_c99_c99Z_labelZ_popZ_rZBang (VAL in_Atom_1, uint64_t in_Lab
 	*out_ZPlusC99Branch_4 = v9;
 }
 static void mw_mirth_c99_c99Z_intZBang (int64_t in_Int_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3) {
-	VAL v4 = MKI64(3LL /* C99RT_I64 */);
+	VAL v4 = MKI64(4LL /* C99RT_I64 */);
 	incref(v4);
 	int64_t v5 = get_data_tag(v4);
 	decref(v4);
@@ -55887,7 +55914,7 @@ static void mw_mirth_c99_c99Z_intZBang (int64_t in_Int_1, VAL in_ZPlusC99Branch_
 	*out_ZPlusC99Branch_3 = v38;
 }
 static void mw_mirth_c99_c99Z_f64ZBang (double in_F64_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3) {
-	VAL v4 = MKI64(11LL /* C99RT_F64 */);
+	VAL v4 = MKI64(12LL /* C99RT_F64 */);
 	incref(v4);
 	int64_t v5 = get_data_tag(v4);
 	decref(v4);
@@ -56371,11 +56398,11 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (int64_t in_Byte_1, int64_t in_B
 static int64_t mw_mirth_c99_C99ReprType_ZEqualZEqual (VAL in_C99ReprType_1, VAL in_C99ReprType_2) {
 	int64_t branch_Bool_4;
 	switch (get_data_tag(in_C99ReprType_2)) {
-		case 16LL: { // C99RT_TUP
+		case 3LL: { // C99RT_TUP
 			int64_t v5 = mtp_mirth_c99_C99ReprType_C99RTz_TUP(in_C99ReprType_2);
 			int64_t branch_Bool_6;
 			switch (get_data_tag(in_C99ReprType_1)) {
-				case 16LL: { // C99RT_TUP
+				case 3LL: { // C99RT_TUP
 					int64_t v7 = mtp_mirth_c99_C99ReprType_C99RTz_TUP(in_C99ReprType_1);
 					bool v8 = (v5 == v7);
 					branch_Bool_6 = ((int64_t)v8);
@@ -56410,50 +56437,109 @@ static int64_t mw_mirth_c99_C99ReprType_needsZ_refcountingZAsk (VAL in_C99ReprTy
 			int64_t v5 = 1LL /* True */;
 			branch_Bool_3 = v5;
 		} break;
-		default: {
-			decref(in_C99ReprType_1);
-			int64_t v6 = 0LL /* False */;
-			branch_Bool_3 = v6;
+		case 3LL: { // C99RT_TUP
+			int64_t v6 = mtp_mirth_c99_C99ReprType_C99RTz_TUP(in_C99ReprType_1);
+			int64_t v7 = 1LL /* True */;
+			branch_Bool_3 = v7;
 		} break;
+		case 0LL: { // C99RT_UNIT
+			int64_t v8 = 0LL /* False */;
+			branch_Bool_3 = v8;
+		} break;
+		case 4LL: { // C99RT_I64
+			int64_t v9 = 0LL /* False */;
+			branch_Bool_3 = v9;
+		} break;
+		case 5LL: { // C99RT_I32
+			int64_t v10 = 0LL /* False */;
+			branch_Bool_3 = v10;
+		} break;
+		case 6LL: { // C99RT_I16
+			int64_t v11 = 0LL /* False */;
+			branch_Bool_3 = v11;
+		} break;
+		case 7LL: { // C99RT_I8
+			int64_t v12 = 0LL /* False */;
+			branch_Bool_3 = v12;
+		} break;
+		case 8LL: { // C99RT_U64
+			int64_t v13 = 0LL /* False */;
+			branch_Bool_3 = v13;
+		} break;
+		case 9LL: { // C99RT_U32
+			int64_t v14 = 0LL /* False */;
+			branch_Bool_3 = v14;
+		} break;
+		case 10LL: { // C99RT_U16
+			int64_t v15 = 0LL /* False */;
+			branch_Bool_3 = v15;
+		} break;
+		case 11LL: { // C99RT_U8
+			int64_t v16 = 0LL /* False */;
+			branch_Bool_3 = v16;
+		} break;
+		case 12LL: { // C99RT_F64
+			int64_t v17 = 0LL /* False */;
+			branch_Bool_3 = v17;
+		} break;
+		case 13LL: { // C99RT_F32
+			int64_t v18 = 0LL /* False */;
+			branch_Bool_3 = v18;
+		} break;
+		case 14LL: { // C99RT_BOOL
+			int64_t v19 = 0LL /* False */;
+			branch_Bool_3 = v19;
+		} break;
+		case 15LL: { // C99RT_PTR
+			int64_t v20 = 0LL /* False */;
+			branch_Bool_3 = v20;
+		} break;
+		case 16LL: { // C99RT_FNPTR
+			int64_t v21 = 0LL /* False */;
+			branch_Bool_3 = v21;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
 	}
 	return branch_Bool_3;
 }
 static int64_t mw_mirth_c99_C99ReprType_isZ_intZ_likeZAsk (VAL in_C99ReprType_1) {
 	int64_t branch_Bool_3;
 	switch (get_data_tag(in_C99ReprType_1)) {
-		case 3LL: { // C99RT_I64
+		case 4LL: { // C99RT_I64
 			int64_t v4 = 1LL /* True */;
 			branch_Bool_3 = v4;
 		} break;
-		case 4LL: { // C99RT_I32
+		case 5LL: { // C99RT_I32
 			int64_t v5 = 1LL /* True */;
 			branch_Bool_3 = v5;
 		} break;
-		case 5LL: { // C99RT_I16
+		case 6LL: { // C99RT_I16
 			int64_t v6 = 1LL /* True */;
 			branch_Bool_3 = v6;
 		} break;
-		case 6LL: { // C99RT_I8
+		case 7LL: { // C99RT_I8
 			int64_t v7 = 1LL /* True */;
 			branch_Bool_3 = v7;
 		} break;
-		case 7LL: { // C99RT_U64
+		case 8LL: { // C99RT_U64
 			int64_t v8 = 1LL /* True */;
 			branch_Bool_3 = v8;
 		} break;
-		case 8LL: { // C99RT_U32
+		case 9LL: { // C99RT_U32
 			int64_t v9 = 1LL /* True */;
 			branch_Bool_3 = v9;
 		} break;
-		case 9LL: { // C99RT_U16
+		case 10LL: { // C99RT_U16
 			int64_t v10 = 1LL /* True */;
 			branch_Bool_3 = v10;
 		} break;
-		case 10LL: { // C99RT_U8
+		case 11LL: { // C99RT_U8
 			int64_t v11 = 1LL /* True */;
 			branch_Bool_3 = v11;
 		} break;
-		case 13LL: { // C99RT_BOOL
+		case 14LL: { // C99RT_BOOL
 			int64_t v12 = 1LL /* True */;
 			branch_Bool_3 = v12;
 		} break;
@@ -56483,72 +56569,72 @@ static VAL mw_mirth_c99_C99ReprType_dummyZ_value (VAL in_C99ReprType_1) {
 			STRLIT(v6, "0", 1);
 			branch_Str_3 = MKSTR(v6);
 		} break;
-		case 3LL: { // C99RT_I64
+		case 4LL: { // C99RT_I64
 			STR* v7;
 			STRLIT(v7, "0", 1);
 			branch_Str_3 = MKSTR(v7);
 		} break;
-		case 4LL: { // C99RT_I32
+		case 5LL: { // C99RT_I32
 			STR* v8;
 			STRLIT(v8, "0", 1);
 			branch_Str_3 = MKSTR(v8);
 		} break;
-		case 5LL: { // C99RT_I16
+		case 6LL: { // C99RT_I16
 			STR* v9;
 			STRLIT(v9, "0", 1);
 			branch_Str_3 = MKSTR(v9);
 		} break;
-		case 6LL: { // C99RT_I8
+		case 7LL: { // C99RT_I8
 			STR* v10;
 			STRLIT(v10, "0", 1);
 			branch_Str_3 = MKSTR(v10);
 		} break;
-		case 7LL: { // C99RT_U64
+		case 8LL: { // C99RT_U64
 			STR* v11;
 			STRLIT(v11, "0", 1);
 			branch_Str_3 = MKSTR(v11);
 		} break;
-		case 8LL: { // C99RT_U32
+		case 9LL: { // C99RT_U32
 			STR* v12;
 			STRLIT(v12, "0", 1);
 			branch_Str_3 = MKSTR(v12);
 		} break;
-		case 9LL: { // C99RT_U16
+		case 10LL: { // C99RT_U16
 			STR* v13;
 			STRLIT(v13, "0", 1);
 			branch_Str_3 = MKSTR(v13);
 		} break;
-		case 10LL: { // C99RT_U8
+		case 11LL: { // C99RT_U8
 			STR* v14;
 			STRLIT(v14, "0", 1);
 			branch_Str_3 = MKSTR(v14);
 		} break;
-		case 11LL: { // C99RT_F64
+		case 12LL: { // C99RT_F64
 			STR* v15;
 			STRLIT(v15, "0.0", 3);
 			branch_Str_3 = MKSTR(v15);
 		} break;
-		case 12LL: { // C99RT_F32
+		case 13LL: { // C99RT_F32
 			STR* v16;
 			STRLIT(v16, "0.0", 3);
 			branch_Str_3 = MKSTR(v16);
 		} break;
-		case 13LL: { // C99RT_BOOL
+		case 14LL: { // C99RT_BOOL
 			STR* v17;
 			STRLIT(v17, "0", 1);
 			branch_Str_3 = MKSTR(v17);
 		} break;
-		case 14LL: { // C99RT_PTR
+		case 15LL: { // C99RT_PTR
 			STR* v18;
 			STRLIT(v18, "NULL", 4);
 			branch_Str_3 = MKSTR(v18);
 		} break;
-		case 15LL: { // C99RT_FNPTR
+		case 16LL: { // C99RT_FNPTR
 			STR* v19;
 			STRLIT(v19, "NULL", 4);
 			branch_Str_3 = MKSTR(v19);
 		} break;
-		case 16LL: { // C99RT_TUP
+		case 3LL: { // C99RT_TUP
 			int64_t v20 = mtp_mirth_c99_C99ReprType_C99RTz_TUP(in_C99ReprType_1);
 			STR* v21;
 			STRLIT(v21, "NULL", 4);
@@ -56578,72 +56664,72 @@ static VAL mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type (VAL in_C99ReprType_1)
 			STRLIT(v6, "int64_t", 7);
 			branch_Str_3 = MKSTR(v6);
 		} break;
-		case 3LL: { // C99RT_I64
+		case 4LL: { // C99RT_I64
 			STR* v7;
 			STRLIT(v7, "int64_t", 7);
 			branch_Str_3 = MKSTR(v7);
 		} break;
-		case 4LL: { // C99RT_I32
+		case 5LL: { // C99RT_I32
 			STR* v8;
 			STRLIT(v8, "int32_t", 7);
 			branch_Str_3 = MKSTR(v8);
 		} break;
-		case 5LL: { // C99RT_I16
+		case 6LL: { // C99RT_I16
 			STR* v9;
 			STRLIT(v9, "int16_t", 7);
 			branch_Str_3 = MKSTR(v9);
 		} break;
-		case 6LL: { // C99RT_I8
+		case 7LL: { // C99RT_I8
 			STR* v10;
 			STRLIT(v10, "int8_t", 6);
 			branch_Str_3 = MKSTR(v10);
 		} break;
-		case 7LL: { // C99RT_U64
+		case 8LL: { // C99RT_U64
 			STR* v11;
 			STRLIT(v11, "uint64_t", 8);
 			branch_Str_3 = MKSTR(v11);
 		} break;
-		case 8LL: { // C99RT_U32
+		case 9LL: { // C99RT_U32
 			STR* v12;
 			STRLIT(v12, "uint32_t", 8);
 			branch_Str_3 = MKSTR(v12);
 		} break;
-		case 9LL: { // C99RT_U16
+		case 10LL: { // C99RT_U16
 			STR* v13;
 			STRLIT(v13, "uint16_t", 8);
 			branch_Str_3 = MKSTR(v13);
 		} break;
-		case 10LL: { // C99RT_U8
+		case 11LL: { // C99RT_U8
 			STR* v14;
 			STRLIT(v14, "uint8_t", 7);
 			branch_Str_3 = MKSTR(v14);
 		} break;
-		case 11LL: { // C99RT_F64
+		case 12LL: { // C99RT_F64
 			STR* v15;
 			STRLIT(v15, "double", 6);
 			branch_Str_3 = MKSTR(v15);
 		} break;
-		case 12LL: { // C99RT_F32
+		case 13LL: { // C99RT_F32
 			STR* v16;
 			STRLIT(v16, "float", 5);
 			branch_Str_3 = MKSTR(v16);
 		} break;
-		case 13LL: { // C99RT_BOOL
+		case 14LL: { // C99RT_BOOL
 			STR* v17;
 			STRLIT(v17, "bool", 4);
 			branch_Str_3 = MKSTR(v17);
 		} break;
-		case 14LL: { // C99RT_PTR
+		case 15LL: { // C99RT_PTR
 			STR* v18;
 			STRLIT(v18, "void*", 5);
 			branch_Str_3 = MKSTR(v18);
 		} break;
-		case 15LL: { // C99RT_FNPTR
+		case 16LL: { // C99RT_FNPTR
 			STR* v19;
 			STRLIT(v19, "FNPTR", 5);
 			branch_Str_3 = MKSTR(v19);
 		} break;
-		case 16LL: { // C99RT_TUP
+		case 3LL: { // C99RT_TUP
 			int64_t v20 = mtp_mirth_c99_C99ReprType_C99RTz_TUP(in_C99ReprType_1);
 			STR* v21;
 			STRLIT(v21, "TUP*", 4);
@@ -56683,7 +56769,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v11);
 			branch_Str_4 = MKSTR(v10);
 		} break;
-		case 3LL: { // C99RT_I64
+		case 4LL: { // C99RT_I64
 			STR* v12;
 			STRLIT(v12, "value_i64(", 10);
 			STR* v13;
@@ -56691,7 +56777,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v13);
 			branch_Str_4 = MKSTR(v12);
 		} break;
-		case 4LL: { // C99RT_I32
+		case 5LL: { // C99RT_I32
 			STR* v14;
 			STRLIT(v14, "value_i32(", 10);
 			STR* v15;
@@ -56699,7 +56785,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v15);
 			branch_Str_4 = MKSTR(v14);
 		} break;
-		case 5LL: { // C99RT_I16
+		case 6LL: { // C99RT_I16
 			STR* v16;
 			STRLIT(v16, "value_i16(", 10);
 			STR* v17;
@@ -56707,7 +56793,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v17);
 			branch_Str_4 = MKSTR(v16);
 		} break;
-		case 6LL: { // C99RT_I8
+		case 7LL: { // C99RT_I8
 			STR* v18;
 			STRLIT(v18, "value_i8(", 9);
 			STR* v19;
@@ -56715,7 +56801,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v19);
 			branch_Str_4 = MKSTR(v18);
 		} break;
-		case 7LL: { // C99RT_U64
+		case 8LL: { // C99RT_U64
 			STR* v20;
 			STRLIT(v20, "value_u64(", 10);
 			STR* v21;
@@ -56723,7 +56809,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v21);
 			branch_Str_4 = MKSTR(v20);
 		} break;
-		case 8LL: { // C99RT_U32
+		case 9LL: { // C99RT_U32
 			STR* v22;
 			STRLIT(v22, "value_u32(", 10);
 			STR* v23;
@@ -56731,7 +56817,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v23);
 			branch_Str_4 = MKSTR(v22);
 		} break;
-		case 9LL: { // C99RT_U16
+		case 10LL: { // C99RT_U16
 			STR* v24;
 			STRLIT(v24, "value_u16(", 10);
 			STR* v25;
@@ -56739,7 +56825,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v25);
 			branch_Str_4 = MKSTR(v24);
 		} break;
-		case 10LL: { // C99RT_U8
+		case 11LL: { // C99RT_U8
 			STR* v26;
 			STRLIT(v26, "value_u8(", 9);
 			STR* v27;
@@ -56747,7 +56833,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v27);
 			branch_Str_4 = MKSTR(v26);
 		} break;
-		case 11LL: { // C99RT_F64
+		case 12LL: { // C99RT_F64
 			STR* v28;
 			STRLIT(v28, "value_f64(", 10);
 			STR* v29;
@@ -56755,7 +56841,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v29);
 			branch_Str_4 = MKSTR(v28);
 		} break;
-		case 12LL: { // C99RT_F32
+		case 13LL: { // C99RT_F32
 			STR* v30;
 			STRLIT(v30, "value_f32(", 10);
 			STR* v31;
@@ -56763,7 +56849,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v31);
 			branch_Str_4 = MKSTR(v30);
 		} break;
-		case 13LL: { // C99RT_BOOL
+		case 14LL: { // C99RT_BOOL
 			STR* v32;
 			STRLIT(v32, "value_bool(", 11);
 			STR* v33;
@@ -56771,7 +56857,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v33);
 			branch_Str_4 = MKSTR(v32);
 		} break;
-		case 14LL: { // C99RT_PTR
+		case 15LL: { // C99RT_PTR
 			STR* v34;
 			STRLIT(v34, "value_ptr(", 10);
 			STR* v35;
@@ -56779,7 +56865,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v35);
 			branch_Str_4 = MKSTR(v34);
 		} break;
-		case 15LL: { // C99RT_FNPTR
+		case 16LL: { // C99RT_FNPTR
 			STR* v36;
 			STRLIT(v36, "value_fnptr(", 12);
 			STR* v37;
@@ -56787,7 +56873,7 @@ static VAL mw_mirth_c99_C99ReprType_vZ_macroZ_prefixZ_suffix (VAL in_C99ReprType
 			branch_Str_5 = MKSTR(v37);
 			branch_Str_4 = MKSTR(v36);
 		} break;
-		case 16LL: { // C99RT_TUP
+		case 3LL: { // C99RT_TUP
 			int64_t v38 = mtp_mirth_c99_C99ReprType_C99RTz_TUP(in_C99ReprType_1);
 			STR* v39;
 			STRLIT(v39, "value_tup(", 10);
@@ -56839,11 +56925,11 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			VAL v11 = mw_std_str_Str_1_sp4(in_Str_1);
 			branch_Str_4 = v11;
 		} break;
-		case 3LL: { // C99RT_I64
+		case 4LL: { // C99RT_I64
 			VAL v12 = mw_std_str_Str_1_sp4(in_Str_1);
 			branch_Str_4 = v12;
 		} break;
-		case 4LL: { // C99RT_I32
+		case 5LL: { // C99RT_I32
 			STR* v13;
 			STRLIT(v13, "", 0);
 			STR* v14;
@@ -56858,7 +56944,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v17), v16, &v18);
 			branch_Str_4 = v18;
 		} break;
-		case 5LL: { // C99RT_I16
+		case 6LL: { // C99RT_I16
 			STR* v19;
 			STRLIT(v19, "", 0);
 			STR* v20;
@@ -56873,7 +56959,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v23), v22, &v24);
 			branch_Str_4 = v24;
 		} break;
-		case 6LL: { // C99RT_I8
+		case 7LL: { // C99RT_I8
 			STR* v25;
 			STRLIT(v25, "", 0);
 			STR* v26;
@@ -56888,7 +56974,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v29), v28, &v30);
 			branch_Str_4 = v30;
 		} break;
-		case 7LL: { // C99RT_U64
+		case 8LL: { // C99RT_U64
 			STR* v31;
 			STRLIT(v31, "", 0);
 			STR* v32;
@@ -56903,7 +56989,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v35), v34, &v36);
 			branch_Str_4 = v36;
 		} break;
-		case 8LL: { // C99RT_U32
+		case 9LL: { // C99RT_U32
 			STR* v37;
 			STRLIT(v37, "", 0);
 			STR* v38;
@@ -56918,7 +57004,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v41), v40, &v42);
 			branch_Str_4 = v42;
 		} break;
-		case 9LL: { // C99RT_U16
+		case 10LL: { // C99RT_U16
 			STR* v43;
 			STRLIT(v43, "", 0);
 			STR* v44;
@@ -56933,7 +57019,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v47), v46, &v48);
 			branch_Str_4 = v48;
 		} break;
-		case 10LL: { // C99RT_U8
+		case 11LL: { // C99RT_U8
 			STR* v49;
 			STRLIT(v49, "", 0);
 			STR* v50;
@@ -56948,7 +57034,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v53), v52, &v54);
 			branch_Str_4 = v54;
 		} break;
-		case 11LL: { // C99RT_F64
+		case 12LL: { // C99RT_F64
 			STR* v55;
 			STRLIT(v55, "", 0);
 			STR* v56;
@@ -56963,7 +57049,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v59), v58, &v60);
 			branch_Str_4 = v60;
 		} break;
-		case 12LL: { // C99RT_F32
+		case 13LL: { // C99RT_F32
 			STR* v61;
 			STRLIT(v61, "", 0);
 			STR* v62;
@@ -56978,7 +57064,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v65), v64, &v66);
 			branch_Str_4 = v66;
 		} break;
-		case 13LL: { // C99RT_BOOL
+		case 14LL: { // C99RT_BOOL
 			STR* v67;
 			STRLIT(v67, "", 0);
 			STR* v68;
@@ -56993,7 +57079,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v71), v70, &v72);
 			branch_Str_4 = v72;
 		} break;
-		case 14LL: { // C99RT_PTR
+		case 15LL: { // C99RT_PTR
 			STR* v73;
 			STRLIT(v73, "", 0);
 			STR* v74;
@@ -57008,7 +57094,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v77), v76, &v78);
 			branch_Str_4 = v78;
 		} break;
-		case 15LL: { // C99RT_FNPTR
+		case 16LL: { // C99RT_FNPTR
 			STR* v79;
 			STRLIT(v79, "", 0);
 			STR* v80;
@@ -57023,7 +57109,7 @@ static VAL mw_mirth_c99_C99ReprType_mkZ_macro (VAL in_Str_1, VAL in_C99ReprType_
 			mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v83), v82, &v84);
 			branch_Str_4 = v84;
 		} break;
-		case 16LL: { // C99RT_TUP
+		case 3LL: { // C99RT_TUP
 			int64_t v85 = mtp_mirth_c99_C99ReprType_C99RTz_TUP(in_C99ReprType_2);
 			STR* v86;
 			STRLIT(v86, "", 0);
@@ -57123,7 +57209,7 @@ static VAL mw_mirth_type_Type_c99Z_repr (VAL in_Type_1, VAL in_ZPlusMirth_2, VAL
 		} break;
 		case 6LL: { // TTable
 			uint64_t v26 = mtp_mirth_type_Type_TTable(in_Type_1);
-			VAL v27 = MKI64(7LL /* C99RT_U64 */);
+			VAL v27 = MKI64(8LL /* C99RT_U64 */);
 			branch_ZPlusMirth_6 = in_ZPlusMirth_2;
 			branch_C99ReprType_5 = v27;
 		} break;
@@ -57152,8 +57238,7 @@ static VAL mw_mirth_type_Type_c99Z_repr (VAL in_Type_1, VAL in_ZPlusMirth_2, VAL
 		} break;
 		case 9LL: { // TTensor
 			VAL v37 = mtp_mirth_type_Type_TTensor(in_Type_1);
-			decref(v37);
-			VAL v38 = MKI64(1LL /* C99RT_VAL */);
+			VAL v38 = mw_mirth_type_StackType_tupleZ_c99Z_repr(v37);
 			branch_ZPlusMirth_6 = in_ZPlusMirth_2;
 			branch_C99ReprType_5 = v38;
 		} break;
@@ -57169,7 +57254,7 @@ static VAL mw_mirth_type_Type_c99Z_repr (VAL in_Type_1, VAL in_ZPlusMirth_2, VAL
 		case 12LL: { // TMut
 			VAL v43 = mtp_mirth_type_Type_TMut(in_Type_1);
 			decref(v43);
-			VAL v44 = MKI64(14LL /* C99RT_PTR */);
+			VAL v44 = MKI64(15LL /* C99RT_PTR */);
 			branch_ZPlusMirth_6 = in_ZPlusMirth_2;
 			branch_C99ReprType_5 = v44;
 		} break;
@@ -57185,6 +57270,34 @@ static VAL mw_mirth_type_Type_c99Z_repr (VAL in_Type_1, VAL in_ZPlusMirth_2, VAL
 		}
 	}
 	*out_ZPlusMirth_4 = branch_ZPlusMirth_6;
+	return branch_C99ReprType_5;
+}
+static VAL mw_mirth_type_StackType_tupleZ_c99Z_repr (VAL in_StackType_1) {
+	VAL v3;
+	VAL v4 = mw_mirth_type_StackType_splitZ_parts(in_StackType_1, &v3);
+	VAL branch_C99ReprType_5;
+	switch (get_data_tag(v4)) {
+		case 2LL: { // STB_UNIT
+			int64_t v6 = mw_std_list_List_1_len(v3);
+			int64_t v7 = 0LL;
+			bool v8 = (v6 == v7);
+			VAL branch_C99ReprType_9;
+			if (v8) {
+				VAL v10 = MKI64(0LL /* C99RT_UNIT */);
+				branch_C99ReprType_9 = v10;
+			} else {
+				VAL v11 = mtw_mirth_c99_C99ReprType_C99RTz_TUP(v6);
+				branch_C99ReprType_9 = v11;
+			}
+			branch_C99ReprType_5 = branch_C99ReprType_9;
+		} break;
+		default: {
+			decref(v4);
+			decref(v3);
+			VAL v12 = MKI64(1LL /* C99RT_VAL */);
+			branch_C99ReprType_5 = v12;
+		} break;
+	}
 	return branch_C99ReprType_5;
 }
 static VAL mw_mirth_type_PrimType_c99Z_repr (int64_t in_PrimType_1) {
@@ -57203,15 +57316,15 @@ static VAL mw_mirth_type_PrimType_c99Z_repr (int64_t in_PrimType_1) {
 			branch_C99ReprType_3 = v6;
 		} break;
 		case 3LL: { // PRIM_TYPE_INT
-			VAL v7 = MKI64(3LL /* C99RT_I64 */);
+			VAL v7 = MKI64(4LL /* C99RT_I64 */);
 			branch_C99ReprType_3 = v7;
 		} break;
 		case 4LL: { // PRIM_TYPE_F32
-			VAL v8 = MKI64(12LL /* C99RT_F32 */);
+			VAL v8 = MKI64(13LL /* C99RT_F32 */);
 			branch_C99ReprType_3 = v8;
 		} break;
 		case 5LL: { // PRIM_TYPE_F64
-			VAL v9 = MKI64(11LL /* C99RT_F64 */);
+			VAL v9 = MKI64(12LL /* C99RT_F64 */);
 			branch_C99ReprType_3 = v9;
 		} break;
 		case 7LL: { // PRIM_TYPE_STR
@@ -57219,7 +57332,7 @@ static VAL mw_mirth_type_PrimType_c99Z_repr (int64_t in_PrimType_1) {
 			branch_C99ReprType_3 = v10;
 		} break;
 		case 6LL: { // PRIM_TYPE_PTR
-			VAL v11 = MKI64(14LL /* C99RT_PTR */);
+			VAL v11 = MKI64(15LL /* C99RT_PTR */);
 			branch_C99ReprType_3 = v11;
 		} break;
 		case 8LL: { // PRIM_TYPE_WORLD
@@ -57252,7 +57365,7 @@ static VAL mw_mirth_data_Data_c99Z_repr (uint64_t in_Data_1, VAL in_ZPlusMirth_2
 		uint64_t branch_Data_15;
 		VAL branch_C99ReprType_16;
 		if (((bool)v13)) {
-			VAL v17 = MKI64(3LL /* C99RT_I64 */);
+			VAL v17 = MKI64(4LL /* C99RT_I64 */);
 			branch_C99ReprType_16 = v17;
 			branch_Data_15 = in_Data_1;
 			branch_ZPlusMirth_14 = in_ZPlusMirth_2;
@@ -59646,7 +59759,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			VAL v83 = value_tup(branch_z_x1_76, 2)->cells[0];
 			VAL v84 = value_tup(branch_z_x1_76, 2)->cells[1];
 			tup_decref_outer(value_tup(branch_z_x1_76, 2), 2);
-			VAL v85 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v85 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v86;
 			VAL v87;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(branch_ZPlusC99Branch_74, v85, &v86, &v87);
@@ -59670,7 +59783,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STRLIT(v97, "if (", 4);
 			VAL v98;
 			mw_mirth_c99_ZPlusC99_put(MKSTR(v97), v96, &v98);
-			VAL v99 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v99 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v100 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v99, v87);
 			VAL v101;
 			mw_mirth_c99_ZPlusC99_put(v100, v98, &v101);
@@ -59832,7 +59945,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			incref(v180);
 			VAL v182;
 			mw_mirth_c99_c99Z_argZ_runZBang(value_u64(v180), branch_ZPlusC99Branch_171, &v182);
-			VAL v183 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v183 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v184;
 			VAL v185;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v182, v183, &v184, &v185);
@@ -59845,7 +59958,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			VAL v190;
 			mw_mirth_c99_ZPlusC99Stack_rdup(v188, &v189, &v190);
 			VTUP(v187)->cells[2] = v189;
-			VAL v191 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v191 = MKI64(14LL /* C99RT_BOOL */);
 			incref(v191);
 			VAL v192;
 			VAL v193;
@@ -59904,9 +60017,9 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			int64_t v222 = value_i64(VTUP(v213)->cells[4]);
 			VAL v223 = VTUP(v213)->cells[1];
 			VAL v224;
-			mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp22(v222, v223, &v224);
+			mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp23(v222, v223, &v224);
 			VTUP(v213)->cells[1] = v224;
-			VAL v225 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v225 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v226;
 			VAL v227;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v213, v225, &v226, &v227);
@@ -60003,14 +60116,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v267;
 			STRLIT(v267, "(", 1);
-			VAL v268 = MKI64(3LL /* C99RT_I64 */);
+			VAL v268 = MKI64(4LL /* C99RT_I64 */);
 			STR* v269;
 			STRLIT(v269, " == ", 4);
-			VAL v270 = MKI64(3LL /* C99RT_I64 */);
+			VAL v270 = MKI64(4LL /* C99RT_I64 */);
 			STR* v271;
 			STRLIT(v271, ")", 1);
 			int64_t v272 = 0LL /* False */;
-			VAL v273 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v273 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v274 = mtw_std_maybe_Maybe_1_Some(v273);
 			VAL v275;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v267), v268, MKSTR(v269), v270, MKSTR(v271), v272, v274, in_ZPlusC99Branch_3, &v275);
@@ -60020,14 +60133,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v276;
 			STRLIT(v276, "(", 1);
-			VAL v277 = MKI64(3LL /* C99RT_I64 */);
+			VAL v277 = MKI64(4LL /* C99RT_I64 */);
 			STR* v278;
 			STRLIT(v278, " < ", 3);
-			VAL v279 = MKI64(3LL /* C99RT_I64 */);
+			VAL v279 = MKI64(4LL /* C99RT_I64 */);
 			STR* v280;
 			STRLIT(v280, ")", 1);
 			int64_t v281 = 0LL /* False */;
-			VAL v282 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v282 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v283 = mtw_std_maybe_Maybe_1_Some(v282);
 			VAL v284;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v276), v277, MKSTR(v278), v279, MKSTR(v280), v281, v283, in_ZPlusC99Branch_3, &v284);
@@ -60037,14 +60150,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v285;
 			STRLIT(v285, "(", 1);
-			VAL v286 = MKI64(3LL /* C99RT_I64 */);
+			VAL v286 = MKI64(4LL /* C99RT_I64 */);
 			STR* v287;
 			STRLIT(v287, " <= ", 4);
-			VAL v288 = MKI64(3LL /* C99RT_I64 */);
+			VAL v288 = MKI64(4LL /* C99RT_I64 */);
 			STR* v289;
 			STRLIT(v289, ")", 1);
 			int64_t v290 = 0LL /* False */;
-			VAL v291 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v291 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v292 = mtw_std_maybe_Maybe_1_Some(v291);
 			VAL v293;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v285), v286, MKSTR(v287), v288, MKSTR(v289), v290, v292, in_ZPlusC99Branch_3, &v293);
@@ -60054,14 +60167,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v294;
 			STRLIT(v294, "(", 1);
-			VAL v295 = MKI64(3LL /* C99RT_I64 */);
+			VAL v295 = MKI64(4LL /* C99RT_I64 */);
 			STR* v296;
 			STRLIT(v296, " > ", 3);
-			VAL v297 = MKI64(3LL /* C99RT_I64 */);
+			VAL v297 = MKI64(4LL /* C99RT_I64 */);
 			STR* v298;
 			STRLIT(v298, ")", 1);
 			int64_t v299 = 0LL /* False */;
-			VAL v300 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v300 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v301 = mtw_std_maybe_Maybe_1_Some(v300);
 			VAL v302;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v294), v295, MKSTR(v296), v297, MKSTR(v298), v299, v301, in_ZPlusC99Branch_3, &v302);
@@ -60071,14 +60184,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v303;
 			STRLIT(v303, "(", 1);
-			VAL v304 = MKI64(3LL /* C99RT_I64 */);
+			VAL v304 = MKI64(4LL /* C99RT_I64 */);
 			STR* v305;
 			STRLIT(v305, " >= ", 4);
-			VAL v306 = MKI64(3LL /* C99RT_I64 */);
+			VAL v306 = MKI64(4LL /* C99RT_I64 */);
 			STR* v307;
 			STRLIT(v307, ")", 1);
 			int64_t v308 = 0LL /* False */;
-			VAL v309 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v309 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v310 = mtw_std_maybe_Maybe_1_Some(v309);
 			VAL v311;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v303), v304, MKSTR(v305), v306, MKSTR(v307), v308, v310, in_ZPlusC99Branch_3, &v311);
@@ -60088,14 +60201,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v312;
 			STRLIT(v312, "(", 1);
-			VAL v313 = MKI64(3LL /* C99RT_I64 */);
+			VAL v313 = MKI64(4LL /* C99RT_I64 */);
 			STR* v314;
 			STRLIT(v314, " != ", 4);
-			VAL v315 = MKI64(3LL /* C99RT_I64 */);
+			VAL v315 = MKI64(4LL /* C99RT_I64 */);
 			STR* v316;
 			STRLIT(v316, ")", 1);
 			int64_t v317 = 0LL /* False */;
-			VAL v318 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v318 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v319 = mtw_std_maybe_Maybe_1_Some(v318);
 			VAL v320;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v312), v313, MKSTR(v314), v315, MKSTR(v316), v317, v319, in_ZPlusC99Branch_3, &v320);
@@ -60105,14 +60218,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v321;
 			STRLIT(v321, "i64_add(", 8);
-			VAL v322 = MKI64(3LL /* C99RT_I64 */);
+			VAL v322 = MKI64(4LL /* C99RT_I64 */);
 			STR* v323;
 			STRLIT(v323, ", ", 2);
-			VAL v324 = MKI64(3LL /* C99RT_I64 */);
+			VAL v324 = MKI64(4LL /* C99RT_I64 */);
 			STR* v325;
 			STRLIT(v325, ")", 1);
 			int64_t v326 = 0LL /* False */;
-			VAL v327 = MKI64(3LL /* C99RT_I64 */);
+			VAL v327 = MKI64(4LL /* C99RT_I64 */);
 			VAL v328 = mtw_std_maybe_Maybe_1_Some(v327);
 			VAL v329;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v321), v322, MKSTR(v323), v324, MKSTR(v325), v326, v328, in_ZPlusC99Branch_3, &v329);
@@ -60122,14 +60235,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v330;
 			STRLIT(v330, "i64_sub(", 8);
-			VAL v331 = MKI64(3LL /* C99RT_I64 */);
+			VAL v331 = MKI64(4LL /* C99RT_I64 */);
 			STR* v332;
 			STRLIT(v332, ", ", 2);
-			VAL v333 = MKI64(3LL /* C99RT_I64 */);
+			VAL v333 = MKI64(4LL /* C99RT_I64 */);
 			STR* v334;
 			STRLIT(v334, ")", 1);
 			int64_t v335 = 0LL /* False */;
-			VAL v336 = MKI64(3LL /* C99RT_I64 */);
+			VAL v336 = MKI64(4LL /* C99RT_I64 */);
 			VAL v337 = mtw_std_maybe_Maybe_1_Some(v336);
 			VAL v338;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v330), v331, MKSTR(v332), v333, MKSTR(v334), v335, v337, in_ZPlusC99Branch_3, &v338);
@@ -60139,14 +60252,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v339;
 			STRLIT(v339, "i64_mul(", 8);
-			VAL v340 = MKI64(3LL /* C99RT_I64 */);
+			VAL v340 = MKI64(4LL /* C99RT_I64 */);
 			STR* v341;
 			STRLIT(v341, ", ", 2);
-			VAL v342 = MKI64(3LL /* C99RT_I64 */);
+			VAL v342 = MKI64(4LL /* C99RT_I64 */);
 			STR* v343;
 			STRLIT(v343, ")", 1);
 			int64_t v344 = 0LL /* False */;
-			VAL v345 = MKI64(3LL /* C99RT_I64 */);
+			VAL v345 = MKI64(4LL /* C99RT_I64 */);
 			VAL v346 = mtw_std_maybe_Maybe_1_Some(v345);
 			VAL v347;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v339), v340, MKSTR(v341), v342, MKSTR(v343), v344, v346, in_ZPlusC99Branch_3, &v347);
@@ -60156,14 +60269,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v348;
 			STRLIT(v348, "i64_div(", 8);
-			VAL v349 = MKI64(3LL /* C99RT_I64 */);
+			VAL v349 = MKI64(4LL /* C99RT_I64 */);
 			STR* v350;
 			STRLIT(v350, ", ", 2);
-			VAL v351 = MKI64(3LL /* C99RT_I64 */);
+			VAL v351 = MKI64(4LL /* C99RT_I64 */);
 			STR* v352;
 			STRLIT(v352, ")", 1);
 			int64_t v353 = 0LL /* False */;
-			VAL v354 = MKI64(3LL /* C99RT_I64 */);
+			VAL v354 = MKI64(4LL /* C99RT_I64 */);
 			VAL v355 = mtw_std_maybe_Maybe_1_Some(v354);
 			VAL v356;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v348), v349, MKSTR(v350), v351, MKSTR(v352), v353, v355, in_ZPlusC99Branch_3, &v356);
@@ -60173,14 +60286,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v357;
 			STRLIT(v357, "i64_mod(", 8);
-			VAL v358 = MKI64(3LL /* C99RT_I64 */);
+			VAL v358 = MKI64(4LL /* C99RT_I64 */);
 			STR* v359;
 			STRLIT(v359, ", ", 2);
-			VAL v360 = MKI64(3LL /* C99RT_I64 */);
+			VAL v360 = MKI64(4LL /* C99RT_I64 */);
 			STR* v361;
 			STRLIT(v361, ")", 1);
 			int64_t v362 = 0LL /* False */;
-			VAL v363 = MKI64(3LL /* C99RT_I64 */);
+			VAL v363 = MKI64(4LL /* C99RT_I64 */);
 			VAL v364 = mtw_std_maybe_Maybe_1_Some(v363);
 			VAL v365;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v357), v358, MKSTR(v359), v360, MKSTR(v361), v362, v364, in_ZPlusC99Branch_3, &v365);
@@ -60190,14 +60303,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v366;
 			STRLIT(v366, "(", 1);
-			VAL v367 = MKI64(7LL /* C99RT_U64 */);
+			VAL v367 = MKI64(8LL /* C99RT_U64 */);
 			STR* v368;
 			STRLIT(v368, " & ", 3);
-			VAL v369 = MKI64(7LL /* C99RT_U64 */);
+			VAL v369 = MKI64(8LL /* C99RT_U64 */);
 			STR* v370;
 			STRLIT(v370, ")", 1);
 			int64_t v371 = 0LL /* False */;
-			VAL v372 = MKI64(7LL /* C99RT_U64 */);
+			VAL v372 = MKI64(8LL /* C99RT_U64 */);
 			VAL v373 = mtw_std_maybe_Maybe_1_Some(v372);
 			VAL v374;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v366), v367, MKSTR(v368), v369, MKSTR(v370), v371, v373, in_ZPlusC99Branch_3, &v374);
@@ -60207,14 +60320,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v375;
 			STRLIT(v375, "(", 1);
-			VAL v376 = MKI64(7LL /* C99RT_U64 */);
+			VAL v376 = MKI64(8LL /* C99RT_U64 */);
 			STR* v377;
 			STRLIT(v377, " ^ ", 3);
-			VAL v378 = MKI64(7LL /* C99RT_U64 */);
+			VAL v378 = MKI64(8LL /* C99RT_U64 */);
 			STR* v379;
 			STRLIT(v379, ")", 1);
 			int64_t v380 = 0LL /* False */;
-			VAL v381 = MKI64(7LL /* C99RT_U64 */);
+			VAL v381 = MKI64(8LL /* C99RT_U64 */);
 			VAL v382 = mtw_std_maybe_Maybe_1_Some(v381);
 			VAL v383;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v375), v376, MKSTR(v377), v378, MKSTR(v379), v380, v382, in_ZPlusC99Branch_3, &v383);
@@ -60224,14 +60337,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v384;
 			STRLIT(v384, "(", 1);
-			VAL v385 = MKI64(7LL /* C99RT_U64 */);
+			VAL v385 = MKI64(8LL /* C99RT_U64 */);
 			STR* v386;
 			STRLIT(v386, " | ", 3);
-			VAL v387 = MKI64(7LL /* C99RT_U64 */);
+			VAL v387 = MKI64(8LL /* C99RT_U64 */);
 			STR* v388;
 			STRLIT(v388, ")", 1);
 			int64_t v389 = 0LL /* False */;
-			VAL v390 = MKI64(7LL /* C99RT_U64 */);
+			VAL v390 = MKI64(8LL /* C99RT_U64 */);
 			VAL v391 = mtw_std_maybe_Maybe_1_Some(v390);
 			VAL v392;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v384), v385, MKSTR(v386), v387, MKSTR(v388), v389, v391, in_ZPlusC99Branch_3, &v392);
@@ -60241,14 +60354,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v393;
 			STRLIT(v393, "u64_shl(", 8);
-			VAL v394 = MKI64(7LL /* C99RT_U64 */);
+			VAL v394 = MKI64(8LL /* C99RT_U64 */);
 			STR* v395;
 			STRLIT(v395, ", ", 2);
-			VAL v396 = MKI64(7LL /* C99RT_U64 */);
+			VAL v396 = MKI64(8LL /* C99RT_U64 */);
 			STR* v397;
 			STRLIT(v397, ")", 1);
 			int64_t v398 = 0LL /* False */;
-			VAL v399 = MKI64(7LL /* C99RT_U64 */);
+			VAL v399 = MKI64(8LL /* C99RT_U64 */);
 			VAL v400 = mtw_std_maybe_Maybe_1_Some(v399);
 			VAL v401;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v393), v394, MKSTR(v395), v396, MKSTR(v397), v398, v400, in_ZPlusC99Branch_3, &v401);
@@ -60258,14 +60371,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v402;
 			STRLIT(v402, "u64_shr(", 8);
-			VAL v403 = MKI64(7LL /* C99RT_U64 */);
+			VAL v403 = MKI64(8LL /* C99RT_U64 */);
 			STR* v404;
 			STRLIT(v404, ", ", 2);
-			VAL v405 = MKI64(7LL /* C99RT_U64 */);
+			VAL v405 = MKI64(8LL /* C99RT_U64 */);
 			STR* v406;
 			STRLIT(v406, ")", 1);
 			int64_t v407 = 0LL /* False */;
-			VAL v408 = MKI64(7LL /* C99RT_U64 */);
+			VAL v408 = MKI64(8LL /* C99RT_U64 */);
 			VAL v409 = mtw_std_maybe_Maybe_1_Some(v408);
 			VAL v410;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v402), v403, MKSTR(v404), v405, MKSTR(v406), v407, v409, in_ZPlusC99Branch_3, &v410);
@@ -60275,10 +60388,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v411;
 			STRLIT(v411, "(float)", 7);
-			VAL v412 = MKI64(3LL /* C99RT_I64 */);
+			VAL v412 = MKI64(4LL /* C99RT_I64 */);
 			STR* v413;
 			STRLIT(v413, "", 0);
-			VAL v414 = MKI64(12LL /* C99RT_F32 */);
+			VAL v414 = MKI64(13LL /* C99RT_F32 */);
 			VAL v415 = mtw_std_maybe_Maybe_1_Some(v414);
 			VAL v416;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v411), v412, MKSTR(v413), v415, in_ZPlusC99Branch_3, &v416);
@@ -60288,10 +60401,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v417;
 			STRLIT(v417, "(double)", 8);
-			VAL v418 = MKI64(3LL /* C99RT_I64 */);
+			VAL v418 = MKI64(4LL /* C99RT_I64 */);
 			STR* v419;
 			STRLIT(v419, "", 0);
-			VAL v420 = MKI64(11LL /* C99RT_F64 */);
+			VAL v420 = MKI64(12LL /* C99RT_F64 */);
 			VAL v421 = mtw_std_maybe_Maybe_1_Some(v420);
 			VAL v422;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v417), v418, MKSTR(v419), v421, in_ZPlusC99Branch_3, &v422);
@@ -60301,7 +60414,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v423;
 			STRLIT(v423, "i64_show(", 9);
-			VAL v424 = MKI64(3LL /* C99RT_I64 */);
+			VAL v424 = MKI64(4LL /* C99RT_I64 */);
 			STR* v425;
 			STRLIT(v425, ")", 1);
 			VAL v426 = MKI64(2LL /* C99RT_STR */);
@@ -60314,14 +60427,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v429;
 			STRLIT(v429, "(", 1);
-			VAL v430 = MKI64(12LL /* C99RT_F32 */);
+			VAL v430 = MKI64(13LL /* C99RT_F32 */);
 			STR* v431;
 			STRLIT(v431, " < ", 3);
-			VAL v432 = MKI64(12LL /* C99RT_F32 */);
+			VAL v432 = MKI64(13LL /* C99RT_F32 */);
 			STR* v433;
 			STRLIT(v433, ")", 1);
 			int64_t v434 = 0LL /* False */;
-			VAL v435 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v435 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v436 = mtw_std_maybe_Maybe_1_Some(v435);
 			VAL v437;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v429), v430, MKSTR(v431), v432, MKSTR(v433), v434, v436, in_ZPlusC99Branch_3, &v437);
@@ -60331,14 +60444,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v438;
 			STRLIT(v438, "(", 1);
-			VAL v439 = MKI64(12LL /* C99RT_F32 */);
+			VAL v439 = MKI64(13LL /* C99RT_F32 */);
 			STR* v440;
 			STRLIT(v440, " == ", 4);
-			VAL v441 = MKI64(12LL /* C99RT_F32 */);
+			VAL v441 = MKI64(13LL /* C99RT_F32 */);
 			STR* v442;
 			STRLIT(v442, ")", 1);
 			int64_t v443 = 0LL /* False */;
-			VAL v444 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v444 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v445 = mtw_std_maybe_Maybe_1_Some(v444);
 			VAL v446;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v438), v439, MKSTR(v440), v441, MKSTR(v442), v443, v445, in_ZPlusC99Branch_3, &v446);
@@ -60348,14 +60461,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v447;
 			STRLIT(v447, "(", 1);
-			VAL v448 = MKI64(12LL /* C99RT_F32 */);
+			VAL v448 = MKI64(13LL /* C99RT_F32 */);
 			STR* v449;
 			STRLIT(v449, " + ", 3);
-			VAL v450 = MKI64(12LL /* C99RT_F32 */);
+			VAL v450 = MKI64(13LL /* C99RT_F32 */);
 			STR* v451;
 			STRLIT(v451, ")", 1);
 			int64_t v452 = 0LL /* False */;
-			VAL v453 = MKI64(12LL /* C99RT_F32 */);
+			VAL v453 = MKI64(13LL /* C99RT_F32 */);
 			VAL v454 = mtw_std_maybe_Maybe_1_Some(v453);
 			VAL v455;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v447), v448, MKSTR(v449), v450, MKSTR(v451), v452, v454, in_ZPlusC99Branch_3, &v455);
@@ -60365,14 +60478,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v456;
 			STRLIT(v456, "(", 1);
-			VAL v457 = MKI64(12LL /* C99RT_F32 */);
+			VAL v457 = MKI64(13LL /* C99RT_F32 */);
 			STR* v458;
 			STRLIT(v458, " - ", 3);
-			VAL v459 = MKI64(12LL /* C99RT_F32 */);
+			VAL v459 = MKI64(13LL /* C99RT_F32 */);
 			STR* v460;
 			STRLIT(v460, ")", 1);
 			int64_t v461 = 0LL /* False */;
-			VAL v462 = MKI64(12LL /* C99RT_F32 */);
+			VAL v462 = MKI64(13LL /* C99RT_F32 */);
 			VAL v463 = mtw_std_maybe_Maybe_1_Some(v462);
 			VAL v464;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v456), v457, MKSTR(v458), v459, MKSTR(v460), v461, v463, in_ZPlusC99Branch_3, &v464);
@@ -60382,14 +60495,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v465;
 			STRLIT(v465, "(", 1);
-			VAL v466 = MKI64(12LL /* C99RT_F32 */);
+			VAL v466 = MKI64(13LL /* C99RT_F32 */);
 			STR* v467;
 			STRLIT(v467, " * ", 3);
-			VAL v468 = MKI64(12LL /* C99RT_F32 */);
+			VAL v468 = MKI64(13LL /* C99RT_F32 */);
 			STR* v469;
 			STRLIT(v469, ")", 1);
 			int64_t v470 = 0LL /* False */;
-			VAL v471 = MKI64(12LL /* C99RT_F32 */);
+			VAL v471 = MKI64(13LL /* C99RT_F32 */);
 			VAL v472 = mtw_std_maybe_Maybe_1_Some(v471);
 			VAL v473;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v465), v466, MKSTR(v467), v468, MKSTR(v469), v470, v472, in_ZPlusC99Branch_3, &v473);
@@ -60399,14 +60512,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v474;
 			STRLIT(v474, "(", 1);
-			VAL v475 = MKI64(12LL /* C99RT_F32 */);
+			VAL v475 = MKI64(13LL /* C99RT_F32 */);
 			STR* v476;
 			STRLIT(v476, " / ", 3);
-			VAL v477 = MKI64(12LL /* C99RT_F32 */);
+			VAL v477 = MKI64(13LL /* C99RT_F32 */);
 			STR* v478;
 			STRLIT(v478, ")", 1);
 			int64_t v479 = 0LL /* False */;
-			VAL v480 = MKI64(12LL /* C99RT_F32 */);
+			VAL v480 = MKI64(13LL /* C99RT_F32 */);
 			VAL v481 = mtw_std_maybe_Maybe_1_Some(v480);
 			VAL v482;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v474), v475, MKSTR(v476), v477, MKSTR(v478), v479, v481, in_ZPlusC99Branch_3, &v482);
@@ -60416,10 +60529,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v483;
 			STRLIT(v483, "(int64_t)", 9);
-			VAL v484 = MKI64(12LL /* C99RT_F32 */);
+			VAL v484 = MKI64(13LL /* C99RT_F32 */);
 			STR* v485;
 			STRLIT(v485, "", 0);
-			VAL v486 = MKI64(3LL /* C99RT_I64 */);
+			VAL v486 = MKI64(4LL /* C99RT_I64 */);
 			VAL v487 = mtw_std_maybe_Maybe_1_Some(v486);
 			VAL v488;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v483), v484, MKSTR(v485), v487, in_ZPlusC99Branch_3, &v488);
@@ -60429,10 +60542,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v489;
 			STRLIT(v489, "(double)", 8);
-			VAL v490 = MKI64(12LL /* C99RT_F32 */);
+			VAL v490 = MKI64(13LL /* C99RT_F32 */);
 			STR* v491;
 			STRLIT(v491, "", 0);
-			VAL v492 = MKI64(11LL /* C99RT_F64 */);
+			VAL v492 = MKI64(12LL /* C99RT_F64 */);
 			VAL v493 = mtw_std_maybe_Maybe_1_Some(v492);
 			VAL v494;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v489), v490, MKSTR(v491), v493, in_ZPlusC99Branch_3, &v494);
@@ -60442,7 +60555,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v495;
 			STRLIT(v495, "f32_show(", 9);
-			VAL v496 = MKI64(12LL /* C99RT_F32 */);
+			VAL v496 = MKI64(13LL /* C99RT_F32 */);
 			STR* v497;
 			STRLIT(v497, ")", 1);
 			VAL v498 = MKI64(2LL /* C99RT_STR */);
@@ -60455,14 +60568,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v501;
 			STRLIT(v501, "(", 1);
-			VAL v502 = MKI64(11LL /* C99RT_F64 */);
+			VAL v502 = MKI64(12LL /* C99RT_F64 */);
 			STR* v503;
 			STRLIT(v503, " == ", 4);
-			VAL v504 = MKI64(11LL /* C99RT_F64 */);
+			VAL v504 = MKI64(12LL /* C99RT_F64 */);
 			STR* v505;
 			STRLIT(v505, ")", 1);
 			int64_t v506 = 0LL /* False */;
-			VAL v507 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v507 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v508 = mtw_std_maybe_Maybe_1_Some(v507);
 			VAL v509;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v501), v502, MKSTR(v503), v504, MKSTR(v505), v506, v508, in_ZPlusC99Branch_3, &v509);
@@ -60472,14 +60585,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v510;
 			STRLIT(v510, "(", 1);
-			VAL v511 = MKI64(11LL /* C99RT_F64 */);
+			VAL v511 = MKI64(12LL /* C99RT_F64 */);
 			STR* v512;
 			STRLIT(v512, " < ", 3);
-			VAL v513 = MKI64(11LL /* C99RT_F64 */);
+			VAL v513 = MKI64(12LL /* C99RT_F64 */);
 			STR* v514;
 			STRLIT(v514, ")", 1);
 			int64_t v515 = 0LL /* False */;
-			VAL v516 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v516 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v517 = mtw_std_maybe_Maybe_1_Some(v516);
 			VAL v518;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v510), v511, MKSTR(v512), v513, MKSTR(v514), v515, v517, in_ZPlusC99Branch_3, &v518);
@@ -60489,14 +60602,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v519;
 			STRLIT(v519, "(", 1);
-			VAL v520 = MKI64(11LL /* C99RT_F64 */);
+			VAL v520 = MKI64(12LL /* C99RT_F64 */);
 			STR* v521;
 			STRLIT(v521, " + ", 3);
-			VAL v522 = MKI64(11LL /* C99RT_F64 */);
+			VAL v522 = MKI64(12LL /* C99RT_F64 */);
 			STR* v523;
 			STRLIT(v523, ")", 1);
 			int64_t v524 = 0LL /* False */;
-			VAL v525 = MKI64(11LL /* C99RT_F64 */);
+			VAL v525 = MKI64(12LL /* C99RT_F64 */);
 			VAL v526 = mtw_std_maybe_Maybe_1_Some(v525);
 			VAL v527;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v519), v520, MKSTR(v521), v522, MKSTR(v523), v524, v526, in_ZPlusC99Branch_3, &v527);
@@ -60506,14 +60619,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v528;
 			STRLIT(v528, "(", 1);
-			VAL v529 = MKI64(11LL /* C99RT_F64 */);
+			VAL v529 = MKI64(12LL /* C99RT_F64 */);
 			STR* v530;
 			STRLIT(v530, " - ", 3);
-			VAL v531 = MKI64(11LL /* C99RT_F64 */);
+			VAL v531 = MKI64(12LL /* C99RT_F64 */);
 			STR* v532;
 			STRLIT(v532, ")", 1);
 			int64_t v533 = 0LL /* False */;
-			VAL v534 = MKI64(11LL /* C99RT_F64 */);
+			VAL v534 = MKI64(12LL /* C99RT_F64 */);
 			VAL v535 = mtw_std_maybe_Maybe_1_Some(v534);
 			VAL v536;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v528), v529, MKSTR(v530), v531, MKSTR(v532), v533, v535, in_ZPlusC99Branch_3, &v536);
@@ -60523,14 +60636,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v537;
 			STRLIT(v537, "(", 1);
-			VAL v538 = MKI64(11LL /* C99RT_F64 */);
+			VAL v538 = MKI64(12LL /* C99RT_F64 */);
 			STR* v539;
 			STRLIT(v539, " * ", 3);
-			VAL v540 = MKI64(11LL /* C99RT_F64 */);
+			VAL v540 = MKI64(12LL /* C99RT_F64 */);
 			STR* v541;
 			STRLIT(v541, ")", 1);
 			int64_t v542 = 0LL /* False */;
-			VAL v543 = MKI64(11LL /* C99RT_F64 */);
+			VAL v543 = MKI64(12LL /* C99RT_F64 */);
 			VAL v544 = mtw_std_maybe_Maybe_1_Some(v543);
 			VAL v545;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v537), v538, MKSTR(v539), v540, MKSTR(v541), v542, v544, in_ZPlusC99Branch_3, &v545);
@@ -60540,14 +60653,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v546;
 			STRLIT(v546, "(", 1);
-			VAL v547 = MKI64(11LL /* C99RT_F64 */);
+			VAL v547 = MKI64(12LL /* C99RT_F64 */);
 			STR* v548;
 			STRLIT(v548, " / ", 3);
-			VAL v549 = MKI64(11LL /* C99RT_F64 */);
+			VAL v549 = MKI64(12LL /* C99RT_F64 */);
 			STR* v550;
 			STRLIT(v550, ")", 1);
 			int64_t v551 = 0LL /* False */;
-			VAL v552 = MKI64(11LL /* C99RT_F64 */);
+			VAL v552 = MKI64(12LL /* C99RT_F64 */);
 			VAL v553 = mtw_std_maybe_Maybe_1_Some(v552);
 			VAL v554;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v546), v547, MKSTR(v548), v549, MKSTR(v550), v551, v553, in_ZPlusC99Branch_3, &v554);
@@ -60557,10 +60670,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v555;
 			STRLIT(v555, "(int64_t)", 9);
-			VAL v556 = MKI64(11LL /* C99RT_F64 */);
+			VAL v556 = MKI64(12LL /* C99RT_F64 */);
 			STR* v557;
 			STRLIT(v557, "", 0);
-			VAL v558 = MKI64(3LL /* C99RT_I64 */);
+			VAL v558 = MKI64(4LL /* C99RT_I64 */);
 			VAL v559 = mtw_std_maybe_Maybe_1_Some(v558);
 			VAL v560;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v555), v556, MKSTR(v557), v559, in_ZPlusC99Branch_3, &v560);
@@ -60570,10 +60683,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v561;
 			STRLIT(v561, "(float)", 7);
-			VAL v562 = MKI64(11LL /* C99RT_F64 */);
+			VAL v562 = MKI64(12LL /* C99RT_F64 */);
 			STR* v563;
 			STRLIT(v563, "", 0);
-			VAL v564 = MKI64(12LL /* C99RT_F32 */);
+			VAL v564 = MKI64(13LL /* C99RT_F32 */);
 			VAL v565 = mtw_std_maybe_Maybe_1_Some(v564);
 			VAL v566;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v561), v562, MKSTR(v563), v565, in_ZPlusC99Branch_3, &v566);
@@ -60583,7 +60696,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v567;
 			STRLIT(v567, "f64_show(", 9);
-			VAL v568 = MKI64(11LL /* C99RT_F64 */);
+			VAL v568 = MKI64(12LL /* C99RT_F64 */);
 			STR* v569;
 			STRLIT(v569, ")", 1);
 			VAL v570 = MKI64(2LL /* C99RT_STR */);
@@ -60596,14 +60709,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v573;
 			STRLIT(v573, "(", 1);
-			VAL v574 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v574 = MKI64(14LL /* C99RT_BOOL */);
 			STR* v575;
 			STRLIT(v575, " && ", 4);
-			VAL v576 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v576 = MKI64(14LL /* C99RT_BOOL */);
 			STR* v577;
 			STRLIT(v577, ")", 1);
 			int64_t v578 = 0LL /* False */;
-			VAL v579 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v579 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v580 = mtw_std_maybe_Maybe_1_Some(v579);
 			VAL v581;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v573), v574, MKSTR(v575), v576, MKSTR(v577), v578, v580, in_ZPlusC99Branch_3, &v581);
@@ -60613,14 +60726,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v582;
 			STRLIT(v582, "(", 1);
-			VAL v583 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v583 = MKI64(14LL /* C99RT_BOOL */);
 			STR* v584;
 			STRLIT(v584, " || ", 4);
-			VAL v585 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v585 = MKI64(14LL /* C99RT_BOOL */);
 			STR* v586;
 			STRLIT(v586, ")", 1);
 			int64_t v587 = 0LL /* False */;
-			VAL v588 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v588 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v589 = mtw_std_maybe_Maybe_1_Some(v588);
 			VAL v590;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v582), v583, MKSTR(v584), v585, MKSTR(v586), v587, v589, in_ZPlusC99Branch_3, &v590);
@@ -60630,10 +60743,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v591;
 			STRLIT(v591, "!", 1);
-			VAL v592 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v592 = MKI64(14LL /* C99RT_BOOL */);
 			STR* v593;
 			STRLIT(v593, "", 0);
-			VAL v594 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v594 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v595 = mtw_std_maybe_Maybe_1_Some(v594);
 			VAL v596;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v591), v592, MKSTR(v593), v595, in_ZPlusC99Branch_3, &v596);
@@ -60795,7 +60908,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v655;
 			STRLIT(v655, "mut_get(", 8);
-			VAL v656 = MKI64(14LL /* C99RT_PTR */);
+			VAL v656 = MKI64(15LL /* C99RT_PTR */);
 			STR* v657;
 			STRLIT(v657, ")", 1);
 			VAL v658 = MKI64(1LL /* C99RT_VAL */);
@@ -60811,7 +60924,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			VAL v662 = MKI64(1LL /* C99RT_VAL */);
 			STR* v663;
 			STRLIT(v663, ", ", 2);
-			VAL v664 = MKI64(14LL /* C99RT_PTR */);
+			VAL v664 = MKI64(15LL /* C99RT_PTR */);
 			STR* v665;
 			STRLIT(v665, ");", 2);
 			int64_t v666 = 0LL /* False */;
@@ -60824,10 +60937,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v669;
 			STRLIT(v669, "mut_is_set(", 11);
-			VAL v670 = MKI64(14LL /* C99RT_PTR */);
+			VAL v670 = MKI64(15LL /* C99RT_PTR */);
 			STR* v671;
 			STRLIT(v671, ")", 1);
-			VAL v672 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v672 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v673 = mtw_std_maybe_Maybe_1_Some(v672);
 			VAL v674;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v669), v670, MKSTR(v671), v673, in_ZPlusC99Branch_3, &v674);
@@ -60835,7 +60948,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 69LL: { // PRIM_PTR_NIL
 			decref(in_Atom_1);
-			VAL v675 = MKI64(14LL /* C99RT_PTR */);
+			VAL v675 = MKI64(15LL /* C99RT_PTR */);
 			incref(v675);
 			int64_t v676 = get_data_tag(v675);
 			decref(v675);
@@ -60907,14 +61020,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v707;
 			STRLIT(v707, "(", 1);
-			VAL v708 = MKI64(14LL /* C99RT_PTR */);
+			VAL v708 = MKI64(15LL /* C99RT_PTR */);
 			STR* v709;
 			STRLIT(v709, " == ", 4);
-			VAL v710 = MKI64(14LL /* C99RT_PTR */);
+			VAL v710 = MKI64(15LL /* C99RT_PTR */);
 			STR* v711;
 			STRLIT(v711, ")", 1);
 			int64_t v712 = 0LL /* False */;
-			VAL v713 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v713 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v714 = mtw_std_maybe_Maybe_1_Some(v713);
 			VAL v715;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v707), v708, MKSTR(v709), v710, MKSTR(v711), v712, v714, in_ZPlusC99Branch_3, &v715);
@@ -60924,14 +61037,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v716;
 			STRLIT(v716, "(void*)(", 8);
-			VAL v717 = MKI64(3LL /* C99RT_I64 */);
+			VAL v717 = MKI64(4LL /* C99RT_I64 */);
 			STR* v718;
 			STRLIT(v718, " + (char*)", 10);
-			VAL v719 = MKI64(14LL /* C99RT_PTR */);
+			VAL v719 = MKI64(15LL /* C99RT_PTR */);
 			STR* v720;
 			STRLIT(v720, ")", 1);
 			int64_t v721 = 0LL /* False */;
-			VAL v722 = MKI64(14LL /* C99RT_PTR */);
+			VAL v722 = MKI64(15LL /* C99RT_PTR */);
 			VAL v723 = mtw_std_maybe_Maybe_1_Some(v722);
 			VAL v724;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v716), v717, MKSTR(v718), v719, MKSTR(v720), v721, v723, in_ZPlusC99Branch_3, &v724);
@@ -60939,7 +61052,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 72LL: { // PRIM_PTR_SIZE
 			decref(in_Atom_1);
-			VAL v725 = MKI64(7LL /* C99RT_U64 */);
+			VAL v725 = MKI64(8LL /* C99RT_U64 */);
 			incref(v725);
 			int64_t v726 = get_data_tag(v725);
 			decref(v725);
@@ -61011,10 +61124,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v757;
 			STRLIT(v757, "ptr_alloc(", 10);
-			VAL v758 = MKI64(7LL /* C99RT_U64 */);
+			VAL v758 = MKI64(8LL /* C99RT_U64 */);
 			STR* v759;
 			STRLIT(v759, ");", 2);
-			VAL v760 = MKI64(14LL /* C99RT_PTR */);
+			VAL v760 = MKI64(15LL /* C99RT_PTR */);
 			VAL v761 = mtw_std_maybe_Maybe_1_Some(v760);
 			VAL v762;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v757), v758, MKSTR(v759), v761, in_ZPlusC99Branch_3, &v762);
@@ -61024,14 +61137,14 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v763;
 			STRLIT(v763, "ptr_realloc(", 12);
-			VAL v764 = MKI64(14LL /* C99RT_PTR */);
+			VAL v764 = MKI64(15LL /* C99RT_PTR */);
 			STR* v765;
 			STRLIT(v765, ",", 1);
-			VAL v766 = MKI64(7LL /* C99RT_U64 */);
+			VAL v766 = MKI64(8LL /* C99RT_U64 */);
 			STR* v767;
 			STRLIT(v767, ")", 1);
 			int64_t v768 = 0LL /* False */;
-			VAL v769 = MKI64(14LL /* C99RT_PTR */);
+			VAL v769 = MKI64(15LL /* C99RT_PTR */);
 			VAL v770 = mtw_std_maybe_Maybe_1_Some(v769);
 			VAL v771;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v763), v764, MKSTR(v765), v766, MKSTR(v767), v768, v770, in_ZPlusC99Branch_3, &v771);
@@ -61041,7 +61154,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v772;
 			STRLIT(v772, "free(", 5);
-			VAL v773 = MKI64(14LL /* C99RT_PTR */);
+			VAL v773 = MKI64(15LL /* C99RT_PTR */);
 			STR* v774;
 			STRLIT(v774, ");", 2);
 			VAL v775 = MKI64(0LL /* None */);
@@ -61051,15 +61164,15 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 76LL: { // PRIM_PTR_COPY
 			decref(in_Atom_1);
-			VAL v777 = MKI64(14LL /* C99RT_PTR */);
+			VAL v777 = MKI64(15LL /* C99RT_PTR */);
 			VAL v778;
 			VAL v779;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(in_ZPlusC99Branch_3, v777, &v778, &v779);
-			VAL v780 = MKI64(7LL /* C99RT_U64 */);
+			VAL v780 = MKI64(8LL /* C99RT_U64 */);
 			VAL v781;
 			VAL v782;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v778, v780, &v781, &v782);
-			VAL v783 = MKI64(14LL /* C99RT_PTR */);
+			VAL v783 = MKI64(15LL /* C99RT_PTR */);
 			VAL v784;
 			VAL v785;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v781, v783, &v784, &v785);
@@ -61074,7 +61187,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STRLIT(v791, "ptr_copy(", 9);
 			VAL v792;
 			mw_mirth_c99_ZPlusC99_put(MKSTR(v791), v790, &v792);
-			VAL v793 = MKI64(14LL /* C99RT_PTR */);
+			VAL v793 = MKI64(15LL /* C99RT_PTR */);
 			VAL v794 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v793, v785);
 			VAL v795;
 			mw_mirth_c99_ZPlusC99_put(v794, v792, &v795);
@@ -61082,7 +61195,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STRLIT(v796, ", ", 2);
 			VAL v797;
 			mw_mirth_c99_ZPlusC99_put(MKSTR(v796), v795, &v797);
-			VAL v798 = MKI64(7LL /* C99RT_U64 */);
+			VAL v798 = MKI64(8LL /* C99RT_U64 */);
 			VAL v799 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v798, v782);
 			VAL v800;
 			mw_mirth_c99_ZPlusC99_put(v799, v797, &v800);
@@ -61090,7 +61203,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STRLIT(v801, ", ", 2);
 			VAL v802;
 			mw_mirth_c99_ZPlusC99_put(MKSTR(v801), v800, &v802);
-			VAL v803 = MKI64(14LL /* C99RT_PTR */);
+			VAL v803 = MKI64(15LL /* C99RT_PTR */);
 			VAL v804 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v803, v779);
 			VAL v805;
 			mw_mirth_c99_ZPlusC99_put(v804, v802, &v805);
@@ -61106,15 +61219,15 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 77LL: { // PRIM_PTR_FILL
 			decref(in_Atom_1);
-			VAL v809 = MKI64(14LL /* C99RT_PTR */);
+			VAL v809 = MKI64(15LL /* C99RT_PTR */);
 			VAL v810;
 			VAL v811;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(in_ZPlusC99Branch_3, v809, &v810, &v811);
-			VAL v812 = MKI64(7LL /* C99RT_U64 */);
+			VAL v812 = MKI64(8LL /* C99RT_U64 */);
 			VAL v813;
 			VAL v814;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v810, v812, &v813, &v814);
-			VAL v815 = MKI64(10LL /* C99RT_U8 */);
+			VAL v815 = MKI64(11LL /* C99RT_U8 */);
 			VAL v816;
 			VAL v817;
 			mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v813, v815, &v816, &v817);
@@ -61129,7 +61242,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STRLIT(v823, "ptr_fill(", 9);
 			VAL v824;
 			mw_mirth_c99_ZPlusC99_put(MKSTR(v823), v822, &v824);
-			VAL v825 = MKI64(10LL /* C99RT_U8 */);
+			VAL v825 = MKI64(11LL /* C99RT_U8 */);
 			VAL v826 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v825, v817);
 			VAL v827;
 			mw_mirth_c99_ZPlusC99_put(v826, v824, &v827);
@@ -61137,7 +61250,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STRLIT(v828, ", ", 2);
 			VAL v829;
 			mw_mirth_c99_ZPlusC99_put(MKSTR(v828), v827, &v829);
-			VAL v830 = MKI64(7LL /* C99RT_U64 */);
+			VAL v830 = MKI64(8LL /* C99RT_U64 */);
 			VAL v831 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v830, v814);
 			VAL v832;
 			mw_mirth_c99_ZPlusC99_put(v831, v829, &v832);
@@ -61145,7 +61258,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STRLIT(v833, ", ", 2);
 			VAL v834;
 			mw_mirth_c99_ZPlusC99_put(MKSTR(v833), v832, &v834);
-			VAL v835 = MKI64(14LL /* C99RT_PTR */);
+			VAL v835 = MKI64(15LL /* C99RT_PTR */);
 			VAL v836 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v835, v811);
 			VAL v837;
 			mw_mirth_c99_ZPlusC99_put(v836, v834, &v837);
@@ -61163,10 +61276,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v841;
 			STRLIT(v841, "str_make(", 9);
-			VAL v842 = MKI64(14LL /* C99RT_PTR */);
+			VAL v842 = MKI64(15LL /* C99RT_PTR */);
 			STR* v843;
 			STRLIT(v843, ", ", 2);
-			VAL v844 = MKI64(7LL /* C99RT_U64 */);
+			VAL v844 = MKI64(8LL /* C99RT_U64 */);
 			STR* v845;
 			STRLIT(v845, ")", 1);
 			int64_t v846 = 0LL /* False */;
@@ -61183,7 +61296,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			VAL v851 = MKI64(2LL /* C99RT_STR */);
 			STR* v852;
 			STRLIT(v852, ")", 1);
-			VAL v853 = MKI64(7LL /* C99RT_U64 */);
+			VAL v853 = MKI64(8LL /* C99RT_U64 */);
 			VAL v854 = mtw_std_maybe_Maybe_1_Some(v853);
 			VAL v855;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v850), v851, MKSTR(v852), v854, in_ZPlusC99Branch_3, &v855);
@@ -61196,7 +61309,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			VAL v857 = MKI64(2LL /* C99RT_STR */);
 			STR* v858;
 			STRLIT(v858, ")", 1);
-			VAL v859 = MKI64(14LL /* C99RT_PTR */);
+			VAL v859 = MKI64(15LL /* C99RT_PTR */);
 			VAL v860 = mtw_std_maybe_Maybe_1_Some(v859);
 			VAL v861;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v856), v857, MKSTR(v858), v860, in_ZPlusC99Branch_3, &v861);
@@ -61230,7 +61343,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STR* v875;
 			STRLIT(v875, ")", 1);
 			int64_t v876 = 0LL /* False */;
-			VAL v877 = MKI64(3LL /* C99RT_I64 */);
+			VAL v877 = MKI64(4LL /* C99RT_I64 */);
 			VAL v878 = mtw_std_maybe_Maybe_1_Some(v877);
 			VAL v879;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v871), v872, MKSTR(v873), v874, MKSTR(v875), v876, v878, in_ZPlusC99Branch_3, &v879);
@@ -61247,7 +61360,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STR* v884;
 			STRLIT(v884, ") == 0)", 7);
 			int64_t v885 = 0LL /* False */;
-			VAL v886 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v886 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v887 = mtw_std_maybe_Maybe_1_Some(v886);
 			VAL v888;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v880), v881, MKSTR(v882), v883, MKSTR(v884), v885, v887, in_ZPlusC99Branch_3, &v888);
@@ -61264,7 +61377,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STR* v893;
 			STRLIT(v893, ") < 0)", 6);
 			int64_t v894 = 0LL /* False */;
-			VAL v895 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v895 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v896 = mtw_std_maybe_Maybe_1_Some(v895);
 			VAL v897;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v889), v890, MKSTR(v891), v892, MKSTR(v893), v894, v896, in_ZPlusC99Branch_3, &v897);
@@ -61281,7 +61394,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STR* v902;
 			STRLIT(v902, ") <= 0)", 7);
 			int64_t v903 = 0LL /* False */;
-			VAL v904 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v904 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v905 = mtw_std_maybe_Maybe_1_Some(v904);
 			VAL v906;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v898), v899, MKSTR(v900), v901, MKSTR(v902), v903, v905, in_ZPlusC99Branch_3, &v906);
@@ -61298,7 +61411,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STR* v911;
 			STRLIT(v911, ") > 0)", 6);
 			int64_t v912 = 0LL /* False */;
-			VAL v913 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v913 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v914 = mtw_std_maybe_Maybe_1_Some(v913);
 			VAL v915;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v907), v908, MKSTR(v909), v910, MKSTR(v911), v912, v914, in_ZPlusC99Branch_3, &v915);
@@ -61315,7 +61428,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STR* v920;
 			STRLIT(v920, ") >= 0)", 7);
 			int64_t v921 = 0LL /* False */;
-			VAL v922 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v922 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v923 = mtw_std_maybe_Maybe_1_Some(v922);
 			VAL v924;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v916), v917, MKSTR(v918), v919, MKSTR(v920), v921, v923, in_ZPlusC99Branch_3, &v924);
@@ -61332,7 +61445,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			STR* v929;
 			STRLIT(v929, ") != 0)", 7);
 			int64_t v930 = 0LL /* False */;
-			VAL v931 = MKI64(13LL /* C99RT_BOOL */);
+			VAL v931 = MKI64(14LL /* C99RT_BOOL */);
 			VAL v932 = mtw_std_maybe_Maybe_1_Some(v931);
 			VAL v933;
 			mw_mirth_c99_c99Z_binopZBang(MKSTR(v925), v926, MKSTR(v927), v928, MKSTR(v929), v930, v932, in_ZPlusC99Branch_3, &v933);
@@ -61342,10 +61455,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v934;
 			STRLIT(v934, "*(uint8_t*)", 11);
-			VAL v935 = MKI64(14LL /* C99RT_PTR */);
+			VAL v935 = MKI64(15LL /* C99RT_PTR */);
 			STR* v936;
 			STRLIT(v936, "", 0);
-			VAL v937 = MKI64(10LL /* C99RT_U8 */);
+			VAL v937 = MKI64(11LL /* C99RT_U8 */);
 			VAL v938 = mtw_std_maybe_Maybe_1_Some(v937);
 			VAL v939;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v934), v935, MKSTR(v936), v938, in_ZPlusC99Branch_3, &v939);
@@ -61355,10 +61468,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v940;
 			STRLIT(v940, "*(uint16_t*)", 12);
-			VAL v941 = MKI64(14LL /* C99RT_PTR */);
+			VAL v941 = MKI64(15LL /* C99RT_PTR */);
 			STR* v942;
 			STRLIT(v942, "", 0);
-			VAL v943 = MKI64(9LL /* C99RT_U16 */);
+			VAL v943 = MKI64(10LL /* C99RT_U16 */);
 			VAL v944 = mtw_std_maybe_Maybe_1_Some(v943);
 			VAL v945;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v940), v941, MKSTR(v942), v944, in_ZPlusC99Branch_3, &v945);
@@ -61368,10 +61481,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v946;
 			STRLIT(v946, "*(uint32_t*)", 12);
-			VAL v947 = MKI64(14LL /* C99RT_PTR */);
+			VAL v947 = MKI64(15LL /* C99RT_PTR */);
 			STR* v948;
 			STRLIT(v948, "", 0);
-			VAL v949 = MKI64(8LL /* C99RT_U32 */);
+			VAL v949 = MKI64(9LL /* C99RT_U32 */);
 			VAL v950 = mtw_std_maybe_Maybe_1_Some(v949);
 			VAL v951;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v946), v947, MKSTR(v948), v950, in_ZPlusC99Branch_3, &v951);
@@ -61381,10 +61494,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v952;
 			STRLIT(v952, "*(uint64_t*)", 12);
-			VAL v953 = MKI64(14LL /* C99RT_PTR */);
+			VAL v953 = MKI64(15LL /* C99RT_PTR */);
 			STR* v954;
 			STRLIT(v954, "", 0);
-			VAL v955 = MKI64(7LL /* C99RT_U64 */);
+			VAL v955 = MKI64(8LL /* C99RT_U64 */);
 			VAL v956 = mtw_std_maybe_Maybe_1_Some(v955);
 			VAL v957;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v952), v953, MKSTR(v954), v956, in_ZPlusC99Branch_3, &v957);
@@ -61394,10 +61507,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v958;
 			STRLIT(v958, "*(int8_t*)", 10);
-			VAL v959 = MKI64(14LL /* C99RT_PTR */);
+			VAL v959 = MKI64(15LL /* C99RT_PTR */);
 			STR* v960;
 			STRLIT(v960, "", 0);
-			VAL v961 = MKI64(6LL /* C99RT_I8 */);
+			VAL v961 = MKI64(7LL /* C99RT_I8 */);
 			VAL v962 = mtw_std_maybe_Maybe_1_Some(v961);
 			VAL v963;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v958), v959, MKSTR(v960), v962, in_ZPlusC99Branch_3, &v963);
@@ -61407,10 +61520,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v964;
 			STRLIT(v964, "*(int16_t*)", 11);
-			VAL v965 = MKI64(14LL /* C99RT_PTR */);
+			VAL v965 = MKI64(15LL /* C99RT_PTR */);
 			STR* v966;
 			STRLIT(v966, "", 0);
-			VAL v967 = MKI64(5LL /* C99RT_I16 */);
+			VAL v967 = MKI64(6LL /* C99RT_I16 */);
 			VAL v968 = mtw_std_maybe_Maybe_1_Some(v967);
 			VAL v969;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v964), v965, MKSTR(v966), v968, in_ZPlusC99Branch_3, &v969);
@@ -61420,10 +61533,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v970;
 			STRLIT(v970, "*(int32_t*)", 11);
-			VAL v971 = MKI64(14LL /* C99RT_PTR */);
+			VAL v971 = MKI64(15LL /* C99RT_PTR */);
 			STR* v972;
 			STRLIT(v972, "", 0);
-			VAL v973 = MKI64(4LL /* C99RT_I32 */);
+			VAL v973 = MKI64(5LL /* C99RT_I32 */);
 			VAL v974 = mtw_std_maybe_Maybe_1_Some(v973);
 			VAL v975;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v970), v971, MKSTR(v972), v974, in_ZPlusC99Branch_3, &v975);
@@ -61433,10 +61546,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v976;
 			STRLIT(v976, "*(int64_t*)", 11);
-			VAL v977 = MKI64(14LL /* C99RT_PTR */);
+			VAL v977 = MKI64(15LL /* C99RT_PTR */);
 			STR* v978;
 			STRLIT(v978, "", 0);
-			VAL v979 = MKI64(3LL /* C99RT_I64 */);
+			VAL v979 = MKI64(4LL /* C99RT_I64 */);
 			VAL v980 = mtw_std_maybe_Maybe_1_Some(v979);
 			VAL v981;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v976), v977, MKSTR(v978), v980, in_ZPlusC99Branch_3, &v981);
@@ -61446,10 +61559,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v982;
 			STRLIT(v982, "*(void**)", 9);
-			VAL v983 = MKI64(14LL /* C99RT_PTR */);
+			VAL v983 = MKI64(15LL /* C99RT_PTR */);
 			STR* v984;
 			STRLIT(v984, "", 0);
-			VAL v985 = MKI64(14LL /* C99RT_PTR */);
+			VAL v985 = MKI64(15LL /* C99RT_PTR */);
 			VAL v986 = mtw_std_maybe_Maybe_1_Some(v985);
 			VAL v987;
 			mw_mirth_c99_c99Z_unopZBang(MKSTR(v982), v983, MKSTR(v984), v986, in_ZPlusC99Branch_3, &v987);
@@ -61459,10 +61572,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v988;
 			STRLIT(v988, "*(uint8_t*)", 11);
-			VAL v989 = MKI64(14LL /* C99RT_PTR */);
+			VAL v989 = MKI64(15LL /* C99RT_PTR */);
 			STR* v990;
 			STRLIT(v990, " = ", 3);
-			VAL v991 = MKI64(10LL /* C99RT_U8 */);
+			VAL v991 = MKI64(11LL /* C99RT_U8 */);
 			STR* v992;
 			STRLIT(v992, ";", 1);
 			int64_t v993 = 1LL /* True */;
@@ -61475,10 +61588,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v996;
 			STRLIT(v996, "*(uint16_t*)", 12);
-			VAL v997 = MKI64(14LL /* C99RT_PTR */);
+			VAL v997 = MKI64(15LL /* C99RT_PTR */);
 			STR* v998;
 			STRLIT(v998, " = ", 3);
-			VAL v999 = MKI64(9LL /* C99RT_U16 */);
+			VAL v999 = MKI64(10LL /* C99RT_U16 */);
 			STR* v1000;
 			STRLIT(v1000, ";", 1);
 			int64_t v1001 = 1LL /* True */;
@@ -61491,10 +61604,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v1004;
 			STRLIT(v1004, "*(uint32_t*)", 12);
-			VAL v1005 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1005 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1006;
 			STRLIT(v1006, " = ", 3);
-			VAL v1007 = MKI64(8LL /* C99RT_U32 */);
+			VAL v1007 = MKI64(9LL /* C99RT_U32 */);
 			STR* v1008;
 			STRLIT(v1008, ";", 1);
 			int64_t v1009 = 1LL /* True */;
@@ -61507,10 +61620,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v1012;
 			STRLIT(v1012, "*(uint64_t*)", 12);
-			VAL v1013 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1013 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1014;
 			STRLIT(v1014, " = ", 3);
-			VAL v1015 = MKI64(7LL /* C99RT_U64 */);
+			VAL v1015 = MKI64(8LL /* C99RT_U64 */);
 			STR* v1016;
 			STRLIT(v1016, ";", 1);
 			int64_t v1017 = 1LL /* True */;
@@ -61523,10 +61636,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v1020;
 			STRLIT(v1020, "*(int8_t*)", 10);
-			VAL v1021 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1021 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1022;
 			STRLIT(v1022, " = ", 3);
-			VAL v1023 = MKI64(6LL /* C99RT_I8 */);
+			VAL v1023 = MKI64(7LL /* C99RT_I8 */);
 			STR* v1024;
 			STRLIT(v1024, ";", 1);
 			int64_t v1025 = 1LL /* True */;
@@ -61539,10 +61652,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v1028;
 			STRLIT(v1028, "*(int16_t*)", 11);
-			VAL v1029 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1029 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1030;
 			STRLIT(v1030, " = ", 3);
-			VAL v1031 = MKI64(5LL /* C99RT_I16 */);
+			VAL v1031 = MKI64(6LL /* C99RT_I16 */);
 			STR* v1032;
 			STRLIT(v1032, ";", 1);
 			int64_t v1033 = 1LL /* True */;
@@ -61555,10 +61668,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v1036;
 			STRLIT(v1036, "*(int32_t*)", 11);
-			VAL v1037 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1037 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1038;
 			STRLIT(v1038, " = ", 3);
-			VAL v1039 = MKI64(4LL /* C99RT_I32 */);
+			VAL v1039 = MKI64(5LL /* C99RT_I32 */);
 			STR* v1040;
 			STRLIT(v1040, ";", 1);
 			int64_t v1041 = 1LL /* True */;
@@ -61571,10 +61684,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v1044;
 			STRLIT(v1044, "*(int64_t*)", 11);
-			VAL v1045 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1045 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1046;
 			STRLIT(v1046, " = ", 3);
-			VAL v1047 = MKI64(3LL /* C99RT_I64 */);
+			VAL v1047 = MKI64(4LL /* C99RT_I64 */);
 			STR* v1048;
 			STRLIT(v1048, ";", 1);
 			int64_t v1049 = 1LL /* True */;
@@ -61587,10 +61700,10 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 			decref(in_Atom_1);
 			STR* v1052;
 			STRLIT(v1052, "*(void**)", 9);
-			VAL v1053 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1053 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1054;
 			STRLIT(v1054, " = ", 3);
-			VAL v1055 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1055 = MKI64(15LL /* C99RT_PTR */);
 			STR* v1056;
 			STRLIT(v1056, ";", 1);
 			int64_t v1057 = 1LL /* True */;
@@ -61601,7 +61714,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 107LL: { // PRIM_SYS_OS
 			decref(in_Atom_1);
-			VAL v1060 = MKI64(3LL /* C99RT_I64 */);
+			VAL v1060 = MKI64(4LL /* C99RT_I64 */);
 			incref(v1060);
 			int64_t v1061 = get_data_tag(v1060);
 			decref(v1060);
@@ -61671,7 +61784,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 108LL: { // PRIM_SYS_ARCH
 			decref(in_Atom_1);
-			VAL v1092 = MKI64(3LL /* C99RT_I64 */);
+			VAL v1092 = MKI64(4LL /* C99RT_I64 */);
 			incref(v1092);
 			int64_t v1093 = get_data_tag(v1092);
 			decref(v1092);
@@ -61741,7 +61854,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 109LL: { // PRIM_SYS_ARGC
 			decref(in_Atom_1);
-			VAL v1124 = MKI64(3LL /* C99RT_I64 */);
+			VAL v1124 = MKI64(4LL /* C99RT_I64 */);
 			incref(v1124);
 			int64_t v1125 = get_data_tag(v1124);
 			decref(v1124);
@@ -61811,7 +61924,7 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 		} break;
 		case 110LL: { // PRIM_SYS_ARGV
 			decref(in_Atom_1);
-			VAL v1156 = MKI64(14LL /* C99RT_PTR */);
+			VAL v1156 = MKI64(15LL /* C99RT_PTR */);
 			incref(v1156);
 			int64_t v1157 = get_data_tag(v1156);
 			decref(v1156);
@@ -61986,173 +62099,141 @@ static void mw_mirth_c99_c99Z_primZBang (VAL in_Atom_1, int64_t in_Prim_2, VAL i
 	*out_ZPlusC99Branch_4 = branch_ZPlusC99Branch_5;
 }
 static void mw_mirth_c99_c99Z_tupZ_packZBang (int64_t in_Nat_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3) {
-	VAL v4 = MKI64(0LL /* Nil */);
-	int64_t v5 = 0LL;
-	bool v6 = (in_Nat_1 > v5);
-	VAL v7 = v4;
-	VAL v8 = in_ZPlusC99Branch_2;
-	int64_t v9 = in_Nat_1;
-	bool v10 = v6;
-	while (v10) {
-		VAL v11 = v7;
-		VAL v12 = v8;
-		int64_t v13 = v9;
-		VAL v14 = MKI64(1LL /* C99RT_VAL */);
-		VAL v15;
-		VAL v16;
-		mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v12, v14, &v15, &v16);
-		VAL v17 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v16);
-		VAL v18 = mtw_std_list_List_1_Cons(v17, v11);
-		int64_t v19 = 1LL;
-		int64_t v20 = i64_sub(v13, v19);
-		int64_t v21 = 0LL;
-		bool v22 = (v20 < v21);
-		int64_t branch_Nat_23;
-		if (v22) {
-			int64_t v24 = 0LL;
-			branch_Nat_23 = v24;
-		} else {
-			branch_Nat_23 = v20;
-		}
-		int64_t v25 = 0LL;
-		bool v26 = (branch_Nat_23 > v25);
-		v10 = v26;
-		v9 = branch_Nat_23;
-		v8 = v15;
-		v7 = v18;
-	}
-	VAL v27 = mtw_mirth_c99_C99ReprType_C99RTz_TUP(in_Nat_1);
-	incref(v27);
-	int64_t v28 = get_data_tag(v27);
-	decref(v27);
-	int64_t v29 = 0LL;
-	bool v30 = (v28 != v29);
-	VAL branch_List_31;
-	int64_t branch_Nat_32;
-	VAL branch_C99ReprType_33;
-	int64_t branch_Bool_34;
-	VAL branch_Str_35;
-	VAL branch_ZPlusC99Branch_36;
-	if (v30) {
-		VAL v37 = VTUP(v8)->cells[1];
-		VAL v38;
-		VAL v39 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v37, &v38);
-		VTUP(v8)->cells[1] = v38;
-		branch_ZPlusC99Branch_36 = v8;
-		branch_Str_35 = v39;
-		branch_Bool_34 = ((int64_t)v30);
-		branch_C99ReprType_33 = v27;
-		branch_Nat_32 = in_Nat_1;
-		branch_List_31 = v7;
+	int64_t v4 = 1LL;
+	bool v5 = (in_Nat_1 >= v4);
+	int64_t v6 = 5LL;
+	bool v7 = (in_Nat_1 <= v6);
+	bool v8 = (v5 && v7);
+	VAL branch_ZPlusC99Branch_9;
+	if (v8) {
+		branch_ZPlusC99Branch_9 = in_ZPlusC99Branch_2;
 	} else {
-		STR* v40;
-		STRLIT(v40, "0", 1);
-		branch_ZPlusC99Branch_36 = v8;
-		branch_Str_35 = MKSTR(v40);
-		branch_Bool_34 = ((int64_t)v30);
-		branch_C99ReprType_33 = v27;
-		branch_Nat_32 = in_Nat_1;
-		branch_List_31 = v7;
+		STR* v10;
+		STRLIT(v10, "c99-tup-pack! called with unsupported arity", 43);
+		VAL v11;
+		mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp9(MKSTR(v10), in_ZPlusC99Branch_2, &v11);
 	}
-	int64_t v41 = value_i64(VTUP(branch_ZPlusC99Branch_36)->cells[4]);
-	bool v42 = (((bool)branch_Bool_34) && ((bool)v41));
-	VAL v43 = VTUP(branch_ZPlusC99Branch_36)->cells[1];
-	int64_t v44 = value_i64(VTUP(v43)->cells[4]);
-	bool v45 = (v42 && ((bool)v44));
-	VTUP(v43)->cells[4] = MKBOOL(v45);
-	VAL v46;
-	mw_mirth_c99_ZPlusC99_indent(v43, &v46);
-	incref(branch_C99ReprType_33);
-	VAL v47 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_33);
-	VAL v48;
-	mw_mirth_c99_ZPlusC99_put(v47, v46, &v48);
-	STR* v49;
-	STRLIT(v49, " ", 1);
-	VAL v50;
-	mw_mirth_c99_ZPlusC99_put(MKSTR(v49), v48, &v50);
-	incref(branch_Str_35);
-	VAL v51;
-	mw_mirth_c99_ZPlusC99_put(branch_Str_35, v50, &v51);
-	STR* v52;
-	STRLIT(v52, " = ", 3);
-	VAL v53;
-	mw_mirth_c99_ZPlusC99_put(MKSTR(v52), v51, &v53);
+	VAL v12 = MKI64(0LL /* Nil */);
+	int64_t v13 = 0LL;
+	bool v14 = (in_Nat_1 > v13);
+	VAL v15 = v12;
+	VAL v16 = branch_ZPlusC99Branch_9;
+	int64_t v17 = in_Nat_1;
+	bool v18 = v14;
+	while (v18) {
+		VAL v19 = v15;
+		VAL v20 = v16;
+		int64_t v21 = v17;
+		VAL v22 = MKI64(1LL /* C99RT_VAL */);
+		VAL v23;
+		VAL v24;
+		mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(v20, v22, &v23, &v24);
+		VAL v25 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v24);
+		VAL v26 = mtw_std_list_List_1_Cons(v25, v19);
+		int64_t v27 = 1LL;
+		int64_t v28 = i64_sub(v21, v27);
+		int64_t v29 = 0LL;
+		bool v30 = (v28 < v29);
+		int64_t branch_Nat_31;
+		if (v30) {
+			int64_t v32 = 0LL;
+			branch_Nat_31 = v32;
+		} else {
+			branch_Nat_31 = v28;
+		}
+		int64_t v33 = 0LL;
+		bool v34 = (branch_Nat_31 > v33);
+		v18 = v34;
+		v17 = branch_Nat_31;
+		v16 = v23;
+		v15 = v26;
+	}
+	VAL v35 = mtw_mirth_c99_C99ReprType_C99RTz_TUP(in_Nat_1);
+	incref(v35);
+	int64_t v36 = get_data_tag(v35);
+	decref(v35);
+	int64_t v37 = 0LL;
+	bool v38 = (v36 != v37);
+	VAL branch_List_39;
+	int64_t branch_Nat_40;
+	VAL branch_C99ReprType_41;
+	int64_t branch_Bool_42;
+	VAL branch_Str_43;
+	VAL branch_ZPlusC99Branch_44;
+	if (v38) {
+		VAL v45 = VTUP(v16)->cells[1];
+		VAL v46;
+		VAL v47 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v45, &v46);
+		VTUP(v16)->cells[1] = v46;
+		branch_ZPlusC99Branch_44 = v16;
+		branch_Str_43 = v47;
+		branch_Bool_42 = ((int64_t)v38);
+		branch_C99ReprType_41 = v35;
+		branch_Nat_40 = in_Nat_1;
+		branch_List_39 = v15;
+	} else {
+		STR* v48;
+		STRLIT(v48, "0", 1);
+		branch_ZPlusC99Branch_44 = v16;
+		branch_Str_43 = MKSTR(v48);
+		branch_Bool_42 = ((int64_t)v38);
+		branch_C99ReprType_41 = v35;
+		branch_Nat_40 = in_Nat_1;
+		branch_List_39 = v15;
+	}
+	int64_t v49 = value_i64(VTUP(branch_ZPlusC99Branch_44)->cells[4]);
+	bool v50 = (((bool)branch_Bool_42) && ((bool)v49));
+	VAL v51 = VTUP(branch_ZPlusC99Branch_44)->cells[1];
+	int64_t v52 = value_i64(VTUP(v51)->cells[4]);
+	bool v53 = (v50 && ((bool)v52));
+	VTUP(v51)->cells[4] = MKBOOL(v53);
 	VAL v54;
-	mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_33, branch_Str_35, &v54);
-	STR* v55;
-	STRLIT(v55, "tup_pack(", 9);
+	mw_mirth_c99_ZPlusC99_indent(v51, &v54);
+	incref(branch_C99ReprType_41);
+	VAL v55 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_41);
 	VAL v56;
-	mw_mirth_c99_ZPlusC99_put(MKSTR(v55), v53, &v56);
-	STR* v57 = i64_show(branch_Nat_32);
+	mw_mirth_c99_ZPlusC99_put(v55, v54, &v56);
+	STR* v57;
+	STRLIT(v57, " ", 1);
 	VAL v58;
 	mw_mirth_c99_ZPlusC99_put(MKSTR(v57), v56, &v58);
-	STR* v59;
-	STRLIT(v59, ", (VAL[]){", 10);
-	VAL v60;
-	mw_mirth_c99_ZPlusC99_put(MKSTR(v59), v58, &v60);
+	incref(branch_Str_43);
+	VAL v59;
+	mw_mirth_c99_ZPlusC99_put(branch_Str_43, v58, &v59);
+	STR* v60;
+	STRLIT(v60, " = ", 3);
 	VAL v61;
-	VAL v62 = mw_std_list_List_1_uncons(branch_List_31, &v61);
-	VAL v63;
-	mw_std_maybe_Maybe_1_for_1_sp3(v60, v62, &v63);
-	int64_t v64 = 1LL /* True */;
-	VAL v65 = v63;
-	VAL v66 = v61;
-	int64_t v67 = v64;
-	int64_t v68 = v64;
-	while (((bool)v68)) {
-		VAL v69 = v65;
-		VAL v70 = v66;
-		int64_t v71 = v67;
-		VAL branch_ZPlusC99_72;
-		VAL branch_List_73;
-		int64_t branch_Bool_74;
-		switch (get_data_tag(v70)) {
-			case 1LL: { // Cons
-				VAL v75;
-				VAL v76 = mtp_std_list_List_1_Cons(v70, &v75);
-				STR* v77;
-				STRLIT(v77, ",", 1);
-				VAL v78;
-				mw_mirth_c99_ZPlusC99_put(MKSTR(v77), v69, &v78);
-				VAL v79;
-				mw_mirth_c99_ZPlusC99_put(v76, v78, &v79);
-				int64_t v80 = 1LL /* True */;
-				branch_Bool_74 = v80;
-				branch_List_73 = v75;
-				branch_ZPlusC99_72 = v79;
-			} break;
-			case 0LL: { // Nil
-				VAL v81 = MKI64(0LL /* Nil */);
-				int64_t v82 = 0LL /* False */;
-				branch_Bool_74 = v82;
-				branch_List_73 = v81;
-				branch_ZPlusC99_72 = v69;
-			} break;
-			default: {
-				do_panic(str_make("unexpected fallthrough in match\n", 32));
-			}
-		}
-		v68 = branch_Bool_74;
-		v67 = branch_Bool_74;
-		v66 = branch_List_73;
-		v65 = branch_ZPlusC99_72;
-	}
-	decref(v66);
-	STR* v83;
-	STRLIT(v83, "})", 2);
-	VAL v84;
-	mw_mirth_c99_ZPlusC99_put(MKSTR(v83), v65, &v84);
-	STR* v85;
-	STRLIT(v85, ";", 1);
-	VAL v86;
-	mw_mirth_c99_ZPlusC99_put(MKSTR(v85), v84, &v86);
-	VAL v87;
-	mw_mirth_c99_ZPlusC99_line(v86, &v87);
-	VTUP(v87)->cells[4] = MKI64(v44);
-	VTUP(branch_ZPlusC99Branch_36)->cells[1] = v87;
-	VAL v88;
-	mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_36, v54, &v88);
-	*out_ZPlusC99Branch_3 = v88;
+	mw_mirth_c99_ZPlusC99_put(MKSTR(v60), v59, &v61);
+	VAL v62;
+	mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_41, branch_Str_43, &v62);
+	STR* v63;
+	STRLIT(v63, "tup_pack", 8);
+	VAL v64;
+	mw_mirth_c99_ZPlusC99_put(MKSTR(v63), v61, &v64);
+	STR* v65 = i64_show(branch_Nat_40);
+	VAL v66;
+	mw_mirth_c99_ZPlusC99_put(MKSTR(v65), v64, &v66);
+	STR* v67;
+	STRLIT(v67, "(", 1);
+	VAL v68;
+	mw_mirth_c99_ZPlusC99_put(MKSTR(v67), v66, &v68);
+	VAL v69;
+	mw_std_list_List_1_for_2_sp1(v68, branch_List_39, &v69);
+	STR* v70;
+	STRLIT(v70, ")", 1);
+	VAL v71;
+	mw_mirth_c99_ZPlusC99_put(MKSTR(v70), v69, &v71);
+	STR* v72;
+	STRLIT(v72, ";", 1);
+	VAL v73;
+	mw_mirth_c99_ZPlusC99_put(MKSTR(v72), v71, &v73);
+	VAL v74;
+	mw_mirth_c99_ZPlusC99_line(v73, &v74);
+	VTUP(v74)->cells[4] = MKI64(v52);
+	VTUP(branch_ZPlusC99Branch_44)->cells[1] = v74;
+	VAL v75;
+	mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_44, v62, &v75);
+	*out_ZPlusC99Branch_3 = v75;
 }
 static void mw_mirth_c99_c99Z_tupZ_unpackZBang (int64_t in_Nat_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3) {
 	VAL v4 = mtw_mirth_c99_C99ReprType_C99RTz_TUP(in_Nat_1);
@@ -62692,83 +62773,84 @@ static void mw_mirth_c99_c99Z_packZ_closureZ_varsZBang (VAL in_List_1, VAL in_ZP
 		decref(v4);
 		branch_ZPlusC99Branch_6 = in_ZPlusC99Branch_2;
 	} else {
-		VAL v7 = MKI64(15LL /* C99RT_FNPTR */);
-		VAL v8;
-		VAL v9;
-		mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(in_ZPlusC99Branch_2, v7, &v8, &v9);
-		VAL v10 = MKI64(1LL /* C99RT_VAL */);
-		incref(v10);
-		int64_t v11 = get_data_tag(v10);
-		decref(v10);
-		int64_t v12 = 0LL;
-		bool v13 = (v11 != v12);
-		VAL branch_List_14;
-		VAL branch_C99ReprType_15;
-		int64_t branch_Bool_16;
-		VAL branch_Str_17;
-		VAL branch_ZPlusC99Branch_18;
-		if (v13) {
-			VAL v19 = VTUP(v8)->cells[1];
-			VAL v20;
-			VAL v21 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v19, &v20);
-			VTUP(v8)->cells[1] = v20;
-			branch_ZPlusC99Branch_18 = v8;
-			branch_Str_17 = v21;
-			branch_Bool_16 = ((int64_t)v13);
-			branch_C99ReprType_15 = v10;
-			branch_List_14 = v4;
+		incref(v4);
+		int64_t v7 = mw_std_list_List_1_len(v4);
+		int64_t v8 = 1LL;
+		int64_t v9 = i64_add(v7, v8);
+		STR* v10 = i64_show(v9);
+		VAL v11 = MKI64(16LL /* C99RT_FNPTR */);
+		VAL v12;
+		VAL v13;
+		mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(in_ZPlusC99Branch_2, v11, &v12, &v13);
+		VAL v14 = MKI64(1LL /* C99RT_VAL */);
+		incref(v14);
+		int64_t v15 = get_data_tag(v14);
+		decref(v14);
+		int64_t v16 = 0LL;
+		bool v17 = (v15 != v16);
+		VAL branch_Str_18;
+		VAL branch_C99ReprType_19;
+		int64_t branch_Bool_20;
+		VAL branch_Str_21;
+		VAL branch_ZPlusC99Branch_22;
+		if (v17) {
+			VAL v23 = VTUP(v12)->cells[1];
+			VAL v24;
+			VAL v25 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v23, &v24);
+			VTUP(v12)->cells[1] = v24;
+			branch_ZPlusC99Branch_22 = v12;
+			branch_Str_21 = v25;
+			branch_Bool_20 = ((int64_t)v17);
+			branch_C99ReprType_19 = v14;
+			branch_Str_18 = MKSTR(v10);
 		} else {
-			STR* v22;
-			STRLIT(v22, "0", 1);
-			branch_ZPlusC99Branch_18 = v8;
-			branch_Str_17 = MKSTR(v22);
-			branch_Bool_16 = ((int64_t)v13);
-			branch_C99ReprType_15 = v10;
-			branch_List_14 = v4;
+			STR* v26;
+			STRLIT(v26, "0", 1);
+			branch_ZPlusC99Branch_22 = v12;
+			branch_Str_21 = MKSTR(v26);
+			branch_Bool_20 = ((int64_t)v17);
+			branch_C99ReprType_19 = v14;
+			branch_Str_18 = MKSTR(v10);
 		}
-		int64_t v23 = value_i64(VTUP(branch_ZPlusC99Branch_18)->cells[4]);
-		bool v24 = (((bool)branch_Bool_16) && ((bool)v23));
-		VAL v25 = VTUP(branch_ZPlusC99Branch_18)->cells[1];
-		int64_t v26 = value_i64(VTUP(v25)->cells[4]);
-		bool v27 = (v24 && ((bool)v26));
-		VTUP(v25)->cells[4] = MKBOOL(v27);
-		VAL v28;
-		mw_mirth_c99_ZPlusC99_indent(v25, &v28);
-		incref(branch_C99ReprType_15);
-		VAL v29 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_15);
-		VAL v30;
-		mw_mirth_c99_ZPlusC99_put(v29, v28, &v30);
-		STR* v31;
-		STRLIT(v31, " ", 1);
+		int64_t v27 = value_i64(VTUP(branch_ZPlusC99Branch_22)->cells[4]);
+		bool v28 = (((bool)branch_Bool_20) && ((bool)v27));
+		VAL v29 = VTUP(branch_ZPlusC99Branch_22)->cells[1];
+		int64_t v30 = value_i64(VTUP(v29)->cells[4]);
+		bool v31 = (v28 && ((bool)v30));
+		VTUP(v29)->cells[4] = MKBOOL(v31);
 		VAL v32;
-		mw_mirth_c99_ZPlusC99_put(MKSTR(v31), v30, &v32);
-		incref(branch_Str_17);
-		VAL v33;
-		mw_mirth_c99_ZPlusC99_put(branch_Str_17, v32, &v33);
-		STR* v34;
-		STRLIT(v34, " = ", 3);
-		VAL v35;
-		mw_mirth_c99_ZPlusC99_put(MKSTR(v34), v33, &v35);
+		mw_mirth_c99_ZPlusC99_indent(v29, &v32);
+		incref(branch_C99ReprType_19);
+		VAL v33 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_19);
+		VAL v34;
+		mw_mirth_c99_ZPlusC99_put(v33, v32, &v34);
+		STR* v35;
+		STRLIT(v35, " ", 1);
 		VAL v36;
-		mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_15, branch_Str_17, &v36);
-		STR* v37;
-		STRLIT(v37, "MKTUP(tup_new(", 14);
-		VAL v38;
-		mw_mirth_c99_ZPlusC99_put(MKSTR(v37), v35, &v38);
-		incref(branch_List_14);
-		int64_t v39 = mw_std_list_List_1_len(branch_List_14);
-		int64_t v40 = 1LL;
-		int64_t v41 = i64_add(v39, v40);
-		STR* v42 = i64_show(v41);
-		incref(MKSTR(v42));
+		mw_mirth_c99_ZPlusC99_put(MKSTR(v35), v34, &v36);
+		incref(branch_Str_21);
+		VAL v37;
+		mw_mirth_c99_ZPlusC99_put(branch_Str_21, v36, &v37);
+		STR* v38;
+		STRLIT(v38, " = ", 3);
+		VAL v39;
+		mw_mirth_c99_ZPlusC99_put(MKSTR(v38), v37, &v39);
+		VAL v40;
+		mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_19, branch_Str_21, &v40);
+		STR* v41;
+		STRLIT(v41, "MKTUP(tup_new(", 14);
+		VAL v42;
+		mw_mirth_c99_ZPlusC99_put(MKSTR(v41), v39, &v42);
+		incref(branch_Str_18);
 		VAL v43;
-		mw_mirth_c99_ZPlusC99_put(MKSTR(v42), v38, &v43);
+		mw_mirth_c99_ZPlusC99_put(branch_Str_18, v42, &v43);
 		STR* v44;
 		STRLIT(v44, "), ", 3);
 		VAL v45;
 		mw_mirth_c99_ZPlusC99_put(MKSTR(v44), v43, &v45);
+		incref(branch_Str_18);
 		VAL v46;
-		mw_mirth_c99_ZPlusC99_put(MKSTR(v42), v45, &v46);
+		mw_mirth_c99_ZPlusC99_put(branch_Str_18, v45, &v46);
 		STR* v47;
 		STRLIT(v47, ")", 1);
 		VAL v48;
@@ -62779,10 +62861,10 @@ static void mw_mirth_c99_c99Z_packZ_closureZ_varsZBang (VAL in_List_1, VAL in_ZP
 		mw_mirth_c99_ZPlusC99_put(MKSTR(v49), v48, &v50);
 		VAL v51;
 		mw_mirth_c99_ZPlusC99_line(v50, &v51);
-		VTUP(v51)->cells[4] = MKI64(v26);
-		VTUP(branch_ZPlusC99Branch_18)->cells[1] = v51;
-		int64_t v52 = value_i64(VTUP(branch_ZPlusC99Branch_18)->cells[4]);
-		VAL v53 = VTUP(branch_ZPlusC99Branch_18)->cells[1];
+		VTUP(v51)->cells[4] = MKI64(v30);
+		VTUP(branch_ZPlusC99Branch_22)->cells[1] = v51;
+		int64_t v52 = value_i64(VTUP(branch_ZPlusC99Branch_22)->cells[4]);
+		VAL v53 = VTUP(branch_ZPlusC99Branch_22)->cells[1];
 		int64_t v54 = value_i64(VTUP(v53)->cells[4]);
 		bool v55 = (((bool)v52) && ((bool)v54));
 		VTUP(v53)->cells[4] = MKBOOL(v55);
@@ -62794,123 +62876,154 @@ static void mw_mirth_c99_c99Z_packZ_closureZ_varsZBang (VAL in_List_1, VAL in_ZP
 		mw_mirth_c99_ZPlusC99_put(MKSTR(v57), v56, &v58);
 		VAL v59;
 		VAL v60;
-		mw_mirth_c99_ZPlusC99Value_rdup(v36, &v59, &v60);
+		mw_mirth_c99_ZPlusC99Value_rdup(v40, &v59, &v60);
 		VAL v61 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v59);
 		VAL v62;
 		mw_mirth_c99_ZPlusC99_put(v61, v58, &v62);
 		STR* v63;
-		STRLIT(v63, ")->cells[0] = ", 14);
+		STRLIT(v63, " )->size = ", 11);
 		VAL v64;
 		mw_mirth_c99_ZPlusC99_put(MKSTR(v63), v62, &v64);
-		VAL v65 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v9);
-		VAL v66;
-		mw_mirth_c99_ZPlusC99_put(v65, v64, &v66);
-		STR* v67;
-		STRLIT(v67, ";", 1);
+		VAL v65;
+		mw_mirth_c99_ZPlusC99_put(branch_Str_18, v64, &v65);
+		STR* v66;
+		STRLIT(v66, ";", 1);
+		VAL v67;
+		mw_mirth_c99_ZPlusC99_put(MKSTR(v66), v65, &v67);
 		VAL v68;
-		mw_mirth_c99_ZPlusC99_put(MKSTR(v67), v66, &v68);
-		VAL v69;
-		mw_mirth_c99_ZPlusC99_line(v68, &v69);
-		VTUP(v69)->cells[4] = MKI64(v54);
-		VTUP(branch_ZPlusC99Branch_18)->cells[1] = v69;
-		int64_t v70 = 1LL;
-		int64_t v71 = 1LL /* True */;
-		int64_t v72 = v70;
-		VAL v73 = v60;
-		VAL v74 = branch_ZPlusC99Branch_18;
-		VAL v75 = branch_List_14;
-		int64_t v76 = v71;
-		int64_t v77 = v71;
-		while (((bool)v77)) {
-			int64_t v78 = v72;
-			VAL v79 = v73;
-			VAL v80 = v74;
-			VAL v81 = v75;
-			int64_t v82 = v76;
-			VAL branch_ZPlusC99Value_83;
-			VAL branch_ZPlusC99Branch_84;
-			int64_t branch_Int_85;
-			VAL branch_List_86;
-			int64_t branch_Bool_87;
-			switch (get_data_tag(v81)) {
+		mw_mirth_c99_ZPlusC99_line(v67, &v68);
+		VTUP(v68)->cells[4] = MKI64(v54);
+		VTUP(branch_ZPlusC99Branch_22)->cells[1] = v68;
+		int64_t v69 = value_i64(VTUP(branch_ZPlusC99Branch_22)->cells[4]);
+		VAL v70 = VTUP(branch_ZPlusC99Branch_22)->cells[1];
+		int64_t v71 = value_i64(VTUP(v70)->cells[4]);
+		bool v72 = (((bool)v69) && ((bool)v71));
+		VTUP(v70)->cells[4] = MKBOOL(v72);
+		VAL v73;
+		mw_mirth_c99_ZPlusC99_indent(v70, &v73);
+		STR* v74;
+		STRLIT(v74, "VTUP(", 5);
+		VAL v75;
+		mw_mirth_c99_ZPlusC99_put(MKSTR(v74), v73, &v75);
+		VAL v76;
+		VAL v77;
+		mw_mirth_c99_ZPlusC99Value_rdup(v60, &v76, &v77);
+		VAL v78 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v76);
+		VAL v79;
+		mw_mirth_c99_ZPlusC99_put(v78, v75, &v79);
+		STR* v80;
+		STRLIT(v80, ")->cells[0] = ", 14);
+		VAL v81;
+		mw_mirth_c99_ZPlusC99_put(MKSTR(v80), v79, &v81);
+		VAL v82 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v13);
+		VAL v83;
+		mw_mirth_c99_ZPlusC99_put(v82, v81, &v83);
+		STR* v84;
+		STRLIT(v84, ";", 1);
+		VAL v85;
+		mw_mirth_c99_ZPlusC99_put(MKSTR(v84), v83, &v85);
+		VAL v86;
+		mw_mirth_c99_ZPlusC99_line(v85, &v86);
+		VTUP(v86)->cells[4] = MKI64(v71);
+		VTUP(branch_ZPlusC99Branch_22)->cells[1] = v86;
+		int64_t v87 = 1LL;
+		int64_t v88 = 1LL /* True */;
+		int64_t v89 = v87;
+		VAL v90 = v77;
+		VAL v91 = branch_ZPlusC99Branch_22;
+		VAL v92 = v4;
+		int64_t v93 = v88;
+		int64_t v94 = v88;
+		while (((bool)v94)) {
+			int64_t v95 = v89;
+			VAL v96 = v90;
+			VAL v97 = v91;
+			VAL v98 = v92;
+			int64_t v99 = v93;
+			VAL branch_ZPlusC99Value_100;
+			VAL branch_ZPlusC99Branch_101;
+			int64_t branch_Int_102;
+			VAL branch_List_103;
+			int64_t branch_Bool_104;
+			switch (get_data_tag(v98)) {
 				case 1LL: { // Cons
-					VAL v88;
-					VAL v89 = mtp_std_list_List_1_Cons(v81, &v88);
-					VAL v90;
-					VAL v91;
-					mw_mirth_c99_ZPlusC99Branch_varZ_dupZBang(v80, value_u64(v89), &v90, &v91);
-					VAL v92 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v91);
-					int64_t v93 = value_i64(VTUP(v90)->cells[4]);
-					VAL v94 = VTUP(v90)->cells[1];
-					int64_t v95 = value_i64(VTUP(v94)->cells[4]);
-					bool v96 = (((bool)v93) && ((bool)v95));
-					VTUP(v94)->cells[4] = MKBOOL(v96);
-					VAL v97;
-					mw_mirth_c99_ZPlusC99_indent(v94, &v97);
-					STR* v98;
-					STRLIT(v98, "VTUP(", 5);
-					VAL v99;
-					mw_mirth_c99_ZPlusC99_put(MKSTR(v98), v97, &v99);
-					VAL v100;
-					VAL v101;
-					mw_mirth_c99_ZPlusC99Value_rdup(v79, &v100, &v101);
-					VAL v102 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v100);
-					VAL v103;
-					mw_mirth_c99_ZPlusC99_put(v102, v99, &v103);
-					STR* v104;
-					STRLIT(v104, ")->cells[", 9);
 					VAL v105;
-					mw_mirth_c99_ZPlusC99_put(MKSTR(v104), v103, &v105);
-					STR* v106 = i64_show(v78);
+					VAL v106 = mtp_std_list_List_1_Cons(v98, &v105);
 					VAL v107;
-					mw_mirth_c99_ZPlusC99_put(MKSTR(v106), v105, &v107);
-					STR* v108;
-					STRLIT(v108, "] = ", 4);
-					VAL v109;
-					mw_mirth_c99_ZPlusC99_put(MKSTR(v108), v107, &v109);
-					VAL v110;
-					mw_mirth_c99_ZPlusC99_put(v92, v109, &v110);
-					STR* v111;
-					STRLIT(v111, ";", 1);
-					VAL v112;
-					mw_mirth_c99_ZPlusC99_put(MKSTR(v111), v110, &v112);
-					VAL v113;
-					mw_mirth_c99_ZPlusC99_line(v112, &v113);
-					VTUP(v113)->cells[4] = MKI64(v95);
-					VTUP(v90)->cells[1] = v113;
-					int64_t v114 = 1LL;
-					int64_t v115 = i64_add(v78, v114);
-					int64_t v116 = 1LL /* True */;
-					branch_Bool_87 = v116;
-					branch_List_86 = v88;
-					branch_Int_85 = v115;
-					branch_ZPlusC99Branch_84 = v90;
-					branch_ZPlusC99Value_83 = v101;
+					VAL v108;
+					mw_mirth_c99_ZPlusC99Branch_varZ_dupZBang(v97, value_u64(v106), &v107, &v108);
+					VAL v109 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v108);
+					int64_t v110 = value_i64(VTUP(v107)->cells[4]);
+					VAL v111 = VTUP(v107)->cells[1];
+					int64_t v112 = value_i64(VTUP(v111)->cells[4]);
+					bool v113 = (((bool)v110) && ((bool)v112));
+					VTUP(v111)->cells[4] = MKBOOL(v113);
+					VAL v114;
+					mw_mirth_c99_ZPlusC99_indent(v111, &v114);
+					STR* v115;
+					STRLIT(v115, "VTUP(", 5);
+					VAL v116;
+					mw_mirth_c99_ZPlusC99_put(MKSTR(v115), v114, &v116);
+					VAL v117;
+					VAL v118;
+					mw_mirth_c99_ZPlusC99Value_rdup(v96, &v117, &v118);
+					VAL v119 = mw_mirth_c99_ZPlusC99Value_consumeZ_asZ_VAL(v117);
+					VAL v120;
+					mw_mirth_c99_ZPlusC99_put(v119, v116, &v120);
+					STR* v121;
+					STRLIT(v121, ")->cells[", 9);
+					VAL v122;
+					mw_mirth_c99_ZPlusC99_put(MKSTR(v121), v120, &v122);
+					STR* v123 = i64_show(v95);
+					VAL v124;
+					mw_mirth_c99_ZPlusC99_put(MKSTR(v123), v122, &v124);
+					STR* v125;
+					STRLIT(v125, "] = ", 4);
+					VAL v126;
+					mw_mirth_c99_ZPlusC99_put(MKSTR(v125), v124, &v126);
+					VAL v127;
+					mw_mirth_c99_ZPlusC99_put(v109, v126, &v127);
+					STR* v128;
+					STRLIT(v128, ";", 1);
+					VAL v129;
+					mw_mirth_c99_ZPlusC99_put(MKSTR(v128), v127, &v129);
+					VAL v130;
+					mw_mirth_c99_ZPlusC99_line(v129, &v130);
+					VTUP(v130)->cells[4] = MKI64(v112);
+					VTUP(v107)->cells[1] = v130;
+					int64_t v131 = 1LL;
+					int64_t v132 = i64_add(v95, v131);
+					int64_t v133 = 1LL /* True */;
+					branch_Bool_104 = v133;
+					branch_List_103 = v105;
+					branch_Int_102 = v132;
+					branch_ZPlusC99Branch_101 = v107;
+					branch_ZPlusC99Value_100 = v118;
 				} break;
 				case 0LL: { // Nil
-					VAL v117 = MKI64(0LL /* Nil */);
-					int64_t v118 = 0LL /* False */;
-					branch_Bool_87 = v118;
-					branch_List_86 = v117;
-					branch_Int_85 = v78;
-					branch_ZPlusC99Branch_84 = v80;
-					branch_ZPlusC99Value_83 = v79;
+					VAL v134 = MKI64(0LL /* Nil */);
+					int64_t v135 = 0LL /* False */;
+					branch_Bool_104 = v135;
+					branch_List_103 = v134;
+					branch_Int_102 = v95;
+					branch_ZPlusC99Branch_101 = v97;
+					branch_ZPlusC99Value_100 = v96;
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
 				}
 			}
-			v77 = branch_Bool_87;
-			v76 = branch_Bool_87;
-			v75 = branch_List_86;
-			v74 = branch_ZPlusC99Branch_84;
-			v73 = branch_ZPlusC99Value_83;
-			v72 = branch_Int_85;
+			v94 = branch_Bool_104;
+			v93 = branch_Bool_104;
+			v92 = branch_List_103;
+			v91 = branch_ZPlusC99Branch_101;
+			v90 = branch_ZPlusC99Value_100;
+			v89 = branch_Int_102;
 		}
-		decref(v75);
-		VAL v119;
-		mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(v74, v73, &v119);
-		branch_ZPlusC99Branch_6 = v119;
+		decref(v92);
+		VAL v136;
+		mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(v91, v90, &v136);
+		branch_ZPlusC99Branch_6 = v136;
 	}
 	*out_ZPlusC99Branch_3 = branch_ZPlusC99Branch_6;
 }
@@ -63109,7 +63222,7 @@ static void mw_mirth_c99_c99Z_blockZ_pushZBang (uint64_t in_Block_1, VAL in_ZPlu
 			branch_ZPlusC99Branch_8 = v10;
 		} break;
 		case 0LL: { // None
-			VAL v11 = MKI64(15LL /* C99RT_FNPTR */);
+			VAL v11 = MKI64(16LL /* C99RT_FNPTR */);
 			incref(v11);
 			int64_t v12 = get_data_tag(v11);
 			decref(v11);
@@ -64452,7 +64565,7 @@ static void mw_mirth_c99_c99Z_wordZ_defZBang (uint64_t in_Word_1, VAL in_ZPlusC9
 	VAL v4;
 	VAL v5 = mw_mirth_word_Word_c99Z_api(in_Word_1, in_ZPlusC99_2, &v4);
 	VAL v6;
-	VAL v7 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp87(v5, v4, &v6);
+	VAL v7 = mw_mirth_c99_ZPlusC99_c99Z_line_1_sp88(v5, v4, &v6);
 	int64_t v8 = value_i64(VTUP(v6)->cells[2]);
 	int64_t v9 = 1LL;
 	int64_t v10 = i64_add(v8, v9);
@@ -64623,11 +64736,11 @@ static void mw_mirth_c99_c99Z_fieldZ_defZBang (uint64_t in_Field_1, VAL in_ZPlus
 	*out_ZPlusC99_3 = v31;
 }
 static void mw_mirth_c99_c99Z_fieldZ_callZBang (uint64_t in_Field_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3) {
-	VAL v4 = MKI64(7LL /* C99RT_U64 */);
+	VAL v4 = MKI64(8LL /* C99RT_U64 */);
 	VAL v5;
 	VAL v6;
 	mw_mirth_c99_ZPlusC99Branch_popZ_valueZBang(in_ZPlusC99Branch_2, v4, &v5, &v6);
-	VAL v7 = MKI64(14LL /* C99RT_PTR */);
+	VAL v7 = MKI64(15LL /* C99RT_PTR */);
 	incref(v7);
 	int64_t v8 = get_data_tag(v7);
 	decref(v7);
@@ -64695,7 +64808,7 @@ static void mw_mirth_c99_c99Z_fieldZ_callZBang (uint64_t in_Field_1, VAL in_ZPlu
 	STRLIT(v39, "(", 1);
 	VAL v40;
 	mw_mirth_c99_ZPlusC99_put(MKSTR(v39), v38, &v40);
-	VAL v41 = MKI64(7LL /* C99RT_U64 */);
+	VAL v41 = MKI64(8LL /* C99RT_U64 */);
 	VAL v42 = mw_mirth_c99_ZPlusC99Value_consumeZ_as(v41, branch_ZPlusC99Value_11);
 	VAL v43;
 	mw_mirth_c99_ZPlusC99_put(v42, v40, &v43);
@@ -64810,7 +64923,7 @@ static void mw_mirth_c99_c99Z_mainZBang (VAL in_Arrow_1, VAL in_ZPlusC99_2, VAL 
 	VAL v51 = MKI64(0LL /* Nil */);
 	VAL v52;
 	mw_mirth_c99_ZPlusC99_startZ_branchZBang(branch_ZPlusC99_23, v50, v51, &v52);
-	VAL v53 = MKI64(3LL /* C99RT_I64 */);
+	VAL v53 = MKI64(4LL /* C99RT_I64 */);
 	incref(v53);
 	int64_t v54 = get_data_tag(v53);
 	decref(v53);
@@ -65161,7 +65274,7 @@ static void mw_mirth_main_compileZBang (VAL in_Arguments_1, VAL in_ZPlusMirth_2,
 	}
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_84;
 }
-static VAL mw_mirth_main_parseZ_packageZ_def (VAL in_Str_1) {
+static TUP* mw_mirth_main_parseZ_packageZ_def (VAL in_Str_1) {
 	int64_t v3 = 58LL /* BCOLON */;
 	VAL v4 = mw_std_prim_Str_splitZ_byte(v3, in_Str_1);
 	VAL v5 = mw_std_list_ListZPlus_1_ZDivL2ZPlus(v4);
@@ -65183,8 +65296,8 @@ static VAL mw_mirth_main_parseZ_packageZ_def (VAL in_Str_1) {
 	VAL v10 = value_tup(branch_z_x1_6, 2)->cells[0];
 	VAL v11 = value_tup(branch_z_x1_6, 2)->cells[1];
 	tup_decref_outer(value_tup(branch_z_x1_6, 2), 2);
-	TUP* v12 = tup_pack(2, (VAL[]){v10,v11});
-	return MKTUP(v12, 2);
+	TUP* v12 = tup_pack2(v10, v11);
+	return v12;
 }
 static VAL mw_mirth_main_compilerZ_parseZ_args (VAL in_ZPlusArgumentParser_1, VAL in_Arguments_2, VAL in_Maybe_3, VAL in_ArgpOptionType_4, VAL *out_ZPlusArgumentParser_5) {
 	VAL branch_ZPlusArgumentParser_7;
@@ -65232,12 +65345,12 @@ static VAL mw_mirth_main_compilerZ_parseZ_args (VAL in_ZPlusArgumentParser_1, VA
 					switch (get_data_tag(in_Maybe_3)) {
 						case 1LL: { // Some
 							VAL v21 = mtp_std_maybe_Maybe_1_Some(in_Maybe_3);
-							VAL v22 = mw_mirth_main_parseZ_packageZ_def(v21);
+							TUP* v22 = mw_mirth_main_parseZ_packageZ_def(v21);
 							incref(in_Arguments_2);
 							VAL v23 = VTUP(in_Arguments_2)->cells[4];
 							incref(v23);
 							decref(in_Arguments_2);
-							VAL v24 = mtw_std_list_List_1_Cons(v22, v23);
+							VAL v24 = mtw_std_list_List_1_Cons(MKTUP(v22, 2), v23);
 							VAL v25 = tup_replace(in_Arguments_2, 4, v24);
 							branch_Arguments_20 = v25;
 						} break;
@@ -65828,7 +65941,7 @@ static VAL mw_std_maybe_Maybe_1_map_1_sp3 (VAL in_Resource_1, VAL in_Maybe_2, VA
 			tup_decref_outer(value_tup(v7, 2), 2);
 			incref(in_Resource_1);
 			VAL v10 = mtw_mirth_type_StackType_STWith(v8, in_Resource_1);
-			TUP* v11 = tup_pack(2, (VAL[]){v10,v9});
+			TUP* v11 = tup_pack2(v10, v9);
 			VAL v12 = mtw_std_maybe_Maybe_1_Some(MKTUP(v11, 2));
 			branch_Maybe_6 = v12;
 			branch_Resource_5 = in_Resource_1;
@@ -65856,7 +65969,7 @@ static VAL mw_std_maybe_Maybe_1_map_1_sp4 (VAL in_Type_1, VAL in_Maybe_2, VAL *o
 			tup_decref_outer(value_tup(v7, 2), 2);
 			incref(in_Type_1);
 			VAL v10 = mtw_mirth_type_StackType_STCons(v8, in_Type_1);
-			TUP* v11 = tup_pack(2, (VAL[]){v10,v9});
+			TUP* v11 = tup_pack2(v10, v9);
 			VAL v12 = mtw_std_maybe_Maybe_1_Some(MKTUP(v11, 2));
 			branch_Maybe_6 = v12;
 			branch_Type_5 = in_Type_1;
@@ -66161,7 +66274,7 @@ static void mw_mirth_c99_ZPlusC99BranchSplit_c99Z_line_1_sp2 (VAL in_ZPlusC99Bra
 	int64_t v3 = value_i64(VTUP(in_ZPlusC99BranchSplit_1)->cells[5]);
 	VAL v4 = VTUP(in_ZPlusC99BranchSplit_1)->cells[1];
 	VAL v5;
-	mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp22(v3, v4, &v5);
+	mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp23(v3, v4, &v5);
 	VTUP(in_ZPlusC99BranchSplit_1)->cells[1] = v5;
 	*out_ZPlusC99BranchSplit_2 = in_ZPlusC99BranchSplit_1;
 }
@@ -66208,7 +66321,7 @@ static void mw_std_list_List_1_for_1_sp16 (VAL in_ZPlusC99Branch_1, VAL in_List_
 	decref(v6);
 	*out_ZPlusC99Branch_3 = v5;
 }
-static void mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp22 (int64_t in_Bool_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_3) {
+static void mw_mirth_c99_ZPlusC99_c99Z_lineZ_if_1_sp23 (int64_t in_Bool_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_3) {
 	int64_t v4 = value_i64(VTUP(in_ZPlusC99_2)->cells[4]);
 	bool v5 = (((bool)in_Bool_1) && ((bool)v4));
 	VTUP(in_ZPlusC99_2)->cells[4] = MKBOOL(v5);
@@ -66540,23 +66653,69 @@ static void mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp13 (uint64_t in_Token_1, 
 	VAL v6 = VTUP(v5)->cells[7];
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(in_Token_1, in_Str_2, v6);
 }
-static void mw_std_maybe_Maybe_1_for_1_sp3 (VAL in_ZPlusC99_1, VAL in_Maybe_2, VAL *out_ZPlusC99_3) {
-	VAL branch_ZPlusC99_4;
-	switch (get_data_tag(in_Maybe_2)) {
+static void mw_std_list_List_1_for_2_sp1 (VAL in_ZPlusC99_1, VAL in_List_2, VAL *out_ZPlusC99_3) {
+	VAL v4;
+	VAL v5 = mw_std_list_List_1_uncons(in_List_2, &v4);
+	VAL branch_ZPlusC99_6;
+	switch (get_data_tag(v5)) {
 		case 1LL: { // Some
-			VAL v5 = mtp_std_maybe_Maybe_1_Some(in_Maybe_2);
-			VAL v6;
-			mw_mirth_c99_ZPlusC99_put(v5, in_ZPlusC99_1, &v6);
-			branch_ZPlusC99_4 = v6;
+			VAL v7 = mtp_std_maybe_Maybe_1_Some(v5);
+			VAL v8;
+			mw_mirth_c99_ZPlusC99_put(v7, in_ZPlusC99_1, &v8);
+			branch_ZPlusC99_6 = v8;
 		} break;
 		case 0LL: { // None
-			branch_ZPlusC99_4 = in_ZPlusC99_1;
+			branch_ZPlusC99_6 = in_ZPlusC99_1;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	*out_ZPlusC99_3 = branch_ZPlusC99_4;
+	int64_t v9 = 1LL /* True */;
+	VAL v10 = branch_ZPlusC99_6;
+	VAL v11 = v4;
+	int64_t v12 = v9;
+	int64_t v13 = v9;
+	while (((bool)v13)) {
+		VAL v14 = v10;
+		VAL v15 = v11;
+		int64_t v16 = v12;
+		VAL branch_ZPlusC99_17;
+		VAL branch_List_18;
+		int64_t branch_Bool_19;
+		switch (get_data_tag(v15)) {
+			case 1LL: { // Cons
+				VAL v20;
+				VAL v21 = mtp_std_list_List_1_Cons(v15, &v20);
+				STR* v22;
+				STRLIT(v22, ", ", 2);
+				VAL v23;
+				mw_mirth_c99_ZPlusC99_put(MKSTR(v22), v14, &v23);
+				VAL v24;
+				mw_mirth_c99_ZPlusC99_put(v21, v23, &v24);
+				int64_t v25 = 1LL /* True */;
+				branch_Bool_19 = v25;
+				branch_List_18 = v20;
+				branch_ZPlusC99_17 = v24;
+			} break;
+			case 0LL: { // Nil
+				VAL v26 = MKI64(0LL /* Nil */);
+				int64_t v27 = 0LL /* False */;
+				branch_Bool_19 = v27;
+				branch_List_18 = v26;
+				branch_ZPlusC99_17 = v14;
+			} break;
+			default: {
+				do_panic(str_make("unexpected fallthrough in match\n", 32));
+			}
+		}
+		v13 = branch_Bool_19;
+		v12 = branch_Bool_19;
+		v11 = branch_List_18;
+		v10 = branch_ZPlusC99_17;
+	}
+	decref(v11);
+	*out_ZPlusC99_3 = v10;
 }
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp23 (VAL in_ZPlusC99Value_1, VAL in_ZPlusC99Branch_2, VAL in_C99ReprType_3, VAL *out_ZPlusC99Branch_4, VAL *out_ZPlusC99Value_5) {
 	incref(in_C99ReprType_3);
@@ -66627,7 +66786,7 @@ static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp23 (VAL in_ZPlus
 	*out_ZPlusC99Value_5 = v31;
 	*out_ZPlusC99Branch_4 = branch_ZPlusC99Branch_13;
 }
-static void mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp29 (VAL in_Str_1, int64_t in_Nat_2, VAL in_Str_3, VAL in_ZPlusC99Branch_4, VAL *out_Str_5, int64_t *out_Nat_6, VAL *out_ZPlusC99Branch_7) {
+static void mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp30 (VAL in_Str_1, int64_t in_Nat_2, VAL in_Str_3, VAL in_ZPlusC99Branch_4, VAL *out_Str_5, int64_t *out_Nat_6, VAL *out_ZPlusC99Branch_7) {
 	int64_t v8 = value_i64(VTUP(in_ZPlusC99Branch_4)->cells[4]);
 	VAL v9 = VTUP(in_ZPlusC99Branch_4)->cells[1];
 	int64_t v10 = value_i64(VTUP(v9)->cells[4]);
@@ -66673,7 +66832,7 @@ static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp15 (uint64_t in_Word_1, VA
 	*out_ZPlusC99Branch_4 = in_ZPlusC99Branch_2;
 	return v8;
 }
-static VAL mw_mirth_c99_ZPlusC99_c99Z_line_1_sp87 (VAL in_C99API_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_4) {
+static VAL mw_mirth_c99_ZPlusC99_c99Z_line_1_sp88 (VAL in_C99API_1, VAL in_ZPlusC99_2, VAL *out_ZPlusC99_4) {
 	VAL v5;
 	mw_mirth_c99_ZPlusC99_indent(in_ZPlusC99_2, &v5);
 	incref(in_C99API_1);
@@ -66974,7 +67133,7 @@ static void mw_std_file_ZPlusFileZAsk_unwrapZBang_1_sp1 (VAL in_ZPlusMirth_1, VA
 	*out_ZPlusFile_4 = branch_ZPlusFile_6;
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
 }
-static void mw_std_list_List_1_for_1_sp47 (VAL in_ZPlusList_1, VAL in_List_2, VAL *out_ZPlusList_3) {
+static void mw_std_list_List_1_for_1_sp46 (VAL in_ZPlusList_1, VAL in_List_2, VAL *out_ZPlusList_3) {
 	int64_t v4 = 1LL /* True */;
 	VAL v5 = in_ZPlusList_1;
 	VAL v6 = in_List_2;
@@ -67358,7 +67517,7 @@ static int64_t mw_std_list_List_1_ZEqualZEqual_1_sp1 (VAL in_ZPlusMirth_1, VAL i
 	*out_ZPlusMirth_4 = v29;
 	return ((int64_t)v32);
 }
-static void mw_std_list_List_1_for_1_sp61 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3) {
+static void mw_std_list_List_1_for_1_sp60 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3) {
 	int64_t v4 = 1LL /* True */;
 	VAL v5 = in_ZPlusSPCheck_1;
 	VAL v6 = in_List_2;
@@ -67424,7 +67583,7 @@ static VAL mw_std_maybe_Maybe_1_bind_1_sp7 (VAL in_ZPlusMirth_1, VAL in_Maybe_2,
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
 	return branch_Maybe_6;
 }
-static VAL mw_std_list_List_1_for_1_sp64 (VAL in_ZPlusMirth_1, VAL in_z_x1_2, VAL in_ZPlusStr_3, VAL in_Str_4, VAL in_List_5, VAL *out_ZPlusMirth_6, VAL *out_z_x1_7, VAL *out_ZPlusStr_8) {
+static VAL mw_std_list_List_1_for_1_sp63 (VAL in_ZPlusMirth_1, VAL in_z_x1_2, VAL in_ZPlusStr_3, VAL in_Str_4, VAL in_List_5, VAL *out_ZPlusMirth_6, VAL *out_z_x1_7, VAL *out_ZPlusStr_8) {
 	int64_t v10 = 1LL /* True */;
 	VAL v11 = in_ZPlusMirth_1;
 	VAL v12 = in_z_x1_2;
@@ -67582,7 +67741,7 @@ static int64_t mw_std_list_List_1_member_1_sp4 (VAL in_Namespace_1, VAL in_List_
 	bool v35 = (v33 == v34);
 	return ((int64_t)v35);
 }
-static VAL mw_std_list_List_1_for_1_sp81 (VAL in_StackType_1, VAL in_List_2) {
+static VAL mw_std_list_List_1_for_1_sp80 (VAL in_StackType_1, VAL in_List_2) {
 	int64_t v4 = 1LL /* True */;
 	VAL v5 = in_StackType_1;
 	VAL v6 = in_List_2;
@@ -67838,17 +67997,17 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp1_0 (void) {
 	VAL v3 = mw_mirth_word_Word_arrow(v1, r0, &v2);
 	VAL v4;
 	VAL v5 = mw_mirth_arrow_Arrow_ctxZ_type(v3, &v4);
-	TUP* v6 = tup_pack(2, (VAL[]){v5,v4});
+	TUP* v6 = tup_pack2(v5, v4);
 	push_resource(v2);
 	push_value(MKTUP(v6, 2));
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp2_2 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 3);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 3)->cells[0];
-	VAL v3 = value_tup(v0, 3)->cells[1];
-	VAL v4 = value_tup(v0, 3)->cells[2];
-	tup_decref_outer(value_tup(v0, 3), 3);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	VAL v4 = v0->cells[2];
+	tup_decref_outer(v0, 3);
 	VAL v5;
 	VAL v6;
 	uint64_t v7;
@@ -67981,7 +68140,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp4_0 (void) {
 	VAL v5;
 	VAL v6 = mw_mirth_type_ArrowType_unpack(v3, &v5);
 	VAL v7 = mw_mirth_type_TZ_ZTo(v5, v6);
-	TUP* v8 = tup_pack(2, (VAL[]){v4,v7});
+	TUP* v8 = tup_pack2(v4, v7);
 	push_resource(v2);
 	push_value(MKTUP(v8, 2));
 }
@@ -68037,13 +68196,13 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp5_2 (void) {
 	push_value(v23);
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp6_9 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 4);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 4)->cells[0];
-	VAL v3 = value_tup(v0, 4)->cells[1];
-	VAL v4 = value_tup(v0, 4)->cells[2];
-	VAL v5 = value_tup(v0, 4)->cells[3];
-	tup_decref_outer(value_tup(v0, 4), 4);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	VAL v4 = v0->cells[2];
+	VAL v5 = v0->cells[3];
+	tup_decref_outer(v0, 4);
 	incref(v5);
 	VAL v6;
 	VAL v7;
@@ -68189,11 +68348,11 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp6_9 (void) {
 	push_value(v107);
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp7_1 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 2);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 2)->cells[0];
-	VAL v3 = value_tup(v0, 2)->cells[1];
-	tup_decref_outer(value_tup(v0, 2), 2);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0, 2);
 	VAL v4 = mw_mirth_type_TYPEz_STACK();
 	STR* v5;
 	STRLIT(v5, "*x", 2);
@@ -68250,7 +68409,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp7_1 (void) {
 	incref(v21);
 	VAL v38 = mw_mirth_type_TZMulZPlus(v37, v21);
 	VAL v39 = mw_mirth_type_TZ_ZTo(v36, v38);
-	TUP* v40 = tup_pack(2, (VAL[]){v27,v39});
+	TUP* v40 = tup_pack2(v27, v39);
 	decref(v21);
 	decref(branch_z_x1_15);
 	decref(v2);
@@ -68258,12 +68417,12 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp7_1 (void) {
 	push_value(MKTUP(v40, 2));
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp8_5 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 3);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 3)->cells[0];
-	VAL v3 = value_tup(v0, 3)->cells[1];
-	VAL v4 = value_tup(v0, 3)->cells[2];
-	tup_decref_outer(value_tup(v0, 3), 3);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	VAL v4 = v0->cells[2];
+	tup_decref_outer(v0, 3);
 	VAL v5;
 	VAL v6;
 	uint64_t v7;
@@ -68309,11 +68468,11 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp8_5 (void) {
 	push_value(v30);
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp9_3 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 2);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 2)->cells[0];
-	VAL v3 = value_tup(v0, 2)->cells[1];
-	tup_decref_outer(value_tup(v0, 2), 2);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0, 2);
 	incref(v2);
 	VAL v4;
 	VAL v5 = mw_mirth_data_Tag_ctx(r1, value_u64(v2), &v4);
@@ -68338,17 +68497,17 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp9_3 (void) {
 	}
 	VAL v14;
 	VAL v15 = mw_mirth_elab_dataZ_setZ_labelZ_type(branch_ZPlusMirth_8, branch_z_x1_9, &v14);
-	TUP* v16 = tup_pack(2, (VAL[]){v5,v15});
+	TUP* v16 = tup_pack2(v5, v15);
 	push_resource(v14);
 	push_value(MKTUP(v16, 2));
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp10_5 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 3);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 3)->cells[0];
-	VAL v3 = value_tup(v0, 3)->cells[1];
-	VAL v4 = value_tup(v0, 3)->cells[2];
-	tup_decref_outer(value_tup(v0, 3), 3);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	VAL v4 = v0->cells[2];
+	tup_decref_outer(v0, 3);
 	VAL v5;
 	VAL v6;
 	uint64_t v7;
@@ -68394,11 +68553,11 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp10_5 (void) {
 	push_value(v30);
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp11_3 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 2);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 2)->cells[0];
-	VAL v3 = value_tup(v0, 2)->cells[1];
-	tup_decref_outer(value_tup(v0, 2), 2);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0, 2);
 	incref(v2);
 	VAL v4;
 	VAL v5 = mw_mirth_data_Tag_ctx(r1, value_u64(v2), &v4);
@@ -68423,16 +68582,16 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp11_3 (void) {
 	}
 	VAL v14;
 	VAL v15 = mw_mirth_elab_dataZ_getZ_labelZ_type(branch_ZPlusMirth_8, branch_z_x1_9, &v14);
-	TUP* v16 = tup_pack(2, (VAL[]){v5,v15});
+	TUP* v16 = tup_pack2(v5, v15);
 	push_resource(v14);
 	push_value(MKTUP(v16, 2));
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp12_7 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 2);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 2)->cells[0];
-	VAL v3 = value_tup(v0, 2)->cells[1];
-	tup_decref_outer(value_tup(v0, 2), 2);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0, 2);
 	VAL v4;
 	VAL v5;
 	uint64_t v6;
@@ -68541,11 +68700,11 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp12_7 (void) {
 	push_value(v67);
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp13_2 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 2);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 2)->cells[0];
-	VAL v3 = value_tup(v0, 2)->cells[1];
-	tup_decref_outer(value_tup(v0, 2), 2);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0, 2);
 	incref(v3);
 	uint64_t v4 = mw_mirth_data_Tag_data(value_u64(v3));
 	VAL v5;
@@ -68593,7 +68752,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp13_2 (void) {
 	VAL v27 = mw_mirth_type_TZ_ZTo(branch_StackType_20, branch_StackType_19);
 	VAL v28 = VTUP(branch_ZPlusTypeElab_18)->cells[1];
 	incref(v28);
-	TUP* v29 = tup_pack(2, (VAL[]){v28,v27});
+	TUP* v29 = tup_pack2(v28, v27);
 	mw_mirth_elab_ZPlusTypeElab_rdrop(branch_ZPlusTypeElab_18);
 	push_resource(branch_ZPlusMirth_17);
 	push_value(MKTUP(v29, 2));
@@ -68625,7 +68784,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp16_1 (void) {
 	VAL v6 = mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang(r1, v3, &v4, &v5);
 	VAL v7 = VTUP(v5)->cells[1];
 	incref(v7);
-	TUP* v8 = tup_pack(2, (VAL[]){v7,v6});
+	TUP* v8 = tup_pack2(v7, v6);
 	mw_mirth_elab_ZPlusTypeElab_rdrop(v5);
 	push_resource(v4);
 	push_value(MKTUP(v8, 2));
@@ -68643,7 +68802,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp18_1 (void) {
 	VAL r1 = pop_resource();
 	VAL v2 = mw_mirth_word_Word_sigZAsk(v0);
 	VAL branch_ZPlusMirth_3;
-	VAL branch__4;
+	TUP* branch__4;
 	switch (get_data_tag(v2)) {
 		case 1LL: { // Some
 			VAL v5 = mtp_std_maybe_Maybe_1_Some(v2);
@@ -68654,9 +68813,9 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp18_1 (void) {
 			VAL v9 = mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang(r1, v6, &v7, &v8);
 			VAL v10 = VTUP(v8)->cells[1];
 			incref(v10);
-			TUP* v11 = tup_pack(2, (VAL[]){v10,v9});
+			TUP* v11 = tup_pack2(v10, v9);
 			mw_mirth_elab_ZPlusTypeElab_rdrop(v8);
-			branch__4 = MKTUP(v11, 2);
+			branch__4 = v11;
 			branch_ZPlusMirth_3 = v7;
 		} break;
 		case 0LL: { // None
@@ -68664,8 +68823,8 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp18_1 (void) {
 			VAL v13 = mw_mirth_word_Word_arrow(v0, r1, &v12);
 			VAL v14;
 			VAL v15 = mw_mirth_arrow_Arrow_ctxZ_type(v13, &v14);
-			TUP* v16 = tup_pack(2, (VAL[]){v15,v14});
-			branch__4 = MKTUP(v16, 2);
+			TUP* v16 = tup_pack2(v15, v14);
+			branch__4 = v16;
 			branch_ZPlusMirth_3 = v12;
 		} break;
 		default: {
@@ -68673,7 +68832,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp18_1 (void) {
 		}
 	}
 	push_resource(branch_ZPlusMirth_3);
-	push_value(branch__4);
+	push_value(MKTUP(branch__4, 2));
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp19_0 (void) {
 	uint64_t v0 = value_u64(pop_value());
@@ -68772,12 +68931,12 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp21_0 (void) {
 	push_value(v8);
 }
 static void mb_mirth_mirth_PropLabel_prop_1_sp22_6 (void) {
-	VAL v0 = pop_value();
+	TUP* v0 = value_tup(pop_value(), 3);
 	VAL r1 = pop_resource();
-	VAL v2 = value_tup(v0, 3)->cells[0];
-	VAL v3 = value_tup(v0, 3)->cells[1];
-	VAL v4 = value_tup(v0, 3)->cells[2];
-	tup_decref_outer(value_tup(v0, 3), 3);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	VAL v4 = v0->cells[2];
+	tup_decref_outer(v0, 3);
 	incref(v3);
 	STR* v5;
 	STRLIT(v5, "target", 6);

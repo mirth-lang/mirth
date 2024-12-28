@@ -1222,6 +1222,7 @@ data C99ReprType {
 
     C99RT_VAL
     C99RT_STR
+    C99RT_TUP [ Nat ]
 
     C99RT_I64 C99RT_I32 C99RT_I16 C99RT_I8
     C99RT_U64 C99RT_U32 C99RT_U16 C99RT_U8
@@ -1229,8 +1230,6 @@ data C99ReprType {
     C99RT_BOOL
     C99RT_PTR
     C99RT_FNPTR
-
-    C99RT_TUP [ Nat ]
 }
 
 def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
@@ -1245,9 +1244,17 @@ inline (
 )
 
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
-   { C99RT_VAL -> True }
-   { C99RT_STR -> True }
-   { _ -> drop False }
+    { C99RT_VAL -> True }
+    { C99RT_STR -> True }
+    { C99RT_TUP -> drop True }
+
+    { C99RT_UNIT -> False }
+    { C99RT_I64 -> False } { C99RT_I32 -> False } { C99RT_I16 -> False } { C99RT_I8 -> False }
+    { C99RT_U64 -> False } { C99RT_U32 -> False } { C99RT_U16 -> False } { C99RT_U8 -> False }
+    { C99RT_F64 -> False } { C99RT_F32 -> False }
+    { C99RT_BOOL -> False } 
+    { C99RT_PTR -> False }
+    { C99RT_FNPTR -> False }
 }
 
 def C99ReprType.is-int-like? [ C99ReprType -- Bool ] {
@@ -1362,10 +1369,17 @@ def Type.c99-repr [ Type +Mirth -- C99ReprType +Mirth ] {
     { TData -> c99-repr }
     { TDataPartial -> .data c99-repr }
     { TMorphism -> drop C99RT_VAL }
-    { TTensor -> drop C99RT_VAL }
+    { TTensor -> tuple-c99-repr }
     { TApp -> drop c99-repr }
     { TMut -> drop C99RT_PTR }
     { TValue -> drop C99RT_VAL }
+}
+
+def StackType.tuple-c99-repr [ StackType -- C99ReprType ] {
+    split-parts swap match {
+        { STB_UNIT -> len dup 0= if (drop C99RT_UNIT, C99RT_TUP) }
+        { _ -> drop2 C99RT_VAL }
+    }
 }
 
 def PrimType.c99-repr [ PrimType -- C99ReprType ] {
@@ -2190,14 +2204,13 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
     >arity
+    @arity 1u >= @arity 5u <= && else("c99-tup-pack! called with unsupported arity" +mirth:fatal-error!)
     L0 >args
     @arity repeat(C99RT_VAL pop-value! consume-as-VAL @args:cons)
     @arity C99RT_TUP push-value-expression!(
-        "tup_pack(" put
-        arity> show put
-        ", (VAL[]){" put
-        args> for(put, "," put)
-        "})" put
+        "tup_pack" put arity> show put "(" put
+        args> for(put, ", " put)
+        ")" put
     )
 }
 
@@ -2261,8 +2274,10 @@ def c99-block-run! [ Block +C99Branch -- +C99Branch ] {
 def c99-pack-closure-vars! [ List(Var) +C99Branch -- +C99Branch ] {
     filter(is-physical?) dup empty? if(
         drop,
+        dup len 1+ show >arity
         C99RT_FNPTR pop-value! >+fnptr
-        C99RT_VAL value-expression!("MKTUP(tup_new(" put dup len 1+ show dup put "), " put put ")" put) >+tup
+        C99RT_VAL value-expression!("MKTUP(tup_new(" put @arity put "), " put @arity put ")" put) >+tup
+        c99-line("VTUP(" put @+tup:rdup consume-as-VAL put " )->size = " put arity> put ";" put)
         c99-line(
             "VTUP(" put @+tup:rdup consume-as-VAL put
             ")->cells[0] = " put +fnptr> consume-as-VAL put ";" put

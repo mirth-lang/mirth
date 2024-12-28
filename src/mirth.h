@@ -202,7 +202,7 @@ static TYPE TYPE_TUP = {
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
 
 #define VTUP(v)    ((v).data.tup)
-#define VTUPLEN(v) ((v).data.tup ? (v).data.tup->size : 0)
+#define VTUPLEN(v) (tup_len_(VTUP(v)))
 #define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.tup=(x)}})
 #define MKNIL      ((VAL){.tag=TAG_TUP, .data={.tup=NULL}})
 
@@ -367,16 +367,23 @@ static void tup_free (VAL v) {
 }
 
 static void tup_decref_outer(TUP* tup, size_t n) {
+	ASSERT(tup);
+	ASSERT(tup->size == n);
 	if (tup->refs == 1) {
-		for (size_t i = n; i < tup->size; i++) {
-			decref(tup->cells[i]);
-		}
 		free(tup);
 	} else {
 		for (size_t i = 0; i < n; i++) {
 			incref(tup->cells[i]);
 		}
-		if (!--tup->refs) free_value(MKTUP(tup,n));
+		if (!--tup->refs) tup_free(MKTUP(tup,n));
+	}
+}
+
+static TUPLEN tup_len_ (TUP* tup) {
+	if (tup) {
+		return tup->size;
+	} else {
+		return 0;
 	}
 }
 
@@ -396,7 +403,7 @@ static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
 static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }
 static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }
 static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }
-static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && VTUPLEN(v) == n, v); return VTUP(v); }
+static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && (VTUPLEN(v) == n), v); return VTUP(v); }
 
 static void push_value (VAL x) { ASSERT(stack_counter > 0); stack[--stack_counter] = x; }
 static void push_resource (VAL x) { ASSERT(rstack_counter > 0); rstack[--rstack_counter] = x; }
@@ -414,21 +421,50 @@ static TUP* tup_new (TUPLEN cap_hint) {
 	return new_tup;
 }
 
-static TUP* tup_pack (TUPLEN count, VAL const* vals) {
-	TUP* tup = tup_new(count);
-	tup->size = count;
-	for (TUPLEN i = 0; i < count; i++) {
-		tup->cells[i] = vals[i];
-	}
+static TUP* tup_pack1 (VAL v1) {
+	TUP* tup = tup_new(1);
+	ASSERT(tup); ASSERT(tup->cap >= 1);
+	tup->size = 1;
+	tup->cells[0] = v1;
 	return tup;
 }
-
-static void tup_unpack (TUP* tup, TUPLEN count, VAL* const* vals) {
-	ASSERT(tup); ASSERT(tup->size == count);
-	for (TUPLEN i = 0; i < count; i++) {
-		if(vals[i]) *vals[i] = tup->cells[i];
-	}
-	tup_decref_outer(tup, count);
+static TUP* tup_pack2 (VAL v1, VAL v2) {
+	TUP* tup = tup_new(2);
+	ASSERT(tup); ASSERT(tup->cap >= 2);
+	tup->size = 2;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	return tup;
+}
+static TUP* tup_pack3 (VAL v1, VAL v2, VAL v3) {
+	TUP* tup = tup_new(3);
+	ASSERT(tup); ASSERT(tup->cap >= 3);
+	tup->size = 3;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	return tup;
+}
+static TUP* tup_pack4 (VAL v1, VAL v2, VAL v3, VAL v4) {
+	TUP* tup = tup_new(4);
+	ASSERT(tup); ASSERT(tup->cap >= 4);
+	tup->size = 4;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	tup->cells[3] = v4;
+	return tup;
+}
+static TUP* tup_pack5 (VAL v1, VAL v2, VAL v3, VAL v4, VAL v5) {
+	TUP* tup = tup_new(5);
+	ASSERT(tup); ASSERT(tup->cap >= 5);
+	tup->size = 5;
+	tup->cells[0] = v1;
+	tup->cells[1] = v2;
+	tup->cells[2] = v3;
+	tup->cells[3] = v4;
+	tup->cells[4] = v5;
+	return tup;
 }
 
 static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
