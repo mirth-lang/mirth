@@ -767,9 +767,9 @@ static void trace_rstack (void) {
 			TRACE(" at ");
 			TRACE(fstack[i-1].path);
 			TRACE(":");
-			int_trace_((int64_t)fstack[i-1].line, 2);
+			int_trace_(MKI64(fstack[i-1].line), 2);
 			TRACE(":");
-			int_trace_((int64_t)fstack[i-1].col, 2);
+			int_trace_(MKI64(fstack[i-1].col), 2);
 			TRACE("\n");
 		}
 	#endif
@@ -49112,9 +49112,9 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\t\t\tTRACE(\" at \");\n"
 		"\t\t\tTRACE(fstack[i-1].path);\n"
 		"\t\t\tTRACE(\":\");\n"
-		"\t\t\tint_trace_((int64_t)fstack[i-1].line, 2);\n"
+		"\t\t\tint_trace_(MKI64(fstack[i-1].line), 2);\n"
 		"\t\t\tTRACE(\":\");\n"
-		"\t\t\tint_trace_((int64_t)fstack[i-1].col, 2);\n"
+		"\t\t\tint_trace_(MKI64(fstack[i-1].col), 2);\n"
 		"\t\t\tTRACE(\"\\n\");\n"
 		"\t\t}\n"
 		"\t#endif\n"
@@ -49220,7 +49220,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		21559
+		21555
 	);
 	return MKSTR(v2);
 }
