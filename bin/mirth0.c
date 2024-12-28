@@ -48,7 +48,7 @@ typedef uint64_t TAG;
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
-typedef void (*FNPTR)();
+typedef void (*FNPTR)(void);
 
 typedef union DATA {
 	USIZE usize;
@@ -48393,7 +48393,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\n"
 		"typedef uint32_t REFS;\n"
 		"typedef uint64_t USIZE;\n"
-		"typedef void (*FNPTR)();\n"
+		"typedef void (*FNPTR)(void);\n"
 		"\n"
 		"typedef union DATA {\n"
 		"\tUSIZE usize;\n"
@@ -49220,7 +49220,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		21555
+		21559
 	);
 	return MKSTR(v2);
 }

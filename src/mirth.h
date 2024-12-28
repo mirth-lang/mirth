@@ -47,7 +47,7 @@ typedef uint64_t TAG;
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
-typedef void (*FNPTR)();
+typedef void (*FNPTR)(void);
 
 typedef union DATA {
 	USIZE usize;
