@@ -65,6 +65,7 @@ typedef union DATA {
 	FNPTR fnptr;
 	REFS* refs;
 	struct STR* str;
+	struct TUP* tup;
 } DATA;
 
 typedef struct VAL {
@@ -147,16 +148,10 @@ static TYPE TYPE_TUP = {
 #define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)
 #define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)
 
-#define VL48(v) (((v).data.u64) & 0xFFFFFFFFFFFF)
-#define VP46(v) ((void*)(uintptr_t)(((v).data.u64) & 0xFFFFFFFFFFFC))
-#define VL32(v) (((v).data.u64) & 0x0000FFFFFFFF)
-#define VH16(v) (((v).data.u64) >> 48)
-#define VH32(v) (((v).data.u64) >> 32)
-
 #define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
 
-#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFC))
-#define VREFS(v)  (*(REFS*)VP46(v))
+#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFFFFFC))
+#define VREFS(v)  (*(v).data.refs)
 
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
@@ -173,7 +168,7 @@ static TYPE TYPE_TUP = {
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 
-#define HAS_REFS(v) (((v).tag & REFS_FLAG) && VP46(v))
+#define HAS_REFS(v) (((v).tag & REFS_FLAG) && (v).data.refs)
 #define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
@@ -206,10 +201,10 @@ static TYPE TYPE_TUP = {
 #define VSTR(v)    ((v).data.str)
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
 
-#define VTUP(v)    ((TUP*)(VP46(v)))
-#define VTUPLEN(v) (VH16(v))
-#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.u64=((uint64_t)(n) << 48) | (uint64_t)(uintptr_t)(x)}})
-#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.u64=0}})
+#define VTUP(v)    ((v).data.tup)
+#define VTUPLEN(v) ((v).data.tup ? (v).data.tup->size : 0)
+#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.tup=(x)}})
+#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.tup=NULL}})
 
 #define TUP_LEN_MAX 0x3FFF
 
@@ -342,9 +337,11 @@ static void trace_rstack(void);
 #define incref(v) do { if (HAS_REFS(v)) VREFS(v)++; } while(0)
 #define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)
 static void free_value(VAL v) {
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->free);
 	ASSERT(HAS_REFS(v));
 	ASSERT(VREFS(v) == 0);
-	if (VTYPE(v)->free) VTYPE(v)->free(v);
+	VTYPE(v)->free(v);
 }
 
 static void default_free (VAL v) {
@@ -719,6 +716,8 @@ void str_trace_(VAL v, int fd) {
 }
 
 static void value_trace_(VAL v, int fd) {
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->trace_);
 	VTYPE(v)->trace_(v,fd);
 }
 

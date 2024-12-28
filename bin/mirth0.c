@@ -66,6 +66,7 @@ typedef union DATA {
 	FNPTR fnptr;
 	REFS* refs;
 	struct STR* str;
+	struct TUP* tup;
 } DATA;
 
 typedef struct VAL {
@@ -148,16 +149,10 @@ static TYPE TYPE_TUP = {
 #define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)
 #define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)
 
-#define VL48(v) (((v).data.u64) & 0xFFFFFFFFFFFF)
-#define VP46(v) ((void*)(uintptr_t)(((v).data.u64) & 0xFFFFFFFFFFFC))
-#define VL32(v) (((v).data.u64) & 0x0000FFFFFFFF)
-#define VH16(v) (((v).data.u64) >> 48)
-#define VH32(v) (((v).data.u64) >> 32)
-
 #define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
 
-#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFC))
-#define VREFS(v)  (*(REFS*)VP46(v))
+#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFFFFFC))
+#define VREFS(v)  (*(v).data.refs)
 
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
@@ -174,7 +169,7 @@ static TYPE TYPE_TUP = {
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 
-#define HAS_REFS(v) (((v).tag & REFS_FLAG) && VP46(v))
+#define HAS_REFS(v) (((v).tag & REFS_FLAG) && (v).data.refs)
 #define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
 #define IS_I64(v)   ((v).tag == TAG_INT)
@@ -207,10 +202,10 @@ static TYPE TYPE_TUP = {
 #define VSTR(v)    ((v).data.str)
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
 
-#define VTUP(v)    ((TUP*)(VP46(v)))
-#define VTUPLEN(v) (VH16(v))
-#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.u64=((uint64_t)(n) << 48) | (uint64_t)(uintptr_t)(x)}})
-#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.u64=0}})
+#define VTUP(v)    ((v).data.tup)
+#define VTUPLEN(v) ((v).data.tup ? (v).data.tup->size : 0)
+#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.tup=(x)}})
+#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.tup=NULL}})
 
 #define TUP_LEN_MAX 0x3FFF
 
@@ -343,9 +338,11 @@ static void trace_rstack(void);
 #define incref(v) do { if (HAS_REFS(v)) VREFS(v)++; } while(0)
 #define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)
 static void free_value(VAL v) {
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->free);
 	ASSERT(HAS_REFS(v));
 	ASSERT(VREFS(v) == 0);
-	if (VTYPE(v)->free) VTYPE(v)->free(v);
+	VTYPE(v)->free(v);
 }
 
 static void default_free (VAL v) {
@@ -720,6 +717,8 @@ void str_trace_(VAL v, int fd) {
 }
 
 static void value_trace_(VAL v, int fd) {
+	ASSERT(VTYPE(v));
+	ASSERT(VTYPE(v)->trace_);
 	VTYPE(v)->trace_(v,fd);
 }
 
@@ -48411,6 +48410,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tFNPTR fnptr;\n"
 		"\tREFS* refs;\n"
 		"\tstruct STR* str;\n"
+		"\tstruct TUP* tup;\n"
 		"} DATA;\n"
 		"\n"
 		"typedef struct VAL {\n"
@@ -48493,16 +48493,10 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)\n"
 		"#define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)\n"
 		"\n"
-		"#define VL48(v) (((v).data.u64) & 0xFFFFFFFFFFFF)\n"
-		"#define VP46(v) ((void*)(uintptr_t)(((v).data.u64) & 0xFFFFFFFFFFFC))\n"
-		"#define VL32(v) (((v).data.u64) & 0x0000FFFFFFFF)\n"
-		"#define VH16(v) (((v).data.u64) >> 48)\n"
-		"#define VH32(v) (((v).data.u64) >> 32)\n"
-		"\n"
 		"#define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))\n"
 		"\n"
-		"#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFC))\n"
-		"#define VREFS(v)  (*(REFS*)VP46(v))\n"
+		"#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFFFFFC))\n"
+		"#define VREFS(v)  (*(v).data.refs)\n"
 		"\n"
 		"#define VINT(v)   ((v).data.i64)\n"
 		"#define VI64(v)   ((v).data.i64)\n"
@@ -48519,7 +48513,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define VPTR(v)   ((v).data.ptr)\n"
 		"#define VFNPTR(v) ((v).data.fnptr)\n"
 		"\n"
-		"#define HAS_REFS(v) (((v).tag & REFS_FLAG) && VP46(v))\n"
+		"#define HAS_REFS(v) (((v).tag & REFS_FLAG) && (v).data.refs)\n"
 		"#define IS_VAL(v)   (1)\n"
 		"#define IS_INT(v)   ((v).tag == TAG_INT)\n"
 		"#define IS_I64(v)   ((v).tag == TAG_INT)\n"
@@ -48552,10 +48546,10 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define VSTR(v)    ((v).data.str)\n"
 		"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
 		"\n"
-		"#define VTUP(v)    ((TUP*)(VP46(v)))\n"
-		"#define VTUPLEN(v) (VH16(v))\n"
-		"#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.u64=((uint64_t)(n) << 48) | (uint64_t)(uintptr_t)(x)}})\n"
-		"#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.u64=0}})\n"
+		"#define VTUP(v)    ((v).data.tup)\n"
+		"#define VTUPLEN(v) ((v).data.tup ? (v).data.tup->size : 0)\n"
+		"#define MKTUP(x,n) ((VAL){.tag=TAG_TUP, .data={.tup=(x)}})\n"
+		"#define MKNIL      ((VAL){.tag=TAG_TUP, .data={.tup=NULL}})\n"
 		"\n"
 		"#define TUP_LEN_MAX 0x3FFF\n"
 		"\n"
@@ -48688,9 +48682,11 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define incref(v) do { if (HAS_REFS(v)) VREFS(v)++; } while(0)\n"
 		"#define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)\n"
 		"static void free_value(VAL v) {\n"
+		"\tASSERT(VTYPE(v));\n"
+		"\tASSERT(VTYPE(v)->free);\n"
 		"\tASSERT(HAS_REFS(v));\n"
 		"\tASSERT(VREFS(v) == 0);\n"
-		"\tif (VTYPE(v)->free) VTYPE(v)->free(v);\n"
+		"\tVTYPE(v)->free(v);\n"
 		"}\n"
 		"\n"
 		"static void default_free (VAL v) {\n"
@@ -49065,6 +49061,8 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"static void value_trace_(VAL v, int fd) {\n"
+		"\tASSERT(VTYPE(v));\n"
+		"\tASSERT(VTYPE(v)->trace_);\n"
 		"\tVTYPE(v)->trace_(v,fd);\n"
 		"}\n"
 		"\n"
@@ -49220,7 +49218,7 @@ static VAL mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		21555
+		21388
 	);
 	return MKSTR(v2);
 }
