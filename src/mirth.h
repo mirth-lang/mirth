@@ -908,4 +908,27 @@ static bool mut_is_set (void* mut) {
 	return (val.tag != 0);
 }
 
+typedef struct FIELD { size_t num_blocks; VAL** blocks; } FIELD;
+
+static VAL* field_mut(FIELD* field, uint64_t index) {
+	ASSERT(field);
+	size_t block_size = 1024;
+	size_t block_i = index / block_size;
+	size_t block_j = index % block_size;
+	if (block_i >= field->num_blocks) {
+		ASSERT(field->num_blocks <= SIZE_MAX - 4 - block_i);
+		size_t new_num_blocks = field->num_blocks + block_i + 4;
+		VAL** new_blocks = realloc(field->blocks, sizeof(VAL*) * new_num_blocks);
+		ASSERT(new_blocks);
+		memset(new_blocks + field->num_blocks, 0, sizeof(VAL*) * (new_num_blocks - field->num_blocks));
+		field->blocks = new_blocks;
+		field->num_blocks = new_num_blocks;
+	}
+	if(!field->blocks[block_i]) {
+		field->blocks[block_i] = calloc(block_size, sizeof(VAL));
+		ASSERT(field->blocks[block_i]);
+	}
+	return field->blocks[block_i] + block_j;
+}
+
 /* GENERATED C99 */

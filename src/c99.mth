@@ -110,19 +110,18 @@ def run-output-c99! [ Arrow C99_Options +World +Mirth -- +World +Mirth ] {
         c99-start!
         c99-header!
         c99-label-defs!
+        c99-field-defs!
         c99-tag-defs!
         c99-buffers!
         c99-variables!
         c99-external-blocks!
         c99-word-sigs!
         c99-block-sigs!
-        c99-field-sigs!
         c99-main!
-        c99-field-defs!
         c99-word-defs!
         c99-block-defs!
         c99-end!
-    )
+    )   
 }
 
 field(Tag.~word-cname, Tag, Str)
@@ -2562,42 +2561,14 @@ def c99-word-def! [ Word +C99 -- +C99 ] {
     drop
 }
 
-def field-sig-put [ Field +C99 -- +C99 ] { "static void* " put +mirth:cname put " (uint64_t i)" put }
-
-def c99-field-sigs! [ +C99 -- +C99 ] { Field.for(c99-field-sig!) }
-def c99-field-sig! [ Field +C99 -- +C99 ] { c99-line(field-sig-put ";" put) }
-
 def c99-field-defs! [ +C99 -- +C99 ] { Field.for(c99-field-def!) }
-def c99-field-def! [ Field +C99 -- +C99 ] {
-    256 show >blocksize
-
-    dup field-sig-put " {" put line
-    "\tstatic VAL **blocks = 0;" put line
-    "\tstatic size_t num_blocks = 0;" put line
-    "\tsize_t block_i = i / " put @blocksize put ";" put line
-    "\tsize_t block_j = i % " put @blocksize put ";" put line
-    "\tif (block_i >= num_blocks) {" put line
-    "\t\tASSERT(num_blocks <= SIZE_MAX - 4 - block_i);" put line
-    "\t\tsize_t new_num_blocks = num_blocks + block_i + 4;" put line
-    "\t\tVAL** new_blocks = realloc(blocks, sizeof(VAL*) * new_num_blocks);" put line
-    "\t\tASSERT(new_blocks);" put line
-    "\t\tmemset(new_blocks + num_blocks, 0, sizeof(VAL*) * (new_num_blocks - num_blocks));" put line
-    "\t\tblocks = new_blocks; num_blocks = new_num_blocks;" put line
-    "\t}" put line
-    "\tif(!blocks[block_i]) {" put line
-    "\t\tblocks[block_i] = calloc(" put @blocksize put ", sizeof(VAL));" put line
-    "\t\tASSERT(blocks[block_i]);" put line
-    "\t}" put line
-    "\treturn blocks[block_i] + block_j;" put line
-    "}" put line line
-
-    blocksize> drop2
-}
-
+def c99-field-def! [ Field +C99 -- +C99 ] { c99-line("static FIELD " put +mirth:cname put " = {0};" put) }
 def c99-field-call! [ Field +C99Branch -- +C99Branch ] {
     C99RT_U64 pop-value! >+index
     C99RT_PTR push-value-expression! (
-        +mirth:cname put "(" put
+        "field_mut(&" put
+        +mirth:cname put
+        ", " put
         +index> C99RT_U64 consume-as put
         ")" put
     )
