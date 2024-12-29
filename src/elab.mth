@@ -1544,7 +1544,7 @@ def data-word-new! [ +Mirth Data Str Nat -- +Mirth Word ] {
 def elab-data-done! [ +Mirth Data -- +Mirth ] {
     >dat
     @dat is-value-type? then (
-        @dat "cons-value" 0u data-word-new! >word
+        @dat "enum-value" 0u data-word-new! >word
         @dat params >Ctx
         @dat data-get-enum-value-type
         @word WordType prop2 @word ~ctx-type !
@@ -1555,7 +1555,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
     )
 
     @dat is-enum? then (
-        @dat "from-cons-value-unsafe" 0u data-word-new! >word
+        @dat "from-enum-value-unsafe" 0u data-word-new! >word
         @dat params >Ctx
         @dat data-from-enum-value-type
         @word WordType prop2 @word ~ctx-type !

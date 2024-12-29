@@ -10,8 +10,8 @@ data Maybe(t) {
 }
 
 inline (
-    def Maybe.none? [ Maybe(t) -- Bool ] { cons-value 0 == }
-    def Maybe.some? [ Maybe(t) -- Bool ] { cons-value 1 == }
+    def Maybe.none? [ Maybe(t) -- Bool ] { enum-value 0 == }
+    def Maybe.some? [ Maybe(t) -- Bool ] { enum-value 1 == }
     def Maybe.>Bool [ Maybe(t) -- Bool ] { some? }
     def Maybe.not [ Maybe(t) -- Bool ] { none? }
     def Maybe.if(f,g) { some? if(f,g) }

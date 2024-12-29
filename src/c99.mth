@@ -1242,12 +1242,12 @@ data C99ReprType {
 
 def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
     { C99RT_TUP -> swap match { C99RT_TUP -> ==, _ -> drop2 False } }
-    { _ -> on2:cons-value == }
+    { _ -> on2:enum-value == }
 }
 
 inline (
-    def C99ReprType.is-unit? [ C99ReprType -- Bool ] { cons-value 0= }
-    def C99ReprType.is-physical? [ C99ReprType -- Bool ] { cons-value 0 <> }
+    def C99ReprType.is-unit? [ C99ReprType -- Bool ] { enum-value 0= }
+    def C99ReprType.is-physical? [ C99ReprType -- Bool ] { enum-value 0 <> }
     def C99ReprType.<> [ C99ReprType C99ReprType -- Bool ] { == not }
 )
 

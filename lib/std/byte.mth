@@ -42,10 +42,10 @@ data Byte {
 }
 
 inline (
-    def Byte.>Int [ Byte -- Int ] { Byte.cons-value }
+    def Byte.>Int [ Byte -- Int ] { Byte.enum-value }
     def Byte.>U8  [ Byte -- U8  ] { >Int >U8-unsafe }
 
-    def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-cons-value-unsafe }
+    def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
     def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
 
     def Int.>Byte& [ Int -- Byte ] { >U8& >Byte }
