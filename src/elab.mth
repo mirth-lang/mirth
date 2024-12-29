@@ -2162,8 +2162,6 @@ def typecheck-everything! [ +Mirth -- +Mirth ] {
 # TABLE #
 #########
 
-def TABLE_MAX_COUNT { 0x80000 .u }
-
 def table-qname [ Table Str Int -- QName ] {
     >arity >Name >name TYCON_TABLE NAMESPACE_TYCON >namespace MKQNAME
 }
@@ -2179,21 +2177,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @tbl TableQName >label Prop @tbl ~qname !
     head> @tbl ~head !
     name> @tbl ~name !
-    TABLE_MAX_COUNT @tbl ~max-count !
     @tbl DefTable register
-
-    # Table.MAX
-    @tbl "MAX" 0u table-word-new! >word
-
-    L0 Ctx
-    T0 TYPE_INT T1 T->
-    @word WordType prop2
-    @word ~ctx-type !
-
-    word> ab-build-word!(
-        @tbl head ab-token!
-        TABLE_MAX_COUNT >Int ab-int!
-    ) drop
 
     # Table.nil
     @tbl "nil" 0u table-word-new! >word
