@@ -761,7 +761,6 @@ def ab-prim! [ Prim +Mirth +AB -- +Mirth +AB ] {
 }
 def ab-word! [ Word +Mirth +AB -- +Mirth +AB ] { OpWord ab-op! }
 def ab-external! [ External +Mirth +AB -- +Mirth +AB ] { OpExternal ab-op! }
-def ab-coerce! [ Coerce +Mirth +AB -- +Mirth +AB ] { OpCoerce ab-op! }
 def ab-label-push! [ Label +Mirth +AB -- +Mirth +AB ] { OpLabelPush ab-op! }
 def ab-label-pop! [ Label +Mirth +AB -- +Mirth +AB ] { OpLabelPop ab-op! }
 def ab-label-push-r! [ Label +Mirth +AB -- +Mirth +AB ] { OpLabelPushR ab-op! }
@@ -844,30 +843,35 @@ def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
         OpVar -> elab-var-sig!,
         OpMatch -> elab-match-sig!,
         OpLambda -> elab-lambda-sig!,
-        OpCoerce -> elab-coerce-sig!,
         OpLabelPush -> elab-label-push-sig!,
         OpLabelPop -> elab-label-pop-sig!,
         OpLabelPushR -> elab-label-push-r-sig!,
         OpLabelPopR -> elab-label-pop-r-sig!,
-        OpDataGetTag -> data-get-tag-type freshen-sig OPSIG_APPLY,
+        OpDataGetEnumValue -> data-get-enum-value-type freshen-sig OPSIG_APPLY,
+        OpDataFromEnumValue -> data-from-enum-value-type freshen-sig OPSIG_APPLY,
         OpDataGetLabel -> data-get-label-type freshen-sig OPSIG_APPLY,
         OpDataSetLabel -> data-set-label-type freshen-sig OPSIG_APPLY,
+        OpTableToIndex -> table-to-index-type freshen-sig OPSIG_APPLY,
+        OpTableFromIndex -> table-from-index-type freshen-sig OPSIG_APPLY,
     )
 }
 
-def data-get-tag-type [ +Mirth Data -- +Mirth ArrowType ] {
+def data-get-enum-value-type [ +Mirth Data -- +Mirth ArrowType ] {
     full-type match {
         { Left  -> T1 TYPE_INT T1 T-> }
         { Right -> # not currently exposed for resources, but this is what it would be.
             T0 over T+ TYPE_INT T1 rotl T+ T-> }
     }
 }
+def data-from-enum-value-type [ +Mirth Data -- +Mirth ArrowType ] {
+    TYPE_INT T1 T0 rotl full-type T*+ T->
+}
 
-def elab-coerce-sig! [ Coerce -- OpSig ] {
-    CoerceUnsafe ->
-        MetaVar.new! STMeta dup
-        MetaVar.new! TMeta T* swap
-        MetaVar.new! TMeta T* T-> OPSIG_APPLY
+def table-to-index-type [ +Mirth Table -- +Mirth ArrowType ] {
+    TTable T1 TYPE_INT T1 T->
+}
+def table-from-index-type [ +Mirth Table -- +Mirth ArrowType ] {
+    TTable T1 TYPE_INT T1 swap T->
 }
 
 def elab-block-sig! [ Block -- OpSig ] {
@@ -1542,20 +1546,21 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
     @dat is-value-type? then (
         @dat "cons-value" 0u data-word-new! >word
         @dat params >Ctx
-        @dat data-get-tag-type
+        @dat data-get-enum-value-type
         @word WordType prop2 @word ~ctx-type !
         @word ab-build-word!(
-            @dat OpDataGetTag ab-op!
+            @dat OpDataGetEnumValue ab-op!
         ) make-inline!
         word> drop
     )
 
     @dat is-enum? then (
         @dat "from-cons-value-unsafe" 0u data-word-new! >word
-        Ctx0 TYPE_INT T1 @dat TData T1 T->
+        @dat params >Ctx
+        @dat data-from-enum-value-type
         @word WordType prop2 @word ~ctx-type !
         @word ab-build-word!(
-            CoerceUnsafe ab-coerce!
+            @dat OpDataFromEnumValue ab-op!
         ) make-inline!
         word> drop
     )
@@ -2201,7 +2206,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     word> ab-build-word!(
         @tbl head ab-token!
         0 ab-int!
-        CoerceUnsafe ab-coerce!
+        @tbl OpTableFromIndex ab-op!
     ) drop
 
     # Table.NUM
@@ -2220,7 +2225,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
 
     word> ab-build-word! (
         @tbl head ab-token!
-        CoerceUnsafe ab-coerce!
+        @tbl OpTableToIndex ab-op!
     ) drop
 
     # Table.from-index
@@ -2233,7 +2238,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
 
     word> ab-build-word! (
         @tbl head ab-token!
-        CoerceUnsafe ab-coerce!
+        @tbl OpTableFromIndex ab-op!
     ) drop
 
     # Table.succ
@@ -2246,16 +2251,10 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
 
     word> ab-build-word! (
         @tbl head ab-token!
-        CoerceUnsafe ab-coerce!
+        @tbl OpTableToIndex ab-op!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
-        @tbl num-buffer ab-buffer!
-        PRIM_U64_GET ab-prim!
-        CoerceUnsafe ab-coerce!
-        1 ab-int!
-        PRIM_INT_ADD ab-prim!
-        PRIM_INT_MOD ab-prim!
-        CoerceUnsafe ab-coerce!
+        @tbl OpTableFromIndex ab-op!
     ) drop
 
     # Table.pred
@@ -2268,7 +2267,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
 
     word> ab-build-word! (
         @tbl head ab-token!
-        CoerceUnsafe ab-coerce!
+        @tbl OpTableToIndex ab-op!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
         PRIM_INT_EQ ab-prim!
@@ -2277,7 +2276,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
             1 ab-int!
             PRIM_INT_SUB ab-prim!
         )
-        CoerceUnsafe ab-coerce!
+        @tbl OpTableFromIndex ab-op!
     ) drop
 
     { +Mirth tbl:Table }
@@ -2305,12 +2304,12 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
                 PRIM_CORE_DUP ab-prim!
                 @tbl num-buffer ab-buffer!
                 PRIM_I64_GET ab-prim!
-                CoerceUnsafe ab-coerce!
+                PRIM_I64_TO_INT ab-prim!
                 PRIM_INT_LE ab-prim!,
 
                 PRIM_CORE_DUP ab-prim!
                 ab-dip! (
-                    CoerceUnsafe ab-coerce!
+                    @tbl OpTableFromIndex ab-op!
                     @vx ab-var!
                 )
                 1 ab-int!
@@ -2332,15 +2331,15 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     word> ab-build-word! (
         @tbl head ab-token!
         @tbl num-buffer ab-buffer!
-        PRIM_U64_GET ab-prim!
-        CoerceUnsafe ab-coerce!
+        PRIM_I64_GET ab-prim!
+        PRIM_I64_TO_INT ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_CORE_DUP ab-prim!
-        CoerceUnsafe ab-coerce!
+        PRIM_INT_TO_I64 ab-prim!
         @tbl num-buffer ab-buffer!
-        PRIM_U64_SET ab-prim!
-        CoerceUnsafe ab-coerce!
+        PRIM_I64_SET ab-prim!
+        @tbl OpTableFromIndex ab-op!
     ) drop
 
     tbl>
