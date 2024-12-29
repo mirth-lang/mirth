@@ -72,31 +72,36 @@ def(+Needs.run-block!, Block +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arro
 def(+Needs.run-word!, Word +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arrow!)
 def(+Needs.run-arrow!, Arrow +Mirth +Needs -- +Mirth +Needs, atoms for(run-atom!))
 def(+Needs.run-atom!, Atom +Mirth +Needs -- +Mirth +Needs, sip(args) op run-op!)
-def(+Needs.run-op!, List(Arg) Op +Mirth +Needs -- +Mirth +Needs,
-    OpNone -> drop,
-    OpInt -> drop2,
-    OpF64 -> drop2,
-    OpStr -> drop2,
-    OpWord -> dup prefer-inline? if(run-word!, need-word!) push-args!,
-    OpExternal -> drop push-args!,
-    OpBuffer -> drop push-args!,
-    OpVariable -> drop push-args!,
-    OpField -> drop push-args!,
-    OpTag -> need-tag-word! push-args!,
-    OpPrim -> run-prim!,
-    OpMatch -> nip run-match!,
-    OpLambda -> nip run-lambda!,
-    OpVar -> drop2,
-    OpBlockPush -> nip push-block!,
-    OpBlockRun -> nip run-block!,
-    OpCoerce -> drop2,
-    OpLabelPush -> drop2,
-    OpLabelPop -> drop2,
-    OpLabelPushR -> drop2,
-    OpLabelPopR -> drop2,
-    OpDataGetTag -> drop2,
-    OpDataGetLabel -> drop2,
-    OpDataSetLabel -> drop2)
+
+def +Needs.run-op! [ List(Arg) Op +Mirth +Needs -- +Mirth +Needs ] {
+    { OpNone -> drop }
+    { OpInt -> drop2 }
+    { OpF64 -> drop2 }
+    { OpStr -> drop2 }
+    { OpWord -> dup prefer-inline? if(run-word!, need-word!) push-args! }
+    { OpExternal -> drop push-args! }
+    { OpBuffer -> drop push-args! }
+    { OpVariable -> drop push-args! }
+    { OpField -> drop push-args! }
+    { OpTag -> need-tag-word! push-args! }
+    { OpPrim -> run-prim! }
+    { OpMatch -> nip run-match! }
+    { OpLambda -> nip run-lambda! }
+    { OpVar -> drop2 }
+    { OpBlockPush -> nip push-block! }
+    { OpBlockRun -> nip run-block! }
+    { OpLabelPush -> drop2 }
+    { OpLabelPop -> drop2 }
+    { OpLabelPushR -> drop2 }
+    { OpLabelPopR -> drop2 }
+    { OpDataGetEnumValue -> drop2 }
+    { OpDataFromEnumValue -> drop2 }
+    { OpDataGetLabel -> drop2 }
+    { OpDataSetLabel -> drop2 }
+    { OpTableToIndex -> drop2 }
+    { OpTableFromIndex -> drop2 }
+}
+
 def(+Needs.run-prim!, List(Arg) Prim +Mirth +Needs -- +Mirth +Needs,
     PRIM_CORE_DIP -> dup /L1 if(run-args!, push-args!),
     PRIM_CORE_RDIP -> dup /L1 if(run-args!, push-args!),

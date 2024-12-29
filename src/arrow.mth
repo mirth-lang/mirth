@@ -47,34 +47,34 @@ table(Block)
 
 data(Arg, ArgBlock -> Block)
 
-data(Op,
-    OpNone,
-    OpPrim -> Prim,
-    OpWord -> Word,
-    OpExternal -> External,
-    OpBuffer -> Buffer,
-    OpVariable -> Variable,
-    OpField -> Field,
-    OpInt -> Int,
-    OpF64 -> F64,
-    OpStr -> Str,
-    OpTag -> Tag,
-    OpMatch -> Match,
-    OpLambda -> Lambda,
-    OpVar -> Var,
-    OpBlockPush -> Block,
-    OpBlockRun -> Block,
-    OpCoerce -> Coerce,
-    OpLabelPush -> Label,
-    OpLabelPop -> Label,
-    OpLabelPushR -> Label,
-    OpLabelPopR -> Label,
-    OpDataGetTag -> Data,
-    OpDataGetLabel -> TagField,
-    OpDataSetLabel -> TagField)
-
-data(Coerce,
-    CoerceUnsafe)
+data Op {
+    OpNone
+    OpPrim [ Prim ]
+    OpWord [ Word ]
+    OpExternal [ External ]
+    OpBuffer [ Buffer ]
+    OpVariable [ Variable ]
+    OpField [ Field ]
+    OpInt [ Int ]
+    OpF64 [ F64 ]
+    OpStr [ Str ]
+    OpTag [ Tag ]
+    OpMatch [ Match ]
+    OpLambda [ Lambda ]
+    OpVar [ Var ]
+    OpBlockPush [ Block ]
+    OpBlockRun  [ Block ]
+    OpLabelPush  [ Label ]
+    OpLabelPop   [ Label ]
+    OpLabelPushR [ Label ]
+    OpLabelPopR  [ Label ]
+    OpDataGetEnumValue  [ Data ]
+    OpDataFromEnumValue [ Data ]
+    OpDataGetLabel [ TagField ]
+    OpDataSetLabel [ TagField ]
+    OpTableToIndex [ Table ]
+    OpTableFromIndex [ Table ]
+}
 
 data(Home,
     HomeMain -> Token,
@@ -218,31 +218,34 @@ def(Atom.free-vars, +Mirth Atom -- +Mirth List(Var),
     swap op free-vars union(==))
 def(Arg.free-vars, +Mirth Arg -- +Mirth List(Var),
     ArgBlock -> free-vars)
-def(Op.free-vars, +Mirth Op -- +Mirth List(Var),
-    OpNone -> L0,
-    OpPrim -> drop L0,
-    OpWord -> drop L0,
-    OpExternal -> drop L0,
-    OpBuffer -> drop L0,
-    OpVariable -> drop L0,
-    OpField -> drop L0,
-    OpInt -> drop L0,
-    OpF64 -> drop L0,
-    OpStr -> drop L0,
-    OpTag -> drop L0,
-    OpMatch -> free-vars,
-    OpLambda -> free-vars,
-    OpVar -> L1,
-    OpBlockPush -> free-vars,
-    OpBlockRun -> free-vars,
-    OpCoerce -> drop L0,
-    OpLabelPush -> drop L0,
-    OpLabelPop -> drop L0,
-    OpLabelPushR -> drop L0,
-    OpLabelPopR -> drop L0,
-    OpDataGetTag -> drop L0,
-    OpDataGetLabel -> drop L0,
-    OpDataSetLabel -> drop L0)
+def Op.free-vars [ +Mirth Op -- +Mirth List(Var) ] {
+    { OpNone -> L0 }
+    { OpPrim -> drop L0 }
+    { OpWord -> drop L0 }
+    { OpExternal -> drop L0 }
+    { OpBuffer -> drop L0 }
+    { OpVariable -> drop L0 }
+    { OpField -> drop L0 }
+    { OpInt -> drop L0 }
+    { OpF64 -> drop L0 }
+    { OpStr -> drop L0 }
+    { OpTag -> drop L0 }
+    { OpMatch -> free-vars }
+    { OpLambda -> free-vars }
+    { OpVar -> L1 }
+    { OpBlockPush -> free-vars }
+    { OpBlockRun -> free-vars }
+    { OpLabelPush -> drop L0 }
+    { OpLabelPop -> drop L0 }
+    { OpLabelPushR -> drop L0 }
+    { OpLabelPopR -> drop L0 }
+    { OpDataGetEnumValue -> drop L0 }
+    { OpDataFromEnumValue -> drop L0 }
+    { OpDataGetLabel -> drop L0 }
+    { OpDataSetLabel -> drop L0 }
+    { OpTableToIndex -> drop L0 }
+    { OpTableFromIndex -> drop L0 }
+}
 def(Match.free-vars, +Mirth Match -- +Mirth List(Var),
     cases map(free-vars) unions(==))
 def(Case.free-vars, +Mirth Case -- +Mirth List(Var),

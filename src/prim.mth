@@ -44,8 +44,34 @@ data(Prim,
     PRIM_INT_SHL,
     PRIM_INT_SHR,
     PRIM_INT_TO_STR,
+    PRIM_INT_TO_I64,
     PRIM_INT_TO_F32,
     PRIM_INT_TO_F64,
+
+    PRIM_U8_GET,
+    PRIM_U8_SET,
+
+    PRIM_U16_GET,
+    PRIM_U16_SET,
+
+    PRIM_U32_GET,
+    PRIM_U32_SET,
+
+    PRIM_U64_GET,
+    PRIM_U64_SET,
+
+    PRIM_I8_GET,
+    PRIM_I8_SET,
+
+    PRIM_I16_GET,
+    PRIM_I16_SET,
+
+    PRIM_I32_GET,
+    PRIM_I32_SET,
+
+    PRIM_I64_GET,
+    PRIM_I64_SET,
+    PRIM_I64_TO_INT,
 
     PRIM_F32_EQ,
     PRIM_F32_LT,
@@ -98,6 +124,8 @@ data(Prim,
     PRIM_PTR_FREE,
     PRIM_PTR_COPY,
     PRIM_PTR_FILL,
+    PRIM_PTR_GET,
+    PRIM_PTR_SET,
 
     PRIM_STR_COPY,
     PRIM_STR_NUM_BYTES,
@@ -110,26 +138,6 @@ data(Prim,
     PRIM_STR_GT,
     PRIM_STR_GE,
     PRIM_STR_NE,
-
-    PRIM_U8_GET,
-    PRIM_U16_GET,
-    PRIM_U32_GET,
-    PRIM_U64_GET,
-    PRIM_I8_GET,
-    PRIM_I16_GET,
-    PRIM_I32_GET,
-    PRIM_I64_GET,
-    PRIM_PTR_GET,
-
-    PRIM_U8_SET,
-    PRIM_U16_SET,
-    PRIM_U32_SET,
-    PRIM_U64_SET,
-    PRIM_I8_SET,
-    PRIM_I16_SET,
-    PRIM_I32_SET,
-    PRIM_I64_SET,
-    PRIM_PTR_SET,
 
     PRIM_SYS_OS,
     PRIM_SYS_ARCH,
@@ -246,6 +254,33 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_INT_TO_F64 "prim-int-to-float64" 0 def-prim!
     PRIM_INT_TO_F32 "prim-int-to-f32" 0 def-prim!
     PRIM_INT_TO_F64 "prim-int-to-f64" 0 def-prim!
+    PRIM_INT_TO_I64 "prim-int-to-i64" 0 def-prim!
+
+
+    PRIM_U8_GET "prim-u8-get" 0 def-prim!
+    PRIM_U8_SET "prim-u8-set" 0 def-prim!
+
+    PRIM_U16_GET "prim-u16-get" 0 def-prim!
+    PRIM_U16_SET "prim-u16-set" 0 def-prim!
+
+    PRIM_U32_GET "prim-u32-get" 0 def-prim!
+    PRIM_U32_SET "prim-u32-set" 0 def-prim!
+
+    PRIM_U64_GET "prim-u64-get" 0 def-prim!
+    PRIM_U64_SET "prim-u64-set" 0 def-prim!
+
+    PRIM_I8_GET "prim-i8-get" 0 def-prim!
+    PRIM_I8_SET "prim-i8-set" 0 def-prim!
+
+    PRIM_I16_GET "prim-i16-get" 0 def-prim!
+    PRIM_I16_SET "prim-i16-set" 0 def-prim!
+
+    PRIM_I32_GET "prim-i32-get" 0 def-prim!
+    PRIM_I32_SET "prim-i32-set" 0 def-prim!
+
+    PRIM_I64_GET "prim-i64-get" 0 def-prim!
+    PRIM_I64_SET "prim-i64-set" 0 def-prim!
+    PRIM_I64_TO_INT "prim-i64-to-int" 0 def-prim!
 
     PRIM_F32_EQ     "prim-f32-eq"     0 def-prim!
     PRIM_F32_LT     "prim-f32-lt"     0 def-prim!
@@ -313,24 +348,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_STR_GE "prim-str-ge" 0 def-prim!
     PRIM_STR_NE "prim-str-ne" 0 def-prim!
 
-    PRIM_U8_GET "prim-u8-get" 0 def-prim!
-    PRIM_U8_SET "prim-u8-set" 0 def-prim!
-    PRIM_U16_GET "prim-u16-get" 0 def-prim!
-    PRIM_U16_SET "prim-u16-set" 0 def-prim!
-    PRIM_U32_GET "prim-u32-get" 0 def-prim!
-    PRIM_U32_SET "prim-u32-set" 0 def-prim!
-    PRIM_U64_GET "prim-u64-get" 0 def-prim!
-    PRIM_U64_SET "prim-u64-set" 0 def-prim!
-
-    PRIM_I8_GET "prim-i8-get" 0 def-prim!
-    PRIM_I8_SET "prim-i8-set" 0 def-prim!
-    PRIM_I16_GET "prim-i16-get" 0 def-prim!
-    PRIM_I16_SET "prim-i16-set" 0 def-prim!
-    PRIM_I32_GET "prim-i32-get" 0 def-prim!
-    PRIM_I32_SET "prim-i32-set" 0 def-prim!
-    PRIM_I64_GET "prim-i64-get" 0 def-prim!
-    PRIM_I64_SET "prim-i64-set" 0 def-prim!
-
     PRIM_SYS_OS "prim-sys-os" 0 def-prim!
     PRIM_SYS_ARCH "prim-sys-arch" 0 def-prim!
     PRIM_SYS_ARGC "prim-sys-argc" 0 def-prim!
@@ -367,14 +384,39 @@ def(init-prims!, +Mirth -- +Mirth,
     dup2 PRIM_INT_NE ctx-type!
     drop2
 
+    Ctx0 TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR ctx-type!
+    Ctx0 TYPE_INT T1 TYPE_F32 T1 T-> PRIM_INT_TO_F32 ctx-type!
+    Ctx0 TYPE_INT T1 TYPE_F64 T1 T-> PRIM_INT_TO_F64 ctx-type!
+    Ctx0 TYPE_INT T1 TYPE_I64 T1 T-> PRIM_INT_TO_I64 ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_U8_GET  ctx-type!
+    Ctx0 TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_U8_SET  ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_U16_GET ctx-type!
+    Ctx0 TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_U16_SET ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_U32 T1 T-> PRIM_U32_GET ctx-type!
+    Ctx0 TYPE_U32 TYPE_PTR T2 T0 T-> PRIM_U32_SET ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_U64 T1 T-> PRIM_U64_GET ctx-type!
+    Ctx0 TYPE_U64 TYPE_PTR T2 T0 T-> PRIM_U64_SET ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_I8  T1 T-> PRIM_I8_GET  ctx-type!
+    Ctx0 TYPE_I8  TYPE_PTR T2 T0 T-> PRIM_I8_SET  ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_I16 T1 T-> PRIM_I16_GET ctx-type!
+    Ctx0 TYPE_I16 TYPE_PTR T2 T0 T-> PRIM_I16_SET ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_I32_GET ctx-type!
+    Ctx0 TYPE_I32 TYPE_PTR T2 T0 T-> PRIM_I32_SET ctx-type!
+
+    Ctx0 TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_I64_GET ctx-type!
+    Ctx0 TYPE_I64 TYPE_PTR T2 T0 T-> PRIM_I64_SET ctx-type!
+    Ctx0 TYPE_I64 T1 TYPE_INT T1 T-> PRIM_I64_TO_INT ctx-type!
+
     Ctx0 TYPE_F32 TYPE_F32 T2 TYPE_BOOL T1 T->
     dup2 PRIM_F32_EQ ctx-type!
     dup2 PRIM_F32_LT ctx-type!
-    drop2
-
-    Ctx0 TYPE_F64 TYPE_F64 T2 TYPE_BOOL T1 T->
-    dup2 PRIM_F64_EQ ctx-type!
-    dup2 PRIM_F64_LT ctx-type!
     drop2
 
     Ctx0 TYPE_F32 TYPE_F32 T2 TYPE_F32 T1 T->
@@ -384,12 +426,23 @@ def(init-prims!, +Mirth -- +Mirth,
     dup2 PRIM_F32_DIV ctx-type!
     drop2
 
+    Ctx0 TYPE_F32 T1 TYPE_STR T1 T-> PRIM_F32_TO_STR ctx-type!
+    Ctx0 TYPE_F32 T1 TYPE_INT T1 T-> PRIM_F32_TO_INT ctx-type!
+
+    Ctx0 TYPE_F64 TYPE_F64 T2 TYPE_BOOL T1 T->
+    dup2 PRIM_F64_EQ ctx-type!
+    dup2 PRIM_F64_LT ctx-type!
+    drop2
+
     Ctx0 TYPE_F64 TYPE_F64 T2 TYPE_F64 T1 T->
     dup2 PRIM_F64_ADD ctx-type!
     dup2 PRIM_F64_SUB ctx-type!
     dup2 PRIM_F64_MUL ctx-type!
     dup2 PRIM_F64_DIV ctx-type!
     drop2
+
+    Ctx0 TYPE_F64 T1 TYPE_STR T1 T-> PRIM_F64_TO_STR ctx-type!
+    Ctx0 TYPE_F64 T1 TYPE_INT T1 T-> PRIM_F64_TO_INT ctx-type!
 
     Ctx0 TYPE_BOOL TYPE_BOOL T2 TYPE_BOOL T1 T->
     dup2 PRIM_BOOL_AND ctx-type!
@@ -399,35 +452,8 @@ def(init-prims!, +Mirth -- +Mirth,
     Ctx0 TYPE_BOOL T1 TYPE_BOOL T1 T->
     PRIM_BOOL_NOT ctx-type!
 
-    Ctx0 TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR ctx-type!
-    Ctx0 TYPE_INT T1 TYPE_F32 T1 T-> PRIM_INT_TO_F32 ctx-type!
-    Ctx0 TYPE_INT T1 TYPE_F64 T1 T-> PRIM_INT_TO_F64 ctx-type!
-
-    Ctx0 TYPE_F32 T1 TYPE_STR T1 T-> PRIM_F32_TO_STR ctx-type!
-    Ctx0 TYPE_F64 T1 TYPE_STR T1 T-> PRIM_F64_TO_STR ctx-type!
-
-    Ctx0 TYPE_F32 T1 TYPE_INT T1 T-> PRIM_F32_TO_INT ctx-type!
-    Ctx0 TYPE_F64 T1 TYPE_INT T1 T-> PRIM_F64_TO_INT ctx-type!
-
     Ctx0 TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_U8_GET  ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_U16_GET ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_U32 T1 T-> PRIM_U32_GET ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_U64 T1 T-> PRIM_U64_GET ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_I8  T1 T-> PRIM_I8_GET  ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_I16 T1 T-> PRIM_I16_GET ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_I32_GET ctx-type!
-    Ctx0 TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_I64_GET ctx-type!
-
     Ctx0 TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_PTR_SET ctx-type!
-    Ctx0 TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_U8_SET  ctx-type!
-    Ctx0 TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_U16_SET ctx-type!
-    Ctx0 TYPE_U32 TYPE_PTR T2 T0 T-> PRIM_U32_SET ctx-type!
-    Ctx0 TYPE_U64 TYPE_PTR T2 T0 T-> PRIM_U64_SET ctx-type!
-    Ctx0 TYPE_I8  TYPE_PTR T2 T0 T-> PRIM_I8_SET  ctx-type!
-    Ctx0 TYPE_I16 TYPE_PTR T2 T0 T-> PRIM_I16_SET ctx-type!
-    Ctx0 TYPE_I32 TYPE_PTR T2 T0 T-> PRIM_I32_SET ctx-type!
-    Ctx0 TYPE_I64 TYPE_PTR T2 T0 T-> PRIM_I64_SET ctx-type!
 
     Ctx0 T0 TYPE_PTR T1 T->
     PRIM_PTR_NIL ctx-type!

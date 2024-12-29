@@ -61,14 +61,16 @@ def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
         OpVar -> drop L1,
         OpBlockPush -> push-check-block! L1,
         OpBlockRun -> push-check-block! L1,
-        OpCoerce -> drop L1,
         OpLabelPush -> drop L1,
         OpLabelPop -> drop L1,
         OpLabelPushR -> drop L1,
         OpLabelPopR -> drop L1,
-        OpDataGetTag -> drop L1,
+        OpDataGetEnumValue -> drop L1,
+        OpDataFromEnumValue -> drop L1,
         OpDataGetLabel -> drop L1,
         OpDataSetLabel -> drop L1,
+        OpTableToIndex -> drop L1,
+        OpTableFromIndex -> drop L1,
     ))
 
 def(+SPCheck.check-arg!, Arg +SPCheck -- +SPCheck,
@@ -153,18 +155,16 @@ def Op.similar [ +Mirth Op Op -- +Mirth Bool ] {
     { OpVar -> drop2 False }
     { OpBlockPush -> swap match { OpBlockPush -> similar, _ -> drop2 False }}
     { OpBlockRun -> swap match { OpBlockRun -> similar, _ -> drop2 False }}
-    { OpCoerce -> swap match { OpCoerce -> similar, _ -> drop2 False }}
     { OpLabelPush -> swap match { OpLabelPush -> ==, _ -> drop2 False }}
     { OpLabelPop -> swap match { OpLabelPop -> ==, _ -> drop2 False }}
     { OpLabelPushR -> swap match { OpLabelPushR -> ==, _ -> drop2 False }}
     { OpLabelPopR -> swap match { OpLabelPopR -> ==, _ -> drop2 False }}
-    { OpDataGetTag -> swap match { OpDataGetTag -> ==, _ -> drop2 False }}
+    { OpDataGetEnumValue -> swap match { OpDataGetEnumValue -> ==, _ -> drop2 False }}
+    { OpDataFromEnumValue -> swap match { OpDataFromEnumValue -> ==, _ -> drop2 False }}
     { OpDataGetLabel -> swap match { OpDataGetLabel -> similar, _ -> drop2 False }}
     { OpDataSetLabel -> swap match { OpDataSetLabel -> similar, _ -> drop2 False }}
-}
-
-def Coerce.similar [ Coerce Coerce -- Bool ] {
-    drop2 True
+    { OpTableToIndex -> swap match { OpTableToIndex -> ==, _ -> drop2 False }}
+    { OpTableFromIndex -> swap match { OpTableFromIndex -> ==, _ -> drop2 False }}
 }
 
 def TagField.similar [ TagField TagField -- Bool ] {
