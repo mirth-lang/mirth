@@ -178,7 +178,7 @@ def(Prim.type, Prim -- ArrowType, ~type @)
 def(Prim.decl, Prim -- Maybe([Token +World +Mirth -- Token +World +Mirth]), ~decl @)
 def(Prim.arity, Prim -- Int, ~arity @)
 
-def(Prim.>Int, Prim -- Int, Prim.cons-value)
+def(Prim.>Int, Prim -- Int, Prim.enum-value)
 def(Prim.==, Prim Prim -- Bool, both(>Int) ==)
 
 ||| Auxilliary word for defining primitives.

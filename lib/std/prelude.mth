@@ -88,9 +88,9 @@ data(OS,
     OS_LINUX,
     OS_MACOS)
 
-def(Int.>OS, Int -- OS, dup 1 3 in-range if(OS.from-cons-value-unsafe, drop OS_UNKNOWN))
+def(Int.>OS, Int -- OS, dup 1 3 in-range if(OS.from-enum-value-unsafe, drop OS_UNKNOWN))
 inline(
-    def(OS.>Int, OS -- Int, cons-value)
+    def(OS.>Int, OS -- Int, enum-value)
     def(OS.==, OS OS -- Bool, both(>Int) ==)
     def(RUNNING_OS, OS, prim-sys-os >OS)
 )
@@ -101,9 +101,9 @@ data(Arch,
     ARCH_AMD64,
     ARCH_ARM64)
 
-def(Int.>Arch, Int -- Arch, dup 1 3 in-range if(Arch.from-cons-value-unsafe, drop ARCH_UNKNOWN))
+def(Int.>Arch, Int -- Arch, dup 1 3 in-range if(Arch.from-enum-value-unsafe, drop ARCH_UNKNOWN))
 inline(
-    def(Arch.>Int, Arch -- Int, cons-value)
+    def(Arch.>Int, Arch -- Int, enum-value)
     def(Arch.==, Arch Arch -- Bool, both(>Int) ==)
     def(RUNNING_ARCH, Arch, prim-sys-arch >Arch)
 )
@@ -215,12 +215,12 @@ inline(
     def(I32_MIN, Int, -0x80000000)
 
     data Comparison { -1 LT, 0 EQ, +1 GT }
-    def Comparison.eq? [ Comparison -- Bool ] { cons-value 0 =  }
-    def Comparison.lt? [ Comparison -- Bool ] { cons-value 0 <  }
-    def Comparison.le? [ Comparison -- Bool ] { cons-value 0 <= }
-    def Comparison.ge? [ Comparison -- Bool ] { cons-value 0 >  }
-    def Comparison.gt? [ Comparison -- Bool ] { cons-value 0 >= }
-    def Comparison.ne? [ Comparison -- Bool ] { cons-value 0 <> }
+    def Comparison.eq? [ Comparison -- Bool ] { enum-value 0 =  }
+    def Comparison.lt? [ Comparison -- Bool ] { enum-value 0 <  }
+    def Comparison.le? [ Comparison -- Bool ] { enum-value 0 <= }
+    def Comparison.ge? [ Comparison -- Bool ] { enum-value 0 >  }
+    def Comparison.gt? [ Comparison -- Bool ] { enum-value 0 >= }
+    def Comparison.ne? [ Comparison -- Bool ] { enum-value 0 <> }
 
     alias(Int.==, prim-int-eq)
     alias(Int.= , prim-int-eq)

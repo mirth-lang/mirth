@@ -304,8 +304,8 @@ def +SnakeLogic.turn! {
     )
 }
 
-def Direction.>Int { cons-value }
-def Direction.== { both(cons-value) == }
+def Direction.>Int { enum-value }
+def Direction.== { both(enum-value) == }
 def Direction.flip {
     North -> South,
     West -> East,

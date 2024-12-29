@@ -40956,7 +40956,7 @@ static void mw_mirth_elab_elabZ_dataZ_doneZBang (VAL in_ZPlusMirth_1, uint64_t i
 	VAL branch_ZPlusMirth_6;
 	if (((bool)v4)) {
 		STR* v7;
-		STRLIT(v7, "cons-value", 10);
+		STRLIT(v7, "enum-value", 10);
 		int64_t v8 = 0LL;
 		VAL v9;
 		uint64_t v10 = mw_mirth_elab_dataZ_wordZ_newZBang(in_ZPlusMirth_1, in_Data_2, MKSTR(v7), v8, &v9);
@@ -41007,7 +41007,7 @@ static void mw_mirth_elab_elabZ_dataZ_doneZBang (VAL in_ZPlusMirth_1, uint64_t i
 	VAL branch_ZPlusMirth_43;
 	if (((bool)v41)) {
 		STR* v44;
-		STRLIT(v44, "from-cons-value-unsafe", 22);
+		STRLIT(v44, "from-enum-value-unsafe", 22);
 		int64_t v45 = 0LL;
 		VAL v46;
 		uint64_t v47 = mw_mirth_elab_dataZ_wordZ_newZBang(branch_ZPlusMirth_6, branch_Data_5, MKSTR(v44), v45, &v46);
