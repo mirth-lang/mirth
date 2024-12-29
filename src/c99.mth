@@ -110,19 +110,18 @@ def run-output-c99! [ Arrow C99_Options +World +Mirth -- +World +Mirth ] {
         c99-start!
         c99-header!
         c99-label-defs!
+        c99-field-defs!
         c99-tag-defs!
         c99-buffers!
         c99-variables!
         c99-external-blocks!
         c99-word-sigs!
         c99-block-sigs!
-        c99-field-sigs!
         c99-main!
-        c99-field-defs!
         c99-word-defs!
         c99-block-defs!
         c99-end!
-    )
+    )   
 }
 
 field(Tag.~word-cname, Tag, Str)
@@ -2562,27 +2561,14 @@ def c99-word-def! [ Word +C99 -- +C99 ] {
     drop
 }
 
-def field-sig-put [ Field +C99 -- +C99 ] { "static void* " put +mirth:cname put " (uint64_t i)" put }
-
-def c99-field-sigs! [ +C99 -- +C99 ] { Field.for(c99-field-sig!) }
-def c99-field-sig! [ Field +C99 -- +C99 ] { c99-line(field-sig-put ";" put) }
-
 def c99-field-defs! [ +C99 -- +C99 ] { Field.for(c99-field-def!) }
-def c99-field-def! [ Field +C99 -- +C99 ] {
-    dup field-sig-put " {" put line
-    "\tstatic struct VAL * p = 0;" put line
-    "\tsize_t m = " put TABLE_MAX_COUNT show put ";" put line
-    "\tif (! p) { p = calloc(m, sizeof *p); }" put line
-    "\tEXPECT(i<m, \"table grew too big\");" put line
-    "\treturn (void*)(p+i);" put line
-    "}" put line line
-    drop
-}
-
+def c99-field-def! [ Field +C99 -- +C99 ] { c99-line("static FIELD " put +mirth:cname put " = {0};" put) }
 def c99-field-call! [ Field +C99Branch -- +C99Branch ] {
     C99RT_U64 pop-value! >+index
     C99RT_PTR push-value-expression! (
-        +mirth:cname put "(" put
+        "field_mut(&" put
+        +mirth:cname put
+        ", " put
         +index> C99RT_U64 consume-as put
         ")" put
     )

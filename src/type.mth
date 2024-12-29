@@ -553,22 +553,6 @@ def(type-head, Type -- Type,
     TApp -> drop type-head,
     _ -> id)
 
-||| For types that can have a field associated with them,
-||| get the number of values n, where the type's values
-||| range from 0 to (n-1). This should not be too large.
-|||
-||| Do NOT return Some(n) unless the type has values 0..n-1
-def(type-max-count, Type -- Maybe(Nat),
-    TMeta -> expand-if(type-max-count, drop None),
-    TApp -> drop type-max-count,
-    TTable -> max-count 1+ Some,
-    TData ->
-        dup is-enum-or-unit? if(
-            num-tags Some,
-            drop None
-        ),
-    _ -> drop None)
-
 def(Type.except-field, Label Tag Type -- Type,
     TMeta -> expand-if(except-field, "Type.except-field on metavar" panic!),
     TData -> >data drop >field DataPartial TDataPartial,

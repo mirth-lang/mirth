@@ -16,7 +16,6 @@ field(Table.~head, Table, Token) # where the table was defined
 field(Table.~name, Table, Name)
 field(Table.~qname, Table, Prop(QName))
 field(Table.~num-buffer, Table, Buffer)
-field(Table.~max-count, Table, Nat)
 
 def(Table.head, Table -- Token, ~head @)
 def(Table.qname-soft, Table -- Maybe(QName), ~qname @? bind(ready?))
@@ -24,7 +23,6 @@ def(Table.qname-hard, +Mirth Table -- +Mirth QName, ~qname force!)
 def(Table.namespace, +Mirth Table -- +Mirth Namespace, qname-hard namespace)
 def(Table.name, Table -- Name, ~name @)
 def(Table.num-buffer, Table -- Buffer, ~num-buffer @)
-def(Table.max-count, Table -- Nat, ~max-count @)
 def(Table.==, Table Table -- Bool, both(index) ==)
 
 table(Field)
