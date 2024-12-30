@@ -231,14 +231,15 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
     /SPKEY
     dup first token >token +Gamma
     dip:SUBST_NIL nip
-    dip(ArrowType.unpack swap) reverse-for(
-        dip(force-cons?!
-            unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
-            unpack2)
-        /ArgBlock type TMorphism unify! drop
+    swap dom (
+        swap reverse-for(
+            dip(force-cons?!
+                unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
+                unpack2)
+            /ArgBlock type TMorphism unify! drop
+        )
     )
     rdrop
-    swap T->
     dip:Ctx0 rigidify-sig!)
 
 
@@ -287,26 +288,19 @@ def(+SPSynth.synth-op!, +Mirth +SPSynth Op -- +Mirth +SPSynth,
     OpVar -> synth-var!,
     _ -> ab:ab-op!)
 
-def(+SPSynth.synth-block!, +Mirth +SPSynth Block -- +Mirth +SPSynth,
+def +SPSynth.synth-block! [ +Mirth +SPSynth Block -- +Mirth +SPSynth ] {
     ab:ab-block!(+SPSYNTH synth-run! /+SPSYNTH)
-    # dup free-vars has(dup spmap lookup(==) some?) if(
-        # dup rdip:to-run-var bind(spmap lookup(==)) match(
-        #     None -> ab:ab-block!(+SPSYNTH synth-run! /+SPSYNTH),
-        #     Some -> nip OpBlockPush ab:ab-op!
-        # ),
-        # # OpBlockPush ab:ab-op!
-    # ))
-    )
+}
 
 def(+SPSynth.synth-run!, +Mirth +SPSynth Block -- +Mirth +SPSynth,
     rdip:arrow synth-arrow!)
 
-def(+SPSynth.synth-var!, +Mirth +SPSynth Var -- +Mirth +SPSynth,
-    dup spmap lookup(==) match(
-        Some -> nip synth-run!,
-        # Some -> nip arrow synth-arrow!,
-        None -> ab:ab-var!
-    ))
+def +SPSynth.synth-var! [ +Mirth +SPSynth Var -- +Mirth +SPSynth ] {
+    dup spmap lookup match {
+        { Some -> nip synth-run! }
+        { None -> ab:ab-var! }
+    }
+}
 
 def(+SPSynth.synth-match!, +Mirth +SPSynth Match -- +Mirth +SPSynth,
     MetaVar.new! STMeta >cod

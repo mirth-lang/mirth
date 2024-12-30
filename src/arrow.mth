@@ -212,10 +212,10 @@ def(Block.free-vars, +Mirth Block -- +Mirth List(Var),
     ) nip)
 
 def(Arrow.free-vars, +Mirth Arrow -- +Mirth List(Var),
-    atoms map(free-vars) unions(==))
+    atoms map(free-vars) unions)
 def(Atom.free-vars, +Mirth Atom -- +Mirth List(Var),
-    dup args map(free-vars) unions(==)
-    swap op free-vars union(==))
+    dup args map(free-vars) unions
+    swap op free-vars union)
 def(Arg.free-vars, +Mirth Arg -- +Mirth List(Var),
     ArgBlock -> free-vars)
 def Op.free-vars [ +Mirth Op -- +Mirth List(Var) ] {
@@ -247,12 +247,12 @@ def Op.free-vars [ +Mirth Op -- +Mirth List(Var) ] {
     { OpTableFromIndex -> drop L0 }
 }
 def(Match.free-vars, +Mirth Match -- +Mirth List(Var),
-    cases map(free-vars) unions(==))
+    cases map(free-vars) unions)
 def(Case.free-vars, +Mirth Case -- +Mirth List(Var),
     body free-vars)
 def(Lambda.free-vars, +Mirth Lambda -- +Mirth List(Var),
     dup body free-vars
-    swap params difference(==))
+    swap params difference)
 
 def(Arg.token, Arg -- Token,
     ArgBlock -> token)

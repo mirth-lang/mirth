@@ -67,19 +67,19 @@ def(Def.external?, Def -- Maybe(External), DefExternal -> Some, _ -> drop None)
 def(Def.field?, Def -- Maybe(Field), DefField -> Some, _ -> drop None)
 
 def(Def.==, Def Def -- Bool,
-    DefAlias -> Some swap alias? ==:==,
-    DefPackage -> Some swap package? ==:==,
-    DefModule -> Some swap module? ==:==,
-    DefBuffer -> Some swap buffer? ==:==,
-    DefPrim -> Some swap prim? ==:==,
-    DefData -> Some swap data? ==:==,
-    DefTable -> Some swap table? ==:==,
-    DefType -> Some swap typedef? ==:==,
-    DefExternal -> Some swap external? ==:==,
-    DefWord -> Some swap word? ==:==,
-    DefField -> Some swap field? ==:==,
-    DefTag -> Some swap tag? ==:==,
-    DefVariable -> Some swap variable? ==:==)
+    DefAlias -> Some swap alias? ==,
+    DefPackage -> Some swap package? ==,
+    DefModule -> Some swap module? ==,
+    DefBuffer -> Some swap buffer? ==,
+    DefPrim -> Some swap prim? ==,
+    DefData -> Some swap data? ==,
+    DefTable -> Some swap table? ==,
+    DefType -> Some swap typedef? ==,
+    DefExternal -> Some swap external? ==,
+    DefWord -> Some swap word? ==,
+    DefField -> Some swap field? ==,
+    DefTag -> Some swap tag? ==,
+    DefVariable -> Some swap variable? ==)
 
 def(Def.typecheck!, +Mirth Def -- +Mirth,
     DefAlias -> target typecheck!,

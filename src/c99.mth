@@ -121,7 +121,7 @@ def run-output-c99! [ Arrow C99_Options +World +Mirth -- +World +Mirth ] {
         c99-word-defs!
         c99-block-defs!
         c99-end!
-    )   
+    )
 }
 
 field(Tag.~word-cname, Tag, Str)
@@ -939,9 +939,9 @@ def c99-smart-def! (f) [ (*a +C99Branch -- *b +C99Branch) *a C99API +C99 -- *b +
 }
 
 def c99-codip-arrow! [ Arrow +C99Branch -- +C99Branch ] {
-    dup +mirth:type unpack
-    split-parts >cod-parts >cod-base
-    split-parts >dom-parts >dom-base
+    dup +mirth:type /ArrowType
+    cod> split-parts >cod-parts >cod-base
+    dom> split-parts >dom-parts >dom-base
     cod-base> unit? dom-base> unit? && if(
         dom-parts> dip-parts( +stack(+SNil) )
         c99-arrow!

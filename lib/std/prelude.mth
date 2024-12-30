@@ -82,12 +82,12 @@ inline(
 def(Bool.show, Bool -- Str, if("True", "False"))
 def(Bool.show;, Bool +Str -- +Str, show ;)
 
-data(OS,
-    OS_UNKNOWN,
-    OS_WINDOWS,
-    OS_LINUX,
-    OS_MACOS)
-
+data OS {
+    0 OS_UNKNOWN
+    1 OS_WINDOWS
+    2 OS_LINUX
+    3 OS_MACOS
+}
 def(Int.>OS, Int -- OS, dup 1 3 in-range if(OS.from-enum-value-unsafe, drop OS_UNKNOWN))
 inline(
     def(OS.>Int, OS -- Int, enum-value)
@@ -95,12 +95,12 @@ inline(
     def(RUNNING_OS, OS, prim-sys-os >OS)
 )
 
-data(Arch,
-    ARCH_UNKNOWN,
-    ARCH_I386,
-    ARCH_AMD64,
-    ARCH_ARM64)
-
+data Arch {
+    0 ARCH_UNKNOWN
+    1 ARCH_I386
+    2 ARCH_AMD64
+    3 ARCH_ARM64
+}
 def(Int.>Arch, Int -- Arch, dup 1 3 in-range if(Arch.from-enum-value-unsafe, drop ARCH_UNKNOWN))
 inline(
     def(Arch.>Int, Arch -- Int, enum-value)
@@ -200,6 +200,9 @@ inline(
     def drop4 [ a b c d     -- ] { drop drop drop drop           }
     def drop5 [ a b c d e   -- ] { drop drop drop drop drop      }
     def drop6 [ a b c d e f -- ] { drop drop drop drop drop drop }
+
+    def rdrop2 (rd1 {rdrop}, rd2 {rdrop}) [ ( +a --, +b -- ) +a +b -- ] { rd2 rd1 }
+    def rdrop3 (rd1 {rdrop}, rd2 {rdrop}, rd3 {rdrop}) [ ( +a --, +b --, +c -- ) +a +b +c -- ] { rd3 rd2 rd1 }
 
     def flip3 [ a b c   --   c b a ] { >x1 >x2 >x3     x1> x2> x3>     }
     def flip4 [ a b c d -- d c b a ] { >x1 >x2 >x3 >x4 x1> x2> x3> x4> }
@@ -899,34 +902,34 @@ inline(
     def(unpack5, [a b c d e] -- a b c d e, prim-tup-unpack5)
 
     def(pack0==, [] [] -- Bool, drop2 False)
-    def(pack1==(aeq), (a a -- Bool) [a] [a] -- Bool,
+    def(pack1==(aeq{==}), (a a -- Bool) [a] [a] -- Bool,
         on2:unpack1 aeq)
-    def(pack2==(aeq,beq), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
+    def(pack2==(aeq{==},beq{==}), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
         dip:unpack2 unpack2 dip:swap
         beq if(aeq, drop2 False))
-    def(pack3==(aeq,beq,ceq), (a a -- Bool, b b -- Bool, c c -- Bool)
+    def(pack3==(aeq{==},beq{==},ceq{==}), (a a -- Bool, b b -- Bool, c c -- Bool)
             [a b c] [a b c] -- Bool,
         dip:unpack3 unpack3 dip2:rotr dip:swap
         ceq if(beq if(aeq, drop2 False), drop4 False))
-    def(pack4==(aeq,beq,ceq,deq),
+    def(pack4==(aeq{==},beq{==},ceq{==},deq{==}),
             (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
             [a b c d] [a b c d] -- Bool,
         dip:unpack4 unpack4 dip3:rot4r dip2:rotr dip:swap
         deq if(ceq if(beq if(aeq, drop2 False), drop4 False), drop2 drop4 False))
 
-    def(pack2-show;-contents(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+    def(pack2-show;-contents(f{show;},g{show;}), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
         unpack2 dip(f) " " ; g)
-    def(pack3-show;-contents(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+    def(pack3-show;-contents(f{show;},g{show;},h{show;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
         unpack3 dip2(f) " " ; dip(g) " " ; h)
-    def(pack4-show;-contents(f,g,h,i),
+    def(pack4-show;-contents(f{show;},g{show;},h{show;},i{show;}),
         (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
         unpack4 dip3(f) " " ; dip2(g) " " ; dip(h) " " ; i)
 
-    def(pack2-show;(f,g), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+    def(pack2-show;(f{show;},g{show;}), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
         pack2-show;-contents(f,g) " pack2" ;)
-    def(pack3-show;(f,g,h), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+    def(pack3-show;(f{show;},g{show;},h{show;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
         pack3-show;-contents(f,g,h) " pack3" ;)
-    def(pack4-show;(f,g,h,i), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+    def(pack4-show;(f{show;},g{show;},h{show;},i{show;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
         pack4-show;-contents(f,g,h,i) " pack4" ;)
 )
 

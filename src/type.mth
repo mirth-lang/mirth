@@ -139,7 +139,7 @@ def +Mirth.init-types! [ +Mirth -- +Mirth ] {
 def(T+, StackType Resource -- StackType, STWith)
 def(T*, StackType Type -- StackType, STCons)
 def(T*+, StackType Type/Resource -- StackType, match(Left -> T*, Right -> T+))
-def(T->, StackType StackType -- ArrowType, ARROW_TYPE)
+def(T->, StackType StackType -- ArrowType, >cod >dom ArrowType)
 
 def(TT, List(Type) -- StackType, T0 swap for(T*))
 def(T0, StackType, STACK_TYPE_UNIT)
@@ -1116,83 +1116,102 @@ def StackType.linear-base-var? [ StackType -- Maybe(Var) ] {
 # Arrow TYPE #
 ##############
 
-data(ArrowType, ARROW_TYPE -> StackType StackType)
-def(ArrowType.>Type, ArrowType -- Type, TMorphism)
-def ArrowType.invert [ ArrowType -- ArrowType ] { ARROW_TYPE -> swap ARROW_TYPE }
-
-def(ArrowType.unpack, ArrowType -- StackType StackType, ARROW_TYPE -> id)
-def(ArrowType.dom, ArrowType -- StackType, unpack drop)
-def(ArrowType.cod, ArrowType -- StackType, unpack nip)
-def(ArrowType.unify!, +Mirth +Gamma ArrowType ArrowType -- +Mirth +Gamma ArrowType,
-    dip(unpack) unpack
-    dip(swap dip(unify!)) rotl
-    dip(unify!) swap
-    ARROW_TYPE)
-def(ArrowType.unify-error!, +Mirth +Gamma ArrowType -- +Mirth +Gamma ArrowType,
-    unpack dip(unify-error!) dip'(unify-error!) ARROW_TYPE)
-def(ArrowType.has-meta?, MetaVar ArrowType -- Bool,
-    unpack dip(over) has-meta? if(drop2 True, has-meta?))
-def ArrowType.has-var? [ Var ArrowType -- Bool ] {
-    unpack
-    dip(over) has-var? if(drop2 True, has-var?)
+struct ArrowType {
+    dom: StackType
+    cod: StackType
 }
 
-def(ArrowType.sig;, +Str ArrowType -- +Str,
-    unpack swap dom; "--"; cod;)
+inline ( def ArrowType.>Type [ ArrowType -- Type ] { TMorphism } )
+
+def ArrowType.invert [ ArrowType -- ArrowType ] {
+    /ArrowType
+    dom> cod> >dom >cod
+    ArrowType
+}
+
+def ArrowType.unify! [ +Mirth +Gamma ArrowType ArrowType -- +Mirth +Gamma ArrowType ] {
+    dip(/ArrowType) /ArrowType
+    dom> dom> unify! >dom
+    cod> cod> unify! >cod
+    ArrowType
+}
+
+def ArrowType.unify-error! [ +Mirth +Gamma ArrowType -- +Mirth +Gamma ArrowType ] {
+    dom:unify-error!
+    cod:unify-error!
+}
+
+def ArrowType.has-meta? [ MetaVar ArrowType -- Bool ] {
+    /ArrowType cod> over dom>
+    has-meta? if(drop2 True, has-meta?)
+}
+
+def ArrowType.has-var? [ Var ArrowType -- Bool ] {
+    /ArrowType cod> over dom>
+    has-var? if(drop2 True, has-var?)
+}
+
+def ArrowType.sig; [ +Str ArrowType -- +Str ] {
+    /ArrowType
+    dom> dom; "--"; cod> cod;
+}
 
 ||| Replace the stack rest with a metavar, if they're both unit.
-def(ArrowType.semifreshen-sig, ArrowType -- ArrowType,
-    dup needs-fresh-stack-rest? then(semifreshen-aux))
+def ArrowType.semifreshen-sig [ ArrowType -- ArrowType ] {
+    dup needs-fresh-stack-rest? then(semifreshen-aux)
+}
 
-def(ArrowType.semifreshen-aux, ArrowType -- ArrowType,
-    MetaVar.new! STMeta swap unpack
-    dip(semifreshen) swap
-    dip(semifreshen) swap
-    ARROW_TYPE nip)
+def ArrowType.semifreshen-aux [ ArrowType -- ArrowType ] {
+    /ArrowType
+    MetaVar.new! STMeta
+    @cod:semifreshen
+    @dom:semifreshen
+    ArrowType nip
+}
 
-def(ArrowType.needs-fresh-stack-rest?, ArrowType -- Bool,
-    unpack base unit? if(
-        base unit?,
-        drop False
-    ))
+def ArrowType.needs-fresh-stack-rest? [ ArrowType -- Bool ] {
+    /ArrowType
+    dom> base unit? and(@cod base unit?)
+    cod> drop
+}
 
-def(ArrowType.freshen-sig, Subst ArrowType -- Subst ArrowType,
+def ArrowType.freshen-sig [ Subst ArrowType -- Subst ArrowType ] {
     dup needs-fresh-stack-rest? if(
         freshen-sig-aux,
         freshen
-    ))
+    )
+}
 
-def(ArrowType.freshen-sig-aux, Subst ArrowType -- Subst ArrowType,
-    MetaVar.new! STMeta rotr unpack
-    dip(freshen-aux) swap
-    dip(freshen-aux) swap
-    ARROW_TYPE dip(nip))
+def ArrowType.freshen-sig-aux [ Subst ArrowType -- Subst ArrowType ] {
+    /ArrowType
+    MetaVar.new! STMeta swap
+    @dom:freshen-aux
+    @cod:freshen-aux
+    ArrowType dip2:drop
+}
 
-def(ArrowType.freshen, Subst ArrowType -- Subst ArrowType,
-    unpack
-    dip(freshen) swap
-    dip(freshen) swap
-    ARROW_TYPE)
+def ArrowType.freshen [ Subst ArrowType -- Subst ArrowType ] {
+    /ArrowType
+    @dom:freshen
+    @cod:freshen
+    ArrowType
+}
 
-def(ArrowType.rigidify!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
-    unpack
-    dip(rigidify!) swap
-    dip(rigidify!) swap
-    ARROW_TYPE)
+def ArrowType.rigidify! [ +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType ] {
+    /ArrowType
+    @dom:rigidify!
+    @cod:rigidify!
+    ArrowType
+}
 
 def(ArrowType.rigidify-sig!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
-    dup
-    unpack linear-base-meta? if-some(
-        swap linear-base-meta? if-some(
-            over == if(
-                TYPE_UNIT Some swap ~type? !,
-                drop
-            ),
-            drop
-        ),
-        drop
+    >arrowtype
+    @arrowtype dom linear-base-meta? for(
+        @arrowtype cod linear-base-meta? for(
+            over == then(TYPE_UNIT Some over ~type? !)
+        ) drop
     )
-    rigidify!)
+    arrowtype> rigidify!)
 
 def(ArrowType.max-num-params, ArrowType -- Nat,
     dom num-morphisms-on-top)
@@ -1444,12 +1463,15 @@ def(StackType.ctype?, StackType +Mirth -- Maybe(CTypeStack) +Mirth,
         drop None
     ))
 
-data(CTypeArrow, CTypeArrow ->
+struct CTypeArrow {
     dom: CTypeStack
-    cod: CTypeStack)
+    cod: CTypeStack
+}
 
-def(ArrowType.ctype, ArrowType +Mirth -- CTypeArrow +Mirth,
-    unpack dip(ctype >dom) ctype >cod CTypeArrow)
+def ArrowType.ctype [ ArrowType +Mirth -- CTypeArrow +Mirth ] {
+    /ArrowType @dom:ctype @cod:ctype CTypeArrow
+}
 
-def(ArrowType.ctype?, ArrowType +Mirth -- Maybe(CTypeArrow) +Mirth,
-    unpack on2(ctype?) map2(>cod >dom CTypeArrow))
+def ArrowType.ctype? [ ArrowType +Mirth -- Maybe(CTypeArrow) +Mirth ] {
+    /ArrowType dom> ctype? cod> ctype? map2(>cod >dom CTypeArrow)
+}

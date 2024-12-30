@@ -12,6 +12,11 @@ import(mirth.def)
 import(mirth.type)
 import(mirth.arrow)
 
+struct Param {
+    var: Var
+    default: Maybe(Token)
+}
+
 table(Word)
 field(Word.~name, Word, Name)
 field(Word.~arity, Word, Nat)
@@ -20,7 +25,7 @@ field(Word.~head, Word, Token)
 field(Word.~sig?, Word, Maybe(Token))
 field(Word.~body, Word, Token)
 field(Word.~ctx-type, Word, Prop([Ctx ArrowType]))
-field(Word.~params, Word, Prop(List(Var)))
+field(Word.~params, Word, Prop(List(Param)))
 field(Word.~arrow, Word, Prop(Arrow))
 field(Word.~prefer-inline?, Word, Bool)
 field(Word.~cname, Word, Str)
@@ -35,7 +40,7 @@ def(Word.head, Word -- Token, ~head @)
 def(Word.sig?, Word -- Maybe(Token), ~sig? @)
 def(Word.body, Word -- Token, ~body @)
 def(Word.arity, Word -- Nat, ~arity @)
-def(Word.params, Word +Mirth -- List(Var) +Mirth, ~params force!)
+def(Word.params, Word +Mirth -- List(Param) +Mirth, ~params dup mut-is-set if(force!, drop L0))
 def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
 def(Word.inferring-type?, Word -- Bool,
     ~inferring-type? @? unwrap(False))

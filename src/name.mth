@@ -212,7 +212,7 @@ def(QName.def-hard?, +Mirth QName -- +Mirth Maybe(Def), dup name defs lookup(qna
 def(QName.defined-hard?, +Mirth QName -- +Mirth Bool, def-hard? some?)
 def(QName.undefined-hard?, +Mirth QName -- +Mirth Bool, def-hard? none?)
 
-def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) lookup(qname-soft ==:==))
+def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) lookup(qname-soft ==))
 def(QName.defined-soft?, +Mirth QName -- +Mirth Bool, def-soft? some?)
 def(QName.undefined-soft?, +Mirth QName -- +Mirth Bool, def-soft? none?)
 

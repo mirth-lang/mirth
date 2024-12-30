@@ -79,7 +79,7 @@ def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
     fresh-name! dip(swap) Var.new! sip(Ctx.new))
 
 def(Ctx.==, Ctx Ctx -- Bool,
-    both(vars) ==(==))
+    on2:vars ==)
 
 def(Var.unify!, +Mirth +Gamma Var Var -- +Mirth +Gamma Type,
     dup2 == if(drop TVar, both(TVar) unify-failed!))

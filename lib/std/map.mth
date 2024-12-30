@@ -19,8 +19,8 @@ def(Map.values, Map(k,v) -- List(v), Map -> map(value))
 def(Map.insert, KVPair(k,v) Map(k,v) -- Map(k,v),
     Map -> cons Map)
 
-def(Map.lookup-pair(k==), (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(KVPair(k,v)),
-    Map -> lookup(key k==))
+def(Map.lookup-pair(keq {==}), (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(KVPair(k,v)),
+    Map -> lookup(.key keq))
 
-def(Map.lookup(k==), (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(v),
-    lookup-pair(k==) map(value))
+def(Map.lookup(keq {==}), (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(v),
+    lookup-pair(keq) map(value))
