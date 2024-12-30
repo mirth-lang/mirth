@@ -4,10 +4,10 @@ import(std.prelude)
 import(std.maybe)
 import(std.list)
 
-def(Maybe.sum, Maybe(Int) -- Int, { None -> 0 } { Some -> id })
-def List.sum {
+def(Maybe.mysum, Maybe(Int) -- Int, { None -> 0 } { Some -> id })
+def List.mysum {
     { Nil -> 0 }
-    { Cons -> dip'(sum) + }
+    { Cons -> dip'(mysum) + }
 }
 
 def List.very-slow-reverse {
