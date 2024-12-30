@@ -346,7 +346,7 @@ def +ResolveDef.filter-sort(p) [
 
 def +ResolveDef.filter-arity [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
     token num-args filter(
-        dup2 rdip:arity dip(>Int) arity-compatible?,
+        dup2 rdip:qname-hard arity dip(>Int) arity-compatible?,
         RD_WRONG_ARITY
     ) drop
 }
@@ -366,7 +366,7 @@ def +ResolveDef.filter-roots [ List(Namespace) +Mirth +ResolveDef -- +Mirth +Res
         { Left ->
             >name
             filter(
-                dup2 rdip:qname-hard namespace swap member(==)
+                dup2 rdip:qname-hard namespace swap member
                 or(token over rdip:def-is-imported-at-token?),
                 dup rdip:qname-hard namespace match(
                     NAMESPACE_TYCON ->
@@ -385,7 +385,7 @@ def +ResolveDef.filter-roots [ List(Namespace) +Mirth +ResolveDef -- +Mirth +Res
 
         { Right ->
             dup is-relative? and(ignore-last-name not) if(
-                filter(dup2 rdip:qname-hard climb-up-dname? has(over3 member(==)),
+                filter(dup2 rdip:qname-hard climb-up-dname? has(over3 member),
                     over2 empty? if(
                         RD_METHOD_NOT_AVAILABLE,
                         RD_METHOD_WRONG_TYPE
@@ -1000,6 +1000,18 @@ def elab-args! [ +Mirth +AB -- +Mirth +AB ] {
     ab-token@ args for(elab-block-at!)
 }
 
+def elab-word-args! [ Word +Mirth +AB -- Word +Mirth +AB ] {
+    elab-args!
+    ab-token@ num-args over arity < then(
+        ab-token@ num-args over rdip:params drop-slice for(
+            default if-some (
+                elab-block-at!,
+                ab-token@ "word parameter is missing, has no default implementation" rdip:emit-fatal-error!
+            )
+        )
+    )
+}
+
 def elab-no-args! [ +Mirth +AB -- +Mirth +AB ] {
     ab-token@ rdip:args-0
 }
@@ -1064,7 +1076,7 @@ def elab-atom-def! [ Def +Mirth +AB -- +Mirth +AB ] {
     DefVariable -> elab-no-args! ab-variable!,
     DefExternal -> elab-no-args! ab-external!,
     DefField -> elab-no-args! ab-field!,
-    DefWord -> elab-args! ab-word!,
+    DefWord -> elab-word-args! ab-word!,
     DefTag -> elab-args! ab-tag!,
     DefPrim -> elab-prim!,
     _ -> rdip:qname-hard elab-atom-not-a-word!
@@ -1168,7 +1180,7 @@ def elab-pattern-atom! [ Token +Mirth +Pattern -- +Mirth +Pattern ] {
             @+pat:pattern mid top-types-are-fine? then(
                 @+pat:pattern mid top-namespaces
                 token name? if(
-                    filter(dup2 rdip:qname-hard namespace swap member(==), RD_WRONG_CONSTRUCTOR) drop,
+                    filter(dup2 rdip:qname-hard namespace swap member, RD_WRONG_CONSTRUCTOR) drop,
                     filter-roots
                 )
             )
@@ -1295,7 +1307,7 @@ def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
             ) drop3,
 
         Some ->
-            split-last-byte(BDOT ==) "mth" Some ==:==
+            split-last-byte(BDOT ==) "mth" Some ==
             else(over3 "expected .mth extension for mirth file" emit-warning!)
             over2 name >Str == else(over2 "expected module name to match file name" emit-fatal-error!)
             over package path! drop2
@@ -1739,13 +1751,13 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
             @lbl_lens dup WordParams prop(
                 type dom top-type? unwrap("logic error: expected parameter" fatal-error!)
                 morphism? unwrap("logic error: expected morphism" fatal-error!)
-                "f" >Name Var.new-auto-run! L1
+                "f" >Name Var.new-auto-run! >var None >default Param L1
             ) @lbl_lens ~params !
 
             @dat @lbl_get @lbl_set @lbl_lens dup WordArrow prop4(
                 >lbl_lens >lbl_set >lbl_get >dat
                 @lbl_lens ab-build-word-arrow!(
-                    lbl_lens> rdip:params dup ab-lambda!(
+                    lbl_lens> rdip:params map(.var) dup ab-lambda!(
                         /L1 unwrap("Expected one parameter." rdip:fatal-error!) >f
                         dat> is-resource? if(
                             lbl_get> ab-word!
@@ -1908,7 +1920,7 @@ def elab-def! [ +Mirth Token -- +Mirth Token ] {
         dup dup ab-build-word-arrow!(
             swap rdip:params dup empty? if(
                 drop elab-def-body!,
-                ab-lambda!(elab-def-body!)
+                map(.var) ab-lambda!(elab-def-body!)
             )
         ) tuck check-inline-recursion-arrow!
     ) @word ~arrow !
@@ -1954,15 +1966,23 @@ def check-inline-recursion-failed! [ +Mirth Word -- +Mirth ] {
 }
 
 ||| Elaborate a word's parameters from its type and declaration.
-def elab-def-params! [ +Mirth Word -- +Mirth List(Var) ] {
+def elab-def-params! [ +Mirth Word -- +Mirth List(Param) ] {
     L0 over type
     rotl head dip(/ArrowType dom> cod>) nip
     args reverse-for(
         dup sig-param-name? unwrap("expected parameter name" emit-fatal-error!) >name
-        dup succ dup run-end? if(drop, "expected right paren or comma" emit-fatal-error!)
+        dup succ dup run-end? if(
+            drop None >default,
+            dup lcurly? if(
+                dup succ Some >default
+                next dup run-end? if(drop, "expected right paren or comma" emit-fatal-error!),
+
+                "expected right paren, left curly, or comma" emit-fatal-error!
+            )
+        )
         elab-expand-tensor!
         swap morphism? unwrap("need function type for param" emit-fatal-error!)
-        nip name> Var.new-auto-run!
+        nip name> Var.new-auto-run! >var Param
         rotr dip(cons)
     ) drop
 }
@@ -2079,7 +2099,7 @@ def elab-def-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
 
         dup dom parts filter-some(label?)
         over cod parts filter-some(label?)
-        swap difference(==) for(
+        swap difference for(
             Str("Output label "; name >Str ; " not present in input";) error!
         )
     )
@@ -2278,7 +2298,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @word WordType prop2
     @word ~ctx-type !
 
-    @vx L1
+    @vx >var None >default Param L1
     @word WordParams prop
     @word ~params !
     @word make-inline!
@@ -2349,8 +2369,7 @@ def resolve-def-namespace [ +Mirth Token name/dname:Name/DName -- +Mirth Maybe(N
     bind(as-namespace?)
 }
 
-def elab-qname-from-nonrelative-dname [ +Mirth Token DName Int -- +Mirth QName ] {
-    >arity
+def elab-qname-from-nonrelative-dname [ +Mirth Token DName arity:Int -- +Mirth QName ] {
     dup Right >name/dname
     dup root? else(drop "relative name not allowed" emit-fatal-error!)
     last-name >name
@@ -2369,13 +2388,18 @@ def def-visible-from-token? [ Token Def -- Bool ] {
     )
 }
 
+def Token.is-default-param? [ Token -- Bool ] {
+    dup name? and( dup succ lcurly? >Bool ) nip
+}
+
 ||| Elaborate the qname for a word definition.
 ||| Generally speaking this is going to use the module namespace.
 def elab-def-qname [ +Mirth Token -- +Mirth QName ] {
+    dup args dup has(is-default-param?) if(drop -1, len >Int) >arity
     dup name/dname? unwrap("expected name" emit-fatal-error!)
     match(
-        Left -> >name dup .module NAMESPACE_MODULE >namespace num-args >Int >arity MKQNAME,
-        Right -> over num-args >Int elab-qname-from-nonrelative-dname
+        Left -> >name .module NAMESPACE_MODULE >namespace MKQNAME,
+        Right -> elab-qname-from-nonrelative-dname
     )
 }
 

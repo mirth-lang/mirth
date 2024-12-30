@@ -106,6 +106,17 @@ def List.last  [ List(t) -- Maybe(t) ] { >List+ map(last) }
 def List+.first [ List+(t) -- t ] { head }
 def List+.last  [ List+(t) -- t ] { uncons for(nip) }
 
+def List.head [ List(x) -- Maybe(x) ] {
+    { Nil -> None }
+    { Cons -> drop Some }
+}
+def List.tail [ List(x) -- List(x) ] {
+    { Nil -> Nil }
+    { Cons -> nip }
+}
+
+def List.drop-slice [ Nat List(x) -- List(x) ] { swap repeat(tail) }
+
 ||| Reverse the list.
 def List.reverse [ List(a) -- List(a) ] {
     Nil swap for(swap Cons)
@@ -173,6 +184,28 @@ def List.fold(g) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a) ] {
 
 ||| Reduce a list via binary operation.
 def List+.fold(g) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+    uncons for(g)
+}
+
+||| Sum together a list of numbers.
+def List.sum(z {0}, g {+}) [ (*c -- *c a, *c a a -- *c a) *c List(a) -- *c a] {
+    { Nil -> z }
+    { Cons -> for(g) }
+}
+
+||| Sum together a list of numbers.
+def List+.sum(g {+}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+    uncons for(g)
+}
+
+||| Multiply together a list of numbers.
+def List.product(z {1}, g {*}) [ (*c -- *c a, *c a a -- *c a) *c List(a) -- *c a] {
+    { Nil -> z }
+    { Cons -> for(g) }
+}
+
+||| Multiply together a list of numbers.
+def List+.product(g {*}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
     uncons for(g)
 }
 
@@ -376,7 +409,7 @@ inline(
     def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), L0 thaw f freeze)
 )
 
-def List.==(eq) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
+def List.==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
     True while (
         dip(dip(uncons) uncons dip(swap) dip2(==(eq)) rotl) &&
         over2 empty? over2 empty? && not over &&,
@@ -385,35 +418,35 @@ def List.==(eq) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
     dip(drop2)
 }
 
-def List+.==(eq) [ (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool ] {
+def List+.==(eq {==}) [ (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool ] {
     dip(>List) >List ==(eq)
 }
 
-def(List.lookup(p), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
+def(List.lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
     find(over dip(p) swap) nip)
 
-def(List+.lookup(p), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
+def(List+.lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
     find(over dip(p) swap) nip)
 
-def(List.reverse-lookup(p), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
+def(List.reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
     reverse-find(over dip(p) swap) nip)
 
-def(List+.reverse-lookup(p), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
+def(List+.reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
     reverse-find(over dip(p) swap) nip)
 
-def(List.member(p), (*c k a -- *c Bool) *c k List(a) -- *c Bool,
+def(List.member(p {==}), (*c k a -- *c Bool) *c k List(a) -- *c Bool,
     lookup(p) some?)
 
-def(List+.member(p), (*c k a -- *c Bool) *c k List+(a) -- *c Bool,
+def(List+.member(p {==}), (*c k a -- *c Bool) *c k List+(a) -- *c Bool,
     lookup(p) some?)
 
-def(List.difference(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+def(List.difference(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
     swap filter(over dip(swap member(eq) not) swap) nip)
 
-def(List.union(eq), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+def(List.union(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
     over dip(swap difference(eq)) swap cat)
 
-def(List.unions(eq), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
+def(List.unions(eq {==}), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
     fold(union(eq)) unwrap(L0))
 
 def(List.map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
@@ -458,7 +491,7 @@ def(List.partition(p), (*a t -- *a Bool) *a List(t) -- *a List(t) List(t),
 def(List+.partition(p), (*a t -- *a Bool) *a List+(t) -- *a List(t) List(t),
     partition-either(dup dip(p) swap if(Right, Left)))
 
-def(List.show;(f), (t +Str -- +Str) List(t) +Str -- +Str,
+def(List.show;(f {show;}), (t +Str -- +Str) List(t) +Str -- +Str,
     "LIST( " ; for(f " ; " ;) ")" ;)
-def(List+.show;(f), (t +Str -- +Str) List+(t) +Str -- +Str,
+def(List+.show;(f {show;}), (t +Str -- +Str) List+(t) +Str -- +Str,
     "LIST+( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
