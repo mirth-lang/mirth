@@ -1129,10 +1129,6 @@ def ArrowType.invert [ ArrowType -- ArrowType ] {
     ArrowType
 }
 
-def ArrowType.unpack [ ArrowType -- StackType StackType ] {
-    sip:dom cod
-}
-
 def ArrowType.unify! [ +Mirth +Gamma ArrowType ArrowType -- +Mirth +Gamma ArrowType ] {
     dip(/ArrowType) /ArrowType
     dom> dom> unify! >dom
@@ -1209,18 +1205,13 @@ def ArrowType.rigidify! [ +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType ] {
 }
 
 def(ArrowType.rigidify-sig!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
-    dup
-    unpack linear-base-meta? if-some(
-        swap linear-base-meta? if-some(
-            over == if(
-                TYPE_UNIT Some swap ~type? !,
-                drop
-            ),
-            drop
-        ),
-        drop
+    >arrowtype
+    @arrowtype dom linear-base-meta? for(
+        @arrowtype cod linear-base-meta? for(
+            over == then(TYPE_UNIT Some over ~type? !)
+        ) drop
     )
-    rigidify!)
+    arrowtype> rigidify!)
 
 def(ArrowType.max-num-params, ArrowType -- Nat,
     dom num-morphisms-on-top)
@@ -1472,12 +1463,15 @@ def(StackType.ctype?, StackType +Mirth -- Maybe(CTypeStack) +Mirth,
         drop None
     ))
 
-data(CTypeArrow, CTypeArrow ->
+struct CTypeArrow {
     dom: CTypeStack
-    cod: CTypeStack)
+    cod: CTypeStack
+}
 
-def(ArrowType.ctype, ArrowType +Mirth -- CTypeArrow +Mirth,
-    unpack dip(ctype >dom) ctype >cod CTypeArrow)
+def ArrowType.ctype [ ArrowType +Mirth -- CTypeArrow +Mirth ] {
+    /ArrowType @dom:ctype @cod:ctype CTypeArrow
+}
 
-def(ArrowType.ctype?, ArrowType +Mirth -- Maybe(CTypeArrow) +Mirth,
-    unpack on2(ctype?) map2(>cod >dom CTypeArrow))
+def ArrowType.ctype? [ ArrowType +Mirth -- Maybe(CTypeArrow) +Mirth ] {
+    /ArrowType dom> ctype? cod> ctype? map2(>cod >dom CTypeArrow)
+}

@@ -15,20 +15,22 @@ import(mirth.arrow)
 # Match #
 #########
 
-data(Match, Match ->
+struct Match {
     home:Home token:Token body:Token
     ctx:Ctx dom:StackType cod:StackType
-    cases:List(Case))
+    cases:List(Case)
+}
 
-data(+Match, +Match ->
+struct +Match {
     home:Home token:Token body:Token
     ctx:Ctx dom:StackType cod:StackType
-    cases:List(Case))
+    cases:List(Case)
+}
 
 def(Match.thaw, Match -- +Match, Match -> +Match)
 def(+Match.freeze, +Match -- Match, +Match -> Match)
 
-data(Case, CASE -> pattern:Pattern body:Arrow)
+struct Case { pattern:Pattern body:Arrow }
 def(Case.outer-ctx, Case -- Ctx, pattern outer-ctx)
 def(Case.inner-ctx, Case -- Ctx, pattern inner-ctx)
 
@@ -110,7 +112,7 @@ def(Case.is-default-case?, Case -- Bool, pattern is-default?)
 # Pattern #
 ###########
 
-data(Pattern, Pattern ->
+struct Pattern {
     home:Home
     token-start:Token
     token-end:Token
@@ -119,7 +121,8 @@ data(Pattern, Pattern ->
     saved:List(Type)    # List of types set aside by underscores.
     mid:StackType       # Stack type on the left of the pattern.
     cod:StackType       # Stack type coming from outside match.
-    atoms:List(PatternAtom))
+    atoms:List(PatternAtom)
+}
 def(Pattern.dom, Pattern -- StackType, sip:mid saved for(STCons))
 def(Pattern.thaw, Pattern -- +Pattern, >pattern +Pattern)
 
@@ -170,7 +173,7 @@ def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
     dup PatOpTag >op L0 >saved
     pattern token-start >token
     pattern inner-ctx >ctx
-    dip:SUBST_NIL rdip:type freshen-sig unpack
+    dip:SUBST_NIL rdip:type freshen-sig /ArrowType dom> cod>
     dip(pattern mid)
     pattern token-start >token +Gamma rdip':unify! rdrop >cod
     dup >dom pattern:mid!

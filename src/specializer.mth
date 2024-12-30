@@ -231,14 +231,15 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
     /SPKEY
     dup first token >token +Gamma
     dip:SUBST_NIL nip
-    dip(ArrowType.unpack swap) reverse-for(
-        dip(force-cons?!
-            unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
-            unpack2)
-        /ArgBlock type TMorphism unify! drop
+    swap dom (
+        swap reverse-for(
+            dip(force-cons?!
+                unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
+                unpack2)
+            /ArgBlock type TMorphism unify! drop
+        )
     )
     rdrop
-    swap T->
     dip:Ctx0 rigidify-sig!)
 
 

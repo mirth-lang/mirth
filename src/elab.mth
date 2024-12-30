@@ -587,8 +587,8 @@ def ab-build-hom!(f) [
     (*a StackType +Mirth +AB -- *b StackType +Mirth +AB)
     *a Ctx ArrowType Token Home +Mirth -- *b Arrow +Mirth
 ] {
-    dip2(unpack rotr)
-    ab-build!(f ab-unify-type!)
+    dip2(/ArrowType dom>)
+    ab-build!(cod> f ab-unify-type!)
 }
 
 ||| Build the arrow for a word. If the word type and context are available, use that.
@@ -618,15 +618,16 @@ def initial-ctx-type-body-home [ +Mirth Word -- +Mirth Ctx ArrowType Token Home 
 
 def finalize-word-arrow [ +Mirth Arrow Word -- +Mirth Arrow ] {
     >word >arrow
-    @word inferring-type? if(
+    @word inferring-type? then(
         @arrow Arrow.ctx-type rigidify-sig!
         dup2 pack2 @word WordType prop @word ~ctx-type !
         False @word ~inferring-type? !
-        unpack arrow> cod! dom! ctx!,
-
-        arrow>
+        /ArrowType
+        cod> @arrow:cod!
+        dom> @arrow:dom!
+        @arrow:ctx!
     )
-    word> drop
+    arrow> word> drop
 }
 
 def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word ] {
@@ -741,8 +742,10 @@ def ab-expand-opsig! [ OpSig +Mirth +AB -- StackType StackType +Mirth +AB ] {
     { OPSIG_ID -> ab-type@ dup }
     { OPSIG_PUSH -> dip(ab-type@ dup) STCons }
     { OPSIG_APPLY ->
-        dip(ab-type@) unpack
-        dip(ab-token@ rdip:elab-stack-type-unify! drop) }
+        /ArrowType
+        ab-type@
+        dom> ab-token@ rdip:elab-stack-type-unify! drop
+        cod> }
 }
 
 def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { OpInt ab-op! }
@@ -914,7 +917,7 @@ def elab-label-pop-r-sig! [ Label -- OpSig ] {
 }
 
 def elab-arrow! [ +Mirth Ctx ArrowType Token Home -- +Mirth Arrow ] {
-    dip2(unpack) elab-arrow-hom!
+    dip2(/ArrowType dom> cod>) elab-arrow-hom!
 }
 
 def elab-arrow-hom! [ +Mirth Ctx StackType StackType Token Home -- +Mirth Arrow ] {
@@ -1206,7 +1209,7 @@ def +Match.case!(mkpat,mkbod) [
     rotl
     +Match.home
     @pattern:dip:rdip(ab-build-hom!(dip(mkbod)))
-    >body CASE add-case
+    >body Case add-case
 }
 
 def elab-expand-tensor! [ +Mirth StackType Token -- +Mirth StackType Type Token ] {
@@ -1569,7 +1572,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
         >tag
         @dat "/" @tag name >Str cat 0u data-word-new! >untag
         @untag Some @tag ~untag !
-        @tag @untag WordType prop(ctx-type unpack swap T-> pack2) @untag ~ctx-type !
+        @tag @untag WordType prop(ctx-type invert pack2) @untag ~ctx-type !
         @tag @untag @untag WordArrow prop2(
             >untag >tag
             untag> ab-build-word-arrow!(
@@ -1953,7 +1956,7 @@ def check-inline-recursion-failed! [ +Mirth Word -- +Mirth ] {
 ||| Elaborate a word's parameters from its type and declaration.
 def elab-def-params! [ +Mirth Word -- +Mirth List(Var) ] {
     L0 over type
-    rotl head dip(unpack) nip
+    rotl head dip(/ArrowType dom> cod>) nip
     args reverse-for(
         dup sig-param-name? unwrap("expected parameter name" emit-fatal-error!) >name
         dup succ dup run-end? if(drop, "expected right paren or comma" emit-fatal-error!)
