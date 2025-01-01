@@ -332,8 +332,8 @@ def List.all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
     ok> if(freeze Some, rdrop None)
 }
 
-||| Build a list through repetition, stopping at the first None.
-def collect(f) [ (*a -- *a Maybe(b)) *a -- *a List(b) ] {
+||| Build a list through iteration, stopping at the first None.
+def collect(f {.next swap}) [ (*a -- *a Maybe(b)) *a -- *a List(b) ] {
     LIST(while-some(rdip(f), ;))
 }
 

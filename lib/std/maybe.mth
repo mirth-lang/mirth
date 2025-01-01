@@ -10,6 +10,7 @@ data Maybe(t) {
 }
 
 inline (
+    def Maybe.len [ Maybe(t) -- Nat ] { enum-value NatUnsafe }
     def Maybe.none? [ Maybe(t) -- Bool ] { enum-value 0 == }
     def Maybe.some? [ Maybe(t) -- Bool ] { enum-value 1 == }
     def Maybe.>Bool [ Maybe(t) -- Bool ] { some? }

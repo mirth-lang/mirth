@@ -421,52 +421,6 @@ static TUP* tup_new (TUPLEN cap_hint) {
 	return new_tup;
 }
 
-static TUP* tup_pack1 (VAL v1) {
-	TUP* tup = tup_new(1);
-	ASSERT(tup); ASSERT(tup->cap >= 1);
-	tup->size = 1;
-	tup->cells[0] = v1;
-	return tup;
-}
-static TUP* tup_pack2 (VAL v1, VAL v2) {
-	TUP* tup = tup_new(2);
-	ASSERT(tup); ASSERT(tup->cap >= 2);
-	tup->size = 2;
-	tup->cells[0] = v1;
-	tup->cells[1] = v2;
-	return tup;
-}
-static TUP* tup_pack3 (VAL v1, VAL v2, VAL v3) {
-	TUP* tup = tup_new(3);
-	ASSERT(tup); ASSERT(tup->cap >= 3);
-	tup->size = 3;
-	tup->cells[0] = v1;
-	tup->cells[1] = v2;
-	tup->cells[2] = v3;
-	return tup;
-}
-static TUP* tup_pack4 (VAL v1, VAL v2, VAL v3, VAL v4) {
-	TUP* tup = tup_new(4);
-	ASSERT(tup); ASSERT(tup->cap >= 4);
-	tup->size = 4;
-	tup->cells[0] = v1;
-	tup->cells[1] = v2;
-	tup->cells[2] = v3;
-	tup->cells[3] = v4;
-	return tup;
-}
-static TUP* tup_pack5 (VAL v1, VAL v2, VAL v3, VAL v4, VAL v5) {
-	TUP* tup = tup_new(5);
-	ASSERT(tup); ASSERT(tup->cap >= 5);
-	tup->size = 5;
-	tup->cells[0] = v1;
-	tup->cells[1] = v2;
-	tup->cells[2] = v3;
-	tup->cells[3] = v4;
-	tup->cells[4] = v5;
-	return tup;
-}
-
 static VAL tup_replace (VAL tup, TUPLEN i, VAL v) {
 	ASSERT(IS_TUP(tup));
 	TUPLEN n = VTUPLEN(tup);

@@ -235,54 +235,12 @@ def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
             )
         ),
 
-        c99-line(
-            fresh-name! >tup
-            "TUP* " put @tup put " = tup_new(" put
-            @tag num-total-inputs 1+ show put
-            ");" put
-        )
-        c99-line(
-            @tup put "->size = " put
-            @tag num-total-inputs 1+ show put
-            ";" put
-        )
-        c99-line(
-            @tup put "->cells[0] = MKI64(" put
-            @tag value-show put
-            "LL /* " put @tag name >Str put " */);" put
-        )
-        @tag num-total-inputs >i
-        @tag label-inputs reverse-for(
-            >label
-            @label is-resource-label? if(
-                C99RT_VAL label> pop-resource-label! consume-as-VAL,
-                C99RT_VAL label> pop-value-label! consume-as-VAL
-            )
-            c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-            @i:pred
-        )
-        @tag num-resource-inputs repeat(
-            C99RT_VAL pop-resource! consume-as-VAL
-            c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-            @i:pred
-        )
-        @tag num-type-inputs repeat(
-            C99RT_VAL pop-value! consume-as-VAL
-            c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
-            @i:pred
-        )
-        i> drop
+        @tag +mirth:inputs >parts
+        @tag Some >tag
+        c99-pack-tuple!
         @tag outputs-resource? if(
-            C99RT_VAL push-resource-expression!(
-                "MKTUP(" put tup> put
-                ", " put @tag num-total-inputs 1+ show put
-                ")" put
-            ),
-            C99RT_VAL push-value-expression!(
-                "MKTUP(" put tup> put
-                ", " put @tag num-total-inputs 1+ show put
-                ")" put
-            )
+            push-resource!,
+            turn-into-value! push-value!
         )
     ))
     tag> drop
@@ -322,30 +280,60 @@ def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
     @tag num-total-inputs 0= if(
         @tag .data pop-value-value/resource-data! rdrop, # decref is unnecessary
 
-        @tag .data pop-value-value/resource-data! consume-as-VAL
-        Str("VTUP(" ; ; ")" ;) >tup
-        1 >i
-        @tag num-type-inputs repeat(
-            C99RT_VAL push-value-expression!(@tup put "->cells[" put @i show put "]" put)
-            @i:1+
-        )
-        @tag num-resource-inputs repeat(
-            C99RT_VAL push-resource-expression!(@tup put "->cells[" put @i show put "]" put)
-            @i:1+
-        )
-        @tag label-inputs for(
-            C99RT_VAL swap push-label-expression!(@tup put "->cells[" put @i show put "]" put)
-            @i:1+
-        )
-        c99-line("tup_decref_outer(" put tup> put "," put i> show put ");" put)
+        @tag +mirth:inputs >parts
+        @tag .data pop-value-value/resource-data! turn-into-resource!
+        @tag Some >tag
+        c99-unpack-tuple!
     ))
     tag> drop
 }
 
+def +C99.tag-value-put [ +C99 Tag -- +C99 ] {
+    dup value-show put "LL /* " put name >Str put " */" put
+}
+
+def c99-pack-tuple! [ +C99Branch tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Branch +C99Resource ] {
+    @tag len @parts len + >tuplen
+    @tuplen C99RT_TUP resource-expression!("tup_new(" put @tuplen show put ")" put) >+tup
+    @+tup:resource-name >tup
+    c99-line(@tup put "->size = " put @tuplen show put ";" put)
+    tuplen> pred >i
+    parts> reverse-for(
+        match {
+            { STPCons -> type-to-c99-repr pop-value! consume-as-VAL }
+            { STPWith -> resource-to-c99-repr pop-resource! consume-as-VAL }
+            { STPConsLabel -> dip:type-to-c99-repr pop-value-label! consume-as-VAL }
+            { STPWithLabel -> dip:resource-to-c99-repr pop-resource-label! consume-as-VAL }
+        }
+        c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+        @i:pred
+    )
+    i> drop
+    tag> for(c99-line(@tup put "->cells[0] = MKI64(" put tag-value-put ");" put))
+    tup> drop
+    +tup>
+}
+
+def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Branch ] {
+    @tag len @parts len + C99RT_TUP consume-as >tup
+    tag> len >i
+    parts> for(
+        Str(@tup ; "->cells[" ; @i show; "]" ;)
+        swap match {
+            { STPCons -> type-to-c99-repr dup push-value-expression!(v-macro(put)) }
+            { STPWith -> resource-to-c99-repr dup push-resource-expression!(v-macro(put)) }
+            { STPConsLabel -> dip(type-to-c99-repr dup value-expression!(v-macro(put))) push-value-label! }
+            { STPWithLabel -> dip(resource-to-c99-repr dup resource-expression!(v-macro(put))) push-resource-label! }
+        }
+        @i:succ
+    )
+    c99-line("tup_decref_outer(" put tup> put "," put i> show put ");" put)
+}
+
 def c99-tag-label-index [ Tag Label +C99 -- Nat +C99 ] {
-    over num-total-inputs 1+
-    over2 label-inputs reverse-find(dip(pred over) ==) drop
-    dip:drop2
+    >label +mirth:inputs dup len 1+ >i
+    reverse-find(@i:pred label if-some(@label ==, False))
+    label> drop2 i>
 }
 
 def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
@@ -1594,6 +1582,10 @@ def +C99Resource.consume [ +C99Resource -- Str ] {
     resource-name>
 }
 
+def +C99Resource.consume-as [ C99ReprType +C99Resource -- Str ] {
+    turn-into-value! consume-as
+}
+
 def +C99Resource.consume-as-VAL [ +C99Resource -- Str ] {
     /+C99Resource resource-name> resource-repr> mk-macro
 }
@@ -1655,6 +1647,11 @@ def +C99Branch.pop-value-value/resource-data! [ Data +C99Branch -- +C99Branch +C
         +mirth:c99-repr pop-resource! +C99Value/Resource.+Right,
         +mirth:c99-repr pop-value! +C99Value/Resource.+Left
     )
+}
+
+def +C99Value/Resource.turn-into-resource! [ +C99Value/Resource -- +C99Resource ] {
+    { +Left -> turn-into-resource! }
+    { +Right -> id }
 }
 
 data +C99Value? {
@@ -2218,22 +2215,15 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
 }
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
-    >arity
-    @arity 1u >= @arity 5u <= && else("c99-tup-pack! called with unsupported arity" +mirth:fatal-error!)
-    L0 >args
-    @arity repeat(C99RT_VAL pop-value! consume-as-VAL @args:cons)
-    @arity C99RT_TUP push-value-expression!(
-        "tup_pack" put arity> show put "(" put
-        args> for(put, ", " put)
-        ")" put
-    )
+    None >tag
+    LIST(repeat(TYPE_DONT_CARE STPCons ;)) >parts
+    c99-pack-tuple! turn-into-value! push-value!
 }
 
 def c99-tup-unpack! [ Nat +C99Branch -- +C99Branch ] {
-    >arity
-    @arity C99RT_TUP dup pop-value! consume-as >tup
-    @arity count(>i C99RT_VAL push-value-expression!(@tup put "->cells[" put i> show put "]" put))
-    c99-line("tup_decref_outer(" put tup> put ", " put arity> show put ");" put)
+    None >tag
+    dup LIST(repeat(TYPE_DONT_CARE STPCons ;)) >parts
+    C99RT_TUP pop-value! turn-into-resource! c99-unpack-tuple!
 }
 
 def +C99Value.run-value! [ +C99Branch +C99Value -- +C99Branch ] {
