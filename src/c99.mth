@@ -278,10 +278,10 @@ def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
         },
 
     @tag num-total-inputs 0= if(
-        @tag .data pop-value-value/resource-data! rdrop, # decref is unnecessary
+        @tag .data pop-data! rdrop, # decref is unnecessary
 
         @tag +mirth:inputs >parts
-        @tag .data pop-value-value/resource-data! turn-into-resource!
+        @tag .data pop-data! turn-into-resource!
         @tag Some >tag
         c99-unpack-tuple!
     ))
@@ -359,7 +359,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
             }
         },
 
-        @tag .data pop-value-value/resource-data! >+tuplevar
+        @tag .data pop-data! >+tuplevar
         fieldty> match {
             { Left -> # field is value
                 type-to-c99-repr >fieldrepr
@@ -386,7 +386,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
                         "]" put
                     )
                 )
-                +tuplevar> push-value-value/resource!
+                +tuplevar> push-value/resource!
             }
         }
     )
@@ -399,7 +399,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
     @tag +mirth:semi-transparent? if(
         fieldty> match {
             { Left -> # field is value
-                @tag .data pop-value-value/resource-data! match {
+                @tag .data pop-data! match {
                     { +Right -> # wrapper is resource
                         drop-resource-as-value!
                         type-to-c99-repr pop-value!
@@ -414,7 +414,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
             }
         },
 
-        @tag .data pop-value-value/resource-data! >+tuplevar
+        @tag .data pop-data! >+tuplevar
         @fieldty match {
             { Left -> type-to-c99-repr pop-value! consume-as-VAL }
             { Right -> resource-to-c99-repr pop-resource! consume-as-VAL }
@@ -1533,10 +1533,7 @@ def +C99Value.dup-value! [ +C99Branch +C99Value -- +C99Branch +C99Value +C99Valu
 }
 
 def +C99Value.peek-data-tag [ +C99Value -- +C99Value Str ] {
-    value-repr match {
-        { C99RT_VAL -> value-name Str("get_data_tag(" ; ; ")" ;) }
-        { _ -> drop value-name }
-    }
+    turn-into-resource! peek-data-tag turn-into-value!
 }
 
 struct +C99Resource {
@@ -1608,10 +1605,10 @@ def +C99Resource.push-resource-direct! [ +C99Branch +C99Resource -- +C99Branch ]
 }
 
 def +C99Resource.peek-data-tag [ +C99Resource -- +C99Resource Str ] {
-    resource-repr match {
-        { C99RT_VAL -> resource-name Str("get_data_tag(" ; ; ")" ;) }
-        { _ -> drop resource-name }
-    }
+    resource-repr is-int-like? if(
+        resource-name,
+        rdup consume-as-VAL Str("get_data_tag(" ; ; ")";)
+    )
 }
 
 data +C99Value/Resource {
@@ -1621,7 +1618,7 @@ data +C99Value/Resource {
 
 def +C99Value.>Value/Resource { +C99Value/Resource.+Left }
 def +C99Resource.>Value/Resource { +C99Value/Resource.+Right }
-def +C99Value/Resource.push-value-value/resource! {
+def +C99Value/Resource.push-value/resource! {
     { +Left -> push-value! }
     { +Right -> push-resource! }
 }
@@ -1642,7 +1639,7 @@ def +C99Value/Resource.consume-as-VAL [ +C99Value/Resource -- Str ] {
     { +Right -> consume-as-VAL }
 }
 
-def +C99Branch.pop-value-value/resource-data! [ Data +C99Branch -- +C99Branch +C99Value/Resource ] {
+def +C99Branch.pop-data! [ Data +C99Branch -- +C99Branch +C99Value/Resource ] {
     dup is-resource? if(
         +mirth:c99-repr pop-resource! +C99Value/Resource.+Right,
         +mirth:c99-repr pop-value! +C99Value/Resource.+Left
@@ -2383,7 +2380,7 @@ def c99-match! [ Match +C99Branch -- +C99Branch ] {
 
         dup scrutinee-data?
         unwrap(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
-        pop-value-value/resource-data! >+scrutinee
+        pop-data! >+scrutinee
         dup cod begin-branch-split!
         c99-line("switch (" put @+scrutinee:peek-data-tag put ") {" put)
         c99-nest(
@@ -2419,7 +2416,7 @@ def c99-case! [ Case +C99BranchSplit +scrutinee:+C99Value/Resource -- +C99Branch
     dup pattern is-default? if(
         c99-line("default: {" put)
         c99-nest:sub-branch(
-            +scrutinee> push-value-value/resource!
+            +scrutinee> push-value/resource!
             body c99-arrow!
         )
         c99-line("} break;" put),
@@ -2427,7 +2424,7 @@ def c99-case! [ Case +C99BranchSplit +scrutinee:+C99Value/Resource -- +C99Branch
     dup pattern single-tag? if-some(
         c99-line("case " put dup value-show put "LL: { // " put dup name >Str put)
         c99-nest:sub-branch(
-            +scrutinee> push-value-value/resource!
+            +scrutinee> push-value/resource!
             c99-reverse-tag!
             body c99-arrow!
         )

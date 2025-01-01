@@ -5637,12 +5637,12 @@ static VAL mw_mirth_c99_ZPlusC99Resource_consumeZ_asZ_VAL (VAL in_ZPlusC99Resour
 static void mw_mirth_c99_ZPlusC99Branch_popZ_resourceZ_directZBang (VAL in_ZPlusC99Branch_1, VAL in_C99ReprType_2, VAL *out_ZPlusC99Branch_3, VAL *out_ZPlusC99Resource_4);
 static void mw_mirth_c99_ZPlusC99Resource_pushZ_resourceZ_directZBang (VAL in_ZPlusC99Branch_1, VAL in_ZPlusC99Resource_2, VAL *out_ZPlusC99Branch_3);
 static VAL mw_mirth_c99_ZPlusC99Resource_peekZ_dataZ_tag (VAL in_ZPlusC99Resource_1, VAL *out_ZPlusC99Resource_2);
-static void mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZ_valueZDivresourceZBang (VAL in_ZPlusC99Branch_1, VAL in_ZPlusC99ValueZDivResource_2, VAL *out_ZPlusC99Branch_3);
+static void mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZDivresourceZBang (VAL in_ZPlusC99Branch_1, VAL in_ZPlusC99ValueZDivResource_2, VAL *out_ZPlusC99Branch_3);
 static VAL mw_mirth_c99_ZPlusC99ValueZDivResource_peekZ_dataZ_tag (VAL in_ZPlusC99ValueZDivResource_1, VAL *out_ZPlusC99ValueZDivResource_2);
 static void mw_mirth_c99_ZPlusC99ValueZDivResource_rdup (VAL in_ZPlusC99ValueZDivResource_1, VAL *out_ZPlusC99ValueZDivResource_2, VAL *out_ZPlusC99ValueZDivResource_3);
 static void mw_mirth_c99_ZPlusC99ValueZDivResource_rdrop (VAL in_ZPlusC99ValueZDivResource_1);
 static VAL mw_mirth_c99_ZPlusC99ValueZDivResource_consumeZ_asZ_VAL (VAL in_ZPlusC99ValueZDivResource_1);
-static void mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang (uint64_t in_Data_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3, VAL *out_ZPlusC99ValueZDivResource_4);
+static void mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang (uint64_t in_Data_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3, VAL *out_ZPlusC99ValueZDivResource_4);
 static void mw_mirth_c99_ZPlusC99ValueZDivResource_turnZ_intoZ_resourceZBang (VAL in_ZPlusC99ValueZDivResource_1, VAL *out_ZPlusC99Resource_2);
 static void mw_mirth_c99_ZPlusC99Branch_refreshZ_branchZBang (VAL in_ZPlusC99Branch_1, VAL *out_ZPlusC99Branch_2);
 static void mw_mirth_c99_ZPlusC99Stack_refreshZ_allZBang (VAL in_ZPlusC99_1, VAL in_ZPlusC99Stack_2, int64_t in_Bool_3, VAL in_List_4, VAL *out_ZPlusC99Branch_5);
@@ -5762,7 +5762,6 @@ static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp13 (uint64_t in_Tag_1, VAL
 static void mw_mirth_c99_C99ReprType_resourceZ_expressionZBang_1_sp4 (VAL in_Str_1, VAL in_C99ReprType_2, VAL in_ZPlusC99Branch_3, VAL in_C99ReprType_4, VAL *out_ZPlusC99Branch_5, VAL *out_ZPlusC99Resource_6);
 static void mw_mirth_c99_C99ReprType_vZ_macro_1_sp5 (VAL in_Str_1, VAL in_ZPlusC99_2, VAL in_C99ReprType_3, VAL *out_ZPlusC99_4);
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp10 (VAL in_Str_1, VAL in_C99ReprType_2, VAL in_ZPlusC99Branch_3, VAL in_C99ReprType_4, VAL *out_ZPlusC99Branch_5, VAL *out_ZPlusC99Value_6);
-static VAL mw_std_str_Str_1_sp28 (VAL in_Str_1);
 static void mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp14 (uint64_t in_Token_1, VAL in_Str_2, VAL in_ZPlusC99Branch_3, VAL *out_ZPlusC99Branch_4);
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp21 (VAL in_ZPlusC99Value_1, VAL in_ZPlusC99Branch_2, VAL in_C99ReprType_3, VAL *out_ZPlusC99Branch_4, VAL *out_ZPlusC99Value_5);
 static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp16 (uint64_t in_Word_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_4);
@@ -49595,7 +49594,7 @@ static void mw_mirth_c99_c99Z_reverseZ_tagZ_bodyZBang (uint64_t in_Tag_1, VAL in
 				uint64_t v58 = mw_mirth_data_Tag_data(in_Tag_1);
 				VAL v59;
 				VAL v60;
-				mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang(v58, v4, &v59, &v60);
+				mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang(v58, v4, &v59, &v60);
 				mw_mirth_c99_ZPlusC99ValueZDivResource_rdrop(v60);
 				branch_ZPlusC99Branch_57 = v59;
 				branch_Tag_56 = in_Tag_1;
@@ -49605,7 +49604,7 @@ static void mw_mirth_c99_c99Z_reverseZ_tagZ_bodyZBang (uint64_t in_Tag_1, VAL in
 				uint64_t v63 = mw_mirth_data_Tag_data(in_Tag_1);
 				VAL v64;
 				VAL v65;
-				mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang(v63, v61, &v64, &v65);
+				mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang(v63, v61, &v64, &v65);
 				VAL v66;
 				mw_mirth_c99_ZPlusC99ValueZDivResource_turnZ_intoZ_resourceZBang(v65, &v66);
 				VAL v67 = mtw_std_maybe_Maybe_1_Some(MKU64(in_Tag_1));
@@ -50403,7 +50402,7 @@ static void mw_mirth_c99_c99Z_tagZ_getZ_labelZBang (VAL in_TagField_1, VAL in_ZP
 		uint64_t v65 = mw_mirth_data_Tag_data(v4);
 		VAL v66;
 		VAL v67;
-		mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang(v65, v7, &v66, &v67);
+		mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang(v65, v7, &v66, &v67);
 		uint64_t branch_Tag_68;
 		uint64_t branch_Label_69;
 		VAL branch_ZPlusC99Branch_70;
@@ -50610,7 +50609,7 @@ static void mw_mirth_c99_c99Z_tagZ_getZ_labelZBang (VAL in_TagField_1, VAL in_ZP
 				VAL v160;
 				mw_mirth_c99_ZPlusC99Resource_pushZ_resourceZBang(branch_ZPlusC99Branch_134, v152, &v160);
 				VAL v161;
-				mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZ_valueZDivresourceZBang(v160, v153, &v161);
+				mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZDivresourceZBang(v160, v153, &v161);
 				branch_ZPlusC99Branch_70 = v161;
 				branch_Label_69 = v155;
 				branch_Tag_68 = v154;
@@ -50649,7 +50648,7 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (VAL in_TagField_1, VAL in_ZP
 				uint64_t v19 = mw_mirth_data_Tag_data(v4);
 				VAL v20;
 				VAL v21;
-				mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang(v19, v7, &v20, &v21);
+				mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang(v19, v7, &v20, &v21);
 				uint64_t branch_Label_22;
 				uint64_t branch_Tag_23;
 				VAL branch_ZPlusC99Branch_24;
@@ -50713,7 +50712,7 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (VAL in_TagField_1, VAL in_ZP
 		uint64_t v39 = mw_mirth_data_Tag_data(v4);
 		VAL v40;
 		VAL v41;
-		mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang(v39, v7, &v40, &v41);
+		mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang(v39, v7, &v40, &v41);
 		incref(v6);
 		uint64_t branch_Label_42;
 		uint64_t branch_Tag_43;
@@ -57070,28 +57069,14 @@ static void mw_mirth_c99_ZPlusC99Value_dupZ_valueZBang (VAL in_ZPlusC99Branch_1,
 	*out_ZPlusC99Branch_3 = branch_ZPlusC99Branch_8;
 }
 static VAL mw_mirth_c99_ZPlusC99Value_peekZ_dataZ_tag (VAL in_ZPlusC99Value_1, VAL *out_ZPlusC99Value_2) {
-	VAL v4 = VTUP(in_ZPlusC99Value_1)->cells[1];
-	incref(v4);
-	VAL branch_ZPlusC99Value_5;
-	VAL branch_Str_6;
-	switch (get_data_tag(v4)) {
-		case 1LL: { // C99RT_VAL
-			VAL v7 = VTUP(in_ZPlusC99Value_1)->cells[2];
-			incref(v7);
-			VAL v8 = mw_std_str_Str_1_sp28(v7);
-			branch_Str_6 = v8;
-			branch_ZPlusC99Value_5 = in_ZPlusC99Value_1;
-		} break;
-		default: {
-			decref(v4);
-			VAL v9 = VTUP(in_ZPlusC99Value_1)->cells[2];
-			incref(v9);
-			branch_Str_6 = v9;
-			branch_ZPlusC99Value_5 = in_ZPlusC99Value_1;
-		} break;
-	}
-	*out_ZPlusC99Value_2 = branch_ZPlusC99Value_5;
-	return branch_Str_6;
+	VAL v4;
+	mw_mirth_c99_ZPlusC99Value_turnZ_intoZ_resourceZBang(in_ZPlusC99Value_1, &v4);
+	VAL v5;
+	VAL v6 = mw_mirth_c99_ZPlusC99Resource_peekZ_dataZ_tag(v4, &v5);
+	VAL v7;
+	mw_mirth_c99_ZPlusC99Resource_turnZ_intoZ_valueZBang(v5, &v7);
+	*out_ZPlusC99Value_2 = v7;
+	return v6;
 }
 static void mw_mirth_c99_ZPlusC99Resource_rdup (VAL in_ZPlusC99Resource_1, VAL *out_ZPlusC99Resource_2, VAL *out_ZPlusC99Resource_3) {
 	VAL v4 = VTUP(in_ZPlusC99Resource_1)->cells[1];
@@ -57244,28 +57229,38 @@ static void mw_mirth_c99_ZPlusC99Resource_pushZ_resourceZ_directZBang (VAL in_ZP
 static VAL mw_mirth_c99_ZPlusC99Resource_peekZ_dataZ_tag (VAL in_ZPlusC99Resource_1, VAL *out_ZPlusC99Resource_2) {
 	VAL v4 = VTUP(in_ZPlusC99Resource_1)->cells[1];
 	incref(v4);
-	VAL branch_ZPlusC99Resource_5;
+	int64_t v5 = mw_mirth_c99_C99ReprType_isZ_intZ_likeZAsk(v4);
 	VAL branch_Str_6;
-	switch (get_data_tag(v4)) {
-		case 1LL: { // C99RT_VAL
-			VAL v7 = VTUP(in_ZPlusC99Resource_1)->cells[2];
-			incref(v7);
-			VAL v8 = mw_std_str_Str_1_sp28(v7);
-			branch_Str_6 = v8;
-			branch_ZPlusC99Resource_5 = in_ZPlusC99Resource_1;
-		} break;
-		default: {
-			decref(v4);
-			VAL v9 = VTUP(in_ZPlusC99Resource_1)->cells[2];
-			incref(v9);
-			branch_Str_6 = v9;
-			branch_ZPlusC99Resource_5 = in_ZPlusC99Resource_1;
-		} break;
+	VAL branch_ZPlusC99Resource_7;
+	if (((bool)v5)) {
+		VAL v8 = VTUP(in_ZPlusC99Resource_1)->cells[2];
+		incref(v8);
+		branch_ZPlusC99Resource_7 = in_ZPlusC99Resource_1;
+		branch_Str_6 = v8;
+	} else {
+		VAL v9;
+		VAL v10;
+		mw_mirth_c99_ZPlusC99Resource_rdup(in_ZPlusC99Resource_1, &v9, &v10);
+		VAL v11 = mw_mirth_c99_ZPlusC99Resource_consumeZ_asZ_VAL(v10);
+		STR* v12;
+		STRLIT(v12, "", 0);
+		STR* v13;
+		STRLIT(v13, "get_data_tag(", 13);
+		VAL v14;
+		mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v13), MKSTR(v12), &v14);
+		VAL v15;
+		mw_std_str_ZPlusStr_pushZ_strZBang(v11, v14, &v15);
+		STR* v16;
+		STRLIT(v16, ")", 1);
+		VAL v17;
+		mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v16), v15, &v17);
+		branch_ZPlusC99Resource_7 = v9;
+		branch_Str_6 = v17;
 	}
-	*out_ZPlusC99Resource_2 = branch_ZPlusC99Resource_5;
+	*out_ZPlusC99Resource_2 = branch_ZPlusC99Resource_7;
 	return branch_Str_6;
 }
-static void mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZ_valueZDivresourceZBang (VAL in_ZPlusC99Branch_1, VAL in_ZPlusC99ValueZDivResource_2, VAL *out_ZPlusC99Branch_3) {
+static void mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZDivresourceZBang (VAL in_ZPlusC99Branch_1, VAL in_ZPlusC99ValueZDivResource_2, VAL *out_ZPlusC99Branch_3) {
 	VAL branch_ZPlusC99Branch_4;
 	switch (get_data_tag(in_ZPlusC99ValueZDivResource_2)) {
 		case 0LL: { // +Left
@@ -57394,7 +57389,7 @@ static VAL mw_mirth_c99_ZPlusC99ValueZDivResource_consumeZ_asZ_VAL (VAL in_ZPlus
 	}
 	return branch_Str_3;
 }
-static void mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang (uint64_t in_Data_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3, VAL *out_ZPlusC99ValueZDivResource_4) {
+static void mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang (uint64_t in_Data_1, VAL in_ZPlusC99Branch_2, VAL *out_ZPlusC99Branch_3, VAL *out_ZPlusC99ValueZDivResource_4) {
 	int64_t v5 = mw_mirth_data_Data_isZ_resourceZAsk(in_Data_1);
 	VAL branch_ZPlusC99Branch_6;
 	VAL branch_ZPlusC99ValueZDivResource_7;
@@ -62660,7 +62655,7 @@ static void mw_mirth_c99_c99Z_matchZBang (VAL in_Match_1, VAL in_ZPlusC99Branch_
 			}
 			VAL v19;
 			VAL v20;
-			mw_mirth_c99_ZPlusC99Branch_popZ_valueZ_valueZDivresourceZ_dataZBang(value_u64(branch_z_x1_12), branch_ZPlusC99Branch_10, &v19, &v20);
+			mw_mirth_c99_ZPlusC99Branch_popZ_dataZBang(value_u64(branch_z_x1_12), branch_ZPlusC99Branch_10, &v19, &v20);
 			incref(branch_Match_11);
 			VAL v21 = VTUP(branch_Match_11)->cells[6];
 			incref(v21);
@@ -62906,7 +62901,7 @@ static void mw_mirth_c99_c99Z_caseZBang (VAL in_Case_1, VAL in_ZPlusC99BranchSpl
 		VAL v20;
 		mtw_mirth_c99_ZPlusC99Branch_ZPlusC99Branch(v19, v15, v18, v17, &v20);
 		VAL v21;
-		mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZ_valueZDivresourceZBang(v20, in_ZPlusC99ValueZDivResource_3, &v21);
+		mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZDivresourceZBang(v20, in_ZPlusC99ValueZDivResource_3, &v21);
 		VAL v22 = VTUP(in_Case_1)->cells[2];
 		incref(v22);
 		decref(in_Case_1);
@@ -62999,7 +62994,7 @@ static void mw_mirth_c99_c99Z_caseZBang (VAL in_Case_1, VAL in_ZPlusC99BranchSpl
 				VAL v69;
 				mtw_mirth_c99_ZPlusC99Branch_ZPlusC99Branch(v68, v64, v67, v66, &v69);
 				VAL v70;
-				mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZ_valueZDivresourceZBang(v69, in_ZPlusC99ValueZDivResource_3, &v70);
+				mw_mirth_c99_ZPlusC99ValueZDivResource_pushZ_valueZDivresourceZBang(v69, in_ZPlusC99ValueZDivResource_3, &v70);
 				VAL v71;
 				mw_mirth_c99_c99Z_reverseZ_tagZBang(value_u64(v42), v70, &v71);
 				VAL v72 = VTUP(in_Case_1)->cells[2];
@@ -65786,21 +65781,6 @@ static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp10 (VAL in_Str_1
 	VTUP(branch_ZPlusC99Branch_15)->cells[1] = v37;
 	*out_ZPlusC99Value_6 = v33;
 	*out_ZPlusC99Branch_5 = branch_ZPlusC99Branch_15;
-}
-static VAL mw_std_str_Str_1_sp28 (VAL in_Str_1) {
-	STR* v3;
-	STRLIT(v3, "", 0);
-	STR* v4;
-	STRLIT(v4, "get_data_tag(", 13);
-	VAL v5;
-	mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v4), MKSTR(v3), &v5);
-	VAL v6;
-	mw_std_str_ZPlusStr_pushZ_strZBang(in_Str_1, v5, &v6);
-	STR* v7;
-	STRLIT(v7, ")", 1);
-	VAL v8;
-	mw_std_str_ZPlusStr_pushZ_strZBang(MKSTR(v7), v6, &v8);
-	return v8;
 }
 static void mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp14 (uint64_t in_Token_1, VAL in_Str_2, VAL in_ZPlusC99Branch_3, VAL *out_ZPlusC99Branch_4) {
 	VAL v5 = VTUP(in_ZPlusC99Branch_3)->cells[1];
