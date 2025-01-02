@@ -2276,25 +2276,13 @@ def c99-block-run! [ Block +C99Branch -- +C99Branch ] {
 def c99-pack-closure-vars! [ List(Var) +C99Branch -- +C99Branch ] {
     filter(is-physical?) dup empty? if(
         drop,
-        dup len 1+ show >arity
-        C99RT_FNPTR pop-value! >+fnptr
-        C99RT_VAL value-expression!("MKTUP(tup_new(" put @arity put "), " put @arity put ")" put) >+tup
-        c99-line("VTUP(" put @+tup:rdup consume-as-VAL put " )->size = " put arity> put ";" put)
-        c99-line(
-            "VTUP(" put @+tup:rdup consume-as-VAL put
-            ")->cells[0] = " put +fnptr> consume-as-VAL put ";" put
-        )
-        1 >i for(
-            var-dup! consume-as-VAL >var
-            c99-line(
-                "VTUP(" put @+tup:rdup consume-as-VAL put
-                ")->cells[" put @i show put "] = " put
-                var> put ";" put
-            )
-            @i:1+
-        )
-        i> drop
-        +tup> push-value!
+        TYPE_DONT_CARE STPCons
+        over map(type STPCons) Cons >parts
+        None >tag
+        for(var-dup! push-value!)
+        c99-pack-tuple!
+        turn-into-value!
+        push-value!
     )
 }
 
