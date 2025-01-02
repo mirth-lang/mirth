@@ -183,6 +183,10 @@ def(Data.is-enum?, Data -- Bool,
         )
     ) nip)
 
+def Data.single-tag? [ Data -- Maybe(Tag) ] {
+    tags /L1
+}
+
 field(Data.~is-transparent?, Data, Bool)
 def(Data.is-transparent?, Data -- Bool,
     dup ~is-transparent? memoize(
@@ -256,6 +260,8 @@ def(Tag.ctx-type, +Mirth Tag -- +Mirth Ctx ArrowType, ~ctx-type force! unpack2)
 def(Tag.ctx, +Mirth Tag -- +Mirth Ctx, ctx-type drop)
 def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
 def(Tag.untag, Tag -- Maybe(Word), ~untag @)
+
+def(Tag.only-tag?, Tag -- Bool, .data tags /L1 >Bool)
 
 def Tag.label-inputs-from-sig [ Tag -- List(Label) ] {
     sig? if-some(run-tokens filter-some(sig-label?), L0)

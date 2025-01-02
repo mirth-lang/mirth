@@ -236,7 +236,7 @@ def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
         ),
 
         @tag +mirth:inputs >parts
-        @tag Some >tag
+        @tag Some filter(only-tag? not) >tag
         c99-pack-tuple!
         @tag outputs-resource? if(
             push-resource!,
@@ -282,7 +282,7 @@ def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
 
         @tag +mirth:inputs >parts
         @tag .data pop-data! turn-into-resource!
-        @tag Some >tag
+        @tag Some filter(only-tag? not) >tag
         c99-unpack-tuple!
     ))
     tag> drop
@@ -331,7 +331,7 @@ def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackT
 }
 
 def c99-tag-label-index [ Tag Label +C99 -- Nat +C99 ] {
-    >label +mirth:inputs dup len 1+ >i
+    >label sip(+mirth:inputs dup len) only-tag? if(id, 1+) >i
     reverse-find(@i:pred label if-some(@label ==, False))
     label> drop2 i>
 }
@@ -360,12 +360,13 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
         },
 
         @tag .data pop-data! >+tuplevar
+        @+tuplevar:rdup consume-as-TUP >tuplevar
         fieldty> match {
             { Left -> # field is value
                 type-to-c99-repr >fieldrepr
                 @fieldrepr value-expression!(
                     fieldrepr> v-macro(
-                        "VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
+                        @tuplevar put "->cells[" put
                         @tag @label c99-tag-label-index show put
                         "]" put
                     )
@@ -381,7 +382,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
                 resource-to-c99-repr >fieldrepr
                 @fieldrepr push-resource-expression!(
                     fieldrepr> v-macro (
-                        "VTUP(" put @+tuplevar:rdup consume-as-VAL put ")->cells[" put
+                        @tuplevar put "->cells[" put
                         @tag @label c99-tag-label-index show put
                         "]" put
                     )
@@ -389,6 +390,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
                 +tuplevar> push-value/resource!
             }
         }
+        tuplevar> drop
     )
     label> tag> drop2
 }
@@ -435,16 +437,18 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
             }
             { +Right -> # tuple is resource
                 >+tuplevar
+                @+tuplevar:rdup consume-as-TUP >tuplevar
                 fieldty> match {
                     { Left -> # field is value
                         type-to-c99-repr >fieldrepr
                         @fieldrepr needs-refcounting? then (
-                            @fieldrepr value-expression! (
-                                "VTUP(" put
-                                @+tuplevar:rdup consume-as-VAL put
-                                ")->cells[" put
-                                @tag @label c99-tag-label-index show put
-                                "]" put
+                            @fieldrepr dup value-expression! (
+                                v-macro (
+                                    @tuplevar put
+                                    "->cells[" put
+                                    @tag @label c99-tag-label-index show put
+                                    "]" put
+                                )
                             ) drop-value!
                         )
                         fieldrepr> drop
@@ -454,9 +458,8 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
                     }
                 }
                 c99-line(
-                    "VTUP(" put
-                    @+tuplevar:rdup consume-as-VAL put
-                    ")->cells[" put
+                    @tuplevar put
+                    "->cells[" put
                     @tag @label c99-tag-label-index show put
                     "] = " put
                     fieldval> put
@@ -464,6 +467,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
                 )
                 +tuplevar>
                 push-resource!
+                tuplevar> drop
             }
         }
     )
@@ -1395,8 +1399,10 @@ def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
     @dat is-enum? if(C99RT_I64,
     @dat semi-transparent? if-some(
         input type/resource either(c99-repr, c99-repr),
+    @dat single-tag? if-some(
+        inputs len C99RT_TUP,
         C99RT_VAL
-    )))
+    ))))
     dat> drop
 }
 
@@ -1496,6 +1502,10 @@ def +C99Value.consume-as-VAL [ +C99Value -- Str ] {
     /+C99Value value-name> value-repr> mk-macro
 }
 
+def +C99Value.consume-as-TUP [ +C99Value -- Str ] {
+    turn-into-resource! consume-as-TUP
+}
+
 def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
     { C99RT_VAL -> consume-as-VAL }
     { C99RT_UNIT -> rdrop "0" }
@@ -1587,6 +1597,14 @@ def +C99Resource.consume-as-VAL [ +C99Resource -- Str ] {
     /+C99Resource resource-name> resource-repr> mk-macro
 }
 
+def +C99Resource.consume-as-TUP [ +C99Resource -- Str ] {
+    /+C99Resource resource-repr> match {
+        { C99RT_VAL -> Str( "VTUP(" ; resource-name> ; ")" ; ) }
+        { C99RT_TUP -> drop resource-name> }
+        { _ -> drop "c99: tried to consume non-tuple as tuple" panic! }
+    }
+}
+
 def +C99Branch.pop-resource-direct! [ +C99Branch C99ReprType -- +C99Branch +C99Resource ] {
     >resource-repr
     +c99:fresh-resource-name! >resource-name
@@ -1637,6 +1655,10 @@ def +C99Value/Resource.rdrop  [ +C99Value/Resource -- ] {
 def +C99Value/Resource.consume-as-VAL [ +C99Value/Resource -- Str ] {
     { +Left -> consume-as-VAL }
     { +Right -> consume-as-VAL }
+}
+def +C99Value/Resource.consume-as-TUP [ +C99Value/Resource -- Str ] {
+    { +Left -> consume-as-TUP }
+    { +Right -> consume-as-TUP }
 }
 
 def +C99Branch.pop-data! [ Data +C99Branch -- +C99Branch +C99Value/Resource ] {
@@ -2291,14 +2313,14 @@ def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+C99V
         +C99ValueNone >+closure
         drop,
         C99RT_VAL pop-value! >+tup
+        @+tup:rdup consume-as-TUP >tup
         1 >i
         for(
             dup type type-to-c99-repr
             dup value-expression! (
                 v-macro (
-                    "VTUP(" put
-                    @+tup:rdup consume-as-VAL put
-                    ")->cells[" put
+                    @tup put
+                    "->cells[" put
                     @i show put
                     "]" put
                 )
@@ -2307,6 +2329,7 @@ def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+C99V
             @i:1+
         )
         i> drop
+        tup> drop
         +tup> +C99ValueSome >+closure
     )
 }
