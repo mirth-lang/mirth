@@ -6,34 +6,44 @@ import(std.str)
 import(std.list)
 import(std.maybe)
 
-data(Path, Path -> Str)
-inline(
-    def(Str.>Path, Str -- Path, Path)
-    def(Path.>Str, Path -- Str, Path -> id)
-    def(Path.==, Path Path -- Bool, both(>Str) ==)
-    def(Path.empty?, Path -- Bool, >Str empty?)
-)
-
-def(PATH_SEPARATOR, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
-def(Path.join-with, Path Str Path -- Path,
-    over2 empty? if(
-        dip(drop2),
-        dip2(>Str) dip(cat) >Str cat >Path
-    ))
-
-def(Path.join, Path Path -- Path, dip(PATH_SEPARATOR) join-with)
-def(Path.join-unix, Path Path -- Path, dip("/") join-with)
+def PATH_SEPARATOR [ Str ] {
+    RUNNING_OS OS_WINDOWS == if("\\", "/")
+}
 
 def(Byte.is-path-separator?, Byte -- Bool,
     B'/' -> True,
     B'\' -> RUNNING_OS OS_WINDOWS ==,
     _ -> drop False)
 
-def(Path.split, Path -- List+(Str),
-    /Path split-byte(is-path-separator?))
+struct Path {
+    Str
+    --
+    inline (
+        def Str.>Path { Path }
+        def >Str { /Path }
+        def == { on2:>Str == }
+        def compare { on2:>Str compare }
+        def empty? { >Str empty? }
+    )
 
-def(Path.split-last, Path -- Path Maybe(Str),
-    /Path split-last-byte(is-path-separator?) dip(Path))
+    def join-with [ Path Str Path -- Path ] {
+        over2 empty? if(
+            dip(drop2),
+            dip2(>Str) dip(cat) >Str cat >Path
+        )
+    }
 
-def(Path.show;, Path +Str -- +Str, /Path show; " Path" ;)
-def(Path.path;, Path +Str -- +Str, /Path ;)
+    def join [ Path Path -- Path ] { dip(PATH_SEPARATOR) join-with }
+    def join-unix [ Path Path -- Path ] { dip("/") join-with }
+
+    def split [ Path -- List+(Str) ] {
+        /Path split-byte(is-path-separator?)
+    }
+
+    def split-last [ Path -- Path Maybe(Str) ] {
+        /Path split-last-byte(is-path-separator?) dip(Path)
+    }
+
+    def show; [ Path +Str -- +Str ] { /Path show; " Path" ; }
+    def path; [ Path +Str -- +Str ] { /Path ; }
+}

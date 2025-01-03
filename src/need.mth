@@ -36,7 +36,7 @@ data(+Needs, +Needs ->
     stack: List(Need)
     +set: +Set)
 
-def(+Needs.new, -- +Needs, Nil >stack +Set.new >+set +Needs)
+def(+Needs.new, -- +Needs, List.Nil >stack +Set.Empty >+set +Needs)
 def(+Needs.rdrop, +Needs --, /+Needs +set> rdrop stack> drop)
 
 def(Need.needed?, Need +Needs -- Bool +Needs, >Nat +set:member?)

@@ -10,14 +10,50 @@ import(std.posix)
 import(std.ctypes)
 import(std.maybe)
 
-data(+File, +File ->
-    file-descriptor: Int
-    owned: Bool)
+data +File? {
+    +FileOk  [ +File ]
+    +FileErr [ Str ]
+    --
+    def unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
+        { +FileOk -> id }
+        { +FileErr -> f }
+    }
+}
 
-data(+File?, +FileOk -> +File, +FileErr -> Str)
-def +File?.unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
-    { +FileOk -> id }
-    { +FileErr -> f }
+struct +File {
+    file-descriptor: Int
+    owned: Bool
+    --
+    def is-stdin?  [ +File -- +File Bool ] { file-descriptor 0 == }
+    def is-stdout? [ +File -- +File Bool ] { file-descriptor 1 == }
+    def is-stderr? [ +File -- +File Bool ] { file-descriptor 2 == }
+
+    ||| Close an open file.
+    ||| This function does not close stdin, stdout, stderr file handles.
+    def close-file! [ +World +File -- +World ] {
+        /+File owned> if(
+            file-descriptor> posix-close!
+            expect!(dup 0 >=, "Error while closing file.")
+            drop,
+            file-descriptor> drop
+        )
+    }
+
+    def read-file! [ +File -- Str +File ] {
+        +Input.start!
+        read-file!
+        end!
+    }
+
+    inline (
+        def input(f) [ (*a +Input -- *b +Input) *a +File -- *b +File ] {
+            +Input.start! f +Input.end!
+        }
+
+        def output(f) [ (*a +Output -- *b +Output) *a +File -- *b +File ] {
+            +Output.start! f +Output.end!
+        }
+    )
 }
 
 def(+World.open-file!, Path +World -- +World +File?,
@@ -46,27 +82,12 @@ def(+World.stdout-file, +World -- +World +File,
 def(+World.stderr-file, +World -- +World +File,
     2 >file-descriptor False >owned +File)
 
-def(+File.is-stdin?,  +File -- +File Bool, file-descriptor 0=)
-def(+File.is-stdout?, +File -- +File Bool, file-descriptor 1 ==)
-def(+File.is-stderr?, +File -- +File Bool, file-descriptor 2 ==)
-
 def O_WRONLY|O_CREAT|O_TRUNC [ Maybe(Int) ] {
     RUNNING_OS match(
         { OS_MACOS -> 0x601 Some } # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
         { OS_LINUX -> 0x241 Some } # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
         { OS_WINDOWS -> 0x301 Some } # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
         { OS_UNKNOWN -> None }
-    )
-}
-
-||| Close an open file.
-||| This function does not close stdin, stdout, stderr file handles.
-def +File.close-file! [ +World +File -- +World ] {
-    /+File owned> if(
-        file-descriptor> posix-close!
-        expect!(dup 0 >=, "Error while closing file.")
-        drop,
-        file-descriptor> drop
     )
 }
 
@@ -113,17 +134,3 @@ def(+Unsafe.read-bytes!, Ptr USize +File +Unsafe -- USize Bool +File +Unsafe,
     dip2(rdip:file-descriptor) >Int posix-read!
     >USize(True, drop 0u >USize False))
 
-def(+File.read-file!, +File -- Str +File,
-    +Input.start!
-    read-file!
-    end!)
-
-inline (
-    def +File.input(f) [ (*a +Input -- *b +Input) *a +File -- *b +File ] {
-        +Input.start! f +Input.end!
-    }
-
-    def +File.output(f) [ (*a +Output -- *b +Output) *a +File -- *b +File ] {
-        +Output.start! f +Output.end!
-    }
-)
