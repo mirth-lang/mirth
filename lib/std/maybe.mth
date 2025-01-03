@@ -25,8 +25,8 @@ data Maybe(t) {
     def or-some(f)    { { Some -> Some } { None -> f } }
     def unwrap(f)     { { Some -> id   } { None -> f } }
     def >List {
-        { None -> L0 }
-        { Some -> L1 }
+        { None -> List.L0 }
+        { Some -> List.L1 }
     }
 
     def == (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {

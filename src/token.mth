@@ -303,7 +303,7 @@ def(Token.num-args, Token -- Nat,
 def(Token.args, Token -- List(Token),
     args-start dup left-enclosure? if(
         collect-while(dup args-end? not, succ sip(next-arg-end)) nip,
-        drop L0
+        drop List.L0
     ))
 
 ||| Check if we're at the end of the last argument.
@@ -315,7 +315,7 @@ def(Token.args-end?, Token -- Bool,
 ||| Get List+ of token args.
 ||| Emits a fatal error if token has no args,
 def(Token.args+, Token +Mirth -- List+(Token) +Mirth,
-    dup args >List+ unwrap("expected 1 or more args, got none" emit-fatal-error!) nip)
+    dup args >List+? unwrap("expected 1 or more args, got none" emit-fatal-error!) nip)
 
 ###############
 # Token Types #

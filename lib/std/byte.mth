@@ -99,7 +99,7 @@ inline (
 )
 
 def Byte.to-str-unsafe [ Byte -- Str ] {
-    L1 Str.from-bytes-unsafe
+    List.L1 Str.from-bytes-unsafe
 }
 
 def Byte.to-ascii-str [ Byte -- Maybe(Str) ] {

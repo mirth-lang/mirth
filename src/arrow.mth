@@ -192,7 +192,7 @@ def(Block.to-run-var, +Mirth Block -- +Mirth Maybe(Var),
     arrow to-run-var)
 
 def(Arrow.to-run-var, Arrow -- Maybe(Var),
-    atoms /L1 bind(to-run-var))
+    atoms single? bind(to-run-var))
 
 def(Atom.to-run-var, Atom -- Maybe(Var),
     op match(
@@ -219,32 +219,32 @@ def(Atom.free-vars, +Mirth Atom -- +Mirth List(Var),
 def(Arg.free-vars, +Mirth Arg -- +Mirth List(Var),
     ArgBlock -> free-vars)
 def Op.free-vars [ +Mirth Op -- +Mirth List(Var) ] {
-    { OpNone -> L0 }
-    { OpPrim -> drop L0 }
-    { OpWord -> drop L0 }
-    { OpExternal -> drop L0 }
-    { OpBuffer -> drop L0 }
-    { OpVariable -> drop L0 }
-    { OpField -> drop L0 }
-    { OpInt -> drop L0 }
-    { OpF64 -> drop L0 }
-    { OpStr -> drop L0 }
-    { OpTag -> drop L0 }
+    { OpNone -> Nil }
+    { OpPrim -> drop Nil }
+    { OpWord -> drop Nil }
+    { OpExternal -> drop Nil }
+    { OpBuffer -> drop Nil }
+    { OpVariable -> drop Nil }
+    { OpField -> drop Nil }
+    { OpInt -> drop Nil }
+    { OpF64 -> drop Nil }
+    { OpStr -> drop Nil }
+    { OpTag -> drop Nil }
     { OpMatch -> free-vars }
     { OpLambda -> free-vars }
-    { OpVar -> L1 }
+    { OpVar -> List.L1 }
     { OpBlockPush -> free-vars }
     { OpBlockRun -> free-vars }
-    { OpLabelPush -> drop L0 }
-    { OpLabelPop -> drop L0 }
-    { OpLabelPushR -> drop L0 }
-    { OpLabelPopR -> drop L0 }
-    { OpDataGetEnumValue -> drop L0 }
-    { OpDataFromEnumValue -> drop L0 }
-    { OpDataGetLabel -> drop L0 }
-    { OpDataSetLabel -> drop L0 }
-    { OpTableToIndex -> drop L0 }
-    { OpTableFromIndex -> drop L0 }
+    { OpLabelPush -> drop Nil }
+    { OpLabelPop -> drop Nil }
+    { OpLabelPushR -> drop Nil }
+    { OpLabelPopR -> drop Nil }
+    { OpDataGetEnumValue -> drop Nil }
+    { OpDataFromEnumValue -> drop Nil }
+    { OpDataGetLabel -> drop Nil }
+    { OpDataSetLabel -> drop Nil }
+    { OpTableToIndex -> drop Nil }
+    { OpTableFromIndex -> drop Nil }
 }
 def(Match.free-vars, +Mirth Match -- +Mirth List(Var),
     cases map(free-vars) unions)

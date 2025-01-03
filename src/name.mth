@@ -72,7 +72,7 @@ def(Str.>Name, Str -- Name,
             Name.alloc!
             tuck swap hash-name!
             tuck ~Str !
-            L0 over ~defs !,
+            List.L0 over ~defs !,
         Some ->
             dip(drop2)
     ))

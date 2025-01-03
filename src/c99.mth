@@ -747,15 +747,15 @@ def cons-fresh-arg! [ +C99 List(C99APIArg) Type C99APIArgSource mode:C99APIArgMo
     dup +mirth:c99-repr >repr
     fresh-arg-name! >name
     @mode >mode
-    C99APIArg swap cons
+    C99APIArg swap Cons
 }
 
 def +C99.stack-type-to-c99-api-params-aux [ StackType mode:C99APIArgMode +C99 -- mode:C99APIArgMode must-flush:Bool List(C99APIArg) +C99 ] {
-    { STACK_TYPE_UNIT -> False >must-flush L0 }
-    { STACK_TYPE_ERROR -> True >must-flush L0 }
-    { STACK_TYPE_DONT_CARE -> True >must-flush L0 }
-    { STMeta -> expand-if(>StackType stack-type-to-c99-api-params-aux, drop True >must-flush L0) }
-    { STVar -> drop True >must-flush L0 }
+    { STACK_TYPE_UNIT -> False >must-flush Nil }
+    { STACK_TYPE_ERROR -> True >must-flush Nil }
+    { STACK_TYPE_DONT_CARE -> True >must-flush Nil }
+    { STMeta -> expand-if(>StackType stack-type-to-c99-api-params-aux, drop True >must-flush Nil) }
+    { STVar -> drop True >must-flush Nil }
     { STCons -> C99AAS_Value dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
     { STWith -> C99AAS_Resource dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
     { STConsLabel -> C99AAS_ValueLabel dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
@@ -888,7 +888,7 @@ def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
     @api return-param then(1+)
     1+ fresh-counter!
     True >reachable
-    L0 >env
+    Nil >env
     start-branch!
     @api in-params for(push-api-arg!)
     api> drop
@@ -1100,7 +1100,7 @@ def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
 def c99-reverse-tag! [ Tag +C99Branch -- +C99Branch ] {
     dup +mirth:prefer-inline? if(
         c99-reverse-tag-body!,
-        dip:L0 +c99:pat-c99-api c99-smart-call!
+        dip:Nil +c99:pat-c99-api c99-smart-call!
     )
 }
 
@@ -2011,20 +2011,20 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         +a> push-resource!
     }
     { PRIM_CORE_DIP ->
-        dup args /L1 unwrap(token "unexpected number of arguments to PRIM_CORE_DIP" +mirth:emit-fatal-error!)
+        dup args single? unwrap(token "unexpected number of arguments to PRIM_CORE_DIP" +mirth:emit-fatal-error!)
         swap dom pop-value-from-stack-type! drop >+dipped
         c99-arg-run!
         +dipped> push-value!
     }
     { PRIM_CORE_RDIP ->
-        dup args /L1 unwrap(token "unexpected number of arguments to PRIM_CORE_RDIP" +mirth:emit-fatal-error!)
+        dup args single? unwrap(token "unexpected number of arguments to PRIM_CORE_RDIP" +mirth:emit-fatal-error!)
         swap dom pop-resource-from-stack-type! drop >+dipped
         c99-arg-run!
         +dipped> push-resource!
     }
     { PRIM_CORE_IF ->
-        dup args /L2 unwrap(token "unexpected number of arguments to PRIM_CORE_IF" +mirth:emit-fatal-error!)
-        unpack2 C99RT_BOOL pop-value! >+cond
+        dup args >L2? unwrap(token "unexpected number of arguments to PRIM_CORE_IF" +mirth:emit-fatal-error!)
+        /L2 C99RT_BOOL pop-value! >+cond
 
         rotl +mirth:cod
         begin-branch-split!
@@ -2036,8 +2036,8 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         end-branch-split!
     }
     { PRIM_CORE_WHILE ->
-        dup args /L2 unwrap(token "unexpected number of arguments to PRIM_CORE_WHILE" +mirth:emit-fatal-error!)
-        nip unpack2 over c99-arg-run!
+        dup args >L2? unwrap(token "unexpected number of arguments to PRIM_CORE_WHILE" +mirth:emit-fatal-error!)
+        nip /L2 over c99-arg-run!
         C99RT_BOOL pop-value! push-value!
         refresh-branch! +stack(rdup >+knot)
         C99RT_BOOL dup pop-value! consume-as
@@ -2386,7 +2386,7 @@ def c99-lambda! [ Lambda +C99Branch -- +C99Branch ] {
 }
 
 def c99-match! [ Match +C99Branch -- +C99Branch ] {
-    dup cases /L1 if-some(
+    dup cases single? if-some(
         nip c99-single-case!,
 
         dup scrutinee-data?
@@ -2503,7 +2503,7 @@ def c99-block-enter! [ Block +C99 -- +C99Branch ] {
         drop
     )
     True >reachable
-    L0 >env
+    Nil >env
     start-branch!
 }
 
@@ -2586,7 +2586,7 @@ def c99-main! [ Arrow +C99 -- +C99 ] {
                 dup token-start col >Int show put ");" put)
         )
         True >reachable
-        L0 >env
+        Nil >env
         start-branch!
         C99RT_I64 push-resource-expression!("0 /* The World! */" put)
         c99-arrow!

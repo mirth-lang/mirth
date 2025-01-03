@@ -33,7 +33,7 @@ data(+Lexer, +Lexer ->
     +input: +Input)
 
 def(lexer-stack-push!, Token +Lexer -- +Lexer,
-    lexer-stack cons lexer-stack!)
+    lexer-stack Cons lexer-stack!)
 def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
     lexer-stack uncons lexer-stack!)
 def(lexer-stack-drop, +Lexer -- +Lexer,
@@ -52,7 +52,7 @@ def(run-lexer!, Path +World +Mirth -- Module +World +Mirth,
     source-path rswap open-file! unwrap!(rswap fatal-error!) +Input.start! >+input rswap
     1 >Row >lexer-row
     1 >Col >lexer-col
-    L0 >lexer-stack
+    List.L0 >lexer-stack
     Token.alloc-none! dup >lexer-last-token
     +Lexer
     while(done? not, lexer-next!)
@@ -266,7 +266,7 @@ def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
 
 def(+Str.dname?, +Str -- Maybe(DName) +Str,
     BDOT +Str.split-byte
-    uncons >List+ match(
+    uncons >List+? match(
         None -> drop None,
         Some ->
             dip(dup Str.empty? if(drop None, >Name Some))

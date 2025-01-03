@@ -48,8 +48,8 @@ def Arguments.default [ -- Arguments ] {
     "mirth.mth" >Path >input-file
     None >output-file
     "main" Some >entry-point
-    L0 >packages
-    L0 >package-search-paths
+    List.L0 >packages
+    List.L0 >package-search-paths
     Arguments
 }
 
@@ -120,8 +120,8 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
 
 def parse-package-def [ Str -- [Str Path] ] {
     dip(BCOLON) split-byte
-    /L2+ unwrap("Invalid package path definition" panic!)
-    unpack2 >Path pack2
+    >L2? unwrap("Invalid package path definition" panic!)
+    /L2 >Path pack2
 }
 
 def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType --
@@ -131,8 +131,8 @@ def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOp
         { B'o' -> dip:map(>Path) output-file! }
         { B'e' -> entry-point! }
         { B'c' -> nip None swap entry-point! }
-        { B'p' -> swap for(parse-package-def swap packages:cons) }
-        { B'P' -> swap for(>Path swap package-search-paths:cons) }
+        { B'p' -> swap for(parse-package-def swap packages:Cons) }
+        { B'P' -> swap for(>Path swap package-search-paths:Cons) }
         { _ -> drop swap drop UnknownArg Some state:error! }
     },
     Positional -> swap state positional-index 0= if(

@@ -33,7 +33,7 @@ def(Module.==, Module Module -- Bool, both(index) ==)
 def(Module.prim, +Mirth -- +Mirth Module, builtin prim)
 def(init-modules!, +Mirth -- +Mirth,
     builtin prim
-    L0 over ~imports !
+    List.L0 over ~imports !
     "<prim>" >Path over ~path !
     Package.std over ~package !
     "prim" >Name over ~name !
@@ -41,13 +41,13 @@ def(init-modules!, +Mirth -- +Mirth,
 
 def(Module.new!, +Mirth Path -- +Mirth Module,
     Module.alloc!
-    Module.prim L1 over ~imports !
+    Module.prim List.L1 over ~imports !
     tuck ~path !)
 
 ||| ( module1 module2 -- ) Add module2 as import to module1.
 ||| This does not check if the import is necessary.
 def(Module.add-import!, Module Module --,
-    swap ~imports modify(cons))
+    swap ~imports modify(Cons))
 
 ||| Get source path associated with module.
 def(Module.source-path, Module -- Path,

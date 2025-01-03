@@ -124,9 +124,9 @@ def +Mirth.Init! {
     False >prefer-inline-defs
     Builtin.Alloc! >builtin
     None >mirth-base-path
-    L0 >package-search-paths
-    +L0 >+diagnostics
-    +L0 >+propstack
+    List.L0 >package-search-paths
+    +List.+L0 >+diagnostics
+    +List.+L0 >+propstack
     None >error-token
     None >defining-namespace
     LexicalState >lexical-state
@@ -229,7 +229,7 @@ def(+Mirth.trace-diagnostics!, +World +Mirth -- +World +Mirth,
     for(rdip:trace(diagnostic;)))
 
 def(+Mirth.pop-diagnostics, +Mirth -- +Mirth List(Diagnostic),
-    +diagnostics(freeze L0 thaw))
+    +diagnostics(freeze +List.+L0))
 
 def(Diagnostic.diagnostic;, +Str Diagnostic -- +Str,
     /Diagnostic

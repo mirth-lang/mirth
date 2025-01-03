@@ -6,102 +6,82 @@ import(std.either)
 import(std.str)
 
 data List(t) {
-    Nil
-    Cons [ t List(t) ]
+    0 Nil
+    1 Cons [ t List(t) ]
+    --
+    def L0 [                   -- List(t) ] { Nil }
+    def L1 [ t                 -- List(t) ] { Nil Cons }
+    def L2 [ t t               -- List(t) ] { Nil Cons Cons }
+    def L3 [ t t t             -- List(t) ] { Nil Cons Cons Cons }
+    def L4 [ t t t t           -- List(t) ] { Nil Cons Cons Cons Cons }
+    def L5 [ t t t t  t        -- List(t) ] { Nil Cons Cons Cons Cons Cons }
+    def L6 [ t t t t  t t      -- List(t) ] { Nil Cons Cons Cons Cons Cons Cons }
+    def L7 [ t t t t  t t t    -- List(t) ] { Nil Cons Cons Cons Cons Cons Cons Cons }
+    def L8 [ t t t t  t t t t  -- List(t) ] { Nil Cons Cons Cons Cons Cons Cons Cons Cons }
+
+    def empty? [ List(t) -- Bool ] { enum-value 0= }
+    def single? [ List(t) -- Maybe(t) ] { Nil -> None, Cons -> empty? if(Some, drop None) }
+
+    def >L0? [ List(t) -- Maybe(L0)    ] { Nil -> L0 Some, _ -> drop None }
+    def >L1? [ List(t) -- Maybe(L1(t)) ] { Cons -> empty? if(L1 Some, drop None), Nil -> None }
+    def >L2? [ List(t) -- Maybe(L2(t)) ] { Cons -> >L1? if-some(/L1 L2 Some, drop None), Nil -> None }
+    def >L3? [ List(t) -- Maybe(L3(t)) ] { Cons -> >L2? if-some(/L2 L3 Some, drop None), Nil -> None }
+    def >List+? [ List(t) -- Maybe(List+(t)) ] { Cons -> >tail >head List+ Some, Nil -> None }
+    def len [ List(t) -- Nat ] { 0u swap for(drop 1+) }
+
+    def cons [ t List(t) -- List+(t) ] { >tail >head List+ }
+    def uncons [ List(t) -- Maybe(t) List(t) ] {
+        { Nil -> None Nil }
+        { Cons -> dip(Some) }
+    }
 }
 
 struct List+(t) {
     head: t
     tail: List(t)
-}
+    --
+    def L1 [ t                 -- List+(t) ] { List.L0 >tail >head List+ }
+    def L2 [ t t               -- List+(t) ] { List.L1 >tail >head List+ }
+    def L3 [ t t t             -- List+(t) ] { List.L2 >tail >head List+ }
+    def L4 [ t t t t           -- List+(t) ] { List.L3 >tail >head List+ }
+    def L5 [ t t t t  t        -- List+(t) ] { List.L4 >tail >head List+ }
+    def L6 [ t t t t  t t      -- List+(t) ] { List.L5 >tail >head List+ }
+    def L7 [ t t t t  t t t    -- List+(t) ] { List.L6 >tail >head List+ }
+    def L8 [ t t t t  t t t t  -- List+(t) ] { List.L7 >tail >head List+ }
 
-inline(
-    def L0 [ -- List(t) ] { Nil }
-    def L1 [ t -- List(t) ] { Nil Cons }
-    def L2 [ t t               -- List(t) ] { Nil Cons Cons }
-)
-def L3 [ t t t             -- List(t) ] { Nil Cons Cons Cons }
-def L4 [ t t t t           -- List(t) ] { Nil Cons Cons Cons Cons }
-def L5 [ t t t t  t        -- List(t) ] { Nil Cons Cons Cons Cons Cons }
-def L6 [ t t t t  t t      -- List(t) ] { Nil Cons Cons Cons Cons Cons Cons }
-def L7 [ t t t t  t t t    -- List(t) ] { Nil Cons Cons Cons Cons Cons Cons Cons }
-def L8 [ t t t t  t t t t  -- List(t) ] { Nil Cons Cons Cons Cons Cons Cons Cons Cons }
-
-def List./L0 [ List(t) -- Bool           ] { Nil -> True, _ -> drop False }
-def List./L1 [ List(t) -- Maybe(t)       ] { Cons -> match(Nil -> Some, _ -> drop2 None), _ -> drop None }
-def List./L2 [ List(t) -- Maybe([t t])   ] { Cons -> /L1 if-some(pack2 Some, drop None), _ -> drop None }
-def List./L3 [ List(t) -- Maybe([t t t]) ] { Cons -> /L2 if-some(unpack2 pack3 Some, drop None), _ -> drop None }
-
-def List.empty? [ List(t) -- Bool ] { Nil -> True, _ -> drop False }
-def List.len [ List(t) -- Nat ] {
-    0u swap for(drop 1+)
-}
-
-inline(
-    def L1+ [ t                 -- List+(t) ] { L0 >tail >head List+ }
-    def L2+ [ t t               -- List+(t) ] { L1 >tail >head List+ }
-    def L3+ [ t t t             -- List+(t) ] { L2 >tail >head List+ }
-    def L4+ [ t t t t           -- List+(t) ] { L3 >tail >head List+ }
-    def L5+ [ t t t t  t        -- List+(t) ] { L4 >tail >head List+ }
-    def L6+ [ t t t t  t t      -- List+(t) ] { L5 >tail >head List+ }
-    def L7+ [ t t t t  t t t    -- List+(t) ] { L6 >tail >head List+ }
-    def L8+ [ t t t t  t t t t  -- List+(t) ] { L7 >tail >head List+ }
-    def List+.>List [ List+(t) -- List(t) ] { /List+ head> tail> Cons }
-    def List+.len   [ List+(t) -- Nat     ] { tail len 1+ }
-)
-def List+./L1+  [ List+(t) -- Maybe(t) ] { /List+ head> tail> /L0 if(Some, drop None) }
-def List+./L2+  [ List+(t) -- Maybe([t t]) ] { /List+ tail> /L1 map(@head swap pack2) head> drop }
-
-def List.>List+ [ List(t) -- Maybe(List+(t)) ] {
-    { Nil -> None }
-    { Cons -> >tail >head List+ Some }
-}
-
-inline(
-    def List.cons [ t List(t) -- List(t) ] { Cons }
-    def List.cons+ [ t List(t) -- List+(t) ] { >tail >head List+ }
-    def List+.cons+ [ t List+(t) -- List+(t) ] { >List cons+ }
-
-    def List+.snoc+ [ List+(t) t -- List+(t) ] { dip(>List) List.snoc+ }
-    def List.snoc+  [ List(t) t -- List+(t) ] {
-        >x match {
-            Nil -> x> L1+,
-            Cons -> x> List.snoc cons+
-        }
+    def single? [ List+(t) -- Maybe(t) ] {
+        /List+ head> tail> empty? if(Some, drop None)
     }
-    def List.snoc [ List(t) t -- List(t) ] {
-        swap reverse cons reverse
-    }
-)
 
-def List.uncons [ List(t) -- Maybe(t) List(t) ] {
-    { Nil -> None Nil }
-    { Cons -> dip(Some) }
+    def >List [ List+(t) -- List(t) ] { /List+ head> tail> List.Cons }
+    def >L1? { >List >L1? }
+    def >L2? { >List >L2? }
+    def >L3? { >List >L3? }
+
+    def len [ List+(t) -- Nat ] { tail len 1+ }
+
+    def cons [ t List+(t) -- List+(t) ] { >List >tail >head List+ }
+    def uncons [ List+(t) -- t List(t) ] { /List+ head> tail> }
 }
 
-def List+.uncons [ List+(t) -- t List(t) ] {
-    /List+ head> tail>
-}
+def List+.snoc [ List+(t) t -- List+(t) ] { dip(>List) List.snoc }
+def List.snoc [ List(t) t -- List+(t) ] { swap reverse cons reverse }
+def List.Snoc [ List(t) t -- List(t) ] { swap reverse Cons reverse }
 
-def List.unsnoc [ List(t) -- List(t) Maybe(t) ] {
-    reverse uncons reverse swap
-}
-
-def List+.unsnoc [ List+(t) -- List(t) t ] {
-    reverse uncons reverse swap
-}
+def List.unsnoc [ List(t) -- List(t) Maybe(t) ] { reverse uncons reverse swap }
+def List+.unsnoc [ List+(t) -- List(t) t ] { reverse uncons reverse swap }
 
 def List.cat [ List(t) List(t) -- List(t) ] {
     { Nil -> id }
     { _ -> swap reverse-for(swap Cons) }
 }
 
-def List.cat+ [ List+(t) List(t) -- List+(t) ] { dip(uncons) cat cons+ }
-def List+.cat [ List(t) List+(t) -- List+(t) ] { swap reverse-for(swap cons+) }
+def List.cat+ [ List+(t) List(t) -- List+(t) ] { dip(uncons) cat cons }
+def List+.cat [ List(t) List+(t) -- List+(t) ] { swap reverse-for(swap cons) }
 def List+.cat+ [ List+(t) List+(t) -- List+(t) ] { >List cat+ }
 
-def List.first [ List(t) -- Maybe(t) ] { >List+ map(head) }
-def List.last  [ List(t) -- Maybe(t) ] { >List+ map(last) }
+def List.first [ List(t) -- Maybe(t) ] { >List+? map(head) }
+def List.last  [ List(t) -- Maybe(t) ] { >List+? map(last) }
 
 def List+.first [ List+(t) -- t ] { head }
 def List+.last  [ List+(t) -- t ] { uncons for(nip) }
@@ -124,7 +104,7 @@ def List.reverse [ List(a) -- List(a) ] {
 
 ||| Reverse the list.
 def List+.reverse [ List+(t) -- List+(t) ] {
-    uncons dip(L1+) for(swap cons+)
+    /List+ head> List+.L1 tail> for(swap cons)
 }
 
 ||| Transform each element of the list.
@@ -134,10 +114,7 @@ def List.map(f) [ (*c a -- *c b) *c List(a) -- *c List(b) ] {
 
 ||| Transform each element of the list.
 def List+.map(f) [ (*c a -- *c b) *c List+(a) -- *c List+(b) ] {
-    uncons
-    dip(f) swap
-    dip(map(f)) swap
-    cons+
+    uncons on2(f, map(f)) cons
 }
 
 inline (
@@ -179,7 +156,7 @@ def List+.for(f,g) [ (*a t -- *b, *b -- *a) *a List+(t) -- *b ] {
 
 ||| Reduce a list via binary operation.
 def List.fold(g) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a) ] {
-    >List+ map(fold(g))
+    >List+? map(fold(g))
 }
 
 ||| Reduce a list via binary operation.
@@ -188,25 +165,23 @@ def List+.fold(g) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
 }
 
 ||| Sum together a list of numbers.
-def List.sum(z {0}, g {+}) [ (*c -- *c a, *c a a -- *c a) *c List(a) -- *c a] {
-    { Nil -> z }
-    { Cons -> for(g) }
+def List.sum(g {+}) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a)] {
+    fold(g)
 }
 
 ||| Sum together a list of numbers.
 def List+.sum(g {+}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
-    uncons for(g)
+    fold(g)
 }
 
 ||| Multiply together a list of numbers.
-def List.product(z {1}, g {*}) [ (*c -- *c a, *c a a -- *c a) *c List(a) -- *c a] {
-    { Nil -> z }
-    { Cons -> for(g) }
+def List.product(g {*}) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a)] {
+    fold(g)
 }
 
 ||| Multiply together a list of numbers.
 def List+.product(g {*}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
-    uncons for(g)
+    fold(g)
 }
 
 ||| Filter away any list elements that don't satisfy the predicate.
@@ -320,12 +295,12 @@ def List+.all(f) [ (*c a -- *c Bool) *c List+(a) -- *c Bool ] {
 
 ||| If the predicate matches all elements of the list, return the result. Otherwise return None.
 def List.all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
-    >rest True >ok +L0 while-some(
+    >rest True >ok +List.+L0 while-some(
         @rest:uncons,
         @rest(@ok(dip2:rdip(f))) if-some(
             ; ,
             False !ok
-            L0 !rest
+            Nil !rest
         )
     )
     rest> drop
@@ -386,27 +361,27 @@ inline(
     def +List.rdup  [ +List (t) -- +List (t) +List (t) ] { +List  -> dup dip(+List)  +List  }
     def +List+.rdup [ +List+(t) -- +List+(t) +List+(t) ] { +List+ -> dup dip(+List+) +List+ }
 
-    def +L0 [       -- +List(t) ] { L0 +List }
-    def +L1 [     t -- +List(t) ] { L1 +List }
-    def +L2 [   t t -- +List(t) ] { swap L2 +List }
-    def +L3 [ t t t -- +List(t) ] { flip3 L3 +List }
+    def +List.+L0 [       -- +List(t) ] { List.L0 +List }
+    def +List.+L1 [     t -- +List(t) ] { List.L1 +List }
+    def +List.+L2 [   t t -- +List(t) ] { swap List.L2 +List }
+    def +List.+L3 [ t t t -- +List(t) ] { flip3 List.L3 +List }
 
     def(List.thaw, List(t) -- +List(t), reverse +List)
     def(+List.freeze, +List(t) -- List(t), /+List reverse)
     def(+List.push!, +List(t) t -- +List(t), /+List Cons +List)
-    def(+List.push+!, +List(t) t -- +List+(t), /+List cons+ +List+)
+    def(+List.push+!, +List(t) t -- +List+(t), /+List cons +List+)
     def(+List.pop!, +List(t) -- +List(t) Maybe(t), /+List uncons +List)
     inline:def(+List.;, +List(t) t -- +List(t), +List.push!)
     inline:def(+List.;+, +List(t) t -- +List+(t), +List.push+!)
 
     def(List+.thaw, List+(t) -- +List+(t), reverse +List+)
     def(+List+.freeze, +List+(t) -- List+(t), /+List+ reverse)
-    def(+List+.push!, +List+(t) t -- +List+(t), /+List+ cons+ +List+)
+    def(+List+.push!, +List+(t) t -- +List+(t), /+List+ cons +List+)
     def(+List+.pop!, +List+(t) -- +List(t) t, /+List+ uncons +List)
     inline:def(+List+.;, +List+(t) t -- +List+(t), +List+.push!)
 
-    def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), L0 thaw f freeze)
-    def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), L0 thaw f freeze)
+    def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), List.L0 thaw f freeze)
+    def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), List.L0 thaw f freeze)
 )
 
 def List.==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
@@ -447,12 +422,12 @@ def(List.union(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
     over dip(swap difference(eq)) swap cat)
 
 def(List.unions(eq {==}), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
-    fold(union(eq)) unwrap(L0))
+    fold(union(eq)) unwrap(Nil))
 
 def(List.map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
     collect(uncons dip(dip:uncons swap dip:map2:f) rotl) dip:drop2)
 def(List+.map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
-    dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons+)
+    dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons)
 
 def(List.take-while(p), (*a t -- *a Bool) *a List(t) -- *a List(t),
     collect(uncons dip:filter(p) swap) nip)
@@ -467,7 +442,7 @@ def List.split-at(p) [ (*a t -- *a Bool) *a List(t) -- *a List(t) List(t) ] {
                     Cons False,
                     dip(;) True
                 ),
-                L0 False
+                Nil False
             )
         )
     ) swap
@@ -475,7 +450,7 @@ def List.split-at(p) [ (*a t -- *a Bool) *a List(t) -- *a List(t) List(t) ] {
 
 def(List.partition-either(p), (*a t -- *a Either(t1,t2))
         *a List(t) -- *a List(t1) List(t2),
-    L0 L0 rotl for(
+    Nil Nil rotl for(
         dip'(dip'(p)) match(
             Left -> rotr dip(Cons),
             Right -> swap Cons
@@ -495,3 +470,64 @@ def(List.show;(f {show;}), (t +Str -- +Str) List(t) +Str -- +Str,
     "LIST( " ; for(f " ; " ;) ")" ;)
 def(List+.show;(f {show;}), (t +Str -- +Str) List+(t) +Str -- +Str,
     "LIST+( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
+
+struct L0 {
+    --
+    def >List { L0 -> List.L0 }
+}
+
+struct L1(t) {
+    t
+    --
+    def >List  { L1 -> List.L1 }
+    def >List+ { L1 -> List+.L1 }
+}
+
+struct L2(t) {
+    t t
+    --
+    def >List  { L2 -> List.L2  }
+    def >List+ { L2 -> List+.L2 }
+}
+
+struct L3(t) {
+    t t t
+    --
+    def >List  { L3 -> List.L3 }
+    def >List+ { L3 -> List.L3 }
+}
+
+struct L4(t) {
+    t t t t
+    --
+    def >List  { L4 -> List.L4 }
+    def >List+ { L4 -> List+.L4 }
+}
+
+struct L5(t) {
+    t t t t t
+    --
+    def >List  { L5 -> List.L5 }
+    def >List+ { L5 -> List+.L5 }
+}
+
+struct L6(t) {
+    t t t t t t
+    --
+    def >List  { L6 -> List.L6 }
+    def >List+ { L6 -> List+.L6 }
+}
+
+struct L7(t) {
+    t t t t t t t
+    --
+    def >List  { L7 -> List.L7 }
+    def >List+ { L7 -> List+.L7 }
+}
+
+struct L8(t) {
+    t t t t t t t t
+    --
+    def >List  { L8 -> List.L8 }
+    def >List+ { L8 -> List+.L8 }
+}
