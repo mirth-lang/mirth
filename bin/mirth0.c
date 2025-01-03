@@ -4375,8 +4375,8 @@ static int64_t mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang (int64_t in_UOffset_
 static int64_t mw_std_buffer_ZPlusBuffer_ZAtU8 (int64_t in_UOffset_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_4);
 static void mw_std_buffer_ZPlusBuffer_ZBangU8 (int64_t in_U8_1, int64_t in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
 static void mw_std_buffer_ZPlusBuffer_ZBangByte (int64_t in_Byte_1, int64_t in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
-static void mw_std_buffer_ZPlusBuffer_ZBangStr (VAL in_Str_1, int64_t in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
 static VAL mw_std_buffer_ZPlusBuffer_ZAtStr (int64_t in_UOffset_1, int64_t in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5);
+static void mw_std_buffer_ZPlusBuffer_ZBangStr (VAL in_Str_1, int64_t in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
 static void mw_std_prim_Ptr_ZBangStr (VAL in_Str_1, void* in_Ptr_2);
 static int64_t mw_std_prim_Str_lastZ_byte (VAL in_Str_1);
 static int64_t mw_std_str_ZPlusStr_lastZ_byte (VAL in_ZPlusStr_1, VAL *out_ZPlusStr_3);
@@ -6317,9 +6317,10 @@ static int64_t mw_std_buffer_ZPlusBuffer_ZAtU8 (int64_t in_UOffset_1, TUP* in_ZP
 	void* v8 = value_ptr(v6->cells[1]);
 	int64_t v9 = 0LL /* +Unsafe */;
 	void* v10 = (void*)(v7 + (char*)v8);
-	uint8_t v11 = *(uint8_t*)v10;
+	int64_t v11 = 0LL /* +Unsafe */;
+	uint8_t v12 = *(uint8_t*)v10;
 	*out_ZPlusBuffer_4 = v6;
-	return ((int64_t)v11);
+	return ((int64_t)v12);
 }
 static void mw_std_buffer_ZPlusBuffer_ZBangU8 (int64_t in_U8_1, int64_t in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
 	int64_t v5 = 1LL;
@@ -6328,6 +6329,7 @@ static void mw_std_buffer_ZPlusBuffer_ZBangU8 (int64_t in_U8_1, int64_t in_UOffs
 	void* v8 = value_ptr(v6->cells[1]);
 	int64_t v9 = 0LL /* +Unsafe */;
 	void* v10 = (void*)(v7 + (char*)v8);
+	int64_t v11 = 0LL /* +Unsafe */;
 	*(uint8_t*)v10 = ((uint8_t)in_U8_1);
 	*out_ZPlusBuffer_4 = v6;
 }
@@ -6335,6 +6337,17 @@ static void mw_std_buffer_ZPlusBuffer_ZBangByte (int64_t in_Byte_1, int64_t in_U
 	TUP* v5;
 	mw_std_buffer_ZPlusBuffer_ZBangU8(in_Byte_1, in_UOffset_2, in_ZPlusBuffer_3, &v5);
 	*out_ZPlusBuffer_4 = v5;
+}
+static VAL mw_std_buffer_ZPlusBuffer_ZAtStr (int64_t in_UOffset_1, int64_t in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5) {
+	TUP* v6;
+	int64_t v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_UOffset_1, in_USizze_2, in_ZPlusBuffer_3, &v6);
+	void* v8 = value_ptr(v6->cells[1]);
+	int64_t v9 = 0LL /* +Unsafe */;
+	void* v10 = (void*)(v7 + (char*)v8);
+	int64_t v11 = 0LL /* +Unsafe */;
+	STR* v12 = str_make(v10, ((uint64_t)in_USizze_2));
+	*out_ZPlusBuffer_5 = v6;
+	return MKSTR(v12);
 }
 static void mw_std_buffer_ZPlusBuffer_ZBangStr (VAL in_Str_1, int64_t in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
 	incref(in_Str_1);
@@ -6344,18 +6357,9 @@ static void mw_std_buffer_ZPlusBuffer_ZBangStr (VAL in_Str_1, int64_t in_UOffset
 	void* v8 = value_ptr(v6->cells[1]);
 	int64_t v9 = 0LL /* +Unsafe */;
 	void* v10 = (void*)(v7 + (char*)v8);
+	int64_t v11 = 0LL /* +Unsafe */;
 	mw_std_prim_Ptr_ZBangStr(in_Str_1, v10);
 	*out_ZPlusBuffer_4 = v6;
-}
-static VAL mw_std_buffer_ZPlusBuffer_ZAtStr (int64_t in_UOffset_1, int64_t in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5) {
-	TUP* v6;
-	int64_t v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_UOffset_1, in_USizze_2, in_ZPlusBuffer_3, &v6);
-	void* v8 = value_ptr(v6->cells[1]);
-	int64_t v9 = 0LL /* +Unsafe */;
-	void* v10 = (void*)(v7 + (char*)v8);
-	STR* v11 = str_make(v10, ((uint64_t)in_USizze_2));
-	*out_ZPlusBuffer_5 = v6;
-	return MKSTR(v11);
 }
 static void mw_std_prim_Ptr_ZBangStr (VAL in_Str_1, void* in_Ptr_2) {
 	incref(in_Str_1);
