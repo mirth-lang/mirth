@@ -183,7 +183,7 @@ def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
 
 field(Word.~sp-synthed, Word, Map(SPKey,Word))
 def(Word.sp-synthed, Word -- Map(SPKey,Word),
-    ~sp-synthed @? unwrap(Map.empty))
+    ~sp-synthed @? unwrap(Map.Nil))
 
 ||| Specialize a word to a particular list of arguments.
 ||| Those other arguments are pushed on the stack.
@@ -206,7 +206,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             @word NAMESPACE_WORD @word' name QNAME0
             @word' WordQName prop @word' ~qname !
 
-            @key >key @word' >value KVPair
+            @key >key @word' >value KeyValuePair
             @word sp-synthed insert @word ~sp-synthed !
 
             # @key @word @word' WordType prop2(
@@ -264,7 +264,7 @@ def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
                 "wrong number of lambda params in synth-specialized-word!"
                 rdip:fatal-error!
             )
-            map2(/ArgBlock >value >key KVPair) Map >spmap
+            map2(/ArgBlock >value >key KeyValuePair) >pairs Map >spmap
             +SPSYNTH
             body synth-arrow!
             /+SPSYNTH spkey> spword> spmap> drop3,

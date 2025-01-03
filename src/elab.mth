@@ -1268,7 +1268,9 @@ def elab-match-exhaustive! [ +Mirth +Match -- +Mirth +Match ] {
 def elab-module! [ Module +World +Mirth -- Module +World +Mirth ] {
     dup start
     elab-module-header!
-    while(dup module-end? not, elab-module-decl!)
+    over NAMESPACE_MODULE Some with-defining-namespace (
+        while(dup module-end? not, elab-decl!)
+    )
     drop
 }
 
@@ -1285,7 +1287,7 @@ def elab-module-qname [ +Mirth Token -- +Mirth QName ] {
 
 ||| Check that the `module(M)` statement exists and save the name.
 def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
-    dup Some error-token!
+    dup Some lexical-state:error-token!
     dup module-header? if(
         sip(next) args-1 dup elab-module-package-name
         over2 .module
@@ -1315,8 +1317,8 @@ def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
 }
 
 ||| Elaborate a declaration. Returns the next token.
-def elab-module-decl! [ Token +World +Mirth -- Token +World +Mirth ] {
-    dup Some error-token!
+def elab-decl! [ Token +World +Mirth -- Token +World +Mirth ] {
+    dup Some lexical-state:error-token!
     dup name? unwrap("unknown declaration" emit-fatal-error!)
     defs find-some(prim?) unwrap("unknown declaration" emit-fatal-error!)
     match(
@@ -1360,18 +1362,24 @@ def elab-module-import! [ Token +World +Mirth -- Token +World +Mirth ] {
     load-module dip(.module) add-import!
 }
 
+||| Parse a data declaration. It looks like one of:
+|||
+|||     data ( TypeAtom, DataTag* DataDecls )
+|||     data TypeAtom { DataTag* DataDecls }
 def parse-data [ +Mirth Token -- +Mirth Token SyntaxData ] {
     dup num-args 0> if(
         succ dup lparen? else("expected left parenthesis '('" emit-fatal-error!)
         succ parse-data-header >header
         dup comma? then(succ)
         parse-data-tags >tags
+        parse-data-decls! >decls
         dup rparen? else("expected right parenthesis ')'" emit-fatal-error!)
         succ,
 
         succ parse-data-header >header
         dup lcurly? else("expected left curly brace '{'" emit-fatal-error!)
         succ parse-data-tags >tags
+        parse-data-decls! >decls
         dup rcurly? else("expected right curly brace '}'" emit-fatal-error!)
         succ
     )
@@ -1386,7 +1394,11 @@ def parse-data-header [ +Mirth Token -- +Mirth Token SyntaxDataHeader ] {
 }
 
 def parse-data-tags [ +Mirth Token -- +Mirth Token List(SyntaxDataTag) ] {
-    collect-while(dup arg-end? not, parse-data-tag)
+    collect-while(dup data-tags-end? not, parse-data-tag)
+}
+
+def data-tags-end? [ Token -- Bool ] {
+    dup args-end? or(dup sig-dashes?) nip
 }
 
 ||| Parse a data tag. It looks like one of these:
@@ -1417,8 +1429,8 @@ def parse-data-tag [ +Mirth Token -- +Mirth Token SyntaxDataTag ] {
 
 ||| Parse a struct declaration. This looks like this:
 |||
-|||     struct(TypeCon, Type*)
-|||     struct TypeCon { Type* }
+|||     struct(TypeAtom, Type* DataDecls)
+|||     struct TypeAtom { Type* DataDecls }
 |||
 def parse-struct [ +Mirth Token -- +Mirth Token SyntaxData ] {
     dup num-args 0> if(
@@ -1426,16 +1438,27 @@ def parse-struct [ +Mirth Token -- +Mirth Token SyntaxData ] {
         succ parse-data-header >header
         dup comma? then(succ)
         parse-struct-tag L1 >tags
+        parse-data-decls! >decls
         dup rparen? then("Expected right parenthesis ')'" emit-fatal-error!)
         succ,
 
         succ parse-data-header >header
         dup lcurly? else("expected left curly brace '{'" emit-fatal-error!)
         succ parse-struct-tag L1 >tags
+        parse-data-decls! >decls
         dup rcurly? else("expected right curly brace '}'" emit-fatal-error!)
         succ
     )
     SyntaxData
+}
+
+||| Data declarations. These start with sig-dashes.
+||| This is either empty, or it is dashes followed by decls within an expression.
+def parse-data-decls! [ +Mirth Token -- +Mirth Token Maybe(Token) ] {
+    dup sig-dashes? if(
+        succ dup while(dup arg-end? not, next) swap Some,
+        None
+    )
 }
 
 def parse-struct-tag
@@ -1454,6 +1477,7 @@ def parse-struct-tag
 struct SyntaxData {
     header: SyntaxDataHeader
     tags: List(SyntaxDataTag)
+    decls: Maybe(Token)
 }
 
 struct SyntaxDataHeader {
@@ -1470,11 +1494,12 @@ struct SyntaxDataTag {
 def elab-data!   { parse-data   elab-data-aux! }
 def elab-struct! { parse-struct elab-data-aux! }
 
-def elab-data-aux! [ SyntaxData +Mirth -- +Mirth ] {
+def elab-data-aux! [ +World +Mirth SyntaxData -- +World +Mirth ] {
     /SyntaxData
     Data.alloc! L0 over ~tags !
     header> elab-data-header!
     tags> for(elab-data-tag!)
+    decls> for(elab-data-decls!)
     elab-data-done!
 }
 
@@ -1543,6 +1568,15 @@ def elab-data-tag! [ Data SyntaxDataTag +Mirth -- Data +Mirth ] {
 
     tag> syn> drop2
     dat>
+}
+
+def elab-data-decls! [ +World +Mirth Data Token -- +World +Mirth Data ] {
+    dup Some >error-token
+    over TYCON_DATA NAMESPACE_TYCON Some >defining-namespace
+    LexicalState with-lexical-state (
+        while(dup arg-end? not, elab-decl!)
+        drop
+    )
 }
 
 def data-word-new! [ +Mirth Data Str Nat -- +Mirth Word ] {
@@ -1848,7 +1882,7 @@ def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
     sip:next args-1
     dip:prefer-inline-defs
     True prefer-inline-defs!
-    while(dup arg-end? not, elab-module-decl!)
+    while(dup arg-end? not, elab-decl!)
     drop prefer-inline-defs!
 }
 
@@ -1867,7 +1901,7 @@ struct SyntaxDef {
 ||| Returns the next token after the definition.
 def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ]
 {
-    dup Some error-token!
+    dup Some lexical-state:error-token!
     dup args empty? if(
         next
         dup >head next
@@ -2147,7 +2181,7 @@ def elab-table! [ +Mirth Token -- +Mirth Token ] {
 def elab-entry-point [ QName +Mirth -- Arrow +Mirth ] {
     dup def-hard? bind(word?) unwrap(
         dup dip(
-            namespace module? for(start Some error-token!)
+            namespace module? for(start Some lexical-state:error-token!)
             "can't find entry point "
         ) >Str cat
         fatal-error!
@@ -2398,9 +2432,16 @@ def elab-def-qname [ +Mirth Token -- +Mirth QName ] {
     dup args dup has(is-default-param?) if(drop -1, len >Int) >arity
     dup name/dname? unwrap("expected name" emit-fatal-error!)
     match(
-        Left -> >name .module NAMESPACE_MODULE >namespace MKQNAME,
+        Left -> >name defining-namespace-or-error >namespace MKQNAME,
         Right -> elab-qname-from-nonrelative-dname
     )
+}
+
+||| The namespace for definitions by default.
+def defining-namespace-or-error [ +Mirth Token -- +Mirth Namespace ] {
+    lexical-state defining-namespace
+    unwrap("error: no namespace for definition" emit-fatal-error!)
+    nip
 }
 
 ||| Same as `elab-def-qname` but raises an error if the qname is already defined.
@@ -2421,7 +2462,7 @@ def elab-def-head [
         unwrap(@head "expected name" emit-fatal-error!)
         either(id, parts last) >name
     @head num-args >arity
-    @head [elab-def-qname-undefined] PSDelay >state
+    lexical-state @head [ elab-def-qname-undefined ] PSDelay >state
 }
 
 ||| Parse a field definition, `field(f, T1, T2)`
