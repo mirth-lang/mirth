@@ -26531,10 +26531,10 @@ static VAL mw_mirth_def_Def_fieldZAsk (VAL in_Def_1) {
 static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 	int64_t branch_Bool_4;
 	switch (get_data_tag(in_Def_2)) {
-		case 0LL: { // DefAlias
-			uint64_t v5 = mtp_mirth_def_Def_DefAlias(in_Def_2);
+		case 2LL: { // DefPackage
+			uint64_t v5 = mtp_mirth_def_Def_DefPackage(in_Def_2);
 			VAL v6 = mtw_std_maybe_Maybe_1_Some(MKU64(v5));
-			VAL v7 = mw_mirth_def_Def_aliasZAsk(in_Def_1);
+			VAL v7 = mw_mirth_def_Def_packageZAsk(in_Def_1);
 			int64_t branch_Bool_8;
 			switch (get_data_tag(v7)) {
 				case 0LL: { // None
@@ -26550,7 +26550,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v6)) {
 						case 1LL: { // Some
 							VAL v14 = mtp_std_maybe_Maybe_1_Some(v6);
-							int64_t v15 = mw_mirth_alias_Alias_ZEqualZEqual(value_u64(v14), value_u64(v12));
+							int64_t v15 = mw_mirth_package_Package_ZEqualZEqual(value_u64(v14), value_u64(v12));
 							branch_Bool_13 = v15;
 						} break;
 						case 0LL: { // None
@@ -26570,10 +26570,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_8;
 		} break;
-		case 2LL: { // DefPackage
-			uint64_t v17 = mtp_mirth_def_Def_DefPackage(in_Def_2);
+		case 1LL: { // DefModule
+			uint64_t v17 = mtp_mirth_def_Def_DefModule(in_Def_2);
 			VAL v18 = mtw_std_maybe_Maybe_1_Some(MKU64(v17));
-			VAL v19 = mw_mirth_def_Def_packageZAsk(in_Def_1);
+			VAL v19 = mw_mirth_def_Def_moduleZAsk(in_Def_1);
 			int64_t branch_Bool_20;
 			switch (get_data_tag(v19)) {
 				case 0LL: { // None
@@ -26589,7 +26589,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v18)) {
 						case 1LL: { // Some
 							VAL v26 = mtp_std_maybe_Maybe_1_Some(v18);
-							int64_t v27 = mw_mirth_package_Package_ZEqualZEqual(value_u64(v26), value_u64(v24));
+							int64_t v27 = mw_mirth_module_Module_ZEqualZEqual(value_u64(v26), value_u64(v24));
 							branch_Bool_25 = v27;
 						} break;
 						case 0LL: { // None
@@ -26609,10 +26609,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_20;
 		} break;
-		case 1LL: { // DefModule
-			uint64_t v29 = mtp_mirth_def_Def_DefModule(in_Def_2);
+		case 0LL: { // DefAlias
+			uint64_t v29 = mtp_mirth_def_Def_DefAlias(in_Def_2);
 			VAL v30 = mtw_std_maybe_Maybe_1_Some(MKU64(v29));
-			VAL v31 = mw_mirth_def_Def_moduleZAsk(in_Def_1);
+			VAL v31 = mw_mirth_def_Def_aliasZAsk(in_Def_1);
 			int64_t branch_Bool_32;
 			switch (get_data_tag(v31)) {
 				case 0LL: { // None
@@ -26628,7 +26628,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v30)) {
 						case 1LL: { // Some
 							VAL v38 = mtp_std_maybe_Maybe_1_Some(v30);
-							int64_t v39 = mw_mirth_module_Module_ZEqualZEqual(value_u64(v38), value_u64(v36));
+							int64_t v39 = mw_mirth_alias_Alias_ZEqualZEqual(value_u64(v38), value_u64(v36));
 							branch_Bool_37 = v39;
 						} break;
 						case 0LL: { // None
@@ -26648,10 +26648,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_32;
 		} break;
-		case 9LL: { // DefBuffer
-			uint64_t v41 = mtp_mirth_def_Def_DefBuffer(in_Def_2);
+		case 3LL: { // DefData
+			uint64_t v41 = mtp_mirth_def_Def_DefData(in_Def_2);
 			VAL v42 = mtw_std_maybe_Maybe_1_Some(MKU64(v41));
-			VAL v43 = mw_mirth_def_Def_bufferZAsk(in_Def_1);
+			VAL v43 = mw_mirth_def_Def_dataZAsk(in_Def_1);
 			int64_t branch_Bool_44;
 			switch (get_data_tag(v43)) {
 				case 0LL: { // None
@@ -26667,7 +26667,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v42)) {
 						case 1LL: { // Some
 							VAL v50 = mtp_std_maybe_Maybe_1_Some(v42);
-							int64_t v51 = mw_mirth_buffer_Buffer_ZEqualZEqual(value_u64(v50), value_u64(v48));
+							int64_t v51 = mw_mirth_data_Data_ZEqualZEqual(value_u64(v50), value_u64(v48));
 							branch_Bool_49 = v51;
 						} break;
 						case 0LL: { // None
@@ -26687,10 +26687,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_44;
 		} break;
-		case 7LL: { // DefPrim
-			int64_t v53 = mtp_mirth_def_Def_DefPrim(in_Def_2);
-			VAL v54 = mtw_std_maybe_Maybe_1_Some(MKI64(v53));
-			VAL v55 = mw_mirth_def_Def_primZAsk(in_Def_1);
+		case 4LL: { // DefTable
+			uint64_t v53 = mtp_mirth_def_Def_DefTable(in_Def_2);
+			VAL v54 = mtw_std_maybe_Maybe_1_Some(MKU64(v53));
+			VAL v55 = mw_mirth_def_Def_tableZAsk(in_Def_1);
 			int64_t branch_Bool_56;
 			switch (get_data_tag(v55)) {
 				case 0LL: { // None
@@ -26706,7 +26706,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v54)) {
 						case 1LL: { // Some
 							VAL v62 = mtp_std_maybe_Maybe_1_Some(v54);
-							int64_t v63 = mw_mirth_prim_Prim_ZEqualZEqual(value_i64(v62), value_i64(v60));
+							int64_t v63 = mw_mirth_table_Table_ZEqualZEqual(value_u64(v62), value_u64(v60));
 							branch_Bool_61 = v63;
 						} break;
 						case 0LL: { // None
@@ -26726,10 +26726,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_56;
 		} break;
-		case 3LL: { // DefData
-			uint64_t v65 = mtp_mirth_def_Def_DefData(in_Def_2);
+		case 5LL: { // DefType
+			uint64_t v65 = mtp_mirth_def_Def_DefType(in_Def_2);
 			VAL v66 = mtw_std_maybe_Maybe_1_Some(MKU64(v65));
-			VAL v67 = mw_mirth_def_Def_dataZAsk(in_Def_1);
+			VAL v67 = mw_mirth_def_Def_typedefZAsk(in_Def_1);
 			int64_t branch_Bool_68;
 			switch (get_data_tag(v67)) {
 				case 0LL: { // None
@@ -26745,7 +26745,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v66)) {
 						case 1LL: { // Some
 							VAL v74 = mtp_std_maybe_Maybe_1_Some(v66);
-							int64_t v75 = mw_mirth_data_Data_ZEqualZEqual(value_u64(v74), value_u64(v72));
+							int64_t v75 = mw_mirth_typedef_TypeDef_ZEqualZEqual(value_u64(v74), value_u64(v72));
 							branch_Bool_73 = v75;
 						} break;
 						case 0LL: { // None
@@ -26765,10 +26765,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_68;
 		} break;
-		case 4LL: { // DefTable
-			uint64_t v77 = mtp_mirth_def_Def_DefTable(in_Def_2);
+		case 6LL: { // DefTag
+			uint64_t v77 = mtp_mirth_def_Def_DefTag(in_Def_2);
 			VAL v78 = mtw_std_maybe_Maybe_1_Some(MKU64(v77));
-			VAL v79 = mw_mirth_def_Def_tableZAsk(in_Def_1);
+			VAL v79 = mw_mirth_def_Def_tagZAsk(in_Def_1);
 			int64_t branch_Bool_80;
 			switch (get_data_tag(v79)) {
 				case 0LL: { // None
@@ -26784,7 +26784,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v78)) {
 						case 1LL: { // Some
 							VAL v86 = mtp_std_maybe_Maybe_1_Some(v78);
-							int64_t v87 = mw_mirth_table_Table_ZEqualZEqual(value_u64(v86), value_u64(v84));
+							int64_t v87 = mw_mirth_data_Tag_ZEqualZEqual(value_u64(v86), value_u64(v84));
 							branch_Bool_85 = v87;
 						} break;
 						case 0LL: { // None
@@ -26804,10 +26804,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_80;
 		} break;
-		case 5LL: { // DefType
-			uint64_t v89 = mtp_mirth_def_Def_DefType(in_Def_2);
-			VAL v90 = mtw_std_maybe_Maybe_1_Some(MKU64(v89));
-			VAL v91 = mw_mirth_def_Def_typedefZAsk(in_Def_1);
+		case 7LL: { // DefPrim
+			int64_t v89 = mtp_mirth_def_Def_DefPrim(in_Def_2);
+			VAL v90 = mtw_std_maybe_Maybe_1_Some(MKI64(v89));
+			VAL v91 = mw_mirth_def_Def_primZAsk(in_Def_1);
 			int64_t branch_Bool_92;
 			switch (get_data_tag(v91)) {
 				case 0LL: { // None
@@ -26823,7 +26823,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v90)) {
 						case 1LL: { // Some
 							VAL v98 = mtp_std_maybe_Maybe_1_Some(v90);
-							int64_t v99 = mw_mirth_typedef_TypeDef_ZEqualZEqual(value_u64(v98), value_u64(v96));
+							int64_t v99 = mw_mirth_prim_Prim_ZEqualZEqual(value_i64(v98), value_i64(v96));
 							branch_Bool_97 = v99;
 						} break;
 						case 0LL: { // None
@@ -26843,10 +26843,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_92;
 		} break;
-		case 11LL: { // DefExternal
-			uint64_t v101 = mtp_mirth_def_Def_DefExternal(in_Def_2);
+		case 8LL: { // DefWord
+			uint64_t v101 = mtp_mirth_def_Def_DefWord(in_Def_2);
 			VAL v102 = mtw_std_maybe_Maybe_1_Some(MKU64(v101));
-			VAL v103 = mw_mirth_def_Def_externalZAsk(in_Def_1);
+			VAL v103 = mw_mirth_def_Def_wordZAsk(in_Def_1);
 			int64_t branch_Bool_104;
 			switch (get_data_tag(v103)) {
 				case 0LL: { // None
@@ -26862,7 +26862,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v102)) {
 						case 1LL: { // Some
 							VAL v110 = mtp_std_maybe_Maybe_1_Some(v102);
-							int64_t v111 = mw_mirth_external_External_ZEqualZEqual(value_u64(v110), value_u64(v108));
+							int64_t v111 = mw_mirth_word_Word_ZEqualZEqual(value_u64(v110), value_u64(v108));
 							branch_Bool_109 = v111;
 						} break;
 						case 0LL: { // None
@@ -26882,10 +26882,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_104;
 		} break;
-		case 8LL: { // DefWord
-			uint64_t v113 = mtp_mirth_def_Def_DefWord(in_Def_2);
+		case 9LL: { // DefBuffer
+			uint64_t v113 = mtp_mirth_def_Def_DefBuffer(in_Def_2);
 			VAL v114 = mtw_std_maybe_Maybe_1_Some(MKU64(v113));
-			VAL v115 = mw_mirth_def_Def_wordZAsk(in_Def_1);
+			VAL v115 = mw_mirth_def_Def_bufferZAsk(in_Def_1);
 			int64_t branch_Bool_116;
 			switch (get_data_tag(v115)) {
 				case 0LL: { // None
@@ -26901,7 +26901,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v114)) {
 						case 1LL: { // Some
 							VAL v122 = mtp_std_maybe_Maybe_1_Some(v114);
-							int64_t v123 = mw_mirth_word_Word_ZEqualZEqual(value_u64(v122), value_u64(v120));
+							int64_t v123 = mw_mirth_buffer_Buffer_ZEqualZEqual(value_u64(v122), value_u64(v120));
 							branch_Bool_121 = v123;
 						} break;
 						case 0LL: { // None
@@ -26921,10 +26921,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_116;
 		} break;
-		case 12LL: { // DefField
-			uint64_t v125 = mtp_mirth_def_Def_DefField(in_Def_2);
+		case 10LL: { // DefVariable
+			uint64_t v125 = mtp_mirth_def_Def_DefVariable(in_Def_2);
 			VAL v126 = mtw_std_maybe_Maybe_1_Some(MKU64(v125));
-			VAL v127 = mw_mirth_def_Def_fieldZAsk(in_Def_1);
+			VAL v127 = mw_mirth_def_Def_variableZAsk(in_Def_1);
 			int64_t branch_Bool_128;
 			switch (get_data_tag(v127)) {
 				case 0LL: { // None
@@ -26940,7 +26940,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v126)) {
 						case 1LL: { // Some
 							VAL v134 = mtp_std_maybe_Maybe_1_Some(v126);
-							int64_t v135 = mw_mirth_table_Field_ZEqualZEqual(value_u64(v134), value_u64(v132));
+							int64_t v135 = mw_mirth_variable_Variable_ZEqualZEqual(value_u64(v134), value_u64(v132));
 							branch_Bool_133 = v135;
 						} break;
 						case 0LL: { // None
@@ -26960,10 +26960,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_128;
 		} break;
-		case 6LL: { // DefTag
-			uint64_t v137 = mtp_mirth_def_Def_DefTag(in_Def_2);
+		case 11LL: { // DefExternal
+			uint64_t v137 = mtp_mirth_def_Def_DefExternal(in_Def_2);
 			VAL v138 = mtw_std_maybe_Maybe_1_Some(MKU64(v137));
-			VAL v139 = mw_mirth_def_Def_tagZAsk(in_Def_1);
+			VAL v139 = mw_mirth_def_Def_externalZAsk(in_Def_1);
 			int64_t branch_Bool_140;
 			switch (get_data_tag(v139)) {
 				case 0LL: { // None
@@ -26979,7 +26979,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v138)) {
 						case 1LL: { // Some
 							VAL v146 = mtp_std_maybe_Maybe_1_Some(v138);
-							int64_t v147 = mw_mirth_data_Tag_ZEqualZEqual(value_u64(v146), value_u64(v144));
+							int64_t v147 = mw_mirth_external_External_ZEqualZEqual(value_u64(v146), value_u64(v144));
 							branch_Bool_145 = v147;
 						} break;
 						case 0LL: { // None
@@ -26999,10 +26999,10 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 			}
 			branch_Bool_4 = branch_Bool_140;
 		} break;
-		case 10LL: { // DefVariable
-			uint64_t v149 = mtp_mirth_def_Def_DefVariable(in_Def_2);
+		case 12LL: { // DefField
+			uint64_t v149 = mtp_mirth_def_Def_DefField(in_Def_2);
 			VAL v150 = mtw_std_maybe_Maybe_1_Some(MKU64(v149));
-			VAL v151 = mw_mirth_def_Def_variableZAsk(in_Def_1);
+			VAL v151 = mw_mirth_def_Def_fieldZAsk(in_Def_1);
 			int64_t branch_Bool_152;
 			switch (get_data_tag(v151)) {
 				case 0LL: { // None
@@ -27018,7 +27018,7 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v150)) {
 						case 1LL: { // Some
 							VAL v158 = mtp_std_maybe_Maybe_1_Some(v150);
-							int64_t v159 = mw_mirth_variable_Variable_ZEqualZEqual(value_u64(v158), value_u64(v156));
+							int64_t v159 = mw_mirth_table_Field_ZEqualZEqual(value_u64(v158), value_u64(v156));
 							branch_Bool_157 = v159;
 						} break;
 						case 0LL: { // None
@@ -27047,81 +27047,81 @@ static int64_t mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 static void mw_mirth_def_Def_typecheckZBang (TUP* in_ZPlusMirth_1, VAL in_Def_2, TUP* *out_ZPlusMirth_3) {
 	TUP* branch_ZPlusMirth_4;
 	switch (get_data_tag(in_Def_2)) {
-		case 0LL: { // DefAlias
-			uint64_t v5 = mtp_mirth_def_Def_DefAlias(in_Def_2);
-			TUP* v6;
-			VAL v7 = mw_mirth_alias_Alias_target(in_ZPlusMirth_1, v5, &v6);
-			TUP* v8;
-			mw_mirth_def_Def_typecheckZBang(v6, v7, &v8);
-			branch_ZPlusMirth_4 = v8;
-		} break;
 		case 2LL: { // DefPackage
-			uint64_t v9 = mtp_mirth_def_Def_DefPackage(in_Def_2);
+			uint64_t v5 = mtp_mirth_def_Def_DefPackage(in_Def_2);
 			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
 		} break;
 		case 1LL: { // DefModule
-			uint64_t v10 = mtp_mirth_def_Def_DefModule(in_Def_2);
+			uint64_t v6 = mtp_mirth_def_Def_DefModule(in_Def_2);
 			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
 		} break;
-		case 9LL: { // DefBuffer
-			uint64_t v11 = mtp_mirth_def_Def_DefBuffer(in_Def_2);
-			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
-		} break;
-		case 7LL: { // DefPrim
-			int64_t v12 = mtp_mirth_def_Def_DefPrim(in_Def_2);
-			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
+		case 0LL: { // DefAlias
+			uint64_t v7 = mtp_mirth_def_Def_DefAlias(in_Def_2);
+			TUP* v8;
+			VAL v9 = mw_mirth_alias_Alias_target(in_ZPlusMirth_1, v7, &v8);
+			TUP* v10;
+			mw_mirth_def_Def_typecheckZBang(v8, v9, &v10);
+			branch_ZPlusMirth_4 = v10;
 		} break;
 		case 3LL: { // DefData
-			uint64_t v13 = mtp_mirth_def_Def_DefData(in_Def_2);
+			uint64_t v11 = mtp_mirth_def_Def_DefData(in_Def_2);
 			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
 		} break;
 		case 4LL: { // DefTable
-			uint64_t v14 = mtp_mirth_def_Def_DefTable(in_Def_2);
+			uint64_t v12 = mtp_mirth_def_Def_DefTable(in_Def_2);
 			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
 		} break;
 		case 5LL: { // DefType
-			uint64_t v15 = mtp_mirth_def_Def_DefType(in_Def_2);
-			TUP* v16;
-			VAL v17 = mw_mirth_typedef_TypeDef_target(in_ZPlusMirth_1, v15, &v16);
-			decref(v17);
-			branch_ZPlusMirth_4 = v16;
-		} break;
-		case 11LL: { // DefExternal
-			uint64_t v18 = mtp_mirth_def_Def_DefExternal(in_Def_2);
-			TUP* v19;
-			TUP* v20 = mw_mirth_external_External_type(in_ZPlusMirth_1, v18, &v19);
-			decref(MKTUP(v20, 2));
-			branch_ZPlusMirth_4 = v19;
-		} break;
-		case 8LL: { // DefWord
-			uint64_t v21 = mtp_mirth_def_Def_DefWord(in_Def_2);
-			TUP* v22;
-			TUP* v23 = mw_mirth_word_Word_type(v21, in_ZPlusMirth_1, &v22);
-			decref(MKTUP(v23, 2));
-			TUP* v24;
-			TUP* v25 = mw_mirth_word_Word_arrow(v21, v22, &v24);
-			decref(MKTUP(v25, 7));
-			branch_ZPlusMirth_4 = v24;
-		} break;
-		case 12LL: { // DefField
-			uint64_t v26 = mtp_mirth_def_Def_DefField(in_Def_2);
-			TUP* v27;
-			TUP* v28 = mw_mirth_table_Field_type(in_ZPlusMirth_1, v26, &v27);
-			decref(MKTUP(v28, 2));
-			branch_ZPlusMirth_4 = v27;
+			uint64_t v13 = mtp_mirth_def_Def_DefType(in_Def_2);
+			TUP* v14;
+			VAL v15 = mw_mirth_typedef_TypeDef_target(in_ZPlusMirth_1, v13, &v14);
+			decref(v15);
+			branch_ZPlusMirth_4 = v14;
 		} break;
 		case 6LL: { // DefTag
-			uint64_t v29 = mtp_mirth_def_Def_DefTag(in_Def_2);
+			uint64_t v16 = mtp_mirth_def_Def_DefTag(in_Def_2);
+			TUP* v17;
+			TUP* v18 = mw_mirth_data_Tag_type(in_ZPlusMirth_1, v16, &v17);
+			decref(MKTUP(v18, 2));
+			branch_ZPlusMirth_4 = v17;
+		} break;
+		case 7LL: { // DefPrim
+			int64_t v19 = mtp_mirth_def_Def_DefPrim(in_Def_2);
+			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
+		} break;
+		case 8LL: { // DefWord
+			uint64_t v20 = mtp_mirth_def_Def_DefWord(in_Def_2);
+			TUP* v21;
+			TUP* v22 = mw_mirth_word_Word_type(v20, in_ZPlusMirth_1, &v21);
+			decref(MKTUP(v22, 2));
+			TUP* v23;
+			TUP* v24 = mw_mirth_word_Word_arrow(v20, v21, &v23);
+			decref(MKTUP(v24, 7));
+			branch_ZPlusMirth_4 = v23;
+		} break;
+		case 9LL: { // DefBuffer
+			uint64_t v25 = mtp_mirth_def_Def_DefBuffer(in_Def_2);
+			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
+		} break;
+		case 10LL: { // DefVariable
+			uint64_t v26 = mtp_mirth_def_Def_DefVariable(in_Def_2);
+			TUP* v27;
+			VAL v28 = mw_mirth_variable_Variable_type(in_ZPlusMirth_1, v26, &v27);
+			decref(v28);
+			branch_ZPlusMirth_4 = v27;
+		} break;
+		case 11LL: { // DefExternal
+			uint64_t v29 = mtp_mirth_def_Def_DefExternal(in_Def_2);
 			TUP* v30;
-			TUP* v31 = mw_mirth_data_Tag_type(in_ZPlusMirth_1, v29, &v30);
+			TUP* v31 = mw_mirth_external_External_type(in_ZPlusMirth_1, v29, &v30);
 			decref(MKTUP(v31, 2));
 			branch_ZPlusMirth_4 = v30;
 		} break;
-		case 10LL: { // DefVariable
-			uint64_t v32 = mtp_mirth_def_Def_DefVariable(in_Def_2);
+		case 12LL: { // DefField
+			uint64_t v32 = mtp_mirth_def_Def_DefField(in_Def_2);
 			TUP* v33;
-			VAL v34 = mw_mirth_variable_Variable_type(in_ZPlusMirth_1, v32, &v33);
-			decref(v34);
+			TUP* v34 = mw_mirth_table_Field_type(in_ZPlusMirth_1, v32, &v33);
+			decref(MKTUP(v34, 2));
 			branch_ZPlusMirth_4 = v33;
 		} break;
 		default: {
