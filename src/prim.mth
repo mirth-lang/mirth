@@ -169,9 +169,9 @@ field(Prim.~decl, Prim, Maybe([Token +World +Mirth -- Token +World +Mirth]))
 field(Prim.~arity, Prim, Int)
 
 def(Prim.qname, +Mirth Prim -- +Mirth QName,
-    Namespace.prim >namespace
+    Namespace.Prim >namespace
     dup .name >name
-    .arity >arity MKQNAME)
+    .arity >arity QName)
 def(Prim.name, Prim -- Name, ~name @)
 def(Prim.ctx, Prim -- Ctx, ~ctx @)
 def(Prim.type, Prim -- ArrowType, ~type @)

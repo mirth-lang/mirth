@@ -42,10 +42,52 @@ import(mirth.label)
 # Originally this type was called Morphism but that's hard to spell and
 # to type repeatedly so now it's called Arrow :-)
 
-# mirth/data/arrow
-table(Block)
+struct Arrow {
+    home:Home
+    token-start:Token
+    token-end:Token
+    ctx:Ctx
+    dom:StackType
+    cod:StackType
+    atoms:List(Atom)
+    --
+    def ctx-type { sip(ctx) type }
+    def type { sip(dom) cod T-> }
 
-data(Arg, ArgBlock -> Block)
+    def to-run-var [ Arrow -- Maybe(Var) ] {
+        atoms single? bind(to-run-var)
+    }
+    def free-vars [ +Mirth Arrow -- +Mirth List(Var) ] {
+        atoms map(free-vars) unions
+    }
+}
+
+struct Atom {
+    home:Home
+    token:Token
+    ctx:Ctx
+    op:Op
+    args:List(Arg)
+    dom:StackType
+    cod:StackType
+    subst:Subst
+    --
+    def to-run-var [ Atom -- Maybe(Var) ] { op to-run-var }
+    def free-vars [ +Mirth Atom -- +Mirth List(Var) ] {
+        dup args map(free-vars) unions
+        swap op free-vars union
+    }
+}
+
+data Arg {
+    ArgBlock [ Block ]
+    --
+    def token { ArgBlock -> token }
+    def type  { ArgBlock -> type }
+    def free-vars { ArgBlock -> free-vars }
+    def >Str [ +Mirth Arg -- +Mirth Str ] { ArgBlock -> qname >Str }
+    def == [ Arg Arg -- Bool ] { both(/ArgBlock) == }
+}
 
 data Op {
     OpNone
@@ -74,46 +116,67 @@ data Op {
     OpDataSetLabel [ TagField ]
     OpTableToIndex [ Table ]
     OpTableFromIndex [ Table ]
+    --
+    def to-run-var [ Op -- Maybe(Var) ] {
+        { OpVar -> dup auto-run? if(Some, drop None) }
+        { _ -> drop None }
+    }
+    def free-vars [ +Mirth Op -- +Mirth List(Var) ] {
+        { OpNone -> Nil }
+        { OpPrim -> drop Nil }
+        { OpWord -> drop Nil }
+        { OpExternal -> drop Nil }
+        { OpBuffer -> drop Nil }
+        { OpVariable -> drop Nil }
+        { OpField -> drop Nil }
+        { OpInt -> drop Nil }
+        { OpF64 -> drop Nil }
+        { OpStr -> drop Nil }
+        { OpTag -> drop Nil }
+        { OpMatch -> free-vars }
+        { OpLambda -> free-vars }
+        { OpVar -> List.L1 }
+        { OpBlockPush -> free-vars }
+        { OpBlockRun -> free-vars }
+        { OpLabelPush -> drop Nil }
+        { OpLabelPop -> drop Nil }
+        { OpLabelPushR -> drop Nil }
+        { OpLabelPopR -> drop Nil }
+        { OpDataGetEnumValue -> drop Nil }
+        { OpDataFromEnumValue -> drop Nil }
+        { OpDataGetLabel -> drop Nil }
+        { OpDataSetLabel -> drop Nil }
+        { OpTableToIndex -> drop Nil }
+        { OpTableFromIndex -> drop Nil }
+    }
 }
 
-data(Home,
-    HomeMain -> Token,
-    HomeWord -> Word)
+data Home {
+    HomeMain [ Token ]
+    HomeWord [ Word  ]
+}
 
-data(Arrow, Arrow ->
-    home:Home
-    token-start:Token
-    token-end:Token
-    ctx:Ctx
-    dom:StackType
-    cod:StackType
-    atoms:List(Atom))
-def(Arrow.ctx-type, Arrow -- Ctx ArrowType, sip(ctx) type)
-def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
-
-data(Atom, Atom ->
-    home:Home
-    token:Token
-    ctx:Ctx
-    op:Op
-    args:List(Arg)
-    dom:StackType
-    cod:StackType
-    subst:Subst)
-
-data(Lambda, Lambda ->
+struct Lambda {
     token:Token
     outer-ctx:Ctx
     dom:StackType
     params:List(Var)
-    body:Arrow)
-def(Lambda.inner-ctx, Lambda -- Ctx, body ctx)
-def(Lambda.mid, Lambda -- StackType, body dom)
-def(Lambda.cod, Lambda -- StackType, body cod) # assuming no dependent types
+    body:Arrow
+    --
+    def inner-ctx [ Lambda -- Ctx ] { body ctx }
+    def mid [ Lambda -- StackType ] { body dom }
+    def cod [ Lambda -- StackType ] { body cod } # assuming no dependent types
+    def free-vars [ +Mirth Lambda -- +Mirth List(Var) ] {
+        dup body free-vars
+        swap params difference
+    }
+}
 
 #########
 # BLOCK #
 #########
+
+table(Block)
 
 field(Block.~ctx, Block, Ctx)
 field(Block.~token, Block, Token)
@@ -138,10 +201,10 @@ def(Block.qname, +Mirth Block -- +Mirth QName,
         HomeMain ->
             .module NAMESPACE_MODULE
             swap arrow token-start index show
-            dip:"entry@" cat >Name QNAME0,
+            dip:"entry@" cat >Name 0 QName.Mk,
         HomeWord -> dup NAMESPACE_WORD
             dip(dip:arrow arrow both(token-start index) - show >Name)
-            swap QNAME0
+            swap 0 QName.Mk
     )) nip)
 
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
@@ -191,70 +254,13 @@ def(block-unify-type!, +Mirth +Gamma Block ArrowType -- +Mirth +Gamma ArrowType,
 def(Block.to-run-var, +Mirth Block -- +Mirth Maybe(Var),
     arrow to-run-var)
 
-def(Arrow.to-run-var, Arrow -- Maybe(Var),
-    atoms single? bind(to-run-var))
-
-def(Atom.to-run-var, Atom -- Maybe(Var),
-    op match(
-        OpVar -> dup auto-run? if(Some, drop None),
-        _ -> drop None
-    ))
-
-def(Arg.>Str, +Mirth Arg -- +Mirth Str,
-    ArgBlock -> qname >Str)
-def(Arg.==, Arg Arg -- Bool,
-    both(/ArgBlock) ==)
-
 field(Block.~free-vars, Block, List(Var))
 def(Block.free-vars, +Mirth Block -- +Mirth List(Var),
     dup ~free-vars memoize(
         dup arrow free-vars
     ) nip)
 
-def(Arrow.free-vars, +Mirth Arrow -- +Mirth List(Var),
-    atoms map(free-vars) unions)
-def(Atom.free-vars, +Mirth Atom -- +Mirth List(Var),
-    dup args map(free-vars) unions
-    swap op free-vars union)
-def(Arg.free-vars, +Mirth Arg -- +Mirth List(Var),
-    ArgBlock -> free-vars)
-def Op.free-vars [ +Mirth Op -- +Mirth List(Var) ] {
-    { OpNone -> Nil }
-    { OpPrim -> drop Nil }
-    { OpWord -> drop Nil }
-    { OpExternal -> drop Nil }
-    { OpBuffer -> drop Nil }
-    { OpVariable -> drop Nil }
-    { OpField -> drop Nil }
-    { OpInt -> drop Nil }
-    { OpF64 -> drop Nil }
-    { OpStr -> drop Nil }
-    { OpTag -> drop Nil }
-    { OpMatch -> free-vars }
-    { OpLambda -> free-vars }
-    { OpVar -> List.L1 }
-    { OpBlockPush -> free-vars }
-    { OpBlockRun -> free-vars }
-    { OpLabelPush -> drop Nil }
-    { OpLabelPop -> drop Nil }
-    { OpLabelPushR -> drop Nil }
-    { OpLabelPopR -> drop Nil }
-    { OpDataGetEnumValue -> drop Nil }
-    { OpDataFromEnumValue -> drop Nil }
-    { OpDataGetLabel -> drop Nil }
-    { OpDataSetLabel -> drop Nil }
-    { OpTableToIndex -> drop Nil }
-    { OpTableFromIndex -> drop Nil }
-}
 def(Match.free-vars, +Mirth Match -- +Mirth List(Var),
     cases map(free-vars) unions)
 def(Case.free-vars, +Mirth Case -- +Mirth List(Var),
     body free-vars)
-def(Lambda.free-vars, +Mirth Lambda -- +Mirth List(Var),
-    dup body free-vars
-    swap params difference)
-
-def(Arg.token, Arg -- Token,
-    ArgBlock -> token)
-def(Arg.type, Arg -- ArrowType,
-    ArgBlock -> type)

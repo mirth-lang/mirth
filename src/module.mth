@@ -22,7 +22,7 @@ field(Module.~imports, Module, List(Module))
 
 def(Module.package, Module -- Package, ~package @)
 def(Module.name, Module -- Name, ~name @)
-def(Module.qname, Module -- QName, sip(package NAMESPACE_PACKAGE) name QNAME0)
+def(Module.qname, Module -- QName, sip(package NAMESPACE_PACKAGE) name 0 QName.Mk)
 def(Module.path, Module -- Path, ~path @)
 def(Module.start, Module -- Token, ~start @)
 def(Module.end, Module -- Token, ~end @)
@@ -30,7 +30,7 @@ def(Module.imports, Module -- List(Module), ~imports @)
 
 def(Module.==, Module Module -- Bool, both(index) ==)
 
-def(Module.prim, +Mirth -- +Mirth Module, builtin prim)
+def(Module.Prim, +Mirth -- +Mirth Module, builtin prim)
 def(init-modules!, +Mirth -- +Mirth,
     builtin prim
     List.L0 over ~imports !
@@ -41,7 +41,7 @@ def(init-modules!, +Mirth -- +Mirth,
 
 def(Module.new!, +Mirth Path -- +Mirth Module,
     Module.alloc!
-    Module.prim List.L1 over ~imports !
+    Module.Prim List.L1 over ~imports !
     tuck ~path !)
 
 ||| ( module1 module2 -- ) Add module2 as import to module1.

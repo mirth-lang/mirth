@@ -50,8 +50,8 @@ def-missing(+Lexer.lexer-last-token, +Lexer -- +Lexer Token, lexer-last-token)
 def(run-lexer!, Path +World +Mirth -- Module +World +Mirth,
     Module.new! dup >lexer-module
     source-path rswap open-file! unwrap!(rswap fatal-error!) +Input.start! >+input rswap
-    1 >Row >lexer-row
-    1 >Col >lexer-col
+    1 Row >lexer-row
+    1 Col >lexer-col
     List.L0 >lexer-stack
     Token.alloc-none! dup >lexer-last-token
     +Lexer
@@ -103,8 +103,8 @@ def(lexer-next!, +Mirth +Lexer -- +Mirth +Lexer, lexer-peek match(
     )))
 
 def(lexer-newline!, +Lexer -- +Lexer,
-    lexer-row >Int 1+ >Row lexer-row!
-    0 >Col lexer-col!)
+    lexer-row:1+
+    0 Col lexer-col!)
 
 def(lexer-emit-lcolon!, +Lexer -- +Lexer,
     TokenLColonOpen lexer-make!
@@ -489,7 +489,7 @@ def(lexer-comment-end?, +Lexer -- Bool +Lexer,
 def(lexer-peek, +Lexer -- Byte +Lexer, +input:peek)
 def(lexer-move!, +Lexer -- +Lexer,
     +input:move!
-    lexer-col >Int 1+ >Col lexer-col!)
+    lexer-col:1+ )
 
 def(lexer-location, +Lexer -- Location +Lexer,
     lexer-module >module

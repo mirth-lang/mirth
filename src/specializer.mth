@@ -203,7 +203,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             0u >arity
             Word.new! >word'
 
-            @word NAMESPACE_WORD @word' name QNAME0
+            @word NAMESPACE_WORD @word' name 0 QName.Mk
             @word' WordQName prop @word' ~qname !
 
             @key >key @word' >value KeyValuePair

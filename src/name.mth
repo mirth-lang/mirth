@@ -111,148 +111,169 @@ def(Name.mangle-compute!, Name -- Str,
 # Namespace #
 #############
 
-data(Namespace,
-    NAMESPACE_ROOT,
-    NAMESPACE_PACKAGE -> Package,
-    NAMESPACE_MODULE -> Module,
-    NAMESPACE_TYCON -> Tycon,
-    NAMESPACE_WORD -> Word)
+data Namespace {
+    NAMESPACE_ROOT
+    NAMESPACE_PACKAGE [ Package ]
+    NAMESPACE_MODULE [ Module ]
+    NAMESPACE_TYCON [ Tycon ]
+    NAMESPACE_WORD [ Word ]
+    --
 
-def(Namespace.==, Namespace Namespace -- Bool,
-    NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> True, _ -> drop False),
-    NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 False),
-    NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 False),
-    NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 False),
-    NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False))
+    def == [ Namespace Namespace -- Bool ] {
+        { NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> True, _ -> drop False) }
+        { NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 False) }
+        { NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 False) }
+        { NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 False) }
+        { NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False) }
+    }
 
-def(Namespace.compare, +Mirth Namespace Namespace -- +Mirth Comparison,
-    dip:qname qname compare:compare)
+    def compare [ +Mirth Namespace Namespace -- +Mirth Comparison ] {
+        on2:qname compare:compare
+    }
 
-def(Namespace.qname, +Mirth Namespace -- +Mirth Maybe(QName),
-    NAMESPACE_ROOT -> None,
-    NAMESPACE_PACKAGE -> qname Some,
-    NAMESPACE_MODULE -> qname Some,
-    NAMESPACE_TYCON -> qname-hard Some,
-    NAMESPACE_WORD -> qname-hard Some)
+    def qname [ +Mirth Namespace -- +Mirth Maybe(QName) ] {
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> qname Some }
+        { NAMESPACE_MODULE -> qname Some }
+        { NAMESPACE_TYCON -> qname-hard Some }
+        { NAMESPACE_WORD -> qname-hard Some }
+    }
 
-def(Namespace.package?, +Mirth Namespace -- +Mirth Maybe(Package),
-    NAMESPACE_ROOT -> None,
-    NAMESPACE_PACKAGE -> Some,
-    NAMESPACE_MODULE -> package Some,
-    NAMESPACE_TYCON -> qname-hard namespace package?,
-    NAMESPACE_WORD -> drop None)
+    def package? [ +Mirth Namespace -- +Mirth Maybe(Package) ] {
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> Some }
+        { NAMESPACE_MODULE -> package Some }
+        { NAMESPACE_TYCON -> qname-hard namespace package? }
+        { NAMESPACE_WORD -> drop None }
+    }
 
-def(Namespace.module?, +Mirth Namespace -- +Mirth Maybe(Module),
-    NAMESPACE_ROOT -> None,
-    NAMESPACE_PACKAGE -> drop None,
-    NAMESPACE_MODULE -> Some,
-    NAMESPACE_TYCON -> qname-hard namespace module?,
-    NAMESPACE_WORD -> drop None)
+    def module? [ +Mirth Namespace -- +Mirth Maybe(Module) ] {
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> drop None }
+        { NAMESPACE_MODULE -> Some }
+        { NAMESPACE_TYCON -> qname-hard namespace module? }
+        { NAMESPACE_WORD -> drop None }
+    }
 
-def(Namespace.tycon?, Namespace -- Maybe(Tycon),
-    NAMESPACE_ROOT -> None,
-    NAMESPACE_PACKAGE -> drop None,
-    NAMESPACE_MODULE -> drop None,
-    NAMESPACE_TYCON -> Some,
-    NAMESPACE_WORD -> drop None)
+    def tycon? [ Namespace -- Maybe(Tycon) ] {
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> drop None }
+        { NAMESPACE_MODULE -> drop None }
+        { NAMESPACE_TYCON -> Some }
+        { NAMESPACE_WORD -> drop None }
+    }
 
-def(Namespace.prim, +Mirth -- +Mirth Namespace, Module.prim NAMESPACE_MODULE)
+    def Prim [ +Mirth -- +Mirth Namespace ] {
+        Module.Prim NAMESPACE_MODULE
+    }
 
-def(Namespace.>Str, +Mirth Namespace -- +Mirth Str,
-    NAMESPACE_ROOT -> "<root>",
-    NAMESPACE_PACKAGE -> name >Str,
-    NAMESPACE_MODULE -> qname >Str,
-    NAMESPACE_TYCON -> qname-hard >Str,
-    NAMESPACE_WORD -> qname-hard >Str)
+    def >Str [ +Mirth Namespace -- +Mirth Str ] {
+        { NAMESPACE_ROOT -> "<root>" }
+        { NAMESPACE_PACKAGE -> name >Str }
+        { NAMESPACE_MODULE -> qname >Str }
+        { NAMESPACE_TYCON -> qname-hard >Str }
+        { NAMESPACE_WORD -> qname-hard >Str }
+    }
 
-def(Namespace.mangled, +Mirth Namespace -- +Mirth Str,
-    NAMESPACE_ROOT -> "__root__",
-    NAMESPACE_PACKAGE -> name mangled,
-    NAMESPACE_MODULE -> qname mangled,
-    NAMESPACE_TYCON -> qname-hard mangled,
-    NAMESPACE_WORD -> qname-hard mangled)
+    def mangled [ +Mirth Namespace -- +Mirth Str ] {
+        { NAMESPACE_ROOT -> "__root__" }
+        { NAMESPACE_PACKAGE -> name mangled }
+        { NAMESPACE_MODULE -> qname mangled }
+        { NAMESPACE_TYCON -> qname-hard mangled }
+        { NAMESPACE_WORD -> qname-hard mangled }
+    }
+}
 
 ##################
 # Qualified Name #
 ##################
 
-data(QName, MKQNAME ->
+struct QName {
     namespace:Namespace
     name:Name
-    arity:Int)
+    arity:Int
+    --
+    def Mk [ Namespace Name Int -- QName ] {
+        >arity >name >namespace QName
+    }
 
-def(QNAME0, Namespace Name -- QName,
-    >name >namespace 0 >arity MKQNAME)
+    def == [ QName QName -- Bool ] {
+        /QName /QName
+        name> name> ==
+        arity> arity> == &&
+        namespace> namespace> == &&
+    }
+    def <> [ QName QName -- Bool ] { == not }
+    def <  [ +Mirth QName QName -- +Mirth Bool ] { compare lt? }
+    def <= [ +Mirth QName QName -- +Mirth Bool ] { compare le? }
+    def >  [ +Mirth QName QName -- +Mirth Bool ] { compare gt? }
+    def >= [ +Mirth QName QName -- +Mirth Bool ] { compare ge? }
+    def compare [ +Mirth QName QName -- +Mirth Comparison ] {
+        /QName /QName
+        arity> arity>
+        name> >Str name> >Str
+        namespace> namespace>
+        compare dup eq? if(
+            drop compare dup eq? if(
+                drop compare,
+                dip:drop2
+            ),
+            dip:drop4
+        )
+    }
 
-def(QName.==, QName QName -- Bool,
-    /MKQNAME /MKQNAME
-    name> name> ==
-    arity> arity> == &&
-    namespace> namespace> == &&)
+    def def-hard? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs lookup(qname-hard ==) }
+    def defined-hard? [ +Mirth QName -- +Mirth Bool ] { def-hard? some? }
+    def undefined-hard? [ +Mirth QName -- +Mirth Bool ] { def-hard? none? }
 
-def(QName.<=, +Mirth QName QName -- +Mirth Bool, compare le?)
-def(QName.>=, +Mirth QName QName -- +Mirth Bool, compare ge?)
-def(QName.<, +Mirth QName QName -- +Mirth Bool,  compare lt?)
-def(QName.>, +Mirth QName QName -- +Mirth Bool,  compare gt?)
-def(QName.<>, +Mirth QName QName -- +Mirth Bool, compare ne?)
-def(QName.compare, +Mirth QName QName -- +Mirth Comparison,
-    /MKQNAME /MKQNAME
-    arity> arity>
-    name> >Str name> >Str
-    namespace> namespace>
-    compare dup eq? if(
-        drop compare dup eq? if(
-            drop compare,
-            dip:drop2
-        ),
-        dip:drop4
-    ))
+    def def-soft? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs dip(Some) lookup(qname-soft ==) }
+    def defined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? some? }
+    def undefined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? none? }
 
-def(QName.def-hard?, +Mirth QName -- +Mirth Maybe(Def), dup name defs lookup(qname-hard ==))
-def(QName.defined-hard?, +Mirth QName -- +Mirth Bool, def-hard? some?)
-def(QName.undefined-hard?, +Mirth QName -- +Mirth Bool, def-hard? none?)
+    def QName.Prim [ +Mirth Str Int -- +Mirth QName ] {
+        >arity
+        >Name >name
+        Namespace.Prim >namespace
+        QName
+    }
 
-def(QName.def-soft?, +Mirth QName -- +Mirth Maybe(Def), dup name defs dip(Some) lookup(qname-soft ==))
-def(QName.defined-soft?, +Mirth QName -- +Mirth Bool, def-soft? some?)
-def(QName.undefined-soft?, +Mirth QName -- +Mirth Bool, def-soft? none?)
+    def QName.>Str [ +Mirth QName -- +Mirth Str ] {
+        /QName
+        namespace> >Str "." cat
+        name> >Str cat
+        arity> dup 0= if(drop, dip:"/" show cat cat)
+    }
 
-def(QName.prim, +Mirth Str Int -- +Mirth QName,
-    >arity
-    >Name >name
-    Namespace.prim >namespace
-    MKQNAME)
-
-def(QName.>Str, +Mirth QName -- +Mirth Str, MKQNAME ->
-    namespace> >Str "." cat
-    name> >Str cat
-    arity> dup 0= if(drop, dip:"/" show cat cat))
-
-def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
-    dup namespace match(
-        NAMESPACE_PACKAGE ->
-            dup path-or-search
-            unwrap("No path defined for package "
-                swap name >Str fatal-error!)
-        	nip swap name >Str ".mth" cat >Path join,
-        _ -> drop "expected module name in QName.to-module-path" fatal-error!
-    ))
-def(QName.mangled, +Mirth QName -- +Mirth Str, MKQNAME ->
-    namespace> mangled "_" cat
-    name> mangled cat
-    arity> dup 0> if(dip:"_" show cat cat, drop))
+    def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
+        dup namespace match(
+            NAMESPACE_PACKAGE ->
+                dup path-or-search
+                unwrap("No path defined for package "
+                    swap name >Str fatal-error!)
+                nip swap name >Str ".mth" cat >Path join,
+            _ -> drop "expected module name in QName.to-module-path" fatal-error!
+        ))
+    def(QName.mangled, +Mirth QName -- +Mirth Str, QName ->
+        namespace> mangled "_" cat
+        name> mangled cat
+        arity> dup 0> if(dip:"_" show cat cat, drop))
+}
 
 ###############
 # Dotted Name #
 ###############
 
-data(DName, DName -> Maybe(Name) List+(Name))
-def(DName.root?, DName -- Maybe(Name), DName -> drop)
-def(DName.parts, DName -- List+(Name), DName -> nip)
-
-def(DName.last-name, DName -- Name, parts last)
-def(DName.penultimate-name?, DName -- Maybe(Name),
-    DName -> unsnoc drop last match(
-        Some -> nip Some,
-        None -> id
-    ))
-def(DName.is-relative?, DName -- Bool, root? none?)
+struct DName {
+    Maybe(Name) List+(Name)
+    --
+    def root? [ DName -- Maybe(Name) ] { /DName drop }
+    def parts [ DName -- List+(Name) ] { /DName nip }
+    def last-name [ DName -- Name ] { parts last }
+    def penultimate-name? [ DName -- Maybe(Name) ] {
+        /DName unsnoc drop last if-some(
+            nip Some,
+            id
+        )
+    }
+    def is-relative? { root? none? }
+}

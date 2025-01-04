@@ -88,15 +88,15 @@ def Type.tycon? [ Type -- Maybe(Tycon) ] {
 
 ||| Get primitive type constructor name.
 def PrimType.tycon-qname [ +Mirth PrimType -- +Mirth QName ] {
-    { PRIM_TYPE_TYPE -> "TYPE" 0 QName.prim }
-    { PRIM_TYPE_STACK -> "STACK" 0 QName.prim }
-    { PRIM_TYPE_RESOURCE -> "Resource" 0 QName.prim }
-    { PRIM_TYPE_INT -> "Int" 0 QName.prim }
-    { PRIM_TYPE_F32 -> "F32" 0 QName.prim }
-    { PRIM_TYPE_F64 -> "F64" 0 QName.prim }
-    { PRIM_TYPE_STR -> "Str" 0 QName.prim }
-    { PRIM_TYPE_PTR -> "Ptr" 0 QName.prim }
-    { PRIM_TYPE_WORLD -> "+World" 0 QName.prim }
+    { PRIM_TYPE_TYPE -> "TYPE" 0 QName.Prim }
+    { PRIM_TYPE_STACK -> "STACK" 0 QName.Prim }
+    { PRIM_TYPE_RESOURCE -> "Resource" 0 QName.Prim }
+    { PRIM_TYPE_INT -> "Int" 0 QName.Prim }
+    { PRIM_TYPE_F32 -> "F32" 0 QName.Prim }
+    { PRIM_TYPE_F64 -> "F64" 0 QName.Prim }
+    { PRIM_TYPE_STR -> "Str" 0 QName.Prim }
+    { PRIM_TYPE_PTR -> "Ptr" 0 QName.Prim }
+    { PRIM_TYPE_WORLD -> "+World" 0 QName.Prim }
 }
 
 ||| Get value type constructor name.

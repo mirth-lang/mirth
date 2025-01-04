@@ -84,7 +84,7 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
     typecheck-everything!
 
     entry-point> map(
-        dip(dup NAMESPACE_MODULE) >Name QNAME0
+        dip(dup NAMESPACE_MODULE) >Name 0 QName.Mk
         elab-entry-point
     ) nip
 

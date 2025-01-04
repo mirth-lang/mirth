@@ -38,146 +38,147 @@ import(mirth.label)
 ####################
 
 struct +TypeElab {
-    ctx:Ctx token:Token
+    ctx:Ctx
+    token:Token
     allow-type-holes:Bool
     allow-implicit-type-vars:Bool
-}
+    --
+    def rdrop [ +TypeElab -- ] {
+        /+TypeElab
+        ctx> token> drop2
+        allow-type-holes> drop
+        allow-implicit-type-vars> drop
+    }
 
-def +TypeElab.type-sig-start! [ Token -- +TypeElab ] {
-    >token
-    Ctx.L0 >ctx
-    False >allow-type-holes
-    True >allow-implicit-type-vars
-    +TypeElab
-}
+    def type-sig-start! [ Token -- +TypeElab ] {
+        >token
+        Ctx.L0 >ctx
+        False >allow-type-holes
+        True >allow-implicit-type-vars
+        +TypeElab
+    }
 
-def +TypeElab.rdrop [ +TypeElab -- ] {
-    /+TypeElab
-    ctx> token> drop2
-    allow-type-holes> drop
-    allow-implicit-type-vars> drop
-}
+    def elab-type-sig! [ +Mirth +TypeElab -- +Mirth +TypeElab ArrowType ] {
+        token run-end? then(token "expected type signature" rdip:emit-error!)
+        elab-type-sig-params!
+        elab-stack-type!
+        token sig-dashes? if(token:succ elab-stack-type!, dip:T0)
+        token run-end? else(token "expected right paren or comma" rdip:emit-error!)
+        dip(swap for(T*)) T->
+    }
 
-def +TypeElab.elab-type-sig! [ +Mirth +TypeElab -- +Mirth +TypeElab ArrowType ] {
-    token run-end? then(token "expected type signature" rdip:emit-error!)
-    elab-type-sig-params!
-    elab-stack-type!
-    token sig-dashes? if(token:succ elab-stack-type!, dip:T0)
-    token run-end? else(token "expected right paren or comma" rdip:emit-error!)
-    dip(swap for(T*)) T->
-}
-
-def +TypeElab.elab-type-sig-params! [ +Mirth +TypeElab -- +Mirth +TypeElab List(Type) ] {
-    token lparen? if(
-        token next
-        token args map(token! elab-type-sig! TMorphism)
-        dip:token!,
-        List.L0
-    )
-}
-
-def +TypeElab.elab-stack-type! [ +Mirth +TypeElab -- +Mirth +TypeElab StackType ] {
-    token sig-stack-var? if-some(elab-stack-type-var!, T0)
-    elab-stack-type-parts!
-}
-
-def +TypeElab.elab-stack-type-parts! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab StackType ] {
-    while(token sig-stack-end? not, elab-stack-type-part! cons)
-}
-
-def +TypeElab.elab-type-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Type ] {
-    token elab-stack-type-part!
-    match(
-        STPCons -> nip,
-        STPConsLabel -> drop2 "Expected type, not label." rdip:emit-error! TYPE_ERROR,
-        STPWith -> drop "Expected type, not resource." rdip:emit-error! TYPE_ERROR,
-        STPWithLabel -> drop2 "Expected type, not labelled resource." rdip:emit-error! TYPE_ERROR,
-    )
-    token arg-end? else(
-        token "Unexpected token after type." rdip:emit-error!
-    )
-}
-
-def +TypeElab.elab-resource-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Resource ] {
-    token elab-stack-type-part!
-    match(
-        STPCons -> drop "Expected resource, not type." rdip:emit-error! TYPE_ERROR Resource,
-        STPConsLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR Resource,
-        STPWith -> nip,
-        STPWithLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR Resource,
-    )
-    token arg-end? else(
-        token "Unexpected token after resource." rdip:emit-error!
-    )
-}
-
-def +TypeElab.elab-stack-type-part! [ +Mirth +TypeElab -- +Mirth +TypeElab StackTypePart ] {
-    token sig-label? if-some(
-        elab-stack-label!,
-
-    token sig-type-var? if-some(
-        elab-type-var! STPCons,
-
-    token sig-type-con? if-some(
-        elab-type-con! STPCons,
-
-    token sig-resource-var? if-some(
-        elab-resource-var! STPWith,
-
-    token sig-resource-con? if-some(
-        elab-resource-con! STPWith,
-
-    token pat-underscore? if(
-        elab-type-dont-care! STPCons,
-
-    token sig-type-hole? if-some(
-        elab-type-hole! STPCons,
-
-    token lsquare? .if(
-        elab-type-quote! STPCons,
-
-        token "Expected type, got unknown token." rdip:emit-error!
-        token:next TYPE_ERROR STPCons
-    ))))))))
-}
-
-def +TypeElab.elab-stack-label! [ +Mirth +TypeElab Label -- +Mirth +TypeElab StackTypePart ] {
-    token next dip(
-        token:args-1 dup is-resource-label? if(
-            elab-resource-arg! swap STPWithLabel,
-            elab-type-arg! swap STPConsLabel
+    def elab-type-sig-params! [ +Mirth +TypeElab -- +Mirth +TypeElab List(Type) ] {
+        token lparen? if(
+            token next
+            token args map(token! elab-type-sig! TMorphism)
+            dip:token!,
+            List.L0
         )
-    ) token!
-}
+    }
 
-def +TypeElab.elab-stack-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab StackType ] {
-    TYPE_STACK elab-implicit-var! if-some(STVar, STACK_TYPE_ERROR)
-}
+    def elab-stack-type! [ +Mirth +TypeElab -- +Mirth +TypeElab StackType ] {
+        token sig-stack-var? if-some(elab-stack-type-var!, T0)
+        elab-stack-type-parts!
+    }
 
-def +TypeElab.elab-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Type ] {
-    TYPE_TYPE elab-implicit-var! if-some(TVar, TYPE_ERROR)
-}
+    def elab-stack-type-parts! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab StackType ] {
+        while(token sig-stack-end? not, elab-stack-type-part! cons)
+    }
 
-def +TypeElab.elab-resource-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Resource ] {
-    TYPE_RESOURCE elab-implicit-var! if-some(TVar, TYPE_ERROR) Resource
-}
+    def elab-type-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Type ] {
+        token elab-stack-type-part!
+        match(
+            STPCons -> nip,
+            STPConsLabel -> drop2 "Expected type, not label." rdip:emit-error! TYPE_ERROR,
+            STPWith -> drop "Expected type, not resource." rdip:emit-error! TYPE_ERROR,
+            STPWithLabel -> drop2 "Expected type, not labelled resource." rdip:emit-error! TYPE_ERROR,
+        )
+        token arg-end? else(
+            token "Unexpected token after type." rdip:emit-error!
+        )
+    }
 
-def +TypeElab.gamma(f) [ (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab ] {
-    token rdip(>token +Gamma f rdrop)
-}
+    def elab-resource-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Resource ] {
+        token elab-stack-type-part!
+        match(
+            STPCons -> drop "Expected resource, not type." rdip:emit-error! TYPE_ERROR Resource,
+            STPConsLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR Resource,
+            STPWith -> nip,
+            STPWithLabel -> drop2 "Expected resource, not label." rdip:emit-error! TYPE_ERROR Resource,
+        )
+        token arg-end? else(
+            token "Unexpected token after resource." rdip:emit-error!
+        )
+    }
 
-def +TypeElab.elab-implicit-var! [ +Mirth +TypeElab Name Type -- +Mirth +TypeElab Maybe(Var) ] {
-    over ctx lookup match(
-        Some -> sip(dip:nip type gamma:unify! drop) Some,
-        None ->
-            allow-implicit-type-vars if(
-                swap Var.new! ctx(over Ctx.new) Some,
-                token "Implicit type variable not allowed here." rdip:emit-error!
-                drop2 None
+    def elab-stack-type-part! [ +Mirth +TypeElab -- +Mirth +TypeElab StackTypePart ] {
+        token sig-label? if-some(
+            elab-stack-label!,
+
+        token sig-type-var? if-some(
+            elab-type-var! STPCons,
+
+        token sig-type-con? if-some(
+            elab-type-con! STPCons,
+
+        token sig-resource-var? if-some(
+            elab-resource-var! STPWith,
+
+        token sig-resource-con? if-some(
+            elab-resource-con! STPWith,
+
+        token pat-underscore? if(
+            elab-type-dont-care! STPCons,
+
+        token sig-type-hole? if-some(
+            elab-type-hole! STPCons,
+
+        token lsquare? .if(
+            elab-type-quote! STPCons,
+
+            token "Expected type, got unknown token." rdip:emit-error!
+            token:next TYPE_ERROR STPCons
+        ))))))))
+    }
+
+    def elab-stack-label! [ +Mirth +TypeElab Label -- +Mirth +TypeElab StackTypePart ] {
+        token next dip(
+            token:args-1 dup is-resource-label? if(
+                elab-resource-arg! swap STPWithLabel,
+                elab-type-arg! swap STPConsLabel
             )
-    )
-    token rdip:args-0
-    token:succ
+        ) token!
+    }
+
+    def elab-stack-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab StackType ] {
+        TYPE_STACK elab-implicit-var! if-some(STVar, STACK_TYPE_ERROR)
+    }
+
+    def elab-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Type ] {
+        TYPE_TYPE elab-implicit-var! if-some(TVar, TYPE_ERROR)
+    }
+
+    def elab-resource-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Resource ] {
+        TYPE_RESOURCE elab-implicit-var! if-some(TVar, TYPE_ERROR) Resource
+    }
+
+    def gamma(f) [ (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab ] {
+        token rdip(>token +Gamma f rdrop)
+    }
+
+    def elab-implicit-var! [ +Mirth +TypeElab Name Type -- +Mirth +TypeElab Maybe(Var) ] {
+        over ctx lookup match(
+            Some -> sip(dip:nip type gamma:unify! drop) Some,
+            None ->
+                allow-implicit-type-vars if(
+                    swap Var.new! ctx(over Ctx.new) Some,
+                    token "Implicit type variable not allowed here." rdip:emit-error!
+                    drop2 None
+                )
+        )
+        token rdip:args-0
+        token:succ
+    }
 }
 
 def show-num-arguments [ Int -- Str ] {
@@ -1282,7 +1283,7 @@ def elab-module-package-name [ Token +Mirth -- Package Name +Mirth ] {
 }
 
 def elab-module-qname [ +Mirth Token -- +Mirth QName ] {
-    elab-module-package-name dip(NAMESPACE_PACKAGE) QNAME0
+    elab-module-package-name dip(NAMESPACE_PACKAGE) 0 QName.Mk
 }
 
 ||| Check that the `module(M)` statement exists and save the name.
@@ -2220,7 +2221,7 @@ def typecheck-everything! [ +Mirth -- +Mirth ] {
 #########
 
 def table-qname [ Table Str Int -- QName ] {
-    >arity >Name >name TYCON_TABLE NAMESPACE_TYCON >namespace MKQNAME
+    >arity >Name >name TYCON_TABLE NAMESPACE_TYCON >namespace QName
 }
 
 def table-word-new! [ +Mirth Table Str Nat -- +Mirth Word ] {
@@ -2408,7 +2409,7 @@ def elab-qname-from-nonrelative-dname [ +Mirth Token DName arity:Int -- +Mirth Q
     dup root? else(drop "relative name not allowed" emit-fatal-error!)
     last-name >name
     dup resolve-def-namespace unwrap(panic-diagnostics!) >namespace
-    drop MKQNAME
+    drop QName
 }
 
 def module-visible-from-token? [ Token Module -- Bool ] {
@@ -2432,7 +2433,7 @@ def elab-def-qname [ +Mirth Token -- +Mirth QName ] {
     dup args dup has(is-default-param?) if(drop -1, len >Int) >arity
     dup name/dname? unwrap("expected name" emit-fatal-error!)
     match(
-        Left -> >name defining-namespace-or-error >namespace MKQNAME,
+        Left -> >name defining-namespace-or-error >namespace QName,
         Right -> elab-qname-from-nonrelative-dname
     )
 }

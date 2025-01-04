@@ -50,7 +50,7 @@ def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
 
     @params len >Int dup @data ~arity !
     @name >Name @data ~name !
-    name> swap QName.prim @data DataQName prop @data ~qname !
+    name> swap QName.Prim @data DataQName prop @data ~qname !
     ctype> @data DataCType prop @data ~ctype? !
 
     @tags for(@data swap ~data !)
@@ -132,7 +132,7 @@ def(init-data!, +Mirth -- +Mirth,
     "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-intlike!)
 
 def(data-qname, Data Name Int -- QName,
-    >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
+    >arity >name TYCON_DATA NAMESPACE_TYCON >namespace QName)
 
 def(data-word-qname, Data Str Nat -- QName,
     dip(>Name) >Int data-qname)
