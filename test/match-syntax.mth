@@ -13,7 +13,7 @@ def List.mysum {
 def List.very-slow-reverse {
     match {
         { Nil -> Nil }
-        { Cons -> swap dip(very-slow-reverse) List.snoc }
+        { Cons -> swap dip(very-slow-reverse) List.Snoc }
     }
 }
 
