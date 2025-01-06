@@ -4414,24 +4414,24 @@ static VAL mw_std_list_List_1_ZToListZPlusZAsk (VAL in_List_1);
 static int64_t mw_std_list_List_1_len (VAL in_List_1);
 static TUP* mw_std_list_List_1_cons (VAL in_t_1, VAL in_List_2);
 static VAL mw_std_list_List_1_uncons (VAL in_List_1, VAL *out_List_3);
+static VAL mw_std_list_List_1_Snoc (VAL in_List_1, VAL in_t_2);
+static TUP* mw_std_list_List_1_snoc (VAL in_List_1, VAL in_t_2);
+static VAL mw_std_list_List_1_unsnoc (VAL in_List_1, VAL *out_Maybe_3);
+static VAL mw_std_list_List_1_cat (VAL in_List_1, VAL in_List_2);
+static VAL mw_std_list_List_1_tail (VAL in_List_1);
+static VAL mw_std_list_List_1_first (VAL in_List_1);
+static VAL mw_std_list_List_1_last (VAL in_List_1);
+static VAL mw_std_list_List_1_dropZ_slice (int64_t in_Nat_1, VAL in_List_2);
+static VAL mw_std_list_List_1_reverse (VAL in_List_1);
 static TUP* mw_std_list_ListZPlus_1_L1 (VAL in_t_1);
 static VAL mw_std_list_ListZPlus_1_singleZAsk (TUP* in_ListZPlus_1);
 static VAL mw_std_list_ListZPlus_1_ZToList (TUP* in_ListZPlus_1);
 static VAL mw_std_list_ListZPlus_1_ZToL2ZAsk (TUP* in_ListZPlus_1);
 static TUP* mw_std_list_ListZPlus_1_cons (VAL in_t_1, TUP* in_ListZPlus_2);
 static VAL mw_std_list_ListZPlus_1_uncons (TUP* in_ListZPlus_1, VAL *out_List_3);
-static TUP* mw_std_list_List_1_snoc (VAL in_List_1, VAL in_t_2);
-static VAL mw_std_list_List_1_Snoc (VAL in_List_1, VAL in_t_2);
-static VAL mw_std_list_List_1_unsnoc (VAL in_List_1, VAL *out_Maybe_3);
 static VAL mw_std_list_ListZPlus_1_unsnoc (TUP* in_ListZPlus_1, VAL *out_t_3);
-static VAL mw_std_list_List_1_cat (VAL in_List_1, VAL in_List_2);
-static VAL mw_std_list_List_1_first (VAL in_List_1);
-static VAL mw_std_list_List_1_last (VAL in_List_1);
 static VAL mw_std_list_ListZPlus_1_first (TUP* in_ListZPlus_1);
 static VAL mw_std_list_ListZPlus_1_last (TUP* in_ListZPlus_1);
-static VAL mw_std_list_List_1_tail (VAL in_List_1);
-static VAL mw_std_list_List_1_dropZ_slice (int64_t in_Nat_1, VAL in_List_2);
-static VAL mw_std_list_List_1_reverse (VAL in_List_1);
 static TUP* mw_std_list_ListZPlus_1_reverse (TUP* in_ListZPlus_1);
 static VAL mw_std_prim_Int_range (int64_t in_Int_1, int64_t in_Int_2);
 static VAL mw_std_maybe_Maybe_1_ZToList (VAL in_Maybe_1);
@@ -7108,6 +7108,135 @@ static VAL mw_std_list_List_1_uncons (VAL in_List_1, VAL *out_List_3) {
 	*out_List_3 = branch_List_5;
 	return branch_Maybe_4;
 }
+static VAL mw_std_list_List_1_Snoc (VAL in_List_1, VAL in_t_2) {
+	VAL v4 = mw_std_list_List_1_reverse(in_List_1);
+	VAL v5 = mtw_std_list_List_1_Cons(in_t_2, v4);
+	VAL v6 = mw_std_list_List_1_reverse(v5);
+	return v6;
+}
+static TUP* mw_std_list_List_1_snoc (VAL in_List_1, VAL in_t_2) {
+	VAL v4 = mw_std_list_List_1_reverse(in_List_1);
+	TUP* v5 = mw_std_list_List_1_cons(in_t_2, v4);
+	TUP* v6 = mw_std_list_ListZPlus_1_reverse(v5);
+	return v6;
+}
+static VAL mw_std_list_List_1_unsnoc (VAL in_List_1, VAL *out_Maybe_3) {
+	VAL v4 = mw_std_list_List_1_reverse(in_List_1);
+	VAL v5;
+	VAL v6 = mw_std_list_List_1_uncons(v4, &v5);
+	VAL v7 = mw_std_list_List_1_reverse(v5);
+	*out_Maybe_3 = v6;
+	return v7;
+}
+static VAL mw_std_list_List_1_cat (VAL in_List_1, VAL in_List_2) {
+	VAL branch_List_4;
+	switch (get_data_tag(in_List_2)) {
+		case 0LL: { // Nil
+			branch_List_4 = in_List_1;
+		} break;
+		default: {
+			VAL v5 = mw_std_list_List_1_reverse(in_List_1);
+			VAL v6 = mw_std_list_List_1_for_1_sp1(in_List_2, v5);
+			branch_List_4 = v6;
+		} break;
+	}
+	return branch_List_4;
+}
+static VAL mw_std_list_List_1_tail (VAL in_List_1) {
+	VAL branch_List_3;
+	switch (get_data_tag(in_List_1)) {
+		case 0LL: { // Nil
+			VAL v4 = MKI64(0LL /* Nil */);
+			branch_List_3 = v4;
+		} break;
+		case 1LL: { // Cons
+			VAL v5;
+			VAL v6 = mtp_std_list_List_1_Cons(in_List_1, &v5);
+			decref(v6);
+			branch_List_3 = v5;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_List_3;
+}
+static VAL mw_std_list_List_1_first (VAL in_List_1) {
+	VAL v3 = mw_std_list_List_1_ZToListZPlusZAsk(in_List_1);
+	VAL branch_Maybe_4;
+	switch (get_data_tag(v3)) {
+		case 1LL: { // Some
+			VAL v5 = mtp_std_maybe_Maybe_1_Some(v3);
+			VAL v6 = VTUP(v5)->cells[0];
+			incref(v6);
+			decref(v5);
+			VAL v7 = mtw_std_maybe_Maybe_1_Some(v6);
+			branch_Maybe_4 = v7;
+		} break;
+		case 0LL: { // None
+			VAL v8 = MKI64(0LL /* None */);
+			branch_Maybe_4 = v8;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_Maybe_4;
+}
+static VAL mw_std_list_List_1_last (VAL in_List_1) {
+	VAL v3 = mw_std_list_List_1_ZToListZPlusZAsk(in_List_1);
+	VAL branch_Maybe_4;
+	switch (get_data_tag(v3)) {
+		case 1LL: { // Some
+			VAL v5 = mtp_std_maybe_Maybe_1_Some(v3);
+			VAL v6 = mw_std_list_ListZPlus_1_last(value_tup(v5, 2));
+			VAL v7 = mtw_std_maybe_Maybe_1_Some(v6);
+			branch_Maybe_4 = v7;
+		} break;
+		case 0LL: { // None
+			VAL v8 = MKI64(0LL /* None */);
+			branch_Maybe_4 = v8;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_Maybe_4;
+}
+static VAL mw_std_list_List_1_dropZ_slice (int64_t in_Nat_1, VAL in_List_2) {
+	int64_t v4 = 0LL;
+	bool v5 = (in_Nat_1 > v4);
+	VAL v6 = in_List_2;
+	int64_t v7 = in_Nat_1;
+	bool v8 = v5;
+	while (v8) {
+		VAL v9 = v6;
+		int64_t v10 = v7;
+		VAL v11 = mw_std_list_List_1_tail(v9);
+		int64_t v12 = 1LL;
+		int64_t v13 = i64_sub(v10, v12);
+		int64_t v14 = 0LL;
+		bool v15 = (v13 < v14);
+		int64_t branch_Nat_16;
+		if (v15) {
+			int64_t v17 = 0LL;
+			branch_Nat_16 = v17;
+		} else {
+			branch_Nat_16 = v13;
+		}
+		int64_t v18 = 0LL;
+		bool v19 = (branch_Nat_16 > v18);
+		v8 = v19;
+		v7 = branch_Nat_16;
+		v6 = v11;
+	}
+	return v6;
+}
+static VAL mw_std_list_List_1_reverse (VAL in_List_1) {
+	VAL v3 = MKI64(0LL /* Nil */);
+	VAL v4 = mw_std_list_List_1_for_1_sp1(v3, in_List_1);
+	return v4;
+}
 static TUP* mw_std_list_ListZPlus_1_L1 (VAL in_t_1) {
 	VAL v3 = mw_std_list_List_1_L0();
 	TUP* v4 = mtw_std_list_ListZPlus_1_ListZPlus(in_t_1, v3);
@@ -7153,26 +7282,6 @@ static VAL mw_std_list_ListZPlus_1_uncons (TUP* in_ListZPlus_1, VAL *out_List_3)
 	*out_List_3 = v5;
 	return v4;
 }
-static TUP* mw_std_list_List_1_snoc (VAL in_List_1, VAL in_t_2) {
-	VAL v4 = mw_std_list_List_1_reverse(in_List_1);
-	TUP* v5 = mw_std_list_List_1_cons(in_t_2, v4);
-	TUP* v6 = mw_std_list_ListZPlus_1_reverse(v5);
-	return v6;
-}
-static VAL mw_std_list_List_1_Snoc (VAL in_List_1, VAL in_t_2) {
-	VAL v4 = mw_std_list_List_1_reverse(in_List_1);
-	VAL v5 = mtw_std_list_List_1_Cons(in_t_2, v4);
-	VAL v6 = mw_std_list_List_1_reverse(v5);
-	return v6;
-}
-static VAL mw_std_list_List_1_unsnoc (VAL in_List_1, VAL *out_Maybe_3) {
-	VAL v4 = mw_std_list_List_1_reverse(in_List_1);
-	VAL v5;
-	VAL v6 = mw_std_list_List_1_uncons(v4, &v5);
-	VAL v7 = mw_std_list_List_1_reverse(v5);
-	*out_Maybe_3 = v6;
-	return v7;
-}
 static VAL mw_std_list_ListZPlus_1_unsnoc (TUP* in_ListZPlus_1, VAL *out_t_3) {
 	TUP* v4 = mw_std_list_ListZPlus_1_reverse(in_ListZPlus_1);
 	VAL v5;
@@ -7180,62 +7289,6 @@ static VAL mw_std_list_ListZPlus_1_unsnoc (TUP* in_ListZPlus_1, VAL *out_t_3) {
 	VAL v7 = mw_std_list_List_1_reverse(v5);
 	*out_t_3 = v6;
 	return v7;
-}
-static VAL mw_std_list_List_1_cat (VAL in_List_1, VAL in_List_2) {
-	VAL branch_List_4;
-	switch (get_data_tag(in_List_2)) {
-		case 0LL: { // Nil
-			branch_List_4 = in_List_1;
-		} break;
-		default: {
-			VAL v5 = mw_std_list_List_1_reverse(in_List_1);
-			VAL v6 = mw_std_list_List_1_for_1_sp1(in_List_2, v5);
-			branch_List_4 = v6;
-		} break;
-	}
-	return branch_List_4;
-}
-static VAL mw_std_list_List_1_first (VAL in_List_1) {
-	VAL v3 = mw_std_list_List_1_ZToListZPlusZAsk(in_List_1);
-	VAL branch_Maybe_4;
-	switch (get_data_tag(v3)) {
-		case 1LL: { // Some
-			VAL v5 = mtp_std_maybe_Maybe_1_Some(v3);
-			VAL v6 = VTUP(v5)->cells[0];
-			incref(v6);
-			decref(v5);
-			VAL v7 = mtw_std_maybe_Maybe_1_Some(v6);
-			branch_Maybe_4 = v7;
-		} break;
-		case 0LL: { // None
-			VAL v8 = MKI64(0LL /* None */);
-			branch_Maybe_4 = v8;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	return branch_Maybe_4;
-}
-static VAL mw_std_list_List_1_last (VAL in_List_1) {
-	VAL v3 = mw_std_list_List_1_ZToListZPlusZAsk(in_List_1);
-	VAL branch_Maybe_4;
-	switch (get_data_tag(v3)) {
-		case 1LL: { // Some
-			VAL v5 = mtp_std_maybe_Maybe_1_Some(v3);
-			VAL v6 = mw_std_list_ListZPlus_1_last(value_tup(v5, 2));
-			VAL v7 = mtw_std_maybe_Maybe_1_Some(v6);
-			branch_Maybe_4 = v7;
-		} break;
-		case 0LL: { // None
-			VAL v8 = MKI64(0LL /* None */);
-			branch_Maybe_4 = v8;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	return branch_Maybe_4;
 }
 static VAL mw_std_list_ListZPlus_1_first (TUP* in_ListZPlus_1) {
 	VAL v3 = in_ListZPlus_1->cells[0];
@@ -7286,59 +7339,6 @@ static VAL mw_std_list_ListZPlus_1_last (TUP* in_ListZPlus_1) {
 	}
 	decref(v7);
 	return v6;
-}
-static VAL mw_std_list_List_1_tail (VAL in_List_1) {
-	VAL branch_List_3;
-	switch (get_data_tag(in_List_1)) {
-		case 0LL: { // Nil
-			VAL v4 = MKI64(0LL /* Nil */);
-			branch_List_3 = v4;
-		} break;
-		case 1LL: { // Cons
-			VAL v5;
-			VAL v6 = mtp_std_list_List_1_Cons(in_List_1, &v5);
-			decref(v6);
-			branch_List_3 = v5;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	return branch_List_3;
-}
-static VAL mw_std_list_List_1_dropZ_slice (int64_t in_Nat_1, VAL in_List_2) {
-	int64_t v4 = 0LL;
-	bool v5 = (in_Nat_1 > v4);
-	VAL v6 = in_List_2;
-	int64_t v7 = in_Nat_1;
-	bool v8 = v5;
-	while (v8) {
-		VAL v9 = v6;
-		int64_t v10 = v7;
-		VAL v11 = mw_std_list_List_1_tail(v9);
-		int64_t v12 = 1LL;
-		int64_t v13 = i64_sub(v10, v12);
-		int64_t v14 = 0LL;
-		bool v15 = (v13 < v14);
-		int64_t branch_Nat_16;
-		if (v15) {
-			int64_t v17 = 0LL;
-			branch_Nat_16 = v17;
-		} else {
-			branch_Nat_16 = v13;
-		}
-		int64_t v18 = 0LL;
-		bool v19 = (branch_Nat_16 > v18);
-		v8 = v19;
-		v7 = branch_Nat_16;
-		v6 = v11;
-	}
-	return v6;
-}
-static VAL mw_std_list_List_1_reverse (VAL in_List_1) {
-	VAL v3 = MKI64(0LL /* Nil */);
-	VAL v4 = mw_std_list_List_1_for_1_sp1(v3, in_List_1);
-	return v4;
 }
 static TUP* mw_std_list_ListZPlus_1_reverse (TUP* in_ListZPlus_1) {
 	VAL v3;

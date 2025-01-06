@@ -34,7 +34,207 @@ data List(t) {
         { Nil -> None Nil }
         { Cons -> dip(Some) }
     }
+
+    def Snoc [ List(t) t -- List(t) ] { swap reverse Cons reverse }
+    def snoc [ List(t) t -- List+(t) ] { swap reverse cons reverse }
+    def unsnoc [ List(t) -- List(t) Maybe(t) ] { reverse uncons reverse swap }
+
+    def cat [ List(t) List(t) -- List(t) ] {
+        { Nil -> id }
+        { _ -> swap reverse-for(swap Cons) }
+    }
+    def cat+ [ List+(t) List(t) -- List+(t) ] {
+        dip(uncons) cat cons
+    }
+
+    def head [ List(x) -- Maybe(x) ] {
+        { Nil -> None }
+        { Cons -> drop Some }
+    }
+    def tail [ List(x) -- List(x) ] {
+        { Nil -> Nil }
+        { Cons -> nip }
+    }
+    def first [ List(t) -- Maybe(t) ] { >List+? map(head) }
+    def last  [ List(t) -- Maybe(t) ] { >List+? map(last) }
+
+    def drop-slice [ Nat List(x) -- List(x) ] { swap repeat(tail) }
+
+    ||| Reverse the list.
+    def reverse [ List(a) -- List(a) ] {
+        Nil swap for(swap Cons)
+    }
+
+    ||| Transform each element of the list.
+    def map(f) [ (*c a -- *c b) *c List(a) -- *c List(b) ] {
+        LIST(for(rdip(f) ;))
+    }
+
+   def if-cons(f,g) [ (*a x List(x) -- *b, *a -- *b) *a List(x) -- *b ] {
+        { Cons -> f }
+        { Nil -> g }
+    }
+
+    ||| Traverse the list, left to right.
+    def for(f) [ (*c a -- *c) *c List(a) -- *c ] {
+        while(if-cons(dip(f) True, Nil False)) drop
+    }
+
+    ||| Traverse the list, right to left.
+    def reverse-for(f) [ (*c a -- *c) *c List(a) -- *c ] {
+        reverse for(f)
+    }
+
+    ||| Traverse the list, left to right, with an action between each item.
+    def for(f,g) [ (*a t -- *a, *a -- *a) *a List(t) -- *a ] {
+        uncons dip:for(f) for(dip(g) f)
+    }
+
+    ||| Reduce a list via binary operation.
+    def fold(g) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a) ] {
+        >List+? map(fold(g))
+    }
+
+    ||| Sum together a list of numbers.
+    def sum(g {+}) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a)] {
+        fold(g)
+    }
+
+    ||| Multiply together a list of numbers.
+    def product(g {*}) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a)] {
+        fold(g)
+    }
+
+    ||| Filter away any list elements that don't satisfy the predicate.
+    def filter(f) [ (*c a -- *c Bool) *c List(a) -- *c List(a) ] {
+        LIST(for(dup dip:rdip(f) swap if(;, drop)))
+    }
+
+    ||| Transform each element of a list into a new list, and concatenate all these lists.
+    def flatmap(f) [ (*c a -- *c List(b)) *c List(a) -- *c List(b) ] {
+        LIST(for(rdip(f) for(;)))
+    }
+    alias(List.bind(f), List.flatmap)
+
+    ||| Map each element of a list into the [Maybe] type, and collect all of the
+    ||| [Some] results while discarding all of the [None] results.
+    def filter-some(p) [ (*c a -- *c Maybe(b)) *c List(a) -- *c List(b) ] {
+        LIST(for(rdip(p) for(;)))
+    }
+
+    ||| Find first element that returns [Some], if it exists.
+    def find-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b) ] {
+        None swap while-some(
+            uncons swap,
+            dip'(dip'(f)) match(
+                None -> id,
+                _ -> dip(drop2) Nil
+            )
+        ) drop
+    }
+
+    ||| Find last element that returns Some, if it exists.
+    def reverse-find-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b) ] {
+        reverse find-some(f)
+    }
+
+    ||| Find the first element that satisfies the predicate, if it exists.
+    def find(f) [ (*c a -- *c Bool) *c List(a) -- *c Maybe(a) ] {
+        find-some(dup dip(f) swap if(Some, drop None))
+    }
+
+    ||| Find the last element that satisfies the predicate, if it exists.
+    def reverse-find(f) [ (*c a -- *c Bool) *c List(a) -- *c Maybe(a) ] {
+        reverse-find-some(dup dip(f) swap if(Some, drop None))
+    }
+
+    ||| Is the predicate true for any element of the list?
+    def has(f) [ (*c a -- *c Bool) *c List(a) -- *c Bool ] {
+        find(f) some?
+    }
+
+    ||| Is the predicate true for all elements of the list?
+    def all(f) [ (*c a -- *c Bool) *c List(a) -- *c Bool ] {
+        find(f not) none?
+    }
+
+    ||| If the predicate matches all elements of the list, return the result. Otherwise return None.
+    def all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
+        >rest True >ok +List.+L0 while-some(
+            @rest:uncons,
+            @rest(@ok(dip2:rdip(f))) if-some(
+                ; ,
+                False !ok
+                Nil !rest
+            )
+        )
+        rest> drop
+        ok> if(freeze Some, rdrop None)
+    }
+
+    def ==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
+        True while (
+            dip(dip(uncons) uncons dip(swap) dip2(==(eq)) rotl) &&
+            over2 empty? over2 empty? && not over &&,
+            id
+        )
+        dip(drop2)
+    }
+
+    def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
+        find(over dip(p) swap) nip)
+
+    def(reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
+        reverse-find(over dip(p) swap) nip)
+
+    def(member(p {==}), (*c k a -- *c Bool) *c k List(a) -- *c Bool,
+        lookup(p) some?)
+
+    def(difference(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+        swap filter(over dip(swap member(eq) not) swap) nip)
+
+    def(union(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+        over dip(swap difference(eq)) swap cat)
+
+    def(unions(eq {==}), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
+        fold(union(eq)) unwrap(Nil))
+
+    def(map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
+        collect(uncons dip(dip:uncons swap dip:map2:f) rotl) dip:drop2)
+
+    def(take-while(p), (*a t -- *a Bool) *a List(t) -- *a List(t),
+        collect(uncons dip:filter(p) swap) nip)
+
+    def split-at(p) [ (*a t -- *a Bool) *a List(t) -- *a List(t) List(t) ] {
+        LIST(
+            while (
+                if-cons(
+                    dip:sip:rdip(p) rotl if(
+                        Cons False,
+                        dip(;) True
+                    ),
+                    Nil False
+                )
+            )
+        ) swap
+    }
+
+    def(partition-either(p), (*a t -- *a Either(t1,t2))
+            *a List(t) -- *a List(t1) List(t2),
+        Nil Nil rotl for(
+            dip'(dip'(p)) match(
+                Left -> rotr dip(Cons),
+                Right -> swap Cons
+            )
+        ) dip(reverse) reverse)
+
+    def(partition(p), (*a t -- *a Bool) *a List(t) -- *a List(t) List(t),
+        partition-either(dup dip(p) swap if(Right, Left)))
+
+    def(show;(f {show;}), (t +Str -- +Str) List(t) +Str -- +Str,
+        "LIST( " ; for(f " ; " ;) ")" ;)
 }
+
 
 struct List+(t) {
     head: t
@@ -62,250 +262,143 @@ struct List+(t) {
 
     def cons [ t List+(t) -- List+(t) ] { >List >tail >head List+ }
     def uncons [ List+(t) -- t List(t) ] { /List+ head> tail> }
-}
 
-def List+.snoc [ List+(t) t -- List+(t) ] { dip(>List) List.snoc }
-def List.snoc [ List(t) t -- List+(t) ] { swap reverse cons reverse }
-def List.Snoc [ List(t) t -- List(t) ] { swap reverse Cons reverse }
+    def snoc [ List+(t) t -- List+(t) ] { dip(>List) List.snoc }
+    def unsnoc [ List+(t) -- List(t) t ] { reverse uncons reverse swap }
 
-def List.unsnoc [ List(t) -- List(t) Maybe(t) ] { reverse uncons reverse swap }
-def List+.unsnoc [ List+(t) -- List(t) t ] { reverse uncons reverse swap }
+    def cat  [ List(t) List+(t) -- List+(t) ] { swap reverse-for(swap cons) }
+    def cat+ [ List+(t) List+(t) -- List+(t) ] { >List cat+ }
 
-def List.cat [ List(t) List(t) -- List(t) ] {
-    { Nil -> id }
-    { _ -> swap reverse-for(swap Cons) }
-}
+    def first [ List+(t) -- t ] { head }
+    def last  [ List+(t) -- t ] { uncons for(nip) }
 
-def List.cat+ [ List+(t) List(t) -- List+(t) ] { dip(uncons) cat cons }
-def List+.cat [ List(t) List+(t) -- List+(t) ] { swap reverse-for(swap cons) }
-def List+.cat+ [ List+(t) List+(t) -- List+(t) ] { >List cat+ }
-
-def List.first [ List(t) -- Maybe(t) ] { >List+? map(head) }
-def List.last  [ List(t) -- Maybe(t) ] { >List+? map(last) }
-
-def List+.first [ List+(t) -- t ] { head }
-def List+.last  [ List+(t) -- t ] { uncons for(nip) }
-
-def List.head [ List(x) -- Maybe(x) ] {
-    { Nil -> None }
-    { Cons -> drop Some }
-}
-def List.tail [ List(x) -- List(x) ] {
-    { Nil -> Nil }
-    { Cons -> nip }
-}
-
-def List.drop-slice [ Nat List(x) -- List(x) ] { swap repeat(tail) }
-
-||| Reverse the list.
-def List.reverse [ List(a) -- List(a) ] {
-    Nil swap for(swap Cons)
-}
-
-||| Reverse the list.
-def List+.reverse [ List+(t) -- List+(t) ] {
-    /List+ head> List+.L1 tail> for(swap cons)
-}
-
-||| Transform each element of the list.
-def List.map(f) [ (*c a -- *c b) *c List(a) -- *c List(b) ] {
-    LIST(for(rdip(f) ;))
-}
-
-||| Transform each element of the list.
-def List+.map(f) [ (*c a -- *c b) *c List+(a) -- *c List+(b) ] {
-    uncons on2(f, map(f)) cons
-}
-
-inline (
-    def List.if-cons(f,g) [ (*a x List(x) -- *b, *a -- *b) *a List(x) -- *b ] {
-        { Cons -> f }
-        { Nil -> g }
+    ||| Reverse the list.
+    def reverse [ List+(t) -- List+(t) ] {
+        /List+ head> List+.L1 tail> for(swap cons)
     }
-)
 
-||| Traverse the list, left to right.
-def List.for(f) [ (*c a -- *c) *c List(a) -- *c ] {
-    while(if-cons(dip(f) True, Nil False)) drop
-}
+    ||| Transform each element of the list.
+    def map(f) [ (*c a -- *c b) *c List+(a) -- *c List+(b) ] {
+        uncons on2(f, map(f)) cons
+    }
 
-||| Traverse the list, left to right.
-def List+.for(f) [ (*c a -- *c) *c List+(a) -- *c ] {
-    uncons dip(f) for(f)
-}
+    ||| Traverse the list, left to right.
+    def for(f) [ (*c a -- *c) *c List+(a) -- *c ] {
+        uncons dip(f) for(f)
+    }
 
-||| Traverse the list, right to left.
-def List.reverse-for(f) [ (*c a -- *c) *c List(a) -- *c ] {
-    reverse for(f)
-}
+    ||| Traverse the list, right to left.
+    def reverse-for(f) [ (*c a -- *c) *c List+(a) -- *c ] {
+        uncons swap dip(reverse-for(f)) f
+    }
 
-||| Traverse the list, right to left.
-def List+.reverse-for(f) [ (*c a -- *c) *c List+(a) -- *c ] {
-    uncons swap dip(reverse-for(f)) f
-}
+    ||| Traverse the list, left to right, with an action between each item.
+    def for(f,g) [ (*a t -- *b, *b -- *a) *a List+(t) -- *b ] {
+        uncons dip(f) for(dip(g) f)
+    }
 
-||| Traverse the list, left to right, with an action between each item.
-def List.for(f,g) [ (*a t -- *a, *a -- *a) *a List(t) -- *a ] {
-    uncons dip:for(f) for(dip(g) f)
-}
+    ||| Reduce a list via binary operation.
+    def fold(g) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+        uncons for(g)
+    }
 
-||| Traverse the list, left to right, with an action between each item.
-def List+.for(f,g) [ (*a t -- *b, *b -- *a) *a List+(t) -- *b ] {
-    uncons dip(f) for(dip(g) f)
-}
+    ||| Sum together a list of numbers.
+    def sum(g {+}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+        fold(g)
+    }
 
-||| Reduce a list via binary operation.
-def List.fold(g) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a) ] {
-    >List+? map(fold(g))
-}
+    ||| Multiply together a list of numbers.
+    def product(g {*}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+        fold(g)
+    }
 
-||| Reduce a list via binary operation.
-def List+.fold(g) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
-    uncons for(g)
-}
+    ||| Filter away any list elements that don't satisfy the predicate.
+    def filter(f) [ (*c a -- *c Bool) *c List+(a) -- *c List(a) ] {
+        >List filter(f)
+    }
 
-||| Sum together a list of numbers.
-def List.sum(g {+}) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a)] {
-    fold(g)
-}
+    ||| Transform each element of a list into a new list, and concatenate all these lists.
+    def flatmap(f) [ (*c a -- *c List(b)) *c List+(a) -- *c List(b) ] {
+        >List flatmap(f)
+    }
 
-||| Sum together a list of numbers.
-def List+.sum(g {+}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
-    fold(g)
-}
-
-||| Multiply together a list of numbers.
-def List.product(g {*}) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a)] {
-    fold(g)
-}
-
-||| Multiply together a list of numbers.
-def List+.product(g {*}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
-    fold(g)
-}
-
-||| Filter away any list elements that don't satisfy the predicate.
-def List.filter(f) [ (*c a -- *c Bool) *c List(a) -- *c List(a) ] {
-    LIST(for(dup dip:rdip(f) swap if(;, drop)))
-}
-
-||| Filter away any list elements that don't satisfy the predicate.
-def List+.filter(f) [ (*c a -- *c Bool) *c List+(a) -- *c List(a) ] {
-    >List filter(f)
-}
-
-||| Transform each element of a list into a new list, and concatenate all these lists.
-def List.flatmap(f) [ (*c a -- *c List(b)) *c List(a) -- *c List(b) ] {
-    LIST(for(rdip(f) for(;)))
-}
-alias(List.bind(f), List.flatmap)
-
-||| Transform each element of a list into a new list, and concatenate all these lists.
-def List+.flatmap(f) [ (*c a -- *c List(b)) *c List+(a) -- *c List(b) ] {
-    >List flatmap(f)
-}
-
-||| Transform each element of a list into a new list, and concatenate all these lists.
-||| This variant of [List.flatmap] preserves the non-emptiness of the list.
-def List+.flatmap+(f) [ (*c a -- *c List+(b)) *c List+(a) -- *c List+(b) ] {
-    uncons LIST+(
-        dip(rdip(f) uncons dip(;+) for(;))
-        for(rdip(f) for(;))
-    )
-}
-alias(List+.bind(f), List+.flatmap+)
-
-||| Map each element of a list into the [Maybe] type, and collect all of the
-||| [Some] results while discarding all of the [None] results.
-def List.filter-some(p) [ (*c a -- *c Maybe(b)) *c List(a) -- *c List(b) ] {
-    LIST(for(rdip(p) for(;)))
-}
-
-||| Map each element of a list into the [Maybe] type, and collect all of the
-||| [Some] results while discarding all of the [None] results.
-def List+.filter-some(p) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c List(b) ] {
-    >List filter-some(p)
-}
-
-||| Find first element that returns [Some], if it exists.
-def List.find-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b) ] {
-    None swap while-some(
-        uncons swap,
-        dip'(dip'(f)) match(
-            None -> id,
-            _ -> dip(drop2) Nil
+    ||| Transform each element of a list into a new list, and concatenate all these lists.
+    ||| This variant of [List.flatmap] preserves the non-emptiness of the list.
+    def flatmap+(f) [ (*c a -- *c List+(b)) *c List+(a) -- *c List+(b) ] {
+        uncons LIST+(
+            dip(rdip(f) uncons dip(;+) for(;))
+            for(rdip(f) for(;))
         )
-    ) drop
+    }
+    alias(List+.bind(f), List+.flatmap+)
+
+    ||| Map each element of a list into the [Maybe] type, and collect all of the
+    ||| [Some] results while discarding all of the [None] results.
+    def filter-some(p) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c List(b) ] {
+        >List filter-some(p)
+    }
+
+    ||| Find first element that returns [Some], if it exists.
+    def find-some(f) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b) ] {
+        >List find-some(f)
+    }
+
+    ||| Find last element that returns Some, if it exists.
+    def reverse-find-some(f) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b) ] {
+        >List reverse-find-some(f)
+    }
+
+    ||| Find the first element that satisfies the predicate, if it exists.
+    def find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
+        find-some(dup dip(f) swap if(Some, drop None))
+    }
+
+    ||| Find the last element that satisfies the predicate, if it exists.
+    def reverse-find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
+        reverse-find-some(dup dip(f) swap if(Some, drop None))
+    }
+
+    ||| Is the predicate true for any element of the list?
+    def has(f) [ (*c a -- *c Bool) *c List+(a) -- *c Bool ] {
+        find(f) some?
+    }
+
+    ||| Is the predicate true for all elements of the list?
+    def all(f) [ (*c a -- *c Bool) *c List+(a) -- *c Bool ] {
+        find(f not) none?
+    }
+
+    def ==(eq {==}) [ (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool ] {
+        dip(>List) >List ==(eq)
+    }
+
+    def(ookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
+        find(over dip(p) swap) nip)
+
+    def(reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
+        reverse-find(over dip(p) swap) nip)
+
+    def(member(p {==}), (*c k a -- *c Bool) *c k List+(a) -- *c Bool,
+        >List lookup(p) some?)
+
+    def(map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
+        dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons)
+
+    def(take-while(p), (*a t -- *a Bool) *a List+(t) -- *a List(t),
+        >List take-while(p))
+
+    def(partition-either(p), (*a t -- *a Either(t1,t2))
+            *a List+(t) -- *a List(t1) List(t2),
+        >List partition-either(p))
+
+    def(partition(p), (*a t -- *a Bool) *a List+(t) -- *a List(t) List(t),
+        partition-either(dup dip(p) swap if(Right, Left)))
+
+    def(show;(f {show;}), (t +Str -- +Str) List+(t) +Str -- +Str,
+        "LIST+( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
+
 }
 
-||| Find first element that returns [Some], if it exists.
-def List+.find-some(f) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b) ] {
-    >List find-some(f)
-}
-
-||| Find last element that returns Some, if it exists.
-def List.reverse-find-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b) ] {
-    reverse find-some(f)
-}
-
-||| Find last element that returns Some, if it exists.
-def List+.reverse-find-some(f) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b) ] {
-    >List reverse-find-some(f)
-}
-
-||| Find the first element that satisfies the predicate, if it exists.
-def List.find(f) [ (*c a -- *c Bool) *c List(a) -- *c Maybe(a) ] {
-    find-some(dup dip(f) swap if(Some, drop None))
-}
-
-||| Find the first element that satisfies the predicate, if it exists.
-def List+.find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
-    find-some(dup dip(f) swap if(Some, drop None))
-}
-
-||| Find the last element that satisfies the predicate, if it exists.
-def List.reverse-find(f) [ (*c a -- *c Bool) *c List(a) -- *c Maybe(a) ] {
-    reverse-find-some(dup dip(f) swap if(Some, drop None))
-}
-
-||| Find the last element that satisfies the predicate, if it exists.
-def List+.reverse-find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
-    reverse-find-some(dup dip(f) swap if(Some, drop None))
-}
-
-||| Is the predicate true for any element of the list?
-def List.has(f) [ (*c a -- *c Bool) *c List(a) -- *c Bool ] {
-    find(f) some?
-}
-
-||| Is the predicate true for any element of the list?
-def List+.has(f) [ (*c a -- *c Bool) *c List+(a) -- *c Bool ] {
-    find(f) some?
-}
-
-||| Is the predicate true for all elements of the list?
-def List.all(f) [ (*c a -- *c Bool) *c List(a) -- *c Bool ] {
-    find(f not) none?
-}
-
-||| Is the predicate true for all elements of the list?
-def List+.all(f) [ (*c a -- *c Bool) *c List+(a) -- *c Bool ] {
-    find(f not) none?
-}
-
-||| If the predicate matches all elements of the list, return the result. Otherwise return None.
-def List.all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
-    >rest True >ok +List.+L0 while-some(
-        @rest:uncons,
-        @rest(@ok(dip2:rdip(f))) if-some(
-            ; ,
-            False !ok
-            Nil !rest
-        )
-    )
-    rest> drop
-    ok> if(freeze Some, rdrop None)
-}
 
 ||| Build a list through iteration, stopping at the first None.
 def collect(f {.next swap}) [ (*a -- *a Maybe(b)) *a -- *a List(b) ] {
@@ -383,93 +476,6 @@ inline(
     def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), List.L0 thaw f freeze)
     def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), List.L0 thaw f freeze)
 )
-
-def List.==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
-    True while (
-        dip(dip(uncons) uncons dip(swap) dip2(==(eq)) rotl) &&
-        over2 empty? over2 empty? && not over &&,
-        id
-    )
-    dip(drop2)
-}
-
-def List+.==(eq {==}) [ (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool ] {
-    dip(>List) >List ==(eq)
-}
-
-def(List.lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
-    find(over dip(p) swap) nip)
-
-def(List+.lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
-    find(over dip(p) swap) nip)
-
-def(List.reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
-    reverse-find(over dip(p) swap) nip)
-
-def(List+.reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
-    reverse-find(over dip(p) swap) nip)
-
-def(List.member(p {==}), (*c k a -- *c Bool) *c k List(a) -- *c Bool,
-    lookup(p) some?)
-
-def(List+.member(p {==}), (*c k a -- *c Bool) *c k List+(a) -- *c Bool,
-    lookup(p) some?)
-
-def(List.difference(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
-    swap filter(over dip(swap member(eq) not) swap) nip)
-
-def(List.union(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
-    over dip(swap difference(eq)) swap cat)
-
-def(List.unions(eq {==}), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
-    fold(union(eq)) unwrap(Nil))
-
-def(List.map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
-    collect(uncons dip(dip:uncons swap dip:map2:f) rotl) dip:drop2)
-def(List+.map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
-    dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons)
-
-def(List.take-while(p), (*a t -- *a Bool) *a List(t) -- *a List(t),
-    collect(uncons dip:filter(p) swap) nip)
-def(List+.take-while(p), (*a t -- *a Bool) *a List+(t) -- *a List(t),
-    >List take-while(p))
-
-def List.split-at(p) [ (*a t -- *a Bool) *a List(t) -- *a List(t) List(t) ] {
-    LIST(
-        while (
-            if-cons(
-                dip:sip:rdip(p) rotl if(
-                    Cons False,
-                    dip(;) True
-                ),
-                Nil False
-            )
-        )
-    ) swap
-}
-
-def(List.partition-either(p), (*a t -- *a Either(t1,t2))
-        *a List(t) -- *a List(t1) List(t2),
-    Nil Nil rotl for(
-        dip'(dip'(p)) match(
-            Left -> rotr dip(Cons),
-            Right -> swap Cons
-        )
-    ) dip(reverse) reverse)
-
-def(List+.partition-either(p), (*a t -- *a Either(t1,t2))
-        *a List+(t) -- *a List(t1) List(t2),
-    >List partition-either(p))
-
-def(List.partition(p), (*a t -- *a Bool) *a List(t) -- *a List(t) List(t),
-    partition-either(dup dip(p) swap if(Right, Left)))
-def(List+.partition(p), (*a t -- *a Bool) *a List+(t) -- *a List(t) List(t),
-    partition-either(dup dip(p) swap if(Right, Left)))
-
-def(List.show;(f {show;}), (t +Str -- +Str) List(t) +Str -- +Str,
-    "LIST( " ; for(f " ; " ;) ")" ;)
-def(List+.show;(f {show;}), (t +Str -- +Str) List+(t) +Str -- +Str,
-    "LIST+( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
 
 struct L0 {
     --
