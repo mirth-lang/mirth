@@ -17,7 +17,7 @@ def main {
 }
 # mirth-test # pout # Hello!
 # mirth-test # pout # 10 Some
-# mirth-test # pout # LIST( 10 ; 20 ; 30 ; )
+# mirth-test # pout # 10 20 30 L3
 # mirth-test # pout # Foo
 # mirth-test # pout # Bar
 # mirth-test # pout # Bar

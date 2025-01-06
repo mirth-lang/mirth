@@ -63,16 +63,16 @@ def(Match.scrutinee-data?, Match -- Maybe(Data),
     ))
 
 def(Match.is-transparent?, Match -- Bool,
-    cases /L1
-    bind(pattern atoms /L1)
+    cases single?
+    bind(pattern atoms single?)
     has(op match(
         PatOpTag -> .data is-transparent?,
         PatOpUnderscore -> True
     )))
 
 def Match.semi-transparent-tag? [ +Mirth Match -- +Mirth Maybe(SemiTransparentData) ] {
-    cases /L1
-    bind(pattern atoms /L1)
+    cases single?
+    bind(pattern atoms single?)
     bind(op match(
         PatOpTag -> Some,
         _ -> drop None
@@ -81,8 +81,8 @@ def Match.semi-transparent-tag? [ +Mirth Match -- +Mirth Maybe(SemiTransparentDa
 }
 
 def(Match.unit-tag?, Match -- Maybe(Tag),
-    cases /L1
-    bind(pattern atoms /L1)
+    cases single?
+    bind(pattern atoms single?)
     bind(op match(
         PatOpTag -> Some,
         _ -> drop None
@@ -92,7 +92,7 @@ def(Match.unit-tag?, Match -- Maybe(Tag),
 def(+Match.add-case, +Mirth +Match Case -- +Mirth +Match,
     dup case-redundant? if(
         pattern token-start "Case is unreachable." rdip:emit-error!,
-        cases(swap List.snoc)
+        cases(swap List.Snoc)
     ))
 
 def(+Match.case-redundant?, Case +Match -- Bool +Match,
@@ -127,7 +127,7 @@ def(Pattern.dom, Pattern -- StackType, sip:mid saved for(STCons))
 def(Pattern.thaw, Pattern -- +Pattern, >pattern +Pattern)
 
 def(Pattern.single-tag?, Pattern -- Maybe(Tag),
-    atoms /L1 bind(op /PatOpTag))
+    atoms single? bind(op /PatOpTag))
 
 def(Pattern.is-default?, Pattern -- Bool,
     atoms all(op /PatOpUnderscore))
@@ -165,23 +165,23 @@ def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
         Some ->
             unpack2
     )
-    dup pattern:saved:cons
-    L1 >saved dup >dom pattern:mid!
-    PATATOM pattern:atoms:cons)
+    dup pattern:saved:Cons
+    List.L1 >saved dup >dom pattern:mid!
+    PATATOM pattern:atoms:Cons)
 
 def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
-    dup PatOpTag >op L0 >saved
+    dup PatOpTag >op Nil >saved
     pattern token-start >token
     pattern inner-ctx >ctx
     dip:SUBST_NIL rdip:type freshen-sig /ArrowType dom> cod>
     dip(pattern mid)
     pattern token-start >token +Gamma rdip':unify! rdrop >cod
     dup >dom pattern:mid!
-    >subst PATATOM pattern:atoms:cons)
+    >subst PATATOM pattern:atoms:Cons)
 
 ||| Asks whether the second pattern covers the first pattern.
 def(Pattern.covers?, Pattern Pattern -- Bool,
-    both(atoms /L1) zip match(
+    both(atoms single?) zip match(
         None -> False,
         Some -> unpack2 op match(
             PatOpUnderscore -> drop True,

@@ -27,7 +27,7 @@ field(Block.~sp-checked, Block, Bool)
 
 data(+SPCheck, SPCHECK -> checklist:List(SPCheckItem))
 
-def(+SPCheck.begin!, -- +SPCheck, L0 >checklist SPCHECK)
+def(+SPCheck.begin!, -- +SPCheck, List.L0 >checklist SPCHECK)
 def(+SPCheck.end!, +SPCheck --, SPCHECK -> checklist> drop)
 def(+SPCheck.loop!, +Mirth +SPCheck -- +Mirth +SPCheck,
     while-some(checklist:uncons, do-item-check!))
@@ -45,47 +45,47 @@ def(+SPCheck.check-arrow!, Arrow +Mirth +SPCheck -- Arrow +Mirth +SPCheck,
 
 def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
     dup op match(
-        OpNone -> L1,
+        OpNone -> List.L1,
         OpPrim -> check-prim-atom!,
         OpWord -> check-word-atom!,
-        OpExternal -> drop L1,
-        OpBuffer -> drop L1,
-        OpVariable -> drop L1,
-        OpField -> drop L1,
-        OpInt -> drop L1,
-        OpF64 -> drop L1,
-        OpStr -> drop L1,
-        OpTag -> drop L1,
-        OpMatch -> check-match! OpMatch swap op! L1,
-        OpLambda -> check-lambda! OpLambda swap op! L1,
-        OpVar -> drop L1,
-        OpBlockPush -> push-check-block! L1,
-        OpBlockRun -> push-check-block! L1,
-        OpLabelPush -> drop L1,
-        OpLabelPop -> drop L1,
-        OpLabelPushR -> drop L1,
-        OpLabelPopR -> drop L1,
-        OpDataGetEnumValue -> drop L1,
-        OpDataFromEnumValue -> drop L1,
-        OpDataGetLabel -> drop L1,
-        OpDataSetLabel -> drop L1,
-        OpTableToIndex -> drop L1,
-        OpTableFromIndex -> drop L1,
+        OpExternal -> drop List.L1,
+        OpBuffer -> drop List.L1,
+        OpVariable -> drop List.L1,
+        OpField -> drop List.L1,
+        OpInt -> drop List.L1,
+        OpF64 -> drop List.L1,
+        OpStr -> drop List.L1,
+        OpTag -> drop List.L1,
+        OpMatch -> check-match! OpMatch swap op! List.L1,
+        OpLambda -> check-lambda! OpLambda swap op! List.L1,
+        OpVar -> drop List.L1,
+        OpBlockPush -> push-check-block! List.L1,
+        OpBlockRun -> push-check-block! List.L1,
+        OpLabelPush -> drop List.L1,
+        OpLabelPop -> drop List.L1,
+        OpLabelPushR -> drop List.L1,
+        OpLabelPopR -> drop List.L1,
+        OpDataGetEnumValue -> drop List.L1,
+        OpDataFromEnumValue -> drop List.L1,
+        OpDataGetLabel -> drop List.L1,
+        OpDataSetLabel -> drop List.L1,
+        OpTableToIndex -> drop List.L1,
+        OpTableFromIndex -> drop List.L1,
     ))
 
 def(+SPCheck.check-arg!, Arg +SPCheck -- +SPCheck,
     ArgBlock -> push-check-block!)
 def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
-    drop dup args for(check-arg!) L1)
+    drop dup args for(check-arg!) List.L1)
 def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List(Atom),
     dup push-check-word!
-    over args >List+ match(
-        None -> drop L1,
+    over args >List+? match(
+        None -> drop List.L1,
         Some ->
             dup has(rdip:free-vars has(is-physical?)) if(
                 # can't specialize, just check the args
                 dup for(check-arg!)
-                drop2 L1,
+                drop2 List.L1,
 
                 # boot up the specializer for real!
                 SPKEY swap rdip:specialize-word!
@@ -106,13 +106,13 @@ def(+SPCheck.push-check-word!, Word +SPCheck -- +SPCheck,
     dup ~sp-checked @? unwrap(False) if(
         drop,
         True over ~sp-checked !
-        SPCHECK_WORD checklist:cons
+        SPCHECK_WORD checklist:Cons
     ))
 def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
     dup ~sp-checked @? unwrap(False) if(
         drop,
         True over ~sp-checked !
-        SPCHECK_BLOCK checklist:cons
+        SPCHECK_BLOCK checklist:Cons
     ))
 
 def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
@@ -183,7 +183,7 @@ def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
 
 field(Word.~sp-synthed, Word, Map(SPKey,Word))
 def(Word.sp-synthed, Word -- Map(SPKey,Word),
-    ~sp-synthed @? unwrap(Map.empty))
+    ~sp-synthed @? unwrap(Map.Nil))
 
 ||| Specialize a word to a particular list of arguments.
 ||| Those other arguments are pushed on the stack.
@@ -203,10 +203,10 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             0u >arity
             Word.new! >word'
 
-            @word NAMESPACE_WORD @word' name QNAME0
+            @word NAMESPACE_WORD @word' name 0 QName.Mk
             @word' WordQName prop @word' ~qname !
 
-            @key >key @word' >value KVPair
+            @key >key @word' >value KeyValuePair
             @word sp-synthed insert @word ~sp-synthed !
 
             # @key @word @word' WordType prop2(
@@ -240,8 +240,7 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
         )
     )
     rdrop
-    dip:Ctx0 rigidify-sig!)
-
+    dip:Ctx.L0 rigidify-sig!)
 
 data(+SPSynth, +SPSYNTH ->
     spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)
@@ -254,7 +253,7 @@ def(+SPSynth.ab(f),
 
 def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
     dup >spword dip(>spkey)
-    rdip:Word.arrow atoms /L1
+    rdip:Word.arrow atoms single?
     unwrap("unexpected shape for synth-specialized-word!" rdip:fatal-error!)
     op match(
         OpLambda ->
@@ -264,7 +263,7 @@ def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
                 "wrong number of lambda params in synth-specialized-word!"
                 rdip:fatal-error!
             )
-            map2(/ArgBlock >value >key KVPair) Map >spmap
+            map2(/ArgBlock >value >key KeyValuePair) >pairs Map >spmap
             +SPSYNTH
             body synth-arrow!
             /+SPSYNTH spkey> spword> spmap> drop3,

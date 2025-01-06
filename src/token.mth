@@ -256,7 +256,7 @@ def(Token.args-0, Token +Mirth -- +Mirth,
 ||| Verify that token has 1 arg, and return it.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-1, Token +Mirth -- Token +Mirth,
-    dup num-args 1u = if(
+    dup num-args 1u == if(
         args-start succ,
         dup num-args 1u < if(
             "expected 1 arg, got none" emit-fatal-error!,
@@ -267,7 +267,7 @@ def(Token.args-1, Token +Mirth -- Token +Mirth,
 ||| Verify that token has 2 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-2, Token +Mirth -- Token Token +Mirth,
-    dup num-args 2u = if(
+    dup num-args 2u == if(
         args-start succ
         dup next-arg-end succ,
         dup num-args 2u < if(
@@ -279,7 +279,7 @@ def(Token.args-2, Token +Mirth -- Token Token +Mirth,
 ||| Verify that token has 3 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(Token.args-3, Token +Mirth -- Token Token Token +Mirth,
-    dup num-args 3u = if(
+    dup num-args 3u == if(
         args-start succ
         dup next-arg-end succ
         dup next-arg-end succ,
@@ -303,7 +303,7 @@ def(Token.num-args, Token -- Nat,
 def(Token.args, Token -- List(Token),
     args-start dup left-enclosure? if(
         collect-while(dup args-end? not, succ sip(next-arg-end)) nip,
-        drop L0
+        drop List.L0
     ))
 
 ||| Check if we're at the end of the last argument.
@@ -315,7 +315,7 @@ def(Token.args-end?, Token -- Bool,
 ||| Get List+ of token args.
 ||| Emits a fatal error if token has no args,
 def(Token.args+, Token +Mirth -- List+(Token) +Mirth,
-    dup args >List+ unwrap("expected 1 or more args, got none" emit-fatal-error!) nip)
+    dup args >List+? unwrap("expected 1 or more args, got none" emit-fatal-error!) nip)
 
 ###############
 # Token Types #

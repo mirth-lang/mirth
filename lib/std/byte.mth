@@ -39,154 +39,151 @@ data Byte {
     0xE8 BxE8 BxE9 BxEA BxEB BxEC BxED BxEE BxEF
     0xF0 BxF0 BxF1 BxF2 BxF3 BxF4 BxF5 BxF6 BxF7
     0xF8 BxF8 BxF9 BxFA BxFB BxFC BxFD BxFE BxFF
-}
 
-inline (
-    def Byte.>Int [ Byte -- Int ] { Byte.enum-value }
-    def Byte.>U8  [ Byte -- U8  ] { >Int >U8-unsafe }
+    --
 
-    def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
-    def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
+    inline (
+        def >Int [ Byte -- Int ] { Byte.enum-value }
+        def >U8  [ Byte -- U8  ] { >Int >U8-unsafe }
 
-    def Int.>Byte& [ Int -- Byte ] { >U8& >Byte }
+        def Int.>Byte-if(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] { >U8-if(>Byte f, g) }
+        def Int.>Byte-else(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] { >Byte-if(id, f) }
+        def Int.>Byte? [ Int -- Maybe(Byte) ] { >Byte-if(Some, drop None) }
+        def Int.>Byte-wrap [ Int -- Byte ] { >U8-wrap >Byte }
+        def Int.>Byte-clamp [ Int -- Byte ] { >U8-clamp >Byte }
+        def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
 
-    def Int.>Byte(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] {
-        dup 0 255 in-range if(>Byte-unsafe f, g)
-    }
-    def Int.>Byte(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] {
-        >U8(f >U8) >Byte
-    }
-    def Int.>Byte? [ Int -- Maybe(Byte) ] {
-        >Byte(Some, drop None)
-    }
+        def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
 
-    def Byte.compare  [ Byte Byte -- Comparison ] { on2(>Int) .compare }
-    def Byte.==       [ Byte Byte -- Bool ] { on2(>Int) == }
-    def Byte.<        [ Byte Byte -- Bool ] { on2(>Int) <  }
-    def Byte.>        [ Byte Byte -- Bool ] { on2(>Int) >  }
-    def Byte.<=       [ Byte Byte -- Bool ] { on2(>Int) <= }
-    def Byte.>=       [ Byte Byte -- Bool ] { on2(>Int) >= }
-    def Byte.<>       [ Byte Byte -- Bool ] { on2(>Int) <> }
-    def Byte.in-range [ Byte Byte Byte -- Bool ] { on3(>Int) in-range }
-    def Byte.clamp    [ Byte Byte Byte -- Byte ] { on3(>Int) clamp >Byte-unsafe }
+        def compare  [ Byte Byte -- Comparison ] { on2(>Int) .compare }
+        def ==       [ Byte Byte -- Bool ] { on2(>Int) == }
+        def <        [ Byte Byte -- Bool ] { on2(>Int) <  }
+        def >        [ Byte Byte -- Bool ] { on2(>Int) >  }
+        def <=       [ Byte Byte -- Bool ] { on2(>Int) <= }
+        def >=       [ Byte Byte -- Bool ] { on2(>Int) >= }
+        def <>       [ Byte Byte -- Bool ] { on2(>Int) <> }
+        def in-range [ Byte Byte Byte -- Bool ] { on3(>Int) in-range }
+        def clamp    [ Byte Byte Byte -- Byte ] { on3(>Int) clamp >Byte-unsafe }
 
-    def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
-    def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
+        def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
+        def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
 
-    def Byte.is-upper [ Byte -- Bool ] { B'A' B'Z' in-range }
-    def Byte.is-lower [ Byte -- Bool ] { B'a' B'z' in-range }
-    def Byte.is-digit [ Byte -- Bool ] { B'0' B'9' in-range }
-    def Byte.is-alpha [ Byte -- Bool ] { dup on2(is-upper, is-lower) || }
-    def Byte.is-alnum [ Byte -- Bool ] { dup on2(is-digit, is-alpha) || }
-    def Byte.is-printable [ Byte -- Bool ] { B'!' B'~' in-range }
-    def Byte.is-hexdigit [ Byte -- Bool ] {
-        dup dup on3(is-digit, B'A' B'F' in-range, B'a' B'f' in-range) || ||
-    }
-    def Byte.is-ascii [ Byte -- Bool ] { BNUL BDEL in-range }
-    def Byte.is-upper-or-underscore [ Byte -- Bool ] {
-        dup on2(is-upper, B'_' ==) ||
-    }
-    def Byte.is-overload-trigger [ Byte -- Bool ] {
-        is-upper-or-underscore not
-    }
-    def Byte.is-sign [ Byte -- Bool ] {
-        dup on2(B'-' ==, B'+' ==) ||
-    }
+        def is-upper [ Byte -- Bool ] { B'A' B'Z' in-range }
+        def is-lower [ Byte -- Bool ] { B'a' B'z' in-range }
+        def is-digit [ Byte -- Bool ] { B'0' B'9' in-range }
+        def is-alpha [ Byte -- Bool ] { dup on2(is-upper, is-lower) || }
+        def is-alnum [ Byte -- Bool ] { dup on2(is-digit, is-alpha) || }
+        def is-printable [ Byte -- Bool ] { B'!' B'~' in-range }
+        def is-hexdigit [ Byte -- Bool ] {
+            dup dup on3(is-digit, B'A' B'F' in-range, B'a' B'f' in-range) || ||
+        }
+        def is-ascii [ Byte -- Bool ] { BNUL BDEL in-range }
+        def is-upper-or-underscore [ Byte -- Bool ] {
+            dup on2(is-upper, B'_' ==) ||
+        }
+        def is-overload-trigger [ Byte -- Bool ] {
+            is-upper-or-underscore not
+        }
+        def is-sign [ Byte -- Bool ] {
+            dup on2(B'-' ==, B'+' ==) ||
+        }
 
-    def Byte.emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }
-    def Byte.emit-ascii;  [ +Str Byte -- +Str ] { push-byte-ascii!  }
-
-)
-
-def Byte.to-str-unsafe [ Byte -- Str ] {
-    L1 Str.from-bytes-unsafe
-}
-
-def Byte.to-ascii-str [ Byte -- Maybe(Str) ] {
-    dup BNUL BDEL in-range if(
-        to-str-unsafe Some,
-        drop None
+        def emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }
+        def emit-ascii;  [ +Str Byte -- +Str ] { push-byte-ascii!  }
     )
-}
 
-def Byte.is-string-end [ Byte -- Bool ] {
-    { BQUOTE -> True }
-    { BLF -> True }
-    { BNUL -> True }
-    { _ -> drop False }
-}
+    def to-str-unsafe [ Byte -- Str ] {
+        List.L1 Str.from-bytes-unsafe
+    }
 
-def Byte.to-lower [ Byte -- Byte ] {
-    dup is-upper then(>Int 0x20 + >Byte-unsafe)
-}
+    def to-ascii-str [ Byte -- Maybe(Str) ] {
+        dup BNUL BDEL in-range if(
+            to-str-unsafe Some,
+            drop None
+        )
+    }
 
-def Byte.to-upper [ Byte -- Byte ] {
-    dup is-lower then(>Int 0x20 - >Byte-unsafe)
-}
+    def is-string-end [ Byte -- Bool ] {
+        { BQUOTE -> True }
+        { BLF -> True }
+        { BNUL -> True }
+        { _ -> drop False }
+    }
 
-def Byte.to-hexdigits [ Byte -- Byte Byte ] {
-    >Int
-    dup 4 >> one-hexdigit-byte
-    swap 0xF & one-hexdigit-byte
-}
+    def to-lower [ Byte -- Byte ] {
+        dup is-upper then(>Int 0x20 + >Byte-unsafe)
+    }
 
-def one-hexdigit-byte [ Int -- Byte ] {
-    dup 9 > if(55, 48) + >Byte-unsafe
-}
+    def to-upper [ Byte -- Byte ] {
+        dup is-lower then(>Int 0x20 - >Byte-unsafe)
+    }
 
-def Byte.is-name-byte [ Byte -- Bool ] {
-    { BLPAREN -> False }
-    { BRPAREN -> False }
-    { BLSQUARE -> False }
-    { BRSQUARE -> False }
-    { BLCURLY -> False }
-    { BRCURLY -> False }
-    { BCOMMA -> False }
-    { BQUOTE -> False }
-    { BCOLON -> False }
-    { BDEL -> False }
-    { _ -> BSPACE > }
-}
+    def OneHexDigitUnsafe [ Int -- Byte ] {
+        0 15 clamp
+        dup 9 > if(55, 48) + >Byte-unsafe
+    }
 
-def Byte.zencode [ Byte -- Str ] {
-    ||| Encode byte as a readable string of alphanumeric or underscore characters.
-    ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
-    ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
+    def to-hexdigits [ Byte -- Byte Byte ] {
+        >Int
+        dup 4 >> Byte.OneHexDigitUnsafe
+        swap 0xF & Byte.OneHexDigitUnsafe
+    }
 
-    # Important invariant: No string here should be the prefix of another.
-    # With this invariant we can ensure that the z-encoding of any string
-    # is unique. To help enforce the invariant, keep these cases in
-    # lexicographical order.
+    def is-name-byte [ Byte -- Bool ] {
+        { BLPAREN -> False }
+        { BRPAREN -> False }
+        { BLSQUARE -> False }
+        { BRSQUARE -> False }
+        { BLCURLY -> False }
+        { BRCURLY -> False }
+        { BCOMMA -> False }
+        { BQUOTE -> False }
+        { BCOLON -> False }
+        { BDEL -> False }
+        { _ -> BSPACE > }
+    }
 
-    { B'&' -> "ZAmp" } { B'?' -> "ZAsk" } { B'@' -> "ZAt" }
-    { B'\' -> "ZBSlash" } { B'!' -> "ZBang" }
-    { B'^' -> "ZCaret" } { BCOLON -> "ZColon" } { BCOMMA -> "ZComma" }
-    { B'/' -> "ZDiv" } { B'$' -> "ZDollar" } { BDOT -> "ZDot" }
-    { B'=' -> "ZEqual" }
-    { BHASH -> "ZHash" }
-    { BLCURLY  -> "ZLCurly" }
-    { BLPAREN  -> "ZLParen" }
-    { BLSQUARE -> "ZLSquare" }
-    { B'<'  -> "ZLess" }
-    { B'%' -> "ZMod" }
-    { B'*' -> "ZMul" }
-    { B'|' -> "ZPipe" }
-    { B'+' -> "ZPlus" }
-    { BQUOTE -> "ZQuote" }
-    { BRCURLY  -> "ZRCurly" }
-    { BRPAREN  -> "ZRParen" }
-    { BRSQUARE -> "ZRSquare" }
-    { B';' -> "ZThen" }
-    { BTICK -> "ZTick" }
-    { B'~' -> "ZTilde" }
-    { B'>' -> "ZTo" }
+    def zencode [ Byte -- Str ] {
+        ||| Encode byte as a readable string of alphanumeric or underscore characters.
+        ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
+        ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
 
-    { B'Z' -> "ZZ" } { B'-'  -> "Z_" }
-    { B'z' -> "zz" } { B'_' -> "z_" }
+        # Important invariant: No string here should be the prefix of another.
+        # With this invariant we can ensure that the z-encoding of any string
+        # is unique. To help enforce the invariant, keep these cases in
+        # lexicographical order.
 
-    { _ ->
-        dup is-alnum if(
-            to-str-unsafe,
-            Str("Z" ; >Int show; "U" ;)
-        ) }
+        { B'&' -> "ZAmp" } { B'?' -> "ZAsk" } { B'@' -> "ZAt" }
+        { B'\' -> "ZBSlash" } { B'!' -> "ZBang" }
+        { B'^' -> "ZCaret" } { BCOLON -> "ZColon" } { BCOMMA -> "ZComma" }
+        { B'/' -> "ZDiv" } { B'$' -> "ZDollar" } { BDOT -> "ZDot" }
+        { B'=' -> "ZEqual" }
+        { BHASH -> "ZHash" }
+        { BLCURLY  -> "ZLCurly" }
+        { BLPAREN  -> "ZLParen" }
+        { BLSQUARE -> "ZLSquare" }
+        { B'<'  -> "ZLess" }
+        { B'%' -> "ZMod" }
+        { B'*' -> "ZMul" }
+        { B'|' -> "ZPipe" }
+        { B'+' -> "ZPlus" }
+        { BQUOTE -> "ZQuote" }
+        { BRCURLY  -> "ZRCurly" }
+        { BRPAREN  -> "ZRParen" }
+        { BRSQUARE -> "ZRSquare" }
+        { B';' -> "ZThen" }
+        { BTICK -> "ZTick" }
+        { B'~' -> "ZTilde" }
+        { B'>' -> "ZTo" }
+
+        { B'Z' -> "ZZ" } { B'-'  -> "Z_" }
+        { B'z' -> "zz" } { B'_' -> "z_" }
+
+        { _ ->
+            dup is-alnum if(
+                to-str-unsafe,
+                Str("Z" ; >Int show; "U" ;)
+            )
+        }
+    }
 }

@@ -15,7 +15,7 @@ field(Package.~name, Package, Name)
 field(Package.~path, Package, Maybe(Path))
 
 def(Package.name, Package -- Name, ~name @)
-def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name QNAME0)
+def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name 0 QName.Mk)
 def(Package.path, Package -- Maybe(Path), ~path @)
 
 def(Package.std, +Mirth -- +Mirth Package, builtin std)
@@ -29,7 +29,7 @@ def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
         Some -> nip Some,
         None ->
             package-search-paths
-            map(over name >Str >Path join)
+            map(over name >Str >Path rdip:join)
             find(rdip:is-directory?)
             tuck swap ~path !
     ))
@@ -64,7 +64,7 @@ def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
     ))
 
 def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
-    NAMESPACE_ROOT swap QNAME0 def-soft? bind(package?))
+    NAMESPACE_ROOT swap 0 QName.Mk def-soft? bind(package?))
 
 def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
     dup Package.find unwrap(dup None swap Package.new!) nip)

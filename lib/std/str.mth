@@ -44,7 +44,7 @@ inline (
 def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
 
 def Str.last-byte [ Str -- Byte ] {
-    dup num-bytes 1- >UOffset (
+    dup num-bytes 1- >UOffset-if (
         swap Str.byte@,
         drop2 BNUL
     )
@@ -122,7 +122,7 @@ def Str.first-byte [ Str -- Maybe(Byte) ] {
 ||| Returns an empty string if the string has fewer than n bytes.
 def(Str.drop-bytes, USize Str +Unsafe -- Str +Unsafe,
     with-data(
-        dip(over) swap - >USize(
+        dip(over) swap - >USize-if (
             dip(dip(>UOffset) uoffset)
             Str.ClonePtrSlice,
             drop3 ""
@@ -144,7 +144,7 @@ def(Str.with-cstr(f), (*a CStr -- *b) *a Str -- *b,
 
 def(clamp-slice-offset-size, UOffset USize USize -- UOffset USize,
     swap dip(tuck >UOffset min tuck >USize -)
-    swap >USize(min, drop2 0u >USize))
+    swap >USize-if(min, drop2 0u >USize))
 
 def(Str.slice, UOffset USize Str +Unsafe -- Str +Unsafe,
     with-data(
@@ -162,7 +162,7 @@ def(+Str.slice, UOffset USize +Str +Unsafe -- Str +Str +Unsafe,
     rdip(+Str.dup!) slice)
 
 def +Str.offset-slice [ UOffset UOffset +Str +Unsafe -- Str +Str +Unsafe ] {
-    over - >USize( +Str.slice, drop2 "" )
+    over - >USize-if( +Str.slice, drop2 "" )
 }
 
 def(+Str.take-slice, USize +Str +Unsafe -- Str +Str +Unsafe,
@@ -228,7 +228,8 @@ def(+Str.push-show-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
             push-byte-ascii!
             False !escape-hex,
             "\\x" ; to-hexdigits
-            at2:push-byte-ascii!
+            dip:push-byte-ascii!
+            push-byte-ascii!
             True !escape-hex
         )
     )

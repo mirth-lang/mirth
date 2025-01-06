@@ -22,226 +22,225 @@ import(mirth.typedef)
 import(mirth.variable)
 import(mirth.word)
 
-data(Def,
-    DefAlias -> Alias,
-    DefModule -> Module,
-    DefPackage -> Package,
-    DefData -> Data,
-    DefTable -> Table,
-    DefType -> TypeDef,
-    DefTag -> Tag,
-    DefPrim -> Prim,
-    DefWord -> Word,
-    DefBuffer -> Buffer,
-    DefVariable -> Variable,
-    DefExternal -> External,
-    DefField -> Field)
+data Def {
+    DefAlias [ Alias ]
+    DefModule [ Module ]
+    DefPackage [ Package ]
+    DefData [ Data ]
+    DefTable [ Table ]
+    DefType [ TypeDef ]
+    DefTag [ Tag ]
+    DefPrim [ Prim ]
+    DefWord [ Word ]
+    DefBuffer [ Buffer ]
+    DefVariable [ Variable ]
+    DefExternal [ External ]
+    DefField [ Field ]
+    --
 
-def(Def>Module?, Def -- Maybe(Module),
-    DefPackage -> drop None,
-    DefModule -> drop None,
-    DefAlias -> head .module Some,
-    DefData -> head? map(.module),
-    DefTable -> head .module Some,
-    DefType -> head? map(.module),
-    DefTag -> .data head? map(.module),
-    DefPrim -> drop None,
-    DefWord -> head .module Some,
-    DefBuffer -> head .module Some,
-    DefVariable -> head .module Some,
-    DefExternal -> sig .module Some,
-    DefField -> head .module Some)
+    def package? { DefPackage -> Some, _ -> drop None }
+    def module? { DefModule -> Some, _ -> drop None }
+    def alias? { DefAlias -> Some, _ -> drop None }
+    def data? { DefData -> Some, _ -> drop None }
+    def table? { DefTable -> Some, _ -> drop None }
+    def typedef? { DefType -> Some, _ -> drop None }
+    def tag? { DefTag -> Some, _ -> drop None }
+    def prim? { DefPrim -> Some, _ -> drop None }
+    def word? { DefWord -> Some, _ -> drop None }
+    def buffer? { DefBuffer -> Some, _ -> drop None }
+    def variable? { DefVariable -> Some, _ -> drop None }
+    def external? { DefExternal -> Some, _ -> drop None }
+    def field? { DefField -> Some, _ -> drop None }
 
-def(Def.package?, Def -- Maybe(Package), DefPackage -> Some, _ -> drop None)
-def(Def.module?, Def -- Maybe(Module), DefModule -> Some, _ -> drop None)
-def(Def.alias?, Def -- Maybe(Alias), DefAlias -> Some, _ -> drop None)
-def(Def.data?, Def -- Maybe(Data), DefData -> Some, _ -> drop None)
-def(Def.table?, Def -- Maybe(Table), DefTable -> Some, _ -> drop None)
-def(Def.typedef?, Def -- Maybe(TypeDef), DefType -> Some, _ -> drop None)
-def(Def.tag?, Def -- Maybe(Tag), DefTag -> Some, _ -> drop None)
-def(Def.prim?, Def -- Maybe(Prim), DefPrim -> Some, _ -> drop None)
-def(Def.word?, Def -- Maybe(Word), DefWord -> Some, _ -> drop None)
-def(Def.buffer?, Def -- Maybe(Buffer), DefBuffer -> Some, _ -> drop None)
-def(Def.variable?, Def -- Maybe(Variable), DefVariable -> Some, _ -> drop None)
-def(Def.external?, Def -- Maybe(External), DefExternal -> Some, _ -> drop None)
-def(Def.field?, Def -- Maybe(Field), DefField -> Some, _ -> drop None)
+    def == [ Def Def -- Bool ] {
+        { DefPackage -> Some swap package? == }
+        { DefModule -> Some swap module? == }
+        { DefAlias -> Some swap alias? == }
+        { DefData -> Some swap data? == }
+        { DefTable -> Some swap table? == }
+        { DefType -> Some swap typedef? == }
+        { DefTag -> Some swap tag? == }
+        { DefPrim -> Some swap prim? == }
+        { DefWord -> Some swap word? == }
+        { DefBuffer -> Some swap buffer? == }
+        { DefVariable -> Some swap variable? == }
+        { DefExternal -> Some swap external? == }
+        { DefField -> Some swap field? == }
+    }
 
-def(Def.==, Def Def -- Bool,
-    DefAlias -> Some swap alias? ==,
-    DefPackage -> Some swap package? ==,
-    DefModule -> Some swap module? ==,
-    DefBuffer -> Some swap buffer? ==,
-    DefPrim -> Some swap prim? ==,
-    DefData -> Some swap data? ==,
-    DefTable -> Some swap table? ==,
-    DefType -> Some swap typedef? ==,
-    DefExternal -> Some swap external? ==,
-    DefWord -> Some swap word? ==,
-    DefField -> Some swap field? ==,
-    DefTag -> Some swap tag? ==,
-    DefVariable -> Some swap variable? ==)
+    def typecheck! [ +Mirth Def -- +Mirth ] {
+        { DefPackage -> drop }
+        { DefModule -> drop }
+        { DefAlias -> target typecheck! }
+        { DefData -> drop }
+        { DefTable -> drop }
+        { DefType -> target drop }
+        { DefTag -> type drop }
+        { DefPrim -> drop }
+        { DefWord -> dup type drop arrow drop }
+        { DefBuffer -> drop }
+        { DefVariable -> type drop }
+        { DefExternal -> type drop }
+        { DefField -> type drop }
+    }
 
-def(Def.typecheck!, +Mirth Def -- +Mirth,
-    DefAlias -> target typecheck!,
-    DefPackage -> drop,
-    DefModule -> drop,
-    DefBuffer -> drop,
-    DefPrim -> drop,
-    DefData -> drop,
-    DefTable -> drop,
-    DefType -> target drop,
-    DefExternal -> type drop,
-    DefWord -> dup type drop arrow drop,
-    DefField -> type drop,
-    DefTag -> type drop,
-    DefVariable -> type drop)
+    def callable? [ +Mirth Def -- +Mirth Bool ] {
+        { DefAlias -> ~target try-force! has(callable?) }
+        { DefPackage -> drop False }
+        { DefModule -> drop False }
+        { DefBuffer -> drop True }
+        { DefPrim -> drop True }
+        { DefData -> drop False }
+        { DefTable -> drop False }
+        { DefType -> drop False }
+        { DefExternal -> drop True }
+        { DefWord -> drop True }
+        { DefField -> drop True }
+        { DefTag -> drop True }
+        { DefVariable -> drop True }
+    }
 
-def(Def.callable?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> ~target try-force! has(callable?),
-    DefPackage -> drop False,
-    DefModule -> drop False,
-    DefBuffer -> drop True,
-    DefPrim -> drop True,
-    DefData -> drop False,
-    DefTable -> drop False,
-    DefType -> drop False,
-    DefExternal -> drop True,
-    DefWord -> drop True,
-    DefField -> drop True,
-    DefTag -> drop True,
-    DefVariable -> drop True)
+    def defines-a-type? [ +Mirth Def -- +Mirth Bool ] {
+        { DefAlias -> ~target try-force! has(defines-a-type?) }
+        { DefPackage -> drop False }
+        { DefModule -> drop False }
+        { DefBuffer -> drop False }
+        { DefPrim -> drop False }
+        { DefData -> drop True }
+        { DefTable -> drop True }
+        { DefType -> drop True }
+        { DefExternal -> drop False }
+        { DefWord -> drop False }
+        { DefField -> drop False }
+        { DefTag -> drop False }
+        { DefVariable -> drop False }
+    }
 
-def(Def.defines-a-type?, +Mirth Def -- +Mirth Bool,
-    DefAlias -> ~target try-force! has(defines-a-type?),
-    DefPackage -> drop False,
-    DefModule -> drop False,
-    DefBuffer -> drop False,
-    DefPrim -> drop False,
-    DefData -> drop True,
-    DefTable -> drop True,
-    DefType -> drop True,
-    DefExternal -> drop False,
-    DefWord -> drop False,
-    DefField -> drop False,
-    DefTag -> drop False,
-    DefVariable -> drop False)
+    def exposed-tycon? [ +Mirth Def -- +Mirth Maybe(Tycon) ] {
+        { DefAlias -> ~target try-force! bind(exposed-tycon?) }
+        { DefPackage -> drop None }
+        { DefModule -> drop None }
+        { DefData -> TYCON_DATA Some }
+        { DefTable -> TYCON_TABLE Some }
+        { DefType -> target tycon? }
+        { DefBuffer -> drop None }
+        { DefPrim -> drop None }
+        { DefExternal -> drop None }
+        { DefWord -> drop None }
+        { DefField -> drop None }
+        { DefTag -> drop None }
+        { DefVariable -> drop None }
+    }
 
-def(Def.exposed-tycon?, +Mirth Def -- +Mirth Maybe(Tycon),
-    DefAlias -> ~target try-force! bind(exposed-tycon?),
-    DefPackage -> drop None,
-    DefModule -> drop None,
-    DefData -> TYCON_DATA Some,
-    DefTable -> TYCON_TABLE Some,
-    DefType -> target tycon?,
-    DefBuffer -> drop None,
-    DefPrim -> drop None,
-    DefExternal -> drop None,
-    DefWord -> drop None,
-    DefField -> drop None,
-    DefTag -> drop None,
-    DefVariable -> drop None)
+    def head? [ Def -- Maybe(Token) ] {
+        { DefAlias -> head Some }
+        { DefPackage -> drop None }
+        { DefModule -> start Some }
+        { DefData -> head? }
+        { DefTable -> head Some }
+        { DefType -> head? }
+        { DefBuffer -> drop None }
+        { DefPrim -> drop None }
+        { DefExternal -> head Some }
+        { DefWord -> head Some }
+        { DefField -> head Some }
+        { DefTag -> .data head? }
+        { DefVariable -> head Some }
+    }
 
-def(Def.head?, Def -- Maybe(Token),
-    DefAlias -> head Some,
-    DefPackage -> drop None,
-    DefModule -> start Some,
-    DefData -> head?,
-    DefTable -> head Some,
-    DefType -> head?,
-    DefBuffer -> drop None,
-    DefPrim -> drop None,
-    DefExternal -> head Some,
-    DefWord -> head Some,
-    DefField -> head Some,
-    DefTag -> .data head?,
-    DefVariable -> head Some)
+    def defining-module? [ Def -- Maybe(Module) ] {
+        head? map(.module)
+    }
 
-def(Def.defining-module?, Def -- Maybe(Module),
-    head? map(.module))
+    def same-resolved? [ +Mirth Def Def -- +Mirth Bool ] {
+        on2(resolve) ==
+    }
 
-def(Def.same-resolved?, +Mirth Def Def -- +Mirth Bool,
-    on2(resolve) ==)
+    def resolve [ +Mirth Def -- +Mirth Def ] {
+        while-some(dup alias?, nip target)
+    }
 
-def(Def.resolve, +Mirth Def -- +Mirth Def,
-    while-some(dup alias?, nip target))
+    def name [ Def -- Name ] {
+        { DefAlias -> name }
+        { DefPackage -> name }
+        { DefModule -> name }
+        { DefBuffer -> name }
+        { DefPrim -> name }
+        { DefData -> name }
+        { DefTable -> name }
+        { DefType -> name }
+        { DefExternal -> name }
+        { DefWord -> name }
+        { DefField -> name }
+        { DefTag -> name }
+        { DefVariable -> name }
+    }
 
-def(Def.name, Def -- Name,
-    DefAlias -> name,
-    DefPackage -> name,
-    DefModule -> name,
-    DefBuffer -> name,
-    DefPrim -> name,
-    DefData -> name,
-    DefTable -> name,
-    DefType -> name,
-    DefExternal -> name,
-    DefWord -> name,
-    DefField -> name,
-    DefTag -> name,
-    DefVariable -> name)
+    def arity [ Def -- Int ] {
+        { DefAlias -> arity }
+        { DefPackage -> drop 0 }
+        { DefModule -> drop 0 }
+        { DefBuffer -> drop 0 }
+        { DefPrim -> arity }
+        { DefData -> arity }
+        { DefTable -> drop 0 }
+        { DefType -> drop 0 }
+        { DefExternal -> arity }
+        { DefWord -> arity >Int }
+        { DefField -> drop 0 }
+        { DefTag -> drop 0 }
+        { DefVariable -> drop 0 }
+    }
 
-def(Def.arity, Def -- Int,
-    DefAlias -> arity,
-    DefPackage -> drop 0,
-    DefModule -> drop 0,
-    DefBuffer -> drop 0,
-    DefPrim -> arity,
-    DefData -> arity,
-    DefTable -> drop 0,
-    DefType -> drop 0,
-    DefExternal -> arity,
-    DefWord -> arity >Int,
-    DefField -> drop 0,
-    DefTag -> drop 0,
-    DefVariable -> drop 0)
+    def qname-soft [ +Mirth Def -- +Mirth Maybe(QName) ] {
+        { DefAlias -> qname-soft }
+        { DefPackage -> qname Some }
+        { DefModule -> qname Some }
+        { DefBuffer -> qname Some }
+        { DefPrim -> qname Some }
+        { DefData -> qname-soft }
+        { DefTable -> qname-soft }
+        { DefType -> qname-soft }
+        { DefExternal -> qname-soft }
+        { DefWord -> qname-soft }
+        { DefField -> qname-soft }
+        { DefTag -> qname Some }
+        { DefVariable -> qname Some }
+    }
 
-def(Def.qname-soft, +Mirth Def -- +Mirth Maybe(QName),
-    DefAlias -> qname-soft,
-    DefPackage -> qname Some,
-    DefModule -> qname Some,
-    DefBuffer -> qname Some,
-    DefPrim -> qname Some,
-    DefData -> qname-soft,
-    DefTable -> qname-soft,
-    DefType -> qname-soft,
-    DefExternal -> qname-soft,
-    DefWord -> qname-soft,
-    DefField -> qname-soft,
-    DefTag -> qname Some,
-    DefVariable -> qname Some)
+    def qname-hard [ +Mirth Def -- +Mirth QName ] {
+        { DefAlias -> qname-hard }
+        { DefPackage -> qname }
+        { DefModule -> qname }
+        { DefBuffer -> qname }
+        { DefPrim -> qname }
+        { DefData -> qname-hard }
+        { DefTable -> qname-hard }
+        { DefType -> qname-hard }
+        { DefExternal -> qname-hard }
+        { DefWord -> qname-hard }
+        { DefField -> qname-hard }
+        { DefTag -> qname }
+        { DefVariable -> qname }
+    }
 
-def(Def.qname-hard, +Mirth Def -- +Mirth QName,
-    DefAlias -> qname-hard,
-    DefPackage -> qname,
-    DefModule -> qname,
-    DefBuffer -> qname,
-    DefPrim -> qname,
-    DefData -> qname-hard,
-    DefTable -> qname-hard,
-    DefType -> qname-hard,
-    DefExternal -> qname-hard,
-    DefWord -> qname-hard,
-    DefField -> qname-hard,
-    DefTag -> qname,
-    DefVariable -> qname)
+    def as-namespace? [ +Mirth Def -- +Mirth Maybe(Namespace) ] {
+        { DefAlias -> ~target try-force! bind(as-namespace?) }
+        { DefPackage -> NAMESPACE_PACKAGE Some }
+        { DefModule -> NAMESPACE_MODULE Some }
+        { DefData -> TYCON_DATA NAMESPACE_TYCON Some }
+        { DefTable -> TYCON_TABLE NAMESPACE_TYCON Some }
+        { DefType -> target tycon? map(NAMESPACE_TYCON) }
+        { DefWord -> NAMESPACE_WORD Some }
+        { _ -> drop None }
+    }
 
-def(Def.as-namespace?, +Mirth Def -- +Mirth Maybe(Namespace),
-    DefAlias -> ~target try-force! bind(as-namespace?),
-    DefPackage -> NAMESPACE_PACKAGE Some,
-    DefModule -> NAMESPACE_MODULE Some,
-    DefData -> TYCON_DATA NAMESPACE_TYCON Some,
-    DefTable -> TYCON_TABLE NAMESPACE_TYCON Some,
-    DefType -> target tycon? map(NAMESPACE_TYCON),
-    DefWord -> NAMESPACE_WORD Some,
-    _ -> drop None)
-
-def(Def.register, +Mirth Def -- +Mirth,
-    dup qname-soft for(
-        dup undefined-soft? else(
-            >Str "qualified name already has definition: " swap cat fatal-error!
-        ) drop
-    )
-    dup name ~defs modify(Cons))
-
-def(Def.def-index, +Mirth Def -- +Mirth Nat,
-    qname-hard dup name defs filter(qname-hard over >=) len nip)
+    def register [ +Mirth Def -- +Mirth ] {
+        dup qname-soft for(
+            dup undefined-soft? else(
+                >Str "qualified name already has definition: " swap cat fatal-error!
+            ) drop
+        )
+        dup name ~defs modify(Cons)
+    }
+}

@@ -50,7 +50,7 @@ def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
 
     @params len >Int dup @data ~arity !
     @name >Name @data ~name !
-    name> swap QName.prim @data DataQName prop @data ~qname !
+    name> swap QName.Prim @data DataQName prop @data ~qname !
     ctype> @data DataCType prop @data ~ctype? !
 
     @tags for(@data swap ~data !)
@@ -69,7 +69,7 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
 
     @inputs len @tag ~num-type-inputs !
     0u @tag ~num-resource-inputs !
-    L0 @tag ~label-inputs !
+    List.L0 @tag ~label-inputs !
 
     @tag .data params >Ctx
     inputs> TT
@@ -82,27 +82,27 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
 def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     >underlying >tag >tagname >data >dataname
 
-    dataname> L0 data> @tag L1 underlying> IntLike Some make-prim-data!
-    tagname> 0 TYPE_INT L1 tag> make-prim-tag!)
+    dataname> List.L0 data> @tag List.L1 underlying> IntLike Some make-prim-data!
+    tagname> 0 TYPE_INT List.L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
-    "Bool" L0 builtin bool builtin true builtin false L2 "_Bool" IntLike Some make-prim-data!
-    "False" 0 L0 builtin false make-prim-tag!
-    "True" 1 L0 builtin true make-prim-tag!
+    "Bool" List.L0 builtin bool builtin true builtin false List.L2 "_Bool" IntLike Some make-prim-data!
+    "False" 0 List.L0 builtin false make-prim-tag!
+    "True" 1 List.L0 builtin true make-prim-tag!
 
     TYPE_TYPE "a" >Name Var.new! >a
-    "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
-    "CPtr" 0 TYPE_PTR L1 builtin mk-cptr make-prim-tag!
-    "CConst" @a L1 builtin cconst builtin mk-cconst L1 None make-prim-data!
-    "CConst" 0 @a TVar L1 builtin mk-cconst make-prim-tag!
-    "CRestrict" @a L1 builtin crestrict builtin mk-crestrict L1 None make-prim-data!
-    "CRestrict" 0 @a TVar L1 builtin mk-crestrict make-prim-tag!
-    "CVolatile" @a L1 builtin cvolatile builtin mk-cvolatile L1 None make-prim-data!
-    "CVolatile" 0 @a TVar L1 builtin mk-cvolatile make-prim-tag!
+    "CPtr" @a List.L1 builtin cptr builtin mk-cptr List.L1 None make-prim-data!
+    "CPtr" 0 TYPE_PTR List.L1 builtin mk-cptr make-prim-tag!
+    "CConst" @a List.L1 builtin cconst builtin mk-cconst List.L1 None make-prim-data!
+    "CConst" 0 @a TVar List.L1 builtin mk-cconst make-prim-tag!
+    "CRestrict" @a List.L1 builtin crestrict builtin mk-crestrict List.L1 None make-prim-data!
+    "CRestrict" 0 @a TVar List.L1 builtin mk-crestrict make-prim-tag!
+    "CVolatile" @a List.L1 builtin cvolatile builtin mk-cvolatile List.L1 None make-prim-data!
+    "CVolatile" 0 @a TVar List.L1 builtin mk-cvolatile make-prim-tag!
     a> drop
 
-    "CVoid" L0 builtin cvoid builtin mk-cvoid L1 Phantom Some make-prim-data!
-    "CVoid" 0 L0 builtin mk-cvoid make-prim-tag!
+    "CVoid" List.L0 builtin cvoid builtin mk-cvoid List.L1 Phantom Some make-prim-data!
+    "CVoid" 0 List.L0 builtin mk-cvoid make-prim-tag!
 
     "U64" builtin u64 "Int>U64-unsafe" builtin mk-u64 "uint64_t" make-prim-intlike!
     "U32" builtin u32 "Int>U32-unsafe" builtin mk-u32 "uint32_t" make-prim-intlike!
@@ -132,7 +132,7 @@ def(init-data!, +Mirth -- +Mirth,
     "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-intlike!)
 
 def(data-qname, Data Name Int -- QName,
-    >arity >name TYCON_DATA NAMESPACE_TYCON >namespace MKQNAME)
+    >arity >name TYCON_DATA NAMESPACE_TYCON >namespace QName)
 
 def(data-word-qname, Data Str Nat -- QName,
     dip(>Name) >Int data-qname)
@@ -162,7 +162,7 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
         @data head? if-some(swap emit-error!, error!)
     )
     @data ~last-tag-value !
-    data> ~tags modify(tag> List.snoc)
+    data> ~tags modify(tag> List.Snoc)
 }
 
 def Data.is-enum-or-unit? [ Data -- Bool ] {
@@ -172,7 +172,7 @@ def Data.is-enum-or-unit? [ Data -- Bool ] {
 field(Data.~is-unit?, Data, Maybe(Tag))
 def(Data.is-unit?, Data -- Maybe(Tag),
     dup ~is-unit? memoize(
-        dup tags /L1 filter(num-total-inputs 0=)
+        dup tags single? filter(num-total-inputs 0=)
     ) nip)
 
 field(Data.~is-enum?, Data, Bool)
@@ -183,15 +183,19 @@ def(Data.is-enum?, Data -- Bool,
         )
     ) nip)
 
+def Data.single-tag? [ Data -- Maybe(Tag) ] {
+    tags single?
+}
+
 field(Data.~is-transparent?, Data, Bool)
 def(Data.is-transparent?, Data -- Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
-            dup tags /L1 match(
+            dup tags single? match(
                 Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == &&,
                 None -> False,
             ),
-            dup tags /L1 match(
+            dup tags single? match(
                 Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == &&,
                 None -> False
             )
@@ -206,8 +210,8 @@ struct SemiTransparentData {
 field(Data.~semi-transparent?, Data, Maybe(SemiTransparentData))
 def(Data.semi-transparent?, +Mirth Data -- +Mirth Maybe(SemiTransparentData),
     dup ~semi-transparent? memoize(
-        dup tags /L1 bind(
-            dup inputs /L1 map(
+        dup tags single? bind(
+            dup inputs single? map(
                 >input dup >tag SemiTransparentData
             ) nip
         )
@@ -257,15 +261,17 @@ def(Tag.ctx, +Mirth Tag -- +Mirth Ctx, ctx-type drop)
 def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
 def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 
+def(Tag.only-tag?, Tag -- Bool, .data tags single? >Bool)
+
 def Tag.label-inputs-from-sig [ Tag -- List(Label) ] {
-    sig? if-some(run-tokens filter-some(sig-label?), L0)
+    sig? if-some(run-tokens filter-some(sig-label?), Nil)
 }
 
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
-        over num-resource-inputs-from-sig - .u
-        swap label-inputs-from-sig len - .u,
+        over num-resource-inputs-from-sig minus
+        swap label-inputs-from-sig len minus,
         drop 0u
     ))
 

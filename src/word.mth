@@ -40,7 +40,7 @@ def(Word.head, Word -- Token, ~head @)
 def(Word.sig?, Word -- Maybe(Token), ~sig? @)
 def(Word.body, Word -- Token, ~body @)
 def(Word.arity, Word -- Nat, ~arity @)
-def(Word.params, Word +Mirth -- List(Param) +Mirth, ~params dup mut-is-set if(force!, drop L0))
+def(Word.params, Word +Mirth -- List(Param) +Mirth, ~params dup mut-is-set if(force!, drop Nil))
 def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
 def(Word.inferring-type?, Word -- Bool,
     ~inferring-type? @? unwrap(False))

@@ -69,24 +69,30 @@ data(Sgr,
     NotOverlined,
     UnderlineColor -> SGRColor,
     DefaultUnderlineColor
+    --
+    def emit; [ Sgr +Str -- +Str ] {
+        csi;
+        dup enum-value show;
+        match {
+            { FGColor -> emit; }
+            { BGColor -> emit; }
+            { _ -> drop }
+        }
+        "m" ;
+    }
 )
 
-data(SGRColor,
-    Numbered -> Int,
-    RGB -> Int Int Int)
+data SGRColor {
+    Numbered [ Int ]
+    RGB [ Int Int Int ]
+    --
+    def emit; [ SGRColor +Str -- +Str ] {
+        { Numbered -> ";5;" ; show; }
+        { RGB -> ";2;" ; show; ";" ; show; ";" ; show; }
+    }
+}
 
-def(SGRColor.show;, SGRColor +Str -- +Str,
-    Numbered -> ";5;" ; show;,
-    RGB -> ";2;" ; show; ";" ; show; ";" ; show;)
-
-def(Sgr.emit;, Sgr +Str -- +Str,
-    csi;
-    dup enum-value show;
-    match(
-        FGColor -> show;,
-	BGColor -> show;,
-    	_ -> drop
-    )
-    "m" ;)
-
-def(csi;, +Str -- +Str, BESC push-byte-unsafe! BLSQUARE push-byte-unsafe!)
+def +Str.csi; [ +Str -- +Str ] {
+    BESC push-byte-unsafe!
+    BLSQUARE push-byte-unsafe!
+}

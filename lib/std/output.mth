@@ -6,50 +6,64 @@ import(std.byte)
 import(std.buffer)
 import(std.file)
 
-def(OUTPUT_BUFFER_SIZE, USize, 4096 .u >USize)
-data(+Output, +Output ->
+def OUTPUT_BUFFER_SIZE [ USize ] { 4096 >Nat-clamp >USize }
+
+struct +Output {
     size: USize
     +file: +File
-    +buffer: +Buffer)
+    +buffer: +Buffer
+    --
 
-def(+Output.start!, +File -- +Output,
-    >+file
-    0u >USize >size
-    OUTPUT_BUFFER_SIZE +Buffer.new >+buffer
-    +Output)
+    def start! [ +File -- +Output ] {
+        >+file
+        0u >USize >size
+        OUTPUT_BUFFER_SIZE +Buffer.new >+buffer
+        +Output
+    }
 
-def(+Output.end!, +Output -- +File,
-    flush! /+Output
-    size> drop
-    +buffer> rdrop
-    +file>)
+    def end! [ +Output -- +File ] {
+        flush! /+Output
+        size> drop
+        +buffer> rdrop
+        +file>
+    }
 
-def(+Output.flush!, +Output -- +Output,
-    +buffer:base size +file:unsafe:write-bytes! drop2
-    0u >USize size!)
+    def flush! [ +Output -- +Output ] {
+        +buffer:base size +file:unsafe:write-bytes! drop2
+        0u >USize size!
+    }
 
-def(+Output.offset, +Output -- +Output UOffset, size >UOffset)
+    def offset [ +Output -- +Output UOffset ] {
+        size >UOffset
+    }
 
-def(+Output.capacity-total, +Output -- USize +Output, +buffer:size)
-def(+Output.capacity-remaining, +Output -- USize +Output, capacity-total size - >USize(id, drop 0u >USize))
-def(+Output.full?, +Output -- Bool +Output, capacity-remaining 0=)
+    def capacity-total [ +Output -- USize +Output ] { +buffer:size }
+    def capacity-remaining [ +Output -- USize +Output ] { capacity-total size - >USize-if(id, drop 0u >USize) }
+    def full? [ +Output -- Bool +Output ] { capacity-remaining 0= }
 
-def(+Output.put, Str +Output -- +Output,
-    dup num-bytes capacity-remaining > if(
-        flush! dup num-bytes capacity-total >= if(
-            with-data(+file:unsafe:write-bytes! drop2),
-            put
-        ),
+    def put [ Str +Output -- +Output ] {
+        dup num-bytes capacity-remaining > if(
+            flush! dup num-bytes capacity-total >= if(
+                with-data(+file:unsafe:write-bytes! drop2),
+                put
+            ),
 
-        dup offset +buffer:!Str
-        num-bytes size:+
-    ))
+            dup offset +buffer:!Str
+            num-bytes size:+
+        )
+    }
 
-def(+Output.put-byte, Byte +Output -- +Output,
-    full? then(flush!)
-    offset +buffer:!Byte
-    size:1+)
+    def put-byte [ Byte +Output -- +Output ] {
+        full? then(flush!)
+        offset +buffer:!Byte
+        size:1+
+    }
 
-def(+Output.line, +Output -- +Output, BLF put-byte)
+    def line [ +Output -- +Output ] {
+        BLF put-byte
+    }
 
-def(+Output.put-line, Str +Output -- +Output, put line)
+    def put-line [ Str +Output -- +Output ] {
+        put line
+    }
+}

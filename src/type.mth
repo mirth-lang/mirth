@@ -88,15 +88,15 @@ def Type.tycon? [ Type -- Maybe(Tycon) ] {
 
 ||| Get primitive type constructor name.
 def PrimType.tycon-qname [ +Mirth PrimType -- +Mirth QName ] {
-    { PRIM_TYPE_TYPE -> "TYPE" 0 QName.prim }
-    { PRIM_TYPE_STACK -> "STACK" 0 QName.prim }
-    { PRIM_TYPE_RESOURCE -> "Resource" 0 QName.prim }
-    { PRIM_TYPE_INT -> "Int" 0 QName.prim }
-    { PRIM_TYPE_F32 -> "F32" 0 QName.prim }
-    { PRIM_TYPE_F64 -> "F64" 0 QName.prim }
-    { PRIM_TYPE_STR -> "Str" 0 QName.prim }
-    { PRIM_TYPE_PTR -> "Ptr" 0 QName.prim }
-    { PRIM_TYPE_WORLD -> "+World" 0 QName.prim }
+    { PRIM_TYPE_TYPE -> "TYPE" 0 QName.Prim }
+    { PRIM_TYPE_STACK -> "STACK" 0 QName.Prim }
+    { PRIM_TYPE_RESOURCE -> "Resource" 0 QName.Prim }
+    { PRIM_TYPE_INT -> "Int" 0 QName.Prim }
+    { PRIM_TYPE_F32 -> "F32" 0 QName.Prim }
+    { PRIM_TYPE_F64 -> "F64" 0 QName.Prim }
+    { PRIM_TYPE_STR -> "Str" 0 QName.Prim }
+    { PRIM_TYPE_PTR -> "Ptr" 0 QName.Prim }
+    { PRIM_TYPE_WORLD -> "+World" 0 QName.Prim }
 }
 
 ||| Get value type constructor name.
@@ -707,7 +707,7 @@ def-type(Type/Resource, Either(Type, Resource))
 
 ||| Split stack type into base, types, and resources.
 def(StackType.split4, StackType -- StackType List([Type/Resource Label]) List(Type) List(Resource),
-    L0 L0 L0 >labels >withses >conses
+    List.L0 List.L0 List.L0 >labels >withses >conses
     while(
         expand match(
             STCons -> conses> Cons >conses True,
@@ -1278,7 +1278,7 @@ def(StackTypePart.cons, StackType StackTypePart -- StackType,
     STPWithLabel -> STWithLabel)
 
 def(StackType.split-parts, StackType -- StackTypeBase List(StackTypePart),
-    L0 >parts
+    List.L0 >parts
     while-right(
         match {
             { STACK_TYPE_ERROR -> STB_ERROR Left }
@@ -1286,10 +1286,10 @@ def(StackType.split-parts, StackType -- StackTypeBase List(StackTypePart),
             { STACK_TYPE_UNIT -> STB_UNIT Left }
             { STVar -> STBVar Left }
             { STMeta -> expand-if(>StackType Right, STBMeta Left) }
-            { STCons -> STPCons @parts:cons Right }
-            { STConsLabel -> STPConsLabel @parts:cons Right }
-            { STWith -> STPWith @parts:cons Right }
-            { STWithLabel -> STPWithLabel @parts:cons Right }
+            { STCons -> STPCons @parts:Cons Right }
+            { STConsLabel -> STPConsLabel @parts:Cons Right }
+            { STWith -> STPWith @parts:Cons Right }
+            { STWithLabel -> STPWithLabel @parts:Cons Right }
         }
     )
     parts>)

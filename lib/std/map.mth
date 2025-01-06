@@ -7,20 +7,24 @@ import(std.maybe)
 ||| Key-value map, implemented as linear search list.
 ||| TODO: switch to a comparison-based ordered map.
 |||   https://github.com/mirth-lang/mirth/issues/237
-data(Map(k,v), Map -> List(KVPair(k,v)))
-data(KVPair(k,v), KVPair -> key:k value:v)
 
-def(Map.len, Map(k,v) -- Nat, /Map len)
+struct KeyValuePair(k,v) {
+    key: k
+    value: v
+}
 
-def(Map.empty, -- Map(k,v), L0 Map)
-def(Map.pairs, Map(k,v) -- List(KVPair(k,v)), Map -> id)
-def(Map.keys, Map(k,v) -- List(k), Map -> map(key))
-def(Map.values, Map(k,v) -- List(v), Map -> map(value))
-def(Map.insert, KVPair(k,v) Map(k,v) -- Map(k,v),
-    Map -> cons Map)
-
-def(Map.lookup-pair(keq {==}), (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(KVPair(k,v)),
-    Map -> lookup(.key keq))
-
-def(Map.lookup(keq {==}), (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(v),
-    lookup-pair(keq) map(value))
+struct Map(k,v) {
+    pairs: List(KeyValuePair(k,v))
+    --
+    def Nil { List.L0 >pairs Map }
+    def len { pairs len }
+    def keys { pairs map(key) }
+    def values { pairs map(value) }
+    def insert [ KeyValuePair(k,v) Map(k,v) -- Map(k,v) ] { pairs:Cons }
+    def lookup-pair(keq {==}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(KeyValuePair(k,v)) ] {
+        pairs lookup(.key keq)
+    }
+    def lookup(keq {==}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(v) ] {
+        lookup-pair(keq) map(value)
+    }
+}
