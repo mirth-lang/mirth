@@ -140,6 +140,8 @@ inline {
     def rrot4r [ +a +b +c +d -- +d +a +b +c ] { rswap rdip(rrotr) }
     def rrot4l [ +a +b +c +d -- +b +c +d +a ] { rdip(rrotl) rswap }
 
+    def swap2 [ a b c d -- c d a b ] { dip(rotr) rotr }
+
     def over  [ a b           -- a b           a ] { dip(dup)   swap }
     def over2 [ a b1 b2       -- a b1 b2       a ] { dip(over)  swap }
     def over3 [ a b1 b2 b3    -- a b1 b2 b3    a ] { dip(over2) swap }
@@ -154,11 +156,13 @@ inline {
 
     def dip'(f) [ (*a x -- *b y) *a c x -- *b c y ] { swap dip(f) swap }
     def dip2(f) [ (*a -- *b) *a c1 c2 -- *b c1 c2 ] { dip(dip(f)) }
-    def dip3(f) [ (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3 ] { dip(dip(dip(f))) }
+    def dip3(f) [ (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3 ] { dip(dip2(f)) }
+    def dip4(f) [ (*a -- *b) *a c1 c2 c3 c4 -- *b c1 c2 c3 c4 ] { dip(dip3(f)) }
+    def dip5(f) [ (*a -- *b) *a c1 c2 c3 c4 c5 -- *b c1 c2 c3 c4 c5 ] { dip(dip4(f)) }
 
     def rdip'(f) [ (*a +r1 -- *b +r2) *a +c +r1 -- *b +c +r2 ] { rswap rdip(f) rswap }
     def rdip2(f) [ (*a -- *b) *a +c1 +c2 -- *b +c1 +c2 ] { rdip(rdip(f)) }
-    def rdip3(f) [ (*a -- *b) *a +c1 +c2 +c3 -- *b +c1 +c2 +c3 ] { rdip(rdip(rdip(f))) }
+    def rdip3(f) [ (*a -- *b) *a +c1 +c2 +c3 -- *b +c1 +c2 +c3 ] { rdip(rdip2(f)) }
 
     def sip(f)  [ (*a x     -- *b) *a x     -- *b x     ] { dup  dip(f)  }
     def sip2(f) [ (*a x1 x2 -- *b) *a x1 x2 -- *b x1 x2 ] { dup2 dip2(f) }
@@ -211,7 +215,7 @@ data Comparison {
     +1 GT
     --
     inline {
-        def eq? [ Comparison -- Bool ] { enum-value 0 =  }
+        def eq? [ Comparison -- Bool ] { enum-value 0 == }
         def lt? [ Comparison -- Bool ] { enum-value 0 <  }
         def le? [ Comparison -- Bool ] { enum-value 0 <= }
         def ge? [ Comparison -- Bool ] { enum-value 0 >  }
@@ -229,8 +233,23 @@ data Comparison {
     def show [ Comparison -- Str ] { LT -> "LT", EQ -> "EQ", GT -> "GT" }
 }
 
+def ==2(f{==}, g{==}) [ (*x a a -- *x Bool, *x b b -- *x Bool) *x a b a b -- *x Bool ] {
+    dip(swap) dip2(f) rotl if(g, drop2 False)
+}
+def <>2(f{<>}, g{<>}) [ (*x a a -- *x Bool, *x b b -- *x Bool) *x a b a b -- *x Bool ] {
+    dip(swap) dip2(f) rotl if(drop2 True, g)
+}
+def compare2(f{compare}, g{compare}) [
+    (*x a a -- *x Comparison, *x b b -- *x Comparison )
+    *x a b a b -- *x Comparison
+] {
+    dip(swap) dip2(f) rotl match {
+        { EQ -> g }
+        { _ -> dip(drop2) }
+    }
+}
+
 alias(Int.==, prim-int-eq)
-alias(Int.= , prim-int-eq)
 alias(Int.< , prim-int-lt)
 alias(Int.<=, prim-int-le)
 alias(Int.> , prim-int-gt)
@@ -245,20 +264,18 @@ def Int.clamp   [ Int Int Int -- Int ] { dip(max) min }
 
 inline {
     alias(F64.==, prim-f64-eq)
-    alias(F64.=, prim-f64-eq)
     alias(F64.<, prim-f64-lt)
     def(F64.>, F64 F64 -- Bool, swap <)
     def(F64.<=, F64 F64 -- Bool, swap < not)
     def(F64.>=, F64 F64 -- Bool, < not)
-    def(F64.<>, F64 F64 -- Bool, = not)
+    def(F64.<>, F64 F64 -- Bool, == not)
 
     alias(F32.==, prim-f32-eq)
-    alias(F32.=, prim-f32-eq)
     alias(F32.<, prim-f32-lt)
     def(F32.>, F32 F32 -- Bool, swap <)
     def(F32.<=, F32 F32 -- Bool, swap < not)
     def(F32.>=, F32 F32 -- Bool, < not)
-    def(F32.<>, F32 F32 -- Bool, = not)
+    def(F32.<>, F32 F32 -- Bool, == not)
 }
 
 inline {
@@ -268,12 +285,11 @@ inline {
 
     def(Str.compare, Str Str -- Comparison, prim-str-cmp dup 0= if(drop EQ, 0< if(LT, GT)))
     alias(Str.==, prim-str-eq)
-    alias(Str.=,  prim-str-eq)
+    alias(Str.<>, prim-str-ne)
     alias(Str.<,  prim-str-lt)
     alias(Str.<=, prim-str-le)
     alias(Str.>,  prim-str-gt)
     alias(Str.>=, prim-str-ge)
-    alias(Str.<>, prim-str-ne)
 }
 def(Str.max, Str Str -- Str, dup2 < if(nip, drop))
 def(Str.min, Str Str -- Str, dup2 < if(drop, nip))
@@ -284,7 +300,7 @@ inline {
     def Int.1+  [ Int -- Int  ] { 1 + }
     def Int.2*  [ Int -- Int  ] { 2 * }
     def Int.2/  [ Int -- Int  ] { 2 / }
-    def Int.0=  [ Int -- Bool ] { 0 = }
+    def Int.0=  [ Int -- Bool ] { 0 == }
     def Int.0<  [ Int -- Bool ] { 0 < }
     def Int.0>  [ Int -- Bool ] { 0 > }
     def Int.0<= [ Int -- Bool ] { 0 <= }
@@ -366,7 +382,6 @@ inline {
 
     def I8.compare [ I8 I8 -- Comparison ] { on2:>Int compare }
     def I8.== [ I8 I8 -- Bool ] { on2:>Int == }
-    def I8.=  [ I8 I8 -- Bool ] { on2:>Int =  }
     def I8.<  [ I8 I8 -- Bool ] { on2:>Int <  }
     def I8.<= [ I8 I8 -- Bool ] { on2:>Int <= }
     def I8.>  [ I8 I8 -- Bool ] { on2:>Int >  }
@@ -398,7 +413,6 @@ inline {
 
     def I16.compare [ I16 I16 -- Comparison ] { on2:>Int compare }
     def I16.== [ I16 I16 -- Bool ] { on2:>Int == }
-    def I16.=  [ I16 I16 -- Bool ] { on2:>Int =  }
     def I16.<  [ I16 I16 -- Bool ] { on2:>Int <  }
     def I16.<= [ I16 I16 -- Bool ] { on2:>Int <= }
     def I16.>  [ I16 I16 -- Bool ] { on2:>Int >  }
@@ -430,7 +444,6 @@ inline (
 
     def I32.compare [ I32 I32 -- Comparison ] { on2:>Int compare }
     def I32.== [ I32 I32 -- Bool ] { on2:>Int == }
-    def I32.=  [ I32 I32 -- Bool ] { on2:>Int =  }
     def I32.<  [ I32 I32 -- Bool ] { on2:>Int <  }
     def I32.<= [ I32 I32 -- Bool ] { on2:>Int <= }
     def I32.>  [ I32 I32 -- Bool ] { on2:>Int >  }
@@ -457,7 +470,6 @@ inline (
 
     def I64.compare [ I64 I64 -- Comparison ] { on2:>Int compare }
     def I64.== [ I64 I64 -- Bool ] { on2:>Int == }
-    def I64.=  [ I64 I64 -- Bool ] { on2:>Int =  }
     def I64.<  [ I64 I64 -- Bool ] { on2:>Int <  }
     def I64.<= [ I64 I64 -- Bool ] { on2:>Int <= }
     def I64.>  [ I64 I64 -- Bool ] { on2:>Int >  }
@@ -492,7 +504,6 @@ inline (
     def U8.^ [ U8 U8 -- U8 ] { on2:>Int ^ >U8-unsafe }
 
     def U8.compare [ U8 U8 -- Comparison ] { on2:>Int compare }
-    def U8.=  [ U8 U8 -- Bool ] { on2:>Int =  }
     def U8.== [ U8 U8 -- Bool ] { on2:>Int == }
     def U8.<  [ U8 U8 -- Bool ] { on2:>Int <  }
     def U8.<= [ U8 U8 -- Bool ] { on2:>Int <= }
@@ -530,7 +541,6 @@ inline (
     def U16.^ [ U16 U16 -- U16 ] { on2:>Int ^ >U16-unsafe }
 
     def U16.compare [ U16 U16 -- Comparison ] { on2:>Int compare }
-    def U16.=  [ U16 U16 -- Bool ] { on2:>Int =  }
     def U16.== [ U16 U16 -- Bool ] { on2:>Int == }
     def U16.<  [ U16 U16 -- Bool ] { on2:>Int <  }
     def U16.<= [ U16 U16 -- Bool ] { on2:>Int <= }
@@ -568,7 +578,6 @@ inline (
     def U32.^ [ U32 U32 -- U32 ] { on2:>Int ^ >U32-unsafe }
 
     def U32.compare [ U32 U32 -- Comparison ] { on2:>Int compare }
-    def U32.=  [ U32 U32 -- Bool ] { on2:>Int =  }
     def U32.== [ U32 U32 -- Bool ] { on2:>Int == }
     def U32.<  [ U32 U32 -- Bool ] { on2:>Int <  }
     def U32.<= [ U32 U32 -- Bool ] { on2:>Int <= }
@@ -609,7 +618,6 @@ inline (
     def U64.^ [ U64 U64 -- U64 ] { on2:>Int-unsafe ^ >U64-unsafe }
 
     def U64.== [ U64 U64 -- Bool ] { on2:>Int-unsafe == }
-    def U64.=  [ U64 U64 -- Bool ] { on2:>Int-unsafe =  }
     def U64.<> [ U64 U64 -- Bool ] { on2:>Int-unsafe <> }
 )
 
@@ -665,7 +673,6 @@ data Nat {
 
         def compare [ Nat Nat -- Comparison ] { dip(>Int) >Int compare }
         def == [ Nat Nat -- Bool ] { dip(>Int) >Int == }
-        def =  [ Nat Nat -- Bool ] { dip(>Int) >Int =  }
         def <  [ Nat Nat -- Bool ] { dip(>Int) >Int <  }
         def >  [ Nat Nat -- Bool ] { dip(>Int) >Int >  }
         def <= [ Nat Nat -- Bool ] { dip(>Int) >Int <= }
@@ -728,7 +735,7 @@ struct UIndex {
         def 1+ [ UIndex -- UIndex ] { >Nat 1+ >UIndex }
         def 2* [ UIndex -- UIndex ] { >Nat 2* >UIndex }
         def 2/ [ UIndex -- UIndex ] { >Nat 2/ >UIndex }
-        def =  [ UIndex UIndex -- Bool ] { dip(>Nat) >Nat =  }
+        def == [ UIndex UIndex -- Bool ] { dip(>Nat) >Nat == }
         def <  [ UIndex UIndex -- Bool ] { dip(>Nat) >Nat <  }
         def >  [ UIndex UIndex -- Bool ] { dip(>Nat) >Nat >  }
         def <= [ UIndex UIndex -- Bool ] { dip(>Nat) >Nat <= }
@@ -762,7 +769,6 @@ struct ISize {
         def 1+ [ ISize -- ISize ] { >Int 1+ >ISize }
         def 1- [ ISize -- ISize ] { >Int 1- >ISize }
         def == [ ISize ISize -- Bool ] { dip:>Int >Int == }
-        def =  [ ISize ISize -- Bool ] { dip:>Int >Int =  }
         def >  [ ISize ISize -- Bool ] { dip:>Int >Int >  }
         def <  [ ISize ISize -- Bool ] { dip:>Int >Int <  }
         def >= [ ISize ISize -- Bool ] { dip:>Int >Int >= }
@@ -802,7 +808,6 @@ struct USize {
         def 2* [ USize -- USize ] { >Nat 2* >USize }
         def 2/ [ USize -- USize ] { >Nat 2/ >USize }
         def == [ USize USize -- Bool ] { dip(>Nat) >Nat == }
-        def =  [ USize USize -- Bool ] { dip(>Nat) >Nat =  }
         def <  [ USize USize -- Bool ] { dip(>Nat) >Nat <  }
         def >  [ USize USize -- Bool ] { dip(>Nat) >Nat >  }
         def <= [ USize USize -- Bool ] { dip(>Nat) >Nat <= }
@@ -849,7 +854,6 @@ inline(
     def IOffset.1+ [ IOffset -- IOffset ] { >Int 1+ >IOffset }
     def IOffset.1- [ IOffset -- IOffset ] { >Int 1- >IOffset }
     def IOffset.== [ IOffset IOffset -- Bool ] { dip:>Int >Int == }
-    def IOffset.=  [ IOffset IOffset -- Bool ] { dip:>Int >Int =  }
     def IOffset.>  [ IOffset IOffset -- Bool ] { dip:>Int >Int >  }
     def IOffset.<  [ IOffset IOffset -- Bool ] { dip:>Int >Int <  }
     def IOffset.>= [ IOffset IOffset -- Bool ] { dip:>Int >Int >= }
@@ -886,7 +890,6 @@ struct UOffset {
         def 2* [ UOffset -- UOffset ] { >Nat 2* >UOffset }
         def 2/ [ UOffset -- UOffset ] { >Nat 2/ >UOffset }
         def == [ UOffset UOffset -- Bool ] { dip(>Nat) >Nat == }
-        def =  [ UOffset UOffset -- Bool ] { dip(>Nat) >Nat =  }
         def <  [ UOffset UOffset -- Bool ] { dip(>Nat) >Nat <  }
         def >  [ UOffset UOffset -- Bool ] { dip(>Nat) >Nat >  }
         def <= [ UOffset UOffset -- Bool ] { dip(>Nat) >Nat <= }

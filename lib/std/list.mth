@@ -169,7 +169,7 @@ data List(t) {
             )
         )
         rest> drop
-        ok> if(freeze Some, rdrop None)
+        ok> if(+> Some, rdrop None)
     }
 
     def ==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
@@ -372,7 +372,7 @@ struct List+(t) {
         dip(>List) >List ==(eq)
     }
 
-    def(ookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
+    def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
         find(over dip(p) swap) nip)
 
     def(reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
@@ -444,96 +444,315 @@ inline(
     }
 )
 
-struct +List(t) { List(t) }
-struct +List+(t) { List+(t) }
-
-inline(
-    def +List.rdrop  [ +List (t) -- ] { +List  -> drop }
-    def +List+.rdrop [ +List+(t) -- ] { +List+ -> drop }
-
-    def +List.rdup  [ +List (t) -- +List (t) +List (t) ] { +List  -> dup dip(+List)  +List  }
-    def +List+.rdup [ +List+(t) -- +List+(t) +List+(t) ] { +List+ -> dup dip(+List+) +List+ }
-
-    def +List.+L0 [       -- +List(t) ] { List.L0 +List }
-    def +List.+L1 [     t -- +List(t) ] { List.L1 +List }
-    def +List.+L2 [   t t -- +List(t) ] { swap List.L2 +List }
-    def +List.+L3 [ t t t -- +List(t) ] { flip3 List.L3 +List }
-
-    def(List.thaw, List(t) -- +List(t), reverse +List)
-    def(+List.freeze, +List(t) -- List(t), /+List reverse)
-    def(+List.push!, +List(t) t -- +List(t), /+List Cons +List)
-    def(+List.push+!, +List(t) t -- +List+(t), /+List cons +List+)
-    def(+List.pop!, +List(t) -- +List(t) Maybe(t), /+List uncons +List)
-    inline:def(+List.;, +List(t) t -- +List(t), +List.push!)
-    inline:def(+List.;+, +List(t) t -- +List+(t), +List.push+!)
-
-    def(List+.thaw, List+(t) -- +List+(t), reverse +List+)
-    def(+List+.freeze, +List+(t) -- List+(t), /+List+ reverse)
-    def(+List+.push!, +List+(t) t -- +List+(t), /+List+ cons +List+)
-    def(+List+.pop!, +List+(t) -- +List(t) t, /+List+ uncons +List)
-    inline:def(+List+.;, +List+(t) t -- +List+(t), +List+.push!)
-
-    def(LIST(f), (*a +List(t) -- *b +List(t)) *a -- *b List(t), List.L0 thaw f freeze)
-    def(LIST+(f), (*a +List(t) -- *b +List+(t)) *a -- *b List+(t), List.L0 thaw f freeze)
-)
-
-struct L0 {
+struct +List(t) {
+    reversed: List(t)
     --
-    def >List { L0 -> List.L0 }
+    def +L0 [ +List(t) ] { List.L0 >reversed +List }
+    def +L1 [ t -- +List(t) ] { List.L1 >reversed +List }
+    def +L2 [ t t -- +List(t) ] { swap List.L2 >reversed +List }
+    def +L3 [ t t t -- +List(t) ] { flip3 List.L3 >reversed +List }
+    def +L4 [ t t t t -- +List(t) ] { flip4 List.L4 >reversed +List }
+
+    def rdrop [ +List(t) -- ] { +List -> reversed> drop }
+    def rdup [ +List(t) -- +List(t) +List(t) ] { reversed >reversed +List }
+
+    def +> [ +List(t) -- List(t) ] { +List -> reversed> reverse }
+    def List.>+ [ List(t) -- +List(t) ] { reverse >reversed +List }
+    inline def freeze { +> }
+    inline def List.thaw { >+ }
+
+    def push! [ t +List(t) -- +List(t) ] { reversed:Cons }
+    def push+! [ t +List(t) -- +List+(t) ] { +List -> @reversed:cons +List+ }
+    def pop!  [ +List(t) -- Maybe(t) +List(t) ] { reversed:uncons }
+    inline def ;  { push!  }
+    inline def ;+ { push+! }
+}
+struct +List+(t) {
+    reversed: List+(t)
+    --
+    def +L1 [ t -- +List+(t) ] { List+.L1 >reversed +List+ }
+    def +L2 [ t t -- +List+(t) ] { swap List+.L2 >reversed +List+ }
+    def +L3 [ t t t -- +List+(t) ] { flip3 List+.L3 >reversed +List+ }
+    def +L4 [ t t t t -- +List+(t) ] { flip4 List+.L4 >reversed +List+ }
+
+    def rdrop [ +List+(t) -- ] { +List+ -> reversed> drop }
+    def rdup [ +List+(t) -- +List+(t) +List+(t) ] { reversed >reversed +List+ }
+
+    def +> [ +List+(t) -- List+(t) ] { +List+ -> reversed> reverse }
+    def List+.>+ [ List+(t) -- +List+(t) ] { reverse >reversed +List+ }
+    inline def freeze { +> }
+    inline def List+.thaw { >+ }
+
+    def push! [ t +List+(t) -- +List+(t) ] { reversed:cons }
+    def pop!  [ +List+(t) -- t +List(t) ] { +List+ -> @reversed:uncons +List }
+    inline def ; { push! }
 }
 
-struct L1(t) {
+def LIST (f) [ (*a +List(t) -- *b +List (t)) *a -- *b List (t) ] { List.L0 >+ f +> }
+def LIST+(f) [ (*a +List(t) -- *b +List+(t)) *a -- *b List+(t) ] { List.L0 >+ f +> }
+
+inline struct L0 {
+    --
+    def Nil [ L0 ] { L0 }
+    def cons [ t L0 -- L1(t) ] { L0 -> L1 }
+    def xsnoc [ L0 x:t -- L1(t) ] { drop x> L1 }
+    def >List { L0 -> List.L0 }
+    def len [ L0 -- Nat ] { drop 0u }
+    def map(f) [ (*c a -- *c b) *c L0 -- *c L0 ] { drop L0 }
+    def for(f) [ (*c a -- *c) *c L0 -- *c ] { drop }
+    def == [ L0 L0 -- Bool ] { drop2 True  }
+    def <> [ L0 L0 -- Bool ] { drop2 False }
+    def <  [ L0 L0 -- Bool ] { drop2 False }
+    def <= [ L0 L0 -- Bool ] { drop2 True  }
+    def >  [ L0 L0 -- Bool ] { drop2 False }
+    def >= [ L0 L0 -- Bool ] { drop2 True  }
+    def compare [ L0 L0 -- Comparison ] { drop2 EQ }
+    def show  [ L0 -- Str ] { L0 -> "L0" }
+    def show; [ +Str L0 -- +Str ] { L0 -> "L0" ; }
+}
+
+inline struct L1(t) {
     t
     --
-    def >List  { L1 -> List.L1 }
-    def >List+ { L1 -> List+.L1 }
+    def Cons [ t L0 -- L1(t) ] { L0 -> L1 }
+    def Snoc [ L0 t -- L1(t) ] { nip L1 }
+    def cons [ t L1(t) -- L2(t) ] { L1 -> L2 }
+    def uncons [ L1(t) -- t L0 ] { L1 -> L0 }
+    def xsnoc [ L1(t) x:t -- L2(t) ] { L1 -> x> L2 }
+    def >List [ L1(t) -- List(t) ] { L1 -> List.L1 }
+    def >List+ [ L1(t) -- List+(t) ] { L1 -> List+.L1 }
+    def len [ L1(t) -- Nat ] { drop 1u }
+    def map(f) [ (*c a -- *d b) *c L1(a) -- *d L1(b) ] { L1 -> f L1 }
+    def for(f) [ (*c a -- *d) *c L1(a) -- *d ] { L1 -> f }
+    def == (eq {==}) [ (*c a a -- *d Bool) *c L1(a) L1(a) -- *d Bool ] { on2:/L1 eq }
+    def <> (ne {<>}) [ (*c a a -- *d Bool) *c L1(a) L1(a) -- *d Bool ] { on2:/L1 ne }
+    def <  (lt {< }) [ (*c a a -- *d Bool) *c L1(a) L1(a) -- *d Bool ] { on2:/L1 lt }
+    def <= (le {<=}) [ (*c a a -- *d Bool) *c L1(a) L1(a) -- *d Bool ] { on2:/L1 le }
+    def >  (gt {> }) [ (*c a a -- *d Bool) *c L1(a) L1(a) -- *d Bool ] { on2:/L1 gt }
+    def >= (ge {>=}) [ (*c a a -- *d Bool) *c L1(a) L1(a) -- *d Bool ] { on2:/L1 ge }
+    def compare (cmp {compare}) [ (*c a a -- *d Comparison) *c L1(a) L1(a) -- *d Comparison ] { on2:/L1 cmp }
+    def show (f {show;}) [ (+Str t -- +Str) L1(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L1(t) -- +Str ] { L1 -> f " L1" ; }
 }
 
 struct L2(t) {
     t t
     --
-    def >List  { L2 -> List.L2  }
-    def >List+ { L2 -> List+.L2 }
+    def Cons [ t L1(t) -- L2(t) ] { L1 -> L2 }
+    def Snoc [ L1(t) t -- L2(t) ] { dip:/L1 L2 }
+    def cons [ t L2(t) -- L3(t) ] { L2 -> L3 }
+    def xsnoc [ L2(t) x:t -- L3(t) ] { L2 -> x> L3 }
+
+    def >List [ L2(t) -- List(t) ] { L2 -> List.L2  }
+    def >List+ [ L2(t) -- List+(t) ] { L2 -> List+.L2 }
+    inline def len [ L2(t) -- Nat ] { drop 2u }
+    def for(f) [ (*c a -- *c) *c L2(a) -- *c ] { L2 -> dip(f) f }
+    def for2(f) [ (*c a b -- *c) *c L2(a) L2(b) -- *c ] { dip(/L2) /L2 dip(swap) dip2(f) f }
+    def map(f) [ (*c a -- *c b) *c L2(a) -- *c L2(b) ] { L2 -> on2(f) L2 }
+    def map2(f) [ (*x a b -- *x c) *x L2(a) L2(b) -- *x L2(c) ] {
+        dip(/L2) /L2 dip(swap)
+        dip2(f) rotl dip(f) swap L2
+    }
+    def fold(f) [ (*x a a -- *y b) *x L2(a) -- *y b ] {
+        L2 -> f
+    }
+
+    def show (f {show;}) [ (+Str t -- +Str) L2(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L2(t) -- +Str ] {
+        L2 -> dip:f " "; f " L2";
+    }
+
+    def x [ L2(a) -- a ] { L2 -> drop }
+    def y [ L2(a) -- a ] { L2 -> nip }
+    def x! [ a L2(a) -- L2(a) ] { L2 -> nip L2 }
+    def y! [ a L2(a) -- L2(a) ] { L2 -> drop swap L2 }
+
+    def == (eq {==}) [ (*c a a -- *c Bool) *c L2(a) L2(a) -- *c Bool ] {
+        dip(/L2) /L2 ==2(eq,eq)
+    }
+    def <> (ne {<>}) [ (*c a a -- *c Bool) *c L2(a) L2(a) -- *c Bool ] {
+        dip(/L2) /L2 ==2(ne not, ne not) not
+    }
+    def <  (cmp {compare}) [ (*c a a -- *c Comparison) *c L2(a) L2(a) -- *c Bool ] { compare(cmp) lt? }
+    def <= (cmp {compare}) [ (*c a a -- *c Comparison) *c L2(a) L2(a) -- *c Bool ] { compare(cmp) le? }
+    def >  (cmp {compare}) [ (*c a a -- *c Comparison) *c L2(a) L2(a) -- *c Bool ] { compare(cmp) gt? }
+    def >= (cmp {compare}) [ (*c a a -- *c Comparison) *c L2(a) L2(a) -- *c Bool ] { compare(cmp) ge? }
+    def compare (cmp {compare}) [ (*c a a -- *c Comparison) *c L2(a) L2(a) -- *c Comparison ] {
+        dip(/L2) /L2 dip(swap)
+        dip2(cmp) rotl match {
+            { LT -> drop2 LT }
+            { GT -> drop2 GT }
+            { EQ -> cmp }
+        }
+    }
+
+    def + (f {+}) [ (*x a b -- *x c) *x L2(a) L2(b) -- *x L2(c) ] { map2(f) }
+    def - (f {-}) [ (*x a b -- *x c) *x L2(a) L2(b) -- *x L2(c) ] { map2(f) }
+    def * (f {*}) [ (*x a b -- *x c) *x L2(a) L2(b) -- *x L2(c) ] { map2(f) }
+    def / (f {/}) [ (*x a b -- *x c) *x L2(a) L2(b) -- *x L2(c) ] { map2(f) }
+    def sum (f {+}) [ (*x a a -- *x b) *x L2(a) -- *x b ] { fold(f) }
+    def product (f {*}) [ (*x a a -- *x b) *x L2(a) -- *x b ] { fold(f) }
+    def scale (f {*}) [ (*x a b -- *x c) *x a L2(b) -- *x L2(c) ] { map(over dip(f) swap) nip }
+    def dot (f {*}, g {+}) [ (*x a b -- *x c, *x c c -- *y d) *x L2(a) L2(b) -- *y d] { map2(f) fold(g) }
 }
 
 struct L3(t) {
     t t t
     --
-    def >List  { L3 -> List.L3 }
-    def >List+ { L3 -> List.L3 }
+    def Cons [ t L2(t) -- L3(t) ] { L2 -> L3 }
+    def Snoc [ L2(t) t -- L3(t) ] { dip:/L2 L3 }
+    def cons [ t L3(t) -- L4(t) ] { L3 -> L4 }
+    def xsnoc [ L3(t) x:t -- L4(t) ] { L3 -> x> L4 }
+
+    def uncons [ L3(t) -- t L2(t) ] { L3 -> L2 }
+    def unsnoc [ L3(t) -- L2(t) t ] { L3 -> dip(L2) }
+
+    def >List  [ L3(t) -- List (t) ] { L3 -> List.L3 }
+    def >List+ [ L3(t) -- List+(t) ] { L3 -> List+.L3 }
+    inline def len [ L3(t) -- Nat ] { drop 3u }
+    def for(f) [ (*c a -- *c) *c L3(a) -- *c ] { L3 -> dip2(f) dip(f) f }
+    def map(f) [ (*c a -- *c b) *c L3(a) -- *c L3(b) ] { L3 -> on3(f) L3 }
+    def map2(f) [ (*x a b -- *x c) *x L3(a) L3(b) -- *x L3(c) ] {
+        dip(/L3) /L3 dip2(rotr) dip(swap)
+        dip2(dip2(f) rotl dip(f) swap)
+        swap2 dip2(f) rotl L3
+    }
+    def fold(f) { uncons for(f) }
+
+    def == (f {==}) [ (*c t t -- *c Bool) *c L3(t) L3(t) -- *c Bool ] {
+        dip(uncons) uncons ==2(f,==:f)
+    }
+
+    def show (f {show;}) [ (+Str t -- +Str) L3(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L3(t) -- +Str ] { for(f " ";) "L3"; }
 }
 
 struct L4(t) {
     t t t t
     --
-    def >List  { L4 -> List.L4 }
-    def >List+ { L4 -> List+.L4 }
+    def Cons [ t L3(t) -- L4(t) ] { L3 -> L4 }
+    def Snoc [ L3(t) t -- L4(t) ] { >x xsnoc }
+    def cons [ t L4(t) -- L5(t) ] { L4 -> L5 }
+    def xsnoc [ L4(t) x:t -- L5(t) ] { L4 -> x> L5 }
+    def uncons [ L4(t) -- t L3(t) ] { L4 -> L3 }
+    def unsnoc [ L4(t) -- L3(t) t ] { L4 -> dip:L3 }
+
+    def >List  [ L4(t) -- List (t) ] { L4 -> List.L4 }
+    def >List+ [ L4(t) -- List+(t) ] { L4 -> List+.L4 }
+    def for(f) [ (*x a -- *x) *x L4(a) -- *x ] {
+        L4 -> dip3(f) dip2(f) dip(f) f
+    }
+
+    def == (f {==}) [ (*c t t -- *c Bool) *c L4(t) L4(t) -- *c Bool ] {
+        dip(uncons) uncons ==2(f,==:f)
+    }
+
+    def show (f {show;}) [ (+Str t -- +Str) L4(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L4(t) -- +Str ] {
+        for(f " ";) "L4";
+    }
 }
 
 struct L5(t) {
     t t t t t
     --
-    def >List  { L5 -> List.L5 }
-    def >List+ { L5 -> List+.L5 }
+    def Cons [ t L4(t) -- L5(t) ] { L4 -> L5 }
+    def Snoc [ L4(t) t -- L5(t) ] { >x xsnoc }
+    def cons [ t L5(t) -- L6(t) ] { L5 -> L6 }
+    def xsnoc [ L5(t) x:t -- L6(t) ] { L5 -> x> L6 }
+    def uncons [ L5(t) -- t L4(t) ] { L5 -> L4 }
+    def unsnoc [ L5(t) -- L4(t) t ] { L5 -> dip:L4 }
+
+    def >List  [ L5(t) -- List (t) ] { L5 -> List.L5 }
+    def >List+ [ L5(t) -- List+(t) ] { L5 -> List+.L5 }
+    def for(f) [ (*x a -- *x) *x L5(a) -- *x ] {
+        L5 -> dip4(f) dip3(f) dip2(f) dip(f) f
+    }
+
+    def == (f {==}) [ (*c t t -- *c Bool) *c L5(t) L5(t) -- *c Bool ] {
+        dip(uncons) uncons ==2(f,==:f)
+    }
+
+    def show (f {show;}) [ (+Str t -- +Str) L5(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L5(t) -- +Str ] {
+        for(f " ";) "L5";
+    }
 }
 
 struct L6(t) {
     t t t t t t
     --
+    def Cons [ t L5(t) -- L6(t) ] { L5 -> L6 }
+    def Snoc [ L5(t) t -- L6(t) ] { >x xsnoc }
+    def cons [ t L6(t) -- L7(t) ] { L6 -> L7 }
+    def xsnoc [ L6(t) x:t -- L7(t) ] { L6 -> x> L7 }
+    def uncons [ L6(t) -- t L5(t) ] { L6 -> L5 }
+    def unsnoc [ L6(t) -- L5(t) t ] { L6 -> dip:L5 }
+
     def >List  { L6 -> List.L6 }
     def >List+ { L6 -> List+.L6 }
+    def for(f) [ (*x a -- *x) *x L6(a) -- *x ] {
+        L6 -> dip5(f) dip4(f) dip3(f) dip2(f) dip(f) f
+    }
+
+    def == (f {==}) [ (*x a a -- *x Bool) *x L6(a) L6(a) -- *x Bool ] {
+        dip:uncons uncons ==2(f, ==:f)
+    }
+
+    def show (f {show;}) [ (+Str t -- +Str) L6(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L6(t) -- +Str ] {
+        for(f " ";) "L6";
+    }
 }
 
 struct L7(t) {
     t t t t t t t
     --
-    def >List  { L7 -> List.L7 }
-    def >List+ { L7 -> List+.L7 }
+    def Cons [ t L6(t) -- L7(t) ] { L6 -> L7 }
+    def Snoc [ L6(t) t -- L7(t) ] { >x xsnoc }
+    def cons [ t L7(t) -- L8(t) ] { L7 -> L8 }
+    def xsnoc [ L7(t) x:t -- L8(t) ] { L7 -> x> L8 }
+    def uncons [ L7(t) -- t L6(t) ] { L7 -> L6 }
+    def unsnoc [ L7(t) -- L6(t) t ] { L7 -> dip:L6 }
+
+    def >List  [ L7(t) -- List (t) ] { L7 -> List.L7 }
+    def >List+ [ L7(t) -- List+(t) ] { L7 -> List+.L7 }
+    def for(f) [ (*x a -- *x) *x L7(a) -- *x ] {
+        L7 -> dip3(dip3(f) dip2(f) dip(f) f) dip2(f) dip(f) f
+    }
+
+    def == (f {==}) [ (*x a a -- *x Bool) *x L7(a) L7(a) -- *x Bool ] {
+        dip:uncons uncons ==2(f, ==:f)
+    }
+
+    def show (f {show;}) [ (+Str t -- +Str) L7(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L7(t) -- +Str ] {
+        for(f " ";) "L7";
+    }
 }
 
 struct L8(t) {
     t t t t t t t t
     --
-    def >List  { L8 -> List.L8 }
-    def >List+ { L8 -> List+.L8 }
+    def Cons [ t L7(t) -- L8(t) ] { L7 -> L8 }
+    def Snoc [ L7(t) t -- L8(t) ] { >x xsnoc }
+    def cons [ t L8(t) -- List+(t) ] { >List cons }
+    def xsnoc [ L8(t) t -- List+(t) ] { dip:/L8 List.L8 cons }
+    def uncons [ L8(t) -- t L7(t) ] { L8 -> L7 }
+    def unsnoc [ L8(t) -- L7(t) t ] { L8 -> dip:L7 }
+
+    def >List  [ L8(t) -- List (t) ] { L8 -> List.L8 }
+    def >List+ [ L8(t) -- List+(t) ] { L8 -> List+.L8 }
+    def for(f) [ (*x a -- *x) *x L8(a) -- *x ] {
+        L8 -> dip4(dip3(f) dip2(f) dip(f) f) dip3(f) dip2(f) dip(f) f
+    }
+
+    def ==(f {==}) [ (*x a a -- *x Bool) *x L8(a) L8(a) -- *x Bool ] {
+        dip:uncons uncons ==2(f, ==:f)
+    }
+
+    def show (f {show;}) [ (+Str t -- +Str) L8(t) -- Str ] { Str(show;(f)) }
+    def show;(f {show;}) [ (+Str t -- +Str) +Str L8(t) -- +Str ] {
+        for(f " ";) "L8";
+    }
 }

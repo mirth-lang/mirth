@@ -169,50 +169,18 @@ def(+Test.check-equals-4!(f1 {==}, f2 {==}, f3 {==}, f4 {==}, g1 {show;}, g2 {sh
         a b c d a b c d +Test -- +Test,
     pack4 dip:pack4 check-equals!(pack4==(f1,f2,f3,f4), pack4-show;-contents(g1,g2,g3,g4)))
 
-||| The lack of ad hoc polymorphism really hurts us here; we can't define
-||| `=>` generically until we have a way to invoke `==` and `show` generically.
-|||
-||| Instead, we define a bunch of useful cases and use suffixes to
-||| distinguish them (e.g. [Maybe.=>] vs [Maybe.=>+] vs [Maybe.=>*]).
+def =>(x1, f1 {==}, g1 {show;}) [ (-- a, a a -- Bool, a +Str -- +Str) a +Test -- +Test ] {
+    x1 check-equals!(f1,g1)
+}
 
-def(Int.=>(f), (-- Int) Int +Test -- +Test,
-    f check-equals!(==, show;))
-def(Nat.=>(f), (-- Nat) Nat +Test -- +Test,
-    f check-equals!(==, show;))
-def(Bool.=>(f), (-- Bool) Bool +Test -- +Test,
-    f check-equals!(==, show;))
-def(Str.=>(f), (-- Str) Str +Test -- +Test,
-    f check-equals!(==, show;))
-def(Maybe.=>(f), (-- Maybe(Int)) Maybe(Int) +Test -- +Test,
-    f check-equals!(==:==, show;:show;))
-def(Maybe.=>s(f), (-- Maybe(Str)) Maybe(Str) +Test -- +Test,
-    f check-equals!(==:==, show;:show;))
-def(Maybe.=>2(f), (-- Maybe([Int Int])) Maybe([Int Int]) +Test -- +Test,
-    f check-equals!(==:pack2==(==,==), show;:pack2-show;(show;,show;)))
-def(Maybe.=>3(f), (-- Maybe([Int Int Int])) Maybe([Int Int Int]) +Test -- +Test,
-    f check-equals!(==:pack3==(==,==,==), show;:pack3-show;(show;,show;,show;)))
-def(Maybe.=>*(f), (-- Maybe(List(Int))) Maybe(List(Int)) +Test -- +Test,
-    f check-equals!(==:==:==, show;:show;:show;))
-def(Maybe.=>+(f), (-- Maybe(List+(Int))) Maybe(List+(Int)) +Test -- +Test,
-    f check-equals!(==:==:==, show;:show;:show;))
-def(List.=>(f), (-- List(Int)) List(Int) +Test -- +Test,
-    f check-equals!(==:==, show;:show;))
-def(List+.=>(f), (-- List+(Int)) List+(Int) +Test -- +Test,
-    f check-equals!(==:==, show;:show;))
+def =>2(x1, x2, f1 {==}, f2 {==}, g1 {show;}, g2 {show;}) [ (-- a, -- b, a a -- Bool, b b -- Bool, a +Str -- +Str, b +Str -- +Str) a b +Test -- +Test ] {
+    x1 x2 check-equals-2!(f1,f2,g1,g2)
+}
 
-def(Int.=>(f,g), (-- Int, -- Int) Int Int +Test -- +Test,
-    f g check-equals-2!(==,==,show;,show;))
-def(Int.=>(f,g,h), (-- Int, -- Int, -- Int) Int Int Int +Test -- +Test,
-    f g h check-equals-3!(==,==,==,show;,show;,show;))
-def(Int.=>(f,g,h,i), (-- Int, -- Int, -- Int, -- Int) Int Int Int Int +Test -- +Test,
-    f g h i check-equals-4!(==,==,==,==,show;,show;,show;,show;))
+def =>3(x1, x2, x3, f1 {==}, f2 {==}, f3 {==}, g1 {show;}, g2 {show;}, g3 {show;}) [ (-- a, -- b, -- c, a a -- Bool, b b -- Bool, c c -- Bool, a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) a b c +Test -- +Test ] {
+    x1 x2 x3 check-equals-3!(f1,f2,f3,g1,g2,g3)
+}
 
-def(Str.=>(f,g), (-- Str, -- Str) Str Str +Test -- +Test,
-    f g check-equals-2!(==,==,show;,show;))
-def(Str.=>(f,g,h), (-- Str, -- Str, -- Str) Str Str Str +Test -- +Test,
-    f g h check-equals-3!(==,==,==,show;,show;,show;))
-def(Str.=>(f,g,h,i), (-- Str, -- Str, -- Str, -- Str) Str Str Str Str +Test -- +Test,
-    f g h i check-equals-4!(==,==,==,==,show;,show;,show;,show;))
-
-def(List.=>(f,g), (-- List(Int), -- List(Int)) List(Int) List(Int) +Test -- +Test,
-    f g check-equals-2!(==:==,==:==,show;:show;,show;:show;))
+def =>4(x1, x2, x3, x4, f1 {==}, f2 {==}, f3 {==}, f4 {==}, g1 {show;}, g2 {show;}, g3 {show;}, g4 {show;}) [ (-- a, -- b, -- c, -- d, a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool, a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) a b c d +Test -- +Test ] {
+    x1 x2 x3 x4 check-equals-4!(f1,f2,f3,f4,g1,g2,g3,g4)
+}

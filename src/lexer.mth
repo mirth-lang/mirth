@@ -377,7 +377,7 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
             1+
             while(dup byte@ B'0' B'7' in-range, dip(1+) 1+)
             swap 0> if(
-                num-bytes? >UOffset =,
+                num-bytes? >UOffset ==,
                 drop False
             ),
 
