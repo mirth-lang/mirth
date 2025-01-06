@@ -7,8 +7,8 @@ import(std.either)
 import(std.test)
 import(std.str)
 
-def(main, +World -- +World,
-    +Tests.start!
+def main [ +World -- +World ] {
+    +Tests.Start!
 
     "constructors" test (
         List-L0-Int => ( LIST( ) )
@@ -288,10 +288,10 @@ def(main, +World -- +World,
         "" 4 5   List+.L2 for(show cat, "," cat) => ( "4,5" )
         "" 4 5 6 List+.L3 for(show cat, "," cat) => ( "4,5,6" )
 
-        "" 4       List+.L1 for(show, cat) =>2 ( "", "4" )
-        "" 4 5     List+.L2 for(show, cat) =>2 ( "4", "5" )
-        "" 4 5 6   List+.L3 for(show, cat) =>2 ( "45", "6" )
-        "" 4 5 6 7 List+.L4 for(show, cat) =>2 ( "456", "7" )
+        "" 4       List+.L1 for(show, cat) => ( "4" ) => ( ""    )
+        "" 4 5     List+.L2 for(show, cat) => ( "5" ) => ( "4"   )
+        "" 4 5 6   List+.L3 for(show, cat) => ( "6" ) => ( "45"  )
+        "" 4 5 6 7 List+.L4 for(show, cat) => ( "7" ) => ( "456" )
     )
 
     "reverse-for" test (
@@ -1073,20 +1073,20 @@ def(main, +World -- +World,
     )
 
     "partition" test (
-        id      List-L0-Int partition(even?) =>2 (      List.L0,       List.L0)
-        1           List.L1 partition(even?) =>2 (1     List.L1,       List.L0)
-        1 2         List.L2 partition(even?) =>2 (1     List.L1, 2     List.L1)
-        1 2 3       List.L3 partition(even?) =>2 (1 3   List.L2, 2     List.L1)
-        1 2 3 4     List.L4 partition(even?) =>2 (1 3   List.L2, 2 4   List.L2)
-        1 2 3 4 5   List.L5 partition(even?) =>2 (1 3 5 List.L3, 2 4   List.L2)
-        1 2 3 4 5 6 List.L6 partition(even?) =>2 (1 3 5 List.L3, 2 4 6 List.L3)
+        id      List-L0-Int partition(even?) => (      List.L0) => (      List.L0)
+        1           List.L1 partition(even?) => (      List.L0) => (1     List.L1)
+        1 2         List.L2 partition(even?) => (2     List.L1) => (1     List.L1)
+        1 2 3       List.L3 partition(even?) => (2     List.L1) => (1 3   List.L2)
+        1 2 3 4     List.L4 partition(even?) => (2 4   List.L2) => (1 3   List.L2)
+        1 2 3 4 5   List.L5 partition(even?) => (2 4   List.L2) => (1 3 5 List.L3)
+        1 2 3 4 5 6 List.L6 partition(even?) => (2 4 6 List.L3) => (1 3 5 List.L3)
 
-        1           List+.L1 partition(even?) =>2 (1     List.L1,       List.L0)
-        1 2         List+.L2 partition(even?) =>2 (1     List.L1, 2     List.L1)
-        1 2 3       List+.L3 partition(even?) =>2 (1 3   List.L2, 2     List.L1)
-        1 2 3 4     List+.L4 partition(even?) =>2 (1 3   List.L2, 2 4   List.L2)
-        1 2 3 4 5   List+.L5 partition(even?) =>2 (1 3 5 List.L3, 2 4   List.L2)
-        1 2 3 4 5 6 List+.L6 partition(even?) =>2 (1 3 5 List.L3, 2 4 6 List.L3)
+        1           List+.L1 partition(even?) => (      List.L0) => (1     List.L1)
+        1 2         List+.L2 partition(even?) => (2     List.L1) => (1     List.L1)
+        1 2 3       List+.L3 partition(even?) => (2     List.L1) => (1 3   List.L2)
+        1 2 3 4     List+.L4 partition(even?) => (2 4   List.L2) => (1 3   List.L2)
+        1 2 3 4 5   List+.L5 partition(even?) => (2 4   List.L2) => (1 3 5 List.L3)
+        1 2 3 4 5 6 List+.L6 partition(even?) => (2 4 6 List.L3) => (1 3 5 List.L3)
     )
 
     "show;" test (
@@ -1100,15 +1100,16 @@ def(main, +World -- +World,
         Str(1 2 3 List+.L3 show;:show;) => ( "LIST+( 1 ; 2 ; 3 ;+ )")
     )
 
-    +Tests.end!)
+    +Tests.end!
+}
 
 def List-L0-Int [ List(Int) ] { List.L0 }
 def List-L0-Str [ List(Str) ] { List.L0 }
 def None-Int [ Maybe(Int) ] { None }
 
-def(Even/Odd, Int -- Either(Int,Int), 2 /% 0= if(Left, Right))
-def(/Even, Int -- Maybe(Int), Even/Odd left?)
-def(/Odd, Int -- Maybe(Int), Even/Odd right?)
-def(even?, Int -- Bool, /Even some?)
+def Even/Odd [ Int -- Either(Int,Int) ] { 2 /% 0= if(Left, Right) }
+def /Even [ Int -- Maybe(Int) ] { Even/Odd left?  }
+def /Odd  [ Int -- Maybe(Int) ] { Even/Odd right? }
+def even? [ Int -- Bool ] { /Even some? }
 
 # mirth-test # pout # 55 tests passed.

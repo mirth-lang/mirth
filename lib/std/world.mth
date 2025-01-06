@@ -10,62 +10,68 @@ import(std.file)
 import(std.input)
 import(std.output)
 
-def(+World.print-, Str +World -- +World, stdout-file with-data:unsafe:write-bytes! drop2 close-file!)
-def(+World.trace-, Str +World -- +World, stderr-file with-data:unsafe:write-bytes! drop2 close-file!)
+def +World.print- [ Str +World -- +World ] {
+    stdout-file with-data:unsafe:write-bytes! drop2 close-file!
+}
+def +World.trace- [ Str +World -- +World ] {
+    stderr-file with-data:unsafe:write-bytes! drop2 close-file!
+}
 
-def(+World.print, Str +World -- +World, "\n" cat print-)
-def(+World.trace, Str +World -- +World, "\n" cat trace-)
+def +World.print [ Str +World -- +World ] { "\n" cat print- }
+def +World.trace [ Str +World -- +World ] { "\n" cat trace- }
 
-def(+World.print(f), (*a +World +Str -- *b +World +Str) *a +World -- *b +World, Str(f) print)
-def(+World.trace(f), (*a +World +Str -- *b +World +Str) *a +World -- *b +World, Str(f) trace)
+def +World.print(f) [ (*a +World +Str -- *b +World +Str) *a +World -- *b +World ] {
+    Str(f "\n";) print-
+}
+def +World.trace(f) [ (*a +World +Str -- *b +World +Str) *a +World -- *b +World ] {
+    Str(f "\n";) trace-
+}
 
-def(+World.stdin(f), (*a +World +Input -- *b +World +Input) *a +World -- *b +World,
+def +World.stdin(f) [ (*a +World +Input -- *b +World +Input) *a +World -- *b +World ] {
     stdin-file input(f)
     expect!(is-stdin?, "expected stdin leaving +World.stdin(f) but got different file")
-    close-file!)
+    close-file!
+}
 
-def(+World.stdout(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +World,
+def +World.stdout(f) [ (*a +World +Output -- *b +World +Output) *a +World -- *b +World ] {
     stdout-file output(f)
     expect!(is-stdout?, "expected stdout leaving +World.stdout(f) but got different file")
-    close-file!)
+    close-file!
+}
 
-def(+World.stderr(f), (*a +World +Output -- *b +World +Output) *a +World -- *b +World,
+def +World.stderr(f) [ (*a +World +Output -- *b +World +Output) *a +World -- *b +World ] {
     stderr-file output(f)
     expect!(is-stderr?, "expected stderr leaving +World.stderr(f) but got different file")
-    close-file!)
+    close-file!
+}
 
 ########
 # STAT #
 ########
 
 external(posix-stat -> stat [+Unsafe CStr Ptr -- +Unsafe CInt])
-def(+World.is-directory?, +World Path -- +World Bool,
+def +World.is-directory? [ +World Path -- +World Bool ] {
     256u >USize +Buffer.new
     >Str with-cstr(
         base unsafe(posix-stat) >Int
         0= if(base rdip:unsafe(st_mode@) S_ISDIR, False)
-    ) rdrop)
+    ) rdrop
+}
 
-#define S_IFMT  00170000
-#define S_IFSOCK 0140000
-#define S_IFLNK	 0120000
-#define S_IFREG  0100000
-#define S_IFBLK  0060000
-#define S_IFDIR  0040000
+def S_IFMT   [ U16 ] { 0xF000 >U16-unsafe }
+def S_IFDIR  [ U16 ] { 0x4000 >U16-unsafe }
+def S_IFBLK  [ U16 ] { 0x6000 >U16-unsafe }
+def S_IFREG  [ U16 ] { 0x8000 >U16-unsafe }
+def S_IFLNK  [ U16 ] { 0xA000 >U16-unsafe }
+def S_IFSOCK [ U16 ] { 0xC000 >U16-unsafe }
 
-def(S_IFMT,   U16, 0xF000 >U16-unsafe)
-def(S_IFDIR,  U16, 0x4000 >U16-unsafe)
-def(S_IFBLK,  U16, 0x6000 >U16-unsafe)
-def(S_IFREG,  U16, 0x8000 >U16-unsafe)
-def(S_IFLNK,  U16, 0xA000 >U16-unsafe)
-def(S_IFSOCK, U16, 0xC000 >U16-unsafe)
+def S_ISDIR [ U16 -- Bool ] { S_IFMT & S_IFDIR == }
 
-def(S_ISDIR, U16 -- Bool, S_IFMT & S_IFDIR ==)
-
-def(st_mode@, Ptr +World +Unsafe -- U16 +World +Unsafe,
+def st_mode@ [ Ptr +World +Unsafe -- U16 +World +Unsafe ] {
     rdip:OS.Running match(
         OS_LINUX -> 24u, # .. this is all terrible and brittle
         OS_WINDOWS -> 6u,
         OS_MACOS -> rdip:Arch.Running ARCH_ARM64 == if(4u, 8u),
         _ -> drop 8u
-    ) >UOffset swap uoffset @U16)
+    ) >UOffset swap uoffset @U16
+}

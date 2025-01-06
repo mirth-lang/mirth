@@ -1,10 +1,9 @@
-module(std.test)
 ||| Unit testing harness. This library defines the [+Tests] and [+Test] resources,
 ||| which are used to build unit tests & help locate failures. To write tests,
 ||| follow this example:
 |||
-|||     def(main, +World -- +World,
-|||         +Tests.start!
+|||     def main [ +World -- +World ] {
+|||         +Tests.Start!
 |||         "addition" test (
 |||             10 20 + => ( 30 )
 |||             2 2 + => ( 4 )
@@ -19,7 +18,7 @@ module(std.test)
 |||                 => ( 20 )
 |||         )
 |||         +Tests.end!
-|||     )
+|||     }
 |||
 ||| Here's a breakdown:
 |||
@@ -46,16 +45,13 @@ module(std.test)
 |||         => ( 2 )
 |||         => ( 1 )
 |||
-||| Note how the values are tested in reverse order. We can also test several
-||| values at once, e.g.
+||| `=>` requires the verbs `==` and `show;` be defined for the
+||| type being tested. You can also pass different versions
+||| explicitly:
 |||
-|||     1 2 => (1, 2)
-|||     1 2 3 => (1, 2, 3)
-|||     "Hello" "world!" => ("Hello", "world!")
-|||
-||| Provided that => has been defined at that arity (& type). Note that when
-||| testing multiple values, they are popped right-to-left, so the tests
-||| appear in order.
+|||     "Hello" => ( "hello", dip(lower) == )
+|||     [True] => ( [True], on2:run ==, drop "<function>" )
+module(std.test)
 
 import(std.prelude)
 import(std.list)
@@ -65,39 +61,39 @@ import(std.maybe)
 import(std.byte)
 import(std.posix)
 
-data(+Tests, +Tests ->
-    ||| The testing harness.
-    ||| Construct it with [+Tests.start!].
-    ||| Run a test with [+Tests.test(f)].
-    ||| Destruct it with [+Tests.end!].
+||| The testing harness.
+||| Construct it with [+Tests.start!].
+||| Run a test with [+Tests.test(f)].
+||| Destruct it with [+Tests.end!].
+struct +Tests {
     num-tests: Nat   ||| Number of tests so far.
     num-failed: Nat  ||| Number of tests failed so far.
     +world: +World   ||| The outside world.
-    )
+    --
 
-def(+Tests.start!, +World -- +Tests,
-    ||| Construct the [+Tests] resource, begin the unit tests.
-    >+world
-    0u >num-tests
-    0u >num-failed
-    +Tests)
-def(+Tests.end!, +Tests -- +World,
-    ||| End the unit tests and destruct the [+Tests] resource.
-    ||| This word prints out a summary, e.g. "1 out of 9 tests failed."
-    ||| or "9 tests passed." If any of the tests failed, this word
-    ||| exits the program with exit code 1.
-    num-failed 0> if(
-        Str(rdip:num-failed show ; " out of " ;
-            rdip:num-tests show ; " tests failed." ;)
-        +world(print 1 posix-exit!),
+    ||| Create a test resource.
+    def Start! [ +World -- +Tests ] {
+        >+world
+        0u >num-tests
+        0u >num-failed
+        +Tests
+    }
 
-        Str(rdip:num-tests show ; " tests passed." ;)
-        +world:print
-    )
-    /+Tests +world>
-    num-tests> num-failed> drop2)
+    ||| End the tests. This prints the number of tests
+    ||| passed and failed to stdout.
+    def end! [ +Tests -- +World ] {
+        num-failed 0> if(
+            Str(rdip:num-failed show ; " out of " ;
+                rdip:num-tests show ; " tests failed." ;)
+            +world(print 1 posix-exit!),
 
-def(+Tests.test(f), (+Test -- +Test) Str +Tests -- +Tests,
+            Str(rdip:num-tests show ; " tests passed." ;)
+            +world:print
+        )
+        /+Tests +world>
+        num-tests> num-failed> drop2
+    }
+
     ||| Run a test. You pass the test name on the stack, and
     ||| the body of the test as a parameter. For instance,
     |||
@@ -108,79 +104,73 @@ def(+Tests.test(f), (+Test -- +Test) Str +Tests -- +Tests,
     |||
     ||| Note the test name `"my test"` is only shown if the test fails.
     ||| As demonstrated here, you can run multiple checks within a test.
-    >test-name
-    False >test-failed
-    >+tests
-    +Test
-    f
-    /+Test
-    +tests>
-    test-name> drop
-    test-failed> then(num-failed:1+)
-    num-tests: 1+)
+    def test(f) [ (+Test -- +Test) Str +Tests -- +Tests ]  {
+        >test-name
+        False >test-failed
+        >+tests
+        +Test
+        f
+        /+Test
+        +tests>
+        test-name> drop
+        test-failed> then(num-failed:1+)
+        num-tests: 1+
+    }
+}
 
-data(+Test, +Test ->
-    ||| A single test within the broader [+Tests] resource.
-    ||| You can use [Int.=>], [Str.=>], & co within the test, to make a check.
-    ||| You can use the [+Test.world] lens to access the world.
+||| A single test within the broader [+Tests] resource.
+||| You can use [Int.=>], [Str.=>], & co within the test, to make a check.
+||| You can use the [+Test.world] lens to access the world.
+struct +Test {
     test-name: Str      ||| Name of this test.
     test-failed: Bool   ||| Did this test fail?
     +tests: +Tests      ||| The test harness.
-    )
-
-def(+Test.+world(f), (*a +World -- *b +World) *a +Test -- *b +Test,
+    --
     ||| Access the [+World] resource within [+Test], via [+Tests].
-    +tests:+world(f))
+    def +world(f) { +tests:+world(f) }
 
-def(+Test.fail!, +Test -- +Test,
     ||| Declare that the test has failed.
     ||| Output `"<test name> test failed"` and set the [+Test.test-failed] flag.
     ||| If the test already failed before, do nothing instead.
-    test-failed else(
-        True test-failed!
-        test-name +world:print(show; " test failed" ;)
-    ))
-def(+Test.check-equals!(feq {==}, fshow {show;}), (a a -- Bool, a +Str -- +Str) a a +Test -- +Test,
+    def fail! {
+        test-failed else(
+            True test-failed!
+            test-name +world:print(show; " test failed" ;)
+        )
+    }
+
     ||| Check two values for equality. If they're equal, do nothing.
     ||| If they're different, mark the test as failed (see [fail!])
     ||| and print the values.
     |||
-    ||| We generally prefer to use `=>` instead of this verb directly,
-    ||| see [Int.=>], [Str.=>], [Bool.=>], and so on.
-    dup2 feq if(
-        drop2,
-        fail!
-        +world:print("  expected: " ; fshow "\n" ;
-                     "       got: " ; fshow "\n" ;)
-    ))
-def(+Test.check-equals-2!(f1 {==},f2 {==}, g1 {show;}, g2 {show;}),
-        (a a -- Bool, b b -- Bool,
-         a +Str -- +Str, b +Str -- +Str)
-        a b a b +Test -- +Test,
-    pack2 dip:pack2 check-equals!(pack2==(f1,f2), pack2-show;(g1,g2)))
-def(+Test.check-equals-3!(f1 {==}, f2 {==}, f3 {==}, g1 {show;}, g2 {show;}, g3 {show;}),
-        (a a -- Bool, b b -- Bool, c c -- Bool,
-         a +Str -- +Str, b +Str -- +Str, c +Str -- +Str)
-        a b c a b c +Test -- +Test,
-    pack3 dip:pack3 check-equals!(pack3==(f1,f2,f3), pack3-show;-contents(g1,g2,g3)))
-def(+Test.check-equals-4!(f1 {==}, f2 {==}, f3 {==}, f4 {==}, g1 {show;}, g2 {show;}, g3 {show;}, g4 {show;}),
-        (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool,
-         a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str)
-        a b c d a b c d +Test -- +Test,
-    pack4 dip:pack4 check-equals!(pack4==(f1,f2,f3,f4), pack4-show;-contents(g1,g2,g3,g4)))
+    ||| We usually use `=>` instead of check-equals!
+    def check-equals! (feq {==}, fshow {show;}) [
+        (a a -- Bool, a +Str -- +Str)
+        a a +Test -- +Test
+    ] {
+        dup2 feq if(
+            drop2,
+            fail!
+            +world:print (
+                "  expected: " ; fshow "\n" ;
+                "       got: " ; fshow "\n" ;
+            )
+        )
+    }
 
-def =>(x1, f1 {==}, g1 {show;}) [ (-- a, a a -- Bool, a +Str -- +Str) a +Test -- +Test ] {
-    x1 check-equals!(f1,g1)
-}
-
-def =>2(x1, x2, f1 {==}, f2 {==}, g1 {show;}, g2 {show;}) [ (-- a, -- b, a a -- Bool, b b -- Bool, a +Str -- +Str, b +Str -- +Str) a b +Test -- +Test ] {
-    x1 x2 check-equals-2!(f1,f2,g1,g2)
-}
-
-def =>3(x1, x2, x3, f1 {==}, f2 {==}, f3 {==}, g1 {show;}, g2 {show;}, g3 {show;}) [ (-- a, -- b, -- c, a a -- Bool, b b -- Bool, c c -- Bool, a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) a b c +Test -- +Test ] {
-    x1 x2 x3 check-equals-3!(f1,f2,f3,g1,g2,g3)
-}
-
-def =>4(x1, x2, x3, x4, f1 {==}, f2 {==}, f3 {==}, f4 {==}, g1 {show;}, g2 {show;}, g3 {show;}, g4 {show;}) [ (-- a, -- b, -- c, -- d, a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool, a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) a b c d +Test -- +Test ] {
-    x1 x2 x3 x4 check-equals-4!(f1,f2,f3,f4,g1,g2,g3,g4)
+    ||| A convenient syntax for writing unit tests.
+    ||| Evaluates the first argument and tests it against
+    ||| the top of the stack.
+    |||
+    |||     10 20 + => (30)
+    |||     1 2 3 => (3)
+    |||           => (2)
+    |||           => (1)
+    |||
+    def =>(f, feq {==}, fshow {show;}) [
+        (-- a, a a -- Bool, a +Str -- +Str)
+        a +Test -- +Test
+    ] {
+        f check-equals!(feq, fshow)
+    }
 }
