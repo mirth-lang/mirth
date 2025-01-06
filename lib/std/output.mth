@@ -6,7 +6,7 @@ import(std.byte)
 import(std.buffer)
 import(std.file)
 
-def OUTPUT_BUFFER_SIZE [ USize ] { 4096 .u >USize }
+def OUTPUT_BUFFER_SIZE [ USize ] { 4096 >Nat-clamp >USize }
 
 struct +Output {
     size: USize
@@ -38,7 +38,7 @@ struct +Output {
     }
 
     def capacity-total [ +Output -- USize +Output ] { +buffer:size }
-    def capacity-remaining [ +Output -- USize +Output ] { capacity-total size - >USize(id, drop 0u >USize) }
+    def capacity-remaining [ +Output -- USize +Output ] { capacity-total size - >USize-if(id, drop 0u >USize) }
     def full? [ +Output -- Bool +Output ] { capacity-remaining 0= }
 
     def put [ Str +Output -- +Output ] {

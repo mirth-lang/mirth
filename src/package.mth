@@ -29,7 +29,7 @@ def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
         Some -> nip Some,
         None ->
             package-search-paths
-            map(over name >Str >Path join)
+            map(over name >Str >Path rdip:join)
             find(rdip:is-directory?)
             tuck swap ~path !
     ))

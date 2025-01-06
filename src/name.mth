@@ -33,7 +33,7 @@ def(Name.==, Name Name -- Bool, both(Name.index) ==)
 
 data(Hash, HASH -> UIndex)
 def(Hash.>Int, Hash -- Int, HASH -> >Int)
-def(Int.>Hash, Int -- Hash, HASH_MAX & .u >UIndex HASH)
+def(Int.>Hash, Int -- Hash, HASH_MAX & >Nat-clamp >UIndex HASH)
 def(Hash.offset, Hash -- UOffset, HASH -> |U64| *)
 
 def(HASH_MAX, Int, 0xFFFF)
@@ -42,7 +42,7 @@ def(hash-name@, Hash -- Maybe(Name),
     offset HASH_BUF unsafe(uoffset @I64) >Int
     dup 0= if(drop None, Name.from-index Some))
 def(hash-name!, Name Hash --,
-    dip(Name.index >I64)
+    dip(Name.index >I64-clamp)
     offset HASH_BUF unsafe(uoffset !I64))
 
 ||| Get hash for string.
@@ -250,7 +250,7 @@ struct QName {
                 dup path-or-search
                 unwrap("No path defined for package "
                     swap name >Str fatal-error!)
-                nip swap name >Str ".mth" cat >Path join,
+                nip swap name >Str ".mth" cat >Path rdip:join,
             _ -> drop "expected module name in QName.to-module-path" fatal-error!
         ))
     def(QName.mangled, +Mirth QName -- +Mirth Str, QName ->

@@ -285,7 +285,7 @@ data SDL_PixelFormat {
 
 
 # Size of SDL_Event structure.
-def SDL_EVENT_SIZE [ USize ] { 56 .u >USize }
+def SDL_EVENT_SIZE [ USize ] { 56 >Nat-clamp >USize }
 
 data(SDL_Event, SDL_Event -> Ptr)
 

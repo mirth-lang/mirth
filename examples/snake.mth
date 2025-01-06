@@ -183,9 +183,9 @@ def +SnakePlatform.snake-rect! [ +SnakePlatform x:I32 y:I32 w:I32 h:I32 -- +Snak
 
 def +SnakePlatform.snake-rect-cell! [ +SnakePlatform Position -- +SnakePlatform ] {
     /Position
-    x> SNAKE_CELL_SIZE * i32 >x
-    y> SNAKE_CELL_SIZE * i32 >y
-    SNAKE_CELL_SIZE i32 dup >w >h
+    x> SNAKE_CELL_SIZE * >I32-clamp >x
+    y> SNAKE_CELL_SIZE * >I32-clamp >y
+    SNAKE_CELL_SIZE >I32-clamp dup >w >h
     snake-rect!
 }
 
@@ -245,7 +245,7 @@ def +SnakeLogic.press! [ +World +SnakeLogic SnakeButton -- +World +SnakeLogic ] 
     { Start -> dead then(reset!) }
 }
 
-def +SnakeLogic.tick-frames { 40 .u points 5u + / 2u + }
+def +SnakeLogic.tick-frames { 40 >Nat-clamp points 5u + / 2u + }
 def +SnakeLogic.tick! [ +SnakeLogic -- +SnakeLogic Bool ] {
     timer:1+
     timer tick-frames >= if(

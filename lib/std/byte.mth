@@ -46,20 +46,14 @@ data Byte {
         def >Int [ Byte -- Int ] { Byte.enum-value }
         def >U8  [ Byte -- U8  ] { >Int >U8-unsafe }
 
+        def Int.>Byte-if(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] { >U8-if(>Byte f, g) }
+        def Int.>Byte-else(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] { >Byte-if(id, f) }
+        def Int.>Byte? [ Int -- Maybe(Byte) ] { >Byte-if(Some, drop None) }
+        def Int.>Byte-wrap [ Int -- Byte ] { >U8-wrap >Byte }
+        def Int.>Byte-clamp [ Int -- Byte ] { >U8-clamp >Byte }
         def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
+
         def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
-
-        def Int.>Byte& [ Int -- Byte ] { >U8& >Byte }
-
-        def Int.>Byte(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] {
-            dup 0 255 in-range if(>Byte-unsafe f, g)
-        }
-        def Int.>Byte(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] {
-            >U8(f >U8) >Byte
-        }
-        def Int.>Byte? [ Int -- Maybe(Byte) ] {
-            >Byte(Some, drop None)
-        }
 
         def compare  [ Byte Byte -- Comparison ] { on2(>Int) .compare }
         def ==       [ Byte Byte -- Bool ] { on2(>Int) == }

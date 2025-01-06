@@ -12,7 +12,7 @@ import(std.file)
 # Input #
 #########
 
-def INPUT_BUFFER_SIZE [ USize ] { 0x2000 .u >USize }
+def INPUT_BUFFER_SIZE [ USize ] { 0x2000 >Nat-clamp >USize }
 
 struct +InputOpenState {
     length: USize

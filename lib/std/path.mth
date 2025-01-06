@@ -6,13 +6,13 @@ import(std.str)
 import(std.list)
 import(std.maybe)
 
-def PATH_SEPARATOR [ Str ] {
-    RUNNING_OS OS_WINDOWS == if("\\", "/")
+def PATH_SEPARATOR [ +World -- +World Str ] {
+    OS.Running OS_WINDOWS == if("\\", "/")
 }
 
-def(Byte.is-path-separator?, Byte -- Bool,
+def(Byte.is-path-separator?, +World Byte -- +World Bool,
     B'/' -> True,
-    B'\' -> RUNNING_OS OS_WINDOWS ==,
+    B'\' -> OS.Running OS_WINDOWS ==,
     _ -> drop False)
 
 struct Path {
@@ -33,14 +33,14 @@ struct Path {
         )
     }
 
-    def join [ Path Path -- Path ] { dip(PATH_SEPARATOR) join-with }
+    def join [ +World Path Path -- +World Path ] { dip(PATH_SEPARATOR) join-with }
     def join-unix [ Path Path -- Path ] { dip("/") join-with }
 
-    def split [ Path -- List+(Str) ] {
+    def split [ +World Path -- +World List+(Str) ] {
         /Path split-byte(is-path-separator?)
     }
 
-    def split-last [ Path -- Path Maybe(Str) ] {
+    def split-last [ +World Path -- +World Path Maybe(Str) ] {
         /Path split-last-byte(is-path-separator?) dip(Path)
     }
 

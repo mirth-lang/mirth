@@ -179,7 +179,7 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
     rdrop)
 
 def(read-from-argv, +Unsafe Int -- Str +Unsafe,
-    >UIndex(
+    >UIndex-if (
         |Ptr| * argv uoffset @Ptr CPtr CStr >Str,
         drop ""
     ))

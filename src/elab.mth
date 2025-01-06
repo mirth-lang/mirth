@@ -1275,7 +1275,10 @@ def elab-module! [ Module +World +Mirth -- Module +World +Mirth ] {
     dup start
     elab-module-header!
     over NAMESPACE_MODULE Some with-defining-namespace (
-        while(dup module-end? not, elab-decl!)
+        elab-decls!
+        dup module-end? else(
+            "Unexpected token in module." emit-fatal-error!
+        )
     )
     drop
 }
@@ -1308,7 +1311,7 @@ def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
 }
 
 def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
-    dup path split-last match(
+    dup path rdip:split-last match(
         None ->
             swap qname to-module-path dup2 == else(
                 "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
@@ -1319,6 +1322,24 @@ def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
             else(over3 "expected .mth extension for mirth file" emit-warning!)
             over2 name >Str == else(over2 "expected module name to match file name" emit-fatal-error!)
             over package path! drop2
+    )
+}
+
+||| Elaborate a series of declarations. Decl*
+def elab-decls! [ +World +Mirth Token -- +World +Mirth Token ] {
+    while(dup arg-end? not over module-end? not &&, elab-decl!)
+}
+
+||| Elaborate either a single declaration or a block of declarations:
+|||
+|||     Decl
+|||     { Decl* }
+def elab-decl-or-decl-block! [ +World +Mirth Token -- +World +Mirth Token ] {
+    dup lcurly? if(
+        succ elab-decls!
+        dup rcurly? else("Expected right curly brace." emit-fatal-error!)
+        succ,
+        elab-decl!
     )
 }
 
@@ -1884,17 +1905,22 @@ def elab-def-missing! [ +Mirth Token -- +Mirth Token ] {
     dup succ succ elab-def-qname defined-hard? if(next, elab-def!)
 }
 
-def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
-    dup num-args 0> if(
-        sip:next args-1
-        dip:prefer-inline-defs
-        True prefer-inline-defs!
-        while(dup arg-end? not, elab-decl!)
-        drop prefer-inline-defs!,
+def +Mirth.with-inline(f) [ (*a +Mirth -- *b +Mirth) *a Bool +Mirth -- *b +Mirth ] {
+    prefer-inline-defs:swap
+    dip(f) prefer-inline-defs!
+}
 
-        prefer-inline-defs:True
-        dip(elab-decl!)
-        prefer-inline-defs!
+||| Mark the following definition(s) as inline.
+|||
+|||     inline Decl
+|||     inline ( Decl* )
+|||     inline { Decl* }
+def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
+    True with-inline(
+        dup num-args 0> if(
+            sip:next args-1 elab-decls! drop,
+            succ elab-decl-or-decl-block!
+        )
     )
 }
 
@@ -2167,7 +2193,7 @@ def elab-buffer! [ +Mirth Token -- +Mirth Token ] {
     sip(next) args-2
     swap dup elab-def-qname-undefined
     rotl dup int? unwrap("expected buffer size" emit-fatal-error!)
-    >USize(nip, drop "buffer size must not be negative" emit-error! 0u >USize) Buffer.new! drop
+    >USize-if(nip, drop "buffer size must not be negative" emit-error! 0u >USize) Buffer.new! drop
 }
 
 ||| Elaborate a var declaration `var(v, type)`.

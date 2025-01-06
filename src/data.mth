@@ -270,8 +270,8 @@ def Tag.label-inputs-from-sig [ Tag -- List(Label) ] {
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     dup sig? if-some(
         run-length
-        over num-resource-inputs-from-sig - .u
-        swap label-inputs-from-sig len - .u,
+        over num-resource-inputs-from-sig minus
+        swap label-inputs-from-sig len minus,
         drop 0u
     ))
 

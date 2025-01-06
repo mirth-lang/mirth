@@ -18,7 +18,7 @@ struct +Buffer {
         size >old-size
         size! size base:unsafe(swap Ptr.realloc)
         @old-size >UOffset
-        size old-size> - >USize (
+        size old-size> - >USize-if (
             erase-span!,
             drop2
         )
@@ -44,7 +44,7 @@ struct +Buffer {
         >Nat >orig-size
         >Nat >orig-offset
 
-        size >Nat @orig-offset - >Nat (
+        size >Nat @orig-offset - >Nat-if (
             orig-offset> >UOffset swap
             orig-size> min >USize,
 

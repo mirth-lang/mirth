@@ -22,10 +22,10 @@ data(Need,
     NEED_TAGP  -> Tag)
 
 def Need.>Nat [ Need -- Nat ] {
-    { NEED_WORD  -> index .u 4u *      }
-    { NEED_BLOCK -> index .u 4u * 1u + }
-    { NEED_TAGW  -> index .u 4u * 2u + }
-    { NEED_TAGP  -> index .u 4u * 3u + }
+    { NEED_WORD  -> index 4 *     >Nat-clamp }
+    { NEED_BLOCK -> index 4 * 1 + >Nat-clamp }
+    { NEED_TAGW  -> index 4 * 2 + >Nat-clamp }
+    { NEED_TAGP  -> index 4 * 3 + >Nat-clamp }
 }
 
 #########

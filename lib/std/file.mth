@@ -82,8 +82,8 @@ def(+World.stdout-file, +World -- +World +File,
 def(+World.stderr-file, +World -- +World +File,
     2 >file-descriptor False >owned +File)
 
-def O_WRONLY|O_CREAT|O_TRUNC [ Maybe(Int) ] {
-    RUNNING_OS match(
+def O_WRONLY|O_CREAT|O_TRUNC [ +World -- +World Maybe(Int) ] {
+    OS.Running match(
         { OS_MACOS -> 0x601 Some } # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
         { OS_LINUX -> 0x241 Some } # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
         { OS_WINDOWS -> 0x301 Some } # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
@@ -111,10 +111,10 @@ def +Unsafe.write-bytes! [ Ptr USize +File +Unsafe -- USize Bool +File +Unsafe ]
         @slice-size 0> @success &&,
 
         rdip:file-descriptor @slice-base @slice-size >Int posix-write!
-        >USize (
+        >USize-if (
             dup @wrote-bytes:+
             dup >UOffset @slice-base:uoffset
-            @slice-size(swap - >USize(id, drop 0u >USize)),
+            @slice-size(swap - >USize-if(id, drop 0u >USize)),
 
             drop False !success
         )
@@ -132,5 +132,4 @@ def +Unsafe.write-bytes! [ Ptr USize +File +Unsafe -- USize Bool +File +Unsafe ]
 ||| * An error has occurred while trying to read. [ 0 False ]
 def(+Unsafe.read-bytes!, Ptr USize +File +Unsafe -- USize Bool +File +Unsafe,
     dip2(rdip:file-descriptor) >Int posix-read!
-    >USize(True, drop 0u >USize False))
-
+    >USize-if(True, drop 0u >USize False))
