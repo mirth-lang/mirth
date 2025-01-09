@@ -7,9 +7,11 @@ Mirth is a work in progress and is unstable. So although the information in this
 
 If something in this file does not work in the current version of mirth in this repository, please [raise an issue](https://github.com/mirth-lang/mirth/issues) so we can fix this tutorial. Thank you!
 
-## Getting Started
+## First Steps
 
-On Mac and Linux, assuming you have a C compiler, Make, and git installed, the following instructions ought to work:
+First we need to download, build, and install mirth.
+
+On Mac and Linux, assuming you have a C compiler, `make`, and `git`, the following instructions should work:
 
 - Download the repository into a `mirth` folder: `git clone https://github.com/mirth-lang/mirth`
 
@@ -27,7 +29,7 @@ On Mac and Linux, assuming you have a C compiler, Make, and git installed, the f
     - VSCode: Make sure you have `code` in PATH and run: `make install-code`
     - Atom: Make sure you have `apm` in PATH and run: `make install-atom`
 
-  The plugins above are in `tools` and you could try making your own editor plugin.
+  These editor plugins are located in `tools`. If your preferred editor is not listed, you could try making a syntax highlighting plugin based on the existing ones, and we can add it to the repository -- contributions are always welcome!
 
 On Windows, you can install MSYS2 and try the above instructions inside of bash (after installing `gcc`, `make`, `git` packages). Alternatively, you can compile Mirth using the Visual C compiler. The C file for the Mirth compiler is located at `bin/mirth0.c` in the repository (see next section). You can see how we automate Visual C builds using `cl` in the batch scripts `tools/build.bat`, `tools/build64.bat`. You will probably need to adjust the build setup if you are on Windows, but you may find those scripts useful as a reference. If you can help us improve the build situation on Windows, please contribute!
 
@@ -118,13 +120,13 @@ Let's analyze the program line by line.
 
 - `def main {`: This begins a definition of the `main` word (AKA the `main` function, the `main` procedure). This `main` is the entry point for the entire program.
 
-- `"Hello world!" print`: This pushes the string `"Hello world!"` onto the stack, and then calls the `print` word which pushes.
+- `"Hello world!" print`: This pushes the string `"Hello world!"` onto the stack, and then calls `print` which pops the string and prints it to standard output, along with a newline.
 
 - `}`: This ends the definition for the `main` word.
 
 When we compile this module using `mirth src/hello.mth -o bin/hello.c`, the Mirth compiler determines that `src/hello.mth` is the main module source file, so it will invoke the corresponding `main` word as its entry point. We could override this by passing the `-e` compiler flag.
 
-### A Brief Aside: Mirth Compiler Flags
+### Aside: Mirth Compiler Flags
 
 For reference, the mirth compiler accepts the following flags:
 
@@ -139,3 +141,7 @@ For reference, the mirth compiler accepts the following flags:
 - `-P PATH` or `--package-search-path PATH`: Override the default package search path (the default is `lib`), which determines where mirth looks for other packages. You can pass multiple of these to search in multiple folders. For example: `-P lib -P ~/.mirth/lib`
 
 Besides requiring either the `-o PATH` or `-c` flag, the path to a mirth module containing the entry point must also be passed. For example, `mirth src/hello.mth -o bin/hello.c`
+
+## Next Steps
+
+[More to come.]
