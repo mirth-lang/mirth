@@ -144,22 +144,6 @@ data(Prim,
     PRIM_SYS_ARGC,
     PRIM_SYS_ARGV,
 
-    PRIM_SYNTAX_MODULE,
-    PRIM_SYNTAX_IMPORT,
-    PRIM_SYNTAX_ALIAS,
-    PRIM_SYNTAX_INLINE,
-    PRIM_SYNTAX_DEF,
-    PRIM_SYNTAX_DEF_MISSING,
-    PRIM_SYNTAX_DEF_TYPE,
-    PRIM_SYNTAX_BUFFER,
-    PRIM_SYNTAX_VARIABLE,
-    PRIM_SYNTAX_EXTERNAL,
-    PRIM_SYNTAX_DEF_EXTERNAL,
-    PRIM_SYNTAX_EMBED_STR,
-    PRIM_SYNTAX_TABLE,
-    PRIM_SYNTAX_FIELD,
-    PRIM_SYNTAX_DATA,
-    PRIM_SYNTAX_STRUCT,
     PRIM_SYNTAX_DASHES,
     PRIM_SYNTAX_ARROW)
 field(Prim.~name, Prim, Name)
@@ -193,22 +177,6 @@ def(Prim.ctx-type!, Ctx ArrowType Prim --,
 ||| Initialize name table with list of primitives.
 def(init-prims!, +Mirth -- +Mirth,
 
-    PRIM_SYNTAX_MODULE "module" -1 def-prim!
-    PRIM_SYNTAX_IMPORT "import" -1 def-prim!
-    PRIM_SYNTAX_INLINE "inline" -1 def-prim!
-    PRIM_SYNTAX_ALIAS "alias" -1 def-prim!
-    PRIM_SYNTAX_DEF "def" -1 def-prim!
-    PRIM_SYNTAX_DEF_TYPE "def-type" -1 def-prim!
-    PRIM_SYNTAX_DEF_MISSING "def-missing" -1 def-prim!
-    PRIM_SYNTAX_BUFFER "buffer" -1 def-prim!
-    PRIM_SYNTAX_DEF_EXTERNAL "def-external" -1 def-prim!
-    PRIM_SYNTAX_EXTERNAL "external" -1 def-prim!
-    PRIM_SYNTAX_TABLE "table" -1 def-prim!
-    PRIM_SYNTAX_FIELD "field" -1 def-prim!
-    PRIM_SYNTAX_EMBED_STR "embed-str" -1 def-prim!
-    PRIM_SYNTAX_DATA "data" -1 def-prim!
-    PRIM_SYNTAX_STRUCT "struct" -1 def-prim!
-    PRIM_SYNTAX_VARIABLE "var" -1 def-prim!
     PRIM_SYNTAX_ARROW "->" -1 def-prim!
     PRIM_SYNTAX_DASHES "--" -1 def-prim!
 

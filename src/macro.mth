@@ -1,0 +1,59 @@
+module(mirth.macro)
+
+import(std.prelude)
+import(std.maybe)
+import(mirth.mirth)
+import(mirth.name)
+import(mirth.token)
+import(mirth.name)
+import(mirth.elab)
+import(mirth.def)
+
+table(Macro)
+field(Macro.~name, Macro, Name)
+field(Macro.~qname, Macro, Prop(QName))
+field(Macro.~arity, Macro, Int)
+field(Macro.~head, Macro, Token)
+field(Macro.~action, Macro, MacroAction)
+
+def Macro.name [ Macro -- Name ] { ~name @ }
+def Macro.qname-hard [ +Mirth Macro -- +Mirth QName ] { ~qname force! }
+def Macro.qname-soft [ +Mirth Macro -- +Mirth Maybe(QName) ] { ~qname @? bind(ready?) }
+def Macro.arity [ Macro -- Int ] { ~arity @ }
+def Macro.head? [ Macro -- Maybe(Token) ] { ~head @? }
+def Macro.action [ Macro -- MacroAction ] { ~action @ }
+
+def Macro.>Int [ Macro -- Int ] { index }
+def Macro.== [ Macro Macro -- Bool ] { on2:>Int == }
+
+data MacroAction {
+    MAGeneral [ [ +World +Mirth Token -- +World +Mirth Token ] ]
+    MAArrow   [ [ +Mirth +AB -- +Mirth +AB ] ]
+}
+
+def Macro.Prim [ +Mirth Str MacroAction -- +Mirth Macro ] {
+    Macro.alloc! >macro
+    @macro ~action !
+    dup >Name @macro ~name !
+    -1 QName.Prim @macro MacroQName prop @macro ~qname !
+    -1 @macro ~arity !
+    macro>
+}
+
+def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
+    "import"        [ elab-module-import! ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "alias"         [ elab-alias!         ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "inline"        [ elab-inline!        ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "def"           [ elab-def!           ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "def-missing"   [ elab-def-missing!   ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "def-type"      [ elab-def-type!      ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "def-external"  [ elab-def-external!  ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "external"      [ elab-external!      ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "buffer"        [ elab-buffer!        ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "var"           [ elab-variable!      ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "table"         [ elab-table!         ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "field"         [ elab-field!         ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "data"          [ elab-data!          ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "struct"        [ elab-struct!        ] MacroAction.MAGeneral Macro.Prim DefMacro register
+    "embed-str"     [ elab-embed-str!     ] MacroAction.MAGeneral Macro.Prim DefMacro register
+}

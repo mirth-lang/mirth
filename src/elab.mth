@@ -32,6 +32,7 @@ import(mirth.alias)
 import(mirth.match)
 import(mirth.lexer)
 import(mirth.label)
+import(mirth.macro)
 
 ####################
 # Type Elaboration #
@@ -1343,31 +1344,25 @@ def elab-decl-or-decl-block! [ +World +Mirth Token -- +World +Mirth Token ] {
     )
 }
 
+struct GeneralMacro {
+    macro: Macro
+    action: [ +World +Mirth Token -- +World +Mirth Token ]
+}
+
+def Def.general-macro? [ Def -- Maybe(GeneralMacro) ] { macro? bind(general?) }
+def Macro.general? [ Macro -- Maybe(GeneralMacro) ] {
+    >macro @macro action match {
+        { MAGeneral -> >action GeneralMacro Some }
+        { _ -> macro> drop2 None }
+    }
+}
+
 ||| Elaborate a declaration. Returns the next token.
 def elab-decl! [ Token +World +Mirth -- Token +World +Mirth ] {
     dup Some lexical-state:error-token!
     dup name? unwrap("unknown declaration" emit-fatal-error!)
-    defs find-some(prim?) unwrap("unknown declaration" emit-fatal-error!)
-    match(
-        PRIM_SYNTAX_IMPORT -> elab-module-import!,
-        PRIM_SYNTAX_ALIAS -> elab-alias!,
-        PRIM_SYNTAX_INLINE -> elab-inline!,
-        PRIM_SYNTAX_DEF -> elab-def!,
-        PRIM_SYNTAX_DEF_MISSING -> elab-def-missing!,
-        PRIM_SYNTAX_DEF_TYPE -> elab-def-type!,
-        PRIM_SYNTAX_DEF_EXTERNAL ->
-            dup "def-external" >old "external" >new emit-deprecated!
-            elab-external!,
-        PRIM_SYNTAX_EXTERNAL -> elab-external!,
-        PRIM_SYNTAX_BUFFER -> elab-buffer!,
-        PRIM_SYNTAX_VARIABLE -> elab-variable!,
-        PRIM_SYNTAX_TABLE -> elab-table!,
-        PRIM_SYNTAX_FIELD -> elab-field!,
-        PRIM_SYNTAX_DATA -> elab-data!,
-        PRIM_SYNTAX_STRUCT -> elab-struct!,
-        PRIM_SYNTAX_EMBED_STR -> elab-embed-str!,
-        _ -> drop "unknown declaration" emit-fatal-error!
-    )
+    defs find-some(general-macro?) unwrap("unknown declaration" emit-fatal-error!)
+    action run
 }
 
 def load-module [ Token QName +World +Mirth -- Token Module +World +Mirth ] {
@@ -2119,6 +2114,11 @@ def parse-external-decl-part [ +Mirth Token -- +Mirth Token ExternalDeclPart ] {
         EDPDef
     )
     dip(dup comma? then(succ))
+}
+
+def elab-def-external! [ +Mirth Token -- +Mirth Token ] {
+    dup "def-external" >old "external" >new emit-deprecated!
+    elab-external!
 }
 
 ||| Elaborate an external declaration.
