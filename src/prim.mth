@@ -140,10 +140,7 @@ data(Prim,
     PRIM_SYS_OS,
     PRIM_SYS_ARCH,
     PRIM_SYS_ARGC,
-    PRIM_SYS_ARGV,
-
-    PRIM_SYNTAX_DASHES,
-    PRIM_SYNTAX_ARROW)
+    PRIM_SYS_ARGV)
 field(Prim.~name, Prim, Name)
 field(Prim.~ctx, Prim, Ctx)
 field(Prim.~type, Prim, ArrowType)
@@ -174,10 +171,6 @@ def(Prim.ctx-type!, Ctx ArrowType Prim --,
 
 ||| Initialize name table with list of primitives.
 def(init-prims!, +Mirth -- +Mirth,
-
-    PRIM_SYNTAX_ARROW "->" -1 def-prim!
-    PRIM_SYNTAX_DASHES "--" -1 def-prim!
-
     PRIM_CORE_DIP "dip" 1 def-prim!
     PRIM_CORE_WHILE "while" 2 def-prim!
 

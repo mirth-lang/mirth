@@ -42,10 +42,11 @@ data TokenValue {
     TokenLabelPushR [ Label ]
     TokenLabelGet   [ Label ]
     TokenLabelSet   [ Label ]
+    --
+    def none? { TokenNone -> True, _ -> drop False }
+    def comma? { TokenComma -> True, _ -> drop False }
 }
 
-def(TokenValue.none?, TokenValue -- Bool, TokenNone -> True, _ -> drop False)
-def(TokenValue.comma?, TokenValue -- Bool, TokenComma -> True, _ -> drop False)
 def(TokenValue.lparen-open?, TokenValue -- Bool, TokenLParenOpen -> True, _ -> drop False)
 def(TokenValue.lparen?, TokenValue -- Maybe(Token), TokenLParen -> Some, _ -> drop None)
 def(TokenValue.rparen?, TokenValue -- Maybe(Token), TokenRParen -> Some, _ -> drop None)
@@ -119,8 +120,8 @@ def(TokenValue.sig-param-name?, TokenValue -- Maybe(Name), sig-type-var?)
 def(TokenValue.sig-stack-var?, TokenValue -- Maybe(Name), name? filter(could-be-stack-var))
 def(TokenValue.sig-resource-var?, TokenValue -- Maybe(Name), name? filter(could-be-resource-var))
 def(TokenValue.sig-resource-con?, TokenValue -- Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-resource-con))
-def(TokenValue.sig-dashes?, TokenValue -- Bool, name? has(PRIM_SYNTAX_DASHES name ==))
-def(TokenValue.arrow?, TokenValue -- Bool, name? has(PRIM_SYNTAX_ARROW name ==))
+def(TokenValue.sig-dashes?, TokenValue -- Bool, name? has(>Str "--" ==))
+def(TokenValue.arrow?, TokenValue -- Bool, name? has(>Str "->" ==))
 def(TokenValue.pat-underscore?, TokenValue -- Bool, name? has(is-underscore))
 def(TokenValue.module-header?, TokenValue -- Bool, name? has(>Str "module" ==))
 
