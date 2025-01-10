@@ -24,8 +24,6 @@ data(Prim,
     PRIM_CORE_DEBUG,
     PRIM_CORE_PANIC,
     PRIM_CORE_RUN,
-    PRIM_CORE_MATCH,
-    PRIM_CORE_LAMBDA,
 
     PRIM_INT_EQ,
     PRIM_INT_LT,
@@ -182,8 +180,6 @@ def(init-prims!, +Mirth -- +Mirth,
 
     PRIM_CORE_DIP "dip" 1 def-prim!
     PRIM_CORE_WHILE "while" 2 def-prim!
-    PRIM_CORE_MATCH "match" -1 def-prim!
-    PRIM_CORE_LAMBDA "\\" -1 def-prim!
 
     PRIM_CORE_ID "prim-id" 0 def-prim!
     PRIM_CORE_DUP "prim-dup" 0 def-prim!
@@ -195,8 +191,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_CORE_DEBUG "prim-debug" 0 def-prim!
     PRIM_CORE_PANIC "prim-panic" 0 def-prim!
     PRIM_CORE_RUN "prim-run" 0 def-prim!
-    PRIM_CORE_MATCH "prim-match" -1 def-prim!
-    PRIM_CORE_LAMBDA "prim-lambda" -1 def-prim!
 
     PRIM_CORE_RSWAP "prim-rswap" 0 def-prim!
     PRIM_CORE_RDIP "prim-rdip" 1 def-prim!

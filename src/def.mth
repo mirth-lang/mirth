@@ -103,7 +103,7 @@ data Def {
         { DefField -> drop True }
         { DefTag -> drop True }
         { DefVariable -> drop True }
-        { DefMacro -> drop True }
+        { DefMacro -> action callable? }
     }
 
     def defines-a-type? [ +Mirth Def -- +Mirth Bool ] {

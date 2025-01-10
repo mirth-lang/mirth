@@ -2211,11 +2211,8 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { PRIM_SYS_ARGC -> drop C99RT_I64 push-value-expression!("global_argc" put) }
     { PRIM_SYS_ARGV -> drop C99RT_PTR push-value-expression!("global_argv" put) }
 
-    { PRIM_CORE_MATCH           -> c99-prim-syntax! }
-    { PRIM_CORE_LAMBDA          -> c99-prim-syntax! }
-
-    { PRIM_SYNTAX_DASHES        -> c99-prim-syntax! }
-    { PRIM_SYNTAX_ARROW         -> c99-prim-syntax! }
+    { PRIM_SYNTAX_DASHES -> c99-prim-syntax! }
+    { PRIM_SYNTAX_ARROW  -> c99-prim-syntax! }
 }
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {

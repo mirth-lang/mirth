@@ -837,6 +837,7 @@ struct +AB {
         DefWord -> elab-word-args! ab-word!,
         DefTag -> elab-args! ab-tag!,
         DefPrim -> elab-prim!,
+        DefMacro -> elab-macro!,
         _ -> rdip:qname-hard elab-atom-not-a-word!
     }
 
@@ -847,12 +848,17 @@ struct +AB {
         ) elab-atom-failed!
     }
 
-    def elab-prim! [ Prim +Mirth +AB -- +Mirth +AB ] {
-        match(
-            PRIM_CORE_MATCH -> elab-atom-match!,
-            PRIM_CORE_LAMBDA -> elab-atom-lambda!,
-            _ -> elab-args! ab-prim!
+    def elab-macro! [ Macro +Mirth +AB -- +Mirth +AB ] {
+        action arrow? if-some(
+            run,
+
+            ab-token@ "macro cannot be invoked here" rdip:emit-error!
+            STACK_TYPE_ERROR ab-type!
         )
+    }
+
+    def elab-prim! [ Prim +Mirth +AB -- +Mirth +AB ] {
+        elab-args! ab-prim!
     }
 
     def elab-atom-assert! [ +Mirth +AB -- +Mirth +AB ] {
@@ -1344,25 +1350,12 @@ def elab-decl-or-decl-block! [ +World +Mirth Token -- +World +Mirth Token ] {
     )
 }
 
-struct GeneralMacro {
-    macro: Macro
-    action: [ +World +Mirth Token -- +World +Mirth Token ]
-}
-
-def Def.general-macro? [ Def -- Maybe(GeneralMacro) ] { macro? bind(general?) }
-def Macro.general? [ Macro -- Maybe(GeneralMacro) ] {
-    >macro @macro action match {
-        { MAGeneral -> >action GeneralMacro Some }
-        { _ -> macro> drop2 None }
-    }
-}
-
 ||| Elaborate a declaration. Returns the next token.
 def elab-decl! [ Token +World +Mirth -- Token +World +Mirth ] {
     dup Some lexical-state:error-token!
     dup name? unwrap("unknown declaration" emit-fatal-error!)
-    defs find-some(general-macro?) unwrap("unknown declaration" emit-fatal-error!)
-    action run
+    defs find-some(macro? bind(action decl?))
+    unwrap("unknown declaration" emit-fatal-error!) run
 }
 
 def load-module [ Token QName +World +Mirth -- Token Module +World +Mirth ] {
