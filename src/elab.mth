@@ -617,12 +617,7 @@ struct +AB {
     def ab-field! [ Field +Mirth +AB -- +Mirth +AB ] { OpField ab-op! }
     def ab-var! [ Var +Mirth +AB -- +Mirth +AB ] { OpVar ab-op! }
     def ab-tag! [ Tag +Mirth +AB -- +Mirth +AB ] { OpTag ab-op! }
-    def ab-prim! [ Prim +Mirth +AB -- +Mirth +AB ] {
-        dup ~type mut-is-set if(
-            OpPrim ab-op!,
-            ab-token@ "prim does not have type" rdip:emit-fatal-error!
-        )
-    }
+    def ab-prim! [ Prim +Mirth +AB -- +Mirth +AB ] { OpPrim ab-op! }
     def ab-word! [ Word +Mirth +AB -- +Mirth +AB ] { OpWord ab-op! }
     def ab-external! [ External +Mirth +AB -- +Mirth +AB ] { OpExternal ab-op! }
     def ab-label-push! [ Label +Mirth +AB -- +Mirth +AB ] { OpLabelPush ab-op! }

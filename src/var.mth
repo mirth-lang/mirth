@@ -43,6 +43,10 @@ def(Var.new-auto-run!, ArrowType Name -- Var,
     dip(dup TMorphism) Var.new!
     dip(Some) tuck ~auto-run? !)
 
+def Var.NewInCtx [ Ctx Type Str -- Ctx Var ] {
+    >Name Var.new! sip:Ctx.new
+}
+
 ###########
 # Context #
 ###########

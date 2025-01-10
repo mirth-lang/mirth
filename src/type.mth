@@ -37,6 +37,8 @@ data Type {
     TValue [ Value ]
 }
 
+def Type.NewInCtx [ Ctx Str -- Ctx Type ] { dip:TYPE_TYPE Var.NewInCtx Type.TVar }
+
 data Value {
     VALUE_INT [ Int ]
     VALUE_F64 [ F64 ]
@@ -646,6 +648,8 @@ def(Type.app-type-open;;, +Str Type Type -- +Str,
 #################
 
 data(Resource, Resource -> Type)
+def Resource.NewInCtx [ Ctx Str -- Ctx Resource ] { dip:TYPE_RESOURCE Var.NewInCtx Type.TVar Resource }
+
 def(Resource.>Type, Resource -- Type, Resource -> id)
 def(Type.>Resource, Type -- Resource, Resource)
 def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
@@ -677,6 +681,8 @@ data(StackType,
     STConsLabel -> StackType Type Label,
     STWith -> StackType Resource,
     STWithLabel -> StackType Resource Label)
+
+def StackType.NewInCtx [ Ctx Str -- Ctx StackType ] { dip:TYPE_STACK Var.NewInCtx StackType.STVar }
 
 def(Type.>StackType, Type -- StackType,
     TYPE_ERROR -> STACK_TYPE_ERROR,
