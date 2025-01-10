@@ -28,6 +28,8 @@ alias(run, prim-run)
 
 alias(rswap, prim-rswap)
 alias(rdip(f), prim-rdip)
+alias(dip(f), prim-dip)
+alias(while(f,g), prim-while)
 
 alias(Int.+, prim-int-add)
 alias(Int.-, prim-int-sub)
