@@ -230,7 +230,7 @@ struct QName {
     def defined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? some? }
     def undefined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? none? }
 
-    def QName.Prim [ +Mirth Str Int -- +Mirth QName ] {
+    def Prim [ +Mirth Str Int -- +Mirth QName ] {
         >arity
         >Name >name
         Namespace.Prim >namespace

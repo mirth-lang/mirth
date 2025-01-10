@@ -2210,27 +2210,6 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { PRIM_SYS_ARCH -> drop C99RT_I64 push-value-expression!("RUNNING_ARCH" put) }
     { PRIM_SYS_ARGC -> drop C99RT_I64 push-value-expression!("global_argc" put) }
     { PRIM_SYS_ARGV -> drop C99RT_PTR push-value-expression!("global_argv" put) }
-
-    { PRIM_CORE_MATCH           -> c99-prim-syntax! }
-    { PRIM_CORE_LAMBDA          -> c99-prim-syntax! }
-    { PRIM_SYNTAX_MODULE        -> c99-prim-syntax! }
-    { PRIM_SYNTAX_IMPORT        -> c99-prim-syntax! }
-    { PRIM_SYNTAX_ALIAS         -> c99-prim-syntax! }
-    { PRIM_SYNTAX_INLINE        -> c99-prim-syntax! }
-    { PRIM_SYNTAX_DEF           -> c99-prim-syntax! }
-    { PRIM_SYNTAX_DEF_MISSING   -> c99-prim-syntax! }
-    { PRIM_SYNTAX_DEF_TYPE      -> c99-prim-syntax! }
-    { PRIM_SYNTAX_BUFFER        -> c99-prim-syntax! }
-    { PRIM_SYNTAX_VARIABLE      -> c99-prim-syntax! }
-    { PRIM_SYNTAX_EXTERNAL      -> c99-prim-syntax! }
-    { PRIM_SYNTAX_DEF_EXTERNAL  -> c99-prim-syntax! }
-    { PRIM_SYNTAX_EMBED_STR     -> c99-prim-syntax! }
-    { PRIM_SYNTAX_TABLE         -> c99-prim-syntax! }
-    { PRIM_SYNTAX_FIELD         -> c99-prim-syntax! }
-    { PRIM_SYNTAX_DATA          -> c99-prim-syntax! }
-    { PRIM_SYNTAX_STRUCT        -> c99-prim-syntax! }
-    { PRIM_SYNTAX_DASHES        -> c99-prim-syntax! }
-    { PRIM_SYNTAX_ARROW         -> c99-prim-syntax! }
 }
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
@@ -2248,10 +2227,6 @@ def c99-tup-unpack! [ Nat +C99Branch -- +C99Branch ] {
 def +C99Value.run-value! [ +C99Branch +C99Value -- +C99Branch ] {
     consume-as-VAL flush-cache!
     c99-line("run_value(" put put ");" put)
-}
-
-def c99-prim-syntax! [ Atom +C99Branch -- +C99Branch ] {
-    token "unexpected syntax primitive" +mirth:emit-fatal-error!
 }
 
 def c99-binop! [  Str C99ReprType Str C99ReprType Str Bool Maybe(C99ReprType) +C99Branch -- +C99Branch ] {

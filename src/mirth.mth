@@ -26,6 +26,7 @@ import(mirth.type)
 import(mirth.typedef)
 import(mirth.prim)
 import(mirth.name)
+import(mirth.macro)
 
 struct Builtin {
     std: Package
@@ -135,6 +136,7 @@ def +Mirth.Init! {
     init-modules!
     init-types!
     init-prims!
+    init-macros!
 }
 
 def +Mirth.rdrop [ +Mirth -- ] {
@@ -283,6 +285,7 @@ data PropLabel {
     FieldQName     [ Field ]
     FieldValueType [ Field ]
     FieldIndexType [ Field ]
+    MacroQName     [ Macro ]
 }
 
 def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,

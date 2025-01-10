@@ -24,8 +24,6 @@ data(Prim,
     PRIM_CORE_DEBUG,
     PRIM_CORE_PANIC,
     PRIM_CORE_RUN,
-    PRIM_CORE_MATCH,
-    PRIM_CORE_LAMBDA,
 
     PRIM_INT_EQ,
     PRIM_INT_LT,
@@ -142,26 +140,7 @@ data(Prim,
     PRIM_SYS_OS,
     PRIM_SYS_ARCH,
     PRIM_SYS_ARGC,
-    PRIM_SYS_ARGV,
-
-    PRIM_SYNTAX_MODULE,
-    PRIM_SYNTAX_IMPORT,
-    PRIM_SYNTAX_ALIAS,
-    PRIM_SYNTAX_INLINE,
-    PRIM_SYNTAX_DEF,
-    PRIM_SYNTAX_DEF_MISSING,
-    PRIM_SYNTAX_DEF_TYPE,
-    PRIM_SYNTAX_BUFFER,
-    PRIM_SYNTAX_VARIABLE,
-    PRIM_SYNTAX_EXTERNAL,
-    PRIM_SYNTAX_DEF_EXTERNAL,
-    PRIM_SYNTAX_EMBED_STR,
-    PRIM_SYNTAX_TABLE,
-    PRIM_SYNTAX_FIELD,
-    PRIM_SYNTAX_DATA,
-    PRIM_SYNTAX_STRUCT,
-    PRIM_SYNTAX_DASHES,
-    PRIM_SYNTAX_ARROW)
+    PRIM_SYS_ARGV)
 field(Prim.~name, Prim, Name)
 field(Prim.~ctx, Prim, Ctx)
 field(Prim.~type, Prim, ArrowType)
@@ -192,30 +171,8 @@ def(Prim.ctx-type!, Ctx ArrowType Prim --,
 
 ||| Initialize name table with list of primitives.
 def(init-prims!, +Mirth -- +Mirth,
-
-    PRIM_SYNTAX_MODULE "module" -1 def-prim!
-    PRIM_SYNTAX_IMPORT "import" -1 def-prim!
-    PRIM_SYNTAX_INLINE "inline" -1 def-prim!
-    PRIM_SYNTAX_ALIAS "alias" -1 def-prim!
-    PRIM_SYNTAX_DEF "def" -1 def-prim!
-    PRIM_SYNTAX_DEF_TYPE "def-type" -1 def-prim!
-    PRIM_SYNTAX_DEF_MISSING "def-missing" -1 def-prim!
-    PRIM_SYNTAX_BUFFER "buffer" -1 def-prim!
-    PRIM_SYNTAX_DEF_EXTERNAL "def-external" -1 def-prim!
-    PRIM_SYNTAX_EXTERNAL "external" -1 def-prim!
-    PRIM_SYNTAX_TABLE "table" -1 def-prim!
-    PRIM_SYNTAX_FIELD "field" -1 def-prim!
-    PRIM_SYNTAX_EMBED_STR "embed-str" -1 def-prim!
-    PRIM_SYNTAX_DATA "data" -1 def-prim!
-    PRIM_SYNTAX_STRUCT "struct" -1 def-prim!
-    PRIM_SYNTAX_VARIABLE "var" -1 def-prim!
-    PRIM_SYNTAX_ARROW "->" -1 def-prim!
-    PRIM_SYNTAX_DASHES "--" -1 def-prim!
-
     PRIM_CORE_DIP "dip" 1 def-prim!
     PRIM_CORE_WHILE "while" 2 def-prim!
-    PRIM_CORE_MATCH "match" -1 def-prim!
-    PRIM_CORE_LAMBDA "\\" -1 def-prim!
 
     PRIM_CORE_ID "prim-id" 0 def-prim!
     PRIM_CORE_DUP "prim-dup" 0 def-prim!
@@ -227,8 +184,6 @@ def(init-prims!, +Mirth -- +Mirth,
     PRIM_CORE_DEBUG "prim-debug" 0 def-prim!
     PRIM_CORE_PANIC "prim-panic" 0 def-prim!
     PRIM_CORE_RUN "prim-run" 0 def-prim!
-    PRIM_CORE_MATCH "prim-match" -1 def-prim!
-    PRIM_CORE_LAMBDA "prim-lambda" -1 def-prim!
 
     PRIM_CORE_RSWAP "prim-rswap" 0 def-prim!
     PRIM_CORE_RDIP "prim-rdip" 1 def-prim!

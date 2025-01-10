@@ -21,6 +21,7 @@ import(mirth.type)
 import(mirth.typedef)
 import(mirth.variable)
 import(mirth.word)
+import(mirth.macro)
 
 data Def {
     DefAlias [ Alias ]
@@ -36,6 +37,7 @@ data Def {
     DefVariable [ Variable ]
     DefExternal [ External ]
     DefField [ Field ]
+    DefMacro [ Macro ]
     --
 
     def package? { DefPackage -> Some, _ -> drop None }
@@ -51,6 +53,7 @@ data Def {
     def variable? { DefVariable -> Some, _ -> drop None }
     def external? { DefExternal -> Some, _ -> drop None }
     def field? { DefField -> Some, _ -> drop None }
+    def macro? { DefMacro -> Some, _ -> drop None }
 
     def == [ Def Def -- Bool ] {
         { DefPackage -> Some swap package? == }
@@ -66,6 +69,7 @@ data Def {
         { DefVariable -> Some swap variable? == }
         { DefExternal -> Some swap external? == }
         { DefField -> Some swap field? == }
+        { DefMacro -> Some swap macro? == }
     }
 
     def typecheck! [ +Mirth Def -- +Mirth ] {
@@ -82,6 +86,7 @@ data Def {
         { DefVariable -> type drop }
         { DefExternal -> type drop }
         { DefField -> type drop }
+        { DefMacro -> drop }
     }
 
     def callable? [ +Mirth Def -- +Mirth Bool ] {
@@ -98,6 +103,7 @@ data Def {
         { DefField -> drop True }
         { DefTag -> drop True }
         { DefVariable -> drop True }
+        { DefMacro -> action callable? }
     }
 
     def defines-a-type? [ +Mirth Def -- +Mirth Bool ] {
@@ -114,6 +120,7 @@ data Def {
         { DefField -> drop False }
         { DefTag -> drop False }
         { DefVariable -> drop False }
+        { DefMacro -> drop False }
     }
 
     def exposed-tycon? [ +Mirth Def -- +Mirth Maybe(Tycon) ] {
@@ -130,6 +137,7 @@ data Def {
         { DefField -> drop None }
         { DefTag -> drop None }
         { DefVariable -> drop None }
+        { DefMacro -> drop None }
     }
 
     def head? [ Def -- Maybe(Token) ] {
@@ -146,6 +154,7 @@ data Def {
         { DefField -> head Some }
         { DefTag -> .data head? }
         { DefVariable -> head Some }
+        { DefMacro -> head? }
     }
 
     def defining-module? [ Def -- Maybe(Module) ] {
@@ -174,6 +183,7 @@ data Def {
         { DefField -> name }
         { DefTag -> name }
         { DefVariable -> name }
+        { DefMacro -> name }
     }
 
     def arity [ Def -- Int ] {
@@ -190,6 +200,7 @@ data Def {
         { DefField -> drop 0 }
         { DefTag -> drop 0 }
         { DefVariable -> drop 0 }
+        { DefMacro -> arity }
     }
 
     def qname-soft [ +Mirth Def -- +Mirth Maybe(QName) ] {
@@ -206,6 +217,7 @@ data Def {
         { DefField -> qname-soft }
         { DefTag -> qname Some }
         { DefVariable -> qname Some }
+        { DefMacro -> qname-soft }
     }
 
     def qname-hard [ +Mirth Def -- +Mirth QName ] {
@@ -222,6 +234,7 @@ data Def {
         { DefField -> qname-hard }
         { DefTag -> qname }
         { DefVariable -> qname }
+        { DefMacro -> qname-hard }
     }
 
     def as-namespace? [ +Mirth Def -- +Mirth Maybe(Namespace) ] {
