@@ -1,14 +1,14 @@
-module(mirth.prim)
+module mirth.prim
 
-import(std.prelude)
-import(std.maybe)
-import(mirth.mirth)
-import(mirth.name)
-import(mirth.type)
-import(mirth.data)
-import(mirth.var)
-import(mirth.token)
-import(mirth.def)
+import std.prelude
+import std.maybe
+import mirth.mirth
+import mirth.name
+import mirth.type
+import mirth.data
+import mirth.var
+import mirth.token
+import mirth.def
 
 # mirth/data/prim
 data Prim {

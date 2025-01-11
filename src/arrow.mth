@@ -1,24 +1,24 @@
-module(mirth.arrow)
+module mirth.arrow
 
-import(std.prelude)
-import(std.maybe)
-import(std.list)
-import(std.str)
+import std.prelude
+import std.maybe
+import std.list
+import std.str
 
-import(mirth.mirth)
-import(mirth.token)
-import(mirth.type)
-import(mirth.data)
-import(mirth.match)
-import(mirth.var)
-import(mirth.name)
-import(mirth.word)
-import(mirth.prim)
-import(mirth.external)
-import(mirth.buffer)
-import(mirth.variable)
-import(mirth.table)
-import(mirth.label)
+import mirth.mirth
+import mirth.token
+import mirth.type
+import mirth.data
+import mirth.match
+import mirth.var
+import mirth.name
+import mirth.word
+import mirth.prim
+import mirth.external
+import mirth.buffer
+import mirth.variable
+import mirth.table
+import mirth.label
 
 ##########
 # ARROWS #

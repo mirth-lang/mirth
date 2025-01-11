@@ -1,8 +1,8 @@
-module(std.prelude)
+module std.prelude
 
-import(std.maybe)
-import(std.str)
-import(std.byte)
+import std.maybe
+import std.str
+import std.byte
 
 ############################################
 # not re-exported because of optimisations #

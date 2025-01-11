@@ -1,20 +1,20 @@
-module(mirth.data)
+module mirth.data
 
-import(std.prelude)
-import(std.list)
-import(std.str)
-import(std.maybe)
-import(std.either)
+import std.prelude
+import std.list
+import std.str
+import std.maybe
+import std.either
 
-import(mirth.var)
-import(mirth.type)
-import(mirth.token)
-import(mirth.name)
-import(mirth.def)
-import(mirth.label)
-import(mirth.tycon)
-import(mirth.word)
-import(mirth.mirth)
+import mirth.var
+import mirth.type
+import mirth.token
+import mirth.name
+import mirth.def
+import mirth.label
+import mirth.tycon
+import mirth.word
+import mirth.mirth
 
 table(Data)
 field(Data.~head?, Data, Maybe(Token))

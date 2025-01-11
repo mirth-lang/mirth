@@ -36193,18 +36193,47 @@ static uint64_t mw_mirth_elab_loadZ_module (uint64_t in_Token_1, TUP* in_QName_2
 	return branch_Token_11;
 }
 static uint64_t mw_mirth_elab_elabZ_moduleZ_importZBang (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4) {
-	uint64_t v7 = mw_mirth_token_Token_next(in_Token_1);
-	TUP* v8;
-	uint64_t v9 = mw_mirth_token_Token_argsZ_1(in_Token_1, in_ZPlusMirth_2, &v8);
-	TUP* v10;
-	TUP* v11 = mw_mirth_elab_elabZ_moduleZ_qname(v8, v9, &v10);
-	uint64_t v12;
-	TUP* v13;
-	uint64_t v14 = mw_mirth_elab_loadZ_module(v9, v11, v10, &v12, &v13);
-	uint64_t v15 = mw_mirth_token_Token_module(v14);
-	mw_mirth_module_Module_addZ_importZBang(v15, v12);
-	*out_ZPlusMirth_4 = v13;
-	return v7;
+	int64_t v7 = mw_mirth_token_Token_numZ_args(in_Token_1);
+	int64_t v8 = 0LL;
+	bool v9 = (v7 > v8);
+	uint64_t branch_Token_10;
+	TUP* branch_ZPlusMirth_11;
+	uint64_t branch_Token_12;
+	if (v9) {
+		uint64_t v13 = mw_mirth_token_Token_next(in_Token_1);
+		TUP* v14;
+		uint64_t v15 = mw_mirth_token_Token_argsZ_1(in_Token_1, in_ZPlusMirth_2, &v14);
+		uint64_t v16 = mw_mirth_token_Token_next(v15);
+		int64_t v17 = mw_mirth_token_Token_argZ_endZAsk(v16);
+		uint64_t branch_Token_18;
+		TUP* branch_ZPlusMirth_19;
+		if (((bool)v17)) {
+			branch_ZPlusMirth_19 = v14;
+			branch_Token_18 = v16;
+		} else {
+			STR* v20;
+			STRLIT(v20, "expected arg end", 16);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v16, MKSTR(v20), v14);
+		}
+		branch_Token_12 = v15;
+		branch_ZPlusMirth_11 = branch_ZPlusMirth_19;
+		branch_Token_10 = v13;
+	} else {
+		uint64_t v23 = mw_mirth_token_Token_succ(in_Token_1);
+		uint64_t v24 = mw_mirth_token_Token_next(v23);
+		branch_Token_12 = v23;
+		branch_ZPlusMirth_11 = in_ZPlusMirth_2;
+		branch_Token_10 = v24;
+	}
+	TUP* v25;
+	TUP* v26 = mw_mirth_elab_elabZ_moduleZ_qname(branch_ZPlusMirth_11, branch_Token_12, &v25);
+	uint64_t v27;
+	TUP* v28;
+	uint64_t v29 = mw_mirth_elab_loadZ_module(branch_Token_12, v26, v25, &v27, &v28);
+	uint64_t v30 = mw_mirth_token_Token_module(v29);
+	mw_mirth_module_Module_addZ_importZBang(v30, v27);
+	*out_ZPlusMirth_4 = v28;
+	return branch_Token_10;
 }
 static uint64_t mw_mirth_elab_parseZ_data (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, TUP* *out_SyntaxData_5) {
 	int64_t v6 = mw_mirth_token_Token_numZ_args(in_Token_2);

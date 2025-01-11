@@ -1,38 +1,38 @@
 module mirth.elab
 
-import(std.prelude)
-import(std.str)
-import(std.list)
-import(std.maybe)
-import(std.either)
-import(std.byte)
-import(std.terminal)
+import std.prelude
+import std.str
+import std.list
+import std.maybe
+import std.either
+import std.byte
+import std.terminal
 
-import(mirth.mirth)
-import(mirth.name)
-import(mirth.def)
-import(mirth.token)
-import(mirth.data)
-import(mirth.external)
-import(mirth.word)
-import(mirth.var)
-import(mirth.buffer)
-import(mirth.variable)
-import(mirth.table)
-import(mirth.tycon)
-import(mirth.type)
-import(mirth.typedef)
-import(mirth.var)
-import(mirth.arrow)
-import(mirth.word)
-import(mirth.prim)
-import(mirth.module)
-import(mirth.package)
-import(mirth.alias)
-import(mirth.match)
-import(mirth.lexer)
-import(mirth.label)
-import(mirth.macro)
+import mirth.mirth
+import mirth.name
+import mirth.def
+import mirth.token
+import mirth.data
+import mirth.external
+import mirth.word
+import mirth.var
+import mirth.buffer
+import mirth.variable
+import mirth.table
+import mirth.tycon
+import mirth.type
+import mirth.typedef
+import mirth.var
+import mirth.arrow
+import mirth.word
+import mirth.prim
+import mirth.module
+import mirth.package
+import mirth.alias
+import mirth.match
+import mirth.lexer
+import mirth.label
+import mirth.macro
 
 ####################
 # Type Elaboration #
@@ -1389,11 +1389,18 @@ def load-module [ Token QName +World +Mirth -- Token Module +World +Mirth ] {
     )
 }
 
-||| Elaborate `import(M)` statement. Return token after import.
+||| Elaborate import statement. Return token after import.
+|||
+|||     import(ModuleName)
+|||     import ModuleName
 def elab-module-import! [ Token +World +Mirth -- Token +World +Mirth ] {
-    sip(next)
-    args-1 dup elab-module-qname
-    load-module dip(.module) add-import!
+    dup num-args 0> if(
+        sip(next) args-1
+        dup next dup arg-end? else("expected arg end" emit-fatal-error!) drop,
+        succ sip(next)
+    )
+    dup elab-module-qname load-module
+    dip(.module) add-import!
 }
 
 ||| Parse a data declaration. It looks like one of:

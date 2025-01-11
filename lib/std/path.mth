@@ -1,10 +1,10 @@
-module(std.path)
+module std.path
 
-import(std.prelude)
-import(std.byte)
-import(std.str)
-import(std.list)
-import(std.maybe)
+import std.prelude
+import std.byte
+import std.str
+import std.list
+import std.maybe
 
 struct Path {
     Str

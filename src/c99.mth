@@ -1,38 +1,37 @@
-module(mirth.c99)
+module mirth.c99
 
-import(std.prelude)
-import(std.str)
-import(std.path)
-import(std.list)
-import(std.byte)
-import(std.maybe)
-import(std.either)
+import std.prelude
+import std.str
+import std.path
+import std.list
+import std.byte
+import std.maybe
+import std.either
+import std.file
+import std.output
 
-import(std.file)
-import(std.output)
-
-import(mirth.mirth)
-import(mirth.module)
-import(mirth.location)
-import(mirth.token)
-import(mirth.name)
-import(mirth.buffer)
-import(mirth.arrow)
-import(mirth.word)
-import(mirth.table)
-import(mirth.variable)
-import(mirth.external)
-import(mirth.tycon)
-import(mirth.type)
-import(mirth.data)
-import(mirth.package)
-import(mirth.prim)
-import(mirth.var)
-import(mirth.match)
-import(mirth.elab)
-import(mirth.need)
-import(mirth.label)
-import(mirth.def)
+import mirth.mirth
+import mirth.module
+import mirth.location
+import mirth.token
+import mirth.name
+import mirth.buffer
+import mirth.arrow
+import mirth.word
+import mirth.table
+import mirth.variable
+import mirth.external
+import mirth.tycon
+import mirth.type
+import mirth.data
+import mirth.package
+import mirth.prim
+import mirth.var
+import mirth.match
+import mirth.elab
+import mirth.need
+import mirth.label
+import mirth.def
 
 #######
 # C99 #

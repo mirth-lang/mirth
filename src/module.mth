@@ -1,15 +1,15 @@
-module(mirth.module)
+module mirth.module
 
-import(std.prelude)
-import(std.path)
-import(std.str)
-import(std.list)
-import(std.byte)
-import(std.maybe)
-import(mirth.name)
-import(mirth.package)
-import(mirth.token)
-import(mirth.mirth)
+import std.prelude
+import std.path
+import std.str
+import std.list
+import std.byte
+import std.maybe
+import mirth.name
+import mirth.package
+import mirth.token
+import mirth.mirth
 
 # mirth/data/module
 table(Module)

@@ -1,14 +1,14 @@
-module(mirth.external)
+module mirth.external
 
-import(std.prelude)
-import(std.list)
-import(std.maybe)
+import std.prelude
+import std.list
+import std.maybe
 
-import(mirth.type)
-import(mirth.token)
-import(mirth.name)
-import(mirth.var)
-import(mirth.mirth)
+import mirth.type
+import mirth.token
+import mirth.name
+import mirth.var
+import mirth.mirth
 
 # mirth/data/external
 table(External)

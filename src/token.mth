@@ -1,15 +1,15 @@
-module(mirth.token)
+module mirth.token
 
-import(std.prelude)
-import(std.list)
-import(std.maybe)
-import(std.either)
-import(mirth.name)
-import(mirth.label)
-import(mirth.location)
-import(mirth.mirth)
-import(mirth.prim)
-import(mirth.module)
+import std.prelude
+import std.list
+import std.maybe
+import std.either
+import mirth.name
+import mirth.label
+import mirth.location
+import mirth.mirth
+import mirth.prim
+import mirth.module
 
 ##########
 # Tokens #

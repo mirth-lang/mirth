@@ -1,8 +1,8 @@
-module(std.maybe)
+module std.maybe
 
-import(std.prelude)
-import(std.list)
-import(std.str)
+import std.prelude
+import std.list
+import std.str
 
 data Maybe(t) {
     0 None

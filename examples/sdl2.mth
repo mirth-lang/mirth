@@ -1,7 +1,8 @@
-module(examples.sdl2)
-import(std.prelude)
-import(std.str)
-import(std.ctypes)
+module examples.sdl2
+
+import std.prelude
+import std.str
+import std.ctypes
 
 #################
 # SDL2 Bindings #

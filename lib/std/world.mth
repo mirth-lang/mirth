@@ -1,14 +1,13 @@
-module(std.world)
+module std.world
 
-import(std.prelude)
-import(std.str)
-import(std.path)
-import(std.buffer)
-import(std.ctypes)
-
-import(std.file)
-import(std.input)
-import(std.output)
+import std.prelude
+import std.str
+import std.path
+import std.buffer
+import std.ctypes
+import std.file
+import std.input
+import std.output
 
 def +World.print- [ Str +World -- +World ] {
     stdout-file with-data:unsafe:write-bytes! drop2 close-file!

@@ -1,8 +1,8 @@
-module(std.map)
+module std.map
 
-import(std.prelude)
-import(std.list)
-import(std.maybe)
+import std.prelude
+import std.list
+import std.maybe
 
 ||| Key-value map, implemented as linear search list.
 ||| TODO: switch to a comparison-based ordered map.

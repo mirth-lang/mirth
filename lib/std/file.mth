@@ -1,14 +1,14 @@
-module(std.file)
+module std.file
 
-import(std.prelude)
-import(std.path)
-import(std.str)
-import(std.world)
-import(std.input)
-import(std.output)
-import(std.posix)
-import(std.ctypes)
-import(std.maybe)
+import std.prelude
+import std.path
+import std.str
+import std.world
+import std.input
+import std.output
+import std.posix
+import std.ctypes
+import std.maybe
 
 data +File? {
     +FileOk  [ +File ]

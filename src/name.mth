@@ -1,19 +1,19 @@
-module(mirth.name)
+module mirth.name
 
-import(std.prelude)
-import(std.byte)
-import(std.str)
-import(std.list)
-import(std.maybe)
-import(std.path)
-import(std.world)
-import(mirth.def)
-import(mirth.module)
-import(mirth.package)
-import(mirth.tycon)
-import(mirth.label)
-import(mirth.word)
-import(mirth.mirth)
+import std.prelude
+import std.byte
+import std.str
+import std.list
+import std.maybe
+import std.path
+import std.world
+import mirth.def
+import mirth.module
+import mirth.package
+import mirth.tycon
+import mirth.label
+import mirth.word
+import mirth.mirth
 
 #########
 # Names #

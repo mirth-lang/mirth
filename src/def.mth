@@ -1,27 +1,27 @@
-module(mirth.def)
+module mirth.def
 
-import(std.prelude)
-import(std.maybe)
-import(std.list)
-import(std.str)
+import std.prelude
+import std.maybe
+import std.list
+import std.str
 
-import(mirth.mirth)
-import(mirth.name)
-import(mirth.alias)
-import(mirth.buffer)
-import(mirth.data)
-import(mirth.external)
-import(mirth.module)
-import(mirth.package)
-import(mirth.prim)
-import(mirth.table)
-import(mirth.token)
-import(mirth.tycon)
-import(mirth.type)
-import(mirth.typedef)
-import(mirth.variable)
-import(mirth.word)
-import(mirth.macro)
+import mirth.mirth
+import mirth.name
+import mirth.alias
+import mirth.buffer
+import mirth.data
+import mirth.external
+import mirth.module
+import mirth.package
+import mirth.prim
+import mirth.table
+import mirth.token
+import mirth.tycon
+import mirth.type
+import mirth.typedef
+import mirth.variable
+import mirth.word
+import mirth.macro
 
 data Def {
     DefAlias [ Alias ]

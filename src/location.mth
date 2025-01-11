@@ -1,10 +1,10 @@
-module(mirth.location)
+module mirth.location
 
-import(std.prelude)
-import(std.path)
-import(std.world)
-import(std.str)
-import(mirth.module)
+import std.prelude
+import std.path
+import std.world
+import std.str
+import mirth.module
 
 # mirth/data/location
 struct Row {

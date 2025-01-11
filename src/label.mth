@@ -1,7 +1,8 @@
-module(mirth.label)
-import(std.prelude)
-import(std.byte)
-import(mirth.name)
+module mirth.label
+
+import std.prelude
+import std.byte
+import mirth.name
 
 table(Label)
 field(Label.~name, Label, Name)

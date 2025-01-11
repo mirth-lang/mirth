@@ -1,7 +1,7 @@
-module(std.set)
+module std.set
 
-import(std.prelude)
-import(std.buffer)
+import std.prelude
+import std.buffer
 
 def(SET_INITIAL_SIZE, USize, 256u >USize)
 

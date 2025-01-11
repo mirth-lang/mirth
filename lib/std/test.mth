@@ -51,15 +51,15 @@
 |||
 |||     "Hello" => ( "hello", dip(lower) == )
 |||     [True] => ( [True], on2:run ==, drop "<function>" )
-module(std.test)
+module std.test
 
-import(std.prelude)
-import(std.list)
-import(std.world)
-import(std.str)
-import(std.maybe)
-import(std.byte)
-import(std.posix)
+import std.prelude
+import std.list
+import std.world
+import std.str
+import std.maybe
+import std.byte
+import std.posix
 
 ||| The testing harness.
 ||| Construct it with [+Tests.start!].

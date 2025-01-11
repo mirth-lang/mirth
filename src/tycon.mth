@@ -1,14 +1,14 @@
-module(mirth.tycon)
+module mirth.tycon
 
-import(std.prelude)
-import(std.maybe)
-import(std.either)
+import std.prelude
+import std.maybe
+import std.either
 
-import(mirth.name)
-import(mirth.data)
-import(mirth.table)
-import(mirth.type)
-import(mirth.mirth)
+import mirth.name
+import mirth.data
+import mirth.table
+import mirth.type
+import mirth.mirth
 
 data(Tycon,
     TYCON_DATA -> Data,

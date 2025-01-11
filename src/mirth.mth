@@ -1,32 +1,32 @@
 ||| Defines the +Mirth resource.
-module(mirth.mirth)
+module mirth.mirth
 
-import(std.prelude)
-import(std.world)
-import(std.list)
-import(std.str)
-import(std.terminal)
-import(std.maybe)
-import(std.output)
-import(std.path)
+import std.prelude
+import std.world
+import std.list
+import std.str
+import std.terminal
+import std.maybe
+import std.output
+import std.path
 
-import(mirth.mirth)
-import(mirth.location)
-import(mirth.word)
-import(mirth.arrow)
-import(mirth.token)
-import(mirth.data)
-import(mirth.alias)
-import(mirth.external)
-import(mirth.variable)
-import(mirth.table)
-import(mirth.package)
-import(mirth.module)
-import(mirth.type)
-import(mirth.typedef)
-import(mirth.prim)
-import(mirth.name)
-import(mirth.macro)
+import mirth.mirth
+import mirth.location
+import mirth.word
+import mirth.arrow
+import mirth.token
+import mirth.data
+import mirth.alias
+import mirth.external
+import mirth.variable
+import mirth.table
+import mirth.package
+import mirth.module
+import mirth.type
+import mirth.typedef
+import mirth.prim
+import mirth.name
+import mirth.macro
 
 struct Builtin {
     std: Package

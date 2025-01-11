@@ -1,23 +1,23 @@
 ||| The specializer tries to remove higher-order words by specializing them with their arguments.
 ||| This should be especially doable in Mirth because local variables are less of an issue.
-module(mirth.specializer)
+module mirth.specializer
 
-import(std.prelude)
-import(std.list)
-import(std.maybe)
-import(std.map)
-import(std.str)
+import std.prelude
+import std.list
+import std.maybe
+import std.map
+import std.str
 
-import(mirth.mirth)
-import(mirth.word)
-import(mirth.arrow)
-import(mirth.data)
-import(mirth.match)
-import(mirth.type)
-import(mirth.elab)
-import(mirth.name)
-import(mirth.var)
-import(mirth.prim)
+import mirth.mirth
+import mirth.word
+import mirth.arrow
+import mirth.data
+import mirth.match
+import mirth.type
+import mirth.elab
+import mirth.name
+import mirth.var
+import mirth.prim
 
 def(run-specializer!, +Mirth Arrow -- +Mirth Arrow,
     +SPCheck.begin! check-arrow! loop! end!)

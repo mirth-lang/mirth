@@ -1,10 +1,10 @@
-module(mirth.buffer)
+module mirth.buffer
 
-import(std.prelude)
-import(mirth.name)
-import(mirth.def)
-import(mirth.token)
-import(mirth.mirth)
+import std.prelude
+import mirth.name
+import mirth.def
+import mirth.token
+import mirth.mirth
 
 # mirth/data/buffer
 table(Buffer)
