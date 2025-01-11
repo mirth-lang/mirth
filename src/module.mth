@@ -26,6 +26,7 @@ def(Module.name, Module -- Name, ~name @)
 def(Module.qname, Module -- QName, sip(package NAMESPACE_PACKAGE) name 0 QName.Mk)
 def(Module.path, Module -- Path, ~path @)
 def(Module.start, Module -- Token, ~start @)
+def(Module.head, Module -- Token, ~head @)
 def(Module.end, Module -- Token, ~end @)
 def(Module.imports, Module -- List(Module), ~imports @)
 

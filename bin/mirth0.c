@@ -5088,6 +5088,7 @@ static uint64_t mw_mirth_module_Module_name (uint64_t in_Module_1);
 static TUP* mw_mirth_module_Module_qname (uint64_t in_Module_1);
 static VAL mw_mirth_module_Module_path (uint64_t in_Module_1);
 static uint64_t mw_mirth_module_Module_start (uint64_t in_Module_1);
+static uint64_t mw_mirth_module_Module_head (uint64_t in_Module_1);
 static VAL mw_mirth_module_Module_imports (uint64_t in_Module_1);
 static int64_t mw_mirth_module_Module_ZEqualZEqual (uint64_t in_Module_1, uint64_t in_Module_2);
 static uint64_t mw_mirth_module_Module_Prim (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
@@ -26319,6 +26320,11 @@ static uint64_t mw_mirth_module_Module_start (uint64_t in_Module_1) {
 	VAL v4 = mut_get(v3);
 	return value_u64(v4);
 }
+static uint64_t mw_mirth_module_Module_head (uint64_t in_Module_1) {
+	void* v3 = field_mut(&mfld_mirth_module_Module_ZTildehead, in_Module_1);
+	VAL v4 = mut_get(v3);
+	return value_u64(v4);
+}
 static VAL mw_mirth_module_Module_imports (uint64_t in_Module_1) {
 	void* v3 = field_mut(&mfld_mirth_module_Module_ZTildeimports, in_Module_1);
 	VAL v4 = mut_get(v3);
@@ -35578,7 +35584,7 @@ static uint64_t mw_mirth_elab_parseZ_moduleZ_headerZBang (TUP* in_ZPlusMirth_1, 
 		branch_Token_11 = in_Token_2;
 	} else {
 		STR* v13;
-		STRLIT(v13, "Expected module header!", 23);
+		STRLIT(v13, "Expected module header.", 23);
 		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(in_Token_2, MKSTR(v13), in_ZPlusMirth_1);
 	}
 	int64_t v16 = mw_mirth_token_Token_numZ_args(branch_Token_11);
@@ -35782,7 +35788,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 				branch_Token_15 = in_Token_1;
 			} else {
 				STR* v19;
-				STRLIT(v19, "expected module name to match path\n", 35);
+				STRLIT(v19, "Expected module name to match path.\n", 36);
 				STR* v20 = str_cat(v19, value_str(v13));
 				STR* v21;
 				STRLIT(v21, "\n", 1);
@@ -35933,7 +35939,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 				branch_ZPlusMirth_84 = in_ZPlusMirth_3;
 			} else {
 				STR* v89;
-				STRLIT(v89, "expected .mth extension for mirth file", 38);
+				STRLIT(v89, "Expected .mth extension for mirth file.", 39);
 				TUP* v90;
 				mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang(in_Token_1, MKSTR(v89), in_ZPlusMirth_3, &v90);
 				branch_z_x3_88 = v72;
@@ -35956,16 +35962,18 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 				branch_Token_95 = branch_Token_85;
 				branch_ZPlusMirth_94 = branch_ZPlusMirth_84;
 			} else {
-				STR* v98;
-				STRLIT(v98, "expected module name to match file name", 39);
-				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(branch_Token_85, MKSTR(v98), branch_ZPlusMirth_84);
+				uint64_t v98 = mw_mirth_token_Token_module(branch_Token_85);
+				uint64_t v99 = mw_mirth_module_Module_head(v98);
+				STR* v100;
+				STRLIT(v100, "Expected module name to match file name.", 40);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v99, MKSTR(v100), branch_ZPlusMirth_84);
 			}
 			incref(branch_z_x1_96);
-			uint64_t v100 = mw_mirth_module_Module_package(value_u64(branch_z_x1_96));
-			TUP* v101;
-			mw_mirth_package_Package_pathZBang(branch_ZPlusMirth_94, branch_z_x2_97, v100, &v101);
+			uint64_t v102 = mw_mirth_module_Module_package(value_u64(branch_z_x1_96));
+			TUP* v103;
+			mw_mirth_package_Package_pathZBang(branch_ZPlusMirth_94, branch_z_x2_97, v102, &v103);
 			decref(branch_z_x1_96);
-			branch_ZPlusMirth_10 = v101;
+			branch_ZPlusMirth_10 = v103;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));

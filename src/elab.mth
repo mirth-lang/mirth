@@ -1302,7 +1302,7 @@ struct ModuleHeader {
 |||
 def parse-module-header! [ +Mirth Token -- +Mirth Token ModuleHeader ] {
     dup Some lexical-state:error-token!
-    dup module-header? else("Expected module header!" emit-fatal-error!)
+    dup module-header? else("Expected module header." emit-fatal-error!)
     dup num-args 0> if (
         sip(next) args-1 >head
         @head parse-module-package-name! >name >package
@@ -1340,13 +1340,13 @@ def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
     dup path rdip:split-last match(
         None ->
             swap qname to-module-path dup2 == else(
-                "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
+                "Expected module name to match path.\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
             ) drop3,
 
         Some ->
             split-last-byte(BDOT ==) "mth" Some ==
-            else(over3 "expected .mth extension for mirth file" emit-warning!)
-            over2 name >Str == else(over2 "expected module name to match file name" emit-fatal-error!)
+            else(over3 "Expected .mth extension for mirth file." emit-warning!)
+            over2 name >Str == else(over2 .module .head "Expected module name to match file name." emit-fatal-error!)
             over package path! drop2
     )
 }
