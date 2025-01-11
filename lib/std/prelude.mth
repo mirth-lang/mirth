@@ -2,6 +2,7 @@ module(std.prelude)
 
 import(std.maybe)
 import(std.str)
+import(std.byte)
 
 ############################################
 # not re-exported because of optimisations #
@@ -93,7 +94,7 @@ data OS {
     inline {
         def Min [ OS ] { 0 OS.from-enum-value-unsafe }
         def Max [ OS ] { 3 OS.from-enum-value-unsafe }
-        def Running [ +World -- +World OS ] { prim-sys-os >OS }
+        def +World.running-os [ +World -- +World OS ] { prim-sys-os >OS }
         def >Int [ OS -- Int ] { enum-value }
         def == [ OS OS -- Bool ] { on2:>Int == }
     }
@@ -102,6 +103,18 @@ data OS {
             OS.from-enum-value-unsafe,
             drop OS_UNKNOWN
         )
+    }
+    def is-windows? { OS_WINDOWS == }
+    def is-linux? { OS_LINUX == }
+    def is-macos? { OS_MACOS == }
+    def path-separator {
+        is-windows? if("\\", "/")
+    }
+    def byte-is-path-separator? [ Byte OS -- Bool ] {
+        { OS_WINDOWS -> dup B'/' == swap B'\' == || }
+        { OS_LINUX -> B'/' == }
+        { OS_MACOS -> B'/' == }
+        { OS_UNKNOWN -> B'/' == }
     }
 }
 
@@ -114,7 +127,7 @@ data Arch {
     inline {
         def Min [ Arch ] { 0 Arch.from-enum-value-unsafe }
         def Max [ Arch ] { 3 Arch.from-enum-value-unsafe }
-        def Running [ +World -- +World Arch ] { prim-sys-arch >Arch }
+        def +World.running-arch [ +World -- +World Arch ] { prim-sys-arch >Arch }
         def >Int [ Arch -- Int ] { enum-value }
         def == [ Arch Arch -- Bool ] { on2:>Int == }
     }

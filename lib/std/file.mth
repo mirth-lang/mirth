@@ -56,16 +56,17 @@ struct +File {
     )
 }
 
-def(+World.open-file!, Path +World -- +World +File?,
+def +World.open-file! [ Path +World -- +World +File? ] {
     dup >Str 0 0 posix-open!
     dup 0> if(
         nip >file-descriptor True >owned +File +FileOk,
         drop Str("Failed to open file: " ; >Str show;) +FileErr
-    ))
+    )
+}
 
 def +World.create-file! [ Path +World -- +World +File? ] {
     dup >Str
-    O_WRONLY|O_CREAT|O_TRUNC if-some(
+    create-file-flags if-some(
         0o666 posix-open!
         dup 0> if(
             nip >file-descriptor True >owned +File +FileOk,
@@ -75,15 +76,12 @@ def +World.create-file! [ Path +World -- +World +File? ] {
     )
 }
 
-def(+World.stdin-file, +World -- +World +File,
-    0 >file-descriptor False >owned +File)
-def(+World.stdout-file, +World -- +World +File,
-    1 >file-descriptor False >owned +File)
-def(+World.stderr-file, +World -- +World +File,
-    2 >file-descriptor False >owned +File)
+def +World.stdin-file  [ +World -- +World +File ] { 0 >file-descriptor False >owned +File }
+def +World.stdout-file [ +World -- +World +File ] { 1 >file-descriptor False >owned +File }
+def +World.stderr-file [ +World -- +World +File ] { 2 >file-descriptor False >owned +File }
 
-def O_WRONLY|O_CREAT|O_TRUNC [ +World -- +World Maybe(Int) ] {
-    OS.Running match(
+def +World.create-file-flags [ +World -- +World Maybe(Int) ] {
+    running-os match(
         { OS_MACOS -> 0x601 Some } # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
         { OS_LINUX -> 0x241 Some } # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
         { OS_WINDOWS -> 0x301 Some } # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300

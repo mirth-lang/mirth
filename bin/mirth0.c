@@ -4475,14 +4475,15 @@ static TUP* mw_std_list_ZPlusListZPlus_1_ZPlusZTo (TUP* in_ZPlusListZPlus_1);
 static VAL mw_std_maybe_Maybe_1_ZToList (VAL in_Maybe_1);
 static VAL mw_std_maybe_Maybe_1_zzip (VAL in_Maybe_1, VAL in_Maybe_2);
 static int64_t mw_std_prim_Int_ZToOS (int64_t in_Int_1);
+static int64_t mw_std_prelude_OS_isZ_windowsZAsk (int64_t in_OS_1);
+static VAL mw_std_prelude_OS_pathZ_separator (int64_t in_OS_1);
+static int64_t mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk (int64_t in_Byte_1, int64_t in_OS_2);
 static int64_t mw_std_prim_Int_ZToArch (int64_t in_Int_1);
 static int64_t mw_std_prim_Int_max (int64_t in_Int_1, int64_t in_Int_2);
 static int64_t mw_std_prim_Int_min (int64_t in_Int_1, int64_t in_Int_2);
 static int64_t mw_std_prim_Int_clamp (int64_t in_Int_1, int64_t in_Int_2, int64_t in_Int_3);
 static VAL mw_std_prelude_ZAtZAsk (void* in_Mutt_1);
 static void mw_std_prelude_impossibleZBang (void);
-static VAL mw_std_path_PATHz_SEPARATOR (void);
-static int64_t mw_std_byte_Byte_isZ_pathZ_separatorZAsk (int64_t in_Byte_1);
 static VAL mw_std_path_Path_joinZ_with (VAL in_Path_1, VAL in_Str_2, VAL in_Path_3);
 static VAL mw_std_path_Path_join (VAL in_Path_1, VAL in_Path_2);
 static VAL mw_std_path_Path_splitZ_last (VAL in_Path_1, VAL *out_Maybe_3);
@@ -4515,7 +4516,7 @@ static VAL mw_std_file_ZPlusFile_readZ_fileZBang (TUP* in_ZPlusFile_1, TUP* *out
 static void mw_std_prim_ZPlusWorld_openZ_fileZBang (VAL in_Path_1, VAL *out_ZPlusFileZAsk_2);
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (VAL in_Path_1, VAL *out_ZPlusFileZAsk_2);
 static void mw_std_prim_ZPlusWorld_stderrZ_file (TUP* *out_ZPlusFile_1);
-static VAL mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void);
+static VAL mw_std_prim_ZPlusWorld_createZ_fileZ_flags (void);
 static int64_t mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* in_Ptr_1, int64_t in_USizze_2, TUP* in_ZPlusFile_3, int64_t *out_Bool_5, TUP* *out_ZPlusFile_6);
 static int64_t mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang (void* in_Ptr_1, int64_t in_USizze_2, TUP* in_ZPlusFile_3, int64_t *out_Bool_5, TUP* *out_ZPlusFile_6);
 static void mw_std_prim_ZPlusWorld_traceZ_ (VAL in_Str_1);
@@ -7567,6 +7568,57 @@ static int64_t mw_std_prim_Int_ZToOS (int64_t in_Int_1) {
 	}
 	return branch_OS_8;
 }
+static int64_t mw_std_prelude_OS_isZ_windowsZAsk (int64_t in_OS_1) {
+	int64_t v3 = 1LL /* OS_WINDOWS */;
+	bool v4 = (in_OS_1 == v3);
+	return ((int64_t)v4);
+}
+static VAL mw_std_prelude_OS_pathZ_separator (int64_t in_OS_1) {
+	int64_t v3 = mw_std_prelude_OS_isZ_windowsZAsk(in_OS_1);
+	VAL branch__4;
+	if (((bool)v3)) {
+		STR* v5;
+		STRLIT(v5, "\\", 1);
+		branch__4 = MKSTR(v5);
+	} else {
+		STR* v6;
+		STRLIT(v6, "/", 1);
+		branch__4 = MKSTR(v6);
+	}
+	return branch__4;
+}
+static int64_t mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk (int64_t in_Byte_1, int64_t in_OS_2) {
+	int64_t branch_Bool_4;
+	switch (in_OS_2) {
+		case 1LL: { // OS_WINDOWS
+			int64_t v5 = 47LL /* B'/' */;
+			bool v6 = (in_Byte_1 == v5);
+			int64_t v7 = 92LL /* B'\' */;
+			bool v8 = (in_Byte_1 == v7);
+			bool v9 = (v6 || v8);
+			branch_Bool_4 = ((int64_t)v9);
+		} break;
+		case 2LL: { // OS_LINUX
+			int64_t v10 = 47LL /* B'/' */;
+			bool v11 = (in_Byte_1 == v10);
+			branch_Bool_4 = ((int64_t)v11);
+		} break;
+		case 3LL: { // OS_MACOS
+			int64_t v12 = 47LL /* B'/' */;
+			bool v13 = (in_Byte_1 == v12);
+			branch_Bool_4 = ((int64_t)v13);
+		} break;
+		case 0LL: { // OS_UNKNOWN
+			int64_t v14 = 47LL /* B'/' */;
+			bool v15 = (in_Byte_1 == v14);
+			branch_Bool_4 = ((int64_t)v15);
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_Bool_4;
+}
 static int64_t mw_std_prim_Int_ZToArch (int64_t in_Int_1) {
 	int64_t v3 = 0LL;
 	int64_t v4 = 3LL;
@@ -7625,44 +7677,6 @@ static void mw_std_prelude_impossibleZBang (void) {
 	STRLIT(v1, "Impossible! The impossible has occured!", 39);
 	do_panic(v1);
 }
-static VAL mw_std_path_PATHz_SEPARATOR (void) {
-	int64_t v4 = RUNNING_OS;
-	int64_t v5 = mw_std_prim_Int_ZToOS(v4);
-	int64_t v6 = 1LL /* OS_WINDOWS */;
-	bool v7 = (v5 == v6);
-	VAL branch__8;
-	if (v7) {
-		STR* v9;
-		STRLIT(v9, "\\", 1);
-		branch__8 = MKSTR(v9);
-	} else {
-		STR* v10;
-		STRLIT(v10, "/", 1);
-		branch__8 = MKSTR(v10);
-	}
-	return branch__8;
-}
-static int64_t mw_std_byte_Byte_isZ_pathZ_separatorZAsk (int64_t in_Byte_1) {
-	int64_t branch_Bool_5;
-	switch (in_Byte_1) {
-		case 47LL: { // B'/'
-			int64_t v6 = 1LL /* True */;
-			branch_Bool_5 = v6;
-		} break;
-		case 92LL: { // B'\'
-			int64_t v7 = RUNNING_OS;
-			int64_t v8 = mw_std_prim_Int_ZToOS(v7);
-			int64_t v9 = 1LL /* OS_WINDOWS */;
-			bool v10 = (v8 == v9);
-			branch_Bool_5 = ((int64_t)v10);
-		} break;
-		default: {
-			int64_t v11 = 0LL /* False */;
-			branch_Bool_5 = v11;
-		} break;
-	}
-	return branch_Bool_5;
-}
 static VAL mw_std_path_Path_joinZ_with (VAL in_Path_1, VAL in_Str_2, VAL in_Path_3) {
 	incref(in_Path_1);
 	uint64_t v5 = str_size(value_str(in_Path_1));
@@ -7681,9 +7695,11 @@ static VAL mw_std_path_Path_joinZ_with (VAL in_Path_1, VAL in_Str_2, VAL in_Path
 	return branch_Path_8;
 }
 static VAL mw_std_path_Path_join (VAL in_Path_1, VAL in_Path_2) {
-	VAL v6 = mw_std_path_PATHz_SEPARATOR();
-	VAL v7 = mw_std_path_Path_joinZ_with(in_Path_1, v6, in_Path_2);
-	return v7;
+	int64_t v6 = RUNNING_OS;
+	int64_t v7 = mw_std_prim_Int_ZToOS(v6);
+	VAL v8 = mw_std_prelude_OS_pathZ_separator(v7);
+	VAL v9 = mw_std_path_Path_joinZ_with(in_Path_1, v8, in_Path_2);
+	return v9;
 }
 static VAL mw_std_path_Path_splitZ_last (VAL in_Path_1, VAL *out_Maybe_3) {
 	incref(in_Path_1);
@@ -7731,50 +7747,52 @@ static VAL mw_std_path_Path_splitZ_last (VAL in_Path_1, VAL *out_Maybe_3) {
 		}
 		VAL v30;
 		int64_t v31 = mw_std_str_ZPlusStr_byteZAt(branch_Nat_28, v21, &v30);
-		int64_t v32 = mw_std_byte_Byte_isZ_pathZ_separatorZAsk(v31);
-		VAL branch_ZPlusStr_33;
-		int64_t branch_UOffset_34;
-		VAL branch_Maybe_35;
-		if (((bool)v32)) {
-			VAL v36 = mtw_std_maybe_Maybe_1_Some(MKI64(branch_Nat_28));
-			branch_Maybe_35 = v36;
-			branch_UOffset_34 = branch_Nat_28;
-			branch_ZPlusStr_33 = v30;
+		int64_t v32 = RUNNING_OS;
+		int64_t v33 = mw_std_prim_Int_ZToOS(v32);
+		int64_t v34 = mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk(v31, v33);
+		VAL branch_ZPlusStr_35;
+		int64_t branch_UOffset_36;
+		VAL branch_Maybe_37;
+		if (((bool)v34)) {
+			VAL v38 = mtw_std_maybe_Maybe_1_Some(MKI64(branch_Nat_28));
+			branch_Maybe_37 = v38;
+			branch_UOffset_36 = branch_Nat_28;
+			branch_ZPlusStr_35 = v30;
 		} else {
-			VAL v37 = MKI64(0LL /* None */);
-			branch_Maybe_35 = v37;
-			branch_UOffset_34 = branch_Nat_28;
-			branch_ZPlusStr_33 = v30;
+			VAL v39 = MKI64(0LL /* None */);
+			branch_Maybe_37 = v39;
+			branch_UOffset_36 = branch_Nat_28;
+			branch_ZPlusStr_35 = v30;
 		}
-		incref(branch_Maybe_35);
-		int64_t v38 = get_data_tag(branch_Maybe_35);
-		decref(branch_Maybe_35);
-		int64_t v39 = 0LL;
-		bool v40 = (v38 == v39);
-		int64_t branch_UOffset_41;
-		VAL branch_z_x1_42;
-		int64_t branch_Bool_43;
-		if (v40) {
-			int64_t v44 = 0LL;
-			bool v45 = (branch_UOffset_34 > v44);
-			branch_Bool_43 = ((int64_t)v45);
-			branch_z_x1_42 = branch_Maybe_35;
-			branch_UOffset_41 = branch_UOffset_34;
+		incref(branch_Maybe_37);
+		int64_t v40 = get_data_tag(branch_Maybe_37);
+		decref(branch_Maybe_37);
+		int64_t v41 = 0LL;
+		bool v42 = (v40 == v41);
+		int64_t branch_UOffset_43;
+		VAL branch_z_x1_44;
+		int64_t branch_Bool_45;
+		if (v42) {
+			int64_t v46 = 0LL;
+			bool v47 = (branch_UOffset_36 > v46);
+			branch_Bool_45 = ((int64_t)v47);
+			branch_z_x1_44 = branch_Maybe_37;
+			branch_UOffset_43 = branch_UOffset_36;
 		} else {
-			int64_t v46 = 0LL /* False */;
-			branch_Bool_43 = v46;
-			branch_z_x1_42 = branch_Maybe_35;
-			branch_UOffset_41 = branch_UOffset_34;
+			int64_t v48 = 0LL /* False */;
+			branch_Bool_45 = v48;
+			branch_z_x1_44 = branch_Maybe_37;
+			branch_UOffset_43 = branch_UOffset_36;
 		}
-		v20 = branch_Bool_43;
-		v19 = branch_z_x1_42;
-		v18 = branch_UOffset_41;
-		v17 = branch_ZPlusStr_33;
+		v20 = branch_Bool_45;
+		v19 = branch_z_x1_44;
+		v18 = branch_UOffset_43;
+		v17 = branch_ZPlusStr_35;
 	}
-	VAL v47;
-	VAL v48 = mw_std_maybe_Maybe_1_map_1_sp11(v17, v19, &v47);
-	*out_Maybe_3 = v47;
-	return v48;
+	VAL v49;
+	VAL v50 = mw_std_maybe_Maybe_1_map_1_sp11(v17, v19, &v49);
+	*out_Maybe_3 = v49;
+	return v50;
 }
 static void mw_std_path_Path_pathZThen (VAL in_Path_1, VAL in_ZPlusStr_2, VAL *out_ZPlusStr_3) {
 	VAL v4;
@@ -8294,7 +8312,7 @@ static void mw_std_prim_ZPlusWorld_openZ_fileZBang (VAL in_Path_1, VAL *out_ZPlu
 }
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (VAL in_Path_1, VAL *out_ZPlusFileZAsk_2) {
 	incref(in_Path_1);
-	VAL v5 = mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC();
+	VAL v5 = mw_std_prim_ZPlusWorld_createZ_fileZ_flags();
 	VAL branch_ZPlusFileZAsk_6;
 	switch (get_data_tag(v5)) {
 		case 1LL: { // Some
@@ -8349,7 +8367,7 @@ static void mw_std_prim_ZPlusWorld_stderrZ_file (TUP* *out_ZPlusFile_1) {
 	mtw_std_file_ZPlusFile_ZPlusFile(v4, v5, &v6);
 	*out_ZPlusFile_1 = v6;
 }
-static VAL mw_std_file_Oz_WRONLYZPipeOz_CREATZPipeOz_TRUNC (void) {
+static VAL mw_std_prim_ZPlusWorld_createZ_fileZ_flags (void) {
 	int64_t v4 = RUNNING_OS;
 	int64_t v5 = mw_std_prim_Int_ZToOS(v4);
 	VAL branch_Maybe_6;
