@@ -6,25 +6,21 @@ import(std.str)
 import(std.list)
 import(std.maybe)
 
-def PATH_SEPARATOR [ +World -- +World Str ] {
-    OS.Running OS_WINDOWS == if("\\", "/")
-}
-
-def(Byte.is-path-separator?, +World Byte -- +World Bool,
-    B'/' -> True,
-    B'\' -> OS.Running OS_WINDOWS ==,
-    _ -> drop False)
-
 struct Path {
     Str
     --
-    inline (
+    inline {
         def Str.>Path { Path }
         def >Str { /Path }
         def == { on2:>Str == }
+        def <  { on2:>Str <  }
+        def <= { on2:>Str <= }
+        def >  { on2:>Str >  }
+        def >= { on2:>Str >= }
+        def <> { on2:>Str <> }
         def compare { on2:>Str compare }
-        def empty? { >Str empty? }
-    )
+        def empty?  { >Str empty? }
+    }
 
     def join-with [ Path Str Path -- Path ] {
         over2 empty? if(
@@ -33,15 +29,15 @@ struct Path {
         )
     }
 
-    def join [ +World Path Path -- +World Path ] { dip(PATH_SEPARATOR) join-with }
+    def join [ +World Path Path -- +World Path ] { dip(running-os path-separator) join-with }
     def join-unix [ Path Path -- Path ] { dip("/") join-with }
 
     def split [ +World Path -- +World List+(Str) ] {
-        /Path split-byte(is-path-separator?)
+        /Path split-byte(running-os byte-is-path-separator?)
     }
 
     def split-last [ +World Path -- +World Path Maybe(Str) ] {
-        /Path split-last-byte(is-path-separator?) dip(Path)
+        /Path split-last-byte(running-os byte-is-path-separator?) dip(Path)
     }
 
     def show; [ Path +Str -- +Str ] { /Path show; " Path" ; }

@@ -68,10 +68,10 @@ def S_IFSOCK [ U16 ] { 0xC000 >U16-unsafe }
 def S_ISDIR [ U16 -- Bool ] { S_IFMT & S_IFDIR == }
 
 def st_mode@ [ Ptr +World +Unsafe -- U16 +World +Unsafe ] {
-    rdip:OS.Running match(
+    rdip:running-os match(
         OS_LINUX -> 24u, # .. this is all terrible and brittle
         OS_WINDOWS -> 6u,
-        OS_MACOS -> rdip:Arch.Running ARCH_ARM64 == if(4u, 8u),
+        OS_MACOS -> rdip:running-arch ARCH_ARM64 == if(4u, 8u),
         _ -> drop 8u
     ) >UOffset swap uoffset @U16
 }
