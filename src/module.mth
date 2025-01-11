@@ -17,6 +17,7 @@ field(Module.~package, Module, Package)
 field(Module.~name, Module, Name)
 field(Module.~path, Module, Path)
 field(Module.~start, Module, Token)
+field(Module.~head, Module, Token)
 field(Module.~end, Module, Token)
 field(Module.~imports, Module, List(Module))
 
