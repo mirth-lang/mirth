@@ -1,12 +1,12 @@
-module(mirth.typedef)
+module mirth.typedef
 
-import(std.prelude)
-import(std.maybe)
-import(mirth.token)
-import(mirth.name)
-import(mirth.def)
-import(mirth.type)
-import(mirth.mirth)
+import std.prelude
+import std.maybe
+import mirth.token
+import mirth.name
+import mirth.def
+import mirth.type
+import mirth.mirth
 
 table(TypeDef)
 field(TypeDef.~head?, TypeDef, Maybe(Token))

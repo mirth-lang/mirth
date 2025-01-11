@@ -1,6 +1,6 @@
-module(std.ctypes)
+module std.ctypes
 
-import(std.prelude)
+import std.prelude
 
 inline(
     def-missing(CChar.CChar-unsafe, Int -- CChar, CChar)

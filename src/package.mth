@@ -1,14 +1,14 @@
-module(mirth.package)
+module mirth.package
 
-import(std.prelude)
-import(std.path)
-import(std.maybe)
-import(std.str)
-import(std.list)
-import(std.world)
-import(mirth.name)
-import(mirth.def)
-import(mirth.mirth)
+import std.prelude
+import std.path
+import std.maybe
+import std.str
+import std.list
+import std.world
+import mirth.name
+import mirth.def
+import mirth.mirth
 
 table(Package)
 field(Package.~name, Package, Name)

@@ -1,7 +1,7 @@
-module(std.posix)
+module std.posix
 
-import(std.prelude)
-import(std.ctypes)
+import std.prelude
+import std.ctypes
 
 external(
   external-posix-read -> read [ CInt Ptr CUSize -- CInt ]
@@ -26,5 +26,3 @@ def(posix-open!, Str Int Int -- Int,
 	CInt dip:CInt dip2:>CStr
         internal-posix-open >Int
     ) drop)
-
-

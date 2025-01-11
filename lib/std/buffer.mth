@@ -1,8 +1,8 @@
-module(std.buffer)
+module std.buffer
 
-import(std.prelude)
-import(std.str)
-import(std.byte)
+import std.prelude
+import std.str
+import std.byte
 
 struct +Buffer {
     size: USize

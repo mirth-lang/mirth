@@ -1,13 +1,13 @@
-module(mirth.macro)
+module mirth.macro
 
-import(std.prelude)
-import(std.maybe)
-import(mirth.mirth)
-import(mirth.name)
-import(mirth.token)
-import(mirth.name)
-import(mirth.elab)
-import(mirth.def)
+import std.prelude
+import std.maybe
+import mirth.mirth
+import mirth.name
+import mirth.token
+import mirth.name
+import mirth.elab
+import mirth.def
 
 table(Macro)
 field(Macro.~name, Macro, Name)

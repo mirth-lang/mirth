@@ -1,11 +1,11 @@
-module(std.str)
+module std.str
 
-import(std.prelude)
-import(std.list)
-import(std.maybe)
-import(std.byte)
-import(std.buffer)
-import(std.ctypes)
+import std.prelude
+import std.list
+import std.maybe
+import std.byte
+import std.buffer
+import std.ctypes
 
 alias(Str.cat, prim-str-cat)
 inline(

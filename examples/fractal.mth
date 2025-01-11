@@ -1,12 +1,13 @@
-module(examples.fractal)
+module examples.fractal
 
-import(examples.sdl2)
-import(std.prelude)
-import(std.world)
-import(std.list)
-import(std.maybe)
-import(std.ctypes)
-import(std.buffer)
+import std.prelude
+import std.world
+import std.list
+import std.maybe
+import std.ctypes
+import std.buffer
+
+import examples.sdl2
 
 ##############
 # Mandelbrot Game #

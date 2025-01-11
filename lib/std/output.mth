@@ -1,10 +1,10 @@
-module(std.output)
+module std.output
 
-import(std.prelude)
-import(std.str)
-import(std.byte)
-import(std.buffer)
-import(std.file)
+import std.prelude
+import std.str
+import std.byte
+import std.buffer
+import std.file
 
 def OUTPUT_BUFFER_SIZE [ USize ] { 4096 >Nat-clamp >USize }
 

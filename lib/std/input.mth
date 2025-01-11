@@ -1,12 +1,12 @@
-module(std.input)
+module std.input
 
-import(std.prelude)
-import(std.byte)
-import(std.maybe)
-import(std.str)
-import(std.buffer)
-import(std.world)
-import(std.file)
+import std.prelude
+import std.byte
+import std.maybe
+import std.str
+import std.buffer
+import std.world
+import std.file
 
 #########
 # Input #

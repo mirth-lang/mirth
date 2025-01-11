@@ -1,36 +1,35 @@
-module(mirth.main)
+module mirth.main
 
-import(std.prelude)
-import(std.path)
-import(std.str)
-import(std.list)
-import(std.byte)
-import(std.maybe)
-import(std.either)
-import(std.world)
-import(std.output)
-import(std.posix)
-import(std.file)
-import(std.test)
+import std.prelude
+import std.path
+import std.str
+import std.list
+import std.byte
+import std.maybe
+import std.either
+import std.world
+import std.output
+import std.posix
+import std.file
+import std.test
+import std.terminal
 
-import(arg-parser.parse)
-import(arg-parser.types)
-import(arg-parser.state)
+import arg-parser.parse
+import arg-parser.types
+import arg-parser.state
 
-import(mirth.package)
-import(mirth.mirth)
-import(mirth.prim)
-import(mirth.word)
-import(mirth.type)
-import(mirth.name)
-import(mirth.def)
-import(mirth.lexer)
-import(mirth.elab)
-import(mirth.var)
-import(mirth.specializer)
-import(mirth.c99)
-
-import(std.terminal)
+import mirth.package
+import mirth.mirth
+import mirth.prim
+import mirth.word
+import mirth.type
+import mirth.name
+import mirth.def
+import mirth.lexer
+import mirth.elab
+import mirth.var
+import mirth.specializer
+import mirth.c99
 
 struct Arguments {
     input-file: Path

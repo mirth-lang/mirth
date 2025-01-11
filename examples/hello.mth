@@ -1,6 +1,7 @@
-module(examples.hello)
-import(std.prelude)
-import(std.world)
+module examples.hello
+
+import std.prelude
+import std.world
 
 def main {
     "Hello, world!" print

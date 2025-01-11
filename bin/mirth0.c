@@ -1095,6 +1095,7 @@ static STACK lbl_arrow = {0};
 static STACK lbl_word = {0};
 static STACK lbl_ZPluspat = {0};
 static STACK lbl_tok = {0};
+static STACK lbl_package = {0};
 static STACK lbl_header = {0};
 static STACK lbl_decls = {0};
 static STACK lbl_valueZAsk = {0};
@@ -1309,6 +1310,7 @@ static FIELD mfld_mirth_module_Module_ZTildepackage = {0};
 static FIELD mfld_mirth_module_Module_ZTildename = {0};
 static FIELD mfld_mirth_module_Module_ZTildepath = {0};
 static FIELD mfld_mirth_module_Module_ZTildestart = {0};
+static FIELD mfld_mirth_module_Module_ZTildehead = {0};
 static FIELD mfld_mirth_module_Module_ZTildeend = {0};
 static FIELD mfld_mirth_module_Module_ZTildeimports = {0};
 static FIELD mfld_mirth_alias_Alias_ZTildehead = {0};
@@ -3188,6 +3190,23 @@ static TUP* mtp_mirth_elab_OpSig_OPSIGz_APPLY (VAL in_OpSig_1) {
 	TUP* v3 = value_tup(value_tup(in_OpSig_1, 2)->cells[1], 2);
 	tup_decref_outer(value_tup(in_OpSig_1, 2),2);
 	return v3;
+}
+static TUP* mtw_mirth_elab_ModuleHeader_ModuleHeader (uint64_t in_Package_1, uint64_t in_Name_2, uint64_t in_Token_3) {
+	TUP* v5 = tup_new(3);
+	v5->size = 3;
+	v5->cells[2] = MKU64(in_Token_3);
+	v5->cells[1] = MKU64(in_Name_2);
+	v5->cells[0] = MKU64(in_Package_1);
+	return v5;
+}
+static void mtp_mirth_elab_ModuleHeader_ModuleHeader (TUP* in_ModuleHeader_1, uint64_t *out_Package_2, uint64_t *out_Name_3, uint64_t *out_Token_4) {
+	uint64_t v5 = value_u64(in_ModuleHeader_1->cells[0]);
+	uint64_t v6 = value_u64(in_ModuleHeader_1->cells[1]);
+	uint64_t v7 = value_u64(in_ModuleHeader_1->cells[2]);
+	tup_decref_outer(in_ModuleHeader_1,3);
+	*out_Token_4 = v7;
+	*out_Name_3 = v6;
+	*out_Package_2 = v5;
 }
 static TUP* mtw_mirth_elab_SyntaxData_SyntaxData (uint64_t in_SyntaxDataHeader_1, VAL in_List_2, VAL in_Maybe_3) {
 	TUP* v5 = tup_new(3);
@@ -5069,6 +5088,7 @@ static uint64_t mw_mirth_module_Module_name (uint64_t in_Module_1);
 static TUP* mw_mirth_module_Module_qname (uint64_t in_Module_1);
 static VAL mw_mirth_module_Module_path (uint64_t in_Module_1);
 static uint64_t mw_mirth_module_Module_start (uint64_t in_Module_1);
+static uint64_t mw_mirth_module_Module_head (uint64_t in_Module_1);
 static VAL mw_mirth_module_Module_imports (uint64_t in_Module_1);
 static int64_t mw_mirth_module_Module_ZEqualZEqual (uint64_t in_Module_1, uint64_t in_Module_2);
 static uint64_t mw_mirth_module_Module_Prim (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
@@ -5274,8 +5294,9 @@ static uint64_t mw_mirth_elab_elabZ_lambdaZ_paramZAsk (TUP* in_ZPlusMirth_1, uin
 static void mw_mirth_elab_elabZ_atomZ_lambdaZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusAB_4);
 static void mw_mirth_elab_elabZ_matchZ_exhaustiveZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusMatch_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusMatch_4);
 static uint64_t mw_mirth_elab_elabZ_moduleZBang (uint64_t in_Module_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4);
-static uint64_t mw_mirth_elab_elabZ_moduleZ_packageZ_name (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, uint64_t *out_Name_4, TUP* *out_ZPlusMirth_5);
 static TUP* mw_mirth_elab_elabZ_moduleZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
+static uint64_t mw_mirth_elab_parseZ_moduleZ_headerZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, TUP* *out_ModuleHeader_5);
+static uint64_t mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, uint64_t *out_Name_4, TUP* *out_ZPlusMirth_5);
 static uint64_t mw_mirth_elab_elabZ_moduleZ_headerZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_Module_2, TUP* in_ZPlusMirth_3, TUP* *out_ZPlusMirth_4);
 static uint64_t mw_mirth_elab_elabZ_declsZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
@@ -5864,8 +5885,8 @@ static VAL mw_std_list_List_1_map_1_sp12 (VAL in_List_1);
 static VAL mw_std_maybe_Maybe_1_unwrap_1_sp37 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, VAL *out_z_x1_5);
 static VAL mw_std_maybe_Maybe_1_unwrap_1_sp38 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3);
 static int64_t mw_std_maybe_Maybe_1_has_1_sp10 (VAL in_Maybe_1);
-static uint64_t mw_std_maybe_Maybe_1_else_1_sp5 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5);
 static uint64_t mw_std_maybe_Maybe_1_else_1_sp6 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5);
+static uint64_t mw_std_maybe_Maybe_1_else_1_sp7 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5);
 static VAL mw_std_maybe_Maybe_1_filter_1_sp17 (VAL in_Maybe_1);
 static TUP* mw_mirth_mirth_PropLabel_prop_1_sp16 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_PropLabel_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_std_list_List_1_filterZ_some_1_sp4 (VAL in_List_1);
@@ -26299,6 +26320,11 @@ static uint64_t mw_mirth_module_Module_start (uint64_t in_Module_1) {
 	VAL v4 = mut_get(v3);
 	return value_u64(v4);
 }
+static uint64_t mw_mirth_module_Module_head (uint64_t in_Module_1) {
+	void* v3 = field_mut(&mfld_mirth_module_Module_ZTildehead, in_Module_1);
+	VAL v4 = mut_get(v3);
+	return value_u64(v4);
+}
 static VAL mw_mirth_module_Module_imports (uint64_t in_Module_1) {
 	void* v3 = field_mut(&mfld_mirth_module_Module_ZTildeimports, in_Module_1);
 	VAL v4 = mut_get(v3);
@@ -35532,146 +35558,211 @@ static uint64_t mw_mirth_elab_elabZ_moduleZBang (uint64_t in_Module_1, TUP* in_Z
 	*out_ZPlusMirth_4 = branch_ZPlusMirth_20;
 	return in_Module_1;
 }
-static uint64_t mw_mirth_elab_elabZ_moduleZ_packageZ_name (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, uint64_t *out_Name_4, TUP* *out_ZPlusMirth_5) {
-	VAL v6 = mw_mirth_token_Token_dnameZAsk(in_Token_1);
-	uint64_t branch_Token_7;
-	TUP* branch_ZPlusMirth_8;
-	VAL branch_z_x1_9;
-	switch (get_data_tag(v6)) {
-		case 1LL: { // Some
-			VAL v10 = mtp_std_maybe_Maybe_1_Some(v6);
-			branch_z_x1_9 = v10;
-			branch_ZPlusMirth_8 = in_ZPlusMirth_2;
-			branch_Token_7 = in_Token_1;
-		} break;
-		case 0LL: { // None
-			STR* v11;
-			STRLIT(v11, "Expected module name. (1)", 25);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(in_Token_1, MKSTR(v11), in_ZPlusMirth_2);
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	TUP* v15;
-	mw_mirth_token_Token_argsZ_0(branch_Token_7, branch_ZPlusMirth_8, &v15);
-	incref(branch_z_x1_9);
-	VAL v16 = mw_mirth_name_DName_rootZAsk(value_tup(branch_z_x1_9, 2));
-	uint64_t branch_Token_17;
-	TUP* branch_ZPlusMirth_18;
-	VAL branch_z_x1_19;
-	VAL branch_z_x2_20;
-	switch (get_data_tag(v16)) {
-		case 1LL: { // Some
-			VAL v21 = mtp_std_maybe_Maybe_1_Some(v16);
-			branch_z_x2_20 = v21;
-			branch_z_x1_19 = branch_z_x1_9;
-			branch_ZPlusMirth_18 = v15;
-			branch_Token_17 = branch_Token_7;
-		} break;
-		case 0LL: { // None
-			decref(branch_z_x1_9);
-			STR* v22;
-			STRLIT(v22, "Expected module name. (2)", 25);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(branch_Token_7, MKSTR(v22), v15);
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	TUP* v27 = mw_mirth_name_DName_parts(value_tup(branch_z_x1_19, 2));
-	VAL v28 = mw_std_list_ListZPlus_1_singleZAsk(v27);
-	uint64_t branch_Token_29;
-	TUP* branch_ZPlusMirth_30;
-	VAL branch_z_x1_31;
-	VAL branch_z_x2_32;
-	switch (get_data_tag(v28)) {
-		case 1LL: { // Some
-			VAL v33 = mtp_std_maybe_Maybe_1_Some(v28);
-			branch_z_x2_32 = v33;
-			branch_z_x1_31 = branch_z_x2_20;
-			branch_ZPlusMirth_30 = branch_ZPlusMirth_18;
-			branch_Token_29 = branch_Token_17;
-		} break;
-		case 0LL: { // None
-			decref(branch_z_x2_20);
-			STR* v34;
-			STRLIT(v34, "Expected module name. (3)", 25);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(branch_Token_17, MKSTR(v34), branch_ZPlusMirth_18);
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	TUP* v39;
-	uint64_t v40 = mw_mirth_package_Package_findZ_orZ_newZBang(branch_ZPlusMirth_30, value_u64(branch_z_x1_31), &v39);
-	*out_ZPlusMirth_5 = v39;
-	*out_Name_4 = value_u64(branch_z_x2_32);
-	return v40;
-}
 static TUP* mw_mirth_elab_elabZ_moduleZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
 	uint64_t v5;
 	TUP* v6;
-	uint64_t v7 = mw_mirth_elab_elabZ_moduleZ_packageZ_name(in_Token_2, in_ZPlusMirth_1, &v5, &v6);
+	uint64_t v7 = mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang(in_Token_2, in_ZPlusMirth_1, &v5, &v6);
 	VAL v8 = mtw_mirth_name_Namespace_NAMESPACEz_PACKAGE(v7);
 	int64_t v9 = 0LL;
 	TUP* v10 = mw_mirth_name_QName_Mk(v8, v5, v9);
 	*out_ZPlusMirth_3 = v6;
 	return v10;
 }
-static uint64_t mw_mirth_elab_elabZ_moduleZ_headerZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
-	VAL v7 = mtw_std_maybe_Maybe_1_Some(MKU64(in_Token_2));
-	TUP* v8 = value_tup(in_ZPlusMirth_1->cells[6], 2);
-	incref(MKTUP(v8, 2));
-	VAL v9 = tup_replace(MKTUP(v8, 2), 0, v7);
-	TUP* v10 = value_tup(in_ZPlusMirth_1->cells[6], 2);
-	decref(MKTUP(v10, 2));
-	in_ZPlusMirth_1->cells[6] = v9;
-	int64_t v11 = mw_mirth_token_Token_moduleZ_headerZAsk(in_Token_2);
-	uint64_t branch_Token_12;
-	TUP* branch_ZPlusMirth_13;
-	if (((bool)v11)) {
-		uint64_t v14 = mw_mirth_token_Token_next(in_Token_2);
-		TUP* v15;
-		uint64_t v16 = mw_mirth_token_Token_argsZ_1(in_Token_2, in_ZPlusMirth_1, &v15);
-		uint64_t v17;
-		TUP* v18;
-		uint64_t v19 = mw_mirth_elab_elabZ_moduleZ_packageZ_name(v16, v15, &v17, &v18);
-		uint64_t v20 = mw_mirth_token_Token_module(v16);
-		void* v21 = field_mut(&mfld_mirth_module_Module_ZTildename, v20);
-		mut_set(MKU64(v17), v21);
-		void* v22 = field_mut(&mfld_mirth_module_Module_ZTildepackage, v20);
-		mut_set(MKU64(v19), v22);
-		TUP* v23 = mw_mirth_module_Module_qname(v20);
-		TUP* v24;
-		int64_t v25 = mw_mirth_name_QName_definedZ_softZAsk(v18, v23, &v24);
-		uint64_t branch_Token_26;
-		TUP* branch_ZPlusMirth_27;
-		VAL branch_z_x1_28;
-		if (((bool)v25)) {
-			STR* v29;
-			STRLIT(v29, "Module name already taken.", 26);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v16, MKSTR(v29), v24);
-		} else {
-			branch_z_x1_28 = MKU64(v20);
-			branch_ZPlusMirth_27 = v24;
-			branch_Token_26 = v16;
-		}
-		incref(branch_z_x1_28);
-		VAL v33 = mtw_mirth_def_Def_DefModule(value_u64(branch_z_x1_28));
-		TUP* v34;
-		mw_mirth_def_Def_register(branch_ZPlusMirth_27, v33, &v34);
-		TUP* v35;
-		mw_mirth_elab_checkZ_moduleZ_path(branch_Token_26, value_u64(branch_z_x1_28), v34, &v35);
-		branch_ZPlusMirth_13 = v35;
-		branch_Token_12 = v14;
+static uint64_t mw_mirth_elab_parseZ_moduleZ_headerZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, TUP* *out_ModuleHeader_5) {
+	VAL v6 = mtw_std_maybe_Maybe_1_Some(MKU64(in_Token_2));
+	TUP* v7 = value_tup(in_ZPlusMirth_1->cells[6], 2);
+	incref(MKTUP(v7, 2));
+	VAL v8 = tup_replace(MKTUP(v7, 2), 0, v6);
+	TUP* v9 = value_tup(in_ZPlusMirth_1->cells[6], 2);
+	decref(MKTUP(v9, 2));
+	in_ZPlusMirth_1->cells[6] = v8;
+	int64_t v10 = mw_mirth_token_Token_moduleZ_headerZAsk(in_Token_2);
+	uint64_t branch_Token_11;
+	TUP* branch_ZPlusMirth_12;
+	if (((bool)v10)) {
+		branch_ZPlusMirth_12 = in_ZPlusMirth_1;
+		branch_Token_11 = in_Token_2;
 	} else {
-		STR* v36;
-		STRLIT(v36, "Expected module header.", 23);
-		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(in_Token_2, MKSTR(v36), in_ZPlusMirth_1);
+		STR* v13;
+		STRLIT(v13, "Expected module header.", 23);
+		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(in_Token_2, MKSTR(v13), in_ZPlusMirth_1);
 	}
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_13;
-	return branch_Token_12;
+	int64_t v16 = mw_mirth_token_Token_numZ_args(branch_Token_11);
+	int64_t v17 = 0LL;
+	bool v18 = (v16 > v17);
+	uint64_t branch_Token_19;
+	TUP* branch_ZPlusMirth_20;
+	uint64_t branch_Name_21;
+	uint64_t branch_Package_22;
+	uint64_t branch_Token_23;
+	if (v18) {
+		uint64_t v24 = mw_mirth_token_Token_next(branch_Token_11);
+		TUP* v25;
+		uint64_t v26 = mw_mirth_token_Token_argsZ_1(branch_Token_11, branch_ZPlusMirth_12, &v25);
+		uint64_t v27;
+		TUP* v28;
+		uint64_t v29 = mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang(v26, v25, &v27, &v28);
+		uint64_t v30 = mw_mirth_token_Token_next(v26);
+		int64_t v31 = mw_mirth_token_Token_argZ_endZAsk(v30);
+		uint64_t branch_Token_32;
+		TUP* branch_ZPlusMirth_33;
+		if (((bool)v31)) {
+			branch_ZPlusMirth_33 = v28;
+			branch_Token_32 = v30;
+		} else {
+			STR* v34;
+			STRLIT(v34, "Expected end of argument.", 25);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v30, MKSTR(v34), v28);
+		}
+		branch_Token_23 = v26;
+		branch_Package_22 = v29;
+		branch_Name_21 = v27;
+		branch_ZPlusMirth_20 = branch_ZPlusMirth_33;
+		branch_Token_19 = v24;
+	} else {
+		uint64_t v37 = mw_mirth_token_Token_succ(branch_Token_11);
+		uint64_t v38;
+		TUP* v39;
+		uint64_t v40 = mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang(v37, branch_ZPlusMirth_12, &v38, &v39);
+		uint64_t v41 = mw_mirth_token_Token_next(v37);
+		branch_Token_23 = v37;
+		branch_Package_22 = v40;
+		branch_Name_21 = v38;
+		branch_ZPlusMirth_20 = v39;
+		branch_Token_19 = v41;
+	}
+	TUP* v42 = mtw_mirth_elab_ModuleHeader_ModuleHeader(branch_Package_22, branch_Name_21, branch_Token_23);
+	*out_ModuleHeader_5 = v42;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_20;
+	return branch_Token_19;
+}
+static uint64_t mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, uint64_t *out_Name_4, TUP* *out_ZPlusMirth_5) {
+	VAL v6 = mw_mirth_token_Token_nameZDivdnameZAsk(in_Token_1);
+	int64_t v7 = get_data_tag(v6);
+	decref(v6);
+	int64_t v8 = 0LL;
+	bool v9 = (v7 == v8);
+	uint64_t branch_Token_10;
+	TUP* branch_ZPlusMirth_11;
+	if (v9) {
+		STR* v12;
+		STRLIT(v12, "Expected module name.", 21);
+		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(in_Token_1, MKSTR(v12), in_ZPlusMirth_2);
+	} else {
+		branch_ZPlusMirth_11 = in_ZPlusMirth_2;
+		branch_Token_10 = in_Token_1;
+	}
+	VAL v15 = mw_mirth_token_Token_dnameZAsk(branch_Token_10);
+	uint64_t branch_Token_16;
+	TUP* branch_ZPlusMirth_17;
+	VAL branch_z_x1_18;
+	switch (get_data_tag(v15)) {
+		case 1LL: { // Some
+			VAL v19 = mtp_std_maybe_Maybe_1_Some(v15);
+			branch_z_x1_18 = v19;
+			branch_ZPlusMirth_17 = branch_ZPlusMirth_11;
+			branch_Token_16 = branch_Token_10;
+		} break;
+		case 0LL: { // None
+			STR* v20;
+			STRLIT(v20, "Invalid module name: Module name must include package, for example \"package.module\"", 83);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(branch_Token_10, MKSTR(v20), branch_ZPlusMirth_11);
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	TUP* v24;
+	mw_mirth_token_Token_argsZ_0(branch_Token_16, branch_ZPlusMirth_17, &v24);
+	incref(branch_z_x1_18);
+	VAL v25 = mw_mirth_name_DName_rootZAsk(value_tup(branch_z_x1_18, 2));
+	uint64_t branch_Token_26;
+	TUP* branch_ZPlusMirth_27;
+	VAL branch_z_x1_28;
+	VAL branch_z_x2_29;
+	switch (get_data_tag(v25)) {
+		case 1LL: { // Some
+			VAL v30 = mtp_std_maybe_Maybe_1_Some(v25);
+			branch_z_x2_29 = v30;
+			branch_z_x1_28 = branch_z_x1_18;
+			branch_ZPlusMirth_27 = v24;
+			branch_Token_26 = branch_Token_16;
+		} break;
+		case 0LL: { // None
+			decref(branch_z_x1_18);
+			STR* v31;
+			STRLIT(v31, "Invalid module name: Package name is missing.", 45);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(branch_Token_16, MKSTR(v31), v24);
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	TUP* v36 = mw_mirth_name_DName_parts(value_tup(branch_z_x1_28, 2));
+	VAL v37 = mw_std_list_ListZPlus_1_singleZAsk(v36);
+	uint64_t branch_Token_38;
+	TUP* branch_ZPlusMirth_39;
+	VAL branch_z_x1_40;
+	VAL branch_z_x2_41;
+	switch (get_data_tag(v37)) {
+		case 1LL: { // Some
+			VAL v42 = mtp_std_maybe_Maybe_1_Some(v37);
+			branch_z_x2_41 = v42;
+			branch_z_x1_40 = branch_z_x2_29;
+			branch_ZPlusMirth_39 = branch_ZPlusMirth_27;
+			branch_Token_38 = branch_Token_26;
+		} break;
+		case 0LL: { // None
+			decref(branch_z_x2_29);
+			STR* v43;
+			STRLIT(v43, "Expected module name. (3)", 25);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(branch_Token_26, MKSTR(v43), branch_ZPlusMirth_27);
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	TUP* v48;
+	uint64_t v49 = mw_mirth_package_Package_findZ_orZ_newZBang(branch_ZPlusMirth_39, value_u64(branch_z_x1_40), &v48);
+	*out_ZPlusMirth_5 = v48;
+	*out_Name_4 = value_u64(branch_z_x2_41);
+	return v49;
+}
+static uint64_t mw_mirth_elab_elabZ_moduleZ_headerZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
+	uint64_t v7 = mw_mirth_token_Token_module(in_Token_2);
+	TUP* v8;
+	TUP* v9;
+	uint64_t v10 = mw_mirth_elab_parseZ_moduleZ_headerZBang(in_ZPlusMirth_1, in_Token_2, &v8, &v9);
+	uint64_t v11;
+	uint64_t v12;
+	uint64_t v13;
+	mtp_mirth_elab_ModuleHeader_ModuleHeader(v9, &v11, &v12, &v13);
+	void* v14 = field_mut(&mfld_mirth_module_Module_ZTildename, v7);
+	mut_set(MKU64(v12), v14);
+	void* v15 = field_mut(&mfld_mirth_module_Module_ZTildepackage, v7);
+	mut_set(MKU64(v11), v15);
+	TUP* v16 = mw_mirth_module_Module_qname(v7);
+	TUP* v17;
+	int64_t v18 = mw_mirth_name_QName_definedZ_softZAsk(v8, v16, &v17);
+	TUP* branch_ZPlusMirth_19;
+	uint64_t branch_Token_20;
+	if (((bool)v18)) {
+		STR* v21;
+		STRLIT(v21, "Module name already taken.", 26);
+		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v13, MKSTR(v21), v17);
+	} else {
+		branch_Token_20 = v13;
+		branch_ZPlusMirth_19 = v17;
+	}
+	void* v23 = field_mut(&mfld_mirth_module_Module_ZTildehead, v7);
+	mut_set(MKU64(branch_Token_20), v23);
+	VAL v24 = mtw_mirth_def_Def_DefModule(v7);
+	TUP* v25;
+	mw_mirth_def_Def_register(branch_ZPlusMirth_19, v24, &v25);
+	TUP* v26;
+	mw_mirth_elab_checkZ_moduleZ_path(v10, v7, v25, &v26);
+	*out_ZPlusMirth_3 = v26;
+	return v10;
 }
 static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_Module_2, TUP* in_ZPlusMirth_3, TUP* *out_ZPlusMirth_4) {
 	VAL v7 = mw_mirth_module_Module_path(in_Module_2);
@@ -35697,7 +35788,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 				branch_Token_15 = in_Token_1;
 			} else {
 				STR* v19;
-				STRLIT(v19, "expected module name to match path\n", 35);
+				STRLIT(v19, "Expected module name to match path.\n", 36);
 				STR* v20 = str_cat(v19, value_str(v13));
 				STR* v21;
 				STRLIT(v21, "\n", 1);
@@ -35848,7 +35939,7 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 				branch_ZPlusMirth_84 = in_ZPlusMirth_3;
 			} else {
 				STR* v89;
-				STRLIT(v89, "expected .mth extension for mirth file", 38);
+				STRLIT(v89, "Expected .mth extension for mirth file.", 39);
 				TUP* v90;
 				mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang(in_Token_1, MKSTR(v89), in_ZPlusMirth_3, &v90);
 				branch_z_x3_88 = v72;
@@ -35871,16 +35962,18 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 				branch_Token_95 = branch_Token_85;
 				branch_ZPlusMirth_94 = branch_ZPlusMirth_84;
 			} else {
-				STR* v98;
-				STRLIT(v98, "expected module name to match file name", 39);
-				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(branch_Token_85, MKSTR(v98), branch_ZPlusMirth_84);
+				uint64_t v98 = mw_mirth_token_Token_module(branch_Token_85);
+				uint64_t v99 = mw_mirth_module_Module_head(v98);
+				STR* v100;
+				STRLIT(v100, "Expected module name to match file name.", 40);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v99, MKSTR(v100), branch_ZPlusMirth_84);
 			}
 			incref(branch_z_x1_96);
-			uint64_t v100 = mw_mirth_module_Module_package(value_u64(branch_z_x1_96));
-			TUP* v101;
-			mw_mirth_package_Package_pathZBang(branch_ZPlusMirth_94, branch_z_x2_97, v100, &v101);
+			uint64_t v102 = mw_mirth_module_Module_package(value_u64(branch_z_x1_96));
+			TUP* v103;
+			mw_mirth_package_Package_pathZBang(branch_ZPlusMirth_94, branch_z_x2_97, v102, &v103);
 			decref(branch_z_x1_96);
-			branch_ZPlusMirth_10 = v101;
+			branch_ZPlusMirth_10 = v103;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -36108,18 +36201,47 @@ static uint64_t mw_mirth_elab_loadZ_module (uint64_t in_Token_1, TUP* in_QName_2
 	return branch_Token_11;
 }
 static uint64_t mw_mirth_elab_elabZ_moduleZ_importZBang (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4) {
-	uint64_t v7 = mw_mirth_token_Token_next(in_Token_1);
-	TUP* v8;
-	uint64_t v9 = mw_mirth_token_Token_argsZ_1(in_Token_1, in_ZPlusMirth_2, &v8);
-	TUP* v10;
-	TUP* v11 = mw_mirth_elab_elabZ_moduleZ_qname(v8, v9, &v10);
-	uint64_t v12;
-	TUP* v13;
-	uint64_t v14 = mw_mirth_elab_loadZ_module(v9, v11, v10, &v12, &v13);
-	uint64_t v15 = mw_mirth_token_Token_module(v14);
-	mw_mirth_module_Module_addZ_importZBang(v15, v12);
-	*out_ZPlusMirth_4 = v13;
-	return v7;
+	int64_t v7 = mw_mirth_token_Token_numZ_args(in_Token_1);
+	int64_t v8 = 0LL;
+	bool v9 = (v7 > v8);
+	uint64_t branch_Token_10;
+	TUP* branch_ZPlusMirth_11;
+	uint64_t branch_Token_12;
+	if (v9) {
+		uint64_t v13 = mw_mirth_token_Token_next(in_Token_1);
+		TUP* v14;
+		uint64_t v15 = mw_mirth_token_Token_argsZ_1(in_Token_1, in_ZPlusMirth_2, &v14);
+		uint64_t v16 = mw_mirth_token_Token_next(v15);
+		int64_t v17 = mw_mirth_token_Token_argZ_endZAsk(v16);
+		uint64_t branch_Token_18;
+		TUP* branch_ZPlusMirth_19;
+		if (((bool)v17)) {
+			branch_ZPlusMirth_19 = v14;
+			branch_Token_18 = v16;
+		} else {
+			STR* v20;
+			STRLIT(v20, "expected arg end", 16);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v16, MKSTR(v20), v14);
+		}
+		branch_Token_12 = v15;
+		branch_ZPlusMirth_11 = branch_ZPlusMirth_19;
+		branch_Token_10 = v13;
+	} else {
+		uint64_t v23 = mw_mirth_token_Token_succ(in_Token_1);
+		uint64_t v24 = mw_mirth_token_Token_next(v23);
+		branch_Token_12 = v23;
+		branch_ZPlusMirth_11 = in_ZPlusMirth_2;
+		branch_Token_10 = v24;
+	}
+	TUP* v25;
+	TUP* v26 = mw_mirth_elab_elabZ_moduleZ_qname(branch_ZPlusMirth_11, branch_Token_12, &v25);
+	uint64_t v27;
+	TUP* v28;
+	uint64_t v29 = mw_mirth_elab_loadZ_module(branch_Token_12, v26, v25, &v27, &v28);
+	uint64_t v30 = mw_mirth_token_Token_module(v29);
+	mw_mirth_module_Module_addZ_importZBang(v30, v27);
+	*out_ZPlusMirth_4 = v28;
+	return branch_Token_10;
 }
 static uint64_t mw_mirth_elab_parseZ_data (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, TUP* *out_SyntaxData_5) {
 	int64_t v6 = mw_mirth_token_Token_numZ_args(in_Token_2);
@@ -36193,7 +36315,7 @@ static uint64_t mw_mirth_elab_parseZ_data (TUP* in_ZPlusMirth_1, uint64_t in_Tok
 		uint64_t v50 = mw_mirth_elab_parseZ_dataZ_header(in_ZPlusMirth_1, v47, &v48, &v49);
 		VAL v51 = mw_mirth_token_Token_lcurlyZAsk(v50);
 		TUP* v52;
-		uint64_t v53 = mw_std_maybe_Maybe_1_else_1_sp5(v50, v48, v51, &v52);
+		uint64_t v53 = mw_std_maybe_Maybe_1_else_1_sp6(v50, v48, v51, &v52);
 		uint64_t v54 = mw_mirth_token_Token_succ(v53);
 		TUP* v55;
 		VAL v56;
@@ -36203,7 +36325,7 @@ static uint64_t mw_mirth_elab_parseZ_data (TUP* in_ZPlusMirth_1, uint64_t in_Tok
 		uint64_t v60 = mw_mirth_elab_parseZ_dataZ_declsZBang(v55, v57, &v58, &v59);
 		VAL v61 = mw_mirth_token_Token_rcurlyZAsk(v60);
 		TUP* v62;
-		uint64_t v63 = mw_std_maybe_Maybe_1_else_1_sp6(v60, v58, v61, &v62);
+		uint64_t v63 = mw_std_maybe_Maybe_1_else_1_sp7(v60, v58, v61, &v62);
 		uint64_t v64 = mw_mirth_token_Token_succ(v63);
 		branch_Token_13 = v64;
 		branch_Maybe_12 = v59;
@@ -36476,7 +36598,7 @@ static uint64_t mw_mirth_elab_parseZ_struct (TUP* in_ZPlusMirth_1, uint64_t in_T
 		uint64_t v52 = mw_mirth_elab_parseZ_dataZ_header(in_ZPlusMirth_1, v49, &v50, &v51);
 		VAL v53 = mw_mirth_token_Token_lcurlyZAsk(v52);
 		TUP* v54;
-		uint64_t v55 = mw_std_maybe_Maybe_1_else_1_sp5(v52, v50, v53, &v54);
+		uint64_t v55 = mw_std_maybe_Maybe_1_else_1_sp6(v52, v50, v53, &v54);
 		uint64_t v56 = mw_mirth_token_Token_succ(v55);
 		TUP* v57;
 		uint64_t v58;
@@ -36488,7 +36610,7 @@ static uint64_t mw_mirth_elab_parseZ_struct (TUP* in_ZPlusMirth_1, uint64_t in_T
 		uint64_t v64 = mw_mirth_elab_parseZ_dataZ_declsZBang(v57, v60, &v62, &v63);
 		VAL v65 = mw_mirth_token_Token_rcurlyZAsk(v64);
 		TUP* v66;
-		uint64_t v67 = mw_std_maybe_Maybe_1_else_1_sp6(v64, v62, v65, &v66);
+		uint64_t v67 = mw_std_maybe_Maybe_1_else_1_sp7(v64, v62, v65, &v66);
 		uint64_t v68 = mw_mirth_token_Token_succ(v67);
 		branch_Token_13 = v68;
 		branch_Maybe_12 = v63;
@@ -68123,7 +68245,7 @@ static int64_t mw_std_maybe_Maybe_1_has_1_sp10 (VAL in_Maybe_1) {
 	}
 	return branch_Bool_3;
 }
-static uint64_t mw_std_maybe_Maybe_1_else_1_sp5 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5) {
+static uint64_t mw_std_maybe_Maybe_1_else_1_sp6 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5) {
 	int64_t v6 = get_data_tag(in_Maybe_3);
 	decref(in_Maybe_3);
 	int64_t v7 = 0LL;
@@ -68141,7 +68263,7 @@ static uint64_t mw_std_maybe_Maybe_1_else_1_sp5 (uint64_t in_Token_1, TUP* in_ZP
 	*out_ZPlusMirth_5 = branch_ZPlusMirth_10;
 	return branch_Token_9;
 }
-static uint64_t mw_std_maybe_Maybe_1_else_1_sp6 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5) {
+static uint64_t mw_std_maybe_Maybe_1_else_1_sp7 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5) {
 	int64_t v6 = get_data_tag(in_Maybe_3);
 	decref(in_Maybe_3);
 	int64_t v7 = 0LL;

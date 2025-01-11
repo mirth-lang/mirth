@@ -1,15 +1,15 @@
-module(mirth.module)
+module mirth.module
 
-import(std.prelude)
-import(std.path)
-import(std.str)
-import(std.list)
-import(std.byte)
-import(std.maybe)
-import(mirth.name)
-import(mirth.package)
-import(mirth.token)
-import(mirth.mirth)
+import std.prelude
+import std.path
+import std.str
+import std.list
+import std.byte
+import std.maybe
+import mirth.name
+import mirth.package
+import mirth.token
+import mirth.mirth
 
 # mirth/data/module
 table(Module)
@@ -17,6 +17,7 @@ field(Module.~package, Module, Package)
 field(Module.~name, Module, Name)
 field(Module.~path, Module, Path)
 field(Module.~start, Module, Token)
+field(Module.~head, Module, Token)
 field(Module.~end, Module, Token)
 field(Module.~imports, Module, List(Module))
 
@@ -25,6 +26,7 @@ def(Module.name, Module -- Name, ~name @)
 def(Module.qname, Module -- QName, sip(package NAMESPACE_PACKAGE) name 0 QName.Mk)
 def(Module.path, Module -- Path, ~path @)
 def(Module.start, Module -- Token, ~start @)
+def(Module.head, Module -- Token, ~head @)
 def(Module.end, Module -- Token, ~end @)
 def(Module.imports, Module -- List(Module), ~imports @)
 

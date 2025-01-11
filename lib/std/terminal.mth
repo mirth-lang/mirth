@@ -1,9 +1,9 @@
 ||| ANSI terminal escape codes, and other terminal utilities.
-module(std.terminal)
+module std.terminal
 
-import(std.prelude)
-import(std.str)
-import(std.byte)
+import std.prelude
+import std.str
+import std.byte
 
 data(Sgr,
     Reset,

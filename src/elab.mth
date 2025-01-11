@@ -1,38 +1,38 @@
-module(mirth.elab)
+module mirth.elab
 
-import(std.prelude)
-import(std.str)
-import(std.list)
-import(std.maybe)
-import(std.either)
-import(std.byte)
-import(std.terminal)
+import std.prelude
+import std.str
+import std.list
+import std.maybe
+import std.either
+import std.byte
+import std.terminal
 
-import(mirth.mirth)
-import(mirth.name)
-import(mirth.def)
-import(mirth.token)
-import(mirth.data)
-import(mirth.external)
-import(mirth.word)
-import(mirth.var)
-import(mirth.buffer)
-import(mirth.variable)
-import(mirth.table)
-import(mirth.tycon)
-import(mirth.type)
-import(mirth.typedef)
-import(mirth.var)
-import(mirth.arrow)
-import(mirth.word)
-import(mirth.prim)
-import(mirth.module)
-import(mirth.package)
-import(mirth.alias)
-import(mirth.match)
-import(mirth.lexer)
-import(mirth.label)
-import(mirth.macro)
+import mirth.mirth
+import mirth.name
+import mirth.def
+import mirth.token
+import mirth.data
+import mirth.external
+import mirth.word
+import mirth.var
+import mirth.buffer
+import mirth.variable
+import mirth.table
+import mirth.tycon
+import mirth.type
+import mirth.typedef
+import mirth.var
+import mirth.arrow
+import mirth.word
+import mirth.prim
+import mirth.module
+import mirth.package
+import mirth.alias
+import mirth.match
+import mirth.lexer
+import mirth.label
+import mirth.macro
 
 ####################
 # Type Elaboration #
@@ -1285,44 +1285,68 @@ def elab-module! [ Module +World +Mirth -- Module +World +Mirth ] {
     drop
 }
 
-def elab-module-package-name [ Token +Mirth -- Package Name +Mirth ] {
-    dup dname? unwrap("Expected module name. (1)" emit-fatal-error!) over args-0
-    dup root? unwrap(drop "Expected module name. (2)" emit-fatal-error!)
+def elab-module-qname [ +Mirth Token -- +Mirth QName ] {
+    parse-module-package-name! dip(NAMESPACE_PACKAGE) 0 QName.Mk
+}
+
+struct ModuleHeader {
+    package: Package
+    name: Name
+    head: Token
+}
+
+||| Parse the `module` declaration at the top of the module:
+|||
+|||     module(ModuleName)
+|||     module ModuleName
+|||
+def parse-module-header! [ +Mirth Token -- +Mirth Token ModuleHeader ] {
+    dup Some lexical-state:error-token!
+    dup module-header? else("Expected module header." emit-fatal-error!)
+    dup num-args 0> if (
+        sip(next) args-1 >head
+        @head parse-module-package-name! >name >package
+        @head next dup arg-end? else("Expected end of argument." emit-fatal-error!) drop,
+
+        succ >head
+        @head parse-module-package-name! >name >package
+        @head next
+    )
+    ModuleHeader
+}
+
+||| Parse a ModuleName.
+def parse-module-package-name! [ Token +Mirth -- Package Name +Mirth ] {
+    dup name/dname? else("Expected module name." emit-fatal-error!)
+    dup dname? unwrap("Invalid module name: Module name must include package, for example \"package.module\"" emit-fatal-error!) over args-0
+    dup root? unwrap(drop "Invalid module name: Package name is missing." emit-fatal-error!)
     swap parts single? unwrap(drop "Expected module name. (3)" emit-fatal-error!)
     dip(Package.find-or-new! nip)
 }
 
-def elab-module-qname [ +Mirth Token -- +Mirth QName ] {
-    elab-module-package-name dip(NAMESPACE_PACKAGE) 0 QName.Mk
-}
-
-||| Check that the `module(M)` statement exists and save the name.
+||| Elaborate the module header and save the name and package.
 def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
-    dup Some lexical-state:error-token!
-    dup module-header? if(
-        sip(next) args-1 dup elab-module-package-name
-        over2 .module
-        tuck ~name !
-        tuck ~package !
-        dup qname defined-soft? then(drop "Module name already taken." emit-fatal-error!)
-        dup DefModule register
-        check-module-path,
-
-        dup "Expected module header." emit-fatal-error!
-    )
+    dup .module >module
+    parse-module-header! /ModuleHeader
+    name> @module ~name !
+    package> @module ~package !
+    @module qname defined-soft? then(@head "Module name already taken." emit-fatal-error!)
+    head> @module ~head !
+    @module DefModule register
+    dup module> check-module-path
 }
 
 def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
     dup path rdip:split-last match(
         None ->
             swap qname to-module-path dup2 == else(
-                "expected module name to match path\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
+                "Expected module name to match path.\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
             ) drop3,
 
         Some ->
             split-last-byte(BDOT ==) "mth" Some ==
-            else(over3 "expected .mth extension for mirth file" emit-warning!)
-            over2 name >Str == else(over2 "expected module name to match file name" emit-fatal-error!)
+            else(over3 "Expected .mth extension for mirth file." emit-warning!)
+            over2 name >Str == else(over2 .module .head "Expected module name to match file name." emit-fatal-error!)
             over package path! drop2
     )
 }
@@ -1365,11 +1389,18 @@ def load-module [ Token QName +World +Mirth -- Token Module +World +Mirth ] {
     )
 }
 
-||| Elaborate `import(M)` statement. Return token after import.
+||| Elaborate import statement. Return token after import.
+|||
+|||     import(ModuleName)
+|||     import ModuleName
 def elab-module-import! [ Token +World +Mirth -- Token +World +Mirth ] {
-    sip(next)
-    args-1 dup elab-module-qname
-    load-module dip(.module) add-import!
+    dup num-args 0> if(
+        sip(next) args-1
+        dup next dup arg-end? else("expected arg end" emit-fatal-error!) drop,
+        succ sip(next)
+    )
+    dup elab-module-qname load-module
+    dip(.module) add-import!
 }
 
 ||| Parse a data declaration. It looks like one of:

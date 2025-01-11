@@ -1,24 +1,24 @@
 
-module(mirth.type)
+module mirth.type
 
-import(std.prelude)
-import(std.maybe)
-import(std.list)
-import(std.str)
-import(std.either)
-import(std.world)
-import(mirth.name)
-import(mirth.token)
-import(mirth.arrow)
-import(mirth.location)
-import(mirth.def)
-import(mirth.var)
-import(mirth.table)
-import(mirth.tycon)
-import(mirth.typedef)
-import(mirth.mirth)
-import(mirth.data)
-import(mirth.label)
+import std.prelude
+import std.maybe
+import std.list
+import std.str
+import std.either
+import std.world
+import mirth.name
+import mirth.token
+import mirth.arrow
+import mirth.location
+import mirth.def
+import mirth.var
+import mirth.table
+import mirth.tycon
+import mirth.typedef
+import mirth.mirth
+import mirth.data
+import mirth.label
 
 data Type {
     TYPE_ERROR

@@ -1,15 +1,15 @@
-module(mirth.match)
+module mirth.match
 
-import(std.prelude)
-import(std.maybe)
-import(std.list)
+import std.prelude
+import std.maybe
+import std.list
 
-import(mirth.mirth)
-import(mirth.type)
-import(mirth.data)
-import(mirth.token)
-import(mirth.var)
-import(mirth.arrow)
+import mirth.mirth
+import mirth.type
+import mirth.data
+import mirth.token
+import mirth.var
+import mirth.arrow
 
 #########
 # Match #
