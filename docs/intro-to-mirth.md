@@ -86,10 +86,10 @@ Now that we are done setting up, let's create a "Hello world!" program in mirth.
 Create a file `src/hello.mth` and add the following code:
 
 ```
-module(learning-mirth.hello)
+module learning-mirth.hello
 
-import(std.prelude)
-import(std.world)
+import std.prelude
+import std.world
 
 def main {
     "Hello world!" print
@@ -106,7 +106,7 @@ If all succeeded, you should see the text `Hello world!` in your terminal.
 
 Let's analyze the program line by line.
 
-- `module(learning-mirth.hello)`: This is the module header. Every mirth module must have a header like this, it tells the compiler two things:
+- `module learning-mirth.hello`: This is the module header. Every mirth module must have a header like this, it tells the compiler two things:
 
   - What package this module is part of: `learning-mirth`
   - What the name of the module is: `hello`
@@ -114,9 +114,9 @@ Let's analyze the program line by line.
   The module name needs to match the file name (`hello.mth`).
   The package name does not, because this is the `src` folder, but if you have other modules in `src` they need to share the same package name.
 
-- `import(std.prelude)`: This line will import the `prelude` module from the `std` package, which is in `lib/std/prelude.mth`, so you can use the types and definitions defined in the `std.prelude` module. Although this is technically optional for this example, almost every mirth module will import `std.prelude` because it exposes a lot of useful definitions. [In the future, this module might be imported automatically by default.]
+- `import std.prelude`: This line will import the `prelude` module from the `std` package, which is in `lib/std/prelude.mth`, so you can use the types and definitions defined in the `std.prelude` module. Although this is technically optional for this example, almost every mirth module will import `std.prelude` because it exposes a lot of useful definitions. [In the future, this module might be imported automatically by default.]
 
-- `import(std.world)`: This line will import the `world` module from the `std` package. This module exposes definitions for communicating with the world outside of the program, for example, for printing things to the terminal. We need this for our "Hello world!" program.
+- `import std.world`: This line will import the `world` module from the `std` package. This module exposes definitions for communicating with the world outside of the program, for example, for printing things to the terminal. We need this for our "Hello world!" program.
 
 - `def main {`: This begins a definition of the `main` word (AKA the `main` function, the `main` procedure). This `main` is the entry point for the entire program.
 
