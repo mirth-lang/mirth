@@ -400,6 +400,7 @@ static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }
 static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }
 static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }
 static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }
+static bool value_bool (VAL v) { ASSERT1(IS_BOOL(v),v); return VBOOL(v); }
 
 static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }
 static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
@@ -49508,6 +49509,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }\n"
 		"static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }\n"
 		"static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }\n"
+		"static bool value_bool (VAL v) { ASSERT1(IS_BOOL(v),v); return VBOOL(v); }\n"
 		"\n"
 		"static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }\n"
 		"static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }\n"
@@ -50042,7 +50044,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		23074
+		23149
 	);
 	return v2;
 }
