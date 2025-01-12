@@ -620,7 +620,7 @@ static int64_t i64_sub (int64_t a, int64_t b) {
 static int64_t i64_mul (int64_t a, int64_t b) {
 	EXPECT((a == 0) || (b == 0) ||
 		((a > 0) && (b > 0) && (a <= INT64_MAX/b)) ||
-		((a > 0) && (b < 0) && (a <= INT64_MIN/b)) ||
+		((a > 0) && (b < 0) && (b >= INT64_MIN/a)) ||
 		((a < 0) && (b > 0) && (a >= INT64_MIN/b)) ||
 		((a < 0) && (b < 0) && (a >= INT64_MAX/b)),
 		"overflow during integer multiplication"
@@ -49729,7 +49729,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static int64_t i64_mul (int64_t a, int64_t b) {\n"
 		"\tEXPECT((a == 0) || (b == 0) ||\n"
 		"\t\t((a > 0) && (b > 0) && (a <= INT64_MAX/b)) ||\n"
-		"\t\t((a > 0) && (b < 0) && (a <= INT64_MIN/b)) ||\n"
+		"\t\t((a > 0) && (b < 0) && (b >= INT64_MIN/a)) ||\n"
 		"\t\t((a < 0) && (b > 0) && (a >= INT64_MIN/b)) ||\n"
 		"\t\t((a < 0) && (b < 0) && (a >= INT64_MAX/b)),\n"
 		"\t\t\"overflow during integer multiplication\"\n"
