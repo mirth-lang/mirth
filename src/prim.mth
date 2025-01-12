@@ -136,6 +136,8 @@ data Prim {
     PRIM_STR_GT
     PRIM_STR_GE
     PRIM_STR_NE
+    PRIM_STR_TO_F64
+    PRIM_STR_TO_F32
 
     PRIM_SYS_OS
     PRIM_SYS_ARCH
@@ -286,6 +288,8 @@ data Prim {
         { PRIM_STR_GT -> "prim-str-gt" 0 }
         { PRIM_STR_GE -> "prim-str-ge" 0 }
         { PRIM_STR_NE -> "prim-str-ne" 0 }
+        { PRIM_STR_TO_F32 -> "prim-str-to-f32" 0 }
+        { PRIM_STR_TO_F64 -> "prim-str-to-f64" 0 }
 
         { PRIM_SYS_OS   -> "prim-sys-os"   0 }
         { PRIM_SYS_ARCH -> "prim-sys-arch" 0 }
@@ -601,6 +605,8 @@ data Prim {
         { PRIM_STR_GT -> Ctx.L0 TYPE_STR TYPE_STR T2 TYPE_BOOL T1 T-> }
         { PRIM_STR_GE -> Ctx.L0 TYPE_STR TYPE_STR T2 TYPE_BOOL T1 T-> }
         { PRIM_STR_NE -> Ctx.L0 TYPE_STR TYPE_STR T2 TYPE_BOOL T1 T-> }
+        { PRIM_STR_TO_F32 -> Ctx.L0 TYPE_STR T1 TYPE_F32 TYPE_STR T2 T-> }
+        { PRIM_STR_TO_F64 -> Ctx.L0 TYPE_STR T1 TYPE_F64 TYPE_STR T2 T-> }
 
         { PRIM_SYS_OS   -> Ctx.L0 T0 TYPE_INT T1 T-> }
         { PRIM_SYS_ARCH -> Ctx.L0 T0 TYPE_INT T1 T-> }

@@ -311,23 +311,8 @@ def byte-sign-value-index-float [ Byte -- Byte UOffset ] {
     { _ -> drop B'+' 0u >UOffset }
 }
 
-external(
-    "double strtod(const char*, char**);"
-    "double string_to_float64(const char* float64_str) {"
-    "    return strtod(float64_str, 0);"
-    "}"
-    string_to_float64 [ CStr -- F64 ]
-)
-
 def(+Str.float?, +Str -- F64 +Str,
-    "" thaw rswap 0u >UOffset
-    float-sign rdip:dip:push-byte-ascii! +
-    while(dup num-bytes? >UOffset <,
-        sip(
-            byte@ rdip:push-byte-ascii!
-        )
-        1+)
-    drop rswap freeze with-cstr(string_to_float64))
+    freeze dup thaw >F64? unwrap(0.0))
 
 def(+Str.is-int?, +Str -- Bool +Str,
     is-dec-int?

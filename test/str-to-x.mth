@@ -1,0 +1,25 @@
+module test.str-to-x
+
+import std.prelude
+import std.str
+import std.test
+
+def main {
+    +Tests.Start!
+
+    "prim-str-to-f32" test (
+        "0" prim-str-to-f32 => ("") => (0.0 >F32)
+        "0.1" prim-str-to-f32 => ("") => (0.1 >F32)
+    )
+
+    "prim-str-to-f64" test (
+        "0" prim-str-to-f64 => ("") => (0.0)
+        "0.1" prim-str-to-f64 => ("") => (0.1)
+        "0.123456789" prim-str-to-f64 => ("") => (0.123456789)
+        "-0.123456789" prim-str-to-f64 => ("") => (-0.123456789)
+    )
+
+    +Tests.end!
+}
+
+# mirth-test # pout # 2 tests passed.

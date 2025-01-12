@@ -1387,7 +1387,7 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
     { PRIM_TYPE_INT -> C99RT_I64 }
     { PRIM_TYPE_F32 -> C99RT_F32 }
     { PRIM_TYPE_F64 -> C99RT_F64 }
-    { PRIM_TYPE_STR -> C99RT_VAL }
+    { PRIM_TYPE_STR -> C99RT_STR }
     { PRIM_TYPE_PTR -> C99RT_PTR }
     { PRIM_TYPE_WORLD -> C99RT_UNIT }
 }
@@ -2204,6 +2204,9 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { PRIM_STR_GT   -> drop "(str_cmp(" C99RT_STR ", " C99RT_STR ") > 0)"  False C99RT_BOOL Some c99-binop! }
     { PRIM_STR_GE   -> drop "(str_cmp(" C99RT_STR ", " C99RT_STR ") >= 0)" False C99RT_BOOL Some c99-binop! }
     { PRIM_STR_NE   -> drop "(str_cmp(" C99RT_STR ", " C99RT_STR ") != 0)" False C99RT_BOOL Some c99-binop! }
+
+    { PRIM_STR_TO_F32 -> args "str_to_f32" PRIM_STR_TO_F32 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
+    { PRIM_STR_TO_F64 -> args "str_to_f64" PRIM_STR_TO_F64 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
 
     { PRIM_SYS_OS   -> drop C99RT_I64 push-value-expression!("RUNNING_OS" put) }
     { PRIM_SYS_ARCH -> drop C99RT_I64 push-value-expression!("RUNNING_ARCH" put) }
