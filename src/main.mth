@@ -56,12 +56,12 @@ def Arguments.default [ -- Arguments ] {
 def Arguments.show; [ Arguments +Str -- +Str ] {
     /Arguments
     "Arguments { " ;
-    "output-file: " ; output-file> show;:show;
+    "output-file: " ; output-file> show;
     ", input-file: " ; input-file> >Str show;
-    ", entry-point: " ; entry-point> show;:show;
+    ", entry-point: " ; entry-point> show;
     ", emit-debug-info: " ; emit-debug-info> show;
-    ", packages: " ; packages> show;:pack2-show;(show;,show;)
-    ", package-search-path: " ; package-search-paths> show;:show;
+    ", packages: " ; packages> show;:pack2-show;
+    ", package-search-path: " ; package-search-paths> show;
     " }" ;
 }
 
