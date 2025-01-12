@@ -51,6 +51,8 @@ alias(F32./, prim-f32-div)
 alias(F32.>F64, prim-f32-to-f64)
 alias(F32.>Int, prim-f32-to-int)
 alias(F32.>Str, prim-f32-to-str)
+inline def F32.show [ F32 -- Str ] { Str(show;) }
+inline def F32.show; [ +Str F32 -- +Str ] { >Str ; " >F32"; }
 
 alias(F64.+, prim-f64-add)
 alias(F64.-, prim-f64-sub)
@@ -59,6 +61,8 @@ alias(F64./, prim-f64-div)
 alias(F64.>F32, prim-f64-to-f32)
 alias(F64.>Int, prim-f64-to-int)
 alias(F64.>Str, prim-f64-to-str)
+inline def F64.show [ F64 -- Str ] { >Str }
+inline def F64.show; [ +Str F64 -- +Str ] { >Str ; }
 
 inline(
     alias(Bool.if(f,g), prim-if)

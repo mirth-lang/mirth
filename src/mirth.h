@@ -31,6 +31,7 @@ extern void* calloc(size_t, size_t);
 extern void* realloc(void*, size_t);
 extern void* memset(void*, int, size_t);
 extern void* memcpy(void*, const void*, size_t);
+extern void* memmove(void*, const void*, size_t);
 extern int memcmp(const void*, const void*, size_t);
 extern int strcmp(const char*, const char*);
 extern size_t strlen(const char*);
@@ -41,6 +42,8 @@ extern int close(int);
 extern int open(const char*, int, ...);
 extern void exit(int);
 extern int sprintf (char * s, const char * format, ...);
+extern float strtof(const char* str, char** endptr);
+extern double strtod(const char* str, char** endptr);
 
 typedef uint64_t TAG;
 #define REFS_FLAG 0x0001
@@ -527,6 +530,50 @@ static int str_cmp(STR* s1, STR* s2) {
 	if (n1 < n2) return -1;
 	if (n1 > n2) return 1;
 	return 0;
+}
+
+static STR* str_drop (STR* in, size_t num_bytes) {
+	ASSERT(in);
+	if (num_bytes > in->size) {
+		num_bytes = in->size;
+	}
+	size_t remaining = in->size - num_bytes;
+	char* slice = in->data + num_bytes;
+
+	if (in->refs == 1) {
+		if (remaining > 0) memmove(in->data, slice, remaining);
+		memset(in->data + remaining, 0, in->cap - remaining);
+		in->size = remaining;
+		return in;
+	} else {
+		STR* out = str_make(slice, remaining);
+		decref(MKSTR(in));
+		return out;
+	}
+}
+
+static float str_to_f32 (STR* in, STR** out) {
+	ASSERT(in); ASSERT(out);
+	ASSERT(in->data[in->size] == 0);
+	char *endptr = NULL;
+	float val = strtof(in->data, &endptr);
+	ASSERT(endptr);
+	ASSERT(endptr >= in->data);
+	size_t consumed = endptr - in->data;
+	*out = str_drop(in, consumed);
+	return val;
+}
+
+static double str_to_f64 (STR* in, STR** out) {
+	ASSERT(in); ASSERT(out);
+	ASSERT(in->data[in->size] == 0);
+	char *endptr = NULL;
+	double val = strtod(in->data, &endptr);
+	ASSERT(endptr);
+	ASSERT(endptr >= in->data);
+	size_t consumed = endptr - in->data;
+	*out = str_drop(in, consumed);
+	return val;
 }
 
 static void default_run(VAL v) {
