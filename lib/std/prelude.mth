@@ -610,6 +610,7 @@ inline (
     def U32.MIN  [ U32 ] { 0 >U32-unsafe }
     def U32.succ [ U32 -- U32 ] { dup U32.MAX < then(>Int 1+ >U32-unsafe) }
     def U32.pred [ U32 -- U32 ] { dup 0> then(>Int 1- >U32-unsafe) }
+    def U32.show; [ U32 +Str -- +Str ] { >Nat show; }
 )
 
 inline (
@@ -835,6 +836,8 @@ struct USize {
         def 0= [ USize -- Bool ] { >Nat 0= }
         def 0> [ USize -- Bool ] { >Nat 0> }
         def show [ USize -- Str ] { >Int show }
+        def show; [ USize +Str -- +Str ] { >Nat show; }
+
 
         def succ [ USize -- USize ] { >Nat succ >USize }
         def pred [ USize -- USize ] { >Nat pred >USize }
