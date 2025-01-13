@@ -145,8 +145,8 @@ data Prim {
     PRIM_SYS_ARGV
 
     --
-    def MIN [ Prim ] { PRIM_CORE_ID }
-    def MAX [ Prim ] { PRIM_SYS_ARGV }
+    def MIN [ Prim ] { Prim.PRIM_CORE_ID }
+    def MAX [ Prim ] { Prim.PRIM_SYS_ARGV }
     def ForAll(f) [ (*a Prim -- *a) *a -- *a ] {
         Prim.MIN >Int while (
             dup Prim.MAX >Int <=,
@@ -164,7 +164,7 @@ data Prim {
     def qname { str-arity QName.Prim }
 
     def register! [ +Mirth Prim -- +Mirth ] {
-        DefPrim register
+        Def.DefPrim register
     }
 
     def str-arity [ Prim -- Str Int ] {
@@ -340,7 +340,7 @@ data Prim {
             "*a" StackType.NewInCtx >a
             "*b" StackType.NewInCtx >b
             "x" Type.NewInCtx >x
-            @a @x T* @a @b T-> TMorphism T*
+            @a @x T* @a @b T-> >Type T*
             @b @x T* T->
             a> b> x> drop3
         }
@@ -351,7 +351,7 @@ data Prim {
             "*b" StackType.NewInCtx >b
             "x" Resource.NewInCtx >x
             @a @x T+
-                @a @b T-> TMorphism T*
+                @a @b T-> >Type T*
             @b @x T+ T->
             a> b> x> drop3
         }
@@ -361,8 +361,8 @@ data Prim {
             "*a" StackType.NewInCtx >a
             "*b" StackType.NewInCtx >b
             @a TYPE_BOOL T*
-                @a @b T-> TMorphism T*
-                @a @b T-> TMorphism T*
+                @a @b T-> >Type T*
+                @a @b T-> >Type T*
             @b T->
             a> b> drop2
         }
@@ -371,8 +371,8 @@ data Prim {
             Ctx.L0
             "*a" StackType.NewInCtx >a
             @a
-                @a @a TYPE_BOOL T* T-> TMorphism T*
-                @a @a T-> TMorphism T*
+                @a @a TYPE_BOOL T* T-> >Type T*
+                @a @a T-> >Type T*
             @a T->
             a> drop
         }
@@ -395,7 +395,7 @@ data Prim {
             Ctx.L0
             "*a" StackType.NewInCtx >a
             "*b" StackType.NewInCtx >b
-            @a @a @b T-> TMorphism T*
+            @a @a @b T-> >Type T*
             @b T->
             a> b> drop2
         }
@@ -566,19 +566,19 @@ data Prim {
         { PRIM_MUT_GET ->
             Ctx.L0
             "a" Type.NewInCtx >a
-            @a TMut T1 @a T1 T->
+            @a Type.TMut T1 @a T1 T->
             a> drop
         }
         { PRIM_MUT_SET ->
             Ctx.L0
             "a" Type.NewInCtx >a
-            @a @a TMut T2 T0 T->
+            @a @a Type.TMut T2 T0 T->
             a> drop
         }
         { PRIM_MUT_IS_SET ->
             Ctx.L0
             "a" Type.NewInCtx >a
-            @a TMut T1 TYPE_BOOL T1 T->
+            @a Type.TMut T1 TYPE_BOOL T1 T->
             a> drop
         }
 

@@ -40,20 +40,20 @@ def(+Needs.new, -- +Needs, List.Nil >stack +Set.Empty >+set +Needs)
 def(+Needs.rdrop, +Needs --, /+Needs +set> rdrop stack> drop)
 
 def(Need.needed?, Need +Needs -- Bool +Needs, >Nat +set:member?)
-def(Word.needed?, Word +Needs -- Bool +Needs, NEED_WORD needed?)
-def(Block.needed?, Block +Needs -- Bool +Needs, NEED_BLOCK needed?)
-def(Tag.word-needed?, Tag +Needs -- Bool +Needs, NEED_TAGW needed?)
-def(Tag.pat-needed?, Tag +Needs -- Bool +Needs, NEED_TAGP needed?)
+def(Word.needed?, Word +Needs -- Bool +Needs, Need.NEED_WORD needed?)
+def(Block.needed?, Block +Needs -- Bool +Needs, Need.NEED_BLOCK needed?)
+def(Tag.word-needed?, Tag +Needs -- Bool +Needs, Need.NEED_TAGW needed?)
+def(Tag.pat-needed?, Tag +Needs -- Bool +Needs, Need.NEED_TAGP needed?)
 
 def(+Needs.need!, Need +Needs -- +Needs,
     dup needed? if(
         drop,
-        dup >Nat +set:insert! stack:Cons
+        dup >Nat +set:insert! stack:List.Cons
     ))
-def(+Needs.need-word!, Word +Needs -- +Needs, NEED_WORD need!)
-def(+Needs.need-block!, Block +Needs -- +Needs, NEED_BLOCK need!)
-def(+Needs.need-tag-word!, Tag +Needs -- +Needs, NEED_TAGW need!)
-def(+Needs.need-tag-pat!, Tag +Needs -- +Needs, NEED_TAGP need!)
+def(+Needs.need-word!, Word +Needs -- +Needs, Need.NEED_WORD need!)
+def(+Needs.need-block!, Block +Needs -- +Needs, Need.NEED_BLOCK need!)
+def(+Needs.need-tag-word!, Tag +Needs -- +Needs, Need.NEED_TAGW need!)
+def(+Needs.need-tag-pat!, Tag +Needs -- +Needs, Need.NEED_TAGP need!)
 
 def(+Needs.determine-arrow-needs!, Arrow +Mirth +Needs -- +Mirth +Needs,
     run-arrow! determine-transitive-needs!)

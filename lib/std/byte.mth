@@ -48,7 +48,7 @@ data Byte {
 
         def Int.>Byte-if(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] { >U8-if(>Byte f, g) }
         def Int.>Byte-else(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] { >Byte-if(id, f) }
-        def Int.>Byte? [ Int -- Maybe(Byte) ] { >Byte-if(Some, drop None) }
+        def Int.>Byte? [ Int -- Maybe(Byte) ] { >Byte-if(Maybe.Some, drop Maybe.None) }
         def Int.>Byte-wrap [ Int -- Byte ] { >U8-wrap >Byte }
         def Int.>Byte-clamp [ Int -- Byte ] { >U8-clamp >Byte }
         def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
@@ -68,24 +68,24 @@ data Byte {
         def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
         def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
 
-        def is-upper [ Byte -- Bool ] { B'A' B'Z' in-range }
-        def is-lower [ Byte -- Bool ] { B'a' B'z' in-range }
-        def is-digit [ Byte -- Bool ] { B'0' B'9' in-range }
+        def is-upper [ Byte -- Bool ] { Byte.B'A' Byte.B'Z' in-range }
+        def is-lower [ Byte -- Bool ] { Byte.B'a' Byte.B'z' in-range }
+        def is-digit [ Byte -- Bool ] { Byte.B'0' Byte.B'9' in-range }
         def is-alpha [ Byte -- Bool ] { dup on2(is-upper, is-lower) || }
         def is-alnum [ Byte -- Bool ] { dup on2(is-digit, is-alpha) || }
-        def is-printable [ Byte -- Bool ] { B'!' B'~' in-range }
+        def is-printable [ Byte -- Bool ] { Byte.B'!' Byte.B'~' in-range }
         def is-hexdigit [ Byte -- Bool ] {
-            dup dup on3(is-digit, B'A' B'F' in-range, B'a' B'f' in-range) || ||
+            dup dup on3(is-digit, Byte.B'A' Byte.B'F' in-range, Byte.B'a' Byte.B'f' in-range) || ||
         }
-        def is-ascii [ Byte -- Bool ] { BNUL BDEL in-range }
+        def is-ascii [ Byte -- Bool ] { Byte.BNUL Byte.BDEL in-range }
         def is-upper-or-underscore [ Byte -- Bool ] {
-            dup on2(is-upper, B'_' ==) ||
+            dup on2(is-upper, Byte.B'_' ==) ||
         }
         def is-overload-trigger [ Byte -- Bool ] {
             is-upper-or-underscore not
         }
         def is-sign [ Byte -- Bool ] {
-            dup on2(B'-' ==, B'+' ==) ||
+            dup on2(Byte.B'-' ==, Byte.B'+' ==) ||
         }
 
         def emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }
@@ -97,17 +97,17 @@ data Byte {
     }
 
     def to-ascii-str [ Byte -- Maybe(Str) ] {
-        dup BNUL BDEL in-range if(
-            to-str-unsafe Some,
-            drop None
+        dup Byte.BNUL Byte.BDEL in-range if(
+            to-str-unsafe Maybe.Some,
+            drop Maybe.None
         )
     }
 
     def is-string-end [ Byte -- Bool ] {
-        { BQUOTE -> True }
-        { BLF -> True }
-        { BNUL -> True }
-        { _ -> drop False }
+        { BQUOTE -> Bool.True }
+        { BLF -> Bool.True }
+        { BNUL -> Bool.True }
+        { _ -> drop Bool.False }
     }
 
     def to-lower [ Byte -- Byte ] {
@@ -130,17 +130,17 @@ data Byte {
     }
 
     def is-name-byte [ Byte -- Bool ] {
-        { BLPAREN -> False }
-        { BRPAREN -> False }
-        { BLSQUARE -> False }
-        { BRSQUARE -> False }
-        { BLCURLY -> False }
-        { BRCURLY -> False }
-        { BCOMMA -> False }
-        { BQUOTE -> False }
-        { BCOLON -> False }
-        { BDEL -> False }
-        { _ -> BSPACE > }
+        { BLPAREN -> Bool.False }
+        { BRPAREN -> Bool.False }
+        { BLSQUARE -> Bool.False }
+        { BRSQUARE -> Bool.False }
+        { BLCURLY -> Bool.False }
+        { BRCURLY -> Bool.False }
+        { BCOMMA -> Bool.False }
+        { BQUOTE -> Bool.False }
+        { BCOLON -> Bool.False }
+        { BDEL -> Bool.False }
+        { _ -> Byte.BSPACE > }
     }
 
     def zencode [ Byte -- Str ] {

@@ -25,10 +25,13 @@ def(run-specializer!, +Mirth Arrow -- +Mirth Arrow,
 field(Word.~sp-checked, Word, Bool)
 field(Block.~sp-checked, Block, Bool)
 
-data(+SPCheck, SPCHECK -> checklist:List(SPCheckItem))
+struct +SPCheck {
+    checklist:List(SPCheckItem)
+    --
+}
 
-def(+SPCheck.begin!, -- +SPCheck, List.L0 >checklist SPCHECK)
-def(+SPCheck.end!, +SPCheck --, SPCHECK -> checklist> drop)
+def(+SPCheck.begin!, -- +SPCheck, List.L0 >checklist +SPCheck)
+def(+SPCheck.end!, +SPCheck --, +SPCheck -> checklist> drop)
 def(+SPCheck.loop!, +Mirth +SPCheck -- +Mirth +SPCheck,
     while-some(checklist:uncons, do-item-check!))
 
@@ -37,8 +40,8 @@ data(SPCheckItem,
     SPCHECK_BLOCK -> Block)
 
 def(+SPCheck.do-item-check!, SPCheckItem +Mirth +SPCheck -- +Mirth +SPCheck,
-    SPCHECK_WORD -> >w @w rdip:arrow check-arrow! @w WordArrow rdip:prop w> ~arrow !,
-    SPCHECK_BLOCK -> >b @b rdip:arrow check-arrow! @b BlockArrow rdip:prop b> ~arrow !)
+    SPCHECK_WORD -> >w @w rdip:arrow check-arrow! @w PropLabel.WordArrow rdip:prop w> ~arrow !,
+    SPCHECK_BLOCK -> >b @b rdip:arrow check-arrow! @b PropLabel.BlockArrow rdip:prop b> ~arrow !)
 
 def(+SPCheck.check-arrow!, Arrow +Mirth +SPCheck -- Arrow +Mirth +SPCheck,
     atoms:flatmap(check-atom!))
@@ -56,8 +59,8 @@ def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
         OpF64 -> drop List.L1,
         OpStr -> drop List.L1,
         OpTag -> drop List.L1,
-        OpMatch -> check-match! OpMatch swap op! List.L1,
-        OpLambda -> check-lambda! OpLambda swap op! List.L1,
+        OpMatch -> check-match! Op.OpMatch swap op! List.L1,
+        OpLambda -> check-lambda! Op.OpLambda swap op! List.L1,
         OpVar -> drop List.L1,
         OpBlockPush -> push-check-block! List.L1,
         OpBlockRun -> push-check-block! List.L1,
@@ -80,15 +83,15 @@ def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
 def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List(Atom),
     dup push-check-word!
     over args >List+? match(
-        None -> drop List.L1,
-        Some ->
+        Maybe.None -> drop List.L1,
+        Maybe.Some ->
             dup has(rdip:free-vars has(is-physical?)) if(
                 # can't specialize, just check the args
                 dup for(check-arg!)
                 drop2 List.L1,
 
                 # boot up the specializer for real!
-                SPKEY swap rdip:specialize-word!
+                SPKey swap rdip:specialize-word!
                 dup push-check-word!
                 swap rdip:ab-build-over-atom!(ab-word!) atoms
             )
@@ -103,16 +106,16 @@ def(+SPCheck.check-lambda!, Lambda +Mirth +SPCheck -- Lambda +Mirth +SPCheck,
     body:check-arrow!)
 
 def(+SPCheck.push-check-word!, Word +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap(False) if(
+    dup ~sp-checked @? unwrap(Bool.False) if(
         drop,
-        True over ~sp-checked !
-        SPCHECK_WORD checklist:Cons
+        Bool.True over ~sp-checked !
+        SPCheckItem.SPCHECK_WORD checklist:List.Cons
     ))
 def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap(False) if(
+    dup ~sp-checked @? unwrap(Bool.False) if(
         drop,
-        True over ~sp-checked !
-        SPCHECK_BLOCK checklist:Cons
+        Bool.True over ~sp-checked !
+        SPCheckItem.SPCHECK_BLOCK checklist:List.Cons
     ))
 
 def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
@@ -130,7 +133,7 @@ def(Block.similar, +Mirth Block Block -- +Mirth Bool,
     dip:drop2
 )
 def(Arrow.similar, +Mirth Arrow Arrow -- +Mirth Bool,
-    # both(atoms /L1) if-some(swap if-some(similar, drop False), drop False)
+    # both(atoms /L1) if-some(swap if-some(similar, drop Bool.False), drop Bool.False)
     both(atoms) ==:similar
 )
 def(Atom.similar, +Mirth Atom Atom -- +Mirth Bool,
@@ -139,32 +142,32 @@ def(Atom.similar, +Mirth Atom Atom -- +Mirth Bool,
     dip(drop2)
 )
 def Op.similar [ +Mirth Op Op -- +Mirth Bool ] {
-    { OpNone -> match { OpNone -> True, _ -> drop False }}
-    { OpPrim -> swap match { OpPrim -> ==, _ -> drop2 False }}
-    { OpWord -> swap match { OpWord -> ==, _ -> drop2 False }}
-    { OpExternal -> swap match { OpExternal -> ==, _ -> drop2 False }}
-    { OpBuffer -> swap match { OpBuffer -> ==, _ -> drop2 False }}
-    { OpVariable -> swap match { OpVariable -> ==, _ -> drop2 False }}
-    { OpField -> swap match { OpField -> ==, _ -> drop2 False }}
-    { OpInt -> swap match { OpInt -> ==, _ -> drop2 False }}
-    { OpF64 -> swap match { OpF64 -> ==, _ -> drop2 False }}
-    { OpStr -> swap match { OpStr -> ==, _ -> drop2 False }}
-    { OpTag -> swap match { OpTag -> ==, _ -> drop2 False }}
-    { OpMatch -> drop2 False }
-    { OpLambda -> drop2 False }
-    { OpVar -> drop2 False }
-    { OpBlockPush -> swap match { OpBlockPush -> similar, _ -> drop2 False }}
-    { OpBlockRun -> swap match { OpBlockRun -> similar, _ -> drop2 False }}
-    { OpLabelPush -> swap match { OpLabelPush -> ==, _ -> drop2 False }}
-    { OpLabelPop -> swap match { OpLabelPop -> ==, _ -> drop2 False }}
-    { OpLabelPushR -> swap match { OpLabelPushR -> ==, _ -> drop2 False }}
-    { OpLabelPopR -> swap match { OpLabelPopR -> ==, _ -> drop2 False }}
-    { OpDataGetEnumValue -> swap match { OpDataGetEnumValue -> ==, _ -> drop2 False }}
-    { OpDataFromEnumValue -> swap match { OpDataFromEnumValue -> ==, _ -> drop2 False }}
-    { OpDataGetLabel -> swap match { OpDataGetLabel -> similar, _ -> drop2 False }}
-    { OpDataSetLabel -> swap match { OpDataSetLabel -> similar, _ -> drop2 False }}
-    { OpTableToIndex -> swap match { OpTableToIndex -> ==, _ -> drop2 False }}
-    { OpTableFromIndex -> swap match { OpTableFromIndex -> ==, _ -> drop2 False }}
+    { OpNone -> match { OpNone -> Bool.True, _ -> drop Bool.False }}
+    { OpPrim -> swap match { OpPrim -> ==, _ -> drop2 Bool.False }}
+    { OpWord -> swap match { OpWord -> ==, _ -> drop2 Bool.False }}
+    { OpExternal -> swap match { OpExternal -> ==, _ -> drop2 Bool.False }}
+    { OpBuffer -> swap match { OpBuffer -> ==, _ -> drop2 Bool.False }}
+    { OpVariable -> swap match { OpVariable -> ==, _ -> drop2 Bool.False }}
+    { OpField -> swap match { OpField -> ==, _ -> drop2 Bool.False }}
+    { OpInt -> swap match { OpInt -> ==, _ -> drop2 Bool.False }}
+    { OpF64 -> swap match { OpF64 -> ==, _ -> drop2 Bool.False }}
+    { OpStr -> swap match { OpStr -> ==, _ -> drop2 Bool.False }}
+    { OpTag -> swap match { OpTag -> ==, _ -> drop2 Bool.False }}
+    { OpMatch -> drop2 Bool.False }
+    { OpLambda -> drop2 Bool.False }
+    { OpVar -> drop2 Bool.False }
+    { OpBlockPush -> swap match { OpBlockPush -> similar, _ -> drop2 Bool.False }}
+    { OpBlockRun -> swap match { OpBlockRun -> similar, _ -> drop2 Bool.False }}
+    { OpLabelPush -> swap match { OpLabelPush -> ==, _ -> drop2 Bool.False }}
+    { OpLabelPop -> swap match { OpLabelPop -> ==, _ -> drop2 Bool.False }}
+    { OpLabelPushR -> swap match { OpLabelPushR -> ==, _ -> drop2 Bool.False }}
+    { OpLabelPopR -> swap match { OpLabelPopR -> ==, _ -> drop2 Bool.False }}
+    { OpDataGetEnumValue -> swap match { OpDataGetEnumValue -> ==, _ -> drop2 Bool.False }}
+    { OpDataFromEnumValue -> swap match { OpDataFromEnumValue -> ==, _ -> drop2 Bool.False }}
+    { OpDataGetLabel -> swap match { OpDataGetLabel -> similar, _ -> drop2 Bool.False }}
+    { OpDataSetLabel -> swap match { OpDataSetLabel -> similar, _ -> drop2 Bool.False }}
+    { OpTableToIndex -> swap match { OpTableToIndex -> ==, _ -> drop2 Bool.False }}
+    { OpTableFromIndex -> swap match { OpTableFromIndex -> ==, _ -> drop2 Bool.False }}
 }
 
 def TagField.similar [ TagField TagField -- Bool ] {
@@ -174,10 +177,10 @@ def TagField.similar [ TagField TagField -- Bool ] {
     type/resource> type/resource> drop2
 }
 
-data(SPKey, SPKEY -> List+(Arg))
-def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKEY) ==(similar))
+data(SPKey, SPKey -> List+(Arg))
+def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKey) ==(similar))
 def(SPKey.>Str, +Mirth SPKey -- +Mirth Str,
-    SPKEY -> Str("(" ; dip:"" for(dip:; rdip:>Str ; ",") drop ")" ;))
+    SPKey -> Str("(" ; dip:"" for(dip:; rdip:>Str ; ",") drop ")" ;))
 def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
     >Str >Name)
 
@@ -190,21 +193,21 @@ def(Word.sp-synthed, Word -- Map(SPKey,Word),
 def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
     >word >key
     @key @word sp-synthed lookup(similar) match(
-        Some ->
+        Maybe.Some ->
             # This specialization has already been done. So inline this
             # specialization only if the word was marked as inline.
             @word prefer-inline? over ~prefer-inline? !,
-        None ->
+        Maybe.None ->
             # This word has not been specialized with these arguments before.
             @word head >head
-            None >sig?
+            Maybe.None >sig?
             @word body >body
             Str( "sp" ; @word sp-synthed len 1+ show ; ) >Name >name
             0u >arity
             Word.new! >word'
 
-            @word NAMESPACE_WORD @word' name 0 QName.Mk
-            @word' WordQName prop @word' ~qname !
+            @word Namespace.NAMESPACE_WORD @word' name 0 QName.Mk
+            @word' PropLabel.WordQName prop @word' ~qname !
 
             @key >key @word' >value KeyValuePair
             @word sp-synthed insert @word ~sp-synthed !
@@ -212,12 +215,12 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             # @key @word @word' WordType prop2(
             #     ctx-type specialize-ctx-type pack2
             # ) @word' ~ctx-type !
-            @word' dup WordType prop(
+            @word' dup PropLabel.WordType prop(
                 arrow ctx-type pack2
             ) @word' ~ctx-type !
-            # True @word' ~inferring-type? !
-            True @word' ~prefer-inline? !
-            @key @word @word' dup WordArrow prop3(ab-build-word-arrow!(dip(
+            # Bool.True @word' ~inferring-type? !
+            Bool.True @word' ~prefer-inline? !
+            @key @word @word' dup PropLabel.WordArrow prop3(ab-build-word-arrow!(dip(
                 synth-specialized-word!
             ))) @word' ~arrow !
             @word' type drop
@@ -227,29 +230,33 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
 }
 
 def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
-    nip dip:SUBST_NIL freshen nip swap
-    /SPKEY
+    nip dip:Subst.SUBST_NIL freshen nip swap
+    /SPKey
     dup first token >token +Gamma
-    dip:SUBST_NIL nip
+    dip:Subst.SUBST_NIL nip
     swap dom (
         swap reverse-for(
             dip(force-cons?!
                 unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
                 unpack2)
-            /ArgBlock type TMorphism unify! drop
+            /ArgBlock type Type.TMorphism unify! drop
         )
     )
     rdrop
     dip:Ctx.L0 rigidify-sig!)
 
-data(+SPSynth, +SPSYNTH ->
-    spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)
+struct +SPSynth {
+    spkey:SPKey
+    spword:Word
+    spmap:Map(Var,Block)
+    +AB
+}
 
 def(+SPSynth.ab(f),
         (*a spkey:SPKey spword:Word spmap:Map(Var,Block) +AB --
          *b spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)
         *a +SPSynth -- *b +SPSynth,
-    +SPSYNTH -> f +SPSYNTH)
+    +SPSynth -> f +SPSynth)
 
 def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
     dup >spword dip(>spkey)
@@ -258,15 +265,15 @@ def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
     op match(
         OpLambda ->
             dup params
-            @spkey /SPKEY >List
+            @spkey /SPKey >List
             dup2 dip:len len == else(
                 "wrong number of lambda params in synth-specialized-word!"
                 rdip:fatal-error!
             )
             map2(/ArgBlock >value >key KeyValuePair) >pairs Map >spmap
-            +SPSYNTH
+            +SPSynth
             body synth-arrow!
-            /+SPSYNTH spkey> spword> spmap> drop3,
+            /+SPSynth spkey> spword> spmap> drop3,
         _ -> "unexpected shape" rdip:fatal-error!
     ))
 
@@ -288,7 +295,7 @@ def(+SPSynth.synth-op!, +Mirth +SPSynth Op -- +Mirth +SPSynth,
     _ -> ab:ab-op!)
 
 def +SPSynth.synth-block! [ +Mirth +SPSynth Block -- +Mirth +SPSynth ] {
-    ab:ab-block!(+SPSYNTH synth-run! /+SPSYNTH)
+    ab:ab-block!(+SPSynth synth-run! /+SPSynth)
 }
 
 def(+SPSynth.synth-run!, +Mirth +SPSynth Block -- +Mirth +SPSynth,
@@ -302,18 +309,18 @@ def +SPSynth.synth-var! [ +Mirth +SPSynth Var -- +Mirth +SPSynth ] {
 }
 
 def(+SPSynth.synth-match!, +Mirth +SPSynth Match -- +Mirth +SPSynth,
-    MetaVar.new! STMeta >cod
+    MetaVar.new! StackType.STMeta >cod
     dup body >body
     cases ab:ab-match!(for(
         dup pattern token-start
         over Case.body token-start case!(
             dup Case.pattern atoms reverse-for(op +Pattern.op!),
-            +SPSYNTH body synth-arrow! /+SPSYNTH
+            +SPSynth body synth-arrow! /+SPSynth
         )
     )))
 
 def(+SPSynth.synth-lambda!, +Mirth +SPSynth Lambda -- +Mirth +SPSynth,
     dup params
-    ab:ab-lambda!(+SPSYNTH
+    ab:ab-lambda!(+SPSynth
         body synth-arrow!
-    /+SPSYNTH))
+    /+SPSynth))

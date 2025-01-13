@@ -29,15 +29,15 @@ def(State.init, a -- State(a),
     0 unsafe(read-from-argv) >program-name
     ArgvInfo >argv-info
 
-    False >parsing?
-    None >option
-    None >option-option
+    Bool.False >parsing?
+    Maybe.None >option
+    Maybe.None >option-option
     CurrentArg >arg
 
     >arguments
     0 >positional-index
     0 >longest-arg-length
-    None >error
+    Maybe.None >error
     State)
 
 def(State.argv, State(a) -- List(Str), argv-info ArgvInfo.argv)

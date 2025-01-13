@@ -22,23 +22,23 @@ def(Tycon.name, +Mirth Tycon -- +Mirth Name,
 def(Tycon.qname-soft, +Mirth Tycon -- +Mirth Maybe(QName),
     TYCON_DATA -> qname-soft,
     TYCON_TABLE -> qname-soft,
-    TYCON_PRIM -> tycon-qname Some)
+    TYCON_PRIM -> tycon-qname Maybe.Some)
 def(Tycon.qname-hard, +Mirth Tycon -- +Mirth QName,
     TYCON_DATA -> qname-hard,
     TYCON_TABLE -> qname-hard,
     TYCON_PRIM -> tycon-qname)
 
 def(Tycon.==, Tycon Tycon -- Bool,
-    TYCON_DATA -> swap match(TYCON_DATA -> ==, _ -> drop2 False),
-    TYCON_TABLE -> swap match(TYCON_TABLE -> ==, _ -> drop2 False),
-    TYCON_PRIM -> swap match(TYCON_PRIM -> ==, _ -> drop2 False))
+    TYCON_DATA -> swap match(TYCON_DATA -> ==, _ -> drop2 Bool.False),
+    TYCON_TABLE -> swap match(TYCON_TABLE -> ==, _ -> drop2 Bool.False),
+    TYCON_PRIM -> swap match(TYCON_PRIM -> ==, _ -> drop2 Bool.False))
 
 def(Tycon.>Type, Tycon -- Type,
-    TYCON_DATA -> TData,
-    TYCON_TABLE -> TTable,
-    TYCON_PRIM -> TPrim)
+    TYCON_DATA -> Type.TData,
+    TYCON_TABLE -> Type.TTable,
+    TYCON_PRIM -> Type.TPrim)
 
 def(Tycon.full-type-fresh, +Mirth Tycon -- +Mirth Type/Resource,
-    TYCON_DATA -> dip:SUBST_NIL full-type map(freshen, freshen) nip,
-    TYCON_PRIM -> dup is-resource? if(TPrim Resource Right, TPrim Left),
-    TYCON_TABLE -> TTable Left)
+    TYCON_DATA -> dip:Subst.SUBST_NIL full-type map(freshen, freshen) nip,
+    TYCON_PRIM -> dup is-resource? if(Type.TPrim Resource Either.Right, Type.TPrim Either.Left),
+    TYCON_TABLE -> Type.TTable Either.Left)

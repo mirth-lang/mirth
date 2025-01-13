@@ -24,4 +24,4 @@ def(Buffer.new!, +Mirth Token QName USize -- +Mirth Buffer,
     tuck ~size !
     tuck ~qname !
     tuck ~head !
-    dup DefBuffer register)
+    dup Def.DefBuffer register)

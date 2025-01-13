@@ -27,14 +27,14 @@ def TypeDef.new! [ +Mirth head:Maybe(Token) name:Name state:PropState(QName) -- 
     TypeDef.alloc!
     head> over ~head? !
     name> over ~name !
-    dup TypeDefQName >label Prop over ~qname !
-    dup DefType register
+    dup PropLabel.TypeDefQName >label Prop over ~qname !
+    dup Def.DefType register
 }
 
 def +Mirth.def-type! [ +Mirth qname:QName type:Type -- +Mirth ] {
-    None >head
+    Maybe.None >head
     qname> dup name >name
-    PSReady >state
+    PropState.PSReady >state
     TypeDef.new!
-    type> over TypeDefTarget prop swap ~target !
+    type> over PropLabel.TypeDefTarget prop swap ~target !
 }

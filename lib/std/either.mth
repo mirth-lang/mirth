@@ -10,23 +10,23 @@ data Either(a,b) {
     --
 
     def left? [ Either(a,b) -- Maybe(a) ] {
-        { Left -> Some }
-        { Right -> drop None }
+        { Left -> Maybe.Some }
+        { Right -> drop Maybe.None }
     }
 
     def right? [ Either(a,b) -- Maybe(b) ] {
-        { Left -> drop None }
-        { Right -> Some }
+        { Left -> drop Maybe.None }
+        { Right -> Maybe.Some }
     }
 
     def map(g) [ (*x b1 -- *x b2) *x Either(a,b1) -- *x Either(a,b2) ] {
-        { Left -> Left }
-        { Right -> g Right }
+        { Left -> Either.Left }
+        { Right -> g Either.Right }
     }
 
     def map(f,g) [ (*x a1 -- *y a2, *x b1 -- *y b2) *x Either(a1,b1) -- *y Either(a2,b2) ] {
-        { Left -> f Left }
-        { Right -> g Right }
+        { Left -> f Either.Left }
+        { Right -> g Either.Right }
     }
 
     def for(g) [ (*x b -- *x) *x Either(a,b) -- *x ] {
@@ -40,17 +40,17 @@ data Either(a,b) {
     }
 
     def bind(g) [ (*x b1 -- *x Either(a,b2)) *x Either(a,b1) -- *x Either(a,b2) ] {
-        { Left -> Left }
+        { Left -> Either.Left }
         { Right -> g }
     }
 }
 
 def while-left(f) [ (*c a -- *c Either(a,b)) *c a -- *c b ] {
-    Left while-some(dup left?, nip f)
+    Either.Left while-some(dup left?, nip f)
     right? unwrap(impossible!)
 }
 
 def while-right(f) [ (*c b -- *c Either(a,b)) *c b -- *c a ] {
-    Right while-some(dup right?, nip f)
+    Either.Right while-some(dup right?, nip f)
     left? unwrap(impossible!)
 }

@@ -30,8 +30,8 @@ data MacroAction {
     MADecl  [ [ +World +Mirth Token -- +World +Mirth Token ] ]
     MAArrow [ [ +Mirth +AB -- +Mirth +AB ] ]
     --
-    def decl?  { MADecl -> Some, _ -> drop None }
-    def arrow? { MAArrow -> Some, _ -> drop None }
+    def decl?  { MADecl -> Maybe.Some, _ -> drop Maybe.None }
+    def arrow? { MAArrow -> Maybe.Some, _ -> drop Maybe.None }
     def callable? { arrow? >Bool }
 }
 
@@ -39,28 +39,28 @@ def Macro.Prim [ +Mirth Str MacroAction -- +Mirth Macro ] {
     Macro.alloc! >macro
     @macro ~action !
     dup >Name @macro ~name !
-    -1 QName.Prim @macro MacroQName prop @macro ~qname !
+    -1 QName.Prim @macro PropLabel.MacroQName prop @macro ~qname !
     -1 @macro ~arity !
     macro>
 }
 
 def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
-    "import"        [ elab-module-import! ] MADecl Macro.Prim DefMacro register
-    "alias"         [ elab-alias!         ] MADecl Macro.Prim DefMacro register
-    "inline"        [ elab-inline!        ] MADecl Macro.Prim DefMacro register
-    "def"           [ elab-def!           ] MADecl Macro.Prim DefMacro register
-    "def-missing"   [ elab-def-missing!   ] MADecl Macro.Prim DefMacro register
-    "def-type"      [ elab-def-type!      ] MADecl Macro.Prim DefMacro register
-    "def-external"  [ elab-def-external!  ] MADecl Macro.Prim DefMacro register
-    "external"      [ elab-external!      ] MADecl Macro.Prim DefMacro register
-    "buffer"        [ elab-buffer!        ] MADecl Macro.Prim DefMacro register
-    "var"           [ elab-variable!      ] MADecl Macro.Prim DefMacro register
-    "table"         [ elab-table!         ] MADecl Macro.Prim DefMacro register
-    "field"         [ elab-field!         ] MADecl Macro.Prim DefMacro register
-    "data"          [ elab-data!          ] MADecl Macro.Prim DefMacro register
-    "struct"        [ elab-struct!        ] MADecl Macro.Prim DefMacro register
-    "embed-str"     [ elab-embed-str!     ] MADecl Macro.Prim DefMacro register
+    "import"        [ elab-module-import! ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "alias"         [ elab-alias!         ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "inline"        [ elab-inline!        ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "def"           [ elab-def!           ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "def-missing"   [ elab-def-missing!   ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "def-type"      [ elab-def-type!      ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "def-external"  [ elab-def-external!  ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "external"      [ elab-external!      ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "buffer"        [ elab-buffer!        ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "var"           [ elab-variable!      ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "table"         [ elab-table!         ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "field"         [ elab-field!         ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "data"          [ elab-data!          ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "struct"        [ elab-struct!        ] MacroAction.MADecl Macro.Prim Def.DefMacro register
+    "embed-str"     [ elab-embed-str!     ] MacroAction.MADecl Macro.Prim Def.DefMacro register
 
-    "match" [ elab-atom-match!    ] MAArrow Macro.Prim DefMacro register
-    "\\"    [ elab-atom-lambda!   ] MAArrow Macro.Prim DefMacro register
+    "match" [ elab-atom-match!    ] MacroAction.MAArrow Macro.Prim Def.DefMacro register
+    "\\"    [ elab-atom-lambda!   ] MacroAction.MAArrow Macro.Prim Def.DefMacro register
 }

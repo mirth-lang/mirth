@@ -9,7 +9,7 @@ import std.ctypes
 
 alias(Str.cat, prim-str-cat)
 inline(
-    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes NatUnsafe >USize }
+    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes Nat.NatUnsafe >USize }
     def Str.empty? [ Str -- Bool ] { num-bytes 0= }
 )
 
@@ -46,7 +46,7 @@ def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
 def Str.last-byte [ Str -- Byte ] {
     dup num-bytes 1- >UOffset-if (
         swap Str.byte@,
-        drop2 BNUL
+        drop2 Byte.BNUL
     )
 }
 
@@ -63,7 +63,7 @@ def(Str.byte@, UOffset Str -- Byte,
     with-data(
         dip(over) offset-in-bounds if(
             unsafe(uoffset @Byte),
-            drop2 BNUL
+            drop2 Byte.BNUL
         )
     ))
 
@@ -111,8 +111,8 @@ def Str.bytes-for(f) [ (*a Byte -- *a) *a Str -- *a ] {
 def Str.first-byte [ Str -- Maybe(Byte) ] {
     with-data(
         0> if(
-            unsafe(@Byte) Some,
-            drop None
+            unsafe(@Byte) Maybe.Some,
+            drop Maybe.None
         )
     )
 }
@@ -173,14 +173,14 @@ def(+Str.drop-slice, UOffset +Str +Unsafe -- Str +Str +Unsafe,
 
 ||| Find the first occurence of a string in the str buf, returning its index.
 def +Str.find [ Str +Str -- Maybe(UOffset) +Str ] {
-    None swap 0u while(
+    Maybe.None swap 0u while(
         over num-bytes over >USize +
         +Str.num-bytes? <= if(
             dup2 >UOffset over num-bytes unsafe(+Str.slice) == if(
-                rotl drop dup >UOffset Some rotr False,
-                True
+                rotl drop dup >UOffset Maybe.Some rotr Bool.False,
+                Bool.True
             ),
-            False
+            Bool.False
         ),
         1+
     ) drop2
@@ -206,9 +206,9 @@ def(Str.split-byte, Byte Str -- List+(Str),
     thaw +Str.split-byte rdrop)
 
 def(+Str.find-last-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Maybe(UOffset) +Str,
-    num-bytes? >UOffset None while(
+    num-bytes? >UOffset Maybe.None while(
         dup none? and(over 0>),
-        drop pred sip(byte@ rdip(p)) swap if(dup Some, None)
+        drop pred sip(byte@ rdip(p)) swap if(dup Maybe.Some, Maybe.None)
     ) nip)
 
 def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
@@ -218,24 +218,24 @@ def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
     )))
 
 def(+Str.push-show-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
-    BQUOTE -> "\\\"" ; False !escape-hex,
-    B'\' -> "\\\\" ; False !escape-hex,
-    BLF -> "\n" ; False !escape-hex,
-    BCR -> "\r" ; False !escape-hex,
-    BHT -> "\t" ; False !escape-hex,
+    BQUOTE -> "\\\"" ; Bool.False !escape-hex,
+    B'\' -> "\\\\" ; Bool.False !escape-hex,
+    BLF -> "\n" ; Bool.False !escape-hex,
+    BCR -> "\r" ; Bool.False !escape-hex,
+    BHT -> "\t" ; Bool.False !escape-hex,
     _ ->
-        dup BSPACE B'~' in-range and(@escape-hex and(dup is-hexdigit) not) if(
+        dup Byte.BSPACE Byte.B'~' in-range and(@escape-hex and(dup is-hexdigit) not) if(
             push-byte-ascii!
-            False !escape-hex,
+            Bool.False !escape-hex,
             "\\x" ; to-hexdigits
             dip:push-byte-ascii!
             push-byte-ascii!
-            True !escape-hex
+            Bool.True !escape-hex
         )
     )
 
 def(Str.show;, Str +Str -- +Str,
-    "\"" ; False >escape-hex bytes-for(push-show-byte!) escape-hex> drop "\"" ;)
+    "\"" ; Bool.False >escape-hex bytes-for(push-show-byte!) escape-hex> drop "\"" ;)
 
 
 ||| Convert the initial portion of a string into a 32-bit float.
@@ -248,10 +248,10 @@ inline def Str.parse-f64 [ Str -- F64 Str ] { prim-str-to-f64 }
 
 ||| Try to parse a string (in its entirety) as a 32-bit float.
 def Str.>F32? [ Str -- Maybe(F32) ] {
-    dup empty? if(drop None, parse-f32 empty? if(Some, drop None))
+    dup empty? if(drop Maybe.None, parse-f32 empty? if(Maybe.Some, drop Maybe.None))
 }
 
 ||| Try to parse a full string (in its entirety) as a 64-bit float.
 def Str.>F64? [ Str -- Maybe(F64) ] {
-    dup empty? if(drop None, parse-f64 empty? if(Some, drop None))
+    dup empty? if(drop Maybe.None, parse-f64 empty? if(Maybe.Some, drop Maybe.None))
 }

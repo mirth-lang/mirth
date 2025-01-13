@@ -106,7 +106,7 @@ struct +Tests {
     ||| As demonstrated here, you can run multiple checks within a test.
     def test(f) [ (+Test -- +Test) Str +Tests -- +Tests ]  {
         >test-name
-        False >test-failed
+        Bool.False >test-failed
         >+tests
         +Test
         f
@@ -134,7 +134,7 @@ struct +Test {
     ||| If the test already failed before, do nothing instead.
     def fail! {
         test-failed else(
-            True test-failed!
+            Bool.True test-failed!
             test-name +world:print(show; " test failed" ;)
         )
     }

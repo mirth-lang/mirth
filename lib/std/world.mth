@@ -53,7 +53,7 @@ def +World.is-directory? [ +World Path -- +World Bool ] {
     256u >USize +Buffer.new
     >Str with-cstr(
         base unsafe(posix-stat) >Int
-        0= if(base rdip:unsafe(st_mode@) S_ISDIR, False)
+        0= if(base rdip:unsafe(st_mode@) S_ISDIR, Bool.False)
     ) rdrop
 }
 
@@ -70,7 +70,7 @@ def st_mode@ [ Ptr +World +Unsafe -- U16 +World +Unsafe ] {
     rdip:running-os match(
         OS_LINUX -> 24u, # .. this is all terrible and brittle
         OS_WINDOWS -> 6u,
-        OS_MACOS -> rdip:running-arch ARCH_ARM64 == if(4u, 8u),
+        OS_MACOS -> rdip:running-arch Arch.ARCH_ARM64 == if(4u, 8u),
         _ -> drop 8u
     ) >UOffset swap uoffset @U16
 }

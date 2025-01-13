@@ -15,18 +15,18 @@ field(Package.~name, Package, Name)
 field(Package.~path, Package, Maybe(Path))
 
 def(Package.name, Package -- Name, ~name @)
-def(Package.qname, Package -- QName, NAMESPACE_ROOT swap name 0 QName.Mk)
+def(Package.qname, Package -- QName, Namespace.NAMESPACE_ROOT swap name 0 QName.Mk)
 def(Package.path, Package -- Maybe(Path), ~path @)
 
 def(Package.std, +Mirth -- +Mirth Package, builtin std)
 def(init-packages!, +Mirth -- +Mirth,
     builtin std
     "std" >Name over ~name !
-    None swap ~path !)
+    Maybe.None swap ~path !)
 
 def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
     dup path match(
-        Some -> nip Some,
+        Some -> nip Maybe.Some,
         None ->
             package-search-paths
             map(over name >Str >Path rdip:join)
@@ -48,25 +48,25 @@ def(Package.path!, +Mirth Path Package -- +Mirth,
                 ) fatal-error!
             ),
         None ->
-            Some swap ~path !
+            Maybe.Some swap ~path !
     ))
 
 def(Package.new!, +Mirth Maybe(Path) Name -- +Mirth Package,
     Package.alloc!
     tuck ~name !
     tuck ~path !
-    dup DefPackage register)
+    dup Def.DefPackage register)
 
 def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
     dup Package.find match(
         Some -> nip tuck path!,
-        None -> dip(Some) Package.new!
+        None -> dip(Maybe.Some) Package.new!
     ))
 
 def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
-    NAMESPACE_ROOT swap 0 QName.Mk def-soft? bind(package?))
+    Namespace.NAMESPACE_ROOT swap 0 QName.Mk def-soft? bind(package?))
 
 def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
-    dup Package.find unwrap(dup None swap Package.new!) nip)
+    dup Package.find unwrap(dup Maybe.None swap Package.new!) nip)
 
 def(Package.==, Package Package -- Bool, both(index) ==)

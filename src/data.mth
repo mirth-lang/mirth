@@ -35,31 +35,31 @@ def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
 def(Data.tags, Data -- List(Tag), ~tags @)
 def(Data.ctype?, Data +Mirth -- Maybe(CType) +Mirth, ~ctype? force!)
 
-def(TYPE_BOOL, +Mirth -- +Mirth Type, builtin bool TData)
-def(TYPE_U64, +Mirth -- +Mirth Type, builtin u64 TData)
-def(TYPE_U32, +Mirth -- +Mirth Type, builtin u32 TData)
-def(TYPE_U16, +Mirth -- +Mirth Type, builtin u16 TData)
-def(TYPE_U8,  +Mirth -- +Mirth Type, builtin u8  TData)
-def(TYPE_I64, +Mirth -- +Mirth Type, builtin i64 TData)
-def(TYPE_I32, +Mirth -- +Mirth Type, builtin i32 TData)
-def(TYPE_I16, +Mirth -- +Mirth Type, builtin i16 TData)
-def(TYPE_I8,  +Mirth -- +Mirth Type, builtin i8  TData)
+def(TYPE_BOOL, +Mirth -- +Mirth Type, builtin bool Type.TData)
+def(TYPE_U64, +Mirth -- +Mirth Type, builtin u64 Type.TData)
+def(TYPE_U32, +Mirth -- +Mirth Type, builtin u32 Type.TData)
+def(TYPE_U16, +Mirth -- +Mirth Type, builtin u16 Type.TData)
+def(TYPE_U8,  +Mirth -- +Mirth Type, builtin u8  Type.TData)
+def(TYPE_I64, +Mirth -- +Mirth Type, builtin i64 Type.TData)
+def(TYPE_I32, +Mirth -- +Mirth Type, builtin i32 Type.TData)
+def(TYPE_I16, +Mirth -- +Mirth Type, builtin i16 Type.TData)
+def(TYPE_I8,  +Mirth -- +Mirth Type, builtin i8  Type.TData)
 
 def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
     >ctype >tags >data >params >name
 
     @params len >Int dup @data ~arity !
     @name >Name @data ~name !
-    name> swap QName.Prim @data DataQName prop @data ~qname !
-    ctype> @data DataCType prop @data ~ctype? !
+    name> swap QName.Prim @data PropLabel.DataQName prop @data ~qname !
+    ctype> @data PropLabel.DataCType prop @data ~ctype? !
 
     @tags for(@data swap ~data !)
     tags> @data ~tags !
 
-    params> @data DataParams prop @data ~params !
-    None @data ~head? !
+    params> @data PropLabel.DataParams prop @data ~params !
+    Maybe.None @data ~head? !
 
-    data> DefData register)
+    data> Def.DefData register)
 
 def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     >tag >inputs >value >name
@@ -74,34 +74,34 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     @tag .data params >Ctx
     inputs> TT
     T0 @tag .data full-type T*+ T->
-    @tag TagType prop2
+    @tag PropLabel.TagType prop2
     @tag ~ctx-type !
 
-    tag> DefTag register)
+    tag> Def.DefTag register)
 
 def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     >underlying >tag >tagname >data >dataname
 
-    dataname> List.L0 data> @tag List.L1 underlying> IntLike Some make-prim-data!
+    dataname> List.L0 data> @tag List.L1 underlying> CType.IntLike Maybe.Some make-prim-data!
     tagname> 0 TYPE_INT List.L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
-    "Bool" List.L0 builtin bool builtin true builtin false List.L2 "_Bool" IntLike Some make-prim-data!
+    "Bool" List.L0 builtin bool builtin true builtin false List.L2 "_Bool" CType.IntLike Maybe.Some make-prim-data!
     "False" 0 List.L0 builtin false make-prim-tag!
     "True" 1 List.L0 builtin true make-prim-tag!
 
     TYPE_TYPE "a" >Name Var.new! >a
-    "CPtr" @a List.L1 builtin cptr builtin mk-cptr List.L1 None make-prim-data!
+    "CPtr" @a List.L1 builtin cptr builtin mk-cptr List.L1 Maybe.None make-prim-data!
     "CPtr" 0 TYPE_PTR List.L1 builtin mk-cptr make-prim-tag!
-    "CConst" @a List.L1 builtin cconst builtin mk-cconst List.L1 None make-prim-data!
-    "CConst" 0 @a TVar List.L1 builtin mk-cconst make-prim-tag!
-    "CRestrict" @a List.L1 builtin crestrict builtin mk-crestrict List.L1 None make-prim-data!
-    "CRestrict" 0 @a TVar List.L1 builtin mk-crestrict make-prim-tag!
-    "CVolatile" @a List.L1 builtin cvolatile builtin mk-cvolatile List.L1 None make-prim-data!
-    "CVolatile" 0 @a TVar List.L1 builtin mk-cvolatile make-prim-tag!
+    "CConst" @a List.L1 builtin cconst builtin mk-cconst List.L1 Maybe.None make-prim-data!
+    "CConst" 0 @a Type.TVar List.L1 builtin mk-cconst make-prim-tag!
+    "CRestrict" @a List.L1 builtin crestrict builtin mk-crestrict List.L1 Maybe.None make-prim-data!
+    "CRestrict" 0 @a Type.TVar List.L1 builtin mk-crestrict make-prim-tag!
+    "CVolatile" @a List.L1 builtin cvolatile builtin mk-cvolatile List.L1 Maybe.None make-prim-data!
+    "CVolatile" 0 @a Type.TVar List.L1 builtin mk-cvolatile make-prim-tag!
     a> drop
 
-    "CVoid" List.L0 builtin cvoid builtin mk-cvoid List.L1 Phantom Some make-prim-data!
+    "CVoid" List.L0 builtin cvoid builtin mk-cvoid List.L1 CType.Phantom Maybe.Some make-prim-data!
     "CVoid" 0 List.L0 builtin mk-cvoid make-prim-tag!
 
     "U64" builtin u64 "Int>U64-unsafe" builtin mk-u64 "uint64_t" make-prim-intlike!
@@ -132,7 +132,7 @@ def(init-data!, +Mirth -- +Mirth,
     "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-intlike!)
 
 def(data-qname, Data Name Int -- QName,
-    >arity >name TYCON_DATA NAMESPACE_TYCON >namespace QName)
+    >arity >name Tycon.TYCON_DATA Namespace.NAMESPACE_TYCON >namespace QName)
 
 def(data-word-qname, Data Str Nat -- QName,
     dip(>Name) >Int data-qname)
@@ -193,11 +193,11 @@ def(Data.is-transparent?, Data -- Bool,
         dup is-resource? if(
             dup tags single? match(
                 Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == &&,
-                None -> False,
+                None -> Bool.False,
             ),
             dup tags single? match(
                 Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == &&,
-                None -> False
+                None -> Bool.False
             )
         )
     ) nip)
@@ -227,10 +227,10 @@ def(Data.is-value-type?, Data -- Bool,
     is-resource? not)
 
 def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
-    dup sip:TData params for(TVar TApp)
+    dup sip:Type.TData params for(Type.TVar Type.TApp)
     swap is-value-type? if(
-        Left,
-        Resource Right
+        Either.Left,
+        Resource Either.Right
     ))
 
 #######
@@ -264,7 +264,7 @@ def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 def(Tag.only-tag?, Tag -- Bool, .data tags single? >Bool)
 
 def Tag.label-inputs-from-sig [ Tag -- List(Label) ] {
-    sig? if-some(run-tokens filter-some(sig-label?), Nil)
+    sig? if-some(run-tokens filter-some(sig-label?), List.Nil)
 }
 
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
@@ -348,10 +348,10 @@ def Tag.fields [ +Mirth Tag -- +Mirth List(TagField) ] {
     @tag ~fields memoize (
         @tag type dom split-parts nip filter-some(
             match {
-                { STPCons -> drop None }
-                { STPWith -> drop None }
-                { STPConsLabel -> @tag >tag >label Left  >type/resource TagField Some }
-                { STPWithLabel -> @tag >tag >label Right >type/resource TagField Some }
+                { STPCons -> drop Maybe.None }
+                { STPWith -> drop Maybe.None }
+                { STPConsLabel -> @tag >tag >label Either.Left  >type/resource TagField Maybe.Some }
+                { STPWithLabel -> @tag >tag >label Either.Right >type/resource TagField Maybe.Some }
             }
         )
     )

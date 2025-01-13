@@ -31,14 +31,14 @@ struct +InputOpenState {
         +buffer(base size) +file:unsafe:read-bytes! over 0> && if(
             length!
             0u >UOffset offset!
-            +InputOpen,
-            drop end! +InputDone
+            +Input.+InputOpen,
+            drop end! +Input.+InputDone
         )
     }
 
     ||| Refill input buffer if empty.
     def prepare-for-more! [ +InputOpenState -- +Input ] {
-        length 0= if(refill-buffer!, +InputOpen)
+        length 0= if(refill-buffer!, +Input.+InputOpen)
     }
 }
 
@@ -55,7 +55,7 @@ data +Input {
     }
 
     def stop! [ +Input -- +Input ] {
-        end! +InputDone
+        end! +Input.+InputDone
     }
 
     def end! [ +Input -- +File ] {
@@ -64,31 +64,31 @@ data +Input {
     }
 
     def done? [ +Input -- Bool +Input ] {
-        { +InputOpen -> False +InputOpen }
-        { +InputDone -> True +InputDone }
+        { +InputOpen -> Bool.False +Input.+InputOpen }
+        { +InputDone -> Bool.True +Input.+InputDone }
     }
 
     ||| Return the current char in the input buffer.
     ||| Returns NUL if the file is already exhausted.
     def peek [ +Input -- Byte +Input ] {
-        { +InputOpen -> offset +buffer:@U8 >Byte +InputOpen }
-        { +InputDone -> BNUL +InputDone }
+        { +InputOpen -> offset +buffer:@U8 >Byte +Input.+InputOpen }
+        { +InputDone -> Byte.BNUL +Input.+InputDone }
     }
 
     ||| Move to next char in input buffer.
     ||| Does nothing if the file is already exhausted.
     def move! [ +Input -- +Input ] {
         { +InputOpen -> length:pred offset:1+ prepare-for-more! }
-        { +InputDone -> +InputDone }
+        { +InputDone -> +Input.+InputDone }
     }
 
     ||| Read a chunk of input.
     def read-chunk! [ +Input -- Maybe(Str) +Input ] {
         { +InputOpen ->
-            offset length +buffer:@Str Some
+            offset length +buffer:@Str Maybe.Some
             refill-buffer! }
         { +InputDone ->
-            None +InputDone }
+            Maybe.None +Input.+InputDone }
     }
 
     ||| Read the whole file.

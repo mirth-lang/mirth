@@ -28,20 +28,20 @@ inline (
     def Var.<> [ Var Var -- Bool ] { == not }
 )
 def(Var.type;, +Str Var -- +Str, name >Str ;)
-def(Var.is-type?, Var -- Bool, type prim? has(PRIM_TYPE_TYPE ==))
-def(Var.is-stack?, Var -- Bool, type prim? has(PRIM_TYPE_STACK ==))
-def(Var.is-resource?, Var -- Bool, type prim? has(PRIM_TYPE_RESOURCE ==))
+def(Var.is-type?, Var -- Bool, type prim? has(PrimType.PRIM_TYPE_TYPE ==))
+def(Var.is-stack?, Var -- Bool, type prim? has(PrimType.PRIM_TYPE_STACK ==))
+def(Var.is-resource?, Var -- Bool, type prim? has(PrimType.PRIM_TYPE_RESOURCE ==))
 def(Var.is-physical?, Var -- Bool, type is-physical?)
 
 def(Var.new!, Type Name -- Var,
     Var.alloc!
     tuck ~name !
     tuck ~type !
-    None over ~auto-run? !)
+    Maybe.None over ~auto-run? !)
 
 def(Var.new-auto-run!, ArrowType Name -- Var,
-    dip(dup TMorphism) Var.new!
-    dip(Some) tuck ~auto-run? !)
+    dip(dup Type.TMorphism) Var.new!
+    dip(Maybe.Some) tuck ~auto-run? !)
 
 def Var.NewInCtx [ Ctx Type Str -- Ctx Var ] {
     >Name Var.new! sip:Ctx.new
@@ -77,9 +77,9 @@ def(Ctx.fresh-name!, Ctx -- Ctx Name,
         drop2 1+ "_x" over show cat >Name
     ) nip)
 def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
-    dip(PRIM_TYPE_STACK TPrim) fresh-var!)
+    dip(PrimType.PRIM_TYPE_STACK Type.TPrim) fresh-var!)
 def(Ctx.fresh-type-var!, Ctx -- Ctx Var,
-    dip(PRIM_TYPE_TYPE TPrim) fresh-var!)
+    dip(PrimType.PRIM_TYPE_TYPE Type.TPrim) fresh-var!)
 def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
     fresh-name! dip(swap) Var.new! sip(Ctx.new))
 
@@ -87,11 +87,11 @@ def(Ctx.==, Ctx Ctx -- Bool,
     on2:vars ==)
 
 def(Var.unify!, +Mirth +Gamma Var Var -- +Mirth +Gamma Type,
-    dup2 == if(drop TVar, both(TVar) unify-failed!))
+    dup2 == if(drop Type.TVar, both(Type.TVar) unify-failed!))
 
 def(Var.freshen, Subst Var -- Subst Type,
     swap dup2 has-var? if(
         tuck get-var,
-        MetaVar.new! TMeta dup
+        MetaVar.new! Type.TMeta dup
         dip(rotr cons)
     ))

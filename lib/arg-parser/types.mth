@@ -31,8 +31,8 @@ data(ArgpOptionType,
     End)
 
 def(ArgpOptionType.has-short?, ArgpOptionType -- Bool,
-    Short -> drop True,
-    _ -> drop False)
+    Short -> drop Bool.True,
+    _ -> drop Bool.False)
 
 data(ArgpOption, ArgpOption ->
     name:Maybe(Str)
@@ -49,7 +49,7 @@ data(ArgumentParsingError,
     UnknownArg)
 
 def(ArgumentParsingError.emit;, ArgumentParsingError +Str -- +Str,
-    MissingArg -> FGRed emit; "Missing argument: " ; Reset emit; ;,
+    MissingArg -> Sgr.FGRed emit; "Missing argument: " ; Sgr.Reset emit; ;,
     MissingArgValue -> "Missing associated value for flag option" ;,
     TooManyArgs -> "Too many positional arguments passed" ;,
     TooFewArgs -> "Too few positional arguments passed" ;,

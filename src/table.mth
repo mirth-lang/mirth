@@ -40,7 +40,7 @@ def(Field.index-type, +Mirth Field -- +Mirth Type, ~index-type force!)
 def(Field.value-type, +Mirth Field -- +Mirth Type, ~value-type force!)
 
 def(Field.dom, +Mirth Field -- +Mirth StackType, index-type T1)
-def(Field.cod, +Mirth Field -- +Mirth StackType, value-type TMut T1)
+def(Field.cod, +Mirth Field -- +Mirth StackType, value-type Type.TMut T1)
 def(Field.type, +Mirth Field -- +Mirth ArrowType, sip(dom) cod T->)
 
 def(Field.==, Field Field -- Bool, both(index) ==)

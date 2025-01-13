@@ -122,14 +122,14 @@ struct +Mirth {
 def +Mirth.Init! {
     0u >num-errors
     0u >num-warnings
-    False >prefer-inline-defs
+    Bool.False >prefer-inline-defs
     Builtin.Alloc! >builtin
-    None >mirth-base-path
+    Maybe.None >mirth-base-path
     List.L0 >package-search-paths
     +List.+L0 >+diagnostics
     +List.+L0 >+propstack
-    None >error-token
-    None >defining-namespace
+    Maybe.None >error-token
+    Maybe.None >defining-namespace
     LexicalState >lexical-state
     +Mirth
     init-packages!
@@ -179,9 +179,9 @@ def +Mirth.emit-diagnostic-at! [ Location Str Severity +Mirth -- +Mirth ] {
     Diagnostic +diagnostics:push!
 }
 
-def(+Mirth.emit-info-at!, Location Str +Mirth -- +Mirth, Info emit-diagnostic-at!)
-def(+Mirth.emit-warning-at!, Location Str +Mirth -- +Mirth, Warning emit-diagnostic-at!)
-def(+Mirth.emit-error-at!, Location Str +Mirth -- +Mirth, Error emit-diagnostic-at!)
+def(+Mirth.emit-info-at!, Location Str +Mirth -- +Mirth, Severity.Info emit-diagnostic-at!)
+def(+Mirth.emit-warning-at!, Location Str +Mirth -- +Mirth, Severity.Warning emit-diagnostic-at!)
+def(+Mirth.emit-error-at!, Location Str +Mirth -- +Mirth, Severity.Error emit-diagnostic-at!)
 def(+Mirth.emit-fatal-error-at!, *a Location Str +Mirth -- *b,
     emit-error-at! panic-diagnostics!)
 
@@ -195,13 +195,13 @@ def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b,
     dip(location) emit-fatal-error-at!)
 
 def(+Mirth.emit-deprecated!, Token old:Str new:Str +Mirth -- +Mirth,
-    Str(FGCyan emit; old> ; Reset emit;
+    Str(Sgr.FGCyan emit; old> ; Sgr.Reset emit;
         " is deprecated, please use ";
-        FGCyan emit; new> ; Reset emit;
+        Sgr.FGCyan emit; new> ; Sgr.Reset emit;
         " instead.";) emit-warning!)
 
 def +Mirth.with-error-token(f) [ (*a +Mirth -- *b +Mirth) *a Token +Mirth -- *b +Mirth ] {
-    lexical-state:error-token(swap Some) dip(f) lexical-state:error-token!
+    lexical-state:error-token(swap Maybe.Some) dip(f) lexical-state:error-token!
 }
 
 def +Mirth.default-error-location [ +Mirth -- +Mirth Location ] {
@@ -223,7 +223,7 @@ def +Mirth.fatal-error! [ *a Str +Mirth -- *b ] { error-location swap emit-fatal
 def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
     pop-diagnostics Str(
         for(diagnostic; "\n";)
-        FGRed emit; "Fatal error. Stopping early."; Reset emit;
+        Sgr.FGRed emit; "Fatal error. Stopping early."; Sgr.Reset emit;
     ) panic!)
 
 def(+Mirth.trace-diagnostics!, +World +Mirth -- +World +Mirth,
@@ -289,14 +289,14 @@ data PropLabel {
 }
 
 def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,
-    >label PSReady >state Prop)
+    >label PropState.PSReady >state Prop)
 def(PropLabel.prop2, b1 b2 PropLabel +Mirth -- Prop([b1 b2]) +Mirth,
     dip(pack2) prop)
 def(PropLabel.prop3, b1 b2 b3 PropLabel +Mirth -- Prop([b1 b2 b3]) +Mirth,
     dip(pack3) prop)
 
 def(PropLabel.prop(f), (a +Mirth -- b +Mirth) a PropLabel +Mirth -- Prop(b) +Mirth,
-    >label lexical-state swap [f] PSDelay >state Prop)
+    >label lexical-state swap [f] PropState.PSDelay >state Prop)
 def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
     dip:0 prop(drop f))
 def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
@@ -308,22 +308,22 @@ def(PropLabel.prop4(f), (a1 a2 a3 a4 +Mirth -- b +Mirth) a1 a2 a3 a4 PropLabel +
 
 def(Prop.ready?, Prop(t) -- Maybe(t),
     state match(
-        PSReady -> Some,
-        _ -> drop None
+        PSReady -> Maybe.Some,
+        _ -> drop Maybe.None
     ))
 
 def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
     dup @ state match(
-        PSReady -> nip Some,
+        PSReady -> nip Maybe.Some,
         PSDelay ->
             rotl with-lexical-state(
                 rotl
-                PSComputing over modify:state!
-                dip(run dup PSReady) modify:state!
-                Some
+                PropState.PSComputing over modify:state!
+                dip(run dup PropState.PSReady) modify:state!
+                Maybe.Some
             ),
         PSComputing ->
-            drop None
+            drop Maybe.None
     ))
 def(Prop.force!, Mut(Prop(t)) +Mirth -- t +Mirth,
     try-force! unwrap("Recursive prop detected!" fatal-error!))

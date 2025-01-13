@@ -40,10 +40,10 @@ def(Word.head, Word -- Token, ~head @)
 def(Word.sig?, Word -- Maybe(Token), ~sig? @)
 def(Word.body, Word -- Token, ~body @)
 def(Word.arity, Word -- Nat, ~arity @)
-def(Word.params, Word +Mirth -- List(Param) +Mirth, ~params dup mut-is-set if(force!, drop Nil))
+def(Word.params, Word +Mirth -- List(Param) +Mirth, ~params dup mut-is-set if(force!, drop List.Nil))
 def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
 def(Word.inferring-type?, Word -- Bool,
-    ~inferring-type? @? unwrap(False))
+    ~inferring-type? @? unwrap(Bool.False))
 
 def(Word.cname, Word +Mirth -- Str +Mirth,
     dup ~cname memoize(
@@ -54,8 +54,8 @@ def(Word.ctx-type, Word +Mirth -- Ctx ArrowType +Mirth, ~ctx-type force! unpack2
 def(Word.ctx, Word +Mirth -- Ctx +Mirth, ctx-type drop)
 def(Word.type, Word +Mirth -- ArrowType +Mirth, ctx-type nip)
 
-def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap(False))
-def Word.make-inline! [ Word -- ] { dip:True ~prefer-inline? ! }
+def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap(Bool.False))
+def Word.make-inline! [ Word -- ] { dip:Bool.True ~prefer-inline? ! }
 
 def(Word.new!,
     head:Token sig?:Maybe(Token) body:Token
@@ -66,7 +66,7 @@ def(Word.new!,
     body> over ~body !
     arity> over ~arity !
     sig?> over ~sig? !
-    dup DefWord register)
+    dup Def.DefWord register)
 
 def(Word.==, Word Word -- Bool, both(index) ==)
 def(Word.compare, Word Word -- Comparison, both(index) compare)

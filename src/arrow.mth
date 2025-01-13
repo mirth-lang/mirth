@@ -118,36 +118,36 @@ data Op {
     OpTableFromIndex [ Table ]
     --
     def to-run-var [ Op -- Maybe(Var) ] {
-        { OpVar -> dup auto-run? if(Some, drop None) }
-        { _ -> drop None }
+        { OpVar -> dup auto-run? if(Maybe.Some, drop Maybe.None) }
+        { _ -> drop Maybe.None }
     }
     def free-vars [ +Mirth Op -- +Mirth List(Var) ] {
-        { OpNone -> Nil }
-        { OpPrim -> drop Nil }
-        { OpWord -> drop Nil }
-        { OpExternal -> drop Nil }
-        { OpBuffer -> drop Nil }
-        { OpVariable -> drop Nil }
-        { OpField -> drop Nil }
-        { OpInt -> drop Nil }
-        { OpF64 -> drop Nil }
-        { OpStr -> drop Nil }
-        { OpTag -> drop Nil }
+        { OpNone -> List.Nil }
+        { OpPrim -> drop List.Nil }
+        { OpWord -> drop List.Nil }
+        { OpExternal -> drop List.Nil }
+        { OpBuffer -> drop List.Nil }
+        { OpVariable -> drop List.Nil }
+        { OpField -> drop List.Nil }
+        { OpInt -> drop List.Nil }
+        { OpF64 -> drop List.Nil }
+        { OpStr -> drop List.Nil }
+        { OpTag -> drop List.Nil }
         { OpMatch -> free-vars }
         { OpLambda -> free-vars }
         { OpVar -> List.L1 }
         { OpBlockPush -> free-vars }
         { OpBlockRun -> free-vars }
-        { OpLabelPush -> drop Nil }
-        { OpLabelPop -> drop Nil }
-        { OpLabelPushR -> drop Nil }
-        { OpLabelPopR -> drop Nil }
-        { OpDataGetEnumValue -> drop Nil }
-        { OpDataFromEnumValue -> drop Nil }
-        { OpDataGetLabel -> drop Nil }
-        { OpDataSetLabel -> drop Nil }
-        { OpTableToIndex -> drop Nil }
-        { OpTableFromIndex -> drop Nil }
+        { OpLabelPush -> drop List.Nil }
+        { OpLabelPop -> drop List.Nil }
+        { OpLabelPushR -> drop List.Nil }
+        { OpLabelPopR -> drop List.Nil }
+        { OpDataGetEnumValue -> drop List.Nil }
+        { OpDataFromEnumValue -> drop List.Nil }
+        { OpDataGetLabel -> drop List.Nil }
+        { OpDataSetLabel -> drop List.Nil }
+        { OpTableToIndex -> drop List.Nil }
+        { OpTableFromIndex -> drop List.Nil }
     }
 }
 
@@ -199,10 +199,10 @@ def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
 def(Block.qname, +Mirth Block -- +Mirth QName,
     dup ~qname memoize(dup dup home match(
         HomeMain ->
-            .module NAMESPACE_MODULE
+            .module Namespace.NAMESPACE_MODULE
             swap arrow token-start index show
             dip:"entry@" cat >Name 0 QName.Mk,
-        HomeWord -> dup NAMESPACE_WORD
+        HomeWord -> dup Namespace.NAMESPACE_WORD
             dip(dip:arrow arrow both(token-start index) - show >Name)
             swap 0 QName.Mk
     )) nip)
@@ -233,7 +233,7 @@ def(Block.new!, +Mirth Arrow -- +Mirth Block,
     over token-start over ~token !
     over dom over ~dom !
     over cod over ~cod !
-    tuck dup dip(BlockArrow prop) ~arrow !)
+    tuck dup dip(PropLabel.BlockArrow prop) ~arrow !)
 
 def(Block.new-deferred!(f), (+Mirth Block -- +Mirth Arrow) +Mirth Ctx Token Home -- +Mirth Block,
     Block.alloc!
@@ -241,9 +241,9 @@ def(Block.new-deferred!(f), (+Mirth Block -- +Mirth Arrow) +Mirth Ctx Token Home
     dup register-home!
     tuck ~token !
     tuck ~ctx !
-    MetaVar.new! STMeta over ~dom !
-    MetaVar.new! STMeta over ~cod !
-    dup dup BlockArrow prop(f) over ~arrow !)
+    MetaVar.new! StackType.STMeta over ~dom !
+    MetaVar.new! StackType.STMeta over ~cod !
+    dup dup PropLabel.BlockArrow prop(f) over ~arrow !)
 
 def(Block.typecheck!, +Mirth Block -- +Mirth,
     arrow drop)
