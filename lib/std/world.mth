@@ -53,7 +53,7 @@ def +World.is-directory? [ +World Path -- +World Bool ] {
     256u >USize +Buffer.new
     >Str with-cstr(
         base unsafe(posix-stat) >Int
-        0= if(base rdip:unsafe(st_mode@) S_ISDIR, Bool.False)
+        0= if(base rdip:unsafe(st_mode@) S_ISDIR, False)
     ) rdrop
 }
 

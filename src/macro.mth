@@ -30,8 +30,8 @@ data MacroAction {
     MADecl  [ [ +World +Mirth Token -- +World +Mirth Token ] ]
     MAArrow [ [ +Mirth +AB -- +Mirth +AB ] ]
     --
-    def decl?  { MADecl -> Maybe.Some, _ -> drop Maybe.None }
-    def arrow? { MAArrow -> Maybe.Some, _ -> drop Maybe.None }
+    def decl?  { MADecl -> Some, _ -> drop None }
+    def arrow? { MAArrow -> Some, _ -> drop None }
     def callable? { arrow? >Bool }
 }
 

@@ -68,7 +68,7 @@ def(ArgpOption.usage;, +ArgumentParser(a) +Str ArgpOption -- +ArgumentParser(a) 
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over flag-type match(
         Short -> 0u >UOffset rotl byte@ ==,
-        _ -> drop drop Bool.False
+        _ -> drop drop False
     ))
 
 ||| Parse a short cli flag, possibly with a argument value
@@ -79,19 +79,19 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
         Some ->
             dup arg-doc match(
                 Some ->
-                    Bool.True state parsing?! state!
-                    drop Maybe.Some state option-option! state!,
-                None -> flag-type state arguments swap Maybe.None swap parser
+                    True state parsing?! state!
+                    drop Some state option-option! state!,
+                None -> flag-type state arguments swap None swap parser
                 run state arguments! state!
-            ) Maybe.None,
-        None -> ArgumentParsingError.UnknownArg Maybe.Some
+            ) None,
+        None -> ArgumentParsingError.UnknownArg Some
     ))
 
 ||| Check if the currently parsed argument is something we accept
 def(check-long-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over name match(
         Some -> ==,
-        None -> drop Bool.False
+        None -> drop False
     ))
 
 ||| Parse either a short or long flag
@@ -103,8 +103,8 @@ def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentPars
 
 ||| Parse a positional argument, advancing the current index
 def(do-positional-option, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    state arguments swap Maybe.Some ArgpOptionType.Positional parser run
-    state arguments! state! Maybe.None
+    state arguments swap Some ArgpOptionType.Positional parser run
+    state arguments! state! None
     state positional-index 1+ state positional-index! state!)
 
 ||| Run the argument parser
@@ -136,10 +136,10 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
                 state parsing? if(
                     drop state option-option match(
                         Some -> arg-doc match (
-                            Some -> drop ArgumentParsingError.MissingArgValue Maybe.Some,
-                            None -> Bool.False state parsing?! state! Maybe.None
+                            Some -> drop ArgumentParsingError.MissingArgValue Some,
+                            None -> False state parsing?! state! None
                         ),
-                        None -> ArgumentParsingError.MissingArgValue Maybe.Some
+                        None -> ArgumentParsingError.MissingArgValue Some
                     ),
                     parse-flags
                 ),
@@ -148,33 +148,33 @@ def(parse-args, a ArgumentParser(a) -- Either([ArgumentParsingError Str], a),
                 state parsing? if(
                     state option-option match(
                         Some -> dup >oo arg-doc match(
-                            Some -> drop state arguments swap Maybe.Some oo> flag-type parser run state:arguments! Maybe.None,
-                            None -> oo> drop2 ArgumentParsingError.UnknownArg Maybe.Some
+                            Some -> drop state arguments swap Some oo> flag-type parser run state:arguments! None,
+                            None -> oo> drop2 ArgumentParsingError.UnknownArg Some
                         ),
-                        None -> drop ArgumentParsingError.UnknownArg Maybe.Some
-                    ) Bool.False state:parsing?!,
+                        None -> drop ArgumentParsingError.UnknownArg Some
+                    ) False state:parsing?!,
                     do-positional-option
                 )
             ),
-            drop Maybe.None
+            drop None
         ) for(
-            Maybe.Some state:error!,
+            Some state:error!,
         )
     )
 
     # Check if we are still waiting for an associated value for an option
     state parsing? then(
-        ArgumentParsingError.MissingArgValue Maybe.Some state error! state!
+        ArgumentParsingError.MissingArgValue Some state error! state!
     )
 
     # Run the callback function one last time to let it clean up
     # and run final checks
-    state arguments Maybe.None ArgpOptionType.End parser run state:arguments!
+    state arguments None ArgpOptionType.End parser run state:arguments!
 
     state arguments state error
     match(
-        Some -> usage pack2 Either.Left nip,
-        None -> Either.Right
+        Some -> usage pack2 Left nip,
+        None -> Right
     )
     rdrop)
 

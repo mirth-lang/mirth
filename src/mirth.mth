@@ -9,6 +9,7 @@ import std.terminal
 import std.maybe
 import std.output
 import std.path
+import std.either
 
 import mirth.mirth
 import mirth.location
@@ -122,14 +123,14 @@ struct +Mirth {
 def +Mirth.Init! {
     0u >num-errors
     0u >num-warnings
-    Bool.False >prefer-inline-defs
+    False >prefer-inline-defs
     Builtin.Alloc! >builtin
-    Maybe.None >mirth-base-path
+    None >mirth-base-path
     List.L0 >package-search-paths
     +List.+L0 >+diagnostics
     +List.+L0 >+propstack
-    Maybe.None >error-token
-    Maybe.None >defining-namespace
+    None >error-token
+    None >defining-namespace
     LexicalState >lexical-state
     +Mirth
     init-packages!
@@ -201,7 +202,7 @@ def(+Mirth.emit-deprecated!, Token old:Str new:Str +Mirth -- +Mirth,
         " instead.";) emit-warning!)
 
 def +Mirth.with-error-token(f) [ (*a +Mirth -- *b +Mirth) *a Token +Mirth -- *b +Mirth ] {
-    lexical-state:error-token(swap Maybe.Some) dip(f) lexical-state:error-token!
+    lexical-state:error-token(swap Some) dip(f) lexical-state:error-token!
 }
 
 def +Mirth.default-error-location [ +Mirth -- +Mirth Location ] {
@@ -286,7 +287,41 @@ data PropLabel {
     FieldValueType [ Field ]
     FieldIndexType [ Field ]
     MacroQName     [ Macro ]
+    --
+    def trace; [ PropLabel +Str -- +Str ] {
+        { DataQName      -> "data qname at " ; head? location?; }
+        { DataParams     -> "data params at " ; head? location?; }
+        { DataCType      -> "data ctype at " ; head? location?; }
+        { TagType        -> "tag ctype at " ; sig? location?; }
+        { TableQName     -> "table qname at " ; head location; }
+        { TypeDefQName   -> "type qname at " ; head? location?; }
+        { TypeDefTarget  -> "type target at " ; head? location?; }
+        { WordQName      -> "word qname at " ; head location; }
+        { WordType       -> "word type at " ; head location; }
+        { WordParams     -> "word params at " ; head location; }
+        { WordArrow      -> "word arrow at " ; head location; }
+        { BlockArrow     -> "block arrow at " ; token location; }
+        { AliasQName     -> "alias qname at " ; head location; }
+        { AliasTarget    -> "alias target at " ; head location; }
+        { ExternalQName  -> "external qname at " ; head location; }
+        { ExternalType   -> "external type at " ; head location; }
+        { ExternalCType  -> "external ctype at " ; head location; }
+        { VariableType   -> "variable type at " ; head location; }
+        { FieldQName     -> "field qname at " ; head location; }
+        { FieldValueType -> "field value type at " ; head location; }
+        { FieldIndexType -> "field index type at " ; head location; }
+        { MacroQName     -> "macro qname at " ; head? location?; }
+    }
 }
+
+def Token.location; [ +Str Token -- +Str ] {
+    location emit;
+}
+
+def Maybe.location?; (f {location;}) [ (+Str t -- +Str) +Str Maybe(t) -- +Str ] {
+    if-some(f, "???";)
+}
+
 
 def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,
     >label PropState.PSReady >state Prop)
@@ -308,25 +343,40 @@ def(PropLabel.prop4(f), (a1 a2 a3 a4 +Mirth -- b +Mirth) a1 a2 a3 a4 PropLabel +
 
 def(Prop.ready?, Prop(t) -- Maybe(t),
     state match(
-        PSReady -> Maybe.Some,
-        _ -> drop Maybe.None
+        PSReady -> Some,
+        _ -> drop None
     ))
 
-def(Prop.try-force!, Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth,
-    dup @ state match(
-        PSReady -> nip Maybe.Some,
-        PSDelay ->
+def Prop.try-force! [ Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth ] {
+    dup @ >prop
+    @prop state match {
+        { PSReady -> prop> drop nip Some }
+        { PSDelay ->
+            prop> label +propstack:push!
             rotl with-lexical-state(
                 rotl
                 PropState.PSComputing over modify:state!
                 dip(run dup PropState.PSReady) modify:state!
-                Maybe.Some
-            ),
-        PSComputing ->
-            drop Maybe.None
-    ))
-def(Prop.force!, Mut(Prop(t)) +Mirth -- t +Mirth,
-    try-force! unwrap("Recursive prop detected!" fatal-error!))
-def(Prop.force-or!(f), (*a +Mirth -- *a b +Mirth)
-        *a Mut(Prop(b)) +Mirth -- *a b +Mirth,
-    try-force! unwrap(f))
+                Some
+            )
+            +propstack:pop! drop
+        }
+        { PSComputing ->
+            prop> drop2
+            None
+        }
+    }
+}
+
+def Prop.force! [ Mut(Prop(t)) +Mirth -- t +Mirth ] {
+    try-force! unwrap(
+        +propstack:reversed
+        Str ("Recursive prop detected:" ;
+            reverse-for("\n  - " ; trace;)
+        ) fatal-error!
+    )
+}
+
+def Prop.force-or!(f) [ (*a +Mirth -- *a b +Mirth) *a Mut(Prop(b)) +Mirth -- *a b +Mirth ] {
+    try-force! unwrap(f)
+}

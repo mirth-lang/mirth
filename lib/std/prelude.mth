@@ -69,25 +69,33 @@ inline(
     alias(Bool.&&, prim-bool-and)
     alias(Bool.||, prim-bool-or)
     alias(Bool.not, prim-bool-not)
-    def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(Bool.True, p))
-    def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, Bool.False))
+    def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(True, p))
+    def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, False))
     def(Bool.==, Bool Bool -- Bool, if(id, not))
     def(Bool.then(f), (*a -- *a) *a Bool -- *a, if(f, id))
     def(Bool.else(f), (*a -- *a) *a Bool -- *a, if(id, f))
 
     def or(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
-        dup dip(f) swap if(drop Bool.True, g)
+        dup dip(f) swap if(drop True, g)
     }
     def and(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
-        dup dip(f) swap if(g, drop Bool.False)
+        dup dip(f) swap if(g, drop False)
     }
 
     def while(f) [ (*x -- *x Bool) *x -- *x ] {
-        Bool.True while(dup, drop f) drop
+        True while(dup, drop f) drop
     }
 )
 def(Bool.show, Bool -- Str, if("True", "False"))
 def(Bool.show;, Bool +Str -- +Str, show ;)
+
+# Re-export these constructors unqualified.
+alias(True,  Bool.True)
+alias(False, Bool.False)
+
+# Cute booleans.
+alias(Yes, True)
+alias(No, False)
 
 data OS {
     0 OS_UNKNOWN
@@ -253,10 +261,10 @@ data Comparison {
 }
 
 def ==2(f{==}, g{==}) [ (*x a a -- *x Bool, *x b b -- *x Bool) *x a b a b -- *x Bool ] {
-    dip(swap) dip2(f) rotl if(g, drop2 Bool.False)
+    dip(swap) dip2(f) rotl if(g, drop2 False)
 }
 def <>2(f{<>}, g{<>}) [ (*x a a -- *x Bool, *x b b -- *x Bool) *x a b a b -- *x Bool ] {
-    dip(swap) dip2(f) rotl if(drop2 Bool.True, g)
+    dip(swap) dip2(f) rotl if(drop2 True, g)
 }
 def compare2(f{compare}, g{compare}) [
     (*x a a -- *x Comparison, *x b b -- *x Comparison )
@@ -343,7 +351,7 @@ inline {
     }
     def Ptr?.for(f) [ (*a Ptr -- *a) *a Ptr? -- *a ] { if-some(f, id) }
     def Ptr?.unwrap(f) [ (*a -- *a Ptr) *a Ptr? -- *a Ptr ] { if-some(id, f) }
-    def Ptr?.>Maybe [ Ptr? -- Maybe(Ptr) ] { if-some(Maybe.Some, Maybe.None) }
+    def Ptr?.>Maybe [ Ptr? -- Maybe(Ptr) ] { if-some(Some, None) }
 
     def Ptr.== [ Ptr Ptr -- Bool ] { prim-ptr-eq }
     def Ptr.>Ptr? [ Ptr -- Ptr? ] { Ptr?.Ptr?-unsafe }
@@ -393,7 +401,7 @@ inline {
         dup I8.MIN I8.MAX on2:>Int in-range if(>I8-unsafe f, g)
     }
     def Int.>I8-else(f) [ (*a Int -- *a I8 ) *a Int -- *a I8 ] { >I8-if(id,f) }
-    def Int.>I8? [ Int -- Maybe(I8) ] { >I8-if(Maybe.Some, drop Maybe.None) }
+    def Int.>I8? [ Int -- Maybe(I8) ] { >I8-if(Some, drop None) }
     def Int.>I8-clamp [ Int -- I8 ] { I8.MIN I8.MAX on2:>Int clamp >I8-unsafe }
     def Int.>I8-unsafe [ Int -- I8 ] { I8.Int>I8-unsafe }
 
@@ -424,7 +432,7 @@ inline {
         dup I16.MIN I16.MAX on2:>Int in-range if(>I16-unsafe f, g)
     }
     def Int.>I16-else(f) [ (*a Int -- *a I16 ) *a Int -- *a I16 ] { >I16-if(id,f) }
-    def Int.>I16? [ Int -- Maybe(I16) ] { >I16-if(Maybe.Some, drop Maybe.None) }
+    def Int.>I16? [ Int -- Maybe(I16) ] { >I16-if(Some, drop None) }
     def Int.>I16-clamp [ Int -- I16 ] { I16.MIN I16.MAX on2:>Int clamp >I16-unsafe }
     def Int.>I16-unsafe [ Int -- I16 ] { I16.Int>I16-unsafe }
 
@@ -455,7 +463,7 @@ inline (
         dup I32.MIN I32.MAX on2:>Int in-range if(>I32-unsafe f, g)
     }
     def Int.>I32-else(f) [ (*a Int -- *a I32 ) *a Int -- *a I32 ] { >I32-if(id,f) }
-    def Int.>I32? [ Int -- Maybe(I32) ] { >I32-if(Maybe.Some, drop Maybe.None) }
+    def Int.>I32? [ Int -- Maybe(I32) ] { >I32-if(Some, drop None) }
     def Int.>I32-clamp [ Int -- I32 ] { I32.MIN I32.MAX on2:>Int clamp >I32-unsafe }
     def Int.>I32-unsafe [ Int -- I32 ] { I32.Int>I32-unsafe }
 
@@ -512,7 +520,7 @@ inline (
         dup 0 255 in-range if(>U8-unsafe f, g)
     }
     def Int.>U8-else(f) [ (*a Int -- *a U8 ) *a Int -- *a U8 ] { >U8-if(id, f) }
-    def Int.>U8? [ Int -- Maybe(U8) ] { >U8-if(Maybe.Some, drop Maybe.None) }
+    def Int.>U8? [ Int -- Maybe(U8) ] { >U8-if(Some, drop None) }
     def Int.>U8-wrap   [ Int -- U8 ] { 255 & >U8-unsafe }
     def Int.>U8-clamp  [ Int -- U8 ] { 0 255 clamp >U8-unsafe }
     def Int.>U8-unsafe [ Int -- U8 ] { U8.Int>U8-unsafe }
@@ -549,7 +557,7 @@ inline (
         dup 0 0xFFFF in-range if(>U16-unsafe f, g)
     }
     def Int.>U16-else(f) [ (*a Int -- *a U16 ) *a Int -- *a U16 ] { >U16-if(id, f) }
-    def Int.>U16? [ Int -- Maybe(U16) ] { >U16-if(Maybe.Some, drop Maybe.None) }
+    def Int.>U16? [ Int -- Maybe(U16) ] { >U16-if(Some, drop None) }
     def Int.>U16-wrap   [ Int -- U16 ] { 0xFFFF & >U16-unsafe }
     def Int.>U16-clamp  [ Int -- U16 ] { 0 0xFFFF clamp >U16-unsafe }
     def Int.>U16-unsafe [ Int -- U16 ] { U16.Int>U16-unsafe }
@@ -586,7 +594,7 @@ inline (
         dup 0 U32.MAX >Int in-range if(>U32-unsafe f, g)
     }
     def Int.>U32-else(f) [ (*a Int -- *a U32 ) *a Int -- *a U32 ] { >U32-if(id, f) }
-    def Int.>U32? [ Int -- Maybe(U32) ] { >U32-if(Maybe.Some, drop Maybe.None) }
+    def Int.>U32? [ Int -- Maybe(U32) ] { >U32-if(Some, drop None) }
     def Int.>U32-wrap   [ Int -- U32 ] { U32.MAX >Int & >U32-unsafe }
     def Int.>U32-clamp  [ Int -- U32 ] { 0 U32.MAX >Int clamp >U32-unsafe }
     def Int.>U32-unsafe [ Int -- U32 ] { U32.Int>U32-unsafe }
@@ -619,7 +627,7 @@ inline (
 inline (
     def Int.>U64-unsafe [ Int -- U64 ] { U64.Int>U64-unsafe }
     def Int.>U64& [ Int -- U64 ] { >U64-unsafe }
-    def Int.>U64? [ Int -- Maybe(U64) ] { >U64(Maybe.Some, drop Maybe.None) }
+    def Int.>U64? [ Int -- Maybe(U64) ] { >U64(Some, drop None) }
     def Int.>U64(f) [ (*a Int -- *a U64) *a Int -- *a U64 ] { >U64(id, f) }
     def Int.>U64(f,g) [ (*a U64 -- *b, *a Int -- *b) *a Int -- *b ] {
         dup 0< if(g, >U64-unsafe f)
@@ -627,7 +635,7 @@ inline (
     def Int.u64 [ Int -- U64 ] { 0 max >U64-unsafe }
 
     def U64.>Int-unsafe [ U64 -- Int ] { Int>U64-unsafe -> id }
-    def U64.>Int? [ U64 -- Maybe(Int) ] { >Int(Maybe.Some, drop Maybe.None) }
+    def U64.>Int? [ U64 -- Maybe(Int) ] { >Int(Some, drop None) }
     def U64.>Int(f) [ ( *a U64 -- *a Int ) *a U64 -- *a Int ] { >Int(id, f) }
     def U64.>Int(f,g) [ ( *a Int -- *b, *a U64 -- *b ) *a U64 -- *b ] {
         dup >Int-unsafe 0< if(g, >Int-unsafe f)
@@ -951,21 +959,21 @@ inline(
     def(unpack4, [a b c d  ] -- a b c d  , prim-tup-unpack4)
     def(unpack5, [a b c d e] -- a b c d e, prim-tup-unpack5)
 
-    def(pack0==, [] [] -- Bool, drop2 Bool.False)
+    def(pack0==, [] [] -- Bool, drop2 False)
     def(pack1==(aeq{==}), (a a -- Bool) [a] [a] -- Bool,
         on2:unpack1 aeq)
     def(pack2==(aeq{==},beq{==}), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
         dip:unpack2 unpack2 dip:swap
-        beq if(aeq, drop2 Bool.False))
+        beq if(aeq, drop2 False))
     def(pack3==(aeq{==},beq{==},ceq{==}), (a a -- Bool, b b -- Bool, c c -- Bool)
             [a b c] [a b c] -- Bool,
         dip:unpack3 unpack3 dip2:rotr dip:swap
-        ceq if(beq if(aeq, drop2 Bool.False), drop4 Bool.False))
+        ceq if(beq if(aeq, drop2 False), drop4 False))
     def(pack4==(aeq{==},beq{==},ceq{==},deq{==}),
             (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
             [a b c d] [a b c d] -- Bool,
         dip:unpack4 unpack4 dip3:rot4r dip2:rotr dip:swap
-        deq if(ceq if(beq if(aeq, drop2 Bool.False), drop4 Bool.False), drop2 drop4 Bool.False))
+        deq if(ceq if(beq if(aeq, drop2 False), drop4 False), drop2 drop4 False))
 
     def(pack2-show;-contents(f{show;},g{show;}), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
         unpack2 dip(f) " " ; g)
@@ -995,7 +1003,7 @@ inline(
         ))
 )
 def(@?, Mut(t) -- Maybe(t),
-    dup mut-is-set if(@ Maybe.Some, drop Maybe.None))
+    dup mut-is-set if(@ Some, drop None))
 
 inline:def(panic!, *a Str -- *b, prim-panic)
 

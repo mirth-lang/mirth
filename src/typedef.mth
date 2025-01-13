@@ -32,7 +32,7 @@ def TypeDef.new! [ +Mirth head:Maybe(Token) name:Name state:PropState(QName) -- 
 }
 
 def +Mirth.def-type! [ +Mirth qname:QName type:Type -- +Mirth ] {
-    Maybe.None >head
+    None >head
     qname> dup name >name
     PropState.PSReady >state
     TypeDef.new!

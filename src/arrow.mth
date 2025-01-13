@@ -118,8 +118,8 @@ data Op {
     OpTableFromIndex [ Table ]
     --
     def to-run-var [ Op -- Maybe(Var) ] {
-        { OpVar -> dup auto-run? if(Maybe.Some, drop Maybe.None) }
-        { _ -> drop Maybe.None }
+        { OpVar -> dup auto-run? if(Some, drop None) }
+        { _ -> drop None }
     }
     def free-vars [ +Mirth Op -- +Mirth List(Var) ] {
         { OpNone -> List.Nil }

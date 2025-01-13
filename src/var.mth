@@ -37,11 +37,11 @@ def(Var.new!, Type Name -- Var,
     Var.alloc!
     tuck ~name !
     tuck ~type !
-    Maybe.None over ~auto-run? !)
+    None over ~auto-run? !)
 
 def(Var.new-auto-run!, ArrowType Name -- Var,
     dip(dup Type.TMorphism) Var.new!
-    dip(Maybe.Some) tuck ~auto-run? !)
+    dip(Some) tuck ~auto-run? !)
 
 def Var.NewInCtx [ Ctx Type Str -- Ctx Var ] {
     >Name Var.new! sip:Ctx.new

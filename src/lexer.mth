@@ -229,47 +229,47 @@ def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
 
 def(+Str.label-pop-token?, +Str -- Maybe(TokenValue) +Str,
     first-byte is-lower and(last-byte Byte.B'>' ==) if(
-        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.TokenLabelPop Maybe.Some,
-        Maybe.None
+        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.TokenLabelPop Some,
+        None
     ))
 
 def(+Str.label-pop-r-token?, +Str -- Maybe(TokenValue) +Str,
     first-byte Byte.B'+' == and(second-byte is-lower and(last-byte Byte.B'>' ==)) if(
-        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.TokenLabelPopR Maybe.Some,
-        Maybe.None
+        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.TokenLabelPopR Some,
+        None
     ))
 
 def(+Str.label-push-token?, +Str -- Maybe(TokenValue) +Str,
     first-byte Byte.B'>' == and(second-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelPush Maybe.Some,
-        Maybe.None
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelPush Some,
+        None
     ))
 
 def(+Str.label-push-r-token?, +Str -- Maybe(TokenValue) +Str,
     unsafe(+Str.first-two-bytes) ">+" == and(third-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelPushR Maybe.Some,
-        Maybe.None
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelPushR Some,
+        None
     ))
 
 def(+Str.label-get-token?, +Str -- Maybe(TokenValue) +Str,
     first-byte Byte.B'@' == and(second-byte is-lower or(second-byte Byte.B'+' == and(third-byte is-lower))) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelGet Maybe.Some,
-        Maybe.None
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelGet Some,
+        None
     ))
 
 def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
     first-byte Byte.B'!' == and(second-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelSet Maybe.Some,
-        Maybe.None
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.TokenLabelSet Some,
+        None
     ))
 
 def(+Str.dname?, +Str -- Maybe(DName) +Str,
     Byte.BDOT +Str.split-byte
     uncons >List+? match(
-        None -> drop Maybe.None,
+        None -> drop None,
         Some ->
-            dip(dup Str.empty? if(drop Maybe.None, >Name Maybe.Some))
-            map(>Name) DName Maybe.Some
+            dip(dup Str.empty? if(drop None, >Name Some))
+            map(>Name) DName Some
     ))
 
 def(+Str.is-doc-start?, +Str -- Bool +Str,
@@ -293,9 +293,9 @@ def(+Str.is-float?, +Str -- Bool +Str,
         dip(1+) 1+ while(dup byte@ is-digit, dip(1+) 1+)
         swap >Int 3 >= if(
             num-bytes? >UOffset ==,
-            drop Bool.False
+            drop False
         ),
-        drop2 Bool.False
+        drop2 False
     )
 )
 
@@ -323,7 +323,7 @@ def(+Str.is-dec-int?, +Str -- Bool +Str,
     0u >UOffset # current index
     dup byte@ is-sign if(1+, id)
     while(dup byte@ is-digit, dip(1+) 1+)
-    swap 0> if(num-bytes? >UOffset ==, drop Bool.False))
+    swap 0> if(num-bytes? >UOffset ==, drop False))
 
 def(+Str.is-hex-int?, +Str -- Bool +Str,
     0u >USize # number of digits
@@ -339,13 +339,13 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
             while(dup byte@ is-hexdigit, dip(1+) 1+)
             swap 0> if(
                 num-bytes? >UOffset ==,
-                drop Bool.False
+                drop False
             ),
 
-            drop2 Bool.False
+            drop2 False
         ),
 
-        drop2 Bool.False
+        drop2 False
     ))
 
 def(+Str.is-oct-int?, +Str -- Bool +Str,
@@ -362,13 +362,13 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
             while(dup byte@ Byte.B'0' Byte.B'7' in-range, dip(1+) 1+)
             swap 0> if(
                 num-bytes? >UOffset ==,
-                drop Bool.False
+                drop False
             ),
 
-            drop2 Bool.False
+            drop2 False
         ),
 
-        drop2 Bool.False
+        drop2 False
     ))
 
 def(+Str.int?, +Str -- Int +Str,
@@ -466,7 +466,7 @@ def(lexer-skip-doc!, +Lexer -- +Lexer, while(lexer-comment-end? not, lexer-move!
 
 def(lexer-comment-end?, +Lexer -- Bool +Lexer,
     done? if(
-        Bool.True,
+        True,
         lexer-peek dup Byte.BLF == nip
     ))
 

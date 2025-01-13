@@ -43,7 +43,7 @@ def(HASH_MAX, Int, 0xFFFF)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
     offset HASH_BUF unsafe(uoffset @I64) >Int
-    dup 0= if(drop Maybe.None, Name.from-index Maybe.Some))
+    dup 0= if(drop None, Name.from-index Some))
 def(hash-name!, Name Hash --,
     dip(Name.index >I64-clamp)
     offset HASH_BUF unsafe(uoffset !I64))
@@ -58,7 +58,7 @@ def(Hash.next, Hash -- Hash, >Int 1+ >Hash)
 
 def(Hash.keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
-        None -> Bool.False,
+        None -> False,
         Some -> >Str over2 <>
     ))
 
@@ -123,11 +123,11 @@ data Namespace {
     --
 
     def == [ Namespace Namespace -- Bool ] {
-        { NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> Bool.True, _ -> drop Bool.False) }
-        { NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 Bool.False) }
-        { NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 Bool.False) }
-        { NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 Bool.False) }
-        { NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 Bool.False) }
+        { NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> True, _ -> drop False) }
+        { NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 False) }
+        { NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 False) }
+        { NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 False) }
+        { NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False) }
     }
 
     def compare [ +Mirth Namespace Namespace -- +Mirth Comparison ] {
@@ -135,35 +135,35 @@ data Namespace {
     }
 
     def qname [ +Mirth Namespace -- +Mirth Maybe(QName) ] {
-        { NAMESPACE_ROOT -> Maybe.None }
-        { NAMESPACE_PACKAGE -> qname Maybe.Some }
-        { NAMESPACE_MODULE -> qname Maybe.Some }
-        { NAMESPACE_TYCON -> qname-hard Maybe.Some }
-        { NAMESPACE_WORD -> qname-hard Maybe.Some }
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> qname Some }
+        { NAMESPACE_MODULE -> qname Some }
+        { NAMESPACE_TYCON -> qname-hard Some }
+        { NAMESPACE_WORD -> qname-hard Some }
     }
 
     def package? [ +Mirth Namespace -- +Mirth Maybe(Package) ] {
-        { NAMESPACE_ROOT -> Maybe.None }
-        { NAMESPACE_PACKAGE -> Maybe.Some }
-        { NAMESPACE_MODULE -> package Maybe.Some }
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> Some }
+        { NAMESPACE_MODULE -> package Some }
         { NAMESPACE_TYCON -> qname-hard namespace package? }
-        { NAMESPACE_WORD -> drop Maybe.None }
+        { NAMESPACE_WORD -> drop None }
     }
 
     def module? [ +Mirth Namespace -- +Mirth Maybe(Module) ] {
-        { NAMESPACE_ROOT -> Maybe.None }
-        { NAMESPACE_PACKAGE -> drop Maybe.None }
-        { NAMESPACE_MODULE -> Maybe.Some }
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> drop None }
+        { NAMESPACE_MODULE -> Some }
         { NAMESPACE_TYCON -> qname-hard namespace module? }
-        { NAMESPACE_WORD -> drop Maybe.None }
+        { NAMESPACE_WORD -> drop None }
     }
 
     def tycon? [ Namespace -- Maybe(Tycon) ] {
-        { NAMESPACE_ROOT -> Maybe.None }
-        { NAMESPACE_PACKAGE -> drop Maybe.None }
-        { NAMESPACE_MODULE -> drop Maybe.None }
-        { NAMESPACE_TYCON -> Maybe.Some }
-        { NAMESPACE_WORD -> drop Maybe.None }
+        { NAMESPACE_ROOT -> None }
+        { NAMESPACE_PACKAGE -> drop None }
+        { NAMESPACE_MODULE -> drop None }
+        { NAMESPACE_TYCON -> Some }
+        { NAMESPACE_WORD -> drop None }
     }
 
     def Prim [ +Mirth -- +Mirth Namespace ] {
@@ -229,7 +229,7 @@ struct QName {
     def defined-hard? [ +Mirth QName -- +Mirth Bool ] { def-hard? some? }
     def undefined-hard? [ +Mirth QName -- +Mirth Bool ] { def-hard? none? }
 
-    def def-soft? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs dip(Maybe.Some) lookup(qname-soft ==) }
+    def def-soft? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs dip(Some) lookup(qname-soft ==) }
     def defined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? some? }
     def undefined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? none? }
 
@@ -251,7 +251,7 @@ struct QName {
         dup namespace match(
             NAMESPACE_PACKAGE ->
                 dup path-or-search
-                unwrap("No path defined for package "
+                unwrap("False path defined for package "
                     swap name >Str fatal-error!)
                 nip swap name >Str ".mth" cat >Path rdip:join,
             _ -> drop "expected module name in QName.to-module-path" fatal-error!
@@ -274,7 +274,7 @@ struct DName {
     def last-name [ DName -- Name ] { parts last }
     def penultimate-name? [ DName -- Maybe(Name) ] {
         /DName unsnoc drop last if-some(
-            nip Maybe.Some,
+            nip Some,
             id
         )
     }

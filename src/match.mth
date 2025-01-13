@@ -55,11 +55,11 @@ def(Match.has-default-case?, Match -- Bool,
 def(Match.scrutinee-data?, Match -- Maybe(Data),
     cases filter(is-default-case? not) dup
     first bind(pattern single-tag?) map(.data) if-some(
-        swap all(pattern single-tag? if-some(dip:dup .data ==, Bool.False)) if(
-            Maybe.Some,
-            drop Maybe.None
+        swap all(pattern single-tag? if-some(dip:dup .data ==, False)) if(
+            Some,
+            drop None
         ),
-        drop Maybe.None
+        drop None
     ))
 
 def(Match.is-transparent?, Match -- Bool,
@@ -67,15 +67,15 @@ def(Match.is-transparent?, Match -- Bool,
     bind(pattern atoms single?)
     has(op match(
         PatOpTag -> .data is-transparent?,
-        PatOpUnderscore -> Bool.True
+        PatOpUnderscore -> True
     )))
 
 def Match.semi-transparent-tag? [ +Mirth Match -- +Mirth Maybe(SemiTransparentData) ] {
     cases single?
     bind(pattern atoms single?)
     bind(op match(
-        PatOpTag -> Maybe.Some,
-        _ -> drop Maybe.None
+        PatOpTag -> Some,
+        _ -> drop None
     ))
     bind(.data semi-transparent?)
 }
@@ -84,8 +84,8 @@ def(Match.unit-tag?, Match -- Maybe(Tag),
     cases single?
     bind(pattern atoms single?)
     bind(op match(
-        PatOpTag -> Maybe.Some,
-        _ -> drop Maybe.None
+        PatOpTag -> Some,
+        _ -> drop None
     ))
     filter(is-unit?))
 
@@ -159,10 +159,10 @@ def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
     Subst.SUBST_NIL >subst
     PatternOp.PatOpUnderscore >op
     pattern mid force-cons?! match(
-        Maybe.None ->
+        None ->
             pattern token-start "pattern expects something on stack" rdip:emit-error!
             StackType.STACK_TYPE_ERROR Type.TYPE_ERROR,
-        Maybe.Some ->
+        Some ->
             unpack2
     )
     dup pattern:saved:List.Cons
@@ -182,18 +182,18 @@ def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
 ||| Asks whether the second pattern covers the first pattern.
 def(Pattern.covers?, Pattern Pattern -- Bool,
     both(atoms single?) zip match(
-        Maybe.None -> Bool.False,
-        Maybe.Some -> unpack2 op match(
-            PatOpUnderscore -> drop Bool.True,
+        None -> False,
+        Some -> unpack2 op match(
+            PatOpUnderscore -> drop True,
             PatOpTag -> swap op match(
-                PatOpUnderscore -> drop Bool.False,
+                PatOpUnderscore -> drop False,
                 PatOpTag -> ==
             )
         )
     ))
 
-def(PatternOp./PatOpTag, PatternOp -- Maybe(Tag), PatOpTag -> Maybe.Some, _ -> drop Maybe.None)
-def(PatternOp./PatOpUnderscore, PatternOp -- Bool, PatOpUnderscore -> Bool.True, _ -> drop Bool.False)
+def(PatternOp./PatOpTag, PatternOp -- Maybe(Tag), PatOpTag -> Some, _ -> drop None)
+def(PatternOp./PatOpUnderscore, PatternOp -- Bool, PatOpUnderscore -> True, _ -> drop False)
 
 ## TODO: introduce case trees
 ## https://github.com/mirth-lang/mirth/issues/238

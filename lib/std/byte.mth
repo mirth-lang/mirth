@@ -48,7 +48,7 @@ data Byte {
 
         def Int.>Byte-if(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] { >U8-if(>Byte f, g) }
         def Int.>Byte-else(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] { >Byte-if(id, f) }
-        def Int.>Byte? [ Int -- Maybe(Byte) ] { >Byte-if(Maybe.Some, drop Maybe.None) }
+        def Int.>Byte? [ Int -- Maybe(Byte) ] { >Byte-if(Some, drop None) }
         def Int.>Byte-wrap [ Int -- Byte ] { >U8-wrap >Byte }
         def Int.>Byte-clamp [ Int -- Byte ] { >U8-clamp >Byte }
         def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
@@ -98,16 +98,16 @@ data Byte {
 
     def to-ascii-str [ Byte -- Maybe(Str) ] {
         dup Byte.BNUL Byte.BDEL in-range if(
-            to-str-unsafe Maybe.Some,
-            drop Maybe.None
+            to-str-unsafe Some,
+            drop None
         )
     }
 
     def is-string-end [ Byte -- Bool ] {
-        { BQUOTE -> Bool.True }
-        { BLF -> Bool.True }
-        { BNUL -> Bool.True }
-        { _ -> drop Bool.False }
+        { BQUOTE -> True }
+        { BLF -> True }
+        { BNUL -> True }
+        { _ -> drop False }
     }
 
     def to-lower [ Byte -- Byte ] {
@@ -130,16 +130,16 @@ data Byte {
     }
 
     def is-name-byte [ Byte -- Bool ] {
-        { BLPAREN -> Bool.False }
-        { BRPAREN -> Bool.False }
-        { BLSQUARE -> Bool.False }
-        { BRSQUARE -> Bool.False }
-        { BLCURLY -> Bool.False }
-        { BRCURLY -> Bool.False }
-        { BCOMMA -> Bool.False }
-        { BQUOTE -> Bool.False }
-        { BCOLON -> Bool.False }
-        { BDEL -> Bool.False }
+        { BLPAREN -> False }
+        { BRPAREN -> False }
+        { BLSQUARE -> False }
+        { BRSQUARE -> False }
+        { BLCURLY -> False }
+        { BRCURLY -> False }
+        { BCOMMA -> False }
+        { BQUOTE -> False }
+        { BCOLON -> False }
+        { BDEL -> False }
         { _ -> Byte.BSPACE > }
     }
 
@@ -148,7 +148,7 @@ data Byte {
         ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
         ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
 
-        # Important invariant: No string here should be the prefix of another.
+        # Important invariant: False string here should be the prefix of another.
         # With this invariant we can ensure that the z-encoding of any string
         # is unique. To help enforce the invariant, keep these cases in
         # lexicographical order.

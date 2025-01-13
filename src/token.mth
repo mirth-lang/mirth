@@ -43,73 +43,73 @@ data TokenValue {
     TokenLabelGet   [ Label ]
     TokenLabelSet   [ Label ]
     --
-    def none? { TokenNone -> Bool.True, _ -> drop Bool.False }
-    def comma? { TokenComma -> Bool.True, _ -> drop Bool.False }
+    def none? { TokenNone -> True, _ -> drop False }
+    def comma? { TokenComma -> True, _ -> drop False }
 }
 
-def(TokenValue.lparen-open?, TokenValue -- Bool, TokenLParenOpen -> Bool.True, _ -> drop Bool.False)
-def(TokenValue.lparen?, TokenValue -- Maybe(Token), TokenLParen -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.rparen?, TokenValue -- Maybe(Token), TokenRParen -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.lsquare-open?, TokenValue -- Bool, TokenLSquareOpen -> Bool.True, _ -> drop Bool.False)
-def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TokenLSquare -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TokenRSquare -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.lcurly-open?, TokenValue -- Bool, TokenLCurlyOpen -> Bool.True, _ -> drop Bool.False)
-def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TokenLCurly -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TokenRCurly -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.lcolon-open?, TokenValue -- Bool, TokenLColonOpen -> Bool.True, _ -> drop Bool.False)
-def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TokenLColon -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TokenRColon -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TokenLParen -> Maybe.Some, TokenLColon -> Maybe.Some, _ -> drop Maybe.None)
+def(TokenValue.lparen-open?, TokenValue -- Bool, TokenLParenOpen -> True, _ -> drop False)
+def(TokenValue.lparen?, TokenValue -- Maybe(Token), TokenLParen -> Some, _ -> drop None)
+def(TokenValue.rparen?, TokenValue -- Maybe(Token), TokenRParen -> Some, _ -> drop None)
+def(TokenValue.lsquare-open?, TokenValue -- Bool, TokenLSquareOpen -> True, _ -> drop False)
+def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TokenLSquare -> Some, _ -> drop None)
+def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TokenRSquare -> Some, _ -> drop None)
+def(TokenValue.lcurly-open?, TokenValue -- Bool, TokenLCurlyOpen -> True, _ -> drop False)
+def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TokenLCurly -> Some, _ -> drop None)
+def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TokenRCurly -> Some, _ -> drop None)
+def(TokenValue.lcolon-open?, TokenValue -- Bool, TokenLColonOpen -> True, _ -> drop False)
+def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TokenLColon -> Some, _ -> drop None)
+def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TokenRColon -> Some, _ -> drop None)
+def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TokenLParen -> Some, TokenLColon -> Some, _ -> drop None)
 
 def(TokenValue.can-take-args?, TokenValue -- Bool,
-    TokenName -> drop Bool.True,
-    TokenDName -> drop Bool.True,
-    TokenLabelGet -> drop Bool.True,
-    _ -> drop Bool.False)
+    TokenName -> drop True,
+    TokenDName -> drop True,
+    TokenLabelGet -> drop True,
+    _ -> drop False)
 
 def-type(Name/DName, Either(Name,DName))
 
-def(TokenValue.int?, TokenValue -- Maybe(Int), TokenInt -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.str?, TokenValue -- Maybe(Str), TokenStr -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.name?, TokenValue -- Maybe(Name), TokenName -> Maybe.Some, _ -> drop Maybe.None)
-def(TokenValue.dname?, TokenValue -- Maybe(DName), TokenDName -> Maybe.Some, _ -> drop Maybe.None)
+def(TokenValue.int?, TokenValue -- Maybe(Int), TokenInt -> Some, _ -> drop None)
+def(TokenValue.str?, TokenValue -- Maybe(Str), TokenStr -> Some, _ -> drop None)
+def(TokenValue.name?, TokenValue -- Maybe(Name), TokenName -> Some, _ -> drop None)
+def(TokenValue.dname?, TokenValue -- Maybe(DName), TokenDName -> Some, _ -> drop None)
 def(TokenValue.name/dname?, TokenValue -- Maybe(Name/DName),
-    TokenName -> Either.Left Maybe.Some,
-    TokenDName -> Either.Right Maybe.Some,
-    _ -> drop Maybe.None)
+    TokenName -> Left Some,
+    TokenDName -> Right Some,
+    _ -> drop None)
 def(TokenValue.last-name?, TokenValue -- Maybe(Name),
-    TokenName -> Maybe.Some,
-    TokenDName -> last-name Maybe.Some,
-    _ -> drop Maybe.None)
+    TokenName -> Some,
+    TokenDName -> last-name Some,
+    _ -> drop None)
 def(TokenValue.penultimate-name?, TokenValue -- Maybe(Name),
     TokenDName -> penultimate-name?,
-    _ -> drop Maybe.None)
+    _ -> drop None)
 def(TokenValue.arg-end?, TokenValue -- Bool,
-    TokenComma -> Bool.True,
-    TokenRParen -> drop Bool.True,
-    TokenRCurly -> drop Bool.True,
-    TokenRSquare -> drop Bool.True,
-    TokenRColon -> drop Bool.True,
-    _ -> drop Bool.False)
+    TokenComma -> True,
+    TokenRParen -> drop True,
+    TokenRCurly -> drop True,
+    TokenRSquare -> drop True,
+    TokenRColon -> drop True,
+    _ -> drop False)
 def(TokenValue.left-enclosure?, TokenValue -- Bool,
-    TokenLParen -> drop Bool.True,
-    TokenLSquare -> drop Bool.True,
-    TokenLCurly -> drop Bool.True,
-    TokenLColon -> drop Bool.True,
-    _ -> drop Bool.False)
+    TokenLParen -> drop True,
+    TokenLSquare -> drop True,
+    TokenLCurly -> drop True,
+    TokenLColon -> drop True,
+    _ -> drop False)
 def(TokenValue.right-enclosure?, TokenValue -- Bool,
-    TokenRParen -> drop Bool.True,
-    TokenRSquare -> drop Bool.True,
-    TokenRCurly -> drop Bool.True,
-    TokenRColon -> drop Bool.True,
-    _ -> drop Bool.False)
+    TokenRParen -> drop True,
+    TokenRSquare -> drop True,
+    TokenRCurly -> drop True,
+    TokenRColon -> drop True,
+    _ -> drop False)
 
 def name/dname-last-name [ Name/DName -- Name ] {
     { Left -> id }
     { Right -> last-name }
 }
 def name/dname-penultimate-name? [ Name/DName -- Maybe(Name) ] {
-    { Left -> drop Maybe.None }
+    { Left -> drop None }
     { Right -> penultimate-name? }
 }
 
@@ -223,7 +223,7 @@ def(Token.args-start, Token -- Token,
     and(dup succ lparen-or-lcolon? >Bool) then(succ))
 
 def(Token.could-be-sig-label?, Token -- Bool,
-    dup name? if-some(could-be-label-name?, Bool.False)
+    dup name? if-some(could-be-label-name?, False)
     and(dup succ lcolon? >Bool) nip)
 
 def Token.sig-label? [ Token -- Maybe(Label) ] {
@@ -242,7 +242,7 @@ def Token.pattern-auto-run-var? [ Token -- Maybe(Name) ] {
     @token lsquare? >Bool
     @token succ succ rsquare? >Bool && if(
         token> succ pattern-var?,
-        token> drop Maybe.None
+        token> drop None
     )
 }
 
@@ -328,13 +328,13 @@ def(Token.module-end?, Token -- Bool, none?)
 ||| Is this a token to stop running at?
 def(Token.run-end?, Token -- Bool,
     value match(
-        TokenNone -> Bool.True,
-        TokenComma -> Bool.True,
-        TokenRParen -> drop Bool.True,
-        TokenRSquare -> drop Bool.True,
-        TokenRCurly -> drop Bool.True,
-        TokenRColon -> drop Bool.True,
-        _ -> drop Bool.False
+        TokenNone -> True,
+        TokenComma -> True,
+        TokenRParen -> drop True,
+        TokenRSquare -> drop True,
+        TokenRCurly -> drop True,
+        TokenRColon -> drop True,
+        _ -> drop False
     ))
 
 def(Token.run-tokens, Token -- List(Token),

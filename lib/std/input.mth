@@ -64,8 +64,8 @@ data +Input {
     }
 
     def done? [ +Input -- Bool +Input ] {
-        { +InputOpen -> Bool.False +Input.+InputOpen }
-        { +InputDone -> Bool.True +Input.+InputDone }
+        { +InputOpen -> False +Input.+InputOpen }
+        { +InputDone -> True +Input.+InputDone }
     }
 
     ||| Return the current char in the input buffer.
@@ -85,10 +85,10 @@ data +Input {
     ||| Read a chunk of input.
     def read-chunk! [ +Input -- Maybe(Str) +Input ] {
         { +InputOpen ->
-            offset length +buffer:@Str Maybe.Some
+            offset length +buffer:@Str Some
             refill-buffer! }
         { +InputDone ->
-            Maybe.None +Input.+InputDone }
+            None +Input.+InputDone }
     }
 
     ||| Read the whole file.

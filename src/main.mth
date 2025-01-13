@@ -43,10 +43,10 @@ struct Arguments {
 ||| Create a default initialized arguments table
 ||| Since the input file is always required we don't need it to be Maybe(Path)
 def Arguments.default [ -- Arguments ] {
-    Bool.False >emit-debug-info
+    False >emit-debug-info
     "mirth.mth" >Path >input-file
-    Maybe.None >output-file
-    "main" Maybe.Some >entry-point
+    None >output-file
+    "main" Some >entry-point
     List.L0 >packages
     List.L0 >package-search-paths
     Arguments
@@ -129,30 +129,30 @@ def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOp
     Short -> dip(swap) match {
         { B'o' -> dip:map(>Path) output-file! }
         { B'e' -> entry-point! }
-        { B'c' -> nip Maybe.None swap entry-point! }
+        { B'c' -> nip None swap entry-point! }
         { B'p' -> swap for(parse-package-def swap packages:List.Cons) }
         { B'P' -> swap for(>Path swap package-search-paths:List.Cons) }
-        { _ -> drop swap drop ArgumentParsingError.UnknownArg Maybe.Some state:error! }
+        { _ -> drop swap drop ArgumentParsingError.UnknownArg Some state:error! }
     },
     Positional -> swap state positional-index 0= if(
         swap for(>Path swap input-file!),
-        dip(drop) ArgumentParsingError.TooManyArgs Maybe.Some state:error!
+        dip(drop) ArgumentParsingError.TooManyArgs Some state:error!
     ),
     LongOnly -> dup "debug" == if(
-        drop2 Bool.True swap emit-debug-info!,
-        drop2 ArgumentParsingError.UnknownArg Maybe.Some state:error!
+        drop2 True swap emit-debug-info!,
+        drop2 ArgumentParsingError.UnknownArg Some state:error!
     ),
     End ->
         state positional-index 1 < then(
-            ArgumentParsingError.TooFewArgs Maybe.Some state:error!
+            ArgumentParsingError.TooFewArgs Some state:error!
         )
         state arguments output-file else(
             state arguments entry-point then(
-                "output-file" ArgumentParsingError.MissingArg Maybe.Some state:error!
+                "output-file" ArgumentParsingError.MissingArg Some state:error!
             )
         )
         drop,
-    _ -> drop drop ArgumentParsingError.UnknownArg Maybe.Some state error! state!
+    _ -> drop drop ArgumentParsingError.UnknownArg Some state error! state!
 }
 
 def main [ +World -- +World ] {
@@ -160,50 +160,50 @@ def main [ +World -- +World ] {
 
     Arguments.default
     LIST(
-        "output-file" Maybe.Some >name
+        "output-file" Some >name
         Byte.B'o' ArgpOptionType.Short >flag-type
-        "OUTPUT_FILE" Maybe.Some >arg-doc
-        "Test argument" Maybe.Some >doc
-        Maybe.None >group
+        "OUTPUT_FILE" Some >arg-doc
+        "Test argument" Some >doc
+        None >group
         ArgpOption ;
 
-        "compile-only" Maybe.Some >name
+        "compile-only" Some >name
         Byte.B'c' ArgpOptionType.Short >flag-type
-        Maybe.None >arg-doc
-        "Compile code without running codegen step" Maybe.Some >doc
-        Maybe.None >group
+        None >arg-doc
+        "Compile code without running codegen step" Some >doc
+        None >group
         ArgpOption ;
 
-        "entry-point" Maybe.Some >name
+        "entry-point" Some >name
         Byte.B'e' ArgpOptionType.Short >flag-type
-        "ENTRY_POINT" Maybe.Some >arg-doc
-        "Custom entry point word for compilation" Maybe.Some >doc
-        Maybe.None >group
+        "ENTRY_POINT" Some >arg-doc
+        "Custom entry point word for compilation" Some >doc
+        None >group
         ArgpOption ;
 
-        "package" Maybe.Some >name
+        "package" Some >name
         Byte.B'p' ArgpOptionType.Short >flag-type
-        "(PACKAGE:PATH)*" Maybe.Some >arg-doc
-        "Package locations" Maybe.Some >doc
-        Maybe.None >group
+        "(PACKAGE:PATH)*" Some >arg-doc
+        "Package locations" Some >doc
+        None >group
         ArgpOption ;
 
-        "package-search-path" Maybe.Some >name
+        "package-search-path" Some >name
         Byte.B'P' ArgpOptionType.Short >flag-type
-        "SEARCH_PATH*" Maybe.Some >arg-doc
-        "Package search paths" Maybe.Some >doc
-        Maybe.None >group
+        "SEARCH_PATH*" Some >arg-doc
+        "Package search paths" Some >doc
+        None >group
         ArgpOption ;
 
-        "debug" Maybe.Some >name
+        "debug" Some >name
         "debug" ArgpOptionType.LongOnly >flag-type
-        Maybe.None >arg-doc
-        "Emit debugging information during codegen" Maybe.Some >doc
-        Maybe.None >group
+        None >arg-doc
+        "Emit debugging information during codegen" Some >doc
+        None >group
         ArgpOption ;
     ) >options
     [ compiler-parse-args ] >parser
-    "input-file" Maybe.Some >args-doc
+    "input-file" Some >args-doc
     "Mirth Compiler" >doc
     ArgumentParser
 

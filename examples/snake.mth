@@ -96,8 +96,8 @@ def SDL_GameControllerButton.>SnakeButton? {
 
 def +SnakeLogic.Init! [ +World -- +World +SnakeLogic ] {
     False >done
-    North >direction
-    North >last-direction
+    Direction.North >direction
+    Direction.North >last-direction
     Position.Random! >mouse
     Position.Center List+.L1 >snake
     False >dead
@@ -238,10 +238,10 @@ def +Snake.process-event! [ +World +Snake -- +World +Snake ] {
 }
 
 def +SnakeLogic.press! [ +World +SnakeLogic SnakeButton -- +World +SnakeLogic ] {
-    { Up -> North turn! }
-    { Left -> West turn! }
-    { Down -> South turn! }
-    { Right -> East turn! }
+    { Up -> Direction.North turn! }
+    { Left -> Direction.West turn! }
+    { Down -> Direction.South turn! }
+    { Right -> Direction.East turn! }
     { Start -> dead then(reset!) }
 }
 
@@ -307,8 +307,8 @@ def +SnakeLogic.turn! {
 def Direction.>Int { enum-value }
 def Direction.== { both(enum-value) == }
 def Direction.flip {
-    North -> South,
-    West -> East,
-    South -> North,
-    East -> West
+    North -> Direction.South,
+    West -> Direction.East,
+    South -> Direction.North,
+    East -> Direction.West
 }

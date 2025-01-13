@@ -22,19 +22,19 @@ data List(t) {
     }
 
     def empty? [ List(t) -- Bool ] { enum-value 0= }
-    def single? [ List(t) -- Maybe(t) ] { Nil -> Maybe.None, Cons -> empty? if(Maybe.Some, drop Maybe.None) }
+    def single? [ List(t) -- Maybe(t) ] { Nil -> None, Cons -> empty? if(Some, drop None) }
 
-    def >L0? [ List(t) -- Maybe(L0)    ] { Nil -> L0 Maybe.Some, _ -> drop Maybe.None }
-    def >L1? [ List(t) -- Maybe(L1(t)) ] { Cons -> empty? if(L1 Maybe.Some, drop Maybe.None), Nil -> Maybe.None }
-    def >L2? [ List(t) -- Maybe(L2(t)) ] { Cons -> >L1? if-some(/L1 L2 Maybe.Some, drop Maybe.None), Nil -> Maybe.None }
-    def >L3? [ List(t) -- Maybe(L3(t)) ] { Cons -> >L2? if-some(/L2 L3 Maybe.Some, drop Maybe.None), Nil -> Maybe.None }
-    def >List+? [ List(t) -- Maybe(List+(t)) ] { Cons -> >tail >head List+ Maybe.Some, Nil -> Maybe.None }
+    def >L0? [ List(t) -- Maybe(L0)    ] { Nil -> L0 Some, _ -> drop None }
+    def >L1? [ List(t) -- Maybe(L1(t)) ] { Cons -> empty? if(L1 Some, drop None), Nil -> None }
+    def >L2? [ List(t) -- Maybe(L2(t)) ] { Cons -> >L1? if-some(/L1 L2 Some, drop None), Nil -> None }
+    def >L3? [ List(t) -- Maybe(L3(t)) ] { Cons -> >L2? if-some(/L2 L3 Some, drop None), Nil -> None }
+    def >List+? [ List(t) -- Maybe(List+(t)) ] { Cons -> >tail >head List+ Some, Nil -> None }
     def len [ List(t) -- Nat ] { 0u swap for(drop 1+) }
 
     def cons [ t List(t) -- List+(t) ] { >tail >head List+ }
     def uncons [ List(t) -- Maybe(t) List(t) ] {
-        { Nil -> Maybe.None List.Nil }
-        { Cons -> dip(Maybe.Some) }
+        { Nil -> None List.Nil }
+        { Cons -> dip(Some) }
     }
 
     def Snoc [ List(t) t -- List(t) ] { swap reverse List.Cons reverse }
@@ -50,8 +50,8 @@ data List(t) {
     }
 
     def head [ List(x) -- Maybe(x) ] {
-        { Nil -> Maybe.None }
-        { Cons -> drop Maybe.Some }
+        { Nil -> None }
+        { Cons -> drop Some }
     }
     def tail [ List(x) -- List(x) ] {
         { Nil -> List.Nil }
@@ -79,7 +79,7 @@ data List(t) {
 
     ||| Traverse the list, left to right.
     def for(f) [ (*c a -- *c) *c List(a) -- *c ] {
-        while(if-cons(dip(f) Bool.True, List.Nil Bool.False)) drop
+        while(if-cons(dip(f) True, List.Nil False)) drop
     }
 
     ||| Traverse the list, right to left.
@@ -126,7 +126,7 @@ data List(t) {
 
     ||| Find first element that returns [Some], if it exists.
     def find-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b) ] {
-        Maybe.None swap while-some(
+        None swap while-some(
             uncons swap,
             dip'(dip'(f)) match(
                 None -> id,
@@ -142,12 +142,12 @@ data List(t) {
 
     ||| Find the first element that satisfies the predicate, if it exists.
     def find(f) [ (*c a -- *c Bool) *c List(a) -- *c Maybe(a) ] {
-        find-some(dup dip(f) swap if(Maybe.Some, drop Maybe.None))
+        find-some(dup dip(f) swap if(Some, drop None))
     }
 
     ||| Find the last element that satisfies the predicate, if it exists.
     def reverse-find(f) [ (*c a -- *c Bool) *c List(a) -- *c Maybe(a) ] {
-        reverse-find-some(dup dip(f) swap if(Maybe.Some, drop Maybe.None))
+        reverse-find-some(dup dip(f) swap if(Some, drop None))
     }
 
     ||| Is the predicate true for any element of the list?
@@ -162,20 +162,20 @@ data List(t) {
 
     ||| If the predicate matches all elements of the list, return the result. Otherwise return None.
     def all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
-        >rest Bool.True >ok +List.+L0 while-some(
+        >rest True >ok +List.+L0 while-some(
             @rest:uncons,
             @rest(@ok(dip2:rdip(f))) if-some(
                 ; ,
-                Bool.False !ok
+                False !ok
                 List.Nil !rest
             )
         )
         rest> drop
-        ok> if(+> Maybe.Some, rdrop Maybe.None)
+        ok> if(+> Some, rdrop None)
     }
 
     def ==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
-        Bool.True while (
+        True while (
             dip(dip(uncons) uncons dip(swap) dip2(==(eq)) rotl) &&
             over2 empty? over2 empty? && not over &&,
             id
@@ -212,10 +212,10 @@ data List(t) {
             while (
                 if-cons(
                     dip:sip:rdip(p) rotl if(
-                        List.Cons Bool.False,
-                        dip(;) Bool.True
+                        List.Cons False,
+                        dip(;) True
                     ),
-                    List.Nil Bool.False
+                    List.Nil False
                 )
             )
         ) swap
@@ -231,7 +231,7 @@ data List(t) {
         ) dip(reverse) reverse)
 
     def(partition(p), (*a t -- *a Bool) *a List(t) -- *a List(t) List(t),
-        partition-either(dup dip(p) swap if(Either.Right, Either.Left)))
+        partition-either(dup dip(p) swap if(Right, Left)))
 
     def(show;(f {show;}), (t +Str -- +Str) List(t) +Str -- +Str,
         "LIST( " ; for(f " ; " ;) ")" ;)
@@ -252,7 +252,7 @@ struct List+(t) {
     def L8 [ t t t t  t t t t  -- List+(t) ] { List.L7 >tail >head List+ }
 
     def single? [ List+(t) -- Maybe(t) ] {
-        /List+ head> tail> empty? if(Maybe.Some, drop Maybe.None)
+        /List+ head> tail> empty? if(Some, drop None)
     }
 
     def >List [ List+(t) -- List(t) ] { /List+ head> tail> List.Cons }
@@ -352,12 +352,12 @@ struct List+(t) {
 
     ||| Find the first element that satisfies the predicate, if it exists.
     def find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
-        find-some(dup dip(f) swap if(Maybe.Some, drop Maybe.None))
+        find-some(dup dip(f) swap if(Some, drop None))
     }
 
     ||| Find the last element that satisfies the predicate, if it exists.
     def reverse-find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
-        reverse-find-some(dup dip(f) swap if(Maybe.Some, drop Maybe.None))
+        reverse-find-some(dup dip(f) swap if(Some, drop None))
     }
 
     ||| Is the predicate true for any element of the list?
@@ -394,7 +394,7 @@ struct List+(t) {
         >List partition-either(p))
 
     def(partition(p), (*a t -- *a Bool) *a List+(t) -- *a List(t) List(t),
-        partition-either(dup dip(p) swap if(Either.Right, Either.Left)))
+        partition-either(dup dip(p) swap if(Right, Left)))
 
     def(show;(f {show;}), (t +Str -- +Str) List+(t) +Str -- +Str,
         "LIST+( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
@@ -502,12 +502,12 @@ inline struct L0 {
     def len [ L0 -- Nat ] { drop 0u }
     def map(f) [ (*c a -- *c b) *c L0 -- *c L0 ] { drop L0 }
     def for(f) [ (*c a -- *c) *c L0 -- *c ] { drop }
-    def == [ L0 L0 -- Bool ] { drop2 Bool.True  }
-    def <> [ L0 L0 -- Bool ] { drop2 Bool.False }
-    def <  [ L0 L0 -- Bool ] { drop2 Bool.False }
-    def <= [ L0 L0 -- Bool ] { drop2 Bool.True  }
-    def >  [ L0 L0 -- Bool ] { drop2 Bool.False }
-    def >= [ L0 L0 -- Bool ] { drop2 Bool.True  }
+    def == [ L0 L0 -- Bool ] { drop2 True  }
+    def <> [ L0 L0 -- Bool ] { drop2 False }
+    def <  [ L0 L0 -- Bool ] { drop2 False }
+    def <= [ L0 L0 -- Bool ] { drop2 True  }
+    def >  [ L0 L0 -- Bool ] { drop2 False }
+    def >= [ L0 L0 -- Bool ] { drop2 True  }
     def compare [ L0 L0 -- Comparison ] { drop2 Comparison.EQ }
     def show  [ L0 -- Str ] { L0 -> "L0" }
     def show; [ +Str L0 -- +Str ] { L0 -> "L0" ; }

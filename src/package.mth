@@ -22,11 +22,11 @@ def(Package.std, +Mirth -- +Mirth Package, builtin std)
 def(init-packages!, +Mirth -- +Mirth,
     builtin std
     "std" >Name over ~name !
-    Maybe.None swap ~path !)
+    None swap ~path !)
 
 def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
     dup path match(
-        Some -> nip Maybe.Some,
+        Some -> nip Some,
         None ->
             package-search-paths
             map(over name >Str >Path rdip:join)
@@ -48,7 +48,7 @@ def(Package.path!, +Mirth Path Package -- +Mirth,
                 ) fatal-error!
             ),
         None ->
-            Maybe.Some swap ~path !
+            Some swap ~path !
     ))
 
 def(Package.new!, +Mirth Maybe(Path) Name -- +Mirth Package,
@@ -60,13 +60,13 @@ def(Package.new!, +Mirth Maybe(Path) Name -- +Mirth Package,
 def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
     dup Package.find match(
         Some -> nip tuck path!,
-        None -> dip(Maybe.Some) Package.new!
+        None -> dip(Some) Package.new!
     ))
 
 def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
     Namespace.NAMESPACE_ROOT swap 0 QName.Mk def-soft? bind(package?))
 
 def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
-    dup Package.find unwrap(dup Maybe.None swap Package.new!) nip)
+    dup Package.find unwrap(dup None swap Package.new!) nip)
 
 def(Package.==, Package Package -- Bool, both(index) ==)

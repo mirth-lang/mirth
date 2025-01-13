@@ -57,7 +57,7 @@ def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
     tags> @data ~tags !
 
     params> @data PropLabel.DataParams prop @data ~params !
-    Maybe.None @data ~head? !
+    None @data ~head? !
 
     data> Def.DefData register)
 
@@ -82,26 +82,26 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
 def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     >underlying >tag >tagname >data >dataname
 
-    dataname> List.L0 data> @tag List.L1 underlying> CType.IntLike Maybe.Some make-prim-data!
+    dataname> List.L0 data> @tag List.L1 underlying> CType.IntLike Some make-prim-data!
     tagname> 0 TYPE_INT List.L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
-    "Bool" List.L0 builtin bool builtin true builtin false List.L2 "_Bool" CType.IntLike Maybe.Some make-prim-data!
+    "Bool" List.L0 builtin bool builtin true builtin false List.L2 "_Bool" CType.IntLike Some make-prim-data!
     "False" 0 List.L0 builtin false make-prim-tag!
     "True" 1 List.L0 builtin true make-prim-tag!
 
     TYPE_TYPE "a" >Name Var.new! >a
-    "CPtr" @a List.L1 builtin cptr builtin mk-cptr List.L1 Maybe.None make-prim-data!
+    "CPtr" @a List.L1 builtin cptr builtin mk-cptr List.L1 None make-prim-data!
     "CPtr" 0 TYPE_PTR List.L1 builtin mk-cptr make-prim-tag!
-    "CConst" @a List.L1 builtin cconst builtin mk-cconst List.L1 Maybe.None make-prim-data!
+    "CConst" @a List.L1 builtin cconst builtin mk-cconst List.L1 None make-prim-data!
     "CConst" 0 @a Type.TVar List.L1 builtin mk-cconst make-prim-tag!
-    "CRestrict" @a List.L1 builtin crestrict builtin mk-crestrict List.L1 Maybe.None make-prim-data!
+    "CRestrict" @a List.L1 builtin crestrict builtin mk-crestrict List.L1 None make-prim-data!
     "CRestrict" 0 @a Type.TVar List.L1 builtin mk-crestrict make-prim-tag!
-    "CVolatile" @a List.L1 builtin cvolatile builtin mk-cvolatile List.L1 Maybe.None make-prim-data!
+    "CVolatile" @a List.L1 builtin cvolatile builtin mk-cvolatile List.L1 None make-prim-data!
     "CVolatile" 0 @a Type.TVar List.L1 builtin mk-cvolatile make-prim-tag!
     a> drop
 
-    "CVoid" List.L0 builtin cvoid builtin mk-cvoid List.L1 CType.Phantom Maybe.Some make-prim-data!
+    "CVoid" List.L0 builtin cvoid builtin mk-cvoid List.L1 CType.Phantom Some make-prim-data!
     "CVoid" 0 List.L0 builtin mk-cvoid make-prim-tag!
 
     "U64" builtin u64 "Int>U64-unsafe" builtin mk-u64 "uint64_t" make-prim-intlike!
@@ -193,11 +193,11 @@ def(Data.is-transparent?, Data -- Bool,
         dup is-resource? if(
             dup tags single? match(
                 Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == &&,
-                None -> Bool.False,
+                None -> False,
             ),
             dup tags single? match(
                 Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == &&,
-                None -> Bool.False
+                None -> False
             )
         )
     ) nip)
@@ -229,8 +229,8 @@ def(Data.is-value-type?, Data -- Bool,
 def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
     dup sip:Type.TData params for(Type.TVar Type.TApp)
     swap is-value-type? if(
-        Either.Left,
-        Resource Either.Right
+        Left,
+        Resource Right
     ))
 
 #######
@@ -348,10 +348,10 @@ def Tag.fields [ +Mirth Tag -- +Mirth List(TagField) ] {
     @tag ~fields memoize (
         @tag type dom split-parts nip filter-some(
             match {
-                { STPCons -> drop Maybe.None }
-                { STPWith -> drop Maybe.None }
-                { STPConsLabel -> @tag >tag >label Either.Left  >type/resource TagField Maybe.Some }
-                { STPWithLabel -> @tag >tag >label Either.Right >type/resource TagField Maybe.Some }
+                { STPCons -> drop None }
+                { STPWith -> drop None }
+                { STPConsLabel -> @tag >tag >label Left  >type/resource TagField Some }
+                { STPWithLabel -> @tag >tag >label Right >type/resource TagField Some }
             }
         )
     )

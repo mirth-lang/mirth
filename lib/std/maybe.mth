@@ -22,7 +22,7 @@ data Maybe(t) {
     def or(f) { some? or(f) }
 
     def if-some(f,g)  { { Some -> f          } { None -> g } }
-    def or-some(f)    { { Some -> Maybe.Some } { None -> f } }
+    def or-some(f)    { { Some -> Some } { None -> f } }
     def unwrap(f)     { { Some -> id         } { None -> f } }
     def >List {
         { None -> List.L0 }
@@ -31,7 +31,7 @@ data Maybe(t) {
 
     def == (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {
         { None -> none? }
-        { Some -> swap if-some(swap eq, drop Bool.False) }
+        { Some -> swap if-some(swap eq, drop False) }
     }
 
     def compare (cmp {compare}) [ (*c a a -- *c Comparison) *c Maybe(a) Maybe(a) -- *c Comparison ] {
@@ -45,23 +45,23 @@ data Maybe(t) {
         }}
     }
 
-    def map(f)  { { Some -> f Maybe.Some } { None -> Maybe.None } }
-    def bind(f) { { Some -> f            } { None -> Maybe.None } }
-    def for(f)  { { Some -> f            } { None -> id         } }
-    def has(f)  { { Some -> f            } { None -> Bool.False } }
-    def all(f)  { { Some -> f            } { None -> Bool.True  } }
+    def map(f)  { { Some -> f Some } { None -> None  } }
+    def bind(f) { { Some -> f      } { None -> None  } }
+    def for(f)  { { Some -> f      } { None -> id    } }
+    def has(f)  { { Some -> f      } { None -> False } }
+    def all(f)  { { Some -> f      } { None -> True  } }
 
     def filter(f) [ (*a b -- *a Bool) *a Maybe(b) -- *a Maybe(b) ] {
-        { Some -> dup dip(f) swap if(Maybe.Some, drop Maybe.None) }
-        { None -> Maybe.None }
+        { Some -> dup dip(f) swap if(Some, drop None) }
+        { None -> None }
     }
 
     def map2(f) [ (*c x y -- *c z) *c Maybe(x) Maybe(y) -- *c Maybe(z) ] {
-        { None -> drop Maybe.None }
+        { None -> drop None }
         { Some ->
             swap match {
-                { None -> drop Maybe.None }
-                { Some -> swap f Maybe.Some }
+                { None -> drop None }
+                { Some -> swap f Some }
             }
         }
     }
@@ -78,11 +78,15 @@ data Maybe(t) {
     }
 }
 
+# Re-export these constructors unqualified.
+alias(Some, Maybe.Some)
+alias(None, Maybe.None)
+
 def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
-    while(f if-some(g Bool.True, Bool.False))
+    while(f if-some(g True, False))
 }
 
 def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {
-    Maybe.None while(drop f dup if(Bool.False, dip:g Bool.True))
+    None while(drop f dup if(False, dip:g True))
     unwrap(impossible!)
 }

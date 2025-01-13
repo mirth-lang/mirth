@@ -10,23 +10,23 @@ data Either(a,b) {
     --
 
     def left? [ Either(a,b) -- Maybe(a) ] {
-        { Left -> Maybe.Some }
-        { Right -> drop Maybe.None }
+        { Left -> Some }
+        { Right -> drop None }
     }
 
     def right? [ Either(a,b) -- Maybe(b) ] {
-        { Left -> drop Maybe.None }
-        { Right -> Maybe.Some }
+        { Left -> drop None }
+        { Right -> Some }
     }
 
     def map(g) [ (*x b1 -- *x b2) *x Either(a,b1) -- *x Either(a,b2) ] {
-        { Left -> Either.Left }
-        { Right -> g Either.Right }
+        { Left -> Left }
+        { Right -> g Right }
     }
 
     def map(f,g) [ (*x a1 -- *y a2, *x b1 -- *y b2) *x Either(a1,b1) -- *y Either(a2,b2) ] {
-        { Left -> f Either.Left }
-        { Right -> g Either.Right }
+        { Left -> f Left }
+        { Right -> g Right }
     }
 
     def for(g) [ (*x b -- *x) *x Either(a,b) -- *x ] {
@@ -40,17 +40,21 @@ data Either(a,b) {
     }
 
     def bind(g) [ (*x b1 -- *x Either(a,b2)) *x Either(a,b1) -- *x Either(a,b2) ] {
-        { Left -> Either.Left }
+        { Left -> Left }
         { Right -> g }
     }
 }
 
+# Re-export these constructors unqualified.
+alias(Left,  Either.Left)
+alias(Right, Either.Right)
+
 def while-left(f) [ (*c a -- *c Either(a,b)) *c a -- *c b ] {
-    Either.Left while-some(dup left?, nip f)
+    Left while-some(dup left?, nip f)
     right? unwrap(impossible!)
 }
 
 def while-right(f) [ (*c b -- *c Either(a,b)) *c b -- *c a ] {
-    Either.Right while-some(dup right?, nip f)
+    Right while-some(dup right?, nip f)
     left? unwrap(impossible!)
 }
