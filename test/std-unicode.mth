@@ -1,0 +1,44 @@
+module(mirth-tests.std-unicode)
+
+import(std.prelude)
+import(std.unicode)
+import(std.test)
+import(std.str)
+import(std.list)
+
+def main [ +World -- +World ] {
+    +Tests.Start!
+
+    "Codepoint.size-utf-16" test (
+        2u >USize => ( 119056 >Codepoint-unsafe size-utf-16 )
+        1u >USize => (     97 >Codepoint-unsafe size-utf-16 )
+        1u >USize => (  22899 >Codepoint-unsafe size-utf-16 )
+    )
+
+    "Codepoint.emit;" test (
+        "💄" => ( Str( 128132 >Codepoint-unsafe emit; ) )
+        "a" => ( Str( 97 >Codepoint-unsafe emit; ) )
+        "女" => ( Str( 22899 >Codepoint-unsafe emit; ) )
+    )
+
+    "Codepoint.show;" test (
+        "128132 Codepoint" => ( Str( 128132 >Codepoint-unsafe show; ) )
+            "97 Codepoint" => ( Str( 97 >Codepoint-unsafe show; ) )
+         "22899 Codepoint" => ( Str( 22899 >Codepoint-unsafe show; ) )
+    )
+
+    "Str.codepoints-for" test (
+        LIST( 97 ; 129498 ; 127995 ; 8205 ; 9792 ; 65039 ; 99 ; ) map:>Codepoint-unsafe 
+        => ( LIST( "a🧚🏻‍♀️c" codepoints-for:; ) )
+    )
+
+    "Str.num-codepoints" test (
+        7u >USize => ( "a🧚🏻‍♀️c" num-codepoints )
+    )
+
+    "Str.num-utf-16" test (
+        9u >USize => ( "a🧚🏻‍♀️c" num-utf-16 )
+    )
+    +Tests.end!
+}
+# mirth-test # pout # 6 tests passed.
