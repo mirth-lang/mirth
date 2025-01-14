@@ -24,137 +24,137 @@ import mirth.word
 import mirth.macro
 
 data Def {
-    DefAlias [ Alias ]
-    DefModule [ Module ]
-    DefPackage [ Package ]
-    DefData [ Data ]
-    DefTable [ Table ]
-    DefType [ TypeDef ]
-    DefTag [ Tag ]
-    DefPrim [ Prim ]
-    DefWord [ Word ]
-    DefBuffer [ Buffer ]
-    DefVariable [ Variable ]
-    DefExternal [ External ]
-    DefField [ Field ]
-    DefMacro [ Macro ]
+    Alias [ Alias ]
+    Module [ Module ]
+    Package [ Package ]
+    Data [ Data ]
+    Table [ Table ]
+    Type [ TypeDef ]
+    Tag [ Tag ]
+    Prim [ Prim ]
+    Word [ Word ]
+    Buffer [ Buffer ]
+    Variable [ Variable ]
+    External [ External ]
+    Field [ Field ]
+    Macro [ Macro ]
     --
 
-    def package? { DefPackage -> Some, _ -> drop None }
-    def module? { DefModule -> Some, _ -> drop None }
-    def alias? { DefAlias -> Some, _ -> drop None }
-    def data? { DefData -> Some, _ -> drop None }
-    def table? { DefTable -> Some, _ -> drop None }
-    def typedef? { DefType -> Some, _ -> drop None }
-    def tag? { DefTag -> Some, _ -> drop None }
-    def prim? { DefPrim -> Some, _ -> drop None }
-    def word? { DefWord -> Some, _ -> drop None }
-    def buffer? { DefBuffer -> Some, _ -> drop None }
-    def variable? { DefVariable -> Some, _ -> drop None }
-    def external? { DefExternal -> Some, _ -> drop None }
-    def field? { DefField -> Some, _ -> drop None }
-    def macro? { DefMacro -> Some, _ -> drop None }
+    def package? { Package -> Some, _ -> drop None }
+    def module? { Module -> Some, _ -> drop None }
+    def alias? { Alias -> Some, _ -> drop None }
+    def data? { Data -> Some, _ -> drop None }
+    def table? { Table -> Some, _ -> drop None }
+    def typedef? { Type -> Some, _ -> drop None }
+    def tag? { Tag -> Some, _ -> drop None }
+    def prim? { Prim -> Some, _ -> drop None }
+    def word? { Word -> Some, _ -> drop None }
+    def buffer? { Buffer -> Some, _ -> drop None }
+    def variable? { Variable -> Some, _ -> drop None }
+    def external? { External -> Some, _ -> drop None }
+    def field? { Field -> Some, _ -> drop None }
+    def macro? { Macro -> Some, _ -> drop None }
 
     def == [ Def Def -- Bool ] {
-        { DefPackage -> Some swap package? == }
-        { DefModule -> Some swap module? == }
-        { DefAlias -> Some swap alias? == }
-        { DefData -> Some swap data? == }
-        { DefTable -> Some swap table? == }
-        { DefType -> Some swap typedef? == }
-        { DefTag -> Some swap tag? == }
-        { DefPrim -> Some swap prim? == }
-        { DefWord -> Some swap word? == }
-        { DefBuffer -> Some swap buffer? == }
-        { DefVariable -> Some swap variable? == }
-        { DefExternal -> Some swap external? == }
-        { DefField -> Some swap field? == }
-        { DefMacro -> Some swap macro? == }
+        { Package -> Some swap package? == }
+        { Module -> Some swap module? == }
+        { Alias -> Some swap alias? == }
+        { Data -> Some swap data? == }
+        { Table -> Some swap table? == }
+        { Type -> Some swap typedef? == }
+        { Tag -> Some swap tag? == }
+        { Prim -> Some swap prim? == }
+        { Word -> Some swap word? == }
+        { Buffer -> Some swap buffer? == }
+        { Variable -> Some swap variable? == }
+        { External -> Some swap external? == }
+        { Field -> Some swap field? == }
+        { Macro -> Some swap macro? == }
     }
 
     def typecheck! [ +Mirth Def -- +Mirth ] {
-        { DefPackage -> drop }
-        { DefModule -> drop }
-        { DefAlias -> target typecheck! }
-        { DefData -> drop }
-        { DefTable -> drop }
-        { DefType -> target drop }
-        { DefTag -> type drop }
-        { DefPrim -> drop }
-        { DefWord -> dup type drop arrow drop }
-        { DefBuffer -> drop }
-        { DefVariable -> type drop }
-        { DefExternal -> type drop }
-        { DefField -> type drop }
-        { DefMacro -> drop }
+        { Package -> drop }
+        { Module -> drop }
+        { Alias -> target typecheck! }
+        { Data -> drop }
+        { Table -> drop }
+        { Type -> target drop }
+        { Tag -> type drop }
+        { Prim -> drop }
+        { Word -> dup type drop arrow drop }
+        { Buffer -> drop }
+        { Variable -> type drop }
+        { External -> type drop }
+        { Field -> type drop }
+        { Macro -> drop }
     }
 
     def callable? [ +Mirth Def -- +Mirth Bool ] {
-        { DefAlias -> ~target try-force! has(callable?) }
-        { DefPackage -> drop False }
-        { DefModule -> drop False }
-        { DefBuffer -> drop True }
-        { DefPrim -> drop True }
-        { DefData -> drop False }
-        { DefTable -> drop False }
-        { DefType -> drop False }
-        { DefExternal -> drop True }
-        { DefWord -> drop True }
-        { DefField -> drop True }
-        { DefTag -> drop True }
-        { DefVariable -> drop True }
-        { DefMacro -> action callable? }
+        { Alias -> ~target try-force! has(callable?) }
+        { Package -> drop False }
+        { Module -> drop False }
+        { Buffer -> drop True }
+        { Prim -> drop True }
+        { Data -> drop False }
+        { Table -> drop False }
+        { Type -> drop False }
+        { External -> drop True }
+        { Word -> drop True }
+        { Field -> drop True }
+        { Tag -> drop True }
+        { Variable -> drop True }
+        { Macro -> action callable? }
     }
 
     def defines-a-type? [ +Mirth Def -- +Mirth Bool ] {
-        { DefAlias -> ~target try-force! has(defines-a-type?) }
-        { DefPackage -> drop False }
-        { DefModule -> drop False }
-        { DefBuffer -> drop False }
-        { DefPrim -> drop False }
-        { DefData -> drop True }
-        { DefTable -> drop True }
-        { DefType -> drop True }
-        { DefExternal -> drop False }
-        { DefWord -> drop False }
-        { DefField -> drop False }
-        { DefTag -> drop False }
-        { DefVariable -> drop False }
-        { DefMacro -> drop False }
+        { Alias -> ~target try-force! has(defines-a-type?) }
+        { Package -> drop False }
+        { Module -> drop False }
+        { Buffer -> drop False }
+        { Prim -> drop False }
+        { Data -> drop True }
+        { Table -> drop True }
+        { Type -> drop True }
+        { External -> drop False }
+        { Word -> drop False }
+        { Field -> drop False }
+        { Tag -> drop False }
+        { Variable -> drop False }
+        { Macro -> drop False }
     }
 
     def exposed-tycon? [ +Mirth Def -- +Mirth Maybe(Tycon) ] {
-        { DefAlias -> ~target try-force! bind(exposed-tycon?) }
-        { DefPackage -> drop None }
-        { DefModule -> drop None }
-        { DefData -> Tycon.Data Some }
-        { DefTable -> Tycon.Table Some }
-        { DefType -> target tycon? }
-        { DefBuffer -> drop None }
-        { DefPrim -> drop None }
-        { DefExternal -> drop None }
-        { DefWord -> drop None }
-        { DefField -> drop None }
-        { DefTag -> drop None }
-        { DefVariable -> drop None }
-        { DefMacro -> drop None }
+        { Alias -> ~target try-force! bind(exposed-tycon?) }
+        { Package -> drop None }
+        { Module -> drop None }
+        { Data -> Tycon.Data Some }
+        { Table -> Tycon.Table Some }
+        { Type -> target tycon? }
+        { Buffer -> drop None }
+        { Prim -> drop None }
+        { External -> drop None }
+        { Word -> drop None }
+        { Field -> drop None }
+        { Tag -> drop None }
+        { Variable -> drop None }
+        { Macro -> drop None }
     }
 
     def head? [ Def -- Maybe(Token) ] {
-        { DefAlias -> head Some }
-        { DefPackage -> drop None }
-        { DefModule -> start Some }
-        { DefData -> head? }
-        { DefTable -> head Some }
-        { DefType -> head? }
-        { DefBuffer -> drop None }
-        { DefPrim -> drop None }
-        { DefExternal -> head Some }
-        { DefWord -> head Some }
-        { DefField -> head Some }
-        { DefTag -> .data head? }
-        { DefVariable -> head Some }
-        { DefMacro -> head? }
+        { Alias -> head Some }
+        { Package -> drop None }
+        { Module -> start Some }
+        { Data -> head? }
+        { Table -> head Some }
+        { Type -> head? }
+        { Buffer -> drop None }
+        { Prim -> drop None }
+        { External -> head Some }
+        { Word -> head Some }
+        { Field -> head Some }
+        { Tag -> .data head? }
+        { Variable -> head Some }
+        { Macro -> head? }
     }
 
     def defining-module? [ Def -- Maybe(Module) ] {
@@ -170,81 +170,81 @@ data Def {
     }
 
     def name [ Def -- Name ] {
-        { DefAlias -> name }
-        { DefPackage -> name }
-        { DefModule -> name }
-        { DefBuffer -> name }
-        { DefPrim -> name }
-        { DefData -> name }
-        { DefTable -> name }
-        { DefType -> name }
-        { DefExternal -> name }
-        { DefWord -> name }
-        { DefField -> name }
-        { DefTag -> name }
-        { DefVariable -> name }
-        { DefMacro -> name }
+        { Alias -> name }
+        { Package -> name }
+        { Module -> name }
+        { Buffer -> name }
+        { Prim -> name }
+        { Data -> name }
+        { Table -> name }
+        { Type -> name }
+        { External -> name }
+        { Word -> name }
+        { Field -> name }
+        { Tag -> name }
+        { Variable -> name }
+        { Macro -> name }
     }
 
     def arity [ Def -- Int ] {
-        { DefAlias -> arity }
-        { DefPackage -> drop 0 }
-        { DefModule -> drop 0 }
-        { DefBuffer -> drop 0 }
-        { DefPrim -> arity }
-        { DefData -> arity }
-        { DefTable -> drop 0 }
-        { DefType -> drop 0 }
-        { DefExternal -> arity }
-        { DefWord -> arity >Int }
-        { DefField -> drop 0 }
-        { DefTag -> drop 0 }
-        { DefVariable -> drop 0 }
-        { DefMacro -> arity }
+        { Alias -> arity }
+        { Package -> drop 0 }
+        { Module -> drop 0 }
+        { Buffer -> drop 0 }
+        { Prim -> arity }
+        { Data -> arity }
+        { Table -> drop 0 }
+        { Type -> drop 0 }
+        { External -> arity }
+        { Word -> arity >Int }
+        { Field -> drop 0 }
+        { Tag -> drop 0 }
+        { Variable -> drop 0 }
+        { Macro -> arity }
     }
 
     def qname-soft [ +Mirth Def -- +Mirth Maybe(QName) ] {
-        { DefAlias -> qname-soft }
-        { DefPackage -> qname Some }
-        { DefModule -> qname Some }
-        { DefBuffer -> qname Some }
-        { DefPrim -> qname Some }
-        { DefData -> qname-soft }
-        { DefTable -> qname-soft }
-        { DefType -> qname-soft }
-        { DefExternal -> qname-soft }
-        { DefWord -> qname-soft }
-        { DefField -> qname-soft }
-        { DefTag -> qname Some }
-        { DefVariable -> qname Some }
-        { DefMacro -> qname-soft }
+        { Alias -> qname-soft }
+        { Package -> qname Some }
+        { Module -> qname Some }
+        { Buffer -> qname Some }
+        { Prim -> qname Some }
+        { Data -> qname-soft }
+        { Table -> qname-soft }
+        { Type -> qname-soft }
+        { External -> qname-soft }
+        { Word -> qname-soft }
+        { Field -> qname-soft }
+        { Tag -> qname Some }
+        { Variable -> qname Some }
+        { Macro -> qname-soft }
     }
 
     def qname-hard [ +Mirth Def -- +Mirth QName ] {
-        { DefAlias -> qname-hard }
-        { DefPackage -> qname }
-        { DefModule -> qname }
-        { DefBuffer -> qname }
-        { DefPrim -> qname }
-        { DefData -> qname-hard }
-        { DefTable -> qname-hard }
-        { DefType -> qname-hard }
-        { DefExternal -> qname-hard }
-        { DefWord -> qname-hard }
-        { DefField -> qname-hard }
-        { DefTag -> qname }
-        { DefVariable -> qname }
-        { DefMacro -> qname-hard }
+        { Alias -> qname-hard }
+        { Package -> qname }
+        { Module -> qname }
+        { Buffer -> qname }
+        { Prim -> qname }
+        { Data -> qname-hard }
+        { Table -> qname-hard }
+        { Type -> qname-hard }
+        { External -> qname-hard }
+        { Word -> qname-hard }
+        { Field -> qname-hard }
+        { Tag -> qname }
+        { Variable -> qname }
+        { Macro -> qname-hard }
     }
 
     def as-namespace? [ +Mirth Def -- +Mirth Maybe(Namespace) ] {
-        { DefAlias -> ~target try-force! bind(as-namespace?) }
-        { DefPackage -> Namespace.Package Some }
-        { DefModule -> Namespace.Module Some }
-        { DefData -> Tycon.Data Namespace.Tycon Some }
-        { DefTable -> Tycon.Table Namespace.Tycon Some }
-        { DefType -> target tycon? map(Namespace.Tycon) }
-        { DefWord -> Namespace.Word Some }
+        { Alias -> ~target try-force! bind(as-namespace?) }
+        { Package -> Namespace.Package Some }
+        { Module -> Namespace.Module Some }
+        { Data -> Tycon.Data Namespace.Tycon Some }
+        { Table -> Tycon.Table Namespace.Tycon Some }
+        { Type -> target tycon? map(Namespace.Tycon) }
+        { Word -> Namespace.Word Some }
         { _ -> drop None }
     }
 

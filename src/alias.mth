@@ -28,4 +28,4 @@ def(Alias.new!, +Mirth head:Token name:Name arity:Int -- +Mirth Alias,
     name> over ~name !
     head> over ~head !
     arity> over ~arity !
-    dup Def.DefAlias register)
+    dup Def.Alias register)

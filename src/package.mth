@@ -55,7 +55,7 @@ def(Package.new!, +Mirth Maybe(Path) Name -- +Mirth Package,
     Package.alloc!
     tuck ~name !
     tuck ~path !
-    dup Def.DefPackage register)
+    dup Def.Package register)
 
 def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
     dup Package.find match(

@@ -186,14 +186,14 @@ struct +TypeElab {
         False >report-ambiguous-as-warning
         False >ignore-last-name
         token >token "type" >sort rdip:resolve-def(
-            filter(dup rdip:defines-a-type?, RejectedDef.RD_WRONG_SORT)
+            filter(dup rdip:defines-a-type?, RejectedDef.WrongSort)
             filter-arity
             filter-qualifiers
             List.L0 filter-roots
         ) map:match(
-            DefData -> Type.Data,
-            DefTable -> Type.Table,
-            DefType -> rdip:target,
+            Data -> Type.Data,
+            Table -> Type.Table,
+            Type -> rdip:target,
             _ ->
                 drop token "compiler bug: resolve-type-con-name! doesn't understand type"
                 rdip:emit-error! Type.Error,
@@ -266,14 +266,14 @@ def show-num-arguments [ Int -- Str ] {
 
 # TODO: separate this into a reason and a def.
 data RejectedDef {
-    RD_WRONG_SORT           [ Def ]
-    RD_WRONG_ARITY          [ Def ]
-    RD_NOT_VISIBLE          [ Def ]
-    RD_NOT_IMPORTED         [ Def ]
-    RD_WRONG_QUALIFIER      [ Def ]
-    RD_WRONG_CONSTRUCTOR    [ Def ]
-    RD_METHOD_NOT_AVAILABLE [ Def ]
-    RD_METHOD_WRONG_TYPE    [ Def ]
+    WrongSort          [ Def ]
+    WrongArity         [ Def ]
+    NotVisible         [ Def ]
+    NotImported        [ Def ]
+    WrongQualifier     [ Def ]
+    WrongConstructor   [ Def ]
+    MethodNotAvailable [ Def ]
+    MethodWrongType    [ Def ]
 }
 
 struct +ResolveDef {
@@ -339,23 +339,23 @@ struct +ResolveDef {
         (*a Def +ResolveDef -- *a Def Bool +ResolveDef)
         *a +ResolveDef -- *a +ResolveDef
     ] {
-        filter(p, RejectedDef.RD_WRONG_SORT)
+        filter(p, RejectedDef.WrongSort)
     }
 
     def filter-arity [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
         token num-args filter(
             dup2 rdip:qname-hard arity dip(>Int) arity-compatible?,
-            RejectedDef.RD_WRONG_ARITY
+            RejectedDef.WrongArity
         ) drop
     }
 
     def filter-visible [ +ResolveDef -- +ResolveDef ] {
-        filter(token over def-visible-from-token?, RejectedDef.RD_NOT_VISIBLE)
+        filter(token over def-visible-from-token?, RejectedDef.NotVisible)
     }
 
     def filter-qualifiers [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
         token dname? for(
-            filter(dup2 rdip:qname-hard climb-up-dname? empty? not, RejectedDef.RD_WRONG_QUALIFIER)
+            filter(dup2 rdip:qname-hard climb-up-dname? empty? not, RejectedDef.WrongQualifier)
             drop
         )
     }
@@ -371,12 +371,12 @@ struct +ResolveDef {
                         Tycon ->
                             drop @name can-be-relative? if(
                                 over empty? if(
-                                    RejectedDef.RD_METHOD_NOT_AVAILABLE,
-                                    RejectedDef.RD_METHOD_WRONG_TYPE
+                                    RejectedDef.MethodNotAvailable,
+                                    RejectedDef.MethodWrongType
                                 ),
-                                RejectedDef.RD_NOT_IMPORTED
+                                RejectedDef.NotImported
                             ),
-                        _ -> drop RejectedDef.RD_NOT_IMPORTED
+                        _ -> drop RejectedDef.NotImported
                     )
                 )
                 name> drop
@@ -386,13 +386,13 @@ struct +ResolveDef {
                 dup is-relative? and(ignore-last-name not) if(
                     filter(dup2 rdip:qname-hard climb-up-dname? has(over3 member),
                         over2 empty? if(
-                            RejectedDef.RD_METHOD_NOT_AVAILABLE,
-                            RejectedDef.RD_METHOD_WRONG_TYPE
+                            RejectedDef.MethodNotAvailable,
+                            RejectedDef.MethodWrongType
                         )
                     ),
                     filter(dup2 rdip:qname-hard climb-up-dname? has(
                         dip:token rdip:namespace-is-imported-at-token?
-                    ), RejectedDef.RD_NOT_IMPORTED)
+                    ), RejectedDef.NotImported)
                 ) drop
             }
         }
@@ -433,42 +433,42 @@ struct +ResolveDef {
             Cons ->
                 match(
                     Nil -> match(
-                        RD_WRONG_SORT ->
+                        WrongSort ->
                             "Expected a " ; rdip:sort ; ", but " ;
                             rdip2(qname-hard >Str) ; " is not a " ; rdip:sort ; "." ; ,
-                        RD_NOT_VISIBLE ->
+                        NotVisible ->
                             "Not visible in current scope: " ; rdip2(qname-hard >Str) ; ,
-                        RD_NOT_IMPORTED ->
+                        NotImported ->
                             "Not imported in current scope: " ; rdip2(qname-hard >Str) ; ,
-                        RD_WRONG_ARITY ->
+                        WrongArity ->
                             rdip2(qname-hard dup >Str) ; " expects " ; arity show;
                             " arguments, but got " ; rdip:token num-args show; "." ; ,
-                        RD_WRONG_QUALIFIER ->
+                        WrongQualifier ->
                             "Qualified name not found. Perhaps you meant: " ; rdip2(qname-hard >Str) ; ,
-                        RD_WRONG_CONSTRUCTOR ->
+                        WrongConstructor ->
                             "Constructor is for a different type: " ; rdip2(qname-hard >Str) ; ,
-                        RD_METHOD_WRONG_TYPE ->
+                        MethodWrongType ->
                             "Method is for a different type: " ; rdip2(qname-hard >Str) ; ,
-                        RD_METHOD_NOT_AVAILABLE ->
+                        MethodNotAvailable ->
                             "Method is not available for current stack: " ; rdip2(qname-hard >Str) ; ,
                     ),
                     _ -> List.Cons "Multiple definitions for name, but none are suitable:" ;
                         dip:" " for(swap ; match(
-                            RD_WRONG_SORT -> rdip2(qname-hard >Str) ; " is not a " ; rdip:sort ; ,
-                            RD_NOT_VISIBLE ->
+                            WrongSort -> rdip2(qname-hard >Str) ; " is not a " ; rdip:sort ; ,
+                            NotVisible ->
                                 rdip2(qname-hard >Str) ; " is not visible in current scope" ; ,
-                            RD_NOT_IMPORTED ->
+                            NotImported ->
                                 rdip2(qname-hard >Str) ; " is not imported in current scope" ; ,
-                            RD_WRONG_ARITY ->
+                            WrongArity ->
                                 rdip2(qname-hard dup >Str) ; " expects " ;
                                 arity show; " arguments" ; ,
-                            RD_WRONG_QUALIFIER ->
+                            WrongQualifier ->
                                 rdip2(qname-hard >Str) ; " doesn't match the given qualified name" ; ,
-                            RD_WRONG_CONSTRUCTOR ->
+                            WrongConstructor ->
                                 rdip2(qname-hard >Str) ; " is constructor for a different type" ; ,
-                            RD_METHOD_WRONG_TYPE ->
+                            MethodWrongType ->
                                 rdip2(qname-hard >Str) ; " is method for a different type" ; ,
-                            RD_METHOD_NOT_AVAILABLE ->
+                            MethodNotAvailable ->
                                 rdip2(qname-hard >Str) ; " is not avaliable for current stack" ; ,
                         ) ", ") drop
                 )
@@ -536,12 +536,12 @@ def QName.climb-up-name? [ +Mirth Name QName -- +Mirth List(Namespace) ] {
         List.L0
     ) >accum
     name> defs for(match(
-        DefAlias ->
+        Alias ->
             dup ~target try-force! has(qname-hard @qname ==) if(
                 namespace-hard @accum:List.Cons,
                 drop
             ),
-        DefType ->
+        Type ->
             dup target tycon? has(qname-hard @qname ==) if(
                 namespace @accum:List.Cons,
                 drop
@@ -618,9 +618,9 @@ struct +AB {
     }
 
     def ab-expand-opsig! [ OpSig +Mirth +AB -- StackType StackType +Mirth +AB ] {
-        { OpSig.OPSIG_ID -> ab-type@ dup }
-        { OpSig.OPSIG_PUSH -> dip(ab-type@ dup) StackType.Cons }
-        { OpSig.OPSIG_APPLY ->
+        { OpSig.Id -> ab-type@ dup }
+        { OpSig.Push -> dip(ab-type@ dup) StackType.Cons }
+        { OpSig.Apply ->
             /ArrowType
             ab-type@
             dom> ab-token@ rdip:elab-stack-type-unify! drop
@@ -717,19 +717,19 @@ struct +AB {
 
     def elab-atom! [ +Mirth +AB -- +Mirth +AB ] {
         ab-token@ value match(
-            TokenName -> elab-atom-name!,
-            TokenDName -> elab-atom-dname!,
-            TokenInt -> ab-int!,
-            TokenStr -> ab-str!,
-            TokenF64 -> ab-f64!,
-            TokenLSquare -> drop elab-atom-block!,
-            TokenLCurly -> drop elab-atom-assert!,
-            TokenLabelPush -> ab-token@ rdip:args-0 ab-label-push!,
-            TokenLabelPop -> ab-token@ rdip:args-0 ab-label-pop!,
-            TokenLabelPushR -> ab-token@ rdip:args-0 ab-label-push-r!,
-            TokenLabelPopR -> ab-token@ rdip:args-0 ab-label-pop-r!,
-            TokenLabelGet -> elab-label-get!,
-            TokenLabelSet -> elab-label-set!,
+            Name -> elab-atom-name!,
+            DName -> elab-atom-dname!,
+            Int -> ab-int!,
+            Str -> ab-str!,
+            F64 -> ab-f64!,
+            LSquare -> drop elab-atom-block!,
+            LCurly -> drop elab-atom-assert!,
+            LabelPush -> ab-token@ rdip:args-0 ab-label-push!,
+            LabelPop -> ab-token@ rdip:args-0 ab-label-pop!,
+            LabelPushR -> ab-token@ rdip:args-0 ab-label-push-r!,
+            LabelPopR -> ab-token@ rdip:args-0 ab-label-pop-r!,
+            LabelGet -> elab-label-get!,
+            LabelSet -> elab-label-set!,
             _ -> ab-token@ "Unexpected token in elab-atom!" rdip:emit-fatal-error!
         )
     }
@@ -804,8 +804,8 @@ struct +AB {
 
     def Token.can-be-relative-name-or-dname? [ Token -- Bool ] {
         value match(
-            TokenName -> can-be-relative?,
-            TokenDName -> is-relative?,
+            Name -> can-be-relative?,
+            DName -> is-relative?,
             _ -> drop False
         )
     }
@@ -817,7 +817,7 @@ struct +AB {
         "word" >sort
         False >ignore-last-name
         >+ab resolve-def(
-            filter(dup rdip:callable?, RejectedDef.RD_WRONG_SORT)
+            filter(dup rdip:callable?, RejectedDef.WrongSort)
             filter-arity
             filter-qualifiers
             token can-be-relative-name-or-dname? if(
@@ -842,15 +842,15 @@ struct +AB {
     }
 
     def elab-atom-def! [ Def +Mirth +AB -- +Mirth +AB ] {
-        DefAlias -> rdip:target elab-atom-def!,
-        DefBuffer -> elab-no-args! ab-buffer!,
-        DefVariable -> elab-no-args! ab-variable!,
-        DefExternal -> elab-no-args! ab-external!,
-        DefField -> elab-no-args! ab-field!,
-        DefWord -> elab-word-args! ab-word!,
-        DefTag -> elab-args! ab-tag!,
-        DefPrim -> elab-prim!,
-        DefMacro -> elab-macro!,
+        Alias -> rdip:target elab-atom-def!,
+        Buffer -> elab-no-args! ab-buffer!,
+        Variable -> elab-no-args! ab-variable!,
+        External -> elab-no-args! ab-external!,
+        Field -> elab-no-args! ab-field!,
+        Word -> elab-word-args! ab-word!,
+        Tag -> elab-args! ab-tag!,
+        Prim -> elab-prim!,
+        Macro -> elab-macro!,
         _ -> rdip:qname-hard elab-atom-not-a-word!
     }
 
@@ -1053,25 +1053,25 @@ def atoms-turn-last-block-to-arg [ Atom List(Atom) -- Atom List(Atom) ] {
 }
 
 data OpSig {
-    OPSIG_ID
-    OPSIG_PUSH  [ Type ]
-    OPSIG_APPLY [ ArrowType ]
+    Id
+    Push  [ Type ]
+    Apply [ ArrowType ]
 }
 
 def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
     Subst.nil swap match (
-        Int -> Value.Int Type.Value OpSig.OPSIG_PUSH,
-        F64 -> Value.F64 Type.Value OpSig.OPSIG_PUSH,
-        Str -> Value.Str Type.Value OpSig.OPSIG_PUSH,
-        Buffer -> drop Type.Ptr OpSig.OPSIG_PUSH,
-        Variable -> type Type.Mut OpSig.OPSIG_PUSH,
-        Tag -> type freshen-sig OpSig.OPSIG_APPLY,
-        Word -> dup inferring-type? if(type, type freshen-sig) OpSig.OPSIG_APPLY,
-        Prim -> type freshen-sig OpSig.OPSIG_APPLY,
-        External -> type freshen-sig OpSig.OPSIG_APPLY,
-        Field -> type freshen-sig OpSig.OPSIG_APPLY,
+        Int -> Value.Int Type.Value OpSig.Push,
+        F64 -> Value.F64 Type.Value OpSig.Push,
+        Str -> Value.Str Type.Value OpSig.Push,
+        Buffer -> drop Type.Ptr OpSig.Push,
+        Variable -> type Type.Mut OpSig.Push,
+        Tag -> type freshen-sig OpSig.Apply,
+        Word -> dup inferring-type? if(type, type freshen-sig) OpSig.Apply,
+        Prim -> type freshen-sig OpSig.Apply,
+        External -> type freshen-sig OpSig.Apply,
+        Field -> type freshen-sig OpSig.Apply,
         BlockPush -> elab-block-sig!,
-        BlockRun -> type semifreshen-sig OpSig.OPSIG_APPLY,
+        BlockRun -> type semifreshen-sig OpSig.Apply,
         Var -> elab-var-sig!,
         Match -> elab-match-sig!,
         Lambda -> elab-lambda-sig!,
@@ -1079,12 +1079,12 @@ def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
         LabelPop -> elab-label-pop-sig!,
         LabelPushR -> elab-label-push-r-sig!,
         LabelPopR -> elab-label-pop-r-sig!,
-        DataGetEnumValue -> data-get-enum-value-type freshen-sig OpSig.OPSIG_APPLY,
-        DataFromEnumValue -> data-from-enum-value-type freshen-sig OpSig.OPSIG_APPLY,
-        DataGetLabel -> data-get-label-type freshen-sig OpSig.OPSIG_APPLY,
-        DataSetLabel -> data-set-label-type freshen-sig OpSig.OPSIG_APPLY,
-        TableToIndex -> table-to-index-type freshen-sig OpSig.OPSIG_APPLY,
-        TableFromIndex -> table-from-index-type freshen-sig OpSig.OPSIG_APPLY,
+        DataGetEnumValue -> data-get-enum-value-type freshen-sig OpSig.Apply,
+        DataFromEnumValue -> data-from-enum-value-type freshen-sig OpSig.Apply,
+        DataGetLabel -> data-get-label-type freshen-sig OpSig.Apply,
+        DataSetLabel -> data-set-label-type freshen-sig OpSig.Apply,
+        TableToIndex -> table-to-index-type freshen-sig OpSig.Apply,
+        TableFromIndex -> table-from-index-type freshen-sig OpSig.Apply,
     )
 }
 
@@ -1107,42 +1107,42 @@ def table-from-index-type [ +Mirth Table -- +Mirth ArrowType ] {
 }
 
 def elab-block-sig! [ Block -- OpSig ] {
-    Value.Block Type.Value OpSig.OPSIG_PUSH
+    Value.Block Type.Value OpSig.Push
 }
 
 def elab-match-sig! [ Match -- OpSig ] {
-    sip(dom) cod T-> OpSig.OPSIG_APPLY
+    sip(dom) cod T-> OpSig.Apply
 }
 
 def elab-lambda-sig! [ Lambda -- OpSig ] {
-    sip(dom) cod T-> OpSig.OPSIG_APPLY
+    sip(dom) cod T-> OpSig.Apply
 }
 
 def elab-var-sig! [ Var -- OpSig ] {
     dup auto-run? if-some(
-        nip semifreshen-sig OpSig.OPSIG_APPLY,
-        type OpSig.OPSIG_PUSH
+        nip semifreshen-sig OpSig.Apply,
+        type OpSig.Push
     )
 }
 
 def elab-label-push-sig! [ Label -- OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
-    StackType.ConsLabel dip(StackType.Cons) T-> OpSig.OPSIG_APPLY
+    StackType.ConsLabel dip(StackType.Cons) T-> OpSig.Apply
 }
 
 def elab-label-pop-sig! [ Label -- OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
-    StackType.ConsLabel dip(StackType.Cons) swap T-> OpSig.OPSIG_APPLY
+    StackType.ConsLabel dip(StackType.Cons) swap T-> OpSig.Apply
 }
 
 def elab-label-push-r-sig! [ Label -- OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
-    StackType.STWithLabel dip(StackType.With) T-> OpSig.OPSIG_APPLY
+    StackType.WithLabel dip(StackType.With) T-> OpSig.Apply
 }
 
 def elab-label-pop-r-sig! [ Label -- OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
-    StackType.STWithLabel dip(StackType.With) swap T-> OpSig.OPSIG_APPLY
+    StackType.WithLabel dip(StackType.With) swap T-> OpSig.Apply
 }
 
 def elab-arrow! [ +Mirth Ctx ArrowType Token Home -- +Mirth Arrow ] {
@@ -1211,13 +1211,13 @@ def elab-pattern-atom! [ Token +Mirth +Pattern -- +Mirth +Pattern ] {
         pattern mid top-types-are-fine? not >report-ambiguous-as-warning
         False >ignore-last-name
         >+pat resolve-def(
-            filter(dup tag? some?, RejectedDef.RD_WRONG_SORT)
+            filter(dup tag? some?, RejectedDef.WrongSort)
             filter-arity
             filter-qualifiers
             @+pat:pattern mid top-types-are-fine? then(
                 @+pat:pattern mid top-namespaces
                 token name? if(
-                    filter(dup2 rdip:qname-hard namespace swap member, RejectedDef.RD_WRONG_CONSTRUCTOR) drop,
+                    filter(dup2 rdip:qname-hard namespace swap member, RejectedDef.WrongConstructor) drop,
                     filter-roots
                 )
             )
@@ -1349,7 +1349,7 @@ def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
     package> @module ~package !
     @module qname defined-soft? then(@head "Module name already taken." emit-fatal-error!)
     head> @module ~head !
-    @module Def.DefModule register
+    @module Def.Module register
     dup module> check-module-path
 }
 
@@ -1572,7 +1572,7 @@ def elab-data-header! [ Data SyntaxDataHeader +Mirth -- Data +Mirth ] {
     name> @data ~name !
     @data PropLabel.DataQName >label Prop @data ~qname !
     @head args @data PropLabel.DataParams prop(elab-data-params!) @data ~params !
-    @data Def.DefData register
+    @data Def.Data register
     head> drop
     data>
 }
@@ -1597,7 +1597,7 @@ def elab-data-tag! [ Data SyntaxDataTag +Mirth -- Data +Mirth ] {
     @syn value? for(@tag ~value !)
     @dat @tag ~data !
     @tag @dat add-tag!
-    @tag Def.DefTag register
+    @tag Def.Tag register
 
     @syn head @tag @tag PropLabel.TagType prop2(
         >tag >token
@@ -1912,14 +1912,14 @@ def elab-alias! [ +Mirth Token -- +Mirth Token ] {
             expunge(alias? if-some(@alias ==, False))
             alias> arity filter(
                 dup2 rdip:arity arity-compatible?,
-                RejectedDef.RD_WRONG_ARITY
+                RejectedDef.WrongArity
             ) drop
             filter-qualifiers
             List.L0 filter-roots
         )
         unwrap( panic-diagnostics! )
         match(
-            DefAlias ->
+            Alias ->
                 ~target force-or!(
                     @target
                     "Alias points to itself, circular aliases are not allowed."
@@ -2193,7 +2193,7 @@ def elab-external-def! [ +Mirth head:Token symbol:Maybe(Token) sig:Token -- +Mir
     @external dup PropLabel.ExternalCType prop(
         elab-def-external-ctype
     ) @external ~ctype !
-    @external Def.DefExternal register
+    @external Def.External register
     external>
 }
 
@@ -2309,7 +2309,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @tbl PropLabel.TableQName >label Prop @tbl ~qname !
     head> @tbl ~head !
     name> @tbl ~name !
-    @tbl Def.DefTable register
+    @tbl Def.Table register
 
     # Table.nil
     @tbl "nil" 0u table-word-new! >word
@@ -2537,7 +2537,7 @@ def elab-def-head [
         unwrap(@head "expected name" emit-fatal-error!)
         either(id, parts last) >name
     @head num-args >arity
-    lexical-state @head [ elab-def-qname-undefined ] PropState.PSDelay >state
+    lexical-state @head [ elab-def-qname-undefined ] PropState.Delay >state
 }
 
 ||| Parse a field definition, `field(f, T1, T2)`
@@ -2560,5 +2560,5 @@ def elab-field! [ +Mirth Token -- +Mirth Token ] {
     @fld PropLabel.FieldQName >label Prop @fld ~qname !
     index-type> @fld PropLabel.FieldIndexType prop(elab-simple-type-arg!) @fld ~index-type !
     value-type> @fld PropLabel.FieldValueType prop(elab-simple-type-arg!) @fld ~value-type !
-    fld> Def.DefField register
+    fld> Def.Field register
 }

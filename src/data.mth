@@ -59,7 +59,7 @@ def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
     params> @data PropLabel.DataParams prop @data ~params !
     None @data ~head? !
 
-    data> Def.DefData register)
+    data> Def.Data register)
 
 def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     >tag >inputs >value >name
@@ -77,7 +77,7 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     @tag PropLabel.TagType prop2
     @tag ~ctx-type !
 
-    tag> Def.DefTag register)
+    tag> Def.Tag register)
 
 def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     >underlying >tag >tagname >data >dataname

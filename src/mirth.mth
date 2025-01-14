@@ -259,9 +259,9 @@ struct Prop(t) {
 }
 
 data PropState(b) {
-    PSReady [ b ]
-    PSDelay [ LexicalState a [ a +Mirth -- b +Mirth ] ]
-    PSComputing
+    Ready [ b ]
+    Delay [ LexicalState a [ a +Mirth -- b +Mirth ] ]
+    Computing
 }
 
 data PropLabel {
@@ -324,14 +324,14 @@ def Maybe.location?; (f {location;}) [ (+Str t -- +Str) +Str Maybe(t) -- +Str ] 
 
 
 def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,
-    >label PropState.PSReady >state Prop)
+    >label PropState.Ready >state Prop)
 def(PropLabel.prop2, b1 b2 PropLabel +Mirth -- Prop([b1 b2]) +Mirth,
     dip(pack2) prop)
 def(PropLabel.prop3, b1 b2 b3 PropLabel +Mirth -- Prop([b1 b2 b3]) +Mirth,
     dip(pack3) prop)
 
 def(PropLabel.prop(f), (a +Mirth -- b +Mirth) a PropLabel +Mirth -- Prop(b) +Mirth,
-    >label lexical-state swap [f] PropState.PSDelay >state Prop)
+    >label lexical-state swap [f] PropState.Delay >state Prop)
 def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
     dip:0 prop(drop f))
 def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
@@ -343,25 +343,25 @@ def(PropLabel.prop4(f), (a1 a2 a3 a4 +Mirth -- b +Mirth) a1 a2 a3 a4 PropLabel +
 
 def(Prop.ready?, Prop(t) -- Maybe(t),
     state match(
-        PSReady -> Some,
+        Ready -> Some,
         _ -> drop None
     ))
 
 def Prop.try-force! [ Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth ] {
     dup @ >prop
     @prop state match {
-        { PSReady -> prop> drop nip Some }
-        { PSDelay ->
+        { Ready -> prop> drop nip Some }
+        { Delay ->
             prop> label +propstack:push!
             rotl with-lexical-state(
                 rotl
-                PropState.PSComputing over modify:state!
-                dip(run dup PropState.PSReady) modify:state!
+                PropState.Computing over modify:state!
+                dip(run dup PropState.Ready) modify:state!
                 Some
             )
             +propstack:pop! drop
         }
-        { PSComputing ->
+        { Computing ->
             prop> drop2
             None
         }

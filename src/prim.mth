@@ -164,7 +164,7 @@ data Prim {
     def qname { str-arity QName.Prim }
 
     def register! [ +Mirth Prim -- +Mirth ] {
-        Def.DefPrim register
+        Def.Prim register
     }
 
     def str-arity [ Prim -- Str Int ] {

@@ -672,7 +672,7 @@ data(StackType,
     Cons -> StackType Type,
     ConsLabel -> StackType Type Label,
     With -> StackType Resource,
-    STWithLabel -> StackType Resource Label)
+    WithLabel -> StackType Resource Label)
 
 def StackType.NewInCtx [ Ctx Str -- Ctx StackType ] { dip:Type.StackType Var.NewInCtx StackType.Var }
 
@@ -711,7 +711,7 @@ def(StackType.split4, StackType -- StackType List([Type/Resource Label]) List(Ty
             Cons -> conses> List.Cons >conses True,
             With -> withses> List.Cons >withses True,
             ConsLabel -> dip:Left pack2 labels> List.Cons >labels True,
-            STWithLabel -> dip:Right pack2 labels> List.Cons >labels True,
+            WithLabel -> dip:Right pack2 labels> List.Cons >labels True,
             _ -> False
         ), id
     ) labels> conses> withses>)
@@ -734,7 +734,7 @@ def(StackType.label-top?, Label StackType -- Maybe(Type/Resource),
         Cons -> drop label-top?,
         With -> drop label-top?,
         ConsLabel -> over3 over == if(drop dip:drop2 Left  Some, drop2 label-top?),
-        STWithLabel -> over3 over == if(drop dip:drop2 Right Some, drop2 label-top?),
+        WithLabel -> over3 over == if(drop dip:drop2 Right Some, drop2 label-top?),
         _ -> drop2 None
     ))
 
@@ -752,7 +752,7 @@ def(StackType.top-type?, StackType -- Maybe(Type),
         With -> drop top-type?,
         Cons -> nip Some,
         ConsLabel -> drop2 top-type?,
-        STWithLabel -> drop2 top-type?,
+        WithLabel -> drop2 top-type?,
         _ -> drop None
     ))
 
@@ -766,7 +766,7 @@ def(StackType.top-resource?, StackType -- Maybe(Resource),
         With -> nip Some,
         Cons -> drop top-resource?,
         ConsLabel -> drop2 top-resource?,
-        STWithLabel -> drop2 top-resource?,
+        WithLabel -> drop2 top-resource?,
         _ -> drop None
     ))
 
@@ -788,7 +788,7 @@ def(StackType.top-value-is-fine?, StackType -- Bool,
         Cons -> nip Type.error? not,
         ConsLabel -> drop2 top-value-is-fine?,
         With -> drop top-value-is-fine?,
-        STWithLabel -> drop2 top-value-is-fine?,
+        WithLabel -> drop2 top-value-is-fine?,
         Meta -> drop True,
         Var -> drop True,
         Unit -> True,
@@ -801,7 +801,7 @@ def(StackType.top-resource-is-fine?, StackType -- Bool,
         Cons -> drop top-resource-is-fine?,
         ConsLabel -> drop2 top-resource-is-fine?,
         With -> nip /Resource error? not,
-        STWithLabel -> drop2 top-resource-is-fine?,
+        WithLabel -> drop2 top-resource-is-fine?,
         Meta -> drop True,
         Var -> drop True,
         Unit -> True,
@@ -819,7 +819,7 @@ def(StackType.has-meta?, MetaVar StackType -- Bool,
         Cons -> dip(over) has-meta? if(drop2 True, has-meta?),
         ConsLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
         With -> dip(over) has-meta? if(drop2 True, has-meta?),
-        STWithLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
+        WithLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
     ))
 
 def StackType.has-var? [ Var StackType -- Bool ] {
@@ -831,7 +831,7 @@ def StackType.has-var? [ Var StackType -- Bool ] {
     { Cons -> dip(over) has-var? if(drop2 True, has-var?) }
     { With -> dip(over) has-var? if(drop2 True, has-var?) }
     { ConsLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
-    { STWithLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
+    { WithLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
 }
 
 def(StackType.unify-failed!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackType,
@@ -888,13 +888,13 @@ def(StackType.unify!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackTy
                 dip(StackType.ConsLabel) unify-failed!
             )
         ),
-        STWithLabel -> rot4l expand match(
-            Error -> StackType.STWithLabel unify-error!,
-            Meta -> dip(StackType.STWithLabel >Type) unify! >StackType,
-            Ignore -> StackType.STWithLabel,
+        WithLabel -> rot4l expand match(
+            Error -> StackType.WithLabel unify-error!,
+            Meta -> dip(StackType.WithLabel >Type) unify! >StackType,
+            Ignore -> StackType.WithLabel,
             _ -> dup2 force-with-label?! if-some(
-                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.STWithLabel,
-                dip(StackType.STWithLabel) unify-failed!
+                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.WithLabel,
+                dip(StackType.WithLabel) unify-failed!
             )
         ),
     ))
@@ -909,7 +909,7 @@ def(StackType.unify-error!, +Mirth +Gamma StackType -- +Mirth +Gamma StackType,
         Cons -> dip(unify-error! drop) unify-error! drop StackType.Error,
         With -> dip(unify-error! drop) unify-error! drop StackType.Error,
         ConsLabel -> drop dip(unify-error! drop) unify-error! drop StackType.Error,
-        STWithLabel -> drop dip(unify-error! drop) unify-error! drop StackType.Error,
+        WithLabel -> drop dip(unify-error! drop) unify-error! drop StackType.Error,
     ))
 
 def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
@@ -928,11 +928,11 @@ def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
                     None -> drop2 None
                 )
             ),
-        STWithLabel ->
+        WithLabel ->
             over3 over == if(
                 drop4 None,
                 dip(dip(force-cons-label?!)) rotl match(
-                    Some -> unpack2 dip(rotr StackType.STWithLabel) pack2 Some,
+                    Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
                     None -> drop2 None
                 )
             ),
@@ -957,16 +957,16 @@ def(StackType.force-with-label?!, Label StackType -- Maybe([StackType Resource])
                     None -> drop2 None
                 )
             ),
-        STWithLabel ->
+        WithLabel ->
             over3 over == if(
                 drop rotl drop pack2 Some,
                 dip(dip(force-with-label?!)) rotl match(
-                    Some -> unpack2 dip(rotr StackType.STWithLabel) pack2 Some,
+                    Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
                     None -> drop2 None
                 )
             ),
         Meta ->
-            dip(dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2) StackType.STWithLabel >Type Some) ~type? !
+            dip(dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2) StackType.WithLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -982,8 +982,8 @@ def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
             Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
             None -> drop2 None
         ),
-        STWithLabel -> rotl force-cons?! match(
-            Some -> unpack2 dip(rotr StackType.STWithLabel) pack2 Some,
+        WithLabel -> rotl force-cons?! match(
+            Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
             None -> drop2 None
         ),
         Meta ->
@@ -1005,8 +1005,8 @@ def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
             Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
             None -> drop2 None
         ),
-        STWithLabel -> rotl force-with?! match(
-            Some -> unpack2 dip(rotr StackType.STWithLabel) pack2 Some,
+        WithLabel -> rotl force-with?! match(
+            Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
             None -> drop2 None
         ),
         Meta ->
@@ -1043,7 +1043,7 @@ def(StackType.semifreshen, StackType StackType -- StackType StackType,
         Cons -> dip(semifreshen) StackType.Cons,
         With -> dip(semifreshen) StackType.With,
         ConsLabel -> dip2(semifreshen) StackType.ConsLabel,
-        STWithLabel -> dip2(semifreshen) StackType.STWithLabel,
+        WithLabel -> dip2(semifreshen) StackType.WithLabel,
         _ -> "expected unit-based stack in semifreshen!" panic!
     ))
 
@@ -1053,7 +1053,7 @@ def(StackType.freshen, Subst StackType -- Subst StackType,
         Cons -> dip(freshen) swap dip(freshen) swap StackType.Cons,
         With -> dip(freshen) swap dip(freshen) swap StackType.With,
         ConsLabel -> dip(dip(freshen) swap dip(freshen) swap) StackType.ConsLabel,
-        STWithLabel -> dip(dip(freshen) swap dip(freshen) swap) StackType.STWithLabel,
+        WithLabel -> dip(dip(freshen) swap dip(freshen) swap) StackType.WithLabel,
         _ -> >Type freshen >StackType
     ))
 
@@ -1063,7 +1063,7 @@ def(StackType.freshen-aux, StackType Subst StackType -- StackType Subst StackTyp
         Cons -> dip(freshen-aux) swap dip(freshen) swap StackType.Cons,
         With -> dip(freshen-aux) swap dip(freshen) swap StackType.With,
         ConsLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) StackType.ConsLabel,
-        STWithLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) StackType.STWithLabel,
+        WithLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) StackType.WithLabel,
         _ -> >Type freshen >StackType
     ))
 
@@ -1076,14 +1076,14 @@ def(StackType.rigidify!, +Mirth Ctx StackType -- +Mirth Ctx StackType,
     Cons -> dip(rigidify!) swap dip(rigidify!) swap StackType.Cons,
     ConsLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) StackType.ConsLabel,
     With -> dip(rigidify!) swap dip(rigidify!) swap StackType.With,
-    STWithLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) StackType.STWithLabel)
+    WithLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) StackType.WithLabel)
 
 def(StackType.num-morphisms-on-top, StackType -- Nat,
     Meta -> expand-if(>StackType num-morphisms-on-top, drop 0u),
     Cons -> morphism? .if(num-morphisms-on-top 1+, drop 0u),
     With -> drop num-morphisms-on-top,
     ConsLabel -> drop2 num-morphisms-on-top,
-    STWithLabel -> drop2 num-morphisms-on-top,
+    WithLabel -> drop2 num-morphisms-on-top,
     _ -> drop 0u)
 
 def StackType.linear-base-meta? [ StackType -- Maybe(MetaVar) ] {
@@ -1095,7 +1095,7 @@ def StackType.linear-base-meta? [ StackType -- Maybe(MetaVar) ] {
     { Cons -> swap linear-base-meta? filter(over has-meta? not) nip }
     { With -> swap linear-base-meta? filter(over has-meta? not) nip }
     { ConsLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
-    { STWithLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
+    { WithLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
 }
 
 def StackType.linear-base-var? [ StackType -- Maybe(Var) ] {
@@ -1107,7 +1107,7 @@ def StackType.linear-base-var? [ StackType -- Maybe(Var) ] {
     { Cons -> swap linear-base-var? filter(over has-var? not) nip }
     { With -> swap linear-base-var? filter(over has-var? not) nip }
     { ConsLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
-    { STWithLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
+    { WithLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
 }
 
 ##############
@@ -1273,7 +1273,7 @@ def(StackTypePart.cons, StackType StackTypePart -- StackType,
     Cons -> StackType.Cons,
     ConsLabel -> StackType.ConsLabel,
     With -> StackType.With,
-    WithLabel -> StackType.STWithLabel)
+    WithLabel -> StackType.WithLabel)
 
 def(StackType.split-parts, StackType -- StackTypeBase List(StackTypePart),
     List.L0 >parts
@@ -1287,7 +1287,7 @@ def(StackType.split-parts, StackType -- StackTypeBase List(StackTypePart),
             { Cons -> StackTypePart.Cons @parts:List.Cons Right }
             { ConsLabel -> StackTypePart.ConsLabel @parts:List.Cons Right }
             { With -> StackTypePart.With @parts:List.Cons Right }
-            { STWithLabel -> StackTypePart.WithLabel @parts:List.Cons Right }
+            { WithLabel -> StackTypePart.WithLabel @parts:List.Cons Right }
         }
     )
     parts>)
@@ -1405,24 +1405,24 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     )))))
 
 data CTypeStackPart {
-    CTSPCons      [ CType ]
-    CTSPConsLabel [ CType Label ]
-    CTSPWith      [ CType ]
-    CTSPWithLabel [ CType Label ]
+    Cons      [ CType ]
+    ConsLabel [ CType Label ]
+    With      [ CType ]
+    WithLabel [ CType Label ]
     --
     def ctype [ CTypeStackPart -- CType ] {
-        { CTSPCons -> id } { CTSPConsLabel -> drop }
-        { CTSPWith -> id } { CTSPWithLabel -> drop }
+        { Cons -> id } { ConsLabel -> drop }
+        { With -> id } { WithLabel -> drop }
     }
 
     def label? [ CTypeStackPart -- Maybe(Label) ] {
-        { CTSPCons -> drop None } { CTSPConsLabel -> nip Some }
-        { CTSPWith -> drop None } { CTSPWithLabel -> nip Some }
+        { Cons -> drop None } { ConsLabel -> nip Some }
+        { With -> drop None } { WithLabel -> nip Some }
     }
 
     def resource? [ CTypeStackPart -- Bool ] {
-        { CTSPCons -> drop False } { CTSPConsLabel -> drop2 False }
-        { CTSPWith -> drop True  } { CTSPWithLabel -> drop2 True  }
+        { Cons -> drop False } { ConsLabel -> drop2 False }
+        { With -> drop True  } { WithLabel -> drop2 True  }
     }
 }
 
@@ -1432,16 +1432,16 @@ struct CTypeStack {
 }
 
 def(StackTypePart.ctype, StackTypePart +Mirth -- CTypeStackPart +Mirth,
-    Cons -> ctype CTypeStackPart.CTSPCons,
-    ConsLabel -> dip(ctype) CTypeStackPart.CTSPConsLabel,
-    With -> ctype CTypeStackPart.CTSPWith,
-    WithLabel -> dip(ctype) CTypeStackPart.CTSPWithLabel)
+    Cons -> ctype CTypeStackPart.Cons,
+    ConsLabel -> dip(ctype) CTypeStackPart.ConsLabel,
+    With -> ctype CTypeStackPart.With,
+    WithLabel -> dip(ctype) CTypeStackPart.WithLabel)
 
 def(StackTypePart.ctype?, StackTypePart +Mirth -- Maybe(CTypeStackPart) +Mirth,
-    Cons -> ctype? map(CTypeStackPart.CTSPCons),
-    ConsLabel -> >x ctype? map(@x CTypeStackPart.CTSPConsLabel) x> drop,
-    With -> ctype? map(CTypeStackPart.CTSPWith),
-    WithLabel -> >x ctype? map(@x CTypeStackPart.CTSPWithLabel) x> drop)
+    Cons -> ctype? map(CTypeStackPart.Cons),
+    ConsLabel -> >x ctype? map(@x CTypeStackPart.ConsLabel) x> drop,
+    With -> ctype? map(CTypeStackPart.With),
+    WithLabel -> >x ctype? map(@x CTypeStackPart.WithLabel) x> drop)
 
 def StackTypeBase.ctype? [ StackTypeBase +Mirth -- Maybe(Var) +Mirth ] {
     { Error -> None }

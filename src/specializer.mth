@@ -36,12 +36,12 @@ def(+SPCheck.loop!, +Mirth +SPCheck -- +Mirth +SPCheck,
     while-some(checklist:uncons, do-item-check!))
 
 data(SPCheckItem,
-    SPCHECK_WORD -> Word,
-    SPCHECK_BLOCK -> Block)
+    Word -> Word,
+    Block -> Block)
 
 def(+SPCheck.do-item-check!, SPCheckItem +Mirth +SPCheck -- +Mirth +SPCheck,
-    SPCHECK_WORD -> >w @w rdip:arrow check-arrow! @w PropLabel.WordArrow rdip:prop w> ~arrow !,
-    SPCHECK_BLOCK -> >b @b rdip:arrow check-arrow! @b PropLabel.BlockArrow rdip:prop b> ~arrow !)
+    Word -> >w @w rdip:arrow check-arrow! @w PropLabel.WordArrow rdip:prop w> ~arrow !,
+    Block -> >b @b rdip:arrow check-arrow! @b PropLabel.BlockArrow rdip:prop b> ~arrow !)
 
 def(+SPCheck.check-arrow!, Arrow +Mirth +SPCheck -- Arrow +Mirth +SPCheck,
     atoms:flatmap(check-atom!))
@@ -108,13 +108,13 @@ def(+SPCheck.push-check-word!, Word +SPCheck -- +SPCheck,
     dup ~sp-checked @? unwrap(False) if(
         drop,
         True over ~sp-checked !
-        SPCheckItem.SPCHECK_WORD checklist:List.Cons
+        SPCheckItem.Word checklist:List.Cons
     ))
 def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
     dup ~sp-checked @? unwrap(False) if(
         drop,
         True over ~sp-checked !
-        SPCheckItem.SPCHECK_BLOCK checklist:List.Cons
+        SPCheckItem.Block checklist:List.Cons
     ))
 
 def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,

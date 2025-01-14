@@ -66,15 +66,15 @@ def(Match.is-transparent?, Match -- Bool,
     cases single?
     bind(pattern atoms single?)
     has(op match(
-        PatOpTag -> .data is-transparent?,
-        PatOpUnderscore -> True
+        Tag -> .data is-transparent?,
+        Underscore -> True
     )))
 
 def Match.semi-transparent-tag? [ +Mirth Match -- +Mirth Maybe(SemiTransparentData) ] {
     cases single?
     bind(pattern atoms single?)
     bind(op match(
-        PatOpTag -> Some,
+        Tag -> Some,
         _ -> drop None
     ))
     bind(.data semi-transparent?)
@@ -84,7 +84,7 @@ def(Match.unit-tag?, Match -- Maybe(Tag),
     cases single?
     bind(pattern atoms single?)
     bind(op match(
-        PatOpTag -> Some,
+        Tag -> Some,
         _ -> drop None
     ))
     filter(is-unit?))
@@ -127,37 +127,38 @@ def(Pattern.dom, Pattern -- StackType, sip:mid saved for(StackType.Cons))
 def(Pattern.thaw, Pattern -- +Pattern, >pattern +Pattern)
 
 def(Pattern.single-tag?, Pattern -- Maybe(Tag),
-    atoms single? bind(op /PatOpTag))
+    atoms single? bind(op /Tag))
 
 def(Pattern.is-default?, Pattern -- Bool,
-    atoms all(op /PatOpUnderscore))
+    atoms all(op /Underscore))
 
 data(+Pattern, +Pattern -> pattern:Pattern)
 def(+Pattern.freeze, +Pattern -- Pattern, /+Pattern pattern>)
 
-data(PatternAtom, PATATOM ->
+struct PatternAtom {
     token:Token
     ctx:Ctx
     saved:List(Type)
     dom:StackType
     cod:StackType
     subst:Subst
-    op:PatternOp)
+    op:PatternOp
+}
 
 data(PatternOp,
-    PatOpUnderscore,
-    PatOpTag -> Tag)
+    Underscore,
+    Tag -> Tag)
 
 def(+Pattern.op!, PatternOp +Mirth +Pattern -- +Mirth +Pattern,
-    PatOpUnderscore -> underscore!,
-    PatOpTag -> tag!)
+    Underscore -> underscore!,
+    Tag -> tag!)
 
 def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
     pattern token-start >token
     pattern inner-ctx >ctx
     pattern mid >cod
     Subst.Nil >subst
-    PatternOp.PatOpUnderscore >op
+    PatternOp.Underscore >op
     pattern mid force-cons?! match(
         None ->
             pattern token-start "pattern expects something on stack" rdip:emit-error!
@@ -167,33 +168,33 @@ def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
     )
     dup pattern:saved:List.Cons
     List.L1 >saved dup >dom pattern:mid!
-    PatternAtom.PATATOM pattern:atoms:List.Cons)
+    PatternAtom pattern:atoms:List.Cons)
 
 def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
-    dup PatternOp.PatOpTag >op List.Nil >saved
+    dup PatternOp.Tag >op List.Nil >saved
     pattern token-start >token
     pattern inner-ctx >ctx
     dip:Subst.Nil rdip:type freshen-sig /ArrowType dom> cod>
     dip(pattern mid)
     pattern token-start >token +Gamma rdip':unify! rdrop >cod
     dup >dom pattern:mid!
-    >subst PatternAtom.PATATOM pattern:atoms:List.Cons)
+    >subst PatternAtom pattern:atoms:List.Cons)
 
 ||| Asks whether the second pattern covers the first pattern.
 def(Pattern.covers?, Pattern Pattern -- Bool,
     both(atoms single?) zip match(
         None -> False,
         Some -> unpack2 op match(
-            PatOpUnderscore -> drop True,
-            PatOpTag -> swap op match(
-                PatOpUnderscore -> drop False,
-                PatOpTag -> ==
+            Underscore -> drop True,
+            Tag -> swap op match(
+                Underscore -> drop False,
+                Tag -> ==
             )
         )
     ))
 
-def(PatternOp./PatOpTag, PatternOp -- Maybe(Tag), PatOpTag -> Some, _ -> drop None)
-def(PatternOp./PatOpUnderscore, PatternOp -- Bool, PatOpUnderscore -> True, _ -> drop False)
+def(PatternOp./Tag, PatternOp -- Maybe(Tag), Tag -> Some, _ -> drop None)
+def(PatternOp./Underscore, PatternOp -- Bool, Underscore -> True, _ -> drop False)
 
 ## TODO: introduce case trees
 ## https://github.com/mirth-lang/mirth/issues/238

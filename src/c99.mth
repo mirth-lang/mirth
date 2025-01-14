@@ -573,17 +573,17 @@ def CType.>C99ReprType [ CType -- C99ReprType ] {
 }
 
 def CTypeStackPart.c99-pop [ CTypeStackPart +C99Branch -- Str +C99Branch ] {
-    { CTSPCons -> >C99ReprType dup pop-value! consume-as }
-    { CTSPWith -> >C99ReprType dup pop-resource! turn-into-value! consume-as }
-    { CTSPConsLabel -> dip(>C99ReprType dup) pop-value-label! consume-as }
-    { CTSPWithLabel -> dip(>C99ReprType dup) pop-resource-label! turn-into-value! consume-as }
+    { Cons -> >C99ReprType dup pop-value! consume-as }
+    { With -> >C99ReprType dup pop-resource! turn-into-value! consume-as }
+    { ConsLabel -> dip(>C99ReprType dup) pop-value-label! consume-as }
+    { WithLabel -> dip(>C99ReprType dup) pop-resource-label! turn-into-value! consume-as }
 }
 
 def CTypeStackPart.c99-push [ Str CTypeStackPart +C99Branch -- +C99Branch ] {
-    { CTSPCons -> >C99ReprType dup push-value-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
-    { CTSPWith -> >C99ReprType dup push-resource-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
-    { CTSPConsLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
-    { CTSPWithLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
+    { Cons -> >C99ReprType dup push-value-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
+    { With -> >C99ReprType dup push-resource-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
+    { ConsLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
+    { WithLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
 }
 
 def +C99.indent [ +C99 -- +C99 ] { depth repeat("\t" put) }
@@ -758,7 +758,7 @@ def +C99.stack-type-to-c99-api-params-aux [ StackType mode:C99APIArgMode +C99 --
     { Cons -> C99APIArgSource.Value dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
     { With -> C99APIArgSource.Resource dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
     { ConsLabel -> C99APIArgSource.ValueLabel dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
-    { STWithLabel -> C99APIArgSource.ResourceLabel dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { WithLabel -> C99APIArgSource.ResourceLabel dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
 }
 
 def +C99.stack-type-to-c99-api-params [ StackType C99APIArgMode +C99 -- must-flush:Bool List(C99APIArg) +C99 ] {
@@ -2499,7 +2499,7 @@ def expose-stack-type! [ StackType +C99Branch -- +C99Branch ] {
     { ConsLabel ->
         >label type-to-c99-repr @label pop-value-label!
         rdip:expose-stack-type! label> push-value-label! }
-    { STWithLabel ->
+    { WithLabel ->
         >label resource-to-c99-repr @label pop-resource-label!
         rdip:expose-stack-type! label> push-resource-label! }
     { _ -> drop }
