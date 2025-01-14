@@ -6,7 +6,7 @@ def(Foo, Int -- Maybe(Bool), id)
 def(Bar, Bool(Bool) -- BoOl, id)
 def(Baz, Foo -- Int(a), id)
 def(List, List -- Str, id)
-def(ok-fn, std.prim.Int -- error-name-resolution-types.Int, 1+ drop "0" MY_INT)
+def(ok-fn, std.prim.Int -- error-name-resolution-types.Int, 1+ drop "0" Int.MY_INT)
 def(bad-again, badstd.Bool -- failstd.prim.Int, id)
 def(main, --, id)
 # mirth-test # merr # 5:10: error: Ambiguous type. Can't decide between: mirth-tests.error-name-resolution-types.Int, std.prim.Int

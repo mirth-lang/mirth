@@ -10,10 +10,10 @@ data(Foo, FOO1, FOO2)
 data(+Bar, +BAR1, +BAR2)
 def(+Bar.rdrop, +Bar --, +BAR1 -> id, +BAR2 -> id)
 def(bad, Foo +Bar -- Foo +Bar,
-    FOO1 -> FOO1,
-    +BAR1 -> +BAR1,
-    FOO2 -> FOO2,
-    +BAR2 -> +BAR2)
-def(main, --, FOO1 +BAR1 bad drop rdrop)
+    FOO1 -> Foo.FOO1,
+    +BAR1 -> +Bar.+BAR1,
+    FOO2 -> Foo.FOO2,
+    +BAR2 -> +Bar.+BAR2)
+def(main, --, Foo.FOO1 +Bar.+BAR1 bad drop rdrop)
 # mirth-test # merr # 13:5: error: non-uniform match, not supported at present
 # mirth-test # mret # 1
