@@ -123,7 +123,7 @@ struct Pattern {
     cod:StackType       # Stack type coming from outside match.
     atoms:List(PatternAtom)
 }
-def(Pattern.dom, Pattern -- StackType, sip:mid saved for(StackType.STCons))
+def(Pattern.dom, Pattern -- StackType, sip:mid saved for(StackType.Cons))
 def(Pattern.thaw, Pattern -- +Pattern, >pattern +Pattern)
 
 def(Pattern.single-tag?, Pattern -- Maybe(Tag),
@@ -156,12 +156,12 @@ def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
     pattern token-start >token
     pattern inner-ctx >ctx
     pattern mid >cod
-    Subst.SUBST_NIL >subst
+    Subst.Nil >subst
     PatternOp.PatOpUnderscore >op
     pattern mid force-cons?! match(
         None ->
             pattern token-start "pattern expects something on stack" rdip:emit-error!
-            StackType.STACK_TYPE_ERROR Type.TYPE_ERROR,
+            StackType.Error Type.Error,
         Some ->
             unpack2
     )
@@ -173,7 +173,7 @@ def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
     dup PatternOp.PatOpTag >op List.Nil >saved
     pattern token-start >token
     pattern inner-ctx >ctx
-    dip:Subst.SUBST_NIL rdip:type freshen-sig /ArrowType dom> cod>
+    dip:Subst.Nil rdip:type freshen-sig /ArrowType dom> cod>
     dip(pattern mid)
     pattern token-start >token +Gamma rdip':unify! rdrop >cod
     dup >dom pattern:mid!

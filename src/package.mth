@@ -15,7 +15,7 @@ field(Package.~name, Package, Name)
 field(Package.~path, Package, Maybe(Path))
 
 def(Package.name, Package -- Name, ~name @)
-def(Package.qname, Package -- QName, Namespace.NAMESPACE_ROOT swap name 0 QName.Mk)
+def(Package.qname, Package -- QName, Namespace.Root swap name 0 QName.Mk)
 def(Package.path, Package -- Maybe(Path), ~path @)
 
 def(Package.std, +Mirth -- +Mirth Package, builtin std)
@@ -64,7 +64,7 @@ def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
     ))
 
 def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
-    Namespace.NAMESPACE_ROOT swap 0 QName.Mk def-soft? bind(package?))
+    Namespace.Root swap 0 QName.Mk def-soft? bind(package?))
 
 def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
     dup Package.find unwrap(dup None swap Package.new!) nip)

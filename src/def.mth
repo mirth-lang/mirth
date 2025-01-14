@@ -127,8 +127,8 @@ data Def {
         { DefAlias -> ~target try-force! bind(exposed-tycon?) }
         { DefPackage -> drop None }
         { DefModule -> drop None }
-        { DefData -> Tycon.TYCON_DATA Some }
-        { DefTable -> Tycon.TYCON_TABLE Some }
+        { DefData -> Tycon.Data Some }
+        { DefTable -> Tycon.Table Some }
         { DefType -> target tycon? }
         { DefBuffer -> drop None }
         { DefPrim -> drop None }
@@ -239,12 +239,12 @@ data Def {
 
     def as-namespace? [ +Mirth Def -- +Mirth Maybe(Namespace) ] {
         { DefAlias -> ~target try-force! bind(as-namespace?) }
-        { DefPackage -> Namespace.NAMESPACE_PACKAGE Some }
-        { DefModule -> Namespace.NAMESPACE_MODULE Some }
-        { DefData -> Tycon.TYCON_DATA Namespace.NAMESPACE_TYCON Some }
-        { DefTable -> Tycon.TYCON_TABLE Namespace.NAMESPACE_TYCON Some }
-        { DefType -> target tycon? map(Namespace.NAMESPACE_TYCON) }
-        { DefWord -> Namespace.NAMESPACE_WORD Some }
+        { DefPackage -> Namespace.Package Some }
+        { DefModule -> Namespace.Module Some }
+        { DefData -> Tycon.Data Namespace.Tycon Some }
+        { DefTable -> Tycon.Table Namespace.Tycon Some }
+        { DefType -> target tycon? map(Namespace.Tycon) }
+        { DefWord -> Namespace.Word Some }
         { _ -> drop None }
     }
 

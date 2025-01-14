@@ -115,19 +115,19 @@ def(Name.mangle-compute!, Name -- Str,
 #############
 
 data Namespace {
-    NAMESPACE_ROOT
-    NAMESPACE_PACKAGE [ Package ]
-    NAMESPACE_MODULE [ Module ]
-    NAMESPACE_TYCON [ Tycon ]
-    NAMESPACE_WORD [ Word ]
+    Root
+    Package [ Package ]
+    Module [ Module ]
+    Tycon [ Tycon ]
+    Word [ Word ]
     --
 
     def == [ Namespace Namespace -- Bool ] {
-        { NAMESPACE_ROOT -> match(NAMESPACE_ROOT -> True, _ -> drop False) }
-        { NAMESPACE_PACKAGE -> swap match(NAMESPACE_PACKAGE -> swap ==, _ -> drop2 False) }
-        { NAMESPACE_MODULE -> swap match(NAMESPACE_MODULE -> swap ==, _ -> drop2 False) }
-        { NAMESPACE_TYCON -> swap match(NAMESPACE_TYCON -> swap ==, _ -> drop2 False) }
-        { NAMESPACE_WORD -> swap match(NAMESPACE_WORD -> swap ==, _ -> drop2 False) }
+        { Root -> match(Root -> True, _ -> drop False) }
+        { Package -> swap match(Package -> swap ==, _ -> drop2 False) }
+        { Module -> swap match(Module -> swap ==, _ -> drop2 False) }
+        { Tycon -> swap match(Tycon -> swap ==, _ -> drop2 False) }
+        { Word -> swap match(Word -> swap ==, _ -> drop2 False) }
     }
 
     def compare [ +Mirth Namespace Namespace -- +Mirth Comparison ] {
@@ -135,55 +135,55 @@ data Namespace {
     }
 
     def qname [ +Mirth Namespace -- +Mirth Maybe(QName) ] {
-        { NAMESPACE_ROOT -> None }
-        { NAMESPACE_PACKAGE -> qname Some }
-        { NAMESPACE_MODULE -> qname Some }
-        { NAMESPACE_TYCON -> qname-hard Some }
-        { NAMESPACE_WORD -> qname-hard Some }
+        { Root -> None }
+        { Package -> qname Some }
+        { Module -> qname Some }
+        { Tycon -> qname-hard Some }
+        { Word -> qname-hard Some }
     }
 
     def package? [ +Mirth Namespace -- +Mirth Maybe(Package) ] {
-        { NAMESPACE_ROOT -> None }
-        { NAMESPACE_PACKAGE -> Some }
-        { NAMESPACE_MODULE -> package Some }
-        { NAMESPACE_TYCON -> qname-hard namespace package? }
-        { NAMESPACE_WORD -> drop None }
+        { Root -> None }
+        { Package -> Some }
+        { Module -> package Some }
+        { Tycon -> qname-hard namespace package? }
+        { Word -> drop None }
     }
 
     def module? [ +Mirth Namespace -- +Mirth Maybe(Module) ] {
-        { NAMESPACE_ROOT -> None }
-        { NAMESPACE_PACKAGE -> drop None }
-        { NAMESPACE_MODULE -> Some }
-        { NAMESPACE_TYCON -> qname-hard namespace module? }
-        { NAMESPACE_WORD -> drop None }
+        { Root -> None }
+        { Package -> drop None }
+        { Module -> Some }
+        { Tycon -> qname-hard namespace module? }
+        { Word -> drop None }
     }
 
     def tycon? [ Namespace -- Maybe(Tycon) ] {
-        { NAMESPACE_ROOT -> None }
-        { NAMESPACE_PACKAGE -> drop None }
-        { NAMESPACE_MODULE -> drop None }
-        { NAMESPACE_TYCON -> Some }
-        { NAMESPACE_WORD -> drop None }
+        { Root -> None }
+        { Package -> drop None }
+        { Module -> drop None }
+        { Tycon -> Some }
+        { Word -> drop None }
     }
 
     def Prim [ +Mirth -- +Mirth Namespace ] {
-        Module.Prim Namespace.NAMESPACE_MODULE
+        Module.Prim Namespace.Module
     }
 
     def >Str [ +Mirth Namespace -- +Mirth Str ] {
-        { NAMESPACE_ROOT -> "<root>" }
-        { NAMESPACE_PACKAGE -> name >Str }
-        { NAMESPACE_MODULE -> qname >Str }
-        { NAMESPACE_TYCON -> qname-hard >Str }
-        { NAMESPACE_WORD -> qname-hard >Str }
+        { Root -> "<root>" }
+        { Package -> name >Str }
+        { Module -> qname >Str }
+        { Tycon -> qname-hard >Str }
+        { Word -> qname-hard >Str }
     }
 
     def mangled [ +Mirth Namespace -- +Mirth Str ] {
-        { NAMESPACE_ROOT -> "__root__" }
-        { NAMESPACE_PACKAGE -> name mangled }
-        { NAMESPACE_MODULE -> qname mangled }
-        { NAMESPACE_TYCON -> qname-hard mangled }
-        { NAMESPACE_WORD -> qname-hard mangled }
+        { Root -> "__root__" }
+        { Package -> name mangled }
+        { Module -> qname mangled }
+        { Tycon -> qname-hard mangled }
+        { Word -> qname-hard mangled }
     }
 }
 
@@ -249,7 +249,7 @@ struct QName {
 
     def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
         dup namespace match(
-            NAMESPACE_PACKAGE ->
+            Package ->
                 dup path-or-search
                 unwrap("False path defined for package "
                     swap name >Str fatal-error!)

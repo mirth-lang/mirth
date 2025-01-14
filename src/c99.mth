@@ -158,7 +158,7 @@ def c99-buffer! [ Buffer +C99 -- +C99 ] {
     "[" put size show put "] = {0};" put line
 }
 def c99-buffer-call! [ Buffer +C99Branch -- +C99Branch ] {
-    C99ReprType.C99RT_PTR push-value-expression!(+mirth:cname put)
+    C99ReprType.PTR push-value-expression!(+mirth:cname put)
 }
 
 def c99-variables! [ +C99 -- +C99 ] { Variable.for(c99-variable!) }
@@ -168,7 +168,7 @@ def c99-variable! [ Variable +C99 -- +C99 ] {
     " = {0};" put line
 }
 def c99-variable-call! [ Variable +C99Branch -- +C99Branch ] {
-    C99ReprType.C99RT_PTR push-value-expression!("&" put +mirth:cname put)
+    C99ReprType.PTR push-value-expression!("&" put +mirth:cname put)
 }
 
 def c99-tag-defs! [ +C99 -- +C99 ] { Tag.for(c99-tag-def!) }
@@ -193,32 +193,32 @@ def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
     >tag
     @tag +mirth:semi-transparent? if-some(
         input match {
-            { STPConsLabel ->
+            { ConsLabel ->
                 dip:type-to-c99-repr pop-value-label!
                 @tag outputs-resource? if(
                     turn-into-resource! push-resource!,
                     push-value!
                 )
             }
-            { STPWithLabel ->
+            { WithLabel ->
                 dip:resource-to-c99-repr pop-resource-label!
                 push-resource!
             }
-            { STPCons ->
+            { Cons ->
                 type-to-c99-repr pop-value!
                 @tag outputs-resource? if(
                     turn-into-resource! push-resource!,
                     push-value!
                 )
             }
-            { STPWith ->
+            { With ->
                 resource-to-c99-repr pop-resource!
                 push-resource!
             }
         },
 
     @tag num-total-inputs 0= if(
-        @tag .data is-enum-or-unit? if(C99ReprType.C99RT_I64 "" >pfx "" >sfx, C99ReprType.C99RT_VAL "MKI64(" >pfx ")" >sfx)
+        @tag .data is-enum-or-unit? if(C99ReprType.I64 "" >pfx "" >sfx, C99ReprType.VAL "MKI64(" >pfx ")" >sfx)
         @tag outputs-resource? if(
             push-resource-expression!(
                 pfx> put
@@ -249,7 +249,7 @@ def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
     >tag
     @tag +mirth:semi-transparent? if-some(
         input match {
-            { STPConsLabel ->
+            { ConsLabel ->
                 swap type-to-c99-repr
                 @tag outputs-resource? if(
                     pop-resource! turn-into-value!,
@@ -257,12 +257,12 @@ def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
                 )
                 push-value-label!
             }
-            { STPWithLabel ->
+            { WithLabel ->
                 swap resource-to-c99-repr
                 pop-resource!
                 push-resource-label!
             }
-            { STPCons ->
+            { Cons ->
                 type-to-c99-repr
                 @tag outputs-resource? if(
                     pop-resource! turn-into-value!,
@@ -270,7 +270,7 @@ def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
                 )
                 push-value!
             }
-            { STPWith ->
+            { With ->
                 resource-to-c99-repr pop-resource!
                 push-resource!
             }
@@ -293,16 +293,16 @@ def +C99.tag-value-put [ +C99 Tag -- +C99 ] {
 
 def c99-pack-tuple! [ +C99Branch tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Branch +C99Resource ] {
     @tag len @parts len + >tuplen
-    @tuplen C99ReprType.C99RT_TUP resource-expression!("tup_new(" put @tuplen show put ")" put) >+tup
+    @tuplen C99ReprType.TUP resource-expression!("tup_new(" put @tuplen show put ")" put) >+tup
     @+tup:resource-name >tup
     c99-line(@tup put "->size = " put @tuplen show put ";" put)
     tuplen> pred >i
     parts> reverse-for(
         match {
-            { STPCons -> type-to-c99-repr pop-value! consume-as-VAL }
-            { STPWith -> resource-to-c99-repr pop-resource! consume-as-VAL }
-            { STPConsLabel -> dip:type-to-c99-repr pop-value-label! consume-as-VAL }
-            { STPWithLabel -> dip:resource-to-c99-repr pop-resource-label! consume-as-VAL }
+            { Cons -> type-to-c99-repr pop-value! consume-as-VAL }
+            { With -> resource-to-c99-repr pop-resource! consume-as-VAL }
+            { ConsLabel -> dip:type-to-c99-repr pop-value-label! consume-as-VAL }
+            { WithLabel -> dip:resource-to-c99-repr pop-resource-label! consume-as-VAL }
         }
         c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
         @i:pred
@@ -314,15 +314,15 @@ def c99-pack-tuple! [ +C99Branch tag:Maybe(Tag) parts:List(StackTypePart) -- +C9
 }
 
 def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Branch ] {
-    @tag len @parts len + C99ReprType.C99RT_TUP consume-as >tup
+    @tag len @parts len + C99ReprType.TUP consume-as >tup
     tag> len >i
     parts> for(
         Str(@tup ; "->cells[" ; @i show; "]" ;)
         swap match {
-            { STPCons -> type-to-c99-repr dup push-value-expression!(v-macro(put)) }
-            { STPWith -> resource-to-c99-repr dup push-resource-expression!(v-macro(put)) }
-            { STPConsLabel -> dip(type-to-c99-repr dup value-expression!(v-macro(put))) push-value-label! }
-            { STPWithLabel -> dip(resource-to-c99-repr dup resource-expression!(v-macro(put))) push-resource-label! }
+            { Cons -> type-to-c99-repr dup push-value-expression!(v-macro(put)) }
+            { With -> resource-to-c99-repr dup push-resource-expression!(v-macro(put)) }
+            { ConsLabel -> dip(type-to-c99-repr dup value-expression!(v-macro(put))) push-value-label! }
+            { WithLabel -> dip(resource-to-c99-repr dup resource-expression!(v-macro(put))) push-resource-label! }
         }
         @i:succ
     )
@@ -354,7 +354,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
 
             { Right -> # field and wrapper are both resources
                 drop
-                C99ReprType.C99RT_I64 push-resource-expression!("0" put)
+                C99ReprType.I64 push-resource-expression!("0" put)
             }
         },
 
@@ -410,7 +410,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
                 }
             }
             { Right -> # field and wrapper are resource
-                C99ReprType.C99RT_I64 pop-resource! rdrop # vacant wrapper is unit
+                C99ReprType.I64 pop-resource! rdrop # vacant wrapper is unit
                 drop
             }
         },
@@ -423,7 +423,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
         +tuplevar> match {
             { +Left -> # field and tuple are both values
                 consume-as-VAL >tupleval
-                C99ReprType.C99RT_VAL push-value-expression!(
+                C99ReprType.VAL push-value-expression!(
                     "tup_replace(" put
                     tupleval> put
                     ", " put
@@ -564,12 +564,12 @@ def CTypeStackPart.c99-arg-name [ arg-index:Nat CTypeStackPart +C99 -- arg-index
 }
 
 def CType.>C99ReprType [ CType -- C99ReprType ] {
-    { IntLike -> drop C99ReprType.C99RT_I64 }
-    { F32Like -> drop C99ReprType.C99RT_F32 }
-    { F64Like -> drop C99ReprType.C99RT_F64 }
-    { PtrLike -> drop C99ReprType.C99RT_PTR }
-    { FnPtr   -> drop C99ReprType.C99RT_FNPTR }
-    { Phantom -> C99ReprType.C99RT_I64 }
+    { IntLike -> drop C99ReprType.I64 }
+    { F32Like -> drop C99ReprType.F32 }
+    { F64Like -> drop C99ReprType.F64 }
+    { PtrLike -> drop C99ReprType.PTR }
+    { FnPtr   -> drop C99ReprType.FNPTR }
+    { Phantom -> C99ReprType.I64 }
 }
 
 def CTypeStackPart.c99-pop [ CTypeStackPart +C99Branch -- Str +C99Branch ] {
@@ -608,10 +608,10 @@ def +C99Branch.c99-nest(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Branch -- *
 }
 
 data C99APIArgSource {
-    C99AAS_Value
-    C99AAS_ValueLabel [ Label ]
-    C99AAS_Resource
-    C99AAS_ResourceLabel [ Label ]
+    Value
+    ValueLabel [ Label ]
+    Resource
+    ResourceLabel [ Label ]
 }
 
 data C99APIArgMode {
@@ -642,8 +642,8 @@ def C99APIArg.is-physical? [ C99APIArg -- Bool ] {
 def C99APIArg.is-physical-value? [ C99APIArg -- Bool ] {
     dup is-physical? if(
         source match {
-            { C99AAS_Value -> True }
-            { C99AAS_ValueLabel -> drop False }
+            { Value -> True }
+            { ValueLabel -> drop False }
             { _ -> drop False }
         },
         drop False
@@ -652,10 +652,10 @@ def C99APIArg.is-physical-value? [ C99APIArg -- Bool ] {
 
 def C99APIArg.pop-consume! [ C99APIArg +C99Branch -- +C99Branch Str ] {
     /C99APIArg mode> name> drop2 repr> dup source> match {
-        { C99AAS_Value -> pop-value! consume-as }
-        { C99AAS_Resource -> pop-resource! turn-into-value! consume-as }
-        { C99AAS_ValueLabel -> pop-value-label! consume-as }
-        { C99AAS_ResourceLabel -> pop-resource-label! turn-into-value! consume-as }
+        { Value -> pop-value! consume-as }
+        { Resource -> pop-resource! turn-into-value! consume-as }
+        { ValueLabel -> pop-value-label! consume-as }
+        { ResourceLabel -> pop-resource-label! turn-into-value! consume-as }
     }
 }
 
@@ -676,10 +676,10 @@ def C99APIArg.pop-to-reserved! [ C99APIArg +C99Branch -- +C99Branch ] {
 
 def C99APIArg.push-to! [ Str C99APIArg +C99Branch -- +C99Branch ] {
     /C99APIArg name> mode> drop2 repr> source> match {
-        { C99AAS_Value -> push-value-expression!(put) }
-        { C99AAS_Resource -> push-resource-expression!(put) }
-        { C99AAS_ValueLabel -> push-label-expression!(put) }
-        { C99AAS_ResourceLabel -> push-label-expression!(put) }
+        { Value -> push-value-expression!(put) }
+        { Resource -> push-resource-expression!(put) }
+        { ValueLabel -> push-label-expression!(put) }
+        { ResourceLabel -> push-label-expression!(put) }
     }
 }
 
@@ -690,10 +690,10 @@ def C99APIArg.push-api-arg! [ C99APIArg +C99Branch -- +C99Branch ] {
     mode> drop
     +C99Value
     source> match {
-        { C99AAS_Value -> push-value! }
-        { C99AAS_ValueLabel -> push-value-label! }
-        { C99AAS_Resource -> turn-into-resource! push-resource! }
-        { C99AAS_ResourceLabel -> turn-into-resource! push-resource-label! }
+        { Value -> push-value! }
+        { ValueLabel -> push-value-label! }
+        { Resource -> turn-into-resource! push-resource! }
+        { ResourceLabel -> turn-into-resource! push-resource-label! }
     }
 }
 
@@ -713,23 +713,23 @@ def name-arg-prefix [ Name -- Str ] {
 }
 
 def type-arg-prefix [ Type -- Str ] {
-    { TMeta -> expand-if(type-arg-prefix, drop "") }
-    { TVar -> name name-arg-prefix }
-    { TTable -> name name-arg-prefix }
-    { TData -> name name-arg-prefix }
-    { TDataPartial -> .data name name-arg-prefix }
-    { TApp -> drop type-arg-prefix }
-    { TMut -> dip("Mut") type-arg-prefix cat }
-    { TPrim -> match {
-        { PRIM_TYPE_TYPE -> "TYPE_" }
-        { PRIM_TYPE_STACK -> "STACK_" }
-        { PRIM_TYPE_RESOURCE -> "RESOURCE_" }
-        { PRIM_TYPE_INT -> "Int_" }
-        { PRIM_TYPE_F32 -> "F32_" }
-        { PRIM_TYPE_F64 -> "F64_" }
-        { PRIM_TYPE_PTR -> "Ptr_" }
-        { PRIM_TYPE_STR -> "Str_" }
-        { PRIM_TYPE_WORLD -> "World_" }
+    { Meta -> expand-if(type-arg-prefix, drop "") }
+    { Var -> name name-arg-prefix }
+    { Table -> name name-arg-prefix }
+    { Data -> name name-arg-prefix }
+    { DataPartial -> .data name name-arg-prefix }
+    { App -> drop type-arg-prefix }
+    { Mut -> dip("Mut") type-arg-prefix cat }
+    { Prim -> match {
+        { Type -> "Type_" }
+        { StackType -> "StackType_" }
+        { ResourceType -> "ResourceType_" }
+        { Int -> "Int_" }
+        { F32 -> "F32_" }
+        { F64 -> "F64_" }
+        { Ptr -> "Ptr_" }
+        { Str -> "Str_" }
+        { World -> "World_" }
     } }
     { _ -> drop "_" }
 }
@@ -750,15 +750,15 @@ def cons-fresh-arg! [ +C99 List(C99APIArg) Type C99APIArgSource mode:C99APIArgMo
 }
 
 def +C99.stack-type-to-c99-api-params-aux [ StackType mode:C99APIArgMode +C99 -- mode:C99APIArgMode must-flush:Bool List(C99APIArg) +C99 ] {
-    { STACK_TYPE_UNIT -> False >must-flush List.Nil }
-    { STACK_TYPE_ERROR -> True >must-flush List.Nil }
-    { STACK_TYPE_DONT_CARE -> True >must-flush List.Nil }
-    { STMeta -> expand-if(>StackType stack-type-to-c99-api-params-aux, drop True >must-flush List.Nil) }
-    { STVar -> drop True >must-flush List.Nil }
-    { STCons -> C99APIArgSource.C99AAS_Value dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
-    { STWith -> C99APIArgSource.C99AAS_Resource dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
-    { STConsLabel -> C99APIArgSource.C99AAS_ValueLabel dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
-    { STWithLabel -> C99APIArgSource.C99AAS_ResourceLabel dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { Unit -> False >must-flush List.Nil }
+    { Error -> True >must-flush List.Nil }
+    { Ignore -> True >must-flush List.Nil }
+    { Meta -> expand-if(>StackType stack-type-to-c99-api-params-aux, drop True >must-flush List.Nil) }
+    { Var -> drop True >must-flush List.Nil }
+    { Cons -> C99APIArgSource.Value dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { With -> C99APIArgSource.Resource dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { ConsLabel -> C99APIArgSource.ValueLabel dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
+    { STWithLabel -> C99APIArgSource.ResourceLabel dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
 }
 
 def +C99.stack-type-to-c99-api-params [ StackType C99APIArgMode +C99 -- must-flush:Bool List(C99APIArg) +C99 ] {
@@ -934,7 +934,7 @@ def c99-codip-arrow! [ Arrow +C99Branch -- +C99Branch ] {
     cod> split-parts >cod-parts >cod-base
     dom> split-parts >dom-parts >dom-base
     cod-base> unit? dom-base> unit? && if(
-        dom-parts> dip-parts( +stack(+SNil) )
+        dom-parts> dip-parts( +stack(+C99Stack.+Nil) )
         c99-arrow!
         cod-parts> dip-parts(
             +stack(rdrop)
@@ -956,24 +956,24 @@ def +C99Branch.dip-parts(f) [
 
 ||| Pop stack parts (right-to-left) into a separate stack cache.
 def +C99Branch.pop-stack! [ List(StackTypePart) +C99Branch -- +C99Branch +C99Stack ] {
-    +C99Stack.+SNil reverse-for(pop-stack-part!)
+    +C99Stack.+Nil reverse-for(pop-stack-part!)
 }
 
 ||| Pop a part from branch to separate stack.
 def +C99Stack.pop-stack-part! [ StackTypePart +C99Branch +C99Stack -- +C99Branch +C99Stack ] {
-    { STPCons -> rdip(type-to-c99-repr pop-value!) rswap +C99Stack.+SCons }
-    { STPWith -> rdip(resource-to-c99-repr pop-resource!) rswap +C99Stack.+SWith }
-    { STPConsLabel -> rdip(dip:type-to-c99-repr tuck pop-value-label!) rswap +C99Stack.+SConsLabel }
-    { STPWithLabel -> rdip(dip:resource-to-c99-repr tuck pop-resource-label!) rswap +C99Stack.+SWithLabel }
+    { Cons -> rdip(type-to-c99-repr pop-value!) rswap +C99Stack.+Cons }
+    { With -> rdip(resource-to-c99-repr pop-resource!) rswap +C99Stack.+With }
+    { ConsLabel -> rdip(dip:type-to-c99-repr tuck pop-value-label!) rswap +C99Stack.+ConsLabel }
+    { WithLabel -> rdip(dip:resource-to-c99-repr tuck pop-resource-label!) rswap +C99Stack.+WithLabel }
 }
 
 def +C99Stack.reverse-cat! [ +C99Stack +C99Stack -- +C99Stack ] {
     while ( match {
-        { +SNil -> +SNil False }
-        { +SCons -> rswap rdip:+C99Stack.+SCons True }
-        { +SWith -> rswap rdip:+C99Stack.+SWith True }
-        { +SConsLabel -> rswap rdip:+C99Stack.+SConsLabel True }
-        { +SWithLabel -> rswap rdip:+C99Stack.+SWithLabel True }
+        { +Nil -> +C99Stack.+Nil False }
+        { +Cons -> rswap rdip:+C99Stack.+Cons True }
+        { +With -> rswap rdip:+C99Stack.+With True }
+        { +ConsLabel -> rswap rdip:+C99Stack.+ConsLabel True }
+        { +WithLabel -> rswap rdip:+C99Stack.+WithLabel True }
     } ) rdrop
 }
 
@@ -997,73 +997,71 @@ def c99-atom! [ Atom +C99Branch -- +C99Branch ] {
 }
 
 def Op.show-in-stack-trace? [ Op -- Bool ] {
-    { OpNone -> False }
-    { OpInt -> drop False }
-    { OpF64 -> drop False }
-    { OpStr -> drop False }
-    { OpWord -> prefer-inline? not }
-    { OpExternal -> drop True }
-    { OpBuffer -> drop False }
-    { OpVariable -> drop False }
-    { OpField -> drop False }
-    { OpTag -> drop False }
-    { OpPrim -> drop True }
-    { OpMatch -> drop False }
-    { OpLambda -> drop False }
-    { OpVar -> drop False }
-    { OpBlockPush -> drop False }
-    { OpBlockRun -> drop False }
-    { OpLabelPush -> drop False }
-    { OpLabelPop -> drop False }
-    { OpLabelPushR -> drop False }
-    { OpLabelPopR -> drop False }
-    { OpDataGetEnumValue -> drop False }
-    { OpDataFromEnumValue -> drop False }
-    { OpDataGetLabel -> drop False }
-    { OpDataSetLabel -> drop False }
-    { OpTableToIndex -> drop False }
-    { OpTableFromIndex -> drop False }
+    { Int -> drop False }
+    { F64 -> drop False }
+    { Str -> drop False }
+    { Word -> prefer-inline? not }
+    { External -> drop True }
+    { Buffer -> drop False }
+    { Variable -> drop False }
+    { Field -> drop False }
+    { Tag -> drop False }
+    { Prim -> drop True }
+    { Match -> drop False }
+    { Lambda -> drop False }
+    { Var -> drop False }
+    { BlockPush -> drop False }
+    { BlockRun -> drop False }
+    { LabelPush -> drop False }
+    { LabelPop -> drop False }
+    { LabelPushR -> drop False }
+    { LabelPopR -> drop False }
+    { DataGetEnumValue -> drop False }
+    { DataFromEnumValue -> drop False }
+    { DataGetLabel -> drop False }
+    { DataSetLabel -> drop False }
+    { TableToIndex -> drop False }
+    { TableFromIndex -> drop False }
 }
 
 def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
-    { OpNone          -> drop }
-    { OpInt           -> nip c99-int! }
-    { OpF64           -> nip c99-f64! }
-    { OpStr           -> nip c99-str! }
-    { OpWord          -> dip:args c99-word! }
-    { OpExternal      -> dip:args c99-external-call! }
-    { OpBuffer        -> nip c99-buffer-call! }
-    { OpVariable      -> nip c99-variable-call! }
-    { OpField         -> nip c99-field-call! }
-    { OpTag           -> dip:args c99-tag-call! }
-    { OpPrim          -> c99-prim! }
-    { OpMatch         -> nip c99-match! }
-    { OpLambda        -> nip c99-lambda! }
-    { OpVar           -> nip c99-var! }
-    { OpBlockPush     -> nip c99-block-push! }
-    { OpBlockRun      -> nip c99-block-run! }
-    { OpLabelPush     -> c99-label-push! }
-    { OpLabelPop      -> c99-label-pop! }
-    { OpLabelPushR    -> c99-label-push-r! }
-    { OpLabelPopR     -> c99-label-pop-r! }
-    { OpDataGetEnumValue -> nip c99-get-enum-value! }
-    { OpDataFromEnumValue -> nip c99-from-enum-value! }
-    { OpDataGetLabel  -> c99-tag-get-label! drop }
-    { OpDataSetLabel  -> c99-tag-set-label! drop }
-    { OpTableToIndex -> drop2 }
-    { OpTableFromIndex -> drop2 }
+    { Int           -> nip c99-int! }
+    { F64           -> nip c99-f64! }
+    { Str           -> nip c99-str! }
+    { Word          -> dip:args c99-word! }
+    { External      -> dip:args c99-external-call! }
+    { Buffer        -> nip c99-buffer-call! }
+    { Variable      -> nip c99-variable-call! }
+    { Field         -> nip c99-field-call! }
+    { Tag           -> dip:args c99-tag-call! }
+    { Prim          -> c99-prim! }
+    { Match         -> nip c99-match! }
+    { Lambda        -> nip c99-lambda! }
+    { Var           -> nip c99-var! }
+    { BlockPush     -> nip c99-block-push! }
+    { BlockRun      -> nip c99-block-run! }
+    { LabelPush     -> c99-label-push! }
+    { LabelPop      -> c99-label-pop! }
+    { LabelPushR    -> c99-label-push-r! }
+    { LabelPopR     -> c99-label-pop-r! }
+    { DataGetEnumValue -> nip c99-get-enum-value! }
+    { DataFromEnumValue -> nip c99-from-enum-value! }
+    { DataGetLabel  -> c99-tag-get-label! drop }
+    { DataSetLabel  -> c99-tag-set-label! drop }
+    { TableToIndex -> drop2 }
+    { TableFromIndex -> drop2 }
 }
 
 def c99-get-enum-value! [ Data +C99Branch -- +C99Branch ] {
     >data
     @data is-enum? else(
-        @data Type.TData type-to-c99-repr pop-value! >+scrutinee
+        @data Type.Data type-to-c99-repr pop-value! >+scrutinee
         @data is-unit? if-some(
-            C99ReprType.C99RT_I64 push-value-expression!(value show put "LL" put),
+            C99ReprType.I64 push-value-expression!(value show put "LL" put),
 
         @data +mirth:semi-transparent? if-some(
-            C99ReprType.C99RT_I64 push-value-expression!(tag value show put "LL" put),
-            C99ReprType.C99RT_I64 push-value-expression!(
+            C99ReprType.I64 push-value-expression!(tag value show put "LL" put),
+            C99ReprType.I64 push-value-expression!(
                 "get_data_tag(" put
                 @+scrutinee:rdup consume-as-VAL put
                 ")" put
@@ -1111,14 +1109,14 @@ def push-value-label-direct! [ Label +C99Branch +C99Value -- +C99Branch ] {
     c99-line("lpush(&lbl_" put name mangled put ", " put put ");" put)
 }
 def push-value-label! [ Label +C99Branch +C99Value -- +C99Branch ] {
-    rswap +stack(rswap +C99Stack.+SConsLabel)
+    rswap +stack(rswap +C99Stack.+ConsLabel)
 }
 def push-resource-label-direct! [ Label +C99Branch +C99Resource -- +C99Branch ] {
     consume-as-VAL swap
     c99-line("lpush(&lbl_" put name mangled put ", " put put ");" put)
 }
 def push-resource-label! [ Label +C99Branch +C99Resource -- +C99Branch ] {
-    rswap +stack(rswap +C99Stack.+SWithLabel)
+    rswap +stack(rswap +C99Stack.+WithLabel)
 }
 
 def pop-value-label-direct! [ C99ReprType Label +C99Branch -- +C99Branch +C99Value ] {
@@ -1151,15 +1149,15 @@ def c99-label-pop-r! [ Atom Label +C99Branch -- +C99Branch ] {
 }
 
 def c99-int! [ Int +C99Branch -- +C99Branch ] {
-    C99ReprType.C99RT_I64 push-value-expression!(show put "LL" put)
+    C99ReprType.I64 push-value-expression!(show put "LL" put)
 }
 
 def c99-f64! [ F64 +C99Branch -- +C99Branch ] {
-    C99ReprType.C99RT_F64 push-value-expression!(>Str put)
+    C99ReprType.F64 push-value-expression!(>Str put)
 }
 
 def c99-str! [ Str +C99Branch -- +C99Branch ] {
-    C99ReprType.C99RT_STR new-value! >+str
+    C99ReprType.STR new-value! >+str
     dup num-bytes 4090 >Nat-clamp >USize > if(
         c99-line("STRLIT(" put @+str:rdup consume put "," put)
         c99-nest(
@@ -1216,22 +1214,22 @@ def c99-string-byte! [ Byte avoid-hexdigit:Bool +C99 -- avoid-hexdigit:Bool +C99
 }
 
 data C99ReprType {
-    0 C99RT_UNIT
+    0 Void
 
-    C99RT_VAL
-    C99RT_STR
-    C99RT_TUP [ Nat ]
+    VAL
+    STR
+    TUP [ Nat ]
 
-    C99RT_I64 C99RT_I32 C99RT_I16 C99RT_I8
-    C99RT_U64 C99RT_U32 C99RT_U16 C99RT_U8
-    C99RT_F64 C99RT_F32
-    C99RT_BOOL
-    C99RT_PTR
-    C99RT_FNPTR
+    I64 I32 I16 I8
+    U64 U32 U16 U8
+    F64 F32
+    Bool
+    PTR
+    FNPTR
 }
 
 def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
-    { C99RT_TUP -> swap match { C99RT_TUP -> ==, _ -> drop2 False } }
+    { TUP -> swap match { TUP -> ==, _ -> drop2 False } }
     { _ -> on2:enum-value == }
 }
 
@@ -1242,69 +1240,69 @@ inline (
 )
 
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
-    { C99RT_VAL -> True }
-    { C99RT_STR -> True }
-    { C99RT_TUP -> drop True }
+    { VAL -> True }
+    { STR -> True }
+    { TUP -> drop True }
 
-    { C99RT_UNIT -> False }
-    { C99RT_I64 -> False } { C99RT_I32 -> False } { C99RT_I16 -> False } { C99RT_I8 -> False }
-    { C99RT_U64 -> False } { C99RT_U32 -> False } { C99RT_U16 -> False } { C99RT_U8 -> False }
-    { C99RT_F64 -> False } { C99RT_F32 -> False }
-    { C99RT_BOOL -> False }
-    { C99RT_PTR -> False }
-    { C99RT_FNPTR -> False }
+    { Void -> False }
+    { I64 -> False } { I32 -> False } { I16 -> False } { I8 -> False }
+    { U64 -> False } { U32 -> False } { U16 -> False } { U8 -> False }
+    { F64 -> False } { F32 -> False }
+    { Bool -> False }
+    { PTR -> False }
+    { FNPTR -> False }
 }
 
 def C99ReprType.is-int-like? [ C99ReprType -- Bool ] {
-    { C99RT_I64 -> True } { C99RT_I32 -> True } { C99RT_I16 -> True } { C99RT_I8 -> True }
-    { C99RT_U64 -> True } { C99RT_U32 -> True } { C99RT_U16 -> True } { C99RT_U8 -> True }
-    { C99RT_BOOL -> True }
+    { I64 -> True } { I32 -> True } { I16 -> True } { I8 -> True }
+    { U64 -> True } { U32 -> True } { U16 -> True } { U8 -> True }
+    { Bool -> True }
     { _ -> drop False }
 }
 
 def C99ReprType.is-float-like? [ C99ReprType -- Bool ] {
-    { C99RT_F64 -> True } { C99RT_F32 -> True }
+    { F64 -> True } { F32 -> True }
     { _ -> drop False }
 }
 
 def C99ReprType.dummy-value [ C99ReprType -- Str ] {
-    { C99RT_VAL   -> "(VAL){0}"  }
-    { C99RT_STR   -> "NULL"      }
-    { C99RT_UNIT  -> "0"         }
-    { C99RT_I64   -> "0"         }
-    { C99RT_I32   -> "0"         }
-    { C99RT_I16   -> "0"         }
-    { C99RT_I8    -> "0"         }
-    { C99RT_U64   -> "0"         }
-    { C99RT_U32   -> "0"         }
-    { C99RT_U16   -> "0"         }
-    { C99RT_U8    -> "0"         }
-    { C99RT_F64   -> "0.0"       }
-    { C99RT_F32   -> "0.0"       }
-    { C99RT_BOOL  -> "0"         }
-    { C99RT_PTR   -> "NULL"      }
-    { C99RT_FNPTR -> "NULL"      }
-    { C99RT_TUP   -> drop "NULL" }
+    { VAL   -> "(VAL){0}"  }
+    { STR   -> "NULL"      }
+    { Void  -> "0"         }
+    { I64   -> "0"         }
+    { I32   -> "0"         }
+    { I16   -> "0"         }
+    { I8    -> "0"         }
+    { U64   -> "0"         }
+    { U32   -> "0"         }
+    { U16   -> "0"         }
+    { U8    -> "0"         }
+    { F64   -> "0.0"       }
+    { F32   -> "0.0"       }
+    { Bool  -> "0"         }
+    { PTR   -> "NULL"      }
+    { FNPTR -> "NULL"      }
+    { TUP   -> drop "NULL" }
 }
 
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
-    { C99RT_VAL   -> "VAL"      }
-    { C99RT_STR   -> "STR*"     }
-    { C99RT_UNIT  -> "int64_t"  }
-    { C99RT_I64   -> "int64_t"  }
-    { C99RT_I32   -> "int32_t"  }
-    { C99RT_I16   -> "int16_t"  }
-    { C99RT_I8    -> "int8_t"   }
-    { C99RT_U64   -> "uint64_t" }
-    { C99RT_U32   -> "uint32_t" }
-    { C99RT_U16   -> "uint16_t" }
-    { C99RT_U8    -> "uint8_t"  }
-    { C99RT_F64   -> "double"   }
-    { C99RT_F32   -> "float"    }
-    { C99RT_BOOL  -> "bool"     }
-    { C99RT_PTR   -> "void*"    }
-    { C99RT_FNPTR -> "FNPTR"    }
-    { C99RT_TUP   -> drop "TUP*"  }
+    { VAL   -> "VAL"      }
+    { STR   -> "STR*"     }
+    { Void  -> "int64_t"  }
+    { I64   -> "int64_t"  }
+    { I32   -> "int32_t"  }
+    { I16   -> "int16_t"  }
+    { I8    -> "int8_t"   }
+    { U64   -> "uint64_t" }
+    { U32   -> "uint32_t" }
+    { U16   -> "uint16_t" }
+    { U8    -> "uint8_t"  }
+    { F64   -> "double"   }
+    { F32   -> "float"    }
+    { Bool  -> "bool"     }
+    { PTR   -> "void*"    }
+    { FNPTR -> "FNPTR"    }
+    { TUP   -> drop "TUP*"  }
 }
 
 def C99ReprType.v-macro(f) [ (*a +C99 -- *b +C99) *a +C99 C99ReprType -- *b +C99 ] {
@@ -1313,43 +1311,43 @@ def C99ReprType.v-macro(f) [ (*a +C99 -- *b +C99) *a +C99 C99ReprType -- *b +C99
 }
 
 def C99ReprType.v-macro-prefix-suffix [ C99ReprType -- Str Str ] {
-    { C99RT_VAL   -> "" "" }
-    { C99RT_STR   -> "value_str(" ")" }
-    { C99RT_UNIT  -> "(" ", 0)" }
-    { C99RT_I64   -> "value_i64(" ")" }
-    { C99RT_I32   -> "value_i32(" ")" }
-    { C99RT_I16   -> "value_i16(" ")" }
-    { C99RT_I8    -> "value_i8(" ")" }
-    { C99RT_U64   -> "value_u64(" ")" }
-    { C99RT_U32   -> "value_u32(" ")" }
-    { C99RT_U16   -> "value_u16(" ")" }
-    { C99RT_U8    -> "value_u8(" ")" }
-    { C99RT_F64   -> "value_f64(" ")" }
-    { C99RT_F32   -> "value_f32(" ")" }
-    { C99RT_BOOL  -> "value_bool(" ")" }
-    { C99RT_PTR   -> "value_ptr(" ")" }
-    { C99RT_FNPTR -> "value_fnptr(" ")" }
-    { C99RT_TUP   -> "value_tup(" swap Str(", "; show ; ")";) }
+    { VAL   -> "" "" }
+    { STR   -> "value_str(" ")" }
+    { Void  -> "(" ", 0)" }
+    { I64   -> "value_i64(" ")" }
+    { I32   -> "value_i32(" ")" }
+    { I16   -> "value_i16(" ")" }
+    { I8    -> "value_i8(" ")" }
+    { U64   -> "value_u64(" ")" }
+    { U32   -> "value_u32(" ")" }
+    { U16   -> "value_u16(" ")" }
+    { U8    -> "value_u8(" ")" }
+    { F64   -> "value_f64(" ")" }
+    { F32   -> "value_f32(" ")" }
+    { Bool  -> "value_bool(" ")" }
+    { PTR   -> "value_ptr(" ")" }
+    { FNPTR -> "value_fnptr(" ")" }
+    { TUP   -> "value_tup(" swap Str(", "; show ; ")";) }
 }
 
 def C99ReprType.mk-macro [ Str C99ReprType -- Str ] {
-    { C99RT_VAL   -> id }
-    { C99RT_STR   -> Str( "MKSTR(" ; ; ")" ; ) }
-    { C99RT_UNIT  -> Str( "MKI64(" ; ; ")" ; ) }
-    { C99RT_I64   -> Str( "MKI64(" ; ; ")" ; ) }
-    { C99RT_I32   -> Str( "MKI32(" ; ; ")" ; ) }
-    { C99RT_I16   -> Str( "MKI16(" ; ; ")" ; ) }
-    { C99RT_I8    -> Str( "MKI8("  ; ; ")" ; ) }
-    { C99RT_U64   -> Str( "MKU64(" ; ; ")" ; ) }
-    { C99RT_U32   -> Str( "MKU32(" ; ; ")" ; ) }
-    { C99RT_U16   -> Str( "MKU16(" ; ; ")" ; ) }
-    { C99RT_U8    -> Str( "MKU8(" ; ; ")" ; ) }
-    { C99RT_F64   -> Str( "MKF64(" ; ; ")" ; ) }
-    { C99RT_F32   -> Str( "MKF32(" ; ; ")" ; ) }
-    { C99RT_BOOL  -> Str( "MKBOOL(" ; ; ")" ; ) }
-    { C99RT_PTR   -> Str( "MKPTR(" ; ; ")" ; ) }
-    { C99RT_FNPTR -> Str( "MKFNPTR(" ; ; ")" ; ) }
-    { C99RT_TUP   -> swap Str( "MKTUP(" ; ; ", " ; show ; ")" ; ) }
+    { VAL   -> id }
+    { STR   -> Str( "MKSTR(" ; ; ")" ; ) }
+    { Void  -> Str( "MKI64(" ; ; ")" ; ) }
+    { I64   -> Str( "MKI64(" ; ; ")" ; ) }
+    { I32   -> Str( "MKI32(" ; ; ")" ; ) }
+    { I16   -> Str( "MKI16(" ; ; ")" ; ) }
+    { I8    -> Str( "MKI8("  ; ; ")" ; ) }
+    { U64   -> Str( "MKU64(" ; ; ")" ; ) }
+    { U32   -> Str( "MKU32(" ; ; ")" ; ) }
+    { U16   -> Str( "MKU16(" ; ; ")" ; ) }
+    { U8    -> Str( "MKU8(" ; ; ")" ; ) }
+    { F64   -> Str( "MKF64(" ; ; ")" ; ) }
+    { F32   -> Str( "MKF32(" ; ; ")" ; ) }
+    { Bool  -> Str( "MKBOOL(" ; ; ")" ; ) }
+    { PTR   -> Str( "MKPTR(" ; ; ")" ; ) }
+    { FNPTR -> Str( "MKFNPTR(" ; ; ")" ; ) }
+    { TUP   -> swap Str( "MKTUP(" ; ; ", " ; show ; ")" ; ) }
 }
 
 def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
@@ -1357,50 +1355,50 @@ def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
 }
 
 def Type.c99-repr [ Type +Mirth -- C99ReprType +Mirth ] {
-    { TYPE_ERROR -> C99ReprType.C99RT_VAL }
-    { TYPE_DONT_CARE -> C99ReprType.C99RT_VAL }
-    { TPrim -> c99-repr }
-    { TMeta -> expand-if(c99-repr, drop C99ReprType.C99RT_VAL) }
-    { THole -> drop C99ReprType.C99RT_VAL }
-    { TVar -> drop C99ReprType.C99RT_VAL }
-    { TTable -> drop C99ReprType.C99RT_U64 }
-    { TData -> c99-repr }
-    { TDataPartial -> .data c99-repr }
-    { TMorphism -> drop C99ReprType.C99RT_VAL }
-    { TTensor -> tuple-c99-repr }
-    { TApp -> drop c99-repr }
-    { TMut -> drop C99ReprType.C99RT_PTR }
-    { TValue -> drop C99ReprType.C99RT_VAL }
+    { Error -> C99ReprType.VAL }
+    { Ignore -> C99ReprType.VAL }
+    { Prim -> c99-repr }
+    { Meta -> expand-if(c99-repr, drop C99ReprType.VAL) }
+    { Hole -> drop C99ReprType.VAL }
+    { Var -> drop C99ReprType.VAL }
+    { Table -> drop C99ReprType.U64 }
+    { Data -> c99-repr }
+    { DataPartial -> .data c99-repr }
+    { Arrow -> drop C99ReprType.VAL }
+    { Stack -> tuple-c99-repr }
+    { App -> drop c99-repr }
+    { Mut -> drop C99ReprType.PTR }
+    { Value -> drop C99ReprType.VAL }
 }
 
 def StackType.tuple-c99-repr [ StackType -- C99ReprType ] {
     split-parts swap match {
-        { STB_UNIT -> len dup 0= if (drop C99ReprType.C99RT_UNIT, C99ReprType.C99RT_TUP) }
-        { _ -> drop2 C99ReprType.C99RT_VAL }
+        { Unit -> len dup 0= if (drop C99ReprType.Void, C99ReprType.TUP) }
+        { _ -> drop2 C99ReprType.VAL }
     }
 }
 
 def PrimType.c99-repr [ PrimType -- C99ReprType ] {
-    { PRIM_TYPE_TYPE -> C99ReprType.C99RT_VAL }
-    { PRIM_TYPE_STACK -> C99ReprType.C99RT_VAL }
-    { PRIM_TYPE_RESOURCE -> C99ReprType.C99RT_VAL }
-    { PRIM_TYPE_INT -> C99ReprType.C99RT_I64 }
-    { PRIM_TYPE_F32 -> C99ReprType.C99RT_F32 }
-    { PRIM_TYPE_F64 -> C99ReprType.C99RT_F64 }
-    { PRIM_TYPE_STR -> C99ReprType.C99RT_STR }
-    { PRIM_TYPE_PTR -> C99ReprType.C99RT_PTR }
-    { PRIM_TYPE_WORLD -> C99ReprType.C99RT_UNIT }
+    { Type -> C99ReprType.VAL }
+    { StackType -> C99ReprType.VAL }
+    { ResourceType -> C99ReprType.VAL }
+    { Int -> C99ReprType.I64 }
+    { F32 -> C99ReprType.F32 }
+    { F64 -> C99ReprType.F64 }
+    { Str -> C99ReprType.STR }
+    { Ptr -> C99ReprType.PTR }
+    { World -> C99ReprType.Void }
 }
 
 def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
     >dat
-    @dat is-unit? if(C99ReprType.C99RT_UNIT,
-    @dat is-enum? if(C99ReprType.C99RT_I64,
+    @dat is-unit? if(C99ReprType.Void,
+    @dat is-enum? if(C99ReprType.I64,
     @dat semi-transparent? if-some(
         input type/resource either(c99-repr, c99-repr),
     @dat single-tag? if-some(
-        inputs len C99ReprType.C99RT_TUP,
-        C99ReprType.C99RT_VAL
+        inputs len C99ReprType.TUP,
+        C99ReprType.VAL
     ))))
     dat> drop
 }
@@ -1506,12 +1504,12 @@ def +C99Value.consume-as-TUP [ +C99Value -- Str ] {
 }
 
 def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
-    { C99RT_VAL -> consume-as-VAL }
-    { C99RT_UNIT -> rdrop "0" }
+    { VAL -> consume-as-VAL }
+    { Void -> rdrop "0" }
     { _ ->
         /+C99Value
         @value-repr match {
-            { C99RT_VAL -> Str( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
+            { VAL -> Str( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
             { _ ->
                 over == if(
                     drop value-name>,
@@ -1598,8 +1596,8 @@ def +C99Resource.consume-as-VAL [ +C99Resource -- Str ] {
 
 def +C99Resource.consume-as-TUP [ +C99Resource -- Str ] {
     /+C99Resource resource-repr> match {
-        { C99RT_VAL -> Str( "VTUP(" ; resource-name> ; ")" ; ) }
-        { C99RT_TUP -> drop resource-name> }
+        { VAL -> Str( "VTUP(" ; resource-name> ; ")" ; ) }
+        { TUP -> drop resource-name> }
         { _ -> drop "c99: tried to consume non-tuple as tuple" panic! }
     }
 }
@@ -1694,28 +1692,28 @@ def +C99Branch.refresh-branch! [ +C99Branch -- +C99Branch ] {
 }
 
 def +C99Stack.refresh-all! [ +C99 +C99Stack reachable:Bool env:C99Env -- +C99Branch ] {
-    { +SNil -> start-branch! }
-    { +SCons ->
+    { +Nil -> start-branch! }
+    { +Cons ->
         >+x refresh-all!
         @+x:value-repr push-value-expression!(+x> consume put)
     }
-    { +SWith ->
+    { +With ->
         >+x refresh-all!
         @+x:resource-repr push-resource-expression!(+x> consume put)
     }
-    { +SConsLabel ->
+    { +ConsLabel ->
         >+x refresh-all!
         @+x:value-repr swap push-label-expression!(+x> consume put)
     }
-    { +SWithLabel ->
+    { +WithLabel ->
         >+x refresh-all!
         @+x:resource-repr swap push-label-expression!(+x> consume put)
     }
 }
 
 def +C99Stack.tie-knot! [ +C99Branch +C99Stack -- +C99Branch ] {
-    { +SNil -> flush-cache! }
-    { +SCons ->
+    { +Nil -> flush-cache! }
+    { +Cons ->
         value-repr dup rdip2(pop-value! consume-as)
         value-name
         value-repr is-physical?
@@ -1723,7 +1721,7 @@ def +C99Stack.tie-knot! [ +C99Branch +C99Stack -- +C99Branch ] {
         rdip:tie-knot!
         push-value!
     }
-    { +SWith ->
+    { +With ->
         resource-repr dup rdip2(pop-resource! turn-into-value! consume-as)
         resource-name
         resource-repr is-physical?
@@ -1731,7 +1729,7 @@ def +C99Stack.tie-knot! [ +C99Branch +C99Stack -- +C99Branch ] {
         rdip:tie-knot!
         push-resource!
     }
-    { +SConsLabel -> >label
+    { +ConsLabel -> >label
         value-repr dup rdip2(@label pop-value-label! consume-as)
         value-name
         value-repr is-physical?
@@ -1739,7 +1737,7 @@ def +C99Stack.tie-knot! [ +C99Branch +C99Stack -- +C99Branch ] {
         rdip:tie-knot!
         label> push-value-label!
     }
-    { +SWithLabel -> >label
+    { +WithLabel -> >label
         resource-repr dup rdip2(@label pop-resource-label! turn-into-value! consume-as)
         resource-name
         resource-repr is-physical?
@@ -1750,77 +1748,77 @@ def +C99Stack.tie-knot! [ +C99Branch +C99Stack -- +C99Branch ] {
 }
 
 data +C99Stack {
-    +SNil
-    +SCons [ +C99Stack +C99Value ]
-    +SWith [ +C99Stack +C99Resource ]
-    +SConsLabel [ +C99Stack +C99Value Label ]
-    +SWithLabel [ +C99Stack +C99Resource Label ]
+    +Nil
+    +Cons [ +C99Stack +C99Value ]
+    +With [ +C99Stack +C99Resource ]
+    +ConsLabel [ +C99Stack +C99Value Label ]
+    +WithLabel [ +C99Stack +C99Resource Label ]
 }
 
 def +C99Stack.pop-value? [ +C99Stack -- +C99Value? +C99Stack ] {
-    { +SNil -> +C99Value?.+C99ValueNone +C99Stack.+SNil }
-    { +SCons -> +C99Value?.+C99ValueSome rswap }
-    { +SWith -> rdip:pop-value? +C99Stack.+SWith }
-    { +SConsLabel -> rdip:pop-value? +C99Stack.+SConsLabel }
-    { +SWithLabel -> rdip:pop-value? +C99Stack.+SWithLabel }
+    { +Nil -> +C99Value?.+C99ValueNone +C99Stack.+Nil }
+    { +Cons -> +C99Value?.+C99ValueSome rswap }
+    { +With -> rdip:pop-value? +C99Stack.+With }
+    { +ConsLabel -> rdip:pop-value? +C99Stack.+ConsLabel }
+    { +WithLabel -> rdip:pop-value? +C99Stack.+WithLabel }
 }
 
 def +C99Stack.pop-resource? [ +C99Stack -- +C99Resource? +C99Stack ] {
-    { +SNil -> +C99Resource?.+C99ResourceNone +C99Stack.+SNil }
-    { +SWith -> +C99Resource?.+C99ResourceSome rswap }
-    { +SCons -> rdip:pop-resource? +C99Stack.+SCons }
-    { +SConsLabel -> rdip:pop-resource? +C99Stack.+SConsLabel }
-    { +SWithLabel -> rdip:pop-resource? +C99Stack.+SWithLabel }
+    { +Nil -> +C99Resource?.+C99ResourceNone +C99Stack.+Nil }
+    { +With -> +C99Resource?.+C99ResourceSome rswap }
+    { +Cons -> rdip:pop-resource? +C99Stack.+Cons }
+    { +ConsLabel -> rdip:pop-resource? +C99Stack.+ConsLabel }
+    { +WithLabel -> rdip:pop-resource? +C99Stack.+WithLabel }
 }
 
 def +C99Stack.pop-value-label? [ Label +C99Stack -- Label +C99Value? +C99Stack ] {
-    { +SNil -> +C99Value?.+C99ValueNone +C99Stack.+SNil }
-    { +SCons -> rdip:pop-value-label? +C99Stack.+SCons }
-    { +SWith -> rdip:pop-value-label? +C99Stack.+SWith }
-    { +SWithLabel -> dip:rdip:pop-value-label? +C99Stack.+SWithLabel }
-    { +SConsLabel ->
+    { +Nil -> +C99Value?.+C99ValueNone +C99Stack.+Nil }
+    { +Cons -> rdip:pop-value-label? +C99Stack.+Cons }
+    { +With -> rdip:pop-value-label? +C99Stack.+With }
+    { +WithLabel -> dip:rdip:pop-value-label? +C99Stack.+WithLabel }
+    { +ConsLabel ->
         dup2 == if(
             drop +C99Value?.+C99ValueSome rswap,
-            dip:rdip:pop-value-label? +C99Stack.+SConsLabel
+            dip:rdip:pop-value-label? +C99Stack.+ConsLabel
         )
     }
 }
 
 def +C99Stack.pop-resource-label? [ Label +C99Stack -- Label +C99Resource? +C99Stack ] {
-    { +SNil -> +C99Resource?.+C99ResourceNone +C99Stack.+SNil }
-    { +SCons -> rdip:pop-resource-label? +C99Stack.+SCons }
-    { +SWith -> rdip:pop-resource-label? +C99Stack.+SWith }
-    { +SConsLabel -> dip:rdip:pop-resource-label? +C99Stack.+SConsLabel }
-    { +SWithLabel ->
+    { +Nil -> +C99Resource?.+C99ResourceNone +C99Stack.+Nil }
+    { +Cons -> rdip:pop-resource-label? +C99Stack.+Cons }
+    { +With -> rdip:pop-resource-label? +C99Stack.+With }
+    { +ConsLabel -> dip:rdip:pop-resource-label? +C99Stack.+ConsLabel }
+    { +WithLabel ->
         dup2 == if(
             drop +C99Resource?.+C99ResourceSome rswap,
-            dip:rdip:pop-resource-label? +C99Stack.+SWithLabel
+            dip:rdip:pop-resource-label? +C99Stack.+WithLabel
         )
     }
 }
 
 def +C99Stack.push-stack-direct! [ +C99Branch +C99Stack -- +C99Branch ] {
-    { +SNil -> }
-    { +SCons -> rdip:push-stack-direct! push-value-direct! }
-    { +SWith -> rdip:push-stack-direct! push-resource-direct! }
-    { +SConsLabel -> rdip:push-stack-direct! push-value-label-direct! }
-    { +SWithLabel -> rdip:push-stack-direct! push-resource-label-direct! }
+    { +Nil -> }
+    { +Cons -> rdip:push-stack-direct! push-value-direct! }
+    { +With -> rdip:push-stack-direct! push-resource-direct! }
+    { +ConsLabel -> rdip:push-stack-direct! push-value-label-direct! }
+    { +WithLabel -> rdip:push-stack-direct! push-resource-label-direct! }
 }
 
 def +C99Stack.rdup [ +C99Stack -- +C99Stack +C99Stack ] {
-    { +SNil -> +C99Stack.+SNil +SNil }
-    { +SCons -> rdip:rdup rdup rdip:rswap +C99Stack.+SCons rdip:+C99Stack.+SCons }
-    { +SWith -> rdip:rdup rdup rdip:rswap +C99Stack.+SWith rdip:+C99Stack.+SWith }
-    { +SConsLabel -> dup rdip:rdup rdup rdip:rswap +C99Stack.+SConsLabel rdip:+C99Stack.+SConsLabel }
-    { +SWithLabel -> dup rdip:rdup rdup rdip:rswap +C99Stack.+SWithLabel rdip:+C99Stack.+SWithLabel }
+    { +Nil -> +C99Stack.+Nil +C99Stack.+Nil }
+    { +Cons -> rdip:rdup rdup rdip:rswap +C99Stack.+Cons rdip:+C99Stack.+Cons }
+    { +With -> rdip:rdup rdup rdip:rswap +C99Stack.+With rdip:+C99Stack.+With }
+    { +ConsLabel -> dup rdip:rdup rdup rdip:rswap +C99Stack.+ConsLabel rdip:+C99Stack.+ConsLabel }
+    { +WithLabel -> dup rdip:rdup rdup rdip:rswap +C99Stack.+WithLabel rdip:+C99Stack.+WithLabel }
 }
 
 def +C99Stack.rdrop [ +C99Stack -- ] {
-    { +SNil -> }
-    { +SCons -> rdrop rdrop }
-    { +SWith -> rdrop rdrop }
-    { +SConsLabel -> drop rdrop rdrop }
-    { +SWithLabel -> drop rdrop rdrop }
+    { +Nil -> }
+    { +Cons -> rdrop rdrop }
+    { +With -> rdrop rdrop }
+    { +ConsLabel -> drop rdrop rdrop }
+    { +WithLabel -> drop rdrop rdrop }
 }
 
 struct +C99BranchSplit {
@@ -1912,11 +1910,11 @@ struct +C99Branch {
 def +C99Branch.+mirth(f) { +c99:+mirth(f) }
 
 def +C99.start-branch! [ +C99 reachable:Bool env:C99Env -- +C99Branch ] {
-    >+c99 +C99Stack.+SNil >+stack +C99Branch
+    >+c99 +C99Stack.+Nil >+stack +C99Branch
 }
 
 def +C99Branch.end-branch! [ +C99Branch -- +C99 reachable:Bool env:C99Env ] {
-    +stack(+SNil) rswap push-stack-direct!
+    +stack(+C99Stack.+Nil) rswap push-stack-direct!
     /+C99Branch +c99> +stack> rdrop
 }
 
@@ -1954,11 +1952,11 @@ def +C99Branch.pop-resource-label! [ C99ReprType Label +C99Branch -- +C99Branch 
 }
 
 def +C99Value.push-value! [ +C99Branch +C99Value -- +C99Branch ] {
-    rswap +stack(rswap +C99Stack.+SCons)
+    rswap +stack(rswap +C99Stack.+Cons)
 }
 
 def +C99Resource.push-resource! [ +C99Branch +C99Resource -- +C99Branch ] {
-    rswap +stack(rswap +C99Stack.+SWith)
+    rswap +stack(rswap +C99Stack.+With)
 }
 
 def +C99Branch.type-to-c99-repr [ Type +C99Branch -- C99ReprType +C99Branch ] { +mirth:c99-repr }
@@ -2023,11 +2021,11 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     }
     { PRIM_CORE_IF ->
         dup args >L2? unwrap(token "unexpected number of arguments to PRIM_CORE_IF" +mirth:emit-fatal-error!)
-        /L2 C99ReprType.C99RT_BOOL pop-value! >+cond
+        /L2 C99ReprType.Bool pop-value! >+cond
 
         rotl +mirth:cod
         begin-branch-split!
-        c99-line("if (" put +cond> C99ReprType.C99RT_BOOL consume-as put ") {" put)
+        c99-line("if (" put +cond> C99ReprType.Bool consume-as put ") {" put)
         c99-nest:sub-branch(swap c99-arg-run!)
         c99-line("} else {" put)
         c99-nest:sub-branch(c99-arg-run!)
@@ -2037,9 +2035,9 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { PRIM_CORE_WHILE ->
         dup args >L2? unwrap(token "unexpected number of arguments to PRIM_CORE_WHILE" +mirth:emit-fatal-error!)
         nip /L2 over c99-arg-run!
-        C99ReprType.C99RT_BOOL pop-value! push-value!
+        C99ReprType.Bool pop-value! push-value!
         refresh-branch! +stack(rdup >+knot)
-        C99ReprType.C99RT_BOOL dup pop-value! consume-as
+        C99ReprType.Bool dup pop-value! consume-as
         c99-line("while (" put put ") {" put)
         c99-nest(
             refresh-branch!
@@ -2048,182 +2046,182 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
             +knot> tie-knot!
         )
         c99-line("}" put)
-        C99ReprType.C99RT_BOOL pop-value! rdrop
+        C99ReprType.Bool pop-value! rdrop
     }
     { PRIM_CORE_DEBUG -> drop flush-cache! c99-line("trace_stack();" put) }
     { PRIM_CORE_PANIC ->
         drop
-        C99ReprType.C99RT_STR dup pop-value! consume-as
+        C99ReprType.STR dup pop-value! consume-as
         c99-line("do_panic(" put put ");" put)
-        +stack(rdrop +C99Stack.+SNil)
+        +stack(rdrop +C99Stack.+Nil)
         False reachable!
     }
     { PRIM_CORE_RUN ->
         dup args empty? else(token "expected no arguments to prim-core-run" +mirth:emit-fatal-error!) drop
-        C99ReprType.C99RT_VAL pop-value! run-value!
+        C99ReprType.VAL pop-value! run-value!
     }
 
-    { PRIM_INT_EQ  -> drop "(" C99ReprType.C99RT_I64 " == " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_INT_LT  -> drop "(" C99ReprType.C99RT_I64 " < "  C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_INT_LE  -> drop "(" C99ReprType.C99RT_I64 " <= " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_INT_GT  -> drop "(" C99ReprType.C99RT_I64 " > "  C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_INT_GE  -> drop "(" C99ReprType.C99RT_I64 " >= " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_INT_NE  -> drop "(" C99ReprType.C99RT_I64 " != " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_INT_ADD -> drop "i64_add(" C99ReprType.C99RT_I64 ", " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_I64 Some c99-binop! }
-    { PRIM_INT_SUB -> drop "i64_sub(" C99ReprType.C99RT_I64 ", " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_I64 Some c99-binop! }
-    { PRIM_INT_MUL -> drop "i64_mul(" C99ReprType.C99RT_I64 ", " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_I64 Some c99-binop! }
-    { PRIM_INT_DIV -> drop "i64_div(" C99ReprType.C99RT_I64 ", " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_I64 Some c99-binop! }
-    { PRIM_INT_MOD -> drop "i64_mod(" C99ReprType.C99RT_I64 ", " C99ReprType.C99RT_I64 ")" False C99ReprType.C99RT_I64 Some c99-binop! }
-    { PRIM_INT_AND -> drop "(" C99ReprType.C99RT_U64 " & "  C99ReprType.C99RT_U64 ")" False C99ReprType.C99RT_U64 Some c99-binop! }
-    { PRIM_INT_XOR -> drop "(" C99ReprType.C99RT_U64 " ^ "  C99ReprType.C99RT_U64 ")" False C99ReprType.C99RT_U64 Some c99-binop! }
-    { PRIM_INT_OR  -> drop "(" C99ReprType.C99RT_U64 " | "  C99ReprType.C99RT_U64 ")" False C99ReprType.C99RT_U64 Some c99-binop! }
-    { PRIM_INT_SHL -> drop "u64_shl(" C99ReprType.C99RT_U64 ", " C99ReprType.C99RT_U64 ")" False C99ReprType.C99RT_U64 Some c99-binop! }
-    { PRIM_INT_SHR -> drop "u64_shr(" C99ReprType.C99RT_U64 ", " C99ReprType.C99RT_U64 ")" False C99ReprType.C99RT_U64 Some c99-binop! }
+    { PRIM_INT_EQ  -> drop "(" C99ReprType.I64 " == " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_INT_LT  -> drop "(" C99ReprType.I64 " < "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_INT_LE  -> drop "(" C99ReprType.I64 " <= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_INT_GT  -> drop "(" C99ReprType.I64 " > "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_INT_GE  -> drop "(" C99ReprType.I64 " >= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_INT_NE  -> drop "(" C99ReprType.I64 " != " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_INT_ADD -> drop "i64_add(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { PRIM_INT_SUB -> drop "i64_sub(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { PRIM_INT_MUL -> drop "i64_mul(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { PRIM_INT_DIV -> drop "i64_div(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { PRIM_INT_MOD -> drop "i64_mod(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { PRIM_INT_AND -> drop "(" C99ReprType.U64 " & "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { PRIM_INT_XOR -> drop "(" C99ReprType.U64 " ^ "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { PRIM_INT_OR  -> drop "(" C99ReprType.U64 " | "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { PRIM_INT_SHL -> drop "u64_shl(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { PRIM_INT_SHR -> drop "u64_shr(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
     { PRIM_INT_TO_I64 -> drop }
-    { PRIM_INT_TO_F32 -> drop "(float)"   C99ReprType.C99RT_I64 ""  C99ReprType.C99RT_F32 Some c99-unop! }
-    { PRIM_INT_TO_F64 -> drop "(double)"  C99ReprType.C99RT_I64 ""  C99ReprType.C99RT_F64 Some c99-unop! }
-    { PRIM_INT_TO_STR -> drop "i64_show(" C99ReprType.C99RT_I64 ")" C99ReprType.C99RT_STR Some c99-unop! }
+    { PRIM_INT_TO_F32 -> drop "(float)"   C99ReprType.I64 ""  C99ReprType.F32 Some c99-unop! }
+    { PRIM_INT_TO_F64 -> drop "(double)"  C99ReprType.I64 ""  C99ReprType.F64 Some c99-unop! }
+    { PRIM_INT_TO_STR -> drop "i64_show(" C99ReprType.I64 ")" C99ReprType.STR Some c99-unop! }
 
-    { PRIM_U8_GET  -> drop "*(uint8_t*)"  C99ReprType.C99RT_PTR "" C99ReprType.C99RT_U8  Some c99-unop! }
-    { PRIM_U8_SET  -> drop "*(uint8_t*)"  C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_U8  ";" True None c99-binop! }
+    { PRIM_U8_GET  -> drop "*(uint8_t*)"  C99ReprType.PTR "" C99ReprType.U8  Some c99-unop! }
+    { PRIM_U8_SET  -> drop "*(uint8_t*)"  C99ReprType.PTR " = " C99ReprType.U8  ";" True None c99-binop! }
 
-    { PRIM_U16_GET -> drop "*(uint16_t*)" C99ReprType.C99RT_PTR "" C99ReprType.C99RT_U16 Some c99-unop! }
-    { PRIM_U16_SET -> drop "*(uint16_t*)" C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_U16 ";" True None c99-binop! }
+    { PRIM_U16_GET -> drop "*(uint16_t*)" C99ReprType.PTR "" C99ReprType.U16 Some c99-unop! }
+    { PRIM_U16_SET -> drop "*(uint16_t*)" C99ReprType.PTR " = " C99ReprType.U16 ";" True None c99-binop! }
 
-    { PRIM_U32_GET -> drop "*(uint32_t*)" C99ReprType.C99RT_PTR "" C99ReprType.C99RT_U32 Some c99-unop! }
-    { PRIM_U32_SET -> drop "*(uint32_t*)" C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_U32 ";" True None c99-binop! }
+    { PRIM_U32_GET -> drop "*(uint32_t*)" C99ReprType.PTR "" C99ReprType.U32 Some c99-unop! }
+    { PRIM_U32_SET -> drop "*(uint32_t*)" C99ReprType.PTR " = " C99ReprType.U32 ";" True None c99-binop! }
 
-    { PRIM_U64_GET -> drop "*(uint64_t*)" C99ReprType.C99RT_PTR "" C99ReprType.C99RT_U64 Some c99-unop! }
-    { PRIM_U64_SET -> drop "*(uint64_t*)" C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_U64 ";" True None c99-binop! }
+    { PRIM_U64_GET -> drop "*(uint64_t*)" C99ReprType.PTR "" C99ReprType.U64 Some c99-unop! }
+    { PRIM_U64_SET -> drop "*(uint64_t*)" C99ReprType.PTR " = " C99ReprType.U64 ";" True None c99-binop! }
 
-    { PRIM_I8_GET  -> drop "*(int8_t*)"   C99ReprType.C99RT_PTR "" C99ReprType.C99RT_I8  Some c99-unop! }
-    { PRIM_I8_SET  -> drop "*(int8_t*)"   C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_I8  ";" True None c99-binop! }
+    { PRIM_I8_GET  -> drop "*(int8_t*)"   C99ReprType.PTR "" C99ReprType.I8  Some c99-unop! }
+    { PRIM_I8_SET  -> drop "*(int8_t*)"   C99ReprType.PTR " = " C99ReprType.I8  ";" True None c99-binop! }
 
-    { PRIM_I16_GET -> drop "*(int16_t*)"  C99ReprType.C99RT_PTR "" C99ReprType.C99RT_I16 Some c99-unop! }
-    { PRIM_I16_SET -> drop "*(int16_t*)"  C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_I16 ";" True None c99-binop! }
+    { PRIM_I16_GET -> drop "*(int16_t*)"  C99ReprType.PTR "" C99ReprType.I16 Some c99-unop! }
+    { PRIM_I16_SET -> drop "*(int16_t*)"  C99ReprType.PTR " = " C99ReprType.I16 ";" True None c99-binop! }
 
-    { PRIM_I32_GET -> drop "*(int32_t*)"  C99ReprType.C99RT_PTR "" C99ReprType.C99RT_I32 Some c99-unop! }
-    { PRIM_I32_SET -> drop "*(int32_t*)"  C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_I32 ";" True None c99-binop! }
+    { PRIM_I32_GET -> drop "*(int32_t*)"  C99ReprType.PTR "" C99ReprType.I32 Some c99-unop! }
+    { PRIM_I32_SET -> drop "*(int32_t*)"  C99ReprType.PTR " = " C99ReprType.I32 ";" True None c99-binop! }
 
-    { PRIM_I64_GET -> drop "*(int64_t*)"  C99ReprType.C99RT_PTR "" C99ReprType.C99RT_I64 Some c99-unop! }
-    { PRIM_I64_SET -> drop "*(int64_t*)"  C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_I64 ";" True None c99-binop! }
+    { PRIM_I64_GET -> drop "*(int64_t*)"  C99ReprType.PTR "" C99ReprType.I64 Some c99-unop! }
+    { PRIM_I64_SET -> drop "*(int64_t*)"  C99ReprType.PTR " = " C99ReprType.I64 ";" True None c99-binop! }
     { PRIM_I64_TO_INT -> drop }
 
-    # { PRIM_F32_SET -> drop "*(float*)"    C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_F32 ";" True None c99-binop! }
-    { PRIM_F32_LT  -> drop "(" C99ReprType.C99RT_F32 " < "  C99ReprType.C99RT_F32 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_F32_EQ  -> drop "(" C99ReprType.C99RT_F32 " == " C99ReprType.C99RT_F32 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_F32_ADD -> drop "(" C99ReprType.C99RT_F32 " + "  C99ReprType.C99RT_F32 ")" False C99ReprType.C99RT_F32  Some c99-binop! }
-    { PRIM_F32_SUB -> drop "(" C99ReprType.C99RT_F32 " - "  C99ReprType.C99RT_F32 ")" False C99ReprType.C99RT_F32  Some c99-binop! }
-    { PRIM_F32_MUL -> drop "(" C99ReprType.C99RT_F32 " * "  C99ReprType.C99RT_F32 ")" False C99ReprType.C99RT_F32  Some c99-binop! }
-    { PRIM_F32_DIV -> drop "(" C99ReprType.C99RT_F32 " / "  C99ReprType.C99RT_F32 ")" False C99ReprType.C99RT_F32  Some c99-binop! }
-    { PRIM_F32_TO_INT -> drop "(int64_t)" C99ReprType.C99RT_F32 ""  C99ReprType.C99RT_I64 Some c99-unop! }
-    { PRIM_F32_TO_F64 -> drop "(double)"  C99ReprType.C99RT_F32 ""  C99ReprType.C99RT_F64 Some c99-unop! }
-    { PRIM_F32_TO_STR -> drop "f32_show(" C99ReprType.C99RT_F32 ")" C99ReprType.C99RT_STR Some c99-unop! }
+    # { PRIM_F32_SET -> drop "*(float*)"    C99ReprType.PTR " = " C99ReprType.F32 ";" True None c99-binop! }
+    { PRIM_F32_LT  -> drop "(" C99ReprType.F32 " < "  C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_F32_EQ  -> drop "(" C99ReprType.F32 " == " C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_F32_ADD -> drop "(" C99ReprType.F32 " + "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { PRIM_F32_SUB -> drop "(" C99ReprType.F32 " - "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { PRIM_F32_MUL -> drop "(" C99ReprType.F32 " * "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { PRIM_F32_DIV -> drop "(" C99ReprType.F32 " / "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { PRIM_F32_TO_INT -> drop "(int64_t)" C99ReprType.F32 ""  C99ReprType.I64 Some c99-unop! }
+    { PRIM_F32_TO_F64 -> drop "(double)"  C99ReprType.F32 ""  C99ReprType.F64 Some c99-unop! }
+    { PRIM_F32_TO_STR -> drop "f32_show(" C99ReprType.F32 ")" C99ReprType.STR Some c99-unop! }
 
-    # { PRIM_F64_SET -> drop "*(double*)"   C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_F64 ";" True None c99-binop! }
-    { PRIM_F64_EQ  -> drop "(" C99ReprType.C99RT_F64 " == " C99ReprType.C99RT_F64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_F64_LT  -> drop "(" C99ReprType.C99RT_F64 " < "  C99ReprType.C99RT_F64 ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_F64_ADD -> drop "(" C99ReprType.C99RT_F64 " + "  C99ReprType.C99RT_F64 ")" False C99ReprType.C99RT_F64  Some c99-binop! }
-    { PRIM_F64_SUB -> drop "(" C99ReprType.C99RT_F64 " - "  C99ReprType.C99RT_F64 ")" False C99ReprType.C99RT_F64  Some c99-binop! }
-    { PRIM_F64_MUL -> drop "(" C99ReprType.C99RT_F64 " * "  C99ReprType.C99RT_F64 ")" False C99ReprType.C99RT_F64  Some c99-binop! }
-    { PRIM_F64_DIV -> drop "(" C99ReprType.C99RT_F64 " / "  C99ReprType.C99RT_F64 ")" False C99ReprType.C99RT_F64  Some c99-binop! }
-    { PRIM_F64_TO_INT -> drop "(int64_t)" C99ReprType.C99RT_F64 ""  C99ReprType.C99RT_I64 Some c99-unop! }
-    { PRIM_F64_TO_F32 -> drop "(float)"   C99ReprType.C99RT_F64 ""  C99ReprType.C99RT_F32 Some c99-unop! }
-    { PRIM_F64_TO_STR -> drop "f64_show(" C99ReprType.C99RT_F64 ")" C99ReprType.C99RT_STR Some c99-unop! }
+    # { PRIM_F64_SET -> drop "*(double*)"   C99ReprType.PTR " = " C99ReprType.F64 ";" True None c99-binop! }
+    { PRIM_F64_EQ  -> drop "(" C99ReprType.F64 " == " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_F64_LT  -> drop "(" C99ReprType.F64 " < "  C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_F64_ADD -> drop "(" C99ReprType.F64 " + "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { PRIM_F64_SUB -> drop "(" C99ReprType.F64 " - "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { PRIM_F64_MUL -> drop "(" C99ReprType.F64 " * "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { PRIM_F64_DIV -> drop "(" C99ReprType.F64 " / "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { PRIM_F64_TO_INT -> drop "(int64_t)" C99ReprType.F64 ""  C99ReprType.I64 Some c99-unop! }
+    { PRIM_F64_TO_F32 -> drop "(float)"   C99ReprType.F64 ""  C99ReprType.F32 Some c99-unop! }
+    { PRIM_F64_TO_STR -> drop "f64_show(" C99ReprType.F64 ")" C99ReprType.STR Some c99-unop! }
 
-    { PRIM_BOOL_AND -> drop "(" C99ReprType.C99RT_BOOL " && " C99ReprType.C99RT_BOOL ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_BOOL_OR  -> drop "(" C99ReprType.C99RT_BOOL " || " C99ReprType.C99RT_BOOL ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_BOOL_NOT -> drop "!" C99ReprType.C99RT_BOOL "" C99ReprType.C99RT_BOOL Some c99-unop! }
+    { PRIM_BOOL_AND -> drop "(" C99ReprType.Bool " && " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_BOOL_OR  -> drop "(" C99ReprType.Bool " || " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_BOOL_NOT -> drop "!" C99ReprType.Bool "" C99ReprType.Bool Some c99-unop! }
 
-    { PRIM_TUP_PACK0 -> drop 0u C99ReprType.C99RT_TUP push-value-expression!("NULL" put) }
+    { PRIM_TUP_PACK0 -> drop 0u C99ReprType.TUP push-value-expression!("NULL" put) }
     { PRIM_TUP_PACK1 -> drop 1u c99-tup-pack! }
     { PRIM_TUP_PACK2 -> drop 2u c99-tup-pack! }
     { PRIM_TUP_PACK3 -> drop 3u c99-tup-pack! }
     { PRIM_TUP_PACK4 -> drop 4u c99-tup-pack! }
     { PRIM_TUP_PACK5 -> drop 5u c99-tup-pack! }
 
-    { PRIM_TUP_UNPACK0 -> drop 0u C99ReprType.C99RT_TUP pop-value! drop-value! }
+    { PRIM_TUP_UNPACK0 -> drop 0u C99ReprType.TUP pop-value! drop-value! }
     { PRIM_TUP_UNPACK1 -> drop 1u c99-tup-unpack! }
     { PRIM_TUP_UNPACK2 -> drop 2u c99-tup-unpack! }
     { PRIM_TUP_UNPACK3 -> drop 3u c99-tup-unpack! }
     { PRIM_TUP_UNPACK4 -> drop 4u c99-tup-unpack! }
     { PRIM_TUP_UNPACK5 -> drop 5u c99-tup-unpack! }
 
-    { PRIM_MUT_GET    -> drop "mut_get(" C99ReprType.C99RT_PTR ")" C99ReprType.C99RT_VAL Some c99-unop! }
-    { PRIM_MUT_SET    -> drop "mut_set(" C99ReprType.C99RT_VAL ", " C99ReprType.C99RT_PTR ");" False None c99-binop! }
-    { PRIM_MUT_IS_SET -> drop "mut_is_set(" C99ReprType.C99RT_PTR ")" C99ReprType.C99RT_BOOL Some c99-unop! }
+    { PRIM_MUT_GET    -> drop "mut_get(" C99ReprType.PTR ")" C99ReprType.VAL Some c99-unop! }
+    { PRIM_MUT_SET    -> drop "mut_set(" C99ReprType.VAL ", " C99ReprType.PTR ");" False None c99-binop! }
+    { PRIM_MUT_IS_SET -> drop "mut_is_set(" C99ReprType.PTR ")" C99ReprType.Bool Some c99-unop! }
 
-    { PRIM_PTR_GET -> drop "*(void**)"    C99ReprType.C99RT_PTR "" C99ReprType.C99RT_PTR Some c99-unop! }
-    { PRIM_PTR_SET -> drop "*(void**)"    C99ReprType.C99RT_PTR " = " C99ReprType.C99RT_PTR ";" True None c99-binop! }
-    { PRIM_PTR_NIL -> drop C99ReprType.C99RT_PTR push-value-expression!("(void*)0" put) }
-    { PRIM_PTR_EQ  -> drop "(" C99ReprType.C99RT_PTR " == " C99ReprType.C99RT_PTR ")" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_PTR_ADD -> drop "(void*)(" C99ReprType.C99RT_I64 " + (char*)" C99ReprType.C99RT_PTR ")" False C99ReprType.C99RT_PTR Some c99-binop! }
-    { PRIM_PTR_SIZE -> drop C99ReprType.C99RT_U64 push-value-expression!("sizeof(void*)" put) }
-    { PRIM_PTR_ALLOC   -> drop "ptr_alloc(" C99ReprType.C99RT_U64 ");" C99ReprType.C99RT_PTR Some c99-unop! }
-    { PRIM_PTR_REALLOC -> drop "ptr_realloc(" C99ReprType.C99RT_PTR "," C99ReprType.C99RT_U64 ")" False C99ReprType.C99RT_PTR Some  c99-binop! }
-    { PRIM_PTR_FREE    -> drop "free(" C99ReprType.C99RT_PTR ");" None c99-unop! }
+    { PRIM_PTR_GET -> drop "*(void**)"    C99ReprType.PTR "" C99ReprType.PTR Some c99-unop! }
+    { PRIM_PTR_SET -> drop "*(void**)"    C99ReprType.PTR " = " C99ReprType.PTR ";" True None c99-binop! }
+    { PRIM_PTR_NIL -> drop C99ReprType.PTR push-value-expression!("(void*)0" put) }
+    { PRIM_PTR_EQ  -> drop "(" C99ReprType.PTR " == " C99ReprType.PTR ")" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_PTR_ADD -> drop "(void*)(" C99ReprType.I64 " + (char*)" C99ReprType.PTR ")" False C99ReprType.PTR Some c99-binop! }
+    { PRIM_PTR_SIZE -> drop C99ReprType.U64 push-value-expression!("sizeof(void*)" put) }
+    { PRIM_PTR_ALLOC   -> drop "ptr_alloc(" C99ReprType.U64 ");" C99ReprType.PTR Some c99-unop! }
+    { PRIM_PTR_REALLOC -> drop "ptr_realloc(" C99ReprType.PTR "," C99ReprType.U64 ")" False C99ReprType.PTR Some  c99-binop! }
+    { PRIM_PTR_FREE    -> drop "free(" C99ReprType.PTR ");" None c99-unop! }
     { PRIM_PTR_COPY ->
         drop
-        C99ReprType.C99RT_PTR pop-value! >+dst
-        C99ReprType.C99RT_U64 pop-value! >+len
-        C99ReprType.C99RT_PTR pop-value! >+src
+        C99ReprType.PTR pop-value! >+dst
+        C99ReprType.U64 pop-value! >+len
+        C99ReprType.PTR pop-value! >+src
         c99-line (
             "ptr_copy(" put
-                +src> C99ReprType.C99RT_PTR consume-as put
+                +src> C99ReprType.PTR consume-as put
             ", " put
-                +len> C99ReprType.C99RT_U64 consume-as put
+                +len> C99ReprType.U64 consume-as put
             ", " put
-                +dst> C99ReprType.C99RT_PTR consume-as put
+                +dst> C99ReprType.PTR consume-as put
             ");" put
         )
     }
     { PRIM_PTR_FILL ->
         drop
-        C99ReprType.C99RT_PTR pop-value! >+dst
-        C99ReprType.C99RT_U64 pop-value! >+len
-        C99ReprType.C99RT_U8  pop-value! >+val
+        C99ReprType.PTR pop-value! >+dst
+        C99ReprType.U64 pop-value! >+len
+        C99ReprType.U8  pop-value! >+val
         c99-line (
             "ptr_fill(" put
-                +val> C99ReprType.C99RT_U8  consume-as put
+                +val> C99ReprType.U8  consume-as put
             ", " put
-                +len> C99ReprType.C99RT_U64 consume-as put
+                +len> C99ReprType.U64 consume-as put
             ", " put
-                +dst> C99ReprType.C99RT_PTR consume-as put
+                +dst> C99ReprType.PTR consume-as put
             ");" put
         )
     }
 
-    { PRIM_STR_COPY -> drop "str_make(" C99ReprType.C99RT_PTR ", " C99ReprType.C99RT_U64 ")" False C99ReprType.C99RT_STR Some c99-binop! }
-    { PRIM_STR_NUM_BYTES -> drop "str_size(" C99ReprType.C99RT_STR ")" C99ReprType.C99RT_U64 Some c99-unop! }
-    { PRIM_STR_BASE      -> drop "str_base(" C99ReprType.C99RT_STR ")" C99ReprType.C99RT_PTR Some c99-unop! }
-    { PRIM_STR_CAT  -> drop "str_cat(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ")" False C99ReprType.C99RT_STR Some c99-binop! }
-    { PRIM_STR_CMP  -> drop "str_cmp(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ")" False C99ReprType.C99RT_I64 Some c99-binop! }
-    { PRIM_STR_EQ   -> drop "(str_cmp(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ") == 0)" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_STR_LT   -> drop "(str_cmp(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ") < 0)"  False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_STR_LE   -> drop "(str_cmp(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ") <= 0)" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_STR_GT   -> drop "(str_cmp(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ") > 0)"  False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_STR_GE   -> drop "(str_cmp(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ") >= 0)" False C99ReprType.C99RT_BOOL Some c99-binop! }
-    { PRIM_STR_NE   -> drop "(str_cmp(" C99ReprType.C99RT_STR ", " C99ReprType.C99RT_STR ") != 0)" False C99ReprType.C99RT_BOOL Some c99-binop! }
+    { PRIM_STR_COPY -> drop "str_make(" C99ReprType.PTR ", " C99ReprType.U64 ")" False C99ReprType.STR Some c99-binop! }
+    { PRIM_STR_NUM_BYTES -> drop "str_size(" C99ReprType.STR ")" C99ReprType.U64 Some c99-unop! }
+    { PRIM_STR_BASE      -> drop "str_base(" C99ReprType.STR ")" C99ReprType.PTR Some c99-unop! }
+    { PRIM_STR_CAT  -> drop "str_cat(" C99ReprType.STR ", " C99ReprType.STR ")" False C99ReprType.STR Some c99-binop! }
+    { PRIM_STR_CMP  -> drop "str_cmp(" C99ReprType.STR ", " C99ReprType.STR ")" False C99ReprType.I64 Some c99-binop! }
+    { PRIM_STR_EQ   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") == 0)" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_STR_LT   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") < 0)"  False C99ReprType.Bool Some c99-binop! }
+    { PRIM_STR_LE   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") <= 0)" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_STR_GT   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") > 0)"  False C99ReprType.Bool Some c99-binop! }
+    { PRIM_STR_GE   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") >= 0)" False C99ReprType.Bool Some c99-binop! }
+    { PRIM_STR_NE   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") != 0)" False C99ReprType.Bool Some c99-binop! }
 
     { PRIM_STR_TO_F32 -> args "str_to_f32" Prim.PRIM_STR_TO_F32 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
     { PRIM_STR_TO_F64 -> args "str_to_f64" Prim.PRIM_STR_TO_F64 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
 
-    { PRIM_SYS_OS   -> drop C99ReprType.C99RT_I64 push-value-expression!("RUNNING_OS" put) }
-    { PRIM_SYS_ARCH -> drop C99ReprType.C99RT_I64 push-value-expression!("RUNNING_ARCH" put) }
-    { PRIM_SYS_ARGC -> drop C99ReprType.C99RT_I64 push-value-expression!("global_argc" put) }
-    { PRIM_SYS_ARGV -> drop C99ReprType.C99RT_PTR push-value-expression!("global_argv" put) }
+    { PRIM_SYS_OS   -> drop C99ReprType.I64 push-value-expression!("RUNNING_OS" put) }
+    { PRIM_SYS_ARCH -> drop C99ReprType.I64 push-value-expression!("RUNNING_ARCH" put) }
+    { PRIM_SYS_ARGC -> drop C99ReprType.I64 push-value-expression!("global_argc" put) }
+    { PRIM_SYS_ARGV -> drop C99ReprType.PTR push-value-expression!("global_argv" put) }
 }
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
     None >tag
-    LIST(repeat(Type.TYPE_DONT_CARE StackTypePart.STPCons ;)) >parts
+    LIST(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
     c99-pack-tuple! turn-into-value! push-value!
 }
 
 def c99-tup-unpack! [ Nat +C99Branch -- +C99Branch ] {
     None >tag
-    dup LIST(repeat(Type.TYPE_DONT_CARE StackTypePart.STPCons ;)) >parts
-    C99ReprType.C99RT_TUP pop-value! turn-into-resource! c99-unpack-tuple!
+    dup LIST(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
+    C99ReprType.TUP pop-value! turn-into-resource! c99-unpack-tuple!
 }
 
 def +C99Value.run-value! [ +C99Branch +C99Value -- +C99Branch ] {
@@ -2262,10 +2260,10 @@ def c99-args-push! [ List(Arg) +C99Branch -- +C99Branch ] {
     for(c99-arg-push!)
 }
 def c99-arg-push! [ Arg +C99Branch -- +C99Branch ] {
-    { ArgBlock -> c99-block-push! }
+    { Block -> c99-block-push! }
 }
 def c99-arg-run! [ Arg +C99Branch -- +C99Branch ] {
-    { ArgBlock -> c99-block-run! }
+    { Block -> c99-block-run! }
 }
 
 def c99-block-run! [ Block +C99Branch -- +C99Branch ] {
@@ -2275,8 +2273,8 @@ def c99-block-run! [ Block +C99Branch -- +C99Branch ] {
 def c99-pack-closure-vars! [ List(Var) +C99Branch -- +C99Branch ] {
     filter(is-physical?) dup empty? if(
         drop,
-        Type.TYPE_DONT_CARE StackTypePart.STPCons
-        over map(type StackTypePart.STPCons) List.Cons >parts
+        Type.Ignore StackTypePart.Cons
+        over map(type StackTypePart.Cons) List.Cons >parts
         None >tag
         for(var-dup! push-value!)
         c99-pack-tuple!
@@ -2289,7 +2287,7 @@ def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+C99V
     filter(is-physical?) dup empty? if(
         +C99Value?.+C99ValueNone >+closure
         drop,
-        C99ReprType.C99RT_VAL pop-value! >+tup
+        C99ReprType.VAL pop-value! >+tup
         @+tup:rdup consume-as-TUP >tup
         1 >i
         for(
@@ -2315,7 +2313,7 @@ def c99-block-push! [ Block +C99Branch -- +C99Branch ] {
     dup +mirth:to-run-var match(
         Some -> nip c99-var-push!,
         None ->
-            C99ReprType.C99RT_FNPTR push-value-expression!("&" put dup +mirth:cname put)
+            C99ReprType.FNPTR push-value-expression!("&" put dup +mirth:cname put)
             dup +mirth:free-vars c99-pack-closure-vars!
             drop
     )
@@ -2470,8 +2468,8 @@ def c99-block-enter! [ Block +C99 -- +C99Branch ] {
     options emit-debug-info if(
         c99-line("WORD_ENTER(" put
             dup home match(
-                HomeMain -> drop "block",
-                HomeWord -> name >Str " block" cat,
+                Main -> drop "block",
+                Word -> name >Str " block" cat,
             ) put-cstr ", " put
             dup token .module source-path >Str put-cstr ", " put
             dup token row >Int show put ", " put
@@ -2495,10 +2493,10 @@ def c99-block-exit! [ Block +C99Branch -- +C99 ] {
 }
 
 def expose-stack-type! [ StackType +C99Branch -- +C99Branch ] {
-    { STMeta -> expand-if(>StackType expose-stack-type!, drop) }
-    { STCons -> type-to-c99-repr pop-value! rdip:expose-stack-type! push-value! }
-    { STWith -> resource-to-c99-repr pop-resource! rdip:expose-stack-type! push-resource! }
-    { STConsLabel ->
+    { Meta -> expand-if(>StackType expose-stack-type!, drop) }
+    { Cons -> type-to-c99-repr pop-value! rdip:expose-stack-type! push-value! }
+    { With -> resource-to-c99-repr pop-resource! rdip:expose-stack-type! push-resource! }
+    { ConsLabel ->
         >label type-to-c99-repr @label pop-value-label!
         rdip:expose-stack-type! label> push-value-label! }
     { STWithLabel ->
@@ -2539,12 +2537,12 @@ def c99-word-def! [ Word +C99 -- +C99 ] {
 def c99-field-defs! [ +C99 -- +C99 ] { Field.for(c99-field-def!) }
 def c99-field-def! [ Field +C99 -- +C99 ] { c99-line("static FIELD " put +mirth:cname put " = {0};" put) }
 def c99-field-call! [ Field +C99Branch -- +C99Branch ] {
-    C99ReprType.C99RT_U64 pop-value! >+index
-    C99ReprType.C99RT_PTR push-value-expression! (
+    C99ReprType.U64 pop-value! >+index
+    C99ReprType.PTR push-value-expression! (
         "field_mut(&" put
         +mirth:cname put
         ", " put
-        +index> C99ReprType.C99RT_U64 consume-as put
+        +index> C99ReprType.U64 consume-as put
         ")" put
     )
 }
@@ -2565,7 +2563,7 @@ def c99-main! [ Arrow +C99 -- +C99 ] {
         True >reachable
         List.Nil >env
         start-branch!
-        C99ReprType.C99RT_I64 push-resource-expression!("0 /* The World! */" put)
+        C99ReprType.I64 push-resource-expression!("0 /* The World! */" put)
         c99-arrow!
         end-branch!
         env> drop

@@ -23,7 +23,7 @@ field(Module.~imports, Module, List(Module))
 
 def(Module.package, Module -- Package, ~package @)
 def(Module.name, Module -- Name, ~name @)
-def(Module.qname, Module -- QName, sip(package Namespace.NAMESPACE_PACKAGE) name 0 QName.Mk)
+def(Module.qname, Module -- QName, sip(package Namespace.Package) name 0 QName.Mk)
 def(Module.path, Module -- Path, ~path @)
 def(Module.start, Module -- Token, ~start @)
 def(Module.head, Module -- Token, ~head @)

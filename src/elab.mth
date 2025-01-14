@@ -71,7 +71,7 @@ struct +TypeElab {
     def elab-type-sig-params! [ +Mirth +TypeElab -- +Mirth +TypeElab List(Type) ] {
         token lparen? if(
             token next
-            token args map(token! elab-type-sig! Type.TMorphism)
+            token args map(token! elab-type-sig! Type.Arrow)
             dip:token!,
             List.L0
         )
@@ -89,10 +89,10 @@ struct +TypeElab {
     def elab-type-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Type ] {
         token elab-stack-type-part!
         match(
-            STPCons -> nip,
-            STPConsLabel -> drop2 "Expected type, not label." rdip:emit-error! Type.TYPE_ERROR,
-            STPWith -> drop "Expected type, not resource." rdip:emit-error! Type.TYPE_ERROR,
-            STPWithLabel -> drop2 "Expected type, not labelled resource." rdip:emit-error! Type.TYPE_ERROR,
+            Cons -> nip,
+            ConsLabel -> drop2 "Expected type, not label." rdip:emit-error! Type.Error,
+            With -> drop "Expected type, not resource." rdip:emit-error! Type.Error,
+            WithLabel -> drop2 "Expected type, not labelled resource." rdip:emit-error! Type.Error,
         )
         token arg-end? else(
             token "Unexpected token after type." rdip:emit-error!
@@ -102,10 +102,10 @@ struct +TypeElab {
     def elab-resource-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Resource ] {
         token elab-stack-type-part!
         match(
-            STPCons -> drop "Expected resource, not type." rdip:emit-error! Type.TYPE_ERROR Resource,
-            STPConsLabel -> drop2 "Expected resource, not label." rdip:emit-error! Type.TYPE_ERROR Resource,
-            STPWith -> nip,
-            STPWithLabel -> drop2 "Expected resource, not label." rdip:emit-error! Type.TYPE_ERROR Resource,
+            Cons -> drop "Expected resource, not type." rdip:emit-error! Type.Error Resource,
+            ConsLabel -> drop2 "Expected resource, not label." rdip:emit-error! Type.Error Resource,
+            With -> nip,
+            WithLabel -> drop2 "Expected resource, not label." rdip:emit-error! Type.Error Resource,
         )
         token arg-end? else(
             token "Unexpected token after resource." rdip:emit-error!
@@ -117,50 +117,50 @@ struct +TypeElab {
             elab-stack-label!,
 
         token sig-type-var? if-some(
-            elab-type-var! StackTypePart.STPCons,
+            elab-type-var! StackTypePart.Cons,
 
         token sig-type-con? if-some(
-            elab-type-con! StackTypePart.STPCons,
+            elab-type-con! StackTypePart.Cons,
 
         token sig-resource-var? if-some(
-            elab-resource-var! StackTypePart.STPWith,
+            elab-resource-var! StackTypePart.With,
 
         token sig-resource-con? if-some(
-            elab-resource-con! StackTypePart.STPWith,
+            elab-resource-con! StackTypePart.With,
 
         token pat-underscore? if(
-            elab-type-dont-care! StackTypePart.STPCons,
+            elab-type-dont-care! StackTypePart.Cons,
 
         token sig-type-hole? if-some(
-            elab-type-hole! StackTypePart.STPCons,
+            elab-type-hole! StackTypePart.Cons,
 
         token lsquare? .if(
-            elab-type-quote! StackTypePart.STPCons,
+            elab-type-quote! StackTypePart.Cons,
 
             token "Expected type, got unknown token." rdip:emit-error!
-            token:next Type.TYPE_ERROR StackTypePart.STPCons
+            token:next Type.Error StackTypePart.Cons
         ))))))))
     }
 
     def elab-stack-label! [ +Mirth +TypeElab Label -- +Mirth +TypeElab StackTypePart ] {
         token next dip(
             token:args-1 dup is-resource-label? if(
-                elab-resource-arg! swap StackTypePart.STPWithLabel,
-                elab-type-arg! swap StackTypePart.STPConsLabel
+                elab-resource-arg! swap StackTypePart.WithLabel,
+                elab-type-arg! swap StackTypePart.ConsLabel
             )
         ) token!
     }
 
     def elab-stack-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab StackType ] {
-        TYPE_STACK elab-implicit-var! if-some(StackType.STVar, StackType.STACK_TYPE_ERROR)
+        Type.StackType elab-implicit-var! if-some(StackType.Var, StackType.Error)
     }
 
     def elab-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Type ] {
-        TYPE_TYPE elab-implicit-var! if-some(Type.TVar, Type.TYPE_ERROR)
+        Type.Type elab-implicit-var! if-some(Type.Var, Type.Error)
     }
 
     def elab-resource-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Resource ] {
-        TYPE_RESOURCE elab-implicit-var! if-some(Type.TVar, Type.TYPE_ERROR) Resource
+        Type.ResourceType elab-implicit-var! if-some(Type.Var, Type.Error) Resource
     }
 
     def gamma(f) [ (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab ] {
@@ -191,13 +191,13 @@ struct +TypeElab {
             filter-qualifiers
             List.L0 filter-roots
         ) map:match(
-            DefData -> Type.TData,
-            DefTable -> Type.TTable,
+            DefData -> Type.Data,
+            DefTable -> Type.Table,
             DefType -> rdip:target,
             _ ->
                 drop token "compiler bug: resolve-type-con-name! doesn't understand type"
-                rdip:emit-error! Type.TYPE_ERROR,
-        ) unwrap(Type.TYPE_ERROR)
+                rdip:emit-error! Type.Error,
+        ) unwrap(Type.Error)
     }
 
     def elab-type-con! [ +Mirth +TypeElab Name/DName -- +Mirth +TypeElab Type ] {
@@ -205,7 +205,7 @@ struct +TypeElab {
             drop token next dip(
                 token:args-1
                 elab-type-arg!
-                Type.TMut
+                Type.Mut
             ) token!,
 
             resolve-type-con-name! elab-type-args!
@@ -223,17 +223,17 @@ struct +TypeElab {
 
     def elab-type-args! [ +Mirth +TypeElab Type -- +Mirth +TypeElab Type ] {
         token args for(
-            with-token(elab-type-arg!) Type.TApp
+            with-token(elab-type-arg!) Type.App
         )
     }
 
     def elab-type-hole! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Type ] {
         allow-type-holes if(
             token rdip:args-0
-            Type.THole,
+            Type.Hole,
             drop
             token "type holes are not allowed here" rdip:emit-error!
-            Type.TYPE_ERROR
+            Type.Error
         )
         token:next
     }
@@ -241,9 +241,9 @@ struct +TypeElab {
     def elab-type-dont-care! [ +Mirth +TypeElab -- +Mirth +TypeElab Type ] {
         allow-type-holes if(
             token rdip:args-0
-            Type.TYPE_DONT_CARE,
+            Type.Ignore,
             token "underscore is not allowed here" rdip:emit-error!
-            Type.TYPE_ERROR
+            Type.Error
         )
         token:next
     }
@@ -368,7 +368,7 @@ struct +ResolveDef {
                     dup2 rdip:qname-hard namespace swap member
                     or(token over rdip:def-is-imported-at-token?),
                     dup rdip:qname-hard namespace match(
-                        NAMESPACE_TYCON ->
+                        Tycon ->
                             drop @name can-be-relative? if(
                                 over empty? if(
                                     RejectedDef.RD_METHOD_NOT_AVAILABLE,
@@ -492,7 +492,7 @@ def +Mirth.resolve-def(f) [
 
 def QName.punning? [ +Mirth QName -- +Mirth Bool ] {
     dup namespace match {
-        { NAMESPACE_TYCON -> name swap name == }
+        { Tycon -> name swap name == }
         { _ -> drop2 False }
     }
 }
@@ -506,26 +506,26 @@ def def-is-imported-at-token? [ +Mirth Token Def -- +Mirth Bool ] {
     # TODO: implement finer grained control over what is imported.
     #   https://github.com/mirth-lang/mirth/issues/243
     dup qname-hard namespace match(
-        NAMESPACE_ROOT -> drop2 True,
-        NAMESPACE_PACKAGE -> drop3 True,
-        NAMESPACE_MODULE -> nip module-visible-from-token?,
-        NAMESPACE_TYCON -> dip:swap tycon-is-visible-at-token? if(punning?, drop False),
-        NAMESPACE_WORD -> drop3 False
+        Root -> drop2 True,
+        Package -> drop3 True,
+        Module -> nip module-visible-from-token?,
+        Tycon -> dip:swap tycon-is-visible-at-token? if(punning?, drop False),
+        Word -> drop3 False
     )
 }
 
 def tycon-is-visible-at-token? [ Token Tycon -- Bool ] {
-    TYCON_DATA -> head? if-some(.module module-visible-from-token?, drop True),
-    TYCON_TABLE -> head .module module-visible-from-token?,
-    TYCON_PRIM -> drop2 True
+    Data -> head? if-some(.module module-visible-from-token?, drop True),
+    Table -> head .module module-visible-from-token?,
+    Prim -> drop2 True
 }
 
 def namespace-is-imported-at-token? [ +Mirth Token Namespace -- +Mirth Bool ] {
-    NAMESPACE_ROOT -> drop True,
-    NAMESPACE_PACKAGE -> drop2 True,
-    NAMESPACE_MODULE -> module-visible-from-token?,
-    NAMESPACE_TYCON -> qname-hard namespace namespace-is-imported-at-token?,
-    NAMESPACE_WORD -> drop2 False
+    Root -> drop True,
+    Package -> drop2 True,
+    Module -> module-visible-from-token?,
+    Tycon -> qname-hard namespace namespace-is-imported-at-token?,
+    Word -> drop2 False
 }
 
 def QName.climb-up-name? [ +Mirth Name QName -- +Mirth List(Namespace) ] {
@@ -619,7 +619,7 @@ struct +AB {
 
     def ab-expand-opsig! [ OpSig +Mirth +AB -- StackType StackType +Mirth +AB ] {
         { OpSig.OPSIG_ID -> ab-type@ dup }
-        { OpSig.OPSIG_PUSH -> dip(ab-type@ dup) StackType.STCons }
+        { OpSig.OPSIG_PUSH -> dip(ab-type@ dup) StackType.Cons }
         { OpSig.OPSIG_APPLY ->
             /ArrowType
             ab-type@
@@ -627,25 +627,25 @@ struct +AB {
             cod> }
     }
 
-    def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { Op.OpInt ab-op! }
-    def ab-f64! [ F64 +Mirth +AB -- +Mirth +AB ] { Op.OpF64 ab-op! }
-    def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { Op.OpStr ab-op! }
-    def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { Op.OpBuffer ab-op! }
-    def ab-variable! [ Variable +Mirth +AB -- +Mirth +AB ] { Op.OpVariable ab-op! }
-    def ab-field! [ Field +Mirth +AB -- +Mirth +AB ] { Op.OpField ab-op! }
-    def ab-var! [ Var +Mirth +AB -- +Mirth +AB ] { Op.OpVar ab-op! }
-    def ab-tag! [ Tag +Mirth +AB -- +Mirth +AB ] { Op.OpTag ab-op! }
-    def ab-prim! [ Prim +Mirth +AB -- +Mirth +AB ] { Op.OpPrim ab-op! }
-    def ab-word! [ Word +Mirth +AB -- +Mirth +AB ] { Op.OpWord ab-op! }
-    def ab-external! [ External +Mirth +AB -- +Mirth +AB ] { Op.OpExternal ab-op! }
-    def ab-label-push! [ Label +Mirth +AB -- +Mirth +AB ] { Op.OpLabelPush ab-op! }
-    def ab-label-pop! [ Label +Mirth +AB -- +Mirth +AB ] { Op.OpLabelPop ab-op! }
-    def ab-label-push-r! [ Label +Mirth +AB -- +Mirth +AB ] { Op.OpLabelPushR ab-op! }
-    def ab-label-pop-r! [ Label +Mirth +AB -- +Mirth +AB ] { Op.OpLabelPopR ab-op! }
+    def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { Op.Int ab-op! }
+    def ab-f64! [ F64 +Mirth +AB -- +Mirth +AB ] { Op.F64 ab-op! }
+    def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { Op.Str ab-op! }
+    def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { Op.Buffer ab-op! }
+    def ab-variable! [ Variable +Mirth +AB -- +Mirth +AB ] { Op.Variable ab-op! }
+    def ab-field! [ Field +Mirth +AB -- +Mirth +AB ] { Op.Field ab-op! }
+    def ab-var! [ Var +Mirth +AB -- +Mirth +AB ] { Op.Var ab-op! }
+    def ab-tag! [ Tag +Mirth +AB -- +Mirth +AB ] { Op.Tag ab-op! }
+    def ab-prim! [ Prim +Mirth +AB -- +Mirth +AB ] { Op.Prim ab-op! }
+    def ab-word! [ Word +Mirth +AB -- +Mirth +AB ] { Op.Word ab-op! }
+    def ab-external! [ External +Mirth +AB -- +Mirth +AB ] { Op.External ab-op! }
+    def ab-label-push! [ Label +Mirth +AB -- +Mirth +AB ] { Op.LabelPush ab-op! }
+    def ab-label-pop! [ Label +Mirth +AB -- +Mirth +AB ] { Op.LabelPop ab-op! }
+    def ab-label-push-r! [ Label +Mirth +AB -- +Mirth +AB ] { Op.LabelPushR ab-op! }
+    def ab-label-pop-r! [ Label +Mirth +AB -- +Mirth +AB ] { Op.LabelPopR ab-op! }
 
     def ab-block-at!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Token +Mirth +AB -- *b +Mirth +AB ] {
-        ab-ctx@ MetaVar.new! StackType.STMeta rotl ab-home@ rdip(ab-build!(f))
-        rdip:Block.new! Op.OpBlockPush ab-op!
+        ab-ctx@ MetaVar.new! StackType.Meta rotl ab-home@ rdip(ab-build!(f))
+        rdip:Block.new! Op.BlockPush ab-op!
     }
 
     def ab-block!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
@@ -693,7 +693,7 @@ struct +AB {
         ab-ctx@ >outer-ctx
         ab-type@ >dom
         ab-token@ >token
-        Lambda Op.OpLambda ab-op!
+        Lambda Op.Lambda ab-op!
     }
 
     def ab-match!(f) [
@@ -705,7 +705,7 @@ struct +AB {
         ab-token@ >token
         ab-home@ >home
         List.L0 >cases
-        rdip(+Match f freeze) Op.OpMatch ab-op!
+        rdip(+Match f freeze) Op.Match ab-op!
     }
 
     def elab-atoms! [ +Mirth +AB -- +Mirth +AB ] {
@@ -768,7 +768,7 @@ struct +AB {
             dup token swap
             home
             elab-arrow-hom!
-        ) Op.OpBlockPush ab-op!
+        ) Op.BlockPush ab-op!
     }
 
     def elab-args! [ +Mirth +AB -- +Mirth +AB ] {
@@ -833,7 +833,7 @@ struct +AB {
     }
 
     def elab-atom-failed! [ +Mirth +AB -- +Mirth +AB ] {
-        StackType.STACK_TYPE_ERROR ab-type!
+        StackType.Error ab-type!
     }
 
     def elab-ambiguous-name-error! [ *a Token List(QName) +Mirth -- *b +Mirth ] {
@@ -866,7 +866,7 @@ struct +AB {
             run,
 
             ab-token@ "macro cannot be invoked here" rdip:emit-error!
-            StackType.STACK_TYPE_ERROR ab-type!
+            StackType.Error ab-type!
         )
     }
 
@@ -884,7 +884,7 @@ struct +AB {
     }
 
     def elab-atom-match! [ +Mirth +AB -- +Mirth +AB ] {
-        MetaVar.new! StackType.STMeta >cod
+        MetaVar.new! StackType.Meta >cod
         ab-token@ succ lcurly? if(
             ab-token@ succ succ >body
             ab-token@ succ ab-token!,
@@ -949,7 +949,7 @@ def initial-ctx-type-body-home [ +Mirth Word -- +Mirth Ctx ArrowType Token Home 
     @word ~ctx-type try-force!
     match(Some -> unpack2, None -> guess-initial-ctx-type)
     @word body
-    @word Home.HomeWord
+    @word Home.Word
     word>
 }
 
@@ -969,28 +969,28 @@ def finalize-word-arrow [ +Mirth Arrow Word -- +Mirth Arrow ] {
 
 def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word ] {
     Ctx.L0 >ctx
-    MetaVar.new! StackType.STMeta >dom
-    MetaVar.new! StackType.STMeta >cod
+    MetaVar.new! StackType.Meta >dom
+    MetaVar.new! StackType.Meta >cod
     @word namespace-hard match(
-        NAMESPACE_TYCON ->
+        Tycon ->
             full-type-fresh
             @word name can-be-relative? if(
                 @dom(swap T*+),
                 @cod(swap T*+)
             ),
-        NAMESPACE_MODULE ->
+        Module ->
             drop
             @word name >Str "main" == then(
-                T0 RESOURCE_WORLD T+ !dom
-                T0 RESOURCE_WORLD T+ !cod
+                T0 Resource.World T+ !dom
+                T0 Resource.World T+ !cod
             ),
         _ ->
             drop
     )
     @word arity repeat(
         @dom(
-            MetaVar.new! StackType.STMeta
-            MetaVar.new! StackType.STMeta T-> >Type T*
+            MetaVar.new! StackType.Meta
+            MetaVar.new! StackType.Meta T-> >Type T*
         )
     )
     ctx> dom> cod> T->
@@ -1012,8 +1012,8 @@ def ab-optimized-snoc! [ List(Atom) Atom -- List(Atom) ] {
 
 def atom-accepts-args? [ Atom -- Atom Bool ] {
     dup op match(
-        OpWord -> dip(dup args len) arity <,
-        OpPrim ->
+        Word -> dip(dup args len) arity <,
+        Prim ->
             match(
                 PRIM_CORE_DIP -> dup args len 1u <,
                 PRIM_CORE_RDIP -> dup args len 1u <,
@@ -1030,7 +1030,7 @@ def atoms-has-last-block? [ List(Atom) -- Bool ] {
         None -> False,
         Some ->
             op match(
-                OpBlockPush -> drop True,
+                BlockPush -> drop True,
                 _ -> drop False
             )
     )
@@ -1041,11 +1041,11 @@ def atoms-turn-last-block-to-arg [ Atom List(Atom) -- Atom List(Atom) ] {
         None -> List.L0,
         Some ->
             unsnoc dup op match(
-                OpBlockPush ->
+                BlockPush ->
                     { Atom List(Atom) Atom Block }
                     dip(dom rotl dom!)
                     { List(Atom) Atom Block }
-                    Arg.ArgBlock swap args:List.Cons
+                    Arg.Block swap args:List.Cons
                     swap,
                 _ -> drop List.Snoc
             )
@@ -1060,55 +1060,54 @@ data OpSig {
 
 def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
     Subst.nil swap match (
-        OpNone -> OpSig.OPSIG_ID,
-        OpInt -> Value.VALUE_INT Type.TValue OpSig.OPSIG_PUSH,
-        OpF64 -> Value.VALUE_F64 Type.TValue OpSig.OPSIG_PUSH,
-        OpStr -> Value.VALUE_STR Type.TValue OpSig.OPSIG_PUSH,
-        OpBuffer -> drop TYPE_PTR OpSig.OPSIG_PUSH,
-        OpVariable -> type Type.TMut OpSig.OPSIG_PUSH,
-        OpTag -> type freshen-sig OpSig.OPSIG_APPLY,
-        OpWord -> dup inferring-type? if(type, type freshen-sig) OpSig.OPSIG_APPLY,
-        OpPrim -> type freshen-sig OpSig.OPSIG_APPLY,
-        OpExternal -> type freshen-sig OpSig.OPSIG_APPLY,
-        OpField -> type freshen-sig OpSig.OPSIG_APPLY,
-        OpBlockPush -> elab-block-sig!,
-        OpBlockRun -> type semifreshen-sig OpSig.OPSIG_APPLY,
-        OpVar -> elab-var-sig!,
-        OpMatch -> elab-match-sig!,
-        OpLambda -> elab-lambda-sig!,
-        OpLabelPush -> elab-label-push-sig!,
-        OpLabelPop -> elab-label-pop-sig!,
-        OpLabelPushR -> elab-label-push-r-sig!,
-        OpLabelPopR -> elab-label-pop-r-sig!,
-        OpDataGetEnumValue -> data-get-enum-value-type freshen-sig OpSig.OPSIG_APPLY,
-        OpDataFromEnumValue -> data-from-enum-value-type freshen-sig OpSig.OPSIG_APPLY,
-        OpDataGetLabel -> data-get-label-type freshen-sig OpSig.OPSIG_APPLY,
-        OpDataSetLabel -> data-set-label-type freshen-sig OpSig.OPSIG_APPLY,
-        OpTableToIndex -> table-to-index-type freshen-sig OpSig.OPSIG_APPLY,
-        OpTableFromIndex -> table-from-index-type freshen-sig OpSig.OPSIG_APPLY,
+        Int -> Value.Int Type.Value OpSig.OPSIG_PUSH,
+        F64 -> Value.F64 Type.Value OpSig.OPSIG_PUSH,
+        Str -> Value.Str Type.Value OpSig.OPSIG_PUSH,
+        Buffer -> drop Type.Ptr OpSig.OPSIG_PUSH,
+        Variable -> type Type.Mut OpSig.OPSIG_PUSH,
+        Tag -> type freshen-sig OpSig.OPSIG_APPLY,
+        Word -> dup inferring-type? if(type, type freshen-sig) OpSig.OPSIG_APPLY,
+        Prim -> type freshen-sig OpSig.OPSIG_APPLY,
+        External -> type freshen-sig OpSig.OPSIG_APPLY,
+        Field -> type freshen-sig OpSig.OPSIG_APPLY,
+        BlockPush -> elab-block-sig!,
+        BlockRun -> type semifreshen-sig OpSig.OPSIG_APPLY,
+        Var -> elab-var-sig!,
+        Match -> elab-match-sig!,
+        Lambda -> elab-lambda-sig!,
+        LabelPush -> elab-label-push-sig!,
+        LabelPop -> elab-label-pop-sig!,
+        LabelPushR -> elab-label-push-r-sig!,
+        LabelPopR -> elab-label-pop-r-sig!,
+        DataGetEnumValue -> data-get-enum-value-type freshen-sig OpSig.OPSIG_APPLY,
+        DataFromEnumValue -> data-from-enum-value-type freshen-sig OpSig.OPSIG_APPLY,
+        DataGetLabel -> data-get-label-type freshen-sig OpSig.OPSIG_APPLY,
+        DataSetLabel -> data-set-label-type freshen-sig OpSig.OPSIG_APPLY,
+        TableToIndex -> table-to-index-type freshen-sig OpSig.OPSIG_APPLY,
+        TableFromIndex -> table-from-index-type freshen-sig OpSig.OPSIG_APPLY,
     )
 }
 
 def data-get-enum-value-type [ +Mirth Data -- +Mirth ArrowType ] {
     full-type match {
-        { Left  -> T1 TYPE_INT T1 T-> }
+        { Left  -> T1 Type.Int T1 T-> }
         { Right -> # not currently exposed for resources, but this is what it would be.
-            T0 over T+ TYPE_INT T1 rotl T+ T-> }
+            T0 over T+ Type.Int T1 rotl T+ T-> }
     }
 }
 def data-from-enum-value-type [ +Mirth Data -- +Mirth ArrowType ] {
-    TYPE_INT T1 T0 rotl full-type T*+ T->
+    Type.Int T1 T0 rotl full-type T*+ T->
 }
 
 def table-to-index-type [ +Mirth Table -- +Mirth ArrowType ] {
-    Type.TTable T1 TYPE_INT T1 T->
+    Type.Table T1 Type.Int T1 T->
 }
 def table-from-index-type [ +Mirth Table -- +Mirth ArrowType ] {
-    Type.TTable T1 TYPE_INT T1 swap T->
+    Type.Table T1 Type.Int T1 swap T->
 }
 
 def elab-block-sig! [ Block -- OpSig ] {
-    Value.VALUE_BLOCK Type.TValue OpSig.OPSIG_PUSH
+    Value.Block Type.Value OpSig.OPSIG_PUSH
 }
 
 def elab-match-sig! [ Match -- OpSig ] {
@@ -1127,23 +1126,23 @@ def elab-var-sig! [ Var -- OpSig ] {
 }
 
 def elab-label-push-sig! [ Label -- OpSig ] {
-    dip(MetaVar.new! StackType.STMeta MetaVar.new! Type.TMeta dup2)
-    StackType.STConsLabel dip(StackType.STCons) T-> OpSig.OPSIG_APPLY
+    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
+    StackType.ConsLabel dip(StackType.Cons) T-> OpSig.OPSIG_APPLY
 }
 
 def elab-label-pop-sig! [ Label -- OpSig ] {
-    dip(MetaVar.new! StackType.STMeta MetaVar.new! Type.TMeta dup2)
-    StackType.STConsLabel dip(StackType.STCons) swap T-> OpSig.OPSIG_APPLY
+    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
+    StackType.ConsLabel dip(StackType.Cons) swap T-> OpSig.OPSIG_APPLY
 }
 
 def elab-label-push-r-sig! [ Label -- OpSig ] {
-    dip(MetaVar.new! StackType.STMeta MetaVar.new! Type.TMeta Resource dup2)
-    StackType.STWithLabel dip(StackType.STWith) T-> OpSig.OPSIG_APPLY
+    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
+    StackType.STWithLabel dip(StackType.With) T-> OpSig.OPSIG_APPLY
 }
 
 def elab-label-pop-r-sig! [ Label -- OpSig ] {
-    dip(MetaVar.new! StackType.STMeta MetaVar.new! Type.TMeta Resource dup2)
-    StackType.STWithLabel dip(StackType.STWith) swap T-> OpSig.OPSIG_APPLY
+    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
+    StackType.STWithLabel dip(StackType.With) swap T-> OpSig.OPSIG_APPLY
 }
 
 def elab-arrow! [ +Mirth Ctx ArrowType Token Home -- +Mirth Arrow ] {
@@ -1224,7 +1223,7 @@ def elab-pattern-atom! [ Token +Mirth +Pattern -- +Mirth +Pattern ] {
             )
         ) +pat> bind(tag?) match(
             Some -> +Pattern.tag!,
-            None -> StackType.STACK_TYPE_ERROR pattern:mid!
+            None -> StackType.Error pattern:mid!
         ),
 
         "Expected constructor name." rdip:emit-fatal-error!
@@ -1253,19 +1252,19 @@ def +Match.case!(mkpat,mkbod) [
 def elab-expand-tensor! [ +Mirth StackType Token -- +Mirth StackType Type Token ] {
     >tok force-cons?! match(
         Some -> unpack2 tok>,
-        None -> StackType.STACK_TYPE_ERROR Type.TYPE_ERROR tok> dup "expected tuple type" emit-error!
+        None -> StackType.Error Type.Error tok> dup "expected tuple type" emit-error!
     )
 }
 
 def elab-lambda-param? [ +Mirth Token -- +Mirth Token Maybe(Var) ] {
     dup pattern-var? if-some(
         dip(dup args-0 next)
-        dip(MetaVar.new! Type.TMeta)
+        dip(MetaVar.new! Type.Meta)
         Var.new! Some,
 
     dup pattern-auto-run-var? if-some(
         dip(dup succ args-0 next)
-        dip(MetaVar.new! StackType.STMeta MetaVar.new! StackType.STMeta T->)
+        dip(MetaVar.new! StackType.Meta MetaVar.new! StackType.Meta T->)
         Var.new-auto-run! Some,
 
         None
@@ -1294,7 +1293,7 @@ def elab-match-exhaustive! [ +Mirth +Match -- +Mirth +Match ] {
 def elab-module! [ Module +World +Mirth -- Module +World +Mirth ] {
     dup start
     elab-module-header!
-    over Namespace.NAMESPACE_MODULE Some with-defining-namespace (
+    over Namespace.Module Some with-defining-namespace (
         elab-decls!
         dup module-end? else(
             "Unexpected token in module." emit-fatal-error!
@@ -1304,7 +1303,7 @@ def elab-module! [ Module +World +Mirth -- Module +World +Mirth ] {
 }
 
 def elab-module-qname [ +Mirth Token -- +Mirth QName ] {
-    parse-module-package-name! dip(Namespace.NAMESPACE_PACKAGE) 0 QName.Mk
+    parse-module-package-name! dip(Namespace.Package) 0 QName.Mk
 }
 
 struct ModuleHeader {
@@ -1584,7 +1583,7 @@ def elab-data-params! [ List(Token) +Mirth -- List(Var) +Mirth ] {
     Ctx.L0 swap for(
         dup sig-type-var? unwrap("Expected a type variable." emit-fatal-error!)
         dup over3 Ctx.lookup then(swap "Duplicate parameter name." emit-fatal-error!)
-        nip TYPE_TYPE swap Var.new! Ctx.new
+        nip Type.Type swap Var.new! Ctx.new
     ) >List
 }
 
@@ -1631,7 +1630,7 @@ def elab-data-tag! [ Data SyntaxDataTag +Mirth -- Data +Mirth ] {
 
 def elab-data-decls! [ +World +Mirth Data Token -- +World +Mirth Data ] {
     dup Some >error-token
-    over Tycon.TYCON_DATA Namespace.NAMESPACE_TYCON Some >defining-namespace
+    over Tycon.Data Namespace.Tycon Some >defining-namespace
     LexicalState with-lexical-state (
         while(dup arg-end? not, elab-decl!)
         drop
@@ -1657,7 +1656,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
         @dat data-get-enum-value-type
         @word PropLabel.WordType prop2 @word ~ctx-type !
         @word ab-build-word!(
-            @dat Op.OpDataGetEnumValue ab-op!
+            @dat Op.DataGetEnumValue ab-op!
         ) make-inline!
         word> drop
     )
@@ -1668,7 +1667,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
         @dat data-from-enum-value-type
         @word PropLabel.WordType prop2 @word ~ctx-type !
         @word ab-build-word!(
-            @dat Op.OpDataFromEnumValue ab-op!
+            @dat Op.DataFromEnumValue ab-op!
         ) make-inline!
         word> drop
     )
@@ -1702,10 +1701,10 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
             "int" CType.IntLike Some,
         @dat semi-transparent? if-some(
             input match(
-                STPCons -> ctype?,
-                STPConsLabel -> drop ctype?,
-                STPWith -> ctype?,
-                STPWithLabel -> drop ctype?,
+                Cons -> ctype?,
+                ConsLabel -> drop ctype?,
+                With -> ctype?,
+                WithLabel -> drop ctype?,
             ),
             None
         )))
@@ -1720,14 +1719,14 @@ def Tag.output-type [ +Mirth Tag -- +Mirth Type/Resource ] {
     >tag
     @tag ~output-type memoize(
         @tag type cod expand match {
-            { STCons -> nip Left }
-            { STWith -> nip Right }
+            { Cons -> nip Left }
+            { With -> nip Right }
             { _ ->
                 drop
                 "Unexpected output type for constructor "
                 @tag qname >Str cat
                 @tag .data head? if-some(swap emit-error!, error!)
-                Type.TYPE_ERROR @tag .data is-resource? if(
+                Type.Error @tag .data is-resource? if(
                     Resource Right,
                     Left
                 )
@@ -1804,7 +1803,7 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
             @tag @lbl @lbl_get dup PropLabel.WordArrow prop3(ab-build-word-arrow!(
                 dip(
                     swap rdip:project-tag-field unwrap("logic error: expected field in tag." rdip:fatal-error!)
-                    Op.OpDataGetLabel ab-op!
+                    Op.DataGetLabel ab-op!
                 )
             )) @lbl_get ~arrow !
 
@@ -1818,7 +1817,7 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
             @tag @lbl @lbl_set dup PropLabel.WordArrow prop3(ab-build-word-arrow!(
                 dip(
                     swap rdip:project-tag-field unwrap("logic error: expected field in tag." rdip:fatal-error!)
-                    Op.OpDataSetLabel ab-op!
+                    Op.DataSetLabel ab-op!
                 )
             )) @lbl_set ~arrow !
 
@@ -2043,11 +2042,11 @@ def check-inline-recursion-atom! [ +Mirth Word Atom -- +Mirth ] {
     )
 }
 def check-inline-recursion-arg! [ +Mirth Word Arg -- +Mirth ] {
-    ArgBlock -> arrow check-inline-recursion-arrow!
+    Block -> arrow check-inline-recursion-arrow!
 }
 def check-inline-recursion-op! [ +Mirth Word Op -- +Mirth ] {
-    OpBlockRun -> arrow check-inline-recursion-arrow!,
-    OpWord ->
+    BlockRun -> arrow check-inline-recursion-arrow!,
+    Word ->
         dup2 == if(
             drop check-inline-recursion-failed!,
             dup prefer-inline? if(
@@ -2058,8 +2057,8 @@ def check-inline-recursion-op! [ +Mirth Word Op -- +Mirth ] {
                 drop2
             )
         ),
-    OpMatch -> cases for(dip:dup body check-inline-recursion-arrow!) drop,
-    OpLambda -> body check-inline-recursion-arrow!,
+    Match -> cases for(dip:dup body check-inline-recursion-arrow!) drop,
+    Lambda -> body check-inline-recursion-arrow!,
     _ -> drop2
 }
 def check-inline-recursion-failed! [ +Mirth Word -- +Mirth ] {
@@ -2262,8 +2261,8 @@ def elab-entry-point [ QName +Mirth -- Arrow +Mirth ] {
         ) >Str cat
         fatal-error!
     ) nip { Word +Mirth }
-    dup dip(Ctx.L0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
-    head dup Home.HomeMain ab-build-hom!(
+    dup dip(Ctx.L0 T0 Resource.World T+ T0 Resource.World T+ T->)
+    head dup Home.Main ab-build-hom!(
         dip(ab-word!)
     )
 }
@@ -2280,7 +2279,7 @@ def elab-embed-str! [ Token +World +Mirth -- Token +World +Mirth ] {
     Word.new!
     dup PropLabel.WordQName >label Prop over ~qname !
 
-    Ctx.L0 T0 TYPE_STR T1 T-> over2 PropLabel.WordType prop2 over ~ctx-type !
+    Ctx.L0 T0 Type.Str T1 T-> over2 PropLabel.WordType prop2 over ~ctx-type !
     ab-build-word!(contents> ab-str!) drop
 }
 
@@ -2296,7 +2295,7 @@ def typecheck-everything! [ +Mirth -- +Mirth ] {
 #########
 
 def table-qname [ Table Str Int -- QName ] {
-    >arity >Name >name Tycon.TYCON_TABLE Namespace.NAMESPACE_TYCON >namespace QName
+    >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
 }
 
 def table-word-new! [ +Mirth Table Str Nat -- +Mirth Word ] {
@@ -2316,14 +2315,14 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @tbl "nil" 0u table-word-new! >word
 
     Ctx.L0
-    T0 @tbl Type.TTable T1 T->
+    T0 @tbl Type.Table T1 T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
     word> ab-build-word!(
         @tbl head ab-token!
         0 ab-int!
-        @tbl Op.OpTableFromIndex ab-op!
+        @tbl Op.TableFromIndex ab-op!
     ) drop
 
     # Table.NUM
@@ -2336,55 +2335,55 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @tbl "index" 0u table-word-new! >word
 
     Ctx.L0
-    @tbl Type.TTable T1 TYPE_INT T1 T->
+    @tbl Type.Table T1 Type.Int T1 T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
     word> ab-build-word! (
         @tbl head ab-token!
-        @tbl Op.OpTableToIndex ab-op!
+        @tbl Op.TableToIndex ab-op!
     ) drop
 
     # Table.from-index
     @tbl "from-index" 0u table-word-new! >word
 
     Ctx.L0
-    @tbl Type.TTable T1 TYPE_INT T1 swap T->
+    @tbl Type.Table T1 Type.Int T1 swap T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
     word> ab-build-word! (
         @tbl head ab-token!
-        @tbl Op.OpTableFromIndex ab-op!
+        @tbl Op.TableFromIndex ab-op!
     ) drop
 
     # Table.succ
     @tbl "succ" 0u table-word-new! >word
 
     Ctx.L0
-    @tbl Type.TTable T1 dup T->
+    @tbl Type.Table T1 dup T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
     word> ab-build-word! (
         @tbl head ab-token!
-        @tbl Op.OpTableToIndex ab-op!
+        @tbl Op.TableToIndex ab-op!
         1 ab-int!
         Prim.PRIM_INT_ADD ab-prim!
-        @tbl Op.OpTableFromIndex ab-op!
+        @tbl Op.TableFromIndex ab-op!
     ) drop
 
     # Table.pred
     @tbl "pred" 0u table-word-new! >word
 
     Ctx.L0
-    @tbl Type.TTable T1 dup T->
+    @tbl Type.Table T1 dup T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
     word> ab-build-word! (
         @tbl head ab-token!
-        @tbl Op.OpTableToIndex ab-op!
+        @tbl Op.TableToIndex ab-op!
         Prim.PRIM_CORE_DUP ab-prim!
         0 ab-int!
         Prim.PRIM_INT_EQ ab-prim!
@@ -2393,18 +2392,18 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
             1 ab-int!
             Prim.PRIM_INT_SUB ab-prim!
         )
-        @tbl Op.OpTableFromIndex ab-op!
+        @tbl Op.TableFromIndex ab-op!
     ) drop
 
     { +Mirth tbl:Table }
 
     # Table.for
     @tbl "for" 1u table-word-new! >word
-    TYPE_STACK "*a" >Name Var.new! >va
-    @va StackType.STVar @tbl Type.TTable T* @va StackType.STVar T-> "f" >Name Var.new-auto-run! >vx
+    Type.StackType "*a" >Name Var.new! >va
+    @va StackType.Var @tbl Type.Table T* @va StackType.Var T-> "f" >Name Var.new-auto-run! >vx
 
     @va Ctx.L1
-    @va StackType.STVar @vx type T* @va StackType.STVar T->
+    @va StackType.Var @vx type T* @va StackType.Var T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -2426,7 +2425,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
 
                 Prim.PRIM_CORE_DUP ab-prim!
                 ab-dip! (
-                    @tbl Op.OpTableFromIndex ab-op!
+                    @tbl Op.TableFromIndex ab-op!
                     @vx ab-var!
                 )
                 1 ab-int!
@@ -2441,7 +2440,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @tbl "alloc!" 0u table-word-new! >word
 
     Ctx.L0
-    T0 @tbl Type.TTable T1 T->
+    T0 @tbl Type.Table T1 T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -2456,7 +2455,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
         Prim.PRIM_INT_TO_I64 ab-prim!
         @tbl num-buffer ab-buffer!
         Prim.PRIM_I64_SET ab-prim!
-        @tbl Op.OpTableFromIndex ab-op!
+        @tbl Op.TableFromIndex ab-op!
     ) drop
 
     tbl>

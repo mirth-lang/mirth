@@ -89,19 +89,23 @@ inline(
 def(Bool.show, Bool -- Str, if("True", "False"))
 def(Bool.show;, Bool +Str -- +Str, show ;)
 
-# Re-export these constructors unqualified.
+# Re-export Bool unqualified.
 alias(True,  Bool.True)
 alias(False, Bool.False)
 
 # Cute booleans.
-alias(Yes, True)
-alias(No, False)
+alias(Yes, True )
+alias(No , False)
+
+# Aligned booleans.
+alias(Yea, True )
+alias(Nay, False)
 
 data OS {
-    0 OS_UNKNOWN
-    1 OS_WINDOWS
-    2 OS_LINUX
-    3 OS_MACOS
+    0 Unknown
+    1 Windows
+    2 Linux
+    3 Mac
     --
     inline {
         def Min [ OS ] { 0 OS.from-enum-value-unsafe }
@@ -113,28 +117,28 @@ data OS {
     def Int.>OS [ Int -- OS ] {
         dup OS.Min OS.Max on2:>Int in-range if(
             OS.from-enum-value-unsafe,
-            drop OS.OS_UNKNOWN
+            drop OS.Unknown
         )
     }
-    def is-windows? { OS.OS_WINDOWS == }
-    def is-linux? { OS.OS_LINUX == }
-    def is-macos? { OS.OS_MACOS == }
+    def is-windows? { OS.Windows == }
+    def is-linux? { OS.Linux == }
+    def is-macos? { OS.Mac == }
     def path-separator {
         is-windows? if("\\", "/")
     }
     def byte-is-path-separator? [ Byte OS -- Bool ] {
-        { OS_WINDOWS -> dup Byte.B'/' == swap Byte.B'\' == || }
-        { OS_LINUX -> Byte.B'/' == }
-        { OS_MACOS -> Byte.B'/' == }
-        { OS_UNKNOWN -> Byte.B'/' == }
+        { Windows -> dup Byte.B'/' == swap Byte.B'\' == || }
+        { Linux -> Byte.B'/' == }
+        { Mac -> Byte.B'/' == }
+        { Unknown -> Byte.B'/' == }
     }
 }
 
 data Arch {
-    0 ARCH_UNKNOWN
-    1 ARCH_I386
-    2 ARCH_AMD64
-    3 ARCH_ARM64
+    0 Unknown
+    1 I386
+    2 AMD64
+    3 ARM64
     --
     inline {
         def Min [ Arch ] { 0 Arch.from-enum-value-unsafe }
@@ -146,7 +150,7 @@ data Arch {
     def Int.>Arch [ Int -- Arch ] {
         dup Arch.Min Arch.Max on2:>Int in-range if(
             Arch.from-enum-value-unsafe,
-            drop Arch.ARCH_UNKNOWN
+            drop Arch.Unknown
         )
     }
 }

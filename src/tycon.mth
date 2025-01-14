@@ -11,34 +11,34 @@ import mirth.type
 import mirth.mirth
 
 data(Tycon,
-    TYCON_DATA -> Data,
-    TYCON_TABLE -> Table,
-    TYCON_PRIM -> PrimType)
+    Data -> Data,
+    Table -> Table,
+    Prim -> PrimType)
 
 def(Tycon.name, +Mirth Tycon -- +Mirth Name,
-    TYCON_DATA -> name,
-    TYCON_TABLE -> name,
-    TYCON_PRIM -> tycon-qname name)
+    Data -> name,
+    Table -> name,
+    Prim -> tycon-qname name)
 def(Tycon.qname-soft, +Mirth Tycon -- +Mirth Maybe(QName),
-    TYCON_DATA -> qname-soft,
-    TYCON_TABLE -> qname-soft,
-    TYCON_PRIM -> tycon-qname Some)
+    Data -> qname-soft,
+    Table -> qname-soft,
+    Prim -> tycon-qname Some)
 def(Tycon.qname-hard, +Mirth Tycon -- +Mirth QName,
-    TYCON_DATA -> qname-hard,
-    TYCON_TABLE -> qname-hard,
-    TYCON_PRIM -> tycon-qname)
+    Data -> qname-hard,
+    Table -> qname-hard,
+    Prim -> tycon-qname)
 
 def(Tycon.==, Tycon Tycon -- Bool,
-    TYCON_DATA -> swap match(TYCON_DATA -> ==, _ -> drop2 False),
-    TYCON_TABLE -> swap match(TYCON_TABLE -> ==, _ -> drop2 False),
-    TYCON_PRIM -> swap match(TYCON_PRIM -> ==, _ -> drop2 False))
+    Data -> swap match(Data -> ==, _ -> drop2 False),
+    Table -> swap match(Table -> ==, _ -> drop2 False),
+    Prim -> swap match(Prim -> ==, _ -> drop2 False))
 
 def(Tycon.>Type, Tycon -- Type,
-    TYCON_DATA -> Type.TData,
-    TYCON_TABLE -> Type.TTable,
-    TYCON_PRIM -> Type.TPrim)
+    Data -> Type.Data,
+    Table -> Type.Table,
+    Prim -> Type.Prim)
 
 def(Tycon.full-type-fresh, +Mirth Tycon -- +Mirth Type/Resource,
-    TYCON_DATA -> dip:Subst.SUBST_NIL full-type map(freshen, freshen) nip,
-    TYCON_PRIM -> dup is-resource? if(Type.TPrim Resource Right, Type.TPrim Left),
-    TYCON_TABLE -> Type.TTable Left)
+    Data -> dip:Subst.Nil full-type map(freshen, freshen) nip,
+    Prim -> dup is-resource? if(Type.Prim Resource Right, Type.Prim Left),
+    Table -> Type.Table Left)

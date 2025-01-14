@@ -80,80 +80,80 @@ struct Atom {
 }
 
 data Arg {
-    ArgBlock [ Block ]
+    Block [ Block ]
     --
-    def token { ArgBlock -> token }
-    def type  { ArgBlock -> type }
-    def free-vars { ArgBlock -> free-vars }
-    def >Str [ +Mirth Arg -- +Mirth Str ] { ArgBlock -> qname >Str }
-    def == [ Arg Arg -- Bool ] { both(/ArgBlock) == }
+    def token { Block -> token }
+    def type  { Block -> type }
+    def free-vars { Block -> free-vars }
+    def >Str [ +Mirth Arg -- +Mirth Str ] { Block -> qname >Str }
+    def == [ Arg Arg -- Bool ] {
+        { Block -> swap match { Block -> swap ==, _ -> drop2 Nay } }
+    }
 }
 
 data Op {
-    OpNone
-    OpPrim [ Prim ]
-    OpWord [ Word ]
-    OpExternal [ External ]
-    OpBuffer [ Buffer ]
-    OpVariable [ Variable ]
-    OpField [ Field ]
-    OpInt [ Int ]
-    OpF64 [ F64 ]
-    OpStr [ Str ]
-    OpTag [ Tag ]
-    OpMatch [ Match ]
-    OpLambda [ Lambda ]
-    OpVar [ Var ]
-    OpBlockPush [ Block ]
-    OpBlockRun  [ Block ]
-    OpLabelPush  [ Label ]
-    OpLabelPop   [ Label ]
-    OpLabelPushR [ Label ]
-    OpLabelPopR  [ Label ]
-    OpDataGetEnumValue  [ Data ]
-    OpDataFromEnumValue [ Data ]
-    OpDataGetLabel [ TagField ]
-    OpDataSetLabel [ TagField ]
-    OpTableToIndex [ Table ]
-    OpTableFromIndex [ Table ]
+    Prim [ Prim ]
+    Word [ Word ]
+    External [ External ]
+    Buffer [ Buffer ]
+    Variable [ Variable ]
+    Field [ Field ]
+    Int [ Int ]
+    F64 [ F64 ]
+    Str [ Str ]
+    Tag [ Tag ]
+    Match [ Match ]
+    Lambda [ Lambda ]
+    Var [ Var ]
+    BlockPush [ Block ]
+    BlockRun  [ Block ]
+    LabelPush  [ Label ]
+    LabelPop   [ Label ]
+    LabelPushR [ Label ]
+    LabelPopR  [ Label ]
+    DataGetEnumValue  [ Data ]
+    DataFromEnumValue [ Data ]
+    DataGetLabel [ TagField ]
+    DataSetLabel [ TagField ]
+    TableToIndex [ Table ]
+    TableFromIndex [ Table ]
     --
     def to-run-var [ Op -- Maybe(Var) ] {
-        { OpVar -> dup auto-run? if(Some, drop None) }
+        { Var -> dup auto-run? if(Some, drop None) }
         { _ -> drop None }
     }
     def free-vars [ +Mirth Op -- +Mirth List(Var) ] {
-        { OpNone -> List.Nil }
-        { OpPrim -> drop List.Nil }
-        { OpWord -> drop List.Nil }
-        { OpExternal -> drop List.Nil }
-        { OpBuffer -> drop List.Nil }
-        { OpVariable -> drop List.Nil }
-        { OpField -> drop List.Nil }
-        { OpInt -> drop List.Nil }
-        { OpF64 -> drop List.Nil }
-        { OpStr -> drop List.Nil }
-        { OpTag -> drop List.Nil }
-        { OpMatch -> free-vars }
-        { OpLambda -> free-vars }
-        { OpVar -> List.L1 }
-        { OpBlockPush -> free-vars }
-        { OpBlockRun -> free-vars }
-        { OpLabelPush -> drop List.Nil }
-        { OpLabelPop -> drop List.Nil }
-        { OpLabelPushR -> drop List.Nil }
-        { OpLabelPopR -> drop List.Nil }
-        { OpDataGetEnumValue -> drop List.Nil }
-        { OpDataFromEnumValue -> drop List.Nil }
-        { OpDataGetLabel -> drop List.Nil }
-        { OpDataSetLabel -> drop List.Nil }
-        { OpTableToIndex -> drop List.Nil }
-        { OpTableFromIndex -> drop List.Nil }
+        { Prim -> drop List.Nil }
+        { Word -> drop List.Nil }
+        { External -> drop List.Nil }
+        { Buffer -> drop List.Nil }
+        { Variable -> drop List.Nil }
+        { Field -> drop List.Nil }
+        { Int -> drop List.Nil }
+        { F64 -> drop List.Nil }
+        { Str -> drop List.Nil }
+        { Tag -> drop List.Nil }
+        { Match -> free-vars }
+        { Lambda -> free-vars }
+        { Var -> List.L1 }
+        { BlockPush -> free-vars }
+        { BlockRun -> free-vars }
+        { LabelPush -> drop List.Nil }
+        { LabelPop -> drop List.Nil }
+        { LabelPushR -> drop List.Nil }
+        { LabelPopR -> drop List.Nil }
+        { DataGetEnumValue -> drop List.Nil }
+        { DataFromEnumValue -> drop List.Nil }
+        { DataGetLabel -> drop List.Nil }
+        { DataSetLabel -> drop List.Nil }
+        { TableToIndex -> drop List.Nil }
+        { TableFromIndex -> drop List.Nil }
     }
 }
 
 data Home {
-    HomeMain [ Token ]
-    HomeWord [ Word  ]
+    Main [ Token ]
+    Word [ Word  ]
 }
 
 struct Lambda {
@@ -198,11 +198,11 @@ def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
 
 def(Block.qname, +Mirth Block -- +Mirth QName,
     dup ~qname memoize(dup dup home match(
-        HomeMain ->
-            .module Namespace.NAMESPACE_MODULE
+        Main ->
+            .module Namespace.Module
             swap arrow token-start index show
             dip:"entry@" cat >Name 0 QName.Mk,
-        HomeWord -> dup Namespace.NAMESPACE_WORD
+        Word -> dup Namespace.Word
             dip(dip:arrow arrow both(token-start index) - show >Name)
             swap 0 QName.Mk
     )) nip)
@@ -212,17 +212,17 @@ def(Block.==, Block Block -- Bool, both(Block.index) ==)
 field(Block.~home-index, Block, Int)
 def(Block.register-home!, Block --,
     dup home match(
-        HomeWord ->
+        Word ->
             inc-num-blocks! swap ~home-index !,
-        HomeMain ->
+        Main ->
             drop2
     ))
 
 field(Block.~cname, Block, Str)
 def(Block.cname, +Mirth Block -- +Mirth Str, dup ~cname memoize(
     dup home match(
-        HomeWord -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ show;),
-        HomeMain -> drop Str("mb_" ; dup index show;),
+        Word -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ show;),
+        Main -> drop Str("mb_" ; dup index show;),
     )) nip)
 
 def(Block.new!, +Mirth Arrow -- +Mirth Block,
@@ -241,8 +241,8 @@ def(Block.new-deferred!(f), (+Mirth Block -- +Mirth Arrow) +Mirth Ctx Token Home
     dup register-home!
     tuck ~token !
     tuck ~ctx !
-    MetaVar.new! StackType.STMeta over ~dom !
-    MetaVar.new! StackType.STMeta over ~cod !
+    MetaVar.new! StackType.Meta over ~dom !
+    MetaVar.new! StackType.Meta over ~cod !
     dup dup PropLabel.BlockArrow prop(f) over ~arrow !)
 
 def(Block.typecheck!, +Mirth Block -- +Mirth,

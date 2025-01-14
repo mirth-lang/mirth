@@ -67,39 +67,38 @@ def(+Needs.run-need!, Need +Mirth +Needs -- +Mirth +Needs,
     NEED_TAGP -> drop)
 
 def(+Needs.run-args!, List(Arg) +Mirth +Needs -- +Mirth +Needs, for(run-arg!))
-def(+Needs.run-arg!, Arg +Mirth +Needs -- +Mirth +Needs, ArgBlock -> run-block!)
+def(+Needs.run-arg!, Arg +Mirth +Needs -- +Mirth +Needs, Block -> run-block!)
 def(+Needs.run-block!, Block +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arrow!)
 def(+Needs.run-word!, Word +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arrow!)
 def(+Needs.run-arrow!, Arrow +Mirth +Needs -- +Mirth +Needs, atoms for(run-atom!))
 def(+Needs.run-atom!, Atom +Mirth +Needs -- +Mirth +Needs, sip(args) op run-op!)
 
 def +Needs.run-op! [ List(Arg) Op +Mirth +Needs -- +Mirth +Needs ] {
-    { OpNone -> drop }
-    { OpInt -> drop2 }
-    { OpF64 -> drop2 }
-    { OpStr -> drop2 }
-    { OpWord -> dup prefer-inline? if(run-word!, need-word!) push-args! }
-    { OpExternal -> drop push-args! }
-    { OpBuffer -> drop push-args! }
-    { OpVariable -> drop push-args! }
-    { OpField -> drop push-args! }
-    { OpTag -> need-tag-word! push-args! }
-    { OpPrim -> run-prim! }
-    { OpMatch -> nip run-match! }
-    { OpLambda -> nip run-lambda! }
-    { OpVar -> drop2 }
-    { OpBlockPush -> nip push-block! }
-    { OpBlockRun -> nip run-block! }
-    { OpLabelPush -> drop2 }
-    { OpLabelPop -> drop2 }
-    { OpLabelPushR -> drop2 }
-    { OpLabelPopR -> drop2 }
-    { OpDataGetEnumValue -> drop2 }
-    { OpDataFromEnumValue -> drop2 }
-    { OpDataGetLabel -> drop2 }
-    { OpDataSetLabel -> drop2 }
-    { OpTableToIndex -> drop2 }
-    { OpTableFromIndex -> drop2 }
+    { Int -> drop2 }
+    { F64 -> drop2 }
+    { Str -> drop2 }
+    { Word -> dup prefer-inline? if(run-word!, need-word!) push-args! }
+    { External -> drop push-args! }
+    { Buffer -> drop push-args! }
+    { Variable -> drop push-args! }
+    { Field -> drop push-args! }
+    { Tag -> need-tag-word! push-args! }
+    { Prim -> run-prim! }
+    { Match -> nip run-match! }
+    { Lambda -> nip run-lambda! }
+    { Var -> drop2 }
+    { BlockPush -> nip push-block! }
+    { BlockRun -> nip run-block! }
+    { LabelPush -> drop2 }
+    { LabelPop -> drop2 }
+    { LabelPushR -> drop2 }
+    { LabelPopR -> drop2 }
+    { DataGetEnumValue -> drop2 }
+    { DataFromEnumValue -> drop2 }
+    { DataGetLabel -> drop2 }
+    { DataSetLabel -> drop2 }
+    { TableToIndex -> drop2 }
+    { TableFromIndex -> drop2 }
 }
 
 def(+Needs.run-prim!, List(Arg) Prim +Mirth +Needs -- +Mirth +Needs,
@@ -121,7 +120,7 @@ def(+Needs.run-patatom!, PatternAtom +Mirth +Needs -- +Mirth +Needs,
 
 def(+Needs.push-args!, List(Arg) +Mirth +Needs -- +Mirth +Needs, for(push-arg!))
 def(+Needs.push-arg!, Arg +Mirth +Needs -- +Mirth +Needs,
-    ArgBlock -> push-block!)
+    Block -> push-block!)
 def(+Needs.push-block!, Block +Mirth +Needs -- +Mirth +Needs,
     dup rdip:to-run-var match(
         Some -> drop2,
