@@ -653,11 +653,11 @@ struct +AB {
     }
 
     def ab-dip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
-        ab-block!(f) Prim.PRIM_CORE_DIP ab-prim!
+        ab-block!(f) Prim.Dip ab-prim!
     }
 
     def ab-rdip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
-        ab-block!(f) Prim.PRIM_CORE_RDIP ab-prim!
+        ab-block!(f) Prim.RDip ab-prim!
     }
 
     def ab-if!(f,g) [
@@ -665,7 +665,7 @@ struct +AB {
         *b +Mirth +AB -- *c +Mirth +AB)
         *a +Mirth +AB -- *c +Mirth +AB
     ] {
-        ab-block!(f) ab-block!(g) Prim.PRIM_CORE_IF ab-prim!
+        ab-block!(f) ab-block!(g) Prim.If ab-prim!
     }
 
     def ab-while!(f,g) [
@@ -673,7 +673,7 @@ struct +AB {
         *b +Mirth +AB -- *c +Mirth +AB)
         *a +Mirth +AB -- *c +Mirth +AB
     ] {
-        ab-block!(f) ab-block!(g) Prim.PRIM_CORE_WHILE ab-prim!
+        ab-block!(f) ab-block!(g) Prim.While ab-prim!
     }
 
     def ab-lambda!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a List(Var) +Mirth +AB -- *b +Mirth +AB ] {
@@ -742,7 +742,7 @@ struct +AB {
 
             dup ab-label-pop!
             ab-token@ num-args 0= if(
-                Prim.PRIM_CORE_DUP ab-prim!,
+                Prim.Dup ab-prim!,
                 ab-token@ dup rdip:args-1 ab-token! elab-atoms! ab-token!
             )
             ab-label-push!
@@ -752,7 +752,7 @@ struct +AB {
     def elab-label-set! [ Label +Mirth +AB -- +Mirth +AB ] {
         ab-token@ rdip:args-0
         dup ab-label-pop!
-        Prim.PRIM_CORE_DROP ab-prim!
+        Prim.Drop ab-prim!
         ab-label-push!
     }
 
@@ -1015,10 +1015,10 @@ def atom-accepts-args? [ Atom -- Atom Bool ] {
         Word -> dip(dup args len) arity <,
         Prim ->
             match(
-                PRIM_CORE_DIP -> dup args len 1u <,
-                PRIM_CORE_RDIP -> dup args len 1u <,
-                PRIM_CORE_IF -> dup args len 2u <,
-                PRIM_CORE_WHILE -> dup args len 2u <,
+                Dip -> dup args len 1u <,
+                RDip -> dup args len 1u <,
+                If -> dup args len 2u <,
+                While -> dup args len 2u <,
                 _ -> drop False
             ),
         _ -> drop False
@@ -1856,7 +1856,7 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
                             ab-rdip!(f> ab-var!)
                             lbl_set> ab-word!,
 
-                            Prim.PRIM_CORE_DUP ab-prim!
+                            Prim.Dup ab-prim!
                             ab-dip!(
                                 lbl_get> ab-word!
                                 f> ab-var!
@@ -2369,7 +2369,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
         @tbl head ab-token!
         @tbl Op.TableToIndex ab-op!
         1 ab-int!
-        Prim.PRIM_INT_ADD ab-prim!
+        Prim.IntAdd ab-prim!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 
@@ -2384,13 +2384,13 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     word> ab-build-word! (
         @tbl head ab-token!
         @tbl Op.TableToIndex ab-op!
-        Prim.PRIM_CORE_DUP ab-prim!
+        Prim.Dup ab-prim!
         0 ab-int!
-        Prim.PRIM_INT_EQ ab-prim!
+        Prim.IntEq ab-prim!
         ab-if!(
             ,
             1 ab-int!
-            Prim.PRIM_INT_SUB ab-prim!
+            Prim.IntSub ab-prim!
         )
         @tbl Op.TableFromIndex ab-op!
     ) drop
@@ -2417,21 +2417,21 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
         @vx List.L1 ab-lambda!(
             1 ab-int!
             ab-while!(
-                Prim.PRIM_CORE_DUP ab-prim!
+                Prim.Dup ab-prim!
                 @tbl num-buffer ab-buffer!
-                Prim.PRIM_I64_GET ab-prim!
-                Prim.PRIM_I64_TO_INT ab-prim!
-                Prim.PRIM_INT_LE ab-prim!,
+                Prim.I64Get ab-prim!
+                Prim.I64ToInt ab-prim!
+                Prim.IntLe ab-prim!,
 
-                Prim.PRIM_CORE_DUP ab-prim!
+                Prim.Dup ab-prim!
                 ab-dip! (
                     @tbl Op.TableFromIndex ab-op!
                     @vx ab-var!
                 )
                 1 ab-int!
-                Prim.PRIM_INT_ADD ab-prim!
+                Prim.IntAdd ab-prim!
             )
-            Prim.PRIM_CORE_DROP ab-prim!
+            Prim.Drop ab-prim!
         )
     ) drop
     va> vx> drop2
@@ -2447,14 +2447,14 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     word> ab-build-word! (
         @tbl head ab-token!
         @tbl num-buffer ab-buffer!
-        Prim.PRIM_I64_GET ab-prim!
-        Prim.PRIM_I64_TO_INT ab-prim!
+        Prim.I64Get ab-prim!
+        Prim.I64ToInt ab-prim!
         1 ab-int!
-        Prim.PRIM_INT_ADD ab-prim!
-        Prim.PRIM_CORE_DUP ab-prim!
-        Prim.PRIM_INT_TO_I64 ab-prim!
+        Prim.IntAdd ab-prim!
+        Prim.Dup ab-prim!
+        Prim.IntToI64 ab-prim!
         @tbl num-buffer ab-buffer!
-        Prim.PRIM_I64_SET ab-prim!
+        Prim.I64Set ab-prim!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 

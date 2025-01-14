@@ -22258,11 +22258,11 @@ static TUP* mw_mirth_type_ArrowType_ctype (TUP* in_ArrowType_1, TUP* in_ZPlusMir
 	return v11;
 }
 static int64_t mw_mirth_prim_Prim_MIN (void) {
-	int64_t v2 = 0LL /* PRIM_CORE_ID */;
+	int64_t v2 = 0LL /* Id */;
 	return v2;
 }
 static int64_t mw_mirth_prim_Prim_MAX (void) {
-	int64_t v2 = 112LL /* PRIM_SYS_ARGV */;
+	int64_t v2 = 112LL /* SysArgv */;
 	return v2;
 }
 static int64_t mw_mirth_prim_Prim_ZToInt (int64_t in_Prim_1) {
@@ -22304,791 +22304,791 @@ static STR* mw_mirth_prim_Prim_strZ_arity (int64_t in_Prim_1, int64_t *out_Int_3
 	STR* branch_Str_4;
 	int64_t branch_Int_5;
 	switch (in_Prim_1) {
-		case 0LL: { // PRIM_CORE_ID
+		case 0LL: { // Id
 			STR* v6;
 			STRLIT(v6, "prim-id", 7);
 			int64_t v7 = 0LL;
 			branch_Int_5 = v7;
 			branch_Str_4 = v6;
 		} break;
-		case 1LL: { // PRIM_CORE_DUP
+		case 1LL: { // Dup
 			STR* v8;
 			STRLIT(v8, "prim-dup", 8);
 			int64_t v9 = 0LL;
 			branch_Int_5 = v9;
 			branch_Str_4 = v8;
 		} break;
-		case 2LL: { // PRIM_CORE_DROP
+		case 2LL: { // Drop
 			STR* v10;
 			STRLIT(v10, "prim-drop", 9);
 			int64_t v11 = 0LL;
 			branch_Int_5 = v11;
 			branch_Str_4 = v10;
 		} break;
-		case 3LL: { // PRIM_CORE_SWAP
+		case 3LL: { // Swap
 			STR* v12;
 			STRLIT(v12, "prim-swap", 9);
 			int64_t v13 = 0LL;
 			branch_Int_5 = v13;
 			branch_Str_4 = v12;
 		} break;
-		case 4LL: { // PRIM_CORE_RSWAP
+		case 4LL: { // RSwap
 			STR* v14;
 			STRLIT(v14, "prim-rswap", 10);
 			int64_t v15 = 0LL;
 			branch_Int_5 = v15;
 			branch_Str_4 = v14;
 		} break;
-		case 5LL: { // PRIM_CORE_DIP
+		case 5LL: { // Dip
 			STR* v16;
 			STRLIT(v16, "prim-dip", 8);
 			int64_t v17 = 1LL;
 			branch_Int_5 = v17;
 			branch_Str_4 = v16;
 		} break;
-		case 6LL: { // PRIM_CORE_RDIP
+		case 6LL: { // RDip
 			STR* v18;
 			STRLIT(v18, "prim-rdip", 9);
 			int64_t v19 = 1LL;
 			branch_Int_5 = v19;
 			branch_Str_4 = v18;
 		} break;
-		case 7LL: { // PRIM_CORE_IF
+		case 7LL: { // If
 			STR* v20;
 			STRLIT(v20, "prim-if", 7);
 			int64_t v21 = 2LL;
 			branch_Int_5 = v21;
 			branch_Str_4 = v20;
 		} break;
-		case 8LL: { // PRIM_CORE_WHILE
+		case 8LL: { // While
 			STR* v22;
 			STRLIT(v22, "prim-while", 10);
 			int64_t v23 = 2LL;
 			branch_Int_5 = v23;
 			branch_Str_4 = v22;
 		} break;
-		case 9LL: { // PRIM_CORE_DEBUG
+		case 9LL: { // Debug
 			STR* v24;
 			STRLIT(v24, "prim-debug", 10);
 			int64_t v25 = 0LL;
 			branch_Int_5 = v25;
 			branch_Str_4 = v24;
 		} break;
-		case 10LL: { // PRIM_CORE_PANIC
+		case 10LL: { // Panic
 			STR* v26;
 			STRLIT(v26, "prim-panic", 10);
 			int64_t v27 = 0LL;
 			branch_Int_5 = v27;
 			branch_Str_4 = v26;
 		} break;
-		case 11LL: { // PRIM_CORE_RUN
+		case 11LL: { // Run
 			STR* v28;
 			STRLIT(v28, "prim-run", 8);
 			int64_t v29 = 0LL;
 			branch_Int_5 = v29;
 			branch_Str_4 = v28;
 		} break;
-		case 12LL: { // PRIM_INT_EQ
+		case 12LL: { // IntEq
 			STR* v30;
 			STRLIT(v30, "prim-int-eq", 11);
 			int64_t v31 = 0LL;
 			branch_Int_5 = v31;
 			branch_Str_4 = v30;
 		} break;
-		case 13LL: { // PRIM_INT_LT
+		case 13LL: { // IntLt
 			STR* v32;
 			STRLIT(v32, "prim-int-lt", 11);
 			int64_t v33 = 0LL;
 			branch_Int_5 = v33;
 			branch_Str_4 = v32;
 		} break;
-		case 14LL: { // PRIM_INT_LE
+		case 14LL: { // IntLe
 			STR* v34;
 			STRLIT(v34, "prim-int-le", 11);
 			int64_t v35 = 0LL;
 			branch_Int_5 = v35;
 			branch_Str_4 = v34;
 		} break;
-		case 15LL: { // PRIM_INT_GT
+		case 15LL: { // IntGt
 			STR* v36;
 			STRLIT(v36, "prim-int-gt", 11);
 			int64_t v37 = 0LL;
 			branch_Int_5 = v37;
 			branch_Str_4 = v36;
 		} break;
-		case 16LL: { // PRIM_INT_GE
+		case 16LL: { // IntGe
 			STR* v38;
 			STRLIT(v38, "prim-int-ge", 11);
 			int64_t v39 = 0LL;
 			branch_Int_5 = v39;
 			branch_Str_4 = v38;
 		} break;
-		case 17LL: { // PRIM_INT_NE
+		case 17LL: { // IntNe
 			STR* v40;
 			STRLIT(v40, "prim-int-ne", 11);
 			int64_t v41 = 0LL;
 			branch_Int_5 = v41;
 			branch_Str_4 = v40;
 		} break;
-		case 18LL: { // PRIM_INT_ADD
+		case 18LL: { // IntAdd
 			STR* v42;
 			STRLIT(v42, "prim-int-add", 12);
 			int64_t v43 = 0LL;
 			branch_Int_5 = v43;
 			branch_Str_4 = v42;
 		} break;
-		case 19LL: { // PRIM_INT_SUB
+		case 19LL: { // IntSub
 			STR* v44;
 			STRLIT(v44, "prim-int-sub", 12);
 			int64_t v45 = 0LL;
 			branch_Int_5 = v45;
 			branch_Str_4 = v44;
 		} break;
-		case 20LL: { // PRIM_INT_MUL
+		case 20LL: { // IntMul
 			STR* v46;
 			STRLIT(v46, "prim-int-mul", 12);
 			int64_t v47 = 0LL;
 			branch_Int_5 = v47;
 			branch_Str_4 = v46;
 		} break;
-		case 21LL: { // PRIM_INT_DIV
+		case 21LL: { // IntDiv
 			STR* v48;
 			STRLIT(v48, "prim-int-div", 12);
 			int64_t v49 = 0LL;
 			branch_Int_5 = v49;
 			branch_Str_4 = v48;
 		} break;
-		case 22LL: { // PRIM_INT_MOD
+		case 22LL: { // IntMod
 			STR* v50;
 			STRLIT(v50, "prim-int-mod", 12);
 			int64_t v51 = 0LL;
 			branch_Int_5 = v51;
 			branch_Str_4 = v50;
 		} break;
-		case 23LL: { // PRIM_INT_AND
+		case 23LL: { // IntAnd
 			STR* v52;
 			STRLIT(v52, "prim-int-and", 12);
 			int64_t v53 = 0LL;
 			branch_Int_5 = v53;
 			branch_Str_4 = v52;
 		} break;
-		case 24LL: { // PRIM_INT_OR
+		case 24LL: { // IntOr
 			STR* v54;
 			STRLIT(v54, "prim-int-or", 11);
 			int64_t v55 = 0LL;
 			branch_Int_5 = v55;
 			branch_Str_4 = v54;
 		} break;
-		case 25LL: { // PRIM_INT_XOR
+		case 25LL: { // IntXor
 			STR* v56;
 			STRLIT(v56, "prim-int-xor", 12);
 			int64_t v57 = 0LL;
 			branch_Int_5 = v57;
 			branch_Str_4 = v56;
 		} break;
-		case 26LL: { // PRIM_INT_SHL
+		case 26LL: { // IntShl
 			STR* v58;
 			STRLIT(v58, "prim-int-shl", 12);
 			int64_t v59 = 0LL;
 			branch_Int_5 = v59;
 			branch_Str_4 = v58;
 		} break;
-		case 27LL: { // PRIM_INT_SHR
+		case 27LL: { // IntShr
 			STR* v60;
 			STRLIT(v60, "prim-int-shr", 12);
 			int64_t v61 = 0LL;
 			branch_Int_5 = v61;
 			branch_Str_4 = v60;
 		} break;
-		case 28LL: { // PRIM_INT_TO_STR
+		case 28LL: { // IntToStr
 			STR* v62;
 			STRLIT(v62, "prim-int-to-str", 15);
 			int64_t v63 = 0LL;
 			branch_Int_5 = v63;
 			branch_Str_4 = v62;
 		} break;
-		case 29LL: { // PRIM_INT_TO_I64
+		case 29LL: { // IntToI64
 			STR* v64;
 			STRLIT(v64, "prim-int-to-i64", 15);
 			int64_t v65 = 0LL;
 			branch_Int_5 = v65;
 			branch_Str_4 = v64;
 		} break;
-		case 30LL: { // PRIM_INT_TO_F32
+		case 30LL: { // IntToF32
 			STR* v66;
 			STRLIT(v66, "prim-int-to-f32", 15);
 			int64_t v67 = 0LL;
 			branch_Int_5 = v67;
 			branch_Str_4 = v66;
 		} break;
-		case 31LL: { // PRIM_INT_TO_F64
+		case 31LL: { // IntToF64
 			STR* v68;
 			STRLIT(v68, "prim-int-to-f64", 15);
 			int64_t v69 = 0LL;
 			branch_Int_5 = v69;
 			branch_Str_4 = v68;
 		} break;
-		case 32LL: { // PRIM_U8_GET
+		case 32LL: { // U8Get
 			STR* v70;
 			STRLIT(v70, "prim-u8-get", 11);
 			int64_t v71 = 0LL;
 			branch_Int_5 = v71;
 			branch_Str_4 = v70;
 		} break;
-		case 33LL: { // PRIM_U8_SET
+		case 33LL: { // U8Set
 			STR* v72;
 			STRLIT(v72, "prim-u8-set", 11);
 			int64_t v73 = 0LL;
 			branch_Int_5 = v73;
 			branch_Str_4 = v72;
 		} break;
-		case 34LL: { // PRIM_U16_GET
+		case 34LL: { // U16Get
 			STR* v74;
 			STRLIT(v74, "prim-u16-get", 12);
 			int64_t v75 = 0LL;
 			branch_Int_5 = v75;
 			branch_Str_4 = v74;
 		} break;
-		case 35LL: { // PRIM_U16_SET
+		case 35LL: { // U16Set
 			STR* v76;
 			STRLIT(v76, "prim-u16-set", 12);
 			int64_t v77 = 0LL;
 			branch_Int_5 = v77;
 			branch_Str_4 = v76;
 		} break;
-		case 36LL: { // PRIM_U32_GET
+		case 36LL: { // U32Get
 			STR* v78;
 			STRLIT(v78, "prim-u32-get", 12);
 			int64_t v79 = 0LL;
 			branch_Int_5 = v79;
 			branch_Str_4 = v78;
 		} break;
-		case 37LL: { // PRIM_U32_SET
+		case 37LL: { // U32Set
 			STR* v80;
 			STRLIT(v80, "prim-u32-set", 12);
 			int64_t v81 = 0LL;
 			branch_Int_5 = v81;
 			branch_Str_4 = v80;
 		} break;
-		case 38LL: { // PRIM_U64_GET
+		case 38LL: { // U64Get
 			STR* v82;
 			STRLIT(v82, "prim-u64-get", 12);
 			int64_t v83 = 0LL;
 			branch_Int_5 = v83;
 			branch_Str_4 = v82;
 		} break;
-		case 39LL: { // PRIM_U64_SET
+		case 39LL: { // U64Set
 			STR* v84;
 			STRLIT(v84, "prim-u64-set", 12);
 			int64_t v85 = 0LL;
 			branch_Int_5 = v85;
 			branch_Str_4 = v84;
 		} break;
-		case 40LL: { // PRIM_I8_GET
+		case 40LL: { // I8Get
 			STR* v86;
 			STRLIT(v86, "prim-i8-get", 11);
 			int64_t v87 = 0LL;
 			branch_Int_5 = v87;
 			branch_Str_4 = v86;
 		} break;
-		case 41LL: { // PRIM_I8_SET
+		case 41LL: { // I8Set
 			STR* v88;
 			STRLIT(v88, "prim-i8-set", 11);
 			int64_t v89 = 0LL;
 			branch_Int_5 = v89;
 			branch_Str_4 = v88;
 		} break;
-		case 42LL: { // PRIM_I16_GET
+		case 42LL: { // I16Get
 			STR* v90;
 			STRLIT(v90, "prim-i16-get", 12);
 			int64_t v91 = 0LL;
 			branch_Int_5 = v91;
 			branch_Str_4 = v90;
 		} break;
-		case 43LL: { // PRIM_I16_SET
+		case 43LL: { // I16Set
 			STR* v92;
 			STRLIT(v92, "prim-i16-set", 12);
 			int64_t v93 = 0LL;
 			branch_Int_5 = v93;
 			branch_Str_4 = v92;
 		} break;
-		case 44LL: { // PRIM_I32_GET
+		case 44LL: { // I32Get
 			STR* v94;
 			STRLIT(v94, "prim-i32-get", 12);
 			int64_t v95 = 0LL;
 			branch_Int_5 = v95;
 			branch_Str_4 = v94;
 		} break;
-		case 45LL: { // PRIM_I32_SET
+		case 45LL: { // I32Set
 			STR* v96;
 			STRLIT(v96, "prim-i32-set", 12);
 			int64_t v97 = 0LL;
 			branch_Int_5 = v97;
 			branch_Str_4 = v96;
 		} break;
-		case 46LL: { // PRIM_I64_GET
+		case 46LL: { // I64Get
 			STR* v98;
 			STRLIT(v98, "prim-i64-get", 12);
 			int64_t v99 = 0LL;
 			branch_Int_5 = v99;
 			branch_Str_4 = v98;
 		} break;
-		case 47LL: { // PRIM_I64_SET
+		case 47LL: { // I64Set
 			STR* v100;
 			STRLIT(v100, "prim-i64-set", 12);
 			int64_t v101 = 0LL;
 			branch_Int_5 = v101;
 			branch_Str_4 = v100;
 		} break;
-		case 48LL: { // PRIM_I64_TO_INT
+		case 48LL: { // I64ToInt
 			STR* v102;
 			STRLIT(v102, "prim-i64-to-int", 15);
 			int64_t v103 = 0LL;
 			branch_Int_5 = v103;
 			branch_Str_4 = v102;
 		} break;
-		case 49LL: { // PRIM_F32_EQ
+		case 49LL: { // F32Eq
 			STR* v104;
 			STRLIT(v104, "prim-f32-eq", 11);
 			int64_t v105 = 0LL;
 			branch_Int_5 = v105;
 			branch_Str_4 = v104;
 		} break;
-		case 50LL: { // PRIM_F32_LT
+		case 50LL: { // F32Lt
 			STR* v106;
 			STRLIT(v106, "prim-f32-lt", 11);
 			int64_t v107 = 0LL;
 			branch_Int_5 = v107;
 			branch_Str_4 = v106;
 		} break;
-		case 51LL: { // PRIM_F32_ADD
+		case 51LL: { // F32Add
 			STR* v108;
 			STRLIT(v108, "prim-f32-add", 12);
 			int64_t v109 = 0LL;
 			branch_Int_5 = v109;
 			branch_Str_4 = v108;
 		} break;
-		case 52LL: { // PRIM_F32_SUB
+		case 52LL: { // F32Sub
 			STR* v110;
 			STRLIT(v110, "prim-f32-sub", 12);
 			int64_t v111 = 0LL;
 			branch_Int_5 = v111;
 			branch_Str_4 = v110;
 		} break;
-		case 53LL: { // PRIM_F32_MUL
+		case 53LL: { // F32Mul
 			STR* v112;
 			STRLIT(v112, "prim-f32-mul", 12);
 			int64_t v113 = 0LL;
 			branch_Int_5 = v113;
 			branch_Str_4 = v112;
 		} break;
-		case 54LL: { // PRIM_F32_DIV
+		case 54LL: { // F32Div
 			STR* v114;
 			STRLIT(v114, "prim-f32-div", 12);
 			int64_t v115 = 0LL;
 			branch_Int_5 = v115;
 			branch_Str_4 = v114;
 		} break;
-		case 55LL: { // PRIM_F32_TO_INT
+		case 55LL: { // F32ToInt
 			STR* v116;
 			STRLIT(v116, "prim-f32-to-int", 15);
 			int64_t v117 = 0LL;
 			branch_Int_5 = v117;
 			branch_Str_4 = v116;
 		} break;
-		case 56LL: { // PRIM_F32_TO_STR
+		case 56LL: { // F32ToStr
 			STR* v118;
 			STRLIT(v118, "prim-f32-to-str", 15);
 			int64_t v119 = 0LL;
 			branch_Int_5 = v119;
 			branch_Str_4 = v118;
 		} break;
-		case 57LL: { // PRIM_F32_TO_F64
+		case 57LL: { // F32ToF64
 			STR* v120;
 			STRLIT(v120, "prim-f32-to-f64", 15);
 			int64_t v121 = 0LL;
 			branch_Int_5 = v121;
 			branch_Str_4 = v120;
 		} break;
-		case 58LL: { // PRIM_F64_EQ
+		case 58LL: { // F64Eq
 			STR* v122;
 			STRLIT(v122, "prim-f64-eq", 11);
 			int64_t v123 = 0LL;
 			branch_Int_5 = v123;
 			branch_Str_4 = v122;
 		} break;
-		case 59LL: { // PRIM_F64_LT
+		case 59LL: { // F64Lt
 			STR* v124;
 			STRLIT(v124, "prim-f64-lt", 11);
 			int64_t v125 = 0LL;
 			branch_Int_5 = v125;
 			branch_Str_4 = v124;
 		} break;
-		case 60LL: { // PRIM_F64_ADD
+		case 60LL: { // F64Add
 			STR* v126;
 			STRLIT(v126, "prim-f64-add", 12);
 			int64_t v127 = 0LL;
 			branch_Int_5 = v127;
 			branch_Str_4 = v126;
 		} break;
-		case 61LL: { // PRIM_F64_SUB
+		case 61LL: { // F64Sub
 			STR* v128;
 			STRLIT(v128, "prim-f64-sub", 12);
 			int64_t v129 = 0LL;
 			branch_Int_5 = v129;
 			branch_Str_4 = v128;
 		} break;
-		case 62LL: { // PRIM_F64_MUL
+		case 62LL: { // F64Mul
 			STR* v130;
 			STRLIT(v130, "prim-f64-mul", 12);
 			int64_t v131 = 0LL;
 			branch_Int_5 = v131;
 			branch_Str_4 = v130;
 		} break;
-		case 63LL: { // PRIM_F64_DIV
+		case 63LL: { // F64Div
 			STR* v132;
 			STRLIT(v132, "prim-f64-div", 12);
 			int64_t v133 = 0LL;
 			branch_Int_5 = v133;
 			branch_Str_4 = v132;
 		} break;
-		case 64LL: { // PRIM_F64_TO_INT
+		case 64LL: { // F64ToInt
 			STR* v134;
 			STRLIT(v134, "prim-f64-to-int", 15);
 			int64_t v135 = 0LL;
 			branch_Int_5 = v135;
 			branch_Str_4 = v134;
 		} break;
-		case 65LL: { // PRIM_F64_TO_STR
+		case 65LL: { // F64ToStr
 			STR* v136;
 			STRLIT(v136, "prim-f64-to-str", 15);
 			int64_t v137 = 0LL;
 			branch_Int_5 = v137;
 			branch_Str_4 = v136;
 		} break;
-		case 66LL: { // PRIM_F64_TO_F32
+		case 66LL: { // F64ToF32
 			STR* v138;
 			STRLIT(v138, "prim-f64-to-f32", 15);
 			int64_t v139 = 0LL;
 			branch_Int_5 = v139;
 			branch_Str_4 = v138;
 		} break;
-		case 67LL: { // PRIM_BOOL_AND
+		case 67LL: { // BoolAnd
 			STR* v140;
 			STRLIT(v140, "prim-bool-and", 13);
 			int64_t v141 = 0LL;
 			branch_Int_5 = v141;
 			branch_Str_4 = v140;
 		} break;
-		case 68LL: { // PRIM_BOOL_OR
+		case 68LL: { // BoolOr
 			STR* v142;
 			STRLIT(v142, "prim-bool-or", 12);
 			int64_t v143 = 0LL;
 			branch_Int_5 = v143;
 			branch_Str_4 = v142;
 		} break;
-		case 69LL: { // PRIM_BOOL_NOT
+		case 69LL: { // BoolNot
 			STR* v144;
 			STRLIT(v144, "prim-bool-not", 13);
 			int64_t v145 = 0LL;
 			branch_Int_5 = v145;
 			branch_Str_4 = v144;
 		} break;
-		case 70LL: { // PRIM_TUP_PACK0
+		case 70LL: { // TupPack0
 			STR* v146;
 			STRLIT(v146, "prim-tup-pack0", 14);
 			int64_t v147 = 0LL;
 			branch_Int_5 = v147;
 			branch_Str_4 = v146;
 		} break;
-		case 71LL: { // PRIM_TUP_PACK1
+		case 71LL: { // TupPack1
 			STR* v148;
 			STRLIT(v148, "prim-tup-pack1", 14);
 			int64_t v149 = 0LL;
 			branch_Int_5 = v149;
 			branch_Str_4 = v148;
 		} break;
-		case 72LL: { // PRIM_TUP_PACK2
+		case 72LL: { // TupPack2
 			STR* v150;
 			STRLIT(v150, "prim-tup-pack2", 14);
 			int64_t v151 = 0LL;
 			branch_Int_5 = v151;
 			branch_Str_4 = v150;
 		} break;
-		case 73LL: { // PRIM_TUP_PACK3
+		case 73LL: { // TupPack3
 			STR* v152;
 			STRLIT(v152, "prim-tup-pack3", 14);
 			int64_t v153 = 0LL;
 			branch_Int_5 = v153;
 			branch_Str_4 = v152;
 		} break;
-		case 74LL: { // PRIM_TUP_PACK4
+		case 74LL: { // TupPack4
 			STR* v154;
 			STRLIT(v154, "prim-tup-pack4", 14);
 			int64_t v155 = 0LL;
 			branch_Int_5 = v155;
 			branch_Str_4 = v154;
 		} break;
-		case 75LL: { // PRIM_TUP_PACK5
+		case 75LL: { // TupPack5
 			STR* v156;
 			STRLIT(v156, "prim-tup-pack5", 14);
 			int64_t v157 = 0LL;
 			branch_Int_5 = v157;
 			branch_Str_4 = v156;
 		} break;
-		case 76LL: { // PRIM_TUP_UNPACK0
+		case 76LL: { // TupUnpack0
 			STR* v158;
 			STRLIT(v158, "prim-tup-unpack0", 16);
 			int64_t v159 = 0LL;
 			branch_Int_5 = v159;
 			branch_Str_4 = v158;
 		} break;
-		case 77LL: { // PRIM_TUP_UNPACK1
+		case 77LL: { // TupUnpack1
 			STR* v160;
 			STRLIT(v160, "prim-tup-unpack1", 16);
 			int64_t v161 = 0LL;
 			branch_Int_5 = v161;
 			branch_Str_4 = v160;
 		} break;
-		case 78LL: { // PRIM_TUP_UNPACK2
+		case 78LL: { // TupUnpack2
 			STR* v162;
 			STRLIT(v162, "prim-tup-unpack2", 16);
 			int64_t v163 = 0LL;
 			branch_Int_5 = v163;
 			branch_Str_4 = v162;
 		} break;
-		case 79LL: { // PRIM_TUP_UNPACK3
+		case 79LL: { // TupUnpack3
 			STR* v164;
 			STRLIT(v164, "prim-tup-unpack3", 16);
 			int64_t v165 = 0LL;
 			branch_Int_5 = v165;
 			branch_Str_4 = v164;
 		} break;
-		case 80LL: { // PRIM_TUP_UNPACK4
+		case 80LL: { // TupUnpack4
 			STR* v166;
 			STRLIT(v166, "prim-tup-unpack4", 16);
 			int64_t v167 = 0LL;
 			branch_Int_5 = v167;
 			branch_Str_4 = v166;
 		} break;
-		case 81LL: { // PRIM_TUP_UNPACK5
+		case 81LL: { // TupUnpack5
 			STR* v168;
 			STRLIT(v168, "prim-tup-unpack5", 16);
 			int64_t v169 = 0LL;
 			branch_Int_5 = v169;
 			branch_Str_4 = v168;
 		} break;
-		case 82LL: { // PRIM_MUT_GET
+		case 82LL: { // MutGet
 			STR* v170;
 			STRLIT(v170, "prim-mut-get", 12);
 			int64_t v171 = 0LL;
 			branch_Int_5 = v171;
 			branch_Str_4 = v170;
 		} break;
-		case 83LL: { // PRIM_MUT_SET
+		case 83LL: { // MutSet
 			STR* v172;
 			STRLIT(v172, "prim-mut-set", 12);
 			int64_t v173 = 0LL;
 			branch_Int_5 = v173;
 			branch_Str_4 = v172;
 		} break;
-		case 84LL: { // PRIM_MUT_IS_SET
+		case 84LL: { // MutIsSet
 			STR* v174;
 			STRLIT(v174, "prim-mut-is-set", 15);
 			int64_t v175 = 0LL;
 			branch_Int_5 = v175;
 			branch_Str_4 = v174;
 		} break;
-		case 85LL: { // PRIM_PTR_NIL
+		case 85LL: { // PtrNil
 			STR* v176;
 			STRLIT(v176, "prim-ptr-nil", 12);
 			int64_t v177 = 0LL;
 			branch_Int_5 = v177;
 			branch_Str_4 = v176;
 		} break;
-		case 86LL: { // PRIM_PTR_EQ
+		case 86LL: { // PtrEq
 			STR* v178;
 			STRLIT(v178, "prim-ptr-eq", 11);
 			int64_t v179 = 0LL;
 			branch_Int_5 = v179;
 			branch_Str_4 = v178;
 		} break;
-		case 87LL: { // PRIM_PTR_ADD
+		case 87LL: { // PtrAdd
 			STR* v180;
 			STRLIT(v180, "prim-ptr-add", 12);
 			int64_t v181 = 0LL;
 			branch_Int_5 = v181;
 			branch_Str_4 = v180;
 		} break;
-		case 88LL: { // PRIM_PTR_SIZE
+		case 88LL: { // PtrSize
 			STR* v182;
 			STRLIT(v182, "prim-ptr-size", 13);
 			int64_t v183 = 0LL;
 			branch_Int_5 = v183;
 			branch_Str_4 = v182;
 		} break;
-		case 89LL: { // PRIM_PTR_ALLOC
+		case 89LL: { // PtrAlloc
 			STR* v184;
 			STRLIT(v184, "prim-ptr-alloc", 14);
 			int64_t v185 = 0LL;
 			branch_Int_5 = v185;
 			branch_Str_4 = v184;
 		} break;
-		case 90LL: { // PRIM_PTR_REALLOC
+		case 90LL: { // PtrRealloc
 			STR* v186;
 			STRLIT(v186, "prim-ptr-realloc", 16);
 			int64_t v187 = 0LL;
 			branch_Int_5 = v187;
 			branch_Str_4 = v186;
 		} break;
-		case 91LL: { // PRIM_PTR_FREE
+		case 91LL: { // PtrFree
 			STR* v188;
 			STRLIT(v188, "prim-ptr-free", 13);
 			int64_t v189 = 0LL;
 			branch_Int_5 = v189;
 			branch_Str_4 = v188;
 		} break;
-		case 92LL: { // PRIM_PTR_COPY
+		case 92LL: { // PtrCopy
 			STR* v190;
 			STRLIT(v190, "prim-ptr-copy", 13);
 			int64_t v191 = 0LL;
 			branch_Int_5 = v191;
 			branch_Str_4 = v190;
 		} break;
-		case 93LL: { // PRIM_PTR_FILL
+		case 93LL: { // PtrFill
 			STR* v192;
 			STRLIT(v192, "prim-ptr-fill", 13);
 			int64_t v193 = 0LL;
 			branch_Int_5 = v193;
 			branch_Str_4 = v192;
 		} break;
-		case 94LL: { // PRIM_PTR_GET
+		case 94LL: { // PtrGet
 			STR* v194;
 			STRLIT(v194, "prim-ptr-get", 12);
 			int64_t v195 = 0LL;
 			branch_Int_5 = v195;
 			branch_Str_4 = v194;
 		} break;
-		case 95LL: { // PRIM_PTR_SET
+		case 95LL: { // PtrSet
 			STR* v196;
 			STRLIT(v196, "prim-ptr-set", 12);
 			int64_t v197 = 0LL;
 			branch_Int_5 = v197;
 			branch_Str_4 = v196;
 		} break;
-		case 96LL: { // PRIM_STR_COPY
+		case 96LL: { // StrCopy
 			STR* v198;
 			STRLIT(v198, "prim-str-copy", 13);
 			int64_t v199 = 0LL;
 			branch_Int_5 = v199;
 			branch_Str_4 = v198;
 		} break;
-		case 97LL: { // PRIM_STR_NUM_BYTES
+		case 97LL: { // StrNumBytes
 			STR* v200;
 			STRLIT(v200, "prim-str-num-bytes", 18);
 			int64_t v201 = 0LL;
 			branch_Int_5 = v201;
 			branch_Str_4 = v200;
 		} break;
-		case 98LL: { // PRIM_STR_BASE
+		case 98LL: { // StrBase
 			STR* v202;
 			STRLIT(v202, "prim-str-base", 13);
 			int64_t v203 = 0LL;
 			branch_Int_5 = v203;
 			branch_Str_4 = v202;
 		} break;
-		case 99LL: { // PRIM_STR_CAT
+		case 99LL: { // StrCat
 			STR* v204;
 			STRLIT(v204, "prim-str-cat", 12);
 			int64_t v205 = 0LL;
 			branch_Int_5 = v205;
 			branch_Str_4 = v204;
 		} break;
-		case 100LL: { // PRIM_STR_CMP
+		case 100LL: { // StrCmp
 			STR* v206;
 			STRLIT(v206, "prim-str-cmp", 12);
 			int64_t v207 = 0LL;
 			branch_Int_5 = v207;
 			branch_Str_4 = v206;
 		} break;
-		case 101LL: { // PRIM_STR_EQ
+		case 101LL: { // StrEq
 			STR* v208;
 			STRLIT(v208, "prim-str-eq", 11);
 			int64_t v209 = 0LL;
 			branch_Int_5 = v209;
 			branch_Str_4 = v208;
 		} break;
-		case 102LL: { // PRIM_STR_LT
+		case 102LL: { // StrLt
 			STR* v210;
 			STRLIT(v210, "prim-str-lt", 11);
 			int64_t v211 = 0LL;
 			branch_Int_5 = v211;
 			branch_Str_4 = v210;
 		} break;
-		case 103LL: { // PRIM_STR_LE
+		case 103LL: { // StrLe
 			STR* v212;
 			STRLIT(v212, "prim-str-le", 11);
 			int64_t v213 = 0LL;
 			branch_Int_5 = v213;
 			branch_Str_4 = v212;
 		} break;
-		case 104LL: { // PRIM_STR_GT
+		case 104LL: { // StrGt
 			STR* v214;
 			STRLIT(v214, "prim-str-gt", 11);
 			int64_t v215 = 0LL;
 			branch_Int_5 = v215;
 			branch_Str_4 = v214;
 		} break;
-		case 105LL: { // PRIM_STR_GE
+		case 105LL: { // StrGe
 			STR* v216;
 			STRLIT(v216, "prim-str-ge", 11);
 			int64_t v217 = 0LL;
 			branch_Int_5 = v217;
 			branch_Str_4 = v216;
 		} break;
-		case 106LL: { // PRIM_STR_NE
+		case 106LL: { // StrNe
 			STR* v218;
 			STRLIT(v218, "prim-str-ne", 11);
 			int64_t v219 = 0LL;
 			branch_Int_5 = v219;
 			branch_Str_4 = v218;
 		} break;
-		case 108LL: { // PRIM_STR_TO_F32
+		case 108LL: { // StrToF32
 			STR* v220;
 			STRLIT(v220, "prim-str-to-f32", 15);
 			int64_t v221 = 0LL;
 			branch_Int_5 = v221;
 			branch_Str_4 = v220;
 		} break;
-		case 107LL: { // PRIM_STR_TO_F64
+		case 107LL: { // StrToF64
 			STR* v222;
 			STRLIT(v222, "prim-str-to-f64", 15);
 			int64_t v223 = 0LL;
 			branch_Int_5 = v223;
 			branch_Str_4 = v222;
 		} break;
-		case 109LL: { // PRIM_SYS_OS
+		case 109LL: { // SysOs
 			STR* v224;
 			STRLIT(v224, "prim-sys-os", 11);
 			int64_t v225 = 0LL;
 			branch_Int_5 = v225;
 			branch_Str_4 = v224;
 		} break;
-		case 110LL: { // PRIM_SYS_ARCH
+		case 110LL: { // SysArch
 			STR* v226;
 			STRLIT(v226, "prim-sys-arch", 13);
 			int64_t v227 = 0LL;
 			branch_Int_5 = v227;
 			branch_Str_4 = v226;
 		} break;
-		case 111LL: { // PRIM_SYS_ARGC
+		case 111LL: { // SysArgc
 			STR* v228;
 			STRLIT(v228, "prim-sys-argc", 13);
 			int64_t v229 = 0LL;
 			branch_Int_5 = v229;
 			branch_Str_4 = v228;
 		} break;
-		case 112LL: { // PRIM_SYS_ARGV
+		case 112LL: { // SysArgv
 			STR* v230;
 			STRLIT(v230, "prim-sys-argv", 13);
 			int64_t v231 = 0LL;
@@ -23147,7 +23147,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 	VAL branch_Ctx_7;
 	TUP* branch_ArrowType_8;
 	switch (in_Prim_2) {
-		case 0LL: { // PRIM_CORE_ID
+		case 0LL: { // Id
 			VAL v9 = mw_mirth_var_Ctx_L0();
 			VAL v10 = mw_mirth_type_T0();
 			VAL v11 = mw_mirth_type_T0();
@@ -23156,7 +23156,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v9;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 1LL: { // PRIM_CORE_DUP
+		case 1LL: { // Dup
 			VAL v13 = mw_mirth_var_Ctx_L0();
 			STR* v14;
 			STRLIT(v14, "a", 1);
@@ -23173,7 +23173,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v16;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 2LL: { // PRIM_CORE_DROP
+		case 2LL: { // Drop
 			VAL v20 = mw_mirth_var_Ctx_L0();
 			STR* v21;
 			STRLIT(v21, "a", 1);
@@ -23188,7 +23188,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v23;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 3LL: { // PRIM_CORE_SWAP
+		case 3LL: { // Swap
 			VAL v27 = mw_mirth_var_Ctx_L0();
 			STR* v28;
 			STRLIT(v28, "a", 1);
@@ -23211,7 +23211,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v33;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 4LL: { // PRIM_CORE_RSWAP
+		case 4LL: { // RSwap
 			VAL v37 = mw_mirth_var_Ctx_L0();
 			STR* v38;
 			STRLIT(v38, "+a", 2);
@@ -23238,7 +23238,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v43;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 5LL: { // PRIM_CORE_DIP
+		case 5LL: { // Dip
 			VAL v51 = mw_mirth_var_Ctx_L0();
 			STR* v52;
 			STRLIT(v52, "*a", 2);
@@ -23271,7 +23271,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v60;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 6LL: { // PRIM_CORE_RDIP
+		case 6LL: { // RDip
 			VAL v67 = mw_mirth_var_Ctx_L0();
 			STR* v68;
 			STRLIT(v68, "*a", 2);
@@ -23304,7 +23304,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v76;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 7LL: { // PRIM_CORE_IF
+		case 7LL: { // If
 			VAL v83 = mw_mirth_var_Ctx_L0();
 			STR* v84;
 			STRLIT(v84, "*a", 2);
@@ -23336,7 +23336,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v89;
 			branch_ZPlusMirth_6 = v90;
 		} break;
-		case 8LL: { // PRIM_CORE_WHILE
+		case 8LL: { // While
 			VAL v100 = mw_mirth_var_Ctx_L0();
 			STR* v101;
 			STRLIT(v101, "*a", 2);
@@ -23363,7 +23363,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v103;
 			branch_ZPlusMirth_6 = v104;
 		} break;
-		case 9LL: { // PRIM_CORE_DEBUG
+		case 9LL: { // Debug
 			VAL v114 = mw_mirth_var_Ctx_L0();
 			VAL v115 = mw_mirth_type_T0();
 			VAL v116 = mw_mirth_type_T0();
@@ -23372,7 +23372,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v114;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 10LL: { // PRIM_CORE_PANIC
+		case 10LL: { // Panic
 			VAL v118 = mw_mirth_var_Ctx_L0();
 			STR* v119;
 			STRLIT(v119, "*a", 2);
@@ -23393,7 +23393,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v124;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 11LL: { // PRIM_CORE_RUN
+		case 11LL: { // Run
 			VAL v128 = mw_mirth_var_Ctx_L0();
 			STR* v129;
 			STRLIT(v129, "*a", 2);
@@ -23417,7 +23417,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v134;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 12LL: { // PRIM_INT_EQ
+		case 12LL: { // IntEq
 			VAL v139 = mw_mirth_var_Ctx_L0();
 			VAL v140 = mw_mirth_type_Type_Int();
 			VAL v141 = mw_mirth_type_Type_Int();
@@ -23430,7 +23430,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v139;
 			branch_ZPlusMirth_6 = v143;
 		} break;
-		case 13LL: { // PRIM_INT_LT
+		case 13LL: { // IntLt
 			VAL v147 = mw_mirth_var_Ctx_L0();
 			VAL v148 = mw_mirth_type_Type_Int();
 			VAL v149 = mw_mirth_type_Type_Int();
@@ -23443,7 +23443,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v147;
 			branch_ZPlusMirth_6 = v151;
 		} break;
-		case 14LL: { // PRIM_INT_LE
+		case 14LL: { // IntLe
 			VAL v155 = mw_mirth_var_Ctx_L0();
 			VAL v156 = mw_mirth_type_Type_Int();
 			VAL v157 = mw_mirth_type_Type_Int();
@@ -23456,7 +23456,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v155;
 			branch_ZPlusMirth_6 = v159;
 		} break;
-		case 15LL: { // PRIM_INT_GT
+		case 15LL: { // IntGt
 			VAL v163 = mw_mirth_var_Ctx_L0();
 			VAL v164 = mw_mirth_type_Type_Int();
 			VAL v165 = mw_mirth_type_Type_Int();
@@ -23469,7 +23469,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v163;
 			branch_ZPlusMirth_6 = v167;
 		} break;
-		case 16LL: { // PRIM_INT_GE
+		case 16LL: { // IntGe
 			VAL v171 = mw_mirth_var_Ctx_L0();
 			VAL v172 = mw_mirth_type_Type_Int();
 			VAL v173 = mw_mirth_type_Type_Int();
@@ -23482,7 +23482,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v171;
 			branch_ZPlusMirth_6 = v175;
 		} break;
-		case 17LL: { // PRIM_INT_NE
+		case 17LL: { // IntNe
 			VAL v179 = mw_mirth_var_Ctx_L0();
 			VAL v180 = mw_mirth_type_Type_Int();
 			VAL v181 = mw_mirth_type_Type_Int();
@@ -23495,7 +23495,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v179;
 			branch_ZPlusMirth_6 = v183;
 		} break;
-		case 18LL: { // PRIM_INT_ADD
+		case 18LL: { // IntAdd
 			VAL v187 = mw_mirth_var_Ctx_L0();
 			VAL v188 = mw_mirth_type_Type_Int();
 			VAL v189 = mw_mirth_type_Type_Int();
@@ -23507,7 +23507,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v187;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 19LL: { // PRIM_INT_SUB
+		case 19LL: { // IntSub
 			VAL v194 = mw_mirth_var_Ctx_L0();
 			VAL v195 = mw_mirth_type_Type_Int();
 			VAL v196 = mw_mirth_type_Type_Int();
@@ -23519,7 +23519,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v194;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 20LL: { // PRIM_INT_MUL
+		case 20LL: { // IntMul
 			VAL v201 = mw_mirth_var_Ctx_L0();
 			VAL v202 = mw_mirth_type_Type_Int();
 			VAL v203 = mw_mirth_type_Type_Int();
@@ -23531,7 +23531,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v201;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 21LL: { // PRIM_INT_DIV
+		case 21LL: { // IntDiv
 			VAL v208 = mw_mirth_var_Ctx_L0();
 			VAL v209 = mw_mirth_type_Type_Int();
 			VAL v210 = mw_mirth_type_Type_Int();
@@ -23543,7 +23543,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v208;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 22LL: { // PRIM_INT_MOD
+		case 22LL: { // IntMod
 			VAL v215 = mw_mirth_var_Ctx_L0();
 			VAL v216 = mw_mirth_type_Type_Int();
 			VAL v217 = mw_mirth_type_Type_Int();
@@ -23555,7 +23555,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v215;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 23LL: { // PRIM_INT_AND
+		case 23LL: { // IntAnd
 			VAL v222 = mw_mirth_var_Ctx_L0();
 			VAL v223 = mw_mirth_type_Type_Int();
 			VAL v224 = mw_mirth_type_Type_Int();
@@ -23567,7 +23567,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v222;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 24LL: { // PRIM_INT_OR
+		case 24LL: { // IntOr
 			VAL v229 = mw_mirth_var_Ctx_L0();
 			VAL v230 = mw_mirth_type_Type_Int();
 			VAL v231 = mw_mirth_type_Type_Int();
@@ -23579,7 +23579,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v229;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 25LL: { // PRIM_INT_XOR
+		case 25LL: { // IntXor
 			VAL v236 = mw_mirth_var_Ctx_L0();
 			VAL v237 = mw_mirth_type_Type_Int();
 			VAL v238 = mw_mirth_type_Type_Int();
@@ -23591,7 +23591,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v236;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 26LL: { // PRIM_INT_SHL
+		case 26LL: { // IntShl
 			VAL v243 = mw_mirth_var_Ctx_L0();
 			VAL v244 = mw_mirth_type_Type_Int();
 			VAL v245 = mw_mirth_type_Type_Int();
@@ -23603,7 +23603,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v243;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 27LL: { // PRIM_INT_SHR
+		case 27LL: { // IntShr
 			VAL v250 = mw_mirth_var_Ctx_L0();
 			VAL v251 = mw_mirth_type_Type_Int();
 			VAL v252 = mw_mirth_type_Type_Int();
@@ -23615,7 +23615,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v250;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 28LL: { // PRIM_INT_TO_STR
+		case 28LL: { // IntToStr
 			VAL v257 = mw_mirth_var_Ctx_L0();
 			VAL v258 = mw_mirth_type_Type_Int();
 			VAL v259 = mw_mirth_type_T1(v258);
@@ -23626,7 +23626,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v257;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 29LL: { // PRIM_INT_TO_I64
+		case 29LL: { // IntToI64
 			VAL v263 = mw_mirth_var_Ctx_L0();
 			VAL v264 = mw_mirth_type_Type_Int();
 			VAL v265 = mw_mirth_type_T1(v264);
@@ -23638,7 +23638,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v263;
 			branch_ZPlusMirth_6 = v266;
 		} break;
-		case 30LL: { // PRIM_INT_TO_F32
+		case 30LL: { // IntToF32
 			VAL v270 = mw_mirth_var_Ctx_L0();
 			VAL v271 = mw_mirth_type_Type_Int();
 			VAL v272 = mw_mirth_type_T1(v271);
@@ -23649,7 +23649,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v270;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 31LL: { // PRIM_INT_TO_F64
+		case 31LL: { // IntToF64
 			VAL v276 = mw_mirth_var_Ctx_L0();
 			VAL v277 = mw_mirth_type_Type_Int();
 			VAL v278 = mw_mirth_type_T1(v277);
@@ -23660,7 +23660,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v276;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 32LL: { // PRIM_U8_GET
+		case 32LL: { // U8Get
 			VAL v282 = mw_mirth_var_Ctx_L0();
 			VAL v283 = mw_mirth_type_Type_Ptr();
 			VAL v284 = mw_mirth_type_T1(v283);
@@ -23672,7 +23672,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v282;
 			branch_ZPlusMirth_6 = v285;
 		} break;
-		case 33LL: { // PRIM_U8_SET
+		case 33LL: { // U8Set
 			VAL v289 = mw_mirth_var_Ctx_L0();
 			TUP* v290;
 			VAL v291 = mw_mirth_type_Type_U8(in_ZPlusMirth_1, &v290);
@@ -23684,7 +23684,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v289;
 			branch_ZPlusMirth_6 = v290;
 		} break;
-		case 34LL: { // PRIM_U16_GET
+		case 34LL: { // U16Get
 			VAL v296 = mw_mirth_var_Ctx_L0();
 			VAL v297 = mw_mirth_type_Type_Ptr();
 			VAL v298 = mw_mirth_type_T1(v297);
@@ -23696,7 +23696,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v296;
 			branch_ZPlusMirth_6 = v299;
 		} break;
-		case 35LL: { // PRIM_U16_SET
+		case 35LL: { // U16Set
 			VAL v303 = mw_mirth_var_Ctx_L0();
 			TUP* v304;
 			VAL v305 = mw_mirth_type_Type_U16(in_ZPlusMirth_1, &v304);
@@ -23708,7 +23708,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v303;
 			branch_ZPlusMirth_6 = v304;
 		} break;
-		case 36LL: { // PRIM_U32_GET
+		case 36LL: { // U32Get
 			VAL v310 = mw_mirth_var_Ctx_L0();
 			VAL v311 = mw_mirth_type_Type_Ptr();
 			VAL v312 = mw_mirth_type_T1(v311);
@@ -23720,7 +23720,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v310;
 			branch_ZPlusMirth_6 = v313;
 		} break;
-		case 37LL: { // PRIM_U32_SET
+		case 37LL: { // U32Set
 			VAL v317 = mw_mirth_var_Ctx_L0();
 			TUP* v318;
 			VAL v319 = mw_mirth_type_Type_U32(in_ZPlusMirth_1, &v318);
@@ -23732,7 +23732,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v317;
 			branch_ZPlusMirth_6 = v318;
 		} break;
-		case 38LL: { // PRIM_U64_GET
+		case 38LL: { // U64Get
 			VAL v324 = mw_mirth_var_Ctx_L0();
 			VAL v325 = mw_mirth_type_Type_Ptr();
 			VAL v326 = mw_mirth_type_T1(v325);
@@ -23744,7 +23744,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v324;
 			branch_ZPlusMirth_6 = v327;
 		} break;
-		case 39LL: { // PRIM_U64_SET
+		case 39LL: { // U64Set
 			VAL v331 = mw_mirth_var_Ctx_L0();
 			TUP* v332;
 			VAL v333 = mw_mirth_type_Type_U64(in_ZPlusMirth_1, &v332);
@@ -23756,7 +23756,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v331;
 			branch_ZPlusMirth_6 = v332;
 		} break;
-		case 40LL: { // PRIM_I8_GET
+		case 40LL: { // I8Get
 			VAL v338 = mw_mirth_var_Ctx_L0();
 			VAL v339 = mw_mirth_type_Type_Ptr();
 			VAL v340 = mw_mirth_type_T1(v339);
@@ -23768,7 +23768,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v338;
 			branch_ZPlusMirth_6 = v341;
 		} break;
-		case 41LL: { // PRIM_I8_SET
+		case 41LL: { // I8Set
 			VAL v345 = mw_mirth_var_Ctx_L0();
 			TUP* v346;
 			VAL v347 = mw_mirth_type_Type_I8(in_ZPlusMirth_1, &v346);
@@ -23780,7 +23780,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v345;
 			branch_ZPlusMirth_6 = v346;
 		} break;
-		case 42LL: { // PRIM_I16_GET
+		case 42LL: { // I16Get
 			VAL v352 = mw_mirth_var_Ctx_L0();
 			VAL v353 = mw_mirth_type_Type_Ptr();
 			VAL v354 = mw_mirth_type_T1(v353);
@@ -23792,7 +23792,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v352;
 			branch_ZPlusMirth_6 = v355;
 		} break;
-		case 43LL: { // PRIM_I16_SET
+		case 43LL: { // I16Set
 			VAL v359 = mw_mirth_var_Ctx_L0();
 			TUP* v360;
 			VAL v361 = mw_mirth_type_Type_I16(in_ZPlusMirth_1, &v360);
@@ -23804,7 +23804,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v359;
 			branch_ZPlusMirth_6 = v360;
 		} break;
-		case 44LL: { // PRIM_I32_GET
+		case 44LL: { // I32Get
 			VAL v366 = mw_mirth_var_Ctx_L0();
 			VAL v367 = mw_mirth_type_Type_Ptr();
 			VAL v368 = mw_mirth_type_T1(v367);
@@ -23816,7 +23816,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v366;
 			branch_ZPlusMirth_6 = v369;
 		} break;
-		case 45LL: { // PRIM_I32_SET
+		case 45LL: { // I32Set
 			VAL v373 = mw_mirth_var_Ctx_L0();
 			TUP* v374;
 			VAL v375 = mw_mirth_type_Type_I32(in_ZPlusMirth_1, &v374);
@@ -23828,7 +23828,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v373;
 			branch_ZPlusMirth_6 = v374;
 		} break;
-		case 46LL: { // PRIM_I64_GET
+		case 46LL: { // I64Get
 			VAL v380 = mw_mirth_var_Ctx_L0();
 			VAL v381 = mw_mirth_type_Type_Ptr();
 			VAL v382 = mw_mirth_type_T1(v381);
@@ -23840,7 +23840,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v380;
 			branch_ZPlusMirth_6 = v383;
 		} break;
-		case 47LL: { // PRIM_I64_SET
+		case 47LL: { // I64Set
 			VAL v387 = mw_mirth_var_Ctx_L0();
 			TUP* v388;
 			VAL v389 = mw_mirth_type_Type_I64(in_ZPlusMirth_1, &v388);
@@ -23852,7 +23852,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v387;
 			branch_ZPlusMirth_6 = v388;
 		} break;
-		case 48LL: { // PRIM_I64_TO_INT
+		case 48LL: { // I64ToInt
 			VAL v394 = mw_mirth_var_Ctx_L0();
 			TUP* v395;
 			VAL v396 = mw_mirth_type_Type_I64(in_ZPlusMirth_1, &v395);
@@ -23864,7 +23864,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v394;
 			branch_ZPlusMirth_6 = v395;
 		} break;
-		case 49LL: { // PRIM_F32_EQ
+		case 49LL: { // F32Eq
 			VAL v401 = mw_mirth_var_Ctx_L0();
 			VAL v402 = mw_mirth_type_Type_F32();
 			VAL v403 = mw_mirth_type_Type_F32();
@@ -23877,7 +23877,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v401;
 			branch_ZPlusMirth_6 = v405;
 		} break;
-		case 50LL: { // PRIM_F32_LT
+		case 50LL: { // F32Lt
 			VAL v409 = mw_mirth_var_Ctx_L0();
 			VAL v410 = mw_mirth_type_Type_F32();
 			VAL v411 = mw_mirth_type_Type_F32();
@@ -23890,7 +23890,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v409;
 			branch_ZPlusMirth_6 = v413;
 		} break;
-		case 51LL: { // PRIM_F32_ADD
+		case 51LL: { // F32Add
 			VAL v417 = mw_mirth_var_Ctx_L0();
 			VAL v418 = mw_mirth_type_Type_F32();
 			VAL v419 = mw_mirth_type_Type_F32();
@@ -23902,7 +23902,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v417;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 52LL: { // PRIM_F32_SUB
+		case 52LL: { // F32Sub
 			VAL v424 = mw_mirth_var_Ctx_L0();
 			VAL v425 = mw_mirth_type_Type_F32();
 			VAL v426 = mw_mirth_type_Type_F32();
@@ -23914,7 +23914,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v424;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 53LL: { // PRIM_F32_MUL
+		case 53LL: { // F32Mul
 			VAL v431 = mw_mirth_var_Ctx_L0();
 			VAL v432 = mw_mirth_type_Type_F32();
 			VAL v433 = mw_mirth_type_Type_F32();
@@ -23926,7 +23926,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v431;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 54LL: { // PRIM_F32_DIV
+		case 54LL: { // F32Div
 			VAL v438 = mw_mirth_var_Ctx_L0();
 			VAL v439 = mw_mirth_type_Type_F32();
 			VAL v440 = mw_mirth_type_Type_F32();
@@ -23938,7 +23938,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v438;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 55LL: { // PRIM_F32_TO_INT
+		case 55LL: { // F32ToInt
 			VAL v445 = mw_mirth_var_Ctx_L0();
 			VAL v446 = mw_mirth_type_Type_F32();
 			VAL v447 = mw_mirth_type_T1(v446);
@@ -23949,7 +23949,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v445;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 56LL: { // PRIM_F32_TO_STR
+		case 56LL: { // F32ToStr
 			VAL v451 = mw_mirth_var_Ctx_L0();
 			VAL v452 = mw_mirth_type_Type_F32();
 			VAL v453 = mw_mirth_type_T1(v452);
@@ -23960,7 +23960,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v451;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 57LL: { // PRIM_F32_TO_F64
+		case 57LL: { // F32ToF64
 			VAL v457 = mw_mirth_var_Ctx_L0();
 			VAL v458 = mw_mirth_type_Type_F32();
 			VAL v459 = mw_mirth_type_T1(v458);
@@ -23971,7 +23971,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v457;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 58LL: { // PRIM_F64_EQ
+		case 58LL: { // F64Eq
 			VAL v463 = mw_mirth_var_Ctx_L0();
 			VAL v464 = mw_mirth_type_Type_F64();
 			VAL v465 = mw_mirth_type_Type_F64();
@@ -23984,7 +23984,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v463;
 			branch_ZPlusMirth_6 = v467;
 		} break;
-		case 59LL: { // PRIM_F64_LT
+		case 59LL: { // F64Lt
 			VAL v471 = mw_mirth_var_Ctx_L0();
 			VAL v472 = mw_mirth_type_Type_F64();
 			VAL v473 = mw_mirth_type_Type_F64();
@@ -23997,7 +23997,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v471;
 			branch_ZPlusMirth_6 = v475;
 		} break;
-		case 60LL: { // PRIM_F64_ADD
+		case 60LL: { // F64Add
 			VAL v479 = mw_mirth_var_Ctx_L0();
 			VAL v480 = mw_mirth_type_Type_F64();
 			VAL v481 = mw_mirth_type_Type_F64();
@@ -24009,7 +24009,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v479;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 61LL: { // PRIM_F64_SUB
+		case 61LL: { // F64Sub
 			VAL v486 = mw_mirth_var_Ctx_L0();
 			VAL v487 = mw_mirth_type_Type_F64();
 			VAL v488 = mw_mirth_type_Type_F64();
@@ -24021,7 +24021,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v486;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 62LL: { // PRIM_F64_MUL
+		case 62LL: { // F64Mul
 			VAL v493 = mw_mirth_var_Ctx_L0();
 			VAL v494 = mw_mirth_type_Type_F64();
 			VAL v495 = mw_mirth_type_Type_F64();
@@ -24033,7 +24033,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v493;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 63LL: { // PRIM_F64_DIV
+		case 63LL: { // F64Div
 			VAL v500 = mw_mirth_var_Ctx_L0();
 			VAL v501 = mw_mirth_type_Type_F64();
 			VAL v502 = mw_mirth_type_Type_F64();
@@ -24045,7 +24045,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v500;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 64LL: { // PRIM_F64_TO_INT
+		case 64LL: { // F64ToInt
 			VAL v507 = mw_mirth_var_Ctx_L0();
 			VAL v508 = mw_mirth_type_Type_F64();
 			VAL v509 = mw_mirth_type_T1(v508);
@@ -24056,7 +24056,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v507;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 65LL: { // PRIM_F64_TO_STR
+		case 65LL: { // F64ToStr
 			VAL v513 = mw_mirth_var_Ctx_L0();
 			VAL v514 = mw_mirth_type_Type_F64();
 			VAL v515 = mw_mirth_type_T1(v514);
@@ -24067,7 +24067,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v513;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 66LL: { // PRIM_F64_TO_F32
+		case 66LL: { // F64ToF32
 			VAL v519 = mw_mirth_var_Ctx_L0();
 			VAL v520 = mw_mirth_type_Type_F64();
 			VAL v521 = mw_mirth_type_T1(v520);
@@ -24078,7 +24078,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v519;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 67LL: { // PRIM_BOOL_AND
+		case 67LL: { // BoolAnd
 			VAL v525 = mw_mirth_var_Ctx_L0();
 			TUP* v526;
 			VAL v527 = mw_mirth_type_Type_Bool(in_ZPlusMirth_1, &v526);
@@ -24093,7 +24093,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v525;
 			branch_ZPlusMirth_6 = v531;
 		} break;
-		case 68LL: { // PRIM_BOOL_OR
+		case 68LL: { // BoolOr
 			VAL v535 = mw_mirth_var_Ctx_L0();
 			TUP* v536;
 			VAL v537 = mw_mirth_type_Type_Bool(in_ZPlusMirth_1, &v536);
@@ -24108,7 +24108,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v535;
 			branch_ZPlusMirth_6 = v541;
 		} break;
-		case 69LL: { // PRIM_BOOL_NOT
+		case 69LL: { // BoolNot
 			VAL v545 = mw_mirth_var_Ctx_L0();
 			TUP* v546;
 			VAL v547 = mw_mirth_type_Type_Bool(in_ZPlusMirth_1, &v546);
@@ -24121,7 +24121,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v545;
 			branch_ZPlusMirth_6 = v549;
 		} break;
-		case 70LL: { // PRIM_TUP_PACK0
+		case 70LL: { // TupPack0
 			VAL v553 = mw_mirth_var_Ctx_L0();
 			VAL v554 = mw_mirth_type_T0();
 			incref(v554);
@@ -24132,7 +24132,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v553;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 71LL: { // PRIM_TUP_PACK1
+		case 71LL: { // TupPack1
 			VAL v558 = mw_mirth_var_Ctx_L0();
 			STR* v559;
 			STRLIT(v559, "a", 1);
@@ -24147,7 +24147,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v561;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 72LL: { // PRIM_TUP_PACK2
+		case 72LL: { // TupPack2
 			VAL v566 = mw_mirth_var_Ctx_L0();
 			STR* v567;
 			STRLIT(v567, "a", 1);
@@ -24166,7 +24166,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v572;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 73LL: { // PRIM_TUP_PACK3
+		case 73LL: { // TupPack3
 			VAL v577 = mw_mirth_var_Ctx_L0();
 			STR* v578;
 			STRLIT(v578, "a", 1);
@@ -24189,7 +24189,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v586;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 74LL: { // PRIM_TUP_PACK4
+		case 74LL: { // TupPack4
 			VAL v591 = mw_mirth_var_Ctx_L0();
 			STR* v592;
 			STRLIT(v592, "a", 1);
@@ -24216,7 +24216,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v603;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 75LL: { // PRIM_TUP_PACK5
+		case 75LL: { // TupPack5
 			VAL v608 = mw_mirth_var_Ctx_L0();
 			STR* v609;
 			STRLIT(v609, "a", 1);
@@ -24247,7 +24247,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v623;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 76LL: { // PRIM_TUP_UNPACK0
+		case 76LL: { // TupUnpack0
 			VAL v628 = mw_mirth_var_Ctx_L0();
 			VAL v629 = mw_mirth_type_T0();
 			incref(v629);
@@ -24258,7 +24258,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v628;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 77LL: { // PRIM_TUP_UNPACK1
+		case 77LL: { // TupUnpack1
 			VAL v633 = mw_mirth_var_Ctx_L0();
 			STR* v634;
 			STRLIT(v634, "a", 1);
@@ -24273,7 +24273,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v636;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 78LL: { // PRIM_TUP_UNPACK2
+		case 78LL: { // TupUnpack2
 			VAL v641 = mw_mirth_var_Ctx_L0();
 			STR* v642;
 			STRLIT(v642, "a", 1);
@@ -24292,7 +24292,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v647;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 79LL: { // PRIM_TUP_UNPACK3
+		case 79LL: { // TupUnpack3
 			VAL v652 = mw_mirth_var_Ctx_L0();
 			STR* v653;
 			STRLIT(v653, "a", 1);
@@ -24315,7 +24315,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v661;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 80LL: { // PRIM_TUP_UNPACK4
+		case 80LL: { // TupUnpack4
 			VAL v666 = mw_mirth_var_Ctx_L0();
 			STR* v667;
 			STRLIT(v667, "a", 1);
@@ -24342,7 +24342,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v678;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 81LL: { // PRIM_TUP_UNPACK5
+		case 81LL: { // TupUnpack5
 			VAL v683 = mw_mirth_var_Ctx_L0();
 			STR* v684;
 			STRLIT(v684, "a", 1);
@@ -24373,7 +24373,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v698;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 82LL: { // PRIM_MUT_GET
+		case 82LL: { // MutGet
 			VAL v703 = mw_mirth_var_Ctx_L0();
 			STR* v704;
 			STRLIT(v704, "a", 1);
@@ -24390,7 +24390,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v706;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 83LL: { // PRIM_MUT_SET
+		case 83LL: { // MutSet
 			VAL v711 = mw_mirth_var_Ctx_L0();
 			STR* v712;
 			STRLIT(v712, "a", 1);
@@ -24407,7 +24407,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v714;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 84LL: { // PRIM_MUT_IS_SET
+		case 84LL: { // MutIsSet
 			VAL v719 = mw_mirth_var_Ctx_L0();
 			STR* v720;
 			STRLIT(v720, "a", 1);
@@ -24425,7 +24425,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v722;
 			branch_ZPlusMirth_6 = v725;
 		} break;
-		case 85LL: { // PRIM_PTR_NIL
+		case 85LL: { // PtrNil
 			VAL v729 = mw_mirth_var_Ctx_L0();
 			VAL v730 = mw_mirth_type_T0();
 			VAL v731 = mw_mirth_type_Type_Ptr();
@@ -24435,7 +24435,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v729;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 86LL: { // PRIM_PTR_EQ
+		case 86LL: { // PtrEq
 			VAL v734 = mw_mirth_var_Ctx_L0();
 			VAL v735 = mw_mirth_type_Type_Ptr();
 			VAL v736 = mw_mirth_type_Type_Ptr();
@@ -24448,7 +24448,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v734;
 			branch_ZPlusMirth_6 = v738;
 		} break;
-		case 87LL: { // PRIM_PTR_ADD
+		case 87LL: { // PtrAdd
 			VAL v742 = mw_mirth_var_Ctx_L0();
 			VAL v743 = mw_mirth_type_Type_Int();
 			VAL v744 = mw_mirth_type_Type_Ptr();
@@ -24460,7 +24460,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v742;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 88LL: { // PRIM_PTR_SIZE
+		case 88LL: { // PtrSize
 			VAL v749 = mw_mirth_var_Ctx_L0();
 			VAL v750 = mw_mirth_type_T0();
 			VAL v751 = mw_mirth_type_Type_Int();
@@ -24470,7 +24470,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v749;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 89LL: { // PRIM_PTR_ALLOC
+		case 89LL: { // PtrAlloc
 			VAL v754 = mw_mirth_var_Ctx_L0();
 			VAL v755 = mw_mirth_type_Type_Int();
 			VAL v756 = mw_mirth_type_T1(v755);
@@ -24481,7 +24481,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v754;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 90LL: { // PRIM_PTR_REALLOC
+		case 90LL: { // PtrRealloc
 			VAL v760 = mw_mirth_var_Ctx_L0();
 			VAL v761 = mw_mirth_type_Type_Ptr();
 			VAL v762 = mw_mirth_type_Type_Int();
@@ -24493,7 +24493,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v760;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 91LL: { // PRIM_PTR_FREE
+		case 91LL: { // PtrFree
 			VAL v767 = mw_mirth_var_Ctx_L0();
 			VAL v768 = mw_mirth_type_Type_Ptr();
 			VAL v769 = mw_mirth_type_T1(v768);
@@ -24503,7 +24503,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v767;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 92LL: { // PRIM_PTR_COPY
+		case 92LL: { // PtrCopy
 			VAL v772 = mw_mirth_var_Ctx_L0();
 			VAL v773 = mw_mirth_type_Type_Ptr();
 			VAL v774 = mw_mirth_type_Type_Int();
@@ -24515,7 +24515,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v772;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 93LL: { // PRIM_PTR_FILL
+		case 93LL: { // PtrFill
 			VAL v779 = mw_mirth_var_Ctx_L0();
 			VAL v780 = mw_mirth_type_Type_Int();
 			VAL v781 = mw_mirth_type_Type_Int();
@@ -24527,7 +24527,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v779;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 94LL: { // PRIM_PTR_GET
+		case 94LL: { // PtrGet
 			VAL v786 = mw_mirth_var_Ctx_L0();
 			VAL v787 = mw_mirth_type_Type_Ptr();
 			VAL v788 = mw_mirth_type_T1(v787);
@@ -24538,7 +24538,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v786;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 95LL: { // PRIM_PTR_SET
+		case 95LL: { // PtrSet
 			VAL v792 = mw_mirth_var_Ctx_L0();
 			VAL v793 = mw_mirth_type_Type_Ptr();
 			VAL v794 = mw_mirth_type_Type_Ptr();
@@ -24549,7 +24549,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v792;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 96LL: { // PRIM_STR_COPY
+		case 96LL: { // StrCopy
 			VAL v798 = mw_mirth_var_Ctx_L0();
 			VAL v799 = mw_mirth_type_Type_Ptr();
 			VAL v800 = mw_mirth_type_Type_Int();
@@ -24561,7 +24561,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v798;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 97LL: { // PRIM_STR_NUM_BYTES
+		case 97LL: { // StrNumBytes
 			VAL v805 = mw_mirth_var_Ctx_L0();
 			VAL v806 = mw_mirth_type_Type_Str();
 			VAL v807 = mw_mirth_type_T1(v806);
@@ -24572,7 +24572,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v805;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 98LL: { // PRIM_STR_BASE
+		case 98LL: { // StrBase
 			VAL v811 = mw_mirth_var_Ctx_L0();
 			VAL v812 = mw_mirth_type_Type_Str();
 			VAL v813 = mw_mirth_type_T1(v812);
@@ -24583,7 +24583,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v811;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 99LL: { // PRIM_STR_CAT
+		case 99LL: { // StrCat
 			VAL v817 = mw_mirth_var_Ctx_L0();
 			VAL v818 = mw_mirth_type_Type_Str();
 			VAL v819 = mw_mirth_type_Type_Str();
@@ -24595,7 +24595,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v817;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 100LL: { // PRIM_STR_CMP
+		case 100LL: { // StrCmp
 			VAL v824 = mw_mirth_var_Ctx_L0();
 			VAL v825 = mw_mirth_type_Type_Str();
 			VAL v826 = mw_mirth_type_Type_Str();
@@ -24607,7 +24607,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v824;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 101LL: { // PRIM_STR_EQ
+		case 101LL: { // StrEq
 			VAL v831 = mw_mirth_var_Ctx_L0();
 			VAL v832 = mw_mirth_type_Type_Str();
 			VAL v833 = mw_mirth_type_Type_Str();
@@ -24620,7 +24620,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v831;
 			branch_ZPlusMirth_6 = v835;
 		} break;
-		case 102LL: { // PRIM_STR_LT
+		case 102LL: { // StrLt
 			VAL v839 = mw_mirth_var_Ctx_L0();
 			VAL v840 = mw_mirth_type_Type_Str();
 			VAL v841 = mw_mirth_type_Type_Str();
@@ -24633,7 +24633,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v839;
 			branch_ZPlusMirth_6 = v843;
 		} break;
-		case 103LL: { // PRIM_STR_LE
+		case 103LL: { // StrLe
 			VAL v847 = mw_mirth_var_Ctx_L0();
 			VAL v848 = mw_mirth_type_Type_Str();
 			VAL v849 = mw_mirth_type_Type_Str();
@@ -24646,7 +24646,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v847;
 			branch_ZPlusMirth_6 = v851;
 		} break;
-		case 104LL: { // PRIM_STR_GT
+		case 104LL: { // StrGt
 			VAL v855 = mw_mirth_var_Ctx_L0();
 			VAL v856 = mw_mirth_type_Type_Str();
 			VAL v857 = mw_mirth_type_Type_Str();
@@ -24659,7 +24659,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v855;
 			branch_ZPlusMirth_6 = v859;
 		} break;
-		case 105LL: { // PRIM_STR_GE
+		case 105LL: { // StrGe
 			VAL v863 = mw_mirth_var_Ctx_L0();
 			VAL v864 = mw_mirth_type_Type_Str();
 			VAL v865 = mw_mirth_type_Type_Str();
@@ -24672,7 +24672,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v863;
 			branch_ZPlusMirth_6 = v867;
 		} break;
-		case 106LL: { // PRIM_STR_NE
+		case 106LL: { // StrNe
 			VAL v871 = mw_mirth_var_Ctx_L0();
 			VAL v872 = mw_mirth_type_Type_Str();
 			VAL v873 = mw_mirth_type_Type_Str();
@@ -24685,7 +24685,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v871;
 			branch_ZPlusMirth_6 = v875;
 		} break;
-		case 108LL: { // PRIM_STR_TO_F32
+		case 108LL: { // StrToF32
 			VAL v879 = mw_mirth_var_Ctx_L0();
 			VAL v880 = mw_mirth_type_Type_Str();
 			VAL v881 = mw_mirth_type_T1(v880);
@@ -24697,7 +24697,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v879;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 107LL: { // PRIM_STR_TO_F64
+		case 107LL: { // StrToF64
 			VAL v886 = mw_mirth_var_Ctx_L0();
 			VAL v887 = mw_mirth_type_Type_Str();
 			VAL v888 = mw_mirth_type_T1(v887);
@@ -24709,7 +24709,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v886;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 109LL: { // PRIM_SYS_OS
+		case 109LL: { // SysOs
 			VAL v893 = mw_mirth_var_Ctx_L0();
 			VAL v894 = mw_mirth_type_T0();
 			VAL v895 = mw_mirth_type_Type_Int();
@@ -24719,7 +24719,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v893;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 110LL: { // PRIM_SYS_ARCH
+		case 110LL: { // SysArch
 			VAL v898 = mw_mirth_var_Ctx_L0();
 			VAL v899 = mw_mirth_type_T0();
 			VAL v900 = mw_mirth_type_Type_Int();
@@ -24729,7 +24729,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v898;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 111LL: { // PRIM_SYS_ARGC
+		case 111LL: { // SysArgc
 			VAL v903 = mw_mirth_var_Ctx_L0();
 			VAL v904 = mw_mirth_type_T0();
 			VAL v905 = mw_mirth_type_Type_Int();
@@ -24739,7 +24739,7 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 			branch_Ctx_7 = v903;
 			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
 		} break;
-		case 112LL: { // PRIM_SYS_ARGV
+		case 112LL: { // SysArgv
 			VAL v908 = mw_mirth_var_Ctx_L0();
 			VAL v909 = mw_mirth_type_T0();
 			VAL v910 = mw_mirth_type_Type_Ptr();
@@ -33238,7 +33238,7 @@ static void mw_mirth_elab_ZPlusAB_elabZ_labelZ_getZBang (uint64_t in_Label_1, TU
 		TUP* branch_ZPlusMirth_29;
 		TUP* branch_ZPlusAB_30;
 		if (v27) {
-			int64_t v31 = 1LL /* PRIM_CORE_DUP */;
+			int64_t v31 = 1LL /* Dup */;
 			TUP* v32;
 			TUP* v33;
 			mw_mirth_elab_ZPlusAB_abZ_primZBang(v31, v21, v23, &v32, &v33);
@@ -33278,7 +33278,7 @@ static void mw_mirth_elab_ZPlusAB_elabZ_labelZ_setZBang (uint64_t in_Label_1, TU
 	TUP* v9;
 	TUP* v10;
 	mw_mirth_elab_ZPlusAB_abZ_labelZ_popZBang(in_Label_1, v8, v6, &v9, &v10);
-	int64_t v11 = 2LL /* PRIM_CORE_DROP */;
+	int64_t v11 = 2LL /* Drop */;
 	TUP* v12;
 	TUP* v13;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v11, v9, v10, &v12, &v13);
@@ -34342,7 +34342,7 @@ static TUP* mw_mirth_elab_atomZ_acceptsZ_argsZAsk (TUP* in_Atom_1, int64_t *out_
 			TUP* branch_Atom_13;
 			int64_t branch_Bool_14;
 			switch (v12) {
-				case 5LL: { // PRIM_CORE_DIP
+				case 5LL: { // Dip
 					incref(MKTUP(in_Atom_1, 8));
 					VAL v15 = in_Atom_1->cells[4];
 					incref(v15);
@@ -34353,7 +34353,7 @@ static TUP* mw_mirth_elab_atomZ_acceptsZ_argsZAsk (TUP* in_Atom_1, int64_t *out_
 					branch_Bool_14 = ((int64_t)v18);
 					branch_Atom_13 = in_Atom_1;
 				} break;
-				case 6LL: { // PRIM_CORE_RDIP
+				case 6LL: { // RDip
 					incref(MKTUP(in_Atom_1, 8));
 					VAL v19 = in_Atom_1->cells[4];
 					incref(v19);
@@ -34364,7 +34364,7 @@ static TUP* mw_mirth_elab_atomZ_acceptsZ_argsZAsk (TUP* in_Atom_1, int64_t *out_
 					branch_Bool_14 = ((int64_t)v22);
 					branch_Atom_13 = in_Atom_1;
 				} break;
-				case 7LL: { // PRIM_CORE_IF
+				case 7LL: { // If
 					incref(MKTUP(in_Atom_1, 8));
 					VAL v23 = in_Atom_1->cells[4];
 					incref(v23);
@@ -34375,7 +34375,7 @@ static TUP* mw_mirth_elab_atomZ_acceptsZ_argsZAsk (TUP* in_Atom_1, int64_t *out_
 					branch_Bool_14 = ((int64_t)v26);
 					branch_Atom_13 = in_Atom_1;
 				} break;
-				case 8LL: { // PRIM_CORE_WHILE
+				case 8LL: { // While
 					incref(MKTUP(in_Atom_1, 8));
 					VAL v27 = in_Atom_1->cells[4];
 					incref(v27);
@@ -40335,7 +40335,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v164;
 	TUP* v165;
 	mw_mirth_elab_ZPlusAB_abZ_intZBang(v163, v161, v162, &v164, &v165);
-	int64_t v166 = 18LL /* PRIM_INT_ADD */;
+	int64_t v166 = 18LL /* IntAdd */;
 	TUP* v167;
 	TUP* v168;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v166, v164, v165, &v167, &v168);
@@ -40387,7 +40387,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v205;
 	TUP* v206;
 	mw_mirth_elab_ZPlusAB_abZ_opZBang(v204, v192, v203, &v205, &v206);
-	int64_t v207 = 1LL /* PRIM_CORE_DUP */;
+	int64_t v207 = 1LL /* Dup */;
 	TUP* v208;
 	TUP* v209;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v207, v205, v206, &v208, &v209);
@@ -40395,7 +40395,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v211;
 	TUP* v212;
 	mw_mirth_elab_ZPlusAB_abZ_intZBang(v210, v208, v209, &v211, &v212);
-	int64_t v213 = 12LL /* PRIM_INT_EQ */;
+	int64_t v213 = 12LL /* IntEq */;
 	TUP* v214;
 	TUP* v215;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v213, v211, v212, &v214, &v215);
@@ -40431,7 +40431,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v242;
 	TUP* v243;
 	mw_mirth_elab_ZPlusAB_abZ_intZBang(v241, v229, v240, &v242, &v243);
-	int64_t v244 = 19LL /* PRIM_INT_SUB */;
+	int64_t v244 = 19LL /* IntSub */;
 	TUP* v245;
 	TUP* v246;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v244, v242, v243, &v245, &v246);
@@ -40441,7 +40441,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v250;
 	TUP* v251;
 	mw_mirth_elab_ZPlusAB_abZ_opZBang(v249, v247, v237, &v250, &v251);
-	int64_t v252 = 7LL /* PRIM_CORE_IF */;
+	int64_t v252 = 7LL /* If */;
 	TUP* v253;
 	TUP* v254;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v252, v250, v251, &v253, &v254);
@@ -40547,7 +40547,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	incref(v336);
 	VAL v339 = MKI64(0LL /* Nil */);
 	TUP* v340 = mtw_mirth_arrow_Arrow_Arrow(v338, v332, v332, v334, v336, v336, v339);
-	int64_t v341 = 1LL /* PRIM_CORE_DUP */;
+	int64_t v341 = 1LL /* Dup */;
 	TUP* v342;
 	TUP* v343;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v341, v329, v340, &v342, &v343);
@@ -40555,15 +40555,15 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v345;
 	TUP* v346;
 	mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v344, v342, v343, &v345, &v346);
-	int64_t v347 = 46LL /* PRIM_I64_GET */;
+	int64_t v347 = 46LL /* I64Get */;
 	TUP* v348;
 	TUP* v349;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v347, v345, v346, &v348, &v349);
-	int64_t v350 = 48LL /* PRIM_I64_TO_INT */;
+	int64_t v350 = 48LL /* I64ToInt */;
 	TUP* v351;
 	TUP* v352;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v350, v348, v349, &v351, &v352);
-	int64_t v353 = 14LL /* PRIM_INT_LE */;
+	int64_t v353 = 14LL /* IntLe */;
 	TUP* v354;
 	TUP* v355;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v353, v351, v352, &v354, &v355);
@@ -40584,7 +40584,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	incref(v366);
 	VAL v369 = MKI64(0LL /* Nil */);
 	TUP* v370 = mtw_mirth_arrow_Arrow_Arrow(v368, v362, v362, v364, v366, v366, v369);
-	int64_t v371 = 1LL /* PRIM_CORE_DUP */;
+	int64_t v371 = 1LL /* Dup */;
 	TUP* v372;
 	TUP* v373;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v371, v359, v370, &v372, &v373);
@@ -40612,7 +40612,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v392;
 	TUP* v393;
 	mw_mirth_elab_ZPlusAB_abZ_opZBang(v391, v389, v380, &v392, &v393);
-	int64_t v394 = 5LL /* PRIM_CORE_DIP */;
+	int64_t v394 = 5LL /* Dip */;
 	TUP* v395;
 	TUP* v396;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v394, v392, v393, &v395, &v396);
@@ -40620,7 +40620,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v398;
 	TUP* v399;
 	mw_mirth_elab_ZPlusAB_abZ_intZBang(v397, v395, v396, &v398, &v399);
-	int64_t v400 = 18LL /* PRIM_INT_ADD */;
+	int64_t v400 = 18LL /* IntAdd */;
 	TUP* v401;
 	TUP* v402;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v400, v398, v399, &v401, &v402);
@@ -40630,11 +40630,11 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v406;
 	TUP* v407;
 	mw_mirth_elab_ZPlusAB_abZ_opZBang(v405, v403, v367, &v406, &v407);
-	int64_t v408 = 8LL /* PRIM_CORE_WHILE */;
+	int64_t v408 = 8LL /* While */;
 	TUP* v409;
 	TUP* v410;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v408, v406, v407, &v409, &v410);
-	int64_t v411 = 2LL /* PRIM_CORE_DROP */;
+	int64_t v411 = 2LL /* Drop */;
 	TUP* v412;
 	TUP* v413;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v411, v409, v410, &v412, &v413);
@@ -40693,11 +40693,11 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v458;
 	TUP* v459;
 	mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v457, v445, v456, &v458, &v459);
-	int64_t v460 = 46LL /* PRIM_I64_GET */;
+	int64_t v460 = 46LL /* I64Get */;
 	TUP* v461;
 	TUP* v462;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v460, v458, v459, &v461, &v462);
-	int64_t v463 = 48LL /* PRIM_I64_TO_INT */;
+	int64_t v463 = 48LL /* I64ToInt */;
 	TUP* v464;
 	TUP* v465;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v463, v461, v462, &v464, &v465);
@@ -40705,15 +40705,15 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v467;
 	TUP* v468;
 	mw_mirth_elab_ZPlusAB_abZ_intZBang(v466, v464, v465, &v467, &v468);
-	int64_t v469 = 18LL /* PRIM_INT_ADD */;
+	int64_t v469 = 18LL /* IntAdd */;
 	TUP* v470;
 	TUP* v471;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v469, v467, v468, &v470, &v471);
-	int64_t v472 = 1LL /* PRIM_CORE_DUP */;
+	int64_t v472 = 1LL /* Dup */;
 	TUP* v473;
 	TUP* v474;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v472, v470, v471, &v473, &v474);
-	int64_t v475 = 29LL /* PRIM_INT_TO_I64 */;
+	int64_t v475 = 29LL /* IntToI64 */;
 	TUP* v476;
 	TUP* v477;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v475, v473, v474, &v476, &v477);
@@ -40721,7 +40721,7 @@ static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in
 	TUP* v479;
 	TUP* v480;
 	mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v478, v476, v477, &v479, &v480);
-	int64_t v481 = 47LL /* PRIM_I64_SET */;
+	int64_t v481 = 47LL /* I64Set */;
 	TUP* v482;
 	TUP* v483;
 	mw_mirth_elab_ZPlusAB_abZ_primZBang(v481, v479, v480, &v482, &v483);
@@ -49025,7 +49025,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (VAL in_List_1, int64_t in_P
 	TUP* branch_ZPlusMirth_7;
 	TUP* branch_ZPlusNeeds_8;
 	switch (in_Prim_2) {
-		case 5LL: { // PRIM_CORE_DIP
+		case 5LL: { // Dip
 			incref(in_List_1);
 			VAL v9 = mw_std_list_List_1_singleZAsk(in_List_1);
 			TUP* v10;
@@ -49034,7 +49034,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (VAL in_List_1, int64_t in_P
 			branch_ZPlusNeeds_8 = v11;
 			branch_ZPlusMirth_7 = v10;
 		} break;
-		case 6LL: { // PRIM_CORE_RDIP
+		case 6LL: { // RDip
 			incref(in_List_1);
 			VAL v12 = mw_std_list_List_1_singleZAsk(in_List_1);
 			TUP* v13;
@@ -49043,7 +49043,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (VAL in_List_1, int64_t in_P
 			branch_ZPlusNeeds_8 = v14;
 			branch_ZPlusMirth_7 = v13;
 		} break;
-		case 7LL: { // PRIM_CORE_IF
+		case 7LL: { // If
 			incref(in_List_1);
 			VAL v15 = mw_std_list_List_1_ZToL2ZAsk(in_List_1);
 			TUP* v16;
@@ -49052,7 +49052,7 @@ static void mw_mirth_need_ZPlusNeeds_runZ_primZBang (VAL in_List_1, int64_t in_P
 			branch_ZPlusNeeds_8 = v17;
 			branch_ZPlusMirth_7 = v16;
 		} break;
-		case 8LL: { // PRIM_CORE_WHILE
+		case 8LL: { // While
 			incref(in_List_1);
 			VAL v18 = mw_std_list_List_1_ZToL2ZAsk(in_List_1);
 			TUP* v19;
@@ -60854,11 +60854,11 @@ static VAL mw_mirth_c99_ZPlusC99Branch_popZ_resourceZ_labelZ_fromZ_stackZ_typeZB
 static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP* in_ZPlusC99Branch_3, TUP* *out_ZPlusC99Branch_4) {
 	TUP* branch_ZPlusC99Branch_5;
 	switch (in_Prim_2) {
-		case 0LL: { // PRIM_CORE_ID
+		case 0LL: { // Id
 			decref(MKTUP(in_Atom_1, 8));
 			branch_ZPlusC99Branch_5 = in_ZPlusC99Branch_3;
 		} break;
-		case 2LL: { // PRIM_CORE_DROP
+		case 2LL: { // Drop
 			VAL v6 = in_Atom_1->cells[5];
 			incref(v6);
 			decref(MKTUP(in_Atom_1, 8));
@@ -60870,7 +60870,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_dropZ_valueZBang(v7, v8, &v10);
 			branch_ZPlusC99Branch_5 = v10;
 		} break;
-		case 1LL: { // PRIM_CORE_DUP
+		case 1LL: { // Dup
 			VAL v11 = in_Atom_1->cells[5];
 			incref(v11);
 			decref(MKTUP(in_Atom_1, 8));
@@ -60888,7 +60888,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(v18, v17, &v19);
 			branch_ZPlusC99Branch_5 = v19;
 		} break;
-		case 3LL: { // PRIM_CORE_SWAP
+		case 3LL: { // Swap
 			VAL v20 = in_Atom_1->cells[5];
 			incref(v20);
 			decref(MKTUP(in_Atom_1, 8));
@@ -60905,7 +60905,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(v27, v25, &v28);
 			branch_ZPlusC99Branch_5 = v28;
 		} break;
-		case 4LL: { // PRIM_CORE_RSWAP
+		case 4LL: { // RSwap
 			VAL v29 = in_Atom_1->cells[5];
 			incref(v29);
 			decref(MKTUP(in_Atom_1, 8));
@@ -60922,7 +60922,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Resource_pushZ_resourceZBang(v36, v34, &v37);
 			branch_ZPlusC99Branch_5 = v37;
 		} break;
-		case 5LL: { // PRIM_CORE_DIP
+		case 5LL: { // Dip
 			incref(MKTUP(in_Atom_1, 8));
 			VAL v38 = in_Atom_1->cells[4];
 			incref(v38);
@@ -60942,7 +60942,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 					uint64_t v44 = value_u64(in_Atom_1->cells[1]);
 					decref(MKTUP(in_Atom_1, 8));
 					STR* v45;
-					STRLIT(v45, "unexpected number of arguments to PRIM_CORE_DIP", 47);
+					STRLIT(v45, "unexpected number of arguments to Dip", 37);
 					TUP* v46;
 					mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp14(v44, v45, in_ZPlusC99Branch_3, &v46);
 				} break;
@@ -60963,7 +60963,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(v53, v51, &v54);
 			branch_ZPlusC99Branch_5 = v54;
 		} break;
-		case 6LL: { // PRIM_CORE_RDIP
+		case 6LL: { // RDip
 			incref(MKTUP(in_Atom_1, 8));
 			VAL v55 = in_Atom_1->cells[4];
 			incref(v55);
@@ -60983,7 +60983,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 					uint64_t v61 = value_u64(in_Atom_1->cells[1]);
 					decref(MKTUP(in_Atom_1, 8));
 					STR* v62;
-					STRLIT(v62, "unexpected number of arguments to PRIM_CORE_RDIP", 48);
+					STRLIT(v62, "unexpected number of arguments to RDip", 38);
 					TUP* v63;
 					mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp14(v61, v62, in_ZPlusC99Branch_3, &v63);
 				} break;
@@ -61004,7 +61004,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Resource_pushZ_resourceZBang(v70, v68, &v71);
 			branch_ZPlusC99Branch_5 = v71;
 		} break;
-		case 7LL: { // PRIM_CORE_IF
+		case 7LL: { // If
 			incref(MKTUP(in_Atom_1, 8));
 			VAL v72 = in_Atom_1->cells[4];
 			incref(v72);
@@ -61024,7 +61024,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 					uint64_t v78 = value_u64(in_Atom_1->cells[1]);
 					decref(MKTUP(in_Atom_1, 8));
 					STR* v79;
-					STRLIT(v79, "unexpected number of arguments to PRIM_CORE_IF", 46);
+					STRLIT(v79, "unexpected number of arguments to If", 36);
 					TUP* v80;
 					mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp14(v78, v79, in_ZPlusC99Branch_3, &v80);
 				} break;
@@ -61185,7 +61185,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99BranchSplit_endZ_branchZ_splitZBang(v167, &v168);
 			branch_ZPlusC99Branch_5 = v168;
 		} break;
-		case 8LL: { // PRIM_CORE_WHILE
+		case 8LL: { // While
 			incref(MKTUP(in_Atom_1, 8));
 			VAL v169 = in_Atom_1->cells[4];
 			incref(v169);
@@ -61205,7 +61205,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 					uint64_t v175 = value_u64(in_Atom_1->cells[1]);
 					decref(MKTUP(in_Atom_1, 8));
 					STR* v176;
-					STRLIT(v176, "unexpected number of arguments to PRIM_CORE_WHILE", 49);
+					STRLIT(v176, "unexpected number of arguments to While", 39);
 					TUP* v177;
 					mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp14(v175, v176, in_ZPlusC99Branch_3, &v177);
 				} break;
@@ -61300,7 +61300,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_rdrop(v227);
 			branch_ZPlusC99Branch_5 = v226;
 		} break;
-		case 9LL: { // PRIM_CORE_DEBUG
+		case 9LL: { // Debug
 			decref(MKTUP(in_Atom_1, 8));
 			TUP* v228;
 			mw_mirth_c99_ZPlusC99Branch_flushZ_cacheZBang(in_ZPlusC99Branch_3, &v228);
@@ -61321,7 +61321,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			v228->cells[0] = MKTUP(v236, 7);
 			branch_ZPlusC99Branch_5 = v228;
 		} break;
-		case 10LL: { // PRIM_CORE_PANIC
+		case 10LL: { // Panic
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v237 = MKI64(2LL /* STR */);
 			incref(v237);
@@ -61358,7 +61358,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			v238->cells[3] = MKI64(v254);
 			branch_ZPlusC99Branch_5 = v238;
 		} break;
-		case 11LL: { // PRIM_CORE_RUN
+		case 11LL: { // Run
 			incref(MKTUP(in_Atom_1, 8));
 			VAL v255 = in_Atom_1->cells[4];
 			incref(v255);
@@ -61386,7 +61386,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_runZ_valueZBang(v264, v265, &v266);
 			branch_ZPlusC99Branch_5 = v266;
 		} break;
-		case 12LL: { // PRIM_INT_EQ
+		case 12LL: { // IntEq
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v267;
 			STRLIT(v267, "(", 1);
@@ -61403,7 +61403,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v267, v268, v269, v270, v271, v272, v274, in_ZPlusC99Branch_3, &v275);
 			branch_ZPlusC99Branch_5 = v275;
 		} break;
-		case 13LL: { // PRIM_INT_LT
+		case 13LL: { // IntLt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v276;
 			STRLIT(v276, "(", 1);
@@ -61420,7 +61420,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v276, v277, v278, v279, v280, v281, v283, in_ZPlusC99Branch_3, &v284);
 			branch_ZPlusC99Branch_5 = v284;
 		} break;
-		case 14LL: { // PRIM_INT_LE
+		case 14LL: { // IntLe
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v285;
 			STRLIT(v285, "(", 1);
@@ -61437,7 +61437,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v285, v286, v287, v288, v289, v290, v292, in_ZPlusC99Branch_3, &v293);
 			branch_ZPlusC99Branch_5 = v293;
 		} break;
-		case 15LL: { // PRIM_INT_GT
+		case 15LL: { // IntGt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v294;
 			STRLIT(v294, "(", 1);
@@ -61454,7 +61454,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v294, v295, v296, v297, v298, v299, v301, in_ZPlusC99Branch_3, &v302);
 			branch_ZPlusC99Branch_5 = v302;
 		} break;
-		case 16LL: { // PRIM_INT_GE
+		case 16LL: { // IntGe
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v303;
 			STRLIT(v303, "(", 1);
@@ -61471,7 +61471,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v303, v304, v305, v306, v307, v308, v310, in_ZPlusC99Branch_3, &v311);
 			branch_ZPlusC99Branch_5 = v311;
 		} break;
-		case 17LL: { // PRIM_INT_NE
+		case 17LL: { // IntNe
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v312;
 			STRLIT(v312, "(", 1);
@@ -61488,7 +61488,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v312, v313, v314, v315, v316, v317, v319, in_ZPlusC99Branch_3, &v320);
 			branch_ZPlusC99Branch_5 = v320;
 		} break;
-		case 18LL: { // PRIM_INT_ADD
+		case 18LL: { // IntAdd
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v321;
 			STRLIT(v321, "i64_add(", 8);
@@ -61505,7 +61505,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v321, v322, v323, v324, v325, v326, v328, in_ZPlusC99Branch_3, &v329);
 			branch_ZPlusC99Branch_5 = v329;
 		} break;
-		case 19LL: { // PRIM_INT_SUB
+		case 19LL: { // IntSub
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v330;
 			STRLIT(v330, "i64_sub(", 8);
@@ -61522,7 +61522,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v330, v331, v332, v333, v334, v335, v337, in_ZPlusC99Branch_3, &v338);
 			branch_ZPlusC99Branch_5 = v338;
 		} break;
-		case 20LL: { // PRIM_INT_MUL
+		case 20LL: { // IntMul
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v339;
 			STRLIT(v339, "i64_mul(", 8);
@@ -61539,7 +61539,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v339, v340, v341, v342, v343, v344, v346, in_ZPlusC99Branch_3, &v347);
 			branch_ZPlusC99Branch_5 = v347;
 		} break;
-		case 21LL: { // PRIM_INT_DIV
+		case 21LL: { // IntDiv
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v348;
 			STRLIT(v348, "i64_div(", 8);
@@ -61556,7 +61556,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v348, v349, v350, v351, v352, v353, v355, in_ZPlusC99Branch_3, &v356);
 			branch_ZPlusC99Branch_5 = v356;
 		} break;
-		case 22LL: { // PRIM_INT_MOD
+		case 22LL: { // IntMod
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v357;
 			STRLIT(v357, "i64_mod(", 8);
@@ -61573,7 +61573,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v357, v358, v359, v360, v361, v362, v364, in_ZPlusC99Branch_3, &v365);
 			branch_ZPlusC99Branch_5 = v365;
 		} break;
-		case 23LL: { // PRIM_INT_AND
+		case 23LL: { // IntAnd
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v366;
 			STRLIT(v366, "(", 1);
@@ -61590,7 +61590,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v366, v367, v368, v369, v370, v371, v373, in_ZPlusC99Branch_3, &v374);
 			branch_ZPlusC99Branch_5 = v374;
 		} break;
-		case 25LL: { // PRIM_INT_XOR
+		case 25LL: { // IntXor
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v375;
 			STRLIT(v375, "(", 1);
@@ -61607,7 +61607,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v375, v376, v377, v378, v379, v380, v382, in_ZPlusC99Branch_3, &v383);
 			branch_ZPlusC99Branch_5 = v383;
 		} break;
-		case 24LL: { // PRIM_INT_OR
+		case 24LL: { // IntOr
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v384;
 			STRLIT(v384, "(", 1);
@@ -61624,7 +61624,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v384, v385, v386, v387, v388, v389, v391, in_ZPlusC99Branch_3, &v392);
 			branch_ZPlusC99Branch_5 = v392;
 		} break;
-		case 26LL: { // PRIM_INT_SHL
+		case 26LL: { // IntShl
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v393;
 			STRLIT(v393, "u64_shl(", 8);
@@ -61641,7 +61641,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v393, v394, v395, v396, v397, v398, v400, in_ZPlusC99Branch_3, &v401);
 			branch_ZPlusC99Branch_5 = v401;
 		} break;
-		case 27LL: { // PRIM_INT_SHR
+		case 27LL: { // IntShr
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v402;
 			STRLIT(v402, "u64_shr(", 8);
@@ -61658,11 +61658,11 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v402, v403, v404, v405, v406, v407, v409, in_ZPlusC99Branch_3, &v410);
 			branch_ZPlusC99Branch_5 = v410;
 		} break;
-		case 29LL: { // PRIM_INT_TO_I64
+		case 29LL: { // IntToI64
 			decref(MKTUP(in_Atom_1, 8));
 			branch_ZPlusC99Branch_5 = in_ZPlusC99Branch_3;
 		} break;
-		case 30LL: { // PRIM_INT_TO_F32
+		case 30LL: { // IntToF32
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v411;
 			STRLIT(v411, "(float)", 7);
@@ -61675,7 +61675,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v411, v412, v413, v415, in_ZPlusC99Branch_3, &v416);
 			branch_ZPlusC99Branch_5 = v416;
 		} break;
-		case 31LL: { // PRIM_INT_TO_F64
+		case 31LL: { // IntToF64
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v417;
 			STRLIT(v417, "(double)", 8);
@@ -61688,7 +61688,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v417, v418, v419, v421, in_ZPlusC99Branch_3, &v422);
 			branch_ZPlusC99Branch_5 = v422;
 		} break;
-		case 28LL: { // PRIM_INT_TO_STR
+		case 28LL: { // IntToStr
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v423;
 			STRLIT(v423, "i64_show(", 9);
@@ -61701,7 +61701,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v423, v424, v425, v427, in_ZPlusC99Branch_3, &v428);
 			branch_ZPlusC99Branch_5 = v428;
 		} break;
-		case 32LL: { // PRIM_U8_GET
+		case 32LL: { // U8Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v429;
 			STRLIT(v429, "*(uint8_t*)", 11);
@@ -61714,7 +61714,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v429, v430, v431, v433, in_ZPlusC99Branch_3, &v434);
 			branch_ZPlusC99Branch_5 = v434;
 		} break;
-		case 33LL: { // PRIM_U8_SET
+		case 33LL: { // U8Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v435;
 			STRLIT(v435, "*(uint8_t*)", 11);
@@ -61730,7 +61730,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v435, v436, v437, v438, v439, v440, v441, in_ZPlusC99Branch_3, &v442);
 			branch_ZPlusC99Branch_5 = v442;
 		} break;
-		case 34LL: { // PRIM_U16_GET
+		case 34LL: { // U16Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v443;
 			STRLIT(v443, "*(uint16_t*)", 12);
@@ -61743,7 +61743,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v443, v444, v445, v447, in_ZPlusC99Branch_3, &v448);
 			branch_ZPlusC99Branch_5 = v448;
 		} break;
-		case 35LL: { // PRIM_U16_SET
+		case 35LL: { // U16Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v449;
 			STRLIT(v449, "*(uint16_t*)", 12);
@@ -61759,7 +61759,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v449, v450, v451, v452, v453, v454, v455, in_ZPlusC99Branch_3, &v456);
 			branch_ZPlusC99Branch_5 = v456;
 		} break;
-		case 36LL: { // PRIM_U32_GET
+		case 36LL: { // U32Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v457;
 			STRLIT(v457, "*(uint32_t*)", 12);
@@ -61772,7 +61772,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v457, v458, v459, v461, in_ZPlusC99Branch_3, &v462);
 			branch_ZPlusC99Branch_5 = v462;
 		} break;
-		case 37LL: { // PRIM_U32_SET
+		case 37LL: { // U32Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v463;
 			STRLIT(v463, "*(uint32_t*)", 12);
@@ -61788,7 +61788,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v463, v464, v465, v466, v467, v468, v469, in_ZPlusC99Branch_3, &v470);
 			branch_ZPlusC99Branch_5 = v470;
 		} break;
-		case 38LL: { // PRIM_U64_GET
+		case 38LL: { // U64Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v471;
 			STRLIT(v471, "*(uint64_t*)", 12);
@@ -61801,7 +61801,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v471, v472, v473, v475, in_ZPlusC99Branch_3, &v476);
 			branch_ZPlusC99Branch_5 = v476;
 		} break;
-		case 39LL: { // PRIM_U64_SET
+		case 39LL: { // U64Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v477;
 			STRLIT(v477, "*(uint64_t*)", 12);
@@ -61817,7 +61817,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v477, v478, v479, v480, v481, v482, v483, in_ZPlusC99Branch_3, &v484);
 			branch_ZPlusC99Branch_5 = v484;
 		} break;
-		case 40LL: { // PRIM_I8_GET
+		case 40LL: { // I8Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v485;
 			STRLIT(v485, "*(int8_t*)", 10);
@@ -61830,7 +61830,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v485, v486, v487, v489, in_ZPlusC99Branch_3, &v490);
 			branch_ZPlusC99Branch_5 = v490;
 		} break;
-		case 41LL: { // PRIM_I8_SET
+		case 41LL: { // I8Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v491;
 			STRLIT(v491, "*(int8_t*)", 10);
@@ -61846,7 +61846,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v491, v492, v493, v494, v495, v496, v497, in_ZPlusC99Branch_3, &v498);
 			branch_ZPlusC99Branch_5 = v498;
 		} break;
-		case 42LL: { // PRIM_I16_GET
+		case 42LL: { // I16Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v499;
 			STRLIT(v499, "*(int16_t*)", 11);
@@ -61859,7 +61859,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v499, v500, v501, v503, in_ZPlusC99Branch_3, &v504);
 			branch_ZPlusC99Branch_5 = v504;
 		} break;
-		case 43LL: { // PRIM_I16_SET
+		case 43LL: { // I16Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v505;
 			STRLIT(v505, "*(int16_t*)", 11);
@@ -61875,7 +61875,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v505, v506, v507, v508, v509, v510, v511, in_ZPlusC99Branch_3, &v512);
 			branch_ZPlusC99Branch_5 = v512;
 		} break;
-		case 44LL: { // PRIM_I32_GET
+		case 44LL: { // I32Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v513;
 			STRLIT(v513, "*(int32_t*)", 11);
@@ -61888,7 +61888,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v513, v514, v515, v517, in_ZPlusC99Branch_3, &v518);
 			branch_ZPlusC99Branch_5 = v518;
 		} break;
-		case 45LL: { // PRIM_I32_SET
+		case 45LL: { // I32Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v519;
 			STRLIT(v519, "*(int32_t*)", 11);
@@ -61904,7 +61904,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v519, v520, v521, v522, v523, v524, v525, in_ZPlusC99Branch_3, &v526);
 			branch_ZPlusC99Branch_5 = v526;
 		} break;
-		case 46LL: { // PRIM_I64_GET
+		case 46LL: { // I64Get
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v527;
 			STRLIT(v527, "*(int64_t*)", 11);
@@ -61917,7 +61917,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v527, v528, v529, v531, in_ZPlusC99Branch_3, &v532);
 			branch_ZPlusC99Branch_5 = v532;
 		} break;
-		case 47LL: { // PRIM_I64_SET
+		case 47LL: { // I64Set
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v533;
 			STRLIT(v533, "*(int64_t*)", 11);
@@ -61933,11 +61933,11 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v533, v534, v535, v536, v537, v538, v539, in_ZPlusC99Branch_3, &v540);
 			branch_ZPlusC99Branch_5 = v540;
 		} break;
-		case 48LL: { // PRIM_I64_TO_INT
+		case 48LL: { // I64ToInt
 			decref(MKTUP(in_Atom_1, 8));
 			branch_ZPlusC99Branch_5 = in_ZPlusC99Branch_3;
 		} break;
-		case 50LL: { // PRIM_F32_LT
+		case 50LL: { // F32Lt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v541;
 			STRLIT(v541, "(", 1);
@@ -61954,7 +61954,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v541, v542, v543, v544, v545, v546, v548, in_ZPlusC99Branch_3, &v549);
 			branch_ZPlusC99Branch_5 = v549;
 		} break;
-		case 49LL: { // PRIM_F32_EQ
+		case 49LL: { // F32Eq
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v550;
 			STRLIT(v550, "(", 1);
@@ -61971,7 +61971,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v550, v551, v552, v553, v554, v555, v557, in_ZPlusC99Branch_3, &v558);
 			branch_ZPlusC99Branch_5 = v558;
 		} break;
-		case 51LL: { // PRIM_F32_ADD
+		case 51LL: { // F32Add
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v559;
 			STRLIT(v559, "(", 1);
@@ -61988,7 +61988,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v559, v560, v561, v562, v563, v564, v566, in_ZPlusC99Branch_3, &v567);
 			branch_ZPlusC99Branch_5 = v567;
 		} break;
-		case 52LL: { // PRIM_F32_SUB
+		case 52LL: { // F32Sub
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v568;
 			STRLIT(v568, "(", 1);
@@ -62005,7 +62005,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v568, v569, v570, v571, v572, v573, v575, in_ZPlusC99Branch_3, &v576);
 			branch_ZPlusC99Branch_5 = v576;
 		} break;
-		case 53LL: { // PRIM_F32_MUL
+		case 53LL: { // F32Mul
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v577;
 			STRLIT(v577, "(", 1);
@@ -62022,7 +62022,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v577, v578, v579, v580, v581, v582, v584, in_ZPlusC99Branch_3, &v585);
 			branch_ZPlusC99Branch_5 = v585;
 		} break;
-		case 54LL: { // PRIM_F32_DIV
+		case 54LL: { // F32Div
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v586;
 			STRLIT(v586, "(", 1);
@@ -62039,7 +62039,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v586, v587, v588, v589, v590, v591, v593, in_ZPlusC99Branch_3, &v594);
 			branch_ZPlusC99Branch_5 = v594;
 		} break;
-		case 55LL: { // PRIM_F32_TO_INT
+		case 55LL: { // F32ToInt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v595;
 			STRLIT(v595, "(int64_t)", 9);
@@ -62052,7 +62052,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v595, v596, v597, v599, in_ZPlusC99Branch_3, &v600);
 			branch_ZPlusC99Branch_5 = v600;
 		} break;
-		case 57LL: { // PRIM_F32_TO_F64
+		case 57LL: { // F32ToF64
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v601;
 			STRLIT(v601, "(double)", 8);
@@ -62065,7 +62065,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v601, v602, v603, v605, in_ZPlusC99Branch_3, &v606);
 			branch_ZPlusC99Branch_5 = v606;
 		} break;
-		case 56LL: { // PRIM_F32_TO_STR
+		case 56LL: { // F32ToStr
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v607;
 			STRLIT(v607, "f32_show(", 9);
@@ -62078,7 +62078,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v607, v608, v609, v611, in_ZPlusC99Branch_3, &v612);
 			branch_ZPlusC99Branch_5 = v612;
 		} break;
-		case 58LL: { // PRIM_F64_EQ
+		case 58LL: { // F64Eq
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v613;
 			STRLIT(v613, "(", 1);
@@ -62095,7 +62095,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v613, v614, v615, v616, v617, v618, v620, in_ZPlusC99Branch_3, &v621);
 			branch_ZPlusC99Branch_5 = v621;
 		} break;
-		case 59LL: { // PRIM_F64_LT
+		case 59LL: { // F64Lt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v622;
 			STRLIT(v622, "(", 1);
@@ -62112,7 +62112,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v622, v623, v624, v625, v626, v627, v629, in_ZPlusC99Branch_3, &v630);
 			branch_ZPlusC99Branch_5 = v630;
 		} break;
-		case 60LL: { // PRIM_F64_ADD
+		case 60LL: { // F64Add
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v631;
 			STRLIT(v631, "(", 1);
@@ -62129,7 +62129,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v631, v632, v633, v634, v635, v636, v638, in_ZPlusC99Branch_3, &v639);
 			branch_ZPlusC99Branch_5 = v639;
 		} break;
-		case 61LL: { // PRIM_F64_SUB
+		case 61LL: { // F64Sub
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v640;
 			STRLIT(v640, "(", 1);
@@ -62146,7 +62146,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v640, v641, v642, v643, v644, v645, v647, in_ZPlusC99Branch_3, &v648);
 			branch_ZPlusC99Branch_5 = v648;
 		} break;
-		case 62LL: { // PRIM_F64_MUL
+		case 62LL: { // F64Mul
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v649;
 			STRLIT(v649, "(", 1);
@@ -62163,7 +62163,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v649, v650, v651, v652, v653, v654, v656, in_ZPlusC99Branch_3, &v657);
 			branch_ZPlusC99Branch_5 = v657;
 		} break;
-		case 63LL: { // PRIM_F64_DIV
+		case 63LL: { // F64Div
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v658;
 			STRLIT(v658, "(", 1);
@@ -62180,7 +62180,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v658, v659, v660, v661, v662, v663, v665, in_ZPlusC99Branch_3, &v666);
 			branch_ZPlusC99Branch_5 = v666;
 		} break;
-		case 64LL: { // PRIM_F64_TO_INT
+		case 64LL: { // F64ToInt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v667;
 			STRLIT(v667, "(int64_t)", 9);
@@ -62193,7 +62193,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v667, v668, v669, v671, in_ZPlusC99Branch_3, &v672);
 			branch_ZPlusC99Branch_5 = v672;
 		} break;
-		case 66LL: { // PRIM_F64_TO_F32
+		case 66LL: { // F64ToF32
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v673;
 			STRLIT(v673, "(float)", 7);
@@ -62206,7 +62206,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v673, v674, v675, v677, in_ZPlusC99Branch_3, &v678);
 			branch_ZPlusC99Branch_5 = v678;
 		} break;
-		case 65LL: { // PRIM_F64_TO_STR
+		case 65LL: { // F64ToStr
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v679;
 			STRLIT(v679, "f64_show(", 9);
@@ -62219,7 +62219,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v679, v680, v681, v683, in_ZPlusC99Branch_3, &v684);
 			branch_ZPlusC99Branch_5 = v684;
 		} break;
-		case 67LL: { // PRIM_BOOL_AND
+		case 67LL: { // BoolAnd
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v685;
 			STRLIT(v685, "(", 1);
@@ -62236,7 +62236,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v685, v686, v687, v688, v689, v690, v692, in_ZPlusC99Branch_3, &v693);
 			branch_ZPlusC99Branch_5 = v693;
 		} break;
-		case 68LL: { // PRIM_BOOL_OR
+		case 68LL: { // BoolOr
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v694;
 			STRLIT(v694, "(", 1);
@@ -62253,7 +62253,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v694, v695, v696, v697, v698, v699, v701, in_ZPlusC99Branch_3, &v702);
 			branch_ZPlusC99Branch_5 = v702;
 		} break;
-		case 69LL: { // PRIM_BOOL_NOT
+		case 69LL: { // BoolNot
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v703;
 			STRLIT(v703, "!", 1);
@@ -62266,7 +62266,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v703, v704, v705, v707, in_ZPlusC99Branch_3, &v708);
 			branch_ZPlusC99Branch_5 = v708;
 		} break;
-		case 70LL: { // PRIM_TUP_PACK0
+		case 70LL: { // TupPack0
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v709 = 0LL;
 			VAL v710 = mtw_mirth_c99_C99ReprType_TUP(v709);
@@ -62337,42 +62337,42 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_717, v735, &v741);
 			branch_ZPlusC99Branch_5 = v741;
 		} break;
-		case 71LL: { // PRIM_TUP_PACK1
+		case 71LL: { // TupPack1
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v742 = 1LL;
 			TUP* v743;
 			mw_mirth_c99_c99Z_tupZ_packZBang(v742, in_ZPlusC99Branch_3, &v743);
 			branch_ZPlusC99Branch_5 = v743;
 		} break;
-		case 72LL: { // PRIM_TUP_PACK2
+		case 72LL: { // TupPack2
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v744 = 2LL;
 			TUP* v745;
 			mw_mirth_c99_c99Z_tupZ_packZBang(v744, in_ZPlusC99Branch_3, &v745);
 			branch_ZPlusC99Branch_5 = v745;
 		} break;
-		case 73LL: { // PRIM_TUP_PACK3
+		case 73LL: { // TupPack3
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v746 = 3LL;
 			TUP* v747;
 			mw_mirth_c99_c99Z_tupZ_packZBang(v746, in_ZPlusC99Branch_3, &v747);
 			branch_ZPlusC99Branch_5 = v747;
 		} break;
-		case 74LL: { // PRIM_TUP_PACK4
+		case 74LL: { // TupPack4
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v748 = 4LL;
 			TUP* v749;
 			mw_mirth_c99_c99Z_tupZ_packZBang(v748, in_ZPlusC99Branch_3, &v749);
 			branch_ZPlusC99Branch_5 = v749;
 		} break;
-		case 75LL: { // PRIM_TUP_PACK5
+		case 75LL: { // TupPack5
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v750 = 5LL;
 			TUP* v751;
 			mw_mirth_c99_c99Z_tupZ_packZBang(v750, in_ZPlusC99Branch_3, &v751);
 			branch_ZPlusC99Branch_5 = v751;
 		} break;
-		case 76LL: { // PRIM_TUP_UNPACK0
+		case 76LL: { // TupUnpack0
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v752 = 0LL;
 			VAL v753 = mtw_mirth_c99_C99ReprType_TUP(v752);
@@ -62383,42 +62383,42 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_dropZ_valueZBang(v754, v755, &v756);
 			branch_ZPlusC99Branch_5 = v756;
 		} break;
-		case 77LL: { // PRIM_TUP_UNPACK1
+		case 77LL: { // TupUnpack1
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v757 = 1LL;
 			TUP* v758;
 			mw_mirth_c99_c99Z_tupZ_unpackZBang(v757, in_ZPlusC99Branch_3, &v758);
 			branch_ZPlusC99Branch_5 = v758;
 		} break;
-		case 78LL: { // PRIM_TUP_UNPACK2
+		case 78LL: { // TupUnpack2
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v759 = 2LL;
 			TUP* v760;
 			mw_mirth_c99_c99Z_tupZ_unpackZBang(v759, in_ZPlusC99Branch_3, &v760);
 			branch_ZPlusC99Branch_5 = v760;
 		} break;
-		case 79LL: { // PRIM_TUP_UNPACK3
+		case 79LL: { // TupUnpack3
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v761 = 3LL;
 			TUP* v762;
 			mw_mirth_c99_c99Z_tupZ_unpackZBang(v761, in_ZPlusC99Branch_3, &v762);
 			branch_ZPlusC99Branch_5 = v762;
 		} break;
-		case 80LL: { // PRIM_TUP_UNPACK4
+		case 80LL: { // TupUnpack4
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v763 = 4LL;
 			TUP* v764;
 			mw_mirth_c99_c99Z_tupZ_unpackZBang(v763, in_ZPlusC99Branch_3, &v764);
 			branch_ZPlusC99Branch_5 = v764;
 		} break;
-		case 81LL: { // PRIM_TUP_UNPACK5
+		case 81LL: { // TupUnpack5
 			decref(MKTUP(in_Atom_1, 8));
 			int64_t v765 = 5LL;
 			TUP* v766;
 			mw_mirth_c99_c99Z_tupZ_unpackZBang(v765, in_ZPlusC99Branch_3, &v766);
 			branch_ZPlusC99Branch_5 = v766;
 		} break;
-		case 82LL: { // PRIM_MUT_GET
+		case 82LL: { // MutGet
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v767;
 			STRLIT(v767, "mut_get(", 8);
@@ -62431,7 +62431,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v767, v768, v769, v771, in_ZPlusC99Branch_3, &v772);
 			branch_ZPlusC99Branch_5 = v772;
 		} break;
-		case 83LL: { // PRIM_MUT_SET
+		case 83LL: { // MutSet
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v773;
 			STRLIT(v773, "mut_set(", 8);
@@ -62447,7 +62447,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v773, v774, v775, v776, v777, v778, v779, in_ZPlusC99Branch_3, &v780);
 			branch_ZPlusC99Branch_5 = v780;
 		} break;
-		case 84LL: { // PRIM_MUT_IS_SET
+		case 84LL: { // MutIsSet
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v781;
 			STRLIT(v781, "mut_is_set(", 11);
@@ -62460,7 +62460,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v781, v782, v783, v785, in_ZPlusC99Branch_3, &v786);
 			branch_ZPlusC99Branch_5 = v786;
 		} break;
-		case 94LL: { // PRIM_PTR_GET
+		case 94LL: { // PtrGet
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v787;
 			STRLIT(v787, "*(void**)", 9);
@@ -62473,7 +62473,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v787, v788, v789, v791, in_ZPlusC99Branch_3, &v792);
 			branch_ZPlusC99Branch_5 = v792;
 		} break;
-		case 95LL: { // PRIM_PTR_SET
+		case 95LL: { // PtrSet
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v793;
 			STRLIT(v793, "*(void**)", 9);
@@ -62489,7 +62489,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v793, v794, v795, v796, v797, v798, v799, in_ZPlusC99Branch_3, &v800);
 			branch_ZPlusC99Branch_5 = v800;
 		} break;
-		case 85LL: { // PRIM_PTR_NIL
+		case 85LL: { // PtrNil
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v801 = MKI64(15LL /* PTR */);
 			incref(v801);
@@ -62559,7 +62559,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_808, v826, &v832);
 			branch_ZPlusC99Branch_5 = v832;
 		} break;
-		case 86LL: { // PRIM_PTR_EQ
+		case 86LL: { // PtrEq
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v833;
 			STRLIT(v833, "(", 1);
@@ -62576,7 +62576,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v833, v834, v835, v836, v837, v838, v840, in_ZPlusC99Branch_3, &v841);
 			branch_ZPlusC99Branch_5 = v841;
 		} break;
-		case 87LL: { // PRIM_PTR_ADD
+		case 87LL: { // PtrAdd
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v842;
 			STRLIT(v842, "(void*)(", 8);
@@ -62593,7 +62593,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v842, v843, v844, v845, v846, v847, v849, in_ZPlusC99Branch_3, &v850);
 			branch_ZPlusC99Branch_5 = v850;
 		} break;
-		case 88LL: { // PRIM_PTR_SIZE
+		case 88LL: { // PtrSize
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v851 = MKI64(8LL /* U64 */);
 			incref(v851);
@@ -62663,7 +62663,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_858, v876, &v882);
 			branch_ZPlusC99Branch_5 = v882;
 		} break;
-		case 89LL: { // PRIM_PTR_ALLOC
+		case 89LL: { // PtrAlloc
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v883;
 			STRLIT(v883, "ptr_alloc(", 10);
@@ -62676,7 +62676,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v883, v884, v885, v887, in_ZPlusC99Branch_3, &v888);
 			branch_ZPlusC99Branch_5 = v888;
 		} break;
-		case 90LL: { // PRIM_PTR_REALLOC
+		case 90LL: { // PtrRealloc
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v889;
 			STRLIT(v889, "ptr_realloc(", 12);
@@ -62693,7 +62693,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v889, v890, v891, v892, v893, v894, v896, in_ZPlusC99Branch_3, &v897);
 			branch_ZPlusC99Branch_5 = v897;
 		} break;
-		case 91LL: { // PRIM_PTR_FREE
+		case 91LL: { // PtrFree
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v898;
 			STRLIT(v898, "free(", 5);
@@ -62705,7 +62705,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v898, v899, v900, v901, in_ZPlusC99Branch_3, &v902);
 			branch_ZPlusC99Branch_5 = v902;
 		} break;
-		case 92LL: { // PRIM_PTR_COPY
+		case 92LL: { // PtrCopy
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v903 = MKI64(15LL /* PTR */);
 			TUP* v904;
@@ -62760,7 +62760,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			v910->cells[0] = MKTUP(v934, 7);
 			branch_ZPlusC99Branch_5 = v910;
 		} break;
-		case 93LL: { // PRIM_PTR_FILL
+		case 93LL: { // PtrFill
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v935 = MKI64(15LL /* PTR */);
 			TUP* v936;
@@ -62815,7 +62815,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			v942->cells[0] = MKTUP(v966, 7);
 			branch_ZPlusC99Branch_5 = v942;
 		} break;
-		case 96LL: { // PRIM_STR_COPY
+		case 96LL: { // StrCopy
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v967;
 			STRLIT(v967, "str_make(", 9);
@@ -62832,7 +62832,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v967, v968, v969, v970, v971, v972, v974, in_ZPlusC99Branch_3, &v975);
 			branch_ZPlusC99Branch_5 = v975;
 		} break;
-		case 97LL: { // PRIM_STR_NUM_BYTES
+		case 97LL: { // StrNumBytes
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v976;
 			STRLIT(v976, "str_size(", 9);
@@ -62845,7 +62845,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v976, v977, v978, v980, in_ZPlusC99Branch_3, &v981);
 			branch_ZPlusC99Branch_5 = v981;
 		} break;
-		case 98LL: { // PRIM_STR_BASE
+		case 98LL: { // StrBase
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v982;
 			STRLIT(v982, "str_base(", 9);
@@ -62858,7 +62858,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_unopZBang(v982, v983, v984, v986, in_ZPlusC99Branch_3, &v987);
 			branch_ZPlusC99Branch_5 = v987;
 		} break;
-		case 99LL: { // PRIM_STR_CAT
+		case 99LL: { // StrCat
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v988;
 			STRLIT(v988, "str_cat(", 8);
@@ -62875,7 +62875,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v988, v989, v990, v991, v992, v993, v995, in_ZPlusC99Branch_3, &v996);
 			branch_ZPlusC99Branch_5 = v996;
 		} break;
-		case 100LL: { // PRIM_STR_CMP
+		case 100LL: { // StrCmp
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v997;
 			STRLIT(v997, "str_cmp(", 8);
@@ -62892,7 +62892,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v997, v998, v999, v1000, v1001, v1002, v1004, in_ZPlusC99Branch_3, &v1005);
 			branch_ZPlusC99Branch_5 = v1005;
 		} break;
-		case 101LL: { // PRIM_STR_EQ
+		case 101LL: { // StrEq
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1006;
 			STRLIT(v1006, "(str_cmp(", 9);
@@ -62909,7 +62909,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v1006, v1007, v1008, v1009, v1010, v1011, v1013, in_ZPlusC99Branch_3, &v1014);
 			branch_ZPlusC99Branch_5 = v1014;
 		} break;
-		case 102LL: { // PRIM_STR_LT
+		case 102LL: { // StrLt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1015;
 			STRLIT(v1015, "(str_cmp(", 9);
@@ -62926,7 +62926,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v1015, v1016, v1017, v1018, v1019, v1020, v1022, in_ZPlusC99Branch_3, &v1023);
 			branch_ZPlusC99Branch_5 = v1023;
 		} break;
-		case 103LL: { // PRIM_STR_LE
+		case 103LL: { // StrLe
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1024;
 			STRLIT(v1024, "(str_cmp(", 9);
@@ -62943,7 +62943,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v1024, v1025, v1026, v1027, v1028, v1029, v1031, in_ZPlusC99Branch_3, &v1032);
 			branch_ZPlusC99Branch_5 = v1032;
 		} break;
-		case 104LL: { // PRIM_STR_GT
+		case 104LL: { // StrGt
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1033;
 			STRLIT(v1033, "(str_cmp(", 9);
@@ -62960,7 +62960,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v1033, v1034, v1035, v1036, v1037, v1038, v1040, in_ZPlusC99Branch_3, &v1041);
 			branch_ZPlusC99Branch_5 = v1041;
 		} break;
-		case 105LL: { // PRIM_STR_GE
+		case 105LL: { // StrGe
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1042;
 			STRLIT(v1042, "(str_cmp(", 9);
@@ -62977,7 +62977,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v1042, v1043, v1044, v1045, v1046, v1047, v1049, in_ZPlusC99Branch_3, &v1050);
 			branch_ZPlusC99Branch_5 = v1050;
 		} break;
-		case 106LL: { // PRIM_STR_NE
+		case 106LL: { // StrNe
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1051;
 			STRLIT(v1051, "(str_cmp(", 9);
@@ -62994,13 +62994,13 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_binopZBang(v1051, v1052, v1053, v1054, v1055, v1056, v1058, in_ZPlusC99Branch_3, &v1059);
 			branch_ZPlusC99Branch_5 = v1059;
 		} break;
-		case 108LL: { // PRIM_STR_TO_F32
+		case 108LL: { // StrToF32
 			VAL v1060 = in_Atom_1->cells[4];
 			incref(v1060);
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1061;
 			STRLIT(v1061, "str_to_f32", 10);
-			int64_t v1062 = 108LL /* PRIM_STR_TO_F32 */;
+			int64_t v1062 = 108LL /* StrToF32 */;
 			TUP* v1063;
 			TUP* v1064 = mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp16(v1062, in_ZPlusC99Branch_3, &v1063);
 			TUP* v1065 = value_tup(v1063->cells[0], 7);
@@ -63011,13 +63011,13 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_smartZ_callZBang(v1060, v1067, v1063, &v1068);
 			branch_ZPlusC99Branch_5 = v1068;
 		} break;
-		case 107LL: { // PRIM_STR_TO_F64
+		case 107LL: { // StrToF64
 			VAL v1069 = in_Atom_1->cells[4];
 			incref(v1069);
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v1070;
 			STRLIT(v1070, "str_to_f64", 10);
-			int64_t v1071 = 107LL /* PRIM_STR_TO_F64 */;
+			int64_t v1071 = 107LL /* StrToF64 */;
 			TUP* v1072;
 			TUP* v1073 = mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp16(v1071, in_ZPlusC99Branch_3, &v1072);
 			TUP* v1074 = value_tup(v1072->cells[0], 7);
@@ -63028,7 +63028,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_c99Z_smartZ_callZBang(v1069, v1076, v1072, &v1077);
 			branch_ZPlusC99Branch_5 = v1077;
 		} break;
-		case 109LL: { // PRIM_SYS_OS
+		case 109LL: { // SysOs
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v1078 = MKI64(4LL /* I64 */);
 			incref(v1078);
@@ -63098,7 +63098,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_1085, v1103, &v1109);
 			branch_ZPlusC99Branch_5 = v1109;
 		} break;
-		case 110LL: { // PRIM_SYS_ARCH
+		case 110LL: { // SysArch
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v1110 = MKI64(4LL /* I64 */);
 			incref(v1110);
@@ -63168,7 +63168,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_1117, v1135, &v1141);
 			branch_ZPlusC99Branch_5 = v1141;
 		} break;
-		case 111LL: { // PRIM_SYS_ARGC
+		case 111LL: { // SysArgc
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v1142 = MKI64(4LL /* I64 */);
 			incref(v1142);
@@ -63238,7 +63238,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_1149, v1167, &v1173);
 			branch_ZPlusC99Branch_5 = v1173;
 		} break;
-		case 112LL: { // PRIM_SYS_ARGV
+		case 112LL: { // SysArgv
 			decref(MKTUP(in_Atom_1, 8));
 			VAL v1174 = MKI64(15LL /* PTR */);
 			incref(v1174);
@@ -69576,7 +69576,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp7_10 (void) {
 		TUP* v61;
 		TUP* v62;
 		mw_mirth_elab_ZPlusAB_abZ_opZBang(v60, v58, v52, &v61, &v62);
-		int64_t v63 = 6LL /* PRIM_CORE_RDIP */;
+		int64_t v63 = 6LL /* RDip */;
 		TUP* v64;
 		TUP* v65;
 		mw_mirth_elab_ZPlusAB_abZ_primZBang(v63, v61, v62, &v64, &v65);
@@ -69586,7 +69586,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp7_10 (void) {
 		branch_ZPlusAB_43 = v67;
 		branch_ZPlusMirth_42 = v66;
 	} else {
-		int64_t v68 = 1LL /* PRIM_CORE_DUP */;
+		int64_t v68 = 1LL /* Dup */;
 		TUP* v69;
 		TUP* v70;
 		mw_mirth_elab_ZPlusAB_abZ_primZBang(v68, branch_ZPlusMirth_34, value_tup(branch_z_x1_35, 7), &v69, &v70);
@@ -69613,7 +69613,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp7_10 (void) {
 		TUP* v88;
 		TUP* v89;
 		mw_mirth_elab_ZPlusAB_abZ_opZBang(v87, v85, v77, &v88, &v89);
-		int64_t v90 = 5LL /* PRIM_CORE_DIP */;
+		int64_t v90 = 5LL /* Dip */;
 		TUP* v91;
 		TUP* v92;
 		mw_mirth_elab_ZPlusAB_abZ_primZBang(v90, v88, v89, &v91, &v92);

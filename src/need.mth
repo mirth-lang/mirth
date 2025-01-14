@@ -102,10 +102,10 @@ def +Needs.run-op! [ List(Arg) Op +Mirth +Needs -- +Mirth +Needs ] {
 }
 
 def(+Needs.run-prim!, List(Arg) Prim +Mirth +Needs -- +Mirth +Needs,
-    PRIM_CORE_DIP -> dup single? if(run-args!, push-args!),
-    PRIM_CORE_RDIP -> dup single? if(run-args!, push-args!),
-    PRIM_CORE_IF -> dup >L2? if(run-args!, push-args!),
-    PRIM_CORE_WHILE -> dup >L2? if(run-args!, push-args!),
+    Dip -> dup single? if(run-args!, push-args!),
+    RDip -> dup single? if(run-args!, push-args!),
+    If -> dup >L2? if(run-args!, push-args!),
+    While -> dup >L2? if(run-args!, push-args!),
     _ -> drop push-args!)
 def(+Needs.run-match!, Match +Mirth +Needs -- +Mirth +Needs, cases for(run-case!))
 def(+Needs.run-case!, Case +Mirth +Needs -- +Mirth +Needs, dup pattern run-pattern! body run-arrow!)

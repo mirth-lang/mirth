@@ -1982,16 +1982,16 @@ def +C99Branch.pop-resource-label-from-stack-type! [ Label StackType +C99Branch 
 }
 
 def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
-    { PRIM_CORE_ID -> drop }
-    { PRIM_CORE_DROP ->
+    { Id -> drop }
+    { Drop ->
         dom pop-value-from-stack-type! drop
         drop-value!
     }
-    { PRIM_CORE_DUP ->
+    { Dup ->
         dom pop-value-from-stack-type! drop
         dup-value! rdip:push-value! push-value!
     }
-    { PRIM_CORE_SWAP ->
+    { Swap ->
         dom
         pop-value-from-stack-type! >+b
         pop-value-from-stack-type! >+a
@@ -1999,7 +1999,7 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         +b> push-value!
         +a> push-value!
     }
-    { PRIM_CORE_RSWAP ->
+    { RSwap ->
         dom
         pop-resource-from-stack-type! >+b
         pop-resource-from-stack-type! >+a
@@ -2007,20 +2007,20 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         +b> push-resource!
         +a> push-resource!
     }
-    { PRIM_CORE_DIP ->
-        dup args single? unwrap(token "unexpected number of arguments to PRIM_CORE_DIP" +mirth:emit-fatal-error!)
+    { Dip ->
+        dup args single? unwrap(token "unexpected number of arguments to Dip" +mirth:emit-fatal-error!)
         swap dom pop-value-from-stack-type! drop >+dipped
         c99-arg-run!
         +dipped> push-value!
     }
-    { PRIM_CORE_RDIP ->
-        dup args single? unwrap(token "unexpected number of arguments to PRIM_CORE_RDIP" +mirth:emit-fatal-error!)
+    { RDip ->
+        dup args single? unwrap(token "unexpected number of arguments to RDip" +mirth:emit-fatal-error!)
         swap dom pop-resource-from-stack-type! drop >+dipped
         c99-arg-run!
         +dipped> push-resource!
     }
-    { PRIM_CORE_IF ->
-        dup args >L2? unwrap(token "unexpected number of arguments to PRIM_CORE_IF" +mirth:emit-fatal-error!)
+    { If ->
+        dup args >L2? unwrap(token "unexpected number of arguments to If" +mirth:emit-fatal-error!)
         /L2 C99ReprType.Bool pop-value! >+cond
 
         rotl +mirth:cod
@@ -2032,8 +2032,8 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         c99-line("}" put)
         end-branch-split!
     }
-    { PRIM_CORE_WHILE ->
-        dup args >L2? unwrap(token "unexpected number of arguments to PRIM_CORE_WHILE" +mirth:emit-fatal-error!)
+    { While ->
+        dup args >L2? unwrap(token "unexpected number of arguments to While" +mirth:emit-fatal-error!)
         nip /L2 over c99-arg-run!
         C99ReprType.Bool pop-value! push-value!
         refresh-branch! +stack(rdup >+knot)
@@ -2048,119 +2048,119 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         c99-line("}" put)
         C99ReprType.Bool pop-value! rdrop
     }
-    { PRIM_CORE_DEBUG -> drop flush-cache! c99-line("trace_stack();" put) }
-    { PRIM_CORE_PANIC ->
+    { Debug -> drop flush-cache! c99-line("trace_stack();" put) }
+    { Panic ->
         drop
         C99ReprType.STR dup pop-value! consume-as
         c99-line("do_panic(" put put ");" put)
         +stack(rdrop +C99Stack.+Nil)
         False reachable!
     }
-    { PRIM_CORE_RUN ->
+    { Run ->
         dup args empty? else(token "expected no arguments to prim-core-run" +mirth:emit-fatal-error!) drop
         C99ReprType.VAL pop-value! run-value!
     }
 
-    { PRIM_INT_EQ  -> drop "(" C99ReprType.I64 " == " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_INT_LT  -> drop "(" C99ReprType.I64 " < "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_INT_LE  -> drop "(" C99ReprType.I64 " <= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_INT_GT  -> drop "(" C99ReprType.I64 " > "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_INT_GE  -> drop "(" C99ReprType.I64 " >= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_INT_NE  -> drop "(" C99ReprType.I64 " != " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_INT_ADD -> drop "i64_add(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
-    { PRIM_INT_SUB -> drop "i64_sub(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
-    { PRIM_INT_MUL -> drop "i64_mul(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
-    { PRIM_INT_DIV -> drop "i64_div(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
-    { PRIM_INT_MOD -> drop "i64_mod(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
-    { PRIM_INT_AND -> drop "(" C99ReprType.U64 " & "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
-    { PRIM_INT_XOR -> drop "(" C99ReprType.U64 " ^ "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
-    { PRIM_INT_OR  -> drop "(" C99ReprType.U64 " | "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
-    { PRIM_INT_SHL -> drop "u64_shl(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
-    { PRIM_INT_SHR -> drop "u64_shr(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
-    { PRIM_INT_TO_I64 -> drop }
-    { PRIM_INT_TO_F32 -> drop "(float)"   C99ReprType.I64 ""  C99ReprType.F32 Some c99-unop! }
-    { PRIM_INT_TO_F64 -> drop "(double)"  C99ReprType.I64 ""  C99ReprType.F64 Some c99-unop! }
-    { PRIM_INT_TO_STR -> drop "i64_show(" C99ReprType.I64 ")" C99ReprType.STR Some c99-unop! }
+    { IntEq  -> drop "(" C99ReprType.I64 " == " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { IntLt  -> drop "(" C99ReprType.I64 " < "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { IntLe  -> drop "(" C99ReprType.I64 " <= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { IntGt  -> drop "(" C99ReprType.I64 " > "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { IntGe  -> drop "(" C99ReprType.I64 " >= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { IntNe  -> drop "(" C99ReprType.I64 " != " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { IntAdd -> drop "i64_add(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { IntSub -> drop "i64_sub(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { IntMul -> drop "i64_mul(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { IntDiv -> drop "i64_div(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { IntMod -> drop "i64_mod(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { IntAnd -> drop "(" C99ReprType.U64 " & "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { IntXor -> drop "(" C99ReprType.U64 " ^ "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { IntOr  -> drop "(" C99ReprType.U64 " | "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { IntShl -> drop "u64_shl(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { IntShr -> drop "u64_shr(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { IntToI64 -> drop }
+    { IntToF32 -> drop "(float)"   C99ReprType.I64 ""  C99ReprType.F32 Some c99-unop! }
+    { IntToF64 -> drop "(double)"  C99ReprType.I64 ""  C99ReprType.F64 Some c99-unop! }
+    { IntToStr -> drop "i64_show(" C99ReprType.I64 ")" C99ReprType.STR Some c99-unop! }
 
-    { PRIM_U8_GET  -> drop "*(uint8_t*)"  C99ReprType.PTR "" C99ReprType.U8  Some c99-unop! }
-    { PRIM_U8_SET  -> drop "*(uint8_t*)"  C99ReprType.PTR " = " C99ReprType.U8  ";" True None c99-binop! }
+    { U8Get  -> drop "*(uint8_t*)"  C99ReprType.PTR "" C99ReprType.U8  Some c99-unop! }
+    { U8Set  -> drop "*(uint8_t*)"  C99ReprType.PTR " = " C99ReprType.U8  ";" True None c99-binop! }
 
-    { PRIM_U16_GET -> drop "*(uint16_t*)" C99ReprType.PTR "" C99ReprType.U16 Some c99-unop! }
-    { PRIM_U16_SET -> drop "*(uint16_t*)" C99ReprType.PTR " = " C99ReprType.U16 ";" True None c99-binop! }
+    { U16Get -> drop "*(uint16_t*)" C99ReprType.PTR "" C99ReprType.U16 Some c99-unop! }
+    { U16Set -> drop "*(uint16_t*)" C99ReprType.PTR " = " C99ReprType.U16 ";" True None c99-binop! }
 
-    { PRIM_U32_GET -> drop "*(uint32_t*)" C99ReprType.PTR "" C99ReprType.U32 Some c99-unop! }
-    { PRIM_U32_SET -> drop "*(uint32_t*)" C99ReprType.PTR " = " C99ReprType.U32 ";" True None c99-binop! }
+    { U32Get -> drop "*(uint32_t*)" C99ReprType.PTR "" C99ReprType.U32 Some c99-unop! }
+    { U32Set -> drop "*(uint32_t*)" C99ReprType.PTR " = " C99ReprType.U32 ";" True None c99-binop! }
 
-    { PRIM_U64_GET -> drop "*(uint64_t*)" C99ReprType.PTR "" C99ReprType.U64 Some c99-unop! }
-    { PRIM_U64_SET -> drop "*(uint64_t*)" C99ReprType.PTR " = " C99ReprType.U64 ";" True None c99-binop! }
+    { U64Get -> drop "*(uint64_t*)" C99ReprType.PTR "" C99ReprType.U64 Some c99-unop! }
+    { U64Set -> drop "*(uint64_t*)" C99ReprType.PTR " = " C99ReprType.U64 ";" True None c99-binop! }
 
-    { PRIM_I8_GET  -> drop "*(int8_t*)"   C99ReprType.PTR "" C99ReprType.I8  Some c99-unop! }
-    { PRIM_I8_SET  -> drop "*(int8_t*)"   C99ReprType.PTR " = " C99ReprType.I8  ";" True None c99-binop! }
+    { I8Get  -> drop "*(int8_t*)"   C99ReprType.PTR "" C99ReprType.I8  Some c99-unop! }
+    { I8Set  -> drop "*(int8_t*)"   C99ReprType.PTR " = " C99ReprType.I8  ";" True None c99-binop! }
 
-    { PRIM_I16_GET -> drop "*(int16_t*)"  C99ReprType.PTR "" C99ReprType.I16 Some c99-unop! }
-    { PRIM_I16_SET -> drop "*(int16_t*)"  C99ReprType.PTR " = " C99ReprType.I16 ";" True None c99-binop! }
+    { I16Get -> drop "*(int16_t*)"  C99ReprType.PTR "" C99ReprType.I16 Some c99-unop! }
+    { I16Set -> drop "*(int16_t*)"  C99ReprType.PTR " = " C99ReprType.I16 ";" True None c99-binop! }
 
-    { PRIM_I32_GET -> drop "*(int32_t*)"  C99ReprType.PTR "" C99ReprType.I32 Some c99-unop! }
-    { PRIM_I32_SET -> drop "*(int32_t*)"  C99ReprType.PTR " = " C99ReprType.I32 ";" True None c99-binop! }
+    { I32Get -> drop "*(int32_t*)"  C99ReprType.PTR "" C99ReprType.I32 Some c99-unop! }
+    { I32Set -> drop "*(int32_t*)"  C99ReprType.PTR " = " C99ReprType.I32 ";" True None c99-binop! }
 
-    { PRIM_I64_GET -> drop "*(int64_t*)"  C99ReprType.PTR "" C99ReprType.I64 Some c99-unop! }
-    { PRIM_I64_SET -> drop "*(int64_t*)"  C99ReprType.PTR " = " C99ReprType.I64 ";" True None c99-binop! }
-    { PRIM_I64_TO_INT -> drop }
+    { I64Get -> drop "*(int64_t*)"  C99ReprType.PTR "" C99ReprType.I64 Some c99-unop! }
+    { I64Set -> drop "*(int64_t*)"  C99ReprType.PTR " = " C99ReprType.I64 ";" True None c99-binop! }
+    { I64ToInt -> drop }
 
     # { PRIM_F32_SET -> drop "*(float*)"    C99ReprType.PTR " = " C99ReprType.F32 ";" True None c99-binop! }
-    { PRIM_F32_LT  -> drop "(" C99ReprType.F32 " < "  C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_F32_EQ  -> drop "(" C99ReprType.F32 " == " C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_F32_ADD -> drop "(" C99ReprType.F32 " + "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
-    { PRIM_F32_SUB -> drop "(" C99ReprType.F32 " - "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
-    { PRIM_F32_MUL -> drop "(" C99ReprType.F32 " * "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
-    { PRIM_F32_DIV -> drop "(" C99ReprType.F32 " / "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
-    { PRIM_F32_TO_INT -> drop "(int64_t)" C99ReprType.F32 ""  C99ReprType.I64 Some c99-unop! }
-    { PRIM_F32_TO_F64 -> drop "(double)"  C99ReprType.F32 ""  C99ReprType.F64 Some c99-unop! }
-    { PRIM_F32_TO_STR -> drop "f32_show(" C99ReprType.F32 ")" C99ReprType.STR Some c99-unop! }
+    { F32Lt  -> drop "(" C99ReprType.F32 " < "  C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { F32Eq  -> drop "(" C99ReprType.F32 " == " C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { F32Add -> drop "(" C99ReprType.F32 " + "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { F32Sub -> drop "(" C99ReprType.F32 " - "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { F32Mul -> drop "(" C99ReprType.F32 " * "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { F32Div -> drop "(" C99ReprType.F32 " / "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
+    { F32ToInt -> drop "(int64_t)" C99ReprType.F32 ""  C99ReprType.I64 Some c99-unop! }
+    { F32ToF64 -> drop "(double)"  C99ReprType.F32 ""  C99ReprType.F64 Some c99-unop! }
+    { F32ToStr -> drop "f32_show(" C99ReprType.F32 ")" C99ReprType.STR Some c99-unop! }
 
     # { PRIM_F64_SET -> drop "*(double*)"   C99ReprType.PTR " = " C99ReprType.F64 ";" True None c99-binop! }
-    { PRIM_F64_EQ  -> drop "(" C99ReprType.F64 " == " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_F64_LT  -> drop "(" C99ReprType.F64 " < "  C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_F64_ADD -> drop "(" C99ReprType.F64 " + "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
-    { PRIM_F64_SUB -> drop "(" C99ReprType.F64 " - "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
-    { PRIM_F64_MUL -> drop "(" C99ReprType.F64 " * "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
-    { PRIM_F64_DIV -> drop "(" C99ReprType.F64 " / "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
-    { PRIM_F64_TO_INT -> drop "(int64_t)" C99ReprType.F64 ""  C99ReprType.I64 Some c99-unop! }
-    { PRIM_F64_TO_F32 -> drop "(float)"   C99ReprType.F64 ""  C99ReprType.F32 Some c99-unop! }
-    { PRIM_F64_TO_STR -> drop "f64_show(" C99ReprType.F64 ")" C99ReprType.STR Some c99-unop! }
+    { F64Eq  -> drop "(" C99ReprType.F64 " == " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { F64Lt  -> drop "(" C99ReprType.F64 " < "  C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { F64Add -> drop "(" C99ReprType.F64 " + "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { F64Sub -> drop "(" C99ReprType.F64 " - "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { F64Mul -> drop "(" C99ReprType.F64 " * "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { F64Div -> drop "(" C99ReprType.F64 " / "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
+    { F64ToInt -> drop "(int64_t)" C99ReprType.F64 ""  C99ReprType.I64 Some c99-unop! }
+    { F64ToF32 -> drop "(float)"   C99ReprType.F64 ""  C99ReprType.F32 Some c99-unop! }
+    { F64ToStr -> drop "f64_show(" C99ReprType.F64 ")" C99ReprType.STR Some c99-unop! }
 
-    { PRIM_BOOL_AND -> drop "(" C99ReprType.Bool " && " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_BOOL_OR  -> drop "(" C99ReprType.Bool " || " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_BOOL_NOT -> drop "!" C99ReprType.Bool "" C99ReprType.Bool Some c99-unop! }
+    { BoolAnd -> drop "(" C99ReprType.Bool " && " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
+    { BoolOr  -> drop "(" C99ReprType.Bool " || " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
+    { BoolNot -> drop "!" C99ReprType.Bool "" C99ReprType.Bool Some c99-unop! }
 
-    { PRIM_TUP_PACK0 -> drop 0u C99ReprType.TUP push-value-expression!("NULL" put) }
-    { PRIM_TUP_PACK1 -> drop 1u c99-tup-pack! }
-    { PRIM_TUP_PACK2 -> drop 2u c99-tup-pack! }
-    { PRIM_TUP_PACK3 -> drop 3u c99-tup-pack! }
-    { PRIM_TUP_PACK4 -> drop 4u c99-tup-pack! }
-    { PRIM_TUP_PACK5 -> drop 5u c99-tup-pack! }
+    { TupPack0 -> drop 0u C99ReprType.TUP push-value-expression!("NULL" put) }
+    { TupPack1 -> drop 1u c99-tup-pack! }
+    { TupPack2 -> drop 2u c99-tup-pack! }
+    { TupPack3 -> drop 3u c99-tup-pack! }
+    { TupPack4 -> drop 4u c99-tup-pack! }
+    { TupPack5 -> drop 5u c99-tup-pack! }
 
-    { PRIM_TUP_UNPACK0 -> drop 0u C99ReprType.TUP pop-value! drop-value! }
-    { PRIM_TUP_UNPACK1 -> drop 1u c99-tup-unpack! }
-    { PRIM_TUP_UNPACK2 -> drop 2u c99-tup-unpack! }
-    { PRIM_TUP_UNPACK3 -> drop 3u c99-tup-unpack! }
-    { PRIM_TUP_UNPACK4 -> drop 4u c99-tup-unpack! }
-    { PRIM_TUP_UNPACK5 -> drop 5u c99-tup-unpack! }
+    { TupUnpack0 -> drop 0u C99ReprType.TUP pop-value! drop-value! }
+    { TupUnpack1 -> drop 1u c99-tup-unpack! }
+    { TupUnpack2 -> drop 2u c99-tup-unpack! }
+    { TupUnpack3 -> drop 3u c99-tup-unpack! }
+    { TupUnpack4 -> drop 4u c99-tup-unpack! }
+    { TupUnpack5 -> drop 5u c99-tup-unpack! }
 
-    { PRIM_MUT_GET    -> drop "mut_get(" C99ReprType.PTR ")" C99ReprType.VAL Some c99-unop! }
-    { PRIM_MUT_SET    -> drop "mut_set(" C99ReprType.VAL ", " C99ReprType.PTR ");" False None c99-binop! }
-    { PRIM_MUT_IS_SET -> drop "mut_is_set(" C99ReprType.PTR ")" C99ReprType.Bool Some c99-unop! }
+    { MutGet    -> drop "mut_get(" C99ReprType.PTR ")" C99ReprType.VAL Some c99-unop! }
+    { MutSet    -> drop "mut_set(" C99ReprType.VAL ", " C99ReprType.PTR ");" False None c99-binop! }
+    { MutIsSet -> drop "mut_is_set(" C99ReprType.PTR ")" C99ReprType.Bool Some c99-unop! }
 
-    { PRIM_PTR_GET -> drop "*(void**)"    C99ReprType.PTR "" C99ReprType.PTR Some c99-unop! }
-    { PRIM_PTR_SET -> drop "*(void**)"    C99ReprType.PTR " = " C99ReprType.PTR ";" True None c99-binop! }
-    { PRIM_PTR_NIL -> drop C99ReprType.PTR push-value-expression!("(void*)0" put) }
-    { PRIM_PTR_EQ  -> drop "(" C99ReprType.PTR " == " C99ReprType.PTR ")" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_PTR_ADD -> drop "(void*)(" C99ReprType.I64 " + (char*)" C99ReprType.PTR ")" False C99ReprType.PTR Some c99-binop! }
-    { PRIM_PTR_SIZE -> drop C99ReprType.U64 push-value-expression!("sizeof(void*)" put) }
-    { PRIM_PTR_ALLOC   -> drop "ptr_alloc(" C99ReprType.U64 ");" C99ReprType.PTR Some c99-unop! }
-    { PRIM_PTR_REALLOC -> drop "ptr_realloc(" C99ReprType.PTR "," C99ReprType.U64 ")" False C99ReprType.PTR Some  c99-binop! }
-    { PRIM_PTR_FREE    -> drop "free(" C99ReprType.PTR ");" None c99-unop! }
-    { PRIM_PTR_COPY ->
+    { PtrGet -> drop "*(void**)"    C99ReprType.PTR "" C99ReprType.PTR Some c99-unop! }
+    { PtrSet -> drop "*(void**)"    C99ReprType.PTR " = " C99ReprType.PTR ";" True None c99-binop! }
+    { PtrNil -> drop C99ReprType.PTR push-value-expression!("(void*)0" put) }
+    { PtrEq  -> drop "(" C99ReprType.PTR " == " C99ReprType.PTR ")" False C99ReprType.Bool Some c99-binop! }
+    { PtrAdd -> drop "(void*)(" C99ReprType.I64 " + (char*)" C99ReprType.PTR ")" False C99ReprType.PTR Some c99-binop! }
+    { PtrSize -> drop C99ReprType.U64 push-value-expression!("sizeof(void*)" put) }
+    { PtrAlloc   -> drop "ptr_alloc(" C99ReprType.U64 ");" C99ReprType.PTR Some c99-unop! }
+    { PtrRealloc -> drop "ptr_realloc(" C99ReprType.PTR "," C99ReprType.U64 ")" False C99ReprType.PTR Some  c99-binop! }
+    { PtrFree    -> drop "free(" C99ReprType.PTR ");" None c99-unop! }
+    { PtrCopy ->
         drop
         C99ReprType.PTR pop-value! >+dst
         C99ReprType.U64 pop-value! >+len
@@ -2175,7 +2175,7 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
             ");" put
         )
     }
-    { PRIM_PTR_FILL ->
+    { PtrFill ->
         drop
         C99ReprType.PTR pop-value! >+dst
         C99ReprType.U64 pop-value! >+len
@@ -2191,25 +2191,25 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         )
     }
 
-    { PRIM_STR_COPY -> drop "str_make(" C99ReprType.PTR ", " C99ReprType.U64 ")" False C99ReprType.STR Some c99-binop! }
-    { PRIM_STR_NUM_BYTES -> drop "str_size(" C99ReprType.STR ")" C99ReprType.U64 Some c99-unop! }
-    { PRIM_STR_BASE      -> drop "str_base(" C99ReprType.STR ")" C99ReprType.PTR Some c99-unop! }
-    { PRIM_STR_CAT  -> drop "str_cat(" C99ReprType.STR ", " C99ReprType.STR ")" False C99ReprType.STR Some c99-binop! }
-    { PRIM_STR_CMP  -> drop "str_cmp(" C99ReprType.STR ", " C99ReprType.STR ")" False C99ReprType.I64 Some c99-binop! }
-    { PRIM_STR_EQ   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") == 0)" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_STR_LT   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") < 0)"  False C99ReprType.Bool Some c99-binop! }
-    { PRIM_STR_LE   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") <= 0)" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_STR_GT   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") > 0)"  False C99ReprType.Bool Some c99-binop! }
-    { PRIM_STR_GE   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") >= 0)" False C99ReprType.Bool Some c99-binop! }
-    { PRIM_STR_NE   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") != 0)" False C99ReprType.Bool Some c99-binop! }
+    { StrCopy -> drop "str_make(" C99ReprType.PTR ", " C99ReprType.U64 ")" False C99ReprType.STR Some c99-binop! }
+    { StrNumBytes -> drop "str_size(" C99ReprType.STR ")" C99ReprType.U64 Some c99-unop! }
+    { StrBase      -> drop "str_base(" C99ReprType.STR ")" C99ReprType.PTR Some c99-unop! }
+    { StrCat  -> drop "str_cat(" C99ReprType.STR ", " C99ReprType.STR ")" False C99ReprType.STR Some c99-binop! }
+    { StrCmp  -> drop "str_cmp(" C99ReprType.STR ", " C99ReprType.STR ")" False C99ReprType.I64 Some c99-binop! }
+    { StrEq   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") == 0)" False C99ReprType.Bool Some c99-binop! }
+    { StrLt   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") < 0)"  False C99ReprType.Bool Some c99-binop! }
+    { StrLe   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") <= 0)" False C99ReprType.Bool Some c99-binop! }
+    { StrGt   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") > 0)"  False C99ReprType.Bool Some c99-binop! }
+    { StrGe   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") >= 0)" False C99ReprType.Bool Some c99-binop! }
+    { StrNe   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") != 0)" False C99ReprType.Bool Some c99-binop! }
 
-    { PRIM_STR_TO_F32 -> args "str_to_f32" Prim.PRIM_STR_TO_F32 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
-    { PRIM_STR_TO_F64 -> args "str_to_f64" Prim.PRIM_STR_TO_F64 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
+    { StrToF32 -> args "str_to_f32" Prim.StrToF32 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
+    { StrToF64 -> args "str_to_f64" Prim.StrToF64 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
 
-    { PRIM_SYS_OS   -> drop C99ReprType.I64 push-value-expression!("RUNNING_OS" put) }
-    { PRIM_SYS_ARCH -> drop C99ReprType.I64 push-value-expression!("RUNNING_ARCH" put) }
-    { PRIM_SYS_ARGC -> drop C99ReprType.I64 push-value-expression!("global_argc" put) }
-    { PRIM_SYS_ARGV -> drop C99ReprType.PTR push-value-expression!("global_argv" put) }
+    { SysOs   -> drop C99ReprType.I64 push-value-expression!("RUNNING_OS" put) }
+    { SysArch -> drop C99ReprType.I64 push-value-expression!("RUNNING_ARCH" put) }
+    { SysArgc -> drop C99ReprType.I64 push-value-expression!("global_argc" put) }
+    { SysArgv -> drop C99ReprType.PTR push-value-expression!("global_argv" put) }
 }
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
