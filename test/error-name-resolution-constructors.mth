@@ -33,5 +33,5 @@ def(main, --, id)
 # mirth-test # merr # 23:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.Left, mirth-tests.error-name-resolution-constructors.MyEither.Left
 # mirth-test # merr # 24:5: error: Ambiguous constructor. Can't decide between: mirth-tests.error-name-resolution-constructors.+MyEither.Right, mirth-tests.error-name-resolution-constructors.MyEither.Right
 # mirth-test # merr # 29:29: error: Constructor is for a different type: mirth-tests.error-name-resolution-constructors.Bar.BAR
-# mirth-test # merr # 30:31: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-constructors.+MyEither.Left is constructor for a different type, mirth-tests.error-name-resolution-constructors.MyEither.Left is constructor for a different type, std.either.Either/2.Left is constructor for a different type
+# mirth-test # merr # 30:31: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-constructors.+MyEither.Left is constructor for a different type, mirth-tests.error-name-resolution-constructors.MyEither.Left is constructor for a different type, std.either.Either/2.Left is constructor for a different type, std.either.Left is not a constructor
 # mirth-test # mret # 1

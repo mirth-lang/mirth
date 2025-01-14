@@ -9,7 +9,7 @@ data Maybe(t) {
     1 Some [ t ]
     --
     inline (
-        def len [ Maybe(t) -- Nat ] { enum-value NatUnsafe }
+        def len [ Maybe(t) -- Nat ] { enum-value Nat.NatUnsafe }
         def none? [ Maybe(t) -- Bool ] { enum-value 0 == }
         def some? [ Maybe(t) -- Bool ] { enum-value 1 == }
         def >Bool [ Maybe(t) -- Bool ] { some? }
@@ -21,9 +21,9 @@ data Maybe(t) {
     def and(f) { some? and(f) }
     def or(f) { some? or(f) }
 
-    def if-some(f,g)  { { Some -> f    } { None -> g } }
+    def if-some(f,g)  { { Some -> f          } { None -> g } }
     def or-some(f)    { { Some -> Some } { None -> f } }
-    def unwrap(f)     { { Some -> id   } { None -> f } }
+    def unwrap(f)     { { Some -> id         } { None -> f } }
     def >List {
         { None -> List.L0 }
         { Some -> List.L1 }
@@ -36,11 +36,11 @@ data Maybe(t) {
 
     def compare (cmp {compare}) [ (*c a a -- *c Comparison) *c Maybe(a) Maybe(a) -- *c Comparison ] {
         { None -> match {
-            { None -> EQ }
-            { Some -> drop GT }
+            { None -> Comparison.EQ }
+            { Some -> drop Comparison.GT }
         } }
         { Some -> swap match {
-            { None -> drop LT }
+            { None -> drop Comparison.LT }
             { Some -> swap cmp }
         }}
     }
@@ -77,6 +77,10 @@ data Maybe(t) {
         Str( show;(f) )
     }
 }
+
+# Re-export these constructors unqualified.
+alias(Some, Maybe.Some)
+alias(None, Maybe.None)
 
 def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
     while(f if-some(g True, False))

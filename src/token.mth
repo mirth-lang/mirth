@@ -17,91 +17,91 @@ import mirth.module
 
 # mirth/data/token
 data TokenValue {
-    TokenNone
-    TokenComma
-    TokenLParenOpen
-    TokenLSquareOpen
-    TokenLCurlyOpen
-    TokenLColonOpen
-    TokenLParen     [ Token ]
-    TokenRParen     [ Token ]
-    TokenLSquare    [ Token ]
-    TokenRSquare    [ Token ]
-    TokenLCurly     [ Token ]
-    TokenRCurly     [ Token ]
-    TokenLColon     [ Token ]
-    TokenRColon     [ Token ]
-    TokenInt        [ Int ]
-    TokenF64        [ F64 ]
-    TokenStr        [ Str ]
-    TokenName       [ Name ]
-    TokenDName      [ DName ]
-    TokenLabelPop   [ Label ]
-    TokenLabelPush  [ Label ]
-    TokenLabelPopR  [ Label ]
-    TokenLabelPushR [ Label ]
-    TokenLabelGet   [ Label ]
-    TokenLabelSet   [ Label ]
+    None
+    Comma
+    LParenOpen
+    LSquareOpen
+    LCurlyOpen
+    LColonOpen
+    LParen     [ Token ]
+    RParen     [ Token ]
+    LSquare    [ Token ]
+    RSquare    [ Token ]
+    LCurly     [ Token ]
+    RCurly     [ Token ]
+    LColon     [ Token ]
+    RColon     [ Token ]
+    Int        [ Int ]
+    F64        [ F64 ]
+    Str        [ Str ]
+    Name       [ Name ]
+    DName      [ DName ]
+    LabelPop   [ Label ]
+    LabelPush  [ Label ]
+    LabelPopR  [ Label ]
+    LabelPushR [ Label ]
+    LabelGet   [ Label ]
+    LabelSet   [ Label ]
     --
-    def none? { TokenNone -> True, _ -> drop False }
-    def comma? { TokenComma -> True, _ -> drop False }
+    def none? { None -> True, _ -> drop False }
+    def comma? { Comma -> True, _ -> drop False }
 }
 
-def(TokenValue.lparen-open?, TokenValue -- Bool, TokenLParenOpen -> True, _ -> drop False)
-def(TokenValue.lparen?, TokenValue -- Maybe(Token), TokenLParen -> Some, _ -> drop None)
-def(TokenValue.rparen?, TokenValue -- Maybe(Token), TokenRParen -> Some, _ -> drop None)
-def(TokenValue.lsquare-open?, TokenValue -- Bool, TokenLSquareOpen -> True, _ -> drop False)
-def(TokenValue.lsquare?, TokenValue -- Maybe(Token), TokenLSquare -> Some, _ -> drop None)
-def(TokenValue.rsquare?, TokenValue -- Maybe(Token), TokenRSquare -> Some, _ -> drop None)
-def(TokenValue.lcurly-open?, TokenValue -- Bool, TokenLCurlyOpen -> True, _ -> drop False)
-def(TokenValue.lcurly?, TokenValue -- Maybe(Token), TokenLCurly -> Some, _ -> drop None)
-def(TokenValue.rcurly?, TokenValue -- Maybe(Token), TokenRCurly -> Some, _ -> drop None)
-def(TokenValue.lcolon-open?, TokenValue -- Bool, TokenLColonOpen -> True, _ -> drop False)
-def(TokenValue.lcolon?, TokenValue -- Maybe(Token), TokenLColon -> Some, _ -> drop None)
-def(TokenValue.rcolon?, TokenValue -- Maybe(Token), TokenRColon -> Some, _ -> drop None)
-def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), TokenLParen -> Some, TokenLColon -> Some, _ -> drop None)
+def(TokenValue.lparen-open?, TokenValue -- Bool, LParenOpen -> True, _ -> drop False)
+def(TokenValue.lparen?, TokenValue -- Maybe(Token), LParen -> Some, _ -> drop None)
+def(TokenValue.rparen?, TokenValue -- Maybe(Token), RParen -> Some, _ -> drop None)
+def(TokenValue.lsquare-open?, TokenValue -- Bool, LSquareOpen -> True, _ -> drop False)
+def(TokenValue.lsquare?, TokenValue -- Maybe(Token), LSquare -> Some, _ -> drop None)
+def(TokenValue.rsquare?, TokenValue -- Maybe(Token), RSquare -> Some, _ -> drop None)
+def(TokenValue.lcurly-open?, TokenValue -- Bool, LCurlyOpen -> True, _ -> drop False)
+def(TokenValue.lcurly?, TokenValue -- Maybe(Token), LCurly -> Some, _ -> drop None)
+def(TokenValue.rcurly?, TokenValue -- Maybe(Token), RCurly -> Some, _ -> drop None)
+def(TokenValue.lcolon-open?, TokenValue -- Bool, LColonOpen -> True, _ -> drop False)
+def(TokenValue.lcolon?, TokenValue -- Maybe(Token), LColon -> Some, _ -> drop None)
+def(TokenValue.rcolon?, TokenValue -- Maybe(Token), RColon -> Some, _ -> drop None)
+def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), LParen -> Some, LColon -> Some, _ -> drop None)
 
 def(TokenValue.can-take-args?, TokenValue -- Bool,
-    TokenName -> drop True,
-    TokenDName -> drop True,
-    TokenLabelGet -> drop True,
+    Name -> drop True,
+    DName -> drop True,
+    LabelGet -> drop True,
     _ -> drop False)
 
 def-type(Name/DName, Either(Name,DName))
 
-def(TokenValue.int?, TokenValue -- Maybe(Int), TokenInt -> Some, _ -> drop None)
-def(TokenValue.str?, TokenValue -- Maybe(Str), TokenStr -> Some, _ -> drop None)
-def(TokenValue.name?, TokenValue -- Maybe(Name), TokenName -> Some, _ -> drop None)
-def(TokenValue.dname?, TokenValue -- Maybe(DName), TokenDName -> Some, _ -> drop None)
+def(TokenValue.int?, TokenValue -- Maybe(Int), Int -> Some, _ -> drop None)
+def(TokenValue.str?, TokenValue -- Maybe(Str), Str -> Some, _ -> drop None)
+def(TokenValue.name?, TokenValue -- Maybe(Name), Name -> Some, _ -> drop None)
+def(TokenValue.dname?, TokenValue -- Maybe(DName), DName -> Some, _ -> drop None)
 def(TokenValue.name/dname?, TokenValue -- Maybe(Name/DName),
-    TokenName -> Left Some,
-    TokenDName -> Right Some,
+    Name -> Left Some,
+    DName -> Right Some,
     _ -> drop None)
 def(TokenValue.last-name?, TokenValue -- Maybe(Name),
-    TokenName -> Some,
-    TokenDName -> last-name Some,
+    Name -> Some,
+    DName -> last-name Some,
     _ -> drop None)
 def(TokenValue.penultimate-name?, TokenValue -- Maybe(Name),
-    TokenDName -> penultimate-name?,
+    DName -> penultimate-name?,
     _ -> drop None)
 def(TokenValue.arg-end?, TokenValue -- Bool,
-    TokenComma -> True,
-    TokenRParen -> drop True,
-    TokenRCurly -> drop True,
-    TokenRSquare -> drop True,
-    TokenRColon -> drop True,
+    Comma -> True,
+    RParen -> drop True,
+    RCurly -> drop True,
+    RSquare -> drop True,
+    RColon -> drop True,
     _ -> drop False)
 def(TokenValue.left-enclosure?, TokenValue -- Bool,
-    TokenLParen -> drop True,
-    TokenLSquare -> drop True,
-    TokenLCurly -> drop True,
-    TokenLColon -> drop True,
+    LParen -> drop True,
+    LSquare -> drop True,
+    LCurly -> drop True,
+    LColon -> drop True,
     _ -> drop False)
 def(TokenValue.right-enclosure?, TokenValue -- Bool,
-    TokenRParen -> drop True,
-    TokenRSquare -> drop True,
-    TokenRCurly -> drop True,
-    TokenRColon -> drop True,
+    RParen -> drop True,
+    RSquare -> drop True,
+    RCurly -> drop True,
+    RColon -> drop True,
     _ -> drop False)
 
 def name/dname-last-name [ Name/DName -- Name ] {
@@ -178,7 +178,7 @@ def(Token.can-take-args?, Token -- Bool, value can-take-args?)
 
 def(Token.alloc-none!, Token,
     Token.alloc!
-    TokenNone over ~value !)
+    TokenValue.None over ~value !)
 
 def(Token.location, Token -- Location,
     dup .module >module
@@ -189,10 +189,10 @@ def(Token.location, Token -- Location,
 ||| Get next token, respecting nesting of tokens and arguments.
 def(Token.next, Token -- Token,
     dup value match(
-        TokenLParen -> nip succ,
-        TokenLSquare -> nip succ,
-        TokenLCurly -> nip succ,
-        TokenLColon -> nip succ,
+        LParen -> nip succ,
+        LSquare -> nip succ,
+        LCurly -> nip succ,
+        LColon -> nip succ,
         _ -> can-take-args? if(
             succ dup lparen-or-lcolon? for(nip succ),
             succ
@@ -202,10 +202,10 @@ def(Token.next, Token -- Token,
 ||| Get previous token, respecting nesting of tokens and arguments.
 def(Token.prev, Token -- Token,
     pred dup value match(
-        TokenRSquare -> nip,
-        TokenRCurly -> nip,
-        TokenRParen -> nip dup pred can-take-args? then(pred),
-        TokenRColon -> nip dup pred can-take-args? then(pred),
+        RSquare -> nip,
+        RCurly -> nip,
+        RParen -> nip dup pred can-take-args? then(pred),
+        RColon -> nip dup pred can-take-args? then(pred),
         _ -> drop
     ))
 
@@ -328,12 +328,12 @@ def(Token.module-end?, Token -- Bool, none?)
 ||| Is this a token to stop running at?
 def(Token.run-end?, Token -- Bool,
     value match(
-        TokenNone -> True,
-        TokenComma -> True,
-        TokenRParen -> drop True,
-        TokenRSquare -> drop True,
-        TokenRCurly -> drop True,
-        TokenRColon -> drop True,
+        None -> True,
+        Comma -> True,
+        RParen -> drop True,
+        RSquare -> drop True,
+        RCurly -> drop True,
+        RColon -> drop True,
         _ -> drop False
     ))
 

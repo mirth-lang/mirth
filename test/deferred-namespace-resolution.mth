@@ -26,7 +26,6 @@ def(main, --,
     MyTable.alloc! 10 over my-field ! my-drop
     MyTable.this drop
     MyTable.YourTable.alloc! drop
-    10 MyTag drop
     20 MyData.MyTag drop
     30 MyTable.MyData.MyTag drop
     MyTable.Alias.alloc! drop

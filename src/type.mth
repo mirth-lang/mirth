@@ -21,92 +21,92 @@ import mirth.data
 import mirth.label
 
 data Type {
-    TYPE_ERROR
-    TYPE_DONT_CARE
-    TPrim [ PrimType ]
-    TMeta [ MetaVar ]
-    THole [ Name ]
-    TVar  [ Var ]
-    TTable [ Table ]
-    TData [ Data ]
-    TDataPartial [ DataPartial ]
-    TTensor [ StackType ]
-    TMorphism [ ArrowType ]
-    TApp [ Type Type ]
-    TMut [ Type ]
-    TValue [ Value ]
+    Error
+    Ignore
+    Prim [ PrimType ]
+    Meta [ MetaVar ]
+    Hole [ Name ]
+    Var  [ Var ]
+    Table [ Table ]
+    Data [ Data ]
+    DataPartial [ DataPartial ]
+    Stack [ StackType ]
+    Arrow [ ArrowType ]
+    App [ Type Type ]
+    Mut [ Type ]
+    Value [ Value ]
 }
 
-def Type.NewInCtx [ Ctx Str -- Ctx Type ] { dip:TYPE_TYPE Var.NewInCtx Type.TVar }
+def Type.NewInCtx [ Ctx Str -- Ctx Type ] { dip:Type.Type Var.NewInCtx Type.Var }
 
 data Value {
-    VALUE_INT [ Int ]
-    VALUE_F64 [ F64 ]
-    VALUE_STR [ Str ]
-    VALUE_BLOCK [ Block ]
+    Int [ Int ]
+    F64 [ F64 ]
+    Str [ Str ]
+    Block [ Block ]
 }
 
 data PrimType {
-    PRIM_TYPE_TYPE
-    PRIM_TYPE_STACK
-    PRIM_TYPE_RESOURCE
-    PRIM_TYPE_INT
-    PRIM_TYPE_F32
-    PRIM_TYPE_F64
-    PRIM_TYPE_PTR
-    PRIM_TYPE_STR
-    PRIM_TYPE_WORLD
+    Type
+    StackType
+    ResourceType
+    Int
+    F32
+    F64
+    Ptr
+    Str
+    World
 }
 
 def PrimType.is-resource? [ PrimType -- Bool ] {
-    { PRIM_TYPE_WORLD -> True }
+    { World -> True }
     { _ -> drop False }
 }
 
 def PrimType.is-physical? [ PrimType -- Bool ] {
-    { PRIM_TYPE_TYPE -> False }
-    { PRIM_TYPE_STACK -> False }
-    { PRIM_TYPE_RESOURCE -> False }
+    { Type -> False }
+    { StackType -> False }
+    { ResourceType -> False }
     { _ -> drop True }
 }
 
 ||| Get type constructor name for a type, if possible.
 def Type.tycon? [ Type -- Maybe(Tycon) ] {
-    { TYPE_ERROR -> None }
-    { TYPE_DONT_CARE -> None }
-    { TPrim -> TYCON_PRIM Some }
-    { TMeta -> expand-if(tycon?, drop None) }
-    { THole -> drop None }
-    { TVar -> drop None }
-    { TTable -> TYCON_TABLE Some }
-    { TData -> TYCON_DATA Some }
-    { TDataPartial -> .data TYCON_DATA Some }
-    { TMorphism -> drop None }
-    { TTensor -> drop None }
-    { TApp -> drop tycon? }
-    { TMut -> tycon? }
-    { TValue -> tycon? }
+    { Error -> None }
+    { Ignore -> None }
+    { Prim -> Tycon.Prim Some }
+    { Meta -> expand-if(tycon?, drop None) }
+    { Hole -> drop None }
+    { Var -> drop None }
+    { Table -> Tycon.Table Some }
+    { Data -> Tycon.Data Some }
+    { DataPartial -> .data Tycon.Data Some }
+    { Arrow -> drop None }
+    { Stack -> drop None }
+    { App -> drop tycon? }
+    { Mut -> tycon? }
+    { Value -> tycon? }
 }
 
 ||| Get primitive type constructor name.
 def PrimType.tycon-qname [ +Mirth PrimType -- +Mirth QName ] {
-    { PRIM_TYPE_TYPE -> "TYPE" 0 QName.Prim }
-    { PRIM_TYPE_STACK -> "STACK" 0 QName.Prim }
-    { PRIM_TYPE_RESOURCE -> "Resource" 0 QName.Prim }
-    { PRIM_TYPE_INT -> "Int" 0 QName.Prim }
-    { PRIM_TYPE_F32 -> "F32" 0 QName.Prim }
-    { PRIM_TYPE_F64 -> "F64" 0 QName.Prim }
-    { PRIM_TYPE_STR -> "Str" 0 QName.Prim }
-    { PRIM_TYPE_PTR -> "Ptr" 0 QName.Prim }
-    { PRIM_TYPE_WORLD -> "+World" 0 QName.Prim }
+    { Type -> "Type" 0 QName.Prim }
+    { StackType -> "StackType" 0 QName.Prim }
+    { ResourceType -> "ResourceType" 0 QName.Prim }
+    { Int -> "Int" 0 QName.Prim }
+    { F32 -> "F32" 0 QName.Prim }
+    { F64 -> "F64" 0 QName.Prim }
+    { Str -> "Str" 0 QName.Prim }
+    { Ptr -> "Ptr" 0 QName.Prim }
+    { World -> "+World" 0 QName.Prim }
 }
 
 ||| Get value type constructor name.
 def Value.tycon? [ Value -- Maybe(Tycon) ] {
-    { VALUE_INT -> drop PRIM_TYPE_INT TYCON_PRIM Some }
-    { VALUE_F64 -> drop PRIM_TYPE_F64 TYCON_PRIM Some }
-    { VALUE_STR -> drop PRIM_TYPE_STR TYCON_PRIM Some }
-    { VALUE_BLOCK -> drop None }
+    { Int -> drop PrimType.Int Tycon.Prim Some }
+    { F64 -> drop PrimType.F64 Tycon.Prim Some }
+    { Str -> drop PrimType.Str Tycon.Prim Some }
+    { Block -> drop None }
 }
 
 def PrimType.>Int [ PrimType -- Int ] { PrimType.enum-value }
@@ -114,23 +114,23 @@ def PrimType.== [ PrimType PrimType -- Bool ] { both(>Int) == }
 
 def +Mirth.def-prim-type! [ +Mirth PrimType -- +Mirth ] {
     dup tycon-qname >qname
-    TPrim >type
+    Type.Prim >type
     def-type!
 }
 
 def +Mirth.def-prim-type-alias! [ +Mirth PrimType Str -- +Mirth ] {
     >Name over tycon-qname .name! >qname
-    TPrim >type
+    Type.Prim >type
     def-type!
 }
 
 def +Mirth.init-types! [ +Mirth -- +Mirth ] {
-    PRIM_TYPE_INT def-prim-type!
-    PRIM_TYPE_F32 def-prim-type! PRIM_TYPE_F32 "Float32" def-prim-type-alias!
-    PRIM_TYPE_F64 def-prim-type! PRIM_TYPE_F64 "Float64" def-prim-type-alias!
-    PRIM_TYPE_PTR def-prim-type!
-    PRIM_TYPE_STR def-prim-type!
-    PRIM_TYPE_WORLD def-prim-type!
+    PrimType.Int def-prim-type!
+    PrimType.F32 def-prim-type! PrimType.F32 "Float32" def-prim-type-alias!
+    PrimType.F64 def-prim-type! PrimType.F64 "Float64" def-prim-type-alias!
+    PrimType.Ptr def-prim-type!
+    PrimType.Str def-prim-type!
+    PrimType.World def-prim-type!
     init-data!
 }
 
@@ -138,13 +138,13 @@ def +Mirth.init-types! [ +Mirth -- +Mirth ] {
 # Types #
 #########
 
-def(T+, StackType Resource -- StackType, STWith)
-def(T*, StackType Type -- StackType, STCons)
+def(T+, StackType Resource -- StackType, StackType.With)
+def(T*, StackType Type -- StackType, StackType.Cons)
 def(T*+, StackType Type/Resource -- StackType, match(Left -> T*, Right -> T+))
 def(T->, StackType StackType -- ArrowType, >cod >dom ArrowType)
 
 def(TT, List(Type) -- StackType, T0 swap for(T*))
-def(T0, StackType, STACK_TYPE_UNIT)
+def(T0, StackType, StackType.Unit)
 def(T1, Type -- StackType, dip(T0) T*)
 def(T2, Type Type -- StackType, dip(T1) T*)
 def(T3, Type Type Type -- StackType, dip(T2) T*)
@@ -152,55 +152,47 @@ def(T4, Type Type Type Type -- StackType, dip(T3) T*)
 def(T5, Type Type Type Type Type -- StackType, dip(T4) T*)
 def(T6, Type Type Type Type Type Type -- StackType, dip(T5) T*)
 
-# def(type-is-error, Type -- Bool, match(TYPE_ERROR -> True, _ -> drop False))
-# def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> True, _ -> drop False))
-# def(type-is-prim, Type -- Bool, match(TPrim -> drop True, _ -> drop False))
-# def(type-is-var, Type -- Bool, match(TVar -> drop True, _ -> drop False))
-# def(type-is-meta, Type -- Bool, match(TMeta -> drop True, _ -> drop False))
-# def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 True, _ -> drop False))
-# def(type-is-table, Type -- Bool, match(TTable -> drop True, _ -> drop False))
-# def(type-is-hole, Type -- Bool, match(THole -> drop True, _ -> drop False))
-# def(type-is-app, Type -- Bool, match(TApp -> drop2 True, _ -> drop False))
-# def(type-is-data, Type -- Bool, match(TData -> drop True, _ -> drop False))
+# def(type-is-error, Type -- Bool, match(Error -> True, _ -> drop False))
+# def(type-is-dont-care, Type -- Bool, match(Ignore -> True, _ -> drop False))
+# def(type-is-prim, Type -- Bool, match(Prim -> drop True, _ -> drop False))
+# def(type-is-var, Type -- Bool, match(Var -> drop True, _ -> drop False))
+# def(type-is-meta, Type -- Bool, match(Meta -> drop True, _ -> drop False))
+# def(type-is-tensor, Type -- Bool, match(Stack -> drop2 True, _ -> drop False))
+# def(type-is-table, Type -- Bool, match(Table -> drop True, _ -> drop False))
+# def(type-is-hole, Type -- Bool, match(Hole -> drop True, _ -> drop False))
+# def(type-is-app, Type -- Bool, match(App -> drop2 True, _ -> drop False))
+# def(type-is-data, Type -- Bool, match(Data -> drop True, _ -> drop False))
 
-def(Type.error?, Type -- Bool, expand match(TYPE_ERROR -> True, _ -> drop False))
-def(Type.morphism?, Type -- Maybe(ArrowType), expand match(TMorphism -> Some, _ -> drop None))
-def(Type.prim?, Type -- Maybe(PrimType), expand match(TPrim -> Some, _ -> drop None))
+def(Type.error?, Type -- Bool, expand match(Error -> True, _ -> drop False))
+def(Type.morphism?, Type -- Maybe(ArrowType), expand match(Arrow -> Some, _ -> drop None))
+def(Type.prim?, Type -- Maybe(PrimType), expand match(Prim -> Some, _ -> drop None))
 
-def(Type.tensor?, Type -- Maybe(StackType), expand match(TTensor -> Some, _ -> drop None))
+def(Type.tensor?, Type -- Maybe(StackType), expand match(Stack -> Some, _ -> drop None))
 def(Type.unit?, Type -- Bool, tensor? if-some(unit?, False))
 
 def(Type.meta=, MetaVar Type -- Bool,
-    TMeta -> ==,
+    Meta -> ==,
     _ -> drop2 False)
 
 def(Type.is-physical?, Type -- Bool,
-    TMeta -> expand-if(is-physical?, "unbound meta at Type.is-physical?" panic!),
-    TPrim -> is-physical?,
+    Meta -> expand-if(is-physical?, "unbound meta at Type.is-physical?" panic!),
+    Prim -> is-physical?,
     _ -> drop True)
 
-def(TYPE_UNIT, Type, STACK_TYPE_UNIT TTensor) # unit type
-def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
-def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
-def(TYPE_RESOURCE, Type, PRIM_TYPE_RESOURCE TPrim) # type of (linear) resources
-def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
-def(TYPE_F32, Type, PRIM_TYPE_F32 TPrim)
-def(TYPE_F64, Type, PRIM_TYPE_F64 TPrim)
-def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
-def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
-# def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
-# def(TYPE_U16, Type, PRIM_TYPE_U16 TPrim) # fixed width integer type -- unsigned 16 bit
-# def(TYPE_U32, Type, PRIM_TYPE_U32 TPrim) # fixed width integer type -- unsigned 32 bit
-# def(TYPE_U64, Type, PRIM_TYPE_U64 TPrim) # fixed width integer type -- unsigned 64 bit
-# def(TYPE_I8, Type, PRIM_TYPE_I8 TPrim) # fixed width integer type -- signed 8 bit
-# def(TYPE_I16, Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
-# def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
-# def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
-def(TYPE_WORLD, Type, PRIM_TYPE_WORLD TPrim)
-def(RESOURCE_WORLD, Resource, TYPE_WORLD Resource)
+def(Type.Unit, Type, StackType.Unit Type.Stack) # unit type
+def(Type.Type, Type, PrimType.Type Type.Prim) # type of types
+def(Type.StackType, Type, PrimType.StackType Type.Prim) # type of stack types
+def(Type.ResourceType, Type, PrimType.ResourceType Type.Prim) # type of (linear) resources
+def(Type.Int, Type, PrimType.Int Type.Prim) # generic integer type for integer literals
+def(Type.F32, Type, PrimType.F32 Type.Prim)
+def(Type.F64, Type, PrimType.F64 Type.Prim)
+def(Type.Ptr, Type, PrimType.Ptr Type.Prim) # generic pointer type (e.g. void*)
+def(Type.Str, Type, PrimType.Str Type.Prim) # string pointer (just a pointer but nominally)
+def(Type.World, Type, PrimType.World Type.Prim)
+def(Resource.World, Resource, Type.World Resource)
 
 def(Type.expand, Type -- Type,
-    TMeta -> expand,
+    Meta -> expand,
     _ -> id)
 
 data(+Gamma, +Gamma -> token: Token)
@@ -208,72 +200,72 @@ def(+Gamma.rdrop, +Gamma --, /+Gamma token> drop)
 
 ||| Raise a type unification error.
 def(Type.unify-failed!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
-    Str("Failed to unify " ; dip:type; " with " ; type;) dip:token rdip:emit-error! TYPE_ERROR)
+    Str("Failed to unify " ; dip:type; " with " ; type;) dip:token rdip:emit-error! Type.Error)
 
 ||| Unify types directly, without regard to metavariables and other metatypes.
 def(Type.unify-simple!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
-    TVar -> swap match(TVar -> unify!, _ -> dip(TVar) unify-failed!),
-    TPrim -> swap match(TPrim -> unify!, _ -> dip(TPrim) unify-failed!),
-    TData -> swap match(TData -> unify!, _ -> dip(TData) unify-failed!),
-    TDataPartial -> swap match(TDataPartial -> unify!, _ -> dip(TDataPartial) unify-failed!),
-    TTable -> swap match(TTable -> unify!, _ -> dip(TTable) unify-failed!),
-    TTensor -> swap match(TTensor -> unify! >Type, _ -> dip(TTensor) unify-failed!),
-    TMorphism -> swap match(TMorphism -> unify! TMorphism, _ -> dip(TMorphism) unify-failed!),
-    TApp -> rotl match(TApp -> unify2! TApp, _ -> dip(TApp) unify-failed!),
-    TMut -> swap match(TMut -> unify! TMut, _ -> dip(TMut) unify-failed!),
+    Var -> swap match(Var -> unify!, _ -> dip(Type.Var) unify-failed!),
+    Prim -> swap match(Prim -> unify!, _ -> dip(Type.Prim) unify-failed!),
+    Data -> swap match(Data -> unify!, _ -> dip(Type.Data) unify-failed!),
+    DataPartial -> swap match(DataPartial -> unify!, _ -> dip(Type.DataPartial) unify-failed!),
+    Table -> swap match(Table -> unify!, _ -> dip(Type.Table) unify-failed!),
+    Stack -> swap match(Stack -> unify! >Type, _ -> dip(Type.Stack) unify-failed!),
+    Arrow -> swap match(Arrow -> unify! Type.Arrow, _ -> dip(Type.Arrow) unify-failed!),
+    App -> rotl match(App -> unify2! Type.App, _ -> dip(Type.App) unify-failed!),
+    Mut -> swap match(Mut -> unify! Type.Mut, _ -> dip(Type.Mut) unify-failed!),
     _ -> unify-failed!)
 
 ||| Unify expanded types.
 def(Type.unify-aux!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
-    TYPE_ERROR -> unify-error!,
-    TYPE_DONT_CARE -> id,
-    THole -> type-hole-unify!,
-    TMeta ->
+    Error -> unify-error!,
+    Ignore -> id,
+    Hole -> type-hole-unify!,
+    Meta ->
         swap match(
-            TYPE_ERROR -> unify-error!,
-            TYPE_DONT_CARE -> TMeta,
-            THole -> dip(TMeta) type-hole-unify!,
-            TMeta -> dip(TMeta) unify!,
-            TValue -> dip(TMeta) unify-type!,
+            Error -> unify-error!,
+            Ignore -> Type.Meta,
+            Hole -> dip(Type.Meta) type-hole-unify!,
+            Meta -> dip(Type.Meta) unify!,
+            Value -> dip(Type.Meta) unify-type!,
             _ -> swap unify!,
         ),
-    TValue ->
+    Value ->
         swap match(
-            TYPE_ERROR -> unify-error!,
-            TYPE_DONT_CARE -> TValue,
-            THole -> dip(TValue) type-hole-unify!,
-            TMeta -> dip(TValue) unify!,
-            TValue -> unify!,
+            Error -> unify-error!,
+            Ignore -> Type.Value,
+            Hole -> dip(Type.Value) type-hole-unify!,
+            Meta -> dip(Type.Value) unify!,
+            Value -> unify!,
             _ -> swap unify-type!
         ),
     _ ->
         swap match(
-            TYPE_ERROR -> unify-error!,
-            TYPE_DONT_CARE -> id,
-            THole -> type-hole-unify!,
-            TMeta -> unify!,
-            TValue -> unify-type!,
+            Error -> unify-error!,
+            Ignore -> id,
+            Hole -> type-hole-unify!,
+            Meta -> unify!,
+            Value -> unify-type!,
             _ -> unify-simple!
         )
     )
 
-||| Fill out any subterms/metavars with TYPE_ERROR.
+||| Fill out any subterms/metavars with Error.
 def(Type.unify-error!, +Mirth +Gamma Type -- +Mirth +Gamma Type,
     expand match(
-        TYPE_ERROR -> TYPE_ERROR,
-        TYPE_DONT_CARE -> TYPE_ERROR,
-        THole -> TYPE_ERROR swap type-hole-unify!,
-        TMeta -> unify-error!,
-        TValue -> unify-error!,
-        TVar -> drop TYPE_ERROR,
-        TPrim -> drop TYPE_ERROR,
-        TData -> drop TYPE_ERROR,
-        TDataPartial -> drop TYPE_ERROR,
-        TTable -> drop TYPE_ERROR,
-        TTensor -> unify-error! drop TYPE_ERROR,
-        TMorphism -> unify-error! drop TYPE_ERROR,
-        TApp -> dip(unify-error! drop) unify-error! drop TYPE_ERROR,
-        TMut -> unify-error! drop TYPE_ERROR,
+        Error -> Type.Error,
+        Ignore -> Type.Error,
+        Hole -> Type.Error swap type-hole-unify!,
+        Meta -> unify-error!,
+        Value -> unify-error!,
+        Var -> drop Type.Error,
+        Prim -> drop Type.Error,
+        Data -> drop Type.Error,
+        DataPartial -> drop Type.Error,
+        Table -> drop Type.Error,
+        Stack -> unify-error! drop Type.Error,
+        Arrow -> unify-error! drop Type.Error,
+        App -> dip(unify-error! drop) unify-error! drop Type.Error,
+        Mut -> unify-error! drop Type.Error,
     ))
 
 ||| Unify two types. Raises a unification error if unification is impossible.
@@ -282,95 +274,95 @@ def(Type.unify!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
 
 def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
     swap match(
-        VALUE_INT -> swap match(
-            VALUE_INT -> dup2 == if(drop VALUE_INT TValue, drop2 TYPE_INT),
-            VALUE_STR ->
+        Int -> swap match(
+            Int -> dup2 == if(drop Value.Int Type.Value, drop2 Type.Int),
+            Str ->
                 drop2 token
                 "Can't unify int value with string value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_F64 ->
+                rdip:emit-error! Type.Error,
+            F64 ->
                 drop2 token
                 "Can't unify int value with float value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_BLOCK ->
+                rdip:emit-error! Type.Error,
+            Block ->
                 drop2 token
                 "Can't unify int value with block."
-                rdip:emit-error! TYPE_ERROR,
+                rdip:emit-error! Type.Error,
         ),
 
-        VALUE_STR -> swap match(
-            VALUE_STR -> dup2 == if(drop VALUE_STR TValue, drop2 TYPE_STR),
-            VALUE_INT ->
+        Str -> swap match(
+            Str -> dup2 == if(drop Value.Str Type.Value, drop2 Type.Str),
+            Int ->
                 drop2 token
                 "Can't unify string value with int value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_F64 ->
+                rdip:emit-error! Type.Error,
+            F64 ->
                 drop2 token
                 "Can't unify string value with float value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_BLOCK ->
+                rdip:emit-error! Type.Error,
+            Block ->
                 drop2 token
                 "Can't unify string value with block."
-                rdip:emit-error! TYPE_ERROR,
+                rdip:emit-error! Type.Error,
         ),
 
-        VALUE_BLOCK -> swap match(
-            VALUE_BLOCK ->
+        Block -> swap match(
+            Block ->
                 dup2 == if(
-                    drop VALUE_BLOCK TValue,
+                    drop Value.Block Type.Value,
                     rdip:arrow type block-unify-type! >Type
                 ),
-            VALUE_INT ->
+            Int ->
                 drop2 token
                 "Can't unify block with int value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_F64 ->
+                rdip:emit-error! Type.Error,
+            F64 ->
                 drop2 token
                 "Can't unify block with float value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_STR ->
+                rdip:emit-error! Type.Error,
+            Str ->
                 drop2 token
                 "Can't unify block with string value."
-                rdip:emit-error! TYPE_ERROR
+                rdip:emit-error! Type.Error
         ),
 
-        VALUE_F64 -> swap match(
-            VALUE_F64 ->
+        F64 -> swap match(
+            F64 ->
                 dup2 == if(
-                    drop VALUE_F64 TValue,
-                    drop2 TYPE_F64
+                    drop Value.F64 Type.Value,
+                    drop2 Type.F64
                 ),
-            VALUE_INT ->
+            Int ->
                 drop2 token
                 "Can't unify float value with int value."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_BLOCK ->
+                rdip:emit-error! Type.Error,
+            Block ->
                 drop2 token
                 "Can't unify float value with block."
-                rdip:emit-error! TYPE_ERROR,
-            VALUE_STR ->
+                rdip:emit-error! Type.Error,
+            Str ->
                 drop2 token
                 "Can't unify float value with string value."
-                rdip:emit-error! TYPE_ERROR
+                rdip:emit-error! Type.Error
         )))
 
 def(Value.unify-type!, +Mirth +Gamma Type Value -- +Mirth +Gamma Type,
-    VALUE_INT -> drop TYPE_INT unify!,
-    VALUE_STR -> drop TYPE_STR unify!,
-    VALUE_F64 -> drop TYPE_F64 unify!,
-    VALUE_BLOCK -> swap unify-block!)
+    Int -> drop Type.Int unify!,
+    Str -> drop Type.Str unify!,
+    F64 -> drop Type.F64 unify!,
+    Block -> swap unify-block!)
 
 def(Value.unify-error!, +Mirth +Gamma Value -- +Mirth +Gamma Type,
-    VALUE_INT -> drop TYPE_ERROR,
-    VALUE_STR -> drop TYPE_ERROR,
-    VALUE_F64 -> drop TYPE_ERROR,
-    VALUE_BLOCK -> TYPE_ERROR unify-block!)
+    Int -> drop Type.Error,
+    Str -> drop Type.Error,
+    F64 -> drop Type.Error,
+    Block -> Type.Error unify-block!)
 
 def(Type.unify-block!, +Mirth +Gamma Block Type -- +Mirth +Gamma Type,
     expand match(
-        TYPE_ERROR -> STACK_TYPE_ERROR STACK_TYPE_ERROR T-> block-unify-type! drop TYPE_ERROR,
-        TMeta -> over dip(dip(type >Type) unify! drop) rdip:arrow type >Type,
-        TMorphism -> block-unify-type! >Type,
+        Error -> StackType.Error StackType.Error T-> block-unify-type! drop Type.Error,
+        Meta -> over dip(dip(type >Type) unify! drop) rdip:arrow type >Type,
+        Arrow -> block-unify-type! >Type,
         _ -> dip(type >Type) unify!
     ))
 
@@ -378,29 +370,29 @@ def(Type.unify2!, +Mirth +Gamma Type Type Type Type -- +Mirth +Gamma Type Type,
     dip(swap) dip2(unify!) unify!)
 
 def(PrimType.unify!, +Mirth +Gamma PrimType PrimType -- +Mirth +Gamma Type,
-    dup2 == if(drop TPrim, both(TPrim) unify-failed!))
+    dup2 == if(drop Type.Prim, both(Type.Prim) unify-failed!))
 def(Data.unify!, +Mirth +Gamma Data Data -- +Mirth +Gamma Type,
-    dup2 == if(drop TData, both(TData) unify-failed!))
+    dup2 == if(drop Type.Data, both(Type.Data) unify-failed!))
 def(DataPartial.unify!, +Mirth +Gamma DataPartial DataPartial -- +Mirth +Gamma Type,
-    dup2 == if(drop TDataPartial, both(TDataPartial) unify-failed!))
+    dup2 == if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!))
 def(Table.unify!, +Mirth +Gamma Table Table -- +Mirth +Gamma Type,
-    dup2 == if(drop TTable, both(TTable) unify-failed!))
+    dup2 == if(drop Type.Table, both(Type.Table) unify-failed!))
 
 def(Type.has-meta?, MetaVar Type -- Bool,
-    TMeta -> has-meta?,
-    TYPE_ERROR -> drop False,
-    TYPE_DONT_CARE -> drop False,
-    TPrim -> drop2 False,
-    TVar -> drop2 False,
-    THole -> drop2 False,
-    TTensor -> has-meta?,
-    TMorphism -> has-meta?,
-    TApp -> has-meta2?,
-    TData -> drop2 False,
-    TDataPartial -> drop2 False,
-    TTable -> drop2 False,
-    TValue -> has-meta?,
-    TMut -> has-meta?)
+    Meta -> has-meta?,
+    Error -> drop False,
+    Ignore -> drop False,
+    Prim -> drop2 False,
+    Var -> drop2 False,
+    Hole -> drop2 False,
+    Stack -> has-meta?,
+    Arrow -> has-meta?,
+    App -> has-meta2?,
+    Data -> drop2 False,
+    DataPartial -> drop2 False,
+    Table -> drop2 False,
+    Value -> has-meta?,
+    Mut -> has-meta?)
 
 def(Type.has-meta2?, MetaVar Type Type -- Bool,
     dip(over) has-meta? if(drop2 True, has-meta?))
@@ -409,20 +401,20 @@ def(Value.has-meta?, MetaVar Value -- Bool,
     type has-meta?)
 
 def Type.has-var? [ Var Type -- Bool ] {
-    { TYPE_ERROR -> drop True }
-    { TYPE_DONT_CARE -> drop True }
-    { TVar -> == }
-    { TMeta -> has-var? }
-    { TPrim -> drop2 False }
-    { THole -> drop2 False }
-    { TTensor -> has-var? }
-    { TMorphism -> has-var? }
-    { TApp -> has-var2? }
-    { TData -> drop2 False }
-    { TDataPartial -> drop2 False }
-    { TTable -> drop2 False }
-    { TValue -> has-var? }
-    { TMut -> has-var? }
+    { Error -> drop True }
+    { Ignore -> drop True }
+    { Var -> == }
+    { Meta -> has-var? }
+    { Prim -> drop2 False }
+    { Hole -> drop2 False }
+    { Stack -> has-var? }
+    { Arrow -> has-var? }
+    { App -> has-var2? }
+    { Data -> drop2 False }
+    { DataPartial -> drop2 False }
+    { Table -> drop2 False }
+    { Value -> has-var? }
+    { Mut -> has-var? }
 }
 
 def Type.has-var2? [ Var Type Type -- Bool ] {
@@ -434,44 +426,44 @@ def Value.has-var? [ Var Value -- Bool ] {
 }
 
 def(Type.sig;, Type +Str -- +Str,
-    TMeta -> expand-if(sig;, type;),
-    TYPE_ERROR -> "<ERROR>" ;,
-    TMorphism -> sig;,
+    Meta -> expand-if(sig;, type;),
+    Error -> "<ERROR>" ;,
+    Arrow -> sig;,
     _ -> type;)
 
 def(Type.type;, Type +Str -- +Str,
-    TYPE_ERROR -> "<ERROR>" ;,
-    TYPE_DONT_CARE -> "_" ;,
-    TPrim -> type;,
-    TVar -> type;,
-    TMeta -> type;,
-    TTensor -> "[" ; stack; "]" ;,
-    TMorphism -> "[" ; sig; "]" ;,
-    TData -> name >Str ;,
-    TDataPartial -> dup .data name >Str ; "/" ; .field name >Str ;,
-    TTable -> name >Str ;,
-    THole -> >Str ;,
-    TApp -> app-type;;,
-    TValue -> type type;,
-    TMut -> "Mut(" ; type; ")" ;)
+    Error -> "<ERROR>" ;,
+    Ignore -> "_" ;,
+    Prim -> type;,
+    Var -> type;,
+    Meta -> type;,
+    Stack -> "[" ; stack; "]" ;,
+    Arrow -> "[" ; sig; "]" ;,
+    Data -> name >Str ;,
+    DataPartial -> dup .data name >Str ; "/" ; .field name >Str ;,
+    Table -> name >Str ;,
+    Hole -> >Str ;,
+    App -> app-type;;,
+    Value -> type type;,
+    Mut -> "Mut(" ; type; ")" ;)
 
 def(Value.type, Value -- Type,
-    VALUE_INT -> drop PRIM_TYPE_INT TPrim,
-    VALUE_F64 -> drop PRIM_TYPE_F64 TPrim,
-    VALUE_STR -> drop PRIM_TYPE_STR TPrim,
-    VALUE_BLOCK -> type >Type)
+    Int -> drop PrimType.Int Type.Prim,
+    F64 -> drop PrimType.F64 Type.Prim,
+    Str -> drop PrimType.Str Type.Prim,
+    Block -> type >Type)
 
 def(PrimType.type;, +Str PrimType -- +Str,
     match(
-        PRIM_TYPE_TYPE -> "<TYPE>",
-        PRIM_TYPE_STACK -> "<STACK>",
-        PRIM_TYPE_RESOURCE -> "<Resource>",
-        PRIM_TYPE_INT -> "Int",
-        PRIM_TYPE_F32 -> "F32",
-        PRIM_TYPE_F64 -> "F64",
-        PRIM_TYPE_PTR -> "Ptr",
-        PRIM_TYPE_STR -> "Str",
-        PRIM_TYPE_WORLD -> "+World",
+        Type -> "Type",
+        StackType -> "StackType",
+        ResourceType -> "ResourceType",
+        Int -> "Int",
+        F32 -> "F32",
+        F64 -> "F64",
+        Ptr -> "Ptr",
+        Str -> "Str",
+        World -> "+World",
     ) ;)
 
 # ||| Freshen a type signature in preparation for type sig application.
@@ -482,31 +474,31 @@ def(PrimType.type;, +Str PrimType -- +Str,
 #     ))
 
 # def(Type.sig-needs-fresh-stack-rest?, Type -- Bool,
-#     TMeta -> expand-if(sig-needs-fresh-stack-rest?, drop False),
-#     TMorphism -> needs-fresh-stack-rest?,
+#     Meta -> expand-if(sig-needs-fresh-stack-rest?, drop False),
+#     Arrow -> needs-fresh-stack-rest?,
 #     _ -> drop False)
 
 # def(Type.freshen-sig-aux, Subst Type -- Subst Type,
-#     TMeta -> expand-if(freshen-sig-aux, TMeta),
-#     TMorphism -> freshen-sig-aux TMorphism,
+#     Meta -> expand-if(freshen-sig-aux, Meta),
+#     Arrow -> freshen-sig-aux Arrow,
 #     _ -> freshen)
 
 ||| Replace free type vars and free metavars with brand new metavars.
 def(Type.freshen, Subst Type -- Subst Type,
-    TYPE_ERROR -> TYPE_ERROR,
-    TYPE_DONT_CARE -> TYPE_DONT_CARE,
-    TPrim -> TPrim,
-    THole -> THole,
-    TData -> TData,
-    TDataPartial -> TDataPartial,
-    TTable -> TTable,
-    TValue -> TValue, # no need to freshen values
-    TVar -> freshen,
-    TMeta -> freshen,
-    TTensor -> freshen TTensor,
-    TMorphism -> freshen TMorphism,
-    TApp -> freshen2 TApp,
-    TMut -> freshen TMut,
+    Error -> Type.Error,
+    Ignore -> Type.Ignore,
+    Prim -> Type.Prim,
+    Hole -> Type.Hole,
+    Data -> Type.Data,
+    DataPartial -> Type.DataPartial,
+    Table -> Type.Table,
+    Value -> Type.Value, # no need to freshen values (TODO: revisit this?)
+    Var -> freshen,
+    Meta -> freshen,
+    Stack -> freshen Type.Stack,
+    Arrow -> freshen Type.Arrow,
+    App -> freshen2 Type.App,
+    Mut -> freshen Type.Mut,
     )
 
 def(Type.freshen2, Subst Type Type -- Subst Type Type,
@@ -515,50 +507,50 @@ def(Type.freshen2, Subst Type Type -- Subst Type Type,
 
 ||| Replace unbound metavars with new vars, adding them to context.
 def(Type.rigidify!, +Mirth Ctx Type -- +Mirth Ctx Type,
-    TMeta ->
+    Meta ->
         expand-or-update!(
-            fresh-type-var! TVar
+            fresh-type-var! Type.Var
         ) rigidify!,
-    TYPE_ERROR -> TYPE_ERROR,
-    TYPE_DONT_CARE -> TYPE_DONT_CARE,
-    TPrim -> TPrim,
-    THole -> THole,
-    TVar -> TVar,
-    TTable -> TTable,
-    TData -> TData,
-    TDataPartial -> TDataPartial,
-    TApp ->
+    Error -> Type.Error,
+    Ignore -> Type.Ignore,
+    Prim -> Type.Prim,
+    Hole -> Type.Hole,
+    Var -> Type.Var,
+    Table -> Type.Table,
+    Data -> Type.Data,
+    DataPartial -> Type.DataPartial,
+    App ->
         dip(rigidify!) swap
         dip(rigidify!) swap
-        TApp,
-    TTensor -> rigidify! TTensor,
-    TMorphism -> rigidify! TMorphism,
-    TValue -> rigidify!,
-    TMut -> rigidify! TMut)
+        Type.App,
+    Stack -> rigidify! Type.Stack,
+    Arrow -> rigidify! Type.Arrow,
+    Value -> rigidify!,
+    Mut -> rigidify! Type.Mut)
 
 def(Value.rigidify!, +Mirth Ctx Value -- +Mirth Ctx Type,
-    VALUE_INT -> VALUE_INT TValue,
-    VALUE_STR -> VALUE_STR TValue,
-    VALUE_F64 -> VALUE_F64 TValue,
-    VALUE_BLOCK -> arrow type rigidify! >Type)
+    Int -> Value.Int Type.Value,
+    Str -> Value.Str Type.Value,
+    F64 -> Value.F64 Type.Value,
+    Block -> arrow type rigidify! >Type)
 
 ||| How many types does this type take as an argument?
 def(Type.arity, Type -- Int,
-    TMeta -> expand-if(arity, drop 0),
-    TData -> arity,
-    TApp -> drop arity 1-,
+    Meta -> expand-if(arity, drop 0),
+    Data -> arity,
+    App -> drop arity 1-,
     _ -> drop 0)
 
 ||| Get head of type.
 def(type-head, Type -- Type,
-    TMeta -> expand-if(type-head, TMeta),
-    TApp -> drop type-head,
+    Meta -> expand-if(type-head, Type.Meta),
+    App -> drop type-head,
     _ -> id)
 
 def(Type.except-field, Label Tag Type -- Type,
-    TMeta -> expand-if(except-field, "Type.except-field on metavar" panic!),
-    TData -> >data drop >field DataPartial TDataPartial,
-    TApp -> dip(except-field) TApp,
+    Meta -> expand-if(except-field, "Type.except-field on metavar" panic!),
+    Data -> >data drop >field DataPartial Type.DataPartial,
+    App -> dip(except-field) Type.App,
     _ -> "Type.except-field on unexpected type" panic!)
 
 ##################
@@ -594,14 +586,14 @@ def(MetaVar.expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
     ))
 
 def(MetaVar.expand, MetaVar -- Type,
-    expand-if(id, TMeta))
+    expand-if(id, Type.Meta))
 def(MetaVar.unify!, +Mirth +Gamma Type MetaVar -- +Mirth +Gamma Type,
     dup type? match(
         Some -> nip unify!,
         None -> dup2 swap meta= if(
             drop,
             swap dup2 has-meta? if(
-                swap TMeta unify-failed!,
+                swap Type.Meta unify-failed!,
                 tuck Some swap ~type? !
             )
         )
@@ -609,7 +601,7 @@ def(MetaVar.unify!, +Mirth +Gamma Type MetaVar -- +Mirth +Gamma Type,
 def(MetaVar.unify-error!, +Mirth +Gamma MetaVar -- +Mirth +Gamma Type,
     dup type? match(
         Some -> nip unify-error!,
-        None -> dip(TYPE_ERROR Some) ~type? ! TYPE_ERROR
+        None -> dip(Type.Error Some) ~type? ! Type.Error
     ))
 
 def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
@@ -621,14 +613,14 @@ def(MetaVar.expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
 def(MetaVar.==, MetaVar MetaVar -- Bool, both(index) ==)
 
 def(MetaVar.freshen, Subst MetaVar -- Subst Type,
-    expand-if(freshen, drop MetaVar.new! TMeta))
+    expand-if(freshen, drop MetaVar.new! Type.Meta))
 
 ##############
 # Type Holes #
 ##############
 
 def(type-hole-unify!, +Mirth +Gamma Type Name -- +Mirth +Gamma Type,
-    Str(THole type; " ~ "; dup type; "\n" ;) dip:token rdip:emit-info!)
+    Str(Type.Hole type; " ~ "; dup type; "\n" ;) dip:token rdip:emit-info!)
 
 ############
 # APP TYPE #
@@ -639,7 +631,7 @@ def(Type.app-type;;, +Str Type Type -- +Str,
 
 def(Type.app-type-open;;, +Str Type Type -- +Str,
     swap expand match(
-        TApp -> app-type-open;; ", " ; type;,
+        App -> app-type-open;; ", " ; type;,
         _ -> type; "(" ; type;
     ))
 
@@ -648,7 +640,7 @@ def(Type.app-type-open;;, +Str Type Type -- +Str,
 #################
 
 data(Resource, Resource -> Type)
-def Resource.NewInCtx [ Ctx Str -- Ctx Resource ] { dip:TYPE_RESOURCE Var.NewInCtx Type.TVar Resource }
+def Resource.NewInCtx [ Ctx Str -- Ctx Resource ] { dip:Type.ResourceType Var.NewInCtx Type.Var Resource }
 
 def(Resource.>Type, Resource -- Type, Resource -> id)
 def(Type.>Resource, Type -- Resource, Resource)
@@ -672,40 +664,40 @@ def(Resource.except-field, Label Tag Resource -- Resource,
 ##############
 
 data(StackType,
-    STACK_TYPE_ERROR,
-    STACK_TYPE_DONT_CARE,
-    STACK_TYPE_UNIT,
-    STVar -> Var,
-    STMeta -> MetaVar,
-    STCons -> StackType Type,
-    STConsLabel -> StackType Type Label,
-    STWith -> StackType Resource,
-    STWithLabel -> StackType Resource Label)
+    Error,
+    Ignore,
+    Unit,
+    Var -> Var,
+    Meta -> MetaVar,
+    Cons -> StackType Type,
+    ConsLabel -> StackType Type Label,
+    With -> StackType Resource,
+    WithLabel -> StackType Resource Label)
 
-def StackType.NewInCtx [ Ctx Str -- Ctx StackType ] { dip:TYPE_STACK Var.NewInCtx StackType.STVar }
+def StackType.NewInCtx [ Ctx Str -- Ctx StackType ] { dip:Type.StackType Var.NewInCtx StackType.Var }
 
 def(Type.>StackType, Type -- StackType,
-    TYPE_ERROR -> STACK_TYPE_ERROR,
-    TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE,
-    TVar -> STVar,
-    TMeta -> STMeta,
-    TTensor -> id,
+    Error -> StackType.Error,
+    Ignore -> StackType.Ignore,
+    Var -> StackType.Var,
+    Meta -> StackType.Meta,
+    Stack -> id,
     _ -> "kind error! expected stack type, got regular type." panic!)
 
 def(StackType.>Type, StackType -- Type,
-    STACK_TYPE_ERROR -> TYPE_ERROR,
-    STACK_TYPE_DONT_CARE -> TYPE_DONT_CARE,
-    STVar -> TVar,
-    STMeta -> TMeta,
-    _ -> TTensor)
+    Error -> Type.Error,
+    Ignore -> Type.Ignore,
+    Var -> Type.Var,
+    Meta -> Type.Meta,
+    _ -> Type.Stack)
 
 def(StackType.expand, StackType -- StackType,
-    STMeta -> expand >StackType,
+    Meta -> expand >StackType,
     _ -> id)
 
 def(StackType.unit?, StackType -- Bool,
     expand match(
-        STACK_TYPE_UNIT -> True,
+        Unit -> True,
         _ -> drop False
     ))
 
@@ -716,10 +708,10 @@ def(StackType.split4, StackType -- StackType List([Type/Resource Label]) List(Ty
     List.L0 List.L0 List.L0 >labels >withses >conses
     while(
         expand match(
-            STCons -> conses> Cons >conses True,
-            STWith -> withses> Cons >withses True,
-            STConsLabel -> dip:Left pack2 labels> Cons >labels True,
-            STWithLabel -> dip:Right pack2 labels> Cons >labels True,
+            Cons -> conses> List.Cons >conses True,
+            With -> withses> List.Cons >withses True,
+            ConsLabel -> dip:Left pack2 labels> List.Cons >labels True,
+            WithLabel -> dip:Right pack2 labels> List.Cons >labels True,
             _ -> False
         ), id
     ) labels> conses> withses>)
@@ -739,10 +731,10 @@ def(StackType.resources, StackType -- List(Resource), split4 dip(drop3))
 ||| Check if the stack label appears and return the type/resource on top.
 def(StackType.label-top?, Label StackType -- Maybe(Type/Resource),
     expand match(
-        STCons -> drop label-top?,
-        STWith -> drop label-top?,
-        STConsLabel -> over3 over == if(drop dip:drop2 Left  Some, drop2 label-top?),
-        STWithLabel -> over3 over == if(drop dip:drop2 Right Some, drop2 label-top?),
+        Cons -> drop label-top?,
+        With -> drop label-top?,
+        ConsLabel -> over3 over == if(drop dip:drop2 Left  Some, drop2 label-top?),
+        WithLabel -> over3 over == if(drop dip:drop2 Right Some, drop2 label-top?),
         _ -> drop2 None
     ))
 
@@ -757,10 +749,10 @@ def(StackType.label-type-top?, Label StackType -- Maybe(Type),
 ||| Get top stack type if possible.
 def(StackType.top-type?, StackType -- Maybe(Type),
     expand match(
-        STWith -> drop top-type?,
-        STCons -> nip Some,
-        STConsLabel -> drop2 top-type?,
-        STWithLabel -> drop2 top-type?,
+        With -> drop top-type?,
+        Cons -> nip Some,
+        ConsLabel -> drop2 top-type?,
+        WithLabel -> drop2 top-type?,
         _ -> drop None
     ))
 
@@ -771,10 +763,10 @@ def(StackType.top-tycon?, StackType -- Maybe(Tycon),
 ||| Get top resource if possible.
 def(StackType.top-resource?, StackType -- Maybe(Resource),
     expand match(
-        STWith -> nip Some,
-        STCons -> drop top-resource?,
-        STConsLabel -> drop2 top-resource?,
-        STWithLabel -> drop2 top-resource?,
+        With -> nip Some,
+        Cons -> drop top-resource?,
+        ConsLabel -> drop2 top-resource?,
+        WithLabel -> drop2 top-resource?,
         _ -> drop None
     ))
 
@@ -784,8 +776,8 @@ def(StackType.top-resource-tycon?, StackType -- Maybe(Tycon),
 
 def(StackType.top-namespaces, StackType -- List(Namespace),
     LIST(
-        dup top-tycon? for(NAMESPACE_TYCON ;)
-        top-resource-tycon? for(NAMESPACE_TYCON ;)
+        dup top-tycon? for(Namespace.Tycon ;)
+        top-resource-tycon? for(Namespace.Tycon ;)
     ))
 
 def(StackType.top-types-are-fine?, StackType -- Bool,
@@ -793,53 +785,53 @@ def(StackType.top-types-are-fine?, StackType -- Bool,
 
 def(StackType.top-value-is-fine?, StackType -- Bool,
     expand match(
-        STCons -> nip Type.error? not,
-        STConsLabel -> drop2 top-value-is-fine?,
-        STWith -> drop top-value-is-fine?,
-        STWithLabel -> drop2 top-value-is-fine?,
-        STMeta -> drop True,
-        STVar -> drop True,
-        STACK_TYPE_UNIT -> True,
-        STACK_TYPE_ERROR -> False,
-        STACK_TYPE_DONT_CARE -> False,
+        Cons -> nip Type.error? not,
+        ConsLabel -> drop2 top-value-is-fine?,
+        With -> drop top-value-is-fine?,
+        WithLabel -> drop2 top-value-is-fine?,
+        Meta -> drop True,
+        Var -> drop True,
+        Unit -> True,
+        Error -> False,
+        Ignore -> False,
     ))
 
 def(StackType.top-resource-is-fine?, StackType -- Bool,
     expand match(
-        STCons -> drop top-resource-is-fine?,
-        STConsLabel -> drop2 top-resource-is-fine?,
-        STWith -> nip /Resource error? not,
-        STWithLabel -> drop2 top-resource-is-fine?,
-        STMeta -> drop True,
-        STVar -> drop True,
-        STACK_TYPE_UNIT -> True,
-        STACK_TYPE_ERROR -> False,
-        STACK_TYPE_DONT_CARE -> False,
+        Cons -> drop top-resource-is-fine?,
+        ConsLabel -> drop2 top-resource-is-fine?,
+        With -> nip /Resource error? not,
+        WithLabel -> drop2 top-resource-is-fine?,
+        Meta -> drop True,
+        Var -> drop True,
+        Unit -> True,
+        Error -> False,
+        Ignore -> False,
     ))
 
 def(StackType.has-meta?, MetaVar StackType -- Bool,
     expand match(
-        STMeta -> ==,
-        STACK_TYPE_ERROR -> drop False,
-        STACK_TYPE_DONT_CARE -> drop False,
-        STVar -> drop2 False,
-        STACK_TYPE_UNIT -> drop False,
-        STCons -> dip(over) has-meta? if(drop2 True, has-meta?),
-        STConsLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
-        STWith -> dip(over) has-meta? if(drop2 True, has-meta?),
-        STWithLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
+        Meta -> ==,
+        Error -> drop False,
+        Ignore -> drop False,
+        Var -> drop2 False,
+        Unit -> drop False,
+        Cons -> dip(over) has-meta? if(drop2 True, has-meta?),
+        ConsLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
+        With -> dip(over) has-meta? if(drop2 True, has-meta?),
+        WithLabel -> drop dip(over) has-meta? if(drop2 True, has-meta?),
     ))
 
 def StackType.has-var? [ Var StackType -- Bool ] {
-    { STACK_TYPE_ERROR -> drop False }
-    { STACK_TYPE_DONT_CARE -> drop False }
-    { STACK_TYPE_UNIT -> drop False }
-    { STMeta -> has-var? }
-    { STVar -> == }
-    { STCons -> dip(over) has-var? if(drop2 True, has-var?) }
-    { STWith -> dip(over) has-var? if(drop2 True, has-var?) }
-    { STConsLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
-    { STWithLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
+    { Error -> drop False }
+    { Ignore -> drop False }
+    { Unit -> drop False }
+    { Meta -> has-var? }
+    { Var -> == }
+    { Cons -> dip(over) has-var? if(drop2 True, has-var?) }
+    { With -> dip(over) has-var? if(drop2 True, has-var?) }
+    { ConsLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
+    { WithLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
 }
 
 def(StackType.unify-failed!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackType,
@@ -847,180 +839,180 @@ def(StackType.unify-failed!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma 
 
 def(StackType.unify!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackType,
     swap expand match(
-        STACK_TYPE_ERROR -> unify-error!,
-        STACK_TYPE_DONT_CARE -> id,
-        STMeta -> swap expand match(
-            STACK_TYPE_ERROR -> STMeta unify-error!,
-            STACK_TYPE_DONT_CARE -> STMeta,
-            STMeta -> dip(TMeta) unify! >StackType,
+        Error -> unify-error!,
+        Ignore -> id,
+        Meta -> swap expand match(
+            Error -> StackType.Meta unify-error!,
+            Ignore -> StackType.Meta,
+            Meta -> dip(Type.Meta) unify! >StackType,
             _ -> >Type swap unify! >StackType,
         ),
-        STVar -> swap expand match(
-            STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR,
-            STACK_TYPE_DONT_CARE -> STVar,
-            STMeta -> dip(TVar) unify! >StackType,
-            STVar -> unify! >StackType,
-            _ -> dip(STVar) unify-failed!
+        Var -> swap expand match(
+            Error -> drop StackType.Error,
+            Ignore -> StackType.Var,
+            Meta -> dip(Type.Var) unify! >StackType,
+            Var -> unify! >StackType,
+            _ -> dip(StackType.Var) unify-failed!
         ),
-        STACK_TYPE_UNIT -> expand match(
-            STACK_TYPE_ERROR -> STACK_TYPE_ERROR,
-            STMeta -> dip(STACK_TYPE_UNIT >Type) unify! >StackType,
-            STACK_TYPE_DONT_CARE -> STACK_TYPE_UNIT,
-            STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
-            _ -> STACK_TYPE_UNIT unify-failed!
+        Unit -> expand match(
+            Error -> StackType.Error,
+            Meta -> dip(StackType.Unit >Type) unify! >StackType,
+            Ignore -> StackType.Unit,
+            Unit -> StackType.Unit,
+            _ -> StackType.Unit unify-failed!
         ),
-        STCons -> rotl expand match(
-            STACK_TYPE_ERROR -> STCons unify-error!,
-            STMeta -> dip(STCons >Type) unify! >StackType,
-            STACK_TYPE_DONT_CARE -> STCons,
+        Cons -> rotl expand match(
+            Error -> StackType.Cons unify-error!,
+            Meta -> dip(StackType.Cons >Type) unify! >StackType,
+            Ignore -> StackType.Cons,
             _ -> dup force-cons?! if-some(
-                nip unpack2 dip(swap) dip2(unify!) unify! STCons,
-                dip(STCons) unify-failed!
+                nip unpack2 dip(swap) dip2(unify!) unify! StackType.Cons,
+                dip(StackType.Cons) unify-failed!
             )
         ),
-        STWith -> rotl expand match(
-            STACK_TYPE_ERROR -> STWith unify-error!,
-            STMeta -> dip(STWith >Type) unify! >StackType,
-            STACK_TYPE_DONT_CARE -> STWith,
+        With -> rotl expand match(
+            Error -> StackType.With unify-error!,
+            Meta -> dip(StackType.With >Type) unify! >StackType,
+            Ignore -> StackType.With,
             _ -> dup force-with?! if-some(
-                nip unpack2 dip(swap) dip2(unify!) unify! STWith,
-                dip(STWith) unify-failed!
+                nip unpack2 dip(swap) dip2(unify!) unify! StackType.With,
+                dip(StackType.With) unify-failed!
             )
         ),
-        STConsLabel -> rot4l expand match(
-            STACK_TYPE_ERROR -> STConsLabel unify-error!,
-            STMeta -> dip(STConsLabel >Type) unify! >StackType,
-            STACK_TYPE_DONT_CARE -> STConsLabel,
+        ConsLabel -> rot4l expand match(
+            Error -> StackType.ConsLabel unify-error!,
+            Meta -> dip(StackType.ConsLabel >Type) unify! >StackType,
+            Ignore -> StackType.ConsLabel,
             _ -> dup2 force-cons-label?! if-some(
-                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) STConsLabel,
-                dip(STConsLabel) unify-failed!
+                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.ConsLabel,
+                dip(StackType.ConsLabel) unify-failed!
             )
         ),
-        STWithLabel -> rot4l expand match(
-            STACK_TYPE_ERROR -> STWithLabel unify-error!,
-            STMeta -> dip(STWithLabel >Type) unify! >StackType,
-            STACK_TYPE_DONT_CARE -> STWithLabel,
+        WithLabel -> rot4l expand match(
+            Error -> StackType.WithLabel unify-error!,
+            Meta -> dip(StackType.WithLabel >Type) unify! >StackType,
+            Ignore -> StackType.WithLabel,
             _ -> dup2 force-with-label?! if-some(
-                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) STWithLabel,
-                dip(STWithLabel) unify-failed!
+                nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.WithLabel,
+                dip(StackType.WithLabel) unify-failed!
             )
         ),
     ))
 
 def(StackType.unify-error!, +Mirth +Gamma StackType -- +Mirth +Gamma StackType,
     expand match(
-        STACK_TYPE_ERROR -> STACK_TYPE_ERROR,
-        STACK_TYPE_UNIT -> STACK_TYPE_ERROR,
-        STACK_TYPE_DONT_CARE -> STACK_TYPE_ERROR,
-        STMeta -> unify-error! >StackType,
-        STVar -> drop STACK_TYPE_ERROR,
-        STCons -> dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
-        STWith -> dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
-        STConsLabel -> drop dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
-        STWithLabel -> drop dip(unify-error! drop) unify-error! drop STACK_TYPE_ERROR,
+        Error -> StackType.Error,
+        Unit -> StackType.Error,
+        Ignore -> StackType.Error,
+        Meta -> unify-error! >StackType,
+        Var -> drop StackType.Error,
+        Cons -> dip(unify-error! drop) unify-error! drop StackType.Error,
+        With -> dip(unify-error! drop) unify-error! drop StackType.Error,
+        ConsLabel -> drop dip(unify-error! drop) unify-error! drop StackType.Error,
+        WithLabel -> drop dip(unify-error! drop) unify-error! drop StackType.Error,
     ))
 
 def(StackType.force-cons-label?!, Label StackType -- Maybe([StackType Type]),
     expand match(
-        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR pack2 Some,
-        STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE pack2 Some,
-        STACK_TYPE_UNIT -> drop None,
-        STVar -> drop2 None,
-        STWith -> dip(force-cons-label?!) swap map(unpack2 dip(over STWith) pack2) nip,
-        STCons -> dip(force-cons-label?!) swap map(unpack2 dip(over STCons) pack2) nip,
-        STConsLabel ->
+        Error -> drop StackType.Error Type.Error pack2 Some,
+        Ignore -> drop StackType.Ignore Type.Ignore pack2 Some,
+        Unit -> drop None,
+        Var -> drop2 None,
+        With -> dip(force-cons-label?!) swap map(unpack2 dip(over StackType.With) pack2) nip,
+        Cons -> dip(force-cons-label?!) swap map(unpack2 dip(over StackType.Cons) pack2) nip,
+        ConsLabel ->
             over3 over == if(
                 drop rotl drop pack2 Some,
                 dip(dip(force-cons-label?!)) rotl match(
-                    Some -> unpack2 dip(rotr STConsLabel) pack2 Some,
+                    Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
                     None -> drop2 None
                 )
             ),
-        STWithLabel ->
+        WithLabel ->
             over3 over == if(
                 drop4 None,
                 dip(dip(force-cons-label?!)) rotl match(
-                    Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
+                    Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
                     None -> drop2 None
                 )
             ),
-        STMeta ->
-            dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta dup2) STConsLabel >Type Some) ~type? !
+        Meta ->
+            dip(dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2) StackType.ConsLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
 def(StackType.force-with-label?!, Label StackType -- Maybe([StackType Resource]),
     expand match(
-        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR TYPE_ERROR Resource pack2 Some,
-        STACK_TYPE_DONT_CARE -> drop STACK_TYPE_DONT_CARE TYPE_DONT_CARE Resource pack2 Some,
-        STACK_TYPE_UNIT -> drop None,
-        STVar -> drop2 None,
-        STWith -> dip(force-with-label?!) swap map(unpack2 dip(over STWith) pack2) nip,
-        STCons -> dip(force-with-label?!) swap map(unpack2 dip(over STCons) pack2) nip,
-        STConsLabel ->
+        Error -> drop StackType.Error Type.Error Resource pack2 Some,
+        Ignore -> drop StackType.Ignore Type.Ignore Resource pack2 Some,
+        Unit -> drop None,
+        Var -> drop2 None,
+        With -> dip(force-with-label?!) swap map(unpack2 dip(over StackType.With) pack2) nip,
+        Cons -> dip(force-with-label?!) swap map(unpack2 dip(over StackType.Cons) pack2) nip,
+        ConsLabel ->
             over3 over == if(
                 drop4 None,
                 dip(dip(force-with-label?!)) rotl match(
-                    Some -> unpack2 dip(rotr STConsLabel) pack2 Some,
+                    Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
                     None -> drop2 None
                 )
             ),
-        STWithLabel ->
+        WithLabel ->
             over3 over == if(
                 drop rotl drop pack2 Some,
                 dip(dip(force-with-label?!)) rotl match(
-                    Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
+                    Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
                     None -> drop2 None
                 )
             ),
-        STMeta ->
-            dip(dip(MetaVar.new! STMeta MetaVar.new! TMeta Resource dup2) STWithLabel >Type Some) ~type? !
+        Meta ->
+            dip(dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2) StackType.WithLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
 def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
     expand match(
-        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR pack2 Some,
-        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE pack2 Some,
-        STACK_TYPE_UNIT -> None,
-        STVar -> drop None,
-        STCons -> pack2 Some,
-        STWith -> swap force-cons?! map(unpack2 dip(over STWith) pack2) nip,
-        STConsLabel -> rotl force-cons?! match(
-            Some -> unpack2 dip(rotr STConsLabel) pack2 Some,
+        Error -> StackType.Error Type.Error pack2 Some,
+        Ignore -> StackType.Ignore Type.Ignore pack2 Some,
+        Unit -> None,
+        Var -> drop None,
+        Cons -> pack2 Some,
+        With -> swap force-cons?! map(unpack2 dip(over StackType.With) pack2) nip,
+        ConsLabel -> rotl force-cons?! match(
+            Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
             None -> drop2 None
         ),
-        STWithLabel -> rotl force-cons?! match(
-            Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
+        WithLabel -> rotl force-cons?! match(
+            Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
             None -> drop2 None
         ),
-        STMeta ->
-            dip(MetaVar.new! STMeta
-                MetaVar.new! TMeta
-                dup2 STCons >Type Some) ~type? !
+        Meta ->
+            dip(MetaVar.new! StackType.Meta
+                MetaVar.new! Type.Meta
+                dup2 StackType.Cons >Type Some) ~type? !
             pack2 Some,
     ))
 
 def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
     expand match(
-        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR Resource pack2 Some,
-        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE Resource pack2 Some,
-        STACK_TYPE_UNIT -> None,
-        STVar -> drop None,
-        STWith -> pack2 Some,
-        STCons -> swap force-with?! map(unpack2 dip(over STCons) pack2) nip,
-        STConsLabel -> rotl force-with?! match(
-            Some -> unpack2 dip(rotr STConsLabel) pack2 Some,
+        Error -> StackType.Error Type.Error Resource pack2 Some,
+        Ignore -> StackType.Ignore Type.Ignore Resource pack2 Some,
+        Unit -> None,
+        Var -> drop None,
+        With -> pack2 Some,
+        Cons -> swap force-with?! map(unpack2 dip(over StackType.Cons) pack2) nip,
+        ConsLabel -> rotl force-with?! match(
+            Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
             None -> drop2 None
         ),
-        STWithLabel -> rotl force-with?! match(
-            Some -> unpack2 dip(rotr STWithLabel) pack2 Some,
+        WithLabel -> rotl force-with?! match(
+            Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
             None -> drop2 None
         ),
-        STMeta ->
-            dip(MetaVar.new! STMeta
-                MetaVar.new! TMeta Resource
-                dup2 STWith >Type Some) ~type? !
+        Meta ->
+            dip(MetaVar.new! StackType.Meta
+                MetaVar.new! Type.Meta Resource
+                dup2 StackType.With >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -1032,9 +1024,9 @@ def(StackType.cod;, +Str StackType -- +Str,
 
 def(StackType.base;, +Str StackType -- +Str Bool,
     match(
-        STACK_TYPE_UNIT -> False,
-        STMeta -> "*" ; type; True,
-        STVar -> dup is-stack? else("* ";) type; True,
+        Unit -> False,
+        Meta -> "*" ; type; True,
+        Var -> dup is-stack? else("* ";) type; True,
         _ -> >Type "* "; type; True
     ))
 
@@ -1047,75 +1039,75 @@ def(StackType.stack;, +Str StackType -- +Str,
 
 def(StackType.semifreshen, StackType StackType -- StackType StackType,
     expand match(
-        STACK_TYPE_UNIT -> dup,
-        STCons -> dip(semifreshen) STCons,
-        STWith -> dip(semifreshen) STWith,
-        STConsLabel -> dip2(semifreshen) STConsLabel,
-        STWithLabel -> dip2(semifreshen) STWithLabel,
+        Unit -> dup,
+        Cons -> dip(semifreshen) StackType.Cons,
+        With -> dip(semifreshen) StackType.With,
+        ConsLabel -> dip2(semifreshen) StackType.ConsLabel,
+        WithLabel -> dip2(semifreshen) StackType.WithLabel,
         _ -> "expected unit-based stack in semifreshen!" panic!
     ))
 
 def(StackType.freshen, Subst StackType -- Subst StackType,
     expand match(
-        STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
-        STCons -> dip(freshen) swap dip(freshen) swap STCons,
-        STWith -> dip(freshen) swap dip(freshen) swap STWith,
-        STConsLabel -> dip(dip(freshen) swap dip(freshen) swap) STConsLabel,
-        STWithLabel -> dip(dip(freshen) swap dip(freshen) swap) STWithLabel,
+        Unit -> StackType.Unit,
+        Cons -> dip(freshen) swap dip(freshen) swap StackType.Cons,
+        With -> dip(freshen) swap dip(freshen) swap StackType.With,
+        ConsLabel -> dip(dip(freshen) swap dip(freshen) swap) StackType.ConsLabel,
+        WithLabel -> dip(dip(freshen) swap dip(freshen) swap) StackType.WithLabel,
         _ -> >Type freshen >StackType
     ))
 
 def(StackType.freshen-aux, StackType Subst StackType -- StackType Subst StackType,
     expand match(
-        STACK_TYPE_UNIT -> over,
-        STCons -> dip(freshen-aux) swap dip(freshen) swap STCons,
-        STWith -> dip(freshen-aux) swap dip(freshen) swap STWith,
-        STConsLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) STConsLabel,
-        STWithLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) STWithLabel,
+        Unit -> over,
+        Cons -> dip(freshen-aux) swap dip(freshen) swap StackType.Cons,
+        With -> dip(freshen-aux) swap dip(freshen) swap StackType.With,
+        ConsLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) StackType.ConsLabel,
+        WithLabel -> dip(dip(freshen-aux) swap dip(freshen) swap) StackType.WithLabel,
         _ -> >Type freshen >StackType
     ))
 
 def(StackType.rigidify!, +Mirth Ctx StackType -- +Mirth Ctx StackType,
-    STACK_TYPE_ERROR -> STACK_TYPE_ERROR,
-    STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE,
-    STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
-    STMeta -> expand-or-update!(fresh-stack-type-var! TVar) >StackType rigidify!,
-    STVar -> STVar,
-    STCons -> dip(rigidify!) swap dip(rigidify!) swap STCons,
-    STConsLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) STConsLabel,
-    STWith -> dip(rigidify!) swap dip(rigidify!) swap STWith,
-    STWithLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) STWithLabel)
+    Error -> StackType.Error,
+    Ignore -> StackType.Ignore,
+    Unit -> StackType.Unit,
+    Meta -> expand-or-update!(fresh-stack-type-var! Type.Var) >StackType rigidify!,
+    Var -> StackType.Var,
+    Cons -> dip(rigidify!) swap dip(rigidify!) swap StackType.Cons,
+    ConsLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) StackType.ConsLabel,
+    With -> dip(rigidify!) swap dip(rigidify!) swap StackType.With,
+    WithLabel -> dip(dip(rigidify!) swap dip(rigidify!) swap) StackType.WithLabel)
 
 def(StackType.num-morphisms-on-top, StackType -- Nat,
-    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0u),
-    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0u),
-    STWith -> drop num-morphisms-on-top,
-    STConsLabel -> drop2 num-morphisms-on-top,
-    STWithLabel -> drop2 num-morphisms-on-top,
+    Meta -> expand-if(>StackType num-morphisms-on-top, drop 0u),
+    Cons -> morphism? .if(num-morphisms-on-top 1+, drop 0u),
+    With -> drop num-morphisms-on-top,
+    ConsLabel -> drop2 num-morphisms-on-top,
+    WithLabel -> drop2 num-morphisms-on-top,
     _ -> drop 0u)
 
 def StackType.linear-base-meta? [ StackType -- Maybe(MetaVar) ] {
-    { STACK_TYPE_ERROR -> None }
-    { STACK_TYPE_DONT_CARE -> None }
-    { STACK_TYPE_UNIT -> None }
-    { STMeta -> expand-if(>StackType linear-base-meta?, Some) }
-    { STVar -> drop None }
-    { STCons -> swap linear-base-meta? filter(over has-meta? not) nip }
-    { STWith -> swap linear-base-meta? filter(over has-meta? not) nip }
-    { STConsLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
-    { STWithLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
+    { Error -> None }
+    { Ignore -> None }
+    { Unit -> None }
+    { Meta -> expand-if(>StackType linear-base-meta?, Some) }
+    { Var -> drop None }
+    { Cons -> swap linear-base-meta? filter(over has-meta? not) nip }
+    { With -> swap linear-base-meta? filter(over has-meta? not) nip }
+    { ConsLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
+    { WithLabel -> drop swap linear-base-meta? filter(over has-meta? not) nip }
 }
 
 def StackType.linear-base-var? [ StackType -- Maybe(Var) ] {
-    { STACK_TYPE_ERROR -> None }
-    { STACK_TYPE_DONT_CARE -> None }
-    { STACK_TYPE_UNIT -> None }
-    { STMeta -> expand-if(>StackType linear-base-var?, drop None) }
-    { STVar -> Some }
-    { STCons -> swap linear-base-var? filter(over has-var? not) nip }
-    { STWith -> swap linear-base-var? filter(over has-var? not) nip }
-    { STConsLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
-    { STWithLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
+    { Error -> None }
+    { Ignore -> None }
+    { Unit -> None }
+    { Meta -> expand-if(>StackType linear-base-var?, drop None) }
+    { Var -> Some }
+    { Cons -> swap linear-base-var? filter(over has-var? not) nip }
+    { With -> swap linear-base-var? filter(over has-var? not) nip }
+    { ConsLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
+    { WithLabel -> drop swap linear-base-var? filter(over has-var? not) nip }
 }
 
 ##############
@@ -1127,7 +1119,7 @@ struct ArrowType {
     cod: StackType
 }
 
-inline ( def ArrowType.>Type [ ArrowType -- Type ] { TMorphism } )
+inline ( def ArrowType.>Type [ ArrowType -- Type ] { Type.Arrow } )
 
 def ArrowType.invert [ ArrowType -- ArrowType ] {
     /ArrowType
@@ -1169,7 +1161,7 @@ def ArrowType.semifreshen-sig [ ArrowType -- ArrowType ] {
 
 def ArrowType.semifreshen-aux [ ArrowType -- ArrowType ] {
     /ArrowType
-    MetaVar.new! STMeta
+    MetaVar.new! StackType.Meta
     @cod:semifreshen
     @dom:semifreshen
     ArrowType nip
@@ -1190,7 +1182,7 @@ def ArrowType.freshen-sig [ Subst ArrowType -- Subst ArrowType ] {
 
 def ArrowType.freshen-sig-aux [ Subst ArrowType -- Subst ArrowType ] {
     /ArrowType
-    MetaVar.new! STMeta swap
+    MetaVar.new! StackType.Meta swap
     @dom:freshen-aux
     @cod:freshen-aux
     ArrowType dip2:drop
@@ -1214,7 +1206,7 @@ def(ArrowType.rigidify-sig!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
     >arrowtype
     @arrowtype dom linear-base-meta? for(
         @arrowtype cod linear-base-meta? for(
-            over == then(TYPE_UNIT Some over ~type? !)
+            over == then(Type.Unit Some over ~type? !)
         ) drop
     )
     arrowtype> rigidify!)
@@ -1228,22 +1220,22 @@ def(ArrowType.max-num-params, ArrowType -- Nat,
 
 # mirth/data/type
 data(Subst,
-    SUBST_NIL,
-    SUBST_CON -> Subst Type Var)
+    Nil,
+    Cons -> Subst Type Var)
 
-def(Subst.nil?, Subst -- Bool, SUBST_NIL -> True, _ -> drop False)
+def(Subst.nil?, Subst -- Bool, Nil -> True, _ -> drop False)
 def(Subst.con?, Subst -- Maybe([Subst Type Var]),
-    SUBST_CON -> pack3 Some,
+    Cons -> pack3 Some,
     _ -> drop None)
 
-def(Subst.nil, Subst, SUBST_NIL)
-def(Subst.cons, Type Var Subst -- Subst, rotr SUBST_CON)
+def(Subst.nil, Subst, Subst.Nil)
+def(Subst.cons, Type Var Subst -- Subst, rotr Subst.Cons)
 def(Subst.has-var?, Var Subst -- Bool,
-    SUBST_NIL -> drop False,
-    SUBST_CON -> nip over2 == if(drop2 True, has-var?))
+    Nil -> drop False,
+    Cons -> nip over2 == if(drop2 True, has-var?))
 def(Subst.get-var, Var Subst -- Type,
-    SUBST_NIL -> drop TYPE_ERROR,
-    SUBST_CON -> over3 == if(dip(drop2), drop get-var))
+    Nil -> drop Type.Error,
+    Cons -> over3 == if(dip(drop2), drop get-var))
 
 ||| If variable is in subst, unify new type with type in subst.
 ||| Otherwise, create larger subst with new binding.
@@ -1258,60 +1250,60 @@ def(Subst.match-var, +Mirth +Gamma Type Var Subst -- +Mirth +Gamma Subst,
 ####################
 
 data StackTypeBase {
-    STB_ERROR
-    STB_DONT_CARE
-    STB_UNIT
-    STBVar [ Var ]
-    STBMeta [ MetaVar ]
+    Error
+    Ignore
+    Unit
+    Var [ Var ]
+    Meta [ MetaVar ]
 }
 
 def StackTypeBase.unit? [ StackTypeBase -- Bool ] {
-    { STB_UNIT -> True }
+    { Unit -> True }
     { _ -> drop False }
 }
 
 data StackTypePart {
-    STPCons      [ Type ]
-    STPConsLabel [ Type Label ]
-    STPWith      [ Resource ]
-    STPWithLabel [ Resource Label ]
+    Cons      [ Type ]
+    ConsLabel [ Type Label ]
+    With      [ Resource ]
+    WithLabel [ Resource Label ]
 }
 
 def(StackTypePart.cons, StackType StackTypePart -- StackType,
-    STPCons -> STCons,
-    STPConsLabel -> STConsLabel,
-    STPWith -> STWith,
-    STPWithLabel -> STWithLabel)
+    Cons -> StackType.Cons,
+    ConsLabel -> StackType.ConsLabel,
+    With -> StackType.With,
+    WithLabel -> StackType.WithLabel)
 
 def(StackType.split-parts, StackType -- StackTypeBase List(StackTypePart),
     List.L0 >parts
     while-right(
         match {
-            { STACK_TYPE_ERROR -> STB_ERROR Left }
-            { STACK_TYPE_DONT_CARE -> STB_DONT_CARE Left }
-            { STACK_TYPE_UNIT -> STB_UNIT Left }
-            { STVar -> STBVar Left }
-            { STMeta -> expand-if(>StackType Right, STBMeta Left) }
-            { STCons -> STPCons @parts:Cons Right }
-            { STConsLabel -> STPConsLabel @parts:Cons Right }
-            { STWith -> STPWith @parts:Cons Right }
-            { STWithLabel -> STPWithLabel @parts:Cons Right }
+            { Error -> StackTypeBase.Error Left }
+            { Ignore -> StackTypeBase.Ignore Left }
+            { Unit -> StackTypeBase.Unit Left }
+            { Var -> StackTypeBase.Var Left }
+            { Meta -> expand-if(>StackType Right, StackTypeBase.Meta Left) }
+            { Cons -> StackTypePart.Cons @parts:List.Cons Right }
+            { ConsLabel -> StackTypePart.ConsLabel @parts:List.Cons Right }
+            { With -> StackTypePart.With @parts:List.Cons Right }
+            { WithLabel -> StackTypePart.WithLabel @parts:List.Cons Right }
         }
     )
     parts>)
 
 def StackTypePart.type/resource [ StackTypePart -- Type/Resource ] {
-    { STPCons -> Left  }
-    { STPWith -> Right }
-    { STPConsLabel -> drop Left  }
-    { STPWithLabel -> drop Right }
+    { Cons -> Left  }
+    { With -> Right }
+    { ConsLabel -> drop Left  }
+    { WithLabel -> drop Right }
 }
 
 def StackTypePart.label [ StackTypePart -- Maybe(Label) ] {
-    { STPCons -> drop None }
-    { STPWith -> drop None }
-    { STPConsLabel -> nip Some }
-    { STPWithLabel -> nip Some }
+    { Cons -> drop None }
+    { With -> drop None }
+    { ConsLabel -> nip Some }
+    { WithLabel -> nip Some }
 }
 
 
@@ -1346,7 +1338,7 @@ def(Type.ctype, +Mirth Type -- +Mirth CType,
     dup ctype? if-some(
         nip,
         Str(type; " doesn't have a C representation.";) error!
-        Phantom
+        CType.Phantom
     ))
 
 def(Resource.ctype?, +Mirth Resource -- +Mirth Maybe(CType),
@@ -1354,104 +1346,109 @@ def(Resource.ctype?, +Mirth Resource -- +Mirth Maybe(CType),
 
 def(Type.ctype?, +Mirth Type -- +Mirth Maybe(CType),
     expand match(
-        TPrim -> ctype?,
-        TData -> ctype?,
-        TMorphism -> drop "FNPTR" FnPtr Some,
-        TApp -> ctype? bind(over ctype1?) nip,
+        Prim -> ctype?,
+        Data -> ctype?,
+        Arrow -> drop "FNPTR" CType.FnPtr Some,
+        App -> ctype? bind(over ctype1?) nip,
         _ -> drop None,
     ))
 
 def(Type.ctype1?, +Mirth CType Type -- +Mirth Maybe(CType),
     expand match(
-        TData -> ctype1?,
+        Data -> ctype1?,
         _ -> drop2 None
     ))
 
 def PrimType.ctype? [ +Mirth PrimType -- +Mirth Maybe(CType) ] {
-    { PRIM_TYPE_PTR -> "void*" PtrLike Some }
-    { PRIM_TYPE_WORLD -> Phantom Some }
-    { PRIM_TYPE_F32 -> "float" F32Like Some }
-    { PRIM_TYPE_F64 -> "double" F64Like Some }
+    { Ptr -> "void*" CType.PtrLike Some }
+    { World -> CType.Phantom Some }
+    { F32 -> "float" CType.F32Like Some }
+    { F64 -> "double" CType.F64Like Some }
     { _ -> drop None }
 }
 
 def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
     dup builtin cptr == if(
-        drop cname " *" cat PtrLike Some,
+        drop cname " *" cat CType.PtrLike Some,
 
     dup builtin cconst == if(
         drop match(
-            IntLike -> "const " swap cat IntLike Some,
-            F32Like -> "const " swap cat F32Like Some,
-            F64Like -> "const " swap cat F64Like Some,
-            FnPtr   -> "const " swap cat FnPtr Some,
-            PtrLike -> " const" cat PtrLike Some,
-            Phantom -> Phantom Some,
+            IntLike -> "const " swap cat CType.IntLike Some,
+            F32Like -> "const " swap cat CType.F32Like Some,
+            F64Like -> "const " swap cat CType.F64Like Some,
+            FnPtr   -> "const " swap cat CType.FnPtr Some,
+            PtrLike -> " const" cat CType.PtrLike Some,
+            Phantom -> CType.Phantom Some,
         ),
 
     dup builtin crestrict == if(
         drop match(
-            IntLike -> "restrict " swap cat IntLike Some,
-            F32Like -> "restrict " swap cat F32Like Some,
-            F64Like -> "restrict " swap cat F64Like Some,
-            FnPtr   -> "restrict " swap cat FnPtr Some,
-            PtrLike -> " restrict" cat PtrLike Some,
-            Phantom -> Phantom Some,
+            IntLike -> "restrict " swap cat CType.IntLike Some,
+            F32Like -> "restrict " swap cat CType.F32Like Some,
+            F64Like -> "restrict " swap cat CType.F64Like Some,
+            FnPtr   -> "restrict " swap cat CType.FnPtr Some,
+            PtrLike -> " restrict" cat CType.PtrLike Some,
+            Phantom -> CType.Phantom Some,
         ),
 
     dup builtin cvolatile == if(
         drop match(
-            IntLike -> "volatile " swap cat IntLike Some,
-            F32Like -> "volatile " swap cat F32Like Some,
-            F64Like -> "volatile " swap cat F64Like Some,
-            FnPtr   -> "volatile " swap cat FnPtr Some,
-            PtrLike -> " volatile" cat PtrLike Some,
-            Phantom -> Phantom Some,
+            IntLike -> "volatile " swap cat CType.IntLike Some,
+            F32Like -> "volatile " swap cat CType.F32Like Some,
+            F64Like -> "volatile " swap cat CType.F64Like Some,
+            FnPtr   -> "volatile " swap cat CType.FnPtr Some,
+            PtrLike -> " volatile" cat CType.PtrLike Some,
+            Phantom -> CType.Phantom Some,
         ),
 
         drop2 None
     )))))
 
-data(CTypeStackPart,
-    CTSPCons      -> CType,
-    CTSPConsLabel -> CType Label,
-    CTSPWith      -> CType,
-    CTSPWithLabel -> CType Label)
+data CTypeStackPart {
+    Cons      [ CType ]
+    ConsLabel [ CType Label ]
+    With      [ CType ]
+    WithLabel [ CType Label ]
+    --
+    def ctype [ CTypeStackPart -- CType ] {
+        { Cons -> id } { ConsLabel -> drop }
+        { With -> id } { WithLabel -> drop }
+    }
 
-def(CTypeStackPart.ctype, CTypeStackPart -- CType,
-    CTSPCons -> id, CTSPConsLabel -> drop,
-    CTSPWith -> id, CTSPWithLabel -> drop)
+    def label? [ CTypeStackPart -- Maybe(Label) ] {
+        { Cons -> drop None } { ConsLabel -> nip Some }
+        { With -> drop None } { WithLabel -> nip Some }
+    }
 
-def(CTypeStackPart.label?, CTypeStackPart -- Maybe(Label),
-    CTSPCons -> drop None, CTSPConsLabel -> nip Some,
-    CTSPWith -> drop None, CTSPWithLabel -> nip Some)
+    def resource? [ CTypeStackPart -- Bool ] {
+        { Cons -> drop False } { ConsLabel -> drop2 False }
+        { With -> drop True  } { WithLabel -> drop2 True  }
+    }
+}
 
-def(CTypeStackPart.resource?, CTypeStackPart -- Bool,
-    CTSPCons -> drop False, CTSPConsLabel -> drop2 False,
-    CTSPWith -> drop True,  CTSPWithLabel -> drop2 True)
-
-data(CTypeStack, CTypeStack ->
+struct CTypeStack {
     base?: Maybe(Var)
-    parts: List(CTypeStackPart))
+    parts: List(CTypeStackPart)
+}
 
 def(StackTypePart.ctype, StackTypePart +Mirth -- CTypeStackPart +Mirth,
-    STPCons -> ctype CTSPCons,
-    STPConsLabel -> dip(ctype) CTSPConsLabel,
-    STPWith -> ctype CTSPWith,
-    STPWithLabel -> dip(ctype) CTSPWithLabel)
+    Cons -> ctype CTypeStackPart.Cons,
+    ConsLabel -> dip(ctype) CTypeStackPart.ConsLabel,
+    With -> ctype CTypeStackPart.With,
+    WithLabel -> dip(ctype) CTypeStackPart.WithLabel)
 
 def(StackTypePart.ctype?, StackTypePart +Mirth -- Maybe(CTypeStackPart) +Mirth,
-    STPCons -> ctype? map(CTSPCons),
-    STPConsLabel -> >x ctype? map(@x CTSPConsLabel) x> drop,
-    STPWith -> ctype? map(CTSPWith),
-    STPWithLabel -> >x ctype? map(@x CTSPWithLabel) x> drop)
+    Cons -> ctype? map(CTypeStackPart.Cons),
+    ConsLabel -> >x ctype? map(@x CTypeStackPart.ConsLabel) x> drop,
+    With -> ctype? map(CTypeStackPart.With),
+    WithLabel -> >x ctype? map(@x CTypeStackPart.WithLabel) x> drop)
 
 def StackTypeBase.ctype? [ StackTypeBase +Mirth -- Maybe(Var) +Mirth ] {
-    { STB_ERROR -> None }
-    { STB_DONT_CARE -> None }
-    { STB_UNIT -> None }
-    { STBMeta -> drop None }
-    { STBVar -> Some }
+    { Error -> None }
+    { Ignore -> None }
+    { Unit -> None }
+    { Meta -> drop None }
+    { Var -> Some }
 }
 
 def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,

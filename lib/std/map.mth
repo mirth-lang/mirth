@@ -20,7 +20,7 @@ struct Map(k,v) {
     def len { pairs len }
     def keys { pairs map(key) }
     def values { pairs map(value) }
-    def insert [ KeyValuePair(k,v) Map(k,v) -- Map(k,v) ] { pairs:Cons }
+    def insert [ KeyValuePair(k,v) Map(k,v) -- Map(k,v) ] { pairs:List.Cons }
     def lookup-pair(keq {==}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(KeyValuePair(k,v)) ] {
         pairs lookup(.key keq)
     }

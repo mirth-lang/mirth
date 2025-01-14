@@ -9,7 +9,7 @@ import std.ctypes
 
 alias(Str.cat, prim-str-cat)
 inline(
-    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes NatUnsafe >USize }
+    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes Nat.NatUnsafe >USize }
     def Str.empty? [ Str -- Bool ] { num-bytes 0= }
 )
 
@@ -46,7 +46,7 @@ def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
 def Str.last-byte [ Str -- Byte ] {
     dup num-bytes 1- >UOffset-if (
         swap Str.byte@,
-        drop2 BNUL
+        drop2 Byte.BNUL
     )
 }
 
@@ -63,7 +63,7 @@ def(Str.byte@, UOffset Str -- Byte,
     with-data(
         dip(over) offset-in-bounds if(
             unsafe(uoffset @Byte),
-            drop2 BNUL
+            drop2 Byte.BNUL
         )
     ))
 
@@ -224,7 +224,7 @@ def(+Str.push-show-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
     BCR -> "\r" ; False !escape-hex,
     BHT -> "\t" ; False !escape-hex,
     _ ->
-        dup BSPACE B'~' in-range and(@escape-hex and(dup is-hexdigit) not) if(
+        dup Byte.BSPACE Byte.B'~' in-range and(@escape-hex and(dup is-hexdigit) not) if(
             push-byte-ascii!
             False !escape-hex,
             "\\x" ; to-hexdigits

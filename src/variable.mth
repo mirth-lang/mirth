@@ -23,4 +23,4 @@ def(Variable.new!, +Mirth Token QName -- +Mirth Variable,
     Variable.alloc!
     tuck ~qname !
     tuck ~head !
-    dup DefVariable register)
+    dup Def.Variable register)

@@ -3,8 +3,8 @@ import(std.prelude)
 import(std.world)
 import(std.str)
 
-data(Person, PERSON -> age:Int name:Str)
-data(Mixed, MIXED -> msg:Str Str)
+data(Person, Person -> age:Int name:Str)
+data(Mixed, Mixed -> msg:Str Str)
 data(+MyWorld, +MyWorld -> age:Int msg:Int name:Str +world:+World)
 data(+Deep, +Deep -> +myworld:+MyWorld)
 
@@ -14,13 +14,13 @@ def(Person.greet!, Person +World -- Person +World,
 def(main, +World -- +World,
     "John" >name
     30 >age
-    PERSON
+    Person
     dup age show print
     dup name print
     drop
 
     "Hello" >msg "Goodbye"
-    MIXED msg print
+    Mixed msg print
 
     99 >age 101 >msg "me" >name
     >+world
@@ -41,7 +41,7 @@ def(main, +World -- +World,
     msg> drop
     name> drop
 
-    "J." >name 30 >age PERSON greet!
+    "J." >name 30 >age Person greet!
     "Jane" swap name! greet!
     31 swap age! greet!
     drop)

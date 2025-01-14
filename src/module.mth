@@ -23,7 +23,7 @@ field(Module.~imports, Module, List(Module))
 
 def(Module.package, Module -- Package, ~package @)
 def(Module.name, Module -- Name, ~name @)
-def(Module.qname, Module -- QName, sip(package NAMESPACE_PACKAGE) name 0 QName.Mk)
+def(Module.qname, Module -- QName, sip(package Namespace.Package) name 0 QName.Mk)
 def(Module.path, Module -- Path, ~path @)
 def(Module.start, Module -- Token, ~start @)
 def(Module.head, Module -- Token, ~head @)
@@ -49,7 +49,7 @@ def(Module.new!, +Mirth Path -- +Mirth Module,
 ||| ( module1 module2 -- ) Add module2 as import to module1.
 ||| This does not check if the import is necessary.
 def(Module.add-import!, Module Module --,
-    swap ~imports modify(Cons))
+    swap ~imports modify(List.Cons))
 
 ||| Get source path associated with module.
 def(Module.source-path, Module -- Path,

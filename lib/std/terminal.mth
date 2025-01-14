@@ -93,6 +93,6 @@ data SGRColor {
 }
 
 def +Str.csi; [ +Str -- +Str ] {
-    BESC push-byte-unsafe!
-    BLSQUARE push-byte-unsafe!
+    Byte.BESC push-byte-unsafe!
+    Byte.BLSQUARE push-byte-unsafe!
 }

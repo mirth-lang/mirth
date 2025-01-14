@@ -31,20 +31,20 @@ struct +InputOpenState {
         +buffer(base size) +file:unsafe:read-bytes! over 0> && if(
             length!
             0u >UOffset offset!
-            +InputOpen,
-            drop end! +InputDone
+            +Input.Open,
+            drop end! +Input.Done
         )
     }
 
     ||| Refill input buffer if empty.
     def prepare-for-more! [ +InputOpenState -- +Input ] {
-        length 0= if(refill-buffer!, +InputOpen)
+        length 0= if(refill-buffer!, +Input.Open)
     }
 }
 
 data +Input {
-    +InputOpen [ +InputOpenState ]
-    +InputDone [ +File ]
+    Open [ +InputOpenState ]
+    Done [ +File ]
     --
     def start! [ +File -- +Input ] {
         >+file
@@ -55,40 +55,40 @@ data +Input {
     }
 
     def stop! [ +Input -- +Input ] {
-        end! +InputDone
+        end! +Input.Done
     }
 
     def end! [ +Input -- +File ] {
-        { +InputOpen -> end! }
-        { +InputDone -> id }
+        { Open -> end! }
+        { Done -> id }
     }
 
     def done? [ +Input -- Bool +Input ] {
-        { +InputOpen -> False +InputOpen }
-        { +InputDone -> True +InputDone }
+        { Open -> False +Input.Open }
+        { Done -> True +Input.Done }
     }
 
     ||| Return the current char in the input buffer.
     ||| Returns NUL if the file is already exhausted.
     def peek [ +Input -- Byte +Input ] {
-        { +InputOpen -> offset +buffer:@U8 >Byte +InputOpen }
-        { +InputDone -> BNUL +InputDone }
+        { Open -> offset +buffer:@U8 >Byte +Input.Open }
+        { Done -> Byte.BNUL +Input.Done }
     }
 
     ||| Move to next char in input buffer.
     ||| Does nothing if the file is already exhausted.
     def move! [ +Input -- +Input ] {
-        { +InputOpen -> length:pred offset:1+ prepare-for-more! }
-        { +InputDone -> +InputDone }
+        { Open -> length:pred offset:1+ prepare-for-more! }
+        { Done -> +Input.Done }
     }
 
     ||| Read a chunk of input.
     def read-chunk! [ +Input -- Maybe(Str) +Input ] {
-        { +InputOpen ->
+        { Open ->
             offset length +buffer:@Str Some
             refill-buffer! }
-        { +InputDone ->
-            None +InputDone }
+        { Done ->
+            None +Input.Done }
     }
 
     ||| Read the whole file.

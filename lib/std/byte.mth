@@ -68,24 +68,24 @@ data Byte {
         def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
         def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
 
-        def is-upper [ Byte -- Bool ] { B'A' B'Z' in-range }
-        def is-lower [ Byte -- Bool ] { B'a' B'z' in-range }
-        def is-digit [ Byte -- Bool ] { B'0' B'9' in-range }
+        def is-upper [ Byte -- Bool ] { Byte.B'A' Byte.B'Z' in-range }
+        def is-lower [ Byte -- Bool ] { Byte.B'a' Byte.B'z' in-range }
+        def is-digit [ Byte -- Bool ] { Byte.B'0' Byte.B'9' in-range }
         def is-alpha [ Byte -- Bool ] { dup on2(is-upper, is-lower) || }
         def is-alnum [ Byte -- Bool ] { dup on2(is-digit, is-alpha) || }
-        def is-printable [ Byte -- Bool ] { B'!' B'~' in-range }
+        def is-printable [ Byte -- Bool ] { Byte.B'!' Byte.B'~' in-range }
         def is-hexdigit [ Byte -- Bool ] {
-            dup dup on3(is-digit, B'A' B'F' in-range, B'a' B'f' in-range) || ||
+            dup dup on3(is-digit, Byte.B'A' Byte.B'F' in-range, Byte.B'a' Byte.B'f' in-range) || ||
         }
-        def is-ascii [ Byte -- Bool ] { BNUL BDEL in-range }
+        def is-ascii [ Byte -- Bool ] { Byte.BNUL Byte.BDEL in-range }
         def is-upper-or-underscore [ Byte -- Bool ] {
-            dup on2(is-upper, B'_' ==) ||
+            dup on2(is-upper, Byte.B'_' ==) ||
         }
         def is-overload-trigger [ Byte -- Bool ] {
             is-upper-or-underscore not
         }
         def is-sign [ Byte -- Bool ] {
-            dup on2(B'-' ==, B'+' ==) ||
+            dup on2(Byte.B'-' ==, Byte.B'+' ==) ||
         }
 
         def emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }
@@ -97,7 +97,7 @@ data Byte {
     }
 
     def to-ascii-str [ Byte -- Maybe(Str) ] {
-        dup BNUL BDEL in-range if(
+        dup Byte.BNUL Byte.BDEL in-range if(
             to-str-unsafe Some,
             drop None
         )
@@ -140,7 +140,7 @@ data Byte {
         { BQUOTE -> False }
         { BCOLON -> False }
         { BDEL -> False }
-        { _ -> BSPACE > }
+        { _ -> Byte.BSPACE > }
     }
 
     def zencode [ Byte -- Str ] {
@@ -148,7 +148,7 @@ data Byte {
         ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
         ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
 
-        # Important invariant: No string here should be the prefix of another.
+        # Important invariant: False string here should be the prefix of another.
         # With this invariant we can ensure that the z-encoding of any string
         # is unique. To help enforce the invariant, keep these cases in
         # lexicographical order.

@@ -23,11 +23,11 @@ def(whatever, Either(Int,Str) +World -- +World,
     _ -> drop "whatever" trace)
 
 def(main, +World -- +World,
-    10 FOO! reset! my-trace
-    20 FOO! reset! my-trace
-    "Hello." BAR! reset! my-trace
-    "World." BAR! BAZ! reset! my-trace
-    "Foo" BAR! reset! whatever)
+    10 +Foo.FOO! reset! my-trace
+    20 +Foo.FOO! reset! my-trace
+    "Hello." +Foo.BAR! reset! my-trace
+    "World." +Foo.BAR! +Foo.BAZ! reset! my-trace
+    "Foo" +Foo.BAR! reset! whatever)
 
 # mirth-test # perr # 10 Left
 # mirth-test # perr # 20 Left
