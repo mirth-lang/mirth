@@ -115,10 +115,15 @@ def main [ +World -- +World ] {
     )
 
     "cons" test (
-        0 List.L0 cons => ( 0 List+.L1 )
-        0 1 List.L1 cons => ( 0 1 List+.L2 )
-        0 1 2 List.L2 cons => ( 0 1 2 List+.L3 )
-        0 1 2 3 List.L3 cons => ( 0 1 2 3 List+.L4 )
+        0 List.L0 cons => ( 0 List.L1 )
+        0 1 List.L1 cons => ( 0 1 List.L2 )
+        0 1 2 List.L2 cons => ( 0 1 2 List.L3 )
+        0 1 2 3 List.L3 cons => ( 0 1 2 3 List.L4 )
+
+        0 List.L0 cons+ => ( 0 List+.L1 )
+        0 1 List.L1 cons+ => ( 0 1 List+.L2 )
+        0 1 2 List.L2 cons+ => ( 0 1 2 List+.L3 )
+        0 1 2 3 List.L3 cons+ => ( 0 1 2 3 List+.L4 )
 
         0 1 List+.L1 cons => ( 0 1 List+.L2 )
         0 1 2 List+.L2 cons => ( 0 1 2 List+.L3 )
@@ -126,10 +131,15 @@ def main [ +World -- +World ] {
     )
 
     "List.snoc" test (
-        List.L0 0 List.snoc => ( 0 List+.L1 )
-        11 List.L1 0 List.snoc => ( 11 0 List+.L2 )
-        21 22 List.L2 0 List.snoc => ( 21 22 0 List+.L3 )
-        31 32 33 List.L3 0 List.snoc => ( 31 32 33 0 List+.L4 )
+        List.L0 0 List.snoc => ( 0 List.L1 )
+        11 List.L1 0 List.snoc => ( 11 0 List.L2 )
+        21 22 List.L2 0 List.snoc => ( 21 22 0 List.L3 )
+        31 32 33 List.L3 0 List.snoc => ( 31 32 33 0 List.L4 )
+
+        List.L0 0 List.snoc+ => ( 0 List+.L1 )
+        11 List.L1 0 List.snoc+ => ( 11 0 List+.L2 )
+        21 22 List.L2 0 List.snoc+ => ( 21 22 0 List+.L3 )
+        31 32 33 List.L3 0 List.snoc+ => ( 31 32 33 0 List+.L4 )
     )
 
     "List+.snoc" test (

@@ -54,8 +54,8 @@ def(Match.has-default-case?, Match -- Bool,
 ||| TAG patterns use it.
 def(Match.scrutinee-data?, Match -- Maybe(Data),
     cases filter(is-default-case? not) dup
-    first bind(pattern single-tag?) map(.data) if-some(
-        swap all(pattern single-tag? if-some(dip:dup .data ==, False)) if(
+    first bind(pattern single-tag?) map(.data) if?(
+        swap all(pattern single-tag? if?(dip:dup .data ==, False)) if(
             Some,
             drop None
         ),

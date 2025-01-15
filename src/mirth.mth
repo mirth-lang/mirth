@@ -213,7 +213,7 @@ def +Mirth.default-error-location [ +Mirth -- +Mirth Location ] {
 }
 
 def +Mirth.error-location [ +Mirth -- +Mirth Location ] {
-    lexical-state error-token if-some(location, default-error-location)
+    lexical-state error-token if?(location, default-error-location)
 }
 
 def +Mirth.info!    [ Str +Mirth -- +Mirth ] { error-location swap emit-info-at!    }
@@ -319,7 +319,7 @@ def Token.location; [ +Str Token -- +Str ] {
 }
 
 def Maybe.location?; (f {location;}) [ (+Str t -- +Str) +Str Maybe(t) -- +Str ] {
-    if-some(f, "???";)
+    if?(f, "???";)
 }
 
 

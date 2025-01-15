@@ -254,6 +254,6 @@ data Def {
                 >Str "qualified name already has definition: " swap cat fatal-error!
             ) drop
         )
-        dup name ~defs modify(List.Cons)
+        dup name ~defs modify(cons)
     }
 }

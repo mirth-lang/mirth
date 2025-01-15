@@ -17,13 +17,17 @@ data Maybe(t) {
     )
     def if(f,g) { some? if(f,g) }
     def then(f) { some? then(f) }
-    def else(f) { none? then(f) }
-    def and(f) { some? and(f) }
-    def or(f) { some? or(f) }
+    def else(f) { some? else(f) }
+    def and(f)  { some? and(f) }
+    def or(f)   { some? or(f) }
 
-    def if-some(f,g)  { { Some -> f          } { None -> g } }
-    def or-some(f)    { { Some -> Some } { None -> f } }
-    def unwrap(f)     { { Some -> id         } { None -> f } }
+    def if?(f,g) [ (*a b -- *c, *a -- *c) *a Maybe(b) -- *c          ] { { Some -> f  } { None -> g    } }
+    def then?(f) [ (*a b -- *a)           *a Maybe(b) -- *a          ] { { Some -> f  } { None -> id   } }
+    def else?(f) [ (*a   -- *a b)         *a Maybe(b) -- *a b        ] { { Some -> id } { None -> f    } }
+    def and?(f)  [ (*a b -- *a Maybe(c))  *a Maybe(b) -- *a Maybe(c) ] { { Some -> f  } { None -> None } }
+    def or?(f)   [ (*a   -- *a Maybe(b))  *a Maybe(b) -- *a Maybe(b) ] { { None -> f  } { _    -> id   } }
+
+    def unwrap(f)     { { Some -> id   } { None -> f } }
     def >List {
         { None -> List.L0 }
         { Some -> List.L1 }
@@ -31,7 +35,7 @@ data Maybe(t) {
 
     def == (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {
         { None -> none? }
-        { Some -> swap if-some(swap eq, drop False) }
+        { Some -> swap if?(swap eq, drop False) }
     }
 
     def compare (cmp {compare}) [ (*c a a -- *c Comparison) *c Maybe(a) Maybe(a) -- *c Comparison ] {
@@ -83,10 +87,14 @@ alias(Some, Maybe.Some)
 alias(None, Maybe.None)
 
 def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
-    while(f if-some(g True, False))
+    while(f if?(g True, False))
 }
 
 def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {
     None while(drop f dup if(False, dip:g True))
     unwrap(impossible!)
+}
+
+inline def Bool.>Maybe (f) [ ( *a -- *a b ) *a Bool -- *a Maybe(b) ] {
+    if(f Some, None)
 }
