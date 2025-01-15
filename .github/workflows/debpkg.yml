@@ -38,5 +38,5 @@ jobs:
       - name: Publish artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mirth-${{github.ref}}.deb
+          name: mirth.deb
           path: ${{ steps.build.outputs.file_name }}
