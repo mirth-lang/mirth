@@ -2310,7 +2310,7 @@ def elab-embed-str! [ Token +World +Mirth -- Token +World +Mirth ] {
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
     dup >body None >sig?
     dup str? unwrap("expected source path" emit-fatal-error!)
-    >Path >+mirth open-file! unwrap!(+mirth> fatal-error!) read-file! close-file! nip >contents +mirth>
+    >Path >+mirth open-file! +else(+mirth> fatal-error!) read-file! close-file! nip >contents +mirth>
     Word.new!
     dup PropLabel.WordQName >label Prop over ~qname !
 

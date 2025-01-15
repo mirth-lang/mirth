@@ -9,16 +9,7 @@ import std.output
 import std.posix
 import std.ctypes
 import std.maybe
-
-data +File? {
-    Ok  [ +File ]
-    Err [ Str ]
-    --
-    def unwrap!(f) [ (*a Str -- *a +File) *a +File? -- *a +File ] {
-        { Ok -> id }
-        { Err -> f }
-    }
-}
+import std.result
 
 struct +File {
     file-descriptor: Int
@@ -56,23 +47,23 @@ struct +File {
     )
 }
 
-def +World.open-file! [ Path +World -- +World +File? ] {
+def +World.open-file! [ Path +World -- +World +Result(Str, +File) ] {
     dup >Str 0 0 posix-open!
     dup 0> if(
-        nip >file-descriptor True >owned +File +File?.Ok,
-        drop Str("Failed to open file: " ; >Str show;) +File?.Err
+        nip >file-descriptor True >owned +File +Ok,
+        drop Str("Failed to open file: " ; >Str show;) +Err
     )
 }
 
-def +World.create-file! [ Path +World -- +World +File? ] {
+def +World.create-file! [ Path +World -- +World +Result(Str, +File) ] {
     dup >Str
     create-file-flags if?(
         0o666 posix-open!
         dup 0> if(
-            nip >file-descriptor True >owned +File +File?.Ok,
-            drop Str("Failed to create file: " ; >Str show;) +File?.Err
+            nip >file-descriptor True >owned +File +Ok,
+            drop Str("Failed to create file: " ; >Str show;) +Err
         ),
-        drop2 "Don't know how to create file on unknown OS." +File?.Err
+        drop2 "Don't know how to create file on unknown OS." +Err
     )
 }
 
