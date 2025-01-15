@@ -791,7 +791,7 @@ struct +AB {
         ab-token@ num-args over arity < then(
             ab-token@ num-args over rdip:params drop-slice for(
                 default if? (
-                    elab-block-at!,
+                    ab-token@ location >location clone-run! elab-block-at!,
                     ab-token@ "word parameter is missing, has no default implementation" rdip:emit-fatal-error!
                 )
             )

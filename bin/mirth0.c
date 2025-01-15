@@ -1083,6 +1083,11 @@ static STACK lbl_col = {0};
 static STACK lbl_label = {0};
 static STACK lbl_prop = {0};
 static STACK lbl_token = {0};
+static STACK lbl_start = {0};
+static STACK lbl_end = {0};
+static STACK lbl_anchor = {0};
+static STACK lbl_dst = {0};
+static STACK lbl_src = {0};
 static STACK lbl_a = {0};
 static STACK lbl_b = {0};
 static STACK lbl_c = {0};
@@ -5169,6 +5174,7 @@ static int64_t mw_mirth_token_TokenValue_arrowZAsk (VAL in_TokenValue_1);
 static int64_t mw_mirth_token_TokenValue_patZ_underscoreZAsk (VAL in_TokenValue_1);
 static int64_t mw_mirth_token_TokenValue_moduleZ_headerZAsk (VAL in_TokenValue_1);
 static int64_t mw_mirth_token_Token_index (uint64_t in_Token_1);
+static uint64_t mw_mirth_token_Token_fromZ_index (int64_t in_Int_1);
 static uint64_t mw_mirth_token_Token_succ (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_pred (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_allocZBang (void);
@@ -5211,6 +5217,7 @@ static int64_t mw_mirth_token_Token_moduleZ_headerZAsk (uint64_t in_Token_1);
 static int64_t mw_mirth_token_Token_canZ_takeZ_argsZAsk (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_allocZ_noneZBang (void);
 static TUP* mw_mirth_token_Token_location (uint64_t in_Token_1);
+static void mw_mirth_token_Token_locationZBang (TUP* in_Location_1, uint64_t in_Token_2);
 static uint64_t mw_mirth_token_Token_next (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_prev (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_nextZ_argZ_end (uint64_t in_Token_1);
@@ -5229,6 +5236,7 @@ static int64_t mw_mirth_token_Token_argsZ_endZAsk (uint64_t in_Token_1);
 static TUP* mw_mirth_token_Token_argsZPlus (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4);
 static int64_t mw_mirth_token_Token_moduleZ_endZAsk (uint64_t in_Token_1);
 static int64_t mw_mirth_token_Token_runZ_endZAsk (uint64_t in_Token_1);
+static uint64_t mw_mirth_token_Token_toZ_runZ_end (uint64_t in_Token_1);
 static VAL mw_mirth_token_Token_runZ_tokens (uint64_t in_Token_1);
 static int64_t mw_mirth_token_Token_runZ_length (uint64_t in_Token_1);
 static VAL mw_mirth_token_Token_runZ_arrowZAsk (uint64_t in_Token_1);
@@ -5236,6 +5244,7 @@ static int64_t mw_mirth_token_Token_sigZ_stackZ_endZAsk (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_sigZ_nextZ_stackZ_end (uint64_t in_Token_1);
 static int64_t mw_mirth_token_Token_sigZ_hasZ_dashesZAsk (uint64_t in_Token_1);
 static VAL mw_mirth_token_Token_patZ_tokens (uint64_t in_Token_1);
+static uint64_t mw_mirth_token_Token_cloneZ_runZBang (TUP* in_Location_1, uint64_t in_Token_2);
 static int64_t mw_mirth_module_Module_index (uint64_t in_Module_1);
 static uint64_t mw_mirth_module_Module_allocZBang (void);
 static uint64_t mw_mirth_module_Module_package (uint64_t in_Module_1);
@@ -25595,6 +25604,9 @@ static int64_t mw_mirth_token_TokenValue_moduleZ_headerZAsk (VAL in_TokenValue_1
 static int64_t mw_mirth_token_Token_index (uint64_t in_Token_1) {
 	return ((int64_t)in_Token_1);
 }
+static uint64_t mw_mirth_token_Token_fromZ_index (int64_t in_Int_1) {
+	return ((uint64_t)in_Int_1);
+}
 static uint64_t mw_mirth_token_Token_succ (uint64_t in_Token_1) {
 	int64_t v3 = 1LL;
 	int64_t v4 = i64_add(((int64_t)in_Token_1), v3);
@@ -25821,6 +25833,18 @@ static TUP* mw_mirth_token_Token_location (uint64_t in_Token_1) {
 	int64_t v5 = mw_mirth_token_Token_col(in_Token_1);
 	TUP* v6 = mtw_mirth_location_Location_Location(v3, v4, v5);
 	return v6;
+}
+static void mw_mirth_token_Token_locationZBang (TUP* in_Location_1, uint64_t in_Token_2) {
+	uint64_t v3;
+	int64_t v4;
+	int64_t v5;
+	mtp_mirth_location_Location_Location(in_Location_1, &v3, &v4, &v5);
+	void* v6 = field_mut(&mfld_mirth_token_Token_ZTildemodule, in_Token_2);
+	mut_set(MKU64(v3), v6);
+	void* v7 = field_mut(&mfld_mirth_token_Token_ZTilderow, in_Token_2);
+	mut_set(MKI64(v4), v7);
+	void* v8 = field_mut(&mfld_mirth_token_Token_ZTildecol, in_Token_2);
+	mut_set(MKI64(v5), v8);
 }
 static uint64_t mw_mirth_token_Token_next (uint64_t in_Token_1) {
 	VAL v3 = mw_mirth_token_Token_value(in_Token_1);
@@ -26388,6 +26412,21 @@ static int64_t mw_mirth_token_Token_runZ_endZAsk (uint64_t in_Token_1) {
 	}
 	return branch_Bool_4;
 }
+static uint64_t mw_mirth_token_Token_toZ_runZ_end (uint64_t in_Token_1) {
+	int64_t v3 = mw_mirth_token_Token_runZ_endZAsk(in_Token_1);
+	bool v4 = !((bool)v3);
+	uint64_t v5 = in_Token_1;
+	bool v6 = v4;
+	while (v6) {
+		uint64_t v7 = v5;
+		uint64_t v8 = mw_mirth_token_Token_next(v7);
+		int64_t v9 = mw_mirth_token_Token_runZ_endZAsk(v8);
+		bool v10 = !((bool)v9);
+		v6 = v10;
+		v5 = v8;
+	}
+	return v5;
+}
 static VAL mw_mirth_token_Token_runZ_tokens (uint64_t in_Token_1) {
 	VAL v3 = MKI64(0LL /* Nil */);
 	VAL v4;
@@ -26589,6 +26628,220 @@ static VAL mw_mirth_token_Token_patZ_tokens (uint64_t in_Token_1) {
 	VAL v26 = mw_std_list_ZPlusList_1_ZPlusZTo(v8);
 	decref(v7);
 	return v26;
+}
+static uint64_t mw_mirth_token_Token_cloneZ_runZBang (TUP* in_Location_1, uint64_t in_Token_2) {
+	uint64_t v4 = mw_mirth_token_Token_toZ_runZ_end(in_Token_2);
+	uint64_t v5 = mw_mirth_token_Token_allocZ_noneZBang();
+	incref(MKTUP(in_Location_1, 3));
+	mw_mirth_token_Token_locationZBang(in_Location_1, v5);
+	int64_t v6 = mw_mirth_token_Token_index(v4);
+	int64_t v7 = mw_mirth_token_Token_index(in_Token_2);
+	int64_t v8 = i64_sub(v6, v7);
+	int64_t v9 = 0LL;
+	bool v10 = (v8 < v9);
+	int64_t branch_Nat_11;
+	if (v10) {
+		int64_t v12 = 0LL;
+		branch_Nat_11 = v12;
+	} else {
+		branch_Nat_11 = v8;
+	}
+	int64_t v13 = 1LL;
+	int64_t v14 = i64_add(branch_Nat_11, v13);
+	int64_t v15 = 0LL;
+	bool v16 = (v14 > v15);
+	TUP* v17 = in_Location_1;
+	int64_t v18 = v14;
+	bool v19 = v16;
+	while (v19) {
+		TUP* v20 = v17;
+		int64_t v21 = v18;
+		incref(MKTUP(v20, 3));
+		uint64_t v22 = mw_mirth_token_Token_allocZ_noneZBang();
+		mw_mirth_token_Token_locationZBang(v20, v22);
+		int64_t v23 = 1LL;
+		int64_t v24 = i64_sub(v21, v23);
+		int64_t v25 = 0LL;
+		bool v26 = (v24 < v25);
+		int64_t branch_Nat_27;
+		if (v26) {
+			int64_t v28 = 0LL;
+			branch_Nat_27 = v28;
+		} else {
+			branch_Nat_27 = v24;
+		}
+		int64_t v29 = 0LL;
+		bool v30 = (branch_Nat_27 > v29);
+		v19 = v30;
+		v18 = branch_Nat_27;
+		v17 = v20;
+	}
+	uint64_t v31 = mw_mirth_token_Token_succ(v5);
+	int64_t v32 = mw_mirth_token_Token_index(in_Token_2);
+	int64_t v33 = mw_mirth_token_Token_index(v4);
+	bool v34 = (v32 < v33);
+	TUP* v35 = v17;
+	uint64_t v36 = v31;
+	uint64_t v37 = v31;
+	uint64_t v38 = in_Token_2;
+	uint64_t v39 = in_Token_2;
+	uint64_t v40 = v4;
+	bool v41 = v34;
+	while (v41) {
+		TUP* v42 = v35;
+		uint64_t v43 = v36;
+		uint64_t v44 = v37;
+		uint64_t v45 = v38;
+		uint64_t v46 = v39;
+		uint64_t v47 = v40;
+		VAL v48 = mw_mirth_token_Token_value(v46);
+		uint64_t branch_Token_49;
+		uint64_t branch_Token_50;
+		VAL branch_TokenValue_51;
+		switch (get_data_tag(v48)) {
+			case 6LL: { // LParen
+				uint64_t v52 = mtp_mirth_token_TokenValue_LParen(v48);
+				int64_t v53 = mw_mirth_token_Token_index(v52);
+				int64_t v54 = mw_mirth_token_Token_index(v43);
+				int64_t v55 = i64_add(v53, v54);
+				int64_t v56 = 1LL;
+				int64_t v57 = i64_add(v55, v56);
+				int64_t v58 = mw_mirth_token_Token_index(v46);
+				int64_t v59 = i64_sub(v57, v58);
+				uint64_t v60 = mw_mirth_token_Token_fromZ_index(v59);
+				VAL v61 = mtw_mirth_token_TokenValue_LParen(v60);
+				branch_TokenValue_51 = v61;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			case 7LL: { // RParen
+				uint64_t v62 = mtp_mirth_token_TokenValue_RParen(v48);
+				int64_t v63 = mw_mirth_token_Token_index(v62);
+				int64_t v64 = mw_mirth_token_Token_index(v43);
+				int64_t v65 = i64_add(v63, v64);
+				int64_t v66 = 1LL;
+				int64_t v67 = i64_add(v65, v66);
+				int64_t v68 = mw_mirth_token_Token_index(v46);
+				int64_t v69 = i64_sub(v67, v68);
+				uint64_t v70 = mw_mirth_token_Token_fromZ_index(v69);
+				VAL v71 = mtw_mirth_token_TokenValue_RParen(v70);
+				branch_TokenValue_51 = v71;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			case 10LL: { // LCurly
+				uint64_t v72 = mtp_mirth_token_TokenValue_LCurly(v48);
+				int64_t v73 = mw_mirth_token_Token_index(v72);
+				int64_t v74 = mw_mirth_token_Token_index(v43);
+				int64_t v75 = i64_add(v73, v74);
+				int64_t v76 = 1LL;
+				int64_t v77 = i64_add(v75, v76);
+				int64_t v78 = mw_mirth_token_Token_index(v46);
+				int64_t v79 = i64_sub(v77, v78);
+				uint64_t v80 = mw_mirth_token_Token_fromZ_index(v79);
+				VAL v81 = mtw_mirth_token_TokenValue_LCurly(v80);
+				branch_TokenValue_51 = v81;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			case 11LL: { // RCurly
+				uint64_t v82 = mtp_mirth_token_TokenValue_RCurly(v48);
+				int64_t v83 = mw_mirth_token_Token_index(v82);
+				int64_t v84 = mw_mirth_token_Token_index(v43);
+				int64_t v85 = i64_add(v83, v84);
+				int64_t v86 = 1LL;
+				int64_t v87 = i64_add(v85, v86);
+				int64_t v88 = mw_mirth_token_Token_index(v46);
+				int64_t v89 = i64_sub(v87, v88);
+				uint64_t v90 = mw_mirth_token_Token_fromZ_index(v89);
+				VAL v91 = mtw_mirth_token_TokenValue_RCurly(v90);
+				branch_TokenValue_51 = v91;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			case 8LL: { // LSquare
+				uint64_t v92 = mtp_mirth_token_TokenValue_LSquare(v48);
+				int64_t v93 = mw_mirth_token_Token_index(v92);
+				int64_t v94 = mw_mirth_token_Token_index(v43);
+				int64_t v95 = i64_add(v93, v94);
+				int64_t v96 = 1LL;
+				int64_t v97 = i64_add(v95, v96);
+				int64_t v98 = mw_mirth_token_Token_index(v46);
+				int64_t v99 = i64_sub(v97, v98);
+				uint64_t v100 = mw_mirth_token_Token_fromZ_index(v99);
+				VAL v101 = mtw_mirth_token_TokenValue_LSquare(v100);
+				branch_TokenValue_51 = v101;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			case 9LL: { // RSquare
+				uint64_t v102 = mtp_mirth_token_TokenValue_RSquare(v48);
+				int64_t v103 = mw_mirth_token_Token_index(v102);
+				int64_t v104 = mw_mirth_token_Token_index(v43);
+				int64_t v105 = i64_add(v103, v104);
+				int64_t v106 = 1LL;
+				int64_t v107 = i64_add(v105, v106);
+				int64_t v108 = mw_mirth_token_Token_index(v46);
+				int64_t v109 = i64_sub(v107, v108);
+				uint64_t v110 = mw_mirth_token_Token_fromZ_index(v109);
+				VAL v111 = mtw_mirth_token_TokenValue_RSquare(v110);
+				branch_TokenValue_51 = v111;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			case 12LL: { // LColon
+				uint64_t v112 = mtp_mirth_token_TokenValue_LColon(v48);
+				int64_t v113 = mw_mirth_token_Token_index(v112);
+				int64_t v114 = mw_mirth_token_Token_index(v43);
+				int64_t v115 = i64_add(v113, v114);
+				int64_t v116 = 1LL;
+				int64_t v117 = i64_add(v115, v116);
+				int64_t v118 = mw_mirth_token_Token_index(v46);
+				int64_t v119 = i64_sub(v117, v118);
+				uint64_t v120 = mw_mirth_token_Token_fromZ_index(v119);
+				VAL v121 = mtw_mirth_token_TokenValue_LColon(v120);
+				branch_TokenValue_51 = v121;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			case 13LL: { // RColon
+				uint64_t v122 = mtp_mirth_token_TokenValue_RColon(v48);
+				int64_t v123 = mw_mirth_token_Token_index(v122);
+				int64_t v124 = mw_mirth_token_Token_index(v43);
+				int64_t v125 = i64_add(v123, v124);
+				int64_t v126 = 1LL;
+				int64_t v127 = i64_add(v125, v126);
+				int64_t v128 = mw_mirth_token_Token_index(v46);
+				int64_t v129 = i64_sub(v127, v128);
+				uint64_t v130 = mw_mirth_token_Token_fromZ_index(v129);
+				VAL v131 = mtw_mirth_token_TokenValue_RColon(v130);
+				branch_TokenValue_51 = v131;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+			default: {
+				branch_TokenValue_51 = v48;
+				branch_Token_50 = v46;
+				branch_Token_49 = v43;
+			} break;
+		}
+		void* v132 = field_mut(&mfld_mirth_token_Token_ZTildevalue, v44);
+		mut_set(branch_TokenValue_51, v132);
+		uint64_t v133 = mw_mirth_token_Token_succ(branch_Token_50);
+		uint64_t v134 = mw_mirth_token_Token_succ(v44);
+		int64_t v135 = mw_mirth_token_Token_index(v133);
+		int64_t v136 = mw_mirth_token_Token_index(v47);
+		bool v137 = (v135 < v136);
+		v41 = v137;
+		v40 = v47;
+		v39 = v133;
+		v38 = v45;
+		v37 = v134;
+		v36 = branch_Token_49;
+		v35 = v42;
+	}
+	decref(MKTUP(v35, 3));
+	return v36;
 }
 static int64_t mw_mirth_module_Module_index (uint64_t in_Module_1) {
 	return ((int64_t)in_Module_1);
@@ -33636,33 +33889,37 @@ static uint64_t mw_mirth_elab_ZPlusAB_elabZ_wordZ_argsZBang (uint64_t in_Word_1,
 						case 1LL: { // Some
 							VAL v42 = mtp_std_maybe_Maybe_1_Some(v39);
 							TUP* v43;
-							TUP* v44;
-							mw_mirth_elab_ZPlusAB_elabZ_blockZ_atZBang(value_u64(v42), v29, v30, &v43, &v44);
-							branch_ZPlusAB_41 = v44;
-							branch_ZPlusMirth_40 = v43;
+							uint64_t v44 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v30, &v43);
+							TUP* v45 = mw_mirth_token_Token_location(v44);
+							uint64_t v46 = mw_mirth_token_Token_cloneZ_runZBang(v45, value_u64(v42));
+							TUP* v47;
+							TUP* v48;
+							mw_mirth_elab_ZPlusAB_elabZ_blockZ_atZBang(v46, v29, v43, &v47, &v48);
+							branch_ZPlusAB_41 = v48;
+							branch_ZPlusMirth_40 = v47;
 						} break;
 						case 0LL: { // None
-							TUP* v45;
-							uint64_t v46 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v30, &v45);
-							STR* v47;
-							STRLIT(v47, "word parameter is missing, has no default implementation", 56);
-							mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v46, v47, v29);
+							TUP* v49;
+							uint64_t v50 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v30, &v49);
+							STR* v51;
+							STRLIT(v51, "word parameter is missing, has no default implementation", 56);
+							mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v50, v51, v29);
 						} break;
 						default: {
 							do_panic(str_make("unexpected fallthrough in match\n", 32));
 						}
 					}
-					int64_t v49 = 1LL /* True */;
-					branch_Bool_36 = v49;
+					int64_t v53 = 1LL /* True */;
+					branch_Bool_36 = v53;
 					branch_List_35 = v37;
 					branch_ZPlusAB_34 = branch_ZPlusAB_41;
 					branch_ZPlusMirth_33 = branch_ZPlusMirth_40;
 				} break;
 				case 0LL: { // Nil
-					VAL v50 = MKI64(0LL /* Nil */);
-					int64_t v51 = 0LL /* False */;
-					branch_Bool_36 = v51;
-					branch_List_35 = v50;
+					VAL v54 = MKI64(0LL /* Nil */);
+					int64_t v55 = 0LL /* False */;
+					branch_Bool_36 = v55;
+					branch_List_35 = v54;
 					branch_ZPlusAB_34 = v30;
 					branch_ZPlusMirth_33 = v29;
 				} break;
