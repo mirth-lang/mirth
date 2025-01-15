@@ -56,6 +56,6 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: 
+          files: |
             ${{ steps.deb.outputs.file_name }}
             ${{ steps.rpm.outputs.file_name }}
