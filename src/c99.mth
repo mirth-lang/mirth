@@ -370,12 +370,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
                         "]" put
                     )
                 ) dup-value! rdrop push-value!
-                +tuplevar> match {
-                    { +Left -> # tuple is value
-                        drop-value! }
-                    { +Right -> # tuple is resource
-                        push-resource! }
-                }
+                +tuplevar> +for(drop-value!, push-resource!)
             }
             { Right -> # field and tuple are resources
                 resource-to-c99-repr >fieldrepr
@@ -400,14 +395,13 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
     @tag +mirth:semi-transparent? if(
         fieldty> match {
             { Left -> # field is value
-                @tag .data pop-data! match {
-                    { +Right -> # wrapper is resource
-                        drop-resource-as-value!
-                        type-to-c99-repr pop-value!
-                        turn-into-resource! push-resource! }
-                    { +Left -> # wrapper is value
-                        drop drop-value! }
-                }
+                @tag .data pop-data! +for(
+                    drop drop-value!,
+
+                    drop-resource-as-value!
+                    type-to-c99-repr pop-value!
+                    turn-into-resource! push-resource!
+                )
             }
             { Right -> # field and wrapper are resource
                 C99ReprType.I64 pop-resource! rdrop # vacant wrapper is unit
@@ -420,55 +414,54 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
             { Left -> type-to-c99-repr pop-value! consume-as-VAL }
             { Right -> resource-to-c99-repr pop-resource! consume-as-VAL }
         } >fieldval
-        +tuplevar> match {
-            { +Left -> # field and tuple are both values
-                consume-as-VAL >tupleval
-                C99ReprType.VAL push-value-expression!(
-                    "tup_replace(" put
-                    tupleval> put
-                    ", " put
-                    @tag @label c99-tag-label-index show put
-                    ", " put
-                    fieldval> put
-                    ")" put
-                )
-                fieldty> drop
-            }
-            { +Right -> # tuple is resource
-                >+tuplevar
-                @+tuplevar:rdup consume-as-TUP >tuplevar
-                fieldty> match {
-                    { Left -> # field is value
-                        type-to-c99-repr >fieldrepr
-                        @fieldrepr needs-refcounting? then (
-                            @fieldrepr dup value-expression! (
-                                v-macro (
-                                    @tuplevar put
-                                    "->cells[" put
-                                    @tag @label c99-tag-label-index show put
-                                    "]" put
-                                )
-                            ) drop-value!
-                        )
-                        fieldrepr> drop
-                    }
-                    { Right -> # field is resource
-                        drop
-                    }
+        +tuplevar> +for (
+            # field and tuple are both values
+            consume-as-VAL >tupleval
+            C99ReprType.VAL push-value-expression!(
+                "tup_replace(" put
+                tupleval> put
+                ", " put
+                @tag @label c99-tag-label-index show put
+                ", " put
+                fieldval> put
+                ")" put
+            )
+            fieldty> drop,
+
+            # tuple is resource
+            >+tuplevar
+            @+tuplevar:rdup consume-as-TUP >tuplevar
+            fieldty> match {
+                { Left -> # field is value
+                    type-to-c99-repr >fieldrepr
+                    @fieldrepr needs-refcounting? then (
+                        @fieldrepr dup value-expression! (
+                            v-macro (
+                                @tuplevar put
+                                "->cells[" put
+                                @tag @label c99-tag-label-index show put
+                                "]" put
+                            )
+                        ) drop-value!
+                    )
+                    fieldrepr> drop
                 }
-                c99-line(
-                    @tuplevar put
-                    "->cells[" put
-                    @tag @label c99-tag-label-index show put
-                    "] = " put
-                    fieldval> put
-                    ";" put
-                )
-                +tuplevar>
-                push-resource!
-                tuplevar> drop
+                { Right -> # field is resource
+                    drop
+                }
             }
-        }
+            c99-line(
+                @tuplevar put
+                "->cells[" put
+                @tag @label c99-tag-label-index show put
+                "] = " put
+                fieldval> put
+                ";" put
+            )
+            +tuplevar>
+            push-resource!
+            tuplevar> drop
+        )
     )
     label> tag> drop2
 }
@@ -1626,48 +1619,30 @@ def +C99Resource.peek-data-tag [ +C99Resource -- +C99Resource Str ] {
     )
 }
 
-data +C99Value/Resource {
-    +Left  [ +C99Value ]
-    +Right [ +C99Resource ]
-}
+def +C99Value.>Value/Resource { +Left +C99Value/Resource }
+def +C99Resource.>Value/Resource { +Right +C99Value/Resource }
+struct +C99Value/Resource {
+    +Either(+C99Value, +C99Resource)
+    --
+    def +Left [ +C99Value -- +C99Value/Resource ] { +Either.+Left +C99Value/Resource }
+    def +Right [ +C99Resource -- +C99Value/Resource ] { +Either.+Right +C99Value/Resource }
+    def +for(f,g) { +C99Value/Resource -> +for(f,g) }
+    def +map(f,g) { +C99Value/Resource -> +map(f,g) +C99Value/Resource }
+    def rdup { +C99Value/Resource -> rdup +C99Value/Resource rdip:+C99Value/Resource }
+    def rdrop { +C99Value/Resource -> rdrop }
 
-def +C99Value.>Value/Resource { +C99Value/Resource.+Left }
-def +C99Resource.>Value/Resource { +C99Value/Resource.+Right }
-def +C99Value/Resource.push-value/resource! {
-    { +Left -> push-value! }
-    { +Right -> push-resource! }
-}
-def +C99Value/Resource.peek-data-tag [ +C99Value/Resource -- +C99Value/Resource Str ] {
-    { +Left -> peek-data-tag +C99Value/Resource.+Left }
-    { +Right -> peek-data-tag +C99Value/Resource.+Right }
-}
-def +C99Value/Resource.rdup [ +C99Value/Resource -- +C99Value/Resource +C99Value/Resource ] {
-    { +Left -> rdup +C99Value/Resource.+Left rdip(+C99Value/Resource.+Left) }
-    { +Right -> rdup +C99Value/Resource.+Right rdip(+C99Value/Resource.+Right) }
-}
-def +C99Value/Resource.rdrop  [ +C99Value/Resource -- ] {
-    { +Left -> rdrop }
-    { +Right -> rdrop }
-}
-def +C99Value/Resource.consume-as-VAL [ +C99Value/Resource -- Str ] {
-    { +Left -> consume-as-VAL }
-    { +Right -> consume-as-VAL }
-}
-def +C99Value/Resource.consume-as-TUP [ +C99Value/Resource -- Str ] {
-    { +Left -> consume-as-TUP }
-    { +Right -> consume-as-TUP }
+    def push-value/resource! { +for(push-value!, push-resource!) }
+    def peek-data-tag { +map(peek-data-tag, peek-data-tag) }
+    def consume-as-VAL { +for(consume-as-VAL, consume-as-VAL) }
+    def consume-as-TUP { +for(consume-as-TUP, consume-as-TUP) }
+    def turn-into-resource! { +for(turn-into-resource!, id) }
 }
 
 def +C99Branch.pop-data! [ Data +C99Branch -- +C99Branch +C99Value/Resource ] {
     dup is-resource? if(
-        +mirth:c99-repr pop-resource! +C99Value/Resource.+Right,
-        +mirth:c99-repr pop-value! +C99Value/Resource.+Left
+        +mirth:c99-repr pop-resource! >Value/Resource,
+        +mirth:c99-repr pop-value! >Value/Resource
     )
-}
-
-def +C99Value/Resource.turn-into-resource! [ +C99Value/Resource -- +C99Resource ] {
-    { +Left -> turn-into-resource! }
-    { +Right -> id }
 }
 
 data +C99Value? {

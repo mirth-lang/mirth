@@ -4,6 +4,11 @@ import std.prelude
 import std.list
 import std.str
 
+alias Some Maybe.Some
+alias None Maybe.None
+alias +Some +Maybe.+Some
+alias +None +Maybe.+None
+
 data Maybe(t) {
     0 None
     1 Some [ t ]
@@ -101,12 +106,6 @@ data +Maybe(+t) {
     def +has(f)  [ (*a +b -- *a +b Bool) *a +Maybe(+b) -- *a +Maybe(+b) Bool ] { { +Some -> f +Some } { +None -> +None False  } }
     def +all(f)  [ (*a +b -- *a +b Bool) *a +Maybe(+b) -- *a +Maybe(+b) Bool ] { { +Some -> f +Some } { +None -> +None True   } }
 }
-
-# Re-export these constructors unqualified.
-alias(Some, Maybe.Some)
-alias(None, Maybe.None)
-alias(+Some, +Maybe.+Some)
-alias(+None, +Maybe.+None)
 
 def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
     while(f if?(g True, False))

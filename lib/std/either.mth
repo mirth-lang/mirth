@@ -3,6 +3,11 @@ module std.either
 import std.prelude
 import std.maybe
 
+alias Left Either.Left
+alias Right Either.Right
+alias +Left +Either.+Left
+alias +Right +Either.+Right
+
 data Either(a,b) {
     Left  [ a ]
     Right [ b ]
@@ -65,13 +70,23 @@ data +Either(+a, +b) {
         { +Left -> +Left }
         { +Right -> f +Right }
     }
-}
 
-# Re-export these constructors unqualified.
-alias Left Either.Left
-alias Right Either.Right
-alias +Left +Either.+Left
-alias +Right +Either.+Right
+    def rdrop(f {rdrop}, g {rdrop}) [
+        (*x +a -- *y, *x +b -- *y)
+        *x +Either(+a,+b) -- *y
+    ] {
+        { +Left -> f }
+        { +Right -> g }
+    }
+
+    def rdup(f {rdup}, g {rdup}) [
+        (*x +a -- *y +a +a, *x +b -- *y +b +b)
+        *x +Either(+a,+b) -- *y +Either(+a,+b) +Either(+a,+b)
+    ] {
+        { +Left -> f rdip:+Left +Left }
+        { +Right -> g rdip:+Right +Right }
+    }
+}
 
 def while-left(f) [ (*c a -- *c Either(a,b)) *c a -- *c b ] {
     Left while-some(dup left?, nip f)
