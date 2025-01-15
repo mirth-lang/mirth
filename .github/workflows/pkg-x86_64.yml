@@ -34,6 +34,7 @@ jobs:
           package_root: pkg
           maintainer: sierra
           version: ${{ github.ref }}
+          arch: "amd64"
           depends: 'libc6 (>= 2.2.1), git, gcc'
           desc: 'Compiler for the mirth programming language'
           homepage: 'https://github.com/mirth-lang/mirth'
