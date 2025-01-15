@@ -27052,7 +27052,7 @@ static void mw_mirth_lexer_ZPlusLexer_moveZBang (TUP* in_ZPlusLexer_1, TUP* *out
 	*out_ZPlusLexer_2 = in_ZPlusLexer_1;
 }
 static void mw_mirth_lexer_ZPlusLexer_newlineZBang (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
-	int64_t v3 = 1LL;
+	int64_t v3 = 0LL;
 	in_ZPlusLexer_1->cells[2] = MKI64(v3);
 	int64_t v4 = value_i64(in_ZPlusLexer_1->cells[1]);
 	int64_t v5 = mw_mirth_location_Row_1ZPlus(v4);

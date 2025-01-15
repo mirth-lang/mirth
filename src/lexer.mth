@@ -72,7 +72,7 @@ struct +Lexer {
     def done? [ +Lexer -- +Lexer Bool ] { +input:done? }
     def peek  [ +Lexer -- +Lexer Byte ] { +input:peek }
     def move! [ +Lexer -- +Lexer ] { +input:move! lexer-col:1+ }
-    def newline! [ +Lexer -- +Lexer ] { 1 Col lexer-col! lexer-row:1+ }
+    def newline! [ +Lexer -- +Lexer ] { 0 Col lexer-col! lexer-row:1+ }
 
     ||| Create a token at the current location with the given payload.
     def make! [ TokenValue +Lexer -- Token +Lexer ] {
