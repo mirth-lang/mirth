@@ -132,7 +132,7 @@ def(Block.similar, +Mirth Block Block -- +Mirth Bool,
     dip:drop2
 )
 def(Arrow.similar, +Mirth Arrow Arrow -- +Mirth Bool,
-    # both(atoms /L1) if-some(swap if-some(similar, drop False), drop False)
+    # both(atoms /L1) if?(swap if?(similar, drop False), drop False)
     both(atoms) ==:similar
 )
 def(Atom.similar, +Mirth Atom Atom -- +Mirth Bool,

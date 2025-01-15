@@ -191,7 +191,7 @@ def c99-tag-def! [ Tag +C99 -- +C99 ] {
 
 def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
     >tag
-    @tag +mirth:semi-transparent? if-some(
+    @tag +mirth:semi-transparent? if?(
         input match {
             { ConsLabel ->
                 dip:type-to-c99-repr pop-value-label!
@@ -247,7 +247,7 @@ def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
 
 def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
     >tag
-    @tag +mirth:semi-transparent? if-some(
+    @tag +mirth:semi-transparent? if?(
         input match {
             { ConsLabel ->
                 swap type-to-c99-repr
@@ -331,7 +331,7 @@ def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackT
 
 def c99-tag-label-index [ Tag Label +C99 -- Nat +C99 ] {
     >label sip(+mirth:inputs dup len) only-tag? if(id, 1+) >i
-    reverse-find(@i:pred label if-some(@label ==, False))
+    reverse-find(@i:pred label if?(@label ==, False))
     label> drop2 i>
 }
 
@@ -500,7 +500,7 @@ def c99-external-def! [ External +C99 -- +C99 ] {
     @ext +mirth:ctype >cty
 
     @cty cod parts find(and(label? none?, ctype phantom? not)) >outty
-    @outty if-some(ctype, CType.Phantom) cname put " " put
+    @outty if?(ctype, CType.Phantom) cname put " " put
     @ext symbol put
 
     " (" put
@@ -547,7 +547,7 @@ def c99-external-def! [ External +C99 -- +C99 ] {
         )
 
         @cty cod parts for(
-            sip(dup ctype phantom? if(drop "0", label? if-some(name mangled, "Y")))
+            sip(dup ctype phantom? if(drop "0", label? if?(name mangled, "Y")))
             c99-push
         )
     )
@@ -557,7 +557,7 @@ def c99-external-def! [ External +C99 -- +C99 ] {
 }
 
 def CTypeStackPart.c99-arg-name [ arg-index:Nat CTypeStackPart +C99 -- arg-index:Nat Str +C99 ] {
-    label? if-some(
+    label? if?(
         name mangled,
         Str("X" ; @arg-index show;)
     )
@@ -668,7 +668,7 @@ def C99APIArg.pop-consume-physical! [ C99APIArg +C99Branch -- +C99Branch Maybe(S
 }
 
 def C99APIArg.pop-to-reserved! [ C99APIArg +C99Branch -- +C99Branch ] {
-    dup pop-consume-physical! if-some(
+    dup pop-consume-physical! if?(
         c99-line(swap name put " = " put put ";" put),
         drop
     )
@@ -746,7 +746,7 @@ def cons-fresh-arg! [ +C99 List(C99APIArg) Type C99APIArgSource mode:C99APIArgMo
     dup +mirth:c99-repr >repr
     fresh-arg-name! >name
     @mode >mode
-    C99APIArg swap List.Cons
+    C99APIArg swap cons
 }
 
 def +C99.stack-type-to-c99-api-params-aux [ StackType mode:C99APIArgMode +C99 -- mode:C99APIArgMode must-flush:Bool List(C99APIArg) +C99 ] {
@@ -776,8 +776,8 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
         >out-params-2 >return-param >out-params-1
     ) drop
     must-flush> must-flush> || >must-flush
-    @type cod linear-base-var? if-some(
-        @type dom linear-base-var? if-some(
+    @type cod linear-base-var? if?(
+        @type dom linear-base-var? if?(
             <>,
             drop False
         ),
@@ -836,7 +836,7 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
         sep> drop
         ")" ;
     )
-    @api return-param if-some(
+    @api return-param if?(
         @api doesnt-return if(
             swap c99-line("(void)" put put ";" put) Some,
             reserve-new-expression! Some
@@ -852,7 +852,7 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
 def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     >api
     "static " put
-    @api return-param if-some(
+    @api return-param if?(
         repr underlying-c99-type put,
         "void" put
     )
@@ -896,14 +896,14 @@ def c99-api-enter! [ C99API +C99 -- +C99Branch ] {
 def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
     >api
     @api out-params-2 reverse-for(
-        dup pop-consume-physical! if-some(
+        dup pop-consume-physical! if?(
             swap name c99-line("*" put put " = " put put ";" put),
             drop
         )
     )
     @api return-param map(pop-consume!)
     @api out-params-1 reverse-for(
-        dup pop-consume-physical! if-some(
+        dup pop-consume-physical! if?(
             swap name c99-line("*" put put " = " put put ";" put),
             drop
         )
@@ -988,7 +988,7 @@ def c99-atom! [ Atom +C99Branch -- +C99Branch ] {
         +c99:c99-line("WORD_ATOM(" put
             dup token row >Int show put ", " put
             dup token col >Int show put ", " put
-            dup token name? if-some(>Str, "") put-cstr
+            dup token name? if?(>Str, "") put-cstr
             ");" put
         )
     )
@@ -1056,10 +1056,10 @@ def c99-get-enum-value! [ Data +C99Branch -- +C99Branch ] {
     >data
     @data is-enum? else(
         @data Type.Data type-to-c99-repr pop-value! >+scrutinee
-        @data is-unit? if-some(
+        @data is-unit? if?(
             C99ReprType.I64 push-value-expression!(value show put "LL" put),
 
-        @data +mirth:semi-transparent? if-some(
+        @data +mirth:semi-transparent? if?(
             C99ReprType.I64 push-value-expression!(tag value show put "LL" put),
             C99ReprType.I64 push-value-expression!(
                 "get_data_tag(" put
@@ -1394,9 +1394,9 @@ def Data.c99-repr [ Data +Mirth -- C99ReprType +Mirth ] {
     >dat
     @dat is-unit? if(C99ReprType.Void,
     @dat is-enum? if(C99ReprType.I64,
-    @dat semi-transparent? if-some(
+    @dat semi-transparent? if?(
         input type/resource either(c99-repr, c99-repr),
-    @dat single-tag? if-some(
+    @dat single-tag? if?(
         inputs len C99ReprType.TUP,
         C99ReprType.VAL
     ))))
@@ -1889,7 +1889,7 @@ def +C99Branch.var-dup! [ +C99Branch Var -- +C99Branch +C99Value ] {
 }
 
 def +C99Value.push-to-env! [ +C99Branch Var +C99Value -- +C99Branch ] {
-    >var-var /+C99Value C99Var env:List.Cons
+    >var-var /+C99Value C99Var env:cons
 }
 
 def +C99Branch.pop-from-env! [ +C99Branch -- +C99Branch Var +C99Value ] {
@@ -2274,7 +2274,7 @@ def c99-pack-closure-vars! [ List(Var) +C99Branch -- +C99Branch ] {
     filter(is-physical?) dup empty? if(
         drop,
         Type.Ignore StackTypePart.Cons
-        over map(type StackTypePart.Cons) List.Cons >parts
+        over map(type StackTypePart.Cons) cons >parts
         None >tag
         for(var-dup! push-value!)
         c99-pack-tuple!
@@ -2361,7 +2361,7 @@ def c99-lambda! [ Lambda +C99Branch -- +C99Branch ] {
 }
 
 def c99-match! [ Match +C99Branch -- +C99Branch ] {
-    dup cases single? if-some(
+    dup cases single? if?(
         nip c99-single-case!,
 
         dup scrutinee-data?
@@ -2389,7 +2389,7 @@ def c99-single-case! [ Case +C99Branch -- +C99Branch ] {
     dup pattern is-default? if(
         body c99-arrow!,
 
-    dup pattern single-tag? if-some(
+    dup pattern single-tag? if?(
         c99-reverse-tag!
         body c99-arrow!,
 
@@ -2407,7 +2407,7 @@ def c99-case! [ Case +C99BranchSplit +scrutinee:+C99Value/Resource -- +C99Branch
         )
         c99-line("} break;" put),
 
-    dup pattern single-tag? if-some(
+    dup pattern single-tag? if?(
         c99-line("case " put dup value-show put "LL: { // " put dup name >Str put)
         c99-nest:sub-branch(
             +scrutinee> push-value/resource!

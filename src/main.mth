@@ -103,7 +103,7 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
                 num-errors rdip:trace(Sgr.FGRed emit; show ; " errors during specializer." ; Sgr.Reset emit;) 1 posix-exit!,
 
                 "Codegen." rdip:trace
-                output-file> if-some(
+                output-file> if?(
                     >output-path
                     C99_Options run-output-c99!,
 

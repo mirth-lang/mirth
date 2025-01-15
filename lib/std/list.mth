@@ -11,14 +11,14 @@ data List(t) {
     --
     inline {
         def L0 [                   -- List(t) ] { List.Nil }
-        def L1 [ t                 -- List(t) ] { List.L0 List.Cons }
-        def L2 [ t t               -- List(t) ] { List.L1 List.Cons }
-        def L3 [ t t t             -- List(t) ] { List.L2 List.Cons }
-        def L4 [ t t t t           -- List(t) ] { List.L3 List.Cons }
-        def L5 [ t t t t  t        -- List(t) ] { List.L4 List.Cons }
-        def L6 [ t t t t  t t      -- List(t) ] { List.L5 List.Cons }
-        def L7 [ t t t t  t t t    -- List(t) ] { List.L6 List.Cons }
-        def L8 [ t t t t  t t t t  -- List(t) ] { List.L7 List.Cons }
+        def L1 [ t                 -- List(t) ] { List.L0 cons }
+        def L2 [ t t               -- List(t) ] { List.L1 cons }
+        def L3 [ t t t             -- List(t) ] { List.L2 cons }
+        def L4 [ t t t t           -- List(t) ] { List.L3 cons }
+        def L5 [ t t t t  t        -- List(t) ] { List.L4 cons }
+        def L6 [ t t t t  t t      -- List(t) ] { List.L5 cons }
+        def L7 [ t t t t  t t t    -- List(t) ] { List.L6 cons }
+        def L8 [ t t t t  t t t t  -- List(t) ] { List.L7 cons }
     }
 
     def empty? [ List(t) -- Bool ] { enum-value 0= }
@@ -26,27 +26,29 @@ data List(t) {
 
     def >L0? [ List(t) -- Maybe(L0)    ] { Nil -> L0 Some, _ -> drop None }
     def >L1? [ List(t) -- Maybe(L1(t)) ] { Cons -> empty? if(L1 Some, drop None), Nil -> None }
-    def >L2? [ List(t) -- Maybe(L2(t)) ] { Cons -> >L1? if-some(/L1 L2 Some, drop None), Nil -> None }
-    def >L3? [ List(t) -- Maybe(L3(t)) ] { Cons -> >L2? if-some(/L2 L3 Some, drop None), Nil -> None }
+    def >L2? [ List(t) -- Maybe(L2(t)) ] { Cons -> >L1? if?(/L1 L2 Some, drop None), Nil -> None }
+    def >L3? [ List(t) -- Maybe(L3(t)) ] { Cons -> >L2? if?(/L2 L3 Some, drop None), Nil -> None }
     def >List+? [ List(t) -- Maybe(List+(t)) ] { Cons -> >tail >head List+ Some, Nil -> None }
     def len [ List(t) -- Nat ] { 0u swap for(drop 1+) }
 
-    def cons [ t List(t) -- List+(t) ] { >tail >head List+ }
+    def cons [ t List(t) -- List(t) ] { List.Cons }
+    def cons+ [ t List(t) -- List+(t) ] { List+.Cons }
     def uncons [ List(t) -- Maybe(t) List(t) ] {
         { Nil -> None List.Nil }
         { Cons -> dip(Some) }
     }
 
-    def Snoc [ List(t) t -- List(t) ] { swap reverse List.Cons reverse }
-    def snoc [ List(t) t -- List+(t) ] { swap reverse cons reverse }
+    def Snoc [ List(t) t -- List(t) ] { swap reverse cons reverse }
+    def snoc [ List(t) t -- List(t) ] { List.Snoc }
+    def snoc+ [ List(t) t -- List+(t) ] { swap reverse cons+ reverse }
     def unsnoc [ List(t) -- List(t) Maybe(t) ] { reverse uncons reverse swap }
 
     def cat [ List(t) List(t) -- List(t) ] {
         { Nil -> id }
-        { _ -> swap reverse-for(swap List.Cons) }
+        { _ -> swap reverse-for(swap cons) }
     }
     def cat+ [ List+(t) List(t) -- List+(t) ] {
-        dip(uncons) cat cons
+        dip(uncons) cat cons+
     }
 
     def head [ List(x) -- Maybe(x) ] {
@@ -64,7 +66,7 @@ data List(t) {
 
     ||| Reverse the list.
     def reverse [ List(a) -- List(a) ] {
-        List.Nil swap for(swap List.Cons)
+        List.Nil swap for(swap cons)
     }
 
     ||| Transform each element of the list.
@@ -164,7 +166,7 @@ data List(t) {
     def all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
         >rest True >ok +List.+L0 while-some(
             @rest:uncons,
-            @rest(@ok(dip2:rdip(f))) if-some(
+            @rest(@ok(dip2:rdip(f))) if?(
                 ; ,
                 False !ok
                 List.Nil !rest
@@ -212,7 +214,7 @@ data List(t) {
             while (
                 if-cons(
                     dip:sip:rdip(p) rotl if(
-                        List.Cons False,
+                        cons False,
                         dip(;) True
                     ),
                     List.Nil False
@@ -225,8 +227,8 @@ data List(t) {
             *a List(t) -- *a List(t1) List(t2),
         List.Nil List.Nil rotl for(
             dip'(dip'(p)) match(
-                Left -> rotr dip(List.Cons),
-                Right -> swap List.Cons
+                Left -> rotr dip:cons,
+                Right -> swap cons
             )
         ) dip(reverse) reverse)
 
@@ -250,12 +252,14 @@ struct List+(t) {
     def L6 [ t t t t  t t      -- List+(t) ] { List.L5 >tail >head List+ }
     def L7 [ t t t t  t t t    -- List+(t) ] { List.L6 >tail >head List+ }
     def L8 [ t t t t  t t t t  -- List+(t) ] { List.L7 >tail >head List+ }
+    def Cons [ t List(t) -- List+(t) ] { >tail >head List+ }
+    def /Cons [ List+(t) -- t List(t) ] { /List+ head> tail> }
 
     def single? [ List+(t) -- Maybe(t) ] {
         /List+ head> tail> empty? if(Some, drop None)
     }
 
-    def >List [ List+(t) -- List(t) ] { /List+ head> tail> List.Cons }
+    def >List [ List+(t) -- List(t) ] { /Cons cons }
     def >L1? { >List >L1? }
     def >L2? { >List >L2? }
     def >L3? { >List >L3? }
@@ -265,7 +269,8 @@ struct List+(t) {
     def cons [ t List+(t) -- List+(t) ] { >List >tail >head List+ }
     def uncons [ List+(t) -- t List(t) ] { /List+ head> tail> }
 
-    def snoc [ List+(t) t -- List+(t) ] { dip(>List) List.snoc }
+    def Snoc [ List(t) t -- List+(t) ] { List.snoc+ }
+    def snoc [ List+(t) t -- List+(t) ] { dip(>List) List.snoc+ }
     def unsnoc [ List+(t) -- List(t) t ] { reverse uncons reverse swap }
 
     def cat  [ List(t) List+(t) -- List+(t) ] { swap reverse-for(swap cons) }
@@ -281,7 +286,7 @@ struct List+(t) {
 
     ||| Transform each element of the list.
     def map(f) [ (*c a -- *c b) *c List+(a) -- *c List+(b) ] {
-        uncons on2(f, map(f)) cons
+        uncons on2(f, map(f)) cons+
     }
 
     ||| Traverse the list, left to right.
@@ -384,7 +389,7 @@ struct List+(t) {
         >List lookup(p) some?)
 
     def(map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
-        dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons)
+        dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons+)
 
     def(take-while(p), (*a t -- *a Bool) *a List+(t) -- *a List(t),
         >List take-while(p))
@@ -463,8 +468,8 @@ struct +List(t) {
     inline def freeze { +> }
     inline def List.thaw { >+ }
 
-    def push! [ t +List(t) -- +List(t) ] { reversed:List.Cons }
-    def push+! [ t +List(t) -- +List+(t) ] { +List -> @reversed:cons +List+ }
+    def push! [ t +List(t) -- +List(t) ] { reversed:cons }
+    def push+! [ t +List(t) -- +List+(t) ] { +List -> @reversed:cons+ +List+ }
     def pop!  [ +List(t) -- Maybe(t) +List(t) ] { reversed:uncons }
     inline def ;  { push!  }
     inline def ;+ { push+! }
@@ -738,8 +743,8 @@ struct L8(t) {
     --
     def Cons [ t L7(t) -- L8(t) ] { L7 -> L8 }
     def Snoc [ L7(t) t -- L8(t) ] { >x xsnoc }
-    def cons [ t L8(t) -- List+(t) ] { >List cons }
-    def xsnoc [ L8(t) t -- List+(t) ] { dip:/L8 List.L8 cons }
+    def cons [ t L8(t) -- List+(t) ] { >List cons+ }
+    def xsnoc [ L8(t) t -- List+(t) ] { dip:/L8 List.L8 cons+ }
     def uncons [ L8(t) -- t L7(t) ] { L8 -> L7 }
     def unsnoc [ L8(t) -- L7(t) t ] { L8 -> dip:L7 }
 

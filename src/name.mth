@@ -273,7 +273,7 @@ struct DName {
     def parts [ DName -- List+(Name) ] { /DName nip }
     def last-name [ DName -- Name ] { parts last }
     def penultimate-name? [ DName -- Maybe(Name) ] {
-        /DName unsnoc drop last if-some(
+        /DName unsnoc drop last if?(
             nip Some,
             id
         )

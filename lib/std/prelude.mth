@@ -350,12 +350,12 @@ inline {
     def Ptr?.Null [ -- Ptr? ] { prim-ptr-nil Ptr?.Ptr?-unsafe }
     def Ptr?.null? [ Ptr? -- Bool ] { Ptr?-unsafe -> prim-ptr-nil == }
     def Ptr?.== [ Ptr? Ptr? -- Bool ] { both(/Ptr?-unsafe) == }
-    def Ptr?.if-some(f,g) [ (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b ] {
+    def Ptr?.if?(f,g) [ (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b ] {
         dup null? if(drop g, /Ptr?-unsafe f)
     }
-    def Ptr?.for(f) [ (*a Ptr -- *a) *a Ptr? -- *a ] { if-some(f, id) }
-    def Ptr?.unwrap(f) [ (*a -- *a Ptr) *a Ptr? -- *a Ptr ] { if-some(id, f) }
-    def Ptr?.>Maybe [ Ptr? -- Maybe(Ptr) ] { if-some(Some, None) }
+    def Ptr?.for(f) [ (*a Ptr -- *a) *a Ptr? -- *a ] { if?(f, id) }
+    def Ptr?.unwrap(f) [ (*a -- *a Ptr) *a Ptr? -- *a Ptr ] { if?(id, f) }
+    def Ptr?.>Maybe [ Ptr? -- Maybe(Ptr) ] { if?(Some, None) }
 
     def Ptr.== [ Ptr Ptr -- Bool ] { prim-ptr-eq }
     def Ptr.>Ptr? [ Ptr -- Ptr? ] { Ptr?.Ptr?-unsafe }
