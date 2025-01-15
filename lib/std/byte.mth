@@ -81,9 +81,6 @@ data Byte {
         def is-upper-or-underscore [ Byte -- Bool ] {
             dup on2(is-upper, Byte.B'_' ==) ||
         }
-        def is-overload-trigger [ Byte -- Bool ] {
-            is-upper-or-underscore not
-        }
         def is-sign [ Byte -- Bool ] {
             dup on2(Byte.B'-' ==, Byte.B'+' ==) ||
         }
