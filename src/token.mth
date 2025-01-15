@@ -45,6 +45,14 @@ data TokenValue {
     --
     def none? { None -> True, _ -> drop False }
     def comma? { Comma -> True, _ -> drop False }
+
+    def map-token-ref(f) [ (*a Token -- *a Token) *a TokenValue -- *a TokenValue ] {
+        { LParen  -> f TokenValue.LParen  } { RParen  -> f TokenValue.RParen  }
+        { LCurly  -> f TokenValue.LCurly  } { RCurly  -> f TokenValue.RCurly  }
+        { LSquare -> f TokenValue.LSquare } { RSquare -> f TokenValue.RSquare }
+        { LColon  -> f TokenValue.LColon  } { RColon  -> f TokenValue.RColon  }
+        { _ -> id }
+    }
 }
 
 def(TokenValue.lparen-open?, TokenValue -- Bool, LParenOpen -> True, _ -> drop False)
@@ -60,6 +68,7 @@ def(TokenValue.lcolon-open?, TokenValue -- Bool, LColonOpen -> True, _ -> drop F
 def(TokenValue.lcolon?, TokenValue -- Maybe(Token), LColon -> Some, _ -> drop None)
 def(TokenValue.rcolon?, TokenValue -- Maybe(Token), RColon -> Some, _ -> drop None)
 def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), LParen -> Some, LColon -> Some, _ -> drop None)
+
 
 def(TokenValue.can-take-args?, TokenValue -- Bool,
     Name -> drop True,
@@ -186,6 +195,15 @@ def(Token.location, Token -- Location,
     dup .row >row
     .col >col
     Location)
+
+def Token.location! [ Location Token -- ] {
+    !token (
+        /Location
+        module> @token ~module !
+        row> @token ~row !
+        col> @token ~col !
+    ) drop
+}
 
 ||| Get next token, respecting nesting of tokens and arguments.
 def(Token.next, Token -- Token,
@@ -338,6 +356,10 @@ def(Token.run-end?, Token -- Bool,
         _ -> drop False
     ))
 
+def Token.to-run-end [ Token -- Token ] {
+    while(dup run-end? not, next)
+}
+
 def(Token.run-tokens, Token -- List(Token),
     collect-while(dup run-end? not, sip(next)) nip)
 
@@ -365,3 +387,32 @@ def(Token.sig-skip-dashes, Token -- Token,
 
 def(Token.pat-tokens, Token -- List(Token),
     run-tokens take-while(arrow? not))
+
+def Token.clone-run! [ location:Location Token -- Token ] {
+    dup >start to-run-end >end
+
+    Token.alloc-none! >anchor
+    @location @anchor location!
+
+    @end index @start index - >Nat-clamp 1+ repeat(
+        @location Token.alloc-none! location!
+    )
+
+    @anchor:succ
+    @anchor >dst
+    @start >src
+    while(@src index @end index <,
+        @src value map-token-ref(
+            index
+            @anchor index + 1+
+            @src index -
+            Token.from-index
+        ) @dst ~value !
+        @src:succ
+        @dst:succ
+    )
+    src> dst> drop2
+    start> end> drop2
+    location> drop
+    anchor>
+}

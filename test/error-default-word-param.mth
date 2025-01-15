@@ -1,0 +1,13 @@
+module test.error-default-word-param
+import std.prelude
+
+def foo (f {1+}) [ ( a -- a ) a -- a ] { f f }
+
+def main {
+    10 foo
+    20 foo
+    "Hello" foo
+    drop3
+}
+# mirth-test # merr # 9:13: error: Multiple definitions for name, but none are suitable: std.prelude.UOffset.1+ is method for a different type, std.prelude.IOffset.1+ is method for a different type, std.prelude.USize.1+ is method for a different type, std.prelude.ISize.1+ is method for a different type, std.prelude.UIndex.1+ is method for a different type, std.prelude.Nat.1+ is method for a different type, std.prim.Int.1+ is method for a different type
+# mirth-test # mret # 1
