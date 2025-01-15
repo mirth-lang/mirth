@@ -140,6 +140,7 @@ field(Token.~value, Token, TokenValue)
 field(Token.~module, Token, Module)
 field(Token.~row, Token, Row)
 field(Token.~col, Token, Col)
+field(Token.~doc, Token, Maybe(Str))
 
 def(Token.==, Token Token -- Bool, both(index) ==)
 
@@ -147,6 +148,7 @@ def(Token.value, Token -- TokenValue, ~value @)
 def(Token.module, Token -- Module, ~module @)
 def(Token.col, Token -- Col, ~col @)
 def(Token.row, Token -- Row, ~row @)
+def(Token.doc, Token -- Maybe(Str), ~doc @)
 
 def(Token.none?, Token -- Bool, value none?)
 def(Token.comma?, Token -- Bool, value comma?)
@@ -185,9 +187,11 @@ def(Token.arrow?, Token -- Bool, value arrow?)
 def(Token.pat-underscore?, Token -- Bool, value pat-underscore?)
 def(Token.module-header?, Token -- Bool, value module-header?)
 def(Token.can-take-args?, Token -- Bool, value can-take-args?)
+def(Token.doc?, Token -- Bool, doc none?)
 
 def(Token.alloc-none!, Token,
     Token.alloc!
+    None over ~doc !
     TokenValue.None over ~value !)
 
 def(Token.location, Token -- Location,
