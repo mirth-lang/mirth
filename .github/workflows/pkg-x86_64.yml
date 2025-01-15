@@ -1,0 +1,62 @@
+name: package-x86_64
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: build mirth
+        run: |
+          make
+
+          install -Dm755 bin/mirth2 "pkg/usr/bin/mirth"
+
+          cd lib
+
+          find std -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
+          find arg-parser -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
+
+          cd ../
+          
+          # create DEBIAN directory if you want to add other pre/post scripts
+          mkdir -p pkg/DEBIAN
+
+      - name: build debian package
+        uses: jiro4989/build-deb-action@v4
+        with:
+          package: mirth
+          package_root: pkg
+          maintainer: casuallyblue
+          version: ${{ github.ref }}
+          arch: "amd64"
+          depends: 'libc6 (>= 2.2.1), gcc'
+          desc: 'Compiler for the mirth programming language'
+          homepage: 'https://github.com/mirth-lang/mirth'
+        id: deb
+
+      - name: build rpm package
+        uses: jiro4989/build-rpm-action@v2
+        with:
+          summary: 'Compiler for the mirth programming language'
+          package: mirth
+          package_root: pkg
+          maintainer: casuallyblue
+          version: ${{ github.ref }}
+          arch: 'x86_64'
+          desc: 'Compiler for the mirth programming language'
+          build-requires: 'gcc'
+          requires: 'gcc'
+        id: rpm
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.deb.outputs.file_name }}
+            ${{ steps.rpm.outputs.file_name }}
