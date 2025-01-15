@@ -259,10 +259,10 @@ struct +Lexer {
         peek Byte.BLF == then(newline! peek rdip:push-byte-ascii! move!)
         rswap
         )
-        lexer-doc match(
-            { Some -> Str(; ;) }
+        lexer-doc(match(
+            { Some -> thaw ; freeze }
             { None -> }
-        ) Some lexer-doc!
+        ) Some)
     }
 
     def comment-end? [ +Lexer -- Bool +Lexer ] {
