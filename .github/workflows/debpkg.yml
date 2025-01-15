@@ -1,0 +1,40 @@
+name: build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: create sample script
+        run: |
+          cd mirth
+          make
+
+          install -Dm755 bin/mirth2 "../pkg/usr/bin/mirth"
+
+          find lib/std -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
+          find lib/arg-parser -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
+          
+          # create DEBIAN directory if you want to add other pre/post scripts
+          mkdir -p pkg/DEBIAN
+
+      - uses: jiro4989/build-deb-action@v4
+        with:
+          package: mirth
+          package_root: pkg
+          maintainer: sierra
+          version: ${{ github.ref }} # refs/tags/v*.*.*
+          depends: 'libc6 (>= 2.2.1), git, gcc'
+          desc: 'Compiler for the mirth programming language'
+          homepage: 'https://github.com/mirth-lang/mirth'
+        id: build
+
+      # Check a created deb file
+      - name: Check a path of deb file
+        run: ls ${{ steps.build.outputs.file_name }}
