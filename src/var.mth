@@ -95,3 +95,29 @@ def(Var.freshen, Subst Var -- Subst Type,
         MetaVar.new! Type.Meta dup
         dip(rotr cons)
     ))
+
+
+# Syntactic Sorts
+
+data Sort {
+    Type
+    Resource
+    Stack
+}
+
+def Var.sort? [ +Mirth Var -- +Mirth Maybe(Sort) ] {
+    type >Sort?
+}
+
+def Type.>Sort? [ +Mirth Type -- +Mirth Maybe(Sort) ] {
+    { Meta -> expand-if(>Sort?, drop None) }
+    { Prim -> >Sort? }
+    { _ -> drop None }
+}
+
+def PrimType.>Sort? [ +Mirth PrimType -- +Mirth Maybe(Sort) ] {
+    { Type -> Sort.Type Some }
+    { StackType -> Sort.Stack Some }
+    { ResourceType -> Sort.Resource Some }
+    { _ -> drop None }
+}

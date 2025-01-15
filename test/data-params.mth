@@ -1,0 +1,38 @@
+module test.data-params
+
+import std.prelude
+
+data +Foo(+a) {
+    +Foo [ +a ]
+    --
+    def undo-foo [ +Foo(+a) -- +a ] {
+        /+Foo
+    }
+}
+
+struct +Put(*a) {
+    put-fn: [ *a Str -- *a ]
+    --
+    def put [ *a Str +Put(*a) -- *a +Put(*a) ] {
+        put-fn rdip:run
+    }
+}
+
+data +MyMaybe(+a) {
+    +MySome [ +a ]
+    +MyNone
+    --
+    def +map(f) [ (*c +a -- *c +b) *c +MyMaybe(+a) -- *c +MyMaybe(+b) ] {
+        { +MySome -> f +MyMaybe.+MySome }
+        { +MyNone -> +MyMaybe.+MyNone }
+    }
+    def +for(f) [ (*c +a -- *c) *c +MyMaybe(+a) -- *c ] {
+        { +MySome -> f  }
+        { +MyNone -> id }
+    }
+}
+
+def main {
+    +Foo
+    undo-foo
+}
