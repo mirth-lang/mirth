@@ -17,8 +17,12 @@ jobs:
 
           install -Dm755 bin/mirth2 "pkg/usr/bin/mirth"
 
-          find lib/std -type f -exec install -Dm 644 "{}" "pkg/usr/lib/mirth/{}" \;
-          find lib/arg-parser -type f -exec install -Dm 644 "{}" "pkg/usr/lib/mirth/{}" \;
+          cd lib
+
+          find std -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
+          find arg-parser -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
+
+          cd ../
           
           # create DEBIAN directory if you want to add other pre/post scripts
           mkdir -p pkg/DEBIAN
