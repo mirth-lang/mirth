@@ -32,7 +32,7 @@ jobs:
         with:
           package: mirth
           package_root: pkg
-          maintainer: sierra
+          maintainer: casuallyblue
           version: ${{ github.ref }}
           arch: "amd64"
           depends: 'libc6 (>= 2.2.1), gcc'
@@ -46,7 +46,7 @@ jobs:
           summary: 'Compiler for the mirth programming language'
           package: mirth
           package_root: pkg
-          maintainer: sierra
+          maintainer: casuallyblue
           version: ${{ github.ref }}
           arch: 'x86_64'
           desc: 'Compiler for the mirth programming language'
