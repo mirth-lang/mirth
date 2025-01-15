@@ -231,12 +231,18 @@ struct +TypeElab {
     }
 
     def elab-type-app! [ +Mirth +TypeElab Type List(Var) -- +Mirth +TypeElab Type List(Var) ] {
-        uncons swap unwrap(token "does not take parameters" rdip:fatal-error!)
-        rdip:sort? else?(token "parameter has unknown sort" rdip:fatal-error!) match {
-            { Resource -> elab-resource-arg! >Type }
-            { Stack -> elab-stack-type! >Type }
-            { Type -> elab-type-arg! }
-        } swap dip:Type.App
+        uncons swap if? (
+            rdip:sort? else?(token "Type parameter has unknown sort." rdip:emit-fatal-error!) match {
+                { Resource -> elab-resource-arg! >Type }
+                { Stack -> elab-stack-type! >Type }
+                { Type -> elab-type-arg! }
+            } swap dip:Type.App,
+
+            drop tycon? then?(
+                token rdip:Str("Too many type arguments to "; swap rdip(qname-hard >Str) ;) rdip:emit-error!
+            )
+            Type.Error List.L0
+        )
     }
 
     def elab-type-hole! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Type ] {
