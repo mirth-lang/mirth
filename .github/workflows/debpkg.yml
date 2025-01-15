@@ -35,5 +35,8 @@ jobs:
         id: build
 
       # Check a created deb file
-      - name: Check a path of deb file
-        run: ls ${{ steps.build.outputs.file_name }}
+      - name: Publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirth-${{github.ref}}.deb
+          path: ${{ steps.build.outputs.file_name }}
