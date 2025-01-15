@@ -33,13 +33,29 @@ jobs:
           package: mirth
           package_root: pkg
           maintainer: sierra
-          version: ${{ github.ref }} # refs/tags/v*.*.*
+          version: ${{ github.ref }}
           depends: 'libc6 (>= 2.2.1), git, gcc'
           desc: 'Compiler for the mirth programming language'
           homepage: 'https://github.com/mirth-lang/mirth'
-        id: build
+        id: deb
+
+      - name: build rpm package
+        uses: jiro4989/build-rpm-action@v2
+        with:
+          summary: 'Compiler for the mirth programming language'
+          package: mirth
+          package_root: pkg
+          maintainer: sierra
+          version: ${{ github.ref }}
+          arch: 'x86_64'
+          desc: 'Compiler for the mirth programming language'
+          build-requires: 'gcc'
+          requires: 'gcc'
+        id: rpm
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.build.outputs.file_name }}
+          files: 
+            ${{ steps.deb.outputs.file_name }}
+            ${{ steps.rpm.outputs.file_name }}
