@@ -13,13 +13,12 @@ jobs:
 
       - name: create sample script
         run: |
-          cd mirth
           make
 
-          install -Dm755 bin/mirth2 "../pkg/usr/bin/mirth"
+          install -Dm755 bin/mirth2 "pkg/usr/bin/mirth"
 
-          find lib/std -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
-          find lib/arg-parser -type f -exec install -Dm 644 "{}" "../pkg/usr/lib/mirth/{}" \;
+          find lib/std -type f -exec install -Dm 644 "{}" "pkg/usr/lib/mirth/{}" \;
+          find lib/arg-parser -type f -exec install -Dm 644 "{}" "pkg/usr/lib/mirth/{}" \;
           
           # create DEBIAN directory if you want to add other pre/post scripts
           mkdir -p pkg/DEBIAN
