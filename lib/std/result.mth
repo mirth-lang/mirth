@@ -1,0 +1,105 @@
+module std.result
+
+import std.prelude
+import std.maybe
+import std.either
+
+# re-export these constructors
+alias Err Result.Err
+alias Ok  Result.Ok
+alias +Err +Result.+Err
+alias +Ok  +Result.+Ok
+
+data Result(e,t) {
+    0 Err [ e ]
+    1 Ok  [ t ]
+    --
+    def err? [ Result(e,t) -- Maybe(e) ] { Err -> Some, Ok -> drop None }
+    def ok?  [ Result(e,t) -- Maybe(t) ] { Err -> drop None, Ok -> Some }
+
+    def if(f,g) [ (*a t -- *b, *a e -- *b) *a Result(e,t) -- *b] {
+        { Ok -> f }
+        { Err -> g }
+    }
+    def then(f) [ (*a t -- *a) *a Result(e,t) -- *a ] {
+        { Ok -> f }
+        { Err -> drop }
+    }
+    def else(f) [ (*a e -- *a t) *a Result(e,t) -- *a t ] {
+        { Ok -> id }
+        { Err -> f }
+    }
+    def and(f) [ (*a t1 -- *a Result(e,t2)) *a Result(e,t1) -- *a Result(e,t2) ] {
+        { Ok -> f }
+        { Err -> Err }
+    }
+    def or(f) [ (*a e1 -- *a Result(e2,t)) *a Result(e1,t) -- *a Result(e2,t) ] {
+        { Ok -> Ok }
+        { Err -> f }
+    }
+
+    def map(f) [ (*a t1 -- *a t2) *a Result(e,t1) -- *a Result(e,t2) ] {
+        { Ok -> f Ok }
+        { Err -> Err }
+    }
+    def for(f) [ (*a t -- *a) *a Result(e,t) -- *a ] {
+        { Ok -> f }
+        { Err -> drop }
+    }
+
+    def map-err(f) [ (*a e1 -- *a e2) *a Result(e1,t) -- *a Result(e2,t) ] {
+        { Ok -> Ok }
+        { Err -> f Err }
+    }
+    def for-err(f) [ (*a e -- *a) *a Result(e,t) -- *a ] {
+        { Ok -> drop }
+        { Err -> f }
+    }
+}
+
+data +Result(e,+t) {
+    0 +Err [ e  ]
+    1 +Ok  [ +t ]
+    --
+    def +err? [ +Result(e,+t) -- Maybe(e) +Result(e,+t) ] { +Err -> dup +Err Some, +Ok -> +Ok None }
+    def +ok?  [ +Result(e,+t) -- +Maybe(+t) ] { +Err -> drop +None, +Ok -> +Some }
+
+    def +if(f,g) [ (*a +t -- *b, *a e -- *b) *a +Result(e,+t) -- *b ] {
+        { +Ok -> f }
+        { +Err -> g }
+    }
+    def +then(f) [ (*a +t -- *a) *a +Result(e,+t) -- *a ] {
+        { +Ok -> f }
+        { +Err -> drop }
+    }
+    def +else(f) [ (*a e -- *a +t) *a +Result(e,+t) -- *a +t ] {
+        { +Ok -> id }
+        { +Err -> f }
+    }
+    def +and(f) [ (*a +t1 -- *a +Result(e,+t2)) *a +Result(e,+t1) -- *a +Result(e,+t2) ] {
+        { +Ok -> f }
+        { +Err -> +Err }
+    }
+    def +or(f) [ (*a e1 -- *a +Result(e2,+t)) *a +Result(e1,+t) -- *a +Result(e2,+t) ] {
+        { +Ok -> +Ok }
+        { +Err -> f }
+    }
+
+    def +map(f) [ (*a +t1 -- *a +t2) *a +Result(e,+t1) -- *a +Result(e,+t2) ] {
+        { +Ok -> f +Ok }
+        { +Err -> +Err }
+    }
+    def +for(f) [ (*a +t -- *a) *a +Result(e,+t) -- *a ] {
+        { +Ok -> f }
+        { +Err -> drop }
+    }
+
+    def +map-err(f) [ (*a e1 -- *a e2) *a +Result(e1,+t) -- *a +Result(e2,+t) ] {
+        { +Ok -> +Ok }
+        { +Err -> f +Err }
+    }
+    def +for-err(f) [ (*a e -- *a) *a +Result(e,+t) -- *a +Result(e,+t) ] {
+        { +Ok -> +Ok }
+        { +Err -> sip:f +Err }
+    }
+}

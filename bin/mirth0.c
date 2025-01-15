@@ -1555,29 +1555,29 @@ static void mtp_std_output_ZPlusOutput_ZPlusOutput (TUP* in_ZPlusOutput_1, int64
 	*out_ZPlusFile_3 = v6;
 	*out_USizze_2 = v5;
 }
-static void mtw_std_file_ZPlusFileZAsk_Ok (TUP* in_ZPlusFile_1, VAL *out_ZPlusFileZAsk_2) {
+static void mtw_std_result_ZPlusResult_2_ZPlusErr (VAL in_e_1, VAL *out_ZPlusResult_2) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
-	v3->cells[1] = MKTUP(in_ZPlusFile_1, 2);
-	v3->cells[0] = MKI64(0LL /* Ok */);
-	*out_ZPlusFileZAsk_2 = MKTUP(v3, 2);
+	v3->cells[1] = in_e_1;
+	v3->cells[0] = MKI64(0LL /* +Err */);
+	*out_ZPlusResult_2 = MKTUP(v3, 2);
 }
-static void mtp_std_file_ZPlusFileZAsk_Ok (VAL in_ZPlusFileZAsk_1, TUP* *out_ZPlusFile_2) {
-	TUP* v3 = value_tup(value_tup(in_ZPlusFileZAsk_1, 2)->cells[1], 2);
-	tup_decref_outer(value_tup(in_ZPlusFileZAsk_1, 2),2);
-	*out_ZPlusFile_2 = v3;
-}
-static void mtw_std_file_ZPlusFileZAsk_Err (STR* in_Str_1, VAL *out_ZPlusFileZAsk_2) {
-	TUP* v3 = tup_new(2);
-	v3->size = 2;
-	v3->cells[1] = MKSTR(in_Str_1);
-	v3->cells[0] = MKI64(1LL /* Err */);
-	*out_ZPlusFileZAsk_2 = MKTUP(v3, 2);
-}
-static STR* mtp_std_file_ZPlusFileZAsk_Err (VAL in_ZPlusFileZAsk_1) {
-	STR* v3 = value_str(value_tup(in_ZPlusFileZAsk_1, 2)->cells[1]);
-	tup_decref_outer(value_tup(in_ZPlusFileZAsk_1, 2),2);
+static VAL mtp_std_result_ZPlusResult_2_ZPlusErr (VAL in_ZPlusResult_1) {
+	VAL v3 = value_tup(in_ZPlusResult_1, 2)->cells[1];
+	tup_decref_outer(value_tup(in_ZPlusResult_1, 2),2);
 	return v3;
+}
+static void mtw_std_result_ZPlusResult_2_ZPlusOk (VAL in_ZPlust_1, VAL *out_ZPlusResult_2) {
+	TUP* v3 = tup_new(2);
+	v3->size = 2;
+	v3->cells[1] = in_ZPlust_1;
+	v3->cells[0] = MKI64(1LL /* +Ok */);
+	*out_ZPlusResult_2 = MKTUP(v3, 2);
+}
+static void mtp_std_result_ZPlusResult_2_ZPlusOk (VAL in_ZPlusResult_1, VAL *out_ZPlust_2) {
+	VAL v3 = value_tup(in_ZPlusResult_1, 2)->cells[1];
+	tup_decref_outer(value_tup(in_ZPlusResult_1, 2),2);
+	*out_ZPlust_2 = v3;
 }
 static void mtw_std_file_ZPlusFile_ZPlusFile (int64_t in_Int_1, int64_t in_Bool_2, TUP* *out_ZPlusFile_3) {
 	TUP* v4 = tup_new(2);
@@ -4693,8 +4693,8 @@ static void mw_std_output_ZPlusOutput_line (TUP* in_ZPlusOutput_1, TUP* *out_ZPl
 static int64_t mw_std_posix_posixZ_openZBang (STR* in_Str_1, int64_t in_Int_2, int64_t in_Int_3);
 static void mw_std_file_ZPlusFile_closeZ_fileZBang (TUP* in_ZPlusFile_1);
 static STR* mw_std_file_ZPlusFile_readZ_fileZBang (TUP* in_ZPlusFile_1, TUP* *out_ZPlusFile_3);
-static void mw_std_prim_ZPlusWorld_openZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusFileZAsk_2);
-static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusFileZAsk_2);
+static void mw_std_prim_ZPlusWorld_openZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2);
+static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2);
 static void mw_std_prim_ZPlusWorld_stderrZ_file (TUP* *out_ZPlusFile_1);
 static VAL mw_std_prim_ZPlusWorld_createZ_fileZ_flags (void);
 static int64_t mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* in_Ptr_1, int64_t in_USizze_2, TUP* in_ZPlusFile_3, int64_t *out_Bool_5, TUP* *out_ZPlusFile_6);
@@ -6033,7 +6033,7 @@ static VAL mw_std_list_List_1_filter_1_sp4 (VAL in_List_1);
 static void mw_mirth_c99_pushZ_labelZ_expressionZBang_1_sp3 (STR* in_Str_1, VAL in_C99ReprType_2, VAL in_C99ReprType_3, TUP* in_ZPlusC99Branch_4, uint64_t in_Label_5, TUP* *out_ZPlusC99Branch_6);
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp28 (STR* in_Str_1, VAL in_C99ReprType_2, TUP* in_ZPlusC99Branch_3, VAL in_C99ReprType_4, TUP* *out_ZPlusC99Branch_5, TUP* *out_ZPlusC99Value_6);
 static void mw_std_maybe_Maybe_1_for_1_sp8 (VAL in_ZPlusList_1, VAL in_Maybe_2, VAL *out_ZPlusList_3);
-static void mw_std_file_ZPlusFileZAsk_unwrapZBang_1_sp1 (TUP* in_ZPlusMirth_1, VAL in_ZPlusFileZAsk_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusFile_4);
+static void mw_std_result_ZPlusResult_2_ZPluselse_1_sp1 (TUP* in_ZPlusMirth_1, VAL in_ZPlusResult_2, TUP* *out_ZPlusMirth_3, VAL *out_z_x1_4);
 static void mw_std_maybe_Maybe_1_if_2_sp6 (VAL in_List_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusNeeds_3, VAL in_Maybe_4, TUP* *out_ZPlusMirth_5, TUP* *out_ZPlusNeeds_6);
 static void mw_std_list_List_1_for_1_sp48 (VAL in_ZPlusList_1, VAL in_List_2, VAL *out_ZPlusList_3);
 static TUP* mw_mirth_elab_abZ_buildZ_homZBang_1_sp1 (uint64_t in_Word_1, TUP* in_ZPlusMirth_2, VAL in_Ctx_3, TUP* in_ArrowType_4, uint64_t in_Token_5, VAL in_Home_6, TUP* *out_ZPlusMirth_7);
@@ -8543,22 +8543,22 @@ static STR* mw_std_file_ZPlusFile_readZ_fileZBang (TUP* in_ZPlusFile_1, TUP* *ou
 	*out_ZPlusFile_3 = v7;
 	return v6;
 }
-static void mw_std_prim_ZPlusWorld_openZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusFileZAsk_2) {
+static void mw_std_prim_ZPlusWorld_openZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2) {
 	incref(MKSTR(in_Path_1));
 	int64_t v5 = 0LL;
 	int64_t v6 = 0LL;
 	int64_t v7 = mw_std_posix_posixZ_openZBang(in_Path_1, v5, v6);
 	int64_t v8 = 0LL;
 	bool v9 = (v7 > v8);
-	VAL branch_ZPlusFileZAsk_10;
+	VAL branch_ZPlusResult_10;
 	if (v9) {
 		decref(MKSTR(in_Path_1));
 		int64_t v11 = 1LL /* True */;
 		TUP* v12;
 		mtw_std_file_ZPlusFile_ZPlusFile(v7, v11, &v12);
 		VAL v13;
-		mtw_std_file_ZPlusFileZAsk_Ok(v12, &v13);
-		branch_ZPlusFileZAsk_10 = v13;
+		mtw_std_result_ZPlusResult_2_ZPlusOk(MKTUP(v12, 2), &v13);
+		branch_ZPlusResult_10 = v13;
 	} else {
 		STR* v14;
 		STRLIT(v14, "", 0);
@@ -8569,15 +8569,15 @@ static void mw_std_prim_ZPlusWorld_openZ_fileZBang (STR* in_Path_1, VAL *out_ZPl
 		STR* v17;
 		mw_std_prim_Str_showZThen(in_Path_1, v16, &v17);
 		VAL v18;
-		mtw_std_file_ZPlusFileZAsk_Err(v17, &v18);
-		branch_ZPlusFileZAsk_10 = v18;
+		mtw_std_result_ZPlusResult_2_ZPlusErr(MKSTR(v17), &v18);
+		branch_ZPlusResult_10 = v18;
 	}
-	*out_ZPlusFileZAsk_2 = branch_ZPlusFileZAsk_10;
+	*out_ZPlusResult_2 = branch_ZPlusResult_10;
 }
-static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusFileZAsk_2) {
+static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2) {
 	incref(MKSTR(in_Path_1));
 	VAL v5 = mw_std_prim_ZPlusWorld_createZ_fileZ_flags();
-	VAL branch_ZPlusFileZAsk_6;
+	VAL branch_ZPlusResult_6;
 	switch (get_data_tag(v5)) {
 		case 1LL: { // Some
 			VAL v7 = mtp_std_maybe_Maybe_1_Some(v5);
@@ -8585,15 +8585,15 @@ static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_Z
 			int64_t v9 = mw_std_posix_posixZ_openZBang(in_Path_1, value_i64(v7), v8);
 			int64_t v10 = 0LL;
 			bool v11 = (v9 > v10);
-			VAL branch_ZPlusFileZAsk_12;
+			VAL branch_ZPlusResult_12;
 			if (v11) {
 				decref(MKSTR(in_Path_1));
 				int64_t v13 = 1LL /* True */;
 				TUP* v14;
 				mtw_std_file_ZPlusFile_ZPlusFile(v9, v13, &v14);
 				VAL v15;
-				mtw_std_file_ZPlusFileZAsk_Ok(v14, &v15);
-				branch_ZPlusFileZAsk_12 = v15;
+				mtw_std_result_ZPlusResult_2_ZPlusOk(MKTUP(v14, 2), &v15);
+				branch_ZPlusResult_12 = v15;
 			} else {
 				STR* v16;
 				STRLIT(v16, "", 0);
@@ -8604,10 +8604,10 @@ static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_Z
 				STR* v19;
 				mw_std_prim_Str_showZThen(in_Path_1, v18, &v19);
 				VAL v20;
-				mtw_std_file_ZPlusFileZAsk_Err(v19, &v20);
-				branch_ZPlusFileZAsk_12 = v20;
+				mtw_std_result_ZPlusResult_2_ZPlusErr(MKSTR(v19), &v20);
+				branch_ZPlusResult_12 = v20;
 			}
-			branch_ZPlusFileZAsk_6 = branch_ZPlusFileZAsk_12;
+			branch_ZPlusResult_6 = branch_ZPlusResult_12;
 		} break;
 		case 0LL: { // None
 			decref(MKSTR(in_Path_1));
@@ -8615,14 +8615,14 @@ static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_Z
 			STR* v21;
 			STRLIT(v21, "Don't know how to create file on unknown OS.", 44);
 			VAL v22;
-			mtw_std_file_ZPlusFileZAsk_Err(v21, &v22);
-			branch_ZPlusFileZAsk_6 = v22;
+			mtw_std_result_ZPlusResult_2_ZPlusErr(MKSTR(v21), &v22);
+			branch_ZPlusResult_6 = v22;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	*out_ZPlusFileZAsk_2 = branch_ZPlusFileZAsk_6;
+	*out_ZPlusResult_2 = branch_ZPlusResult_6;
 }
 static void mw_std_prim_ZPlusWorld_stderrZ_file (TUP* *out_ZPlusFile_1) {
 	int64_t v4 = 2LL;
@@ -28279,24 +28279,24 @@ static uint64_t mw_mirth_lexer_runZ_lexerZBang (STR* in_Path_1, TUP* in_ZPlusMir
 	VAL v10;
 	mw_std_prim_ZPlusWorld_openZ_fileZBang(v9, &v10);
 	TUP* branch_ZPlusMirth_11;
-	TUP* branch_ZPlusFile_12;
+	VAL branch_z_x1_12;
 	switch (get_data_tag(v10)) {
-		case 0LL: { // Ok
-			TUP* v13;
-			mtp_std_file_ZPlusFileZAsk_Ok(v10, &v13);
-			branch_ZPlusFile_12 = v13;
+		case 1LL: { // +Ok
+			VAL v13;
+			mtp_std_result_ZPlusResult_2_ZPlusOk(v10, &v13);
+			branch_z_x1_12 = v13;
 			branch_ZPlusMirth_11 = v7;
 		} break;
-		case 1LL: { // Err
-			STR* v14 = mtp_std_file_ZPlusFileZAsk_Err(v10);
-			mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(v14, v7);
+		case 0LL: { // +Err
+			VAL v14 = mtp_std_result_ZPlusResult_2_ZPlusErr(v10);
+			mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(value_str(v14), v7);
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
 	VAL v17;
-	mw_std_input_ZPlusInput_startZBang(branch_ZPlusFile_12, &v17);
+	mw_std_input_ZPlusInput_startZBang(value_tup(branch_z_x1_12, 2), &v17);
 	TUP* v18;
 	mw_mirth_lexer_ZPlusLexer_StartZBang(v8, v17, &v18);
 	TUP* v19;
@@ -40754,10 +40754,10 @@ static uint64_t mw_mirth_elab_elabZ_embedZ_strZBang (uint64_t in_Token_1, TUP* i
 	VAL v32;
 	mw_std_prim_ZPlusWorld_openZ_fileZBang(value_str(branch_z_x1_26), &v32);
 	TUP* v33;
-	TUP* v34;
-	mw_std_file_ZPlusFileZAsk_unwrapZBang_1_sp1(branch_ZPlusMirth_25, v32, &v33, &v34);
+	VAL v34;
+	mw_std_result_ZPlusResult_2_ZPluselse_1_sp1(branch_ZPlusMirth_25, v32, &v33, &v34);
 	TUP* v35;
-	STR* v36 = mw_std_file_ZPlusFile_readZ_fileZBang(v34, &v35);
+	STR* v36 = mw_std_file_ZPlusFile_readZ_fileZBang(value_tup(v34, 2), &v35);
 	mw_std_file_ZPlusFile_closeZ_fileZBang(v35);
 	TUP* v37;
 	uint64_t v38 = mw_mirth_word_Word_newZBang(branch_Token_19, v22, v8, v13, v14, v33, &v37);
@@ -50175,10 +50175,10 @@ static TUP* mw_mirth_c99_c99Z_startZBang (TUP* in_Arrow_1, TUP* in_C99z_Options_
 	VAL v15;
 	mw_std_prim_ZPlusWorld_createZ_fileZBang(v14, &v15);
 	TUP* v16;
-	TUP* v17;
-	mw_std_file_ZPlusFileZAsk_unwrapZBang_1_sp1(v12, v15, &v16, &v17);
+	VAL v17;
+	mw_std_result_ZPlusResult_2_ZPluselse_1_sp1(v12, v15, &v16, &v17);
 	TUP* v18;
-	mw_std_output_ZPlusOutput_startZBang(v17, &v18);
+	mw_std_output_ZPlusOutput_startZBang(value_tup(v17, 2), &v18);
 	TUP* v19;
 	mtw_mirth_c99_ZPlusC99_ZPlusC99(in_C99z_Options_2, v8, v9, v10, v13, v18, v16, &v19);
 	*out_ZPlusC99_5 = v19;
@@ -68783,25 +68783,25 @@ static void mw_std_maybe_Maybe_1_for_1_sp8 (VAL in_ZPlusList_1, VAL in_Maybe_2, 
 	}
 	*out_ZPlusList_3 = branch_ZPlusList_4;
 }
-static void mw_std_file_ZPlusFileZAsk_unwrapZBang_1_sp1 (TUP* in_ZPlusMirth_1, VAL in_ZPlusFileZAsk_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusFile_4) {
+static void mw_std_result_ZPlusResult_2_ZPluselse_1_sp1 (TUP* in_ZPlusMirth_1, VAL in_ZPlusResult_2, TUP* *out_ZPlusMirth_3, VAL *out_z_x1_4) {
 	TUP* branch_ZPlusMirth_5;
-	TUP* branch_ZPlusFile_6;
-	switch (get_data_tag(in_ZPlusFileZAsk_2)) {
-		case 0LL: { // Ok
-			TUP* v7;
-			mtp_std_file_ZPlusFileZAsk_Ok(in_ZPlusFileZAsk_2, &v7);
-			branch_ZPlusFile_6 = v7;
+	VAL branch_z_x1_6;
+	switch (get_data_tag(in_ZPlusResult_2)) {
+		case 1LL: { // +Ok
+			VAL v7;
+			mtp_std_result_ZPlusResult_2_ZPlusOk(in_ZPlusResult_2, &v7);
+			branch_z_x1_6 = v7;
 			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
 		} break;
-		case 1LL: { // Err
-			STR* v8 = mtp_std_file_ZPlusFileZAsk_Err(in_ZPlusFileZAsk_2);
-			mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(v8, in_ZPlusMirth_1);
+		case 0LL: { // +Err
+			VAL v8 = mtp_std_result_ZPlusResult_2_ZPlusErr(in_ZPlusResult_2);
+			mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(value_str(v8), in_ZPlusMirth_1);
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	*out_ZPlusFile_4 = branch_ZPlusFile_6;
+	*out_z_x1_4 = branch_z_x1_6;
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
 }
 static void mw_std_maybe_Maybe_1_if_2_sp6 (VAL in_List_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusNeeds_3, VAL in_Maybe_4, TUP* *out_ZPlusMirth_5, TUP* *out_ZPlusNeeds_6) {

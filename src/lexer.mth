@@ -256,7 +256,7 @@ struct +Lexer {
 
 def run-lexer! [ Path +World +Mirth -- Module +World +Mirth ] {
     Module.new! dup source-path
-    rdip:open-file! rswap unwrap!(fatal-error!) +Input.start!
+    rdip:open-file! rswap +else(fatal-error!) +Input.start!
     +Lexer.Start!
     while(done? not, next!)
     stop! rswap rdip(end! close-file!)

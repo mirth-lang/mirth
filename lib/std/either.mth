@@ -45,9 +45,33 @@ data Either(a,b) {
     }
 }
 
+data +Either(+a, +b) {
+    +Left  [ +a ]
+    +Right [ +b ]
+    --
+    def +for(f,g) [ (*x +a -- *y, *x +b -- *y) *x +Either(+a,+b) -- *y] {
+        { +Left -> f }
+        { +Right -> g }
+    }
+    def +map(f,g) [ (*x +a1 -- *y +a2, *x +b1 -- *y +b2) *x +Either(+a1,+b1) -- *y +Either(+a2,+b2) ] {
+        { +Left -> f +Left }
+        { +Right -> g +Right }
+    }
+    def +map-left(f) [ (*x +a1 -- *x +a2) *x +Either(+a1,+b) -- *x +Either(+a2,+b) ] {
+        { +Left -> f +Left }
+        { +Right -> +Right }
+    }
+    def +map-right(f) [ (*x +b1 -- *x +b2) *x +Either(+a,+b1) -- *x +Either(+a,+b2) ] {
+        { +Left -> +Left }
+        { +Right -> f +Right }
+    }
+}
+
 # Re-export these constructors unqualified.
-alias(Left,  Either.Left)
-alias(Right, Either.Right)
+alias Left Either.Left
+alias Right Either.Right
+alias +Left +Either.+Left
+alias +Right +Either.+Right
 
 def while-left(f) [ (*c a -- *c Either(a,b)) *c a -- *c b ] {
     Left while-some(dup left?, nip f)

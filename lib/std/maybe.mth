@@ -82,9 +82,31 @@ data Maybe(t) {
     }
 }
 
+data +Maybe(+t) {
+    0 +None
+    1 +Some [ +t ]
+    --
+    def +none? [ +Maybe(+t) -- +Maybe(+t) Bool ] { +None -> Yes +None, +Some -> No  +Some }
+    def +some? [ +Maybe(+t) -- +Maybe(+t) Bool ] { +None -> No  +None, +Some -> Yes +Some }
+
+    def +if(f,g) [ (*a +b -- *c, *a -- *c)   *a +Maybe(+b) -- *c            ] { { +Some -> f  } { +None -> g     } }
+    def +then(f) [ (*a +b -- *a)             *a +Maybe(+b) -- *a            ] { { +Some -> f  } { +None -> id    } }
+    def +else(f) [ (*a    -- *a +b)          *a +Maybe(+b) -- *a +b         ] { { +Some -> id } { +None -> f     } }
+    def +and(f)  [ (*a +b -- *a +Maybe(+c))  *a +Maybe(+b) -- *a +Maybe(+c) ] { { +Some -> f  } { +None -> +None } }
+    def +or(f)   [ (*a    -- *a +Maybe(+b))  *a +Maybe(+b) -- *a +Maybe(+b) ] { { +None -> f  } { +Some -> +Some } }
+
+    def +map(f)  { { +Some -> f +Some } { +None -> +None  } }
+    def +bind(f) { { +Some -> f       } { +None -> +None  } }
+    def +for(f)  { { +Some -> f       } { +None -> id     } }
+    def +has(f)  [ (*a +b -- *a +b Bool) *a +Maybe(+b) -- *a +Maybe(+b) Bool ] { { +Some -> f +Some } { +None -> +None False  } }
+    def +all(f)  [ (*a +b -- *a +b Bool) *a +Maybe(+b) -- *a +Maybe(+b) Bool ] { { +Some -> f +Some } { +None -> +None True   } }
+}
+
 # Re-export these constructors unqualified.
 alias(Some, Maybe.Some)
 alias(None, Maybe.None)
+alias(+Some, +Maybe.+Some)
+alias(+None, +Maybe.+None)
 
 def while-some(f,g) [ (*a -- *a Maybe(b), *a b -- *a) *a -- *a ] {
     while(f if?(g True, False))
