@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: create sample script
+      - name: build mirth
         run: |
           make
 
@@ -23,7 +23,8 @@ jobs:
           # create DEBIAN directory if you want to add other pre/post scripts
           mkdir -p pkg/DEBIAN
 
-      - uses: jiro4989/build-deb-action@v4
+      - name: build debian package
+        uses: jiro4989/build-deb-action@v4
         with:
           package: mirth
           package_root: pkg
@@ -34,9 +35,7 @@ jobs:
           homepage: 'https://github.com/mirth-lang/mirth'
         id: build
 
-      # Check a created deb file
-      - name: Publish artifact
-        uses: actions/upload-artifact@v4
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: mirth.deb
-          path: ${{ steps.build.outputs.file_name }}
+          files: ${{ steps.build.outputs.file_name }}
