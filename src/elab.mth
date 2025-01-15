@@ -181,7 +181,7 @@ struct +TypeElab {
         token:succ
     }
 
-    def resolve-type-con-name! [ +Mirth +TypeElab Name/DName -- +Mirth +TypeElab Type ] {
+    def resolve-type-con-name! [ +Mirth +TypeElab Name/DName -- +Mirth +TypeElab Type List(Var) ] {
         >name/dname
         False >report-ambiguous-as-warning
         False >ignore-last-name
@@ -190,14 +190,17 @@ struct +TypeElab {
             filter-arity
             filter-qualifiers
             List.L0 filter-roots
-        ) map:match(
-            Data -> Type.Data,
-            Table -> Type.Table,
-            Type -> rdip:target,
-            _ ->
-                drop token "compiler bug: resolve-type-con-name! doesn't understand type"
-                rdip:emit-error! Type.Error,
-        ) unwrap(Type.Error)
+        ) if? (
+            match(
+                Data -> sip:Type.Data rdip:params,
+                Table -> Type.Table List.L0,
+                Type -> rdip(sip:target params),
+                _ ->
+                    drop token "compiler bug: resolve-type-con-name! doesn't understand type"
+                    rdip:emit-error! Type.Error List.L0,
+            ),
+            Type.Error List.L0
+        )
     }
 
     def elab-type-con! [ +Mirth +TypeElab Name/DName -- +Mirth +TypeElab Type ] {
@@ -221,9 +224,24 @@ struct +TypeElab {
         token:swap dip(f) token!
     }
 
-    def elab-type-args! [ +Mirth +TypeElab Type -- +Mirth +TypeElab Type ] {
+    def elab-type-args! [ +Mirth +TypeElab Type List(Var) -- +Mirth +TypeElab Type ] {
         token args for(
-            with-token(elab-type-arg!) Type.App
+            with-token(elab-type-app!)
+        ) drop
+    }
+
+    def elab-type-app! [ +Mirth +TypeElab Type List(Var) -- +Mirth +TypeElab Type List(Var) ] {
+        uncons swap if? (
+            rdip:sort? else?(token "Type parameter has unknown sort." rdip:emit-fatal-error!) match {
+                { Resource -> elab-resource-arg! >Type }
+                { Stack -> elab-stack-type! >Type }
+                { Type -> elab-type-arg! }
+            } swap dip:Type.App,
+
+            drop tycon? then?(
+                token rdip:Str("Too many type arguments to "; swap rdip(qname-hard >Str) ;) rdip:emit-error!
+            )
+            Type.Error List.L0
         )
     }
 
@@ -1592,9 +1610,15 @@ def elab-data-header! [ Data SyntaxDataHeader +Mirth -- Data +Mirth ] {
 #  as part of: https://github.com/mirth-lang/mirth/issues/246
 def elab-data-params! [ List(Token) +Mirth -- List(Var) +Mirth ] {
     Ctx.L0 swap for(
-        dup sig-type-var? unwrap("Expected a type variable." emit-fatal-error!)
-        dup over3 Ctx.lookup then(swap "Duplicate parameter name." emit-fatal-error!)
-        nip Type.Type swap Var.new! Ctx.new
+        dup name? unwrap("Expected a parameter name." emit-fatal-error!)
+        over2 Ctx.lookup then("Duplicate parameter name." emit-fatal-error!)
+
+        None
+        or?(dup sig-type-var? map(Type.Type swap Var.new!))
+        or?(dup sig-resource-var? map(Type.ResourceType swap Var.new!))
+        or?(dup sig-stack-var? map(Type.StackType swap Var.new!))
+        unwrap("Invalid parameter name." emit-fatal-error!)
+        nip Ctx.new
     ) >List
 }
 
