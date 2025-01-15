@@ -32,7 +32,7 @@ inline (
         ( *a +SDL +SDL_Window -- *b, *a +SDL Str -- *b )
         *a +SDL +SDL_Window? -- *b
     ] {
-        +SDL_Window? -> if-some(+SDL_Window f, +SDL.get-error! g)
+        +SDL_Window? -> if?(+SDL_Window f, +SDL.get-error! g)
     }
 )
 def +SDL_Window?.unwrap! [ +SDL +SDL_Window? -- +SDL +SDL_Window ] {
@@ -46,7 +46,7 @@ inline (
         (*a +SDL +SDL_Renderer -- *b, *a +SDL Str -- *b)
         *a +SDL +SDL_Renderer? -- *b
     ] {
-        +SDL_Renderer? -> if-some(+SDL_Renderer f, get-error! g)
+        +SDL_Renderer? -> if?(+SDL_Renderer f, get-error! g)
     }
 )
 def +SDL_Renderer?.unwrap! [ +SDL +SDL_Renderer? -- +SDL +SDL_Renderer ] {
@@ -61,7 +61,7 @@ inline (
         (*a +SDL +SDL_Texture -- *b, *a +SDL Str -- *b)
         *a +SDL +SDL_Texture? -- *b
     ] {
-        +SDL_Texture? -> if-some(+SDL_Texture f, get-error! g)
+        +SDL_Texture? -> if?(+SDL_Texture f, get-error! g)
     }
 )
 def +SDL_Texture?.unwrap! [ +SDL +SDL_Texture? -- +SDL +SDL_Texture ] {
@@ -732,7 +732,7 @@ def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameCon
 
 def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
     CInt unsafe(SDL_GameControllerOpen)
-    if-some(
+    if?(
         >unsafe-ptr +SDL_GameController +SDL_GameController?.OK!,
         get-error! +SDL_GameController?.ERROR!,
     ))

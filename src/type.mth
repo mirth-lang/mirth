@@ -168,7 +168,7 @@ def(Type.morphism?, Type -- Maybe(ArrowType), expand match(Arrow -> Some, _ -> d
 def(Type.prim?, Type -- Maybe(PrimType), expand match(Prim -> Some, _ -> drop None))
 
 def(Type.tensor?, Type -- Maybe(StackType), expand match(Stack -> Some, _ -> drop None))
-def(Type.unit?, Type -- Bool, tensor? if-some(unit?, False))
+def(Type.unit?, Type -- Bool, tensor? if?(unit?, False))
 
 def(Type.meta=, MetaVar Type -- Bool,
     Meta -> ==,
@@ -567,7 +567,7 @@ def(MetaVar.has-meta?, MetaVar MetaVar -- Bool,
         Some -> nip has-meta?
     ))
 def MetaVar.has-var? [ Var MetaVar -- Bool ] {
-    type? if-some(has-var?, drop False)
+    type? if?(has-var?, drop False)
 }
 
 def(MetaVar.type;, +Str MetaVar -- +Str,
@@ -865,7 +865,7 @@ def(StackType.unify!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackTy
             Error -> StackType.Cons unify-error!,
             Meta -> dip(StackType.Cons >Type) unify! >StackType,
             Ignore -> StackType.Cons,
-            _ -> dup force-cons?! if-some(
+            _ -> dup force-cons?! if?(
                 nip unpack2 dip(swap) dip2(unify!) unify! StackType.Cons,
                 dip(StackType.Cons) unify-failed!
             )
@@ -874,7 +874,7 @@ def(StackType.unify!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackTy
             Error -> StackType.With unify-error!,
             Meta -> dip(StackType.With >Type) unify! >StackType,
             Ignore -> StackType.With,
-            _ -> dup force-with?! if-some(
+            _ -> dup force-with?! if?(
                 nip unpack2 dip(swap) dip2(unify!) unify! StackType.With,
                 dip(StackType.With) unify-failed!
             )
@@ -883,7 +883,7 @@ def(StackType.unify!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackTy
             Error -> StackType.ConsLabel unify-error!,
             Meta -> dip(StackType.ConsLabel >Type) unify! >StackType,
             Ignore -> StackType.ConsLabel,
-            _ -> dup2 force-cons-label?! if-some(
+            _ -> dup2 force-cons-label?! if?(
                 nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.ConsLabel,
                 dip(StackType.ConsLabel) unify-failed!
             )
@@ -892,7 +892,7 @@ def(StackType.unify!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackTy
             Error -> StackType.WithLabel unify-error!,
             Meta -> dip(StackType.WithLabel >Type) unify! >StackType,
             Ignore -> StackType.WithLabel,
-            _ -> dup2 force-with-label?! if-some(
+            _ -> dup2 force-with-label?! if?(
                 nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.WithLabel,
                 dip(StackType.WithLabel) unify-failed!
             )
@@ -1335,7 +1335,7 @@ def(Resource.ctype, +Mirth Resource -- +Mirth CType,
     /Resource ctype)
 
 def(Type.ctype, +Mirth Type -- +Mirth CType,
-    dup ctype? if-some(
+    dup ctype? if?(
         nip,
         Str(type; " doesn't have a C representation.";) error!
         CType.Phantom
@@ -1458,7 +1458,7 @@ def(StackType.ctype, StackType +Mirth -- CTypeStack +Mirth,
     CTypeStack)
 
 def(StackType.ctype?, StackType +Mirth -- Maybe(CTypeStack) +Mirth,
-    split-parts all-some(ctype?) if-some(
+    split-parts all-some(ctype?) if?(
         >parts
         ctype? >base?
         CTypeStack Some,

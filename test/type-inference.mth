@@ -12,7 +12,7 @@ def Maybe.Zero { 0 None }
 def List.map(f,g) {
     uncons dip(map(f))
     swap dip(map(dip(g) f))
-    for(swap cons >List)
+    for(swap cons)
 }
 
 def Maybe.another-map(f) {

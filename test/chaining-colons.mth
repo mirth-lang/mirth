@@ -1,0 +1,8 @@
+module test.chaining-colons
+
+import std.prelude
+
+def foo [ x:a y:b -- x:b y:a ] { @x:@y:swap }
+def bar [ x:a x:i y:b y:j -- x:b x:i y:a y:j ] { @x:@y:dip2:foo }
+
+def main { }

@@ -1,6 +1,6 @@
 module(mirth-tests.error-alias-target-not-imported)
 import(std.prelude)
-alias(mor(f), Maybe.or-some)
+alias(mor(f), Maybe.or?)
 def(main, --, id)
-# mirth-test # merr # 3:15: error: Not imported in current scope: std.maybe.Maybe/1.or-some/1
+# mirth-test # merr # 3:15: error: Not imported in current scope: std.maybe.Maybe/1.or?/1
 # mirth-test # mret # 1

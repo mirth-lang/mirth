@@ -64,7 +64,7 @@ def(Ctx.L3, Var Var Var -- Ctx, List.L3 Ctx)
 def(Ctx.L4, Var Var Var Var -- Ctx, List.L4 Ctx)
 def(Ctx.L5, Var Var Var Var Var -- Ctx, List.L5 Ctx)
 
-def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.snoc >Ctx)
+def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.Snoc >Ctx)
 
 def(Ctx.vars, Ctx -- List(Var), >List)
 def(Ctx.physical-vars, Ctx -- List(Var), vars filter(is-physical?))

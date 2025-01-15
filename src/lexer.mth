@@ -23,186 +23,246 @@ import mirth.module
 # LEXER #
 #########
 
-data(+Lexer, +Lexer ->
+struct +Lexer {
     lexer-module:Module
     lexer-row:Row
     lexer-col:Col
     lexer-stack:List(Token)
+    lexer-first-token:Token
     lexer-last-token:Token
-    +input: +Input)
+    +input: +Input
+    --
+    def stack-push! [ Token +Lexer -- +Lexer ] { lexer-stack:cons }
+    def stack-pop!  [ +Lexer -- Maybe(Token) +Lexer ] { lexer-stack:uncons }
+    def stack-drop  [ +Lexer -- +Lexer ] { lexer-stack:tail }
+    def stack-peek  [ +Lexer -- Maybe(Token) +Lexer ] { lexer-stack head }
 
-def(lexer-stack-push!, Token +Lexer -- +Lexer,
-    lexer-stack List.Cons lexer-stack!)
-def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
-    lexer-stack uncons lexer-stack!)
-def(lexer-stack-drop, +Lexer -- +Lexer,
-    lexer-stack-pop! drop)
-def(lexer-stack-peek, +Lexer -- Maybe(Token) +Lexer,
-    lexer-stack first)
+    def Start! [ Module +Input -- +Lexer ] {
+        >+input
+        >lexer-module
+        1 Row >lexer-row
+        1 Col >lexer-col
+        List.L0 >lexer-stack
+        Token.alloc-none! dup
+        >lexer-first-token
+        >lexer-last-token
+        +Lexer
+    }
 
-def-missing(+Lexer.lexer-col, +Lexer -- +Lexer Col, lexer-col)
-def-missing(+Lexer.lexer-row, +Lexer -- +Lexer Row, lexer-row)
-def-missing(+Lexer.lexer-module, +Lexer -- +Lexer Module, lexer-module)
-def-missing(+Lexer.lexer-stack, +Lexer -- +Lexer List(Token), lexer-stack)
-def-missing(+Lexer.lexer-last-token, +Lexer -- +Lexer Token, lexer-last-token)
+    def stop! [ +Mirth +Lexer -- Module +Mirth +Input ] {
+        TokenValue.None emit!
+        /+Lexer
+        lexer-stack> uncons drop for("Mismatched token." emit-fatal-error!)
+        lexer-row> lexer-col> lexer-last-token> drop3
+        lexer-module> Token.alloc-none! over ~end !
+        lexer-first-token> succ over ~start !
+        +input>
+    }
 
-def(run-lexer!, Path +World +Mirth -- Module +World +Mirth,
-    Module.new! dup >lexer-module
-    source-path rswap open-file! unwrap!(rswap fatal-error!) +Input.start! >+input rswap
-    1 Row >lexer-row
-    1 Col >lexer-col
-    List.L0 >lexer-stack
-    Token.alloc-none! dup >lexer-last-token
-    +Lexer
-    while(done? not, lexer-next!)
-    TokenValue.None lexer-emit!
-    /+Lexer
-    rdip(+input> end! close-file!)
-    lexer-stack> uncons drop for("Mismatched left parenthesis." emit-fatal-error!)
-    lexer-row> lexer-col> lexer-last-token> drop3
-    lexer-module> Token.alloc-none! over ~end !
-    swap succ over ~start !)
+    def lexer-location [ +Lexer -- +Lexer Location ] {
+        lexer-module >module
+        lexer-row >row
+        lexer-col >col
+        Location
+    }
+    def warning! [ Str +Mirth +Lexer -- +Mirth +Lexer ] { dip:lexer-location rdip:emit-warning-at! }
+    def error! [ Str +Mirth +Lexer -- +Mirth +Lexer ] { dip:lexer-location rdip:emit-error-at! }
+    def fatal-error! [ *a Str +Mirth +Lexer -- *b ] { dip:lexer-location rswap emit-fatal-error-at! }
 
-# Is the lexer done?
-def(+Lexer.done?, +Lexer -- Bool +Lexer, +input:done?)
+    def done? [ +Lexer -- +Lexer Bool ] { +input:done? }
+    def peek  [ +Lexer -- +Lexer Byte ] { +input:peek }
+    def move! [ +Lexer -- +Lexer ] { +input:move! lexer-col:1+ }
+    def newline! [ +Lexer -- +Lexer ] { 0 Col lexer-col! lexer-row:1+ }
 
-# Create a token, and add it to the token buffer,
-# returning the new token.
-def(lexer-make!, TokenValue +Lexer -- Token +Lexer,
-    Token.alloc!
-    tuck ~value !
-    lexer-module over ~module !
-    lexer-row over ~row !
-    lexer-col over ~col !
-    dup lexer-last-token!)
-
-# Create a token, and add it to the token buffer.
-def(lexer-emit!, TokenValue +Lexer -- +Lexer, lexer-make! drop)
-
-# Lex the next token.
-def(lexer-next!, +Mirth +Lexer -- +Mirth +Lexer, lexer-peek match(
-    BLF -> lexer-newline! lexer-move!,
-    BSPACE -> lexer-move!,
-    BHT -> lexer-move!,
-    BVT -> lexer-move!,
-    BCR -> lexer-move!,
-    BHASH -> lexer-skip-comment! lexer-move!,
-    BCOMMA -> lexer-close-colons! TokenValue.Comma lexer-emit! lexer-move!,
-    BRPAREN -> lexer-close-colons! lexer-emit-rparen! lexer-move!,
-    BRSQUARE -> lexer-close-colons! lexer-emit-rsquare! lexer-move!,
-    BRCURLY -> lexer-close-colons! lexer-emit-rcurly! lexer-move!,
-    BCOLON -> lexer-prepare-for-args! lexer-emit-lcolon! lexer-move!,
-    BLPAREN -> lexer-prepare-for-args! lexer-emit-lparen! lexer-move!,
-    BLSQUARE -> lexer-prepare-for-atom! lexer-emit-lsquare! lexer-move!,
-    BLCURLY -> lexer-prepare-for-atom! lexer-emit-lcurly! lexer-move!,
-    BQUOTE -> lexer-prepare-for-atom! lexer-emit-string! lexer-move!,
-    _ -> is-name-byte if(
-        lexer-prepare-for-atom! lexer-emit-name!,
-        "Unrecognized byte." lexer-emit-fatal-error!
-    )))
-
-def(lexer-newline!, +Lexer -- +Lexer,
-    lexer-row:1+
-    0 Col lexer-col!)
-
-def(lexer-emit-lcolon!, +Lexer -- +Lexer,
-    TokenValue.LColonOpen lexer-make!
-    lexer-stack-push!)
-
-def(lexer-close-colons!, +Lexer -- +Lexer,
-    while-some(
-        lexer-stack-peek filter(lcolon-open?),
-        lexer-stack-drop
-        dup TokenValue.RColon lexer-make!
-        TokenValue.LColon swap ~value !
-    ))
-def(lexer-prepare-for-atom!, +Lexer -- +Lexer,
-    lexer-last-token lcolon-open? else(lexer-close-colons!))
-def(lexer-prepare-for-args!, +Lexer -- +Lexer,
-    lexer-last-token name/dname? else(lexer-close-colons!))
-
-def(lexer-emit-lparen!, +Lexer -- +Lexer,
-    TokenValue.LParenOpen lexer-make!
-    lexer-stack-push!)
-def(lexer-emit-rparen!, +Mirth +Lexer -- +Mirth +Lexer,
-    lexer-stack-pop! match(
-        None -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
-        Some -> dup lparen-open? if(
-            dup TokenValue.RParen lexer-make!
-            TokenValue.LParen swap ~value !,
-            "Mismatched right parenthesis." lexer-emit-fatal-error!
-        )
-    ))
-
-def(lexer-emit-lsquare!, +Lexer -- +Lexer,
-    TokenValue.LSquareOpen lexer-make!
-    lexer-stack-push!)
-def(lexer-emit-rsquare!, +Mirth +Lexer -- +Mirth +Lexer,
-    lexer-stack-pop! match(
-        None -> "Mismatched right square bracket." lexer-emit-fatal-error!,
-        Some -> dup lsquare-open? if(
-            dup TokenValue.RSquare lexer-make!
-            TokenValue.LSquare swap ~value !,
-            "Mismatched right square bracket." lexer-emit-fatal-error!
-        )
-    ))
-
-def(lexer-emit-lcurly!, +Lexer -- +Lexer,
-    TokenValue.LCurlyOpen lexer-make!
-    lexer-stack-push!)
-def(lexer-emit-rcurly!, +Mirth +Lexer -- +Mirth +Lexer,
-    lexer-stack-pop! match(
-        None -> "Mismatched right curly brace." lexer-emit-fatal-error!,
-        Some -> dup lcurly-open? if(
-            dup TokenValue.RCurly lexer-make!
-            TokenValue.LCurly swap ~value !,
-            "Mismatched right curly brace." lexer-emit-fatal-error!
-        )
-    ))
-
-def(lexer-emit-name!, +Lexer -- +Lexer,
-    rdip("" thaw)
-    lexer-module
-    lexer-row
-    lexer-col
-
-    lexer-peek while(dup is-name-byte,
-        rdip(push-byte-unsafe!)
-        lexer-move!
-        lexer-peek)
-    drop
-
-    rdip(is-doc-start?) if(
-        drop3
-        lexer-skip-doc!,
-        # TODO: save the doc in the token-doc field for the next token
-        #   https://github.com/mirth-lang/mirth/issues/240
-
-        rdip(is-float? if(
-            float? TokenValue.F64,
-            is-int? if(
-                int? TokenValue.Int,
-                dname? match(
-                    Some -> TokenValue.DName,
-                    None ->
-                        label-token? match(
-                            Some -> id,
-                            None -> name? TokenValue.Name
-                        )
-                )
-            )
-        ))
-
+    ||| Create a token at the current location with the given payload.
+    def make! [ TokenValue +Lexer -- Token +Lexer ] {
         Token.alloc!
         tuck ~value !
-        tuck ~col !
-        tuck ~row !
-        tuck ~module !
-        lexer-last-token!
-    )
-    rdip(freeze drop))
+        lexer-module over ~module !
+        lexer-row over ~row !
+        lexer-col over ~col !
+        dup lexer-last-token!
+    }
 
-def(+Str.name?, +Str -- Name +Str, dup! >Name)
+    ||| Create a token at the current location, and then build the payload (while consuming characters).
+    def make!(f) [ ( *a +Lexer -- *b TokenValue +Lexer ) *a +Lexer -- *b Token +Lexer ] {
+        TokenValue.None make!
+        dip:f
+        tuck ~value !
+    }
+
+    ||| Emit a token at the current location with the given payload. Same as make! but drops the token.
+    def emit! [ TokenValue +Lexer -- +Lexer ] { make! drop }
+
+    ||| Create a token at the current location, then build the payload. Same as make!(f) but drops the token.
+    def emit!(f) { make!(f) drop }
+
+    ||| Analyze the next byte (and next token).
+    def next! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+        peek match {
+            { BLF      -> newline! move! }
+            { BSPACE   -> move! }
+            { BHT      -> move! }
+            { BVT      -> move! }
+            { BCR      -> move! }
+            { BHASH    -> skip-comment! }
+            { BCOMMA   -> close-colons! TokenValue.Comma emit! move! }
+            { BRPAREN  -> close-colons! emit-rparen!  move! }
+            { BRSQUARE -> close-colons! emit-rsquare! move! }
+            { BRCURLY  -> close-colons! emit-rcurly!  move! }
+            { BCOLON   -> prepare-for-args! emit-lcolon!  move! }
+            { BLPAREN  -> prepare-for-args! emit-lparen!  move! }
+            { BLSQUARE -> prepare-for-atom! emit-lsquare! move! }
+            { BLCURLY  -> prepare-for-atom! emit-lcurly!  move! }
+            { BQUOTE   -> prepare-for-atom! emit-string!  move! }
+            { _ ->
+                is-name-byte if(
+                    prepare-for-atom! emit-name!,
+                    "Unrecognized byte." fatal-error!
+                )
+            }
+        }
+    }
+
+    def close-colons! [ +Lexer -- +Lexer ] {
+        while-some(
+            stack-peek filter(lcolon-open?),
+            stack-drop
+            dup TokenValue.RColon make!
+            TokenValue.LColon swap ~value !
+        )
+    }
+
+    def prepare-for-atom! [ +Lexer -- +Lexer ] {
+        lexer-last-token lcolon-open? else(close-colons!)
+    }
+    def prepare-for-args! [ +Lexer -- +Lexer ] {
+        lexer-last-token can-take-args? else(close-colons!)
+    }
+
+    def emit-lcolon!  [ +Lexer -- +Lexer ] { TokenValue.LColonOpen  make! stack-push! }
+    def emit-lparen!  [ +Lexer -- +Lexer ] { TokenValue.LParenOpen  make! stack-push! }
+    def emit-lcurly!  [ +Lexer -- +Lexer ] { TokenValue.LCurlyOpen  make! stack-push! }
+    def emit-lsquare! [ +Lexer -- +Lexer ] { TokenValue.LSquareOpen make! stack-push! }
+
+    def emit-rparen! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+        stack-pop! filter(value lparen-open?)
+        unwrap("Mismatched right parenthesis." fatal-error!)
+        dup TokenValue.RParen make!
+        TokenValue.LParen swap ~value !
+    }
+
+    def emit-rcurly! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+        stack-pop! filter(value lcurly-open?)
+        unwrap("Mismatched right curly brace." fatal-error!)
+        dup TokenValue.RCurly make!
+        TokenValue.LCurly swap ~value !
+    }
+
+    def emit-rsquare! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+        stack-pop! filter(value lsquare-open?)
+        unwrap("Mismatched right square bracket." fatal-error!)
+        dup TokenValue.RSquare make!
+        TokenValue.LSquare swap ~value !
+    }
+
+    def emit-name! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+        rdip("" thaw)
+        lexer-module
+        lexer-row
+        lexer-col
+
+        peek while(dup is-name-byte,
+            rdip(push-byte-unsafe!)
+            move! peek
+        )
+        drop
+
+        rdip:is-doc-start? if(
+            drop3
+            skip-doc!,
+            # TODO: save the doc in the token-doc field for the next token
+            #   https://github.com/mirth-lang/mirth/issues/240
+
+            Token.alloc!
+            tuck ~col !
+            tuck ~row !
+            tuck ~module !
+
+            >+lexer
+            float-token?
+            or?(int-token?)
+            or?(dname-token?)
+            or?(label-token?)
+            else?(name-token)
+            over ~value !
+            +lexer>
+
+            lexer-last-token!
+        )
+        rdip(freeze drop)
+    }
+
+    def emit-string! [+Mirth +Lexer -- +Mirth +Lexer] {
+        rdip("" thaw)
+        emit! (
+            move!
+            peek while(dup is-string-end not,
+                push-string-byte!
+                move! peek
+            )
+            Byte.BQUOTE == else(
+                "String literal is missing end quote (\")."
+                rdip':fatal-error!
+            )
+
+            rdip:freeze TokenValue.Str
+        )
+    }
+
+    def push-string-byte! [ +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer ] {
+        { B'\' -> move! peek push-string-escape-byte! }
+        { _ -> rdip:push-byte-unsafe! }
+    }
+
+    def push-string-escape-byte! [ +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer ] {
+        { BLF -> newline! }
+        { B'n' -> Byte.BLF rdip(push-byte-ascii!) }
+        { B'r' -> Byte.BCR rdip(push-byte-ascii!) }
+        { B't' -> Byte.BHT rdip(push-byte-ascii!) }
+        { B'\' -> Byte.B'\' rdip(push-byte-ascii!) }
+        { BQUOTE -> Byte.BQUOTE rdip(push-byte-ascii!) }
+        { _ ->
+            rdip(push-byte-unsafe!)
+            "Unknown character escape sequence." rdip':warning!
+        }
+    }
+
+    def skip-comment! [ +Lexer -- +Lexer ] {
+        while(comment-end? not, move!)
+        peek Byte.BLF == then(newline! move!)
+    }
+
+    def skip-doc! [ +Lexer -- +Lexer ] {
+        while(comment-end? not, move!)
+        peek Byte.BLF == then(newline! move!)
+    }
+
+    def comment-end? [ +Lexer -- Bool +Lexer ] {
+        done? or(peek Byte.BLF ==)
+    }
+
+}
+
+def run-lexer! [ Path +World +Mirth -- Module +World +Mirth ] {
+    Module.new! dup source-path
+    rdip:open-file! rswap unwrap!(fatal-error!) +Input.start!
+    +Lexer.Start!
+    while(done? not, next!)
+    stop! rswap rdip(end! close-file!)
+}
+
+def(+Str.name-token, +Str -- TokenValue +Str, dup! >Name TokenValue.Name)
 
 def(+Str.first-byte, +Str -- Byte +Str, 0u >UOffset byte@)
 def(+Str.second-byte, +Str -- Byte +Str, 1u >UOffset byte@)
@@ -221,11 +281,11 @@ def(+Str.drop-last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe,
 
 def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
     label-push-token?
-    or-some(label-push-r-token?)
-    or-some(label-pop-token?)
-    or-some(label-pop-r-token?)
-    or-some(label-get-token?)
-    or-some(label-set-token?))
+    or?(label-push-r-token?)
+    or?(label-pop-token?)
+    or?(label-pop-r-token?)
+    or?(label-get-token?)
+    or?(label-set-token?))
 
 def(+Str.label-pop-token?, +Str -- Maybe(TokenValue) +Str,
     first-byte is-lower and(last-byte Byte.B'>' ==) if(
@@ -258,19 +318,21 @@ def(+Str.label-get-token?, +Str -- Maybe(TokenValue) +Str,
     ))
 
 def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte Byte.B'!' == and(second-byte is-lower) if(
+    first-byte Byte.B'!' == and(second-byte is-lower or(second-byte Byte.B'+' == and(third-byte is-lower))) if(
         unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelSet Some,
         None
     ))
 
-def(+Str.dname?, +Str -- Maybe(DName) +Str,
+def +Str.dname-token? [ +Str -- Maybe(TokenValue) +Str ] {
     Byte.BDOT +Str.split-byte
-    uncons >List+? match(
-        None -> drop None,
-        Some ->
+    uncons >List+? match {
+        { None -> drop None }
+        { Some ->
             dip(dup Str.empty? if(drop None, >Name Some))
-            map(>Name) DName Some
-    ))
+            map(>Name) DName TokenValue.DName Some
+        }
+    }
+}
 
 def(+Str.is-doc-start?, +Str -- Bool +Str,
     dup! "|||" ==)
@@ -299,6 +361,14 @@ def(+Str.is-float?, +Str -- Bool +Str,
     )
 )
 
+def +Str.float-token? [ +Mirth +Str Token -- +Mirth +Str Token Maybe(TokenValue) ] {
+    is-float? >Maybe (
+        dup! >F64? unwrap(
+            "[lexer] bug: failed to parse float literal" rdip:emit-fatal-error!
+        ) TokenValue.F64
+    )
+}
+
 ||| Process float sign and return initial state for rest float lexing.
 ||| returns: (sign multiplier) (str-buf index)
 def(+Str.float-sign, +Str -- Byte UOffset +Str,
@@ -310,13 +380,13 @@ def byte-sign-value-index-float [ Byte -- Byte UOffset ] {
     { _ -> drop Byte.B'+' 0u >UOffset }
 }
 
-def(+Str.float?, +Str -- F64 +Str,
-    freeze dup thaw >F64? unwrap(0.0))
-
-def(+Str.is-int?, +Str -- Bool +Str,
-    is-dec-int?
-    or(is-hex-int?)
-    or(is-oct-int?))
+def +Str.int-token? [ +Str -- Maybe(TokenValue) +Str ] {
+    None
+    or?(is-dec-int? >Maybe:dec-int?)
+    or?(is-hex-int? >Maybe:hex-int?)
+    or?(is-oct-int? >Maybe:oct-int?)
+    map(TokenValue.Int)
+}
 
 def(+Str.is-dec-int?, +Str -- Bool +Str,
     0u >USize # number of digits
@@ -371,15 +441,6 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
         drop2 False
     ))
 
-def(+Str.int?, +Str -- Int +Str,
-    is-dec-int? if(
-        dec-int?,
-	is-hex-int? if(
-            hex-int?,
-	    oct-int?
-	)
-    ))
-
 ||| process int sign and return initial state for rest of int lexing.
 ||| returns: (sign multiplier) (accumulated value == 0) (str-buf index)
 def(+Str.int-sign, +Str -- Int Int UOffset +Str,
@@ -411,7 +472,7 @@ def(+Str.hex-int?, +Str -- Int +Str,
     drop *)
 
 def(+Str.oct-int?, +Str -- Int +Str,
-    int-sign 1+ 1+ # skip 0x prefix
+    int-sign 1+ 1+ # skip 0o prefix
     while(dup num-bytes? >UOffset <,
         sip(
             byte@ >Int
@@ -423,64 +484,5 @@ def(+Str.oct-int?, +Str -- Int +Str,
 def(hexdigit-value, Byte -- Int,
     dup is-digit if(
         >Int 48 -,
-        >Int 55 -
+        to-upper >Int 55 -
     ))
-
-def(lexer-emit-string!, +Mirth +Lexer -- +Mirth +Lexer,
-    rdip("" thaw)
-    TokenValue.None lexer-make!
-
-    lexer-move!
-    lexer-peek while(dup is-string-end not,
-        lexer-push-string-byte!
-        lexer-move!
-        lexer-peek
-    )
-    Byte.BQUOTE == else(
-        "String literal is missing end quote (\")."
-        rdip':lexer-emit-fatal-error!
-    )
-
-    rdip(freeze TokenValue.Str)
-    swap ~value !)
-
-def(lexer-push-string-byte!, +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer,
-    B'\' -> lexer-move! lexer-peek lexer-push-string-escape-byte!,
-    _ -> rdip(push-byte-unsafe!))
-
-def(lexer-push-string-escape-byte!, +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer,
-    BLF -> lexer-newline!,
-    B'n' -> Byte.BLF rdip(push-byte-ascii!),
-    B'r' -> Byte.BCR rdip(push-byte-ascii!),
-    B't' -> Byte.BHT rdip(push-byte-ascii!),
-    B'\' -> Byte.B'\' rdip(push-byte-ascii!),
-    BQUOTE -> Byte.BQUOTE rdip(push-byte-ascii!),
-    _ -> rdip(push-byte-unsafe!)
-    "Unknown character escape sequence." rdip':lexer-emit-warning!)
-
-def(lexer-skip-comment!, +Lexer -- +Lexer,
-    while(lexer-comment-end? not, lexer-move!)
-    lexer-peek Byte.BLF == then(lexer-newline!))
-
-def(lexer-skip-doc!, +Lexer -- +Lexer, while(lexer-comment-end? not, lexer-move!))
-
-def(lexer-comment-end?, +Lexer -- Bool +Lexer,
-    done? if(
-        True,
-        lexer-peek dup Byte.BLF == nip
-    ))
-
-def(lexer-peek, +Lexer -- Byte +Lexer, +input:peek)
-def(lexer-move!, +Lexer -- +Lexer,
-    +input:move!
-    lexer-col:1+ )
-
-def(lexer-location, +Lexer -- Location +Lexer,
-    lexer-module >module
-    lexer-row >row
-    lexer-col >col
-    Location)
-
-def(lexer-emit-warning!, Str +Mirth +Lexer -- +Mirth +Lexer, dip(lexer-location) rdip:emit-warning-at!)
-def(lexer-emit-error!, Str +Mirth +Lexer -- +Mirth +Lexer, dip(lexer-location) rdip:emit-error-at!)
-def(lexer-emit-fatal-error!, *a Str +Mirth +Lexer -- *b, dip(lexer-location) rswap emit-fatal-error-at!)

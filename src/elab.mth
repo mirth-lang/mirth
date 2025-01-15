@@ -78,7 +78,7 @@ struct +TypeElab {
     }
 
     def elab-stack-type! [ +Mirth +TypeElab -- +Mirth +TypeElab StackType ] {
-        token sig-stack-var? if-some(elab-stack-type-var!, T0)
+        token sig-stack-var? if?(elab-stack-type-var!, T0)
         elab-stack-type-parts!
     }
 
@@ -113,25 +113,25 @@ struct +TypeElab {
     }
 
     def elab-stack-type-part! [ +Mirth +TypeElab -- +Mirth +TypeElab StackTypePart ] {
-        token sig-label? if-some(
+        token sig-label? if?(
             elab-stack-label!,
 
-        token sig-type-var? if-some(
+        token sig-type-var? if?(
             elab-type-var! StackTypePart.Cons,
 
-        token sig-type-con? if-some(
+        token sig-type-con? if?(
             elab-type-con! StackTypePart.Cons,
 
-        token sig-resource-var? if-some(
+        token sig-resource-var? if?(
             elab-resource-var! StackTypePart.With,
 
-        token sig-resource-con? if-some(
+        token sig-resource-con? if?(
             elab-resource-con! StackTypePart.With,
 
         token pat-underscore? if(
             elab-type-dont-care! StackTypePart.Cons,
 
-        token sig-type-hole? if-some(
+        token sig-type-hole? if?(
             elab-type-hole! StackTypePart.Cons,
 
         token lsquare? .if(
@@ -152,15 +152,15 @@ struct +TypeElab {
     }
 
     def elab-stack-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab StackType ] {
-        Type.StackType elab-implicit-var! if-some(StackType.Var, StackType.Error)
+        Type.StackType elab-implicit-var! if?(StackType.Var, StackType.Error)
     }
 
     def elab-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Type ] {
-        Type.Type elab-implicit-var! if-some(Type.Var, Type.Error)
+        Type.Type elab-implicit-var! if?(Type.Var, Type.Error)
     }
 
     def elab-resource-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Resource ] {
-        Type.ResourceType elab-implicit-var! if-some(Type.Var, Type.Error) Resource
+        Type.ResourceType elab-implicit-var! if?(Type.Var, Type.Error) Resource
     }
 
     def gamma(f) [ (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab ] {
@@ -452,7 +452,7 @@ struct +ResolveDef {
                         MethodNotAvailable ->
                             "Method is not available for current stack: " ; rdip2(qname-hard >Str) ; ,
                     ),
-                    _ -> List.Cons "Multiple definitions for name, but none are suitable:" ;
+                    _ -> cons "Multiple definitions for name, but none are suitable:" ;
                         dip:" " for(swap ; match(
                             WrongSort -> rdip2(qname-hard >Str) ; " is not a " ; rdip:sort ; ,
                             NotVisible ->
@@ -515,7 +515,7 @@ def def-is-imported-at-token? [ +Mirth Token Def -- +Mirth Bool ] {
 }
 
 def tycon-is-visible-at-token? [ Token Tycon -- Bool ] {
-    Data -> head? if-some(.module module-visible-from-token?, drop True),
+    Data -> head? if?(.module module-visible-from-token?, drop True),
     Table -> head .module module-visible-from-token?,
     Prim -> drop2 True
 }
@@ -538,12 +538,12 @@ def QName.climb-up-name? [ +Mirth Name QName -- +Mirth List(Namespace) ] {
     name> defs for(match(
         Alias ->
             dup ~target try-force! has(qname-hard @qname ==) if(
-                namespace-hard @accum:List.Cons,
+                namespace-hard @accum:cons,
                 drop
             ),
         Type ->
             dup target tycon? has(qname-hard @qname ==) if(
-                namespace @accum:List.Cons,
+                namespace @accum:cons,
                 drop
             ),
         _ -> drop
@@ -559,7 +559,7 @@ def QName.climb-up-dname? [ +Mirth +ResolveDef DName QName -- +Mirth +ResolveDef
         ))
     )
     rdip:climb-up-name? swap
-    reverse-for(swap bind(rdip:qname if-some(dip(dup) rdip:climb-up-name?, List.L0)) nip)
+    reverse-for(swap bind(rdip:qname if?(dip(dup) rdip:climb-up-name?, List.L0)) nip)
 }
 
 def elab-type-unify! [ +Mirth Type Type Token -- +Mirth Type Token ] {
@@ -750,10 +750,21 @@ struct +AB {
     }
 
     def elab-label-set! [ Label +Mirth +AB -- +Mirth +AB ] {
-        ab-token@ rdip:args-0
-        dup ab-label-pop!
-        Prim.Drop ab-prim!
-        ab-label-push!
+        dup is-resource-label? if(
+            dup ab-label-push-r!
+            ab-token@ dup rdip:args-1 ab-token! elab-atoms! ab-token!
+            ab-label-pop-r!,
+
+            ab-token@ num-args 0= if(
+                dup ab-label-pop!
+                Prim.Drop ab-prim!
+                ab-label-push!,
+
+                dup ab-label-push!
+                ab-token@ dup rdip:args-1 ab-token! elab-atoms! ab-token!
+                ab-label-pop!
+            )
+        )
     }
 
     def elab-atom-block! [ +Mirth +AB -- +Mirth +AB ] {
@@ -779,7 +790,7 @@ struct +AB {
         elab-args!
         ab-token@ num-args over arity < then(
             ab-token@ num-args over rdip:params drop-slice for(
-                default if-some (
+                default if? (
                     elab-block-at!,
                     ab-token@ "word parameter is missing, has no default implementation" rdip:emit-fatal-error!
                 )
@@ -862,7 +873,7 @@ struct +AB {
     }
 
     def elab-macro! [ Macro +Mirth +AB -- +Mirth +AB ] {
-        action arrow? if-some(
+        action arrow? if?(
             run,
 
             ab-token@ "macro cannot be invoked here" rdip:emit-error!
@@ -1045,7 +1056,7 @@ def atoms-turn-last-block-to-arg [ Atom List(Atom) -- Atom List(Atom) ] {
                     { Atom List(Atom) Atom Block }
                     dip(dom rotl dom!)
                     { List(Atom) Atom Block }
-                    Arg.Block swap args:List.Cons
+                    Arg.Block swap args:cons
                     swap,
                 _ -> drop List.Snoc
             )
@@ -1119,7 +1130,7 @@ def elab-lambda-sig! [ Lambda -- OpSig ] {
 }
 
 def elab-var-sig! [ Var -- OpSig ] {
-    dup auto-run? if-some(
+    dup auto-run? if?(
         nip semifreshen-sig OpSig.Apply,
         type OpSig.Push
     )
@@ -1205,7 +1216,7 @@ def elab-pattern-atom! [ Token +Mirth +Pattern -- +Mirth +Pattern ] {
     dup pat-underscore? if(
         drop +Pattern.underscore!,
 
-    dup name/dname? if-some(
+    dup name/dname? if?(
         >name/dname >token
         "constructor" >sort
         pattern mid top-types-are-fine? not >report-ambiguous-as-warning
@@ -1257,12 +1268,12 @@ def elab-expand-tensor! [ +Mirth StackType Token -- +Mirth StackType Type Token 
 }
 
 def elab-lambda-param? [ +Mirth Token -- +Mirth Token Maybe(Var) ] {
-    dup pattern-var? if-some(
+    dup pattern-var? if?(
         dip(dup args-0 next)
         dip(MetaVar.new! Type.Meta)
         Var.new! Some,
 
-    dup pattern-auto-run-var? if-some(
+    dup pattern-auto-run-var? if?(
         dip(dup succ args-0 next)
         dip(MetaVar.new! StackType.Meta MetaVar.new! StackType.Meta T->)
         Var.new-auto-run! Some,
@@ -1699,7 +1710,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
             CType.Phantom Some,
         @dat is-enum? if(
             "int" CType.IntLike Some,
-        @dat semi-transparent? if-some(
+        @dat semi-transparent? if?(
             input match(
                 Cons -> ctype?,
                 ConsLabel -> drop ctype?,
@@ -1725,7 +1736,7 @@ def Tag.output-type [ +Mirth Tag -- +Mirth Type/Resource ] {
                 drop
                 "Unexpected output type for constructor "
                 @tag qname >Str cat
-                @tag .data head? if-some(swap emit-error!, error!)
+                @tag .data head? if?(swap emit-error!, error!)
                 Type.Error @tag .data is-resource? if(
                     Resource Right,
                     Left
@@ -1747,7 +1758,7 @@ def Tag.project-input-label [ +Mirth Label Tag -- +Mirth Maybe(Type/Resource) ] 
 }
 
 def Tag.project-tag-field [ +Mirth Label Tag -- +Mirth Maybe(TagField) ] {
-    dup2 project-input-label if-some (
+    dup2 project-input-label if? (
         >type/resource >tag >label TagField Some,
         drop2 None
     )
@@ -1909,7 +1920,7 @@ def elab-alias! [ +Mirth Token -- +Mirth Token ] {
         False >report-ambiguous-as-warning
         False >ignore-last-name
         resolve-def(
-            expunge(alias? if-some(@alias ==, False))
+            expunge(alias? if?(@alias ==, False))
             alias> arity filter(
                 dup2 rdip:arity arity-compatible?,
                 RejectedDef.WrongArity
@@ -2050,7 +2061,7 @@ def check-inline-recursion-op! [ +Mirth Word Op -- +Mirth ] {
         dup2 == if(
             drop check-inline-recursion-failed!,
             dup prefer-inline? if(
-                ~arrow try-force! if-some(
+                ~arrow try-force! if?(
                     check-inline-recursion-arrow!,
                     check-inline-recursion-failed!
                 ),
@@ -2087,7 +2098,7 @@ def elab-def-params! [ +Mirth Word -- +Mirth List(Param) ] {
         elab-expand-tensor!
         swap morphism? unwrap("need function type for param" emit-fatal-error!)
         nip name> Var.new-auto-run! >var Param
-        rotr dip(List.Cons)
+        rotr dip:cons
     ) drop
 }
 
@@ -2123,7 +2134,7 @@ def parse-external-decl [ +Mirth Token -- +Mirth Token List(ExternalDeclPart) ] 
 }
 
 def parse-external-decl-part [ +Mirth Token -- +Mirth Token ExternalDeclPart ] {
-    dup str? if-some(
+    dup str? if?(
         >code dup >token
         succ
         ExternalDeclPart.EDPCode,

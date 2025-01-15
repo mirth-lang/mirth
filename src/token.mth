@@ -65,6 +65,7 @@ def(TokenValue.can-take-args?, TokenValue -- Bool,
     Name -> drop True,
     DName -> drop True,
     LabelGet -> drop True,
+    LabelSet -> drop True,
     _ -> drop False)
 
 def-type(Name/DName, Either(Name,DName))
@@ -223,7 +224,7 @@ def(Token.args-start, Token -- Token,
     and(dup succ lparen-or-lcolon? >Bool) then(succ))
 
 def(Token.could-be-sig-label?, Token -- Bool,
-    dup name? if-some(could-be-label-name?, False)
+    dup name? if?(could-be-label-name?, False)
     and(dup succ lcolon? >Bool) nip)
 
 def Token.sig-label? [ Token -- Maybe(Label) ] {

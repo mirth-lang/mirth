@@ -155,10 +155,8 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
                 2.0 @x * @y *
                 @y0 +
 
-                !y
-                !x
-
-                iteration> 1+ >iteration
+                !y !x
+                @iteration:1+
             )
             x> drop
             y> drop

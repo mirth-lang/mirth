@@ -150,7 +150,7 @@ field(Data.~last-tag-value, Data, Int)
 def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
     >data >tag
     @tag ~value memoize(
-        @data ~last-tag-value @? if-some(1+, 0)
+        @data ~last-tag-value @? if?(1+, 0)
     )
     @data tags find(value over ==) for(
         Str("Constructors ";
@@ -159,7 +159,7 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
             @tag name rdip:>Str ;
             " have the same tag value." ;
         )
-        @data head? if-some(swap emit-error!, error!)
+        @data head? if?(swap emit-error!, error!)
     )
     @data ~last-tag-value !
     data> ~tags modify(tag> List.Snoc)
@@ -264,11 +264,11 @@ def(Tag.untag, Tag -- Maybe(Word), ~untag @)
 def(Tag.only-tag?, Tag -- Bool, .data tags single? >Bool)
 
 def Tag.label-inputs-from-sig [ Tag -- List(Label) ] {
-    sig? if-some(run-tokens filter-some(sig-label?), List.Nil)
+    sig? if?(run-tokens filter-some(sig-label?), List.Nil)
 }
 
 def(Tag.num-type-inputs-from-sig, Tag -- Nat,
-    dup sig? if-some(
+    dup sig? if?(
         run-length
         over num-resource-inputs-from-sig minus
         swap label-inputs-from-sig len minus,
@@ -276,7 +276,7 @@ def(Tag.num-type-inputs-from-sig, Tag -- Nat,
     ))
 
 def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
-    sig? if-some(
+    sig? if?(
         run-tokens filter(could-be-sig-label? not) filter-some(name?)
         filter(or(could-be-resource-var, could-be-resource-con))
         len,
