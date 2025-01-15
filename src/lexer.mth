@@ -7,7 +7,6 @@ import std.str
 import std.maybe
 import std.list
 import std.ctypes
-
 import std.world
 import std.file
 import std.input
@@ -33,7 +32,7 @@ data(+Lexer, +Lexer ->
     +input: +Input)
 
 def(lexer-stack-push!, Token +Lexer -- +Lexer,
-    lexer-stack Cons lexer-stack!)
+    lexer-stack List.Cons lexer-stack!)
 def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
     lexer-stack uncons lexer-stack!)
 def(lexer-stack-drop, +Lexer -- +Lexer,
@@ -56,7 +55,7 @@ def(run-lexer!, Path +World +Mirth -- Module +World +Mirth,
     Token.alloc-none! dup >lexer-last-token
     +Lexer
     while(done? not, lexer-next!)
-    TokenNone lexer-emit!
+    TokenValue.None lexer-emit!
     /+Lexer
     rdip(+input> end! close-file!)
     lexer-stack> uncons drop for("Mismatched left parenthesis." emit-fatal-error!)
@@ -88,7 +87,7 @@ def(lexer-next!, +Mirth +Lexer -- +Mirth +Lexer, lexer-peek match(
     BVT -> lexer-move!,
     BCR -> lexer-move!,
     BHASH -> lexer-skip-comment! lexer-move!,
-    BCOMMA -> lexer-close-colons! TokenComma lexer-emit! lexer-move!,
+    BCOMMA -> lexer-close-colons! TokenValue.Comma lexer-emit! lexer-move!,
     BRPAREN -> lexer-close-colons! lexer-emit-rparen! lexer-move!,
     BRSQUARE -> lexer-close-colons! lexer-emit-rsquare! lexer-move!,
     BRCURLY -> lexer-close-colons! lexer-emit-rcurly! lexer-move!,
@@ -107,15 +106,15 @@ def(lexer-newline!, +Lexer -- +Lexer,
     0 Col lexer-col!)
 
 def(lexer-emit-lcolon!, +Lexer -- +Lexer,
-    TokenLColonOpen lexer-make!
+    TokenValue.LColonOpen lexer-make!
     lexer-stack-push!)
 
 def(lexer-close-colons!, +Lexer -- +Lexer,
     while-some(
         lexer-stack-peek filter(lcolon-open?),
         lexer-stack-drop
-        dup TokenRColon lexer-make!
-        TokenLColon swap ~value !
+        dup TokenValue.RColon lexer-make!
+        TokenValue.LColon swap ~value !
     ))
 def(lexer-prepare-for-atom!, +Lexer -- +Lexer,
     lexer-last-token lcolon-open? else(lexer-close-colons!))
@@ -123,40 +122,40 @@ def(lexer-prepare-for-args!, +Lexer -- +Lexer,
     lexer-last-token name/dname? else(lexer-close-colons!))
 
 def(lexer-emit-lparen!, +Lexer -- +Lexer,
-    TokenLParenOpen lexer-make!
+    TokenValue.LParenOpen lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rparen!, +Mirth +Lexer -- +Mirth +Lexer,
     lexer-stack-pop! match(
         None -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
         Some -> dup lparen-open? if(
-            dup TokenRParen lexer-make!
-            TokenLParen swap ~value !,
+            dup TokenValue.RParen lexer-make!
+            TokenValue.LParen swap ~value !,
             "Mismatched right parenthesis." lexer-emit-fatal-error!
         )
     ))
 
 def(lexer-emit-lsquare!, +Lexer -- +Lexer,
-    TokenLSquareOpen lexer-make!
+    TokenValue.LSquareOpen lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rsquare!, +Mirth +Lexer -- +Mirth +Lexer,
     lexer-stack-pop! match(
         None -> "Mismatched right square bracket." lexer-emit-fatal-error!,
         Some -> dup lsquare-open? if(
-            dup TokenRSquare lexer-make!
-            TokenLSquare swap ~value !,
+            dup TokenValue.RSquare lexer-make!
+            TokenValue.LSquare swap ~value !,
             "Mismatched right square bracket." lexer-emit-fatal-error!
         )
     ))
 
 def(lexer-emit-lcurly!, +Lexer -- +Lexer,
-    TokenLCurlyOpen lexer-make!
+    TokenValue.LCurlyOpen lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rcurly!, +Mirth +Lexer -- +Mirth +Lexer,
     lexer-stack-pop! match(
         None -> "Mismatched right curly brace." lexer-emit-fatal-error!,
         Some -> dup lcurly-open? if(
-            dup TokenRCurly lexer-make!
-            TokenLCurly swap ~value !,
+            dup TokenValue.RCurly lexer-make!
+            TokenValue.LCurly swap ~value !,
             "Mismatched right curly brace." lexer-emit-fatal-error!
         )
     ))
@@ -180,15 +179,15 @@ def(lexer-emit-name!, +Lexer -- +Lexer,
         #   https://github.com/mirth-lang/mirth/issues/240
 
         rdip(is-float? if(
-            float? TokenF64,
+            float? TokenValue.F64,
             is-int? if(
-                int? TokenInt,
+                int? TokenValue.Int,
                 dname? match(
-                    Some -> TokenDName,
+                    Some -> TokenValue.DName,
                     None ->
                         label-token? match(
                             Some -> id,
-                            None -> name? TokenName
+                            None -> name? TokenValue.Name
                         )
                 )
             )
@@ -229,43 +228,43 @@ def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
     or-some(label-set-token?))
 
 def(+Str.label-pop-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte is-lower and(last-byte B'>' ==) if(
-        unsafe(+Str.drop-last-byte) >Name Label.new! TokenLabelPop Some,
+    first-byte is-lower and(last-byte Byte.B'>' ==) if(
+        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.LabelPop Some,
         None
     ))
 
 def(+Str.label-pop-r-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte B'+' == and(second-byte is-lower and(last-byte B'>' ==)) if(
-        unsafe(+Str.drop-last-byte) >Name Label.new! TokenLabelPopR Some,
+    first-byte Byte.B'+' == and(second-byte is-lower and(last-byte Byte.B'>' ==)) if(
+        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.LabelPopR Some,
         None
     ))
 
 def(+Str.label-push-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte B'>' == and(second-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelPush Some,
+    first-byte Byte.B'>' == and(second-byte is-lower) if(
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelPush Some,
         None
     ))
 
 def(+Str.label-push-r-token?, +Str -- Maybe(TokenValue) +Str,
     unsafe(+Str.first-two-bytes) ">+" == and(third-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelPushR Some,
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelPushR Some,
         None
     ))
 
 def(+Str.label-get-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte B'@' == and(second-byte is-lower or(second-byte B'+' == and(third-byte is-lower))) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelGet Some,
+    first-byte Byte.B'@' == and(second-byte is-lower or(second-byte Byte.B'+' == and(third-byte is-lower))) if(
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelGet Some,
         None
     ))
 
 def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
-    first-byte B'!' == and(second-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenLabelSet Some,
+    first-byte Byte.B'!' == and(second-byte is-lower) if(
+        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelSet Some,
         None
     ))
 
 def(+Str.dname?, +Str -- Maybe(DName) +Str,
-    BDOT +Str.split-byte
+    Byte.BDOT +Str.split-byte
     uncons >List+? match(
         None -> drop None,
         Some ->
@@ -290,7 +289,7 @@ def(+Str.is-float?, +Str -- Bool +Str,
 
     while(dup byte@ is-digit, dip(1+) 1+)
 
-    dup byte@ BDOT == if(
+    dup byte@ Byte.BDOT == if(
         dip(1+) 1+ while(dup byte@ is-digit, dip(1+) 1+)
         swap >Int 3 >= if(
             num-bytes? >UOffset ==,
@@ -306,28 +305,13 @@ def(+Str.float-sign, +Str -- Byte UOffset +Str,
     0u >UOffset byte@ byte-sign-value-index-float)
 
 def byte-sign-value-index-float [ Byte -- Byte UOffset ] {
-    { B'-' -> B'-' 1u >UOffset }
-    { B'+' -> B'+' 1u >UOffset }
-    { _ -> drop B'+' 0u >UOffset }
+    { B'-' -> Byte.B'-' 1u >UOffset }
+    { B'+' -> Byte.B'+' 1u >UOffset }
+    { _ -> drop Byte.B'+' 0u >UOffset }
 }
 
-external(
-    "double strtod(const char*, char**);"
-    "double string_to_float64(const char* float64_str) {"
-    "    return strtod(float64_str, 0);"
-    "}"
-    string_to_float64 [ CStr -- F64 ]
-)
-
 def(+Str.float?, +Str -- F64 +Str,
-    "" thaw rswap 0u >UOffset
-    float-sign rdip:dip:push-byte-ascii! +
-    while(dup num-bytes? >UOffset <,
-        sip(
-            byte@ rdip:push-byte-ascii!
-        )
-        1+)
-    drop rswap freeze with-cstr(string_to_float64))
+    freeze dup thaw >F64? unwrap(0.0))
 
 def(+Str.is-int?, +Str -- Bool +Str,
     is-dec-int?
@@ -348,9 +332,9 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
         1+,
         id
     )
-    dup byte@ B'0' == if(
+    dup byte@ Byte.B'0' == if(
         1+
-        dup byte@ B'x' == if(
+        dup byte@ Byte.B'x' == if(
             1+
             while(dup byte@ is-hexdigit, dip(1+) 1+)
             swap 0> if(
@@ -371,11 +355,11 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
         1+,
         id
     )
-    dup byte@ B'0' == if(
+    dup byte@ Byte.B'0' == if(
         1+
-        dup byte@ B'o' == if(
+        dup byte@ Byte.B'o' == if(
             1+
-            while(dup byte@ B'0' B'7' in-range, dip(1+) 1+)
+            while(dup byte@ Byte.B'0' Byte.B'7' in-range, dip(1+) 1+)
             swap 0> if(
                 num-bytes? >UOffset ==,
                 drop False
@@ -444,7 +428,7 @@ def(hexdigit-value, Byte -- Int,
 
 def(lexer-emit-string!, +Mirth +Lexer -- +Mirth +Lexer,
     rdip("" thaw)
-    TokenNone lexer-make!
+    TokenValue.None lexer-make!
 
     lexer-move!
     lexer-peek while(dup is-string-end not,
@@ -452,12 +436,12 @@ def(lexer-emit-string!, +Mirth +Lexer -- +Mirth +Lexer,
         lexer-move!
         lexer-peek
     )
-    BQUOTE == else(
+    Byte.BQUOTE == else(
         "String literal is missing end quote (\")."
         rdip':lexer-emit-fatal-error!
     )
 
-    rdip(freeze TokenStr)
+    rdip(freeze TokenValue.Str)
     swap ~value !)
 
 def(lexer-push-string-byte!, +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer,
@@ -466,24 +450,24 @@ def(lexer-push-string-byte!, +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer,
 
 def(lexer-push-string-escape-byte!, +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer,
     BLF -> lexer-newline!,
-    B'n' -> BLF rdip(push-byte-ascii!),
-    B'r' -> BCR rdip(push-byte-ascii!),
-    B't' -> BHT rdip(push-byte-ascii!),
-    B'\' -> B'\' rdip(push-byte-ascii!),
-    BQUOTE -> BQUOTE rdip(push-byte-ascii!),
+    B'n' -> Byte.BLF rdip(push-byte-ascii!),
+    B'r' -> Byte.BCR rdip(push-byte-ascii!),
+    B't' -> Byte.BHT rdip(push-byte-ascii!),
+    B'\' -> Byte.B'\' rdip(push-byte-ascii!),
+    BQUOTE -> Byte.BQUOTE rdip(push-byte-ascii!),
     _ -> rdip(push-byte-unsafe!)
     "Unknown character escape sequence." rdip':lexer-emit-warning!)
 
 def(lexer-skip-comment!, +Lexer -- +Lexer,
     while(lexer-comment-end? not, lexer-move!)
-    lexer-peek BLF == then(lexer-newline!))
+    lexer-peek Byte.BLF == then(lexer-newline!))
 
 def(lexer-skip-doc!, +Lexer -- +Lexer, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, +Lexer -- Bool +Lexer,
     done? if(
         True,
-        lexer-peek dup BLF == nip
+        lexer-peek dup Byte.BLF == nip
     ))
 
 def(lexer-peek, +Lexer -- Byte +Lexer, +input:peek)

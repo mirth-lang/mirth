@@ -7,6 +7,9 @@ import(std.either)
 import(std.test)
 import(std.str)
 
+alias Nil List.Nil
+alias Cons List.Cons
+
 def main [ +World -- +World ] {
     +Tests.Start!
 

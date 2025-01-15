@@ -1,0 +1,111 @@
+module(std.unicode)
+import(std.prelude)
+import(std.world)
+import(std.str)
+
+||| A unicode codepoint
+struct Codepoint {
+    U32
+    --
+
+    inline {
+        def == [ Codepoint Codepoint -- Bool ] {
+            both:/Codepoint ==
+        }
+        
+        ||| Convert a u32 into a codepoint without verifying it
+        def init-unsafe [ U32 -- Codepoint ] {
+            Codepoint
+        }
+    }
+
+    ||| How many utf-16 words are needed to encode this codepoint (always either
+    ||| 1 or 2)
+    def size-utf-16 [ Codepoint -- USize ] {
+        /Codepoint >Int 0xFFFF > if(2u, 1u) >USize
+    }
+
+    ||| Encode the codepoint and append it to the string
+    def emit; [ +Str Codepoint -- +Str ] {
+        /Codepoint >Int
+        dup 0x80 < if(>Byte-unsafe push-byte-unsafe!, 
+            dup 0x800 < if(dup 6 >> 0xC0 | >Byte-unsafe push-byte-unsafe! 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!,
+                dup 0x010000 < if( 
+                    dup 12 >> 0xE0 | >Byte-unsafe push-byte-unsafe! 
+                    dup 6 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe! 
+                    0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!,
+                    
+                    dup 18 >> 0x7 & 0xF0 | >Byte-unsafe push-byte-unsafe!
+                    dup 12 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
+                    dup 6 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
+                    0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
+                )
+            )
+        )
+    }
+
+    def show; [ +Str Codepoint -- +Str ] {
+         /Codepoint show; " Codepoint" ;
+    }
+}
+
+||| Convert a u32 into a codepoint without verifying it
+alias(U32.>Codepoint-unsafe, Codepoint.init-unsafe)
+
+||| Convert an Int into a codepoint without verifying it
+def Int.>Codepoint-unsafe { >U32-unsafe Codepoint.init-unsafe }
+
+
+struct +CodepointsForState {
+    index:UOffset ptr:Ptr len:UOffset
+    --
+    def peek [ +CodepointsForState -- +CodepointsForState Int ] {
+        index ptr unsafe(uoffset @U8) >Int
+    }
+    def next! [ +CodepointsForState -- +CodepointsForState Int ] {
+        peek index:1+ 
+    }
+}
+
+||| Iterate over each unicode codepoint in a string
+def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
+    with-data(
+        >UOffset >len >ptr 0u >UOffset >index +CodepointsForState
+        while(index len <, 
+            peek 0x80 & 0 == if(
+                next! >Codepoint-unsafe rdip:f,
+
+                peek 0xE0 & 0xC0 == if(
+                    next! 0x1F & 6 <<
+                    next! 0x3F & | >Codepoint-unsafe rdip:f,
+
+                    peek 0xF0 & 0xE0 == if(
+                        next! 0x0F & 12 <<
+                        next! 0x3F &  6 << | 
+                        next! 0x3F &       | >Codepoint-unsafe rdip:f,
+
+                        next! 0x07 & 16 <<
+                        next! 0x3F & 12 << |
+                        next! 0x3F &  6 << |
+                        next! 0x3F &       | >Codepoint-unsafe rdip:f
+                 )
+                )
+            )
+        )
+        /+CodepointsForState index> drop ptr> drop len> drop 
+    )
+}
+
+||| How many utf-16 words long this string would be if it were re-encoded
+|||
+||| Unicode codepoints 0xFFFF and below are encoded as one word, and all above
+||| are encoded as two.
+def Str.num-utf-16 [ Str -- USize ] {
+    dip(0u >USize) codepoints-for(size-utf-16 +)
+}
+
+||| How many unicode codepoints this string contains
+def Str.num-codepoints [ Str -- USize ] {
+    # TODO: this doesn't actually need to fully decode the string to work
+    dip(0u >USize) codepoints-for(drop 1+)
+}

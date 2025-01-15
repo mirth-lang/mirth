@@ -31,6 +31,7 @@ extern void* calloc(size_t, size_t);
 extern void* realloc(void*, size_t);
 extern void* memset(void*, int, size_t);
 extern void* memcpy(void*, const void*, size_t);
+extern void* memmove(void*, const void*, size_t);
 extern int memcmp(const void*, const void*, size_t);
 extern int strcmp(const char*, const char*);
 extern size_t strlen(const char*);
@@ -41,6 +42,8 @@ extern int close(int);
 extern int open(const char*, int, ...);
 extern void exit(int);
 extern int sprintf (char * s, const char * format, ...);
+extern float strtof(const char* str, char** endptr);
+extern double strtod(const char* str, char** endptr);
 
 typedef uint64_t TAG;
 #define REFS_FLAG 0x0001
@@ -396,6 +399,7 @@ static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }
 static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }
 static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }
 static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }
+static bool value_bool (VAL v) { ASSERT1(IS_BOOL(v),v); return VBOOL(v); }
 
 static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }
 static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
@@ -529,6 +533,50 @@ static int str_cmp(STR* s1, STR* s2) {
 	return 0;
 }
 
+static STR* str_drop (STR* in, size_t num_bytes) {
+	ASSERT(in);
+	if (num_bytes > in->size) {
+		num_bytes = in->size;
+	}
+	size_t remaining = in->size - num_bytes;
+	char* slice = in->data + num_bytes;
+
+	if (in->refs == 1) {
+		if (remaining > 0) memmove(in->data, slice, remaining);
+		memset(in->data + remaining, 0, in->cap - remaining);
+		in->size = remaining;
+		return in;
+	} else {
+		STR* out = str_make(slice, remaining);
+		decref(MKSTR(in));
+		return out;
+	}
+}
+
+static float str_to_f32 (STR* in, STR** out) {
+	ASSERT(in); ASSERT(out);
+	ASSERT(in->data[in->size] == 0);
+	char *endptr = NULL;
+	float val = strtof(in->data, &endptr);
+	ASSERT(endptr);
+	ASSERT(endptr >= in->data);
+	size_t consumed = endptr - in->data;
+	*out = str_drop(in, consumed);
+	return val;
+}
+
+static double str_to_f64 (STR* in, STR** out) {
+	ASSERT(in); ASSERT(out);
+	ASSERT(in->data[in->size] == 0);
+	char *endptr = NULL;
+	double val = strtod(in->data, &endptr);
+	ASSERT(endptr);
+	ASSERT(endptr >= in->data);
+	size_t consumed = endptr - in->data;
+	*out = str_drop(in, consumed);
+	return val;
+}
+
 static void default_run(VAL v) {
 	TRACE("panic! tried to run ");
 	TRACE(VTYPE(v)->name);
@@ -571,7 +619,7 @@ static int64_t i64_sub (int64_t a, int64_t b) {
 static int64_t i64_mul (int64_t a, int64_t b) {
 	EXPECT((a == 0) || (b == 0) ||
 		((a > 0) && (b > 0) && (a <= INT64_MAX/b)) ||
-		((a > 0) && (b < 0) && (a <= INT64_MIN/b)) ||
+		((a > 0) && (b < 0) && (b >= INT64_MIN/a)) ||
 		((a < 0) && (b > 0) && (a >= INT64_MIN/b)) ||
 		((a < 0) && (b < 0) && (a >= INT64_MAX/b)),
 		"overflow during integer multiplication"

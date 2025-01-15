@@ -83,15 +83,15 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
     typecheck-everything!
 
     entry-point> map(
-        dip(dup NAMESPACE_MODULE) >Name 0 QName.Mk
+        dip(dup Namespace.Module) >Name 0 QName.Mk
         elab-entry-point
     ) nip
 
     trace-diagnostics!
 
     num-errors 0> if(
-        num-errors rdip:trace(FGRed emit; show ; " errors." ; Reset emit;) 1 posix-exit!,
-        rdip:trace(FGGreen emit; "No errors." ; Reset emit;),
+        num-errors rdip:trace(Sgr.FGRed emit; show ; " errors." ; Sgr.Reset emit;) 1 posix-exit!,
+        rdip:trace(Sgr.FGGreen emit; "No errors." ; Sgr.Reset emit;),
     )
 
     match(
@@ -100,7 +100,7 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
             run-specializer!
             num-errors 0> if(
                 trace-diagnostics!
-                num-errors rdip:trace(FGRed emit; show ; " errors during specializer." ; Reset emit;) 1 posix-exit!,
+                num-errors rdip:trace(Sgr.FGRed emit; show ; " errors during specializer." ; Sgr.Reset emit;) 1 posix-exit!,
 
                 "Codegen." rdip:trace
                 output-file> if-some(
@@ -118,7 +118,7 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
 }
 
 def parse-package-def [ Str -- [Str Path] ] {
-    dip(BCOLON) split-byte
+    dip(Byte.BCOLON) split-byte
     >L2? unwrap("Invalid package path definition" panic!)
     /L2 >Path pack2
 }
@@ -130,29 +130,29 @@ def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOp
         { B'o' -> dip:map(>Path) output-file! }
         { B'e' -> entry-point! }
         { B'c' -> nip None swap entry-point! }
-        { B'p' -> swap for(parse-package-def swap packages:Cons) }
-        { B'P' -> swap for(>Path swap package-search-paths:Cons) }
-        { _ -> drop swap drop UnknownArg Some state:error! }
+        { B'p' -> swap for(parse-package-def swap packages:List.Cons) }
+        { B'P' -> swap for(>Path swap package-search-paths:List.Cons) }
+        { _ -> drop swap drop ArgumentParsingError.UnknownArg Some state:error! }
     },
     Positional -> swap state positional-index 0= if(
         swap for(>Path swap input-file!),
-        dip(drop) TooManyArgs Some state:error!
+        dip(drop) ArgumentParsingError.TooManyArgs Some state:error!
     ),
     LongOnly -> dup "debug" == if(
         drop2 True swap emit-debug-info!,
-        drop2 UnknownArg Some state:error!
+        drop2 ArgumentParsingError.UnknownArg Some state:error!
     ),
     End ->
         state positional-index 1 < then(
-            TooFewArgs Some state:error!
+            ArgumentParsingError.TooFewArgs Some state:error!
         )
         state arguments output-file else(
             state arguments entry-point then(
-                "output-file" MissingArg Some state:error!
+                "output-file" ArgumentParsingError.MissingArg Some state:error!
             )
         )
         drop,
-    _ -> drop drop UnknownArg Some state error! state!
+    _ -> drop drop ArgumentParsingError.UnknownArg Some state error! state!
 }
 
 def main [ +World -- +World ] {
@@ -161,42 +161,42 @@ def main [ +World -- +World ] {
     Arguments.default
     LIST(
         "output-file" Some >name
-        B'o' Short >flag-type
+        Byte.B'o' ArgpOptionType.Short >flag-type
         "OUTPUT_FILE" Some >arg-doc
         "Test argument" Some >doc
         None >group
         ArgpOption ;
 
         "compile-only" Some >name
-        B'c' Short >flag-type
+        Byte.B'c' ArgpOptionType.Short >flag-type
         None >arg-doc
         "Compile code without running codegen step" Some >doc
         None >group
         ArgpOption ;
 
         "entry-point" Some >name
-        B'e' Short >flag-type
+        Byte.B'e' ArgpOptionType.Short >flag-type
         "ENTRY_POINT" Some >arg-doc
         "Custom entry point word for compilation" Some >doc
         None >group
         ArgpOption ;
 
         "package" Some >name
-        B'p' Short >flag-type
+        Byte.B'p' ArgpOptionType.Short >flag-type
         "(PACKAGE:PATH)*" Some >arg-doc
         "Package locations" Some >doc
         None >group
         ArgpOption ;
 
         "package-search-path" Some >name
-        B'P' Short >flag-type
+        Byte.B'P' ArgpOptionType.Short >flag-type
         "SEARCH_PATH*" Some >arg-doc
         "Package search paths" Some >doc
         None >group
         ArgpOption ;
 
         "debug" Some >name
-        "debug" LongOnly >flag-type
+        "debug" ArgpOptionType.LongOnly >flag-type
         None >arg-doc
         "Emit debugging information during codegen" Some >doc
         None >group

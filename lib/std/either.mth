@@ -45,6 +45,10 @@ data Either(a,b) {
     }
 }
 
+# Re-export these constructors unqualified.
+alias(Left,  Either.Left)
+alias(Right, Either.Right)
+
 def while-left(f) [ (*c a -- *c Either(a,b)) *c a -- *c b ] {
     Left while-some(dup left?, nip f)
     right? unwrap(impossible!)

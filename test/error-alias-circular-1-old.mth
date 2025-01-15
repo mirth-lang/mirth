@@ -2,5 +2,5 @@ module(mirth-tests.error-alias-circular-1-old)
 import(std.prelude)
 alias(foo, foo)
 def(main, --, id)
-# mirth-test # merr # 3:12: error: Alias points to itself, circular aliases are not allowed.
+# mirth-test # merr # 3:12: error: Unknown target name, possibly a misspelling.
 # mirth-test # mret # 1

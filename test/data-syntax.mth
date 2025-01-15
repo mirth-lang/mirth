@@ -19,10 +19,10 @@ data Bar { Bar1 Bar2 [ Str x:Str ] }
 struct Baz { something:Int something-else:Str }
 
 def main {
-    Foo1 drop
-    10 Foo2 drop
-    "hi" "bye" >x Bar2 drop
-    Bar1 drop
+    Foo.Foo1 drop
+    10 Foo.Foo2 drop
+    "hi" "bye" >x Bar.Bar2 drop
+    Bar.Bar1 drop
     10 >something "here" >something-else
-    Baz drop
+    Baz.Baz drop
 }

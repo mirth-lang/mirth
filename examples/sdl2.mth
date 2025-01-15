@@ -378,8 +378,14 @@ inline(
     def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) >SDL_EventType }
 )
 
-data(SDL_KeyboardEvent, SDL_KeyboardEvent -> Ptr)
 def(SDL_Event.key, SDL_Event -- SDL_KeyboardEvent, /SDL_Event SDL_KeyboardEvent)
+
+struct SDL_KeyboardEvent {
+    Ptr
+    --
+    inline def >Ptr [ SDL_KeyboardEvent -- Ptr ] { /SDL_KeyboardEvent }
+}
+
 def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(4u >UOffset) unsafe(uoffset))
 def(SDL_KeyboardEvent.timestamp@, SDL_KeyboardEvent -- U32, timestamp& unsafe(@U32))
 def(SDL_KeyboardEvent.timestamp!, U32 SDL_KeyboardEvent --, timestamp& unsafe(!U32))
@@ -392,24 +398,25 @@ def(SDL_KeyboardEvent.state!, U8 SDL_KeyboardEvent --, state& unsafe(!U8))
 def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(13u >UOffset) unsafe(uoffset))
 def(SDL_KeyboardEvent.repeat@, SDL_KeyboardEvent -- U8, repeat& unsafe(@U8))
 def(SDL_KeyboardEvent.repeat!, U8 SDL_KeyboardEvent --, repeat& unsafe(!U8))
-
-data(SDL_Keysym, WRAP_SDL_KEYSYM -> Ptr)
-def(Ptr.>SDL_Keysym, Ptr -- SDL_Keysym, WRAP_SDL_KEYSYM)
-def(SDL_Keysym.unwrap, SDL_Keysym -- Ptr, WRAP_SDL_KEYSYM -> id)
-def(SDL_Keysym.>Ptr, SDL_Keysym -- Ptr, unwrap)
 def(SDL_KeyboardEvent.keysym, SDL_KeyboardEvent -- SDL_Keysym,
-    /SDL_KeyboardEvent dip(16u >UOffset) unsafe(uoffset) >SDL_Keysym)
+    /SDL_KeyboardEvent dip(16u >UOffset) unsafe(uoffset) SDL_Keysym)
 
-def(SDL_Keysym.scancode&, SDL_Keysym -- Ptr, unwrap)
-def(SDL_Keysym.scancode@, SDL_Keysym -- SDL_Scancode, scancode& unsafe(@U16) >SDL_Scancode)
-
-data(SDL_ControllerButtonEvent, WRAP_SDL_CBUTTON -> Ptr)
-def(Ptr.>SDL_ControllerButtonEvent, Ptr -- SDL_ControllerButtonEvent, WRAP_SDL_CBUTTON)
-def(SDL_ControllerButtonEvent.unwrap, SDL_ControllerButtonEvent -- Ptr, WRAP_SDL_CBUTTON -> id)
-def(SDL_ControllerButtonEvent.>Ptr,  SDL_ControllerButtonEvent -- Ptr, unwrap)
+struct SDL_Keysym {
+    Ptr
+    --
+    def >Ptr [ SDL_Keysym -- Ptr ] { /SDL_Keysym }
+    def scancode& [ SDL_Keysym -- Ptr ] { >Ptr }
+    def scancode@ [ SDL_Keysym -- SDL_Scancode ] { scancode& unsafe(@U16) >SDL_Scancode }
+}
 
 def(SDL_Event.cbutton, SDL_Event -- SDL_ControllerButtonEvent,
-    /SDL_Event >SDL_ControllerButtonEvent)
+    /SDL_Event SDL_ControllerButtonEvent)
+struct SDL_ControllerButtonEvent {
+    Ptr
+    --
+    def >Ptr [ SDL_ControllerButtonEvent -- Ptr ] { /SDL_ControllerButtonEvent }
+}
+
 def(SDL_ControllerButtonEvent.which&, SDL_ControllerButtonEvent -- Ptr,
     dip(8u >UOffset) >Ptr unsafe(uoffset))
 def(SDL_ControllerButtonEvent.which@, SDL_ControllerButtonEvent -- SDL_JoystickID,
@@ -693,11 +700,11 @@ data(SDL_Scancode,
 )
 def SDL_NUM_SCANCODES { 512 }
 
-data(SDL_JoystickID, WRAP_SDL_JOYSTICKID -> Int) # TODO: change to I32
-def(SDL_JoystickID.unwrap, SDL_JoystickID -- Int, WRAP_SDL_JOYSTICKID -> id)
+data(SDL_JoystickID, SDL_JoystickID -> Int) # TODO: change to I32
+def(SDL_JoystickID.unwrap, SDL_JoystickID -- Int, /SDL_JoystickID)
 def(SDL_JoystickID.>Int, SDL_JoystickID -- Int, unwrap)
 def(SDL_JoystickID.>I32, SDL_JoystickID -- I32, >Int >I32-unsafe )
-def(Int.>SDL_JoystickID, Int -- SDL_JoystickID, WRAP_SDL_JOYSTICKID)
+def(Int.>SDL_JoystickID, Int -- SDL_JoystickID, SDL_JoystickID)
 def(I32.>SDL_JoystickID, I32 -- SDL_JoystickID, >Int >SDL_JoystickID)
 def(SDL_JoystickID.>, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) >)
 def(SDL_JoystickID.1+, SDL_JoystickID -- SDL_JoystickID, >Int 1+ >SDL_JoystickID)
@@ -713,7 +720,7 @@ external(
 def(+SDL.num-joysticks, +SDL -- +SDL Int, unsafe(SDL_NumJoysticks) >Int)
 def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, CInt unsafe(SDL_IsGameController))
 
-data(+SDL_GameController, SDL_GAME_CONTROLLER! -> unsafe-ptr:Ptr)
+struct +SDL_GameController { unsafe-ptr:Ptr }
 data(+SDL_GameController?, OK! -> +SDL_GameController, ERROR! -> Str)
 def(+SDL_GameController?.unwrap!, +SDL_GameController? -- +SDL_GameController, OK! -> id, ERROR! -> panic!)
 def(+SDL_GameController?.map!(f), (*a +SDL_GameController -- *a +SDL_GameController) *a +SDL_GameController? -- *a +SDL_GameController?,
@@ -726,11 +733,11 @@ def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameCon
 def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
     CInt unsafe(SDL_GameControllerOpen)
     if-some(
-        >unsafe-ptr SDL_GAME_CONTROLLER! +SDL_GameController?.OK!,
+        >unsafe-ptr +SDL_GameController +SDL_GameController?.OK!,
         get-error! +SDL_GameController?.ERROR!,
     ))
 def(+SDL_GameController.close!, +SDL +SDL_GameController -- +SDL,
-    /SDL_GAME_CONTROLLER! unsafe-ptr> unsafe(SDL_GameControllerClose))
+    /+SDL_GameController unsafe-ptr> unsafe(SDL_GameControllerClose))
 
 data(SDL_GameControllerButton,
     -1 SDL_CONTROLLER_BUTTON_INVALID,

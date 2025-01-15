@@ -1,0 +1,16 @@
+module test.unpack-then
+
+import std.prelude
+import std.test
+
+def unpack-then-negate [ [ Int Bool ] -- Int ] { unpack2 then:negate }
+
+def main {
+    +Tests.Start!
+    "unpack2 then(...)" test (
+        -10 True  pack2 unpack-then-negate => (10)
+         10 False pack2 unpack-then-negate => (10)
+    )
+    +Tests.end!
+}
+# mirth-test # pout # 1 tests passed.

@@ -17,4 +17,4 @@ def(Label.new!, Name -- Label,
     ) nip)
 
 def(Label.is-resource-label?, Label -- Bool,
-    name head B'+' ==)
+    name head Byte.B'+' ==)

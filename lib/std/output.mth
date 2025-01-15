@@ -60,7 +60,7 @@ struct +Output {
     }
 
     def line [ +Output -- +Output ] {
-        BLF put-byte
+        Byte.BLF put-byte
     }
 
     def put-line [ Str +Output -- +Output ] {

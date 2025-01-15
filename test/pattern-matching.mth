@@ -38,13 +38,13 @@ def(foo-display, +World Foo -- +World,
     ))
 
 def(main, +World -- +World,
-    FOO0 foo-display
-    10 FOO1 foo-display
-    20 FOO1 foo-display
-    30 12 FOO2 foo-display
-    40 60 FOO2 foo-display
-    90 90 20 FOO3 foo-display
-    9000 0 1 FOO3 foo-display)
+    Foo.FOO0 foo-display
+    10 Foo.FOO1 foo-display
+    20 Foo.FOO1 foo-display
+    30 12 Foo.FOO2 foo-display
+    40 60 Foo.FOO2 foo-display
+    90 90 20 Foo.FOO3 foo-display
+    9000 0 1 Foo.FOO3 foo-display)
 
 # mirth-test # pout # FOO0, sum = 0, values = []
 # mirth-test # pout # FOO1, sum = 10, values = [ 10 ]
