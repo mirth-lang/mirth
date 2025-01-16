@@ -17,7 +17,6 @@ import mirth.external
 import mirth.word
 import mirth.var
 import mirth.buffer
-import mirth.variable
 import mirth.table
 import mirth.tycon
 import mirth.type
@@ -649,7 +648,6 @@ struct +AB {
     def ab-f64! [ F64 +Mirth +AB -- +Mirth +AB ] { Op.F64 ab-op! }
     def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { Op.Str ab-op! }
     def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { Op.Buffer ab-op! }
-    def ab-variable! [ Variable +Mirth +AB -- +Mirth +AB ] { Op.Variable ab-op! }
     def ab-field! [ Field +Mirth +AB -- +Mirth +AB ] { Op.Field ab-op! }
     def ab-var! [ Var +Mirth +AB -- +Mirth +AB ] { Op.Var ab-op! }
     def ab-tag! [ Tag +Mirth +AB -- +Mirth +AB ] { Op.Tag ab-op! }
@@ -873,7 +871,6 @@ struct +AB {
     def elab-atom-def! [ Def +Mirth +AB -- +Mirth +AB ] {
         Alias -> rdip:target elab-atom-def!,
         Buffer -> elab-no-args! ab-buffer!,
-        Variable -> elab-no-args! ab-variable!,
         External -> elab-no-args! ab-external!,
         Field -> elab-no-args! ab-field!,
         Word -> elab-word-args! ab-word!,
@@ -1093,7 +1090,6 @@ def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
         F64 -> Value.F64 Type.Value OpSig.Push,
         Str -> Value.Str Type.Value OpSig.Push,
         Buffer -> drop Type.Ptr OpSig.Push,
-        Variable -> type Type.Mut OpSig.Push,
         Tag -> type freshen-sig OpSig.Apply,
         Word -> dup inferring-type? if(type, type freshen-sig) OpSig.Apply,
         Prim -> type freshen-sig OpSig.Apply,
@@ -2300,20 +2296,34 @@ def elab-def-type! [ +Mirth Token -- +Mirth Token ] {
     target> over PropLabel.TypeDefTarget prop(elab-simple-type-arg!) swap ~target !
 }
 
-||| Elaborate a buffer definition `buffer(B, size)`.
-def elab-buffer! [ +Mirth Token -- +Mirth Token ] {
-    sip(next) args-2
-    swap dup elab-def-qname-undefined
-    rotl dup int? unwrap("expected buffer size" emit-fatal-error!)
-    >USize-if(nip, drop "buffer size must not be negative" emit-error! 0u >USize) Buffer.new! drop
+||| Elaborate a buffer declaration.
+|||
+|||     buffer(Name, Size)
+|||     buffer Name Size
+def parse-buffer [ +Mirth Token -- +Mirth Token head:Token doc:Maybe(Str) size:USize ] {
+    dup doc >doc
+    dup num-args 0> if(
+        sip(next) args-2 >sizearg >head
+        @head args-0
+        @head name/dname? else(@head "Expected buffer name." emit-fatal-error!)
+        @head next arg-end? else(@head next "Expected comma." emit-fatal-error!)
+        @sizearg int? else?(@sizearg "Expected buffer size." emit-fatal-error!) >size
+        @sizearg next args-end? else(@sizearg next "Expected end of arguments." emit-fatal-error!),
+
+        succ dup >head next dup >sizearg next
+        @head name/dname? else(@head "Expected buffer name." emit-fatal-error!)
+        @sizearg int? else?(@sizearg "Expected buffer size." emit-fatal-error!) >size
+    )
+    @size:>USize-else(drop @sizearg "Buffer size must not be negative." emit-error! 0u >USize)
+    sizearg> drop
 }
 
-||| Elaborate a var declaration `var(v, type)`.
-def elab-variable! [ +Mirth Token -- +Mirth Token ] {
-    sip(next) args-2
-    swap dup elab-def-qname-undefined Variable.new!
-    tuck PropLabel.VariableType prop(elab-simple-type-arg!)
-    over ~type ! drop
+||| Elaborate a buffer definition `buffer(B, size)`.
+def elab-buffer! [ +Mirth Token -- +Mirth Token ] {
+    parse-buffer elab-def-head arity> drop
+    Buffer.new! >buffer
+    @buffer PropLabel.BufferQName >label Prop @buffer ~qname !
+    buffer> Def.Buffer register
 }
 
 ||| Parse a table declaration.
@@ -2420,10 +2430,16 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     ) drop
 
     # Table.NUM
-    @tbl head
-    @tbl "NUM" 0 table-qname
-    8u >USize Buffer.new!
-    @tbl ~num-buffer !
+    None >doc # TODO
+    @tbl head >head
+    "NUM" >Name >name
+    8u >USize >size
+    Buffer.new! >buf
+    @buf @tbl ~num-buffer !
+    @tbl "Num" 0 table-qname
+    @buf PropLabel.BufferQName prop
+    @buf ~qname !
+    buf> Def.Buffer register
 
     # Table.index
     None >doc # TODO
@@ -2536,7 +2552,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     va> vx> drop2
 
     # Table.alloc!
-    None >doc #TODO
+    None >doc # TODO
     @tbl "alloc!" 0u table-word-new! >word
 
     Ctx.L0

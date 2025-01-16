@@ -54,7 +54,6 @@ def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
     "def-external"  [ elab-def-external!  ] MacroAction.Decl Macro.Prim Def.Macro register
     "external"      [ elab-external!      ] MacroAction.Decl Macro.Prim Def.Macro register
     "buffer"        [ elab-buffer!        ] MacroAction.Decl Macro.Prim Def.Macro register
-    "var"           [ elab-variable!      ] MacroAction.Decl Macro.Prim Def.Macro register
     "table"         [ elab-table!         ] MacroAction.Decl Macro.Prim Def.Macro register
     "field"         [ elab-field!         ] MacroAction.Decl Macro.Prim Def.Macro register
     "data"          [ elab-data!          ] MacroAction.Decl Macro.Prim Def.Macro register

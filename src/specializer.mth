@@ -52,7 +52,6 @@ def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
         Word -> check-word-atom!,
         External -> drop List.L1,
         Buffer -> drop List.L1,
-        Variable -> drop List.L1,
         Field -> drop List.L1,
         Int -> drop List.L1,
         F64 -> drop List.L1,
@@ -145,7 +144,6 @@ def Op.similar [ +Mirth Op Op -- +Mirth Bool ] {
     { Word -> swap match { Word -> ==, _ -> drop2 False }}
     { External -> swap match { External -> ==, _ -> drop2 False }}
     { Buffer -> swap match { Buffer -> ==, _ -> drop2 False }}
-    { Variable -> swap match { Variable -> ==, _ -> drop2 False }}
     { Field -> swap match { Field -> ==, _ -> drop2 False }}
     { Int -> swap match { Int -> ==, _ -> drop2 False }}
     { F64 -> swap match { F64 -> ==, _ -> drop2 False }}

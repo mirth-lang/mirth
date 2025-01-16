@@ -19,7 +19,6 @@ import mirth.token
 import mirth.tycon
 import mirth.type
 import mirth.typedef
-import mirth.variable
 import mirth.word
 import mirth.macro
 
@@ -34,7 +33,6 @@ data Def {
     Prim [ Prim ]
     Word [ Word ]
     Buffer [ Buffer ]
-    Variable [ Variable ]
     External [ External ]
     Field [ Field ]
     Macro [ Macro ]
@@ -50,7 +48,6 @@ data Def {
     def prim? { Prim -> Some, _ -> drop None }
     def word? { Word -> Some, _ -> drop None }
     def buffer? { Buffer -> Some, _ -> drop None }
-    def variable? { Variable -> Some, _ -> drop None }
     def external? { External -> Some, _ -> drop None }
     def field? { Field -> Some, _ -> drop None }
     def macro? { Macro -> Some, _ -> drop None }
@@ -66,7 +63,6 @@ data Def {
         { Prim -> Some swap prim? == }
         { Word -> Some swap word? == }
         { Buffer -> Some swap buffer? == }
-        { Variable -> Some swap variable? == }
         { External -> Some swap external? == }
         { Field -> Some swap field? == }
         { Macro -> Some swap macro? == }
@@ -83,7 +79,6 @@ data Def {
         { Prim -> drop }
         { Word -> dup type drop arrow drop }
         { Buffer -> drop }
-        { Variable -> type drop }
         { External -> type drop }
         { Field -> type drop }
         { Macro -> drop }
@@ -102,7 +97,6 @@ data Def {
         { Word -> drop True }
         { Field -> drop True }
         { Tag -> drop True }
-        { Variable -> drop True }
         { Macro -> action callable? }
     }
 
@@ -119,7 +113,6 @@ data Def {
         { Word -> drop False }
         { Field -> drop False }
         { Tag -> drop False }
-        { Variable -> drop False }
         { Macro -> drop False }
     }
 
@@ -136,7 +129,6 @@ data Def {
         { Word -> drop None }
         { Field -> drop None }
         { Tag -> drop None }
-        { Variable -> drop None }
         { Macro -> drop None }
     }
 
@@ -153,7 +145,6 @@ data Def {
         { Word -> head Some }
         { Field -> head Some }
         { Tag -> .data head? }
-        { Variable -> head Some }
         { Macro -> head? }
     }
 
@@ -182,7 +173,6 @@ data Def {
         { Word -> name }
         { Field -> name }
         { Tag -> name }
-        { Variable -> name }
         { Macro -> name }
     }
 
@@ -199,7 +189,6 @@ data Def {
         { Word -> arity >Int }
         { Field -> drop 0 }
         { Tag -> drop 0 }
-        { Variable -> drop 0 }
         { Macro -> arity }
     }
 
@@ -207,7 +196,7 @@ data Def {
         { Alias -> qname-soft }
         { Package -> qname Some }
         { Module -> qname Some }
-        { Buffer -> qname Some }
+        { Buffer -> qname-soft }
         { Prim -> qname Some }
         { Data -> qname-soft }
         { Table -> qname-soft }
@@ -216,7 +205,6 @@ data Def {
         { Word -> qname-soft }
         { Field -> qname-soft }
         { Tag -> qname Some }
-        { Variable -> qname Some }
         { Macro -> qname-soft }
     }
 
@@ -224,7 +212,7 @@ data Def {
         { Alias -> qname-hard }
         { Package -> qname }
         { Module -> qname }
-        { Buffer -> qname }
+        { Buffer -> qname-hard }
         { Prim -> qname }
         { Data -> qname-hard }
         { Table -> qname-hard }
@@ -233,7 +221,6 @@ data Def {
         { Word -> qname-hard }
         { Field -> qname-hard }
         { Tag -> qname }
-        { Variable -> qname }
         { Macro -> qname-hard }
     }
 

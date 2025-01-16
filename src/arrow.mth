@@ -16,7 +16,6 @@ import mirth.word
 import mirth.prim
 import mirth.external
 import mirth.buffer
-import mirth.variable
 import mirth.table
 import mirth.label
 
@@ -96,7 +95,6 @@ data Op {
     Word [ Word ]
     External [ External ]
     Buffer [ Buffer ]
-    Variable [ Variable ]
     Field [ Field ]
     Int [ Int ]
     F64 [ F64 ]
@@ -127,7 +125,6 @@ data Op {
         { Word -> drop List.Nil }
         { External -> drop List.Nil }
         { Buffer -> drop List.Nil }
-        { Variable -> drop List.Nil }
         { Field -> drop List.Nil }
         { Int -> drop List.Nil }
         { F64 -> drop List.Nil }
