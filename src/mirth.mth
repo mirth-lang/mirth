@@ -19,7 +19,7 @@ import mirth.token
 import mirth.data
 import mirth.alias
 import mirth.external
-import mirth.variable
+import mirth.buffer
 import mirth.table
 import mirth.package
 import mirth.module
@@ -282,7 +282,7 @@ data PropLabel {
     ExternalQName  [ External ]
     ExternalType   [ External ]
     ExternalCType  [ External ]
-    VariableType   [ Variable ]
+    BufferQName    [ Buffer ]
     FieldQName     [ Field ]
     FieldValueType [ Field ]
     FieldIndexType [ Field ]
@@ -306,7 +306,7 @@ data PropLabel {
         { ExternalQName  -> "external qname at " ; head location; }
         { ExternalType   -> "external type at " ; head location; }
         { ExternalCType  -> "external ctype at " ; head location; }
-        { VariableType   -> "variable type at " ; head location; }
+        { BufferQName    -> "buffer qname at " ; head location; }
         { FieldQName     -> "field qname at " ; head location; }
         { FieldValueType -> "field value type at " ; head location; }
         { FieldIndexType -> "field index type at " ; head location; }

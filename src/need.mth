@@ -80,7 +80,6 @@ def +Needs.run-op! [ List(Arg) Op +Mirth +Needs -- +Mirth +Needs ] {
     { Word -> dup prefer-inline? if(run-word!, need-word!) push-args! }
     { External -> drop push-args! }
     { Buffer -> drop push-args! }
-    { Variable -> drop push-args! }
     { Field -> drop push-args! }
     { Tag -> need-tag-word! push-args! }
     { Prim -> run-prim! }

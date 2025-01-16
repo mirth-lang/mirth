@@ -19,7 +19,6 @@ import mirth.buffer
 import mirth.arrow
 import mirth.word
 import mirth.table
-import mirth.variable
 import mirth.external
 import mirth.tycon
 import mirth.type
@@ -112,7 +111,6 @@ def run-output-c99! [ Arrow C99_Options +World +Mirth -- +World +Mirth ] {
         c99-field-defs!
         c99-tag-defs!
         c99-buffers!
-        c99-variables!
         c99-external-blocks!
         c99-word-sigs!
         c99-block-sigs!
@@ -126,7 +124,6 @@ def run-output-c99! [ Arrow C99_Options +World +Mirth -- +World +Mirth ] {
 field(Tag.~word-cname, Tag, Str)
 field(Tag.~pat-cname, Tag, Str)
 field(Buffer.~cname, Buffer, Str)
-field(Variable.~cname, Variable, Str)
 field(Field.~cname, Field, Str)
 field(External.~cname, External, Str)
 field(Prim.~cname, Prim, Str)
@@ -136,9 +133,7 @@ def Tag.word-cname [ +Mirth Tag -- +Mirth Str ] { dup ~word-cname memoize(
 def Tag.pat-cname [ +Mirth Tag -- +Mirth Str ] { dup ~pat-cname memoize(
     Str("mtp_" ; dup qname rdip:mangled ;)) nip }
 def Buffer.cname [ +Mirth Buffer -- +Mirth Str ] { dup ~cname memoize(
-    Str("mbuf_" ; dup qname rdip:mangled ;)) nip }
-def Variable.cname [ +Mirth Variable -- +Mirth Str ] { dup ~cname memoize(
-    Str("mvar_" ; dup qname rdip:mangled ;)) nip }
+    dup qname-hard mangled Str("mbuf_" ; ;)) nip }
 def Field.cname [ +Mirth Field -- +Mirth Str ] { dup ~cname memoize(
     dup qname-hard mangled Str("mfld_" ; ;)) nip }
 def External.cname [ +Mirth External -- +Mirth Str ] { dup ~cname memoize(
@@ -159,16 +154,6 @@ def c99-buffer! [ Buffer +C99 -- +C99 ] {
 }
 def c99-buffer-call! [ Buffer +C99Branch -- +C99Branch ] {
     C99ReprType.PTR push-value-expression!(+mirth:cname put)
-}
-
-def c99-variables! [ +C99 -- +C99 ] { Variable.for(c99-variable!) }
-def c99-variable! [ Variable +C99 -- +C99 ] {
-    "static VAL " put
-    +mirth:cname put
-    " = {0};" put line
-}
-def c99-variable-call! [ Variable +C99Branch -- +C99Branch ] {
-    C99ReprType.PTR push-value-expression!("&" put +mirth:cname put)
 }
 
 def c99-tag-defs! [ +C99 -- +C99 ] { Tag.for(c99-tag-def!) }
@@ -996,7 +981,6 @@ def Op.show-in-stack-trace? [ Op -- Bool ] {
     { Word -> prefer-inline? not }
     { External -> drop True }
     { Buffer -> drop False }
-    { Variable -> drop False }
     { Field -> drop False }
     { Tag -> drop False }
     { Prim -> drop True }
@@ -1024,7 +1008,6 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { Word          -> dip:args c99-word! }
     { External      -> dip:args c99-external-call! }
     { Buffer        -> nip c99-buffer-call! }
-    { Variable      -> nip c99-variable-call! }
     { Field         -> nip c99-field-call! }
     { Tag           -> dip:args c99-tag-call! }
     { Prim          -> c99-prim! }

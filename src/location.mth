@@ -23,9 +23,6 @@ struct Col {
     def 1+ { Col -> 1+ Col }
 }
 
-def Int.>Row [ Int -- Row ] { Row }
-def Int.>Col [ Int -- Col ] { Col }
-
 struct Location {
     module: Module
     row: Row
