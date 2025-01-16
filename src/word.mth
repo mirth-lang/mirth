@@ -18,6 +18,7 @@ struct Param {
 }
 
 table(Word)
+field(Word.~doc, Word, Maybe(Str))
 field(Word.~name, Word, Name)
 field(Word.~arity, Word, Nat)
 field(Word.~qname, Word, Prop(QName))
@@ -35,6 +36,7 @@ def(Word.qname-soft, Word -- Maybe(QName), ~qname @? bind(ready?))
 def(Word.qname-hard, Word +Mirth -- QName +Mirth, ~qname force!)
 def(Word.namespace-soft, Word +Mirth -- Maybe(Namespace) +Mirth, qname-soft map(namespace))
 def(Word.namespace-hard, Word +Mirth -- Namespace +Mirth, qname-hard namespace)
+def(Word.doc, Word -- Maybe(Str), ~doc @)
 def(Word.name, Word -- Name, ~name @)
 def(Word.head, Word -- Token, ~head @)
 def(Word.sig?, Word -- Maybe(Token), ~sig? @)
@@ -59,8 +61,9 @@ def Word.make-inline! [ Word -- ] { dip:True ~prefer-inline? ! }
 
 def(Word.new!,
     head:Token sig?:Maybe(Token) body:Token
-    name:Name arity:Nat +Mirth -- Word +Mirth,
+    name:Name arity:Nat doc:Maybe(Str) +Mirth -- Word +Mirth,
     Word.alloc!
+    doc> over ~doc !
     name> over ~name !
     head> over ~head !
     body> over ~body !

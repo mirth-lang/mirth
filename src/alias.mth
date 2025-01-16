@@ -8,6 +8,7 @@ import mirth.name
 import mirth.def
 
 table(Alias)
+field(Alias.~doc, Alias, Maybe(Str))
 field(Alias.~head, Alias, Token)
 field(Alias.~name, Alias, Name)
 field(Alias.~arity, Alias, Int)
@@ -23,8 +24,9 @@ def(Alias.arity, Alias -- Int, ~arity @)
 def(Alias.target, +Mirth Alias -- +Mirth Def, ~target force!)
 
 def(Alias.==, Alias Alias -- Bool, both(index) ==)
-def(Alias.new!, +Mirth head:Token name:Name arity:Int -- +Mirth Alias,
+def(Alias.new!, +Mirth head:Token name:Name arity:Int doc:Maybe(Str) -- +Mirth Alias,
     Alias.alloc!
+    doc> over ~doc !
     name> over ~name !
     head> over ~head !
     arity> over ~arity !

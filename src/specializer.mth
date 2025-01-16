@@ -202,6 +202,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             @word body >body
             Str( "sp" ; @word sp-synthed len 1+ show ; ) >Name >name
             0u >arity
+            @word doc >doc
             Word.new! >word'
 
             @word Namespace.Word @word' name 0 QName.Mk

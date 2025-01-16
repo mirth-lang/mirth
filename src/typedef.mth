@@ -12,11 +12,13 @@ import mirth.mirth
 import mirth.var
 
 table(TypeDef)
+field(TypeDef.~doc, TypeDef, Maybe(Str))
 field(TypeDef.~head?, TypeDef, Maybe(Token))
 field(TypeDef.~name, TypeDef, Name)
 field(TypeDef.~qname, TypeDef, Prop(QName))
 field(TypeDef.~target, TypeDef, Prop(Type))
 
+def TypeDef.doc [ TypeDef -- Maybe(Str) ] { ~doc @ }
 def TypeDef.head? [ TypeDef -- Maybe(Token) ] { ~head? @ }
 def TypeDef.qname-soft [ TypeDef -- Maybe(QName) ] { ~qname @? bind(ready?) }
 def TypeDef.qname-hard [ +Mirth TypeDef -- +Mirth QName ] { ~qname force! }

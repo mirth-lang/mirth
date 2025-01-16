@@ -1336,6 +1336,7 @@ def elab-module-qname [ +Mirth Token -- +Mirth QName ] {
 }
 
 struct ModuleHeader {
+    doc: Maybe(Str)
     package: Package
     name: Name
     head: Token
@@ -1347,6 +1348,7 @@ struct ModuleHeader {
 |||     module ModuleName
 |||
 def parse-module-header! [ +Mirth Token -- +Mirth Token ModuleHeader ] {
+    dup doc >doc
     dup Some lexical-state:error-token!
     dup module-header? else("Expected module header." emit-fatal-error!)
     dup num-args 0> if (
@@ -1375,6 +1377,7 @@ def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
     dup .module >module
     parse-module-header! /ModuleHeader
     name> @module ~name !
+    doc> @module ~doc !
     package> @module ~package !
     @module qname defined-soft? then(@head "Module name already taken." emit-fatal-error!)
     head> @module ~head !
@@ -1454,6 +1457,7 @@ def elab-module-import! [ Token +World +Mirth -- Token +World +Mirth ] {
 |||     data ( TypeAtom, DataTag* DataDecls )
 |||     data TypeAtom { DataTag* DataDecls }
 def parse-data [ +Mirth Token -- +Mirth Token SyntaxData ] {
+    dup doc >doc
     dup num-args 0> if(
         succ dup lparen? else("expected left parenthesis '('" emit-fatal-error!)
         succ parse-data-header >header
@@ -1495,6 +1499,7 @@ def data-tags-end? [ Token -- Bool ] {
 |||     Tag [ Type* ]
 |||
 def parse-data-tag [ +Mirth Token -- +Mirth Token SyntaxDataTag ] {
+    dup doc >doc
     dup >head
     dup int? dup >value? then(succ)
     dup name? filter(could-be-constructor)
@@ -1520,6 +1525,7 @@ def parse-data-tag [ +Mirth Token -- +Mirth Token SyntaxDataTag ] {
 |||     struct TypeAtom { Type* DataDecls }
 |||
 def parse-struct [ +Mirth Token -- +Mirth Token SyntaxData ] {
+    dup doc >doc
     dup num-args 0> if(
         succ dup lparen? then("Expected left parenthesis '('" emit-fatal-error!)
         succ parse-data-header >header
@@ -1552,6 +1558,7 @@ def parse-struct-tag
     [  +Mirth Token header:SyntaxDataHeader
     -- +Mirth Token header:SyntaxDataHeader SyntaxDataTag ]
 {
+    None >doc
     @header head >head
     @head last-name? filter(could-be-constructor)
     unwrap(@header head "Expected constructor name." emit-fatal-error!) >name
@@ -1562,6 +1569,7 @@ def parse-struct-tag
 }
 
 struct SyntaxData {
+    doc: Maybe(Str)
     header: SyntaxDataHeader
     tags: List(SyntaxDataTag)
     decls: Maybe(Token)
@@ -1572,6 +1580,7 @@ struct SyntaxDataHeader {
 }
 
 struct SyntaxDataTag {
+    doc: Maybe(Str)
     head: Token
     value?: Maybe(Int)
     name: Name
@@ -1584,6 +1593,7 @@ def elab-struct! { parse-struct elab-data-aux! }
 def elab-data-aux! [ +World +Mirth SyntaxData -- +World +Mirth ] {
     /SyntaxData
     Data.alloc! List.Nil over ~tags !
+    doc> over ~doc !
     header> elab-data-header!
     tags> for(elab-data-tag!)
     decls> for(elab-data-decls!)
@@ -1627,6 +1637,7 @@ def elab-data-tag! [ Data SyntaxDataTag +Mirth -- Data +Mirth ] {
     >syn >dat
     Tag.alloc! >tag
 
+    @syn doc @tag ~doc !
     @dat @syn name 0 data-qname @tag ~qname !
     @syn sig? @tag ~sig? !
     @syn value? for(@tag ~value !)
@@ -1672,7 +1683,7 @@ def elab-data-decls! [ +World +Mirth Data Token -- +World +Mirth Data ] {
     )
 }
 
-def data-word-new! [ +Mirth Data Str Nat -- +Mirth Word ] {
+def data-word-new! [ +Mirth Data Str Nat doc:Maybe(Str) -- +Mirth Word ] {
     dup >arity
     over >Name >name
     dip2(dup head? unwrap("Missing data token information." fatal-error!) dup >body >head)
@@ -1686,6 +1697,7 @@ def data-word-new! [ +Mirth Data Str Nat -- +Mirth Word ] {
 def elab-data-done! [ +Mirth Data -- +Mirth ] {
     >dat
     @dat is-value-type? then (
+        None >doc # TODO
         @dat "enum-value" 0u data-word-new! >word
         @dat params >Ctx
         @dat data-get-enum-value-type
@@ -1697,6 +1709,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
     )
 
     @dat is-enum? then (
+        None >doc # TODO
         @dat "from-enum-value-unsafe" 0u data-word-new! >word
         @dat params >Ctx
         @dat data-from-enum-value-type
@@ -1709,6 +1722,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
 
     @dat tags single? for(
         >tag
+        None >doc # TODO
         @dat "/" @tag name >Str cat 0u data-word-new! >untag
         @untag Some @tag ~untag !
         @tag @untag PropLabel.WordType prop(ctx-type invert pack2) @untag ~ctx-type !
@@ -1824,8 +1838,13 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
     @tag label-inputs reverse-for(
         >lbl
         @dat @lbl name 0 data-qname undefined-soft? then(
+            None >doc # TODO
             @dat @lbl >Str 0u data-word-new! >lbl_get
+
+            None >doc # TODO
             @dat @lbl >Str "!" cat 0u data-word-new! >lbl_set
+
+            None >doc # TODO
             @dat @lbl >Str 1u data-word-new! >lbl_lens
 
             @lbl_get make-inline!
@@ -1916,7 +1935,8 @@ def expect-token-arrow [ +Mirth Token -- +Mirth Token ] {
 ||| Either `alias(head, target)` or `alias head target`.
 ||| Both `head` and `target` are names (or dnames), with `head` taking
 ||| an optional argument list (for the arity), and `target` taking no arguments.
-def parse-alias [ +Mirth Token -- +Mirth Token head:Token target:Token name/dname:Name/DName ] {
+def parse-alias [ +Mirth Token -- +Mirth Token head:Token target:Token name/dname:Name/DName doc:Maybe(Str) ] {
+    dup doc >doc
     dup succ lparen? >Bool >has-paren
     @has-paren if(
         sip(next) args-2 >target >head,
@@ -1992,6 +2012,7 @@ def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
 }
 
 struct SyntaxDef {
+    doc:  Maybe(Str)
     head: Token
     sig?: Maybe(Token)
     body: Token
@@ -2007,6 +2028,7 @@ struct SyntaxDef {
 def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ]
 {
     dup Some lexical-state:error-token!
+    dup doc >doc
     dup args empty? if(
         next
         dup >head next
@@ -2249,14 +2271,32 @@ def elab-def-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
     )
 }
 
+||| Parse a type definition.
+|||
+|||     def-type(t1,t2)
+|||     def-type t1 t2
+def parse-def-type [ +Mirth Token -- +Mirth Token head:Token target:Token doc:Maybe(Str) ] {
+    dup doc >doc
+    dup num-args 0> if (
+        sip(next) args-2 >target >head
+        @head args-0
+        @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
+        @head next arg-end? else(@head next "expected comma" emit-fatal-error!)
+        @target next arg-end? else(@target next "expected end of args" emit-fatal-error!),
+
+        succ dup >head next dup >target next
+        @head args-0
+        @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
+    )
+}
+
 ||| Elaborate a type definition `def-type(t1, t2)`.
 def elab-def-type! [ +Mirth Token -- +Mirth Token ] {
-    sip(next) args-2 >target >head
-    @head args-0
-    @head sig-type-con? else("expected type constructor" emit-fatal-error!)
+    parse-def-type
     elab-def-head @head:Some
     arity> drop
     TypeDef.new!
+    doc> over ~doc !
     target> over PropLabel.TypeDefTarget prop(elab-simple-type-arg!) swap ~target !
 }
 
@@ -2276,12 +2316,28 @@ def elab-variable! [ +Mirth Token -- +Mirth Token ] {
     over ~type ! drop
 }
 
+||| Parse a table declaration.
+|||
+|||     table(Tycon)
+|||     table Tycon
+def parse-table-decl [ Token +Mirth -- Token +Mirth head:Token doc:Maybe(Str) ] {
+    dup doc >doc
+    dup num-args 0> if(
+        sip(next) args-1 >head
+        @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
+        @head args-0
+        @head succ arg-end? else(@head succ "expected end of argument after table name" emit-fatal-error!),
+
+        succ dup >head
+        @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
+        @head args-0
+        succ
+    )
+}
+
 ||| Elaborate a table definition `table(True)`.
 def elab-table! [ +Mirth Token -- +Mirth Token ] {
-    sip(next) args-1 >head
-    @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
-    @head args-0
-    @head succ arg-end? else(@head succ "expected end of argument after table name" emit-fatal-error!)
+    parse-table-decl
     elab-def-head
     arity> drop
     table-new! drop
@@ -2305,6 +2361,7 @@ def elab-entry-point [ QName +Mirth -- Arrow +Mirth ] {
 ||| Embed a file as a string, embed-str(name, "path").
 ||| The path is relative to compiler's cwd, not source root.
 def elab-embed-str! [ Token +World +Mirth -- Token +World +Mirth ] {
+    dup doc >doc
     sip:next args-2 swap
     >head elab-def-head
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
@@ -2333,20 +2390,22 @@ def table-qname [ Table Str Int -- QName ] {
     >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
 }
 
-def table-word-new! [ +Mirth Table Str Nat -- +Mirth Word ] {
+def table-word-new! [ +Mirth Table Str Nat doc:Maybe(Str) -- +Mirth Word ] {
     over2 head dup >head >body None >sig?
     dup >arity over >Name >name >Int table-qname >qname Word.new!
     qname> over PropLabel.WordQName prop over ~qname !
 }
 
-def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Table ] {
+def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(Str) -- +Mirth Table ] {
     Table.alloc! >tbl
     @tbl PropLabel.TableQName >label Prop @tbl ~qname !
     head> @tbl ~head !
     name> @tbl ~name !
+    doc> @tbl ~doc !
     @tbl Def.Table register
 
     # Table.nil
+    None >doc # TODO
     @tbl "nil" 0u table-word-new! >word
 
     Ctx.L0
@@ -2367,6 +2426,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     @tbl ~num-buffer !
 
     # Table.index
+    None >doc # TODO
     @tbl "index" 0u table-word-new! >word
 
     Ctx.L0
@@ -2380,6 +2440,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     ) drop
 
     # Table.from-index
+    None >doc # TODO
     @tbl "from-index" 0u table-word-new! >word
 
     Ctx.L0
@@ -2393,6 +2454,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     ) drop
 
     # Table.succ
+    None >doc # TODO
     @tbl "succ" 0u table-word-new! >word
 
     Ctx.L0
@@ -2409,6 +2471,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     ) drop
 
     # Table.pred
+    None >doc # TODO
     @tbl "pred" 0u table-word-new! >word
 
     Ctx.L0
@@ -2433,6 +2496,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     { +Mirth tbl:Table }
 
     # Table.for
+    None >doc # TODO
     @tbl "for" 1u table-word-new! >word
     Type.StackType "*a" >Name Var.new! >va
     @va StackType.Var @tbl Type.Table T* @va StackType.Var T-> "f" >Name Var.new-auto-run! >vx
@@ -2472,6 +2536,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) -- +Mirth Ta
     va> vx> drop2
 
     # Table.alloc!
+    None >doc #TODO
     @tbl "alloc!" 0u table-word-new! >word
 
     Ctx.L0

@@ -12,11 +12,13 @@ import mirth.mirth
 
 # mirth/data/table
 table(Table)
+field(Table.~doc, Table, Maybe(Str))
 field(Table.~head, Table, Token) # where the table was defined
 field(Table.~name, Table, Name)
 field(Table.~qname, Table, Prop(QName))
 field(Table.~num-buffer, Table, Buffer)
 
+def(Table.doc, Table -- Maybe(Str), ~doc @)
 def(Table.head, Table -- Token, ~head @)
 def(Table.qname-soft, Table -- Maybe(QName), ~qname @? bind(ready?))
 def(Table.qname-hard, +Mirth Table -- +Mirth QName, ~qname force!)

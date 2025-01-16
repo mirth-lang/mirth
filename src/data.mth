@@ -19,6 +19,7 @@ import mirth.mirth
 table(Data)
 field(Data.~head?, Data, Maybe(Token))
 field(Data.~qname, Data, Prop(QName))
+field(Data.~doc, Data, Maybe(Str))
 field(Data.~name, Data, Name)
 field(Data.~arity, Data, Int)
 field(Data.~params, Data, Prop(List(Var)))
@@ -238,6 +239,7 @@ def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
 #######
 
 table(Tag)
+field(Tag.~doc, Tag, Maybe(Str))
 field(Tag.~data, Tag, Data)
 field(Tag.~qname, Tag, QName)
 field(Tag.~value, Tag, Int)
