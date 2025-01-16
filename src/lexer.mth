@@ -184,8 +184,6 @@ struct +Lexer {
         rdip:is-doc-start? if(
             drop3
             skip-doc!,
-            # TODO: save the doc in the token-doc field for the next token
-            #   https://github.com/mirth-lang/mirth/issues/240
 
             Token.alloc!
             tuck ~col !
@@ -202,11 +200,7 @@ struct +Lexer {
             +lexer>
             lexer-doc over ~doc !            
 
-            lexer-last-token!
-            lexer-last-token dup doc if?(
-                rdip:rdip:emit-info!,
-                drop
-            ) 
+            lexer-last-token! 
             None lexer-doc!
         )
         rdip(freeze drop)
@@ -253,16 +247,11 @@ struct +Lexer {
     }
 
     def skip-doc! [ +Lexer -- +Lexer ] {
-        Str(
-        rswap
+        lexer-doc else?("") rdip:thaw
         while(comment-end? not, peek rdip:push-byte-ascii! move!)
         peek Byte.BLF == then(newline! peek rdip:push-byte-ascii! move!)
-        rswap
-        )
-        lexer-doc:if?(
-            thaw ; freeze Some,
-            Some
-        )
+        rdip:freeze Some
+        lexer-doc!
     }
 
     def comment-end? [ +Lexer -- Bool +Lexer ] {
