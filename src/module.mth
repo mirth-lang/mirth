@@ -13,6 +13,7 @@ import mirth.mirth
 
 # mirth/data/module
 table(Module)
+field(Module.~doc, Module, Maybe(Str))
 field(Module.~package, Module, Package)
 field(Module.~name, Module, Name)
 field(Module.~path, Module, Path)
@@ -39,6 +40,7 @@ def(init-modules!, +Mirth -- +Mirth,
     "<prim>" >Path over ~path !
     Package.std over ~package !
     "prim" >Name over ~name !
+    None over ~doc !
     drop)
 
 def(Module.new!, +Mirth Path -- +Mirth Module,

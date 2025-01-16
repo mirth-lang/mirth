@@ -84,6 +84,8 @@ struct +Lexer {
         lexer-module over ~module !
         lexer-row over ~row !
         lexer-col over ~col !
+        lexer-doc over ~doc !
+        None lexer-doc!
         dup lexer-last-token!
     }
 
@@ -198,9 +200,9 @@ struct +Lexer {
             else?(name-token)
             over ~value !
             +lexer>
-            lexer-doc over ~doc !            
+            lexer-doc over ~doc !
 
-            lexer-last-token! 
+            lexer-last-token!
             None lexer-doc!
         )
         rdip(freeze drop)
