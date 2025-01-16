@@ -27,6 +27,7 @@ struct +Lexer {
     lexer-module:Module
     lexer-row:Row
     lexer-col:Col
+    lexer-doc:Maybe(Str)
     lexer-stack:List(Token)
     lexer-first-token:Token
     lexer-last-token:Token
@@ -42,6 +43,7 @@ struct +Lexer {
         >lexer-module
         1 Row >lexer-row
         1 Col >lexer-col
+        None >lexer-doc
         List.L0 >lexer-stack
         Token.alloc-none! dup
         >lexer-first-token
@@ -56,6 +58,7 @@ struct +Lexer {
         lexer-row> lexer-col> lexer-last-token> drop3
         lexer-module> Token.alloc-none! over ~end !
         lexer-first-token> succ over ~start !
+        lexer-doc> drop
         +input>
     }
 
@@ -181,8 +184,6 @@ struct +Lexer {
         rdip:is-doc-start? if(
             drop3
             skip-doc!,
-            # TODO: save the doc in the token-doc field for the next token
-            #   https://github.com/mirth-lang/mirth/issues/240
 
             Token.alloc!
             tuck ~col !
@@ -197,8 +198,10 @@ struct +Lexer {
             else?(name-token)
             over ~value !
             +lexer>
+            lexer-doc over ~doc !            
 
-            lexer-last-token!
+            lexer-last-token! 
+            None lexer-doc!
         )
         rdip(freeze drop)
     }
@@ -244,8 +247,11 @@ struct +Lexer {
     }
 
     def skip-doc! [ +Lexer -- +Lexer ] {
-        while(comment-end? not, move!)
-        peek Byte.BLF == then(newline! move!)
+        lexer-doc else?("") rdip:thaw
+        while(comment-end? not, peek rdip:push-byte-ascii! move!)
+        peek Byte.BLF == then(newline! peek rdip:push-byte-ascii! move!)
+        rdip:freeze Some
+        lexer-doc!
     }
 
     def comment-end? [ +Lexer -- Bool +Lexer ] {
