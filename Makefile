@@ -42,11 +42,11 @@ checksan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c
 
 check-origin-fast:
 	touch bin/origin-mirth0.c
-	git show origin/main:bin/mirth0.c > bin/origin-mirth0-fast.c
+	git show main:bin/mirth0.c > bin/origin-mirth0-fast.c
 	diff -q bin/origin-mirth0.c bin/origin-mirth0-fast.c || ( cp bin/origin-mirth0-fast.c bin/origin-mirth0.c && $(CC) bin/origin-mirth0.c -o bin/origin-mirth0 && bin/origin-mirth0 src/main.mth -c )
 
 check-origin: bin/mirth3.c
-	git show origin/main:bin/mirth0.c > bin/origin-mirth0.c
+	git show main:bin/mirth0.c > bin/origin-mirth0.c
 	$(CC) bin/origin-mirth0.c -o bin/origin-mirth0
 	bin/origin-mirth0 src/main.mth -o bin/origin-mirth1.c
 	$(CC) bin/origin-mirth1.c -o bin/origin-mirth1
