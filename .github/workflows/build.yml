@@ -37,12 +37,10 @@ jobs:
           ref: main
       - name: cp main/bin/mirth0.c head/bin/origin-mirth0.c
         run: cp main/bin/mirth0.c head/bin/origin-mirth0.c
-      - name: cd head
-        run: cd head
-      - name: make run-check-origin
-        run: make run-check-origin
-      - name: make check-origin-diff
-        run: make check-origin-diff
+      - name: make -C head run-check-origin
+        run: make -C head run-check-origin
+      - name: make -C head check-origin-diff
+        run: make -C head check-origin-diff
 
   build-san:
     strategy:
