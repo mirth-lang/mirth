@@ -25,23 +25,6 @@ jobs:
     - name: make examples
       run: make examples
 
-  check-origin:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: head
-      - uses: actions/checkout@v4
-        with:
-          path: main
-          ref: main
-      - name: cp main/bin/mirth0.c head/bin/origin-mirth0.c
-        run: cp main/bin/mirth0.c head/bin/origin-mirth0.c
-      - name: make -C head run-check-origin
-        run: make -C head run-check-origin
-      - name: make -C head check-origin-diff
-        run: make -C head check-origin-diff
-
   build-san:
     strategy:
       matrix:
@@ -65,3 +48,20 @@ jobs:
       run: tools\cibuild.bat ${{ matrix.arch }}
     - name: make check
       run: make check
+
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: head
+      - uses: actions/checkout@v4
+        with:
+          path: main
+          ref: main
+      - name: cp main/bin/mirth0.c head/bin/origin-mirth0.c
+        run: cp main/bin/mirth0.c head/bin/origin-mirth0.c
+      - name: make -C head check-origin-build
+        run: make -C head check-origin-build
+      - name: make -C head check-origin-diff
+        run: make -C head check-origin-diff
