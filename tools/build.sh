@@ -60,6 +60,7 @@ case "$DirName" in
         case "$BaseName" in
             *.mth )
                 bin/mirth2 -c "$1"
+                make check-origin-fast
                 ;;
         esac
         ;;

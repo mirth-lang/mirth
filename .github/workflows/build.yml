@@ -20,6 +20,8 @@ jobs:
       run: make build
     - name: make check
       run: make check
+    - name: make check-origin
+      run: make check-origin
     - name: make test-verify
       run: make test-verify
     - name: make examples
