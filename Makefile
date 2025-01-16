@@ -10,7 +10,7 @@ SRCS=lib/std/* lib/arg-parser/* src/*
 
 .PHONY: default show showsan build buildsan debug update check checksan clean \
  install-vim install-code install-atom install profile play-snake test-verify test-update \
- examples get-origin run-check-origin check-origin check-origin-fast
+ examples get-origin run-check-origin check-origin check-origin-fast check-origin-diff
 
 default: show bin/snake.c bin/fractal.c
 
@@ -48,16 +48,18 @@ check-origin-fast:
 get-origin:
 	git show origin/main:bin/mirth0.c > bin/origin-mirth0.c
 
-run-check-origin: bin/mirth3.c
+run-check-origin:
 	$(CC) bin/origin-mirth0.c -o bin/origin-mirth0
 	bin/origin-mirth0 src/main.mth -o bin/origin-mirth1.c
 	$(CC) bin/origin-mirth1.c -o bin/origin-mirth1
 	bin/origin-mirth1 src/main.mth -o bin/origin-mirth2.c
 	$(CC) bin/origin-mirth2.c -o bin/origin-mirth2
 	bin/origin-mirth2 src/main.mth -o bin/origin-mirth3.c
+
+check-origin-diff: bin/mirth3.c
 	diff bin/mirth3.c bin/origin-mirth3.c
 
-check-origin: get-origin run-check-origin
+check-origin: get-origin run-check-origin check-origin-diff
 
 clean:
 	cp bin/mirth0.c mirth0.c

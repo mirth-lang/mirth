@@ -30,13 +30,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
-          sparse-checkout: bin/mirth0.c
-      - name: cp bin/mirth0.c bin/origin-mirth0.c
-        run: cp bin/mirth0.c bin/origin-mirth0.c
+          path: head
       - uses: actions/checkout@v4
+        with:
+          path: main
+          ref: main
+      - name: cp main/bin/mirth0.c head/bin/origin-mirth0.c
+        run: cp main/bin/mirth0.c head/bin/origin-mirth0.c
+      - name: cd head
+        run: cd head
       - name: make run-check-origin
         run: make run-check-origin
+      - name: make check-origin-diff
+        run: make check-origin-diff
 
   build-san:
     strategy:
