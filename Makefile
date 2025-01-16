@@ -10,7 +10,7 @@ SRCS=lib/std/* lib/arg-parser/* src/*
 
 .PHONY: default show showsan build buildsan debug update check checksan clean \
  install-vim install-code install-atom install profile play-snake test-verify test-update \
- examples
+ examples check-origin check-origin-fetch check-origin-build check-origin-diff check-origin-fast
 
 default: show bin/snake.c bin/fractal.c
 
@@ -39,6 +39,27 @@ checksan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth3san.c
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth3san.c
 	diff --strip-trailing-cr bin/mirth2.c bin/mirth3san.c
+
+check-origin: check-origin-fetch check-origin-build check-origin-diff
+
+check-origin-fetch:
+	git show origin/main:bin/mirth0.c > bin/origin-mirth0.c
+
+check-origin-build:
+	$(CC) bin/origin-mirth0.c -o bin/origin-mirth0
+	bin/origin-mirth0 src/main.mth -o bin/origin-mirth1.c
+	$(CC) bin/origin-mirth1.c -o bin/origin-mirth1
+	bin/origin-mirth1 src/main.mth -o bin/origin-mirth2.c
+	$(CC) bin/origin-mirth2.c -o bin/origin-mirth2
+	bin/origin-mirth2 src/main.mth -o bin/origin-mirth3.c
+
+check-origin-diff: bin/mirth3.c
+	diff bin/mirth3.c bin/origin-mirth3.c
+
+check-origin-fast:
+	touch bin/origin-mirth0.c
+	git show origin/main:bin/mirth0.c > bin/origin-mirth0-fast.c
+	diff -q bin/origin-mirth0.c bin/origin-mirth0-fast.c || ( cp bin/origin-mirth0-fast.c bin/origin-mirth0.c && $(CC) bin/origin-mirth0.c -o bin/origin-mirth0 && bin/origin-mirth0 src/main.mth -c )
 
 clean:
 	cp bin/mirth0.c mirth0.c
