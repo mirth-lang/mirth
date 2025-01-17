@@ -506,3 +506,24 @@ struct +Nester(t) {
 
 def List.Mk(f) [ (*a +Lister(t) -- *b +Lister(t)) *a -- *b List(t) ] { L0 build! f done! }
 def Nest.Mk(f) [ (*a +Lister(t) -- *b +Nester(t)) *a -- *b Nest(t) ] { L0 build! f done! }
+
+data +List(+t) {
+    +Nil
+    +Cons [ +t +List(+t) ]
+    --
+    def rdrop (f {rdrop}) [ (*x +t -- *x) *x +List(+t) -- *x ] { +for(f) }
+    def +for(f) [ (*x +t -- *x) *x +List(+t) -- *x ] {
+        { +Nil -> id }
+        { +Cons -> rdip:f +for:f }
+    }
+    def +map(f) [ (*x +a -- *x +b) *x +List(+a) -- *x +List(+b) ] {
+        { +Nil -> +List.+Nil }
+        { +Cons -> rdip:f rdip':+map:f +List.+Cons }
+    }
+}
+
+struct +Nest(+t) {
+    +head: +t
+    +tail: +List(+t)
+    --
+}
