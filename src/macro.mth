@@ -44,8 +44,17 @@ def Macro.Prim [ +Mirth Str MacroAction -- +Mirth Macro ] {
     macro>
 }
 
+def module-statement-error! [ +Mirth Token -- +Mirth Token ] {
+    "'module' statement outside of module header." emit-fatal-error!
+}
+def import-statement-error! [ +Mirth Token -- +Mirth Token ] {
+    "'import' statement outside of module header." emit-fatal-error!
+}
+
 def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
-    "import"        [ elab-module-import! ] MacroAction.Decl Macro.Prim Def.Macro register
+    "module" [ module-statement-error! ] MacroAction.Decl Macro.Prim Def.Macro register
+    "import" [ import-statement-error! ] MacroAction.Decl Macro.Prim Def.Macro register
+
     "alias"         [ elab-alias!         ] MacroAction.Decl Macro.Prim Def.Macro register
     "inline"        [ elab-inline!        ] MacroAction.Decl Macro.Prim Def.Macro register
     "def"           [ elab-def!           ] MacroAction.Decl Macro.Prim Def.Macro register

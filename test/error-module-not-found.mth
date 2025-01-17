@@ -1,4 +1,4 @@
 module(test.error-module-not-found)
 import(test.error-module-not-found-asdf-aux)
-# mirth-test # merr # 2:1: error: Failed to open file: "test/error-module-not-found-asdf-aux.mth"
+# mirth-test # merr # 2:8: error: Failed to open file: "test/error-module-not-found-asdf-aux.mth"
 # mirth-test # mret # 1
