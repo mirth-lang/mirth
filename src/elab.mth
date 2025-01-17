@@ -1336,6 +1336,7 @@ struct ModuleHeader {
     package: Package
     name: Name
     head: Token
+    imports: List(ModuleImport)
 }
 
 ||| Parse the `module` declaration at the top of the module:
@@ -1356,6 +1357,10 @@ def parse-module-header! [ +Mirth Token -- +Mirth Token ModuleHeader ] {
         @head parse-module-package-name! >name >package
         @head next
     )
+    L0 >imports
+    while(dup module-import?, parse-module-import @imports:cons)
+    @imports:reverse
+    dup sig-dashes? then(succ)
     ModuleHeader
 }
 
@@ -1379,6 +1384,7 @@ def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
     head> @module ~head !
     @module Def.Module register
     dup module> check-module-path
+    imports> for(process-module-import!)
 }
 
 def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
@@ -1434,17 +1440,28 @@ def load-module [ Token QName +World +Mirth -- Token Module +World +Mirth ] {
     )
 }
 
-||| Elaborate import statement. Return token after import.
+struct ModuleImport {
+    name: Token
+}
+
+||| Parse a module import statement. Return token after import.
 |||
 |||     import(ModuleName)
 |||     import ModuleName
-def elab-module-import! [ Token +World +Mirth -- Token +World +Mirth ] {
+def parse-module-import [ +Mirth Token -- +Mirth Token ModuleImport ] {
+    dup module-import? else("Expected import statement." emit-fatal-error!)
     dup num-args 0> if(
-        sip(next) args-1
-        dup next dup arg-end? else("expected arg end" emit-fatal-error!) drop,
-        succ sip(next)
+        sip(next) args-1 >name
+        @name succ arg-end? else(@name succ "expected arg end" emit-fatal-error!),
+        succ dup >name next
     )
-    dup elab-module-qname load-module
+    ModuleImport
+}
+
+||| Process a module import statement.
+def process-module-import! [ ModuleImport +World +Mirth -- +World +Mirth ] {
+    /ModuleImport
+    name> dup elab-module-qname load-module
     dip(.module) add-import!
 }
 

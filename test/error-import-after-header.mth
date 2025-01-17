@@ -1,0 +1,6 @@
+module test.error-import-after-header
+import std.prelude
+--
+import std.list
+# mirth-test # merr # 4:1: error: 'import' statement outside of module header.
+# mirth-test # mret # 1

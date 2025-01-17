@@ -1,0 +1,6 @@
+module test.module-header-dashes
+import std.prelude
+import std.world
+--
+def main { "hello, world!" print }
+# mirth-test # pout # hello, world!
