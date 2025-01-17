@@ -187,7 +187,7 @@ def +Str.find [ Str +Str -- Maybe(UOffset) +Str ] {
 }
 
 def(+Str.split-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Nest(Str) +Str,
-    LIST+( 0u >UOffset dup while(
+    Nest.Mk( 0u >UOffset dup while(
         dup rdip(+Str.num-bytes?) >UOffset <,
         tuck dip2(rdip(byte@ rdip(p))) rotl if(
             tuck rdip:unsafe(+Str.offset-slice)

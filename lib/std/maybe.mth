@@ -34,8 +34,8 @@ data Maybe(t) {
 
     def unwrap(f)     { { Some -> id   } { None -> f } }
     def >List {
-        { None -> List.L0 }
-        { Some -> List.L1 }
+        { None -> L0 }
+        { Some -> L1 }
     }
 
     def == (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {

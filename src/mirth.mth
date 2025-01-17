@@ -116,8 +116,8 @@ struct +Mirth {
     package-search-paths: List(Path)
     prefer-inline-defs: Bool
     lexical-state: LexicalState
-    +diagnostics: +List(Diagnostic)
-    +propstack: +List(PropLabel)
+    +diagnostics: +Lister(Diagnostic)
+    +propstack: +Lister(PropLabel)
 }
 
 def +Mirth.Init! {
@@ -126,9 +126,9 @@ def +Mirth.Init! {
     False >prefer-inline-defs
     Builtin.Alloc! >builtin
     None >mirth-base-path
-    List.L0 >package-search-paths
-    +List.+L0 >+diagnostics
-    +List.+L0 >+propstack
+    L0 >package-search-paths
+    +Lister.+Nil >+diagnostics
+    +Lister.+Nil >+propstack
     None >error-token
     None >defining-namespace
     LexicalState >lexical-state
@@ -232,7 +232,7 @@ def(+Mirth.trace-diagnostics!, +World +Mirth -- +World +Mirth,
     for(rdip:trace(diagnostic;)))
 
 def(+Mirth.pop-diagnostics, +Mirth -- +Mirth List(Diagnostic),
-    +diagnostics(freeze +List.+L0))
+    +diagnostics(pop-all!))
 
 def(Diagnostic.diagnostic;, +Str Diagnostic -- +Str,
     /Diagnostic

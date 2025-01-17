@@ -30,7 +30,7 @@ struct +SPCheck {
     --
 }
 
-def(+SPCheck.begin!, -- +SPCheck, List.L0 >checklist +SPCheck)
+def(+SPCheck.begin!, -- +SPCheck, L0 >checklist +SPCheck)
 def(+SPCheck.end!, +SPCheck --, +SPCheck -> checklist> drop)
 def(+SPCheck.loop!, +Mirth +SPCheck -- +Mirth +SPCheck,
     while-some(checklist:uncons, do-item-check!))
@@ -50,43 +50,43 @@ def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
     dup op match(
         Prim -> check-prim-atom!,
         Word -> check-word-atom!,
-        External -> drop List.L1,
-        Buffer -> drop List.L1,
-        Field -> drop List.L1,
-        Int -> drop List.L1,
-        F64 -> drop List.L1,
-        Str -> drop List.L1,
-        Tag -> drop List.L1,
-        Match -> check-match! Op.Match swap op! List.L1,
-        Lambda -> check-lambda! Op.Lambda swap op! List.L1,
-        Var -> drop List.L1,
-        BlockPush -> push-check-block! List.L1,
-        BlockRun -> push-check-block! List.L1,
-        LabelPush -> drop List.L1,
-        LabelPop -> drop List.L1,
-        LabelPushR -> drop List.L1,
-        LabelPopR -> drop List.L1,
-        DataGetEnumValue -> drop List.L1,
-        DataFromEnumValue -> drop List.L1,
-        DataGetLabel -> drop List.L1,
-        DataSetLabel -> drop List.L1,
-        TableToIndex -> drop List.L1,
-        TableFromIndex -> drop List.L1,
+        External -> drop L1,
+        Buffer -> drop L1,
+        Field -> drop L1,
+        Int -> drop L1,
+        F64 -> drop L1,
+        Str -> drop L1,
+        Tag -> drop L1,
+        Match -> check-match! Op.Match swap op! L1,
+        Lambda -> check-lambda! Op.Lambda swap op! L1,
+        Var -> drop L1,
+        BlockPush -> push-check-block! L1,
+        BlockRun -> push-check-block! L1,
+        LabelPush -> drop L1,
+        LabelPop -> drop L1,
+        LabelPushR -> drop L1,
+        LabelPopR -> drop L1,
+        DataGetEnumValue -> drop L1,
+        DataFromEnumValue -> drop L1,
+        DataGetLabel -> drop L1,
+        DataSetLabel -> drop L1,
+        TableToIndex -> drop L1,
+        TableFromIndex -> drop L1,
     ))
 
 def(+SPCheck.check-arg!, Arg +SPCheck -- +SPCheck,
     Block -> push-check-block!)
 def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
-    drop dup args for(check-arg!) List.L1)
+    drop dup args for(check-arg!) L1)
 def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List(Atom),
     dup push-check-word!
     over args >Nest? match(
-        None -> drop List.L1,
+        None -> drop L1,
         Some ->
             dup has(rdip:free-vars has(is-physical?)) if(
                 # can't specialize, just check the args
                 dup for(check-arg!)
-                drop2 List.L1,
+                drop2 L1,
 
                 # boot up the specializer for real!
                 SPKey swap rdip:specialize-word!

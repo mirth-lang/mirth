@@ -167,7 +167,7 @@ def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
             unpack2
     )
     dup pattern:saved:List.Cons
-    List.L1 >saved dup >dom pattern:mid!
+    L1 >saved dup >dom pattern:mid!
     PatternAtom pattern:atoms:List.Cons)
 
 def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,

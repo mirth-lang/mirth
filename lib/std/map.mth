@@ -16,7 +16,7 @@ struct KeyValuePair(k,v) {
 struct Map(k,v) {
     pairs: List(KeyValuePair(k,v))
     --
-    def Nil { List.L0 >pairs Map }
+    def Nil { L0 >pairs Map }
     def len { pairs len }
     def keys { pairs map(key) }
     def values { pairs map(value) }

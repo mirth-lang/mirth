@@ -132,7 +132,7 @@ data Op {
         { Tag -> drop List.Nil }
         { Match -> free-vars }
         { Lambda -> free-vars }
-        { Var -> List.L1 }
+        { Var -> L1 }
         { BlockPush -> free-vars }
         { BlockRun -> free-vars }
         { LabelPush -> drop List.Nil }

@@ -72,7 +72,7 @@ struct +TypeElab {
             token next
             token args map(token! elab-type-sig! Type.Arrow)
             dip:token!,
-            List.L0
+            L0
         )
     }
 
@@ -188,17 +188,17 @@ struct +TypeElab {
             filter(dup rdip:defines-a-type?, RejectedDef.WrongSort)
             filter-arity
             filter-qualifiers
-            List.L0 filter-roots
+            L0 filter-roots
         ) if? (
             match(
                 Data -> sip:Type.Data rdip:params,
-                Table -> Type.Table List.L0,
+                Table -> Type.Table L0,
                 Type -> rdip(sip:target params),
                 _ ->
                     drop token "compiler bug: resolve-type-con-name! doesn't understand type"
-                    rdip:emit-error! Type.Error List.L0,
+                    rdip:emit-error! Type.Error L0,
             ),
-            Type.Error List.L0
+            Type.Error L0
         )
     }
 
@@ -240,7 +240,7 @@ struct +TypeElab {
             drop tycon? then?(
                 token rdip:Str("Too many type arguments to "; swap rdip(qname-hard >Str) ;) rdip:emit-error!
             )
-            Type.Error List.L0
+            Type.Error L0
         )
     }
 
@@ -549,8 +549,8 @@ def QName.climb-up-name? [ +Mirth Name QName -- +Mirth List(Namespace) ] {
     >qname >name
 
     @qname name @name == if(
-        @qname namespace List.L1,
-        List.L0
+        @qname namespace L1,
+        L0
     ) >accum
     name> defs for(match(
         Alias ->
@@ -576,7 +576,7 @@ def QName.climb-up-dname? [ +Mirth +ResolveDef DName QName -- +Mirth +ResolveDef
         ))
     )
     rdip:climb-up-name? swap
-    reverse-for(swap bind(rdip:qname if?(dip(dup) rdip:climb-up-name?, List.L0)) nip)
+    reverse-for(swap bind(rdip:qname if?(dip(dup) rdip:climb-up-name?, L0)) nip)
 }
 
 def elab-type-unify! [ +Mirth Type Type Token -- +Mirth Type Token ] {
@@ -631,7 +631,7 @@ struct +AB {
         dup >op
         rdip:elab-op-fresh-sig! dip:>subst
         ab-expand-opsig! >cod >dom
-        List.L0 >args Atom ab-atom!
+        L0 >args Atom ab-atom!
     }
 
     def ab-expand-opsig! [ OpSig +Mirth +AB -- StackType StackType +Mirth +AB ] {
@@ -720,7 +720,7 @@ struct +AB {
         ab-type@ >dom
         ab-token@ >token
         ab-home@ >home
-        List.L0 >cases
+        L0 >cases
         rdip(+Match f freeze) Op.Match ab-op!
     }
 
@@ -851,7 +851,7 @@ struct +AB {
                 @+ab:ab-type@ top-types-are-fine? then(
                     @+ab:ab-type@ top-namespaces filter-roots
                 ),
-                List.L0 filter-roots
+                L0 filter-roots
             )
         ) +ab> match (
             None -> elab-atom-failed!,
@@ -938,7 +938,7 @@ def ab-build!(f) [ (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow ] 
     >home
     dup >token-start >token-end
     dup >dom >cod
-    >ctx List.L0 >atoms
+    >ctx L0 >atoms
     Arrow >arrow +AB
     f /+AB arrow>
 }
@@ -1064,7 +1064,7 @@ def atoms-has-last-block? [ List(Atom) -- Bool ] {
 
 def atoms-turn-last-block-to-arg [ Atom List(Atom) -- Atom List(Atom) ] {
    >Nest? match(
-        None -> List.L0,
+        None -> L0,
         Some ->
             unsnoc dup op match(
                 BlockPush ->
@@ -1263,7 +1263,7 @@ def +Match.case!(mkpat,mkbod) [
     dip(
         +Match.home >home dup >token-start >token-end
         +Match.ctx dup >outer-ctx >inner-ctx
-        List.L0 >saved +Match.dom dup >mid >cod List.L0 >atoms
+        L0 >saved +Match.dom dup >mid >cod L0 >atoms
         Pattern rdip(thaw mkpat freeze) >pattern
     )
     @pattern inner-ctx
@@ -1526,14 +1526,14 @@ def parse-struct [ +Mirth Token -- +Mirth Token SyntaxData ] {
         succ dup lparen? then("Expected left parenthesis '('" emit-fatal-error!)
         succ parse-data-header >header
         dup comma? then(succ)
-        parse-struct-tag List.L1 >tags
+        parse-struct-tag L1 >tags
         parse-data-decls! >decls
         dup rparen? then("Expected right parenthesis ')'" emit-fatal-error!)
         succ,
 
         succ parse-data-header >header
         dup lcurly? else("expected left curly brace '{'" emit-fatal-error!)
-        succ parse-struct-tag List.L1 >tags
+        succ parse-struct-tag L1 >tags
         parse-data-decls! >decls
         dup rcurly? else("expected right curly brace '}'" emit-fatal-error!)
         succ
@@ -1893,7 +1893,7 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
             @lbl_lens dup PropLabel.WordParams prop(
                 type dom top-type? unwrap("logic error: expected parameter" fatal-error!)
                 morphism? unwrap("logic error: expected morphism" fatal-error!)
-                "f" >Name Var.new-auto-run! >var None >default Param List.L1
+                "f" >Name Var.new-auto-run! >var None >default Param L1
             ) @lbl_lens ~params !
 
             @dat @lbl_get @lbl_set @lbl_lens dup PropLabel.WordArrow prop4(
@@ -1966,7 +1966,7 @@ def elab-alias! [ +Mirth Token -- +Mirth Token ] {
                 RejectedDef.WrongArity
             ) drop
             filter-qualifiers
-            List.L0 filter-roots
+            L0 filter-roots
         )
         unwrap( panic-diagnostics! )
         match(
@@ -2124,7 +2124,7 @@ def check-inline-recursion-failed! [ +Mirth Word -- +Mirth ] {
 
 ||| Elaborate a word's parameters from its type and declaration.
 def elab-def-params! [ +Mirth Word -- +Mirth List(Param) ] {
-    List.L0 over type
+    L0 over type
     rotl head dip(/ArrowType dom> cod>) nip
     args reverse-for(
         dup sig-param-name? unwrap("expected parameter name" emit-fatal-error!) >name
@@ -2167,7 +2167,7 @@ def parse-external-decl [ +Mirth Token -- +Mirth Token List(ExternalDeclPart) ] 
         )
         emit-fatal-error!
     )
-    LIST(
+    List.Mk(
         succ
         while(dup args-end? not,
             rdip(parse-external-decl-part) ;)
@@ -2522,14 +2522,14 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
-    @vx >var None >default Param List.L1
+    @vx >var None >default Param L1
     @word PropLabel.WordParams prop
     @word ~params !
     @word make-inline!
 
     word> ab-build-word! (
         @tbl head ab-token!
-        @vx List.L1 ab-lambda!(
+        @vx L1 ab-lambda!(
             1 ab-int!
             ab-while!(
                 Prim.Dup ab-prim!
@@ -2589,7 +2589,7 @@ def resolve-def-namespace [ +Mirth Token name/dname:Name/DName -- +Mirth Maybe(N
     resolve-def(
         filter-sort(dup rdip:exposed-tycon? >Bool)
         filter-qualifiers
-        List.L0 filter-roots
+        L0 filter-roots
     )
     bind(as-namespace?)
 }

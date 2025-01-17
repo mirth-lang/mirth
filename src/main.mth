@@ -47,8 +47,8 @@ def Arguments.default [ -- Arguments ] {
     "mirth.mth" >Path >input-file
     None >output-file
     "main" Some >entry-point
-    List.L0 >packages
-    List.L0 >package-search-paths
+    L0 >packages
+    L0 >package-search-paths
     Arguments
 }
 
@@ -119,8 +119,8 @@ def compile! [ Arguments +World +Mirth -- +World +Mirth ] {
 
 def parse-package-def [ Str -- [Str Path] ] {
     dip(Byte.BCOLON) split-byte
-    >L2? unwrap("Invalid package path definition" panic!)
-    /L2 >Path pack2
+    pair? unwrap("Invalid package path definition" panic!)
+    unpack2 >Path pack2
 }
 
 def compiler-parse-args [ +ArgumentParser(Arguments) Arguments Maybe(Str) ArgpOptionType --
@@ -159,7 +159,7 @@ def main [ +World -- +World ] {
     +Mirth.Init!
 
     Arguments.default
-    LIST(
+    List.Mk(
         "output-file" Some >name
         Byte.B'o' ArgpOptionType.Short >flag-type
         "OUTPUT_FILE" Some >arg-doc
@@ -213,7 +213,7 @@ def main [ +World -- +World ] {
     }
 
     dup Arguments.package-search-paths empty? then(
-        LIST(
+        List.Mk(
             "lib" >Path ;
             rdip:mirth-base-lib-path for(;)
         ) swap Arguments.package-search-paths!

@@ -35,7 +35,7 @@ def(main, +World -- +World,
     comprun(2 *, 10 +) ??
     drop
 
-    10 20 30 List.L3
+    10 20 30 L3
     trace("[" over for(swap ; show; " ") drop "]" ;)
     map(10 +)
     trace("[" over for(swap ; show; " ") drop "]" ;)

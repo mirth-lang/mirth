@@ -44,7 +44,7 @@ struct +Lexer {
         1 Row >lexer-row
         1 Col >lexer-col
         None >lexer-doc
-        List.L0 >lexer-stack
+        L0 >lexer-stack
         Token.alloc-none! dup
         >lexer-first-token
         >lexer-last-token

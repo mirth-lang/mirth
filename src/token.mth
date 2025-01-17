@@ -327,7 +327,7 @@ def(Token.num-args, Token -- Nat,
 def(Token.args, Token -- List(Token),
     args-start dup left-enclosure? if(
         collect-while(dup args-end? not, succ sip(next-arg-end)) nip,
-        drop List.L0
+        drop L0
     ))
 
 ||| Check if we're at the end of the last argument.

@@ -26,7 +26,7 @@ def TypeDef.namespace [ +Mirth TypeDef -- +Mirth Namespace ] { qname-hard namesp
 def TypeDef.name [ TypeDef -- Name ] { ~name @ }
 def TypeDef.target [ +Mirth TypeDef -- +Mirth Type ] { ~target force! }
 def TypeDef.params [ +Mirth TypeDef -- +Mirth List(Var) ] {
-    drop List.L0 # TODO
+    drop L0 # TODO
 }
 
 def TypeDef.== [ TypeDef TypeDef -- Bool ] { both(index) == }

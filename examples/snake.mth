@@ -99,7 +99,7 @@ def +SnakeLogic.Init! [ +World -- +World +SnakeLogic ] {
     Direction.North >direction
     Direction.North >last-direction
     Position.Random! >mouse
-    Position.Center Nest.N1 >snake
+    Position.Center N1 >snake
     False >dead
     0u >timer
     0u >points

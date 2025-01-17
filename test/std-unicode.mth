@@ -28,8 +28,8 @@ def main [ +World -- +World ] {
     )
 
     "Str.codepoints-for" test (
-        LIST( 97 ; 129498 ; 127995 ; 8205 ; 9792 ; 65039 ; 99 ; ) map:>Codepoint-unsafe 
-        => ( LIST( "a🧚🏻‍♀️c" codepoints-for:; ) )
+        List.Mk( 97 ; 129498 ; 127995 ; 8205 ; 9792 ; 65039 ; 99 ; ) map:>Codepoint-unsafe
+        => ( List.Mk( "a🧚🏻‍♀️c" codepoints-for:; ) )
     )
 
     "Str.num-codepoints" test (
