@@ -1,10 +1,10 @@
 module(test.external-block)
 
-external(
+external {
     "#include <stdio.h>"
     "void go (void) { printf(\"Hello, world!\\n\"); }"
     go [+World -- +World]
-)
+}
 
 def(main, +World -- +World, go)
 # mirth-test # pout # Hello, world!

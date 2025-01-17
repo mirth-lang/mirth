@@ -12,6 +12,7 @@ import mirth.mirth
 
 # mirth/data/external
 table(External)
+field(External.~doc, External, Maybe(Str))
 field(External.~name, External, Name)
 field(External.~arity, External, Int)
 field(External.~qname, External, Prop(QName))
@@ -21,6 +22,7 @@ field(External.~sig, External, Token)
 field(External.~ctx-type, External, Prop([Ctx ArrowType]))
 field(External.~ctype, External, Prop(CTypeArrow))
 
+def(External.doc, External -- Maybe(Str), ~doc @)
 def(External.qname-soft, External -- Maybe(QName), ~qname @? bind(ready?))
 def(External.qname-hard, +Mirth External -- +Mirth QName, ~qname force!)
 def(External.name, External -- Name, ~name @)
@@ -36,8 +38,12 @@ def(External.ctype, +Mirth External -- +Mirth CTypeArrow, ~ctype force!)
 def(External.==, External External -- Bool, both(index) ==)
 
 table(ExternalBlock)
+field(ExternalBlock.~doc, ExternalBlock, Maybe(Str))
 field(ExternalBlock.~token, ExternalBlock, Token)
 field(ExternalBlock.~parts, ExternalBlock, List(ExternalBlockPart))
+
+def(ExternalBlock.doc, ExternalBlock -- Maybe(Str), ~doc @)
+def(ExternalBlock.token, ExternalBlock -- Token, ~token @)
 def(ExternalBlock.parts, ExternalBlock -- List(ExternalBlockPart), ~parts @)
 
 data(ExternalBlockPart,
