@@ -37332,14 +37332,31 @@ static uint64_t mw_mirth_elab_parseZ_moduleZ_import (TUP* in_ZPlusMirth_1, uint6
 	return branch_Token_15;
 }
 static void mw_mirth_elab_processZ_moduleZ_importZBang (uint64_t in_ModuleImport_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_3) {
-	TUP* v6;
-	TUP* v7 = mw_mirth_elab_elabZ_moduleZ_qname(in_ZPlusMirth_2, in_ModuleImport_1, &v6);
-	uint64_t v8;
-	TUP* v9;
-	uint64_t v10 = mw_mirth_elab_loadZ_module(in_ModuleImport_1, v7, v6, &v8, &v9);
-	uint64_t v11 = mw_mirth_token_Token_module(v10);
-	mw_mirth_module_Module_addZ_importZBang(v11, v8);
-	*out_ZPlusMirth_3 = v9;
+	TUP* v6 = value_tup(in_ZPlusMirth_2->cells[6], 2);
+	incref(MKTUP(v6, 2));
+	incref(MKTUP(v6, 2));
+	VAL v7 = v6->cells[0];
+	incref(v7);
+	decref(MKTUP(v6, 2));
+	VAL v8 = mtw_std_maybe_Maybe_1_Some(MKU64(in_ModuleImport_1));
+	VAL v9 = tup_replace(MKTUP(v6, 2), 0, v8);
+	TUP* v10 = value_tup(in_ZPlusMirth_2->cells[6], 2);
+	decref(MKTUP(v10, 2));
+	in_ZPlusMirth_2->cells[6] = v9;
+	TUP* v11;
+	TUP* v12 = mw_mirth_elab_elabZ_moduleZ_qname(in_ZPlusMirth_2, in_ModuleImport_1, &v11);
+	uint64_t v13;
+	TUP* v14;
+	uint64_t v15 = mw_mirth_elab_loadZ_module(in_ModuleImport_1, v12, v11, &v13, &v14);
+	TUP* v16 = value_tup(v14->cells[6], 2);
+	incref(MKTUP(v16, 2));
+	VAL v17 = tup_replace(MKTUP(v16, 2), 0, v7);
+	TUP* v18 = value_tup(v14->cells[6], 2);
+	decref(MKTUP(v18, 2));
+	v14->cells[6] = v17;
+	uint64_t v19 = mw_mirth_token_Token_module(v15);
+	mw_mirth_module_Module_addZ_importZBang(v19, v13);
+	*out_ZPlusMirth_3 = v14;
 }
 static uint64_t mw_mirth_elab_parseZ_data (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, TUP* *out_SyntaxData_5) {
 	VAL v6 = mw_mirth_token_Token_doc(in_Token_2);

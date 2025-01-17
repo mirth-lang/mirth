@@ -1461,7 +1461,7 @@ def parse-module-import [ +Mirth Token -- +Mirth Token ModuleImport ] {
 ||| Process a module import statement.
 def process-module-import! [ ModuleImport +World +Mirth -- +World +Mirth ] {
     /ModuleImport
-    name> dup elab-module-qname load-module
+    name> dup with-error-token(dup elab-module-qname load-module)
     dip(.module) add-import!
 }
 
