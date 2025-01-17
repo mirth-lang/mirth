@@ -2155,23 +2155,27 @@ def elab-def-body! [ StackType +Mirth +AB -- StackType +Mirth +AB ] {
 
 data ExternalDeclPart {
     EDPCode [ token:Token code:Str ]
-    EDPDef  [ head:Token symbol:Maybe(Token) sig:Token ]
+    EDPDef  [ doc:Maybe(Str) head:Token symbol:Maybe(Token) sig:Token ]
 }
 
-def parse-external-decl [ +Mirth Token -- +Mirth Token List(ExternalDeclPart) ] {
-    sip(next)
-    succ dup lparen-or-lcolon? else(
-        pred Str(
-            Sgr.FGCyan emit; "external"; Sgr.Reset emit;
-            " requires arguments";
-        )
-        emit-fatal-error!
-    )
-    List.Mk(
-        succ
-        while(dup args-end? not,
-            rdip(parse-external-decl-part) ;)
-        drop
+||| Parse an external block.
+|||
+|||     external( ExternalPart* )
+|||     external{ ExternalPart* }
+|||     external ExternalPart
+def parse-external-decl [ +Mirth Token -- +Mirth Token List(ExternalDeclPart) doc:Maybe(Str) ] {
+    dup doc >doc
+    succ dup num-args 0> or(dup lcurly? >Bool) if(
+        List.Mk(
+            succ
+            while(dup args-end? not,
+                rdip(parse-external-decl-part) ;
+            )
+            succ
+        ),
+
+        parse-external-decl-word L1
+        None >doc
     )
 }
 
@@ -2181,34 +2185,34 @@ def parse-external-decl-part [ +Mirth Token -- +Mirth Token ExternalDeclPart ] {
         succ
         ExternalDeclPart.EDPCode,
 
-        dup >head
-        dup name/dname? else("expected external word name" emit-fatal-error!)
-        succ
-        dup arrow? if(
-            succ dup name? else("expected external symbol name" emit-fatal-error!)
-            dup Some >symbol
-            succ,
-
-            None >symbol
-        )
-        dup lsquare? if(
-            dup args-1 >sig
-            next,
-
-            dup comma? else("expected type signature" emit-fatal-error!)
-            succ
-            dup arg-end? then("expected type signature" emit-fatal-error!)
-            dup >sig
-            next-arg-end
-        )
-        ExternalDeclPart.EDPDef
+        dup doc >doc
+        parse-external-decl-word
     )
     dip(dup comma? then(succ))
 }
 
-def elab-def-external! [ +Mirth Token -- +Mirth Token ] {
-    dup "def-external" >old "external" >new emit-deprecated!
-    elab-external!
+def parse-external-decl-word [ +Mirth Token doc:Maybe(Str) -- +Mirth Token ExternalDeclPart ] {
+    dup >head
+    dup name/dname? else("expected external word name" emit-fatal-error!)
+    succ
+    dup arrow? if(
+        succ dup name? else("expected external symbol name" emit-fatal-error!)
+        dup Some >symbol
+        succ,
+
+        None >symbol
+    )
+    dup lsquare? if(
+        dup args-1 >sig
+        next,
+
+        dup comma? else("expected type signature" emit-fatal-error!)
+        succ
+        dup arg-end? then("expected type signature" emit-fatal-error!)
+        dup >sig
+        next-arg-end
+    )
+    ExternalDeclPart.EDPDef
 }
 
 ||| Elaborate an external declaration.
@@ -2217,6 +2221,7 @@ def elab-external! [ +Mirth Token -- +Mirth Token ] {
     parse-external-decl
     map(elab-external-block-part!) >parts
     ExternalBlock.alloc! >extblock
+    doc> @extblock ~doc !
     token> @extblock ~token !
     parts> @extblock ~parts !
     extblock> drop
@@ -2227,12 +2232,13 @@ def elab-external-block-part! [ +Mirth ExternalDeclPart -- +Mirth ExternalBlockP
     { EDPDef -> elab-external-def! ExternalBlockPart.EBPDef }
 }
 
-def elab-external-def! [ +Mirth head:Token symbol:Maybe(Token) sig:Token -- +Mirth External ] {
+def elab-external-def! [ +Mirth doc:Maybe(Str) head:Token symbol:Maybe(Token) sig:Token -- +Mirth External ] {
     elab-def-head
 
     symbol> bind(name?) unwrap(@name) >Str >symbol
 
     External.alloc! >external
+    doc> @external ~doc !
     name> @external ~name !
     arity> >Int @external ~arity !
     @external PropLabel.ExternalQName >label Prop @external ~qname !
@@ -2244,13 +2250,13 @@ def elab-external-def! [ +Mirth head:Token symbol:Maybe(Token) sig:Token -- +Mir
         elab-type-sig! dip:ctx pack2 rdrop
     ) @external ~ctx-type !
     @external dup PropLabel.ExternalCType prop(
-        elab-def-external-ctype
+        elab-external-ctype
     ) @external ~ctype !
     @external Def.External register
     external>
 }
 
-def elab-def-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
+def elab-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
     dup head with-error-token(
         type ctype
         dup cod parts
