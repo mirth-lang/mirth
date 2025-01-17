@@ -2665,8 +2665,9 @@ def elab-def-head [
 ||| Parse a field definition, `field(f, T1, T2)`
 def parse-field [
     +Mirth Token -- +Mirth Token
-    head:Token index-type:Token value-type:Token
+    doc:Maybe(Str) head:Token index-type:Token value-type:Token
 ] {
+    dup doc >doc
     sip(next) args-3 >value-type >index-type >head
     @head name/dname? else(@head "expected field name" emit-fatal-error!)
     @head args-0
@@ -2676,6 +2677,7 @@ def parse-field [
 def elab-field! [ +Mirth Token -- +Mirth Token ] {
     parse-field elab-def-head
     Field.alloc! >fld
+    doc> @fld ~doc !
     name> @fld ~name !
     head> @fld ~head !
     arity> 0= else(@fld head "Field cannot take arguments." emit-error!)
