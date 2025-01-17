@@ -1978,8 +1978,8 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         +dipped> push-resource!
     }
     { If ->
-        dup args >L2? unwrap(token "unexpected number of arguments to If" +mirth:emit-fatal-error!)
-        /L2 C99ReprType.Bool pop-value! >+cond
+        dup args pair? unwrap(token "unexpected number of arguments to If" +mirth:emit-fatal-error!)
+        unpack2 C99ReprType.Bool pop-value! >+cond
 
         rotl +mirth:cod
         begin-branch-split!
@@ -1991,8 +1991,8 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
         end-branch-split!
     }
     { While ->
-        dup args >L2? unwrap(token "unexpected number of arguments to While" +mirth:emit-fatal-error!)
-        nip /L2 over c99-arg-run!
+        dup args pair? unwrap(token "unexpected number of arguments to While" +mirth:emit-fatal-error!)
+        nip unpack2 over c99-arg-run!
         C99ReprType.Bool pop-value! push-value!
         refresh-branch! +stack(rdup >+knot)
         C99ReprType.Bool dup pop-value! consume-as
@@ -2172,13 +2172,13 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
     None >tag
-    LIST(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
+    List.Mk(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
     c99-pack-tuple! turn-into-value! push-value!
 }
 
 def c99-tup-unpack! [ Nat +C99Branch -- +C99Branch ] {
     None >tag
-    dup LIST(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
+    dup List.Mk(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
     C99ReprType.TUP pop-value! turn-into-resource! c99-unpack-tuple!
 }
 

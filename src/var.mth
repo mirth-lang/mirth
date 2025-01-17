@@ -54,15 +54,15 @@ def Var.NewInCtx [ Ctx Type Str -- Ctx Var ] {
 # A context for types and terms.
 data(Ctx, Ctx -> List(Var))
 def(List.>Ctx, List(Var) -- Ctx, Ctx)
-def(List+.>Ctx, List+(Var) -- Ctx, >List Ctx)
+def(Nest.>Ctx, Nest(Var) -- Ctx, >List Ctx)
 def(Ctx.>List, Ctx -- List(Var), /Ctx)
 
-def(Ctx.L0, Ctx, List.L0 Ctx)
-def(Ctx.L1, Var -- Ctx, List.L1 Ctx)
-def(Ctx.L2, Var Var -- Ctx, List.L2 Ctx)
-def(Ctx.L3, Var Var Var -- Ctx, List.L3 Ctx)
-def(Ctx.L4, Var Var Var Var -- Ctx, List.L4 Ctx)
-def(Ctx.L5, Var Var Var Var Var -- Ctx, List.L5 Ctx)
+def(Ctx.L0, Ctx, L0 Ctx)
+def(Ctx.L1, Var -- Ctx, L1 Ctx)
+def(Ctx.L2, Var Var -- Ctx, L2 Ctx)
+def(Ctx.L3, Var Var Var -- Ctx, L3 Ctx)
+def(Ctx.L4, Var Var Var Var -- Ctx, L4 Ctx)
+def(Ctx.L5, Var Var Var Var Var -- Ctx, L5 Ctx)
 
 def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.Snoc >Ctx)
 

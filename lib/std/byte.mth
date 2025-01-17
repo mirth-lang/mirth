@@ -90,7 +90,7 @@ data Byte {
     )
 
     def to-str-unsafe [ Byte -- Str ] {
-        List.L1 Str.from-bytes-unsafe
+        L1 Str.from-bytes-unsafe
     }
 
     def to-ascii-str [ Byte -- Maybe(Str) ] {

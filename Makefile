@@ -59,7 +59,8 @@ check-origin-diff: bin/mirth3.c
 check-origin-fast:
 	touch bin/origin-mirth0.c
 	git show origin/main:bin/mirth0.c > bin/origin-mirth0-fast.c
-	diff -q bin/origin-mirth0.c bin/origin-mirth0-fast.c || ( cp bin/origin-mirth0-fast.c bin/origin-mirth0.c && $(CC) bin/origin-mirth0.c -o bin/origin-mirth0 && bin/origin-mirth0 src/main.mth -c )
+	diff -q bin/origin-mirth0.c bin/origin-mirth0-fast.c || ( cp bin/origin-mirth0-fast.c bin/origin-mirth0.c && $(CC) bin/origin-mirth0.c -o bin/origin-mirth0)
+	bin/origin-mirth0 src/main.mth -c
 
 clean:
 	cp bin/mirth0.c mirth0.c

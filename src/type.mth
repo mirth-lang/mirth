@@ -705,7 +705,7 @@ def-type(Type/Resource, Either(Type, Resource))
 
 ||| Split stack type into base, types, and resources.
 def(StackType.split4, StackType -- StackType List([Type/Resource Label]) List(Type) List(Resource),
-    List.L0 List.L0 List.L0 >labels >withses >conses
+    L0 L0 L0 >labels >withses >conses
     while(
         expand match(
             Cons -> conses> List.Cons >conses True,
@@ -775,7 +775,7 @@ def(StackType.top-resource-tycon?, StackType -- Maybe(Tycon),
     top-resource? bind(>Type tycon?))
 
 def(StackType.top-namespaces, StackType -- List(Namespace),
-    LIST(
+    List.Mk(
         dup top-tycon? for(Namespace.Tycon ;)
         top-resource-tycon? for(Namespace.Tycon ;)
     ))
@@ -1276,7 +1276,7 @@ def(StackTypePart.cons, StackType StackTypePart -- StackType,
     WithLabel -> StackType.WithLabel)
 
 def(StackType.split-parts, StackType -- StackTypeBase List(StackTypePart),
-    List.L0 >parts
+    L0 >parts
     while-right(
         match {
             { Error -> StackTypeBase.Error Left }

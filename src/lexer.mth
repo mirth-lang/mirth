@@ -44,7 +44,7 @@ struct +Lexer {
         1 Row >lexer-row
         1 Col >lexer-col
         None >lexer-doc
-        List.L0 >lexer-stack
+        L0 >lexer-stack
         Token.alloc-none! dup
         >lexer-first-token
         >lexer-last-token
@@ -333,7 +333,7 @@ def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
 
 def +Str.dname-token? [ +Str -- Maybe(TokenValue) +Str ] {
     Byte.BDOT +Str.split-byte
-    uncons >List+? match {
+    uncons >Nest? match {
         { None -> drop None }
         { Some ->
             dip(dup Str.empty? if(drop None, >Name Some))

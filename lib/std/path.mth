@@ -32,7 +32,7 @@ struct Path {
     def join [ +World Path Path -- +World Path ] { dip(running-os path-separator) join-with }
     def join-unix [ Path Path -- Path ] { dip("/") join-with }
 
-    def split [ +World Path -- +World List+(Str) ] {
+    def split [ +World Path -- +World Nest(Str) ] {
         /Path split-byte(running-os byte-is-path-separator?)
     }
 
