@@ -267,10 +267,10 @@ struct QName {
 ###############
 
 struct DName {
-    Maybe(Name) List+(Name)
+    Maybe(Name) Nest(Name)
     --
     def root? [ DName -- Maybe(Name) ] { /DName drop }
-    def parts [ DName -- List+(Name) ] { /DName nip }
+    def parts [ DName -- Nest(Name) ] { /DName nip }
     def last-name [ DName -- Name ] { parts last }
     def penultimate-name? [ DName -- Maybe(Name) ] {
         /DName unsnoc drop last if?(

@@ -80,7 +80,7 @@ def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
     drop dup args for(check-arg!) List.L1)
 def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List(Atom),
     dup push-check-word!
-    over args >List+? match(
+    over args >Nest? match(
         None -> drop List.L1,
         Some ->
             dup has(rdip:free-vars has(is-physical?)) if(
@@ -173,7 +173,7 @@ def TagField.similar [ TagField TagField -- Bool ] {
     type/resource> type/resource> drop2
 }
 
-data(SPKey, SPKey -> List+(Arg))
+data(SPKey, SPKey -> Nest(Arg))
 def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKey) ==(similar))
 def(SPKey.>Str, +Mirth SPKey -- +Mirth Str,
     SPKey -> Str("(" ; dip:"" for(dip:; rdip:>Str ; ",") drop ")" ;))

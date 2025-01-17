@@ -28,11 +28,11 @@ data List(t) {
     def >L1? [ List(t) -- Maybe(L1(t)) ] { Cons -> empty? if(L1 Some, drop None), Nil -> None }
     def >L2? [ List(t) -- Maybe(L2(t)) ] { Cons -> >L1? if?(/L1 L2 Some, drop None), Nil -> None }
     def >L3? [ List(t) -- Maybe(L3(t)) ] { Cons -> >L2? if?(/L2 L3 Some, drop None), Nil -> None }
-    def >List+? [ List(t) -- Maybe(List+(t)) ] { Cons -> >tail >head List+ Some, Nil -> None }
+    def >Nest? [ List(t) -- Maybe(Nest(t)) ] { Cons -> >tail >head Nest Some, Nil -> None }
     def len [ List(t) -- Nat ] { 0u swap for(drop 1+) }
 
     def cons [ t List(t) -- List(t) ] { List.Cons }
-    def cons+ [ t List(t) -- List+(t) ] { List+.Cons }
+    def cons+ [ t List(t) -- Nest(t) ] { Nest.Cons }
     def uncons [ List(t) -- Maybe(t) List(t) ] {
         { Nil -> None List.Nil }
         { Cons -> dip(Some) }
@@ -40,14 +40,14 @@ data List(t) {
 
     def Snoc [ List(t) t -- List(t) ] { swap reverse cons reverse }
     def snoc [ List(t) t -- List(t) ] { List.Snoc }
-    def snoc+ [ List(t) t -- List+(t) ] { swap reverse cons+ reverse }
+    def snoc+ [ List(t) t -- Nest(t) ] { swap reverse cons+ reverse }
     def unsnoc [ List(t) -- List(t) Maybe(t) ] { reverse uncons reverse swap }
 
     def cat [ List(t) List(t) -- List(t) ] {
         { Nil -> id }
         { _ -> swap reverse-for(swap cons) }
     }
-    def cat+ [ List+(t) List(t) -- List+(t) ] {
+    def cat+ [ Nest(t) List(t) -- Nest(t) ] {
         dip(uncons) cat cons+
     }
 
@@ -59,8 +59,8 @@ data List(t) {
         { Nil -> List.Nil }
         { Cons -> nip }
     }
-    def first [ List(t) -- Maybe(t) ] { >List+? map(head) }
-    def last  [ List(t) -- Maybe(t) ] { >List+? map(last) }
+    def first [ List(t) -- Maybe(t) ] { >Nest? map(head) }
+    def last  [ List(t) -- Maybe(t) ] { >Nest? map(last) }
 
     def drop-slice [ Nat List(x) -- List(x) ] { swap repeat(tail) }
 
@@ -96,7 +96,7 @@ data List(t) {
 
     ||| Reduce a list via binary operation.
     def fold(g) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a) ] {
-        >List+? map(fold(g))
+        >Nest? map(fold(g))
     }
 
     ||| Sum together a list of numbers.
@@ -239,169 +239,169 @@ data List(t) {
         "LIST( " ; for(f " ; " ;) ")" ;)
 }
 
-
-struct List+(t) {
+||| "Nest" is short for "Non-Empty List". It's a List that has at least one element.
+struct Nest(t) {
     head: t
     tail: List(t)
     --
-    def L1 [ t                 -- List+(t) ] { List.L0 >tail >head List+ }
-    def L2 [ t t               -- List+(t) ] { List.L1 >tail >head List+ }
-    def L3 [ t t t             -- List+(t) ] { List.L2 >tail >head List+ }
-    def L4 [ t t t t           -- List+(t) ] { List.L3 >tail >head List+ }
-    def L5 [ t t t t  t        -- List+(t) ] { List.L4 >tail >head List+ }
-    def L6 [ t t t t  t t      -- List+(t) ] { List.L5 >tail >head List+ }
-    def L7 [ t t t t  t t t    -- List+(t) ] { List.L6 >tail >head List+ }
-    def L8 [ t t t t  t t t t  -- List+(t) ] { List.L7 >tail >head List+ }
-    def Cons [ t List(t) -- List+(t) ] { >tail >head List+ }
-    def /Cons [ List+(t) -- t List(t) ] { /List+ head> tail> }
+    def N1 [ t                 -- Nest(t) ] { List.L0 >tail >head Nest }
+    def N2 [ t t               -- Nest(t) ] { List.L1 >tail >head Nest }
+    def N3 [ t t t             -- Nest(t) ] { List.L2 >tail >head Nest }
+    def N4 [ t t t t           -- Nest(t) ] { List.L3 >tail >head Nest }
+    def N5 [ t t t t  t        -- Nest(t) ] { List.L4 >tail >head Nest }
+    def N6 [ t t t t  t t      -- Nest(t) ] { List.L5 >tail >head Nest }
+    def N7 [ t t t t  t t t    -- Nest(t) ] { List.L6 >tail >head Nest }
+    def N8 [ t t t t  t t t t  -- Nest(t) ] { List.L7 >tail >head Nest }
+    def Cons [ t List(t) -- Nest(t) ] { >tail >head Nest }
+    def /Cons [ Nest(t) -- t List(t) ] { /Nest head> tail> }
 
-    def single? [ List+(t) -- Maybe(t) ] {
-        /List+ head> tail> empty? if(Some, drop None)
+    def single? [ Nest(t) -- Maybe(t) ] {
+        /Nest head> tail> empty? if(Some, drop None)
     }
 
-    def >List [ List+(t) -- List(t) ] { /Cons cons }
+    def >List [ Nest(t) -- List(t) ] { /Cons cons }
     def >L1? { >List >L1? }
     def >L2? { >List >L2? }
     def >L3? { >List >L3? }
 
-    def len [ List+(t) -- Nat ] { tail len 1+ }
+    def len [ Nest(t) -- Nat ] { tail len 1+ }
 
-    def cons [ t List+(t) -- List+(t) ] { >List >tail >head List+ }
-    def uncons [ List+(t) -- t List(t) ] { /List+ head> tail> }
+    def cons [ t Nest(t) -- Nest(t) ] { >List >tail >head Nest }
+    def uncons [ Nest(t) -- t List(t) ] { /Nest head> tail> }
 
-    def Snoc [ List(t) t -- List+(t) ] { List.snoc+ }
-    def snoc [ List+(t) t -- List+(t) ] { dip(>List) List.snoc+ }
-    def unsnoc [ List+(t) -- List(t) t ] { reverse uncons reverse swap }
+    def Snoc [ List(t) t -- Nest(t) ] { List.snoc+ }
+    def snoc [ Nest(t) t -- Nest(t) ] { dip(>List) List.snoc+ }
+    def unsnoc [ Nest(t) -- List(t) t ] { reverse uncons reverse swap }
 
-    def cat  [ List(t) List+(t) -- List+(t) ] { swap reverse-for(swap cons) }
-    def cat+ [ List+(t) List+(t) -- List+(t) ] { >List cat+ }
+    def cat  [ List(t) Nest(t) -- Nest(t) ] { swap reverse-for(swap cons) }
+    def cat+ [ Nest(t) Nest(t) -- Nest(t) ] { >List cat+ }
 
-    def first [ List+(t) -- t ] { head }
-    def last  [ List+(t) -- t ] { uncons for(nip) }
+    def first [ Nest(t) -- t ] { head }
+    def last  [ Nest(t) -- t ] { uncons for(nip) }
 
     ||| Reverse the list.
-    def reverse [ List+(t) -- List+(t) ] {
-        /List+ head> List+.L1 tail> for(swap cons)
+    def reverse [ Nest(t) -- Nest(t) ] {
+        /Nest head> Nest.N1 tail> for(swap cons)
     }
 
     ||| Transform each element of the list.
-    def map(f) [ (*c a -- *c b) *c List+(a) -- *c List+(b) ] {
+    def map(f) [ (*c a -- *c b) *c Nest(a) -- *c Nest(b) ] {
         uncons on2(f, map(f)) cons+
     }
 
     ||| Traverse the list, left to right.
-    def for(f) [ (*c a -- *c) *c List+(a) -- *c ] {
+    def for(f) [ (*c a -- *c) *c Nest(a) -- *c ] {
         uncons dip(f) for(f)
     }
 
     ||| Traverse the list, right to left.
-    def reverse-for(f) [ (*c a -- *c) *c List+(a) -- *c ] {
+    def reverse-for(f) [ (*c a -- *c) *c Nest(a) -- *c ] {
         uncons swap dip(reverse-for(f)) f
     }
 
     ||| Traverse the list, left to right, with an action between each item.
-    def for(f,g) [ (*a t -- *b, *b -- *a) *a List+(t) -- *b ] {
+    def for(f,g) [ (*a t -- *b, *b -- *a) *a Nest(t) -- *b ] {
         uncons dip(f) for(dip(g) f)
     }
 
     ||| Reduce a list via binary operation.
-    def fold(g) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+    def fold(g) [ (*c a a -- *c a) *c Nest(a) -- *c a ] {
         uncons for(g)
     }
 
     ||| Sum together a list of numbers.
-    def sum(g {+}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+    def sum(g {+}) [ (*c a a -- *c a) *c Nest(a) -- *c a ] {
         fold(g)
     }
 
     ||| Multiply together a list of numbers.
-    def product(g {*}) [ (*c a a -- *c a) *c List+(a) -- *c a ] {
+    def product(g {*}) [ (*c a a -- *c a) *c Nest(a) -- *c a ] {
         fold(g)
     }
 
     ||| Filter away any list elements that don't satisfy the predicate.
-    def filter(f) [ (*c a -- *c Bool) *c List+(a) -- *c List(a) ] {
+    def filter(f) [ (*c a -- *c Bool) *c Nest(a) -- *c List(a) ] {
         >List filter(f)
     }
 
     ||| Transform each element of a list into a new list, and concatenate all these lists.
-    def flatmap(f) [ (*c a -- *c List(b)) *c List+(a) -- *c List(b) ] {
+    def flatmap(f) [ (*c a -- *c List(b)) *c Nest(a) -- *c List(b) ] {
         >List flatmap(f)
     }
 
     ||| Transform each element of a list into a new list, and concatenate all these lists.
     ||| This variant of [List.flatmap] preserves the non-emptiness of the list.
-    def flatmap+(f) [ (*c a -- *c List+(b)) *c List+(a) -- *c List+(b) ] {
+    def flatmap+(f) [ (*c a -- *c Nest(b)) *c Nest(a) -- *c Nest(b) ] {
         uncons LIST+(
             dip(rdip(f) uncons dip(;+) for(;))
             for(rdip(f) for(;))
         )
     }
-    alias(List+.bind(f), List+.flatmap+)
+    alias(Nest.bind(f), Nest.flatmap+)
 
     ||| Map each element of a list into the [Maybe] type, and collect all of the
     ||| [Some] results while discarding all of the [None] results.
-    def filter-some(p) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c List(b) ] {
+    def filter-some(p) [ (*c a -- *c Maybe(b)) *c Nest(a) -- *c List(b) ] {
         >List filter-some(p)
     }
 
     ||| Find first element that returns [Some], if it exists.
-    def find-some(f) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b) ] {
+    def find-some(f) [ (*c a -- *c Maybe(b)) *c Nest(a) -- *c Maybe(b) ] {
         >List find-some(f)
     }
 
     ||| Find last element that returns Some, if it exists.
-    def reverse-find-some(f) [ (*c a -- *c Maybe(b)) *c List+(a) -- *c Maybe(b) ] {
+    def reverse-find-some(f) [ (*c a -- *c Maybe(b)) *c Nest(a) -- *c Maybe(b) ] {
         >List reverse-find-some(f)
     }
 
     ||| Find the first element that satisfies the predicate, if it exists.
-    def find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
+    def find(f) [ (*c a -- *c Bool) *c Nest(a) -- *c Maybe(a) ] {
         find-some(dup dip(f) swap if(Some, drop None))
     }
 
     ||| Find the last element that satisfies the predicate, if it exists.
-    def reverse-find(f) [ (*c a -- *c Bool) *c List+(a) -- *c Maybe(a) ] {
+    def reverse-find(f) [ (*c a -- *c Bool) *c Nest(a) -- *c Maybe(a) ] {
         reverse-find-some(dup dip(f) swap if(Some, drop None))
     }
 
     ||| Is the predicate true for any element of the list?
-    def has(f) [ (*c a -- *c Bool) *c List+(a) -- *c Bool ] {
+    def has(f) [ (*c a -- *c Bool) *c Nest(a) -- *c Bool ] {
         find(f) some?
     }
 
     ||| Is the predicate true for all elements of the list?
-    def all(f) [ (*c a -- *c Bool) *c List+(a) -- *c Bool ] {
+    def all(f) [ (*c a -- *c Bool) *c Nest(a) -- *c Bool ] {
         find(f not) none?
     }
 
-    def ==(eq {==}) [ (*c a a -- *c Bool) *c List+(a) List+(a) -- *c Bool ] {
+    def ==(eq {==}) [ (*c a a -- *c Bool) *c Nest(a) Nest(a) -- *c Bool ] {
         dip(>List) >List ==(eq)
     }
 
-    def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
+    def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k Nest(a) -- *c Maybe(a),
         find(over dip(p) swap) nip)
 
-    def(reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List+(a) -- *c Maybe(a),
+    def(reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k Nest(a) -- *c Maybe(a),
         reverse-find(over dip(p) swap) nip)
 
-    def(member(p {==}), (*c k a -- *c Bool) *c k List+(a) -- *c Bool,
+    def(member(p {==}), (*c k a -- *c Bool) *c k Nest(a) -- *c Bool,
         >List lookup(p) some?)
 
-    def(map2(f), (*c x y -- *c z) *c List+(x) List+(y) -- *c List+(z),
+    def(map2(f), (*c x y -- *c z) *c Nest(x) Nest(y) -- *c Nest(z),
         dip(uncons) uncons dip(swap dip:f) rotl dip(map2(f)) swap cons+)
 
-    def(take-while(p), (*a t -- *a Bool) *a List+(t) -- *a List(t),
+    def(take-while(p), (*a t -- *a Bool) *a Nest(t) -- *a List(t),
         >List take-while(p))
 
     def(partition-either(p), (*a t -- *a Either(t1,t2))
-            *a List+(t) -- *a List(t1) List(t2),
+            *a Nest(t) -- *a List(t1) List(t2),
         >List partition-either(p))
 
-    def(partition(p), (*a t -- *a Bool) *a List+(t) -- *a List(t) List(t),
+    def(partition(p), (*a t -- *a Bool) *a Nest(t) -- *a List(t) List(t),
         partition-either(dup dip(p) swap if(Right, Left)))
 
-    def(show;(f {show;}), (t +Str -- +Str) List+(t) +Str -- +Str,
+    def(show;(f {show;}), (t +Str -- +Str) Nest(t) +Str -- +Str,
         "LIST+( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
 
 }
@@ -469,34 +469,34 @@ struct +List(t) {
     inline def List.thaw { >+ }
 
     def push! [ t +List(t) -- +List(t) ] { reversed:cons }
-    def push+! [ t +List(t) -- +List+(t) ] { +List -> @reversed:cons+ +List+ }
+    def push+! [ t +List(t) -- +Nest(t) ] { +List -> @reversed:cons+ +Nest }
     def pop!  [ +List(t) -- Maybe(t) +List(t) ] { reversed:uncons }
     inline def ;  { push!  }
     inline def ;+ { push+! }
 }
-struct +List+(t) {
-    reversed: List+(t)
+struct +Nest(t) {
+    reversed: Nest(t)
     --
-    def +L1 [ t -- +List+(t) ] { List+.L1 >reversed +List+ }
-    def +L2 [ t t -- +List+(t) ] { swap List+.L2 >reversed +List+ }
-    def +L3 [ t t t -- +List+(t) ] { flip3 List+.L3 >reversed +List+ }
-    def +L4 [ t t t t -- +List+(t) ] { flip4 List+.L4 >reversed +List+ }
+    def +L1 [ t -- +Nest(t) ] { Nest.N1 >reversed +Nest }
+    def +L2 [ t t -- +Nest(t) ] { swap Nest.N2 >reversed +Nest }
+    def +L3 [ t t t -- +Nest(t) ] { flip3 Nest.N3 >reversed +Nest }
+    def +L4 [ t t t t -- +Nest(t) ] { flip4 Nest.N4 >reversed +Nest }
 
-    def rdrop [ +List+(t) -- ] { +List+ -> reversed> drop }
-    def rdup [ +List+(t) -- +List+(t) +List+(t) ] { reversed >reversed +List+ }
+    def rdrop [ +Nest(t) -- ] { +Nest -> reversed> drop }
+    def rdup [ +Nest(t) -- +Nest(t) +Nest(t) ] { reversed >reversed +Nest }
 
-    def +> [ +List+(t) -- List+(t) ] { +List+ -> reversed> reverse }
-    def List+.>+ [ List+(t) -- +List+(t) ] { reverse >reversed +List+ }
+    def +> [ +Nest(t) -- Nest(t) ] { +Nest -> reversed> reverse }
+    def Nest.>+ [ Nest(t) -- +Nest(t) ] { reverse >reversed +Nest }
     inline def freeze { +> }
-    inline def List+.thaw { >+ }
+    inline def Nest.thaw { >+ }
 
-    def push! [ t +List+(t) -- +List+(t) ] { reversed:cons }
-    def pop!  [ +List+(t) -- t +List(t) ] { +List+ -> @reversed:uncons +List }
+    def push! [ t +Nest(t) -- +Nest(t) ] { reversed:cons }
+    def pop!  [ +Nest(t) -- t +List(t) ] { +Nest -> @reversed:uncons +List }
     inline def ; { push! }
 }
 
 def LIST (f) [ (*a +List(t) -- *b +List (t)) *a -- *b List (t) ] { List.L0 >+ f +> }
-def LIST+(f) [ (*a +List(t) -- *b +List+(t)) *a -- *b List+(t) ] { List.L0 >+ f +> }
+def LIST+(f) [ (*a +List(t) -- *b +Nest(t)) *a -- *b Nest(t) ] { List.L0 >+ f +> }
 
 inline struct L0 {
     --
@@ -527,7 +527,7 @@ inline struct L1(t) {
     def uncons [ L1(t) -- t L0 ] { L1 -> L0 }
     def xsnoc [ L1(t) x:t -- L2(t) ] { L1 -> x> L2 }
     def >List [ L1(t) -- List(t) ] { L1 -> List.L1 }
-    def >List+ [ L1(t) -- List+(t) ] { L1 -> List+.L1 }
+    def >Nest [ L1(t) -- Nest(t) ] { L1 -> Nest.N1 }
     def len [ L1(t) -- Nat ] { drop 1u }
     def map(f) [ (*c a -- *d b) *c L1(a) -- *d L1(b) ] { L1 -> f L1 }
     def for(f) [ (*c a -- *d) *c L1(a) -- *d ] { L1 -> f }
@@ -551,7 +551,7 @@ struct L2(t) {
     def xsnoc [ L2(t) x:t -- L3(t) ] { L2 -> x> L3 }
 
     def >List [ L2(t) -- List(t) ] { L2 -> List.L2  }
-    def >List+ [ L2(t) -- List+(t) ] { L2 -> List+.L2 }
+    def >Nest [ L2(t) -- Nest(t) ] { L2 -> Nest.N2 }
     inline def len [ L2(t) -- Nat ] { drop 2u }
     def for(f) [ (*c a -- *c) *c L2(a) -- *c ] { L2 -> dip(f) f }
     def for2(f) [ (*c a b -- *c) *c L2(a) L2(b) -- *c ] { dip(/L2) /L2 dip(swap) dip2(f) f }
@@ -615,7 +615,7 @@ struct L3(t) {
     def unsnoc [ L3(t) -- L2(t) t ] { L3 -> dip(L2) }
 
     def >List  [ L3(t) -- List (t) ] { L3 -> List.L3 }
-    def >List+ [ L3(t) -- List+(t) ] { L3 -> List+.L3 }
+    def >Nest [ L3(t) -- Nest(t) ] { L3 -> Nest.N3 }
     inline def len [ L3(t) -- Nat ] { drop 3u }
     def for(f) [ (*c a -- *c) *c L3(a) -- *c ] { L3 -> dip2(f) dip(f) f }
     def map(f) [ (*c a -- *c b) *c L3(a) -- *c L3(b) ] { L3 -> on3(f) L3 }
@@ -645,7 +645,7 @@ struct L4(t) {
     def unsnoc [ L4(t) -- L3(t) t ] { L4 -> dip:L3 }
 
     def >List  [ L4(t) -- List (t) ] { L4 -> List.L4 }
-    def >List+ [ L4(t) -- List+(t) ] { L4 -> List+.L4 }
+    def >Nest [ L4(t) -- Nest(t) ] { L4 -> Nest.N4 }
     def for(f) [ (*x a -- *x) *x L4(a) -- *x ] {
         L4 -> dip3(f) dip2(f) dip(f) f
     }
@@ -671,7 +671,7 @@ struct L5(t) {
     def unsnoc [ L5(t) -- L4(t) t ] { L5 -> dip:L4 }
 
     def >List  [ L5(t) -- List (t) ] { L5 -> List.L5 }
-    def >List+ [ L5(t) -- List+(t) ] { L5 -> List+.L5 }
+    def >Nest [ L5(t) -- Nest(t) ] { L5 -> Nest.N5 }
     def for(f) [ (*x a -- *x) *x L5(a) -- *x ] {
         L5 -> dip4(f) dip3(f) dip2(f) dip(f) f
     }
@@ -697,7 +697,7 @@ struct L6(t) {
     def unsnoc [ L6(t) -- L5(t) t ] { L6 -> dip:L5 }
 
     def >List  { L6 -> List.L6 }
-    def >List+ { L6 -> List+.L6 }
+    def >Nest { L6 -> Nest.N6 }
     def for(f) [ (*x a -- *x) *x L6(a) -- *x ] {
         L6 -> dip5(f) dip4(f) dip3(f) dip2(f) dip(f) f
     }
@@ -723,7 +723,7 @@ struct L7(t) {
     def unsnoc [ L7(t) -- L6(t) t ] { L7 -> dip:L6 }
 
     def >List  [ L7(t) -- List (t) ] { L7 -> List.L7 }
-    def >List+ [ L7(t) -- List+(t) ] { L7 -> List+.L7 }
+    def >Nest [ L7(t) -- Nest(t) ] { L7 -> Nest.N7 }
     def for(f) [ (*x a -- *x) *x L7(a) -- *x ] {
         L7 -> dip3(dip3(f) dip2(f) dip(f) f) dip2(f) dip(f) f
     }
@@ -743,13 +743,13 @@ struct L8(t) {
     --
     def Cons [ t L7(t) -- L8(t) ] { L7 -> L8 }
     def Snoc [ L7(t) t -- L8(t) ] { >x xsnoc }
-    def cons [ t L8(t) -- List+(t) ] { >List cons+ }
-    def xsnoc [ L8(t) t -- List+(t) ] { dip:/L8 List.L8 cons+ }
+    def cons [ t L8(t) -- Nest(t) ] { >List cons+ }
+    def xsnoc [ L8(t) t -- Nest(t) ] { dip:/L8 List.L8 cons+ }
     def uncons [ L8(t) -- t L7(t) ] { L8 -> L7 }
     def unsnoc [ L8(t) -- L7(t) t ] { L8 -> dip:L7 }
 
     def >List  [ L8(t) -- List (t) ] { L8 -> List.L8 }
-    def >List+ [ L8(t) -- List+(t) ] { L8 -> List+.L8 }
+    def >Nest [ L8(t) -- Nest(t) ] { L8 -> Nest.N8 }
     def for(f) [ (*x a -- *x) *x L8(a) -- *x ] {
         L8 -> dip4(dip3(f) dip2(f) dip(f) f) dip3(f) dip2(f) dip(f) f
     }

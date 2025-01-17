@@ -333,7 +333,7 @@ def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
 
 def +Str.dname-token? [ +Str -- Maybe(TokenValue) +Str ] {
     Byte.BDOT +Str.split-byte
-    uncons >List+? match {
+    uncons >Nest? match {
         { None -> drop None }
         { Some ->
             dip(dup Str.empty? if(drop None, >Name Some))

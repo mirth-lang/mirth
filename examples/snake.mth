@@ -36,7 +36,7 @@ struct +SnakeLogic {
     direction: Direction
     last-direction: Direction
     mouse: Position
-    snake: List+(Position)
+    snake: Nest(Position)
     points: Nat
     timer: Nat
 }
@@ -58,7 +58,7 @@ def Direction.apply [ Position Direction -- Position ] {
 }
 
 def +SnakeLogic.enqueue { snake:cons }
-def +SnakeLogic.dequeue { snake(unsnoc swap >List+? unwrap("logic error: expected snake to have more segments" panic!) ) }
+def +SnakeLogic.dequeue { snake(unsnoc swap >Nest? unwrap("logic error: expected snake to have more segments" panic!) ) }
 def +SnakeLogic.head    { snake first }
 
 def SNAKE_W { 20 }
@@ -99,7 +99,7 @@ def +SnakeLogic.Init! [ +World -- +World +SnakeLogic ] {
     Direction.North >direction
     Direction.North >last-direction
     Position.Random! >mouse
-    Position.Center List+.L1 >snake
+    Position.Center Nest.N1 >snake
     False >dead
     0u >timer
     0u >points

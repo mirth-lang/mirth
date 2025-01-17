@@ -186,7 +186,7 @@ def +Str.find [ Str +Str -- Maybe(UOffset) +Str ] {
     ) drop2
 }
 
-def(+Str.split-byte(p), (*a Byte -- *a Bool) *a +Str -- *a List+(Str) +Str,
+def(+Str.split-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Nest(Str) +Str,
     LIST+( 0u >UOffset dup while(
         dup rdip(+Str.num-bytes?) >UOffset <,
         tuck dip2(rdip(byte@ rdip(p))) rotl if(
@@ -196,13 +196,13 @@ def(+Str.split-byte(p), (*a Byte -- *a Bool) *a +Str -- *a List+(Str) +Str,
         )
     ) rdip:unsafe(+Str.offset-slice) ;+))
 
-def(+Str.split-byte, Byte +Str -- List+(Str) +Str,
+def(+Str.split-byte, Byte +Str -- Nest(Str) +Str,
     split-byte(over ==) nip)
 
-def(Str.split-byte(p), (*a Byte -- *a Bool) *a Str -- *a List+(Str),
+def(Str.split-byte(p), (*a Byte -- *a Bool) *a Str -- *a Nest(Str),
     thaw +Str.split-byte(p) rdrop)
 
-def(Str.split-byte, Byte Str -- List+(Str),
+def(Str.split-byte, Byte Str -- Nest(Str),
     thaw +Str.split-byte rdrop)
 
 def(+Str.find-last-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Maybe(UOffset) +Str,

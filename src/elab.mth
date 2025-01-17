@@ -1063,7 +1063,7 @@ def atoms-has-last-block? [ List(Atom) -- Bool ] {
 }
 
 def atoms-turn-last-block-to-arg [ Atom List(Atom) -- Atom List(Atom) ] {
-   >List+? match(
+   >Nest? match(
         None -> List.L0,
         Some ->
             unsnoc dup op match(
@@ -2039,9 +2039,9 @@ def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ]
                  "def(...) expects at least three arguments"
                  emit-fatal-error!)
             nip
-        >List+? unwrap(impossible!) uncons dip(>head)
-        >List+? unwrap(impossible!) uncons dip(Some >sig?)
-        >List+? unwrap(impossible!) >body
+        >Nest? unwrap(impossible!) uncons dip(>head)
+        >Nest? unwrap(impossible!) uncons dip(Some >sig?)
+        >Nest? unwrap(impossible!) >body
 
         @head next arg-end? else(
             @head next "expected comma after word name" emit-fatal-error!
