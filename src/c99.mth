@@ -129,9 +129,9 @@ field(External.~cname, External, Str)
 field(Prim.~cname, Prim, Str)
 
 def Tag.word-cname [ +Mirth Tag -- +Mirth Str ] { dup ~word-cname memoize(
-    Str("mtw_" ; dup qname rdip:mangled ;)) nip }
+    Str("mtw_" ; dup rdip:qname rdip:mangled ;)) nip }
 def Tag.pat-cname [ +Mirth Tag -- +Mirth Str ] { dup ~pat-cname memoize(
-    Str("mtp_" ; dup qname rdip:mangled ;)) nip }
+    Str("mtp_" ; dup rdip:qname rdip:mangled ;)) nip }
 def Buffer.cname [ +Mirth Buffer -- +Mirth Str ] { dup ~cname memoize(
     dup qname-hard mangled Str("mbuf_" ; ;)) nip }
 def Field.cname [ +Mirth Field -- +Mirth Str ] { dup ~cname memoize(
@@ -150,7 +150,7 @@ def c99-buffers! [ +C99 -- +C99 ] { Buffer.for(c99-buffer!) }
 def c99-buffer! [ Buffer +C99 -- +C99 ] {
     "static char " put
     dup +mirth:cname put
-    "[" put size show put "] = {0};" put line
+    "[" put +mirth:size show put "] = {0};" put line
 }
 def c99-buffer-call! [ Buffer +C99Branch -- +C99Branch ] {
     C99ReprType.PTR push-value-expression!(+mirth:cname put)
@@ -210,13 +210,13 @@ def c99-tag-body! [ Tag +C99Branch -- +C99Branch ] {
         @tag +mirth:outputs-resource? if(
             push-resource-expression!(
                 pfx> put
-                @tag value-show put "LL /* " put
+                @tag +mirth:value-show put "LL /* " put
                 @tag +mirth(name >Str) put " */" put
                 sfx> put
             ),
             push-value-expression!(
                 pfx> put
-                @tag value-show put "LL /* " put
+                @tag +mirth:value-show put "LL /* " put
                 @tag +mirth(name >Str) put " */" put
                 sfx> put
             )
@@ -276,7 +276,7 @@ def c99-reverse-tag-body! [ Tag +C99Branch -- +C99Branch ] {
 }
 
 def +C99.tag-value-put [ +C99 Tag -- +C99 ] {
-    dup value-show put "LL /* " put +mirth(name >Str) put " */" put
+    dup +mirth:value-show put "LL /* " put +mirth(name >Str) put " */" put
 }
 
 def c99-pack-tuple! [ +C99Branch tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Branch +C99Resource ] {
@@ -346,7 +346,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
             }
         },
 
-        @tag .data pop-data! >+tuplevar
+        @tag +mirth:data pop-data! >+tuplevar
         @+tuplevar:rdup consume-as-TUP >tuplevar
         fieldty> match {
             { Left -> # field is value
@@ -383,7 +383,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
     @tag +mirth:semi-transparent? if(
         fieldty> match {
             { Left -> # field is value
-                @tag .data pop-data! +for(
+                @tag +mirth:data pop-data! +for(
                     drop drop-value!,
 
                     drop-resource-as-value!
@@ -397,7 +397,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
             }
         },
 
-        @tag .data pop-data! >+tuplevar
+        @tag +mirth:data pop-data! >+tuplevar
         @fieldty match {
             { Left -> type-to-c99-repr pop-value! consume-as-VAL }
             { Right -> resource-to-c99-repr pop-resource! consume-as-VAL }
@@ -458,7 +458,7 @@ def c99-external-blocks! [ +C99 -- +C99 ] {
     ExternalBlock.for(c99-external-block!)
 }
 def c99-external-block! [ ExternalBlock +C99 -- +C99 ] {
-    parts for(match(
+    +mirth:parts for(match(
         EBPCode -> put line,
         EBPDef -> c99-external-def!
     ))
@@ -482,7 +482,7 @@ def c99-external-def! [ External +C99 -- +C99 ] {
 
     @cty cod parts find(and(label? none?, ctype phantom? not)) >outty
     @outty if?(ctype, CType.Phantom) cname put " " put
-    @ext symbol put
+    @ext +mirth:symbol put
 
     " (" put
     @cty dom parts filter(ctype phantom? not)
@@ -516,7 +516,7 @@ def c99-external-def! [ External +C99 -- +C99 ] {
 
         c99-line(
             @outty for(ctype cname put " Y = " put)
-            @ext symbol put "(" put
+            @ext +mirth:symbol put "(" put
 
             1u !arg-index
             @cty dom parts filter-some(
@@ -1041,10 +1041,10 @@ def c99-get-enum-value! [ Data +C99Branch -- +C99Branch ] {
     @data +mirth:is-enum? else(
         @data Type.Data type-to-c99-repr pop-value! >+scrutinee
         @data +mirth:is-unit? if?(
-            C99ReprType.I64 push-value-expression!(value show put "LL" put),
+            C99ReprType.I64 push-value-expression!(+mirth:value show put "LL" put),
 
         @data +mirth:semi-transparent? if?(
-            C99ReprType.I64 push-value-expression!(tag value show put "LL" put),
+            C99ReprType.I64 push-value-expression!(tag +mirth:value show put "LL" put),
             C99ReprType.I64 push-value-expression!(
                 "get_data_tag(" put
                 @+scrutinee:rdup consume-as-VAL put
@@ -1069,7 +1069,7 @@ def c99-word! [ List(Arg) Word +C99Branch -- +C99Branch ] {
 }
 
 field(Tag.~value-show, Tag, Str)
-def Tag.value-show [ Tag -- Str ] { dup ~value-show memoize(dup value show) nip }
+def Tag.value-show [ +Mirth Tag -- +Mirth Str ] { dup ~value-show memoize(dup value show) nip }
 
 def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
     dup +mirth:prefer-inline? if(
@@ -2374,7 +2374,7 @@ def c99-case! [ Case +C99BranchSplit +scrutinee:+C99Value/Resource -- +C99Branch
         c99-line("} break;" put),
 
     dup pattern single-tag? if?(
-        c99-line("case " put dup value-show put "LL: { // " put dup +mirth(name >Str) put)
+        c99-line("case " put dup +mirth:value-show put "LL: { // " put dup +mirth(name >Str) put)
         c99-nest:sub-branch(
             +scrutinee> push-value/resource!
             c99-reverse-tag!

@@ -1666,8 +1666,8 @@ def elab-data-tag! [ Data SyntaxDataTag +Mirth -- Data +Mirth ] {
         True >allow-implicit-type-vars
         False >allow-type-holes
         +TypeElab
-        T0 @tag .data rdip:full-type T*+
-        tag> sig? match(
+        T0 @tag rdip(data full-type) T*+
+        tag> rdip:sig? match(
             None -> T0,
             Some -> token! T0 elab-stack-type-parts!
         )

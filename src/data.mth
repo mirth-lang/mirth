@@ -157,9 +157,9 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
     )
     @data tags find(value over ==) for(
         Str("Constructors ";
-            name rdip:>Str ;
+            name;
             " and " ;
-            @tag name rdip:>Str ;
+            @tag name;
             " have the same tag value." ;
         )
         @data head? if?(swap emit-error!, error!)
@@ -252,18 +252,20 @@ field(Tag.~sig?, Tag, Maybe(Token))
 field(Tag.~ctx-type, Tag, Prop([Ctx ArrowType]))
 field(Tag.~untag, Tag, Maybe(Word))
 
-def(Tag.data, Tag -- Data, ~data @)
-def(Tag.qname, Tag -- QName, ~qname @)
-def(Tag.name, Tag -- Name, qname name)
-def(Tag.value, Tag -- Int, ~value @)
-def(Tag.label-inputs, Tag -- List(Label), ~label-inputs @)
-def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
-def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)
-def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
+def(Tag.data, +Mirth Tag -- +Mirth Data, ~data @)
+def(Tag.qname, +Mirth Tag -- +Mirth QName, ~qname @)
+def(Tag.name, +Mirth Tag -- +Mirth Name, qname name)
+def(Tag.value, +Mirth Tag -- +Mirth Int, ~value @)
+def(Tag.label-inputs, +Mirth Tag -- +Mirth List(Label), ~label-inputs @)
+def(Tag.num-type-inputs, +Mirth Tag -- +Mirth Nat, ~num-type-inputs @)
+def(Tag.num-resource-inputs, +Mirth Tag -- +Mirth Nat, ~num-resource-inputs @)
+def(Tag.sig?, +Mirth Tag -- +Mirth Maybe(Token), ~sig? @)
 def(Tag.ctx-type, +Mirth Tag -- +Mirth Ctx ArrowType, ~ctx-type force! unpack2)
 def(Tag.ctx, +Mirth Tag -- +Mirth Ctx, ctx-type drop)
 def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
-def(Tag.untag, Tag -- Maybe(Word), ~untag @)
+def(Tag.untag, +Mirth Tag -- +Mirth Maybe(Word), ~untag @)
+
+def Tag.name; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:name name; }
 
 def(Tag.only-tag?, +Mirth Tag -- +Mirth Bool, .data tags single? >Bool)
 
@@ -288,7 +290,7 @@ def(Tag.num-resource-inputs-from-sig, +Mirth Tag -- +Mirth Nat,
     ))
 
 field(Tag.~num-label-inputs, Tag, Nat)
-def(Tag.num-label-inputs, Tag -- Nat,
+def(Tag.num-label-inputs, +Mirth Tag -- +Mirth Nat,
     dup ~num-label-inputs memoize(
         dup label-inputs len
     ) nip)
