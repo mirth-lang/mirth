@@ -183,13 +183,13 @@ field(Block.~cod, Block, StackType)
 field(Block.~arrow, Block, Prop(Arrow))
 field(Block.~qname, Block, QName)
 
-def(Block.ctx, Block -- Ctx, ~ctx @)
-def(Block.token, Block -- Token, ~token @)
-def(Block.dom, Block -- StackType, ~dom @)
-def(Block.cod, Block -- StackType, ~cod @)
-def(Block.home, Block -- Home, ~home @)
+def(Block.ctx, +Mirth Block -- +Mirth Ctx, ~ctx @)
+def(Block.token, +Mirth Block -- +Mirth Token, ~token @)
+def(Block.dom, +Mirth Block -- +Mirth StackType, ~dom @)
+def(Block.cod, +Mirth Block -- +Mirth StackType, ~cod @)
+def(Block.home, +Mirth Block -- +Mirth Home, ~home @)
 
-def(Block.type, Block -- ArrowType, sip(dom) cod T->)
+def(Block.type, +Mirth Block -- +Mirth ArrowType, sip(dom) cod T->)
 def(Block.arrow, +Mirth Block -- +Mirth Arrow, ~arrow force!)
 def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
 
@@ -207,7 +207,7 @@ def(Block.qname, +Mirth Block -- +Mirth QName,
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
 
 field(Block.~home-index, Block, Int)
-def(Block.register-home!, Block --,
+def(Block.register-home!, +Mirth Block -- +Mirth,
     dup home match(
         Word ->
             inc-num-blocks! swap ~home-index !,
@@ -246,7 +246,7 @@ def(Block.typecheck!, +Mirth Block -- +Mirth,
     arrow drop)
 
 def(block-unify-type!, +Mirth +Gamma Block ArrowType -- +Mirth +Gamma ArrowType,
-    dip(dup type) rotl dip(unify! drop) rdip:arrow type)
+    dip(dup rdip:type) rotl dip(unify! drop) rdip:arrow type)
 
 def(Block.to-run-var, +Mirth Block -- +Mirth Maybe(Var),
     arrow to-run-var)

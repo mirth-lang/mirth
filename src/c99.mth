@@ -2433,13 +2433,13 @@ def c99-block-sig-put [ Block +C99 -- +C99 ] { "static void " put +mirth:cname p
 def c99-block-enter! [ Block +C99 -- +C99Branch ] {
     options emit-debug-info if(
         c99-line("WORD_ENTER(" put
-            dup home match(
+            dup +mirth:home match(
                 Main -> drop "block",
                 Word -> +mirth(name >Str) " block" cat,
             ) put-cstr ", " put
-            dup token +mirth:module source-path >Str put-cstr ", " put
-            dup token +mirth:row >Int show put ", " put
-            dup token +mirth:col >Int show put ");" put
+            dup +mirth(token module) source-path >Str put-cstr ", " put
+            dup +mirth(token row) >Int show put ", " put
+            dup +mirth(token col) >Int show put ");" put
         ) drop,
         drop
     )

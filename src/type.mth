@@ -346,11 +346,12 @@ def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
                 rdip:emit-error! Type.Error
         )))
 
-def(Value.unify-type!, +Mirth +Gamma Type Value -- +Mirth +Gamma Type,
-    Int -> drop Type.Int unify!,
-    Str -> drop Type.Str unify!,
-    F64 -> drop Type.F64 unify!,
-    Block -> swap unify-block!)
+def Value.unify-type! [ +Mirth +Gamma Type Value -- +Mirth +Gamma Type ] {
+    { Int -> drop Type.Int unify! }
+    { Str -> drop Type.Str unify! }
+    { F64 -> drop Type.F64 unify! }
+    { Block -> swap unify-block! }
+}
 
 def(Value.unify-error!, +Mirth +Gamma Value -- +Mirth +Gamma Type,
     Int -> drop Type.Error,
@@ -361,9 +362,9 @@ def(Value.unify-error!, +Mirth +Gamma Value -- +Mirth +Gamma Type,
 def(Type.unify-block!, +Mirth +Gamma Block Type -- +Mirth +Gamma Type,
     rdip:expand match(
         Error -> StackType.Error StackType.Error T-> block-unify-type! drop Type.Error,
-        Meta -> over dip(dip(type >Type) unify! drop) rdip:arrow type >Type,
+        Meta -> over dip(dip(rdip:type >Type) unify! drop) rdip:arrow type >Type,
         Arrow -> block-unify-type! >Type,
-        _ -> dip(type >Type) unify!
+        _ -> dip(rdip:type >Type) unify!
     ))
 
 def(Type.unify2!, +Mirth +Gamma Type Type Type Type -- +Mirth +Gamma Type Type,

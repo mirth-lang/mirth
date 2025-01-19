@@ -236,7 +236,7 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
             dip(rdip:force-cons?!
                 unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
                 unpack2)
-            /Block type Type.Arrow unify! drop
+            /Block rdip:type Type.Arrow unify! drop
         )
     )
     rdrop
