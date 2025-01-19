@@ -38,7 +38,7 @@ struct +Lexer {
     def stack-drop  [ +Lexer -- +Lexer ] { lexer-stack:tail }
     def stack-peek  [ +Lexer -- Maybe(Token) +Lexer ] { lexer-stack head }
 
-    def Start! [ Module +Input -- +Lexer ] {
+    def Start! [ +Mirth +Input Module -- +Mirth +Lexer ] {
         >+input
         >lexer-module
         1 Row >lexer-row
@@ -129,20 +129,20 @@ struct +Lexer {
         }
     }
 
-    def close-colons! [ +Lexer -- +Lexer ] {
+    def close-colons! [ +Mirth +Lexer -- +Mirth +Lexer ] {
         while-some(
-            stack-peek filter(lcolon-open?),
+            stack-peek rdip:filter(lcolon-open?),
             stack-drop
             dup TokenValue.RColon make!
             TokenValue.LColon swap ~value !
         )
     }
 
-    def prepare-for-atom! [ +Lexer -- +Lexer ] {
-        lexer-last-token lcolon-open? else(close-colons!)
+    def prepare-for-atom! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+        lexer-last-token rdip:lcolon-open? else(close-colons!)
     }
-    def prepare-for-args! [ +Lexer -- +Lexer ] {
-        lexer-last-token can-take-args? else(close-colons!)
+    def prepare-for-args! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+        lexer-last-token rdip:can-take-args? else(close-colons!)
     }
 
     def emit-lcolon!  [ +Lexer -- +Lexer ] { TokenValue.LColonOpen  make! stack-push! }
@@ -151,21 +151,21 @@ struct +Lexer {
     def emit-lsquare! [ +Lexer -- +Lexer ] { TokenValue.LSquareOpen make! stack-push! }
 
     def emit-rparen! [ +Mirth +Lexer -- +Mirth +Lexer ] {
-        stack-pop! filter(value lparen-open?)
+        stack-pop! rdip:filter(value lparen-open?)
         unwrap("Mismatched right parenthesis." fatal-error!)
         dup TokenValue.RParen make!
         TokenValue.LParen swap ~value !
     }
 
     def emit-rcurly! [ +Mirth +Lexer -- +Mirth +Lexer ] {
-        stack-pop! filter(value lcurly-open?)
+        stack-pop! rdip:filter(value lcurly-open?)
         unwrap("Mismatched right curly brace." fatal-error!)
         dup TokenValue.RCurly make!
         TokenValue.LCurly swap ~value !
     }
 
     def emit-rsquare! [ +Mirth +Lexer -- +Mirth +Lexer ] {
-        stack-pop! filter(value lsquare-open?)
+        stack-pop! rdip:filter(value lsquare-open?)
         unwrap("Mismatched right square bracket." fatal-error!)
         dup TokenValue.RSquare make!
         TokenValue.LSquare swap ~value !
@@ -270,7 +270,7 @@ def run-lexer! [ Path +World +Mirth -- Module +World +Mirth ] {
     stop! rswap rdip(end! close-file!)
 }
 
-def(+Str.name-token, +Str -- TokenValue +Str, dup! >Name TokenValue.Name)
+def(+Str.name-token, +Mirth +Str -- TokenValue +Mirth +Str, dup! rdip:>Name TokenValue.Name)
 
 def(+Str.first-byte, +Str -- Byte +Str, 0u >UOffset byte@)
 def(+Str.second-byte, +Str -- Byte +Str, 1u >UOffset byte@)
@@ -287,7 +287,7 @@ def(+Str.drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
 def(+Str.drop-last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe,
     rdip:num-bytes? pred pred +Str.take-slice)
 
-def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
+def(+Str.label-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
     label-push-token?
     or?(label-push-r-token?)
     or?(label-pop-token?)
@@ -295,49 +295,49 @@ def(+Str.label-token?, +Str -- Maybe(TokenValue) +Str,
     or?(label-get-token?)
     or?(label-set-token?))
 
-def(+Str.label-pop-token?, +Str -- Maybe(TokenValue) +Str,
+def(+Str.label-pop-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
     first-byte is-lower and(last-byte Byte.B'>' ==) if(
-        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.LabelPop Some,
+        unsafe(+Str.drop-last-byte) rdip(>Name Label.new!) TokenValue.LabelPop Some,
         None
     ))
 
-def(+Str.label-pop-r-token?, +Str -- Maybe(TokenValue) +Str,
+def(+Str.label-pop-r-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
     first-byte Byte.B'+' == and(second-byte is-lower and(last-byte Byte.B'>' ==)) if(
-        unsafe(+Str.drop-last-byte) >Name Label.new! TokenValue.LabelPopR Some,
+        unsafe(+Str.drop-last-byte) rdip(>Name Label.new!) TokenValue.LabelPopR Some,
         None
     ))
 
-def(+Str.label-push-token?, +Str -- Maybe(TokenValue) +Str,
+def(+Str.label-push-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
     first-byte Byte.B'>' == and(second-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelPush Some,
+        unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelPush Some,
         None
     ))
 
-def(+Str.label-push-r-token?, +Str -- Maybe(TokenValue) +Str,
+def(+Str.label-push-r-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
     unsafe(+Str.first-two-bytes) ">+" == and(third-byte is-lower) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelPushR Some,
+        unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelPushR Some,
         None
     ))
 
-def(+Str.label-get-token?, +Str -- Maybe(TokenValue) +Str,
+def(+Str.label-get-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
     first-byte Byte.B'@' == and(second-byte is-lower or(second-byte Byte.B'+' == and(third-byte is-lower))) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelGet Some,
+        unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelGet Some,
         None
     ))
 
-def(+Str.label-set-token?, +Str -- Maybe(TokenValue) +Str,
+def(+Str.label-set-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
     first-byte Byte.B'!' == and(second-byte is-lower or(second-byte Byte.B'+' == and(third-byte is-lower))) if(
-        unsafe(+Str.drop-first-byte) >Name Label.new! TokenValue.LabelSet Some,
+        unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelSet Some,
         None
     ))
 
-def +Str.dname-token? [ +Str -- Maybe(TokenValue) +Str ] {
+def +Str.dname-token? [ +Mirth +Str -- +Mirth Maybe(TokenValue) +Str ] {
     Byte.BDOT +Str.split-byte
     uncons >Nest? match {
         { None -> drop None }
         { Some ->
-            dip(dup Str.empty? if(drop None, >Name Some))
-            map(>Name) DName TokenValue.DName Some
+            dip(dup Str.empty? if(drop None, rdip:>Name Some))
+            map(rdip:>Name) DName TokenValue.DName Some
         }
     }
 }

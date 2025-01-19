@@ -132,7 +132,7 @@ data Def {
         { Macro -> drop None }
     }
 
-    def head? [ Def -- Maybe(Token) ] {
+    def head? [ +Mirth Def -- +Mirth Maybe(Token) ] {
         { Alias -> head Some }
         { Package -> drop None }
         { Module -> start Some }
@@ -148,7 +148,7 @@ data Def {
         { Macro -> head? }
     }
 
-    def defining-module? [ Def -- Maybe(Module) ] {
+    def defining-module? [ +Mirth Def -- +Mirth Maybe(Module) ] {
         head? map(.module)
     }
 
@@ -160,7 +160,7 @@ data Def {
         while-some(dup alias? bind(~target try-force!), nip)
     }
 
-    def name [ Def -- Name ] {
+    def name [ +Mirth Def -- +Mirth Name ] {
         { Alias -> name }
         { Package -> name }
         { Module -> name }
@@ -176,7 +176,7 @@ data Def {
         { Macro -> name }
     }
 
-    def arity [ Def -- Int ] {
+    def arity [ +Mirth Def -- +Mirth Int ] {
         { Alias -> arity }
         { Package -> drop 0 }
         { Module -> drop 0 }

@@ -2,19 +2,23 @@ module mirth.label
 
 import std.prelude
 import std.byte
+import std.str
+import mirth.mirth
 import mirth.name
 
 table(Label)
 field(Label.~name, Label, Name)
-def(Label.name, Label -- Name, ~name @)
-def(Label.>Str, Label -- Str, name >Str)
+def(Label.name, +Mirth Label -- +Mirth Name, ~name @)
+def(Label.>Str, +Mirth Label -- +Mirth Str, name >Str)
 def(Label.==, Label Label -- Bool, both(index) ==)
 
-def(Label.new!, Name -- Label,
+def Label.name; [ +Mirth +Str Label -- +Mirth +Str ] { rdip:name name; }
+
+def(Label.new!, +Mirth Name -- +Mirth Label,
     dup ~label memoize(
         Label.alloc!
         dup2 ~name !
     ) nip)
 
-def(Label.is-resource-label?, Label -- Bool,
+def(Label.is-resource-label?, +Mirth Label -- +Mirth Bool,
     name head Byte.B'+' ==)

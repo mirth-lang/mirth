@@ -123,18 +123,18 @@ def name/dname-penultimate-name? [ Name/DName -- Maybe(Name) ] {
     { Right -> penultimate-name? }
 }
 
-def(TokenValue.sig-type-con?, TokenValue -- Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-type-con))
-def(TokenValue.sig-type-hole?, TokenValue -- Maybe(Name), name? filter(is-type-hole))
-def(TokenValue.sig-type-var?, TokenValue -- Maybe(Name), name? filter(could-be-type-var))
-def(TokenValue.sig-param-name?, TokenValue -- Maybe(Name), sig-type-var?)
-def(TokenValue.sig-stack-var?, TokenValue -- Maybe(Name), name? filter(could-be-stack-var))
-def(TokenValue.sig-resource-var?, TokenValue -- Maybe(Name), name? filter(could-be-resource-var))
-def(TokenValue.sig-resource-con?, TokenValue -- Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-resource-con))
-def(TokenValue.sig-dashes?, TokenValue -- Bool, name? has(>Str "--" ==))
-def(TokenValue.arrow?, TokenValue -- Bool, name? has(>Str "->" ==))
-def(TokenValue.pat-underscore?, TokenValue -- Bool, name? has(is-underscore))
-def(TokenValue.module-header?, TokenValue -- Bool, name? has(>Str "module" ==))
-def(TokenValue.module-import?, TokenValue -- Bool, name? has(>Str "import" ==))
+def(TokenValue.sig-type-con?, +Mirth TokenValue -- +Mirth Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-type-con))
+def(TokenValue.sig-type-hole?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(is-type-hole))
+def(TokenValue.sig-type-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-type-var))
+def(TokenValue.sig-param-name?, +Mirth TokenValue -- +Mirth Maybe(Name), sig-type-var?)
+def(TokenValue.sig-stack-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-stack-var))
+def(TokenValue.sig-resource-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-resource-var))
+def(TokenValue.sig-resource-con?, +Mirth TokenValue -- +Mirth Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-resource-con))
+def(TokenValue.sig-dashes?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "--" ==))
+def(TokenValue.arrow?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "->" ==))
+def(TokenValue.pat-underscore?, +Mirth TokenValue -- +Mirth Bool, name? has(is-underscore))
+def(TokenValue.module-header?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "module" ==))
+def(TokenValue.module-import?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "import" ==))
 
 table(Token)
 field(Token.~value, Token, TokenValue)
@@ -145,74 +145,72 @@ field(Token.~doc, Token, Maybe(Str))
 
 def(Token.==, Token Token -- Bool, both(index) ==)
 
-def(Token.value, Token -- TokenValue, ~value @)
-def(Token.module, Token -- Module, ~module @)
-def(Token.col, Token -- Col, ~col @)
-def(Token.row, Token -- Row, ~row @)
-def(Token.doc, Token -- Maybe(Str), ~doc @)
+def(Token.value, +Mirth Token -- +Mirth TokenValue, ~value @)
+def(Token.module, +Mirth Token -- +Mirth Module, ~module @)
+def(Token.col, +Mirth Token -- +Mirth Col, ~col @)
+def(Token.row, +Mirth Token -- +Mirth Row, ~row @)
+def(Token.doc, +Mirth Token -- +Mirth Maybe(Str), ~doc @)
 
-def(Token.none?, Token -- Bool, value none?)
-def(Token.comma?, Token -- Bool, value comma?)
-def(Token.lparen-open?, Token -- Bool, value lparen-open?)
-def(Token.lparen?, Token -- Maybe(Token), value lparen?)
-def(Token.rparen?, Token -- Maybe(Token), value rparen?)
-def(Token.lsquare-open?, Token -- Bool, value lsquare-open?)
-def(Token.lsquare?, Token -- Maybe(Token), value lsquare?)
-def(Token.rsquare?, Token -- Maybe(Token), value rsquare?)
-def(Token.lcurly-open?, Token -- Bool, value lcurly-open?)
-def(Token.lcurly?, Token -- Maybe(Token), value lcurly?)
-def(Token.rcurly?, Token -- Maybe(Token), value rcurly?)
-def(Token.lcolon-open?, Token -- Bool, value lcolon-open?)
-def(Token.lcolon?, Token -- Maybe(Token), value lcolon?)
-def(Token.rcolon?, Token -- Maybe(Token), value rcolon?)
-def(Token.lparen-or-lcolon?, Token -- Maybe(Token), value lparen-or-lcolon?)
-def(Token.int?, Token -- Maybe(Int), value int?)
-def(Token.str?, Token -- Maybe(Str), value str?)
-def(Token.name?, Token -- Maybe(Name), value name?)
-def(Token.dname?, Token -- Maybe(DName), value dname?)
-def(Token.name/dname?, Token -- Maybe(Either(Name,DName)), value name/dname?)
-def(Token.last-name?, Token -- Maybe(Name), value last-name?)
-def(Token.penultimate-name?, Token -- Maybe(Name), value penultimate-name?)
-def(Token.arg-end?, Token -- Bool, value arg-end?)
-def(Token.left-enclosure?, Token -- Bool, value left-enclosure?)
-def(Token.right-enclosure?, Token -- Bool, value right-enclosure?)
-def(Token.sig-type-con?, Token -- Maybe(Name/DName), value sig-type-con?)
-def(Token.sig-type-hole?, Token -- Maybe(Name), value sig-type-hole?)
-def(Token.sig-type-var?, Token -- Maybe(Name), value sig-type-var?)
-def(Token.sig-param-name?, Token -- Maybe(Name), value sig-param-name?)
-def(Token.sig-stack-var?, Token -- Maybe(Name), value sig-stack-var?)
-def(Token.sig-resource-var?, Token -- Maybe(Name), value sig-resource-var?)
-def(Token.sig-resource-con?, Token -- Maybe(Name/DName), value sig-resource-con?)
-def(Token.sig-dashes?, Token -- Bool, value sig-dashes?)
-def(Token.arrow?, Token -- Bool, value arrow?)
-def(Token.pat-underscore?, Token -- Bool, value pat-underscore?)
-def(Token.module-header?, Token -- Bool, value module-header?)
-def(Token.module-import?, Token -- Bool, value module-import?)
-def(Token.can-take-args?, Token -- Bool, value can-take-args?)
-def(Token.doc?, Token -- Bool, doc none?)
+def(Token.none?, +Mirth Token -- +Mirth Bool, value none?)
+def(Token.comma?, +Mirth Token -- +Mirth Bool, value comma?)
+def(Token.lparen-open?, +Mirth Token -- +Mirth Bool, value lparen-open?)
+def(Token.lparen?, +Mirth Token -- +Mirth Maybe(Token), value lparen?)
+def(Token.rparen?, +Mirth Token -- +Mirth Maybe(Token), value rparen?)
+def(Token.lsquare-open?, +Mirth Token -- +Mirth Bool, value lsquare-open?)
+def(Token.lsquare?, +Mirth Token -- +Mirth Maybe(Token), value lsquare?)
+def(Token.rsquare?, +Mirth Token -- +Mirth Maybe(Token), value rsquare?)
+def(Token.lcurly-open?, +Mirth Token -- +Mirth Bool, value lcurly-open?)
+def(Token.lcurly?, +Mirth Token -- +Mirth Maybe(Token), value lcurly?)
+def(Token.rcurly?, +Mirth Token -- +Mirth Maybe(Token), value rcurly?)
+def(Token.lcolon-open?, +Mirth Token -- +Mirth Bool, value lcolon-open?)
+def(Token.lcolon?, +Mirth Token -- +Mirth Maybe(Token), value lcolon?)
+def(Token.rcolon?, +Mirth Token -- +Mirth Maybe(Token), value rcolon?)
+def(Token.lparen-or-lcolon?, +Mirth Token -- +Mirth Maybe(Token), value lparen-or-lcolon?)
+def(Token.int?, +Mirth Token -- +Mirth Maybe(Int), value int?)
+def(Token.str?, +Mirth Token -- +Mirth Maybe(Str), value str?)
+def(Token.name?, +Mirth Token -- +Mirth Maybe(Name), value name?)
+def(Token.dname?, +Mirth Token -- +Mirth Maybe(DName), value dname?)
+def(Token.name/dname?, +Mirth Token -- +Mirth Maybe(Either(Name,DName)), value name/dname?)
+def(Token.last-name?, +Mirth Token -- +Mirth Maybe(Name), value last-name?)
+def(Token.penultimate-name?, +Mirth Token -- +Mirth Maybe(Name), value penultimate-name?)
+def(Token.arg-end?, +Mirth Token -- +Mirth Bool, value arg-end?)
+def(Token.left-enclosure?, +Mirth Token -- +Mirth Bool, value left-enclosure?)
+def(Token.right-enclosure?, +Mirth Token -- +Mirth Bool, value right-enclosure?)
+def(Token.sig-type-con?, +Mirth Token -- +Mirth Maybe(Name/DName), value sig-type-con?)
+def(Token.sig-type-hole?, +Mirth Token -- +Mirth Maybe(Name), value sig-type-hole?)
+def(Token.sig-type-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-type-var?)
+def(Token.sig-param-name?, +Mirth Token -- +Mirth Maybe(Name), value sig-param-name?)
+def(Token.sig-stack-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-stack-var?)
+def(Token.sig-resource-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-resource-var?)
+def(Token.sig-resource-con?, +Mirth Token -- +Mirth Maybe(Name/DName), value sig-resource-con?)
+def(Token.sig-dashes?, +Mirth Token -- +Mirth Bool, value sig-dashes?)
+def(Token.arrow?, +Mirth Token -- +Mirth Bool, value arrow?)
+def(Token.pat-underscore?, +Mirth Token -- +Mirth Bool, value pat-underscore?)
+def(Token.module-header?, +Mirth Token -- +Mirth Bool, value module-header?)
+def(Token.module-import?, +Mirth Token -- +Mirth Bool, value module-import?)
+def(Token.can-take-args?, +Mirth Token -- +Mirth Bool, value can-take-args?)
 
-def(Token.alloc-none!, Token,
+def(Token.alloc-none!, +Mirth -- +Mirth Token,
     Token.alloc!
     None over ~doc !
     TokenValue.None over ~value !)
 
-def(Token.location, Token -- Location,
+def(Token.location, +Mirth Token -- +Mirth Location,
     dup .module >module
     dup .row >row
     .col >col
     Location)
 
-def Token.location! [ Location Token -- ] {
-    !token (
-        /Location
-        module> @token ~module !
-        row> @token ~row !
-        col> @token ~col !
-    ) drop
+def Token.location! [ +Mirth Location Token -- +Mirth ] {
+    >token
+    /Location
+    module> @token ~module !
+    row> @token ~row !
+    col> token> ~col !
 }
 
 ||| Get next token, respecting nesting of tokens and arguments.
-def(Token.next, Token -- Token,
+def(Token.next, +Mirth Token -- +Mirth Token,
     dup value match(
         LParen -> nip succ,
         LSquare -> nip succ,
@@ -225,7 +223,7 @@ def(Token.next, Token -- Token,
     ))
 
 ||| Get previous token, respecting nesting of tokens and arguments.
-def(Token.prev, Token -- Token,
+def(Token.prev, +Mirth Token -- +Mirth Token,
     pred dup value match(
         RSquare -> nip,
         RCurly -> nip,
@@ -236,33 +234,33 @@ def(Token.prev, Token -- Token,
 
 ||| Get closest arg ending (see `TokenValue.arg-end?`) while respecting the
 ||| nesting of tokens.
-def(Token.next-arg-end, Token -- Token,
+def(Token.next-arg-end, +Mirth Token -- +Mirth Token,
     while(dup arg-end? not, next))
 
-def(Token.has-args?, Token -- Bool,
+def(Token.has-args?, +Mirth Token -- +Mirth Bool,
     dup can-take-args? then(succ)
     lparen-or-lcolon? >Bool)
 
-def(Token.args-start, Token -- Token,
+def(Token.args-start, +Mirth Token -- +Mirth Token,
     dup can-take-args?
     and(dup succ lparen-or-lcolon? >Bool) then(succ))
 
-def(Token.could-be-sig-label?, Token -- Bool,
+def(Token.could-be-sig-label?, +Mirth Token -- +Mirth Bool,
     dup name? if?(could-be-label-name?, False)
     and(dup succ lcolon? >Bool) nip)
 
-def Token.sig-label? [ Token -- Maybe(Label) ] {
+def Token.sig-label? [ +Mirth Token -- +Mirth Maybe(Label) ] {
     dup name? filter(
         could-be-label-name?
         and(dup succ lcolon? >Bool)
     ) map(Label.new!) nip
 }
 
-def Token.pattern-var? [ Token -- Maybe(Name) ] {
+def Token.pattern-var? [ +Mirth Token -- +Mirth Maybe(Name) ] {
     name? filter: could-be-pattern-var?
 }
 
-def Token.pattern-auto-run-var? [ Token -- Maybe(Name) ] {
+def Token.pattern-auto-run-var? [ +Mirth Token -- +Mirth Maybe(Name) ] {
     >token
     @token lsquare? >Bool
     @token succ succ rsquare? >Bool && if(
@@ -316,7 +314,7 @@ def(Token.args-3, Token +Mirth -- Token Token Token +Mirth,
     ))
 
 ||| Get number of arguments or number of components in enclosed token.
-def(Token.num-args, Token -- Nat,
+def(Token.num-args, +Mirth Token -- +Mirth Nat,
     args-start dup left-enclosure? if(
         dip(0u)
         while(dup args-end? not,
@@ -326,7 +324,7 @@ def(Token.num-args, Token -- Nat,
     ))
 
 ||| Get List of token args.
-def(Token.args, Token -- List(Token),
+def(Token.args, +Mirth Token -- +Mirth List(Token),
     args-start dup left-enclosure? if(
         collect-while(dup args-end? not, succ sip(next-arg-end)) nip,
         drop L0
@@ -334,13 +332,13 @@ def(Token.args, Token -- List(Token),
 
 ||| Check if we're at the end of the last argument.
 ||| A trailing comma is ignored.
-def(Token.args-end?, Token -- Bool,
+def(Token.args-end?, +Mirth Token -- +Mirth Bool,
     dup comma? then(succ)
     right-enclosure?)
 
 ||| Get Nest of token args.
 ||| Emits a fatal error if token has no args,
-def(Token.args+, Token +Mirth -- Nest(Token) +Mirth,
+def(Token.args+, +Mirth Token -- +Mirth Nest(Token),
     dup args >Nest? unwrap("expected 1 or more args, got none" emit-fatal-error!) nip)
 
 ###############
@@ -348,10 +346,10 @@ def(Token.args+, Token +Mirth -- Nest(Token) +Mirth,
 ###############
 
 ||| Is this the end of a module?
-def(Token.module-end?, Token -- Bool, none?)
+def(Token.module-end?, +Mirth Token -- +Mirth Bool, none?)
 
 ||| Is this a token to stop running at?
-def(Token.run-end?, Token -- Bool,
+def(Token.run-end?, +Mirth Token -- +Mirth Bool,
     value match(
         None -> True,
         Comma -> True,
@@ -362,39 +360,39 @@ def(Token.run-end?, Token -- Bool,
         _ -> drop False
     ))
 
-def Token.to-run-end [ Token -- Token ] {
+def Token.to-run-end [ +Mirth Token -- +Mirth Token ] {
     while(dup run-end? not, next)
 }
 
-def(Token.run-tokens, Token -- List(Token),
+def(Token.run-tokens, +Mirth Token -- +Mirth List(Token),
     collect-while(dup run-end? not, sip(next)) nip)
 
-def(Token.run-length, Token -- Nat,
+def(Token.run-length, +Mirth Token -- +Mirth Nat,
     dip(0u) while(dup run-end? not, next dip(1+)) drop)
 
-def(Token.run-arrow?, Token -- Maybe(Token),
+def(Token.run-arrow?, +Mirth Token -- +Mirth Maybe(Token),
     run-tokens find(arrow?))
 
 ###################
 # Type Signatures #
 ###################
 
-def(Token.sig-stack-end?, Token -- Bool,
+def(Token.sig-stack-end?, +Mirth Token -- +Mirth Bool,
     dup sig-dashes? or(dup run-end?) nip)
 
-def(Token.sig-next-stack-end, Token -- Token,
+def(Token.sig-next-stack-end, +Mirth Token -- +Mirth Token,
     while(dup sig-stack-end? not, next))
 
-def(Token.sig-has-dashes?, Token -- Bool,
+def(Token.sig-has-dashes?, +Mirth Token -- +Mirth Bool,
     sig-next-stack-end sig-dashes?)
 
-def(Token.sig-skip-dashes, Token -- Token,
+def(Token.sig-skip-dashes, +Mirth Token -- +Mirth Token,
     dup sig-has-dashes? then(sig-next-stack-end next))
 
-def(Token.pat-tokens, Token -- List(Token),
+def(Token.pat-tokens, +Mirth Token -- +Mirth List(Token),
     run-tokens take-while(arrow? not))
 
-def Token.clone-run! [ location:Location Token -- Token ] {
+def Token.clone-run! [ +Mirth location:Location Token -- +Mirth Token ] {
     dup >start to-run-end >end
 
     Token.alloc-none! >anchor

@@ -53,7 +53,7 @@ struct Arrow {
     def ctx-type { sip(ctx) type }
     def type { sip(dom) cod T-> }
 
-    def to-run-var [ Arrow -- Maybe(Var) ] {
+    def to-run-var [ +Mirth Arrow -- +Mirth Maybe(Var) ] {
         atoms single? bind(to-run-var)
     }
     def free-vars [ +Mirth Arrow -- +Mirth List(Var) ] {
@@ -71,7 +71,7 @@ struct Atom {
     cod:StackType
     subst:Subst
     --
-    def to-run-var [ Atom -- Maybe(Var) ] { op to-run-var }
+    def to-run-var [ +Mirth Atom -- +Mirth Maybe(Var) ] { op to-run-var }
     def free-vars [ +Mirth Atom -- +Mirth List(Var) ] {
         dup args map(free-vars) unions
         swap op free-vars union
@@ -116,7 +116,7 @@ data Op {
     TableToIndex [ Table ]
     TableFromIndex [ Table ]
     --
-    def to-run-var [ Op -- Maybe(Var) ] {
+    def to-run-var [ +Mirth Op -- +Mirth Maybe(Var) ] {
         { Var -> dup auto-run? if(Some, drop None) }
         { _ -> drop None }
     }

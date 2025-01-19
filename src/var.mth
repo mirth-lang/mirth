@@ -19,31 +19,31 @@ field(Var.~name, Var, Name)
 field(Var.~type, Var, Type)
 field(Var.~auto-run?, Var, Maybe(ArrowType)) # run variable by default
 
-def(Var.name, Var -- Name, ~name @)
-def(Var.type, Var -- Type, ~type @)
-def(Var.auto-run?, Var -- Maybe(ArrowType), ~auto-run? @)
+def(Var.name, +Mirth Var -- +Mirth Name, ~name @)
+def(Var.type, +Mirth Var -- +Mirth Type, ~type @)
+def(Var.auto-run?, +Mirth Var -- +Mirth Maybe(ArrowType), ~auto-run? @)
 
 inline (
     def Var.== [ Var Var -- Bool ] { both(index) == }
     def Var.<> [ Var Var -- Bool ] { == not }
 )
-def(Var.type;, +Str Var -- +Str, name >Str ;)
-def(Var.is-type?, Var -- Bool, type prim? has(PrimType.Type ==))
-def(Var.is-stack?, Var -- Bool, type prim? has(PrimType.StackType ==))
-def(Var.is-resource?, Var -- Bool, type prim? has(PrimType.ResourceType ==))
-def(Var.is-physical?, Var -- Bool, type is-physical?)
+def(Var.type;, +Mirth +Str Var -- +Mirth +Str, rdip(name >Str) ;)
+def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.Type ==))
+def(Var.is-stack?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.StackType ==))
+def(Var.is-resource?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.ResourceType ==))
+def(Var.is-physical?, +Mirth Var -- +Mirth Bool, type is-physical?)
 
-def(Var.new!, Type Name -- Var,
+def(Var.new!, +Mirth Type Name -- +Mirth Var,
     Var.alloc!
     tuck ~name !
     tuck ~type !
     None over ~auto-run? !)
 
-def(Var.new-auto-run!, ArrowType Name -- Var,
+def(Var.new-auto-run!, +Mirth ArrowType Name -- +Mirth Var,
     dip(dup Type.Arrow) Var.new!
     dip(Some) tuck ~auto-run? !)
 
-def Var.NewInCtx [ Ctx Type Str -- Ctx Var ] {
+def Var.NewInCtx [ +Mirth Ctx Type Str -- +Mirth Ctx Var ] {
     >Name Var.new! sip:Ctx.new
 }
 
@@ -67,20 +67,20 @@ def(Ctx.L5, Var Var Var Var Var -- Ctx, L5 Ctx)
 def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.Snoc >Ctx)
 
 def(Ctx.vars, Ctx -- List(Var), >List)
-def(Ctx.physical-vars, Ctx -- List(Var), vars filter(is-physical?))
-def(Ctx.physically-empty?, Ctx -- Bool, physical-vars empty?)
-def(Ctx.lookup, Name Ctx -- Maybe(Var), >List reverse-lookup(name ==))
+def(Ctx.physical-vars, +Mirth Ctx -- +Mirth List(Var), vars filter(is-physical?))
+def(Ctx.physically-empty?, +Mirth Ctx -- +Mirth Bool, physical-vars empty?)
+def(Ctx.lookup, +Mirth Name Ctx -- +Mirth Maybe(Var), >List reverse-lookup(name ==))
 def(Ctx.len, Ctx -- Nat, >List len)
-def(Ctx.fresh-name!, Ctx -- Ctx Name,
+def(Ctx.fresh-name!, +Mirth Ctx -- +Mirth Ctx Name,
     1 "_x1" >Name while-some(
         dup over3 lookup,
         drop2 1+ "_x" over show cat >Name
     ) nip)
-def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
+def(Ctx.fresh-stack-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
     dip(PrimType.StackType Type.Prim) fresh-var!)
-def(Ctx.fresh-type-var!, Ctx -- Ctx Var,
+def(Ctx.fresh-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
     dip(PrimType.Type Type.Prim) fresh-var!)
-def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
+def(Ctx.fresh-var!, +Mirth Type Ctx -- +Mirth Ctx Var,
     fresh-name! dip(swap) Var.new! sip(Ctx.new))
 
 def(Ctx.==, Ctx Ctx -- Bool,
@@ -89,7 +89,7 @@ def(Ctx.==, Ctx Ctx -- Bool,
 def(Var.unify!, +Mirth +Gamma Var Var -- +Mirth +Gamma Type,
     dup2 == if(drop Type.Var, both(Type.Var) unify-failed!))
 
-def(Var.freshen, Subst Var -- Subst Type,
+def(Var.freshen, +Mirth Subst Var -- +Mirth Subst Type,
     swap dup2 has-var? if(
         tuck get-var,
         MetaVar.new! Type.Meta dup

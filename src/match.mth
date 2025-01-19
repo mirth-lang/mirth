@@ -34,7 +34,7 @@ struct Case { pattern:Pattern body:Arrow }
 def(Case.outer-ctx, Case -- Ctx, pattern outer-ctx)
 def(Case.inner-ctx, Case -- Ctx, pattern inner-ctx)
 
-def(Match.is-exhaustive?, Match -- Bool,
+def(Match.is-exhaustive?, +Mirth Match -- +Mirth Bool,
     dup has-default-case? or(
         dup scrutinee-data? match(
             Some ->
@@ -47,12 +47,12 @@ def(Match.is-exhaustive?, Match -- Bool,
         )
     ) nip)
 
-def(Match.has-default-case?, Match -- Bool,
+def(Match.has-default-case?, +Mirth Match -- +Mirth Bool,
     cases has(is-default-case?))
 
 ||| Get "data" associated with scrutinee. Only returns Data if all the
 ||| TAG patterns use it.
-def(Match.scrutinee-data?, Match -- Maybe(Data),
+def(Match.scrutinee-data?, +Mirth Match -- +Mirth Maybe(Data),
     cases filter(is-default-case? not) dup
     first bind(pattern single-tag?) map(.data) if?(
         swap all(pattern single-tag? if?(dip:dup .data ==, False)) if(
@@ -62,7 +62,7 @@ def(Match.scrutinee-data?, Match -- Maybe(Data),
         drop None
     ))
 
-def(Match.is-transparent?, Match -- Bool,
+def(Match.is-transparent?, +Mirth Match -- +Mirth Bool,
     cases single?
     bind(pattern atoms single?)
     has(op match(
@@ -80,7 +80,7 @@ def Match.semi-transparent-tag? [ +Mirth Match -- +Mirth Maybe(SemiTransparentDa
     bind(.data semi-transparent?)
 }
 
-def(Match.unit-tag?, Match -- Maybe(Tag),
+def(Match.unit-tag?, +Mirth Match -- +Mirth Maybe(Tag),
     cases single?
     bind(pattern atoms single?)
     bind(op match(
@@ -159,7 +159,7 @@ def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
     pattern mid >cod
     Subst.Nil >subst
     PatternOp.Underscore >op
-    pattern mid force-cons?! match(
+    pattern mid rdip:force-cons?! match(
         None ->
             pattern token-start "pattern expects something on stack" rdip:emit-error!
             StackType.Error Type.Error,
@@ -174,7 +174,7 @@ def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
     dup PatternOp.Tag >op List.Nil >saved
     pattern token-start >token
     pattern inner-ctx >ctx
-    dip:Subst.Nil rdip:type freshen-sig /ArrowType dom> cod>
+    dip:Subst.Nil rdip(type freshen-sig) /ArrowType dom> cod>
     dip(pattern mid)
     pattern token-start >token +Gamma rdip':unify! rdrop >cod
     dup >dom pattern:mid!

@@ -83,7 +83,7 @@ def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List
     over args >Nest? match(
         None -> drop L1,
         Some ->
-            dup has(rdip:free-vars has(is-physical?)) if(
+            dup rdip:has(free-vars has(is-physical?)) if(
                 # can't specialize, just check the args
                 dup for(check-arg!)
                 drop2 L1,
@@ -233,7 +233,7 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
     dip:Subst.Nil nip
     swap dom (
         swap reverse-for(
-            dip(force-cons?!
+            dip(rdip:force-cons?!
                 unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
                 unpack2)
             /Block type Type.Arrow unify! drop
@@ -306,7 +306,7 @@ def +SPSynth.synth-var! [ +Mirth +SPSynth Var -- +Mirth +SPSynth ] {
 }
 
 def(+SPSynth.synth-match!, +Mirth +SPSynth Match -- +Mirth +SPSynth,
-    MetaVar.new! StackType.Meta >cod
+    rdip:MetaVar.new! StackType.Meta >cod
     dup body >body
     cases ab:ab-match!(for(
         dup pattern token-start

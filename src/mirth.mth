@@ -288,37 +288,37 @@ data PropLabel {
     FieldIndexType [ Field ]
     MacroQName     [ Macro ]
     --
-    def trace; [ PropLabel +Str -- +Str ] {
-        { DataQName      -> "data qname at " ; head? location?; }
-        { DataParams     -> "data params at " ; head? location?; }
-        { DataCType      -> "data ctype at " ; head? location?; }
-        { TagType        -> "tag ctype at " ; sig? location?; }
-        { TableQName     -> "table qname at " ; head location; }
-        { TypeDefQName   -> "type qname at " ; head? location?; }
-        { TypeDefTarget  -> "type target at " ; head? location?; }
-        { WordQName      -> "word qname at " ; head location; }
-        { WordType       -> "word type at " ; head location; }
-        { WordParams     -> "word params at " ; head location; }
-        { WordArrow      -> "word arrow at " ; head location; }
-        { BlockArrow     -> "block arrow at " ; token location; }
-        { AliasQName     -> "alias qname at " ; head location; }
-        { AliasTarget    -> "alias target at " ; head location; }
-        { ExternalQName  -> "external qname at " ; head location; }
-        { ExternalType   -> "external type at " ; head location; }
-        { ExternalCType  -> "external ctype at " ; head location; }
-        { BufferQName    -> "buffer qname at " ; head location; }
-        { FieldQName     -> "field qname at " ; head location; }
-        { FieldValueType -> "field value type at " ; head location; }
-        { FieldIndexType -> "field index type at " ; head location; }
-        { MacroQName     -> "macro qname at " ; head? location?; }
+    def trace; [ +Mirth +Str PropLabel -- +Mirth +Str ] {
+        { DataQName      -> "data qname at " ; rdip:head? location?; }
+        { DataParams     -> "data params at " ; rdip:head? location?; }
+        { DataCType      -> "data ctype at " ; rdip:head? location?; }
+        { TagType        -> "tag ctype at " ; rdip:sig? location?; }
+        { TableQName     -> "table qname at " ; rdip:head location; }
+        { TypeDefQName   -> "type qname at " ; rdip:head? location?; }
+        { TypeDefTarget  -> "type target at " ; rdip:head? location?; }
+        { WordQName      -> "word qname at " ; rdip:head location; }
+        { WordType       -> "word type at " ; rdip:head location; }
+        { WordParams     -> "word params at " ; rdip:head location; }
+        { WordArrow      -> "word arrow at " ; rdip:head location; }
+        { BlockArrow     -> "block arrow at " ; rdip:token location; }
+        { AliasQName     -> "alias qname at " ; rdip:head location; }
+        { AliasTarget    -> "alias target at " ; rdip:head location; }
+        { ExternalQName  -> "external qname at " ; rdip:head location; }
+        { ExternalType   -> "external type at " ; rdip:head location; }
+        { ExternalCType  -> "external ctype at " ; rdip:head location; }
+        { BufferQName    -> "buffer qname at " ; rdip:head location; }
+        { FieldQName     -> "field qname at " ; rdip:head location; }
+        { FieldValueType -> "field value type at " ; rdip:head location; }
+        { FieldIndexType -> "field index type at " ; rdip:head location; }
+        { MacroQName     -> "macro qname at " ; rdip:head? location?; }
     }
 }
 
-def Token.location; [ +Str Token -- +Str ] {
-    location emit;
+def Token.location; [ +Mirth +Str Token -- +Mirth +Str ] {
+    rdip:location emit;
 }
 
-def Maybe.location?; (f {location;}) [ (+Str t -- +Str) +Str Maybe(t) -- +Str ] {
+def Maybe.location?; (f {location;}) [ (+Mirth +Str t -- +Mirth +Str) +Mirth +Str Maybe(t) -- +Mirth +Str ] {
     if?(f, "???";)
 }
 

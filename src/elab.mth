@@ -59,31 +59,33 @@ struct +TypeElab {
     }
 
     def elab-type-sig! [ +Mirth +TypeElab -- +Mirth +TypeElab ArrowType ] {
-        token run-end? then(token "expected type signature" rdip:emit-error!)
+        token rdip:run-end? then(token "expected type signature" rdip:emit-error!)
         elab-type-sig-params!
         elab-stack-type!
-        token sig-dashes? if(token:succ elab-stack-type!, dip:T0)
-        token run-end? else(token "expected right paren or comma" rdip:emit-error!)
+        token rdip:sig-dashes? if(token:succ elab-stack-type!, dip:T0)
+        token rdip:run-end? else(token "expected right paren or comma" rdip:emit-error!)
         dip(swap for(T*)) T->
     }
 
     def elab-type-sig-params! [ +Mirth +TypeElab -- +Mirth +TypeElab List(Type) ] {
-        token lparen? if(
-            token next
-            token args map(token! elab-type-sig! Type.Arrow)
+        token rdip:lparen? if(
+            token rdip:next
+            token rdip:args map(token! elab-type-sig! Type.Arrow)
             dip:token!,
             L0
         )
     }
 
     def elab-stack-type! [ +Mirth +TypeElab -- +Mirth +TypeElab StackType ] {
-        token sig-stack-var? if?(elab-stack-type-var!, T0)
+        token rdip:sig-stack-var? if?(elab-stack-type-var!, T0)
         elab-stack-type-parts!
     }
 
     def elab-stack-type-parts! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab StackType ] {
-        while(token sig-stack-end? not, elab-stack-type-part! cons)
+        while(token rdip:sig-stack-end? not, elab-stack-type-part! cons)
     }
+
+
 
     def elab-type-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Type ] {
         token elab-stack-type-part!
@@ -93,7 +95,7 @@ struct +TypeElab {
             With -> drop "Expected type, not resource." rdip:emit-error! Type.Error,
             WithLabel -> drop2 "Expected type, not labelled resource." rdip:emit-error! Type.Error,
         )
-        token arg-end? else(
+        token rdip:arg-end? else(
             token "Unexpected token after type." rdip:emit-error!
         )
     }
@@ -106,34 +108,34 @@ struct +TypeElab {
             With -> nip,
             WithLabel -> drop2 "Expected resource, not label." rdip:emit-error! Type.Error Resource,
         )
-        token arg-end? else(
+        token rdip:arg-end? else(
             token "Unexpected token after resource." rdip:emit-error!
         )
     }
 
     def elab-stack-type-part! [ +Mirth +TypeElab -- +Mirth +TypeElab StackTypePart ] {
-        token sig-label? if?(
+        token rdip:sig-label? if?(
             elab-stack-label!,
 
-        token sig-type-var? if?(
+        token rdip:sig-type-var? if?(
             elab-type-var! StackTypePart.Cons,
 
-        token sig-type-con? if?(
+        token rdip:sig-type-con? if?(
             elab-type-con! StackTypePart.Cons,
 
-        token sig-resource-var? if?(
+        token rdip:sig-resource-var? if?(
             elab-resource-var! StackTypePart.With,
 
-        token sig-resource-con? if?(
+        token rdip:sig-resource-con? if?(
             elab-resource-con! StackTypePart.With,
 
-        token pat-underscore? if(
+        token rdip:pat-underscore? if(
             elab-type-dont-care! StackTypePart.Cons,
 
-        token sig-type-hole? if?(
+        token rdip:sig-type-hole? if?(
             elab-type-hole! StackTypePart.Cons,
 
-        token lsquare? .if(
+        token rdip:lsquare? .if(
             elab-type-quote! StackTypePart.Cons,
 
             token "Expected type, got unknown token." rdip:emit-error!
@@ -142,8 +144,8 @@ struct +TypeElab {
     }
 
     def elab-stack-label! [ +Mirth +TypeElab Label -- +Mirth +TypeElab StackTypePart ] {
-        token next dip(
-            token:args-1 dup is-resource-label? if(
+        token rdip:next dip(
+            token:args-1 dup rdip:is-resource-label? if(
                 elab-resource-arg! swap StackTypePart.WithLabel,
                 elab-type-arg! swap StackTypePart.ConsLabel
             )
@@ -167,11 +169,11 @@ struct +TypeElab {
     }
 
     def elab-implicit-var! [ +Mirth +TypeElab Name Type -- +Mirth +TypeElab Maybe(Var) ] {
-        over ctx lookup match(
-            Some -> sip(dip:nip type gamma:unify! drop) Some,
+        over ctx rdip:lookup match(
+            Some -> sip(dip:nip rdip:type gamma:unify! drop) Some,
             None ->
                 allow-implicit-type-vars if(
-                    swap Var.new! ctx(over Ctx.new) Some,
+                    swap ctx(dip:Var.new! over Ctx.new) Some,
                     token "Implicit type variable not allowed here." rdip:emit-error!
                     drop2 None
                 )
@@ -203,8 +205,8 @@ struct +TypeElab {
     }
 
     def elab-type-con! [ +Mirth +TypeElab Name/DName -- +Mirth +TypeElab Type ] {
-        dup left? has(>Str "Mut" ==) if(
-            drop token next dip(
+        dup left? rdip:has(>Str "Mut" ==) if(
+            drop token rdip:next dip(
                 token:args-1
                 elab-type-arg!
                 Type.Mut
@@ -224,7 +226,7 @@ struct +TypeElab {
     }
 
     def elab-type-args! [ +Mirth +TypeElab Type List(Var) -- +Mirth +TypeElab Type ] {
-        token args for(
+        token rdip:args for(
             with-token(elab-type-app!)
         ) drop
     }
@@ -237,7 +239,7 @@ struct +TypeElab {
                 { Type -> elab-type-arg! }
             } swap dip:Type.App,
 
-            drop tycon? then?(
+            drop rdip:tycon? then?(
                 token rdip:Str("Too many type arguments to "; swap rdip(qname-hard >Str) ;) rdip:emit-error!
             )
             Type.Error L0
@@ -266,9 +268,9 @@ struct +TypeElab {
     }
 
     def elab-type-quote! [ +Mirth +TypeElab -- +Mirth +TypeElab Type ] {
-        token next dip(
+        token rdip:next dip(
             token:args-1
-            token sig-has-dashes? if(
+            token rdip:sig-has-dashes? if(
                 elab-type-sig! >Type,
                 elab-stack-type! >Type
             )
@@ -360,18 +362,18 @@ struct +ResolveDef {
     }
 
     def filter-arity [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
-        token num-args filter(
+        token rdip:num-args filter(
             dup2 rdip:qname-hard arity dip(>Int) arity-compatible?,
             RejectedDef.WrongArity
         ) drop
     }
 
-    def filter-visible [ +ResolveDef -- +ResolveDef ] {
-        filter(token over def-visible-from-token?, RejectedDef.NotVisible)
+    def filter-visible [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
+        filter(token over rdip:def-visible-from-token?, RejectedDef.NotVisible)
     }
 
     def filter-qualifiers [ +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
-        token dname? for(
+        token rdip:dname? for(
             filter(dup2 rdip:qname-hard climb-up-dname? empty? not, RejectedDef.WrongQualifier)
             drop
         )
@@ -386,7 +388,7 @@ struct +ResolveDef {
                     or(token over rdip:def-is-imported-at-token?),
                     dup rdip:qname-hard namespace match(
                         Tycon ->
-                            drop @name can-be-relative? if(
+                            drop @name rdip:can-be-relative? if(
                                 over empty? if(
                                     RejectedDef.MethodNotAvailable,
                                     RejectedDef.MethodWrongType
@@ -459,7 +461,7 @@ struct +ResolveDef {
                             "Not imported in current scope: " ; rdip2(qname-hard >Str) ; ,
                         WrongArity ->
                             rdip2(qname-hard dup >Str) ; " expects " ; arity show;
-                            " arguments, but got " ; rdip:token num-args show; "." ; ,
+                            " arguments, but got " ; rdip:token rdip2:num-args show; "." ; ,
                         WrongQualifier ->
                             "Qualified name not found. Perhaps you meant: " ; rdip2(qname-hard >Str) ; ,
                         WrongConstructor ->
@@ -531,7 +533,7 @@ def def-is-imported-at-token? [ +Mirth Token Def -- +Mirth Bool ] {
     )
 }
 
-def tycon-is-visible-at-token? [ Token Tycon -- Bool ] {
+def tycon-is-visible-at-token? [ +Mirth Token Tycon -- +Mirth Bool ] {
     Data -> head? if?(.module module-visible-from-token?, drop True),
     Table -> head .module module-visible-from-token?,
     Prim -> drop2 True
@@ -660,7 +662,7 @@ struct +AB {
     def ab-label-pop-r! [ Label +Mirth +AB -- +Mirth +AB ] { Op.LabelPopR ab-op! }
 
     def ab-block-at!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Token +Mirth +AB -- *b +Mirth +AB ] {
-        ab-ctx@ MetaVar.new! StackType.Meta rotl ab-home@ rdip(ab-build!(f))
+        ab-ctx@ rdip:MetaVar.new! StackType.Meta rotl ab-home@ rdip(ab-build!(f))
         rdip:Block.new! Op.BlockPush ab-op!
     }
 
@@ -701,7 +703,7 @@ struct +AB {
             dip(ab-ctx@ ab-type@) reverse-for(
                 swap dip(dup dip(Ctx.new))
                 ab-token@ rdip:elab-expand-tensor!
-                dip(rotl type) rdip:elab-type-unify! drop2
+                dip(rotl rdip:type) rdip:elab-type-unify! drop2
             )
             rotl ab-home@ rdip(ab-build!(f))
         )
@@ -726,13 +728,13 @@ struct +AB {
 
     def elab-atoms! [ +Mirth +AB -- +Mirth +AB ] {
         while(
-            ab-token@ run-end? not,
-            elab-atom! ab-token@ next ab-token!
+            ab-token@ rdip:run-end? not,
+            elab-atom! ab-token@ rdip:next ab-token!
         )
     }
 
     def elab-atom! [ +Mirth +AB -- +Mirth +AB ] {
-        ab-token@ value match(
+        ab-token@ rdip:value match(
             Name -> elab-atom-name!,
             DName -> elab-atom-dname!,
             Int -> ab-int!,
@@ -751,13 +753,13 @@ struct +AB {
     }
 
     def elab-label-get! [ Label +Mirth +AB -- +Mirth +AB ] {
-        dup is-resource-label? if(
+        dup rdip:is-resource-label? if(
             dup ab-label-pop-r!
             ab-token@ dup rdip:args-1 ab-token! elab-atoms! ab-token!
             ab-label-push-r!,
 
             dup ab-label-pop!
-            ab-token@ num-args 0= if(
+            ab-token@ rdip:num-args 0= if(
                 Prim.Dup ab-prim!,
                 ab-token@ dup rdip:args-1 ab-token! elab-atoms! ab-token!
             )
@@ -766,12 +768,12 @@ struct +AB {
     }
 
     def elab-label-set! [ Label +Mirth +AB -- +Mirth +AB ] {
-        dup is-resource-label? if(
+        dup rdip:is-resource-label? if(
             dup ab-label-push-r!
             ab-token@ dup rdip:args-1 ab-token! elab-atoms! ab-token!
             ab-label-pop-r!,
 
-            ab-token@ num-args 0= if(
+            ab-token@ rdip:num-args 0= if(
                 dup ab-label-pop!
                 Prim.Drop ab-prim!
                 ab-label-push!,
@@ -799,15 +801,15 @@ struct +AB {
     }
 
     def elab-args! [ +Mirth +AB -- +Mirth +AB ] {
-        ab-token@ args for(elab-block-at!)
+        ab-token@ rdip:args for(elab-block-at!)
     }
 
     def elab-word-args! [ Word +Mirth +AB -- Word +Mirth +AB ] {
         elab-args!
-        ab-token@ num-args over arity < then(
-            ab-token@ num-args over rdip:params drop-slice for(
+        ab-token@ rdip:num-args over arity < then(
+            ab-token@ rdip:num-args over rdip:params drop-slice for(
                 default if? (
-                    ab-token@ location >location clone-run! elab-block-at!,
+                    ab-token@ rdip:location >location rdip:clone-run! elab-block-at!,
                     ab-token@ "word parameter is missing, has no default implementation" rdip:emit-fatal-error!
                 )
             )
@@ -819,7 +821,7 @@ struct +AB {
     }
 
     def elab-atom-name! [ Name +Mirth +AB -- +Mirth +AB ] {
-        dup ab-ctx@ lookup match(
+        dup ab-ctx@ rdip:lookup match(
             Some -> nip elab-args! ab-var!,
             None -> Left elab-atom-resolve-def!
         )
@@ -829,7 +831,7 @@ struct +AB {
         Right elab-atom-resolve-def!
     }
 
-    def Token.can-be-relative-name-or-dname? [ Token -- Bool ] {
+    def Token.can-be-relative-name-or-dname? [ +Mirth Token -- +Mirth Bool ] {
         value match(
             Name -> can-be-relative?,
             DName -> is-relative?,
@@ -839,7 +841,7 @@ struct +AB {
 
     def elab-atom-resolve-def! [ +Mirth +AB Name/DName -- +Mirth +AB ] {
         >name/dname
-        ab-type@ top-types-are-fine? not >report-ambiguous-as-warning
+        ab-type@ rdip:top-types-are-fine? not >report-ambiguous-as-warning
         ab-token@ >token
         "word" >sort
         False >ignore-last-name
@@ -847,9 +849,9 @@ struct +AB {
             filter(dup rdip:callable?, RejectedDef.WrongSort)
             filter-arity
             filter-qualifiers
-            token can-be-relative-name-or-dname? if(
-                @+ab:ab-type@ top-types-are-fine? then(
-                    @+ab:ab-type@ top-namespaces filter-roots
+            token rdip:can-be-relative-name-or-dname? if(
+                @+ab:ab-type@ rdip:top-types-are-fine? then(
+                    @+ab:ab-type@ rdip:top-namespaces filter-roots
                 ),
                 L0 filter-roots
             )
@@ -881,7 +883,7 @@ struct +AB {
     }
 
     def elab-atom-not-a-word! [ QName +Mirth +AB -- +Mirth +AB ] {
-        ab-type@ top-types-are-fine? if(
+        ab-type@ rdip:top-types-are-fine? if(
             dip(ab-token@ "Not a word: ") rdip:>Str cat rdip:emit-error!,
             drop
         ) elab-atom-failed!
@@ -910,8 +912,8 @@ struct +AB {
     }
 
     def elab-atom-match! [ +Mirth +AB -- +Mirth +AB ] {
-        MetaVar.new! StackType.Meta >cod
-        ab-token@ succ lcurly? if(
+        rdip:MetaVar.new! StackType.Meta >cod
+        ab-token@ succ rdip:lcurly? if(
             ab-token@ succ succ >body
             ab-token@ succ ab-token!,
             ab-token@ rdip:args+ first >body
@@ -1143,29 +1145,29 @@ def elab-lambda-sig! [ Lambda -- OpSig ] {
     sip(dom) cod T-> OpSig.Apply
 }
 
-def elab-var-sig! [ Var -- OpSig ] {
+def elab-var-sig! [ +Mirth Var -- +Mirth OpSig ] {
     dup auto-run? if?(
         nip semifreshen-sig OpSig.Apply,
         type OpSig.Push
     )
 }
 
-def elab-label-push-sig! [ Label -- OpSig ] {
+def elab-label-push-sig! [ +Mirth Label -- +Mirth OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
     StackType.ConsLabel dip(StackType.Cons) T-> OpSig.Apply
 }
 
-def elab-label-pop-sig! [ Label -- OpSig ] {
+def elab-label-pop-sig! [ +Mirth Label -- +Mirth OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
     StackType.ConsLabel dip(StackType.Cons) swap T-> OpSig.Apply
 }
 
-def elab-label-push-r-sig! [ Label -- OpSig ] {
+def elab-label-push-r-sig! [ +Mirth Label -- +Mirth OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
     StackType.WithLabel dip(StackType.With) T-> OpSig.Apply
 }
 
-def elab-label-pop-r-sig! [ Label -- OpSig ] {
+def elab-label-pop-r-sig! [ +Mirth Label -- +Mirth OpSig ] {
     dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
     StackType.WithLabel dip(StackType.With) swap T-> OpSig.Apply
 }
@@ -1189,15 +1191,15 @@ def elab-arrow-fwd! [ +Mirth Ctx StackType Token Home -- +Mirth Arrow ] {
 
 ||| Elaborate match cases.
 def elab-match-cases! [ +Mirth +Match -- +Mirth +Match ] {
-    body lcurly? if(
+    body rdip:lcurly? if(
         elab-match-cases-curly!,
         elab-match-cases-args!
     )
 }
 
 def elab-match-cases-curly! [ +Mirth +Match -- +Mirth +Match ] {
-    body run-tokens for(
-        dup lcurly?
+    body rdip:run-tokens for(
+        dup rdip:lcurly?
         else("Expected a pattern match case of the form { ... -> ... }" rdip:emit-fatal-error!)
         rdip:args-1 elab-match-case!
         drop
@@ -1205,18 +1207,18 @@ def elab-match-cases-curly! [ +Mirth +Match -- +Mirth +Match ] {
 }
 
 def elab-match-cases-args! [ +Mirth +Match -- +Mirth +Match ] {
-    body while(dup args-end? not, elab-match-case!) drop
+    body while(dup rdip:args-end? not, elab-match-case!) drop
 }
 
 ||| Elaborate match case based on starting token.
 def elab-match-case! [ Token +Mirth +Match -- Token +Mirth +Match ] {
-    dup run-arrow? unwrap("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
+    dup rdip:run-arrow? unwrap("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
     dup2 == then("expected pattern" rdip:emit-fatal-error!)
-    dup2 prev == else("multi-part pattern not supported" rdip:emit-fatal-error!)
-    dip:pat-tokens sip:prev succ +Match.case!(
+    dup2 rdip:prev == else("multi-part pattern not supported" rdip:emit-fatal-error!)
+    rdip(dip:pat-tokens sip:prev succ) +Match.case!(
         elab-pattern!,
         elab-atoms!
-        ab-token@ dup comma? then(succ)
+        ab-token@ dup rdip:comma? then(succ)
     )
 }
 
@@ -1227,21 +1229,21 @@ def elab-pattern! [ List(Token) +Mirth +Pattern -- +Mirth +Pattern ] {
 def elab-pattern-atom! [ Token +Mirth +Pattern -- +Mirth +Pattern ] {
     dup pattern:token-start!
 
-    dup pat-underscore? if(
+    dup rdip:pat-underscore? if(
         drop +Pattern.underscore!,
 
-    dup name/dname? if?(
+    dup rdip:name/dname? if?(
         >name/dname >token
         "constructor" >sort
-        pattern mid top-types-are-fine? not >report-ambiguous-as-warning
+        pattern mid rdip:top-types-are-fine? not >report-ambiguous-as-warning
         False >ignore-last-name
         >+pat resolve-def(
             filter(dup tag? some?, RejectedDef.WrongSort)
             filter-arity
             filter-qualifiers
-            @+pat:pattern mid top-types-are-fine? then(
-                @+pat:pattern mid top-namespaces
-                token name? if(
+            @+pat:pattern mid rdip:top-types-are-fine? then(
+                @+pat:pattern mid rdip:top-namespaces
+                token rdip:name? if(
                     filter(dup2 rdip:qname-hard namespace swap member, RejectedDef.WrongConstructor) drop,
                     filter-roots
                 )
@@ -1501,7 +1503,7 @@ def parse-data-tags [ +Mirth Token -- +Mirth Token List(SyntaxDataTag) ] {
     collect-while(dup data-tags-end? not, parse-data-tag)
 }
 
-def data-tags-end? [ Token -- Bool ] {
+def data-tags-end? [ +Mirth Token -- +Mirth Bool ] {
     dup args-end? or(dup sig-dashes?) nip
 }
 
@@ -1743,7 +1745,7 @@ def elab-data-done! [ +Mirth Data -- +Mirth ] {
             >untag >tag
             untag> ab-build-word-arrow!(
                 @tag rdip:type dom >cod
-                @tag .data head? unwrap("Missing data token info" rdip:fatal-error!) dup >body
+                @tag rdip:data rdip:head? unwrap("Missing data token info" rdip:fatal-error!) dup >body
                 ab-match!(
                     dup case!(@tag +Pattern.tag!, id)
                 )
@@ -1918,7 +1920,7 @@ def create-projectors! [ +Mirth Tag -- +Mirth ] {
                 @lbl_lens ab-build-word-arrow!(
                     lbl_lens> rdip:params map(.var) dup ab-lambda!(
                         single? unwrap("Expected one parameter." rdip:fatal-error!) >f
-                        dat> is-resource? if(
+                        dat> rdip:is-resource? if(
                             lbl_get> ab-word!
                             ab-rdip!(f> ab-var!)
                             lbl_set> ab-word!,
@@ -2164,7 +2166,7 @@ def elab-def-params! [ +Mirth Word -- +Mirth List(Param) ] {
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,
 ||| and the rest from the AB environment.
 def elab-def-body! [ StackType +Mirth +AB -- StackType +Mirth +AB ] {
-    ab-token@ run-arrow? or(ab-token@ lcurly? some?) if(
+    ab-token@ rdip:run-arrow? or(ab-token@ rdip:lcurly? some?) if(
         dup >cod ab-token@ >body elab-match-at!,
         elab-atoms!
     )
@@ -2185,7 +2187,7 @@ def parse-external-decl [ +Mirth Token -- +Mirth Token List(ExternalDeclPart) do
     succ dup num-args 0> or(dup lcurly? >Bool) if(
         List.Mk(
             succ
-            while(dup args-end? not,
+            while(dup rdip:args-end? not,
                 rdip(parse-external-decl-part) ;
             )
             succ
@@ -2285,7 +2287,7 @@ def elab-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
         dup dom parts filter-some(label?)
         over cod parts filter-some(label?)
         swap difference for(
-            Str("Output label "; name >Str ; " not present in input";) error!
+            Str("Output label "; name; " not present in input";) error!
         )
     )
 }
@@ -2419,7 +2421,7 @@ def typecheck-everything! [ +Mirth -- +Mirth ] {
 # TABLE #
 #########
 
-def table-qname [ Table Str Int -- QName ] {
+def table-qname [ +Mirth Table Str Int -- +Mirth QName ] {
     >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
 }
 
@@ -2432,7 +2434,7 @@ def table-word-new! [ +Mirth Table Str Nat doc:Maybe(Str) -- +Mirth Word ] {
 def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(Str) -- +Mirth Table ] {
     Table.alloc! >tbl
     @tbl PropLabel.TableQName >label Prop @tbl ~qname !
-    head> @tbl ~head !
+    @head @tbl ~head !
     name> @tbl ~name !
     doc> @tbl ~doc !
     @tbl Def.Table register
@@ -2447,14 +2449,14 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word ~ctx-type !
 
     word> ab-build-word!(
-        @tbl head ab-token!
+        @head ab-token!
         0 ab-int!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 
     # Table.NUM
     None >doc # TODO
-    @tbl head >head
+    @head >head
     "NUM" >Name >name
     8u >USize >size
     Buffer.new! >buf
@@ -2462,7 +2464,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @tbl "Num" 0 table-qname
     @buf PropLabel.BufferQName prop
     @buf ~qname !
-    buf> Def.Buffer register
+    @buf Def.Buffer register
 
     # Table.index
     None >doc # TODO
@@ -2474,7 +2476,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word ~ctx-type !
 
     word> ab-build-word! (
-        @tbl head ab-token!
+        @head ab-token!
         @tbl Op.TableToIndex ab-op!
     ) drop
 
@@ -2488,7 +2490,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word ~ctx-type !
 
     word> ab-build-word! (
-        @tbl head ab-token!
+        @head ab-token!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 
@@ -2502,7 +2504,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word ~ctx-type !
 
     word> ab-build-word! (
-        @tbl head ab-token!
+        @head ab-token!
         @tbl Op.TableToIndex ab-op!
         1 ab-int!
         Prim.IntAdd ab-prim!
@@ -2519,7 +2521,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word ~ctx-type !
 
     word> ab-build-word! (
-        @tbl head ab-token!
+        @head ab-token!
         @tbl Op.TableToIndex ab-op!
         Prim.Dup ab-prim!
         0 ab-int!
@@ -2532,7 +2534,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
         @tbl Op.TableFromIndex ab-op!
     ) drop
 
-    { +Mirth tbl:Table }
+    { +Mirth tbl:Table buf:Buffer head:Token }
 
     # Table.for
     None >doc # TODO
@@ -2551,12 +2553,12 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word make-inline!
 
     word> ab-build-word! (
-        @tbl head ab-token!
+        @head ab-token!
         @vx L1 ab-lambda!(
             1 ab-int!
             ab-while!(
                 Prim.Dup ab-prim!
-                @tbl num-buffer ab-buffer!
+                @buf ab-buffer!
                 Prim.I64Get ab-prim!
                 Prim.I64ToInt ab-prim!
                 Prim.IntLe ab-prim!,
@@ -2584,19 +2586,20 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @word ~ctx-type !
 
     word> ab-build-word! (
-        @tbl head ab-token!
-        @tbl num-buffer ab-buffer!
+        @head ab-token!
+        @buf ab-buffer!
         Prim.I64Get ab-prim!
         Prim.I64ToInt ab-prim!
         1 ab-int!
         Prim.IntAdd ab-prim!
         Prim.Dup ab-prim!
         Prim.IntToI64 ab-prim!
-        @tbl num-buffer ab-buffer!
+        @buf ab-buffer!
         Prim.I64Set ab-prim!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 
+    head> buf> drop2
     tbl>
 }
 
@@ -2625,18 +2628,18 @@ def elab-qname-from-nonrelative-dname [ +Mirth Token DName arity:Int -- +Mirth Q
     drop QName
 }
 
-def module-visible-from-token? [ Token Module -- Bool ] {
+def module-visible-from-token? [ +Mirth Token Module -- +Mirth Bool ] {
     swap .module visible
 }
 
-def def-visible-from-token? [ Token Def -- Bool ] {
+def def-visible-from-token? [ +Mirth Token Def -- +Mirth Bool ] {
     defining-module? match(
         None -> drop True,
         Some -> module-visible-from-token?
     )
 }
 
-def Token.is-default-param? [ Token -- Bool ] {
+def Token.is-default-param? [ +Mirth Token -- +Mirth Bool ] {
     dup name? and( dup succ lcurly? >Bool ) nip
 }
 
