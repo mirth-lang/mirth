@@ -2,10 +2,13 @@ module mirth.alias
 
 import std.prelude
 import std.maybe
+import std.list
+
 import mirth.mirth
 import mirth.token
 import mirth.name
 import mirth.def
+import mirth.elab
 
 table(Alias)
 field(Alias.~doc, Alias, Maybe(Str))
@@ -15,19 +18,78 @@ field(Alias.~arity, Alias, Int)
 field(Alias.~qname, Alias, Prop(QName))
 field(Alias.~target, Alias, Prop(Def))
 
-def(Alias.head, Alias -- Token, ~head @)
-def(Alias.qname-soft, Alias -- Maybe(QName), ~qname @? bind:ready?)
-def(Alias.qname-hard, +Mirth Alias -- +Mirth QName, ~qname force!)
-def(Alias.namespace-hard, +Mirth Alias -- +Mirth Namespace, qname-hard namespace)
-def(Alias.name, Alias -- Name, ~name @)
-def(Alias.arity, Alias -- Int, ~arity @)
-def(Alias.target, +Mirth Alias -- +Mirth Def, ~target force!)
+def Alias.head [ +Mirth Alias -- +Mirth Token ] { ~head @ }
+def Alias.qname-soft [ +Mirth Alias -- +Mirth Maybe(QName) ] { ~qname @? bind:ready? }
+def Alias.qname-hard [ +Mirth Alias -- +Mirth QName ] { ~qname force! }
+def Alias.namespace-hard [ +Mirth Alias -- +Mirth Namespace ] { qname-hard namespace }
+def Alias.name [ +Mirth Alias -- +Mirth Name ] { ~name @ }
+def Alias.arity [ +Mirth Alias -- +Mirth Int ] { ~arity @ }
+def Alias.target [ +Mirth Alias -- +Mirth Def ] { ~target force! }
 
-def(Alias.==, Alias Alias -- Bool, both(index) ==)
-def(Alias.new!, +Mirth head:Token name:Name arity:Int doc:Maybe(Str) -- +Mirth Alias,
+def Alias.== [ Alias Alias -- Bool ] { both(index) == }
+def Alias.new! [ +Mirth head:Token name:Name arity:Int doc:Maybe(Str) -- +Mirth Alias ] {
     Alias.alloc!
     doc> over ~doc !
     name> over ~name !
     head> over ~head !
     arity> over ~arity !
-    dup Def.Alias register)
+    dup Def.Alias register
+}
+
+||| Parse an alias declaration:
+|||
+|||     alias(DefHead,Target)
+|||     alias DefHead Target
+|||
+||| Both `head` and `target` are names (or dnames), with `head` taking
+||| an optional argument list (for the arity), and `target` taking no arguments.
+def parse-alias [ +Mirth Token -- +Mirth Token head:Token target:Token name/dname:Name/DName doc:Maybe(Str) ] {
+    dup doc >doc
+    dup succ lparen? >Bool >has-paren
+    @has-paren if(
+        sip(next) args-2 >target >head,
+        next dup >head next dup >target next
+    )
+    @head name/dname? else(@head "expected alias name" emit-fatal-error!)
+    @target name/dname? unwrap(@target "expected alias target, which must be a name" emit-fatal-error!) >name/dname
+    @target args-0
+    @has-paren then(
+        @head next arg-end? else(@head "expected comma after alias name" emit-fatal-error!)
+        @target succ arg-end? else(@head "expected end of arguments after alias target" emit-fatal-error!)
+    )
+    has-paren> drop
+}
+
+||| Elaborate an alias declaration.
+def elab-alias! [ +Mirth Token -- +Mirth Token ] {
+    parse-alias elab-def-head @arity:>Int Alias.new!
+    dup PropLabel.AliasQName >label Prop over ~qname !
+
+    name/dname> target> over2 dup PropLabel.AliasTarget prop3(
+        >alias >target >name/dname
+        @target >token
+        "target" >sort
+        False >report-ambiguous-as-warning
+        False >ignore-last-name
+        resolve-def(
+            expunge(alias? if?(@alias ==, False))
+            alias> rdip:arity filter(
+                dup2 rdip:arity arity-compatible?,
+                RejectedDef.WrongArity
+            ) drop
+            filter-qualifiers
+            L0 filter-roots
+        )
+        unwrap( panic-diagnostics! )
+        match(
+            Alias ->
+                ~target force-or!(
+                    @target
+                    "Alias points to itself, circular aliases are not allowed."
+                    emit-fatal-error!
+                ),
+            _ -> id
+        )
+        target> drop
+    ) swap ~target !
+}

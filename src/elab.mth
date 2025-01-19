@@ -1946,61 +1946,6 @@ def expect-token-arrow [ +Mirth Token -- +Mirth Token ] {
     dup arrow? else("Expected arrow." emit-fatal-error!)
 }
 
-||| Parse an alias declaration.
-||| Either `alias(head, target)` or `alias head target`.
-||| Both `head` and `target` are names (or dnames), with `head` taking
-||| an optional argument list (for the arity), and `target` taking no arguments.
-def parse-alias [ +Mirth Token -- +Mirth Token head:Token target:Token name/dname:Name/DName doc:Maybe(Str) ] {
-    dup doc >doc
-    dup succ lparen? >Bool >has-paren
-    @has-paren if(
-        sip(next) args-2 >target >head,
-        next dup >head next dup >target next
-    )
-    @head name/dname? else(@head "expected alias name" emit-fatal-error!)
-    @target name/dname? unwrap(@target "expected alias target, which must be a name" emit-fatal-error!) >name/dname
-    @target args-0
-    @has-paren then(
-        @head next arg-end? else(@head "expected comma after alias name" emit-fatal-error!)
-        @target succ arg-end? else(@head "expected end of arguments after alias target" emit-fatal-error!)
-    )
-    has-paren> drop
-}
-
-||| Elaborate an alias declaration.
-def elab-alias! [ +Mirth Token -- +Mirth Token ] {
-    parse-alias elab-def-head @arity:>Int Alias.new!
-    dup PropLabel.AliasQName >label Prop over ~qname !
-
-    name/dname> target> over2 dup PropLabel.AliasTarget prop3(
-        >alias >target >name/dname
-        @target >token
-        "target" >sort
-        False >report-ambiguous-as-warning
-        False >ignore-last-name
-        resolve-def(
-            expunge(alias? if?(@alias ==, False))
-            alias> arity filter(
-                dup2 rdip:arity arity-compatible?,
-                RejectedDef.WrongArity
-            ) drop
-            filter-qualifiers
-            L0 filter-roots
-        )
-        unwrap( panic-diagnostics! )
-        match(
-            Alias ->
-                ~target force-or!(
-                    @target
-                    "Alias points to itself, circular aliases are not allowed."
-                    emit-fatal-error!
-                ),
-            _ -> id
-        )
-        target> drop
-    ) swap ~target !
-}
-
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def elab-def-missing! [ +Mirth Token -- +Mirth Token ] {
     dup args len 3u < then("def-missing expects at least three arguments" emit-fatal-error!)

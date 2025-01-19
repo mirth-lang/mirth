@@ -8,6 +8,7 @@ import mirth.token
 import mirth.name
 import mirth.elab
 import mirth.def
+import mirth.alias
 
 table(Macro)
 field(Macro.~name, Macro, Name)
