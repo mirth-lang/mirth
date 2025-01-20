@@ -2437,7 +2437,7 @@ def c99-block-enter! [ Block +C99 -- +C99Branch ] {
                 Main -> drop "block",
                 Word -> +mirth(name >Str) " block" cat,
             ) put-cstr ", " put
-            dup +mirth(token module) source-path >Str put-cstr ", " put
+            dup +mirth(token module source-path) >Str put-cstr ", " put
             dup +mirth(token row) >Int show put ", " put
             dup +mirth(token col) >Int show put ");" put
         ) drop,
@@ -2477,7 +2477,7 @@ def c99-word-enter! [ Word +C99Branch -- +C99Branch ] {
         c99-line(
             "WORD_ENTER(" put
             dup +mirth(name >Str) put-cstr ", " put
-            dup body +mirth:module source-path >Str put-cstr ", " put
+            dup body +mirth(module source-path) >Str put-cstr ", " put
             dup body +mirth:row >Int show put ", " put
             dup body +mirth:col >Int show put ");" put
         )
@@ -2523,7 +2523,7 @@ def c99-main! [ Arrow +C99 -- +C99 ] {
         options emit-debug-info then(
             c99-line("WORD_ENTER(" put
                 "\"<main>\", " put
-                dup token-start +mirth:module source-path >Str put-cstr ", " put
+                dup token-start +mirth(module source-path) >Str put-cstr ", " put
                 dup token-start +mirth:row >Int show put ", " put
                 dup token-start +mirth:col >Int show put ");" put)
         )

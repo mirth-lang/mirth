@@ -890,7 +890,7 @@ struct +AB {
     }
 
     def elab-macro! [ Macro +Mirth +AB -- +Mirth +AB ] {
-        action arrow? if?(
+        rdip:action arrow? if?(
             run,
 
             ab-token@ "macro cannot be invoked here" rdip:emit-error!
@@ -1464,7 +1464,7 @@ def parse-module-import [ +Mirth Token -- +Mirth Token ModuleImport ] {
 def process-module-import! [ ModuleImport +World +Mirth -- +World +Mirth ] {
     /ModuleImport
     name> dup with-error-token(dup elab-module-qname load-module)
-    dip(.module) add-import!
+    swap module ~imports modify:cons
 }
 
 ||| Parse a data declaration. It looks like one of:

@@ -227,14 +227,15 @@ def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
         Sgr.FGRed emit; "Fatal error. Stopping early."; Sgr.Reset emit;
     ) panic!)
 
-def(+Mirth.trace-diagnostics!, +World +Mirth -- +World +Mirth,
+def +Mirth.trace-diagnostics! [ +World +Mirth -- +World +Mirth ] {
     pop-diagnostics
-    for(rdip:trace(diagnostic;)))
+    for(Str(diagnostic;) rdip:trace)
+}
 
 def(+Mirth.pop-diagnostics, +Mirth -- +Mirth List(Diagnostic),
     +diagnostics(pop-all!))
 
-def(Diagnostic.diagnostic;, +Str Diagnostic -- +Str,
+def(Diagnostic.diagnostic;, +Mirth +Str Diagnostic -- +Mirth +Str,
     /Diagnostic
     location> emit; ": " ;
     severity> >Str ; ": " ;

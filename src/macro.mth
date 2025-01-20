@@ -17,12 +17,12 @@ field(Macro.~arity, Macro, Int)
 field(Macro.~head, Macro, Token)
 field(Macro.~action, Macro, MacroAction)
 
-def Macro.name [ Macro -- Name ] { ~name @ }
+def Macro.name [ +Mirth Macro -- +Mirth Name ] { ~name @ }
 def Macro.qname-hard [ +Mirth Macro -- +Mirth QName ] { ~qname force! }
 def Macro.qname-soft [ +Mirth Macro -- +Mirth Maybe(QName) ] { ~qname @? bind(ready?) }
-def Macro.arity [ Macro -- Int ] { ~arity @ }
-def Macro.head? [ Macro -- Maybe(Token) ] { ~head @? }
-def Macro.action [ Macro -- MacroAction ] { ~action @ }
+def Macro.arity [ +Mirth Macro -- +Mirth Int ] { ~arity @ }
+def Macro.head? [ +Mirth Macro -- +Mirth Maybe(Token) ] { ~head @? }
+def Macro.action [ +Mirth Macro -- +Mirth MacroAction ] { ~action @ }
 
 def Macro.>Int [ Macro -- Int ] { index }
 def Macro.== [ Macro Macro -- Bool ] { on2:>Int == }
