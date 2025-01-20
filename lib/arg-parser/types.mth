@@ -48,9 +48,10 @@ data(ArgumentParsingError,
     TooFewArgs,
     UnknownArg)
 
-def(ArgumentParsingError.emit;, ArgumentParsingError +Str -- +Str,
-    MissingArg -> Sgr.FGRed emit; "Missing argument: " ; Sgr.Reset emit; ;,
-    MissingArgValue -> "Missing associated value for flag option" ;,
-    TooManyArgs -> "Too many positional arguments passed" ;,
-    TooFewArgs -> "Too few positional arguments passed" ;,
-    UnknownArg -> "Got an unknown option" ;)
+def ArgumentParsingError.emit; [ ArgumentParsingError +Str -- +Str ] {
+    { MissingArg -> Sgr.FGRed span("Missing argument: " ;) ; }
+    { MissingArgValue -> "Missing associated value for flag option" ; }
+    { TooManyArgs -> "Too many positional arguments passed" ; }
+    { TooFewArgs -> "Too few positional arguments passed" ; }
+    { UnknownArg -> "Got an unknown option" ; }
+}

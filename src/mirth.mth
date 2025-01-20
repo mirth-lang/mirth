@@ -195,11 +195,10 @@ def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
 def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b,
     dip(location) emit-fatal-error-at!)
 
-def(+Mirth.emit-deprecated!, Token old:Str new:Str +Mirth -- +Mirth,
-    Str(Sgr.FGCyan emit; old> ; Sgr.Reset emit;
-        " is deprecated, please use ";
-        Sgr.FGCyan emit; new> ; Sgr.Reset emit;
-        " instead.";) emit-warning!)
+def +Mirth.emit-deprecated! [ Token old:Str new:Str +Mirth -- +Mirth ] {
+    Str(Sgr.FGCyan span(old> ;) " is deprecated, please use ";
+        Sgr.FGCyan span(new> ;) " instead.";) emit-warning!
+}
 
 def +Mirth.error-token! [ Token +Mirth -- +Mirth ] {
     Some lexical-state:error-token!
@@ -227,7 +226,7 @@ def +Mirth.fatal-error! [ *a Str +Mirth -- *b ] { error-location swap emit-fatal
 def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
     pop-diagnostics Str(
         for(diagnostic; "\n";)
-        Sgr.FGRed emit; "Fatal error. Stopping early."; Sgr.Reset emit;
+        Sgr.FGRed span( "Fatal error. Stopping early."; )
     ) panic!)
 
 def +Mirth.trace-diagnostics! [ +World +Mirth -- +World +Mirth ] {
