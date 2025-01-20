@@ -77,7 +77,7 @@ def +Needs.run-op! [ List(Arg) Op +Mirth +Needs -- +Mirth +Needs ] {
     { Int -> drop2 }
     { F64 -> drop2 }
     { Str -> drop2 }
-    { Word -> dup prefer-inline? if(run-word!, need-word!) push-args! }
+    { Word -> dup rdip:prefer-inline? if(run-word!, need-word!) push-args! }
     { External -> drop push-args! }
     { Buffer -> drop push-args! }
     { Field -> drop push-args! }

@@ -14,9 +14,11 @@ table(Package)
 field(Package.~name, Package, Name)
 field(Package.~path, Package, Maybe(Path))
 
-def(Package.name, Package -- Name, ~name @)
-def(Package.qname, Package -- QName, Namespace.Root swap name 0 QName.Mk)
-def(Package.path, Package -- Maybe(Path), ~path @)
+def(Package.name, +Mirth Package -- +Mirth Name, ~name @)
+def(Package.qname, +Mirth Package -- +Mirth QName, Namespace.Root swap name 0 QName.Mk)
+def(Package.path, +Mirth Package -- +Mirth Maybe(Path), ~path @)
+
+def Package.name; [ +Mirth +Str Package -- +Mirth +Str ] { rdip:name name; }
 
 def(Package.std, +Mirth -- +Mirth Package, builtin std)
 def(init-packages!, +Mirth -- +Mirth,
@@ -41,7 +43,7 @@ def(Package.path!, +Mirth Path Package -- +Mirth,
                 drop3,
                 Str(
                     "Tried to set different path for the same package " ;
-                    "(package = " ; rotl name >Str ;
+                    "(package = " ; rotl name;
                     ", path 1 = " ; swap /Path show;
                     ", path 2 = " ; /Path show;
                     ")." ;

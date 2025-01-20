@@ -22,14 +22,14 @@ field(Module.~head, Module, Token)
 field(Module.~end, Module, Token)
 field(Module.~imports, Module, List(Module))
 
-def(Module.package, Module -- Package, ~package @)
-def(Module.name, Module -- Name, ~name @)
-def(Module.qname, Module -- QName, sip(package Namespace.Package) name 0 QName.Mk)
-def(Module.path, Module -- Path, ~path @)
-def(Module.start, Module -- Token, ~start @)
-def(Module.head, Module -- Token, ~head @)
-def(Module.end, Module -- Token, ~end @)
-def(Module.imports, Module -- List(Module), ~imports @)
+def(Module.package, +Mirth Module -- +Mirth Package, ~package @)
+def(Module.name, +Mirth Module -- +Mirth Name, ~name @)
+def(Module.qname, +Mirth Module -- +Mirth QName, sip(package Namespace.Package) name 0 QName.Mk)
+def(Module.path, +Mirth Module -- +Mirth Path, ~path @)
+def(Module.start, +Mirth Module -- +Mirth Token, ~start @)
+def(Module.head, +Mirth Module -- +Mirth Token, ~head @)
+def(Module.end, +Mirth Module -- +Mirth Token, ~end @)
+def(Module.imports, +Mirth Module -- +Mirth List(Module), ~imports @)
 
 def(Module.==, Module Module -- Bool, both(index) ==)
 
@@ -48,18 +48,13 @@ def(Module.new!, +Mirth Path -- +Mirth Module,
     Module.Prim L1 over ~imports !
     tuck ~path !)
 
-||| ( module1 module2 -- ) Add module2 as import to module1.
-||| This does not check if the import is necessary.
-def(Module.add-import!, Module Module --,
-    swap ~imports modify(List.Cons))
-
 ||| Get source path associated with module.
-def(Module.source-path, Module -- Path,
+def(Module.source-path, +Mirth Module -- +Mirth Path,
     path)
 
 ||| ( module1 module2 -- bool ) Check whether module1 is visible in module2.
-def(Module.visible, Module Module -- Bool,
-    dup2 == if(
-        drop2 True, # Module is always visible to itself.
-        imports member
-    ))
+def Module.visible [ +Mirth Module Module -- +Mirth Bool ] {
+    dup2 == # module is always visible to itself
+    or(dup2 imports member)
+    dip(drop2)
+}

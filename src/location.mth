@@ -5,6 +5,7 @@ import std.path
 import std.world
 import std.str
 import mirth.module
+import mirth.mirth
 
 # mirth/data/location
 struct Row {
@@ -28,9 +29,9 @@ struct Location {
     row: Row
     col: Col
     --
-    def emit; [ +Str Location -- +Str ] {
+    def emit; [ +Mirth +Str Location -- +Mirth +Str ] {
         /Location
-        module> source-path >Str ;
+        module> rdip:source-path >Str ;
         ":" ; row> show;
         ":" ; col> show;
     }

@@ -26,15 +26,17 @@ field(Data.~params, Data, Prop(List(Var)))
 field(Data.~tags, Data, List(Tag))
 field(Data.~ctype?, Data, Prop(Maybe(CType)))
 
-def(Data.head?, Data -- Maybe(Token), ~head? @)
-def(Data.name, Data -- Name, ~name @)
-def(Data.qname-soft, Data -- Maybe(QName), ~qname @? bind(ready?))
+def(Data.head?, +Mirth Data -- +Mirth Maybe(Token), ~head? @)
+def(Data.name, +Mirth Data -- +Mirth Name, ~name @)
+def(Data.qname-soft, +Mirth Data -- +Mirth Maybe(QName), ~qname @? bind(ready?))
 def(Data.qname-hard, +Mirth Data -- +Mirth QName, ~qname force!)
 def(Data.namespace-hard, +Mirth Data -- +Mirth Namespace, qname-hard namespace)
-def(Data.arity, Data -- Int, ~arity @)
+def(Data.arity, +Mirth Data -- +Mirth Int, ~arity @)
 def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
-def(Data.tags, Data -- List(Tag), ~tags @)
-def(Data.ctype?, Data +Mirth -- Maybe(CType) +Mirth, ~ctype? force!)
+def(Data.tags, +Mirth Data -- +Mirth List(Tag), ~tags @)
+def(Data.ctype?, +Mirth Data -- +Mirth Maybe(CType), ~ctype? force!)
+
+def Data.name; [ +Mirth +Str Data -- +Mirth +Str ] { rdip:name name; }
 
 def(Type.Bool, +Mirth -- +Mirth Type, builtin bool Type.Data)
 def(Type.U64, +Mirth -- +Mirth Type, builtin u64 Type.Data)
@@ -135,7 +137,7 @@ def(init-data!, +Mirth -- +Mirth,
 def(data-qname, Data Name Int -- QName,
     >arity >name Tycon.Data Namespace.Tycon >namespace QName)
 
-def(data-word-qname, Data Str Nat -- QName,
+def(data-word-qname, +Mirth Data Str Nat -- +Mirth QName,
     dip(>Name) >Int data-qname)
 
 ########
@@ -143,7 +145,7 @@ def(data-word-qname, Data Str Nat -- QName,
 ########
 
 def(Data.==, Data Data -- Bool, both(index) ==)
-def(Data.num-tags, Data -- Nat, tags len)
+def(Data.num-tags, +Mirth Data -- +Mirth Nat, tags len)
 
 field(Data.~last-tag-value, Data, Int)
 
@@ -155,9 +157,9 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
     )
     @data tags find(value over ==) for(
         Str("Constructors ";
-            name rdip:>Str ;
+            name;
             " and " ;
-            @tag name rdip:>Str ;
+            @tag name;
             " have the same tag value." ;
         )
         @data head? if?(swap emit-error!, error!)
@@ -166,30 +168,30 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
     data> ~tags modify(tag> List.Snoc)
 }
 
-def Data.is-enum-or-unit? [ Data -- Bool ] {
+def Data.is-enum-or-unit? [ +Mirth Data -- +Mirth Bool ] {
     dup is-enum? dip(is-unit? >Bool) ||
 }
 
 field(Data.~is-unit?, Data, Maybe(Tag))
-def(Data.is-unit?, Data -- Maybe(Tag),
+def(Data.is-unit?, +Mirth Data -- +Mirth Maybe(Tag),
     dup ~is-unit? memoize(
         dup tags single? filter(num-total-inputs 0=)
     ) nip)
 
 field(Data.~is-enum?, Data, Bool)
-def(Data.is-enum?, Data -- Bool,
+def(Data.is-enum?, +Mirth Data -- +Mirth Bool,
     dup ~is-enum? memoize(
         dup is-unit? not and(
             dup tags all(num-total-inputs 0=)
         )
     ) nip)
 
-def Data.single-tag? [ Data -- Maybe(Tag) ] {
+def Data.single-tag? [ +Mirth Data -- +Mirth Maybe(Tag) ] {
     tags single?
 }
 
 field(Data.~is-transparent?, Data, Bool)
-def(Data.is-transparent?, Data -- Bool,
+def(Data.is-transparent?, +Mirth Data -- +Mirth Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
             dup tags single? match(
@@ -219,12 +221,12 @@ def(Data.semi-transparent?, +Mirth Data -- +Mirth Maybe(SemiTransparentData),
     ) nip)
 
 field(Data.~is-resource?, Data, Bool)
-def(Data.is-resource?, Data -- Bool,
+def(Data.is-resource?, +Mirth Data -- +Mirth Bool,
     dup ~is-resource? memoize(
         dup name could-be-resource-con
     ) nip)
 
-def(Data.is-value-type?, Data -- Bool,
+def(Data.is-value-type?, +Mirth Data -- +Mirth Bool,
     is-resource? not)
 
 def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
@@ -250,26 +252,28 @@ field(Tag.~sig?, Tag, Maybe(Token))
 field(Tag.~ctx-type, Tag, Prop([Ctx ArrowType]))
 field(Tag.~untag, Tag, Maybe(Word))
 
-def(Tag.data, Tag -- Data, ~data @)
-def(Tag.qname, Tag -- QName, ~qname @)
-def(Tag.name, Tag -- Name, qname name)
-def(Tag.value, Tag -- Int, ~value @)
-def(Tag.label-inputs, Tag -- List(Label), ~label-inputs @)
-def(Tag.num-type-inputs, Tag -- Nat, ~num-type-inputs @)
-def(Tag.num-resource-inputs, Tag -- Nat, ~num-resource-inputs @)
-def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
+def(Tag.data, +Mirth Tag -- +Mirth Data, ~data @)
+def(Tag.qname, +Mirth Tag -- +Mirth QName, ~qname @)
+def(Tag.name, +Mirth Tag -- +Mirth Name, qname name)
+def(Tag.value, +Mirth Tag -- +Mirth Int, ~value @)
+def(Tag.label-inputs, +Mirth Tag -- +Mirth List(Label), ~label-inputs @)
+def(Tag.num-type-inputs, +Mirth Tag -- +Mirth Nat, ~num-type-inputs @)
+def(Tag.num-resource-inputs, +Mirth Tag -- +Mirth Nat, ~num-resource-inputs @)
+def(Tag.sig?, +Mirth Tag -- +Mirth Maybe(Token), ~sig? @)
 def(Tag.ctx-type, +Mirth Tag -- +Mirth Ctx ArrowType, ~ctx-type force! unpack2)
 def(Tag.ctx, +Mirth Tag -- +Mirth Ctx, ctx-type drop)
 def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
-def(Tag.untag, Tag -- Maybe(Word), ~untag @)
+def(Tag.untag, +Mirth Tag -- +Mirth Maybe(Word), ~untag @)
 
-def(Tag.only-tag?, Tag -- Bool, .data tags single? >Bool)
+def Tag.name; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:name name; }
 
-def Tag.label-inputs-from-sig [ Tag -- List(Label) ] {
+def(Tag.only-tag?, +Mirth Tag -- +Mirth Bool, .data tags single? >Bool)
+
+def Tag.label-inputs-from-sig [ +Mirth Tag -- +Mirth List(Label) ] {
     sig? if?(run-tokens filter-some(sig-label?), List.Nil)
 }
 
-def(Tag.num-type-inputs-from-sig, Tag -- Nat,
+def(Tag.num-type-inputs-from-sig, +Mirth Tag -- +Mirth Nat,
     dup sig? if?(
         run-length
         over num-resource-inputs-from-sig minus
@@ -277,7 +281,7 @@ def(Tag.num-type-inputs-from-sig, Tag -- Nat,
         drop 0u
     ))
 
-def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
+def(Tag.num-resource-inputs-from-sig, +Mirth Tag -- +Mirth Nat,
     sig? if?(
         run-tokens filter(could-be-sig-label? not) filter-some(name?)
         filter(or(could-be-resource-var, could-be-resource-con))
@@ -286,18 +290,18 @@ def(Tag.num-resource-inputs-from-sig, Tag -- Nat,
     ))
 
 field(Tag.~num-label-inputs, Tag, Nat)
-def(Tag.num-label-inputs, Tag -- Nat,
+def(Tag.num-label-inputs, +Mirth Tag -- +Mirth Nat,
     dup ~num-label-inputs memoize(
         dup label-inputs len
     ) nip)
 
-def(Tag.num-total-inputs, Tag -- Nat,
+def(Tag.num-total-inputs, +Mirth Tag -- +Mirth Nat,
     >tag
     @tag num-label-inputs
     @tag num-type-inputs +
     tag> num-resource-inputs +)
 
-def(Tag.is-transparent?, Tag -- Bool,
+def(Tag.is-transparent?, +Mirth Tag -- +Mirth Bool,
     .data is-transparent?)
 
 field(Tag.~inputs, Tag, List(StackTypePart))
@@ -309,10 +313,10 @@ def(Tag.inputs, +Mirth Tag -- +Mirth List(StackTypePart),
 def(Tag.semi-transparent?, +Mirth Tag -- +Mirth Maybe(SemiTransparentData),
     .data semi-transparent?)
 
-def(Tag.is-unit?, Tag -- Bool,
+def(Tag.is-unit?, +Mirth Tag -- +Mirth Bool,
     .data is-unit? >Bool)
 
-def(Tag.outputs-resource?, Tag -- Bool,
+def(Tag.outputs-resource?, +Mirth Tag -- +Mirth Bool,
     .data is-resource?)
 
 def(Tag.==, Tag Tag -- Bool, both(index) ==)

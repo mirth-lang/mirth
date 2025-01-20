@@ -17,9 +17,9 @@ field(Buffer.~size, Buffer, USize)
 field(Buffer.~name, Buffer, Name)
 field(Buffer.~qname, Buffer, Prop(QName))
 
-def(Buffer.head, Buffer -- Token, ~head @)
-def(Buffer.size, Buffer -- USize, ~size @)
-def(Buffer.name, Buffer -- Name, ~name @)
+def(Buffer.head, +Mirth Buffer -- +Mirth Token, ~head @)
+def(Buffer.size, +Mirth Buffer -- +Mirth USize, ~size @)
+def(Buffer.name, +Mirth Buffer -- +Mirth Name, ~name @)
 def(Buffer.qname-soft, +Mirth Buffer -- +Mirth Maybe(QName), ~qname try-force!)
 def(Buffer.qname-hard, +Mirth Buffer -- +Mirth QName, ~qname force!)
 
