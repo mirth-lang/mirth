@@ -3,6 +3,7 @@ module mirth.typedef
 import std.prelude
 import std.maybe
 import std.list
+import std.str
 
 import mirth.token
 import mirth.name
@@ -18,16 +19,18 @@ field(TypeDef.~name, TypeDef, Name)
 field(TypeDef.~qname, TypeDef, Prop(QName))
 field(TypeDef.~target, TypeDef, Prop(Type))
 
-def TypeDef.doc [ TypeDef -- Maybe(Str) ] { ~doc @ }
-def TypeDef.head? [ TypeDef -- Maybe(Token) ] { ~head? @ }
-def TypeDef.qname-soft [ TypeDef -- Maybe(QName) ] { ~qname @? bind(ready?) }
+def TypeDef.doc [ +Mirth TypeDef -- +Mirth Maybe(Str) ] { ~doc @ }
+def TypeDef.head? [ +Mirth TypeDef -- +Mirth Maybe(Token) ] { ~head? @ }
+def TypeDef.qname-soft [ +Mirth TypeDef -- +Mirth Maybe(QName) ] { ~qname @? bind(ready?) }
 def TypeDef.qname-hard [ +Mirth TypeDef -- +Mirth QName ] { ~qname force! }
 def TypeDef.namespace [ +Mirth TypeDef -- +Mirth Namespace ] { qname-hard namespace }
-def TypeDef.name [ TypeDef -- Name ] { ~name @ }
+def TypeDef.name [ +Mirth TypeDef -- +Mirth Name ] { ~name @ }
 def TypeDef.target [ +Mirth TypeDef -- +Mirth Type ] { ~target force! }
 def TypeDef.params [ +Mirth TypeDef -- +Mirth List(Var) ] {
     drop L0 # TODO
 }
+
+def TypeDef.name; [ +Mirth +Str TypeDef -- +Mirth +Str ] { rdip:name name; }
 
 def TypeDef.== [ TypeDef TypeDef -- Bool ] { both(index) == }
 

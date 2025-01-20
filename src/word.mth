@@ -32,22 +32,22 @@ field(Word.~prefer-inline?, Word, Bool)
 field(Word.~cname, Word, Str)
 field(Word.~inferring-type?, Word, Bool)
 
-def(Word.qname-soft, Word -- Maybe(QName), ~qname @? bind(ready?))
+def(Word.qname-soft, +Mirth Word -- +Mirth Maybe(QName), ~qname @? bind(ready?))
 def(Word.qname-hard, Word +Mirth -- QName +Mirth, ~qname force!)
-def(Word.namespace-soft, Word +Mirth -- Maybe(Namespace) +Mirth, qname-soft map(namespace))
-def(Word.namespace-hard, Word +Mirth -- Namespace +Mirth, qname-hard namespace)
-def(Word.doc, Word -- Maybe(Str), ~doc @)
-def(Word.name, Word -- Name, ~name @)
-def(Word.head, Word -- Token, ~head @)
-def(Word.sig?, Word -- Maybe(Token), ~sig? @)
-def(Word.body, Word -- Token, ~body @)
-def(Word.arity, Word -- Nat, ~arity @)
-def(Word.params, Word +Mirth -- List(Param) +Mirth, ~params dup mut-is-set if(force!, drop List.Nil))
-def(Word.arrow, Word +Mirth -- Arrow +Mirth, ~arrow force!)
+def(Word.namespace-soft, +Mirth Word -- +Mirth Maybe(Namespace), qname-soft map(namespace))
+def(Word.namespace-hard, +Mirth Word -- +Mirth Namespace, qname-hard namespace)
+def(Word.doc, +Mirth Word -- +Mirth Maybe(Str), ~doc @)
+def(Word.name, +Mirth Word -- +Mirth Name, ~name @)
+def(Word.head, +Mirth Word -- +Mirth Token, ~head @)
+def(Word.sig?, +Mirth Word -- +Mirth Maybe(Token), ~sig? @)
+def(Word.body, +Mirth Word -- +Mirth Token, ~body @)
+def(Word.arity, +Mirth Word -- +Mirth Nat, ~arity @)
+def(Word.params, +Mirth Word -- +Mirth List(Param), ~params dup mut-is-set if(force!, drop List.Nil))
+def(Word.arrow, +Mirth Word -- +Mirth Arrow, ~arrow force!)
 def(Word.inferring-type?, Word -- Bool,
     ~inferring-type? @? unwrap(False))
 
-def(Word.cname, Word +Mirth -- Str +Mirth,
+def(Word.cname, +Mirth Word -- +Mirth Str,
     dup ~cname memoize(
         dup qname-hard mangled Str("mw_"; ;)
     ) nip)
@@ -56,8 +56,8 @@ def(Word.ctx-type, Word +Mirth -- Ctx ArrowType +Mirth, ~ctx-type force! unpack2
 def(Word.ctx, Word +Mirth -- Ctx +Mirth, ctx-type drop)
 def(Word.type, Word +Mirth -- ArrowType +Mirth, ctx-type nip)
 
-def(Word.prefer-inline?, Word -- Bool, ~prefer-inline? @? unwrap(False))
-def Word.make-inline! [ Word -- ] { dip:True ~prefer-inline? ! }
+def Word.prefer-inline? [ +Mirth Word -- +Mirth Bool ] { ~prefer-inline? @? unwrap(False) }
+def Word.make-inline! [ +Mirth Word -- +Mirth ] { dip:True ~prefer-inline? ! }
 
 def(Word.new!,
     head:Token sig?:Maybe(Token) body:Token
@@ -75,7 +75,7 @@ def(Word.==, Word Word -- Bool, both(index) ==)
 def(Word.compare, Word Word -- Comparison, both(index) compare)
 
 field(Word.~num-blocks, Word, Int)
-def(Word.inc-num-blocks!, Word -- Int,
+def(Word.inc-num-blocks!, +Mirth Word -- +Mirth Int,
     dup ~num-blocks @? match(
         Some -> tuck 1+ swap ~num-blocks !,
         None -> 1 swap ~num-blocks ! 0

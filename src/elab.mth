@@ -617,7 +617,7 @@ struct +AB {
         dip:ab-type@ gamma:unify! ab-type!
     }
 
-    def ab-atom! [ Atom +AB -- +AB ] {
+    def ab-atom! [ Atom +Mirth +AB -- +Mirth +AB ] {
         dup token ab-token!
         # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
             # ^ a sanity check to make sure
@@ -806,7 +806,7 @@ struct +AB {
 
     def elab-word-args! [ Word +Mirth +AB -- Word +Mirth +AB ] {
         elab-args!
-        ab-token@ rdip:num-args over arity < then(
+        ab-token@ rdip:num-args over rdip:arity < then(
             ab-token@ rdip:num-args over rdip:params drop-slice for(
                 default if? (
                     ab-token@ rdip:location >location rdip:clone-run! elab-block-at!,
@@ -1032,13 +1032,13 @@ def ab-build-word!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Word +Mirth -- *b Wo
 }
 
 ||| Add an atom to a list of atoms .. smartly.
-def ab-optimized-snoc! [ List(Atom) Atom -- List(Atom) ] {
+def ab-optimized-snoc! [ +Mirth List(Atom) Atom -- +Mirth List(Atom) ] {
     while(over atoms-has-last-block? and(atom-accepts-args?),
         swap atoms-turn-last-block-to-arg swap)
     List.Snoc
 }
 
-def atom-accepts-args? [ Atom -- Atom Bool ] {
+def atom-accepts-args? [ +Mirth Atom -- +Mirth Atom Bool ] {
     dup op match(
         Word -> dip(dup args len) arity <,
         Prim ->

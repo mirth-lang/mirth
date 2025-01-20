@@ -970,7 +970,7 @@ def +C99Stack.push-stack! [ +C99Branch +C99Stack -- +C99Branch ] {
 
 def c99-arrow! [ Arrow +C99Branch -- +C99Branch ] { atoms for(c99-atom!) }
 def c99-atom! [ Atom +C99Branch -- +C99Branch ] {
-    +c99:options emit-debug-info and(dup op show-in-stack-trace?) then(
+    +c99:options emit-debug-info and(dup op +mirth:show-in-stack-trace?) then(
         +c99:c99-line("WORD_ATOM(" put
             dup token +mirth:row >Int show put ", " put
             dup token +mirth:col >Int show put ", " put
@@ -982,7 +982,7 @@ def c99-atom! [ Atom +C99Branch -- +C99Branch ] {
     c99-atom-op!
 }
 
-def Op.show-in-stack-trace? [ Op -- Bool ] {
+def Op.show-in-stack-trace? [ +Mirth Op -- +Mirth Bool ] {
     { Int -> drop False }
     { F64 -> drop False }
     { Str -> drop False }
@@ -1061,7 +1061,7 @@ def c99-from-enum-value! [ Data +C99Branch -- +C99Branch ] {
 }
 
 def c99-word! [ List(Arg) Word +C99Branch -- +C99Branch ] {
-    dup prefer-inline? if(
+    dup +mirth:prefer-inline? if(
         dip:c99-args-push!
         +mirth:arrow c99-codip-arrow!,
         +c99:c99-api c99-smart-call!
@@ -2477,9 +2477,9 @@ def c99-word-enter! [ Word +C99Branch -- +C99Branch ] {
         c99-line(
             "WORD_ENTER(" put
             dup +mirth(name >Str) put-cstr ", " put
-            dup body +mirth(module source-path) >Str put-cstr ", " put
-            dup body +mirth:row >Int show put ", " put
-            dup body +mirth:col >Int show put ");" put
+            dup +mirth(body module source-path) >Str put-cstr ", " put
+            dup +mirth(body row) >Int show put ", " put
+            dup +mirth(body col) >Int show put ");" put
         )
     ) drop
 }
