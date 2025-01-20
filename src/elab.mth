@@ -85,8 +85,6 @@ struct +TypeElab {
         while(token rdip:sig-stack-end? not, elab-stack-type-part! cons)
     }
 
-
-
     def elab-type-arg! [ +Mirth +TypeElab -- +Mirth +TypeElab Type ] {
         token elab-stack-type-part!
         match(
@@ -164,17 +162,14 @@ struct +TypeElab {
         Type.ResourceType elab-implicit-var! if?(Type.Var, Type.Error) Resource
     }
 
-    def gamma(f) [ (*a +Gamma -- *b +Gamma) *a +TypeElab -- *b +TypeElab ] {
-        token rdip(>token +Gamma f rdrop)
-    }
-
     def elab-implicit-var! [ +Mirth +TypeElab Name Type -- +Mirth +TypeElab Maybe(Var) ] {
+        token rdip:error-token!
         over ctx rdip:lookup match(
-            Some -> sip(dip:nip rdip:type gamma:unify! drop) Some,
+            Some -> sip(dip:nip rdip:type rdip:unify! drop) Some,
             None ->
                 allow-implicit-type-vars if(
                     swap ctx(dip:Var.new! over Ctx.new) Some,
-                    token "Implicit type variable not allowed here." rdip:emit-error!
+                    "Implicit type variable not allowed here." rdip:error!
                     drop2 None
                 )
         )
@@ -582,10 +577,10 @@ def QName.climb-up-dname? [ +Mirth +ResolveDef DName QName -- +Mirth +ResolveDef
 }
 
 def elab-type-unify! [ +Mirth Type Type Token -- +Mirth Type Token ] {
-    >token +Gamma unify! /+Gamma token>
+    dup with-error-token(dip:unify!)
 }
 def elab-stack-type-unify! [ +Mirth StackType StackType Token -- +Mirth StackType Token ] {
-    >token +Gamma unify! /+Gamma token>
+    dup with-error-token(dip:unify!)
 }
 
 def elab-simple-type-arg! [ +Mirth Token -- +Mirth Type ] {
@@ -609,12 +604,10 @@ struct +AB {
     def ab-type! [ +AB StackType -- +AB ] { arrow:cod! }
     def ab-ctx@ [ +AB -- +AB Ctx ] { arrow ctx }
     def ab-home@ [ +AB -- +AB Home ] { arrow home }
-    def gamma(f) [ (*a +Gamma -- *b +Gamma) *a +AB -- *b +AB ] {
-        ab-token@ rdip(>token +Gamma f rdrop)
-    }
 
     def ab-unify-type! [ StackType +Mirth +AB -- +Mirth +AB ] {
-        dip:ab-type@ gamma:unify! ab-type!
+        ab-token@ rdip:error-token!
+        dip:ab-type@ rdip:unify! ab-type!
     }
 
     def ab-atom! [ Atom +Mirth +AB -- +Mirth +AB ] {
@@ -908,7 +901,8 @@ struct +AB {
         True >allow-type-holes
         False >allow-implicit-type-vars
         +TypeElab rdip':elab-stack-type! rdrop
-        dip:ab-type@ gamma:unify! drop
+        ab-token@ rdip:error-token!
+        dip:ab-type@ rdip:unify! drop
     }
 
     def elab-atom-match! [ +Mirth +AB -- +Mirth +AB ] {
@@ -1179,10 +1173,10 @@ def elab-arrow! [ +Mirth Ctx ArrowType Token Home -- +Mirth Arrow ] {
 def elab-arrow-hom! [ +Mirth Ctx StackType StackType Token Home -- +Mirth Arrow ] {
     rotl dip(
         elab-arrow-fwd!
-        dup token-end >token +Gamma
+        dup token-end error-token!
         dup cod
     )
-    unify! rdrop drop
+    unify! drop
 }
 
 def elab-arrow-fwd! [ +Mirth Ctx StackType Token Home -- +Mirth Arrow ] {
@@ -1228,6 +1222,7 @@ def elab-pattern! [ List(Token) +Mirth +Pattern -- +Mirth +Pattern ] {
 
 def elab-pattern-atom! [ Token +Mirth +Pattern -- +Mirth +Pattern ] {
     dup pattern:token-start!
+    dup rdip:error-token!
 
     dup rdip:pat-underscore? if(
         drop +Pattern.underscore!,
@@ -1348,7 +1343,7 @@ struct ModuleHeader {
 |||
 def parse-module-header! [ +Mirth Token -- +Mirth Token ModuleHeader ] {
     dup doc >doc
-    dup Some lexical-state:error-token!
+    dup error-token!
     dup module-header? else("Expected module header." emit-fatal-error!)
     dup num-args 0> if (
         sip(next) args-1 >head
@@ -1424,7 +1419,7 @@ def elab-decl-or-decl-block! [ +World +Mirth Token -- +World +Mirth Token ] {
 
 ||| Elaborate a declaration. Returns the next token.
 def elab-decl! [ Token +World +Mirth -- Token +World +Mirth ] {
-    dup Some lexical-state:error-token!
+    dup error-token!
     dup name? unwrap("unknown declaration" emit-fatal-error!)
     defs find-some(macro? bind(action decl?))
     unwrap("unknown declaration" emit-fatal-error!) run
@@ -1985,9 +1980,8 @@ struct SyntaxDef {
 |||     def word { body... }
 |||
 ||| Returns the next token after the definition.
-def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ]
-{
-    dup Some lexical-state:error-token!
+def parse-def [ +Mirth Token -- +Mirth Token SyntaxDef ] {
+    dup error-token!
     dup doc >doc
     dup args empty? if(
         next
@@ -2327,7 +2321,7 @@ def elab-table! [ +Mirth Token -- +Mirth Token ] {
 def elab-entry-point [ QName +Mirth -- Arrow +Mirth ] {
     dup def-hard? bind(word?) unwrap(
         dup dip(
-            namespace module? for(start Some lexical-state:error-token!)
+            namespace module? for(start error-token!)
             "can't find entry point "
         ) >Str cat
         fatal-error!

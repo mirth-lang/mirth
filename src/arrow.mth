@@ -245,8 +245,8 @@ def(Block.new-deferred!(f), (+Mirth Block -- +Mirth Arrow) +Mirth Ctx Token Home
 def(Block.typecheck!, +Mirth Block -- +Mirth,
     arrow drop)
 
-def(block-unify-type!, +Mirth +Gamma Block ArrowType -- +Mirth +Gamma ArrowType,
-    dip(dup rdip:type) rotl dip(unify! drop) rdip:arrow type)
+def(block-unify-type!, +Mirth Block ArrowType -- +Mirth ArrowType,
+    dip(dup type) rotl dip(unify! drop) arrow type)
 
 def(Block.to-run-var, +Mirth Block -- +Mirth Maybe(Var),
     arrow to-run-var)

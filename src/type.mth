@@ -195,15 +195,12 @@ def(Type.expand, +Mirth Type -- +Mirth Type,
     Meta -> expand,
     _ -> id)
 
-data(+Gamma, +Gamma -> token: Token)
-def(+Gamma.rdrop, +Gamma --, /+Gamma token> drop)
-
 ||| Raise a type unification error.
-def(Type.unify-failed!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
-    rdip:Str("Failed to unify " ; dip:type; " with " ; type;) dip:token rdip:emit-error! Type.Error)
+def(Type.unify-failed!, +Mirth Type Type -- +Mirth Type,
+    Str("Failed to unify " ; dip:type; " with " ; type;) error! Type.Error)
 
 ||| Unify types directly, without regard to metavariables and other metatypes.
-def(Type.unify-simple!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
+def(Type.unify-simple!, +Mirth Type Type -- +Mirth Type,
     Var -> swap match(Var -> unify!, _ -> dip(Type.Var) unify-failed!),
     Prim -> swap match(Prim -> unify!, _ -> dip(Type.Prim) unify-failed!),
     Data -> swap match(Data -> unify!, _ -> dip(Type.Data) unify-failed!),
@@ -216,7 +213,7 @@ def(Type.unify-simple!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
     _ -> unify-failed!)
 
 ||| Unify expanded types.
-def(Type.unify-aux!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
+def(Type.unify-aux!, +Mirth Type Type -- +Mirth Type,
     Error -> unify-error!,
     Ignore -> id,
     Hole -> type-hole-unify!,
@@ -250,8 +247,8 @@ def(Type.unify-aux!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
     )
 
 ||| Fill out any subterms/metavars with Error.
-def(Type.unify-error!, +Mirth +Gamma Type -- +Mirth +Gamma Type,
-    rdip:expand match(
+def(Type.unify-error!, +Mirth Type -- +Mirth Type,
+    expand match(
         Error -> Type.Error,
         Ignore -> Type.Error,
         Hole -> Type.Error swap type-hole-unify!,
@@ -269,114 +266,76 @@ def(Type.unify-error!, +Mirth +Gamma Type -- +Mirth +Gamma Type,
     ))
 
 ||| Unify two types. Raises a unification error if unification is impossible.
-def(Type.unify!, +Mirth +Gamma Type Type -- +Mirth +Gamma Type,
-    rdip:on2(expand) unify-aux!)
+def(Type.unify!, +Mirth Type Type -- +Mirth Type,
+    on2(expand) unify-aux!)
 
-def(Value.unify!, +Mirth +Gamma Value Value -- +Mirth +Gamma Type,
-    swap match(
-        Int -> swap match(
+def Value.unify! [ +Mirth Value Value -- +Mirth Type ] {
+    swap match {
+        Int -> swap match {
             Int -> dup2 == if(drop Value.Int Type.Value, drop2 Type.Int),
-            Str ->
-                drop2 token
-                "Can't unify int value with string value."
-                rdip:emit-error! Type.Error,
-            F64 ->
-                drop2 token
-                "Can't unify int value with float value."
-                rdip:emit-error! Type.Error,
-            Block ->
-                drop2 token
-                "Can't unify int value with block."
-                rdip:emit-error! Type.Error,
-        ),
+            Str -> drop2 "Can't unify int value with string value." error! Type.Error,
+            F64 -> drop2 "Can't unify int value with float value." error! Type.Error,
+            Block -> drop2 "Can't unify int value with block." error! Type.Error,
+        },
 
-        Str -> swap match(
+        Str -> swap match {
             Str -> dup2 == if(drop Value.Str Type.Value, drop2 Type.Str),
-            Int ->
-                drop2 token
-                "Can't unify string value with int value."
-                rdip:emit-error! Type.Error,
-            F64 ->
-                drop2 token
-                "Can't unify string value with float value."
-                rdip:emit-error! Type.Error,
-            Block ->
-                drop2 token
-                "Can't unify string value with block."
-                rdip:emit-error! Type.Error,
-        ),
+            Int -> drop2 "Can't unify string value with int value." error! Type.Error,
+            F64 -> drop2 "Can't unify string value with float value." error! Type.Error,
+            Block -> drop2 "Can't unify string value with block." error! Type.Error,
+        },
 
-        Block -> swap match(
+        F64 -> swap match {
+            F64 -> dup2 == if(drop Value.F64 Type.Value, drop2 Type.F64),
+            Int -> drop2 "Can't unify float value with int value." error! Type.Error,
+            Block -> drop2 "Can't unify float value with block." error! Type.Error,
+            Str -> drop2 "Can't unify float value with string value." error! Type.Error,
+        },
+
+        Block -> swap match {
             Block ->
                 dup2 == if(
                     drop Value.Block Type.Value,
-                    rdip:arrow type block-unify-type! >Type
+                    arrow type block-unify-type! >Type
                 ),
-            Int ->
-                drop2 token
-                "Can't unify block with int value."
-                rdip:emit-error! Type.Error,
-            F64 ->
-                drop2 token
-                "Can't unify block with float value."
-                rdip:emit-error! Type.Error,
-            Str ->
-                drop2 token
-                "Can't unify block with string value."
-                rdip:emit-error! Type.Error
-        ),
+            Int -> drop2 "Can't unify block with int value." error! Type.Error,
+            F64 -> drop2 "Can't unify block with float value." error! Type.Error,
+            Str -> drop2 "Can't unify block with string value." error! Type.Error,
+        },
+    }
+}
 
-        F64 -> swap match(
-            F64 ->
-                dup2 == if(
-                    drop Value.F64 Type.Value,
-                    drop2 Type.F64
-                ),
-            Int ->
-                drop2 token
-                "Can't unify float value with int value."
-                rdip:emit-error! Type.Error,
-            Block ->
-                drop2 token
-                "Can't unify float value with block."
-                rdip:emit-error! Type.Error,
-            Str ->
-                drop2 token
-                "Can't unify float value with string value."
-                rdip:emit-error! Type.Error
-        )))
-
-def Value.unify-type! [ +Mirth +Gamma Type Value -- +Mirth +Gamma Type ] {
+def Value.unify-type! [ +Mirth Type Value -- +Mirth Type ] {
     { Int -> drop Type.Int unify! }
     { Str -> drop Type.Str unify! }
     { F64 -> drop Type.F64 unify! }
     { Block -> swap unify-block! }
 }
 
-def(Value.unify-error!, +Mirth +Gamma Value -- +Mirth +Gamma Type,
+def(Value.unify-error!, +Mirth Value -- +Mirth Type,
     Int -> drop Type.Error,
     Str -> drop Type.Error,
     F64 -> drop Type.Error,
     Block -> Type.Error unify-block!)
 
-def(Type.unify-block!, +Mirth +Gamma Block Type -- +Mirth +Gamma Type,
-    rdip:expand match(
+def(Type.unify-block!, +Mirth Block Type -- +Mirth Type,
+    expand match(
         Error -> StackType.Error StackType.Error T-> block-unify-type! drop Type.Error,
-        Meta -> over dip(dip(rdip:type >Type) unify! drop) rdip:arrow type >Type,
+        Meta -> over dip(dip(type >Type) unify! drop) arrow type >Type,
         Arrow -> block-unify-type! >Type,
-        _ -> dip(rdip:type >Type) unify!
+        _ -> dip(type >Type) unify!
     ))
 
-def(Type.unify2!, +Mirth +Gamma Type Type Type Type -- +Mirth +Gamma Type Type,
+def(Type.unify2!, +Mirth Type Type Type Type -- +Mirth Type Type,
     dip(swap) dip2(unify!) unify!)
 
-def(PrimType.unify!, +Mirth +Gamma PrimType PrimType -- +Mirth +Gamma Type,
+def(PrimType.unify!, +Mirth PrimType PrimType -- +Mirth Type,
     dup2 == if(drop Type.Prim, both(Type.Prim) unify-failed!))
-def(Data.unify!, +Mirth +Gamma Data Data -- +Mirth +Gamma Type,
+def(Data.unify!, +Mirth Data Data -- +Mirth Type,
     dup2 == if(drop Type.Data, both(Type.Data) unify-failed!))
-def(DataPartial.unify!, +Mirth +Gamma DataPartial DataPartial -- +Mirth +Gamma Type,
+def(DataPartial.unify!, +Mirth DataPartial DataPartial -- +Mirth Type,
     dup2 == if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!))
-def(Table.unify!, +Mirth +Gamma Table Table -- +Mirth +Gamma Type,
+def(Table.unify!, +Mirth Table Table -- +Mirth Type,
     dup2 == if(drop Type.Table, both(Type.Table) unify-failed!))
 
 def(Type.has-meta?, +Mirth MetaVar Type -- +Mirth Bool,
@@ -587,19 +546,19 @@ def(MetaVar.expand-if(f,g), (*a +Mirth Type -- *b, *a +Mirth MetaVar -- *b) *a +
 
 def(MetaVar.expand, +Mirth MetaVar -- +Mirth Type,
     expand-if(id, Type.Meta))
-def(MetaVar.unify!, +Mirth +Gamma Type MetaVar -- +Mirth +Gamma Type,
-    dup rdip:type? match(
+def(MetaVar.unify!, +Mirth Type MetaVar -- +Mirth Type,
+    dup type? match(
         Some -> nip unify!,
         None -> dup2 swap meta= if(
             drop,
-            swap dup2 rdip:has-meta? if(
+            swap dup2 has-meta? if(
                 swap Type.Meta unify-failed!,
                 tuck Some swap ~type? !
             )
         )
     ))
-def(MetaVar.unify-error!, +Mirth +Gamma MetaVar -- +Mirth +Gamma Type,
-    dup rdip:type? match(
+def(MetaVar.unify-error!, +Mirth MetaVar -- +Mirth Type,
+    dup type? match(
         Some -> nip unify-error!,
         None -> dip(Type.Error Some) ~type? ! Type.Error
     ))
@@ -619,8 +578,8 @@ def(MetaVar.freshen, +Mirth Subst MetaVar -- +Mirth Subst Type,
 # Type Holes #
 ##############
 
-def(type-hole-unify!, +Mirth +Gamma Type Name -- +Mirth +Gamma Type,
-    rdip:Str(Type.Hole type; " ~ "; dup type; "\n" ;) dip:token rdip:emit-info!)
+def(type-hole-unify!, +Mirth Type Name -- +Mirth Type,
+    Str(Type.Hole type; " ~ "; dup type; "\n" ;) info!)
 
 ############
 # APP TYPE #
@@ -646,9 +605,9 @@ def(Resource.>Type, Resource -- Type, Resource -> id)
 def(Type.>Resource, Type -- Resource, Resource)
 def Resource.has-meta? [ +Mirth MetaVar Resource -- +Mirth Bool ] { >Type has-meta? }
 def Resource.has-var? [ +Mirth Var Resource -- +Mirth Bool ] { >Type has-var? }
-def(Resource.unify!, +Mirth +Gamma Resource Resource -- +Mirth +Gamma Resource,
+def(Resource.unify!, +Mirth Resource Resource -- +Mirth Resource,
     both(>Type) unify! >Resource)
-def(Resource.unify-error!, +Mirth +Gamma Resource -- +Mirth +Gamma Resource,
+def(Resource.unify-error!, +Mirth Resource -- +Mirth Resource,
     >Type unify-error! >Resource)
 def(Resource.type;, +Mirth +Str Resource -- +Mirth +Str, >Type type;)
 def(Resource.freshen, +Mirth Subst Resource -- +Mirth Subst Resource,
@@ -834,73 +793,73 @@ def StackType.has-var? [ +Mirth Var StackType -- +Mirth Bool ] {
     { WithLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
 }
 
-def(StackType.unify-failed!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackType,
+def(StackType.unify-failed!, +Mirth StackType StackType -- +Mirth StackType,
     both(>Type) unify-failed! >StackType)
 
-def(StackType.unify!, +Mirth +Gamma StackType StackType -- +Mirth +Gamma StackType,
-    swap rdip:expand match(
+def(StackType.unify!, +Mirth StackType StackType -- +Mirth StackType,
+    swap expand match(
         Error -> unify-error!,
         Ignore -> id,
-        Meta -> swap rdip:expand match(
+        Meta -> swap expand match(
             Error -> StackType.Meta unify-error!,
             Ignore -> StackType.Meta,
             Meta -> dip(Type.Meta) unify! >StackType,
             _ -> >Type swap unify! >StackType,
         ),
-        Var -> swap rdip:expand match(
+        Var -> swap expand match(
             Error -> drop StackType.Error,
             Ignore -> StackType.Var,
             Meta -> dip(Type.Var) unify! >StackType,
             Var -> unify! >StackType,
             _ -> dip(StackType.Var) unify-failed!
         ),
-        Unit -> rdip:expand match(
+        Unit -> expand match(
             Error -> StackType.Error,
             Meta -> dip(StackType.Unit >Type) unify! >StackType,
             Ignore -> StackType.Unit,
             Unit -> StackType.Unit,
             _ -> StackType.Unit unify-failed!
         ),
-        Cons -> rotl rdip:expand match(
+        Cons -> rotl expand match(
             Error -> StackType.Cons unify-error!,
             Meta -> dip(StackType.Cons >Type) unify! >StackType,
             Ignore -> StackType.Cons,
-            _ -> dup rdip:force-cons?! if?(
+            _ -> dup force-cons?! if?(
                 nip unpack2 dip(swap) dip2(unify!) unify! StackType.Cons,
                 dip(StackType.Cons) unify-failed!
             )
         ),
-        With -> rotl rdip:expand match(
+        With -> rotl expand match(
             Error -> StackType.With unify-error!,
             Meta -> dip(StackType.With >Type) unify! >StackType,
             Ignore -> StackType.With,
-            _ -> dup rdip:force-with?! if?(
+            _ -> dup force-with?! if?(
                 nip unpack2 dip(swap) dip2(unify!) unify! StackType.With,
                 dip(StackType.With) unify-failed!
             )
         ),
-        ConsLabel -> rot4l rdip:expand match(
+        ConsLabel -> rot4l expand match(
             Error -> StackType.ConsLabel unify-error!,
             Meta -> dip(StackType.ConsLabel >Type) unify! >StackType,
             Ignore -> StackType.ConsLabel,
-            _ -> dup2 rdip:force-cons-label?! if?(
+            _ -> dup2 force-cons-label?! if?(
                 nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.ConsLabel,
                 dip(StackType.ConsLabel) unify-failed!
             )
         ),
-        WithLabel -> rot4l rdip:expand match(
+        WithLabel -> rot4l expand match(
             Error -> StackType.WithLabel unify-error!,
             Meta -> dip(StackType.WithLabel >Type) unify! >StackType,
             Ignore -> StackType.WithLabel,
-            _ -> dup2 rdip:force-with-label?! if?(
+            _ -> dup2 force-with-label?! if?(
                 nip swap dip(unpack2 dip(swap) dip2(unify!) unify!) StackType.WithLabel,
                 dip(StackType.WithLabel) unify-failed!
             )
         ),
     ))
 
-def(StackType.unify-error!, +Mirth +Gamma StackType -- +Mirth +Gamma StackType,
-    rdip:expand match(
+def(StackType.unify-error!, +Mirth StackType -- +Mirth StackType,
+    expand match(
         Error -> StackType.Error,
         Unit -> StackType.Error,
         Ignore -> StackType.Error,
@@ -1127,14 +1086,14 @@ def ArrowType.invert [ ArrowType -- ArrowType ] {
     ArrowType
 }
 
-def ArrowType.unify! [ +Mirth +Gamma ArrowType ArrowType -- +Mirth +Gamma ArrowType ] {
+def ArrowType.unify! [ +Mirth ArrowType ArrowType -- +Mirth ArrowType ] {
     dip(/ArrowType) /ArrowType
     dom> dom> unify! >dom
     cod> cod> unify! >cod
     ArrowType
 }
 
-def ArrowType.unify-error! [ +Mirth +Gamma ArrowType -- +Mirth +Gamma ArrowType ] {
+def ArrowType.unify-error! [ +Mirth ArrowType -- +Mirth ArrowType ] {
     dom:unify-error!
     cod:unify-error!
 }
@@ -1239,7 +1198,7 @@ def(Subst.get-var, Var Subst -- Type,
 
 ||| If variable is in subst, unify new type with type in subst.
 ||| Otherwise, create larger subst with new binding.
-def(Subst.match-var, +Mirth +Gamma Type Var Subst -- +Mirth +Gamma Subst,
+def(Subst.match-var, +Mirth Type Var Subst -- +Mirth Subst,
     dup2 has-var? if(
         sip(get-var unify! drop),
         cons

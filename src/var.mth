@@ -86,7 +86,7 @@ def(Ctx.fresh-var!, +Mirth Type Ctx -- +Mirth Ctx Var,
 def(Ctx.==, Ctx Ctx -- Bool,
     on2:vars ==)
 
-def(Var.unify!, +Mirth +Gamma Var Var -- +Mirth +Gamma Type,
+def(Var.unify!, +Mirth Var Var -- +Mirth Type,
     dup2 == if(drop Type.Var, both(Type.Var) unify-failed!))
 
 def(Var.freshen, +Mirth Subst Var -- +Mirth Subst Type,

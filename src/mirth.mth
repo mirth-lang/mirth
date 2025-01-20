@@ -201,6 +201,9 @@ def(+Mirth.emit-deprecated!, Token old:Str new:Str +Mirth -- +Mirth,
         Sgr.FGCyan emit; new> ; Sgr.Reset emit;
         " instead.";) emit-warning!)
 
+def +Mirth.error-token! [ Token +Mirth -- +Mirth ] {
+    Some lexical-state:error-token!
+}
 def +Mirth.with-error-token(f) [ (*a +Mirth -- *b +Mirth) *a Token +Mirth -- *b +Mirth ] {
     lexical-state:error-token(swap Some) dip(f) lexical-state:error-token!
 }

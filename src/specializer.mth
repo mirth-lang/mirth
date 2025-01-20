@@ -229,17 +229,16 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
 def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
     nip dip:Subst.Nil freshen nip swap
     /SPKey
-    dup first token >token +Gamma
+    dup first token error-token!
     dip:Subst.Nil nip
     swap dom (
         swap reverse-for(
-            dip(rdip:force-cons?!
-                unwrap("unexpected domain in specialize-ctx-type" rdip:fatal-error!)
+            dip(force-cons?!
+                unwrap("unexpected domain in specialize-ctx-type" fatal-error!)
                 unpack2)
-            /Block rdip:type Type.Arrow unify! drop
+            /Block type Type.Arrow unify! drop
         )
     )
-    rdrop
     dip:Ctx.L0 rigidify-sig!)
 
 struct +SPSynth {

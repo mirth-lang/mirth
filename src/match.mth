@@ -176,7 +176,7 @@ def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
     pattern inner-ctx >ctx
     dip:Subst.Nil rdip(type freshen-sig) /ArrowType dom> cod>
     dip(pattern mid)
-    pattern token-start >token +Gamma rdip':unify! rdrop >cod
+    rdip:unify! >cod
     dup >dom pattern:mid!
     >subst PatternAtom pattern:atoms:List.Cons)
 
