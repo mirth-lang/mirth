@@ -80,6 +80,10 @@ data(Sgr,
         }
         "m" ;
     }
+
+    def span(f) [ (*a +Str -- *b +Str) *a Sgr +Str -- *b +Str ] {
+        emit; f Sgr.Reset emit;
+    }
 )
 
 data SGRColor {
