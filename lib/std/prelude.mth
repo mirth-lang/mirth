@@ -380,6 +380,8 @@ inline {
     def Ptr.@I16 [ Ptr +Unsafe -- I16 +Unsafe ] { prim-i16-get }
     def Ptr.@I32 [ Ptr +Unsafe -- I32 +Unsafe ] { prim-i32-get }
     def Ptr.@I64 [ Ptr +Unsafe -- I64 +Unsafe ] { prim-i64-get }
+    def Ptr.@F32 [ Ptr +Unsafe -- F32 +Unsafe ] { prim-f32-get }
+    def Ptr.@F64 [ Ptr +Unsafe -- F64 +Unsafe ] { prim-f64-get }
 
     def Ptr.!U8  [ U8  Ptr +Unsafe -- +Unsafe ] { prim-u8-set  }
     def Ptr.!U16 [ U16 Ptr +Unsafe -- +Unsafe ] { prim-u16-set }
@@ -389,6 +391,8 @@ inline {
     def Ptr.!I16 [ I16 Ptr +Unsafe -- +Unsafe ] { prim-i16-set }
     def Ptr.!I32 [ I32 Ptr +Unsafe -- +Unsafe ] { prim-i32-set }
     def Ptr.!I64 [ I64 Ptr +Unsafe -- +Unsafe ] { prim-i64-set }
+    def Ptr.!F32 [ F32 Ptr +Unsafe -- +Unsafe ] { prim-f32-set }
+    def Ptr.!F64 [ F64 Ptr +Unsafe -- +Unsafe ] { prim-f64-set }
 
     def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-alloc   }
     def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-realloc }
@@ -873,6 +877,8 @@ inline {
     def |I16| [ USize ] { 2u >USize }
     def |I32| [ USize ] { 4u >USize }
     def |I64| [ USize ] { 8u >USize }
+    def |F32| [ USize ] { 4u >USize }
+    def |F64| [ USize ] { 8u >USize }
     def |Ptr| [ USize ] { prim-ptr-size >Nat-clamp >USize }
 }
 

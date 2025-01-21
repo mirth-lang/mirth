@@ -2084,6 +2084,9 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { F32ToF64 -> drop "(double)"  C99ReprType.F32 ""  C99ReprType.F64 Some c99-unop! }
     { F32ToStr -> drop "f32_show(" C99ReprType.F32 ")" C99ReprType.STR Some c99-unop! }
 
+    { F32Get -> drop "*(float*)"  C99ReprType.PTR "" C99ReprType.F32 Some c99-unop! }
+    { F32Set -> drop "*(float*)"  C99ReprType.PTR " = " C99ReprType.F32 ";" True None c99-binop! }
+
     # { PRIM_F64_SET -> drop "*(double*)"   C99ReprType.PTR " = " C99ReprType.F64 ";" True None c99-binop! }
     { F64Eq  -> drop "(" C99ReprType.F64 " == " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
     { F64Lt  -> drop "(" C99ReprType.F64 " < "  C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
@@ -2094,6 +2097,9 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { F64ToInt -> drop "(int64_t)" C99ReprType.F64 ""  C99ReprType.I64 Some c99-unop! }
     { F64ToF32 -> drop "(float)"   C99ReprType.F64 ""  C99ReprType.F32 Some c99-unop! }
     { F64ToStr -> drop "f64_show(" C99ReprType.F64 ")" C99ReprType.STR Some c99-unop! }
+
+    { F64Get -> drop "*(double*)"  C99ReprType.PTR "" C99ReprType.F64 Some c99-unop! }
+    { F64Set -> drop "*(double*)"  C99ReprType.PTR " = " C99ReprType.F64 ";" True None c99-binop! }
 
     { BoolAnd -> drop "(" C99ReprType.Bool " && " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
     { BoolOr  -> drop "(" C99ReprType.Bool " || " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }

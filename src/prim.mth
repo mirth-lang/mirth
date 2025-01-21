@@ -81,6 +81,9 @@ data Prim {
     F32ToStr
     F32ToF64
 
+    F32Get
+    F32Set
+
     F64Eq
     F64Lt
     F64Add
@@ -90,6 +93,9 @@ data Prim {
     F64ToInt
     F64ToStr
     F64ToF32
+    
+    F64Get
+    F64Set
 
     BoolAnd
     BoolOr
@@ -233,6 +239,8 @@ data Prim {
         { F32ToInt -> "prim-f32-to-int" 0 }
         { F32ToStr -> "prim-f32-to-str" 0 }
         { F32ToF64 -> "prim-f32-to-f64" 0 }
+        { F32Get -> "prim-f32-get" 0 }
+        { F32Set -> "prim-f32-set" 0 }
 
         { F64Eq -> "prim-f64-eq" 0 }
         { F64Lt -> "prim-f64-lt" 0 }
@@ -243,6 +251,8 @@ data Prim {
         { F64ToInt -> "prim-f64-to-int" 0 }
         { F64ToStr -> "prim-f64-to-str" 0 }
         { F64ToF32 -> "prim-f64-to-f32" 0 }
+        { F64Get -> "prim-f64-get" 0 }
+        { F64Set -> "prim-f64-set" 0 }
 
         { BoolAnd -> "prim-bool-and" 0 }
         { BoolOr  -> "prim-bool-or"  0 }
@@ -456,6 +466,9 @@ data Prim {
         { F32ToInt -> Ctx.L0 Type.F32 T1 Type.Int T1 T-> }
         { F32ToStr -> Ctx.L0 Type.F32 T1 Type.Str T1 T-> }
         { F32ToF64 -> Ctx.L0 Type.F32 T1 Type.F64 T1 T-> }
+        { F32Get -> Ctx.L0 Type.Ptr T1 Type.F32 T1 T-> }
+        { F32Set -> Ctx.L0 Type.F32 Type.Ptr T2 T0 T-> }
+
 
         { F64Eq -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
         { F64Lt -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
@@ -466,6 +479,8 @@ data Prim {
         { F64ToInt -> Ctx.L0 Type.F64 T1 Type.Int T1 T-> }
         { F64ToStr -> Ctx.L0 Type.F64 T1 Type.Str T1 T-> }
         { F64ToF32 -> Ctx.L0 Type.F64 T1 Type.F32 T1 T-> }
+        { F64Get -> Ctx.L0 Type.Ptr T1 Type.F64 T1 T-> }
+        { F64Set -> Ctx.L0 Type.F64 Type.Ptr T2 T0 T-> }
 
         { BoolAnd -> Ctx.L0 Type.Bool Type.Bool T2 Type.Bool T1 T-> }
         { BoolOr  -> Ctx.L0 Type.Bool Type.Bool T2 Type.Bool T1 T-> }
