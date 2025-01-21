@@ -156,7 +156,7 @@ data Prim {
     F64ToInt
     F64ToStr
     F64ToF32
-    
+
     F64Get
     F64Set
 
@@ -655,7 +655,6 @@ data Prim {
         { F32ToF64 -> Ctx.L0 Type.F32 T1 Type.F64 T1 T-> }
         { F32Get -> Ctx.L0 Type.Ptr T1 Type.F32 T1 T-> }
         { F32Set -> Ctx.L0 Type.F32 Type.Ptr T2 T0 T-> }
-
 
         { F64Eq -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
         { F64Lt -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
