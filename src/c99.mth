@@ -983,9 +983,7 @@ def c99-atom! [ Atom +C99Branch -- +C99Branch ] {
 }
 
 def Op.show-in-stack-trace? [ +Mirth Op -- +Mirth Bool ] {
-    { Int -> drop False }
-    { F64 -> drop False }
-    { Str -> drop False }
+    { Push -> drop False }
     { Word -> prefer-inline? not }
     { External -> drop True }
     { Buffer -> drop False }
@@ -1010,9 +1008,7 @@ def Op.show-in-stack-trace? [ +Mirth Op -- +Mirth Bool ] {
 }
 
 def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
-    { Int           -> nip c99-int! }
-    { F64           -> nip c99-f64! }
-    { Str           -> nip c99-str! }
+    { Push -> nip c99-push-value! }
     { Word          -> dip:args c99-word! }
     { External      -> dip:args c99-external-call! }
     { Buffer        -> nip c99-buffer-call! }
@@ -1034,6 +1030,21 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { DataSetLabel  -> c99-tag-set-label! drop }
     { TableToIndex -> drop2 }
     { TableFromIndex -> drop2 }
+}
+
+def c99-push-value! [ PushValue +C99Branch -- +C99Branch ] {
+    { Str -> c99-str! }
+    { Int -> C99ReprType.I64 push-value-expression!(show put "LL" put) }
+    { U8  -> C99ReprType.U8  push-value-expression!(>Nat show put) }
+    { U16 -> C99ReprType.U16 push-value-expression!(>Nat show put) }
+    { U32 -> C99ReprType.U32 push-value-expression!(>Nat show put) }
+    { U64 -> C99ReprType.U64 push-value-expression!(>Int-unsafe show put "ULL" put) }
+    { I8  -> C99ReprType.I8  push-value-expression!(>Int show put) }
+    { I16 -> C99ReprType.I16 push-value-expression!(>Int show put) }
+    { I32 -> C99ReprType.I32 push-value-expression!(>Int show put) }
+    { I64 -> C99ReprType.I64 push-value-expression!(>Int show put "LL" put) }
+    { F32 -> C99ReprType.F32 push-value-expression!(>Str put) }
+    { F64 -> C99ReprType.F64 push-value-expression!(>Str put) }
 }
 
 def c99-get-enum-value! [ Data +C99Branch -- +C99Branch ] {

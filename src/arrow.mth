@@ -90,15 +90,43 @@ data Arg {
     }
 }
 
+data PushValue {
+    Str [ Str ]
+    Int [ Int ]
+    U8  [ U8  ]
+    U16 [ U16 ]
+    U32 [ U32 ]
+    U64 [ U64 ]
+    I8  [ I8  ]
+    I16 [ I16 ]
+    I32 [ I32 ]
+    I64 [ I64 ]
+    F32 [ F32 ]
+    F64 [ F64 ]
+    --
+    def == [ PushValue PushValue -- Bool ] {
+        { Str -> swap match { Str -> swap ==, _ -> drop2 False } }
+        { Int -> swap match { Int -> swap ==, _ -> drop2 False } }
+        { U8  -> swap match { U8  -> swap ==, _ -> drop2 False } }
+        { U16 -> swap match { U16 -> swap ==, _ -> drop2 False } }
+        { U32 -> swap match { U32 -> swap ==, _ -> drop2 False } }
+        { U64 -> swap match { U64 -> swap ==, _ -> drop2 False } }
+        { I8  -> swap match { I8  -> swap ==, _ -> drop2 False } }
+        { I16 -> swap match { I16 -> swap ==, _ -> drop2 False } }
+        { I32 -> swap match { I32 -> swap ==, _ -> drop2 False } }
+        { I64 -> swap match { I64 -> swap ==, _ -> drop2 False } }
+        { F32 -> swap match { F32 -> swap ==, _ -> drop2 False } }
+        { F64 -> swap match { F64 -> swap ==, _ -> drop2 False } }
+    }
+}
+
 data Op {
     Prim [ Prim ]
     Word [ Word ]
     External [ External ]
     Buffer [ Buffer ]
     Field [ Field ]
-    Int [ Int ]
-    F64 [ F64 ]
-    Str [ Str ]
+    Push [ PushValue ]
     Tag [ Tag ]
     Match [ Match ]
     Lambda [ Lambda ]
@@ -126,9 +154,7 @@ data Op {
         { External -> drop List.Nil }
         { Buffer -> drop List.Nil }
         { Field -> drop List.Nil }
-        { Int -> drop List.Nil }
-        { F64 -> drop List.Nil }
-        { Str -> drop List.Nil }
+        { Push -> drop List.Nil }
         { Tag -> drop List.Nil }
         { Match -> free-vars }
         { Lambda -> free-vars }
