@@ -21,10 +21,12 @@ def(Package.path, +Mirth Package -- +Mirth Maybe(Path), ~path @)
 def Package.name; [ +Mirth +Str Package -- +Mirth +Str ] { rdip:name name; }
 
 def(Package.std, +Mirth -- +Mirth Package, builtin std)
-def(init-packages!, +Mirth -- +Mirth,
+def init-packages! [ +Mirth -- +Mirth ] {
     builtin std
     "std" >Name over ~name !
-    None swap ~path !)
+    None over ~path !
+    Def.Package register
+}
 
 def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
     dup path match(

@@ -461,7 +461,7 @@ inline {
 }
 
 inline (
-    def I32.>Int [ I32  -- Int ] { Int>I32-unsafe -> id }
+    def I32.>Int [ I32 -- Int ] { Int>I32-unsafe -> id }
 
     def Int.>I32-if(f,g) [ (*a I32 -- *b, *a Int -- *b) *a Int -- *b ] {
         dup I32.MIN I32.MAX on2:>Int in-range if(>I32-unsafe f, g)
