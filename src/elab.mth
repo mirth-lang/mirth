@@ -639,9 +639,9 @@ struct +AB {
             cod> }
     }
 
-    def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { PushValue.Int Op.Push ab-op! }
-    def ab-f64! [ F64 +Mirth +AB -- +Mirth +AB ] { PushValue.F64 Op.Push ab-op! }
-    def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { PushValue.Str Op.Push ab-op! }
+    def ab-push-value! [ PushValue +Mirth +AB -- +Mirth +AB ] { Op.Push ab-op! }
+    def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { PushValue.Int ab-push-value! }
+    def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { PushValue.Str ab-push-value! }
     def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { Op.Buffer ab-op! }
     def ab-field! [ Field +Mirth +AB -- +Mirth +AB ] { Op.Field ab-op! }
     def ab-var! [ Var +Mirth +AB -- +Mirth +AB ] { Op.Var ab-op! }
@@ -730,9 +730,18 @@ struct +AB {
         ab-token@ rdip:value match(
             Name -> elab-atom-name!,
             DName -> elab-atom-dname!,
-            Int -> ab-int!,
             Str -> ab-str!,
-            F64 -> ab-f64!,
+            Int -> ab-int!,
+            U8  -> PushValue.U8  ab-push-value!,
+            U16 -> PushValue.U16 ab-push-value!,
+            U32 -> PushValue.U32 ab-push-value!,
+            U64 -> PushValue.U64 ab-push-value!,
+            I8  -> PushValue.I8  ab-push-value!,
+            I16 -> PushValue.I16 ab-push-value!,
+            I32 -> PushValue.I32 ab-push-value!,
+            I64 -> PushValue.I64 ab-push-value!,
+            F32 -> PushValue.F32 ab-push-value!,
+            F64 -> PushValue.F64 ab-push-value!,
             LSquare -> drop elab-atom-block!,
             LCurly -> drop elab-atom-assert!,
             LabelPush -> ab-token@ rdip:args-0 ab-label-push!,
