@@ -983,9 +983,7 @@ def c99-atom! [ Atom +C99Branch -- +C99Branch ] {
 }
 
 def Op.show-in-stack-trace? [ +Mirth Op -- +Mirth Bool ] {
-    { Int -> drop False }
-    { F64 -> drop False }
-    { Str -> drop False }
+    { Push -> drop False }
     { Word -> prefer-inline? not }
     { External -> drop True }
     { Buffer -> drop False }
@@ -1010,9 +1008,7 @@ def Op.show-in-stack-trace? [ +Mirth Op -- +Mirth Bool ] {
 }
 
 def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
-    { Int           -> nip c99-int! }
-    { F64           -> nip c99-f64! }
-    { Str           -> nip c99-str! }
+    { Push -> nip c99-push-value! }
     { Word          -> dip:args c99-word! }
     { External      -> dip:args c99-external-call! }
     { Buffer        -> nip c99-buffer-call! }
@@ -1034,6 +1030,21 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
     { DataSetLabel  -> c99-tag-set-label! drop }
     { TableToIndex -> drop2 }
     { TableFromIndex -> drop2 }
+}
+
+def c99-push-value! [ PushValue +C99Branch -- +C99Branch ] {
+    { Str -> c99-str! }
+    { Int -> C99ReprType.I64 push-value-expression!(show put "LL" put) }
+    { U8  -> C99ReprType.U8  push-value-expression!(>Nat show put) }
+    { U16 -> C99ReprType.U16 push-value-expression!(>Nat show put) }
+    { U32 -> C99ReprType.U32 push-value-expression!(>Nat show put) }
+    { U64 -> C99ReprType.U64 push-value-expression!(>Int-unsafe show put "ULL" put) }
+    { I8  -> C99ReprType.I8  push-value-expression!(>Int show put) }
+    { I16 -> C99ReprType.I16 push-value-expression!(>Int show put) }
+    { I32 -> C99ReprType.I32 push-value-expression!(>Int show put) }
+    { I64 -> C99ReprType.I64 push-value-expression!(>Int show put "LL" put) }
+    { F32 -> C99ReprType.F32 push-value-expression!(>Str put) }
+    { F64 -> C99ReprType.F64 push-value-expression!(>Str put) }
 }
 
 def c99-get-enum-value! [ Data +C99Branch -- +C99Branch ] {
@@ -2043,6 +2054,7 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { IntOr  -> drop "(" C99ReprType.U64 " | "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
     { IntShl -> drop "u64_shl(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
     { IntShr -> drop "u64_shr(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { IntToU64 -> drop "(uint64_t)(" C99ReprType.I64 ")" C99ReprType.U64 Some c99-unop! }
     { IntToI64 -> drop }
     { IntToF32 -> drop "(float)"   C99ReprType.I64 ""  C99ReprType.F32 Some c99-unop! }
     { IntToF64 -> drop "(double)"  C99ReprType.I64 ""  C99ReprType.F64 Some c99-unop! }
@@ -2050,32 +2062,90 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
 
     { U8Get  -> drop "*(uint8_t*)"  C99ReprType.PTR "" C99ReprType.U8  Some c99-unop! }
     { U8Set  -> drop "*(uint8_t*)"  C99ReprType.PTR " = " C99ReprType.U8  ";" True None c99-binop! }
+    { U8ToU64 -> drop "(uint64_t)(" C99ReprType.U8 ")" C99ReprType.U64 Some c99-unop! }
 
     { U16Get -> drop "*(uint16_t*)" C99ReprType.PTR "" C99ReprType.U16 Some c99-unop! }
     { U16Set -> drop "*(uint16_t*)" C99ReprType.PTR " = " C99ReprType.U16 ";" True None c99-binop! }
+    { U16ToU64 -> drop "(uint64_t)(" C99ReprType.U16 ")" C99ReprType.U64 Some c99-unop! }
 
     { U32Get -> drop "*(uint32_t*)" C99ReprType.PTR "" C99ReprType.U32 Some c99-unop! }
     { U32Set -> drop "*(uint32_t*)" C99ReprType.PTR " = " C99ReprType.U32 ";" True None c99-binop! }
+    { U32ToU64 -> drop "(uint64_t)(" C99ReprType.U32 ")" C99ReprType.U64 Some c99-unop! }
 
     { U64Get -> drop "*(uint64_t*)" C99ReprType.PTR "" C99ReprType.U64 Some c99-unop! }
     { U64Set -> drop "*(uint64_t*)" C99ReprType.PTR " = " C99ReprType.U64 ";" True None c99-binop! }
+    { U64Eq  -> drop "(" C99ReprType.U64 " == " C99ReprType.U64 ")" False C99ReprType.Bool Some c99-binop! }
+    { U64Lt  -> drop "(" C99ReprType.U64 " < "  C99ReprType.U64 ")" False C99ReprType.Bool Some c99-binop! }
+    { U64Le  -> drop "(" C99ReprType.U64 " <= " C99ReprType.U64 ")" False C99ReprType.Bool Some c99-binop! }
+    { U64Gt  -> drop "(" C99ReprType.U64 " > "  C99ReprType.U64 ")" False C99ReprType.Bool Some c99-binop! }
+    { U64Ge  -> drop "(" C99ReprType.U64 " >= " C99ReprType.U64 ")" False C99ReprType.Bool Some c99-binop! }
+    { U64Ne  -> drop "(" C99ReprType.U64 " != " C99ReprType.U64 ")" False C99ReprType.Bool Some c99-binop! }
+    { U64Add -> drop "(" C99ReprType.U64 " + " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Sub -> drop "(" C99ReprType.U64 " - " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Mul -> drop "(" C99ReprType.U64 " * " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Div -> drop "u64_div(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Mod -> drop "u64_mod(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64And -> drop "(" C99ReprType.U64 " & "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Xor -> drop "(" C99ReprType.U64 " ^ "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Or  -> drop "(" C99ReprType.U64 " | "  C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Shl -> drop "u64_shl(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64Shr -> drop "u64_shr(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
+    { U64ToInt -> drop "(int64_t)(" C99ReprType.U64 ")" C99ReprType.I64 Some c99-unop! }
+    { U64ToStr -> drop "i64_show(" C99ReprType.U64 ")" C99ReprType.STR Some c99-unop! }
+    { U64ToU8  -> drop "(uint8_t)(" C99ReprType.U64 ")" C99ReprType.U8 Some c99-unop! }
+    { U64ToU16 -> drop "(uint16_t)(" C99ReprType.U64 ")" C99ReprType.U16 Some c99-unop! }
+    { U64ToU32 -> drop "(uint32_t)(" C99ReprType.U64 ")" C99ReprType.U32 Some c99-unop! }
+    { U64ToI8  -> drop "(int8_t)(" C99ReprType.U64 ")" C99ReprType.I8 Some c99-unop! }
+    { U64ToI16 -> drop "(int16_t)(" C99ReprType.U64 ")" C99ReprType.I16 Some c99-unop! }
+    { U64ToI32 -> drop "(int32_t)(" C99ReprType.U64 ")" C99ReprType.I32 Some c99-unop! }
+    { U64ToI64 -> drop "(int64_t)(" C99ReprType.U64 ")" C99ReprType.I64 Some c99-unop! }
+    { U64ToF32 -> drop "(float)("   C99ReprType.U64 ")"  C99ReprType.F32 Some c99-unop! }
+    { U64ToF64 -> drop "(double)("  C99ReprType.U64 ")"  C99ReprType.F64 Some c99-unop! }
 
     { I8Get  -> drop "*(int8_t*)"   C99ReprType.PTR "" C99ReprType.I8  Some c99-unop! }
     { I8Set  -> drop "*(int8_t*)"   C99ReprType.PTR " = " C99ReprType.I8  ";" True None c99-binop! }
+    { I8ToI64 -> drop "(int64_t)(" C99ReprType.I8 ")" C99ReprType.I64 Some c99-unop! }
 
     { I16Get -> drop "*(int16_t*)"  C99ReprType.PTR "" C99ReprType.I16 Some c99-unop! }
     { I16Set -> drop "*(int16_t*)"  C99ReprType.PTR " = " C99ReprType.I16 ";" True None c99-binop! }
+    { I16ToI64 -> drop "(int64_t)(" C99ReprType.I16 ")" C99ReprType.I64 Some c99-unop! }
 
     { I32Get -> drop "*(int32_t*)"  C99ReprType.PTR "" C99ReprType.I32 Some c99-unop! }
     { I32Set -> drop "*(int32_t*)"  C99ReprType.PTR " = " C99ReprType.I32 ";" True None c99-binop! }
+    { I32ToI64 -> drop "(int64_t)(" C99ReprType.I32 ")" C99ReprType.I64 Some c99-unop! }
 
     { I64Get -> drop "*(int64_t*)"  C99ReprType.PTR "" C99ReprType.I64 Some c99-unop! }
     { I64Set -> drop "*(int64_t*)"  C99ReprType.PTR " = " C99ReprType.I64 ";" True None c99-binop! }
+    { I64Eq  -> drop "(" C99ReprType.I64 " == " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { I64Lt  -> drop "(" C99ReprType.I64 " < "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { I64Le  -> drop "(" C99ReprType.I64 " <= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { I64Gt  -> drop "(" C99ReprType.I64 " > "  C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { I64Ge  -> drop "(" C99ReprType.I64 " >= " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { I64Ne  -> drop "(" C99ReprType.I64 " != " C99ReprType.I64 ")" False C99ReprType.Bool Some c99-binop! }
+    { I64Add -> drop "i64_add(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { I64Sub -> drop "i64_sub(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { I64Mul -> drop "i64_mul(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { I64Div -> drop "i64_div(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
+    { I64Mod -> drop "i64_mod(" C99ReprType.I64 ", " C99ReprType.I64 ")" False C99ReprType.I64 Some c99-binop! }
     { I64ToInt -> drop }
+    { I64ToStr -> drop "i64_show("   C99ReprType.I64 ")" C99ReprType.STR Some c99-unop! }
+    { I64ToU8  -> drop "(uint8_t)("  C99ReprType.I64 ")" C99ReprType.U8 Some c99-unop! }
+    { I64ToU16 -> drop "(uint16_t)(" C99ReprType.I64 ")" C99ReprType.U16 Some c99-unop! }
+    { I64ToU32 -> drop "(uint32_t)(" C99ReprType.I64 ")" C99ReprType.U32 Some c99-unop! }
+    { I64ToU64 -> drop "(uint64_t)(" C99ReprType.I64 ")" C99ReprType.U64 Some c99-unop! }
+    { I64ToI8  -> drop "(int8_t)("   C99ReprType.I64 ")" C99ReprType.I8 Some c99-unop! }
+    { I64ToI16 -> drop "(int16_t)("  C99ReprType.I64 ")" C99ReprType.I16 Some c99-unop! }
+    { I64ToI32 -> drop "(int32_t)("  C99ReprType.I64 ")" C99ReprType.I32 Some c99-unop! }
+    { I64ToF32 -> drop "(float)("    C99ReprType.I64 ")"  C99ReprType.F32 Some c99-unop! }
+    { I64ToF64 -> drop "(double)("   C99ReprType.I64 ")"  C99ReprType.F64 Some c99-unop! }
 
     # { PRIM_F32_SET -> drop "*(float*)"    C99ReprType.PTR " = " C99ReprType.F32 ";" True None c99-binop! }
-    { F32Lt  -> drop "(" C99ReprType.F32 " < "  C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
     { F32Eq  -> drop "(" C99ReprType.F32 " == " C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { F32Lt  -> drop "(" C99ReprType.F32 " < "  C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { F32Le  -> drop "(" C99ReprType.F32 " <= " C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { F32Gt  -> drop "(" C99ReprType.F32 " > "  C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { F32Ge  -> drop "(" C99ReprType.F32 " >= " C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
+    { F32Ne  -> drop "(" C99ReprType.F32 " != " C99ReprType.F32 ")" False C99ReprType.Bool Some c99-binop! }
     { F32Add -> drop "(" C99ReprType.F32 " + "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
     { F32Sub -> drop "(" C99ReprType.F32 " - "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
     { F32Mul -> drop "(" C99ReprType.F32 " * "  C99ReprType.F32 ")" False C99ReprType.F32  Some c99-binop! }
@@ -2087,6 +2157,10 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     # { PRIM_F64_SET -> drop "*(double*)"   C99ReprType.PTR " = " C99ReprType.F64 ";" True None c99-binop! }
     { F64Eq  -> drop "(" C99ReprType.F64 " == " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
     { F64Lt  -> drop "(" C99ReprType.F64 " < "  C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { F64Le  -> drop "(" C99ReprType.F64 " <= " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { F64Gt  -> drop "(" C99ReprType.F64 " > "  C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { F64Ge  -> drop "(" C99ReprType.F64 " >= " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
+    { F64Ne  -> drop "(" C99ReprType.F64 " != " C99ReprType.F64 ")" False C99ReprType.Bool Some c99-binop! }
     { F64Add -> drop "(" C99ReprType.F64 " + "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
     { F64Sub -> drop "(" C99ReprType.F64 " - "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }
     { F64Mul -> drop "(" C99ReprType.F64 " * "  C99ReprType.F64 ")" False C99ReprType.F64  Some c99-binop! }

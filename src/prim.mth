@@ -43,36 +43,95 @@ data Prim {
     IntShr
     IntToStr
     IntToI64
+    IntToU64
     IntToF32
     IntToF64
 
     U8Get
     U8Set
+    U8ToU64
 
     U16Get
     U16Set
+    U16ToU64
 
     U32Get
     U32Set
+    U32ToU64
 
     U64Get
     U64Set
+    U64Eq
+    U64Lt
+    U64Le
+    U64Gt
+    U64Ge
+    U64Ne
+    U64Add
+    U64Sub
+    U64Mul
+    U64Div
+    U64Mod
+    U64And
+    U64Or
+    U64Xor
+    U64Shl
+    U64Shr
+    U64ToInt
+    U64ToStr
+    U64ToU8
+    U64ToU16
+    U64ToU32
+    U64ToI8
+    U64ToI16
+    U64ToI32
+    U64ToI64
+    U64ToF32
+    U64ToF64
 
     I8Get
     I8Set
+    I8ToI64
 
     I16Get
     I16Set
+    I16ToI64
 
     I32Get
     I32Set
+    I32ToI64
 
     I64Get
     I64Set
+    I64Eq
+    I64Lt
+    I64Le
+    I64Gt
+    I64Ge
+    I64Ne
+    I64Add
+    I64Sub
+    I64Mul
+    I64Div
+    I64Mod
     I64ToInt
+    I64ToStr
+    I64ToU8
+    I64ToU16
+    I64ToU32
+    I64ToU64
+    I64ToI8
+    I64ToI16
+    I64ToI32
+    I64ToF32
+    I64ToF64
 
     F32Eq
     F32Lt
+    F32Le
+    F32Gt
+    F32Ge
+    F32Ne
     F32Add
     F32Sub
     F32Mul
@@ -83,6 +142,10 @@ data Prim {
 
     F64Eq
     F64Lt
+    F64Le
+    F64Gt
+    F64Ge
+    F64Ne
     F64Add
     F64Sub
     F64Mul
@@ -198,34 +261,96 @@ data Prim {
         { IntShl -> "prim-int-shl" 0 }
         { IntShr -> "prim-int-shr" 0 }
         { IntToStr -> "prim-int-to-str" 0 }
+        { IntToU64 -> "prim-int-to-u64" 0 }
         { IntToI64 -> "prim-int-to-i64" 0 }
         { IntToF32 -> "prim-int-to-f32" 0 }
         { IntToF64 -> "prim-int-to-f64" 0 }
 
         { U8Get -> "prim-u8-get" 0 }
         { U8Set -> "prim-u8-set" 0 }
+        { U8ToU64 -> "prim-u8-to-u64" 0 }
+
         { U16Get -> "prim-u16-get" 0 }
         { U16Set -> "prim-u16-set" 0 }
+        { U16ToU64 -> "prim-u16-to-u64" 0 }
+
         { U32Get -> "prim-u32-get" 0 }
         { U32Set -> "prim-u32-set" 0 }
-        { U64Get -> "prim-u64-get" 0 }
-        { U64Set -> "prim-u64-set" 0 }
+        { U32ToU64 -> "prim-u32-to-u64" 0 }
 
-        { I8Get -> "prim-i8-get" 0 }
-        { I8Set -> "prim-i8-set" 0 }
+        { U64Get   -> "prim-u64-get" 0 }
+        { U64Set   -> "prim-u64-set" 0 }
+        { U64Eq    -> "prim-u64-eq" 0 }
+        { U64Lt    -> "prim-u64-lt" 0 }
+        { U64Le    -> "prim-u64-le" 0 }
+        { U64Gt    -> "prim-u64-gt" 0 }
+        { U64Ge    -> "prim-u64-ge" 0 }
+        { U64Ne    -> "prim-u64-ne" 0 }
+        { U64Add   -> "prim-u64-add" 0 }
+        { U64Sub   -> "prim-u64-sub" 0 }
+        { U64Mul   -> "prim-u64-mul" 0 }
+        { U64Div   -> "prim-u64-div" 0 }
+        { U64Mod   -> "prim-u64-mod" 0 }
+        { U64And   -> "prim-u64-and" 0 }
+        { U64Or    -> "prim-u64-or"  0 }
+        { U64Xor   -> "prim-u64-xor" 0 }
+        { U64Shl   -> "prim-u64-shl" 0 }
+        { U64Shr   -> "prim-u64-shr" 0 }
+        { U64ToInt -> "prim-u64-to-int" 0 }
+        { U64ToStr -> "prim-u64-to-str" 0 }
+        { U64ToU8  -> "prim-u64-to-u8"  0 }
+        { U64ToU16 -> "prim-u64-to-u16" 0 }
+        { U64ToU32 -> "prim-u64-to-u32" 0 }
+        { U64ToI8  -> "prim-u64-to-i8"  0 }
+        { U64ToI16 -> "prim-u64-to-i16" 0 }
+        { U64ToI32 -> "prim-u64-to-i32" 0 }
+        { U64ToI64 -> "prim-u64-to-i64" 0 }
+        { U64ToF32 -> "prim-u64-to-f32" 0 }
+        { U64ToF64 -> "prim-u64-to-f64" 0 }
 
-        { I16Get -> "prim-i16-get" 0 }
-        { I16Set -> "prim-i16-set" 0 }
+        { I8Get   -> "prim-i8-get" 0 }
+        { I8Set   -> "prim-i8-set" 0 }
+        { I8ToI64 -> "prim-i8-to-i64" 0 }
 
-        { I32Get -> "prim-i32-get" 0 }
-        { I32Set -> "prim-i32-set" 0 }
+        { I16Get   -> "prim-i16-get" 0 }
+        { I16Set   -> "prim-i16-set" 0 }
+        { I16ToI64 -> "prim-i16-to-i64" 0 }
 
-        { I64Get -> "prim-i64-get" 0 }
-        { I64Set -> "prim-i64-set" 0 }
+        { I32Get   -> "prim-i32-get" 0 }
+        { I32Set   -> "prim-i32-set" 0 }
+        { I32ToI64 -> "prim-i32-to-i64" 0 }
+
+        { I64Get   -> "prim-i64-get" 0 }
+        { I64Set   -> "prim-i64-set" 0 }
+        { I64Eq    -> "prim-i64-eq"  0 }
+        { I64Lt    -> "prim-i64-lt"  0 }
+        { I64Le    -> "prim-i64-le"  0 }
+        { I64Gt    -> "prim-i64-gt"  0 }
+        { I64Ge    -> "prim-i64-ge"  0 }
+        { I64Ne    -> "prim-i64-ne"  0 }
+        { I64Add   -> "prim-i64-add" 0 }
+        { I64Sub   -> "prim-i64-sub" 0 }
+        { I64Mul   -> "prim-i64-mul" 0 }
+        { I64Div   -> "prim-i64-div" 0 }
+        { I64Mod   -> "prim-i64-mod" 0 }
         { I64ToInt -> "prim-i64-to-int" 0 }
+        { I64ToStr -> "prim-i64-to-str" 0 }
+        { I64ToU8  -> "prim-i64-to-u8"  0 }
+        { I64ToU16 -> "prim-i64-to-u16" 0 }
+        { I64ToU32 -> "prim-i64-to-u32" 0 }
+        { I64ToU64 -> "prim-i64-to-u64" 0 }
+        { I64ToI8  -> "prim-i64-to-i8"  0 }
+        { I64ToI16 -> "prim-i64-to-i16" 0 }
+        { I64ToI32 -> "prim-i64-to-i32" 0 }
+        { I64ToF32 -> "prim-i64-to-f32" 0 }
+        { I64ToF64 -> "prim-i64-to-f64" 0 }
 
         { F32Eq -> "prim-f32-eq" 0 }
         { F32Lt -> "prim-f32-lt" 0 }
+        { F32Le -> "prim-f32-le" 0 }
+        { F32Gt -> "prim-f32-gt" 0 }
+        { F32Ge -> "prim-f32-ge" 0 }
+        { F32Ne -> "prim-f32-ne" 0 }
         { F32Add -> "prim-f32-add" 0 }
         { F32Sub -> "prim-f32-sub" 0 }
         { F32Mul -> "prim-f32-mul" 0 }
@@ -236,6 +361,10 @@ data Prim {
 
         { F64Eq -> "prim-f64-eq" 0 }
         { F64Lt -> "prim-f64-lt" 0 }
+        { F64Le -> "prim-f64-le" 0 }
+        { F64Gt -> "prim-f64-gt" 0 }
+        { F64Ge -> "prim-f64-ge" 0 }
+        { F64Ne -> "prim-f64-ne" 0 }
         { F64Add -> "prim-f64-add" 0 }
         { F64Sub -> "prim-f64-sub" 0 }
         { F64Mul -> "prim-f64-mul" 0 }
@@ -400,13 +529,12 @@ data Prim {
             a> b> drop2
         }
 
-        { IntEq -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
-        { IntLt -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
-        { IntLe -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
-        { IntGt -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
-        { IntGe -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
-        { IntNe -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
-
+        { IntEq  -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
+        { IntLt  -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
+        { IntLe  -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
+        { IntGt  -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
+        { IntGe  -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
+        { IntNe  -> Ctx.L0 Type.Int Type.Int T2 Type.Bool T1 T-> }
         { IntAdd -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
         { IntSub -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
         { IntMul -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
@@ -418,37 +546,96 @@ data Prim {
         { IntShl -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
         { IntShr -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
         { IntToStr -> Ctx.L0 Type.Int T1 Type.Str T1 T-> }
+        { IntToU64 -> Ctx.L0 Type.Int T1 Type.U64 T1 T-> }
         { IntToI64 -> Ctx.L0 Type.Int T1 Type.I64 T1 T-> }
         { IntToF32 -> Ctx.L0 Type.Int T1 Type.F32 T1 T-> }
         { IntToF64 -> Ctx.L0 Type.Int T1 Type.F64 T1 T-> }
 
         { U8Get -> Ctx.L0 Type.Ptr T1 Type.U8 T1 T-> }
         { U8Set -> Ctx.L0 Type.U8 Type.Ptr T2 T0 T-> }
+        { U8ToU64 -> Ctx.L0 Type.U8 T1 Type.U64 T1 T-> }
 
         { U16Get -> Ctx.L0 Type.Ptr T1 Type.U16 T1 T-> }
         { U16Set -> Ctx.L0 Type.U16 Type.Ptr T2 T0 T-> }
+        { U16ToU64 -> Ctx.L0 Type.U16 T1 Type.U64 T1 T-> }
 
         { U32Get -> Ctx.L0 Type.Ptr T1 Type.U32 T1 T-> }
         { U32Set -> Ctx.L0 Type.U32 Type.Ptr T2 T0 T-> }
+        { U32ToU64 -> Ctx.L0 Type.U32 T1 Type.U64 T1 T-> }
 
         { U64Get -> Ctx.L0 Type.Ptr T1 Type.U64 T1 T-> }
         { U64Set -> Ctx.L0 Type.U64 Type.Ptr T2 T0 T-> }
+        { U64Eq  -> Ctx.L0 Type.U64 Type.U64 T2 Type.Bool T1 T-> }
+        { U64Lt  -> Ctx.L0 Type.U64 Type.U64 T2 Type.Bool T1 T-> }
+        { U64Le  -> Ctx.L0 Type.U64 Type.U64 T2 Type.Bool T1 T-> }
+        { U64Gt  -> Ctx.L0 Type.U64 Type.U64 T2 Type.Bool T1 T-> }
+        { U64Ge  -> Ctx.L0 Type.U64 Type.U64 T2 Type.Bool T1 T-> }
+        { U64Ne  -> Ctx.L0 Type.U64 Type.U64 T2 Type.Bool T1 T-> }
+        { U64Add -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Sub -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Mul -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Div -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Mod -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64And -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Or  -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Xor -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Shl -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64Shr -> Ctx.L0 Type.U64 Type.U64 T2 Type.U64 T1 T-> }
+        { U64ToInt -> Ctx.L0 Type.U64 T1 Type.Int T1 T-> }
+        { U64ToStr -> Ctx.L0 Type.U64 T1 Type.Str T1 T-> }
+        { U64ToU8  -> Ctx.L0 Type.U64 T1 Type.U8  T1 T-> }
+        { U64ToU16 -> Ctx.L0 Type.U64 T1 Type.U16 T1 T-> }
+        { U64ToU32 -> Ctx.L0 Type.U64 T1 Type.U32 T1 T-> }
+        { U64ToI8  -> Ctx.L0 Type.U64 T1 Type.I8  T1 T-> }
+        { U64ToI16 -> Ctx.L0 Type.U64 T1 Type.I16 T1 T-> }
+        { U64ToI32 -> Ctx.L0 Type.U64 T1 Type.I32 T1 T-> }
+        { U64ToI64 -> Ctx.L0 Type.U64 T1 Type.I64 T1 T-> }
+        { U64ToF32 -> Ctx.L0 Type.U64 T1 Type.F32 T1 T-> }
+        { U64ToF64 -> Ctx.L0 Type.U64 T1 Type.F64 T1 T-> }
 
         { I8Get -> Ctx.L0 Type.Ptr T1 Type.I8 T1 T-> }
         { I8Set -> Ctx.L0 Type.I8 Type.Ptr T2 T0 T-> }
+        { I8ToI64 -> Ctx.L0 Type.I8 T1 Type.I64 T1 T-> }
 
         { I16Get -> Ctx.L0 Type.Ptr T1 Type.I16 T1 T-> }
         { I16Set -> Ctx.L0 Type.I16 Type.Ptr T2 T0 T-> }
+        { I16ToI64 -> Ctx.L0 Type.I16 T1 Type.I64 T1 T-> }
 
         { I32Get -> Ctx.L0 Type.Ptr T1 Type.I32 T1 T-> }
         { I32Set -> Ctx.L0 Type.I32 Type.Ptr T2 T0 T-> }
+        { I32ToI64 -> Ctx.L0 Type.I32 T1 Type.I64 T1 T-> }
 
         { I64Get -> Ctx.L0 Type.Ptr T1 Type.I64 T1 T-> }
         { I64Set -> Ctx.L0 Type.I64 Type.Ptr T2 T0 T-> }
+        { I64Eq  -> Ctx.L0 Type.I64 Type.I64 T2 Type.Bool T1 T-> }
+        { I64Lt  -> Ctx.L0 Type.I64 Type.I64 T2 Type.Bool T1 T-> }
+        { I64Le  -> Ctx.L0 Type.I64 Type.I64 T2 Type.Bool T1 T-> }
+        { I64Gt  -> Ctx.L0 Type.I64 Type.I64 T2 Type.Bool T1 T-> }
+        { I64Ge  -> Ctx.L0 Type.I64 Type.I64 T2 Type.Bool T1 T-> }
+        { I64Ne  -> Ctx.L0 Type.I64 Type.I64 T2 Type.Bool T1 T-> }
+        { I64Add -> Ctx.L0 Type.I64 Type.I64 T2 Type.I64 T1 T-> }
+        { I64Sub -> Ctx.L0 Type.I64 Type.I64 T2 Type.I64 T1 T-> }
+        { I64Mul -> Ctx.L0 Type.I64 Type.I64 T2 Type.I64 T1 T-> }
+        { I64Div -> Ctx.L0 Type.I64 Type.I64 T2 Type.I64 T1 T-> }
+        { I64Mod -> Ctx.L0 Type.I64 Type.I64 T2 Type.I64 T1 T-> }
         { I64ToInt -> Ctx.L0 Type.I64 T1 Type.Int T1 T-> }
+        { I64ToStr -> Ctx.L0 Type.I64 T1 Type.Str T1 T-> }
+        { I64ToU8  -> Ctx.L0 Type.I64 T1 Type.U8  T1 T-> }
+        { I64ToU16 -> Ctx.L0 Type.I64 T1 Type.U16 T1 T-> }
+        { I64ToU32 -> Ctx.L0 Type.I64 T1 Type.U32 T1 T-> }
+        { I64ToU64 -> Ctx.L0 Type.I64 T1 Type.U64 T1 T-> }
+        { I64ToI8  -> Ctx.L0 Type.I64 T1 Type.I8  T1 T-> }
+        { I64ToI16 -> Ctx.L0 Type.I64 T1 Type.I16 T1 T-> }
+        { I64ToI32 -> Ctx.L0 Type.I64 T1 Type.I32 T1 T-> }
+        { I64ToF32 -> Ctx.L0 Type.I64 T1 Type.F32 T1 T-> }
+        { I64ToF64 -> Ctx.L0 Type.I64 T1 Type.F64 T1 T-> }
 
         { F32Eq -> Ctx.L0 Type.F32 Type.F32 T2 Type.Bool T1 T-> }
         { F32Lt -> Ctx.L0 Type.F32 Type.F32 T2 Type.Bool T1 T-> }
+        { F32Le -> Ctx.L0 Type.F32 Type.F32 T2 Type.Bool T1 T-> }
+        { F32Gt -> Ctx.L0 Type.F32 Type.F32 T2 Type.Bool T1 T-> }
+        { F32Ge -> Ctx.L0 Type.F32 Type.F32 T2 Type.Bool T1 T-> }
+        { F32Ne -> Ctx.L0 Type.F32 Type.F32 T2 Type.Bool T1 T-> }
         { F32Add -> Ctx.L0 Type.F32 Type.F32 T2 Type.F32 T1 T-> }
         { F32Sub -> Ctx.L0 Type.F32 Type.F32 T2 Type.F32 T1 T-> }
         { F32Mul -> Ctx.L0 Type.F32 Type.F32 T2 Type.F32 T1 T-> }
@@ -459,6 +646,10 @@ data Prim {
 
         { F64Eq -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
         { F64Lt -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
+        { F64Le -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
+        { F64Gt -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
+        { F64Ge -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
+        { F64Ne -> Ctx.L0 Type.F64 Type.F64 T2 Type.Bool T1 T-> }
         { F64Add -> Ctx.L0 Type.F64 Type.F64 T2 Type.F64 T1 T-> }
         { F64Sub -> Ctx.L0 Type.F64 Type.F64 T2 Type.F64 T1 T-> }
         { F64Mul -> Ctx.L0 Type.F64 Type.F64 T2 Type.F64 T1 T-> }

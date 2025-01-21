@@ -74,6 +74,7 @@ data Byte {
         def is-alpha [ Byte -- Bool ] { dup on2(is-upper, is-lower) || }
         def is-alnum [ Byte -- Bool ] { dup on2(is-digit, is-alpha) || }
         def is-printable [ Byte -- Bool ] { Byte.B'!' Byte.B'~' in-range }
+        def is-octdigit [ Byte -- Bool ] { Byte.B'0' Byte.B'7' in-range }
         def is-hexdigit [ Byte -- Bool ] {
             dup dup on3(is-digit, Byte.B'A' Byte.B'F' in-range, Byte.B'a' Byte.B'f' in-range) || ||
         }
