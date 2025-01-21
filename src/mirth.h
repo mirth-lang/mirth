@@ -645,6 +645,16 @@ static int64_t i64_mod (int64_t a, int64_t b) {
 	return r;
 }
 
+static uint64_t u64_div (uint64_t a, uint64_t b) {
+	EXPECT(b != 0, "divide by zero");
+	return a / b;
+}
+
+static uint64_t u64_mod (uint64_t a, uint64_t b) {
+	EXPECT(b != 0, "divide by zero");
+	return a % b;
+}
+
 static uint64_t u64_shl (uint64_t a, uint64_t b) {
 	if (b >= 64) return 0;
 	return (a << b);

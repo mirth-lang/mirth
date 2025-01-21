@@ -74,9 +74,7 @@ def(+Needs.run-arrow!, Arrow +Mirth +Needs -- +Mirth +Needs, atoms for(run-atom!
 def(+Needs.run-atom!, Atom +Mirth +Needs -- +Mirth +Needs, sip(args) op run-op!)
 
 def +Needs.run-op! [ List(Arg) Op +Mirth +Needs -- +Mirth +Needs ] {
-    { Int -> drop2 }
-    { F64 -> drop2 }
-    { Str -> drop2 }
+    { Push -> drop2 }
     { Word -> dup rdip:prefer-inline? if(run-word!, need-word!) push-args! }
     { External -> drop push-args! }
     { Buffer -> drop push-args! }

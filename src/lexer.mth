@@ -5,6 +5,7 @@ import std.byte
 import std.path
 import std.str
 import std.maybe
+import std.result
 import std.list
 import std.ctypes
 import std.world
@@ -193,11 +194,12 @@ struct +Lexer {
             tuck ~module !
 
             >+lexer
-            float-token?
+            float-token? map(Ok)
             or?(int-token?)
-            or?(dname-token?)
-            or?(label-token?)
-            else?(name-token)
+            or?(dname-token? map(Ok))
+            or?(label-token? map(Ok))
+            else?(name-token Ok)
+            else(rdip:fatal-error!)
             over ~value !
             +lexer>
             lexer-doc over ~doc !
@@ -388,12 +390,44 @@ def byte-sign-value-index-float [ Byte -- Byte UOffset ] {
     { _ -> drop Byte.B'+' 0u >UOffset }
 }
 
-def +Str.int-token? [ +Str -- Maybe(TokenValue) +Str ] {
+def +Str.int-token? [ +Str -- Maybe(Result(Str, TokenValue)) +Str ] {
     None
     or?(is-dec-int? >Maybe:dec-int?)
     or?(is-hex-int? >Maybe:hex-int?)
     or?(is-oct-int? >Maybe:oct-int?)
-    map(TokenValue.Int)
+}
+
+data IntSuffix {
+    Int
+    U8 U16 U32 U64
+    I8 I16 I32 I64
+    --
+    def convert [ Int IntSuffix -- Result(Str, TokenValue) ] {
+        { Int -> TokenValue.Int Ok }
+        { U8  -> >U8-if (TokenValue.U8  Ok, Str(show; " is outside of U8 range." ;) Err) }
+        { U16 -> >U16-if(TokenValue.U16 Ok, Str(show; " is outside of U16 range.";) Err) }
+        { U32 -> >U32-if(TokenValue.U32 Ok, Str(show; " is outside of U32 range.";) Err) }
+        { U64 -> >U64-if(TokenValue.U64 Ok, Str(show; " is outside of U64 range.";) Err) }
+        { I8  -> >I8-if (TokenValue.I8  Ok, Str(show; " is outside of I8 range." ;) Err) }
+        { I16 -> >I16-if(TokenValue.I16 Ok, Str(show; " is outside of I16 range.";) Err) }
+        { I32 -> >I32-if(TokenValue.I32 Ok, Str(show; " is outside of I32 range.";) Err) }
+        { I64 -> >I64-if(TokenValue.I64 Ok, Str(show; " is outside of I64 range.";) Err) }
+    }
+}
+
+def +Str.int-suffix? [ UOffset +Str -- Maybe(IntSuffix) +Str ] {
+    unsafe(+Str.drop-slice) >suffix
+    None
+    or?(@suffix "" == >Maybe(IntSuffix.Int))
+    or?(@suffix "u8" == >Maybe(IntSuffix.U8))
+    or?(@suffix "u16" == >Maybe(IntSuffix.U16))
+    or?(@suffix "u32" == >Maybe(IntSuffix.U32))
+    or?(@suffix "u64" == >Maybe(IntSuffix.U64))
+    or?(@suffix "i8" == >Maybe(IntSuffix.I8))
+    or?(@suffix "i16" == >Maybe(IntSuffix.I16))
+    or?(@suffix "i32" == >Maybe(IntSuffix.I32))
+    or?(@suffix "i64" == >Maybe(IntSuffix.I64))
+    suffix> drop
 }
 
 def(+Str.is-dec-int?, +Str -- Bool +Str,
@@ -401,7 +435,7 @@ def(+Str.is-dec-int?, +Str -- Bool +Str,
     0u >UOffset # current index
     dup byte@ is-sign if(1+, id)
     while(dup byte@ is-digit, dip(1+) 1+)
-    swap 0> if(num-bytes? >UOffset ==, drop False))
+    swap 0> and(dup int-suffix? some?) nip)
 
 def(+Str.is-hex-int?, +Str -- Bool +Str,
     0u >USize # number of digits
@@ -415,10 +449,7 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
         dup byte@ Byte.B'x' == if(
             1+
             while(dup byte@ is-hexdigit, dip(1+) 1+)
-            swap 0> if(
-                num-bytes? >UOffset ==,
-                drop False
-            ),
+            swap 0> and(dup int-suffix? some?) nip,
 
             drop2 False
         ),
@@ -437,11 +468,8 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
         1+
         dup byte@ Byte.B'o' == if(
             1+
-            while(dup byte@ Byte.B'0' Byte.B'7' in-range, dip(1+) 1+)
-            swap 0> if(
-                num-bytes? >UOffset ==,
-                drop False
-            ),
+            while(dup byte@ is-octdigit, dip(1+) 1+)
+            swap 0> and(dup int-suffix? some?) nip,
 
             drop2 False
         ),
@@ -459,35 +487,43 @@ def(byte-sign-value-index, Byte -- Int Int UOffset,
     B'+' -> +1 0 1u >UOffset,
     _ -> drop +1 0 0u >UOffset)
 
-def(+Str.dec-int?, +Str -- Int +Str,
+def +Str.finish-int-literal [ Int Int UOffset +Str -- Result(Str, TokenValue) +Str ] {
+    dip:*
+    int-suffix? if?(
+        convert,
+        drop "Invalid integer token." Err
+    )
+}
+
+def(+Str.dec-int?, +Str -- Result(Str, TokenValue) +Str,
     int-sign
-    while(dup num-bytes? >UOffset <,
+    while(dup byte@ is-digit,
         sip(
             byte@ >Int
             dip(10 *) 48 - +
         )
         1+)
-    drop *)
+    finish-int-literal)
 
-def(+Str.hex-int?, +Str -- Int +Str,
+def(+Str.hex-int?, +Str -- Result(Str, TokenValue) +Str,
     int-sign 1+ 1+ # skip 0x prefix
-    while(dup num-bytes? >UOffset <,
+    while(dup byte@ is-hexdigit,
         sip(
             byte@
             dip(16 *) hexdigit-value +
         )
         1+)
-    drop *)
+    finish-int-literal)
 
-def(+Str.oct-int?, +Str -- Int +Str,
+def(+Str.oct-int?, +Str -- Result(Str, TokenValue) +Str,
     int-sign 1+ 1+ # skip 0o prefix
-    while(dup num-bytes? >UOffset <,
+    while(dup byte@ is-octdigit,
         sip(
             byte@ >Int
             dip(8 *) 48 - +
         )
         1+)
-    drop *)
+    finish-int-literal)
 
 def(hexdigit-value, Byte -- Int,
     dup is-digit if(

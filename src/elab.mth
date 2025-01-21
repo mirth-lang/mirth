@@ -639,9 +639,9 @@ struct +AB {
             cod> }
     }
 
-    def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { Op.Int ab-op! }
-    def ab-f64! [ F64 +Mirth +AB -- +Mirth +AB ] { Op.F64 ab-op! }
-    def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { Op.Str ab-op! }
+    def ab-push-value! [ PushValue +Mirth +AB -- +Mirth +AB ] { Op.Push ab-op! }
+    def ab-int! [ Int +Mirth +AB -- +Mirth +AB ] { PushValue.Int ab-push-value! }
+    def ab-str! [ Str +Mirth +AB -- +Mirth +AB ] { PushValue.Str ab-push-value! }
     def ab-buffer! [ Buffer +Mirth +AB -- +Mirth +AB ] { Op.Buffer ab-op! }
     def ab-field! [ Field +Mirth +AB -- +Mirth +AB ] { Op.Field ab-op! }
     def ab-var! [ Var +Mirth +AB -- +Mirth +AB ] { Op.Var ab-op! }
@@ -730,9 +730,18 @@ struct +AB {
         ab-token@ rdip:value match(
             Name -> elab-atom-name!,
             DName -> elab-atom-dname!,
-            Int -> ab-int!,
             Str -> ab-str!,
-            F64 -> ab-f64!,
+            Int -> ab-int!,
+            U8  -> PushValue.U8  ab-push-value!,
+            U16 -> PushValue.U16 ab-push-value!,
+            U32 -> PushValue.U32 ab-push-value!,
+            U64 -> PushValue.U64 ab-push-value!,
+            I8  -> PushValue.I8  ab-push-value!,
+            I16 -> PushValue.I16 ab-push-value!,
+            I32 -> PushValue.I32 ab-push-value!,
+            I64 -> PushValue.I64 ab-push-value!,
+            F32 -> PushValue.F32 ab-push-value!,
+            F64 -> PushValue.F64 ab-push-value!,
             LSquare -> drop elab-atom-block!,
             LCurly -> drop elab-atom-assert!,
             LabelPush -> ab-token@ rdip:args-0 ab-label-push!,
@@ -1080,11 +1089,24 @@ data OpSig {
     Apply [ ArrowType ]
 }
 
+def PushValue.type [ +Mirth PushValue -- +Mirth Type ] {
+    { Str -> Value.Str Type.Value }
+    { Int -> Value.Int Type.Value }
+    { U8  -> drop Type.U8 }
+    { U16 -> drop Type.U16 }
+    { U32 -> drop Type.U32 }
+    { U64 -> drop Type.U64 }
+    { I8  -> drop Type.I8 }
+    { I16 -> drop Type.I16 }
+    { I32 -> drop Type.I32 }
+    { I64 -> drop Type.I64 }
+    { F32 -> drop Type.F32 }
+    { F64 -> Value.F64 Type.Value }
+}
+
 def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
     Subst.nil swap match (
-        Int -> Value.Int Type.Value OpSig.Push,
-        F64 -> Value.F64 Type.Value OpSig.Push,
-        Str -> Value.Str Type.Value OpSig.Push,
+        Push -> type OpSig.Push,
         Buffer -> drop Type.Ptr OpSig.Push,
         Tag -> type freshen-sig OpSig.Apply,
         Word -> dup inferring-type? if(type, type freshen-sig) OpSig.Apply,
