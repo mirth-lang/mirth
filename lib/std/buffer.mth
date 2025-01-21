@@ -78,6 +78,8 @@ struct +Buffer {
     def @I16 [ UIndex  +Buffer -- I16 +Buffer ] { |I16| with-aligned-span! (unsafe:@I16) }
     def @I32 [ UIndex  +Buffer -- I32 +Buffer ] { |I32| with-aligned-span! (unsafe:@I32) }
     def @I64 [ UIndex  +Buffer -- I64 +Buffer ] { |I64| with-aligned-span! (unsafe:@I64) }
+    # def @F32 [ UIndex  +Buffer -- F32 +Buffer ] { |F32| with-aligned-span! (unsafe:@F32) }
+    # def @F64 [ UIndex  +Buffer -- F64 +Buffer ] { |F64| with-aligned-span! (unsafe:@F64) }
 
     def !U8  [ U8  UOffset +Buffer -- +Buffer ] { |U8|  with-span!         (unsafe:!U8 ) }
     def !U16 [ U16 UIndex  +Buffer -- +Buffer ] { |U16| with-aligned-span! (unsafe:!U16) }
@@ -87,6 +89,8 @@ struct +Buffer {
     def !I16 [ I16 UIndex  +Buffer -- +Buffer ] { |I16| with-aligned-span! (unsafe:!I16) }
     def !I32 [ I32 UIndex  +Buffer -- +Buffer ] { |I32| with-aligned-span! (unsafe:!I32) }
     def !I64 [ I64 UIndex  +Buffer -- +Buffer ] { |I64| with-aligned-span! (unsafe:!I64) }
+    # def !F32 [ F32 UIndex  +Buffer -- +Buffer ] { |F32| with-aligned-span! (unsafe:!F32) }
+    # def !F64 [ F64 UIndex  +Buffer -- +Buffer ] { |F64| with-aligned-span! (unsafe:!F64) }
 
     def @Byte [ UOffset +Buffer -- Byte +Buffer ] { @U8 >Byte }
     def !Byte [ Byte UOffset +Buffer -- +Buffer ] { dip:>U8 !U8 }
