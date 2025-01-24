@@ -226,7 +226,6 @@ data Prim {
 
     def >Int [ Prim -- Int ] { enum-value }
     def == [ Prim Prim -- Bool ] { on2:>Int == }
-    def <> [ Prim Prim -- Bool ] { == not }
 
     def name  { str-arity drop >Name }
     def arity { str-arity nip }

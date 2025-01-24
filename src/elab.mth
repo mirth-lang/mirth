@@ -235,7 +235,7 @@ struct +TypeElab {
             } swap dip:Type.App,
 
             drop rdip:tycon? then?(
-                token rdip:Str("Too many type arguments to "; swap rdip(qname-hard >Str) ;) rdip:emit-error!
+                token rdip:Str.Mk("Too many type arguments to "; swap rdip(qname-hard >Str) ;) rdip:emit-error!
             )
             Type.Error L0
         )
@@ -429,12 +429,12 @@ struct +ResolveDef {
 
     def resolve-def-ambiguous [ +Mirth +ResolveDef -- +Mirth ] {
         report-ambiguous-as-warning if(
-            token Str(
+            token Str.Mk(
                 "Can't resolve " ; rdip:sort ; " due to previous errors. Candidates are:" ;
                 " " rdip:candidates for(swap ; rdip2(qname-hard >Str) ; ", ") drop
             ) rdip:emit-warning!,
 
-            token Str(
+            token Str.Mk(
                 "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
                 " " rdip:candidates for(swap ; rdip2(qname-hard >Str) ; ", ") drop
             ) rdip:emit-error!
@@ -442,7 +442,7 @@ struct +ResolveDef {
     }
 
     def resolve-def-unknown [ +Mirth +ResolveDef -- +Mirth ] {
-        token Str(rdip:rejected match(
+        token Str.Mk(rdip:rejected match(
             Nil -> "Unknown " ; rdip:sort ; " name, possibly a misspelling." ;,
             Cons ->
                 match(
@@ -2248,7 +2248,7 @@ def elab-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
         dup dom parts filter-some(label?)
         over cod parts filter-some(label?)
         swap difference for(
-            Str("Output label "; name; " not present in input";) error!
+            Str.Mk("Output label "; name; " not present in input";) error!
         )
     )
 }

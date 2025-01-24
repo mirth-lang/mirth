@@ -14,7 +14,7 @@ data Maybe(t) {
     1 Some [ t ]
     --
     inline (
-        def len [ Maybe(t) -- Nat ] { enum-value Nat.NatUnsafe }
+        def len [ Maybe(t) -- Nat ] { enum-value Nat.Unsafe }
         def none? [ Maybe(t) -- Bool ] { enum-value 0 == }
         def some? [ Maybe(t) -- Bool ] { enum-value 1 == }
         def >Bool [ Maybe(t) -- Bool ] { some? }
@@ -83,7 +83,7 @@ data Maybe(t) {
     }
 
     def show(f {show;}) [ (t +Str -- +Str) Maybe(t) -- Str ] {
-        Str( show;(f) )
+        Str.Mk( show;(f) )
     }
 }
 

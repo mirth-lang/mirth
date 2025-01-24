@@ -151,7 +151,7 @@ def +Snake.loop! [ +World +Snake -- +World +Snake ] {
     process-events!
     while(+logic:done not,
         present!
-        10 >U32-unsafe >ticks +platform:sdl:delay!
+        10u32 >ticks +platform:sdl:delay!
         process-events!
         +logic:update!
     )

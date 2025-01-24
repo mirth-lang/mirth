@@ -155,15 +155,15 @@ inline (
     def SDL_InitFlags.| {
         both(/SDL_InitFlags) | SDL_InitFlags
     }
-    def SDL_INIT_TIMER          [ SDL_InitFlags ] { 0x0001 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_AUDIO          [ SDL_InitFlags ] { 0x0010 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_VIDEO          [ SDL_InitFlags ] { 0x0020 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_JOYSTICK       [ SDL_InitFlags ] { 0x0200 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_HAPTIC         [ SDL_InitFlags ] { 0x1000 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_GAMECONTROLLER [ SDL_InitFlags ] { 0x2000 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_EVENTS         [ SDL_InitFlags ] { 0x4000 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_SENSOR         [ SDL_InitFlags ] { 0x8000 >U32-unsafe SDL_InitFlags }
-    def SDL_INIT_EVERYTHING     [ SDL_InitFlags ] { 0xF231 >U32-unsafe SDL_InitFlags }
+    def SDL_INIT_TIMER          [ SDL_InitFlags ] { 0x0001u32 SDL_InitFlags }
+    def SDL_INIT_AUDIO          [ SDL_InitFlags ] { 0x0010u32 SDL_InitFlags }
+    def SDL_INIT_VIDEO          [ SDL_InitFlags ] { 0x0020u32 SDL_InitFlags }
+    def SDL_INIT_JOYSTICK       [ SDL_InitFlags ] { 0x0200u32 SDL_InitFlags }
+    def SDL_INIT_HAPTIC         [ SDL_InitFlags ] { 0x1000u32 SDL_InitFlags }
+    def SDL_INIT_GAMECONTROLLER [ SDL_InitFlags ] { 0x2000u32 SDL_InitFlags }
+    def SDL_INIT_EVENTS         [ SDL_InitFlags ] { 0x4000u32 SDL_InitFlags }
+    def SDL_INIT_SENSOR         [ SDL_InitFlags ] { 0x8000u32 SDL_InitFlags }
+    def SDL_INIT_EVERYTHING     [ SDL_InitFlags ] { 0xF231u32 SDL_InitFlags }
 )
 
 def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
@@ -174,30 +174,30 @@ inline (
     def SDL_WindowFlags.| [ SDL_WindowFlags SDL_WindowFlags -- SDL_WindowFlags ] {
         both(/SDL_WindowFlags) | SDL_WindowFlags
     }
-    def SDL_WINDOW_FULLSCREEN         [ SDL_WindowFlags ] { 0x00000001 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_OPENGL             [ SDL_WindowFlags ] { 0x00000002 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_SHOWN              [ SDL_WindowFlags ] { 0x00000004 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_HIDDEN             [ SDL_WindowFlags ] { 0x00000008 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_BORDERLESS         [ SDL_WindowFlags ] { 0x00000010 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_RESIZABLE          [ SDL_WindowFlags ] { 0x00000020 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_MINIMIZED          [ SDL_WindowFlags ] { 0x00000040 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_MAXIMIZED          [ SDL_WindowFlags ] { 0x00000080 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_MOUSE_GRABBED      [ SDL_WindowFlags ] { 0x00000100 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_INPUT_GRABBED      [ SDL_WindowFlags ] { 0x00000100 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_INPUT_FOCUS        [ SDL_WindowFlags ] { 0x00000200 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_MOUSE_FOCUS        [ SDL_WindowFlags ] { 0x00000400 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_FOREIGN            [ SDL_WindowFlags ] { 0x00000800 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_FULLSCREEN_DESKTOP [ SDL_WindowFlags ] { 0x00001001 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_ALLOW_HIGHDPI      [ SDL_WindowFlags ] { 0x00002000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_MOUSE_CAPTURE      [ SDL_WindowFlags ] { 0x00004000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_ALWAYS_ON_TOP      [ SDL_WindowFlags ] { 0x00008000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_SKIP_TASKBAR       [ SDL_WindowFlags ] { 0x00010000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_UTILITY            [ SDL_WindowFlags ] { 0x00020000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_TOOLTIP            [ SDL_WindowFlags ] { 0x00040000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_POPUP_MENU         [ SDL_WindowFlags ] { 0x00080000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_KEYBOARD_GRABBED   [ SDL_WindowFlags ] { 0x00100000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_VULKAN             [ SDL_WindowFlags ] { 0x10000000 >U32-unsafe SDL_WindowFlags }
-    def SDL_WINDOW_METAL              [ SDL_WindowFlags ] { 0x20000000 >U32-unsafe SDL_WindowFlags }
+    def SDL_WINDOW_FULLSCREEN         [ SDL_WindowFlags ] { 0x00000001u32 SDL_WindowFlags }
+    def SDL_WINDOW_OPENGL             [ SDL_WindowFlags ] { 0x00000002u32 SDL_WindowFlags }
+    def SDL_WINDOW_SHOWN              [ SDL_WindowFlags ] { 0x00000004u32 SDL_WindowFlags }
+    def SDL_WINDOW_HIDDEN             [ SDL_WindowFlags ] { 0x00000008u32 SDL_WindowFlags }
+    def SDL_WINDOW_BORDERLESS         [ SDL_WindowFlags ] { 0x00000010u32 SDL_WindowFlags }
+    def SDL_WINDOW_RESIZABLE          [ SDL_WindowFlags ] { 0x00000020u32 SDL_WindowFlags }
+    def SDL_WINDOW_MINIMIZED          [ SDL_WindowFlags ] { 0x00000040u32 SDL_WindowFlags }
+    def SDL_WINDOW_MAXIMIZED          [ SDL_WindowFlags ] { 0x00000080u32 SDL_WindowFlags }
+    def SDL_WINDOW_MOUSE_GRABBED      [ SDL_WindowFlags ] { 0x00000100u32 SDL_WindowFlags }
+    def SDL_WINDOW_INPUT_GRABBED      [ SDL_WindowFlags ] { 0x00000100u32 SDL_WindowFlags }
+    def SDL_WINDOW_INPUT_FOCUS        [ SDL_WindowFlags ] { 0x00000200u32 SDL_WindowFlags }
+    def SDL_WINDOW_MOUSE_FOCUS        [ SDL_WindowFlags ] { 0x00000400u32 SDL_WindowFlags }
+    def SDL_WINDOW_FOREIGN            [ SDL_WindowFlags ] { 0x00000800u32 SDL_WindowFlags }
+    def SDL_WINDOW_FULLSCREEN_DESKTOP [ SDL_WindowFlags ] { 0x00001001u32 SDL_WindowFlags }
+    def SDL_WINDOW_ALLOW_HIGHDPI      [ SDL_WindowFlags ] { 0x00002000u32 SDL_WindowFlags }
+    def SDL_WINDOW_MOUSE_CAPTURE      [ SDL_WindowFlags ] { 0x00004000u32 SDL_WindowFlags }
+    def SDL_WINDOW_ALWAYS_ON_TOP      [ SDL_WindowFlags ] { 0x00008000u32 SDL_WindowFlags }
+    def SDL_WINDOW_SKIP_TASKBAR       [ SDL_WindowFlags ] { 0x00010000u32 SDL_WindowFlags }
+    def SDL_WINDOW_UTILITY            [ SDL_WindowFlags ] { 0x00020000u32 SDL_WindowFlags }
+    def SDL_WINDOW_TOOLTIP            [ SDL_WindowFlags ] { 0x00040000u32 SDL_WindowFlags }
+    def SDL_WINDOW_POPUP_MENU         [ SDL_WindowFlags ] { 0x00080000u32 SDL_WindowFlags }
+    def SDL_WINDOW_KEYBOARD_GRABBED   [ SDL_WindowFlags ] { 0x00100000u32 SDL_WindowFlags }
+    def SDL_WINDOW_VULKAN             [ SDL_WindowFlags ] { 0x10000000u32 SDL_WindowFlags }
+    def SDL_WINDOW_METAL              [ SDL_WindowFlags ] { 0x20000000u32 SDL_WindowFlags }
 )
 
 data(SDL_RendererFlags, SDL_RendererFlags -> U32)
@@ -205,10 +205,10 @@ inline (
     def SDL_RendererFlags.| {
         both(/SDL_RendererFlags) | SDL_RendererFlags
     }
-    def SDL_RENDERER_SOFTWARE      [ SDL_RendererFlags ] { 0x00000001 >U32-unsafe SDL_RendererFlags }
-    def SDL_RENDERER_ACCELERATED   [ SDL_RendererFlags ] { 0x00000002 >U32-unsafe SDL_RendererFlags }
-    def SDL_RENDERER_PRESENTVSYNC  [ SDL_RendererFlags ] { 0x00000004 >U32-unsafe SDL_RendererFlags }
-    def SDL_RENDERER_TARGETTEXTURE [ SDL_RendererFlags ] { 0x00000008 >U32-unsafe SDL_RendererFlags }
+    def SDL_RENDERER_SOFTWARE      [ SDL_RendererFlags ] { 0x00000001u32 SDL_RendererFlags }
+    def SDL_RENDERER_ACCELERATED   [ SDL_RendererFlags ] { 0x00000002u32 SDL_RendererFlags }
+    def SDL_RENDERER_PRESENTVSYNC  [ SDL_RendererFlags ] { 0x00000004u32 SDL_RendererFlags }
+    def SDL_RENDERER_TARGETTEXTURE [ SDL_RendererFlags ] { 0x00000008u32 SDL_RendererFlags }
 )
 
 data SDL_TextureAccess {
@@ -372,10 +372,10 @@ data(SDL_EventType,
 )
 
 inline(
-    def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { enum-value >U32-unsafe }
-    def U32.>SDL_EventType [ U32 -- SDL_EventType ] { >Int SDL_EventType.from-enum-value-unsafe }
+    def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { enum-value >U32-wrap }
+    def U32.>SDL_EventType-unsafe [ U32 -- SDL_EventType ] { >Int SDL_EventType.from-enum-value-unsafe }
     def SDL_EventType.== [ SDL_EventType SDL_EventType -- Bool ] { both(>U32) == }
-    def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) >SDL_EventType }
+    def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) >SDL_EventType-unsafe  }
 )
 
 def(SDL_Event.key, SDL_Event -- SDL_KeyboardEvent, /SDL_Event SDL_KeyboardEvent)
@@ -700,15 +700,19 @@ data(SDL_Scancode,
 )
 def SDL_NUM_SCANCODES { 512 }
 
-data(SDL_JoystickID, SDL_JoystickID -> Int) # TODO: change to I32
-def(SDL_JoystickID.unwrap, SDL_JoystickID -- Int, /SDL_JoystickID)
-def(SDL_JoystickID.>Int, SDL_JoystickID -- Int, unwrap)
-def(SDL_JoystickID.>I32, SDL_JoystickID -- I32, >Int >I32-unsafe )
-def(Int.>SDL_JoystickID, Int -- SDL_JoystickID, SDL_JoystickID)
-def(I32.>SDL_JoystickID, I32 -- SDL_JoystickID, >Int >SDL_JoystickID)
-def(SDL_JoystickID.>, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) >)
-def(SDL_JoystickID.1+, SDL_JoystickID -- SDL_JoystickID, >Int 1+ >SDL_JoystickID)
-def(SDL_JoystickID.==, SDL_JoystickID SDL_JoystickID -- Bool, both(>Int) ==)
+struct SDL_JoystickID {
+    I32
+    --
+    def >I32 { /SDL_JoystickID }
+    def >Int { >I32 >Int }
+    def I32.>SDL_JoystickID { SDL_JoystickID }
+    def Int.>SDL_JoystickID { >I32-clamp >SDL_JoystickID }
+    def compare { on2:>I32 compare }
+    def == { on2:>I32 == }
+    def <= { on2:>I32 <= }
+    def <  { on2:>I32 <  }
+    def succ { >I32 succ >SDL_JoystickID }
+}
 
 external(
     SDL_NumJoysticks        [+Unsafe      -- CInt +Unsafe]

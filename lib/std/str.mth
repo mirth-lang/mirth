@@ -9,7 +9,7 @@ import std.ctypes
 
 alias(Str.cat, prim-str-cat)
 inline(
-    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes Nat.NatUnsafe >USize }
+    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes Nat.Unsafe >USize }
     def Str.empty? [ Str -- Bool ] { num-bytes 0= }
 )
 
@@ -41,7 +41,7 @@ inline (
     def(+Str.num-bytes?, +Str -- USize +Str,
         +Str -> dup num-bytes dip(+Str))
 )
-def(Str(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
+def(Str.Mk(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
 
 def Str.last-byte [ Str -- Byte ] {
     dup num-bytes 1- >UOffset-if (

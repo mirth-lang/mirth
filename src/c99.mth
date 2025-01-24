@@ -96,7 +96,7 @@ def +C99.fresh-resource-name! [ +C99 -- Str +C99 ] {
 }
 
 def +C99.fresh-name-on! [ Str +C99 -- Str +C99 ] {
-    fresh-nat! show cat
+    fresh-nat! >Str cat
 }
 
 def run-output-c99! [ Arrow C99_Options +World +Mirth -- +World +Mirth ] {
@@ -129,15 +129,15 @@ field(External.~cname, External, Str)
 field(Prim.~cname, Prim, Str)
 
 def Tag.word-cname [ +Mirth Tag -- +Mirth Str ] { dup ~word-cname memoize(
-    Str("mtw_" ; dup rdip:qname rdip:mangled ;)) nip }
+    Str.Mk("mtw_" ; dup rdip:qname rdip:mangled ;)) nip }
 def Tag.pat-cname [ +Mirth Tag -- +Mirth Str ] { dup ~pat-cname memoize(
-    Str("mtp_" ; dup rdip:qname rdip:mangled ;)) nip }
+    Str.Mk("mtp_" ; dup rdip:qname rdip:mangled ;)) nip }
 def Buffer.cname [ +Mirth Buffer -- +Mirth Str ] { dup ~cname memoize(
-    dup qname-hard mangled Str("mbuf_" ; ;)) nip }
+    dup qname-hard mangled Str.Mk("mbuf_" ; ;)) nip }
 def Field.cname [ +Mirth Field -- +Mirth Str ] { dup ~cname memoize(
-    dup qname-hard mangled Str("mfld_" ; ;)) nip }
+    dup qname-hard mangled Str.Mk("mfld_" ; ;)) nip }
 def External.cname [ +Mirth External -- +Mirth Str ] { dup ~cname memoize(
-    dup qname-hard mangled Str("mext_" ; ;)) nip }
+    dup qname-hard mangled Str.Mk("mext_" ; ;)) nip }
 
 embed-str(c99-header-str, "src/mirth.h")
 def c99-header! [ +C99 -- +C99 ] {
@@ -150,7 +150,7 @@ def c99-buffers! [ +C99 -- +C99 ] { Buffer.for(c99-buffer!) }
 def c99-buffer! [ Buffer +C99 -- +C99 ] {
     "static char " put
     dup +mirth:cname put
-    "[" put +mirth:size show put "] = {0};" put line
+    "[" put +mirth:size >Str put "] = {0};" put line
 }
 def c99-buffer-call! [ Buffer +C99Branch -- +C99Branch ] {
     C99ReprType.PTR push-value-expression!(+mirth:cname put)
@@ -281,9 +281,9 @@ def +C99.tag-value-put [ +C99 Tag -- +C99 ] {
 
 def c99-pack-tuple! [ +C99Branch tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Branch +C99Resource ] {
     @tag len @parts len + >tuplen
-    @tuplen C99ReprType.TUP resource-expression!("tup_new(" put @tuplen show put ")" put) >+tup
+    @tuplen C99ReprType.TUP resource-expression!("tup_new(" put @tuplen >Str put ")" put) >+tup
     @+tup:resource-name >tup
-    c99-line(@tup put "->size = " put @tuplen show put ";" put)
+    c99-line(@tup put "->size = " put @tuplen >Str put ";" put)
     tuplen> pred >i
     parts> reverse-for(
         match {
@@ -292,7 +292,7 @@ def c99-pack-tuple! [ +C99Branch tag:Maybe(Tag) parts:List(StackTypePart) -- +C9
             { ConsLabel -> dip:type-to-c99-repr pop-value-label! consume-as-VAL }
             { WithLabel -> dip:resource-to-c99-repr pop-resource-label! consume-as-VAL }
         }
-        c99-line(@tup put "->cells[" put @i show put "] = " put put ";" put)
+        c99-line(@tup put "->cells[" put @i >Str put "] = " put put ";" put)
         @i:pred
     )
     i> drop
@@ -305,7 +305,7 @@ def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackT
     @tag len @parts len + C99ReprType.TUP consume-as >tup
     tag> len >i
     parts> for(
-        Str(@tup ; "->cells[" ; @i show; "]" ;)
+        Str.Mk(@tup ; "->cells[" ; @i dec; "]" ;)
         swap match {
             { Cons -> type-to-c99-repr dup push-value-expression!(v-macro(put)) }
             { With -> resource-to-c99-repr dup push-resource-expression!(v-macro(put)) }
@@ -314,7 +314,7 @@ def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackT
         }
         @i:succ
     )
-    c99-line("tup_decref_outer(" put tup> put "," put i> show put ");" put)
+    c99-line("tup_decref_outer(" put tup> put "," put i> >Str put ");" put)
 }
 
 def c99-tag-label-index [ Tag Label +C99 -- Nat +C99 ] {
@@ -354,7 +354,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
                 @fieldrepr value-expression!(
                     fieldrepr> v-macro(
                         @tuplevar put "->cells[" put
-                        @tag @label c99-tag-label-index show put
+                        @tag @label c99-tag-label-index >Str put
                         "]" put
                     )
                 ) dup-value! rdrop push-value!
@@ -365,7 +365,7 @@ def c99-tag-get-label! [ TagField +C99Branch -- +C99Branch ] {
                 @fieldrepr push-resource-expression!(
                     fieldrepr> v-macro (
                         @tuplevar put "->cells[" put
-                        @tag @label c99-tag-label-index show put
+                        @tag @label c99-tag-label-index >Str put
                         "]" put
                     )
                 )
@@ -409,7 +409,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
                 "tup_replace(" put
                 tupleval> put
                 ", " put
-                @tag @label c99-tag-label-index show put
+                @tag @label c99-tag-label-index >Str put
                 ", " put
                 fieldval> put
                 ")" put
@@ -427,7 +427,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
                             v-macro (
                                 @tuplevar put
                                 "->cells[" put
-                                @tag @label c99-tag-label-index show put
+                                @tag @label c99-tag-label-index >Str put
                                 "]" put
                             )
                         ) drop-value!
@@ -441,7 +441,7 @@ def c99-tag-set-label! [ TagField +C99Branch -- +C99Branch ] {
             c99-line(
                 @tuplevar put
                 "->cells[" put
-                @tag @label c99-tag-label-index show put
+                @tag @label c99-tag-label-index >Str put
                 "] = " put
                 fieldval> put
                 ";" put
@@ -540,7 +540,7 @@ def c99-external-def! [ External +C99 -- +C99 ] {
 def CTypeStackPart.c99-arg-name [ arg-index:Nat CTypeStackPart +C99 -- arg-index:Nat Str +C99 ] {
     label? if?(
         +mirth(name mangled),
-        Str("X" ; @arg-index show;)
+        Str.Mk("X" ; @arg-index dec;)
     )
 }
 
@@ -811,7 +811,7 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
     @api must-flush then(flush-cache!)
     @api out-params-1 map(reserve-as-new-value!) >reserved-outputs-1
     @api out-params-2 map(reserve-as-new-value!) >reserved-outputs-2
-    Str(
+    Str.Mk(
         @api cname ; "(" ;
         "" >sep
         popped-inputs> for:for(sep> ; ", " >sep ;)
@@ -972,8 +972,8 @@ def c99-arrow! [ Arrow +C99Branch -- +C99Branch ] { atoms for(c99-atom!) }
 def c99-atom! [ Atom +C99Branch -- +C99Branch ] {
     +c99:options emit-debug-info and(dup op +mirth:show-in-stack-trace?) then(
         +c99:c99-line("WORD_ATOM(" put
-            dup token +mirth:row >Int show put ", " put
-            dup token +mirth:col >Int show put ", " put
+            dup token +mirth:row >Int >Str put ", " put
+            dup token +mirth:col >Int >Str put ", " put
             dup token +mirth(name? if?(>Str, "")) put-cstr
             ");" put
         )
@@ -1034,15 +1034,15 @@ def c99-atom-op! [ Atom Op +C99Branch -- +C99Branch ] {
 
 def c99-push-value! [ PushValue +C99Branch -- +C99Branch ] {
     { Str -> c99-str! }
-    { Int -> C99ReprType.I64 push-value-expression!(show put "LL" put) }
-    { U8  -> C99ReprType.U8  push-value-expression!(>Nat show put) }
-    { U16 -> C99ReprType.U16 push-value-expression!(>Nat show put) }
-    { U32 -> C99ReprType.U32 push-value-expression!(>Nat show put) }
-    { U64 -> C99ReprType.U64 push-value-expression!(>Int-unsafe show put "ULL" put) }
-    { I8  -> C99ReprType.I8  push-value-expression!(>Int show put) }
-    { I16 -> C99ReprType.I16 push-value-expression!(>Int show put) }
-    { I32 -> C99ReprType.I32 push-value-expression!(>Int show put) }
-    { I64 -> C99ReprType.I64 push-value-expression!(>Int show put "LL" put) }
+    { Int -> C99ReprType.I64 push-value-expression!(>Str put "LL" put) }
+    { U8  -> C99ReprType.U8  push-value-expression!(>Nat >Str put) }
+    { U16 -> C99ReprType.U16 push-value-expression!(>Nat >Str put) }
+    { U32 -> C99ReprType.U32 push-value-expression!(>Nat >Str put) }
+    { U64 -> C99ReprType.U64 push-value-expression!(>Int-unsafe >Str put "ULL" put) }
+    { I8  -> C99ReprType.I8  push-value-expression!(>Int >Str put) }
+    { I16 -> C99ReprType.I16 push-value-expression!(>Int >Str put) }
+    { I32 -> C99ReprType.I32 push-value-expression!(>Int >Str put) }
+    { I64 -> C99ReprType.I64 push-value-expression!(>Int >Str put "LL" put) }
     { F32 -> C99ReprType.F32 push-value-expression!(>Str put) }
     { F64 -> C99ReprType.F64 push-value-expression!(>Str put) }
 }
@@ -1052,10 +1052,10 @@ def c99-get-enum-value! [ Data +C99Branch -- +C99Branch ] {
     @data +mirth:is-enum? else(
         @data Type.Data type-to-c99-repr pop-value! >+scrutinee
         @data +mirth:is-unit? if?(
-            C99ReprType.I64 push-value-expression!(+mirth:value show put "LL" put),
+            C99ReprType.I64 push-value-expression!(+mirth:value-show put "LL" put),
 
         @data +mirth:semi-transparent? if?(
-            C99ReprType.I64 push-value-expression!(tag +mirth:value show put "LL" put),
+            C99ReprType.I64 push-value-expression!(tag +mirth:value-show put "LL" put),
             C99ReprType.I64 push-value-expression!(
                 "get_data_tag(" put
                 @+scrutinee:rdup consume-as-VAL put
@@ -1080,7 +1080,7 @@ def c99-word! [ List(Arg) Word +C99Branch -- +C99Branch ] {
 }
 
 field(Tag.~value-show, Tag, Str)
-def Tag.value-show [ +Mirth Tag -- +Mirth Str ] { dup ~value-show memoize(dup value show) nip }
+def Tag.value-show [ +Mirth Tag -- +Mirth Str ] { dup ~value-show memoize(dup value >Str) nip }
 
 def c99-tag-call! [ List(Arg) Tag +C99Branch -- +C99Branch ] {
     dup +mirth:prefer-inline? if(
@@ -1144,7 +1144,7 @@ def c99-label-pop-r! [ Atom Label +C99Branch -- +C99Branch ] {
 }
 
 def c99-int! [ Int +C99Branch -- +C99Branch ] {
-    C99ReprType.I64 push-value-expression!(show put "LL" put)
+    C99ReprType.I64 push-value-expression!(>Str put "LL" put)
 }
 
 def c99-f64! [ F64 +C99Branch -- +C99Branch ] {
@@ -1157,14 +1157,14 @@ def c99-str! [ Str +C99Branch -- +C99Branch ] {
         c99-line("STRLIT(" put @+str:rdup consume put "," put)
         c99-nest(
             c99-line(dup put-cstr-long "," put)
-            c99-line(dup num-bytes show put)
+            c99-line(dup num-bytes >Str put)
         )
         c99-line(");" put),
 
         c99-line("STRLIT(" put
             @+str:rdup consume put ", " put
             dup put-cstr ", " put
-            dup num-bytes show put ");" put)
+            dup num-bytes >Str put ");" put)
     ) drop
 
     +str> push-value!
@@ -1231,7 +1231,6 @@ def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
 inline (
     def C99ReprType.is-unit? [ C99ReprType -- Bool ] { enum-value 0= }
     def C99ReprType.is-physical? [ C99ReprType -- Bool ] { enum-value 0 <> }
-    def C99ReprType.<> [ C99ReprType C99ReprType -- Bool ] { == not }
 )
 
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
@@ -1322,27 +1321,27 @@ def C99ReprType.v-macro-prefix-suffix [ C99ReprType -- Str Str ] {
     { Bool  -> "value_bool(" ")" }
     { PTR   -> "value_ptr(" ")" }
     { FNPTR -> "value_fnptr(" ")" }
-    { TUP   -> "value_tup(" swap Str(", "; show ; ")";) }
+    { TUP   -> "value_tup(" swap Str.Mk(", "; dec; ")";) }
 }
 
 def C99ReprType.mk-macro [ Str C99ReprType -- Str ] {
     { VAL   -> id }
-    { STR   -> Str( "MKSTR(" ; ; ")" ; ) }
-    { Void  -> Str( "MKI64(" ; ; ")" ; ) }
-    { I64   -> Str( "MKI64(" ; ; ")" ; ) }
-    { I32   -> Str( "MKI32(" ; ; ")" ; ) }
-    { I16   -> Str( "MKI16(" ; ; ")" ; ) }
-    { I8    -> Str( "MKI8("  ; ; ")" ; ) }
-    { U64   -> Str( "MKU64(" ; ; ")" ; ) }
-    { U32   -> Str( "MKU32(" ; ; ")" ; ) }
-    { U16   -> Str( "MKU16(" ; ; ")" ; ) }
-    { U8    -> Str( "MKU8(" ; ; ")" ; ) }
-    { F64   -> Str( "MKF64(" ; ; ")" ; ) }
-    { F32   -> Str( "MKF32(" ; ; ")" ; ) }
-    { Bool  -> Str( "MKBOOL(" ; ; ")" ; ) }
-    { PTR   -> Str( "MKPTR(" ; ; ")" ; ) }
-    { FNPTR -> Str( "MKFNPTR(" ; ; ")" ; ) }
-    { TUP   -> swap Str( "MKTUP(" ; ; ", " ; show ; ")" ; ) }
+    { STR   -> Str.Mk( "MKSTR(" ; ; ")" ; ) }
+    { Void  -> Str.Mk( "MKI64(" ; ; ")" ; ) }
+    { I64   -> Str.Mk( "MKI64(" ; ; ")" ; ) }
+    { I32   -> Str.Mk( "MKI32(" ; ; ")" ; ) }
+    { I16   -> Str.Mk( "MKI16(" ; ; ")" ; ) }
+    { I8    -> Str.Mk( "MKI8("  ; ; ")" ; ) }
+    { U64   -> Str.Mk( "MKU64(" ; ; ")" ; ) }
+    { U32   -> Str.Mk( "MKU32(" ; ; ")" ; ) }
+    { U16   -> Str.Mk( "MKU16(" ; ; ")" ; ) }
+    { U8    -> Str.Mk( "MKU8(" ; ; ")" ; ) }
+    { F64   -> Str.Mk( "MKF64(" ; ; ")" ; ) }
+    { F32   -> Str.Mk( "MKF32(" ; ; ")" ; ) }
+    { Bool  -> Str.Mk( "MKBOOL(" ; ; ")" ; ) }
+    { PTR   -> Str.Mk( "MKPTR(" ; ; ")" ; ) }
+    { FNPTR -> Str.Mk( "MKFNPTR(" ; ; ")" ; ) }
+    { TUP   -> swap Str.Mk( "MKTUP(" ; ; ", " ; dec; ")" ; ) }
 }
 
 def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
@@ -1504,13 +1503,13 @@ def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
     { _ ->
         /+C99Value
         @value-repr match {
-            { VAL -> Str( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
+            { VAL -> Str.Mk( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
             { _ ->
                 over == if(
                     drop value-name>,
                     dup is-int-like? @value-repr is-int-like? && if(
-                        Str( "((" ; underlying-c99-type ; ")" ; value-name> ; ")" ; ),
-                        Str( "(\n#error \"attempted to cast " ; value-name> ; " to incompatible C99 repr type " ;
+                        Str.Mk( "((" ; underlying-c99-type ; ")" ; value-name> ; ")" ; ),
+                        Str.Mk( "(\n#error \"attempted to cast " ; value-name> ; " to incompatible C99 repr type " ;
                             underlying-c99-type ; "\"\n" ; )
                     )
                 )
@@ -1591,7 +1590,7 @@ def +C99Resource.consume-as-VAL [ +C99Resource -- Str ] {
 
 def +C99Resource.consume-as-TUP [ +C99Resource -- Str ] {
     /+C99Resource resource-repr> match {
-        { VAL -> Str( "VTUP(" ; resource-name> ; ")" ; ) }
+        { VAL -> Str.Mk( "VTUP(" ; resource-name> ; ")" ; ) }
         { TUP -> drop resource-name> }
         { _ -> drop "c99: tried to consume non-tuple as tuple" panic! }
     }
@@ -1617,7 +1616,7 @@ def +C99Resource.push-resource-direct! [ +C99Branch +C99Resource -- +C99Branch ]
 def +C99Resource.peek-data-tag [ +C99Resource -- +C99Resource Str ] {
     resource-repr is-int-like? if(
         resource-name,
-        rdup consume-as-VAL Str("get_data_tag(" ; ; ")";)
+        rdup consume-as-VAL Str.Mk("get_data_tag(" ; ; ")";)
     )
 }
 
@@ -2342,7 +2341,7 @@ def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+C99V
                 v-macro (
                     @tup put
                     "->cells[" put
-                    @i show put
+                    @i >Str put
                     "]" put
                 )
             )
@@ -2518,8 +2517,8 @@ def c99-block-enter! [ Block +C99 -- +C99Branch ] {
                 Word -> +mirth(name >Str) " block" cat,
             ) put-cstr ", " put
             dup +mirth(token module source-path) >Str put-cstr ", " put
-            dup +mirth(token row) >Int show put ", " put
-            dup +mirth(token col) >Int show put ");" put
+            dup +mirth(token row) >Int >Str put ", " put
+            dup +mirth(token col) >Int >Str put ");" put
         ) drop,
         drop
     )
@@ -2558,8 +2557,8 @@ def c99-word-enter! [ Word +C99Branch -- +C99Branch ] {
             "WORD_ENTER(" put
             dup +mirth(name >Str) put-cstr ", " put
             dup +mirth(body module source-path) >Str put-cstr ", " put
-            dup +mirth(body row) >Int show put ", " put
-            dup +mirth(body col) >Int show put ");" put
+            dup +mirth(body row) >Int >Str put ", " put
+            dup +mirth(body col) >Int >Str put ");" put
         )
     ) drop
 }
@@ -2604,8 +2603,8 @@ def c99-main! [ Arrow +C99 -- +C99 ] {
             c99-line("WORD_ENTER(" put
                 "\"<main>\", " put
                 dup token-start +mirth(module source-path) >Str put-cstr ", " put
-                dup token-start +mirth:row >Int show put ", " put
-                dup token-start +mirth:col >Int show put ");" put)
+                dup token-start +mirth:row >Int >Str put ", " put
+                dup token-start +mirth:col >Int >Str put ");" put)
         )
         True >reachable
         List.Nil >env

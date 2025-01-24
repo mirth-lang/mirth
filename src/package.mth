@@ -43,7 +43,7 @@ def(Package.path!, +Mirth Path Package -- +Mirth,
         Some ->
             dup2 == if(
                 drop3,
-                Str(
+                Str.Mk(
                     "Tried to set different path for the same package " ;
                     "(package = " ; rotl name;
                     ", path 1 = " ; swap /Path show;

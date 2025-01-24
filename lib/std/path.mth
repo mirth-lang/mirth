@@ -23,10 +23,7 @@ struct Path {
     }
 
     def join-with [ Path Str Path -- Path ] {
-        over2 empty? if(
-            dip(drop2),
-            dip2(>Str) dip(cat) >Str cat >Path
-        )
+        dip(dip:>Str cat) >Str cat >Path
     }
 
     def join [ +World Path Path -- +World Path ] { dip(running-os path-separator) join-with }
@@ -42,4 +39,9 @@ struct Path {
 
     def show; [ Path +Str -- +Str ] { /Path show; " Path" ; }
     def path; [ Path +Str -- +Str ] { /Path ; }
+
+    def normalize [ +World Path -- +World Path ] { split uncons dip(Path) for(Path join) }
+    def parent [ +World Path -- +World Path ] {
+        split-last else(".." Path join)
+    }
 }

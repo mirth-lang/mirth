@@ -44,26 +44,26 @@ data Byte {
 
     inline (
         def >Int [ Byte -- Int ] { Byte.enum-value }
-        def >U8  [ Byte -- U8  ] { >Int >U8-unsafe }
+        def >Nat [ Byte -- Nat ] { Byte.enum-value >Nat-unsafe }
+        def >U8  [ Byte -- U8  ] { >Int >U8-wrap  }
+        def >U16 [ Byte -- U16 ] { >Int >U16-wrap }
+        def >U32 [ Byte -- U32 ] { >Int >U32-wrap }
+        def >U64 [ Byte -- U64 ] { >Int >U64-wrap }
 
         def Int.>Byte-if(f,g) [ (*a Byte -- *b, *a Int -- *b) *a Int -- *b ] { >U8-if(>Byte f, g) }
         def Int.>Byte-else(f) [ (*a Int -- *a Byte) *a Int -- *a Byte ] { >Byte-if(id, f) }
         def Int.>Byte? [ Int -- Maybe(Byte) ] { >Byte-if(Some, drop None) }
         def Int.>Byte-wrap [ Int -- Byte ] { >U8-wrap >Byte }
         def Int.>Byte-clamp [ Int -- Byte ] { >U8-clamp >Byte }
-        def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
 
+        ||| Convert Int to Byte. Valid only if Int is between 0 and 255 inclusive.
+        def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
         def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
 
         def compare  [ Byte Byte -- Comparison ] { on2(>Int) .compare }
         def ==       [ Byte Byte -- Bool ] { on2(>Int) == }
         def <        [ Byte Byte -- Bool ] { on2(>Int) <  }
-        def >        [ Byte Byte -- Bool ] { on2(>Int) >  }
         def <=       [ Byte Byte -- Bool ] { on2(>Int) <= }
-        def >=       [ Byte Byte -- Bool ] { on2(>Int) >= }
-        def <>       [ Byte Byte -- Bool ] { on2(>Int) <> }
-        def in-range [ Byte Byte Byte -- Bool ] { on3(>Int) in-range }
-        def clamp    [ Byte Byte Byte -- Byte ] { on3(>Int) clamp >Byte-unsafe }
 
         def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
         def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
@@ -109,16 +109,17 @@ data Byte {
     }
 
     def to-lower [ Byte -- Byte ] {
-        dup is-upper then(>Int 0x20 + >Byte-unsafe)
+        dup is-upper then(>U8 0x20u8 add-wrap >Byte)
     }
 
     def to-upper [ Byte -- Byte ] {
-        dup is-lower then(>Int 0x20 - >Byte-unsafe)
+        dup is-lower then(>U8 0x20u8 sub-wrap >Byte)
     }
 
     def OneHexDigitUnsafe [ Int -- Byte ] {
         0 15 clamp
-        dup 9 > if(55, 48) + >Byte-unsafe
+        dup 9 > if(55, 48) +
+        >Byte-wrap
     }
 
     def to-hexdigits [ Byte -- Byte Byte ] {
@@ -146,7 +147,7 @@ data Byte {
         ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
         ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
 
-        # Important invariant: False string here should be the prefix of another.
+        # Important invariant: No string here should be the prefix of another.
         # With this invariant we can ensure that the z-encoding of any string
         # is unique. To help enforce the invariant, keep these cases in
         # lexicographical order.
@@ -180,7 +181,7 @@ data Byte {
         { _ ->
             dup is-alnum if(
                 to-str-unsafe,
-                Str("Z" ; >Int show; "U" ;)
+                Str.Mk("Z" ; >Int show; "U" ;)
             )
         }
     }

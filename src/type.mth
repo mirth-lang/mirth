@@ -197,7 +197,7 @@ def(Type.expand, +Mirth Type -- +Mirth Type,
 
 ||| Raise a type unification error.
 def(Type.unify-failed!, +Mirth Type Type -- +Mirth Type,
-    Str("Failed to unify " ; dip:type; " with " ; type;) error! Type.Error)
+    Str.Mk("Failed to unify " ; dip:type; " with " ; type;) error! Type.Error)
 
 ||| Unify types directly, without regard to metavariables and other metatypes.
 def(Type.unify-simple!, +Mirth Type Type -- +Mirth Type,
@@ -579,7 +579,7 @@ def(MetaVar.freshen, +Mirth Subst MetaVar -- +Mirth Subst Type,
 ##############
 
 def(type-hole-unify!, +Mirth Type Name -- +Mirth Type,
-    Str(Type.Hole type; " ~ "; dup type; "\n" ;) info!)
+    Str.Mk(Type.Hole type; " ~ "; dup type; "\n" ;) info!)
 
 ############
 # APP TYPE #
@@ -1296,7 +1296,7 @@ def(Resource.ctype, +Mirth Resource -- +Mirth CType,
 def(Type.ctype, +Mirth Type -- +Mirth CType,
     dup ctype? if?(
         nip,
-        Str(type; " doesn't have a C representation.";) error!
+        Str.Mk(type; " doesn't have a C representation.";) error!
         CType.Phantom
     ))
 

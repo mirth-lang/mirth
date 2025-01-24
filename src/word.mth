@@ -49,7 +49,7 @@ def(Word.inferring-type?, Word -- Bool,
 
 def(Word.cname, +Mirth Word -- +Mirth Str,
     dup ~cname memoize(
-        dup qname-hard mangled Str("mw_"; ;)
+        dup qname-hard mangled Str.Mk("mw_"; ;)
     ) nip)
 
 def(Word.ctx-type, Word +Mirth -- Ctx ArrowType +Mirth, ~ctx-type force! unpack2)

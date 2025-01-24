@@ -156,7 +156,7 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
         @data ~last-tag-value @? if?(1+, 0)
     )
     @data tags find(value over ==) for(
-        Str("Constructors ";
+        Str.Mk("Constructors ";
             name;
             " and " ;
             @tag name;

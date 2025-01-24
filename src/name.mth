@@ -110,7 +110,7 @@ def Name.could-be-constructor [ +Mirth Name -- +Mirth Bool ] {
 }
 
 def(Name.mangle-compute!, +Mirth Name -- +Mirth Str,
-    >Str Str(bytes-for(zencode ;)))
+    >Str Str.Mk(bytes-for(zencode ;)))
 
 #############
 # Namespace #
@@ -208,11 +208,8 @@ struct QName {
         arity> arity> == &&
         namespace> namespace> == &&
     }
-    def <> [ QName QName -- Bool ] { == not }
     def <  [ +Mirth QName QName -- +Mirth Bool ] { compare lt? }
     def <= [ +Mirth QName QName -- +Mirth Bool ] { compare le? }
-    def >  [ +Mirth QName QName -- +Mirth Bool ] { compare gt? }
-    def >= [ +Mirth QName QName -- +Mirth Bool ] { compare ge? }
     def compare [ +Mirth QName QName -- +Mirth Comparison ] {
         /QName /QName
         arity> arity>
