@@ -37,11 +37,13 @@ struct Path {
         /Path split-last-byte(running-os byte-is-path-separator?) dip(Path)
     }
 
-    def show; [ Path +Str -- +Str ] { /Path show; " Path" ; }
+    def str; [ +Str Path -- +Str ] { /Path ; }
+    def repr; [ +Str Path -- +Str ] { /Path repr; " Path" ; }
     def path; [ Path +Str -- +Str ] { /Path ; }
 
     def normalize [ +World Path -- +World Path ] { split uncons dip(Path) for(Path join) }
     def parent [ +World Path -- +World Path ] {
         split-last else(".." Path join)
     }
+
 }

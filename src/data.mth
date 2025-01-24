@@ -37,6 +37,7 @@ def(Data.tags, +Mirth Data -- +Mirth List(Tag), ~tags @)
 def(Data.ctype?, +Mirth Data -- +Mirth Maybe(CType), ~ctype? force!)
 
 def Data.name; [ +Mirth +Str Data -- +Mirth +Str ] { rdip:name name; }
+def Data.qname; [ +Mirth +Str Data -- +Mirth +Str ] { rdip:qname-hard qname; }
 
 def(Type.Bool, +Mirth -- +Mirth Type, builtin bool Type.Data)
 def(Type.U64, +Mirth -- +Mirth Type, builtin u64 Type.Data)
@@ -156,7 +157,7 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
         @data ~last-tag-value @? if?(1+, 0)
     )
     @data tags find(value over ==) for(
-        Str.Mk("Constructors ";
+        Str("Constructors ";
             name;
             " and " ;
             @tag name;
@@ -266,6 +267,7 @@ def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
 def(Tag.untag, +Mirth Tag -- +Mirth Maybe(Word), ~untag @)
 
 def Tag.name; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:name name; }
+def Tag.qname; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:qname qname; }
 
 def(Tag.only-tag?, +Mirth Tag -- +Mirth Bool, .data tags single? >Bool)
 

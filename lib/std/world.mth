@@ -20,10 +20,10 @@ def +World.print [ Str +World -- +World ] { "\n" cat print- }
 def +World.trace [ Str +World -- +World ] { "\n" cat trace- }
 
 def +World.print(f) [ (*a +World +Str -- *b +World +Str) *a +World -- *b +World ] {
-    Str.Mk(f "\n";) print-
+    Str(f "\n";) print-
 }
 def +World.trace(f) [ (*a +World +Str -- *b +World +Str) *a +World -- *b +World ] {
-    Str.Mk(f "\n";) trace-
+    Str(f "\n";) trace-
 }
 
 def +World.stdin(f) [ (*a +World +Input -- *b +World +Input) *a +World -- *b +World ] {

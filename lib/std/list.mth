@@ -251,7 +251,7 @@ data List(t) {
     def(partition(p), (*a t -- *a Bool) *a List(t) -- *a List(t) List(t),
         partition-either(dup dip(p) swap if(Right, Left)))
 
-    def(show;(f {show;}), (t +Str -- +Str) List(t) +Str -- +Str,
+    def(repr;(f {repr;}), (t +Str -- +Str) List(t) +Str -- +Str,
         "List.Mk( " ; for(f " ; " ;) ")" ;)
 }
 
@@ -417,7 +417,7 @@ struct Nest(t) {
     def(partition(p), (*a t -- *a Bool) *a Nest(t) -- *a List(t) List(t),
         partition-either(dup dip(p) swap if(Right, Left)))
 
-    def(show;(f {show;}), (t +Str -- +Str) Nest(t) +Str -- +Str,
+    def(repr;(f {repr;}), (t +Str -- +Str) Nest(t) +Str -- +Str,
         "Nest.Mk( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
 
 }

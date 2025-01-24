@@ -52,7 +52,7 @@ alias(F32./, prim-f32-div)
 alias(F32.>F64, prim-f32-to-f64)
 alias(F32.>Int, prim-f32-to-int)
 alias(F32.>Str, prim-f32-to-str)
-inline def F32.show; [ +Str F32 -- +Str ] { >Str ; " >F32"; }
+inline def F32.repr; [ +Str F32 -- +Str ] { >Str ; " >F32"; }
 
 alias(F64.+, prim-f64-add)
 alias(F64.-, prim-f64-sub)
@@ -61,7 +61,7 @@ alias(F64./, prim-f64-div)
 alias(F64.>F32, prim-f64-to-f32)
 alias(F64.>Int, prim-f64-to-int)
 alias(F64.>Str, prim-f64-to-str)
-inline def F64.show; [ +Str F64 -- +Str ] { >Str ; }
+inline def F64.repr; [ +Str F64 -- +Str ] { >Str ; }
 
 inline(
     alias(Bool.if(f,g), prim-if)
@@ -85,7 +85,7 @@ inline(
         True while(dup, drop f) drop
     }
 )
-def(Bool.show;, Bool +Str -- +Str, if("True", "False") ;)
+def(Bool.repr;, Bool +Str -- +Str, if("True", "False") ;)
 
 # Re-export Bool unqualified.
 alias(True,  Bool.True)
@@ -251,7 +251,7 @@ data Comparison {
         def <= [ Comparison Comparison -- Bool ] { on2:enum-value <= }
         def compare [ Comparison Comparison -- Comparison ] { on2:enum-value compare }
     }
-    def show; [ +Str Comparison -- +Str ] { LT -> "LT";, EQ -> "EQ";, GT -> "GT"; }
+    def repr; [ +Str Comparison -- +Str ] { LT -> "LT";, EQ -> "EQ";, GT -> "GT"; }
 }
 
 def ==2(f{==}, g{==}) [ (*x a a -- *x Bool, *x b b -- *x Bool) *x a b a b -- *x Bool ] {
@@ -303,11 +303,10 @@ inline {
 }
 
 inline {
-    def show(f {show;}) [ (*a x +Str -- *a +Str) *a x -- *a Str ] { Str.Mk(f) }
     alias Int.>Str prim-int-to-str
     alias Int.>F64 prim-int-to-f64
-    def Int.show; [ Int +Str -- +Str ] { >Str ; }
-    def Int.dec;  [ Int +Str -- +Str ] { show; }
+    def Int.repr; [ Int +Str -- +Str ] { >Str ; }
+    def Int.int;  [ Int +Str -- +Str ] { >Str ; }
 
     def Str.compare [ Str Str -- Comparison ] { prim-str-cmp Comparison.from-enum-value-unsafe }
     alias Str.== prim-str-eq
@@ -334,6 +333,8 @@ data Base {
     def Oct [ Base ] { 8u  Base.Unsafe }
     def Dec [ Base ] { 10u Base.Unsafe }
     def Hex [ Base ] { 16u Base.Unsafe }
+    def Base [ Nat -- Base ] { 2u 36u clamp Base.Unsafe }
+    inline def /Base [ Base -- Nat ] { /Unsafe }
 
     def last-digit [ Nat Base -- Nat Byte ] {
         /Unsafe divmod >U8-wrap
@@ -618,7 +619,7 @@ inline (
     def U32.MIN  [ U32 ] { 0 >U32-unsafe }
     def U32.succ [ U32 -- U32 ] { dup U32.MAX < then(>Int 1+ >U32-unsafe) }
     def U32.pred [ U32 -- U32 ] { dup 0> then(>Int 1- >U32-unsafe) }
-    def U32.show; [ U32 +Str -- +Str ] { >Nat show; }
+    def U32.repr; [ U32 +Str -- +Str ] { >Nat repr; }
 )
 
 
@@ -766,8 +767,8 @@ data Nat {
         def <= [ Nat Nat -- Bool ] { on2:>Int <= }
         def 0> [ Nat -- Bool ] { >Int 0> }
         def 0= [ Nat -- Bool ] { >Int 0= }
-        def show; [ +Str Nat -- +Str ] { >Int show; }
-        def dec; [ +Str Nat -- +Str ] { >Int show; }
+        def repr; [ +Str Nat -- +Str ] { >Int repr; "Nat "; }
+        def int; [ +Str Nat -- +Str ] { >Int int; }
         def hex; [ +Str Nat -- +Str ] { Base.Hex digits; }
         def oct; [ +Str Nat -- +Str ] { Base.Oct digits; }
         def bin; [ +Str Nat -- +Str ] { Base.Bin digits; }
@@ -794,6 +795,7 @@ inline {
     def 16u [ Nat ] { 16 Nat.Unsafe }
     def 24u [ Nat ] { 24 Nat.Unsafe }
     def 32u [ Nat ] { 32 Nat.Unsafe }
+    def 36u [ Nat ] { 36 Nat.Unsafe }
     def 64u [ Nat ] { 64 Nat.Unsafe }
     def 128u [ Nat ] { 128 Nat.Unsafe }
     def 255u [ Nat ] { 255 Nat.Unsafe }
@@ -827,7 +829,7 @@ struct UIndex {
         def compare [ UIndex UIndex -- Comparison ] { on2:>Nat compare }
         def 0= [ UIndex -- Bool ] { >Nat 0= }
         def 0> [ UIndex -- Bool ] { >Nat 0> }
-        def show; [ UIndex +Str -- +Str ] { >Int show; }
+        def repr; [ UIndex +Str -- +Str ] { >Int repr; }
     }
 }
 
@@ -886,7 +888,7 @@ struct USize {
         def compare [ USize USize -- Comparison ] { on2:>Nat compare }
         def 0= [ USize -- Bool ] { >Nat 0= }
         def 0> [ USize -- Bool ] { >Nat 0> }
-        def show; [ USize +Str -- +Str ] { >Nat show; }
+        def repr; [ USize +Str -- +Str ] { >Nat repr; }
 
         def succ [ USize -- USize ] { >Nat succ >USize }
         def pred [ USize -- USize ] { >Nat pred >USize }
@@ -999,20 +1001,20 @@ inline(
         dip:unpack4 unpack4 dip3:rot4r dip2:rotr dip:swap
         deq if(ceq if(beq if(aeq, drop2 False), drop4 False), drop2 drop4 False))
 
-    def(pack2-show;-contents(f{show;},g{show;}), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+    def(pack2-repr;-contents(f{repr;},g{repr;}), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
         unpack2 dip(f) " " ; g)
-    def(pack3-show;-contents(f{show;},g{show;},h{show;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+    def(pack3-repr;-contents(f{repr;},g{repr;},h{repr;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
         unpack3 dip2(f) " " ; dip(g) " " ; h)
-    def(pack4-show;-contents(f{show;},g{show;},h{show;},i{show;}),
+    def(pack4-repr;-contents(f{repr;},g{repr;},h{repr;},i{repr;}),
         (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
         unpack4 dip3(f) " " ; dip2(g) " " ; dip(h) " " ; i)
 
-    def(pack2-show;(f{show;},g{show;}), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
-        pack2-show;-contents(f,g) " pack2" ;)
-    def(pack3-show;(f{show;},g{show;},h{show;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
-        pack3-show;-contents(f,g,h) " pack3" ;)
-    def(pack4-show;(f{show;},g{show;},h{show;},i{show;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
-        pack4-show;-contents(f,g,h,i) " pack4" ;)
+    def(pack2-repr;(f{repr;},g{repr;}), (a +Str -- +Str, b +Str -- +Str) [a b] +Str -- +Str,
+        pack2-repr;-contents(f,g) " pack2" ;)
+    def(pack3-repr;(f{repr;},g{repr;},h{repr;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str) [a b c] +Str -- +Str,
+        pack3-repr;-contents(f,g,h) " pack3" ;)
+    def(pack4-repr;(f{repr;},g{repr;},h{repr;},i{repr;}), (a +Str -- +Str, b +Str -- +Str, c +Str -- +Str, d +Str -- +Str) [a b c d] +Str -- +Str,
+        pack4-repr;-contents(f,g,h,i) " pack4" ;)
 )
 
 inline(

@@ -22,14 +22,16 @@ import mirth.mirth
 table(Name)
 field(Name.~Str, Name, Str)
 field(Name.~defs, Name, List(Def))
-field(Name.~mangled, Name, Str)
 field(Name.~label, Name, Label)
 
 def(Name.>Str, +Mirth Name -- +Mirth Str, ~Str @)
 def Name.name; [ +Mirth +Str Name -- +Mirth +Str ] { rdip:>Str ; }
 
 def(Name.defs, +Mirth Name -- +Mirth List(Def), ~defs @)
-def(Name.mangled, +Mirth Name -- +Mirth Str, dup ~mangled memoize(dup mangle-compute!) nip)
+
+field(Name.~mangled, Name, Str)
+def Name.mangled  [ +Mirth Name -- +Mirth Str ] { dup ~mangled memoize(dup >Str zencode) nip }
+def Name.mangled; [ +Mirth +Str Name -- +Mirth +Str ] { rdip:mangled ; }
 
 def(Name.==, Name Name -- Bool, both(Name.index) ==)
 
@@ -109,9 +111,6 @@ def Name.could-be-constructor [ +Mirth Name -- +Mirth Bool ] {
     )
 }
 
-def(Name.mangle-compute!, +Mirth Name -- +Mirth Str,
-    >Str Str.Mk(bytes-for(zencode ;)))
-
 #############
 # Namespace #
 #############
@@ -172,20 +171,29 @@ data Namespace {
         Module.Prim Namespace.Module
     }
 
-    def >Str [ +Mirth Namespace -- +Mirth Str ] {
-        { Root -> "<root>" }
-        { Package -> name >Str }
-        { Module -> qname >Str }
-        { Tycon -> qname-hard >Str }
-        { Word -> qname-hard >Str }
+    def name; [ +Mirth +Str Namespace -- +Mirth +Str ] {
+        { Root -> "<root>"; }
+        { Package -> name; }
+        { Module -> rdip:name name; }
+        { Tycon -> rdip:name name; }
+        { Word -> rdip:name name; }
     }
 
-    def mangled [ +Mirth Namespace -- +Mirth Str ] {
-        { Root -> "__root__" }
-        { Package -> name mangled }
-        { Module -> qname mangled }
-        { Tycon -> qname-hard mangled }
-        { Word -> qname-hard mangled }
+    def qname; [ +Mirth +Str Namespace -- +Mirth +Str ] {
+        { Root -> "<root>"; }
+        { Package -> name; }
+        { Module -> rdip:qname qname; }
+        { Tycon -> rdip:qname-hard qname; }
+        { Word -> rdip:qname-hard qname; }
+    }
+
+    def mangled [ +Mirth Namespace -- +Mirth Str ] { str:mangled; }
+    def mangled; [ +Mirth +Str Namespace -- +Mirth +Str ] {
+        { Root -> "__root__"; }
+        { Package -> rdip:name mangled; }
+        { Module -> rdip:qname mangled; }
+        { Tycon -> rdip:qname-hard mangled; }
+        { Word -> rdip:qname-hard mangled; }
     }
 }
 
@@ -239,14 +247,28 @@ struct QName {
         QName
     }
 
-    def QName.>Str [ +Mirth QName -- +Mirth Str ] {
-        /QName
-        namespace> >Str "." cat
-        name> >Str cat
-        arity> dup 0= if(drop, dip:"/" show cat cat)
+    def name; [ +Mirth +Str QName -- +Mirth +Str ] {
+        name name;
     }
 
-    def(QName.to-module-path, QName +World +Mirth -- Path +World +Mirth,
+    def name/arity; [ +Mirth +Str QName -- +Mirth +Str ] {
+        dup name;
+        arity dup 0> if("/"; int; , -1 == then("/*" ;))
+    }
+
+    def qname; [ +Mirth +Str QName -- +Mirth +Str ] {
+        dup namespace qname; name/arity;
+    }
+
+    def mangled [+Mirth QName -- +Mirth Str] { str:mangled; }
+    def mangled; [ +Mirth +Str QName -- +Mirth +Str ] {
+        /QName
+        namespace> mangled; "_";
+        name> mangled;
+        arity> dup 0> if("_"; int;, drop)
+    }
+
+    def(to-module-path, QName +World +Mirth -- Path +World +Mirth,
         dup namespace match(
             Package ->
                 dup path-or-search
@@ -255,10 +277,6 @@ struct QName {
                 nip swap name >Str ".mth" cat >Path rdip:join,
             _ -> drop "expected module name in QName.to-module-path" fatal-error!
         ))
-    def(QName.mangled, +Mirth QName -- +Mirth Str, QName ->
-        namespace> mangled "_" cat
-        name> mangled cat
-        arity> dup 0> if(dip:"_" show cat cat, drop))
 }
 
 ###############

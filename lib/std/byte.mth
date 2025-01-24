@@ -142,7 +142,8 @@ data Byte {
         { _ -> Byte.BSPACE > }
     }
 
-    def zencode [ Byte -- Str ] {
+    def zencode [ Byte -- Str ] { str:zencode; }
+    def zencode; [ +Str Byte -- +Str ] {
         ||| Encode byte as a readable string of alphanumeric or underscore characters.
         ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
         ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
@@ -152,37 +153,36 @@ data Byte {
         # is unique. To help enforce the invariant, keep these cases in
         # lexicographical order.
 
-        { B'&' -> "ZAmp" } { B'?' -> "ZAsk" } { B'@' -> "ZAt" }
-        { B'\' -> "ZBSlash" } { B'!' -> "ZBang" }
-        { B'^' -> "ZCaret" } { BCOLON -> "ZColon" } { BCOMMA -> "ZComma" }
-        { B'/' -> "ZDiv" } { B'$' -> "ZDollar" } { BDOT -> "ZDot" }
-        { B'=' -> "ZEqual" }
-        { BHASH -> "ZHash" }
-        { BLCURLY  -> "ZLCurly" }
-        { BLPAREN  -> "ZLParen" }
-        { BLSQUARE -> "ZLSquare" }
-        { B'<'  -> "ZLess" }
-        { B'%' -> "ZMod" }
-        { B'*' -> "ZMul" }
-        { B'|' -> "ZPipe" }
-        { B'+' -> "ZPlus" }
-        { BQUOTE -> "ZQuote" }
-        { BRCURLY  -> "ZRCurly" }
-        { BRPAREN  -> "ZRParen" }
-        { BRSQUARE -> "ZRSquare" }
-        { B';' -> "ZThen" }
-        { BTICK -> "ZTick" }
-        { B'~' -> "ZTilde" }
-        { B'>' -> "ZTo" }
+        { B'&' -> "ZAmp"; } { B'?' -> "ZAsk"; } { B'@' -> "ZAt"; }
+        { B'\' -> "ZBSlash"; } { B'!' -> "ZBang"; }
+        { B'^' -> "ZCaret"; } { BCOLON -> "ZColon"; } { BCOMMA -> "ZComma"; }
+        { B'/' -> "ZDiv"; } { B'$' -> "ZDollar"; } { BDOT -> "ZDot"; }
+        { B'=' -> "ZEqual"; }
+        { BHASH -> "ZHash"; }
+        { BLCURLY  -> "ZLCurly"; }
+        { BLPAREN  -> "ZLParen"; }
+        { BLSQUARE -> "ZLSquare"; }
+        { B'<'  -> "ZLess"; }
+        { B'%' -> "ZMod"; }
+        { B'*' -> "ZMul"; }
+        { B'|' -> "ZPipe"; }
+        { B'+' -> "ZPlus"; }
+        { BQUOTE -> "ZQuote"; }
+        { BRCURLY  -> "ZRCurly"; }
+        { BRPAREN  -> "ZRParen"; }
+        { BRSQUARE -> "ZRSquare"; }
+        { B';' -> "ZThen"; }
+        { BTICK -> "ZTick"; }
+        { B'~' -> "ZTilde"; }
+        { B'>' -> "ZTo"; }
 
-        { B'Z' -> "ZZ" } { B'-'  -> "Z_" }
-        { B'z' -> "zz" } { B'_' -> "z_" }
+        { B'Z' -> "ZZ"; } { B'-'  -> "Z_"; }
+        { B'z' -> "zz"; } { B'_' -> "z_"; }
 
-        { _ ->
-            dup is-alnum if(
-                to-str-unsafe,
-                Str.Mk("Z" ; >Int show; "U" ;)
-            )
-        }
+        { _ -> dup is-alnum if(emit-unsafe; , "Z"; int; "U";) }
+    }
+
+    def int; [ +Str Byte -- +Str ] {
+        >Int int;
     }
 }

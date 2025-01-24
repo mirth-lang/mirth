@@ -84,7 +84,7 @@ data Arg {
     def token { Block -> token }
     def type  { Block -> type }
     def free-vars { Block -> free-vars }
-    def >Str [ +Mirth Arg -- +Mirth Str ] { Block -> qname >Str }
+    def mangled; [ +Mirth +Str Arg -- +Mirth +Str ] { Block -> mangled; }
     def == [ Arg Arg -- Bool ] {
         { Block -> swap match { Block -> swap ==, _ -> drop2 No } }
     }
@@ -219,17 +219,6 @@ def(Block.type, +Mirth Block -- +Mirth ArrowType, sip(dom) cod T->)
 def(Block.arrow, +Mirth Block -- +Mirth Arrow, ~arrow force!)
 def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
 
-def(Block.qname, +Mirth Block -- +Mirth QName,
-    dup ~qname memoize(dup dup home match(
-        Main ->
-            .module Namespace.Module
-            swap arrow token-start index show
-            dip:"entry@" cat >Name 0 QName.Mk,
-        Word -> dup Namespace.Word
-            dip(dip:arrow arrow both(token-start index) - show >Name)
-            swap 0 QName.Mk
-    )) nip)
-
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
 
 field(Block.~home-index, Block, Int)
@@ -244,9 +233,10 @@ def(Block.register-home!, +Mirth Block -- +Mirth,
 field(Block.~cname, Block, Str)
 def(Block.cname, +Mirth Block -- +Mirth Str, dup ~cname memoize(
     dup home match(
-        Word -> qname-hard mangled Str.Mk("mb_" ; ; "_" ; dup ~home-index @ show;),
-        Main -> drop Str.Mk("mb_" ; dup index show;),
+        Word -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ int;),
+        Main -> drop Str("mb_" ; dup index int;),
     )) nip)
+def Block.mangled; [ +Mirth +Str Block -- +Mirth +Str ] { rdip:cname ; }
 
 def(Block.new!, +Mirth Arrow -- +Mirth Block,
     Block.alloc!

@@ -172,7 +172,7 @@ def TagField.similar [ TagField TagField -- Bool ] {
 data(SPKey, SPKey -> Nest(Arg))
 def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKey) ==(similar))
 def(SPKey.>Str, +Mirth SPKey -- +Mirth Str,
-    SPKey -> Str.Mk("(" ; dip:"" for(dip:; rdip:>Str ; ",") drop ")" ;))
+    SPKey -> Str("(" ; dip:"" for(dip:; mangled; ",") drop ")" ;))
 def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
     >Str >Name)
 
@@ -194,7 +194,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             @word head >head
             None >sig?
             @word body >body
-            Str.Mk( "sp" ; @word sp-synthed len 1+ dec; ) >Name >name
+            @word sp-synthed len 1+ str("sp"; int;) >Name >name
             0u >arity
             @word doc >doc
             Word.new! >word'

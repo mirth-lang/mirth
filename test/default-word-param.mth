@@ -10,8 +10,8 @@ def +World.bar { "Bar" print }
 
 def main {
     "Hello!" print
-    print(10 Some show;)
-    print(10 20 30 L3 show;)
+    print(10 Some repr;)
+    print(10 20 30 L3 repr;)
     foo
     foo("Baz" print)
 }

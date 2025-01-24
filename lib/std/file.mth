@@ -51,7 +51,7 @@ def +World.open-file! [ Path +World -- +World +Result(Str, +File) ] {
     dup >Str 0 0 posix-open!
     dup 0> if(
         nip >file-descriptor True >owned +File +Ok,
-        drop Str.Mk("Failed to open file: " ; >Str show;) +Err
+        drop Str("Failed to open file: " ; path;) +Err
     )
 }
 
@@ -61,7 +61,7 @@ def +World.create-file! [ Path +World -- +World +Result(Str, +File) ] {
         0o666 posix-open!
         dup 0> if(
             nip >file-descriptor True >owned +File +Ok,
-            drop Str.Mk("Failed to create file: " ; >Str show;) +Err
+            drop Str("Failed to create file: " ; path;) +Err
         ),
         drop2 "Don't know how to create file on unknown OS." +Err
     )

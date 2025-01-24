@@ -46,7 +46,7 @@ def compile! [ Options +World +Mirth -- +World +Mirth ] {
     trace-diagnostics!
 
     num-errors 0> if(
-        num-errors rdip:trace(Sgr.FGRed span(show ; " errors." ;)) 1 posix-exit!,
+        num-errors rdip:trace(Sgr.FGRed span(int; " errors." ;)) 1 posix-exit!,
         rdip:trace(Sgr.FGGreen span("No errors." ;)),
     )
 
@@ -56,7 +56,7 @@ def compile! [ Options +World +Mirth -- +World +Mirth ] {
             run-specializer!
             num-errors 0> if(
                 trace-diagnostics!
-                num-errors rdip:trace(Sgr.FGRed span(show ; " errors during specializer." ;)) 1 posix-exit!,
+                num-errors rdip:trace(Sgr.FGRed span(int; " errors during specializer." ;)) 1 posix-exit!,
 
                 "Codegen." rdip:trace
                 output-file> if?(

@@ -128,16 +128,11 @@ field(Field.~cname, Field, Str)
 field(External.~cname, External, Str)
 field(Prim.~cname, Prim, Str)
 
-def Tag.word-cname [ +Mirth Tag -- +Mirth Str ] { dup ~word-cname memoize(
-    Str.Mk("mtw_" ; dup rdip:qname rdip:mangled ;)) nip }
-def Tag.pat-cname [ +Mirth Tag -- +Mirth Str ] { dup ~pat-cname memoize(
-    Str.Mk("mtp_" ; dup rdip:qname rdip:mangled ;)) nip }
-def Buffer.cname [ +Mirth Buffer -- +Mirth Str ] { dup ~cname memoize(
-    dup qname-hard mangled Str.Mk("mbuf_" ; ;)) nip }
-def Field.cname [ +Mirth Field -- +Mirth Str ] { dup ~cname memoize(
-    dup qname-hard mangled Str.Mk("mfld_" ; ;)) nip }
-def External.cname [ +Mirth External -- +Mirth Str ] { dup ~cname memoize(
-    dup qname-hard mangled Str.Mk("mext_" ; ;)) nip }
+def Tag.word-cname [ +Mirth Tag      -- +Mirth Str ] { dup ~word-cname memoize(dup qname      Str("mtw_"  ; mangled;)) nip }
+def Tag.pat-cname  [ +Mirth Tag      -- +Mirth Str ] { dup ~pat-cname  memoize(dup qname      Str("mtp_"  ; mangled;)) nip }
+def Buffer.cname   [ +Mirth Buffer   -- +Mirth Str ] { dup ~cname      memoize(dup qname-hard Str("mbuf_" ; mangled;)) nip }
+def Field.cname    [ +Mirth Field    -- +Mirth Str ] { dup ~cname      memoize(dup qname-hard Str("mfld_" ; mangled;)) nip }
+def External.cname [ +Mirth External -- +Mirth Str ] { dup ~cname      memoize(dup qname-hard Str("mext_" ; mangled;)) nip }
 
 embed-str(c99-header-str, "src/mirth.h")
 def c99-header! [ +C99 -- +C99 ] {
@@ -305,7 +300,7 @@ def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackT
     @tag len @parts len + C99ReprType.TUP consume-as >tup
     tag> len >i
     parts> for(
-        Str.Mk(@tup ; "->cells[" ; @i dec; "]" ;)
+        Str(@tup ; "->cells[" ; @i int; "]" ;)
         swap match {
             { Cons -> type-to-c99-repr dup push-value-expression!(v-macro(put)) }
             { With -> resource-to-c99-repr dup push-resource-expression!(v-macro(put)) }
@@ -540,7 +535,7 @@ def c99-external-def! [ External +C99 -- +C99 ] {
 def CTypeStackPart.c99-arg-name [ arg-index:Nat CTypeStackPart +C99 -- arg-index:Nat Str +C99 ] {
     label? if?(
         +mirth(name mangled),
-        Str.Mk("X" ; @arg-index dec;)
+        Str("X" ; @arg-index int;)
     )
 }
 
@@ -610,19 +605,19 @@ def C99APIArgMode.mode-arg-prefix {
 }
 
 struct C99APIArg {
-    mode: C99APIArgMode
-    source: C99APIArgSource
-    repr: C99ReprType
-    name: Str
+    arg-mode: C99APIArgMode
+    arg-source: C99APIArgSource
+    arg-repr: C99ReprType
+    arg-name: Str
 }
 
 def C99APIArg.is-physical? [ C99APIArg -- Bool ] {
-    repr is-physical?
+    arg-repr is-physical?
 }
 
 def C99APIArg.is-physical-value? [ C99APIArg -- Bool ] {
     dup is-physical? if(
-        source match {
+        arg-source match {
             { Value -> True }
             { ValueLabel -> drop False }
             { _ -> drop False }
@@ -632,7 +627,7 @@ def C99APIArg.is-physical-value? [ C99APIArg -- Bool ] {
 }
 
 def C99APIArg.pop-consume! [ C99APIArg +C99Branch -- +C99Branch Str ] {
-    /C99APIArg mode> name> drop2 repr> dup source> match {
+    sip(arg-repr dup) arg-source match {
         { Value -> pop-value! consume-as }
         { Resource -> pop-resource! turn-into-value! consume-as }
         { ValueLabel -> pop-value-label! consume-as }
@@ -642,7 +637,7 @@ def C99APIArg.pop-consume! [ C99APIArg +C99Branch -- +C99Branch Str ] {
 
 def C99APIArg.pop-consume-physical! [ C99APIArg +C99Branch -- +C99Branch Maybe(Str) ] {
     sip:pop-consume!
-    repr is-physical? if(
+    is-physical? if(
         Some,
         drop None
     )
@@ -650,13 +645,13 @@ def C99APIArg.pop-consume-physical! [ C99APIArg +C99Branch -- +C99Branch Maybe(S
 
 def C99APIArg.pop-to-reserved! [ C99APIArg +C99Branch -- +C99Branch ] {
     dup pop-consume-physical! if?(
-        c99-line(swap name put " = " put put ";" put),
+        c99-line(swap arg-name put " = " put put ";" put),
         drop
     )
 }
 
 def C99APIArg.push-to! [ Str C99APIArg +C99Branch -- +C99Branch ] {
-    /C99APIArg name> mode> drop2 repr> source> match {
+    sip:arg-repr arg-source match {
         { Value -> push-value-expression!(put) }
         { Resource -> push-resource-expression!(put) }
         { ValueLabel -> push-label-expression!(put) }
@@ -666,11 +661,11 @@ def C99APIArg.push-to! [ Str C99APIArg +C99Branch -- +C99Branch ] {
 
 def C99APIArg.push-api-arg! [ C99APIArg +C99Branch -- +C99Branch ] {
     /C99APIArg
-    name> >value-name
-    repr> >value-repr
-    mode> drop
+    arg-name> >value-name
+    arg-repr> >value-repr
+    arg-mode> drop
     +C99Value
-    source> match {
+    arg-source> match {
         { Value -> push-value! }
         { ValueLabel -> push-value-label! }
         { Resource -> turn-into-resource! push-resource! }
@@ -715,22 +710,22 @@ def type-arg-prefix [ +Mirth Type -- +Mirth Str ] {
     { _ -> drop "_" }
 }
 
-def fresh-arg-name! [ +C99 mode:C99APIArgMode repr:C99ReprType Type -- +C99 mode:C99APIArgMode  repr:C99ReprType Str ] {
-    @repr is-physical? if(
-        dip(@mode mode-arg-prefix) +mirth:type-arg-prefix cat fresh-name-on!,
+def fresh-arg-name! [ +C99 arg-mode:C99APIArgMode arg-repr:C99ReprType Type -- +C99 arg-mode:C99APIArgMode arg-repr:C99ReprType Str ] {
+    @arg-repr is-physical? if(
+        dip(@arg-mode mode-arg-prefix) +mirth:type-arg-prefix cat fresh-name-on!,
         drop "0"
     )
 }
 
-def cons-fresh-arg! [ +C99 List(C99APIArg) Type C99APIArgSource mode:C99APIArgMode -- +C99 List(C99APIArg) mode:C99APIArgMode ] {
-    >source
-    dup +mirth:c99-repr >repr
-    fresh-arg-name! >name
-    @mode >mode
+def cons-fresh-arg! [ +C99 List(C99APIArg) Type C99APIArgSource arg-mode:C99APIArgMode -- +C99 List(C99APIArg) arg-mode:C99APIArgMode ] {
+    >arg-source
+    dup +mirth:c99-repr >arg-repr
+    fresh-arg-name! >arg-name
+    @arg-mode >arg-mode
     C99APIArg swap cons
 }
 
-def +C99.stack-type-to-c99-api-params-aux [ StackType mode:C99APIArgMode +C99 -- mode:C99APIArgMode must-flush:Bool List(C99APIArg) +C99 ] {
+def +C99.stack-type-to-c99-api-params-aux [ StackType arg-mode:C99APIArgMode +C99 -- arg-mode:C99APIArgMode must-flush:Bool List(C99APIArg) +C99 ] {
     { Unit -> False >must-flush List.Nil }
     { Error -> True >must-flush List.Nil }
     { Ignore -> True >must-flush List.Nil }
@@ -748,9 +743,9 @@ def +C99.stack-type-to-c99-api-params-aux [ StackType mode:C99APIArgMode +C99 --
 }
 
 def +C99.stack-type-to-c99-api-params [ StackType C99APIArgMode +C99 -- must-flush:Bool List(C99APIArg) +C99 ] {
-    >mode
+    >arg-mode
     +C99.stack-type-to-c99-api-params-aux reverse
-    mode> drop
+    arg-mode> drop
 }
 
 def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
@@ -775,30 +770,30 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
 
 def C99APIArg.reserve-as-new-value! [ C99APIArg +C99Branch -- C99APIArg +C99Branch ] {
     dup is-physical? if(
-        dup repr new-value!
-        consume swap name!,
-        "0" swap name!
+        dup arg-repr new-value!
+        consume swap arg-name!,
+        "0" swap arg-name!
     )
 }
 
 def C99APIArg.reserve-as-is! [ C99APIArg +C99Branch -- +C99Branch ] {
     dup is-physical? if(
-        /C99APIArg
+        >arg
         c99-line(
-            repr> underlying-c99-type put " " put
-            name> put ";" put
+            @arg arg-repr underlying-c99-type put " " put
+            @arg arg-name put ";" put
         )
-        source> mode> drop2,
+        arg> drop,
         drop
     )
 }
 
 def C99APIArg.reserve-new-expression! [ Str C99APIArg +C99Branch -- C99APIArg +C99Branch ] {
     >arg
-    +c99:fresh-name! @arg:name!
+    +c99:fresh-name! @arg:arg-name!
     c99-line (
-        @arg repr underlying-c99-type put " " put
-        @arg name put " = " put
+        @arg arg-repr underlying-c99-type put " " put
+        @arg arg-name put " = " put
         put ";" put
     )
     arg>
@@ -811,13 +806,13 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
     @api must-flush then(flush-cache!)
     @api out-params-1 map(reserve-as-new-value!) >reserved-outputs-1
     @api out-params-2 map(reserve-as-new-value!) >reserved-outputs-2
-    Str.Mk(
+    Str(
         @api cname ; "(" ;
         "" >sep
         popped-inputs> for:for(sep> ; ", " >sep ;)
         @reserved-outputs-1 @reserved-outputs-2 cat for(
             dup is-physical?
-            if(sep> ; ", " >sep "&" ; name ;, drop)
+            if(sep> ; ", " >sep "&" ; arg-name ;, drop)
         )
         sep> drop
         ")" ;
@@ -839,7 +834,7 @@ def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     >api
     "static " put
     @api return-param if?(
-        repr underlying-c99-type put,
+        arg-repr underlying-c99-type put,
         "void" put
     )
     " " put
@@ -848,13 +843,13 @@ def +C99.smart-sig-put [ C99API +C99 -- +C99 ] {
     "" >sep
     @api in-params filter(is-physical?) for(
         sep> put ", " >sep
-        dup repr underlying-c99-type put
-        " " put name put
+        dup arg-repr underlying-c99-type put
+        " " put arg-name put
     )
     @api out-params-1 @api out-params-2 cat filter(is-physical?) for(
         sep> put ", " >sep
-        dup repr underlying-c99-type put
-        " *" put name put
+        dup arg-repr underlying-c99-type put
+        " *" put arg-name put
     )
     sep> empty? then("void" put)
     ")" put
@@ -883,14 +878,14 @@ def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
     >api
     @api out-params-2 reverse-for(
         dup pop-consume-physical! if?(
-            swap name c99-line("*" put put " = " put put ";" put),
+            swap arg-name c99-line("*" put put " = " put put ";" put),
             drop
         )
     )
     @api return-param map(pop-consume!)
     @api out-params-1 reverse-for(
         dup pop-consume-physical! if?(
-            swap name c99-line("*" put put " = " put put ";" put),
+            swap arg-name c99-line("*" put put " = " put put ";" put),
             drop
         )
     )
@@ -898,7 +893,7 @@ def c99-api-exit! [ C99API +C99Branch -- +C99 ] {
     reachable> if(
         for(c99-line("return " put put ";" put)),
         drop @api return-param for(
-            repr dummy-value
+            arg-repr dummy-value
             c99-line("return " put put "; /* unreachable */" put)
         )
     )
@@ -1321,27 +1316,27 @@ def C99ReprType.v-macro-prefix-suffix [ C99ReprType -- Str Str ] {
     { Bool  -> "value_bool(" ")" }
     { PTR   -> "value_ptr(" ")" }
     { FNPTR -> "value_fnptr(" ")" }
-    { TUP   -> "value_tup(" swap Str.Mk(", "; dec; ")";) }
+    { TUP   -> "value_tup(" swap Str(", "; int; ")";) }
 }
 
 def C99ReprType.mk-macro [ Str C99ReprType -- Str ] {
     { VAL   -> id }
-    { STR   -> Str.Mk( "MKSTR(" ; ; ")" ; ) }
-    { Void  -> Str.Mk( "MKI64(" ; ; ")" ; ) }
-    { I64   -> Str.Mk( "MKI64(" ; ; ")" ; ) }
-    { I32   -> Str.Mk( "MKI32(" ; ; ")" ; ) }
-    { I16   -> Str.Mk( "MKI16(" ; ; ")" ; ) }
-    { I8    -> Str.Mk( "MKI8("  ; ; ")" ; ) }
-    { U64   -> Str.Mk( "MKU64(" ; ; ")" ; ) }
-    { U32   -> Str.Mk( "MKU32(" ; ; ")" ; ) }
-    { U16   -> Str.Mk( "MKU16(" ; ; ")" ; ) }
-    { U8    -> Str.Mk( "MKU8(" ; ; ")" ; ) }
-    { F64   -> Str.Mk( "MKF64(" ; ; ")" ; ) }
-    { F32   -> Str.Mk( "MKF32(" ; ; ")" ; ) }
-    { Bool  -> Str.Mk( "MKBOOL(" ; ; ")" ; ) }
-    { PTR   -> Str.Mk( "MKPTR(" ; ; ")" ; ) }
-    { FNPTR -> Str.Mk( "MKFNPTR(" ; ; ")" ; ) }
-    { TUP   -> swap Str.Mk( "MKTUP(" ; ; ", " ; dec; ")" ; ) }
+    { STR   -> Str( "MKSTR(" ; ; ")" ; ) }
+    { Void  -> Str( "MKI64(" ; ; ")" ; ) }
+    { I64   -> Str( "MKI64(" ; ; ")" ; ) }
+    { I32   -> Str( "MKI32(" ; ; ")" ; ) }
+    { I16   -> Str( "MKI16(" ; ; ")" ; ) }
+    { I8    -> Str( "MKI8("  ; ; ")" ; ) }
+    { U64   -> Str( "MKU64(" ; ; ")" ; ) }
+    { U32   -> Str( "MKU32(" ; ; ")" ; ) }
+    { U16   -> Str( "MKU16(" ; ; ")" ; ) }
+    { U8    -> Str( "MKU8(" ; ; ")" ; ) }
+    { F64   -> Str( "MKF64(" ; ; ")" ; ) }
+    { F32   -> Str( "MKF32(" ; ; ")" ; ) }
+    { Bool  -> Str( "MKBOOL(" ; ; ")" ; ) }
+    { PTR   -> Str( "MKPTR(" ; ; ")" ; ) }
+    { FNPTR -> Str( "MKFNPTR(" ; ; ")" ; ) }
+    { TUP   -> swap Str( "MKTUP(" ; ; ", " ; int; ")" ; ) }
 }
 
 def Resource.c99-repr [ Resource +Mirth -- C99ReprType +Mirth ] {
@@ -1503,13 +1498,13 @@ def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
     { _ ->
         /+C99Value
         @value-repr match {
-            { VAL -> Str.Mk( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
+            { VAL -> Str( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
             { _ ->
                 over == if(
                     drop value-name>,
                     dup is-int-like? @value-repr is-int-like? && if(
-                        Str.Mk( "((" ; underlying-c99-type ; ")" ; value-name> ; ")" ; ),
-                        Str.Mk( "(\n#error \"attempted to cast " ; value-name> ; " to incompatible C99 repr type " ;
+                        Str( "((" ; underlying-c99-type ; ")" ; value-name> ; ")" ; ),
+                        Str( "(\n#error \"attempted to cast " ; value-name> ; " to incompatible C99 repr type " ;
                             underlying-c99-type ; "\"\n" ; )
                     )
                 )
@@ -1590,7 +1585,7 @@ def +C99Resource.consume-as-VAL [ +C99Resource -- Str ] {
 
 def +C99Resource.consume-as-TUP [ +C99Resource -- Str ] {
     /+C99Resource resource-repr> match {
-        { VAL -> Str.Mk( "VTUP(" ; resource-name> ; ")" ; ) }
+        { VAL -> Str( "VTUP(" ; resource-name> ; ")" ; ) }
         { TUP -> drop resource-name> }
         { _ -> drop "c99: tried to consume non-tuple as tuple" panic! }
     }
@@ -1616,7 +1611,7 @@ def +C99Resource.push-resource-direct! [ +C99Branch +C99Resource -- +C99Branch ]
 def +C99Resource.peek-data-tag [ +C99Resource -- +C99Resource Str ] {
     resource-repr is-int-like? if(
         resource-name,
-        rdup consume-as-VAL Str.Mk("get_data_tag(" ; ; ")";)
+        rdup consume-as-VAL Str("get_data_tag(" ; ; ")";)
     )
 }
 

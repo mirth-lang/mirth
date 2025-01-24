@@ -77,13 +77,9 @@ data Maybe(t) {
 
     def zip [ Maybe(x) Maybe(y) -- Maybe([x y]) ] { map2(pack2) }
 
-    def show;(f {show;}) [ (t +Str -- +Str) Maybe(t) +Str -- +Str ] {
+    def repr;(f {repr;}) [ (t +Str -- +Str) Maybe(t) +Str -- +Str ] {
         { None -> "None" ; }
         { Some -> f " Some" ; }
-    }
-
-    def show(f {show;}) [ (t +Str -- +Str) Maybe(t) -- Str ] {
-        Str.Mk( show;(f) )
     }
 }
 

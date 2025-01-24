@@ -235,7 +235,7 @@ struct +TypeElab {
             } swap dip:Type.App,
 
             drop rdip:tycon? then?(
-                token rdip:Str.Mk("Too many type arguments to "; swap rdip(qname-hard >Str) ;) rdip:emit-error!
+                token rdip(Str("Too many type arguments to "; swap qname;) emit-error!)
             )
             Type.Error L0
         )
@@ -271,11 +271,6 @@ struct +TypeElab {
             )
         ) token!
     }
-}
-
-def show-num-arguments [ Int -- Str ] {
-    dup 1 == if(drop "1 argument",
-    show " arguments" cat)
 }
 
 # TODO: separate this into a reason and a def.
@@ -429,61 +424,52 @@ struct +ResolveDef {
 
     def resolve-def-ambiguous [ +Mirth +ResolveDef -- +Mirth ] {
         report-ambiguous-as-warning if(
-            token Str.Mk(
+            token Str(
                 "Can't resolve " ; rdip:sort ; " due to previous errors. Candidates are:" ;
-                " " rdip:candidates for(swap ; rdip2(qname-hard >Str) ; ", ") drop
+                " " rdip:candidates for(swap ; rdip':qname; ", ") drop
             ) rdip:emit-warning!,
 
-            token Str.Mk(
+            token Str(
                 "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
-                " " rdip:candidates for(swap ; rdip2(qname-hard >Str) ; ", ") drop
+                " " rdip:candidates for(swap ; rdip':qname; ", ") drop
             ) rdip:emit-error!
         ) rdrop
     }
 
     def resolve-def-unknown [ +Mirth +ResolveDef -- +Mirth ] {
-        token Str.Mk(rdip:rejected match(
+        token Str(rdip:rejected match(
             Nil -> "Unknown " ; rdip:sort ; " name, possibly a misspelling." ;,
             Cons ->
                 match(
                     Nil -> match(
                         WrongSort ->
-                            "Expected a " ; rdip:sort ; ", but " ;
-                            rdip2(qname-hard >Str) ; " is not a " ; rdip:sort ; "." ; ,
+                            "Expected a " ; rdip:sort ; ", but " ; rdip':qname; " is not a " ; rdip:sort ; "." ; ,
                         NotVisible ->
-                            "Not visible in current scope: " ; rdip2(qname-hard >Str) ; ,
+                            "Not visible in current scope: " ; rdip':qname; ,
                         NotImported ->
-                            "Not imported in current scope: " ; rdip2(qname-hard >Str) ; ,
+                            "Not imported in current scope: " ; rdip':qname; ,
                         WrongArity ->
-                            rdip2(qname-hard dup >Str) ; " expects " ; arity show;
-                            " arguments, but got " ; rdip:token rdip2:num-args show; "." ; ,
+                            rdip2:qname-hard dup rdip':qname; " expects " ; arity int;
+                            " arguments, but got " ; rdip:token rdip2:num-args int; "." ; ,
                         WrongQualifier ->
-                            "Qualified name not found. Perhaps you meant: " ; rdip2(qname-hard >Str) ; ,
+                            "Qualified name not found. Perhaps you meant: " ; rdip':qname; ,
                         WrongConstructor ->
-                            "Constructor is for a different type: " ; rdip2(qname-hard >Str) ; ,
+                            "Constructor is for a different type: " ; rdip':qname; ,
                         MethodWrongType ->
-                            "Method is for a different type: " ; rdip2(qname-hard >Str) ; ,
+                            "Method is for a different type: " ; rdip':qname; ,
                         MethodNotAvailable ->
-                            "Method is not available for current stack: " ; rdip2(qname-hard >Str) ; ,
+                            "Method is not available for current stack: " ; rdip':qname; ,
                     ),
                     _ -> cons "Multiple definitions for name, but none are suitable:" ;
                         dip:" " for(swap ; match(
-                            WrongSort -> rdip2(qname-hard >Str) ; " is not a " ; rdip:sort ; ,
-                            NotVisible ->
-                                rdip2(qname-hard >Str) ; " is not visible in current scope" ; ,
-                            NotImported ->
-                                rdip2(qname-hard >Str) ; " is not imported in current scope" ; ,
-                            WrongArity ->
-                                rdip2(qname-hard dup >Str) ; " expects " ;
-                                arity show; " arguments" ; ,
-                            WrongQualifier ->
-                                rdip2(qname-hard >Str) ; " doesn't match the given qualified name" ; ,
-                            WrongConstructor ->
-                                rdip2(qname-hard >Str) ; " is constructor for a different type" ; ,
-                            MethodWrongType ->
-                                rdip2(qname-hard >Str) ; " is method for a different type" ; ,
-                            MethodNotAvailable ->
-                                rdip2(qname-hard >Str) ; " is not avaliable for current stack" ; ,
+                            WrongSort -> rdip':qname; " is not a " ; rdip:sort ; ,
+                            NotVisible -> rdip':qname; " is not visible in current scope" ; ,
+                            NotImported -> rdip':qname; " is not imported in current scope" ; ,
+                            WrongArity -> rdip2:qname-hard dup rdip':qname; " expects " ; arity int; " arguments" ; ,
+                            WrongQualifier -> rdip':qname; " doesn't match the given qualified name" ; ,
+                            WrongConstructor -> rdip':qname; " is constructor for a different type" ; ,
+                            MethodWrongType -> rdip':qname; " is method for a different type" ; ,
+                            MethodNotAvailable -> rdip':qname; " is not avaliable for current stack" ; ,
                         ) ", ") drop
                 )
         )) rdip:emit-error! rdrop
@@ -867,11 +853,6 @@ struct +AB {
         StackType.Error ab-type!
     }
 
-    def elab-ambiguous-name-error! [ *a Token List(QName) +Mirth -- *b +Mirth ] {
-        dip("name is ambiguous, can't decide between:")
-        for(dip(" " cat) >Str cat) emit-fatal-error!
-    }
-
     def elab-atom-def! [ Def +Mirth +AB -- +Mirth +AB ] {
         Alias -> rdip:target elab-atom-def!,
         Buffer -> elab-no-args! ab-buffer!,
@@ -881,12 +862,12 @@ struct +AB {
         Tag -> elab-args! ab-tag!,
         Prim -> elab-prim!,
         Macro -> elab-macro!,
-        _ -> rdip:qname-hard elab-atom-not-a-word!
+        _ -> rdip:qname-hard elab-atom-not-callable!
     }
 
-    def elab-atom-not-a-word! [ QName +Mirth +AB -- +Mirth +AB ] {
+    def elab-atom-not-callable! [ QName +Mirth +AB -- +Mirth +AB ] {
         ab-type@ rdip:top-types-are-fine? if(
-            dip(ab-token@ "Not a word: ") rdip:>Str cat rdip:emit-error!,
+            ab-token@ swap rdip:str("Not callable: "; qname;) rdip:emit-error!,
             drop
         ) elab-atom-failed!
     }
@@ -1803,9 +1784,7 @@ def Tag.output-type [ +Mirth Tag -- +Mirth Type/Resource ] {
             { Cons -> nip Left }
             { With -> nip Right }
             { _ ->
-                drop
-                "Unexpected output type for constructor "
-                @tag qname >Str cat
+                drop @tag str("Unexpected output type for constructor "; qname;)
                 @tag .data head? if?(swap emit-error!, error!)
                 Type.Error @tag .data is-resource? if(
                     Resource Right,
@@ -2248,7 +2227,7 @@ def elab-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
         dup dom parts filter-some(label?)
         over cod parts filter-some(label?)
         swap difference for(
-            Str.Mk("Output label "; name; " not present in input";) error!
+            Str("Output label "; name; " not present in input";) error!
         )
     )
 }
@@ -2342,10 +2321,8 @@ def elab-table! [ +Mirth Token -- +Mirth Token ] {
 ||| Create entry point based on word name.
 def elab-entry-point [ QName +Mirth -- Arrow +Mirth ] {
     dup def-hard? bind(word?) unwrap(
-        dup dip(
-            namespace module? for(start error-token!)
-            "can't find entry point "
-        ) >Str cat
+        dup namespace module? for(start error-token!)
+        str("Can't find entry point "; qname;)
         fatal-error!
     ) nip { Word +Mirth }
     dup dip(Ctx.L0 T0 Resource.World T+ T0 Resource.World T+ T->)

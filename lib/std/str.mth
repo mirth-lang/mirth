@@ -41,7 +41,8 @@ inline (
     def(+Str.num-bytes?, +Str -- USize +Str,
         +Str -> dup num-bytes dip(+Str))
 )
-def(Str.Mk(f), (*a +Str -- *b +Str) *a -- *b Str, "" thaw f freeze)
+def Str.Str(f) [ (*a +Str -- *b +Str) *a -- *b Str ] { "" +Str f /+Str }
+def str(f) [ (*a x +Str -- *a +Str) *a x -- *a Str ] { Str(f) }
 
 def Str.last-byte [ Str -- Byte ] {
     dup num-bytes 1- >UOffset-if (
@@ -217,7 +218,7 @@ def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
         dip(dip:>USize take-slice)
     )))
 
-def(+Str.push-show-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
+def(+Str.push-repr-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
     BQUOTE -> "\\\"" ; False !escape-hex,
     B'\' -> "\\\\" ; False !escape-hex,
     BLF -> "\n" ; False !escape-hex,
@@ -234,9 +235,11 @@ def(+Str.push-show-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
         )
     )
 
-def(Str.show;, Str +Str -- +Str,
-    "\"" ; False >escape-hex bytes-for(push-show-byte!) escape-hex> drop "\"" ;)
+def(Str.repr;, Str +Str -- +Str,
+    "\"" ; False >escape-hex bytes-for(push-repr-byte!) escape-hex> drop "\"" ;)
 
+def Str.zencode; [ +Str Str -- +Str ] { bytes-for(zencode;) }
+def Str.zencode  [ Str -- Str ] { str:zencode; }
 
 ||| Convert the initial portion of a string into a 32-bit float.
 ||| Returns the F32 and the rest of the string.

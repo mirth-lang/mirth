@@ -196,7 +196,7 @@ def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b,
     dip(location) emit-fatal-error-at!)
 
 def +Mirth.emit-deprecated! [ Token old:Str new:Str +Mirth -- +Mirth ] {
-    Str.Mk(Sgr.FGCyan span(old> ;) " is deprecated, please use ";
+    Str(Sgr.FGCyan span(old> ;) " is deprecated, please use ";
            Sgr.FGCyan span(new> ;) " instead.";) emit-warning!
 }
 
@@ -224,14 +224,14 @@ def +Mirth.error!   [ Str +Mirth -- +Mirth ] { error-location swap emit-error-at
 def +Mirth.fatal-error! [ *a Str +Mirth -- *b ] { error-location swap emit-fatal-error-at! }
 
 def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
-    pop-diagnostics Str.Mk(
+    pop-diagnostics Str(
         for(diagnostic; "\n";)
         Sgr.FGRed span( "Fatal error. Stopping early."; )
     ) panic!)
 
 def +Mirth.trace-diagnostics! [ +World +Mirth -- +World +Mirth ] {
     pop-diagnostics
-    for(Str.Mk(diagnostic;) rdip:trace)
+    for(Str(diagnostic;) rdip:trace)
 }
 
 def(+Mirth.pop-diagnostics, +Mirth -- +Mirth List(Diagnostic),
@@ -374,7 +374,7 @@ def Prop.try-force! [ Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth ] {
 def Prop.force! [ Mut(Prop(t)) +Mirth -- t +Mirth ] {
     try-force! unwrap(
         +propstack:reversed
-        Str.Mk("Recursive prop detected:" ;
+        Str("Recursive prop detected:" ;
             reverse-for("\n  - " ; trace;)
         ) fatal-error!
     )

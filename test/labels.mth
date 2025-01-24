@@ -12,18 +12,18 @@ def(push-mystr, +a -- +mystr:+a, >+mystr)
 
 def(main, +World -- +World,
     print(
-        10 20 30 >foo >bar show; " " ;
-        pop-foo show; " " ;
+        10 20 30 >foo >bar int; " " ;
+        pop-foo int; " " ;
         40 push-bar
-        pop-bar show; " " ;
-        @bar show; " " ; @bar:1+
-        @bar show; " " ; @bar:1+
-        @bar show; " " ; @bar:1+
+        pop-bar int; " " ;
+        @bar int; " " ; @bar:1+
+        @bar int; " " ; @bar:1+
+        @bar int; " " ; @bar:1+
         60 !bar
-        @bar show; " " ; @bar:1+
-        @bar show; " " ; @bar:1+
+        @bar int; " " ; @bar:1+
+        @bar int; " " ; @bar:1+
 
-        pop-bar show;
+        pop-bar int;
     )
 
     "world" +Str
@@ -33,12 +33,12 @@ def(main, +World -- +World,
 
     print (
         20 !foo(
-            @foo show; " { " ;
+            @foo int; " { " ;
             10 !foo(
-                @foo show; " " ;
-            ) show; " } " ;
-            @foo show; " " ;
-        ) show;
+                @foo int; " " ;
+            ) int; " } " ;
+            @foo int; " " ;
+        ) int;
     )
 )
 

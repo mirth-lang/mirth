@@ -12,7 +12,7 @@ struct Codepoint {
         def == [ Codepoint Codepoint -- Bool ] {
             both:/Codepoint ==
         }
-        
+
         ||| Convert a u32 into a codepoint without verifying it
         def init-unsafe [ U32 -- Codepoint ] {
             Codepoint
@@ -28,13 +28,13 @@ struct Codepoint {
     ||| Encode the codepoint and append it to the string
     def emit; [ +Str Codepoint -- +Str ] {
         /Codepoint >Int
-        dup 0x80 < if(>Byte-unsafe push-byte-unsafe!, 
+        dup 0x80 < if(>Byte-unsafe push-byte-unsafe!,
             dup 0x800 < if(dup 6 >> 0xC0 | >Byte-unsafe push-byte-unsafe! 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!,
-                dup 0x010000 < if( 
-                    dup 12 >> 0xE0 | >Byte-unsafe push-byte-unsafe! 
-                    dup 6 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe! 
+                dup 0x010000 < if(
+                    dup 12 >> 0xE0 | >Byte-unsafe push-byte-unsafe!
+                    dup 6 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
                     0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!,
-                    
+
                     dup 18 >> 0x7 & 0xF0 | >Byte-unsafe push-byte-unsafe!
                     dup 12 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
                     dup 6 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
@@ -44,8 +44,8 @@ struct Codepoint {
         )
     }
 
-    def show; [ +Str Codepoint -- +Str ] {
-         /Codepoint show; " Codepoint" ;
+    def repr; [ +Str Codepoint -- +Str ] {
+         /Codepoint repr; " Codepoint" ;
     }
 }
 
@@ -63,7 +63,7 @@ struct +CodepointsForState {
         index ptr unsafe(uoffset @U8) >Int
     }
     def next! [ +CodepointsForState -- +CodepointsForState Int ] {
-        peek index:1+ 
+        peek index:1+
     }
 }
 
@@ -71,7 +71,7 @@ struct +CodepointsForState {
 def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
     with-data(
         >UOffset >len >ptr 0u >UOffset >index +CodepointsForState
-        while(index len <, 
+        while(index len <,
             peek 0x80 & 0 == if(
                 next! >Codepoint-unsafe rdip:f,
 
@@ -81,7 +81,7 @@ def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
 
                     peek 0xF0 & 0xE0 == if(
                         next! 0x0F & 12 <<
-                        next! 0x3F &  6 << | 
+                        next! 0x3F &  6 << |
                         next! 0x3F &       | >Codepoint-unsafe rdip:f,
 
                         next! 0x07 & 16 <<
@@ -92,7 +92,7 @@ def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
                 )
             )
         )
-        /+CodepointsForState index> drop ptr> drop len> drop 
+        /+CodepointsForState index> drop ptr> drop len> drop
     )
 }
 

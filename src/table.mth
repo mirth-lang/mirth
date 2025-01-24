@@ -28,6 +28,9 @@ def(Table.name, +Mirth Table -- +Mirth Name, ~name @)
 def(Table.num-buffer, +Mirth Table -- +Mirth Buffer, ~num-buffer @)
 def(Table.==, Table Table -- Bool, both(index) ==)
 
+def Table.name; [ +Mirth +Str Table -- +Mirth +Str ] { rdip:name name; }
+def Table.qname; [ +Mirth +Str Table -- +Mirth +Str ] { rdip:qname-hard qname; }
+
 table(Field)
 field(Field.~doc, Field, Maybe(Str))
 field(Field.~head, Field, Token)
@@ -45,6 +48,7 @@ def(Field.index-type, +Mirth Field -- +Mirth Type, ~index-type force!)
 def(Field.value-type, +Mirth Field -- +Mirth Type, ~value-type force!)
 
 def Field.name; [ +Mirth +Str Field -- +Mirth +Str ] { rdip:name name; }
+def Field.qname; [ +Mirth +Str Field -- +Mirth +Str ] { rdip:qname-hard qname; }
 
 def(Field.dom, +Mirth Field -- +Mirth StackType, index-type T1)
 def(Field.cod, +Mirth Field -- +Mirth StackType, value-type Type.Mut T1)
