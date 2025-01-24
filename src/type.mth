@@ -734,7 +734,7 @@ def(StackType.top-resource-tycon?, +Mirth StackType -- +Mirth Maybe(Tycon),
     top-resource? bind(>Type tycon?))
 
 def(StackType.top-namespaces, +Mirth StackType -- +Mirth List(Namespace),
-    List.Mk(
+    List(
         dup rdip:top-tycon? for(Namespace.Tycon ;)
         rdip:top-resource-tycon? for(Namespace.Tycon ;)
     ))

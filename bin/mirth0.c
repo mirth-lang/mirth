@@ -964,13 +964,13 @@ static STACK lbl_head = {0};
 static STACK lbl_rest = {0};
 static STACK lbl_ok = {0};
 static STACK lbl_reversed = {0};
+static STACK lbl_ZPlustail = {0};
+static STACK lbl_ZPlushead = {0};
 static STACK lbl_escapeZ_hex = {0};
 static STACK lbl_sizze = {0};
 static STACK lbl_oldZ_sizze = {0};
 static STACK lbl_origZ_sizze = {0};
 static STACK lbl_origZ_offset = {0};
-static STACK lbl_ZPlushead = {0};
-static STACK lbl_ZPlustail = {0};
 static STACK lbl_name = {0};
 static STACK lbl_flagZ_type = {0};
 static STACK lbl_argZ_doc = {0};
@@ -6293,7 +6293,7 @@ static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp9 (STR* in_Str_1
 static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp29 (VAL in_Maybe_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static void mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp30 (uint64_t in_Token_1, STR* in_Str_2, TUP* in_ZPlusC99Branch_3, TUP* *out_ZPlusC99Branch_4);
 static TUP* mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp32 (int64_t in_Prim_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
-static VAL mw_std_list_List_1_Mk_1_sp11 (int64_t in_Nat_1);
+static VAL mw_std_list_List_1_List_1_sp11 (int64_t in_Nat_1);
 static int64_t mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp33 (uint64_t in_Label_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp20 (TUP* in_ZPlusC99Value_1, TUP* in_ZPlusC99Branch_2, VAL in_C99ReprType_3, TUP* *out_ZPlusC99Branch_4, TUP* *out_ZPlusC99Value_5);
 static TUP* mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp36 (uint64_t in_Word_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
@@ -71337,7 +71337,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 }
 static void mw_mirth_c99_c99Z_tupZ_packZBang (int64_t in_Nat_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_3) {
 	VAL v4 = MKI64(0LL /* None */);
-	VAL v5 = mw_std_list_List_1_Mk_1_sp11(in_Nat_1);
+	VAL v5 = mw_std_list_List_1_List_1_sp11(in_Nat_1);
 	TUP* v6;
 	TUP* v7;
 	mw_mirth_c99_c99Z_packZ_tupleZBang(in_ZPlusC99Branch_2, v4, v5, &v6, &v7);
@@ -71349,7 +71349,7 @@ static void mw_mirth_c99_c99Z_tupZ_packZBang (int64_t in_Nat_1, TUP* in_ZPlusC99
 }
 static void mw_mirth_c99_c99Z_tupZ_unpackZBang (int64_t in_Nat_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_3) {
 	VAL v4 = MKI64(0LL /* None */);
-	VAL v5 = mw_std_list_List_1_Mk_1_sp11(in_Nat_1);
+	VAL v5 = mw_std_list_List_1_List_1_sp11(in_Nat_1);
 	VAL v6 = mtw_mirth_c99_C99ReprType_TUP(in_Nat_1);
 	TUP* v7;
 	TUP* v8;
@@ -75380,7 +75380,7 @@ static TUP* mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp32 (int64_t in_Prim_1, TU
 	*out_ZPlusC99Branch_4 = in_ZPlusC99Branch_2;
 	return v8;
 }
-static VAL mw_std_list_List_1_Mk_1_sp11 (int64_t in_Nat_1) {
+static VAL mw_std_list_List_1_List_1_sp11 (int64_t in_Nat_1) {
 	VAL v3 = MKI64(0LL /* Nil */);
 	VAL v4;
 	mw_std_list_List_1_buildZBang(v3, &v4);

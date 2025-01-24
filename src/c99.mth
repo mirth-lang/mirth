@@ -2254,13 +2254,13 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
 
 def c99-tup-pack! [ Nat +C99Branch -- +C99Branch ] {
     None >tag
-    List.Mk(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
+    List(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
     c99-pack-tuple! turn-into-value! push-value!
 }
 
 def c99-tup-unpack! [ Nat +C99Branch -- +C99Branch ] {
     None >tag
-    dup List.Mk(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
+    dup List(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
     C99ReprType.TUP pop-value! turn-into-resource! c99-unpack-tuple!
 }
 

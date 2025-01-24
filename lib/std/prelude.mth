@@ -179,13 +179,13 @@ inline {
     def dup2 [ a b -- a b a b ] { over over }
     def dup3 [ a b c -- a b c a b c ] { dup dip(dip(dup2) rotr) }
 
-    def dip'(f) [ (*a x -- *b y) *a c x -- *b c y ] { swap dip(f) swap }
+    def dip_(f) [ (*a x -- *b y) *a c x -- *b c y ] { swap dip(f) swap }
     def dip2(f) [ (*a -- *b) *a c1 c2 -- *b c1 c2 ] { dip(dip(f)) }
     def dip3(f) [ (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3 ] { dip(dip2(f)) }
     def dip4(f) [ (*a -- *b) *a c1 c2 c3 c4 -- *b c1 c2 c3 c4 ] { dip(dip3(f)) }
     def dip5(f) [ (*a -- *b) *a c1 c2 c3 c4 c5 -- *b c1 c2 c3 c4 c5 ] { dip(dip4(f)) }
 
-    def rdip'(f) [ (*a +r1 -- *b +r2) *a +c +r1 -- *b +c +r2 ] { rswap rdip(f) rswap }
+    def rdip_(f) [ (*a +r1 -- *b +r2) *a +c +r1 -- *b +c +r2 ] { rswap rdip(f) rswap }
     def rdip2(f) [ (*a -- *b) *a +c1 +c2 -- *b +c1 +c2 ] { rdip(rdip(f)) }
     def rdip3(f) [ (*a -- *b) *a +c1 +c2 +c3 -- *b +c1 +c2 +c3 ] { rdip(rdip2(f)) }
 
@@ -198,20 +198,20 @@ inline {
         ( *a x1 -- *b x2
         , *b y1 -- *c y2
         ) *a x1 y1 -- *c x2 y2 ]
-        { dip(f) dip'(g) }
+        { dip(f) dip_(g) }
     def on3(f,g,h) [
         ( *a x1 -- *b x2
         , *b y1 -- *c y2
         , *c z1 -- *d z2
         ) *a x1 y1 z1 -- *d x2 y2 z2 ]
-        { dip:on2(f,g) dip':dip'(h) }
+        { dip:on2(f,g) dip_:dip_(h) }
     def on4(f,g,h,i) [
         ( *a x1 -- *b x2
         , *b y1 -- *c y2
         , *c z1 -- *d z2
         , *d w1 -- *e w2
         ) *a x1 y1 z1 w1 -- *e x2 y2 z2 w2 ]
-        { dip:on3(f,g,h) dip':dip':dip'(i) }
+        { dip:on3(f,g,h) dip_:dip_:dip_(i) }
 
     def on2(f) [ (*a x -- *a y) *a x x     -- *a y y     ] { on2(f,f)     }
     def on3(f) [ (*a x -- *a y) *a x x x   -- *a y y y   ] { on3(f,f,f)   }

@@ -220,7 +220,7 @@ struct +Lexer {
             )
             Byte.BQUOTE == else(
                 "String literal is missing end quote (\")."
-                rdip':fatal-error!
+                rdip_:fatal-error!
             )
 
             rdip:freeze TokenValue.Str
@@ -241,7 +241,7 @@ struct +Lexer {
         { BQUOTE -> Byte.BQUOTE rdip(push-byte-ascii!) }
         { _ ->
             rdip(push-byte-unsafe!)
-            "Unknown character escape sequence." rdip':warning!
+            "Unknown character escape sequence." rdip_:warning!
         }
     }
 

@@ -85,7 +85,7 @@ def compiler-parse-args [ +ArgumentParser(Options) Options Maybe(Str) ArgpOption
 
 def parse-options! [ +World -- +World Result([ArgumentParsingError Str], Options) ] {
     Options.default
-    List.Mk(
+    List(
         "output-file" Some >name
         Byte.B'o' ArgpOptionType.Short >flag-type
         "OUTPUT_FILE" Some >arg-doc

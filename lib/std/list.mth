@@ -19,6 +19,7 @@ data List(t) {
     0 Nil
     1 Cons [ t List(t) ]
     --
+    def List(f) [ (*a +Lister(t) -- *b +Lister(t)) *a -- *b List(t) ] { L0 build! f done! }
     inline {
         def L0 [                   -- List(t) ] { List.Nil }
         def L1 [ t                 -- List(t) ] { L0 cons }
@@ -87,7 +88,7 @@ data List(t) {
 
     ||| Transform each element of the list.
     def map(f) [ (*c a -- *c b) *c List(a) -- *c List(b) ] {
-        List.Mk(for(rdip(f) ;))
+        List(for(rdip(f) ;))
     }
 
    def if-cons(f,g) [ (*a x List(x) -- *b, *a -- *b) *a List(x) -- *b ] {
@@ -127,26 +128,26 @@ data List(t) {
 
     ||| Filter away any list elements that don't satisfy the predicate.
     def filter(f) [ (*c a -- *c Bool) *c List(a) -- *c List(a) ] {
-        List.Mk(for(dup dip:rdip(f) swap if(;, drop)))
+        List(for(dup dip:rdip(f) swap if(;, drop)))
     }
 
     ||| Transform each element of a list into a new list, and concatenate all these lists.
     def flatmap(f) [ (*c a -- *c List(b)) *c List(a) -- *c List(b) ] {
-        List.Mk(for(rdip(f) for(;)))
+        List(for(rdip(f) for(;)))
     }
     alias(List.bind(f), List.flatmap)
 
     ||| Map each element of a list into the [Maybe] type, and collect all of the
     ||| [Some] results while discarding all of the [None] results.
     def filter-some(p) [ (*c a -- *c Maybe(b)) *c List(a) -- *c List(b) ] {
-        List.Mk(for(rdip(p) for(;)))
+        List(for(rdip(p) for(;)))
     }
 
     ||| Find first element that returns [Some], if it exists.
     def find-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(b) ] {
         None swap while-some(
             uncons swap,
-            dip'(dip'(f)) match(
+            dip_(dip_(f)) match(
                 None -> id,
                 _ -> dip(drop2) List.Nil
             )
@@ -226,7 +227,7 @@ data List(t) {
         collect(uncons dip:filter(p) swap) nip)
 
     def split-at(p) [ (*a t -- *a Bool) *a List(t) -- *a List(t) List(t) ] {
-        List.Mk(
+        List(
             while (
                 if-cons(
                     dip:sip:rdip(p) rotl if(
@@ -242,7 +243,7 @@ data List(t) {
     def(partition-either(p), (*a t -- *a Either(t1,t2))
             *a List(t) -- *a List(t1) List(t2),
         List.Nil List.Nil rotl for(
-            dip'(dip'(p)) match(
+            dip_(dip_(p)) match(
                 Left -> rotr dip:cons,
                 Right -> swap cons
             )
@@ -252,7 +253,7 @@ data List(t) {
         partition-either(dup dip(p) swap if(Right, Left)))
 
     def(repr;(f {repr;}), (t +Str -- +Str) List(t) +Str -- +Str,
-        "List.Mk( " ; for(f " ; " ;) ")" ;)
+        "List( " ; for(f " ; " ;) ")" ;)
 }
 
 ||| "Nest" is short for "Non-Empty List". It's a List that has at least one element.
@@ -260,6 +261,7 @@ struct Nest(t) {
     head: t
     tail: List(t)
     --
+    def Nest(f) [ (*a +Lister(t) -- *b +Nester(t)) *a -- *b Nest(t) ] { L0 build! f done! }
     def N1 [ t                 -- Nest(t) ] { L0 >tail >head Nest }
     def N2 [ t t               -- Nest(t) ] { L1 >tail >head Nest }
     def N3 [ t t t             -- Nest(t) ] { L2 >tail >head Nest }
@@ -348,7 +350,7 @@ struct Nest(t) {
     ||| Transform each element of a list into a new list, and concatenate all these lists.
     ||| This variant of [List.flatmap] preserves the non-emptiness of the list.
     def flatmap+(f) [ (*c a -- *c Nest(b)) *c Nest(a) -- *c Nest(b) ] {
-        uncons Nest.Mk(
+        uncons Nest(
             dip(rdip(f) uncons dip(;+) for(;))
             for(rdip(f) for(;))
         )
@@ -418,19 +420,19 @@ struct Nest(t) {
         partition-either(dup dip(p) swap if(Right, Left)))
 
     def(repr;(f {repr;}), (t +Str -- +Str) Nest(t) +Str -- +Str,
-        "Nest.Mk( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
+        "Nest( " ; unsnoc dip:for(f " ; " ;) f " ;+ )" ;)
 
 }
 
 
 ||| Build a list through iteration, stopping at the first None.
 def collect(f {.next swap}) [ (*a -- *a Maybe(b)) *a -- *a List(b) ] {
-    List.Mk(while-some(rdip(f), ;))
+    List(while-some(rdip(f), ;))
 }
 
 ||| Build a list through repetition, stopping when condition becomes false.
 def collect-while(f,g) [ (*a -- *a Bool, *a -- *a b) *a -- *a List(b) ] {
-    List.Mk(while(rdip(f), rdip(g) ;))
+    List(while(rdip(f), rdip(g) ;))
 }
 
 ||| Count up, inclusive at both ends.
@@ -504,8 +506,6 @@ struct +Nester(t) {
     inline def ; { push! }
 }
 
-def List.Mk(f) [ (*a +Lister(t) -- *b +Lister(t)) *a -- *b List(t) ] { L0 build! f done! }
-def Nest.Mk(f) [ (*a +Lister(t) -- *b +Nester(t)) *a -- *b Nest(t) ] { L0 build! f done! }
 
 data +List(+t) {
     +Nil
@@ -518,7 +518,7 @@ data +List(+t) {
     }
     def +map(f) [ (*x +a -- *x +b) *x +List(+a) -- *x +List(+b) ] {
         { +Nil -> +List.+Nil }
-        { +Cons -> rdip:f rdip':+map:f +List.+Cons }
+        { +Cons -> rdip:f rdip_(+map:f) +List.+Cons }
     }
 }
 
@@ -526,4 +526,9 @@ struct +Nest(+t) {
     +head: +t
     +tail: +List(+t)
     --
+    def rdrop (f {rdrop}) [ (*x +t -- *x) *x +Nest(+t) -- *x ] { +uncons rdip:f rdrop:f }
+    def +Cons [ +t +List(+t) -- +Nest(+t) ] { >+tail >+head +Nest }
+    def +uncons [ +Nest(+t) -- +t +List(+t) ] { /+Nest +head> +tail> }
+    def +for(f) { +uncons rdip(f) +for(f) }
+    def +map(f) { +uncons rdip(f) rdip_(+map(f)) +Nest.+Cons }
 }

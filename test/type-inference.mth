@@ -31,7 +31,7 @@ def fact* {
 def fib {
     dup 2 < if(
         id,
-        dup dip(1- fib) dip'(2 - fib) Int.+
+        dup dip(1- fib) dip_(2 - fib) Int.+
     )
 }
 

@@ -426,12 +426,12 @@ struct +ResolveDef {
         report-ambiguous-as-warning if(
             token Str(
                 "Can't resolve " ; rdip:sort ; " due to previous errors. Candidates are:" ;
-                " " rdip:candidates for(swap ; rdip':qname; ", ") drop
+                " " rdip:candidates for(swap ; rdip_:qname; ", ") drop
             ) rdip:emit-warning!,
 
             token Str(
                 "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
-                " " rdip:candidates for(swap ; rdip':qname; ", ") drop
+                " " rdip:candidates for(swap ; rdip_:qname; ", ") drop
             ) rdip:emit-error!
         ) rdrop
     }
@@ -443,33 +443,33 @@ struct +ResolveDef {
                 match(
                     Nil -> match(
                         WrongSort ->
-                            "Expected a " ; rdip:sort ; ", but " ; rdip':qname; " is not a " ; rdip:sort ; "." ; ,
+                            "Expected a " ; rdip:sort ; ", but " ; rdip_:qname; " is not a " ; rdip:sort ; "." ; ,
                         NotVisible ->
-                            "Not visible in current scope: " ; rdip':qname; ,
+                            "Not visible in current scope: " ; rdip_:qname; ,
                         NotImported ->
-                            "Not imported in current scope: " ; rdip':qname; ,
+                            "Not imported in current scope: " ; rdip_:qname; ,
                         WrongArity ->
-                            rdip2:qname-hard dup rdip':qname; " expects " ; arity int;
+                            rdip2:qname-hard dup rdip_:qname; " expects " ; arity int;
                             " arguments, but got " ; rdip:token rdip2:num-args int; "." ; ,
                         WrongQualifier ->
-                            "Qualified name not found. Perhaps you meant: " ; rdip':qname; ,
+                            "Qualified name not found. Perhaps you meant: " ; rdip_:qname; ,
                         WrongConstructor ->
-                            "Constructor is for a different type: " ; rdip':qname; ,
+                            "Constructor is for a different type: " ; rdip_:qname; ,
                         MethodWrongType ->
-                            "Method is for a different type: " ; rdip':qname; ,
+                            "Method is for a different type: " ; rdip_:qname; ,
                         MethodNotAvailable ->
-                            "Method is not available for current stack: " ; rdip':qname; ,
+                            "Method is not available for current stack: " ; rdip_:qname; ,
                     ),
                     _ -> cons "Multiple definitions for name, but none are suitable:" ;
                         dip:" " for(swap ; match(
-                            WrongSort -> rdip':qname; " is not a " ; rdip:sort ; ,
-                            NotVisible -> rdip':qname; " is not visible in current scope" ; ,
-                            NotImported -> rdip':qname; " is not imported in current scope" ; ,
-                            WrongArity -> rdip2:qname-hard dup rdip':qname; " expects " ; arity int; " arguments" ; ,
-                            WrongQualifier -> rdip':qname; " doesn't match the given qualified name" ; ,
-                            WrongConstructor -> rdip':qname; " is constructor for a different type" ; ,
-                            MethodWrongType -> rdip':qname; " is method for a different type" ; ,
-                            MethodNotAvailable -> rdip':qname; " is not avaliable for current stack" ; ,
+                            WrongSort -> rdip_:qname; " is not a " ; rdip:sort ; ,
+                            NotVisible -> rdip_:qname; " is not visible in current scope" ; ,
+                            NotImported -> rdip_:qname; " is not imported in current scope" ; ,
+                            WrongArity -> rdip2:qname-hard dup rdip_:qname; " expects " ; arity int; " arguments" ; ,
+                            WrongQualifier -> rdip_:qname; " doesn't match the given qualified name" ; ,
+                            WrongConstructor -> rdip_:qname; " is constructor for a different type" ; ,
+                            MethodWrongType -> rdip_:qname; " is method for a different type" ; ,
+                            MethodNotAvailable -> rdip_:qname; " is not avaliable for current stack" ; ,
                         ) ", ") drop
                 )
         )) rdip:emit-error! rdrop
@@ -890,7 +890,7 @@ struct +AB {
         ab-ctx@ >ctx
         True >allow-type-holes
         False >allow-implicit-type-vars
-        +TypeElab rdip':elab-stack-type! rdrop
+        +TypeElab rdip_:elab-stack-type! rdrop
         ab-token@ rdip:error-token!
         dip:ab-type@ rdip:unify! drop
     }
@@ -2125,7 +2125,7 @@ data ExternalDeclPart {
 def parse-external-decl [ +Mirth Token -- +Mirth Token List(ExternalDeclPart) doc:Maybe(Str) ] {
     dup doc >doc
     succ dup num-args 0> or(dup lcurly? >Bool) if(
-        List.Mk(
+        List(
             succ
             while(dup rdip:args-end? not,
                 rdip(parse-external-decl-part) ;

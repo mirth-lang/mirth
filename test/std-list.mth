@@ -14,29 +14,29 @@ def main [ +World -- +World ] {
     +Tests.Start!
 
     "constructors" test (
-        L0-Int => ( List.Mk( ) )
-        1 Nil Cons => ( List.Mk( 1 ; ) )
-        1 2 Nil Cons Cons => ( List.Mk( 1 ; 2 ; ) )
-        1 2 3 Nil Cons Cons Cons => ( List.Mk( 1 ; 2 ; 3 ; ) )
+        L0-Int => ( List( ) )
+        1 Nil Cons => ( List( 1 ; ) )
+        1 2 Nil Cons Cons => ( List( 1 ; 2 ; ) )
+        1 2 3 Nil Cons Cons Cons => ( List( 1 ; 2 ; 3 ; ) )
 
-        L0-Int => ( List.Mk( ) )
-        1 L1 => ( List.Mk( 1 ; ) )
-        1 2 L2 => ( List.Mk( 1 ; 2 ; ) )
-        1 2 3 L3 => ( List.Mk( 1 ; 2 ; 3 ; ) )
-        1 2 3 4 L4 => ( List.Mk( 1 ; 2 ; 3 ; 4 ; ) )
-        1 2 3 4 5 L5 => ( List.Mk( 1 ; 2 ; 3 ; 4 ; 5 ; ) )
-        1 2 3 4 5 6 L6 => ( List.Mk( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; ) )
-        1 2 3 4 5 6 7 L7 => ( List.Mk( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; ) )
-        1 2 3 4 5 6 7 8 L8 => ( List.Mk( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; 8 ; ) )
+        L0-Int => ( List( ) )
+        1 L1 => ( List( 1 ; ) )
+        1 2 L2 => ( List( 1 ; 2 ; ) )
+        1 2 3 L3 => ( List( 1 ; 2 ; 3 ; ) )
+        1 2 3 4 L4 => ( List( 1 ; 2 ; 3 ; 4 ; ) )
+        1 2 3 4 5 L5 => ( List( 1 ; 2 ; 3 ; 4 ; 5 ; ) )
+        1 2 3 4 5 6 L6 => ( List( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; ) )
+        1 2 3 4 5 6 7 L7 => ( List( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; ) )
+        1 2 3 4 5 6 7 8 L8 => ( List( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; 8 ; ) )
 
-        1 N1 => ( Nest.Mk( 1 ;+ ) )
-        1 2 N2 => ( Nest.Mk( 1 ; 2 ;+ ) )
-        1 2 3 N3 => ( Nest.Mk( 1 ; 2 ; 3 ;+ ) )
-        1 2 3 4 N4 => ( Nest.Mk( 1 ; 2 ; 3 ; 4 ;+ ) )
-        1 2 3 4 5 N5 => ( Nest.Mk( 1 ; 2 ; 3 ; 4 ; 5 ;+ ) )
-        1 2 3 4 5 6 N6 => ( Nest.Mk( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ;+ ) )
-        1 2 3 4 5 6 7 N7 => ( Nest.Mk( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ;+ ) )
-        1 2 3 4 5 6 7 8 N8 => ( Nest.Mk( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; 8 ;+ ) )
+        1 N1 => ( Nest( 1 ;+ ) )
+        1 2 N2 => ( Nest( 1 ; 2 ;+ ) )
+        1 2 3 N3 => ( Nest( 1 ; 2 ; 3 ;+ ) )
+        1 2 3 4 N4 => ( Nest( 1 ; 2 ; 3 ; 4 ;+ ) )
+        1 2 3 4 5 N5 => ( Nest( 1 ; 2 ; 3 ; 4 ; 5 ;+ ) )
+        1 2 3 4 5 6 N6 => ( Nest( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ;+ ) )
+        1 2 3 4 5 6 7 N7 => ( Nest( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ;+ ) )
+        1 2 3 4 5 6 7 8 N8 => ( Nest( 1 ; 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; 8 ;+ ) )
     )
 
     "empty?" test (
@@ -141,10 +141,10 @@ def main [ +World -- +World ] {
     )
 
     "unsnoc" test (
-        List.Mk( 10 ; 20 ; 30 ; ) unsnoc
+        List( 10 ; 20 ; 30 ; ) unsnoc
             => ( 30 Some )
             => ( 10 20 L2 )
-        Nest.Mk( 11 ;+ 21 ; 31 ; ) unsnoc
+        Nest( 11 ;+ 21 ; 31 ; ) unsnoc
             => ( 31 )
             => ( 11 21 L2 )
     )
@@ -1070,14 +1070,14 @@ def main [ +World -- +World ] {
     )
 
     "show;" test (
-        Str(id    L0 show;:Int.show;) => ( "List.Mk( )" )
-        Str(1     L1 show;:show;) => ( "List.Mk( 1 ; )" )
-        Str(1 2   L2 show;:show;) => ( "List.Mk( 1 ; 2 ; )" )
-        Str(1 2 3 L3 show;:show;) => ( "List.Mk( 1 ; 2 ; 3 ; )")
+        Str(id    L0 show;:Int.show;) => ( "List( )" )
+        Str(1     L1 show;:show;) => ( "List( 1 ; )" )
+        Str(1 2   L2 show;:show;) => ( "List( 1 ; 2 ; )" )
+        Str(1 2 3 L3 show;:show;) => ( "List( 1 ; 2 ; 3 ; )")
 
-        Str(1     N1 show;:show;) => ( "Nest.Mk( 1 ;+ )" )
-        Str(1 2   N2 show;:show;) => ( "Nest.Mk( 1 ; 2 ;+ )" )
-        Str(1 2 3 N3 show;:show;) => ( "Nest.Mk( 1 ; 2 ; 3 ;+ )")
+        Str(1     N1 show;:show;) => ( "Nest( 1 ;+ )" )
+        Str(1 2   N2 show;:show;) => ( "Nest( 1 ; 2 ;+ )" )
+        Str(1 2 3 N3 show;:show;) => ( "Nest( 1 ; 2 ; 3 ;+ )")
     )
 
     +Tests.end!
