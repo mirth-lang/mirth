@@ -11,6 +11,7 @@ import std.ctypes
 import std.world
 import std.file
 import std.input
+import std.unicode
 
 import mirth.location
 import mirth.name

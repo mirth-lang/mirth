@@ -1201,6 +1201,9 @@ static STACK lbl_lexerZ_firstZ_token = {0};
 static STACK lbl_lexerZ_lastZ_token = {0};
 static STACK lbl_ZPluslexer = {0};
 static STACK lbl_suffix = {0};
+static STACK lbl_len = {0};
+static STACK lbl_ptr = {0};
+static STACK lbl_index = {0};
 static STACK lbl_macro = {0};
 static STACK lbl_checklist = {0};
 static STACK lbl_w = {0};
@@ -5381,8 +5384,8 @@ static VAL mw_mirth_type_StackTypePart_ctype (VAL in_StackTypePart_1, TUP* in_ZP
 static VAL mw_mirth_type_StackTypeBase_ctypeZAsk (VAL in_StackTypeBase_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4);
 static TUP* mw_mirth_type_StackType_ctype (VAL in_StackType_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4);
 static TUP* mw_mirth_type_ArrowType_ctype (TUP* in_ArrowType_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4);
-static int64_t mw_mirth_prim_Prim_MIN (void);
-static int64_t mw_mirth_prim_Prim_MAX (void);
+static int64_t mw_mirth_prim_Prim_Min (void);
+static int64_t mw_mirth_prim_Prim_Max (void);
 static int64_t mw_mirth_prim_Prim_ZToInt (int64_t in_Prim_1);
 static int64_t mw_mirth_prim_Prim_ZEqualZEqual (int64_t in_Prim_1, int64_t in_Prim_2);
 static uint64_t mw_mirth_prim_Prim_name (TUP* in_ZPlusMirth_1, int64_t in_Prim_2, TUP* *out_ZPlusMirth_3);
@@ -24394,11 +24397,11 @@ static TUP* mw_mirth_type_ArrowType_ctype (TUP* in_ArrowType_1, TUP* in_ZPlusMir
 	*out_ZPlusMirth_4 = v9;
 	return v11;
 }
-static int64_t mw_mirth_prim_Prim_MIN (void) {
+static int64_t mw_mirth_prim_Prim_Min (void) {
 	int64_t v2 = 0LL /* Id */;
 	return v2;
 }
-static int64_t mw_mirth_prim_Prim_MAX (void) {
+static int64_t mw_mirth_prim_Prim_Max (void) {
 	int64_t v2 = 179LL /* SysArgv */;
 	return v2;
 }
@@ -28327,9 +28330,9 @@ static VAL mw_mirth_prim_Prim_computeZ_ctxZ_type (TUP* in_ZPlusMirth_1, int64_t 
 	return branch_Ctx_7;
 }
 static void mw_mirth_mirth_ZPlusMirth_initZ_primsZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2) {
-	int64_t v3 = mw_mirth_prim_Prim_MIN();
+	int64_t v3 = mw_mirth_prim_Prim_Min();
 	int64_t v4 = mw_mirth_prim_Prim_ZToInt(v3);
-	int64_t v5 = mw_mirth_prim_Prim_MAX();
+	int64_t v5 = mw_mirth_prim_Prim_Max();
 	int64_t v6 = mw_mirth_prim_Prim_ZToInt(v5);
 	bool v7 = (v4 <= v6);
 	TUP* v8 = in_ZPlusMirth_1;
@@ -28342,7 +28345,7 @@ static void mw_mirth_mirth_ZPlusMirth_initZ_primsZBang (TUP* in_ZPlusMirth_1, TU
 		mw_mirth_prim_Prim_registerZBang(v11, v12, &v13);
 		int64_t v14 = 1LL;
 		int64_t v15 = i64_add(v12, v14);
-		int64_t v16 = mw_mirth_prim_Prim_MAX();
+		int64_t v16 = mw_mirth_prim_Prim_Max();
 		int64_t v17 = mw_mirth_prim_Prim_ZToInt(v16);
 		bool v18 = (v15 <= v17);
 		v10 = v18;

@@ -17,62 +17,62 @@ data Codepoint {
         )
     }
 
-    inline {
-        def >U32 [ Codepoint -- U32 ] { /Unsafe }
-
-        def compare [ Codepoint Codepoint -- Comparison ] { on2:>U32 compare }
-        def == [ Codepoint Codepoint -- Bool ] { on2:>U32 == }
-        def <  [ Codepoint Codepoint -- Bool ] { on2:>U32 <  }
-        def <= [ Codepoint Codepoint -- Bool ] { on2:>U32 <= }
-        def >  [ Codepoint Codepoint -- Bool ] { on2:>U32 >  }
-        def >= [ Codepoint Codepoint -- Bool ] { on2:>U32 >= }
-        def <> [ Codepoint Codepoint -- Bool ] { on2:>U32 <> }
-    }
+    inline def >U32 [ Codepoint -- U32 ] { /Unsafe }
+    inline def compare [ Codepoint Codepoint -- Comparison ] { on2:>U32 compare }
+    inline def == [ Codepoint Codepoint -- Bool ] { on2:>U32 == }
+    inline def <  [ Codepoint Codepoint -- Bool ] { on2:>U32 <  }
+    inline def <= [ Codepoint Codepoint -- Bool ] { on2:>U32 <= }
+    inline def >  [ Codepoint Codepoint -- Bool ] { on2:>U32 >  }
+    inline def >= [ Codepoint Codepoint -- Bool ] { on2:>U32 >= }
+    inline def <> [ Codepoint Codepoint -- Bool ] { on2:>U32 <> }
 
     ||| How many utf-16 words are needed to encode this codepoint (always either
     ||| 1 or 2)
     def size-utf-16 [ Codepoint -- USize ] {
-        /Codepoint >Int 0xFFFF > if(2u, 1u) >USize
+        >U32 0xFFFFu32 > if(2u, 1u) >USize
     }
 
     ||| Encode the codepoint and append it to the string
     def emit; [ +Str Codepoint -- +Str ] {
-        /Codepoint >Int
-        dup 0x80 < if(>Byte-unsafe push-byte-unsafe!,
-            dup 0x800 < if(dup 6 >> 0xC0 | >Byte-unsafe push-byte-unsafe! 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!,
-                dup 0x010000 < if(
-                    dup 12 >> 0xE0 | >Byte-unsafe push-byte-unsafe!
-                    dup 6 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
-                    0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!,
+        >U32
+        dup 0x80u32 < if(>U8-wrap >Byte push-byte-unsafe!,
+            dup 0x800u32 < if(
+                dup 6u32 rshift >U8-wrap 0xC0u8 or >Byte push-byte-unsafe!
+                >U8-wrap 0x3Fu8 and 0x80u8 or >Byte push-byte-unsafe!,
 
-                    dup 18 >> 0x7 & 0xF0 | >Byte-unsafe push-byte-unsafe!
-                    dup 12 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
-                    dup 6 >> 0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
-                    0x3F & 0x80 | >Byte-unsafe push-byte-unsafe!
+                dup 0x010000u32 < if(
+                    dup 12u32 rshift >U8-wrap 0xE0u8 or >Byte push-byte-unsafe!
+                    dup 6u32 rshift >U8-wrap 0x3Fu8 and 0x80u8 or >Byte push-byte-unsafe!
+                    >U8-wrap 0x3Fu8 and 0x80u8 or >Byte push-byte-unsafe!,
+
+                    dup 18u32 rshift >U8-wrap 0x07u8 and 0xF0u8 or >Byte push-byte-unsafe!
+                    dup 12u32 rshift >U8-wrap 0x3Fu8 and 0x80u8 or >Byte push-byte-unsafe!
+                    dup 6u32 rshift >U8-wrap 0x3Fu8 and 0x80u8 or >Byte push-byte-unsafe!
+                    >U8-wrap 0x3Fu8 and 0x80u8 or >Byte push-byte-unsafe!
                 )
             )
         )
     }
 
     def repr; [ +Str Codepoint -- +Str ] {
-        /Codepoint repr; " Codepoint" ;
+        >U32 repr; " Codepoint" ;
     }
 }
 
 ||| Convert a u32 into a codepoint without verifying it
-alias(U32.>Codepoint-unsafe, Codepoint.init-unsafe)
+alias(U32.>Codepoint-unsafe, Codepoint.Unsafe)
 
 ||| Convert an Int into a codepoint without verifying it
-def Int.>Codepoint-unsafe { >U32-unsafe Codepoint.init-unsafe }
+def Int.>Codepoint-unsafe { >U32-wrap Codepoint.Unsafe }
 
 
 struct +CodepointsForState {
     index:UOffset ptr:Ptr len:UOffset
     --
-    def peek [ +CodepointsForState -- +CodepointsForState Int ] {
-        index ptr unsafe(uoffset @U8) >Int
+    def peek [ +CodepointsForState -- +CodepointsForState U8 ] {
+        index ptr unsafe(uoffset @U8)
     }
-    def next! [ +CodepointsForState -- +CodepointsForState Int ] {
+    def next! [ +CodepointsForState -- +CodepointsForState U8 ] {
         peek index:1+
     }
 }
@@ -82,23 +82,23 @@ def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
     with-data(
         >UOffset >len >ptr 0u >UOffset >index +CodepointsForState
         while(index len <,
-            peek 0x80 & 0 == if(
-                next! >Codepoint-unsafe rdip:f,
+            peek 0x80u8 and 0= if(
+                next! >U32 >Codepoint-unsafe rdip:f,
 
-                peek 0xE0 & 0xC0 == if(
-                    next! 0x1F & 6 <<
-                    next! 0x3F & | >Codepoint-unsafe rdip:f,
+                peek 0xE0u8 and 0xC0u8 == if(
+                    next! 0x1Fu8 and >U32 6u32 lshift
+                    next! 0x3Fu8 and >U32 or >Codepoint-unsafe rdip:f,
 
-                    peek 0xF0 & 0xE0 == if(
-                        next! 0x0F & 12 <<
-                        next! 0x3F &  6 << |
-                        next! 0x3F &       | >Codepoint-unsafe rdip:f,
+                    peek 0xF0u8 and 0xE0u8 == if(
+                        next! 0x0Fu8 and >U32    6u32 lshift
+                        next! 0x3Fu8 and >U32 or 6u32 lshift
+                        next! 0x3Fu8 and >U32 or >Codepoint-unsafe rdip:f,
 
-                        next! 0x07 & 16 <<
-                        next! 0x3F & 12 << |
-                        next! 0x3F &  6 << |
-                        next! 0x3F &       | >Codepoint-unsafe rdip:f
-                 )
+                        next! 0x07u8 and >U32    6u32 lshift
+                        next! 0x3Fu8 and >U32 or 6u32 lshift
+                        next! 0x3Fu8 and >U32 or 6u32 lshift
+                        next! 0x3Fu8 and >U32 or >Codepoint-unsafe rdip:f
+                    )
                 )
             )
         )

@@ -214,11 +214,11 @@ data Prim {
     SysArgv
 
     --
-    def MIN [ Prim ] { Prim.Id }
-    def MAX [ Prim ] { Prim.SysArgv }
+    def Min [ Prim ] { Prim.Id }
+    def Max [ Prim ] { Prim.SysArgv }
     def ForAll(f) [ (*a Prim -- *a) *a -- *a ] {
-        Prim.MIN >Int while (
-            dup Prim.MAX >Int <=,
+        Prim.Min >Int while (
+            dup Prim.Max >Int <=,
             sip(Prim.from-enum-value-unsafe f)
             1+
         ) drop
