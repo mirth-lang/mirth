@@ -36,9 +36,9 @@ alias while(f,g) prim-while
 alias Int.+ prim-int-add
 alias Int.- prim-int-sub
 alias Int.* prim-int-mul
-alias Int.div-floor prim-int-div
-alias Int.mod-floor prim-int-mod
-def Int.divmod-floor [ Int Int -- Int Int ] { dup2 dip2(div-floor) mod-floor }
+alias Int.div prim-int-div
+alias Int.mod prim-int-mod
+def Int.divmod [ Int Int -- Int Int ] { dup2 dip2(div) mod }
 
 alias F32.+ prim-f32-add
 alias F32.- prim-f32-sub
@@ -445,19 +445,19 @@ inline (
     def I64.add-unsafe [ I64 I64 -- I64 ] { prim-i64-add }
     def I64.sub-unsafe [ I64 I64 -- I64 ] { prim-i64-sub }
     def I64.mul-unsafe [ I64 I64 -- I64 ] { prim-i64-mul }
-    def I64.div-floor-unsafe [ I64 I64 -- I64 ] { prim-i64-div }
-    def I64.mod-floor-unsafe [ I64 I64 -- I64 ] { prim-i64-mod }
-    def I64.divmod-floor-unsafe [ I64 I64 -- I64 I64 ] {
-        dup2 dip2(div-floor-unsafe) mod-floor-unsafe
+    def I64.div-unsafe [ I64 I64 -- I64 ] { prim-i64-div }
+    def I64.mod-unsafe [ I64 I64 -- I64 ] { prim-i64-mod }
+    def I64.divmod-unsafe [ I64 I64 -- I64 I64 ] {
+        dup2 dip2(div-unsafe) mod-unsafe
     }
 
     def I64.add-clamp [ I64 I64 -- I64 ] { on2:>Int + >I64-clamp }
     def I64.sub-clamp [ I64 I64 -- I64 ] { on2:>Int - >I64-clamp }
     def I64.mul-clamp [ I64 I64 -- I64 ] { on2:>Int * >I64-clamp }
-    def I64.div-floor-clamp [ I64 I64 -- I64 ] { on2:>Int div-floor >I64-clamp }
-    def I64.mod-floor-clamp [ I64 I64 -- I64 ] { divmod-floor-clamp nip }
-    def I64.divmod-floor-clamp [ I64 I64 -- I64 I64 ] {
-        dup2 div-floor-clamp sip(mul-unsafe sub-unsafe) swap
+    def I64.div-clamp [ I64 I64 -- I64 ] { on2:>Int div >I64-clamp }
+    def I64.mod-clamp [ I64 I64 -- I64 ] { divmod-clamp nip }
+    def I64.divmod-clamp [ I64 I64 -- I64 I64 ] {
+        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
     }
 
     def I64.MIN [ I64 ] { -0x7FFFFFFFFFFFFFFF 1- >I64-unsafe }
@@ -498,19 +498,19 @@ inline (
     def I32.add-unsafe [ I32 I32 -- I32 ] { on2:>I64 add-unsafe >I32-unsafe }
     def I32.sub-unsafe [ I32 I32 -- I32 ] { on2:>I64 sub-unsafe >I32-unsafe }
     def I32.mul-unsafe [ I32 I32 -- I32 ] { on2:>I64 mul-unsafe >I32-unsafe }
-    def I32.div-floor-unsafe [ I32 I32 -- I32 ] { on2:>Int div-floor >I32-unsafe }
-    def I32.mod-floor-unsafe [ I32 I32 -- I32 ] { on2:>Int mod-floor >I32-unsafe }
-    def I32.divmod-floor-unsafe [ I32 I32 -- I32 I32 ] {
-        on2:>Int divmod-floor on2:>I32-unsafe
+    def I32.div-unsafe [ I32 I32 -- I32 ] { on2:>Int div >I32-unsafe }
+    def I32.mod-unsafe [ I32 I32 -- I32 ] { on2:>Int mod >I32-unsafe }
+    def I32.divmod-unsafe [ I32 I32 -- I32 I32 ] {
+        on2:>Int divmod on2:>I32-unsafe
     }
 
     def I32.add-clamp [ I32 I32 -- I32 ] { on2:>I64 add-unsafe >I32-clamp }
     def I32.sub-clamp [ I32 I32 -- I32 ] { on2:>I64 sub-unsafe >I32-clamp }
     def I32.mul-clamp [ I32 I32 -- I32 ] { on2:>I64 mul-unsafe >I32-clamp }
-    def I32.div-floor-clamp [ I32 I32 -- I32 ] { on2:>Int div-floor >I32-clamp }
-    def I32.mod-floor-clamp [ I32 I32 -- I32 ] { divmod-floor-unsafe nip }
-    def I32.divmod-floor-clamp [ I32 I32 -- I32 I32 ] {
-        dup2 div-floor-clamp sip(mul-unsafe sub-unsafe) swap
+    def I32.div-clamp [ I32 I32 -- I32 ] { on2:>Int div >I32-clamp }
+    def I32.mod-clamp [ I32 I32 -- I32 ] { divmod-unsafe nip }
+    def I32.divmod-clamp [ I32 I32 -- I32 I32 ] {
+        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
     }
 
     def I32.MIN [ I32 ] { -0x80000000i32 }
@@ -549,17 +549,17 @@ inline {
     def I16.add-unsafe [ I16 I16 -- I16 ] { on2:>I64 add-unsafe >I16-unsafe }
     def I16.sub-unsafe [ I16 I16 -- I16 ] { on2:>I64 sub-unsafe >I16-unsafe }
     def I16.mul-unsafe [ I16 I16 -- I16 ] { on2:>I64 mul-unsafe >I16-unsafe }
-    def I16.div-floor-unsafe [ I16 I16 -- I16 ] { on2:>I64 div-floor-unsafe >I16-unsafe }
-    def I16.mod-floor-unsafe [ I16 I16 -- I16 ] { on2:>I64 mod-floor-unsafe >I16-unsafe }
-    def I16.divmod-floor-unsafe [ I16 I16 -- I16 I16 ] { on2:>I64 divmod-floor-unsafe on2:>I16-unsafe }
+    def I16.div-unsafe [ I16 I16 -- I16 ] { on2:>I64 div-unsafe >I16-unsafe }
+    def I16.mod-unsafe [ I16 I16 -- I16 ] { on2:>I64 mod-unsafe >I16-unsafe }
+    def I16.divmod-unsafe [ I16 I16 -- I16 I16 ] { on2:>I64 divmod-unsafe on2:>I16-unsafe }
 
     def I16.add-clamp [ I16 I16 -- I16 ] { on2:>I64 add-unsafe >I16-clamp }
     def I16.sub-clamp [ I16 I16 -- I16 ] { on2:>I64 sub-unsafe >I16-clamp }
     def I16.mul-clamp [ I16 I16 -- I16 ] { on2:>I64 mul-unsafe >I16-clamp }
-    def I16.div-floor-clamp [ I16 I16 -- I16 ] { on2:>I64 div-floor-unsafe >I16-clamp }
-    def I16.mod-floor-clamp [ I16 I16 -- I16 ] { divmod-floor-clamp nip }
-    def I16.divmod-floor-clamp [ I16 I16 -- I16 I16 ] {
-        dup2 div-floor-clamp sip(mul-unsafe sub-unsafe) swap
+    def I16.div-clamp [ I16 I16 -- I16 ] { on2:>I64 div-unsafe >I16-clamp }
+    def I16.mod-clamp [ I16 I16 -- I16 ] { divmod-clamp nip }
+    def I16.divmod-clamp [ I16 I16 -- I16 I16 ] {
+        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
     }
 
     def I16.MIN [ I16 ] { -0x8000i16 }
@@ -598,17 +598,17 @@ inline {
     def I8.add-unsafe [ I8 I8 -- I8 ] { on2:>I64 add-unsafe >I8-unsafe }
     def I8.sub-unsafe [ I8 I8 -- I8 ] { on2:>I64 sub-unsafe >I8-unsafe }
     def I8.mul-unsafe [ I8 I8 -- I8 ] { on2:>I64 mul-unsafe >I8-unsafe }
-    def I8.div-floor-unsafe [ I8 I8 -- I8 ] { on2:>I64 div-floor-unsafe >I8-unsafe }
-    def I8.mod-floor-unsafe [ I8 I8 -- I8 ] { on2:>I64 mod-floor-unsafe >I8-unsafe }
-    def I8.divmod-floor-unsafe [ I8 I8 -- I8 I8 ] { on2:>I64 divmod-floor-unsafe on2:>I8-unsafe }
+    def I8.div-unsafe [ I8 I8 -- I8 ] { on2:>I64 div-unsafe >I8-unsafe }
+    def I8.mod-unsafe [ I8 I8 -- I8 ] { on2:>I64 mod-unsafe >I8-unsafe }
+    def I8.divmod-unsafe [ I8 I8 -- I8 I8 ] { on2:>I64 divmod-unsafe on2:>I8-unsafe }
 
     def I8.add-clamp [ I8 I8 -- I8 ] { on2:>I64 add-unsafe >I8-clamp }
     def I8.sub-clamp [ I8 I8 -- I8 ] { on2:>I64 sub-unsafe >I8-clamp }
     def I8.mul-clamp [ I8 I8 -- I8 ] { on2:>I64 mul-unsafe >I8-clamp }
-    def I8.div-floor-clamp [ I8 I8 -- I8 ] { on2:>I64 div-floor-unsafe >I8-clamp }
-    def I8.mod-floor-clamp [ I8 I8 -- I8 ] { divmod-floor-clamp nip }
-    def I8.divmod-floor-clamp [ I8 I8 -- I8 I8 ] {
-        dup2 div-floor-clamp sip(mul-unsafe sub-unsafe) swap
+    def I8.div-clamp [ I8 I8 -- I8 ] { on2:>I64 div-unsafe >I8-clamp }
+    def I8.mod-clamp [ I8 I8 -- I8 ] { divmod-clamp nip }
+    def I8.divmod-clamp [ I8 I8 -- I8 I8 ] {
+        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
     }
 
     def I8.MIN [ I8 ] { -0x80i8 }
@@ -637,9 +637,9 @@ inline (
     def U64.sub-clamp [ U64 U64 -- U64 ] { on2:>Int - >U64-clamp }
     def U64.mul-clamp [ U64 U64 -- U64 ] { on2:>Int * >U64-clamp }
 
-    def U64.div-floor [ U64 U64 -- U64 ] { prim-u64-div }
-    def U64.mod-floor [ U64 U64 -- U64 ] { prim-u64-mod }
-    def U64.divmod-floor [ U64 U64 -- U64 U64 ] { dup2 mod-floor dip:div-floor }
+    def U64.div [ U64 U64 -- U64 ] { prim-u64-div }
+    def U64.mod [ U64 U64 -- U64 ] { prim-u64-mod }
+    def U64.divmod [ U64 U64 -- U64 U64 ] { dup2 mod dip:div }
 
     def U64.MAX [ U64 ] { 0u64 1u64 sub-wrap }
     def U64.MIN [ U64 ] { 0u64 }
@@ -759,9 +759,9 @@ inline (
     def U16.sub-clamp [ U16 U16 -- U16 ] { on2:>U64 sub-clamp >U16-wrap }
     def U16.mul-clamp [ U16 U16 -- U16 ] { on2:>U64 mul-wrap >U16-clamp }
 
-    def U16.div-floor [ U16 U16 -- U16 ] { on2:>U64 div-floor >U16-wrap }
-    def U16.mod-floor [ U16 U16 -- U16 ] { on2:>U64 mod-floor >U16-wrap }
-    def U16.divmod-floor [ U16 U16 -- U16 U16 ] { on2:>U64 divmod-floor on2:>U16-wrap }
+    def U16.div [ U16 U16 -- U16 ] { on2:>U64 div >U16-wrap }
+    def U16.mod [ U16 U16 -- U16 ] { on2:>U64 mod >U16-wrap }
+    def U16.divmod [ U16 U16 -- U16 U16 ] { on2:>U64 divmod on2:>U16-wrap }
 
     def U16.and [ U16 U16 -- U16 ] { on2:>U64 and >U16-wrap }
     def U16.or  [ U16 U16 -- U16 ] { on2:>U64 or  >U16-wrap }
@@ -793,14 +793,13 @@ inline (
     def U64.>U8-clamp  [ U64 -- U8 ] { 255u64 min >U8-wrap }
     def U64.>U8-wrap   [ U64 -- U8 ] { prim-u64-to-u8 }
 
-    def U8.>Nat [ U8 -- Nat ] { >Int >Nat-unsafe }
+    def U8.>Nat [ U8 -- Nat ] { >U64 >Nat }
     def Nat.>U8-if(f,g) [ (*a U8 -- *b, *a Nat -- *b) *a Nat -- *b ] {
         dup 255u <= if(>U8-wrap f, g)
     }
     def Nat.>U8-else(g) [ (*a Nat -- *a U8) *a Nat -- *a U8 ] { >U8-if(id,g) }
 
-    def U8.>Int  [ U8  -- Int ] { Int>U8-unsafe -> id }
-
+    def U8.>Int  [ U8  -- Int ] { >U64 >Int }
     def Int.>U8-if(f,g) [ (*a U8 -- *b, *a Int -- *b ) *a Int -- *b ] {
         dup 0 255 in-range if(>U8-wrap f, g)
     }
@@ -817,9 +816,9 @@ inline (
     def U8.sub-clamp [ U8 U8 -- U8 ] { on2:>U64 sub-wrap >U8-clamp }
     def U8.mul-clamp [ U8 U8 -- U8 ] { on2:>U64 mul-wrap >U8-clamp }
 
-    def U8.div-floor [ U8 U8 -- U8 ] { on2:>U64 div-floor >U8-wrap }
-    def U8.mod-floor [ U8 U8 -- U8 ] { on2:>U64 mod-floor >U8-wrap }
-    def U8.divmod-floor [ U8 U8 -- U8 U8 ] { on2:>U64 divmod-floor on2:>U8-wrap }
+    def U8.div [ U8 U8 -- U8 ] { on2:>U64 div >U8-wrap }
+    def U8.mod [ U8 U8 -- U8 ] { on2:>U64 mod >U8-wrap }
+    def U8.divmod [ U8 U8 -- U8 U8 ] { on2:>U64 divmod on2:>U8-wrap }
 
     def U8.and [ U8 U8 -- U8 ] { on2:>U64 and >U8-wrap }
     def U8.or  [ U8 U8 -- U8 ] { on2:>U64 or  >U8-wrap }
@@ -842,8 +841,6 @@ inline (
     def U8.succ [ U8 -- U8 ] { >Nat 1+ >U8-clamp }
     def U8.pred [ U8 -- U8 ] { >Int 1- >U8-clamp }
 )
-
-
 
 #######
 # NAT #
@@ -884,9 +881,9 @@ data Nat {
         def +  [ Nat Nat -- Nat ] { both(>Int) + Nat.Unsafe }
         def -  [ Nat Nat -- Int ] { both(>Int) - }
         def *  [ Nat Nat -- Nat ] { both(>Int) * Nat.Unsafe }
-        def div [ Nat Nat -- Nat ] { both(>Int) div-floor Nat.Unsafe }
-        def mod [ Nat Nat -- Nat ] { both(>Int) mod-floor Nat.Unsafe }
-        def divmod [ Nat Nat -- Nat Nat ] { both(>Int) divmod-floor both(Nat.Unsafe) }
+        def div [ Nat Nat -- Nat ] { both(>Int) div Nat.Unsafe }
+        def mod [ Nat Nat -- Nat ] { both(>Int) mod Nat.Unsafe }
+        def divmod [ Nat Nat -- Nat Nat ] { both(>Int) divmod both(Nat.Unsafe) }
 
         def &  [ Nat Nat -- Nat ] { dip(>Int) >Int prim-int-and Nat.Unsafe }
         def |  [ Nat Nat -- Nat ] { dip(>Int) >Int prim-int-or  Nat.Unsafe }

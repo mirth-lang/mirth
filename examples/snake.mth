@@ -42,7 +42,7 @@ struct +SnakeLogic {
 }
 
 data(Position, Position -> x:Int y:Int)
-def Position.wrap { x(SNAKE_W mod-floor) y(SNAKE_H mod-floor) }
+def Position.wrap { x(SNAKE_W mod) y(SNAKE_H mod) }
 
 def Position.== [ Position Position -- Bool ] {
     /Position /Position x> x> == y> y> == and
@@ -286,14 +286,14 @@ def +SnakeLogic.desired-length { points 5u + }
 external(libc-rand -> rand [+World -- +World CInt])
 
 def Position.Random! [ +World -- +World Position ] {
-    libc-rand >Int SNAKE_W mod-floor >x
-    libc-rand >Int SNAKE_H mod-floor >y
+    libc-rand >Int SNAKE_W mod >x
+    libc-rand >Int SNAKE_H mod >y
     Position
 }
 
 def Position.Center {
-    SNAKE_W 2 div-floor >x
-    SNAKE_H 2 div-floor >y
+    SNAKE_W 2 div >x
+    SNAKE_H 2 div >y
     Position
 }
 
