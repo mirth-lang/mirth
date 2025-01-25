@@ -170,7 +170,7 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
 }
 
 def Data.is-enum-or-unit? [ +Mirth Data -- +Mirth Bool ] {
-    dup is-enum? dip(is-unit? >Bool) ||
+    dup is-enum? dip(is-unit? >Bool) or
 }
 
 field(Data.~is-unit?, Data, Maybe(Tag))
@@ -196,11 +196,11 @@ def(Data.is-transparent?, +Mirth Data -- +Mirth Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
             dup tags single? match(
-                Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == &&,
+                Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == and,
                 None -> False,
             ),
             dup tags single? match(
-                Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == &&,
+                Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == and,
                 None -> False
             )
         )
@@ -342,7 +342,7 @@ data(DataPartial, DataPartial ->
 def(DataPartial.==, DataPartial DataPartial -- Bool,
     /DataPartial /DataPartial
     data> data> ==
-    field> field> == &&)
+    field> field> == and)
 
 struct TagField {
     tag: Tag

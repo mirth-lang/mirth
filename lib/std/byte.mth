@@ -60,10 +60,13 @@ data Byte {
         def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
         def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
 
-        def compare  [ Byte Byte -- Comparison ] { on2(>Int) .compare }
-        def ==       [ Byte Byte -- Bool ] { on2(>Int) == }
-        def <        [ Byte Byte -- Bool ] { on2(>Int) <  }
-        def <=       [ Byte Byte -- Bool ] { on2(>Int) <= }
+        def compare  [ Byte Byte -- Comparison ] { on2:>U8 .compare }
+        def == [ Byte Byte -- Bool ] { on2:>U8 == }
+        def <  [ Byte Byte -- Bool ] { on2:>U8 <  }
+        def <= [ Byte Byte -- Bool ] { on2:>U8 <= }
+        def >  [ Byte Byte -- Bool ] { on2:>U8 >  }
+        def >= [ Byte Byte -- Bool ] { on2:>U8 >= }
+        def <> [ Byte Byte -- Bool ] { on2:>U8 <> }
 
         def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
         def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
@@ -71,19 +74,23 @@ data Byte {
         def is-upper [ Byte -- Bool ] { Byte.B'A' Byte.B'Z' in-range }
         def is-lower [ Byte -- Bool ] { Byte.B'a' Byte.B'z' in-range }
         def is-digit [ Byte -- Bool ] { Byte.B'0' Byte.B'9' in-range }
-        def is-alpha [ Byte -- Bool ] { dup on2(is-upper, is-lower) || }
-        def is-alnum [ Byte -- Bool ] { dup on2(is-digit, is-alpha) || }
+        def is-alpha [ Byte -- Bool ] { or(is-upper, is-lower) }
+        def is-alnum [ Byte -- Bool ] { or(is-digit, is-alpha) }
         def is-printable [ Byte -- Bool ] { Byte.B'!' Byte.B'~' in-range }
         def is-octdigit [ Byte -- Bool ] { Byte.B'0' Byte.B'7' in-range }
         def is-hexdigit [ Byte -- Bool ] {
-            dup dup on3(is-digit, Byte.B'A' Byte.B'F' in-range, Byte.B'a' Byte.B'f' in-range) || ||
+            or(
+                is-digit,
+                Byte.B'A' Byte.B'F' in-range,
+                Byte.B'a' Byte.B'f' in-range
+            )
         }
         def is-ascii [ Byte -- Bool ] { Byte.BNUL Byte.BDEL in-range }
         def is-upper-or-underscore [ Byte -- Bool ] {
-            dup on2(is-upper, Byte.B'_' ==) ||
+            dup on2(is-upper, Byte.B'_' ==) or
         }
         def is-sign [ Byte -- Bool ] {
-            dup on2(Byte.B'-' ==, Byte.B'+' ==) ||
+            dup on2(Byte.B'-' ==, Byte.B'+' ==) or
         }
 
         def emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }
@@ -116,16 +123,14 @@ data Byte {
         dup is-lower then(>U8 0x20u8 sub-wrap >Byte)
     }
 
-    def OneHexDigitUnsafe [ Int -- Byte ] {
-        0 15 clamp
-        dup 9 > if(55, 48) +
-        >Byte-wrap
+    def OneHexDigit [ U8 -- Byte ] {
+        dup 9u8 > if(55u8, 48u8) add-wrap >Byte
     }
 
     def to-hexdigits [ Byte -- Byte Byte ] {
-        >Int
-        dup 4 >> Byte.OneHexDigitUnsafe
-        swap 0xF & Byte.OneHexDigitUnsafe
+        >U8
+        dup 4u8 rshift Byte.OneHexDigit
+        swap 0xFu8 and Byte.OneHexDigit
     }
 
     def is-name-byte [ Byte -- Bool ] {

@@ -152,8 +152,8 @@ inline(
 
 data(SDL_InitFlags, SDL_InitFlags -> U32)
 inline (
-    def SDL_InitFlags.| {
-        both(/SDL_InitFlags) | SDL_InitFlags
+    def SDL_InitFlags.or {
+        both(/SDL_InitFlags) or SDL_InitFlags
     }
     def SDL_INIT_TIMER          [ SDL_InitFlags ] { 0x0001u32 SDL_InitFlags }
     def SDL_INIT_AUDIO          [ SDL_InitFlags ] { 0x0010u32 SDL_InitFlags }
@@ -166,13 +166,13 @@ inline (
     def SDL_INIT_EVERYTHING     [ SDL_InitFlags ] { 0xF231u32 SDL_InitFlags }
 )
 
-def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
-def(SDL_WINDOWPOS_CENTERED, Int, 0x2FFF 16 <<)
+def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF0000)
+def(SDL_WINDOWPOS_CENTERED, Int, 0x2FFF0000)
 
 data(SDL_WindowFlags, SDL_WindowFlags -> U32)
 inline (
-    def SDL_WindowFlags.| [ SDL_WindowFlags SDL_WindowFlags -- SDL_WindowFlags ] {
-        both(/SDL_WindowFlags) | SDL_WindowFlags
+    def SDL_WindowFlags.or [ SDL_WindowFlags SDL_WindowFlags -- SDL_WindowFlags ] {
+        both(/SDL_WindowFlags) or SDL_WindowFlags
     }
     def SDL_WINDOW_FULLSCREEN         [ SDL_WindowFlags ] { 0x00000001u32 SDL_WindowFlags }
     def SDL_WINDOW_OPENGL             [ SDL_WindowFlags ] { 0x00000002u32 SDL_WindowFlags }
@@ -202,8 +202,8 @@ inline (
 
 data(SDL_RendererFlags, SDL_RendererFlags -> U32)
 inline (
-    def SDL_RendererFlags.| {
-        both(/SDL_RendererFlags) | SDL_RendererFlags
+    def SDL_RendererFlags.or {
+        both(/SDL_RendererFlags) or SDL_RendererFlags
     }
     def SDL_RENDERER_SOFTWARE      [ SDL_RendererFlags ] { 0x00000001u32 SDL_RendererFlags }
     def SDL_RENDERER_ACCELERATED   [ SDL_RendererFlags ] { 0x00000002u32 SDL_RendererFlags }
@@ -711,6 +711,9 @@ struct SDL_JoystickID {
     def == { on2:>I32 == }
     def <= { on2:>I32 <= }
     def <  { on2:>I32 <  }
+    def >= { on2:>I32 >= }
+    def >  { on2:>I32 >  }
+    def <> { on2:>I32 <> }
     def succ { >I32 succ >SDL_JoystickID }
 }
 

@@ -4,19 +4,29 @@ import(std.world)
 import(std.str)
 
 ||| A unicode codepoint
-struct Codepoint {
-    U32
+data Codepoint {
+    Unsafe [ U32 ]
     --
+    inline def Max [ Codepoint ] { 0u32 Codepoint.Unsafe }
+    inline def Min [ Codepoint ] { 0x10FFFFu32 Codepoint.Unsafe }
+    inline def Replacement [ Codepoint ] { 0xFFFDu32 Codepoint.Unsafe }
+    def Codepoint [ U32 -- Codepoint ] {
+        dup Codepoint.Min Codepoint.Max on2:>U32 in-range if(
+            Codepoint.Unsafe,
+            drop Codepoint.Replacement
+        )
+    }
 
     inline {
-        def == [ Codepoint Codepoint -- Bool ] {
-            both:/Codepoint ==
-        }
+        def >U32 [ Codepoint -- U32 ] { /Unsafe }
 
-        ||| Convert a u32 into a codepoint without verifying it
-        def init-unsafe [ U32 -- Codepoint ] {
-            Codepoint
-        }
+        def compare [ Codepoint Codepoint -- Comparison ] { on2:>U32 compare }
+        def == [ Codepoint Codepoint -- Bool ] { on2:>U32 == }
+        def <  [ Codepoint Codepoint -- Bool ] { on2:>U32 <  }
+        def <= [ Codepoint Codepoint -- Bool ] { on2:>U32 <= }
+        def >  [ Codepoint Codepoint -- Bool ] { on2:>U32 >  }
+        def >= [ Codepoint Codepoint -- Bool ] { on2:>U32 >= }
+        def <> [ Codepoint Codepoint -- Bool ] { on2:>U32 <> }
     }
 
     ||| How many utf-16 words are needed to encode this codepoint (always either
@@ -45,7 +55,7 @@ struct Codepoint {
     }
 
     def repr; [ +Str Codepoint -- +Str ] {
-         /Codepoint repr; " Codepoint" ;
+        /Codepoint repr; " Codepoint" ;
     }
 }
 

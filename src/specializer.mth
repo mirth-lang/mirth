@@ -165,7 +165,7 @@ def Op.similar [ +Mirth Op Op -- +Mirth Bool ] {
 def TagField.similar [ TagField TagField -- Bool ] {
     /TagField /TagField
     label> label> ==
-    tag> tag> == &&
+    tag> tag> == and
     type/resource> type/resource> drop2
 }
 

@@ -24,6 +24,7 @@ def(Var.type, +Mirth Var -- +Mirth Type, ~type @)
 def(Var.auto-run?, +Mirth Var -- +Mirth Maybe(ArrowType), ~auto-run? @)
 
 inline def Var.== [ Var Var -- Bool ] { both(index) == }
+inline def Var.<> [ Var Var -- Bool ] { both(index) <> }
 
 def(Var.type;, +Mirth +Str Var -- +Mirth +Str, rdip(name >Str) ;)
 def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.Type ==))

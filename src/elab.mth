@@ -917,7 +917,7 @@ struct +AB {
 }
 
 def arity-compatible? [ Int Int -- Bool ] {
-    dup -1 == dip(==) ||
+    dup -1 == dip(==) or
 }
 
 def ab-build!(f) [ (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow ] {
@@ -1404,7 +1404,7 @@ def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
 
 ||| Elaborate a series of declarations. Decl*
 def elab-decls! [ +World +Mirth Token -- +World +Mirth Token ] {
-    while(dup arg-end? not over module-end? not &&, elab-decl!)
+    while(dup arg-end? not over module-end? not and, elab-decl!)
 }
 
 ||| Elaborate either a single declaration or a block of declarations:
@@ -2219,7 +2219,7 @@ def elab-external-ctype [ +Mirth External -- +Mirth CTypeArrow ] {
     dup head with-error-token(
         type ctype
         dup cod parts
-        filter(sip(label? none?) ctype phantom? not &&)
+        filter(sip(label? none?) ctype phantom? not and)
         len 1u > then(
             "External has too many outputs." error!
         )

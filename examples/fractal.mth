@@ -37,7 +37,7 @@ def +FractalUI.sdl(f) { /+FractalUI f +FractalUI }
 def WIDTH { 800 }
 def HEIGHT { 800 }
 def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
-def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC | }
+def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC or }
 
 def +FractalUI.Init! [ +World -- +World +FractalUI ] {
     SDL_INIT_VIDEO >flags
@@ -146,7 +146,7 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
 
                 @x 2.0 pow
                 @y 2.0 pow +
-                4.0 <= &&,
+                4.0 <= and,
 
                 @x 2.0 pow
                 @y 2.0 pow -

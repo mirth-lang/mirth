@@ -36,53 +36,64 @@ def Name.mangled; [ +Mirth +Str Name -- +Mirth +Str ] { rdip:mangled ; }
 def(Name.==, Name Name -- Bool, both(Name.index) ==)
 
 struct Hash {
-    UIndex
+    U64
     --
-    def >Int { Hash -> >Int }
-    def Int.>Hash { HASH_MAX & >Nat-clamp >UIndex Hash }
-    def offset [ Hash -- UOffset ] { Hash -> |U64| * }
+    inline def >U64 [ Hash -- U64 ] { /Hash }
+    inline def >Nat [ Hash -- Nat ] { >U64 >Nat }
+    def next [ Hash -- Hash ] { /Hash 1u64 add-wrap Hash }
+
+    buffer(Buf, 0x80000)
+    def name-index [ Hash -- UIndex ] { >U64 >U16-wrap >Nat >UIndex }
+    def name-offset [ Hash -- UOffset ] { name-index |I64| * }
+    def name@ [ +Mirth Hash -- +Mirth Maybe(Name) ] {
+        name-offset Hash.Buf unsafe(uoffset @I64) >Int
+        dup 0= if(drop None, Name.from-index Some)
+    }
+    def name! [ +Mirth Name Hash -- +Mirth ] {
+        dip(Name.index >I64-clamp)
+        name-offset Hash.Buf unsafe(uoffset !I64)
+    }
+
+    def keep-going? [ +Mirth Str Hash -- +Mirth Str Hash Bool ] {
+        dup name@ if?(
+            >Str over2 <>,
+            False
+        )
+    }
 }
 
-def(HASH_MAX, Int, 0xFFFF)
-buffer(HASH_BUF,   0x80000)
-def(hash-name@, +Mirth Hash -- +Mirth  Maybe(Name),
-    offset HASH_BUF unsafe(uoffset @I64) >Int
-    dup 0= if(drop None, Name.from-index Some))
-def(hash-name!, +Mirth Name Hash -- +Mirth,
-    dip(Name.index >I64-clamp)
-    offset HASH_BUF unsafe(uoffset !I64))
+||| Calculate a hash for string.
+def Str.hash [ Str -- Hash ] {
+    0u64 swap bytes-for(
+        >U64 0x100020040101u64 mul-wrap
+        over 7u64 lshift xor
+        swap 29u64 rshift xor
+    )
+    Hash
+}
 
-||| Get hash for string.
-def(Str.hash, Str -- Hash,
-    0 swap bytes-for(>Int 17 * over 7 << ^ swap 27 >> ^)
-    >Hash)
+def Name.hash [ +Mirth Name -- +Mirth Hash ] {
+    >Str hash
+}
 
-def(Name.hash, +Mirth Name -- +Mirth Hash, >Str hash)
-def(Hash.next, Hash -- Hash, >Int 1+ >Hash)
-
-def(Hash.keep-going?, +Mirth Str Hash -- +Mirth Str Hash Bool,
-    dup hash-name@ match(
-        None -> False,
-        Some -> >Str over2 <>
-    ))
-
-def(Name.search, +Mirth Str -- +Mirth Maybe(Name),
+def Name.search [ +Mirth Str -- +Mirth Maybe(Name) ] {
     dup hash
     while(keep-going?, next)
-    nip hash-name@)
+    nip name@
+}
 
-def(Str.>Name, +Mirth Str -- +Mirth Name,
+def Str.>Name [ +Mirth Str -- +Mirth Name ] {
     dup hash
     while(keep-going?, next)
-    dup hash-name@ match(
-        None ->
-            Name.alloc!
-            tuck swap hash-name!
-            tuck ~Str !
-            L0 over ~defs !,
-        Some ->
-            dip(drop2)
-    ))
+    dup name@ if?(
+        dip(drop2),
+
+        Name.alloc!
+        tuck swap name!
+        tuck ~Str !
+        L0 over ~defs !
+    )
+}
 
 ||| Add string to name, creating new name.
 def(Name.cat, +Mirth Name Str -- +Mirth Name,
@@ -98,11 +109,11 @@ def(Name.could-be-type, +Mirth Name -- +Mirth Bool, head is-alpha)
 def(Name.could-be-pattern-var?, +Mirth Name -- +Mirth Bool, head is-lower)
 def(Name.could-be-type-var, +Mirth Name -- +Mirth Bool, head is-lower)
 def(Name.could-be-type-con, +Mirth Name -- +Mirth Bool, head is-upper)
-def(Name.is-type-hole, +Mirth Name -- +Mirth Bool, dup head Byte.B'?' == swap tail-head dup Byte.BNUL == swap is-lower || &&)
-def(Name.is-underscore, +Mirth Name -- +Mirth Bool, dup head Byte.B'_' == swap tail-head Byte.BNUL == &&)
-def(Name.could-be-stack-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'*' == swap tail-head is-lower &&)
-def(Name.could-be-resource-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' == swap tail-head is-lower &&)
-def(Name.could-be-resource-con, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' == swap tail-head is-upper &&)
+def(Name.is-type-hole, +Mirth Name -- +Mirth Bool, dup head Byte.B'?' == swap tail-head dup Byte.BNUL == swap is-lower or and)
+def(Name.is-underscore, +Mirth Name -- +Mirth Bool, dup head Byte.B'_' == swap tail-head Byte.BNUL == and)
+def(Name.could-be-stack-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'*' == swap tail-head is-lower and)
+def(Name.could-be-resource-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' == swap tail-head is-lower and)
+def(Name.could-be-resource-con, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' == swap tail-head is-upper and)
 
 def Name.could-be-constructor [ +Mirth Name -- +Mirth Bool ] {
     dup head match(
@@ -213,11 +224,14 @@ struct QName {
     def == [ QName QName -- Bool ] {
         /QName /QName
         name> name> ==
-        arity> arity> == &&
-        namespace> namespace> == &&
+        arity> arity> == and
+        namespace> namespace> == and
     }
+    def <> [ QName QName -- Bool ] { == not }
     def <  [ +Mirth QName QName -- +Mirth Bool ] { compare lt? }
     def <= [ +Mirth QName QName -- +Mirth Bool ] { compare le? }
+    def >  [ +Mirth QName QName -- +Mirth Bool ] { compare gt? }
+    def >= [ +Mirth QName QName -- +Mirth Bool ] { compare ge? }
     def compare [ +Mirth QName QName -- +Mirth Comparison ] {
         /QName /QName
         arity> arity>
@@ -253,11 +267,11 @@ struct QName {
 
     def name/arity; [ +Mirth +Str QName -- +Mirth +Str ] {
         dup name;
-        arity dup 0> if("/"; int; , -1 == then("/*" ;))
+        arity dup 0> then("/"; dup int;) drop
     }
 
     def qname; [ +Mirth +Str QName -- +Mirth +Str ] {
-        dup namespace qname; name/arity;
+        dup namespace qname; "."; name/arity;
     }
 
     def mangled [+Mirth QName -- +Mirth Str] { str:mangled; }

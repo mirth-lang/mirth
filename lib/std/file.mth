@@ -97,7 +97,7 @@ def +Unsafe.write-bytes! [ Ptr USize +File +Unsafe -- USize Bool +File +Unsafe ]
     True >success
     0u >USize >wrote-bytes
     while(
-        @slice-size 0> @success &&,
+        @slice-size 0> @success and,
 
         rdip:file-descriptor @slice-base @slice-size >Int posix-write!
         >USize-if (

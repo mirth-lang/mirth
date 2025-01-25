@@ -568,7 +568,7 @@ def +C99.c99-line(f) [ (*a +C99 -- *b +C99) *a +C99 -- *b +C99 ] {
     indent f line
 }
 def +C99.c99-line-if(f) [ (*a +C99 -- *b +C99) *a Bool +C99 -- *b +C99 ] {
-    put-enabled(tuck &&)
+    put-enabled(tuck and)
     dip:c99-line(f)
     put-enabled!
 }
@@ -577,7 +577,7 @@ def +C99Branch.c99-line(f) [ (*a +C99 -- *b +C99) *a +C99Branch -- *b +C99Branch
     reachable +c99:c99-line-if(f)
 }
 def +C99Branch.c99-line-if(f) [ (*a +C99 -- *b +C99) *a Bool +C99Branch -- *b +C99Branch ] {
-    reachable && +c99:c99-line-if(f)
+    reachable and +c99:c99-line-if(f)
 }
 def +C99Branch.c99-nest(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Branch -- *b +C99Branch ] {
     +c99:depth:succ f +c99:depth:pred
@@ -756,7 +756,7 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
         split-at(is-physical-value?) uncons
         >out-params-2 >return-param >out-params-1
     ) drop
-    must-flush> must-flush> || >must-flush
+    must-flush> must-flush> or >must-flush
     @type cod +mirth:linear-base-var? if?(
         @type dom +mirth:linear-base-var? if?(
             <>,
@@ -764,7 +764,7 @@ def +C99.cname-type-to-c99-api [ Str ArrowType +C99 -- C99API +C99 ] {
         ),
         False
     ) >doesnt-return
-    @doesnt-return not @must-flush:&&
+    @doesnt-return not @must-flush:and
     C99API
 }
 
@@ -824,7 +824,7 @@ def c99-smart-call! [ List(Arg) C99API +C99Branch -- +C99Branch ] {
         ),
         c99-line(put ";" put) None
     ) >reserved-return
-    api> doesnt-return not reachable:&&
+    api> doesnt-return not reachable:and
     reserved-outputs-1> for(push-api-arg!)
     reserved-return>    for(push-api-arg!)
     reserved-outputs-2> for(push-api-arg!)
@@ -914,7 +914,7 @@ def c99-codip-arrow! [ Arrow +C99Branch -- +C99Branch ] {
     dup +mirth:type /ArrowType
     cod> +mirth:split-parts >cod-parts >cod-base
     dom> +mirth:split-parts >dom-parts >dom-base
-    cod-base> unit? dom-base> unit? && if(
+    cod-base> unit? dom-base> unit? and if(
         dom-parts> dip-parts( +stack(+C99Stack.+Nil) )
         c99-arrow!
         cod-parts> dip-parts(
@@ -1033,7 +1033,7 @@ def c99-push-value! [ PushValue +C99Branch -- +C99Branch ] {
     { U8  -> C99ReprType.U8  push-value-expression!(>Nat >Str put) }
     { U16 -> C99ReprType.U16 push-value-expression!(>Nat >Str put) }
     { U32 -> C99ReprType.U32 push-value-expression!(>Nat >Str put) }
-    { U64 -> C99ReprType.U64 push-value-expression!(>Int-unsafe >Str put "ULL" put) }
+    { U64 -> C99ReprType.U64 push-value-expression!(>Nat >Str put "ULL" put) }
     { I8  -> C99ReprType.I8  push-value-expression!(>Int >Str put) }
     { I16 -> C99ReprType.I16 push-value-expression!(>Int >Str put) }
     { I32 -> C99ReprType.I32 push-value-expression!(>Int >Str put) }
@@ -1194,7 +1194,7 @@ def c99-string-byte! [ Byte avoid-hexdigit:Bool +C99 -- avoid-hexdigit:Bool +C99
     { BCR ->    "\\r"  put False !avoid-hexdigit }
     { _ ->
         dup Byte.BSPACE Byte.B'~' in-range
-        and(dup is-hexdigit @avoid-hexdigit && not) if(
+        and(dup is-hexdigit @avoid-hexdigit and not) if(
             put-byte
             False !avoid-hexdigit,
             "\\x" put to-hexdigits dip(put-byte) put-byte
@@ -1502,7 +1502,7 @@ def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
             { _ ->
                 over == if(
                     drop value-name>,
-                    dup is-int-like? @value-repr is-int-like? && if(
+                    dup is-int-like? @value-repr is-int-like? and if(
                         Str( "((" ; underlying-c99-type ; ")" ; value-name> ; ")" ; ),
                         Str( "(\n#error \"attempted to cast " ; value-name> ; " to incompatible C99 repr type " ;
                             underlying-c99-type ; "\"\n" ; )
@@ -1831,12 +1831,12 @@ def +C99BranchSplit.sub-branch(f) [ (*a +C99Branch -- *b +C99Branch) *a +C99Bran
         end-branch!
     )
     env> drop
-    reachable> reachable-out:||
+    reachable> reachable-out:or
 }
 
 
 def +C99BranchSplit.c99-line(f) { reachable-in +c99:c99-line-if(f) }
-def +C99BranchSplit.c99-line-if(f) { reachable-in && +c99:c99-line-if(f) }
+def +C99BranchSplit.c99-line-if(f) { reachable-in and +c99:c99-line-if(f) }
 def +C99BranchSplit.c99-nest(f) { +c99:depth:1+ f +C99BranchSplit.+c99:depth:pred }
 
 struct C99Var {

@@ -42,6 +42,7 @@ data Maybe(t) {
         { None -> none? }
         { Some -> swap if?(swap eq, drop False) }
     }
+    def <> (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] { ==:eq not }
 
     def compare (cmp {compare}) [ (*c a a -- *c Comparison) *c Maybe(a) Maybe(a) -- *c Comparison ] {
         { None -> match {

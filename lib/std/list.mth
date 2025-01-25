@@ -195,12 +195,13 @@ data List(t) {
 
     def ==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
         True while (
-            dip(dip(uncons) uncons dip(swap) dip2(==(eq)) rotl) &&
-            over2 empty? over2 empty? && not over &&,
+            dip(dip(uncons) uncons dip(swap) dip2(==(eq)) rotl) and
+            over2 empty? over2 empty? and not over and,
             id
         )
         dip(drop2)
     }
+    def <>(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] { ==:eq not }
 
     def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
         find(over dip(p) swap) nip)
@@ -396,6 +397,7 @@ struct Nest(t) {
     def ==(eq {==}) [ (*c a a -- *c Bool) *c Nest(a) Nest(a) -- *c Bool ] {
         dip(>List) >List ==(eq)
     }
+    def <>(eq {==}) [ (*c a a -- *c Bool) *c Nest(a) Nest(a) -- *c Bool ] { ==:eq not }
 
     def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k Nest(a) -- *c Maybe(a),
         find(over dip(p) swap) nip)
