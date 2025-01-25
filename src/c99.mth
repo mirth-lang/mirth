@@ -1036,8 +1036,10 @@ def c99-push-value! [ PushValue +C99Branch -- +C99Branch ] {
     { U64 -> C99ReprType.U64 push-value-expression!(>Nat >Str put "ULL" put) }
     { I8  -> C99ReprType.I8  push-value-expression!(>Int >Str put) }
     { I16 -> C99ReprType.I16 push-value-expression!(>Int >Str put) }
-    { I32 -> C99ReprType.I32 push-value-expression!(>Int >Str put) }
-    { I64 -> C99ReprType.I64 push-value-expression!(>Int >Str put "LL" put) }
+    { I32 -> C99ReprType.I32 push-value-expression!(
+        dup I32.MIN == if(drop "INT32_MIN" put, >Int >Str put)) }
+    { I64 -> C99ReprType.I64 push-value-expression!(
+        dup I64.MIN == if(drop "INT64_MIN" put, >Int >Str put "LL" put)) }
     { F32 -> C99ReprType.F32 push-value-expression!(>Str put) }
     { F64 -> C99ReprType.F64 push-value-expression!(>Str put) }
 }
