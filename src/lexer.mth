@@ -430,15 +430,14 @@ def +Str.int-suffix? [ UOffset +Str -- Maybe(IntSuffix) +Str ] {
     suffix> drop
 }
 
+def(skipping-underscore(f), (Byte -- Bool) +Str USize UOffset -- +Str USize UOffset Bool,
+    over 0> and(dup byte@ Byte.B'_' ==) and(dup 1+ byte@ f) if(1+ True, dup byte@ f))
+
 def(+Str.is-dec-int?, +Str -- Bool +Str,
     0u >USize # number of digits
     0u >UOffset # current index
     dup byte@ is-sign if(1+, id)
-    while(
-        over 0> and(dup byte@ Byte.B'_' ==) then(1+)
-        dup byte@ is-digit,
-        dip(1+) 1+
-    )
+    while(skipping-underscore:is-digit, dip(1+) 1+)
     swap 0> and(dup int-suffix? some?) nip)
 
 def(+Str.is-hex-int?, +Str -- Bool +Str,
@@ -452,11 +451,7 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
         1+
         dup byte@ Byte.B'x' == if(
             1+
-            while(
-                over 0> and(dup byte@ Byte.B'_' ==) then(1+)
-                dup byte@ is-hexdigit,
-                dip(1+) 1+
-            )
+            while(skipping-underscore:is-hexdigit, dip(1+) 1+)
             swap 0> and(dup int-suffix? some?) nip,
 
             drop2 False
@@ -476,11 +471,7 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
         1+
         dup byte@ Byte.B'o' == if(
             1+
-            while(
-                over 0> and(dup byte@ Byte.B'_' ==) then(1+)
-                dup byte@ is-octdigit,
-                dip(1+) 1+
-            )
+            while(skipping-underscore:is-octdigit, dip(1+) 1+)
             swap 0> and(dup int-suffix? some?) nip,
 
             drop2 False
