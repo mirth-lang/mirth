@@ -31,14 +31,14 @@ def fact* {
 def fib {
     dup 2 < if(
         id,
-        dup dip(1- fib) dip'(2 - fib) Int.+
+        dup dip(1- fib) dip_(2 - fib) Int.+
     )
 }
 
 def main {
     "Hello world!" print
-    print("[ "; 1 to: 10 for(fact show; " ";) "]";)
-    print("[ "; 1 to: 15 for(fib  show; " ";) "]";)
+    print("[ "; 1 to: 10 for(fact repr; " ";) "]";)
+    print("[ "; 1 to: 15 for(fib  repr; " ";) "]";)
 }
 
 # mirth-test # pout # Hello world!

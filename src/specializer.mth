@@ -165,14 +165,14 @@ def Op.similar [ +Mirth Op Op -- +Mirth Bool ] {
 def TagField.similar [ TagField TagField -- Bool ] {
     /TagField /TagField
     label> label> ==
-    tag> tag> == &&
+    tag> tag> == and
     type/resource> type/resource> drop2
 }
 
 data(SPKey, SPKey -> Nest(Arg))
 def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKey) ==(similar))
 def(SPKey.>Str, +Mirth SPKey -- +Mirth Str,
-    SPKey -> Str("(" ; dip:"" for(dip:; rdip:>Str ; ",") drop ")" ;))
+    SPKey -> Str("(" ; dip:"" for(dip:; mangled; ",") drop ")" ;))
 def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
     >Str >Name)
 
@@ -194,7 +194,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             @word head >head
             None >sig?
             @word body >body
-            Str( "sp" ; @word sp-synthed len 1+ show ; ) >Name >name
+            @word sp-synthed len 1+ str("sp"; int;) >Name >name
             0u >arity
             @word doc >doc
             Word.new! >word'

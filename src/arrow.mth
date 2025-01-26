@@ -84,9 +84,9 @@ data Arg {
     def token { Block -> token }
     def type  { Block -> type }
     def free-vars { Block -> free-vars }
-    def >Str [ +Mirth Arg -- +Mirth Str ] { Block -> qname >Str }
+    def mangled; [ +Mirth +Str Arg -- +Mirth +Str ] { Block -> mangled; }
     def == [ Arg Arg -- Bool ] {
-        { Block -> swap match { Block -> swap ==, _ -> drop2 Nay } }
+        { Block -> swap match { Block -> swap ==, _ -> drop2 No } }
     }
 }
 
@@ -105,18 +105,18 @@ data PushValue {
     F64 [ F64 ]
     --
     def == [ PushValue PushValue -- Bool ] {
-        { Str -> swap match { Str -> swap ==, _ -> drop2 False } }
-        { Int -> swap match { Int -> swap ==, _ -> drop2 False } }
-        { U8  -> swap match { U8  -> swap ==, _ -> drop2 False } }
-        { U16 -> swap match { U16 -> swap ==, _ -> drop2 False } }
-        { U32 -> swap match { U32 -> swap ==, _ -> drop2 False } }
-        { U64 -> swap match { U64 -> swap ==, _ -> drop2 False } }
-        { I8  -> swap match { I8  -> swap ==, _ -> drop2 False } }
-        { I16 -> swap match { I16 -> swap ==, _ -> drop2 False } }
-        { I32 -> swap match { I32 -> swap ==, _ -> drop2 False } }
-        { I64 -> swap match { I64 -> swap ==, _ -> drop2 False } }
-        { F32 -> swap match { F32 -> swap ==, _ -> drop2 False } }
-        { F64 -> swap match { F64 -> swap ==, _ -> drop2 False } }
+        { Str -> swap match { Str -> swap ==, _ -> drop2 No } }
+        { Int -> swap match { Int -> swap ==, _ -> drop2 No } }
+        { U8  -> swap match { U8  -> swap ==, _ -> drop2 No } }
+        { U16 -> swap match { U16 -> swap ==, _ -> drop2 No } }
+        { U32 -> swap match { U32 -> swap ==, _ -> drop2 No } }
+        { U64 -> swap match { U64 -> swap ==, _ -> drop2 No } }
+        { I8  -> swap match { I8  -> swap ==, _ -> drop2 No } }
+        { I16 -> swap match { I16 -> swap ==, _ -> drop2 No } }
+        { I32 -> swap match { I32 -> swap ==, _ -> drop2 No } }
+        { I64 -> swap match { I64 -> swap ==, _ -> drop2 No } }
+        { F32 -> swap match { F32 -> swap ==, _ -> drop2 No } }
+        { F64 -> swap match { F64 -> swap ==, _ -> drop2 No } }
     }
 }
 
@@ -219,17 +219,6 @@ def(Block.type, +Mirth Block -- +Mirth ArrowType, sip(dom) cod T->)
 def(Block.arrow, +Mirth Block -- +Mirth Arrow, ~arrow force!)
 def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
 
-def(Block.qname, +Mirth Block -- +Mirth QName,
-    dup ~qname memoize(dup dup home match(
-        Main ->
-            .module Namespace.Module
-            swap arrow token-start index show
-            dip:"entry@" cat >Name 0 QName.Mk,
-        Word -> dup Namespace.Word
-            dip(dip:arrow arrow both(token-start index) - show >Name)
-            swap 0 QName.Mk
-    )) nip)
-
 def(Block.==, Block Block -- Bool, both(Block.index) ==)
 
 field(Block.~home-index, Block, Int)
@@ -244,9 +233,10 @@ def(Block.register-home!, +Mirth Block -- +Mirth,
 field(Block.~cname, Block, Str)
 def(Block.cname, +Mirth Block -- +Mirth Str, dup ~cname memoize(
     dup home match(
-        Word -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ show;),
-        Main -> drop Str("mb_" ; dup index show;),
+        Word -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ int;),
+        Main -> drop Str("mb_" ; dup index int;),
     )) nip)
+def Block.mangled; [ +Mirth +Str Block -- +Mirth +Str ] { rdip:cname ; }
 
 def(Block.new!, +Mirth Arrow -- +Mirth Block,
     Block.alloc!

@@ -46,8 +46,8 @@ def(Package.path!, +Mirth Path Package -- +Mirth,
                 Str(
                     "Tried to set different path for the same package " ;
                     "(package = " ; rotl name;
-                    ", path 1 = " ; swap /Path show;
-                    ", path 2 = " ; /Path show;
+                    ", path 1 = " ; swap /Path repr;
+                    ", path 2 = " ; /Path repr;
                     ")." ;
                 ) fatal-error!
             ),

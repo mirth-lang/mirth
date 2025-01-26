@@ -14,7 +14,7 @@ data Maybe(t) {
     1 Some [ t ]
     --
     inline (
-        def len [ Maybe(t) -- Nat ] { enum-value Nat.NatUnsafe }
+        def len [ Maybe(t) -- Nat ] { enum-value Nat.Unsafe }
         def none? [ Maybe(t) -- Bool ] { enum-value 0 == }
         def some? [ Maybe(t) -- Bool ] { enum-value 1 == }
         def >Bool [ Maybe(t) -- Bool ] { some? }
@@ -42,6 +42,7 @@ data Maybe(t) {
         { None -> none? }
         { Some -> swap if?(swap eq, drop False) }
     }
+    def <> (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] { ==:eq not }
 
     def compare (cmp {compare}) [ (*c a a -- *c Comparison) *c Maybe(a) Maybe(a) -- *c Comparison ] {
         { None -> match {
@@ -77,13 +78,9 @@ data Maybe(t) {
 
     def zip [ Maybe(x) Maybe(y) -- Maybe([x y]) ] { map2(pack2) }
 
-    def show;(f {show;}) [ (t +Str -- +Str) Maybe(t) +Str -- +Str ] {
+    def repr;(f {repr;}) [ (t +Str -- +Str) Maybe(t) +Str -- +Str ] {
         { None -> "None" ; }
         { Some -> f " Some" ; }
-    }
-
-    def show(f {show;}) [ (t +Str -- +Str) Maybe(t) -- Str ] {
-        Str( show;(f) )
     }
 }
 

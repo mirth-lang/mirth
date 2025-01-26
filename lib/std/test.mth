@@ -45,7 +45,7 @@
 |||         => ( 2 )
 |||         => ( 1 )
 |||
-||| `=>` requires the verbs `==` and `show;` be defined for the
+||| `=>` requires the verbs `==` and `repr;` be defined for the
 ||| type being tested. You can also pass different versions
 ||| explicitly:
 |||
@@ -83,11 +83,11 @@ struct +Tests {
     ||| passed and failed to stdout.
     def end! [ +Tests -- +World ] {
         num-failed 0> if(
-            Str(rdip:num-failed show ; " out of " ;
-                rdip:num-tests show ; " tests failed." ;)
+            Str(rdip:num-failed int; " out of " ;
+                rdip:num-tests int; " tests failed." ;)
             +world(print 1 posix-exit!),
 
-            Str(rdip:num-tests show ; " tests passed." ;)
+            Str(rdip:num-tests int; " tests passed." ;)
             +world:print
         )
         /+Tests +world>
@@ -135,7 +135,7 @@ struct +Test {
     def fail! {
         test-failed else(
             True test-failed!
-            test-name +world:print(show; " test failed" ;)
+            test-name +world:print(repr; " test failed" ;)
         )
     }
 
@@ -144,7 +144,7 @@ struct +Test {
     ||| and print the values.
     |||
     ||| We usually use `=>` instead of check-equals!
-    def check-equals! (feq {==}, fshow {show;}) [
+    def check-equals! (feq {==}, fshow {repr;}) [
         (a a -- Bool, a +Str -- +Str)
         a a +Test -- +Test
     ] {
@@ -167,7 +167,7 @@ struct +Test {
     |||           => (2)
     |||           => (1)
     |||
-    def =>(f, feq {==}, fshow {show;}) [
+    def =>(f, feq {==}, fshow {repr;}) [
         (-- a, a a -- Bool, a +Str -- +Str)
         a +Test -- +Test
     ] {

@@ -3,9 +3,9 @@ import std.prelude
 import std.world
 
 def main {
-    10 negate show print
-    0 negate show print
-    -10 negate show print
+    10 negate >Str print
+    0 negate >Str print
+    -10 negate >Str print
 }
 # mirth-test # pout # -10
 # mirth-test # pout # 0

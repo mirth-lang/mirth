@@ -11,16 +11,18 @@ import mirth.mirth
 struct Row {
     Int
     --
-    def >Int { /Row }
-    def show; { /Row show; }
+    def >Int  { /Row }
+    def repr; { >Int repr; " Row"; }
+    def int;  { >Int int; }
     def 1+ { Row -> 1+ Row }
 }
 
 struct Col {
     Int
     --
-    def >Int { /Col }
-    def show; { /Col show; }
+    def >Int  { /Col }
+    def repr; { >Int repr; " Col"; }
+    def int;  { >Int int; }
     def 1+ { Col -> 1+ Col }
 }
 
@@ -32,7 +34,7 @@ struct Location {
     def emit; [ +Mirth +Str Location -- +Mirth +Str ] {
         /Location
         module> rdip:source-path >Str ;
-        ":" ; row> show;
-        ":" ; col> show;
+        ":" ; row> int;
+        ":" ; col> int;
     }
 }

@@ -11,6 +11,7 @@ import std.ctypes
 import std.world
 import std.file
 import std.input
+import std.unicode
 
 import mirth.location
 import mirth.name
@@ -220,7 +221,7 @@ struct +Lexer {
             )
             Byte.BQUOTE == else(
                 "String literal is missing end quote (\")."
-                rdip':fatal-error!
+                rdip_:fatal-error!
             )
 
             rdip:freeze TokenValue.Str
@@ -241,7 +242,7 @@ struct +Lexer {
         { BQUOTE -> Byte.BQUOTE rdip(push-byte-ascii!) }
         { _ ->
             rdip(push-byte-unsafe!)
-            "Unknown character escape sequence." rdip':warning!
+            "Unknown character escape sequence." rdip_:warning!
         }
     }
 
@@ -404,14 +405,14 @@ data IntSuffix {
     --
     def convert [ Int IntSuffix -- Result(Str, TokenValue) ] {
         { Int -> TokenValue.Int Ok }
-        { U8  -> >U8-if (TokenValue.U8  Ok, Str(show; " is outside of U8 range." ;) Err) }
-        { U16 -> >U16-if(TokenValue.U16 Ok, Str(show; " is outside of U16 range.";) Err) }
-        { U32 -> >U32-if(TokenValue.U32 Ok, Str(show; " is outside of U32 range.";) Err) }
-        { U64 -> >U64-if(TokenValue.U64 Ok, Str(show; " is outside of U64 range.";) Err) }
-        { I8  -> >I8-if (TokenValue.I8  Ok, Str(show; " is outside of I8 range." ;) Err) }
-        { I16 -> >I16-if(TokenValue.I16 Ok, Str(show; " is outside of I16 range.";) Err) }
-        { I32 -> >I32-if(TokenValue.I32 Ok, Str(show; " is outside of I32 range.";) Err) }
-        { I64 -> >I64-if(TokenValue.I64 Ok, Str(show; " is outside of I64 range.";) Err) }
+        { U8  -> >U8-if (TokenValue.U8  Ok, Str(int; " is outside of U8 range." ;) Err) }
+        { U16 -> >U16-if(TokenValue.U16 Ok, Str(int; " is outside of U16 range.";) Err) }
+        { U32 -> >U32-if(TokenValue.U32 Ok, Str(int; " is outside of U32 range.";) Err) }
+        { U64 -> >U64-if(TokenValue.U64 Ok, Str(int; " is outside of U64 range.";) Err) }
+        { I8  -> >I8-if (TokenValue.I8  Ok, Str(int; " is outside of I8 range." ;) Err) }
+        { I16 -> >I16-if(TokenValue.I16 Ok, Str(int; " is outside of I16 range.";) Err) }
+        { I32 -> >I32-if(TokenValue.I32 Ok, Str(int; " is outside of I32 range.";) Err) }
+        { I64 -> >I64-if(TokenValue.I64 Ok, Str(int; " is outside of I64 range.";) Err) }
     }
 }
 

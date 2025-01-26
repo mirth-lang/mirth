@@ -37,13 +37,13 @@ inline(
     def(CUSize.>Int, CUSize -- Int, CUSize -> id)
     def(CUIntPtr.>Int, CUIntPtr -- Int, CUIntPtr -> id)
 
-    def(CUChar.>Nat, CUChar -- Nat, CUChar -> Nat.NatUnsafe)
-    def(CUShort.>Nat, CUShort -- Nat, CUShort -> Nat.NatUnsafe)
-    def(CUInt.>Nat, CUInt -- Nat, CUInt -> Nat.NatUnsafe)
-    def(CULong.>Nat, CULong -- Nat, CULong -> Nat.NatUnsafe)
-    def(CULongLong.>Nat, CULongLong -- Nat, CULongLong -> Nat.NatUnsafe)
-    def(CUSize.>Nat, CUSize -- Nat, CUSize -> Nat.NatUnsafe)
-    def(CUIntPtr.>Nat, CUIntPtr -- Nat, CUIntPtr -> Nat.NatUnsafe)
+    def(CUChar.>Nat, CUChar -- Nat, CUChar -> Nat.Unsafe)
+    def(CUShort.>Nat, CUShort -- Nat, CUShort -> Nat.Unsafe)
+    def(CUInt.>Nat, CUInt -- Nat, CUInt -> Nat.Unsafe)
+    def(CULong.>Nat, CULong -- Nat, CULong -> Nat.Unsafe)
+    def(CULongLong.>Nat, CULongLong -- Nat, CULongLong -> Nat.Unsafe)
+    def(CUSize.>Nat, CUSize -- Nat, CUSize -> Nat.Unsafe)
+    def(CUIntPtr.>Nat, CUIntPtr -- Nat, CUIntPtr -> Nat.Unsafe)
 
     def(CUSize.>USize, CUSize -- USize, >Nat >USize)
 

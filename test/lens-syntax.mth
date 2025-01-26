@@ -6,7 +6,7 @@ import(std.str)
 data(Foo, Foo -> bar:Int)
 data(Boom, Boom -> foo:Foo)
 
-def(Foo.foo;, Foo +Str -- Foo +Str, dup bar show; " FOO";)
+def(Foo.foo;, Foo +Str -- Foo +Str, dup bar int; " FOO";)
 def(Boom.boom;, Boom +Str -- Boom +Str, foo:foo; " BOOM";)
 
 def(main, +World -- +World,

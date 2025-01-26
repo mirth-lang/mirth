@@ -37,16 +37,7 @@ def(Data.tags, +Mirth Data -- +Mirth List(Tag), ~tags @)
 def(Data.ctype?, +Mirth Data -- +Mirth Maybe(CType), ~ctype? force!)
 
 def Data.name; [ +Mirth +Str Data -- +Mirth +Str ] { rdip:name name; }
-
-def(Type.Bool, +Mirth -- +Mirth Type, builtin bool Type.Data)
-def(Type.U64, +Mirth -- +Mirth Type, builtin u64 Type.Data)
-def(Type.U32, +Mirth -- +Mirth Type, builtin u32 Type.Data)
-def(Type.U16, +Mirth -- +Mirth Type, builtin u16 Type.Data)
-def(Type.U8,  +Mirth -- +Mirth Type, builtin u8  Type.Data)
-def(Type.I64, +Mirth -- +Mirth Type, builtin i64 Type.Data)
-def(Type.I32, +Mirth -- +Mirth Type, builtin i32 Type.Data)
-def(Type.I16, +Mirth -- +Mirth Type, builtin i16 Type.Data)
-def(Type.I8,  +Mirth -- +Mirth Type, builtin i8  Type.Data)
+def Data.qname; [ +Mirth +Str Data -- +Mirth +Str ] { rdip:qname-hard qname; }
 
 def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
     >ctype >tags >data >params >name
@@ -89,10 +80,6 @@ def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     tagname> 0 Type.Int L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
-    "Bool" L0 builtin bool builtin true builtin false L2 "_Bool" CType.IntLike Some make-prim-data!
-    "False" 0 L0 builtin false make-prim-tag!
-    "True" 1 L0 builtin true make-prim-tag!
-
     Type.Type "a" >Name Var.new! >a
     "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
     "CPtr" 0 Type.Ptr L1 builtin mk-cptr make-prim-tag!
@@ -106,16 +93,6 @@ def(init-data!, +Mirth -- +Mirth,
 
     "CVoid" L0 builtin cvoid builtin mk-cvoid L1 CType.Phantom Some make-prim-data!
     "CVoid" 0 L0 builtin mk-cvoid make-prim-tag!
-
-    "U64" builtin u64 "Int>U64-unsafe" builtin mk-u64 "uint64_t" make-prim-intlike!
-    "U32" builtin u32 "Int>U32-unsafe" builtin mk-u32 "uint32_t" make-prim-intlike!
-    "U16" builtin u16 "Int>U16-unsafe" builtin mk-u16 "uint16_t" make-prim-intlike!
-    "U8"  builtin u8  "Int>U8-unsafe"  builtin mk-u8  "uint8_t"  make-prim-intlike!
-
-    "I64" builtin i64 "Int>I64-unsafe" builtin mk-i64 "int64_t" make-prim-intlike!
-    "I32" builtin i32 "Int>I32-unsafe" builtin mk-i32 "int32_t" make-prim-intlike!
-    "I16" builtin i16 "Int>I16-unsafe" builtin mk-i16 "int16_t" make-prim-intlike!
-    "I8"  builtin i8  "Int>I8-unsafe"  builtin mk-i8  "int8_t"  make-prim-intlike!
 
     "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
     "CIChar"     builtin cichar     "CIChar"     builtin mk-cichar     "signed char"  make-prim-intlike!
@@ -169,7 +146,7 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
 }
 
 def Data.is-enum-or-unit? [ +Mirth Data -- +Mirth Bool ] {
-    dup is-enum? dip(is-unit? >Bool) ||
+    dup is-enum? dip(is-unit? >Bool) or
 }
 
 field(Data.~is-unit?, Data, Maybe(Tag))
@@ -195,11 +172,11 @@ def(Data.is-transparent?, +Mirth Data -- +Mirth Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
             dup tags single? match(
-                Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == &&,
+                Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == and,
                 None -> False,
             ),
             dup tags single? match(
-                Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == &&,
+                Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == and,
                 None -> False
             )
         )
@@ -266,6 +243,7 @@ def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
 def(Tag.untag, +Mirth Tag -- +Mirth Maybe(Word), ~untag @)
 
 def Tag.name; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:name name; }
+def Tag.qname; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:qname qname; }
 
 def(Tag.only-tag?, +Mirth Tag -- +Mirth Bool, .data tags single? >Bool)
 
@@ -340,7 +318,7 @@ data(DataPartial, DataPartial ->
 def(DataPartial.==, DataPartial DataPartial -- Bool,
     /DataPartial /DataPartial
     data> data> ==
-    field> field> == &&)
+    field> field> == and)
 
 struct TagField {
     tag: Tag

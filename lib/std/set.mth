@@ -20,17 +20,17 @@ struct +Set {
     }
 
     def offset-mask [ Nat +Set -- UOffset U8 +Set ] {
-        8u /% dip(>UOffset)
+        8u divmod dip(>UOffset)
         1u swap << >U8-wrap
     }
 
     def member? [ Nat +Set -- Bool +Set ] {
-        offset-mask +buffer(swap @U8) & >Int 0 <>
+        offset-mask +buffer(swap @U8) and >Int 0 <>
     }
     def insert! [ Nat +Set -- +Set ] {
-        offset-mask +buffer(over @U8 | swap !U8)
+        offset-mask +buffer(over @U8 or swap !U8)
     }
     def remove! [ Nat +Set -- +Set ] {
-        offset-mask 0xFF >U8-wrap ^ +buffer(over @U8 & swap !U8)
+        offset-mask 0xFF >U8-wrap xor +buffer(over @U8 and swap !U8)
     }
 }

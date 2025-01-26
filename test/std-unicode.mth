@@ -21,15 +21,15 @@ def main [ +World -- +World ] {
         "女" => ( Str( 22899 >Codepoint-unsafe emit; ) )
     )
 
-    "Codepoint.show;" test (
-        "128132 Codepoint" => ( Str( 128132 >Codepoint-unsafe show; ) )
-            "97 Codepoint" => ( Str( 97 >Codepoint-unsafe show; ) )
-         "22899 Codepoint" => ( Str( 22899 >Codepoint-unsafe show; ) )
+    "Codepoint.repr;" test (
+        "128132u32 Codepoint" => ( Str( 128132 >Codepoint-unsafe repr; ) )
+            "97u32 Codepoint" => ( Str( 97 >Codepoint-unsafe repr; ) )
+         "22899u32 Codepoint" => ( Str( 22899 >Codepoint-unsafe repr; ) )
     )
 
     "Str.codepoints-for" test (
-        List.Mk( 97 ; 129498 ; 127995 ; 8205 ; 9792 ; 65039 ; 99 ; ) map:>Codepoint-unsafe
-        => ( List.Mk( "a🧚🏻‍♀️c" codepoints-for:; ) )
+        List( 97 ; 129498 ; 127995 ; 8205 ; 9792 ; 65039 ; 99 ; ) map:>Codepoint-unsafe
+        => ( List( "a🧚🏻‍♀️c" codepoints-for:; ) )
     )
 
     "Str.num-codepoints" test (

@@ -9,13 +9,13 @@ data(+MyWorld, +MyWorld -> age:Int msg:Int name:Str +world:+World)
 data(+Deep, +Deep -> +myworld:+MyWorld)
 
 def(Person.greet!, Person +World -- Person +World,
-    print("Hello, "; dup name ; " at "; dup age show; "!";))
+    print("Hello, "; dup name ; " at "; dup age int; "!";))
 
 def(main, +World -- +World,
     "John" >name
     30 >age
     Person
-    dup age show print
+    dup age >Str print
     dup name print
     drop
 
@@ -26,10 +26,10 @@ def(main, +World -- +World,
     >+world
     +MyWorld
     "<<<" +world:print
-    age show +world:print
+    age >Str +world:print
     >+myworld +Deep
     "<<<<<" +myworld:+world:print
-    +myworld:msg +myworld:+world:print:show;
+    +myworld:msg +myworld:+world:print:int;
     +myworld rdip(name +world rdip:print +world!) +myworld!
     +myworld:+world:print(">>>>>" ;)
     /+Deep +myworld>

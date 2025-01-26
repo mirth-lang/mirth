@@ -13,7 +13,7 @@ inline(
 )
 
 def(main, +World -- +World,
-    print("10! = " ; 10 factorial show;))
+    print("10! = " ; 10 factorial repr;))
 # mirth-test # merr # 7:12: warning: recursive word cannot be inlined
 # mirth-test # merr # 12:9: warning: recursive word cannot be inlined
 # mirth-test # merr # 11:9: warning: recursive word cannot be inlined

@@ -42,10 +42,10 @@ struct +SnakeLogic {
 }
 
 data(Position, Position -> x:Int y:Int)
-def Position.wrap { x(SNAKE_W %) y(SNAKE_H %) }
+def Position.wrap { x(SNAKE_W mod) y(SNAKE_H mod) }
 
 def Position.== [ Position Position -- Bool ] {
-    /Position /Position x> x> == y> y> == &&
+    /Position /Position x> x> == y> y> == and
 }
 
 data(Direction, North, East, South, West)
@@ -67,7 +67,7 @@ def SNAKE_CELL_SIZE { 30 }
 def SNAKE_WINDOW_W { SNAKE_W SNAKE_CELL_SIZE * }
 def SNAKE_WINDOW_H { SNAKE_H SNAKE_CELL_SIZE * }
 def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
-def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC | }
+def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC or }
 
 data(SnakeButton,
     Up,
@@ -151,7 +151,7 @@ def +Snake.loop! [ +World +Snake -- +World +Snake ] {
     process-events!
     while(+logic:done not,
         present!
-        10 >U32-unsafe >ticks +platform:sdl:delay!
+        10u32 >ticks +platform:sdl:delay!
         process-events!
         +logic:update!
     )
@@ -245,7 +245,7 @@ def +SnakeLogic.press! [ +World +SnakeLogic SnakeButton -- +World +SnakeLogic ] 
     { Start -> dead then(reset!) }
 }
 
-def +SnakeLogic.tick-frames { 40 >Nat-clamp points 5u + / 2u + }
+def +SnakeLogic.tick-frames { 40 >Nat-clamp points 5u + div 2u + }
 def +SnakeLogic.tick! [ +SnakeLogic -- +SnakeLogic Bool ] {
     timer:1+
     timer tick-frames >= if(
@@ -286,14 +286,14 @@ def +SnakeLogic.desired-length { points 5u + }
 external(libc-rand -> rand [+World -- +World CInt])
 
 def Position.Random! [ +World -- +World Position ] {
-    libc-rand >Int SNAKE_W % >x
-    libc-rand >Int SNAKE_H % >y
+    libc-rand >Int SNAKE_W mod >x
+    libc-rand >Int SNAKE_H mod >y
     Position
 }
 
 def Position.Center {
-    SNAKE_W 2/ >x
-    SNAKE_H 2/ >y
+    SNAKE_W 2 div >x
+    SNAKE_H 2 div >y
     Position
 }
 

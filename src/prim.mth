@@ -5,6 +5,7 @@ import std.maybe
 import mirth.mirth
 import mirth.name
 import mirth.type
+import mirth.tycon
 import mirth.data
 import mirth.var
 import mirth.token
@@ -160,6 +161,10 @@ data Prim {
     F64Get
     F64Set
 
+    BoolBoolTrue
+    BoolBoolFalse
+    BoolTrue
+    BoolFalse
     BoolAnd
     BoolOr
     BoolNot
@@ -214,11 +219,11 @@ data Prim {
     SysArgv
 
     --
-    def MIN [ Prim ] { Prim.Id }
-    def MAX [ Prim ] { Prim.SysArgv }
+    def Min [ Prim ] { Prim.Id }
+    def Max [ Prim ] { Prim.SysArgv }
     def ForAll(f) [ (*a Prim -- *a) *a -- *a ] {
-        Prim.MIN >Int while (
-            dup Prim.MAX >Int <=,
+        Prim.Min >Int while (
+            dup Prim.Max >Int <=,
             sip(Prim.from-enum-value-unsafe f)
             1+
         ) drop
@@ -226,14 +231,19 @@ data Prim {
 
     def >Int [ Prim -- Int ] { enum-value }
     def == [ Prim Prim -- Bool ] { on2:>Int == }
-    def <> [ Prim Prim -- Bool ] { == not }
 
     def name  { str-arity drop >Name }
     def arity { str-arity nip }
-    def qname { str-arity QName.Prim }
+    def qname { sip:namespace str-arity dip:>Name QName.Mk }
 
     def register! [ +Mirth Prim -- +Mirth ] {
         Def.Prim register
+    }
+
+    def namespace [ +Mirth Prim -- +Mirth Namespace ] {
+        { BoolBoolTrue -> PrimType.Bool Tycon.Prim Namespace.Tycon }
+        { BoolBoolFalse -> PrimType.Bool Tycon.Prim Namespace.Tycon }
+        { _ -> drop Namespace.Prim }
     }
 
     def str-arity [ Prim -- Str Int ] {
@@ -383,6 +393,10 @@ data Prim {
         { F64Get -> "prim-f64-get" 0 }
         { F64Set -> "prim-f64-set" 0 }
 
+        { BoolBoolTrue -> "True" 0 }
+        { BoolBoolFalse -> "False" 0 }
+        { BoolTrue -> "prim-bool-true" 0 }
+        { BoolFalse -> "prim-bool-false" 0 }
         { BoolAnd -> "prim-bool-and" 0 }
         { BoolOr  -> "prim-bool-or"  0 }
         { BoolNot -> "prim-bool-not" 0 }
@@ -672,6 +686,10 @@ data Prim {
         { F64Get -> Ctx.L0 Type.Ptr T1 Type.F64 T1 T-> }
         { F64Set -> Ctx.L0 Type.F64 Type.Ptr T2 T0 T-> }
 
+        { BoolBoolTrue -> Ctx.L0 T0 Type.Bool T1 T-> }
+        { BoolBoolFalse -> Ctx.L0 T0 Type.Bool T1 T-> }
+        { BoolTrue -> Ctx.L0 T0 Type.Bool T1 T-> }
+        { BoolFalse -> Ctx.L0 T0 Type.Bool T1 T-> }
         { BoolAnd -> Ctx.L0 Type.Bool Type.Bool T2 Type.Bool T1 T-> }
         { BoolOr  -> Ctx.L0 Type.Bool Type.Bool T2 Type.Bool T1 T-> }
         { BoolNot -> Ctx.L0 Type.Bool T1 Type.Bool T1 T-> }

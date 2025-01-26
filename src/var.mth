@@ -23,10 +23,9 @@ def(Var.name, +Mirth Var -- +Mirth Name, ~name @)
 def(Var.type, +Mirth Var -- +Mirth Type, ~type @)
 def(Var.auto-run?, +Mirth Var -- +Mirth Maybe(ArrowType), ~auto-run? @)
 
-inline (
-    def Var.== [ Var Var -- Bool ] { both(index) == }
-    def Var.<> [ Var Var -- Bool ] { == not }
-)
+inline def Var.== [ Var Var -- Bool ] { both(index) == }
+inline def Var.<> [ Var Var -- Bool ] { both(index) <> }
+
 def(Var.type;, +Mirth +Str Var -- +Mirth +Str, rdip(name >Str) ;)
 def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.Type ==))
 def(Var.is-stack?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.StackType ==))
@@ -74,7 +73,7 @@ def(Ctx.len, Ctx -- Nat, >List len)
 def(Ctx.fresh-name!, +Mirth Ctx -- +Mirth Ctx Name,
     1 "_x1" >Name while-some(
         dup over3 lookup,
-        drop2 1+ "_x" over show cat >Name
+        drop2 1+ dup str("_x"; int;) >Name
     ) nip)
 def(Ctx.fresh-stack-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
     dip(PrimType.StackType Type.Prim) fresh-var!)

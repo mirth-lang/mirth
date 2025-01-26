@@ -238,9 +238,17 @@ data Def {
     def register [ +Mirth Def -- +Mirth ] {
         dup qname-soft for(
             dup undefined-soft? else(
-                >Str "qualified name already has definition: " swap cat fatal-error!
+                Str("Already defined: "; qname;) fatal-error!
             ) drop
         )
         dup name ~defs modify(cons)
+    }
+
+    def name; [ +Mirth +Str Def -- +Mirth +Str ] {
+        rdip:name name;
+    }
+
+    def qname; [ +Mirth +Str Def -- +Mirth +Str ] {
+        rdip:qname-hard qname;
     }
 }

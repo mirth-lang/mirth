@@ -34,18 +34,16 @@ def Options.default [ -- Options ] {
 }
 
 ||| Pretty print the contents of the arguments struct
-def Options.show; [ Options +Str -- +Str ] {
+def Options.repr; [ Options +Str -- +Str ] {
     /Options
-    "Options { " ;
-    "output-file: " ; output-file> show;
-    ", input-file: " ; input-file> >Str show;
-    ", entry-point: " ; entry-point> show;
-    ", emit-debug-info: " ; emit-debug-info> show;
-    ", packages: " ; packages> show;:pack2-show;
-    ", package-search-path: " ; package-search-paths> show;
-    " }" ;
+    output-file> repr; " >output-file " ;
+    input-file> repr; " >input-file " ;
+    entry-point> repr; " >entry-point " ;
+    emit-debug-info> repr; " >emit-debug-info " ;
+    packages> repr;(pack2-repr;) " >packages " ;
+    package-search-paths> repr; " >package-search-path " ;
+    "Options";
 }
-
 
 def parse-package-def [ Str -- [Str Path] ] {
     dip(Byte.BCOLON) split-byte
@@ -87,7 +85,7 @@ def compiler-parse-args [ +ArgumentParser(Options) Options Maybe(Str) ArgpOption
 
 def parse-options! [ +World -- +World Result([ArgumentParsingError Str], Options) ] {
     Options.default
-    List.Mk(
+    List(
         "output-file" Some >name
         Byte.B'o' ArgpOptionType.Short >flag-type
         "OUTPUT_FILE" Some >arg-doc

@@ -272,7 +272,7 @@ def Token.pattern-var? [ +Mirth Token -- +Mirth Maybe(Name) ] {
 def Token.pattern-auto-run-var? [ +Mirth Token -- +Mirth Maybe(Name) ] {
     >token
     @token lsquare? >Bool
-    @token succ succ rsquare? >Bool && if(
+    @token succ succ rsquare? >Bool and if(
         token> succ pattern-var?,
         token> drop None
     )
