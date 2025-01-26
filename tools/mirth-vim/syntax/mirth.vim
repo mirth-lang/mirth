@@ -12,36 +12,20 @@ endif
 syntax iskeyword 33,36-39,42-43,45,47-57,59-90,94-95,97-122,124,126
 
 " reserved words -- these have special syntactic meaning
-syntax keyword mirthReserved module import inline alias data struct def def-type def-missing def-external external table field embed-str buffer var --
+syntax keyword mirthReserved module import inline alias data struct def def-type def-missing external table field embed-str buffer max-mirth-revision min-mirth-revision --
 syntax keyword mirthSpecial -> \\
-
-" prelude words
-syntax keyword mirthWord dup drop id swap dip nip tuck over rotl rotr par both
-syntax keyword mirthWord dup2 drop2 swap2 dip2 nip2 tuck2 over2
-syntax keyword mirthWord dup3 drop3
-syntax keyword mirthWord if and or not xor while
-syntax keyword mirthWord pack2 unpack2 pack0 unpack0 pack1 unpack1 pack3 unpack3 pack4 unpack4
 
 " words, numbers, and types
 " atrocious logic to try and lex numbers as numbers and not as words.
 syntax match mirthWord "\v[+-]"
-syntax match mirthNumber "\v[+-][0-9][0-9]*"
-syntax match mirthNumber "\v[+-]0[xX][0-9a-fA-F][0-9a-fA-F]*"
-syntax match mirthNumber "\v[0-9][0-9]*"
-syntax match mirthNumber "\v0[xX][0-9a-fA-F][0-9a-fA-F]*"
-syntax match mirthWord "\v[a-z_?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v\+[a-z_\-+?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v-[A-Za-z_\-+?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v[+-][1-9][0-9]*[A-Za-z_\-+?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v[+-]0[A-WYZa-wyz_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v[+-]0[0-9][0-9]*[A-Za-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v[+-]0[xX][0-9a-fA-F]*[G-Zg-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v[1-9][0-9]*[A-Za-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v0[A-WYZa-wyz_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v0[0-9][0-9]*[A-Za-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v0[xX][0-9a-fA-F]*[G-Zg-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthType "\v[A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthTag "\v[\?!\+][A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
+syntax match mirthNumber "\v[+-]?[0-9](_[0-9])*(u8|u16|u32|u64|i8|i16|i32|i64)?"
+syntax match mirthNumber "\v[+-]?0o[0-7](_[0-7])*(u8|u16|u32|u64|i8|i16|i32|i64)?"
+syntax match mirthNumber "\v[+-]?0x[0-9a-fA-F](_?[0-9a-fA-F])*(u8|u16|u32|u64|i8|i16|i32|i64)?"
+syntax match mirthWord "\v[a-z_?*~!\@\$%\^&=/\|<>';][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>';]*"
+syntax match mirthWord "\v\+[a-z_\-+?*~!\@\$%\^&=/\|<>';][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>';]*"
+syntax match mirthWord "\v-[A-Za-z_\-+?*~!\@\$%\^&=/\|<>';][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>';]*"
+syntax match mirthType "\v[A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>';]*"
+syntax match mirthTag "\v[\?!\+][A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>';]*"
 
 " operators
 syntax match mirthColon "\v:"
