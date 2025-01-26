@@ -33656,56 +33656,186 @@ static bool mw_std_str_ZPlusStr_isZ_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_
 		branch_ZPlusStr_30 = v6;
 		branch_USizze_29 = v4;
 	}
-	STR* v34;
-	int64_t v35 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_31, branch_ZPlusStr_30, &v34);
-	int64_t v36 = 48LL /* B'0' */;
-	int64_t v37 = 57LL /* B'9' */;
-	bool v38 = mw_std_prelude_inZ_range_sp1(v35, v36, v37);
-	int64_t v39 = branch_USizze_29;
-	int64_t v40 = branch_UOffset_31;
-	STR* v41 = v34;
-	bool v42 = v38;
-	while (v42) {
-		int64_t v43 = v39;
-		int64_t v44 = v40;
-		STR* v45 = v41;
-		int64_t v46 = 1LL;
-		int64_t v47 = i64_add(v43, v46);
-		int64_t v48 = 1LL;
-		int64_t v49 = i64_add(v44, v48);
-		STR* v50;
-		int64_t v51 = mw_std_str_ZPlusStr_byteZAt(v49, v45, &v50);
-		int64_t v52 = 48LL /* B'0' */;
-		int64_t v53 = 57LL /* B'9' */;
-		bool v54 = mw_std_prelude_inZ_range_sp1(v51, v52, v53);
-		v42 = v54;
-		v41 = v50;
-		v40 = v49;
-		v39 = v47;
-	}
-	int64_t v55 = 0LL;
-	bool v56 = (v39 > v55);
-	int64_t branch_UOffset_57;
-	STR* branch_ZPlusStr_58;
-	bool branch_Bool_59;
-	if (v56) {
-		STR* v60;
-		VAL v61 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v40, v41, &v60);
-		int64_t v62 = get_data_tag(v61);
-		decref(v61);
-		int64_t v63 = 1LL;
-		bool v64 = (v62 == v63);
-		branch_Bool_59 = v64;
-		branch_ZPlusStr_58 = v60;
-		branch_UOffset_57 = v40;
+	int64_t v34 = 0LL;
+	bool v35 = (branch_USizze_29 > v34);
+	int64_t branch_UOffset_36;
+	STR* branch_ZPlusStr_37;
+	bool branch_Bool_38;
+	if (v35) {
+		STR* v39;
+		int64_t v40 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_31, branch_ZPlusStr_30, &v39);
+		int64_t v41 = 95LL /* B'_' */;
+		uint64_t v42 = (uint64_t)(v40);
+		uint8_t v43 = (uint8_t)(v42);
+		uint64_t v44 = (uint64_t)(v41);
+		uint8_t v45 = (uint8_t)(v44);
+		uint64_t v46 = (uint64_t)(v43);
+		int64_t v47 = (int64_t)(v46);
+		uint64_t v48 = (uint64_t)(v45);
+		int64_t v49 = (int64_t)(v48);
+		bool v50 = (v47 == v49);
+		branch_Bool_38 = v50;
+		branch_ZPlusStr_37 = v39;
+		branch_UOffset_36 = branch_UOffset_31;
 	} else {
-		bool v65 = false;
-		branch_Bool_59 = v65;
-		branch_ZPlusStr_58 = v41;
-		branch_UOffset_57 = v40;
+		bool v51 = false;
+		branch_Bool_38 = v51;
+		branch_ZPlusStr_37 = branch_ZPlusStr_30;
+		branch_UOffset_36 = branch_UOffset_31;
 	}
-	*out_ZPlusStr_3 = branch_ZPlusStr_58;
-	return branch_Bool_59;
+	int64_t branch_UOffset_52;
+	STR* branch_ZPlusStr_53;
+	bool branch_Bool_54;
+	if (branch_Bool_38) {
+		int64_t v55 = 1LL;
+		int64_t v56 = i64_add(branch_UOffset_36, v55);
+		STR* v57;
+		int64_t v58 = mw_std_str_ZPlusStr_byteZAt(v56, branch_ZPlusStr_37, &v57);
+		int64_t v59 = 48LL /* B'0' */;
+		int64_t v60 = 57LL /* B'9' */;
+		bool v61 = mw_std_prelude_inZ_range_sp1(v58, v59, v60);
+		branch_Bool_54 = v61;
+		branch_ZPlusStr_53 = v57;
+		branch_UOffset_52 = branch_UOffset_36;
+	} else {
+		bool v62 = false;
+		branch_Bool_54 = v62;
+		branch_ZPlusStr_53 = branch_ZPlusStr_37;
+		branch_UOffset_52 = branch_UOffset_36;
+	}
+	int64_t branch_USizze_63;
+	STR* branch_ZPlusStr_64;
+	int64_t branch_UOffset_65;
+	bool branch_Bool_66;
+	if (branch_Bool_54) {
+		int64_t v67 = 1LL;
+		int64_t v68 = i64_add(branch_UOffset_52, v67);
+		bool v69 = true;
+		branch_Bool_66 = v69;
+		branch_UOffset_65 = v68;
+		branch_ZPlusStr_64 = branch_ZPlusStr_53;
+		branch_USizze_63 = branch_USizze_29;
+	} else {
+		STR* v70;
+		int64_t v71 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_52, branch_ZPlusStr_53, &v70);
+		int64_t v72 = 48LL /* B'0' */;
+		int64_t v73 = 57LL /* B'9' */;
+		bool v74 = mw_std_prelude_inZ_range_sp1(v71, v72, v73);
+		branch_Bool_66 = v74;
+		branch_UOffset_65 = branch_UOffset_52;
+		branch_ZPlusStr_64 = v70;
+		branch_USizze_63 = branch_USizze_29;
+	}
+	STR* v75 = branch_ZPlusStr_64;
+	int64_t v76 = branch_USizze_63;
+	int64_t v77 = branch_UOffset_65;
+	bool v78 = branch_Bool_66;
+	while (v78) {
+		STR* v79 = v75;
+		int64_t v80 = v76;
+		int64_t v81 = v77;
+		int64_t v82 = 1LL;
+		int64_t v83 = i64_add(v80, v82);
+		int64_t v84 = 1LL;
+		int64_t v85 = i64_add(v81, v84);
+		int64_t v86 = 0LL;
+		bool v87 = (v83 > v86);
+		int64_t branch_UOffset_88;
+		STR* branch_ZPlusStr_89;
+		bool branch_Bool_90;
+		if (v87) {
+			STR* v91;
+			int64_t v92 = mw_std_str_ZPlusStr_byteZAt(v85, v79, &v91);
+			int64_t v93 = 95LL /* B'_' */;
+			uint64_t v94 = (uint64_t)(v92);
+			uint8_t v95 = (uint8_t)(v94);
+			uint64_t v96 = (uint64_t)(v93);
+			uint8_t v97 = (uint8_t)(v96);
+			uint64_t v98 = (uint64_t)(v95);
+			int64_t v99 = (int64_t)(v98);
+			uint64_t v100 = (uint64_t)(v97);
+			int64_t v101 = (int64_t)(v100);
+			bool v102 = (v99 == v101);
+			branch_Bool_90 = v102;
+			branch_ZPlusStr_89 = v91;
+			branch_UOffset_88 = v85;
+		} else {
+			bool v103 = false;
+			branch_Bool_90 = v103;
+			branch_ZPlusStr_89 = v79;
+			branch_UOffset_88 = v85;
+		}
+		int64_t branch_UOffset_104;
+		STR* branch_ZPlusStr_105;
+		bool branch_Bool_106;
+		if (branch_Bool_90) {
+			int64_t v107 = 1LL;
+			int64_t v108 = i64_add(branch_UOffset_88, v107);
+			STR* v109;
+			int64_t v110 = mw_std_str_ZPlusStr_byteZAt(v108, branch_ZPlusStr_89, &v109);
+			int64_t v111 = 48LL /* B'0' */;
+			int64_t v112 = 57LL /* B'9' */;
+			bool v113 = mw_std_prelude_inZ_range_sp1(v110, v111, v112);
+			branch_Bool_106 = v113;
+			branch_ZPlusStr_105 = v109;
+			branch_UOffset_104 = branch_UOffset_88;
+		} else {
+			bool v114 = false;
+			branch_Bool_106 = v114;
+			branch_ZPlusStr_105 = branch_ZPlusStr_89;
+			branch_UOffset_104 = branch_UOffset_88;
+		}
+		int64_t branch_USizze_115;
+		STR* branch_ZPlusStr_116;
+		int64_t branch_UOffset_117;
+		bool branch_Bool_118;
+		if (branch_Bool_106) {
+			int64_t v119 = 1LL;
+			int64_t v120 = i64_add(branch_UOffset_104, v119);
+			bool v121 = true;
+			branch_Bool_118 = v121;
+			branch_UOffset_117 = v120;
+			branch_ZPlusStr_116 = branch_ZPlusStr_105;
+			branch_USizze_115 = v83;
+		} else {
+			STR* v122;
+			int64_t v123 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_104, branch_ZPlusStr_105, &v122);
+			int64_t v124 = 48LL /* B'0' */;
+			int64_t v125 = 57LL /* B'9' */;
+			bool v126 = mw_std_prelude_inZ_range_sp1(v123, v124, v125);
+			branch_Bool_118 = v126;
+			branch_UOffset_117 = branch_UOffset_104;
+			branch_ZPlusStr_116 = v122;
+			branch_USizze_115 = v83;
+		}
+		v78 = branch_Bool_118;
+		v77 = branch_UOffset_117;
+		v76 = branch_USizze_115;
+		v75 = branch_ZPlusStr_116;
+	}
+	int64_t v127 = 0LL;
+	bool v128 = (v76 > v127);
+	int64_t branch_UOffset_129;
+	STR* branch_ZPlusStr_130;
+	bool branch_Bool_131;
+	if (v128) {
+		STR* v132;
+		VAL v133 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v77, v75, &v132);
+		int64_t v134 = get_data_tag(v133);
+		decref(v133);
+		int64_t v135 = 1LL;
+		bool v136 = (v134 == v135);
+		branch_Bool_131 = v136;
+		branch_ZPlusStr_130 = v132;
+		branch_UOffset_129 = v77;
+	} else {
+		bool v137 = false;
+		branch_Bool_131 = v137;
+		branch_ZPlusStr_130 = v75;
+		branch_UOffset_129 = v77;
+	}
+	*out_ZPlusStr_3 = branch_ZPlusStr_130;
+	return branch_Bool_131;
 }
 static bool mw_std_str_ZPlusStr_isZ_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
 	int64_t v4 = 0LL;
@@ -33781,106 +33911,276 @@ static bool mw_std_str_ZPlusStr_isZ_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_
 		if (v61) {
 			int64_t v64 = 1LL;
 			int64_t v65 = i64_add(v49, v64);
-			STR* v66;
-			int64_t v67 = mw_std_str_ZPlusStr_byteZAt(v65, v50, &v66);
-			int64_t v68 = 48LL /* B'0' */;
-			int64_t v69 = 57LL /* B'9' */;
-			bool v70 = mw_std_prelude_inZ_range_sp1(v67, v68, v69);
-			bool branch_Bool_71;
-			if (v70) {
-				bool v72 = true;
-				branch_Bool_71 = v72;
+			int64_t v66 = 0LL;
+			bool v67 = (branch_USizze_29 > v66);
+			int64_t branch_UOffset_68;
+			STR* branch_ZPlusStr_69;
+			bool branch_Bool_70;
+			if (v67) {
+				STR* v71;
+				int64_t v72 = mw_std_str_ZPlusStr_byteZAt(v65, v50, &v71);
+				int64_t v73 = 95LL /* B'_' */;
+				uint64_t v74 = (uint64_t)(v72);
+				uint8_t v75 = (uint8_t)(v74);
+				uint64_t v76 = (uint64_t)(v73);
+				uint8_t v77 = (uint8_t)(v76);
+				uint64_t v78 = (uint64_t)(v75);
+				int64_t v79 = (int64_t)(v78);
+				uint64_t v80 = (uint64_t)(v77);
+				int64_t v81 = (int64_t)(v80);
+				bool v82 = (v79 == v81);
+				branch_Bool_70 = v82;
+				branch_ZPlusStr_69 = v71;
+				branch_UOffset_68 = v65;
 			} else {
-				int64_t v73 = 65LL /* B'A' */;
-				int64_t v74 = 70LL /* B'F' */;
-				bool v75 = mw_std_prelude_inZ_range_sp1(v67, v73, v74);
-				bool branch_Bool_76;
-				if (v75) {
-					bool v77 = true;
-					branch_Bool_76 = v77;
-				} else {
-					int64_t v78 = 97LL /* B'a' */;
-					int64_t v79 = 102LL /* B'f' */;
-					bool v80 = mw_std_prelude_inZ_range_sp1(v67, v78, v79);
-					branch_Bool_76 = v80;
-				}
-				branch_Bool_71 = branch_Bool_76;
+				bool v83 = false;
+				branch_Bool_70 = v83;
+				branch_ZPlusStr_69 = v50;
+				branch_UOffset_68 = v65;
 			}
-			int64_t v81 = branch_USizze_29;
-			int64_t v82 = v65;
-			STR* v83 = v66;
-			bool v84 = branch_Bool_71;
-			while (v84) {
-				int64_t v85 = v81;
-				int64_t v86 = v82;
-				STR* v87 = v83;
-				int64_t v88 = 1LL;
-				int64_t v89 = i64_add(v85, v88);
-				int64_t v90 = 1LL;
-				int64_t v91 = i64_add(v86, v90);
-				STR* v92;
-				int64_t v93 = mw_std_str_ZPlusStr_byteZAt(v91, v87, &v92);
-				int64_t v94 = 48LL /* B'0' */;
-				int64_t v95 = 57LL /* B'9' */;
-				bool v96 = mw_std_prelude_inZ_range_sp1(v93, v94, v95);
-				bool branch_Bool_97;
-				if (v96) {
-					bool v98 = true;
-					branch_Bool_97 = v98;
+			int64_t branch_UOffset_84;
+			STR* branch_ZPlusStr_85;
+			bool branch_Bool_86;
+			if (branch_Bool_70) {
+				int64_t v87 = 1LL;
+				int64_t v88 = i64_add(branch_UOffset_68, v87);
+				STR* v89;
+				int64_t v90 = mw_std_str_ZPlusStr_byteZAt(v88, branch_ZPlusStr_69, &v89);
+				int64_t v91 = 48LL /* B'0' */;
+				int64_t v92 = 57LL /* B'9' */;
+				bool v93 = mw_std_prelude_inZ_range_sp1(v90, v91, v92);
+				bool branch_Bool_94;
+				if (v93) {
+					bool v95 = true;
+					branch_Bool_94 = v95;
 				} else {
-					int64_t v99 = 65LL /* B'A' */;
-					int64_t v100 = 70LL /* B'F' */;
-					bool v101 = mw_std_prelude_inZ_range_sp1(v93, v99, v100);
-					bool branch_Bool_102;
-					if (v101) {
-						bool v103 = true;
-						branch_Bool_102 = v103;
+					int64_t v96 = 65LL /* B'A' */;
+					int64_t v97 = 70LL /* B'F' */;
+					bool v98 = mw_std_prelude_inZ_range_sp1(v90, v96, v97);
+					bool branch_Bool_99;
+					if (v98) {
+						bool v100 = true;
+						branch_Bool_99 = v100;
 					} else {
-						int64_t v104 = 97LL /* B'a' */;
-						int64_t v105 = 102LL /* B'f' */;
-						bool v106 = mw_std_prelude_inZ_range_sp1(v93, v104, v105);
-						branch_Bool_102 = v106;
+						int64_t v101 = 97LL /* B'a' */;
+						int64_t v102 = 102LL /* B'f' */;
+						bool v103 = mw_std_prelude_inZ_range_sp1(v90, v101, v102);
+						branch_Bool_99 = v103;
 					}
-					branch_Bool_97 = branch_Bool_102;
+					branch_Bool_94 = branch_Bool_99;
 				}
-				v84 = branch_Bool_97;
-				v83 = v92;
-				v82 = v91;
-				v81 = v89;
-			}
-			int64_t v107 = 0LL;
-			bool v108 = (v81 > v107);
-			int64_t branch_UOffset_109;
-			STR* branch_ZPlusStr_110;
-			bool branch_Bool_111;
-			if (v108) {
-				STR* v112;
-				VAL v113 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v82, v83, &v112);
-				int64_t v114 = get_data_tag(v113);
-				decref(v113);
-				int64_t v115 = 1LL;
-				bool v116 = (v114 == v115);
-				branch_Bool_111 = v116;
-				branch_ZPlusStr_110 = v112;
-				branch_UOffset_109 = v82;
+				branch_Bool_86 = branch_Bool_94;
+				branch_ZPlusStr_85 = v89;
+				branch_UOffset_84 = branch_UOffset_68;
 			} else {
-				bool v117 = false;
-				branch_Bool_111 = v117;
-				branch_ZPlusStr_110 = v83;
-				branch_UOffset_109 = v82;
+				bool v104 = false;
+				branch_Bool_86 = v104;
+				branch_ZPlusStr_85 = branch_ZPlusStr_69;
+				branch_UOffset_84 = branch_UOffset_68;
 			}
-			branch_Bool_63 = branch_Bool_111;
-			branch_ZPlusStr_62 = branch_ZPlusStr_110;
+			int64_t branch_USizze_105;
+			STR* branch_ZPlusStr_106;
+			int64_t branch_UOffset_107;
+			bool branch_Bool_108;
+			if (branch_Bool_86) {
+				int64_t v109 = 1LL;
+				int64_t v110 = i64_add(branch_UOffset_84, v109);
+				bool v111 = true;
+				branch_Bool_108 = v111;
+				branch_UOffset_107 = v110;
+				branch_ZPlusStr_106 = branch_ZPlusStr_85;
+				branch_USizze_105 = branch_USizze_29;
+			} else {
+				STR* v112;
+				int64_t v113 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_84, branch_ZPlusStr_85, &v112);
+				int64_t v114 = 48LL /* B'0' */;
+				int64_t v115 = 57LL /* B'9' */;
+				bool v116 = mw_std_prelude_inZ_range_sp1(v113, v114, v115);
+				bool branch_Bool_117;
+				if (v116) {
+					bool v118 = true;
+					branch_Bool_117 = v118;
+				} else {
+					int64_t v119 = 65LL /* B'A' */;
+					int64_t v120 = 70LL /* B'F' */;
+					bool v121 = mw_std_prelude_inZ_range_sp1(v113, v119, v120);
+					bool branch_Bool_122;
+					if (v121) {
+						bool v123 = true;
+						branch_Bool_122 = v123;
+					} else {
+						int64_t v124 = 97LL /* B'a' */;
+						int64_t v125 = 102LL /* B'f' */;
+						bool v126 = mw_std_prelude_inZ_range_sp1(v113, v124, v125);
+						branch_Bool_122 = v126;
+					}
+					branch_Bool_117 = branch_Bool_122;
+				}
+				branch_Bool_108 = branch_Bool_117;
+				branch_UOffset_107 = branch_UOffset_84;
+				branch_ZPlusStr_106 = v112;
+				branch_USizze_105 = branch_USizze_29;
+			}
+			STR* v127 = branch_ZPlusStr_106;
+			int64_t v128 = branch_USizze_105;
+			int64_t v129 = branch_UOffset_107;
+			bool v130 = branch_Bool_108;
+			while (v130) {
+				STR* v131 = v127;
+				int64_t v132 = v128;
+				int64_t v133 = v129;
+				int64_t v134 = 1LL;
+				int64_t v135 = i64_add(v132, v134);
+				int64_t v136 = 1LL;
+				int64_t v137 = i64_add(v133, v136);
+				int64_t v138 = 0LL;
+				bool v139 = (v135 > v138);
+				int64_t branch_UOffset_140;
+				STR* branch_ZPlusStr_141;
+				bool branch_Bool_142;
+				if (v139) {
+					STR* v143;
+					int64_t v144 = mw_std_str_ZPlusStr_byteZAt(v137, v131, &v143);
+					int64_t v145 = 95LL /* B'_' */;
+					uint64_t v146 = (uint64_t)(v144);
+					uint8_t v147 = (uint8_t)(v146);
+					uint64_t v148 = (uint64_t)(v145);
+					uint8_t v149 = (uint8_t)(v148);
+					uint64_t v150 = (uint64_t)(v147);
+					int64_t v151 = (int64_t)(v150);
+					uint64_t v152 = (uint64_t)(v149);
+					int64_t v153 = (int64_t)(v152);
+					bool v154 = (v151 == v153);
+					branch_Bool_142 = v154;
+					branch_ZPlusStr_141 = v143;
+					branch_UOffset_140 = v137;
+				} else {
+					bool v155 = false;
+					branch_Bool_142 = v155;
+					branch_ZPlusStr_141 = v131;
+					branch_UOffset_140 = v137;
+				}
+				int64_t branch_UOffset_156;
+				STR* branch_ZPlusStr_157;
+				bool branch_Bool_158;
+				if (branch_Bool_142) {
+					int64_t v159 = 1LL;
+					int64_t v160 = i64_add(branch_UOffset_140, v159);
+					STR* v161;
+					int64_t v162 = mw_std_str_ZPlusStr_byteZAt(v160, branch_ZPlusStr_141, &v161);
+					int64_t v163 = 48LL /* B'0' */;
+					int64_t v164 = 57LL /* B'9' */;
+					bool v165 = mw_std_prelude_inZ_range_sp1(v162, v163, v164);
+					bool branch_Bool_166;
+					if (v165) {
+						bool v167 = true;
+						branch_Bool_166 = v167;
+					} else {
+						int64_t v168 = 65LL /* B'A' */;
+						int64_t v169 = 70LL /* B'F' */;
+						bool v170 = mw_std_prelude_inZ_range_sp1(v162, v168, v169);
+						bool branch_Bool_171;
+						if (v170) {
+							bool v172 = true;
+							branch_Bool_171 = v172;
+						} else {
+							int64_t v173 = 97LL /* B'a' */;
+							int64_t v174 = 102LL /* B'f' */;
+							bool v175 = mw_std_prelude_inZ_range_sp1(v162, v173, v174);
+							branch_Bool_171 = v175;
+						}
+						branch_Bool_166 = branch_Bool_171;
+					}
+					branch_Bool_158 = branch_Bool_166;
+					branch_ZPlusStr_157 = v161;
+					branch_UOffset_156 = branch_UOffset_140;
+				} else {
+					bool v176 = false;
+					branch_Bool_158 = v176;
+					branch_ZPlusStr_157 = branch_ZPlusStr_141;
+					branch_UOffset_156 = branch_UOffset_140;
+				}
+				int64_t branch_USizze_177;
+				STR* branch_ZPlusStr_178;
+				int64_t branch_UOffset_179;
+				bool branch_Bool_180;
+				if (branch_Bool_158) {
+					int64_t v181 = 1LL;
+					int64_t v182 = i64_add(branch_UOffset_156, v181);
+					bool v183 = true;
+					branch_Bool_180 = v183;
+					branch_UOffset_179 = v182;
+					branch_ZPlusStr_178 = branch_ZPlusStr_157;
+					branch_USizze_177 = v135;
+				} else {
+					STR* v184;
+					int64_t v185 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_156, branch_ZPlusStr_157, &v184);
+					int64_t v186 = 48LL /* B'0' */;
+					int64_t v187 = 57LL /* B'9' */;
+					bool v188 = mw_std_prelude_inZ_range_sp1(v185, v186, v187);
+					bool branch_Bool_189;
+					if (v188) {
+						bool v190 = true;
+						branch_Bool_189 = v190;
+					} else {
+						int64_t v191 = 65LL /* B'A' */;
+						int64_t v192 = 70LL /* B'F' */;
+						bool v193 = mw_std_prelude_inZ_range_sp1(v185, v191, v192);
+						bool branch_Bool_194;
+						if (v193) {
+							bool v195 = true;
+							branch_Bool_194 = v195;
+						} else {
+							int64_t v196 = 97LL /* B'a' */;
+							int64_t v197 = 102LL /* B'f' */;
+							bool v198 = mw_std_prelude_inZ_range_sp1(v185, v196, v197);
+							branch_Bool_194 = v198;
+						}
+						branch_Bool_189 = branch_Bool_194;
+					}
+					branch_Bool_180 = branch_Bool_189;
+					branch_UOffset_179 = branch_UOffset_156;
+					branch_ZPlusStr_178 = v184;
+					branch_USizze_177 = v135;
+				}
+				v130 = branch_Bool_180;
+				v129 = branch_UOffset_179;
+				v128 = branch_USizze_177;
+				v127 = branch_ZPlusStr_178;
+			}
+			int64_t v199 = 0LL;
+			bool v200 = (v128 > v199);
+			int64_t branch_UOffset_201;
+			STR* branch_ZPlusStr_202;
+			bool branch_Bool_203;
+			if (v200) {
+				STR* v204;
+				VAL v205 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v129, v127, &v204);
+				int64_t v206 = get_data_tag(v205);
+				decref(v205);
+				int64_t v207 = 1LL;
+				bool v208 = (v206 == v207);
+				branch_Bool_203 = v208;
+				branch_ZPlusStr_202 = v204;
+				branch_UOffset_201 = v129;
+			} else {
+				bool v209 = false;
+				branch_Bool_203 = v209;
+				branch_ZPlusStr_202 = v127;
+				branch_UOffset_201 = v129;
+			}
+			branch_Bool_63 = branch_Bool_203;
+			branch_ZPlusStr_62 = branch_ZPlusStr_202;
 		} else {
-			bool v118 = false;
-			branch_Bool_63 = v118;
+			bool v210 = false;
+			branch_Bool_63 = v210;
 			branch_ZPlusStr_62 = v50;
 		}
 		branch_Bool_47 = branch_Bool_63;
 		branch_ZPlusStr_46 = branch_ZPlusStr_62;
 	} else {
-		bool v119 = false;
-		branch_Bool_47 = v119;
+		bool v211 = false;
+		branch_Bool_47 = v211;
 		branch_ZPlusStr_46 = v34;
 	}
 	*out_ZPlusStr_3 = branch_ZPlusStr_46;
@@ -33960,66 +34260,196 @@ static bool mw_std_str_ZPlusStr_isZ_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_
 		if (v61) {
 			int64_t v64 = 1LL;
 			int64_t v65 = i64_add(v49, v64);
-			STR* v66;
-			int64_t v67 = mw_std_str_ZPlusStr_byteZAt(v65, v50, &v66);
-			int64_t v68 = 48LL /* B'0' */;
-			int64_t v69 = 55LL /* B'7' */;
-			bool v70 = mw_std_prelude_inZ_range_sp1(v67, v68, v69);
-			int64_t v71 = branch_USizze_29;
-			int64_t v72 = v65;
-			STR* v73 = v66;
-			bool v74 = v70;
-			while (v74) {
-				int64_t v75 = v71;
-				int64_t v76 = v72;
-				STR* v77 = v73;
-				int64_t v78 = 1LL;
-				int64_t v79 = i64_add(v75, v78);
-				int64_t v80 = 1LL;
-				int64_t v81 = i64_add(v76, v80);
-				STR* v82;
-				int64_t v83 = mw_std_str_ZPlusStr_byteZAt(v81, v77, &v82);
-				int64_t v84 = 48LL /* B'0' */;
-				int64_t v85 = 55LL /* B'7' */;
-				bool v86 = mw_std_prelude_inZ_range_sp1(v83, v84, v85);
-				v74 = v86;
-				v73 = v82;
-				v72 = v81;
-				v71 = v79;
-			}
-			int64_t v87 = 0LL;
-			bool v88 = (v71 > v87);
-			int64_t branch_UOffset_89;
-			STR* branch_ZPlusStr_90;
-			bool branch_Bool_91;
-			if (v88) {
-				STR* v92;
-				VAL v93 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v72, v73, &v92);
-				int64_t v94 = get_data_tag(v93);
-				decref(v93);
-				int64_t v95 = 1LL;
-				bool v96 = (v94 == v95);
-				branch_Bool_91 = v96;
-				branch_ZPlusStr_90 = v92;
-				branch_UOffset_89 = v72;
+			int64_t v66 = 0LL;
+			bool v67 = (branch_USizze_29 > v66);
+			int64_t branch_UOffset_68;
+			STR* branch_ZPlusStr_69;
+			bool branch_Bool_70;
+			if (v67) {
+				STR* v71;
+				int64_t v72 = mw_std_str_ZPlusStr_byteZAt(v65, v50, &v71);
+				int64_t v73 = 95LL /* B'_' */;
+				uint64_t v74 = (uint64_t)(v72);
+				uint8_t v75 = (uint8_t)(v74);
+				uint64_t v76 = (uint64_t)(v73);
+				uint8_t v77 = (uint8_t)(v76);
+				uint64_t v78 = (uint64_t)(v75);
+				int64_t v79 = (int64_t)(v78);
+				uint64_t v80 = (uint64_t)(v77);
+				int64_t v81 = (int64_t)(v80);
+				bool v82 = (v79 == v81);
+				branch_Bool_70 = v82;
+				branch_ZPlusStr_69 = v71;
+				branch_UOffset_68 = v65;
 			} else {
-				bool v97 = false;
-				branch_Bool_91 = v97;
-				branch_ZPlusStr_90 = v73;
-				branch_UOffset_89 = v72;
+				bool v83 = false;
+				branch_Bool_70 = v83;
+				branch_ZPlusStr_69 = v50;
+				branch_UOffset_68 = v65;
 			}
-			branch_Bool_63 = branch_Bool_91;
-			branch_ZPlusStr_62 = branch_ZPlusStr_90;
+			int64_t branch_UOffset_84;
+			STR* branch_ZPlusStr_85;
+			bool branch_Bool_86;
+			if (branch_Bool_70) {
+				int64_t v87 = 1LL;
+				int64_t v88 = i64_add(branch_UOffset_68, v87);
+				STR* v89;
+				int64_t v90 = mw_std_str_ZPlusStr_byteZAt(v88, branch_ZPlusStr_69, &v89);
+				int64_t v91 = 48LL /* B'0' */;
+				int64_t v92 = 55LL /* B'7' */;
+				bool v93 = mw_std_prelude_inZ_range_sp1(v90, v91, v92);
+				branch_Bool_86 = v93;
+				branch_ZPlusStr_85 = v89;
+				branch_UOffset_84 = branch_UOffset_68;
+			} else {
+				bool v94 = false;
+				branch_Bool_86 = v94;
+				branch_ZPlusStr_85 = branch_ZPlusStr_69;
+				branch_UOffset_84 = branch_UOffset_68;
+			}
+			STR* branch_ZPlusStr_95;
+			int64_t branch_USizze_96;
+			int64_t branch_UOffset_97;
+			bool branch_Bool_98;
+			if (branch_Bool_86) {
+				int64_t v99 = 1LL;
+				int64_t v100 = i64_add(branch_UOffset_84, v99);
+				bool v101 = true;
+				branch_Bool_98 = v101;
+				branch_UOffset_97 = v100;
+				branch_USizze_96 = branch_USizze_29;
+				branch_ZPlusStr_95 = branch_ZPlusStr_85;
+			} else {
+				STR* v102;
+				int64_t v103 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_84, branch_ZPlusStr_85, &v102);
+				int64_t v104 = 48LL /* B'0' */;
+				int64_t v105 = 55LL /* B'7' */;
+				bool v106 = mw_std_prelude_inZ_range_sp1(v103, v104, v105);
+				branch_Bool_98 = v106;
+				branch_UOffset_97 = branch_UOffset_84;
+				branch_USizze_96 = branch_USizze_29;
+				branch_ZPlusStr_95 = v102;
+			}
+			STR* v107 = branch_ZPlusStr_95;
+			int64_t v108 = branch_USizze_96;
+			int64_t v109 = branch_UOffset_97;
+			bool v110 = branch_Bool_98;
+			while (v110) {
+				STR* v111 = v107;
+				int64_t v112 = v108;
+				int64_t v113 = v109;
+				int64_t v114 = 1LL;
+				int64_t v115 = i64_add(v112, v114);
+				int64_t v116 = 1LL;
+				int64_t v117 = i64_add(v113, v116);
+				int64_t v118 = 0LL;
+				bool v119 = (v115 > v118);
+				int64_t branch_UOffset_120;
+				STR* branch_ZPlusStr_121;
+				bool branch_Bool_122;
+				if (v119) {
+					STR* v123;
+					int64_t v124 = mw_std_str_ZPlusStr_byteZAt(v117, v111, &v123);
+					int64_t v125 = 95LL /* B'_' */;
+					uint64_t v126 = (uint64_t)(v124);
+					uint8_t v127 = (uint8_t)(v126);
+					uint64_t v128 = (uint64_t)(v125);
+					uint8_t v129 = (uint8_t)(v128);
+					uint64_t v130 = (uint64_t)(v127);
+					int64_t v131 = (int64_t)(v130);
+					uint64_t v132 = (uint64_t)(v129);
+					int64_t v133 = (int64_t)(v132);
+					bool v134 = (v131 == v133);
+					branch_Bool_122 = v134;
+					branch_ZPlusStr_121 = v123;
+					branch_UOffset_120 = v117;
+				} else {
+					bool v135 = false;
+					branch_Bool_122 = v135;
+					branch_ZPlusStr_121 = v111;
+					branch_UOffset_120 = v117;
+				}
+				int64_t branch_UOffset_136;
+				STR* branch_ZPlusStr_137;
+				bool branch_Bool_138;
+				if (branch_Bool_122) {
+					int64_t v139 = 1LL;
+					int64_t v140 = i64_add(branch_UOffset_120, v139);
+					STR* v141;
+					int64_t v142 = mw_std_str_ZPlusStr_byteZAt(v140, branch_ZPlusStr_121, &v141);
+					int64_t v143 = 48LL /* B'0' */;
+					int64_t v144 = 55LL /* B'7' */;
+					bool v145 = mw_std_prelude_inZ_range_sp1(v142, v143, v144);
+					branch_Bool_138 = v145;
+					branch_ZPlusStr_137 = v141;
+					branch_UOffset_136 = branch_UOffset_120;
+				} else {
+					bool v146 = false;
+					branch_Bool_138 = v146;
+					branch_ZPlusStr_137 = branch_ZPlusStr_121;
+					branch_UOffset_136 = branch_UOffset_120;
+				}
+				STR* branch_ZPlusStr_147;
+				int64_t branch_USizze_148;
+				int64_t branch_UOffset_149;
+				bool branch_Bool_150;
+				if (branch_Bool_138) {
+					int64_t v151 = 1LL;
+					int64_t v152 = i64_add(branch_UOffset_136, v151);
+					bool v153 = true;
+					branch_Bool_150 = v153;
+					branch_UOffset_149 = v152;
+					branch_USizze_148 = v115;
+					branch_ZPlusStr_147 = branch_ZPlusStr_137;
+				} else {
+					STR* v154;
+					int64_t v155 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_136, branch_ZPlusStr_137, &v154);
+					int64_t v156 = 48LL /* B'0' */;
+					int64_t v157 = 55LL /* B'7' */;
+					bool v158 = mw_std_prelude_inZ_range_sp1(v155, v156, v157);
+					branch_Bool_150 = v158;
+					branch_UOffset_149 = branch_UOffset_136;
+					branch_USizze_148 = v115;
+					branch_ZPlusStr_147 = v154;
+				}
+				v110 = branch_Bool_150;
+				v109 = branch_UOffset_149;
+				v108 = branch_USizze_148;
+				v107 = branch_ZPlusStr_147;
+			}
+			int64_t v159 = 0LL;
+			bool v160 = (v108 > v159);
+			int64_t branch_UOffset_161;
+			STR* branch_ZPlusStr_162;
+			bool branch_Bool_163;
+			if (v160) {
+				STR* v164;
+				VAL v165 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v109, v107, &v164);
+				int64_t v166 = get_data_tag(v165);
+				decref(v165);
+				int64_t v167 = 1LL;
+				bool v168 = (v166 == v167);
+				branch_Bool_163 = v168;
+				branch_ZPlusStr_162 = v164;
+				branch_UOffset_161 = v109;
+			} else {
+				bool v169 = false;
+				branch_Bool_163 = v169;
+				branch_ZPlusStr_162 = v107;
+				branch_UOffset_161 = v109;
+			}
+			branch_Bool_63 = branch_Bool_163;
+			branch_ZPlusStr_62 = branch_ZPlusStr_162;
 		} else {
-			bool v98 = false;
-			branch_Bool_63 = v98;
+			bool v170 = false;
+			branch_Bool_63 = v170;
 			branch_ZPlusStr_62 = v50;
 		}
 		branch_Bool_47 = branch_Bool_63;
 		branch_ZPlusStr_46 = branch_ZPlusStr_62;
 	} else {
-		bool v99 = false;
-		branch_Bool_47 = v99;
+		bool v171 = false;
+		branch_Bool_47 = v171;
 		branch_ZPlusStr_46 = v34;
 	}
 	*out_ZPlusStr_3 = branch_ZPlusStr_46;
@@ -34102,43 +34532,83 @@ static VAL mw_std_str_ZPlusStr_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlus
 	int64_t v7 = mw_std_str_ZPlusStr_intZ_sign(in_ZPlusStr_1, &v4, &v5, &v6);
 	STR* v8;
 	int64_t v9 = mw_std_str_ZPlusStr_byteZAt(v5, v6, &v8);
-	int64_t v10 = 48LL /* B'0' */;
-	int64_t v11 = 57LL /* B'9' */;
-	bool v12 = mw_std_prelude_inZ_range_sp1(v9, v10, v11);
-	int64_t v13 = v7;
-	int64_t v14 = v4;
-	int64_t v15 = v5;
-	STR* v16 = v8;
-	bool v17 = v12;
-	while (v17) {
-		int64_t v18 = v13;
-		int64_t v19 = v14;
-		int64_t v20 = v15;
-		STR* v21 = v16;
-		STR* v22;
-		int64_t v23 = mw_std_str_ZPlusStr_byteZAt(v20, v21, &v22);
-		int64_t v24 = 10LL;
-		int64_t v25 = i64_mul(v19, v24);
-		int64_t v26 = 48LL;
-		int64_t v27 = i64_sub(v23, v26);
-		int64_t v28 = i64_add(v25, v27);
-		int64_t v29 = 1LL;
-		int64_t v30 = i64_add(v20, v29);
-		STR* v31;
-		int64_t v32 = mw_std_str_ZPlusStr_byteZAt(v30, v22, &v31);
-		int64_t v33 = 48LL /* B'0' */;
-		int64_t v34 = 57LL /* B'9' */;
-		bool v35 = mw_std_prelude_inZ_range_sp1(v32, v33, v34);
-		v17 = v35;
-		v16 = v31;
-		v15 = v30;
-		v14 = v28;
-		v13 = v18;
+	int64_t v10 = 95LL /* B'_' */;
+	uint64_t v11 = (uint64_t)(v9);
+	uint8_t v12 = (uint8_t)(v11);
+	uint64_t v13 = (uint64_t)(v10);
+	uint8_t v14 = (uint8_t)(v13);
+	uint64_t v15 = (uint64_t)(v12);
+	int64_t v16 = (int64_t)(v15);
+	uint64_t v17 = (uint64_t)(v14);
+	int64_t v18 = (int64_t)(v17);
+	bool v19 = (v16 == v18);
+	int64_t branch_UOffset_20;
+	if (v19) {
+		int64_t v21 = 1LL;
+		int64_t v22 = i64_add(v5, v21);
+		branch_UOffset_20 = v22;
+	} else {
+		branch_UOffset_20 = v5;
 	}
-	STR* v36;
-	VAL v37 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v13, v14, v15, v16, &v36);
-	*out_ZPlusStr_3 = v36;
-	return v37;
+	STR* v23;
+	int64_t v24 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_20, v8, &v23);
+	int64_t v25 = 48LL /* B'0' */;
+	int64_t v26 = 57LL /* B'9' */;
+	bool v27 = mw_std_prelude_inZ_range_sp1(v24, v25, v26);
+	int64_t v28 = v7;
+	int64_t v29 = v4;
+	int64_t v30 = branch_UOffset_20;
+	STR* v31 = v23;
+	bool v32 = v27;
+	while (v32) {
+		int64_t v33 = v28;
+		int64_t v34 = v29;
+		int64_t v35 = v30;
+		STR* v36 = v31;
+		STR* v37;
+		int64_t v38 = mw_std_str_ZPlusStr_byteZAt(v35, v36, &v37);
+		int64_t v39 = 10LL;
+		int64_t v40 = i64_mul(v34, v39);
+		int64_t v41 = 48LL;
+		int64_t v42 = i64_sub(v38, v41);
+		int64_t v43 = i64_add(v40, v42);
+		int64_t v44 = 1LL;
+		int64_t v45 = i64_add(v35, v44);
+		STR* v46;
+		int64_t v47 = mw_std_str_ZPlusStr_byteZAt(v45, v37, &v46);
+		int64_t v48 = 95LL /* B'_' */;
+		uint64_t v49 = (uint64_t)(v47);
+		uint8_t v50 = (uint8_t)(v49);
+		uint64_t v51 = (uint64_t)(v48);
+		uint8_t v52 = (uint8_t)(v51);
+		uint64_t v53 = (uint64_t)(v50);
+		int64_t v54 = (int64_t)(v53);
+		uint64_t v55 = (uint64_t)(v52);
+		int64_t v56 = (int64_t)(v55);
+		bool v57 = (v54 == v56);
+		int64_t branch_UOffset_58;
+		if (v57) {
+			int64_t v59 = 1LL;
+			int64_t v60 = i64_add(v45, v59);
+			branch_UOffset_58 = v60;
+		} else {
+			branch_UOffset_58 = v45;
+		}
+		STR* v61;
+		int64_t v62 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_58, v46, &v61);
+		int64_t v63 = 48LL /* B'0' */;
+		int64_t v64 = 57LL /* B'9' */;
+		bool v65 = mw_std_prelude_inZ_range_sp1(v62, v63, v64);
+		v32 = v65;
+		v31 = v61;
+		v30 = branch_UOffset_58;
+		v29 = v43;
+		v28 = v33;
+	}
+	STR* v66;
+	VAL v67 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v28, v29, v30, v31, &v66);
+	*out_ZPlusStr_3 = v66;
+	return v67;
 }
 static VAL mw_std_str_ZPlusStr_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
 	int64_t v4;
@@ -34151,82 +34621,122 @@ static VAL mw_std_str_ZPlusStr_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlus
 	int64_t v11 = i64_add(v9, v10);
 	STR* v12;
 	int64_t v13 = mw_std_str_ZPlusStr_byteZAt(v11, v6, &v12);
-	int64_t v14 = 48LL /* B'0' */;
-	int64_t v15 = 57LL /* B'9' */;
-	bool v16 = mw_std_prelude_inZ_range_sp1(v13, v14, v15);
-	bool branch_Bool_17;
-	if (v16) {
-		bool v18 = true;
-		branch_Bool_17 = v18;
+	int64_t v14 = 95LL /* B'_' */;
+	uint64_t v15 = (uint64_t)(v13);
+	uint8_t v16 = (uint8_t)(v15);
+	uint64_t v17 = (uint64_t)(v14);
+	uint8_t v18 = (uint8_t)(v17);
+	uint64_t v19 = (uint64_t)(v16);
+	int64_t v20 = (int64_t)(v19);
+	uint64_t v21 = (uint64_t)(v18);
+	int64_t v22 = (int64_t)(v21);
+	bool v23 = (v20 == v22);
+	int64_t branch_UOffset_24;
+	if (v23) {
+		int64_t v25 = 1LL;
+		int64_t v26 = i64_add(v11, v25);
+		branch_UOffset_24 = v26;
 	} else {
-		int64_t v19 = 65LL /* B'A' */;
-		int64_t v20 = 70LL /* B'F' */;
-		bool v21 = mw_std_prelude_inZ_range_sp1(v13, v19, v20);
-		bool branch_Bool_22;
-		if (v21) {
-			bool v23 = true;
-			branch_Bool_22 = v23;
-		} else {
-			int64_t v24 = 97LL /* B'a' */;
-			int64_t v25 = 102LL /* B'f' */;
-			bool v26 = mw_std_prelude_inZ_range_sp1(v13, v24, v25);
-			branch_Bool_22 = v26;
-		}
-		branch_Bool_17 = branch_Bool_22;
+		branch_UOffset_24 = v11;
 	}
-	int64_t v27 = v7;
-	int64_t v28 = v4;
-	int64_t v29 = v11;
-	STR* v30 = v12;
-	bool v31 = branch_Bool_17;
-	while (v31) {
-		int64_t v32 = v27;
-		int64_t v33 = v28;
-		int64_t v34 = v29;
-		STR* v35 = v30;
-		STR* v36;
-		int64_t v37 = mw_std_str_ZPlusStr_byteZAt(v34, v35, &v36);
-		int64_t v38 = 16LL;
-		int64_t v39 = i64_mul(v33, v38);
-		int64_t v40 = mw_mirth_lexer_hexdigitZ_value(v37);
-		int64_t v41 = i64_add(v39, v40);
-		int64_t v42 = 1LL;
-		int64_t v43 = i64_add(v34, v42);
-		STR* v44;
-		int64_t v45 = mw_std_str_ZPlusStr_byteZAt(v43, v36, &v44);
-		int64_t v46 = 48LL /* B'0' */;
-		int64_t v47 = 57LL /* B'9' */;
-		bool v48 = mw_std_prelude_inZ_range_sp1(v45, v46, v47);
-		bool branch_Bool_49;
-		if (v48) {
-			bool v50 = true;
-			branch_Bool_49 = v50;
+	STR* v27;
+	int64_t v28 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_24, v12, &v27);
+	int64_t v29 = 48LL /* B'0' */;
+	int64_t v30 = 57LL /* B'9' */;
+	bool v31 = mw_std_prelude_inZ_range_sp1(v28, v29, v30);
+	bool branch_Bool_32;
+	if (v31) {
+		bool v33 = true;
+		branch_Bool_32 = v33;
+	} else {
+		int64_t v34 = 65LL /* B'A' */;
+		int64_t v35 = 70LL /* B'F' */;
+		bool v36 = mw_std_prelude_inZ_range_sp1(v28, v34, v35);
+		bool branch_Bool_37;
+		if (v36) {
+			bool v38 = true;
+			branch_Bool_37 = v38;
 		} else {
-			int64_t v51 = 65LL /* B'A' */;
-			int64_t v52 = 70LL /* B'F' */;
-			bool v53 = mw_std_prelude_inZ_range_sp1(v45, v51, v52);
-			bool branch_Bool_54;
-			if (v53) {
-				bool v55 = true;
-				branch_Bool_54 = v55;
+			int64_t v39 = 97LL /* B'a' */;
+			int64_t v40 = 102LL /* B'f' */;
+			bool v41 = mw_std_prelude_inZ_range_sp1(v28, v39, v40);
+			branch_Bool_37 = v41;
+		}
+		branch_Bool_32 = branch_Bool_37;
+	}
+	int64_t v42 = v7;
+	int64_t v43 = v4;
+	int64_t v44 = branch_UOffset_24;
+	STR* v45 = v27;
+	bool v46 = branch_Bool_32;
+	while (v46) {
+		int64_t v47 = v42;
+		int64_t v48 = v43;
+		int64_t v49 = v44;
+		STR* v50 = v45;
+		STR* v51;
+		int64_t v52 = mw_std_str_ZPlusStr_byteZAt(v49, v50, &v51);
+		int64_t v53 = 16LL;
+		int64_t v54 = i64_mul(v48, v53);
+		int64_t v55 = mw_mirth_lexer_hexdigitZ_value(v52);
+		int64_t v56 = i64_add(v54, v55);
+		int64_t v57 = 1LL;
+		int64_t v58 = i64_add(v49, v57);
+		STR* v59;
+		int64_t v60 = mw_std_str_ZPlusStr_byteZAt(v58, v51, &v59);
+		int64_t v61 = 95LL /* B'_' */;
+		uint64_t v62 = (uint64_t)(v60);
+		uint8_t v63 = (uint8_t)(v62);
+		uint64_t v64 = (uint64_t)(v61);
+		uint8_t v65 = (uint8_t)(v64);
+		uint64_t v66 = (uint64_t)(v63);
+		int64_t v67 = (int64_t)(v66);
+		uint64_t v68 = (uint64_t)(v65);
+		int64_t v69 = (int64_t)(v68);
+		bool v70 = (v67 == v69);
+		int64_t branch_UOffset_71;
+		if (v70) {
+			int64_t v72 = 1LL;
+			int64_t v73 = i64_add(v58, v72);
+			branch_UOffset_71 = v73;
+		} else {
+			branch_UOffset_71 = v58;
+		}
+		STR* v74;
+		int64_t v75 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_71, v59, &v74);
+		int64_t v76 = 48LL /* B'0' */;
+		int64_t v77 = 57LL /* B'9' */;
+		bool v78 = mw_std_prelude_inZ_range_sp1(v75, v76, v77);
+		bool branch_Bool_79;
+		if (v78) {
+			bool v80 = true;
+			branch_Bool_79 = v80;
+		} else {
+			int64_t v81 = 65LL /* B'A' */;
+			int64_t v82 = 70LL /* B'F' */;
+			bool v83 = mw_std_prelude_inZ_range_sp1(v75, v81, v82);
+			bool branch_Bool_84;
+			if (v83) {
+				bool v85 = true;
+				branch_Bool_84 = v85;
 			} else {
-				int64_t v56 = 97LL /* B'a' */;
-				int64_t v57 = 102LL /* B'f' */;
-				bool v58 = mw_std_prelude_inZ_range_sp1(v45, v56, v57);
-				branch_Bool_54 = v58;
+				int64_t v86 = 97LL /* B'a' */;
+				int64_t v87 = 102LL /* B'f' */;
+				bool v88 = mw_std_prelude_inZ_range_sp1(v75, v86, v87);
+				branch_Bool_84 = v88;
 			}
-			branch_Bool_49 = branch_Bool_54;
+			branch_Bool_79 = branch_Bool_84;
 		}
-		v31 = branch_Bool_49;
-		v30 = v44;
-		v29 = v43;
-		v28 = v41;
-		v27 = v32;
+		v46 = branch_Bool_79;
+		v45 = v74;
+		v44 = branch_UOffset_71;
+		v43 = v56;
+		v42 = v47;
 	}
-	STR* v59;
-	VAL v60 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v27, v28, v29, v30, &v59);
-	*out_ZPlusStr_3 = v59;
-	return v60;
+	STR* v89;
+	VAL v90 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v42, v43, v44, v45, &v89);
+	*out_ZPlusStr_3 = v89;
+	return v90;
 }
 static VAL mw_std_str_ZPlusStr_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
 	int64_t v4;
@@ -34239,43 +34749,83 @@ static VAL mw_std_str_ZPlusStr_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlus
 	int64_t v11 = i64_add(v9, v10);
 	STR* v12;
 	int64_t v13 = mw_std_str_ZPlusStr_byteZAt(v11, v6, &v12);
-	int64_t v14 = 48LL /* B'0' */;
-	int64_t v15 = 55LL /* B'7' */;
-	bool v16 = mw_std_prelude_inZ_range_sp1(v13, v14, v15);
-	int64_t v17 = v7;
-	int64_t v18 = v4;
-	int64_t v19 = v11;
-	STR* v20 = v12;
-	bool v21 = v16;
-	while (v21) {
-		int64_t v22 = v17;
-		int64_t v23 = v18;
-		int64_t v24 = v19;
-		STR* v25 = v20;
-		STR* v26;
-		int64_t v27 = mw_std_str_ZPlusStr_byteZAt(v24, v25, &v26);
-		int64_t v28 = 8LL;
-		int64_t v29 = i64_mul(v23, v28);
-		int64_t v30 = 48LL;
-		int64_t v31 = i64_sub(v27, v30);
-		int64_t v32 = i64_add(v29, v31);
-		int64_t v33 = 1LL;
-		int64_t v34 = i64_add(v24, v33);
-		STR* v35;
-		int64_t v36 = mw_std_str_ZPlusStr_byteZAt(v34, v26, &v35);
-		int64_t v37 = 48LL /* B'0' */;
-		int64_t v38 = 55LL /* B'7' */;
-		bool v39 = mw_std_prelude_inZ_range_sp1(v36, v37, v38);
-		v21 = v39;
-		v20 = v35;
-		v19 = v34;
-		v18 = v32;
-		v17 = v22;
+	int64_t v14 = 95LL /* B'_' */;
+	uint64_t v15 = (uint64_t)(v13);
+	uint8_t v16 = (uint8_t)(v15);
+	uint64_t v17 = (uint64_t)(v14);
+	uint8_t v18 = (uint8_t)(v17);
+	uint64_t v19 = (uint64_t)(v16);
+	int64_t v20 = (int64_t)(v19);
+	uint64_t v21 = (uint64_t)(v18);
+	int64_t v22 = (int64_t)(v21);
+	bool v23 = (v20 == v22);
+	int64_t branch_UOffset_24;
+	if (v23) {
+		int64_t v25 = 1LL;
+		int64_t v26 = i64_add(v11, v25);
+		branch_UOffset_24 = v26;
+	} else {
+		branch_UOffset_24 = v11;
 	}
-	STR* v40;
-	VAL v41 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v17, v18, v19, v20, &v40);
-	*out_ZPlusStr_3 = v40;
-	return v41;
+	STR* v27;
+	int64_t v28 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_24, v12, &v27);
+	int64_t v29 = 48LL /* B'0' */;
+	int64_t v30 = 55LL /* B'7' */;
+	bool v31 = mw_std_prelude_inZ_range_sp1(v28, v29, v30);
+	int64_t v32 = v7;
+	int64_t v33 = v4;
+	int64_t v34 = branch_UOffset_24;
+	STR* v35 = v27;
+	bool v36 = v31;
+	while (v36) {
+		int64_t v37 = v32;
+		int64_t v38 = v33;
+		int64_t v39 = v34;
+		STR* v40 = v35;
+		STR* v41;
+		int64_t v42 = mw_std_str_ZPlusStr_byteZAt(v39, v40, &v41);
+		int64_t v43 = 8LL;
+		int64_t v44 = i64_mul(v38, v43);
+		int64_t v45 = 48LL;
+		int64_t v46 = i64_sub(v42, v45);
+		int64_t v47 = i64_add(v44, v46);
+		int64_t v48 = 1LL;
+		int64_t v49 = i64_add(v39, v48);
+		STR* v50;
+		int64_t v51 = mw_std_str_ZPlusStr_byteZAt(v49, v41, &v50);
+		int64_t v52 = 95LL /* B'_' */;
+		uint64_t v53 = (uint64_t)(v51);
+		uint8_t v54 = (uint8_t)(v53);
+		uint64_t v55 = (uint64_t)(v52);
+		uint8_t v56 = (uint8_t)(v55);
+		uint64_t v57 = (uint64_t)(v54);
+		int64_t v58 = (int64_t)(v57);
+		uint64_t v59 = (uint64_t)(v56);
+		int64_t v60 = (int64_t)(v59);
+		bool v61 = (v58 == v60);
+		int64_t branch_UOffset_62;
+		if (v61) {
+			int64_t v63 = 1LL;
+			int64_t v64 = i64_add(v49, v63);
+			branch_UOffset_62 = v64;
+		} else {
+			branch_UOffset_62 = v49;
+		}
+		STR* v65;
+		int64_t v66 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_62, v50, &v65);
+		int64_t v67 = 48LL /* B'0' */;
+		int64_t v68 = 55LL /* B'7' */;
+		bool v69 = mw_std_prelude_inZ_range_sp1(v66, v67, v68);
+		v36 = v69;
+		v35 = v65;
+		v34 = branch_UOffset_62;
+		v33 = v47;
+		v32 = v37;
+	}
+	STR* v70;
+	VAL v71 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v32, v33, v34, v35, &v70);
+	*out_ZPlusStr_3 = v70;
+	return v71;
 }
 static int64_t mw_mirth_lexer_hexdigitZ_value (int64_t in_Byte_1) {
 	int64_t v3 = 48LL /* B'0' */;

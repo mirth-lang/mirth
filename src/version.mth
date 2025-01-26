@@ -1,3 +1,11 @@
 module mirth.version
 
+||| `mirth-revision` is an integer that indicates the current version of the language.
+||| We can update it whenever we are working on the compiler, and then use it for
+||| conditional compilation via the `max-mirth-revision` and `min-mirth-revision`
+|||
+||| The integer has the format YYYYMMDDnnn where YYYY is the year, MM is the month,
+||| DD is the date, and nnn is some number that goes up within a single day. The only
+||| thing that matter is that the number never goes down, only up.
+
 def mirth-revision { 20250126001 }

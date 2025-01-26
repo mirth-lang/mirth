@@ -20,7 +20,6 @@ import mirth.token
 import mirth.mirth
 import mirth.module
 
-
 #########
 # LEXER #
 #########
@@ -349,7 +348,7 @@ def(+Str.is-doc-start?, +Str -- Bool +Str,
     dup! "|||" ==)
 
 def(+Str.is-arrow?, +Str -- Bool +Str,
-    +Str.dup! "->" ==)
+    dup! "->" ==)
 
 def(+Str.is-dashes?, +Str -- Bool +Str,
     dup! "--" ==)
@@ -431,11 +430,14 @@ def +Str.int-suffix? [ UOffset +Str -- Maybe(IntSuffix) +Str ] {
     suffix> drop
 }
 
+def(skipping-underscore(f), (Byte -- Bool) +Str USize UOffset -- +Str USize UOffset Bool,
+    over 0> and(dup byte@ Byte.B'_' ==) and(dup 1+ byte@ f) if(1+ True, dup byte@ f))
+
 def(+Str.is-dec-int?, +Str -- Bool +Str,
     0u >USize # number of digits
     0u >UOffset # current index
     dup byte@ is-sign if(1+, id)
-    while(dup byte@ is-digit, dip(1+) 1+)
+    while(skipping-underscore:is-digit, dip(1+) 1+)
     swap 0> and(dup int-suffix? some?) nip)
 
 def(+Str.is-hex-int?, +Str -- Bool +Str,
@@ -449,7 +451,7 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
         1+
         dup byte@ Byte.B'x' == if(
             1+
-            while(dup byte@ is-hexdigit, dip(1+) 1+)
+            while(skipping-underscore:is-hexdigit, dip(1+) 1+)
             swap 0> and(dup int-suffix? some?) nip,
 
             drop2 False
@@ -469,7 +471,7 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
         1+
         dup byte@ Byte.B'o' == if(
             1+
-            while(dup byte@ is-octdigit, dip(1+) 1+)
+            while(skipping-underscore:is-octdigit, dip(1+) 1+)
             swap 0> and(dup int-suffix? some?) nip,
 
             drop2 False
@@ -498,7 +500,9 @@ def +Str.finish-int-literal [ Int Int UOffset +Str -- Result(Str, TokenValue) +S
 
 def(+Str.dec-int?, +Str -- Result(Str, TokenValue) +Str,
     int-sign
-    while(dup byte@ is-digit,
+    while(
+        dup byte@ Byte.B'_' == then(1+)
+        dup byte@ is-digit,
         sip(
             byte@ >Int
             dip(10 *) 48 - +
@@ -508,7 +512,9 @@ def(+Str.dec-int?, +Str -- Result(Str, TokenValue) +Str,
 
 def(+Str.hex-int?, +Str -- Result(Str, TokenValue) +Str,
     int-sign 1+ 1+ # skip 0x prefix
-    while(dup byte@ is-hexdigit,
+    while(
+        dup byte@ Byte.B'_' == then(1+)
+        dup byte@ is-hexdigit,
         sip(
             byte@
             dip(16 *) hexdigit-value +
@@ -518,7 +524,9 @@ def(+Str.hex-int?, +Str -- Result(Str, TokenValue) +Str,
 
 def(+Str.oct-int?, +Str -- Result(Str, TokenValue) +Str,
     int-sign 1+ 1+ # skip 0o prefix
-    while(dup byte@ is-octdigit,
+    while(
+        dup byte@ Byte.B'_' == then(1+)
+        dup byte@ is-octdigit,
         sip(
             byte@ >Int
             dip(8 *) 48 - +
