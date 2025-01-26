@@ -5,22 +5,6 @@ import std.str
 import std.byte
 import std.list
 
-############################################
-# not re-exported because of optimisations #
-############################################
-# def(dip, (*a -- *b) *a c -- *b c, prim.core.dip)
-# def(if, (*a -- *b, *a -- *b) *a Bool -- *b, prim.core.if)
-# def(while, (*a -- *a Bool, *a -- *a) *a -- *a, prim.core.while)
-############################################
-
-##################################################
-# not re-exported because they're special syntax #
-##################################################
-# match
-# lambda
-##################################################
-
-# Re-exported primitives.
 alias id prim-id
 alias ?? prim-debug
 alias swap prim-swap

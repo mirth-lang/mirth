@@ -700,7 +700,16 @@ def type-arg-prefix [ +Mirth Type -- +Mirth Str ] {
         { Type -> "Type_" }
         { StackType -> "StackType_" }
         { ResourceType -> "ResourceType_" }
+        { Bool -> "Bool_" }
         { Int -> "Int_" }
+        { U8  -> "U8_" }
+        { U16 -> "U16_" }
+        { U32 -> "U32_" }
+        { U64 -> "U64_" }
+        { I8  -> "I8_" }
+        { I16 -> "I16_" }
+        { I32 -> "I32_" }
+        { I64 -> "I64_" }
         { F32 -> "F32_" }
         { F64 -> "F64_" }
         { Ptr -> "Ptr_" }
@@ -1373,7 +1382,16 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
     { Type -> C99ReprType.VAL }
     { StackType -> C99ReprType.VAL }
     { ResourceType -> C99ReprType.VAL }
+    { Bool -> C99ReprType.Bool }
     { Int -> C99ReprType.I64 }
+    { U8  -> C99ReprType.U8  }
+    { U16 -> C99ReprType.U16 }
+    { U32 -> C99ReprType.U32 }
+    { U64 -> C99ReprType.U64 }
+    { I8  -> C99ReprType.I8  }
+    { I16 -> C99ReprType.I16 }
+    { I32 -> C99ReprType.I32 }
+    { I64 -> C99ReprType.I64 }
     { F32 -> C99ReprType.F32 }
     { F64 -> C99ReprType.F64 }
     { Str -> C99ReprType.STR }
@@ -2171,6 +2189,10 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { F64Get -> drop "*(double*)"  C99ReprType.PTR "" C99ReprType.F64 Some c99-unop! }
     { F64Set -> drop "*(double*)"  C99ReprType.PTR " = " C99ReprType.F64 ";" True None c99-binop! }
 
+    { BoolBoolTrue  -> drop C99ReprType.Bool push-value-expression!("true"  put) }
+    { BoolBoolFalse -> drop C99ReprType.Bool push-value-expression!("false" put) }
+    { BoolTrue  -> drop C99ReprType.Bool push-value-expression!("true"  put) }
+    { BoolFalse -> drop C99ReprType.Bool push-value-expression!("false" put) }
     { BoolAnd -> drop "(" C99ReprType.Bool " && " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
     { BoolOr  -> drop "(" C99ReprType.Bool " || " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
     { BoolNot -> drop "!" C99ReprType.Bool "" C99ReprType.Bool Some c99-unop! }

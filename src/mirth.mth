@@ -32,15 +32,6 @@ import mirth.macro
 struct Builtin {
     std: Package
     prim: Module
-    bool: Data  true: Tag   false: Tag
-    u64: Data   mk-u64: Tag
-    u32: Data   mk-u32: Tag
-    u16: Data   mk-u16: Tag
-    u8: Data    mk-u8: Tag
-    i64: Data   mk-i64: Tag
-    i32: Data   mk-i32: Tag
-    i16: Data   mk-i16: Tag
-    i8: Data    mk-i8: Tag
 
     cchar:      Data  mk-cchar:      Tag
     cichar:     Data  mk-cichar:     Tag
@@ -68,15 +59,6 @@ struct Builtin {
 def Builtin.Alloc! [ -- Builtin ] {
     Package.alloc! >std
     Module.alloc! >prim
-    Data.alloc! >bool Tag.alloc! >true Tag.alloc! >false
-    Data.alloc! >u64 Tag.alloc! >mk-u64
-    Data.alloc! >u32 Tag.alloc! >mk-u32
-    Data.alloc! >u16 Tag.alloc! >mk-u16
-    Data.alloc! >u8 Tag.alloc! >mk-u8
-    Data.alloc! >i64 Tag.alloc! >mk-i64
-    Data.alloc! >i32 Tag.alloc! >mk-i32
-    Data.alloc! >i16 Tag.alloc! >mk-i16
-    Data.alloc! >i8 Tag.alloc! >mk-i8
 
     Data.alloc! >cchar       Tag.alloc! >mk-cchar
     Data.alloc! >cichar      Tag.alloc! >mk-cichar
