@@ -161,8 +161,6 @@ data Prim {
     F64Get
     F64Set
 
-    BoolBoolTrue
-    BoolBoolFalse
     BoolTrue
     BoolFalse
     BoolAnd
@@ -241,8 +239,6 @@ data Prim {
     }
 
     def namespace [ +Mirth Prim -- +Mirth Namespace ] {
-        { BoolBoolTrue -> PrimType.Bool Tycon.Prim Namespace.Tycon }
-        { BoolBoolFalse -> PrimType.Bool Tycon.Prim Namespace.Tycon }
         { _ -> drop Namespace.Prim }
     }
 
@@ -393,8 +389,6 @@ data Prim {
         { F64Get -> "prim-f64-get" 0 }
         { F64Set -> "prim-f64-set" 0 }
 
-        { BoolBoolTrue -> "True" 0 }
-        { BoolBoolFalse -> "False" 0 }
         { BoolTrue -> "prim-bool-true" 0 }
         { BoolFalse -> "prim-bool-false" 0 }
         { BoolAnd -> "prim-bool-and" 0 }
@@ -686,8 +680,6 @@ data Prim {
         { F64Get -> Ctx.L0 Type.Ptr T1 Type.F64 T1 T-> }
         { F64Set -> Ctx.L0 Type.F64 Type.Ptr T2 T0 T-> }
 
-        { BoolBoolTrue -> Ctx.L0 T0 Type.Bool T1 T-> }
-        { BoolBoolFalse -> Ctx.L0 T0 Type.Bool T1 T-> }
         { BoolTrue -> Ctx.L0 T0 Type.Bool T1 T-> }
         { BoolFalse -> Ctx.L0 T0 Type.Bool T1 T-> }
         { BoolAnd -> Ctx.L0 Type.Bool Type.Bool T2 Type.Bool T1 T-> }

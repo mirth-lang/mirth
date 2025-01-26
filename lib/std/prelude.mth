@@ -69,13 +69,18 @@ inline def and(f,g,h,i) { and(f,and(g,and(h,i))) }
 
 def(Bool.repr;, Bool +Str -- +Str, if("True", "False") ;)
 
+min-mirth-revision 2025_01_26_003 {
+    alias Bool.True  prim-bool-true
+    alias Bool.False prim-bool-false
+}
+
 # Re-export Bool unqualified.
-alias(True,  Bool.True)
-alias(False, Bool.False)
+alias True  Bool.True
+alias False Bool.False
 
 # Cute booleans.
-alias(Yes, True)
-alias(No, False)
+alias Yes True
+alias No  False
 
 data OS {
     0 Unknown
