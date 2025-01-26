@@ -32,7 +32,7 @@
 		"keyword": {
 			"patterns": [{
 				"name": "keyword.control.mirth",
-				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])(module|import|inline|alias|data|struct|def|def-type|def-missing|def-external|external|table|field|embed-str|buffer|var)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])(module|import|inline|alias|data|struct|def|def-type|def-missing|external|table|field|embed-str|buffer|min-mirth-revision|max-mirth-revision)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
 			}, {
 				"name": "keyword.operator.mirth",
 				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])(\\$|->|--|\\\\|=|_)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
@@ -41,16 +41,19 @@
 				"match": "[\\.:\\(\\)\\[\\]\\{\\},]"
 			}, {
 				"name": "keyword.operator.mirth",
-				"match": "([@!>]\\+?[a-z].*|[a-z].*>)"
+				"match": "([@!>]\\+?[a-z].*|\\+?[a-z].*>)"
 			}]
 		},
 		"entity": {
 			"patterns": [{
 				"name": "constant.numeric.dec.mirth",
-				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])([+-]?[0-9]+)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])([+-]?[0-9](_?[0-9])*(|u8|u16|u32|u64|i8|i16|i32|i64))(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
 			}, {
 				"name": "constant.numeric.hex.mirth",
-				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])([+-]?0[xX][a-zA-Z0-9]+)(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])([+-]?0x[a-fA-F0-9](_?[a-fA-F0-9])*(|u8|u16|u32|u64|i8|i16|i32|i64))(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
+			}, {
+				"name": "constant.numeric.oct.mirth",
+				"match": "(?<![^\\s\\\"\\.:()\\[\\]\\{\\},])([+-]?0o[0-7](_?[0-7])*(|u8|u16|u32|u64|i8|i16|i32|i64))(?![^\\s\\\"\\.:()\\[\\]\\{\\},])"
 			}, {
 				"name": "entity.name.type.mirth",
 				"match": "[\\?!\\+]?[A-Z][^\\s\\\"\\.:()\\[\\]\\{\\},]*"
