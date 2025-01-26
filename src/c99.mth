@@ -2189,8 +2189,6 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { F64Get -> drop "*(double*)"  C99ReprType.PTR "" C99ReprType.F64 Some c99-unop! }
     { F64Set -> drop "*(double*)"  C99ReprType.PTR " = " C99ReprType.F64 ";" True None c99-binop! }
 
-    { BoolBoolTrue  -> drop C99ReprType.Bool push-value-expression!("true"  put) }
-    { BoolBoolFalse -> drop C99ReprType.Bool push-value-expression!("false" put) }
     { BoolTrue  -> drop C99ReprType.Bool push-value-expression!("true"  put) }
     { BoolFalse -> drop C99ReprType.Bool push-value-expression!("false" put) }
     { BoolAnd -> drop "(" C99ReprType.Bool " && " C99ReprType.Bool ")" False C99ReprType.Bool Some c99-binop! }
