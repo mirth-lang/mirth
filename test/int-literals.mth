@@ -379,15 +379,4 @@ def main {
 
     end!
 }
-# mirth-test # merr # 86:33: error: Unknown word name, possibly a misspelling.
-# mirth-test # merr # 86:38: warning: Can't resolve word due to previous errors. Candidates are: std.list.+Nester/1.;, std.list.+Lister/1.;, std.str.+Str.;
-# mirth-test # merr # 86:51: warning: Can't resolve word due to previous errors. Candidates are: std.list.+Nester/1.;, std.list.+Lister/1.;, std.str.+Str.;
-# mirth-test # merr # 87:32: error: Unknown word name, possibly a misspelling.
-# mirth-test # merr # 87:37: warning: Can't resolve word due to previous errors. Candidates are: std.list.+Nester/1.;, std.list.+Lister/1.;, std.str.+Str.;
-# mirth-test # merr # 87:56: warning: Can't resolve word due to previous errors. Candidates are: std.list.+Nester/1.;, std.list.+Lister/1.;, std.str.+Str.;
-# mirth-test # merr # 88:13: warning: Can't resolve word due to previous errors. Candidates are: std.test.+Test.+world/1, std.test.+Tests.+world/1
-# mirth-test # merr # 90:32: error: Unknown word name, possibly a misspelling.
-# mirth-test # merr # 90:37: warning: Can't resolve word due to previous errors. Candidates are: std.list.+Nester/1.;, std.list.+Lister/1.;, std.str.+Str.;
-# mirth-test # merr # 90:56: warning: Can't resolve word due to previous errors. Candidates are: std.list.+Nester/1.;, std.list.+Lister/1.;, std.str.+Str.;
-# mirth-test # merr # 91:13: warning: Can't resolve word due to previous errors. Candidates are: std.test.+Test.+world/1, std.test.+Tests.+world/1
-# mirth-test # mret # 1
+# mirth-test # pout # 11 tests passed.

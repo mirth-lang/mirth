@@ -10,9 +10,9 @@ def(🤷‍♀️, +World -- +World, "...whatever" print)
 
 def(main, +World -- +World,
     Olá-Mundo
-    Luís show print
-    João show print
-    10 20 綴 show print
+    Luís >Str print
+    João >Str print
+    10 20 綴 >Str print
     🤷‍♀️)
 
 # mirth-test # pout # Hello world!

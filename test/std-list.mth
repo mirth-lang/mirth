@@ -250,39 +250,39 @@ def main [ +World -- +World ] {
     )
 
     "for" test (
-        ""   L0-Int for(show cat) => ( "" )
-        "" 1     L1 for(show cat) => ( "1" )
-        "" 1 2   L2 for(show cat) => ( "12" )
-        "" 1 2 3 L3 for(show cat) => ( "123" )
+        ""   L0-Int for(>Str cat) => ( "" )
+        "" 1     L1 for(>Str cat) => ( "1" )
+        "" 1 2   L2 for(>Str cat) => ( "12" )
+        "" 1 2 3 L3 for(>Str cat) => ( "123" )
 
-        "" 4     N1 for(show cat) => ( "4" )
-        "" 4 5   N2 for(show cat) => ( "45" )
-        "" 4 5 6 N3 for(show cat) => ( "456" )
+        "" 4     N1 for(>Str cat) => ( "4" )
+        "" 4 5   N2 for(>Str cat) => ( "45" )
+        "" 4 5 6 N3 for(>Str cat) => ( "456" )
 
-        ""   L0-Int for(show cat, "," cat) => ( "" )
-        "" 1     L1 for(show cat, "," cat) => ( "1" )
-        "" 1 2   L2 for(show cat, "," cat) => ( "1,2" )
-        "" 1 2 3 L3 for(show cat, "," cat) => ( "1,2,3" )
+        ""   L0-Int for(>Str cat, "," cat) => ( "" )
+        "" 1     L1 for(>Str cat, "," cat) => ( "1" )
+        "" 1 2   L2 for(>Str cat, "," cat) => ( "1,2" )
+        "" 1 2 3 L3 for(>Str cat, "," cat) => ( "1,2,3" )
 
-        "" 4     N1 for(show cat, "," cat) => ( "4" )
-        "" 4 5   N2 for(show cat, "," cat) => ( "4,5" )
-        "" 4 5 6 N3 for(show cat, "," cat) => ( "4,5,6" )
+        "" 4     N1 for(>Str cat, "," cat) => ( "4" )
+        "" 4 5   N2 for(>Str cat, "," cat) => ( "4,5" )
+        "" 4 5 6 N3 for(>Str cat, "," cat) => ( "4,5,6" )
 
-        "" 4       N1 for(show, cat) => ( "4" ) => ( ""    )
-        "" 4 5     N2 for(show, cat) => ( "5" ) => ( "4"   )
-        "" 4 5 6   N3 for(show, cat) => ( "6" ) => ( "45"  )
-        "" 4 5 6 7 N4 for(show, cat) => ( "7" ) => ( "456" )
+        "" 4       N1 for(>Str, cat) => ( "4" ) => ( ""    )
+        "" 4 5     N2 for(>Str, cat) => ( "5" ) => ( "4"   )
+        "" 4 5 6   N3 for(>Str, cat) => ( "6" ) => ( "45"  )
+        "" 4 5 6 7 N4 for(>Str, cat) => ( "7" ) => ( "456" )
     )
 
     "reverse-for" test (
-        ""   L0-Int reverse-for(show cat) => ( "" )
-        "" 1     L1 reverse-for(show cat) => ( "1" )
-        "" 1 2   L2 reverse-for(show cat) => ( "21" )
-        "" 1 2 3 L3 reverse-for(show cat) => ( "321" )
+        ""   L0-Int reverse-for(>Str cat) => ( "" )
+        "" 1     L1 reverse-for(>Str cat) => ( "1" )
+        "" 1 2   L2 reverse-for(>Str cat) => ( "21" )
+        "" 1 2 3 L3 reverse-for(>Str cat) => ( "321" )
 
-        "" 4     N1 reverse-for(show cat) => ( "4" )
-        "" 4 5   N2 reverse-for(show cat) => ( "54" )
-        "" 4 5 6 N3 reverse-for(show cat) => ( "654" )
+        "" 4     N1 reverse-for(>Str cat) => ( "4" )
+        "" 4 5   N2 reverse-for(>Str cat) => ( "54" )
+        "" 4 5 6 N3 reverse-for(>Str cat) => ( "654" )
     )
 
     "fold" test (
@@ -1087,7 +1087,7 @@ def L0-Int [ List(Int) ] { L0 }
 def L0-Str [ List(Str) ] { L0 }
 def None-Int [ Maybe(Int) ] { None }
 
-def Even/Odd [ Int -- Either(Int,Int) ] { 2 /% 0= if(Left, Right) }
+def Even/Odd [ Int -- Either(Int,Int) ] { 2 divmod 0= if(Left, Right) }
 def /Even [ Int -- Maybe(Int) ] { Even/Odd left?  }
 def /Odd  [ Int -- Maybe(Int) ] { Even/Odd right? }
 def even? [ Int -- Bool ] { /Even some? }

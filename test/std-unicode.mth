@@ -22,9 +22,9 @@ def main [ +World -- +World ] {
     )
 
     "Codepoint.repr;" test (
-        "128132 Codepoint" => ( Str( 128132 >Codepoint-unsafe repr; ) )
-            "97 Codepoint" => ( Str( 97 >Codepoint-unsafe repr; ) )
-         "22899 Codepoint" => ( Str( 22899 >Codepoint-unsafe repr; ) )
+        "128132u32 Codepoint" => ( Str( 128132 >Codepoint-unsafe repr; ) )
+            "97u32 Codepoint" => ( Str( 97 >Codepoint-unsafe repr; ) )
+         "22899u32 Codepoint" => ( Str( 22899 >Codepoint-unsafe repr; ) )
     )
 
     "Str.codepoints-for" test (
