@@ -2105,7 +2105,7 @@ def c99-prim! [ Atom Prim +C99Branch -- +C99Branch ] {
     { U64Shl -> drop "u64_shl(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
     { U64Shr -> drop "u64_shr(" C99ReprType.U64 ", " C99ReprType.U64 ")" False C99ReprType.U64 Some c99-binop! }
     { U64ToInt -> drop "(int64_t)(" C99ReprType.U64 ")" C99ReprType.I64 Some c99-unop! }
-    { U64ToStr -> drop "i64_show(" C99ReprType.U64 ")" C99ReprType.STR Some c99-unop! }
+    { U64ToStr -> drop "u64_show(" C99ReprType.U64 ")" C99ReprType.STR Some c99-unop! }
     { U64ToU8  -> drop "(uint8_t)(" C99ReprType.U64 ")" C99ReprType.U8 Some c99-unop! }
     { U64ToU16 -> drop "(uint16_t)(" C99ReprType.U64 ")" C99ReprType.U16 Some c99-unop! }
     { U64ToU32 -> drop "(uint32_t)(" C99ReprType.U64 ")" C99ReprType.U32 Some c99-unop! }

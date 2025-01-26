@@ -47,7 +47,6 @@ extern float strtof(const char* str, char** endptr);
 extern double strtod(const char* str, char** endptr);
 
 typedef uint64_t TAG;
-#define REFS_FLAG 0x0001
 
 typedef uint32_t REFS;
 typedef uint64_t USIZE;
@@ -85,77 +84,90 @@ typedef struct TYPE {
 	void (*run)(VAL v);
 } TYPE;
 
+
+#define REFS_FLAG 0x0001
+#define PTRMK(e,p,t) (((uint64_t)(e) << 48) | (uint64_t)(p) | (uint64_t)(t))
+#define PTRPTR(p) ((void*)(uintptr_t)((uint64_t)(p) & 0xFFFFFFFFFFFC))
+#define PTRTAG(p) ((uint64_t)(p) & 0x3)
+#define PTREXTRA(p) ((uint64_t)(p) >> 48)
+
 static void default_free   (VAL v);
 static void default_trace_ (VAL v, int fd);
 static void default_run    (VAL v);
 
+static void bool_trace_ (VAL v, int fd);
+static TYPE TYPE_BOOL = { .name = "Bool", .trace_ = bool_trace_ };
+
 static void int_trace_ (VAL v, int fd);
-static TYPE TYPE_INT = {
-	.name = "Int",
-	.flags = 0,
-	.free = default_free,
-	.trace_ = int_trace_,
-	.run = default_run,
-};
+static TYPE TYPE_INT = { .name = "Int", .trace_ = int_trace_, };
+
+static void i64_trace_ (VAL v, int fd);
+static TYPE TYPE_I64 = { .name = "I64", .trace_ = i64_trace_ };
+
+static void i32_trace_ (VAL v, int fd);
+static TYPE TYPE_I32 = { .name = "I32", .trace_ = i32_trace_ };
+
+static void i16_trace_ (VAL v, int fd);
+static TYPE TYPE_I16 = { .name = "I16", .trace_ = i16_trace_ };
+
+static void i8_trace_ (VAL v, int fd);
+static TYPE TYPE_I8 = { .name = "I8", .trace_ = i8_trace_ };
+
+static void u64_trace_ (VAL v, int fd);
+static TYPE TYPE_U64 = { .name = "U64", .trace_ = u64_trace_ };
+
+static void u32_trace_ (VAL v, int fd);
+static TYPE TYPE_U32 = { .name = "U32", .trace_ = u32_trace_ };
+
+static void u16_trace_ (VAL v, int fd);
+static TYPE TYPE_U16 = { .name = "U16", .trace_ = u16_trace_ };
+
+static void u8_trace_ (VAL v, int fd);
+static TYPE TYPE_U8 = { .name = "U8", .trace_ = u8_trace_ };
+
+static void f64_trace_ (VAL v, int fd);
+static TYPE TYPE_F64 = { .name = "F64", .trace_ = f64_trace_ };
+
+static void f32_trace_ (VAL v, int fd);
+static TYPE TYPE_F32 = { .name = "F32", .trace_ = f32_trace_ };
+
+static void ptr_trace_ (VAL v, int fd);
+static TYPE TYPE_PTR = { .name = "Ptr", .trace_ = ptr_trace_ };
 
 static void fnptr_run (VAL v);
-static TYPE TYPE_FNPTR = {
-	.name = "FnPtr",
-	.flags = 0,
-	.free = default_free,
-	.trace_ = default_trace_,
-	.run = fnptr_run,
-};
-
-static TYPE TYPE_F64 = {
-	.name = "F64",
-	.flags = 0,
-	.free = default_free,
-	.trace_ = default_trace_,
-	.run = default_run,
-};
-
-static TYPE TYPE_F32 = {
-	.name = "F32",
-	.flags = 0,
-	.free = default_free,
-	.trace_ = default_trace_,
-	.run = default_run,
-};
+static TYPE TYPE_FNPTR = { .name = "FnPtr", .run = fnptr_run };
 
 static void str_free (VAL v);
 static void str_trace_ (VAL v, int fd);
-static TYPE TYPE_STR = {
-	.name = "Str",
-	.flags = REFS_FLAG,
-	.free = str_free,
-	.trace_ = str_trace_,
-	.run = default_run,
-};
+static TYPE TYPE_STR = { .name = "Str", .flags=REFS_FLAG, .trace_ = str_trace_, .free=str_free };
 
 static void tup_free (VAL v);
 static void tup_trace_ (VAL v, int fd);
 static void tup_run (VAL v);
-static TYPE TYPE_TUP = {
-	.name = "Tup",
-	.flags = REFS_FLAG,
-	.free = tup_free,
-	.trace_ = tup_trace_,
-	.run = tup_run,
-};
+static TYPE TYPE_TUP = { .name = "Tup", .flags = REFS_FLAG, .free = tup_free, .trace_ = tup_trace_, .run = tup_run };
 
-#define TAG_INT ((TAG)&TYPE_INT)
-#define TAG_PTR TAG_INT
+#define TAG_BOOL  ((TAG)&TYPE_BOOL)
+#define TAG_INT   ((TAG)&TYPE_INT)
+#define TAG_I64   ((TAG)&TYPE_I64)
+#define TAG_I32   ((TAG)&TYPE_I32)
+#define TAG_I16   ((TAG)&TYPE_I16)
+#define TAG_I8    ((TAG)&TYPE_I8)
+#define TAG_U64   ((TAG)&TYPE_U64)
+#define TAG_U32   ((TAG)&TYPE_U32)
+#define TAG_U16   ((TAG)&TYPE_U16)
+#define TAG_U8    ((TAG)&TYPE_U8)
+#define TAG_F64   ((TAG)&TYPE_F64)
+#define TAG_F32   ((TAG)&TYPE_F32)
+#define TAG_PTR   ((TAG)&TYPE_PTR)
 #define TAG_FNPTR ((TAG)&TYPE_FNPTR)
-#define TAG_F64 ((TAG)&TYPE_F64)
-#define TAG_F32 ((TAG)&TYPE_F32)
-#define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)
-#define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)
+#define TAG_STR   (REFS_FLAG | (TAG)&TYPE_STR)
+#define TAG_TUP   (REFS_FLAG | (TAG)&TYPE_TUP)
 
 #define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))
 
-#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFFFFFC))
-#define VREFS(v)  (*(v).data.refs)
+#define VTYPE(v)  ((const TYPE*)(PTRPTR((v).tag)))
+#define VREFS(v)  (*(REFS*)PTRPTR((v).data.u64))
+#define HAS_REFS(v) (((v).tag & REFS_FLAG) && PTRPTR((v).data.u64))
 
 #define VINT(v)   ((v).data.i64)
 #define VI64(v)   ((v).data.i64)
@@ -172,12 +184,17 @@ static TYPE TYPE_TUP = {
 #define VPTR(v)   ((v).data.ptr)
 #define VFNPTR(v) ((v).data.fnptr)
 
-#define HAS_REFS(v) (((v).tag & REFS_FLAG) && (v).data.refs)
 #define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
-#define IS_I64(v)   ((v).tag == TAG_INT)
-#define IS_U64(v)   ((v).tag == TAG_INT)
-#define IS_BOOL(v)  ((v).tag == TAG_INT)
+#define IS_I64(v)   ((v).tag == TAG_I64)
+#define IS_I32(v)   ((v).tag == TAG_I32)
+#define IS_I16(v)   ((v).tag == TAG_I16)
+#define IS_I8(v)    ((v).tag == TAG_I8)
+#define IS_U64(v)   ((v).tag == TAG_U64)
+#define IS_U32(v)   ((v).tag == TAG_U32)
+#define IS_U16(v)   ((v).tag == TAG_U16)
+#define IS_U8(v)    ((v).tag == TAG_U8)
+#define IS_BOOL(v)  ((v).tag == TAG_BOOL)
 #define IS_F32(v)   ((v).tag == TAG_F32)
 #define IS_F64(v)   ((v).tag == TAG_F64)
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
@@ -187,20 +204,20 @@ static TYPE TYPE_TUP = {
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
 
 #define MKVAL(x)   (x)
+#define MKBOOL(x)  ((VAL){.tag=TAG_BOOL, .data={.u64=(x)}})
 #define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
-#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
-#define MKI32(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
-#define MKI16(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
-#define MKI8(x)    ((VAL){.tag=TAG_INT, .data={.i64=(x)}})
-#define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
-#define MKU32(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
-#define MKU16(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
-#define MKU8(x)    ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
-#define MKBOOL(x)  ((VAL){.tag=TAG_INT, .data={.u64=(x)}})
+#define MKI64(x)   ((VAL){.tag=TAG_I64, .data={.i64=(x)}})
+#define MKI32(x)   ((VAL){.tag=TAG_I32, .data={.i64=(x)}})
+#define MKI16(x)   ((VAL){.tag=TAG_I16, .data={.i64=(x)}})
+#define MKI8(x)    ((VAL){.tag=TAG_I8, .data={.i64=(x)}})
+#define MKU64(x)   ((VAL){.tag=TAG_U64, .data={.u64=(x)}})
+#define MKU32(x)   ((VAL){.tag=TAG_U32, .data={.u64=(x)}})
+#define MKU16(x)   ((VAL){.tag=TAG_U16, .data={.u64=(x)}})
+#define MKU8(x)    ((VAL){.tag=TAG_U8, .data={.u64=(x)}})
 #define MKF32(x)   ((VAL){.tag=TAG_F32, .data={.f32=(x)}})
 #define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})
-#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 #define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})
+#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})
 
 #define VSTR(v)    ((v).data.str)
 #define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})
@@ -342,17 +359,10 @@ static void trace_rstack(void);
 #define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)
 static void free_value(VAL v) {
 	ASSERT(VTYPE(v));
-	ASSERT(VTYPE(v)->free);
-	ASSERT(HAS_REFS(v));
-	ASSERT(VREFS(v) == 0);
+	ASSERT1(VTYPE(v)->free,v);
+	ASSERT1(HAS_REFS(v),v);
+	ASSERT1(VREFS(v) == 0,v);
 	VTYPE(v)->free(v);
-}
-
-static void default_free (VAL v) {
-	TRACE("panic! tried to free ");
-	TRACE(VTYPE(v)->name);
-	TRACE(" value\n");
-	exit(1);
 }
 
 static void str_free (VAL v) {
@@ -391,15 +401,15 @@ static TUPLEN tup_len_ (TUP* tup) {
 	}
 }
 
-static uint64_t value_u64 (VAL v) { ASSERT1(IS_INT(v),v); return VU64(v); }
-static uint32_t value_u32 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT32_MAX, v); return (uint32_t)x; }
-static uint16_t value_u16 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT16_MAX, v); return (uint16_t)x; }
-static uint8_t value_u8 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }
+static uint64_t value_u64 (VAL v) { ASSERT1(IS_U64(v),v); return VU64(v); }
+static uint32_t value_u32 (VAL v) { ASSERT1(IS_U32(v),v); return VU32(v); }
+static uint16_t value_u16 (VAL v) { ASSERT1(IS_U16(v),v); return VU16(v); }
+static uint8_t  value_u8  (VAL v) { ASSERT1(IS_U8(v) ,v); return VU8(v) ; }
 
-static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }
-static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }
-static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }
-static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }
+static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v) || IS_I64(v),v); return VI64(v); }
+static int32_t value_i32 (VAL v) { ASSERT1(IS_I32(v),v); return VI32(v); }
+static int16_t value_i16 (VAL v) { ASSERT1(IS_I16(v),v); return VI16(v); }
+static int8_t  value_i8  (VAL v) { ASSERT1(IS_I8(v) ,v); return VI8(v) ; }
 static bool value_bool (VAL v) { ASSERT1(IS_BOOL(v),v); return VBOOL(v); }
 
 static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }
@@ -578,13 +588,6 @@ static double str_to_f64 (STR* in, STR** out) {
 	return val;
 }
 
-static void default_run(VAL v) {
-	TRACE("panic! tried to run ");
-	TRACE(VTYPE(v)->name);
-	TRACE("value\n");
-	exit(1);
-}
-
 static void tup_run(VAL v) {
 	ASSERT(VTUPLEN(v)>0);
 	VAL h = VTUP(v)->cells[0];
@@ -599,7 +602,7 @@ static void fnptr_run(VAL v) {
 
 static void run_value(VAL v) {
 	ASSERT(VTYPE(v));
-	ASSERT(VTYPE(v)->run);
+	ASSERT1(VTYPE(v)->run, v);
 	VTYPE(v)->run(v);
 }
 
@@ -678,11 +681,25 @@ static STR* f64_show (double d) {
 	return str_make(result, len);
 }
 
-void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
-	static char c[32] = {0};
-	memset(c, 0, 32);
-	char* p = c+30;
+void u64_repr(uint64_t x, char* c, size_t m, char** out_ptr, size_t *out_size) {
+	ASSERT(m >= 4);
+	memset(c, 0, m);
+	char* p = c+(m-1);
 	size_t n = 0;
+	do {
+		*--p = '0' + (x % 10);
+		x /= 10;
+		n++;
+	} while (x && (p > c));
+	*out_ptr = p;
+	*out_size = n;
+}
+
+void i64_repr(int64_t y, char* c, size_t m, char** out_ptr, size_t *out_size) {
+	ASSERT(m >= 5);
+	c[0] = 0;
+	char* p;
+	size_t n;
 	uint64_t x;
 	if (y < 0) {
 		if (y == INT64_MIN) {
@@ -693,38 +710,62 @@ void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
 	} else {
 		x = (uint64_t)y;
 	}
-	do {
-		*--p = '0' + (x % 10);
-		x /= 10;
-		n++;
-	} while (x);
-	if (y < 0) {
-		*--p = '-';
-		n++;
-	}
+	u64_repr(x,c+1,m-1,&p,&n);
+	if (y<0) { *--p = '-'; n++; }
 	*out_ptr = p;
 	*out_size = n;
 }
 
-void int_trace_(VAL v, int fd) {
-	char* p; size_t n;
-	int_repr(VINT(v), &p, &n);
-	write(fd, p, n);
-}
+void int_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VINT(v), c, sizeof(c), &p, &n); write(fd, p, n); }
+void i64_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI64(v), c, sizeof(c), &p, &n); write(fd, p, n); }
+void i32_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI32(v), c, sizeof(c), &p, &n); write(fd, p, n); }
+void i16_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI16(v), c, sizeof(c), &p, &n); write(fd, p, n); }
+void  i8_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI8(v),  c, sizeof(c), &p, &n); write(fd, p, n); }
+void u64_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU64(v), c, sizeof(c), &p, &n); write(fd, p, n); }
+void u32_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU32(v), c, sizeof(c), &p, &n); write(fd, p, n); }
+void u16_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU16(v), c, sizeof(c), &p, &n); write(fd, p, n); }
+void  u8_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU8(v),  c, sizeof(c), &p, &n); write(fd, p, n); }
 
-STR* i64_show (int64_t x) {
-	bool cache = (0 <= x) && (x <= 255);
+void bool_trace_(VAL v, int fd) { if (VBOOL(v)) { write(fd, "True", 4); } else { write(fd, "False", 5); } }
+
+void f32_trace_(VAL v, int fd) { (void)v; write(fd, "<F32>", 5); }
+void f64_trace_(VAL v, int fd) { (void)v; write(fd, "<F64>", 5); }
+void ptr_trace_(VAL v, int fd) { (void)v; write(fd, "<Ptr>", 5); }
+
+STR* u64_show (uint64_t x) {
+	bool cache = (x <= 255);
 	static STR* scache[256] = {0};
 	if (cache && scache[x]) {
 		STR* s = scache[x];
 		incref(MKSTR(s));
 		return s;
 	} else {
+		char c[32];
 		char* p; size_t n;
-		int_repr(x,&p,&n);
+		u64_repr(x,c,sizeof(c),&p,&n);
 		STR* s = str_make(p,n);
 		if (cache) {
 			scache[x] = s;
+			incref(MKSTR(s));
+		}
+		return s;
+	}
+}
+
+STR* i64_show (int64_t x) {
+	bool cache = (-128 <= x) && (x < 128);
+	static STR* scache[256] = {0};
+	if (cache && scache[x+128]) {
+		STR* s = scache[x+128];
+		incref(MKSTR(s));
+		return s;
+	} else {
+		char c[32];
+		char* p; size_t n;
+		i64_repr(x,c,sizeof(c),&p,&n);
+		STR* s = str_make(p,n);
+		if (cache) {
+			scache[x+128] = s;
 			incref(MKSTR(s));
 		}
 		return s;
@@ -765,16 +806,16 @@ void str_trace_(VAL v, int fd) {
 }
 
 static void value_trace_(VAL v, int fd) {
-	ASSERT(VTYPE(v));
-	ASSERT(VTYPE(v)->trace_);
-	VTYPE(v)->trace_(v,fd);
-}
-
-static void default_trace_(VAL v, int fd) {
-	const char* name = VTYPE(v)->name;
-	write(fd, "<", 1);
-	write(fd, name, strlen(name));
-	write(fd, ">", 1);
+	if (VTYPE(v) && VTYPE(v)->trace_) {
+		VTYPE(v)->trace_(v,fd);
+	} else if (VTYPE(v)) {
+		const char* name = VTYPE(v)->name;
+		write(fd, "<", 1);
+		write(fd, name, strlen(name));
+		write(fd, ">", 1);
+	} else {
+		write(fd, "<NULL>", 6);
+	}
 }
 
 static void tup_trace_(VAL v, int fd) {
@@ -35032,7 +35073,7 @@ static void mw_mirth_mirth_ZPlusMirth_initZ_macrosZBang (TUP* in_ZPlusMirth_1, T
 	*out_ZPlusMirth_2 = v64;
 }
 static VAL mw_mirth_version_mirthZ_revision (void) {
-	int64_t v2 = 20250126003LL;
+	int64_t v2 = 20250126004LL;
 	return MKI64(v2);
 }
 static void mw_mirth_elab_ZPlusTypeElab_rdrop (TUP* in_ZPlusTypeElab_1) {
@@ -56708,7 +56749,6 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"extern double strtod(const char* str, char** endptr);\n"
 		"\n"
 		"typedef uint64_t TAG;\n"
-		"#define REFS_FLAG 0x0001\n"
 		"\n"
 		"typedef uint32_t REFS;\n"
 		"typedef uint64_t USIZE;\n"
@@ -56746,77 +56786,90 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\tvoid (*run)(VAL v);\n"
 		"} TYPE;\n"
 		"\n"
+		"\n"
+		"#define REFS_FLAG 0x0001\n"
+		"#define PTRMK(e,p,t) (((uint64_t)(e) << 48) | (uint64_t)(p) | (uint64_t)(t))\n"
+		"#define PTRPTR(p) ((void*)(uintptr_t)((uint64_t)(p) & 0xFFFFFFFFFFFC))\n"
+		"#define PTRTAG(p) ((uint64_t)(p) & 0x3)\n"
+		"#define PTREXTRA(p) ((uint64_t)(p) >> 48)\n"
+		"\n"
 		"static void default_free   (VAL v);\n"
 		"static void default_trace_ (VAL v, int fd);\n"
 		"static void default_run    (VAL v);\n"
 		"\n"
+		"static void bool_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_BOOL = { .name = \"Bool\", .trace_ = bool_trace_ };\n"
+		"\n"
 		"static void int_trace_ (VAL v, int fd);\n"
-		"static TYPE TYPE_INT = {\n"
-		"\t.name = \"Int\",\n"
-		"\t.flags = 0,\n"
-		"\t.free = default_free,\n"
-		"\t.trace_ = int_trace_,\n"
-		"\t.run = default_run,\n"
-		"};\n"
+		"static TYPE TYPE_INT = { .name = \"Int\", .trace_ = int_trace_, };\n"
+		"\n"
+		"static void i64_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_I64 = { .name = \"I64\", .trace_ = i64_trace_ };\n"
+		"\n"
+		"static void i32_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_I32 = { .name = \"I32\", .trace_ = i32_trace_ };\n"
+		"\n"
+		"static void i16_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_I16 = { .name = \"I16\", .trace_ = i16_trace_ };\n"
+		"\n"
+		"static void i8_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_I8 = { .name = \"I8\", .trace_ = i8_trace_ };\n"
+		"\n"
+		"static void u64_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_U64 = { .name = \"U64\", .trace_ = u64_trace_ };\n"
+		"\n"
+		"static void u32_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_U32 = { .name = \"U32\", .trace_ = u32_trace_ };\n"
+		"\n"
+		"static void u16_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_U16 = { .name = \"U16\", .trace_ = u16_trace_ };\n"
+		"\n"
+		"static void u8_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_U8 = { .name = \"U8\", .trace_ = u8_trace_ };\n"
+		"\n"
+		"static void f64_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_F64 = { .name = \"F64\", .trace_ = f64_trace_ };\n"
+		"\n"
+		"static void f32_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_F32 = { .name = \"F32\", .trace_ = f32_trace_ };\n"
+		"\n"
+		"static void ptr_trace_ (VAL v, int fd);\n"
+		"static TYPE TYPE_PTR = { .name = \"Ptr\", .trace_ = ptr_trace_ };\n"
 		"\n"
 		"static void fnptr_run (VAL v);\n"
-		"static TYPE TYPE_FNPTR = {\n"
-		"\t.name = \"FnPtr\",\n"
-		"\t.flags = 0,\n"
-		"\t.free = default_free,\n"
-		"\t.trace_ = default_trace_,\n"
-		"\t.run = fnptr_run,\n"
-		"};\n"
-		"\n"
-		"static TYPE TYPE_F64 = {\n"
-		"\t.name = \"F64\",\n"
-		"\t.flags = 0,\n"
-		"\t.free = default_free,\n"
-		"\t.trace_ = default_trace_,\n"
-		"\t.run = default_run,\n"
-		"};\n"
-		"\n"
-		"static TYPE TYPE_F32 = {\n"
-		"\t.name = \"F32\",\n"
-		"\t.flags = 0,\n"
-		"\t.free = default_free,\n"
-		"\t.trace_ = default_trace_,\n"
-		"\t.run = default_run,\n"
-		"};\n"
+		"static TYPE TYPE_FNPTR = { .name = \"FnPtr\", .run = fnptr_run };\n"
 		"\n"
 		"static void str_free (VAL v);\n"
 		"static void str_trace_ (VAL v, int fd);\n"
-		"static TYPE TYPE_STR = {\n"
-		"\t.name = \"Str\",\n"
-		"\t.flags = REFS_FLAG,\n"
-		"\t.free = str_free,\n"
-		"\t.trace_ = str_trace_,\n"
-		"\t.run = default_run,\n"
-		"};\n"
+		"static TYPE TYPE_STR = { .name = \"Str\", .flags=REFS_FLAG, .trace_ = str_trace_, .free=str_free };\n"
 		"\n"
 		"static void tup_free (VAL v);\n"
 		"static void tup_trace_ (VAL v, int fd);\n"
 		"static void tup_run (VAL v);\n"
-		"static TYPE TYPE_TUP = {\n"
-		"\t.name = \"Tup\",\n"
-		"\t.flags = REFS_FLAG,\n"
-		"\t.free = tup_free,\n"
-		"\t.trace_ = tup_trace_,\n"
-		"\t.run = tup_run,\n"
-		"};\n"
+		"static TYPE TYPE_TUP = { .name = \"Tup\", .flags = REFS_FLAG, .free = tup_free, .trace_ = tup_trace_, .run = tup_run };\n"
 		"\n"
-		"#define TAG_INT ((TAG)&TYPE_INT)\n"
-		"#define TAG_PTR TAG_INT\n"
+		"#define TAG_BOOL  ((TAG)&TYPE_BOOL)\n"
+		"#define TAG_INT   ((TAG)&TYPE_INT)\n"
+		"#define TAG_I64   ((TAG)&TYPE_I64)\n"
+		"#define TAG_I32   ((TAG)&TYPE_I32)\n"
+		"#define TAG_I16   ((TAG)&TYPE_I16)\n"
+		"#define TAG_I8    ((TAG)&TYPE_I8)\n"
+		"#define TAG_U64   ((TAG)&TYPE_U64)\n"
+		"#define TAG_U32   ((TAG)&TYPE_U32)\n"
+		"#define TAG_U16   ((TAG)&TYPE_U16)\n"
+		"#define TAG_U8    ((TAG)&TYPE_U8)\n"
+		"#define TAG_F64   ((TAG)&TYPE_F64)\n"
+		"#define TAG_F32   ((TAG)&TYPE_F32)\n"
+		"#define TAG_PTR   ((TAG)&TYPE_PTR)\n"
 		"#define TAG_FNPTR ((TAG)&TYPE_FNPTR)\n"
-		"#define TAG_F64 ((TAG)&TYPE_F64)\n"
-		"#define TAG_F32 ((TAG)&TYPE_F32)\n"
-		"#define TAG_STR (REFS_FLAG | (TAG)&TYPE_STR)\n"
-		"#define TAG_TUP (REFS_FLAG | (TAG)&TYPE_TUP)\n"
+		"#define TAG_STR   (REFS_FLAG | (TAG)&TYPE_STR)\n"
+		"#define TAG_TUP   (REFS_FLAG | (TAG)&TYPE_TUP)\n"
 		"\n"
 		"#define VALEQ(v1,v2) (((v1).tag == (v2).tag) && ((v1).data.u64 == (v2).data.u64))\n"
 		"\n"
-		"#define VTYPE(v)  ((const TYPE*)((v).tag & 0xFFFFFFFFFFFFFFFC))\n"
-		"#define VREFS(v)  (*(v).data.refs)\n"
+		"#define VTYPE(v)  ((const TYPE*)(PTRPTR((v).tag)))\n"
+		"#define VREFS(v)  (*(REFS*)PTRPTR((v).data.u64))\n"
+		"#define HAS_REFS(v) (((v).tag & REFS_FLAG) && PTRPTR((v).data.u64))\n"
 		"\n"
 		"#define VINT(v)   ((v).data.i64)\n"
 		"#define VI64(v)   ((v).data.i64)\n"
@@ -56833,12 +56886,17 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define VPTR(v)   ((v).data.ptr)\n"
 		"#define VFNPTR(v) ((v).data.fnptr)\n"
 		"\n"
-		"#define HAS_REFS(v) (((v).tag & REFS_FLAG) && (v).data.refs)\n"
 		"#define IS_VAL(v)   (1)\n"
 		"#define IS_INT(v)   ((v).tag == TAG_INT)\n"
-		"#define IS_I64(v)   ((v).tag == TAG_INT)\n"
-		"#define IS_U64(v)   ((v).tag == TAG_INT)\n"
-		"#define IS_BOOL(v)  ((v).tag == TAG_INT)\n"
+		"#define IS_I64(v)   ((v).tag == TAG_I64)\n"
+		"#define IS_I32(v)   ((v).tag == TAG_I32)\n"
+		"#define IS_I16(v)   ((v).tag == TAG_I16)\n"
+		"#define IS_I8(v)    ((v).tag == TAG_I8)\n"
+		"#define IS_U64(v)   ((v).tag == TAG_U64)\n"
+		"#define IS_U32(v)   ((v).tag == TAG_U32)\n"
+		"#define IS_U16(v)   ((v).tag == TAG_U16)\n"
+		"#define IS_U8(v)    ((v).tag == TAG_U8)\n"
+		"#define IS_BOOL(v)  ((v).tag == TAG_BOOL)\n"
 		"#define IS_F32(v)   ((v).tag == TAG_F32)\n"
 		"#define IS_F64(v)   ((v).tag == TAG_F64)\n"
 		"#define IS_PTR(v)   ((v).tag == TAG_PTR)\n"
@@ -56848,20 +56906,20 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))\n"
 		"\n"
 		"#define MKVAL(x)   (x)\n"
+		"#define MKBOOL(x)  ((VAL){.tag=TAG_BOOL, .data={.u64=(x)}})\n"
 		"#define MKINT(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
-		"#define MKI64(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
-		"#define MKI32(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
-		"#define MKI16(x)   ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
-		"#define MKI8(x)    ((VAL){.tag=TAG_INT, .data={.i64=(x)}})\n"
-		"#define MKU64(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
-		"#define MKU32(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
-		"#define MKU16(x)   ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
-		"#define MKU8(x)    ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
-		"#define MKBOOL(x)  ((VAL){.tag=TAG_INT, .data={.u64=(x)}})\n"
+		"#define MKI64(x)   ((VAL){.tag=TAG_I64, .data={.i64=(x)}})\n"
+		"#define MKI32(x)   ((VAL){.tag=TAG_I32, .data={.i64=(x)}})\n"
+		"#define MKI16(x)   ((VAL){.tag=TAG_I16, .data={.i64=(x)}})\n"
+		"#define MKI8(x)    ((VAL){.tag=TAG_I8, .data={.i64=(x)}})\n"
+		"#define MKU64(x)   ((VAL){.tag=TAG_U64, .data={.u64=(x)}})\n"
+		"#define MKU32(x)   ((VAL){.tag=TAG_U32, .data={.u64=(x)}})\n"
+		"#define MKU16(x)   ((VAL){.tag=TAG_U16, .data={.u64=(x)}})\n"
+		"#define MKU8(x)    ((VAL){.tag=TAG_U8, .data={.u64=(x)}})\n"
 		"#define MKF32(x)   ((VAL){.tag=TAG_F32, .data={.f32=(x)}})\n"
 		"#define MKF64(x)   ((VAL){.tag=TAG_F64, .data={.f64=(x)}})\n"
-		"#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})\n"
 		"#define MKPTR(x)   ((VAL){.tag=TAG_PTR, .data={.ptr=(x)}})\n"
+		"#define MKFNPTR(x) ((VAL){.tag=TAG_FNPTR, .data={.fnptr=(x)}})\n"
 		"\n"
 		"#define VSTR(v)    ((v).data.str)\n"
 		"#define MKSTR(x)   ((VAL){.tag=TAG_STR, .data={.str=(x)}})\n"
@@ -57003,17 +57061,10 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"#define decref(v) do { if (HAS_REFS(v)) if (!--VREFS(v)) free_value(v); } while(0)\n"
 		"static void free_value(VAL v) {\n"
 		"\tASSERT(VTYPE(v));\n"
-		"\tASSERT(VTYPE(v)->free);\n"
-		"\tASSERT(HAS_REFS(v));\n"
-		"\tASSERT(VREFS(v) == 0);\n"
+		"\tASSERT1(VTYPE(v)->free,v);\n"
+		"\tASSERT1(HAS_REFS(v),v);\n"
+		"\tASSERT1(VREFS(v) == 0,v);\n"
 		"\tVTYPE(v)->free(v);\n"
-		"}\n"
-		"\n"
-		"static void default_free (VAL v) {\n"
-		"\tTRACE(\"panic! tried to free \");\n"
-		"\tTRACE(VTYPE(v)->name);\n"
-		"\tTRACE(\" value\\n\");\n"
-		"\texit(1);\n"
 		"}\n"
 		"\n"
 		"static void str_free (VAL v) {\n"
@@ -57052,15 +57103,15 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\t}\n"
 		"}\n"
 		"\n"
-		"static uint64_t value_u64 (VAL v) { ASSERT1(IS_INT(v),v); return VU64(v); }\n"
-		"static uint32_t value_u32 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT32_MAX, v); return (uint32_t)x; }\n"
-		"static uint16_t value_u16 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT16_MAX, v); return (uint16_t)x; }\n"
-		"static uint8_t value_u8 (VAL v) { uint64_t x = value_u64(v); ASSERT1(x <= UINT8_MAX,  v); return (uint8_t)x; }\n"
+		"static uint64_t value_u64 (VAL v) { ASSERT1(IS_U64(v),v); return VU64(v); }\n"
+		"static uint32_t value_u32 (VAL v) { ASSERT1(IS_U32(v),v); return VU32(v); }\n"
+		"static uint16_t value_u16 (VAL v) { ASSERT1(IS_U16(v),v); return VU16(v); }\n"
+		"static uint8_t  value_u8  (VAL v) { ASSERT1(IS_U8(v) ,v); return VU8(v) ; }\n"
 		"\n"
-		"static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v),v); return VI64(v); }\n"
-		"static int32_t value_i32 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT32_MIN <= x) && (x <= INT32_MAX), v); return (int32_t)x; }\n"
-		"static int16_t value_i16 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT16_MIN <= x) && (x <= INT16_MAX), v); return (int16_t)x; }\n"
-		"static int8_t value_i8 (VAL v) { int64_t x = value_i64(v); ASSERT1((INT8_MIN <= x) && (x <= INT8_MAX),  v); return (int8_t)x; }\n"
+		"static int64_t value_i64 (VAL v) { ASSERT1(IS_INT(v) || IS_I64(v),v); return VI64(v); }\n"
+		"static int32_t value_i32 (VAL v) { ASSERT1(IS_I32(v),v); return VI32(v); }\n"
+		"static int16_t value_i16 (VAL v) { ASSERT1(IS_I16(v),v); return VI16(v); }\n"
+		"static int8_t  value_i8  (VAL v) { ASSERT1(IS_I8(v) ,v); return VI8(v) ; }\n"
 		"static bool value_bool (VAL v) { ASSERT1(IS_BOOL(v),v); return VBOOL(v); }\n"
 		"\n"
 		"static double value_f64 (VAL v) { ASSERT1(IS_F64(v), v); return VF64(v); }\n"
@@ -57239,13 +57290,6 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\treturn val;\n"
 		"}\n"
 		"\n"
-		"static void default_run(VAL v) {\n"
-		"\tTRACE(\"panic! tried to run \");\n"
-		"\tTRACE(VTYPE(v)->name);\n"
-		"\tTRACE(\"value\\n\");\n"
-		"\texit(1);\n"
-		"}\n"
-		"\n"
 		"static void tup_run(VAL v) {\n"
 		"\tASSERT(VTUPLEN(v)>0);\n"
 		"\tVAL h = VTUP(v)->cells[0];\n"
@@ -57260,7 +57304,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\n"
 		"static void run_value(VAL v) {\n"
 		"\tASSERT(VTYPE(v));\n"
-		"\tASSERT(VTYPE(v)->run);\n"
+		"\tASSERT1(VTYPE(v)->run, v);\n"
 		"\tVTYPE(v)->run(v);\n"
 		"}\n"
 		"\n"
@@ -57339,11 +57383,25 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\treturn str_make(result, len);\n"
 		"}\n"
 		"\n"
-		"void int_repr(int64_t y, char** out_ptr, size_t *out_size) {\n"
-		"\tstatic char c[32] = {0};\n"
-		"\tmemset(c, 0, 32);\n"
-		"\tchar* p = c+30;\n"
+		"void u64_repr(uint64_t x, char* c, size_t m, char** out_ptr, size_t *out_size) {\n"
+		"\tASSERT(m >= 4);\n"
+		"\tmemset(c, 0, m);\n"
+		"\tchar* p = c+(m-1);\n"
 		"\tsize_t n = 0;\n"
+		"\tdo {\n"
+		"\t\t*--p = '0' + (x % 10);\n"
+		"\t\tx /= 10;\n"
+		"\t\tn++;\n"
+		"\t} while (x && (p > c));\n"
+		"\t*out_ptr = p;\n"
+		"\t*out_size = n;\n"
+		"}\n"
+		"\n"
+		"void i64_repr(int64_t y, char* c, size_t m, char** out_ptr, size_t *out_size) {\n"
+		"\tASSERT(m >= 5);\n"
+		"\tc[0] = 0;\n"
+		"\tchar* p;\n"
+		"\tsize_t n;\n"
 		"\tuint64_t x;\n"
 		"\tif (y < 0) {\n"
 		"\t\tif (y == INT64_MIN) {\n"
@@ -57354,38 +57412,62 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\t} else {\n"
 		"\t\tx = (uint64_t)y;\n"
 		"\t}\n"
-		"\tdo {\n"
-		"\t\t*--p = '0' + (x % 10);\n"
-		"\t\tx /= 10;\n"
-		"\t\tn++;\n"
-		"\t} while (x);\n"
-		"\tif (y < 0) {\n"
-		"\t\t*--p = '-';\n"
-		"\t\tn++;\n"
-		"\t}\n"
+		"\tu64_repr(x,c+1,m-1,&p,&n);\n"
+		"\tif (y<0) { *--p = '-'; n++; }\n"
 		"\t*out_ptr = p;\n"
 		"\t*out_size = n;\n"
 		"}\n"
 		"\n"
-		"void int_trace_(VAL v, int fd) {\n"
-		"\tchar* p; size_t n;\n"
-		"\tint_repr(VINT(v), &p, &n);\n"
-		"\twrite(fd, p, n);\n"
-		"}\n"
+		"void int_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VINT(v), c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void i64_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI64(v), c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void i32_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI32(v), c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void i16_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI16(v), c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void  i8_trace_(VAL v, int fd) { char c[32], *p; size_t n; i64_repr(VI8(v),  c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void u64_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU64(v), c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void u32_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU32(v), c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void u16_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU16(v), c, sizeof(c), &p, &n); write(fd, p, n); }\n"
+		"void  u8_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU8(v),  c, sizeof(c), &p, &n); write(fd, p, n); }\n"
 		"\n"
-		"STR* i64_show (int64_t x) {\n"
-		"\tbool cache = (0 <= x) && (x <= 255);\n"
+		"void bool_trace_(VAL v, int fd) { if (VBOOL(v)) { write(fd, \"True\", 4); } else { write(fd, \"False\", 5); } }\n"
+		"\n"
+		"void f32_trace_(VAL v, int fd) { (void)v; write(fd, \"<F32>\", 5); }\n"
+		"void f64_trace_(VAL v, int fd) { (void)v; write(fd, \"<F64>\", 5); }\n"
+		"void ptr_trace_(VAL v, int fd) { (void)v; write(fd, \"<Ptr>\", 5); }\n"
+		"\n"
+		"STR* u64_show (uint64_t x) {\n"
+		"\tbool cache = (x <= 255);\n"
 		"\tstatic STR* scache[256] = {0};\n"
 		"\tif (cache && scache[x]) {\n"
 		"\t\tSTR* s = scache[x];\n"
 		"\t\tincref(MKSTR(s));\n"
 		"\t\treturn s;\n"
 		"\t} else {\n"
+		"\t\tchar c[32];\n"
 		"\t\tchar* p; size_t n;\n"
-		"\t\tint_repr(x,&p,&n);\n"
+		"\t\tu64_repr(x,c,sizeof(c),&p,&n);\n"
 		"\t\tSTR* s = str_make(p,n);\n"
 		"\t\tif (cache) {\n"
 		"\t\t\tscache[x] = s;\n"
+		"\t\t\tincref(MKSTR(s));\n"
+		"\t\t}\n"
+		"\t\treturn s;\n"
+		"\t}\n"
+		"}\n"
+		"\n"
+		"STR* i64_show (int64_t x) {\n"
+		"\tbool cache = (-128 <= x) && (x < 128);\n"
+		"\tstatic STR* scache[256] = {0};\n"
+		"\tif (cache && scache[x+128]) {\n"
+		"\t\tSTR* s = scache[x+128];\n"
+		"\t\tincref(MKSTR(s));\n"
+		"\t\treturn s;\n"
+		"\t} else {\n"
+		"\t\tchar c[32];\n"
+		"\t\tchar* p; size_t n;\n"
+		"\t\ti64_repr(x,c,sizeof(c),&p,&n);\n"
+		"\t\tSTR* s = str_make(p,n);\n"
+		"\t\tif (cache) {\n"
+		"\t\t\tscache[x+128] = s;\n"
 		"\t\t\tincref(MKSTR(s));\n"
 		"\t\t}\n"
 		"\t\treturn s;\n"
@@ -57426,16 +57508,16 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"static void value_trace_(VAL v, int fd) {\n"
-		"\tASSERT(VTYPE(v));\n"
-		"\tASSERT(VTYPE(v)->trace_);\n"
-		"\tVTYPE(v)->trace_(v,fd);\n"
-		"}\n"
-		"\n"
-		"static void default_trace_(VAL v, int fd) {\n"
-		"\tconst char* name = VTYPE(v)->name;\n"
-		"\twrite(fd, \"<\", 1);\n"
-		"\twrite(fd, name, strlen(name));\n"
-		"\twrite(fd, \">\", 1);\n"
+		"\tif (VTYPE(v) && VTYPE(v)->trace_) {\n"
+		"\t\tVTYPE(v)->trace_(v,fd);\n"
+		"\t} else if (VTYPE(v)) {\n"
+		"\t\tconst char* name = VTYPE(v)->name;\n"
+		"\t\twrite(fd, \"<\", 1);\n"
+		"\t\twrite(fd, name, strlen(name));\n"
+		"\t\twrite(fd, \">\", 1);\n"
+		"\t} else {\n"
+		"\t\twrite(fd, \"<NULL>\", 6);\n"
+		"\t}\n"
 		"}\n"
 		"\n"
 		"static void tup_trace_(VAL v, int fd) {\n"
@@ -57606,7 +57688,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		23357
+		26404
 	);
 	return v2;
 }
@@ -70067,7 +70149,7 @@ static void mw_mirth_c99_c99Z_primZBang (TUP* in_Atom_1, int64_t in_Prim_2, TUP*
 		case 61LL: { // U64ToStr
 			decref(MKTUP(in_Atom_1, 8));
 			STR* v659;
-			STRLIT(v659, "i64_show(", 9);
+			STRLIT(v659, "u64_show(", 9);
 			VAL v660 = MKI64(8LL /* U64 */);
 			STR* v661;
 			STRLIT(v661, ")", 1);
