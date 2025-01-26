@@ -27,13 +27,13 @@ def(foo-tag, Foo -- Str,
 def(foo-display, +World Foo -- +World,
     print(
         dup foo-tag ;
-        ", sum = " ; dup foo-sum show;
+        ", sum = " ; dup foo-sum repr;
         ", values = " ;
         match(
             FOO0 -> "[]";,
-            FOO1 -> "[ "; show; " ]" ;,
-            FOO2 -> "[ "; dip(show;) " "; show; " ]";,
-            FOO3 -> "[ "; dip2(show;) " "; dip(show;) " "; show; " ]";,
+            FOO1 -> "[ "; repr; " ]" ;,
+            FOO2 -> "[ "; dip(repr;) " "; repr; " ]";,
+            FOO3 -> "[ "; dip2(repr;) " "; dip(repr;) " "; repr; " ]";,
         )
     ))
 

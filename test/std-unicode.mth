@@ -21,10 +21,10 @@ def main [ +World -- +World ] {
         "女" => ( Str( 22899 >Codepoint-unsafe emit; ) )
     )
 
-    "Codepoint.show;" test (
-        "128132 Codepoint" => ( Str( 128132 >Codepoint-unsafe show; ) )
-            "97 Codepoint" => ( Str( 97 >Codepoint-unsafe show; ) )
-         "22899 Codepoint" => ( Str( 22899 >Codepoint-unsafe show; ) )
+    "Codepoint.repr;" test (
+        "128132 Codepoint" => ( Str( 128132 >Codepoint-unsafe repr; ) )
+            "97 Codepoint" => ( Str( 97 >Codepoint-unsafe repr; ) )
+         "22899 Codepoint" => ( Str( 22899 >Codepoint-unsafe repr; ) )
     )
 
     "Str.codepoints-for" test (

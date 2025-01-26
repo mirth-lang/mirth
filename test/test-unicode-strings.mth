@@ -10,9 +10,9 @@ def(hrule, +World -- +World,
 
 def(display-str!, Str +World -- +World,
     print(dup ;)
-    print(dup show;)
-    print("num-bytes: " ; dup num-bytes >Int show;)
-    print("bytes:" ; dup bytes-for(" "; >Int show;))
+    print(dup repr;)
+    print("num-bytes: " ; dup num-bytes >Int repr;)
+    print("bytes:" ; dup bytes-for(" "; >Int repr;))
     drop hrule)
 
 def(main, +World -- +World,
@@ -25,7 +25,7 @@ def(main, +World -- +World,
     "🤷‍♀️" display-str!)
 
 # mirth-test # pout # ----------
-# mirth-test # pout # 
+# mirth-test # pout #
 # mirth-test # pout # ""
 # mirth-test # pout # num-bytes: 0
 # mirth-test # pout # bytes:

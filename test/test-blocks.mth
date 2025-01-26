@@ -36,11 +36,11 @@ def(main, +World -- +World,
     drop
 
     10 20 30 L3
-    trace("[" over for(swap ; show; " ") drop "]" ;)
+    trace("[" over for(swap ; repr; " ") drop "]" ;)
     map(10 +)
-    trace("[" over for(swap ; show; " ") drop "]" ;)
+    trace("[" over for(swap ; repr; " ") drop "]" ;)
     find(25 >) match(
-        Some -> trace(show; " found";),
+        Some -> trace(repr; " found";),
         None -> "not found" trace
     ))
 

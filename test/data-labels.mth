@@ -15,7 +15,7 @@ def(main, +World -- +World,
     "John" >name
     30 >age
     Person
-    dup age show print
+    dup age >Str print
     dup name print
     drop
 
@@ -26,7 +26,7 @@ def(main, +World -- +World,
     >+world
     +MyWorld
     "<<<" +world:print
-    age show +world:print
+    age >Str +world:print
     >+myworld +Deep
     "<<<<<" +myworld:+world:print
     +myworld:msg +myworld:+world:print:int;

@@ -37,8 +37,8 @@ def fib {
 
 def main {
     "Hello world!" print
-    print("[ "; 1 to: 10 for(fact show; " ";) "]";)
-    print("[ "; 1 to: 15 for(fib  show; " ";) "]";)
+    print("[ "; 1 to: 10 for(fact repr; " ";) "]";)
+    print("[ "; 1 to: 15 for(fib  repr; " ";) "]";)
 }
 
 # mirth-test # pout # Hello world!

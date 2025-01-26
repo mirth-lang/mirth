@@ -16,7 +16,7 @@ def(+Foo.reset!, +Foo -- Either(Int,Str) +World,
     BAZ! -> reset!)
 
 def(my-trace, Either(Int,Str) +World -- +World,
-    Left -> trace(show; " Left";),
+    Left -> trace(repr; " Left";),
     Right -> trace(; " Right";))
 
 def(whatever, Either(Int,Str) +World -- +World,

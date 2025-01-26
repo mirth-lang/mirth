@@ -83,11 +83,11 @@ struct +Tests {
     ||| passed and failed to stdout.
     def end! [ +Tests -- +World ] {
         num-failed 0> if(
-            Str(rdip:num-failed show ; " out of " ;
-                rdip:num-tests show ; " tests failed." ;)
+            Str(rdip:num-failed int; " out of " ;
+                rdip:num-tests int; " tests failed." ;)
             +world(print 1 posix-exit!),
 
-            Str(rdip:num-tests show ; " tests passed." ;)
+            Str(rdip:num-tests int; " tests passed." ;)
             +world:print
         )
         /+Tests +world>

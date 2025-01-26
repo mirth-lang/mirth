@@ -9,8 +9,8 @@ def(expect==!, +World Str Int Int -- +World,
 
         print(
             "failed: " ; rotl ;
-            " (expected: " ; show;
-            " , got: " ; show;
+            " (expected: " ; repr;
+            " , got: " ; repr;
             ")" ;
         )
     ))
