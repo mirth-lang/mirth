@@ -1,0 +1,6 @@
+module test.conditional-compilation
+
+max-mirth-revision 0 { this-isnt-compiled }
+max-mirth-revision 99999999999 { def main {} }
+min-mirth-revision 0 { def foo {} }
+min-mirth-revision 99999999999 { this-isnt-compiled-also }

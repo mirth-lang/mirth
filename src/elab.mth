@@ -32,6 +32,7 @@ import mirth.match
 import mirth.lexer
 import mirth.label
 import mirth.macro
+import mirth.version
 
 ####################
 # Type Elaboration #
@@ -1413,11 +1414,28 @@ def elab-decls! [ +World +Mirth Token -- +World +Mirth Token ] {
 |||     { Decl* }
 def elab-decl-or-decl-block! [ +World +Mirth Token -- +World +Mirth Token ] {
     dup lcurly? if(
-        succ elab-decls!
-        dup rcurly? else("Expected right curly brace." emit-fatal-error!)
-        succ,
+        elab-decl-block!,
         elab-decl!
     )
+}
+
+||| Elaborate a declaration block.
+|||
+|||     { Decl* }
+def elab-decl-block! [ +World +Mirth Token -- +World +Mirth Token ] {
+    dup lcurly? else("Expected { ... }" emit-fatal-error!) succ
+    elab-decls!
+    dup rcurly? else("Expected end of declaration block." emit-fatal-error!)
+    succ
+}
+
+||| Skip a declaration block without elaborating it.
+||| The contents of the block aren't even parsed so this can
+||| be used for conditional compilation across versions.
+|||
+|||     { ... }
+def skip-decl-block! [ +Mirth Token -- +Mirth Token ] {
+    dup lcurly? else("Expected { ... }" emit-fatal-error!) next
 }
 
 ||| Elaborate a declaration. Returns the next token.
@@ -1964,6 +1982,32 @@ def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
             sip:next args-1 elab-decls! drop,
             succ elab-decl-or-decl-block!
         )
+    )
+}
+
+||| Elaborate max-mirth-revision block. This will skip a
+||| declaration block if mirth-revision is too high.
+|||
+|||     max-mirth-revision Int { Decl* }
+def elab-max-mirth-revision! [ Token +World +Mirth -- +World +Mirth Token ] {
+    dup args-0
+    succ dup int? else?("Expected a revision number." emit-fatal-error!)
+    mirth-revision >= if(
+        succ elab-decl-block!,
+        succ skip-decl-block!
+    )
+}
+
+||| Elaborate min-mirth-revision block. This will skip a
+||| declaration block if mirth-revision is too low.
+|||
+|||     min-mirth-revision Int { Decl* }
+def elab-min-mirth-revision! [ Token +World +Mirth -- +World +Mirth Token ] {
+    dup args-0
+    succ dup int? else?("Expected a revision number." emit-fatal-error!)
+    mirth-revision <= if(
+        succ elab-decl-block!,
+        succ skip-decl-block!
     )
 }
 

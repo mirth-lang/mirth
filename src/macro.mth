@@ -52,22 +52,27 @@ def import-statement-error! [ +Mirth Token -- +Mirth Token ] {
     "'import' statement outside of module header." emit-fatal-error!
 }
 
-def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
-    "module" [ module-statement-error! ] MacroAction.Decl Macro.Prim Def.Macro register
-    "import" [ import-statement-error! ] MacroAction.Decl Macro.Prim Def.Macro register
+def prim-decl-macro! { MacroAction.Decl Macro.Prim Def.Macro register }
+def prim-word-macro! { MacroAction.Arrow Macro.Prim Def.Macro register }
 
-    "alias"         [ elab-alias!         ] MacroAction.Decl Macro.Prim Def.Macro register
-    "inline"        [ elab-inline!        ] MacroAction.Decl Macro.Prim Def.Macro register
-    "def"           [ elab-def!           ] MacroAction.Decl Macro.Prim Def.Macro register
-    "def-missing"   [ elab-def-missing!   ] MacroAction.Decl Macro.Prim Def.Macro register
-    "def-type"      [ elab-def-type!      ] MacroAction.Decl Macro.Prim Def.Macro register
-    "external"      [ elab-external!      ] MacroAction.Decl Macro.Prim Def.Macro register
-    "buffer"        [ elab-buffer!        ] MacroAction.Decl Macro.Prim Def.Macro register
-    "table"         [ elab-table!         ] MacroAction.Decl Macro.Prim Def.Macro register
-    "field"         [ elab-field!         ] MacroAction.Decl Macro.Prim Def.Macro register
-    "data"          [ elab-data!          ] MacroAction.Decl Macro.Prim Def.Macro register
-    "struct"        [ elab-struct!        ] MacroAction.Decl Macro.Prim Def.Macro register
-    "embed-str"     [ elab-embed-str!     ] MacroAction.Decl Macro.Prim Def.Macro register
+
+def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
+    "module" [ module-statement-error! ] prim-decl-macro!
+    "import" [ import-statement-error! ] prim-decl-macro!
+    "alias"         [ elab-alias!         ] prim-decl-macro!
+    "inline"        [ elab-inline!        ] prim-decl-macro!
+    "def"           [ elab-def!           ] prim-decl-macro!
+    "def-missing"   [ elab-def-missing!   ] prim-decl-macro!
+    "def-type"      [ elab-def-type!      ] prim-decl-macro!
+    "external"      [ elab-external!      ] prim-decl-macro!
+    "buffer"        [ elab-buffer!        ] prim-decl-macro!
+    "table"         [ elab-table!         ] prim-decl-macro!
+    "field"         [ elab-field!         ] prim-decl-macro!
+    "data"          [ elab-data!          ] prim-decl-macro!
+    "struct"        [ elab-struct!        ] prim-decl-macro!
+    "embed-str"     [ elab-embed-str!     ] prim-decl-macro!
+    "max-mirth-revision" [ elab-max-mirth-revision! ] prim-decl-macro!
+    "min-mirth-revision" [ elab-min-mirth-revision! ] prim-decl-macro!
 
     "match" [ elab-atom-match!    ] MacroAction.Arrow Macro.Prim Def.Macro register
     "\\"    [ elab-atom-lambda!   ] MacroAction.Arrow Macro.Prim Def.Macro register

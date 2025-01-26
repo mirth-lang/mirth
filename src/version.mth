@@ -1,0 +1,3 @@
+module mirth.version
+
+def mirth-revision { 20250126001 }
