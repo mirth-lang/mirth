@@ -1050,7 +1050,17 @@ void  u8_trace_(VAL v, int fd) { char c[32], *p; size_t n; u64_repr(VU8(v),  c, 
 
 void bool_trace_(VAL v, int fd) { if (VBOOL(v)) { write(fd, "True", 4); } else { write(fd, "False", 5); } }
 
-void int_trace_(VAL v, int fd) { (void)v; write(fd, "<Int>", 5); }
+void int_trace_(VAL v, int fd) {
+    ASSERT(IS_INT(v));
+    INT x = VINT(v);
+    if (IS_I63(x) || (GET_BIG(x)->size == 2)) {
+        incref(v);
+        i64_trace_(MKI64(int_to_i64(x)), fd);
+    } else {
+        write(fd, "<Int>", 5); // TODO
+    }
+}
+
 void f32_trace_(VAL v, int fd) { (void)v; write(fd, "<F32>", 5); }
 void f64_trace_(VAL v, int fd) { (void)v; write(fd, "<F64>", 5); }
 void ptr_trace_(VAL v, int fd) { (void)v; write(fd, "<Ptr>", 5); }
@@ -1188,9 +1198,9 @@ static void trace_rstack (void) {
             TRACE(" at ");
             TRACE(fstack[i-1].path);
             TRACE(":");
-            int_trace_(MKI64(fstack[i-1].line), 2);
+            i64_trace_(MKI64(fstack[i-1].line), 2);
             TRACE(":");
-            int_trace_(MKI64(fstack[i-1].col), 2);
+            i64_trace_(MKI64(fstack[i-1].col), 2);
             TRACE("\n");
         }
     #endif

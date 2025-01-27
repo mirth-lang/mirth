@@ -30,12 +30,12 @@ external(
 
 def(main, +World -- +World,
     "foo" print
-    10 CInt +Resource1 >+foo
+    10 >CInt +Resource1 >+foo
     foo   /+Resource2 >Int print("+Resource2: " ; int;)
     +foo> /+Resource1 >Int print("+Resource1: " ; int;)
 
     "bar" print
-    30 CInt +Resource2 >+bar
+    30 >CInt +Resource2 >+bar
     bar
     +bar> /+Resource2 >Int print("+Resource2: " ; int;)
 )
