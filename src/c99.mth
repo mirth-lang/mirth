@@ -1160,8 +1160,8 @@ def Int.in-i63-range? [ Int -- Bool ] { Int.I63Min Int.I63Max in-range }
 def Int.c99-radixes [ Int -- List(U32) ] {
     List(
         while(
-            0x1_0000_0000 divmod >U32-wrap ;
-            dup 0> or(dup -1 <)
+            0x1_0000_0000 divmod >U32-wrap dup ;
+            0x8000_0000u32 div 0= if(dup 0 <>, dup -1 <>)
         )
         drop
     )
@@ -1170,6 +1170,7 @@ def Int.c99-radixes [ Int -- List(U32) ] {
 def c99-int! [ Int +C99Branch -- +C99Branch ] {
     dup in-i63-range? if(
         C99ReprType.Int push-value-expression!("WRAP_I63(" put >Str put "LL)" put),
+
         c99-radixes >rad
         @rad len >Str >size
         +c99:fresh-name! >name
