@@ -713,7 +713,7 @@ static INT u64_to_int(uint64_t x) {
 }
 
 static INT big_normalize (BIG* a) {
-    ASSERT(a); ASSERT(a->refs == 1); ASSERT(a->size >= 2);
+    ASSERT(a); ASSERT(a->refs == 1); ASSERT(a->size >= 1);
     while ((a->size > 2) && (NEXT_RADIX(a->radix[a->size-2]) == a->radix[a->size-1]))
         a->size--;
     if (a->size == 2) {
@@ -723,6 +723,11 @@ static INT big_normalize (BIG* a) {
             free(a);
             return WRAP_I63(i);
         }
+    }
+    if (a->size == 1) {
+        int64_t i = a->radix[0];
+        free(a);
+        return WRAP_I63(i);
     }
     return WRAP_BIG(a);
 }
@@ -939,16 +944,126 @@ static INT int_mul(INT a, INT b) {
     }
 }
 
+static void int_incref(INT a) { if (IS_BIG(a)) big_incref(GET_BIG(a)); }
+static void int_decref(INT a) { if (IS_BIG(a)) big_decref(GET_BIG(a)); }
+static bool int_is_zero_(INT a) { return a.val == WRAP_I63(0).val; }
+static bool int_is_negative_(INT a) {
+    return IS_I63(a) ? (GET_I63(a) < 0) : (SIGN_RADIX(GET_BIG(a)) != 0);
+}
+
 static int64_t i64_div(int64_t, int64_t);
 static int64_t i64_mod(int64_t, int64_t);
+
+static void big_u32_shift_udivmod(BIG* a, uint32_t bhead, size_t bshift, INT* q, INT* r) {
+    ASSERT(bhead >= 1);
+    BIG* accum = big_alloc(a->size - bshift + 2); // quatient in accum
+    accum->size = a->size - bshift;
+    a = big_reserve(a, a->size); // remainder in a
+    uint64_t ar = 0;
+    for (size_t i = a->size - bshift; i --> 0;) {
+        ar = (ar << 32) | (uint64_t)a->radix[i + bshift];
+        a->radix[i+bshift] = 0;
+        uint64_t rq = ar / (uint64_t)bhead;
+        ar = ar % (uint64_t)bhead;
+        accum->radix[i] = rq;
+    }
+    a->radix[bshift] = ar;
+    *r = big_normalize(a);
+    *q = big_normalize(accum);
+}
+
+static void big_pos_udivmod(BIG* a, INT b, INT *q, INT *r) {
+    size_t bshift;
+    uint32_t bhead;
+    bool bperfect = true;
+    if (IS_BIG(b)) {
+        BIG* bb = GET_BIG(b);
+        bshift = bb->size-1;
+        bhead = bb->radix[bb->size-1];
+        for (size_t i = 0; i < bshift; i++) {
+            if (bb->radix[i]) { bperfect=false; break; }
+        }
+    } else {
+        int64_t ib = GET_I63(b);
+        ASSERT(ib > 1);
+        uint64_t ub = (uint64_t)ib;
+        if (ub <= (uint64_t)UINT32_MAX) {
+            bshift = 0;
+            bhead = ub;
+            bperfect = true;
+        } else {
+            bshift = 1;
+            bhead = HI_RADIX(ub);
+            bperfect = LO_RADIX(ub) == 0;
+        }
+    }
+    if (bshift >= a->size) {
+        *q = WRAP_I63(0);
+        *r = WRAP_BIG(a);
+        int_decref(b);
+    } else if (bperfect) {
+        int_decref(b);
+        big_u32_shift_udivmod(a, bhead, bshift, q, r);
+    } else {
+        EXPECT(0, "Long-long division not implemented.");
+    }
+}
+
 static INT int_divmod(INT a, INT b, INT *r) {
-    // TODO
-    int64_t ia = int_to_i64(a);
-    int64_t ib = int_to_i64(b);
-    int64_t iq = i64_div(ia,ib);
-    int64_t ir = i64_mod(ia,ib);
-    *r = i64_to_int(ir);
-    return i64_to_int(iq);
+    EXPECT(!int_is_zero_(b), "Division by zero.");
+    if (int_is_zero_(a)) { int_decref(b); *r = a; return a; }
+    if (GET_I63(b) == 1) { *r = WRAP_I63(0); return a; }
+    if (GET_I63(b) == -1) { *r = WRAP_I63(0); return int_negate(a); }
+    if (IS_I63(a) || (GET_BIG(a)->size == 2)) {
+        if (IS_I63(b) || GET_BIG(b)->size == 2) {
+            int64_t ia = int_to_i64(a);
+            int64_t ib = int_to_i64(b);
+            ASSERT((ib != 0) && (ib != -1));
+            int64_t iq = ia / ib;
+            int64_t ir = ia % ib;
+            if (ir && ((ia < 0) ^ (ib < 0))) {
+                iq -= 1;
+                ir += ib;
+            }
+            *r = i64_to_int(ir);
+            return i64_to_int(iq);
+        } else {
+            BIG* bb = GET_BIG(b);
+            bool an = int_is_negative_(a);
+            bool bn = SIGN_RADIX(bb) != 0;
+            if (an ^ bn) {
+                *r = int_add(a, b);
+                return WRAP_I63(-1);
+            } else {
+                big_decref(bb);
+                *r = a;
+                return WRAP_I63(0);
+            }
+        }
+    } else {
+        bool an = int_is_negative_(a);
+        bool bn = int_is_negative_(b);
+        INT ma = an ? int_negate(a) : a;
+        INT mb = bn ? int_negate(b) : b;
+        ASSERT(IS_BIG(ma));
+        INT mq, mr;
+        int_incref(mb);
+        big_pos_udivmod(GET_BIG(ma),mb,&mq,&mr);
+        if (an ^ bn) {
+            if (int_is_zero_(mr)) {
+                int_decref(mb);
+                mq = int_negate(mq);
+            } else {
+                mr = int_sub(mb, mr);
+                mq = int_negate(int_add(mq, WRAP_I63(1)));
+            }
+        } else {
+            int_decref(mb);
+        }
+        if (bn) mr = int_negate(mr);
+        *r = mr;
+        return mq;
+    }
 }
 
 static double int_to_f64(INT a) {
