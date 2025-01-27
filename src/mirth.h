@@ -274,8 +274,9 @@ typedef struct STR {
     char data[];
 } STR;
 
+#define ANY
 #define BIG_S(z) { REFS refs; USIZE cap; USIZE size; uint32_t radix[z]; }
-typedef struct BIG BIG_S() BIG;
+typedef struct BIG BIG_S(ANY) BIG;
 
 #define STACK_MAX 0x80000
 static USIZE stack_counter = STACK_MAX;
@@ -853,7 +854,7 @@ static double int_to_f64(INT a) {
         ASSERT(b && b->size);
         bool negative = SIGN_BIT(b->radix[b->size-1]);
         double r = 0.0;
-        for (ssize_t i = b->size-1; i >= 0; i--) {
+        for (size_t i = b->size; i --> 0;) {
             uint32_t br = b->radix[i];
             if (negative) br = ~br;
             r *= (double)0x100000000;
@@ -882,7 +883,7 @@ static int big_cmp_(BIG* a, BIG* b) {
         int i = (a->size < b->size) ? -1 : +1;
         return an ? -i : i;
     }
-    for (ssize_t i = (ssize_t)a->size-1; i >= 0; i--) {
+    for (size_t i = a->size; i --> 0;) {
         int64_t ar = a->radix[i];
         int64_t br = b->radix[i];
         if (ar != br) {
