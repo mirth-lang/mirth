@@ -20,9 +20,17 @@ alias while(f,g) prim-while
 alias Int.+ prim-int-add
 alias Int.- prim-int-sub
 alias Int.* prim-int-mul
-alias Int.div prim-int-div
-alias Int.mod prim-int-mod
-def Int.divmod [ Int Int -- Int Int ] { dup2 dip2(div) mod }
+
+max-mirth-revision 2025_01_26_004 {
+    alias Int.div prim-int-div
+    alias Int.mod prim-int-mod
+    def Int.divmod [ Int Int -- Int Int ] { dup2 dip2(div) mod }
+}
+min-mirth-revision 2025_01_27_001 {
+    alias Int.divmod prim-int-divmod
+    inline def Int.div [ Int Int -- Int ] { divmod drop }
+    inline def Int.mod [ Int Int -- Int ] { divmod nip }
+}
 
 alias F32.+ prim-f32-add
 alias F32.- prim-f32-sub
@@ -82,6 +90,27 @@ alias False Bool.False
 alias Yes True
 alias No  False
 
+inline {
+    max-mirth-revision 2025_01_26_004 {
+        def-type(EnumValue,Int)
+        def Int.>EnumValue-unsafe [ Int -- EnumValue ] { }
+        def I64.>EnumValue [ I64 -- EnumValue ] { >Int }
+
+        def-type(TableIndex,Int)
+        def Int.>TableIndex-clamp [ Int -- TableIndex ] { }
+        def U64.>TableIndex [ U64 -- TableIndex ] { >Int }
+    }
+    min-mirth-revision 2025_01_27_001 {
+        def-type(EnumValue,I64)
+        def Int.>EnumValue-unsafe [ Int -- EnumValue ] { >I64-unsafe }
+        def I64.>EnumValue [ I64 -- EnumValue ] { }
+
+        def-type(TableIndex,U64)
+        def Int.>TableIndex-clamp [ Int -- TableIndex ] { >U64-clamp }
+        def U64.>TableIndex [ U64 -- TableIndex ] { }
+    }
+}
+
 data OS {
     0 Unknown
     1 Windows
@@ -89,16 +118,17 @@ data OS {
     3 Mac
     --
     inline {
-        def Min [ OS ] { 0 OS.from-enum-value-unsafe }
-        def Max [ OS ] { 3 OS.from-enum-value-unsafe }
+        def Min [ OS ] { 0 >EnumValue-unsafe OS.from-enum-value-unsafe }
+        def Max [ OS ] { 3 >EnumValue-unsafe OS.from-enum-value-unsafe }
         def +World.running-os [ +World -- +World OS ] { prim-sys-os >OS }
-        def >Int [ OS -- Int ] { enum-value }
+        def >Int [ OS -- Int ] { enum-value >Int }
         def == [ OS OS -- Bool ] { on2:>Int == }
         def <> [ OS OS -- Bool ] { on2:>Int <> }
     }
+    def I64.>OS [ I64 -- OS ] { >Int >OS }
     def Int.>OS [ Int -- OS ] {
         dup OS.Min OS.Max on2:>Int in-range if(
-            OS.from-enum-value-unsafe,
+            >EnumValue-unsafe OS.from-enum-value-unsafe,
             drop OS.Unknown
         )
     }
@@ -123,23 +153,25 @@ data Arch {
     3 ARM64
     --
     inline {
-        def Min [ Arch ] { 0 Arch.from-enum-value-unsafe }
-        def Max [ Arch ] { 3 Arch.from-enum-value-unsafe }
+        def Min [ Arch ] { 0i64 >EnumValue Arch.from-enum-value-unsafe }
+        def Max [ Arch ] { 3i64 >EnumValue Arch.from-enum-value-unsafe }
         def +World.running-arch [ +World -- +World Arch ] { prim-sys-arch >Arch }
-        def >Int [ Arch -- Int ] { enum-value }
+        def >Int [ Arch -- Int ] { enum-value >Int }
         def == [ Arch Arch -- Bool ] { on2:>Int == }
         def <> [ Arch Arch -- Bool ] { on2:>Int <> }
     }
+    def I64.>Arch [ I64 -- Arch ] { >Int >Arch }
     def Int.>Arch [ Int -- Arch ] {
         dup Arch.Min Arch.Max on2:>Int in-range if(
-            Arch.from-enum-value-unsafe,
+            >EnumValue-unsafe Arch.from-enum-value-unsafe,
             drop Arch.Unknown
         )
     }
 }
 
-alias(argc, prim-sys-argc)
-alias(argv, prim-sys-argv)
+# TODO: require +World for these
+inline def argc [ -- Int ] { prim-sys-argc >Int }
+inline def argv [ -- Ptr ] { prim-sys-argv }
 
 inline {
     def rotr [ a b c -- c a b ] { swap dip(swap) }
@@ -229,12 +261,12 @@ data Comparison {
     +1 GT
     --
     inline {
-        def eq? [ Comparison -- Bool ] { enum-value 0 == }
-        def lt? [ Comparison -- Bool ] { enum-value 0 <  }
-        def le? [ Comparison -- Bool ] { enum-value 0 <= }
-        def ge? [ Comparison -- Bool ] { enum-value 0 >  }
-        def gt? [ Comparison -- Bool ] { enum-value 0 >= }
-        def ne? [ Comparison -- Bool ] { enum-value 0 <> }
+        def eq? [ Comparison -- Bool ] { enum-value 0=  }
+        def lt? [ Comparison -- Bool ] { enum-value 0<  }
+        def le? [ Comparison -- Bool ] { enum-value 0>= }
+        def gt? [ Comparison -- Bool ] { enum-value 0>  }
+        def ge? [ Comparison -- Bool ] { enum-value 0>= }
+        def ne? [ Comparison -- Bool ] { enum-value 0<> }
         def == [ Comparison Comparison -- Bool ] { on2:enum-value == }
         def <  [ Comparison Comparison -- Bool ] { on2:enum-value <  }
         def <= [ Comparison Comparison -- Bool ] { on2:enum-value <= }
@@ -294,6 +326,7 @@ inline {
 inline {
     alias Int.>Str prim-int-to-str
     alias Int.>F64 prim-int-to-f64
+    def Int.>Int [ Int -- Int ] { }
     def Int.repr; [ Int +Str -- +Str ] { >Str ; }
     def Int.int;  [ Int +Str -- +Str ] { >Str ; }
 
@@ -348,8 +381,11 @@ inline {
     def Int.1+  [ Int -- Int  ] { 1 + }
     def Int.2*  [ Int -- Int  ] { 2 * }
     def Int.0=  [ Int -- Bool ] { 0 == }
-    def Int.0<  [ Int -- Bool ] { 0 < }
-    def Int.0>  [ Int -- Bool ] { 0 > }
+    def Int.0<  [ Int -- Bool ] { 0 <  }
+    def Int.0<= [ Int -- Bool ] { 0 <= }
+    def Int.0>  [ Int -- Bool ] { 0 >  }
+    def Int.0>= [ Int -- Bool ] { 0 >= }
+    def Int.0<> [ Int -- Bool ] { 0 <> }
 
     def Int.succ [ Int -- Int ] { 1+ }
     def Int.pred [ Int -- Int ] { 1- }
@@ -374,9 +410,16 @@ inline {
         +Unsafe f /+Unsafe
     }
 
-    ||| Add byte offset to Ptr.
-    def Ptr.ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int) prim-ptr-add }
-    def Ptr.uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int) prim-ptr-add }
+    max-mirth-revision 2025_01_26_004 {
+        ||| Add byte offset to Ptr.
+        def Ptr.ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int) prim-ptr-add }
+        def Ptr.uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int) prim-ptr-add }
+    }
+    min-mirth-revision 2025_01_27_001 {
+        ||| Add byte offset to Ptr.
+        def Ptr.ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
+        def Ptr.uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
+    }
 
     def Ptr.@Ptr [ Ptr +Unsafe -- Ptr +Unsafe ] { prim-ptr-get }
     def Ptr.!Ptr [ Ptr Ptr +Unsafe -- +Unsafe ] { prim-ptr-set }
@@ -403,11 +446,20 @@ inline {
     def Ptr.!F32 [ F32 Ptr +Unsafe -- +Unsafe ] { prim-f32-set }
     def Ptr.!F64 [ F64 Ptr +Unsafe -- +Unsafe ] { prim-f64-set }
 
-    def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-alloc   }
-    def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-realloc }
+    max-mirth-revision 2025_01_26_004 {
+        def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-alloc   }
+        def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-realloc }
+        def Ptr.copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int) prim-ptr-copy }
+        def Ptr.fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int dip(>Int)) prim-ptr-fill }
+    }
+    min-mirth-revision 2025_01_27_001 {
+        def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-alloc   }
+        def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-realloc }
+        def Ptr.copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-copy }
+        def Ptr.fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-fill }
+    }
+
     def Ptr.free    [ Ptr +Unsafe -- +Unsafe ] { prim-ptr-free }
-    def Ptr.copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int) prim-ptr-copy }
-    def Ptr.fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int dip(>Int)) prim-ptr-fill }
     def Ptr.erase   [ USize Ptr +Unsafe -- +Unsafe ] { dip2(0u8) fill }
 }
 
@@ -427,9 +479,12 @@ inline (
     def I64.>  [ I64 I64 -- Bool ] { prim-i64-gt }
     def I64.>= [ I64 I64 -- Bool ] { prim-i64-ge }
     def I64.<> [ I64 I64 -- Bool ] { prim-i64-ne }
-    def I64.0= [ I64 -- Bool ] { 0i64 == }
-    def I64.0< [ I64 -- Bool ] { 0i64 < }
-    def I64.0> [ I64 -- Bool ] { 0i64 > }
+    def I64.0=  [ I64 -- Bool ] { 0i64 == }
+    def I64.0<  [ I64 -- Bool ] { 0i64 <  }
+    def I64.0<= [ I64 -- Bool ] { 0i64 <= }
+    def I64.0>  [ I64 -- Bool ] { 0i64 >  }
+    def I64.0>= [ I64 -- Bool ] { 0i64 >= }
+    def I64.0<> [ I64 -- Bool ] { 0i64 <> }
 
     def I64.add-unsafe [ I64 I64 -- I64 ] { prim-i64-add }
     def I64.sub-unsafe [ I64 I64 -- I64 ] { prim-i64-sub }
@@ -455,6 +510,9 @@ inline (
     def I64.pred-clamp [ I64 -- I64 ] { dup I64.Min > then(1i64 sub-unsafe) }
     def I64.succ-unsafe [ I64 -- I64 ] { 1i64 add-unsafe }
     def I64.pred-unsafe [ I64 -- I64 ] { 1i64 sub-unsafe }
+
+    def I64.repr; [ I64 +Str -- +Str ] { int; "i64"; }
+    def I64.int;  [ I64 +Str -- +Str ] { >Int int; }
 )
 
 inline (
@@ -506,6 +564,9 @@ inline (
     def I32.Max [ I32 ] {  0x7FFFFFFFi32 }
     def I32.succ [ I32 -- I32 ] { 1i32 add-clamp }
     def I32.pred [ I32 -- I32 ] { 1i32 sub-clamp }
+
+    def I32.repr; [ I32 +Str -- +Str ] { int; "i32"; }
+    def I32.int;  [ I32 +Str -- +Str ] { >Int int; }
 )
 
 inline {
@@ -555,6 +616,9 @@ inline {
     def I16.Max [ I16 ] {  0x7FFFi16 }
     def I16.succ [ I16 -- I16 ] { 1i16 add-clamp }
     def I16.pred [ I16 -- I16 ] { 1i16 sub-clamp }
+
+    def I16.repr; [ I16 +Str -- +Str ] { int; "i16"; }
+    def I16.int;  [ I16 +Str -- +Str ] { >Int int; }
 }
 
 inline {
@@ -604,6 +668,9 @@ inline {
     def I8.Max [ I8 ] {  0x7Fi8 }
     def I8.succ [ I8 -- I8 ] { 1i8 add-clamp }
     def I8.pred [ I8 -- I8 ] { 1i8 sub-clamp }
+
+    def I8.repr; [ I8 +Str -- +Str ] { int; "i8"; }
+    def I8.int;  [ I8 +Str -- +Str ] { >Int int; }
 }
 
 inline (
@@ -860,6 +927,11 @@ data Nat {
         def Int.>Nat-clamp [ Int -- Nat ] { >Nat-else(drop 0u) }
         def Int.>Nat-unsafe [ Int -- Nat ] { Nat.Unsafe }
 
+        def I64.>Nat-if(f,g) [ ( *a Nat -- *b, *a I64 -- *b ) *a I64 -- *b ] { dup 0< if(g, >Nat-unsafe f) }
+        def I64.>Nat-else(g) [ ( *a I64 -- *a Nat ) *a I64 -- *a Nat ] { >Nat-if(id,g) }
+        def I64.>Nat-clamp [ I64 -- Nat ] { >Nat-else(drop 0u) }
+        def I64.>Nat-unsafe [ I64 -- Nat ] { >Int Nat.Unsafe }
+
         def >Int [ Nat -- Int ] { /Unsafe }
         def >UIndex [ Nat -- UIndex ] { UIndex }
         def >ISize [ Nat -- ISize ] { >Int >ISize }
@@ -889,12 +961,6 @@ data Nat {
         def div [ Nat Nat -- Nat ] { both(>Int) div Nat.Unsafe }
         def mod [ Nat Nat -- Nat ] { both(>Int) mod Nat.Unsafe }
         def divmod [ Nat Nat -- Nat Nat ] { both(>Int) divmod both(Nat.Unsafe) }
-
-        def &  [ Nat Nat -- Nat ] { dip(>Int) >Int prim-int-and Nat.Unsafe }
-        def |  [ Nat Nat -- Nat ] { dip(>Int) >Int prim-int-or  Nat.Unsafe }
-        def ^  [ Nat Nat -- Nat ] { dip(>Int) >Int prim-int-xor Nat.Unsafe }
-        def << [ Nat Nat -- Nat ] { dip(>Int) >Int prim-int-shl Nat.Unsafe }
-        def >> [ Nat Nat -- Nat ] { dip(>Int) >Int prim-int-shr Nat.Unsafe }
 
         def 1+ [ Nat -- Nat ] { >Int 1+ Nat.Unsafe }
         def 1- [ Nat -- Int ] { >Int 1- }
@@ -1051,6 +1117,7 @@ struct USize {
     }
 }
 
+
 inline {
     def |U8|  [ USize ] { 1u >USize }
     def |U16| [ USize ] { 2u >USize }
@@ -1062,7 +1129,7 @@ inline {
     def |I64| [ USize ] { 8u >USize }
     def |F32| [ USize ] { 4u >USize }
     def |F64| [ USize ] { 8u >USize }
-    def |Ptr| [ USize ] { prim-ptr-size >Nat-clamp >USize }
+    def |Ptr| [ USize ] { prim-ptr-size >Int >Nat-clamp >USize }
 }
 
 ||| Offset in bytes. Can be negative.

@@ -132,7 +132,7 @@ inline(
         -- +SDL +SDL_Window?
     ] {
         title> with-cstr( >title
-            @x:CInt @y:CInt @w:CInt @h:CInt
+            @x:>CInt @y:>CInt @w:>CInt @h:>CInt
             SDL_CreateWindow
         )
     }
@@ -145,7 +145,7 @@ inline(
         +SDL +window:+SDL_Window index:Int flags:SDL_RendererFlags --
         +SDL +window:+SDL_Window +SDL_Renderer?
     ] {
-        @index:CInt SDL_CreateRenderer
+        @index:>CInt SDL_CreateRenderer
     }
     def +SDL.destroy-renderer! [ +SDL +renderer:+SDL_Renderer -- +SDL ] { SDL_DestroyRenderer }
 )
@@ -372,8 +372,8 @@ data(SDL_EventType,
 )
 
 inline(
-    def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { enum-value >U32-wrap }
-    def U32.>SDL_EventType-unsafe [ U32 -- SDL_EventType ] { >Int SDL_EventType.from-enum-value-unsafe }
+    def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { enum-value >Int >U32-wrap }
+    def U32.>SDL_EventType-unsafe [ U32 -- SDL_EventType ] { >Int >EnumValue-unsafe SDL_EventType.from-enum-value-unsafe }
     def SDL_EventType.== [ SDL_EventType SDL_EventType -- Bool ] { both(>U32) == }
     def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) >SDL_EventType-unsafe  }
 )
@@ -432,7 +432,7 @@ def(SDL_ControllerButtonEvent.button!, SDL_GameControllerButton SDL_ControllerBu
     dip(>I8) button& unsafe(!I8))
 
 def(U16.>SDL_Scancode, U16 -- SDL_Scancode,
-   >Int SDL_Scancode.from-enum-value-unsafe)
+   >Int >EnumValue-unsafe SDL_Scancode.from-enum-value-unsafe)
 
 data(SDL_Scancode,
     0 SDL_SCANCODE_UNKNOWN,
@@ -725,7 +725,7 @@ external(
 )
 
 def(+SDL.num-joysticks, +SDL -- +SDL Int, unsafe(SDL_NumJoysticks) >Int)
-def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, CInt unsafe(SDL_IsGameController))
+def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, >CInt unsafe(SDL_IsGameController))
 
 struct +SDL_GameController { unsafe-ptr:Ptr }
 data(+SDL_GameController?, OK! -> +SDL_GameController, ERROR! -> Str)
@@ -738,7 +738,7 @@ def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameCon
     ERROR! -> drop)
 
 def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
-    CInt unsafe(SDL_GameControllerOpen)
+    >CInt unsafe(SDL_GameControllerOpen)
     if?(
         >unsafe-ptr +SDL_GameController +SDL_GameController?.OK!,
         get-error! +SDL_GameController?.ERROR!,
@@ -771,6 +771,6 @@ data(SDL_GameControllerButton,
     SDL_CONTROLLER_BUTTON_TOUCHPAD,)
 
 def(I8.>SDL_GameControllerButton, I8 -- SDL_GameControllerButton,
-   >Int SDL_GameControllerButton.from-enum-value-unsafe)
+   >Int >EnumValue-unsafe SDL_GameControllerButton.from-enum-value-unsafe)
 def(SDL_GameControllerButton.>I8, SDL_GameControllerButton -- I8, enum-value >I8-unsafe)
 def(SDL_GameControllerButton.==, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(enum-value) ==)

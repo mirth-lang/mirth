@@ -43,8 +43,8 @@ data Byte {
     --
 
     inline (
-        def >Int [ Byte -- Int ] { Byte.enum-value }
-        def >Nat [ Byte -- Nat ] { Byte.enum-value >Nat-unsafe }
+        def >Int [ Byte -- Int ] { enum-value >Int }
+        def >Nat [ Byte -- Nat ] { >Int >Nat-unsafe }
         def >U8  [ Byte -- U8  ] { >Int >U8-wrap  }
         def >U16 [ Byte -- U16 ] { >Int >U16-wrap }
         def >U32 [ Byte -- U32 ] { >Int >U32-wrap }
@@ -57,7 +57,7 @@ data Byte {
         def Int.>Byte-clamp [ Int -- Byte ] { >U8-clamp >Byte }
 
         ||| Convert Int to Byte. Valid only if Int is between 0 and 255 inclusive.
-        def Int.>Byte-unsafe [ Int -- Byte ] { Byte.from-enum-value-unsafe }
+        def Int.>Byte-unsafe [ Int -- Byte ] { >EnumValue-unsafe Byte.from-enum-value-unsafe }
         def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
 
         def compare  [ Byte Byte -- Comparison ] { on2:>U8 .compare }

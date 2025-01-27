@@ -35,13 +35,7 @@ data Prim {
     IntAdd
     IntSub
     IntMul
-    IntDiv
-    IntMod
-    IntAnd
-    IntOr
-    IntXor
-    IntShl
-    IntShr
+    IntDivMod
     IntToStr
     IntToI64
     IntToU64
@@ -222,12 +216,12 @@ data Prim {
     def ForAll(f) [ (*a Prim -- *a) *a -- *a ] {
         Prim.Min >Int while (
             dup Prim.Max >Int <=,
-            sip(Prim.from-enum-value-unsafe f)
+            sip(>EnumValue-unsafe Prim.from-enum-value-unsafe f)
             1+
         ) drop
     }
 
-    def >Int [ Prim -- Int ] { enum-value }
+    def >Int [ Prim -- Int ] { enum-value >Int }
     def == [ Prim Prim -- Bool ] { on2:>Int == }
 
     def name  { str-arity drop >Name }
@@ -265,13 +259,7 @@ data Prim {
         { IntAdd -> "prim-int-add" 0 }
         { IntSub -> "prim-int-sub" 0 }
         { IntMul -> "prim-int-mul" 0 }
-        { IntDiv -> "prim-int-div" 0 }
-        { IntMod -> "prim-int-mod" 0 }
-        { IntAnd -> "prim-int-and" 0 }
-        { IntOr -> "prim-int-or" 0 }
-        { IntXor -> "prim-int-xor" 0 }
-        { IntShl -> "prim-int-shl" 0 }
-        { IntShr -> "prim-int-shr" 0 }
+        { IntDivMod -> "prim-int-divmod" 0 }
         { IntToStr -> "prim-int-to-str" 0 }
         { IntToU64 -> "prim-int-to-u64" 0 }
         { IntToI64 -> "prim-int-to-i64" 0 }
@@ -556,13 +544,7 @@ data Prim {
         { IntAdd -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
         { IntSub -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
         { IntMul -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
-        { IntDiv -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
-        { IntMod -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
-        { IntAnd -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
-        { IntOr  -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
-        { IntXor -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
-        { IntShl -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
-        { IntShr -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
+        { IntDivMod -> Ctx.L0 Type.Int Type.Int T2 Type.Int Type.Int T2 T-> }
         { IntToStr -> Ctx.L0 Type.Int T1 Type.Str T1 T-> }
         { IntToU64 -> Ctx.L0 Type.Int T1 Type.U64 T1 T-> }
         { IntToI64 -> Ctx.L0 Type.Int T1 Type.I64 T1 T-> }
@@ -799,21 +781,21 @@ data Prim {
 
         { PtrNil -> Ctx.L0 T0 Type.Ptr T1 T-> }
         { PtrEq  -> Ctx.L0 Type.Ptr Type.Ptr T2 Type.Bool T1 T-> }
-        { PtrAdd -> Ctx.L0 Type.Int Type.Ptr T2 Type.Ptr T1 T-> }
-        { PtrSize -> Ctx.L0 T0 Type.Int T1 T-> }
-        { PtrAlloc -> Ctx.L0 Type.Int T1 Type.Ptr T1 T-> }
-        { PtrRealloc -> Ctx.L0 Type.Ptr Type.Int T2 Type.Ptr T1 T-> }
+        { PtrAdd -> Ctx.L0 Type.I64 Type.Ptr T2 Type.Ptr T1 T-> }
+        { PtrSize -> Ctx.L0 T0 Type.U64 T1 T-> }
+        { PtrAlloc -> Ctx.L0 Type.U64 T1 Type.Ptr T1 T-> }
+        { PtrRealloc -> Ctx.L0 Type.Ptr Type.U64 T2 Type.Ptr T1 T-> }
         { PtrFree -> Ctx.L0 Type.Ptr T1 T0 T-> }
-        { PtrCopy -> Ctx.L0 Type.Ptr Type.Int Type.Ptr T3 T0 T-> }
-        { PtrFill -> Ctx.L0 Type.Int Type.Int Type.Ptr T3 T0 T-> }
+        { PtrCopy -> Ctx.L0 Type.Ptr Type.U64 Type.Ptr T3 T0 T-> }
+        { PtrFill -> Ctx.L0 Type.U8 Type.U64 Type.Ptr T3 T0 T-> }
         { PtrGet -> Ctx.L0 Type.Ptr T1 Type.Ptr T1 T-> }
         { PtrSet -> Ctx.L0 Type.Ptr Type.Ptr T2 T0 T-> }
 
-        { StrCopy -> Ctx.L0 Type.Ptr Type.Int T2 Type.Str T1 T-> }
-        { StrNumBytes -> Ctx.L0 Type.Str T1 Type.Int T1 T-> }
+        { StrCopy -> Ctx.L0 Type.Ptr Type.U64 T2 Type.Str T1 T-> }
+        { StrNumBytes -> Ctx.L0 Type.Str T1 Type.U64 T1 T-> }
         { StrBase -> Ctx.L0 Type.Str T1 Type.Ptr T1 T-> }
         { StrCat -> Ctx.L0 Type.Str Type.Str T2 Type.Str T1 T-> }
-        { StrCmp -> Ctx.L0 Type.Str Type.Str T2 Type.Int T1 T-> }
+        { StrCmp -> Ctx.L0 Type.Str Type.Str T2 Type.I64 T1 T-> }
         { StrEq -> Ctx.L0 Type.Str Type.Str T2 Type.Bool T1 T-> }
         { StrLt -> Ctx.L0 Type.Str Type.Str T2 Type.Bool T1 T-> }
         { StrLe -> Ctx.L0 Type.Str Type.Str T2 Type.Bool T1 T-> }
@@ -823,9 +805,9 @@ data Prim {
         { StrToF32 -> Ctx.L0 Type.Str T1 Type.F32 Type.Str T2 T-> }
         { StrToF64 -> Ctx.L0 Type.Str T1 Type.F64 Type.Str T2 T-> }
 
-        { SysOs   -> Ctx.L0 T0 Type.Int T1 T-> }
-        { SysArch -> Ctx.L0 T0 Type.Int T1 T-> }
-        { SysArgc -> Ctx.L0 T0 Type.Int T1 T-> }
+        { SysOs   -> Ctx.L0 T0 Type.I64 T1 T-> }
+        { SysArch -> Ctx.L0 T0 Type.I64 T1 T-> }
+        { SysArgc -> Ctx.L0 T0 Type.U64 T1 T-> }
         { SysArgv -> Ctx.L0 T0 Type.Ptr T1 T-> }
     }
 }

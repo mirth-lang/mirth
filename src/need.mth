@@ -15,17 +15,18 @@ import mirth.match
 # NEED #
 ########
 
-data(Need,
-    Word  -> Word,
-    Block -> Block,
-    TagWord  -> Tag,
-    TagPattern  -> Tag)
-
-def Need.>Nat [ Need -- Nat ] {
-    { Word  -> index 4 *     >Nat-clamp }
-    { Block -> index 4 * 1 + >Nat-clamp }
-    { TagWord  -> index 4 * 2 + >Nat-clamp }
-    { TagPattern  -> index 4 * 3 + >Nat-clamp }
+data Need {
+    Word [ Word ]
+    Block [ Block ]
+    TagWord [ Tag ]
+    TagPattern [ Tag ]
+    --
+    def >Nat [ Need -- Nat ] {
+        { Word       -> index >Int 4 *     >Nat-clamp }
+        { Block      -> index >Int 4 * 1 + >Nat-clamp }
+        { TagWord    -> index >Int 4 * 2 + >Nat-clamp }
+        { TagPattern -> index >Int 4 * 3 + >Nat-clamp }
+    }
 }
 
 #########

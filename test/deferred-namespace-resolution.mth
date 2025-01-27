@@ -30,7 +30,7 @@ def(main, --,
     30 MyTable.MyData.MyTag drop
     MyTable.Alias.alloc! drop
     MyTable.MySelf.this drop
-    42 CInt MyTable.my-exit)
+    42 >CInt MyTable.my-exit)
 
 # Now we finally define MyTable.
 table(MyTable)

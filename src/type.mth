@@ -127,7 +127,7 @@ def Value.tycon? [ Value -- Maybe(Tycon) ] {
     { Block -> drop None }
 }
 
-def PrimType.>Int [ PrimType -- Int ] { PrimType.enum-value }
+def PrimType.>Int [ PrimType -- Int ] { enum-value >Int }
 def PrimType.== [ PrimType PrimType -- Bool ] { both(>Int) == }
 
 def +Mirth.def-prim-type! [ +Mirth PrimType -- +Mirth ] {
@@ -1297,6 +1297,7 @@ def StackTypePart.label [ StackTypePart -- Maybe(Label) ] {
 ###########
 
 data(CType,
+    UIntLike -> Str,
     IntLike -> Str,
     F32Like -> Str,
     F64Like -> Str,
@@ -1305,6 +1306,7 @@ data(CType,
     Phantom)
 
 def(CType.cname, CType -- Str,
+    UIntLike -> id,
     IntLike -> id,
     F32Like -> id,
     F64Like -> id,
@@ -1347,11 +1349,11 @@ def(Type.ctype1?, +Mirth CType Type -- +Mirth Maybe(CType),
 def PrimType.ctype? [ +Mirth PrimType -- +Mirth Maybe(CType) ] {
     { Ptr -> "void*" CType.PtrLike Some }
     { World -> CType.Phantom Some }
-    { Bool -> "_Bool" CType.IntLike Some }
-    { U8  -> "uint8_t" CType.IntLike Some }
-    { U16 -> "uint16_t" CType.IntLike Some }
-    { U32 -> "uint32_t" CType.IntLike Some }
-    { U64 -> "uint64_t" CType.IntLike Some }
+    { Bool -> "_Bool" CType.UIntLike Some }
+    { U8  -> "uint8_t" CType.UIntLike Some }
+    { U16 -> "uint16_t" CType.UIntLike Some }
+    { U32 -> "uint32_t" CType.UIntLike Some }
+    { U64 -> "uint64_t" CType.UIntLike Some }
     { I8  -> "int8_t" CType.IntLike Some }
     { I16 -> "int16_t" CType.IntLike Some }
     { I32 -> "int32_t" CType.IntLike Some }
@@ -1368,6 +1370,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
 
     dup builtin cconst == if(
         drop match(
+            UIntLike -> "const " swap cat CType.UIntLike Some,
             IntLike -> "const " swap cat CType.IntLike Some,
             F32Like -> "const " swap cat CType.F32Like Some,
             F64Like -> "const " swap cat CType.F64Like Some,
@@ -1378,6 +1381,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
 
     dup builtin crestrict == if(
         drop match(
+            UIntLike -> "restrict " swap cat CType.UIntLike Some,
             IntLike -> "restrict " swap cat CType.IntLike Some,
             F32Like -> "restrict " swap cat CType.F32Like Some,
             F64Like -> "restrict " swap cat CType.F64Like Some,
@@ -1388,6 +1392,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
 
     dup builtin cvolatile == if(
         drop match(
+            UIntLike -> "volatile " swap cat CType.UIntLike Some,
             IntLike -> "volatile " swap cat CType.IntLike Some,
             F32Like -> "volatile " swap cat CType.F32Like Some,
             F64Like -> "volatile " swap cat CType.F64Like Some,

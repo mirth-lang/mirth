@@ -170,7 +170,7 @@ def +SnakePlatform.quit! [ +World +SnakePlatform -- +World ] {
     quit!
 }
 
-def rgba { CInt >a CInt >b CInt >g CInt >r }
+def rgba [ Int Int Int Int -- r:CInt g:CInt b:CInt a:CInt ] { >CInt >a >CInt >b >CInt >g >CInt >r }
 def snake-background-color { 140 100 150 255 rgba }
 def snake-foreground-color { 255 255 255 255 rgba }
 
