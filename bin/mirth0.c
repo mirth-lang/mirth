@@ -521,31 +521,36 @@ static STR* str_make (const char* data, USIZE size) {
 }
 #define mkstr(x,n) MKSTR(str_make((x), (n)))
 
-static STR* str_cat (STR* s1, STR* s2) {
-    EXPECT(s1 && s2, "invalid strings in prim-str-cat");
-    USIZE m = s1->cap;
-    USIZE n1 = s1->size;
-    USIZE n2 = s2->size;
-    if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
-        ASSERT(n2 <= SIZE_MAX);
-        memcpy(s1->data + n1, s2->data, (size_t)n2);
-        s1->size += n2;
-        ASSERT(s1->size + 4 <= s1->cap);
-        decref(MKSTR(s2));
-        return s1;
+static STR* str_pushn (STR* s, const char* p, USIZE n2) {
+    if (n2 == 0) return s;
+    ASSERT(s && p);
+    ASSERT(n2 <= SIZE_MAX);
+    USIZE m = s->cap;
+    USIZE n1 = s->size;
+    ASSERT(n1 <= SIZE_MAX-n2);
+    ASSERT(4 <= SIZE_MAX-n1-n2);
+    if ((s->refs == 1) && (n1 + n2 + 4 <= m)) {
+        memcpy(s->data + n1, p, (size_t)n2);
+        s->size += n2;
+        ASSERT(s->size + 4 <= s->cap);
+        return s;
     } else {
         USIZE m2 = n1 + n2 + 4;
-        if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;
+        if ((s->refs == 1) && (m <= SIZE_MAX-m) && (m2 < m*2)) m2 = m*2;
         STR* str = str_alloc(m2);
         str->size = n1+n2;
-        ASSERT(n1 <= SIZE_MAX);
-        ASSERT(n2 <= SIZE_MAX);
-        memcpy(str->data, s1->data, (size_t)n1);
-        memcpy(str->data+n1, s2->data, (size_t)n2);
-        decref(MKSTR(s1));
-        decref(MKSTR(s2));
+        memcpy(str->data, s->data, (size_t)n1);
+        memcpy(str->data+n1, p, (size_t)n2);
+        decref(MKSTR(s));
         return str;
     }
+}
+
+static STR* str_cat (STR* s1, STR* s2) {
+    EXPECT(s1 && s2, "invalid strings in prim-str-cat");
+    STR* out = str_pushn(s1, s2->data, s2->size);
+    decref(MKSTR(s2));
+    return out;
 }
 
 static USIZE get_data_tag(VAL v) {
@@ -652,6 +657,7 @@ BIG* big_alloc(size_t cap) {
 
 #define SIGN_BIT(x) ((x) & 0x80000000)
 #define NEXT_RADIX(x) (SIGN_BIT(x) ? (uint32_t)0xFFFFFFFF : (uint32_t)0)
+#define SIGN_RADIX(a) (NEXT_RADIX((a)->radix[(a)->size-1]))
 
 #define LO_RADIX(x) ((uint32_t)(x))
 #define HI_RADIX(x) ((uint32_t)(((uint64_t)(x)) >> 32))
@@ -708,7 +714,7 @@ static INT u64_to_int(uint64_t x) {
 }
 
 static INT big_normalize (BIG* a) {
-    ASSERT(a); ASSERT(a->refs == 1);
+    ASSERT(a); ASSERT(a->refs == 1); ASSERT(a->size >= 2);
     while ((a->size > 2) && (NEXT_RADIX(a->radix[a->size-2]) == a->radix[a->size-1]))
         a->size--;
     if (a->size == 2) {
@@ -797,7 +803,7 @@ static INT big_negate(BIG* a) {
         a->radix[i] = LO_RADIX(r);
         c = HI_RADIX(r);
     }
-    a->radix[a->size++] = an + c;
+    a->radix[a->size++] = ~an + c;
     return big_normalize(a);
 }
 
@@ -830,9 +836,108 @@ static uint64_t int_to_u64(INT a) {
 }
 static int64_t int_to_i64(INT a) { return (int64_t)int_to_u64(a); }
 
+static INT i63_i63_mul (int64_t a, int64_t b) {
+    if ((b == 0) ||
+        ((b > 0) && (INT63_MIN/b <= a) && (a <= INT63_MAX/b)) ||
+        ((b < 0) && (INT63_MAX/b <= a) && (a <= INT63_MIN/b)))
+    {
+        return WRAP_I63(a * b);
+    }
+
+    bool negate = (a < 0) ^ (b < 0);
+    if (a < 0) a = -a;
+    if (b < 0) b = -b;
+
+    uint64_t a0 = LO_RADIX(a);
+    uint64_t a1 = HI_RADIX(a);
+    uint64_t b0 = LO_RADIX(b);
+    uint64_t b1 = HI_RADIX(b);
+
+    uint64_t r0 = a0 * b0;
+    uint64_t r1 = a1 * b0 + a0 * b1 + HI_RADIX(r0);
+    uint64_t r2 = a1 * b1 + HI_RADIX(r1);
+    uint64_t r3 = HI_RADIX(r2);
+
+    BIG* c = big_alloc(5);
+    c->size = 4;
+    c->radix[0] = LO_RADIX(r0);
+    c->radix[1] = LO_RADIX(r1);
+    c->radix[2] = LO_RADIX(r2);
+    c->radix[3] = LO_RADIX(r3);
+    INT x = big_normalize(c);
+    return negate ? int_negate(x) : x;
+}
+
+static void big_u32_mul_shift_accum_(BIG* accum, BIG* a, uint32_t x, size_t shift) {
+    if (x == 0) return;
+    uint32_t mul_carry = 0;
+    uint32_t add_carry = 0;
+    uint32_t an = SIGN_RADIX(a);
+    for (size_t i=0; i + shift < accum->size; i++) {
+        uint32_t ar = (i < a->size) ? a->radix[i] : an;
+        uint64_t mul_result = (uint64_t)ar * (uint64_t)x + (uint64_t)mul_carry;
+        uint64_t add_result = (uint64_t)accum->radix[i+shift] + (uint64_t)LO_RADIX(mul_result) + (uint64_t)add_carry;
+        accum->radix[i+shift] = LO_RADIX(add_result);
+        mul_carry = HI_RADIX(mul_result);
+        add_carry = HI_RADIX(add_result);
+    }
+}
+
+static void big_negate_shift_accum_(BIG* accum, BIG* a, size_t shift) {
+    uint32_t carry = 1;
+    uint32_t an = SIGN_RADIX(a);
+    for (size_t i = 0; i+shift < accum->size; i++) {
+        uint32_t ar = (i < a->size) ? a->radix[i] : an;
+        uint64_t result = (uint64_t)accum->radix[i+shift] + (uint64_t)(~ar) + (uint64_t)carry;
+        accum->radix[i+shift] = LO_RADIX(result);
+        carry = HI_RADIX(result);
+    }
+}
+
+static INT big_i63_mul (BIG* a, int64_t b) {
+    if (b == 0) { big_decref(a); return WRAP_I63(0); }
+    if (b == 1) { return WRAP_BIG(a); }
+    if (b == -1) { return big_negate(a); }
+    BIG* accum = big_alloc(a->size + 3);
+    accum->size = a->size + 2;
+    big_u32_mul_shift_accum_(accum, a, LO_RADIX(b), 0);
+    big_u32_mul_shift_accum_(accum, a, HI_RADIX(b), 1);
+    uint32_t bn = NEXT_RADIX(HI_RADIX(b));
+    if (b < 0) { big_negate_shift_accum_(accum, a, 2); }
+    big_decref(a);
+    return big_normalize(accum);
+}
+
+static INT big_big_mul (BIG* a, BIG* b) {
+
+    if (a->size > b->size) { BIG*t=a; a=b; b=t; }
+    BIG* accum = big_alloc(a->size + b->size + 1);
+    accum->size = a->size + b->size;
+    for (size_t i = 0; i < b->size; i++) {
+        big_u32_mul_shift_accum_(accum, a, b->radix[i], i);
+    }
+    if (SIGN_RADIX(b)) {
+        big_negate_shift_accum_(accum, a, b->size);
+    }
+    big_decref(a);
+    big_decref(b);
+    return big_normalize(accum);
+}
+
 static INT int_mul(INT a, INT b) {
-    // TODO
-    return i64_to_int((int64_t)(int_to_u64(a) * int_to_u64(b)));
+    if (IS_I63(a)) {
+        if (IS_I63(b)) {
+            return i63_i63_mul(GET_I63(a),GET_I63(b));
+        } else {
+            return big_i63_mul(GET_BIG(b),GET_I63(a));
+        }
+    } else {
+        if (IS_I63(b)) {
+            return big_i63_mul(GET_BIG(a),GET_I63(b));
+        } else {
+            return big_big_mul(GET_BIG(a),GET_BIG(b));
+        }
+    }
 }
 
 static int64_t i64_div(int64_t, int64_t);
@@ -929,6 +1034,37 @@ static bool int_le(INT a, INT b) { return int_cmp(a,b) <= 0; }
 static bool int_gt(INT a, INT b) { return int_cmp(a,b) >  0; }
 static bool int_ge(INT a, INT b) { return int_cmp(a,b) >= 0; }
 static bool int_ne(INT a, INT b) { return int_cmp(a,b) != 0; }
+
+
+static STR* i64_to_str(int64_t);
+static STR* int_to_str(INT a) {
+    if (IS_I63(a) || (GET_BIG(a)->size == 2)) {
+        return i64_to_str(int_to_i64(a));
+    } else {
+        STR *s = str_alloc(GET_BIG(a)->size * 10);
+        if (SIGN_RADIX(GET_BIG(a))) {
+            a = int_negate(a);
+            ASSERT(IS_BIG(a));
+            s = str_pushn(s, "-", 1);
+        }
+        s = str_pushn(s,"0x",2);
+        BIG* b = GET_BIG(a);
+        size_t i = b->radix[b->size-1] ? b->size : b->size-1;
+        while (i --> 0) {
+            uint32_t r = b->radix[i];
+            char c[10] = "00000000_";
+            int j = 8;
+            while (j --> 0) {
+                uint32_t h = r & 0xF;
+                c[j] = (h > 9) ? h + 'A' - 10 : h + '0';
+                r = r >> 4;
+            }
+            s = str_pushn(s,c,8+(i>0));
+        }
+        big_decref(b);
+        return s;
+    }
+}
 
 static int64_t i64_add (int64_t a, int64_t b) {
     EXPECT(((b >= 0) && (a <= INT64_MAX - b))
@@ -1054,12 +1190,10 @@ void bool_trace_(VAL v, int fd) { if (VBOOL(v)) { write(fd, "True", 4); } else {
 void int_trace_(VAL v, int fd) {
     ASSERT(IS_INT(v));
     INT x = VINT(v);
-    if (IS_I63(x) || (GET_BIG(x)->size == 2)) {
-        incref(v);
-        i64_trace_(MKI64(int_to_i64(x)), fd);
-    } else {
-        write(fd, "<Int>", 5); // TODO
-    }
+    incref(v);
+    STR* s = int_to_str(x);
+    write(fd, s->data, s->size);
+    decref(MKSTR(s));
 }
 
 void f32_trace_(VAL v, int fd) { (void)v; write(fd, "<F32>", 5); }
@@ -1105,16 +1239,6 @@ static STR* i64_to_str (int64_t x) {
         return s;
     }
 }
-
-
-static STR* int_to_str(INT a) {
-    if (IS_I63(a)) {
-        return i64_to_str(GET_I63(a));
-    } else {
-        return i64_to_str(int_to_i64(a)); // TODO
-    }
-}
-
 
 void str_trace_(VAL v, int fd) {
     STR* str = VSTR(v);
@@ -5275,6 +5399,11 @@ static VAL mw_std_prelude_OS_pathZ_separator (int64_t in_OS_1);
 static bool mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk (int64_t in_Byte_1, int64_t in_OS_2);
 static int64_t mw_std_prim_I64_ZToArch (int64_t in_I64_1);
 static int64_t mw_std_prim_Int_ZToArch (INT in_Int_1);
+static INT mw_std_prim_Int_signZAskZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
+static void mw_std_prim_Int_hexZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
+static INT mw_std_prelude_Base_Hex (void);
+static INT mw_std_prelude_Base_lastZ_digit (INT in_Nat_1, INT in_Base_2, int64_t *out_Byte_4);
+static void mw_std_prelude_Base_digitsZThen (STR* in_ZPlusStr_1, INT in_Nat_2, INT in_Base_3, STR* *out_ZPlusStr_4);
 static VAL mw_std_prelude_ZAtZAsk (void* in_Mutt_1);
 static void mw_std_prelude_impossibleZBang (void);
 static INT mw_std_posix_posixZ_openZBang (STR* in_Str_1, INT in_Int_2, INT in_Int_3);
@@ -6682,7 +6811,7 @@ static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp38 (STR* in_Str_
 static void mw_std_maybe_Maybe_1_for_1_sp8 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
 static void mw_std_result_ZPlusResult_2_ZPluselse_1_sp1 (TUP* in_ZPlusMirth_1, VAL in_ZPlusResult_2, TUP* *out_ZPlusMirth_3, VAL *out_z_x1_4);
 static void mw_std_maybe_Maybe_1_if_2_sp6 (VAL in_List_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusNeeds_3, VAL in_Maybe_4, TUP* *out_ZPlusMirth_5, TUP* *out_ZPlusNeeds_6);
-static void mw_std_list_List_1_for_1_sp49 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3);
+static void mw_std_list_List_1_for_1_sp50 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3);
 static TUP* mw_mirth_elab_abZ_buildZ_homZBang_1_sp1 (uint64_t in_Word_1, TUP* in_ZPlusMirth_2, VAL in_Ctx_3, TUP* in_ArrowType_4, uint64_t in_Token_5, VAL in_Home_6, TUP* *out_ZPlusMirth_7);
 static void mw_std_maybe_Maybe_1_ifZAsk_2_sp45 (TUP* in_ZPlusMirth_1, STR* in_Str_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_std_maybe_Maybe_1_filter_1_sp5 (TUP* in_ZPlusMirth_1, VAL in_Type_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5, VAL *out_Maybe_6);
@@ -6692,14 +6821,14 @@ static VAL mw_std_list_List_1_reverseZ_for_1_sp9 (TUP* in_ZPlusMirth_1, TUP* in_
 static bool mw_std_maybe_Maybe_1_ifZAsk_2_sp51 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
 static VAL mw_std_maybe_Maybe_1_bind_1_sp5 (VAL in_Maybe_1);
 static bool mw_std_list_List_1_ZEqualZEqual_sp1 (TUP* in_ZPlusMirth_1, VAL in_List_2, VAL in_List_3, TUP* *out_ZPlusMirth_4);
-static void mw_std_list_List_1_for_1_sp63 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3);
+static void mw_std_list_List_1_for_1_sp64 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3);
 static uint64_t mw_std_maybe_Maybe_1_unwrap_1_sp16 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5, VAL *out_z_x1_6);
 static STR* mw_std_maybe_Maybe_1_map_1_sp11 (STR* in_Str_1, VAL in_Maybe_2, VAL *out_Maybe_4);
 static VAL mw_std_maybe_Maybe_1_map_1_sp12 (VAL in_Maybe_1);
 static TUP* mw_mirth_elab_abZ_buildZBang_1_sp6 (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, VAL in_StackType_3, uint64_t in_Token_4, VAL in_Home_5, TUP* *out_ZPlusMirth_6);
-static VAL mw_std_list_List_1_for_1_sp69 (VAL in_StackType_1, VAL in_List_2);
+static VAL mw_std_list_List_1_for_1_sp70 (VAL in_StackType_1, VAL in_List_2);
 static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp72 (VAL in_Maybe_1);
-static STR* mw_std_list_List_1_for_1_sp72 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8);
+static STR* mw_std_list_List_1_for_1_sp73 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8);
 static bool mw_std_list_List_1_member_sp4 (VAL in_Namespace_1, VAL in_List_2);
 static void mw_std_maybe_Maybe_1_for_1_sp18 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
 static uint64_t mw_std_maybe_Maybe_1_elseZAsk_1_sp4 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5, VAL *out_z_x1_6);
@@ -8973,6 +9102,145 @@ static int64_t mw_std_prim_Int_ZToArch (INT in_Int_1) {
 		branch_Arch_8 = v10;
 	}
 	return branch_Arch_8;
+}
+static INT mw_std_prim_Int_signZAskZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
+	incref(MKINT(in_Int_1));
+	INT v5 = WRAP_I63(0LL);
+	bool v6 = int_lt(in_Int_1, v5);
+	STR* branch_ZPlusStr_7;
+	INT branch_Int_8;
+	if (v6) {
+		STR* v9;
+		STRLIT(v9, "-", 1);
+		STR* v10;
+		mw_std_str_ZPlusStr_pushZ_strZBang(v9, in_ZPlusStr_2, &v10);
+		INT v11 = WRAP_I63(-1LL);
+		INT v12 = int_mul(in_Int_1, v11);
+		branch_Int_8 = v12;
+		branch_ZPlusStr_7 = v10;
+	} else {
+		branch_Int_8 = in_Int_1;
+		branch_ZPlusStr_7 = in_ZPlusStr_2;
+	}
+	*out_ZPlusStr_4 = branch_ZPlusStr_7;
+	return branch_Int_8;
+}
+static void mw_std_prim_Int_hexZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3) {
+	STR* v4;
+	INT v5 = mw_std_prim_Int_signZAskZThen(in_Int_1, in_ZPlusStr_2, &v4);
+	INT v6 = mw_std_prelude_Base_Hex();
+	STR* v7;
+	mw_std_prelude_Base_digitsZThen(v4, v5, v6, &v7);
+	*out_ZPlusStr_3 = v7;
+}
+static INT mw_std_prelude_Base_Hex (void) {
+	INT v2 = WRAP_I63(16LL);
+	return v2;
+}
+static INT mw_std_prelude_Base_lastZ_digit (INT in_Nat_1, INT in_Base_2, int64_t *out_Byte_4) {
+	INT v5;
+	INT v6 = int_divmod(in_Nat_1, in_Base_2, &v5);
+	uint64_t v7 = int_to_u64(v5);
+	uint8_t v8 = (uint8_t)(v7);
+	uint8_t v9 = 10;
+	uint64_t v10 = (uint64_t)(v8);
+	INT v11 = u64_to_int(v10);
+	uint64_t v12 = (uint64_t)(v9);
+	INT v13 = u64_to_int(v12);
+	bool v14 = int_lt(v11, v13);
+	INT branch_Nat_15;
+	uint8_t branch_U8_16;
+	uint8_t branch_U8_17;
+	if (v14) {
+		uint8_t v18 = 48;
+		branch_U8_17 = v18;
+		branch_U8_16 = v8;
+		branch_Nat_15 = v6;
+	} else {
+		uint8_t v19 = 55;
+		branch_U8_17 = v19;
+		branch_U8_16 = v8;
+		branch_Nat_15 = v6;
+	}
+	uint64_t v20 = (uint64_t)(branch_U8_16);
+	uint64_t v21 = (uint64_t)(branch_U8_17);
+	uint64_t v22 = (v20 + v21);
+	uint8_t v23 = (uint8_t)(v22);
+	uint64_t v24 = (uint64_t)(v23);
+	INT v25 = u64_to_int(v24);
+	int64_t v26 = int_to_i64(v25);
+	*out_Byte_4 = v26;
+	return branch_Nat_15;
+}
+static void mw_std_prelude_Base_digitsZThen (STR* in_ZPlusStr_1, INT in_Nat_2, INT in_Base_3, STR* *out_ZPlusStr_4) {
+	VAL v5 = MKI64(0LL /* Nil */);
+	bool v6 = true;
+	VAL v7 = v5;
+	INT v8 = in_Nat_2;
+	INT v9 = in_Base_3;
+	bool v10 = v6;
+	bool v11 = v6;
+	while (v11) {
+		VAL v12 = v7;
+		INT v13 = v8;
+		INT v14 = v9;
+		bool v15 = v10;
+		incref(MKINT(v14));
+		int64_t v16;
+		INT v17 = mw_std_prelude_Base_lastZ_digit(v13, v14, &v16);
+		VAL v18 = mw_std_list_List_1_cons(MKI64(v16), v12);
+		incref(MKINT(v17));
+		INT v19 = WRAP_I63(0LL);
+		bool v20 = int_gt(v17, v19);
+		v11 = v20;
+		v10 = v20;
+		v9 = v14;
+		v8 = v17;
+		v7 = v18;
+	}
+	decref(MKINT(v8));
+	bool v21 = true;
+	STR* v22 = in_ZPlusStr_1;
+	VAL v23 = v7;
+	bool v24 = v21;
+	bool v25 = v21;
+	while (v25) {
+		STR* v26 = v22;
+		VAL v27 = v23;
+		bool v28 = v24;
+		STR* branch_ZPlusStr_29;
+		VAL branch_List_30;
+		bool branch_Bool_31;
+		switch (get_data_tag(v27)) {
+			case 1LL: { // Cons
+				VAL v32;
+				VAL v33 = mtp_std_list_List_1_Cons(v27, &v32);
+				STR* v34;
+				mw_std_str_ZPlusStr_pushZ_byteZ_unsafeZBang(value_i64(v33), v26, &v34);
+				bool v35 = true;
+				branch_Bool_31 = v35;
+				branch_List_30 = v32;
+				branch_ZPlusStr_29 = v34;
+			} break;
+			case 0LL: { // Nil
+				VAL v36 = MKI64(0LL /* Nil */);
+				bool v37 = false;
+				branch_Bool_31 = v37;
+				branch_List_30 = v36;
+				branch_ZPlusStr_29 = v26;
+			} break;
+			default: {
+				do_panic(str_make("unexpected fallthrough in match\n", 32));
+			}
+		}
+		v25 = branch_Bool_31;
+		v24 = branch_Bool_31;
+		v23 = branch_List_30;
+		v22 = branch_ZPlusStr_29;
+	}
+	decref(v23);
+	decref(MKINT(v9));
+	*out_ZPlusStr_4 = v22;
 }
 static VAL mw_std_prelude_ZAtZAsk (void* in_Mutt_1) {
 	bool v3 = mut_is_set(in_Mutt_1);
@@ -17767,7 +18035,7 @@ static TUP* mw_mirth_type_TZ_ZTo (VAL in_StackType_1, VAL in_StackType_2) {
 }
 static VAL mw_mirth_type_TT (VAL in_List_1) {
 	VAL v3 = mw_mirth_type_T0();
-	VAL v4 = mw_std_list_List_1_for_1_sp69(v3, in_List_1);
+	VAL v4 = mw_std_list_List_1_for_1_sp70(v3, in_List_1);
 	return v4;
 }
 static VAL mw_mirth_type_T0 (void) {
@@ -36071,7 +36339,7 @@ static void mw_mirth_mirth_ZPlusMirth_initZ_macrosZBang (TUP* in_ZPlusMirth_1, T
 	*out_ZPlusMirth_2 = v64;
 }
 static VAL mw_mirth_version_mirthZ_revision (void) {
-	INT v2 = WRAP_I63(20250127001LL);
+	INT v2 = WRAP_I63(20250127002LL);
 	return MKINT(v2);
 }
 static void mw_mirth_elab_ZPlusTypeElab_rdrop (TUP* in_ZPlusTypeElab_1) {
@@ -36159,7 +36427,7 @@ static TUP* mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang (TUP* in_ZPlusMirth
 		branch_ZPlusTypeElab_38 = branch_ZPlusTypeElab_26;
 		branch_ZPlusMirth_37 = v41;
 	}
-	VAL v42 = mw_std_list_List_1_for_1_sp69(branch_StackType_24, branch_List_23);
+	VAL v42 = mw_std_list_List_1_for_1_sp70(branch_StackType_24, branch_List_23);
 	TUP* v43 = mw_mirth_type_TZ_ZTo(v42, branch_StackType_27);
 	*out_ZPlusTypeElab_4 = branch_ZPlusTypeElab_38;
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_37;
@@ -38756,7 +39024,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (TUP* in_ZPlus
 		TUP* v17;
 		VAL v18;
 		STR* v19;
-		STR* v20 = mw_std_list_List_1_for_1_sp72(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v14, v15, v16, &v17, &v18, &v19);
+		STR* v20 = mw_std_list_List_1_for_1_sp73(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v14, v15, v16, &v17, &v18, &v19);
 		decref(MKSTR(v20));
 		TUP* v21;
 		mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang(v7, v19, v17, &v21);
@@ -38785,7 +39053,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (TUP* in_ZPlus
 		TUP* v32;
 		VAL v33;
 		STR* v34;
-		STR* v35 = mw_std_list_List_1_for_1_sp72(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v29, v30, v31, &v32, &v33, &v34);
+		STR* v35 = mw_std_list_List_1_for_1_sp73(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v29, v30, v31, &v32, &v33, &v34);
 		decref(MKSTR(v35));
 		TUP* v36;
 		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v22, v34, v32, &v36);
@@ -39730,7 +39998,7 @@ static VAL mw_mirth_name_QName_climbZ_upZ_dnameZAsk (TUP* in_ZPlusMirth_1, TUP* 
 								}
 							}
 							VAL v85;
-							mw_std_list_List_1_for_1_sp49(v64, branch_List_79, &v85);
+							mw_std_list_List_1_for_1_sp50(v64, branch_List_79, &v85);
 							bool v86 = true;
 							branch_Bool_72 = v86;
 							branch_List_71 = v73;
@@ -54229,7 +54497,7 @@ static TUP* mw_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang (TUP* in_Arrow_
 				VAL v30;
 				VAL v31 = mw_mirth_specializzer_ZPlusSPCheck_checkZ_atomZBang(value_tup(v28, 8), v17, v18, &v29, &v30);
 				VAL v32;
-				mw_std_list_List_1_for_1_sp49(v19, v31, &v32);
+				mw_std_list_List_1_for_1_sp50(v19, v31, &v32);
 				bool v33 = true;
 				branch_Bool_26 = v33;
 				branch_List_25 = v27;
@@ -54486,7 +54754,7 @@ static VAL mw_mirth_specializzer_ZPlusSPCheck_checkZ_primZ_atomZBang (TUP* in_At
 	incref(v6);
 	decref(MKTUP(in_Atom_1, 8));
 	VAL v7;
-	mw_std_list_List_1_for_1_sp63(in_ZPlusSPCheck_3, v6, &v7);
+	mw_std_list_List_1_for_1_sp64(in_ZPlusSPCheck_3, v6, &v7);
 	VAL v8 = MKI64(0LL /* Nil */);
 	VAL v9 = mw_std_list_List_1_cons(MKTUP(in_Atom_1, 8), v8);
 	*out_ZPlusSPCheck_5 = v7;
@@ -54691,7 +54959,7 @@ static VAL mw_mirth_specializzer_ZPlusSPCheck_checkZ_wordZ_atomZBang (TUP* in_ZP
 				VAL v91;
 				mw_mirth_specializzer_ZPlusSPCheck_checkZ_argZBang(value_u64(v90), v8, &v91);
 				VAL v92;
-				mw_std_list_List_1_for_1_sp63(v91, v89, &v92);
+				mw_std_list_List_1_for_1_sp64(v91, v89, &v92);
 				decref(v16);
 				VAL v93 = MKI64(0LL /* Nil */);
 				VAL v94 = mw_std_list_List_1_cons(MKTUP(in_Atom_3, 8), v93);
@@ -58375,31 +58643,36 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"#define mkstr(x,n) MKSTR(str_make((x), (n)))\n"
 		"\n"
-		"static STR* str_cat (STR* s1, STR* s2) {\n"
-		"    EXPECT(s1 && s2, \"invalid strings in prim-str-cat\");\n"
-		"    USIZE m = s1->cap;\n"
-		"    USIZE n1 = s1->size;\n"
-		"    USIZE n2 = s2->size;\n"
-		"    if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {\n"
-		"        ASSERT(n2 <= SIZE_MAX);\n"
-		"        memcpy(s1->data + n1, s2->data, (size_t)n2);\n"
-		"        s1->size += n2;\n"
-		"        ASSERT(s1->size + 4 <= s1->cap);\n"
-		"        decref(MKSTR(s2));\n"
-		"        return s1;\n"
+		"static STR* str_pushn (STR* s, const char* p, USIZE n2) {\n"
+		"    if (n2 == 0) return s;\n"
+		"    ASSERT(s && p);\n"
+		"    ASSERT(n2 <= SIZE_MAX);\n"
+		"    USIZE m = s->cap;\n"
+		"    USIZE n1 = s->size;\n"
+		"    ASSERT(n1 <= SIZE_MAX-n2);\n"
+		"    ASSERT(4 <= SIZE_MAX-n1-n2);\n"
+		"    if ((s->refs == 1) && (n1 + n2 + 4 <= m)) {\n"
+		"        memcpy(s->data + n1, p, (size_t)n2);\n"
+		"        s->size += n2;\n"
+		"        ASSERT(s->size + 4 <= s->cap);\n"
+		"        return s;\n"
 		"    } else {\n"
 		"        USIZE m2 = n1 + n2 + 4;\n"
-		"        if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;\n"
+		"        if ((s->refs == 1) && (m <= SIZE_MAX-m) && (m2 < m*2)) m2 = m*2;\n"
 		"        STR* str = str_alloc(m2);\n"
 		"        str->size = n1+n2;\n"
-		"        ASSERT(n1 <= SIZE_MAX);\n"
-		"        ASSERT(n2 <= SIZE_MAX);\n"
-		"        memcpy(str->data, s1->data, (size_t)n1);\n"
-		"        memcpy(str->data+n1, s2->data, (size_t)n2);\n"
-		"        decref(MKSTR(s1));\n"
-		"        decref(MKSTR(s2));\n"
+		"        memcpy(str->data, s->data, (size_t)n1);\n"
+		"        memcpy(str->data+n1, p, (size_t)n2);\n"
+		"        decref(MKSTR(s));\n"
 		"        return str;\n"
 		"    }\n"
+		"}\n"
+		"\n"
+		"static STR* str_cat (STR* s1, STR* s2) {\n"
+		"    EXPECT(s1 && s2, \"invalid strings in prim-str-cat\");\n"
+		"    STR* out = str_pushn(s1, s2->data, s2->size);\n"
+		"    decref(MKSTR(s2));\n"
+		"    return out;\n"
 		"}\n"
 		"\n"
 		"static USIZE get_data_tag(VAL v) {\n"
@@ -58506,6 +58779,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\n"
 		"#define SIGN_BIT(x) ((x) & 0x80000000)\n"
 		"#define NEXT_RADIX(x) (SIGN_BIT(x) ? (uint32_t)0xFFFFFFFF : (uint32_t)0)\n"
+		"#define SIGN_RADIX(a) (NEXT_RADIX((a)->radix[(a)->size-1]))\n"
 		"\n"
 		"#define LO_RADIX(x) ((uint32_t)(x))\n"
 		"#define HI_RADIX(x) ((uint32_t)(((uint64_t)(x)) >> 32))\n"
@@ -58562,7 +58836,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"static INT big_normalize (BIG* a) {\n"
-		"    ASSERT(a); ASSERT(a->refs == 1);\n"
+		"    ASSERT(a); ASSERT(a->refs == 1); ASSERT(a->size >= 2);\n"
 		"    while ((a->size > 2) && (NEXT_RADIX(a->radix[a->size-2]) == a->radix[a->size-1]))\n"
 		"        a->size--;\n"
 		"    if (a->size == 2) {\n"
@@ -58651,7 +58925,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"        a->radix[i] = LO_RADIX(r);\n"
 		"        c = HI_RADIX(r);\n"
 		"    }\n"
-		"    a->radix[a->size++] = an + c;\n"
+		"    a->radix[a->size++] = ~an + c;\n"
 		"    return big_normalize(a);\n"
 		"}\n"
 		"\n"
@@ -58684,9 +58958,108 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"static int64_t int_to_i64(INT a) { return (int64_t)int_to_u64(a); }\n"
 		"\n"
+		"static INT i63_i63_mul (int64_t a, int64_t b) {\n"
+		"    if ((b == 0) ||\n"
+		"        ((b > 0) && (INT63_MIN/b <= a) && (a <= INT63_MAX/b)) ||\n"
+		"        ((b < 0) && (INT63_MAX/b <= a) && (a <= INT63_MIN/b)))\n"
+		"    {\n"
+		"        return WRAP_I63(a * b);\n"
+		"    }\n"
+		"\n"
+		"    bool negate = (a < 0) ^ (b < 0);\n"
+		"    if (a < 0) a = -a;\n"
+		"    if (b < 0) b = -b;\n"
+		"\n"
+		"    uint64_t a0 = LO_RADIX(a);\n"
+		"    uint64_t a1 = HI_RADIX(a);\n"
+		"    uint64_t b0 = LO_RADIX(b);\n"
+		"    uint64_t b1 = HI_RADIX(b);\n"
+		"\n"
+		"    uint64_t r0 = a0 * b0;\n"
+		"    uint64_t r1 = a1 * b0 + a0 * b1 + HI_RADIX(r0);\n"
+		"    uint64_t r2 = a1 * b1 + HI_RADIX(r1);\n"
+		"    uint64_t r3 = HI_RADIX(r2);\n"
+		"\n"
+		"    BIG* c = big_alloc(5);\n"
+		"    c->size = 4;\n"
+		"    c->radix[0] = LO_RADIX(r0);\n"
+		"    c->radix[1] = LO_RADIX(r1);\n"
+		"    c->radix[2] = LO_RADIX(r2);\n"
+		"    c->radix[3] = LO_RADIX(r3);\n"
+		"    INT x = big_normalize(c);\n"
+		"    return negate ? int_negate(x) : x;\n"
+		"}\n"
+		"\n"
+		"static void big_u32_mul_shift_accum_(BIG* accum, BIG* a, uint32_t x, size_t shift) {\n"
+		"    if (x == 0) return;\n"
+		"    uint32_t mul_carry = 0;\n"
+		"    uint32_t add_carry = 0;\n"
+		"    uint32_t an = SIGN_RADIX(a);\n"
+		"    for (size_t i=0; i + shift < accum->size; i++) {\n"
+		"        uint32_t ar = (i < a->size) ? a->radix[i] : an;\n"
+		"        uint64_t mul_result = (uint64_t)ar * (uint64_t)x + (uint64_t)mul_carry;\n"
+		"        uint64_t add_result = (uint64_t)accum->radix[i+shift] + (uint64_t)LO_RADIX(mul_result) + (uint64_t)add_carry;\n"
+		"        accum->radix[i+shift] = LO_RADIX(add_result);\n"
+		"        mul_carry = HI_RADIX(mul_result);\n"
+		"        add_carry = HI_RADIX(add_result);\n"
+		"    }\n"
+		"}\n"
+		"\n"
+		"static void big_negate_shift_accum_(BIG* accum, BIG* a, size_t shift) {\n"
+		"    uint32_t carry = 1;\n"
+		"    uint32_t an = SIGN_RADIX(a);\n"
+		"    for (size_t i = 0; i+shift < accum->size; i++) {\n"
+		"        uint32_t ar = (i < a->size) ? a->radix[i] : an;\n"
+		"        uint64_t result = (uint64_t)accum->radix[i+shift] + (uint64_t)(~ar) + (uint64_t)carry;\n"
+		"        accum->radix[i+shift] = LO_RADIX(result);\n"
+		"        carry = HI_RADIX(result);\n"
+		"    }\n"
+		"}\n"
+		"\n"
+		"static INT big_i63_mul (BIG* a, int64_t b) {\n"
+		"    if (b == 0) { big_decref(a); return WRAP_I63(0); }\n"
+		"    if (b == 1) { return WRAP_BIG(a); }\n"
+		"    if (b == -1) { return big_negate(a); }\n"
+		"    BIG* accum = big_alloc(a->size + 3);\n"
+		"    accum->size = a->size + 2;\n"
+		"    big_u32_mul_shift_accum_(accum, a, LO_RADIX(b), 0);\n"
+		"    big_u32_mul_shift_accum_(accum, a, HI_RADIX(b), 1);\n"
+		"    uint32_t bn = NEXT_RADIX(HI_RADIX(b));\n"
+		"    if (b < 0) { big_negate_shift_accum_(accum, a, 2); }\n"
+		"    big_decref(a);\n"
+		"    return big_normalize(accum);\n"
+		"}\n"
+		"\n"
+		"static INT big_big_mul (BIG* a, BIG* b) {\n"
+		"\n"
+		"    if (a->size > b->size) { BIG*t=a; a=b; b=t; }\n"
+		"    BIG* accum = big_alloc(a->size + b->size + 1);\n"
+		"    accum->size = a->size + b->size;\n"
+		"    for (size_t i = 0; i < b->size; i++) {\n"
+		"        big_u32_mul_shift_accum_(accum, a, b->radix[i], i);\n"
+		"    }\n"
+		"    if (SIGN_RADIX(b)) {\n"
+		"        big_negate_shift_accum_(accum, a, b->size);\n"
+		"    }\n"
+		"    big_decref(a);\n"
+		"    big_decref(b);\n"
+		"    return big_normalize(accum);\n"
+		"}\n"
+		"\n"
 		"static INT int_mul(INT a, INT b) {\n"
-		"    // TODO\n"
-		"    return i64_to_int((int64_t)(int_to_u64(a) * int_to_u64(b)));\n"
+		"    if (IS_I63(a)) {\n"
+		"        if (IS_I63(b)) {\n"
+		"            return i63_i63_mul(GET_I63(a),GET_I63(b));\n"
+		"        } else {\n"
+		"            return big_i63_mul(GET_BIG(b),GET_I63(a));\n"
+		"        }\n"
+		"    } else {\n"
+		"        if (IS_I63(b)) {\n"
+		"            return big_i63_mul(GET_BIG(a),GET_I63(b));\n"
+		"        } else {\n"
+		"            return big_big_mul(GET_BIG(a),GET_BIG(b));\n"
+		"        }\n"
+		"    }\n"
 		"}\n"
 		"\n"
 		"static int64_t i64_div(int64_t, int64_t);\n"
@@ -58783,6 +59156,37 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static bool int_gt(INT a, INT b) { return int_cmp(a,b) >  0; }\n"
 		"static bool int_ge(INT a, INT b) { return int_cmp(a,b) >= 0; }\n"
 		"static bool int_ne(INT a, INT b) { return int_cmp(a,b) != 0; }\n"
+		"\n"
+		"\n"
+		"static STR* i64_to_str(int64_t);\n"
+		"static STR* int_to_str(INT a) {\n"
+		"    if (IS_I63(a) || (GET_BIG(a)->size == 2)) {\n"
+		"        return i64_to_str(int_to_i64(a));\n"
+		"    } else {\n"
+		"        STR *s = str_alloc(GET_BIG(a)->size * 10);\n"
+		"        if (SIGN_RADIX(GET_BIG(a))) {\n"
+		"            a = int_negate(a);\n"
+		"            ASSERT(IS_BIG(a));\n"
+		"            s = str_pushn(s, \"-\", 1);\n"
+		"        }\n"
+		"        s = str_pushn(s,\"0x\",2);\n"
+		"        BIG* b = GET_BIG(a);\n"
+		"        size_t i = b->radix[b->size-1] ? b->size : b->size-1;\n"
+		"        while (i --> 0) {\n"
+		"            uint32_t r = b->radix[i];\n"
+		"            char c[10] = \"00000000_\";\n"
+		"            int j = 8;\n"
+		"            while (j --> 0) {\n"
+		"                uint32_t h = r & 0xF;\n"
+		"                c[j] = (h > 9) ? h + 'A' - 10 : h + '0';\n"
+		"                r = r >> 4;\n"
+		"            }\n"
+		"            s = str_pushn(s,c,8+(i>0));\n"
+		"        }\n"
+		"        big_decref(b);\n"
+		"        return s;\n"
+		"    }\n"
+		"}\n"
 		"\n"
 		"static int64_t i64_add (int64_t a, int64_t b) {\n"
 		"    EXPECT(((b >= 0) && (a <= INT64_MAX - b))\n"
@@ -58908,12 +59312,10 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"void int_trace_(VAL v, int fd) {\n"
 		"    ASSERT(IS_INT(v));\n"
 		"    INT x = VINT(v);\n"
-		"    if (IS_I63(x) || (GET_BIG(x)->size == 2)) {\n"
-		"        incref(v);\n"
-		"        i64_trace_(MKI64(int_to_i64(x)), fd);\n"
-		"    } else {\n"
-		"        write(fd, \"<Int>\", 5); // TODO\n"
-		"    }\n"
+		"    incref(v);\n"
+		"    STR* s = int_to_str(x);\n"
+		"    write(fd, s->data, s->size);\n"
+		"    decref(MKSTR(s));\n"
 		"}\n"
 		"\n"
 		"void f32_trace_(VAL v, int fd) { (void)v; write(fd, \"<F32>\", 5); }\n"
@@ -58959,16 +59361,6 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"        return s;\n"
 		"    }\n"
 		"}\n"
-		"\n"
-		"\n"
-		"static STR* int_to_str(INT a) {\n"
-		"    if (IS_I63(a)) {\n"
-		"        return i64_to_str(GET_I63(a));\n"
-		"    } else {\n"
-		"        return i64_to_str(int_to_i64(a)); // TODO\n"
-		"    }\n"
-		"}\n"
-		"\n"
 		"\n"
 		"void str_trace_(VAL v, int fd) {\n"
 		"    STR* str = VSTR(v);\n"
@@ -59184,7 +59576,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		38501
+		42521
 	);
 	return v2;
 }
@@ -65788,7 +66180,7 @@ static void mw_mirth_c99_c99Z_pushZ_valueZBang (VAL in_PushValue_1, TUP* in_ZPlu
 			mw_mirth_c99_ZPlusC99_put(v310, v309, &v311);
 			TUP* v312;
 			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_291, branch_Str_293, &v312);
-			static struct BIG_S(2) v313 = { .refs=100, .cap=2, .size=2, .radix={1,2147483648,} };
+			static struct BIG_S(2) v313 = { .refs=100, .cap=2, .size=2, .radix={0x1,0x80000000,} };
 			v313.refs++;
 			INT v314 = WRAP_I63(1LL);
 			INT v315 = int_sub(WRAP_BIG(&v313), v314);
@@ -66856,23 +67248,30 @@ static void mw_mirth_c99_c99Z_intZBang (INT in_Int_1, TUP* in_ZPlusC99Branch_2, 
 					VAL v81 = mtp_std_list_List_1_Cons(v75, &v80);
 					uint64_t v82 = (uint64_t)(value_u32(v81));
 					INT v83 = u64_to_int(v82);
-					STR* v84 = int_to_str(v83);
-					TUP* v85;
-					mw_mirth_c99_ZPlusC99_put(v84, v74, &v85);
+					STR* v84;
+					STRLIT(v84, "", 0);
+					STR* v85;
+					STRLIT(v85, "0x", 2);
 					STR* v86;
-					STRLIT(v86, ",", 1);
-					TUP* v87;
-					mw_mirth_c99_ZPlusC99_put(v86, v85, &v87);
-					bool v88 = true;
-					branch_Bool_79 = v88;
+					mw_std_str_ZPlusStr_pushZ_strZBang(v85, v84, &v86);
+					STR* v87;
+					mw_std_prim_Int_hexZThen(v83, v86, &v87);
+					TUP* v88;
+					mw_mirth_c99_ZPlusC99_put(v87, v74, &v88);
+					STR* v89;
+					STRLIT(v89, ",", 1);
+					TUP* v90;
+					mw_mirth_c99_ZPlusC99_put(v89, v88, &v90);
+					bool v91 = true;
+					branch_Bool_79 = v91;
 					branch_List_78 = v80;
-					branch_ZPlusC99_77 = v87;
+					branch_ZPlusC99_77 = v90;
 				} break;
 				case 0LL: { // Nil
-					VAL v89 = MKI64(0LL /* Nil */);
-					bool v90 = false;
-					branch_Bool_79 = v90;
-					branch_List_78 = v89;
+					VAL v92 = MKI64(0LL /* Nil */);
+					bool v93 = false;
+					branch_Bool_79 = v93;
+					branch_List_78 = v92;
 					branch_ZPlusC99_77 = v74;
 				} break;
 				default: {
@@ -66885,50 +67284,50 @@ static void mw_mirth_c99_c99Z_intZBang (INT in_Int_1, TUP* in_ZPlusC99Branch_2, 
 			v70 = branch_ZPlusC99_77;
 		}
 		decref(v71);
-		STR* v91;
-		STRLIT(v91, "} };", 4);
-		TUP* v92;
-		mw_mirth_c99_ZPlusC99_put(v91, v70, &v92);
-		TUP* v93;
-		mw_mirth_c99_ZPlusC99_line(v92, &v93);
-		v93->cells[3] = MKBOOL(v52);
-		in_ZPlusC99Branch_2->cells[0] = MKTUP(v93, 7);
-		bool v94 = value_bool(in_ZPlusC99Branch_2->cells[3]);
-		TUP* v95 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-		bool v96 = value_bool(v95->cells[3]);
-		bool v97 = (v94 && v96);
-		v95->cells[3] = MKBOOL(v97);
-		TUP* v98;
-		mw_mirth_c99_ZPlusC99_indent(v95, &v98);
-		incref(MKSTR(v49));
-		TUP* v99;
-		mw_mirth_c99_ZPlusC99_put(v49, v98, &v99);
-		STR* v100;
-		STRLIT(v100, ".refs++;", 8);
+		STR* v94;
+		STRLIT(v94, "} };", 4);
+		TUP* v95;
+		mw_mirth_c99_ZPlusC99_put(v94, v70, &v95);
+		TUP* v96;
+		mw_mirth_c99_ZPlusC99_line(v95, &v96);
+		v96->cells[3] = MKBOOL(v52);
+		in_ZPlusC99Branch_2->cells[0] = MKTUP(v96, 7);
+		bool v97 = value_bool(in_ZPlusC99Branch_2->cells[3]);
+		TUP* v98 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+		bool v99 = value_bool(v98->cells[3]);
+		bool v100 = (v97 && v99);
+		v98->cells[3] = MKBOOL(v100);
 		TUP* v101;
-		mw_mirth_c99_ZPlusC99_put(v100, v99, &v101);
+		mw_mirth_c99_ZPlusC99_indent(v98, &v101);
+		incref(MKSTR(v49));
 		TUP* v102;
-		mw_mirth_c99_ZPlusC99_line(v101, &v102);
-		v102->cells[3] = MKBOOL(v96);
-		in_ZPlusC99Branch_2->cells[0] = MKTUP(v102, 7);
-		VAL v103 = MKI64(4LL /* Int */);
-		STR* v104;
-		STRLIT(v104, "", 0);
-		STR* v105;
-		STRLIT(v105, "WRAP_BIG(&", 10);
-		STR* v106;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v105, v104, &v106);
+		mw_mirth_c99_ZPlusC99_put(v49, v101, &v102);
+		STR* v103;
+		STRLIT(v103, ".refs++;", 8);
+		TUP* v104;
+		mw_mirth_c99_ZPlusC99_put(v103, v102, &v104);
+		TUP* v105;
+		mw_mirth_c99_ZPlusC99_line(v104, &v105);
+		v105->cells[3] = MKBOOL(v99);
+		in_ZPlusC99Branch_2->cells[0] = MKTUP(v105, 7);
+		VAL v106 = MKI64(4LL /* Int */);
 		STR* v107;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v49, v106, &v107);
+		STRLIT(v107, "", 0);
 		STR* v108;
-		STRLIT(v108, ")", 1);
+		STRLIT(v108, "WRAP_BIG(&", 10);
 		STR* v109;
 		mw_std_str_ZPlusStr_pushZ_strZBang(v108, v107, &v109);
-		TUP* v110;
-		mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(v103, v109, &v110);
-		TUP* v111;
-		mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(in_ZPlusC99Branch_2, v110, &v111);
-		branch_ZPlusC99Branch_5 = v111;
+		STR* v110;
+		mw_std_str_ZPlusStr_pushZ_strZBang(v49, v109, &v110);
+		STR* v111;
+		STRLIT(v111, ")", 1);
+		STR* v112;
+		mw_std_str_ZPlusStr_pushZ_strZBang(v111, v110, &v112);
+		TUP* v113;
+		mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(v106, v112, &v113);
+		TUP* v114;
+		mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(in_ZPlusC99Branch_2, v113, &v114);
+		branch_ZPlusC99Branch_5 = v114;
 	}
 	*out_ZPlusC99Branch_3 = branch_ZPlusC99Branch_5;
 }
@@ -78923,7 +79322,7 @@ static void mw_std_maybe_Maybe_1_if_2_sp6 (VAL in_List_1, TUP* in_ZPlusMirth_2, 
 	*out_ZPlusNeeds_6 = branch_ZPlusNeeds_12;
 	*out_ZPlusMirth_5 = branch_ZPlusMirth_11;
 }
-static void mw_std_list_List_1_for_1_sp49 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3) {
+static void mw_std_list_List_1_for_1_sp50 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3) {
 	bool v4 = true;
 	VAL v5 = in_ZPlusLister_1;
 	VAL v6 = in_List_2;
@@ -79359,7 +79758,7 @@ static bool mw_std_list_List_1_ZEqualZEqual_sp1 (TUP* in_ZPlusMirth_1, VAL in_Li
 	*out_ZPlusMirth_4 = v29;
 	return v32;
 }
-static void mw_std_list_List_1_for_1_sp63 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3) {
+static void mw_std_list_List_1_for_1_sp64 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3) {
 	bool v4 = true;
 	VAL v5 = in_ZPlusSPCheck_1;
 	VAL v6 = in_List_2;
@@ -79484,7 +79883,7 @@ static TUP* mw_mirth_elab_abZ_buildZBang_1_sp6 (TUP* in_ZPlusMirth_1, VAL in_Ctx
 	*out_ZPlusMirth_6 = v10;
 	return v11;
 }
-static VAL mw_std_list_List_1_for_1_sp69 (VAL in_StackType_1, VAL in_List_2) {
+static VAL mw_std_list_List_1_for_1_sp70 (VAL in_StackType_1, VAL in_List_2) {
 	bool v4 = true;
 	VAL v5 = in_StackType_1;
 	VAL v6 = in_List_2;
@@ -79544,7 +79943,7 @@ static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp72 (VAL in_Maybe_1) {
 	}
 	return branch_Type_3;
 }
-static STR* mw_std_list_List_1_for_1_sp72 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8) {
+static STR* mw_std_list_List_1_for_1_sp73 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8) {
 	bool v10 = true;
 	TUP* v11 = in_ZPlusMirth_1;
 	VAL v12 = in_z_x1_2;

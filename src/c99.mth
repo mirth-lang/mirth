@@ -1176,7 +1176,7 @@ def c99-int! [ Int +C99Branch -- +C99Branch ] {
         c99-line(
             "static struct BIG_S(" put @size put ") " put @name put
             " = { .refs=100, .cap=" put @size put ", .size=" put size> put
-            ", .radix={" put rad> for( >Int >Str put "," put ) "} };" put
+            ", .radix={" put rad> for( >Int Str("0x"; hex;) put "," put ) "} };" put
         )
         c99-line(@name put ".refs++;" put)
 
