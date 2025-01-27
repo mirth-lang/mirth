@@ -1,0 +1,69 @@
+module test.big-int
+
+import std.prelude
+import std.test
+
+def main {
+    +Tests.Start!
+
+    "64-bit literal" test (
+        -0x8000_0000_0000_0000 >Str =>: "-9223372036854775808"
+        0x7FFF_FFFF_FFFF_FFFF >Str =>: "9223372036854775807"
+
+        I64.Min >Int >Str =>: "-9223372036854775808"
+        I64.Max >Int >Str =>: "9223372036854775807"
+
+        U64.Min >Int >Str =>: "0"
+        U64.Max >Int >Str =>: "0xFFFFFFFF_FFFFFFFF"
+    )
+
+    "addition" test (
+        10 10 + =>: 20
+        I64.Max >Int 1 + >Str =>: "0x80000000_00000000"
+        I64.Max >Int dup + >Str =>: "0xFFFFFFFF_FFFFFFFE"
+        I64.Max >Int dup + 1+ >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        I64.Max >Int dup + 1+ 1+ >Str =>: "0x00000001_00000000_00000000"
+        I64.Min >Int dup + >Str =>: "-0x00000001_00000000_00000000"
+        U64.Max >Int >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int 1+ >Str =>: "0x00000001_00000000_00000000"
+    )
+
+    "addition" test (
+        10 10 + =>: 20
+        I64.Max >Int 1 + >Str =>: "0x80000000_00000000"
+        I64.Max >Int dup + >Str =>: "0xFFFFFFFF_FFFFFFFE"
+        I64.Max >Int dup + 1+ >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        I64.Max >Int dup + 1+ 1+ >Str =>: "0x00000001_00000000_00000000"
+        I64.Min >Int dup + >Str =>: "-0x00000001_00000000_00000000"
+        U64.Max >Int >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int 1+ >Str =>: "0x00000001_00000000_00000000"
+    )
+
+    "subtraction" test (
+        10 10 - =>: 0
+        I64.Max >Int 1+ 1- >Str =>: "9223372036854775807"
+        I64.Max >Int 1- 1+ >Str =>: "9223372036854775807"
+        I64.Min >Int 1+ 1- >Str =>: "-9223372036854775808"
+        I64.Min >Int 1- 1+ >Str =>: "-9223372036854775808"
+
+        U64.Max >Int dup - >Str =>: "0"
+        U64.Max >Int 1- >Str =>: "0xFFFFFFFF_FFFFFFFE"
+        U64.Max >Int 1+ 1- >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int 1- 1+ >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int -1 - >Str =>: "0x00000001_00000000_00000000"
+    )
+
+    "multiplication" test (
+        U64.Max >Int 2* >Str =>: "0x00000001_FFFFFFFF_FFFFFFFE"
+        U64.Max >Int 16 * >Str =>: "0x0000000F_FFFFFFFF_FFFFFFF0"
+        U64.Max >Int dup * >Str =>: "0xFFFFFFFF_FFFFFFFE_00000000_00000001"
+        I64.Min >Int 2* >Str =>: "-0x00000001_00000000_00000000"
+        I64.Min >Int dup * >Str =>: "0x40000000_00000000_00000000_00000000"
+        I64.Min >Int 2* dup * >Str =>: "0x00000001_00000000_00000000_00000000_00000000"
+        I64.Min >Int 2* dup * U64.Max >Int * >Str =>: "0xFFFFFFFF_FFFFFFFF_00000000_00000000_00000000_00000000"
+        0x1_0000_0000 dup * >Str =>: "0x00000001_00000000_00000000"
+    )
+
+    end!
+}
+# mirth-test # pout # 5 tests passed.

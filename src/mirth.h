@@ -520,31 +520,36 @@ static STR* str_make (const char* data, USIZE size) {
 }
 #define mkstr(x,n) MKSTR(str_make((x), (n)))
 
-static STR* str_cat (STR* s1, STR* s2) {
-    EXPECT(s1 && s2, "invalid strings in prim-str-cat");
-    USIZE m = s1->cap;
-    USIZE n1 = s1->size;
-    USIZE n2 = s2->size;
-    if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
-        ASSERT(n2 <= SIZE_MAX);
-        memcpy(s1->data + n1, s2->data, (size_t)n2);
-        s1->size += n2;
-        ASSERT(s1->size + 4 <= s1->cap);
-        decref(MKSTR(s2));
-        return s1;
+static STR* str_pushn (STR* s, const char* p, USIZE n2) {
+    if (n2 == 0) return s;
+    ASSERT(s && p);
+    ASSERT(n2 <= SIZE_MAX);
+    USIZE m = s->cap;
+    USIZE n1 = s->size;
+    ASSERT(n1 <= SIZE_MAX-n2);
+    ASSERT(4 <= SIZE_MAX-n1-n2);
+    if ((s->refs == 1) && (n1 + n2 + 4 <= m)) {
+        memcpy(s->data + n1, p, (size_t)n2);
+        s->size += n2;
+        ASSERT(s->size + 4 <= s->cap);
+        return s;
     } else {
         USIZE m2 = n1 + n2 + 4;
-        if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;
+        if ((s->refs == 1) && (m <= SIZE_MAX-m) && (m2 < m*2)) m2 = m*2;
         STR* str = str_alloc(m2);
         str->size = n1+n2;
-        ASSERT(n1 <= SIZE_MAX);
-        ASSERT(n2 <= SIZE_MAX);
-        memcpy(str->data, s1->data, (size_t)n1);
-        memcpy(str->data+n1, s2->data, (size_t)n2);
-        decref(MKSTR(s1));
-        decref(MKSTR(s2));
+        memcpy(str->data, s->data, (size_t)n1);
+        memcpy(str->data+n1, p, (size_t)n2);
+        decref(MKSTR(s));
         return str;
     }
+}
+
+static STR* str_cat (STR* s1, STR* s2) {
+    EXPECT(s1 && s2, "invalid strings in prim-str-cat");
+    STR* out = str_pushn(s1, s2->data, s2->size);
+    decref(MKSTR(s2));
+    return out;
 }
 
 static USIZE get_data_tag(VAL v) {
@@ -651,6 +656,7 @@ BIG* big_alloc(size_t cap) {
 
 #define SIGN_BIT(x) ((x) & 0x80000000)
 #define NEXT_RADIX(x) (SIGN_BIT(x) ? (uint32_t)0xFFFFFFFF : (uint32_t)0)
+#define SIGN_RADIX(a) (NEXT_RADIX((a)->radix[(a)->size-1]))
 
 #define LO_RADIX(x) ((uint32_t)(x))
 #define HI_RADIX(x) ((uint32_t)(((uint64_t)(x)) >> 32))
@@ -707,7 +713,7 @@ static INT u64_to_int(uint64_t x) {
 }
 
 static INT big_normalize (BIG* a) {
-    ASSERT(a); ASSERT(a->refs == 1);
+    ASSERT(a); ASSERT(a->refs == 1); ASSERT(a->size >= 2);
     while ((a->size > 2) && (NEXT_RADIX(a->radix[a->size-2]) == a->radix[a->size-1]))
         a->size--;
     if (a->size == 2) {
@@ -796,7 +802,7 @@ static INT big_negate(BIG* a) {
         a->radix[i] = LO_RADIX(r);
         c = HI_RADIX(r);
     }
-    a->radix[a->size++] = an + c;
+    a->radix[a->size++] = ~an + c;
     return big_normalize(a);
 }
 
@@ -829,9 +835,108 @@ static uint64_t int_to_u64(INT a) {
 }
 static int64_t int_to_i64(INT a) { return (int64_t)int_to_u64(a); }
 
+static INT i63_i63_mul (int64_t a, int64_t b) {
+    if ((b == 0) ||
+        ((b > 0) && (INT63_MIN/b <= a) && (a <= INT63_MAX/b)) ||
+        ((b < 0) && (INT63_MAX/b <= a) && (a <= INT63_MIN/b)))
+    {
+        return WRAP_I63(a * b);
+    }
+
+    bool negate = (a < 0) ^ (b < 0);
+    if (a < 0) a = -a;
+    if (b < 0) b = -b;
+
+    uint64_t a0 = LO_RADIX(a);
+    uint64_t a1 = HI_RADIX(a);
+    uint64_t b0 = LO_RADIX(b);
+    uint64_t b1 = HI_RADIX(b);
+
+    uint64_t r0 = a0 * b0;
+    uint64_t r1 = a1 * b0 + a0 * b1 + HI_RADIX(r0);
+    uint64_t r2 = a1 * b1 + HI_RADIX(r1);
+    uint64_t r3 = HI_RADIX(r2);
+
+    BIG* c = big_alloc(5);
+    c->size = 4;
+    c->radix[0] = LO_RADIX(r0);
+    c->radix[1] = LO_RADIX(r1);
+    c->radix[2] = LO_RADIX(r2);
+    c->radix[3] = LO_RADIX(r3);
+    INT x = big_normalize(c);
+    return negate ? int_negate(x) : x;
+}
+
+static void big_u32_mul_shift_accum_(BIG* accum, BIG* a, uint32_t x, size_t shift) {
+    if (x == 0) return;
+    uint32_t mul_carry = 0;
+    uint32_t add_carry = 0;
+    uint32_t an = SIGN_RADIX(a);
+    for (size_t i=0; i + shift < accum->size; i++) {
+        uint32_t ar = (i < a->size) ? a->radix[i] : an;
+        uint64_t mul_result = (uint64_t)ar * (uint64_t)x + (uint64_t)mul_carry;
+        uint64_t add_result = (uint64_t)accum->radix[i+shift] + (uint64_t)LO_RADIX(mul_result) + (uint64_t)add_carry;
+        accum->radix[i+shift] = LO_RADIX(add_result);
+        mul_carry = HI_RADIX(mul_result);
+        add_carry = HI_RADIX(add_result);
+    }
+}
+
+static void big_negate_shift_accum_(BIG* accum, BIG* a, size_t shift) {
+    uint32_t carry = 1;
+    uint32_t an = SIGN_RADIX(a);
+    for (size_t i = 0; i+shift < accum->size; i++) {
+        uint32_t ar = (i < a->size) ? a->radix[i] : an;
+        uint64_t result = (uint64_t)accum->radix[i+shift] + (uint64_t)(~ar) + (uint64_t)carry;
+        accum->radix[i+shift] = LO_RADIX(result);
+        carry = HI_RADIX(result);
+    }
+}
+
+static INT big_i63_mul (BIG* a, int64_t b) {
+    if (b == 0) { big_decref(a); return WRAP_I63(0); }
+    if (b == 1) { return WRAP_BIG(a); }
+    if (b == -1) { return big_negate(a); }
+    BIG* accum = big_alloc(a->size + 3);
+    accum->size = a->size + 2;
+    big_u32_mul_shift_accum_(accum, a, LO_RADIX(b), 0);
+    big_u32_mul_shift_accum_(accum, a, HI_RADIX(b), 1);
+    uint32_t bn = NEXT_RADIX(HI_RADIX(b));
+    if (b < 0) { big_negate_shift_accum_(accum, a, 2); }
+    big_decref(a);
+    return big_normalize(accum);
+}
+
+static INT big_big_mul (BIG* a, BIG* b) {
+
+    if (a->size > b->size) { BIG*t=a; a=b; b=t; }
+    BIG* accum = big_alloc(a->size + b->size + 1);
+    accum->size = a->size + b->size;
+    for (size_t i = 0; i < b->size; i++) {
+        big_u32_mul_shift_accum_(accum, a, b->radix[i], i);
+    }
+    if (SIGN_RADIX(b)) {
+        big_negate_shift_accum_(accum, a, b->size);
+    }
+    big_decref(a);
+    big_decref(b);
+    return big_normalize(accum);
+}
+
 static INT int_mul(INT a, INT b) {
-    // TODO
-    return i64_to_int((int64_t)(int_to_u64(a) * int_to_u64(b)));
+    if (IS_I63(a)) {
+        if (IS_I63(b)) {
+            return i63_i63_mul(GET_I63(a),GET_I63(b));
+        } else {
+            return big_i63_mul(GET_BIG(b),GET_I63(a));
+        }
+    } else {
+        if (IS_I63(b)) {
+            return big_i63_mul(GET_BIG(a),GET_I63(b));
+        } else {
+            return big_big_mul(GET_BIG(a),GET_BIG(b));
+        }
+    }
 }
 
 static int64_t i64_div(int64_t, int64_t);
@@ -928,6 +1033,37 @@ static bool int_le(INT a, INT b) { return int_cmp(a,b) <= 0; }
 static bool int_gt(INT a, INT b) { return int_cmp(a,b) >  0; }
 static bool int_ge(INT a, INT b) { return int_cmp(a,b) >= 0; }
 static bool int_ne(INT a, INT b) { return int_cmp(a,b) != 0; }
+
+
+static STR* i64_to_str(int64_t);
+static STR* int_to_str(INT a) {
+    if (IS_I63(a) || (GET_BIG(a)->size == 2)) {
+        return i64_to_str(int_to_i64(a));
+    } else {
+        STR *s = str_alloc(GET_BIG(a)->size * 10);
+        if (SIGN_RADIX(GET_BIG(a))) {
+            a = int_negate(a);
+            ASSERT(IS_BIG(a));
+            s = str_pushn(s, "-", 1);
+        }
+        s = str_pushn(s,"0x",2);
+        BIG* b = GET_BIG(a);
+        size_t i = b->radix[b->size-1] ? b->size : b->size-1;
+        while (i --> 0) {
+            uint32_t r = b->radix[i];
+            char c[10] = "00000000_";
+            int j = 8;
+            while (j --> 0) {
+                uint32_t h = r & 0xF;
+                c[j] = (h > 9) ? h + 'A' - 10 : h + '0';
+                r = r >> 4;
+            }
+            s = str_pushn(s,c,8+(i>0));
+        }
+        big_decref(b);
+        return s;
+    }
+}
 
 static int64_t i64_add (int64_t a, int64_t b) {
     EXPECT(((b >= 0) && (a <= INT64_MAX - b))
@@ -1053,12 +1189,10 @@ void bool_trace_(VAL v, int fd) { if (VBOOL(v)) { write(fd, "True", 4); } else {
 void int_trace_(VAL v, int fd) {
     ASSERT(IS_INT(v));
     INT x = VINT(v);
-    if (IS_I63(x) || (GET_BIG(x)->size == 2)) {
-        incref(v);
-        i64_trace_(MKI64(int_to_i64(x)), fd);
-    } else {
-        write(fd, "<Int>", 5); // TODO
-    }
+    incref(v);
+    STR* s = int_to_str(x);
+    write(fd, s->data, s->size);
+    decref(MKSTR(s));
 }
 
 void f32_trace_(VAL v, int fd) { (void)v; write(fd, "<F32>", 5); }
@@ -1104,16 +1238,6 @@ static STR* i64_to_str (int64_t x) {
         return s;
     }
 }
-
-
-static STR* int_to_str(INT a) {
-    if (IS_I63(a)) {
-        return i64_to_str(GET_I63(a));
-    } else {
-        return i64_to_str(int_to_i64(a)); // TODO
-    }
-}
-
 
 void str_trace_(VAL v, int fd) {
     STR* str = VSTR(v);
