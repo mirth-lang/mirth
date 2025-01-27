@@ -21,7 +21,7 @@ struct +Set {
 
     def offset-mask [ Nat +Set -- UOffset U8 +Set ] {
         8u divmod dip(>UOffset)
-        1u swap << >U8-wrap
+        >U8-wrap 1u8 swap lshift
     }
 
     def member? [ Nat +Set -- Bool +Set ] {

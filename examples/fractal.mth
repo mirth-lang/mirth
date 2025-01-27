@@ -93,7 +93,7 @@ def +FractalUI.quit! [ +World +FractalUI -- +World ] {
     quit!
 }
 
-def rgba { CInt >a CInt >b CInt >g CInt >r }
+def rgba [ Int Int Int Int -- r:CInt g:CInt b:CInt a:CInt ] { >CInt >a >CInt >b >CInt >g >CInt >r }
 def background-color { 0 0 0 255 rgba }
 
 def BAIL_OUT { 2.0 }
@@ -106,7 +106,7 @@ external(
 )
 
 def set_pixel [ +surface:+SDL_Surface Int Int Int -- +surface:+SDL_Surface ] {
-    dip(dip:CInt CInt) CInt cset_pixel
+    dip(dip:>CInt >CInt) >CInt cset_pixel
 }
 
 def +Mandelbrot.plot! [ +Mandelbrot x:Int y:Int Int -- +Mandelbrot ] {

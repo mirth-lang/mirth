@@ -407,7 +407,7 @@ def Token.clone-run! [ +Mirth location:Location Token -- +Mirth Token ] {
     Token.alloc-none! >anchor
     @location @anchor location!
 
-    @end index @start index - >Nat-clamp 1+ repeat(
+    @end index >Int @start index >Int - >Nat-clamp 1+ repeat(
         @location Token.alloc-none! location!
     )
 
@@ -416,10 +416,10 @@ def Token.clone-run! [ +Mirth location:Location Token -- +Mirth Token ] {
     @start >src
     while(@src index @end index <,
         @src value map-token-ref(
-            index
-            @anchor index + 1+
-            @src index -
-            Token.from-index
+            index >Int
+            @anchor index >Int + 1+
+            @src index >Int -
+            >TableIndex-clamp Token.from-index
         ) @dst ~value !
         @src:succ
         @dst:succ

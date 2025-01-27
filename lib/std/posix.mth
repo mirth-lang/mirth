@@ -14,15 +14,15 @@ external(
 )
 
 inline(
-  def(posix-read!, Int Ptr Int -- Int, CUSize dip2:CInt external-posix-read >Int)
-  def(posix-write!, Int Ptr Int -- Int, CUSize dip:>CStr dip2:CInt external-posix-write >Int)
-  def(posix-close!, Int -- Int, CInt external-posix-close >Int)
-  def(posix-exit!, *a Int -- *b, CInt external-posix-exit)
+  def(posix-read!, Int Ptr Int -- Int, >CUSize dip2:>CInt external-posix-read >Int)
+  def(posix-write!, Int Ptr Int -- Int, >CUSize dip:>CStr dip2:>CInt external-posix-write >Int)
+  def(posix-close!, Int -- Int, >CInt external-posix-close >Int)
+  def(posix-exit!, *a Int -- *b, >CInt external-posix-exit)
 )
 
 def(posix-open!, Str Int Int -- Int,
     rotl dup dip(
         prim-str-base rotr
-	CInt dip:CInt dip2:>CStr
+        >CInt dip:>CInt dip2:>CStr
         internal-posix-open >Int
     ) drop)

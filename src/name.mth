@@ -47,10 +47,10 @@ struct Hash {
     def name-offset [ Hash -- UOffset ] { name-index |I64| * }
     def name@ [ +Mirth Hash -- +Mirth Maybe(Name) ] {
         name-offset Hash.Buf unsafe(uoffset @I64) >Int
-        dup 0= if(drop None, Name.from-index Some)
+        dup 0= if(drop None, >TableIndex-clamp Name.from-index Some)
     }
     def name! [ +Mirth Name Hash -- +Mirth ] {
-        dip(Name.index >I64-clamp)
+        dip(Name.index >Int >I64-clamp)
         name-offset Hash.Buf unsafe(uoffset !I64)
     }
 

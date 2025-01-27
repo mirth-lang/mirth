@@ -1115,20 +1115,20 @@ def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
 
 def data-get-enum-value-type [ +Mirth Data -- +Mirth ArrowType ] {
     full-type match {
-        { Left  -> T1 Type.Int T1 T-> }
+        { Left  -> T1 Type.I64 T1 T-> }
         { Right -> # not currently exposed for resources, but this is what it would be.
-            T0 over T+ Type.Int T1 rotl T+ T-> }
+            T0 over T+ Type.I64 T1 rotl T+ T-> }
     }
 }
 def data-from-enum-value-type [ +Mirth Data -- +Mirth ArrowType ] {
-    Type.Int T1 T0 rotl full-type T*+ T->
+    Type.I64 T1 T0 rotl full-type T*+ T->
 }
 
 def table-to-index-type [ +Mirth Table -- +Mirth ArrowType ] {
-    Type.Table T1 Type.Int T1 T->
+    Type.Table T1 Type.U64 T1 T->
 }
 def table-from-index-type [ +Mirth Table -- +Mirth ArrowType ] {
-    Type.Table T1 Type.Int T1 swap T->
+    Type.Table T1 Type.U64 T1 swap T->
 }
 
 def elab-block-sig! [ Block -- OpSig ] {
@@ -2432,7 +2432,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
 
     word> ab-build-word!(
         @head ab-token!
-        0 ab-int!
+        0u64 PushValue.U64 ab-push-value!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 
@@ -2453,7 +2453,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @tbl "index" 0u table-word-new! >word
 
     Ctx.L0
-    @tbl Type.Table T1 Type.Int T1 T->
+    @tbl Type.Table T1 Type.U64 T1 T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -2467,7 +2467,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     @tbl "from-index" 0u table-word-new! >word
 
     Ctx.L0
-    @tbl Type.Table T1 Type.Int T1 swap T->
+    Type.U64 T1 @tbl Type.Table T1 T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -2488,8 +2488,8 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     word> ab-build-word! (
         @head ab-token!
         @tbl Op.TableToIndex ab-op!
-        1 ab-int!
-        Prim.IntAdd ab-prim!
+        1u64 PushValue.U64 ab-push-value!
+        Prim.U64Add ab-prim!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 
@@ -2506,12 +2506,12 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
         @head ab-token!
         @tbl Op.TableToIndex ab-op!
         Prim.Dup ab-prim!
-        0 ab-int!
-        Prim.IntEq ab-prim!
+        0u64 PushValue.U64 ab-push-value!
+        Prim.U64Eq ab-prim!
         ab-if!(
             ,
-            1 ab-int!
-            Prim.IntSub ab-prim!
+            1u64 PushValue.U64 ab-push-value!
+            Prim.U64Sub ab-prim!
         )
         @tbl Op.TableFromIndex ab-op!
     ) drop
@@ -2537,21 +2537,20 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     word> ab-build-word! (
         @head ab-token!
         @vx L1 ab-lambda!(
-            1 ab-int!
+            1u64 PushValue.U64 ab-push-value!
             ab-while!(
                 Prim.Dup ab-prim!
                 @buf ab-buffer!
-                Prim.I64Get ab-prim!
-                Prim.I64ToInt ab-prim!
-                Prim.IntLe ab-prim!,
+                Prim.U64Get ab-prim!
+                Prim.U64Le ab-prim!,
 
                 Prim.Dup ab-prim!
                 ab-dip! (
                     @tbl Op.TableFromIndex ab-op!
                     @vx ab-var!
                 )
-                1 ab-int!
-                Prim.IntAdd ab-prim!
+                1u64 PushValue.U64 ab-push-value!
+                Prim.U64Add ab-prim!
             )
             Prim.Drop ab-prim!
         )
@@ -2570,14 +2569,12 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     word> ab-build-word! (
         @head ab-token!
         @buf ab-buffer!
-        Prim.I64Get ab-prim!
-        Prim.I64ToInt ab-prim!
-        1 ab-int!
-        Prim.IntAdd ab-prim!
+        Prim.U64Get ab-prim!
+        1u64 PushValue.U64 ab-push-value!
+        Prim.U64Add ab-prim!
         Prim.Dup ab-prim!
-        Prim.IntToI64 ab-prim!
         @buf ab-buffer!
-        Prim.I64Set ab-prim!
+        Prim.U64Set ab-prim!
         @tbl Op.TableFromIndex ab-op!
     ) drop
 

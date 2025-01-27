@@ -14,9 +14,9 @@ data Maybe(t) {
     1 Some [ t ]
     --
     inline (
-        def len [ Maybe(t) -- Nat ] { enum-value Nat.Unsafe }
-        def none? [ Maybe(t) -- Bool ] { enum-value 0 == }
-        def some? [ Maybe(t) -- Bool ] { enum-value 1 == }
+        def len [ Maybe(t) -- Nat ] { enum-value >Nat-unsafe }
+        def none? [ Maybe(t) -- Bool ] { enum-value 0= }
+        def some? [ Maybe(t) -- Bool ] { none? not }
         def >Bool [ Maybe(t) -- Bool ] { some? }
         def not [ Maybe(t) -- Bool ] { none? }
     )

@@ -77,7 +77,13 @@ def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     >underlying >tag >tagname >data >dataname
 
     dataname> L0 data> @tag L1 underlying> CType.IntLike Some make-prim-data!
-    tagname> 0 Type.Int L1 tag> make-prim-tag!)
+    tagname> 0 Type.I64 L1 tag> make-prim-tag!)
+
+def(make-prim-uintlike!, Str Data Str Tag Str +Mirth -- +Mirth,
+    >underlying >tag >tagname >data >dataname
+
+    dataname> L0 data> @tag L1 underlying> CType.UIntLike Some make-prim-data!
+    tagname> 0 Type.U64 L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
     Type.Type "a" >Name Var.new! >a
@@ -103,13 +109,13 @@ def(init-data!, +Mirth -- +Mirth,
     "CISize"     builtin cisize     "CISize"     builtin mk-cisize     "ssize_t"      make-prim-intlike!
     "CIntPtr"    builtin cintptr    "CIntPtr"    builtin mk-cintptr    "intptr_t"     make-prim-intlike!
 
-    "CUChar"     builtin cuchar     "CUChar"     builtin mk-cuchar     "unsigned char"      make-prim-intlike!
-    "CUShort"    builtin cushort    "CUShort"    builtin mk-cushort    "unsigned short"     make-prim-intlike!
-    "CUInt"      builtin cuint      "CUInt"      builtin mk-cuint      "unsigned int"       make-prim-intlike!
-    "CULong"     builtin culong     "CULong"     builtin mk-culong     "unsigned long"      make-prim-intlike!
-    "CULongLong" builtin culonglong "CULongLong" builtin mk-culonglong "unsigned long long" make-prim-intlike!
-    "CUSize"     builtin cusize     "CUSize"     builtin mk-cusize     "size_t"             make-prim-intlike!
-    "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-intlike!)
+    "CUChar"     builtin cuchar     "CUChar"     builtin mk-cuchar     "unsigned char"      make-prim-uintlike!
+    "CUShort"    builtin cushort    "CUShort"    builtin mk-cushort    "unsigned short"     make-prim-uintlike!
+    "CUInt"      builtin cuint      "CUInt"      builtin mk-cuint      "unsigned int"       make-prim-uintlike!
+    "CULong"     builtin culong     "CULong"     builtin mk-culong     "unsigned long"      make-prim-uintlike!
+    "CULongLong" builtin culonglong "CULongLong" builtin mk-culonglong "unsigned long long" make-prim-uintlike!
+    "CUSize"     builtin cusize     "CUSize"     builtin mk-cusize     "size_t"             make-prim-uintlike!
+    "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-uintlike!)
 
 def(data-qname, Data Name Int -- QName,
     >arity >name Tycon.Data Namespace.Tycon >namespace QName)

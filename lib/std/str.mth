@@ -9,7 +9,7 @@ import std.ctypes
 
 alias(Str.cat, prim-str-cat)
 inline(
-    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes Nat.Unsafe >USize }
+    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes >Int Nat.Unsafe >USize }
     def Str.empty? [ Str -- Bool ] { num-bytes 0= }
 )
 
@@ -25,8 +25,14 @@ def Ptr.!Str [ Str Ptr +Unsafe -- +Unsafe ] {
     swap with-data(rotl copy)
 }
 
+max-mirth-revision 2025_01_26_004 {
+    inline def(Str.ClonePtrSlice, Ptr USize +Unsafe -- Str +Unsafe, >Int prim-str-copy)
+}
+min-mirth-revision 2025_01_27_001 {
+    inline def(Str.ClonePtrSlice, Ptr USize +Unsafe -- Str +Unsafe, >Int >U64-wrap prim-str-copy)
+}
+
 inline(
-    def(Str.ClonePtrSlice, Ptr USize +Unsafe -- Str +Unsafe, >Int prim-str-copy)
     def(Str.CloneCStr, CStr +Unsafe -- Str +Unsafe, sip:>Ptr num-bytes >USize Str.ClonePtrSlice)
 )
 

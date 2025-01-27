@@ -3,47 +3,57 @@ module std.ctypes
 import std.prelude
 
 inline(
-    def-missing(CChar.CChar-unsafe, Int -- CChar, CChar)
-    def-missing(CIChar.CIChar-unsafe, Int -- CIChar, CIChar)
-    def-missing(CShort.CShort-unsafe, Int -- CShort, CShort)
-    def-missing(CInt.CInt-unsafe, Int -- CInt, CInt)
-    def-missing(CLong.CLong-unsafe, Int -- CLong, CLong)
-    def-missing(CLongLong.CLongLong-unsafe, Int -- CLongLong, CLongLong)
-    def-missing(CISize.CISize-unsafe, Int -- CISize, CISize)
-    def-missing(CIntPtr.CIntPtr-unsafe, Int -- CIntPtr, CIntPtr)
 
-    def(CChar.>Int, CChar -- Int, CChar -> id)
-    def(CIChar.>Int, CIChar -- Int, CIChar -> id)
-    def(CShort.>Int, CShort -- Int, CShort -> id)
-    def(CInt.>Int, CInt -- Int, CInt -> id)
-    def(CLong.>Int, CLong -- Int, CLong -> id)
-    def(CLongLong.>Int, CLongLong -- Int, CLongLong -> id)
-    def(CISize.>Int, CISize -- Int, CISize -> id)
-    def(CIntPtr.>Int, CIntPtr -- Int, CIntPtr -> id)
+    def(CChar.>Int, CChar -- Int, CChar -> >Int)
+    def(CIChar.>Int, CIChar -- Int, CIChar -> >Int)
+    def(CShort.>Int, CShort -- Int, CShort -> >Int)
+    def(CInt.>Int, CInt -- Int, CInt -> >Int)
+    def(CLong.>Int, CLong -- Int, CLong -> >Int)
+    def(CLongLong.>Int, CLongLong -- Int, CLongLong -> >Int)
+    def(CISize.>Int, CISize -- Int, CISize -> >Int)
+    def(CIntPtr.>Int, CIntPtr -- Int, CIntPtr -> >Int)
 
-    def-missing(CUChar.CUChar-unsafe, Int -- CUChar, CUChar)
-    def-missing(CUShort.CUShort-unsafe, Int -- CUShort, CUShort)
-    def-missing(CUInt.CUInt-unsafe, Int -- CUInt, CUInt)
-    def-missing(CULong.CULong-unsafe, Int -- CULong, CULong)
-    def-missing(CULongLong.CULongLong-unsafe, Int -- CULongLong, CULongLong)
-    def-missing(CUSize.CUSize-unsafe, Int -- CUSize, CUSize)
-    def-missing(CUIntPtr.CUIntPtr-unsafe, Int -- CUIntPtr, CUIntPtr)
+    def(CUChar.>Int, CUChar -- Int, CUChar -> >Int)
+    def(CUShort.>Int, CUShort -- Int, CUShort -> >Int)
+    def(CUInt.>Int, CUInt -- Int, CUInt -> >Int)
+    def(CULong.>Int, CULong -- Int, CULong -> >Int)
+    def(CULongLong.>Int, CULongLong -- Int, CULongLong -> >Int)
+    def(CUSize.>Int, CUSize -- Int, CUSize -> >Int)
+    def(CUIntPtr.>Int, CUIntPtr -- Int, CUIntPtr -> >Int)
 
-    def(CUChar.>Int, CUChar -- Int, CUChar -> id)
-    def(CUShort.>Int, CUShort -- Int, CUShort -> id)
-    def(CUInt.>Int, CUInt -- Int, CUInt -> id)
-    def(CULong.>Int, CULong -- Int, CULong -> id)
-    def(CULongLong.>Int, CULongLong -- Int, CULongLong -> id)
-    def(CUSize.>Int, CUSize -- Int, CUSize -> id)
-    def(CUIntPtr.>Int, CUIntPtr -- Int, CUIntPtr -> id)
+    def(CUChar.>Nat, CUChar -- Nat, >Int Nat.Unsafe)
+    def(CUShort.>Nat, CUShort -- Nat, >Int Nat.Unsafe)
+    def(CUInt.>Nat, CUInt -- Nat, >Int Nat.Unsafe)
+    def(CULong.>Nat, CULong -- Nat, >Int Nat.Unsafe)
+    def(CULongLong.>Nat, CULongLong -- Nat, >Int Nat.Unsafe)
+    def(CUSize.>Nat, CUSize -- Nat, >Int Nat.Unsafe)
+    def(CUIntPtr.>Nat, CUIntPtr -- Nat, >Int Nat.Unsafe)
 
-    def(CUChar.>Nat, CUChar -- Nat, CUChar -> Nat.Unsafe)
-    def(CUShort.>Nat, CUShort -- Nat, CUShort -> Nat.Unsafe)
-    def(CUInt.>Nat, CUInt -- Nat, CUInt -> Nat.Unsafe)
-    def(CULong.>Nat, CULong -- Nat, CULong -> Nat.Unsafe)
-    def(CULongLong.>Nat, CULongLong -- Nat, CULongLong -> Nat.Unsafe)
-    def(CUSize.>Nat, CUSize -- Nat, CUSize -> Nat.Unsafe)
-    def(CUIntPtr.>Nat, CUIntPtr -- Nat, CUIntPtr -> Nat.Unsafe)
+    max-mirth-revision 2025_01_26_004 {
+        def Int.>IntLike  { }
+        def Int.>UIntLike { }
+    }
+    min-mirth-revision 2025_01_27_001 {
+        def Int.>IntLike  { >I64-unsafe }
+        def Int.>UIntLike { >U64-wrap   }
+    }
+
+    def Int.>CChar     { >IntLike CChar     }
+    def Int.>CIChar    { >IntLike CIChar    }
+    def Int.>CShort    { >IntLike CShort    }
+    def Int.>CInt      { >IntLike CInt      }
+    def Int.>CLong     { >IntLike CLong     }
+    def Int.>CLongLong { >IntLike CLongLong }
+    def Int.>CISize    { >IntLike CISize    }
+    def Int.>CIntPtr   { >IntLike CIntPtr   }
+
+    def Int.>CUChar     { >UIntLike CUChar     }
+    def Int.>CUShort    { >UIntLike CUShort    }
+    def Int.>CUInt      { >UIntLike CUInt      }
+    def Int.>CULong     { >UIntLike CULong     }
+    def Int.>CULongLong { >UIntLike CULongLong }
+    def Int.>CUSize     { >UIntLike CUSize     }
+    def Int.>CUIntPtr   { >UIntLike CUIntPtr   }
 
     def(CUSize.>USize, CUSize -- USize, >Nat >USize)
 
