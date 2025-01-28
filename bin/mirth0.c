@@ -956,7 +956,7 @@ static int64_t i64_div(int64_t, int64_t);
 static int64_t i64_mod(int64_t, int64_t);
 
 static void big_u32_shift_udivmod(BIG* a, uint32_t bhead, size_t bshift, INT* q, INT* r) {
-    ASSERT(bhead >= 1);
+    ASSERT(bhead >= 1); ASSERT(a && (a->size > bshift));
     BIG* accum = big_alloc(a->size - bshift + 2); // quatient in accum
     accum->size = a->size - bshift;
     a = big_reserve(a, a->size); // remainder in a
@@ -969,6 +969,140 @@ static void big_u32_shift_udivmod(BIG* a, uint32_t bhead, size_t bshift, INT* q,
         accum->radix[i] = rq;
     }
     a->radix[bshift] = ar;
+    *r = big_normalize(a);
+    *q = big_normalize(accum);
+}
+
+static void big_u64_add_at_accum_(BIG* accum, uint64_t b, size_t shift) {
+    for(size_t i = shift; b && (i < accum->size); i++) {
+        uint32_t ar = accum->radix[i];
+        uint32_t br = LO_RADIX(b);
+        accum->radix[i] = ar + br;
+        b = HI_RADIX(b);
+        if (ar > UINT32_MAX - br)
+            b++;
+    }
+}
+
+static void big_succ_at_accum_(BIG* a, size_t i) {
+    while (i < a->size) {
+        if (++a->radix[i]) break;
+        i++;
+    }
+}
+
+static void big_pred_at_accum_(BIG* a, size_t i) {
+    while (i < a->size) {
+        if (a->radix[i]--) break;
+        i++;
+    }
+}
+
+static void big_pos_u32_mul_sub_shift_accum_(BIG* a, INT b, uint32_t scale, size_t shift) {
+    size_t bsize;
+    uint32_t *bradix;
+    uint32_t bradix_temp[2] = {0};
+    if (IS_I63(b)) {
+        int64_t ib = GET_I63(b);
+        ASSERT(ib >= 0);
+        bsize = 2;
+        bradix = bradix_temp;
+        bradix_temp[0] = LO_RADIX(ib);
+        bradix_temp[1] = HI_RADIX(ib);
+    } else {
+        BIG* bb = GET_BIG(b);
+        bsize = bb->size;
+        bradix = bb->radix;
+    }
+
+    uint64_t borrow = 0;
+    size_t i = 0;
+    for (; i < bsize; i++) {
+        ASSERT(i+shift < a->size);
+        uint64_t br = (uint64_t)scale * (uint64_t)bradix[i];
+        ASSERT(borrow <= UINT64_MAX - br);
+        br += borrow;
+        uint64_t ahi = (i+shift+1 < a->size) ? a->radix[i+shift+1] : 0;
+        uint64_t alo = a->radix[i+shift];
+        uint64_t ar = (ahi << 32) | alo;
+        borrow = (ar < br) ? (uint64_t)0x100000000 : (uint64_t)0;
+        ar -= br;
+        a->radix[i+shift] = LO_RADIX(ar);
+        if (i+shift+1 < a->size) {
+            a->radix[i+shift+1] = HI_RADIX(ar);
+        }
+    }
+    if (borrow) {
+        big_pred_at_accum_(a, i+shift+1);
+    }
+}
+
+static uint32_t big_get_u32_ (BIG* a, size_t i) {
+    if (i >= a->size) {
+        return SIGN_RADIX(a);
+    } else {
+        return a->radix[i];
+    }
+}
+static uint64_t big_get_u64_ (BIG* a, size_t i) {
+    uint64_t hi = (uint64_t)big_get_u32_(a,i+1);
+    uint64_t lo = (uint64_t)big_get_u32_(a,i);
+    return (hi << 32) | lo;
+}
+
+static int big_pos_ucmp_(BIG* a, INT b) {
+    size_t bsize;
+    uint32_t *bradix;
+    uint32_t bradix_temp[2] = {0};
+    if (IS_I63(b)) {
+        int64_t ib = GET_I63(b);
+        ASSERT(ib >= 0);
+        bsize = 2;
+        bradix = bradix_temp;
+        bradix_temp[0] = LO_RADIX(ib);
+        bradix_temp[1] = HI_RADIX(ib);
+    } else {
+        BIG* bb = GET_BIG(b);
+        bsize = bb->size;
+        bradix = bb->radix;
+    }
+    for(size_t i = a->size; i --> bsize;) {
+        if (a->radix[i]) return -1;
+    }
+    for(size_t i = bsize; i --> a->size;) {
+        if (bradix[i]) return 1;
+    }
+    for (size_t i = ((bsize < a->size) ? bsize : a->size); i --> 0;) {
+        uint32_t ar = a->radix[i];
+        uint32_t br = bradix[i];
+        if (ar != br) {
+            return (ar > br) - (ar < br);
+        }
+    }
+    return 0;
+}
+
+static void big_pos_imperfect_udivmod(BIG* a, INT b, uint32_t bhead, size_t bshift, INT* q, INT* r) {
+    ASSERT(bhead >= 1);
+    ASSERT(a && (a->size > bshift));
+    BIG* accum = big_alloc(a->size - bshift + 2); // quotient in accum
+    accum->size = a->size - bshift;
+    a = big_reserve(a, a->size); // remainder in a;
+    for (size_t i = a->size - bshift; i --> 0;) {
+        while (1) {
+            uint64_t ar = big_get_u64_(a, i+bshift);
+            uint64_t n = ar / (1 + (uint64_t)bhead);
+            if (!n) break;
+            big_u64_add_at_accum_(accum,n,i);
+            big_pos_u32_mul_sub_shift_accum_(a,b,n,i);
+        }
+    }
+    if (big_pos_ucmp_(a,b) >= 0) {
+        big_pos_u32_mul_sub_shift_accum_(a,b,1,0);
+        big_succ_at_accum_(accum,0);
+        ASSERT(big_pos_ucmp_(a,b) < 0);
+    }
+    int_decref(b);
     *r = big_normalize(a);
     *q = big_normalize(accum);
 }
@@ -1006,7 +1140,7 @@ static void big_pos_udivmod(BIG* a, INT b, INT *q, INT *r) {
         int_decref(b);
         big_u32_shift_udivmod(a, bhead, bshift, q, r);
     } else {
-        EXPECT(0, "Long-long division not implemented.");
+        big_pos_imperfect_udivmod(a, b, bhead, bshift, q, r);
     }
 }
 
@@ -36454,7 +36588,7 @@ static void mw_mirth_mirth_ZPlusMirth_initZ_macrosZBang (TUP* in_ZPlusMirth_1, T
 	*out_ZPlusMirth_2 = v64;
 }
 static VAL mw_mirth_version_mirthZ_revision (void) {
-	INT v2 = WRAP_I63(20250127003LL);
+	INT v2 = WRAP_I63(20250128001LL);
 	return MKINT(v2);
 }
 static void mw_mirth_elab_ZPlusTypeElab_rdrop (TUP* in_ZPlusTypeElab_1) {
@@ -59193,7 +59327,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"static int64_t i64_mod(int64_t, int64_t);\n"
 		"\n"
 		"static void big_u32_shift_udivmod(BIG* a, uint32_t bhead, size_t bshift, INT* q, INT* r) {\n"
-		"    ASSERT(bhead >= 1);\n"
+		"    ASSERT(bhead >= 1); ASSERT(a && (a->size > bshift));\n"
 		"    BIG* accum = big_alloc(a->size - bshift + 2); // quatient in accum\n"
 		"    accum->size = a->size - bshift;\n"
 		"    a = big_reserve(a, a->size); // remainder in a\n"
@@ -59206,6 +59340,140 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"        accum->radix[i] = rq;\n"
 		"    }\n"
 		"    a->radix[bshift] = ar;\n"
+		"    *r = big_normalize(a);\n"
+		"    *q = big_normalize(accum);\n"
+		"}\n"
+		"\n"
+		"static void big_u64_add_at_accum_(BIG* accum, uint64_t b, size_t shift) {\n"
+		"    for(size_t i = shift; b && (i < accum->size); i++) {\n"
+		"        uint32_t ar = accum->radix[i];\n"
+		"        uint32_t br = LO_RADIX(b);\n"
+		"        accum->radix[i] = ar + br;\n"
+		"        b = HI_RADIX(b);\n"
+		"        if (ar > UINT32_MAX - br)\n"
+		"            b++;\n"
+		"    }\n"
+		"}\n"
+		"\n"
+		"static void big_succ_at_accum_(BIG* a, size_t i) {\n"
+		"    while (i < a->size) {\n"
+		"        if (++a->radix[i]) break;\n"
+		"        i++;\n"
+		"    }\n"
+		"}\n"
+		"\n"
+		"static void big_pred_at_accum_(BIG* a, size_t i) {\n"
+		"    while (i < a->size) {\n"
+		"        if (a->radix[i]--) break;\n"
+		"        i++;\n"
+		"    }\n"
+		"}\n"
+		"\n"
+		"static void big_pos_u32_mul_sub_shift_accum_(BIG* a, INT b, uint32_t scale, size_t shift) {\n"
+		"    size_t bsize;\n"
+		"    uint32_t *bradix;\n"
+		"    uint32_t bradix_temp[2] = {0};\n"
+		"    if (IS_I63(b)) {\n"
+		"        int64_t ib = GET_I63(b);\n"
+		"        ASSERT(ib >= 0);\n"
+		"        bsize = 2;\n"
+		"        bradix = bradix_temp;\n"
+		"        bradix_temp[0] = LO_RADIX(ib);\n"
+		"        bradix_temp[1] = HI_RADIX(ib);\n"
+		"    } else {\n"
+		"        BIG* bb = GET_BIG(b);\n"
+		"        bsize = bb->size;\n"
+		"        bradix = bb->radix;\n"
+		"    }\n"
+		"\n"
+		"    uint64_t borrow = 0;\n"
+		"    size_t i = 0;\n"
+		"    for (; i < bsize; i++) {\n"
+		"        ASSERT(i+shift < a->size);\n"
+		"        uint64_t br = (uint64_t)scale * (uint64_t)bradix[i];\n"
+		"        ASSERT(borrow <= UINT64_MAX - br);\n"
+		"        br += borrow;\n"
+		"        uint64_t ahi = (i+shift+1 < a->size) ? a->radix[i+shift+1] : 0;\n"
+		"        uint64_t alo = a->radix[i+shift];\n"
+		"        uint64_t ar = (ahi << 32) | alo;\n"
+		"        borrow = (ar < br) ? (uint64_t)0x100000000 : (uint64_t)0;\n"
+		"        ar -= br;\n"
+		"        a->radix[i+shift] = LO_RADIX(ar);\n"
+		"        if (i+shift+1 < a->size) {\n"
+		"            a->radix[i+shift+1] = HI_RADIX(ar);\n"
+		"        }\n"
+		"    }\n"
+		"    if (borrow) {\n"
+		"        big_pred_at_accum_(a, i+shift+1);\n"
+		"    }\n"
+		"}\n"
+		"\n"
+		"static uint32_t big_get_u32_ (BIG* a, size_t i) {\n"
+		"    if (i >= a->size) {\n"
+		"        return SIGN_RADIX(a);\n"
+		"    } else {\n"
+		"        return a->radix[i];\n"
+		"    }\n"
+		"}\n"
+		"static uint64_t big_get_u64_ (BIG* a, size_t i) {\n"
+		"    uint64_t hi = (uint64_t)big_get_u32_(a,i+1);\n"
+		"    uint64_t lo = (uint64_t)big_get_u32_(a,i);\n"
+		"    return (hi << 32) | lo;\n"
+		"}\n"
+		"\n"
+		"static int big_pos_ucmp_(BIG* a, INT b) {\n"
+		"    size_t bsize;\n"
+		"    uint32_t *bradix;\n"
+		"    uint32_t bradix_temp[2] = {0};\n"
+		"    if (IS_I63(b)) {\n"
+		"        int64_t ib = GET_I63(b);\n"
+		"        ASSERT(ib >= 0);\n"
+		"        bsize = 2;\n"
+		"        bradix = bradix_temp;\n"
+		"        bradix_temp[0] = LO_RADIX(ib);\n"
+		"        bradix_temp[1] = HI_RADIX(ib);\n"
+		"    } else {\n"
+		"        BIG* bb = GET_BIG(b);\n"
+		"        bsize = bb->size;\n"
+		"        bradix = bb->radix;\n"
+		"    }\n"
+		"    for(size_t i = a->size; i --> bsize;) {\n"
+		"        if (a->radix[i]) return -1;\n"
+		"    }\n"
+		"    for(size_t i = bsize; i --> a->size;) {\n"
+		"        if (bradix[i]) return 1;\n"
+		"    }\n"
+		"    for (size_t i = ((bsize < a->size) ? bsize : a->size); i --> 0;) {\n"
+		"        uint32_t ar = a->radix[i];\n"
+		"        uint32_t br = bradix[i];\n"
+		"        if (ar != br) {\n"
+		"            return (ar > br) - (ar < br);\n"
+		"        }\n"
+		"    }\n"
+		"    return 0;\n"
+		"}\n"
+		"\n"
+		"static void big_pos_imperfect_udivmod(BIG* a, INT b, uint32_t bhead, size_t bshift, INT* q, INT* r) {\n"
+		"    ASSERT(bhead >= 1);\n"
+		"    ASSERT(a && (a->size > bshift));\n"
+		"    BIG* accum = big_alloc(a->size - bshift + 2); // quotient in accum\n"
+		"    accum->size = a->size - bshift;\n"
+		"    a = big_reserve(a, a->size); // remainder in a;\n"
+		"    for (size_t i = a->size - bshift; i --> 0;) {\n"
+		"        while (1) {\n"
+		"            uint64_t ar = big_get_u64_(a, i+bshift);\n"
+		"            uint64_t n = ar / (1 + (uint64_t)bhead);\n"
+		"            if (!n) break;\n"
+		"            big_u64_add_at_accum_(accum,n,i);\n"
+		"            big_pos_u32_mul_sub_shift_accum_(a,b,n,i);\n"
+		"        }\n"
+		"    }\n"
+		"    if (big_pos_ucmp_(a,b) >= 0) {\n"
+		"        big_pos_u32_mul_sub_shift_accum_(a,b,1,0);\n"
+		"        big_succ_at_accum_(accum,0);\n"
+		"        ASSERT(big_pos_ucmp_(a,b) < 0);\n"
+		"    }\n"
+		"    int_decref(b);\n"
 		"    *r = big_normalize(a);\n"
 		"    *q = big_normalize(accum);\n"
 		"}\n"
@@ -59243,7 +59511,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"        int_decref(b);\n"
 		"        big_u32_shift_udivmod(a, bhead, bshift, q, r);\n"
 		"    } else {\n"
-		"        EXPECT(0, \"Long-long division not implemented.\");\n"
+		"        big_pos_imperfect_udivmod(a, b, bhead, bshift, q, r);\n"
 		"    }\n"
 		"}\n"
 		"\n"
@@ -59806,7 +60074,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		46180
+		50021
 	);
 	return v2;
 }
