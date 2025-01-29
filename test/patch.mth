@@ -1,0 +1,17 @@
+module test.patch
+
+import std.prelude
+import std.world
+
+struct Foo {
+    Int
+}
+
+patch Foo {
+    def bar [ Foo -- Int ] { /Foo }
+}
+
+def main {
+    100 Foo bar >Str print
+}
+# mirth-test # pout # 100

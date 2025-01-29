@@ -1319,7 +1319,7 @@ def elab-match-exhaustive! [ +Mirth +Match -- +Mirth +Match ] {
 def elab-module! [ Module +World +Mirth -- Module +World +Mirth ] {
     dup start
     elab-module-header!
-    over Namespace.Module Some with-defining-namespace (
+    over Namespace.Module PropLabel.DefiningNamespace prop Some with-defining-namespace (
         elab-decls!
         dup module-end? else(
             "Unexpected token in module." emit-fatal-error!
@@ -1707,7 +1707,7 @@ def elab-data-tag! [ Data SyntaxDataTag +Mirth -- Data +Mirth ] {
 
 def elab-data-decls! [ +World +Mirth Data Token -- +World +Mirth Data ] {
     dup Some >error-token
-    over Tycon.Data Namespace.Tycon Some >defining-namespace
+    over Tycon.Data Namespace.Tycon PropLabel.DefiningNamespace prop Some >defining-namespace
     LexicalState with-lexical-state (
         while(dup arg-end? not, elab-decl!)
         drop
@@ -1982,6 +1982,25 @@ def elab-inline! [ Token +World +Mirth -- Token +World +Mirth ] {
             sip:next args-1 elab-decls! drop,
             succ elab-decl-or-decl-block!
         )
+    )
+}
+
+||| Elaborate a patch declaration. This is a way to add definitions in a
+||| particular namespace.
+|||
+|||     patch Namespace { Decl* }
+def elab-patch! [ Token +World +Mirth -- Token +World +Mirth ] {
+    dup args-0
+    succ dup args-0
+    dup name/dname? else?("Expected a type constructor." emit-fatal-error!)
+    dip:dup PropLabel.DefiningNamespace prop2(
+        >name/dname
+        False >ignore-last-name
+        dup resolve-def-namespace
+        else?("Cannot compute patch namespace." emit-fatal-error!)
+        nip
+    ) Some with-defining-namespace (
+        succ elab-decl-block!
     )
 }
 
@@ -2586,23 +2605,23 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
 # FIELD #
 #########
 
-def resolve-def-namespace [ +Mirth Token name/dname:Name/DName -- +Mirth Maybe(Namespace) ] {
+def resolve-def-namespace [ +Mirth Token name/dname:Name/DName ignore-last-name:Bool -- +Mirth Maybe(Namespace) ] {
     >token
     "namespace" >sort
-    True >ignore-last-name
     False >report-ambiguous-as-warning
     resolve-def(
-        filter-sort(dup rdip:exposed-tycon? >Bool)
+        filter-sort(dup rdip:as-def-namespace? >Bool)
         filter-qualifiers
         L0 filter-roots
     )
-    bind(as-namespace?)
+    bind(as-def-namespace?)
 }
 
 def elab-qname-from-nonrelative-dname [ +Mirth Token DName arity:Int -- +Mirth QName ] {
     dup Right >name/dname
     dup root? else(drop "relative name not allowed" emit-fatal-error!)
     last-name >name
+    True >ignore-last-name
     dup resolve-def-namespace unwrap(panic-diagnostics!) >namespace
     drop QName
 }
@@ -2635,8 +2654,11 @@ def elab-def-qname [ +Mirth Token -- +Mirth QName ] {
 
 ||| The namespace for definitions by default.
 def defining-namespace-or-error [ +Mirth Token -- +Mirth Namespace ] {
-    lexical-state defining-namespace
-    unwrap("error: no namespace for definition" emit-fatal-error!)
+    lexical-state defining-namespace(
+        unwrap("error: no namespace for definition" emit-fatal-error!)
+        compute Some
+    ) lexical-state!
+    unwrap("error: couldn't compute namespace for definition" emit-fatal-error!)
     nip
 }
 

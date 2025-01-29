@@ -12,7 +12,7 @@ endif
 syntax iskeyword 33,36-39,42-43,45,47-57,59-90,94-95,97-122,124,126
 
 " reserved words -- these have special syntactic meaning
-syntax keyword mirthReserved module import inline alias data struct def def-type def-missing external table field embed-str buffer max-mirth-revision min-mirth-revision --
+syntax keyword mirthReserved module import inline alias data struct def def-type def-missing external table field embed-str buffer max-mirth-revision min-mirth-revision patch --
 syntax keyword mirthSpecial -> \\
 
 " words, numbers, and types

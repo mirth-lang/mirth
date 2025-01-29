@@ -235,6 +235,12 @@ data Def {
         { _ -> drop None }
     }
 
+    def as-def-namespace? [ +Mirth Def -- +Mirth Maybe(Namespace) ] {
+        { Alias -> ~target try-force! bind(as-def-namespace?) }
+        { Word -> drop None }
+        { _ -> as-namespace? }
+    }
+
     def register [ +Mirth Def -- +Mirth ] {
         dup qname-soft for(
             dup undefined-soft? else(

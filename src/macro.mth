@@ -55,22 +55,22 @@ def import-statement-error! [ +Mirth Token -- +Mirth Token ] {
 def prim-decl-macro! { MacroAction.Decl Macro.Prim Def.Macro register }
 def prim-word-macro! { MacroAction.Arrow Macro.Prim Def.Macro register }
 
-
 def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
-    "module" [ module-statement-error! ] prim-decl-macro!
-    "import" [ import-statement-error! ] prim-decl-macro!
-    "alias"         [ elab-alias!         ] prim-decl-macro!
-    "inline"        [ elab-inline!        ] prim-decl-macro!
-    "def"           [ elab-def!           ] prim-decl-macro!
-    "def-missing"   [ elab-def-missing!   ] prim-decl-macro!
-    "def-type"      [ elab-def-type!      ] prim-decl-macro!
-    "external"      [ elab-external!      ] prim-decl-macro!
-    "buffer"        [ elab-buffer!        ] prim-decl-macro!
-    "table"         [ elab-table!         ] prim-decl-macro!
-    "field"         [ elab-field!         ] prim-decl-macro!
-    "data"          [ elab-data!          ] prim-decl-macro!
-    "struct"        [ elab-struct!        ] prim-decl-macro!
-    "embed-str"     [ elab-embed-str!     ] prim-decl-macro!
+    "module"             [ module-statement-error!  ] prim-decl-macro!
+    "import"             [ import-statement-error!  ] prim-decl-macro!
+    "patch"              [ elab-patch!              ] prim-decl-macro!
+    "alias"              [ elab-alias!              ] prim-decl-macro!
+    "inline"             [ elab-inline!             ] prim-decl-macro!
+    "def"                [ elab-def!                ] prim-decl-macro!
+    "def-missing"        [ elab-def-missing!        ] prim-decl-macro!
+    "def-type"           [ elab-def-type!           ] prim-decl-macro!
+    "external"           [ elab-external!           ] prim-decl-macro!
+    "buffer"             [ elab-buffer!             ] prim-decl-macro!
+    "table"              [ elab-table!              ] prim-decl-macro!
+    "field"              [ elab-field!              ] prim-decl-macro!
+    "data"               [ elab-data!               ] prim-decl-macro!
+    "struct"             [ elab-struct!             ] prim-decl-macro!
+    "embed-str"          [ elab-embed-str!          ] prim-decl-macro!
     "max-mirth-revision" [ elab-max-mirth-revision! ] prim-decl-macro!
     "min-mirth-revision" [ elab-min-mirth-revision! ] prim-decl-macro!
 
