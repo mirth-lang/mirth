@@ -48,6 +48,12 @@ data Either(a,b) {
         { Left -> Left }
         { Right -> g }
     }
+
+    # Convert Rights into Lefts, and then unwrap
+    def left(f) [ (*x b -- *x a) *x Either(a, b) -- *x a] {
+        { Left -> id }
+        { Right -> f }
+    }
 }
 
 data +Either(+a, +b) {

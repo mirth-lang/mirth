@@ -9,5 +9,5 @@ def main {
     "Hello" foo
     drop3
 }
-# mirth-test # merr # 9:13: error: Multiple definitions for name, but none are suitable: std.prelude.UOffset.1+ is method for a different type, std.prelude.IOffset.1+ is method for a different type, std.prelude.USize.1+ is method for a different type, std.prelude.ISize.1+ is method for a different type, std.prelude.UIndex.1+ is method for a different type, std.prelude.Nat.1+ is method for a different type, std.prim.Int.1+ is method for a different type
+# mirth-test # merr # 9:13: error: Multiple definitions for name, but none are suitable: Method 1+ is for different type – expected one of std.prelude.UOffset std.prelude.IOffset std.prelude.USize std.prelude.ISize std.prelude.UIndex std.prelude.Nat std.prim.Int but got [Str]
 # mirth-test # mret # 1

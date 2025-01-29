@@ -283,7 +283,7 @@ data RejectedDef {
     WrongQualifier     [ Def ]
     WrongConstructor   [ Def ]
     MethodNotAvailable [ Def ]
-    MethodWrongType    [ Def ]
+    MethodWrongType    [ Def List(Namespace) ]
 }
 
 struct +ResolveDef {
@@ -371,18 +371,18 @@ struct +ResolveDef {
     }
 
     def filter-roots [ List(Namespace) +Mirth +ResolveDef -- +Mirth +ResolveDef ] {
-        name/dname match {
+        !namespaces(name/dname match {
             { Left ->
                 >name
                 filter(
-                    dup2 rdip:qname-hard namespace swap member
+                    dup rdip:qname-hard namespace @namespaces member
                     or(token over rdip:def-is-imported-at-token?),
                     dup rdip:qname-hard namespace match(
                         Tycon ->
                             drop @name rdip:can-be-relative? if(
-                                over empty? if(
+                                @namespaces empty? if(
                                     RejectedDef.MethodNotAvailable,
-                                    RejectedDef.MethodWrongType
+                                    @namespaces RejectedDef.MethodWrongType
                                 ),
                                 RejectedDef.NotImported
                             ),
@@ -394,10 +394,10 @@ struct +ResolveDef {
 
             { Right ->
                 dup is-relative? and(ignore-last-name not) if(
-                    filter(dup2 rdip:qname-hard climb-up-dname? has(over3 member),
-                        over2 empty? if(
+                    filter(dup2 rdip:qname-hard climb-up-dname? has(@namespaces member),
+                        @namespaces empty? if(
                             RejectedDef.MethodNotAvailable,
-                            RejectedDef.MethodWrongType
+                            @namespaces RejectedDef.MethodWrongType
                         )
                     ),
                     filter(dup2 rdip:qname-hard climb-up-dname? has(
@@ -405,8 +405,7 @@ struct +ResolveDef {
                     ), RejectedDef.NotImported)
                 ) drop
             }
-        }
-
+        })
         drop
     }
 
@@ -457,21 +456,37 @@ struct +ResolveDef {
                         WrongConstructor ->
                             "Constructor is for a different type: " ; rdip_:qname; ,
                         MethodWrongType ->
-                            "Method is for a different type: " ; rdip_:qname; ,
+                            swap "Method "; rdip_:qname;
+                            " does not match ["; for(rdip_:name;, " ";) "]"; ,
                         MethodNotAvailable ->
                             "Method is not available for current stack: " ; rdip_:qname; ,
                     ),
                     _ -> cons "Multiple definitions for name, but none are suitable:" ;
-                        dip:" " for(swap ; match(
+                        L0 >namespaces
+                        dup filter-some:match(
+                            MethodWrongType -> @namespaces(drop id) Some,
+                            _ -> drop None
+                        )
+                        " " >separator
+                        >Nest? for(
+                            separator> ; "Method "; rdip:name/dname left(last-name) rdip_:name;
+                            " is for different type – expected one of"; for(" "; rdip:rdip:qname-hard namespace rdip_:qname;)
+                            " but got ["; @namespaces for(rdip_:name;, " ";) "]";
+                            ", " >separator
+                        )
+                        namespaces> drop
+                        filter-some:match(MethodWrongType -> drop drop None, _ -> Some)
+                        for(separator> ; match(
                             WrongSort -> rdip_:qname; " is not a " ; rdip:sort ; ,
                             NotVisible -> rdip_:qname; " is not visible in current scope" ; ,
                             NotImported -> rdip_:qname; " is not imported in current scope" ; ,
                             WrongArity -> rdip2:qname-hard dup rdip_:qname; " expects " ; arity int; " arguments" ; ,
                             WrongQualifier -> rdip_:qname; " doesn't match the given qualified name" ; ,
                             WrongConstructor -> rdip_:qname; " is constructor for a different type" ; ,
-                            MethodWrongType -> rdip_:qname; " is method for a different type" ; ,
+                            MethodWrongType -> impossible!,
                             MethodNotAvailable -> rdip_:qname; " is not avaliable for current stack" ; ,
-                        ) ", ") drop
+                        ) ", " >separator) 
+                        separator> drop
                 )
         )) rdip:emit-error! rdrop
     }
