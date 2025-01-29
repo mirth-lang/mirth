@@ -87,7 +87,7 @@ def Builtin.Alloc! [ -- Builtin ] {
 
 struct LexicalState {
     error-token: Maybe(Token)
-    defining-namespace: Maybe(Namespace)
+    defining-namespace: Maybe(Prop(Namespace))
 }
 
 struct +Mirth {
@@ -229,7 +229,7 @@ def +Mirth.with-lexical-state(f) [ (*a +Mirth -- *b +Mirth) *a LexicalState +Mir
     lexical-state(swap) dip(f) lexical-state!
 }
 
-def +Mirth.with-defining-namespace(f) [ (*a +Mirth -- *b +Mirth) *a Maybe(Namespace) +Mirth -- *b +Mirth ] {
+def +Mirth.with-defining-namespace(f) [ (*a +Mirth -- *b +Mirth) *a Maybe(Prop(Namespace)) +Mirth -- *b +Mirth ] {
     lexical-state:defining-namespace(swap)
     dip(f) lexical-state:defining-namespace!
 }
@@ -250,6 +250,7 @@ data PropState(b) {
 }
 
 data PropLabel {
+    DefiningNamespace
     DataQName      [ Data ]
     DataParams     [ Data ]
     DataCType      [ Data ]
@@ -274,6 +275,7 @@ data PropLabel {
     MacroQName     [ Macro ]
     --
     def trace; [ +Mirth +Str PropLabel -- +Mirth +Str ] {
+        { DefiningNamespace -> "defining namespace"; }
         { DataQName      -> "data qname at " ; rdip:head? location?; }
         { DataParams     -> "data params at " ; rdip:head? location?; }
         { DataCType      -> "data ctype at " ; rdip:head? location?; }
@@ -331,6 +333,16 @@ def(Prop.ready?, Prop(t) -- Maybe(t),
         Ready -> Some,
         _ -> drop None
     ))
+
+def Prop.compute [ Prop(t) +Mirth -- Maybe(t) Prop(t) +Mirth ] {
+    state (
+        dup >state match {
+            { Ready -> Some }
+            { Delay -> state> drop rotl with-lexical-state:run dup PropState.Ready >state Some }
+            { Computing -> None }
+        } state>
+    )
+}
 
 def Prop.try-force! [ Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth ] {
     dup @ >prop
