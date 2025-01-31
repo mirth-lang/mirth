@@ -2,6 +2,7 @@ module std.either
 
 import std.prelude
 import std.maybe
+import std.str
 
 alias Left Either.Left
 alias Right Either.Right
@@ -39,6 +40,7 @@ data Either(a,b) {
         { Right -> g }
     }
 
+
     def either(f,g) [ (*x a -- *y, *x b -- *y) *x Either(a,b) -- *y ] {
         { Left -> f }
         { Right -> g }
@@ -49,10 +51,33 @@ data Either(a,b) {
         { Right -> g }
     }
 
-    # Convert Rights into Lefts, and then unwrap
+    ||| Map Rights into Lefts, and then unwrap
     def left(f) [ (*x b -- *x a) *x Either(a, b) -- *x a] {
         { Left -> id }
         { Right -> f }
+    }
+
+    ||| Map Lefts into Rights, then unwrap
+    def right(f) [ (*x a -- *x b) *x Either(a,b) -- *x b ] {
+        { Left -> f }
+        { Right -> id }
+    }
+
+    ||| Turn left values into right ones if the predicate matches
+    def right?(predicate,f) [ (*x a -- *x Bool, *x a -- *x b) *x Either(a,b) -- *x Either(a,b) ] {
+        { Left -> dup dip:predicate swap if(f Right,Left) }
+        { Right -> Right }
+    }
+
+    ||| Turn left values into right ones if `value eq` is true
+    def case(value, f, eq {==}) [ (*x a -- *x a a, *x -- *x b, *x a a -- *x Bool) *x Either(a,b) -- *x Either(a,b) ] {
+        right?(value eq, drop f)
+    }
+
+
+    def repr;(f {repr;}, g {repr;}) [ (a +Str -- +Str, b +Str -- +Str) Either(a,b) +Str -- +Str ] {
+        { Left -> f " Left" ; }
+        { Right -> g " Right" ; }
     }
 }
 
@@ -102,4 +127,18 @@ def while-left(f) [ (*c a -- *c Either(a,b)) *c a -- *c b ] {
 def while-right(f) [ (*c b -- *c Either(a,b)) *c b -- *c a ] {
     Right while-some(dup right?, nip f)
     left? unwrap(impossible!)
+}
+
+
+
+||| Wrap a value as a Left to be used with `Either.case`:
+|||
+|||     switch(
+|||         case("value-1", 1)
+|||         case("value-2", 2)
+|||         case("value-3", 3),
+|||         drop 4
+|||     )
+def switch(f, default) [ (*x Either(a, b) -- *x Either(a, b), *x a -- *x b) *x a -- *x b ] {
+    Left f right(default)
 }

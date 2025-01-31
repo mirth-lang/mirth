@@ -2169,6 +2169,20 @@ static FIELD mfld_mirth_data_Tag_ZTildevalueZ_show = {0};
 static FIELD mfld_mirth_data_Tag_ZTildewordZ_c99Z_api = {0};
 static FIELD mfld_mirth_data_Tag_ZTildepatZ_c99Z_api = {0};
 static FIELD mfld_mirth_word_Word_ZTildec99Z_api = {0};
+static void mtw_std_buffer_ZPlusBuffer_ZPlusBuffer (INT in_USizze_1, void* in_Ptr_2, TUP* *out_ZPlusBuffer_3) {
+	TUP* v4 = tup_new(2);
+	v4->size = 2;
+	v4->cells[1] = MKPTR(in_Ptr_2);
+	v4->cells[0] = MKINT(in_USizze_1);
+	*out_ZPlusBuffer_3 = v4;
+}
+static void mtp_std_buffer_ZPlusBuffer_ZPlusBuffer (TUP* in_ZPlusBuffer_1, INT *out_USizze_2, void* *out_Ptr_3) {
+	INT v4 = value_int(in_ZPlusBuffer_1->cells[0]);
+	void* v5 = value_ptr(in_ZPlusBuffer_1->cells[1]);
+	tup_decref_outer(in_ZPlusBuffer_1,2);
+	*out_Ptr_3 = v5;
+	*out_USizze_2 = v4;
+}
 static VAL mtw_std_either_Either_2_Left (VAL in_a_1) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
@@ -2216,20 +2230,6 @@ static void mtp_std_either_ZPlusEither_2_ZPlusRight (VAL in_ZPlusEither_1, VAL *
 	VAL v3 = value_tup(in_ZPlusEither_1, 2)->cells[1];
 	tup_decref_outer(value_tup(in_ZPlusEither_1, 2),2);
 	*out_ZPlusb_2 = v3;
-}
-static void mtw_std_buffer_ZPlusBuffer_ZPlusBuffer (INT in_USizze_1, void* in_Ptr_2, TUP* *out_ZPlusBuffer_3) {
-	TUP* v4 = tup_new(2);
-	v4->size = 2;
-	v4->cells[1] = MKPTR(in_Ptr_2);
-	v4->cells[0] = MKINT(in_USizze_1);
-	*out_ZPlusBuffer_3 = v4;
-}
-static void mtp_std_buffer_ZPlusBuffer_ZPlusBuffer (TUP* in_ZPlusBuffer_1, INT *out_USizze_2, void* *out_Ptr_3) {
-	INT v4 = value_int(in_ZPlusBuffer_1->cells[0]);
-	void* v5 = value_ptr(in_ZPlusBuffer_1->cells[1]);
-	tup_decref_outer(in_ZPlusBuffer_1,2);
-	*out_Ptr_3 = v5;
-	*out_USizze_2 = v4;
 }
 static VAL mtw_std_list_List_1_Cons (VAL in_t_1, VAL in_List_2) {
 	TUP* v4 = tup_new(3);
@@ -5556,8 +5556,6 @@ static int64_t mext_std_world_posixZ_stat (void* in_CStr_1, void* in_Ptr_2) {
 	int64_t v7 = (int64_t)(Y);
 	return v7;
 }
-static VAL mw_std_either_Either_2_leftZAsk (VAL in_Either_1);
-static VAL mw_std_either_Either_2_rightZAsk (VAL in_Either_1);
 static STR* mw_std_byte_Byte_toZ_strZ_unsafe (int64_t in_Byte_1);
 static VAL mw_std_byte_Byte_toZ_asciiZ_str (int64_t in_Byte_1);
 static bool mw_std_byte_Byte_isZ_stringZ_end (int64_t in_Byte_1);
@@ -5605,6 +5603,8 @@ static void mw_std_prim_Str_reprZThen (STR* in_Str_1, STR* in_ZPlusStr_2, STR* *
 static void mw_std_prim_Str_zzencodeZThen (STR* in_ZPlusStr_1, STR* in_Str_2, STR* *out_ZPlusStr_3);
 static STR* mw_std_prim_Str_zzencode (STR* in_Str_1);
 static VAL mw_std_prim_Str_ZToF64ZAsk (STR* in_Str_1);
+static VAL mw_std_either_Either_2_leftZAsk (VAL in_Either_1);
+static VAL mw_std_either_Either_2_rightZAsk (VAL in_Either_1);
 static bool mw_std_list_List_1_emptyZAsk (VAL in_List_1);
 static VAL mw_std_list_List_1_singleZAsk (VAL in_List_1);
 static VAL mw_std_list_List_1_pairZAsk (VAL in_List_1);
@@ -7158,46 +7158,6 @@ int main (int argc, char** argv) {
 	push_resource(MKI64(0));
 	return 0;
 }
-static VAL mw_std_either_Either_2_leftZAsk (VAL in_Either_1) {
-	VAL branch_Maybe_3;
-	switch (get_data_tag(in_Either_1)) {
-		case 0LL: { // Left
-			VAL v4 = mtp_std_either_Either_2_Left(in_Either_1);
-			VAL v5 = mtw_std_maybe_Maybe_1_Some(v4);
-			branch_Maybe_3 = v5;
-		} break;
-		case 1LL: { // Right
-			VAL v6 = mtp_std_either_Either_2_Right(in_Either_1);
-			decref(v6);
-			VAL v7 = MKI64(0LL /* None */);
-			branch_Maybe_3 = v7;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	return branch_Maybe_3;
-}
-static VAL mw_std_either_Either_2_rightZAsk (VAL in_Either_1) {
-	VAL branch_Maybe_3;
-	switch (get_data_tag(in_Either_1)) {
-		case 0LL: { // Left
-			VAL v4 = mtp_std_either_Either_2_Left(in_Either_1);
-			decref(v4);
-			VAL v5 = MKI64(0LL /* None */);
-			branch_Maybe_3 = v5;
-		} break;
-		case 1LL: { // Right
-			VAL v6 = mtp_std_either_Either_2_Right(in_Either_1);
-			VAL v7 = mtw_std_maybe_Maybe_1_Some(v6);
-			branch_Maybe_3 = v7;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	return branch_Maybe_3;
-}
 static STR* mw_std_byte_Byte_toZ_strZ_unsafe (int64_t in_Byte_1) {
 	VAL v3 = MKI64(0LL /* Nil */);
 	VAL v4 = mw_std_list_List_1_cons(MKI64(in_Byte_1), v3);
@@ -8558,6 +8518,46 @@ static VAL mw_std_prim_Str_ZToF64ZAsk (STR* in_Str_1) {
 		branch_Maybe_7 = branch_Maybe_15;
 	}
 	return branch_Maybe_7;
+}
+static VAL mw_std_either_Either_2_leftZAsk (VAL in_Either_1) {
+	VAL branch_Maybe_3;
+	switch (get_data_tag(in_Either_1)) {
+		case 0LL: { // Left
+			VAL v4 = mtp_std_either_Either_2_Left(in_Either_1);
+			VAL v5 = mtw_std_maybe_Maybe_1_Some(v4);
+			branch_Maybe_3 = v5;
+		} break;
+		case 1LL: { // Right
+			VAL v6 = mtp_std_either_Either_2_Right(in_Either_1);
+			decref(v6);
+			VAL v7 = MKI64(0LL /* None */);
+			branch_Maybe_3 = v7;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_Maybe_3;
+}
+static VAL mw_std_either_Either_2_rightZAsk (VAL in_Either_1) {
+	VAL branch_Maybe_3;
+	switch (get_data_tag(in_Either_1)) {
+		case 0LL: { // Left
+			VAL v4 = mtp_std_either_Either_2_Left(in_Either_1);
+			decref(v4);
+			VAL v5 = MKI64(0LL /* None */);
+			branch_Maybe_3 = v5;
+		} break;
+		case 1LL: { // Right
+			VAL v6 = mtp_std_either_Either_2_Right(in_Either_1);
+			VAL v7 = mtw_std_maybe_Maybe_1_Some(v6);
+			branch_Maybe_3 = v7;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_Maybe_3;
 }
 static bool mw_std_list_List_1_emptyZAsk (VAL in_List_1) {
 	int64_t v3 = get_data_tag(in_List_1);
