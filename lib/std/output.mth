@@ -29,7 +29,7 @@ struct +Output {
     }
 
     def flush! [ +Output -- +Output ] {
-        +buffer:base size +file:unsafe:write-bytes! drop2
+        +buffer:base >ptr size >size +file:unsafe:write-bytes! drop
         0u >USize size!
     }
 
@@ -44,7 +44,7 @@ struct +Output {
     def put [ Str +Output -- +Output ] {
         dup num-bytes capacity-remaining > if(
             flush! dup num-bytes capacity-total >= if(
-                with-data(+file:unsafe:write-bytes! drop2),
+                with-data(>size >ptr +file:unsafe:write-bytes! drop),
                 put
             ),
 

@@ -1,0 +1,62 @@
+||| Methods for numeric types.
+||| No need to import this module directly, just import std.prelude
+module std.number
+
+import std.prelude
+import std.str
+
+inline patch Int {
+    def + [ Int Int -- Int ] { prim-int-add }
+    def - [ Int Int -- Int ] { prim-int-sub }
+    def * [ Int Int -- Int ] { prim-int-mul }
+
+    max-mirth-revision 2025_01_29_002 {
+        def compare [ Int Int -- Comparison ] { compare-via-eq-lt }
+    }
+    min-mirth-revision 2025_01_29_003 {
+        def compare [ Int Int -- Comparison ] { prim-int-cmp }
+    }
+    def == [ Int Int -- Bool ] { prim-int-eq }
+    def <  [ Int Int -- Bool ] { prim-int-lt }
+    def <= [ Int Int -- Bool ] { prim-int-le }
+    def >  [ Int Int -- Bool ] { prim-int-gt }
+    def >= [ Int Int -- Bool ] { prim-int-ge }
+    def <> [ Int Int -- Bool ] { prim-int-ne }
+
+    def divmod [ Int Int -- Int Int ] { prim-int-divmod }
+    def div [ Int Int -- Int ] { divmod drop }
+    def mod [ Int Int -- Int ] { divmod nip }
+}
+
+inline patch F32 {
+    def + [ F32 F32 -- F32 ] { prim-f32-add }
+    def - [ F32 F32 -- F32 ] { prim-f32-sub }
+    def * [ F32 F32 -- F32 ] { prim-f32-mul }
+    def / [ F32 F32 -- F32 ] { prim-f32-div }
+
+    def >F64 [ F32 -- F64 ] { prim-f32-to-f64 }
+    def >Str [ F32 -- Str ] { prim-f32-to-str }
+    # def >Int-unsafe [ F32 -- Int ] { prim-f32-to-int } # TODO. not implemented, and unsafe.
+    def repr; [ +Str F32 -- +Str ] { >Str ; " >F32"; }
+
+    def == [ F32 F32 -- Bool ] { prim-f32-eq }
+    def <  [ F32 F32 -- Bool ] { prim-f32-lt }
+    def <= [ F32 F32 -- Bool ] { prim-f32-le }
+}
+
+inline patch F64 {
+    def + [ F64 F64 -- F64 ] { prim-f64-add }
+    def - [ F64 F64 -- F64 ] { prim-f64-sub }
+    def * [ F64 F64 -- F64 ] { prim-f64-mul }
+    def / [ F64 F64 -- F64 ] { prim-f64-div }
+
+    def >F32-round [ F64 -- F32 ] { prim-f64-to-f32 }
+    # def >Int-unsafe [ F64 -- Int ] { prim-f64-to-int } # TODO. not implemented, and unsafe.
+    def >Str [ F64 -- Str ] { prim-f64-to-str }
+    def repr; [ +Str F64 -- +Str ] { >Str ; }
+
+    def == [ F64 F64 -- Bool ] { prim-f64-eq }
+    def <  [ F64 F64 -- Bool ] { prim-f64-lt }
+    def <= [ F64 F64 -- Bool ] { prim-f64-le }
+
+}

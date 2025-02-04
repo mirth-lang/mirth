@@ -4,6 +4,7 @@ import std.maybe
 import std.str
 import std.byte
 import std.list
+import std.number
 
 alias id prim-id
 alias ?? prim-debug
@@ -17,38 +18,6 @@ alias rdip(f) prim-rdip
 alias dip(f) prim-dip
 alias while(f,g) prim-while
 
-alias Int.+ prim-int-add
-alias Int.- prim-int-sub
-alias Int.* prim-int-mul
-
-max-mirth-revision 2025_01_26_004 {
-    alias Int.div prim-int-div
-    alias Int.mod prim-int-mod
-    def Int.divmod [ Int Int -- Int Int ] { dup2 dip2(div) mod }
-}
-min-mirth-revision 2025_01_27_001 {
-    alias Int.divmod prim-int-divmod
-    inline def Int.div [ Int Int -- Int ] { divmod drop }
-    inline def Int.mod [ Int Int -- Int ] { divmod nip }
-}
-
-alias F32.+ prim-f32-add
-alias F32.- prim-f32-sub
-alias F32.* prim-f32-mul
-alias F32./ prim-f32-div
-alias F32.>F64 prim-f32-to-f64
-alias F32.>Int prim-f32-to-int
-alias F32.>Str prim-f32-to-str
-inline def F32.repr; [ +Str F32 -- +Str ] { >Str ; " >F32"; }
-
-alias F64.+ prim-f64-add
-alias F64.- prim-f64-sub
-alias F64.* prim-f64-mul
-alias F64./ prim-f64-div
-alias F64.>F32 prim-f64-to-f32
-alias F64.>Int prim-f64-to-int
-alias F64.>Str prim-f64-to-str
-inline def F64.repr; [ +Str F64 -- +Str ] { >Str ; }
 
 alias Bool.if(f,g) prim-if
 alias Bool.and prim-bool-and
@@ -77,38 +46,23 @@ inline def and(f,g,h,i) { and(f,and(g,and(h,i))) }
 
 def(Bool.repr;, Bool +Str -- +Str, if("True", "False") ;)
 
-min-mirth-revision 2025_01_26_003 {
-    alias Bool.True  prim-bool-true
-    alias Bool.False prim-bool-false
-}
+alias Bool.True  prim-bool-true
+alias Bool.False prim-bool-false
 
-# Re-export Bool unqualified.
 alias True  Bool.True
 alias False Bool.False
 
-# Cute booleans.
 alias Yes True
 alias No  False
 
 inline {
-    max-mirth-revision 2025_01_26_004 {
-        def-type(EnumValue,Int)
-        def Int.>EnumValue-unsafe [ Int -- EnumValue ] { }
-        def I64.>EnumValue [ I64 -- EnumValue ] { >Int }
+    def-type(EnumValue,I64)
+    def Int.>EnumValue-unsafe [ Int -- EnumValue ] { >I64-unsafe }
+    def I64.>EnumValue [ I64 -- EnumValue ] { }
 
-        def-type(TableIndex,Int)
-        def Int.>TableIndex-clamp [ Int -- TableIndex ] { }
-        def U64.>TableIndex [ U64 -- TableIndex ] { >Int }
-    }
-    min-mirth-revision 2025_01_27_001 {
-        def-type(EnumValue,I64)
-        def Int.>EnumValue-unsafe [ Int -- EnumValue ] { >I64-unsafe }
-        def I64.>EnumValue [ I64 -- EnumValue ] { }
-
-        def-type(TableIndex,U64)
-        def Int.>TableIndex-clamp [ Int -- TableIndex ] { >U64-clamp }
-        def U64.>TableIndex [ U64 -- TableIndex ] { }
-    }
+    def-type(TableIndex,U64)
+    def Int.>TableIndex-clamp [ Int -- TableIndex ] { >U64-clamp }
+    def U64.>TableIndex [ U64 -- TableIndex ] { }
 }
 
 data OS {
@@ -294,14 +248,6 @@ def compare2(f{compare}, g{compare}) [
     }
 }
 
-alias Int.== prim-int-eq
-alias Int.<  prim-int-lt
-alias Int.<= prim-int-le
-alias Int.>  prim-int-gt
-alias Int.>= prim-int-ge
-alias Int.<> prim-int-ne
-def Int.compare [ Int Int -- Comparison ] { compare-via-eq-lt }
-
 def compare-via-eq-lt (eq {==}, lt {<}) [ (a a -- Bool, a a -- Bool) a a -- Comparison ] {
     dup2 eq if(drop2 Comparison.EQ, lt if(Comparison.LT, Comparison.GT))
 }
@@ -311,16 +257,6 @@ def min (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 lt if(drop, nip) }
 def clamp (lt {<}) [ (a a -- Bool) a a a -- a ] { dip(max:lt) min:lt }
 def in-range (le {<=}) [ (a a -- Bool) a a a -- Bool ] {
     dip(swap dup dip:le) rotl if(le, drop2 False)
-}
-
-inline {
-    alias F64.== prim-f64-eq
-    alias F64.<  prim-f64-lt
-    alias F64.<= prim-f64-le
-
-    alias F32.== prim-f32-eq
-    alias F32.<  prim-f32-lt
-    alias F32.<= prim-f32-le
 }
 
 inline {
@@ -410,16 +346,9 @@ inline {
         +Unsafe f /+Unsafe
     }
 
-    max-mirth-revision 2025_01_26_004 {
-        ||| Add byte offset to Ptr.
-        def Ptr.ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int) prim-ptr-add }
-        def Ptr.uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int) prim-ptr-add }
-    }
-    min-mirth-revision 2025_01_27_001 {
-        ||| Add byte offset to Ptr.
-        def Ptr.ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
-        def Ptr.uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
-    }
+    ||| Add byte offset to Ptr.
+    def Ptr.ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
+    def Ptr.uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
 
     def Ptr.@Ptr [ Ptr +Unsafe -- Ptr +Unsafe ] { prim-ptr-get }
     def Ptr.!Ptr [ Ptr Ptr +Unsafe -- +Unsafe ] { prim-ptr-set }
@@ -446,18 +375,10 @@ inline {
     def Ptr.!F32 [ F32 Ptr +Unsafe -- +Unsafe ] { prim-f32-set }
     def Ptr.!F64 [ F64 Ptr +Unsafe -- +Unsafe ] { prim-f64-set }
 
-    max-mirth-revision 2025_01_26_004 {
-        def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-alloc   }
-        def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int prim-ptr-realloc }
-        def Ptr.copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int) prim-ptr-copy }
-        def Ptr.fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int dip(>Int)) prim-ptr-fill }
-    }
-    min-mirth-revision 2025_01_27_001 {
-        def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-alloc   }
-        def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-realloc }
-        def Ptr.copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-copy }
-        def Ptr.fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-fill }
-    }
+    def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-alloc   }
+    def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-realloc }
+    def Ptr.copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-copy }
+    def Ptr.fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-fill }
 
     def Ptr.free    [ Ptr +Unsafe -- +Unsafe ] { prim-ptr-free }
     def Ptr.erase   [ USize Ptr +Unsafe -- +Unsafe ] { dip2(0u8) fill }
@@ -1061,6 +982,10 @@ struct ISize {
         def >USize-if   (f,g) [ ( *a USize   -- *b, *a ISize -- *b ) *a ISize -- *b ] { >Nat-if(>USize   f, g) }
         def >UOffset-if (f,g) [ ( *a UOffset -- *b, *a ISize -- *b ) *a ISize -- *b ] { >Nat-if(>UOffset f, g) }
 
+        def >USize-clamp [ ISize -- USize ] { >Int >USize-clamp }
+        def >UOffset-clamp [ ISize -- UOffset ] { >Int >UOffset-clamp }
+        def >UIndex-clamp [ ISize -- UIndex ] { >Int >UIndex-clamp }
+
         def +  [ ISize ISize -- ISize ] { both(>Int) + >ISize }
         def -  [ ISize ISize -- ISize ] { both(>Int) - >ISize }
         def 1+ [ ISize -- ISize ] { >Int 1+ >ISize }
@@ -1086,6 +1011,7 @@ struct USize {
         def Int.>USize-if (f,g) [ (*a USize -- *b, *a Int -- *b) *a Int -- *b ] { >Nat-if(USize f, g) }
         def Int.>USize-else (f) [ (*a Int -- *a USize) *a Int -- *a USize ] { >USize-if(id, f) }
         def Int.>USize-clamp [ Int -- USize ] { >Nat-clamp >USize }
+        def Int.>USize? [ Int -- Maybe(USize) ] { >USize-if(Some, drop None) }
 
         def >Nat [ USize -- Nat ] { /USize }
         def >Int [ USize -- Int ] { >Nat >Int }

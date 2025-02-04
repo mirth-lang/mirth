@@ -61,7 +61,7 @@ def c99-start! [ Arrow C99_Options +World +Mirth -- Arrow +World +C99 ] {
     0u >fresh-counter
     True >put-enabled
     +Needs.new dup determine-arrow-needs! >+needs >+mirth
-    @options output-path create-file! +else(+mirth> fatal-error!) +Output.start! >+output
+    @options output-path create-file! +else(+mirth> io-error!) +Output.start! >+output
     +C99
 }
 
@@ -72,6 +72,7 @@ def c99-end! [ +World +C99 -- +World +Mirth ] {
     +needs> rdrop
     +output> end! close-file!
     +mirth>
+    for(io-error!)
 }
 
 def +C99.reset-fresh-counter! [ +C99 -- +C99 ] {

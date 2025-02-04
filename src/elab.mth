@@ -485,7 +485,7 @@ struct +ResolveDef {
                             WrongConstructor -> rdip_:qname; " is constructor for a different type" ; ,
                             MethodWrongType -> impossible!,
                             MethodNotAvailable -> rdip_:qname; " is not avaliable for current stack" ; ,
-                        ) ", " >separator) 
+                        ) ", " >separator)
                         separator> drop
                 )
         )) rdip:emit-error! rdrop
@@ -2418,7 +2418,7 @@ def elab-embed-str! [ Token +World +Mirth -- Token +World +Mirth ] {
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
     dup >body None >sig?
     dup str? unwrap("expected source path" emit-fatal-error!)
-    >Path >+mirth open-file! +else(+mirth> fatal-error!) read-file! close-file! nip >contents +mirth>
+    >Path >+mirth open-file! +else(+mirth> io-error!) read-file! close-file! then?(+mirth> io-error!) nip >contents +mirth>
     Word.new!
     dup PropLabel.WordQName >label Prop over ~qname !
 

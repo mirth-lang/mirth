@@ -28,11 +28,12 @@ struct +InputOpenState {
     }
 
     def refill-buffer! [ +InputOpenState -- +Input ] {
-        +buffer(base size) +file:unsafe:read-bytes! over 0> and if(
+        +buffer(base >ptr size >size) +file:unsafe:read-bytes! ok? filter(0>) if?(
             length!
             0u >UOffset offset!
             +Input.Open,
-            drop end! +Input.Done
+
+            end! +Input.Done
         )
     }
 

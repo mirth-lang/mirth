@@ -2,27 +2,148 @@ module std.posix
 
 import std.prelude
 import std.ctypes
+import std.str
+import std.maybe
+import std.path
+import std.result
 
-external(
-  external-posix-read -> read [ CInt Ptr CUSize -- CInt ]
-  external-posix-write -> write [ CInt CStr CUSize -- CInt ]
-  external-posix-close -> close [ CInt -- CInt ]
-  external-posix-exit -> exit [ *a CInt -- *b ]
+struct +FileDescriptor {
+    CInt
+    --
+    inline def Stdin  [ +World -- +World +FileDescriptor ] { 0i64 >CInt +FileDescriptor }
+    inline def Stdout [ +World -- +World +FileDescriptor ] { 1i64 >CInt +FileDescriptor }
+    inline def Stderr [ +World -- +World +FileDescriptor ] { 2i64 >CInt +FileDescriptor }
 
-  "int open_internal(const char* path, int flags, int mode) { return open(path, flags, mode); }"
-  internal-posix-open -> open_internal [ CStr CInt CInt -- CInt ]
-)
+    inline def raw-fd [ +FileDescriptor -- +FileDescriptor CInt ] { +FileDescriptor -> dup +FileDescriptor }
+    inline def is-stdin?  { raw-fd >Int 0 == }
+    inline def is-stdout? { raw-fd >Int 1 == }
+    inline def is-stderr? { raw-fd >Int 2 == }
 
-inline(
-  def(posix-read!, Int Ptr Int -- Int, >CUSize dip2:>CInt external-posix-read >Int)
-  def(posix-write!, Int Ptr Int -- Int, >CUSize dip:>CStr dip2:>CInt external-posix-write >Int)
-  def(posix-close!, Int -- Int, >CInt external-posix-close >Int)
-  def(posix-exit!, *a Int -- *b, >CInt external-posix-exit)
-)
+    inline def rdup-unsafe  [ +FileDescriptor -- +FileDescriptor +FileDescriptor ] { raw-fd +FileDescriptor }
+    inline def rdrop-unsafe [ +FileDescriptor -- ] { +FileDescriptor -> drop }
+}
 
-def(posix-open!, Str Int Int -- Int,
-    rotl dup dip(
-        prim-str-base rotr
-        >CInt dip:>CInt dip2:>CStr
-        internal-posix-open >Int
-    ) drop)
+patch +World {
+    external {
+        raw-posix-strerror! -> strerror [ +World CInt -- +World CStr ]
+    }
+    inline def posix-strerror! [ +World Errno -- +World Str ] {
+        >CInt raw-posix-strerror! unsafe:Str.CloneCStr
+    }
+
+    external raw-posix-exit! -> exit [ *a CInt +World -- *b ]
+    inline def posix-exit! [ *a Int +World -- *b ] { >CInt raw-posix-exit! }
+
+    external {
+        "static int posix_open (const char* path, int flags, int mode) { return open(path, flags, mode); }"
+        raw-posix-open! -> posix_open [
+            +World path:CStr flags:CInt mode:CInt --
+            +World CInt
+        ]
+    }
+    inline def posix-open! [
+        +World path:Path flags:OpenFlags mode:FileMode --
+        +World +Maybe(+FileDescriptor)
+    ] {
+        path> >Str with-cstr( >path
+            @mode:>CInt
+            @flags:>CInt
+            raw-posix-open!
+            dup 0< if(drop +None, +FileDescriptor +Some)
+        )
+    }
+
+    external raw-posix-close! -> close [ +World +fd:+FileDescriptor -- +World CInt ]
+
+    ||| Returns True if an error occured.
+    inline def posix-close! [ +World +fd:+FileDescriptor -- +World Bool ] {
+        raw-posix-close! 0<
+    }
+}
+
+patch +Unsafe {
+    external raw-posix-read! -> read [
+        +Unsafe +fd:+FileDescriptor ptr:Ptr size:CUSize --
+        +Unsafe +fd:+FileDescriptor CInt
+    ]
+
+    inline def posix-read! [
+        +Unsafe +fd:+FileDescriptor ptr:Ptr size:USize --
+        +Unsafe +fd:+FileDescriptor Result(Errno, USize)
+    ] {
+        @size:>CUSize
+        raw-posix-read!
+        >Int >USize-if(
+            Ok,
+            drop posix-errno! Err
+        )
+    }
+
+    external raw-posix-write! -> write [
+        +Unsafe +fd:+FileDescriptor ptr:CStr size:CUSize --
+        +Unsafe +fd:+FileDescriptor CInt
+    ]
+
+    inline def posix-write! [
+        +Unsafe +fd:+FileDescriptor ptr:Ptr size:USize --
+        +Unsafe +fd:+FileDescriptor Result(Errno, USize)
+    ] {
+        @ptr:>CStr @size:>CUSize
+        raw-posix-write!
+        >Int >USize-if(
+            Ok,
+            drop posix-errno! Err
+        )
+    }
+}
+
+inline struct FileMode {
+    CInt
+    --
+    def None { 0 >CInt FileMode }
+    def Default { 0o666 >FileMode }
+
+    def >CInt [ FileMode -- CInt ] { /FileMode }
+    def >Int [ FileMode -- Int ] { >CInt >Int }
+    def >U16 [ FileMode -- U16 ] { >Int >U16-wrap }
+
+    def CInt.>FileMode { }
+    def Int.>FileMode { >CInt FileMode }
+    def U16.>FileMode { >Int >CInt FileMode }
+}
+
+struct OpenFlags {
+    CInt
+    --
+    inline {
+        def >CInt [ OpenFlags -- CInt ] { /OpenFlags }
+    }
+
+    def >U64-wrap [ OpenFlags -- U64 ] { /OpenFlags >Int >U64-wrap }
+    def U64> [ U64 -- OpenFlags ] { >Int >I64-unsafe CInt OpenFlags }
+    def None { 0u64 OpenFlags.U64> }
+    def | [ OpenFlags OpenFlags -- OpenFlags ] { on2:>U64-wrap or OpenFlags.U64> }
+}
+
+struct Errno {
+    CInt
+    --
+    inline {
+        def CInt.>Errno [ CInt -- Errno ] { Errno }
+        def >CInt [ Errno -- CInt ] { /Errno }
+        def >I64  [ Errno -- I64  ] { >CInt >I64 }
+        def compare [ Errno Errno -- Comparison ] { on2:>I64 compare }
+        def == [ Errno Errno -- Bool ] { on2:>I64 == }
+        def <  [ Errno Errno -- Bool ] { on2:>I64 <  }
+        def <= [ Errno Errno -- Bool ] { on2:>I64 <= }
+    }
+
+    external {
+        "#include <errno.h>"
+        "static int posix_errno (void) { return errno; }"
+        +Unsafe.posix-errno! -> posix_errno [ +Unsafe -- +Unsafe Errno ]
+        +World.posix-errno! -> posix_errno [ +World -- +World Errno ]
+    }
+
+    def repr; [ Errno +Str -- +Str ] { >CInt repr; " Errno"; }
+}
