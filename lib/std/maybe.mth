@@ -61,6 +61,27 @@ data Maybe(t) {
     def has(f)  { { Some -> f      } { None -> False } }
     def all(f)  { { Some -> f      } { None -> True  } }
 
+
+    ||| Consume the value with `g` (replacing with `None`) if the predicate `f` returns true
+    |||
+    |||   for?(updated?, refresh!)
+    |||   for?(deleted?, clean-up!)
+    |||   
+    def for?(f, g) [ (*a b -- *a Bool, *a b -- *a) *a Maybe(b) -- *a Maybe(b) ] {
+        bind(dup dip:f swap if(g None, Some))
+    }
+
+
+    ||| Consume `Some` with `f` if `q eq` is true
+    ||| 
+    |||   @command Some
+    |||   case("parse" ==, run-parser!)
+    |||   case("help" ==, show-help!)
+    |||
+    def case(q, f, eq {==}) [ (*x a -- *x a a, *x -- *x, *x a a -- *x Bool) *x Maybe(a) -- *x Maybe(a) ] {
+        for?(q eq, drop f)
+    }
+
     def filter(f) [ (*a b -- *a Bool) *a Maybe(b) -- *a Maybe(b) ] {
         { Some -> dup dip(f) swap if(Some, drop None) }
         { None -> None }
@@ -113,6 +134,23 @@ def while-none(f,g) [ (*a -- *a Maybe(b), *a -- *a) *a -- *a b ] {
     unwrap(impossible!)
 }
 
+def while-none(f) [ (*a -- *a Maybe(b)) *a -- *a b ] {
+    None until(drop f dup some?) unwrap(impossible!)
+}
+
 inline def Bool.>Maybe (f) [ ( *a -- *a b ) *a Bool -- *a Maybe(b) ] {
     if(f Some, None)
+}
+
+
+
+||| Intended to be used with `Maybe.case` like:
+|||
+|||     switch?(
+|||         case("value-1", do-something)
+|||         case("value-2", do-other-thing),
+|||         do-default-action
+|||     )
+def switch?(f, d) [ (*x Maybe(a) -- *x Maybe(a), *x a -- *x) *x a -- *x ] {
+    Some f for(d)
 }

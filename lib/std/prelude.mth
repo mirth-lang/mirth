@@ -39,6 +39,26 @@ inline def while(f) [ (*x -- *x Bool) *x -- *x ] {
     True while(dup, drop f) drop
 }
 
+||| The opposite of `while(f, g)` – repeat until True
+inline def until(f, g) [ (*x -- *x Bool, *x -- *x) *x -- *x ] {
+    while(f not, g)
+}
+
+||| The opposite of `while(f)` – repeat until True
+inline def until(f) [ (*x -- *x Bool)  *x -- *x ] {
+    False while(dup not, drop f) drop
+}
+
+||| Do either `g` or `h` based on predicate `f`, preserving the top of the stack
+|||
+|||   @value if("world" ==,
+|||     print("hello "; ;),
+|||     print("goodbye "; ;)
+|||   )
+inline def if(f, g, h) [ (*a b -- *a Bool, *a b -- *c, *a b -- *c) *a b -- *c ] {
+    dup dip:f swap if(g, h)
+}
+
 inline def or(f,g,h) { or(f,or(g,h)) }
 inline def or(f,g,h,i) { or(f,or(g,or(h,i))) }
 inline def and(f,g,h) { and(f,and(g,h)) }
@@ -1199,7 +1219,11 @@ inline(
 def(@?, Mut(t) -- Maybe(t),
     dup mut-is-set if(@ Some, drop None))
 
-inline:def(panic!, *a Str -- *b, prim-panic)
+inline def panic! [*a Str -- *b] { prim-panic }
+
+inline def panic!(s) [(*a +Str -- *b +Str) *a -- *b] {
+    Str(s) panic!
+}
 
 def(impossible!, *a -- *b, "Impossible! The impossible has occured!" panic!)
 def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
