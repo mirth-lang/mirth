@@ -271,22 +271,10 @@ def in-range (le {<=}) [ (a a -- Bool) a a a -- Bool ] {
 ||| Natural numbers, i.e. non-negative integers, starting from 0.
 data Nat { Unsafe [ Int ] }
 
-||| Signed size in bytes.
 struct ISize { Int }
-
-||| Unsigned size in bytes.
 struct USize { Nat }
-
-||| Signed offset in bytes.
 struct IOffset { Int }
-
-||| Unsigned offset in bytes.
 struct UOffset { Nat }
-
-||| Signed index into an array or table.
-struct IIndex { Int }
-
-||| Unsigned index into an array or table.
 struct UIndex { Nat }
 
 inline {

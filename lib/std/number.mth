@@ -75,9 +75,10 @@ inline patch Int {
 
     def repr; [ Int +Str -- +Str ] { >Str ; }
     def int;  [ Int +Str -- +Str ] { >Str ; }
-    def bin; [ Int +Str -- +Str ] { sign?; bin; }
-    def oct; [ Int +Str -- +Str ] { sign?; oct; }
-    def hex; [ Int +Str -- +Str ] { sign?; hex; }
+    def dec;  [ Int +Str -- +Str ] { sign?; dec; }
+    def bin;  [ Int +Str -- +Str ] { sign?; bin; }
+    def oct;  [ Int +Str -- +Str ] { sign?; oct; }
+    def hex;  [ Int +Str -- +Str ] { sign?; hex; }
     def sign?; [ Int +Str -- Nat +Str ] { dup 0< then("-" ; negate) >Nat-unsafe }
     def sign; [ Int +Str -- Nat +Str ] { dup 0< if("-" ; negate, "+" ;) >Nat-unsafe }
 
@@ -123,6 +124,38 @@ inline patch Int {
     }
     def >I8-else(f) [ (*a Int -- *a I8 ) *a Int -- *a I8 ] { >I8-if(id,f) }
     def >I8? [ Int -- Maybe(I8) ] { >I8-if(Some, drop None) }
+
+    def >U64-if(f,g) [ (*a U64 -- *b, *a Int -- *b) *a Int -- *b ] {
+        dup 0 U64.Max >Int in-range if(>U64-wrap f, g)
+    }
+    def >U64-else(f) [ (*a Int -- *a U64) *a Int -- *a U64 ] { >U64-if(id, f) }
+    def >U64? [ Int -- Maybe(U64) ] { >U64-if(Some, drop None) }
+    def >U64-wrap  [ Int -- U64 ] { prim-int-to-u64 }
+    def >U64-clamp [ Int -- U64 ] { 0 U64.Max >Int clamp >U64-wrap }
+
+    def >U32-if(f,g) [ (*a U32 -- *b, *a Int -- *b ) *a Int -- *b ] {
+        dup 0 U32.Max >Int in-range if(>U32-wrap f, g)
+    }
+    def >U32-else(f) [ (*a Int -- *a U32 ) *a Int -- *a U32 ] { >U32-if(id, f) }
+    def >U32? [ Int -- Maybe(U32) ] { >U32-if(Some, drop None) }
+    def >U32-wrap   [ Int -- U32 ] { >U64-wrap >U32-wrap }
+    def >U32-clamp  [ Int -- U32 ] { 0 U32.Max >Int clamp >U32-wrap }
+
+    def >U16-if(f,g) [ (*a U16 -- *b, *a Int -- *b ) *a Int -- *b ] {
+        dup 0 0xFFFF in-range if(>U16-wrap f, g)
+    }
+    def >U16-else(f) [ (*a Int -- *a U16 ) *a Int -- *a U16 ] { >U16-if(id, f) }
+    def >U16? [ Int -- Maybe(U16) ] { >U16-if(Some, drop None) }
+    def >U16-clamp  [ Int -- U16 ] { 0 0xFFFF clamp >U16-wrap }
+    def >U16-wrap  [ Int -- U16 ] { >U64-wrap >U16-wrap }
+
+    def Int.>U8-if(f,g) [ (*a U8 -- *b, *a Int -- *b ) *a Int -- *b ] {
+        dup 0 255 in-range if(>U8-wrap f, g)
+    }
+    def Int.>U8-else(f) [ (*a Int -- *a U8 ) *a Int -- *a U8 ] { >U8-if(id, f) }
+    def Int.>U8? [ Int -- Maybe(U8) ] { >U8-if(Some, drop None) }
+    def Int.>U8-clamp  [ Int -- U8 ] { 0 255 clamp >U8-wrap }
+    def Int.>U8-wrap   [ Int -- U8 ] { >U64-wrap >U8-wrap }
 }
 
 inline patch Nat {
@@ -150,13 +183,12 @@ inline patch Nat {
     def <> [ Nat Nat -- Bool ] { on2:>Int <> }
     def 0> [ Nat -- Bool ] { >Int 0> }
     def 0= [ Nat -- Bool ] { >Int 0= }
-    def repr; [ Nat +Str -- +Str ] { >Int repr; "Nat "; }
+    def repr; [ Nat +Str -- +Str ] { >Int repr; "u"; }
     def int; [ Nat +Str -- +Str ] { >Int int; }
-    def dec; [ Nat +Str -- +Str ] { int; }
-    def hex; [ Nat +Str -- +Str ] { Base.Hex digits; }
-    def oct; [ Nat +Str -- +Str ] { Base.Oct digits; }
-    def bin; [ Nat +Str -- +Str ] { Base.Bin digits; }
-
+    def dec; [ Nat +Str -- +Str ] { Base.Dec digits; }
+    def hex; [ Nat +Str -- +Str ] { "0x"; Base.Hex digits; }
+    def oct; [ Nat +Str -- +Str ] { "0o"; Base.Oct digits; }
+    def bin; [ Nat +Str -- +Str ] { "0b"; Base.Bin digits; }
 
     def >Int [ Nat -- Int ] { /Unsafe }
     def >UIndex [ Nat -- UIndex ] { UIndex }
@@ -180,6 +212,11 @@ inline patch Nat {
     def >U16-clamp [ Nat -- U16 ] { >Int >U16-clamp }
     def >U32-clamp [ Nat -- U32 ] { >Int >U32-clamp }
     def >U64-clamp [ Nat -- U64 ] { >Int >U64-clamp }
+
+    def >U8-if(f,g) [ (*a U8 -- *b, *a Nat -- *b) *a Nat -- *b ] {
+        dup 255u <= if(>U8-wrap f, g)
+    }
+    def >U8-else(g) [ (*a Nat -- *a U8) *a Nat -- *a U8 ] { >U8-if(id,g) }
 }
 
 inline patch I64 {
@@ -376,6 +413,11 @@ inline patch I16 {
 }
 
 inline patch I8 {
+    def Min [ I8 ] { -0x80i8 }
+    def Max [ I8 ] {  0x7Fi8 }
+    def succ [ I8 -- I8 ] { 1i8 add-clamp }
+    def pred [ I8 -- I8 ] { 1i8 sub-clamp }
+
     def add-unsafe [ I8 I8 -- I8 ] { on2:>I64 add-unsafe >I8-unsafe }
     def sub-unsafe [ I8 I8 -- I8 ] { on2:>I64 sub-unsafe >I8-unsafe }
     def mul-unsafe [ I8 I8 -- I8 ] { on2:>I64 mul-unsafe >I8-unsafe }
@@ -391,11 +433,6 @@ inline patch I8 {
     def divmod-clamp [ I8 I8 -- I8 I8 ] {
         dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
     }
-
-    def Min [ I8 ] { -0x80i8 }
-    def Max [ I8 ] {  0x7Fi8 }
-    def succ [ I8 -- I8 ] { 1i8 add-clamp }
-    def pred [ I8 -- I8 ] { 1i8 sub-clamp }
 
     def compare [ I8 I8 -- Comparison ] { on2:>I64 compare }
     def == [ I8 I8 -- Bool ] { on2:>I64 == }
@@ -425,252 +462,225 @@ inline patch I8 {
     def >U8-wrap  [ I8 -- U8  ] { >I64 >U8-wrap  }
 }
 
+inline patch U64 {
+    def add-wrap [ U64 U64 -- U64 ] { prim-u64-add }
+    def sub-wrap [ U64 U64 -- U64 ] { prim-u64-sub }
+    def mul-wrap [ U64 U64 -- U64 ] { prim-u64-mul }
 
-inline (
-    def U64.>Int [ U64 -- Int ] { prim-u64-to-int }
-    def U64.>Nat [ U64 -- Nat ] { >Int >Nat-clamp }
+    def add-clamp [ U64 U64 -- U64 ] { on2:>Int + >U64-clamp }
+    def sub-clamp [ U64 U64 -- U64 ] { on2:>Int - >U64-clamp }
+    def mul-clamp [ U64 U64 -- U64 ] { on2:>Int * >U64-clamp }
 
-    def Int.>U64-if(f,g) [ (*a U64 -- *b, *a Int -- *b) *a Int -- *b ] {
-        dup 0< if(g, >U64-wrap f)
-    }
-    def Int.>U64-else(f) [ (*a Int -- *a U64) *a Int -- *a U64 ] { >U64-if(id, f) }
-    def Int.>U64? [ Int -- Maybe(U64) ] { >U64-if(Some, drop None) }
-    def Int.>U64-wrap  [ Int -- U64 ] { prim-int-to-u64 }
-    def Int.>U64-clamp [ Int -- U64 ] { 0 max >U64-wrap }
+    def div [ U64 U64 -- U64 ] { prim-u64-div }
+    def mod [ U64 U64 -- U64 ] { prim-u64-mod }
+    def divmod [ U64 U64 -- U64 U64 ] { dup2 mod dip:div }
 
-    def U64.add-wrap [ U64 U64 -- U64 ] { prim-u64-add }
-    def U64.sub-wrap [ U64 U64 -- U64 ] { prim-u64-sub }
-    def U64.mul-wrap [ U64 U64 -- U64 ] { prim-u64-mul }
+    def Max [ U64 ] { -1 >U64-wrap }
+    def Min [ U64 ] { 0u64 }
+    def succ [ U64 -- U64 ] { 1u64 add-clamp }
+    def pred [ U64 -- U64 ] { 1u64 sub-clamp }
 
-    def U64.add-clamp [ U64 U64 -- U64 ] { on2:>Int + >U64-clamp }
-    def U64.sub-clamp [ U64 U64 -- U64 ] { on2:>Int - >U64-clamp }
-    def U64.mul-clamp [ U64 U64 -- U64 ] { on2:>Int * >U64-clamp }
+    def and [ U64 U64 -- U64 ] { prim-u64-and }
+    def or  [ U64 U64 -- U64 ] { prim-u64-or  }
+    def xor [ U64 U64 -- U64 ] { prim-u64-xor }
+    def lshift [ U64 U64 -- U64 ] { prim-u64-shl }
+    def rshift [ U64 U64 -- U64 ] { prim-u64-shr }
 
-    def U64.div [ U64 U64 -- U64 ] { prim-u64-div }
-    def U64.mod [ U64 U64 -- U64 ] { prim-u64-mod }
-    def U64.divmod [ U64 U64 -- U64 U64 ] { dup2 mod dip:div }
+    def compare [ U64 U64 -- Comparison ] { compare-via-eq-lt }
+    def == [ U64 U64 -- Bool ] { prim-u64-eq }
+    def <  [ U64 U64 -- Bool ] { prim-u64-lt }
+    def <= [ U64 U64 -- Bool ] { prim-u64-le }
+    def >  [ U64 U64 -- Bool ] { prim-u64-gt }
+    def >= [ U64 U64 -- Bool ] { prim-u64-ge }
+    def <> [ U64 U64 -- Bool ] { prim-u64-ne }
 
-    def U64.Max [ U64 ] { 0u64 1u64 sub-wrap }
-    def U64.Min [ U64 ] { 0u64 }
+    def 0> [ U64 -- Bool ] { 0u64 > }
+    def 0= [ U64 -- Bool ] { 0u64 == }
 
-    def U64.and [ U64 U64 -- U64 ] { prim-u64-and }
-    def U64.or  [ U64 U64 -- U64 ] { prim-u64-or  }
-    def U64.xor [ U64 U64 -- U64 ] { prim-u64-xor }
-    def U64.lshift [ U64 U64 -- U64 ] { prim-u64-shl }
-    def U64.rshift [ U64 U64 -- U64 ] { prim-u64-shr }
+    def repr; [ U64 +Str -- +Str ] { int; "u64"; }
+    def int; [ U64 +Str -- +Str ] { >Nat int; }
+    def dec; [ U64 +Str -- +Str ] { >Nat dec; }
+    def hex; [ U64 +Str -- +Str ] { >Nat hex; }
+    def oct; [ U64 +Str -- +Str ] { >Nat oct; }
 
-    def U64.compare [ U64 U64 -- Comparison ] { compare-via-eq-lt }
-    def U64.== [ U64 U64 -- Bool ] { prim-u64-eq }
-    def U64.<  [ U64 U64 -- Bool ] { prim-u64-lt }
-    def U64.<= [ U64 U64 -- Bool ] { prim-u64-le }
-    def U64.>  [ U64 U64 -- Bool ] { prim-u64-gt }
-    def U64.>= [ U64 U64 -- Bool ] { prim-u64-ge }
-    def U64.<> [ U64 U64 -- Bool ] { prim-u64-ne }
+    def >Int [ U64 -- Int ] { prim-u64-to-int }
+    def >Nat [ U64 -- Nat ] { >Int >Nat-unsafe }
 
-    def U64.0> [ U64 -- Bool ] { 0u64 > }
-    def U64.0= [ U64 -- Bool ] { 0u64 == }
-
-    def U64.repr; [ U64 +Str -- +Str ] { int; "u64"; }
-    def U64.int; [ U64 +Str -- +Str ] { >Nat int; }
-    def U64.dec; [ U64 +Str -- +Str ] { >Nat dec; }
-    def U64.hex; [ U64 +Str -- +Str ] { >Nat hex; }
-    def U64.oct; [ U64 +Str -- +Str ] { >Nat oct; }
-)
-
-inline (
-    def U32.>U64 [ U32 -- U64 ] { prim-u32-to-u64 }
-    def U64.>U32-wrap [ U64 -- U32 ] { prim-u64-to-u32 }
-    def U64.>U32-clamp [ U64 -- U32 ] { U32.Max >U64 min >U32-wrap }
-    def U64.>U32-if(f,g) [ (*a U32 -- *b, *a U64 -- *b) *a U64 -- *b ] {
+    def >U32-wrap [ U64 -- U32 ] { prim-u64-to-u32 }
+    def >U32-clamp [ U64 -- U32 ] { U32.Max >U64 min >U32-wrap }
+    def >U32-if(f,g) [ (*a U32 -- *b, *a U64 -- *b) *a U64 -- *b ] {
         dup U32.Max >U64 <= if(>U32-wrap f, g)
     }
-    def U64.>U32-else(g) [ (*a U64 -- *a U32) *a U64 -- *a U32 ] {
-        >U32-if(id,g)
-    }
-    def U64.>U32? [ U64 -- Maybe(U32) ] { >U32-if(Some, drop None) }
+    def >U32-else(g) [ (*a U64 -- *a U32) *a U64 -- *a U32 ] { >U32-if(id,g) }
+    def >U32? [ U64 -- Maybe(U32) ] { >U32-if(Some, drop None) }
 
-    def U32.>Int  [ U32  -- Int ] { >U64 >Int }
-    def Int.>U32-if(f,g) [ (*a U32 -- *b, *a Int -- *b ) *a Int -- *b ] {
-        dup 0 U32.Max >Int in-range if(>U32-wrap f, g)
-    }
-    def Int.>U32-else(f) [ (*a Int -- *a U32 ) *a Int -- *a U32 ] { >U32-if(id, f) }
-    def Int.>U32? [ Int -- Maybe(U32) ] { >U32-if(Some, drop None) }
-    def Int.>U32-wrap   [ Int -- U32 ] { >U64-wrap >U32-wrap }
-    def Int.>U32-clamp  [ Int -- U32 ] { 0 U32.Max >Int clamp >U32-wrap }
-
-    def U32.add-wrap [ U32 U32 -- U32 ] { on2:>U64 add-wrap >U32-wrap }
-    def U32.sub-wrap [ U32 U32 -- U32 ] { on2:>U64 sub-wrap >U32-wrap }
-    def U32.mul-wrap [ U32 U32 -- U32 ] { on2:>U64 mul-wrap >U32-wrap }
-
-    def U32.add-clamp [ U32 U32 -- U32 ] { on2:>U64 add-wrap >U32-clamp }
-    def U32.sub-clamp [ U32 U32 -- U32 ] { on2:>U64 sub-clamp >U32-wrap }
-    def U32.mul-clamp [ U32 U32 -- U32 ] { on2:>U64 mul-wrap >U32-clamp }
-
-    def U32.div [ U32 U32 -- U32 ] { on2:>U64 div >U32-wrap }
-    def U32.mod [ U32 U32 -- U32 ] { on2:>U64 mod >U32-wrap }
-    def U32.divmod [ U32 U32 -- U32 U32 ] { on2:>U64 divmod on2:>U32-wrap }
-
-    def U32.and [ U32 U32 -- U32 ] { on2:>U64 and >U32-wrap }
-    def U32.or  [ U32 U32 -- U32 ] { on2:>U64 or  >U32-wrap }
-    def U32.xor [ U32 U32 -- U32 ] { on2:>U64 xor >U32-wrap }
-    def U32.lshift [ U32 U32 -- U32 ] { on2:>U64 lshift >U32-wrap }
-    def U32.rshift [ U32 U32 -- U32 ] { on2:>U64 rshift >U32-wrap }
-
-    def U32.compare [ U32 U32 -- Comparison ] { on2:>Int compare }
-    def U32.== [ U32 U32 -- Bool ] { on2:>U64 == }
-    def U32.<  [ U32 U32 -- Bool ] { on2:>U64 <  }
-    def U32.<= [ U32 U32 -- Bool ] { on2:>U64 <= }
-    def U32.>  [ U32 U32 -- Bool ] { on2:>U64 >  }
-    def U32.>= [ U32 U32 -- Bool ] { on2:>U64 >= }
-    def U32.<> [ U32 U32 -- Bool ] { on2:>U64 <> }
-    def U32.0= [ U32 -- Bool ] { >Int 0= }
-    def U32.0> [ U32 -- Bool ] { >Int 0> }
-
-    def U32.Max  [ U32 ] { 0xFFFFFFFFu32 }
-    def U32.Min  [ U32 ] { 0u32 }
-    def U32.succ [ U32 -- U32 ] { 1u32 add-clamp }
-    def U32.pred [ U32 -- U32 ] { 1u32 sub-clamp }
-
-    def U32.repr; [ U32 +Str -- +Str ] { int; "u32"; }
-    def U32.int; [ U32 +Str -- +Str ] { >U64 int; }
-    def U32.dec; [ U32 +Str -- +Str ] { >U64 dec; }
-    def U32.hex; [ U32 +Str -- +Str ] { >U64 hex; }
-    def U32.oct; [ U32 +Str -- +Str ] { >U64 oct; }
-
-    def U32.>Nat [ U32 -- Nat ] { >Int Nat.Unsafe }
-)
-
-inline (
-    def U16.>U64 [ U16 -- U64 ] { prim-u16-to-u64 }
-    def U64.>U16-if(f,g) [ (*a U16 -- *b, *a U64 -- *b) *a U64 -- *b ] {
+    def >U16-if(f,g) [ (*a U16 -- *b, *a U64 -- *b) *a U64 -- *b ] {
         dup 0xFFFFu64 <= if(>U16-wrap f,g)
     }
-    def U64.>U16-else(g) [ (*a U64 -- *a U16) *a U64 -- *a U16 ] { >U16-if(id,g) }
-    def U64.>U16? [ U64 -- Maybe(U16) ] { >U16-if(Some, drop None) }
-    def U64.>U16-clamp [ U64 -- U16 ] { 0xFFFFu64 min >U16-wrap }
-    def U64.>U16-wrap  [ U64 -- U16 ] { prim-u64-to-u16 }
+    def >U16-else(g) [ (*a U64 -- *a U16) *a U64 -- *a U16 ] { >U16-if(id,g) }
+    def >U16? [ U64 -- Maybe(U16) ] { >U16-if(Some, drop None) }
+    def >U16-clamp [ U64 -- U16 ] { 0xFFFFu64 min >U16-wrap }
+    def >U16-wrap  [ U64 -- U16 ] { prim-u64-to-u16 }
 
-    def U16.>U32 [ U16 -- U32 ] { >U64 >U32-wrap }
-    def U32.>U16-if(f,g) [ (*a U16 -- *b, *a U64 -- *b) *a U64 -- *b ] {
-        dup 0xFFFFu64 <= if(>U16-wrap f,g)
+    def >U8-if(f,g) [ (*a U8 -- *b, *a U64 -- *b) *a U64 -- *b ] {
+        dup 0u64 255u64 in-range if(>U8-wrap f, g)
     }
-    def U32.>U16-else(g) [ (*a U64 -- *a U16) *a U64 -- *a U16 ] { >U16-if(id,g) }
-    def U32.>U16? [ U64 -- Maybe(U16) ] { >U16-if(Some, drop None) }
-    def U32.>U16-clamp [ U32 -- U16 ] { 0xFFFFu32 min >U16-wrap }
-    def U32.>U16-wrap  [ U32 -- U16 ] { >U64 >U16-wrap }
+    def >U8-else(g) [ (*a U64 -- *a U8) *a U64 -- *a U8 ] { >U8-if(id, g) }
+    def >U8? [ U64 -- Maybe(U8) ] { >U8-if(Some, drop None) }
+    def >U8-clamp  [ U64 -- U8 ] { 255u64 min >U8-wrap }
+    def >U8-wrap   [ U64 -- U8 ] { prim-u64-to-u8 }
 
-    def U16.>Int [ U16 -- Int ] { >U64 >Int }
-    def Int.>U16-if(f,g) [ (*a U16 -- *b, *a Int -- *b ) *a Int -- *b ] {
-        dup 0 0xFFFF in-range if(>U16-wrap f, g)
+}
+
+inline patch U32 {
+    def Max  [ U32 ] { 0xFFFFFFFFu32 }
+    def Min  [ U32 ] { 0u32 }
+    def succ [ U32 -- U32 ] { 1u32 add-clamp }
+    def pred [ U32 -- U32 ] { 1u32 sub-clamp }
+
+    def add-wrap [ U32 U32 -- U32 ] { on2:>U64 add-wrap >U32-wrap }
+    def sub-wrap [ U32 U32 -- U32 ] { on2:>U64 sub-wrap >U32-wrap }
+    def mul-wrap [ U32 U32 -- U32 ] { on2:>U64 mul-wrap >U32-wrap }
+
+    def add-clamp [ U32 U32 -- U32 ] { on2:>U64 add-wrap >U32-clamp }
+    def sub-clamp [ U32 U32 -- U32 ] { on2:>U64 sub-clamp >U32-wrap }
+    def mul-clamp [ U32 U32 -- U32 ] { on2:>U64 mul-wrap >U32-clamp }
+
+    def div [ U32 U32 -- U32 ] { on2:>U64 div >U32-wrap }
+    def mod [ U32 U32 -- U32 ] { on2:>U64 mod >U32-wrap }
+    def divmod [ U32 U32 -- U32 U32 ] { on2:>U64 divmod on2:>U32-wrap }
+
+    def and [ U32 U32 -- U32 ] { on2:>U64 and >U32-wrap }
+    def or  [ U32 U32 -- U32 ] { on2:>U64 or  >U32-wrap }
+    def xor [ U32 U32 -- U32 ] { on2:>U64 xor >U32-wrap }
+    def lshift [ U32 U32 -- U32 ] { on2:>U64 lshift >U32-wrap }
+    def rshift [ U32 U32 -- U32 ] { on2:>U64 rshift >U32-wrap }
+
+    def compare [ U32 U32 -- Comparison ] { on2:>Int compare }
+    def == [ U32 U32 -- Bool ] { on2:>U64 == }
+    def <  [ U32 U32 -- Bool ] { on2:>U64 <  }
+    def <= [ U32 U32 -- Bool ] { on2:>U64 <= }
+    def >  [ U32 U32 -- Bool ] { on2:>U64 >  }
+    def >= [ U32 U32 -- Bool ] { on2:>U64 >= }
+    def <> [ U32 U32 -- Bool ] { on2:>U64 <> }
+    def 0= [ U32 -- Bool ] { >Int 0= }
+    def 0> [ U32 -- Bool ] { >Int 0> }
+
+    def repr; [ U32 +Str -- +Str ] { int; "u32"; }
+    def int; [ U32 +Str -- +Str ] { >U64 int; }
+    def dec; [ U32 +Str -- +Str ] { >U64 dec; }
+    def hex; [ U32 +Str -- +Str ] { >U64 hex; }
+    def oct; [ U32 +Str -- +Str ] { >U64 oct; }
+
+    def >U64 [ U32 -- U64 ] { prim-u32-to-u64 }
+    def >Int [ U32 -- Int ] { >U64 >Int }
+    def >Nat [ U32 -- Nat ] { >U64 >Nat }
+
+    def >U16-if(f,g) [ (*a U16 -- *b, *a U32 -- *b) *a U32 -- *b ] {
+        dup 0xFFFFu32 <= if(>U16-wrap f,g)
     }
-    def Int.>U16-else(f) [ (*a Int -- *a U16 ) *a Int -- *a U16 ] { >U16-if(id, f) }
-    def Int.>U16? [ Int -- Maybe(U16) ] { >U16-if(Some, drop None) }
-    def Int.>U16-clamp  [ Int -- U16 ] { 0 0xFFFF clamp >U16-wrap }
-    def Int.>U16-wrap  [ Int -- U16 ] { >U64-wrap >U16-wrap }
+    def >U16-else(g) [ (*a U32 -- *a U16) *a U32 -- *a U16 ] { >U16-if(id,g) }
+    def >U16? [ U64 -- Maybe(U16) ] { >U16-if(Some, drop None) }
+    def >U16-clamp [ U32 -- U16 ] { 0xFFFFu32 min >U16-wrap }
+    def >U16-wrap  [ U32 -- U16 ] { >U64 >U16-wrap }
 
-    def U16.add-wrap [ U16 U16 -- U16 ] { on2:>U64 add-wrap >U16-wrap }
-    def U16.sub-wrap [ U16 U16 -- U16 ] { on2:>U64 sub-wrap >U16-wrap }
-    def U16.mul-wrap [ U16 U16 -- U16 ] { on2:>U64 mul-wrap >U16-wrap }
-
-    def U16.add-clamp [ U16 U16 -- U16 ] { on2:>U64 add-wrap >U16-clamp }
-    def U16.sub-clamp [ U16 U16 -- U16 ] { on2:>U64 sub-clamp >U16-wrap }
-    def U16.mul-clamp [ U16 U16 -- U16 ] { on2:>U64 mul-wrap >U16-clamp }
-
-    def U16.div [ U16 U16 -- U16 ] { on2:>U64 div >U16-wrap }
-    def U16.mod [ U16 U16 -- U16 ] { on2:>U64 mod >U16-wrap }
-    def U16.divmod [ U16 U16 -- U16 U16 ] { on2:>U64 divmod on2:>U16-wrap }
-
-    def U16.and [ U16 U16 -- U16 ] { on2:>U64 and >U16-wrap }
-    def U16.or  [ U16 U16 -- U16 ] { on2:>U64 or  >U16-wrap }
-    def U16.xor [ U16 U16 -- U16 ] { on2:>U64 xor >U16-wrap }
-    def U16.lshift [ U16 U16 -- U16 ] { on2:>U64 lshift >U16-wrap }
-    def U16.rshift [ U16 U16 -- U16 ] { on2:>U64 rshift >U16-wrap }
-
-    def U16.compare [ U16 U16 -- Comparison ] { on2:>U64 compare }
-    def U16.== [ U16 U16 -- Bool ] { on2:>U64 == }
-    def U16.<  [ U16 U16 -- Bool ] { on2:>U64 <  }
-    def U16.<= [ U16 U16 -- Bool ] { on2:>U64 <= }
-    def U16.>  [ U16 U16 -- Bool ] { on2:>U64 >  }
-    def U16.>= [ U16 U16 -- Bool ] { on2:>U64 >= }
-    def U16.<> [ U16 U16 -- Bool ] { on2:>U64 <> }
-    def U16.0= [ U16 -- Bool ] { >U64 0= }
-    def U16.0> [ U16 -- Bool ] { >U64 0> }
-
-    def U16.Max  [ U16 ] { 0xFFFFu16 }
-    def U16.Min  [ U16 ] { 0u16 }
-    def U16.succ [ U16 -- U16 ] { 1u16 add-clamp }
-    def U16.pred [ U16 -- U16 ] { 1u16 sub-clamp }
-
-    def U16.>Nat [ U16 -- Nat ] { >Int Nat.Unsafe }
-)
-
-inline (
-    def U8.>U64 [ U8 -- U64 ] { prim-u8-to-u64 }
-    def U64.>U8-if(f,g) [ (*a U8 -- *b, *a U64 -- *b) *a U64 -- *b ] { dup 0u64 255u64 in-range if(>U8-wrap f, g) }
-    def U64.>U8-else(g) [ (*a U64 -- *a U8) *a U64 -- *a U8 ] { >U8-if(id, g) }
-    def U64.>U8? [ U64 -- Maybe(U8) ] { >U8-if(Some, drop None) }
-    def U64.>U8-clamp  [ U64 -- U8 ] { 255u64 min >U8-wrap }
-    def U64.>U8-wrap   [ U64 -- U8 ] { prim-u64-to-u8 }
-
-    def U8.>U32 [ U8 -- U32 ] { >U64 >U32-wrap }
-    def U32.>U8-wrap [ U32 -- U8 ] { >U64 >U8-wrap }
-    def U32.>U8-clamp [ U32 -- U8 ] { >U64 >U8-clamp }
-    def U32.>U8? [ U32 -- Maybe(U8) ] { >U64 >U8? }
-
-    def U8.>U16 [ U8 -- U16 ] { >U64 >U16-wrap }
-    def U16.>U8-wrap [ U16 -- U8 ] { >U64 >U8-wrap }
-    def U16.>U8-clamp [ U16 -- U8 ] { >U64 >U8-clamp }
-    def U16.>U8? [ U16 -- Maybe(U8) ] { >U64 >U8? }
-
-    def U8.>Nat [ U8 -- Nat ] { >U64 >Nat }
-    def Nat.>U8-if(f,g) [ (*a U8 -- *b, *a Nat -- *b) *a Nat -- *b ] {
-        dup 255u <= if(>U8-wrap f, g)
+    def >U8-if(f,g) [ (*a U8 -- *b, *a U32 -- *b) *a U32 -- *b ] {
+        dup 0xFFu32 <= if(>U8-wrap f, g)
     }
-    def Nat.>U8-else(g) [ (*a Nat -- *a U8) *a Nat -- *a U8 ] { >U8-if(id,g) }
+    def >U8-else(g) [ (*a U32 -- *a U8) *a U32 -- *a U8 ] { >U8-if(id, g) }
+    def >U8-wrap [ U32 -- U8 ] { >U64 >U8-wrap }
+    def >U8-clamp [ U32 -- U8 ] { >U64 >U8-clamp }
+    def >U8? [ U32 -- Maybe(U8) ] { >U64 >U8? }
+}
 
-    def U8.>Int  [ U8  -- Int ] { >U64 >Int }
-    def Int.>U8-if(f,g) [ (*a U8 -- *b, *a Int -- *b ) *a Int -- *b ] {
-        dup 0 255 in-range if(>U8-wrap f, g)
+inline patch U16 {
+    def Max  [ U16 ] { 0xFFFFu16 }
+    def Min  [ U16 ] { 0u16 }
+    def succ [ U16 -- U16 ] { 1u16 add-clamp }
+    def pred [ U16 -- U16 ] { 1u16 sub-clamp }
+
+    def add-wrap [ U16 U16 -- U16 ] { on2:>U64 add-wrap >U16-wrap }
+    def sub-wrap [ U16 U16 -- U16 ] { on2:>U64 sub-wrap >U16-wrap }
+    def mul-wrap [ U16 U16 -- U16 ] { on2:>U64 mul-wrap >U16-wrap }
+
+    def add-clamp [ U16 U16 -- U16 ] { on2:>U64 add-wrap >U16-clamp }
+    def sub-clamp [ U16 U16 -- U16 ] { on2:>U64 sub-clamp >U16-wrap }
+    def mul-clamp [ U16 U16 -- U16 ] { on2:>U64 mul-wrap >U16-clamp }
+
+    def div [ U16 U16 -- U16 ] { on2:>U64 div >U16-wrap }
+    def mod [ U16 U16 -- U16 ] { on2:>U64 mod >U16-wrap }
+    def divmod [ U16 U16 -- U16 U16 ] { on2:>U64 divmod on2:>U16-wrap }
+
+    def and [ U16 U16 -- U16 ] { on2:>U64 and >U16-wrap }
+    def or  [ U16 U16 -- U16 ] { on2:>U64 or  >U16-wrap }
+    def xor [ U16 U16 -- U16 ] { on2:>U64 xor >U16-wrap }
+    def lshift [ U16 U16 -- U16 ] { on2:>U64 lshift >U16-wrap }
+    def rshift [ U16 U16 -- U16 ] { on2:>U64 rshift >U16-wrap }
+
+    def compare [ U16 U16 -- Comparison ] { on2:>U64 compare }
+    def == [ U16 U16 -- Bool ] { on2:>U64 == }
+    def <  [ U16 U16 -- Bool ] { on2:>U64 <  }
+    def <= [ U16 U16 -- Bool ] { on2:>U64 <= }
+    def >  [ U16 U16 -- Bool ] { on2:>U64 >  }
+    def >= [ U16 U16 -- Bool ] { on2:>U64 >= }
+    def <> [ U16 U16 -- Bool ] { on2:>U64 <> }
+    def 0= [ U16 -- Bool ] { >U64 0= }
+    def 0> [ U16 -- Bool ] { >U64 0> }
+
+    def >U64 [ U16 -- U64 ] { prim-u16-to-u64 }
+    def >U32 [ U16 -- U32 ] { >U64 >U32-wrap }
+    def >Int [ U16 -- Int ] { >U64 >Int }
+    def >Nat [ U16 -- Nat ] { >U64 >Nat }
+
+    def >U8-if(f,g) [ (*a U8 -- *b, *a U16 -- *b) *a U16 -- *b ] {
+        dup 0xFFu16 <= if(>U8-wrap f, g)
     }
-    def Int.>U8-else(f) [ (*a Int -- *a U8 ) *a Int -- *a U8 ] { >U8-if(id, f) }
-    def Int.>U8? [ Int -- Maybe(U8) ] { >U8-if(Some, drop None) }
-    def Int.>U8-clamp  [ Int -- U8 ] { 0 255 clamp >U8-wrap }
-    def Int.>U8-wrap   [ Int -- U8 ] { >U64-wrap >U8-wrap }
+    def >U8-else(g) [ (*a U16 -- *a U8) *a U16 -- *a U8 ] { >U8-if(id, g) }
+    def >U8-wrap [ U16 -- U8 ] { >U64 >U8-wrap }
+    def >U8-clamp [ U16 -- U8 ] { >U64 >U8-clamp }
+    def >U8? [ U16 -- Maybe(U8) ] { >U64 >U8? }
+}
 
-    def U8.add-wrap [ U8 U8 -- U8 ] { on2:>U64 add-wrap >U8-wrap }
-    def U8.sub-wrap [ U8 U8 -- U8 ] { on2:>U64 sub-wrap >U8-wrap }
-    def U8.mul-wrap [ U8 U8 -- U8 ] { on2:>U64 mul-wrap >U8-wrap }
+inline patch U8 {
+    def Max  [ U8 ] { 255u8 }
+    def Min  [ U8 ] { 0u8 }
+    def succ [ U8 -- U8 ] { >Nat 1+ >U8-clamp }
+    def pred [ U8 -- U8 ] { >Int 1- >U8-clamp }
 
-    def U8.add-clamp [ U8 U8 -- U8 ] { on2:>U64 add-wrap >U8-clamp }
-    def U8.sub-clamp [ U8 U8 -- U8 ] { on2:>U64 sub-wrap >U8-clamp }
-    def U8.mul-clamp [ U8 U8 -- U8 ] { on2:>U64 mul-wrap >U8-clamp }
+    def add-wrap [ U8 U8 -- U8 ] { on2:>U64 add-wrap >U8-wrap }
+    def sub-wrap [ U8 U8 -- U8 ] { on2:>U64 sub-wrap >U8-wrap }
+    def mul-wrap [ U8 U8 -- U8 ] { on2:>U64 mul-wrap >U8-wrap }
 
-    def U8.div [ U8 U8 -- U8 ] { on2:>U64 div >U8-wrap }
-    def U8.mod [ U8 U8 -- U8 ] { on2:>U64 mod >U8-wrap }
-    def U8.divmod [ U8 U8 -- U8 U8 ] { on2:>U64 divmod on2:>U8-wrap }
+    def add-clamp [ U8 U8 -- U8 ] { on2:>U64 add-wrap >U8-clamp }
+    def sub-clamp [ U8 U8 -- U8 ] { on2:>U64 sub-wrap >U8-clamp }
+    def mul-clamp [ U8 U8 -- U8 ] { on2:>U64 mul-wrap >U8-clamp }
 
-    def U8.and [ U8 U8 -- U8 ] { on2:>U64 and >U8-wrap }
-    def U8.or  [ U8 U8 -- U8 ] { on2:>U64 or  >U8-wrap }
-    def U8.xor [ U8 U8 -- U8 ] { on2:>U64 xor >U8-wrap }
-    def U8.lshift [ U8 U8 -- U8 ] { on2:>U64 lshift >U8-wrap }
-    def U8.rshift [ U8 U8 -- U8 ] { on2:>U64 rshift >U8-wrap }
+    def div [ U8 U8 -- U8 ] { on2:>U64 div >U8-wrap }
+    def mod [ U8 U8 -- U8 ] { on2:>U64 mod >U8-wrap }
+    def divmod [ U8 U8 -- U8 U8 ] { on2:>U64 divmod on2:>U8-wrap }
 
-    def U8.compare [ U8 U8 -- Comparison ] { on2:>Int compare }
-    def U8.== [ U8 U8 -- Bool ] { on2:>Int == }
-    def U8.<  [ U8 U8 -- Bool ] { on2:>Int <  }
-    def U8.<= [ U8 U8 -- Bool ] { on2:>Int <= }
-    def U8.>  [ U8 U8 -- Bool ] { on2:>Int >  }
-    def U8.>= [ U8 U8 -- Bool ] { on2:>Int >= }
-    def U8.<> [ U8 U8 -- Bool ] { on2:>Int <> }
-    def U8.0= [ U8 -- Bool ] { >Int 0= }
-    def U8.0> [ U8 -- Bool ] { >Int 0> }
+    def and [ U8 U8 -- U8 ] { on2:>U64 and >U8-wrap }
+    def or  [ U8 U8 -- U8 ] { on2:>U64 or  >U8-wrap }
+    def xor [ U8 U8 -- U8 ] { on2:>U64 xor >U8-wrap }
+    def lshift [ U8 U8 -- U8 ] { on2:>U64 lshift >U8-wrap }
+    def rshift [ U8 U8 -- U8 ] { on2:>U64 rshift >U8-wrap }
 
-    def U8.Max  [ U8 ] { 255u8 }
-    def U8.Min  [ U8 ] { 0u8 }
-    def U8.succ [ U8 -- U8 ] { >Nat 1+ >U8-clamp }
-    def U8.pred [ U8 -- U8 ] { >Int 1- >U8-clamp }
-)
+    def compare [ U8 U8 -- Comparison ] { on2:>Int compare }
+    def == [ U8 U8 -- Bool ] { on2:>Int == }
+    def <  [ U8 U8 -- Bool ] { on2:>Int <  }
+    def <= [ U8 U8 -- Bool ] { on2:>Int <= }
+    def >  [ U8 U8 -- Bool ] { on2:>Int >  }
+    def >= [ U8 U8 -- Bool ] { on2:>Int >= }
+    def <> [ U8 U8 -- Bool ] { on2:>Int <> }
+    def 0= [ U8 -- Bool ] { >Int 0= }
+    def 0> [ U8 -- Bool ] { >Int 0> }
 
+    def >U64 [ U8 -- U64 ] { prim-u8-to-u64 }
+    def >U32 [ U8 -- U32 ] { >U64 >U32-wrap }
+    def >U16 [ U8 -- U16 ] { >U64 >U16-wrap }
+    def >Nat [ U8 -- Nat ] { >U64 >Nat }
+    def >Int [ U8 -- Int ] { >U64 >Int }
+}
 
 ||| Index into an array-like structure. Non-negative.
 inline patch UIndex {

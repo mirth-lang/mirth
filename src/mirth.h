@@ -1285,9 +1285,12 @@ static bool int_ne(INT a, INT b) { return int_cmp(a,b) != 0; }
 
 
 static STR* i64_to_str(int64_t);
+static STR* u64_to_str(uint64_t);
 static STR* int_to_str(INT a) {
     if (IS_I63(a) || (GET_BIG(a)->size == 2)) {
         return i64_to_str(int_to_i64(a));
+    } else if ((GET_BIG(a)->size == 3) && (GET_BIG(a)->radix[2] == 0)) {
+        return u64_to_str(int_to_u64(a));
     } else {
         STR *s = str_alloc(GET_BIG(a)->size * 10);
         if (SIGN_RADIX(GET_BIG(a))) {
