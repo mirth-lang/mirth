@@ -7,6 +7,17 @@ import std.byte
 import std.buffer
 import std.ctypes
 
+
+inline {
+    def Str.compare [ Str Str -- Comparison ] { prim-str-cmp Comparison.from-enum-value-unsafe }
+    alias Str.== prim-str-eq
+    alias Str.<  prim-str-lt
+    alias Str.<= prim-str-le
+    alias Str.>  prim-str-gt
+    alias Str.>= prim-str-ge
+    alias Str.<> prim-str-ne
+}
+
 alias(Str.cat, prim-str-cat)
 inline(
     def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes >Int Nat.Unsafe >USize }

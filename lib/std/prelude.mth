@@ -252,22 +252,6 @@ data Comparison {
     def repr; [ +Str Comparison -- +Str ] { LT -> "LT";, EQ -> "EQ";, GT -> "GT"; }
 }
 
-def ==2(f{==}, g{==}) [ (*x a a -- *x Bool, *x b b -- *x Bool) *x a b a b -- *x Bool ] {
-    dip(swap) dip2(f) rotl if(g, drop2 False)
-}
-def <>2(f{<>}, g{<>}) [ (*x a a -- *x Bool, *x b b -- *x Bool) *x a b a b -- *x Bool ] {
-    ==2(f,g) not
-}
-def compare2(f{compare}, g{compare}) [
-    (*x a a -- *x Comparison, *x b b -- *x Comparison )
-    *x a b a b -- *x Comparison
-] {
-    dip(swap) dip2(f) rotl match {
-        { EQ -> g }
-        { _ -> dip(drop2) }
-    }
-}
-
 def compare-via-eq-lt (eq {==}, lt {<}) [ (a a -- Bool, a a -- Bool) a a -- Comparison ] {
     dup2 eq if(drop2 Comparison.EQ, lt if(Comparison.LT, Comparison.GT))
 }
@@ -279,655 +263,31 @@ def in-range (le {<=}) [ (a a -- Bool) a a a -- Bool ] {
     dip(swap dup dip:le) rotl if(le, drop2 False)
 }
 
-inline {
-    alias Int.>Str prim-int-to-str
-    alias Int.>F64 prim-int-to-f64
-    def Int.>Int [ Int -- Int ] { }
-    def Int.repr; [ Int +Str -- +Str ] { >Str ; }
-    def Int.int;  [ Int +Str -- +Str ] { >Str ; }
+###########
+# Numbers #
+###########
+# These types are defined here but fleshed out in std.number
 
-    def Str.compare [ Str Str -- Comparison ] { prim-str-cmp Comparison.from-enum-value-unsafe }
-    alias Str.== prim-str-eq
-    alias Str.<  prim-str-lt
-    alias Str.<= prim-str-le
-    alias Str.>  prim-str-gt
-    alias Str.>= prim-str-ge
-    alias Str.<> prim-str-ne
-}
+||| Natural numbers, i.e. non-negative integers, starting from 0.
+data Nat { Unsafe [ Int ] }
 
-def Int.sign?; [ Int +Str -- Nat +Str ] {
-    dup 0< then("-" ; negate) >Nat-unsafe
-}
+||| Signed size in bytes.
+struct ISize { Int }
 
-def Int.sign; [ Int +Str -- Nat +Str ] {
-    dup 0< if("-" ; negate, "+" ;) >Nat-unsafe
-}
+||| Unsigned size in bytes.
+struct USize { Nat }
 
-def Int.bin; [ Int +Str -- +Str ] { sign?; bin; }
-def Int.oct; [ Int +Str -- +Str ] { sign?; oct; }
-def Int.hex; [ Int +Str -- +Str ] { sign?; hex; }
+||| Signed offset in bytes.
+struct IOffset { Int }
 
-data Base {
-    Unsafe [ Nat ]
-    --
-    def Bin [ Base ] { 2u  Base.Unsafe }
-    def Oct [ Base ] { 8u  Base.Unsafe }
-    def Dec [ Base ] { 10u Base.Unsafe }
-    def Hex [ Base ] { 16u Base.Unsafe }
-    def Base [ Nat -- Base ] { 2u 36u clamp Base.Unsafe }
-    inline def /Base [ Base -- Nat ] { /Unsafe }
+||| Unsigned offset in bytes.
+struct UOffset { Nat }
 
-    def last-digit [ Nat Base -- Nat Byte ] {
-        /Unsafe divmod >U8-wrap
-        dup 10u8 < if(48u8, 55u8) add-wrap >Byte
-    }
+||| Signed index into an array or table.
+struct IIndex { Int }
 
-    def digits; [ +Str Nat Base -- +Str ] {
-        >base
-        L0 >digits
-        while(@base last-digit @digits:cons dup 0>) drop
-        digits> for(emit-unsafe;)
-        base> drop
-    }
-}
-
-inline {
-    def Int.negate [ Int -- Int ] { -1 * }
-    def Int.1-  [ Int -- Int  ] { 1 - }
-    def Int.1+  [ Int -- Int  ] { 1 + }
-    def Int.2*  [ Int -- Int  ] { 2 * }
-    def Int.0=  [ Int -- Bool ] { 0 == }
-    def Int.0<  [ Int -- Bool ] { 0 <  }
-    def Int.0<= [ Int -- Bool ] { 0 <= }
-    def Int.0>  [ Int -- Bool ] { 0 >  }
-    def Int.0>= [ Int -- Bool ] { 0 >= }
-    def Int.0<> [ Int -- Bool ] { 0 <> }
-
-    def Int.succ [ Int -- Int ] { 1+ }
-    def Int.pred [ Int -- Int ] { 1- }
-
-    ||| Nullable pointer.
-    data Ptr? { Ptr?-unsafe [ Ptr ] }
-    def Ptr?.Null [ -- Ptr? ] { prim-ptr-nil Ptr?.Ptr?-unsafe }
-    def Ptr?.null? [ Ptr? -- Bool ] { Ptr?-unsafe -> prim-ptr-nil == }
-    def Ptr?.== [ Ptr? Ptr? -- Bool ] { both(/Ptr?-unsafe) == }
-    def Ptr?.if?(f,g) [ (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b ] {
-        dup null? if(drop g, /Ptr?-unsafe f)
-    }
-    def Ptr?.for(f) [ (*a Ptr -- *a) *a Ptr? -- *a ] { if?(f, id) }
-    def Ptr?.unwrap(f) [ (*a -- *a Ptr) *a Ptr? -- *a Ptr ] { if?(id, f) }
-    def Ptr?.>Maybe [ Ptr? -- Maybe(Ptr) ] { if?(Some, None) }
-
-    def Ptr.== [ Ptr Ptr -- Bool ] { prim-ptr-eq }
-    def Ptr.>Ptr? [ Ptr -- Ptr? ] { Ptr?.Ptr?-unsafe }
-
-    data(+Unsafe, +Unsafe)
-    def unsafe(f) [ (*a +Unsafe -- *b +Unsafe) *a -- *b ] {
-        +Unsafe f /+Unsafe
-    }
-
-    ||| Add byte offset to Ptr.
-    def Ptr.ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
-    def Ptr.uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
-
-    def Ptr.@Ptr [ Ptr +Unsafe -- Ptr +Unsafe ] { prim-ptr-get }
-    def Ptr.!Ptr [ Ptr Ptr +Unsafe -- +Unsafe ] { prim-ptr-set }
-
-    def Ptr.@U8  [ Ptr +Unsafe -- U8  +Unsafe ] { prim-u8-get  }
-    def Ptr.@U16 [ Ptr +Unsafe -- U16 +Unsafe ] { prim-u16-get }
-    def Ptr.@U32 [ Ptr +Unsafe -- U32 +Unsafe ] { prim-u32-get }
-    def Ptr.@U64 [ Ptr +Unsafe -- U64 +Unsafe ] { prim-u64-get }
-    def Ptr.@I8  [ Ptr +Unsafe -- I8  +Unsafe ] { prim-i8-get  }
-    def Ptr.@I16 [ Ptr +Unsafe -- I16 +Unsafe ] { prim-i16-get }
-    def Ptr.@I32 [ Ptr +Unsafe -- I32 +Unsafe ] { prim-i32-get }
-    def Ptr.@I64 [ Ptr +Unsafe -- I64 +Unsafe ] { prim-i64-get }
-    def Ptr.@F32 [ Ptr +Unsafe -- F32 +Unsafe ] { prim-f32-get }
-    def Ptr.@F64 [ Ptr +Unsafe -- F64 +Unsafe ] { prim-f64-get }
-
-    def Ptr.!U8  [ U8  Ptr +Unsafe -- +Unsafe ] { prim-u8-set  }
-    def Ptr.!U16 [ U16 Ptr +Unsafe -- +Unsafe ] { prim-u16-set }
-    def Ptr.!U32 [ U32 Ptr +Unsafe -- +Unsafe ] { prim-u32-set }
-    def Ptr.!U64 [ U64 Ptr +Unsafe -- +Unsafe ] { prim-u64-set }
-    def Ptr.!I8  [ I8  Ptr +Unsafe -- +Unsafe ] { prim-i8-set  }
-    def Ptr.!I16 [ I16 Ptr +Unsafe -- +Unsafe ] { prim-i16-set }
-    def Ptr.!I32 [ I32 Ptr +Unsafe -- +Unsafe ] { prim-i32-set }
-    def Ptr.!I64 [ I64 Ptr +Unsafe -- +Unsafe ] { prim-i64-set }
-    def Ptr.!F32 [ F32 Ptr +Unsafe -- +Unsafe ] { prim-f32-set }
-    def Ptr.!F64 [ F64 Ptr +Unsafe -- +Unsafe ] { prim-f64-set }
-
-    def Ptr.alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-alloc   }
-    def Ptr.realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-realloc }
-    def Ptr.copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-copy }
-    def Ptr.fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-fill }
-
-    def Ptr.free    [ Ptr +Unsafe -- +Unsafe ] { prim-ptr-free }
-    def Ptr.erase   [ USize Ptr +Unsafe -- +Unsafe ] { dip2(0u8) fill }
-}
-
-
-inline (
-    def I64.>Int [ I64 -- Int ] { prim-i64-to-int }
-    def Int.>I64-unsafe [ Int -- I64 ] { prim-int-to-i64 }
-    def Int.>I64-clamp  [ Int -- I64 ] { >I64-unsafe }
-    def Int.>I64-if(f,g) [ (*a I64 -- *b, *a Int -- *b) *a Int -- *b ] { >I64-unsafe f }
-    def Int.>I64-else(g) [ (*a Int -- *a I64) *a Int -- *a I64 ] { >I64-if(id,g) }
-    def Int.>I64? [ Int -- Maybe(I64) ] { >I64-if(Some, drop None) }
-
-    def I64.compare [ I64 I64 -- Comparison ] { compare-via-eq-lt }
-    def I64.== [ I64 I64 -- Bool ] { prim-i64-eq }
-    def I64.<  [ I64 I64 -- Bool ] { prim-i64-lt }
-    def I64.<= [ I64 I64 -- Bool ] { prim-i64-le }
-    def I64.>  [ I64 I64 -- Bool ] { prim-i64-gt }
-    def I64.>= [ I64 I64 -- Bool ] { prim-i64-ge }
-    def I64.<> [ I64 I64 -- Bool ] { prim-i64-ne }
-    def I64.0=  [ I64 -- Bool ] { 0i64 == }
-    def I64.0<  [ I64 -- Bool ] { 0i64 <  }
-    def I64.0<= [ I64 -- Bool ] { 0i64 <= }
-    def I64.0>  [ I64 -- Bool ] { 0i64 >  }
-    def I64.0>= [ I64 -- Bool ] { 0i64 >= }
-    def I64.0<> [ I64 -- Bool ] { 0i64 <> }
-
-    def I64.add-unsafe [ I64 I64 -- I64 ] { prim-i64-add }
-    def I64.sub-unsafe [ I64 I64 -- I64 ] { prim-i64-sub }
-    def I64.mul-unsafe [ I64 I64 -- I64 ] { prim-i64-mul }
-    def I64.div-unsafe [ I64 I64 -- I64 ] { prim-i64-div }
-    def I64.mod-unsafe [ I64 I64 -- I64 ] { prim-i64-mod }
-    def I64.divmod-unsafe [ I64 I64 -- I64 I64 ] {
-        dup2 dip2(div-unsafe) mod-unsafe
-    }
-
-    def I64.add-clamp [ I64 I64 -- I64 ] { on2:>Int + >I64-clamp }
-    def I64.sub-clamp [ I64 I64 -- I64 ] { on2:>Int - >I64-clamp }
-    def I64.mul-clamp [ I64 I64 -- I64 ] { on2:>Int * >I64-clamp }
-    def I64.div-clamp [ I64 I64 -- I64 ] { on2:>Int div >I64-clamp }
-    def I64.mod-clamp [ I64 I64 -- I64 ] { divmod-clamp nip }
-    def I64.divmod-clamp [ I64 I64 -- I64 I64 ] {
-        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
-    }
-
-    def I64.Min [ I64 ] { -0x7FFFFFFFFFFFFFFF 1- >I64-unsafe }
-    def I64.Max [ I64 ] {  0x7FFFFFFFFFFFFFFFi64 }
-    def I64.succ-clamp [ I64 -- I64 ] { dup I64.Max < then(1i64 add-unsafe) }
-    def I64.pred-clamp [ I64 -- I64 ] { dup I64.Min > then(1i64 sub-unsafe) }
-    def I64.succ-unsafe [ I64 -- I64 ] { 1i64 add-unsafe }
-    def I64.pred-unsafe [ I64 -- I64 ] { 1i64 sub-unsafe }
-
-    def I64.repr; [ I64 +Str -- +Str ] { int; "i64"; }
-    def I64.int;  [ I64 +Str -- +Str ] { >Int int; }
-)
-
-inline (
-    def I32.>I64 [ I32 -- I64 ] { prim-i32-to-i64 }
-    def I64.>I32-unsafe [ I64 -- I32 ] { prim-i64-to-i32 }
-    def I64.>I32-clamp [ I64 -- I32 ] { I32.Min I32.Max on2:>I64 clamp >I32-unsafe }
-    def I64.>I32-if(f,g) [ (*a I32 -- *b, *a I64 -- *b)  *a I64 -- *b ] {
-        dup I32.Min I32.Max on2:>I64 in-range if(>I32-unsafe f, g)
-    }
-    def I64.>I32-else(g) [ (*a I64 -- *a I32) *a I64 -- *a I32 ] { >I32-if(id,g) }
-    def I64.>I32? [ I64 -- Maybe(I32) ] { >I32-if(Some, drop None) }
-
-    def I32.>Int [ I32 -- Int ] { >I64 >Int }
-    def Int.>I32-unsafe [ Int -- I32 ] { >I64-unsafe >I32-unsafe }
-    def Int.>I32-clamp [ Int -- I32 ] { I32.Min I32.Max on2:>Int clamp >I32-unsafe }
-    def Int.>I32-if(f,g) [ (*a I32 -- *b, *a Int -- *b) *a Int -- *b ] {
-        dup I32.Min I32.Max on2:>Int in-range if(>I32-unsafe f, g)
-    }
-    def Int.>I32-else(f) [ (*a Int -- *a I32 ) *a Int -- *a I32 ] { >I32-if(id,f) }
-    def Int.>I32? [ Int -- Maybe(I32) ] { >I32-if(Some, drop None) }
-
-    def I32.compare [ I32 I32 -- Comparison ] { on2:>I64 compare }
-    def I32.== [ I32 I32 -- Bool ] { on2:>I64 == }
-    def I32.<  [ I32 I32 -- Bool ] { on2:>I64 <  }
-    def I32.<= [ I32 I32 -- Bool ] { on2:>I64 <= }
-    def I32.>  [ I32 I32 -- Bool ] { on2:>I64 >  }
-    def I32.>= [ I32 I32 -- Bool ] { on2:>I64 >= }
-    def I32.<> [ I32 I32 -- Bool ] { on2:>I64 <> }
-
-    def I32.add-unsafe [ I32 I32 -- I32 ] { on2:>I64 add-unsafe >I32-unsafe }
-    def I32.sub-unsafe [ I32 I32 -- I32 ] { on2:>I64 sub-unsafe >I32-unsafe }
-    def I32.mul-unsafe [ I32 I32 -- I32 ] { on2:>I64 mul-unsafe >I32-unsafe }
-    def I32.div-unsafe [ I32 I32 -- I32 ] { on2:>Int div >I32-unsafe }
-    def I32.mod-unsafe [ I32 I32 -- I32 ] { on2:>Int mod >I32-unsafe }
-    def I32.divmod-unsafe [ I32 I32 -- I32 I32 ] {
-        on2:>Int divmod on2:>I32-unsafe
-    }
-
-    def I32.add-clamp [ I32 I32 -- I32 ] { on2:>I64 add-unsafe >I32-clamp }
-    def I32.sub-clamp [ I32 I32 -- I32 ] { on2:>I64 sub-unsafe >I32-clamp }
-    def I32.mul-clamp [ I32 I32 -- I32 ] { on2:>I64 mul-unsafe >I32-clamp }
-    def I32.div-clamp [ I32 I32 -- I32 ] { on2:>Int div >I32-clamp }
-    def I32.mod-clamp [ I32 I32 -- I32 ] { divmod-unsafe nip }
-    def I32.divmod-clamp [ I32 I32 -- I32 I32 ] {
-        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
-    }
-
-    def I32.Min [ I32 ] { -0x80000000i32 }
-    def I32.Max [ I32 ] {  0x7FFFFFFFi32 }
-    def I32.succ [ I32 -- I32 ] { 1i32 add-clamp }
-    def I32.pred [ I32 -- I32 ] { 1i32 sub-clamp }
-
-    def I32.repr; [ I32 +Str -- +Str ] { int; "i32"; }
-    def I32.int;  [ I32 +Str -- +Str ] { >Int int; }
-)
-
-inline {
-    def I16.>I64 [ I16 -- I64 ] { prim-i16-to-i64 }
-    def I64.>I16-unsafe [ I64 -- I16 ] { prim-i64-to-i16 }
-    def I64.>I16-clamp [ I64 -- I16 ] { I16.Min I16.Max on2:>I64 clamp >I16-unsafe }
-    def I64.>I16-if(f,g) [ (*a I16 -- *b, *a I64 -- *b) *a I64 -- *b ] {
-        dup I16.Min I16.Max on2:>I64 in-range if(>I16-unsafe f, g)
-    }
-    def I64.>I16-else(g) [ (*a I64 -- *a I16) *a I64 -- *a I16 ] { >I16-if(id,g) }
-    def I64.>I16? [ I64 -- Maybe(I16) ] { >I16-if(Some, drop None) }
-
-    def I16.>Int [ I16 -- Int ] { >I64 >Int }
-    def Int.>I16-unsafe [ Int -- I16 ] { >I64-unsafe >I16-unsafe }
-    def Int.>I16-clamp [ Int -- I16 ] { I16.Min I16.Max on2:>Int clamp >I16-unsafe }
-    def Int.>I16-if(f,g) [ (*a I16 -- *b, *a Int -- *b) *a Int -- *b ] {
-        dup I16.Min I16.Max on2:>Int in-range if(>I16-unsafe f, g)
-    }
-    def Int.>I16-else(f) [ (*a Int -- *a I16 ) *a Int -- *a I16 ] { >I16-if(id,f) }
-    def Int.>I16? [ Int -- Maybe(I16) ] { >I16-if(Some, drop None) }
-
-    def I16.compare [ I16 I16 -- Comparison ] { on2:>Int compare }
-    def I16.== [ I16 I16 -- Bool ] { on2:>Int == }
-    def I16.<  [ I16 I16 -- Bool ] { on2:>Int <  }
-    def I16.<= [ I16 I16 -- Bool ] { on2:>Int <= }
-    def I16.>  [ I16 I16 -- Bool ] { on2:>Int >  }
-    def I16.>= [ I16 I16 -- Bool ] { on2:>Int >= }
-    def I16.<> [ I16 I16 -- Bool ] { on2:>Int <> }
-
-    def I16.add-unsafe [ I16 I16 -- I16 ] { on2:>I64 add-unsafe >I16-unsafe }
-    def I16.sub-unsafe [ I16 I16 -- I16 ] { on2:>I64 sub-unsafe >I16-unsafe }
-    def I16.mul-unsafe [ I16 I16 -- I16 ] { on2:>I64 mul-unsafe >I16-unsafe }
-    def I16.div-unsafe [ I16 I16 -- I16 ] { on2:>I64 div-unsafe >I16-unsafe }
-    def I16.mod-unsafe [ I16 I16 -- I16 ] { on2:>I64 mod-unsafe >I16-unsafe }
-    def I16.divmod-unsafe [ I16 I16 -- I16 I16 ] { on2:>I64 divmod-unsafe on2:>I16-unsafe }
-
-    def I16.add-clamp [ I16 I16 -- I16 ] { on2:>I64 add-unsafe >I16-clamp }
-    def I16.sub-clamp [ I16 I16 -- I16 ] { on2:>I64 sub-unsafe >I16-clamp }
-    def I16.mul-clamp [ I16 I16 -- I16 ] { on2:>I64 mul-unsafe >I16-clamp }
-    def I16.div-clamp [ I16 I16 -- I16 ] { on2:>I64 div-unsafe >I16-clamp }
-    def I16.mod-clamp [ I16 I16 -- I16 ] { divmod-clamp nip }
-    def I16.divmod-clamp [ I16 I16 -- I16 I16 ] {
-        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
-    }
-
-    def I16.Min [ I16 ] { -0x8000i16 }
-    def I16.Max [ I16 ] {  0x7FFFi16 }
-    def I16.succ [ I16 -- I16 ] { 1i16 add-clamp }
-    def I16.pred [ I16 -- I16 ] { 1i16 sub-clamp }
-
-    def I16.repr; [ I16 +Str -- +Str ] { int; "i16"; }
-    def I16.int;  [ I16 +Str -- +Str ] { >Int int; }
-}
-
-inline {
-    def I8.>I64 [ I8 -- I64 ] { prim-i8-to-i64 }
-    def I64.>I8-unsafe [ I64 -- I8 ] { prim-i64-to-i8 }
-    def I64.>I8-clamp [ I64 -- I8 ] { I8.Min I8.Max on2:>I64 clamp >I8-unsafe }
-    def I64.>I8-if(f,g) [ (*a I8 -- *b, *a I64 -- *b) *a I64 -- *b ] {
-        dup I8.Min I8.Max on2:>I64 in-range if(>I8-unsafe f, g)
-    }
-    def I64.>I8-else(g) [ (*a I64 -- *a I8) *a I64 -- *a I8 ] { >I8-if(id,g) }
-    def I64.>I8? [ I64 -- Maybe(I8) ] { >I8-if(Some, drop None) }
-
-    def I8.>Int [ I8 -- Int ] { >I64 >Int }
-    def Int.>I8-unsafe [ Int -- I8 ] { >I64-unsafe >I8-unsafe }
-    def Int.>I8-clamp [ Int -- I8 ] { I8.Min I8.Max on2:>Int clamp >I8-unsafe }
-    def Int.>I8-if(f,g) [ (*a I8 -- *b, *a Int -- *b) *a Int -- *b ] {
-        dup I8.Min I8.Max on2:>Int in-range if(>I8-unsafe f, g)
-    }
-    def Int.>I8-else(f) [ (*a Int -- *a I8 ) *a Int -- *a I8 ] { >I8-if(id,f) }
-    def Int.>I8? [ Int -- Maybe(I8) ] { >I8-if(Some, drop None) }
-
-    def I8.compare [ I8 I8 -- Comparison ] { on2:>I64 compare }
-    def I8.== [ I8 I8 -- Bool ] { on2:>I64 == }
-    def I8.<  [ I8 I8 -- Bool ] { on2:>I64 <  }
-    def I8.<= [ I8 I8 -- Bool ] { on2:>I64 <= }
-    def I8.>  [ I8 I8 -- Bool ] { on2:>I64 >  }
-    def I8.>= [ I8 I8 -- Bool ] { on2:>I64 >= }
-    def I8.<> [ I8 I8 -- Bool ] { on2:>I64 <> }
-
-    def I8.add-unsafe [ I8 I8 -- I8 ] { on2:>I64 add-unsafe >I8-unsafe }
-    def I8.sub-unsafe [ I8 I8 -- I8 ] { on2:>I64 sub-unsafe >I8-unsafe }
-    def I8.mul-unsafe [ I8 I8 -- I8 ] { on2:>I64 mul-unsafe >I8-unsafe }
-    def I8.div-unsafe [ I8 I8 -- I8 ] { on2:>I64 div-unsafe >I8-unsafe }
-    def I8.mod-unsafe [ I8 I8 -- I8 ] { on2:>I64 mod-unsafe >I8-unsafe }
-    def I8.divmod-unsafe [ I8 I8 -- I8 I8 ] { on2:>I64 divmod-unsafe on2:>I8-unsafe }
-
-    def I8.add-clamp [ I8 I8 -- I8 ] { on2:>I64 add-unsafe >I8-clamp }
-    def I8.sub-clamp [ I8 I8 -- I8 ] { on2:>I64 sub-unsafe >I8-clamp }
-    def I8.mul-clamp [ I8 I8 -- I8 ] { on2:>I64 mul-unsafe >I8-clamp }
-    def I8.div-clamp [ I8 I8 -- I8 ] { on2:>I64 div-unsafe >I8-clamp }
-    def I8.mod-clamp [ I8 I8 -- I8 ] { divmod-clamp nip }
-    def I8.divmod-clamp [ I8 I8 -- I8 I8 ] {
-        dup2 div-clamp sip(mul-unsafe sub-unsafe) swap
-    }
-
-    def I8.Min [ I8 ] { -0x80i8 }
-    def I8.Max [ I8 ] {  0x7Fi8 }
-    def I8.succ [ I8 -- I8 ] { 1i8 add-clamp }
-    def I8.pred [ I8 -- I8 ] { 1i8 sub-clamp }
-
-    def I8.repr; [ I8 +Str -- +Str ] { int; "i8"; }
-    def I8.int;  [ I8 +Str -- +Str ] { >Int int; }
-}
-
-inline (
-    def U64.>Int [ U64 -- Int ] { prim-u64-to-int }
-    def U64.>Nat [ U64 -- Nat ] { >Int >Nat-clamp }
-
-    def Int.>U64-if(f,g) [ (*a U64 -- *b, *a Int -- *b) *a Int -- *b ] {
-        dup 0< if(g, >U64-wrap f)
-    }
-    def Int.>U64-else(f) [ (*a Int -- *a U64) *a Int -- *a U64 ] { >U64-if(id, f) }
-    def Int.>U64? [ Int -- Maybe(U64) ] { >U64-if(Some, drop None) }
-    def Int.>U64-wrap  [ Int -- U64 ] { prim-int-to-u64 }
-    def Int.>U64-clamp [ Int -- U64 ] { 0 max >U64-wrap }
-
-    def U64.add-wrap [ U64 U64 -- U64 ] { prim-u64-add }
-    def U64.sub-wrap [ U64 U64 -- U64 ] { prim-u64-sub }
-    def U64.mul-wrap [ U64 U64 -- U64 ] { prim-u64-mul }
-
-    def U64.add-clamp [ U64 U64 -- U64 ] { on2:>Int + >U64-clamp }
-    def U64.sub-clamp [ U64 U64 -- U64 ] { on2:>Int - >U64-clamp }
-    def U64.mul-clamp [ U64 U64 -- U64 ] { on2:>Int * >U64-clamp }
-
-    def U64.div [ U64 U64 -- U64 ] { prim-u64-div }
-    def U64.mod [ U64 U64 -- U64 ] { prim-u64-mod }
-    def U64.divmod [ U64 U64 -- U64 U64 ] { dup2 mod dip:div }
-
-    def U64.Max [ U64 ] { 0u64 1u64 sub-wrap }
-    def U64.Min [ U64 ] { 0u64 }
-
-    def U64.and [ U64 U64 -- U64 ] { prim-u64-and }
-    def U64.or  [ U64 U64 -- U64 ] { prim-u64-or  }
-    def U64.xor [ U64 U64 -- U64 ] { prim-u64-xor }
-    def U64.lshift [ U64 U64 -- U64 ] { prim-u64-shl }
-    def U64.rshift [ U64 U64 -- U64 ] { prim-u64-shr }
-
-    def U64.compare [ U64 U64 -- Comparison ] { compare-via-eq-lt }
-    def U64.== [ U64 U64 -- Bool ] { prim-u64-eq }
-    def U64.<  [ U64 U64 -- Bool ] { prim-u64-lt }
-    def U64.<= [ U64 U64 -- Bool ] { prim-u64-le }
-    def U64.>  [ U64 U64 -- Bool ] { prim-u64-gt }
-    def U64.>= [ U64 U64 -- Bool ] { prim-u64-ge }
-    def U64.<> [ U64 U64 -- Bool ] { prim-u64-ne }
-
-    def U64.0> [ U64 -- Bool ] { 0u64 > }
-    def U64.0= [ U64 -- Bool ] { 0u64 == }
-
-    def U64.repr; [ U64 +Str -- +Str ] { int; "u64"; }
-    def U64.int; [ U64 +Str -- +Str ] { >Nat int; }
-    def U64.dec; [ U64 +Str -- +Str ] { >Nat dec; }
-    def U64.hex; [ U64 +Str -- +Str ] { >Nat hex; }
-    def U64.oct; [ U64 +Str -- +Str ] { >Nat oct; }
-)
-
-inline (
-    def U32.>U64 [ U32 -- U64 ] { prim-u32-to-u64 }
-    def U64.>U32-wrap [ U64 -- U32 ] { prim-u64-to-u32 }
-    def U64.>U32-clamp [ U64 -- U32 ] { U32.Max >U64 min >U32-wrap }
-    def U64.>U32-if(f,g) [ (*a U32 -- *b, *a U64 -- *b) *a U64 -- *b ] {
-        dup U32.Max >U64 <= if(>U32-wrap f, g)
-    }
-    def U64.>U32-else(g) [ (*a U64 -- *a U32) *a U64 -- *a U32 ] {
-        >U32-if(id,g)
-    }
-    def U64.>U32? [ U64 -- Maybe(U32) ] { >U32-if(Some, drop None) }
-
-    def U32.>Int  [ U32  -- Int ] { >U64 >Int }
-    def Int.>U32-if(f,g) [ (*a U32 -- *b, *a Int -- *b ) *a Int -- *b ] {
-        dup 0 U32.Max >Int in-range if(>U32-wrap f, g)
-    }
-    def Int.>U32-else(f) [ (*a Int -- *a U32 ) *a Int -- *a U32 ] { >U32-if(id, f) }
-    def Int.>U32? [ Int -- Maybe(U32) ] { >U32-if(Some, drop None) }
-    def Int.>U32-wrap   [ Int -- U32 ] { >U64-wrap >U32-wrap }
-    def Int.>U32-clamp  [ Int -- U32 ] { 0 U32.Max >Int clamp >U32-wrap }
-
-    def U32.add-wrap [ U32 U32 -- U32 ] { on2:>U64 add-wrap >U32-wrap }
-    def U32.sub-wrap [ U32 U32 -- U32 ] { on2:>U64 sub-wrap >U32-wrap }
-    def U32.mul-wrap [ U32 U32 -- U32 ] { on2:>U64 mul-wrap >U32-wrap }
-
-    def U32.add-clamp [ U32 U32 -- U32 ] { on2:>U64 add-wrap >U32-clamp }
-    def U32.sub-clamp [ U32 U32 -- U32 ] { on2:>U64 sub-clamp >U32-wrap }
-    def U32.mul-clamp [ U32 U32 -- U32 ] { on2:>U64 mul-wrap >U32-clamp }
-
-    def U32.div [ U32 U32 -- U32 ] { on2:>U64 div >U32-wrap }
-    def U32.mod [ U32 U32 -- U32 ] { on2:>U64 mod >U32-wrap }
-    def U32.divmod [ U32 U32 -- U32 U32 ] { on2:>U64 divmod on2:>U32-wrap }
-
-    def U32.and [ U32 U32 -- U32 ] { on2:>U64 and >U32-wrap }
-    def U32.or  [ U32 U32 -- U32 ] { on2:>U64 or  >U32-wrap }
-    def U32.xor [ U32 U32 -- U32 ] { on2:>U64 xor >U32-wrap }
-    def U32.lshift [ U32 U32 -- U32 ] { on2:>U64 lshift >U32-wrap }
-    def U32.rshift [ U32 U32 -- U32 ] { on2:>U64 rshift >U32-wrap }
-
-    def U32.compare [ U32 U32 -- Comparison ] { on2:>Int compare }
-    def U32.== [ U32 U32 -- Bool ] { on2:>U64 == }
-    def U32.<  [ U32 U32 -- Bool ] { on2:>U64 <  }
-    def U32.<= [ U32 U32 -- Bool ] { on2:>U64 <= }
-    def U32.>  [ U32 U32 -- Bool ] { on2:>U64 >  }
-    def U32.>= [ U32 U32 -- Bool ] { on2:>U64 >= }
-    def U32.<> [ U32 U32 -- Bool ] { on2:>U64 <> }
-    def U32.0= [ U32 -- Bool ] { >Int 0= }
-    def U32.0> [ U32 -- Bool ] { >Int 0> }
-
-    def U32.Max  [ U32 ] { 0xFFFFFFFFu32 }
-    def U32.Min  [ U32 ] { 0u32 }
-    def U32.succ [ U32 -- U32 ] { 1u32 add-clamp }
-    def U32.pred [ U32 -- U32 ] { 1u32 sub-clamp }
-
-    def U32.repr; [ U32 +Str -- +Str ] { int; "u32"; }
-    def U32.int; [ U32 +Str -- +Str ] { >U64 int; }
-    def U32.dec; [ U32 +Str -- +Str ] { >U64 dec; }
-    def U32.hex; [ U32 +Str -- +Str ] { >U64 hex; }
-    def U32.oct; [ U32 +Str -- +Str ] { >U64 oct; }
-)
-
-inline (
-    def U16.>U64 [ U16 -- U64 ] { prim-u16-to-u64 }
-    def U64.>U16-if(f,g) [ (*a U16 -- *b, *a U64 -- *b) *a U64 -- *b ] {
-        dup 0xFFFFu64 <= if(>U16-wrap f,g)
-    }
-    def U64.>U16-else(g) [ (*a U64 -- *a U16) *a U64 -- *a U16 ] { >U16-if(id,g) }
-    def U64.>U16? [ U64 -- Maybe(U16) ] { >U16-if(Some, drop None) }
-    def U64.>U16-clamp [ U64 -- U16 ] { 0xFFFFu64 min >U16-wrap }
-    def U64.>U16-wrap  [ U64 -- U16 ] { prim-u64-to-u16 }
-
-    def U16.>U32 [ U16 -- U32 ] { >U64 >U32-wrap }
-    def U32.>U16-if(f,g) [ (*a U16 -- *b, *a U64 -- *b) *a U64 -- *b ] {
-        dup 0xFFFFu64 <= if(>U16-wrap f,g)
-    }
-    def U32.>U16-else(g) [ (*a U64 -- *a U16) *a U64 -- *a U16 ] { >U16-if(id,g) }
-    def U32.>U16? [ U64 -- Maybe(U16) ] { >U16-if(Some, drop None) }
-    def U32.>U16-clamp [ U32 -- U16 ] { 0xFFFFu32 min >U16-wrap }
-    def U32.>U16-wrap  [ U32 -- U16 ] { >U64 >U16-wrap }
-
-    def U16.>Int [ U16 -- Int ] { >U64 >Int }
-    def Int.>U16-if(f,g) [ (*a U16 -- *b, *a Int -- *b ) *a Int -- *b ] {
-        dup 0 0xFFFF in-range if(>U16-wrap f, g)
-    }
-    def Int.>U16-else(f) [ (*a Int -- *a U16 ) *a Int -- *a U16 ] { >U16-if(id, f) }
-    def Int.>U16? [ Int -- Maybe(U16) ] { >U16-if(Some, drop None) }
-    def Int.>U16-clamp  [ Int -- U16 ] { 0 0xFFFF clamp >U16-wrap }
-    def Int.>U16-wrap  [ Int -- U16 ] { >U64-wrap >U16-wrap }
-
-    def U16.add-wrap [ U16 U16 -- U16 ] { on2:>U64 add-wrap >U16-wrap }
-    def U16.sub-wrap [ U16 U16 -- U16 ] { on2:>U64 sub-wrap >U16-wrap }
-    def U16.mul-wrap [ U16 U16 -- U16 ] { on2:>U64 mul-wrap >U16-wrap }
-
-    def U16.add-clamp [ U16 U16 -- U16 ] { on2:>U64 add-wrap >U16-clamp }
-    def U16.sub-clamp [ U16 U16 -- U16 ] { on2:>U64 sub-clamp >U16-wrap }
-    def U16.mul-clamp [ U16 U16 -- U16 ] { on2:>U64 mul-wrap >U16-clamp }
-
-    def U16.div [ U16 U16 -- U16 ] { on2:>U64 div >U16-wrap }
-    def U16.mod [ U16 U16 -- U16 ] { on2:>U64 mod >U16-wrap }
-    def U16.divmod [ U16 U16 -- U16 U16 ] { on2:>U64 divmod on2:>U16-wrap }
-
-    def U16.and [ U16 U16 -- U16 ] { on2:>U64 and >U16-wrap }
-    def U16.or  [ U16 U16 -- U16 ] { on2:>U64 or  >U16-wrap }
-    def U16.xor [ U16 U16 -- U16 ] { on2:>U64 xor >U16-wrap }
-    def U16.lshift [ U16 U16 -- U16 ] { on2:>U64 lshift >U16-wrap }
-    def U16.rshift [ U16 U16 -- U16 ] { on2:>U64 rshift >U16-wrap }
-
-    def U16.compare [ U16 U16 -- Comparison ] { on2:>U64 compare }
-    def U16.== [ U16 U16 -- Bool ] { on2:>U64 == }
-    def U16.<  [ U16 U16 -- Bool ] { on2:>U64 <  }
-    def U16.<= [ U16 U16 -- Bool ] { on2:>U64 <= }
-    def U16.>  [ U16 U16 -- Bool ] { on2:>U64 >  }
-    def U16.>= [ U16 U16 -- Bool ] { on2:>U64 >= }
-    def U16.<> [ U16 U16 -- Bool ] { on2:>U64 <> }
-    def U16.0= [ U16 -- Bool ] { >U64 0= }
-    def U16.0> [ U16 -- Bool ] { >U64 0> }
-
-    def U16.Max  [ U16 ] { 0xFFFFu16 }
-    def U16.Min  [ U16 ] { 0u16 }
-    def U16.succ [ U16 -- U16 ] { 1u16 add-clamp }
-    def U16.pred [ U16 -- U16 ] { 1u16 sub-clamp }
-)
-
-inline (
-    def U8.>U64 [ U8 -- U64 ] { prim-u8-to-u64 }
-    def U64.>U8-if(f,g) [ (*a U8 -- *b, *a U64 -- *b) *a U64 -- *b ] { dup 0u64 255u64 in-range if(>U8-wrap f, g) }
-    def U64.>U8-else(g) [ (*a U64 -- *a U8) *a U64 -- *a U8 ] { >U8-if(id, g) }
-    def U64.>U8? [ U64 -- Maybe(U8) ] { >U8-if(Some, drop None) }
-    def U64.>U8-clamp  [ U64 -- U8 ] { 255u64 min >U8-wrap }
-    def U64.>U8-wrap   [ U64 -- U8 ] { prim-u64-to-u8 }
-
-    def U8.>U32 [ U8 -- U32 ] { >U64 >U32-wrap }
-    def U32.>U8-wrap [ U32 -- U8 ] { >U64 >U8-wrap }
-    def U32.>U8-clamp [ U32 -- U8 ] { >U64 >U8-clamp }
-    def U32.>U8? [ U32 -- Maybe(U8) ] { >U64 >U8? }
-
-    def U8.>U16 [ U8 -- U16 ] { >U64 >U16-wrap }
-    def U16.>U8-wrap [ U16 -- U8 ] { >U64 >U8-wrap }
-    def U16.>U8-clamp [ U16 -- U8 ] { >U64 >U8-clamp }
-    def U16.>U8? [ U16 -- Maybe(U8) ] { >U64 >U8? }
-
-    def U8.>Nat [ U8 -- Nat ] { >U64 >Nat }
-    def Nat.>U8-if(f,g) [ (*a U8 -- *b, *a Nat -- *b) *a Nat -- *b ] {
-        dup 255u <= if(>U8-wrap f, g)
-    }
-    def Nat.>U8-else(g) [ (*a Nat -- *a U8) *a Nat -- *a U8 ] { >U8-if(id,g) }
-
-    def U8.>Int  [ U8  -- Int ] { >U64 >Int }
-    def Int.>U8-if(f,g) [ (*a U8 -- *b, *a Int -- *b ) *a Int -- *b ] {
-        dup 0 255 in-range if(>U8-wrap f, g)
-    }
-    def Int.>U8-else(f) [ (*a Int -- *a U8 ) *a Int -- *a U8 ] { >U8-if(id, f) }
-    def Int.>U8? [ Int -- Maybe(U8) ] { >U8-if(Some, drop None) }
-    def Int.>U8-clamp  [ Int -- U8 ] { 0 255 clamp >U8-wrap }
-    def Int.>U8-wrap   [ Int -- U8 ] { >U64-wrap >U8-wrap }
-
-    def U8.add-wrap [ U8 U8 -- U8 ] { on2:>U64 add-wrap >U8-wrap }
-    def U8.sub-wrap [ U8 U8 -- U8 ] { on2:>U64 sub-wrap >U8-wrap }
-    def U8.mul-wrap [ U8 U8 -- U8 ] { on2:>U64 mul-wrap >U8-wrap }
-
-    def U8.add-clamp [ U8 U8 -- U8 ] { on2:>U64 add-wrap >U8-clamp }
-    def U8.sub-clamp [ U8 U8 -- U8 ] { on2:>U64 sub-wrap >U8-clamp }
-    def U8.mul-clamp [ U8 U8 -- U8 ] { on2:>U64 mul-wrap >U8-clamp }
-
-    def U8.div [ U8 U8 -- U8 ] { on2:>U64 div >U8-wrap }
-    def U8.mod [ U8 U8 -- U8 ] { on2:>U64 mod >U8-wrap }
-    def U8.divmod [ U8 U8 -- U8 U8 ] { on2:>U64 divmod on2:>U8-wrap }
-
-    def U8.and [ U8 U8 -- U8 ] { on2:>U64 and >U8-wrap }
-    def U8.or  [ U8 U8 -- U8 ] { on2:>U64 or  >U8-wrap }
-    def U8.xor [ U8 U8 -- U8 ] { on2:>U64 xor >U8-wrap }
-    def U8.lshift [ U8 U8 -- U8 ] { on2:>U64 lshift >U8-wrap }
-    def U8.rshift [ U8 U8 -- U8 ] { on2:>U64 rshift >U8-wrap }
-
-    def U8.compare [ U8 U8 -- Comparison ] { on2:>Int compare }
-    def U8.== [ U8 U8 -- Bool ] { on2:>Int == }
-    def U8.<  [ U8 U8 -- Bool ] { on2:>Int <  }
-    def U8.<= [ U8 U8 -- Bool ] { on2:>Int <= }
-    def U8.>  [ U8 U8 -- Bool ] { on2:>Int >  }
-    def U8.>= [ U8 U8 -- Bool ] { on2:>Int >= }
-    def U8.<> [ U8 U8 -- Bool ] { on2:>Int <> }
-    def U8.0= [ U8 -- Bool ] { >Int 0= }
-    def U8.0> [ U8 -- Bool ] { >Int 0> }
-
-    def U8.Max  [ U8 ] { 255u8 }
-    def U8.Min  [ U8 ] { 0u8 }
-    def U8.succ [ U8 -- U8 ] { >Nat 1+ >U8-clamp }
-    def U8.pred [ U8 -- U8 ] { >Int 1- >U8-clamp }
-)
-
-#######
-# NAT #
-#######
-
-data Nat {
-    Unsafe [ Int ]
-    --
-    inline {
-        def Int.>Nat-if(f,g) [ ( *a Nat -- *b, *a Int -- *b ) *a Int -- *b ] { dup 0< if(g, Nat.Unsafe f) }
-        def Int.>Nat-else(f) [ ( *a Int -- *a Nat ) *a Int -- *a Nat ] { dup 0< if(f, Nat.Unsafe) }
-        def Int.>Nat-clamp [ Int -- Nat ] { >Nat-else(drop 0u) }
-        def Int.>Nat-unsafe [ Int -- Nat ] { Nat.Unsafe }
-
-        def I64.>Nat-if(f,g) [ ( *a Nat -- *b, *a I64 -- *b ) *a I64 -- *b ] { dup 0< if(g, >Nat-unsafe f) }
-        def I64.>Nat-else(g) [ ( *a I64 -- *a Nat ) *a I64 -- *a Nat ] { >Nat-if(id,g) }
-        def I64.>Nat-clamp [ I64 -- Nat ] { >Nat-else(drop 0u) }
-        def I64.>Nat-unsafe [ I64 -- Nat ] { >Int Nat.Unsafe }
-
-        def >Int [ Nat -- Int ] { /Unsafe }
-        def >UIndex [ Nat -- UIndex ] { UIndex }
-        def >ISize [ Nat -- ISize ] { >Int >ISize }
-        def >USize [ Nat -- USize ] { USize }
-        def >IOffset [ Nat -- IOffset ] { >Int >IOffset }
-        def >UOffset [ Nat -- UOffset ] { UOffset }
-        def >Str [ Nat -- Str ] { >Int >Str }
-
-        def >U8?  [ Nat -- Maybe(U8)  ] { >Int >U8?  }
-        def >U16? [ Nat -- Maybe(U16) ] { >Int >U16? }
-        def >U32? [ Nat -- Maybe(U32) ] { >Int >U32? }
-        def >U64? [ Nat -- Maybe(U64) ] { >Int >U64? }
-
-        def >U8-wrap  [ Nat -- U8  ] { >Int >U8-wrap  }
-        def >U16-wrap [ Nat -- U16 ] { >Int >U16-wrap }
-        def >U32-wrap [ Nat -- U32 ] { >Int >U32-wrap }
-        def >U64-wrap [ Nat -- U64 ] { >Int >U64-wrap }
-
-        def >U8-clamp  [ Nat -- U8  ] { >Int >U8-clamp  }
-        def >U16-clamp [ Nat -- U16 ] { >Int >U16-clamp }
-        def >U32-clamp [ Nat -- U32 ] { >Int >U32-clamp }
-        def >U64-clamp [ Nat -- U64 ] { >Int >U64-clamp }
-
-        def +  [ Nat Nat -- Nat ] { both(>Int) + Nat.Unsafe }
-        def -  [ Nat Nat -- Int ] { both(>Int) - }
-        def *  [ Nat Nat -- Nat ] { both(>Int) * Nat.Unsafe }
-        def div [ Nat Nat -- Nat ] { both(>Int) div Nat.Unsafe }
-        def mod [ Nat Nat -- Nat ] { both(>Int) mod Nat.Unsafe }
-        def divmod [ Nat Nat -- Nat Nat ] { both(>Int) divmod both(Nat.Unsafe) }
-
-        def 1+ [ Nat -- Nat ] { >Int 1+ Nat.Unsafe }
-        def 1- [ Nat -- Int ] { >Int 1- }
-        def 2* [ Nat -- Nat ] { >Int 2* Nat.Unsafe }
-
-        def succ [ Nat -- Nat ] { 1+ }
-        def pred  [ Nat -- Nat ] { 1- >Nat-clamp }
-        def minus [ Nat Nat -- Nat ] { - >Nat-clamp }
-
-        def compare [ Nat Nat -- Comparison ] { on2:>Int compare }
-        def == [ Nat Nat -- Bool ] { on2:>Int == }
-        def <  [ Nat Nat -- Bool ] { on2:>Int <  }
-        def <= [ Nat Nat -- Bool ] { on2:>Int <= }
-        def >  [ Nat Nat -- Bool ] { on2:>Int >  }
-        def >= [ Nat Nat -- Bool ] { on2:>Int >= }
-        def <> [ Nat Nat -- Bool ] { on2:>Int <> }
-        def 0> [ Nat -- Bool ] { >Int 0> }
-        def 0= [ Nat -- Bool ] { >Int 0= }
-        def repr; [ Nat +Str -- +Str ] { >Int repr; "Nat "; }
-        def int; [ Nat +Str -- +Str ] { >Int int; }
-        def dec; [ Nat +Str -- +Str ] { int; }
-        def hex; [ Nat +Str -- +Str ] { Base.Hex digits; }
-        def oct; [ Nat +Str -- +Str ] { Base.Oct digits; }
-        def bin; [ Nat +Str -- +Str ] { Base.Bin digits; }
-    }
-}
+||| Unsigned index into an array or table.
+struct UIndex { Nat }
 
 inline {
     def 0u [ Nat ] { 0 Nat.Unsafe }
@@ -955,116 +315,6 @@ inline {
     def 255u [ Nat ] { 255 Nat.Unsafe }
     def 256u [ Nat ] { 256 Nat.Unsafe }
 
-    def U16.>Nat [ U16 -- Nat ] { >Int Nat.Unsafe }
-    def U32.>Nat [ U32 -- Nat ] { >Int Nat.Unsafe }
-    # def U64.>Nat [ U64 -- Nat ] { >Int-unsafe Nat.Unsafe }
-}
-
-||| Index into an array-like structure. Non-negative.
-struct UIndex {
-    Nat
-    --
-    inline {
-        def Int.>UIndex-if(f,g) [ ( *a UIndex -- *b, *a Int -- *b ) *a Int -- *b ] { >Nat-if(UIndex f, g) }
-        def Int.>UIndex-else(f) [ ( *a Int -- *a UIndex ) *a Int -- *a UIndex ] { >UIndex-if(id, f) }
-        def Int.>UIndex-clamp [ Int -- UIndex ] { >Nat-clamp >UIndex }
-
-        def >Nat   [ UIndex -- Nat   ] { /UIndex }
-        def >Int   [ UIndex -- Int   ] { /UIndex >Int }
-        def >USize [ UIndex -- USize ] { >Nat >USize }
-
-        def +  [ UIndex UIndex -- UIndex ] { dip:>Nat >Nat + >UIndex }
-        def 1+ [ UIndex -- UIndex ] { >Nat 1+ >UIndex }
-        def 2* [ UIndex -- UIndex ] { >Nat 2* >UIndex }
-        def == [ UIndex UIndex -- Bool ] { on2:>Nat == }
-        def <  [ UIndex UIndex -- Bool ] { on2:>Nat <  }
-        def <= [ UIndex UIndex -- Bool ] { on2:>Nat <= }
-        def >  [ UIndex UIndex -- Bool ] { on2:>Nat >  }
-        def >= [ UIndex UIndex -- Bool ] { on2:>Nat >= }
-        def <> [ UIndex UIndex -- Bool ] { on2:>Nat <> }
-        def compare [ UIndex UIndex -- Comparison ] { on2:>Nat compare }
-        def 0= [ UIndex -- Bool ] { >Nat 0= }
-        def 0> [ UIndex -- Bool ] { >Nat 0> }
-        def repr; [ UIndex +Str -- +Str ] { >Int repr; }
-    }
-}
-
-||| Size in bytes. Can be negative.
-struct ISize {
-    Int
-    --
-    inline {
-        def Int.>ISize [ Int -- ISize ] { ISize }
-
-        def >Int [ ISize -- Int ] { /ISize }
-        def >Nat-if     (f,g) [ ( *a Nat -- *b,     *a ISize -- *b ) *a ISize -- *b ] { >Int >Nat-if(f, >ISize g) }
-        def >UIndex-if  (f,g) [ ( *a UIndex  -- *b, *a ISize -- *b ) *a ISize -- *b ] { >Nat-if(>UIndex  f, g) }
-        def >USize-if   (f,g) [ ( *a USize   -- *b, *a ISize -- *b ) *a ISize -- *b ] { >Nat-if(>USize   f, g) }
-        def >UOffset-if (f,g) [ ( *a UOffset -- *b, *a ISize -- *b ) *a ISize -- *b ] { >Nat-if(>UOffset f, g) }
-
-        def >USize-clamp [ ISize -- USize ] { >Int >USize-clamp }
-        def >UOffset-clamp [ ISize -- UOffset ] { >Int >UOffset-clamp }
-        def >UIndex-clamp [ ISize -- UIndex ] { >Int >UIndex-clamp }
-
-        def +  [ ISize ISize -- ISize ] { both(>Int) + >ISize }
-        def -  [ ISize ISize -- ISize ] { both(>Int) - >ISize }
-        def 1+ [ ISize -- ISize ] { >Int 1+ >ISize }
-        def 1- [ ISize -- ISize ] { >Int 1- >ISize }
-        def == [ ISize ISize -- Bool ] { dip:>Int >Int == }
-        def <  [ ISize ISize -- Bool ] { dip:>Int >Int >  }
-        def <= [ ISize ISize -- Bool ] { dip:>Int >Int <= }
-        def >  [ ISize ISize -- Bool ] { dip:>Int >Int >  }
-        def >= [ ISize ISize -- Bool ] { dip:>Int >Int >= }
-        def <> [ ISize ISize -- Bool ] { dip:>Int >Int <> }
-        def compare [ ISize ISize -- Comparison ] { on2:>Int compare }
-        def 0= [ ISize -- Bool ] { >Int 0= }
-        def 0< [ ISize -- Bool ] { >Int 0< }
-        def 0> [ ISize -- Bool ] { >Int 0> }
-    }
-}
-
-||| Size in bytes. Non-negative.
-struct USize {
-    Nat
-    --
-    inline {
-        def Int.>USize-if (f,g) [ (*a USize -- *b, *a Int -- *b) *a Int -- *b ] { >Nat-if(USize f, g) }
-        def Int.>USize-else (f) [ (*a Int -- *a USize) *a Int -- *a USize ] { >USize-if(id, f) }
-        def Int.>USize-clamp [ Int -- USize ] { >Nat-clamp >USize }
-        def Int.>USize? [ Int -- Maybe(USize) ] { >USize-if(Some, drop None) }
-
-        def >Nat [ USize -- Nat ] { /USize }
-        def >Int [ USize -- Int ] { >Nat >Int }
-        def >ISize [ USize -- ISize ] { >Int >ISize }
-        def >UOffset [ USize -- UOffset ] { >Nat >UOffset }
-        def >UIndex  [ USize -- UIndex  ] { >Nat >UIndex }
-        def >Str [ USize -- Str ] { >Nat >Str }
-
-        def +  [ USize USize -- USize ] { dip(>Nat) >Nat + >USize }
-        def -  [ USize USize -- ISize ] { dip(>Nat) >Nat - >ISize }
-        def *  [ UIndex USize -- UOffset ] { dip(>Nat) >Nat * >UOffset }
-        def 1+ [ USize -- USize ] { >Nat 1+ >USize }
-        def 1- [ USize -- ISize ] { >Nat 1- >ISize }
-        def 2* [ USize -- USize ] { >Nat 2* >USize }
-        def == [ USize USize -- Bool ] { on2:>Nat == }
-        def <  [ USize USize -- Bool ] { on2:>Nat <  }
-        def <= [ USize USize -- Bool ] { on2:>Nat <= }
-        def >  [ USize USize -- Bool ] { on2:>Nat >  }
-        def >= [ USize USize -- Bool ] { on2:>Nat >= }
-        def <> [ USize USize -- Bool ] { on2:>Nat <> }
-        def compare [ USize USize -- Comparison ] { on2:>Nat compare }
-        def 0= [ USize -- Bool ] { >Nat 0= }
-        def 0> [ USize -- Bool ] { >Nat 0> }
-        def repr; [ USize +Str -- +Str ] { >Nat repr; }
-
-        def succ [ USize -- USize ] { >Nat succ >USize }
-        def pred [ USize -- USize ] { >Nat pred >USize }
-        def minus [ USize USize -- USize ] { on2:>Nat minus >USize }
-    }
-}
-
-
-inline {
     def |U8|  [ USize ] { 1u >USize }
     def |U16| [ USize ] { 2u >USize }
     def |U32| [ USize ] { 4u >USize }
@@ -1078,80 +328,69 @@ inline {
     def |Ptr| [ USize ] { prim-ptr-size >Int >Nat-clamp >USize }
 }
 
-||| Offset in bytes. Can be negative.
-struct IOffset {
-    Int
-    --
-    inline {
-        def Int.>IOffset [ Int -- IOffset ] { IOffset }
+data +Unsafe { +Unsafe }
 
-        def >Int [ IOffset -- Int ] { /IOffset }
-        def >Nat-if (f,g) [ ( *a Nat -- *b, *a IOffset -- *b ) *a IOffset -- *b ] {
-            /IOffset >Nat-if(f, IOffset g)
-        }
-        def >UIndex-if (f,g) [ (*a UIndex -- *b, *a IOffset -- *b) *a IOffset -- *b ] {
-            >Nat-if(>UIndex f, g)
-        }
-        def >USize-if (f,g) [ ( *a USize -- *b, *a IOffset -- *b ) *a IOffset -- *b ] {
-            >Nat-if(>USize f, g)
-        }
-        def >UOffset-if (f,g) [ ( *a UOffset -- *b, *a IOffset -- *b ) *a IOffset -- *b ] {
-            >Nat-if(>UOffset f, g)
-        }
-
-        def +  [ IOffset IOffset -- IOffset ] { both(>Int) + >IOffset }
-        def -  [ IOffset IOffset -- IOffset ] { both(>Int) - >IOffset }
-        def 1+ [ IOffset -- IOffset ] { >Int 1+ >IOffset }
-        def 1- [ IOffset -- IOffset ] { >Int 1- >IOffset }
-
-        def compare [ IOffset IOffset -- Comparison ] { on2:>Int compare }
-        def == [ IOffset IOffset -- Bool ] { on2:>Int == }
-        def <  [ IOffset IOffset -- Bool ] { on2:>Int <  }
-        def <= [ IOffset IOffset -- Bool ] { on2:>Int <= }
-        def >  [ IOffset IOffset -- Bool ] { on2:>Int >  }
-        def >= [ IOffset IOffset -- Bool ] { on2:>Int >= }
-        def <> [ IOffset IOffset -- Bool ] { on2:>Int <> }
-        def 0= [ IOffset -- Bool ] { >Int 0= }
-        def 0< [ IOffset -- Bool ] { >Int 0< }
-        def 0> [ IOffset -- Bool ] { >Int 0> }
-    }
+def unsafe(f) [ (*a +Unsafe -- *b +Unsafe) *a -- *b ] {
+    +Unsafe f /+Unsafe
 }
 
-||| Offset in bytes. Non-negative.
-struct UOffset {
-    Nat
+||| Nullable pointer.
+data Ptr? {
+    Unsafe [ Ptr ]
     --
-    inline {
-        def Int.>UOffset-if (f,g) [ (*a UOffset -- *b, *a Int -- *b) *a Int -- *b ] { >Nat-if(UOffset f, g) }
-        def Int.>UOffset-else (f) [ (*a Int -- *a UOffset) *a Int -- *a UOffset ] { >UOffset-if(id, f) }
-        def Int.>UOffset-clamp [ Int -- UOffset ] { >Nat-clamp UOffset }
-
-        def >Nat [ UOffset -- Nat ] { /UOffset }
-        def >Int [ UOffset -- Int ] { >Nat >Int }
-        def >ISize [ UOffset -- ISize ] { >Int >ISize }
-        def >USize [ UOffset -- USize ] { >Nat >USize }
-        def >IOffset [ UOffset -- IOffset ] { >Nat >IOffset }
-
-        def +  [ UOffset UOffset -- UOffset ] { dip(>Nat) >Nat + >UOffset }
-        def -  [ UOffset UOffset -- ISize   ] { dip(>Nat) >Nat - >ISize   }
-        def 1+ [ UOffset -- UOffset ] { >Nat 1+ >UOffset }
-        def 1- [ UOffset -- IOffset ] { >Nat 1- >IOffset }
-        def 2* [ UOffset -- UOffset ] { >Nat 2* >UOffset }
-
-        def compare [ UOffset UOffset -- Comparison ] { on2:>Nat compare }
-        def == [ UOffset UOffset -- Bool ] { on2:>Nat == }
-        def <  [ UOffset UOffset -- Bool ] { on2:>Nat <  }
-        def <= [ UOffset UOffset -- Bool ] { on2:>Nat <= }
-        def >  [ UOffset UOffset -- Bool ] { on2:>Nat >  }
-        def >= [ UOffset UOffset -- Bool ] { on2:>Nat >= }
-        def <> [ UOffset UOffset -- Bool ] { on2:>Nat <> }
-        def 0= [ UOffset -- Bool ] { >Nat 0= }
-        def 0> [ UOffset -- Bool ] { >Nat 0> }
-
-        def succ [ UOffset -- UOffset ] { >Nat succ >UOffset }
-        def pred [ UOffset -- UOffset ] { >Nat pred >UOffset }
-        def minus [ UOffset UOffset -- UOffset ] { on2:>Nat minus >UOffset }
+    def None [ -- Ptr? ] { Ptr?.Null }
+    def Some [ Ptr -- Ptr? ] { Ptr?.Unsafe }
+    def Null [ -- Ptr? ] { prim-ptr-nil Ptr?.Unsafe }
+    def null? [ Ptr? -- Bool ] { Unsafe -> prim-ptr-nil == }
+    def == [ Ptr? Ptr? -- Bool ] { both(/Unsafe) == }
+    def if?(f,g) [ (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b ] {
+        dup null? if(drop g, /Unsafe f)
     }
+    def for(f) [ (*a Ptr -- *a) *a Ptr? -- *a ] { if?(f, id) }
+    def unwrap(f) [ (*a -- *a Ptr) *a Ptr? -- *a Ptr ] { if?(id, f) }
+    def >Maybe [ Ptr? -- Maybe(Ptr) ] { if?(Some, None) }
+}
+
+inline patch Ptr {
+    def Ptr.== [ Ptr Ptr -- Bool ] { prim-ptr-eq }
+    def Ptr.>Ptr? [ Ptr -- Ptr? ] { Ptr?.Unsafe }
+
+    ||| Add byte offset to Ptr.
+    def ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
+    def uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
+
+    def @Ptr [ Ptr +Unsafe -- Ptr +Unsafe ] { prim-ptr-get }
+    def !Ptr [ Ptr Ptr +Unsafe -- +Unsafe ] { prim-ptr-set }
+
+    def @U8  [ Ptr +Unsafe -- U8  +Unsafe ] { prim-u8-get  }
+    def @U16 [ Ptr +Unsafe -- U16 +Unsafe ] { prim-u16-get }
+    def @U32 [ Ptr +Unsafe -- U32 +Unsafe ] { prim-u32-get }
+    def @U64 [ Ptr +Unsafe -- U64 +Unsafe ] { prim-u64-get }
+    def @I8  [ Ptr +Unsafe -- I8  +Unsafe ] { prim-i8-get  }
+    def @I16 [ Ptr +Unsafe -- I16 +Unsafe ] { prim-i16-get }
+    def @I32 [ Ptr +Unsafe -- I32 +Unsafe ] { prim-i32-get }
+    def @I64 [ Ptr +Unsafe -- I64 +Unsafe ] { prim-i64-get }
+    def @F32 [ Ptr +Unsafe -- F32 +Unsafe ] { prim-f32-get }
+    def @F64 [ Ptr +Unsafe -- F64 +Unsafe ] { prim-f64-get }
+
+    def !U8  [ U8  Ptr +Unsafe -- +Unsafe ] { prim-u8-set  }
+    def !U16 [ U16 Ptr +Unsafe -- +Unsafe ] { prim-u16-set }
+    def !U32 [ U32 Ptr +Unsafe -- +Unsafe ] { prim-u32-set }
+    def !U64 [ U64 Ptr +Unsafe -- +Unsafe ] { prim-u64-set }
+    def !I8  [ I8  Ptr +Unsafe -- +Unsafe ] { prim-i8-set  }
+    def !I16 [ I16 Ptr +Unsafe -- +Unsafe ] { prim-i16-set }
+    def !I32 [ I32 Ptr +Unsafe -- +Unsafe ] { prim-i32-set }
+    def !I64 [ I64 Ptr +Unsafe -- +Unsafe ] { prim-i64-set }
+    def !F32 [ F32 Ptr +Unsafe -- +Unsafe ] { prim-f32-set }
+    def !F64 [ F64 Ptr +Unsafe -- +Unsafe ] { prim-f64-set }
+
+    def alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-alloc   }
+    def realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-realloc }
+    def copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-copy }
+    def fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-fill }
+
+    def free    [ Ptr +Unsafe -- +Unsafe ] { prim-ptr-free }
+    def erase   [ USize Ptr +Unsafe -- +Unsafe ] { dip2(0u8) fill }
 }
 
 ##########
