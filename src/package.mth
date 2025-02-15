@@ -41,7 +41,7 @@ def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
 def(Package.path!, +Mirth Path Package -- +Mirth,
     tuck path match(
         Some ->
-            dup2 == if(
+            dup2 = if(
                 drop3,
                 Str(
                     "Tried to set different path for the same package " ;
@@ -73,4 +73,4 @@ def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
 def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
     dup Package.find unwrap(dup None swap Package.new!) nip)
 
-def(Package.==, Package Package -- Bool, both(index) ==)
+def(Package.=, Package Package -- Bool, both(index) =)

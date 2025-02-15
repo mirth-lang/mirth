@@ -32,7 +32,7 @@ def(Module.head, +Mirth Module -- +Mirth Token, ~head @)
 def(Module.end, +Mirth Module -- +Mirth Token, ~end @)
 def(Module.imports, +Mirth Module -- +Mirth List(Module), ~imports @)
 
-def(Module.==, Module Module -- Bool, both(index) ==)
+def(Module.=, Module Module -- Bool, both(index) =)
 
 def(Module.Prim, +Mirth -- +Mirth Module, builtin prim)
 def init-modules! [ +Mirth -- +Mirth ] {
@@ -56,7 +56,7 @@ def(Module.source-path, +Mirth Module -- +Mirth Path,
 
 ||| ( module1 module2 -- bool ) Check whether module1 is visible in module2.
 def Module.visible [ +Mirth Module Module -- +Mirth Bool ] {
-    dup2 == # module is always visible to itself
+    dup2 = # module is always visible to itself
     or(dup2 imports member)
     dip(drop2)
 }

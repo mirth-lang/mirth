@@ -6,17 +6,17 @@ import std.byte
 import std.buffer
 import std.file
 
-def OUTPUT_BUFFER_SIZE [ USize ] { 4096 >Nat-clamp >USize }
+def OUTPUT_BUFFER_SIZE [ Size ] { 4096 bytes }
 
 struct +Output {
-    size: USize
+    size: Size
     +file: +File
     +buffer: +Buffer
     --
 
     def start! [ +File -- +Output ] {
         >+file
-        0u >USize >size
+        0 bytes >size
         OUTPUT_BUFFER_SIZE +Buffer.new >+buffer
         +Output
     }
@@ -30,16 +30,16 @@ struct +Output {
 
     def flush! [ +Output -- +Output ] {
         +buffer:base >ptr size >size +file:unsafe:write-bytes! drop
-        0u >USize size!
+        0 bytes size!
     }
 
-    def offset [ +Output -- +Output UOffset ] {
-        size >UOffset
+    def offset [ +Output -- +Output Offset ] {
+        size >Offset
     }
 
-    def capacity-total [ +Output -- USize +Output ] { +buffer:size }
-    def capacity-remaining [ +Output -- USize +Output ] { capacity-total size - >USize-if(id, drop 0u >USize) }
-    def full? [ +Output -- Bool +Output ] { capacity-remaining 0= }
+    def capacity-total [ +Output -- Size +Output ] { +buffer:size }
+    def capacity-remaining [ +Output -- Size +Output ] { capacity-total size - }
+    def full? [ +Output -- Bool +Output ] { capacity-remaining 0B= }
 
     def put [ Str +Output -- +Output ] {
         dup num-bytes capacity-remaining > if(
@@ -56,7 +56,7 @@ struct +Output {
     def put-byte [ Byte +Output -- +Output ] {
         full? then(flush!)
         offset +buffer:!Byte
-        size:1+
+        size:1B+
     }
 
     def line [ +Output -- +Output ] {

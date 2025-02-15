@@ -38,11 +38,10 @@ data Maybe(t) {
         { Some -> L1 }
     }
 
-    def == (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {
+    def = (eq {=}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] {
         { None -> none? }
         { Some -> swap if?(swap eq, drop False) }
     }
-    def <> (eq {==}) [ (*c a a -- *c Bool) *c Maybe(a) Maybe(a) -- *c Bool ] { ==:eq not }
 
     def compare (cmp {compare}) [ (*c a a -- *c Comparison) *c Maybe(a) Maybe(a) -- *c Comparison ] {
         { None -> match {
@@ -66,19 +65,19 @@ data Maybe(t) {
     |||
     |||   for?(updated?, refresh!)
     |||   for?(deleted?, clean-up!)
-    |||   
+    |||
     def for?(f, g) [ (*a b -- *a Bool, *a b -- *a) *a Maybe(b) -- *a Maybe(b) ] {
         bind(dup dip:f swap if(g None, Some))
     }
 
 
     ||| Consume `Some` with `f` if `q eq` is true
-    ||| 
-    |||   @command Some
-    |||   case("parse" ==, run-parser!)
-    |||   case("help" ==, show-help!)
     |||
-    def case(q, f, eq {==}) [ (*x a -- *x a a, *x -- *x, *x a a -- *x Bool) *x Maybe(a) -- *x Maybe(a) ] {
+    |||   @command Some
+    |||   case("parse" =, run-parser!)
+    |||   case("help" =, show-help!)
+    |||
+    def case(q, f, eq {=}) [ (*x a -- *x a a, *x -- *x, *x a a -- *x Bool) *x Maybe(a) -- *x Maybe(a) ] {
         for?(q eq, drop f)
     }
 

@@ -124,53 +124,53 @@ def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *
 
 def(Arg.similar, +Mirth Arg Arg -- +Mirth Bool, both(/Block) similar)
 def(Block.similar, +Mirth Block Block -- +Mirth Bool,
-    dup2 ==
+    dup2 =
     or(dup2 on2(arrow) similar)
     dip:drop2
 )
 def(Arrow.similar, +Mirth Arrow Arrow -- +Mirth Bool,
     # both(atoms /L1) if?(swap if?(similar, drop False), drop False)
-    both(atoms) ==:similar
+    both(atoms) =:similar
 )
 def(Atom.similar, +Mirth Atom Atom -- +Mirth Bool,
     dup2 both(op) similar
-    and(dup2 both(args) ==:similar)
+    and(dup2 both(args) =:similar)
     dip(drop2)
 )
 def Op.similar [ +Mirth Op Op -- +Mirth Bool ] {
-    { Prim -> swap match { Prim -> ==, _ -> drop2 False }}
-    { Word -> swap match { Word -> ==, _ -> drop2 False }}
-    { External -> swap match { External -> ==, _ -> drop2 False }}
-    { Buffer -> swap match { Buffer -> ==, _ -> drop2 False }}
-    { Field -> swap match { Field -> ==, _ -> drop2 False }}
-    { Push -> swap match { Push -> ==, _ -> drop2 False }}
-    { Tag -> swap match { Tag -> ==, _ -> drop2 False }}
+    { Prim -> swap match { Prim -> =, _ -> drop2 False }}
+    { Word -> swap match { Word -> =, _ -> drop2 False }}
+    { External -> swap match { External -> =, _ -> drop2 False }}
+    { Buffer -> swap match { Buffer -> =, _ -> drop2 False }}
+    { Field -> swap match { Field -> =, _ -> drop2 False }}
+    { Push -> swap match { Push -> =, _ -> drop2 False }}
+    { Tag -> swap match { Tag -> =, _ -> drop2 False }}
     { Match -> drop2 False }
     { Lambda -> drop2 False }
     { Var -> drop2 False }
     { BlockPush -> swap match { BlockPush -> similar, _ -> drop2 False }}
     { BlockRun -> swap match { BlockRun -> similar, _ -> drop2 False }}
-    { LabelPush -> swap match { LabelPush -> ==, _ -> drop2 False }}
-    { LabelPop -> swap match { LabelPop -> ==, _ -> drop2 False }}
-    { LabelPushR -> swap match { LabelPushR -> ==, _ -> drop2 False }}
-    { LabelPopR -> swap match { LabelPopR -> ==, _ -> drop2 False }}
-    { DataGetEnumValue -> swap match { DataGetEnumValue -> ==, _ -> drop2 False }}
-    { DataFromEnumValue -> swap match { DataFromEnumValue -> ==, _ -> drop2 False }}
+    { LabelPush -> swap match { LabelPush -> =, _ -> drop2 False }}
+    { LabelPop -> swap match { LabelPop -> =, _ -> drop2 False }}
+    { LabelPushR -> swap match { LabelPushR -> =, _ -> drop2 False }}
+    { LabelPopR -> swap match { LabelPopR -> =, _ -> drop2 False }}
+    { DataGetEnumValue -> swap match { DataGetEnumValue -> =, _ -> drop2 False }}
+    { DataFromEnumValue -> swap match { DataFromEnumValue -> =, _ -> drop2 False }}
     { DataGetLabel -> swap match { DataGetLabel -> similar, _ -> drop2 False }}
     { DataSetLabel -> swap match { DataSetLabel -> similar, _ -> drop2 False }}
-    { TableToIndex -> swap match { TableToIndex -> ==, _ -> drop2 False }}
-    { TableFromIndex -> swap match { TableFromIndex -> ==, _ -> drop2 False }}
+    { TableToIndex -> swap match { TableToIndex -> =, _ -> drop2 False }}
+    { TableFromIndex -> swap match { TableFromIndex -> =, _ -> drop2 False }}
 }
 
 def TagField.similar [ TagField TagField -- Bool ] {
     /TagField /TagField
-    label> label> ==
-    tag> tag> == and
+    label> label> =
+    tag> tag> = and
     type/resource> type/resource> drop2
 }
 
 data(SPKey, SPKey -> Nest(Arg))
-def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKey) ==(similar))
+def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKey) =(similar))
 def(SPKey.>Str, +Mirth SPKey -- +Mirth Str,
     SPKey -> Str("(" ; dip:"" for(dip:; mangled; ",") drop ")" ;))
 def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
@@ -258,7 +258,7 @@ def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
         Lambda ->
             dup params
             @spkey /SPKey >List
-            dup2 dip:len len == else(
+            dup2 dip:len len = else(
                 "wrong number of lambda params in synth-specialized-word!"
                 rdip:fatal-error!
             )

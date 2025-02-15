@@ -23,7 +23,7 @@ alias Bool.if(f,g) prim-if
 alias Bool.and prim-bool-and
 alias Bool.or  prim-bool-or
 alias Bool.not prim-bool-not
-inline def Bool.== [ Bool Bool -- Bool ] { if(id,not) }
+inline def Bool.= [ Bool Bool -- Bool ] { if(id,not) }
 inline def Bool.or(p) [ (*a -- *a Bool) *a Bool -- *a Bool ] { if(True, p) }
 inline def Bool.and(p) [ (*a -- *a Bool) *a Bool -- *a Bool ] { if(p, False) }
 inline def Bool.then(f) [ (*a -- *a) *a Bool -- *a ] { if(f, id) }
@@ -51,7 +51,7 @@ inline def until(f) [ (*x -- *x Bool)  *x -- *x ] {
 
 ||| Do either `g` or `h` based on predicate `f`, preserving the top of the stack
 |||
-|||   @value if("world" ==,
+|||   @value if("world" =,
 |||     print("hello "; ;),
 |||     print("goodbye "; ;)
 |||   )
@@ -96,8 +96,7 @@ data OS {
         def Max [ OS ] { 3 >EnumValue-unsafe OS.from-enum-value-unsafe }
         def +World.running-os [ +World -- +World OS ] { prim-sys-os >OS }
         def >Int [ OS -- Int ] { enum-value >Int }
-        def == [ OS OS -- Bool ] { on2:>Int == }
-        def <> [ OS OS -- Bool ] { on2:>Int <> }
+        def = [ OS OS -- Bool ] { on2:>Int = }
     }
     def I64.>OS [ I64 -- OS ] { >Int >OS }
     def Int.>OS [ Int -- OS ] {
@@ -106,17 +105,17 @@ data OS {
             drop OS.Unknown
         )
     }
-    def is-windows? { OS.Windows == }
-    def is-linux? { OS.Linux == }
-    def is-macos? { OS.Mac == }
+    def is-windows? { OS.Windows = }
+    def is-linux? { OS.Linux = }
+    def is-macos? { OS.Mac = }
     def path-separator {
         is-windows? if("\\", "/")
     }
     def byte-is-path-separator? [ Byte OS -- Bool ] {
-        { Windows -> or(Byte.B'/' ==, Byte.B'\' ==) }
-        { Linux -> Byte.B'/' == }
-        { Mac -> Byte.B'/' == }
-        { Unknown -> Byte.B'/' == }
+        { Windows -> or(Byte.B'/' =, Byte.B'\' =) }
+        { Linux -> Byte.B'/' = }
+        { Mac -> Byte.B'/' = }
+        { Unknown -> Byte.B'/' = }
     }
 }
 
@@ -131,7 +130,7 @@ data Arch {
         def Max [ Arch ] { 3i64 >EnumValue Arch.from-enum-value-unsafe }
         def +World.running-arch [ +World -- +World Arch ] { prim-sys-arch >Arch }
         def >Int [ Arch -- Int ] { enum-value >Int }
-        def == [ Arch Arch -- Bool ] { on2:>Int == }
+        def =  [ Arch Arch -- Bool ] { on2:>Int = }
         def <> [ Arch Arch -- Bool ] { on2:>Int <> }
     }
     def I64.>Arch [ I64 -- Arch ] { >Int >Arch }
@@ -241,27 +240,75 @@ data Comparison {
         def gt? [ Comparison -- Bool ] { enum-value 0>  }
         def ge? [ Comparison -- Bool ] { enum-value 0>= }
         def ne? [ Comparison -- Bool ] { enum-value 0<> }
-        def == [ Comparison Comparison -- Bool ] { on2:enum-value == }
-        def <  [ Comparison Comparison -- Bool ] { on2:enum-value <  }
-        def <= [ Comparison Comparison -- Bool ] { on2:enum-value <= }
-        def >  [ Comparison Comparison -- Bool ] { on2:enum-value >  }
-        def >= [ Comparison Comparison -- Bool ] { on2:enum-value >= }
-        def <> [ Comparison Comparison -- Bool ] { on2:enum-value <> }
-        def compare [ Comparison Comparison -- Comparison ] { on2:enum-value compare }
+    }
+    def reverse [ Comparison -- Comparison ] {
+        { LT -> Comparison.GT }
+        { EQ -> Comparison.EQ }
+        { GT -> Comparison.LT }
     }
     def repr; [ +Str Comparison -- +Str ] { LT -> "LT";, EQ -> "EQ";, GT -> "GT"; }
 }
 
-def compare-via-eq-lt (eq {==}, lt {<}) [ (a a -- Bool, a a -- Bool) a a -- Comparison ] {
-    dup2 eq if(drop2 Comparison.EQ, lt if(Comparison.LT, Comparison.GT))
+data PartialComparison {
+    -1 LT
+     0 EQ
+    +1 GT
+     2 NC
+    --
+    def eq? [ PartialComparison -- Bool ] { EQ -> Yes, _ -> drop No }
+    def lt? [ PartialComparison -- Bool ] { LT -> Yes, _ -> drop No }
+    def le? [ PartialComparison -- Bool ] { EQ -> Yes, LT -> Yes, _ -> drop No }
+    def gt? [ PartialComparison -- Bool ] { GT -> Yes, _ -> drop No }
+    def ge? [ PartialComparison -- Bool ] { EQ -> Yes, GT -> Yes, _ -> drop No }
+    def ne? [ PartialComparison -- Bool ] { eq? not }
+    def nc? [ PartialComparison -- Bool ] { NC -> Yes, _ -> drop No }
+    def reverse [ PartialComparison -- PartialComparison ] {
+        { LT -> PartialComparison.GT }
+        { EQ -> PartialComparison.EQ }
+        { GT -> PartialComparison.LT }
+        { NC -> PartialComparison.NC }
+    }
+    def repr; [ +Str PartialComparison -- +Str ] {
+        { LT -> "LT"; }
+        { EQ -> "EQ"; }
+        { GT -> "GT"; }
+        { NC -> "NC"; }
+    }
 }
 
-def max (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 lt if(nip, drop) }
-def min (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 lt if(drop, nip) }
-def clamp (lt {<}) [ (a a -- Bool) a a a -- a ] { dip(max:lt) min:lt }
-def in-range (le {<=}) [ (a a -- Bool) a a a -- Bool ] {
-    dip(swap dup dip:le) rotl if(le, drop2 False)
+def compare-via-eq-lt (eq {=}, lt {<}) [ (a a -- Bool, a a -- Bool) a a -- Comparison ] {
+    dup2 eq if(drop2 Comparison.EQ, lt if(Comparison.LT, Comparison.GT))
 }
+def partial-compare-via-eq-lt (eq {=}, lt {<}) [ (a a -- Bool, a a -- Bool) a a -- PartialComparison ] {
+    dup2 eq if(
+        drop2 PartialComparison.EQ,
+        dup2 lt if(
+            drop2 PartialComparison.LT,
+            swap lt if(PartialComparison.GT, PartialComparison.NC)
+        )
+    )
+}
+
+inline {
+    def == (eq {=})  [ (a b -- c) a b -- c ] { eq }
+    def >  (lt {<})  [ (a b -- c) b a -- c ] { swap lt }
+    def >= (le {<=}) [ (a b -- c) b a -- c ] { swap le }
+    def <> (eq {=}, f {.not})  [ (a b -- c, c -- d) a b -- d ] { eq f }
+
+    def 1+ (f {+}) [ (a Nat -- b) a -- b ] { 1u f }
+    def 1- (f {-}) [ (a Nat -- b) a -- b ] { 1u f }
+    def 2* (f {*}) [ (a Nat -- b) a -- b ] { 2u f }
+}
+
+def max-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 lt if(nip, drop) }
+def min-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 lt if(drop, nip) }
+def clamp-via-lt (lt {<}) [ (a a -- Bool) a a a -- a ] { dip(max-via-lt:lt) min-via-lt:lt }
+def in-range (le1 {.<=}, le2 {.<=}) [ (b a -- Bool, a b -- Bool) a b b -- Bool ] {
+    dip(swap dup dip:le1) rotl if(le2, drop2 False)
+}
+
+def div (f {.divmod}) [ ( a b -- c d ) a b -- c ] { f drop }
+def mod (f {.divmod}) [ ( a b -- c d ) a b -- d ] { f nip  }
 
 ###########
 # Numbers #
@@ -271,11 +318,11 @@ def in-range (le {<=}) [ (a a -- Bool) a a a -- Bool ] {
 ||| Natural numbers, i.e. non-negative integers, starting from 0.
 data Nat { Unsafe [ Int ] }
 
-struct ISize { Int }
-struct USize { Nat }
-struct IOffset { Int }
-struct UOffset { Nat }
-struct UIndex { Nat }
+||| Rational numbers.
+data Rat { Unsafe [ Int Nat ] }
+
+struct Size         { Int }
+struct Offset       { Int }
 
 inline {
     def 0u [ Nat ] { 0 Nat.Unsafe }
@@ -303,17 +350,18 @@ inline {
     def 255u [ Nat ] { 255 Nat.Unsafe }
     def 256u [ Nat ] { 256 Nat.Unsafe }
 
-    def |U8|  [ USize ] { 1u >USize }
-    def |U16| [ USize ] { 2u >USize }
-    def |U32| [ USize ] { 4u >USize }
-    def |U64| [ USize ] { 8u >USize }
-    def |I8|  [ USize ] { 1u >USize }
-    def |I16| [ USize ] { 2u >USize }
-    def |I32| [ USize ] { 4u >USize }
-    def |I64| [ USize ] { 8u >USize }
-    def |F32| [ USize ] { 4u >USize }
-    def |F64| [ USize ] { 8u >USize }
-    def |Ptr| [ USize ] { prim-ptr-size >Int >Nat-clamp >USize }
+    def |Byte| [ Size ] { 1 Size }
+    def |U8|   [ Size ] { 1 Size }
+    def |U16|  [ Size ] { 2 Size }
+    def |U32|  [ Size ] { 4 Size }
+    def |U64|  [ Size ] { 8 Size }
+    def |I8|   [ Size ] { 1 Size }
+    def |I16|  [ Size ] { 2 Size }
+    def |I32|  [ Size ] { 4 Size }
+    def |I64|  [ Size ] { 8 Size }
+    def |F32|  [ Size ] { 4 Size }
+    def |F64|  [ Size ] { 8 Size }
+    def |Ptr|  [ Size ] { prim-ptr-size >Int Size }
 }
 
 data +Unsafe { +Unsafe }
@@ -329,8 +377,8 @@ data Ptr? {
     def None [ -- Ptr? ] { Ptr?.Null }
     def Some [ Ptr -- Ptr? ] { Ptr?.Unsafe }
     def Null [ -- Ptr? ] { prim-ptr-nil Ptr?.Unsafe }
-    def null? [ Ptr? -- Bool ] { Unsafe -> prim-ptr-nil == }
-    def == [ Ptr? Ptr? -- Bool ] { both(/Unsafe) == }
+    def null? [ Ptr? -- Bool ] { Unsafe -> prim-ptr-nil = }
+    def =  [ Ptr? Ptr? -- Bool ] { both(/Unsafe) = }
     def if?(f,g) [ (*a Ptr -- *b, *a -- *b) *a Ptr? -- *b ] {
         dup null? if(drop g, /Unsafe f)
     }
@@ -340,12 +388,11 @@ data Ptr? {
 }
 
 inline patch Ptr {
-    def Ptr.== [ Ptr Ptr -- Bool ] { prim-ptr-eq }
-    def Ptr.>Ptr? [ Ptr -- Ptr? ] { Ptr?.Unsafe }
+    def = [ Ptr Ptr -- Bool ] { prim-ptr-eq }
+    def >Ptr? [ Ptr -- Ptr? ] { Ptr?.Unsafe }
 
     ||| Add byte offset to Ptr.
-    def ioffset [ IOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
-    def uoffset [ UOffset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
+    def offset [ Offset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
 
     def @Ptr [ Ptr +Unsafe -- Ptr +Unsafe ] { prim-ptr-get }
     def !Ptr [ Ptr Ptr +Unsafe -- +Unsafe ] { prim-ptr-set }
@@ -372,13 +419,13 @@ inline patch Ptr {
     def !F32 [ F32 Ptr +Unsafe -- +Unsafe ] { prim-f32-set }
     def !F64 [ F64 Ptr +Unsafe -- +Unsafe ] { prim-f64-set }
 
-    def alloc       [ USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-alloc   }
-    def realloc [ Ptr USize +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-realloc }
-    def copy    [ Ptr USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-copy }
-    def fill    [ U8 USize Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-fill }
+    def alloc   [     Size +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-alloc   }
+    def realloc [ Ptr Size +Unsafe -- Ptr +Unsafe ] { >Int >U64-wrap prim-ptr-realloc }
+    def copy    [ Ptr Size Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-copy }
+    def fill    [ U8  Size Ptr +Unsafe -- +Unsafe ] { dip(>Int >U64-wrap) prim-ptr-fill }
 
     def free    [ Ptr +Unsafe -- +Unsafe ] { prim-ptr-free }
-    def erase   [ USize Ptr +Unsafe -- +Unsafe ] { dip2(0u8) fill }
+    def erase   [ Size Ptr +Unsafe -- +Unsafe ] { dip2(0u8) fill }
 }
 
 ##########
@@ -400,17 +447,17 @@ inline(
     def(unpack4, [a b c d  ] -- a b c d  , prim-tup-unpack4)
     def(unpack5, [a b c d e] -- a b c d e, prim-tup-unpack5)
 
-    def(pack0==, [] [] -- Bool, drop2 False)
-    def(pack1==(aeq{==}), (a a -- Bool) [a] [a] -- Bool,
+    def(pack0=, [] [] -- Bool, drop2 False)
+    def(pack1=(aeq{=}), (a a -- Bool) [a] [a] -- Bool,
         on2:unpack1 aeq)
-    def(pack2==(aeq{==},beq{==}), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
+    def(pack2=(aeq{=},beq{=}), (a a -- Bool, b b -- Bool) [a b] [a b] -- Bool,
         dip:unpack2 unpack2 dip:swap
         beq if(aeq, drop2 False))
-    def(pack3==(aeq{==},beq{==},ceq{==}), (a a -- Bool, b b -- Bool, c c -- Bool)
+    def(pack3=(aeq{=},beq{=},ceq{=}), (a a -- Bool, b b -- Bool, c c -- Bool)
             [a b c] [a b c] -- Bool,
         dip:unpack3 unpack3 dip2:rotr dip:swap
         ceq if(beq if(aeq, drop2 False), drop4 False))
-    def(pack4==(aeq{==},beq{==},ceq{==},deq{==}),
+    def(pack4=(aeq{=},beq{=},ceq{=},deq{=}),
             (a a -- Bool, b b -- Bool, c c -- Bool, d d -- Bool)
             [a b c d] [a b c d] -- Bool,
         dip:unpack4 unpack4 dip3:rot4r dip2:rotr dip:swap

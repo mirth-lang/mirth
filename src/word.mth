@@ -71,7 +71,7 @@ def(Word.new!,
     sig?> over ~sig? !
     dup Def.Word register)
 
-def(Word.==, Word Word -- Bool, both(index) ==)
+def(Word.=, Word Word -- Bool, both(index) =)
 def(Word.compare, Word Word -- Comparison, both(index) compare)
 
 field(Word.~num-blocks, Word, Int)

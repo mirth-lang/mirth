@@ -17,7 +17,7 @@ data IOError {
     CreateUnsupported [ Path ]
     CloseFailed [ Errno ]
     ReadFailed [ Errno ]
-    WriteFailed [ USize Errno ]
+    WriteFailed [ Size Errno ]
     --
     def message; [ +World +Str IOError -- +World +Str ] {
         { OpenFailed -> "Failed to open "; dip:path; ": "; rdip:posix-strerror! ; }
@@ -115,13 +115,13 @@ def +World.create-file-flags [ +World -- +World Maybe(OpenFlags) ] {
 ||| * Something was written but an error occured before everything could be written. [ m False ]
 ||| * Everything was written and no error occured. [ n True ]
 ||| * Stuck in a loop trying to write but no bytes are being written and no error occurs.
-def +Unsafe.write-bytes! [ ptr:Ptr size:USize +File +Unsafe -- Result(IOError, USize) +File +Unsafe ] {
-    0u >USize Ok >result
+def +Unsafe.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe ] {
+    0 bytes Ok >result
     while(
-        @size 0>,
+        @size 0B>,
 
         @result: match (
-            { Err -> Err 0u >USize !size }
+            { Err -> Err 0 bytes !size }
             { Ok ->
                 with-fd(
                     @ptr >ptr
@@ -131,12 +131,14 @@ def +Unsafe.write-bytes! [ ptr:Ptr size:USize +File +Unsafe -- Result(IOError, U
                 match {
                     { Ok ->
                         dup +
-                        dup >UOffset @ptr:uoffset
-                        @size(swap - >USize-clamp)
-                        Ok }
+                        dup offset @ptr:offset
+                        @size(swap -)
+                        Ok
+                    }
                     { Err ->
                         IOError.WriteFailed Err
-                        0u >USize !size }
+                        0 bytes !size
+                    }
                 }
             }
         )
@@ -160,6 +162,6 @@ def +Unsafe.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescript
 |||
 ||| * File was read from succesfully. [ n True ]
 ||| * An error has occurred while trying to read. [ 0 False ]
-def(+Unsafe.read-bytes!, ptr:Ptr size:USize +File +Unsafe -- Result(IOError, USize) +File +Unsafe,
+def(+Unsafe.read-bytes!, ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe,
     with-fd:posix-read!
     if(Ok, IOError.ReadFailed Err))

@@ -193,32 +193,31 @@ data List(t) {
         ok> if(done! Some, rdrop None)
     }
 
-    def ==(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
+    def =(eq {=}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] {
         True while (
-            dip(dip(uncons) uncons dip(swap) dip2(==(eq)) rotl) and
+            dip(dip(uncons) uncons dip(swap) dip2(=(eq)) rotl) and
             over2 empty? over2 empty? and not over and,
             id
         )
         dip(drop2)
     }
-    def <>(eq {==}) [ (*c a a -- *c Bool) *c List(a) List(a) -- *c Bool ] { ==:eq not }
 
-    def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
+    def(lookup(p {.key =}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
         find(over dip(p) swap) nip)
 
-    def(reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
+    def(reverse-lookup(p {.key =}), (*c k a -- *c Bool) *c k List(a) -- *c Maybe(a),
         reverse-find(over dip(p) swap) nip)
 
-    def(member(p {==}), (*c k a -- *c Bool) *c k List(a) -- *c Bool,
+    def(member(p {=}), (*c k a -- *c Bool) *c k List(a) -- *c Bool,
         lookup(p) some?)
 
-    def(difference(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+    def(difference(eq {=}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
         swap filter(over dip(swap member(eq) not) swap) nip)
 
-    def(union(eq {==}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
+    def(union(eq {=}), (*c a a -- *c Bool) *c List(a) List(a) -- *c List(a),
         over dip(swap difference(eq)) swap cat)
 
-    def(unions(eq {==}), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
+    def(unions(eq {=}), (*c a a -- *c Bool) *c List(List(a)) -- *c List(a),
         fold(union(eq)) unwrap(List.Nil))
 
     def(map2(f), (*c x y -- *c z) *c List(x) List(y) -- *c List(z),
@@ -394,18 +393,17 @@ struct Nest(t) {
         find(f not) none?
     }
 
-    def ==(eq {==}) [ (*c a a -- *c Bool) *c Nest(a) Nest(a) -- *c Bool ] {
-        dip(>List) >List ==(eq)
+    def =(eq {=}) [ (*c a a -- *c Bool) *c Nest(a) Nest(a) -- *c Bool ] {
+        dip(>List) >List =(eq)
     }
-    def <>(eq {==}) [ (*c a a -- *c Bool) *c Nest(a) Nest(a) -- *c Bool ] { ==:eq not }
 
-    def(lookup(p {.key ==}), (*c k a -- *c Bool) *c k Nest(a) -- *c Maybe(a),
+    def(lookup(p {.key =}), (*c k a -- *c Bool) *c k Nest(a) -- *c Maybe(a),
         find(over dip(p) swap) nip)
 
-    def(reverse-lookup(p {.key ==}), (*c k a -- *c Bool) *c k Nest(a) -- *c Maybe(a),
+    def(reverse-lookup(p {.key =}), (*c k a -- *c Bool) *c k Nest(a) -- *c Maybe(a),
         reverse-find(over dip(p) swap) nip)
 
-    def(member(p {==}), (*c k a -- *c Bool) *c k Nest(a) -- *c Bool,
+    def(member(p {=}), (*c k a -- *c Bool) *c k Nest(a) -- *c Bool,
         >List lookup(p) some?)
 
     def(map2(f), (*c x y -- *c z) *c Nest(x) Nest(y) -- *c Nest(z),

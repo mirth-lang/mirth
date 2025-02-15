@@ -12,11 +12,11 @@ import std.file
 # Input #
 #########
 
-def INPUT_BUFFER_SIZE [ USize ] { 0x2000 >Nat-clamp >USize }
+def INPUT_BUFFER_SIZE [ Size ] { 0x2000 bytes }
 
 struct +InputOpenState {
-    length: USize
-    offset: UOffset
+    length: Size
+    offset: Offset
     +file:   +File
     +buffer: +Buffer
     --
@@ -28,9 +28,9 @@ struct +InputOpenState {
     }
 
     def refill-buffer! [ +InputOpenState -- +Input ] {
-        +buffer(base >ptr size >size) +file:unsafe:read-bytes! ok? filter(0>) if?(
+        +buffer(base >ptr size >size) +file:unsafe:read-bytes! ok? filter(0B>) if?(
             length!
-            0u >UOffset offset!
+            0 >Offset offset!
             +Input.Open,
 
             end! +Input.Done
@@ -39,7 +39,7 @@ struct +InputOpenState {
 
     ||| Refill input buffer if empty.
     def prepare-for-more! [ +InputOpenState -- +Input ] {
-        length 0= if(refill-buffer!, +Input.Open)
+        length 0B= if(refill-buffer!, +Input.Open)
     }
 }
 
@@ -50,8 +50,8 @@ data +Input {
     def start! [ +File -- +Input ] {
         >+file
         INPUT_BUFFER_SIZE +Buffer.new >+buffer
-        0u >USize   >length
-        0u >UOffset >offset
+        0 bytes >length
+        0 Offset >offset
         +InputOpenState refill-buffer!
     }
 
@@ -79,7 +79,7 @@ data +Input {
     ||| Move to next char in input buffer.
     ||| Does nothing if the file is already exhausted.
     def move! [ +Input -- +Input ] {
-        { Open -> length:pred offset:1+ prepare-for-more! }
+        { Open -> length:1B- offset:1B+ prepare-for-more! }
         { Done -> +Input.Done }
     }
 

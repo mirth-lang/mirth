@@ -14,7 +14,14 @@ struct Row {
     def >Int  { /Row }
     def repr; { >Int repr; " Row"; }
     def int;  { >Int int; }
-    def 1+ { Row -> 1+ Row }
+
+    def + (f{+}) { Row -> f Row }
+
+    def int+ { Row -> int+ Row }
+    def int- { Row -> int- Row }
+
+    def nat+ { Row -> nat+ Row }
+    def nat- { Row -> nat- Row }
 }
 
 struct Col {
@@ -23,7 +30,14 @@ struct Col {
     def >Int  { /Col }
     def repr; { >Int repr; " Col"; }
     def int;  { >Int int; }
-    def 1+ { Col -> 1+ Col }
+
+    def + (f{+}) { Col -> f Col }
+
+    def int+ { Col -> int+ Col }
+    def int- { Col -> int- Col }
+
+    def nat+ { Col -> nat+ Col }
+    def nat- { Col -> nat- Col }
 }
 
 struct Location {

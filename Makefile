@@ -125,14 +125,26 @@ bin/mirth2debug: bin/mirth2debug.c
 bin/mirth3debug: bin/mirth3debug.c
 	$(CC) -g -o bin/mirth3debug bin/mirth3debug.c
 
-bin/mirth1.c: bin/mirth0 $(SRCS)
-	bin/mirth0 src/main.mth -o bin/mirth1.c
+bin/mirth1-new.c: bin/mirth0 $(SRCS)
+	bin/mirth0 src/main.mth -o bin/mirth1-new.c
 
-bin/mirth2.c: bin/mirth1 $(SRCS)
-	rm -f bin/mirth2.c && bin/mirth1 src/main.mth -o bin/mirth2.c
+bin/mirth2-new.c: bin/mirth1 $(SRCS)
+	bin/mirth1 src/main.mth -o bin/mirth2-new.c
 
-bin/mirth3.c: bin/mirth2 $(SRCS)
-	rm -f bin/mirth3.c && bin/mirth2 src/main.mth -o bin/mirth3.c
+bin/mirth3-new.c: bin/mirth2 $(SRCS)
+	bin/mirth2 src/main.mth -o bin/mirth3-new.c
+
+bin/mirth1.c: bin/mirth1-new.c
+	touch bin/mirth1-old.c
+	diff -q bin/mirth1-old.c bin/mirth1-new.c || (cp bin/mirth1-new.c bin/mirth1-old.c && cp bin/mirth1-new.c bin/mirth1.c)
+
+bin/mirth2.c: bin/mirth2-new.c
+	touch bin/mirth2-old.c
+	diff -q bin/mirth2-old.c bin/mirth2-new.c || (cp bin/mirth2-new.c bin/mirth2-old.c && cp bin/mirth2-new.c bin/mirth2.c)
+
+bin/mirth3.c: bin/mirth3-new.c
+	touch bin/mirth3-old.c
+	diff -q bin/mirth3-old.c bin/mirth3-new.c || (cp bin/mirth3-new.c bin/mirth3-old.c && cp bin/mirth3-new.c bin/mirth3.c)
 
 bin/mirth1debug.c: bin/mirth0 $(SRCS)
 	bin/mirth0 --debug src/main.mth -o bin/mirth1debug.c

@@ -286,7 +286,7 @@ data SDL_PixelFormat {
 
 
 # Size of SDL_Event structure.
-def SDL_EVENT_SIZE [ USize ] { 56 >Nat-clamp >USize }
+def SDL_EVENT_SIZE [ Size ] { 56 bytes }
 
 data(SDL_Event, SDL_Event -> Ptr)
 
@@ -374,7 +374,7 @@ data(SDL_EventType,
 inline(
     def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { enum-value >Int >U32-wrap }
     def U32.>SDL_EventType-unsafe [ U32 -- SDL_EventType ] { >Int >EnumValue-unsafe SDL_EventType.from-enum-value-unsafe }
-    def SDL_EventType.== [ SDL_EventType SDL_EventType -- Bool ] { both(>U32) == }
+    def SDL_EventType.= [ SDL_EventType SDL_EventType -- Bool ] { both(>U32) = }
     def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) >SDL_EventType-unsafe  }
 )
 
@@ -386,20 +386,20 @@ struct SDL_KeyboardEvent {
     inline def >Ptr [ SDL_KeyboardEvent -- Ptr ] { /SDL_KeyboardEvent }
 }
 
-def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(4u >UOffset) unsafe(uoffset))
+def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(4 Offset) unsafe(offset))
 def(SDL_KeyboardEvent.timestamp@, SDL_KeyboardEvent -- U32, timestamp& unsafe(@U32))
 def(SDL_KeyboardEvent.timestamp!, U32 SDL_KeyboardEvent --, timestamp& unsafe(!U32))
-def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(8u >UOffset) unsafe(uoffset))
+def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(8 Offset) unsafe(offset))
 def(SDL_KeyboardEvent.windowID@, SDL_KeyboardEvent -- U32, windowID& unsafe(@U32))
 def(SDL_KeyboardEvent.windowID!, U32 SDL_KeyboardEvent --, windowID& unsafe(!U32))
-def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(12u >UOffset) unsafe(uoffset))
+def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(12 Offset) unsafe(offset))
 def(SDL_KeyboardEvent.state@, SDL_KeyboardEvent -- U8, state& unsafe(@U8))
 def(SDL_KeyboardEvent.state!, U8 SDL_KeyboardEvent --, state& unsafe(!U8))
-def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(13u >UOffset) unsafe(uoffset))
+def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, /SDL_KeyboardEvent dip(13 Offset) unsafe(offset))
 def(SDL_KeyboardEvent.repeat@, SDL_KeyboardEvent -- U8, repeat& unsafe(@U8))
 def(SDL_KeyboardEvent.repeat!, U8 SDL_KeyboardEvent --, repeat& unsafe(!U8))
 def(SDL_KeyboardEvent.keysym, SDL_KeyboardEvent -- SDL_Keysym,
-    /SDL_KeyboardEvent dip(16u >UOffset) unsafe(uoffset) SDL_Keysym)
+    /SDL_KeyboardEvent dip(16 Offset) unsafe(offset) SDL_Keysym)
 
 struct SDL_Keysym {
     Ptr
@@ -418,14 +418,14 @@ struct SDL_ControllerButtonEvent {
 }
 
 def(SDL_ControllerButtonEvent.which&, SDL_ControllerButtonEvent -- Ptr,
-    dip(8u >UOffset) >Ptr unsafe(uoffset))
+    dip(8 Offset) >Ptr unsafe(offset))
 def(SDL_ControllerButtonEvent.which@, SDL_ControllerButtonEvent -- SDL_JoystickID,
     which& unsafe(@I32) >SDL_JoystickID)
 def(SDL_ControllerButtonEvent.which!, SDL_JoystickID SDL_ControllerButtonEvent --,
     dip(>I32) which& unsafe(!I32))
 
 def(SDL_ControllerButtonEvent.button&, SDL_ControllerButtonEvent -- Ptr,
-    dip(12u >UOffset) >Ptr unsafe(uoffset))
+    dip(12 Offset) >Ptr unsafe(offset))
 def(SDL_ControllerButtonEvent.button@, SDL_ControllerButtonEvent -- SDL_GameControllerButton,
     button& unsafe(@I8) >SDL_GameControllerButton)
 def(SDL_ControllerButtonEvent.button!, SDL_GameControllerButton SDL_ControllerButtonEvent --,
@@ -708,7 +708,7 @@ struct SDL_JoystickID {
     def I32.>SDL_JoystickID { SDL_JoystickID }
     def Int.>SDL_JoystickID { >I32-clamp >SDL_JoystickID }
     def compare { on2:>I32 compare }
-    def == { on2:>I32 == }
+    def =  { on2:>I32 =  }
     def <= { on2:>I32 <= }
     def <  { on2:>I32 <  }
     def >= { on2:>I32 >= }
@@ -773,4 +773,4 @@ data(SDL_GameControllerButton,
 def(I8.>SDL_GameControllerButton, I8 -- SDL_GameControllerButton,
    >Int >EnumValue-unsafe SDL_GameControllerButton.from-enum-value-unsafe)
 def(SDL_GameControllerButton.>I8, SDL_GameControllerButton -- I8, enum-value >I8-unsafe)
-def(SDL_GameControllerButton.==, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(enum-value) ==)
+def(SDL_GameControllerButton.=, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(enum-value) =)

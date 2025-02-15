@@ -25,7 +25,7 @@ def Macro.head? [ +Mirth Macro -- +Mirth Maybe(Token) ] { ~head @? }
 def Macro.action [ +Mirth Macro -- +Mirth MacroAction ] { ~action @ }
 
 def Macro.>Int [ Macro -- Int ] { index >Int }
-def Macro.== [ Macro Macro -- Bool ] { on2:>Int == }
+def Macro.= [ Macro Macro -- Bool ] { on2:>Int = }
 
 data MacroAction {
     Decl  [ [ +World +Mirth Token -- +World +Mirth Token ] ]

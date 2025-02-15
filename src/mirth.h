@@ -1113,7 +1113,12 @@ static void big_pos_udivmod(BIG* a, INT b, INT *q, INT *r) {
     if (IS_BIG(b)) {
         BIG* bb = GET_BIG(b);
         bshift = bb->size-1;
-        bhead = bb->radix[bb->size-1];
+        bhead = bb->radix[bshift];
+        if (bhead == 0) {
+            ASSERT(bshift > 0);
+            bshift--;
+            bhead = bb->radix[bshift];
+        }
         for (size_t i = 0; i < bshift; i++) {
             if (bb->radix[i]) { bperfect=false; break; }
         }

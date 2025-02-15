@@ -1,0 +1,30 @@
+module test.rat
+import std.prelude
+import std.number
+import std.test
+import std.str
+
+def main {
+    +Tests.Start!
+
+    "rat;" test (
+        10 20 / str:rat; =>: "1/2"
+        10 21 / str:rat; =>: "10/21"
+        -10 20 / str:rat; =>: "-1/2"
+        -10 21 / str:rat; =>: "-10/21"
+        -123 33 / str:rat; =>: "-41/11"
+        0 4 / str:rat; =>: "0"
+    )
+
+    "repr;" test (
+        10 20 / str:repr; =>: "1 2 /"
+        10 21 / str:repr; =>: "10 21 /"
+        -10 20 / str:repr; =>: "-1 2 /"
+        -10 21 / str:repr; =>: "-10 21 /"
+        -123 33 / str:repr; =>: "-41 11 /"
+        0 4 / str:repr; =>: "0 1 /"
+    )
+
+    end!
+}
+# mirth-test # pout # 2 tests passed.

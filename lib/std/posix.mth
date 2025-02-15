@@ -15,9 +15,9 @@ struct +FileDescriptor {
     inline def Stderr [ +World -- +World +FileDescriptor ] { 2i64 >CInt +FileDescriptor }
 
     inline def raw-fd [ +FileDescriptor -- +FileDescriptor CInt ] { +FileDescriptor -> dup +FileDescriptor }
-    inline def is-stdin?  { raw-fd >Int 0 == }
-    inline def is-stdout? { raw-fd >Int 1 == }
-    inline def is-stderr? { raw-fd >Int 2 == }
+    inline def is-stdin?  { raw-fd 0 = }
+    inline def is-stdout? { raw-fd 1 = }
+    inline def is-stderr? { raw-fd 2 = }
 
     inline def rdup-unsafe  [ +FileDescriptor -- +FileDescriptor +FileDescriptor ] { raw-fd +FileDescriptor }
     inline def rdrop-unsafe [ +FileDescriptor -- ] { +FileDescriptor -> drop }
@@ -68,13 +68,13 @@ patch +Unsafe {
     ]
 
     inline def posix-read! [
-        +Unsafe +fd:+FileDescriptor ptr:Ptr size:USize --
-        +Unsafe +fd:+FileDescriptor Result(Errno, USize)
+        +Unsafe +fd:+FileDescriptor ptr:Ptr size:Size --
+        +Unsafe +fd:+FileDescriptor Result(Errno, Size)
     ] {
         @size:>CUSize
         raw-posix-read!
-        >Int >USize-if(
-            Ok,
+        >Int dup 0>= if(
+            Size Ok,
             drop posix-errno! Err
         )
     }
@@ -85,13 +85,13 @@ patch +Unsafe {
     ]
 
     inline def posix-write! [
-        +Unsafe +fd:+FileDescriptor ptr:Ptr size:USize --
-        +Unsafe +fd:+FileDescriptor Result(Errno, USize)
+        +Unsafe +fd:+FileDescriptor ptr:Ptr size:Size --
+        +Unsafe +fd:+FileDescriptor Result(Errno, Size)
     ] {
         @ptr:>CStr @size:>CUSize
         raw-posix-write!
-        >Int >USize-if(
-            Ok,
+        >Int dup 0>= if(
+            Size Ok,
             drop posix-errno! Err
         )
     }
@@ -133,7 +133,7 @@ struct Errno {
         def >CInt [ Errno -- CInt ] { /Errno }
         def >I64  [ Errno -- I64  ] { >CInt >I64 }
         def compare [ Errno Errno -- Comparison ] { on2:>I64 compare }
-        def == [ Errno Errno -- Bool ] { on2:>I64 == }
+        def =  [ Errno Errno -- Bool ] { on2:>I64 = }
         def <  [ Errno Errno -- Bool ] { on2:>I64 <  }
         def <= [ Errno Errno -- Bool ] { on2:>I64 <= }
     }

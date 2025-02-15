@@ -45,12 +45,12 @@
 |||         => ( 2 )
 |||         => ( 1 )
 |||
-||| `=>` requires the verbs `==` and `repr;` be defined for the
+||| `=>` requires the verbs `=` and `repr;` be defined for the
 ||| type being tested. You can also pass different versions
 ||| explicitly:
 |||
-|||     "Hello" => ( "hello", dip(lower) == )
-|||     [True] => ( [True], on2:run ==, drop "<function>" )
+|||     "Hello" => ( "hello", dip(lower) = )
+|||     [True] => ( [True], on2:run =, drop "<function>" )
 module std.test
 
 import std.prelude
@@ -144,7 +144,7 @@ struct +Test {
     ||| and print the values.
     |||
     ||| We usually use `=>` instead of check-equals!
-    def check-equals! (feq {==}, fshow {repr;}) [
+    def check-equals! (feq {=}, fshow {repr;}) [
         (a a -- Bool, a +Str -- +Str)
         a a +Test -- +Test
     ] {
@@ -167,7 +167,7 @@ struct +Test {
     |||           => (2)
     |||           => (1)
     |||
-    def =>(f, feq {==}, fshow {repr;}) [
+    def =>(f, feq {=}, fshow {repr;}) [
         (-- a, a a -- Bool, a +Str -- +Str)
         a +Test -- +Test
     ] {

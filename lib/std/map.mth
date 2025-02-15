@@ -21,10 +21,10 @@ struct Map(k,v) {
     def keys { pairs map(key) }
     def values { pairs map(value) }
     def insert [ KeyValuePair(k,v) Map(k,v) -- Map(k,v) ] { pairs:cons }
-    def lookup-pair(keq {==}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(KeyValuePair(k,v)) ] {
+    def lookup-pair(keq {=}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(KeyValuePair(k,v)) ] {
         pairs lookup(.key keq)
     }
-    def lookup(keq {==}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(v) ] {
+    def lookup(keq {=}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(v) ] {
         lookup-pair(keq) map(value)
     }
 }

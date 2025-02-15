@@ -128,7 +128,7 @@ def Value.tycon? [ Value -- Maybe(Tycon) ] {
 }
 
 def PrimType.>Int [ PrimType -- Int ] { enum-value >Int }
-def PrimType.== [ PrimType PrimType -- Bool ] { both(>Int) == }
+def PrimType.= [ PrimType PrimType -- Bool ] { both(>Int) = }
 
 def +Mirth.def-prim-type! [ +Mirth PrimType -- +Mirth ] {
     dup tycon-qname >qname
@@ -198,7 +198,7 @@ def(Type.tensor?, +Mirth Type -- +Mirth Maybe(StackType), expand match(Stack -> 
 def(Type.unit?, +Mirth Type -- +Mirth Bool, tensor? if?(unit?, False))
 
 def(Type.meta=, MetaVar Type -- Bool,
-    Meta -> ==,
+    Meta -> =,
     _ -> drop2 False)
 
 def(Type.is-physical?, +Mirth Type -- +Mirth Bool,
@@ -308,21 +308,21 @@ def(Type.unify!, +Mirth Type Type -- +Mirth Type,
 def Value.unify! [ +Mirth Value Value -- +Mirth Type ] {
     swap match {
         Int -> swap match {
-            Int -> dup2 == if(drop Value.Int Type.Value, drop2 Type.Int),
+            Int -> dup2 = if(drop Value.Int Type.Value, drop2 Type.Int),
             Str -> drop2 "Can't unify int value with string value." error! Type.Error,
             F64 -> drop2 "Can't unify int value with float value." error! Type.Error,
             Block -> drop2 "Can't unify int value with block." error! Type.Error,
         },
 
         Str -> swap match {
-            Str -> dup2 == if(drop Value.Str Type.Value, drop2 Type.Str),
+            Str -> dup2 = if(drop Value.Str Type.Value, drop2 Type.Str),
             Int -> drop2 "Can't unify string value with int value." error! Type.Error,
             F64 -> drop2 "Can't unify string value with float value." error! Type.Error,
             Block -> drop2 "Can't unify string value with block." error! Type.Error,
         },
 
         F64 -> swap match {
-            F64 -> dup2 == if(drop Value.F64 Type.Value, drop2 Type.F64),
+            F64 -> dup2 = if(drop Value.F64 Type.Value, drop2 Type.F64),
             Int -> drop2 "Can't unify float value with int value." error! Type.Error,
             Block -> drop2 "Can't unify float value with block." error! Type.Error,
             Str -> drop2 "Can't unify float value with string value." error! Type.Error,
@@ -330,7 +330,7 @@ def Value.unify! [ +Mirth Value Value -- +Mirth Type ] {
 
         Block -> swap match {
             Block ->
-                dup2 == if(
+                dup2 = if(
                     drop Value.Block Type.Value,
                     arrow type block-unify-type! >Type
                 ),
@@ -366,13 +366,13 @@ def(Type.unify2!, +Mirth Type Type Type Type -- +Mirth Type Type,
     dip(swap) dip2(unify!) unify!)
 
 def(PrimType.unify!, +Mirth PrimType PrimType -- +Mirth Type,
-    dup2 == if(drop Type.Prim, both(Type.Prim) unify-failed!))
+    dup2 = if(drop Type.Prim, both(Type.Prim) unify-failed!))
 def(Data.unify!, +Mirth Data Data -- +Mirth Type,
-    dup2 == if(drop Type.Data, both(Type.Data) unify-failed!))
+    dup2 = if(drop Type.Data, both(Type.Data) unify-failed!))
 def(DataPartial.unify!, +Mirth DataPartial DataPartial -- +Mirth Type,
-    dup2 == if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!))
+    dup2 = if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!))
 def(Table.unify!, +Mirth Table Table -- +Mirth Type,
-    dup2 == if(drop Type.Table, both(Type.Table) unify-failed!))
+    dup2 = if(drop Type.Table, both(Type.Table) unify-failed!))
 
 def(Type.has-meta?, +Mirth MetaVar Type -- +Mirth Bool,
     Meta -> has-meta?,
@@ -399,7 +399,7 @@ def(Value.has-meta?, +Mirth MetaVar Value -- +Mirth Bool,
 def Type.has-var? [ +Mirth Var Type -- +Mirth Bool ] {
     { Error -> drop True }
     { Ignore -> drop True }
-    { Var -> == }
+    { Var -> = }
     { Meta -> has-var? }
     { Prim -> drop2 False }
     { Hole -> drop2 False }
@@ -548,7 +548,7 @@ def(MetaVar.type?, +Mirth MetaVar -- +Mirth Maybe(Type), ~type? @)
 
 def(MetaVar.has-meta?, +Mirth MetaVar MetaVar -- +Mirth Bool,
     dup type? match(
-        None -> ==,
+        None -> =,
         Some -> nip has-meta?
     ))
 def MetaVar.has-var? [ +Mirth Var MetaVar -- +Mirth Bool ] {
@@ -595,7 +595,7 @@ def(MetaVar.expand-or-update!(f), (*a +Mirth -- *a Type +Mirth) *a MetaVar +Mirt
         Some -> nip
     ))
 
-def(MetaVar.==, MetaVar MetaVar -- Bool, both(index) ==)
+def(MetaVar.=, MetaVar MetaVar -- Bool, both(index) =)
 
 def(MetaVar.freshen, +Mirth Subst MetaVar -- +Mirth Subst Type,
     expand-if(freshen, drop MetaVar.new! Type.Meta))
@@ -718,8 +718,8 @@ def(StackType.label-top?, +Mirth Label StackType -- +Mirth Maybe(Type/Resource),
     expand match(
         Cons -> drop label-top?,
         With -> drop label-top?,
-        ConsLabel -> over3 over == if(drop dip:drop2 Left  Some, drop2 label-top?),
-        WithLabel -> over3 over == if(drop dip:drop2 Right Some, drop2 label-top?),
+        ConsLabel -> over3 over = if(drop dip:drop2 Left  Some, drop2 label-top?),
+        WithLabel -> over3 over = if(drop dip:drop2 Right Some, drop2 label-top?),
         _ -> drop2 None
     ))
 
@@ -796,7 +796,7 @@ def(StackType.top-resource-is-fine?, +Mirth StackType -- +Mirth Bool,
 
 def(StackType.has-meta?, +Mirth MetaVar StackType -- +Mirth Bool,
     expand match(
-        Meta -> ==,
+        Meta -> =,
         Error -> drop False,
         Ignore -> drop False,
         Var -> drop2 False,
@@ -812,7 +812,7 @@ def StackType.has-var? [ +Mirth Var StackType -- +Mirth Bool ] {
     { Ignore -> drop False }
     { Unit -> drop False }
     { Meta -> has-var? }
-    { Var -> == }
+    { Var -> = }
     { Cons -> dip(over) has-var? if(drop2 True, has-var?) }
     { With -> dip(over) has-var? if(drop2 True, has-var?) }
     { ConsLabel -> drop dip(over) has-var? if(drop2 True, has-var?) }
@@ -906,7 +906,7 @@ def(StackType.force-cons-label?!, +Mirth Label StackType -- +Mirth Maybe([StackT
         With -> dip(force-cons-label?!) swap map(unpack2 dip(over StackType.With) pack2) nip,
         Cons -> dip(force-cons-label?!) swap map(unpack2 dip(over StackType.Cons) pack2) nip,
         ConsLabel ->
-            over3 over == if(
+            over3 over = if(
                 drop rotl drop pack2 Some,
                 dip(dip(force-cons-label?!)) rotl match(
                     Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
@@ -914,7 +914,7 @@ def(StackType.force-cons-label?!, +Mirth Label StackType -- +Mirth Maybe([StackT
                 )
             ),
         WithLabel ->
-            over3 over == if(
+            over3 over = if(
                 drop4 None,
                 dip(dip(force-cons-label?!)) rotl match(
                     Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
@@ -935,7 +935,7 @@ def(StackType.force-with-label?!, +Mirth Label StackType -- +Mirth Maybe([StackT
         With -> dip(force-with-label?!) swap map(unpack2 dip(over StackType.With) pack2) nip,
         Cons -> dip(force-with-label?!) swap map(unpack2 dip(over StackType.Cons) pack2) nip,
         ConsLabel ->
-            over3 over == if(
+            over3 over = if(
                 drop4 None,
                 dip(dip(force-with-label?!)) rotl match(
                     Some -> unpack2 dip(rotr StackType.ConsLabel) pack2 Some,
@@ -943,7 +943,7 @@ def(StackType.force-with-label?!, +Mirth Label StackType -- +Mirth Maybe([StackT
                 )
             ),
         WithLabel ->
-            over3 over == if(
+            over3 over = if(
                 drop rotl drop pack2 Some,
                 dip(dip(force-with-label?!)) rotl match(
                     Some -> unpack2 dip(rotr StackType.WithLabel) pack2 Some,
@@ -1191,7 +1191,7 @@ def(ArrowType.rigidify-sig!, +Mirth Ctx ArrowType -- +Mirth Ctx ArrowType,
     >arrowtype
     @arrowtype dom linear-base-meta? for(
         @arrowtype cod linear-base-meta? for(
-            over == then(Type.Unit Some over ~type? !)
+            over = then(Type.Unit Some over ~type? !)
         ) drop
     )
     arrowtype> rigidify!)
@@ -1217,10 +1217,10 @@ def(Subst.nil, Subst, Subst.Nil)
 def(Subst.cons, Type Var Subst -- Subst, rotr Subst.Cons)
 def(Subst.has-var?, Var Subst -- Bool,
     Nil -> drop False,
-    Cons -> nip over2 == if(drop2 True, has-var?))
+    Cons -> nip over2 = if(drop2 True, has-var?))
 def(Subst.get-var, Var Subst -- Type,
     Nil -> drop Type.Error,
-    Cons -> over3 == if(dip(drop2), drop get-var))
+    Cons -> over3 = if(dip(drop2), drop get-var))
 
 ||| If variable is in subst, unify new type with type in subst.
 ||| Otherwise, create larger subst with new binding.
@@ -1365,10 +1365,10 @@ def PrimType.ctype? [ +Mirth PrimType -- +Mirth Maybe(CType) ] {
 }
 
 def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
-    dup builtin cptr == if(
+    dup builtin cptr = if(
         drop cname " *" cat CType.PtrLike Some,
 
-    dup builtin cconst == if(
+    dup builtin cconst = if(
         drop match(
             UIntLike -> "const " swap cat CType.UIntLike Some,
             IntLike -> "const " swap cat CType.IntLike Some,
@@ -1379,7 +1379,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
             Phantom -> CType.Phantom Some,
         ),
 
-    dup builtin crestrict == if(
+    dup builtin crestrict = if(
         drop match(
             UIntLike -> "restrict " swap cat CType.UIntLike Some,
             IntLike -> "restrict " swap cat CType.IntLike Some,
@@ -1390,7 +1390,7 @@ def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
             Phantom -> CType.Phantom Some,
         ),
 
-    dup builtin cvolatile == if(
+    dup builtin cvolatile = if(
         drop match(
             UIntLike -> "volatile " swap cat CType.UIntLike Some,
             IntLike -> "volatile " swap cat CType.IntLike Some,
