@@ -520,6 +520,32 @@ data +List(+t) {
         { +Nil -> +List.+Nil }
         { +Cons -> rdip:f rdip_(+map:f) +List.+Cons }
     }
+
+    def +find(pred, f, g) [ 
+        (*c +t -- *c +t Bool, *c +t -- *d +t, *c -- *d)
+        *c +List(+t) -- *d +List(+t)
+    ] {
+        { +Nil -> g +List.+Nil }
+        { +Cons -> 
+            rdip:pred if( 
+                rdip:f, 
+                rdip_:+find(pred, f, g)
+            ) +List.+Cons 
+        }
+    }
+
+    def +filter-for(pred, f) [
+        (*c +t -- *c +t Bool, *c +t -- *c)
+        *c +List(+t) -- *c +List(+t)
+    ] {
+        { +Nil -> +List.+Nil }
+        { +Cons -> 
+            rdip:pred if(
+                rdip:f +filter-for(pred, f),
+                rdip_:+filter-for(pred, f) +List.+Cons
+            )
+        }
+    }
 }
 
 struct +Nest(+t) {

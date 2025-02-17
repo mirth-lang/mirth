@@ -28,3 +28,82 @@ struct Map(k,v) {
         lookup-pair(keq) map(value)
     }
 }
+
+
+struct +KeyValuePair(k, +v) {
+    key: k
+    +value: +v
+    --
+    def init [ k +v -- +KeyValuePair(k,+v) ] {
+        >key >+value +KeyValuePair
+    }
+    def +for(f) [ (*a +v -- *b) *a +KeyValuePair(k, +v) -- *b ] {
+        /+KeyValuePair key> drop +value> f 
+    }
+
+    def rdrop(del {rdrop}) { +for(del) }
+
+    def ==(eq{==}) [ 
+        (*a +v +v -- *a +v +v Bool) 
+        *a +KeyValuePair(k, +v) +KeyValuePair(k, +v) -- *a +KeyValuePair(k, +v) +KeyValuePair(k, +v) Bool 
+    ] {
+        !+a:+value:@+a:+value:eq
+    }
+}
+
+struct +Map(k, +v) {
+    +pairs: +List(+KeyValuePair(k, +v)) 
+    --
+    def init [ -- +Map(k,+v) ] {
+        +List.+Nil >+pairs +Map
+    }
+
+
+    ||| Insert a key-value pair into the resource map
+    ||| Shadows previous entries for the same key but does not delete them
+    def +insert [ +KeyValuePair(k,+v) +Map(k,+v) -- +Map(k,+v) ] { +pairs:+Cons }
+
+    ||| Inserts the key and value returned by `f` into the map.
+    def +insert(f) [ (*a -- *b k +v) *a +Map(k,+v) -- *b +Map(k,+v) ] { 
+        rdip(f +KeyValuePair.init) +insert
+    }
+
+    ||| Removes all instances of the given key in the map
+    def +delete (del {rdrop}, keq {==}) [ 
+        (*c +v -- *c, *c k k -- *c Bool) 
+        *c k +Map(k, +v) -- *c +Map(k, +v)
+    ] {
+        +pairs:+filter-for(dup dip_(key rdip:keq), dip:+for:del) drop
+    }
+
+    ||| Either calls `f` on the first pair in the map that matches the key, or calls `g`
+    def +find-pair(f, g, keq {==}) [ 
+        (*c +KeyValuePair(k, +v) -- *d +KeyValuePair(k, +v), *c -- *d, *c k k -- *c Bool)
+        *c k +Map(k, +v) -- *d +Map(k, +v) 
+    ] {
+        +pairs:+find(dup dip_(key rdip:keq), drop f, drop g)
+    }
+
+
+    ||| Either calls `f` on the value in the map that matches the key, or calls `g`
+    def +find(f, g, keq {==}) [ 
+        (*c +v -- *d +v, *c -- *d, *c k k -- *c Bool) 
+        *c k +Map(k, +v) -- *d +Map(k, +v) 
+    ] {
+        +find-pair(+value:f, g, keq)
+    }
+
+    ||| Find the first value in the map that matches the key (if any), replacing it with the returned resource
+    def +upsert(f, keq {==}) [
+        (*c +Maybe(+v) -- *d +v, *c k k -- *c Bool)
+        *c k +Map(k, +v) -- *d +Map(k, +v)
+    ] {
+        sip:+find(+Some f rdip:+None, +None f +Some, keq) rswap 
+        +for(dup >key >+value +KeyValuePair rswap +insert) drop
+    }
+
+    def rdrop(f {rdrop}) [(*c +v -- *c) *c +Map(k,+v) -- *c] {
+        /+Map +pairs> rdrop:rdrop:f
+    }
+
+}
