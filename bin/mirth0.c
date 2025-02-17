@@ -1114,7 +1114,12 @@ static void big_pos_udivmod(BIG* a, INT b, INT *q, INT *r) {
     if (IS_BIG(b)) {
         BIG* bb = GET_BIG(b);
         bshift = bb->size-1;
-        bhead = bb->radix[bb->size-1];
+        bhead = bb->radix[bshift];
+        if (bhead == 0) {
+            ASSERT(bshift > 0);
+            bshift--;
+            bhead = bb->radix[bshift];
+        }
         for (size_t i = 0; i < bshift; i++) {
             if (bb->radix[i]) { bperfect=false; break; }
         }
@@ -1286,9 +1291,12 @@ static bool int_ne(INT a, INT b) { return int_cmp(a,b) != 0; }
 
 
 static STR* i64_to_str(int64_t);
+static STR* u64_to_str(uint64_t);
 static STR* int_to_str(INT a) {
     if (IS_I63(a) || (GET_BIG(a)->size == 2)) {
         return i64_to_str(int_to_i64(a));
+    } else if ((GET_BIG(a)->size == 3) && (GET_BIG(a)->radix[2] == 0)) {
+        return u64_to_str(int_to_u64(a));
     } else {
         STR *s = str_alloc(GET_BIG(a)->size * 10);
         if (SIGN_RADIX(GET_BIG(a))) {
@@ -1715,8 +1723,6 @@ static STACK lbl_x1 = {0};
 static STACK lbl_x2 = {0};
 static STACK lbl_x3 = {0};
 static STACK lbl_x4 = {0};
-static STACK lbl_base = {0};
-static STACK lbl_digits = {0};
 static STACK lbl_tail = {0};
 static STACK lbl_head = {0};
 static STACK lbl_rest = {0};
@@ -1724,11 +1730,44 @@ static STACK lbl_ok = {0};
 static STACK lbl_reversed = {0};
 static STACK lbl_ZPlustail = {0};
 static STACK lbl_ZPlushead = {0};
+static STACK lbl_hi = {0};
+static STACK lbl_lo = {0};
 static STACK lbl_escapeZ_hex = {0};
 static STACK lbl_sizze = {0};
+static STACK lbl_base = {0};
 static STACK lbl_oldZ_sizze = {0};
-static STACK lbl_origZ_sizze = {0};
-static STACK lbl_origZ_offset = {0};
+static STACK lbl_endix = {0};
+static STACK lbl_index = {0};
+static STACK lbl_numZ_digits = {0};
+static STACK lbl_int = {0};
+static STACK lbl_nat = {0};
+static STACK lbl_i64 = {0};
+static STACK lbl_u64 = {0};
+static STACK lbl_rat = {0};
+static STACK lbl_f32 = {0};
+static STACK lbl_f64 = {0};
+static STACK lbl_complex = {0};
+static STACK lbl_i32 = {0};
+static STACK lbl_i16 = {0};
+static STACK lbl_i8 = {0};
+static STACK lbl_u32 = {0};
+static STACK lbl_u16 = {0};
+static STACK lbl_u8 = {0};
+static STACK lbl_real = {0};
+static STACK lbl_imag = {0};
+static STACK lbl_d1 = {0};
+static STACK lbl_n1 = {0};
+static STACK lbl_d2 = {0};
+static STACK lbl_n2 = {0};
+static STACK lbl_floor = {0};
+static STACK lbl_c1 = {0};
+static STACK lbl_c2 = {0};
+static STACK lbl_k = {0};
+static STACK lbl_offset = {0};
+static STACK lbl_path = {0};
+static STACK lbl_mode = {0};
+static STACK lbl_flags = {0};
+static STACK lbl_ptr = {0};
 static STACK lbl_name = {0};
 static STACK lbl_flagZ_type = {0};
 static STACK lbl_argZ_doc = {0};
@@ -1743,13 +1782,9 @@ static STACK lbl_state = {0};
 static STACK lbl_docZ_length = {0};
 static STACK lbl_oo = {0};
 static STACK lbl_owned = {0};
-static STACK lbl_fileZ_descriptor = {0};
-static STACK lbl_sliceZ_sizze = {0};
-static STACK lbl_sliceZ_base = {0};
-static STACK lbl_success = {0};
-static STACK lbl_wroteZ_bytes = {0};
+static STACK lbl_ZPlusfd = {0};
+static STACK lbl_result = {0};
 static STACK lbl_length = {0};
-static STACK lbl_offset = {0};
 static STACK lbl_ZPlusbuffer = {0};
 static STACK lbl_ZPlusfile = {0};
 static STACK lbl_argv = {0};
@@ -1943,8 +1978,6 @@ static STACK lbl_lexerZ_lastZ_token = {0};
 static STACK lbl_ZPluslexer = {0};
 static STACK lbl_suffix = {0};
 static STACK lbl_len = {0};
-static STACK lbl_ptr = {0};
-static STACK lbl_index = {0};
 static STACK lbl_macro = {0};
 static STACK lbl_checklist = {0};
 static STACK lbl_w = {0};
@@ -2169,19 +2202,19 @@ static FIELD mfld_mirth_data_Tag_ZTildevalueZ_show = {0};
 static FIELD mfld_mirth_data_Tag_ZTildewordZ_c99Z_api = {0};
 static FIELD mfld_mirth_data_Tag_ZTildepatZ_c99Z_api = {0};
 static FIELD mfld_mirth_word_Word_ZTildec99Z_api = {0};
-static void mtw_std_buffer_ZPlusBuffer_ZPlusBuffer (INT in_USizze_1, void* in_Ptr_2, TUP* *out_ZPlusBuffer_3) {
+static void mtw_std_buffer_ZPlusBuffer_ZPlusBuffer (INT in_Sizze_1, void* in_Ptr_2, TUP* *out_ZPlusBuffer_3) {
 	TUP* v4 = tup_new(2);
 	v4->size = 2;
 	v4->cells[1] = MKPTR(in_Ptr_2);
-	v4->cells[0] = MKINT(in_USizze_1);
+	v4->cells[0] = MKINT(in_Sizze_1);
 	*out_ZPlusBuffer_3 = v4;
 }
-static void mtp_std_buffer_ZPlusBuffer_ZPlusBuffer (TUP* in_ZPlusBuffer_1, INT *out_USizze_2, void* *out_Ptr_3) {
+static void mtp_std_buffer_ZPlusBuffer_ZPlusBuffer (TUP* in_ZPlusBuffer_1, INT *out_Sizze_2, void* *out_Ptr_3) {
 	INT v4 = value_int(in_ZPlusBuffer_1->cells[0]);
 	void* v5 = value_ptr(in_ZPlusBuffer_1->cells[1]);
 	tup_decref_outer(in_ZPlusBuffer_1,2);
 	*out_Ptr_3 = v5;
-	*out_USizze_2 = v4;
+	*out_Sizze_2 = v4;
 }
 static VAL mtw_std_either_Either_2_Left (VAL in_a_1) {
 	TUP* v3 = tup_new(2);
@@ -2272,29 +2305,17 @@ static VAL mtp_std_maybe_Maybe_1_Some (VAL in_Maybe_1) {
 	tup_decref_outer(value_tup(in_Maybe_1, 2),2);
 	return v3;
 }
-static VAL mtp_std_terminal_Sgr_FGColor (VAL in_Sgr_1) {
-	VAL v3 = value_tup(in_Sgr_1, 2)->cells[1];
-	tup_decref_outer(value_tup(in_Sgr_1, 2),2);
-	return v3;
+static void mtw_std_maybe_ZPlusMaybe_1_ZPlusSome (VAL in_ZPlust_1, VAL *out_ZPlusMaybe_2) {
+	TUP* v3 = tup_new(2);
+	v3->size = 2;
+	v3->cells[1] = in_ZPlust_1;
+	v3->cells[0] = MKI64(1LL /* +Some */);
+	*out_ZPlusMaybe_2 = MKTUP(v3, 2);
 }
-static VAL mtp_std_terminal_Sgr_BGColor (VAL in_Sgr_1) {
-	VAL v3 = value_tup(in_Sgr_1, 2)->cells[1];
-	tup_decref_outer(value_tup(in_Sgr_1, 2),2);
-	return v3;
-}
-static INT mtp_std_terminal_SGRColor_Numbered (VAL in_SGRColor_1) {
-	INT v3 = value_int(value_tup(in_SGRColor_1, 2)->cells[1]);
-	tup_decref_outer(value_tup(in_SGRColor_1, 2),2);
-	return v3;
-}
-static INT mtp_std_terminal_SGRColor_RGB (VAL in_SGRColor_1, INT *out_Int_3, INT *out_Int_4) {
-	INT v5 = value_int(value_tup(in_SGRColor_1, 4)->cells[1]);
-	INT v6 = value_int(value_tup(in_SGRColor_1, 4)->cells[2]);
-	INT v7 = value_int(value_tup(in_SGRColor_1, 4)->cells[3]);
-	tup_decref_outer(value_tup(in_SGRColor_1, 4),4);
-	*out_Int_4 = v7;
-	*out_Int_3 = v6;
-	return v5;
+static void mtp_std_maybe_ZPlusMaybe_1_ZPlusSome (VAL in_ZPlusMaybe_1, VAL *out_ZPlust_2) {
+	VAL v3 = value_tup(in_ZPlusMaybe_1, 2)->cells[1];
+	tup_decref_outer(value_tup(in_ZPlusMaybe_1, 2),2);
+	*out_ZPlust_2 = v3;
 }
 static VAL mtw_std_result_Result_2_Err (VAL in_e_1) {
 	TUP* v3 = tup_new(2);
@@ -2344,16 +2365,40 @@ static void mtp_std_result_ZPlusResult_2_ZPlusOk (VAL in_ZPlusResult_1, VAL *out
 	tup_decref_outer(value_tup(in_ZPlusResult_1, 2),2);
 	*out_ZPlust_2 = v3;
 }
-static void mtw_std_input_ZPlusInputOpenState_ZPlusInputOpenState (INT in_USizze_1, INT in_UOffset_2, TUP* in_ZPlusFile_3, TUP* in_ZPlusBuffer_4, TUP* *out_ZPlusInputOpenState_5) {
+static VAL mtp_std_terminal_Sgr_FGColor (VAL in_Sgr_1) {
+	VAL v3 = value_tup(in_Sgr_1, 2)->cells[1];
+	tup_decref_outer(value_tup(in_Sgr_1, 2),2);
+	return v3;
+}
+static VAL mtp_std_terminal_Sgr_BGColor (VAL in_Sgr_1) {
+	VAL v3 = value_tup(in_Sgr_1, 2)->cells[1];
+	tup_decref_outer(value_tup(in_Sgr_1, 2),2);
+	return v3;
+}
+static INT mtp_std_terminal_SGRColor_Numbered (VAL in_SGRColor_1) {
+	INT v3 = value_int(value_tup(in_SGRColor_1, 2)->cells[1]);
+	tup_decref_outer(value_tup(in_SGRColor_1, 2),2);
+	return v3;
+}
+static INT mtp_std_terminal_SGRColor_RGB (VAL in_SGRColor_1, INT *out_Int_3, INT *out_Int_4) {
+	INT v5 = value_int(value_tup(in_SGRColor_1, 4)->cells[1]);
+	INT v6 = value_int(value_tup(in_SGRColor_1, 4)->cells[2]);
+	INT v7 = value_int(value_tup(in_SGRColor_1, 4)->cells[3]);
+	tup_decref_outer(value_tup(in_SGRColor_1, 4),4);
+	*out_Int_4 = v7;
+	*out_Int_3 = v6;
+	return v5;
+}
+static void mtw_std_input_ZPlusInputOpenState_ZPlusInputOpenState (INT in_Sizze_1, INT in_Offset_2, TUP* in_ZPlusFile_3, TUP* in_ZPlusBuffer_4, TUP* *out_ZPlusInputOpenState_5) {
 	TUP* v6 = tup_new(4);
 	v6->size = 4;
 	v6->cells[3] = MKTUP(in_ZPlusBuffer_4, 2);
 	v6->cells[2] = MKTUP(in_ZPlusFile_3, 2);
-	v6->cells[1] = MKINT(in_UOffset_2);
-	v6->cells[0] = MKINT(in_USizze_1);
+	v6->cells[1] = MKINT(in_Offset_2);
+	v6->cells[0] = MKINT(in_Sizze_1);
 	*out_ZPlusInputOpenState_5 = v6;
 }
-static void mtp_std_input_ZPlusInputOpenState_ZPlusInputOpenState (TUP* in_ZPlusInputOpenState_1, INT *out_USizze_2, INT *out_UOffset_3, TUP* *out_ZPlusFile_4, TUP* *out_ZPlusBuffer_5) {
+static void mtp_std_input_ZPlusInputOpenState_ZPlusInputOpenState (TUP* in_ZPlusInputOpenState_1, INT *out_Sizze_2, INT *out_Offset_3, TUP* *out_ZPlusFile_4, TUP* *out_ZPlusBuffer_5) {
 	INT v6 = value_int(in_ZPlusInputOpenState_1->cells[0]);
 	INT v7 = value_int(in_ZPlusInputOpenState_1->cells[1]);
 	TUP* v8 = value_tup(in_ZPlusInputOpenState_1->cells[2], 2);
@@ -2361,8 +2406,8 @@ static void mtp_std_input_ZPlusInputOpenState_ZPlusInputOpenState (TUP* in_ZPlus
 	tup_decref_outer(in_ZPlusInputOpenState_1,4);
 	*out_ZPlusBuffer_5 = v9;
 	*out_ZPlusFile_4 = v8;
-	*out_UOffset_3 = v7;
-	*out_USizze_2 = v6;
+	*out_Offset_3 = v7;
+	*out_Sizze_2 = v6;
 }
 static void mtw_std_input_ZPlusInput_Open (TUP* in_ZPlusInputOpenState_1, VAL *out_ZPlusInput_2) {
 	TUP* v3 = tup_new(2);
@@ -2388,36 +2433,117 @@ static void mtp_std_input_ZPlusInput_Done (VAL in_ZPlusInput_1, TUP* *out_ZPlusF
 	tup_decref_outer(value_tup(in_ZPlusInput_1, 2),2);
 	*out_ZPlusFile_2 = v3;
 }
-static void mtw_std_output_ZPlusOutput_ZPlusOutput (INT in_USizze_1, TUP* in_ZPlusFile_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusOutput_4) {
+static void mtw_std_output_ZPlusOutput_ZPlusOutput (INT in_Sizze_1, TUP* in_ZPlusFile_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusOutput_4) {
 	TUP* v5 = tup_new(3);
 	v5->size = 3;
 	v5->cells[2] = MKTUP(in_ZPlusBuffer_3, 2);
 	v5->cells[1] = MKTUP(in_ZPlusFile_2, 2);
-	v5->cells[0] = MKINT(in_USizze_1);
+	v5->cells[0] = MKINT(in_Sizze_1);
 	*out_ZPlusOutput_4 = v5;
 }
-static void mtp_std_output_ZPlusOutput_ZPlusOutput (TUP* in_ZPlusOutput_1, INT *out_USizze_2, TUP* *out_ZPlusFile_3, TUP* *out_ZPlusBuffer_4) {
+static void mtp_std_output_ZPlusOutput_ZPlusOutput (TUP* in_ZPlusOutput_1, INT *out_Sizze_2, TUP* *out_ZPlusFile_3, TUP* *out_ZPlusBuffer_4) {
 	INT v5 = value_int(in_ZPlusOutput_1->cells[0]);
 	TUP* v6 = value_tup(in_ZPlusOutput_1->cells[1], 2);
 	TUP* v7 = value_tup(in_ZPlusOutput_1->cells[2], 2);
 	tup_decref_outer(in_ZPlusOutput_1,3);
 	*out_ZPlusBuffer_4 = v7;
 	*out_ZPlusFile_3 = v6;
-	*out_USizze_2 = v5;
+	*out_Sizze_2 = v5;
 }
-static void mtw_std_file_ZPlusFile_ZPlusFile (INT in_Int_1, bool in_Bool_2, TUP* *out_ZPlusFile_3) {
+static VAL mtw_std_file_IOError_OpenFailed (STR* in_Path_1, int64_t in_Errno_2) {
+	TUP* v4 = tup_new(3);
+	v4->size = 3;
+	v4->cells[2] = MKI64(in_Errno_2);
+	v4->cells[1] = MKSTR(in_Path_1);
+	v4->cells[0] = MKI64(0LL /* OpenFailed */);
+	return MKTUP(v4, 3);
+}
+static STR* mtp_std_file_IOError_OpenFailed (VAL in_IOError_1, int64_t *out_Errno_3) {
+	STR* v4 = value_str(value_tup(in_IOError_1, 3)->cells[1]);
+	int64_t v5 = value_i64(value_tup(in_IOError_1, 3)->cells[2]);
+	tup_decref_outer(value_tup(in_IOError_1, 3),3);
+	*out_Errno_3 = v5;
+	return v4;
+}
+static VAL mtw_std_file_IOError_CreateFailed (STR* in_Path_1, int64_t in_Errno_2) {
+	TUP* v4 = tup_new(3);
+	v4->size = 3;
+	v4->cells[2] = MKI64(in_Errno_2);
+	v4->cells[1] = MKSTR(in_Path_1);
+	v4->cells[0] = MKI64(1LL /* CreateFailed */);
+	return MKTUP(v4, 3);
+}
+static STR* mtp_std_file_IOError_CreateFailed (VAL in_IOError_1, int64_t *out_Errno_3) {
+	STR* v4 = value_str(value_tup(in_IOError_1, 3)->cells[1]);
+	int64_t v5 = value_i64(value_tup(in_IOError_1, 3)->cells[2]);
+	tup_decref_outer(value_tup(in_IOError_1, 3),3);
+	*out_Errno_3 = v5;
+	return v4;
+}
+static VAL mtw_std_file_IOError_CreateUnsupported (STR* in_Path_1) {
+	TUP* v3 = tup_new(2);
+	v3->size = 2;
+	v3->cells[1] = MKSTR(in_Path_1);
+	v3->cells[0] = MKI64(2LL /* CreateUnsupported */);
+	return MKTUP(v3, 2);
+}
+static STR* mtp_std_file_IOError_CreateUnsupported (VAL in_IOError_1) {
+	STR* v3 = value_str(value_tup(in_IOError_1, 2)->cells[1]);
+	tup_decref_outer(value_tup(in_IOError_1, 2),2);
+	return v3;
+}
+static VAL mtw_std_file_IOError_CloseFailed (int64_t in_Errno_1) {
+	TUP* v3 = tup_new(2);
+	v3->size = 2;
+	v3->cells[1] = MKI64(in_Errno_1);
+	v3->cells[0] = MKI64(3LL /* CloseFailed */);
+	return MKTUP(v3, 2);
+}
+static int64_t mtp_std_file_IOError_CloseFailed (VAL in_IOError_1) {
+	int64_t v3 = value_i64(value_tup(in_IOError_1, 2)->cells[1]);
+	tup_decref_outer(value_tup(in_IOError_1, 2),2);
+	return v3;
+}
+static VAL mtw_std_file_IOError_ReadFailed (int64_t in_Errno_1) {
+	TUP* v3 = tup_new(2);
+	v3->size = 2;
+	v3->cells[1] = MKI64(in_Errno_1);
+	v3->cells[0] = MKI64(4LL /* ReadFailed */);
+	return MKTUP(v3, 2);
+}
+static int64_t mtp_std_file_IOError_ReadFailed (VAL in_IOError_1) {
+	int64_t v3 = value_i64(value_tup(in_IOError_1, 2)->cells[1]);
+	tup_decref_outer(value_tup(in_IOError_1, 2),2);
+	return v3;
+}
+static VAL mtw_std_file_IOError_WriteFailed (INT in_Sizze_1, int64_t in_Errno_2) {
+	TUP* v4 = tup_new(3);
+	v4->size = 3;
+	v4->cells[2] = MKI64(in_Errno_2);
+	v4->cells[1] = MKINT(in_Sizze_1);
+	v4->cells[0] = MKI64(5LL /* WriteFailed */);
+	return MKTUP(v4, 3);
+}
+static INT mtp_std_file_IOError_WriteFailed (VAL in_IOError_1, int64_t *out_Errno_3) {
+	INT v4 = value_int(value_tup(in_IOError_1, 3)->cells[1]);
+	int64_t v5 = value_i64(value_tup(in_IOError_1, 3)->cells[2]);
+	tup_decref_outer(value_tup(in_IOError_1, 3),3);
+	*out_Errno_3 = v5;
+	return v4;
+}
+static void mtw_std_file_ZPlusFile_ZPlusFile (int64_t in_ZPlusFileDescriptor_1, bool in_Bool_2, TUP* *out_ZPlusFile_3) {
 	TUP* v4 = tup_new(2);
 	v4->size = 2;
 	v4->cells[1] = MKBOOL(in_Bool_2);
-	v4->cells[0] = MKINT(in_Int_1);
+	v4->cells[0] = MKI64(in_ZPlusFileDescriptor_1);
 	*out_ZPlusFile_3 = v4;
 }
-static void mtp_std_file_ZPlusFile_ZPlusFile (TUP* in_ZPlusFile_1, INT *out_Int_2, bool *out_Bool_3) {
-	INT v4 = value_int(in_ZPlusFile_1->cells[0]);
+static void mtp_std_file_ZPlusFile_ZPlusFile (TUP* in_ZPlusFile_1, int64_t *out_ZPlusFileDescriptor_2, bool *out_Bool_3) {
+	int64_t v4 = value_i64(in_ZPlusFile_1->cells[0]);
 	bool v5 = value_bool(in_ZPlusFile_1->cells[1]);
 	tup_decref_outer(in_ZPlusFile_1,2);
 	*out_Bool_3 = v5;
-	*out_Int_2 = v4;
+	*out_ZPlusFileDescriptor_2 = v4;
 }
 static TUP* mtw_argZ_parser_state_ArgvInfo_ArgvInfo (VAL in_List_1, STR* in_Str_2) {
 	TUP* v4 = tup_new(2);
@@ -5500,50 +5626,82 @@ static char mbuf_mirth_name_Name_Num[8] = {0};
 static char mbuf_mirth_name_Hash_Buf[524288] = {0};
 static char mbuf_mirth_module_Module_Num[8] = {0};
 size_t strlen (const char *);
-static uint64_t mext_std_ctypes_CStr_numZ_bytes (void* in_CStr_1) {
-	const char * X2 = (const char *)(in_CStr_1);
-	size_t Y = strlen(X2);
+static uint64_t mext_std_ctypes_CStr_numZ_bytesZ_raw (void* in_CStr_1) {
+	const char * X1 = (const char *)(in_CStr_1);
+	size_t Y = strlen(X1);
+	uint64_t v5 = (uint64_t)(Y);
+	int64_t v6 = (int64_t)(0);
+	return v5;
+}
+const char * strerror (int);
+static void* mext_std_prim_ZPlusWorld_rawZ_posixZ_strerrorZBang (int64_t in_CInt_1) {
+	int X2 = (int)(in_CInt_1);
+	const char * Y = strerror(X2);
 	int64_t v5 = (int64_t)(0);
-	uint64_t v6 = (uint64_t)(Y);
+	void* v6 = (void*)(Y);
 	return v6;
 }
-int read (int, void*, size_t);
-static int64_t mext_std_posix_externalZ_posixZ_read (int64_t in_CInt_1, void* in_Ptr_2, uint64_t in_CUSizze_3) {
-	size_t X3 = (size_t)(in_CUSizze_3);
-	void* X2 = (void*)(in_Ptr_2);
-	int X1 = (int)(in_CInt_1);
-	int Y = read(X1, X2, X3);
-	int64_t v5 = (int64_t)(Y);
-	return v5;
-}
-int write (int, const char *, size_t);
-static int64_t mext_std_posix_externalZ_posixZ_write (int64_t in_CInt_1, void* in_CStr_2, uint64_t in_CUSizze_3) {
-	size_t X3 = (size_t)(in_CUSizze_3);
-	const char * X2 = (const char *)(in_CStr_2);
-	int X1 = (int)(in_CInt_1);
-	int Y = write(X1, X2, X3);
-	int64_t v5 = (int64_t)(Y);
-	return v5;
-}
-int close (int);
-static int64_t mext_std_posix_externalZ_posixZ_close (int64_t in_CInt_1) {
-	int X1 = (int)(in_CInt_1);
-	int Y = close(X1);
-	int64_t v3 = (int64_t)(Y);
-	return v3;
-}
 void exit (int);
-static void mext_std_posix_externalZ_posixZ_exit (int64_t in_CInt_1) {
+static void mext_std_prim_ZPlusWorld_rawZ_posixZ_exitZBang (int64_t in_CInt_1) {
 	int X1 = (int)(in_CInt_1);
 	exit(X1);
 }
-int open_internal(const char* path, int flags, int mode) { return open(path, flags, mode); }
-int open_internal (const char *, int, int);
-static int64_t mext_std_posix_internalZ_posixZ_open (void* in_CStr_1, int64_t in_CInt_2, int64_t in_CInt_3) {
-	int X3 = (int)(in_CInt_3);
-	int X2 = (int)(in_CInt_2);
-	const char * X1 = (const char *)(in_CStr_1);
-	int Y = open_internal(X1, X2, X3);
+static int posix_open (const char* path, int flags, int mode) { return open(path, flags, mode); }
+int posix_open (const char *, int, int);
+static int64_t mext_std_prim_ZPlusWorld_rawZ_posixZ_openZBang (void* in_CStr_1, int64_t in_CInt_2, int64_t in_CInt_3) {
+	int mode = (int)(in_CInt_3);
+	int flags = (int)(in_CInt_2);
+	const char * path = (const char *)(in_CStr_1);
+	int Y = posix_open(path, flags, mode);
+	int64_t v7 = (int64_t)(0);
+	int64_t v8 = (int64_t)(Y);
+	return v8;
+}
+int close (int);
+static int64_t mext_std_prim_ZPlusWorld_rawZ_posixZ_closeZBang (int64_t in_ZPlusFileDescriptor_1) {
+	int ZPlusfd = (int)(in_ZPlusFileDescriptor_1);
+	int Y = close(ZPlusfd);
+	int64_t v5 = (int64_t)(0);
+	int64_t v6 = (int64_t)(Y);
+	return v6;
+}
+int read (int, void*, size_t);
+static int64_t mext_std_prelude_ZPlusUnsafe_rawZ_posixZ_readZBang (int64_t in_ZPlusFileDescriptor_1, void* in_Ptr_2, uint64_t in_CUSizze_3, int64_t *out_ZPlusFileDescriptor_4) {
+	size_t sizze = (size_t)(in_CUSizze_3);
+	void* ptr = (void*)(in_Ptr_2);
+	int ZPlusfd = (int)(in_ZPlusFileDescriptor_1);
+	int Y = read(ZPlusfd, ptr, sizze);
+	int64_t v8 = (int64_t)(0);
+	int64_t v9 = (int64_t)(ZPlusfd);
+	int64_t v10 = (int64_t)(Y);
+	*out_ZPlusFileDescriptor_4 = v9;
+	return v10;
+}
+int write (int, const char *, size_t);
+static int64_t mext_std_prelude_ZPlusUnsafe_rawZ_posixZ_writeZBang (int64_t in_ZPlusFileDescriptor_1, void* in_CStr_2, uint64_t in_CUSizze_3, int64_t *out_ZPlusFileDescriptor_4) {
+	size_t sizze = (size_t)(in_CUSizze_3);
+	const char * ptr = (const char *)(in_CStr_2);
+	int ZPlusfd = (int)(in_ZPlusFileDescriptor_1);
+	int Y = write(ZPlusfd, ptr, sizze);
+	int64_t v8 = (int64_t)(0);
+	int64_t v9 = (int64_t)(ZPlusfd);
+	int64_t v10 = (int64_t)(Y);
+	*out_ZPlusFileDescriptor_4 = v9;
+	return v10;
+}
+#include <errno.h>
+static int posix_errno (void) { return errno; }
+int posix_errno (void);
+static int64_t mext_std_prelude_ZPlusUnsafe_posixZ_errnoZBang (void) {
+	int Y = posix_errno();
+	int64_t v4 = (int64_t)(0);
+	int64_t v5 = (int64_t)(Y);
+	return v5;
+}
+int posix_errno (void);
+static int64_t mext_std_prim_ZPlusWorld_posixZ_errnoZBang (void) {
+	int Y = posix_errno();
+	int64_t v4 = (int64_t)(0);
 	int64_t v5 = (int64_t)(Y);
 	return v5;
 }
@@ -5565,37 +5723,38 @@ static int64_t mw_std_byte_Byte_toZ_hexdigits (int64_t in_Byte_1, int64_t *out_B
 static bool mw_std_byte_Byte_isZ_nameZ_byte (int64_t in_Byte_1);
 static void mw_std_byte_Byte_zzencodeZThen (STR* in_ZPlusStr_1, int64_t in_Byte_2, STR* *out_ZPlusStr_3);
 static void mw_std_byte_Byte_intZThen (STR* in_ZPlusStr_1, int64_t in_Byte_2, STR* *out_ZPlusStr_3);
-static void mw_std_buffer_ZPlusBuffer_new (INT in_USizze_1, TUP* *out_ZPlusBuffer_2);
-static void mw_std_buffer_ZPlusBuffer_resizzeZBang (INT in_USizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3);
-static void mw_std_buffer_ZPlusBuffer_expandZBang (INT in_USizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3);
+static void mw_std_buffer_ZPlusBuffer_new (INT in_Sizze_1, TUP* *out_ZPlusBuffer_2);
+static void mw_std_buffer_ZPlusBuffer_resizzeZBang (INT in_Sizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3);
+static void mw_std_buffer_ZPlusBuffer_expandZBang (INT in_Sizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3);
 static void mw_std_buffer_ZPlusBuffer_rdrop (TUP* in_ZPlusBuffer_1);
-static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
-static INT mw_std_buffer_ZPlusBuffer_clampZ_spanZBang (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, INT *out_USizze_5, TUP* *out_ZPlusBuffer_6);
-static INT mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5);
-static uint8_t mw_std_buffer_ZPlusBuffer_ZAtU8 (INT in_UOffset_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_4);
-static void mw_std_buffer_ZPlusBuffer_ZBangU8 (uint8_t in_U8_1, INT in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
-static void mw_std_buffer_ZPlusBuffer_ZBangByte (int64_t in_Byte_1, INT in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
-static STR* mw_std_buffer_ZPlusBuffer_ZAtStr (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5);
-static void mw_std_buffer_ZPlusBuffer_ZBangStr (STR* in_Str_1, INT in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
+static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
+static INT mw_std_buffer_ZPlusBuffer_clampZ_offsetZBang (INT in_Offset_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_4);
+static INT mw_std_buffer_ZPlusBuffer_clampZ_spanZBang (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, INT *out_Sizze_5, TUP* *out_ZPlusBuffer_6);
+static INT mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5);
+static uint8_t mw_std_buffer_ZPlusBuffer_ZAtU8 (INT in_Offset_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_4);
+static void mw_std_buffer_ZPlusBuffer_ZBangU8 (uint8_t in_U8_1, INT in_Offset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
+static void mw_std_buffer_ZPlusBuffer_ZBangByte (int64_t in_Byte_1, INT in_Offset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
+static STR* mw_std_buffer_ZPlusBuffer_ZAtStr (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5);
+static void mw_std_buffer_ZPlusBuffer_ZBangStr (STR* in_Str_1, INT in_Offset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4);
 static void mw_std_prim_Ptr_ZBangStr (STR* in_Str_1, void* in_Ptr_2);
 static int64_t mw_std_prim_Str_lastZ_byte (STR* in_Str_1);
 static int64_t mw_std_str_ZPlusStr_lastZ_byte (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
-static int64_t mw_std_str_ZPlusStr_byteZAt (INT in_UOffset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
-static bool mw_std_str_offsetZ_inZ_bounds (INT in_UOffset_1, INT in_USizze_2);
-static int64_t mw_std_prim_Str_byteZAt (INT in_UOffset_1, STR* in_Str_2);
+static int64_t mw_std_str_ZPlusStr_byteZAt (INT in_Offset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
+static bool mw_std_str_offsetZ_inZ_bounds (INT in_Offset_1, INT in_Sizze_2);
+static int64_t mw_std_prim_Str_byteZAt (INT in_Offset_1, STR* in_Str_2);
 static void mw_std_str_ZPlusStr_pushZ_byteZ_unsafeZBang (int64_t in_Byte_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
 static void mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang (int64_t in_Byte_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
 static void mw_std_str_ZPlusStr_pushZ_strZBang (STR* in_Str_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
-static STR* mw_std_prim_Str_dropZ_bytes (INT in_USizze_1, STR* in_Str_2);
+static STR* mw_std_prim_Str_dropZ_bytes (INT in_Sizze_1, STR* in_Str_2);
 static STR* mw_std_prim_Str_fromZ_bytesZ_unsafe (VAL in_List_1);
-static INT mw_std_str_clampZ_sliceZ_offsetZ_sizze (INT in_UOffset_1, INT in_USizze_2, INT in_USizze_3, INT *out_USizze_5);
-static STR* mw_std_prim_Str_slice (INT in_UOffset_1, INT in_USizze_2, STR* in_Str_3);
-static STR* mw_std_prim_Str_dropZ_slice (INT in_UOffset_1, STR* in_Str_2);
-static STR* mw_std_prim_Str_takeZ_slice (INT in_USizze_1, STR* in_Str_2);
-static STR* mw_std_str_ZPlusStr_slice (INT in_UOffset_1, INT in_USizze_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5);
-static STR* mw_std_str_ZPlusStr_offsetZ_slice (INT in_UOffset_1, INT in_UOffset_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5);
-static STR* mw_std_str_ZPlusStr_takeZ_slice (INT in_USizze_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
-static STR* mw_std_str_ZPlusStr_dropZ_slice (INT in_UOffset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
+static INT mw_std_str_clampZ_sliceZ_offsetZ_sizze (INT in_Offset_1, INT in_Sizze_2, INT in_Sizze_3, INT *out_Sizze_5);
+static STR* mw_std_prim_Str_slice (INT in_Offset_1, INT in_Sizze_2, STR* in_Str_3);
+static STR* mw_std_prim_Str_dropZ_slice (INT in_Offset_1, STR* in_Str_2);
+static STR* mw_std_prim_Str_takeZ_slice (INT in_Sizze_1, STR* in_Str_2);
+static STR* mw_std_str_ZPlusStr_slice (INT in_Offset_1, INT in_Sizze_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5);
+static STR* mw_std_str_ZPlusStr_offsetZ_slice (INT in_Offset_1, INT in_Offset_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5);
+static STR* mw_std_str_ZPlusStr_takeZ_slice (INT in_Sizze_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
+static STR* mw_std_str_ZPlusStr_dropZ_slice (INT in_Offset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
 static TUP* mw_std_str_ZPlusStr_splitZ_byte (int64_t in_Byte_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
 static TUP* mw_std_prim_Str_splitZ_byte (int64_t in_Byte_1, STR* in_Str_2);
 static void mw_std_str_ZPlusStr_pushZ_reprZ_byteZBang (STR* in_ZPlusStr_1, bool in_Bool_2, int64_t in_Byte_3, bool *out_Bool_4, STR* *out_ZPlusStr_5);
@@ -5646,6 +5805,9 @@ static VAL mw_std_list_ZPlusLister_1_popZ_allZBang (VAL in_ZPlusLister_1, VAL *o
 static TUP* mw_std_list_ZPlusNester_1_doneZBang (TUP* in_ZPlusNester_1);
 static VAL mw_std_maybe_Maybe_1_ZToList (VAL in_Maybe_1);
 static VAL mw_std_maybe_Maybe_1_zzip (VAL in_Maybe_1, VAL in_Maybe_2);
+static INT mw_std_number_Base_Hex (void);
+static INT mw_std_number_Base_lastZ_digit (INT in_Nat_1, INT in_Base_2, int64_t *out_Byte_4);
+static void mw_std_number_Base_digitsZThen (STR* in_ZPlusStr_1, INT in_Nat_2, INT in_Base_3, STR* *out_ZPlusStr_4);
 static int64_t mw_std_prim_I64_ZToOS (int64_t in_I64_1);
 static int64_t mw_std_prim_Int_ZToOS (INT in_Int_1);
 static bool mw_std_prelude_OS_isZ_windowsZAsk (int64_t in_OS_1);
@@ -5653,21 +5815,18 @@ static VAL mw_std_prelude_OS_pathZ_separator (int64_t in_OS_1);
 static bool mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk (int64_t in_Byte_1, int64_t in_OS_2);
 static int64_t mw_std_prim_I64_ZToArch (int64_t in_I64_1);
 static int64_t mw_std_prim_Int_ZToArch (INT in_Int_1);
-static INT mw_std_prim_Int_signZAskZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
-static void mw_std_prim_Int_hexZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
-static INT mw_std_prelude_Base_Hex (void);
-static INT mw_std_prelude_Base_lastZ_digit (INT in_Nat_1, INT in_Base_2, int64_t *out_Byte_4);
-static void mw_std_prelude_Base_digitsZThen (STR* in_ZPlusStr_1, INT in_Nat_2, INT in_Base_3, STR* *out_ZPlusStr_4);
 static VAL mw_std_prelude_ZAtZAsk (void* in_Mutt_1);
 static void mw_std_prelude_impossibleZBang (void);
-static INT mw_std_posix_posixZ_openZBang (STR* in_Str_1, INT in_Int_2, INT in_Int_3);
-static void mw_std_terminal_Sgr_emitZThen (VAL in_Sgr_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
-static void mw_std_terminal_SGRColor_emitZThen (VAL in_SGRColor_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
-static void mw_std_str_ZPlusStr_csiZThen (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_2);
 static STR* mw_std_path_Path_joinZ_with (STR* in_Path_1, STR* in_Str_2, STR* in_Path_3);
 static STR* mw_std_path_Path_join (STR* in_Path_1, STR* in_Path_2);
 static STR* mw_std_path_Path_splitZ_last (STR* in_Path_1, VAL *out_Maybe_3);
 static void mw_std_path_Path_pathZThen (STR* in_Path_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
+static VAL mw_std_result_Result_2_okZAsk (VAL in_Result_1);
+static int64_t mw_std_posix_OpenFlags_U64ZTo (uint64_t in_U64_1);
+static int64_t mw_std_posix_OpenFlags_None (void);
+static void mw_std_terminal_Sgr_emitZThen (VAL in_Sgr_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
+static void mw_std_terminal_SGRColor_emitZThen (VAL in_SGRColor_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3);
+static void mw_std_str_ZPlusStr_csiZThen (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_2);
 static INT mw_std_input_INPUTz_BUFFERz_SIZZE (void);
 static void mw_std_input_ZPlusInputOpenState_endZBang (TUP* in_ZPlusInputOpenState_1, TUP* *out_ZPlusFile_2);
 static void mw_std_input_ZPlusInputOpenState_refillZ_bufferZBang (TUP* in_ZPlusInputOpenState_1, VAL *out_ZPlusInput_2);
@@ -5690,14 +5849,16 @@ static bool mw_std_output_ZPlusOutput_fullZAsk (TUP* in_ZPlusOutput_1, TUP* *out
 static void mw_std_output_ZPlusOutput_put (STR* in_Str_1, TUP* in_ZPlusOutput_2, TUP* *out_ZPlusOutput_3);
 static void mw_std_output_ZPlusOutput_putZ_byte (int64_t in_Byte_1, TUP* in_ZPlusOutput_2, TUP* *out_ZPlusOutput_3);
 static void mw_std_output_ZPlusOutput_line (TUP* in_ZPlusOutput_1, TUP* *out_ZPlusOutput_2);
-static void mw_std_file_ZPlusFile_closeZ_fileZBang (TUP* in_ZPlusFile_1);
+static void mw_std_file_IOError_messageZThen (STR* in_ZPlusStr_1, VAL in_IOError_2, STR* *out_ZPlusStr_3);
+static STR* mw_std_file_IOError_message (VAL in_IOError_1);
+static VAL mw_std_file_ZPlusFile_closeZ_fileZBang (TUP* in_ZPlusFile_1);
 static STR* mw_std_file_ZPlusFile_readZ_fileZBang (TUP* in_ZPlusFile_1, TUP* *out_ZPlusFile_3);
 static void mw_std_prim_ZPlusWorld_openZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2);
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2);
 static void mw_std_prim_ZPlusWorld_stderrZ_file (TUP* *out_ZPlusFile_1);
 static VAL mw_std_prim_ZPlusWorld_createZ_fileZ_flags (void);
-static INT mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* in_Ptr_1, INT in_USizze_2, TUP* in_ZPlusFile_3, bool *out_Bool_5, TUP* *out_ZPlusFile_6);
-static INT mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang (void* in_Ptr_1, INT in_USizze_2, TUP* in_ZPlusFile_3, bool *out_Bool_5, TUP* *out_ZPlusFile_6);
+static VAL mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* in_Ptr_1, INT in_Sizze_2, TUP* in_ZPlusFile_3, TUP* *out_ZPlusFile_5);
+static VAL mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang (void* in_Ptr_1, INT in_Sizze_2, TUP* in_ZPlusFile_3, TUP* *out_ZPlusFile_5);
 static void mw_std_prim_ZPlusWorld_traceZ_ (STR* in_Str_1);
 static void mw_std_prim_ZPlusWorld_trace (STR* in_Str_1);
 static bool mw_std_prim_ZPlusWorld_isZ_directoryZAsk (STR* in_Path_1);
@@ -5733,7 +5894,7 @@ static uint64_t mw_mirth_label_Label_index (uint64_t in_Label_1);
 static uint64_t mw_mirth_label_Label_allocZBang (void);
 static uint64_t mw_mirth_label_Label_name (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, TUP* *out_ZPlusMirth_3);
 static STR* mw_mirth_label_Label_ZToStr (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_label_Label_ZEqualZEqual (uint64_t in_Label_1, uint64_t in_Label_2);
+static bool mw_mirth_label_Label_ZEqual (uint64_t in_Label_1, uint64_t in_Label_2);
 static void mw_mirth_label_Label_nameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, uint64_t in_Label_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static uint64_t mw_mirth_label_Label_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_label_Label_isZ_resourceZ_labelZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, TUP* *out_ZPlusMirth_3);
@@ -5770,8 +5931,8 @@ static INT mw_mirth_buffer_Buffer_sizze (TUP* in_ZPlusMirth_1, uint64_t in_Buffe
 static uint64_t mw_mirth_buffer_Buffer_name (TUP* in_ZPlusMirth_1, uint64_t in_Buffer_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_buffer_Buffer_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Buffer_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_buffer_Buffer_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Buffer_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_buffer_Buffer_ZEqualZEqual (uint64_t in_Buffer_1, uint64_t in_Buffer_2);
-static uint64_t mw_mirth_buffer_Buffer_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, INT in_USizze_3, uint64_t in_Name_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6);
+static bool mw_mirth_buffer_Buffer_ZEqual (uint64_t in_Buffer_1, uint64_t in_Buffer_2);
+static uint64_t mw_mirth_buffer_Buffer_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, INT in_Sizze_3, uint64_t in_Name_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6);
 static uint64_t mw_mirth_word_Word_index (uint64_t in_Word_1);
 static uint64_t mw_mirth_word_Word_allocZBang (void);
 static VAL mw_mirth_word_Word_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
@@ -5792,7 +5953,7 @@ static TUP* mw_mirth_word_Word_type (uint64_t in_Word_1, TUP* in_ZPlusMirth_2, T
 static bool mw_mirth_word_Word_preferZ_inlineZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_word_Word_makeZ_inlineZBang (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_word_Word_newZBang (uint64_t in_Token_1, VAL in_Maybe_2, uint64_t in_Token_3, uint64_t in_Name_4, INT in_Nat_5, VAL in_Maybe_6, TUP* in_ZPlusMirth_7, TUP* *out_ZPlusMirth_9);
-static bool mw_mirth_word_Word_ZEqualZEqual (uint64_t in_Word_1, uint64_t in_Word_2);
+static bool mw_mirth_word_Word_ZEqual (uint64_t in_Word_1, uint64_t in_Word_2);
 static INT mw_mirth_word_Word_incZ_numZ_blocksZBang (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_table_Table_index (uint64_t in_Table_1);
 static uint64_t mw_mirth_table_Table_allocZBang (void);
@@ -5800,7 +5961,7 @@ static uint64_t mw_mirth_table_Table_head (TUP* in_ZPlusMirth_1, uint64_t in_Tab
 static VAL mw_mirth_table_Table_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_table_Table_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_table_Table_name (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_table_Table_ZEqualZEqual (uint64_t in_Table_1, uint64_t in_Table_2);
+static bool mw_mirth_table_Table_ZEqual (uint64_t in_Table_1, uint64_t in_Table_2);
 static void mw_mirth_table_Table_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, uint64_t in_Table_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static uint64_t mw_mirth_table_Field_index (uint64_t in_Field_1);
 static uint64_t mw_mirth_table_Field_allocZBang (void);
@@ -5813,11 +5974,11 @@ static VAL mw_mirth_table_Field_valueZ_type (TUP* in_ZPlusMirth_1, uint64_t in_F
 static VAL mw_mirth_table_Field_dom (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_table_Field_cod (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_table_Field_type (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_table_Field_ZEqualZEqual (uint64_t in_Field_1, uint64_t in_Field_2);
+static bool mw_mirth_table_Field_ZEqual (uint64_t in_Field_1, uint64_t in_Field_2);
 static uint64_t mw_mirth_tycon_Tycon_name (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_tycon_Tycon_qnameZ_hard (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_tycon_Tycon_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Tycon_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
-static bool mw_mirth_tycon_Tycon_ZEqualZEqual (VAL in_Tycon_1, VAL in_Tycon_2);
+static bool mw_mirth_tycon_Tycon_ZEqual (VAL in_Tycon_1, VAL in_Tycon_2);
 static VAL mw_mirth_tycon_Tycon_fullZ_typeZ_fresh (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_data_Data_index (uint64_t in_Data_1);
 static uint64_t mw_mirth_data_Data_allocZBang (void);
@@ -5838,7 +5999,7 @@ static void mw_mirth_data_makeZ_primZ_uintlikeZBang (STR* in_Str_1, uint64_t in_
 static void mw_mirth_data_initZ_dataZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
 static TUP* mw_mirth_data_dataZ_qname (uint64_t in_Data_1, uint64_t in_Name_2, INT in_Int_3);
 static TUP* mw_mirth_data_dataZ_wordZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, STR* in_Str_3, INT in_Nat_4, TUP* *out_ZPlusMirth_5);
-static bool mw_mirth_data_Data_ZEqualZEqual (uint64_t in_Data_1, uint64_t in_Data_2);
+static bool mw_mirth_data_Data_ZEqual (uint64_t in_Data_1, uint64_t in_Data_2);
 static INT mw_mirth_data_Data_numZ_tags (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_data_Data_addZ_tagZBang (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, uint64_t in_Data_3, TUP* *out_ZPlusMirth_4);
 static bool mw_mirth_data_Data_isZ_enumZ_orZ_unitZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
@@ -5873,9 +6034,9 @@ static INT mw_mirth_data_Tag_numZ_totalZ_inputs (TUP* in_ZPlusMirth_1, uint64_t 
 static VAL mw_mirth_data_Tag_inputs (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_data_Tag_semiZ_transparentZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_data_Tag_outputsZ_resourceZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_data_Tag_ZEqualZEqual (uint64_t in_Tag_1, uint64_t in_Tag_2);
+static bool mw_mirth_data_Tag_ZEqual (uint64_t in_Tag_1, uint64_t in_Tag_2);
 static bool mw_mirth_data_Tag_preferZ_inlineZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_data_DataPartial_ZEqualZEqual (TUP* in_DataPartial_1, TUP* in_DataPartial_2);
+static bool mw_mirth_data_DataPartial_ZEqual (TUP* in_DataPartial_1, TUP* in_DataPartial_2);
 static void mw_mirth_match_Match_thaw (TUP* in_Match_1, TUP* *out_ZPlusMatch_2);
 static TUP* mw_mirth_match_ZPlusMatch_freezze (TUP* in_ZPlusMatch_1);
 static bool mw_mirth_match_Match_isZ_exhaustiveZAsk (TUP* in_ZPlusMirth_1, TUP* in_Match_2, TUP* *out_ZPlusMirth_3);
@@ -5908,7 +6069,7 @@ static uint64_t mw_mirth_external_External_sig (TUP* in_ZPlusMirth_1, uint64_t i
 static VAL mw_mirth_external_External_ctxZ_type (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3, TUP* *out_ArrowType_5);
 static TUP* mw_mirth_external_External_type (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_external_External_ctype (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_external_External_ZEqualZEqual (uint64_t in_External_1, uint64_t in_External_2);
+static bool mw_mirth_external_External_ZEqual (uint64_t in_External_1, uint64_t in_External_2);
 static uint64_t mw_mirth_external_ExternalBlock_allocZBang (void);
 static VAL mw_mirth_external_ExternalBlock_parts (TUP* in_ZPlusMirth_1, uint64_t in_ExternalBlock_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_arrow_Arrow_ctxZ_type (TUP* in_Arrow_1, TUP* *out_ArrowType_3);
@@ -5918,7 +6079,7 @@ static VAL mw_mirth_arrow_Arrow_freeZ_vars (TUP* in_ZPlusMirth_1, TUP* in_Arrow_
 static VAL mw_mirth_arrow_Atom_toZ_runZ_var (TUP* in_ZPlusMirth_1, TUP* in_Atom_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_arrow_Atom_freeZ_vars (TUP* in_ZPlusMirth_1, TUP* in_Atom_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_arrow_Arg_freeZ_vars (TUP* in_ZPlusMirth_1, uint64_t in_Arg_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_arrow_PushValue_ZEqualZEqual (VAL in_PushValue_1, VAL in_PushValue_2);
+static bool mw_mirth_arrow_PushValue_ZEqual (VAL in_PushValue_1, VAL in_PushValue_2);
 static VAL mw_mirth_arrow_Op_toZ_runZ_var (TUP* in_ZPlusMirth_1, VAL in_Op_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_arrow_Op_freeZ_vars (TUP* in_ZPlusMirth_1, VAL in_Op_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_arrow_Lambda_cod (TUP* in_Lambda_1);
@@ -5932,7 +6093,7 @@ static VAL mw_mirth_arrow_Block_cod (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, 
 static VAL mw_mirth_arrow_Block_home (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_arrow_Block_type (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_arrow_Block_arrow (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_arrow_Block_ZEqualZEqual (uint64_t in_Block_1, uint64_t in_Block_2);
+static bool mw_mirth_arrow_Block_ZEqual (uint64_t in_Block_1, uint64_t in_Block_2);
 static void mw_mirth_arrow_Block_registerZ_homeZBang (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
 static STR* mw_mirth_arrow_Block_cname (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_arrow_Block_newZBang (TUP* in_ZPlusMirth_1, TUP* in_Arrow_2, TUP* *out_ZPlusMirth_3);
@@ -5951,7 +6112,7 @@ static VAL mw_mirth_typedef_TypeDef_namespace (TUP* in_ZPlusMirth_1, uint64_t in
 static uint64_t mw_mirth_typedef_TypeDef_name (TUP* in_ZPlusMirth_1, uint64_t in_TypeDef_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_typedef_TypeDef_target (TUP* in_ZPlusMirth_1, uint64_t in_TypeDef_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_typedef_TypeDef_params (TUP* in_ZPlusMirth_1, uint64_t in_TypeDef_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_typedef_TypeDef_ZEqualZEqual (uint64_t in_TypeDef_1, uint64_t in_TypeDef_2);
+static bool mw_mirth_typedef_TypeDef_ZEqual (uint64_t in_TypeDef_1, uint64_t in_TypeDef_2);
 static uint64_t mw_mirth_typedef_TypeDef_newZBang (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, uint64_t in_Name_3, VAL in_PropState_4, TUP* *out_ZPlusMirth_5);
 static void mw_mirth_mirth_ZPlusMirth_defZ_typeZBang (TUP* in_ZPlusMirth_1, TUP* in_QName_2, VAL in_Type_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_mirth_type_Type_NewInCtx (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, STR* in_Str_3, TUP* *out_ZPlusMirth_4, VAL *out_Type_6);
@@ -5961,7 +6122,7 @@ static VAL mw_mirth_type_Type_tyconZAsk (TUP* in_ZPlusMirth_1, VAL in_Type_2, TU
 static TUP* mw_mirth_type_PrimType_tyconZ_qname (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_type_Value_tyconZAsk (VAL in_Value_1);
 static INT mw_mirth_type_PrimType_ZToInt (int64_t in_PrimType_1);
-static bool mw_mirth_type_PrimType_ZEqualZEqual (int64_t in_PrimType_1, int64_t in_PrimType_2);
+static bool mw_mirth_type_PrimType_ZEqual (int64_t in_PrimType_1, int64_t in_PrimType_2);
 static void mw_mirth_mirth_ZPlusMirth_defZ_primZ_typeZBang (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_mirth_ZPlusMirth_defZ_primZ_typeZ_aliasZBang (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, STR* in_Str_3, TUP* *out_ZPlusMirth_4);
 static void mw_mirth_mirth_ZPlusMirth_initZ_typesZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
@@ -6040,7 +6201,7 @@ static uint64_t mw_mirth_type_MetaVar_newZBang (TUP* in_ZPlusMirth_1, TUP* *out_
 static VAL mw_mirth_type_MetaVar_expand (TUP* in_ZPlusMirth_1, uint64_t in_MetaVar_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_type_MetaVar_unifyZBang (TUP* in_ZPlusMirth_1, VAL in_Type_2, uint64_t in_MetaVar_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_mirth_type_MetaVar_unifyZ_errorZBang (TUP* in_ZPlusMirth_1, uint64_t in_MetaVar_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_type_MetaVar_ZEqualZEqual (uint64_t in_MetaVar_1, uint64_t in_MetaVar_2);
+static bool mw_mirth_type_MetaVar_ZEqual (uint64_t in_MetaVar_1, uint64_t in_MetaVar_2);
 static VAL mw_mirth_type_MetaVar_freshen (TUP* in_ZPlusMirth_1, VAL in_Subst_2, uint64_t in_MetaVar_3, TUP* *out_ZPlusMirth_4, VAL *out_Type_6);
 static VAL mw_mirth_type_typeZ_holeZ_unifyZBang (TUP* in_ZPlusMirth_1, VAL in_Type_2, uint64_t in_Name_3, TUP* *out_ZPlusMirth_4);
 static void mw_mirth_type_Type_appZ_typeZThenZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Type_3, VAL in_Type_4, TUP* *out_ZPlusMirth_5, STR* *out_ZPlusStr_6);
@@ -6132,7 +6293,7 @@ static TUP* mw_mirth_type_ArrowType_ctype (TUP* in_ArrowType_1, TUP* in_ZPlusMir
 static int64_t mw_mirth_prim_Prim_Min (void);
 static int64_t mw_mirth_prim_Prim_Max (void);
 static INT mw_mirth_prim_Prim_ZToInt (int64_t in_Prim_1);
-static bool mw_mirth_prim_Prim_ZEqualZEqual (int64_t in_Prim_1, int64_t in_Prim_2);
+static bool mw_mirth_prim_Prim_ZEqual (int64_t in_Prim_1, int64_t in_Prim_2);
 static uint64_t mw_mirth_prim_Prim_name (TUP* in_ZPlusMirth_1, int64_t in_Prim_2, TUP* *out_ZPlusMirth_3);
 static INT mw_mirth_prim_Prim_arity (int64_t in_Prim_1);
 static TUP* mw_mirth_prim_Prim_qname (TUP* in_ZPlusMirth_1, int64_t in_Prim_2, TUP* *out_ZPlusMirth_3);
@@ -6186,7 +6347,7 @@ static uint64_t mw_mirth_token_Token_fromZ_index (uint64_t in_U64_1);
 static uint64_t mw_mirth_token_Token_succ (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_pred (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_allocZBang (void);
-static bool mw_mirth_token_Token_ZEqualZEqual (uint64_t in_Token_1, uint64_t in_Token_2);
+static bool mw_mirth_token_Token_ZEqual (uint64_t in_Token_1, uint64_t in_Token_2);
 static VAL mw_mirth_token_Token_value (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_token_Token_module (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static INT mw_mirth_token_Token_col (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
@@ -6269,7 +6430,7 @@ static uint64_t mw_mirth_package_Package_newZBang (TUP* in_ZPlusMirth_1, VAL in_
 static uint64_t mw_mirth_package_Package_newZ_orZ_pathZBang (TUP* in_ZPlusMirth_1, STR* in_Path_2, uint64_t in_Name_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_mirth_package_Package_find (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_package_Package_findZ_orZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_package_Package_ZEqualZEqual (uint64_t in_Package_1, uint64_t in_Package_2);
+static bool mw_mirth_package_Package_ZEqual (uint64_t in_Package_1, uint64_t in_Package_2);
 static void mw_mirth_lexer_ZPlusLexer_stackZ_pushZBang (uint64_t in_Token_1, TUP* in_ZPlusLexer_2, TUP* *out_ZPlusLexer_3);
 static VAL mw_mirth_lexer_ZPlusLexer_stackZ_popZBang (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_3);
 static void mw_mirth_lexer_ZPlusLexer_stackZ_drop (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2);
@@ -6324,13 +6485,13 @@ static bool mw_std_str_ZPlusStr_isZ_floatZAsk (STR* in_ZPlusStr_1, STR* *out_ZPl
 static uint64_t mw_std_str_ZPlusStr_floatZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, uint64_t in_Token_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5, VAL *out_Maybe_7);
 static VAL mw_std_str_ZPlusStr_intZ_tokenZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
 static VAL mw_mirth_lexer_IntSuffix_convert (INT in_Int_1, int64_t in_IntSuffix_2);
-static VAL mw_std_str_ZPlusStr_intZ_suffixZAsk (INT in_UOffset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
+static VAL mw_std_str_ZPlusStr_intZ_suffixZAsk (INT in_Offset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4);
 static bool mw_std_str_ZPlusStr_isZ_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
 static bool mw_std_str_ZPlusStr_isZ_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
 static bool mw_std_str_ZPlusStr_isZ_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
-static INT mw_std_str_ZPlusStr_intZ_sign (STR* in_ZPlusStr_1, INT *out_Int_3, INT *out_UOffset_4, STR* *out_ZPlusStr_5);
-static INT mw_mirth_lexer_byteZ_signZ_valueZ_index (int64_t in_Byte_1, INT *out_Int_3, INT *out_UOffset_4);
-static VAL mw_std_str_ZPlusStr_finishZ_intZ_literal (INT in_Int_1, INT in_Int_2, INT in_UOffset_3, STR* in_ZPlusStr_4, STR* *out_ZPlusStr_6);
+static INT mw_std_str_ZPlusStr_intZ_sign (STR* in_ZPlusStr_1, INT *out_Int_3, INT *out_Offset_4, STR* *out_ZPlusStr_5);
+static INT mw_mirth_lexer_byteZ_signZ_valueZ_index (int64_t in_Byte_1, INT *out_Int_3, INT *out_Offset_4);
+static VAL mw_std_str_ZPlusStr_finishZ_intZ_literal (INT in_Int_1, INT in_Int_2, INT in_Offset_3, STR* in_ZPlusStr_4, STR* *out_ZPlusStr_6);
 static VAL mw_std_str_ZPlusStr_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
 static VAL mw_std_str_ZPlusStr_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
 static VAL mw_std_str_ZPlusStr_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
@@ -6344,7 +6505,7 @@ static INT mw_mirth_macro_Macro_arity (TUP* in_ZPlusMirth_1, uint64_t in_Macro_2
 static VAL mw_mirth_macro_Macro_headZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Macro_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_macro_Macro_action (TUP* in_ZPlusMirth_1, uint64_t in_Macro_2, TUP* *out_ZPlusMirth_3);
 static INT mw_mirth_macro_Macro_ZToInt (uint64_t in_Macro_1);
-static bool mw_mirth_macro_Macro_ZEqualZEqual (uint64_t in_Macro_1, uint64_t in_Macro_2);
+static bool mw_mirth_macro_Macro_ZEqual (uint64_t in_Macro_1, uint64_t in_Macro_2);
 static VAL mw_mirth_macro_MacroAction_declZAsk (VAL in_MacroAction_1);
 static VAL mw_mirth_macro_MacroAction_arrowZAsk (VAL in_MacroAction_1);
 static bool mw_mirth_macro_MacroAction_callableZAsk (VAL in_MacroAction_1);
@@ -6535,7 +6696,7 @@ static uint64_t mw_mirth_elab_elabZ_externalZ_defZBang (TUP* in_ZPlusMirth_1, VA
 static TUP* mw_mirth_elab_elabZ_externalZ_ctype (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_elab_parseZ_defZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, uint64_t *out_Token_6, VAL *out_Maybe_7);
 static uint64_t mw_mirth_elab_elabZ_defZ_typeZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_elab_parseZ_buffer (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, VAL *out_Maybe_6, INT *out_USizze_7);
+static uint64_t mw_mirth_elab_parseZ_buffer (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, VAL *out_Maybe_6, INT *out_Sizze_7);
 static uint64_t mw_mirth_elab_elabZ_bufferZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_elab_parseZ_tableZ_decl (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5, VAL *out_Maybe_6);
 static uint64_t mw_mirth_elab_elabZ_tableZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
@@ -6564,7 +6725,7 @@ static VAL mw_mirth_alias_Alias_namespaceZ_hard (TUP* in_ZPlusMirth_1, uint64_t 
 static uint64_t mw_mirth_alias_Alias_name (TUP* in_ZPlusMirth_1, uint64_t in_Alias_2, TUP* *out_ZPlusMirth_3);
 static INT mw_mirth_alias_Alias_arity (TUP* in_ZPlusMirth_1, uint64_t in_Alias_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_alias_Alias_target (TUP* in_ZPlusMirth_1, uint64_t in_Alias_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_alias_Alias_ZEqualZEqual (uint64_t in_Alias_1, uint64_t in_Alias_2);
+static bool mw_mirth_alias_Alias_ZEqual (uint64_t in_Alias_1, uint64_t in_Alias_2);
 static uint64_t mw_mirth_alias_Alias_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, uint64_t in_Name_3, INT in_Int_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6);
 static uint64_t mw_mirth_alias_parseZ_alias (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, uint64_t *out_Token_6, VAL *out_Either_7, VAL *out_Maybe_8);
 static uint64_t mw_mirth_alias_elabZ_aliasZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
@@ -6581,7 +6742,7 @@ static VAL mw_mirth_def_Def_bufferZAsk (VAL in_Def_1);
 static VAL mw_mirth_def_Def_externalZAsk (VAL in_Def_1);
 static VAL mw_mirth_def_Def_fieldZAsk (VAL in_Def_1);
 static VAL mw_mirth_def_Def_macroZAsk (VAL in_Def_1);
-static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2);
+static bool mw_mirth_def_Def_ZEqual (VAL in_Def_1, VAL in_Def_2);
 static void mw_mirth_def_Def_typecheckZBang (TUP* in_ZPlusMirth_1, VAL in_Def_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_def_Def_callableZAsk (TUP* in_ZPlusMirth_1, VAL in_Def_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_def_Def_definesZ_aZ_typeZAsk (TUP* in_ZPlusMirth_1, VAL in_Def_2, TUP* *out_ZPlusMirth_3);
@@ -6603,7 +6764,7 @@ static void mw_mirth_name_Name_nameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr
 static VAL mw_mirth_name_Name_defs (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
 static STR* mw_mirth_name_Name_mangled (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_name_Name_mangledZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, uint64_t in_Name_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
-static bool mw_mirth_name_Name_ZEqualZEqual (uint64_t in_Name_1, uint64_t in_Name_2);
+static bool mw_mirth_name_Name_ZEqual (uint64_t in_Name_1, uint64_t in_Name_2);
 static uint64_t mw_mirth_name_Hash_next (uint64_t in_Hash_1);
 static INT mw_mirth_name_Hash_nameZ_index (uint64_t in_Hash_1);
 static INT mw_mirth_name_Hash_nameZ_offset (uint64_t in_Hash_1);
@@ -6625,7 +6786,7 @@ static bool mw_mirth_name_Name_couldZ_beZ_stackZ_var (TUP* in_ZPlusMirth_1, uint
 static bool mw_mirth_name_Name_couldZ_beZ_resourceZ_var (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_name_Name_couldZ_beZ_resourceZ_con (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_name_Name_couldZ_beZ_constructor (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_name_Namespace_ZEqualZEqual (VAL in_Namespace_1, VAL in_Namespace_2);
+static bool mw_mirth_name_Namespace_ZEqual (VAL in_Namespace_1, VAL in_Namespace_2);
 static VAL mw_mirth_name_Namespace_qname (TUP* in_ZPlusMirth_1, VAL in_Namespace_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_name_Namespace_moduleZAsk (TUP* in_ZPlusMirth_1, VAL in_Namespace_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_name_Namespace_Prim (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
@@ -6633,7 +6794,7 @@ static void mw_mirth_name_Namespace_nameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPl
 static void mw_mirth_name_Namespace_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Namespace_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static void mw_mirth_name_Namespace_mangledZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Namespace_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static TUP* mw_mirth_name_QName_Mk (VAL in_Namespace_1, uint64_t in_Name_2, INT in_Int_3);
-static bool mw_mirth_name_QName_ZEqualZEqual (TUP* in_QName_1, TUP* in_QName_2);
+static bool mw_mirth_name_QName_ZEqual (TUP* in_QName_1, TUP* in_QName_2);
 static VAL mw_mirth_name_QName_defZ_hardZAsk (TUP* in_ZPlusMirth_1, TUP* in_QName_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_name_QName_definedZ_hardZAsk (TUP* in_ZPlusMirth_1, TUP* in_QName_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_name_QName_defZ_softZAsk (TUP* in_ZPlusMirth_1, TUP* in_QName_2, TUP* *out_ZPlusMirth_3);
@@ -6660,7 +6821,7 @@ static STR* mw_mirth_module_Module_path (TUP* in_ZPlusMirth_1, uint64_t in_Modul
 static uint64_t mw_mirth_module_Module_start (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_module_Module_head (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_module_Module_imports (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, TUP* *out_ZPlusMirth_3);
-static bool mw_mirth_module_Module_ZEqualZEqual (uint64_t in_Module_1, uint64_t in_Module_2);
+static bool mw_mirth_module_Module_ZEqual (uint64_t in_Module_1, uint64_t in_Module_2);
 static uint64_t mw_mirth_module_Module_Prim (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
 static void mw_mirth_module_initZ_modulesZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
 static uint64_t mw_mirth_module_Module_newZBang (TUP* in_ZPlusMirth_1, STR* in_Path_2, TUP* *out_ZPlusMirth_3);
@@ -6668,10 +6829,10 @@ static STR* mw_mirth_module_Module_sourceZ_path (TUP* in_ZPlusMirth_1, uint64_t 
 static bool mw_mirth_module_Module_visible (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, uint64_t in_Module_3, TUP* *out_ZPlusMirth_4);
 static INT mw_mirth_location_Row_ZToInt (INT in_Row_1);
 static void mw_mirth_location_Row_intZThen (STR* in_ZPlusStr_1, INT in_Row_2, STR* *out_ZPlusStr_3);
-static INT mw_mirth_location_Row_1ZPlus (INT in_Row_1);
+static INT mw_mirth_location_Row_natZPlus (INT in_Nat_1, INT in_Row_2);
 static INT mw_mirth_location_Col_ZToInt (INT in_Col_1);
 static void mw_mirth_location_Col_intZThen (STR* in_ZPlusStr_1, INT in_Col_2, STR* *out_ZPlusStr_3);
-static INT mw_mirth_location_Col_1ZPlus (INT in_Col_1);
+static INT mw_mirth_location_Col_natZPlus (INT in_Nat_1, INT in_Col_2);
 static void mw_mirth_location_Location_emitZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* in_Location_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static TUP* mw_mirth_mirth_Builtin_AllocZBang (void);
 static void mw_mirth_mirth_ZPlusMirth_InitZBang (TUP* *out_ZPlusMirth_1);
@@ -6692,6 +6853,7 @@ static TUP* mw_mirth_mirth_ZPlusMirth_errorZ_location (TUP* in_ZPlusMirth_1, TUP
 static void mw_mirth_mirth_ZPlusMirth_infoZBang (STR* in_Str_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_mirth_ZPlusMirth_errorZBang (STR* in_Str_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang (STR* in_Str_1, TUP* in_ZPlusMirth_2);
+static void mw_mirth_mirth_ZPlusMirth_ioZ_errorZBang (VAL in_IOError_1, TUP* in_ZPlusMirth_2);
 static void mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang (TUP* in_ZPlusMirth_1);
 static void mw_mirth_mirth_ZPlusMirth_traceZ_diagnosticsZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
 static VAL mw_mirth_mirth_ZPlusMirth_popZ_diagnostics (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
@@ -6880,7 +7042,7 @@ static void mw_mirth_c99_c99Z_strZBang (STR* in_Str_1, TUP* in_ZPlusC99Branch_2,
 static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (STR* in_Str_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusC99_3);
 static void mw_mirth_c99_ZPlusC99_putZ_cstr (STR* in_Str_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusC99_3);
 static void mw_mirth_c99_c99Z_stringZ_byteZBang (int64_t in_Byte_1, bool in_Bool_2, TUP* in_ZPlusC99_3, bool *out_Bool_4, TUP* *out_ZPlusC99_5);
-static bool mw_mirth_c99_C99ReprType_ZEqualZEqual (VAL in_C99ReprType_1, VAL in_C99ReprType_2);
+static bool mw_mirth_c99_C99ReprType_ZEqual (VAL in_C99ReprType_1, VAL in_C99ReprType_2);
 static bool mw_mirth_c99_C99ReprType_needsZ_refcountingZAsk (VAL in_C99ReprType_1);
 static bool mw_mirth_c99_C99ReprType_isZ_intZ_likeZAsk (VAL in_C99ReprType_1);
 static STR* mw_mirth_c99_C99ReprType_dummyZ_value (VAL in_C99ReprType_1);
@@ -7008,21 +7170,25 @@ static void mw_mirth_c99_c99Z_fieldZ_callZBang (uint64_t in_Field_1, TUP* in_ZPl
 static void mw_mirth_c99_c99Z_mainZBang (TUP* in_Arrow_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusC99_3);
 static void mw_mirth_main_main (void);
 static void mw_mirth_main_compileZBang (TUP* in_Options_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_std_prelude_unsafe_1_sp1 (void* in_Ptr_1, INT in_Sizze_2, TUP* in_ZPlusFile_3, TUP* *out_ZPlusFile_5);
+static STR* mw_std_prelude_unsafe_1_sp2 (void* in_Ptr_1, INT in_Sizze_2);
+static void* mw_std_prelude_unsafe_1_sp4 (INT in_Offset_1, void* in_Ptr_2);
+static INT mw_std_prelude_maxZ_viaZ_lt_sp1 (INT in_Offset_1, INT in_Offset_2);
+static VAL mw_std_list_List_1_for_1_sp5 (VAL in_List_1, VAL in_List_2);
 static void mw_mirth_c99_ZPlusC99_c99Z_line_1_sp2 (TUP* in_ZPlusC99_1, TUP* *out_ZPlusC99_2);
 static TUP* mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp1 (uint64_t in_Block_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static TUP* mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp3 (TUP* in_Arrow_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static void mw_mirth_c99_ZPlusC99_c99Z_line_1_sp3 (TUP* in_ZPlusC99_1, TUP* *out_ZPlusC99_2);
 static void mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp1 (STR* in_Str_1, uint64_t in_Label_2, TUP* in_ZPlusC99Branch_3, TUP* *out_ZPlusC99Branch_4);
+static int64_t mw_std_prelude_unsafe_1_sp11 (void* in_Ptr_1);
 static bool mw_std_prelude_inZ_range_sp1 (int64_t in_Byte_1, int64_t in_Byte_2, int64_t in_Byte_3);
-static STR* mw_std_prim_Str_Str_1_sp4 (STR* in_Str_1);
+static STR* mw_std_prim_Str_Str_1_sp7 (STR* in_Str_1);
 static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp4 (uint64_t in_Tag_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static uint64_t mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp5 (uint64_t in_Tag_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
-static VAL mw_std_list_List_1_for_1_sp5 (VAL in_List_1, VAL in_List_2);
 static VAL mw_std_maybe_Maybe_1_unwrap_1_sp1 (VAL in_Maybe_1);
 static void mw_std_maybe_Maybe_1_locationZAskZThen_sp1 (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static void mw_mirth_c99_C99ReprType_vZ_macro_1_sp1 (uint64_t in_Label_1, uint64_t in_Tag_2, STR* in_Str_3, TUP* in_ZPlusC99_4, VAL in_C99ReprType_5, STR* *out_Str_6, uint64_t *out_Tag_7, uint64_t *out_Label_8, TUP* *out_ZPlusC99_9);
 static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp9 (uint64_t in_Data_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
-static bool mw_std_prelude_inZ_range_sp2 (INT in_Int_1, INT in_Int_2, INT in_Int_3);
 static bool mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp10 (uint64_t in_Tag_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static bool mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp11 (uint64_t in_Data_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static void mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp12 (STR* in_Str_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_3);
@@ -7060,15 +7226,17 @@ static bool mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp33 (uint64_t in_Label_1, 
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp22 (TUP* in_ZPlusC99Value_1, TUP* in_ZPlusC99Branch_2, VAL in_C99ReprType_3, TUP* *out_ZPlusC99Branch_4, TUP* *out_ZPlusC99Value_5);
 static TUP* mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp36 (uint64_t in_Word_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4);
 static bool mw_std_maybe_Maybe_1_unwrap_1_sp12 (VAL in_Maybe_1);
+static bool mw_std_prelude_inZ_range_sp3 (INT in_Int_1, INT in_Int_2, INT in_Int_3);
 static TUP* mw_mirth_c99_ZPlusC99_c99Z_line_1_sp91 (TUP* in_C99API_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusC99_4);
 static void mw_std_list_List_1_reverseZ_for_1_sp7 (TUP* in_ZPlusC99Branch_1, VAL in_List_2, TUP* *out_ZPlusC99Branch_3);
 static VAL mw_std_list_List_1_filter_1_sp4 (VAL in_List_1);
 static void mw_mirth_c99_pushZ_labelZ_expressionZBang_1_sp3 (STR* in_Str_1, VAL in_C99ReprType_2, VAL in_C99ReprType_3, TUP* in_ZPlusC99Branch_4, uint64_t in_Label_5, TUP* *out_ZPlusC99Branch_6);
 static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp38 (STR* in_Str_1, VAL in_C99ReprType_2, TUP* in_ZPlusC99Branch_3, VAL in_C99ReprType_4, TUP* *out_ZPlusC99Branch_5, TUP* *out_ZPlusC99Value_6);
-static void mw_std_maybe_Maybe_1_for_1_sp8 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
+static void mw_std_maybe_Maybe_1_for_1_sp9 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
 static void mw_std_result_ZPlusResult_2_ZPluselse_1_sp1 (TUP* in_ZPlusMirth_1, VAL in_ZPlusResult_2, TUP* *out_ZPlusMirth_3, VAL *out_z_x1_4);
+static uint8_t mw_std_prelude_unsafe_1_sp16 (INT in_Offset_1, void* in_Ptr_2);
 static void mw_std_maybe_Maybe_1_if_2_sp6 (VAL in_List_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusNeeds_3, VAL in_Maybe_4, TUP* *out_ZPlusMirth_5, TUP* *out_ZPlusNeeds_6);
-static void mw_std_list_List_1_for_1_sp50 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3);
+static void mw_std_list_List_1_for_1_sp49 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3);
 static TUP* mw_mirth_elab_abZ_buildZ_homZBang_1_sp1 (uint64_t in_Word_1, TUP* in_ZPlusMirth_2, VAL in_Ctx_3, TUP* in_ArrowType_4, uint64_t in_Token_5, VAL in_Home_6, TUP* *out_ZPlusMirth_7);
 static void mw_std_maybe_Maybe_1_ifZAsk_2_sp45 (TUP* in_ZPlusMirth_1, STR* in_Str_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_std_maybe_Maybe_1_filter_1_sp5 (TUP* in_ZPlusMirth_1, VAL in_Type_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5, VAL *out_Maybe_6);
@@ -7077,18 +7245,21 @@ static VAL mw_std_maybe_Maybe_1_map_1_sp10 (VAL in_Maybe_1);
 static VAL mw_std_list_List_1_reverseZ_for_1_sp9 (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, VAL in_Ctx_3, VAL in_StackType_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, TUP* *out_ZPlusAB_7, VAL *out_StackType_9);
 static bool mw_std_maybe_Maybe_1_ifZAsk_2_sp51 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
 static VAL mw_std_maybe_Maybe_1_bind_1_sp5 (VAL in_Maybe_1);
-static bool mw_std_list_List_1_ZEqualZEqual_sp1 (TUP* in_ZPlusMirth_1, VAL in_List_2, VAL in_List_3, TUP* *out_ZPlusMirth_4);
-static void mw_std_list_List_1_for_1_sp64 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3);
+static bool mw_std_list_List_1_ZEqual_sp1 (TUP* in_ZPlusMirth_1, VAL in_List_2, VAL in_List_3, TUP* *out_ZPlusMirth_4);
+static void mw_std_list_List_1_for_1_sp63 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3);
 static uint64_t mw_std_maybe_Maybe_1_unwrap_1_sp16 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5, VAL *out_z_x1_6);
 static STR* mw_std_maybe_Maybe_1_map_1_sp11 (STR* in_Str_1, VAL in_Maybe_2, VAL *out_Maybe_4);
 static VAL mw_std_maybe_Maybe_1_map_1_sp12 (VAL in_Maybe_1);
+static STR* mw_std_prelude_unsafe_1_sp20 (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
+static STR* mw_std_prelude_unsafe_1_sp21 (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3);
+static STR* mw_std_prelude_unsafe_1_sp23 (INT in_Offset_1, INT in_Offset_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5);
 static TUP* mw_mirth_elab_abZ_buildZBang_1_sp6 (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, VAL in_StackType_3, uint64_t in_Token_4, VAL in_Home_5, TUP* *out_ZPlusMirth_6);
-static VAL mw_std_list_List_1_for_1_sp70 (VAL in_StackType_1, VAL in_List_2);
-static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp72 (VAL in_Maybe_1);
-static STR* mw_std_list_List_1_for_1_sp73 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8);
+static VAL mw_std_list_List_1_for_1_sp69 (VAL in_StackType_1, VAL in_List_2);
+static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp73 (VAL in_Maybe_1);
+static STR* mw_std_list_List_1_for_1_sp72 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8);
 static void mw_std_list_List_1_for_2_sp3 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, VAL in_List_4, TUP* *out_ZPlusMirth_5, VAL *out_z_x1_6, STR* *out_ZPlusStr_7);
 static bool mw_std_list_List_1_member_sp4 (VAL in_Namespace_1, VAL in_List_2);
-static void mw_std_maybe_Maybe_1_for_1_sp20 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
+static void mw_std_maybe_Maybe_1_for_1_sp21 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3);
 static uint64_t mw_std_maybe_Maybe_1_elseZAsk_1_sp4 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5, VAL *out_z_x1_6);
 static uint64_t mw_std_maybe_Maybe_1_else_1_sp3 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5);
 static VAL mw_std_maybe_Maybe_1_unwrap_1_sp34 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3);
@@ -7099,13 +7270,15 @@ static VAL mw_std_maybe_Maybe_1_unwrap_1_sp42 (TUP* in_ZPlusMirth_1, VAL in_Mayb
 static bool mw_std_maybe_Maybe_1_has_1_sp12 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_std_maybe_Maybe_1_else_1_sp6 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5);
 static uint64_t mw_std_maybe_Maybe_1_else_1_sp7 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_5);
-static VAL mw_std_maybe_Maybe_1_filter_1_sp20 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_std_maybe_Maybe_1_filter_1_sp21 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_mirth_PropLabel_prop_1_sp16 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_PropLabel_3, TUP* *out_ZPlusMirth_4);
 static void mw_std_maybe_Maybe_1_else_1_sp12 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5);
 static void mw_std_maybe_Maybe_1_else_1_sp13 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5);
 static VAL mw_std_maybe_Maybe_1_elseZAsk_1_sp5 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5);
 static VAL mw_std_list_List_1_filterZ_some_1_sp6 (VAL in_List_1);
 static void mw_std_maybe_Maybe_1_else_1_sp16 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5);
+static STR* mw_std_prelude_unsafe_1_sp26 (INT in_Sizze_1, STR* in_Str_2);
+static STR* mw_std_prelude_unsafe_1_sp27 (INT in_Int_1);
 static void mb_mirth_options_parseZ_optionsZBang_1 (void);
 static void mb_mirth_mirth_ZPlusMirth_initZ_macrosZBang_0 (void);
 static void mb_mirth_mirth_ZPlusMirth_initZ_macrosZBang_1 (void);
@@ -7227,29 +7400,27 @@ static int64_t mw_std_byte_Byte_toZ_upper (int64_t in_Byte_1) {
 static int64_t mw_std_byte_Byte_OneHexDigit (uint8_t in_U8_1) {
 	uint8_t v3 = 9;
 	uint64_t v4 = (uint64_t)(in_U8_1);
-	INT v5 = u64_to_int(v4);
-	uint64_t v6 = (uint64_t)(v3);
-	INT v7 = u64_to_int(v6);
-	bool v8 = int_gt(v5, v7);
-	uint8_t branch_U8_9;
-	uint8_t branch_U8_10;
-	if (v8) {
-		uint8_t v11 = 55;
-		branch_U8_10 = v11;
-		branch_U8_9 = in_U8_1;
+	uint64_t v5 = (uint64_t)(v3);
+	bool v6 = (v5 < v4);
+	uint8_t branch_U8_7;
+	uint8_t branch_U8_8;
+	if (v6) {
+		uint8_t v9 = 55;
+		branch_U8_8 = v9;
+		branch_U8_7 = in_U8_1;
 	} else {
-		uint8_t v12 = 48;
-		branch_U8_10 = v12;
-		branch_U8_9 = in_U8_1;
+		uint8_t v10 = 48;
+		branch_U8_8 = v10;
+		branch_U8_7 = in_U8_1;
 	}
-	uint64_t v13 = (uint64_t)(branch_U8_9);
-	uint64_t v14 = (uint64_t)(branch_U8_10);
-	uint64_t v15 = (v13 + v14);
-	uint8_t v16 = (uint8_t)(v15);
-	uint64_t v17 = (uint64_t)(v16);
-	INT v18 = u64_to_int(v17);
-	int64_t v19 = int_to_i64(v18);
-	return v19;
+	uint64_t v11 = (uint64_t)(branch_U8_7);
+	uint64_t v12 = (uint64_t)(branch_U8_8);
+	uint64_t v13 = (v11 + v12);
+	uint8_t v14 = (uint8_t)(v13);
+	uint64_t v15 = (uint64_t)(v14);
+	INT v16 = u64_to_int(v15);
+	int64_t v17 = int_to_i64(v16);
+	return v17;
 }
 static int64_t mw_std_byte_Byte_toZ_hexdigits (int64_t in_Byte_1, int64_t *out_Byte_3) {
 	INT v4 = i64_to_int(in_Byte_1);
@@ -7315,18 +7486,16 @@ static bool mw_std_byte_Byte_isZ_nameZ_byte (int64_t in_Byte_1) {
 		} break;
 		default: {
 			int64_t v14 = 32LL /* BSPACE */;
-			INT v15 = i64_to_int(in_Byte_1);
+			INT v15 = i64_to_int(v14);
 			uint64_t v16 = int_to_u64(v15);
 			uint8_t v17 = (uint8_t)(v16);
-			INT v18 = i64_to_int(v14);
+			INT v18 = i64_to_int(in_Byte_1);
 			uint64_t v19 = int_to_u64(v18);
 			uint8_t v20 = (uint8_t)(v19);
-			uint64_t v21 = (uint64_t)(v17);
-			INT v22 = u64_to_int(v21);
-			uint64_t v23 = (uint64_t)(v20);
-			INT v24 = u64_to_int(v23);
-			bool v25 = int_gt(v22, v24);
-			branch_Bool_3 = v25;
+			uint64_t v21 = (uint64_t)(v20);
+			uint64_t v22 = (uint64_t)(v17);
+			bool v23 = (v22 < v21);
+			branch_Bool_3 = v23;
 		} break;
 	}
 	return branch_Bool_3;
@@ -7619,13 +7788,13 @@ static void mw_std_byte_Byte_intZThen (STR* in_ZPlusStr_1, int64_t in_Byte_2, ST
 	mw_std_str_ZPlusStr_pushZ_strZBang(v5, in_ZPlusStr_1, &v6);
 	*out_ZPlusStr_3 = v6;
 }
-static void mw_std_buffer_ZPlusBuffer_new (INT in_USizze_1, TUP* *out_ZPlusBuffer_2) {
-	incref(MKINT(in_USizze_1));
+static void mw_std_buffer_ZPlusBuffer_new (INT in_Sizze_1, TUP* *out_ZPlusBuffer_2) {
+	incref(MKINT(in_Sizze_1));
 	int64_t v3 = 0LL /* +Unsafe */;
-	uint64_t v4 = int_to_u64(in_USizze_1);
+	uint64_t v4 = int_to_u64(in_Sizze_1);
 	void* v5 = ptr_alloc(v4);;
 	TUP* v6;
-	mtw_std_buffer_ZPlusBuffer_ZPlusBuffer(in_USizze_1, v5, &v6);
+	mtw_std_buffer_ZPlusBuffer_ZPlusBuffer(in_Sizze_1, v5, &v6);
 	INT v7 = WRAP_I63(0LL);
 	INT v8 = value_int(v6->cells[0]);
 	incref(MKINT(v8));
@@ -7633,12 +7802,12 @@ static void mw_std_buffer_ZPlusBuffer_new (INT in_USizze_1, TUP* *out_ZPlusBuffe
 	mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang(v7, v8, v6, &v9);
 	*out_ZPlusBuffer_2 = v9;
 }
-static void mw_std_buffer_ZPlusBuffer_resizzeZBang (INT in_USizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3) {
+static void mw_std_buffer_ZPlusBuffer_resizzeZBang (INT in_Sizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3) {
 	INT v4 = value_int(in_ZPlusBuffer_2->cells[0]);
 	incref(MKINT(v4));
 	INT v5 = value_int(in_ZPlusBuffer_2->cells[0]);
 	decref(MKINT(v5));
-	in_ZPlusBuffer_2->cells[0] = MKINT(in_USizze_1);
+	in_ZPlusBuffer_2->cells[0] = MKINT(in_Sizze_1);
 	INT v6 = value_int(in_ZPlusBuffer_2->cells[0]);
 	incref(MKINT(v6));
 	void* v7 = value_ptr(in_ZPlusBuffer_2->cells[1]);
@@ -7652,46 +7821,46 @@ static void mw_std_buffer_ZPlusBuffer_resizzeZBang (INT in_USizze_1, TUP* in_ZPl
 	INT v12 = int_sub(v11, v4);
 	incref(MKINT(v12));
 	INT v13 = WRAP_I63(0LL);
-	bool v14 = int_lt(v12, v13);
+	bool v14 = int_lt(v13, v12);
 	TUP* branch_ZPlusBuffer_15;
 	if (v14) {
-		decref(MKINT(v12));
-		decref(MKINT(v4));
-		branch_ZPlusBuffer_15 = in_ZPlusBuffer_2;
-	} else {
 		TUP* v16;
 		mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang(v4, v12, in_ZPlusBuffer_2, &v16);
 		branch_ZPlusBuffer_15 = v16;
+	} else {
+		decref(MKINT(v12));
+		decref(MKINT(v4));
+		branch_ZPlusBuffer_15 = in_ZPlusBuffer_2;
 	}
 	*out_ZPlusBuffer_3 = branch_ZPlusBuffer_15;
 }
-static void mw_std_buffer_ZPlusBuffer_expandZBang (INT in_USizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3) {
-	incref(MKINT(in_USizze_1));
+static void mw_std_buffer_ZPlusBuffer_expandZBang (INT in_Sizze_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_3) {
+	incref(MKINT(in_Sizze_1));
 	INT v4 = value_int(in_ZPlusBuffer_2->cells[0]);
 	incref(MKINT(v4));
-	bool v5 = int_gt(in_USizze_1, v4);
+	bool v5 = int_lt(v4, in_Sizze_1);
 	TUP* branch_ZPlusBuffer_6;
 	if (v5) {
 		INT v7 = value_int(in_ZPlusBuffer_2->cells[0]);
 		incref(MKINT(v7));
 		INT v8 = WRAP_I63(2LL);
 		INT v9 = int_mul(v7, v8);
-		incref(MKINT(in_USizze_1));
+		incref(MKINT(in_Sizze_1));
 		incref(MKINT(v9));
-		bool v10 = int_lt(in_USizze_1, v9);
-		INT branch_USizze_11;
+		bool v10 = int_lt(in_Sizze_1, v9);
+		INT branch_Sizze_11;
 		if (v10) {
-			decref(MKINT(in_USizze_1));
-			branch_USizze_11 = v9;
+			decref(MKINT(in_Sizze_1));
+			branch_Sizze_11 = v9;
 		} else {
 			decref(MKINT(v9));
-			branch_USizze_11 = in_USizze_1;
+			branch_Sizze_11 = in_Sizze_1;
 		}
 		TUP* v12;
-		mw_std_buffer_ZPlusBuffer_resizzeZBang(branch_USizze_11, in_ZPlusBuffer_2, &v12);
+		mw_std_buffer_ZPlusBuffer_resizzeZBang(branch_Sizze_11, in_ZPlusBuffer_2, &v12);
 		branch_ZPlusBuffer_6 = v12;
 	} else {
-		decref(MKINT(in_USizze_1));
+		decref(MKINT(in_Sizze_1));
 		branch_ZPlusBuffer_6 = in_ZPlusBuffer_2;
 	}
 	*out_ZPlusBuffer_3 = branch_ZPlusBuffer_6;
@@ -7704,10 +7873,10 @@ static void mw_std_buffer_ZPlusBuffer_rdrop (TUP* in_ZPlusBuffer_1) {
 	free(v3);
 	decref(MKINT(v2));
 }
-static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
+static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
 	INT v5;
 	TUP* v6;
-	INT v7 = mw_std_buffer_ZPlusBuffer_clampZ_spanZBang(in_UOffset_1, in_USizze_2, in_ZPlusBuffer_3, &v5, &v6);
+	INT v7 = mw_std_buffer_ZPlusBuffer_clampZ_spanZBang(in_Offset_1, in_Sizze_2, in_ZPlusBuffer_3, &v5, &v6);
 	void* v8 = value_ptr(v6->cells[1]);
 	int64_t v9 = 0LL /* +Unsafe */;
 	int64_t v10 = int_to_i64(v7);
@@ -7717,114 +7886,107 @@ static void mw_std_buffer_ZPlusBuffer_eraseZ_spanZBang (INT in_UOffset_1, INT in
 	ptr_fill(v12, v13, v11);
 	*out_ZPlusBuffer_4 = v6;
 }
-static INT mw_std_buffer_ZPlusBuffer_clampZ_spanZBang (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, INT *out_USizze_5, TUP* *out_ZPlusBuffer_6) {
-	INT v7 = value_int(in_ZPlusBuffer_3->cells[0]);
+static INT mw_std_buffer_ZPlusBuffer_clampZ_offsetZBang (INT in_Offset_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_4) {
+	INT v5 = WRAP_I63(0LL);
+	INT v6 = value_int(in_ZPlusBuffer_2->cells[0]);
+	incref(MKINT(v6));
+	INT v7 = mw_std_prelude_maxZ_viaZ_lt_sp1(in_Offset_1, v5);
 	incref(MKINT(v7));
-	incref(MKINT(in_UOffset_1));
-	INT v8 = int_sub(v7, in_UOffset_1);
-	incref(MKINT(v8));
-	INT v9 = WRAP_I63(0LL);
-	bool v10 = int_lt(v8, v9);
-	TUP* branch_ZPlusBuffer_11;
-	INT branch_UOffset_12;
-	INT branch_USizze_13;
-	if (v10) {
-		decref(MKINT(v8));
-		decref(MKINT(in_UOffset_1));
-		decref(MKINT(in_USizze_2));
-		INT v14 = value_int(in_ZPlusBuffer_3->cells[0]);
-		incref(MKINT(v14));
-		INT v15 = WRAP_I63(0LL);
-		branch_USizze_13 = v15;
-		branch_UOffset_12 = v14;
-		branch_ZPlusBuffer_11 = in_ZPlusBuffer_3;
+	incref(MKINT(v6));
+	bool v8 = int_lt(v7, v6);
+	INT branch_Offset_9;
+	if (v8) {
+		decref(MKINT(v6));
+		branch_Offset_9 = v7;
 	} else {
-		incref(MKINT(v8));
-		incref(MKINT(in_USizze_2));
-		bool v16 = int_lt(v8, in_USizze_2);
-		INT branch_Nat_17;
-		if (v16) {
-			decref(MKINT(in_USizze_2));
-			branch_Nat_17 = v8;
-		} else {
-			decref(MKINT(v8));
-			branch_Nat_17 = in_USizze_2;
-		}
-		branch_USizze_13 = branch_Nat_17;
-		branch_UOffset_12 = in_UOffset_1;
-		branch_ZPlusBuffer_11 = in_ZPlusBuffer_3;
+		decref(MKINT(v7));
+		branch_Offset_9 = v6;
 	}
-	*out_ZPlusBuffer_6 = branch_ZPlusBuffer_11;
-	*out_USizze_5 = branch_USizze_13;
-	return branch_UOffset_12;
+	*out_ZPlusBuffer_4 = in_ZPlusBuffer_2;
+	return branch_Offset_9;
 }
-static INT mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5) {
-	incref(MKINT(in_UOffset_1));
-	INT v6 = int_add(in_USizze_2, in_UOffset_1);
+static INT mw_std_buffer_ZPlusBuffer_clampZ_spanZBang (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, INT *out_Sizze_5, TUP* *out_ZPlusBuffer_6) {
+	INT v7 = WRAP_I63(0LL);
+	incref(MKINT(in_Sizze_2));
+	incref(MKINT(v7));
+	bool v8 = int_lt(in_Sizze_2, v7);
+	INT branch_Sizze_9;
+	if (v8) {
+		decref(MKINT(in_Sizze_2));
+		branch_Sizze_9 = v7;
+	} else {
+		decref(MKINT(v7));
+		branch_Sizze_9 = in_Sizze_2;
+	}
+	incref(MKINT(in_Offset_1));
+	INT v10 = int_add(branch_Sizze_9, in_Offset_1);
+	TUP* v11;
+	INT v12 = mw_std_buffer_ZPlusBuffer_clampZ_offsetZBang(in_Offset_1, in_ZPlusBuffer_3, &v11);
+	TUP* v13;
+	INT v14 = mw_std_buffer_ZPlusBuffer_clampZ_offsetZBang(v10, v11, &v13);
+	incref(MKINT(v12));
+	INT v15 = int_sub(v14, v12);
+	*out_ZPlusBuffer_6 = v13;
+	*out_Sizze_5 = v15;
+	return v12;
+}
+static INT mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5) {
+	incref(MKINT(in_Offset_1));
+	INT v6 = int_add(in_Sizze_2, in_Offset_1);
 	TUP* v7;
 	mw_std_buffer_ZPlusBuffer_expandZBang(v6, in_ZPlusBuffer_3, &v7);
 	*out_ZPlusBuffer_5 = v7;
-	return in_UOffset_1;
+	return in_Offset_1;
 }
-static uint8_t mw_std_buffer_ZPlusBuffer_ZAtU8 (INT in_UOffset_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_4) {
+static uint8_t mw_std_buffer_ZPlusBuffer_ZAtU8 (INT in_Offset_1, TUP* in_ZPlusBuffer_2, TUP* *out_ZPlusBuffer_4) {
 	INT v5 = WRAP_I63(1LL);
 	TUP* v6;
-	INT v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_UOffset_1, v5, in_ZPlusBuffer_2, &v6);
+	INT v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_Offset_1, v5, in_ZPlusBuffer_2, &v6);
 	void* v8 = value_ptr(v6->cells[1]);
-	int64_t v9 = 0LL /* +Unsafe */;
-	int64_t v10 = int_to_i64(v7);
-	void* v11 = (void*)(v10 + (char*)v8);
-	int64_t v12 = 0LL /* +Unsafe */;
-	uint8_t v13 = *(uint8_t*)v11;
+	void* v9 = mw_std_prelude_unsafe_1_sp4(v7, v8);
+	int64_t v10 = 0LL /* +Unsafe */;
+	uint8_t v11 = *(uint8_t*)v9;
 	*out_ZPlusBuffer_4 = v6;
-	return v13;
+	return v11;
 }
-static void mw_std_buffer_ZPlusBuffer_ZBangU8 (uint8_t in_U8_1, INT in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
+static void mw_std_buffer_ZPlusBuffer_ZBangU8 (uint8_t in_U8_1, INT in_Offset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
 	INT v5 = WRAP_I63(1LL);
 	TUP* v6;
-	INT v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_UOffset_2, v5, in_ZPlusBuffer_3, &v6);
+	INT v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_Offset_2, v5, in_ZPlusBuffer_3, &v6);
 	void* v8 = value_ptr(v6->cells[1]);
-	int64_t v9 = 0LL /* +Unsafe */;
-	int64_t v10 = int_to_i64(v7);
-	void* v11 = (void*)(v10 + (char*)v8);
-	int64_t v12 = 0LL /* +Unsafe */;
-	*(uint8_t*)v11 = in_U8_1;
+	void* v9 = mw_std_prelude_unsafe_1_sp4(v7, v8);
+	int64_t v10 = 0LL /* +Unsafe */;
+	*(uint8_t*)v9 = in_U8_1;
 	*out_ZPlusBuffer_4 = v6;
 }
-static void mw_std_buffer_ZPlusBuffer_ZBangByte (int64_t in_Byte_1, INT in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
+static void mw_std_buffer_ZPlusBuffer_ZBangByte (int64_t in_Byte_1, INT in_Offset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
 	INT v5 = i64_to_int(in_Byte_1);
 	uint64_t v6 = int_to_u64(v5);
 	uint8_t v7 = (uint8_t)(v6);
 	TUP* v8;
-	mw_std_buffer_ZPlusBuffer_ZBangU8(v7, in_UOffset_2, in_ZPlusBuffer_3, &v8);
+	mw_std_buffer_ZPlusBuffer_ZBangU8(v7, in_Offset_2, in_ZPlusBuffer_3, &v8);
 	*out_ZPlusBuffer_4 = v8;
 }
-static STR* mw_std_buffer_ZPlusBuffer_ZAtStr (INT in_UOffset_1, INT in_USizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5) {
-	incref(MKINT(in_USizze_2));
+static STR* mw_std_buffer_ZPlusBuffer_ZAtStr (INT in_Offset_1, INT in_Sizze_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_5) {
+	incref(MKINT(in_Sizze_2));
 	TUP* v6;
-	INT v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_UOffset_1, in_USizze_2, in_ZPlusBuffer_3, &v6);
+	INT v7 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_Offset_1, in_Sizze_2, in_ZPlusBuffer_3, &v6);
 	void* v8 = value_ptr(v6->cells[1]);
-	int64_t v9 = 0LL /* +Unsafe */;
-	int64_t v10 = int_to_i64(v7);
-	void* v11 = (void*)(v10 + (char*)v8);
-	int64_t v12 = 0LL /* +Unsafe */;
-	uint64_t v13 = int_to_u64(in_USizze_2);
-	STR* v14 = str_make(v11, v13);
+	void* v9 = mw_std_prelude_unsafe_1_sp4(v7, v8);
+	STR* v10 = mw_std_prelude_unsafe_1_sp2(v9, in_Sizze_2);
 	*out_ZPlusBuffer_5 = v6;
-	return v14;
+	return v10;
 }
-static void mw_std_buffer_ZPlusBuffer_ZBangStr (STR* in_Str_1, INT in_UOffset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
+static void mw_std_buffer_ZPlusBuffer_ZBangStr (STR* in_Str_1, INT in_Offset_2, TUP* in_ZPlusBuffer_3, TUP* *out_ZPlusBuffer_4) {
 	incref(MKSTR(in_Str_1));
 	uint64_t v5 = str_size(in_Str_1);
 	INT v6 = u64_to_int(v5);
 	TUP* v7;
-	INT v8 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_UOffset_2, v6, in_ZPlusBuffer_3, &v7);
+	INT v8 = mw_std_buffer_ZPlusBuffer_prepareZ_spanZBang(in_Offset_2, v6, in_ZPlusBuffer_3, &v7);
 	void* v9 = value_ptr(v7->cells[1]);
-	int64_t v10 = 0LL /* +Unsafe */;
-	int64_t v11 = int_to_i64(v8);
-	void* v12 = (void*)(v11 + (char*)v9);
-	int64_t v13 = 0LL /* +Unsafe */;
-	mw_std_prim_Ptr_ZBangStr(in_Str_1, v12);
+	void* v10 = mw_std_prelude_unsafe_1_sp4(v8, v9);
+	int64_t v11 = 0LL /* +Unsafe */;
+	mw_std_prim_Ptr_ZBangStr(in_Str_1, v10);
 	*out_ZPlusBuffer_4 = v7;
 }
 static void mw_std_prim_Ptr_ZBangStr (STR* in_Str_1, void* in_Ptr_2) {
@@ -7843,20 +8005,8 @@ static int64_t mw_std_prim_Str_lastZ_byte (STR* in_Str_1) {
 	INT v4 = u64_to_int(v3);
 	INT v5 = WRAP_I63(1LL);
 	INT v6 = int_sub(v4, v5);
-	incref(MKINT(v6));
-	INT v7 = WRAP_I63(0LL);
-	bool v8 = int_lt(v6, v7);
-	int64_t branch_Byte_9;
-	if (v8) {
-		decref(MKINT(v6));
-		decref(MKSTR(in_Str_1));
-		int64_t v10 = 0LL /* BNUL */;
-		branch_Byte_9 = v10;
-	} else {
-		int64_t v11 = mw_std_prim_Str_byteZAt(v6, in_Str_1);
-		branch_Byte_9 = v11;
-	}
-	return branch_Byte_9;
+	int64_t v7 = mw_std_prim_Str_byteZAt(v6, in_Str_1);
+	return v7;
 }
 static int64_t mw_std_str_ZPlusStr_lastZ_byte (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
 	incref(MKSTR(in_ZPlusStr_1));
@@ -7864,29 +8014,40 @@ static int64_t mw_std_str_ZPlusStr_lastZ_byte (STR* in_ZPlusStr_1, STR* *out_ZPl
 	*out_ZPlusStr_3 = in_ZPlusStr_1;
 	return v4;
 }
-static int64_t mw_std_str_ZPlusStr_byteZAt (INT in_UOffset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
+static int64_t mw_std_str_ZPlusStr_byteZAt (INT in_Offset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
 	incref(MKSTR(in_ZPlusStr_2));
-	int64_t v5 = mw_std_prim_Str_byteZAt(in_UOffset_1, in_ZPlusStr_2);
+	int64_t v5 = mw_std_prim_Str_byteZAt(in_Offset_1, in_ZPlusStr_2);
 	*out_ZPlusStr_4 = in_ZPlusStr_2;
 	return v5;
 }
-static bool mw_std_str_offsetZ_inZ_bounds (INT in_UOffset_1, INT in_USizze_2) {
+static bool mw_std_str_offsetZ_inZ_bounds (INT in_Offset_1, INT in_Sizze_2) {
 	INT v4 = WRAP_I63(0LL);
-	bool v5 = mw_std_prelude_inZ_range_sp2(in_UOffset_1, v4, in_USizze_2);
-	return v5;
+	incref(MKINT(in_Offset_1));
+	bool v5 = int_le(v4, in_Offset_1);
+	bool branch_Bool_6;
+	if (v5) {
+		bool v7 = int_le(in_Offset_1, in_Sizze_2);
+		branch_Bool_6 = v7;
+	} else {
+		decref(MKINT(in_Sizze_2));
+		decref(MKINT(in_Offset_1));
+		bool v8 = false;
+		branch_Bool_6 = v8;
+	}
+	return branch_Bool_6;
 }
-static int64_t mw_std_prim_Str_byteZAt (INT in_UOffset_1, STR* in_Str_2) {
+static int64_t mw_std_prim_Str_byteZAt (INT in_Offset_1, STR* in_Str_2) {
 	incref(MKSTR(in_Str_2));
 	incref(MKSTR(in_Str_2));
 	void* v4 = str_base(in_Str_2);
 	uint64_t v5 = str_size(in_Str_2);
 	INT v6 = u64_to_int(v5);
-	incref(MKINT(in_UOffset_1));
-	bool v7 = mw_std_str_offsetZ_inZ_bounds(in_UOffset_1, v6);
+	incref(MKINT(in_Offset_1));
+	bool v7 = mw_std_str_offsetZ_inZ_bounds(in_Offset_1, v6);
 	int64_t branch_Byte_8;
 	if (v7) {
 		int64_t v9 = 0LL /* +Unsafe */;
-		int64_t v10 = int_to_i64(in_UOffset_1);
+		int64_t v10 = int_to_i64(in_Offset_1);
 		void* v11 = (void*)(v10 + (char*)v4);
 		uint8_t v12 = *(uint8_t*)v11;
 		uint64_t v13 = (uint64_t)(v12);
@@ -7894,7 +8055,7 @@ static int64_t mw_std_prim_Str_byteZAt (INT in_UOffset_1, STR* in_Str_2) {
 		int64_t v15 = int_to_i64(v14);
 		branch_Byte_8 = v15;
 	} else {
-		decref(MKINT(in_UOffset_1));
+		decref(MKINT(in_Offset_1));
 		int64_t v16 = 0LL /* BNUL */;
 		branch_Byte_8 = v16;
 	}
@@ -7930,33 +8091,33 @@ static void mw_std_str_ZPlusStr_pushZ_strZBang (STR* in_Str_1, STR* in_ZPlusStr_
 	STR* v4 = str_cat(in_ZPlusStr_2, in_Str_1);
 	*out_ZPlusStr_3 = v4;
 }
-static STR* mw_std_prim_Str_dropZ_bytes (INT in_USizze_1, STR* in_Str_2) {
+static STR* mw_std_prim_Str_dropZ_bytes (INT in_Sizze_1, STR* in_Str_2) {
 	incref(MKSTR(in_Str_2));
 	incref(MKSTR(in_Str_2));
 	void* v6 = str_base(in_Str_2);
 	uint64_t v7 = str_size(in_Str_2);
 	INT v8 = u64_to_int(v7);
-	incref(MKINT(in_USizze_1));
-	INT v9 = int_sub(v8, in_USizze_1);
+	incref(MKINT(in_Sizze_1));
+	INT v9 = int_sub(v8, in_Sizze_1);
 	incref(MKINT(v9));
 	INT v10 = WRAP_I63(0LL);
-	bool v11 = int_lt(v9, v10);
-	VAL branch__12;
+	bool v11 = int_le(v10, v9);
+	STR* branch_Str_12;
 	if (v11) {
-		decref(MKINT(v9));
-		decref(MKINT(in_USizze_1));
-		STR* v13;
-		STRLIT(v13, "", 0);
-		branch__12 = MKSTR(v13);
+		int64_t v13 = int_to_i64(in_Sizze_1);
+		void* v14 = (void*)(v13 + (char*)v6);
+		uint64_t v15 = int_to_u64(v9);
+		STR* v16 = str_make(v14, v15);
+		branch_Str_12 = v16;
 	} else {
-		int64_t v14 = int_to_i64(in_USizze_1);
-		void* v15 = (void*)(v14 + (char*)v6);
-		uint64_t v16 = int_to_u64(v9);
-		STR* v17 = str_make(v15, v16);
-		branch__12 = MKSTR(v17);
+		decref(MKINT(v9));
+		decref(MKINT(in_Sizze_1));
+		STR* v17;
+		STRLIT(v17, "", 0);
+		branch_Str_12 = v17;
 	}
 	decref(MKSTR(in_Str_2));
-	return value_str(branch__12);
+	return branch_Str_12;
 }
 static STR* mw_std_prim_Str_fromZ_bytesZ_unsafe (VAL in_List_1) {
 	incref(in_List_1);
@@ -7976,7 +8137,7 @@ static STR* mw_std_prim_Str_fromZ_bytesZ_unsafe (VAL in_List_1) {
 		VAL v14 = v9;
 		bool v15 = v10;
 		TUP* branch_ZPlusBuffer_16;
-		INT branch_UOffset_17;
+		INT branch_Offset_17;
 		VAL branch_List_18;
 		bool branch_Bool_19;
 		switch (get_data_tag(v14)) {
@@ -7994,7 +8155,7 @@ static STR* mw_std_prim_Str_fromZ_bytesZ_unsafe (VAL in_List_1) {
 				bool v28 = true;
 				branch_Bool_19 = v28;
 				branch_List_18 = v20;
-				branch_UOffset_17 = v27;
+				branch_Offset_17 = v27;
 				branch_ZPlusBuffer_16 = v25;
 			} break;
 			case 0LL: { // Nil
@@ -8002,7 +8163,7 @@ static STR* mw_std_prim_Str_fromZ_bytesZ_unsafe (VAL in_List_1) {
 				bool v30 = false;
 				branch_Bool_19 = v30;
 				branch_List_18 = v29;
-				branch_UOffset_17 = v13;
+				branch_Offset_17 = v13;
 				branch_ZPlusBuffer_16 = v12;
 			} break;
 			default: {
@@ -8012,7 +8173,7 @@ static STR* mw_std_prim_Str_fromZ_bytesZ_unsafe (VAL in_List_1) {
 		v11 = branch_Bool_19;
 		v10 = branch_Bool_19;
 		v9 = branch_List_18;
-		v8 = branch_UOffset_17;
+		v8 = branch_Offset_17;
 		v7 = branch_ZPlusBuffer_16;
 	}
 	decref(v9);
@@ -8020,61 +8181,65 @@ static STR* mw_std_prim_Str_fromZ_bytesZ_unsafe (VAL in_List_1) {
 	void* v31 = value_ptr(v7->cells[1]);
 	INT v32 = value_int(v7->cells[0]);
 	incref(MKINT(v32));
-	int64_t v33 = 0LL /* +Unsafe */;
-	uint64_t v34 = int_to_u64(v32);
-	STR* v35 = str_make(v31, v34);
+	STR* v33 = mw_std_prelude_unsafe_1_sp2(v31, v32);
 	mw_std_buffer_ZPlusBuffer_rdrop(v7);
-	return v35;
+	return v33;
 }
-static INT mw_std_str_clampZ_sliceZ_offsetZ_sizze (INT in_UOffset_1, INT in_USizze_2, INT in_USizze_3, INT *out_USizze_5) {
-	incref(MKINT(in_USizze_3));
-	incref(MKINT(in_UOffset_1));
-	incref(MKINT(in_USizze_3));
-	bool v6 = int_lt(in_UOffset_1, in_USizze_3);
-	INT branch_UOffset_7;
-	if (v6) {
-		decref(MKINT(in_USizze_3));
-		branch_UOffset_7 = in_UOffset_1;
-	} else {
-		decref(MKINT(in_UOffset_1));
-		branch_UOffset_7 = in_USizze_3;
-	}
-	incref(MKINT(branch_UOffset_7));
-	INT v8 = int_sub(in_USizze_3, branch_UOffset_7);
+static INT mw_std_str_clampZ_sliceZ_offsetZ_sizze (INT in_Offset_1, INT in_Sizze_2, INT in_Sizze_3, INT *out_Sizze_5) {
+	incref(MKINT(in_Sizze_3));
+	INT v6 = WRAP_I63(0LL);
+	incref(MKINT(v6));
+	incref(MKINT(in_Offset_1));
+	INT v7 = int_add(in_Sizze_2, in_Offset_1);
+	INT v8 = mw_std_prelude_maxZ_viaZ_lt_sp1(v7, v6);
 	incref(MKINT(v8));
-	INT v9 = WRAP_I63(0LL);
-	bool v10 = int_lt(v8, v9);
-	INT branch_USizze_11;
-	if (v10) {
-		decref(MKINT(v8));
-		decref(MKINT(in_USizze_2));
-		INT v12 = WRAP_I63(0LL);
-		branch_USizze_11 = v12;
+	incref(MKINT(in_Sizze_3));
+	bool v9 = int_lt(v8, in_Sizze_3);
+	INT branch_Offset_10;
+	if (v9) {
+		decref(MKINT(in_Sizze_3));
+		branch_Offset_10 = v8;
 	} else {
-		incref(MKINT(in_USizze_2));
-		incref(MKINT(v8));
-		bool v13 = int_lt(in_USizze_2, v8);
-		INT branch_USizze_14;
-		if (v13) {
-			decref(MKINT(v8));
-			branch_USizze_14 = in_USizze_2;
-		} else {
-			decref(MKINT(in_USizze_2));
-			branch_USizze_14 = v8;
-		}
-		branch_USizze_11 = branch_USizze_14;
+		decref(MKINT(v8));
+		branch_Offset_10 = in_Sizze_3;
 	}
-	*out_USizze_5 = branch_USizze_11;
-	return branch_UOffset_7;
+	INT v11 = mw_std_prelude_maxZ_viaZ_lt_sp1(in_Offset_1, v6);
+	incref(MKINT(v11));
+	incref(MKINT(in_Sizze_3));
+	bool v12 = int_lt(v11, in_Sizze_3);
+	INT branch_Offset_13;
+	if (v12) {
+		decref(MKINT(in_Sizze_3));
+		branch_Offset_13 = v11;
+	} else {
+		decref(MKINT(v11));
+		branch_Offset_13 = in_Sizze_3;
+	}
+	incref(MKINT(branch_Offset_13));
+	INT v14 = int_sub(branch_Offset_10, branch_Offset_13);
+	INT v15 = WRAP_I63(0LL);
+	incref(MKINT(v14));
+	incref(MKINT(v15));
+	bool v16 = int_lt(v14, v15);
+	INT branch_Sizze_17;
+	if (v16) {
+		decref(MKINT(v14));
+		branch_Sizze_17 = v15;
+	} else {
+		decref(MKINT(v15));
+		branch_Sizze_17 = v14;
+	}
+	*out_Sizze_5 = branch_Sizze_17;
+	return branch_Offset_13;
 }
-static STR* mw_std_prim_Str_slice (INT in_UOffset_1, INT in_USizze_2, STR* in_Str_3) {
+static STR* mw_std_prim_Str_slice (INT in_Offset_1, INT in_Sizze_2, STR* in_Str_3) {
 	incref(MKSTR(in_Str_3));
 	incref(MKSTR(in_Str_3));
 	void* v7 = str_base(in_Str_3);
 	uint64_t v8 = str_size(in_Str_3);
 	INT v9 = u64_to_int(v8);
 	INT v10;
-	INT v11 = mw_std_str_clampZ_sliceZ_offsetZ_sizze(in_UOffset_1, in_USizze_2, v9, &v10);
+	INT v11 = mw_std_str_clampZ_sliceZ_offsetZ_sizze(in_Offset_1, in_Sizze_2, v9, &v10);
 	int64_t v12 = int_to_i64(v11);
 	void* v13 = (void*)(v12 + (char*)v7);
 	uint64_t v14 = int_to_u64(v10);
@@ -8082,63 +8247,49 @@ static STR* mw_std_prim_Str_slice (INT in_UOffset_1, INT in_USizze_2, STR* in_St
 	decref(MKSTR(in_Str_3));
 	return v15;
 }
-static STR* mw_std_prim_Str_dropZ_slice (INT in_UOffset_1, STR* in_Str_2) {
+static STR* mw_std_prim_Str_dropZ_slice (INT in_Offset_1, STR* in_Str_2) {
 	STR* v6;
-	STR* v7 = mw_std_str_ZPlusStr_dropZ_slice(in_UOffset_1, in_Str_2, &v6);
+	STR* v7 = mw_std_str_ZPlusStr_dropZ_slice(in_Offset_1, in_Str_2, &v6);
 	decref(MKSTR(v6));
 	return v7;
 }
-static STR* mw_std_prim_Str_takeZ_slice (INT in_USizze_1, STR* in_Str_2) {
+static STR* mw_std_prim_Str_takeZ_slice (INT in_Sizze_1, STR* in_Str_2) {
 	STR* v6;
-	STR* v7 = mw_std_str_ZPlusStr_takeZ_slice(in_USizze_1, in_Str_2, &v6);
+	STR* v7 = mw_std_str_ZPlusStr_takeZ_slice(in_Sizze_1, in_Str_2, &v6);
 	decref(MKSTR(v6));
 	return v7;
 }
-static STR* mw_std_str_ZPlusStr_slice (INT in_UOffset_1, INT in_USizze_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5) {
+static STR* mw_std_str_ZPlusStr_slice (INT in_Offset_1, INT in_Sizze_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5) {
 	incref(MKSTR(in_ZPlusStr_3));
-	STR* v8 = mw_std_prim_Str_slice(in_UOffset_1, in_USizze_2, in_ZPlusStr_3);
+	STR* v8 = mw_std_prim_Str_slice(in_Offset_1, in_Sizze_2, in_ZPlusStr_3);
 	*out_ZPlusStr_5 = in_ZPlusStr_3;
 	return v8;
 }
-static STR* mw_std_str_ZPlusStr_offsetZ_slice (INT in_UOffset_1, INT in_UOffset_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5) {
-	incref(MKINT(in_UOffset_1));
-	INT v8 = int_sub(in_UOffset_2, in_UOffset_1);
-	incref(MKINT(v8));
-	INT v9 = WRAP_I63(0LL);
-	bool v10 = int_lt(v8, v9);
-	STR* branch_ZPlusStr_11;
-	VAL branch__12;
-	if (v10) {
-		decref(MKINT(v8));
-		decref(MKINT(in_UOffset_1));
-		STR* v13;
-		STRLIT(v13, "", 0);
-		branch__12 = MKSTR(v13);
-		branch_ZPlusStr_11 = in_ZPlusStr_3;
-	} else {
-		STR* v14;
-		STR* v15 = mw_std_str_ZPlusStr_slice(in_UOffset_1, v8, in_ZPlusStr_3, &v14);
-		branch__12 = MKSTR(v15);
-		branch_ZPlusStr_11 = v14;
-	}
-	*out_ZPlusStr_5 = branch_ZPlusStr_11;
-	return value_str(branch__12);
+static STR* mw_std_str_ZPlusStr_offsetZ_slice (INT in_Offset_1, INT in_Offset_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5) {
+	incref(MKINT(in_Offset_1));
+	INT v8 = int_sub(in_Offset_2, in_Offset_1);
+	STR* v9;
+	STR* v10 = mw_std_str_ZPlusStr_slice(in_Offset_1, v8, in_ZPlusStr_3, &v9);
+	*out_ZPlusStr_5 = v9;
+	return v10;
 }
-static STR* mw_std_str_ZPlusStr_takeZ_slice (INT in_USizze_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
+static STR* mw_std_str_ZPlusStr_takeZ_slice (INT in_Sizze_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
 	INT v7 = WRAP_I63(0LL);
 	STR* v8;
-	STR* v9 = mw_std_str_ZPlusStr_slice(v7, in_USizze_1, in_ZPlusStr_2, &v8);
+	STR* v9 = mw_std_str_ZPlusStr_slice(v7, in_Sizze_1, in_ZPlusStr_2, &v8);
 	*out_ZPlusStr_4 = v8;
 	return v9;
 }
-static STR* mw_std_str_ZPlusStr_dropZ_slice (INT in_UOffset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
+static STR* mw_std_str_ZPlusStr_dropZ_slice (INT in_Offset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
+	INT v7 = WRAP_I63(0LL);
+	INT v8 = mw_std_prelude_maxZ_viaZ_lt_sp1(in_Offset_1, v7);
 	incref(MKSTR(in_ZPlusStr_2));
-	uint64_t v7 = str_size(in_ZPlusStr_2);
-	INT v8 = u64_to_int(v7);
-	STR* v9;
-	STR* v10 = mw_std_str_ZPlusStr_slice(in_UOffset_1, v8, in_ZPlusStr_2, &v9);
-	*out_ZPlusStr_4 = v9;
-	return v10;
+	uint64_t v9 = str_size(in_ZPlusStr_2);
+	INT v10 = u64_to_int(v9);
+	STR* v11;
+	STR* v12 = mw_std_str_ZPlusStr_slice(v8, v10, in_ZPlusStr_2, &v11);
+	*out_ZPlusStr_4 = v11;
+	return v12;
 }
 static TUP* mw_std_str_ZPlusStr_splitZ_byte (int64_t in_Byte_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
 	VAL v5 = MKI64(0LL /* Nil */);
@@ -8172,60 +8323,56 @@ static TUP* mw_std_str_ZPlusStr_splitZ_byte (int64_t in_Byte_1, STR* in_ZPlusStr
 		INT v27 = i64_to_int(v17);
 		uint64_t v28 = int_to_u64(v27);
 		uint8_t v29 = (uint8_t)(v28);
-		uint64_t v30 = (uint64_t)(v26);
-		INT v31 = u64_to_int(v30);
-		uint64_t v32 = (uint64_t)(v29);
-		INT v33 = u64_to_int(v32);
-		bool v34 = int_eq(v31, v33);
-		int64_t branch_Byte_35;
-		STR* branch_ZPlusStr_36;
-		VAL branch_ZPlusLister_37;
-		INT branch_UOffset_38;
-		INT branch_UOffset_39;
-		if (v34) {
+		uint64_t v30 = (uint64_t)(v29);
+		uint64_t v31 = (uint64_t)(v26);
+		bool v32 = (v31 == v30);
+		int64_t branch_Byte_33;
+		STR* branch_ZPlusStr_34;
+		VAL branch_ZPlusLister_35;
+		INT branch_Offset_36;
+		INT branch_Offset_37;
+		if (v32) {
 			incref(MKINT(v19));
-			int64_t v40 = 0LL /* +Unsafe */;
-			STR* v41;
-			STR* v42 = mw_std_str_ZPlusStr_offsetZ_slice(v18, v19, v22, &v41);
-			VAL v43;
-			mw_std_list_ZPlusLister_1_pushZBang(MKSTR(v42), v21, &v43);
-			INT v44 = WRAP_I63(1LL);
-			INT v45 = int_add(v19, v44);
-			incref(MKINT(v45));
-			branch_UOffset_39 = v45;
-			branch_UOffset_38 = v45;
-			branch_ZPlusLister_37 = v43;
-			branch_ZPlusStr_36 = v41;
-			branch_Byte_35 = v17;
+			STR* v38;
+			STR* v39 = mw_std_prelude_unsafe_1_sp23(v18, v19, v22, &v38);
+			VAL v40;
+			mw_std_list_ZPlusLister_1_pushZBang(MKSTR(v39), v21, &v40);
+			INT v41 = WRAP_I63(1LL);
+			INT v42 = int_add(v19, v41);
+			incref(MKINT(v42));
+			branch_Offset_37 = v42;
+			branch_Offset_36 = v42;
+			branch_ZPlusLister_35 = v40;
+			branch_ZPlusStr_34 = v38;
+			branch_Byte_33 = v17;
 		} else {
-			INT v46 = WRAP_I63(1LL);
-			INT v47 = int_add(v19, v46);
-			branch_UOffset_39 = v47;
-			branch_UOffset_38 = v18;
-			branch_ZPlusLister_37 = v21;
-			branch_ZPlusStr_36 = v22;
-			branch_Byte_35 = v17;
+			INT v43 = WRAP_I63(1LL);
+			INT v44 = int_add(v19, v43);
+			branch_Offset_37 = v44;
+			branch_Offset_36 = v18;
+			branch_ZPlusLister_35 = v21;
+			branch_ZPlusStr_34 = v22;
+			branch_Byte_33 = v17;
 		}
-		incref(MKINT(branch_UOffset_39));
-		incref(MKSTR(branch_ZPlusStr_36));
-		uint64_t v48 = str_size(branch_ZPlusStr_36);
-		INT v49 = u64_to_int(v48);
-		bool v50 = int_lt(branch_UOffset_39, v49);
-		v16 = v50;
-		v15 = branch_ZPlusLister_37;
-		v14 = branch_ZPlusStr_36;
-		v13 = branch_UOffset_39;
-		v12 = branch_UOffset_38;
-		v11 = branch_Byte_35;
+		incref(MKINT(branch_Offset_37));
+		incref(MKSTR(branch_ZPlusStr_34));
+		uint64_t v45 = str_size(branch_ZPlusStr_34);
+		INT v46 = u64_to_int(v45);
+		bool v47 = int_lt(branch_Offset_37, v46);
+		v16 = v47;
+		v15 = branch_ZPlusLister_35;
+		v14 = branch_ZPlusStr_34;
+		v13 = branch_Offset_37;
+		v12 = branch_Offset_36;
+		v11 = branch_Byte_33;
 	}
-	int64_t v51 = 0LL /* +Unsafe */;
-	STR* v52;
-	STR* v53 = mw_std_str_ZPlusStr_offsetZ_slice(v12, v13, v14, &v52);
-	TUP* v54;
-	mw_std_list_ZPlusLister_1_pushZPlusZBang(MKSTR(v53), v15, &v54);
-	TUP* v55 = mw_std_list_ZPlusNester_1_doneZBang(v54);
-	*out_ZPlusStr_4 = v52;
-	return v55;
+	STR* v48;
+	STR* v49 = mw_std_prelude_unsafe_1_sp23(v12, v13, v14, &v48);
+	TUP* v50;
+	mw_std_list_ZPlusLister_1_pushZPlusZBang(MKSTR(v49), v15, &v50);
+	TUP* v51 = mw_std_list_ZPlusNester_1_doneZBang(v50);
+	*out_ZPlusStr_4 = v48;
+	return v51;
 }
 static TUP* mw_std_prim_Str_splitZ_byte (int64_t in_Byte_1, STR* in_Str_2) {
 	STR* v4;
@@ -8376,57 +8523,64 @@ static void mw_std_prim_Str_reprZThen (STR* in_Str_1, STR* in_ZPlusStr_2, STR* *
 	INT v9 = u64_to_int(v8);
 	incref(MKINT(v9));
 	INT v10 = WRAP_I63(0LL);
-	bool v11 = int_gt(v9, v10);
-	STR* v12 = v5;
-	bool v13 = v6;
-	void* v14 = v7;
-	INT v15 = v9;
-	bool v16 = v11;
-	while (v16) {
-		STR* v17 = v12;
-		bool v18 = v13;
-		void* v19 = v14;
-		INT v20 = v15;
-		int64_t v21 = 0LL /* +Unsafe */;
-		uint8_t v22 = *(uint8_t*)v19;
-		uint64_t v23 = (uint64_t)(v22);
-		INT v24 = u64_to_int(v23);
-		int64_t v25 = int_to_i64(v24);
-		bool v26;
-		STR* v27;
-		mw_std_str_ZPlusStr_pushZ_reprZ_byteZBang(v17, v18, v25, &v26, &v27);
-		INT v28 = WRAP_I63(1LL);
-		int64_t v29 = 0LL /* +Unsafe */;
-		int64_t v30 = int_to_i64(v28);
-		void* v31 = (void*)(v30 + (char*)v19);
-		INT v32 = WRAP_I63(1LL);
-		INT v33 = int_sub(v20, v32);
-		incref(MKINT(v33));
-		INT v34 = WRAP_I63(0LL);
-		bool v35 = int_lt(v33, v34);
-		INT branch_Nat_36;
-		if (v35) {
-			decref(MKINT(v33));
-			INT v37 = WRAP_I63(0LL);
-			branch_Nat_36 = v37;
-		} else {
-			branch_Nat_36 = v33;
-		}
-		incref(MKINT(branch_Nat_36));
-		INT v38 = WRAP_I63(0LL);
-		bool v39 = int_gt(branch_Nat_36, v38);
-		v16 = v39;
-		v15 = branch_Nat_36;
-		v14 = v31;
-		v13 = v26;
-		v12 = v27;
+	bool v11 = int_lt(v9, v10);
+	INT branch_Nat_12;
+	if (v11) {
+		decref(MKINT(v9));
+		INT v13 = WRAP_I63(0LL);
+		branch_Nat_12 = v13;
+	} else {
+		branch_Nat_12 = v9;
 	}
-	decref(MKINT(v15));
+	incref(MKINT(branch_Nat_12));
+	INT v14 = WRAP_I63(0LL);
+	bool v15 = int_eq(branch_Nat_12, v14);
+	bool v16 = !v15;
+	STR* v17 = v5;
+	bool v18 = v6;
+	void* v19 = v7;
+	INT v20 = branch_Nat_12;
+	bool v21 = v16;
+	while (v21) {
+		STR* v22 = v17;
+		bool v23 = v18;
+		void* v24 = v19;
+		INT v25 = v20;
+		int64_t v26 = mw_std_prelude_unsafe_1_sp11(v24);
+		bool v27;
+		STR* v28;
+		mw_std_str_ZPlusStr_pushZ_reprZ_byteZBang(v22, v23, v26, &v27, &v28);
+		INT v29 = WRAP_I63(1LL);
+		void* v30 = mw_std_prelude_unsafe_1_sp4(v29, v24);
+		INT v31 = WRAP_I63(1LL);
+		INT v32 = int_sub(v25, v31);
+		incref(MKINT(v32));
+		INT v33 = WRAP_I63(0LL);
+		bool v34 = int_lt(v32, v33);
+		INT branch_Nat_35;
+		if (v34) {
+			decref(MKINT(v32));
+			INT v36 = WRAP_I63(0LL);
+			branch_Nat_35 = v36;
+		} else {
+			branch_Nat_35 = v32;
+		}
+		incref(MKINT(branch_Nat_35));
+		INT v37 = WRAP_I63(0LL);
+		bool v38 = int_eq(branch_Nat_35, v37);
+		bool v39 = !v38;
+		v21 = v39;
+		v20 = branch_Nat_35;
+		v19 = v30;
+		v18 = v27;
+		v17 = v28;
+	}
+	decref(MKINT(v20));
 	decref(MKSTR(in_Str_1));
 	STR* v40;
 	STRLIT(v40, "\"", 1);
 	STR* v41;
-	mw_std_str_ZPlusStr_pushZ_strZBang(v40, v12, &v41);
+	mw_std_str_ZPlusStr_pushZ_strZBang(v40, v17, &v41);
 	*out_ZPlusStr_3 = v41;
 }
 static void mw_std_prim_Str_zzencodeZThen (STR* in_ZPlusStr_1, STR* in_Str_2, STR* *out_ZPlusStr_3) {
@@ -8437,50 +8591,57 @@ static void mw_std_prim_Str_zzencodeZThen (STR* in_ZPlusStr_1, STR* in_Str_2, ST
 	INT v6 = u64_to_int(v5);
 	incref(MKINT(v6));
 	INT v7 = WRAP_I63(0LL);
-	bool v8 = int_gt(v6, v7);
-	STR* v9 = in_ZPlusStr_1;
-	void* v10 = v4;
-	INT v11 = v6;
-	bool v12 = v8;
-	while (v12) {
-		STR* v13 = v9;
-		void* v14 = v10;
-		INT v15 = v11;
-		int64_t v16 = 0LL /* +Unsafe */;
-		uint8_t v17 = *(uint8_t*)v14;
-		uint64_t v18 = (uint64_t)(v17);
-		INT v19 = u64_to_int(v18);
-		int64_t v20 = int_to_i64(v19);
-		STR* v21;
-		mw_std_byte_Byte_zzencodeZThen(v13, v20, &v21);
-		INT v22 = WRAP_I63(1LL);
-		int64_t v23 = 0LL /* +Unsafe */;
-		int64_t v24 = int_to_i64(v22);
-		void* v25 = (void*)(v24 + (char*)v14);
-		INT v26 = WRAP_I63(1LL);
-		INT v27 = int_sub(v15, v26);
-		incref(MKINT(v27));
-		INT v28 = WRAP_I63(0LL);
-		bool v29 = int_lt(v27, v28);
-		INT branch_Nat_30;
-		if (v29) {
-			decref(MKINT(v27));
-			INT v31 = WRAP_I63(0LL);
-			branch_Nat_30 = v31;
-		} else {
-			branch_Nat_30 = v27;
-		}
-		incref(MKINT(branch_Nat_30));
-		INT v32 = WRAP_I63(0LL);
-		bool v33 = int_gt(branch_Nat_30, v32);
-		v12 = v33;
-		v11 = branch_Nat_30;
-		v10 = v25;
-		v9 = v21;
+	bool v8 = int_lt(v6, v7);
+	INT branch_Nat_9;
+	if (v8) {
+		decref(MKINT(v6));
+		INT v10 = WRAP_I63(0LL);
+		branch_Nat_9 = v10;
+	} else {
+		branch_Nat_9 = v6;
 	}
-	decref(MKINT(v11));
+	incref(MKINT(branch_Nat_9));
+	INT v11 = WRAP_I63(0LL);
+	bool v12 = int_eq(branch_Nat_9, v11);
+	bool v13 = !v12;
+	STR* v14 = in_ZPlusStr_1;
+	void* v15 = v4;
+	INT v16 = branch_Nat_9;
+	bool v17 = v13;
+	while (v17) {
+		STR* v18 = v14;
+		void* v19 = v15;
+		INT v20 = v16;
+		int64_t v21 = mw_std_prelude_unsafe_1_sp11(v19);
+		STR* v22;
+		mw_std_byte_Byte_zzencodeZThen(v18, v21, &v22);
+		INT v23 = WRAP_I63(1LL);
+		void* v24 = mw_std_prelude_unsafe_1_sp4(v23, v19);
+		INT v25 = WRAP_I63(1LL);
+		INT v26 = int_sub(v20, v25);
+		incref(MKINT(v26));
+		INT v27 = WRAP_I63(0LL);
+		bool v28 = int_lt(v26, v27);
+		INT branch_Nat_29;
+		if (v28) {
+			decref(MKINT(v26));
+			INT v30 = WRAP_I63(0LL);
+			branch_Nat_29 = v30;
+		} else {
+			branch_Nat_29 = v26;
+		}
+		incref(MKINT(branch_Nat_29));
+		INT v31 = WRAP_I63(0LL);
+		bool v32 = int_eq(branch_Nat_29, v31);
+		bool v33 = !v32;
+		v17 = v33;
+		v16 = branch_Nat_29;
+		v15 = v24;
+		v14 = v22;
+	}
+	decref(MKINT(v16));
 	decref(MKSTR(in_Str_2));
-	*out_ZPlusStr_3 = v9;
+	*out_ZPlusStr_3 = v14;
 }
 static STR* mw_std_prim_Str_zzencode (STR* in_Str_1) {
 	STR* v3;
@@ -8855,36 +9016,38 @@ static VAL mw_std_list_List_1_last (VAL in_List_1) {
 static VAL mw_std_list_List_1_dropZ_slice (INT in_Nat_1, VAL in_List_2) {
 	incref(MKINT(in_Nat_1));
 	INT v4 = WRAP_I63(0LL);
-	bool v5 = int_gt(in_Nat_1, v4);
-	VAL v6 = in_List_2;
-	INT v7 = in_Nat_1;
-	bool v8 = v5;
-	while (v8) {
-		VAL v9 = v6;
-		INT v10 = v7;
-		VAL v11 = mw_std_list_List_1_tail(v9);
-		INT v12 = WRAP_I63(1LL);
-		INT v13 = int_sub(v10, v12);
-		incref(MKINT(v13));
-		INT v14 = WRAP_I63(0LL);
-		bool v15 = int_lt(v13, v14);
-		INT branch_Nat_16;
-		if (v15) {
-			decref(MKINT(v13));
-			INT v17 = WRAP_I63(0LL);
-			branch_Nat_16 = v17;
+	bool v5 = int_eq(in_Nat_1, v4);
+	bool v6 = !v5;
+	VAL v7 = in_List_2;
+	INT v8 = in_Nat_1;
+	bool v9 = v6;
+	while (v9) {
+		VAL v10 = v7;
+		INT v11 = v8;
+		VAL v12 = mw_std_list_List_1_tail(v10);
+		INT v13 = WRAP_I63(1LL);
+		INT v14 = int_sub(v11, v13);
+		incref(MKINT(v14));
+		INT v15 = WRAP_I63(0LL);
+		bool v16 = int_lt(v14, v15);
+		INT branch_Nat_17;
+		if (v16) {
+			decref(MKINT(v14));
+			INT v18 = WRAP_I63(0LL);
+			branch_Nat_17 = v18;
 		} else {
-			branch_Nat_16 = v13;
+			branch_Nat_17 = v14;
 		}
-		incref(MKINT(branch_Nat_16));
-		INT v18 = WRAP_I63(0LL);
-		bool v19 = int_gt(branch_Nat_16, v18);
-		v8 = v19;
-		v7 = branch_Nat_16;
-		v6 = v11;
+		incref(MKINT(branch_Nat_17));
+		INT v19 = WRAP_I63(0LL);
+		bool v20 = int_eq(branch_Nat_17, v19);
+		bool v21 = !v20;
+		v9 = v21;
+		v8 = branch_Nat_17;
+		v7 = v12;
 	}
-	decref(MKINT(v7));
-	return v6;
+	decref(MKINT(v8));
+	return v7;
 }
 static VAL mw_std_list_List_1_reverse (VAL in_List_1) {
 	VAL v3 = MKI64(0LL /* Nil */);
@@ -9206,6 +9369,126 @@ static VAL mw_std_maybe_Maybe_1_zzip (VAL in_Maybe_1, VAL in_Maybe_2) {
 	}
 	return branch_Maybe_4;
 }
+static INT mw_std_number_Base_Hex (void) {
+	INT v2 = WRAP_I63(16LL);
+	return v2;
+}
+static INT mw_std_number_Base_lastZ_digit (INT in_Nat_1, INT in_Base_2, int64_t *out_Byte_4) {
+	INT v5;
+	INT v6 = int_divmod(in_Nat_1, in_Base_2, &v5);
+	uint64_t v7 = int_to_u64(v5);
+	uint8_t v8 = (uint8_t)(v7);
+	uint8_t v9 = 10;
+	uint64_t v10 = (uint64_t)(v9);
+	uint64_t v11 = (uint64_t)(v8);
+	bool v12 = (v11 < v10);
+	INT branch_Nat_13;
+	uint8_t branch_U8_14;
+	uint8_t branch_U8_15;
+	if (v12) {
+		uint8_t v16 = 48;
+		branch_U8_15 = v16;
+		branch_U8_14 = v8;
+		branch_Nat_13 = v6;
+	} else {
+		uint8_t v17 = 55;
+		branch_U8_15 = v17;
+		branch_U8_14 = v8;
+		branch_Nat_13 = v6;
+	}
+	uint64_t v18 = (uint64_t)(branch_U8_14);
+	uint64_t v19 = (uint64_t)(branch_U8_15);
+	uint64_t v20 = (v18 + v19);
+	uint8_t v21 = (uint8_t)(v20);
+	uint64_t v22 = (uint64_t)(v21);
+	INT v23 = u64_to_int(v22);
+	int64_t v24 = int_to_i64(v23);
+	*out_Byte_4 = v24;
+	return branch_Nat_13;
+}
+static void mw_std_number_Base_digitsZThen (STR* in_ZPlusStr_1, INT in_Nat_2, INT in_Base_3, STR* *out_ZPlusStr_4) {
+	INT v5 = WRAP_I63(0LL);
+	INT v6 = WRAP_I63(0LL);
+	bool v7 = true;
+	INT v8 = v5;
+	INT v9 = v6;
+	INT v10 = in_Nat_2;
+	INT v11 = in_Base_3;
+	bool v12 = v7;
+	bool v13 = v7;
+	while (v13) {
+		INT v14 = v8;
+		INT v15 = v9;
+		INT v16 = v10;
+		INT v17 = v11;
+		bool v18 = v12;
+		incref(MKINT(v17));
+		INT v19;
+		INT v20 = int_divmod(v16, v17, &v19);
+		incref(MKINT(v17));
+		INT v21 = int_mul(v15, v17);
+		INT v22 = int_add(v19, v21);
+		INT v23 = WRAP_I63(1LL);
+		INT v24 = int_add(v14, v23);
+		incref(MKINT(v20));
+		INT v25 = WRAP_I63(0LL);
+		bool v26 = int_eq(v20, v25);
+		bool v27 = !v26;
+		v13 = v27;
+		v12 = v27;
+		v11 = v17;
+		v10 = v20;
+		v9 = v22;
+		v8 = v24;
+	}
+	decref(MKINT(v10));
+	incref(MKINT(v8));
+	INT v28 = WRAP_I63(0LL);
+	bool v29 = int_eq(v8, v28);
+	bool v30 = !v29;
+	STR* v31 = in_ZPlusStr_1;
+	INT v32 = v11;
+	INT v33 = v9;
+	INT v34 = v8;
+	bool v35 = v30;
+	while (v35) {
+		STR* v36 = v31;
+		INT v37 = v32;
+		INT v38 = v33;
+		INT v39 = v34;
+		incref(MKINT(v37));
+		int64_t v40;
+		INT v41 = mw_std_number_Base_lastZ_digit(v38, v37, &v40);
+		STR* v42;
+		mw_std_str_ZPlusStr_pushZ_byteZ_unsafeZBang(v40, v36, &v42);
+		INT v43 = WRAP_I63(1LL);
+		INT v44 = int_sub(v39, v43);
+		incref(MKINT(v44));
+		INT v45 = WRAP_I63(0LL);
+		bool v46 = int_lt(v44, v45);
+		INT branch_Nat_47;
+		if (v46) {
+			decref(MKINT(v44));
+			INT v48 = WRAP_I63(0LL);
+			branch_Nat_47 = v48;
+		} else {
+			branch_Nat_47 = v44;
+		}
+		incref(MKINT(branch_Nat_47));
+		INT v49 = WRAP_I63(0LL);
+		bool v50 = int_eq(branch_Nat_47, v49);
+		bool v51 = !v50;
+		v35 = v51;
+		v34 = branch_Nat_47;
+		v33 = v41;
+		v32 = v37;
+		v31 = v42;
+	}
+	decref(MKINT(v34));
+	decref(MKINT(v33));
+	decref(MKINT(v32));
+	*out_ZPlusStr_4 = v31;
+}
 static int64_t mw_std_prim_I64_ZToOS (int64_t in_I64_1) {
 	INT v3 = i64_to_int(in_I64_1);
 	int64_t v4 = mw_std_prim_Int_ZToOS(v3);
@@ -9219,7 +9502,7 @@ static int64_t mw_std_prim_Int_ZToOS (INT in_Int_1) {
 	int64_t v6 = int_to_i64(v5);
 	INT v7 = i64_to_int(v4);
 	INT v8 = i64_to_int(v6);
-	bool v9 = mw_std_prelude_inZ_range_sp2(in_Int_1, v7, v8);
+	bool v9 = mw_std_prelude_inZ_range_sp3(in_Int_1, v7, v8);
 	int64_t branch_OS_10;
 	if (v9) {
 		int64_t v11 = int_to_i64(in_Int_1);
@@ -9263,76 +9546,66 @@ static bool mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk (int64_t in_Byte_1, 
 			INT v9 = i64_to_int(v5);
 			uint64_t v10 = int_to_u64(v9);
 			uint8_t v11 = (uint8_t)(v10);
-			uint64_t v12 = (uint64_t)(v8);
-			INT v13 = u64_to_int(v12);
-			uint64_t v14 = (uint64_t)(v11);
-			INT v15 = u64_to_int(v14);
-			bool v16 = int_eq(v13, v15);
-			bool branch_Bool_17;
-			if (v16) {
-				bool v18 = true;
-				branch_Bool_17 = v18;
+			uint64_t v12 = (uint64_t)(v11);
+			uint64_t v13 = (uint64_t)(v8);
+			bool v14 = (v13 == v12);
+			bool branch_Bool_15;
+			if (v14) {
+				bool v16 = true;
+				branch_Bool_15 = v16;
 			} else {
-				int64_t v19 = 92LL /* B'\' */;
-				INT v20 = i64_to_int(in_Byte_1);
-				uint64_t v21 = int_to_u64(v20);
-				uint8_t v22 = (uint8_t)(v21);
-				INT v23 = i64_to_int(v19);
-				uint64_t v24 = int_to_u64(v23);
-				uint8_t v25 = (uint8_t)(v24);
-				uint64_t v26 = (uint64_t)(v22);
-				INT v27 = u64_to_int(v26);
-				uint64_t v28 = (uint64_t)(v25);
-				INT v29 = u64_to_int(v28);
-				bool v30 = int_eq(v27, v29);
-				branch_Bool_17 = v30;
+				int64_t v17 = 92LL /* B'\' */;
+				INT v18 = i64_to_int(in_Byte_1);
+				uint64_t v19 = int_to_u64(v18);
+				uint8_t v20 = (uint8_t)(v19);
+				INT v21 = i64_to_int(v17);
+				uint64_t v22 = int_to_u64(v21);
+				uint8_t v23 = (uint8_t)(v22);
+				uint64_t v24 = (uint64_t)(v23);
+				uint64_t v25 = (uint64_t)(v20);
+				bool v26 = (v25 == v24);
+				branch_Bool_15 = v26;
 			}
-			branch_Bool_4 = branch_Bool_17;
+			branch_Bool_4 = branch_Bool_15;
 		} break;
 		case 2LL: { // Linux
-			int64_t v31 = 47LL /* B'/' */;
-			INT v32 = i64_to_int(in_Byte_1);
-			uint64_t v33 = int_to_u64(v32);
-			uint8_t v34 = (uint8_t)(v33);
-			INT v35 = i64_to_int(v31);
-			uint64_t v36 = int_to_u64(v35);
-			uint8_t v37 = (uint8_t)(v36);
-			uint64_t v38 = (uint64_t)(v34);
-			INT v39 = u64_to_int(v38);
-			uint64_t v40 = (uint64_t)(v37);
-			INT v41 = u64_to_int(v40);
-			bool v42 = int_eq(v39, v41);
-			branch_Bool_4 = v42;
+			int64_t v27 = 47LL /* B'/' */;
+			INT v28 = i64_to_int(in_Byte_1);
+			uint64_t v29 = int_to_u64(v28);
+			uint8_t v30 = (uint8_t)(v29);
+			INT v31 = i64_to_int(v27);
+			uint64_t v32 = int_to_u64(v31);
+			uint8_t v33 = (uint8_t)(v32);
+			uint64_t v34 = (uint64_t)(v33);
+			uint64_t v35 = (uint64_t)(v30);
+			bool v36 = (v35 == v34);
+			branch_Bool_4 = v36;
 		} break;
 		case 3LL: { // Mac
-			int64_t v43 = 47LL /* B'/' */;
-			INT v44 = i64_to_int(in_Byte_1);
-			uint64_t v45 = int_to_u64(v44);
-			uint8_t v46 = (uint8_t)(v45);
-			INT v47 = i64_to_int(v43);
-			uint64_t v48 = int_to_u64(v47);
-			uint8_t v49 = (uint8_t)(v48);
-			uint64_t v50 = (uint64_t)(v46);
-			INT v51 = u64_to_int(v50);
-			uint64_t v52 = (uint64_t)(v49);
-			INT v53 = u64_to_int(v52);
-			bool v54 = int_eq(v51, v53);
-			branch_Bool_4 = v54;
+			int64_t v37 = 47LL /* B'/' */;
+			INT v38 = i64_to_int(in_Byte_1);
+			uint64_t v39 = int_to_u64(v38);
+			uint8_t v40 = (uint8_t)(v39);
+			INT v41 = i64_to_int(v37);
+			uint64_t v42 = int_to_u64(v41);
+			uint8_t v43 = (uint8_t)(v42);
+			uint64_t v44 = (uint64_t)(v43);
+			uint64_t v45 = (uint64_t)(v40);
+			bool v46 = (v45 == v44);
+			branch_Bool_4 = v46;
 		} break;
 		case 0LL: { // Unknown
-			int64_t v55 = 47LL /* B'/' */;
-			INT v56 = i64_to_int(in_Byte_1);
-			uint64_t v57 = int_to_u64(v56);
-			uint8_t v58 = (uint8_t)(v57);
-			INT v59 = i64_to_int(v55);
-			uint64_t v60 = int_to_u64(v59);
-			uint8_t v61 = (uint8_t)(v60);
-			uint64_t v62 = (uint64_t)(v58);
-			INT v63 = u64_to_int(v62);
-			uint64_t v64 = (uint64_t)(v61);
-			INT v65 = u64_to_int(v64);
-			bool v66 = int_eq(v63, v65);
-			branch_Bool_4 = v66;
+			int64_t v47 = 47LL /* B'/' */;
+			INT v48 = i64_to_int(in_Byte_1);
+			uint64_t v49 = int_to_u64(v48);
+			uint8_t v50 = (uint8_t)(v49);
+			INT v51 = i64_to_int(v47);
+			uint64_t v52 = int_to_u64(v51);
+			uint8_t v53 = (uint8_t)(v52);
+			uint64_t v54 = (uint64_t)(v53);
+			uint64_t v55 = (uint64_t)(v50);
+			bool v56 = (v55 == v54);
+			branch_Bool_4 = v56;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -9351,7 +9624,7 @@ static int64_t mw_std_prim_Int_ZToArch (INT in_Int_1) {
 	int64_t v4 = 3LL;
 	INT v5 = i64_to_int(v3);
 	INT v6 = i64_to_int(v4);
-	bool v7 = mw_std_prelude_inZ_range_sp2(in_Int_1, v5, v6);
+	bool v7 = mw_std_prelude_inZ_range_sp3(in_Int_1, v5, v6);
 	int64_t branch_Arch_8;
 	if (v7) {
 		int64_t v9 = int_to_i64(in_Int_1);
@@ -9362,145 +9635,6 @@ static int64_t mw_std_prim_Int_ZToArch (INT in_Int_1) {
 		branch_Arch_8 = v10;
 	}
 	return branch_Arch_8;
-}
-static INT mw_std_prim_Int_signZAskZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
-	incref(MKINT(in_Int_1));
-	INT v5 = WRAP_I63(0LL);
-	bool v6 = int_lt(in_Int_1, v5);
-	STR* branch_ZPlusStr_7;
-	INT branch_Int_8;
-	if (v6) {
-		STR* v9;
-		STRLIT(v9, "-", 1);
-		STR* v10;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v9, in_ZPlusStr_2, &v10);
-		INT v11 = WRAP_I63(-1LL);
-		INT v12 = int_mul(in_Int_1, v11);
-		branch_Int_8 = v12;
-		branch_ZPlusStr_7 = v10;
-	} else {
-		branch_Int_8 = in_Int_1;
-		branch_ZPlusStr_7 = in_ZPlusStr_2;
-	}
-	*out_ZPlusStr_4 = branch_ZPlusStr_7;
-	return branch_Int_8;
-}
-static void mw_std_prim_Int_hexZThen (INT in_Int_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3) {
-	STR* v4;
-	INT v5 = mw_std_prim_Int_signZAskZThen(in_Int_1, in_ZPlusStr_2, &v4);
-	INT v6 = mw_std_prelude_Base_Hex();
-	STR* v7;
-	mw_std_prelude_Base_digitsZThen(v4, v5, v6, &v7);
-	*out_ZPlusStr_3 = v7;
-}
-static INT mw_std_prelude_Base_Hex (void) {
-	INT v2 = WRAP_I63(16LL);
-	return v2;
-}
-static INT mw_std_prelude_Base_lastZ_digit (INT in_Nat_1, INT in_Base_2, int64_t *out_Byte_4) {
-	INT v5;
-	INT v6 = int_divmod(in_Nat_1, in_Base_2, &v5);
-	uint64_t v7 = int_to_u64(v5);
-	uint8_t v8 = (uint8_t)(v7);
-	uint8_t v9 = 10;
-	uint64_t v10 = (uint64_t)(v8);
-	INT v11 = u64_to_int(v10);
-	uint64_t v12 = (uint64_t)(v9);
-	INT v13 = u64_to_int(v12);
-	bool v14 = int_lt(v11, v13);
-	INT branch_Nat_15;
-	uint8_t branch_U8_16;
-	uint8_t branch_U8_17;
-	if (v14) {
-		uint8_t v18 = 48;
-		branch_U8_17 = v18;
-		branch_U8_16 = v8;
-		branch_Nat_15 = v6;
-	} else {
-		uint8_t v19 = 55;
-		branch_U8_17 = v19;
-		branch_U8_16 = v8;
-		branch_Nat_15 = v6;
-	}
-	uint64_t v20 = (uint64_t)(branch_U8_16);
-	uint64_t v21 = (uint64_t)(branch_U8_17);
-	uint64_t v22 = (v20 + v21);
-	uint8_t v23 = (uint8_t)(v22);
-	uint64_t v24 = (uint64_t)(v23);
-	INT v25 = u64_to_int(v24);
-	int64_t v26 = int_to_i64(v25);
-	*out_Byte_4 = v26;
-	return branch_Nat_15;
-}
-static void mw_std_prelude_Base_digitsZThen (STR* in_ZPlusStr_1, INT in_Nat_2, INT in_Base_3, STR* *out_ZPlusStr_4) {
-	VAL v5 = MKI64(0LL /* Nil */);
-	bool v6 = true;
-	VAL v7 = v5;
-	INT v8 = in_Nat_2;
-	INT v9 = in_Base_3;
-	bool v10 = v6;
-	bool v11 = v6;
-	while (v11) {
-		VAL v12 = v7;
-		INT v13 = v8;
-		INT v14 = v9;
-		bool v15 = v10;
-		incref(MKINT(v14));
-		int64_t v16;
-		INT v17 = mw_std_prelude_Base_lastZ_digit(v13, v14, &v16);
-		VAL v18 = mw_std_list_List_1_cons(MKI64(v16), v12);
-		incref(MKINT(v17));
-		INT v19 = WRAP_I63(0LL);
-		bool v20 = int_gt(v17, v19);
-		v11 = v20;
-		v10 = v20;
-		v9 = v14;
-		v8 = v17;
-		v7 = v18;
-	}
-	decref(MKINT(v8));
-	bool v21 = true;
-	STR* v22 = in_ZPlusStr_1;
-	VAL v23 = v7;
-	bool v24 = v21;
-	bool v25 = v21;
-	while (v25) {
-		STR* v26 = v22;
-		VAL v27 = v23;
-		bool v28 = v24;
-		STR* branch_ZPlusStr_29;
-		VAL branch_List_30;
-		bool branch_Bool_31;
-		switch (get_data_tag(v27)) {
-			case 1LL: { // Cons
-				VAL v32;
-				VAL v33 = mtp_std_list_List_1_Cons(v27, &v32);
-				STR* v34;
-				mw_std_str_ZPlusStr_pushZ_byteZ_unsafeZBang(value_i64(v33), v26, &v34);
-				bool v35 = true;
-				branch_Bool_31 = v35;
-				branch_List_30 = v32;
-				branch_ZPlusStr_29 = v34;
-			} break;
-			case 0LL: { // Nil
-				VAL v36 = MKI64(0LL /* Nil */);
-				bool v37 = false;
-				branch_Bool_31 = v37;
-				branch_List_30 = v36;
-				branch_ZPlusStr_29 = v26;
-			} break;
-			default: {
-				do_panic(str_make("unexpected fallthrough in match\n", 32));
-			}
-		}
-		v25 = branch_Bool_31;
-		v24 = branch_Bool_31;
-		v23 = branch_List_30;
-		v22 = branch_ZPlusStr_29;
-	}
-	decref(v23);
-	decref(MKINT(v9));
-	*out_ZPlusStr_4 = v22;
 }
 static VAL mw_std_prelude_ZAtZAsk (void* in_Mutt_1) {
 	bool v3 = mut_is_set(in_Mutt_1);
@@ -9520,15 +9654,142 @@ static void mw_std_prelude_impossibleZBang (void) {
 	STRLIT(v1, "Impossible! The impossible has occured!", 39);
 	do_panic(v1);
 }
-static INT mw_std_posix_posixZ_openZBang (STR* in_Str_1, INT in_Int_2, INT in_Int_3) {
-	incref(MKSTR(in_Str_1));
-	void* v5 = str_base(in_Str_1);
-	int64_t v6 = int_to_i64(in_Int_3);
-	int64_t v7 = int_to_i64(in_Int_2);
-	int64_t v8 = mext_std_posix_internalZ_posixZ_open(v5, v7, v6);
-	INT v9 = i64_to_int(v8);
-	decref(MKSTR(in_Str_1));
+static STR* mw_std_path_Path_joinZ_with (STR* in_Path_1, STR* in_Str_2, STR* in_Path_3) {
+	STR* v5 = str_cat(in_Path_1, in_Str_2);
+	STR* v6 = str_cat(v5, in_Path_3);
+	return v6;
+}
+static STR* mw_std_path_Path_join (STR* in_Path_1, STR* in_Path_2) {
+	int64_t v6 = RUNNING_OS;
+	int64_t v7 = mw_std_prim_I64_ZToOS(v6);
+	VAL v8 = mw_std_prelude_OS_pathZ_separator(v7);
+	STR* v9 = mw_std_path_Path_joinZ_with(in_Path_1, value_str(v8), in_Path_2);
 	return v9;
+}
+static STR* mw_std_path_Path_splitZ_last (STR* in_Path_1, VAL *out_Maybe_3) {
+	incref(MKSTR(in_Path_1));
+	uint64_t v6 = str_size(in_Path_1);
+	INT v7 = u64_to_int(v6);
+	VAL v8 = MKI64(0LL /* None */);
+	incref(v8);
+	int64_t v9 = get_data_tag(v8);
+	decref(v8);
+	int64_t v10 = 0LL;
+	bool v11 = (v9 == v10);
+	INT branch_Offset_12;
+	VAL branch_z_x1_13;
+	bool branch_Bool_14;
+	if (v11) {
+		incref(MKINT(v7));
+		INT v15 = WRAP_I63(0LL);
+		bool v16 = int_lt(v15, v7);
+		branch_Bool_14 = v16;
+		branch_z_x1_13 = v8;
+		branch_Offset_12 = v7;
+	} else {
+		bool v17 = false;
+		branch_Bool_14 = v17;
+		branch_z_x1_13 = v8;
+		branch_Offset_12 = v7;
+	}
+	STR* v18 = in_Path_1;
+	INT v19 = branch_Offset_12;
+	VAL v20 = branch_z_x1_13;
+	bool v21 = branch_Bool_14;
+	while (v21) {
+		STR* v22 = v18;
+		INT v23 = v19;
+		VAL v24 = v20;
+		decref(v24);
+		INT v25 = WRAP_I63(1LL);
+		INT v26 = int_sub(v23, v25);
+		incref(MKINT(v26));
+		STR* v27;
+		int64_t v28 = mw_std_str_ZPlusStr_byteZAt(v26, v22, &v27);
+		int64_t v29 = RUNNING_OS;
+		int64_t v30 = mw_std_prim_I64_ZToOS(v29);
+		bool v31 = mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk(v28, v30);
+		STR* branch_ZPlusStr_32;
+		INT branch_Offset_33;
+		VAL branch_Maybe_34;
+		if (v31) {
+			incref(MKINT(v26));
+			VAL v35 = mtw_std_maybe_Maybe_1_Some(MKINT(v26));
+			branch_Maybe_34 = v35;
+			branch_Offset_33 = v26;
+			branch_ZPlusStr_32 = v27;
+		} else {
+			VAL v36 = MKI64(0LL /* None */);
+			branch_Maybe_34 = v36;
+			branch_Offset_33 = v26;
+			branch_ZPlusStr_32 = v27;
+		}
+		incref(branch_Maybe_34);
+		int64_t v37 = get_data_tag(branch_Maybe_34);
+		decref(branch_Maybe_34);
+		int64_t v38 = 0LL;
+		bool v39 = (v37 == v38);
+		INT branch_Offset_40;
+		VAL branch_z_x1_41;
+		bool branch_Bool_42;
+		if (v39) {
+			incref(MKINT(branch_Offset_33));
+			INT v43 = WRAP_I63(0LL);
+			bool v44 = int_lt(v43, branch_Offset_33);
+			branch_Bool_42 = v44;
+			branch_z_x1_41 = branch_Maybe_34;
+			branch_Offset_40 = branch_Offset_33;
+		} else {
+			bool v45 = false;
+			branch_Bool_42 = v45;
+			branch_z_x1_41 = branch_Maybe_34;
+			branch_Offset_40 = branch_Offset_33;
+		}
+		v21 = branch_Bool_42;
+		v20 = branch_z_x1_41;
+		v19 = branch_Offset_40;
+		v18 = branch_ZPlusStr_32;
+	}
+	decref(MKINT(v19));
+	VAL v46;
+	STR* v47 = mw_std_maybe_Maybe_1_map_1_sp11(v18, v20, &v46);
+	*out_Maybe_3 = v46;
+	return v47;
+}
+static void mw_std_path_Path_pathZThen (STR* in_Path_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3) {
+	STR* v4;
+	mw_std_str_ZPlusStr_pushZ_strZBang(in_Path_1, in_ZPlusStr_2, &v4);
+	*out_ZPlusStr_3 = v4;
+}
+static VAL mw_std_result_Result_2_okZAsk (VAL in_Result_1) {
+	VAL branch_Maybe_3;
+	switch (get_data_tag(in_Result_1)) {
+		case 0LL: { // Err
+			VAL v4 = mtp_std_result_Result_2_Err(in_Result_1);
+			decref(v4);
+			VAL v5 = MKI64(0LL /* None */);
+			branch_Maybe_3 = v5;
+		} break;
+		case 1LL: { // Ok
+			VAL v6 = mtp_std_result_Result_2_Ok(in_Result_1);
+			VAL v7 = mtw_std_maybe_Maybe_1_Some(v6);
+			branch_Maybe_3 = v7;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_Maybe_3;
+}
+static int64_t mw_std_posix_OpenFlags_U64ZTo (uint64_t in_U64_1) {
+	INT v3 = u64_to_int(in_U64_1);
+	int64_t v4 = int_to_i64(v3);
+	return v4;
+}
+static int64_t mw_std_posix_OpenFlags_None (void) {
+	uint64_t v2 = 0ULL;
+	int64_t v3 = mw_std_posix_OpenFlags_U64ZTo(v2);
+	return v3;
 }
 static void mw_std_terminal_Sgr_emitZThen (VAL in_Sgr_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3) {
 	STR* v4;
@@ -9621,138 +9882,9 @@ static void mw_std_str_ZPlusStr_csiZThen (STR* in_ZPlusStr_1, STR* *out_ZPlusStr
 	mw_std_str_ZPlusStr_pushZ_byteZ_unsafeZBang(v5, v4, &v6);
 	*out_ZPlusStr_2 = v6;
 }
-static STR* mw_std_path_Path_joinZ_with (STR* in_Path_1, STR* in_Str_2, STR* in_Path_3) {
-	STR* v5 = str_cat(in_Path_1, in_Str_2);
-	STR* v6 = str_cat(v5, in_Path_3);
-	return v6;
-}
-static STR* mw_std_path_Path_join (STR* in_Path_1, STR* in_Path_2) {
-	int64_t v6 = RUNNING_OS;
-	int64_t v7 = mw_std_prim_I64_ZToOS(v6);
-	VAL v8 = mw_std_prelude_OS_pathZ_separator(v7);
-	STR* v9 = mw_std_path_Path_joinZ_with(in_Path_1, value_str(v8), in_Path_2);
-	return v9;
-}
-static STR* mw_std_path_Path_splitZ_last (STR* in_Path_1, VAL *out_Maybe_3) {
-	incref(MKSTR(in_Path_1));
-	uint64_t v6 = str_size(in_Path_1);
-	INT v7 = u64_to_int(v6);
-	VAL v8 = MKI64(0LL /* None */);
-	incref(v8);
-	int64_t v9 = get_data_tag(v8);
-	decref(v8);
-	int64_t v10 = 0LL;
-	bool v11 = (v9 == v10);
-	INT branch_UOffset_12;
-	VAL branch_z_x1_13;
-	bool branch_Bool_14;
-	if (v11) {
-		incref(MKINT(v7));
-		INT v15 = WRAP_I63(0LL);
-		bool v16 = int_gt(v7, v15);
-		branch_Bool_14 = v16;
-		branch_z_x1_13 = v8;
-		branch_UOffset_12 = v7;
-	} else {
-		bool v17 = false;
-		branch_Bool_14 = v17;
-		branch_z_x1_13 = v8;
-		branch_UOffset_12 = v7;
-	}
-	STR* v18 = in_Path_1;
-	INT v19 = branch_UOffset_12;
-	VAL v20 = branch_z_x1_13;
-	bool v21 = branch_Bool_14;
-	while (v21) {
-		STR* v22 = v18;
-		INT v23 = v19;
-		VAL v24 = v20;
-		decref(v24);
-		INT v25 = WRAP_I63(1LL);
-		INT v26 = int_sub(v23, v25);
-		incref(MKINT(v26));
-		INT v27 = WRAP_I63(0LL);
-		bool v28 = int_lt(v26, v27);
-		INT branch_Nat_29;
-		if (v28) {
-			decref(MKINT(v26));
-			INT v30 = WRAP_I63(0LL);
-			branch_Nat_29 = v30;
-		} else {
-			branch_Nat_29 = v26;
-		}
-		incref(MKINT(branch_Nat_29));
-		STR* v31;
-		int64_t v32 = mw_std_str_ZPlusStr_byteZAt(branch_Nat_29, v22, &v31);
-		int64_t v33 = RUNNING_OS;
-		int64_t v34 = mw_std_prim_I64_ZToOS(v33);
-		bool v35 = mw_std_prelude_OS_byteZ_isZ_pathZ_separatorZAsk(v32, v34);
-		STR* branch_ZPlusStr_36;
-		INT branch_UOffset_37;
-		VAL branch_Maybe_38;
-		if (v35) {
-			incref(MKINT(branch_Nat_29));
-			VAL v39 = mtw_std_maybe_Maybe_1_Some(MKINT(branch_Nat_29));
-			branch_Maybe_38 = v39;
-			branch_UOffset_37 = branch_Nat_29;
-			branch_ZPlusStr_36 = v31;
-		} else {
-			VAL v40 = MKI64(0LL /* None */);
-			branch_Maybe_38 = v40;
-			branch_UOffset_37 = branch_Nat_29;
-			branch_ZPlusStr_36 = v31;
-		}
-		incref(branch_Maybe_38);
-		int64_t v41 = get_data_tag(branch_Maybe_38);
-		decref(branch_Maybe_38);
-		int64_t v42 = 0LL;
-		bool v43 = (v41 == v42);
-		INT branch_UOffset_44;
-		VAL branch_z_x1_45;
-		bool branch_Bool_46;
-		if (v43) {
-			incref(MKINT(branch_UOffset_37));
-			INT v47 = WRAP_I63(0LL);
-			bool v48 = int_gt(branch_UOffset_37, v47);
-			branch_Bool_46 = v48;
-			branch_z_x1_45 = branch_Maybe_38;
-			branch_UOffset_44 = branch_UOffset_37;
-		} else {
-			bool v49 = false;
-			branch_Bool_46 = v49;
-			branch_z_x1_45 = branch_Maybe_38;
-			branch_UOffset_44 = branch_UOffset_37;
-		}
-		v21 = branch_Bool_46;
-		v20 = branch_z_x1_45;
-		v19 = branch_UOffset_44;
-		v18 = branch_ZPlusStr_36;
-	}
-	decref(MKINT(v19));
-	VAL v50;
-	STR* v51 = mw_std_maybe_Maybe_1_map_1_sp11(v18, v20, &v50);
-	*out_Maybe_3 = v50;
-	return v51;
-}
-static void mw_std_path_Path_pathZThen (STR* in_Path_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_3) {
-	STR* v4;
-	mw_std_str_ZPlusStr_pushZ_strZBang(in_Path_1, in_ZPlusStr_2, &v4);
-	*out_ZPlusStr_3 = v4;
-}
 static INT mw_std_input_INPUTz_BUFFERz_SIZZE (void) {
 	INT v2 = WRAP_I63(8192LL);
-	incref(MKINT(v2));
-	INT v3 = WRAP_I63(0LL);
-	bool v4 = int_lt(v2, v3);
-	INT branch_Nat_5;
-	if (v4) {
-		decref(MKINT(v2));
-		INT v6 = WRAP_I63(0LL);
-		branch_Nat_5 = v6;
-	} else {
-		branch_Nat_5 = v2;
-	}
-	return branch_Nat_5;
+	return v2;
 }
 static void mw_std_input_ZPlusInputOpenState_endZBang (TUP* in_ZPlusInputOpenState_1, TUP* *out_ZPlusFile_2) {
 	INT v3;
@@ -9773,35 +9905,63 @@ static void mw_std_input_ZPlusInputOpenState_refillZ_bufferZBang (TUP* in_ZPlusI
 	in_ZPlusInputOpenState_1->cells[3] = MKTUP(v3, 2);
 	TUP* v6 = value_tup(in_ZPlusInputOpenState_1->cells[2], 2);
 	int64_t v7 = 0LL /* +Unsafe */;
-	bool v8;
-	TUP* v9;
-	INT v10 = mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang(v4, v5, v6, &v8, &v9);
-	in_ZPlusInputOpenState_1->cells[2] = MKTUP(v9, 2);
-	incref(MKINT(v10));
-	INT v11 = WRAP_I63(0LL);
-	bool v12 = int_gt(v10, v11);
-	bool v13 = (v8 && v12);
-	VAL branch_ZPlusInput_14;
-	if (v13) {
-		INT v15 = value_int(in_ZPlusInputOpenState_1->cells[0]);
-		decref(MKINT(v15));
-		in_ZPlusInputOpenState_1->cells[0] = MKINT(v10);
-		INT v16 = WRAP_I63(0LL);
-		INT v17 = value_int(in_ZPlusInputOpenState_1->cells[1]);
-		decref(MKINT(v17));
-		in_ZPlusInputOpenState_1->cells[1] = MKINT(v16);
-		VAL v18;
-		mtw_std_input_ZPlusInput_Open(in_ZPlusInputOpenState_1, &v18);
-		branch_ZPlusInput_14 = v18;
-	} else {
-		decref(MKINT(v10));
-		TUP* v19;
-		mw_std_input_ZPlusInputOpenState_endZBang(in_ZPlusInputOpenState_1, &v19);
-		VAL v20;
-		mtw_std_input_ZPlusInput_Done(v19, &v20);
-		branch_ZPlusInput_14 = v20;
+	TUP* v8;
+	VAL v9 = mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang(v4, v5, v6, &v8);
+	in_ZPlusInputOpenState_1->cells[2] = MKTUP(v8, 2);
+	VAL v10 = mw_std_result_Result_2_okZAsk(v9);
+	VAL branch_Maybe_11;
+	switch (get_data_tag(v10)) {
+		case 1LL: { // Some
+			VAL v12 = mtp_std_maybe_Maybe_1_Some(v10);
+			incref(v12);
+			INT v13 = WRAP_I63(0LL);
+			bool v14 = int_lt(v13, value_int(v12));
+			VAL branch_Maybe_15;
+			if (v14) {
+				VAL v16 = mtw_std_maybe_Maybe_1_Some(v12);
+				branch_Maybe_15 = v16;
+			} else {
+				decref(v12);
+				VAL v17 = MKI64(0LL /* None */);
+				branch_Maybe_15 = v17;
+			}
+			branch_Maybe_11 = branch_Maybe_15;
+		} break;
+		case 0LL: { // None
+			VAL v18 = MKI64(0LL /* None */);
+			branch_Maybe_11 = v18;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
 	}
-	*out_ZPlusInput_2 = branch_ZPlusInput_14;
+	VAL branch_ZPlusInput_19;
+	switch (get_data_tag(branch_Maybe_11)) {
+		case 1LL: { // Some
+			VAL v20 = mtp_std_maybe_Maybe_1_Some(branch_Maybe_11);
+			INT v21 = value_int(in_ZPlusInputOpenState_1->cells[0]);
+			decref(MKINT(v21));
+			in_ZPlusInputOpenState_1->cells[0] = v20;
+			INT v22 = WRAP_I63(0LL);
+			INT v23 = value_int(in_ZPlusInputOpenState_1->cells[1]);
+			decref(MKINT(v23));
+			in_ZPlusInputOpenState_1->cells[1] = MKINT(v22);
+			VAL v24;
+			mtw_std_input_ZPlusInput_Open(in_ZPlusInputOpenState_1, &v24);
+			branch_ZPlusInput_19 = v24;
+		} break;
+		case 0LL: { // None
+			TUP* v25;
+			mw_std_input_ZPlusInputOpenState_endZBang(in_ZPlusInputOpenState_1, &v25);
+			VAL v26;
+			mtw_std_input_ZPlusInput_Done(v25, &v26);
+			branch_ZPlusInput_19 = v26;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusInput_2 = branch_ZPlusInput_19;
 }
 static void mw_std_input_ZPlusInputOpenState_prepareZ_forZ_moreZBang (TUP* in_ZPlusInputOpenState_1, VAL *out_ZPlusInput_2) {
 	INT v3 = value_int(in_ZPlusInputOpenState_1->cells[0]);
@@ -9929,37 +10089,26 @@ static void mw_std_input_ZPlusInput_moveZBang (VAL in_ZPlusInput_1, VAL *out_ZPl
 			incref(MKINT(v5));
 			INT v6 = WRAP_I63(1LL);
 			INT v7 = int_sub(v5, v6);
-			incref(MKINT(v7));
-			INT v8 = WRAP_I63(0LL);
-			bool v9 = int_lt(v7, v8);
-			INT branch_Nat_10;
-			if (v9) {
-				decref(MKINT(v7));
-				INT v11 = WRAP_I63(0LL);
-				branch_Nat_10 = v11;
-			} else {
-				branch_Nat_10 = v7;
-			}
-			INT v12 = value_int(v4->cells[0]);
+			INT v8 = value_int(v4->cells[0]);
+			decref(MKINT(v8));
+			v4->cells[0] = MKINT(v7);
+			INT v9 = value_int(v4->cells[1]);
+			incref(MKINT(v9));
+			INT v10 = WRAP_I63(1LL);
+			INT v11 = int_add(v9, v10);
+			INT v12 = value_int(v4->cells[1]);
 			decref(MKINT(v12));
-			v4->cells[0] = MKINT(branch_Nat_10);
-			INT v13 = value_int(v4->cells[1]);
-			incref(MKINT(v13));
-			INT v14 = WRAP_I63(1LL);
-			INT v15 = int_add(v13, v14);
-			INT v16 = value_int(v4->cells[1]);
-			decref(MKINT(v16));
-			v4->cells[1] = MKINT(v15);
-			VAL v17;
-			mw_std_input_ZPlusInputOpenState_prepareZ_forZ_moreZBang(v4, &v17);
-			branch_ZPlusInput_3 = v17;
+			v4->cells[1] = MKINT(v11);
+			VAL v13;
+			mw_std_input_ZPlusInputOpenState_prepareZ_forZ_moreZBang(v4, &v13);
+			branch_ZPlusInput_3 = v13;
 		} break;
 		case 1LL: { // Done
-			TUP* v18;
-			mtp_std_input_ZPlusInput_Done(in_ZPlusInput_1, &v18);
-			VAL v19;
-			mtw_std_input_ZPlusInput_Done(v18, &v19);
-			branch_ZPlusInput_3 = v19;
+			TUP* v14;
+			mtp_std_input_ZPlusInput_Done(in_ZPlusInput_1, &v14);
+			VAL v15;
+			mtw_std_input_ZPlusInput_Done(v14, &v15);
+			branch_ZPlusInput_3 = v15;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -10047,18 +10196,7 @@ static STR* mw_std_input_ZPlusInput_readZ_fileZBang (VAL in_ZPlusInput_1, VAL *o
 }
 static INT mw_std_output_OUTPUTz_BUFFERz_SIZZE (void) {
 	INT v2 = WRAP_I63(4096LL);
-	incref(MKINT(v2));
-	INT v3 = WRAP_I63(0LL);
-	bool v4 = int_lt(v2, v3);
-	INT branch_Nat_5;
-	if (v4) {
-		decref(MKINT(v2));
-		INT v6 = WRAP_I63(0LL);
-		branch_Nat_5 = v6;
-	} else {
-		branch_Nat_5 = v2;
-	}
-	return branch_Nat_5;
+	return v2;
 }
 static void mw_std_output_ZPlusOutput_startZBang (TUP* in_ZPlusFile_1, TUP* *out_ZPlusOutput_2) {
 	INT v3 = WRAP_I63(0LL);
@@ -10087,16 +10225,14 @@ static void mw_std_output_ZPlusOutput_flushZBang (TUP* in_ZPlusOutput_1, TUP* *o
 	INT v5 = value_int(in_ZPlusOutput_1->cells[0]);
 	incref(MKINT(v5));
 	TUP* v6 = value_tup(in_ZPlusOutput_1->cells[1], 2);
-	int64_t v7 = 0LL /* +Unsafe */;
-	bool v8;
-	TUP* v9;
-	INT v10 = mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang(v4, v5, v6, &v8, &v9);
-	in_ZPlusOutput_1->cells[1] = MKTUP(v9, 2);
+	TUP* v7;
+	VAL v8 = mw_std_prelude_unsafe_1_sp1(v4, v5, v6, &v7);
+	in_ZPlusOutput_1->cells[1] = MKTUP(v7, 2);
+	decref(v8);
+	INT v9 = WRAP_I63(0LL);
+	INT v10 = value_int(in_ZPlusOutput_1->cells[0]);
 	decref(MKINT(v10));
-	INT v11 = WRAP_I63(0LL);
-	INT v12 = value_int(in_ZPlusOutput_1->cells[0]);
-	decref(MKINT(v12));
-	in_ZPlusOutput_1->cells[0] = MKINT(v11);
+	in_ZPlusOutput_1->cells[0] = MKINT(v9);
 	*out_ZPlusOutput_2 = in_ZPlusOutput_1;
 }
 static INT mw_std_output_ZPlusOutput_offset (TUP* in_ZPlusOutput_1, TUP* *out_ZPlusOutput_2) {
@@ -10119,19 +10255,8 @@ static INT mw_std_output_ZPlusOutput_capacityZ_remaining (TUP* in_ZPlusOutput_1,
 	INT v6 = value_int(v4->cells[0]);
 	incref(MKINT(v6));
 	INT v7 = int_sub(v5, v6);
-	incref(MKINT(v7));
-	INT v8 = WRAP_I63(0LL);
-	bool v9 = int_lt(v7, v8);
-	INT branch_USizze_10;
-	if (v9) {
-		decref(MKINT(v7));
-		INT v11 = WRAP_I63(0LL);
-		branch_USizze_10 = v11;
-	} else {
-		branch_USizze_10 = v7;
-	}
 	*out_ZPlusOutput_3 = v4;
-	return branch_USizze_10;
+	return v7;
 }
 static bool mw_std_output_ZPlusOutput_fullZAsk (TUP* in_ZPlusOutput_1, TUP* *out_ZPlusOutput_3) {
 	TUP* v4;
@@ -10147,7 +10272,7 @@ static void mw_std_output_ZPlusOutput_put (STR* in_Str_1, TUP* in_ZPlusOutput_2,
 	INT v5 = u64_to_int(v4);
 	TUP* v6;
 	INT v7 = mw_std_output_ZPlusOutput_capacityZ_remaining(in_ZPlusOutput_2, &v6);
-	bool v8 = int_gt(v5, v7);
+	bool v8 = int_lt(v7, v5);
 	TUP* branch_ZPlusOutput_9;
 	if (v8) {
 		TUP* v10;
@@ -10157,7 +10282,7 @@ static void mw_std_output_ZPlusOutput_put (STR* in_Str_1, TUP* in_ZPlusOutput_2,
 		INT v12 = u64_to_int(v11);
 		TUP* v13;
 		INT v14 = mw_std_output_ZPlusOutput_capacityZ_total(v10, &v13);
-		bool v15 = int_ge(v12, v14);
+		bool v15 = int_le(v14, v12);
 		TUP* branch_ZPlusOutput_16;
 		if (v15) {
 			incref(MKSTR(in_Str_1));
@@ -10166,37 +10291,35 @@ static void mw_std_output_ZPlusOutput_put (STR* in_Str_1, TUP* in_ZPlusOutput_2,
 			uint64_t v18 = str_size(in_Str_1);
 			INT v19 = u64_to_int(v18);
 			TUP* v20 = value_tup(v13->cells[1], 2);
-			int64_t v21 = 0LL /* +Unsafe */;
-			bool v22;
-			TUP* v23;
-			INT v24 = mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang(v17, v19, v20, &v22, &v23);
-			v13->cells[1] = MKTUP(v23, 2);
-			decref(MKINT(v24));
+			TUP* v21;
+			VAL v22 = mw_std_prelude_unsafe_1_sp1(v17, v19, v20, &v21);
+			v13->cells[1] = MKTUP(v21, 2);
+			decref(v22);
 			decref(MKSTR(in_Str_1));
 			branch_ZPlusOutput_16 = v13;
 		} else {
-			TUP* v25;
-			mw_std_output_ZPlusOutput_put(in_Str_1, v13, &v25);
-			branch_ZPlusOutput_16 = v25;
+			TUP* v23;
+			mw_std_output_ZPlusOutput_put(in_Str_1, v13, &v23);
+			branch_ZPlusOutput_16 = v23;
 		}
 		branch_ZPlusOutput_9 = branch_ZPlusOutput_16;
 	} else {
 		incref(MKSTR(in_Str_1));
-		TUP* v26;
-		INT v27 = mw_std_output_ZPlusOutput_offset(v6, &v26);
-		TUP* v28 = value_tup(v26->cells[2], 2);
-		TUP* v29;
-		mw_std_buffer_ZPlusBuffer_ZBangStr(in_Str_1, v27, v28, &v29);
-		v26->cells[2] = MKTUP(v29, 2);
-		uint64_t v30 = str_size(in_Str_1);
-		INT v31 = u64_to_int(v30);
-		INT v32 = value_int(v26->cells[0]);
-		incref(MKINT(v32));
-		INT v33 = int_add(v31, v32);
-		INT v34 = value_int(v26->cells[0]);
-		decref(MKINT(v34));
-		v26->cells[0] = MKINT(v33);
-		branch_ZPlusOutput_9 = v26;
+		TUP* v24;
+		INT v25 = mw_std_output_ZPlusOutput_offset(v6, &v24);
+		TUP* v26 = value_tup(v24->cells[2], 2);
+		TUP* v27;
+		mw_std_buffer_ZPlusBuffer_ZBangStr(in_Str_1, v25, v26, &v27);
+		v24->cells[2] = MKTUP(v27, 2);
+		uint64_t v28 = str_size(in_Str_1);
+		INT v29 = u64_to_int(v28);
+		INT v30 = value_int(v24->cells[0]);
+		incref(MKINT(v30));
+		INT v31 = int_add(v29, v30);
+		INT v32 = value_int(v24->cells[0]);
+		decref(MKINT(v32));
+		v24->cells[0] = MKINT(v31);
+		branch_ZPlusOutput_9 = v24;
 	}
 	*out_ZPlusOutput_3 = branch_ZPlusOutput_9;
 }
@@ -10232,29 +10355,157 @@ static void mw_std_output_ZPlusOutput_line (TUP* in_ZPlusOutput_1, TUP* *out_ZPl
 	mw_std_output_ZPlusOutput_putZ_byte(v3, in_ZPlusOutput_1, &v4);
 	*out_ZPlusOutput_2 = v4;
 }
-static void mw_std_file_ZPlusFile_closeZ_fileZBang (TUP* in_ZPlusFile_1) {
-	INT v4;
-	bool v5;
-	mtp_std_file_ZPlusFile_ZPlusFile(in_ZPlusFile_1, &v4, &v5);
-	if (v5) {
-		int64_t v6 = int_to_i64(v4);
-		int64_t v7 = mext_std_posix_externalZ_posixZ_close(v6);
-		INT v8 = i64_to_int(v7);
-		incref(MKINT(v8));
-		INT v9 = WRAP_I63(0LL);
-		bool v10 = int_ge(v8, v9);
-		INT branch_Int_11;
-		if (v10) {
-			branch_Int_11 = v8;
-		} else {
+static void mw_std_file_IOError_messageZThen (STR* in_ZPlusStr_1, VAL in_IOError_2, STR* *out_ZPlusStr_3) {
+	STR* branch_ZPlusStr_6;
+	switch (get_data_tag(in_IOError_2)) {
+		case 0LL: { // OpenFailed
+			int64_t v7;
+			STR* v8 = mtp_std_file_IOError_OpenFailed(in_IOError_2, &v7);
+			STR* v9;
+			STRLIT(v9, "Failed to open ", 15);
+			STR* v10;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v9, in_ZPlusStr_1, &v10);
+			STR* v11;
+			mw_std_path_Path_pathZThen(v8, v10, &v11);
 			STR* v12;
-			STRLIT(v12, "Error while closing file.", 25);
-			do_panic(v12);
+			STRLIT(v12, ": ", 2);
+			STR* v13;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v12, v11, &v13);
+			void* v14 = mext_std_prim_ZPlusWorld_rawZ_posixZ_strerrorZBang(v7);
+			int64_t v15 = 0LL /* +Unsafe */;
+			uint64_t v16 = mext_std_ctypes_CStr_numZ_bytesZ_raw(v14);
+			INT v17 = u64_to_int(v16);
+			uint64_t v18 = int_to_u64(v17);
+			STR* v19 = str_make(v14, v18);
+			STR* v20;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v19, v13, &v20);
+			branch_ZPlusStr_6 = v20;
+		} break;
+		case 1LL: { // CreateFailed
+			int64_t v21;
+			STR* v22 = mtp_std_file_IOError_CreateFailed(in_IOError_2, &v21);
+			STR* v23;
+			STRLIT(v23, "Failed to create ", 17);
+			STR* v24;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v23, in_ZPlusStr_1, &v24);
+			STR* v25;
+			mw_std_path_Path_pathZThen(v22, v24, &v25);
+			STR* v26;
+			STRLIT(v26, ": ", 2);
+			STR* v27;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v26, v25, &v27);
+			void* v28 = mext_std_prim_ZPlusWorld_rawZ_posixZ_strerrorZBang(v21);
+			int64_t v29 = 0LL /* +Unsafe */;
+			uint64_t v30 = mext_std_ctypes_CStr_numZ_bytesZ_raw(v28);
+			INT v31 = u64_to_int(v30);
+			uint64_t v32 = int_to_u64(v31);
+			STR* v33 = str_make(v28, v32);
+			STR* v34;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v33, v27, &v34);
+			branch_ZPlusStr_6 = v34;
+		} break;
+		case 2LL: { // CreateUnsupported
+			STR* v35 = mtp_std_file_IOError_CreateUnsupported(in_IOError_2);
+			STR* v36;
+			STRLIT(v36, "Failed to create ", 17);
+			STR* v37;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v36, in_ZPlusStr_1, &v37);
+			STR* v38;
+			mw_std_path_Path_pathZThen(v35, v37, &v38);
+			STR* v39;
+			STRLIT(v39, ": Unsupported platform", 22);
+			STR* v40;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v39, v38, &v40);
+			branch_ZPlusStr_6 = v40;
+		} break;
+		case 3LL: { // CloseFailed
+			int64_t v41 = mtp_std_file_IOError_CloseFailed(in_IOError_2);
+			STR* v42;
+			STRLIT(v42, "Close file failed: ", 19);
+			STR* v43;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v42, in_ZPlusStr_1, &v43);
+			void* v44 = mext_std_prim_ZPlusWorld_rawZ_posixZ_strerrorZBang(v41);
+			int64_t v45 = 0LL /* +Unsafe */;
+			uint64_t v46 = mext_std_ctypes_CStr_numZ_bytesZ_raw(v44);
+			INT v47 = u64_to_int(v46);
+			uint64_t v48 = int_to_u64(v47);
+			STR* v49 = str_make(v44, v48);
+			STR* v50;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v49, v43, &v50);
+			branch_ZPlusStr_6 = v50;
+		} break;
+		case 4LL: { // ReadFailed
+			int64_t v51 = mtp_std_file_IOError_ReadFailed(in_IOError_2);
+			STR* v52;
+			STRLIT(v52, "Failed to read from file: ", 26);
+			STR* v53;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v52, in_ZPlusStr_1, &v53);
+			void* v54 = mext_std_prim_ZPlusWorld_rawZ_posixZ_strerrorZBang(v51);
+			int64_t v55 = 0LL /* +Unsafe */;
+			uint64_t v56 = mext_std_ctypes_CStr_numZ_bytesZ_raw(v54);
+			INT v57 = u64_to_int(v56);
+			uint64_t v58 = int_to_u64(v57);
+			STR* v59 = str_make(v54, v58);
+			STR* v60;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v59, v53, &v60);
+			branch_ZPlusStr_6 = v60;
+		} break;
+		case 5LL: { // WriteFailed
+			int64_t v61;
+			INT v62 = mtp_std_file_IOError_WriteFailed(in_IOError_2, &v61);
+			STR* v63;
+			STRLIT(v63, "Failed to write to file: ", 25);
+			STR* v64;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v63, in_ZPlusStr_1, &v64);
+			void* v65 = mext_std_prim_ZPlusWorld_rawZ_posixZ_strerrorZBang(v61);
+			int64_t v66 = 0LL /* +Unsafe */;
+			uint64_t v67 = mext_std_ctypes_CStr_numZ_bytesZ_raw(v65);
+			INT v68 = u64_to_int(v67);
+			uint64_t v69 = int_to_u64(v68);
+			STR* v70 = str_make(v65, v69);
+			STR* v71;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v70, v64, &v71);
+			decref(MKINT(v62));
+			branch_ZPlusStr_6 = v71;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
-		decref(MKINT(branch_Int_11));
-	} else {
-		decref(MKINT(v4));
 	}
+	*out_ZPlusStr_3 = branch_ZPlusStr_6;
+}
+static STR* mw_std_file_IOError_message (VAL in_IOError_1) {
+	STR* v5;
+	STRLIT(v5, "", 0);
+	STR* v6;
+	mw_std_file_IOError_messageZThen(v5, in_IOError_1, &v6);
+	return v6;
+}
+static VAL mw_std_file_ZPlusFile_closeZ_fileZBang (TUP* in_ZPlusFile_1) {
+	int64_t v5;
+	bool v6;
+	mtp_std_file_ZPlusFile_ZPlusFile(in_ZPlusFile_1, &v5, &v6);
+	VAL branch_Maybe_7;
+	if (v6) {
+		int64_t v8 = mext_std_prim_ZPlusWorld_rawZ_posixZ_closeZBang(v5);
+		int64_t v9 = 0LL;
+		bool v10 = (v8 < v9);
+		VAL branch_Maybe_11;
+		if (v10) {
+			int64_t v12 = mext_std_prim_ZPlusWorld_posixZ_errnoZBang();
+			VAL v13 = mtw_std_file_IOError_CloseFailed(v12);
+			VAL v14 = mtw_std_maybe_Maybe_1_Some(v13);
+			branch_Maybe_11 = v14;
+		} else {
+			VAL v15 = MKI64(0LL /* None */);
+			branch_Maybe_11 = v15;
+		}
+		branch_Maybe_7 = branch_Maybe_11;
+	} else {
+		VAL v16 = MKI64(0LL /* None */);
+		branch_Maybe_7 = v16;
+	}
+	return branch_Maybe_7;
 }
 static STR* mw_std_file_ZPlusFile_readZ_fileZBang (TUP* in_ZPlusFile_1, TUP* *out_ZPlusFile_3) {
 	VAL v4;
@@ -10268,82 +10519,133 @@ static STR* mw_std_file_ZPlusFile_readZ_fileZBang (TUP* in_ZPlusFile_1, TUP* *ou
 }
 static void mw_std_prim_ZPlusWorld_openZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2) {
 	incref(MKSTR(in_Path_1));
-	INT v5 = WRAP_I63(0LL);
+	int64_t v5 = mw_std_posix_OpenFlags_None();
 	INT v6 = WRAP_I63(0LL);
-	INT v7 = mw_std_posix_posixZ_openZBang(in_Path_1, v5, v6);
-	incref(MKINT(v7));
-	INT v8 = WRAP_I63(0LL);
-	bool v9 = int_gt(v7, v8);
-	VAL branch_ZPlusResult_10;
-	if (v9) {
-		decref(MKSTR(in_Path_1));
-		bool v11 = true;
-		TUP* v12;
-		mtw_std_file_ZPlusFile_ZPlusFile(v7, v11, &v12);
-		VAL v13;
-		mtw_std_result_ZPlusResult_2_ZPlusOk(MKTUP(v12, 2), &v13);
-		branch_ZPlusResult_10 = v13;
+	int64_t v7 = int_to_i64(v6);
+	incref(MKSTR(in_Path_1));
+	incref(MKSTR(in_Path_1));
+	void* v8 = str_base(in_Path_1);
+	uint64_t v9 = str_size(in_Path_1);
+	INT v10 = u64_to_int(v9);
+	uint8_t v11 = mw_std_prelude_unsafe_1_sp16(v10, v8);
+	uint64_t v12 = (uint64_t)(v11);
+	INT v13 = u64_to_int(v12);
+	INT v14 = WRAP_I63(0LL);
+	bool v15 = int_eq(v13, v14);
+	if (v15) {
 	} else {
-		decref(MKINT(v7));
-		STR* v14;
-		STRLIT(v14, "", 0);
-		STR* v15;
-		STRLIT(v15, "Failed to open file: ", 21);
 		STR* v16;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v15, v14, &v16);
-		STR* v17;
-		mw_std_path_Path_pathZThen(in_Path_1, v16, &v17);
-		VAL v18;
-		mtw_std_result_ZPlusResult_2_ZPlusErr(MKSTR(v17), &v18);
-		branch_ZPlusResult_10 = v18;
+		STRLIT(v16, "tried to use Str as CStr, but Str is not zero terminated", 56);
+		do_panic(v16);
 	}
-	*out_ZPlusResult_2 = branch_ZPlusResult_10;
+	int64_t v17 = mext_std_prim_ZPlusWorld_rawZ_posixZ_openZBang(v8, v5, v7);
+	int64_t v18 = 0LL;
+	bool v19 = (v17 < v18);
+	VAL branch_ZPlusMaybe_20;
+	if (v19) {
+		VAL v21 = MKI64(0LL /* +None */);
+		branch_ZPlusMaybe_20 = v21;
+	} else {
+		VAL v22;
+		mtw_std_maybe_ZPlusMaybe_1_ZPlusSome(MKI64(v17), &v22);
+		branch_ZPlusMaybe_20 = v22;
+	}
+	decref(MKSTR(in_Path_1));
+	VAL branch_ZPlusResult_23;
+	switch (get_data_tag(branch_ZPlusMaybe_20)) {
+		case 1LL: { // +Some
+			VAL v24;
+			mtp_std_maybe_ZPlusMaybe_1_ZPlusSome(branch_ZPlusMaybe_20, &v24);
+			decref(MKSTR(in_Path_1));
+			bool v25 = true;
+			TUP* v26;
+			mtw_std_file_ZPlusFile_ZPlusFile(value_i64(v24), v25, &v26);
+			VAL v27;
+			mtw_std_result_ZPlusResult_2_ZPlusOk(MKTUP(v26, 2), &v27);
+			branch_ZPlusResult_23 = v27;
+		} break;
+		case 0LL: { // +None
+			int64_t v28 = mext_std_prim_ZPlusWorld_posixZ_errnoZBang();
+			VAL v29 = mtw_std_file_IOError_OpenFailed(in_Path_1, v28);
+			VAL v30;
+			mtw_std_result_ZPlusResult_2_ZPlusErr(v29, &v30);
+			branch_ZPlusResult_23 = v30;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusResult_2 = branch_ZPlusResult_23;
 }
 static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_ZPlusResult_2) {
-	incref(MKSTR(in_Path_1));
 	VAL v5 = mw_std_prim_ZPlusWorld_createZ_fileZ_flags();
 	VAL branch_ZPlusResult_6;
 	switch (get_data_tag(v5)) {
 		case 1LL: { // Some
 			VAL v7 = mtp_std_maybe_Maybe_1_Some(v5);
+			incref(MKSTR(in_Path_1));
 			INT v8 = WRAP_I63(438LL);
-			INT v9 = mw_std_posix_posixZ_openZBang(in_Path_1, value_int(v7), v8);
-			incref(MKINT(v9));
-			INT v10 = WRAP_I63(0LL);
-			bool v11 = int_gt(v9, v10);
-			VAL branch_ZPlusResult_12;
-			if (v11) {
-				decref(MKSTR(in_Path_1));
-				bool v13 = true;
-				TUP* v14;
-				mtw_std_file_ZPlusFile_ZPlusFile(v9, v13, &v14);
-				VAL v15;
-				mtw_std_result_ZPlusResult_2_ZPlusOk(MKTUP(v14, 2), &v15);
-				branch_ZPlusResult_12 = v15;
+			int64_t v9 = int_to_i64(v8);
+			incref(MKSTR(in_Path_1));
+			incref(MKSTR(in_Path_1));
+			void* v10 = str_base(in_Path_1);
+			uint64_t v11 = str_size(in_Path_1);
+			INT v12 = u64_to_int(v11);
+			uint8_t v13 = mw_std_prelude_unsafe_1_sp16(v12, v10);
+			uint64_t v14 = (uint64_t)(v13);
+			INT v15 = u64_to_int(v14);
+			INT v16 = WRAP_I63(0LL);
+			bool v17 = int_eq(v15, v16);
+			if (v17) {
 			} else {
-				decref(MKINT(v9));
-				STR* v16;
-				STRLIT(v16, "", 0);
-				STR* v17;
-				STRLIT(v17, "Failed to create file: ", 23);
 				STR* v18;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v17, v16, &v18);
-				STR* v19;
-				mw_std_path_Path_pathZThen(in_Path_1, v18, &v19);
-				VAL v20;
-				mtw_std_result_ZPlusResult_2_ZPlusErr(MKSTR(v19), &v20);
-				branch_ZPlusResult_12 = v20;
+				STRLIT(v18, "tried to use Str as CStr, but Str is not zero terminated", 56);
+				do_panic(v18);
 			}
-			branch_ZPlusResult_6 = branch_ZPlusResult_12;
+			int64_t v19 = mext_std_prim_ZPlusWorld_rawZ_posixZ_openZBang(v10, value_i64(v7), v9);
+			int64_t v20 = 0LL;
+			bool v21 = (v19 < v20);
+			VAL branch_ZPlusMaybe_22;
+			if (v21) {
+				VAL v23 = MKI64(0LL /* +None */);
+				branch_ZPlusMaybe_22 = v23;
+			} else {
+				VAL v24;
+				mtw_std_maybe_ZPlusMaybe_1_ZPlusSome(MKI64(v19), &v24);
+				branch_ZPlusMaybe_22 = v24;
+			}
+			decref(MKSTR(in_Path_1));
+			VAL branch_ZPlusResult_25;
+			switch (get_data_tag(branch_ZPlusMaybe_22)) {
+				case 1LL: { // +Some
+					VAL v26;
+					mtp_std_maybe_ZPlusMaybe_1_ZPlusSome(branch_ZPlusMaybe_22, &v26);
+					decref(MKSTR(in_Path_1));
+					bool v27 = true;
+					TUP* v28;
+					mtw_std_file_ZPlusFile_ZPlusFile(value_i64(v26), v27, &v28);
+					VAL v29;
+					mtw_std_result_ZPlusResult_2_ZPlusOk(MKTUP(v28, 2), &v29);
+					branch_ZPlusResult_25 = v29;
+				} break;
+				case 0LL: { // +None
+					int64_t v30 = mext_std_prim_ZPlusWorld_posixZ_errnoZBang();
+					VAL v31 = mtw_std_file_IOError_CreateFailed(in_Path_1, v30);
+					VAL v32;
+					mtw_std_result_ZPlusResult_2_ZPlusErr(v31, &v32);
+					branch_ZPlusResult_25 = v32;
+				} break;
+				default: {
+					do_panic(str_make("unexpected fallthrough in match\n", 32));
+				}
+			}
+			branch_ZPlusResult_6 = branch_ZPlusResult_25;
 		} break;
 		case 0LL: { // None
-			decref(MKSTR(in_Path_1));
-			decref(MKSTR(in_Path_1));
-			STR* v21;
-			STRLIT(v21, "Don't know how to create file on unknown OS.", 44);
-			VAL v22;
-			mtw_std_result_ZPlusResult_2_ZPlusErr(MKSTR(v21), &v22);
-			branch_ZPlusResult_6 = v22;
+			VAL v33 = mtw_std_file_IOError_CreateUnsupported(in_Path_1);
+			VAL v34;
+			mtw_std_result_ZPlusResult_2_ZPlusErr(v33, &v34);
+			branch_ZPlusResult_6 = v34;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -10352,7 +10654,7 @@ static void mw_std_prim_ZPlusWorld_createZ_fileZBang (STR* in_Path_1, VAL *out_Z
 	*out_ZPlusResult_2 = branch_ZPlusResult_6;
 }
 static void mw_std_prim_ZPlusWorld_stderrZ_file (TUP* *out_ZPlusFile_1) {
-	INT v4 = WRAP_I63(2LL);
+	int64_t v4 = 2LL;
 	bool v5 = false;
 	TUP* v6;
 	mtw_std_file_ZPlusFile_ZPlusFile(v4, v5, &v6);
@@ -10365,22 +10667,25 @@ static VAL mw_std_prim_ZPlusWorld_createZ_fileZ_flags (void) {
 	switch (v5) {
 		case 3LL: { // Mac
 			INT v7 = WRAP_I63(1537LL);
-			VAL v8 = mtw_std_maybe_Maybe_1_Some(MKINT(v7));
-			branch_Maybe_6 = v8;
+			int64_t v8 = int_to_i64(v7);
+			VAL v9 = mtw_std_maybe_Maybe_1_Some(MKI64(v8));
+			branch_Maybe_6 = v9;
 		} break;
 		case 2LL: { // Linux
-			INT v9 = WRAP_I63(577LL);
-			VAL v10 = mtw_std_maybe_Maybe_1_Some(MKINT(v9));
-			branch_Maybe_6 = v10;
-		} break;
-		case 1LL: { // Windows
-			INT v11 = WRAP_I63(769LL);
-			VAL v12 = mtw_std_maybe_Maybe_1_Some(MKINT(v11));
+			INT v10 = WRAP_I63(577LL);
+			int64_t v11 = int_to_i64(v10);
+			VAL v12 = mtw_std_maybe_Maybe_1_Some(MKI64(v11));
 			branch_Maybe_6 = v12;
 		} break;
+		case 1LL: { // Windows
+			INT v13 = WRAP_I63(769LL);
+			int64_t v14 = int_to_i64(v13);
+			VAL v15 = mtw_std_maybe_Maybe_1_Some(MKI64(v14));
+			branch_Maybe_6 = v15;
+		} break;
 		case 0LL: { // Unknown
-			VAL v13 = MKI64(0LL /* None */);
-			branch_Maybe_6 = v13;
+			VAL v16 = MKI64(0LL /* None */);
+			branch_Maybe_6 = v16;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -10388,111 +10693,160 @@ static VAL mw_std_prim_ZPlusWorld_createZ_fileZ_flags (void) {
 	}
 	return branch_Maybe_6;
 }
-static INT mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* in_Ptr_1, INT in_USizze_2, TUP* in_ZPlusFile_3, bool *out_Bool_5, TUP* *out_ZPlusFile_6) {
-	bool v9 = true;
+static VAL mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang (void* in_Ptr_1, INT in_Sizze_2, TUP* in_ZPlusFile_3, TUP* *out_ZPlusFile_5) {
+	INT v8 = WRAP_I63(0LL);
+	VAL v9 = mtw_std_result_Result_2_Ok(MKINT(v8));
+	incref(MKINT(in_Sizze_2));
 	INT v10 = WRAP_I63(0LL);
-	incref(MKINT(in_USizze_2));
-	INT v11 = WRAP_I63(0LL);
-	bool v12 = int_gt(in_USizze_2, v11);
-	bool v13 = (v12 && v9);
-	TUP* v14 = in_ZPlusFile_3;
-	void* v15 = in_Ptr_1;
-	INT v16 = v10;
-	INT v17 = in_USizze_2;
-	bool v18 = v9;
-	bool v19 = v13;
-	while (v19) {
-		TUP* v20 = v14;
-		void* v21 = v15;
-		INT v22 = v16;
-		INT v23 = v17;
-		bool v24 = v18;
-		INT v25 = value_int(v20->cells[0]);
-		incref(MKINT(v25));
-		incref(MKINT(v23));
-		uint64_t v26 = int_to_u64(v23);
-		int64_t v27 = int_to_i64(v25);
-		int64_t v28 = mext_std_posix_externalZ_posixZ_write(v27, v21, v26);
-		INT v29 = i64_to_int(v28);
-		incref(MKINT(v29));
-		INT v30 = WRAP_I63(0LL);
-		bool v31 = int_lt(v29, v30);
-		INT branch_USizze_32;
-		void* branch_Ptr_33;
-		INT branch_USizze_34;
-		bool branch_Bool_35;
-		if (v31) {
-			decref(MKINT(v29));
-			bool v36 = false;
-			branch_Bool_35 = v36;
-			branch_USizze_34 = v22;
-			branch_Ptr_33 = v21;
-			branch_USizze_32 = v23;
-		} else {
-			incref(MKINT(v29));
-			INT v37 = int_add(v29, v22);
-			incref(MKINT(v29));
-			int64_t v38 = int_to_i64(v29);
-			void* v39 = (void*)(v38 + (char*)v21);
-			INT v40 = int_sub(v23, v29);
-			incref(MKINT(v40));
-			INT v41 = WRAP_I63(0LL);
-			bool v42 = int_lt(v40, v41);
-			INT branch_USizze_43;
-			if (v42) {
-				decref(MKINT(v40));
-				INT v44 = WRAP_I63(0LL);
-				branch_USizze_43 = v44;
-			} else {
-				branch_USizze_43 = v40;
+	bool v11 = int_lt(v10, in_Sizze_2);
+	void* v12 = in_Ptr_1;
+	TUP* v13 = in_ZPlusFile_3;
+	VAL v14 = v9;
+	INT v15 = in_Sizze_2;
+	bool v16 = v11;
+	while (v16) {
+		void* v17 = v12;
+		TUP* v18 = v13;
+		VAL v19 = v14;
+		INT v20 = v15;
+		void* branch_Ptr_21;
+		TUP* branch_ZPlusFile_22;
+		VAL branch_Result_23;
+		INT branch_Sizze_24;
+		switch (get_data_tag(v19)) {
+			case 0LL: { // Err
+				VAL v25 = mtp_std_result_Result_2_Err(v19);
+				VAL v26 = mtw_std_result_Result_2_Err(v25);
+				INT v27 = WRAP_I63(0LL);
+				decref(MKINT(v20));
+				branch_Sizze_24 = v27;
+				branch_Result_23 = v26;
+				branch_ZPlusFile_22 = v18;
+				branch_Ptr_21 = v17;
+			} break;
+			case 1LL: { // Ok
+				VAL v28 = mtp_std_result_Result_2_Ok(v19);
+				int64_t v29 = value_i64(v18->cells[0]);
+				incref(MKINT(v20));
+				uint64_t v30 = int_to_u64(v20);
+				int64_t v31;
+				int64_t v32 = mext_std_prelude_ZPlusUnsafe_rawZ_posixZ_writeZBang(v29, v17, v30, &v31);
+				INT v33 = i64_to_int(v32);
+				incref(MKINT(v33));
+				INT v34 = WRAP_I63(0LL);
+				bool v35 = int_le(v34, v33);
+				int64_t branch_ZPlusFileDescriptor_36;
+				VAL branch_Result_37;
+				if (v35) {
+					VAL v38 = mtw_std_result_Result_2_Ok(MKINT(v33));
+					branch_Result_37 = v38;
+					branch_ZPlusFileDescriptor_36 = v31;
+				} else {
+					decref(MKINT(v33));
+					int64_t v39 = mext_std_prelude_ZPlusUnsafe_posixZ_errnoZBang();
+					VAL v40 = mtw_std_result_Result_2_Err(MKI64(v39));
+					branch_Result_37 = v40;
+					branch_ZPlusFileDescriptor_36 = v31;
+				}
+				v18->cells[0] = MKI64(branch_ZPlusFileDescriptor_36);
+				TUP* branch_ZPlusFile_41;
+				void* branch_Ptr_42;
+				INT branch_Sizze_43;
+				VAL branch_Result_44;
+				switch (get_data_tag(branch_Result_37)) {
+					case 1LL: { // Ok
+						VAL v45 = mtp_std_result_Result_2_Ok(branch_Result_37);
+						incref(v45);
+						INT v46 = int_add(value_int(v45), value_int(v45));
+						incref(MKINT(v46));
+						int64_t v47 = int_to_i64(v46);
+						void* v48 = (void*)(v47 + (char*)v17);
+						INT v49 = int_sub(v20, v46);
+						VAL v50 = mtw_std_result_Result_2_Ok(v28);
+						branch_Result_44 = v50;
+						branch_Sizze_43 = v49;
+						branch_Ptr_42 = v48;
+						branch_ZPlusFile_41 = v18;
+					} break;
+					case 0LL: { // Err
+						VAL v51 = mtp_std_result_Result_2_Err(branch_Result_37);
+						VAL v52 = mtw_std_file_IOError_WriteFailed(value_int(v28), value_i64(v51));
+						VAL v53 = mtw_std_result_Result_2_Err(v52);
+						INT v54 = WRAP_I63(0LL);
+						decref(MKINT(v20));
+						branch_Result_44 = v53;
+						branch_Sizze_43 = v54;
+						branch_Ptr_42 = v17;
+						branch_ZPlusFile_41 = v18;
+					} break;
+					default: {
+						do_panic(str_make("unexpected fallthrough in match\n", 32));
+					}
+				}
+				branch_Sizze_24 = branch_Sizze_43;
+				branch_Result_23 = branch_Result_44;
+				branch_ZPlusFile_22 = branch_ZPlusFile_41;
+				branch_Ptr_21 = branch_Ptr_42;
+			} break;
+			default: {
+				do_panic(str_make("unexpected fallthrough in match\n", 32));
 			}
-			branch_Bool_35 = v24;
-			branch_USizze_34 = v37;
-			branch_Ptr_33 = v39;
-			branch_USizze_32 = branch_USizze_43;
 		}
-		incref(MKINT(branch_USizze_32));
-		INT v45 = WRAP_I63(0LL);
-		bool v46 = int_gt(branch_USizze_32, v45);
-		bool v47 = (v46 && branch_Bool_35);
-		v19 = v47;
-		v18 = branch_Bool_35;
-		v17 = branch_USizze_32;
-		v16 = branch_USizze_34;
-		v15 = branch_Ptr_33;
-		v14 = v20;
+		incref(MKINT(branch_Sizze_24));
+		INT v55 = WRAP_I63(0LL);
+		bool v56 = int_lt(v55, branch_Sizze_24);
+		v16 = v56;
+		v15 = branch_Sizze_24;
+		v14 = branch_Result_23;
+		v13 = branch_ZPlusFile_22;
+		v12 = branch_Ptr_21;
 	}
-	decref(MKINT(v17));
-	*out_ZPlusFile_6 = v14;
-	*out_Bool_5 = v18;
-	return v16;
+	decref(MKINT(v15));
+	*out_ZPlusFile_5 = v13;
+	return v14;
 }
-static INT mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang (void* in_Ptr_1, INT in_USizze_2, TUP* in_ZPlusFile_3, bool *out_Bool_5, TUP* *out_ZPlusFile_6) {
-	INT v9 = value_int(in_ZPlusFile_3->cells[0]);
-	incref(MKINT(v9));
-	uint64_t v10 = int_to_u64(in_USizze_2);
-	int64_t v11 = int_to_i64(v9);
-	int64_t v12 = mext_std_posix_externalZ_posixZ_read(v11, in_Ptr_1, v10);
-	INT v13 = i64_to_int(v12);
-	incref(MKINT(v13));
-	INT v14 = WRAP_I63(0LL);
-	bool v15 = int_lt(v13, v14);
-	INT branch_USizze_16;
-	bool branch_Bool_17;
-	if (v15) {
-		decref(MKINT(v13));
-		INT v18 = WRAP_I63(0LL);
-		bool v19 = false;
-		branch_Bool_17 = v19;
-		branch_USizze_16 = v18;
+static VAL mw_std_prelude_ZPlusUnsafe_readZ_bytesZBang (void* in_Ptr_1, INT in_Sizze_2, TUP* in_ZPlusFile_3, TUP* *out_ZPlusFile_5) {
+	int64_t v8 = value_i64(in_ZPlusFile_3->cells[0]);
+	uint64_t v9 = int_to_u64(in_Sizze_2);
+	int64_t v10;
+	int64_t v11 = mext_std_prelude_ZPlusUnsafe_rawZ_posixZ_readZBang(v8, in_Ptr_1, v9, &v10);
+	INT v12 = i64_to_int(v11);
+	incref(MKINT(v12));
+	INT v13 = WRAP_I63(0LL);
+	bool v14 = int_le(v13, v12);
+	int64_t branch_ZPlusFileDescriptor_15;
+	VAL branch_Result_16;
+	if (v14) {
+		VAL v17 = mtw_std_result_Result_2_Ok(MKINT(v12));
+		branch_Result_16 = v17;
+		branch_ZPlusFileDescriptor_15 = v10;
 	} else {
-		bool v20 = true;
-		branch_Bool_17 = v20;
-		branch_USizze_16 = v13;
+		decref(MKINT(v12));
+		int64_t v18 = mext_std_prelude_ZPlusUnsafe_posixZ_errnoZBang();
+		VAL v19 = mtw_std_result_Result_2_Err(MKI64(v18));
+		branch_Result_16 = v19;
+		branch_ZPlusFileDescriptor_15 = v10;
 	}
-	*out_ZPlusFile_6 = in_ZPlusFile_3;
-	*out_Bool_5 = branch_Bool_17;
-	return branch_USizze_16;
+	in_ZPlusFile_3->cells[0] = MKI64(branch_ZPlusFileDescriptor_15);
+	VAL branch_Result_20;
+	switch (get_data_tag(branch_Result_16)) {
+		case 1LL: { // Ok
+			VAL v21 = mtp_std_result_Result_2_Ok(branch_Result_16);
+			VAL v22 = mtw_std_result_Result_2_Ok(v21);
+			branch_Result_20 = v22;
+		} break;
+		case 0LL: { // Err
+			VAL v23 = mtp_std_result_Result_2_Err(branch_Result_16);
+			VAL v24 = mtw_std_file_IOError_ReadFailed(value_i64(v23));
+			VAL v25 = mtw_std_result_Result_2_Err(v24);
+			branch_Result_20 = v25;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusFile_5 = in_ZPlusFile_3;
+	return branch_Result_20;
 }
 static void mw_std_prim_ZPlusWorld_traceZ_ (STR* in_Str_1) {
 	TUP* v4;
@@ -10502,13 +10856,12 @@ static void mw_std_prim_ZPlusWorld_traceZ_ (STR* in_Str_1) {
 	void* v5 = str_base(in_Str_1);
 	uint64_t v6 = str_size(in_Str_1);
 	INT v7 = u64_to_int(v6);
-	int64_t v8 = 0LL /* +Unsafe */;
-	bool v9;
-	TUP* v10;
-	INT v11 = mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang(v5, v7, v4, &v9, &v10);
+	TUP* v8;
+	VAL v9 = mw_std_prelude_unsafe_1_sp1(v5, v7, v4, &v8);
 	decref(MKSTR(in_Str_1));
-	decref(MKINT(v11));
-	mw_std_file_ZPlusFile_closeZ_fileZBang(v10);
+	decref(v9);
+	VAL v10 = mw_std_file_ZPlusFile_closeZ_fileZBang(v8);
+	decref(v10);
 }
 static void mw_std_prim_ZPlusWorld_trace (STR* in_Str_1) {
 	STR* v4;
@@ -10525,43 +10878,40 @@ static bool mw_std_prim_ZPlusWorld_isZ_directoryZAsk (STR* in_Path_1) {
 	void* v7 = str_base(in_Path_1);
 	uint64_t v8 = str_size(in_Path_1);
 	INT v9 = u64_to_int(v8);
-	int64_t v10 = 0LL /* +Unsafe */;
-	int64_t v11 = int_to_i64(v9);
-	void* v12 = (void*)(v11 + (char*)v7);
-	uint8_t v13 = *(uint8_t*)v12;
-	uint64_t v14 = (uint64_t)(v13);
-	INT v15 = u64_to_int(v14);
-	INT v16 = WRAP_I63(0LL);
-	bool v17 = int_eq(v15, v16);
-	if (v17) {
+	uint8_t v10 = mw_std_prelude_unsafe_1_sp16(v9, v7);
+	uint64_t v11 = (uint64_t)(v10);
+	INT v12 = u64_to_int(v11);
+	INT v13 = WRAP_I63(0LL);
+	bool v14 = int_eq(v12, v13);
+	if (v14) {
 	} else {
-		STR* v18;
-		STRLIT(v18, "tried to use Str as CStr, but Str is not zero terminated", 56);
-		do_panic(v18);
+		STR* v15;
+		STRLIT(v15, "tried to use Str as CStr, but Str is not zero terminated", 56);
+		do_panic(v15);
 	}
-	void* v19 = value_ptr(v6->cells[1]);
-	int64_t v20 = 0LL /* +Unsafe */;
-	int64_t v21 = mext_std_world_posixZ_stat(v7, v19);
-	INT v22 = i64_to_int(v21);
-	INT v23 = WRAP_I63(0LL);
-	bool v24 = int_eq(v22, v23);
-	TUP* branch_ZPlusBuffer_25;
-	bool branch_Bool_26;
-	if (v24) {
-		void* v27 = value_ptr(v6->cells[1]);
-		int64_t v28 = 0LL /* +Unsafe */;
-		uint16_t v29 = mw_std_world_stz_modeZAt(v27);
-		bool v30 = mw_std_world_Sz_ISDIR(v29);
-		branch_Bool_26 = v30;
-		branch_ZPlusBuffer_25 = v6;
+	void* v16 = value_ptr(v6->cells[1]);
+	int64_t v17 = 0LL /* +Unsafe */;
+	int64_t v18 = mext_std_world_posixZ_stat(v7, v16);
+	INT v19 = i64_to_int(v18);
+	INT v20 = WRAP_I63(0LL);
+	bool v21 = int_eq(v19, v20);
+	TUP* branch_ZPlusBuffer_22;
+	bool branch_Bool_23;
+	if (v21) {
+		void* v24 = value_ptr(v6->cells[1]);
+		int64_t v25 = 0LL /* +Unsafe */;
+		uint16_t v26 = mw_std_world_stz_modeZAt(v24);
+		bool v27 = mw_std_world_Sz_ISDIR(v26);
+		branch_Bool_23 = v27;
+		branch_ZPlusBuffer_22 = v6;
 	} else {
-		bool v31 = false;
-		branch_Bool_26 = v31;
-		branch_ZPlusBuffer_25 = v6;
+		bool v28 = false;
+		branch_Bool_23 = v28;
+		branch_ZPlusBuffer_22 = v6;
 	}
 	decref(MKSTR(in_Path_1));
-	mw_std_buffer_ZPlusBuffer_rdrop(branch_ZPlusBuffer_25);
-	return branch_Bool_26;
+	mw_std_buffer_ZPlusBuffer_rdrop(branch_ZPlusBuffer_22);
+	return branch_Bool_23;
 }
 static uint16_t mw_std_world_Sz_IFMT (void) {
 	uint16_t v2 = 61440;
@@ -10578,9 +10928,9 @@ static bool mw_std_world_Sz_ISDIR (uint16_t in_U16_1) {
 	uint64_t v6 = (v4 & v5);
 	uint16_t v7 = (uint16_t)(v6);
 	uint16_t v8 = mw_std_world_Sz_IFDIR();
-	uint64_t v9 = (uint64_t)(v7);
-	uint64_t v10 = (uint64_t)(v8);
-	bool v11 = (v9 == v10);
+	uint64_t v9 = (uint64_t)(v8);
+	uint64_t v10 = (uint64_t)(v7);
+	bool v11 = (v10 == v9);
 	return v11;
 }
 static uint16_t mw_std_world_stz_modeZAt (void* in_Ptr_1) {
@@ -10634,18 +10984,17 @@ static uint16_t mw_std_world_stz_modeZAt (void* in_Ptr_1) {
 static TUP* mw_argZ_parser_state_State_1_init (VAL in_a_1) {
 	VAL v3 = mw_argZ_parser_parse_argvZ_toZ_str();
 	INT v4 = WRAP_I63(0LL);
-	int64_t v5 = 0LL /* +Unsafe */;
-	STR* v6 = mw_argZ_parser_parse_readZ_fromZ_argv(v4);
-	TUP* v7 = mtw_argZ_parser_state_ArgvInfo_ArgvInfo(v3, v6);
-	bool v8 = false;
+	STR* v5 = mw_std_prelude_unsafe_1_sp27(v4);
+	TUP* v6 = mtw_argZ_parser_state_ArgvInfo_ArgvInfo(v3, v5);
+	bool v7 = false;
+	VAL v8 = MKI64(0LL /* None */);
 	VAL v9 = MKI64(0LL /* None */);
-	VAL v10 = MKI64(0LL /* None */);
-	TUP* v11 = mtw_argZ_parser_state_CurrentArg_CurrentArg(v8, v9, v10);
+	TUP* v10 = mtw_argZ_parser_state_CurrentArg_CurrentArg(v7, v8, v9);
+	INT v11 = WRAP_I63(0LL);
 	INT v12 = WRAP_I63(0LL);
-	INT v13 = WRAP_I63(0LL);
-	VAL v14 = MKI64(0LL /* None */);
-	TUP* v15 = mtw_argZ_parser_state_State_1_State(in_a_1, v7, v11, v12, v13, v14);
-	return v15;
+	VAL v13 = MKI64(0LL /* None */);
+	TUP* v14 = mtw_argZ_parser_state_State_1_State(in_a_1, v6, v10, v11, v12, v13);
+	return v14;
 }
 static VAL mw_argZ_parser_state_State_1_argv (TUP* in_State_1) {
 	TUP* v3 = value_tup(in_State_1->cells[1], 2);
@@ -11182,20 +11531,18 @@ static TUP* mw_argZ_parser_parse_checkZ_shortZ_flag (TUP* in_ZPlusArgumentParser
 			INT v17 = i64_to_int(v13);
 			uint64_t v18 = int_to_u64(v17);
 			uint8_t v19 = (uint8_t)(v18);
-			uint64_t v20 = (uint64_t)(v16);
-			INT v21 = u64_to_int(v20);
-			uint64_t v22 = (uint64_t)(v19);
-			INT v23 = u64_to_int(v22);
-			bool v24 = int_eq(v21, v23);
-			branch_Bool_10 = v24;
+			uint64_t v20 = (uint64_t)(v19);
+			uint64_t v21 = (uint64_t)(v16);
+			bool v22 = (v21 == v20);
+			branch_Bool_10 = v22;
 			branch_ArgpOption_9 = in_ArgpOption_2;
 			branch_ZPlusArgumentParser_8 = in_ZPlusArgumentParser_1;
 		} break;
 		default: {
 			decref(v7);
 			decref(MKSTR(in_Str_3));
-			bool v25 = false;
-			branch_Bool_10 = v25;
+			bool v23 = false;
+			branch_Bool_10 = v23;
 			branch_ArgpOption_9 = in_ArgpOption_2;
 			branch_ZPlusArgumentParser_8 = in_ZPlusArgumentParser_1;
 		} break;
@@ -11240,7 +11587,7 @@ static VAL mw_argZ_parser_parse_parseZ_flags (TUP* in_ZPlusArgumentParser_1, STR
 	uint64_t v5 = str_size(in_Str_2);
 	INT v6 = u64_to_int(v5);
 	INT v7 = WRAP_I63(2LL);
-	bool v8 = int_ge(v6, v7);
+	bool v8 = int_le(v7, v6);
 	STR* branch_Str_9;
 	bool branch_Bool_10;
 	if (v8) {
@@ -11254,389 +11601,385 @@ static VAL mw_argZ_parser_parse_parseZ_flags (TUP* in_ZPlusArgumentParser_1, STR
 		INT v17 = i64_to_int(v13);
 		uint64_t v18 = int_to_u64(v17);
 		uint8_t v19 = (uint8_t)(v18);
-		uint64_t v20 = (uint64_t)(v16);
-		INT v21 = u64_to_int(v20);
-		uint64_t v22 = (uint64_t)(v19);
-		INT v23 = u64_to_int(v22);
-		bool v24 = int_eq(v21, v23);
-		branch_Bool_10 = v24;
+		uint64_t v20 = (uint64_t)(v19);
+		uint64_t v21 = (uint64_t)(v16);
+		bool v22 = (v21 == v20);
+		branch_Bool_10 = v22;
 		branch_Str_9 = in_Str_2;
 	} else {
-		bool v25 = false;
-		branch_Bool_10 = v25;
+		bool v23 = false;
+		branch_Bool_10 = v23;
 		branch_Str_9 = in_Str_2;
 	}
-	STR* branch_Str_26;
-	TUP* branch_ZPlusArgumentParser_27;
-	VAL branch_Maybe_28;
+	STR* branch_Str_24;
+	TUP* branch_ZPlusArgumentParser_25;
+	VAL branch_Maybe_26;
 	if (branch_Bool_10) {
-		INT v29 = WRAP_I63(2LL);
+		INT v27 = WRAP_I63(2LL);
 		incref(MKSTR(branch_Str_9));
-		int64_t v30 = 0LL /* +Unsafe */;
-		STR* v31 = mw_std_prim_Str_dropZ_bytes(v29, branch_Str_9);
-		TUP* v32 = value_tup(in_ZPlusArgumentParser_1->cells[0], 4);
-		incref(MKTUP(v32, 4));
-		VAL v33 = v32->cells[0];
-		incref(v33);
-		decref(MKTUP(v32, 4));
-		VAL v34 = MKI64(0LL /* None */);
-		bool v35 = true;
-		TUP* v36 = in_ZPlusArgumentParser_1;
-		STR* v37 = v31;
-		VAL v38 = v34;
-		VAL v39 = v33;
-		bool v40 = v35;
-		bool v41 = v35;
-		while (v41) {
-			TUP* v42 = v36;
-			STR* v43 = v37;
-			VAL v44 = v38;
-			VAL v45 = v39;
-			bool v46 = v40;
-			VAL v47;
-			VAL v48 = mw_std_list_List_1_uncons(v45, &v47);
-			STR* branch_Str_49;
-			TUP* branch_ZPlusArgumentParser_50;
-			VAL branch_Maybe_51;
-			VAL branch_List_52;
-			bool branch_Bool_53;
-			switch (get_data_tag(v48)) {
+		STR* v28 = mw_std_prelude_unsafe_1_sp26(v27, branch_Str_9);
+		TUP* v29 = value_tup(in_ZPlusArgumentParser_1->cells[0], 4);
+		incref(MKTUP(v29, 4));
+		VAL v30 = v29->cells[0];
+		incref(v30);
+		decref(MKTUP(v29, 4));
+		VAL v31 = MKI64(0LL /* None */);
+		bool v32 = true;
+		TUP* v33 = in_ZPlusArgumentParser_1;
+		STR* v34 = v28;
+		VAL v35 = v31;
+		VAL v36 = v30;
+		bool v37 = v32;
+		bool v38 = v32;
+		while (v38) {
+			TUP* v39 = v33;
+			STR* v40 = v34;
+			VAL v41 = v35;
+			VAL v42 = v36;
+			bool v43 = v37;
+			VAL v44;
+			VAL v45 = mw_std_list_List_1_uncons(v42, &v44);
+			STR* branch_Str_46;
+			TUP* branch_ZPlusArgumentParser_47;
+			VAL branch_Maybe_48;
+			VAL branch_List_49;
+			bool branch_Bool_50;
+			switch (get_data_tag(v45)) {
 				case 1LL: { // Some
-					VAL v54 = mtp_std_maybe_Maybe_1_Some(v48);
-					incref(v54);
-					incref(MKSTR(v43));
-					TUP* v55;
-					bool v56;
-					TUP* v57 = mw_argZ_parser_parse_checkZ_longZ_flag(v42, value_tup(v54, 5), v43, &v55, &v56);
-					decref(MKTUP(v57, 5));
-					STR* branch_Str_58;
-					TUP* branch_ZPlusArgumentParser_59;
-					VAL branch_Maybe_60;
-					if (v56) {
-						VAL v61 = mtw_std_maybe_Maybe_1_Some(v54);
-						branch_Maybe_60 = v61;
-						branch_ZPlusArgumentParser_59 = v55;
-						branch_Str_58 = v43;
+					VAL v51 = mtp_std_maybe_Maybe_1_Some(v45);
+					incref(v51);
+					incref(MKSTR(v40));
+					TUP* v52;
+					bool v53;
+					TUP* v54 = mw_argZ_parser_parse_checkZ_longZ_flag(v39, value_tup(v51, 5), v40, &v52, &v53);
+					decref(MKTUP(v54, 5));
+					STR* branch_Str_55;
+					TUP* branch_ZPlusArgumentParser_56;
+					VAL branch_Maybe_57;
+					if (v53) {
+						VAL v58 = mtw_std_maybe_Maybe_1_Some(v51);
+						branch_Maybe_57 = v58;
+						branch_ZPlusArgumentParser_56 = v52;
+						branch_Str_55 = v40;
 					} else {
-						decref(v54);
-						VAL v62 = MKI64(0LL /* None */);
-						branch_Maybe_60 = v62;
-						branch_ZPlusArgumentParser_59 = v55;
-						branch_Str_58 = v43;
+						decref(v51);
+						VAL v59 = MKI64(0LL /* None */);
+						branch_Maybe_57 = v59;
+						branch_ZPlusArgumentParser_56 = v52;
+						branch_Str_55 = v40;
 					}
-					STR* branch_Str_63;
-					TUP* branch_ZPlusArgumentParser_64;
-					VAL branch_Maybe_65;
-					VAL branch_List_66;
-					switch (get_data_tag(branch_Maybe_60)) {
+					STR* branch_Str_60;
+					TUP* branch_ZPlusArgumentParser_61;
+					VAL branch_Maybe_62;
+					VAL branch_List_63;
+					switch (get_data_tag(branch_Maybe_57)) {
 						case 0LL: { // None
-							branch_List_66 = v47;
-							branch_Maybe_65 = v44;
-							branch_ZPlusArgumentParser_64 = branch_ZPlusArgumentParser_59;
-							branch_Str_63 = branch_Str_58;
+							branch_List_63 = v44;
+							branch_Maybe_62 = v41;
+							branch_ZPlusArgumentParser_61 = branch_ZPlusArgumentParser_56;
+							branch_Str_60 = branch_Str_55;
 						} break;
 						default: {
-							decref(v47);
 							decref(v44);
-							VAL v67 = MKI64(0LL /* Nil */);
-							branch_List_66 = v67;
-							branch_Maybe_65 = branch_Maybe_60;
-							branch_ZPlusArgumentParser_64 = branch_ZPlusArgumentParser_59;
-							branch_Str_63 = branch_Str_58;
+							decref(v41);
+							VAL v64 = MKI64(0LL /* Nil */);
+							branch_List_63 = v64;
+							branch_Maybe_62 = branch_Maybe_57;
+							branch_ZPlusArgumentParser_61 = branch_ZPlusArgumentParser_56;
+							branch_Str_60 = branch_Str_55;
 						} break;
 					}
-					bool v68 = true;
-					branch_Bool_53 = v68;
-					branch_List_52 = branch_List_66;
-					branch_Maybe_51 = branch_Maybe_65;
-					branch_ZPlusArgumentParser_50 = branch_ZPlusArgumentParser_64;
-					branch_Str_49 = branch_Str_63;
+					bool v65 = true;
+					branch_Bool_50 = v65;
+					branch_List_49 = branch_List_63;
+					branch_Maybe_48 = branch_Maybe_62;
+					branch_ZPlusArgumentParser_47 = branch_ZPlusArgumentParser_61;
+					branch_Str_46 = branch_Str_60;
 				} break;
 				case 0LL: { // None
-					bool v69 = false;
-					branch_Bool_53 = v69;
-					branch_List_52 = v47;
-					branch_Maybe_51 = v44;
-					branch_ZPlusArgumentParser_50 = v42;
-					branch_Str_49 = v43;
+					bool v66 = false;
+					branch_Bool_50 = v66;
+					branch_List_49 = v44;
+					branch_Maybe_48 = v41;
+					branch_ZPlusArgumentParser_47 = v39;
+					branch_Str_46 = v40;
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
 				}
 			}
-			v41 = branch_Bool_53;
-			v40 = branch_Bool_53;
-			v39 = branch_List_52;
-			v38 = branch_Maybe_51;
-			v37 = branch_Str_49;
-			v36 = branch_ZPlusArgumentParser_50;
+			v38 = branch_Bool_50;
+			v37 = branch_Bool_50;
+			v36 = branch_List_49;
+			v35 = branch_Maybe_48;
+			v34 = branch_Str_46;
+			v33 = branch_ZPlusArgumentParser_47;
 		}
-		decref(v39);
-		decref(MKSTR(v37));
-		TUP* branch_ZPlusArgumentParser_70;
-		VAL branch_Maybe_71;
-		switch (get_data_tag(v38)) {
+		decref(v36);
+		decref(MKSTR(v34));
+		TUP* branch_ZPlusArgumentParser_67;
+		VAL branch_Maybe_68;
+		switch (get_data_tag(v35)) {
 			case 1LL: { // Some
-				VAL v72 = mtp_std_maybe_Maybe_1_Some(v38);
-				incref(v72);
-				VAL v73 = VTUP(v72)->cells[2];
-				incref(v73);
-				decref(v72);
-				TUP* branch_ZPlusArgumentParser_74;
-				switch (get_data_tag(v73)) {
+				VAL v69 = mtp_std_maybe_Maybe_1_Some(v35);
+				incref(v69);
+				VAL v70 = VTUP(v69)->cells[2];
+				incref(v70);
+				decref(v69);
+				TUP* branch_ZPlusArgumentParser_71;
+				switch (get_data_tag(v70)) {
 					case 1LL: { // Some
-						VAL v75 = mtp_std_maybe_Maybe_1_Some(v73);
-						bool v76 = true;
-						TUP* v77 = value_tup(v36->cells[1], 6);
-						incref(MKTUP(v77, 6));
-						TUP* v78 = mw_argZ_parser_state_State_1_parsingZAskZBang(v76, v77);
-						TUP* v79 = value_tup(v36->cells[1], 6);
-						decref(MKTUP(v79, 6));
-						v36->cells[1] = MKTUP(v78, 6);
-						decref(v75);
-						VAL v80 = mtw_std_maybe_Maybe_1_Some(v72);
-						TUP* v81 = value_tup(v36->cells[1], 6);
-						incref(MKTUP(v81, 6));
-						TUP* v82 = mw_argZ_parser_state_State_1_optionZ_optionZBang(v80, v81);
-						TUP* v83 = value_tup(v36->cells[1], 6);
-						decref(MKTUP(v83, 6));
-						v36->cells[1] = MKTUP(v82, 6);
-						branch_ZPlusArgumentParser_74 = v36;
+						VAL v72 = mtp_std_maybe_Maybe_1_Some(v70);
+						bool v73 = true;
+						TUP* v74 = value_tup(v33->cells[1], 6);
+						incref(MKTUP(v74, 6));
+						TUP* v75 = mw_argZ_parser_state_State_1_parsingZAskZBang(v73, v74);
+						TUP* v76 = value_tup(v33->cells[1], 6);
+						decref(MKTUP(v76, 6));
+						v33->cells[1] = MKTUP(v75, 6);
+						decref(v72);
+						VAL v77 = mtw_std_maybe_Maybe_1_Some(v69);
+						TUP* v78 = value_tup(v33->cells[1], 6);
+						incref(MKTUP(v78, 6));
+						TUP* v79 = mw_argZ_parser_state_State_1_optionZ_optionZBang(v77, v78);
+						TUP* v80 = value_tup(v33->cells[1], 6);
+						decref(MKTUP(v80, 6));
+						v33->cells[1] = MKTUP(v79, 6);
+						branch_ZPlusArgumentParser_71 = v33;
 					} break;
 					case 0LL: { // None
-						VAL v84 = VTUP(v72)->cells[1];
-						incref(v84);
-						decref(v72);
-						TUP* v85 = value_tup(v36->cells[1], 6);
-						incref(MKTUP(v85, 6));
-						VAL v86 = v85->cells[0];
-						incref(v86);
-						decref(MKTUP(v85, 6));
-						VAL v87 = MKI64(0LL /* None */);
-						TUP* v88;
-						VAL v89 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(v36, &v88);
-						push_value(v86);
-						push_value(v87);
+						VAL v81 = VTUP(v69)->cells[1];
+						incref(v81);
+						decref(v69);
+						TUP* v82 = value_tup(v33->cells[1], 6);
+						incref(MKTUP(v82, 6));
+						VAL v83 = v82->cells[0];
+						incref(v83);
+						decref(MKTUP(v82, 6));
+						VAL v84 = MKI64(0LL /* None */);
+						TUP* v85;
+						VAL v86 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(v33, &v85);
+						push_value(v83);
 						push_value(v84);
-						push_resource(MKTUP(v88, 2));
-						run_value(v89);
-						TUP* r90 = value_tup(pop_resource(), 2);
-						TUP* v91 = value_tup(r90->cells[1], 6);
-						incref(MKTUP(v91, 6));
-						VAL v92 = pop_value();
-						VAL v93 = tup_replace(MKTUP(v91, 6), 0, v92);
-						TUP* v94 = value_tup(r90->cells[1], 6);
-						decref(MKTUP(v94, 6));
-						r90->cells[1] = v93;
-						branch_ZPlusArgumentParser_74 = r90;
+						push_value(v81);
+						push_resource(MKTUP(v85, 2));
+						run_value(v86);
+						TUP* r87 = value_tup(pop_resource(), 2);
+						TUP* v88 = value_tup(r87->cells[1], 6);
+						incref(MKTUP(v88, 6));
+						VAL v89 = pop_value();
+						VAL v90 = tup_replace(MKTUP(v88, 6), 0, v89);
+						TUP* v91 = value_tup(r87->cells[1], 6);
+						decref(MKTUP(v91, 6));
+						r87->cells[1] = v90;
+						branch_ZPlusArgumentParser_71 = r87;
 					} break;
 					default: {
 						do_panic(str_make("unexpected fallthrough in match\n", 32));
 					}
 				}
-				VAL v95 = MKI64(0LL /* None */);
-				branch_Maybe_71 = v95;
-				branch_ZPlusArgumentParser_70 = branch_ZPlusArgumentParser_74;
+				VAL v92 = MKI64(0LL /* None */);
+				branch_Maybe_68 = v92;
+				branch_ZPlusArgumentParser_67 = branch_ZPlusArgumentParser_71;
 			} break;
 			case 0LL: { // None
-				VAL v96 = MKI64(4LL /* UnknownArg */);
-				VAL v97 = mtw_std_maybe_Maybe_1_Some(v96);
-				branch_Maybe_71 = v97;
-				branch_ZPlusArgumentParser_70 = v36;
+				VAL v93 = MKI64(4LL /* UnknownArg */);
+				VAL v94 = mtw_std_maybe_Maybe_1_Some(v93);
+				branch_Maybe_68 = v94;
+				branch_ZPlusArgumentParser_67 = v33;
 			} break;
 			default: {
 				do_panic(str_make("unexpected fallthrough in match\n", 32));
 			}
 		}
-		branch_Maybe_28 = branch_Maybe_71;
-		branch_ZPlusArgumentParser_27 = branch_ZPlusArgumentParser_70;
-		branch_Str_26 = branch_Str_9;
+		branch_Maybe_26 = branch_Maybe_68;
+		branch_ZPlusArgumentParser_25 = branch_ZPlusArgumentParser_67;
+		branch_Str_24 = branch_Str_9;
 	} else {
-		INT v98 = WRAP_I63(1LL);
+		INT v95 = WRAP_I63(1LL);
 		incref(MKSTR(branch_Str_9));
-		int64_t v99 = 0LL /* +Unsafe */;
-		STR* v100 = mw_std_prim_Str_dropZ_bytes(v98, branch_Str_9);
-		TUP* v101 = value_tup(in_ZPlusArgumentParser_1->cells[0], 4);
-		incref(MKTUP(v101, 4));
-		VAL v102 = v101->cells[0];
-		incref(v102);
-		decref(MKTUP(v101, 4));
-		VAL v103 = MKI64(0LL /* None */);
-		bool v104 = true;
-		TUP* v105 = in_ZPlusArgumentParser_1;
-		STR* v106 = v100;
-		VAL v107 = v103;
-		VAL v108 = v102;
-		bool v109 = v104;
-		bool v110 = v104;
-		while (v110) {
-			TUP* v111 = v105;
-			STR* v112 = v106;
-			VAL v113 = v107;
-			VAL v114 = v108;
-			bool v115 = v109;
-			VAL v116;
-			VAL v117 = mw_std_list_List_1_uncons(v114, &v116);
-			STR* branch_Str_118;
-			TUP* branch_ZPlusArgumentParser_119;
-			VAL branch_Maybe_120;
-			VAL branch_List_121;
-			bool branch_Bool_122;
-			switch (get_data_tag(v117)) {
+		STR* v96 = mw_std_prelude_unsafe_1_sp26(v95, branch_Str_9);
+		TUP* v97 = value_tup(in_ZPlusArgumentParser_1->cells[0], 4);
+		incref(MKTUP(v97, 4));
+		VAL v98 = v97->cells[0];
+		incref(v98);
+		decref(MKTUP(v97, 4));
+		VAL v99 = MKI64(0LL /* None */);
+		bool v100 = true;
+		TUP* v101 = in_ZPlusArgumentParser_1;
+		STR* v102 = v96;
+		VAL v103 = v99;
+		VAL v104 = v98;
+		bool v105 = v100;
+		bool v106 = v100;
+		while (v106) {
+			TUP* v107 = v101;
+			STR* v108 = v102;
+			VAL v109 = v103;
+			VAL v110 = v104;
+			bool v111 = v105;
+			VAL v112;
+			VAL v113 = mw_std_list_List_1_uncons(v110, &v112);
+			STR* branch_Str_114;
+			TUP* branch_ZPlusArgumentParser_115;
+			VAL branch_Maybe_116;
+			VAL branch_List_117;
+			bool branch_Bool_118;
+			switch (get_data_tag(v113)) {
 				case 1LL: { // Some
-					VAL v123 = mtp_std_maybe_Maybe_1_Some(v117);
-					incref(v123);
-					incref(MKSTR(v112));
-					TUP* v124;
-					bool v125;
-					TUP* v126 = mw_argZ_parser_parse_checkZ_shortZ_flag(v111, value_tup(v123, 5), v112, &v124, &v125);
-					decref(MKTUP(v126, 5));
-					STR* branch_Str_127;
-					TUP* branch_ZPlusArgumentParser_128;
-					VAL branch_Maybe_129;
-					if (v125) {
-						VAL v130 = mtw_std_maybe_Maybe_1_Some(v123);
-						branch_Maybe_129 = v130;
-						branch_ZPlusArgumentParser_128 = v124;
-						branch_Str_127 = v112;
+					VAL v119 = mtp_std_maybe_Maybe_1_Some(v113);
+					incref(v119);
+					incref(MKSTR(v108));
+					TUP* v120;
+					bool v121;
+					TUP* v122 = mw_argZ_parser_parse_checkZ_shortZ_flag(v107, value_tup(v119, 5), v108, &v120, &v121);
+					decref(MKTUP(v122, 5));
+					STR* branch_Str_123;
+					TUP* branch_ZPlusArgumentParser_124;
+					VAL branch_Maybe_125;
+					if (v121) {
+						VAL v126 = mtw_std_maybe_Maybe_1_Some(v119);
+						branch_Maybe_125 = v126;
+						branch_ZPlusArgumentParser_124 = v120;
+						branch_Str_123 = v108;
 					} else {
-						decref(v123);
-						VAL v131 = MKI64(0LL /* None */);
-						branch_Maybe_129 = v131;
-						branch_ZPlusArgumentParser_128 = v124;
-						branch_Str_127 = v112;
+						decref(v119);
+						VAL v127 = MKI64(0LL /* None */);
+						branch_Maybe_125 = v127;
+						branch_ZPlusArgumentParser_124 = v120;
+						branch_Str_123 = v108;
 					}
-					STR* branch_Str_132;
-					TUP* branch_ZPlusArgumentParser_133;
-					VAL branch_Maybe_134;
-					VAL branch_List_135;
-					switch (get_data_tag(branch_Maybe_129)) {
+					STR* branch_Str_128;
+					TUP* branch_ZPlusArgumentParser_129;
+					VAL branch_Maybe_130;
+					VAL branch_List_131;
+					switch (get_data_tag(branch_Maybe_125)) {
 						case 0LL: { // None
-							branch_List_135 = v116;
-							branch_Maybe_134 = v113;
-							branch_ZPlusArgumentParser_133 = branch_ZPlusArgumentParser_128;
-							branch_Str_132 = branch_Str_127;
+							branch_List_131 = v112;
+							branch_Maybe_130 = v109;
+							branch_ZPlusArgumentParser_129 = branch_ZPlusArgumentParser_124;
+							branch_Str_128 = branch_Str_123;
 						} break;
 						default: {
-							decref(v116);
-							decref(v113);
-							VAL v136 = MKI64(0LL /* Nil */);
-							branch_List_135 = v136;
-							branch_Maybe_134 = branch_Maybe_129;
-							branch_ZPlusArgumentParser_133 = branch_ZPlusArgumentParser_128;
-							branch_Str_132 = branch_Str_127;
+							decref(v112);
+							decref(v109);
+							VAL v132 = MKI64(0LL /* Nil */);
+							branch_List_131 = v132;
+							branch_Maybe_130 = branch_Maybe_125;
+							branch_ZPlusArgumentParser_129 = branch_ZPlusArgumentParser_124;
+							branch_Str_128 = branch_Str_123;
 						} break;
 					}
-					bool v137 = true;
-					branch_Bool_122 = v137;
-					branch_List_121 = branch_List_135;
-					branch_Maybe_120 = branch_Maybe_134;
-					branch_ZPlusArgumentParser_119 = branch_ZPlusArgumentParser_133;
-					branch_Str_118 = branch_Str_132;
+					bool v133 = true;
+					branch_Bool_118 = v133;
+					branch_List_117 = branch_List_131;
+					branch_Maybe_116 = branch_Maybe_130;
+					branch_ZPlusArgumentParser_115 = branch_ZPlusArgumentParser_129;
+					branch_Str_114 = branch_Str_128;
 				} break;
 				case 0LL: { // None
-					bool v138 = false;
-					branch_Bool_122 = v138;
-					branch_List_121 = v116;
-					branch_Maybe_120 = v113;
-					branch_ZPlusArgumentParser_119 = v111;
-					branch_Str_118 = v112;
+					bool v134 = false;
+					branch_Bool_118 = v134;
+					branch_List_117 = v112;
+					branch_Maybe_116 = v109;
+					branch_ZPlusArgumentParser_115 = v107;
+					branch_Str_114 = v108;
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
 				}
 			}
-			v110 = branch_Bool_122;
-			v109 = branch_Bool_122;
-			v108 = branch_List_121;
-			v107 = branch_Maybe_120;
-			v106 = branch_Str_118;
-			v105 = branch_ZPlusArgumentParser_119;
+			v106 = branch_Bool_118;
+			v105 = branch_Bool_118;
+			v104 = branch_List_117;
+			v103 = branch_Maybe_116;
+			v102 = branch_Str_114;
+			v101 = branch_ZPlusArgumentParser_115;
 		}
-		decref(v108);
-		decref(MKSTR(v106));
-		TUP* branch_ZPlusArgumentParser_139;
-		VAL branch_Maybe_140;
-		switch (get_data_tag(v107)) {
+		decref(v104);
+		decref(MKSTR(v102));
+		TUP* branch_ZPlusArgumentParser_135;
+		VAL branch_Maybe_136;
+		switch (get_data_tag(v103)) {
 			case 1LL: { // Some
-				VAL v141 = mtp_std_maybe_Maybe_1_Some(v107);
-				incref(v141);
-				VAL v142 = VTUP(v141)->cells[2];
-				incref(v142);
-				decref(v141);
-				TUP* branch_ZPlusArgumentParser_143;
-				switch (get_data_tag(v142)) {
+				VAL v137 = mtp_std_maybe_Maybe_1_Some(v103);
+				incref(v137);
+				VAL v138 = VTUP(v137)->cells[2];
+				incref(v138);
+				decref(v137);
+				TUP* branch_ZPlusArgumentParser_139;
+				switch (get_data_tag(v138)) {
 					case 1LL: { // Some
-						VAL v144 = mtp_std_maybe_Maybe_1_Some(v142);
-						bool v145 = true;
-						TUP* v146 = value_tup(v105->cells[1], 6);
+						VAL v140 = mtp_std_maybe_Maybe_1_Some(v138);
+						bool v141 = true;
+						TUP* v142 = value_tup(v101->cells[1], 6);
+						incref(MKTUP(v142, 6));
+						TUP* v143 = mw_argZ_parser_state_State_1_parsingZAskZBang(v141, v142);
+						TUP* v144 = value_tup(v101->cells[1], 6);
+						decref(MKTUP(v144, 6));
+						v101->cells[1] = MKTUP(v143, 6);
+						decref(v140);
+						VAL v145 = mtw_std_maybe_Maybe_1_Some(v137);
+						TUP* v146 = value_tup(v101->cells[1], 6);
 						incref(MKTUP(v146, 6));
-						TUP* v147 = mw_argZ_parser_state_State_1_parsingZAskZBang(v145, v146);
-						TUP* v148 = value_tup(v105->cells[1], 6);
+						TUP* v147 = mw_argZ_parser_state_State_1_optionZ_optionZBang(v145, v146);
+						TUP* v148 = value_tup(v101->cells[1], 6);
 						decref(MKTUP(v148, 6));
-						v105->cells[1] = MKTUP(v147, 6);
-						decref(v144);
-						VAL v149 = mtw_std_maybe_Maybe_1_Some(v141);
-						TUP* v150 = value_tup(v105->cells[1], 6);
-						incref(MKTUP(v150, 6));
-						TUP* v151 = mw_argZ_parser_state_State_1_optionZ_optionZBang(v149, v150);
-						TUP* v152 = value_tup(v105->cells[1], 6);
-						decref(MKTUP(v152, 6));
-						v105->cells[1] = MKTUP(v151, 6);
-						branch_ZPlusArgumentParser_143 = v105;
+						v101->cells[1] = MKTUP(v147, 6);
+						branch_ZPlusArgumentParser_139 = v101;
 					} break;
 					case 0LL: { // None
-						VAL v153 = VTUP(v141)->cells[1];
-						incref(v153);
-						decref(v141);
-						TUP* v154 = value_tup(v105->cells[1], 6);
-						incref(MKTUP(v154, 6));
-						VAL v155 = v154->cells[0];
-						incref(v155);
-						decref(MKTUP(v154, 6));
-						VAL v156 = MKI64(0LL /* None */);
-						TUP* v157;
-						VAL v158 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(v105, &v157);
-						push_value(v155);
-						push_value(v156);
-						push_value(v153);
-						push_resource(MKTUP(v157, 2));
-						run_value(v158);
-						TUP* r159 = value_tup(pop_resource(), 2);
-						TUP* v160 = value_tup(r159->cells[1], 6);
-						incref(MKTUP(v160, 6));
-						VAL v161 = pop_value();
-						VAL v162 = tup_replace(MKTUP(v160, 6), 0, v161);
-						TUP* v163 = value_tup(r159->cells[1], 6);
-						decref(MKTUP(v163, 6));
-						r159->cells[1] = v162;
-						branch_ZPlusArgumentParser_143 = r159;
+						VAL v149 = VTUP(v137)->cells[1];
+						incref(v149);
+						decref(v137);
+						TUP* v150 = value_tup(v101->cells[1], 6);
+						incref(MKTUP(v150, 6));
+						VAL v151 = v150->cells[0];
+						incref(v151);
+						decref(MKTUP(v150, 6));
+						VAL v152 = MKI64(0LL /* None */);
+						TUP* v153;
+						VAL v154 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(v101, &v153);
+						push_value(v151);
+						push_value(v152);
+						push_value(v149);
+						push_resource(MKTUP(v153, 2));
+						run_value(v154);
+						TUP* r155 = value_tup(pop_resource(), 2);
+						TUP* v156 = value_tup(r155->cells[1], 6);
+						incref(MKTUP(v156, 6));
+						VAL v157 = pop_value();
+						VAL v158 = tup_replace(MKTUP(v156, 6), 0, v157);
+						TUP* v159 = value_tup(r155->cells[1], 6);
+						decref(MKTUP(v159, 6));
+						r155->cells[1] = v158;
+						branch_ZPlusArgumentParser_139 = r155;
 					} break;
 					default: {
 						do_panic(str_make("unexpected fallthrough in match\n", 32));
 					}
 				}
-				VAL v164 = MKI64(0LL /* None */);
-				branch_Maybe_140 = v164;
-				branch_ZPlusArgumentParser_139 = branch_ZPlusArgumentParser_143;
+				VAL v160 = MKI64(0LL /* None */);
+				branch_Maybe_136 = v160;
+				branch_ZPlusArgumentParser_135 = branch_ZPlusArgumentParser_139;
 			} break;
 			case 0LL: { // None
-				VAL v165 = MKI64(4LL /* UnknownArg */);
-				VAL v166 = mtw_std_maybe_Maybe_1_Some(v165);
-				branch_Maybe_140 = v166;
-				branch_ZPlusArgumentParser_139 = v105;
+				VAL v161 = MKI64(4LL /* UnknownArg */);
+				VAL v162 = mtw_std_maybe_Maybe_1_Some(v161);
+				branch_Maybe_136 = v162;
+				branch_ZPlusArgumentParser_135 = v101;
 			} break;
 			default: {
 				do_panic(str_make("unexpected fallthrough in match\n", 32));
 			}
 		}
-		branch_Maybe_28 = branch_Maybe_140;
-		branch_ZPlusArgumentParser_27 = branch_ZPlusArgumentParser_139;
-		branch_Str_26 = branch_Str_9;
+		branch_Maybe_26 = branch_Maybe_136;
+		branch_ZPlusArgumentParser_25 = branch_ZPlusArgumentParser_135;
+		branch_Str_24 = branch_Str_9;
 	}
-	decref(MKSTR(branch_Str_26));
-	*out_ZPlusArgumentParser_3 = branch_ZPlusArgumentParser_27;
-	return branch_Maybe_28;
+	decref(MKSTR(branch_Str_24));
+	*out_ZPlusArgumentParser_3 = branch_ZPlusArgumentParser_25;
+	return branch_Maybe_26;
 }
 static VAL mw_argZ_parser_parse_doZ_positionalZ_option (TUP* in_ZPlusArgumentParser_1, STR* in_Str_2, TUP* *out_ZPlusArgumentParser_3) {
 	TUP* v5 = value_tup(in_ZPlusArgumentParser_1->cells[1], 6);
@@ -11776,7 +12119,7 @@ static VAL mw_argZ_parser_parse_parseZ_args (VAL in_a_1, TUP* in_ArgumentParser_
 				INT v46 = value_int(v45->cells[4]);
 				incref(MKINT(v46));
 				decref(MKTUP(v45, 6));
-				bool v47 = int_gt(branch_Int_38, v46);
+				bool v47 = int_lt(v46, branch_Int_38);
 				TUP* branch_ZPlusArgumentParser_48;
 				if (v47) {
 					TUP* v49 = value_tup(branch_ZPlusArgumentParser_23->cells[1], 6);
@@ -11835,7 +12178,7 @@ static VAL mw_argZ_parser_parse_parseZ_args (VAL in_a_1, TUP* in_ArgumentParser_
 				uint64_t v70 = str_size(value_str(v69));
 				INT v71 = u64_to_int(v70);
 				INT v72 = WRAP_I63(1LL);
-				bool v73 = int_gt(v71, v72);
+				bool v73 = int_lt(v72, v71);
 				TUP* branch_ZPlusArgumentParser_74;
 				VAL branch_Maybe_75;
 				if (v73) {
@@ -11849,217 +12192,215 @@ static VAL mw_argZ_parser_parse_parseZ_args (VAL in_a_1, TUP* in_ArgumentParser_
 					INT v82 = i64_to_int(v78);
 					uint64_t v83 = int_to_u64(v82);
 					uint8_t v84 = (uint8_t)(v83);
-					uint64_t v85 = (uint64_t)(v81);
-					INT v86 = u64_to_int(v85);
-					uint64_t v87 = (uint64_t)(v84);
-					INT v88 = u64_to_int(v87);
-					bool v89 = int_eq(v86, v88);
-					TUP* branch_ZPlusArgumentParser_90;
-					VAL branch_Maybe_91;
-					if (v89) {
-						TUP* v92 = value_tup(v62->cells[1], 6);
-						incref(MKTUP(v92, 6));
-						bool v93 = mw_argZ_parser_state_State_1_parsingZAsk(v92);
-						TUP* branch_ZPlusArgumentParser_94;
-						VAL branch_Maybe_95;
-						if (v93) {
+					uint64_t v85 = (uint64_t)(v84);
+					uint64_t v86 = (uint64_t)(v81);
+					bool v87 = (v86 == v85);
+					TUP* branch_ZPlusArgumentParser_88;
+					VAL branch_Maybe_89;
+					if (v87) {
+						TUP* v90 = value_tup(v62->cells[1], 6);
+						incref(MKTUP(v90, 6));
+						bool v91 = mw_argZ_parser_state_State_1_parsingZAsk(v90);
+						TUP* branch_ZPlusArgumentParser_92;
+						VAL branch_Maybe_93;
+						if (v91) {
 							decref(v69);
-							TUP* v96 = value_tup(v62->cells[1], 6);
-							incref(MKTUP(v96, 6));
-							VAL v97 = mw_argZ_parser_state_State_1_optionZ_option(v96);
-							TUP* branch_ZPlusArgumentParser_98;
-							VAL branch_Maybe_99;
-							switch (get_data_tag(v97)) {
+							TUP* v94 = value_tup(v62->cells[1], 6);
+							incref(MKTUP(v94, 6));
+							VAL v95 = mw_argZ_parser_state_State_1_optionZ_option(v94);
+							TUP* branch_ZPlusArgumentParser_96;
+							VAL branch_Maybe_97;
+							switch (get_data_tag(v95)) {
 								case 1LL: { // Some
-									VAL v100 = mtp_std_maybe_Maybe_1_Some(v97);
-									VAL v101 = VTUP(v100)->cells[2];
-									incref(v101);
-									decref(v100);
-									TUP* branch_ZPlusArgumentParser_102;
-									VAL branch_Maybe_103;
-									switch (get_data_tag(v101)) {
+									VAL v98 = mtp_std_maybe_Maybe_1_Some(v95);
+									VAL v99 = VTUP(v98)->cells[2];
+									incref(v99);
+									decref(v98);
+									TUP* branch_ZPlusArgumentParser_100;
+									VAL branch_Maybe_101;
+									switch (get_data_tag(v99)) {
 										case 1LL: { // Some
-											VAL v104 = mtp_std_maybe_Maybe_1_Some(v101);
-											decref(v104);
-											VAL v105 = MKI64(0LL /* MissingArgValue */);
-											VAL v106 = mtw_std_maybe_Maybe_1_Some(v105);
-											branch_Maybe_103 = v106;
-											branch_ZPlusArgumentParser_102 = v62;
+											VAL v102 = mtp_std_maybe_Maybe_1_Some(v99);
+											decref(v102);
+											VAL v103 = MKI64(0LL /* MissingArgValue */);
+											VAL v104 = mtw_std_maybe_Maybe_1_Some(v103);
+											branch_Maybe_101 = v104;
+											branch_ZPlusArgumentParser_100 = v62;
 										} break;
 										case 0LL: { // None
-											bool v107 = false;
+											bool v105 = false;
+											TUP* v106 = value_tup(v62->cells[1], 6);
+											incref(MKTUP(v106, 6));
+											TUP* v107 = mw_argZ_parser_state_State_1_parsingZAskZBang(v105, v106);
 											TUP* v108 = value_tup(v62->cells[1], 6);
-											incref(MKTUP(v108, 6));
-											TUP* v109 = mw_argZ_parser_state_State_1_parsingZAskZBang(v107, v108);
-											TUP* v110 = value_tup(v62->cells[1], 6);
-											decref(MKTUP(v110, 6));
-											v62->cells[1] = MKTUP(v109, 6);
-											VAL v111 = MKI64(0LL /* None */);
-											branch_Maybe_103 = v111;
-											branch_ZPlusArgumentParser_102 = v62;
+											decref(MKTUP(v108, 6));
+											v62->cells[1] = MKTUP(v107, 6);
+											VAL v109 = MKI64(0LL /* None */);
+											branch_Maybe_101 = v109;
+											branch_ZPlusArgumentParser_100 = v62;
 										} break;
 										default: {
 											do_panic(str_make("unexpected fallthrough in match\n", 32));
 										}
 									}
-									branch_Maybe_99 = branch_Maybe_103;
-									branch_ZPlusArgumentParser_98 = branch_ZPlusArgumentParser_102;
+									branch_Maybe_97 = branch_Maybe_101;
+									branch_ZPlusArgumentParser_96 = branch_ZPlusArgumentParser_100;
 								} break;
 								case 0LL: { // None
-									VAL v112 = MKI64(0LL /* MissingArgValue */);
-									VAL v113 = mtw_std_maybe_Maybe_1_Some(v112);
-									branch_Maybe_99 = v113;
-									branch_ZPlusArgumentParser_98 = v62;
+									VAL v110 = MKI64(0LL /* MissingArgValue */);
+									VAL v111 = mtw_std_maybe_Maybe_1_Some(v110);
+									branch_Maybe_97 = v111;
+									branch_ZPlusArgumentParser_96 = v62;
 								} break;
 								default: {
 									do_panic(str_make("unexpected fallthrough in match\n", 32));
 								}
 							}
-							branch_Maybe_95 = branch_Maybe_99;
-							branch_ZPlusArgumentParser_94 = branch_ZPlusArgumentParser_98;
+							branch_Maybe_93 = branch_Maybe_97;
+							branch_ZPlusArgumentParser_92 = branch_ZPlusArgumentParser_96;
 						} else {
-							TUP* v114;
-							VAL v115 = mw_argZ_parser_parse_parseZ_flags(v62, value_str(v69), &v114);
-							branch_Maybe_95 = v115;
-							branch_ZPlusArgumentParser_94 = v114;
+							TUP* v112;
+							VAL v113 = mw_argZ_parser_parse_parseZ_flags(v62, value_str(v69), &v112);
+							branch_Maybe_93 = v113;
+							branch_ZPlusArgumentParser_92 = v112;
 						}
-						branch_Maybe_91 = branch_Maybe_95;
-						branch_ZPlusArgumentParser_90 = branch_ZPlusArgumentParser_94;
+						branch_Maybe_89 = branch_Maybe_93;
+						branch_ZPlusArgumentParser_88 = branch_ZPlusArgumentParser_92;
 					} else {
-						TUP* v116 = value_tup(v62->cells[1], 6);
-						incref(MKTUP(v116, 6));
-						bool v117 = mw_argZ_parser_state_State_1_parsingZAsk(v116);
-						VAL branch_Maybe_118;
-						TUP* branch_ZPlusArgumentParser_119;
-						if (v117) {
-							TUP* v120 = value_tup(v62->cells[1], 6);
-							incref(MKTUP(v120, 6));
-							VAL v121 = mw_argZ_parser_state_State_1_optionZ_option(v120);
-							TUP* branch_ZPlusArgumentParser_122;
-							VAL branch_Maybe_123;
-							switch (get_data_tag(v121)) {
+						TUP* v114 = value_tup(v62->cells[1], 6);
+						incref(MKTUP(v114, 6));
+						bool v115 = mw_argZ_parser_state_State_1_parsingZAsk(v114);
+						VAL branch_Maybe_116;
+						TUP* branch_ZPlusArgumentParser_117;
+						if (v115) {
+							TUP* v118 = value_tup(v62->cells[1], 6);
+							incref(MKTUP(v118, 6));
+							VAL v119 = mw_argZ_parser_state_State_1_optionZ_option(v118);
+							TUP* branch_ZPlusArgumentParser_120;
+							VAL branch_Maybe_121;
+							switch (get_data_tag(v119)) {
 								case 1LL: { // Some
-									VAL v124 = mtp_std_maybe_Maybe_1_Some(v121);
-									incref(v124);
-									VAL v125 = VTUP(v124)->cells[2];
-									incref(v125);
-									decref(v124);
-									TUP* branch_ZPlusArgumentParser_126;
-									VAL branch_Maybe_127;
-									switch (get_data_tag(v125)) {
+									VAL v122 = mtp_std_maybe_Maybe_1_Some(v119);
+									incref(v122);
+									VAL v123 = VTUP(v122)->cells[2];
+									incref(v123);
+									decref(v122);
+									TUP* branch_ZPlusArgumentParser_124;
+									VAL branch_Maybe_125;
+									switch (get_data_tag(v123)) {
 										case 1LL: { // Some
-											VAL v128 = mtp_std_maybe_Maybe_1_Some(v125);
-											decref(v128);
-											TUP* v129 = value_tup(v62->cells[1], 6);
-											incref(MKTUP(v129, 6));
-											VAL v130 = v129->cells[0];
+											VAL v126 = mtp_std_maybe_Maybe_1_Some(v123);
+											decref(v126);
+											TUP* v127 = value_tup(v62->cells[1], 6);
+											incref(MKTUP(v127, 6));
+											VAL v128 = v127->cells[0];
+											incref(v128);
+											decref(MKTUP(v127, 6));
+											VAL v129 = mtw_std_maybe_Maybe_1_Some(v69);
+											VAL v130 = VTUP(v122)->cells[1];
 											incref(v130);
-											decref(MKTUP(v129, 6));
-											VAL v131 = mtw_std_maybe_Maybe_1_Some(v69);
-											VAL v132 = VTUP(v124)->cells[1];
-											incref(v132);
-											decref(v124);
-											TUP* v133;
-											VAL v134 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(v62, &v133);
+											decref(v122);
+											TUP* v131;
+											VAL v132 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(v62, &v131);
+											push_value(v128);
+											push_value(v129);
 											push_value(v130);
-											push_value(v131);
-											push_value(v132);
-											push_resource(MKTUP(v133, 2));
-											run_value(v134);
-											TUP* r135 = value_tup(pop_resource(), 2);
-											VAL v136 = pop_value();
-											TUP* v137 = value_tup(r135->cells[1], 6);
-											incref(MKTUP(v137, 6));
-											VAL v138 = tup_replace(MKTUP(v137, 6), 0, v136);
-											TUP* v139 = value_tup(r135->cells[1], 6);
-											decref(MKTUP(v139, 6));
-											r135->cells[1] = v138;
-											VAL v140 = MKI64(0LL /* None */);
-											branch_Maybe_127 = v140;
-											branch_ZPlusArgumentParser_126 = r135;
+											push_resource(MKTUP(v131, 2));
+											run_value(v132);
+											TUP* r133 = value_tup(pop_resource(), 2);
+											VAL v134 = pop_value();
+											TUP* v135 = value_tup(r133->cells[1], 6);
+											incref(MKTUP(v135, 6));
+											VAL v136 = tup_replace(MKTUP(v135, 6), 0, v134);
+											TUP* v137 = value_tup(r133->cells[1], 6);
+											decref(MKTUP(v137, 6));
+											r133->cells[1] = v136;
+											VAL v138 = MKI64(0LL /* None */);
+											branch_Maybe_125 = v138;
+											branch_ZPlusArgumentParser_124 = r133;
 										} break;
 										case 0LL: { // None
-											decref(v124);
+											decref(v122);
 											decref(v69);
-											VAL v141 = MKI64(4LL /* UnknownArg */);
-											VAL v142 = mtw_std_maybe_Maybe_1_Some(v141);
-											branch_Maybe_127 = v142;
-											branch_ZPlusArgumentParser_126 = v62;
+											VAL v139 = MKI64(4LL /* UnknownArg */);
+											VAL v140 = mtw_std_maybe_Maybe_1_Some(v139);
+											branch_Maybe_125 = v140;
+											branch_ZPlusArgumentParser_124 = v62;
 										} break;
 										default: {
 											do_panic(str_make("unexpected fallthrough in match\n", 32));
 										}
 									}
-									branch_Maybe_123 = branch_Maybe_127;
-									branch_ZPlusArgumentParser_122 = branch_ZPlusArgumentParser_126;
+									branch_Maybe_121 = branch_Maybe_125;
+									branch_ZPlusArgumentParser_120 = branch_ZPlusArgumentParser_124;
 								} break;
 								case 0LL: { // None
 									decref(v69);
-									VAL v143 = MKI64(4LL /* UnknownArg */);
-									VAL v144 = mtw_std_maybe_Maybe_1_Some(v143);
-									branch_Maybe_123 = v144;
-									branch_ZPlusArgumentParser_122 = v62;
+									VAL v141 = MKI64(4LL /* UnknownArg */);
+									VAL v142 = mtw_std_maybe_Maybe_1_Some(v141);
+									branch_Maybe_121 = v142;
+									branch_ZPlusArgumentParser_120 = v62;
 								} break;
 								default: {
 									do_panic(str_make("unexpected fallthrough in match\n", 32));
 								}
 							}
-							bool v145 = false;
-							TUP* v146 = value_tup(branch_ZPlusArgumentParser_122->cells[1], 6);
-							incref(MKTUP(v146, 6));
-							TUP* v147 = mw_argZ_parser_state_State_1_parsingZAskZBang(v145, v146);
-							TUP* v148 = value_tup(branch_ZPlusArgumentParser_122->cells[1], 6);
-							decref(MKTUP(v148, 6));
-							branch_ZPlusArgumentParser_122->cells[1] = MKTUP(v147, 6);
-							branch_ZPlusArgumentParser_119 = branch_ZPlusArgumentParser_122;
-							branch_Maybe_118 = branch_Maybe_123;
+							bool v143 = false;
+							TUP* v144 = value_tup(branch_ZPlusArgumentParser_120->cells[1], 6);
+							incref(MKTUP(v144, 6));
+							TUP* v145 = mw_argZ_parser_state_State_1_parsingZAskZBang(v143, v144);
+							TUP* v146 = value_tup(branch_ZPlusArgumentParser_120->cells[1], 6);
+							decref(MKTUP(v146, 6));
+							branch_ZPlusArgumentParser_120->cells[1] = MKTUP(v145, 6);
+							branch_ZPlusArgumentParser_117 = branch_ZPlusArgumentParser_120;
+							branch_Maybe_116 = branch_Maybe_121;
 						} else {
-							TUP* v149;
-							VAL v150 = mw_argZ_parser_parse_doZ_positionalZ_option(v62, value_str(v69), &v149);
-							branch_ZPlusArgumentParser_119 = v149;
-							branch_Maybe_118 = v150;
+							TUP* v147;
+							VAL v148 = mw_argZ_parser_parse_doZ_positionalZ_option(v62, value_str(v69), &v147);
+							branch_ZPlusArgumentParser_117 = v147;
+							branch_Maybe_116 = v148;
 						}
-						branch_Maybe_91 = branch_Maybe_118;
-						branch_ZPlusArgumentParser_90 = branch_ZPlusArgumentParser_119;
+						branch_Maybe_89 = branch_Maybe_116;
+						branch_ZPlusArgumentParser_88 = branch_ZPlusArgumentParser_117;
 					}
-					branch_Maybe_75 = branch_Maybe_91;
-					branch_ZPlusArgumentParser_74 = branch_ZPlusArgumentParser_90;
+					branch_Maybe_75 = branch_Maybe_89;
+					branch_ZPlusArgumentParser_74 = branch_ZPlusArgumentParser_88;
 				} else {
 					decref(v69);
-					VAL v151 = MKI64(0LL /* None */);
-					branch_Maybe_75 = v151;
+					VAL v149 = MKI64(0LL /* None */);
+					branch_Maybe_75 = v149;
 					branch_ZPlusArgumentParser_74 = v62;
 				}
-				TUP* branch_ZPlusArgumentParser_152;
+				TUP* branch_ZPlusArgumentParser_150;
 				switch (get_data_tag(branch_Maybe_75)) {
 					case 1LL: { // Some
-						VAL v153 = mtp_std_maybe_Maybe_1_Some(branch_Maybe_75);
-						VAL v154 = mtw_std_maybe_Maybe_1_Some(v153);
+						VAL v151 = mtp_std_maybe_Maybe_1_Some(branch_Maybe_75);
+						VAL v152 = mtw_std_maybe_Maybe_1_Some(v151);
+						TUP* v153 = value_tup(branch_ZPlusArgumentParser_74->cells[1], 6);
+						incref(MKTUP(v153, 6));
+						VAL v154 = tup_replace(MKTUP(v153, 6), 5, v152);
 						TUP* v155 = value_tup(branch_ZPlusArgumentParser_74->cells[1], 6);
-						incref(MKTUP(v155, 6));
-						VAL v156 = tup_replace(MKTUP(v155, 6), 5, v154);
-						TUP* v157 = value_tup(branch_ZPlusArgumentParser_74->cells[1], 6);
-						decref(MKTUP(v157, 6));
-						branch_ZPlusArgumentParser_74->cells[1] = v156;
-						branch_ZPlusArgumentParser_152 = branch_ZPlusArgumentParser_74;
+						decref(MKTUP(v155, 6));
+						branch_ZPlusArgumentParser_74->cells[1] = v154;
+						branch_ZPlusArgumentParser_150 = branch_ZPlusArgumentParser_74;
 					} break;
 					case 0LL: { // None
-						branch_ZPlusArgumentParser_152 = branch_ZPlusArgumentParser_74;
+						branch_ZPlusArgumentParser_150 = branch_ZPlusArgumentParser_74;
 					} break;
 					default: {
 						do_panic(str_make("unexpected fallthrough in match\n", 32));
 					}
 				}
-				bool v158 = true;
-				branch_Bool_67 = v158;
+				bool v156 = true;
+				branch_Bool_67 = v156;
 				branch_List_66 = v68;
-				branch_ZPlusArgumentParser_65 = branch_ZPlusArgumentParser_152;
+				branch_ZPlusArgumentParser_65 = branch_ZPlusArgumentParser_150;
 			} break;
 			case 0LL: { // Nil
-				VAL v159 = MKI64(0LL /* Nil */);
-				bool v160 = false;
-				branch_Bool_67 = v160;
-				branch_List_66 = v159;
+				VAL v157 = MKI64(0LL /* Nil */);
+				bool v158 = false;
+				branch_Bool_67 = v158;
+				branch_List_66 = v157;
 				branch_ZPlusArgumentParser_65 = v62;
 			} break;
 			default: {
@@ -12072,119 +12413,108 @@ static VAL mw_argZ_parser_parse_parseZ_args (VAL in_a_1, TUP* in_ArgumentParser_
 		v58 = branch_ZPlusArgumentParser_65;
 	}
 	decref(v59);
-	TUP* v161 = value_tup(v58->cells[1], 6);
-	incref(MKTUP(v161, 6));
-	bool v162 = mw_argZ_parser_state_State_1_parsingZAsk(v161);
-	TUP* branch_ZPlusArgumentParser_163;
-	if (v162) {
-		VAL v164 = MKI64(0LL /* MissingArgValue */);
-		VAL v165 = mtw_std_maybe_Maybe_1_Some(v164);
+	TUP* v159 = value_tup(v58->cells[1], 6);
+	incref(MKTUP(v159, 6));
+	bool v160 = mw_argZ_parser_state_State_1_parsingZAsk(v159);
+	TUP* branch_ZPlusArgumentParser_161;
+	if (v160) {
+		VAL v162 = MKI64(0LL /* MissingArgValue */);
+		VAL v163 = mtw_std_maybe_Maybe_1_Some(v162);
+		TUP* v164 = value_tup(v58->cells[1], 6);
+		incref(MKTUP(v164, 6));
+		VAL v165 = tup_replace(MKTUP(v164, 6), 5, v163);
 		TUP* v166 = value_tup(v58->cells[1], 6);
-		incref(MKTUP(v166, 6));
-		VAL v167 = tup_replace(MKTUP(v166, 6), 5, v165);
-		TUP* v168 = value_tup(v58->cells[1], 6);
-		decref(MKTUP(v168, 6));
-		v58->cells[1] = v167;
-		branch_ZPlusArgumentParser_163 = v58;
+		decref(MKTUP(v166, 6));
+		v58->cells[1] = v165;
+		branch_ZPlusArgumentParser_161 = v58;
 	} else {
-		branch_ZPlusArgumentParser_163 = v58;
+		branch_ZPlusArgumentParser_161 = v58;
 	}
-	TUP* v169 = value_tup(branch_ZPlusArgumentParser_163->cells[1], 6);
-	incref(MKTUP(v169, 6));
-	VAL v170 = v169->cells[0];
-	incref(v170);
-	decref(MKTUP(v169, 6));
-	VAL v171 = MKI64(0LL /* None */);
-	VAL v172 = MKI64(3LL /* End */);
-	TUP* v173;
-	VAL v174 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(branch_ZPlusArgumentParser_163, &v173);
+	TUP* v167 = value_tup(branch_ZPlusArgumentParser_161->cells[1], 6);
+	incref(MKTUP(v167, 6));
+	VAL v168 = v167->cells[0];
+	incref(v168);
+	decref(MKTUP(v167, 6));
+	VAL v169 = MKI64(0LL /* None */);
+	VAL v170 = MKI64(3LL /* End */);
+	TUP* v171;
+	VAL v172 = mw_argZ_parser_types_ZPlusArgumentParser_1_parser(branch_ZPlusArgumentParser_161, &v171);
+	push_value(v168);
+	push_value(v169);
 	push_value(v170);
-	push_value(v171);
-	push_value(v172);
-	push_resource(MKTUP(v173, 2));
-	run_value(v174);
-	TUP* r175 = value_tup(pop_resource(), 2);
-	VAL v176 = pop_value();
-	TUP* v177 = value_tup(r175->cells[1], 6);
-	incref(MKTUP(v177, 6));
-	VAL v178 = tup_replace(MKTUP(v177, 6), 0, v176);
-	TUP* v179 = value_tup(r175->cells[1], 6);
-	decref(MKTUP(v179, 6));
-	r175->cells[1] = v178;
-	TUP* v180 = value_tup(r175->cells[1], 6);
+	push_resource(MKTUP(v171, 2));
+	run_value(v172);
+	TUP* r173 = value_tup(pop_resource(), 2);
+	VAL v174 = pop_value();
+	TUP* v175 = value_tup(r173->cells[1], 6);
+	incref(MKTUP(v175, 6));
+	VAL v176 = tup_replace(MKTUP(v175, 6), 0, v174);
+	TUP* v177 = value_tup(r173->cells[1], 6);
+	decref(MKTUP(v177, 6));
+	r173->cells[1] = v176;
+	TUP* v178 = value_tup(r173->cells[1], 6);
+	incref(MKTUP(v178, 6));
+	VAL v179 = v178->cells[0];
+	incref(v179);
+	decref(MKTUP(v178, 6));
+	TUP* v180 = value_tup(r173->cells[1], 6);
 	incref(MKTUP(v180, 6));
-	VAL v181 = v180->cells[0];
+	VAL v181 = v180->cells[5];
 	incref(v181);
 	decref(MKTUP(v180, 6));
-	TUP* v182 = value_tup(r175->cells[1], 6);
-	incref(MKTUP(v182, 6));
-	VAL v183 = v182->cells[5];
-	incref(v183);
-	decref(MKTUP(v182, 6));
-	TUP* branch_ZPlusArgumentParser_184;
-	VAL branch_Result_185;
-	switch (get_data_tag(v183)) {
+	TUP* branch_ZPlusArgumentParser_182;
+	VAL branch_Result_183;
+	switch (get_data_tag(v181)) {
 		case 1LL: { // Some
-			VAL v186 = mtp_std_maybe_Maybe_1_Some(v183);
-			TUP* v187;
-			STR* v188 = mw_argZ_parser_types_ZPlusArgumentParser_1_usage(r175, &v187);
-			TUP* v189 = tup_new(2);
-			v189->size = 2;
-			v189->cells[1] = MKSTR(v188);
-			v189->cells[0] = v186;
-			VAL v190 = mtw_std_result_Result_2_Err(MKTUP(v189, 2));
-			decref(v181);
-			branch_Result_185 = v190;
-			branch_ZPlusArgumentParser_184 = v187;
+			VAL v184 = mtp_std_maybe_Maybe_1_Some(v181);
+			TUP* v185;
+			STR* v186 = mw_argZ_parser_types_ZPlusArgumentParser_1_usage(r173, &v185);
+			TUP* v187 = tup_new(2);
+			v187->size = 2;
+			v187->cells[1] = MKSTR(v186);
+			v187->cells[0] = v184;
+			VAL v188 = mtw_std_result_Result_2_Err(MKTUP(v187, 2));
+			decref(v179);
+			branch_Result_183 = v188;
+			branch_ZPlusArgumentParser_182 = v185;
 		} break;
 		case 0LL: { // None
-			VAL v191 = mtw_std_result_Result_2_Ok(v181);
-			branch_Result_185 = v191;
-			branch_ZPlusArgumentParser_184 = r175;
+			VAL v189 = mtw_std_result_Result_2_Ok(v179);
+			branch_Result_183 = v189;
+			branch_ZPlusArgumentParser_182 = r173;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	mw_argZ_parser_types_ZPlusArgumentParser_1_rdrop(branch_ZPlusArgumentParser_184);
-	return branch_Result_185;
+	mw_argZ_parser_types_ZPlusArgumentParser_1_rdrop(branch_ZPlusArgumentParser_182);
+	return branch_Result_183;
 }
 static STR* mw_argZ_parser_parse_readZ_fromZ_argv (INT in_Int_1) {
 	incref(MKINT(in_Int_1));
 	INT v5 = WRAP_I63(0LL);
-	bool v6 = int_lt(in_Int_1, v5);
-	VAL branch__7;
+	bool v6 = int_le(v5, in_Int_1);
+	STR* branch_Str_7;
 	if (v6) {
-		decref(MKINT(in_Int_1));
-		STR* v8;
-		STRLIT(v8, "", 0);
-		branch__7 = MKSTR(v8);
+		uint64_t v8 = sizeof(void*);
+		INT v9 = u64_to_int(v8);
+		INT v10 = int_mul(in_Int_1, v9);
+		void* v11 = global_argv;
+		int64_t v12 = int_to_i64(v10);
+		void* v13 = (void*)(v12 + (char*)v11);
+		void* v14 = *(void**)v13;
+		uint64_t v15 = mext_std_ctypes_CStr_numZ_bytesZ_raw(v14);
+		INT v16 = u64_to_int(v15);
+		uint64_t v17 = int_to_u64(v16);
+		STR* v18 = str_make(v14, v17);
+		branch_Str_7 = v18;
 	} else {
-		uint64_t v9 = sizeof(void*);
-		INT v10 = u64_to_int(v9);
-		incref(MKINT(v10));
-		INT v11 = WRAP_I63(0LL);
-		bool v12 = int_lt(v10, v11);
-		INT branch_Nat_13;
-		if (v12) {
-			decref(MKINT(v10));
-			INT v14 = WRAP_I63(0LL);
-			branch_Nat_13 = v14;
-		} else {
-			branch_Nat_13 = v10;
-		}
-		INT v15 = int_mul(in_Int_1, branch_Nat_13);
-		void* v16 = global_argv;
-		int64_t v17 = int_to_i64(v15);
-		void* v18 = (void*)(v17 + (char*)v16);
-		void* v19 = *(void**)v18;
-		uint64_t v20 = mext_std_ctypes_CStr_numZ_bytes(v19);
-		INT v21 = u64_to_int(v20);
-		uint64_t v22 = int_to_u64(v21);
-		STR* v23 = str_make(v19, v22);
-		branch__7 = MKSTR(v23);
+		decref(MKINT(in_Int_1));
+		STR* v19;
+		STRLIT(v19, "", 0);
+		branch_Str_7 = v19;
 	}
-	return value_str(branch__7);
+	return branch_Str_7;
 }
 static VAL mw_argZ_parser_parse_argvZ_toZ_str (void) {
 	INT v2 = WRAP_I63(1LL);
@@ -12212,20 +12542,19 @@ static VAL mw_argZ_parser_parse_argvZ_toZ_str (void) {
 			case 1LL: { // Cons
 				VAL v21;
 				VAL v22 = mtp_std_list_List_1_Cons(v16, &v21);
-				int64_t v23 = 0LL /* +Unsafe */;
-				STR* v24 = mw_argZ_parser_parse_readZ_fromZ_argv(value_int(v22));
-				VAL v25;
-				mw_std_list_ZPlusLister_1_pushZBang(MKSTR(v24), v15, &v25);
-				bool v26 = true;
-				branch_Bool_20 = v26;
+				STR* v23 = mw_std_prelude_unsafe_1_sp27(value_int(v22));
+				VAL v24;
+				mw_std_list_ZPlusLister_1_pushZBang(MKSTR(v23), v15, &v24);
+				bool v25 = true;
+				branch_Bool_20 = v25;
 				branch_List_19 = v21;
-				branch_ZPlusLister_18 = v25;
+				branch_ZPlusLister_18 = v24;
 			} break;
 			case 0LL: { // Nil
-				VAL v27 = MKI64(0LL /* Nil */);
-				bool v28 = false;
-				branch_Bool_20 = v28;
-				branch_List_19 = v27;
+				VAL v26 = MKI64(0LL /* Nil */);
+				bool v27 = false;
+				branch_Bool_20 = v27;
+				branch_List_19 = v26;
 				branch_ZPlusLister_18 = v15;
 			} break;
 			default: {
@@ -12238,8 +12567,8 @@ static VAL mw_argZ_parser_parse_argvZ_toZ_str (void) {
 		v11 = branch_ZPlusLister_18;
 	}
 	decref(v12);
-	VAL v29 = mw_std_list_ZPlusLister_1_doneZBang(v11);
-	return v29;
+	VAL v28 = mw_std_list_ZPlusLister_1_doneZBang(v11);
+	return v28;
 }
 static TUP* mw_mirth_options_Options_default (void) {
 	bool v2 = false;
@@ -12683,7 +13012,7 @@ static STR* mw_mirth_label_Label_ZToStr (TUP* in_ZPlusMirth_1, uint64_t in_Label
 	*out_ZPlusMirth_3 = v7;
 	return v8;
 }
-static bool mw_mirth_label_Label_ZEqualZEqual (uint64_t in_Label_1, uint64_t in_Label_2) {
+static bool mw_mirth_label_Label_ZEqual (uint64_t in_Label_1, uint64_t in_Label_2) {
 	uint64_t v4 = mw_mirth_label_Label_index(in_Label_1);
 	uint64_t v5 = mw_mirth_label_Label_index(in_Label_2);
 	bool v6 = (v4 == v5);
@@ -12730,13 +13059,11 @@ static bool mw_mirth_label_Label_isZ_resourceZ_labelZAsk (TUP* in_ZPlusMirth_1, 
 	INT v13 = i64_to_int(v9);
 	uint64_t v14 = int_to_u64(v13);
 	uint8_t v15 = (uint8_t)(v14);
-	uint64_t v16 = (uint64_t)(v12);
-	INT v17 = u64_to_int(v16);
-	uint64_t v18 = (uint64_t)(v15);
-	INT v19 = u64_to_int(v18);
-	bool v20 = int_eq(v17, v19);
+	uint64_t v16 = (uint64_t)(v15);
+	uint64_t v17 = (uint64_t)(v12);
+	bool v18 = (v17 == v16);
 	*out_ZPlusMirth_3 = v7;
-	return v20;
+	return v18;
 }
 static uint64_t mw_mirth_var_Var_index (uint64_t in_Var_1) {
 	return in_Var_1;
@@ -12788,7 +13115,7 @@ static bool mw_mirth_var_Var_isZ_stackZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Va
 		case 1LL: { // Some
 			VAL v10 = mtp_std_maybe_Maybe_1_Some(v8);
 			int64_t v11 = 1LL /* StackType */;
-			bool v12 = mw_mirth_type_PrimType_ZEqualZEqual(value_i64(v10), v11);
+			bool v12 = mw_mirth_type_PrimType_ZEqual(value_i64(v10), v11);
 			branch_Bool_9 = v12;
 		} break;
 		case 0LL: { // None
@@ -12894,7 +13221,7 @@ static VAL mw_mirth_var_Ctx_lookup (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, VA
 				incref(v28);
 				TUP* v29;
 				uint64_t v30 = mw_mirth_var_Var_name(v16, value_u64(v28), &v29);
-				bool v31 = mw_mirth_name_Name_ZEqualZEqual(v17, v30);
+				bool v31 = mw_mirth_name_Name_ZEqual(v17, v30);
 				TUP* branch_ZPlusMirth_32;
 				uint64_t branch_Name_33;
 				VAL branch_Maybe_34;
@@ -13248,18 +13575,18 @@ static TUP* mw_mirth_buffer_Buffer_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t i
 	*out_ZPlusMirth_3 = v6;
 	return value_tup(v7, 3);
 }
-static bool mw_mirth_buffer_Buffer_ZEqualZEqual (uint64_t in_Buffer_1, uint64_t in_Buffer_2) {
+static bool mw_mirth_buffer_Buffer_ZEqual (uint64_t in_Buffer_1, uint64_t in_Buffer_2) {
 	uint64_t v4 = mw_mirth_buffer_Buffer_index(in_Buffer_1);
 	uint64_t v5 = mw_mirth_buffer_Buffer_index(in_Buffer_2);
 	bool v6 = (v4 == v5);
 	return v6;
 }
-static uint64_t mw_mirth_buffer_Buffer_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, INT in_USizze_3, uint64_t in_Name_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6) {
+static uint64_t mw_mirth_buffer_Buffer_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, INT in_Sizze_3, uint64_t in_Name_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6) {
 	uint64_t v8 = mw_mirth_buffer_Buffer_allocZBang();
 	void* v9 = field_mut(&mfld_mirth_buffer_Buffer_ZTildedoc, v8);
 	mut_set(in_Maybe_5, v9);
 	void* v10 = field_mut(&mfld_mirth_buffer_Buffer_ZTildesizze, v8);
-	mut_set(MKINT(in_USizze_3), v10);
+	mut_set(MKINT(in_Sizze_3), v10);
 	void* v11 = field_mut(&mfld_mirth_buffer_Buffer_ZTildename, v8);
 	mut_set(MKU64(in_Name_4), v11);
 	void* v12 = field_mut(&mfld_mirth_buffer_Buffer_ZTildehead, v8);
@@ -13454,7 +13781,7 @@ static uint64_t mw_mirth_word_Word_newZBang (uint64_t in_Token_1, VAL in_Maybe_2
 	*out_ZPlusMirth_9 = v18;
 	return v10;
 }
-static bool mw_mirth_word_Word_ZEqualZEqual (uint64_t in_Word_1, uint64_t in_Word_2) {
+static bool mw_mirth_word_Word_ZEqual (uint64_t in_Word_1, uint64_t in_Word_2) {
 	uint64_t v4 = mw_mirth_word_Word_index(in_Word_1);
 	uint64_t v5 = mw_mirth_word_Word_index(in_Word_2);
 	bool v6 = (v4 == v5);
@@ -13529,7 +13856,7 @@ static uint64_t mw_mirth_table_Table_name (TUP* in_ZPlusMirth_1, uint64_t in_Tab
 	*out_ZPlusMirth_3 = in_ZPlusMirth_1;
 	return value_u64(v6);
 }
-static bool mw_mirth_table_Table_ZEqualZEqual (uint64_t in_Table_1, uint64_t in_Table_2) {
+static bool mw_mirth_table_Table_ZEqual (uint64_t in_Table_1, uint64_t in_Table_2) {
 	uint64_t v4 = mw_mirth_table_Table_index(in_Table_1);
 	uint64_t v5 = mw_mirth_table_Table_index(in_Table_2);
 	bool v6 = (v4 == v5);
@@ -13620,7 +13947,7 @@ static TUP* mw_mirth_table_Field_type (TUP* in_ZPlusMirth_1, uint64_t in_Field_2
 	*out_ZPlusMirth_3 = v7;
 	return v9;
 }
-static bool mw_mirth_table_Field_ZEqualZEqual (uint64_t in_Field_1, uint64_t in_Field_2) {
+static bool mw_mirth_table_Field_ZEqual (uint64_t in_Field_1, uint64_t in_Field_2) {
 	uint64_t v4 = mw_mirth_table_Field_index(in_Field_1);
 	uint64_t v5 = mw_mirth_table_Field_index(in_Field_2);
 	bool v6 = (v4 == v5);
@@ -13729,7 +14056,7 @@ static void mw_mirth_tycon_Tycon_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlus
 	*out_ZPlusStr_5 = branch_ZPlusStr_7;
 	*out_ZPlusMirth_4 = branch_ZPlusMirth_6;
 }
-static bool mw_mirth_tycon_Tycon_ZEqualZEqual (VAL in_Tycon_1, VAL in_Tycon_2) {
+static bool mw_mirth_tycon_Tycon_ZEqual (VAL in_Tycon_1, VAL in_Tycon_2) {
 	bool branch_Bool_4;
 	switch (get_data_tag(in_Tycon_2)) {
 		case 0LL: { // Data
@@ -13738,7 +14065,7 @@ static bool mw_mirth_tycon_Tycon_ZEqualZEqual (VAL in_Tycon_1, VAL in_Tycon_2) {
 			switch (get_data_tag(in_Tycon_1)) {
 				case 0LL: { // Data
 					uint64_t v7 = mtp_mirth_tycon_Tycon_Data(in_Tycon_1);
-					bool v8 = mw_mirth_data_Data_ZEqualZEqual(v7, v5);
+					bool v8 = mw_mirth_data_Data_ZEqual(v7, v5);
 					branch_Bool_6 = v8;
 				} break;
 				default: {
@@ -13755,7 +14082,7 @@ static bool mw_mirth_tycon_Tycon_ZEqualZEqual (VAL in_Tycon_1, VAL in_Tycon_2) {
 			switch (get_data_tag(in_Tycon_1)) {
 				case 1LL: { // Table
 					uint64_t v12 = mtp_mirth_tycon_Tycon_Table(in_Tycon_1);
-					bool v13 = mw_mirth_table_Table_ZEqualZEqual(v12, v10);
+					bool v13 = mw_mirth_table_Table_ZEqual(v12, v10);
 					branch_Bool_11 = v13;
 				} break;
 				default: {
@@ -13772,7 +14099,7 @@ static bool mw_mirth_tycon_Tycon_ZEqualZEqual (VAL in_Tycon_1, VAL in_Tycon_2) {
 			switch (get_data_tag(in_Tycon_1)) {
 				case 2LL: { // Prim
 					int64_t v17 = mtp_mirth_tycon_Tycon_Prim(in_Tycon_1);
-					bool v18 = mw_mirth_type_PrimType_ZEqualZEqual(v17, v15);
+					bool v18 = mw_mirth_type_PrimType_ZEqual(v17, v15);
 					branch_Bool_16 = v18;
 				} break;
 				default: {
@@ -14504,7 +14831,7 @@ static TUP* mw_mirth_data_dataZ_wordZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_D
 	*out_ZPlusMirth_5 = v7;
 	return v9;
 }
-static bool mw_mirth_data_Data_ZEqualZEqual (uint64_t in_Data_1, uint64_t in_Data_2) {
+static bool mw_mirth_data_Data_ZEqual (uint64_t in_Data_1, uint64_t in_Data_2) {
 	uint64_t v4 = mw_mirth_data_Data_index(in_Data_1);
 	uint64_t v5 = mw_mirth_data_Data_index(in_Data_2);
 	bool v6 = (v4 == v5);
@@ -15212,7 +15539,7 @@ static VAL mw_mirth_data_Tag_labelZ_inputsZ_fromZ_sig (TUP* in_ZPlusMirth_1, uin
 						TUP* v30;
 						VAL v31 = mw_mirth_token_Token_sigZ_labelZAsk(v20, value_u64(v29), &v30);
 						VAL v32;
-						mw_std_maybe_Maybe_1_for_1_sp8(v21, v31, &v32);
+						mw_std_maybe_Maybe_1_for_1_sp9(v21, v31, &v32);
 						bool v33 = true;
 						branch_Bool_27 = v33;
 						branch_List_26 = v28;
@@ -15407,7 +15734,7 @@ static INT mw_mirth_data_Tag_numZ_resourceZ_inputsZ_fromZ_sig (TUP* in_ZPlusMirt
 						TUP* v58;
 						VAL v59 = mw_mirth_token_Token_nameZAsk(v48, value_u64(v57), &v58);
 						VAL v60;
-						mw_std_maybe_Maybe_1_for_1_sp8(v49, v59, &v60);
+						mw_std_maybe_Maybe_1_for_1_sp9(v49, v59, &v60);
 						bool v61 = true;
 						branch_Bool_55 = v61;
 						branch_List_54 = v56;
@@ -15609,7 +15936,7 @@ static bool mw_mirth_data_Tag_outputsZ_resourceZAsk (TUP* in_ZPlusMirth_1, uint6
 	*out_ZPlusMirth_3 = v7;
 	return v8;
 }
-static bool mw_mirth_data_Tag_ZEqualZEqual (uint64_t in_Tag_1, uint64_t in_Tag_2) {
+static bool mw_mirth_data_Tag_ZEqual (uint64_t in_Tag_1, uint64_t in_Tag_2) {
 	uint64_t v4 = mw_mirth_data_Tag_index(in_Tag_1);
 	uint64_t v5 = mw_mirth_data_Tag_index(in_Tag_2);
 	bool v6 = (v4 == v5);
@@ -15645,15 +15972,15 @@ static bool mw_mirth_data_Tag_preferZ_inlineZAsk (TUP* in_ZPlusMirth_1, uint64_t
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_13;
 	return branch_Bool_15;
 }
-static bool mw_mirth_data_DataPartial_ZEqualZEqual (TUP* in_DataPartial_1, TUP* in_DataPartial_2) {
+static bool mw_mirth_data_DataPartial_ZEqual (TUP* in_DataPartial_1, TUP* in_DataPartial_2) {
 	uint64_t v4;
 	uint64_t v5;
 	mtp_mirth_data_DataPartial_DataPartial(in_DataPartial_2, &v4, &v5);
 	uint64_t v6;
 	uint64_t v7;
 	mtp_mirth_data_DataPartial_DataPartial(in_DataPartial_1, &v6, &v7);
-	bool v8 = mw_mirth_data_Data_ZEqualZEqual(v6, v4);
-	bool v9 = mw_mirth_label_Label_ZEqualZEqual(v7, v5);
+	bool v8 = mw_mirth_data_Data_ZEqual(v6, v4);
+	bool v9 = mw_mirth_label_Label_ZEqual(v7, v5);
 	bool v10 = (v8 && v9);
 	return v10;
 }
@@ -15723,8 +16050,9 @@ static bool mw_mirth_match_Match_isZ_exhaustiveZAsk (TUP* in_ZPlusMirth_1, TUP* 
 				decref(MKTUP(in_Match_2, 7));
 				INT v23 = mw_std_list_List_1_len(v22);
 				INT v24 = WRAP_I63(0LL);
-				bool v25 = int_gt(v23, v24);
-				branch_Bool_15 = v25;
+				bool v25 = int_eq(v23, v24);
+				bool v26 = !v25;
+				branch_Bool_15 = v26;
 				branch_Match_14 = in_Match_2;
 				branch_ZPlusMirth_13 = v11;
 			} break;
@@ -15958,7 +16286,7 @@ static VAL mw_mirth_match_Match_scrutineeZ_dataZAsk (TUP* in_ZPlusMirth_1, TUP* 
 								incref(v54);
 								TUP* v72;
 								uint64_t v73 = mw_mirth_data_Tag_data(v53, value_u64(v71), &v72);
-								bool v74 = mw_mirth_data_Data_ZEqualZEqual(value_u64(v54), v73);
+								bool v74 = mw_mirth_data_Data_ZEqual(value_u64(v54), v73);
 								branch_Bool_70 = v74;
 								branch_ZPlusMirth_69 = v72;
 								branch_Data_68 = value_u64(v54);
@@ -16573,7 +16901,7 @@ static bool mw_mirth_match_Pattern_coversZAsk (TUP* in_Pattern_1, TUP* in_Patter
 						} break;
 						case 1LL: { // Tag
 							uint64_t v21 = mtp_mirth_match_PatternOp_Tag(v18);
-							bool v22 = mw_mirth_data_Tag_ZEqualZEqual(v17, v21);
+							bool v22 = mw_mirth_data_Tag_ZEqual(v17, v21);
 							branch_Bool_19 = v22;
 						} break;
 						default: {
@@ -16707,7 +17035,7 @@ static TUP* mw_mirth_external_External_ctype (TUP* in_ZPlusMirth_1, uint64_t in_
 	*out_ZPlusMirth_3 = v6;
 	return value_tup(v7, 2);
 }
-static bool mw_mirth_external_External_ZEqualZEqual (uint64_t in_External_1, uint64_t in_External_2) {
+static bool mw_mirth_external_External_ZEqual (uint64_t in_External_1, uint64_t in_External_2) {
 	uint64_t v4 = mw_mirth_external_External_index(in_External_1);
 	uint64_t v5 = mw_mirth_external_External_index(in_External_2);
 	bool v6 = (v4 == v5);
@@ -16917,7 +17245,7 @@ static VAL mw_mirth_arrow_Arg_freeZ_vars (TUP* in_ZPlusMirth_1, uint64_t in_Arg_
 	*out_ZPlusMirth_3 = v5;
 	return v6;
 }
-static bool mw_mirth_arrow_PushValue_ZEqualZEqual (VAL in_PushValue_1, VAL in_PushValue_2) {
+static bool mw_mirth_arrow_PushValue_ZEqual (VAL in_PushValue_1, VAL in_PushValue_2) {
 	bool branch_Bool_4;
 	switch (get_data_tag(in_PushValue_2)) {
 		case 0LL: { // Str
@@ -16962,185 +17290,181 @@ static bool mw_mirth_arrow_PushValue_ZEqualZEqual (VAL in_PushValue_1, VAL in_Pu
 			switch (get_data_tag(in_PushValue_1)) {
 				case 2LL: { // U8
 					uint8_t v17 = mtp_mirth_arrow_PushValue_U8(in_PushValue_1);
-					uint64_t v18 = (uint64_t)(v17);
-					INT v19 = u64_to_int(v18);
-					uint64_t v20 = (uint64_t)(v15);
-					INT v21 = u64_to_int(v20);
-					bool v22 = int_eq(v19, v21);
-					branch_Bool_16 = v22;
+					uint64_t v18 = (uint64_t)(v15);
+					uint64_t v19 = (uint64_t)(v17);
+					bool v20 = (v19 == v18);
+					branch_Bool_16 = v20;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v23 = false;
-					branch_Bool_16 = v23;
+					bool v21 = false;
+					branch_Bool_16 = v21;
 				} break;
 			}
 			branch_Bool_4 = branch_Bool_16;
 		} break;
 		case 3LL: { // U16
-			uint16_t v24 = mtp_mirth_arrow_PushValue_U16(in_PushValue_2);
-			bool branch_Bool_25;
+			uint16_t v22 = mtp_mirth_arrow_PushValue_U16(in_PushValue_2);
+			bool branch_Bool_23;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 3LL: { // U16
-					uint16_t v26 = mtp_mirth_arrow_PushValue_U16(in_PushValue_1);
-					uint64_t v27 = (uint64_t)(v26);
-					uint64_t v28 = (uint64_t)(v24);
-					bool v29 = (v27 == v28);
-					branch_Bool_25 = v29;
+					uint16_t v24 = mtp_mirth_arrow_PushValue_U16(in_PushValue_1);
+					uint64_t v25 = (uint64_t)(v22);
+					uint64_t v26 = (uint64_t)(v24);
+					bool v27 = (v26 == v25);
+					branch_Bool_23 = v27;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v30 = false;
-					branch_Bool_25 = v30;
+					bool v28 = false;
+					branch_Bool_23 = v28;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_25;
+			branch_Bool_4 = branch_Bool_23;
 		} break;
 		case 4LL: { // U32
-			uint32_t v31 = mtp_mirth_arrow_PushValue_U32(in_PushValue_2);
-			bool branch_Bool_32;
+			uint32_t v29 = mtp_mirth_arrow_PushValue_U32(in_PushValue_2);
+			bool branch_Bool_30;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 4LL: { // U32
-					uint32_t v33 = mtp_mirth_arrow_PushValue_U32(in_PushValue_1);
-					uint64_t v34 = (uint64_t)(v33);
-					uint64_t v35 = (uint64_t)(v31);
-					bool v36 = (v34 == v35);
-					branch_Bool_32 = v36;
+					uint32_t v31 = mtp_mirth_arrow_PushValue_U32(in_PushValue_1);
+					uint64_t v32 = (uint64_t)(v29);
+					uint64_t v33 = (uint64_t)(v31);
+					bool v34 = (v33 == v32);
+					branch_Bool_30 = v34;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v37 = false;
-					branch_Bool_32 = v37;
+					bool v35 = false;
+					branch_Bool_30 = v35;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_32;
+			branch_Bool_4 = branch_Bool_30;
 		} break;
 		case 5LL: { // U64
-			uint64_t v38 = mtp_mirth_arrow_PushValue_U64(in_PushValue_2);
-			bool branch_Bool_39;
+			uint64_t v36 = mtp_mirth_arrow_PushValue_U64(in_PushValue_2);
+			bool branch_Bool_37;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 5LL: { // U64
-					uint64_t v40 = mtp_mirth_arrow_PushValue_U64(in_PushValue_1);
-					bool v41 = (v40 == v38);
-					branch_Bool_39 = v41;
+					uint64_t v38 = mtp_mirth_arrow_PushValue_U64(in_PushValue_1);
+					bool v39 = (v38 == v36);
+					branch_Bool_37 = v39;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v42 = false;
-					branch_Bool_39 = v42;
+					bool v40 = false;
+					branch_Bool_37 = v40;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_39;
+			branch_Bool_4 = branch_Bool_37;
 		} break;
 		case 6LL: { // I8
-			int8_t v43 = mtp_mirth_arrow_PushValue_I8(in_PushValue_2);
-			bool branch_Bool_44;
+			int8_t v41 = mtp_mirth_arrow_PushValue_I8(in_PushValue_2);
+			bool branch_Bool_42;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 6LL: { // I8
-					int8_t v45 = mtp_mirth_arrow_PushValue_I8(in_PushValue_1);
-					int64_t v46 = (int64_t)(v45);
-					int64_t v47 = (int64_t)(v43);
-					bool v48 = (v46 == v47);
-					branch_Bool_44 = v48;
+					int8_t v43 = mtp_mirth_arrow_PushValue_I8(in_PushValue_1);
+					int64_t v44 = (int64_t)(v41);
+					int64_t v45 = (int64_t)(v43);
+					bool v46 = (v45 == v44);
+					branch_Bool_42 = v46;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v49 = false;
-					branch_Bool_44 = v49;
+					bool v47 = false;
+					branch_Bool_42 = v47;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_44;
+			branch_Bool_4 = branch_Bool_42;
 		} break;
 		case 7LL: { // I16
-			int16_t v50 = mtp_mirth_arrow_PushValue_I16(in_PushValue_2);
-			bool branch_Bool_51;
+			int16_t v48 = mtp_mirth_arrow_PushValue_I16(in_PushValue_2);
+			bool branch_Bool_49;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 7LL: { // I16
-					int16_t v52 = mtp_mirth_arrow_PushValue_I16(in_PushValue_1);
-					int64_t v53 = (int64_t)(v52);
-					INT v54 = i64_to_int(v53);
-					int64_t v55 = (int64_t)(v50);
-					INT v56 = i64_to_int(v55);
-					bool v57 = int_eq(v54, v56);
-					branch_Bool_51 = v57;
+					int16_t v50 = mtp_mirth_arrow_PushValue_I16(in_PushValue_1);
+					int64_t v51 = (int64_t)(v48);
+					int64_t v52 = (int64_t)(v50);
+					bool v53 = (v52 == v51);
+					branch_Bool_49 = v53;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v58 = false;
-					branch_Bool_51 = v58;
+					bool v54 = false;
+					branch_Bool_49 = v54;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_51;
+			branch_Bool_4 = branch_Bool_49;
 		} break;
 		case 8LL: { // I32
-			int32_t v59 = mtp_mirth_arrow_PushValue_I32(in_PushValue_2);
-			bool branch_Bool_60;
+			int32_t v55 = mtp_mirth_arrow_PushValue_I32(in_PushValue_2);
+			bool branch_Bool_56;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 8LL: { // I32
-					int32_t v61 = mtp_mirth_arrow_PushValue_I32(in_PushValue_1);
-					int64_t v62 = (int64_t)(v61);
-					int64_t v63 = (int64_t)(v59);
-					bool v64 = (v62 == v63);
-					branch_Bool_60 = v64;
+					int32_t v57 = mtp_mirth_arrow_PushValue_I32(in_PushValue_1);
+					int64_t v58 = (int64_t)(v55);
+					int64_t v59 = (int64_t)(v57);
+					bool v60 = (v59 == v58);
+					branch_Bool_56 = v60;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v65 = false;
-					branch_Bool_60 = v65;
+					bool v61 = false;
+					branch_Bool_56 = v61;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_60;
+			branch_Bool_4 = branch_Bool_56;
 		} break;
 		case 9LL: { // I64
-			int64_t v66 = mtp_mirth_arrow_PushValue_I64(in_PushValue_2);
-			bool branch_Bool_67;
+			int64_t v62 = mtp_mirth_arrow_PushValue_I64(in_PushValue_2);
+			bool branch_Bool_63;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 9LL: { // I64
-					int64_t v68 = mtp_mirth_arrow_PushValue_I64(in_PushValue_1);
-					bool v69 = (v68 == v66);
-					branch_Bool_67 = v69;
+					int64_t v64 = mtp_mirth_arrow_PushValue_I64(in_PushValue_1);
+					bool v65 = (v64 == v62);
+					branch_Bool_63 = v65;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v70 = false;
-					branch_Bool_67 = v70;
+					bool v66 = false;
+					branch_Bool_63 = v66;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_67;
+			branch_Bool_4 = branch_Bool_63;
 		} break;
 		case 10LL: { // F32
-			float v71 = mtp_mirth_arrow_PushValue_F32(in_PushValue_2);
-			bool branch_Bool_72;
+			float v67 = mtp_mirth_arrow_PushValue_F32(in_PushValue_2);
+			bool branch_Bool_68;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 10LL: { // F32
-					float v73 = mtp_mirth_arrow_PushValue_F32(in_PushValue_1);
-					bool v74 = (v73 == v71);
-					branch_Bool_72 = v74;
+					float v69 = mtp_mirth_arrow_PushValue_F32(in_PushValue_1);
+					bool v70 = (v69 == v67);
+					branch_Bool_68 = v70;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v75 = false;
-					branch_Bool_72 = v75;
+					bool v71 = false;
+					branch_Bool_68 = v71;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_72;
+			branch_Bool_4 = branch_Bool_68;
 		} break;
 		case 11LL: { // F64
-			double v76 = mtp_mirth_arrow_PushValue_F64(in_PushValue_2);
-			bool branch_Bool_77;
+			double v72 = mtp_mirth_arrow_PushValue_F64(in_PushValue_2);
+			bool branch_Bool_73;
 			switch (get_data_tag(in_PushValue_1)) {
 				case 11LL: { // F64
-					double v78 = mtp_mirth_arrow_PushValue_F64(in_PushValue_1);
-					bool v79 = (v78 == v76);
-					branch_Bool_77 = v79;
+					double v74 = mtp_mirth_arrow_PushValue_F64(in_PushValue_1);
+					bool v75 = (v74 == v72);
+					branch_Bool_73 = v75;
 				} break;
 				default: {
 					decref(in_PushValue_1);
-					bool v80 = false;
-					branch_Bool_77 = v80;
+					bool v76 = false;
+					branch_Bool_73 = v76;
 				} break;
 			}
-			branch_Bool_4 = branch_Bool_77;
+			branch_Bool_4 = branch_Bool_73;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -17414,7 +17738,7 @@ static TUP* mw_mirth_arrow_Block_arrow (TUP* in_ZPlusMirth_1, uint64_t in_Block_
 	*out_ZPlusMirth_3 = v6;
 	return value_tup(v7, 7);
 }
-static bool mw_mirth_arrow_Block_ZEqualZEqual (uint64_t in_Block_1, uint64_t in_Block_2) {
+static bool mw_mirth_arrow_Block_ZEqual (uint64_t in_Block_1, uint64_t in_Block_2) {
 	uint64_t v4 = mw_mirth_arrow_Block_index(in_Block_1);
 	uint64_t v5 = mw_mirth_arrow_Block_index(in_Block_2);
 	bool v6 = (v4 == v5);
@@ -17498,21 +17822,10 @@ static STR* mw_mirth_arrow_Block_cname (TUP* in_ZPlusMirth_1, uint64_t in_Block_
 				mw_std_str_ZPlusStr_pushZ_strZBang(v33, v32, &v34);
 				uint64_t v35 = mw_mirth_arrow_Block_index(in_Block_2);
 				INT v36 = u64_to_int(v35);
-				incref(MKINT(v36));
-				INT v37 = WRAP_I63(0LL);
-				bool v38 = int_lt(v36, v37);
-				INT branch_Nat_39;
-				if (v38) {
-					decref(MKINT(v36));
-					INT v40 = WRAP_I63(0LL);
-					branch_Nat_39 = v40;
-				} else {
-					branch_Nat_39 = v36;
-				}
-				STR* v41 = int_to_str(branch_Nat_39);
-				STR* v42;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v41, v34, &v42);
-				branch_Str_15 = v42;
+				STR* v37 = int_to_str(v36);
+				STR* v38;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v37, v34, &v38);
+				branch_Str_15 = v38;
 				branch_Block_14 = in_Block_2;
 				branch_ZPlusMirth_13 = v11;
 			} break;
@@ -17749,7 +18062,7 @@ static VAL mw_mirth_typedef_TypeDef_params (TUP* in_ZPlusMirth_1, uint64_t in_Ty
 	*out_ZPlusMirth_3 = in_ZPlusMirth_1;
 	return v5;
 }
-static bool mw_mirth_typedef_TypeDef_ZEqualZEqual (uint64_t in_TypeDef_1, uint64_t in_TypeDef_2) {
+static bool mw_mirth_typedef_TypeDef_ZEqual (uint64_t in_TypeDef_1, uint64_t in_TypeDef_2) {
 	uint64_t v4 = mw_mirth_typedef_TypeDef_index(in_TypeDef_1);
 	uint64_t v5 = mw_mirth_typedef_TypeDef_index(in_TypeDef_2);
 	bool v6 = (v4 == v5);
@@ -18177,7 +18490,7 @@ static INT mw_mirth_type_PrimType_ZToInt (int64_t in_PrimType_1) {
 	INT v3 = i64_to_int(in_PrimType_1);
 	return v3;
 }
-static bool mw_mirth_type_PrimType_ZEqualZEqual (int64_t in_PrimType_1, int64_t in_PrimType_2) {
+static bool mw_mirth_type_PrimType_ZEqual (int64_t in_PrimType_1, int64_t in_PrimType_2) {
 	INT v4 = mw_mirth_type_PrimType_ZToInt(in_PrimType_1);
 	INT v5 = mw_mirth_type_PrimType_ZToInt(in_PrimType_2);
 	bool v6 = int_eq(v4, v5);
@@ -18295,7 +18608,7 @@ static TUP* mw_mirth_type_TZ_ZTo (VAL in_StackType_1, VAL in_StackType_2) {
 }
 static VAL mw_mirth_type_TT (VAL in_List_1) {
 	VAL v3 = mw_mirth_type_T0();
-	VAL v4 = mw_std_list_List_1_for_1_sp70(v3, in_List_1);
+	VAL v4 = mw_std_list_List_1_for_1_sp69(v3, in_List_1);
 	return v4;
 }
 static VAL mw_mirth_type_T0 (void) {
@@ -18397,7 +18710,7 @@ static bool mw_mirth_type_Type_metaZEqual (uint64_t in_MetaVar_1, VAL in_Type_2)
 	switch (get_data_tag(in_Type_2)) {
 		case 3LL: { // Meta
 			uint64_t v5 = mtp_mirth_type_Type_Meta(in_Type_2);
-			bool v6 = mw_mirth_type_MetaVar_ZEqualZEqual(in_MetaVar_1, v5);
+			bool v6 = mw_mirth_type_MetaVar_ZEqual(in_MetaVar_1, v5);
 			branch_Bool_4 = v6;
 		} break;
 		default: {
@@ -19335,7 +19648,7 @@ static VAL mw_mirth_type_Value_unifyZBang (TUP* in_ZPlusMirth_1, VAL in_Value_2,
 			switch (get_data_tag(in_Value_3)) {
 				case 3LL: { // Block
 					uint64_t v77 = mtp_mirth_type_Value_Block(in_Value_3);
-					bool v78 = mw_mirth_arrow_Block_ZEqualZEqual(v74, v77);
+					bool v78 = mw_mirth_arrow_Block_ZEqual(v74, v77);
 					TUP* branch_ZPlusMirth_79;
 					VAL branch_Type_80;
 					if (v78) {
@@ -19548,7 +19861,7 @@ static VAL mw_mirth_type_Type_unify2ZBang (TUP* in_ZPlusMirth_1, VAL in_Type_2, 
 	return v10;
 }
 static VAL mw_mirth_type_PrimType_unifyZBang (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, int64_t in_PrimType_3, TUP* *out_ZPlusMirth_4) {
-	bool v6 = mw_mirth_type_PrimType_ZEqualZEqual(in_PrimType_2, in_PrimType_3);
+	bool v6 = mw_mirth_type_PrimType_ZEqual(in_PrimType_2, in_PrimType_3);
 	TUP* branch_ZPlusMirth_7;
 	VAL branch_Type_8;
 	if (v6) {
@@ -19567,7 +19880,7 @@ static VAL mw_mirth_type_PrimType_unifyZBang (TUP* in_ZPlusMirth_1, int64_t in_P
 	return branch_Type_8;
 }
 static VAL mw_mirth_data_Data_unifyZBang (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, uint64_t in_Data_3, TUP* *out_ZPlusMirth_4) {
-	bool v6 = mw_mirth_data_Data_ZEqualZEqual(in_Data_2, in_Data_3);
+	bool v6 = mw_mirth_data_Data_ZEqual(in_Data_2, in_Data_3);
 	TUP* branch_ZPlusMirth_7;
 	VAL branch_Type_8;
 	if (v6) {
@@ -19588,7 +19901,7 @@ static VAL mw_mirth_data_Data_unifyZBang (TUP* in_ZPlusMirth_1, uint64_t in_Data
 static VAL mw_mirth_data_DataPartial_unifyZBang (TUP* in_ZPlusMirth_1, TUP* in_DataPartial_2, TUP* in_DataPartial_3, TUP* *out_ZPlusMirth_4) {
 	incref(MKTUP(in_DataPartial_2, 2));
 	incref(MKTUP(in_DataPartial_3, 2));
-	bool v6 = mw_mirth_data_DataPartial_ZEqualZEqual(in_DataPartial_2, in_DataPartial_3);
+	bool v6 = mw_mirth_data_DataPartial_ZEqual(in_DataPartial_2, in_DataPartial_3);
 	TUP* branch_ZPlusMirth_7;
 	VAL branch_Type_8;
 	if (v6) {
@@ -19608,7 +19921,7 @@ static VAL mw_mirth_data_DataPartial_unifyZBang (TUP* in_ZPlusMirth_1, TUP* in_D
 	return branch_Type_8;
 }
 static VAL mw_mirth_table_Table_unifyZBang (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, uint64_t in_Table_3, TUP* *out_ZPlusMirth_4) {
-	bool v6 = mw_mirth_table_Table_ZEqualZEqual(in_Table_2, in_Table_3);
+	bool v6 = mw_mirth_table_Table_ZEqual(in_Table_2, in_Table_3);
 	TUP* branch_ZPlusMirth_7;
 	VAL branch_Type_8;
 	if (v6) {
@@ -20532,7 +20845,7 @@ static bool mw_mirth_type_MetaVar_hasZ_metaZAsk (TUP* in_ZPlusMirth_1, uint64_t 
 	bool branch_Bool_9;
 	switch (get_data_tag(v7)) {
 		case 0LL: { // None
-			bool v10 = mw_mirth_type_MetaVar_ZEqualZEqual(in_MetaVar_2, in_MetaVar_3);
+			bool v10 = mw_mirth_type_MetaVar_ZEqual(in_MetaVar_2, in_MetaVar_3);
 			branch_Bool_9 = v10;
 			branch_ZPlusMirth_8 = v6;
 		} break;
@@ -20588,30 +20901,19 @@ static void mw_mirth_type_MetaVar_typeZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlus
 			mw_std_str_ZPlusStr_pushZ_strZBang(v10, in_ZPlusStr_2, &v11);
 			uint64_t v12 = mw_mirth_type_MetaVar_index(in_MetaVar_3);
 			INT v13 = u64_to_int(v12);
-			incref(MKINT(v13));
-			INT v14 = WRAP_I63(0LL);
-			bool v15 = int_lt(v13, v14);
-			INT branch_Nat_16;
-			if (v15) {
-				decref(MKINT(v13));
-				INT v17 = WRAP_I63(0LL);
-				branch_Nat_16 = v17;
-			} else {
-				branch_Nat_16 = v13;
-			}
-			STR* v18 = int_to_str(branch_Nat_16);
-			STR* v19;
-			mw_std_str_ZPlusStr_pushZ_strZBang(v18, v11, &v19);
-			branch_ZPlusStr_9 = v19;
+			STR* v14 = int_to_str(v13);
+			STR* v15;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v14, v11, &v15);
+			branch_ZPlusStr_9 = v15;
 			branch_ZPlusMirth_8 = v6;
 		} break;
 		case 1LL: { // Some
-			VAL v20 = mtp_std_maybe_Maybe_1_Some(v7);
-			TUP* v21;
-			STR* v22;
-			mw_mirth_type_Type_typeZThen(v6, in_ZPlusStr_2, v20, &v21, &v22);
-			branch_ZPlusStr_9 = v22;
-			branch_ZPlusMirth_8 = v21;
+			VAL v16 = mtp_std_maybe_Maybe_1_Some(v7);
+			TUP* v17;
+			STR* v18;
+			mw_mirth_type_Type_typeZThen(v6, in_ZPlusStr_2, v16, &v17, &v18);
+			branch_ZPlusStr_9 = v18;
+			branch_ZPlusMirth_8 = v17;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -20740,7 +21042,7 @@ static VAL mw_mirth_type_MetaVar_unifyZ_errorZBang (TUP* in_ZPlusMirth_1, uint64
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_7;
 	return branch_Type_8;
 }
-static bool mw_mirth_type_MetaVar_ZEqualZEqual (uint64_t in_MetaVar_1, uint64_t in_MetaVar_2) {
+static bool mw_mirth_type_MetaVar_ZEqual (uint64_t in_MetaVar_1, uint64_t in_MetaVar_2) {
 	uint64_t v4 = mw_mirth_type_MetaVar_index(in_MetaVar_1);
 	uint64_t v5 = mw_mirth_type_MetaVar_index(in_MetaVar_2);
 	bool v6 = (v4 == v5);
@@ -21279,7 +21581,7 @@ static VAL mw_mirth_type_StackType_labelZ_topZAsk (TUP* in_ZPlusMirth_1, uint64_
 			VAL v18;
 			uint64_t v19;
 			VAL v20 = mtp_mirth_type_StackType_ConsLabel(v7, &v18, &v19);
-			bool v21 = mw_mirth_label_Label_ZEqualZEqual(in_Label_2, v19);
+			bool v21 = mw_mirth_label_Label_ZEqual(in_Label_2, v19);
 			TUP* branch_ZPlusMirth_22;
 			VAL branch_Maybe_23;
 			if (v21) {
@@ -21302,7 +21604,7 @@ static VAL mw_mirth_type_StackType_labelZ_topZAsk (TUP* in_ZPlusMirth_1, uint64_
 			VAL v28;
 			uint64_t v29;
 			VAL v30 = mtp_mirth_type_StackType_WithLabel(v7, &v28, &v29);
-			bool v31 = mw_mirth_label_Label_ZEqualZEqual(in_Label_2, v29);
+			bool v31 = mw_mirth_label_Label_ZEqual(in_Label_2, v29);
 			TUP* branch_ZPlusMirth_32;
 			VAL branch_Maybe_33;
 			if (v31) {
@@ -21496,11 +21798,11 @@ static VAL mw_mirth_type_StackType_topZ_namespaces (TUP* in_ZPlusMirth_1, VAL in
 	TUP* v7;
 	VAL v8 = mw_mirth_type_StackType_topZ_tyconZAsk(in_ZPlusMirth_1, in_StackType_2, &v7);
 	VAL v9;
-	mw_std_maybe_Maybe_1_for_1_sp20(v6, v8, &v9);
+	mw_std_maybe_Maybe_1_for_1_sp21(v6, v8, &v9);
 	TUP* v10;
 	VAL v11 = mw_mirth_type_StackType_topZ_resourceZ_tyconZAsk(v7, in_StackType_2, &v10);
 	VAL v12;
-	mw_std_maybe_Maybe_1_for_1_sp20(v9, v11, &v12);
+	mw_std_maybe_Maybe_1_for_1_sp21(v9, v11, &v12);
 	VAL v13 = mw_std_list_ZPlusLister_1_doneZBang(v12);
 	*out_ZPlusMirth_3 = v10;
 	return v13;
@@ -21695,7 +21997,7 @@ static bool mw_mirth_type_StackType_hasZ_metaZAsk (TUP* in_ZPlusMirth_1, uint64_
 	switch (get_data_tag(v7)) {
 		case 4LL: { // Meta
 			uint64_t v10 = mtp_mirth_type_StackType_Meta(v7);
-			bool v11 = mw_mirth_type_MetaVar_ZEqualZEqual(in_MetaVar_2, v10);
+			bool v11 = mw_mirth_type_MetaVar_ZEqual(in_MetaVar_2, v10);
 			branch_Bool_9 = v11;
 			branch_ZPlusMirth_8 = v6;
 		} break;
@@ -22538,7 +22840,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (TUP* in_ZPlusMir
 			VAL v33;
 			uint64_t v34;
 			VAL v35 = mtp_mirth_type_StackType_ConsLabel(v7, &v33, &v34);
-			bool v36 = mw_mirth_label_Label_ZEqualZEqual(in_Label_2, v34);
+			bool v36 = mw_mirth_label_Label_ZEqual(in_Label_2, v34);
 			TUP* branch_ZPlusMirth_37;
 			VAL branch_Maybe_38;
 			if (v36) {
@@ -22589,7 +22891,7 @@ static VAL mw_mirth_type_StackType_forceZ_consZ_labelZAskZBang (TUP* in_ZPlusMir
 			VAL v52;
 			uint64_t v53;
 			VAL v54 = mtp_mirth_type_StackType_WithLabel(v7, &v52, &v53);
-			bool v55 = mw_mirth_label_Label_ZEqualZEqual(in_Label_2, v53);
+			bool v55 = mw_mirth_label_Label_ZEqual(in_Label_2, v53);
 			TUP* branch_ZPlusMirth_56;
 			VAL branch_Maybe_57;
 			if (v55) {
@@ -22729,7 +23031,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (TUP* in_ZPlusMir
 			VAL v33;
 			uint64_t v34;
 			VAL v35 = mtp_mirth_type_StackType_ConsLabel(v7, &v33, &v34);
-			bool v36 = mw_mirth_label_Label_ZEqualZEqual(in_Label_2, v34);
+			bool v36 = mw_mirth_label_Label_ZEqual(in_Label_2, v34);
 			TUP* branch_ZPlusMirth_37;
 			VAL branch_Maybe_38;
 			if (v36) {
@@ -22778,7 +23080,7 @@ static VAL mw_mirth_type_StackType_forceZ_withZ_labelZAskZBang (TUP* in_ZPlusMir
 			VAL v51;
 			uint64_t v52;
 			VAL v53 = mtp_mirth_type_StackType_WithLabel(v7, &v51, &v52);
-			bool v54 = mw_mirth_label_Label_ZEqualZEqual(in_Label_2, v52);
+			bool v54 = mw_mirth_label_Label_ZEqual(in_Label_2, v52);
 			TUP* branch_ZPlusMirth_55;
 			VAL branch_Maybe_56;
 			if (v54) {
@@ -24418,7 +24720,7 @@ static VAL mw_mirth_type_ArrowType_rigidifyZ_sigZBang (TUP* in_ZPlusMirth_1, VAL
 				case 1LL: { // Some
 					VAL v17 = mtp_std_maybe_Maybe_1_Some(v15);
 					incref(v12);
-					bool v18 = mw_mirth_type_MetaVar_ZEqualZEqual(value_u64(v17), value_u64(v12));
+					bool v18 = mw_mirth_type_MetaVar_ZEqual(value_u64(v17), value_u64(v12));
 					uint64_t branch_MetaVar_19;
 					if (v18) {
 						VAL v20 = mw_mirth_type_Type_Unit();
@@ -25123,7 +25425,7 @@ static VAL mw_mirth_data_Data_ctype1ZAsk (TUP* in_ZPlusMirth_1, VAL in_CType_2, 
 	incref(MKTUP(v6, 42));
 	uint64_t v7 = value_u64(v6->cells[32]);
 	decref(MKTUP(v6, 42));
-	bool v8 = mw_mirth_data_Data_ZEqualZEqual(in_Data_3, v7);
+	bool v8 = mw_mirth_data_Data_ZEqual(in_Data_3, v7);
 	TUP* branch_ZPlusMirth_9;
 	VAL branch_Maybe_10;
 	if (v8) {
@@ -25140,7 +25442,7 @@ static VAL mw_mirth_data_Data_ctype1ZAsk (TUP* in_ZPlusMirth_1, VAL in_CType_2, 
 		incref(MKTUP(v16, 42));
 		uint64_t v17 = value_u64(v16->cells[34]);
 		decref(MKTUP(v16, 42));
-		bool v18 = mw_mirth_data_Data_ZEqualZEqual(in_Data_3, v17);
+		bool v18 = mw_mirth_data_Data_ZEqual(in_Data_3, v17);
 		TUP* branch_ZPlusMirth_19;
 		VAL branch_Maybe_20;
 		if (v18) {
@@ -25224,7 +25526,7 @@ static VAL mw_mirth_data_Data_ctype1ZAsk (TUP* in_ZPlusMirth_1, VAL in_CType_2, 
 			incref(MKTUP(v55, 42));
 			uint64_t v56 = value_u64(v55->cells[36]);
 			decref(MKTUP(v55, 42));
-			bool v57 = mw_mirth_data_Data_ZEqualZEqual(in_Data_3, v56);
+			bool v57 = mw_mirth_data_Data_ZEqual(in_Data_3, v56);
 			TUP* branch_ZPlusMirth_58;
 			VAL branch_Maybe_59;
 			if (v57) {
@@ -25308,7 +25610,7 @@ static VAL mw_mirth_data_Data_ctype1ZAsk (TUP* in_ZPlusMirth_1, VAL in_CType_2, 
 				incref(MKTUP(v94, 42));
 				uint64_t v95 = value_u64(v94->cells[38]);
 				decref(MKTUP(v94, 42));
-				bool v96 = mw_mirth_data_Data_ZEqualZEqual(in_Data_3, v95);
+				bool v96 = mw_mirth_data_Data_ZEqual(in_Data_3, v95);
 				TUP* branch_ZPlusMirth_97;
 				VAL branch_Maybe_98;
 				if (v96) {
@@ -25636,7 +25938,7 @@ static INT mw_mirth_prim_Prim_ZToInt (int64_t in_Prim_1) {
 	INT v3 = i64_to_int(in_Prim_1);
 	return v3;
 }
-static bool mw_mirth_prim_Prim_ZEqualZEqual (int64_t in_Prim_1, int64_t in_Prim_2) {
+static bool mw_mirth_prim_Prim_ZEqual (int64_t in_Prim_1, int64_t in_Prim_2) {
 	INT v4 = mw_mirth_prim_Prim_ZToInt(in_Prim_1);
 	INT v5 = mw_mirth_prim_Prim_ZToInt(in_Prim_2);
 	bool v6 = int_eq(v4, v5);
@@ -30229,7 +30531,7 @@ static uint64_t mw_mirth_token_Token_allocZBang (void) {
 	*(uint64_t*)v6 = v5;
 	return v5;
 }
-static bool mw_mirth_token_Token_ZEqualZEqual (uint64_t in_Token_1, uint64_t in_Token_2) {
+static bool mw_mirth_token_Token_ZEqual (uint64_t in_Token_1, uint64_t in_Token_2) {
 	uint64_t v4 = mw_mirth_token_Token_index(in_Token_1);
 	uint64_t v5 = mw_mirth_token_Token_index(in_Token_2);
 	bool v6 = (v4 == v5);
@@ -31554,341 +31856,455 @@ static uint64_t mw_mirth_token_Token_cloneZ_runZBang (TUP* in_ZPlusMirth_1, TUP*
 	INT v21 = int_add(branch_Nat_18, v20);
 	incref(MKINT(v21));
 	INT v22 = WRAP_I63(0LL);
-	bool v23 = int_gt(v21, v22);
-	TUP* v24 = v10;
-	TUP* v25 = in_Location_2;
-	INT v26 = v21;
-	bool v27 = v23;
-	while (v27) {
-		TUP* v28 = v24;
+	bool v23 = int_eq(v21, v22);
+	bool v24 = !v23;
+	TUP* v25 = v10;
+	TUP* v26 = in_Location_2;
+	INT v27 = v21;
+	bool v28 = v24;
+	while (v28) {
 		TUP* v29 = v25;
-		INT v30 = v26;
-		incref(MKTUP(v29, 3));
-		TUP* v31;
-		uint64_t v32 = mw_mirth_token_Token_allocZ_noneZBang(v28, &v31);
-		TUP* v33;
-		mw_mirth_token_Token_locationZBang(v31, v29, v32, &v33);
-		INT v34 = WRAP_I63(1LL);
-		INT v35 = int_sub(v30, v34);
-		incref(MKINT(v35));
-		INT v36 = WRAP_I63(0LL);
-		bool v37 = int_lt(v35, v36);
-		INT branch_Nat_38;
-		if (v37) {
-			decref(MKINT(v35));
-			INT v39 = WRAP_I63(0LL);
-			branch_Nat_38 = v39;
+		TUP* v30 = v26;
+		INT v31 = v27;
+		incref(MKTUP(v30, 3));
+		TUP* v32;
+		uint64_t v33 = mw_mirth_token_Token_allocZ_noneZBang(v29, &v32);
+		TUP* v34;
+		mw_mirth_token_Token_locationZBang(v32, v30, v33, &v34);
+		INT v35 = WRAP_I63(1LL);
+		INT v36 = int_sub(v31, v35);
+		incref(MKINT(v36));
+		INT v37 = WRAP_I63(0LL);
+		bool v38 = int_lt(v36, v37);
+		INT branch_Nat_39;
+		if (v38) {
+			decref(MKINT(v36));
+			INT v40 = WRAP_I63(0LL);
+			branch_Nat_39 = v40;
 		} else {
-			branch_Nat_38 = v35;
+			branch_Nat_39 = v36;
 		}
-		incref(MKINT(branch_Nat_38));
-		INT v40 = WRAP_I63(0LL);
-		bool v41 = int_gt(branch_Nat_38, v40);
-		v27 = v41;
-		v26 = branch_Nat_38;
-		v25 = v29;
-		v24 = v33;
+		incref(MKINT(branch_Nat_39));
+		INT v41 = WRAP_I63(0LL);
+		bool v42 = int_eq(branch_Nat_39, v41);
+		bool v43 = !v42;
+		v28 = v43;
+		v27 = branch_Nat_39;
+		v26 = v30;
+		v25 = v34;
 	}
-	decref(MKINT(v26));
-	uint64_t v42 = mw_mirth_token_Token_succ(v9);
-	uint64_t v43 = mw_mirth_token_Token_index(in_Token_3);
-	uint64_t v44 = mw_mirth_token_Token_index(v7);
-	bool v45 = (v43 < v44);
-	TUP* v46 = v25;
-	TUP* v47 = v24;
-	uint64_t v48 = v42;
-	uint64_t v49 = v42;
-	uint64_t v50 = in_Token_3;
-	uint64_t v51 = in_Token_3;
-	uint64_t v52 = v7;
-	bool v53 = v45;
-	while (v53) {
-		TUP* v54 = v46;
-		TUP* v55 = v47;
-		uint64_t v56 = v48;
-		uint64_t v57 = v49;
+	decref(MKINT(v27));
+	uint64_t v44 = mw_mirth_token_Token_succ(v9);
+	uint64_t v45 = mw_mirth_token_Token_index(in_Token_3);
+	uint64_t v46 = mw_mirth_token_Token_index(v7);
+	bool v47 = (v45 < v46);
+	TUP* v48 = v26;
+	TUP* v49 = v25;
+	uint64_t v50 = v44;
+	uint64_t v51 = v44;
+	uint64_t v52 = in_Token_3;
+	uint64_t v53 = in_Token_3;
+	uint64_t v54 = v7;
+	bool v55 = v47;
+	while (v55) {
+		TUP* v56 = v48;
+		TUP* v57 = v49;
 		uint64_t v58 = v50;
 		uint64_t v59 = v51;
 		uint64_t v60 = v52;
-		TUP* v61;
-		VAL v62 = mw_mirth_token_Token_value(v55, v59, &v61);
-		uint64_t branch_Token_63;
-		uint64_t branch_Token_64;
-		VAL branch_TokenValue_65;
-		switch (get_data_tag(v62)) {
+		uint64_t v61 = v53;
+		uint64_t v62 = v54;
+		TUP* v63;
+		VAL v64 = mw_mirth_token_Token_value(v57, v61, &v63);
+		uint64_t branch_Token_65;
+		uint64_t branch_Token_66;
+		VAL branch_TokenValue_67;
+		switch (get_data_tag(v64)) {
 			case 6LL: { // LParen
-				uint64_t v66 = mtp_mirth_token_TokenValue_LParen(v62);
-				uint64_t v67 = mw_mirth_token_Token_index(v66);
-				INT v68 = u64_to_int(v67);
-				uint64_t v69 = mw_mirth_token_Token_index(v56);
+				uint64_t v68 = mtp_mirth_token_TokenValue_LParen(v64);
+				uint64_t v69 = mw_mirth_token_Token_index(v68);
 				INT v70 = u64_to_int(v69);
-				INT v71 = int_add(v68, v70);
-				INT v72 = WRAP_I63(1LL);
-				INT v73 = int_add(v71, v72);
-				uint64_t v74 = mw_mirth_token_Token_index(v59);
-				INT v75 = u64_to_int(v74);
-				INT v76 = int_sub(v73, v75);
-				INT v77 = WRAP_I63(0LL);
-				incref(MKINT(v76));
-				incref(MKINT(v77));
-				bool v78 = int_lt(v76, v77);
-				INT branch_Int_79;
-				if (v78) {
-					decref(MKINT(v76));
-					branch_Int_79 = v77;
+				uint64_t v71 = mw_mirth_token_Token_index(v58);
+				INT v72 = u64_to_int(v71);
+				INT v73 = int_add(v70, v72);
+				INT v74 = WRAP_I63(1LL);
+				INT v75 = int_add(v73, v74);
+				uint64_t v76 = mw_mirth_token_Token_index(v61);
+				INT v77 = u64_to_int(v76);
+				INT v78 = int_sub(v75, v77);
+				INT v79 = WRAP_I63(0LL);
+				INT v80 = WRAP_I63(-1LL);
+				uint64_t v81 = int_to_u64(v80);
+				INT v82 = u64_to_int(v81);
+				incref(MKINT(v78));
+				incref(MKINT(v79));
+				bool v83 = int_lt(v78, v79);
+				INT branch_Int_84;
+				if (v83) {
+					decref(MKINT(v78));
+					branch_Int_84 = v79;
 				} else {
-					decref(MKINT(v77));
-					branch_Int_79 = v76;
+					decref(MKINT(v79));
+					branch_Int_84 = v78;
 				}
-				uint64_t v80 = int_to_u64(branch_Int_79);
-				uint64_t v81 = mw_mirth_token_Token_fromZ_index(v80);
-				VAL v82 = mtw_mirth_token_TokenValue_LParen(v81);
-				branch_TokenValue_65 = v82;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				incref(MKINT(branch_Int_84));
+				incref(MKINT(v82));
+				bool v85 = int_lt(branch_Int_84, v82);
+				INT branch_Int_86;
+				if (v85) {
+					decref(MKINT(v82));
+					branch_Int_86 = branch_Int_84;
+				} else {
+					decref(MKINT(branch_Int_84));
+					branch_Int_86 = v82;
+				}
+				uint64_t v87 = int_to_u64(branch_Int_86);
+				uint64_t v88 = mw_mirth_token_Token_fromZ_index(v87);
+				VAL v89 = mtw_mirth_token_TokenValue_LParen(v88);
+				branch_TokenValue_67 = v89;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
 			case 7LL: { // RParen
-				uint64_t v83 = mtp_mirth_token_TokenValue_RParen(v62);
-				uint64_t v84 = mw_mirth_token_Token_index(v83);
-				INT v85 = u64_to_int(v84);
-				uint64_t v86 = mw_mirth_token_Token_index(v56);
-				INT v87 = u64_to_int(v86);
-				INT v88 = int_add(v85, v87);
-				INT v89 = WRAP_I63(1LL);
-				INT v90 = int_add(v88, v89);
-				uint64_t v91 = mw_mirth_token_Token_index(v59);
+				uint64_t v90 = mtp_mirth_token_TokenValue_RParen(v64);
+				uint64_t v91 = mw_mirth_token_Token_index(v90);
 				INT v92 = u64_to_int(v91);
-				INT v93 = int_sub(v90, v92);
-				INT v94 = WRAP_I63(0LL);
-				incref(MKINT(v93));
-				incref(MKINT(v94));
-				bool v95 = int_lt(v93, v94);
-				INT branch_Int_96;
-				if (v95) {
-					decref(MKINT(v93));
-					branch_Int_96 = v94;
+				uint64_t v93 = mw_mirth_token_Token_index(v58);
+				INT v94 = u64_to_int(v93);
+				INT v95 = int_add(v92, v94);
+				INT v96 = WRAP_I63(1LL);
+				INT v97 = int_add(v95, v96);
+				uint64_t v98 = mw_mirth_token_Token_index(v61);
+				INT v99 = u64_to_int(v98);
+				INT v100 = int_sub(v97, v99);
+				INT v101 = WRAP_I63(0LL);
+				INT v102 = WRAP_I63(-1LL);
+				uint64_t v103 = int_to_u64(v102);
+				INT v104 = u64_to_int(v103);
+				incref(MKINT(v100));
+				incref(MKINT(v101));
+				bool v105 = int_lt(v100, v101);
+				INT branch_Int_106;
+				if (v105) {
+					decref(MKINT(v100));
+					branch_Int_106 = v101;
 				} else {
-					decref(MKINT(v94));
-					branch_Int_96 = v93;
+					decref(MKINT(v101));
+					branch_Int_106 = v100;
 				}
-				uint64_t v97 = int_to_u64(branch_Int_96);
-				uint64_t v98 = mw_mirth_token_Token_fromZ_index(v97);
-				VAL v99 = mtw_mirth_token_TokenValue_RParen(v98);
-				branch_TokenValue_65 = v99;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				incref(MKINT(branch_Int_106));
+				incref(MKINT(v104));
+				bool v107 = int_lt(branch_Int_106, v104);
+				INT branch_Int_108;
+				if (v107) {
+					decref(MKINT(v104));
+					branch_Int_108 = branch_Int_106;
+				} else {
+					decref(MKINT(branch_Int_106));
+					branch_Int_108 = v104;
+				}
+				uint64_t v109 = int_to_u64(branch_Int_108);
+				uint64_t v110 = mw_mirth_token_Token_fromZ_index(v109);
+				VAL v111 = mtw_mirth_token_TokenValue_RParen(v110);
+				branch_TokenValue_67 = v111;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
 			case 10LL: { // LCurly
-				uint64_t v100 = mtp_mirth_token_TokenValue_LCurly(v62);
-				uint64_t v101 = mw_mirth_token_Token_index(v100);
-				INT v102 = u64_to_int(v101);
-				uint64_t v103 = mw_mirth_token_Token_index(v56);
-				INT v104 = u64_to_int(v103);
-				INT v105 = int_add(v102, v104);
-				INT v106 = WRAP_I63(1LL);
-				INT v107 = int_add(v105, v106);
-				uint64_t v108 = mw_mirth_token_Token_index(v59);
-				INT v109 = u64_to_int(v108);
-				INT v110 = int_sub(v107, v109);
-				INT v111 = WRAP_I63(0LL);
-				incref(MKINT(v110));
-				incref(MKINT(v111));
-				bool v112 = int_lt(v110, v111);
-				INT branch_Int_113;
-				if (v112) {
-					decref(MKINT(v110));
-					branch_Int_113 = v111;
-				} else {
-					decref(MKINT(v111));
-					branch_Int_113 = v110;
-				}
-				uint64_t v114 = int_to_u64(branch_Int_113);
-				uint64_t v115 = mw_mirth_token_Token_fromZ_index(v114);
-				VAL v116 = mtw_mirth_token_TokenValue_LCurly(v115);
-				branch_TokenValue_65 = v116;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
-			} break;
-			case 11LL: { // RCurly
-				uint64_t v117 = mtp_mirth_token_TokenValue_RCurly(v62);
-				uint64_t v118 = mw_mirth_token_Token_index(v117);
-				INT v119 = u64_to_int(v118);
-				uint64_t v120 = mw_mirth_token_Token_index(v56);
+				uint64_t v112 = mtp_mirth_token_TokenValue_LCurly(v64);
+				uint64_t v113 = mw_mirth_token_Token_index(v112);
+				INT v114 = u64_to_int(v113);
+				uint64_t v115 = mw_mirth_token_Token_index(v58);
+				INT v116 = u64_to_int(v115);
+				INT v117 = int_add(v114, v116);
+				INT v118 = WRAP_I63(1LL);
+				INT v119 = int_add(v117, v118);
+				uint64_t v120 = mw_mirth_token_Token_index(v61);
 				INT v121 = u64_to_int(v120);
-				INT v122 = int_add(v119, v121);
-				INT v123 = WRAP_I63(1LL);
-				INT v124 = int_add(v122, v123);
-				uint64_t v125 = mw_mirth_token_Token_index(v59);
+				INT v122 = int_sub(v119, v121);
+				INT v123 = WRAP_I63(0LL);
+				INT v124 = WRAP_I63(-1LL);
+				uint64_t v125 = int_to_u64(v124);
 				INT v126 = u64_to_int(v125);
-				INT v127 = int_sub(v124, v126);
-				INT v128 = WRAP_I63(0LL);
-				incref(MKINT(v127));
-				incref(MKINT(v128));
-				bool v129 = int_lt(v127, v128);
+				incref(MKINT(v122));
+				incref(MKINT(v123));
+				bool v127 = int_lt(v122, v123);
+				INT branch_Int_128;
+				if (v127) {
+					decref(MKINT(v122));
+					branch_Int_128 = v123;
+				} else {
+					decref(MKINT(v123));
+					branch_Int_128 = v122;
+				}
+				incref(MKINT(branch_Int_128));
+				incref(MKINT(v126));
+				bool v129 = int_lt(branch_Int_128, v126);
 				INT branch_Int_130;
 				if (v129) {
-					decref(MKINT(v127));
-					branch_Int_130 = v128;
+					decref(MKINT(v126));
+					branch_Int_130 = branch_Int_128;
 				} else {
-					decref(MKINT(v128));
-					branch_Int_130 = v127;
+					decref(MKINT(branch_Int_128));
+					branch_Int_130 = v126;
 				}
 				uint64_t v131 = int_to_u64(branch_Int_130);
 				uint64_t v132 = mw_mirth_token_Token_fromZ_index(v131);
-				VAL v133 = mtw_mirth_token_TokenValue_RCurly(v132);
-				branch_TokenValue_65 = v133;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				VAL v133 = mtw_mirth_token_TokenValue_LCurly(v132);
+				branch_TokenValue_67 = v133;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
-			case 8LL: { // LSquare
-				uint64_t v134 = mtp_mirth_token_TokenValue_LSquare(v62);
+			case 11LL: { // RCurly
+				uint64_t v134 = mtp_mirth_token_TokenValue_RCurly(v64);
 				uint64_t v135 = mw_mirth_token_Token_index(v134);
 				INT v136 = u64_to_int(v135);
-				uint64_t v137 = mw_mirth_token_Token_index(v56);
+				uint64_t v137 = mw_mirth_token_Token_index(v58);
 				INT v138 = u64_to_int(v137);
 				INT v139 = int_add(v136, v138);
 				INT v140 = WRAP_I63(1LL);
 				INT v141 = int_add(v139, v140);
-				uint64_t v142 = mw_mirth_token_Token_index(v59);
+				uint64_t v142 = mw_mirth_token_Token_index(v61);
 				INT v143 = u64_to_int(v142);
 				INT v144 = int_sub(v141, v143);
 				INT v145 = WRAP_I63(0LL);
+				INT v146 = WRAP_I63(-1LL);
+				uint64_t v147 = int_to_u64(v146);
+				INT v148 = u64_to_int(v147);
 				incref(MKINT(v144));
 				incref(MKINT(v145));
-				bool v146 = int_lt(v144, v145);
-				INT branch_Int_147;
-				if (v146) {
+				bool v149 = int_lt(v144, v145);
+				INT branch_Int_150;
+				if (v149) {
 					decref(MKINT(v144));
-					branch_Int_147 = v145;
+					branch_Int_150 = v145;
 				} else {
 					decref(MKINT(v145));
-					branch_Int_147 = v144;
+					branch_Int_150 = v144;
 				}
-				uint64_t v148 = int_to_u64(branch_Int_147);
-				uint64_t v149 = mw_mirth_token_Token_fromZ_index(v148);
-				VAL v150 = mtw_mirth_token_TokenValue_LSquare(v149);
-				branch_TokenValue_65 = v150;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				incref(MKINT(branch_Int_150));
+				incref(MKINT(v148));
+				bool v151 = int_lt(branch_Int_150, v148);
+				INT branch_Int_152;
+				if (v151) {
+					decref(MKINT(v148));
+					branch_Int_152 = branch_Int_150;
+				} else {
+					decref(MKINT(branch_Int_150));
+					branch_Int_152 = v148;
+				}
+				uint64_t v153 = int_to_u64(branch_Int_152);
+				uint64_t v154 = mw_mirth_token_Token_fromZ_index(v153);
+				VAL v155 = mtw_mirth_token_TokenValue_RCurly(v154);
+				branch_TokenValue_67 = v155;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
+			} break;
+			case 8LL: { // LSquare
+				uint64_t v156 = mtp_mirth_token_TokenValue_LSquare(v64);
+				uint64_t v157 = mw_mirth_token_Token_index(v156);
+				INT v158 = u64_to_int(v157);
+				uint64_t v159 = mw_mirth_token_Token_index(v58);
+				INT v160 = u64_to_int(v159);
+				INT v161 = int_add(v158, v160);
+				INT v162 = WRAP_I63(1LL);
+				INT v163 = int_add(v161, v162);
+				uint64_t v164 = mw_mirth_token_Token_index(v61);
+				INT v165 = u64_to_int(v164);
+				INT v166 = int_sub(v163, v165);
+				INT v167 = WRAP_I63(0LL);
+				INT v168 = WRAP_I63(-1LL);
+				uint64_t v169 = int_to_u64(v168);
+				INT v170 = u64_to_int(v169);
+				incref(MKINT(v166));
+				incref(MKINT(v167));
+				bool v171 = int_lt(v166, v167);
+				INT branch_Int_172;
+				if (v171) {
+					decref(MKINT(v166));
+					branch_Int_172 = v167;
+				} else {
+					decref(MKINT(v167));
+					branch_Int_172 = v166;
+				}
+				incref(MKINT(branch_Int_172));
+				incref(MKINT(v170));
+				bool v173 = int_lt(branch_Int_172, v170);
+				INT branch_Int_174;
+				if (v173) {
+					decref(MKINT(v170));
+					branch_Int_174 = branch_Int_172;
+				} else {
+					decref(MKINT(branch_Int_172));
+					branch_Int_174 = v170;
+				}
+				uint64_t v175 = int_to_u64(branch_Int_174);
+				uint64_t v176 = mw_mirth_token_Token_fromZ_index(v175);
+				VAL v177 = mtw_mirth_token_TokenValue_LSquare(v176);
+				branch_TokenValue_67 = v177;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
 			case 9LL: { // RSquare
-				uint64_t v151 = mtp_mirth_token_TokenValue_RSquare(v62);
-				uint64_t v152 = mw_mirth_token_Token_index(v151);
-				INT v153 = u64_to_int(v152);
-				uint64_t v154 = mw_mirth_token_Token_index(v56);
-				INT v155 = u64_to_int(v154);
-				INT v156 = int_add(v153, v155);
-				INT v157 = WRAP_I63(1LL);
-				INT v158 = int_add(v156, v157);
-				uint64_t v159 = mw_mirth_token_Token_index(v59);
-				INT v160 = u64_to_int(v159);
-				INT v161 = int_sub(v158, v160);
-				INT v162 = WRAP_I63(0LL);
-				incref(MKINT(v161));
-				incref(MKINT(v162));
-				bool v163 = int_lt(v161, v162);
-				INT branch_Int_164;
-				if (v163) {
-					decref(MKINT(v161));
-					branch_Int_164 = v162;
+				uint64_t v178 = mtp_mirth_token_TokenValue_RSquare(v64);
+				uint64_t v179 = mw_mirth_token_Token_index(v178);
+				INT v180 = u64_to_int(v179);
+				uint64_t v181 = mw_mirth_token_Token_index(v58);
+				INT v182 = u64_to_int(v181);
+				INT v183 = int_add(v180, v182);
+				INT v184 = WRAP_I63(1LL);
+				INT v185 = int_add(v183, v184);
+				uint64_t v186 = mw_mirth_token_Token_index(v61);
+				INT v187 = u64_to_int(v186);
+				INT v188 = int_sub(v185, v187);
+				INT v189 = WRAP_I63(0LL);
+				INT v190 = WRAP_I63(-1LL);
+				uint64_t v191 = int_to_u64(v190);
+				INT v192 = u64_to_int(v191);
+				incref(MKINT(v188));
+				incref(MKINT(v189));
+				bool v193 = int_lt(v188, v189);
+				INT branch_Int_194;
+				if (v193) {
+					decref(MKINT(v188));
+					branch_Int_194 = v189;
 				} else {
-					decref(MKINT(v162));
-					branch_Int_164 = v161;
+					decref(MKINT(v189));
+					branch_Int_194 = v188;
 				}
-				uint64_t v165 = int_to_u64(branch_Int_164);
-				uint64_t v166 = mw_mirth_token_Token_fromZ_index(v165);
-				VAL v167 = mtw_mirth_token_TokenValue_RSquare(v166);
-				branch_TokenValue_65 = v167;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				incref(MKINT(branch_Int_194));
+				incref(MKINT(v192));
+				bool v195 = int_lt(branch_Int_194, v192);
+				INT branch_Int_196;
+				if (v195) {
+					decref(MKINT(v192));
+					branch_Int_196 = branch_Int_194;
+				} else {
+					decref(MKINT(branch_Int_194));
+					branch_Int_196 = v192;
+				}
+				uint64_t v197 = int_to_u64(branch_Int_196);
+				uint64_t v198 = mw_mirth_token_Token_fromZ_index(v197);
+				VAL v199 = mtw_mirth_token_TokenValue_RSquare(v198);
+				branch_TokenValue_67 = v199;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
 			case 12LL: { // LColon
-				uint64_t v168 = mtp_mirth_token_TokenValue_LColon(v62);
-				uint64_t v169 = mw_mirth_token_Token_index(v168);
-				INT v170 = u64_to_int(v169);
-				uint64_t v171 = mw_mirth_token_Token_index(v56);
-				INT v172 = u64_to_int(v171);
-				INT v173 = int_add(v170, v172);
-				INT v174 = WRAP_I63(1LL);
-				INT v175 = int_add(v173, v174);
-				uint64_t v176 = mw_mirth_token_Token_index(v59);
-				INT v177 = u64_to_int(v176);
-				INT v178 = int_sub(v175, v177);
-				INT v179 = WRAP_I63(0LL);
-				incref(MKINT(v178));
-				incref(MKINT(v179));
-				bool v180 = int_lt(v178, v179);
-				INT branch_Int_181;
-				if (v180) {
-					decref(MKINT(v178));
-					branch_Int_181 = v179;
+				uint64_t v200 = mtp_mirth_token_TokenValue_LColon(v64);
+				uint64_t v201 = mw_mirth_token_Token_index(v200);
+				INT v202 = u64_to_int(v201);
+				uint64_t v203 = mw_mirth_token_Token_index(v58);
+				INT v204 = u64_to_int(v203);
+				INT v205 = int_add(v202, v204);
+				INT v206 = WRAP_I63(1LL);
+				INT v207 = int_add(v205, v206);
+				uint64_t v208 = mw_mirth_token_Token_index(v61);
+				INT v209 = u64_to_int(v208);
+				INT v210 = int_sub(v207, v209);
+				INT v211 = WRAP_I63(0LL);
+				INT v212 = WRAP_I63(-1LL);
+				uint64_t v213 = int_to_u64(v212);
+				INT v214 = u64_to_int(v213);
+				incref(MKINT(v210));
+				incref(MKINT(v211));
+				bool v215 = int_lt(v210, v211);
+				INT branch_Int_216;
+				if (v215) {
+					decref(MKINT(v210));
+					branch_Int_216 = v211;
 				} else {
-					decref(MKINT(v179));
-					branch_Int_181 = v178;
+					decref(MKINT(v211));
+					branch_Int_216 = v210;
 				}
-				uint64_t v182 = int_to_u64(branch_Int_181);
-				uint64_t v183 = mw_mirth_token_Token_fromZ_index(v182);
-				VAL v184 = mtw_mirth_token_TokenValue_LColon(v183);
-				branch_TokenValue_65 = v184;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				incref(MKINT(branch_Int_216));
+				incref(MKINT(v214));
+				bool v217 = int_lt(branch_Int_216, v214);
+				INT branch_Int_218;
+				if (v217) {
+					decref(MKINT(v214));
+					branch_Int_218 = branch_Int_216;
+				} else {
+					decref(MKINT(branch_Int_216));
+					branch_Int_218 = v214;
+				}
+				uint64_t v219 = int_to_u64(branch_Int_218);
+				uint64_t v220 = mw_mirth_token_Token_fromZ_index(v219);
+				VAL v221 = mtw_mirth_token_TokenValue_LColon(v220);
+				branch_TokenValue_67 = v221;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
 			case 13LL: { // RColon
-				uint64_t v185 = mtp_mirth_token_TokenValue_RColon(v62);
-				uint64_t v186 = mw_mirth_token_Token_index(v185);
-				INT v187 = u64_to_int(v186);
-				uint64_t v188 = mw_mirth_token_Token_index(v56);
-				INT v189 = u64_to_int(v188);
-				INT v190 = int_add(v187, v189);
-				INT v191 = WRAP_I63(1LL);
-				INT v192 = int_add(v190, v191);
-				uint64_t v193 = mw_mirth_token_Token_index(v59);
-				INT v194 = u64_to_int(v193);
-				INT v195 = int_sub(v192, v194);
-				INT v196 = WRAP_I63(0LL);
-				incref(MKINT(v195));
-				incref(MKINT(v196));
-				bool v197 = int_lt(v195, v196);
-				INT branch_Int_198;
-				if (v197) {
-					decref(MKINT(v195));
-					branch_Int_198 = v196;
+				uint64_t v222 = mtp_mirth_token_TokenValue_RColon(v64);
+				uint64_t v223 = mw_mirth_token_Token_index(v222);
+				INT v224 = u64_to_int(v223);
+				uint64_t v225 = mw_mirth_token_Token_index(v58);
+				INT v226 = u64_to_int(v225);
+				INT v227 = int_add(v224, v226);
+				INT v228 = WRAP_I63(1LL);
+				INT v229 = int_add(v227, v228);
+				uint64_t v230 = mw_mirth_token_Token_index(v61);
+				INT v231 = u64_to_int(v230);
+				INT v232 = int_sub(v229, v231);
+				INT v233 = WRAP_I63(0LL);
+				INT v234 = WRAP_I63(-1LL);
+				uint64_t v235 = int_to_u64(v234);
+				INT v236 = u64_to_int(v235);
+				incref(MKINT(v232));
+				incref(MKINT(v233));
+				bool v237 = int_lt(v232, v233);
+				INT branch_Int_238;
+				if (v237) {
+					decref(MKINT(v232));
+					branch_Int_238 = v233;
 				} else {
-					decref(MKINT(v196));
-					branch_Int_198 = v195;
+					decref(MKINT(v233));
+					branch_Int_238 = v232;
 				}
-				uint64_t v199 = int_to_u64(branch_Int_198);
-				uint64_t v200 = mw_mirth_token_Token_fromZ_index(v199);
-				VAL v201 = mtw_mirth_token_TokenValue_RColon(v200);
-				branch_TokenValue_65 = v201;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				incref(MKINT(branch_Int_238));
+				incref(MKINT(v236));
+				bool v239 = int_lt(branch_Int_238, v236);
+				INT branch_Int_240;
+				if (v239) {
+					decref(MKINT(v236));
+					branch_Int_240 = branch_Int_238;
+				} else {
+					decref(MKINT(branch_Int_238));
+					branch_Int_240 = v236;
+				}
+				uint64_t v241 = int_to_u64(branch_Int_240);
+				uint64_t v242 = mw_mirth_token_Token_fromZ_index(v241);
+				VAL v243 = mtw_mirth_token_TokenValue_RColon(v242);
+				branch_TokenValue_67 = v243;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
 			default: {
-				branch_TokenValue_65 = v62;
-				branch_Token_64 = v59;
-				branch_Token_63 = v56;
+				branch_TokenValue_67 = v64;
+				branch_Token_66 = v61;
+				branch_Token_65 = v58;
 			} break;
 		}
-		void* v202 = field_mut(&mfld_mirth_token_Token_ZTildevalue, v57);
-		mut_set(branch_TokenValue_65, v202);
-		uint64_t v203 = mw_mirth_token_Token_succ(branch_Token_64);
-		uint64_t v204 = mw_mirth_token_Token_succ(v57);
-		uint64_t v205 = mw_mirth_token_Token_index(v203);
-		uint64_t v206 = mw_mirth_token_Token_index(v60);
-		bool v207 = (v205 < v206);
-		v53 = v207;
+		void* v244 = field_mut(&mfld_mirth_token_Token_ZTildevalue, v59);
+		mut_set(branch_TokenValue_67, v244);
+		uint64_t v245 = mw_mirth_token_Token_succ(branch_Token_66);
+		uint64_t v246 = mw_mirth_token_Token_succ(v59);
+		uint64_t v247 = mw_mirth_token_Token_index(v245);
+		uint64_t v248 = mw_mirth_token_Token_index(v62);
+		bool v249 = (v247 < v248);
+		v55 = v249;
+		v54 = v62;
+		v53 = v245;
 		v52 = v60;
-		v51 = v203;
-		v50 = v58;
-		v49 = v204;
-		v48 = branch_Token_63;
-		v47 = v61;
-		v46 = v54;
+		v51 = v246;
+		v50 = branch_Token_65;
+		v49 = v63;
+		v48 = v56;
 	}
-	decref(MKTUP(v46, 3));
-	*out_ZPlusMirth_4 = v47;
-	return v48;
+	decref(MKTUP(v48, 3));
+	*out_ZPlusMirth_4 = v49;
+	return v50;
 }
 static uint64_t mw_mirth_package_Package_index (uint64_t in_Package_1) {
 	return in_Package_1;
@@ -32278,7 +32694,7 @@ static uint64_t mw_mirth_package_Package_findZ_orZ_newZBang (TUP* in_ZPlusMirth_
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_7;
 	return branch_Package_9;
 }
-static bool mw_mirth_package_Package_ZEqualZEqual (uint64_t in_Package_1, uint64_t in_Package_2) {
+static bool mw_mirth_package_Package_ZEqual (uint64_t in_Package_1, uint64_t in_Package_2) {
 	uint64_t v4 = mw_mirth_package_Package_index(in_Package_1);
 	uint64_t v5 = mw_mirth_package_Package_index(in_Package_2);
 	bool v6 = (v4 == v5);
@@ -32423,10 +32839,11 @@ static void mw_mirth_lexer_ZPlusLexer_moveZBang (TUP* in_ZPlusLexer_1, TUP* *out
 	in_ZPlusLexer_1->cells[7] = v4;
 	INT v5 = value_int(in_ZPlusLexer_1->cells[2]);
 	incref(MKINT(v5));
-	INT v6 = mw_mirth_location_Col_1ZPlus(v5);
-	INT v7 = value_int(in_ZPlusLexer_1->cells[2]);
-	decref(MKINT(v7));
-	in_ZPlusLexer_1->cells[2] = MKINT(v6);
+	INT v6 = WRAP_I63(1LL);
+	INT v7 = mw_mirth_location_Col_natZPlus(v6, v5);
+	INT v8 = value_int(in_ZPlusLexer_1->cells[2]);
+	decref(MKINT(v8));
+	in_ZPlusLexer_1->cells[2] = MKINT(v7);
 	*out_ZPlusLexer_2 = in_ZPlusLexer_1;
 }
 static void mw_mirth_lexer_ZPlusLexer_newlineZBang (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
@@ -32436,10 +32853,11 @@ static void mw_mirth_lexer_ZPlusLexer_newlineZBang (TUP* in_ZPlusLexer_1, TUP* *
 	in_ZPlusLexer_1->cells[2] = MKINT(v3);
 	INT v5 = value_int(in_ZPlusLexer_1->cells[1]);
 	incref(MKINT(v5));
-	INT v6 = mw_mirth_location_Row_1ZPlus(v5);
-	INT v7 = value_int(in_ZPlusLexer_1->cells[1]);
-	decref(MKINT(v7));
-	in_ZPlusLexer_1->cells[1] = MKINT(v6);
+	INT v6 = WRAP_I63(1LL);
+	INT v7 = mw_mirth_location_Row_natZPlus(v6, v5);
+	INT v8 = value_int(in_ZPlusLexer_1->cells[1]);
+	decref(MKINT(v8));
+	in_ZPlusLexer_1->cells[1] = MKINT(v7);
 	*out_ZPlusLexer_2 = in_ZPlusLexer_1;
 }
 static uint64_t mw_mirth_lexer_ZPlusLexer_makeZBang (VAL in_TokenValue_1, TUP* in_ZPlusLexer_2, TUP* *out_ZPlusLexer_4) {
@@ -33217,28 +33635,26 @@ static void mw_mirth_lexer_ZPlusLexer_emitZ_stringZBang (TUP* in_ZPlusMirth_1, T
 	INT v35 = i64_to_int(v31);
 	uint64_t v36 = int_to_u64(v35);
 	uint8_t v37 = (uint8_t)(v36);
-	uint64_t v38 = (uint64_t)(v34);
-	INT v39 = u64_to_int(v38);
-	uint64_t v40 = (uint64_t)(v37);
-	INT v41 = u64_to_int(v40);
-	bool v42 = int_eq(v39, v41);
-	TUP* branch_ZPlusMirth_43;
-	VAL branch_z_x1_44;
-	TUP* branch_ZPlusLexer_45;
-	if (v42) {
-		branch_ZPlusLexer_45 = v16;
-		branch_z_x1_44 = MKSTR(v15);
-		branch_ZPlusMirth_43 = v14;
+	uint64_t v38 = (uint64_t)(v37);
+	uint64_t v39 = (uint64_t)(v34);
+	bool v40 = (v39 == v38);
+	TUP* branch_ZPlusMirth_41;
+	VAL branch_z_x1_42;
+	TUP* branch_ZPlusLexer_43;
+	if (v40) {
+		branch_ZPlusLexer_43 = v16;
+		branch_z_x1_42 = MKSTR(v15);
+		branch_ZPlusMirth_41 = v14;
 	} else {
-		STR* v46;
-		STRLIT(v46, "String literal is missing end quote (\").", 40);
-		mw_mirth_lexer_ZPlusLexer_fatalZ_errorZBang(v46, v14, v16);
+		STR* v44;
+		STRLIT(v44, "String literal is missing end quote (\").", 40);
+		mw_mirth_lexer_ZPlusLexer_fatalZ_errorZBang(v44, v14, v16);
 	}
-	VAL v49 = mtw_mirth_token_TokenValue_Str(value_str(branch_z_x1_44));
-	void* v50 = field_mut(&mfld_mirth_token_Token_ZTildevalue, v8);
-	mut_set(v49, v50);
-	*out_ZPlusLexer_4 = branch_ZPlusLexer_45;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_43;
+	VAL v47 = mtw_mirth_token_TokenValue_Str(value_str(branch_z_x1_42));
+	void* v48 = field_mut(&mfld_mirth_token_Token_ZTildevalue, v8);
+	mut_set(v47, v48);
+	*out_ZPlusLexer_4 = branch_ZPlusLexer_43;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_41;
 }
 static void mw_mirth_lexer_ZPlusLexer_pushZ_stringZ_byteZBang (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* in_ZPlusLexer_3, int64_t in_Byte_4, TUP* *out_ZPlusMirth_5, STR* *out_ZPlusStr_6, TUP* *out_ZPlusLexer_7) {
 	TUP* branch_ZPlusMirth_8;
@@ -33364,22 +33780,20 @@ static void mw_mirth_lexer_ZPlusLexer_skipZ_commentZBang (TUP* in_ZPlusLexer_1, 
 	INT v19 = i64_to_int(v15);
 	uint64_t v20 = int_to_u64(v19);
 	uint8_t v21 = (uint8_t)(v20);
-	uint64_t v22 = (uint64_t)(v18);
-	INT v23 = u64_to_int(v22);
-	uint64_t v24 = (uint64_t)(v21);
-	INT v25 = u64_to_int(v24);
-	bool v26 = int_eq(v23, v25);
-	TUP* branch_ZPlusLexer_27;
-	if (v26) {
-		TUP* v28;
-		mw_mirth_lexer_ZPlusLexer_newlineZBang(v13, &v28);
-		TUP* v29;
-		mw_mirth_lexer_ZPlusLexer_moveZBang(v28, &v29);
-		branch_ZPlusLexer_27 = v29;
+	uint64_t v22 = (uint64_t)(v21);
+	uint64_t v23 = (uint64_t)(v18);
+	bool v24 = (v23 == v22);
+	TUP* branch_ZPlusLexer_25;
+	if (v24) {
+		TUP* v26;
+		mw_mirth_lexer_ZPlusLexer_newlineZBang(v13, &v26);
+		TUP* v27;
+		mw_mirth_lexer_ZPlusLexer_moveZBang(v26, &v27);
+		branch_ZPlusLexer_25 = v27;
 	} else {
-		branch_ZPlusLexer_27 = v13;
+		branch_ZPlusLexer_25 = v13;
 	}
-	*out_ZPlusLexer_2 = branch_ZPlusLexer_27;
+	*out_ZPlusLexer_2 = branch_ZPlusLexer_25;
 }
 static void mw_mirth_lexer_ZPlusLexer_skipZ_docZBang (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
 	VAL v3 = in_ZPlusLexer_1->cells[3];
@@ -33430,33 +33844,31 @@ static void mw_mirth_lexer_ZPlusLexer_skipZ_docZBang (TUP* in_ZPlusLexer_1, TUP*
 	INT v28 = i64_to_int(v24);
 	uint64_t v29 = int_to_u64(v28);
 	uint8_t v30 = (uint8_t)(v29);
-	uint64_t v31 = (uint64_t)(v27);
-	INT v32 = u64_to_int(v31);
-	uint64_t v33 = (uint64_t)(v30);
-	INT v34 = u64_to_int(v33);
-	bool v35 = int_eq(v32, v34);
-	STR* branch_ZPlusStr_36;
-	TUP* branch_ZPlusLexer_37;
-	if (v35) {
-		TUP* v38;
-		mw_mirth_lexer_ZPlusLexer_newlineZBang(v22, &v38);
-		TUP* v39;
-		int64_t v40 = mw_mirth_lexer_ZPlusLexer_peek(v38, &v39);
-		STR* v41;
-		mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(v40, v10, &v41);
-		TUP* v42;
-		mw_mirth_lexer_ZPlusLexer_moveZBang(v39, &v42);
-		branch_ZPlusLexer_37 = v42;
-		branch_ZPlusStr_36 = v41;
+	uint64_t v31 = (uint64_t)(v30);
+	uint64_t v32 = (uint64_t)(v27);
+	bool v33 = (v32 == v31);
+	STR* branch_ZPlusStr_34;
+	TUP* branch_ZPlusLexer_35;
+	if (v33) {
+		TUP* v36;
+		mw_mirth_lexer_ZPlusLexer_newlineZBang(v22, &v36);
+		TUP* v37;
+		int64_t v38 = mw_mirth_lexer_ZPlusLexer_peek(v36, &v37);
+		STR* v39;
+		mw_std_str_ZPlusStr_pushZ_byteZ_asciiZBang(v38, v10, &v39);
+		TUP* v40;
+		mw_mirth_lexer_ZPlusLexer_moveZBang(v37, &v40);
+		branch_ZPlusLexer_35 = v40;
+		branch_ZPlusStr_34 = v39;
 	} else {
-		branch_ZPlusLexer_37 = v22;
-		branch_ZPlusStr_36 = v10;
+		branch_ZPlusLexer_35 = v22;
+		branch_ZPlusStr_34 = v10;
 	}
-	VAL v43 = mtw_std_maybe_Maybe_1_Some(MKSTR(branch_ZPlusStr_36));
-	VAL v44 = branch_ZPlusLexer_37->cells[3];
-	decref(v44);
-	branch_ZPlusLexer_37->cells[3] = v43;
-	*out_ZPlusLexer_2 = branch_ZPlusLexer_37;
+	VAL v41 = mtw_std_maybe_Maybe_1_Some(MKSTR(branch_ZPlusStr_34));
+	VAL v42 = branch_ZPlusLexer_35->cells[3];
+	decref(v42);
+	branch_ZPlusLexer_35->cells[3] = v41;
+	*out_ZPlusLexer_2 = branch_ZPlusLexer_35;
 }
 static bool mw_mirth_lexer_ZPlusLexer_commentZ_endZAsk (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_3) {
 	TUP* v4;
@@ -33477,12 +33889,10 @@ static bool mw_mirth_lexer_ZPlusLexer_commentZ_endZAsk (TUP* in_ZPlusLexer_1, TU
 		INT v15 = i64_to_int(v11);
 		uint64_t v16 = int_to_u64(v15);
 		uint8_t v17 = (uint8_t)(v16);
-		uint64_t v18 = (uint64_t)(v14);
-		INT v19 = u64_to_int(v18);
-		uint64_t v20 = (uint64_t)(v17);
-		INT v21 = u64_to_int(v20);
-		bool v22 = int_eq(v19, v21);
-		branch_Bool_7 = v22;
+		uint64_t v18 = (uint64_t)(v17);
+		uint64_t v19 = (uint64_t)(v14);
+		bool v20 = (v19 == v18);
+		branch_Bool_7 = v20;
 		branch_ZPlusLexer_6 = v9;
 	}
 	*out_ZPlusLexer_3 = branch_ZPlusLexer_6;
@@ -33506,44 +33916,57 @@ static uint64_t mw_mirth_lexer_runZ_lexerZBang (STR* in_Path_1, TUP* in_ZPlusMir
 		} break;
 		case 0LL: { // +Err
 			VAL v15 = mtp_std_result_ZPlusResult_2_ZPlusErr(v11);
-			mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(value_str(v15), v9);
+			mw_mirth_mirth_ZPlusMirth_ioZ_errorZBang(v15, v9);
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	VAL v18;
-	mw_std_input_ZPlusInput_startZBang(value_tup(branch_z_x1_13, 2), &v18);
-	TUP* v19;
+	VAL v19;
+	mw_std_input_ZPlusInput_startZBang(value_tup(branch_z_x1_13, 2), &v19);
 	TUP* v20;
-	mw_mirth_lexer_ZPlusLexer_StartZBang(branch_ZPlusMirth_12, v18, v8, &v19, &v20);
 	TUP* v21;
-	bool v22 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v20, &v21);
-	bool v23 = !v22;
-	TUP* v24 = v19;
-	TUP* v25 = v21;
-	bool v26 = v23;
-	while (v26) {
-		TUP* v27 = v24;
+	mw_mirth_lexer_ZPlusLexer_StartZBang(branch_ZPlusMirth_12, v19, v8, &v20, &v21);
+	TUP* v22;
+	bool v23 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v21, &v22);
+	bool v24 = !v23;
+	TUP* v25 = v20;
+	TUP* v26 = v22;
+	bool v27 = v24;
+	while (v27) {
 		TUP* v28 = v25;
-		TUP* v29;
+		TUP* v29 = v26;
 		TUP* v30;
-		mw_mirth_lexer_ZPlusLexer_nextZBang(v27, v28, &v29, &v30);
 		TUP* v31;
-		bool v32 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v30, &v31);
-		bool v33 = !v32;
-		v26 = v33;
-		v25 = v31;
-		v24 = v29;
+		mw_mirth_lexer_ZPlusLexer_nextZBang(v28, v29, &v30, &v31);
+		TUP* v32;
+		bool v33 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v31, &v32);
+		bool v34 = !v33;
+		v27 = v34;
+		v26 = v32;
+		v25 = v30;
 	}
-	TUP* v34;
-	VAL v35;
-	uint64_t v36 = mw_mirth_lexer_ZPlusLexer_stopZBang(v24, v25, &v34, &v35);
-	TUP* v37;
-	mw_std_input_ZPlusInput_endZBang(v35, &v37);
-	mw_std_file_ZPlusFile_closeZ_fileZBang(v37);
-	*out_ZPlusMirth_4 = v34;
-	return v36;
+	TUP* v35;
+	VAL v36;
+	uint64_t v37 = mw_mirth_lexer_ZPlusLexer_stopZBang(v25, v26, &v35, &v36);
+	TUP* v38;
+	mw_std_input_ZPlusInput_endZBang(v36, &v38);
+	VAL v39 = mw_std_file_ZPlusFile_closeZ_fileZBang(v38);
+	TUP* branch_ZPlusMirth_40;
+	switch (get_data_tag(v39)) {
+		case 1LL: { // Some
+			VAL v41 = mtp_std_maybe_Maybe_1_Some(v39);
+			mw_mirth_mirth_ZPlusMirth_ioZ_errorZBang(v41, v35);
+		} break;
+		case 0LL: { // None
+			branch_ZPlusMirth_40 = v35;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusMirth_4 = branch_ZPlusMirth_40;
+	return v37;
 }
 static VAL mw_std_str_ZPlusStr_nameZ_token (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5) {
 	incref(MKSTR(in_ZPlusStr_2));
@@ -33595,21 +34018,10 @@ static STR* mw_std_str_ZPlusStr_dropZ_lastZ_byte (STR* in_ZPlusStr_1, STR* *out_
 	INT v7 = u64_to_int(v6);
 	INT v8 = WRAP_I63(1LL);
 	INT v9 = int_sub(v7, v8);
-	incref(MKINT(v9));
-	INT v10 = WRAP_I63(0LL);
-	bool v11 = int_lt(v9, v10);
-	INT branch_Nat_12;
-	if (v11) {
-		decref(MKINT(v9));
-		INT v13 = WRAP_I63(0LL);
-		branch_Nat_12 = v13;
-	} else {
-		branch_Nat_12 = v9;
-	}
-	STR* v14;
-	STR* v15 = mw_std_str_ZPlusStr_takeZ_slice(branch_Nat_12, in_ZPlusStr_1, &v14);
-	*out_ZPlusStr_3 = v14;
-	return v15;
+	STR* v10;
+	STR* v11 = mw_std_str_ZPlusStr_takeZ_slice(v9, in_ZPlusStr_1, &v10);
+	*out_ZPlusStr_3 = v10;
+	return v11;
 }
 static VAL mw_std_str_ZPlusStr_labelZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_3, STR* *out_ZPlusStr_5) {
 	TUP* v6;
@@ -33727,43 +34139,40 @@ static VAL mw_std_str_ZPlusStr_labelZ_popZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR*
 		INT v19 = i64_to_int(v15);
 		uint64_t v20 = int_to_u64(v19);
 		uint8_t v21 = (uint8_t)(v20);
-		uint64_t v22 = (uint64_t)(v18);
-		INT v23 = u64_to_int(v22);
-		uint64_t v24 = (uint64_t)(v21);
-		INT v25 = u64_to_int(v24);
-		bool v26 = int_eq(v23, v25);
-		branch_Bool_12 = v26;
+		uint64_t v22 = (uint64_t)(v21);
+		uint64_t v23 = (uint64_t)(v18);
+		bool v24 = (v23 == v22);
+		branch_Bool_12 = v24;
 		branch_ZPlusStr_11 = v13;
 	} else {
-		bool v27 = false;
-		branch_Bool_12 = v27;
+		bool v25 = false;
+		branch_Bool_12 = v25;
 		branch_ZPlusStr_11 = v6;
 	}
-	TUP* branch_ZPlusMirth_28;
-	STR* branch_ZPlusStr_29;
-	VAL branch_Maybe_30;
+	TUP* branch_ZPlusMirth_26;
+	STR* branch_ZPlusStr_27;
+	VAL branch_Maybe_28;
 	if (branch_Bool_12) {
-		int64_t v31 = 0LL /* +Unsafe */;
-		STR* v32;
-		STR* v33 = mw_std_str_ZPlusStr_dropZ_lastZ_byte(branch_ZPlusStr_11, &v32);
-		TUP* v34;
-		uint64_t v35 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v33, &v34);
-		TUP* v36;
-		uint64_t v37 = mw_mirth_label_Label_newZBang(v34, v35, &v36);
-		VAL v38 = mtw_mirth_token_TokenValue_LabelPop(v37);
-		VAL v39 = mtw_std_maybe_Maybe_1_Some(v38);
-		branch_Maybe_30 = v39;
-		branch_ZPlusStr_29 = v32;
-		branch_ZPlusMirth_28 = v36;
+		STR* v29;
+		STR* v30 = mw_std_prelude_unsafe_1_sp21(branch_ZPlusStr_11, &v29);
+		TUP* v31;
+		uint64_t v32 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v30, &v31);
+		TUP* v33;
+		uint64_t v34 = mw_mirth_label_Label_newZBang(v31, v32, &v33);
+		VAL v35 = mtw_mirth_token_TokenValue_LabelPop(v34);
+		VAL v36 = mtw_std_maybe_Maybe_1_Some(v35);
+		branch_Maybe_28 = v36;
+		branch_ZPlusStr_27 = v29;
+		branch_ZPlusMirth_26 = v33;
 	} else {
-		VAL v40 = MKI64(0LL /* None */);
-		branch_Maybe_30 = v40;
-		branch_ZPlusStr_29 = branch_ZPlusStr_11;
-		branch_ZPlusMirth_28 = in_ZPlusMirth_1;
+		VAL v37 = MKI64(0LL /* None */);
+		branch_Maybe_28 = v37;
+		branch_ZPlusStr_27 = branch_ZPlusStr_11;
+		branch_ZPlusMirth_26 = in_ZPlusMirth_1;
 	}
-	*out_ZPlusStr_5 = branch_ZPlusStr_29;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_28;
-	return branch_Maybe_30;
+	*out_ZPlusStr_5 = branch_ZPlusStr_27;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_26;
+	return branch_Maybe_28;
 }
 static VAL mw_std_str_ZPlusStr_labelZ_popZ_rZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_3, STR* *out_ZPlusStr_5) {
 	STR* v6;
@@ -33775,75 +34184,70 @@ static VAL mw_std_str_ZPlusStr_labelZ_popZ_rZ_tokenZAsk (TUP* in_ZPlusMirth_1, S
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	STR* branch_ZPlusStr_20;
-	bool branch_Bool_21;
-	if (v19) {
-		STR* v22;
-		int64_t v23 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v22);
-		int64_t v24 = 97LL /* B'a' */;
-		int64_t v25 = 122LL /* B'z' */;
-		bool v26 = mw_std_prelude_inZ_range_sp1(v23, v24, v25);
-		STR* branch_ZPlusStr_27;
-		bool branch_Bool_28;
-		if (v26) {
-			STR* v29;
-			int64_t v30 = mw_std_str_ZPlusStr_lastZ_byte(v22, &v29);
-			int64_t v31 = 62LL /* B'>' */;
-			INT v32 = i64_to_int(v30);
-			uint64_t v33 = int_to_u64(v32);
-			uint8_t v34 = (uint8_t)(v33);
-			INT v35 = i64_to_int(v31);
-			uint64_t v36 = int_to_u64(v35);
-			uint8_t v37 = (uint8_t)(v36);
-			uint64_t v38 = (uint64_t)(v34);
-			INT v39 = u64_to_int(v38);
-			uint64_t v40 = (uint64_t)(v37);
-			INT v41 = u64_to_int(v40);
-			bool v42 = int_eq(v39, v41);
-			branch_Bool_28 = v42;
-			branch_ZPlusStr_27 = v29;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	STR* branch_ZPlusStr_18;
+	bool branch_Bool_19;
+	if (v17) {
+		STR* v20;
+		int64_t v21 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v20);
+		int64_t v22 = 97LL /* B'a' */;
+		int64_t v23 = 122LL /* B'z' */;
+		bool v24 = mw_std_prelude_inZ_range_sp1(v21, v22, v23);
+		STR* branch_ZPlusStr_25;
+		bool branch_Bool_26;
+		if (v24) {
+			STR* v27;
+			int64_t v28 = mw_std_str_ZPlusStr_lastZ_byte(v20, &v27);
+			int64_t v29 = 62LL /* B'>' */;
+			INT v30 = i64_to_int(v28);
+			uint64_t v31 = int_to_u64(v30);
+			uint8_t v32 = (uint8_t)(v31);
+			INT v33 = i64_to_int(v29);
+			uint64_t v34 = int_to_u64(v33);
+			uint8_t v35 = (uint8_t)(v34);
+			uint64_t v36 = (uint64_t)(v35);
+			uint64_t v37 = (uint64_t)(v32);
+			bool v38 = (v37 == v36);
+			branch_Bool_26 = v38;
+			branch_ZPlusStr_25 = v27;
 		} else {
-			bool v43 = false;
-			branch_Bool_28 = v43;
-			branch_ZPlusStr_27 = v22;
+			bool v39 = false;
+			branch_Bool_26 = v39;
+			branch_ZPlusStr_25 = v20;
 		}
-		branch_Bool_21 = branch_Bool_28;
-		branch_ZPlusStr_20 = branch_ZPlusStr_27;
+		branch_Bool_19 = branch_Bool_26;
+		branch_ZPlusStr_18 = branch_ZPlusStr_25;
 	} else {
-		bool v44 = false;
-		branch_Bool_21 = v44;
-		branch_ZPlusStr_20 = v6;
+		bool v40 = false;
+		branch_Bool_19 = v40;
+		branch_ZPlusStr_18 = v6;
 	}
-	TUP* branch_ZPlusMirth_45;
-	STR* branch_ZPlusStr_46;
-	VAL branch_Maybe_47;
-	if (branch_Bool_21) {
-		int64_t v48 = 0LL /* +Unsafe */;
-		STR* v49;
-		STR* v50 = mw_std_str_ZPlusStr_dropZ_lastZ_byte(branch_ZPlusStr_20, &v49);
-		TUP* v51;
-		uint64_t v52 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v50, &v51);
-		TUP* v53;
-		uint64_t v54 = mw_mirth_label_Label_newZBang(v51, v52, &v53);
-		VAL v55 = mtw_mirth_token_TokenValue_LabelPopR(v54);
-		VAL v56 = mtw_std_maybe_Maybe_1_Some(v55);
-		branch_Maybe_47 = v56;
-		branch_ZPlusStr_46 = v49;
-		branch_ZPlusMirth_45 = v53;
+	TUP* branch_ZPlusMirth_41;
+	STR* branch_ZPlusStr_42;
+	VAL branch_Maybe_43;
+	if (branch_Bool_19) {
+		STR* v44;
+		STR* v45 = mw_std_prelude_unsafe_1_sp21(branch_ZPlusStr_18, &v44);
+		TUP* v46;
+		uint64_t v47 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v45, &v46);
+		TUP* v48;
+		uint64_t v49 = mw_mirth_label_Label_newZBang(v46, v47, &v48);
+		VAL v50 = mtw_mirth_token_TokenValue_LabelPopR(v49);
+		VAL v51 = mtw_std_maybe_Maybe_1_Some(v50);
+		branch_Maybe_43 = v51;
+		branch_ZPlusStr_42 = v44;
+		branch_ZPlusMirth_41 = v48;
 	} else {
-		VAL v57 = MKI64(0LL /* None */);
-		branch_Maybe_47 = v57;
-		branch_ZPlusStr_46 = branch_ZPlusStr_20;
-		branch_ZPlusMirth_45 = in_ZPlusMirth_1;
+		VAL v52 = MKI64(0LL /* None */);
+		branch_Maybe_43 = v52;
+		branch_ZPlusStr_42 = branch_ZPlusStr_18;
+		branch_ZPlusMirth_41 = in_ZPlusMirth_1;
 	}
-	*out_ZPlusStr_5 = branch_ZPlusStr_46;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_45;
-	return branch_Maybe_47;
+	*out_ZPlusStr_5 = branch_ZPlusStr_42;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_41;
+	return branch_Maybe_43;
 }
 static VAL mw_std_str_ZPlusStr_labelZ_pushZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_3, STR* *out_ZPlusStr_5) {
 	STR* v6;
@@ -33855,51 +34259,48 @@ static VAL mw_std_str_ZPlusStr_labelZ_pushZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	STR* branch_ZPlusStr_20;
-	bool branch_Bool_21;
-	if (v19) {
-		STR* v22;
-		int64_t v23 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v22);
-		int64_t v24 = 97LL /* B'a' */;
-		int64_t v25 = 122LL /* B'z' */;
-		bool v26 = mw_std_prelude_inZ_range_sp1(v23, v24, v25);
-		branch_Bool_21 = v26;
-		branch_ZPlusStr_20 = v22;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	STR* branch_ZPlusStr_18;
+	bool branch_Bool_19;
+	if (v17) {
+		STR* v20;
+		int64_t v21 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v20);
+		int64_t v22 = 97LL /* B'a' */;
+		int64_t v23 = 122LL /* B'z' */;
+		bool v24 = mw_std_prelude_inZ_range_sp1(v21, v22, v23);
+		branch_Bool_19 = v24;
+		branch_ZPlusStr_18 = v20;
 	} else {
-		bool v27 = false;
-		branch_Bool_21 = v27;
-		branch_ZPlusStr_20 = v6;
+		bool v25 = false;
+		branch_Bool_19 = v25;
+		branch_ZPlusStr_18 = v6;
 	}
-	TUP* branch_ZPlusMirth_28;
-	STR* branch_ZPlusStr_29;
-	VAL branch_Maybe_30;
-	if (branch_Bool_21) {
-		int64_t v31 = 0LL /* +Unsafe */;
-		STR* v32;
-		STR* v33 = mw_std_str_ZPlusStr_dropZ_firstZ_byte(branch_ZPlusStr_20, &v32);
-		TUP* v34;
-		uint64_t v35 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v33, &v34);
-		TUP* v36;
-		uint64_t v37 = mw_mirth_label_Label_newZBang(v34, v35, &v36);
-		VAL v38 = mtw_mirth_token_TokenValue_LabelPush(v37);
-		VAL v39 = mtw_std_maybe_Maybe_1_Some(v38);
-		branch_Maybe_30 = v39;
-		branch_ZPlusStr_29 = v32;
-		branch_ZPlusMirth_28 = v36;
+	TUP* branch_ZPlusMirth_26;
+	STR* branch_ZPlusStr_27;
+	VAL branch_Maybe_28;
+	if (branch_Bool_19) {
+		STR* v29;
+		STR* v30 = mw_std_prelude_unsafe_1_sp20(branch_ZPlusStr_18, &v29);
+		TUP* v31;
+		uint64_t v32 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v30, &v31);
+		TUP* v33;
+		uint64_t v34 = mw_mirth_label_Label_newZBang(v31, v32, &v33);
+		VAL v35 = mtw_mirth_token_TokenValue_LabelPush(v34);
+		VAL v36 = mtw_std_maybe_Maybe_1_Some(v35);
+		branch_Maybe_28 = v36;
+		branch_ZPlusStr_27 = v29;
+		branch_ZPlusMirth_26 = v33;
 	} else {
-		VAL v40 = MKI64(0LL /* None */);
-		branch_Maybe_30 = v40;
-		branch_ZPlusStr_29 = branch_ZPlusStr_20;
-		branch_ZPlusMirth_28 = in_ZPlusMirth_1;
+		VAL v37 = MKI64(0LL /* None */);
+		branch_Maybe_28 = v37;
+		branch_ZPlusStr_27 = branch_ZPlusStr_18;
+		branch_ZPlusMirth_26 = in_ZPlusMirth_1;
 	}
-	*out_ZPlusStr_5 = branch_ZPlusStr_29;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_28;
-	return branch_Maybe_30;
+	*out_ZPlusStr_5 = branch_ZPlusStr_27;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_26;
+	return branch_Maybe_28;
 }
 static VAL mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_3, STR* *out_ZPlusStr_5) {
 	int64_t v6 = 0LL /* +Unsafe */;
@@ -33927,21 +34328,20 @@ static VAL mw_std_str_ZPlusStr_labelZ_pushZ_rZ_tokenZAsk (TUP* in_ZPlusMirth_1, 
 	STR* branch_ZPlusStr_20;
 	VAL branch_Maybe_21;
 	if (branch_Bool_12) {
-		int64_t v22 = 0LL /* +Unsafe */;
-		STR* v23;
-		STR* v24 = mw_std_str_ZPlusStr_dropZ_firstZ_byte(branch_ZPlusStr_11, &v23);
-		TUP* v25;
-		uint64_t v26 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v24, &v25);
-		TUP* v27;
-		uint64_t v28 = mw_mirth_label_Label_newZBang(v25, v26, &v27);
-		VAL v29 = mtw_mirth_token_TokenValue_LabelPushR(v28);
-		VAL v30 = mtw_std_maybe_Maybe_1_Some(v29);
-		branch_Maybe_21 = v30;
-		branch_ZPlusStr_20 = v23;
-		branch_ZPlusMirth_19 = v27;
+		STR* v22;
+		STR* v23 = mw_std_prelude_unsafe_1_sp20(branch_ZPlusStr_11, &v22);
+		TUP* v24;
+		uint64_t v25 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v23, &v24);
+		TUP* v26;
+		uint64_t v27 = mw_mirth_label_Label_newZBang(v24, v25, &v26);
+		VAL v28 = mtw_mirth_token_TokenValue_LabelPushR(v27);
+		VAL v29 = mtw_std_maybe_Maybe_1_Some(v28);
+		branch_Maybe_21 = v29;
+		branch_ZPlusStr_20 = v22;
+		branch_ZPlusMirth_19 = v26;
 	} else {
-		VAL v31 = MKI64(0LL /* None */);
-		branch_Maybe_21 = v31;
+		VAL v30 = MKI64(0LL /* None */);
+		branch_Maybe_21 = v30;
 		branch_ZPlusStr_20 = branch_ZPlusStr_11;
 		branch_ZPlusMirth_19 = in_ZPlusMirth_1;
 	}
@@ -33959,90 +34359,85 @@ static VAL mw_std_str_ZPlusStr_labelZ_getZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR*
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	STR* branch_ZPlusStr_20;
-	bool branch_Bool_21;
-	if (v19) {
-		STR* v22;
-		int64_t v23 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v22);
-		int64_t v24 = 97LL /* B'a' */;
-		int64_t v25 = 122LL /* B'z' */;
-		bool v26 = mw_std_prelude_inZ_range_sp1(v23, v24, v25);
-		STR* branch_ZPlusStr_27;
-		bool branch_Bool_28;
-		if (v26) {
-			bool v29 = true;
-			branch_Bool_28 = v29;
-			branch_ZPlusStr_27 = v22;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	STR* branch_ZPlusStr_18;
+	bool branch_Bool_19;
+	if (v17) {
+		STR* v20;
+		int64_t v21 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v20);
+		int64_t v22 = 97LL /* B'a' */;
+		int64_t v23 = 122LL /* B'z' */;
+		bool v24 = mw_std_prelude_inZ_range_sp1(v21, v22, v23);
+		STR* branch_ZPlusStr_25;
+		bool branch_Bool_26;
+		if (v24) {
+			bool v27 = true;
+			branch_Bool_26 = v27;
+			branch_ZPlusStr_25 = v20;
 		} else {
-			STR* v30;
-			int64_t v31 = mw_std_str_ZPlusStr_secondZ_byte(v22, &v30);
-			int64_t v32 = 43LL /* B'+' */;
-			INT v33 = i64_to_int(v31);
-			uint64_t v34 = int_to_u64(v33);
-			uint8_t v35 = (uint8_t)(v34);
-			INT v36 = i64_to_int(v32);
-			uint64_t v37 = int_to_u64(v36);
-			uint8_t v38 = (uint8_t)(v37);
-			uint64_t v39 = (uint64_t)(v35);
-			INT v40 = u64_to_int(v39);
-			uint64_t v41 = (uint64_t)(v38);
-			INT v42 = u64_to_int(v41);
-			bool v43 = int_eq(v40, v42);
-			STR* branch_ZPlusStr_44;
-			bool branch_Bool_45;
-			if (v43) {
-				STR* v46;
-				int64_t v47 = mw_std_str_ZPlusStr_thirdZ_byte(v30, &v46);
-				int64_t v48 = 97LL /* B'a' */;
-				int64_t v49 = 122LL /* B'z' */;
-				bool v50 = mw_std_prelude_inZ_range_sp1(v47, v48, v49);
-				branch_Bool_45 = v50;
-				branch_ZPlusStr_44 = v46;
+			STR* v28;
+			int64_t v29 = mw_std_str_ZPlusStr_secondZ_byte(v20, &v28);
+			int64_t v30 = 43LL /* B'+' */;
+			INT v31 = i64_to_int(v29);
+			uint64_t v32 = int_to_u64(v31);
+			uint8_t v33 = (uint8_t)(v32);
+			INT v34 = i64_to_int(v30);
+			uint64_t v35 = int_to_u64(v34);
+			uint8_t v36 = (uint8_t)(v35);
+			uint64_t v37 = (uint64_t)(v36);
+			uint64_t v38 = (uint64_t)(v33);
+			bool v39 = (v38 == v37);
+			STR* branch_ZPlusStr_40;
+			bool branch_Bool_41;
+			if (v39) {
+				STR* v42;
+				int64_t v43 = mw_std_str_ZPlusStr_thirdZ_byte(v28, &v42);
+				int64_t v44 = 97LL /* B'a' */;
+				int64_t v45 = 122LL /* B'z' */;
+				bool v46 = mw_std_prelude_inZ_range_sp1(v43, v44, v45);
+				branch_Bool_41 = v46;
+				branch_ZPlusStr_40 = v42;
 			} else {
-				bool v51 = false;
-				branch_Bool_45 = v51;
-				branch_ZPlusStr_44 = v30;
+				bool v47 = false;
+				branch_Bool_41 = v47;
+				branch_ZPlusStr_40 = v28;
 			}
-			branch_Bool_28 = branch_Bool_45;
-			branch_ZPlusStr_27 = branch_ZPlusStr_44;
+			branch_Bool_26 = branch_Bool_41;
+			branch_ZPlusStr_25 = branch_ZPlusStr_40;
 		}
-		branch_Bool_21 = branch_Bool_28;
-		branch_ZPlusStr_20 = branch_ZPlusStr_27;
+		branch_Bool_19 = branch_Bool_26;
+		branch_ZPlusStr_18 = branch_ZPlusStr_25;
 	} else {
-		bool v52 = false;
-		branch_Bool_21 = v52;
-		branch_ZPlusStr_20 = v6;
+		bool v48 = false;
+		branch_Bool_19 = v48;
+		branch_ZPlusStr_18 = v6;
 	}
-	TUP* branch_ZPlusMirth_53;
-	STR* branch_ZPlusStr_54;
-	VAL branch_Maybe_55;
-	if (branch_Bool_21) {
-		int64_t v56 = 0LL /* +Unsafe */;
-		STR* v57;
-		STR* v58 = mw_std_str_ZPlusStr_dropZ_firstZ_byte(branch_ZPlusStr_20, &v57);
-		TUP* v59;
-		uint64_t v60 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v58, &v59);
-		TUP* v61;
-		uint64_t v62 = mw_mirth_label_Label_newZBang(v59, v60, &v61);
-		VAL v63 = mtw_mirth_token_TokenValue_LabelGet(v62);
-		VAL v64 = mtw_std_maybe_Maybe_1_Some(v63);
-		branch_Maybe_55 = v64;
-		branch_ZPlusStr_54 = v57;
-		branch_ZPlusMirth_53 = v61;
+	TUP* branch_ZPlusMirth_49;
+	STR* branch_ZPlusStr_50;
+	VAL branch_Maybe_51;
+	if (branch_Bool_19) {
+		STR* v52;
+		STR* v53 = mw_std_prelude_unsafe_1_sp20(branch_ZPlusStr_18, &v52);
+		TUP* v54;
+		uint64_t v55 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v53, &v54);
+		TUP* v56;
+		uint64_t v57 = mw_mirth_label_Label_newZBang(v54, v55, &v56);
+		VAL v58 = mtw_mirth_token_TokenValue_LabelGet(v57);
+		VAL v59 = mtw_std_maybe_Maybe_1_Some(v58);
+		branch_Maybe_51 = v59;
+		branch_ZPlusStr_50 = v52;
+		branch_ZPlusMirth_49 = v56;
 	} else {
-		VAL v65 = MKI64(0LL /* None */);
-		branch_Maybe_55 = v65;
-		branch_ZPlusStr_54 = branch_ZPlusStr_20;
-		branch_ZPlusMirth_53 = in_ZPlusMirth_1;
+		VAL v60 = MKI64(0LL /* None */);
+		branch_Maybe_51 = v60;
+		branch_ZPlusStr_50 = branch_ZPlusStr_18;
+		branch_ZPlusMirth_49 = in_ZPlusMirth_1;
 	}
-	*out_ZPlusStr_5 = branch_ZPlusStr_54;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_53;
-	return branch_Maybe_55;
+	*out_ZPlusStr_5 = branch_ZPlusStr_50;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_49;
+	return branch_Maybe_51;
 }
 static VAL mw_std_str_ZPlusStr_labelZ_setZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_3, STR* *out_ZPlusStr_5) {
 	STR* v6;
@@ -34054,90 +34449,85 @@ static VAL mw_std_str_ZPlusStr_labelZ_setZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR*
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	STR* branch_ZPlusStr_20;
-	bool branch_Bool_21;
-	if (v19) {
-		STR* v22;
-		int64_t v23 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v22);
-		int64_t v24 = 97LL /* B'a' */;
-		int64_t v25 = 122LL /* B'z' */;
-		bool v26 = mw_std_prelude_inZ_range_sp1(v23, v24, v25);
-		STR* branch_ZPlusStr_27;
-		bool branch_Bool_28;
-		if (v26) {
-			bool v29 = true;
-			branch_Bool_28 = v29;
-			branch_ZPlusStr_27 = v22;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	STR* branch_ZPlusStr_18;
+	bool branch_Bool_19;
+	if (v17) {
+		STR* v20;
+		int64_t v21 = mw_std_str_ZPlusStr_secondZ_byte(v6, &v20);
+		int64_t v22 = 97LL /* B'a' */;
+		int64_t v23 = 122LL /* B'z' */;
+		bool v24 = mw_std_prelude_inZ_range_sp1(v21, v22, v23);
+		STR* branch_ZPlusStr_25;
+		bool branch_Bool_26;
+		if (v24) {
+			bool v27 = true;
+			branch_Bool_26 = v27;
+			branch_ZPlusStr_25 = v20;
 		} else {
-			STR* v30;
-			int64_t v31 = mw_std_str_ZPlusStr_secondZ_byte(v22, &v30);
-			int64_t v32 = 43LL /* B'+' */;
-			INT v33 = i64_to_int(v31);
-			uint64_t v34 = int_to_u64(v33);
-			uint8_t v35 = (uint8_t)(v34);
-			INT v36 = i64_to_int(v32);
-			uint64_t v37 = int_to_u64(v36);
-			uint8_t v38 = (uint8_t)(v37);
-			uint64_t v39 = (uint64_t)(v35);
-			INT v40 = u64_to_int(v39);
-			uint64_t v41 = (uint64_t)(v38);
-			INT v42 = u64_to_int(v41);
-			bool v43 = int_eq(v40, v42);
-			STR* branch_ZPlusStr_44;
-			bool branch_Bool_45;
-			if (v43) {
-				STR* v46;
-				int64_t v47 = mw_std_str_ZPlusStr_thirdZ_byte(v30, &v46);
-				int64_t v48 = 97LL /* B'a' */;
-				int64_t v49 = 122LL /* B'z' */;
-				bool v50 = mw_std_prelude_inZ_range_sp1(v47, v48, v49);
-				branch_Bool_45 = v50;
-				branch_ZPlusStr_44 = v46;
+			STR* v28;
+			int64_t v29 = mw_std_str_ZPlusStr_secondZ_byte(v20, &v28);
+			int64_t v30 = 43LL /* B'+' */;
+			INT v31 = i64_to_int(v29);
+			uint64_t v32 = int_to_u64(v31);
+			uint8_t v33 = (uint8_t)(v32);
+			INT v34 = i64_to_int(v30);
+			uint64_t v35 = int_to_u64(v34);
+			uint8_t v36 = (uint8_t)(v35);
+			uint64_t v37 = (uint64_t)(v36);
+			uint64_t v38 = (uint64_t)(v33);
+			bool v39 = (v38 == v37);
+			STR* branch_ZPlusStr_40;
+			bool branch_Bool_41;
+			if (v39) {
+				STR* v42;
+				int64_t v43 = mw_std_str_ZPlusStr_thirdZ_byte(v28, &v42);
+				int64_t v44 = 97LL /* B'a' */;
+				int64_t v45 = 122LL /* B'z' */;
+				bool v46 = mw_std_prelude_inZ_range_sp1(v43, v44, v45);
+				branch_Bool_41 = v46;
+				branch_ZPlusStr_40 = v42;
 			} else {
-				bool v51 = false;
-				branch_Bool_45 = v51;
-				branch_ZPlusStr_44 = v30;
+				bool v47 = false;
+				branch_Bool_41 = v47;
+				branch_ZPlusStr_40 = v28;
 			}
-			branch_Bool_28 = branch_Bool_45;
-			branch_ZPlusStr_27 = branch_ZPlusStr_44;
+			branch_Bool_26 = branch_Bool_41;
+			branch_ZPlusStr_25 = branch_ZPlusStr_40;
 		}
-		branch_Bool_21 = branch_Bool_28;
-		branch_ZPlusStr_20 = branch_ZPlusStr_27;
+		branch_Bool_19 = branch_Bool_26;
+		branch_ZPlusStr_18 = branch_ZPlusStr_25;
 	} else {
-		bool v52 = false;
-		branch_Bool_21 = v52;
-		branch_ZPlusStr_20 = v6;
+		bool v48 = false;
+		branch_Bool_19 = v48;
+		branch_ZPlusStr_18 = v6;
 	}
-	TUP* branch_ZPlusMirth_53;
-	STR* branch_ZPlusStr_54;
-	VAL branch_Maybe_55;
-	if (branch_Bool_21) {
-		int64_t v56 = 0LL /* +Unsafe */;
-		STR* v57;
-		STR* v58 = mw_std_str_ZPlusStr_dropZ_firstZ_byte(branch_ZPlusStr_20, &v57);
-		TUP* v59;
-		uint64_t v60 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v58, &v59);
-		TUP* v61;
-		uint64_t v62 = mw_mirth_label_Label_newZBang(v59, v60, &v61);
-		VAL v63 = mtw_mirth_token_TokenValue_LabelSet(v62);
-		VAL v64 = mtw_std_maybe_Maybe_1_Some(v63);
-		branch_Maybe_55 = v64;
-		branch_ZPlusStr_54 = v57;
-		branch_ZPlusMirth_53 = v61;
+	TUP* branch_ZPlusMirth_49;
+	STR* branch_ZPlusStr_50;
+	VAL branch_Maybe_51;
+	if (branch_Bool_19) {
+		STR* v52;
+		STR* v53 = mw_std_prelude_unsafe_1_sp20(branch_ZPlusStr_18, &v52);
+		TUP* v54;
+		uint64_t v55 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, v53, &v54);
+		TUP* v56;
+		uint64_t v57 = mw_mirth_label_Label_newZBang(v54, v55, &v56);
+		VAL v58 = mtw_mirth_token_TokenValue_LabelSet(v57);
+		VAL v59 = mtw_std_maybe_Maybe_1_Some(v58);
+		branch_Maybe_51 = v59;
+		branch_ZPlusStr_50 = v52;
+		branch_ZPlusMirth_49 = v56;
 	} else {
-		VAL v65 = MKI64(0LL /* None */);
-		branch_Maybe_55 = v65;
-		branch_ZPlusStr_54 = branch_ZPlusStr_20;
-		branch_ZPlusMirth_53 = in_ZPlusMirth_1;
+		VAL v60 = MKI64(0LL /* None */);
+		branch_Maybe_51 = v60;
+		branch_ZPlusStr_50 = branch_ZPlusStr_18;
+		branch_ZPlusMirth_49 = in_ZPlusMirth_1;
 	}
-	*out_ZPlusStr_5 = branch_ZPlusStr_54;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_53;
-	return branch_Maybe_55;
+	*out_ZPlusStr_5 = branch_ZPlusStr_50;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_49;
+	return branch_Maybe_51;
 }
 static VAL mw_std_str_ZPlusStr_dnameZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_3, STR* *out_ZPlusStr_5) {
 	int64_t v6 = 46LL /* BDOT */;
@@ -34280,146 +34670,130 @@ static bool mw_std_str_ZPlusStr_isZ_floatZAsk (STR* in_ZPlusStr_1, STR* *out_ZPl
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	int64_t v20 = 43LL /* B'+' */;
-	INT v21 = i64_to_int(v7);
-	uint64_t v22 = int_to_u64(v21);
-	uint8_t v23 = (uint8_t)(v22);
-	INT v24 = i64_to_int(v20);
-	uint64_t v25 = int_to_u64(v24);
-	uint8_t v26 = (uint8_t)(v25);
-	uint64_t v27 = (uint64_t)(v23);
-	INT v28 = u64_to_int(v27);
-	uint64_t v29 = (uint64_t)(v26);
-	INT v30 = u64_to_int(v29);
-	bool v31 = int_eq(v28, v30);
-	bool v32 = (v19 || v31);
-	INT branch_USizze_33;
-	STR* branch_ZPlusStr_34;
-	INT branch_UOffset_35;
-	if (v32) {
-		INT v36 = WRAP_I63(1LL);
-		INT v37 = int_add(v5, v36);
-		branch_UOffset_35 = v37;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	int64_t v18 = 43LL /* B'+' */;
+	INT v19 = i64_to_int(v7);
+	uint64_t v20 = int_to_u64(v19);
+	uint8_t v21 = (uint8_t)(v20);
+	INT v22 = i64_to_int(v18);
+	uint64_t v23 = int_to_u64(v22);
+	uint8_t v24 = (uint8_t)(v23);
+	uint64_t v25 = (uint64_t)(v24);
+	uint64_t v26 = (uint64_t)(v21);
+	bool v27 = (v26 == v25);
+	bool v28 = (v17 || v27);
+	INT branch_Sizze_29;
+	STR* branch_ZPlusStr_30;
+	INT branch_Offset_31;
+	if (v28) {
+		INT v32 = WRAP_I63(1LL);
+		INT v33 = int_add(v5, v32);
+		branch_Offset_31 = v33;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	} else {
-		branch_UOffset_35 = v5;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+		branch_Offset_31 = v5;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	}
-	incref(MKINT(branch_UOffset_35));
-	STR* v38;
-	int64_t v39 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_35, branch_ZPlusStr_34, &v38);
-	int64_t v40 = 48LL /* B'0' */;
-	int64_t v41 = 57LL /* B'9' */;
-	bool v42 = mw_std_prelude_inZ_range_sp1(v39, v40, v41);
-	INT v43 = branch_USizze_33;
-	INT v44 = branch_UOffset_35;
-	STR* v45 = v38;
-	bool v46 = v42;
-	while (v46) {
-		INT v47 = v43;
-		INT v48 = v44;
-		STR* v49 = v45;
-		INT v50 = WRAP_I63(1LL);
-		INT v51 = int_add(v47, v50);
-		INT v52 = WRAP_I63(1LL);
-		INT v53 = int_add(v48, v52);
-		incref(MKINT(v53));
-		STR* v54;
-		int64_t v55 = mw_std_str_ZPlusStr_byteZAt(v53, v49, &v54);
-		int64_t v56 = 48LL /* B'0' */;
-		int64_t v57 = 57LL /* B'9' */;
-		bool v58 = mw_std_prelude_inZ_range_sp1(v55, v56, v57);
-		v46 = v58;
-		v45 = v54;
-		v44 = v53;
-		v43 = v51;
+	incref(MKINT(branch_Offset_31));
+	STR* v34;
+	int64_t v35 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_31, branch_ZPlusStr_30, &v34);
+	int64_t v36 = 48LL /* B'0' */;
+	int64_t v37 = 57LL /* B'9' */;
+	bool v38 = mw_std_prelude_inZ_range_sp1(v35, v36, v37);
+	INT v39 = branch_Sizze_29;
+	INT v40 = branch_Offset_31;
+	STR* v41 = v34;
+	bool v42 = v38;
+	while (v42) {
+		INT v43 = v39;
+		INT v44 = v40;
+		STR* v45 = v41;
+		INT v46 = WRAP_I63(1LL);
+		INT v47 = int_add(v43, v46);
+		INT v48 = WRAP_I63(1LL);
+		INT v49 = int_add(v44, v48);
+		incref(MKINT(v49));
+		STR* v50;
+		int64_t v51 = mw_std_str_ZPlusStr_byteZAt(v49, v45, &v50);
+		int64_t v52 = 48LL /* B'0' */;
+		int64_t v53 = 57LL /* B'9' */;
+		bool v54 = mw_std_prelude_inZ_range_sp1(v51, v52, v53);
+		v42 = v54;
+		v41 = v50;
+		v40 = v49;
+		v39 = v47;
 	}
-	incref(MKINT(v44));
-	STR* v59;
-	int64_t v60 = mw_std_str_ZPlusStr_byteZAt(v44, v45, &v59);
-	int64_t v61 = 46LL /* BDOT */;
-	INT v62 = i64_to_int(v60);
-	uint64_t v63 = int_to_u64(v62);
-	uint8_t v64 = (uint8_t)(v63);
-	INT v65 = i64_to_int(v61);
-	uint64_t v66 = int_to_u64(v65);
-	uint8_t v67 = (uint8_t)(v66);
-	uint64_t v68 = (uint64_t)(v64);
-	INT v69 = u64_to_int(v68);
-	uint64_t v70 = (uint64_t)(v67);
-	INT v71 = u64_to_int(v70);
-	bool v72 = int_eq(v69, v71);
-	STR* branch_ZPlusStr_73;
-	bool branch_Bool_74;
-	if (v72) {
-		INT v75 = WRAP_I63(1LL);
-		INT v76 = int_add(v43, v75);
-		INT v77 = WRAP_I63(1LL);
-		INT v78 = int_add(v44, v77);
-		incref(MKINT(v78));
-		STR* v79;
-		int64_t v80 = mw_std_str_ZPlusStr_byteZAt(v78, v59, &v79);
-		int64_t v81 = 48LL /* B'0' */;
-		int64_t v82 = 57LL /* B'9' */;
-		bool v83 = mw_std_prelude_inZ_range_sp1(v80, v81, v82);
-		INT v84 = v76;
-		INT v85 = v78;
-		STR* v86 = v79;
-		bool v87 = v83;
-		while (v87) {
-			INT v88 = v84;
-			INT v89 = v85;
-			STR* v90 = v86;
-			INT v91 = WRAP_I63(1LL);
-			INT v92 = int_add(v88, v91);
-			INT v93 = WRAP_I63(1LL);
-			INT v94 = int_add(v89, v93);
-			incref(MKINT(v94));
-			STR* v95;
-			int64_t v96 = mw_std_str_ZPlusStr_byteZAt(v94, v90, &v95);
-			int64_t v97 = 48LL /* B'0' */;
-			int64_t v98 = 57LL /* B'9' */;
-			bool v99 = mw_std_prelude_inZ_range_sp1(v96, v97, v98);
-			v87 = v99;
-			v86 = v95;
-			v85 = v94;
-			v84 = v92;
+	incref(MKINT(v40));
+	STR* v55;
+	int64_t v56 = mw_std_str_ZPlusStr_byteZAt(v40, v41, &v55);
+	int64_t v57 = 46LL /* BDOT */;
+	INT v58 = i64_to_int(v56);
+	uint64_t v59 = int_to_u64(v58);
+	uint8_t v60 = (uint8_t)(v59);
+	INT v61 = i64_to_int(v57);
+	uint64_t v62 = int_to_u64(v61);
+	uint8_t v63 = (uint8_t)(v62);
+	uint64_t v64 = (uint64_t)(v63);
+	uint64_t v65 = (uint64_t)(v60);
+	bool v66 = (v65 == v64);
+	STR* branch_ZPlusStr_67;
+	bool branch_Bool_68;
+	if (v66) {
+		INT v69 = WRAP_I63(1LL);
+		INT v70 = int_add(v39, v69);
+		INT v71 = WRAP_I63(1LL);
+		INT v72 = int_add(v40, v71);
+		incref(MKINT(v72));
+		STR* v73;
+		int64_t v74 = mw_std_str_ZPlusStr_byteZAt(v72, v55, &v73);
+		int64_t v75 = 48LL /* B'0' */;
+		int64_t v76 = 57LL /* B'9' */;
+		bool v77 = mw_std_prelude_inZ_range_sp1(v74, v75, v76);
+		INT v78 = v70;
+		INT v79 = v72;
+		STR* v80 = v73;
+		bool v81 = v77;
+		while (v81) {
+			INT v82 = v78;
+			INT v83 = v79;
+			STR* v84 = v80;
+			INT v85 = WRAP_I63(1LL);
+			INT v86 = int_add(v82, v85);
+			INT v87 = WRAP_I63(1LL);
+			INT v88 = int_add(v83, v87);
+			incref(MKINT(v88));
+			STR* v89;
+			int64_t v90 = mw_std_str_ZPlusStr_byteZAt(v88, v84, &v89);
+			int64_t v91 = 48LL /* B'0' */;
+			int64_t v92 = 57LL /* B'9' */;
+			bool v93 = mw_std_prelude_inZ_range_sp1(v90, v91, v92);
+			v81 = v93;
+			v80 = v89;
+			v79 = v88;
+			v78 = v86;
 		}
-		INT v100 = WRAP_I63(3LL);
-		bool v101 = int_ge(v84, v100);
-		STR* branch_ZPlusStr_102;
-		bool branch_Bool_103;
-		if (v101) {
-			incref(MKSTR(v86));
-			uint64_t v104 = str_size(v86);
-			INT v105 = u64_to_int(v104);
-			bool v106 = int_eq(v85, v105);
-			branch_Bool_103 = v106;
-			branch_ZPlusStr_102 = v86;
-		} else {
-			decref(MKINT(v85));
-			bool v107 = false;
-			branch_Bool_103 = v107;
-			branch_ZPlusStr_102 = v86;
-		}
-		branch_Bool_74 = branch_Bool_103;
-		branch_ZPlusStr_73 = branch_ZPlusStr_102;
+		INT v94 = WRAP_I63(3LL);
+		bool v95 = int_le(v94, v78);
+		incref(MKSTR(v80));
+		uint64_t v96 = str_size(v80);
+		INT v97 = u64_to_int(v96);
+		bool v98 = int_eq(v79, v97);
+		bool v99 = (v95 && v98);
+		branch_Bool_68 = v99;
+		branch_ZPlusStr_67 = v80;
 	} else {
-		decref(MKINT(v44));
-		decref(MKINT(v43));
-		bool v108 = false;
-		branch_Bool_74 = v108;
-		branch_ZPlusStr_73 = v59;
+		decref(MKINT(v40));
+		decref(MKINT(v39));
+		bool v100 = false;
+		branch_Bool_68 = v100;
+		branch_ZPlusStr_67 = v55;
 	}
-	*out_ZPlusStr_3 = branch_ZPlusStr_73;
-	return branch_Bool_74;
+	*out_ZPlusStr_3 = branch_ZPlusStr_67;
+	return branch_Bool_68;
 }
 static uint64_t mw_std_str_ZPlusStr_floatZ_tokenZAsk (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, uint64_t in_Token_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5, VAL *out_Maybe_7) {
 	STR* v8;
@@ -34568,7 +34942,7 @@ static VAL mw_mirth_lexer_IntSuffix_convert (INT in_Int_1, int64_t in_IntSuffix_
 			incref(MKINT(in_Int_1));
 			INT v7 = WRAP_I63(0LL);
 			INT v8 = WRAP_I63(255LL);
-			bool v9 = mw_std_prelude_inZ_range_sp2(in_Int_1, v7, v8);
+			bool v9 = mw_std_prelude_inZ_range_sp3(in_Int_1, v7, v8);
 			VAL branch_Result_10;
 			if (v9) {
 				uint64_t v11 = int_to_u64(in_Int_1);
@@ -34595,7 +34969,7 @@ static VAL mw_mirth_lexer_IntSuffix_convert (INT in_Int_1, int64_t in_IntSuffix_
 			incref(MKINT(in_Int_1));
 			INT v21 = WRAP_I63(0LL);
 			INT v22 = WRAP_I63(65535LL);
-			bool v23 = mw_std_prelude_inZ_range_sp2(in_Int_1, v21, v22);
+			bool v23 = mw_std_prelude_inZ_range_sp3(in_Int_1, v21, v22);
 			VAL branch_Result_24;
 			if (v23) {
 				uint64_t v25 = int_to_u64(in_Int_1);
@@ -34624,7 +34998,7 @@ static VAL mw_mirth_lexer_IntSuffix_convert (INT in_Int_1, int64_t in_IntSuffix_
 			uint32_t v36 = 4294967295;
 			uint64_t v37 = (uint64_t)(v36);
 			INT v38 = u64_to_int(v37);
-			bool v39 = mw_std_prelude_inZ_range_sp2(in_Int_1, v35, v38);
+			bool v39 = mw_std_prelude_inZ_range_sp3(in_Int_1, v35, v38);
 			VAL branch_Result_40;
 			if (v39) {
 				uint64_t v41 = int_to_u64(in_Int_1);
@@ -34650,126 +35024,151 @@ static VAL mw_mirth_lexer_IntSuffix_convert (INT in_Int_1, int64_t in_IntSuffix_
 		case 4LL: { // U64
 			incref(MKINT(in_Int_1));
 			INT v51 = WRAP_I63(0LL);
-			bool v52 = int_lt(in_Int_1, v51);
-			VAL branch_Result_53;
-			if (v52) {
-				STR* v54;
-				STRLIT(v54, "", 0);
-				STR* v55 = int_to_str(in_Int_1);
-				STR* v56;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v55, v54, &v56);
-				STR* v57;
-				STRLIT(v57, " is outside of U64 range.", 25);
-				STR* v58;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v57, v56, &v58);
-				VAL v59 = mtw_std_result_Result_2_Err(MKSTR(v58));
-				branch_Result_53 = v59;
+			INT v52 = WRAP_I63(-1LL);
+			uint64_t v53 = int_to_u64(v52);
+			INT v54 = u64_to_int(v53);
+			bool v55 = mw_std_prelude_inZ_range_sp3(in_Int_1, v51, v54);
+			VAL branch_Result_56;
+			if (v55) {
+				uint64_t v57 = int_to_u64(in_Int_1);
+				VAL v58 = mtw_mirth_token_TokenValue_U64(v57);
+				VAL v59 = mtw_std_result_Result_2_Ok(v58);
+				branch_Result_56 = v59;
 			} else {
-				uint64_t v60 = int_to_u64(in_Int_1);
-				VAL v61 = mtw_mirth_token_TokenValue_U64(v60);
-				VAL v62 = mtw_std_result_Result_2_Ok(v61);
-				branch_Result_53 = v62;
+				STR* v60;
+				STRLIT(v60, "", 0);
+				STR* v61 = int_to_str(in_Int_1);
+				STR* v62;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v61, v60, &v62);
+				STR* v63;
+				STRLIT(v63, " is outside of U64 range.", 25);
+				STR* v64;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v63, v62, &v64);
+				VAL v65 = mtw_std_result_Result_2_Err(MKSTR(v64));
+				branch_Result_56 = v65;
 			}
-			branch_Result_4 = branch_Result_53;
+			branch_Result_4 = branch_Result_56;
 		} break;
 		case 5LL: { // I8
 			incref(MKINT(in_Int_1));
-			int8_t v63 = -128;
-			int8_t v64 = 127;
-			int64_t v65 = (int64_t)(v63);
-			INT v66 = i64_to_int(v65);
-			int64_t v67 = (int64_t)(v64);
-			INT v68 = i64_to_int(v67);
-			bool v69 = mw_std_prelude_inZ_range_sp2(in_Int_1, v66, v68);
-			VAL branch_Result_70;
-			if (v69) {
-				int64_t v71 = int_to_i64(in_Int_1);
-				int8_t v72 = (int8_t)(v71);
-				VAL v73 = mtw_mirth_token_TokenValue_I8(v72);
-				VAL v74 = mtw_std_result_Result_2_Ok(v73);
-				branch_Result_70 = v74;
+			int8_t v66 = -128;
+			int8_t v67 = 127;
+			int64_t v68 = (int64_t)(v66);
+			INT v69 = i64_to_int(v68);
+			int64_t v70 = (int64_t)(v67);
+			INT v71 = i64_to_int(v70);
+			bool v72 = mw_std_prelude_inZ_range_sp3(in_Int_1, v69, v71);
+			VAL branch_Result_73;
+			if (v72) {
+				int64_t v74 = int_to_i64(in_Int_1);
+				int8_t v75 = (int8_t)(v74);
+				VAL v76 = mtw_mirth_token_TokenValue_I8(v75);
+				VAL v77 = mtw_std_result_Result_2_Ok(v76);
+				branch_Result_73 = v77;
 			} else {
-				STR* v75;
-				STRLIT(v75, "", 0);
-				STR* v76 = int_to_str(in_Int_1);
-				STR* v77;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v76, v75, &v77);
 				STR* v78;
-				STRLIT(v78, " is outside of I8 range.", 24);
-				STR* v79;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v78, v77, &v79);
-				VAL v80 = mtw_std_result_Result_2_Err(MKSTR(v79));
-				branch_Result_70 = v80;
+				STRLIT(v78, "", 0);
+				STR* v79 = int_to_str(in_Int_1);
+				STR* v80;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v79, v78, &v80);
+				STR* v81;
+				STRLIT(v81, " is outside of I8 range.", 24);
+				STR* v82;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v81, v80, &v82);
+				VAL v83 = mtw_std_result_Result_2_Err(MKSTR(v82));
+				branch_Result_73 = v83;
 			}
-			branch_Result_4 = branch_Result_70;
+			branch_Result_4 = branch_Result_73;
 		} break;
 		case 6LL: { // I16
 			incref(MKINT(in_Int_1));
-			int16_t v81 = -32768;
-			int16_t v82 = 32767;
-			int64_t v83 = (int64_t)(v81);
-			INT v84 = i64_to_int(v83);
-			int64_t v85 = (int64_t)(v82);
-			INT v86 = i64_to_int(v85);
-			bool v87 = mw_std_prelude_inZ_range_sp2(in_Int_1, v84, v86);
-			VAL branch_Result_88;
-			if (v87) {
-				int64_t v89 = int_to_i64(in_Int_1);
-				int16_t v90 = (int16_t)(v89);
-				VAL v91 = mtw_mirth_token_TokenValue_I16(v90);
-				VAL v92 = mtw_std_result_Result_2_Ok(v91);
-				branch_Result_88 = v92;
+			int16_t v84 = -32768;
+			int16_t v85 = 32767;
+			int64_t v86 = (int64_t)(v84);
+			INT v87 = i64_to_int(v86);
+			int64_t v88 = (int64_t)(v85);
+			INT v89 = i64_to_int(v88);
+			bool v90 = mw_std_prelude_inZ_range_sp3(in_Int_1, v87, v89);
+			VAL branch_Result_91;
+			if (v90) {
+				int64_t v92 = int_to_i64(in_Int_1);
+				int16_t v93 = (int16_t)(v92);
+				VAL v94 = mtw_mirth_token_TokenValue_I16(v93);
+				VAL v95 = mtw_std_result_Result_2_Ok(v94);
+				branch_Result_91 = v95;
 			} else {
-				STR* v93;
-				STRLIT(v93, "", 0);
-				STR* v94 = int_to_str(in_Int_1);
-				STR* v95;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v94, v93, &v95);
 				STR* v96;
-				STRLIT(v96, " is outside of I16 range.", 25);
-				STR* v97;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v96, v95, &v97);
-				VAL v98 = mtw_std_result_Result_2_Err(MKSTR(v97));
-				branch_Result_88 = v98;
+				STRLIT(v96, "", 0);
+				STR* v97 = int_to_str(in_Int_1);
+				STR* v98;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v97, v96, &v98);
+				STR* v99;
+				STRLIT(v99, " is outside of I16 range.", 25);
+				STR* v100;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v99, v98, &v100);
+				VAL v101 = mtw_std_result_Result_2_Err(MKSTR(v100));
+				branch_Result_91 = v101;
 			}
-			branch_Result_4 = branch_Result_88;
+			branch_Result_4 = branch_Result_91;
 		} break;
 		case 7LL: { // I32
 			incref(MKINT(in_Int_1));
-			int32_t v99 = INT32_MIN;
-			int32_t v100 = 2147483647;
-			int64_t v101 = (int64_t)(v99);
-			INT v102 = i64_to_int(v101);
-			int64_t v103 = (int64_t)(v100);
-			INT v104 = i64_to_int(v103);
-			bool v105 = mw_std_prelude_inZ_range_sp2(in_Int_1, v102, v104);
-			VAL branch_Result_106;
-			if (v105) {
-				int64_t v107 = int_to_i64(in_Int_1);
-				int32_t v108 = (int32_t)(v107);
-				VAL v109 = mtw_mirth_token_TokenValue_I32(v108);
-				VAL v110 = mtw_std_result_Result_2_Ok(v109);
-				branch_Result_106 = v110;
+			int32_t v102 = INT32_MIN;
+			int32_t v103 = 2147483647;
+			int64_t v104 = (int64_t)(v102);
+			INT v105 = i64_to_int(v104);
+			int64_t v106 = (int64_t)(v103);
+			INT v107 = i64_to_int(v106);
+			bool v108 = mw_std_prelude_inZ_range_sp3(in_Int_1, v105, v107);
+			VAL branch_Result_109;
+			if (v108) {
+				int64_t v110 = int_to_i64(in_Int_1);
+				int32_t v111 = (int32_t)(v110);
+				VAL v112 = mtw_mirth_token_TokenValue_I32(v111);
+				VAL v113 = mtw_std_result_Result_2_Ok(v112);
+				branch_Result_109 = v113;
 			} else {
-				STR* v111;
-				STRLIT(v111, "", 0);
-				STR* v112 = int_to_str(in_Int_1);
-				STR* v113;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v112, v111, &v113);
 				STR* v114;
-				STRLIT(v114, " is outside of I32 range.", 25);
-				STR* v115;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v114, v113, &v115);
-				VAL v116 = mtw_std_result_Result_2_Err(MKSTR(v115));
-				branch_Result_106 = v116;
+				STRLIT(v114, "", 0);
+				STR* v115 = int_to_str(in_Int_1);
+				STR* v116;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v115, v114, &v116);
+				STR* v117;
+				STRLIT(v117, " is outside of I32 range.", 25);
+				STR* v118;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v117, v116, &v118);
+				VAL v119 = mtw_std_result_Result_2_Err(MKSTR(v118));
+				branch_Result_109 = v119;
 			}
-			branch_Result_4 = branch_Result_106;
+			branch_Result_4 = branch_Result_109;
 		} break;
 		case 8LL: { // I64
-			int64_t v117 = int_to_i64(in_Int_1);
-			VAL v118 = mtw_mirth_token_TokenValue_I64(v117);
-			VAL v119 = mtw_std_result_Result_2_Ok(v118);
-			branch_Result_4 = v119;
+			incref(MKINT(in_Int_1));
+			int64_t v120 = INT64_MIN;
+			int64_t v121 = 9223372036854775807LL;
+			INT v122 = i64_to_int(v120);
+			INT v123 = i64_to_int(v121);
+			bool v124 = mw_std_prelude_inZ_range_sp3(in_Int_1, v122, v123);
+			VAL branch_Result_125;
+			if (v124) {
+				int64_t v126 = int_to_i64(in_Int_1);
+				VAL v127 = mtw_mirth_token_TokenValue_I64(v126);
+				VAL v128 = mtw_std_result_Result_2_Ok(v127);
+				branch_Result_125 = v128;
+			} else {
+				STR* v129;
+				STRLIT(v129, "", 0);
+				STR* v130 = int_to_str(in_Int_1);
+				STR* v131;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v130, v129, &v131);
+				STR* v132;
+				STRLIT(v132, " is outside of I64 range.", 25);
+				STR* v133;
+				mw_std_str_ZPlusStr_pushZ_strZBang(v132, v131, &v133);
+				VAL v134 = mtw_std_result_Result_2_Err(MKSTR(v133));
+				branch_Result_125 = v134;
+			}
+			branch_Result_4 = branch_Result_125;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -34777,10 +35176,10 @@ static VAL mw_mirth_lexer_IntSuffix_convert (INT in_Int_1, int64_t in_IntSuffix_
 	}
 	return branch_Result_4;
 }
-static VAL mw_std_str_ZPlusStr_intZ_suffixZAsk (INT in_UOffset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
+static VAL mw_std_str_ZPlusStr_intZ_suffixZAsk (INT in_Offset_1, STR* in_ZPlusStr_2, STR* *out_ZPlusStr_4) {
 	int64_t v5 = 0LL /* +Unsafe */;
 	STR* v6;
-	STR* v7 = mw_std_str_ZPlusStr_dropZ_slice(in_UOffset_1, in_ZPlusStr_2, &v6);
+	STR* v7 = mw_std_str_ZPlusStr_dropZ_slice(in_Offset_1, in_ZPlusStr_2, &v6);
 	VAL v8 = MKI64(0LL /* None */);
 	STR* branch_Str_9;
 	VAL branch_Maybe_10;
@@ -35024,233 +35423,225 @@ static bool mw_std_str_ZPlusStr_isZ_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	int64_t v20 = 43LL /* B'+' */;
-	INT v21 = i64_to_int(v7);
-	uint64_t v22 = int_to_u64(v21);
-	uint8_t v23 = (uint8_t)(v22);
-	INT v24 = i64_to_int(v20);
-	uint64_t v25 = int_to_u64(v24);
-	uint8_t v26 = (uint8_t)(v25);
-	uint64_t v27 = (uint64_t)(v23);
-	INT v28 = u64_to_int(v27);
-	uint64_t v29 = (uint64_t)(v26);
-	INT v30 = u64_to_int(v29);
-	bool v31 = int_eq(v28, v30);
-	bool v32 = (v19 || v31);
-	INT branch_USizze_33;
-	STR* branch_ZPlusStr_34;
-	INT branch_UOffset_35;
-	if (v32) {
-		INT v36 = WRAP_I63(1LL);
-		INT v37 = int_add(v5, v36);
-		branch_UOffset_35 = v37;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	int64_t v18 = 43LL /* B'+' */;
+	INT v19 = i64_to_int(v7);
+	uint64_t v20 = int_to_u64(v19);
+	uint8_t v21 = (uint8_t)(v20);
+	INT v22 = i64_to_int(v18);
+	uint64_t v23 = int_to_u64(v22);
+	uint8_t v24 = (uint8_t)(v23);
+	uint64_t v25 = (uint64_t)(v24);
+	uint64_t v26 = (uint64_t)(v21);
+	bool v27 = (v26 == v25);
+	bool v28 = (v17 || v27);
+	INT branch_Sizze_29;
+	STR* branch_ZPlusStr_30;
+	INT branch_Offset_31;
+	if (v28) {
+		INT v32 = WRAP_I63(1LL);
+		INT v33 = int_add(v5, v32);
+		branch_Offset_31 = v33;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	} else {
-		branch_UOffset_35 = v5;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+		branch_Offset_31 = v5;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	}
-	incref(MKINT(branch_USizze_33));
-	INT v38 = WRAP_I63(0LL);
-	bool v39 = int_gt(branch_USizze_33, v38);
-	INT branch_UOffset_40;
-	STR* branch_ZPlusStr_41;
-	bool branch_Bool_42;
-	if (v39) {
-		incref(MKINT(branch_UOffset_35));
-		STR* v43;
-		int64_t v44 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_35, branch_ZPlusStr_34, &v43);
-		int64_t v45 = 95LL /* B'_' */;
-		INT v46 = i64_to_int(v44);
-		uint64_t v47 = int_to_u64(v46);
-		uint8_t v48 = (uint8_t)(v47);
-		INT v49 = i64_to_int(v45);
-		uint64_t v50 = int_to_u64(v49);
-		uint8_t v51 = (uint8_t)(v50);
-		uint64_t v52 = (uint64_t)(v48);
-		INT v53 = u64_to_int(v52);
-		uint64_t v54 = (uint64_t)(v51);
-		INT v55 = u64_to_int(v54);
-		bool v56 = int_eq(v53, v55);
-		branch_Bool_42 = v56;
-		branch_ZPlusStr_41 = v43;
-		branch_UOffset_40 = branch_UOffset_35;
+	incref(MKINT(branch_Sizze_29));
+	INT v34 = WRAP_I63(0LL);
+	bool v35 = int_lt(v34, branch_Sizze_29);
+	INT branch_Offset_36;
+	STR* branch_ZPlusStr_37;
+	bool branch_Bool_38;
+	if (v35) {
+		incref(MKINT(branch_Offset_31));
+		STR* v39;
+		int64_t v40 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_31, branch_ZPlusStr_30, &v39);
+		int64_t v41 = 95LL /* B'_' */;
+		INT v42 = i64_to_int(v40);
+		uint64_t v43 = int_to_u64(v42);
+		uint8_t v44 = (uint8_t)(v43);
+		INT v45 = i64_to_int(v41);
+		uint64_t v46 = int_to_u64(v45);
+		uint8_t v47 = (uint8_t)(v46);
+		uint64_t v48 = (uint64_t)(v47);
+		uint64_t v49 = (uint64_t)(v44);
+		bool v50 = (v49 == v48);
+		branch_Bool_38 = v50;
+		branch_ZPlusStr_37 = v39;
+		branch_Offset_36 = branch_Offset_31;
 	} else {
-		bool v57 = false;
-		branch_Bool_42 = v57;
-		branch_ZPlusStr_41 = branch_ZPlusStr_34;
-		branch_UOffset_40 = branch_UOffset_35;
+		bool v51 = false;
+		branch_Bool_38 = v51;
+		branch_ZPlusStr_37 = branch_ZPlusStr_30;
+		branch_Offset_36 = branch_Offset_31;
 	}
-	INT branch_UOffset_58;
-	STR* branch_ZPlusStr_59;
-	bool branch_Bool_60;
-	if (branch_Bool_42) {
-		incref(MKINT(branch_UOffset_40));
-		INT v61 = WRAP_I63(1LL);
-		INT v62 = int_add(branch_UOffset_40, v61);
-		STR* v63;
-		int64_t v64 = mw_std_str_ZPlusStr_byteZAt(v62, branch_ZPlusStr_41, &v63);
-		int64_t v65 = 48LL /* B'0' */;
-		int64_t v66 = 57LL /* B'9' */;
-		bool v67 = mw_std_prelude_inZ_range_sp1(v64, v65, v66);
-		branch_Bool_60 = v67;
-		branch_ZPlusStr_59 = v63;
-		branch_UOffset_58 = branch_UOffset_40;
+	INT branch_Offset_52;
+	STR* branch_ZPlusStr_53;
+	bool branch_Bool_54;
+	if (branch_Bool_38) {
+		incref(MKINT(branch_Offset_36));
+		INT v55 = WRAP_I63(1LL);
+		INT v56 = int_add(branch_Offset_36, v55);
+		STR* v57;
+		int64_t v58 = mw_std_str_ZPlusStr_byteZAt(v56, branch_ZPlusStr_37, &v57);
+		int64_t v59 = 48LL /* B'0' */;
+		int64_t v60 = 57LL /* B'9' */;
+		bool v61 = mw_std_prelude_inZ_range_sp1(v58, v59, v60);
+		branch_Bool_54 = v61;
+		branch_ZPlusStr_53 = v57;
+		branch_Offset_52 = branch_Offset_36;
 	} else {
-		bool v68 = false;
-		branch_Bool_60 = v68;
-		branch_ZPlusStr_59 = branch_ZPlusStr_41;
-		branch_UOffset_58 = branch_UOffset_40;
+		bool v62 = false;
+		branch_Bool_54 = v62;
+		branch_ZPlusStr_53 = branch_ZPlusStr_37;
+		branch_Offset_52 = branch_Offset_36;
 	}
-	INT branch_USizze_69;
-	STR* branch_ZPlusStr_70;
-	INT branch_UOffset_71;
-	bool branch_Bool_72;
-	if (branch_Bool_60) {
-		INT v73 = WRAP_I63(1LL);
-		INT v74 = int_add(branch_UOffset_58, v73);
-		bool v75 = true;
-		branch_Bool_72 = v75;
-		branch_UOffset_71 = v74;
-		branch_ZPlusStr_70 = branch_ZPlusStr_59;
-		branch_USizze_69 = branch_USizze_33;
+	INT branch_Sizze_63;
+	STR* branch_ZPlusStr_64;
+	INT branch_Offset_65;
+	bool branch_Bool_66;
+	if (branch_Bool_54) {
+		INT v67 = WRAP_I63(1LL);
+		INT v68 = int_add(branch_Offset_52, v67);
+		bool v69 = true;
+		branch_Bool_66 = v69;
+		branch_Offset_65 = v68;
+		branch_ZPlusStr_64 = branch_ZPlusStr_53;
+		branch_Sizze_63 = branch_Sizze_29;
 	} else {
-		incref(MKINT(branch_UOffset_58));
-		STR* v76;
-		int64_t v77 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_58, branch_ZPlusStr_59, &v76);
-		int64_t v78 = 48LL /* B'0' */;
-		int64_t v79 = 57LL /* B'9' */;
-		bool v80 = mw_std_prelude_inZ_range_sp1(v77, v78, v79);
-		branch_Bool_72 = v80;
-		branch_UOffset_71 = branch_UOffset_58;
-		branch_ZPlusStr_70 = v76;
-		branch_USizze_69 = branch_USizze_33;
+		incref(MKINT(branch_Offset_52));
+		STR* v70;
+		int64_t v71 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_52, branch_ZPlusStr_53, &v70);
+		int64_t v72 = 48LL /* B'0' */;
+		int64_t v73 = 57LL /* B'9' */;
+		bool v74 = mw_std_prelude_inZ_range_sp1(v71, v72, v73);
+		branch_Bool_66 = v74;
+		branch_Offset_65 = branch_Offset_52;
+		branch_ZPlusStr_64 = v70;
+		branch_Sizze_63 = branch_Sizze_29;
 	}
-	STR* v81 = branch_ZPlusStr_70;
-	INT v82 = branch_USizze_69;
-	INT v83 = branch_UOffset_71;
-	bool v84 = branch_Bool_72;
-	while (v84) {
-		STR* v85 = v81;
-		INT v86 = v82;
-		INT v87 = v83;
-		INT v88 = WRAP_I63(1LL);
-		INT v89 = int_add(v86, v88);
-		INT v90 = WRAP_I63(1LL);
-		INT v91 = int_add(v87, v90);
-		incref(MKINT(v89));
-		INT v92 = WRAP_I63(0LL);
-		bool v93 = int_gt(v89, v92);
-		INT branch_UOffset_94;
-		STR* branch_ZPlusStr_95;
-		bool branch_Bool_96;
-		if (v93) {
-			incref(MKINT(v91));
-			STR* v97;
-			int64_t v98 = mw_std_str_ZPlusStr_byteZAt(v91, v85, &v97);
-			int64_t v99 = 95LL /* B'_' */;
-			INT v100 = i64_to_int(v98);
-			uint64_t v101 = int_to_u64(v100);
-			uint8_t v102 = (uint8_t)(v101);
-			INT v103 = i64_to_int(v99);
-			uint64_t v104 = int_to_u64(v103);
-			uint8_t v105 = (uint8_t)(v104);
-			uint64_t v106 = (uint64_t)(v102);
-			INT v107 = u64_to_int(v106);
-			uint64_t v108 = (uint64_t)(v105);
-			INT v109 = u64_to_int(v108);
-			bool v110 = int_eq(v107, v109);
-			branch_Bool_96 = v110;
-			branch_ZPlusStr_95 = v97;
-			branch_UOffset_94 = v91;
-		} else {
-			bool v111 = false;
-			branch_Bool_96 = v111;
-			branch_ZPlusStr_95 = v85;
-			branch_UOffset_94 = v91;
-		}
-		INT branch_UOffset_112;
-		STR* branch_ZPlusStr_113;
-		bool branch_Bool_114;
-		if (branch_Bool_96) {
-			incref(MKINT(branch_UOffset_94));
-			INT v115 = WRAP_I63(1LL);
-			INT v116 = int_add(branch_UOffset_94, v115);
-			STR* v117;
-			int64_t v118 = mw_std_str_ZPlusStr_byteZAt(v116, branch_ZPlusStr_95, &v117);
-			int64_t v119 = 48LL /* B'0' */;
-			int64_t v120 = 57LL /* B'9' */;
-			bool v121 = mw_std_prelude_inZ_range_sp1(v118, v119, v120);
-			branch_Bool_114 = v121;
-			branch_ZPlusStr_113 = v117;
-			branch_UOffset_112 = branch_UOffset_94;
-		} else {
-			bool v122 = false;
-			branch_Bool_114 = v122;
-			branch_ZPlusStr_113 = branch_ZPlusStr_95;
-			branch_UOffset_112 = branch_UOffset_94;
-		}
-		INT branch_USizze_123;
-		STR* branch_ZPlusStr_124;
-		INT branch_UOffset_125;
-		bool branch_Bool_126;
-		if (branch_Bool_114) {
-			INT v127 = WRAP_I63(1LL);
-			INT v128 = int_add(branch_UOffset_112, v127);
-			bool v129 = true;
-			branch_Bool_126 = v129;
-			branch_UOffset_125 = v128;
-			branch_ZPlusStr_124 = branch_ZPlusStr_113;
-			branch_USizze_123 = v89;
-		} else {
-			incref(MKINT(branch_UOffset_112));
-			STR* v130;
-			int64_t v131 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_112, branch_ZPlusStr_113, &v130);
-			int64_t v132 = 48LL /* B'0' */;
-			int64_t v133 = 57LL /* B'9' */;
-			bool v134 = mw_std_prelude_inZ_range_sp1(v131, v132, v133);
-			branch_Bool_126 = v134;
-			branch_UOffset_125 = branch_UOffset_112;
-			branch_ZPlusStr_124 = v130;
-			branch_USizze_123 = v89;
-		}
-		v84 = branch_Bool_126;
-		v83 = branch_UOffset_125;
-		v82 = branch_USizze_123;
-		v81 = branch_ZPlusStr_124;
-	}
-	INT v135 = WRAP_I63(0LL);
-	bool v136 = int_gt(v82, v135);
-	INT branch_UOffset_137;
-	STR* branch_ZPlusStr_138;
-	bool branch_Bool_139;
-	if (v136) {
+	STR* v75 = branch_ZPlusStr_64;
+	INT v76 = branch_Sizze_63;
+	INT v77 = branch_Offset_65;
+	bool v78 = branch_Bool_66;
+	while (v78) {
+		STR* v79 = v75;
+		INT v80 = v76;
+		INT v81 = v77;
+		INT v82 = WRAP_I63(1LL);
+		INT v83 = int_add(v80, v82);
+		INT v84 = WRAP_I63(1LL);
+		INT v85 = int_add(v81, v84);
 		incref(MKINT(v83));
-		STR* v140;
-		VAL v141 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v83, v81, &v140);
-		int64_t v142 = get_data_tag(v141);
-		decref(v141);
-		int64_t v143 = 0LL;
-		bool v144 = (v142 == v143);
-		bool v145 = !v144;
-		branch_Bool_139 = v145;
-		branch_ZPlusStr_138 = v140;
-		branch_UOffset_137 = v83;
-	} else {
-		bool v146 = false;
-		branch_Bool_139 = v146;
-		branch_ZPlusStr_138 = v81;
-		branch_UOffset_137 = v83;
+		INT v86 = WRAP_I63(0LL);
+		bool v87 = int_lt(v86, v83);
+		INT branch_Offset_88;
+		STR* branch_ZPlusStr_89;
+		bool branch_Bool_90;
+		if (v87) {
+			incref(MKINT(v85));
+			STR* v91;
+			int64_t v92 = mw_std_str_ZPlusStr_byteZAt(v85, v79, &v91);
+			int64_t v93 = 95LL /* B'_' */;
+			INT v94 = i64_to_int(v92);
+			uint64_t v95 = int_to_u64(v94);
+			uint8_t v96 = (uint8_t)(v95);
+			INT v97 = i64_to_int(v93);
+			uint64_t v98 = int_to_u64(v97);
+			uint8_t v99 = (uint8_t)(v98);
+			uint64_t v100 = (uint64_t)(v99);
+			uint64_t v101 = (uint64_t)(v96);
+			bool v102 = (v101 == v100);
+			branch_Bool_90 = v102;
+			branch_ZPlusStr_89 = v91;
+			branch_Offset_88 = v85;
+		} else {
+			bool v103 = false;
+			branch_Bool_90 = v103;
+			branch_ZPlusStr_89 = v79;
+			branch_Offset_88 = v85;
+		}
+		INT branch_Offset_104;
+		STR* branch_ZPlusStr_105;
+		bool branch_Bool_106;
+		if (branch_Bool_90) {
+			incref(MKINT(branch_Offset_88));
+			INT v107 = WRAP_I63(1LL);
+			INT v108 = int_add(branch_Offset_88, v107);
+			STR* v109;
+			int64_t v110 = mw_std_str_ZPlusStr_byteZAt(v108, branch_ZPlusStr_89, &v109);
+			int64_t v111 = 48LL /* B'0' */;
+			int64_t v112 = 57LL /* B'9' */;
+			bool v113 = mw_std_prelude_inZ_range_sp1(v110, v111, v112);
+			branch_Bool_106 = v113;
+			branch_ZPlusStr_105 = v109;
+			branch_Offset_104 = branch_Offset_88;
+		} else {
+			bool v114 = false;
+			branch_Bool_106 = v114;
+			branch_ZPlusStr_105 = branch_ZPlusStr_89;
+			branch_Offset_104 = branch_Offset_88;
+		}
+		INT branch_Sizze_115;
+		STR* branch_ZPlusStr_116;
+		INT branch_Offset_117;
+		bool branch_Bool_118;
+		if (branch_Bool_106) {
+			INT v119 = WRAP_I63(1LL);
+			INT v120 = int_add(branch_Offset_104, v119);
+			bool v121 = true;
+			branch_Bool_118 = v121;
+			branch_Offset_117 = v120;
+			branch_ZPlusStr_116 = branch_ZPlusStr_105;
+			branch_Sizze_115 = v83;
+		} else {
+			incref(MKINT(branch_Offset_104));
+			STR* v122;
+			int64_t v123 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_104, branch_ZPlusStr_105, &v122);
+			int64_t v124 = 48LL /* B'0' */;
+			int64_t v125 = 57LL /* B'9' */;
+			bool v126 = mw_std_prelude_inZ_range_sp1(v123, v124, v125);
+			branch_Bool_118 = v126;
+			branch_Offset_117 = branch_Offset_104;
+			branch_ZPlusStr_116 = v122;
+			branch_Sizze_115 = v83;
+		}
+		v78 = branch_Bool_118;
+		v77 = branch_Offset_117;
+		v76 = branch_Sizze_115;
+		v75 = branch_ZPlusStr_116;
 	}
-	decref(MKINT(branch_UOffset_137));
-	*out_ZPlusStr_3 = branch_ZPlusStr_138;
-	return branch_Bool_139;
+	INT v127 = WRAP_I63(0LL);
+	bool v128 = int_lt(v127, v76);
+	INT branch_Offset_129;
+	STR* branch_ZPlusStr_130;
+	bool branch_Bool_131;
+	if (v128) {
+		incref(MKINT(v77));
+		STR* v132;
+		VAL v133 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v77, v75, &v132);
+		int64_t v134 = get_data_tag(v133);
+		decref(v133);
+		int64_t v135 = 0LL;
+		bool v136 = (v134 == v135);
+		bool v137 = !v136;
+		branch_Bool_131 = v137;
+		branch_ZPlusStr_130 = v132;
+		branch_Offset_129 = v77;
+	} else {
+		bool v138 = false;
+		branch_Bool_131 = v138;
+		branch_ZPlusStr_130 = v75;
+		branch_Offset_129 = v77;
+	}
+	decref(MKINT(branch_Offset_129));
+	*out_ZPlusStr_3 = branch_ZPlusStr_130;
+	return branch_Bool_131;
 }
 static bool mw_std_str_ZPlusStr_isZ_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
 	INT v4 = WRAP_I63(0LL);
@@ -35265,371 +35656,359 @@ static bool mw_std_str_ZPlusStr_isZ_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	int64_t v20 = 43LL /* B'+' */;
-	INT v21 = i64_to_int(v7);
-	uint64_t v22 = int_to_u64(v21);
-	uint8_t v23 = (uint8_t)(v22);
-	INT v24 = i64_to_int(v20);
-	uint64_t v25 = int_to_u64(v24);
-	uint8_t v26 = (uint8_t)(v25);
-	uint64_t v27 = (uint64_t)(v23);
-	INT v28 = u64_to_int(v27);
-	uint64_t v29 = (uint64_t)(v26);
-	INT v30 = u64_to_int(v29);
-	bool v31 = int_eq(v28, v30);
-	bool v32 = (v19 || v31);
-	INT branch_USizze_33;
-	STR* branch_ZPlusStr_34;
-	INT branch_UOffset_35;
-	if (v32) {
-		INT v36 = WRAP_I63(1LL);
-		INT v37 = int_add(v5, v36);
-		branch_UOffset_35 = v37;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	int64_t v18 = 43LL /* B'+' */;
+	INT v19 = i64_to_int(v7);
+	uint64_t v20 = int_to_u64(v19);
+	uint8_t v21 = (uint8_t)(v20);
+	INT v22 = i64_to_int(v18);
+	uint64_t v23 = int_to_u64(v22);
+	uint8_t v24 = (uint8_t)(v23);
+	uint64_t v25 = (uint64_t)(v24);
+	uint64_t v26 = (uint64_t)(v21);
+	bool v27 = (v26 == v25);
+	bool v28 = (v17 || v27);
+	INT branch_Sizze_29;
+	STR* branch_ZPlusStr_30;
+	INT branch_Offset_31;
+	if (v28) {
+		INT v32 = WRAP_I63(1LL);
+		INT v33 = int_add(v5, v32);
+		branch_Offset_31 = v33;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	} else {
-		branch_UOffset_35 = v5;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+		branch_Offset_31 = v5;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	}
-	incref(MKINT(branch_UOffset_35));
-	STR* v38;
-	int64_t v39 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_35, branch_ZPlusStr_34, &v38);
-	int64_t v40 = 48LL /* B'0' */;
-	INT v41 = i64_to_int(v39);
-	uint64_t v42 = int_to_u64(v41);
-	uint8_t v43 = (uint8_t)(v42);
-	INT v44 = i64_to_int(v40);
-	uint64_t v45 = int_to_u64(v44);
-	uint8_t v46 = (uint8_t)(v45);
-	uint64_t v47 = (uint64_t)(v43);
-	INT v48 = u64_to_int(v47);
-	uint64_t v49 = (uint64_t)(v46);
-	INT v50 = u64_to_int(v49);
-	bool v51 = int_eq(v48, v50);
-	STR* branch_ZPlusStr_52;
-	bool branch_Bool_53;
-	if (v51) {
-		INT v54 = WRAP_I63(1LL);
-		INT v55 = int_add(branch_UOffset_35, v54);
-		incref(MKINT(v55));
-		STR* v56;
-		int64_t v57 = mw_std_str_ZPlusStr_byteZAt(v55, v38, &v56);
-		int64_t v58 = 120LL /* B'x' */;
-		INT v59 = i64_to_int(v57);
-		uint64_t v60 = int_to_u64(v59);
-		uint8_t v61 = (uint8_t)(v60);
-		INT v62 = i64_to_int(v58);
-		uint64_t v63 = int_to_u64(v62);
-		uint8_t v64 = (uint8_t)(v63);
-		uint64_t v65 = (uint64_t)(v61);
-		INT v66 = u64_to_int(v65);
-		uint64_t v67 = (uint64_t)(v64);
-		INT v68 = u64_to_int(v67);
-		bool v69 = int_eq(v66, v68);
-		STR* branch_ZPlusStr_70;
-		bool branch_Bool_71;
-		if (v69) {
-			INT v72 = WRAP_I63(1LL);
-			INT v73 = int_add(v55, v72);
-			incref(MKINT(branch_USizze_33));
-			INT v74 = WRAP_I63(0LL);
-			bool v75 = int_gt(branch_USizze_33, v74);
-			INT branch_UOffset_76;
-			STR* branch_ZPlusStr_77;
-			bool branch_Bool_78;
-			if (v75) {
-				incref(MKINT(v73));
-				STR* v79;
-				int64_t v80 = mw_std_str_ZPlusStr_byteZAt(v73, v56, &v79);
-				int64_t v81 = 95LL /* B'_' */;
-				INT v82 = i64_to_int(v80);
-				uint64_t v83 = int_to_u64(v82);
-				uint8_t v84 = (uint8_t)(v83);
-				INT v85 = i64_to_int(v81);
-				uint64_t v86 = int_to_u64(v85);
-				uint8_t v87 = (uint8_t)(v86);
-				uint64_t v88 = (uint64_t)(v84);
-				INT v89 = u64_to_int(v88);
-				uint64_t v90 = (uint64_t)(v87);
-				INT v91 = u64_to_int(v90);
-				bool v92 = int_eq(v89, v91);
-				branch_Bool_78 = v92;
-				branch_ZPlusStr_77 = v79;
-				branch_UOffset_76 = v73;
+	incref(MKINT(branch_Offset_31));
+	STR* v34;
+	int64_t v35 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_31, branch_ZPlusStr_30, &v34);
+	int64_t v36 = 48LL /* B'0' */;
+	INT v37 = i64_to_int(v35);
+	uint64_t v38 = int_to_u64(v37);
+	uint8_t v39 = (uint8_t)(v38);
+	INT v40 = i64_to_int(v36);
+	uint64_t v41 = int_to_u64(v40);
+	uint8_t v42 = (uint8_t)(v41);
+	uint64_t v43 = (uint64_t)(v42);
+	uint64_t v44 = (uint64_t)(v39);
+	bool v45 = (v44 == v43);
+	STR* branch_ZPlusStr_46;
+	bool branch_Bool_47;
+	if (v45) {
+		INT v48 = WRAP_I63(1LL);
+		INT v49 = int_add(branch_Offset_31, v48);
+		incref(MKINT(v49));
+		STR* v50;
+		int64_t v51 = mw_std_str_ZPlusStr_byteZAt(v49, v34, &v50);
+		int64_t v52 = 120LL /* B'x' */;
+		INT v53 = i64_to_int(v51);
+		uint64_t v54 = int_to_u64(v53);
+		uint8_t v55 = (uint8_t)(v54);
+		INT v56 = i64_to_int(v52);
+		uint64_t v57 = int_to_u64(v56);
+		uint8_t v58 = (uint8_t)(v57);
+		uint64_t v59 = (uint64_t)(v58);
+		uint64_t v60 = (uint64_t)(v55);
+		bool v61 = (v60 == v59);
+		STR* branch_ZPlusStr_62;
+		bool branch_Bool_63;
+		if (v61) {
+			INT v64 = WRAP_I63(1LL);
+			INT v65 = int_add(v49, v64);
+			incref(MKINT(branch_Sizze_29));
+			INT v66 = WRAP_I63(0LL);
+			bool v67 = int_lt(v66, branch_Sizze_29);
+			INT branch_Offset_68;
+			STR* branch_ZPlusStr_69;
+			bool branch_Bool_70;
+			if (v67) {
+				incref(MKINT(v65));
+				STR* v71;
+				int64_t v72 = mw_std_str_ZPlusStr_byteZAt(v65, v50, &v71);
+				int64_t v73 = 95LL /* B'_' */;
+				INT v74 = i64_to_int(v72);
+				uint64_t v75 = int_to_u64(v74);
+				uint8_t v76 = (uint8_t)(v75);
+				INT v77 = i64_to_int(v73);
+				uint64_t v78 = int_to_u64(v77);
+				uint8_t v79 = (uint8_t)(v78);
+				uint64_t v80 = (uint64_t)(v79);
+				uint64_t v81 = (uint64_t)(v76);
+				bool v82 = (v81 == v80);
+				branch_Bool_70 = v82;
+				branch_ZPlusStr_69 = v71;
+				branch_Offset_68 = v65;
 			} else {
-				bool v93 = false;
-				branch_Bool_78 = v93;
-				branch_ZPlusStr_77 = v56;
-				branch_UOffset_76 = v73;
+				bool v83 = false;
+				branch_Bool_70 = v83;
+				branch_ZPlusStr_69 = v50;
+				branch_Offset_68 = v65;
 			}
-			INT branch_UOffset_94;
-			STR* branch_ZPlusStr_95;
-			bool branch_Bool_96;
-			if (branch_Bool_78) {
-				incref(MKINT(branch_UOffset_76));
-				INT v97 = WRAP_I63(1LL);
-				INT v98 = int_add(branch_UOffset_76, v97);
-				STR* v99;
-				int64_t v100 = mw_std_str_ZPlusStr_byteZAt(v98, branch_ZPlusStr_77, &v99);
-				int64_t v101 = 48LL /* B'0' */;
-				int64_t v102 = 57LL /* B'9' */;
-				bool v103 = mw_std_prelude_inZ_range_sp1(v100, v101, v102);
-				bool branch_Bool_104;
-				if (v103) {
-					bool v105 = true;
-					branch_Bool_104 = v105;
+			INT branch_Offset_84;
+			STR* branch_ZPlusStr_85;
+			bool branch_Bool_86;
+			if (branch_Bool_70) {
+				incref(MKINT(branch_Offset_68));
+				INT v87 = WRAP_I63(1LL);
+				INT v88 = int_add(branch_Offset_68, v87);
+				STR* v89;
+				int64_t v90 = mw_std_str_ZPlusStr_byteZAt(v88, branch_ZPlusStr_69, &v89);
+				int64_t v91 = 48LL /* B'0' */;
+				int64_t v92 = 57LL /* B'9' */;
+				bool v93 = mw_std_prelude_inZ_range_sp1(v90, v91, v92);
+				bool branch_Bool_94;
+				if (v93) {
+					bool v95 = true;
+					branch_Bool_94 = v95;
 				} else {
-					int64_t v106 = 65LL /* B'A' */;
-					int64_t v107 = 70LL /* B'F' */;
-					bool v108 = mw_std_prelude_inZ_range_sp1(v100, v106, v107);
-					bool branch_Bool_109;
-					if (v108) {
-						bool v110 = true;
-						branch_Bool_109 = v110;
+					int64_t v96 = 65LL /* B'A' */;
+					int64_t v97 = 70LL /* B'F' */;
+					bool v98 = mw_std_prelude_inZ_range_sp1(v90, v96, v97);
+					bool branch_Bool_99;
+					if (v98) {
+						bool v100 = true;
+						branch_Bool_99 = v100;
 					} else {
-						int64_t v111 = 97LL /* B'a' */;
-						int64_t v112 = 102LL /* B'f' */;
-						bool v113 = mw_std_prelude_inZ_range_sp1(v100, v111, v112);
-						branch_Bool_109 = v113;
+						int64_t v101 = 97LL /* B'a' */;
+						int64_t v102 = 102LL /* B'f' */;
+						bool v103 = mw_std_prelude_inZ_range_sp1(v90, v101, v102);
+						branch_Bool_99 = v103;
 					}
-					branch_Bool_104 = branch_Bool_109;
+					branch_Bool_94 = branch_Bool_99;
 				}
-				branch_Bool_96 = branch_Bool_104;
-				branch_ZPlusStr_95 = v99;
-				branch_UOffset_94 = branch_UOffset_76;
+				branch_Bool_86 = branch_Bool_94;
+				branch_ZPlusStr_85 = v89;
+				branch_Offset_84 = branch_Offset_68;
 			} else {
-				bool v114 = false;
-				branch_Bool_96 = v114;
-				branch_ZPlusStr_95 = branch_ZPlusStr_77;
-				branch_UOffset_94 = branch_UOffset_76;
+				bool v104 = false;
+				branch_Bool_86 = v104;
+				branch_ZPlusStr_85 = branch_ZPlusStr_69;
+				branch_Offset_84 = branch_Offset_68;
 			}
-			INT branch_USizze_115;
-			STR* branch_ZPlusStr_116;
-			INT branch_UOffset_117;
-			bool branch_Bool_118;
-			if (branch_Bool_96) {
-				INT v119 = WRAP_I63(1LL);
-				INT v120 = int_add(branch_UOffset_94, v119);
-				bool v121 = true;
-				branch_Bool_118 = v121;
-				branch_UOffset_117 = v120;
-				branch_ZPlusStr_116 = branch_ZPlusStr_95;
-				branch_USizze_115 = branch_USizze_33;
+			INT branch_Sizze_105;
+			STR* branch_ZPlusStr_106;
+			INT branch_Offset_107;
+			bool branch_Bool_108;
+			if (branch_Bool_86) {
+				INT v109 = WRAP_I63(1LL);
+				INT v110 = int_add(branch_Offset_84, v109);
+				bool v111 = true;
+				branch_Bool_108 = v111;
+				branch_Offset_107 = v110;
+				branch_ZPlusStr_106 = branch_ZPlusStr_85;
+				branch_Sizze_105 = branch_Sizze_29;
 			} else {
-				incref(MKINT(branch_UOffset_94));
-				STR* v122;
-				int64_t v123 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_94, branch_ZPlusStr_95, &v122);
-				int64_t v124 = 48LL /* B'0' */;
-				int64_t v125 = 57LL /* B'9' */;
-				bool v126 = mw_std_prelude_inZ_range_sp1(v123, v124, v125);
-				bool branch_Bool_127;
-				if (v126) {
-					bool v128 = true;
-					branch_Bool_127 = v128;
+				incref(MKINT(branch_Offset_84));
+				STR* v112;
+				int64_t v113 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_84, branch_ZPlusStr_85, &v112);
+				int64_t v114 = 48LL /* B'0' */;
+				int64_t v115 = 57LL /* B'9' */;
+				bool v116 = mw_std_prelude_inZ_range_sp1(v113, v114, v115);
+				bool branch_Bool_117;
+				if (v116) {
+					bool v118 = true;
+					branch_Bool_117 = v118;
 				} else {
-					int64_t v129 = 65LL /* B'A' */;
-					int64_t v130 = 70LL /* B'F' */;
-					bool v131 = mw_std_prelude_inZ_range_sp1(v123, v129, v130);
-					bool branch_Bool_132;
-					if (v131) {
-						bool v133 = true;
-						branch_Bool_132 = v133;
+					int64_t v119 = 65LL /* B'A' */;
+					int64_t v120 = 70LL /* B'F' */;
+					bool v121 = mw_std_prelude_inZ_range_sp1(v113, v119, v120);
+					bool branch_Bool_122;
+					if (v121) {
+						bool v123 = true;
+						branch_Bool_122 = v123;
 					} else {
-						int64_t v134 = 97LL /* B'a' */;
-						int64_t v135 = 102LL /* B'f' */;
-						bool v136 = mw_std_prelude_inZ_range_sp1(v123, v134, v135);
-						branch_Bool_132 = v136;
+						int64_t v124 = 97LL /* B'a' */;
+						int64_t v125 = 102LL /* B'f' */;
+						bool v126 = mw_std_prelude_inZ_range_sp1(v113, v124, v125);
+						branch_Bool_122 = v126;
 					}
-					branch_Bool_127 = branch_Bool_132;
+					branch_Bool_117 = branch_Bool_122;
 				}
-				branch_Bool_118 = branch_Bool_127;
-				branch_UOffset_117 = branch_UOffset_94;
-				branch_ZPlusStr_116 = v122;
-				branch_USizze_115 = branch_USizze_33;
+				branch_Bool_108 = branch_Bool_117;
+				branch_Offset_107 = branch_Offset_84;
+				branch_ZPlusStr_106 = v112;
+				branch_Sizze_105 = branch_Sizze_29;
 			}
-			STR* v137 = branch_ZPlusStr_116;
-			INT v138 = branch_USizze_115;
-			INT v139 = branch_UOffset_117;
-			bool v140 = branch_Bool_118;
-			while (v140) {
-				STR* v141 = v137;
-				INT v142 = v138;
-				INT v143 = v139;
-				INT v144 = WRAP_I63(1LL);
-				INT v145 = int_add(v142, v144);
-				INT v146 = WRAP_I63(1LL);
-				INT v147 = int_add(v143, v146);
-				incref(MKINT(v145));
-				INT v148 = WRAP_I63(0LL);
-				bool v149 = int_gt(v145, v148);
-				INT branch_UOffset_150;
-				STR* branch_ZPlusStr_151;
-				bool branch_Bool_152;
-				if (v149) {
-					incref(MKINT(v147));
-					STR* v153;
-					int64_t v154 = mw_std_str_ZPlusStr_byteZAt(v147, v141, &v153);
-					int64_t v155 = 95LL /* B'_' */;
-					INT v156 = i64_to_int(v154);
-					uint64_t v157 = int_to_u64(v156);
-					uint8_t v158 = (uint8_t)(v157);
-					INT v159 = i64_to_int(v155);
-					uint64_t v160 = int_to_u64(v159);
-					uint8_t v161 = (uint8_t)(v160);
-					uint64_t v162 = (uint64_t)(v158);
-					INT v163 = u64_to_int(v162);
-					uint64_t v164 = (uint64_t)(v161);
-					INT v165 = u64_to_int(v164);
-					bool v166 = int_eq(v163, v165);
-					branch_Bool_152 = v166;
-					branch_ZPlusStr_151 = v153;
-					branch_UOffset_150 = v147;
+			STR* v127 = branch_ZPlusStr_106;
+			INT v128 = branch_Sizze_105;
+			INT v129 = branch_Offset_107;
+			bool v130 = branch_Bool_108;
+			while (v130) {
+				STR* v131 = v127;
+				INT v132 = v128;
+				INT v133 = v129;
+				INT v134 = WRAP_I63(1LL);
+				INT v135 = int_add(v132, v134);
+				INT v136 = WRAP_I63(1LL);
+				INT v137 = int_add(v133, v136);
+				incref(MKINT(v135));
+				INT v138 = WRAP_I63(0LL);
+				bool v139 = int_lt(v138, v135);
+				INT branch_Offset_140;
+				STR* branch_ZPlusStr_141;
+				bool branch_Bool_142;
+				if (v139) {
+					incref(MKINT(v137));
+					STR* v143;
+					int64_t v144 = mw_std_str_ZPlusStr_byteZAt(v137, v131, &v143);
+					int64_t v145 = 95LL /* B'_' */;
+					INT v146 = i64_to_int(v144);
+					uint64_t v147 = int_to_u64(v146);
+					uint8_t v148 = (uint8_t)(v147);
+					INT v149 = i64_to_int(v145);
+					uint64_t v150 = int_to_u64(v149);
+					uint8_t v151 = (uint8_t)(v150);
+					uint64_t v152 = (uint64_t)(v151);
+					uint64_t v153 = (uint64_t)(v148);
+					bool v154 = (v153 == v152);
+					branch_Bool_142 = v154;
+					branch_ZPlusStr_141 = v143;
+					branch_Offset_140 = v137;
 				} else {
-					bool v167 = false;
-					branch_Bool_152 = v167;
-					branch_ZPlusStr_151 = v141;
-					branch_UOffset_150 = v147;
+					bool v155 = false;
+					branch_Bool_142 = v155;
+					branch_ZPlusStr_141 = v131;
+					branch_Offset_140 = v137;
 				}
-				INT branch_UOffset_168;
-				STR* branch_ZPlusStr_169;
-				bool branch_Bool_170;
-				if (branch_Bool_152) {
-					incref(MKINT(branch_UOffset_150));
-					INT v171 = WRAP_I63(1LL);
-					INT v172 = int_add(branch_UOffset_150, v171);
-					STR* v173;
-					int64_t v174 = mw_std_str_ZPlusStr_byteZAt(v172, branch_ZPlusStr_151, &v173);
-					int64_t v175 = 48LL /* B'0' */;
-					int64_t v176 = 57LL /* B'9' */;
-					bool v177 = mw_std_prelude_inZ_range_sp1(v174, v175, v176);
-					bool branch_Bool_178;
-					if (v177) {
-						bool v179 = true;
-						branch_Bool_178 = v179;
+				INT branch_Offset_156;
+				STR* branch_ZPlusStr_157;
+				bool branch_Bool_158;
+				if (branch_Bool_142) {
+					incref(MKINT(branch_Offset_140));
+					INT v159 = WRAP_I63(1LL);
+					INT v160 = int_add(branch_Offset_140, v159);
+					STR* v161;
+					int64_t v162 = mw_std_str_ZPlusStr_byteZAt(v160, branch_ZPlusStr_141, &v161);
+					int64_t v163 = 48LL /* B'0' */;
+					int64_t v164 = 57LL /* B'9' */;
+					bool v165 = mw_std_prelude_inZ_range_sp1(v162, v163, v164);
+					bool branch_Bool_166;
+					if (v165) {
+						bool v167 = true;
+						branch_Bool_166 = v167;
 					} else {
-						int64_t v180 = 65LL /* B'A' */;
-						int64_t v181 = 70LL /* B'F' */;
-						bool v182 = mw_std_prelude_inZ_range_sp1(v174, v180, v181);
-						bool branch_Bool_183;
-						if (v182) {
-							bool v184 = true;
-							branch_Bool_183 = v184;
+						int64_t v168 = 65LL /* B'A' */;
+						int64_t v169 = 70LL /* B'F' */;
+						bool v170 = mw_std_prelude_inZ_range_sp1(v162, v168, v169);
+						bool branch_Bool_171;
+						if (v170) {
+							bool v172 = true;
+							branch_Bool_171 = v172;
 						} else {
-							int64_t v185 = 97LL /* B'a' */;
-							int64_t v186 = 102LL /* B'f' */;
-							bool v187 = mw_std_prelude_inZ_range_sp1(v174, v185, v186);
-							branch_Bool_183 = v187;
+							int64_t v173 = 97LL /* B'a' */;
+							int64_t v174 = 102LL /* B'f' */;
+							bool v175 = mw_std_prelude_inZ_range_sp1(v162, v173, v174);
+							branch_Bool_171 = v175;
 						}
-						branch_Bool_178 = branch_Bool_183;
+						branch_Bool_166 = branch_Bool_171;
 					}
-					branch_Bool_170 = branch_Bool_178;
-					branch_ZPlusStr_169 = v173;
-					branch_UOffset_168 = branch_UOffset_150;
+					branch_Bool_158 = branch_Bool_166;
+					branch_ZPlusStr_157 = v161;
+					branch_Offset_156 = branch_Offset_140;
 				} else {
-					bool v188 = false;
-					branch_Bool_170 = v188;
-					branch_ZPlusStr_169 = branch_ZPlusStr_151;
-					branch_UOffset_168 = branch_UOffset_150;
+					bool v176 = false;
+					branch_Bool_158 = v176;
+					branch_ZPlusStr_157 = branch_ZPlusStr_141;
+					branch_Offset_156 = branch_Offset_140;
 				}
-				INT branch_USizze_189;
-				STR* branch_ZPlusStr_190;
-				INT branch_UOffset_191;
-				bool branch_Bool_192;
-				if (branch_Bool_170) {
-					INT v193 = WRAP_I63(1LL);
-					INT v194 = int_add(branch_UOffset_168, v193);
-					bool v195 = true;
-					branch_Bool_192 = v195;
-					branch_UOffset_191 = v194;
-					branch_ZPlusStr_190 = branch_ZPlusStr_169;
-					branch_USizze_189 = v145;
+				INT branch_Sizze_177;
+				STR* branch_ZPlusStr_178;
+				INT branch_Offset_179;
+				bool branch_Bool_180;
+				if (branch_Bool_158) {
+					INT v181 = WRAP_I63(1LL);
+					INT v182 = int_add(branch_Offset_156, v181);
+					bool v183 = true;
+					branch_Bool_180 = v183;
+					branch_Offset_179 = v182;
+					branch_ZPlusStr_178 = branch_ZPlusStr_157;
+					branch_Sizze_177 = v135;
 				} else {
-					incref(MKINT(branch_UOffset_168));
-					STR* v196;
-					int64_t v197 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_168, branch_ZPlusStr_169, &v196);
-					int64_t v198 = 48LL /* B'0' */;
-					int64_t v199 = 57LL /* B'9' */;
-					bool v200 = mw_std_prelude_inZ_range_sp1(v197, v198, v199);
-					bool branch_Bool_201;
-					if (v200) {
-						bool v202 = true;
-						branch_Bool_201 = v202;
+					incref(MKINT(branch_Offset_156));
+					STR* v184;
+					int64_t v185 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_156, branch_ZPlusStr_157, &v184);
+					int64_t v186 = 48LL /* B'0' */;
+					int64_t v187 = 57LL /* B'9' */;
+					bool v188 = mw_std_prelude_inZ_range_sp1(v185, v186, v187);
+					bool branch_Bool_189;
+					if (v188) {
+						bool v190 = true;
+						branch_Bool_189 = v190;
 					} else {
-						int64_t v203 = 65LL /* B'A' */;
-						int64_t v204 = 70LL /* B'F' */;
-						bool v205 = mw_std_prelude_inZ_range_sp1(v197, v203, v204);
-						bool branch_Bool_206;
-						if (v205) {
-							bool v207 = true;
-							branch_Bool_206 = v207;
+						int64_t v191 = 65LL /* B'A' */;
+						int64_t v192 = 70LL /* B'F' */;
+						bool v193 = mw_std_prelude_inZ_range_sp1(v185, v191, v192);
+						bool branch_Bool_194;
+						if (v193) {
+							bool v195 = true;
+							branch_Bool_194 = v195;
 						} else {
-							int64_t v208 = 97LL /* B'a' */;
-							int64_t v209 = 102LL /* B'f' */;
-							bool v210 = mw_std_prelude_inZ_range_sp1(v197, v208, v209);
-							branch_Bool_206 = v210;
+							int64_t v196 = 97LL /* B'a' */;
+							int64_t v197 = 102LL /* B'f' */;
+							bool v198 = mw_std_prelude_inZ_range_sp1(v185, v196, v197);
+							branch_Bool_194 = v198;
 						}
-						branch_Bool_201 = branch_Bool_206;
+						branch_Bool_189 = branch_Bool_194;
 					}
-					branch_Bool_192 = branch_Bool_201;
-					branch_UOffset_191 = branch_UOffset_168;
-					branch_ZPlusStr_190 = v196;
-					branch_USizze_189 = v145;
+					branch_Bool_180 = branch_Bool_189;
+					branch_Offset_179 = branch_Offset_156;
+					branch_ZPlusStr_178 = v184;
+					branch_Sizze_177 = v135;
 				}
-				v140 = branch_Bool_192;
-				v139 = branch_UOffset_191;
-				v138 = branch_USizze_189;
-				v137 = branch_ZPlusStr_190;
+				v130 = branch_Bool_180;
+				v129 = branch_Offset_179;
+				v128 = branch_Sizze_177;
+				v127 = branch_ZPlusStr_178;
 			}
-			INT v211 = WRAP_I63(0LL);
-			bool v212 = int_gt(v138, v211);
-			INT branch_UOffset_213;
-			STR* branch_ZPlusStr_214;
-			bool branch_Bool_215;
-			if (v212) {
-				incref(MKINT(v139));
-				STR* v216;
-				VAL v217 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v139, v137, &v216);
-				int64_t v218 = get_data_tag(v217);
-				decref(v217);
-				int64_t v219 = 0LL;
-				bool v220 = (v218 == v219);
-				bool v221 = !v220;
-				branch_Bool_215 = v221;
-				branch_ZPlusStr_214 = v216;
-				branch_UOffset_213 = v139;
+			INT v199 = WRAP_I63(0LL);
+			bool v200 = int_lt(v199, v128);
+			INT branch_Offset_201;
+			STR* branch_ZPlusStr_202;
+			bool branch_Bool_203;
+			if (v200) {
+				incref(MKINT(v129));
+				STR* v204;
+				VAL v205 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v129, v127, &v204);
+				int64_t v206 = get_data_tag(v205);
+				decref(v205);
+				int64_t v207 = 0LL;
+				bool v208 = (v206 == v207);
+				bool v209 = !v208;
+				branch_Bool_203 = v209;
+				branch_ZPlusStr_202 = v204;
+				branch_Offset_201 = v129;
 			} else {
-				bool v222 = false;
-				branch_Bool_215 = v222;
-				branch_ZPlusStr_214 = v137;
-				branch_UOffset_213 = v139;
+				bool v210 = false;
+				branch_Bool_203 = v210;
+				branch_ZPlusStr_202 = v127;
+				branch_Offset_201 = v129;
 			}
-			decref(MKINT(branch_UOffset_213));
-			branch_Bool_71 = branch_Bool_215;
-			branch_ZPlusStr_70 = branch_ZPlusStr_214;
+			decref(MKINT(branch_Offset_201));
+			branch_Bool_63 = branch_Bool_203;
+			branch_ZPlusStr_62 = branch_ZPlusStr_202;
 		} else {
-			decref(MKINT(v55));
-			decref(MKINT(branch_USizze_33));
-			bool v223 = false;
-			branch_Bool_71 = v223;
-			branch_ZPlusStr_70 = v56;
+			decref(MKINT(v49));
+			decref(MKINT(branch_Sizze_29));
+			bool v211 = false;
+			branch_Bool_63 = v211;
+			branch_ZPlusStr_62 = v50;
 		}
-		branch_Bool_53 = branch_Bool_71;
-		branch_ZPlusStr_52 = branch_ZPlusStr_70;
+		branch_Bool_47 = branch_Bool_63;
+		branch_ZPlusStr_46 = branch_ZPlusStr_62;
 	} else {
-		decref(MKINT(branch_UOffset_35));
-		decref(MKINT(branch_USizze_33));
-		bool v224 = false;
-		branch_Bool_53 = v224;
-		branch_ZPlusStr_52 = v38;
+		decref(MKINT(branch_Offset_31));
+		decref(MKINT(branch_Sizze_29));
+		bool v212 = false;
+		branch_Bool_47 = v212;
+		branch_ZPlusStr_46 = v34;
 	}
-	*out_ZPlusStr_3 = branch_ZPlusStr_52;
-	return branch_Bool_53;
+	*out_ZPlusStr_3 = branch_ZPlusStr_46;
+	return branch_Bool_47;
 }
 static bool mw_std_str_ZPlusStr_isZ_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
 	INT v4 = WRAP_I63(0LL);
@@ -35644,293 +36023,281 @@ static bool mw_std_str_ZPlusStr_isZ_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_
 	INT v12 = i64_to_int(v8);
 	uint64_t v13 = int_to_u64(v12);
 	uint8_t v14 = (uint8_t)(v13);
-	uint64_t v15 = (uint64_t)(v11);
-	INT v16 = u64_to_int(v15);
-	uint64_t v17 = (uint64_t)(v14);
-	INT v18 = u64_to_int(v17);
-	bool v19 = int_eq(v16, v18);
-	int64_t v20 = 43LL /* B'+' */;
-	INT v21 = i64_to_int(v7);
-	uint64_t v22 = int_to_u64(v21);
-	uint8_t v23 = (uint8_t)(v22);
-	INT v24 = i64_to_int(v20);
-	uint64_t v25 = int_to_u64(v24);
-	uint8_t v26 = (uint8_t)(v25);
-	uint64_t v27 = (uint64_t)(v23);
-	INT v28 = u64_to_int(v27);
-	uint64_t v29 = (uint64_t)(v26);
-	INT v30 = u64_to_int(v29);
-	bool v31 = int_eq(v28, v30);
-	bool v32 = (v19 || v31);
-	INT branch_USizze_33;
-	STR* branch_ZPlusStr_34;
-	INT branch_UOffset_35;
-	if (v32) {
-		INT v36 = WRAP_I63(1LL);
-		INT v37 = int_add(v5, v36);
-		branch_UOffset_35 = v37;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+	uint64_t v15 = (uint64_t)(v14);
+	uint64_t v16 = (uint64_t)(v11);
+	bool v17 = (v16 == v15);
+	int64_t v18 = 43LL /* B'+' */;
+	INT v19 = i64_to_int(v7);
+	uint64_t v20 = int_to_u64(v19);
+	uint8_t v21 = (uint8_t)(v20);
+	INT v22 = i64_to_int(v18);
+	uint64_t v23 = int_to_u64(v22);
+	uint8_t v24 = (uint8_t)(v23);
+	uint64_t v25 = (uint64_t)(v24);
+	uint64_t v26 = (uint64_t)(v21);
+	bool v27 = (v26 == v25);
+	bool v28 = (v17 || v27);
+	INT branch_Sizze_29;
+	STR* branch_ZPlusStr_30;
+	INT branch_Offset_31;
+	if (v28) {
+		INT v32 = WRAP_I63(1LL);
+		INT v33 = int_add(v5, v32);
+		branch_Offset_31 = v33;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	} else {
-		branch_UOffset_35 = v5;
-		branch_ZPlusStr_34 = v6;
-		branch_USizze_33 = v4;
+		branch_Offset_31 = v5;
+		branch_ZPlusStr_30 = v6;
+		branch_Sizze_29 = v4;
 	}
-	incref(MKINT(branch_UOffset_35));
-	STR* v38;
-	int64_t v39 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_35, branch_ZPlusStr_34, &v38);
-	int64_t v40 = 48LL /* B'0' */;
-	INT v41 = i64_to_int(v39);
-	uint64_t v42 = int_to_u64(v41);
-	uint8_t v43 = (uint8_t)(v42);
-	INT v44 = i64_to_int(v40);
-	uint64_t v45 = int_to_u64(v44);
-	uint8_t v46 = (uint8_t)(v45);
-	uint64_t v47 = (uint64_t)(v43);
-	INT v48 = u64_to_int(v47);
-	uint64_t v49 = (uint64_t)(v46);
-	INT v50 = u64_to_int(v49);
-	bool v51 = int_eq(v48, v50);
-	STR* branch_ZPlusStr_52;
-	bool branch_Bool_53;
-	if (v51) {
-		INT v54 = WRAP_I63(1LL);
-		INT v55 = int_add(branch_UOffset_35, v54);
-		incref(MKINT(v55));
-		STR* v56;
-		int64_t v57 = mw_std_str_ZPlusStr_byteZAt(v55, v38, &v56);
-		int64_t v58 = 111LL /* B'o' */;
-		INT v59 = i64_to_int(v57);
-		uint64_t v60 = int_to_u64(v59);
-		uint8_t v61 = (uint8_t)(v60);
-		INT v62 = i64_to_int(v58);
-		uint64_t v63 = int_to_u64(v62);
-		uint8_t v64 = (uint8_t)(v63);
-		uint64_t v65 = (uint64_t)(v61);
-		INT v66 = u64_to_int(v65);
-		uint64_t v67 = (uint64_t)(v64);
-		INT v68 = u64_to_int(v67);
-		bool v69 = int_eq(v66, v68);
-		STR* branch_ZPlusStr_70;
-		bool branch_Bool_71;
-		if (v69) {
-			INT v72 = WRAP_I63(1LL);
-			INT v73 = int_add(v55, v72);
-			incref(MKINT(branch_USizze_33));
-			INT v74 = WRAP_I63(0LL);
-			bool v75 = int_gt(branch_USizze_33, v74);
-			INT branch_UOffset_76;
-			STR* branch_ZPlusStr_77;
-			bool branch_Bool_78;
-			if (v75) {
-				incref(MKINT(v73));
-				STR* v79;
-				int64_t v80 = mw_std_str_ZPlusStr_byteZAt(v73, v56, &v79);
-				int64_t v81 = 95LL /* B'_' */;
-				INT v82 = i64_to_int(v80);
-				uint64_t v83 = int_to_u64(v82);
-				uint8_t v84 = (uint8_t)(v83);
-				INT v85 = i64_to_int(v81);
-				uint64_t v86 = int_to_u64(v85);
-				uint8_t v87 = (uint8_t)(v86);
-				uint64_t v88 = (uint64_t)(v84);
-				INT v89 = u64_to_int(v88);
-				uint64_t v90 = (uint64_t)(v87);
-				INT v91 = u64_to_int(v90);
-				bool v92 = int_eq(v89, v91);
-				branch_Bool_78 = v92;
-				branch_ZPlusStr_77 = v79;
-				branch_UOffset_76 = v73;
+	incref(MKINT(branch_Offset_31));
+	STR* v34;
+	int64_t v35 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_31, branch_ZPlusStr_30, &v34);
+	int64_t v36 = 48LL /* B'0' */;
+	INT v37 = i64_to_int(v35);
+	uint64_t v38 = int_to_u64(v37);
+	uint8_t v39 = (uint8_t)(v38);
+	INT v40 = i64_to_int(v36);
+	uint64_t v41 = int_to_u64(v40);
+	uint8_t v42 = (uint8_t)(v41);
+	uint64_t v43 = (uint64_t)(v42);
+	uint64_t v44 = (uint64_t)(v39);
+	bool v45 = (v44 == v43);
+	STR* branch_ZPlusStr_46;
+	bool branch_Bool_47;
+	if (v45) {
+		INT v48 = WRAP_I63(1LL);
+		INT v49 = int_add(branch_Offset_31, v48);
+		incref(MKINT(v49));
+		STR* v50;
+		int64_t v51 = mw_std_str_ZPlusStr_byteZAt(v49, v34, &v50);
+		int64_t v52 = 111LL /* B'o' */;
+		INT v53 = i64_to_int(v51);
+		uint64_t v54 = int_to_u64(v53);
+		uint8_t v55 = (uint8_t)(v54);
+		INT v56 = i64_to_int(v52);
+		uint64_t v57 = int_to_u64(v56);
+		uint8_t v58 = (uint8_t)(v57);
+		uint64_t v59 = (uint64_t)(v58);
+		uint64_t v60 = (uint64_t)(v55);
+		bool v61 = (v60 == v59);
+		STR* branch_ZPlusStr_62;
+		bool branch_Bool_63;
+		if (v61) {
+			INT v64 = WRAP_I63(1LL);
+			INT v65 = int_add(v49, v64);
+			incref(MKINT(branch_Sizze_29));
+			INT v66 = WRAP_I63(0LL);
+			bool v67 = int_lt(v66, branch_Sizze_29);
+			INT branch_Offset_68;
+			STR* branch_ZPlusStr_69;
+			bool branch_Bool_70;
+			if (v67) {
+				incref(MKINT(v65));
+				STR* v71;
+				int64_t v72 = mw_std_str_ZPlusStr_byteZAt(v65, v50, &v71);
+				int64_t v73 = 95LL /* B'_' */;
+				INT v74 = i64_to_int(v72);
+				uint64_t v75 = int_to_u64(v74);
+				uint8_t v76 = (uint8_t)(v75);
+				INT v77 = i64_to_int(v73);
+				uint64_t v78 = int_to_u64(v77);
+				uint8_t v79 = (uint8_t)(v78);
+				uint64_t v80 = (uint64_t)(v79);
+				uint64_t v81 = (uint64_t)(v76);
+				bool v82 = (v81 == v80);
+				branch_Bool_70 = v82;
+				branch_ZPlusStr_69 = v71;
+				branch_Offset_68 = v65;
 			} else {
-				bool v93 = false;
-				branch_Bool_78 = v93;
-				branch_ZPlusStr_77 = v56;
-				branch_UOffset_76 = v73;
+				bool v83 = false;
+				branch_Bool_70 = v83;
+				branch_ZPlusStr_69 = v50;
+				branch_Offset_68 = v65;
 			}
-			INT branch_UOffset_94;
+			INT branch_Offset_84;
+			STR* branch_ZPlusStr_85;
+			bool branch_Bool_86;
+			if (branch_Bool_70) {
+				incref(MKINT(branch_Offset_68));
+				INT v87 = WRAP_I63(1LL);
+				INT v88 = int_add(branch_Offset_68, v87);
+				STR* v89;
+				int64_t v90 = mw_std_str_ZPlusStr_byteZAt(v88, branch_ZPlusStr_69, &v89);
+				int64_t v91 = 48LL /* B'0' */;
+				int64_t v92 = 55LL /* B'7' */;
+				bool v93 = mw_std_prelude_inZ_range_sp1(v90, v91, v92);
+				branch_Bool_86 = v93;
+				branch_ZPlusStr_85 = v89;
+				branch_Offset_84 = branch_Offset_68;
+			} else {
+				bool v94 = false;
+				branch_Bool_86 = v94;
+				branch_ZPlusStr_85 = branch_ZPlusStr_69;
+				branch_Offset_84 = branch_Offset_68;
+			}
 			STR* branch_ZPlusStr_95;
-			bool branch_Bool_96;
-			if (branch_Bool_78) {
-				incref(MKINT(branch_UOffset_76));
-				INT v97 = WRAP_I63(1LL);
-				INT v98 = int_add(branch_UOffset_76, v97);
-				STR* v99;
-				int64_t v100 = mw_std_str_ZPlusStr_byteZAt(v98, branch_ZPlusStr_77, &v99);
-				int64_t v101 = 48LL /* B'0' */;
-				int64_t v102 = 55LL /* B'7' */;
-				bool v103 = mw_std_prelude_inZ_range_sp1(v100, v101, v102);
-				branch_Bool_96 = v103;
-				branch_ZPlusStr_95 = v99;
-				branch_UOffset_94 = branch_UOffset_76;
+			INT branch_Sizze_96;
+			INT branch_Offset_97;
+			bool branch_Bool_98;
+			if (branch_Bool_86) {
+				INT v99 = WRAP_I63(1LL);
+				INT v100 = int_add(branch_Offset_84, v99);
+				bool v101 = true;
+				branch_Bool_98 = v101;
+				branch_Offset_97 = v100;
+				branch_Sizze_96 = branch_Sizze_29;
+				branch_ZPlusStr_95 = branch_ZPlusStr_85;
 			} else {
-				bool v104 = false;
-				branch_Bool_96 = v104;
-				branch_ZPlusStr_95 = branch_ZPlusStr_77;
-				branch_UOffset_94 = branch_UOffset_76;
+				incref(MKINT(branch_Offset_84));
+				STR* v102;
+				int64_t v103 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_84, branch_ZPlusStr_85, &v102);
+				int64_t v104 = 48LL /* B'0' */;
+				int64_t v105 = 55LL /* B'7' */;
+				bool v106 = mw_std_prelude_inZ_range_sp1(v103, v104, v105);
+				branch_Bool_98 = v106;
+				branch_Offset_97 = branch_Offset_84;
+				branch_Sizze_96 = branch_Sizze_29;
+				branch_ZPlusStr_95 = v102;
 			}
-			STR* branch_ZPlusStr_105;
-			INT branch_USizze_106;
-			INT branch_UOffset_107;
-			bool branch_Bool_108;
-			if (branch_Bool_96) {
-				INT v109 = WRAP_I63(1LL);
-				INT v110 = int_add(branch_UOffset_94, v109);
-				bool v111 = true;
-				branch_Bool_108 = v111;
-				branch_UOffset_107 = v110;
-				branch_USizze_106 = branch_USizze_33;
-				branch_ZPlusStr_105 = branch_ZPlusStr_95;
-			} else {
-				incref(MKINT(branch_UOffset_94));
-				STR* v112;
-				int64_t v113 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_94, branch_ZPlusStr_95, &v112);
-				int64_t v114 = 48LL /* B'0' */;
-				int64_t v115 = 55LL /* B'7' */;
-				bool v116 = mw_std_prelude_inZ_range_sp1(v113, v114, v115);
-				branch_Bool_108 = v116;
-				branch_UOffset_107 = branch_UOffset_94;
-				branch_USizze_106 = branch_USizze_33;
-				branch_ZPlusStr_105 = v112;
-			}
-			STR* v117 = branch_ZPlusStr_105;
-			INT v118 = branch_USizze_106;
-			INT v119 = branch_UOffset_107;
-			bool v120 = branch_Bool_108;
-			while (v120) {
-				STR* v121 = v117;
-				INT v122 = v118;
-				INT v123 = v119;
-				INT v124 = WRAP_I63(1LL);
-				INT v125 = int_add(v122, v124);
-				INT v126 = WRAP_I63(1LL);
-				INT v127 = int_add(v123, v126);
-				incref(MKINT(v125));
-				INT v128 = WRAP_I63(0LL);
-				bool v129 = int_gt(v125, v128);
-				INT branch_UOffset_130;
-				STR* branch_ZPlusStr_131;
-				bool branch_Bool_132;
-				if (v129) {
-					incref(MKINT(v127));
-					STR* v133;
-					int64_t v134 = mw_std_str_ZPlusStr_byteZAt(v127, v121, &v133);
-					int64_t v135 = 95LL /* B'_' */;
-					INT v136 = i64_to_int(v134);
-					uint64_t v137 = int_to_u64(v136);
-					uint8_t v138 = (uint8_t)(v137);
-					INT v139 = i64_to_int(v135);
-					uint64_t v140 = int_to_u64(v139);
-					uint8_t v141 = (uint8_t)(v140);
-					uint64_t v142 = (uint64_t)(v138);
-					INT v143 = u64_to_int(v142);
-					uint64_t v144 = (uint64_t)(v141);
-					INT v145 = u64_to_int(v144);
-					bool v146 = int_eq(v143, v145);
-					branch_Bool_132 = v146;
-					branch_ZPlusStr_131 = v133;
-					branch_UOffset_130 = v127;
+			STR* v107 = branch_ZPlusStr_95;
+			INT v108 = branch_Sizze_96;
+			INT v109 = branch_Offset_97;
+			bool v110 = branch_Bool_98;
+			while (v110) {
+				STR* v111 = v107;
+				INT v112 = v108;
+				INT v113 = v109;
+				INT v114 = WRAP_I63(1LL);
+				INT v115 = int_add(v112, v114);
+				INT v116 = WRAP_I63(1LL);
+				INT v117 = int_add(v113, v116);
+				incref(MKINT(v115));
+				INT v118 = WRAP_I63(0LL);
+				bool v119 = int_lt(v118, v115);
+				INT branch_Offset_120;
+				STR* branch_ZPlusStr_121;
+				bool branch_Bool_122;
+				if (v119) {
+					incref(MKINT(v117));
+					STR* v123;
+					int64_t v124 = mw_std_str_ZPlusStr_byteZAt(v117, v111, &v123);
+					int64_t v125 = 95LL /* B'_' */;
+					INT v126 = i64_to_int(v124);
+					uint64_t v127 = int_to_u64(v126);
+					uint8_t v128 = (uint8_t)(v127);
+					INT v129 = i64_to_int(v125);
+					uint64_t v130 = int_to_u64(v129);
+					uint8_t v131 = (uint8_t)(v130);
+					uint64_t v132 = (uint64_t)(v131);
+					uint64_t v133 = (uint64_t)(v128);
+					bool v134 = (v133 == v132);
+					branch_Bool_122 = v134;
+					branch_ZPlusStr_121 = v123;
+					branch_Offset_120 = v117;
 				} else {
-					bool v147 = false;
-					branch_Bool_132 = v147;
-					branch_ZPlusStr_131 = v121;
-					branch_UOffset_130 = v127;
+					bool v135 = false;
+					branch_Bool_122 = v135;
+					branch_ZPlusStr_121 = v111;
+					branch_Offset_120 = v117;
 				}
-				INT branch_UOffset_148;
-				STR* branch_ZPlusStr_149;
+				INT branch_Offset_136;
+				STR* branch_ZPlusStr_137;
+				bool branch_Bool_138;
+				if (branch_Bool_122) {
+					incref(MKINT(branch_Offset_120));
+					INT v139 = WRAP_I63(1LL);
+					INT v140 = int_add(branch_Offset_120, v139);
+					STR* v141;
+					int64_t v142 = mw_std_str_ZPlusStr_byteZAt(v140, branch_ZPlusStr_121, &v141);
+					int64_t v143 = 48LL /* B'0' */;
+					int64_t v144 = 55LL /* B'7' */;
+					bool v145 = mw_std_prelude_inZ_range_sp1(v142, v143, v144);
+					branch_Bool_138 = v145;
+					branch_ZPlusStr_137 = v141;
+					branch_Offset_136 = branch_Offset_120;
+				} else {
+					bool v146 = false;
+					branch_Bool_138 = v146;
+					branch_ZPlusStr_137 = branch_ZPlusStr_121;
+					branch_Offset_136 = branch_Offset_120;
+				}
+				STR* branch_ZPlusStr_147;
+				INT branch_Sizze_148;
+				INT branch_Offset_149;
 				bool branch_Bool_150;
-				if (branch_Bool_132) {
-					incref(MKINT(branch_UOffset_130));
+				if (branch_Bool_138) {
 					INT v151 = WRAP_I63(1LL);
-					INT v152 = int_add(branch_UOffset_130, v151);
-					STR* v153;
-					int64_t v154 = mw_std_str_ZPlusStr_byteZAt(v152, branch_ZPlusStr_131, &v153);
-					int64_t v155 = 48LL /* B'0' */;
-					int64_t v156 = 55LL /* B'7' */;
-					bool v157 = mw_std_prelude_inZ_range_sp1(v154, v155, v156);
-					branch_Bool_150 = v157;
-					branch_ZPlusStr_149 = v153;
-					branch_UOffset_148 = branch_UOffset_130;
+					INT v152 = int_add(branch_Offset_136, v151);
+					bool v153 = true;
+					branch_Bool_150 = v153;
+					branch_Offset_149 = v152;
+					branch_Sizze_148 = v115;
+					branch_ZPlusStr_147 = branch_ZPlusStr_137;
 				} else {
-					bool v158 = false;
+					incref(MKINT(branch_Offset_136));
+					STR* v154;
+					int64_t v155 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_136, branch_ZPlusStr_137, &v154);
+					int64_t v156 = 48LL /* B'0' */;
+					int64_t v157 = 55LL /* B'7' */;
+					bool v158 = mw_std_prelude_inZ_range_sp1(v155, v156, v157);
 					branch_Bool_150 = v158;
-					branch_ZPlusStr_149 = branch_ZPlusStr_131;
-					branch_UOffset_148 = branch_UOffset_130;
+					branch_Offset_149 = branch_Offset_136;
+					branch_Sizze_148 = v115;
+					branch_ZPlusStr_147 = v154;
 				}
-				STR* branch_ZPlusStr_159;
-				INT branch_USizze_160;
-				INT branch_UOffset_161;
-				bool branch_Bool_162;
-				if (branch_Bool_150) {
-					INT v163 = WRAP_I63(1LL);
-					INT v164 = int_add(branch_UOffset_148, v163);
-					bool v165 = true;
-					branch_Bool_162 = v165;
-					branch_UOffset_161 = v164;
-					branch_USizze_160 = v125;
-					branch_ZPlusStr_159 = branch_ZPlusStr_149;
-				} else {
-					incref(MKINT(branch_UOffset_148));
-					STR* v166;
-					int64_t v167 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_148, branch_ZPlusStr_149, &v166);
-					int64_t v168 = 48LL /* B'0' */;
-					int64_t v169 = 55LL /* B'7' */;
-					bool v170 = mw_std_prelude_inZ_range_sp1(v167, v168, v169);
-					branch_Bool_162 = v170;
-					branch_UOffset_161 = branch_UOffset_148;
-					branch_USizze_160 = v125;
-					branch_ZPlusStr_159 = v166;
-				}
-				v120 = branch_Bool_162;
-				v119 = branch_UOffset_161;
-				v118 = branch_USizze_160;
-				v117 = branch_ZPlusStr_159;
+				v110 = branch_Bool_150;
+				v109 = branch_Offset_149;
+				v108 = branch_Sizze_148;
+				v107 = branch_ZPlusStr_147;
 			}
-			INT v171 = WRAP_I63(0LL);
-			bool v172 = int_gt(v118, v171);
-			INT branch_UOffset_173;
-			STR* branch_ZPlusStr_174;
-			bool branch_Bool_175;
-			if (v172) {
-				incref(MKINT(v119));
-				STR* v176;
-				VAL v177 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v119, v117, &v176);
-				int64_t v178 = get_data_tag(v177);
-				decref(v177);
-				int64_t v179 = 0LL;
-				bool v180 = (v178 == v179);
-				bool v181 = !v180;
-				branch_Bool_175 = v181;
-				branch_ZPlusStr_174 = v176;
-				branch_UOffset_173 = v119;
+			INT v159 = WRAP_I63(0LL);
+			bool v160 = int_lt(v159, v108);
+			INT branch_Offset_161;
+			STR* branch_ZPlusStr_162;
+			bool branch_Bool_163;
+			if (v160) {
+				incref(MKINT(v109));
+				STR* v164;
+				VAL v165 = mw_std_str_ZPlusStr_intZ_suffixZAsk(v109, v107, &v164);
+				int64_t v166 = get_data_tag(v165);
+				decref(v165);
+				int64_t v167 = 0LL;
+				bool v168 = (v166 == v167);
+				bool v169 = !v168;
+				branch_Bool_163 = v169;
+				branch_ZPlusStr_162 = v164;
+				branch_Offset_161 = v109;
 			} else {
-				bool v182 = false;
-				branch_Bool_175 = v182;
-				branch_ZPlusStr_174 = v117;
-				branch_UOffset_173 = v119;
+				bool v170 = false;
+				branch_Bool_163 = v170;
+				branch_ZPlusStr_162 = v107;
+				branch_Offset_161 = v109;
 			}
-			decref(MKINT(branch_UOffset_173));
-			branch_Bool_71 = branch_Bool_175;
-			branch_ZPlusStr_70 = branch_ZPlusStr_174;
+			decref(MKINT(branch_Offset_161));
+			branch_Bool_63 = branch_Bool_163;
+			branch_ZPlusStr_62 = branch_ZPlusStr_162;
 		} else {
-			decref(MKINT(v55));
-			decref(MKINT(branch_USizze_33));
-			bool v183 = false;
-			branch_Bool_71 = v183;
-			branch_ZPlusStr_70 = v56;
+			decref(MKINT(v49));
+			decref(MKINT(branch_Sizze_29));
+			bool v171 = false;
+			branch_Bool_63 = v171;
+			branch_ZPlusStr_62 = v50;
 		}
-		branch_Bool_53 = branch_Bool_71;
-		branch_ZPlusStr_52 = branch_ZPlusStr_70;
+		branch_Bool_47 = branch_Bool_63;
+		branch_ZPlusStr_46 = branch_ZPlusStr_62;
 	} else {
-		decref(MKINT(branch_UOffset_35));
-		decref(MKINT(branch_USizze_33));
-		bool v184 = false;
-		branch_Bool_53 = v184;
-		branch_ZPlusStr_52 = v38;
+		decref(MKINT(branch_Offset_31));
+		decref(MKINT(branch_Sizze_29));
+		bool v172 = false;
+		branch_Bool_47 = v172;
+		branch_ZPlusStr_46 = v34;
 	}
-	*out_ZPlusStr_3 = branch_ZPlusStr_52;
-	return branch_Bool_53;
+	*out_ZPlusStr_3 = branch_ZPlusStr_46;
+	return branch_Bool_47;
 }
-static INT mw_std_str_ZPlusStr_intZ_sign (STR* in_ZPlusStr_1, INT *out_Int_3, INT *out_UOffset_4, STR* *out_ZPlusStr_5) {
+static INT mw_std_str_ZPlusStr_intZ_sign (STR* in_ZPlusStr_1, INT *out_Int_3, INT *out_Offset_4, STR* *out_ZPlusStr_5) {
 	INT v6 = WRAP_I63(0LL);
 	STR* v7;
 	int64_t v8 = mw_std_str_ZPlusStr_byteZAt(v6, in_ZPlusStr_1, &v7);
@@ -35938,20 +36305,20 @@ static INT mw_std_str_ZPlusStr_intZ_sign (STR* in_ZPlusStr_1, INT *out_Int_3, IN
 	INT v10;
 	INT v11 = mw_mirth_lexer_byteZ_signZ_valueZ_index(v8, &v9, &v10);
 	*out_ZPlusStr_5 = v7;
-	*out_UOffset_4 = v10;
+	*out_Offset_4 = v10;
 	*out_Int_3 = v9;
 	return v11;
 }
-static INT mw_mirth_lexer_byteZ_signZ_valueZ_index (int64_t in_Byte_1, INT *out_Int_3, INT *out_UOffset_4) {
+static INT mw_mirth_lexer_byteZ_signZ_valueZ_index (int64_t in_Byte_1, INT *out_Int_3, INT *out_Offset_4) {
 	INT branch_Int_5;
 	INT branch_Int_6;
-	INT branch_UOffset_7;
+	INT branch_Offset_7;
 	switch (in_Byte_1) {
 		case 45LL: { // B'-'
 			INT v8 = WRAP_I63(-1LL);
 			INT v9 = WRAP_I63(0LL);
 			INT v10 = WRAP_I63(1LL);
-			branch_UOffset_7 = v10;
+			branch_Offset_7 = v10;
 			branch_Int_6 = v9;
 			branch_Int_5 = v8;
 		} break;
@@ -35959,7 +36326,7 @@ static INT mw_mirth_lexer_byteZ_signZ_valueZ_index (int64_t in_Byte_1, INT *out_
 			INT v11 = WRAP_I63(1LL);
 			INT v12 = WRAP_I63(0LL);
 			INT v13 = WRAP_I63(1LL);
-			branch_UOffset_7 = v13;
+			branch_Offset_7 = v13;
 			branch_Int_6 = v12;
 			branch_Int_5 = v11;
 		} break;
@@ -35967,19 +36334,19 @@ static INT mw_mirth_lexer_byteZ_signZ_valueZ_index (int64_t in_Byte_1, INT *out_
 			INT v14 = WRAP_I63(1LL);
 			INT v15 = WRAP_I63(0LL);
 			INT v16 = WRAP_I63(0LL);
-			branch_UOffset_7 = v16;
+			branch_Offset_7 = v16;
 			branch_Int_6 = v15;
 			branch_Int_5 = v14;
 		} break;
 	}
-	*out_UOffset_4 = branch_UOffset_7;
+	*out_Offset_4 = branch_Offset_7;
 	*out_Int_3 = branch_Int_6;
 	return branch_Int_5;
 }
-static VAL mw_std_str_ZPlusStr_finishZ_intZ_literal (INT in_Int_1, INT in_Int_2, INT in_UOffset_3, STR* in_ZPlusStr_4, STR* *out_ZPlusStr_6) {
+static VAL mw_std_str_ZPlusStr_finishZ_intZ_literal (INT in_Int_1, INT in_Int_2, INT in_Offset_3, STR* in_ZPlusStr_4, STR* *out_ZPlusStr_6) {
 	INT v7 = int_mul(in_Int_1, in_Int_2);
 	STR* v8;
-	VAL v9 = mw_std_str_ZPlusStr_intZ_suffixZAsk(in_UOffset_3, in_ZPlusStr_4, &v8);
+	VAL v9 = mw_std_str_ZPlusStr_intZ_suffixZAsk(in_Offset_3, in_ZPlusStr_4, &v8);
 	VAL branch_Result_10;
 	switch (get_data_tag(v9)) {
 		case 1LL: { // Some
@@ -36016,28 +36383,250 @@ static VAL mw_std_str_ZPlusStr_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlus
 	INT v14 = i64_to_int(v10);
 	uint64_t v15 = int_to_u64(v14);
 	uint8_t v16 = (uint8_t)(v15);
-	uint64_t v17 = (uint64_t)(v13);
-	INT v18 = u64_to_int(v17);
-	uint64_t v19 = (uint64_t)(v16);
-	INT v20 = u64_to_int(v19);
-	bool v21 = int_eq(v18, v20);
-	INT branch_UOffset_22;
+	uint64_t v17 = (uint64_t)(v16);
+	uint64_t v18 = (uint64_t)(v13);
+	bool v19 = (v18 == v17);
+	INT branch_Offset_20;
+	if (v19) {
+		INT v21 = WRAP_I63(1LL);
+		INT v22 = int_add(v5, v21);
+		branch_Offset_20 = v22;
+	} else {
+		branch_Offset_20 = v5;
+	}
+	incref(MKINT(branch_Offset_20));
+	STR* v23;
+	int64_t v24 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_20, v8, &v23);
+	int64_t v25 = 48LL /* B'0' */;
+	int64_t v26 = 57LL /* B'9' */;
+	bool v27 = mw_std_prelude_inZ_range_sp1(v24, v25, v26);
+	INT v28 = v7;
+	INT v29 = v4;
+	INT v30 = branch_Offset_20;
+	STR* v31 = v23;
+	bool v32 = v27;
+	while (v32) {
+		INT v33 = v28;
+		INT v34 = v29;
+		INT v35 = v30;
+		STR* v36 = v31;
+		incref(MKINT(v35));
+		STR* v37;
+		int64_t v38 = mw_std_str_ZPlusStr_byteZAt(v35, v36, &v37);
+		INT v39 = i64_to_int(v38);
+		INT v40 = WRAP_I63(10LL);
+		INT v41 = int_mul(v34, v40);
+		INT v42 = WRAP_I63(48LL);
+		INT v43 = int_sub(v39, v42);
+		INT v44 = int_add(v41, v43);
+		INT v45 = WRAP_I63(1LL);
+		INT v46 = int_add(v35, v45);
+		incref(MKINT(v46));
+		STR* v47;
+		int64_t v48 = mw_std_str_ZPlusStr_byteZAt(v46, v37, &v47);
+		int64_t v49 = 95LL /* B'_' */;
+		INT v50 = i64_to_int(v48);
+		uint64_t v51 = int_to_u64(v50);
+		uint8_t v52 = (uint8_t)(v51);
+		INT v53 = i64_to_int(v49);
+		uint64_t v54 = int_to_u64(v53);
+		uint8_t v55 = (uint8_t)(v54);
+		uint64_t v56 = (uint64_t)(v55);
+		uint64_t v57 = (uint64_t)(v52);
+		bool v58 = (v57 == v56);
+		INT branch_Offset_59;
+		if (v58) {
+			INT v60 = WRAP_I63(1LL);
+			INT v61 = int_add(v46, v60);
+			branch_Offset_59 = v61;
+		} else {
+			branch_Offset_59 = v46;
+		}
+		incref(MKINT(branch_Offset_59));
+		STR* v62;
+		int64_t v63 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_59, v47, &v62);
+		int64_t v64 = 48LL /* B'0' */;
+		int64_t v65 = 57LL /* B'9' */;
+		bool v66 = mw_std_prelude_inZ_range_sp1(v63, v64, v65);
+		v32 = v66;
+		v31 = v62;
+		v30 = branch_Offset_59;
+		v29 = v44;
+		v28 = v33;
+	}
+	STR* v67;
+	VAL v68 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v28, v29, v30, v31, &v67);
+	*out_ZPlusStr_3 = v67;
+	return v68;
+}
+static VAL mw_std_str_ZPlusStr_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
+	INT v4;
+	INT v5;
+	STR* v6;
+	INT v7 = mw_std_str_ZPlusStr_intZ_sign(in_ZPlusStr_1, &v4, &v5, &v6);
+	INT v8 = WRAP_I63(2LL);
+	INT v9 = int_add(v5, v8);
+	incref(MKINT(v9));
+	STR* v10;
+	int64_t v11 = mw_std_str_ZPlusStr_byteZAt(v9, v6, &v10);
+	int64_t v12 = 95LL /* B'_' */;
+	INT v13 = i64_to_int(v11);
+	uint64_t v14 = int_to_u64(v13);
+	uint8_t v15 = (uint8_t)(v14);
+	INT v16 = i64_to_int(v12);
+	uint64_t v17 = int_to_u64(v16);
+	uint8_t v18 = (uint8_t)(v17);
+	uint64_t v19 = (uint64_t)(v18);
+	uint64_t v20 = (uint64_t)(v15);
+	bool v21 = (v20 == v19);
+	INT branch_Offset_22;
 	if (v21) {
 		INT v23 = WRAP_I63(1LL);
-		INT v24 = int_add(v5, v23);
-		branch_UOffset_22 = v24;
+		INT v24 = int_add(v9, v23);
+		branch_Offset_22 = v24;
 	} else {
-		branch_UOffset_22 = v5;
+		branch_Offset_22 = v9;
 	}
-	incref(MKINT(branch_UOffset_22));
+	incref(MKINT(branch_Offset_22));
 	STR* v25;
-	int64_t v26 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_22, v8, &v25);
+	int64_t v26 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_22, v10, &v25);
 	int64_t v27 = 48LL /* B'0' */;
 	int64_t v28 = 57LL /* B'9' */;
 	bool v29 = mw_std_prelude_inZ_range_sp1(v26, v27, v28);
+	bool branch_Bool_30;
+	if (v29) {
+		bool v31 = true;
+		branch_Bool_30 = v31;
+	} else {
+		int64_t v32 = 65LL /* B'A' */;
+		int64_t v33 = 70LL /* B'F' */;
+		bool v34 = mw_std_prelude_inZ_range_sp1(v26, v32, v33);
+		bool branch_Bool_35;
+		if (v34) {
+			bool v36 = true;
+			branch_Bool_35 = v36;
+		} else {
+			int64_t v37 = 97LL /* B'a' */;
+			int64_t v38 = 102LL /* B'f' */;
+			bool v39 = mw_std_prelude_inZ_range_sp1(v26, v37, v38);
+			branch_Bool_35 = v39;
+		}
+		branch_Bool_30 = branch_Bool_35;
+	}
+	INT v40 = v7;
+	INT v41 = v4;
+	INT v42 = branch_Offset_22;
+	STR* v43 = v25;
+	bool v44 = branch_Bool_30;
+	while (v44) {
+		INT v45 = v40;
+		INT v46 = v41;
+		INT v47 = v42;
+		STR* v48 = v43;
+		incref(MKINT(v47));
+		STR* v49;
+		int64_t v50 = mw_std_str_ZPlusStr_byteZAt(v47, v48, &v49);
+		INT v51 = WRAP_I63(16LL);
+		INT v52 = int_mul(v46, v51);
+		INT v53 = mw_mirth_lexer_hexdigitZ_value(v50);
+		INT v54 = int_add(v52, v53);
+		INT v55 = WRAP_I63(1LL);
+		INT v56 = int_add(v47, v55);
+		incref(MKINT(v56));
+		STR* v57;
+		int64_t v58 = mw_std_str_ZPlusStr_byteZAt(v56, v49, &v57);
+		int64_t v59 = 95LL /* B'_' */;
+		INT v60 = i64_to_int(v58);
+		uint64_t v61 = int_to_u64(v60);
+		uint8_t v62 = (uint8_t)(v61);
+		INT v63 = i64_to_int(v59);
+		uint64_t v64 = int_to_u64(v63);
+		uint8_t v65 = (uint8_t)(v64);
+		uint64_t v66 = (uint64_t)(v65);
+		uint64_t v67 = (uint64_t)(v62);
+		bool v68 = (v67 == v66);
+		INT branch_Offset_69;
+		if (v68) {
+			INT v70 = WRAP_I63(1LL);
+			INT v71 = int_add(v56, v70);
+			branch_Offset_69 = v71;
+		} else {
+			branch_Offset_69 = v56;
+		}
+		incref(MKINT(branch_Offset_69));
+		STR* v72;
+		int64_t v73 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_69, v57, &v72);
+		int64_t v74 = 48LL /* B'0' */;
+		int64_t v75 = 57LL /* B'9' */;
+		bool v76 = mw_std_prelude_inZ_range_sp1(v73, v74, v75);
+		bool branch_Bool_77;
+		if (v76) {
+			bool v78 = true;
+			branch_Bool_77 = v78;
+		} else {
+			int64_t v79 = 65LL /* B'A' */;
+			int64_t v80 = 70LL /* B'F' */;
+			bool v81 = mw_std_prelude_inZ_range_sp1(v73, v79, v80);
+			bool branch_Bool_82;
+			if (v81) {
+				bool v83 = true;
+				branch_Bool_82 = v83;
+			} else {
+				int64_t v84 = 97LL /* B'a' */;
+				int64_t v85 = 102LL /* B'f' */;
+				bool v86 = mw_std_prelude_inZ_range_sp1(v73, v84, v85);
+				branch_Bool_82 = v86;
+			}
+			branch_Bool_77 = branch_Bool_82;
+		}
+		v44 = branch_Bool_77;
+		v43 = v72;
+		v42 = branch_Offset_69;
+		v41 = v54;
+		v40 = v45;
+	}
+	STR* v87;
+	VAL v88 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v40, v41, v42, v43, &v87);
+	*out_ZPlusStr_3 = v87;
+	return v88;
+}
+static VAL mw_std_str_ZPlusStr_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
+	INT v4;
+	INT v5;
+	STR* v6;
+	INT v7 = mw_std_str_ZPlusStr_intZ_sign(in_ZPlusStr_1, &v4, &v5, &v6);
+	INT v8 = WRAP_I63(2LL);
+	INT v9 = int_add(v5, v8);
+	incref(MKINT(v9));
+	STR* v10;
+	int64_t v11 = mw_std_str_ZPlusStr_byteZAt(v9, v6, &v10);
+	int64_t v12 = 95LL /* B'_' */;
+	INT v13 = i64_to_int(v11);
+	uint64_t v14 = int_to_u64(v13);
+	uint8_t v15 = (uint8_t)(v14);
+	INT v16 = i64_to_int(v12);
+	uint64_t v17 = int_to_u64(v16);
+	uint8_t v18 = (uint8_t)(v17);
+	uint64_t v19 = (uint64_t)(v18);
+	uint64_t v20 = (uint64_t)(v15);
+	bool v21 = (v20 == v19);
+	INT branch_Offset_22;
+	if (v21) {
+		INT v23 = WRAP_I63(1LL);
+		INT v24 = int_add(v9, v23);
+		branch_Offset_22 = v24;
+	} else {
+		branch_Offset_22 = v9;
+	}
+	incref(MKINT(branch_Offset_22));
+	STR* v25;
+	int64_t v26 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_22, v10, &v25);
+	int64_t v27 = 48LL /* B'0' */;
+	int64_t v28 = 55LL /* B'7' */;
+	bool v29 = mw_std_prelude_inZ_range_sp1(v26, v27, v28);
 	INT v30 = v7;
 	INT v31 = v4;
-	INT v32 = branch_UOffset_22;
+	INT v32 = branch_Offset_22;
 	STR* v33 = v25;
 	bool v34 = v29;
 	while (v34) {
@@ -36049,7 +36638,7 @@ static VAL mw_std_str_ZPlusStr_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlus
 		STR* v39;
 		int64_t v40 = mw_std_str_ZPlusStr_byteZAt(v37, v38, &v39);
 		INT v41 = i64_to_int(v40);
-		INT v42 = WRAP_I63(10LL);
+		INT v42 = WRAP_I63(8LL);
 		INT v43 = int_mul(v36, v42);
 		INT v44 = WRAP_I63(48LL);
 		INT v45 = int_sub(v41, v44);
@@ -36066,271 +36655,33 @@ static VAL mw_std_str_ZPlusStr_decZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlus
 		INT v55 = i64_to_int(v51);
 		uint64_t v56 = int_to_u64(v55);
 		uint8_t v57 = (uint8_t)(v56);
-		uint64_t v58 = (uint64_t)(v54);
-		INT v59 = u64_to_int(v58);
-		uint64_t v60 = (uint64_t)(v57);
-		INT v61 = u64_to_int(v60);
-		bool v62 = int_eq(v59, v61);
-		INT branch_UOffset_63;
-		if (v62) {
-			INT v64 = WRAP_I63(1LL);
-			INT v65 = int_add(v48, v64);
-			branch_UOffset_63 = v65;
+		uint64_t v58 = (uint64_t)(v57);
+		uint64_t v59 = (uint64_t)(v54);
+		bool v60 = (v59 == v58);
+		INT branch_Offset_61;
+		if (v60) {
+			INT v62 = WRAP_I63(1LL);
+			INT v63 = int_add(v48, v62);
+			branch_Offset_61 = v63;
 		} else {
-			branch_UOffset_63 = v48;
+			branch_Offset_61 = v48;
 		}
-		incref(MKINT(branch_UOffset_63));
-		STR* v66;
-		int64_t v67 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_63, v49, &v66);
-		int64_t v68 = 48LL /* B'0' */;
-		int64_t v69 = 57LL /* B'9' */;
-		bool v70 = mw_std_prelude_inZ_range_sp1(v67, v68, v69);
-		v34 = v70;
-		v33 = v66;
-		v32 = branch_UOffset_63;
+		incref(MKINT(branch_Offset_61));
+		STR* v64;
+		int64_t v65 = mw_std_str_ZPlusStr_byteZAt(branch_Offset_61, v49, &v64);
+		int64_t v66 = 48LL /* B'0' */;
+		int64_t v67 = 55LL /* B'7' */;
+		bool v68 = mw_std_prelude_inZ_range_sp1(v65, v66, v67);
+		v34 = v68;
+		v33 = v64;
+		v32 = branch_Offset_61;
 		v31 = v46;
 		v30 = v35;
 	}
-	STR* v71;
-	VAL v72 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v30, v31, v32, v33, &v71);
-	*out_ZPlusStr_3 = v71;
-	return v72;
-}
-static VAL mw_std_str_ZPlusStr_hexZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
-	INT v4;
-	INT v5;
-	STR* v6;
-	INT v7 = mw_std_str_ZPlusStr_intZ_sign(in_ZPlusStr_1, &v4, &v5, &v6);
-	INT v8 = WRAP_I63(1LL);
-	INT v9 = int_add(v5, v8);
-	INT v10 = WRAP_I63(1LL);
-	INT v11 = int_add(v9, v10);
-	incref(MKINT(v11));
-	STR* v12;
-	int64_t v13 = mw_std_str_ZPlusStr_byteZAt(v11, v6, &v12);
-	int64_t v14 = 95LL /* B'_' */;
-	INT v15 = i64_to_int(v13);
-	uint64_t v16 = int_to_u64(v15);
-	uint8_t v17 = (uint8_t)(v16);
-	INT v18 = i64_to_int(v14);
-	uint64_t v19 = int_to_u64(v18);
-	uint8_t v20 = (uint8_t)(v19);
-	uint64_t v21 = (uint64_t)(v17);
-	INT v22 = u64_to_int(v21);
-	uint64_t v23 = (uint64_t)(v20);
-	INT v24 = u64_to_int(v23);
-	bool v25 = int_eq(v22, v24);
-	INT branch_UOffset_26;
-	if (v25) {
-		INT v27 = WRAP_I63(1LL);
-		INT v28 = int_add(v11, v27);
-		branch_UOffset_26 = v28;
-	} else {
-		branch_UOffset_26 = v11;
-	}
-	incref(MKINT(branch_UOffset_26));
-	STR* v29;
-	int64_t v30 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_26, v12, &v29);
-	int64_t v31 = 48LL /* B'0' */;
-	int64_t v32 = 57LL /* B'9' */;
-	bool v33 = mw_std_prelude_inZ_range_sp1(v30, v31, v32);
-	bool branch_Bool_34;
-	if (v33) {
-		bool v35 = true;
-		branch_Bool_34 = v35;
-	} else {
-		int64_t v36 = 65LL /* B'A' */;
-		int64_t v37 = 70LL /* B'F' */;
-		bool v38 = mw_std_prelude_inZ_range_sp1(v30, v36, v37);
-		bool branch_Bool_39;
-		if (v38) {
-			bool v40 = true;
-			branch_Bool_39 = v40;
-		} else {
-			int64_t v41 = 97LL /* B'a' */;
-			int64_t v42 = 102LL /* B'f' */;
-			bool v43 = mw_std_prelude_inZ_range_sp1(v30, v41, v42);
-			branch_Bool_39 = v43;
-		}
-		branch_Bool_34 = branch_Bool_39;
-	}
-	INT v44 = v7;
-	INT v45 = v4;
-	INT v46 = branch_UOffset_26;
-	STR* v47 = v29;
-	bool v48 = branch_Bool_34;
-	while (v48) {
-		INT v49 = v44;
-		INT v50 = v45;
-		INT v51 = v46;
-		STR* v52 = v47;
-		incref(MKINT(v51));
-		STR* v53;
-		int64_t v54 = mw_std_str_ZPlusStr_byteZAt(v51, v52, &v53);
-		INT v55 = WRAP_I63(16LL);
-		INT v56 = int_mul(v50, v55);
-		INT v57 = mw_mirth_lexer_hexdigitZ_value(v54);
-		INT v58 = int_add(v56, v57);
-		INT v59 = WRAP_I63(1LL);
-		INT v60 = int_add(v51, v59);
-		incref(MKINT(v60));
-		STR* v61;
-		int64_t v62 = mw_std_str_ZPlusStr_byteZAt(v60, v53, &v61);
-		int64_t v63 = 95LL /* B'_' */;
-		INT v64 = i64_to_int(v62);
-		uint64_t v65 = int_to_u64(v64);
-		uint8_t v66 = (uint8_t)(v65);
-		INT v67 = i64_to_int(v63);
-		uint64_t v68 = int_to_u64(v67);
-		uint8_t v69 = (uint8_t)(v68);
-		uint64_t v70 = (uint64_t)(v66);
-		INT v71 = u64_to_int(v70);
-		uint64_t v72 = (uint64_t)(v69);
-		INT v73 = u64_to_int(v72);
-		bool v74 = int_eq(v71, v73);
-		INT branch_UOffset_75;
-		if (v74) {
-			INT v76 = WRAP_I63(1LL);
-			INT v77 = int_add(v60, v76);
-			branch_UOffset_75 = v77;
-		} else {
-			branch_UOffset_75 = v60;
-		}
-		incref(MKINT(branch_UOffset_75));
-		STR* v78;
-		int64_t v79 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_75, v61, &v78);
-		int64_t v80 = 48LL /* B'0' */;
-		int64_t v81 = 57LL /* B'9' */;
-		bool v82 = mw_std_prelude_inZ_range_sp1(v79, v80, v81);
-		bool branch_Bool_83;
-		if (v82) {
-			bool v84 = true;
-			branch_Bool_83 = v84;
-		} else {
-			int64_t v85 = 65LL /* B'A' */;
-			int64_t v86 = 70LL /* B'F' */;
-			bool v87 = mw_std_prelude_inZ_range_sp1(v79, v85, v86);
-			bool branch_Bool_88;
-			if (v87) {
-				bool v89 = true;
-				branch_Bool_88 = v89;
-			} else {
-				int64_t v90 = 97LL /* B'a' */;
-				int64_t v91 = 102LL /* B'f' */;
-				bool v92 = mw_std_prelude_inZ_range_sp1(v79, v90, v91);
-				branch_Bool_88 = v92;
-			}
-			branch_Bool_83 = branch_Bool_88;
-		}
-		v48 = branch_Bool_83;
-		v47 = v78;
-		v46 = branch_UOffset_75;
-		v45 = v58;
-		v44 = v49;
-	}
-	STR* v93;
-	VAL v94 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v44, v45, v46, v47, &v93);
-	*out_ZPlusStr_3 = v93;
-	return v94;
-}
-static VAL mw_std_str_ZPlusStr_octZ_intZAsk (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
-	INT v4;
-	INT v5;
-	STR* v6;
-	INT v7 = mw_std_str_ZPlusStr_intZ_sign(in_ZPlusStr_1, &v4, &v5, &v6);
-	INT v8 = WRAP_I63(1LL);
-	INT v9 = int_add(v5, v8);
-	INT v10 = WRAP_I63(1LL);
-	INT v11 = int_add(v9, v10);
-	incref(MKINT(v11));
-	STR* v12;
-	int64_t v13 = mw_std_str_ZPlusStr_byteZAt(v11, v6, &v12);
-	int64_t v14 = 95LL /* B'_' */;
-	INT v15 = i64_to_int(v13);
-	uint64_t v16 = int_to_u64(v15);
-	uint8_t v17 = (uint8_t)(v16);
-	INT v18 = i64_to_int(v14);
-	uint64_t v19 = int_to_u64(v18);
-	uint8_t v20 = (uint8_t)(v19);
-	uint64_t v21 = (uint64_t)(v17);
-	INT v22 = u64_to_int(v21);
-	uint64_t v23 = (uint64_t)(v20);
-	INT v24 = u64_to_int(v23);
-	bool v25 = int_eq(v22, v24);
-	INT branch_UOffset_26;
-	if (v25) {
-		INT v27 = WRAP_I63(1LL);
-		INT v28 = int_add(v11, v27);
-		branch_UOffset_26 = v28;
-	} else {
-		branch_UOffset_26 = v11;
-	}
-	incref(MKINT(branch_UOffset_26));
-	STR* v29;
-	int64_t v30 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_26, v12, &v29);
-	int64_t v31 = 48LL /* B'0' */;
-	int64_t v32 = 55LL /* B'7' */;
-	bool v33 = mw_std_prelude_inZ_range_sp1(v30, v31, v32);
-	INT v34 = v7;
-	INT v35 = v4;
-	INT v36 = branch_UOffset_26;
-	STR* v37 = v29;
-	bool v38 = v33;
-	while (v38) {
-		INT v39 = v34;
-		INT v40 = v35;
-		INT v41 = v36;
-		STR* v42 = v37;
-		incref(MKINT(v41));
-		STR* v43;
-		int64_t v44 = mw_std_str_ZPlusStr_byteZAt(v41, v42, &v43);
-		INT v45 = i64_to_int(v44);
-		INT v46 = WRAP_I63(8LL);
-		INT v47 = int_mul(v40, v46);
-		INT v48 = WRAP_I63(48LL);
-		INT v49 = int_sub(v45, v48);
-		INT v50 = int_add(v47, v49);
-		INT v51 = WRAP_I63(1LL);
-		INT v52 = int_add(v41, v51);
-		incref(MKINT(v52));
-		STR* v53;
-		int64_t v54 = mw_std_str_ZPlusStr_byteZAt(v52, v43, &v53);
-		int64_t v55 = 95LL /* B'_' */;
-		INT v56 = i64_to_int(v54);
-		uint64_t v57 = int_to_u64(v56);
-		uint8_t v58 = (uint8_t)(v57);
-		INT v59 = i64_to_int(v55);
-		uint64_t v60 = int_to_u64(v59);
-		uint8_t v61 = (uint8_t)(v60);
-		uint64_t v62 = (uint64_t)(v58);
-		INT v63 = u64_to_int(v62);
-		uint64_t v64 = (uint64_t)(v61);
-		INT v65 = u64_to_int(v64);
-		bool v66 = int_eq(v63, v65);
-		INT branch_UOffset_67;
-		if (v66) {
-			INT v68 = WRAP_I63(1LL);
-			INT v69 = int_add(v52, v68);
-			branch_UOffset_67 = v69;
-		} else {
-			branch_UOffset_67 = v52;
-		}
-		incref(MKINT(branch_UOffset_67));
-		STR* v70;
-		int64_t v71 = mw_std_str_ZPlusStr_byteZAt(branch_UOffset_67, v53, &v70);
-		int64_t v72 = 48LL /* B'0' */;
-		int64_t v73 = 55LL /* B'7' */;
-		bool v74 = mw_std_prelude_inZ_range_sp1(v71, v72, v73);
-		v38 = v74;
-		v37 = v70;
-		v36 = branch_UOffset_67;
-		v35 = v50;
-		v34 = v39;
-	}
-	STR* v75;
-	VAL v76 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v34, v35, v36, v37, &v75);
-	*out_ZPlusStr_3 = v75;
-	return v76;
+	STR* v69;
+	VAL v70 = mw_std_str_ZPlusStr_finishZ_intZ_literal(v30, v31, v32, v33, &v69);
+	*out_ZPlusStr_3 = v69;
+	return v70;
 }
 static INT mw_mirth_lexer_hexdigitZ_value (int64_t in_Byte_1) {
 	int64_t v3 = 48LL /* B'0' */;
@@ -36406,7 +36757,7 @@ static INT mw_mirth_macro_Macro_ZToInt (uint64_t in_Macro_1) {
 	INT v4 = u64_to_int(v3);
 	return v4;
 }
-static bool mw_mirth_macro_Macro_ZEqualZEqual (uint64_t in_Macro_1, uint64_t in_Macro_2) {
+static bool mw_mirth_macro_Macro_ZEqual (uint64_t in_Macro_1, uint64_t in_Macro_2) {
 	INT v4 = mw_mirth_macro_Macro_ZToInt(in_Macro_1);
 	INT v5 = mw_mirth_macro_Macro_ZToInt(in_Macro_2);
 	bool v6 = int_eq(v4, v5);
@@ -36604,7 +36955,7 @@ static void mw_mirth_mirth_ZPlusMirth_initZ_macrosZBang (TUP* in_ZPlusMirth_1, T
 	*out_ZPlusMirth_2 = v67;
 }
 static VAL mw_mirth_version_mirthZ_revision (void) {
-	INT v2 = WRAP_I63(20250129001LL);
+	INT v2 = WRAP_I63(20250129002LL);
 	return MKINT(v2);
 }
 static void mw_mirth_elab_ZPlusTypeElab_rdrop (TUP* in_ZPlusTypeElab_1) {
@@ -36692,7 +37043,7 @@ static TUP* mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_sigZBang (TUP* in_ZPlusMirth
 		branch_ZPlusTypeElab_38 = branch_ZPlusTypeElab_26;
 		branch_ZPlusMirth_37 = v41;
 	}
-	VAL v42 = mw_std_list_List_1_for_1_sp70(branch_StackType_24, branch_List_23);
+	VAL v42 = mw_std_list_List_1_for_1_sp69(branch_StackType_24, branch_List_23);
 	TUP* v43 = mw_mirth_type_TZ_ZTo(v42, branch_StackType_27);
 	*out_ZPlusTypeElab_4 = branch_ZPlusTypeElab_38;
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_37;
@@ -37290,7 +37641,7 @@ static VAL mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_varZBang (TUP* in_ZPlusMirth_
 	TUP* v8;
 	TUP* v9;
 	VAL v10 = mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang(in_ZPlusMirth_1, in_ZPlusTypeElab_2, in_Name_3, v7, &v8, &v9);
-	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp72(v10);
+	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp73(v10);
 	*out_ZPlusTypeElab_5 = v9;
 	*out_ZPlusMirth_4 = v8;
 	return v11;
@@ -37300,7 +37651,7 @@ static VAL mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_varZBang (TUP* in_ZPlusMi
 	TUP* v8;
 	TUP* v9;
 	VAL v10 = mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang(in_ZPlusMirth_1, in_ZPlusTypeElab_2, in_Name_3, v7, &v8, &v9);
-	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp72(v10);
+	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp73(v10);
 	*out_ZPlusTypeElab_5 = v9;
 	*out_ZPlusMirth_4 = v8;
 	return v11;
@@ -39267,7 +39618,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (TUP* in_ZPlus
 		TUP* v17;
 		VAL v18;
 		STR* v19;
-		STR* v20 = mw_std_list_List_1_for_1_sp73(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v14, v15, v16, &v17, &v18, &v19);
+		STR* v20 = mw_std_list_List_1_for_1_sp72(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v14, v15, v16, &v17, &v18, &v19);
 		decref(MKSTR(v20));
 		TUP* v21;
 		mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang(v7, v19, v17, &v21);
@@ -39296,7 +39647,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_ambiguous (TUP* in_ZPlus
 		TUP* v32;
 		VAL v33;
 		STR* v34;
-		STR* v35 = mw_std_list_List_1_for_1_sp73(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v29, v30, v31, &v32, &v33, &v34);
+		STR* v35 = mw_std_list_List_1_for_1_sp72(in_ZPlusMirth_1, MKTUP(in_ZPlusResolveDef_2, 7), v29, v30, v31, &v32, &v33, &v34);
 		decref(MKSTR(v35));
 		TUP* v36;
 		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v22, v34, v32, &v36);
@@ -39562,7 +39913,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown (TUP* in_ZPlusMi
 									} break;
 								}
 								VAL v124;
-								mw_std_maybe_Maybe_1_for_1_sp8(v109, branch_Maybe_119, &v124);
+								mw_std_maybe_Maybe_1_for_1_sp9(v109, branch_Maybe_119, &v124);
 								bool v125 = true;
 								branch_Bool_115 = v125;
 								branch_List_114 = v116;
@@ -39774,7 +40125,7 @@ static void mw_mirth_elab_ZPlusResolveDef_resolveZ_defZ_unknown (TUP* in_ZPlusMi
 									} break;
 								}
 								VAL v215;
-								mw_std_maybe_Maybe_1_for_1_sp8(v202, branch_Maybe_210, &v215);
+								mw_std_maybe_Maybe_1_for_1_sp9(v202, branch_Maybe_210, &v215);
 								bool v216 = true;
 								branch_Bool_207 = v216;
 								branch_List_206 = v208;
@@ -40012,7 +40363,7 @@ static bool mw_mirth_name_QName_punningZAsk (TUP* in_ZPlusMirth_1, TUP* in_QName
 			uint64_t v10 = mw_mirth_tycon_Tycon_name(in_ZPlusMirth_1, v8, &v9);
 			uint64_t v11 = value_u64(in_QName_2->cells[1]);
 			decref(MKTUP(in_QName_2, 3));
-			bool v12 = mw_mirth_name_Name_ZEqualZEqual(v10, v11);
+			bool v12 = mw_mirth_name_Name_ZEqual(v10, v11);
 			branch_Bool_7 = v12;
 			branch_ZPlusMirth_6 = v9;
 		} break;
@@ -40207,7 +40558,7 @@ static VAL mw_mirth_name_QName_climbZ_upZ_nameZAsk (TUP* in_ZPlusMirth_1, uint64
 	incref(MKTUP(in_QName_3, 3));
 	uint64_t v6 = value_u64(in_QName_3->cells[1]);
 	decref(MKTUP(in_QName_3, 3));
-	bool v7 = mw_mirth_name_Name_ZEqualZEqual(v6, in_Name_2);
+	bool v7 = mw_mirth_name_Name_ZEqual(v6, in_Name_2);
 	TUP* branch_ZPlusMirth_8;
 	uint64_t branch_Name_9;
 	TUP* branch_QName_10;
@@ -40272,7 +40623,7 @@ static VAL mw_mirth_name_QName_climbZ_upZ_nameZAsk (TUP* in_ZPlusMirth_1, uint64
 								TUP* v48;
 								TUP* v49 = mw_mirth_def_Def_qnameZ_hard(v42, v47, &v48);
 								incref(MKTUP(v26, 3));
-								bool v50 = mw_mirth_name_QName_ZEqualZEqual(v49, v26);
+								bool v50 = mw_mirth_name_QName_ZEqual(v49, v26);
 								branch_Bool_46 = v50;
 								branch_QName_45 = v26;
 								branch_ZPlusMirth_44 = v48;
@@ -40321,7 +40672,7 @@ static VAL mw_mirth_name_QName_climbZ_upZ_nameZAsk (TUP* in_ZPlusMirth_1, uint64
 								TUP* v67;
 								TUP* v68 = mw_mirth_tycon_Tycon_qnameZ_hard(v61, v66, &v67);
 								incref(MKTUP(v26, 3));
-								bool v69 = mw_mirth_name_QName_ZEqualZEqual(v68, v26);
+								bool v69 = mw_mirth_name_QName_ZEqual(v68, v26);
 								branch_Bool_65 = v69;
 								branch_QName_64 = v26;
 								branch_ZPlusMirth_63 = v67;
@@ -40523,7 +40874,7 @@ static VAL mw_mirth_name_QName_climbZ_upZ_dnameZAsk (TUP* in_ZPlusMirth_1, TUP* 
 								}
 							}
 							VAL v85;
-							mw_std_list_List_1_for_1_sp50(v64, branch_List_79, &v85);
+							mw_std_list_List_1_for_1_sp49(v64, branch_List_79, &v85);
 							bool v86 = true;
 							branch_Bool_72 = v86;
 							branch_List_71 = v73;
@@ -42287,64 +42638,66 @@ static VAL mw_mirth_elab_guessZ_initialZ_ctxZ_type (TUP* in_ZPlusMirth_1, uint64
 	INT v51 = mw_mirth_word_Word_arity(branch_ZPlusMirth_19, branch_Word_18, &v50);
 	incref(MKINT(v51));
 	INT v52 = WRAP_I63(0LL);
-	bool v53 = int_gt(v51, v52);
-	TUP* v54 = v50;
-	VAL v55 = branch_StackType_20;
-	INT v56 = v51;
-	bool v57 = v53;
-	while (v57) {
-		TUP* v58 = v54;
-		VAL v59 = v55;
-		INT v60 = v56;
-		TUP* v61;
-		uint64_t v62 = mw_mirth_type_MetaVar_newZBang(v58, &v61);
-		VAL v63 = mtw_mirth_type_StackType_Meta(v62);
-		TUP* v64;
-		uint64_t v65 = mw_mirth_type_MetaVar_newZBang(v61, &v64);
-		VAL v66 = mtw_mirth_type_StackType_Meta(v65);
-		TUP* v67 = mw_mirth_type_TZ_ZTo(v63, v66);
-		VAL v68 = mtw_mirth_type_Type_Arrow(v67);
-		VAL v69 = mw_mirth_type_TZMul(v59, v68);
-		INT v70 = WRAP_I63(1LL);
-		INT v71 = int_sub(v60, v70);
-		incref(MKINT(v71));
-		INT v72 = WRAP_I63(0LL);
-		bool v73 = int_lt(v71, v72);
-		INT branch_Nat_74;
-		if (v73) {
-			decref(MKINT(v71));
-			INT v75 = WRAP_I63(0LL);
-			branch_Nat_74 = v75;
+	bool v53 = int_eq(v51, v52);
+	bool v54 = !v53;
+	TUP* v55 = v50;
+	VAL v56 = branch_StackType_20;
+	INT v57 = v51;
+	bool v58 = v54;
+	while (v58) {
+		TUP* v59 = v55;
+		VAL v60 = v56;
+		INT v61 = v57;
+		TUP* v62;
+		uint64_t v63 = mw_mirth_type_MetaVar_newZBang(v59, &v62);
+		VAL v64 = mtw_mirth_type_StackType_Meta(v63);
+		TUP* v65;
+		uint64_t v66 = mw_mirth_type_MetaVar_newZBang(v62, &v65);
+		VAL v67 = mtw_mirth_type_StackType_Meta(v66);
+		TUP* v68 = mw_mirth_type_TZ_ZTo(v64, v67);
+		VAL v69 = mtw_mirth_type_Type_Arrow(v68);
+		VAL v70 = mw_mirth_type_TZMul(v60, v69);
+		INT v71 = WRAP_I63(1LL);
+		INT v72 = int_sub(v61, v71);
+		incref(MKINT(v72));
+		INT v73 = WRAP_I63(0LL);
+		bool v74 = int_lt(v72, v73);
+		INT branch_Nat_75;
+		if (v74) {
+			decref(MKINT(v72));
+			INT v76 = WRAP_I63(0LL);
+			branch_Nat_75 = v76;
 		} else {
-			branch_Nat_74 = v71;
+			branch_Nat_75 = v72;
 		}
-		incref(MKINT(branch_Nat_74));
-		INT v76 = WRAP_I63(0LL);
-		bool v77 = int_gt(branch_Nat_74, v76);
-		v57 = v77;
-		v56 = branch_Nat_74;
-		v55 = v69;
-		v54 = v64;
+		incref(MKINT(branch_Nat_75));
+		INT v77 = WRAP_I63(0LL);
+		bool v78 = int_eq(branch_Nat_75, v77);
+		bool v79 = !v78;
+		v58 = v79;
+		v57 = branch_Nat_75;
+		v56 = v70;
+		v55 = v65;
 	}
-	decref(MKINT(v56));
-	TUP* v78 = mw_mirth_type_TZ_ZTo(v55, branch_StackType_17);
+	decref(MKINT(v57));
+	TUP* v80 = mw_mirth_type_TZ_ZTo(v56, branch_StackType_17);
 	incref(branch_Ctx_16);
-	incref(MKTUP(v78, 2));
-	TUP* v79 = tup_new(2);
-	v79->size = 2;
-	v79->cells[1] = MKTUP(v78, 2);
-	v79->cells[0] = branch_Ctx_16;
-	VAL v80 = mtw_mirth_mirth_PropLabel_WordType(branch_Word_18);
-	TUP* v81;
-	TUP* v82 = mw_mirth_mirth_PropLabel_prop(MKTUP(v79, 2), v80, v54, &v81);
-	void* v83 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, branch_Word_18);
-	mut_set(MKTUP(v82, 2), v83);
-	bool v84 = true;
-	void* v85 = field_mut(&mfld_mirth_word_Word_ZTildeinferringZ_typeZAsk, branch_Word_18);
-	mut_set(MKBOOL(v84), v85);
+	incref(MKTUP(v80, 2));
+	TUP* v81 = tup_new(2);
+	v81->size = 2;
+	v81->cells[1] = MKTUP(v80, 2);
+	v81->cells[0] = branch_Ctx_16;
+	VAL v82 = mtw_mirth_mirth_PropLabel_WordType(branch_Word_18);
+	TUP* v83;
+	TUP* v84 = mw_mirth_mirth_PropLabel_prop(MKTUP(v81, 2), v82, v55, &v83);
+	void* v85 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, branch_Word_18);
+	mut_set(MKTUP(v84, 2), v85);
+	bool v86 = true;
+	void* v87 = field_mut(&mfld_mirth_word_Word_ZTildeinferringZ_typeZAsk, branch_Word_18);
+	mut_set(MKBOOL(v86), v87);
 	*out_Word_6 = branch_Word_18;
-	*out_ArrowType_5 = v78;
-	*out_ZPlusMirth_3 = v81;
+	*out_ArrowType_5 = v80;
+	*out_ZPlusMirth_3 = v83;
 	return branch_Ctx_16;
 }
 static VAL mw_mirth_elab_abZ_optimizzedZ_snocZBang (TUP* in_ZPlusMirth_1, VAL in_List_2, TUP* in_Atom_3, TUP* *out_ZPlusMirth_4) {
@@ -43288,7 +43641,7 @@ static uint64_t mw_mirth_elab_elabZ_matchZ_caseZBang (uint64_t in_Token_1, TUP* 
 		}
 	}
 	incref(branch_z_x2_12);
-	bool v18 = mw_mirth_token_Token_ZEqualZEqual(branch_Token_9, value_u64(branch_z_x2_12));
+	bool v18 = mw_mirth_token_Token_ZEqual(branch_Token_9, value_u64(branch_z_x2_12));
 	uint64_t branch_Token_19;
 	TUP* branch_ZPlusMirth_20;
 	VAL branch_z_x1_21;
@@ -43303,7 +43656,7 @@ static uint64_t mw_mirth_elab_elabZ_matchZ_caseZBang (uint64_t in_Token_1, TUP* 
 	}
 	TUP* v25;
 	uint64_t v26 = mw_mirth_token_Token_prev(branch_ZPlusMirth_20, branch_Token_19, &v25);
-	bool v27 = mw_mirth_token_Token_ZEqualZEqual(branch_Token_9, v26);
+	bool v27 = mw_mirth_token_Token_ZEqual(branch_Token_9, v26);
 	uint64_t branch_Token_28;
 	TUP* branch_ZPlusMirth_29;
 	VAL branch_z_x1_30;
@@ -44078,103 +44431,104 @@ static uint64_t mw_mirth_elab_parseZ_moduleZ_headerZBang (TUP* in_ZPlusMirth_1, 
 	TUP* v16;
 	INT v17 = mw_mirth_token_Token_numZ_args(branch_ZPlusMirth_12, branch_Token_11, &v16);
 	INT v18 = WRAP_I63(0LL);
-	bool v19 = int_gt(v17, v18);
-	VAL branch_Maybe_20;
-	uint64_t branch_Token_21;
-	uint64_t branch_Name_22;
-	uint64_t branch_Package_23;
-	uint64_t branch_Token_24;
-	TUP* branch_ZPlusMirth_25;
-	if (v19) {
-		TUP* v26;
-		uint64_t v27 = mw_mirth_token_Token_next(v16, branch_Token_11, &v26);
-		TUP* v28;
-		uint64_t v29 = mw_mirth_token_Token_argsZ_1(branch_Token_11, v26, &v28);
-		uint64_t v30;
-		TUP* v31;
-		uint64_t v32 = mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang(v29, v28, &v30, &v31);
-		TUP* v33;
-		uint64_t v34 = mw_mirth_token_Token_next(v31, v29, &v33);
-		TUP* v35;
-		bool v36 = mw_mirth_token_Token_argZ_endZAsk(v33, v34, &v35);
-		uint64_t branch_Token_37;
-		TUP* branch_ZPlusMirth_38;
-		if (v36) {
-			branch_ZPlusMirth_38 = v35;
-			branch_Token_37 = v34;
+	bool v19 = int_eq(v17, v18);
+	bool v20 = !v19;
+	VAL branch_Maybe_21;
+	uint64_t branch_Token_22;
+	uint64_t branch_Name_23;
+	uint64_t branch_Package_24;
+	uint64_t branch_Token_25;
+	TUP* branch_ZPlusMirth_26;
+	if (v20) {
+		TUP* v27;
+		uint64_t v28 = mw_mirth_token_Token_next(v16, branch_Token_11, &v27);
+		TUP* v29;
+		uint64_t v30 = mw_mirth_token_Token_argsZ_1(branch_Token_11, v27, &v29);
+		uint64_t v31;
+		TUP* v32;
+		uint64_t v33 = mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang(v30, v29, &v31, &v32);
+		TUP* v34;
+		uint64_t v35 = mw_mirth_token_Token_next(v32, v30, &v34);
+		TUP* v36;
+		bool v37 = mw_mirth_token_Token_argZ_endZAsk(v34, v35, &v36);
+		uint64_t branch_Token_38;
+		TUP* branch_ZPlusMirth_39;
+		if (v37) {
+			branch_ZPlusMirth_39 = v36;
+			branch_Token_38 = v35;
 		} else {
-			STR* v39;
-			STRLIT(v39, "Expected end of argument.", 25);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v34, v39, v35);
+			STR* v40;
+			STRLIT(v40, "Expected end of argument.", 25);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v35, v40, v36);
 		}
-		branch_ZPlusMirth_25 = branch_ZPlusMirth_38;
-		branch_Token_24 = v29;
-		branch_Package_23 = v32;
-		branch_Name_22 = v30;
-		branch_Token_21 = v27;
-		branch_Maybe_20 = v7;
+		branch_ZPlusMirth_26 = branch_ZPlusMirth_39;
+		branch_Token_25 = v30;
+		branch_Package_24 = v33;
+		branch_Name_23 = v31;
+		branch_Token_22 = v28;
+		branch_Maybe_21 = v7;
 	} else {
-		uint64_t v42 = mw_mirth_token_Token_succ(branch_Token_11);
-		uint64_t v43;
-		TUP* v44;
-		uint64_t v45 = mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang(v42, v16, &v43, &v44);
-		TUP* v46;
-		uint64_t v47 = mw_mirth_token_Token_next(v44, v42, &v46);
-		branch_ZPlusMirth_25 = v46;
-		branch_Token_24 = v42;
-		branch_Package_23 = v45;
-		branch_Name_22 = v43;
-		branch_Token_21 = v47;
-		branch_Maybe_20 = v7;
+		uint64_t v43 = mw_mirth_token_Token_succ(branch_Token_11);
+		uint64_t v44;
+		TUP* v45;
+		uint64_t v46 = mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang(v43, v16, &v44, &v45);
+		TUP* v47;
+		uint64_t v48 = mw_mirth_token_Token_next(v45, v43, &v47);
+		branch_ZPlusMirth_26 = v47;
+		branch_Token_25 = v43;
+		branch_Package_24 = v46;
+		branch_Name_23 = v44;
+		branch_Token_22 = v48;
+		branch_Maybe_21 = v7;
 	}
-	VAL v48 = MKI64(0LL /* Nil */);
-	TUP* v49;
-	bool v50 = mw_mirth_token_Token_moduleZ_importZAsk(branch_ZPlusMirth_25, branch_Token_21, &v49);
-	VAL v51 = branch_Maybe_20;
-	uint64_t v52 = branch_Name_22;
-	uint64_t v53 = branch_Package_23;
-	uint64_t v54 = branch_Token_24;
-	VAL v55 = v48;
-	uint64_t v56 = branch_Token_21;
-	TUP* v57 = v49;
-	bool v58 = v50;
-	while (v58) {
-		VAL v59 = v51;
-		uint64_t v60 = v52;
+	VAL v49 = MKI64(0LL /* Nil */);
+	TUP* v50;
+	bool v51 = mw_mirth_token_Token_moduleZ_importZAsk(branch_ZPlusMirth_26, branch_Token_22, &v50);
+	VAL v52 = branch_Maybe_21;
+	uint64_t v53 = branch_Name_23;
+	uint64_t v54 = branch_Package_24;
+	uint64_t v55 = branch_Token_25;
+	VAL v56 = v49;
+	uint64_t v57 = branch_Token_22;
+	TUP* v58 = v50;
+	bool v59 = v51;
+	while (v59) {
+		VAL v60 = v52;
 		uint64_t v61 = v53;
 		uint64_t v62 = v54;
-		VAL v63 = v55;
-		uint64_t v64 = v56;
-		TUP* v65 = v57;
-		TUP* v66;
-		uint64_t v67;
-		uint64_t v68 = mw_mirth_elab_parseZ_moduleZ_import(v65, v64, &v66, &v67);
-		VAL v69 = mw_std_list_List_1_cons(MKU64(v67), v63);
-		TUP* v70;
-		bool v71 = mw_mirth_token_Token_moduleZ_importZAsk(v66, v68, &v70);
+		uint64_t v63 = v55;
+		VAL v64 = v56;
+		uint64_t v65 = v57;
+		TUP* v66 = v58;
+		TUP* v67;
+		uint64_t v68;
+		uint64_t v69 = mw_mirth_elab_parseZ_moduleZ_import(v66, v65, &v67, &v68);
+		VAL v70 = mw_std_list_List_1_cons(MKU64(v68), v64);
+		TUP* v71;
+		bool v72 = mw_mirth_token_Token_moduleZ_importZAsk(v67, v69, &v71);
+		v59 = v72;
 		v58 = v71;
-		v57 = v70;
-		v56 = v68;
-		v55 = v69;
+		v57 = v69;
+		v56 = v70;
+		v55 = v63;
 		v54 = v62;
 		v53 = v61;
 		v52 = v60;
-		v51 = v59;
 	}
-	VAL v72 = mw_std_list_List_1_reverse(v55);
-	TUP* v73;
-	bool v74 = mw_mirth_token_Token_sigZ_dashesZAsk(v57, v56, &v73);
-	uint64_t branch_Token_75;
-	if (v74) {
-		uint64_t v76 = mw_mirth_token_Token_succ(v56);
-		branch_Token_75 = v76;
+	VAL v73 = mw_std_list_List_1_reverse(v56);
+	TUP* v74;
+	bool v75 = mw_mirth_token_Token_sigZ_dashesZAsk(v58, v57, &v74);
+	uint64_t branch_Token_76;
+	if (v75) {
+		uint64_t v77 = mw_mirth_token_Token_succ(v57);
+		branch_Token_76 = v77;
 	} else {
-		branch_Token_75 = v56;
+		branch_Token_76 = v57;
 	}
-	TUP* v77 = mtw_mirth_elab_ModuleHeader_ModuleHeader(v51, v53, v52, v54, v72);
-	*out_ModuleHeader_5 = v77;
-	*out_ZPlusMirth_3 = v73;
-	return branch_Token_75;
+	TUP* v78 = mtw_mirth_elab_ModuleHeader_ModuleHeader(v52, v54, v53, v55, v73);
+	*out_ModuleHeader_5 = v78;
+	*out_ZPlusMirth_3 = v74;
+	return branch_Token_76;
 }
 static uint64_t mw_mirth_elab_parseZ_moduleZ_packageZ_nameZBang (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, uint64_t *out_Name_4, TUP* *out_ZPlusMirth_5) {
 	TUP* v6;
@@ -44402,24 +44756,24 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 			decref(v33);
 			int64_t v35 = 0LL;
 			bool v36 = (v34 == v35);
-			INT branch_UOffset_37;
+			INT branch_Offset_37;
 			VAL branch_z_x1_38;
 			bool branch_Bool_39;
 			if (v36) {
 				incref(MKINT(v32));
 				INT v40 = WRAP_I63(0LL);
-				bool v41 = int_gt(v32, v40);
+				bool v41 = int_lt(v40, v32);
 				branch_Bool_39 = v41;
 				branch_z_x1_38 = v33;
-				branch_UOffset_37 = v32;
+				branch_Offset_37 = v32;
 			} else {
 				bool v42 = false;
 				branch_Bool_39 = v42;
 				branch_z_x1_38 = v33;
-				branch_UOffset_37 = v32;
+				branch_Offset_37 = v32;
 			}
 			VAL v43 = v30;
-			INT v44 = branch_UOffset_37;
+			INT v44 = branch_Offset_37;
 			VAL v45 = branch_z_x1_38;
 			bool v46 = branch_Bool_39;
 			while (v46) {
@@ -44430,164 +44784,151 @@ static void mw_mirth_elab_checkZ_moduleZ_path (uint64_t in_Token_1, uint64_t in_
 				INT v50 = WRAP_I63(1LL);
 				INT v51 = int_sub(v48, v50);
 				incref(MKINT(v51));
-				INT v52 = WRAP_I63(0LL);
-				bool v53 = int_lt(v51, v52);
-				INT branch_Nat_54;
-				if (v53) {
-					decref(MKINT(v51));
-					INT v55 = WRAP_I63(0LL);
-					branch_Nat_54 = v55;
+				STR* v52;
+				int64_t v53 = mw_std_str_ZPlusStr_byteZAt(v51, value_str(v47), &v52);
+				int64_t v54 = 46LL /* BDOT */;
+				INT v55 = i64_to_int(v53);
+				uint64_t v56 = int_to_u64(v55);
+				uint8_t v57 = (uint8_t)(v56);
+				INT v58 = i64_to_int(v54);
+				uint64_t v59 = int_to_u64(v58);
+				uint8_t v60 = (uint8_t)(v59);
+				uint64_t v61 = (uint64_t)(v60);
+				uint64_t v62 = (uint64_t)(v57);
+				bool v63 = (v62 == v61);
+				STR* branch_ZPlusStr_64;
+				INT branch_Offset_65;
+				VAL branch_Maybe_66;
+				if (v63) {
+					incref(MKINT(v51));
+					VAL v67 = mtw_std_maybe_Maybe_1_Some(MKINT(v51));
+					branch_Maybe_66 = v67;
+					branch_Offset_65 = v51;
+					branch_ZPlusStr_64 = v52;
 				} else {
-					branch_Nat_54 = v51;
+					VAL v68 = MKI64(0LL /* None */);
+					branch_Maybe_66 = v68;
+					branch_Offset_65 = v51;
+					branch_ZPlusStr_64 = v52;
 				}
-				incref(MKINT(branch_Nat_54));
-				STR* v56;
-				int64_t v57 = mw_std_str_ZPlusStr_byteZAt(branch_Nat_54, value_str(v47), &v56);
-				int64_t v58 = 46LL /* BDOT */;
-				INT v59 = i64_to_int(v57);
-				uint64_t v60 = int_to_u64(v59);
-				uint8_t v61 = (uint8_t)(v60);
-				INT v62 = i64_to_int(v58);
-				uint64_t v63 = int_to_u64(v62);
-				uint8_t v64 = (uint8_t)(v63);
-				uint64_t v65 = (uint64_t)(v61);
-				INT v66 = u64_to_int(v65);
-				uint64_t v67 = (uint64_t)(v64);
-				INT v68 = u64_to_int(v67);
-				bool v69 = int_eq(v66, v68);
-				STR* branch_ZPlusStr_70;
-				INT branch_UOffset_71;
-				VAL branch_Maybe_72;
-				if (v69) {
-					incref(MKINT(branch_Nat_54));
-					VAL v73 = mtw_std_maybe_Maybe_1_Some(MKINT(branch_Nat_54));
-					branch_Maybe_72 = v73;
-					branch_UOffset_71 = branch_Nat_54;
-					branch_ZPlusStr_70 = v56;
+				incref(branch_Maybe_66);
+				int64_t v69 = get_data_tag(branch_Maybe_66);
+				decref(branch_Maybe_66);
+				int64_t v70 = 0LL;
+				bool v71 = (v69 == v70);
+				INT branch_Offset_72;
+				VAL branch_z_x1_73;
+				bool branch_Bool_74;
+				if (v71) {
+					incref(MKINT(branch_Offset_65));
+					INT v75 = WRAP_I63(0LL);
+					bool v76 = int_lt(v75, branch_Offset_65);
+					branch_Bool_74 = v76;
+					branch_z_x1_73 = branch_Maybe_66;
+					branch_Offset_72 = branch_Offset_65;
 				} else {
-					VAL v74 = MKI64(0LL /* None */);
-					branch_Maybe_72 = v74;
-					branch_UOffset_71 = branch_Nat_54;
-					branch_ZPlusStr_70 = v56;
+					bool v77 = false;
+					branch_Bool_74 = v77;
+					branch_z_x1_73 = branch_Maybe_66;
+					branch_Offset_72 = branch_Offset_65;
 				}
-				incref(branch_Maybe_72);
-				int64_t v75 = get_data_tag(branch_Maybe_72);
-				decref(branch_Maybe_72);
-				int64_t v76 = 0LL;
-				bool v77 = (v75 == v76);
-				INT branch_UOffset_78;
-				VAL branch_z_x1_79;
-				bool branch_Bool_80;
-				if (v77) {
-					incref(MKINT(branch_UOffset_71));
-					INT v81 = WRAP_I63(0LL);
-					bool v82 = int_gt(branch_UOffset_71, v81);
-					branch_Bool_80 = v82;
-					branch_z_x1_79 = branch_Maybe_72;
-					branch_UOffset_78 = branch_UOffset_71;
-				} else {
-					bool v83 = false;
-					branch_Bool_80 = v83;
-					branch_z_x1_79 = branch_Maybe_72;
-					branch_UOffset_78 = branch_UOffset_71;
-				}
-				v46 = branch_Bool_80;
-				v45 = branch_z_x1_79;
-				v44 = branch_UOffset_78;
-				v43 = MKSTR(branch_ZPlusStr_70);
+				v46 = branch_Bool_74;
+				v45 = branch_z_x1_73;
+				v44 = branch_Offset_72;
+				v43 = MKSTR(branch_ZPlusStr_64);
 			}
 			decref(MKINT(v44));
-			VAL v84;
-			STR* v85 = mw_std_maybe_Maybe_1_map_1_sp11(value_str(v43), v45, &v84);
-			STR* v86;
-			STRLIT(v86, "mth", 3);
-			VAL v87 = mtw_std_maybe_Maybe_1_Some(MKSTR(v86));
-			bool branch_Bool_88;
-			switch (get_data_tag(v87)) {
+			VAL v78;
+			STR* v79 = mw_std_maybe_Maybe_1_map_1_sp11(value_str(v43), v45, &v78);
+			STR* v80;
+			STRLIT(v80, "mth", 3);
+			VAL v81 = mtw_std_maybe_Maybe_1_Some(MKSTR(v80));
+			bool branch_Bool_82;
+			switch (get_data_tag(v81)) {
 				case 0LL: { // None
-					int64_t v89 = get_data_tag(v84);
-					decref(v84);
-					int64_t v90 = 0LL;
-					bool v91 = (v89 == v90);
-					branch_Bool_88 = v91;
+					int64_t v83 = get_data_tag(v78);
+					decref(v78);
+					int64_t v84 = 0LL;
+					bool v85 = (v83 == v84);
+					branch_Bool_82 = v85;
 				} break;
 				case 1LL: { // Some
-					VAL v92 = mtp_std_maybe_Maybe_1_Some(v87);
-					bool branch_Bool_93;
-					switch (get_data_tag(v84)) {
+					VAL v86 = mtp_std_maybe_Maybe_1_Some(v81);
+					bool branch_Bool_87;
+					switch (get_data_tag(v78)) {
 						case 1LL: { // Some
-							VAL v94 = mtp_std_maybe_Maybe_1_Some(v84);
-							bool v95 = (str_cmp(value_str(v94), value_str(v92)) == 0);
-							branch_Bool_93 = v95;
+							VAL v88 = mtp_std_maybe_Maybe_1_Some(v78);
+							bool v89 = (str_cmp(value_str(v88), value_str(v86)) == 0);
+							branch_Bool_87 = v89;
 						} break;
 						case 0LL: { // None
-							decref(v92);
-							bool v96 = false;
-							branch_Bool_93 = v96;
+							decref(v86);
+							bool v90 = false;
+							branch_Bool_87 = v90;
 						} break;
 						default: {
 							do_panic(str_make("unexpected fallthrough in match\n", 32));
 						}
 					}
-					branch_Bool_88 = branch_Bool_93;
+					branch_Bool_82 = branch_Bool_87;
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
 				}
 			}
-			TUP* branch_ZPlusMirth_97;
-			uint64_t branch_Token_98;
-			VAL branch_z_x1_99;
-			VAL branch_z_x2_100;
-			VAL branch_z_x3_101;
-			if (branch_Bool_88) {
-				branch_z_x3_101 = MKSTR(v85);
-				branch_z_x2_100 = MKSTR(v10);
-				branch_z_x1_99 = MKU64(in_Module_2);
-				branch_Token_98 = in_Token_1;
-				branch_ZPlusMirth_97 = v7;
+			TUP* branch_ZPlusMirth_91;
+			uint64_t branch_Token_92;
+			VAL branch_z_x1_93;
+			VAL branch_z_x2_94;
+			VAL branch_z_x3_95;
+			if (branch_Bool_82) {
+				branch_z_x3_95 = MKSTR(v79);
+				branch_z_x2_94 = MKSTR(v10);
+				branch_z_x1_93 = MKU64(in_Module_2);
+				branch_Token_92 = in_Token_1;
+				branch_ZPlusMirth_91 = v7;
 			} else {
-				STR* v102;
-				STRLIT(v102, "Expected .mth extension for mirth file.", 39);
-				TUP* v103;
-				mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang(in_Token_1, v102, v7, &v103);
-				branch_z_x3_101 = MKSTR(v85);
-				branch_z_x2_100 = MKSTR(v10);
-				branch_z_x1_99 = MKU64(in_Module_2);
-				branch_Token_98 = in_Token_1;
-				branch_ZPlusMirth_97 = v103;
+				STR* v96;
+				STRLIT(v96, "Expected .mth extension for mirth file.", 39);
+				TUP* v97;
+				mw_mirth_mirth_ZPlusMirth_emitZ_warningZBang(in_Token_1, v96, v7, &v97);
+				branch_z_x3_95 = MKSTR(v79);
+				branch_z_x2_94 = MKSTR(v10);
+				branch_z_x1_93 = MKU64(in_Module_2);
+				branch_Token_92 = in_Token_1;
+				branch_ZPlusMirth_91 = v97;
 			}
-			incref(branch_z_x1_99);
-			TUP* v104;
-			uint64_t v105 = mw_mirth_module_Module_name(branch_ZPlusMirth_97, value_u64(branch_z_x1_99), &v104);
-			TUP* v106;
-			STR* v107 = mw_mirth_name_Name_ZToStr(v104, v105, &v106);
-			bool v108 = (str_cmp(value_str(branch_z_x3_101), v107) == 0);
-			TUP* branch_ZPlusMirth_109;
-			uint64_t branch_Token_110;
-			VAL branch_z_x1_111;
-			VAL branch_z_x2_112;
-			if (v108) {
-				branch_z_x2_112 = branch_z_x2_100;
-				branch_z_x1_111 = branch_z_x1_99;
-				branch_Token_110 = branch_Token_98;
-				branch_ZPlusMirth_109 = v106;
+			incref(branch_z_x1_93);
+			TUP* v98;
+			uint64_t v99 = mw_mirth_module_Module_name(branch_ZPlusMirth_91, value_u64(branch_z_x1_93), &v98);
+			TUP* v100;
+			STR* v101 = mw_mirth_name_Name_ZToStr(v98, v99, &v100);
+			bool v102 = (str_cmp(value_str(branch_z_x3_95), v101) == 0);
+			TUP* branch_ZPlusMirth_103;
+			uint64_t branch_Token_104;
+			VAL branch_z_x1_105;
+			VAL branch_z_x2_106;
+			if (v102) {
+				branch_z_x2_106 = branch_z_x2_94;
+				branch_z_x1_105 = branch_z_x1_93;
+				branch_Token_104 = branch_Token_92;
+				branch_ZPlusMirth_103 = v100;
 			} else {
-				TUP* v113;
-				uint64_t v114 = mw_mirth_token_Token_module(v106, branch_Token_98, &v113);
-				TUP* v115;
-				uint64_t v116 = mw_mirth_module_Module_head(v113, v114, &v115);
-				STR* v117;
-				STRLIT(v117, "Expected module name to match file name.", 40);
-				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v116, v117, v115);
+				TUP* v107;
+				uint64_t v108 = mw_mirth_token_Token_module(v100, branch_Token_92, &v107);
+				TUP* v109;
+				uint64_t v110 = mw_mirth_module_Module_head(v107, v108, &v109);
+				STR* v111;
+				STRLIT(v111, "Expected module name to match file name.", 40);
+				mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v110, v111, v109);
 			}
-			incref(branch_z_x1_111);
-			TUP* v119;
-			uint64_t v120 = mw_mirth_module_Module_package(branch_ZPlusMirth_109, value_u64(branch_z_x1_111), &v119);
-			TUP* v121;
-			mw_mirth_package_Package_pathZBang(v119, value_str(branch_z_x2_112), v120, &v121);
-			decref(branch_z_x1_111);
-			branch_ZPlusMirth_11 = v121;
+			incref(branch_z_x1_105);
+			TUP* v113;
+			uint64_t v114 = mw_mirth_module_Module_package(branch_ZPlusMirth_103, value_u64(branch_z_x1_105), &v113);
+			TUP* v115;
+			mw_mirth_package_Package_pathZBang(v113, value_str(branch_z_x2_106), v114, &v115);
+			decref(branch_z_x1_105);
+			branch_ZPlusMirth_11 = v115;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -44868,43 +45209,44 @@ static uint64_t mw_mirth_elab_parseZ_moduleZ_import (TUP* in_ZPlusMirth_1, uint6
 	TUP* v13;
 	INT v14 = mw_mirth_token_Token_numZ_args(branch_ZPlusMirth_9, branch_Token_8, &v13);
 	INT v15 = WRAP_I63(0LL);
-	bool v16 = int_gt(v14, v15);
-	uint64_t branch_Token_17;
+	bool v16 = int_eq(v14, v15);
+	bool v17 = !v16;
 	uint64_t branch_Token_18;
-	TUP* branch_ZPlusMirth_19;
-	if (v16) {
-		TUP* v20;
-		uint64_t v21 = mw_mirth_token_Token_next(v13, branch_Token_8, &v20);
-		TUP* v22;
-		uint64_t v23 = mw_mirth_token_Token_argsZ_1(branch_Token_8, v20, &v22);
-		uint64_t v24 = mw_mirth_token_Token_succ(v23);
-		TUP* v25;
-		bool v26 = mw_mirth_token_Token_argZ_endZAsk(v22, v24, &v25);
-		TUP* branch_ZPlusMirth_27;
-		uint64_t branch_Token_28;
-		if (v26) {
-			branch_Token_28 = v23;
-			branch_ZPlusMirth_27 = v25;
+	uint64_t branch_Token_19;
+	TUP* branch_ZPlusMirth_20;
+	if (v17) {
+		TUP* v21;
+		uint64_t v22 = mw_mirth_token_Token_next(v13, branch_Token_8, &v21);
+		TUP* v23;
+		uint64_t v24 = mw_mirth_token_Token_argsZ_1(branch_Token_8, v21, &v23);
+		uint64_t v25 = mw_mirth_token_Token_succ(v24);
+		TUP* v26;
+		bool v27 = mw_mirth_token_Token_argZ_endZAsk(v23, v25, &v26);
+		TUP* branch_ZPlusMirth_28;
+		uint64_t branch_Token_29;
+		if (v27) {
+			branch_Token_29 = v24;
+			branch_ZPlusMirth_28 = v26;
 		} else {
-			uint64_t v29 = mw_mirth_token_Token_succ(v23);
-			STR* v30;
-			STRLIT(v30, "expected arg end", 16);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v29, v30, v25);
+			uint64_t v30 = mw_mirth_token_Token_succ(v24);
+			STR* v31;
+			STRLIT(v31, "expected arg end", 16);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v30, v31, v26);
 		}
-		branch_ZPlusMirth_19 = branch_ZPlusMirth_27;
-		branch_Token_18 = branch_Token_28;
-		branch_Token_17 = v21;
+		branch_ZPlusMirth_20 = branch_ZPlusMirth_28;
+		branch_Token_19 = branch_Token_29;
+		branch_Token_18 = v22;
 	} else {
-		uint64_t v32 = mw_mirth_token_Token_succ(branch_Token_8);
-		TUP* v33;
-		uint64_t v34 = mw_mirth_token_Token_next(v13, v32, &v33);
-		branch_ZPlusMirth_19 = v33;
-		branch_Token_18 = v32;
-		branch_Token_17 = v34;
+		uint64_t v33 = mw_mirth_token_Token_succ(branch_Token_8);
+		TUP* v34;
+		uint64_t v35 = mw_mirth_token_Token_next(v13, v33, &v34);
+		branch_ZPlusMirth_20 = v34;
+		branch_Token_19 = v33;
+		branch_Token_18 = v35;
 	}
-	*out_ModuleImport_5 = branch_Token_18;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_19;
-	return branch_Token_17;
+	*out_ModuleImport_5 = branch_Token_19;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_20;
+	return branch_Token_18;
 }
 static void mw_mirth_elab_processZ_moduleZ_importZBang (uint64_t in_ModuleImport_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v6 = value_tup(in_ZPlusMirth_2->cells[6], 2);
@@ -44943,107 +45285,108 @@ static uint64_t mw_mirth_elab_parseZ_data (TUP* in_ZPlusMirth_1, uint64_t in_Tok
 	TUP* v8;
 	INT v9 = mw_mirth_token_Token_numZ_args(v6, in_Token_2, &v8);
 	INT v10 = WRAP_I63(0LL);
-	bool v11 = int_gt(v9, v10);
-	VAL branch_Maybe_12;
-	uint64_t branch_SyntaxDataHeader_13;
-	VAL branch_List_14;
-	VAL branch_Maybe_15;
-	TUP* branch_ZPlusMirth_16;
-	uint64_t branch_Token_17;
-	if (v11) {
-		uint64_t v18 = mw_mirth_token_Token_succ(in_Token_2);
-		TUP* v19;
-		VAL v20 = mw_mirth_token_Token_lparenZAsk(v8, v18, &v19);
-		int64_t v21 = get_data_tag(v20);
-		decref(v20);
-		int64_t v22 = 0LL;
-		bool v23 = (v21 == v22);
-		bool v24 = !v23;
-		uint64_t branch_Token_25;
-		TUP* branch_ZPlusMirth_26;
-		if (v24) {
-			branch_ZPlusMirth_26 = v19;
-			branch_Token_25 = v18;
+	bool v11 = int_eq(v9, v10);
+	bool v12 = !v11;
+	VAL branch_Maybe_13;
+	uint64_t branch_SyntaxDataHeader_14;
+	VAL branch_List_15;
+	VAL branch_Maybe_16;
+	TUP* branch_ZPlusMirth_17;
+	uint64_t branch_Token_18;
+	if (v12) {
+		uint64_t v19 = mw_mirth_token_Token_succ(in_Token_2);
+		TUP* v20;
+		VAL v21 = mw_mirth_token_Token_lparenZAsk(v8, v19, &v20);
+		int64_t v22 = get_data_tag(v21);
+		decref(v21);
+		int64_t v23 = 0LL;
+		bool v24 = (v22 == v23);
+		bool v25 = !v24;
+		uint64_t branch_Token_26;
+		TUP* branch_ZPlusMirth_27;
+		if (v25) {
+			branch_ZPlusMirth_27 = v20;
+			branch_Token_26 = v19;
 		} else {
-			STR* v27;
-			STRLIT(v27, "expected left parenthesis '('", 29);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v18, v27, v19);
+			STR* v28;
+			STRLIT(v28, "expected left parenthesis '('", 29);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v19, v28, v20);
 		}
-		uint64_t v30 = mw_mirth_token_Token_succ(branch_Token_25);
-		TUP* v31;
-		uint64_t v32;
-		uint64_t v33 = mw_mirth_elab_parseZ_dataZ_header(branch_ZPlusMirth_26, v30, &v31, &v32);
-		TUP* v34;
-		bool v35 = mw_mirth_token_Token_commaZAsk(v31, v33, &v34);
-		uint64_t branch_Token_36;
-		if (v35) {
-			uint64_t v37 = mw_mirth_token_Token_succ(v33);
-			branch_Token_36 = v37;
+		uint64_t v31 = mw_mirth_token_Token_succ(branch_Token_26);
+		TUP* v32;
+		uint64_t v33;
+		uint64_t v34 = mw_mirth_elab_parseZ_dataZ_header(branch_ZPlusMirth_27, v31, &v32, &v33);
+		TUP* v35;
+		bool v36 = mw_mirth_token_Token_commaZAsk(v32, v34, &v35);
+		uint64_t branch_Token_37;
+		if (v36) {
+			uint64_t v38 = mw_mirth_token_Token_succ(v34);
+			branch_Token_37 = v38;
 		} else {
-			branch_Token_36 = v33;
+			branch_Token_37 = v34;
 		}
-		TUP* v38;
-		VAL v39;
-		uint64_t v40 = mw_mirth_elab_parseZ_dataZ_tags(v34, branch_Token_36, &v38, &v39);
-		TUP* v41;
-		VAL v42;
-		uint64_t v43 = mw_mirth_elab_parseZ_dataZ_declsZBang(v38, v40, &v41, &v42);
-		TUP* v44;
-		VAL v45 = mw_mirth_token_Token_rparenZAsk(v41, v43, &v44);
-		int64_t v46 = get_data_tag(v45);
-		decref(v45);
-		int64_t v47 = 0LL;
-		bool v48 = (v46 == v47);
-		bool v49 = !v48;
-		uint64_t branch_Token_50;
-		TUP* branch_ZPlusMirth_51;
-		if (v49) {
-			branch_ZPlusMirth_51 = v44;
-			branch_Token_50 = v43;
+		TUP* v39;
+		VAL v40;
+		uint64_t v41 = mw_mirth_elab_parseZ_dataZ_tags(v35, branch_Token_37, &v39, &v40);
+		TUP* v42;
+		VAL v43;
+		uint64_t v44 = mw_mirth_elab_parseZ_dataZ_declsZBang(v39, v41, &v42, &v43);
+		TUP* v45;
+		VAL v46 = mw_mirth_token_Token_rparenZAsk(v42, v44, &v45);
+		int64_t v47 = get_data_tag(v46);
+		decref(v46);
+		int64_t v48 = 0LL;
+		bool v49 = (v47 == v48);
+		bool v50 = !v49;
+		uint64_t branch_Token_51;
+		TUP* branch_ZPlusMirth_52;
+		if (v50) {
+			branch_ZPlusMirth_52 = v45;
+			branch_Token_51 = v44;
 		} else {
-			STR* v52;
-			STRLIT(v52, "expected right parenthesis ')'", 30);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v43, v52, v44);
+			STR* v53;
+			STRLIT(v53, "expected right parenthesis ')'", 30);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v44, v53, v45);
 		}
-		uint64_t v55 = mw_mirth_token_Token_succ(branch_Token_50);
-		branch_Token_17 = v55;
-		branch_ZPlusMirth_16 = branch_ZPlusMirth_51;
-		branch_Maybe_15 = v42;
-		branch_List_14 = v39;
-		branch_SyntaxDataHeader_13 = v32;
-		branch_Maybe_12 = v7;
+		uint64_t v56 = mw_mirth_token_Token_succ(branch_Token_51);
+		branch_Token_18 = v56;
+		branch_ZPlusMirth_17 = branch_ZPlusMirth_52;
+		branch_Maybe_16 = v43;
+		branch_List_15 = v40;
+		branch_SyntaxDataHeader_14 = v33;
+		branch_Maybe_13 = v7;
 	} else {
-		uint64_t v56 = mw_mirth_token_Token_succ(in_Token_2);
-		TUP* v57;
-		uint64_t v58;
-		uint64_t v59 = mw_mirth_elab_parseZ_dataZ_header(v8, v56, &v57, &v58);
-		TUP* v60;
-		VAL v61 = mw_mirth_token_Token_lcurlyZAsk(v57, v59, &v60);
-		TUP* v62;
-		uint64_t v63 = mw_std_maybe_Maybe_1_else_1_sp6(v59, v60, v61, &v62);
-		uint64_t v64 = mw_mirth_token_Token_succ(v63);
-		TUP* v65;
-		VAL v66;
-		uint64_t v67 = mw_mirth_elab_parseZ_dataZ_tags(v62, v64, &v65, &v66);
-		TUP* v68;
-		VAL v69;
-		uint64_t v70 = mw_mirth_elab_parseZ_dataZ_declsZBang(v65, v67, &v68, &v69);
-		TUP* v71;
-		VAL v72 = mw_mirth_token_Token_rcurlyZAsk(v68, v70, &v71);
-		TUP* v73;
-		uint64_t v74 = mw_std_maybe_Maybe_1_else_1_sp7(v70, v71, v72, &v73);
-		uint64_t v75 = mw_mirth_token_Token_succ(v74);
-		branch_Token_17 = v75;
-		branch_ZPlusMirth_16 = v73;
-		branch_Maybe_15 = v69;
-		branch_List_14 = v66;
-		branch_SyntaxDataHeader_13 = v58;
-		branch_Maybe_12 = v7;
+		uint64_t v57 = mw_mirth_token_Token_succ(in_Token_2);
+		TUP* v58;
+		uint64_t v59;
+		uint64_t v60 = mw_mirth_elab_parseZ_dataZ_header(v8, v57, &v58, &v59);
+		TUP* v61;
+		VAL v62 = mw_mirth_token_Token_lcurlyZAsk(v58, v60, &v61);
+		TUP* v63;
+		uint64_t v64 = mw_std_maybe_Maybe_1_else_1_sp6(v60, v61, v62, &v63);
+		uint64_t v65 = mw_mirth_token_Token_succ(v64);
+		TUP* v66;
+		VAL v67;
+		uint64_t v68 = mw_mirth_elab_parseZ_dataZ_tags(v63, v65, &v66, &v67);
+		TUP* v69;
+		VAL v70;
+		uint64_t v71 = mw_mirth_elab_parseZ_dataZ_declsZBang(v66, v68, &v69, &v70);
+		TUP* v72;
+		VAL v73 = mw_mirth_token_Token_rcurlyZAsk(v69, v71, &v72);
+		TUP* v74;
+		uint64_t v75 = mw_std_maybe_Maybe_1_else_1_sp7(v71, v72, v73, &v74);
+		uint64_t v76 = mw_mirth_token_Token_succ(v75);
+		branch_Token_18 = v76;
+		branch_ZPlusMirth_17 = v74;
+		branch_Maybe_16 = v70;
+		branch_List_15 = v67;
+		branch_SyntaxDataHeader_14 = v59;
+		branch_Maybe_13 = v7;
 	}
-	TUP* v76 = mtw_mirth_elab_SyntaxData_SyntaxData(branch_Maybe_12, branch_SyntaxDataHeader_13, branch_List_14, branch_Maybe_15);
-	*out_SyntaxData_5 = v76;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_16;
-	return branch_Token_17;
+	TUP* v77 = mtw_mirth_elab_SyntaxData_SyntaxData(branch_Maybe_13, branch_SyntaxDataHeader_14, branch_List_15, branch_Maybe_16);
+	*out_SyntaxData_5 = v77;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_17;
+	return branch_Token_18;
 }
 static uint64_t mw_mirth_elab_parseZ_dataZ_header (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_SyntaxDataHeader_5) {
 	TUP* v6;
@@ -45141,7 +45484,7 @@ static uint64_t mw_mirth_elab_parseZ_dataZ_tag (TUP* in_ZPlusMirth_1, uint64_t i
 	TUP* v16;
 	VAL v17 = mw_mirth_token_Token_nameZAsk(v8, branch_Token_14, &v16);
 	TUP* v18;
-	VAL v19 = mw_std_maybe_Maybe_1_filter_1_sp20(v16, v17, &v18);
+	VAL v19 = mw_std_maybe_Maybe_1_filter_1_sp21(v16, v17, &v18);
 	uint64_t branch_Token_20;
 	TUP* branch_ZPlusMirth_21;
 	VAL branch_z_x1_22;
@@ -45266,113 +45609,114 @@ static uint64_t mw_mirth_elab_parseZ_struct (TUP* in_ZPlusMirth_1, uint64_t in_T
 	TUP* v8;
 	INT v9 = mw_mirth_token_Token_numZ_args(v6, in_Token_2, &v8);
 	INT v10 = WRAP_I63(0LL);
-	bool v11 = int_gt(v9, v10);
-	VAL branch_Maybe_12;
-	uint64_t branch_SyntaxDataHeader_13;
-	VAL branch_List_14;
-	VAL branch_Maybe_15;
-	TUP* branch_ZPlusMirth_16;
-	uint64_t branch_Token_17;
-	if (v11) {
-		uint64_t v18 = mw_mirth_token_Token_succ(in_Token_2);
-		TUP* v19;
-		VAL v20 = mw_mirth_token_Token_lparenZAsk(v8, v18, &v19);
-		int64_t v21 = get_data_tag(v20);
-		decref(v20);
-		int64_t v22 = 0LL;
-		bool v23 = (v21 == v22);
-		bool v24 = !v23;
-		uint64_t branch_Token_25;
-		TUP* branch_ZPlusMirth_26;
-		if (v24) {
-			STR* v27;
-			STRLIT(v27, "Expected left parenthesis '('", 29);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v18, v27, v19);
+	bool v11 = int_eq(v9, v10);
+	bool v12 = !v11;
+	VAL branch_Maybe_13;
+	uint64_t branch_SyntaxDataHeader_14;
+	VAL branch_List_15;
+	VAL branch_Maybe_16;
+	TUP* branch_ZPlusMirth_17;
+	uint64_t branch_Token_18;
+	if (v12) {
+		uint64_t v19 = mw_mirth_token_Token_succ(in_Token_2);
+		TUP* v20;
+		VAL v21 = mw_mirth_token_Token_lparenZAsk(v8, v19, &v20);
+		int64_t v22 = get_data_tag(v21);
+		decref(v21);
+		int64_t v23 = 0LL;
+		bool v24 = (v22 == v23);
+		bool v25 = !v24;
+		uint64_t branch_Token_26;
+		TUP* branch_ZPlusMirth_27;
+		if (v25) {
+			STR* v28;
+			STRLIT(v28, "Expected left parenthesis '('", 29);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v19, v28, v20);
 		} else {
-			branch_ZPlusMirth_26 = v19;
-			branch_Token_25 = v18;
+			branch_ZPlusMirth_27 = v20;
+			branch_Token_26 = v19;
 		}
-		uint64_t v30 = mw_mirth_token_Token_succ(branch_Token_25);
-		TUP* v31;
-		uint64_t v32;
-		uint64_t v33 = mw_mirth_elab_parseZ_dataZ_header(branch_ZPlusMirth_26, v30, &v31, &v32);
-		TUP* v34;
-		bool v35 = mw_mirth_token_Token_commaZAsk(v31, v33, &v34);
-		uint64_t branch_Token_36;
-		if (v35) {
-			uint64_t v37 = mw_mirth_token_Token_succ(v33);
-			branch_Token_36 = v37;
+		uint64_t v31 = mw_mirth_token_Token_succ(branch_Token_26);
+		TUP* v32;
+		uint64_t v33;
+		uint64_t v34 = mw_mirth_elab_parseZ_dataZ_header(branch_ZPlusMirth_27, v31, &v32, &v33);
+		TUP* v35;
+		bool v36 = mw_mirth_token_Token_commaZAsk(v32, v34, &v35);
+		uint64_t branch_Token_37;
+		if (v36) {
+			uint64_t v38 = mw_mirth_token_Token_succ(v34);
+			branch_Token_37 = v38;
 		} else {
-			branch_Token_36 = v33;
+			branch_Token_37 = v34;
 		}
-		TUP* v38;
-		uint64_t v39;
-		TUP* v40;
-		uint64_t v41 = mw_mirth_elab_parseZ_structZ_tag(v34, branch_Token_36, v32, &v38, &v39, &v40);
-		VAL v42 = MKI64(0LL /* Nil */);
-		VAL v43 = mw_std_list_List_1_cons(MKTUP(v40, 5), v42);
-		TUP* v44;
-		VAL v45;
-		uint64_t v46 = mw_mirth_elab_parseZ_dataZ_declsZBang(v38, v41, &v44, &v45);
-		TUP* v47;
-		VAL v48 = mw_mirth_token_Token_rparenZAsk(v44, v46, &v47);
-		int64_t v49 = get_data_tag(v48);
-		decref(v48);
-		int64_t v50 = 0LL;
-		bool v51 = (v49 == v50);
-		bool v52 = !v51;
-		uint64_t branch_Token_53;
-		TUP* branch_ZPlusMirth_54;
-		if (v52) {
-			STR* v55;
-			STRLIT(v55, "Expected right parenthesis ')'", 30);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v46, v55, v47);
+		TUP* v39;
+		uint64_t v40;
+		TUP* v41;
+		uint64_t v42 = mw_mirth_elab_parseZ_structZ_tag(v35, branch_Token_37, v33, &v39, &v40, &v41);
+		VAL v43 = MKI64(0LL /* Nil */);
+		VAL v44 = mw_std_list_List_1_cons(MKTUP(v41, 5), v43);
+		TUP* v45;
+		VAL v46;
+		uint64_t v47 = mw_mirth_elab_parseZ_dataZ_declsZBang(v39, v42, &v45, &v46);
+		TUP* v48;
+		VAL v49 = mw_mirth_token_Token_rparenZAsk(v45, v47, &v48);
+		int64_t v50 = get_data_tag(v49);
+		decref(v49);
+		int64_t v51 = 0LL;
+		bool v52 = (v50 == v51);
+		bool v53 = !v52;
+		uint64_t branch_Token_54;
+		TUP* branch_ZPlusMirth_55;
+		if (v53) {
+			STR* v56;
+			STRLIT(v56, "Expected right parenthesis ')'", 30);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v47, v56, v48);
 		} else {
-			branch_ZPlusMirth_54 = v47;
-			branch_Token_53 = v46;
+			branch_ZPlusMirth_55 = v48;
+			branch_Token_54 = v47;
 		}
-		uint64_t v58 = mw_mirth_token_Token_succ(branch_Token_53);
-		branch_Token_17 = v58;
-		branch_ZPlusMirth_16 = branch_ZPlusMirth_54;
-		branch_Maybe_15 = v45;
-		branch_List_14 = v43;
-		branch_SyntaxDataHeader_13 = v39;
-		branch_Maybe_12 = v7;
+		uint64_t v59 = mw_mirth_token_Token_succ(branch_Token_54);
+		branch_Token_18 = v59;
+		branch_ZPlusMirth_17 = branch_ZPlusMirth_55;
+		branch_Maybe_16 = v46;
+		branch_List_15 = v44;
+		branch_SyntaxDataHeader_14 = v40;
+		branch_Maybe_13 = v7;
 	} else {
-		uint64_t v59 = mw_mirth_token_Token_succ(in_Token_2);
-		TUP* v60;
-		uint64_t v61;
-		uint64_t v62 = mw_mirth_elab_parseZ_dataZ_header(v8, v59, &v60, &v61);
-		TUP* v63;
-		VAL v64 = mw_mirth_token_Token_lcurlyZAsk(v60, v62, &v63);
-		TUP* v65;
-		uint64_t v66 = mw_std_maybe_Maybe_1_else_1_sp6(v62, v63, v64, &v65);
-		uint64_t v67 = mw_mirth_token_Token_succ(v66);
-		TUP* v68;
-		uint64_t v69;
-		TUP* v70;
-		uint64_t v71 = mw_mirth_elab_parseZ_structZ_tag(v65, v67, v61, &v68, &v69, &v70);
-		VAL v72 = MKI64(0LL /* Nil */);
-		VAL v73 = mw_std_list_List_1_cons(MKTUP(v70, 5), v72);
-		TUP* v74;
-		VAL v75;
-		uint64_t v76 = mw_mirth_elab_parseZ_dataZ_declsZBang(v68, v71, &v74, &v75);
-		TUP* v77;
-		VAL v78 = mw_mirth_token_Token_rcurlyZAsk(v74, v76, &v77);
-		TUP* v79;
-		uint64_t v80 = mw_std_maybe_Maybe_1_else_1_sp7(v76, v77, v78, &v79);
-		uint64_t v81 = mw_mirth_token_Token_succ(v80);
-		branch_Token_17 = v81;
-		branch_ZPlusMirth_16 = v79;
-		branch_Maybe_15 = v75;
-		branch_List_14 = v73;
-		branch_SyntaxDataHeader_13 = v69;
-		branch_Maybe_12 = v7;
+		uint64_t v60 = mw_mirth_token_Token_succ(in_Token_2);
+		TUP* v61;
+		uint64_t v62;
+		uint64_t v63 = mw_mirth_elab_parseZ_dataZ_header(v8, v60, &v61, &v62);
+		TUP* v64;
+		VAL v65 = mw_mirth_token_Token_lcurlyZAsk(v61, v63, &v64);
+		TUP* v66;
+		uint64_t v67 = mw_std_maybe_Maybe_1_else_1_sp6(v63, v64, v65, &v66);
+		uint64_t v68 = mw_mirth_token_Token_succ(v67);
+		TUP* v69;
+		uint64_t v70;
+		TUP* v71;
+		uint64_t v72 = mw_mirth_elab_parseZ_structZ_tag(v66, v68, v62, &v69, &v70, &v71);
+		VAL v73 = MKI64(0LL /* Nil */);
+		VAL v74 = mw_std_list_List_1_cons(MKTUP(v71, 5), v73);
+		TUP* v75;
+		VAL v76;
+		uint64_t v77 = mw_mirth_elab_parseZ_dataZ_declsZBang(v69, v72, &v75, &v76);
+		TUP* v78;
+		VAL v79 = mw_mirth_token_Token_rcurlyZAsk(v75, v77, &v78);
+		TUP* v80;
+		uint64_t v81 = mw_std_maybe_Maybe_1_else_1_sp7(v77, v78, v79, &v80);
+		uint64_t v82 = mw_mirth_token_Token_succ(v81);
+		branch_Token_18 = v82;
+		branch_ZPlusMirth_17 = v80;
+		branch_Maybe_16 = v76;
+		branch_List_15 = v74;
+		branch_SyntaxDataHeader_14 = v70;
+		branch_Maybe_13 = v7;
 	}
-	TUP* v82 = mtw_mirth_elab_SyntaxData_SyntaxData(branch_Maybe_12, branch_SyntaxDataHeader_13, branch_List_14, branch_Maybe_15);
-	*out_SyntaxData_5 = v82;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_16;
-	return branch_Token_17;
+	TUP* v83 = mtw_mirth_elab_SyntaxData_SyntaxData(branch_Maybe_13, branch_SyntaxDataHeader_14, branch_List_15, branch_Maybe_16);
+	*out_SyntaxData_5 = v83;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_17;
+	return branch_Token_18;
 }
 static uint64_t mw_mirth_elab_parseZ_dataZ_declsZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5) {
 	TUP* v6;
@@ -45422,7 +45766,7 @@ static uint64_t mw_mirth_elab_parseZ_structZ_tag (TUP* in_ZPlusMirth_1, uint64_t
 	TUP* v9;
 	VAL v10 = mw_mirth_token_Token_lastZ_nameZAsk(in_ZPlusMirth_1, in_SyntaxDataHeader_3, &v9);
 	TUP* v11;
-	VAL v12 = mw_std_maybe_Maybe_1_filter_1_sp20(v9, v10, &v11);
+	VAL v12 = mw_std_maybe_Maybe_1_filter_1_sp21(v9, v10, &v11);
 	TUP* branch_ZPlusMirth_13;
 	uint64_t branch_SyntaxDataHeader_14;
 	VAL branch_z_x1_15;
@@ -46840,28 +47184,29 @@ static uint64_t mw_mirth_elab_elabZ_inlineZBang (uint64_t in_Token_1, TUP* in_ZP
 	TUP* v9;
 	INT v10 = mw_mirth_token_Token_numZ_args(in_ZPlusMirth_2, in_Token_1, &v9);
 	INT v11 = WRAP_I63(0LL);
-	bool v12 = int_gt(v10, v11);
-	uint64_t branch_Token_13;
-	TUP* branch_ZPlusMirth_14;
-	if (v12) {
-		TUP* v15;
-		uint64_t v16 = mw_mirth_token_Token_next(v9, in_Token_1, &v15);
-		TUP* v17;
-		uint64_t v18 = mw_mirth_token_Token_argsZ_1(in_Token_1, v15, &v17);
-		TUP* v19;
-		uint64_t v20 = mw_mirth_elab_elabZ_declsZBang(v17, v18, &v19);
-		branch_ZPlusMirth_14 = v19;
-		branch_Token_13 = v16;
+	bool v12 = int_eq(v10, v11);
+	bool v13 = !v12;
+	uint64_t branch_Token_14;
+	TUP* branch_ZPlusMirth_15;
+	if (v13) {
+		TUP* v16;
+		uint64_t v17 = mw_mirth_token_Token_next(v9, in_Token_1, &v16);
+		TUP* v18;
+		uint64_t v19 = mw_mirth_token_Token_argsZ_1(in_Token_1, v16, &v18);
+		TUP* v20;
+		uint64_t v21 = mw_mirth_elab_elabZ_declsZBang(v18, v19, &v20);
+		branch_ZPlusMirth_15 = v20;
+		branch_Token_14 = v17;
 	} else {
-		uint64_t v21 = mw_mirth_token_Token_succ(in_Token_1);
-		TUP* v22;
-		uint64_t v23 = mw_mirth_elab_elabZ_declZ_orZ_declZ_blockZBang(v9, v21, &v22);
-		branch_ZPlusMirth_14 = v22;
-		branch_Token_13 = v23;
+		uint64_t v22 = mw_mirth_token_Token_succ(in_Token_1);
+		TUP* v23;
+		uint64_t v24 = mw_mirth_elab_elabZ_declZ_orZ_declZ_blockZBang(v9, v22, &v23);
+		branch_ZPlusMirth_15 = v23;
+		branch_Token_14 = v24;
 	}
-	branch_ZPlusMirth_14->cells[5] = MKBOOL(v8);
-	*out_ZPlusMirth_4 = branch_ZPlusMirth_14;
-	return branch_Token_13;
+	branch_ZPlusMirth_15->cells[5] = MKBOOL(v8);
+	*out_ZPlusMirth_4 = branch_ZPlusMirth_15;
+	return branch_Token_14;
 }
 static uint64_t mw_mirth_elab_elabZ_patchZBang (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_4) {
 	TUP* v7;
@@ -46933,7 +47278,7 @@ static uint64_t mw_mirth_elab_elabZ_maxZ_mirthZ_revisionZBang (uint64_t in_Token
 	VAL v12;
 	uint64_t v13 = mw_std_maybe_Maybe_1_elseZAsk_1_sp4(v8, v9, v10, &v11, &v12);
 	VAL v14 = mw_mirth_version_mirthZ_revision();
-	bool v15 = int_ge(value_int(v12), value_int(v14));
+	bool v15 = int_le(value_int(v14), value_int(v12));
 	TUP* branch_ZPlusMirth_16;
 	uint64_t branch_Token_17;
 	if (v15) {
@@ -47339,7 +47684,7 @@ static void mw_mirth_elab_checkZ_inlineZ_recursionZ_opZBang (TUP* in_ZPlusMirth_
 		} break;
 		case 1LL: { // Word
 			uint64_t v10 = mtp_mirth_arrow_Op_Word(in_Op_3);
-			bool v11 = mw_mirth_word_Word_ZEqualZEqual(in_Word_2, v10);
+			bool v11 = mw_mirth_word_Word_ZEqual(in_Word_2, v10);
 			TUP* branch_ZPlusMirth_12;
 			if (v11) {
 				TUP* v13;
@@ -47710,82 +48055,83 @@ static uint64_t mw_mirth_elab_parseZ_externalZ_decl (TUP* in_ZPlusMirth_1, uint6
 	TUP* v10;
 	INT v11 = mw_mirth_token_Token_numZ_args(v7, v9, &v10);
 	INT v12 = WRAP_I63(0LL);
-	bool v13 = int_gt(v11, v12);
-	TUP* branch_ZPlusMirth_14;
-	uint64_t branch_Token_15;
-	bool branch_Bool_16;
-	if (v13) {
-		bool v17 = true;
-		branch_Bool_16 = v17;
-		branch_Token_15 = v9;
-		branch_ZPlusMirth_14 = v10;
+	bool v13 = int_eq(v11, v12);
+	bool v14 = !v13;
+	TUP* branch_ZPlusMirth_15;
+	uint64_t branch_Token_16;
+	bool branch_Bool_17;
+	if (v14) {
+		bool v18 = true;
+		branch_Bool_17 = v18;
+		branch_Token_16 = v9;
+		branch_ZPlusMirth_15 = v10;
 	} else {
-		TUP* v18;
-		VAL v19 = mw_mirth_token_Token_lcurlyZAsk(v10, v9, &v18);
-		int64_t v20 = get_data_tag(v19);
-		decref(v19);
-		int64_t v21 = 0LL;
-		bool v22 = (v20 == v21);
-		bool v23 = !v22;
-		branch_Bool_16 = v23;
-		branch_Token_15 = v9;
-		branch_ZPlusMirth_14 = v18;
+		TUP* v19;
+		VAL v20 = mw_mirth_token_Token_lcurlyZAsk(v10, v9, &v19);
+		int64_t v21 = get_data_tag(v20);
+		decref(v20);
+		int64_t v22 = 0LL;
+		bool v23 = (v21 == v22);
+		bool v24 = !v23;
+		branch_Bool_17 = v24;
+		branch_Token_16 = v9;
+		branch_ZPlusMirth_15 = v19;
 	}
-	VAL branch_Maybe_24;
-	TUP* branch_ZPlusMirth_25;
-	uint64_t branch_Token_26;
-	VAL branch_List_27;
-	if (branch_Bool_16) {
-		VAL v28 = MKI64(0LL /* Nil */);
-		VAL v29;
-		mw_std_list_List_1_buildZBang(v28, &v29);
-		uint64_t v30 = mw_mirth_token_Token_succ(branch_Token_15);
-		TUP* v31;
-		bool v32 = mw_mirth_token_Token_argsZ_endZAsk(branch_ZPlusMirth_14, v30, &v31);
-		bool v33 = !v32;
-		uint64_t v34 = v30;
-		TUP* v35 = v31;
-		VAL v36 = v29;
-		bool v37 = v33;
-		while (v37) {
-			uint64_t v38 = v34;
-			TUP* v39 = v35;
-			VAL v40 = v36;
-			TUP* v41;
-			VAL v42;
-			uint64_t v43 = mw_mirth_elab_parseZ_externalZ_declZ_part(v39, v38, &v41, &v42);
-			VAL v44;
-			mw_std_list_ZPlusLister_1_pushZBang(v42, v40, &v44);
-			TUP* v45;
-			bool v46 = mw_mirth_token_Token_argsZ_endZAsk(v41, v43, &v45);
-			bool v47 = !v46;
-			v37 = v47;
-			v36 = v44;
-			v35 = v45;
-			v34 = v43;
+	VAL branch_Maybe_25;
+	TUP* branch_ZPlusMirth_26;
+	uint64_t branch_Token_27;
+	VAL branch_List_28;
+	if (branch_Bool_17) {
+		VAL v29 = MKI64(0LL /* Nil */);
+		VAL v30;
+		mw_std_list_List_1_buildZBang(v29, &v30);
+		uint64_t v31 = mw_mirth_token_Token_succ(branch_Token_16);
+		TUP* v32;
+		bool v33 = mw_mirth_token_Token_argsZ_endZAsk(branch_ZPlusMirth_15, v31, &v32);
+		bool v34 = !v33;
+		uint64_t v35 = v31;
+		TUP* v36 = v32;
+		VAL v37 = v30;
+		bool v38 = v34;
+		while (v38) {
+			uint64_t v39 = v35;
+			TUP* v40 = v36;
+			VAL v41 = v37;
+			TUP* v42;
+			VAL v43;
+			uint64_t v44 = mw_mirth_elab_parseZ_externalZ_declZ_part(v40, v39, &v42, &v43);
+			VAL v45;
+			mw_std_list_ZPlusLister_1_pushZBang(v43, v41, &v45);
+			TUP* v46;
+			bool v47 = mw_mirth_token_Token_argsZ_endZAsk(v42, v44, &v46);
+			bool v48 = !v47;
+			v38 = v48;
+			v37 = v45;
+			v36 = v46;
+			v35 = v44;
 		}
-		uint64_t v48 = mw_mirth_token_Token_succ(v34);
-		VAL v49 = mw_std_list_ZPlusLister_1_doneZBang(v36);
-		branch_List_27 = v49;
-		branch_Token_26 = v48;
-		branch_ZPlusMirth_25 = v35;
-		branch_Maybe_24 = v8;
+		uint64_t v49 = mw_mirth_token_Token_succ(v35);
+		VAL v50 = mw_std_list_ZPlusLister_1_doneZBang(v37);
+		branch_List_28 = v50;
+		branch_Token_27 = v49;
+		branch_ZPlusMirth_26 = v36;
+		branch_Maybe_25 = v8;
 	} else {
-		TUP* v50;
-		VAL v51;
-		uint64_t v52 = mw_mirth_elab_parseZ_externalZ_declZ_word(branch_ZPlusMirth_14, branch_Token_15, v8, &v50, &v51);
-		VAL v53 = MKI64(0LL /* Nil */);
-		VAL v54 = mw_std_list_List_1_cons(v51, v53);
-		VAL v55 = MKI64(0LL /* None */);
-		branch_List_27 = v54;
-		branch_Token_26 = v52;
-		branch_ZPlusMirth_25 = v50;
-		branch_Maybe_24 = v55;
+		TUP* v51;
+		VAL v52;
+		uint64_t v53 = mw_mirth_elab_parseZ_externalZ_declZ_word(branch_ZPlusMirth_15, branch_Token_16, v8, &v51, &v52);
+		VAL v54 = MKI64(0LL /* Nil */);
+		VAL v55 = mw_std_list_List_1_cons(v52, v54);
+		VAL v56 = MKI64(0LL /* None */);
+		branch_List_28 = v55;
+		branch_Token_27 = v53;
+		branch_ZPlusMirth_26 = v51;
+		branch_Maybe_25 = v56;
 	}
-	*out_Maybe_6 = branch_Maybe_24;
-	*out_List_5 = branch_List_27;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_25;
-	return branch_Token_26;
+	*out_Maybe_6 = branch_Maybe_25;
+	*out_List_5 = branch_List_28;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_26;
+	return branch_Token_27;
 }
 static uint64_t mw_mirth_elab_parseZ_externalZ_declZ_part (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_ExternalDeclPart_5) {
 	TUP* v6;
@@ -48214,7 +48560,7 @@ static TUP* mw_mirth_elab_elabZ_externalZ_ctype (TUP* in_ZPlusMirth_1, uint64_t 
 	VAL v46 = mw_std_list_ZPlusLister_1_doneZBang(v21);
 	INT v47 = mw_std_list_List_1_len(v46);
 	INT v48 = WRAP_I63(1LL);
-	bool v49 = int_gt(v47, v48);
+	bool v49 = int_lt(v48, v47);
 	TUP* branch_ZPlusMirth_50;
 	if (v49) {
 		STR* v51;
@@ -48288,7 +48634,7 @@ static TUP* mw_mirth_elab_elabZ_externalZ_ctype (TUP* in_ZPlusMirth_1, uint64_t 
 							VAL v94 = mtp_std_maybe_Maybe_1_Some(v89);
 							incref(v94);
 							incref(v84);
-							bool v95 = mw_mirth_label_Label_ZEqualZEqual(value_u64(v84), value_u64(v94));
+							bool v95 = mw_mirth_label_Label_ZEqual(value_u64(v84), value_u64(v94));
 							uint64_t branch_Label_96;
 							VAL branch_Maybe_97;
 							if (v95) {
@@ -48457,86 +48803,87 @@ static uint64_t mw_mirth_elab_parseZ_defZ_type (TUP* in_ZPlusMirth_1, uint64_t i
 	TUP* v10;
 	INT v11 = mw_mirth_token_Token_numZ_args(v8, in_Token_2, &v10);
 	INT v12 = WRAP_I63(0LL);
-	bool v13 = int_gt(v11, v12);
-	VAL branch_Maybe_14;
-	uint64_t branch_Token_15;
+	bool v13 = int_eq(v11, v12);
+	bool v14 = !v13;
+	VAL branch_Maybe_15;
 	uint64_t branch_Token_16;
 	uint64_t branch_Token_17;
-	TUP* branch_ZPlusMirth_18;
-	if (v13) {
-		TUP* v19;
-		uint64_t v20 = mw_mirth_token_Token_next(v10, in_Token_2, &v19);
-		uint64_t v21;
-		TUP* v22;
-		uint64_t v23 = mw_mirth_token_Token_argsZ_2(in_Token_2, v19, &v21, &v22);
-		TUP* v24;
-		mw_mirth_token_Token_argsZ_0(v23, v22, &v24);
+	uint64_t branch_Token_18;
+	TUP* branch_ZPlusMirth_19;
+	if (v14) {
+		TUP* v20;
+		uint64_t v21 = mw_mirth_token_Token_next(v10, in_Token_2, &v20);
+		uint64_t v22;
+		TUP* v23;
+		uint64_t v24 = mw_mirth_token_Token_argsZ_2(in_Token_2, v20, &v22, &v23);
 		TUP* v25;
-		VAL v26 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v24, v23, &v25);
-		TUP* v27;
-		uint64_t v28;
-		mw_std_maybe_Maybe_1_else_1_sp16(v25, v23, v26, &v27, &v28);
-		TUP* v29;
-		uint64_t v30 = mw_mirth_token_Token_next(v27, v28, &v29);
-		TUP* v31;
-		bool v32 = mw_mirth_token_Token_argZ_endZAsk(v29, v30, &v31);
-		TUP* branch_ZPlusMirth_33;
-		uint64_t branch_Token_34;
-		if (v32) {
-			branch_Token_34 = v28;
-			branch_ZPlusMirth_33 = v31;
+		mw_mirth_token_Token_argsZ_0(v24, v23, &v25);
+		TUP* v26;
+		VAL v27 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v25, v24, &v26);
+		TUP* v28;
+		uint64_t v29;
+		mw_std_maybe_Maybe_1_else_1_sp16(v26, v24, v27, &v28, &v29);
+		TUP* v30;
+		uint64_t v31 = mw_mirth_token_Token_next(v28, v29, &v30);
+		TUP* v32;
+		bool v33 = mw_mirth_token_Token_argZ_endZAsk(v30, v31, &v32);
+		TUP* branch_ZPlusMirth_34;
+		uint64_t branch_Token_35;
+		if (v33) {
+			branch_Token_35 = v29;
+			branch_ZPlusMirth_34 = v32;
 		} else {
-			TUP* v35;
-			uint64_t v36 = mw_mirth_token_Token_next(v31, v28, &v35);
-			STR* v37;
-			STRLIT(v37, "expected comma", 14);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v36, v37, v35);
+			TUP* v36;
+			uint64_t v37 = mw_mirth_token_Token_next(v32, v29, &v36);
+			STR* v38;
+			STRLIT(v38, "expected comma", 14);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v37, v38, v36);
 		}
-		TUP* v39;
-		uint64_t v40 = mw_mirth_token_Token_next(branch_ZPlusMirth_33, v21, &v39);
-		TUP* v41;
-		bool v42 = mw_mirth_token_Token_argZ_endZAsk(v39, v40, &v41);
-		TUP* branch_ZPlusMirth_43;
-		uint64_t branch_Token_44;
-		if (v42) {
-			branch_Token_44 = v21;
-			branch_ZPlusMirth_43 = v41;
+		TUP* v40;
+		uint64_t v41 = mw_mirth_token_Token_next(branch_ZPlusMirth_34, v22, &v40);
+		TUP* v42;
+		bool v43 = mw_mirth_token_Token_argZ_endZAsk(v40, v41, &v42);
+		TUP* branch_ZPlusMirth_44;
+		uint64_t branch_Token_45;
+		if (v43) {
+			branch_Token_45 = v22;
+			branch_ZPlusMirth_44 = v42;
 		} else {
-			TUP* v45;
-			uint64_t v46 = mw_mirth_token_Token_next(v41, v21, &v45);
-			STR* v47;
-			STRLIT(v47, "expected end of args", 20);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v46, v47, v45);
+			TUP* v46;
+			uint64_t v47 = mw_mirth_token_Token_next(v42, v22, &v46);
+			STR* v48;
+			STRLIT(v48, "expected end of args", 20);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v47, v48, v46);
 		}
-		branch_ZPlusMirth_18 = branch_ZPlusMirth_43;
-		branch_Token_17 = branch_Token_44;
-		branch_Token_16 = branch_Token_34;
-		branch_Token_15 = v20;
-		branch_Maybe_14 = v9;
+		branch_ZPlusMirth_19 = branch_ZPlusMirth_44;
+		branch_Token_18 = branch_Token_45;
+		branch_Token_17 = branch_Token_35;
+		branch_Token_16 = v21;
+		branch_Maybe_15 = v9;
 	} else {
-		uint64_t v49 = mw_mirth_token_Token_succ(in_Token_2);
-		TUP* v50;
-		uint64_t v51 = mw_mirth_token_Token_next(v10, v49, &v50);
-		TUP* v52;
-		uint64_t v53 = mw_mirth_token_Token_next(v50, v51, &v52);
-		TUP* v54;
-		mw_mirth_token_Token_argsZ_0(v49, v52, &v54);
+		uint64_t v50 = mw_mirth_token_Token_succ(in_Token_2);
+		TUP* v51;
+		uint64_t v52 = mw_mirth_token_Token_next(v10, v50, &v51);
+		TUP* v53;
+		uint64_t v54 = mw_mirth_token_Token_next(v51, v52, &v53);
 		TUP* v55;
-		VAL v56 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v54, v49, &v55);
-		TUP* v57;
-		uint64_t v58;
-		mw_std_maybe_Maybe_1_else_1_sp16(v55, v49, v56, &v57, &v58);
-		branch_ZPlusMirth_18 = v57;
-		branch_Token_17 = v51;
-		branch_Token_16 = v58;
-		branch_Token_15 = v53;
-		branch_Maybe_14 = v9;
+		mw_mirth_token_Token_argsZ_0(v50, v53, &v55);
+		TUP* v56;
+		VAL v57 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v55, v50, &v56);
+		TUP* v58;
+		uint64_t v59;
+		mw_std_maybe_Maybe_1_else_1_sp16(v56, v50, v57, &v58, &v59);
+		branch_ZPlusMirth_19 = v58;
+		branch_Token_18 = v52;
+		branch_Token_17 = v59;
+		branch_Token_16 = v54;
+		branch_Maybe_15 = v9;
 	}
-	*out_Maybe_7 = branch_Maybe_14;
-	*out_Token_6 = branch_Token_17;
-	*out_Token_5 = branch_Token_16;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_18;
-	return branch_Token_15;
+	*out_Maybe_7 = branch_Maybe_15;
+	*out_Token_6 = branch_Token_18;
+	*out_Token_5 = branch_Token_17;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_19;
+	return branch_Token_16;
 }
 static uint64_t mw_mirth_elab_elabZ_defZ_typeZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -48564,124 +48911,125 @@ static uint64_t mw_mirth_elab_elabZ_defZ_typeZBang (TUP* in_ZPlusMirth_1, uint64
 	*out_ZPlusMirth_3 = v20;
 	return v9;
 }
-static uint64_t mw_mirth_elab_parseZ_buffer (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, VAL *out_Maybe_6, INT *out_USizze_7) {
+static uint64_t mw_mirth_elab_parseZ_buffer (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, VAL *out_Maybe_6, INT *out_Sizze_7) {
 	TUP* v8;
 	VAL v9 = mw_mirth_token_Token_doc(in_ZPlusMirth_1, in_Token_2, &v8);
 	TUP* v10;
 	INT v11 = mw_mirth_token_Token_numZ_args(v8, in_Token_2, &v10);
 	INT v12 = WRAP_I63(0LL);
-	bool v13 = int_gt(v11, v12);
-	VAL branch_Maybe_14;
-	uint64_t branch_Token_15;
+	bool v13 = int_eq(v11, v12);
+	bool v14 = !v13;
+	VAL branch_Maybe_15;
 	uint64_t branch_Token_16;
-	INT branch_Int_17;
-	uint64_t branch_Token_18;
-	TUP* branch_ZPlusMirth_19;
-	if (v13) {
-		TUP* v20;
-		uint64_t v21 = mw_mirth_token_Token_next(v10, in_Token_2, &v20);
-		uint64_t v22;
-		TUP* v23;
-		uint64_t v24 = mw_mirth_token_Token_argsZ_2(in_Token_2, v20, &v22, &v23);
-		TUP* v25;
-		mw_mirth_token_Token_argsZ_0(v24, v23, &v25);
+	uint64_t branch_Token_17;
+	INT branch_Int_18;
+	uint64_t branch_Token_19;
+	TUP* branch_ZPlusMirth_20;
+	if (v14) {
+		TUP* v21;
+		uint64_t v22 = mw_mirth_token_Token_next(v10, in_Token_2, &v21);
+		uint64_t v23;
+		TUP* v24;
+		uint64_t v25 = mw_mirth_token_Token_argsZ_2(in_Token_2, v21, &v23, &v24);
 		TUP* v26;
-		VAL v27 = mw_mirth_token_Token_nameZDivdnameZAsk(v25, v24, &v26);
-		TUP* v28;
-		uint64_t v29;
-		mw_std_maybe_Maybe_1_else_1_sp13(v26, v24, v27, &v28, &v29);
-		TUP* v30;
-		uint64_t v31 = mw_mirth_token_Token_next(v28, v29, &v30);
-		TUP* v32;
-		bool v33 = mw_mirth_token_Token_argZ_endZAsk(v30, v31, &v32);
-		TUP* branch_ZPlusMirth_34;
-		uint64_t branch_Token_35;
-		if (v33) {
-			branch_Token_35 = v29;
-			branch_ZPlusMirth_34 = v32;
+		mw_mirth_token_Token_argsZ_0(v25, v24, &v26);
+		TUP* v27;
+		VAL v28 = mw_mirth_token_Token_nameZDivdnameZAsk(v26, v25, &v27);
+		TUP* v29;
+		uint64_t v30;
+		mw_std_maybe_Maybe_1_else_1_sp13(v27, v25, v28, &v29, &v30);
+		TUP* v31;
+		uint64_t v32 = mw_mirth_token_Token_next(v29, v30, &v31);
+		TUP* v33;
+		bool v34 = mw_mirth_token_Token_argZ_endZAsk(v31, v32, &v33);
+		TUP* branch_ZPlusMirth_35;
+		uint64_t branch_Token_36;
+		if (v34) {
+			branch_Token_36 = v30;
+			branch_ZPlusMirth_35 = v33;
 		} else {
-			TUP* v36;
-			uint64_t v37 = mw_mirth_token_Token_next(v32, v29, &v36);
-			STR* v38;
-			STRLIT(v38, "Expected comma.", 15);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v37, v38, v36);
+			TUP* v37;
+			uint64_t v38 = mw_mirth_token_Token_next(v33, v30, &v37);
+			STR* v39;
+			STRLIT(v39, "Expected comma.", 15);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v38, v39, v37);
 		}
-		TUP* v40;
-		VAL v41 = mw_mirth_token_Token_intZAsk(branch_ZPlusMirth_34, v22, &v40);
-		TUP* v42;
-		uint64_t v43;
-		VAL v44 = mw_std_maybe_Maybe_1_elseZAsk_1_sp5(v40, v22, v41, &v42, &v43);
-		TUP* v45;
-		uint64_t v46 = mw_mirth_token_Token_next(v42, v43, &v45);
-		TUP* v47;
-		bool v48 = mw_mirth_token_Token_argsZ_endZAsk(v45, v46, &v47);
-		TUP* branch_ZPlusMirth_49;
-		uint64_t branch_Token_50;
-		if (v48) {
-			branch_Token_50 = v43;
-			branch_ZPlusMirth_49 = v47;
+		TUP* v41;
+		VAL v42 = mw_mirth_token_Token_intZAsk(branch_ZPlusMirth_35, v23, &v41);
+		TUP* v43;
+		uint64_t v44;
+		VAL v45 = mw_std_maybe_Maybe_1_elseZAsk_1_sp5(v41, v23, v42, &v43, &v44);
+		TUP* v46;
+		uint64_t v47 = mw_mirth_token_Token_next(v43, v44, &v46);
+		TUP* v48;
+		bool v49 = mw_mirth_token_Token_argsZ_endZAsk(v46, v47, &v48);
+		TUP* branch_ZPlusMirth_50;
+		uint64_t branch_Token_51;
+		if (v49) {
+			branch_Token_51 = v44;
+			branch_ZPlusMirth_50 = v48;
 		} else {
-			TUP* v51;
-			uint64_t v52 = mw_mirth_token_Token_next(v47, v43, &v51);
-			STR* v53;
-			STRLIT(v53, "Expected end of arguments.", 26);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v52, v53, v51);
+			TUP* v52;
+			uint64_t v53 = mw_mirth_token_Token_next(v48, v44, &v52);
+			STR* v54;
+			STRLIT(v54, "Expected end of arguments.", 26);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v53, v54, v52);
 		}
-		branch_ZPlusMirth_19 = branch_ZPlusMirth_49;
-		branch_Token_18 = branch_Token_50;
-		branch_Int_17 = value_int(v44);
-		branch_Token_16 = branch_Token_35;
-		branch_Token_15 = v21;
-		branch_Maybe_14 = v9;
+		branch_ZPlusMirth_20 = branch_ZPlusMirth_50;
+		branch_Token_19 = branch_Token_51;
+		branch_Int_18 = value_int(v45);
+		branch_Token_17 = branch_Token_36;
+		branch_Token_16 = v22;
+		branch_Maybe_15 = v9;
 	} else {
-		uint64_t v55 = mw_mirth_token_Token_succ(in_Token_2);
-		TUP* v56;
-		uint64_t v57 = mw_mirth_token_Token_next(v10, v55, &v56);
-		TUP* v58;
-		uint64_t v59 = mw_mirth_token_Token_next(v56, v57, &v58);
-		TUP* v60;
-		VAL v61 = mw_mirth_token_Token_nameZDivdnameZAsk(v58, v55, &v60);
-		TUP* v62;
-		uint64_t v63;
-		mw_std_maybe_Maybe_1_else_1_sp13(v60, v55, v61, &v62, &v63);
-		TUP* v64;
-		VAL v65 = mw_mirth_token_Token_intZAsk(v62, v57, &v64);
-		TUP* v66;
-		uint64_t v67;
-		VAL v68 = mw_std_maybe_Maybe_1_elseZAsk_1_sp5(v64, v57, v65, &v66, &v67);
-		branch_ZPlusMirth_19 = v66;
-		branch_Token_18 = v67;
-		branch_Int_17 = value_int(v68);
-		branch_Token_16 = v63;
-		branch_Token_15 = v59;
-		branch_Maybe_14 = v9;
+		uint64_t v56 = mw_mirth_token_Token_succ(in_Token_2);
+		TUP* v57;
+		uint64_t v58 = mw_mirth_token_Token_next(v10, v56, &v57);
+		TUP* v59;
+		uint64_t v60 = mw_mirth_token_Token_next(v57, v58, &v59);
+		TUP* v61;
+		VAL v62 = mw_mirth_token_Token_nameZDivdnameZAsk(v59, v56, &v61);
+		TUP* v63;
+		uint64_t v64;
+		mw_std_maybe_Maybe_1_else_1_sp13(v61, v56, v62, &v63, &v64);
+		TUP* v65;
+		VAL v66 = mw_mirth_token_Token_intZAsk(v63, v58, &v65);
+		TUP* v67;
+		uint64_t v68;
+		VAL v69 = mw_std_maybe_Maybe_1_elseZAsk_1_sp5(v65, v58, v66, &v67, &v68);
+		branch_ZPlusMirth_20 = v67;
+		branch_Token_19 = v68;
+		branch_Int_18 = value_int(v69);
+		branch_Token_17 = v64;
+		branch_Token_16 = v60;
+		branch_Maybe_15 = v9;
 	}
-	incref(MKINT(branch_Int_17));
-	INT v69 = WRAP_I63(0LL);
-	bool v70 = int_lt(branch_Int_17, v69);
-	uint64_t branch_Token_71;
-	TUP* branch_ZPlusMirth_72;
-	INT branch_USizze_73;
-	if (v70) {
-		decref(MKINT(branch_Int_17));
-		STR* v74;
-		STRLIT(v74, "Buffer size must not be negative.", 33);
-		TUP* v75;
-		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(branch_Token_18, v74, branch_ZPlusMirth_19, &v75);
-		INT v76 = WRAP_I63(0LL);
-		branch_USizze_73 = v76;
-		branch_ZPlusMirth_72 = v75;
-		branch_Token_71 = branch_Token_18;
+	incref(MKINT(branch_Int_18));
+	INT v70 = WRAP_I63(0LL);
+	bool v71 = int_lt(v70, branch_Int_18);
+	INT branch_Int_72;
+	TUP* branch_ZPlusMirth_73;
+	uint64_t branch_Token_74;
+	if (v71) {
+		branch_Token_74 = branch_Token_19;
+		branch_ZPlusMirth_73 = branch_ZPlusMirth_20;
+		branch_Int_72 = branch_Int_18;
 	} else {
-		branch_USizze_73 = branch_Int_17;
-		branch_ZPlusMirth_72 = branch_ZPlusMirth_19;
-		branch_Token_71 = branch_Token_18;
+		STR* v75;
+		STRLIT(v75, "Buffer size must be positive.", 29);
+		TUP* v76;
+		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(branch_Token_19, v75, branch_ZPlusMirth_20, &v76);
+		INT v77 = WRAP_I63(8LL);
+		decref(MKINT(branch_Int_18));
+		branch_Token_74 = branch_Token_19;
+		branch_ZPlusMirth_73 = v76;
+		branch_Int_72 = v77;
 	}
-	*out_USizze_7 = branch_USizze_73;
-	*out_Maybe_6 = branch_Maybe_14;
-	*out_Token_5 = branch_Token_16;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_72;
-	return branch_Token_15;
+	*out_Sizze_7 = branch_Int_72;
+	*out_Maybe_6 = branch_Maybe_15;
+	*out_Token_5 = branch_Token_17;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_73;
+	return branch_Token_16;
 }
 static uint64_t mw_mirth_elab_elabZ_bufferZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -48714,60 +49062,61 @@ static uint64_t mw_mirth_elab_parseZ_tableZ_decl (uint64_t in_Token_1, TUP* in_Z
 	TUP* v9;
 	INT v10 = mw_mirth_token_Token_numZ_args(v7, in_Token_1, &v9);
 	INT v11 = WRAP_I63(0LL);
-	bool v12 = int_gt(v10, v11);
-	VAL branch_Maybe_13;
-	uint64_t branch_Token_14;
+	bool v12 = int_eq(v10, v11);
+	bool v13 = !v12;
+	VAL branch_Maybe_14;
 	uint64_t branch_Token_15;
-	TUP* branch_ZPlusMirth_16;
-	if (v12) {
-		TUP* v17;
-		uint64_t v18 = mw_mirth_token_Token_next(v9, in_Token_1, &v17);
-		TUP* v19;
-		uint64_t v20 = mw_mirth_token_Token_argsZ_1(in_Token_1, v17, &v19);
-		TUP* v21;
-		VAL v22 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v19, v20, &v21);
-		TUP* v23;
-		uint64_t v24;
-		mw_std_maybe_Maybe_1_else_1_sp12(v21, v20, v22, &v23, &v24);
-		TUP* v25;
-		mw_mirth_token_Token_argsZ_0(v24, v23, &v25);
-		uint64_t v26 = mw_mirth_token_Token_succ(v24);
-		TUP* v27;
-		bool v28 = mw_mirth_token_Token_argZ_endZAsk(v25, v26, &v27);
-		TUP* branch_ZPlusMirth_29;
-		uint64_t branch_Token_30;
-		if (v28) {
-			branch_Token_30 = v24;
-			branch_ZPlusMirth_29 = v27;
+	uint64_t branch_Token_16;
+	TUP* branch_ZPlusMirth_17;
+	if (v13) {
+		TUP* v18;
+		uint64_t v19 = mw_mirth_token_Token_next(v9, in_Token_1, &v18);
+		TUP* v20;
+		uint64_t v21 = mw_mirth_token_Token_argsZ_1(in_Token_1, v18, &v20);
+		TUP* v22;
+		VAL v23 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v20, v21, &v22);
+		TUP* v24;
+		uint64_t v25;
+		mw_std_maybe_Maybe_1_else_1_sp12(v22, v21, v23, &v24, &v25);
+		TUP* v26;
+		mw_mirth_token_Token_argsZ_0(v25, v24, &v26);
+		uint64_t v27 = mw_mirth_token_Token_succ(v25);
+		TUP* v28;
+		bool v29 = mw_mirth_token_Token_argZ_endZAsk(v26, v27, &v28);
+		TUP* branch_ZPlusMirth_30;
+		uint64_t branch_Token_31;
+		if (v29) {
+			branch_Token_31 = v25;
+			branch_ZPlusMirth_30 = v28;
 		} else {
-			uint64_t v31 = mw_mirth_token_Token_succ(v24);
-			STR* v32;
-			STRLIT(v32, "expected end of argument after table name", 41);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v31, v32, v27);
+			uint64_t v32 = mw_mirth_token_Token_succ(v25);
+			STR* v33;
+			STRLIT(v33, "expected end of argument after table name", 41);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v32, v33, v28);
 		}
-		branch_ZPlusMirth_16 = branch_ZPlusMirth_29;
-		branch_Token_15 = branch_Token_30;
-		branch_Token_14 = v18;
-		branch_Maybe_13 = v8;
+		branch_ZPlusMirth_17 = branch_ZPlusMirth_30;
+		branch_Token_16 = branch_Token_31;
+		branch_Token_15 = v19;
+		branch_Maybe_14 = v8;
 	} else {
-		uint64_t v34 = mw_mirth_token_Token_succ(in_Token_1);
-		TUP* v35;
-		VAL v36 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v9, v34, &v35);
-		TUP* v37;
-		uint64_t v38;
-		mw_std_maybe_Maybe_1_else_1_sp12(v35, v34, v36, &v37, &v38);
-		TUP* v39;
-		mw_mirth_token_Token_argsZ_0(v38, v37, &v39);
-		uint64_t v40 = mw_mirth_token_Token_succ(v34);
-		branch_ZPlusMirth_16 = v39;
-		branch_Token_15 = v38;
-		branch_Token_14 = v40;
-		branch_Maybe_13 = v8;
+		uint64_t v35 = mw_mirth_token_Token_succ(in_Token_1);
+		TUP* v36;
+		VAL v37 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v9, v35, &v36);
+		TUP* v38;
+		uint64_t v39;
+		mw_std_maybe_Maybe_1_else_1_sp12(v36, v35, v37, &v38, &v39);
+		TUP* v40;
+		mw_mirth_token_Token_argsZ_0(v39, v38, &v40);
+		uint64_t v41 = mw_mirth_token_Token_succ(v35);
+		branch_ZPlusMirth_17 = v40;
+		branch_Token_16 = v39;
+		branch_Token_15 = v41;
+		branch_Maybe_14 = v8;
 	}
-	*out_Maybe_6 = branch_Maybe_13;
-	*out_Token_5 = branch_Token_15;
-	*out_ZPlusMirth_4 = branch_ZPlusMirth_16;
-	return branch_Token_14;
+	*out_Maybe_6 = branch_Maybe_14;
+	*out_Token_5 = branch_Token_16;
+	*out_ZPlusMirth_4 = branch_ZPlusMirth_17;
+	return branch_Token_15;
 }
 static uint64_t mw_mirth_elab_elabZ_tableZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -48928,49 +49277,62 @@ static uint64_t mw_mirth_elab_elabZ_embedZ_strZBang (uint64_t in_Token_1, TUP* i
 	mw_std_result_ZPlusResult_2_ZPluselse_1_sp1(branch_ZPlusMirth_29, v36, &v37, &v38);
 	TUP* v39;
 	STR* v40 = mw_std_file_ZPlusFile_readZ_fileZBang(value_tup(v38, 2), &v39);
-	mw_std_file_ZPlusFile_closeZ_fileZBang(v39);
-	TUP* v41;
-	uint64_t v42 = mw_mirth_word_Word_newZBang(branch_Token_22, v25, v11, v16, v17, v8, v37, &v41);
-	VAL v43 = mtw_mirth_mirth_PropLabel_WordQName(v42);
-	TUP* v44 = mtw_mirth_mirth_Prop_1_Prop(v43, v18);
-	void* v45 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v42);
-	mut_set(MKTUP(v44, 2), v45);
-	VAL v46 = mw_mirth_var_Ctx_L0();
-	VAL v47 = mw_mirth_type_T0();
-	VAL v48 = mw_mirth_type_Type_Str();
-	VAL v49 = mw_mirth_type_T1(v48);
-	TUP* v50 = mw_mirth_type_TZ_ZTo(v47, v49);
-	VAL v51 = mtw_mirth_mirth_PropLabel_WordType(v42);
-	TUP* v52;
-	TUP* v53 = mw_mirth_mirth_PropLabel_prop2(v46, MKTUP(v50, 2), v51, v41, &v52);
-	void* v54 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v42);
-	mut_set(MKTUP(v53, 2), v54);
-	TUP* v55;
-	TUP* v56;
-	uint64_t v57;
-	VAL v58;
-	uint64_t v59;
-	VAL v60 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v52, v42, &v55, &v56, &v57, &v58, &v59);
-	VAL v61;
-	VAL v62;
-	mtp_mirth_type_ArrowType_ArrowType(v56, &v61, &v62);
-	incref(v61);
-	VAL v63 = MKI64(0LL /* Nil */);
-	TUP* v64 = mtw_mirth_arrow_Arrow_Arrow(v58, v57, v57, v60, v61, v61, v63);
-	TUP* v65;
-	TUP* v66;
-	mw_mirth_elab_ZPlusAB_abZ_strZBang(v40, v55, v64, &v65, &v66);
-	TUP* v67;
-	TUP* v68;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v62, v65, v66, &v67, &v68);
-	TUP* v69;
-	TUP* v70 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v67, v68, v59, &v69);
-	VAL v71 = mtw_mirth_mirth_PropLabel_WordArrow(v42);
+	VAL v41 = mw_std_file_ZPlusFile_closeZ_fileZBang(v39);
+	TUP* branch_ZPlusMirth_42;
+	switch (get_data_tag(v41)) {
+		case 1LL: { // Some
+			VAL v43 = mtp_std_maybe_Maybe_1_Some(v41);
+			mw_mirth_mirth_ZPlusMirth_ioZ_errorZBang(v43, v37);
+		} break;
+		case 0LL: { // None
+			branch_ZPlusMirth_42 = v37;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	TUP* v46;
+	uint64_t v47 = mw_mirth_word_Word_newZBang(branch_Token_22, v25, v11, v16, v17, v8, branch_ZPlusMirth_42, &v46);
+	VAL v48 = mtw_mirth_mirth_PropLabel_WordQName(v47);
+	TUP* v49 = mtw_mirth_mirth_Prop_1_Prop(v48, v18);
+	void* v50 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v47);
+	mut_set(MKTUP(v49, 2), v50);
+	VAL v51 = mw_mirth_var_Ctx_L0();
+	VAL v52 = mw_mirth_type_T0();
+	VAL v53 = mw_mirth_type_Type_Str();
+	VAL v54 = mw_mirth_type_T1(v53);
+	TUP* v55 = mw_mirth_type_TZ_ZTo(v52, v54);
+	VAL v56 = mtw_mirth_mirth_PropLabel_WordType(v47);
+	TUP* v57;
+	TUP* v58 = mw_mirth_mirth_PropLabel_prop2(v51, MKTUP(v55, 2), v56, v46, &v57);
+	void* v59 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v47);
+	mut_set(MKTUP(v58, 2), v59);
+	TUP* v60;
+	TUP* v61;
+	uint64_t v62;
+	VAL v63;
+	uint64_t v64;
+	VAL v65 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v57, v47, &v60, &v61, &v62, &v63, &v64);
+	VAL v66;
+	VAL v67;
+	mtp_mirth_type_ArrowType_ArrowType(v61, &v66, &v67);
+	incref(v66);
+	VAL v68 = MKI64(0LL /* Nil */);
+	TUP* v69 = mtw_mirth_arrow_Arrow_Arrow(v63, v62, v62, v65, v66, v66, v68);
+	TUP* v70;
+	TUP* v71;
+	mw_mirth_elab_ZPlusAB_abZ_strZBang(v40, v60, v69, &v70, &v71);
 	TUP* v72;
-	TUP* v73 = mw_mirth_mirth_PropLabel_prop(MKTUP(v70, 7), v71, v69, &v72);
-	void* v74 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v42);
-	mut_set(MKTUP(v73, 2), v74);
-	*out_ZPlusMirth_4 = v72;
+	TUP* v73;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v67, v70, v71, &v72, &v73);
+	TUP* v74;
+	TUP* v75 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v72, v73, v64, &v74);
+	VAL v76 = mtw_mirth_mirth_PropLabel_WordArrow(v47);
+	TUP* v77;
+	TUP* v78 = mw_mirth_mirth_PropLabel_prop(MKTUP(v75, 7), v76, v74, &v77);
+	void* v79 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v47);
+	mut_set(MKTUP(v78, 2), v79);
+	*out_ZPlusMirth_4 = v77;
 	return v10;
 }
 static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2) {
@@ -50378,7 +50740,7 @@ static VAL mw_mirth_alias_Alias_target (TUP* in_ZPlusMirth_1, uint64_t in_Alias_
 	*out_ZPlusMirth_3 = v6;
 	return v7;
 }
-static bool mw_mirth_alias_Alias_ZEqualZEqual (uint64_t in_Alias_1, uint64_t in_Alias_2) {
+static bool mw_mirth_alias_Alias_ZEqual (uint64_t in_Alias_1, uint64_t in_Alias_2) {
 	uint64_t v4 = mw_mirth_alias_Alias_index(in_Alias_1);
 	uint64_t v5 = mw_mirth_alias_Alias_index(in_Alias_2);
 	bool v6 = (v4 == v5);
@@ -50772,7 +51134,7 @@ static VAL mw_mirth_def_Def_macroZAsk (VAL in_Def_1) {
 	}
 	return branch_Maybe_3;
 }
-static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
+static bool mw_mirth_def_Def_ZEqual (VAL in_Def_1, VAL in_Def_2) {
 	bool branch_Bool_4;
 	switch (get_data_tag(in_Def_2)) {
 		case 2LL: { // Package
@@ -50794,7 +51156,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v6)) {
 						case 1LL: { // Some
 							VAL v14 = mtp_std_maybe_Maybe_1_Some(v6);
-							bool v15 = mw_mirth_package_Package_ZEqualZEqual(value_u64(v14), value_u64(v12));
+							bool v15 = mw_mirth_package_Package_ZEqual(value_u64(v14), value_u64(v12));
 							branch_Bool_13 = v15;
 						} break;
 						case 0LL: { // None
@@ -50833,7 +51195,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v18)) {
 						case 1LL: { // Some
 							VAL v26 = mtp_std_maybe_Maybe_1_Some(v18);
-							bool v27 = mw_mirth_module_Module_ZEqualZEqual(value_u64(v26), value_u64(v24));
+							bool v27 = mw_mirth_module_Module_ZEqual(value_u64(v26), value_u64(v24));
 							branch_Bool_25 = v27;
 						} break;
 						case 0LL: { // None
@@ -50872,7 +51234,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v30)) {
 						case 1LL: { // Some
 							VAL v38 = mtp_std_maybe_Maybe_1_Some(v30);
-							bool v39 = mw_mirth_alias_Alias_ZEqualZEqual(value_u64(v38), value_u64(v36));
+							bool v39 = mw_mirth_alias_Alias_ZEqual(value_u64(v38), value_u64(v36));
 							branch_Bool_37 = v39;
 						} break;
 						case 0LL: { // None
@@ -50911,7 +51273,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v42)) {
 						case 1LL: { // Some
 							VAL v50 = mtp_std_maybe_Maybe_1_Some(v42);
-							bool v51 = mw_mirth_data_Data_ZEqualZEqual(value_u64(v50), value_u64(v48));
+							bool v51 = mw_mirth_data_Data_ZEqual(value_u64(v50), value_u64(v48));
 							branch_Bool_49 = v51;
 						} break;
 						case 0LL: { // None
@@ -50950,7 +51312,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v54)) {
 						case 1LL: { // Some
 							VAL v62 = mtp_std_maybe_Maybe_1_Some(v54);
-							bool v63 = mw_mirth_table_Table_ZEqualZEqual(value_u64(v62), value_u64(v60));
+							bool v63 = mw_mirth_table_Table_ZEqual(value_u64(v62), value_u64(v60));
 							branch_Bool_61 = v63;
 						} break;
 						case 0LL: { // None
@@ -50989,7 +51351,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v66)) {
 						case 1LL: { // Some
 							VAL v74 = mtp_std_maybe_Maybe_1_Some(v66);
-							bool v75 = mw_mirth_typedef_TypeDef_ZEqualZEqual(value_u64(v74), value_u64(v72));
+							bool v75 = mw_mirth_typedef_TypeDef_ZEqual(value_u64(v74), value_u64(v72));
 							branch_Bool_73 = v75;
 						} break;
 						case 0LL: { // None
@@ -51028,7 +51390,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v78)) {
 						case 1LL: { // Some
 							VAL v86 = mtp_std_maybe_Maybe_1_Some(v78);
-							bool v87 = mw_mirth_data_Tag_ZEqualZEqual(value_u64(v86), value_u64(v84));
+							bool v87 = mw_mirth_data_Tag_ZEqual(value_u64(v86), value_u64(v84));
 							branch_Bool_85 = v87;
 						} break;
 						case 0LL: { // None
@@ -51067,7 +51429,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v90)) {
 						case 1LL: { // Some
 							VAL v98 = mtp_std_maybe_Maybe_1_Some(v90);
-							bool v99 = mw_mirth_prim_Prim_ZEqualZEqual(value_i64(v98), value_i64(v96));
+							bool v99 = mw_mirth_prim_Prim_ZEqual(value_i64(v98), value_i64(v96));
 							branch_Bool_97 = v99;
 						} break;
 						case 0LL: { // None
@@ -51106,7 +51468,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v102)) {
 						case 1LL: { // Some
 							VAL v110 = mtp_std_maybe_Maybe_1_Some(v102);
-							bool v111 = mw_mirth_word_Word_ZEqualZEqual(value_u64(v110), value_u64(v108));
+							bool v111 = mw_mirth_word_Word_ZEqual(value_u64(v110), value_u64(v108));
 							branch_Bool_109 = v111;
 						} break;
 						case 0LL: { // None
@@ -51145,7 +51507,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v114)) {
 						case 1LL: { // Some
 							VAL v122 = mtp_std_maybe_Maybe_1_Some(v114);
-							bool v123 = mw_mirth_buffer_Buffer_ZEqualZEqual(value_u64(v122), value_u64(v120));
+							bool v123 = mw_mirth_buffer_Buffer_ZEqual(value_u64(v122), value_u64(v120));
 							branch_Bool_121 = v123;
 						} break;
 						case 0LL: { // None
@@ -51184,7 +51546,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v126)) {
 						case 1LL: { // Some
 							VAL v134 = mtp_std_maybe_Maybe_1_Some(v126);
-							bool v135 = mw_mirth_external_External_ZEqualZEqual(value_u64(v134), value_u64(v132));
+							bool v135 = mw_mirth_external_External_ZEqual(value_u64(v134), value_u64(v132));
 							branch_Bool_133 = v135;
 						} break;
 						case 0LL: { // None
@@ -51223,7 +51585,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v138)) {
 						case 1LL: { // Some
 							VAL v146 = mtp_std_maybe_Maybe_1_Some(v138);
-							bool v147 = mw_mirth_table_Field_ZEqualZEqual(value_u64(v146), value_u64(v144));
+							bool v147 = mw_mirth_table_Field_ZEqual(value_u64(v146), value_u64(v144));
 							branch_Bool_145 = v147;
 						} break;
 						case 0LL: { // None
@@ -51262,7 +51624,7 @@ static bool mw_mirth_def_Def_ZEqualZEqual (VAL in_Def_1, VAL in_Def_2) {
 					switch (get_data_tag(v150)) {
 						case 1LL: { // Some
 							VAL v158 = mtp_std_maybe_Maybe_1_Some(v150);
-							bool v159 = mw_mirth_macro_Macro_ZEqualZEqual(value_u64(v158), value_u64(v156));
+							bool v159 = mw_mirth_macro_Macro_ZEqual(value_u64(v158), value_u64(v156));
 							branch_Bool_157 = v159;
 						} break;
 						case 0LL: { // None
@@ -51598,7 +51960,7 @@ static bool mw_mirth_def_Def_sameZ_resolvedZAsk (TUP* in_ZPlusMirth_1, VAL in_De
 	VAL v7 = mw_mirth_def_Def_resolve(in_ZPlusMirth_1, in_Def_2, &v6);
 	TUP* v8;
 	VAL v9 = mw_mirth_def_Def_resolve(v6, in_Def_3, &v8);
-	bool v10 = mw_mirth_def_Def_ZEqualZEqual(v7, v9);
+	bool v10 = mw_mirth_def_Def_ZEqual(v7, v9);
 	*out_ZPlusMirth_4 = v8;
 	return v10;
 }
@@ -52321,7 +52683,7 @@ static void mw_mirth_name_Name_mangledZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlus
 	*out_ZPlusStr_5 = v8;
 	*out_ZPlusMirth_4 = v6;
 }
-static bool mw_mirth_name_Name_ZEqualZEqual (uint64_t in_Name_1, uint64_t in_Name_2) {
+static bool mw_mirth_name_Name_ZEqual (uint64_t in_Name_1, uint64_t in_Name_2) {
 	uint64_t v4 = mw_mirth_name_Name_index(in_Name_1);
 	uint64_t v5 = mw_mirth_name_Name_index(in_Name_2);
 	bool v6 = (v4 == v5);
@@ -52364,21 +52726,35 @@ static VAL mw_mirth_name_Hash_nameZAt (TUP* in_ZPlusMirth_1, uint64_t in_Hash_2,
 		branch_ZPlusMirth_14 = in_ZPlusMirth_1;
 	} else {
 		INT v17 = WRAP_I63(0LL);
+		INT v18 = WRAP_I63(-1LL);
+		uint64_t v19 = int_to_u64(v18);
+		INT v20 = u64_to_int(v19);
 		incref(MKINT(v11));
 		incref(MKINT(v17));
-		bool v18 = int_lt(v11, v17);
-		INT branch_Int_19;
-		if (v18) {
+		bool v21 = int_lt(v11, v17);
+		INT branch_Int_22;
+		if (v21) {
 			decref(MKINT(v11));
-			branch_Int_19 = v17;
+			branch_Int_22 = v17;
 		} else {
 			decref(MKINT(v17));
-			branch_Int_19 = v11;
+			branch_Int_22 = v11;
 		}
-		uint64_t v20 = int_to_u64(branch_Int_19);
-		uint64_t v21 = mw_mirth_name_Name_fromZ_index(v20);
-		VAL v22 = mtw_std_maybe_Maybe_1_Some(MKU64(v21));
-		branch_Maybe_15 = v22;
+		incref(MKINT(branch_Int_22));
+		incref(MKINT(v20));
+		bool v23 = int_lt(branch_Int_22, v20);
+		INT branch_Int_24;
+		if (v23) {
+			decref(MKINT(v20));
+			branch_Int_24 = branch_Int_22;
+		} else {
+			decref(MKINT(branch_Int_22));
+			branch_Int_24 = v20;
+		}
+		uint64_t v25 = int_to_u64(branch_Int_24);
+		uint64_t v26 = mw_mirth_name_Name_fromZ_index(v25);
+		VAL v27 = mtw_std_maybe_Maybe_1_Some(MKU64(v26));
+		branch_Maybe_15 = v27;
 		branch_ZPlusMirth_14 = in_ZPlusMirth_1;
 	}
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_14;
@@ -52387,13 +52763,39 @@ static VAL mw_mirth_name_Hash_nameZAt (TUP* in_ZPlusMirth_1, uint64_t in_Hash_2,
 static void mw_mirth_name_Hash_nameZBang (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, uint64_t in_Hash_3, TUP* *out_ZPlusMirth_4) {
 	uint64_t v5 = mw_mirth_name_Name_index(in_Name_2);
 	INT v6 = u64_to_int(v5);
-	int64_t v7 = int_to_i64(v6);
-	INT v8 = mw_mirth_name_Hash_nameZ_offset(in_Hash_3);
-	void* v9 = mbuf_mirth_name_Hash_Buf;
-	int64_t v10 = 0LL /* +Unsafe */;
-	int64_t v11 = int_to_i64(v8);
-	void* v12 = (void*)(v11 + (char*)v9);
-	*(int64_t*)v12 = v7;
+	int64_t v7 = INT64_MIN;
+	int64_t v8 = 9223372036854775807LL;
+	INT v9 = i64_to_int(v7);
+	INT v10 = i64_to_int(v8);
+	incref(MKINT(v6));
+	incref(MKINT(v9));
+	bool v11 = int_lt(v6, v9);
+	INT branch_Int_12;
+	if (v11) {
+		decref(MKINT(v6));
+		branch_Int_12 = v9;
+	} else {
+		decref(MKINT(v9));
+		branch_Int_12 = v6;
+	}
+	incref(MKINT(branch_Int_12));
+	incref(MKINT(v10));
+	bool v13 = int_lt(branch_Int_12, v10);
+	INT branch_Int_14;
+	if (v13) {
+		decref(MKINT(v10));
+		branch_Int_14 = branch_Int_12;
+	} else {
+		decref(MKINT(branch_Int_12));
+		branch_Int_14 = v10;
+	}
+	int64_t v15 = int_to_i64(branch_Int_14);
+	INT v16 = mw_mirth_name_Hash_nameZ_offset(in_Hash_3);
+	void* v17 = mbuf_mirth_name_Hash_Buf;
+	int64_t v18 = 0LL /* +Unsafe */;
+	int64_t v19 = int_to_i64(v16);
+	void* v20 = (void*)(v19 + (char*)v17);
+	*(int64_t*)v20 = v15;
 	*out_ZPlusMirth_4 = in_ZPlusMirth_1;
 }
 static STR* mw_mirth_name_Hash_keepZ_goingZAsk (TUP* in_ZPlusMirth_1, STR* in_Str_2, uint64_t in_Hash_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Hash_6, bool *out_Bool_7) {
@@ -52409,15 +52811,16 @@ static STR* mw_mirth_name_Hash_keepZ_goingZAsk (TUP* in_ZPlusMirth_1, STR* in_St
 			TUP* v15;
 			STR* v16 = mw_mirth_name_Name_ZToStr(v8, value_u64(v14), &v15);
 			incref(MKSTR(in_Str_2));
-			bool v17 = (str_cmp(v16, in_Str_2) != 0);
-			branch_Bool_13 = v17;
+			bool v17 = (str_cmp(v16, in_Str_2) == 0);
+			bool v18 = !v17;
+			branch_Bool_13 = v18;
 			branch_z_x1_12 = MKU64(in_Hash_3);
 			branch_Str_11 = in_Str_2;
 			branch_ZPlusMirth_10 = v15;
 		} break;
 		case 0LL: { // None
-			bool v18 = false;
-			branch_Bool_13 = v18;
+			bool v19 = false;
+			branch_Bool_13 = v19;
 			branch_z_x1_12 = MKU64(in_Hash_3);
 			branch_Str_11 = in_Str_2;
 			branch_ZPlusMirth_10 = v8;
@@ -52440,58 +52843,65 @@ static uint64_t mw_std_prim_Str_hash (STR* in_Str_1) {
 	INT v6 = u64_to_int(v5);
 	incref(MKINT(v6));
 	INT v7 = WRAP_I63(0LL);
-	bool v8 = int_gt(v6, v7);
-	uint64_t v9 = v3;
-	void* v10 = v4;
-	INT v11 = v6;
-	bool v12 = v8;
-	while (v12) {
-		uint64_t v13 = v9;
-		void* v14 = v10;
-		INT v15 = v11;
-		int64_t v16 = 0LL /* +Unsafe */;
-		uint8_t v17 = *(uint8_t*)v14;
-		uint64_t v18 = (uint64_t)(v17);
-		INT v19 = u64_to_int(v18);
-		int64_t v20 = int_to_i64(v19);
-		INT v21 = i64_to_int(v20);
-		uint64_t v22 = int_to_u64(v21);
-		uint64_t v23 = 17592723177729ULL;
-		uint64_t v24 = (v22 * v23);
-		uint64_t v25 = 7ULL;
-		uint64_t v26 = u64_shl(v13, v25);
-		uint64_t v27 = (v24 ^ v26);
-		uint64_t v28 = 29ULL;
-		uint64_t v29 = u64_shr(v13, v28);
-		uint64_t v30 = (v27 ^ v29);
-		INT v31 = WRAP_I63(1LL);
-		int64_t v32 = 0LL /* +Unsafe */;
-		int64_t v33 = int_to_i64(v31);
-		void* v34 = (void*)(v33 + (char*)v14);
-		INT v35 = WRAP_I63(1LL);
-		INT v36 = int_sub(v15, v35);
-		incref(MKINT(v36));
-		INT v37 = WRAP_I63(0LL);
-		bool v38 = int_lt(v36, v37);
-		INT branch_Nat_39;
-		if (v38) {
-			decref(MKINT(v36));
-			INT v40 = WRAP_I63(0LL);
-			branch_Nat_39 = v40;
-		} else {
-			branch_Nat_39 = v36;
-		}
-		incref(MKINT(branch_Nat_39));
-		INT v41 = WRAP_I63(0LL);
-		bool v42 = int_gt(branch_Nat_39, v41);
-		v12 = v42;
-		v11 = branch_Nat_39;
-		v10 = v34;
-		v9 = v30;
+	bool v8 = int_lt(v6, v7);
+	INT branch_Nat_9;
+	if (v8) {
+		decref(MKINT(v6));
+		INT v10 = WRAP_I63(0LL);
+		branch_Nat_9 = v10;
+	} else {
+		branch_Nat_9 = v6;
 	}
-	decref(MKINT(v11));
+	incref(MKINT(branch_Nat_9));
+	INT v11 = WRAP_I63(0LL);
+	bool v12 = int_eq(branch_Nat_9, v11);
+	bool v13 = !v12;
+	uint64_t v14 = v3;
+	void* v15 = v4;
+	INT v16 = branch_Nat_9;
+	bool v17 = v13;
+	while (v17) {
+		uint64_t v18 = v14;
+		void* v19 = v15;
+		INT v20 = v16;
+		int64_t v21 = mw_std_prelude_unsafe_1_sp11(v19);
+		INT v22 = i64_to_int(v21);
+		uint64_t v23 = int_to_u64(v22);
+		uint64_t v24 = 17592723177729ULL;
+		uint64_t v25 = (v23 * v24);
+		uint64_t v26 = 7ULL;
+		uint64_t v27 = u64_shl(v18, v26);
+		uint64_t v28 = (v25 ^ v27);
+		uint64_t v29 = 29ULL;
+		uint64_t v30 = u64_shr(v18, v29);
+		uint64_t v31 = (v28 ^ v30);
+		INT v32 = WRAP_I63(1LL);
+		void* v33 = mw_std_prelude_unsafe_1_sp4(v32, v19);
+		INT v34 = WRAP_I63(1LL);
+		INT v35 = int_sub(v20, v34);
+		incref(MKINT(v35));
+		INT v36 = WRAP_I63(0LL);
+		bool v37 = int_lt(v35, v36);
+		INT branch_Nat_38;
+		if (v37) {
+			decref(MKINT(v35));
+			INT v39 = WRAP_I63(0LL);
+			branch_Nat_38 = v39;
+		} else {
+			branch_Nat_38 = v35;
+		}
+		incref(MKINT(branch_Nat_38));
+		INT v40 = WRAP_I63(0LL);
+		bool v41 = int_eq(branch_Nat_38, v40);
+		bool v42 = !v41;
+		v17 = v42;
+		v16 = branch_Nat_38;
+		v15 = v33;
+		v14 = v31;
+	}
+	decref(MKINT(v16));
 	decref(MKSTR(in_Str_1));
-	return v9;
+	return v14;
 }
 static uint64_t mw_std_prim_Str_ZToName (TUP* in_ZPlusMirth_1, STR* in_Str_2, TUP* *out_ZPlusMirth_3) {
 	incref(MKSTR(in_Str_2));
@@ -52598,32 +53008,30 @@ static bool mw_mirth_name_Name_couldZ_beZ_labelZ_nameZAsk (TUP* in_ZPlusMirth_1,
 		INT v20 = i64_to_int(v16);
 		uint64_t v21 = int_to_u64(v20);
 		uint8_t v22 = (uint8_t)(v21);
-		uint64_t v23 = (uint64_t)(v19);
-		INT v24 = u64_to_int(v23);
-		uint64_t v25 = (uint64_t)(v22);
-		INT v26 = u64_to_int(v25);
-		bool v27 = int_eq(v24, v26);
-		uint64_t branch_Name_28;
-		TUP* branch_ZPlusMirth_29;
-		bool branch_Bool_30;
-		if (v27) {
-			TUP* v31;
-			int64_t v32 = mw_mirth_name_Name_tailZ_head(v14, in_Name_2, &v31);
-			int64_t v33 = 97LL /* B'a' */;
-			int64_t v34 = 122LL /* B'z' */;
-			bool v35 = mw_std_prelude_inZ_range_sp1(v32, v33, v34);
-			branch_Bool_30 = v35;
-			branch_ZPlusMirth_29 = v31;
-			branch_Name_28 = in_Name_2;
+		uint64_t v23 = (uint64_t)(v22);
+		uint64_t v24 = (uint64_t)(v19);
+		bool v25 = (v24 == v23);
+		uint64_t branch_Name_26;
+		TUP* branch_ZPlusMirth_27;
+		bool branch_Bool_28;
+		if (v25) {
+			TUP* v29;
+			int64_t v30 = mw_mirth_name_Name_tailZ_head(v14, in_Name_2, &v29);
+			int64_t v31 = 97LL /* B'a' */;
+			int64_t v32 = 122LL /* B'z' */;
+			bool v33 = mw_std_prelude_inZ_range_sp1(v30, v31, v32);
+			branch_Bool_28 = v33;
+			branch_ZPlusMirth_27 = v29;
+			branch_Name_26 = in_Name_2;
 		} else {
-			bool v36 = false;
-			branch_Bool_30 = v36;
-			branch_ZPlusMirth_29 = v14;
-			branch_Name_28 = in_Name_2;
+			bool v34 = false;
+			branch_Bool_28 = v34;
+			branch_ZPlusMirth_27 = v14;
+			branch_Name_26 = in_Name_2;
 		}
-		branch_Bool_12 = branch_Bool_30;
-		branch_Name_11 = branch_Name_28;
-		branch_ZPlusMirth_10 = branch_ZPlusMirth_29;
+		branch_Bool_12 = branch_Bool_28;
+		branch_Name_11 = branch_Name_26;
+		branch_ZPlusMirth_10 = branch_ZPlusMirth_27;
 	}
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_10;
 	return branch_Bool_12;
@@ -52665,32 +53073,28 @@ static bool mw_mirth_name_Name_isZ_typeZ_hole (TUP* in_ZPlusMirth_1, uint64_t in
 	INT v11 = i64_to_int(v7);
 	uint64_t v12 = int_to_u64(v11);
 	uint8_t v13 = (uint8_t)(v12);
-	uint64_t v14 = (uint64_t)(v10);
-	INT v15 = u64_to_int(v14);
-	uint64_t v16 = (uint64_t)(v13);
-	INT v17 = u64_to_int(v16);
-	bool v18 = int_eq(v15, v17);
-	TUP* v19;
-	int64_t v20 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v19);
-	int64_t v21 = 0LL /* BNUL */;
-	INT v22 = i64_to_int(v20);
-	uint64_t v23 = int_to_u64(v22);
-	uint8_t v24 = (uint8_t)(v23);
-	INT v25 = i64_to_int(v21);
-	uint64_t v26 = int_to_u64(v25);
-	uint8_t v27 = (uint8_t)(v26);
-	uint64_t v28 = (uint64_t)(v24);
-	INT v29 = u64_to_int(v28);
-	uint64_t v30 = (uint64_t)(v27);
-	INT v31 = u64_to_int(v30);
-	bool v32 = int_eq(v29, v31);
-	int64_t v33 = 97LL /* B'a' */;
-	int64_t v34 = 122LL /* B'z' */;
-	bool v35 = mw_std_prelude_inZ_range_sp1(v20, v33, v34);
-	bool v36 = (v32 || v35);
-	bool v37 = (v18 && v36);
-	*out_ZPlusMirth_3 = v19;
-	return v37;
+	uint64_t v14 = (uint64_t)(v13);
+	uint64_t v15 = (uint64_t)(v10);
+	bool v16 = (v15 == v14);
+	TUP* v17;
+	int64_t v18 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v17);
+	int64_t v19 = 0LL /* BNUL */;
+	INT v20 = i64_to_int(v18);
+	uint64_t v21 = int_to_u64(v20);
+	uint8_t v22 = (uint8_t)(v21);
+	INT v23 = i64_to_int(v19);
+	uint64_t v24 = int_to_u64(v23);
+	uint8_t v25 = (uint8_t)(v24);
+	uint64_t v26 = (uint64_t)(v25);
+	uint64_t v27 = (uint64_t)(v22);
+	bool v28 = (v27 == v26);
+	int64_t v29 = 97LL /* B'a' */;
+	int64_t v30 = 122LL /* B'z' */;
+	bool v31 = mw_std_prelude_inZ_range_sp1(v18, v29, v30);
+	bool v32 = (v28 || v31);
+	bool v33 = (v16 && v32);
+	*out_ZPlusMirth_3 = v17;
+	return v33;
 }
 static bool mw_mirth_name_Name_isZ_underscore (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -52702,28 +53106,24 @@ static bool mw_mirth_name_Name_isZ_underscore (TUP* in_ZPlusMirth_1, uint64_t in
 	INT v11 = i64_to_int(v7);
 	uint64_t v12 = int_to_u64(v11);
 	uint8_t v13 = (uint8_t)(v12);
-	uint64_t v14 = (uint64_t)(v10);
-	INT v15 = u64_to_int(v14);
-	uint64_t v16 = (uint64_t)(v13);
-	INT v17 = u64_to_int(v16);
-	bool v18 = int_eq(v15, v17);
-	TUP* v19;
-	int64_t v20 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v19);
-	int64_t v21 = 0LL /* BNUL */;
-	INT v22 = i64_to_int(v20);
-	uint64_t v23 = int_to_u64(v22);
-	uint8_t v24 = (uint8_t)(v23);
-	INT v25 = i64_to_int(v21);
-	uint64_t v26 = int_to_u64(v25);
-	uint8_t v27 = (uint8_t)(v26);
-	uint64_t v28 = (uint64_t)(v24);
-	INT v29 = u64_to_int(v28);
-	uint64_t v30 = (uint64_t)(v27);
-	INT v31 = u64_to_int(v30);
-	bool v32 = int_eq(v29, v31);
-	bool v33 = (v18 && v32);
-	*out_ZPlusMirth_3 = v19;
-	return v33;
+	uint64_t v14 = (uint64_t)(v13);
+	uint64_t v15 = (uint64_t)(v10);
+	bool v16 = (v15 == v14);
+	TUP* v17;
+	int64_t v18 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v17);
+	int64_t v19 = 0LL /* BNUL */;
+	INT v20 = i64_to_int(v18);
+	uint64_t v21 = int_to_u64(v20);
+	uint8_t v22 = (uint8_t)(v21);
+	INT v23 = i64_to_int(v19);
+	uint64_t v24 = int_to_u64(v23);
+	uint8_t v25 = (uint8_t)(v24);
+	uint64_t v26 = (uint64_t)(v25);
+	uint64_t v27 = (uint64_t)(v22);
+	bool v28 = (v27 == v26);
+	bool v29 = (v16 && v28);
+	*out_ZPlusMirth_3 = v17;
+	return v29;
 }
 static bool mw_mirth_name_Name_couldZ_beZ_stackZ_var (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -52735,19 +53135,17 @@ static bool mw_mirth_name_Name_couldZ_beZ_stackZ_var (TUP* in_ZPlusMirth_1, uint
 	INT v11 = i64_to_int(v7);
 	uint64_t v12 = int_to_u64(v11);
 	uint8_t v13 = (uint8_t)(v12);
-	uint64_t v14 = (uint64_t)(v10);
-	INT v15 = u64_to_int(v14);
-	uint64_t v16 = (uint64_t)(v13);
-	INT v17 = u64_to_int(v16);
-	bool v18 = int_eq(v15, v17);
-	TUP* v19;
-	int64_t v20 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v19);
-	int64_t v21 = 97LL /* B'a' */;
-	int64_t v22 = 122LL /* B'z' */;
-	bool v23 = mw_std_prelude_inZ_range_sp1(v20, v21, v22);
-	bool v24 = (v18 && v23);
-	*out_ZPlusMirth_3 = v19;
-	return v24;
+	uint64_t v14 = (uint64_t)(v13);
+	uint64_t v15 = (uint64_t)(v10);
+	bool v16 = (v15 == v14);
+	TUP* v17;
+	int64_t v18 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v17);
+	int64_t v19 = 97LL /* B'a' */;
+	int64_t v20 = 122LL /* B'z' */;
+	bool v21 = mw_std_prelude_inZ_range_sp1(v18, v19, v20);
+	bool v22 = (v16 && v21);
+	*out_ZPlusMirth_3 = v17;
+	return v22;
 }
 static bool mw_mirth_name_Name_couldZ_beZ_resourceZ_var (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -52759,19 +53157,17 @@ static bool mw_mirth_name_Name_couldZ_beZ_resourceZ_var (TUP* in_ZPlusMirth_1, u
 	INT v11 = i64_to_int(v7);
 	uint64_t v12 = int_to_u64(v11);
 	uint8_t v13 = (uint8_t)(v12);
-	uint64_t v14 = (uint64_t)(v10);
-	INT v15 = u64_to_int(v14);
-	uint64_t v16 = (uint64_t)(v13);
-	INT v17 = u64_to_int(v16);
-	bool v18 = int_eq(v15, v17);
-	TUP* v19;
-	int64_t v20 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v19);
-	int64_t v21 = 97LL /* B'a' */;
-	int64_t v22 = 122LL /* B'z' */;
-	bool v23 = mw_std_prelude_inZ_range_sp1(v20, v21, v22);
-	bool v24 = (v18 && v23);
-	*out_ZPlusMirth_3 = v19;
-	return v24;
+	uint64_t v14 = (uint64_t)(v13);
+	uint64_t v15 = (uint64_t)(v10);
+	bool v16 = (v15 == v14);
+	TUP* v17;
+	int64_t v18 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v17);
+	int64_t v19 = 97LL /* B'a' */;
+	int64_t v20 = 122LL /* B'z' */;
+	bool v21 = mw_std_prelude_inZ_range_sp1(v18, v19, v20);
+	bool v22 = (v16 && v21);
+	*out_ZPlusMirth_3 = v17;
+	return v22;
 }
 static bool mw_mirth_name_Name_couldZ_beZ_resourceZ_con (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -52783,19 +53179,17 @@ static bool mw_mirth_name_Name_couldZ_beZ_resourceZ_con (TUP* in_ZPlusMirth_1, u
 	INT v11 = i64_to_int(v7);
 	uint64_t v12 = int_to_u64(v11);
 	uint8_t v13 = (uint8_t)(v12);
-	uint64_t v14 = (uint64_t)(v10);
-	INT v15 = u64_to_int(v14);
-	uint64_t v16 = (uint64_t)(v13);
-	INT v17 = u64_to_int(v16);
-	bool v18 = int_eq(v15, v17);
-	TUP* v19;
-	int64_t v20 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v19);
-	int64_t v21 = 65LL /* B'A' */;
-	int64_t v22 = 90LL /* B'Z' */;
-	bool v23 = mw_std_prelude_inZ_range_sp1(v20, v21, v22);
-	bool v24 = (v18 && v23);
-	*out_ZPlusMirth_3 = v19;
-	return v24;
+	uint64_t v14 = (uint64_t)(v13);
+	uint64_t v15 = (uint64_t)(v10);
+	bool v16 = (v15 == v14);
+	TUP* v17;
+	int64_t v18 = mw_mirth_name_Name_tailZ_head(v5, in_Name_2, &v17);
+	int64_t v19 = 65LL /* B'A' */;
+	int64_t v20 = 90LL /* B'Z' */;
+	bool v21 = mw_std_prelude_inZ_range_sp1(v18, v19, v20);
+	bool v22 = (v16 && v21);
+	*out_ZPlusMirth_3 = v17;
+	return v22;
 }
 static bool mw_mirth_name_Name_couldZ_beZ_constructor (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -52823,7 +53217,7 @@ static bool mw_mirth_name_Name_couldZ_beZ_constructor (TUP* in_ZPlusMirth_1, uin
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_7;
 	return branch_Bool_8;
 }
-static bool mw_mirth_name_Namespace_ZEqualZEqual (VAL in_Namespace_1, VAL in_Namespace_2) {
+static bool mw_mirth_name_Namespace_ZEqual (VAL in_Namespace_1, VAL in_Namespace_2) {
 	bool branch_Bool_4;
 	switch (get_data_tag(in_Namespace_2)) {
 		case 0LL: { // Root
@@ -52847,7 +53241,7 @@ static bool mw_mirth_name_Namespace_ZEqualZEqual (VAL in_Namespace_1, VAL in_Nam
 			switch (get_data_tag(in_Namespace_1)) {
 				case 1LL: { // Package
 					uint64_t v10 = mtp_mirth_name_Namespace_Package(in_Namespace_1);
-					bool v11 = mw_mirth_package_Package_ZEqualZEqual(v10, v8);
+					bool v11 = mw_mirth_package_Package_ZEqual(v10, v8);
 					branch_Bool_9 = v11;
 				} break;
 				default: {
@@ -52864,7 +53258,7 @@ static bool mw_mirth_name_Namespace_ZEqualZEqual (VAL in_Namespace_1, VAL in_Nam
 			switch (get_data_tag(in_Namespace_1)) {
 				case 2LL: { // Module
 					uint64_t v15 = mtp_mirth_name_Namespace_Module(in_Namespace_1);
-					bool v16 = mw_mirth_module_Module_ZEqualZEqual(v15, v13);
+					bool v16 = mw_mirth_module_Module_ZEqual(v15, v13);
 					branch_Bool_14 = v16;
 				} break;
 				default: {
@@ -52881,7 +53275,7 @@ static bool mw_mirth_name_Namespace_ZEqualZEqual (VAL in_Namespace_1, VAL in_Nam
 			switch (get_data_tag(in_Namespace_1)) {
 				case 3LL: { // Tycon
 					VAL v20 = mtp_mirth_name_Namespace_Tycon(in_Namespace_1);
-					bool v21 = mw_mirth_tycon_Tycon_ZEqualZEqual(v20, v18);
+					bool v21 = mw_mirth_tycon_Tycon_ZEqual(v20, v18);
 					branch_Bool_19 = v21;
 				} break;
 				default: {
@@ -52899,7 +53293,7 @@ static bool mw_mirth_name_Namespace_ZEqualZEqual (VAL in_Namespace_1, VAL in_Nam
 			switch (get_data_tag(in_Namespace_1)) {
 				case 4LL: { // Word
 					uint64_t v25 = mtp_mirth_name_Namespace_Word(in_Namespace_1);
-					bool v26 = mw_mirth_word_Word_ZEqualZEqual(v25, v23);
+					bool v26 = mw_mirth_word_Word_ZEqual(v25, v23);
 					branch_Bool_24 = v26;
 				} break;
 				default: {
@@ -53194,7 +53588,7 @@ static TUP* mw_mirth_name_QName_Mk (VAL in_Namespace_1, uint64_t in_Name_2, INT 
 	TUP* v5 = mtw_mirth_name_QName_QName(in_Namespace_1, in_Name_2, in_Int_3);
 	return v5;
 }
-static bool mw_mirth_name_QName_ZEqualZEqual (TUP* in_QName_1, TUP* in_QName_2) {
+static bool mw_mirth_name_QName_ZEqual (TUP* in_QName_1, TUP* in_QName_2) {
 	VAL v4;
 	uint64_t v5;
 	INT v6;
@@ -53203,10 +53597,10 @@ static bool mw_mirth_name_QName_ZEqualZEqual (TUP* in_QName_1, TUP* in_QName_2) 
 	uint64_t v8;
 	INT v9;
 	mtp_mirth_name_QName_QName(in_QName_1, &v7, &v8, &v9);
-	bool v10 = mw_mirth_name_Name_ZEqualZEqual(v8, v5);
+	bool v10 = mw_mirth_name_Name_ZEqual(v8, v5);
 	bool v11 = int_eq(v9, v6);
 	bool v12 = (v10 && v11);
-	bool v13 = mw_mirth_name_Namespace_ZEqualZEqual(v7, v4);
+	bool v13 = mw_mirth_name_Namespace_ZEqual(v7, v4);
 	bool v14 = (v12 && v13);
 	return v14;
 }
@@ -53244,7 +53638,7 @@ static VAL mw_mirth_name_QName_defZ_hardZAsk (TUP* in_ZPlusMirth_1, TUP* in_QNam
 				incref(MKTUP(v17, 3));
 				TUP* v29;
 				TUP* v30 = mw_mirth_def_Def_qnameZ_hard(v16, v28, &v29);
-				bool v31 = mw_mirth_name_QName_ZEqualZEqual(v17, v30);
+				bool v31 = mw_mirth_name_QName_ZEqual(v17, v30);
 				TUP* branch_ZPlusMirth_32;
 				TUP* branch_QName_33;
 				VAL branch_Maybe_34;
@@ -53373,7 +53767,7 @@ static VAL mw_mirth_name_QName_defZ_softZAsk (TUP* in_ZPlusMirth_1, TUP* in_QNam
 						switch (get_data_tag(v18)) {
 							case 1LL: { // Some
 								VAL v38 = mtp_std_maybe_Maybe_1_Some(v18);
-								bool v39 = mw_mirth_name_QName_ZEqualZEqual(value_tup(v38, 3), value_tup(v36, 3));
+								bool v39 = mw_mirth_name_QName_ZEqual(value_tup(v38, 3), value_tup(v36, 3));
 								branch_Bool_37 = v39;
 							} break;
 							case 0LL: { // None
@@ -53507,7 +53901,7 @@ static void mw_mirth_name_QName_nameZDivarityZThen (TUP* in_ZPlusMirth_1, STR* i
 	decref(MKTUP(in_QName_3, 3));
 	incref(MKINT(v8));
 	INT v9 = WRAP_I63(0LL);
-	bool v10 = int_gt(v8, v9);
+	bool v10 = int_lt(v9, v8);
 	INT branch_Int_11;
 	STR* branch_ZPlusStr_12;
 	if (v10) {
@@ -53573,7 +53967,7 @@ static void mw_mirth_name_QName_mangledZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlu
 	mw_mirth_name_Name_mangledZThen(v9, v12, v7, &v13, &v14);
 	incref(MKINT(v8));
 	INT v15 = WRAP_I63(0LL);
-	bool v16 = int_gt(v8, v15);
+	bool v16 = int_lt(v15, v8);
 	TUP* branch_ZPlusMirth_17;
 	STR* branch_ZPlusStr_18;
 	if (v16) {
@@ -53758,7 +54152,7 @@ static VAL mw_mirth_module_Module_imports (TUP* in_ZPlusMirth_1, uint64_t in_Mod
 	*out_ZPlusMirth_3 = in_ZPlusMirth_1;
 	return v6;
 }
-static bool mw_mirth_module_Module_ZEqualZEqual (uint64_t in_Module_1, uint64_t in_Module_2) {
+static bool mw_mirth_module_Module_ZEqual (uint64_t in_Module_1, uint64_t in_Module_2) {
 	uint64_t v4 = mw_mirth_module_Module_index(in_Module_1);
 	uint64_t v5 = mw_mirth_module_Module_index(in_Module_2);
 	bool v6 = (v4 == v5);
@@ -53822,7 +54216,7 @@ static STR* mw_mirth_module_Module_sourceZ_path (TUP* in_ZPlusMirth_1, uint64_t 
 	return v6;
 }
 static bool mw_mirth_module_Module_visible (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, uint64_t in_Module_3, TUP* *out_ZPlusMirth_4) {
-	bool v6 = mw_mirth_module_Module_ZEqualZEqual(in_Module_2, in_Module_3);
+	bool v6 = mw_mirth_module_Module_ZEqual(in_Module_2, in_Module_3);
 	TUP* branch_ZPlusMirth_7;
 	uint64_t branch_Module_8;
 	uint64_t branch_Module_9;
@@ -53858,7 +54252,7 @@ static bool mw_mirth_module_Module_visible (TUP* in_ZPlusMirth_1, uint64_t in_Mo
 				case 1LL: { // Some
 					VAL v31 = mtp_std_maybe_Maybe_1_Some(v26);
 					incref(v31);
-					bool v32 = mw_mirth_module_Module_ZEqualZEqual(v21, value_u64(v31));
+					bool v32 = mw_mirth_module_Module_ZEqual(v21, value_u64(v31));
 					uint64_t branch_Module_33;
 					VAL branch_Maybe_34;
 					if (v32) {
@@ -53936,9 +54330,8 @@ static void mw_mirth_location_Row_intZThen (STR* in_ZPlusStr_1, INT in_Row_2, ST
 	mw_std_str_ZPlusStr_pushZ_strZBang(v5, in_ZPlusStr_1, &v6);
 	*out_ZPlusStr_3 = v6;
 }
-static INT mw_mirth_location_Row_1ZPlus (INT in_Row_1) {
-	INT v3 = WRAP_I63(1LL);
-	INT v4 = int_add(in_Row_1, v3);
+static INT mw_mirth_location_Row_natZPlus (INT in_Nat_1, INT in_Row_2) {
+	INT v4 = int_add(in_Row_2, in_Nat_1);
 	return v4;
 }
 static INT mw_mirth_location_Col_ZToInt (INT in_Col_1) {
@@ -53951,9 +54344,8 @@ static void mw_mirth_location_Col_intZThen (STR* in_ZPlusStr_1, INT in_Col_2, ST
 	mw_std_str_ZPlusStr_pushZ_strZBang(v5, in_ZPlusStr_1, &v6);
 	*out_ZPlusStr_3 = v6;
 }
-static INT mw_mirth_location_Col_1ZPlus (INT in_Col_1) {
-	INT v3 = WRAP_I63(1LL);
-	INT v4 = int_add(in_Col_1, v3);
+static INT mw_mirth_location_Col_natZPlus (INT in_Nat_1, INT in_Col_2) {
+	INT v4 = int_add(in_Col_2, in_Nat_1);
 	return v4;
 }
 static void mw_mirth_location_Location_emitZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* in_Location_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5) {
@@ -54284,6 +54676,10 @@ static void mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang (STR* in_Str_1, TUP* in_
 	TUP* v3;
 	TUP* v4 = mw_mirth_mirth_ZPlusMirth_errorZ_location(in_ZPlusMirth_2, &v3);
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang(v4, in_Str_1, v3);
+}
+static void mw_mirth_mirth_ZPlusMirth_ioZ_errorZBang (VAL in_IOError_1, TUP* in_ZPlusMirth_2) {
+	STR* v4 = mw_std_file_IOError_message(in_IOError_1);
+	mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(v4, in_ZPlusMirth_2);
 }
 static void mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang (TUP* in_ZPlusMirth_1) {
 	TUP* v2;
@@ -55170,7 +55566,7 @@ static TUP* mw_mirth_specializzer_ZPlusSPCheck_checkZ_arrowZBang (TUP* in_Arrow_
 				VAL v30;
 				VAL v31 = mw_mirth_specializzer_ZPlusSPCheck_checkZ_atomZBang(value_tup(v28, 8), v17, v18, &v29, &v30);
 				VAL v32;
-				mw_std_list_List_1_for_1_sp50(v19, v31, &v32);
+				mw_std_list_List_1_for_1_sp49(v19, v31, &v32);
 				bool v33 = true;
 				branch_Bool_26 = v33;
 				branch_List_25 = v27;
@@ -55427,7 +55823,7 @@ static VAL mw_mirth_specializzer_ZPlusSPCheck_checkZ_primZ_atomZBang (TUP* in_At
 	incref(v6);
 	decref(MKTUP(in_Atom_1, 8));
 	VAL v7;
-	mw_std_list_List_1_for_1_sp64(in_ZPlusSPCheck_3, v6, &v7);
+	mw_std_list_List_1_for_1_sp63(in_ZPlusSPCheck_3, v6, &v7);
 	VAL v8 = MKI64(0LL /* Nil */);
 	VAL v9 = mw_std_list_List_1_cons(MKTUP(in_Atom_1, 8), v8);
 	*out_ZPlusSPCheck_5 = v7;
@@ -55632,7 +56028,7 @@ static VAL mw_mirth_specializzer_ZPlusSPCheck_checkZ_wordZ_atomZBang (TUP* in_ZP
 				VAL v91;
 				mw_mirth_specializzer_ZPlusSPCheck_checkZ_argZBang(value_u64(v90), v8, &v91);
 				VAL v92;
-				mw_std_list_List_1_for_1_sp64(v91, v89, &v92);
+				mw_std_list_List_1_for_1_sp63(v91, v89, &v92);
 				decref(v16);
 				VAL v93 = MKI64(0LL /* Nil */);
 				VAL v94 = mw_std_list_List_1_cons(MKTUP(in_Atom_3, 8), v93);
@@ -55818,7 +56214,7 @@ static bool mw_mirth_arrow_Arg_similar (TUP* in_ZPlusMirth_1, uint64_t in_Arg_2,
 	return v7;
 }
 static bool mw_mirth_arrow_Block_similar (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, uint64_t in_Block_3, TUP* *out_ZPlusMirth_4) {
-	bool v6 = mw_mirth_arrow_Block_ZEqualZEqual(in_Block_2, in_Block_3);
+	bool v6 = mw_mirth_arrow_Block_ZEqual(in_Block_2, in_Block_3);
 	TUP* branch_ZPlusMirth_7;
 	uint64_t branch_Block_8;
 	uint64_t branch_Block_9;
@@ -56002,7 +56398,7 @@ static bool mw_mirth_arrow_Atom_similar (TUP* in_ZPlusMirth_1, TUP* in_Atom_2, T
 		incref(v15);
 		decref(MKTUP(in_Atom_3, 8));
 		TUP* v16;
-		bool v17 = mw_std_list_List_1_ZEqualZEqual_sp1(v8, v14, v15, &v16);
+		bool v17 = mw_std_list_List_1_ZEqual_sp1(v8, v14, v15, &v16);
 		branch_Bool_13 = v17;
 		branch_Atom_12 = in_Atom_3;
 		branch_Atom_11 = in_Atom_2;
@@ -56030,7 +56426,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 0LL: { // Prim
 					int64_t v11 = mtp_mirth_arrow_Op_Prim(in_Op_2);
-					bool v12 = mw_mirth_prim_Prim_ZEqualZEqual(v8, v11);
+					bool v12 = mw_mirth_prim_Prim_ZEqual(v8, v11);
 					branch_Bool_10 = v12;
 					branch_ZPlusMirth_9 = in_ZPlusMirth_1;
 				} break;
@@ -56051,7 +56447,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 1LL: { // Word
 					uint64_t v17 = mtp_mirth_arrow_Op_Word(in_Op_2);
-					bool v18 = mw_mirth_word_Word_ZEqualZEqual(v14, v17);
+					bool v18 = mw_mirth_word_Word_ZEqual(v14, v17);
 					branch_Bool_16 = v18;
 					branch_ZPlusMirth_15 = in_ZPlusMirth_1;
 				} break;
@@ -56072,7 +56468,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 2LL: { // External
 					uint64_t v23 = mtp_mirth_arrow_Op_External(in_Op_2);
-					bool v24 = mw_mirth_external_External_ZEqualZEqual(v20, v23);
+					bool v24 = mw_mirth_external_External_ZEqual(v20, v23);
 					branch_Bool_22 = v24;
 					branch_ZPlusMirth_21 = in_ZPlusMirth_1;
 				} break;
@@ -56093,7 +56489,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 3LL: { // Buffer
 					uint64_t v29 = mtp_mirth_arrow_Op_Buffer(in_Op_2);
-					bool v30 = mw_mirth_buffer_Buffer_ZEqualZEqual(v26, v29);
+					bool v30 = mw_mirth_buffer_Buffer_ZEqual(v26, v29);
 					branch_Bool_28 = v30;
 					branch_ZPlusMirth_27 = in_ZPlusMirth_1;
 				} break;
@@ -56114,7 +56510,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 4LL: { // Field
 					uint64_t v35 = mtp_mirth_arrow_Op_Field(in_Op_2);
-					bool v36 = mw_mirth_table_Field_ZEqualZEqual(v32, v35);
+					bool v36 = mw_mirth_table_Field_ZEqual(v32, v35);
 					branch_Bool_34 = v36;
 					branch_ZPlusMirth_33 = in_ZPlusMirth_1;
 				} break;
@@ -56135,7 +56531,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 5LL: { // Push
 					VAL v41 = mtp_mirth_arrow_Op_Push(in_Op_2);
-					bool v42 = mw_mirth_arrow_PushValue_ZEqualZEqual(v38, v41);
+					bool v42 = mw_mirth_arrow_PushValue_ZEqual(v38, v41);
 					branch_Bool_40 = v42;
 					branch_ZPlusMirth_39 = in_ZPlusMirth_1;
 				} break;
@@ -56157,7 +56553,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 6LL: { // Tag
 					uint64_t v47 = mtp_mirth_arrow_Op_Tag(in_Op_2);
-					bool v48 = mw_mirth_data_Tag_ZEqualZEqual(v44, v47);
+					bool v48 = mw_mirth_data_Tag_ZEqual(v44, v47);
 					branch_Bool_46 = v48;
 					branch_ZPlusMirth_45 = in_ZPlusMirth_1;
 				} break;
@@ -56245,7 +56641,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 12LL: { // LabelPush
 					uint64_t v73 = mtp_mirth_arrow_Op_LabelPush(in_Op_2);
-					bool v74 = mw_mirth_label_Label_ZEqualZEqual(v70, v73);
+					bool v74 = mw_mirth_label_Label_ZEqual(v70, v73);
 					branch_Bool_72 = v74;
 					branch_ZPlusMirth_71 = in_ZPlusMirth_1;
 				} break;
@@ -56266,7 +56662,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 13LL: { // LabelPop
 					uint64_t v79 = mtp_mirth_arrow_Op_LabelPop(in_Op_2);
-					bool v80 = mw_mirth_label_Label_ZEqualZEqual(v76, v79);
+					bool v80 = mw_mirth_label_Label_ZEqual(v76, v79);
 					branch_Bool_78 = v80;
 					branch_ZPlusMirth_77 = in_ZPlusMirth_1;
 				} break;
@@ -56287,7 +56683,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 14LL: { // LabelPushR
 					uint64_t v85 = mtp_mirth_arrow_Op_LabelPushR(in_Op_2);
-					bool v86 = mw_mirth_label_Label_ZEqualZEqual(v82, v85);
+					bool v86 = mw_mirth_label_Label_ZEqual(v82, v85);
 					branch_Bool_84 = v86;
 					branch_ZPlusMirth_83 = in_ZPlusMirth_1;
 				} break;
@@ -56308,7 +56704,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 15LL: { // LabelPopR
 					uint64_t v91 = mtp_mirth_arrow_Op_LabelPopR(in_Op_2);
-					bool v92 = mw_mirth_label_Label_ZEqualZEqual(v88, v91);
+					bool v92 = mw_mirth_label_Label_ZEqual(v88, v91);
 					branch_Bool_90 = v92;
 					branch_ZPlusMirth_89 = in_ZPlusMirth_1;
 				} break;
@@ -56329,7 +56725,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 16LL: { // DataGetEnumValue
 					uint64_t v97 = mtp_mirth_arrow_Op_DataGetEnumValue(in_Op_2);
-					bool v98 = mw_mirth_data_Data_ZEqualZEqual(v94, v97);
+					bool v98 = mw_mirth_data_Data_ZEqual(v94, v97);
 					branch_Bool_96 = v98;
 					branch_ZPlusMirth_95 = in_ZPlusMirth_1;
 				} break;
@@ -56350,7 +56746,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 17LL: { // DataFromEnumValue
 					uint64_t v103 = mtp_mirth_arrow_Op_DataFromEnumValue(in_Op_2);
-					bool v104 = mw_mirth_data_Data_ZEqualZEqual(v100, v103);
+					bool v104 = mw_mirth_data_Data_ZEqual(v100, v103);
 					branch_Bool_102 = v104;
 					branch_ZPlusMirth_101 = in_ZPlusMirth_1;
 				} break;
@@ -56415,7 +56811,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 20LL: { // TableToIndex
 					uint64_t v121 = mtp_mirth_arrow_Op_TableToIndex(in_Op_2);
-					bool v122 = mw_mirth_table_Table_ZEqualZEqual(v118, v121);
+					bool v122 = mw_mirth_table_Table_ZEqual(v118, v121);
 					branch_Bool_120 = v122;
 					branch_ZPlusMirth_119 = in_ZPlusMirth_1;
 				} break;
@@ -56436,7 +56832,7 @@ static bool mw_mirth_arrow_Op_similar (TUP* in_ZPlusMirth_1, VAL in_Op_2, VAL in
 			switch (get_data_tag(in_Op_2)) {
 				case 21LL: { // TableFromIndex
 					uint64_t v127 = mtp_mirth_arrow_Op_TableFromIndex(in_Op_2);
-					bool v128 = mw_mirth_table_Table_ZEqualZEqual(v124, v127);
+					bool v128 = mw_mirth_table_Table_ZEqual(v124, v127);
 					branch_Bool_126 = v128;
 					branch_ZPlusMirth_125 = in_ZPlusMirth_1;
 				} break;
@@ -56466,8 +56862,8 @@ static bool mw_mirth_data_TagField_similar (TUP* in_TagField_1, TUP* in_TagField
 	uint64_t v8;
 	VAL v9;
 	mtp_mirth_data_TagField_TagField(in_TagField_1, &v7, &v8, &v9);
-	bool v10 = mw_mirth_label_Label_ZEqualZEqual(v8, v5);
-	bool v11 = mw_mirth_data_Tag_ZEqualZEqual(v7, v4);
+	bool v10 = mw_mirth_label_Label_ZEqual(v8, v5);
+	bool v11 = mw_mirth_data_Tag_ZEqual(v7, v4);
 	bool v12 = (v10 && v11);
 	decref(v6);
 	decref(v9);
@@ -56477,7 +56873,7 @@ static bool mw_mirth_specializzer_SPKey_similar (TUP* in_ZPlusMirth_1, TUP* in_S
 	VAL v6 = mw_std_list_Nest_1_ZToList(in_SPKey_2);
 	VAL v7 = mw_std_list_Nest_1_ZToList(in_SPKey_3);
 	TUP* v8;
-	bool v9 = mw_std_list_List_1_ZEqualZEqual_sp1(in_ZPlusMirth_1, v6, v7, &v8);
+	bool v9 = mw_std_list_List_1_ZEqual_sp1(in_ZPlusMirth_1, v6, v7, &v8);
 	*out_ZPlusMirth_4 = v8;
 	return v9;
 }
@@ -57520,9 +57916,10 @@ static bool mw_std_set_ZPlusSet_memberZAsk (INT in_Nat_1, TUP* in_ZPlusSet_2, TU
 	uint64_t v15 = (uint64_t)(v14);
 	INT v16 = u64_to_int(v15);
 	INT v17 = WRAP_I63(0LL);
-	bool v18 = int_ne(v16, v17);
+	bool v18 = int_eq(v16, v17);
+	bool v19 = !v18;
 	*out_ZPlusSet_4 = v9;
-	return v18;
+	return v19;
 }
 static void mw_std_set_ZPlusSet_insertZBang (INT in_Nat_1, TUP* in_ZPlusSet_2, TUP* *out_ZPlusSet_3) {
 	uint8_t v4;
@@ -58541,8 +58938,21 @@ static void mw_mirth_c99_c99Z_endZBang (TUP* in_ZPlusC99_1, TUP* *out_ZPlusMirth
 	mw_mirth_need_ZPlusNeeds_rdrop(v9);
 	TUP* v12;
 	mw_std_output_ZPlusOutput_endZBang(v10, &v12);
-	mw_std_file_ZPlusFile_closeZ_fileZBang(v12);
-	*out_ZPlusMirth_2 = v11;
+	VAL v13 = mw_std_file_ZPlusFile_closeZ_fileZBang(v12);
+	TUP* branch_ZPlusMirth_14;
+	switch (get_data_tag(v13)) {
+		case 1LL: { // Some
+			VAL v15 = mtp_std_maybe_Maybe_1_Some(v13);
+			mw_mirth_mirth_ZPlusMirth_ioZ_errorZBang(v15, v11);
+		} break;
+		case 0LL: { // None
+			branch_ZPlusMirth_14 = v11;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusMirth_2 = branch_ZPlusMirth_14;
 }
 static void mw_mirth_c99_ZPlusC99_resetZ_freshZ_counterZBang (TUP* in_ZPlusC99_1, TUP* *out_ZPlusC99_2) {
 	INT v3 = WRAP_I63(0LL);
@@ -58591,45 +59001,46 @@ static void mw_mirth_c99_runZ_outputZ_c99ZBang (TUP* in_Arrow_1, TUP* in_C99z_Op
 	INT v7 = value_int(in_ZPlusMirth_3->cells[0]);
 	incref(MKINT(v7));
 	INT v8 = WRAP_I63(0LL);
-	bool v9 = int_gt(v7, v8);
-	TUP* branch_ZPlusMirth_10;
-	if (v9) {
-		STR* v11;
-		STRLIT(v11, "There were errors, so codegen stopped.", 38);
-		mw_std_prim_ZPlusWorld_trace(v11);
+	bool v9 = int_eq(v7, v8);
+	bool v10 = !v9;
+	TUP* branch_ZPlusMirth_11;
+	if (v10) {
+		STR* v12;
+		STRLIT(v12, "There were errors, so codegen stopped.", 38);
+		mw_std_prim_ZPlusWorld_trace(v12);
 		mw_mirth_mirth_ZPlusMirth_panicZ_diagnosticsZBang(in_ZPlusMirth_3);
 		decref(MKTUP(in_C99z_Options_2, 2));
 		decref(MKTUP(in_Arrow_1, 7));
 	} else {
-		TUP* v13;
-		TUP* v14 = mw_mirth_c99_c99Z_startZBang(in_Arrow_1, in_C99z_Options_2, in_ZPlusMirth_3, &v13);
-		TUP* v15;
-		mw_mirth_c99_c99Z_headerZBang(v13, &v15);
+		TUP* v14;
+		TUP* v15 = mw_mirth_c99_c99Z_startZBang(in_Arrow_1, in_C99z_Options_2, in_ZPlusMirth_3, &v14);
 		TUP* v16;
-		mw_mirth_c99_c99Z_labelZ_defsZBang(v15, &v16);
+		mw_mirth_c99_c99Z_headerZBang(v14, &v16);
 		TUP* v17;
-		mw_mirth_c99_c99Z_fieldZ_defsZBang(v16, &v17);
+		mw_mirth_c99_c99Z_labelZ_defsZBang(v16, &v17);
 		TUP* v18;
-		mw_mirth_c99_c99Z_tagZ_defsZBang(v17, &v18);
+		mw_mirth_c99_c99Z_fieldZ_defsZBang(v17, &v18);
 		TUP* v19;
-		mw_mirth_c99_c99Z_buffersZBang(v18, &v19);
+		mw_mirth_c99_c99Z_tagZ_defsZBang(v18, &v19);
 		TUP* v20;
-		mw_mirth_c99_c99Z_externalZ_blocksZBang(v19, &v20);
+		mw_mirth_c99_c99Z_buffersZBang(v19, &v20);
 		TUP* v21;
-		mw_mirth_c99_c99Z_wordZ_sigsZBang(v20, &v21);
+		mw_mirth_c99_c99Z_externalZ_blocksZBang(v20, &v21);
 		TUP* v22;
-		mw_mirth_c99_c99Z_blockZ_sigsZBang(v21, &v22);
+		mw_mirth_c99_c99Z_wordZ_sigsZBang(v21, &v22);
 		TUP* v23;
-		mw_mirth_c99_c99Z_mainZBang(v14, v22, &v23);
+		mw_mirth_c99_c99Z_blockZ_sigsZBang(v22, &v23);
 		TUP* v24;
-		mw_mirth_c99_c99Z_wordZ_defsZBang(v23, &v24);
+		mw_mirth_c99_c99Z_mainZBang(v15, v23, &v24);
 		TUP* v25;
-		mw_mirth_c99_c99Z_blockZ_defsZBang(v24, &v25);
+		mw_mirth_c99_c99Z_wordZ_defsZBang(v24, &v25);
 		TUP* v26;
-		mw_mirth_c99_c99Z_endZBang(v25, &v26);
-		branch_ZPlusMirth_10 = v26;
+		mw_mirth_c99_c99Z_blockZ_defsZBang(v25, &v26);
+		TUP* v27;
+		mw_mirth_c99_c99Z_endZBang(v26, &v27);
+		branch_ZPlusMirth_11 = v27;
 	}
-	*out_ZPlusMirth_4 = branch_ZPlusMirth_10;
+	*out_ZPlusMirth_4 = branch_ZPlusMirth_11;
 }
 static STR* mw_mirth_data_Tag_wordZ_cname (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_data_Tag_ZTildewordZ_cname, in_Tag_2);
@@ -59909,7 +60320,12 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"    if (IS_BIG(b)) {\n"
 		"        BIG* bb = GET_BIG(b);\n"
 		"        bshift = bb->size-1;\n"
-		"        bhead = bb->radix[bb->size-1];\n"
+		"        bhead = bb->radix[bshift];\n"
+		"        if (bhead == 0) {\n"
+		"            ASSERT(bshift > 0);\n"
+		"            bshift--;\n"
+		"            bhead = bb->radix[bshift];\n"
+		"        }\n"
 		"        for (size_t i = 0; i < bshift; i++) {\n"
 		"            if (bb->radix[i]) { bperfect=false; break; }\n"
 		"        }\n"
@@ -60081,9 +60497,12 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"\n"
 		"\n"
 		"static STR* i64_to_str(int64_t);\n"
+		"static STR* u64_to_str(uint64_t);\n"
 		"static STR* int_to_str(INT a) {\n"
 		"    if (IS_I63(a) || (GET_BIG(a)->size == 2)) {\n"
 		"        return i64_to_str(int_to_i64(a));\n"
+		"    } else if ((GET_BIG(a)->size == 3) && (GET_BIG(a)->radix[2] == 0)) {\n"
+		"        return u64_to_str(int_to_u64(a));\n"
 		"    } else {\n"
 		"        STR *s = str_alloc(GET_BIG(a)->size * 10);\n"
 		"        if (SIGN_RADIX(GET_BIG(a))) {\n"
@@ -60498,7 +60917,7 @@ static STR* mw_mirth_c99_c99Z_headerZ_str (void) {
 		"}\n"
 		"\n"
 		"/* GENERATED C99 */\n",
-		50021
+		50295
 	);
 	return v2;
 }
@@ -61957,7 +62376,7 @@ static INT mw_mirth_c99_c99Z_tagZ_labelZ_index (uint64_t in_Tag_1, uint64_t in_L
 				switch (get_data_tag(v47)) {
 					case 1LL: { // Some
 						VAL v50 = mtp_std_maybe_Maybe_1_Some(v47);
-						bool v51 = mw_mirth_label_Label_ZEqualZEqual(value_u64(v50), v28);
+						bool v51 = mw_mirth_label_Label_ZEqual(value_u64(v50), v28);
 						branch_Bool_49 = v51;
 						branch_Label_48 = v28;
 					} break;
@@ -63494,7 +63913,7 @@ static void mw_mirth_c99_c99Z_externalZ_defZBang (uint64_t in_External_1, TUP* i
 				INT v240 = WRAP_I63(1LL);
 				INT v241 = int_add(branch_Nat_232, v240);
 				VAL v242;
-				mw_std_maybe_Maybe_1_for_1_sp8(v220, branch_Maybe_234, &v242);
+				mw_std_maybe_Maybe_1_for_1_sp9(v220, branch_Maybe_234, &v242);
 				bool v243 = true;
 				branch_Bool_227 = v243;
 				branch_List_226 = v228;
@@ -63995,39 +64414,41 @@ static void mw_mirth_c99_ZPlusC99_indent (TUP* in_ZPlusC99_1, TUP* *out_ZPlusC99
 	incref(MKINT(v3));
 	incref(MKINT(v3));
 	INT v4 = WRAP_I63(0LL);
-	bool v5 = int_gt(v3, v4);
-	TUP* v6 = in_ZPlusC99_1;
-	INT v7 = v3;
-	bool v8 = v5;
-	while (v8) {
-		TUP* v9 = v6;
-		INT v10 = v7;
-		STR* v11;
-		STRLIT(v11, "\t", 1);
-		TUP* v12;
-		mw_mirth_c99_ZPlusC99_put(v11, v9, &v12);
-		INT v13 = WRAP_I63(1LL);
-		INT v14 = int_sub(v10, v13);
-		incref(MKINT(v14));
-		INT v15 = WRAP_I63(0LL);
-		bool v16 = int_lt(v14, v15);
-		INT branch_Nat_17;
-		if (v16) {
-			decref(MKINT(v14));
-			INT v18 = WRAP_I63(0LL);
-			branch_Nat_17 = v18;
+	bool v5 = int_eq(v3, v4);
+	bool v6 = !v5;
+	TUP* v7 = in_ZPlusC99_1;
+	INT v8 = v3;
+	bool v9 = v6;
+	while (v9) {
+		TUP* v10 = v7;
+		INT v11 = v8;
+		STR* v12;
+		STRLIT(v12, "\t", 1);
+		TUP* v13;
+		mw_mirth_c99_ZPlusC99_put(v12, v10, &v13);
+		INT v14 = WRAP_I63(1LL);
+		INT v15 = int_sub(v11, v14);
+		incref(MKINT(v15));
+		INT v16 = WRAP_I63(0LL);
+		bool v17 = int_lt(v15, v16);
+		INT branch_Nat_18;
+		if (v17) {
+			decref(MKINT(v15));
+			INT v19 = WRAP_I63(0LL);
+			branch_Nat_18 = v19;
 		} else {
-			branch_Nat_17 = v14;
+			branch_Nat_18 = v15;
 		}
-		incref(MKINT(branch_Nat_17));
-		INT v19 = WRAP_I63(0LL);
-		bool v20 = int_gt(branch_Nat_17, v19);
-		v8 = v20;
-		v7 = branch_Nat_17;
-		v6 = v12;
+		incref(MKINT(branch_Nat_18));
+		INT v20 = WRAP_I63(0LL);
+		bool v21 = int_eq(branch_Nat_18, v20);
+		bool v22 = !v21;
+		v9 = v22;
+		v8 = branch_Nat_18;
+		v7 = v13;
 	}
-	decref(MKINT(v7));
-	*out_ZPlusC99_2 = v6;
+	decref(MKINT(v8));
+	*out_ZPlusC99_2 = v7;
 }
 static VAL mw_mirth_c99_C99APIArgMode_modeZ_argZ_prefix (int64_t in_C99APIArgMode_1) {
 	VAL branch__3;
@@ -64847,13 +65268,14 @@ static TUP* mw_mirth_c99_ZPlusC99_cnameZ_typeZ_toZ_c99Z_api (STR* in_Str_1, TUP*
 					VAL v63 = mtp_std_maybe_Maybe_1_Some(v61);
 					uint64_t v64 = mw_mirth_var_Var_index(value_u64(v57));
 					uint64_t v65 = mw_mirth_var_Var_index(value_u64(v63));
-					bool v66 = (v64 != v65);
-					branch_Bool_62 = v66;
+					bool v66 = (v64 == v65);
+					bool v67 = !v66;
+					branch_Bool_62 = v67;
 				} break;
 				case 0LL: { // None
 					decref(v57);
-					bool v67 = false;
-					branch_Bool_62 = v67;
+					bool v68 = false;
+					branch_Bool_62 = v68;
 				} break;
 				default: {
 					do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -64864,8 +65286,8 @@ static TUP* mw_mirth_c99_ZPlusC99_cnameZ_typeZ_toZ_c99Z_api (STR* in_Str_1, TUP*
 			branch_ArrowType_54 = in_ArrowType_2;
 		} break;
 		case 0LL: { // None
-			bool v68 = false;
-			branch_Bool_56 = v68;
+			bool v69 = false;
+			branch_Bool_56 = v69;
 			branch_ZPlusC99_55 = v17;
 			branch_ArrowType_54 = in_ArrowType_2;
 		} break;
@@ -64873,11 +65295,11 @@ static TUP* mw_mirth_c99_ZPlusC99_cnameZ_typeZ_toZ_c99Z_api (STR* in_Str_1, TUP*
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	bool v69 = !branch_Bool_56;
-	bool v70 = (v69 && v49);
-	TUP* v71 = mtw_mirth_c99_C99API_C99API(in_Str_1, branch_ArrowType_54, v13, v44, v46, v45, v70, branch_Bool_56);
+	bool v70 = !branch_Bool_56;
+	bool v71 = (v70 && v49);
+	TUP* v72 = mtw_mirth_c99_C99API_C99API(in_Str_1, branch_ArrowType_54, v13, v44, v46, v45, v71, branch_Bool_56);
 	*out_ZPlusC99_5 = branch_ZPlusC99_55;
-	return v71;
+	return v72;
 }
 static TUP* mw_mirth_c99_C99APIArg_reserveZ_asZ_newZ_valueZBang (TUP* in_C99APIArg_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4) {
 	incref(MKTUP(in_C99APIArg_1, 4));
@@ -66540,749 +66962,723 @@ static void mw_mirth_c99_c99Z_pushZ_valueZBang (VAL in_PushValue_1, TUP* in_ZPlu
 			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_16, branch_Str_18, &v37);
 			uint64_t v38 = (uint64_t)(branch_U8_15);
 			INT v39 = u64_to_int(v38);
-			incref(MKINT(v39));
-			INT v40 = WRAP_I63(0LL);
-			bool v41 = int_lt(v39, v40);
-			INT branch_Nat_42;
-			if (v41) {
-				decref(MKINT(v39));
-				INT v43 = WRAP_I63(0LL);
-				branch_Nat_42 = v43;
-			} else {
-				branch_Nat_42 = v39;
-			}
-			STR* v44 = int_to_str(branch_Nat_42);
+			STR* v40 = int_to_str(v39);
+			TUP* v41;
+			mw_mirth_c99_ZPlusC99_put(v40, v36, &v41);
+			STR* v42;
+			STRLIT(v42, ";", 1);
+			TUP* v43;
+			mw_mirth_c99_ZPlusC99_put(v42, v41, &v43);
+			TUP* v44;
+			mw_mirth_c99_ZPlusC99_line(v43, &v44);
+			v44->cells[3] = MKBOOL(v27);
+			branch_ZPlusC99Branch_19->cells[0] = MKTUP(v44, 7);
 			TUP* v45;
-			mw_mirth_c99_ZPlusC99_put(v44, v36, &v45);
-			STR* v46;
-			STRLIT(v46, ";", 1);
-			TUP* v47;
-			mw_mirth_c99_ZPlusC99_put(v46, v45, &v47);
-			TUP* v48;
-			mw_mirth_c99_ZPlusC99_line(v47, &v48);
-			v48->cells[3] = MKBOOL(v27);
-			branch_ZPlusC99Branch_19->cells[0] = MKTUP(v48, 7);
-			TUP* v49;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_19, v37, &v49);
-			branch_ZPlusC99Branch_4 = v49;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_19, v37, &v45);
+			branch_ZPlusC99Branch_4 = v45;
 		} break;
 		case 3LL: { // U16
-			uint16_t v50 = mtp_mirth_arrow_PushValue_U16(in_PushValue_1);
-			VAL v51 = MKI64(11LL /* U16 */);
-			incref(v51);
-			int64_t v52 = get_data_tag(v51);
-			decref(v51);
-			int64_t v53 = 0LL;
-			bool v54 = (v52 == v53);
-			bool v55 = !v54;
-			uint16_t branch_U16_56;
-			VAL branch_C99ReprType_57;
-			bool branch_Bool_58;
-			STR* branch_Str_59;
-			TUP* branch_ZPlusC99Branch_60;
-			if (v55) {
-				TUP* v61 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v62;
-				STR* v63 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v61, &v62);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v62, 7);
-				branch_ZPlusC99Branch_60 = in_ZPlusC99Branch_2;
-				branch_Str_59 = v63;
-				branch_Bool_58 = v55;
-				branch_C99ReprType_57 = v51;
-				branch_U16_56 = v50;
+			uint16_t v46 = mtp_mirth_arrow_PushValue_U16(in_PushValue_1);
+			VAL v47 = MKI64(11LL /* U16 */);
+			incref(v47);
+			int64_t v48 = get_data_tag(v47);
+			decref(v47);
+			int64_t v49 = 0LL;
+			bool v50 = (v48 == v49);
+			bool v51 = !v50;
+			uint16_t branch_U16_52;
+			VAL branch_C99ReprType_53;
+			bool branch_Bool_54;
+			STR* branch_Str_55;
+			TUP* branch_ZPlusC99Branch_56;
+			if (v51) {
+				TUP* v57 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v58;
+				STR* v59 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v57, &v58);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v58, 7);
+				branch_ZPlusC99Branch_56 = in_ZPlusC99Branch_2;
+				branch_Str_55 = v59;
+				branch_Bool_54 = v51;
+				branch_C99ReprType_53 = v47;
+				branch_U16_52 = v46;
 			} else {
-				STR* v64;
-				STRLIT(v64, "0", 1);
-				branch_ZPlusC99Branch_60 = in_ZPlusC99Branch_2;
-				branch_Str_59 = v64;
-				branch_Bool_58 = v55;
-				branch_C99ReprType_57 = v51;
-				branch_U16_56 = v50;
+				STR* v60;
+				STRLIT(v60, "0", 1);
+				branch_ZPlusC99Branch_56 = in_ZPlusC99Branch_2;
+				branch_Str_55 = v60;
+				branch_Bool_54 = v51;
+				branch_C99ReprType_53 = v47;
+				branch_U16_52 = v46;
 			}
-			bool v65 = value_bool(branch_ZPlusC99Branch_60->cells[3]);
-			bool v66 = (branch_Bool_58 && v65);
-			TUP* v67 = value_tup(branch_ZPlusC99Branch_60->cells[0], 7);
-			bool v68 = value_bool(v67->cells[3]);
-			bool v69 = (v66 && v68);
-			v67->cells[3] = MKBOOL(v69);
+			bool v61 = value_bool(branch_ZPlusC99Branch_56->cells[3]);
+			bool v62 = (branch_Bool_54 && v61);
+			TUP* v63 = value_tup(branch_ZPlusC99Branch_56->cells[0], 7);
+			bool v64 = value_bool(v63->cells[3]);
+			bool v65 = (v62 && v64);
+			v63->cells[3] = MKBOOL(v65);
+			TUP* v66;
+			mw_mirth_c99_ZPlusC99_indent(v63, &v66);
+			incref(branch_C99ReprType_53);
+			STR* v67 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_53);
+			TUP* v68;
+			mw_mirth_c99_ZPlusC99_put(v67, v66, &v68);
+			STR* v69;
+			STRLIT(v69, " ", 1);
 			TUP* v70;
-			mw_mirth_c99_ZPlusC99_indent(v67, &v70);
-			incref(branch_C99ReprType_57);
-			STR* v71 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_57);
-			TUP* v72;
-			mw_mirth_c99_ZPlusC99_put(v71, v70, &v72);
-			STR* v73;
-			STRLIT(v73, " ", 1);
+			mw_mirth_c99_ZPlusC99_put(v69, v68, &v70);
+			incref(MKSTR(branch_Str_55));
+			TUP* v71;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_55, v70, &v71);
+			STR* v72;
+			STRLIT(v72, " = ", 3);
+			TUP* v73;
+			mw_mirth_c99_ZPlusC99_put(v72, v71, &v73);
 			TUP* v74;
-			mw_mirth_c99_ZPlusC99_put(v73, v72, &v74);
-			incref(MKSTR(branch_Str_59));
-			TUP* v75;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_59, v74, &v75);
-			STR* v76;
-			STRLIT(v76, " = ", 3);
-			TUP* v77;
-			mw_mirth_c99_ZPlusC99_put(v76, v75, &v77);
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_53, branch_Str_55, &v74);
+			uint64_t v75 = (uint64_t)(branch_U16_52);
+			INT v76 = u64_to_int(v75);
+			STR* v77 = int_to_str(v76);
 			TUP* v78;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_57, branch_Str_59, &v78);
-			uint64_t v79 = (uint64_t)(branch_U16_56);
-			INT v80 = u64_to_int(v79);
-			STR* v81 = int_to_str(v80);
+			mw_mirth_c99_ZPlusC99_put(v77, v73, &v78);
+			STR* v79;
+			STRLIT(v79, ";", 1);
+			TUP* v80;
+			mw_mirth_c99_ZPlusC99_put(v79, v78, &v80);
+			TUP* v81;
+			mw_mirth_c99_ZPlusC99_line(v80, &v81);
+			v81->cells[3] = MKBOOL(v64);
+			branch_ZPlusC99Branch_56->cells[0] = MKTUP(v81, 7);
 			TUP* v82;
-			mw_mirth_c99_ZPlusC99_put(v81, v77, &v82);
-			STR* v83;
-			STRLIT(v83, ";", 1);
-			TUP* v84;
-			mw_mirth_c99_ZPlusC99_put(v83, v82, &v84);
-			TUP* v85;
-			mw_mirth_c99_ZPlusC99_line(v84, &v85);
-			v85->cells[3] = MKBOOL(v68);
-			branch_ZPlusC99Branch_60->cells[0] = MKTUP(v85, 7);
-			TUP* v86;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_60, v78, &v86);
-			branch_ZPlusC99Branch_4 = v86;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_56, v74, &v82);
+			branch_ZPlusC99Branch_4 = v82;
 		} break;
 		case 4LL: { // U32
-			uint32_t v87 = mtp_mirth_arrow_PushValue_U32(in_PushValue_1);
-			VAL v88 = MKI64(10LL /* U32 */);
-			incref(v88);
-			int64_t v89 = get_data_tag(v88);
-			decref(v88);
-			int64_t v90 = 0LL;
-			bool v91 = (v89 == v90);
-			bool v92 = !v91;
-			uint32_t branch_U32_93;
-			VAL branch_C99ReprType_94;
-			bool branch_Bool_95;
-			STR* branch_Str_96;
-			TUP* branch_ZPlusC99Branch_97;
-			if (v92) {
-				TUP* v98 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v99;
-				STR* v100 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v98, &v99);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v99, 7);
-				branch_ZPlusC99Branch_97 = in_ZPlusC99Branch_2;
-				branch_Str_96 = v100;
-				branch_Bool_95 = v92;
-				branch_C99ReprType_94 = v88;
-				branch_U32_93 = v87;
+			uint32_t v83 = mtp_mirth_arrow_PushValue_U32(in_PushValue_1);
+			VAL v84 = MKI64(10LL /* U32 */);
+			incref(v84);
+			int64_t v85 = get_data_tag(v84);
+			decref(v84);
+			int64_t v86 = 0LL;
+			bool v87 = (v85 == v86);
+			bool v88 = !v87;
+			uint32_t branch_U32_89;
+			VAL branch_C99ReprType_90;
+			bool branch_Bool_91;
+			STR* branch_Str_92;
+			TUP* branch_ZPlusC99Branch_93;
+			if (v88) {
+				TUP* v94 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v95;
+				STR* v96 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v94, &v95);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v95, 7);
+				branch_ZPlusC99Branch_93 = in_ZPlusC99Branch_2;
+				branch_Str_92 = v96;
+				branch_Bool_91 = v88;
+				branch_C99ReprType_90 = v84;
+				branch_U32_89 = v83;
 			} else {
-				STR* v101;
-				STRLIT(v101, "0", 1);
-				branch_ZPlusC99Branch_97 = in_ZPlusC99Branch_2;
-				branch_Str_96 = v101;
-				branch_Bool_95 = v92;
-				branch_C99ReprType_94 = v88;
-				branch_U32_93 = v87;
+				STR* v97;
+				STRLIT(v97, "0", 1);
+				branch_ZPlusC99Branch_93 = in_ZPlusC99Branch_2;
+				branch_Str_92 = v97;
+				branch_Bool_91 = v88;
+				branch_C99ReprType_90 = v84;
+				branch_U32_89 = v83;
 			}
-			bool v102 = value_bool(branch_ZPlusC99Branch_97->cells[3]);
-			bool v103 = (branch_Bool_95 && v102);
-			TUP* v104 = value_tup(branch_ZPlusC99Branch_97->cells[0], 7);
-			bool v105 = value_bool(v104->cells[3]);
-			bool v106 = (v103 && v105);
-			v104->cells[3] = MKBOOL(v106);
+			bool v98 = value_bool(branch_ZPlusC99Branch_93->cells[3]);
+			bool v99 = (branch_Bool_91 && v98);
+			TUP* v100 = value_tup(branch_ZPlusC99Branch_93->cells[0], 7);
+			bool v101 = value_bool(v100->cells[3]);
+			bool v102 = (v99 && v101);
+			v100->cells[3] = MKBOOL(v102);
+			TUP* v103;
+			mw_mirth_c99_ZPlusC99_indent(v100, &v103);
+			incref(branch_C99ReprType_90);
+			STR* v104 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_90);
+			TUP* v105;
+			mw_mirth_c99_ZPlusC99_put(v104, v103, &v105);
+			STR* v106;
+			STRLIT(v106, " ", 1);
 			TUP* v107;
-			mw_mirth_c99_ZPlusC99_indent(v104, &v107);
-			incref(branch_C99ReprType_94);
-			STR* v108 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_94);
-			TUP* v109;
-			mw_mirth_c99_ZPlusC99_put(v108, v107, &v109);
-			STR* v110;
-			STRLIT(v110, " ", 1);
+			mw_mirth_c99_ZPlusC99_put(v106, v105, &v107);
+			incref(MKSTR(branch_Str_92));
+			TUP* v108;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_92, v107, &v108);
+			STR* v109;
+			STRLIT(v109, " = ", 3);
+			TUP* v110;
+			mw_mirth_c99_ZPlusC99_put(v109, v108, &v110);
 			TUP* v111;
-			mw_mirth_c99_ZPlusC99_put(v110, v109, &v111);
-			incref(MKSTR(branch_Str_96));
-			TUP* v112;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_96, v111, &v112);
-			STR* v113;
-			STRLIT(v113, " = ", 3);
-			TUP* v114;
-			mw_mirth_c99_ZPlusC99_put(v113, v112, &v114);
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_90, branch_Str_92, &v111);
+			uint64_t v112 = (uint64_t)(branch_U32_89);
+			INT v113 = u64_to_int(v112);
+			STR* v114 = int_to_str(v113);
 			TUP* v115;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_94, branch_Str_96, &v115);
-			uint64_t v116 = (uint64_t)(branch_U32_93);
-			INT v117 = u64_to_int(v116);
-			STR* v118 = int_to_str(v117);
+			mw_mirth_c99_ZPlusC99_put(v114, v110, &v115);
+			STR* v116;
+			STRLIT(v116, ";", 1);
+			TUP* v117;
+			mw_mirth_c99_ZPlusC99_put(v116, v115, &v117);
+			TUP* v118;
+			mw_mirth_c99_ZPlusC99_line(v117, &v118);
+			v118->cells[3] = MKBOOL(v101);
+			branch_ZPlusC99Branch_93->cells[0] = MKTUP(v118, 7);
 			TUP* v119;
-			mw_mirth_c99_ZPlusC99_put(v118, v114, &v119);
-			STR* v120;
-			STRLIT(v120, ";", 1);
-			TUP* v121;
-			mw_mirth_c99_ZPlusC99_put(v120, v119, &v121);
-			TUP* v122;
-			mw_mirth_c99_ZPlusC99_line(v121, &v122);
-			v122->cells[3] = MKBOOL(v105);
-			branch_ZPlusC99Branch_97->cells[0] = MKTUP(v122, 7);
-			TUP* v123;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_97, v115, &v123);
-			branch_ZPlusC99Branch_4 = v123;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_93, v111, &v119);
+			branch_ZPlusC99Branch_4 = v119;
 		} break;
 		case 5LL: { // U64
-			uint64_t v124 = mtp_mirth_arrow_PushValue_U64(in_PushValue_1);
-			VAL v125 = MKI64(9LL /* U64 */);
-			incref(v125);
-			int64_t v126 = get_data_tag(v125);
-			decref(v125);
-			int64_t v127 = 0LL;
-			bool v128 = (v126 == v127);
-			bool v129 = !v128;
-			uint64_t branch_U64_130;
-			VAL branch_C99ReprType_131;
-			bool branch_Bool_132;
-			STR* branch_Str_133;
-			TUP* branch_ZPlusC99Branch_134;
-			if (v129) {
-				TUP* v135 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v136;
-				STR* v137 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v135, &v136);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v136, 7);
-				branch_ZPlusC99Branch_134 = in_ZPlusC99Branch_2;
-				branch_Str_133 = v137;
-				branch_Bool_132 = v129;
-				branch_C99ReprType_131 = v125;
-				branch_U64_130 = v124;
+			uint64_t v120 = mtp_mirth_arrow_PushValue_U64(in_PushValue_1);
+			VAL v121 = MKI64(9LL /* U64 */);
+			incref(v121);
+			int64_t v122 = get_data_tag(v121);
+			decref(v121);
+			int64_t v123 = 0LL;
+			bool v124 = (v122 == v123);
+			bool v125 = !v124;
+			uint64_t branch_U64_126;
+			VAL branch_C99ReprType_127;
+			bool branch_Bool_128;
+			STR* branch_Str_129;
+			TUP* branch_ZPlusC99Branch_130;
+			if (v125) {
+				TUP* v131 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v132;
+				STR* v133 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v131, &v132);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v132, 7);
+				branch_ZPlusC99Branch_130 = in_ZPlusC99Branch_2;
+				branch_Str_129 = v133;
+				branch_Bool_128 = v125;
+				branch_C99ReprType_127 = v121;
+				branch_U64_126 = v120;
 			} else {
-				STR* v138;
-				STRLIT(v138, "0", 1);
-				branch_ZPlusC99Branch_134 = in_ZPlusC99Branch_2;
-				branch_Str_133 = v138;
-				branch_Bool_132 = v129;
-				branch_C99ReprType_131 = v125;
-				branch_U64_130 = v124;
+				STR* v134;
+				STRLIT(v134, "0", 1);
+				branch_ZPlusC99Branch_130 = in_ZPlusC99Branch_2;
+				branch_Str_129 = v134;
+				branch_Bool_128 = v125;
+				branch_C99ReprType_127 = v121;
+				branch_U64_126 = v120;
 			}
-			bool v139 = value_bool(branch_ZPlusC99Branch_134->cells[3]);
-			bool v140 = (branch_Bool_132 && v139);
-			TUP* v141 = value_tup(branch_ZPlusC99Branch_134->cells[0], 7);
-			bool v142 = value_bool(v141->cells[3]);
-			bool v143 = (v140 && v142);
-			v141->cells[3] = MKBOOL(v143);
+			bool v135 = value_bool(branch_ZPlusC99Branch_130->cells[3]);
+			bool v136 = (branch_Bool_128 && v135);
+			TUP* v137 = value_tup(branch_ZPlusC99Branch_130->cells[0], 7);
+			bool v138 = value_bool(v137->cells[3]);
+			bool v139 = (v136 && v138);
+			v137->cells[3] = MKBOOL(v139);
+			TUP* v140;
+			mw_mirth_c99_ZPlusC99_indent(v137, &v140);
+			incref(branch_C99ReprType_127);
+			STR* v141 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_127);
+			TUP* v142;
+			mw_mirth_c99_ZPlusC99_put(v141, v140, &v142);
+			STR* v143;
+			STRLIT(v143, " ", 1);
 			TUP* v144;
-			mw_mirth_c99_ZPlusC99_indent(v141, &v144);
-			incref(branch_C99ReprType_131);
-			STR* v145 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_131);
-			TUP* v146;
-			mw_mirth_c99_ZPlusC99_put(v145, v144, &v146);
-			STR* v147;
-			STRLIT(v147, " ", 1);
+			mw_mirth_c99_ZPlusC99_put(v143, v142, &v144);
+			incref(MKSTR(branch_Str_129));
+			TUP* v145;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_129, v144, &v145);
+			STR* v146;
+			STRLIT(v146, " = ", 3);
+			TUP* v147;
+			mw_mirth_c99_ZPlusC99_put(v146, v145, &v147);
 			TUP* v148;
-			mw_mirth_c99_ZPlusC99_put(v147, v146, &v148);
-			incref(MKSTR(branch_Str_133));
-			TUP* v149;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_133, v148, &v149);
-			STR* v150;
-			STRLIT(v150, " = ", 3);
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_127, branch_Str_129, &v148);
+			INT v149 = u64_to_int(branch_U64_126);
+			STR* v150 = int_to_str(v149);
 			TUP* v151;
-			mw_mirth_c99_ZPlusC99_put(v150, v149, &v151);
-			TUP* v152;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_131, branch_Str_133, &v152);
-			INT v153 = u64_to_int(branch_U64_130);
-			incref(MKINT(v153));
-			INT v154 = WRAP_I63(0LL);
-			bool v155 = int_lt(v153, v154);
-			INT branch_Nat_156;
-			if (v155) {
-				decref(MKINT(v153));
-				INT v157 = WRAP_I63(0LL);
-				branch_Nat_156 = v157;
-			} else {
-				branch_Nat_156 = v153;
-			}
-			STR* v158 = int_to_str(branch_Nat_156);
-			TUP* v159;
-			mw_mirth_c99_ZPlusC99_put(v158, v151, &v159);
-			STR* v160;
-			STRLIT(v160, "ULL", 3);
-			TUP* v161;
-			mw_mirth_c99_ZPlusC99_put(v160, v159, &v161);
-			STR* v162;
-			STRLIT(v162, ";", 1);
-			TUP* v163;
-			mw_mirth_c99_ZPlusC99_put(v162, v161, &v163);
-			TUP* v164;
-			mw_mirth_c99_ZPlusC99_line(v163, &v164);
-			v164->cells[3] = MKBOOL(v142);
-			branch_ZPlusC99Branch_134->cells[0] = MKTUP(v164, 7);
-			TUP* v165;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_134, v152, &v165);
-			branch_ZPlusC99Branch_4 = v165;
+			mw_mirth_c99_ZPlusC99_put(v150, v147, &v151);
+			STR* v152;
+			STRLIT(v152, "ULL", 3);
+			TUP* v153;
+			mw_mirth_c99_ZPlusC99_put(v152, v151, &v153);
+			STR* v154;
+			STRLIT(v154, ";", 1);
+			TUP* v155;
+			mw_mirth_c99_ZPlusC99_put(v154, v153, &v155);
+			TUP* v156;
+			mw_mirth_c99_ZPlusC99_line(v155, &v156);
+			v156->cells[3] = MKBOOL(v138);
+			branch_ZPlusC99Branch_130->cells[0] = MKTUP(v156, 7);
+			TUP* v157;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_130, v148, &v157);
+			branch_ZPlusC99Branch_4 = v157;
 		} break;
 		case 6LL: { // I8
-			int8_t v166 = mtp_mirth_arrow_PushValue_I8(in_PushValue_1);
-			VAL v167 = MKI64(8LL /* I8 */);
-			incref(v167);
-			int64_t v168 = get_data_tag(v167);
-			decref(v167);
-			int64_t v169 = 0LL;
-			bool v170 = (v168 == v169);
-			bool v171 = !v170;
-			int8_t branch_I8_172;
-			VAL branch_C99ReprType_173;
-			bool branch_Bool_174;
-			STR* branch_Str_175;
-			TUP* branch_ZPlusC99Branch_176;
-			if (v171) {
-				TUP* v177 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v178;
-				STR* v179 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v177, &v178);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v178, 7);
-				branch_ZPlusC99Branch_176 = in_ZPlusC99Branch_2;
-				branch_Str_175 = v179;
-				branch_Bool_174 = v171;
-				branch_C99ReprType_173 = v167;
-				branch_I8_172 = v166;
+			int8_t v158 = mtp_mirth_arrow_PushValue_I8(in_PushValue_1);
+			VAL v159 = MKI64(8LL /* I8 */);
+			incref(v159);
+			int64_t v160 = get_data_tag(v159);
+			decref(v159);
+			int64_t v161 = 0LL;
+			bool v162 = (v160 == v161);
+			bool v163 = !v162;
+			int8_t branch_I8_164;
+			VAL branch_C99ReprType_165;
+			bool branch_Bool_166;
+			STR* branch_Str_167;
+			TUP* branch_ZPlusC99Branch_168;
+			if (v163) {
+				TUP* v169 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v170;
+				STR* v171 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v169, &v170);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v170, 7);
+				branch_ZPlusC99Branch_168 = in_ZPlusC99Branch_2;
+				branch_Str_167 = v171;
+				branch_Bool_166 = v163;
+				branch_C99ReprType_165 = v159;
+				branch_I8_164 = v158;
 			} else {
-				STR* v180;
-				STRLIT(v180, "0", 1);
-				branch_ZPlusC99Branch_176 = in_ZPlusC99Branch_2;
-				branch_Str_175 = v180;
-				branch_Bool_174 = v171;
-				branch_C99ReprType_173 = v167;
-				branch_I8_172 = v166;
+				STR* v172;
+				STRLIT(v172, "0", 1);
+				branch_ZPlusC99Branch_168 = in_ZPlusC99Branch_2;
+				branch_Str_167 = v172;
+				branch_Bool_166 = v163;
+				branch_C99ReprType_165 = v159;
+				branch_I8_164 = v158;
 			}
-			bool v181 = value_bool(branch_ZPlusC99Branch_176->cells[3]);
-			bool v182 = (branch_Bool_174 && v181);
-			TUP* v183 = value_tup(branch_ZPlusC99Branch_176->cells[0], 7);
-			bool v184 = value_bool(v183->cells[3]);
-			bool v185 = (v182 && v184);
-			v183->cells[3] = MKBOOL(v185);
+			bool v173 = value_bool(branch_ZPlusC99Branch_168->cells[3]);
+			bool v174 = (branch_Bool_166 && v173);
+			TUP* v175 = value_tup(branch_ZPlusC99Branch_168->cells[0], 7);
+			bool v176 = value_bool(v175->cells[3]);
+			bool v177 = (v174 && v176);
+			v175->cells[3] = MKBOOL(v177);
+			TUP* v178;
+			mw_mirth_c99_ZPlusC99_indent(v175, &v178);
+			incref(branch_C99ReprType_165);
+			STR* v179 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_165);
+			TUP* v180;
+			mw_mirth_c99_ZPlusC99_put(v179, v178, &v180);
+			STR* v181;
+			STRLIT(v181, " ", 1);
+			TUP* v182;
+			mw_mirth_c99_ZPlusC99_put(v181, v180, &v182);
+			incref(MKSTR(branch_Str_167));
+			TUP* v183;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_167, v182, &v183);
+			STR* v184;
+			STRLIT(v184, " = ", 3);
+			TUP* v185;
+			mw_mirth_c99_ZPlusC99_put(v184, v183, &v185);
 			TUP* v186;
-			mw_mirth_c99_ZPlusC99_indent(v183, &v186);
-			incref(branch_C99ReprType_173);
-			STR* v187 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_173);
-			TUP* v188;
-			mw_mirth_c99_ZPlusC99_put(v187, v186, &v188);
-			STR* v189;
-			STRLIT(v189, " ", 1);
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_165, branch_Str_167, &v186);
+			int64_t v187 = (int64_t)(branch_I8_164);
+			INT v188 = i64_to_int(v187);
+			STR* v189 = int_to_str(v188);
 			TUP* v190;
-			mw_mirth_c99_ZPlusC99_put(v189, v188, &v190);
-			incref(MKSTR(branch_Str_175));
-			TUP* v191;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_175, v190, &v191);
-			STR* v192;
-			STRLIT(v192, " = ", 3);
+			mw_mirth_c99_ZPlusC99_put(v189, v185, &v190);
+			STR* v191;
+			STRLIT(v191, ";", 1);
+			TUP* v192;
+			mw_mirth_c99_ZPlusC99_put(v191, v190, &v192);
 			TUP* v193;
-			mw_mirth_c99_ZPlusC99_put(v192, v191, &v193);
+			mw_mirth_c99_ZPlusC99_line(v192, &v193);
+			v193->cells[3] = MKBOOL(v176);
+			branch_ZPlusC99Branch_168->cells[0] = MKTUP(v193, 7);
 			TUP* v194;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_173, branch_Str_175, &v194);
-			int64_t v195 = (int64_t)(branch_I8_172);
-			INT v196 = i64_to_int(v195);
-			STR* v197 = int_to_str(v196);
-			TUP* v198;
-			mw_mirth_c99_ZPlusC99_put(v197, v193, &v198);
-			STR* v199;
-			STRLIT(v199, ";", 1);
-			TUP* v200;
-			mw_mirth_c99_ZPlusC99_put(v199, v198, &v200);
-			TUP* v201;
-			mw_mirth_c99_ZPlusC99_line(v200, &v201);
-			v201->cells[3] = MKBOOL(v184);
-			branch_ZPlusC99Branch_176->cells[0] = MKTUP(v201, 7);
-			TUP* v202;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_176, v194, &v202);
-			branch_ZPlusC99Branch_4 = v202;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_168, v186, &v194);
+			branch_ZPlusC99Branch_4 = v194;
 		} break;
 		case 7LL: { // I16
-			int16_t v203 = mtp_mirth_arrow_PushValue_I16(in_PushValue_1);
-			VAL v204 = MKI64(7LL /* I16 */);
-			incref(v204);
-			int64_t v205 = get_data_tag(v204);
-			decref(v204);
-			int64_t v206 = 0LL;
-			bool v207 = (v205 == v206);
-			bool v208 = !v207;
-			int16_t branch_I16_209;
-			VAL branch_C99ReprType_210;
-			bool branch_Bool_211;
-			STR* branch_Str_212;
-			TUP* branch_ZPlusC99Branch_213;
-			if (v208) {
-				TUP* v214 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v215;
-				STR* v216 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v214, &v215);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v215, 7);
-				branch_ZPlusC99Branch_213 = in_ZPlusC99Branch_2;
-				branch_Str_212 = v216;
-				branch_Bool_211 = v208;
-				branch_C99ReprType_210 = v204;
-				branch_I16_209 = v203;
+			int16_t v195 = mtp_mirth_arrow_PushValue_I16(in_PushValue_1);
+			VAL v196 = MKI64(7LL /* I16 */);
+			incref(v196);
+			int64_t v197 = get_data_tag(v196);
+			decref(v196);
+			int64_t v198 = 0LL;
+			bool v199 = (v197 == v198);
+			bool v200 = !v199;
+			int16_t branch_I16_201;
+			VAL branch_C99ReprType_202;
+			bool branch_Bool_203;
+			STR* branch_Str_204;
+			TUP* branch_ZPlusC99Branch_205;
+			if (v200) {
+				TUP* v206 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v207;
+				STR* v208 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v206, &v207);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v207, 7);
+				branch_ZPlusC99Branch_205 = in_ZPlusC99Branch_2;
+				branch_Str_204 = v208;
+				branch_Bool_203 = v200;
+				branch_C99ReprType_202 = v196;
+				branch_I16_201 = v195;
 			} else {
-				STR* v217;
-				STRLIT(v217, "0", 1);
-				branch_ZPlusC99Branch_213 = in_ZPlusC99Branch_2;
-				branch_Str_212 = v217;
-				branch_Bool_211 = v208;
-				branch_C99ReprType_210 = v204;
-				branch_I16_209 = v203;
+				STR* v209;
+				STRLIT(v209, "0", 1);
+				branch_ZPlusC99Branch_205 = in_ZPlusC99Branch_2;
+				branch_Str_204 = v209;
+				branch_Bool_203 = v200;
+				branch_C99ReprType_202 = v196;
+				branch_I16_201 = v195;
 			}
-			bool v218 = value_bool(branch_ZPlusC99Branch_213->cells[3]);
-			bool v219 = (branch_Bool_211 && v218);
-			TUP* v220 = value_tup(branch_ZPlusC99Branch_213->cells[0], 7);
-			bool v221 = value_bool(v220->cells[3]);
-			bool v222 = (v219 && v221);
-			v220->cells[3] = MKBOOL(v222);
+			bool v210 = value_bool(branch_ZPlusC99Branch_205->cells[3]);
+			bool v211 = (branch_Bool_203 && v210);
+			TUP* v212 = value_tup(branch_ZPlusC99Branch_205->cells[0], 7);
+			bool v213 = value_bool(v212->cells[3]);
+			bool v214 = (v211 && v213);
+			v212->cells[3] = MKBOOL(v214);
+			TUP* v215;
+			mw_mirth_c99_ZPlusC99_indent(v212, &v215);
+			incref(branch_C99ReprType_202);
+			STR* v216 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_202);
+			TUP* v217;
+			mw_mirth_c99_ZPlusC99_put(v216, v215, &v217);
+			STR* v218;
+			STRLIT(v218, " ", 1);
+			TUP* v219;
+			mw_mirth_c99_ZPlusC99_put(v218, v217, &v219);
+			incref(MKSTR(branch_Str_204));
+			TUP* v220;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_204, v219, &v220);
+			STR* v221;
+			STRLIT(v221, " = ", 3);
+			TUP* v222;
+			mw_mirth_c99_ZPlusC99_put(v221, v220, &v222);
 			TUP* v223;
-			mw_mirth_c99_ZPlusC99_indent(v220, &v223);
-			incref(branch_C99ReprType_210);
-			STR* v224 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_210);
-			TUP* v225;
-			mw_mirth_c99_ZPlusC99_put(v224, v223, &v225);
-			STR* v226;
-			STRLIT(v226, " ", 1);
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_202, branch_Str_204, &v223);
+			int64_t v224 = (int64_t)(branch_I16_201);
+			INT v225 = i64_to_int(v224);
+			STR* v226 = int_to_str(v225);
 			TUP* v227;
-			mw_mirth_c99_ZPlusC99_put(v226, v225, &v227);
-			incref(MKSTR(branch_Str_212));
-			TUP* v228;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_212, v227, &v228);
-			STR* v229;
-			STRLIT(v229, " = ", 3);
+			mw_mirth_c99_ZPlusC99_put(v226, v222, &v227);
+			STR* v228;
+			STRLIT(v228, ";", 1);
+			TUP* v229;
+			mw_mirth_c99_ZPlusC99_put(v228, v227, &v229);
 			TUP* v230;
-			mw_mirth_c99_ZPlusC99_put(v229, v228, &v230);
+			mw_mirth_c99_ZPlusC99_line(v229, &v230);
+			v230->cells[3] = MKBOOL(v213);
+			branch_ZPlusC99Branch_205->cells[0] = MKTUP(v230, 7);
 			TUP* v231;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_210, branch_Str_212, &v231);
-			int64_t v232 = (int64_t)(branch_I16_209);
-			INT v233 = i64_to_int(v232);
-			STR* v234 = int_to_str(v233);
-			TUP* v235;
-			mw_mirth_c99_ZPlusC99_put(v234, v230, &v235);
-			STR* v236;
-			STRLIT(v236, ";", 1);
-			TUP* v237;
-			mw_mirth_c99_ZPlusC99_put(v236, v235, &v237);
-			TUP* v238;
-			mw_mirth_c99_ZPlusC99_line(v237, &v238);
-			v238->cells[3] = MKBOOL(v221);
-			branch_ZPlusC99Branch_213->cells[0] = MKTUP(v238, 7);
-			TUP* v239;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_213, v231, &v239);
-			branch_ZPlusC99Branch_4 = v239;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_205, v223, &v231);
+			branch_ZPlusC99Branch_4 = v231;
 		} break;
 		case 8LL: { // I32
-			int32_t v240 = mtp_mirth_arrow_PushValue_I32(in_PushValue_1);
-			VAL v241 = MKI64(6LL /* I32 */);
-			incref(v241);
-			int64_t v242 = get_data_tag(v241);
-			decref(v241);
-			int64_t v243 = 0LL;
-			bool v244 = (v242 == v243);
-			bool v245 = !v244;
-			int32_t branch_I32_246;
-			VAL branch_C99ReprType_247;
-			bool branch_Bool_248;
-			STR* branch_Str_249;
-			TUP* branch_ZPlusC99Branch_250;
-			if (v245) {
-				TUP* v251 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v252;
-				STR* v253 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v251, &v252);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v252, 7);
-				branch_ZPlusC99Branch_250 = in_ZPlusC99Branch_2;
-				branch_Str_249 = v253;
-				branch_Bool_248 = v245;
-				branch_C99ReprType_247 = v241;
-				branch_I32_246 = v240;
+			int32_t v232 = mtp_mirth_arrow_PushValue_I32(in_PushValue_1);
+			VAL v233 = MKI64(6LL /* I32 */);
+			incref(v233);
+			int64_t v234 = get_data_tag(v233);
+			decref(v233);
+			int64_t v235 = 0LL;
+			bool v236 = (v234 == v235);
+			bool v237 = !v236;
+			int32_t branch_I32_238;
+			VAL branch_C99ReprType_239;
+			bool branch_Bool_240;
+			STR* branch_Str_241;
+			TUP* branch_ZPlusC99Branch_242;
+			if (v237) {
+				TUP* v243 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v244;
+				STR* v245 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v243, &v244);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v244, 7);
+				branch_ZPlusC99Branch_242 = in_ZPlusC99Branch_2;
+				branch_Str_241 = v245;
+				branch_Bool_240 = v237;
+				branch_C99ReprType_239 = v233;
+				branch_I32_238 = v232;
 			} else {
-				STR* v254;
-				STRLIT(v254, "0", 1);
-				branch_ZPlusC99Branch_250 = in_ZPlusC99Branch_2;
-				branch_Str_249 = v254;
-				branch_Bool_248 = v245;
-				branch_C99ReprType_247 = v241;
-				branch_I32_246 = v240;
+				STR* v246;
+				STRLIT(v246, "0", 1);
+				branch_ZPlusC99Branch_242 = in_ZPlusC99Branch_2;
+				branch_Str_241 = v246;
+				branch_Bool_240 = v237;
+				branch_C99ReprType_239 = v233;
+				branch_I32_238 = v232;
 			}
-			bool v255 = value_bool(branch_ZPlusC99Branch_250->cells[3]);
-			bool v256 = (branch_Bool_248 && v255);
-			TUP* v257 = value_tup(branch_ZPlusC99Branch_250->cells[0], 7);
-			bool v258 = value_bool(v257->cells[3]);
-			bool v259 = (v256 && v258);
-			v257->cells[3] = MKBOOL(v259);
+			bool v247 = value_bool(branch_ZPlusC99Branch_242->cells[3]);
+			bool v248 = (branch_Bool_240 && v247);
+			TUP* v249 = value_tup(branch_ZPlusC99Branch_242->cells[0], 7);
+			bool v250 = value_bool(v249->cells[3]);
+			bool v251 = (v248 && v250);
+			v249->cells[3] = MKBOOL(v251);
+			TUP* v252;
+			mw_mirth_c99_ZPlusC99_indent(v249, &v252);
+			incref(branch_C99ReprType_239);
+			STR* v253 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_239);
+			TUP* v254;
+			mw_mirth_c99_ZPlusC99_put(v253, v252, &v254);
+			STR* v255;
+			STRLIT(v255, " ", 1);
+			TUP* v256;
+			mw_mirth_c99_ZPlusC99_put(v255, v254, &v256);
+			incref(MKSTR(branch_Str_241));
+			TUP* v257;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_241, v256, &v257);
+			STR* v258;
+			STRLIT(v258, " = ", 3);
+			TUP* v259;
+			mw_mirth_c99_ZPlusC99_put(v258, v257, &v259);
 			TUP* v260;
-			mw_mirth_c99_ZPlusC99_indent(v257, &v260);
-			incref(branch_C99ReprType_247);
-			STR* v261 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_247);
-			TUP* v262;
-			mw_mirth_c99_ZPlusC99_put(v261, v260, &v262);
-			STR* v263;
-			STRLIT(v263, " ", 1);
-			TUP* v264;
-			mw_mirth_c99_ZPlusC99_put(v263, v262, &v264);
-			incref(MKSTR(branch_Str_249));
-			TUP* v265;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_249, v264, &v265);
-			STR* v266;
-			STRLIT(v266, " = ", 3);
-			TUP* v267;
-			mw_mirth_c99_ZPlusC99_put(v266, v265, &v267);
-			TUP* v268;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_247, branch_Str_249, &v268);
-			int32_t v269 = INT32_MIN;
-			int64_t v270 = (int64_t)(branch_I32_246);
-			int64_t v271 = (int64_t)(v269);
-			bool v272 = (v270 == v271);
-			TUP* branch_ZPlusC99_273;
-			if (v272) {
-				STR* v274;
-				STRLIT(v274, "INT32_MIN", 9);
-				TUP* v275;
-				mw_mirth_c99_ZPlusC99_put(v274, v267, &v275);
-				branch_ZPlusC99_273 = v275;
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_239, branch_Str_241, &v260);
+			int32_t v261 = INT32_MIN;
+			int64_t v262 = (int64_t)(v261);
+			int64_t v263 = (int64_t)(branch_I32_238);
+			bool v264 = (v263 == v262);
+			TUP* branch_ZPlusC99_265;
+			if (v264) {
+				STR* v266;
+				STRLIT(v266, "INT32_MIN", 9);
+				TUP* v267;
+				mw_mirth_c99_ZPlusC99_put(v266, v259, &v267);
+				branch_ZPlusC99_265 = v267;
 			} else {
-				int64_t v276 = (int64_t)(branch_I32_246);
-				INT v277 = i64_to_int(v276);
-				STR* v278 = int_to_str(v277);
-				TUP* v279;
-				mw_mirth_c99_ZPlusC99_put(v278, v267, &v279);
-				branch_ZPlusC99_273 = v279;
+				int64_t v268 = (int64_t)(branch_I32_238);
+				INT v269 = i64_to_int(v268);
+				STR* v270 = int_to_str(v269);
+				TUP* v271;
+				mw_mirth_c99_ZPlusC99_put(v270, v259, &v271);
+				branch_ZPlusC99_265 = v271;
 			}
-			STR* v280;
-			STRLIT(v280, ";", 1);
-			TUP* v281;
-			mw_mirth_c99_ZPlusC99_put(v280, branch_ZPlusC99_273, &v281);
-			TUP* v282;
-			mw_mirth_c99_ZPlusC99_line(v281, &v282);
-			v282->cells[3] = MKBOOL(v258);
-			branch_ZPlusC99Branch_250->cells[0] = MKTUP(v282, 7);
-			TUP* v283;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_250, v268, &v283);
-			branch_ZPlusC99Branch_4 = v283;
+			STR* v272;
+			STRLIT(v272, ";", 1);
+			TUP* v273;
+			mw_mirth_c99_ZPlusC99_put(v272, branch_ZPlusC99_265, &v273);
+			TUP* v274;
+			mw_mirth_c99_ZPlusC99_line(v273, &v274);
+			v274->cells[3] = MKBOOL(v250);
+			branch_ZPlusC99Branch_242->cells[0] = MKTUP(v274, 7);
+			TUP* v275;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_242, v260, &v275);
+			branch_ZPlusC99Branch_4 = v275;
 		} break;
 		case 9LL: { // I64
-			int64_t v284 = mtp_mirth_arrow_PushValue_I64(in_PushValue_1);
-			VAL v285 = MKI64(5LL /* I64 */);
-			incref(v285);
-			int64_t v286 = get_data_tag(v285);
-			decref(v285);
-			int64_t v287 = 0LL;
-			bool v288 = (v286 == v287);
-			bool v289 = !v288;
-			int64_t branch_I64_290;
-			VAL branch_C99ReprType_291;
-			bool branch_Bool_292;
-			STR* branch_Str_293;
-			TUP* branch_ZPlusC99Branch_294;
-			if (v289) {
-				TUP* v295 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v296;
-				STR* v297 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v295, &v296);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v296, 7);
-				branch_ZPlusC99Branch_294 = in_ZPlusC99Branch_2;
-				branch_Str_293 = v297;
-				branch_Bool_292 = v289;
-				branch_C99ReprType_291 = v285;
-				branch_I64_290 = v284;
+			int64_t v276 = mtp_mirth_arrow_PushValue_I64(in_PushValue_1);
+			VAL v277 = MKI64(5LL /* I64 */);
+			incref(v277);
+			int64_t v278 = get_data_tag(v277);
+			decref(v277);
+			int64_t v279 = 0LL;
+			bool v280 = (v278 == v279);
+			bool v281 = !v280;
+			int64_t branch_I64_282;
+			VAL branch_C99ReprType_283;
+			bool branch_Bool_284;
+			STR* branch_Str_285;
+			TUP* branch_ZPlusC99Branch_286;
+			if (v281) {
+				TUP* v287 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v288;
+				STR* v289 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v287, &v288);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v288, 7);
+				branch_ZPlusC99Branch_286 = in_ZPlusC99Branch_2;
+				branch_Str_285 = v289;
+				branch_Bool_284 = v281;
+				branch_C99ReprType_283 = v277;
+				branch_I64_282 = v276;
 			} else {
-				STR* v298;
-				STRLIT(v298, "0", 1);
-				branch_ZPlusC99Branch_294 = in_ZPlusC99Branch_2;
-				branch_Str_293 = v298;
-				branch_Bool_292 = v289;
-				branch_C99ReprType_291 = v285;
-				branch_I64_290 = v284;
+				STR* v290;
+				STRLIT(v290, "0", 1);
+				branch_ZPlusC99Branch_286 = in_ZPlusC99Branch_2;
+				branch_Str_285 = v290;
+				branch_Bool_284 = v281;
+				branch_C99ReprType_283 = v277;
+				branch_I64_282 = v276;
 			}
-			bool v299 = value_bool(branch_ZPlusC99Branch_294->cells[3]);
-			bool v300 = (branch_Bool_292 && v299);
-			TUP* v301 = value_tup(branch_ZPlusC99Branch_294->cells[0], 7);
-			bool v302 = value_bool(v301->cells[3]);
-			bool v303 = (v300 && v302);
-			v301->cells[3] = MKBOOL(v303);
+			bool v291 = value_bool(branch_ZPlusC99Branch_286->cells[3]);
+			bool v292 = (branch_Bool_284 && v291);
+			TUP* v293 = value_tup(branch_ZPlusC99Branch_286->cells[0], 7);
+			bool v294 = value_bool(v293->cells[3]);
+			bool v295 = (v292 && v294);
+			v293->cells[3] = MKBOOL(v295);
+			TUP* v296;
+			mw_mirth_c99_ZPlusC99_indent(v293, &v296);
+			incref(branch_C99ReprType_283);
+			STR* v297 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_283);
+			TUP* v298;
+			mw_mirth_c99_ZPlusC99_put(v297, v296, &v298);
+			STR* v299;
+			STRLIT(v299, " ", 1);
+			TUP* v300;
+			mw_mirth_c99_ZPlusC99_put(v299, v298, &v300);
+			incref(MKSTR(branch_Str_285));
+			TUP* v301;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_285, v300, &v301);
+			STR* v302;
+			STRLIT(v302, " = ", 3);
+			TUP* v303;
+			mw_mirth_c99_ZPlusC99_put(v302, v301, &v303);
 			TUP* v304;
-			mw_mirth_c99_ZPlusC99_indent(v301, &v304);
-			incref(branch_C99ReprType_291);
-			STR* v305 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_291);
-			TUP* v306;
-			mw_mirth_c99_ZPlusC99_put(v305, v304, &v306);
-			STR* v307;
-			STRLIT(v307, " ", 1);
-			TUP* v308;
-			mw_mirth_c99_ZPlusC99_put(v307, v306, &v308);
-			incref(MKSTR(branch_Str_293));
-			TUP* v309;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_293, v308, &v309);
-			STR* v310;
-			STRLIT(v310, " = ", 3);
-			TUP* v311;
-			mw_mirth_c99_ZPlusC99_put(v310, v309, &v311);
-			TUP* v312;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_291, branch_Str_293, &v312);
-			static struct BIG_S(2) v313 = { .refs=100, .cap=2, .size=2, .radix={0x1,0x80000000,} };
-			v313.refs++;
-			INT v314 = WRAP_I63(1LL);
-			INT v315 = int_sub(WRAP_BIG(&v313), v314);
-			int64_t v316 = int_to_i64(v315);
-			bool v317 = (branch_I64_290 == v316);
-			TUP* branch_ZPlusC99_318;
-			if (v317) {
-				STR* v319;
-				STRLIT(v319, "INT64_MIN", 9);
-				TUP* v320;
-				mw_mirth_c99_ZPlusC99_put(v319, v311, &v320);
-				branch_ZPlusC99_318 = v320;
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_283, branch_Str_285, &v304);
+			int64_t v305 = INT64_MIN;
+			bool v306 = (branch_I64_282 == v305);
+			TUP* branch_ZPlusC99_307;
+			if (v306) {
+				STR* v308;
+				STRLIT(v308, "INT64_MIN", 9);
+				TUP* v309;
+				mw_mirth_c99_ZPlusC99_put(v308, v303, &v309);
+				branch_ZPlusC99_307 = v309;
 			} else {
-				INT v321 = i64_to_int(branch_I64_290);
-				STR* v322 = int_to_str(v321);
-				TUP* v323;
-				mw_mirth_c99_ZPlusC99_put(v322, v311, &v323);
-				STR* v324;
-				STRLIT(v324, "LL", 2);
-				TUP* v325;
-				mw_mirth_c99_ZPlusC99_put(v324, v323, &v325);
-				branch_ZPlusC99_318 = v325;
+				INT v310 = i64_to_int(branch_I64_282);
+				STR* v311 = int_to_str(v310);
+				TUP* v312;
+				mw_mirth_c99_ZPlusC99_put(v311, v303, &v312);
+				STR* v313;
+				STRLIT(v313, "LL", 2);
+				TUP* v314;
+				mw_mirth_c99_ZPlusC99_put(v313, v312, &v314);
+				branch_ZPlusC99_307 = v314;
 			}
-			STR* v326;
-			STRLIT(v326, ";", 1);
-			TUP* v327;
-			mw_mirth_c99_ZPlusC99_put(v326, branch_ZPlusC99_318, &v327);
-			TUP* v328;
-			mw_mirth_c99_ZPlusC99_line(v327, &v328);
-			v328->cells[3] = MKBOOL(v302);
-			branch_ZPlusC99Branch_294->cells[0] = MKTUP(v328, 7);
-			TUP* v329;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_294, v312, &v329);
-			branch_ZPlusC99Branch_4 = v329;
+			STR* v315;
+			STRLIT(v315, ";", 1);
+			TUP* v316;
+			mw_mirth_c99_ZPlusC99_put(v315, branch_ZPlusC99_307, &v316);
+			TUP* v317;
+			mw_mirth_c99_ZPlusC99_line(v316, &v317);
+			v317->cells[3] = MKBOOL(v294);
+			branch_ZPlusC99Branch_286->cells[0] = MKTUP(v317, 7);
+			TUP* v318;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_286, v304, &v318);
+			branch_ZPlusC99Branch_4 = v318;
 		} break;
 		case 10LL: { // F32
-			float v330 = mtp_mirth_arrow_PushValue_F32(in_PushValue_1);
-			VAL v331 = MKI64(14LL /* F32 */);
-			incref(v331);
-			int64_t v332 = get_data_tag(v331);
-			decref(v331);
-			int64_t v333 = 0LL;
-			bool v334 = (v332 == v333);
-			bool v335 = !v334;
-			float branch_F32_336;
-			VAL branch_C99ReprType_337;
-			bool branch_Bool_338;
-			STR* branch_Str_339;
-			TUP* branch_ZPlusC99Branch_340;
-			if (v335) {
-				TUP* v341 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v342;
-				STR* v343 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v341, &v342);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v342, 7);
-				branch_ZPlusC99Branch_340 = in_ZPlusC99Branch_2;
-				branch_Str_339 = v343;
-				branch_Bool_338 = v335;
-				branch_C99ReprType_337 = v331;
-				branch_F32_336 = v330;
+			float v319 = mtp_mirth_arrow_PushValue_F32(in_PushValue_1);
+			VAL v320 = MKI64(14LL /* F32 */);
+			incref(v320);
+			int64_t v321 = get_data_tag(v320);
+			decref(v320);
+			int64_t v322 = 0LL;
+			bool v323 = (v321 == v322);
+			bool v324 = !v323;
+			float branch_F32_325;
+			VAL branch_C99ReprType_326;
+			bool branch_Bool_327;
+			STR* branch_Str_328;
+			TUP* branch_ZPlusC99Branch_329;
+			if (v324) {
+				TUP* v330 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v331;
+				STR* v332 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v330, &v331);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v331, 7);
+				branch_ZPlusC99Branch_329 = in_ZPlusC99Branch_2;
+				branch_Str_328 = v332;
+				branch_Bool_327 = v324;
+				branch_C99ReprType_326 = v320;
+				branch_F32_325 = v319;
 			} else {
-				STR* v344;
-				STRLIT(v344, "0", 1);
-				branch_ZPlusC99Branch_340 = in_ZPlusC99Branch_2;
-				branch_Str_339 = v344;
-				branch_Bool_338 = v335;
-				branch_C99ReprType_337 = v331;
-				branch_F32_336 = v330;
+				STR* v333;
+				STRLIT(v333, "0", 1);
+				branch_ZPlusC99Branch_329 = in_ZPlusC99Branch_2;
+				branch_Str_328 = v333;
+				branch_Bool_327 = v324;
+				branch_C99ReprType_326 = v320;
+				branch_F32_325 = v319;
 			}
-			bool v345 = value_bool(branch_ZPlusC99Branch_340->cells[3]);
-			bool v346 = (branch_Bool_338 && v345);
-			TUP* v347 = value_tup(branch_ZPlusC99Branch_340->cells[0], 7);
-			bool v348 = value_bool(v347->cells[3]);
-			bool v349 = (v346 && v348);
-			v347->cells[3] = MKBOOL(v349);
-			TUP* v350;
-			mw_mirth_c99_ZPlusC99_indent(v347, &v350);
-			incref(branch_C99ReprType_337);
-			STR* v351 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_337);
+			bool v334 = value_bool(branch_ZPlusC99Branch_329->cells[3]);
+			bool v335 = (branch_Bool_327 && v334);
+			TUP* v336 = value_tup(branch_ZPlusC99Branch_329->cells[0], 7);
+			bool v337 = value_bool(v336->cells[3]);
+			bool v338 = (v335 && v337);
+			v336->cells[3] = MKBOOL(v338);
+			TUP* v339;
+			mw_mirth_c99_ZPlusC99_indent(v336, &v339);
+			incref(branch_C99ReprType_326);
+			STR* v340 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_326);
+			TUP* v341;
+			mw_mirth_c99_ZPlusC99_put(v340, v339, &v341);
+			STR* v342;
+			STRLIT(v342, " ", 1);
+			TUP* v343;
+			mw_mirth_c99_ZPlusC99_put(v342, v341, &v343);
+			incref(MKSTR(branch_Str_328));
+			TUP* v344;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_328, v343, &v344);
+			STR* v345;
+			STRLIT(v345, " = ", 3);
+			TUP* v346;
+			mw_mirth_c99_ZPlusC99_put(v345, v344, &v346);
+			TUP* v347;
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_326, branch_Str_328, &v347);
+			STR* v348 = f32_to_str(branch_F32_325);
+			TUP* v349;
+			mw_mirth_c99_ZPlusC99_put(v348, v346, &v349);
+			STR* v350;
+			STRLIT(v350, ";", 1);
+			TUP* v351;
+			mw_mirth_c99_ZPlusC99_put(v350, v349, &v351);
 			TUP* v352;
-			mw_mirth_c99_ZPlusC99_put(v351, v350, &v352);
-			STR* v353;
-			STRLIT(v353, " ", 1);
-			TUP* v354;
-			mw_mirth_c99_ZPlusC99_put(v353, v352, &v354);
-			incref(MKSTR(branch_Str_339));
-			TUP* v355;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_339, v354, &v355);
-			STR* v356;
-			STRLIT(v356, " = ", 3);
-			TUP* v357;
-			mw_mirth_c99_ZPlusC99_put(v356, v355, &v357);
-			TUP* v358;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_337, branch_Str_339, &v358);
-			STR* v359 = f32_to_str(branch_F32_336);
-			TUP* v360;
-			mw_mirth_c99_ZPlusC99_put(v359, v357, &v360);
-			STR* v361;
-			STRLIT(v361, ";", 1);
-			TUP* v362;
-			mw_mirth_c99_ZPlusC99_put(v361, v360, &v362);
-			TUP* v363;
-			mw_mirth_c99_ZPlusC99_line(v362, &v363);
-			v363->cells[3] = MKBOOL(v348);
-			branch_ZPlusC99Branch_340->cells[0] = MKTUP(v363, 7);
-			TUP* v364;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_340, v358, &v364);
-			branch_ZPlusC99Branch_4 = v364;
+			mw_mirth_c99_ZPlusC99_line(v351, &v352);
+			v352->cells[3] = MKBOOL(v337);
+			branch_ZPlusC99Branch_329->cells[0] = MKTUP(v352, 7);
+			TUP* v353;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_329, v347, &v353);
+			branch_ZPlusC99Branch_4 = v353;
 		} break;
 		case 11LL: { // F64
-			double v365 = mtp_mirth_arrow_PushValue_F64(in_PushValue_1);
-			VAL v366 = MKI64(13LL /* F64 */);
-			incref(v366);
-			int64_t v367 = get_data_tag(v366);
-			decref(v366);
-			int64_t v368 = 0LL;
-			bool v369 = (v367 == v368);
-			bool v370 = !v369;
-			double branch_F64_371;
-			VAL branch_C99ReprType_372;
-			bool branch_Bool_373;
-			STR* branch_Str_374;
-			TUP* branch_ZPlusC99Branch_375;
-			if (v370) {
-				TUP* v376 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-				TUP* v377;
-				STR* v378 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v376, &v377);
-				in_ZPlusC99Branch_2->cells[0] = MKTUP(v377, 7);
-				branch_ZPlusC99Branch_375 = in_ZPlusC99Branch_2;
-				branch_Str_374 = v378;
-				branch_Bool_373 = v370;
-				branch_C99ReprType_372 = v366;
-				branch_F64_371 = v365;
+			double v354 = mtp_mirth_arrow_PushValue_F64(in_PushValue_1);
+			VAL v355 = MKI64(13LL /* F64 */);
+			incref(v355);
+			int64_t v356 = get_data_tag(v355);
+			decref(v355);
+			int64_t v357 = 0LL;
+			bool v358 = (v356 == v357);
+			bool v359 = !v358;
+			double branch_F64_360;
+			VAL branch_C99ReprType_361;
+			bool branch_Bool_362;
+			STR* branch_Str_363;
+			TUP* branch_ZPlusC99Branch_364;
+			if (v359) {
+				TUP* v365 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+				TUP* v366;
+				STR* v367 = mw_mirth_c99_ZPlusC99_freshZ_nameZBang(v365, &v366);
+				in_ZPlusC99Branch_2->cells[0] = MKTUP(v366, 7);
+				branch_ZPlusC99Branch_364 = in_ZPlusC99Branch_2;
+				branch_Str_363 = v367;
+				branch_Bool_362 = v359;
+				branch_C99ReprType_361 = v355;
+				branch_F64_360 = v354;
 			} else {
-				STR* v379;
-				STRLIT(v379, "0", 1);
-				branch_ZPlusC99Branch_375 = in_ZPlusC99Branch_2;
-				branch_Str_374 = v379;
-				branch_Bool_373 = v370;
-				branch_C99ReprType_372 = v366;
-				branch_F64_371 = v365;
+				STR* v368;
+				STRLIT(v368, "0", 1);
+				branch_ZPlusC99Branch_364 = in_ZPlusC99Branch_2;
+				branch_Str_363 = v368;
+				branch_Bool_362 = v359;
+				branch_C99ReprType_361 = v355;
+				branch_F64_360 = v354;
 			}
-			bool v380 = value_bool(branch_ZPlusC99Branch_375->cells[3]);
-			bool v381 = (branch_Bool_373 && v380);
-			TUP* v382 = value_tup(branch_ZPlusC99Branch_375->cells[0], 7);
-			bool v383 = value_bool(v382->cells[3]);
-			bool v384 = (v381 && v383);
-			v382->cells[3] = MKBOOL(v384);
-			TUP* v385;
-			mw_mirth_c99_ZPlusC99_indent(v382, &v385);
-			incref(branch_C99ReprType_372);
-			STR* v386 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_372);
+			bool v369 = value_bool(branch_ZPlusC99Branch_364->cells[3]);
+			bool v370 = (branch_Bool_362 && v369);
+			TUP* v371 = value_tup(branch_ZPlusC99Branch_364->cells[0], 7);
+			bool v372 = value_bool(v371->cells[3]);
+			bool v373 = (v370 && v372);
+			v371->cells[3] = MKBOOL(v373);
+			TUP* v374;
+			mw_mirth_c99_ZPlusC99_indent(v371, &v374);
+			incref(branch_C99ReprType_361);
+			STR* v375 = mw_mirth_c99_C99ReprType_underlyingZ_c99Z_type(branch_C99ReprType_361);
+			TUP* v376;
+			mw_mirth_c99_ZPlusC99_put(v375, v374, &v376);
+			STR* v377;
+			STRLIT(v377, " ", 1);
+			TUP* v378;
+			mw_mirth_c99_ZPlusC99_put(v377, v376, &v378);
+			incref(MKSTR(branch_Str_363));
+			TUP* v379;
+			mw_mirth_c99_ZPlusC99_put(branch_Str_363, v378, &v379);
+			STR* v380;
+			STRLIT(v380, " = ", 3);
+			TUP* v381;
+			mw_mirth_c99_ZPlusC99_put(v380, v379, &v381);
+			TUP* v382;
+			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_361, branch_Str_363, &v382);
+			STR* v383 = f64_to_str(branch_F64_360);
+			TUP* v384;
+			mw_mirth_c99_ZPlusC99_put(v383, v381, &v384);
+			STR* v385;
+			STRLIT(v385, ";", 1);
+			TUP* v386;
+			mw_mirth_c99_ZPlusC99_put(v385, v384, &v386);
 			TUP* v387;
-			mw_mirth_c99_ZPlusC99_put(v386, v385, &v387);
-			STR* v388;
-			STRLIT(v388, " ", 1);
-			TUP* v389;
-			mw_mirth_c99_ZPlusC99_put(v388, v387, &v389);
-			incref(MKSTR(branch_Str_374));
-			TUP* v390;
-			mw_mirth_c99_ZPlusC99_put(branch_Str_374, v389, &v390);
-			STR* v391;
-			STRLIT(v391, " = ", 3);
-			TUP* v392;
-			mw_mirth_c99_ZPlusC99_put(v391, v390, &v392);
-			TUP* v393;
-			mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(branch_C99ReprType_372, branch_Str_374, &v393);
-			STR* v394 = f64_to_str(branch_F64_371);
-			TUP* v395;
-			mw_mirth_c99_ZPlusC99_put(v394, v392, &v395);
-			STR* v396;
-			STRLIT(v396, ";", 1);
-			TUP* v397;
-			mw_mirth_c99_ZPlusC99_put(v396, v395, &v397);
-			TUP* v398;
-			mw_mirth_c99_ZPlusC99_line(v397, &v398);
-			v398->cells[3] = MKBOOL(v383);
-			branch_ZPlusC99Branch_375->cells[0] = MKTUP(v398, 7);
-			TUP* v399;
-			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_375, v393, &v399);
-			branch_ZPlusC99Branch_4 = v399;
+			mw_mirth_c99_ZPlusC99_line(v386, &v387);
+			v387->cells[3] = MKBOOL(v372);
+			branch_ZPlusC99Branch_364->cells[0] = MKTUP(v387, 7);
+			TUP* v388;
+			mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_364, v382, &v388);
+			branch_ZPlusC99Branch_4 = v388;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -67974,7 +68370,7 @@ static INT mw_std_prim_Int_I63Max (void) {
 static bool mw_std_prim_Int_inZ_i63Z_rangeZAsk (INT in_Int_1) {
 	INT v3 = mw_std_prim_Int_I63Min();
 	INT v4 = mw_std_prim_Int_I63Max();
-	bool v5 = mw_std_prelude_inZ_range_sp2(in_Int_1, v3, v4);
+	bool v5 = mw_std_prelude_inZ_range_sp3(in_Int_1, v3, v4);
 	return v5;
 }
 static VAL mw_std_prim_Int_c99Z_radixes (INT in_Int_1) {
@@ -68000,7 +68396,7 @@ static VAL mw_std_prim_Int_c99Z_radixes (INT in_Int_1) {
 		uint32_t v19 = 2147483648;
 		uint64_t v20 = (uint64_t)(v17);
 		uint64_t v21 = (uint64_t)(v19);
-		uint64_t v22 = u64_div(v20, v21);
+		uint64_t v22 = (v20 & v21);
 		uint32_t v23 = (uint32_t)(v22);
 		uint64_t v24 = (uint64_t)(v23);
 		INT v25 = u64_to_int(v24);
@@ -68012,15 +68408,17 @@ static VAL mw_std_prim_Int_c99Z_radixes (INT in_Int_1) {
 		if (v27) {
 			incref(MKINT(v15));
 			INT v31 = WRAP_I63(0LL);
-			bool v32 = int_ne(v15, v31);
-			branch_Bool_30 = v32;
+			bool v32 = int_eq(v15, v31);
+			bool v33 = !v32;
+			branch_Bool_30 = v33;
 			branch_Int_29 = v15;
 			branch_ZPlusLister_28 = v18;
 		} else {
 			incref(MKINT(v15));
-			INT v33 = WRAP_I63(-1LL);
-			bool v34 = int_ne(v15, v33);
-			branch_Bool_30 = v34;
+			INT v34 = WRAP_I63(-1LL);
+			bool v35 = int_eq(v15, v34);
+			bool v36 = !v35;
+			branch_Bool_30 = v36;
 			branch_Int_29 = v15;
 			branch_ZPlusLister_28 = v18;
 		}
@@ -68030,8 +68428,8 @@ static VAL mw_std_prim_Int_c99Z_radixes (INT in_Int_1) {
 		v6 = branch_ZPlusLister_28;
 	}
 	decref(MKINT(v7));
-	VAL v35 = mw_std_list_ZPlusLister_1_doneZBang(v6);
-	return v35;
+	VAL v37 = mw_std_list_ZPlusLister_1_doneZBang(v6);
+	return v37;
 }
 static void mw_mirth_c99_c99Z_intZBang (INT in_Int_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_3) {
 	incref(MKINT(in_Int_1));
@@ -68179,32 +68577,33 @@ static void mw_mirth_c99_c99Z_intZBang (INT in_Int_1, TUP* in_ZPlusC99Branch_2, 
 				case 1LL: { // Cons
 					VAL v80;
 					VAL v81 = mtp_std_list_List_1_Cons(v75, &v80);
-					uint64_t v82 = (uint64_t)(value_u32(v81));
-					INT v83 = u64_to_int(v82);
-					STR* v84;
-					STRLIT(v84, "", 0);
+					STR* v82;
+					STRLIT(v82, "", 0);
+					uint64_t v83 = (uint64_t)(value_u32(v81));
+					INT v84 = u64_to_int(v83);
 					STR* v85;
 					STRLIT(v85, "0x", 2);
 					STR* v86;
-					mw_std_str_ZPlusStr_pushZ_strZBang(v85, v84, &v86);
-					STR* v87;
-					mw_std_prim_Int_hexZThen(v83, v86, &v87);
-					TUP* v88;
-					mw_mirth_c99_ZPlusC99_put(v87, v74, &v88);
-					STR* v89;
-					STRLIT(v89, ",", 1);
-					TUP* v90;
-					mw_mirth_c99_ZPlusC99_put(v89, v88, &v90);
-					bool v91 = true;
-					branch_Bool_79 = v91;
+					mw_std_str_ZPlusStr_pushZ_strZBang(v85, v82, &v86);
+					INT v87 = mw_std_number_Base_Hex();
+					STR* v88;
+					mw_std_number_Base_digitsZThen(v86, v84, v87, &v88);
+					TUP* v89;
+					mw_mirth_c99_ZPlusC99_put(v88, v74, &v89);
+					STR* v90;
+					STRLIT(v90, ",", 1);
+					TUP* v91;
+					mw_mirth_c99_ZPlusC99_put(v90, v89, &v91);
+					bool v92 = true;
+					branch_Bool_79 = v92;
 					branch_List_78 = v80;
-					branch_ZPlusC99_77 = v90;
+					branch_ZPlusC99_77 = v91;
 				} break;
 				case 0LL: { // Nil
-					VAL v92 = MKI64(0LL /* Nil */);
-					bool v93 = false;
-					branch_Bool_79 = v93;
-					branch_List_78 = v92;
+					VAL v93 = MKI64(0LL /* Nil */);
+					bool v94 = false;
+					branch_Bool_79 = v94;
+					branch_List_78 = v93;
 					branch_ZPlusC99_77 = v74;
 				} break;
 				default: {
@@ -68217,50 +68616,50 @@ static void mw_mirth_c99_c99Z_intZBang (INT in_Int_1, TUP* in_ZPlusC99Branch_2, 
 			v70 = branch_ZPlusC99_77;
 		}
 		decref(v71);
-		STR* v94;
-		STRLIT(v94, "} };", 4);
-		TUP* v95;
-		mw_mirth_c99_ZPlusC99_put(v94, v70, &v95);
+		STR* v95;
+		STRLIT(v95, "} };", 4);
 		TUP* v96;
-		mw_mirth_c99_ZPlusC99_line(v95, &v96);
-		v96->cells[3] = MKBOOL(v52);
-		in_ZPlusC99Branch_2->cells[0] = MKTUP(v96, 7);
-		bool v97 = value_bool(in_ZPlusC99Branch_2->cells[3]);
-		TUP* v98 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
-		bool v99 = value_bool(v98->cells[3]);
-		bool v100 = (v97 && v99);
-		v98->cells[3] = MKBOOL(v100);
-		TUP* v101;
-		mw_mirth_c99_ZPlusC99_indent(v98, &v101);
-		incref(MKSTR(v49));
+		mw_mirth_c99_ZPlusC99_put(v95, v70, &v96);
+		TUP* v97;
+		mw_mirth_c99_ZPlusC99_line(v96, &v97);
+		v97->cells[3] = MKBOOL(v52);
+		in_ZPlusC99Branch_2->cells[0] = MKTUP(v97, 7);
+		bool v98 = value_bool(in_ZPlusC99Branch_2->cells[3]);
+		TUP* v99 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
+		bool v100 = value_bool(v99->cells[3]);
+		bool v101 = (v98 && v100);
+		v99->cells[3] = MKBOOL(v101);
 		TUP* v102;
-		mw_mirth_c99_ZPlusC99_put(v49, v101, &v102);
-		STR* v103;
-		STRLIT(v103, ".refs++;", 8);
-		TUP* v104;
-		mw_mirth_c99_ZPlusC99_put(v103, v102, &v104);
+		mw_mirth_c99_ZPlusC99_indent(v99, &v102);
+		incref(MKSTR(v49));
+		TUP* v103;
+		mw_mirth_c99_ZPlusC99_put(v49, v102, &v103);
+		STR* v104;
+		STRLIT(v104, ".refs++;", 8);
 		TUP* v105;
-		mw_mirth_c99_ZPlusC99_line(v104, &v105);
-		v105->cells[3] = MKBOOL(v99);
-		in_ZPlusC99Branch_2->cells[0] = MKTUP(v105, 7);
-		VAL v106 = MKI64(4LL /* Int */);
-		STR* v107;
-		STRLIT(v107, "", 0);
+		mw_mirth_c99_ZPlusC99_put(v104, v103, &v105);
+		TUP* v106;
+		mw_mirth_c99_ZPlusC99_line(v105, &v106);
+		v106->cells[3] = MKBOOL(v100);
+		in_ZPlusC99Branch_2->cells[0] = MKTUP(v106, 7);
+		VAL v107 = MKI64(4LL /* Int */);
 		STR* v108;
-		STRLIT(v108, "WRAP_BIG(&", 10);
+		STRLIT(v108, "", 0);
 		STR* v109;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v108, v107, &v109);
+		STRLIT(v109, "WRAP_BIG(&", 10);
 		STR* v110;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v49, v109, &v110);
+		mw_std_str_ZPlusStr_pushZ_strZBang(v109, v108, &v110);
 		STR* v111;
-		STRLIT(v111, ")", 1);
+		mw_std_str_ZPlusStr_pushZ_strZBang(v49, v110, &v111);
 		STR* v112;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v111, v110, &v112);
-		TUP* v113;
-		mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(v106, v112, &v113);
+		STRLIT(v112, ")", 1);
+		STR* v113;
+		mw_std_str_ZPlusStr_pushZ_strZBang(v112, v111, &v113);
 		TUP* v114;
-		mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(in_ZPlusC99Branch_2, v113, &v114);
-		branch_ZPlusC99Branch_5 = v114;
+		mtw_mirth_c99_ZPlusC99Value_ZPlusC99Value(v107, v113, &v114);
+		TUP* v115;
+		mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(in_ZPlusC99Branch_2, v114, &v115);
+		branch_ZPlusC99Branch_5 = v115;
 	}
 	*out_ZPlusC99Branch_3 = branch_ZPlusC99Branch_5;
 }
@@ -68273,180 +68672,169 @@ static void mw_mirth_c99_c99Z_strZBang (STR* in_Str_1, TUP* in_ZPlusC99Branch_2,
 	uint64_t v7 = str_size(in_Str_1);
 	INT v8 = u64_to_int(v7);
 	INT v9 = WRAP_I63(4090LL);
-	incref(MKINT(v9));
-	INT v10 = WRAP_I63(0LL);
-	bool v11 = int_lt(v9, v10);
-	INT branch_Nat_12;
-	if (v11) {
-		decref(MKINT(v9));
-		INT v13 = WRAP_I63(0LL);
-		branch_Nat_12 = v13;
-	} else {
-		branch_Nat_12 = v9;
-	}
-	bool v14 = int_gt(v8, branch_Nat_12);
-	TUP* branch_ZPlusC99Value_15;
-	STR* branch_Str_16;
-	TUP* branch_ZPlusC99Branch_17;
-	if (v14) {
-		bool v18 = value_bool(v5->cells[3]);
-		TUP* v19 = value_tup(v5->cells[0], 7);
-		bool v20 = value_bool(v19->cells[3]);
-		bool v21 = (v18 && v20);
-		v19->cells[3] = MKBOOL(v21);
+	bool v10 = int_lt(v9, v8);
+	TUP* branch_ZPlusC99Value_11;
+	STR* branch_Str_12;
+	TUP* branch_ZPlusC99Branch_13;
+	if (v10) {
+		bool v14 = value_bool(v5->cells[3]);
+		TUP* v15 = value_tup(v5->cells[0], 7);
+		bool v16 = value_bool(v15->cells[3]);
+		bool v17 = (v14 && v16);
+		v15->cells[3] = MKBOOL(v17);
+		TUP* v18;
+		mw_mirth_c99_ZPlusC99_indent(v15, &v18);
+		STR* v19;
+		STRLIT(v19, "STRLIT(", 7);
+		TUP* v20;
+		mw_mirth_c99_ZPlusC99_put(v19, v18, &v20);
+		TUP* v21;
 		TUP* v22;
-		mw_mirth_c99_ZPlusC99_indent(v19, &v22);
-		STR* v23;
-		STRLIT(v23, "STRLIT(", 7);
+		mw_mirth_c99_ZPlusC99Value_rdup(v6, &v21, &v22);
+		STR* v23 = mw_mirth_c99_ZPlusC99Value_consume(v21);
 		TUP* v24;
-		mw_mirth_c99_ZPlusC99_put(v23, v22, &v24);
-		TUP* v25;
+		mw_mirth_c99_ZPlusC99_put(v23, v20, &v24);
+		STR* v25;
+		STRLIT(v25, ",", 1);
 		TUP* v26;
-		mw_mirth_c99_ZPlusC99Value_rdup(v6, &v25, &v26);
-		STR* v27 = mw_mirth_c99_ZPlusC99Value_consume(v25);
-		TUP* v28;
-		mw_mirth_c99_ZPlusC99_put(v27, v24, &v28);
-		STR* v29;
-		STRLIT(v29, ",", 1);
-		TUP* v30;
-		mw_mirth_c99_ZPlusC99_put(v29, v28, &v30);
-		TUP* v31;
-		mw_mirth_c99_ZPlusC99_line(v30, &v31);
-		v31->cells[3] = MKBOOL(v20);
-		v5->cells[0] = MKTUP(v31, 7);
-		TUP* v32 = value_tup(v5->cells[0], 7);
-		INT v33 = value_int(v32->cells[1]);
-		incref(MKINT(v33));
-		INT v34 = WRAP_I63(1LL);
-		INT v35 = int_add(v33, v34);
-		INT v36 = value_int(v32->cells[1]);
-		decref(MKINT(v36));
-		v32->cells[1] = MKINT(v35);
-		v5->cells[0] = MKTUP(v32, 7);
-		bool v37 = value_bool(v5->cells[3]);
-		TUP* v38 = value_tup(v5->cells[0], 7);
-		bool v39 = value_bool(v38->cells[3]);
-		bool v40 = (v37 && v39);
-		v38->cells[3] = MKBOOL(v40);
+		mw_mirth_c99_ZPlusC99_put(v25, v24, &v26);
+		TUP* v27;
+		mw_mirth_c99_ZPlusC99_line(v26, &v27);
+		v27->cells[3] = MKBOOL(v16);
+		v5->cells[0] = MKTUP(v27, 7);
+		TUP* v28 = value_tup(v5->cells[0], 7);
+		INT v29 = value_int(v28->cells[1]);
+		incref(MKINT(v29));
+		INT v30 = WRAP_I63(1LL);
+		INT v31 = int_add(v29, v30);
+		INT v32 = value_int(v28->cells[1]);
+		decref(MKINT(v32));
+		v28->cells[1] = MKINT(v31);
+		v5->cells[0] = MKTUP(v28, 7);
+		bool v33 = value_bool(v5->cells[3]);
+		TUP* v34 = value_tup(v5->cells[0], 7);
+		bool v35 = value_bool(v34->cells[3]);
+		bool v36 = (v33 && v35);
+		v34->cells[3] = MKBOOL(v36);
+		TUP* v37;
+		mw_mirth_c99_ZPlusC99_indent(v34, &v37);
+		incref(MKSTR(in_Str_1));
+		TUP* v38;
+		mw_mirth_c99_ZPlusC99_putZ_cstrZ_long(in_Str_1, v37, &v38);
+		STR* v39;
+		STRLIT(v39, ",", 1);
+		TUP* v40;
+		mw_mirth_c99_ZPlusC99_put(v39, v38, &v40);
 		TUP* v41;
-		mw_mirth_c99_ZPlusC99_indent(v38, &v41);
+		mw_mirth_c99_ZPlusC99_line(v40, &v41);
+		v41->cells[3] = MKBOOL(v35);
+		v5->cells[0] = MKTUP(v41, 7);
+		bool v42 = value_bool(v5->cells[3]);
+		TUP* v43 = value_tup(v5->cells[0], 7);
+		bool v44 = value_bool(v43->cells[3]);
+		bool v45 = (v42 && v44);
+		v43->cells[3] = MKBOOL(v45);
+		TUP* v46;
+		mw_mirth_c99_ZPlusC99_indent(v43, &v46);
 		incref(MKSTR(in_Str_1));
-		TUP* v42;
-		mw_mirth_c99_ZPlusC99_putZ_cstrZ_long(in_Str_1, v41, &v42);
-		STR* v43;
-		STRLIT(v43, ",", 1);
-		TUP* v44;
-		mw_mirth_c99_ZPlusC99_put(v43, v42, &v44);
-		TUP* v45;
-		mw_mirth_c99_ZPlusC99_line(v44, &v45);
-		v45->cells[3] = MKBOOL(v39);
-		v5->cells[0] = MKTUP(v45, 7);
-		bool v46 = value_bool(v5->cells[3]);
-		TUP* v47 = value_tup(v5->cells[0], 7);
-		bool v48 = value_bool(v47->cells[3]);
-		bool v49 = (v46 && v48);
-		v47->cells[3] = MKBOOL(v49);
+		uint64_t v47 = str_size(in_Str_1);
+		INT v48 = u64_to_int(v47);
+		STR* v49 = int_to_str(v48);
 		TUP* v50;
-		mw_mirth_c99_ZPlusC99_indent(v47, &v50);
-		incref(MKSTR(in_Str_1));
-		uint64_t v51 = str_size(in_Str_1);
-		INT v52 = u64_to_int(v51);
-		STR* v53 = int_to_str(v52);
-		TUP* v54;
-		mw_mirth_c99_ZPlusC99_put(v53, v50, &v54);
-		TUP* v55;
-		mw_mirth_c99_ZPlusC99_line(v54, &v55);
-		v55->cells[3] = MKBOOL(v48);
-		v5->cells[0] = MKTUP(v55, 7);
-		TUP* v56 = value_tup(v5->cells[0], 7);
-		INT v57 = value_int(v56->cells[1]);
-		incref(MKINT(v57));
-		INT v58 = WRAP_I63(1LL);
-		INT v59 = int_sub(v57, v58);
-		incref(MKINT(v59));
-		INT v60 = WRAP_I63(0LL);
-		bool v61 = int_lt(v59, v60);
-		INT branch_Nat_62;
-		if (v61) {
-			decref(MKINT(v59));
-			INT v63 = WRAP_I63(0LL);
-			branch_Nat_62 = v63;
+		mw_mirth_c99_ZPlusC99_put(v49, v46, &v50);
+		TUP* v51;
+		mw_mirth_c99_ZPlusC99_line(v50, &v51);
+		v51->cells[3] = MKBOOL(v44);
+		v5->cells[0] = MKTUP(v51, 7);
+		TUP* v52 = value_tup(v5->cells[0], 7);
+		INT v53 = value_int(v52->cells[1]);
+		incref(MKINT(v53));
+		INT v54 = WRAP_I63(1LL);
+		INT v55 = int_sub(v53, v54);
+		incref(MKINT(v55));
+		INT v56 = WRAP_I63(0LL);
+		bool v57 = int_lt(v55, v56);
+		INT branch_Nat_58;
+		if (v57) {
+			decref(MKINT(v55));
+			INT v59 = WRAP_I63(0LL);
+			branch_Nat_58 = v59;
 		} else {
-			branch_Nat_62 = v59;
+			branch_Nat_58 = v55;
 		}
-		INT v64 = value_int(v56->cells[1]);
-		decref(MKINT(v64));
-		v56->cells[1] = MKINT(branch_Nat_62);
-		v5->cells[0] = MKTUP(v56, 7);
-		bool v65 = value_bool(v5->cells[3]);
-		TUP* v66 = value_tup(v5->cells[0], 7);
-		bool v67 = value_bool(v66->cells[3]);
-		bool v68 = (v65 && v67);
-		v66->cells[3] = MKBOOL(v68);
-		TUP* v69;
-		mw_mirth_c99_ZPlusC99_indent(v66, &v69);
-		STR* v70;
-		STRLIT(v70, ");", 2);
-		TUP* v71;
-		mw_mirth_c99_ZPlusC99_put(v70, v69, &v71);
-		TUP* v72;
-		mw_mirth_c99_ZPlusC99_line(v71, &v72);
-		v72->cells[3] = MKBOOL(v67);
-		v5->cells[0] = MKTUP(v72, 7);
-		branch_ZPlusC99Branch_17 = v5;
-		branch_Str_16 = in_Str_1;
-		branch_ZPlusC99Value_15 = v26;
+		INT v60 = value_int(v52->cells[1]);
+		decref(MKINT(v60));
+		v52->cells[1] = MKINT(branch_Nat_58);
+		v5->cells[0] = MKTUP(v52, 7);
+		bool v61 = value_bool(v5->cells[3]);
+		TUP* v62 = value_tup(v5->cells[0], 7);
+		bool v63 = value_bool(v62->cells[3]);
+		bool v64 = (v61 && v63);
+		v62->cells[3] = MKBOOL(v64);
+		TUP* v65;
+		mw_mirth_c99_ZPlusC99_indent(v62, &v65);
+		STR* v66;
+		STRLIT(v66, ");", 2);
+		TUP* v67;
+		mw_mirth_c99_ZPlusC99_put(v66, v65, &v67);
+		TUP* v68;
+		mw_mirth_c99_ZPlusC99_line(v67, &v68);
+		v68->cells[3] = MKBOOL(v63);
+		v5->cells[0] = MKTUP(v68, 7);
+		branch_ZPlusC99Branch_13 = v5;
+		branch_Str_12 = in_Str_1;
+		branch_ZPlusC99Value_11 = v22;
 	} else {
-		bool v73 = value_bool(v5->cells[3]);
-		TUP* v74 = value_tup(v5->cells[0], 7);
-		bool v75 = value_bool(v74->cells[3]);
-		bool v76 = (v73 && v75);
-		v74->cells[3] = MKBOOL(v76);
+		bool v69 = value_bool(v5->cells[3]);
+		TUP* v70 = value_tup(v5->cells[0], 7);
+		bool v71 = value_bool(v70->cells[3]);
+		bool v72 = (v69 && v71);
+		v70->cells[3] = MKBOOL(v72);
+		TUP* v73;
+		mw_mirth_c99_ZPlusC99_indent(v70, &v73);
+		STR* v74;
+		STRLIT(v74, "STRLIT(", 7);
+		TUP* v75;
+		mw_mirth_c99_ZPlusC99_put(v74, v73, &v75);
+		TUP* v76;
 		TUP* v77;
-		mw_mirth_c99_ZPlusC99_indent(v74, &v77);
-		STR* v78;
-		STRLIT(v78, "STRLIT(", 7);
+		mw_mirth_c99_ZPlusC99Value_rdup(v6, &v76, &v77);
+		STR* v78 = mw_mirth_c99_ZPlusC99Value_consume(v76);
 		TUP* v79;
-		mw_mirth_c99_ZPlusC99_put(v78, v77, &v79);
-		TUP* v80;
+		mw_mirth_c99_ZPlusC99_put(v78, v75, &v79);
+		STR* v80;
+		STRLIT(v80, ", ", 2);
 		TUP* v81;
-		mw_mirth_c99_ZPlusC99Value_rdup(v6, &v80, &v81);
-		STR* v82 = mw_mirth_c99_ZPlusC99Value_consume(v80);
-		TUP* v83;
-		mw_mirth_c99_ZPlusC99_put(v82, v79, &v83);
-		STR* v84;
-		STRLIT(v84, ", ", 2);
-		TUP* v85;
-		mw_mirth_c99_ZPlusC99_put(v84, v83, &v85);
+		mw_mirth_c99_ZPlusC99_put(v80, v79, &v81);
 		incref(MKSTR(in_Str_1));
-		TUP* v86;
-		mw_mirth_c99_ZPlusC99_putZ_cstr(in_Str_1, v85, &v86);
-		STR* v87;
-		STRLIT(v87, ", ", 2);
+		TUP* v82;
+		mw_mirth_c99_ZPlusC99_putZ_cstr(in_Str_1, v81, &v82);
+		STR* v83;
+		STRLIT(v83, ", ", 2);
+		TUP* v84;
+		mw_mirth_c99_ZPlusC99_put(v83, v82, &v84);
+		incref(MKSTR(in_Str_1));
+		uint64_t v85 = str_size(in_Str_1);
+		INT v86 = u64_to_int(v85);
+		STR* v87 = int_to_str(v86);
 		TUP* v88;
-		mw_mirth_c99_ZPlusC99_put(v87, v86, &v88);
-		incref(MKSTR(in_Str_1));
-		uint64_t v89 = str_size(in_Str_1);
-		INT v90 = u64_to_int(v89);
-		STR* v91 = int_to_str(v90);
-		TUP* v92;
-		mw_mirth_c99_ZPlusC99_put(v91, v88, &v92);
-		STR* v93;
-		STRLIT(v93, ");", 2);
-		TUP* v94;
-		mw_mirth_c99_ZPlusC99_put(v93, v92, &v94);
-		TUP* v95;
-		mw_mirth_c99_ZPlusC99_line(v94, &v95);
-		v95->cells[3] = MKBOOL(v75);
-		v5->cells[0] = MKTUP(v95, 7);
-		branch_ZPlusC99Branch_17 = v5;
-		branch_Str_16 = in_Str_1;
-		branch_ZPlusC99Value_15 = v81;
+		mw_mirth_c99_ZPlusC99_put(v87, v84, &v88);
+		STR* v89;
+		STRLIT(v89, ");", 2);
+		TUP* v90;
+		mw_mirth_c99_ZPlusC99_put(v89, v88, &v90);
+		TUP* v91;
+		mw_mirth_c99_ZPlusC99_line(v90, &v91);
+		v91->cells[3] = MKBOOL(v71);
+		v5->cells[0] = MKTUP(v91, 7);
+		branch_ZPlusC99Branch_13 = v5;
+		branch_Str_12 = in_Str_1;
+		branch_ZPlusC99Value_11 = v77;
 	}
-	decref(MKSTR(branch_Str_16));
-	TUP* v96;
-	mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_17, branch_ZPlusC99Value_15, &v96);
-	*out_ZPlusC99Branch_3 = v96;
+	decref(MKSTR(branch_Str_12));
+	TUP* v92;
+	mw_mirth_c99_ZPlusC99Value_pushZ_valueZBang(branch_ZPlusC99Branch_13, branch_ZPlusC99Value_11, &v92);
+	*out_ZPlusC99Branch_3 = v92;
 }
 static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (STR* in_Str_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusC99_3) {
 	bool v4 = false;
@@ -68461,88 +68849,93 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstrZ_long (STR* in_Str_1, TUP* in_ZPlusC
 	INT v10 = u64_to_int(v9);
 	incref(MKINT(v10));
 	INT v11 = WRAP_I63(0LL);
-	bool v12 = int_gt(v10, v11);
-	bool v13 = v4;
-	TUP* v14 = v6;
-	int64_t v15 = v7;
-	void* v16 = v8;
-	INT v17 = v10;
-	bool v18 = v12;
-	while (v18) {
-		bool v19 = v13;
-		TUP* v20 = v14;
-		int64_t v21 = v15;
-		void* v22 = v16;
-		INT v23 = v17;
-		int64_t v24 = 0LL /* +Unsafe */;
-		uint8_t v25 = *(uint8_t*)v22;
-		uint64_t v26 = (uint64_t)(v25);
-		INT v27 = u64_to_int(v26);
-		int64_t v28 = int_to_i64(v27);
-		int64_t v29 = 10LL /* BLF */;
-		INT v30 = i64_to_int(v21);
-		uint64_t v31 = int_to_u64(v30);
-		uint8_t v32 = (uint8_t)(v31);
-		INT v33 = i64_to_int(v29);
-		uint64_t v34 = int_to_u64(v33);
-		uint8_t v35 = (uint8_t)(v34);
-		uint64_t v36 = (uint64_t)(v32);
-		INT v37 = u64_to_int(v36);
-		uint64_t v38 = (uint64_t)(v35);
-		INT v39 = u64_to_int(v38);
-		bool v40 = int_eq(v37, v39);
-		TUP* branch_ZPlusC99_41;
-		if (v40) {
-			int64_t v42 = 34LL /* BQUOTE */;
-			TUP* v43;
-			mw_mirth_c99_ZPlusC99_putZ_byte(v42, v20, &v43);
-			TUP* v44;
-			mw_mirth_c99_ZPlusC99_line(v43, &v44);
-			TUP* v45;
-			mw_mirth_c99_ZPlusC99_indent(v44, &v45);
-			int64_t v46 = 34LL /* BQUOTE */;
-			TUP* v47;
-			mw_mirth_c99_ZPlusC99_putZ_byte(v46, v45, &v47);
-			branch_ZPlusC99_41 = v47;
-		} else {
-			branch_ZPlusC99_41 = v20;
-		}
-		bool v48;
-		TUP* v49;
-		mw_mirth_c99_c99Z_stringZ_byteZBang(v28, v19, branch_ZPlusC99_41, &v48, &v49);
-		INT v50 = WRAP_I63(1LL);
-		int64_t v51 = 0LL /* +Unsafe */;
-		int64_t v52 = int_to_i64(v50);
-		void* v53 = (void*)(v52 + (char*)v22);
-		INT v54 = WRAP_I63(1LL);
-		INT v55 = int_sub(v23, v54);
-		incref(MKINT(v55));
-		INT v56 = WRAP_I63(0LL);
-		bool v57 = int_lt(v55, v56);
-		INT branch_Nat_58;
-		if (v57) {
-			decref(MKINT(v55));
-			INT v59 = WRAP_I63(0LL);
-			branch_Nat_58 = v59;
-		} else {
-			branch_Nat_58 = v55;
-		}
-		incref(MKINT(branch_Nat_58));
-		INT v60 = WRAP_I63(0LL);
-		bool v61 = int_gt(branch_Nat_58, v60);
-		v18 = v61;
-		v17 = branch_Nat_58;
-		v16 = v53;
-		v15 = v28;
-		v14 = v49;
-		v13 = v48;
+	bool v12 = int_lt(v10, v11);
+	INT branch_Nat_13;
+	if (v12) {
+		decref(MKINT(v10));
+		INT v14 = WRAP_I63(0LL);
+		branch_Nat_13 = v14;
+	} else {
+		branch_Nat_13 = v10;
 	}
-	decref(MKINT(v17));
+	incref(MKINT(branch_Nat_13));
+	INT v15 = WRAP_I63(0LL);
+	bool v16 = int_eq(branch_Nat_13, v15);
+	bool v17 = !v16;
+	bool v18 = v4;
+	TUP* v19 = v6;
+	int64_t v20 = v7;
+	void* v21 = v8;
+	INT v22 = branch_Nat_13;
+	bool v23 = v17;
+	while (v23) {
+		bool v24 = v18;
+		TUP* v25 = v19;
+		int64_t v26 = v20;
+		void* v27 = v21;
+		INT v28 = v22;
+		int64_t v29 = mw_std_prelude_unsafe_1_sp11(v27);
+		int64_t v30 = 10LL /* BLF */;
+		INT v31 = i64_to_int(v26);
+		uint64_t v32 = int_to_u64(v31);
+		uint8_t v33 = (uint8_t)(v32);
+		INT v34 = i64_to_int(v30);
+		uint64_t v35 = int_to_u64(v34);
+		uint8_t v36 = (uint8_t)(v35);
+		uint64_t v37 = (uint64_t)(v36);
+		uint64_t v38 = (uint64_t)(v33);
+		bool v39 = (v38 == v37);
+		TUP* branch_ZPlusC99_40;
+		if (v39) {
+			int64_t v41 = 34LL /* BQUOTE */;
+			TUP* v42;
+			mw_mirth_c99_ZPlusC99_putZ_byte(v41, v25, &v42);
+			TUP* v43;
+			mw_mirth_c99_ZPlusC99_line(v42, &v43);
+			TUP* v44;
+			mw_mirth_c99_ZPlusC99_indent(v43, &v44);
+			int64_t v45 = 34LL /* BQUOTE */;
+			TUP* v46;
+			mw_mirth_c99_ZPlusC99_putZ_byte(v45, v44, &v46);
+			branch_ZPlusC99_40 = v46;
+		} else {
+			branch_ZPlusC99_40 = v25;
+		}
+		bool v47;
+		TUP* v48;
+		mw_mirth_c99_c99Z_stringZ_byteZBang(v29, v24, branch_ZPlusC99_40, &v47, &v48);
+		INT v49 = WRAP_I63(1LL);
+		void* v50 = mw_std_prelude_unsafe_1_sp4(v49, v27);
+		INT v51 = WRAP_I63(1LL);
+		INT v52 = int_sub(v28, v51);
+		incref(MKINT(v52));
+		INT v53 = WRAP_I63(0LL);
+		bool v54 = int_lt(v52, v53);
+		INT branch_Nat_55;
+		if (v54) {
+			decref(MKINT(v52));
+			INT v56 = WRAP_I63(0LL);
+			branch_Nat_55 = v56;
+		} else {
+			branch_Nat_55 = v52;
+		}
+		incref(MKINT(branch_Nat_55));
+		INT v57 = WRAP_I63(0LL);
+		bool v58 = int_eq(branch_Nat_55, v57);
+		bool v59 = !v58;
+		v23 = v59;
+		v22 = branch_Nat_55;
+		v21 = v50;
+		v20 = v29;
+		v19 = v48;
+		v18 = v47;
+	}
+	decref(MKINT(v22));
 	decref(MKSTR(in_Str_1));
-	int64_t v62 = 34LL /* BQUOTE */;
-	TUP* v63;
-	mw_mirth_c99_ZPlusC99_putZ_byte(v62, v14, &v63);
-	*out_ZPlusC99_3 = v63;
+	int64_t v60 = 34LL /* BQUOTE */;
+	TUP* v61;
+	mw_mirth_c99_ZPlusC99_putZ_byte(v60, v19, &v61);
+	*out_ZPlusC99_3 = v61;
 }
 static void mw_mirth_c99_ZPlusC99_putZ_cstr (STR* in_Str_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusC99_3) {
 	bool v4 = false;
@@ -68556,56 +68949,63 @@ static void mw_mirth_c99_ZPlusC99_putZ_cstr (STR* in_Str_1, TUP* in_ZPlusC99_2, 
 	INT v9 = u64_to_int(v8);
 	incref(MKINT(v9));
 	INT v10 = WRAP_I63(0LL);
-	bool v11 = int_gt(v9, v10);
-	bool v12 = v4;
-	TUP* v13 = v6;
-	void* v14 = v7;
-	INT v15 = v9;
-	bool v16 = v11;
-	while (v16) {
-		bool v17 = v12;
-		TUP* v18 = v13;
-		void* v19 = v14;
-		INT v20 = v15;
-		int64_t v21 = 0LL /* +Unsafe */;
-		uint8_t v22 = *(uint8_t*)v19;
-		uint64_t v23 = (uint64_t)(v22);
-		INT v24 = u64_to_int(v23);
-		int64_t v25 = int_to_i64(v24);
-		bool v26;
-		TUP* v27;
-		mw_mirth_c99_c99Z_stringZ_byteZBang(v25, v17, v18, &v26, &v27);
-		INT v28 = WRAP_I63(1LL);
-		int64_t v29 = 0LL /* +Unsafe */;
-		int64_t v30 = int_to_i64(v28);
-		void* v31 = (void*)(v30 + (char*)v19);
-		INT v32 = WRAP_I63(1LL);
-		INT v33 = int_sub(v20, v32);
-		incref(MKINT(v33));
-		INT v34 = WRAP_I63(0LL);
-		bool v35 = int_lt(v33, v34);
-		INT branch_Nat_36;
-		if (v35) {
-			decref(MKINT(v33));
-			INT v37 = WRAP_I63(0LL);
-			branch_Nat_36 = v37;
-		} else {
-			branch_Nat_36 = v33;
-		}
-		incref(MKINT(branch_Nat_36));
-		INT v38 = WRAP_I63(0LL);
-		bool v39 = int_gt(branch_Nat_36, v38);
-		v16 = v39;
-		v15 = branch_Nat_36;
-		v14 = v31;
-		v13 = v27;
-		v12 = v26;
+	bool v11 = int_lt(v9, v10);
+	INT branch_Nat_12;
+	if (v11) {
+		decref(MKINT(v9));
+		INT v13 = WRAP_I63(0LL);
+		branch_Nat_12 = v13;
+	} else {
+		branch_Nat_12 = v9;
 	}
-	decref(MKINT(v15));
+	incref(MKINT(branch_Nat_12));
+	INT v14 = WRAP_I63(0LL);
+	bool v15 = int_eq(branch_Nat_12, v14);
+	bool v16 = !v15;
+	bool v17 = v4;
+	TUP* v18 = v6;
+	void* v19 = v7;
+	INT v20 = branch_Nat_12;
+	bool v21 = v16;
+	while (v21) {
+		bool v22 = v17;
+		TUP* v23 = v18;
+		void* v24 = v19;
+		INT v25 = v20;
+		int64_t v26 = mw_std_prelude_unsafe_1_sp11(v24);
+		bool v27;
+		TUP* v28;
+		mw_mirth_c99_c99Z_stringZ_byteZBang(v26, v22, v23, &v27, &v28);
+		INT v29 = WRAP_I63(1LL);
+		void* v30 = mw_std_prelude_unsafe_1_sp4(v29, v24);
+		INT v31 = WRAP_I63(1LL);
+		INT v32 = int_sub(v25, v31);
+		incref(MKINT(v32));
+		INT v33 = WRAP_I63(0LL);
+		bool v34 = int_lt(v32, v33);
+		INT branch_Nat_35;
+		if (v34) {
+			decref(MKINT(v32));
+			INT v36 = WRAP_I63(0LL);
+			branch_Nat_35 = v36;
+		} else {
+			branch_Nat_35 = v32;
+		}
+		incref(MKINT(branch_Nat_35));
+		INT v37 = WRAP_I63(0LL);
+		bool v38 = int_eq(branch_Nat_35, v37);
+		bool v39 = !v38;
+		v21 = v39;
+		v20 = branch_Nat_35;
+		v19 = v30;
+		v18 = v28;
+		v17 = v27;
+	}
+	decref(MKINT(v20));
 	decref(MKSTR(in_Str_1));
 	int64_t v40 = 34LL /* BQUOTE */;
 	TUP* v41;
-	mw_mirth_c99_ZPlusC99_putZ_byte(v40, v13, &v41);
+	mw_mirth_c99_ZPlusC99_putZ_byte(v40, v18, &v41);
 	*out_ZPlusC99_3 = v41;
 }
 static void mw_mirth_c99_c99Z_stringZ_byteZBang (int64_t in_Byte_1, bool in_Bool_2, TUP* in_ZPlusC99_3, bool *out_Bool_4, TUP* *out_ZPlusC99_5) {
@@ -68729,7 +69129,7 @@ static void mw_mirth_c99_c99Z_stringZ_byteZBang (int64_t in_Byte_1, bool in_Bool
 	*out_ZPlusC99_5 = branch_ZPlusC99_7;
 	*out_Bool_4 = branch_Bool_6;
 }
-static bool mw_mirth_c99_C99ReprType_ZEqualZEqual (VAL in_C99ReprType_1, VAL in_C99ReprType_2) {
+static bool mw_mirth_c99_C99ReprType_ZEqual (VAL in_C99ReprType_1, VAL in_C99ReprType_2) {
 	bool branch_Bool_4;
 	switch (get_data_tag(in_C99ReprType_2)) {
 		case 3LL: { // TUP
@@ -69297,11 +69697,11 @@ static STR* mw_mirth_c99_C99ReprType_mkZ_macro (STR* in_Str_1, VAL in_C99ReprTyp
 			branch_Str_4 = v16;
 		} break;
 		case 0LL: { // Void
-			STR* v17 = mw_std_prim_Str_Str_1_sp4(in_Str_1);
+			STR* v17 = mw_std_prim_Str_Str_1_sp7(in_Str_1);
 			branch_Str_4 = v17;
 		} break;
 		case 5LL: { // I64
-			STR* v18 = mw_std_prim_Str_Str_1_sp4(in_Str_1);
+			STR* v18 = mw_std_prim_Str_Str_1_sp7(in_Str_1);
 			branch_Str_4 = v18;
 		} break;
 		case 6LL: { // I32
@@ -70063,7 +70463,7 @@ static STR* mw_mirth_c99_ZPlusC99Value_consumeZ_as (VAL in_C99ReprType_1, TUP* i
 				} break;
 				default: {
 					incref(in_C99ReprType_1);
-					bool v17 = mw_mirth_c99_C99ReprType_ZEqualZEqual(v7, in_C99ReprType_1);
+					bool v17 = mw_mirth_c99_C99ReprType_ZEqual(v7, in_C99ReprType_1);
 					VAL branch_C99ReprType_18;
 					STR* branch_Str_19;
 					if (v17) {
@@ -71257,7 +71657,7 @@ static uint64_t mw_mirth_c99_ZPlusC99Stack_popZ_valueZ_labelZAsk (uint64_t in_La
 			VAL v30;
 			TUP* v31;
 			uint64_t v32 = mtp_mirth_c99_ZPlusC99Stack_ZPlusConsLabel(in_ZPlusC99Stack_2, &v30, &v31);
-			bool v33 = mw_mirth_label_Label_ZEqualZEqual(in_Label_1, v32);
+			bool v33 = mw_mirth_label_Label_ZEqual(in_Label_1, v32);
 			uint64_t branch_Label_34;
 			VAL branch_ZPlusC99ValueZAsk_35;
 			VAL branch_ZPlusC99Stack_36;
@@ -71344,7 +71744,7 @@ static uint64_t mw_mirth_c99_ZPlusC99Stack_popZ_resourceZ_labelZAsk (uint64_t in
 			VAL v30;
 			TUP* v31;
 			uint64_t v32 = mtp_mirth_c99_ZPlusC99Stack_ZPlusWithLabel(in_ZPlusC99Stack_2, &v30, &v31);
-			bool v33 = mw_mirth_label_Label_ZEqualZEqual(in_Label_1, v32);
+			bool v33 = mw_mirth_label_Label_ZEqual(in_Label_1, v32);
 			uint64_t branch_Label_34;
 			VAL branch_ZPlusC99ResourceZAsk_35;
 			VAL branch_ZPlusC99Stack_36;
@@ -78196,41 +78596,51 @@ static void mw_mirth_c99_c99Z_mainZBang (TUP* in_Arrow_1, TUP* in_ZPlusC99_2, TU
 }
 static void mw_mirth_main_main (void) {
 	VAL v3 = mw_mirth_options_parseZ_optionsZBang();
-	VAL branch_z_x1_4;
+	bool branch_Bool_4;
 	switch (get_data_tag(v3)) {
 		case 1LL: { // Ok
 			VAL v5 = mtp_std_result_Result_2_Ok(v3);
-			branch_z_x1_4 = v5;
+			TUP* v6;
+			mw_mirth_mirth_ZPlusMirth_InitZBang(&v6);
+			TUP* v7;
+			mw_mirth_main_compileZBang(value_tup(v5, 6), v6, &v7);
+			INT v8 = value_int(v7->cells[0]);
+			incref(MKINT(v8));
+			INT v9 = WRAP_I63(0LL);
+			bool v10 = int_eq(v8, v9);
+			bool v11 = !v10;
+			mw_mirth_mirth_ZPlusMirth_rdrop(v7);
+			branch_Bool_4 = v11;
 		} break;
 		case 0LL: { // Err
-			VAL v6 = mtp_std_result_Result_2_Err(v3);
-			STR* v7;
-			STRLIT(v7, "", 0);
-			VAL v8 = value_tup(v6, 2)->cells[0];
-			VAL v9 = value_tup(v6, 2)->cells[1];
-			tup_decref_outer(value_tup(v6, 2),2);
-			STR* v10;
-			mw_std_str_ZPlusStr_pushZ_strZBang(value_str(v9), v7, &v10);
-			STR* v11;
-			mw_argZ_parser_types_ArgumentParsingError_emitZThen(v8, v10, &v11);
-			STR* v12;
-			STRLIT(v12, "\n", 1);
+			VAL v12 = mtp_std_result_Result_2_Err(v3);
 			STR* v13;
-			mw_std_str_ZPlusStr_pushZ_strZBang(v12, v11, &v13);
-			mw_std_prim_ZPlusWorld_traceZ_(v13);
-			INT v14 = WRAP_I63(1LL);
-			int64_t v15 = int_to_i64(v14);
-			mext_std_posix_externalZ_posixZ_exit(v15);
+			STRLIT(v13, "", 0);
+			VAL v14 = value_tup(v12, 2)->cells[0];
+			VAL v15 = value_tup(v12, 2)->cells[1];
+			tup_decref_outer(value_tup(v12, 2),2);
+			STR* v16;
+			mw_std_str_ZPlusStr_pushZ_strZBang(value_str(v15), v13, &v16);
+			STR* v17;
+			mw_argZ_parser_types_ArgumentParsingError_emitZThen(v14, v16, &v17);
+			STR* v18;
+			STRLIT(v18, "\n", 1);
+			STR* v19;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v18, v17, &v19);
+			mw_std_prim_ZPlusWorld_traceZ_(v19);
+			bool v20 = true;
+			branch_Bool_4 = v20;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	TUP* v17;
-	mw_mirth_mirth_ZPlusMirth_InitZBang(&v17);
-	TUP* v18;
-	mw_mirth_main_compileZBang(value_tup(branch_z_x1_4, 6), v17, &v18);
-	mw_mirth_mirth_ZPlusMirth_rdrop(v18);
+	if (branch_Bool_4) {
+		INT v21 = WRAP_I63(1LL);
+		int64_t v22 = int_to_i64(v21);
+		mext_std_prim_ZPlusWorld_rawZ_posixZ_exitZBang(v22);
+	} else {
+	}
 }
 static void mw_mirth_main_compileZBang (TUP* in_Options_1, TUP* in_ZPlusMirth_2, TUP* *out_ZPlusMirth_3) {
 	STR* v6;
@@ -78370,12 +78780,12 @@ static void mw_mirth_main_compileZBang (TUP* in_Options_1, TUP* in_ZPlusMirth_2,
 	INT v73 = value_int(v72->cells[0]);
 	incref(MKINT(v73));
 	INT v74 = WRAP_I63(0LL);
-	bool v75 = int_gt(v73, v74);
-	VAL branch_Maybe_76;
-	bool branch_Bool_77;
-	VAL branch_Maybe_78;
+	bool v75 = int_eq(v73, v74);
+	bool v76 = !v75;
+	VAL branch_Maybe_77;
+	bool branch_Bool_78;
 	TUP* branch_ZPlusMirth_79;
-	if (v75) {
+	if (v76) {
 		INT v80 = value_int(v72->cells[0]);
 		incref(MKINT(v80));
 		STR* v81;
@@ -78398,111 +78808,205 @@ static void mw_mirth_main_compileZBang (TUP* in_Options_1, TUP* in_ZPlusMirth_2,
 		STR* v91;
 		mw_std_str_ZPlusStr_pushZ_strZBang(v90, v89, &v91);
 		mw_std_prim_ZPlusWorld_traceZ_(v91);
-		INT v92 = WRAP_I63(1LL);
-		int64_t v93 = int_to_i64(v92);
-		mext_std_posix_externalZ_posixZ_exit(v93);
-	} else {
-		STR* v94;
-		STRLIT(v94, "", 0);
-		VAL v95 = MKI64(32LL /* FGGreen */);
-		STR* v96;
-		mw_std_terminal_Sgr_emitZThen(v95, v94, &v96);
-		STR* v97;
-		STRLIT(v97, "No errors.", 10);
-		STR* v98;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v97, v96, &v98);
-		VAL v99 = MKI64(0LL /* Reset */);
-		STR* v100;
-		mw_std_terminal_Sgr_emitZThen(v99, v98, &v100);
-		STR* v101;
-		STRLIT(v101, "\n", 1);
-		STR* v102;
-		mw_std_str_ZPlusStr_pushZ_strZBang(v101, v100, &v102);
-		mw_std_prim_ZPlusWorld_traceZ_(v102);
+		decref(branch_Maybe_61);
 		branch_ZPlusMirth_79 = v72;
-		branch_Maybe_78 = branch_Maybe_61;
-		branch_Bool_77 = v11;
-		branch_Maybe_76 = v7;
-	}
-	TUP* branch_ZPlusMirth_103;
-	switch (get_data_tag(branch_Maybe_78)) {
-		case 1LL: { // Some
-			VAL v104 = mtp_std_maybe_Maybe_1_Some(branch_Maybe_78);
-			STR* v105;
-			STRLIT(v105, "Specializer.", 12);
-			mw_std_prim_ZPlusWorld_trace(v105);
-			TUP* v106;
-			TUP* v107 = mw_mirth_specializzer_runZ_specializzerZBang(branch_ZPlusMirth_79, value_tup(v104, 7), &v106);
-			INT v108 = value_int(v106->cells[0]);
-			incref(MKINT(v108));
-			INT v109 = WRAP_I63(0LL);
-			bool v110 = int_gt(v108, v109);
-			TUP* branch_ZPlusMirth_111;
-			if (v110) {
-				TUP* v112;
-				mw_mirth_mirth_ZPlusMirth_traceZ_diagnosticsZBang(v106, &v112);
-				INT v113 = value_int(v112->cells[0]);
-				incref(MKINT(v113));
-				STR* v114;
-				STRLIT(v114, "", 0);
-				VAL v115 = MKI64(31LL /* FGRed */);
-				STR* v116;
-				mw_std_terminal_Sgr_emitZThen(v115, v114, &v116);
-				STR* v117 = int_to_str(v113);
-				STR* v118;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v117, v116, &v118);
-				STR* v119;
-				STRLIT(v119, " errors during specializer.", 27);
-				STR* v120;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v119, v118, &v120);
-				VAL v121 = MKI64(0LL /* Reset */);
-				STR* v122;
-				mw_std_terminal_Sgr_emitZThen(v121, v120, &v122);
-				STR* v123;
-				STRLIT(v123, "\n", 1);
-				STR* v124;
-				mw_std_str_ZPlusStr_pushZ_strZBang(v123, v122, &v124);
-				mw_std_prim_ZPlusWorld_traceZ_(v124);
-				INT v125 = WRAP_I63(1LL);
-				int64_t v126 = int_to_i64(v125);
-				mext_std_posix_externalZ_posixZ_exit(v126);
-			} else {
-				STR* v127;
-				STRLIT(v127, "Codegen.", 8);
-				mw_std_prim_ZPlusWorld_trace(v127);
-				TUP* branch_ZPlusMirth_128;
-				switch (get_data_tag(branch_Maybe_76)) {
-					case 1LL: { // Some
-						VAL v129 = mtp_std_maybe_Maybe_1_Some(branch_Maybe_76);
-						TUP* v130 = mtw_mirth_c99_C99z_Options_C99z_Options(value_str(v129), branch_Bool_77);
-						TUP* v131;
-						mw_mirth_c99_runZ_outputZ_c99ZBang(v107, v130, v106, &v131);
-						branch_ZPlusMirth_128 = v131;
-					} break;
-					case 0LL: { // None
-						decref(MKTUP(v107, 7));
-						branch_ZPlusMirth_128 = v106;
-					} break;
-					default: {
-						do_panic(str_make("unexpected fallthrough in match\n", 32));
+		branch_Bool_78 = v11;
+		branch_Maybe_77 = v7;
+	} else {
+		STR* v92;
+		STRLIT(v92, "", 0);
+		VAL v93 = MKI64(32LL /* FGGreen */);
+		STR* v94;
+		mw_std_terminal_Sgr_emitZThen(v93, v92, &v94);
+		STR* v95;
+		STRLIT(v95, "No errors.", 10);
+		STR* v96;
+		mw_std_str_ZPlusStr_pushZ_strZBang(v95, v94, &v96);
+		VAL v97 = MKI64(0LL /* Reset */);
+		STR* v98;
+		mw_std_terminal_Sgr_emitZThen(v97, v96, &v98);
+		STR* v99;
+		STRLIT(v99, "\n", 1);
+		STR* v100;
+		mw_std_str_ZPlusStr_pushZ_strZBang(v99, v98, &v100);
+		mw_std_prim_ZPlusWorld_traceZ_(v100);
+		VAL branch_Maybe_101;
+		bool branch_Bool_102;
+		TUP* branch_ZPlusMirth_103;
+		switch (get_data_tag(branch_Maybe_61)) {
+			case 1LL: { // Some
+				VAL v104 = mtp_std_maybe_Maybe_1_Some(branch_Maybe_61);
+				STR* v105;
+				STRLIT(v105, "Running specializer.", 20);
+				mw_std_prim_ZPlusWorld_trace(v105);
+				TUP* v106;
+				TUP* v107 = mw_mirth_specializzer_runZ_specializzerZBang(v72, value_tup(v104, 7), &v106);
+				INT v108 = value_int(v106->cells[0]);
+				incref(MKINT(v108));
+				INT v109 = WRAP_I63(0LL);
+				bool v110 = int_eq(v108, v109);
+				bool v111 = !v110;
+				VAL branch_Maybe_112;
+				bool branch_Bool_113;
+				TUP* branch_ZPlusMirth_114;
+				if (v111) {
+					TUP* v115;
+					mw_mirth_mirth_ZPlusMirth_traceZ_diagnosticsZBang(v106, &v115);
+					INT v116 = value_int(v115->cells[0]);
+					incref(MKINT(v116));
+					STR* v117;
+					STRLIT(v117, "", 0);
+					VAL v118 = MKI64(31LL /* FGRed */);
+					STR* v119;
+					mw_std_terminal_Sgr_emitZThen(v118, v117, &v119);
+					STR* v120 = int_to_str(v116);
+					STR* v121;
+					mw_std_str_ZPlusStr_pushZ_strZBang(v120, v119, &v121);
+					STR* v122;
+					STRLIT(v122, " errors during specializer.", 27);
+					STR* v123;
+					mw_std_str_ZPlusStr_pushZ_strZBang(v122, v121, &v123);
+					VAL v124 = MKI64(0LL /* Reset */);
+					STR* v125;
+					mw_std_terminal_Sgr_emitZThen(v124, v123, &v125);
+					STR* v126;
+					STRLIT(v126, "\n", 1);
+					STR* v127;
+					mw_std_str_ZPlusStr_pushZ_strZBang(v126, v125, &v127);
+					mw_std_prim_ZPlusWorld_traceZ_(v127);
+					decref(MKTUP(v107, 7));
+					branch_ZPlusMirth_114 = v115;
+					branch_Bool_113 = v11;
+					branch_Maybe_112 = v7;
+				} else {
+					incref(v7);
+					bool branch_Bool_128;
+					TUP* branch_ZPlusMirth_129;
+					switch (get_data_tag(v7)) {
+						case 1LL: { // Some
+							VAL v130 = mtp_std_maybe_Maybe_1_Some(v7);
+							STR* v131;
+							STRLIT(v131, "Running codegen.", 16);
+							mw_std_prim_ZPlusWorld_trace(v131);
+							TUP* v132 = mtw_mirth_c99_C99z_Options_C99z_Options(value_str(v130), v11);
+							TUP* v133;
+							mw_mirth_c99_runZ_outputZ_c99ZBang(v107, v132, v106, &v133);
+							branch_ZPlusMirth_129 = v133;
+							branch_Bool_128 = v11;
+						} break;
+						case 0LL: { // None
+							decref(MKTUP(v107, 7));
+							STR* v134;
+							STRLIT(v134, "No output file, skipping codegen.", 33);
+							mw_std_prim_ZPlusWorld_trace(v134);
+							branch_ZPlusMirth_129 = v106;
+							branch_Bool_128 = v11;
+						} break;
+						default: {
+							do_panic(str_make("unexpected fallthrough in match\n", 32));
+						}
 					}
+					branch_ZPlusMirth_114 = branch_ZPlusMirth_129;
+					branch_Bool_113 = branch_Bool_128;
+					branch_Maybe_112 = v7;
 				}
-				branch_ZPlusMirth_111 = branch_ZPlusMirth_128;
+				branch_ZPlusMirth_103 = branch_ZPlusMirth_114;
+				branch_Bool_102 = branch_Bool_113;
+				branch_Maybe_101 = branch_Maybe_112;
+			} break;
+			case 0LL: { // None
+				STR* v135;
+				STRLIT(v135, "No entry point, skipping Codegen.", 33);
+				mw_std_prim_ZPlusWorld_trace(v135);
+				branch_ZPlusMirth_103 = v72;
+				branch_Bool_102 = v11;
+				branch_Maybe_101 = v7;
+			} break;
+			default: {
+				do_panic(str_make("unexpected fallthrough in match\n", 32));
 			}
-			branch_ZPlusMirth_103 = branch_ZPlusMirth_111;
-		} break;
-		case 0LL: { // None
-			STR* v132;
-			STRLIT(v132, "Skipping Codegen.", 17);
-			mw_std_prim_ZPlusWorld_trace(v132);
-			decref(branch_Maybe_76);
-			branch_ZPlusMirth_103 = branch_ZPlusMirth_79;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
+		branch_ZPlusMirth_79 = branch_ZPlusMirth_103;
+		branch_Bool_78 = branch_Bool_102;
+		branch_Maybe_77 = branch_Maybe_101;
 	}
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_103;
+	decref(branch_Maybe_77);
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_79;
+}
+static VAL mw_std_prelude_unsafe_1_sp1 (void* in_Ptr_1, INT in_Sizze_2, TUP* in_ZPlusFile_3, TUP* *out_ZPlusFile_5) {
+	int64_t v6 = 0LL /* +Unsafe */;
+	TUP* v7;
+	VAL v8 = mw_std_prelude_ZPlusUnsafe_writeZ_bytesZBang(in_Ptr_1, in_Sizze_2, in_ZPlusFile_3, &v7);
+	*out_ZPlusFile_5 = v7;
+	return v8;
+}
+static STR* mw_std_prelude_unsafe_1_sp2 (void* in_Ptr_1, INT in_Sizze_2) {
+	int64_t v4 = 0LL /* +Unsafe */;
+	uint64_t v5 = int_to_u64(in_Sizze_2);
+	STR* v6 = str_make(in_Ptr_1, v5);
+	return v6;
+}
+static void* mw_std_prelude_unsafe_1_sp4 (INT in_Offset_1, void* in_Ptr_2) {
+	int64_t v4 = 0LL /* +Unsafe */;
+	int64_t v5 = int_to_i64(in_Offset_1);
+	void* v6 = (void*)(v5 + (char*)in_Ptr_2);
+	return v6;
+}
+static INT mw_std_prelude_maxZ_viaZ_lt_sp1 (INT in_Offset_1, INT in_Offset_2) {
+	incref(MKINT(in_Offset_1));
+	incref(MKINT(in_Offset_2));
+	bool v4 = int_lt(in_Offset_1, in_Offset_2);
+	INT branch_Offset_5;
+	if (v4) {
+		decref(MKINT(in_Offset_1));
+		branch_Offset_5 = in_Offset_2;
+	} else {
+		decref(MKINT(in_Offset_2));
+		branch_Offset_5 = in_Offset_1;
+	}
+	return branch_Offset_5;
+}
+static VAL mw_std_list_List_1_for_1_sp5 (VAL in_List_1, VAL in_List_2) {
+	bool v4 = true;
+	VAL v5 = in_List_1;
+	VAL v6 = in_List_2;
+	bool v7 = v4;
+	bool v8 = v4;
+	while (v8) {
+		VAL v9 = v5;
+		VAL v10 = v6;
+		bool v11 = v7;
+		VAL branch_List_12;
+		VAL branch_List_13;
+		bool branch_Bool_14;
+		switch (get_data_tag(v10)) {
+			case 1LL: { // Cons
+				VAL v15;
+				VAL v16 = mtp_std_list_List_1_Cons(v10, &v15);
+				VAL v17 = mw_std_list_List_1_cons(v16, v9);
+				bool v18 = true;
+				branch_Bool_14 = v18;
+				branch_List_13 = v15;
+				branch_List_12 = v17;
+			} break;
+			case 0LL: { // Nil
+				VAL v19 = MKI64(0LL /* Nil */);
+				bool v20 = false;
+				branch_Bool_14 = v20;
+				branch_List_13 = v19;
+				branch_List_12 = v9;
+			} break;
+			default: {
+				do_panic(str_make("unexpected fallthrough in match\n", 32));
+			}
+		}
+		v8 = branch_Bool_14;
+		v7 = branch_Bool_14;
+		v6 = branch_List_13;
+		v5 = branch_List_12;
+	}
+	decref(v6);
+	return v5;
 }
 static void mw_mirth_c99_ZPlusC99_c99Z_line_1_sp2 (TUP* in_ZPlusC99_1, TUP* *out_ZPlusC99_2) {
 	TUP* v3;
@@ -78581,6 +79085,14 @@ static void mw_mirth_c99_ZPlusC99Branch_c99Z_line_1_sp1 (STR* in_Str_1, uint64_t
 	in_ZPlusC99Branch_3->cells[0] = MKTUP(v23, 7);
 	*out_ZPlusC99Branch_4 = in_ZPlusC99Branch_3;
 }
+static int64_t mw_std_prelude_unsafe_1_sp11 (void* in_Ptr_1) {
+	int64_t v3 = 0LL /* +Unsafe */;
+	uint8_t v4 = *(uint8_t*)in_Ptr_1;
+	uint64_t v5 = (uint64_t)(v4);
+	INT v6 = u64_to_int(v5);
+	int64_t v7 = int_to_i64(v6);
+	return v7;
+}
 static bool mw_std_prelude_inZ_range_sp1 (int64_t in_Byte_1, int64_t in_Byte_2, int64_t in_Byte_3) {
 	INT v5 = i64_to_int(in_Byte_2);
 	uint64_t v6 = int_to_u64(v5);
@@ -78588,32 +79100,28 @@ static bool mw_std_prelude_inZ_range_sp1 (int64_t in_Byte_1, int64_t in_Byte_2, 
 	INT v8 = i64_to_int(in_Byte_1);
 	uint64_t v9 = int_to_u64(v8);
 	uint8_t v10 = (uint8_t)(v9);
-	uint64_t v11 = (uint64_t)(v7);
-	INT v12 = u64_to_int(v11);
-	uint64_t v13 = (uint64_t)(v10);
-	INT v14 = u64_to_int(v13);
-	bool v15 = int_le(v12, v14);
-	bool branch_Bool_16;
-	if (v15) {
-		INT v17 = i64_to_int(in_Byte_1);
-		uint64_t v18 = int_to_u64(v17);
-		uint8_t v19 = (uint8_t)(v18);
-		INT v20 = i64_to_int(in_Byte_3);
-		uint64_t v21 = int_to_u64(v20);
-		uint8_t v22 = (uint8_t)(v21);
-		uint64_t v23 = (uint64_t)(v19);
-		INT v24 = u64_to_int(v23);
-		uint64_t v25 = (uint64_t)(v22);
-		INT v26 = u64_to_int(v25);
-		bool v27 = int_le(v24, v26);
-		branch_Bool_16 = v27;
+	uint64_t v11 = (uint64_t)(v10);
+	uint64_t v12 = (uint64_t)(v7);
+	bool v13 = (v12 <= v11);
+	bool branch_Bool_14;
+	if (v13) {
+		INT v15 = i64_to_int(in_Byte_1);
+		uint64_t v16 = int_to_u64(v15);
+		uint8_t v17 = (uint8_t)(v16);
+		INT v18 = i64_to_int(in_Byte_3);
+		uint64_t v19 = int_to_u64(v18);
+		uint8_t v20 = (uint8_t)(v19);
+		uint64_t v21 = (uint64_t)(v20);
+		uint64_t v22 = (uint64_t)(v17);
+		bool v23 = (v22 <= v21);
+		branch_Bool_14 = v23;
 	} else {
-		bool v28 = false;
-		branch_Bool_16 = v28;
+		bool v24 = false;
+		branch_Bool_14 = v24;
 	}
-	return branch_Bool_16;
+	return branch_Bool_14;
 }
-static STR* mw_std_prim_Str_Str_1_sp4 (STR* in_Str_1) {
+static STR* mw_std_prim_Str_Str_1_sp7 (STR* in_Str_1) {
 	STR* v3;
 	STRLIT(v3, "", 0);
 	STR* v4;
@@ -78647,48 +79155,6 @@ static uint64_t mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp5 (uint64_t in_Tag_1,
 	in_ZPlusC99Branch_2->cells[0] = MKTUP(v5, 7);
 	*out_ZPlusC99Branch_4 = in_ZPlusC99Branch_2;
 	return v8;
-}
-static VAL mw_std_list_List_1_for_1_sp5 (VAL in_List_1, VAL in_List_2) {
-	bool v4 = true;
-	VAL v5 = in_List_1;
-	VAL v6 = in_List_2;
-	bool v7 = v4;
-	bool v8 = v4;
-	while (v8) {
-		VAL v9 = v5;
-		VAL v10 = v6;
-		bool v11 = v7;
-		VAL branch_List_12;
-		VAL branch_List_13;
-		bool branch_Bool_14;
-		switch (get_data_tag(v10)) {
-			case 1LL: { // Cons
-				VAL v15;
-				VAL v16 = mtp_std_list_List_1_Cons(v10, &v15);
-				VAL v17 = mw_std_list_List_1_cons(v16, v9);
-				bool v18 = true;
-				branch_Bool_14 = v18;
-				branch_List_13 = v15;
-				branch_List_12 = v17;
-			} break;
-			case 0LL: { // Nil
-				VAL v19 = MKI64(0LL /* Nil */);
-				bool v20 = false;
-				branch_Bool_14 = v20;
-				branch_List_13 = v19;
-				branch_List_12 = v9;
-			} break;
-			default: {
-				do_panic(str_make("unexpected fallthrough in match\n", 32));
-			}
-		}
-		v8 = branch_Bool_14;
-		v7 = branch_Bool_14;
-		v6 = branch_List_13;
-		v5 = branch_List_12;
-	}
-	decref(v6);
-	return v5;
 }
 static VAL mw_std_maybe_Maybe_1_unwrap_1_sp1 (VAL in_Maybe_1) {
 	VAL branch_z_x1_3;
@@ -78770,21 +79236,6 @@ static VAL mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp9 (uint64_t in_Data_1, TUP
 	in_ZPlusC99Branch_2->cells[0] = MKTUP(v5, 7);
 	*out_ZPlusC99Branch_4 = in_ZPlusC99Branch_2;
 	return v8;
-}
-static bool mw_std_prelude_inZ_range_sp2 (INT in_Int_1, INT in_Int_2, INT in_Int_3) {
-	incref(MKINT(in_Int_1));
-	bool v5 = int_le(in_Int_2, in_Int_1);
-	bool branch_Bool_6;
-	if (v5) {
-		bool v7 = int_le(in_Int_1, in_Int_3);
-		branch_Bool_6 = v7;
-	} else {
-		decref(MKINT(in_Int_3));
-		decref(MKINT(in_Int_1));
-		bool v8 = false;
-		branch_Bool_6 = v8;
-	}
-	return branch_Bool_6;
 }
 static bool mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp10 (uint64_t in_Tag_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4) {
 	TUP* v5 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
@@ -79783,40 +80234,42 @@ static VAL mw_std_list_List_1_List_1_sp11 (INT in_Nat_1) {
 	mw_std_list_List_1_buildZBang(v3, &v4);
 	incref(MKINT(in_Nat_1));
 	INT v5 = WRAP_I63(0LL);
-	bool v6 = int_gt(in_Nat_1, v5);
-	VAL v7 = v4;
-	INT v8 = in_Nat_1;
-	bool v9 = v6;
-	while (v9) {
-		VAL v10 = v7;
-		INT v11 = v8;
-		VAL v12 = MKI64(1LL /* Ignore */);
-		VAL v13 = mtw_mirth_type_StackTypePart_Cons(v12);
-		VAL v14;
-		mw_std_list_ZPlusLister_1_pushZBang(v13, v10, &v14);
-		INT v15 = WRAP_I63(1LL);
-		INT v16 = int_sub(v11, v15);
-		incref(MKINT(v16));
-		INT v17 = WRAP_I63(0LL);
-		bool v18 = int_lt(v16, v17);
-		INT branch_Nat_19;
-		if (v18) {
-			decref(MKINT(v16));
-			INT v20 = WRAP_I63(0LL);
-			branch_Nat_19 = v20;
+	bool v6 = int_eq(in_Nat_1, v5);
+	bool v7 = !v6;
+	VAL v8 = v4;
+	INT v9 = in_Nat_1;
+	bool v10 = v7;
+	while (v10) {
+		VAL v11 = v8;
+		INT v12 = v9;
+		VAL v13 = MKI64(1LL /* Ignore */);
+		VAL v14 = mtw_mirth_type_StackTypePart_Cons(v13);
+		VAL v15;
+		mw_std_list_ZPlusLister_1_pushZBang(v14, v11, &v15);
+		INT v16 = WRAP_I63(1LL);
+		INT v17 = int_sub(v12, v16);
+		incref(MKINT(v17));
+		INT v18 = WRAP_I63(0LL);
+		bool v19 = int_lt(v17, v18);
+		INT branch_Nat_20;
+		if (v19) {
+			decref(MKINT(v17));
+			INT v21 = WRAP_I63(0LL);
+			branch_Nat_20 = v21;
 		} else {
-			branch_Nat_19 = v16;
+			branch_Nat_20 = v17;
 		}
-		incref(MKINT(branch_Nat_19));
-		INT v21 = WRAP_I63(0LL);
-		bool v22 = int_gt(branch_Nat_19, v21);
-		v9 = v22;
-		v8 = branch_Nat_19;
-		v7 = v14;
+		incref(MKINT(branch_Nat_20));
+		INT v22 = WRAP_I63(0LL);
+		bool v23 = int_eq(branch_Nat_20, v22);
+		bool v24 = !v23;
+		v10 = v24;
+		v9 = branch_Nat_20;
+		v8 = v15;
 	}
-	decref(MKINT(v8));
-	VAL v23 = mw_std_list_ZPlusLister_1_doneZBang(v7);
-	return v23;
+	decref(MKINT(v9));
+	VAL v25 = mw_std_list_ZPlusLister_1_doneZBang(v8);
+	return v25;
 }
 static bool mw_mirth_c99_ZPlusC99Branch_ZPlusmirth_1_sp33 (uint64_t in_Label_1, TUP* in_ZPlusC99Branch_2, TUP* *out_ZPlusC99Branch_4) {
 	TUP* v5 = value_tup(in_ZPlusC99Branch_2->cells[0], 7);
@@ -79924,6 +80377,21 @@ static bool mw_std_maybe_Maybe_1_unwrap_1_sp12 (VAL in_Maybe_1) {
 		}
 	}
 	return branch_Bool_3;
+}
+static bool mw_std_prelude_inZ_range_sp3 (INT in_Int_1, INT in_Int_2, INT in_Int_3) {
+	incref(MKINT(in_Int_1));
+	bool v5 = int_le(in_Int_2, in_Int_1);
+	bool branch_Bool_6;
+	if (v5) {
+		bool v7 = int_le(in_Int_1, in_Int_3);
+		branch_Bool_6 = v7;
+	} else {
+		decref(MKINT(in_Int_3));
+		decref(MKINT(in_Int_1));
+		bool v8 = false;
+		branch_Bool_6 = v8;
+	}
+	return branch_Bool_6;
 }
 static TUP* mw_mirth_c99_ZPlusC99_c99Z_line_1_sp91 (TUP* in_C99API_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusC99_4) {
 	TUP* v5;
@@ -80192,7 +80660,7 @@ static void mw_mirth_c99_C99ReprType_valueZ_expressionZBang_1_sp38 (STR* in_Str_
 	*out_ZPlusC99Value_6 = v34;
 	*out_ZPlusC99Branch_5 = branch_ZPlusC99Branch_16;
 }
-static void mw_std_maybe_Maybe_1_for_1_sp8 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3) {
+static void mw_std_maybe_Maybe_1_for_1_sp9 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3) {
 	VAL branch_ZPlusLister_4;
 	switch (get_data_tag(in_Maybe_2)) {
 		case 1LL: { // Some
@@ -80211,25 +80679,32 @@ static void mw_std_maybe_Maybe_1_for_1_sp8 (VAL in_ZPlusLister_1, VAL in_Maybe_2
 	*out_ZPlusLister_3 = branch_ZPlusLister_4;
 }
 static void mw_std_result_ZPlusResult_2_ZPluselse_1_sp1 (TUP* in_ZPlusMirth_1, VAL in_ZPlusResult_2, TUP* *out_ZPlusMirth_3, VAL *out_z_x1_4) {
-	TUP* branch_ZPlusMirth_5;
-	VAL branch_z_x1_6;
+	TUP* branch_ZPlusMirth_7;
+	VAL branch_z_x1_8;
 	switch (get_data_tag(in_ZPlusResult_2)) {
 		case 1LL: { // +Ok
-			VAL v7;
-			mtp_std_result_ZPlusResult_2_ZPlusOk(in_ZPlusResult_2, &v7);
-			branch_z_x1_6 = v7;
-			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+			VAL v9;
+			mtp_std_result_ZPlusResult_2_ZPlusOk(in_ZPlusResult_2, &v9);
+			branch_z_x1_8 = v9;
+			branch_ZPlusMirth_7 = in_ZPlusMirth_1;
 		} break;
 		case 0LL: { // +Err
-			VAL v8 = mtp_std_result_ZPlusResult_2_ZPlusErr(in_ZPlusResult_2);
-			mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(value_str(v8), in_ZPlusMirth_1);
+			VAL v10 = mtp_std_result_ZPlusResult_2_ZPlusErr(in_ZPlusResult_2);
+			mw_mirth_mirth_ZPlusMirth_ioZ_errorZBang(v10, in_ZPlusMirth_1);
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	*out_z_x1_4 = branch_z_x1_6;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
+	*out_z_x1_4 = branch_z_x1_8;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_7;
+}
+static uint8_t mw_std_prelude_unsafe_1_sp16 (INT in_Offset_1, void* in_Ptr_2) {
+	int64_t v4 = 0LL /* +Unsafe */;
+	int64_t v5 = int_to_i64(in_Offset_1);
+	void* v6 = (void*)(v5 + (char*)in_Ptr_2);
+	uint8_t v7 = *(uint8_t*)v6;
+	return v7;
 }
 static void mw_std_maybe_Maybe_1_if_2_sp6 (VAL in_List_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusNeeds_3, VAL in_Maybe_4, TUP* *out_ZPlusMirth_5, TUP* *out_ZPlusNeeds_6) {
 	int64_t v7 = get_data_tag(in_Maybe_4);
@@ -80255,7 +80730,7 @@ static void mw_std_maybe_Maybe_1_if_2_sp6 (VAL in_List_1, TUP* in_ZPlusMirth_2, 
 	*out_ZPlusNeeds_6 = branch_ZPlusNeeds_12;
 	*out_ZPlusMirth_5 = branch_ZPlusMirth_11;
 }
-static void mw_std_list_List_1_for_1_sp50 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3) {
+static void mw_std_list_List_1_for_1_sp49 (VAL in_ZPlusLister_1, VAL in_List_2, VAL *out_ZPlusLister_3) {
 	bool v4 = true;
 	VAL v5 = in_ZPlusLister_1;
 	VAL v6 = in_List_2;
@@ -80564,7 +81039,7 @@ static VAL mw_std_maybe_Maybe_1_bind_1_sp5 (VAL in_Maybe_1) {
 	}
 	return branch_Maybe_3;
 }
-static bool mw_std_list_List_1_ZEqualZEqual_sp1 (TUP* in_ZPlusMirth_1, VAL in_List_2, VAL in_List_3, TUP* *out_ZPlusMirth_4) {
+static bool mw_std_list_List_1_ZEqual_sp1 (TUP* in_ZPlusMirth_1, VAL in_List_2, VAL in_List_3, TUP* *out_ZPlusMirth_4) {
 	bool v6 = true;
 	VAL v7;
 	VAL v8 = mw_std_list_List_1_uncons(in_List_2, &v7);
@@ -80691,7 +81166,7 @@ static bool mw_std_list_List_1_ZEqualZEqual_sp1 (TUP* in_ZPlusMirth_1, VAL in_Li
 	*out_ZPlusMirth_4 = v29;
 	return v32;
 }
-static void mw_std_list_List_1_for_1_sp64 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3) {
+static void mw_std_list_List_1_for_1_sp63 (VAL in_ZPlusSPCheck_1, VAL in_List_2, VAL *out_ZPlusSPCheck_3) {
 	bool v4 = true;
 	VAL v5 = in_ZPlusSPCheck_1;
 	VAL v6 = in_List_2;
@@ -80806,6 +81281,27 @@ static VAL mw_std_maybe_Maybe_1_map_1_sp12 (VAL in_Maybe_1) {
 	}
 	return branch_Maybe_3;
 }
+static STR* mw_std_prelude_unsafe_1_sp20 (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
+	int64_t v4 = 0LL /* +Unsafe */;
+	STR* v5;
+	STR* v6 = mw_std_str_ZPlusStr_dropZ_firstZ_byte(in_ZPlusStr_1, &v5);
+	*out_ZPlusStr_3 = v5;
+	return v6;
+}
+static STR* mw_std_prelude_unsafe_1_sp21 (STR* in_ZPlusStr_1, STR* *out_ZPlusStr_3) {
+	int64_t v4 = 0LL /* +Unsafe */;
+	STR* v5;
+	STR* v6 = mw_std_str_ZPlusStr_dropZ_lastZ_byte(in_ZPlusStr_1, &v5);
+	*out_ZPlusStr_3 = v5;
+	return v6;
+}
+static STR* mw_std_prelude_unsafe_1_sp23 (INT in_Offset_1, INT in_Offset_2, STR* in_ZPlusStr_3, STR* *out_ZPlusStr_5) {
+	int64_t v6 = 0LL /* +Unsafe */;
+	STR* v7;
+	STR* v8 = mw_std_str_ZPlusStr_offsetZ_slice(in_Offset_1, in_Offset_2, in_ZPlusStr_3, &v7);
+	*out_ZPlusStr_5 = v7;
+	return v8;
+}
 static TUP* mw_mirth_elab_abZ_buildZBang_1_sp6 (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, VAL in_StackType_3, uint64_t in_Token_4, VAL in_Home_5, TUP* *out_ZPlusMirth_6) {
 	incref(in_StackType_3);
 	VAL v8 = MKI64(0LL /* Nil */);
@@ -80816,7 +81312,7 @@ static TUP* mw_mirth_elab_abZ_buildZBang_1_sp6 (TUP* in_ZPlusMirth_1, VAL in_Ctx
 	*out_ZPlusMirth_6 = v10;
 	return v11;
 }
-static VAL mw_std_list_List_1_for_1_sp70 (VAL in_StackType_1, VAL in_List_2) {
+static VAL mw_std_list_List_1_for_1_sp69 (VAL in_StackType_1, VAL in_List_2) {
 	bool v4 = true;
 	VAL v5 = in_StackType_1;
 	VAL v6 = in_List_2;
@@ -80858,7 +81354,7 @@ static VAL mw_std_list_List_1_for_1_sp70 (VAL in_StackType_1, VAL in_List_2) {
 	decref(v6);
 	return v5;
 }
-static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp72 (VAL in_Maybe_1) {
+static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp73 (VAL in_Maybe_1) {
 	VAL branch_Type_3;
 	switch (get_data_tag(in_Maybe_1)) {
 		case 1LL: { // Some
@@ -80876,7 +81372,7 @@ static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp72 (VAL in_Maybe_1) {
 	}
 	return branch_Type_3;
 }
-static STR* mw_std_list_List_1_for_1_sp73 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8) {
+static STR* mw_std_list_List_1_for_1_sp72 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8) {
 	bool v10 = true;
 	TUP* v11 = in_ZPlusMirth_1;
 	VAL v12 = in_z_x1_2;
@@ -81055,7 +81551,7 @@ static bool mw_std_list_List_1_member_sp4 (VAL in_Namespace_1, VAL in_List_2) {
 				VAL v21 = mtp_std_maybe_Maybe_1_Some(v16);
 				incref(v21);
 				incref(v11);
-				bool v22 = mw_mirth_name_Namespace_ZEqualZEqual(v11, v21);
+				bool v22 = mw_mirth_name_Namespace_ZEqual(v11, v21);
 				VAL branch_Namespace_23;
 				VAL branch_Maybe_24;
 				if (v22) {
@@ -81118,7 +81614,7 @@ static bool mw_std_list_List_1_member_sp4 (VAL in_Namespace_1, VAL in_List_2) {
 	bool v36 = !v35;
 	return v36;
 }
-static void mw_std_maybe_Maybe_1_for_1_sp20 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3) {
+static void mw_std_maybe_Maybe_1_for_1_sp21 (VAL in_ZPlusLister_1, VAL in_Maybe_2, VAL *out_ZPlusLister_3) {
 	VAL branch_ZPlusLister_4;
 	switch (get_data_tag(in_Maybe_2)) {
 		case 1LL: { // Some
@@ -81377,7 +81873,7 @@ static uint64_t mw_std_maybe_Maybe_1_else_1_sp7 (uint64_t in_Token_1, TUP* in_ZP
 	*out_ZPlusMirth_5 = branch_ZPlusMirth_11;
 	return branch_Token_10;
 }
-static VAL mw_std_maybe_Maybe_1_filter_1_sp20 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3) {
+static VAL mw_std_maybe_Maybe_1_filter_1_sp21 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3) {
 	TUP* branch_ZPlusMirth_5;
 	VAL branch_Maybe_6;
 	switch (get_data_tag(in_Maybe_2)) {
@@ -81506,7 +82002,7 @@ static VAL mw_std_list_List_1_filterZ_some_1_sp6 (VAL in_List_1) {
 				VAL v17 = mtp_std_list_List_1_Cons(v11, &v16);
 				VAL v18 = mw_mirth_type_CTypeStackPart_labelZAsk(v17);
 				VAL v19;
-				mw_std_maybe_Maybe_1_for_1_sp8(v10, v18, &v19);
+				mw_std_maybe_Maybe_1_for_1_sp9(v10, v18, &v19);
 				bool v20 = true;
 				branch_Bool_15 = v20;
 				branch_List_14 = v16;
@@ -81550,6 +82046,16 @@ static void mw_std_maybe_Maybe_1_else_1_sp16 (TUP* in_ZPlusMirth_1, uint64_t in_
 	}
 	*out_Token_5 = branch_Token_11;
 	*out_ZPlusMirth_4 = branch_ZPlusMirth_10;
+}
+static STR* mw_std_prelude_unsafe_1_sp26 (INT in_Sizze_1, STR* in_Str_2) {
+	int64_t v4 = 0LL /* +Unsafe */;
+	STR* v5 = mw_std_prim_Str_dropZ_bytes(in_Sizze_1, in_Str_2);
+	return v5;
+}
+static STR* mw_std_prelude_unsafe_1_sp27 (INT in_Int_1) {
+	int64_t v3 = 0LL /* +Unsafe */;
+	STR* v4 = mw_argZ_parser_parse_readZ_fromZ_argv(in_Int_1);
+	return v4;
 }
 static void mb_mirth_options_parseZ_optionsZBang_1 (void) {
 	VAL v0 = pop_value();
@@ -82742,7 +83248,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp22_10 (void) {
 					case 1LL: { // Some
 						VAL v32 = mtp_std_maybe_Maybe_1_Some(v29);
 						incref(v19);
-						bool v33 = mw_mirth_alias_Alias_ZEqualZEqual(value_u64(v32), value_u64(v19));
+						bool v33 = mw_mirth_alias_Alias_ZEqual(value_u64(v32), value_u64(v19));
 						branch_Bool_31 = v33;
 						branch_Alias_30 = value_u64(v19);
 					} break;
