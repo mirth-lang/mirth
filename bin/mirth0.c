@@ -1932,19 +1932,19 @@ static STACK lbl_vx = {0};
 static STACK lbl_valueZ_type = {0};
 static STACK lbl_indexZ_type = {0};
 static STACK lbl_fld = {0};
-static STACK lbl_ZPlusinput = {0};
 static STACK lbl_lexerZ_module = {0};
+static STACK lbl_index = {0};
 static STACK lbl_lexerZ_row = {0};
 static STACK lbl_lexerZ_col = {0};
 static STACK lbl_lexerZ_doc = {0};
 static STACK lbl_lexerZ_stack = {0};
 static STACK lbl_lexerZ_firstZ_token = {0};
 static STACK lbl_lexerZ_lastZ_token = {0};
+static STACK lbl_content = {0};
 static STACK lbl_ZPluslexer = {0};
 static STACK lbl_suffix = {0};
 static STACK lbl_len = {0};
 static STACK lbl_ptr = {0};
-static STACK lbl_index = {0};
 static STACK lbl_macro = {0};
 static STACK lbl_checklist = {0};
 static STACK lbl_w = {0};
@@ -4091,37 +4091,40 @@ static uint64_t mtp_mirth_token_TokenValue_LabelSet (VAL in_TokenValue_1) {
 	tup_decref_outer(value_tup(in_TokenValue_1, 2),2);
 	return v3;
 }
-static void mtw_mirth_lexer_ZPlusLexer_ZPlusLexer (uint64_t in_Module_1, INT in_Row_2, INT in_Col_3, VAL in_Maybe_4, VAL in_List_5, uint64_t in_Token_6, uint64_t in_Token_7, VAL in_ZPlusInput_8, TUP* *out_ZPlusLexer_9) {
-	TUP* v10 = tup_new(8);
-	v10->size = 8;
-	v10->cells[7] = in_ZPlusInput_8;
-	v10->cells[6] = MKU64(in_Token_7);
-	v10->cells[5] = MKU64(in_Token_6);
-	v10->cells[4] = in_List_5;
-	v10->cells[3] = in_Maybe_4;
-	v10->cells[2] = MKINT(in_Col_3);
-	v10->cells[1] = MKINT(in_Row_2);
-	v10->cells[0] = MKU64(in_Module_1);
-	*out_ZPlusLexer_9 = v10;
+static void mtw_mirth_lexer_ZPlusLexer_ZPlusLexer (uint64_t in_Module_1, INT in_Row_2, INT in_Col_3, VAL in_Maybe_4, VAL in_List_5, uint64_t in_Token_6, uint64_t in_Token_7, STR* in_Str_8, INT in_UOffset_9, TUP* *out_ZPlusLexer_10) {
+	TUP* v11 = tup_new(9);
+	v11->size = 9;
+	v11->cells[8] = MKINT(in_UOffset_9);
+	v11->cells[7] = MKSTR(in_Str_8);
+	v11->cells[6] = MKU64(in_Token_7);
+	v11->cells[5] = MKU64(in_Token_6);
+	v11->cells[4] = in_List_5;
+	v11->cells[3] = in_Maybe_4;
+	v11->cells[2] = MKINT(in_Col_3);
+	v11->cells[1] = MKINT(in_Row_2);
+	v11->cells[0] = MKU64(in_Module_1);
+	*out_ZPlusLexer_10 = v11;
 }
-static void mtp_mirth_lexer_ZPlusLexer_ZPlusLexer (TUP* in_ZPlusLexer_1, uint64_t *out_Module_2, INT *out_Row_3, INT *out_Col_4, VAL *out_Maybe_5, VAL *out_List_6, uint64_t *out_Token_7, uint64_t *out_Token_8, VAL *out_ZPlusInput_9) {
-	uint64_t v10 = value_u64(in_ZPlusLexer_1->cells[0]);
-	INT v11 = value_int(in_ZPlusLexer_1->cells[1]);
-	INT v12 = value_int(in_ZPlusLexer_1->cells[2]);
-	VAL v13 = in_ZPlusLexer_1->cells[3];
-	VAL v14 = in_ZPlusLexer_1->cells[4];
-	uint64_t v15 = value_u64(in_ZPlusLexer_1->cells[5]);
-	uint64_t v16 = value_u64(in_ZPlusLexer_1->cells[6]);
-	VAL v17 = in_ZPlusLexer_1->cells[7];
-	tup_decref_outer(in_ZPlusLexer_1,8);
-	*out_ZPlusInput_9 = v17;
-	*out_Token_8 = v16;
-	*out_Token_7 = v15;
-	*out_List_6 = v14;
-	*out_Maybe_5 = v13;
-	*out_Col_4 = v12;
-	*out_Row_3 = v11;
-	*out_Module_2 = v10;
+static void mtp_mirth_lexer_ZPlusLexer_ZPlusLexer (TUP* in_ZPlusLexer_1, uint64_t *out_Module_2, INT *out_Row_3, INT *out_Col_4, VAL *out_Maybe_5, VAL *out_List_6, uint64_t *out_Token_7, uint64_t *out_Token_8, STR* *out_Str_9, INT *out_UOffset_10) {
+	uint64_t v11 = value_u64(in_ZPlusLexer_1->cells[0]);
+	INT v12 = value_int(in_ZPlusLexer_1->cells[1]);
+	INT v13 = value_int(in_ZPlusLexer_1->cells[2]);
+	VAL v14 = in_ZPlusLexer_1->cells[3];
+	VAL v15 = in_ZPlusLexer_1->cells[4];
+	uint64_t v16 = value_u64(in_ZPlusLexer_1->cells[5]);
+	uint64_t v17 = value_u64(in_ZPlusLexer_1->cells[6]);
+	STR* v18 = value_str(in_ZPlusLexer_1->cells[7]);
+	INT v19 = value_int(in_ZPlusLexer_1->cells[8]);
+	tup_decref_outer(in_ZPlusLexer_1,9);
+	*out_UOffset_10 = v19;
+	*out_Str_9 = v18;
+	*out_Token_8 = v17;
+	*out_Token_7 = v16;
+	*out_List_6 = v15;
+	*out_Maybe_5 = v14;
+	*out_Col_4 = v13;
+	*out_Row_3 = v12;
+	*out_Module_2 = v11;
 }
 static VAL mtw_mirth_macro_MacroAction_Decl (VAL in__1) {
 	TUP* v3 = tup_new(2);
@@ -5671,12 +5674,8 @@ static void mw_std_path_Path_pathZThen (STR* in_Path_1, STR* in_ZPlusStr_2, STR*
 static INT mw_std_input_INPUTz_BUFFERz_SIZZE (void);
 static void mw_std_input_ZPlusInputOpenState_endZBang (TUP* in_ZPlusInputOpenState_1, TUP* *out_ZPlusFile_2);
 static void mw_std_input_ZPlusInputOpenState_refillZ_bufferZBang (TUP* in_ZPlusInputOpenState_1, VAL *out_ZPlusInput_2);
-static void mw_std_input_ZPlusInputOpenState_prepareZ_forZ_moreZBang (TUP* in_ZPlusInputOpenState_1, VAL *out_ZPlusInput_2);
 static void mw_std_input_ZPlusInput_startZBang (TUP* in_ZPlusFile_1, VAL *out_ZPlusInput_2);
 static void mw_std_input_ZPlusInput_endZBang (VAL in_ZPlusInput_1, TUP* *out_ZPlusFile_2);
-static bool mw_std_input_ZPlusInput_doneZAsk (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_3);
-static int64_t mw_std_input_ZPlusInput_peek (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_3);
-static void mw_std_input_ZPlusInput_moveZBang (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_2);
 static VAL mw_std_input_ZPlusInput_readZ_chunkZBang (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_3);
 static STR* mw_std_input_ZPlusInput_readZ_fileZBang (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_3);
 static INT mw_std_output_OUTPUTz_BUFFERz_SIZZE (void);
@@ -6274,8 +6273,8 @@ static void mw_mirth_lexer_ZPlusLexer_stackZ_pushZBang (uint64_t in_Token_1, TUP
 static VAL mw_mirth_lexer_ZPlusLexer_stackZ_popZBang (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_3);
 static void mw_mirth_lexer_ZPlusLexer_stackZ_drop (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2);
 static VAL mw_mirth_lexer_ZPlusLexer_stackZ_peek (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_3);
-static void mw_mirth_lexer_ZPlusLexer_StartZBang (TUP* in_ZPlusMirth_1, VAL in_ZPlusInput_2, uint64_t in_Module_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5);
-static uint64_t mw_mirth_lexer_ZPlusLexer_stopZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, TUP* *out_ZPlusMirth_4, VAL *out_ZPlusInput_5);
+static void mw_mirth_lexer_ZPlusLexer_StartZBang (TUP* in_ZPlusMirth_1, STR* in_Str_2, uint64_t in_Module_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5);
+static uint64_t mw_mirth_lexer_ZPlusLexer_stopZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, TUP* *out_ZPlusMirth_4);
 static TUP* mw_mirth_lexer_ZPlusLexer_lexerZ_location (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2);
 static void mw_mirth_lexer_ZPlusLexer_warningZBang (STR* in_Str_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusLexer_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5);
 static void mw_mirth_lexer_ZPlusLexer_fatalZ_errorZBang (STR* in_Str_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusLexer_3);
@@ -7084,7 +7083,7 @@ static STR* mw_std_maybe_Maybe_1_map_1_sp11 (STR* in_Str_1, VAL in_Maybe_2, VAL 
 static VAL mw_std_maybe_Maybe_1_map_1_sp12 (VAL in_Maybe_1);
 static TUP* mw_mirth_elab_abZ_buildZBang_1_sp6 (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, VAL in_StackType_3, uint64_t in_Token_4, VAL in_Home_5, TUP* *out_ZPlusMirth_6);
 static VAL mw_std_list_List_1_for_1_sp70 (VAL in_StackType_1, VAL in_List_2);
-static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp72 (VAL in_Maybe_1);
+static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp73 (VAL in_Maybe_1);
 static STR* mw_std_list_List_1_for_1_sp73 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, STR* in_Str_4, VAL in_List_5, TUP* *out_ZPlusMirth_6, VAL *out_z_x1_7, STR* *out_ZPlusStr_8);
 static void mw_std_list_List_1_for_2_sp3 (TUP* in_ZPlusMirth_1, VAL in_z_x1_2, STR* in_ZPlusStr_3, VAL in_List_4, TUP* *out_ZPlusMirth_5, VAL *out_z_x1_6, STR* *out_ZPlusStr_7);
 static bool mw_std_list_List_1_member_sp4 (VAL in_Namespace_1, VAL in_List_2);
@@ -9803,23 +9802,6 @@ static void mw_std_input_ZPlusInputOpenState_refillZ_bufferZBang (TUP* in_ZPlusI
 	}
 	*out_ZPlusInput_2 = branch_ZPlusInput_14;
 }
-static void mw_std_input_ZPlusInputOpenState_prepareZ_forZ_moreZBang (TUP* in_ZPlusInputOpenState_1, VAL *out_ZPlusInput_2) {
-	INT v3 = value_int(in_ZPlusInputOpenState_1->cells[0]);
-	incref(MKINT(v3));
-	INT v4 = WRAP_I63(0LL);
-	bool v5 = int_eq(v3, v4);
-	VAL branch_ZPlusInput_6;
-	if (v5) {
-		VAL v7;
-		mw_std_input_ZPlusInputOpenState_refillZ_bufferZBang(in_ZPlusInputOpenState_1, &v7);
-		branch_ZPlusInput_6 = v7;
-	} else {
-		VAL v8;
-		mtw_std_input_ZPlusInput_Open(in_ZPlusInputOpenState_1, &v8);
-		branch_ZPlusInput_6 = v8;
-	}
-	*out_ZPlusInput_2 = branch_ZPlusInput_6;
-}
 static void mw_std_input_ZPlusInput_startZBang (TUP* in_ZPlusFile_1, VAL *out_ZPlusInput_2) {
 	INT v3 = mw_std_input_INPUTz_BUFFERz_SIZZE();
 	TUP* v4;
@@ -9852,120 +9834,6 @@ static void mw_std_input_ZPlusInput_endZBang (VAL in_ZPlusInput_1, TUP* *out_ZPl
 		}
 	}
 	*out_ZPlusFile_2 = branch_ZPlusFile_3;
-}
-static bool mw_std_input_ZPlusInput_doneZAsk (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_3) {
-	bool branch_Bool_4;
-	VAL branch_ZPlusInput_5;
-	switch (get_data_tag(in_ZPlusInput_1)) {
-		case 0LL: { // Open
-			TUP* v6;
-			mtp_std_input_ZPlusInput_Open(in_ZPlusInput_1, &v6);
-			bool v7 = false;
-			VAL v8;
-			mtw_std_input_ZPlusInput_Open(v6, &v8);
-			branch_ZPlusInput_5 = v8;
-			branch_Bool_4 = v7;
-		} break;
-		case 1LL: { // Done
-			TUP* v9;
-			mtp_std_input_ZPlusInput_Done(in_ZPlusInput_1, &v9);
-			bool v10 = true;
-			VAL v11;
-			mtw_std_input_ZPlusInput_Done(v9, &v11);
-			branch_ZPlusInput_5 = v11;
-			branch_Bool_4 = v10;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	*out_ZPlusInput_3 = branch_ZPlusInput_5;
-	return branch_Bool_4;
-}
-static int64_t mw_std_input_ZPlusInput_peek (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_3) {
-	int64_t branch_Byte_4;
-	VAL branch_ZPlusInput_5;
-	switch (get_data_tag(in_ZPlusInput_1)) {
-		case 0LL: { // Open
-			TUP* v6;
-			mtp_std_input_ZPlusInput_Open(in_ZPlusInput_1, &v6);
-			INT v7 = value_int(v6->cells[1]);
-			incref(MKINT(v7));
-			TUP* v8 = value_tup(v6->cells[3], 2);
-			TUP* v9;
-			uint8_t v10 = mw_std_buffer_ZPlusBuffer_ZAtU8(v7, v8, &v9);
-			v6->cells[3] = MKTUP(v9, 2);
-			uint64_t v11 = (uint64_t)(v10);
-			INT v12 = u64_to_int(v11);
-			int64_t v13 = int_to_i64(v12);
-			VAL v14;
-			mtw_std_input_ZPlusInput_Open(v6, &v14);
-			branch_ZPlusInput_5 = v14;
-			branch_Byte_4 = v13;
-		} break;
-		case 1LL: { // Done
-			TUP* v15;
-			mtp_std_input_ZPlusInput_Done(in_ZPlusInput_1, &v15);
-			int64_t v16 = 0LL /* BNUL */;
-			VAL v17;
-			mtw_std_input_ZPlusInput_Done(v15, &v17);
-			branch_ZPlusInput_5 = v17;
-			branch_Byte_4 = v16;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	*out_ZPlusInput_3 = branch_ZPlusInput_5;
-	return branch_Byte_4;
-}
-static void mw_std_input_ZPlusInput_moveZBang (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_2) {
-	VAL branch_ZPlusInput_3;
-	switch (get_data_tag(in_ZPlusInput_1)) {
-		case 0LL: { // Open
-			TUP* v4;
-			mtp_std_input_ZPlusInput_Open(in_ZPlusInput_1, &v4);
-			INT v5 = value_int(v4->cells[0]);
-			incref(MKINT(v5));
-			INT v6 = WRAP_I63(1LL);
-			INT v7 = int_sub(v5, v6);
-			incref(MKINT(v7));
-			INT v8 = WRAP_I63(0LL);
-			bool v9 = int_lt(v7, v8);
-			INT branch_Nat_10;
-			if (v9) {
-				decref(MKINT(v7));
-				INT v11 = WRAP_I63(0LL);
-				branch_Nat_10 = v11;
-			} else {
-				branch_Nat_10 = v7;
-			}
-			INT v12 = value_int(v4->cells[0]);
-			decref(MKINT(v12));
-			v4->cells[0] = MKINT(branch_Nat_10);
-			INT v13 = value_int(v4->cells[1]);
-			incref(MKINT(v13));
-			INT v14 = WRAP_I63(1LL);
-			INT v15 = int_add(v13, v14);
-			INT v16 = value_int(v4->cells[1]);
-			decref(MKINT(v16));
-			v4->cells[1] = MKINT(v15);
-			VAL v17;
-			mw_std_input_ZPlusInputOpenState_prepareZ_forZ_moreZBang(v4, &v17);
-			branch_ZPlusInput_3 = v17;
-		} break;
-		case 1LL: { // Done
-			TUP* v18;
-			mtp_std_input_ZPlusInput_Done(in_ZPlusInput_1, &v18);
-			VAL v19;
-			mtw_std_input_ZPlusInput_Done(v18, &v19);
-			branch_ZPlusInput_3 = v19;
-		} break;
-		default: {
-			do_panic(str_make("unexpected fallthrough in match\n", 32));
-		}
-	}
-	*out_ZPlusInput_2 = branch_ZPlusInput_3;
 }
 static VAL mw_std_input_ZPlusInput_readZ_chunkZBang (VAL in_ZPlusInput_1, VAL *out_ZPlusInput_3) {
 	VAL branch_Maybe_4;
@@ -32320,33 +32188,35 @@ static VAL mw_mirth_lexer_ZPlusLexer_stackZ_peek (TUP* in_ZPlusLexer_1, TUP* *ou
 	*out_ZPlusLexer_3 = in_ZPlusLexer_1;
 	return v5;
 }
-static void mw_mirth_lexer_ZPlusLexer_StartZBang (TUP* in_ZPlusMirth_1, VAL in_ZPlusInput_2, uint64_t in_Module_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5) {
-	INT v6 = WRAP_I63(1LL);
+static void mw_mirth_lexer_ZPlusLexer_StartZBang (TUP* in_ZPlusMirth_1, STR* in_Str_2, uint64_t in_Module_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5) {
+	INT v6 = WRAP_I63(0LL);
 	INT v7 = WRAP_I63(1LL);
-	VAL v8 = MKI64(0LL /* None */);
-	VAL v9 = MKI64(0LL /* Nil */);
-	TUP* v10;
-	uint64_t v11 = mw_mirth_token_Token_allocZ_noneZBang(in_ZPlusMirth_1, &v10);
-	TUP* v12;
-	mtw_mirth_lexer_ZPlusLexer_ZPlusLexer(in_Module_3, v6, v7, v8, v9, v11, v11, in_ZPlusInput_2, &v12);
-	*out_ZPlusLexer_5 = v12;
-	*out_ZPlusMirth_4 = v10;
+	INT v8 = WRAP_I63(1LL);
+	VAL v9 = MKI64(0LL /* None */);
+	VAL v10 = MKI64(0LL /* Nil */);
+	TUP* v11;
+	uint64_t v12 = mw_mirth_token_Token_allocZ_noneZBang(in_ZPlusMirth_1, &v11);
+	TUP* v13;
+	mtw_mirth_lexer_ZPlusLexer_ZPlusLexer(in_Module_3, v7, v8, v9, v10, v12, v12, in_Str_2, v6, &v13);
+	*out_ZPlusLexer_5 = v13;
+	*out_ZPlusMirth_4 = v11;
 }
-static uint64_t mw_mirth_lexer_ZPlusLexer_stopZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, TUP* *out_ZPlusMirth_4, VAL *out_ZPlusInput_5) {
-	VAL v6 = MKI64(0LL /* None */);
-	TUP* v7;
-	mw_mirth_lexer_ZPlusLexer_emitZBang(v6, in_ZPlusLexer_2, &v7);
-	uint64_t v8;
+static uint64_t mw_mirth_lexer_ZPlusLexer_stopZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, TUP* *out_ZPlusMirth_4) {
+	VAL v5 = MKI64(0LL /* None */);
+	TUP* v6;
+	mw_mirth_lexer_ZPlusLexer_emitZBang(v5, in_ZPlusLexer_2, &v6);
+	uint64_t v7;
+	INT v8;
 	INT v9;
-	INT v10;
+	VAL v10;
 	VAL v11;
-	VAL v12;
+	uint64_t v12;
 	uint64_t v13;
-	uint64_t v14;
-	VAL v15;
-	mtp_mirth_lexer_ZPlusLexer_ZPlusLexer(v7, &v8, &v9, &v10, &v11, &v12, &v13, &v14, &v15);
+	STR* v14;
+	INT v15;
+	mtp_mirth_lexer_ZPlusLexer_ZPlusLexer(v6, &v7, &v8, &v9, &v10, &v11, &v12, &v13, &v14, &v15);
 	VAL v16;
-	VAL v17 = mw_std_list_List_1_uncons(v12, &v16);
+	VAL v17 = mw_std_list_List_1_uncons(v11, &v16);
 	decref(v16);
 	TUP* branch_ZPlusMirth_18;
 	switch (get_data_tag(v17)) {
@@ -32363,19 +32233,20 @@ static uint64_t mw_mirth_lexer_ZPlusLexer_stopZBang (TUP* in_ZPlusMirth_1, TUP* 
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	decref(MKINT(v10));
 	decref(MKINT(v9));
+	decref(MKINT(v8));
 	TUP* v22;
 	uint64_t v23 = mw_mirth_token_Token_allocZ_noneZBang(branch_ZPlusMirth_18, &v22);
-	void* v24 = field_mut(&mfld_mirth_module_Module_ZTildeend, v8);
+	void* v24 = field_mut(&mfld_mirth_module_Module_ZTildeend, v7);
 	mut_set(MKU64(v23), v24);
-	uint64_t v25 = mw_mirth_token_Token_succ(v13);
-	void* v26 = field_mut(&mfld_mirth_module_Module_ZTildestart, v8);
+	uint64_t v25 = mw_mirth_token_Token_succ(v12);
+	void* v26 = field_mut(&mfld_mirth_module_Module_ZTildestart, v7);
 	mut_set(MKU64(v25), v26);
-	decref(v11);
-	*out_ZPlusInput_5 = v15;
+	decref(v10);
+	decref(MKSTR(v14));
+	decref(MKINT(v15));
 	*out_ZPlusMirth_4 = v22;
-	return v8;
+	return v7;
 }
 static TUP* mw_mirth_lexer_ZPlusLexer_lexerZ_location (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
 	uint64_t v4 = value_u64(in_ZPlusLexer_1->cells[0]);
@@ -32401,32 +32272,39 @@ static void mw_mirth_lexer_ZPlusLexer_fatalZ_errorZBang (STR* in_Str_1, TUP* in_
 	mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZ_atZBang(v5, in_Str_1, in_ZPlusMirth_2);
 }
 static bool mw_mirth_lexer_ZPlusLexer_doneZAsk (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
-	VAL v4 = in_ZPlusLexer_1->cells[7];
-	VAL v5;
-	bool v6 = mw_std_input_ZPlusInput_doneZAsk(v4, &v5);
-	in_ZPlusLexer_1->cells[7] = v5;
+	STR* v4 = value_str(in_ZPlusLexer_1->cells[7]);
+	incref(MKSTR(v4));
+	uint64_t v5 = str_size(v4);
+	INT v6 = u64_to_int(v5);
+	INT v7 = value_int(in_ZPlusLexer_1->cells[8]);
+	incref(MKINT(v7));
+	bool v8 = int_le(v6, v7);
 	*out_ZPlusLexer_2 = in_ZPlusLexer_1;
-	return v6;
+	return v8;
 }
 static int64_t mw_mirth_lexer_ZPlusLexer_peek (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
-	VAL v4 = in_ZPlusLexer_1->cells[7];
-	VAL v5;
-	int64_t v6 = mw_std_input_ZPlusInput_peek(v4, &v5);
-	in_ZPlusLexer_1->cells[7] = v5;
+	INT v4 = value_int(in_ZPlusLexer_1->cells[8]);
+	incref(MKINT(v4));
+	STR* v5 = value_str(in_ZPlusLexer_1->cells[7]);
+	incref(MKSTR(v5));
+	int64_t v6 = mw_std_prim_Str_byteZAt(v4, v5);
 	*out_ZPlusLexer_2 = in_ZPlusLexer_1;
 	return v6;
 }
 static void mw_mirth_lexer_ZPlusLexer_moveZBang (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
-	VAL v3 = in_ZPlusLexer_1->cells[7];
-	VAL v4;
-	mw_std_input_ZPlusInput_moveZBang(v3, &v4);
-	in_ZPlusLexer_1->cells[7] = v4;
-	INT v5 = value_int(in_ZPlusLexer_1->cells[2]);
-	incref(MKINT(v5));
-	INT v6 = mw_mirth_location_Col_1ZPlus(v5);
+	INT v3 = value_int(in_ZPlusLexer_1->cells[8]);
+	incref(MKINT(v3));
+	INT v4 = WRAP_I63(1LL);
+	INT v5 = int_add(v3, v4);
+	INT v6 = value_int(in_ZPlusLexer_1->cells[8]);
+	decref(MKINT(v6));
+	in_ZPlusLexer_1->cells[8] = MKINT(v5);
 	INT v7 = value_int(in_ZPlusLexer_1->cells[2]);
-	decref(MKINT(v7));
-	in_ZPlusLexer_1->cells[2] = MKINT(v6);
+	incref(MKINT(v7));
+	INT v8 = mw_mirth_location_Col_1ZPlus(v7);
+	INT v9 = value_int(in_ZPlusLexer_1->cells[2]);
+	decref(MKINT(v9));
+	in_ZPlusLexer_1->cells[2] = MKINT(v8);
 	*out_ZPlusLexer_2 = in_ZPlusLexer_1;
 }
 static void mw_mirth_lexer_ZPlusLexer_newlineZBang (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2) {
@@ -32621,6 +32499,10 @@ static void mw_mirth_lexer_ZPlusLexer_nextZBang (TUP* in_ZPlusMirth_1, TUP* in_Z
 			mw_mirth_lexer_ZPlusLexer_moveZBang(v55, &v56);
 			branch_ZPlusLexer_8 = v56;
 			branch_ZPlusMirth_7 = v54;
+		} break;
+		case 0LL: { // BNUL
+			branch_ZPlusLexer_8 = v5;
+			branch_ZPlusMirth_7 = in_ZPlusMirth_1;
 		} break;
 		default: {
 			bool v57 = mw_std_byte_Byte_isZ_nameZ_byte(v6);
@@ -33512,37 +33394,34 @@ static uint64_t mw_mirth_lexer_runZ_lexerZBang (STR* in_Path_1, TUP* in_ZPlusMir
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
 		}
 	}
-	VAL v18;
-	mw_std_input_ZPlusInput_startZBang(value_tup(branch_z_x1_13, 2), &v18);
-	TUP* v19;
+	TUP* v18;
+	STR* v19 = mw_std_file_ZPlusFile_readZ_fileZBang(value_tup(branch_z_x1_13, 2), &v18);
+	mw_std_file_ZPlusFile_closeZ_fileZBang(v18);
 	TUP* v20;
-	mw_mirth_lexer_ZPlusLexer_StartZBang(branch_ZPlusMirth_12, v18, v8, &v19, &v20);
 	TUP* v21;
-	bool v22 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v20, &v21);
-	bool v23 = !v22;
-	TUP* v24 = v19;
-	TUP* v25 = v21;
-	bool v26 = v23;
-	while (v26) {
-		TUP* v27 = v24;
+	mw_mirth_lexer_ZPlusLexer_StartZBang(branch_ZPlusMirth_12, v19, v8, &v20, &v21);
+	TUP* v22;
+	bool v23 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v21, &v22);
+	bool v24 = !v23;
+	TUP* v25 = v20;
+	TUP* v26 = v22;
+	bool v27 = v24;
+	while (v27) {
 		TUP* v28 = v25;
-		TUP* v29;
+		TUP* v29 = v26;
 		TUP* v30;
-		mw_mirth_lexer_ZPlusLexer_nextZBang(v27, v28, &v29, &v30);
 		TUP* v31;
-		bool v32 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v30, &v31);
-		bool v33 = !v32;
-		v26 = v33;
-		v25 = v31;
-		v24 = v29;
+		mw_mirth_lexer_ZPlusLexer_nextZBang(v28, v29, &v30, &v31);
+		TUP* v32;
+		bool v33 = mw_mirth_lexer_ZPlusLexer_doneZAsk(v31, &v32);
+		bool v34 = !v33;
+		v27 = v34;
+		v26 = v32;
+		v25 = v30;
 	}
-	TUP* v34;
-	VAL v35;
-	uint64_t v36 = mw_mirth_lexer_ZPlusLexer_stopZBang(v24, v25, &v34, &v35);
-	TUP* v37;
-	mw_std_input_ZPlusInput_endZBang(v35, &v37);
-	mw_std_file_ZPlusFile_closeZ_fileZBang(v37);
-	*out_ZPlusMirth_4 = v34;
+	TUP* v35;
+	uint64_t v36 = mw_mirth_lexer_ZPlusLexer_stopZBang(v25, v26, &v35);
+	*out_ZPlusMirth_4 = v35;
 	return v36;
 }
 static VAL mw_std_str_ZPlusStr_nameZ_token (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5) {
@@ -37290,7 +37169,7 @@ static VAL mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_varZBang (TUP* in_ZPlusMirth_
 	TUP* v8;
 	TUP* v9;
 	VAL v10 = mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang(in_ZPlusMirth_1, in_ZPlusTypeElab_2, in_Name_3, v7, &v8, &v9);
-	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp72(v10);
+	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp73(v10);
 	*out_ZPlusTypeElab_5 = v9;
 	*out_ZPlusMirth_4 = v8;
 	return v11;
@@ -37300,7 +37179,7 @@ static VAL mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_varZBang (TUP* in_ZPlusMi
 	TUP* v8;
 	TUP* v9;
 	VAL v10 = mw_mirth_elab_ZPlusTypeElab_elabZ_implicitZ_varZBang(in_ZPlusMirth_1, in_ZPlusTypeElab_2, in_Name_3, v7, &v8, &v9);
-	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp72(v10);
+	VAL v11 = mw_std_maybe_Maybe_1_ifZAsk_2_sp73(v10);
 	*out_ZPlusTypeElab_5 = v9;
 	*out_ZPlusMirth_4 = v8;
 	return v11;
@@ -80858,7 +80737,7 @@ static VAL mw_std_list_List_1_for_1_sp70 (VAL in_StackType_1, VAL in_List_2) {
 	decref(v6);
 	return v5;
 }
-static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp72 (VAL in_Maybe_1) {
+static VAL mw_std_maybe_Maybe_1_ifZAsk_2_sp73 (VAL in_Maybe_1) {
 	VAL branch_Type_3;
 	switch (get_data_tag(in_Maybe_1)) {
 		case 1LL: { // Some
