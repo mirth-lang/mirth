@@ -28,3 +28,53 @@ struct Map(k,v) {
         lookup-pair(keq) map(value)
     }
 }
+
+
+struct +KeyValuePair(k, +v) {
+    key: k
+    +value: +v
+    --
+    def +for(f) [ (*a +v -- *b) *a +KeyValuePair(k, +v) -- *b ] {
+        /+KeyValuePair key> drop +value> f 
+    }
+
+    def rdrop(del {rdrop}) { +for(del) }
+}
+
+struct +Map(k, +v) {
+    +pairs: +List(+KeyValuePair(k, +v)) 
+    --
+    def init [ -- +Map(k,+v) ] {
+        +List.+Nil >+pairs +Map
+    }
+    def +insert [ +KeyValuePair(k,+v) +Map(k,+v) -- +Map(k,+v) ] { +pairs:+Cons }
+
+    def +delete (keq {==}, del {rdrop}) [ 
+        (*c k k -- *c Bool, *c +v -- *c) 
+        *c k +Map(k, +v) -- *c +Map(k, +v)
+    ] {
+        +pairs:+filter-for(dup dip_(key rdip:keq), dip:+for:del) drop
+    }
+
+    def +find-pair(keq {==}, f, g) [ 
+        (*c k k -- *c Bool, *c +KeyValuePair(k, +v) -- *d +KeyValuePair(k, +v), *c -- *d)
+        *c k +Map(k, +v) -- *d +Map(k, +v) 
+    ] {
+        +pairs:+find(dup dip_(key rdip:keq), drop f, drop g)
+    }
+
+    def +find(keq {==}, f, g) [ 
+        (*c k k -- *c Bool, *c +v -- *d +v, *c -- *d) 
+        *c k +Map(k, +v) -- *d +Map(k, +v) 
+    ] {
+        +find-pair(keq, +value:f, g)
+    }
+
+    def +upsert(keq {==}, f) [
+        (*c k k -- *c Bool, *c +Maybe(+v) -- *d +v)
+        *c k +Map(k, +v) -- *d +Map(k, +v)
+    ] {
+        sip:+find(keq, +Some f rdip:+None, +None f +Some) rswap 
+        +for(dup >key >+value +KeyValuePair rswap +insert) drop
+    }
+}
