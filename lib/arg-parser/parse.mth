@@ -180,7 +180,7 @@ def(parse-args, a ArgumentParser(a) -- Result([ArgumentParsingError Str], a),
 
 def(read-from-argv, +Unsafe Int -- Str +Unsafe,
     dup 0>= if (
-        |Ptr| * offset argv offset @Ptr CPtr CStr >Str,
+        |Ptr| * argv + @Ptr CPtr CStr >Str,
         drop ""
     ))
 

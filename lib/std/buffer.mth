@@ -34,7 +34,7 @@ struct +Buffer {
     }
 
     def erase-span! [ Offset Size +Buffer -- +Buffer ] {
-        clamp-span! swap base unsafe(offset erase)
+        clamp-span! swap base unsafe(+ erase)
     }
 
     def clamp-offset! [ Offset +Buffer -- Offset +Buffer ] {
@@ -59,10 +59,10 @@ struct +Buffer {
     }
 
     def with-span!(f) [ ( *a Ptr -- *b ) *a Offset Size +Buffer -- *b +Buffer ] {
-        prepare-span! base unsafe:offset rdip:f
+        prepare-span! base unsafe:+ rdip:f
     }
     def with-aligned-span!(f)  [ ( *a Ptr -- *b ) *a Nat Size +Buffer -- *b +Buffer ] {
-        prepare-aligned-span! base unsafe:offset rdip:f
+        prepare-aligned-span! base unsafe:+ rdip:f
     }
 
     def @U8  [ Offset +Buffer -- U8  +Buffer ] { |U8|  with-span!         (unsafe:@U8 ) }

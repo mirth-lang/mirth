@@ -70,7 +70,7 @@ struct +CodepointsForState {
     index:Offset ptr:Ptr len:Offset
     --
     def peek [ +CodepointsForState -- +CodepointsForState U8 ] {
-        index ptr unsafe(offset @U8)
+        index ptr unsafe(+ @U8)
     }
     def next! [ +CodepointsForState -- +CodepointsForState U8 ] {
         peek index:1B+

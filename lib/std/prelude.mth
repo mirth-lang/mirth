@@ -290,25 +290,41 @@ def partial-compare-via-eq-lt (eq {=}, lt {<}) [ (a a -- Bool, a a -- Bool) a a 
 }
 
 inline {
-    def == (eq {=})  [ (a b -- c) a b -- c ] { eq }
-    def >  (lt {<})  [ (a b -- c) b a -- c ] { swap lt }
-    def >= (le {<=}) [ (a b -- c) b a -- c ] { swap le }
-    def <> (eq {=}, f {.not})  [ (a b -- c, c -- d) a b -- d ] { eq f }
+    def div (f {divmod}) [ ( a b -- c d ) a b -- c ] { f drop }
+    def mod (f {divmod}) [ ( a b -- c d ) a b -- d ] { f nip  }
 
     def 1+ (f {+}) [ (a Nat -- b) a -- b ] { 1u f }
     def 1- (f {-}) [ (a Nat -- b) a -- b ] { 1u f }
     def 2* (f {*}) [ (a Nat -- b) a -- b ] { 2u f }
+    def 2div (f {div}) [ (a Nat -- b) a -- b ] { 2u f }
+    def 2mod (f {mod}) [ (a Nat -- b) a -- b ] { 2u f }
+    def 2divmod (f {divmod}) [ (a Nat -- b c) a -- b c ] { 2u f }
+
+    def == (eq {=})  [ (a b -- c) a b -- c ] { eq }
+    def >  (lt {<})  [ (a b -- c) b a -- c ] { swap lt }
+    def >= (le {<=}) [ (a b -- c) b a -- c ] { swap le }
+    def <> (eq {=}, f {not})  [ (a b -- c, c -- d) a b -- d ] { eq f }
+
+    def negate (f {-}) [ (Nat a -- b) a -- b ] { 0u swap f }
+
+    def 0=  (f {= }) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0<  (f {< }) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0>  (f {> }) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0<= (f {<=}) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0>= (f {>=}) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0<> (f {<>}) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0compare (f {compare}) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0min (f {min}) [ (a Nat -- b) a -- b ] { 0u f }
+    def 0max (f {max}) [ (a Nat -- b) a -- b ] { 0u f }
+
+    def max-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2      lt if(nip, drop) }
+    def min-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 swap lt if(nip, drop) }
+    def in-range (le1 {<=}, le2 {<=}) [ (b a -- Bool, a b -- Bool) a b b -- Bool ] {
+        dip(swap dup dip:le1) rotl if(le2, drop2 False)
+    }
 }
 
-def max-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 lt if(nip, drop) }
-def min-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 lt if(drop, nip) }
 def clamp-via-lt (lt {<}) [ (a a -- Bool) a a a -- a ] { dip(max-via-lt:lt) min-via-lt:lt }
-def in-range (le1 {.<=}, le2 {.<=}) [ (b a -- Bool, a b -- Bool) a b b -- Bool ] {
-    dip(swap dup dip:le1) rotl if(le2, drop2 False)
-}
-
-def div (f {.divmod}) [ ( a b -- c d ) a b -- c ] { f drop }
-def mod (f {.divmod}) [ ( a b -- c d ) a b -- d ] { f nip  }
 
 ###########
 # Numbers #
@@ -387,12 +403,26 @@ data Ptr? {
     def >Maybe [ Ptr? -- Maybe(Ptr) ] { if?(Some, None) }
 }
 
+||| Unmanaged pointer.
 inline patch Ptr {
-    def = [ Ptr Ptr -- Bool ] { prim-ptr-eq }
     def >Ptr? [ Ptr -- Ptr? ] { Ptr?.Unsafe }
 
+    def +  (f{ptr+ }) [ ( *c a ptr:Ptr -- *c b ) *c a Ptr -- *c b ] { >ptr f }
+    def -  (f{ptr- }) [ ( *c a ptr:Ptr -- *c b ) *c a Ptr -- *c b ] { >ptr f }
+    def =  (f{ptr= }) [ ( *c a ptr:Ptr -- *c b ) *c a Ptr -- *c b ] { >ptr f }
+    def <  (f{ptr< }) [ ( *c a ptr:Ptr -- *c b ) *c a Ptr -- *c b ] { >ptr f }
+    def <= (f{ptr<=}) [ ( *c a ptr:Ptr -- *c b ) *c a Ptr -- *c b ] { >ptr f }
+
+    def ptr=  [ Ptr ptr:Ptr -- Bool ] { ptr> prim-ptr-eq }
+    # def ptr<  [ +Unsafe Ptr ptr:Ptr -- +Unsafe Bool ] { ptr> prim-ptr-lt }
+    # def ptr<= [ +Unsafe Ptr ptr:Ptr -- +Unsafe Bool ] { ptr> prim-ptr-le }
+
     ||| Add byte offset to Ptr.
-    def offset [ Offset Ptr +Unsafe -- Ptr +Unsafe ] { dip(>Int >I64-unsafe) prim-ptr-add }
+    def offset+ [ Ptr offset:Offset +Unsafe -- Ptr +Unsafe ] {
+        dip(offset> >Int >I64-unsafe) prim-ptr-add
+    }
+    def size+ [ Ptr size:Size +Unsafe -- Ptr +Unsafe ] { size> >Offset + }
+    # def ptr- [ Ptr ptr:Ptr -- Offset ] { ptr> prim-ptr-sub >Int >Offset }
 
     def @Ptr [ Ptr +Unsafe -- Ptr +Unsafe ] { prim-ptr-get }
     def !Ptr [ Ptr Ptr +Unsafe -- +Unsafe ] { prim-ptr-set }

@@ -24,8 +24,7 @@ inline(
 ||| Copy string bytes to pointer location (without adding 0 at end).
 ||| Return first unwritten location in second argument.
 def Ptr.!Str+ [ Str Ptr +Unsafe -- Ptr +Unsafe ] {
-    dup2 dip(num-bytes offset)
-    offset dip(!Str)
+    over num-bytes over + dip(!Str)
 }
 
 ||| Copy string bytes to pointer location.
@@ -70,7 +69,7 @@ def offset-in-bounds [ Offset Size -- Bool ] {
 def(Str.byte@, Offset Str -- Byte,
     with-data(
         dip(over) offset-in-bounds if(
-            unsafe(offset @Byte),
+            unsafe(+ @Byte),
             drop2 Byte.BNUL
         )
     ))
@@ -109,7 +108,7 @@ def Str.with-data(f) [ (*a Ptr Size -- *b) *a Str -- *b ] {
 def Str.bytes-for(f) [ (*a Byte -- *a) *a Str -- *a ] {
     with-data(
         >Int >Nat-clamp repeat(
-            dup dip(unsafe(@Byte) f 1 >Offset) unsafe(offset)
+            dup dip(unsafe(@Byte) f 1 >Offset) unsafe(+)
         ) drop
     )
 }
@@ -131,7 +130,7 @@ def Str.first-byte [ Str -- Maybe(Byte) ] {
 def(Str.drop-bytes, Size Str +Unsafe -- Str +Unsafe,
     with-data(
         dip(over) swap - dup 0B>= if (
-            dip(dip(>Offset) offset)
+            dip(+)
             Str.ClonePtrSlice,
             drop3 ""
         )
@@ -145,8 +144,7 @@ def(Str.from-bytes-unsafe, List(Byte) -- Str,
 
 def(Str.with-cstr(f), (*a CStr -- *b) *a Str -- *b,
     with-data(
-        >Offset over unsafe(offset @U8) >Int
-        0= else("tried to use Str as CStr, but Str is not zero terminated" panic!)
+        over unsafe(+ @U8) 0= else("tried to use Str as CStr, but Str is not zero terminated" panic!)
         CPtr CStr f
     ))
 
@@ -159,7 +157,7 @@ def(clamp-slice-offset-size, Offset Size Size -- Offset Size,
 def(Str.slice, Offset Size Str +Unsafe -- Str +Unsafe,
     with-data(
         swap dip(clamp-slice-offset-size)
-        swap dip(offset) Str.ClonePtrSlice
+        swap dip(+) Str.ClonePtrSlice
     ))
 
 def(Str.drop-slice, Offset Str +Unsafe -- Str +Unsafe,

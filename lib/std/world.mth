@@ -68,9 +68,9 @@ def S_ISDIR [ U16 -- Bool ] { S_IFMT and S_IFDIR = }
 
 def st_mode@ [ Ptr +World +Unsafe -- U16 +World +Unsafe ] {
     rdip:running-os match(
-        Linux -> 24u, # .. this is all terrible and brittle
-        Windows -> 6u,
-        Mac -> rdip:running-arch Arch.ARM64 = if(4u, 8u),
-        _ -> drop 8u
-    ) >Offset swap offset @U16
+        Linux -> 24 bytes, # .. this is all terrible and brittle
+        Windows -> 6 bytes,
+        Mac -> rdip:running-arch Arch.ARM64 = if(4 bytes, 8 bytes),
+        _ -> drop 8 bytes
+    ) + @U16
 }

@@ -106,13 +106,6 @@ inline patch CInt {
 
     def Nat.>CInt [ Nat -- CInt ] { >Int >CInt }
 
-    def 0=  [ CInt -- Bool ] { CInt -> 0=  }
-    def 0<  [ CInt -- Bool ] { CInt -> 0<  }
-    def 0<= [ CInt -- Bool ] { CInt -> 0<= }
-    def 0>  [ CInt -- Bool ] { CInt -> 0>  }
-    def 0>= [ CInt -- Bool ] { CInt -> 0>= }
-    def 0<> [ CInt -- Bool ] { CInt -> 0<> }
-
     def +  (f {+ }) [ (a Int -- b) a CInt -- b ] { >Int f }
     def -  (f {- }) [ (a Int -- b) a CInt -- b ] { >Int f }
     def *  (f {* }) [ (a Int -- b) a CInt -- b ] { >Int f }

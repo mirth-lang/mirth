@@ -131,7 +131,7 @@ def +Unsafe.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Si
                 match {
                     { Ok ->
                         dup +
-                        dup offset @ptr:offset
+                        dup offset @ptr:+
                         @size(swap -)
                         Ok
                     }

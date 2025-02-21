@@ -46,12 +46,12 @@ struct Hash {
     def name-index [ Hash -- Nat ] { >U64 >U16-wrap >Nat }
     def name-offset [ Hash -- Offset ] { name-index |I64| * offset }
     def name@ [ +Mirth Hash -- +Mirth Maybe(Name) ] {
-        name-offset Hash.Buf unsafe(offset @I64) >Int
+        name-offset Hash.Buf unsafe(+ @I64) >Int
         dup 0= if(drop None, >TableIndex-clamp Name.from-index Some)
     }
     def name! [ +Mirth Name Hash -- +Mirth ] {
         dip(Name.index >Int >I64-clamp)
-        name-offset Hash.Buf unsafe(offset !I64)
+        name-offset Hash.Buf unsafe(+ !I64)
     }
 
     def keep-going? [ +Mirth Str Hash -- +Mirth Str Hash Bool ] {
