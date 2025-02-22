@@ -42,14 +42,13 @@ data Base {
     }
 }
 
-
 inline struct Zero {
     --
     def +                     [ a Zero -- a ] { drop }
     def -                     [ a Zero -- a ] { drop }
     def *                     [ a Zero -- Zero ] { nip }
-    def =       (f{0= })      [ (*z a -- *z b) *z a Zero -- *z b ] { drop f }
-    def <       (f{0< })      [ (*z a -- *z b) *z a Zero -- *z b ] { drop f }
+    def =       (f{0=})       [ (*z a -- *z b) *z a Zero -- *z b ] { drop f }
+    def <       (f{0<})       [ (*z a -- *z b) *z a Zero -- *z b ] { drop f }
     def <=      (f{0<=})      [ (*z a -- *z b) *z a Zero -- *z b ] { drop f }
     def compare (f{0compare}) [ (*z a -- *z b) *z a Zero -- *z b ] { drop f }
     def max     (f{0max})     [ (*z a -- *z b) *z a Zero -- *z b ] { drop f }
@@ -57,20 +56,20 @@ inline struct Zero {
     def clamp                 [ a Zero Zero -- Zero ] { dip:drop2 }
 
     def int+  [ Zero int:Int -- Int  ] { drop int> }
-    def int-  [ Zero int:Int -- Int  ] { drop int> negate }
+    def int-  [ Zero int:Int -- Int  ] { >Int int- }
     def int*  [ Zero int:Int -- Zero ] { int> drop }
     def int/  [ Zero int:Int -- Zero ] { int> drop }
     def int-divmod [ Zero int:Int -- Zero Zero ] { int> drop Zero }
-    def int=  [ Zero int:Int -- Bool ] { drop int> 0= }
-    def int<  [ Zero int:Int -- Bool ] { drop int> 0> }
-    def int<= [ Zero int:Int -- Bool ] { drop int> 0>= }
-    def int-compare [ Zero int:Int -- Comparison ] { drop int> 0compare reverse }
+    def int=  [ Zero int:Int -- Bool ] { >Int int= }
+    def int<  [ Zero int:Int -- Bool ] { >Int int< }
+    def int<= [ Zero int:Int -- Bool ] { >Int int<= }
+    def int-compare [ Zero int:Int -- Comparison ] { >Int int-compare }
     def int-min [ Zero int:Int -- Int ] { >Int int-min }
     def int-max [ Zero int:Int -- Int ] { >Int int-max }
     def int-clamp [ Zero lo:Int hi:Int -- Int ] { >Int int-clamp }
 
     def nat+  [ Zero nat:Nat -- Nat  ] { drop nat> }
-    def nat-  [ Zero nat:Nat -- Int  ] { drop nat> negate }
+    def nat-  [ Zero nat:Nat -- Int  ] { >Nat nat- }
     def nat*  [ Zero nat:Nat -- Zero ] { nat> drop }
     def nat/  [ Zero nat:Nat -- Zero ] { nat> drop }
     def nat-divmod [ Zero nat:Nat -- Zero Zero ] { nat> drop Zero }
@@ -79,10 +78,10 @@ inline struct Zero {
     def nat-clamp [ Zero lo:Nat hi:Nat -- Nat ] { hi> drop2 lo> }
 
     def i64-divmod [ Zero i64:I64 -- Zero Zero ] { i64> drop Zero }
-    def i64=  [ Zero i64:I64 -- Bool ] { drop i64> 0=  }
-    def i64<  [ Zero i64:I64 -- Bool ] { drop i64> 0>  }
-    def i64<= [ Zero i64:I64 -- Bool ] { drop i64> 0>= }
-    def i64-compare [ Zero i64:I64 -- Comparison ] { drop i64> 0compare reverse }
+    def i64=  [ Zero i64:I64 -- Bool ] { >I64 i64=  }
+    def i64<  [ Zero i64:I64 -- Bool ] { >I64 i64<  }
+    def i64<= [ Zero i64:I64 -- Bool ] { >I64 i64<= }
+    def i64-compare [ Zero i64:I64 -- Comparison ] { >I64 i64-compare }
     def i64-min [ Zero i64:I64 -- I64 ] { >I64 i64-min }
     def i64-max [ Zero i64:I64 -- I64 ] { >I64 i64-max }
     def i64-clamp [ Zero lo:I64 hi:I64 -- I64 ] { >I64 i64-clamp }
@@ -103,18 +102,22 @@ inline struct Zero {
     def i8-clamp  [ Zero lo:I8 hi:I8 -- I8 ] { >I8 i8-clamp }
 
     def u64-divmod [ Zero u64:U64 -- Zero Zero ] { u64> drop Zero }
-    def u64=  [ Zero u64:U64 -- Bool ] { drop u64> 0=  }
-    def u64<  [ Zero u64:U64 -- Bool ] { drop u64> 0>  }
-    def u64<= [ Zero u64:U64 -- Bool ] { drop u64> 0>= }
-    def u64-compare [ Zero u64:U64 -- Comparison ] { drop u64> 0compare reverse }
+    def u64=  [ Zero u64:U64 -- Bool ] { >U64 u64= }
+    def u64<  [ Zero u64:U64 -- Bool ] { >U64 u64< }
+    def u64<= [ Zero u64:U64 -- Bool ] { u64> drop2 True }
+    def u64-compare [ Zero u64:U64 -- Comparison ] { >U64 u64-compare }
     def u64-min     [ Zero u64:U64 -- Zero ] { u64> drop }
     def u64-max     [ Zero u64:U64 -- U64 ] { drop u64> }
     def u64-clamp   [ Zero lo:U64 hi:U64 -- U64 ] { hi> drop2 lo> }
 
-    def u32-divmod [ Zero u32:U32 -- Zero Zero ] { u32> drop Zero }
-    def u32-min    [ Zero u32:U32 -- Zero ] { u32> drop }
-    def u32-max    [ Zero u32:U32 -- U32 ] { drop u32> }
-    def u32-clamp  [ Zero lo:U32 hi:U32 -- U32 ] { hi> drop2 lo> }
+    def u32-divmod  [ Zero u32:U32 -- Zero Zero ] { u32> drop Zero }
+    def u32=        [ Zero u32:U32 -- Bool ] { >U32 u32= }
+    def u32<        [ Zero u32:U32 -- Bool ] { >U32 u32< }
+    def u32<=       [ Zero u32:U32 -- Bool ] { >U32 u32<= }
+    def u32-compare [ Zero u32:U32 -- Comparison ] { >U32 u32-compare }
+    def u32-min     [ Zero u32:U32 -- Zero ] { u32> drop }
+    def u32-max     [ Zero u32:U32 -- U32 ] { drop u32> }
+    def u32-clamp   [ Zero lo:U32 hi:U32 -- U32 ] { hi> drop2 lo> }
 
     def u16-divmod [ Zero u16:U16 -- Zero Zero ] { u16> drop Zero }
     def u16-min    [ Zero u16:U16 -- Zero ] { u16> drop }
@@ -127,56 +130,76 @@ inline struct Zero {
     def u8-clamp  [ Zero lo:U8 hi:U8 -- U8 ] { hi> drop2 lo> }
 
     def rat+  [ Zero rat:Rat -- Rat  ] { drop rat> }
-    def rat-  [ Zero rat:Rat -- Rat  ] { drop rat> negate }
+    def rat-  [ Zero rat:Rat -- Rat  ] { >Int rat- }
     def rat*  [ Zero rat:Rat -- Zero ] { rat> drop }
     def rat/  [ Zero rat:Rat -- Zero ] { rat> drop }
-    def rat=  [ Zero rat:Rat -- Bool ] { drop rat> 0=  }
-    def rat<  [ Zero rat:Rat -- Bool ] { drop rat> 0>  }
-    def rat<= [ Zero rat:Rat -- Bool ] { drop rat> 0>= }
-    def rat-compare [ Zero rat:Rat -- Comparison ] { drop rat> 0compare reverse }
+    def rat=  [ Zero rat:Rat -- Bool ] { rat> num = }
+    def rat<  [ Zero rat:Rat -- Bool ] { rat> num < }
+    def rat<= [ Zero rat:Rat -- Bool ] { rat> num <= }
+    def rat-compare [ Zero rat:Rat -- Comparison ] { rat> num compare }
     def rat-min [ Zero rat:Rat -- Rat ] { >Rat rat-min }
     def rat-max [ Zero rat:Rat -- Rat ] { >Rat rat-max }
     def rat-clamp [ Zero lo:Rat hi:Rat -- Rat ] { >Rat rat-clamp }
 
     def half+ [ Zero half:Half -- Half ] { drop half> }
-    def half- [ Zero half:Half -- Half ] { drop half> negate }
-    def half-min [ Zero half:Half -- Rat ] { half> >Rat min }
-    def half-max [ Zero half:Half -- Rat ] { half> >Rat max }
-    def half-clamp [ Zero lo:Half hi:Half -- Rat ] { @lo:>Rat @hi:>Rat rat-clamp }
+    def half- [ Zero half:Half -- Half ] { >Int half- }
+    def half-min [ Zero half:Half -- Rat ] { >Rat half-min }
+    def half-max [ Zero half:Half -- Rat ] { >Rat half-max }
+    def half-clamp [ Zero lo:Half hi:Half -- Rat ] { >Rat half-clamp }
 
     def f32+  [ Zero f32:F32 -- F32  ] { drop f32> }
-    def f32-  [ Zero f32:F32 -- F32  ] { drop f32> negate }
+    def f32-  [ Zero f32:F32 -- F32  ] { drop 0.0 >F32 f32- }
     def f32*  [ Zero f32:F32 -- Zero ] { f32> drop }
     def f32/  [ Zero f32:F32 -- Zero ] { f32> drop }
-    def f32=  [ Zero f32:F32 -- Bool ] { drop f32> 0=  }
-    def f32<  [ Zero f32:F32 -- Bool ] { drop f32> 0>  }
-    def f32<= [ Zero f32:F32 -- Bool ] { drop f32> 0>= }
-    def f32-compare [ Zero f32:F32 -- PartialComparison ] { drop f32> 0compare reverse }
+    def f32=  [ Zero f32:F32 -- Bool ] { drop f32> 0.0 >F32 =  }
+    def f32<  [ Zero f32:F32 -- Bool ] { drop f32> 0.0 >F32 >  }
+    def f32<= [ Zero f32:F32 -- Bool ] { drop f32> 0.0 >F32 >= }
+    def f32-compare [ Zero f32:F32 -- PartialComparison ] { drop f32> 0.0 >F32 compare reverse }
     def f32-min [ Zero f32:F32 -- F32 ] { >F32 f32-min }
     def f32-max [ Zero f32:F32 -- F32 ] { >F32 f32-max }
     def f32-clamp [ Zero lo:F32 hi:F32 -- F32 ] { >F32 f32-clamp }
 
     def f64+  [ Zero f64:F64 -- F64  ] { drop f64> }
-    def f64-  [ Zero f64:F64 -- F64  ] { drop f64> negate }
+    def f64-  [ Zero f64:F64 -- F64  ] { drop 0.0 f64- }
     def f64*  [ Zero f64:F64 -- Zero ] { f64> drop }
     def f64/  [ Zero f64:F64 -- Zero ] { f64> drop }
-    def f64=  [ Zero f64:F64 -- Bool ] { drop f64> 0=  }
-    def f64<  [ Zero f64:F64 -- Bool ] { drop f64> 0>  }
-    def f64<= [ Zero f64:F64 -- Bool ] { drop f64> 0>= }
-    def f64-compare [ Zero f64:F64 -- PartialComparison ] { drop f64> 0compare reverse }
+    def f64=  [ Zero f64:F64 -- Bool ] { drop f64> 0.0 =  }
+    def f64<  [ Zero f64:F64 -- Bool ] { drop f64> 0.0 >  }
+    def f64<= [ Zero f64:F64 -- Bool ] { drop f64> 0.0 >= }
+    def f64-compare [ Zero f64:F64 -- PartialComparison ] { drop f64> 0.0 compare reverse }
     def f64-min [ Zero f64:F64 -- F64 ] { >F64 f64-min }
     def f64-max [ Zero f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ Zero lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
 
+    def negate [ Zero -- Zero ] { }
+    def abs    [ Zero -- Zero ] { }
+
+    def >Complex [ Zero -- Complex(Zero,Zero) ] { >real Zero >imag Complex }
+    def i     [ Zero -- Zero ] { }
+    def real  [ Zero -- Zero ] { }
+    def imag  [ Zero -- Zero ] { }
+    def conj  [ Zero -- Zero ] { }
+    def magsq [ Zero -- Zero ] { }
+    def mag   [ Zero -- Zero ] { }
+
     def complex+ [ Zero complex:Complex(a,b) -- Complex(a,b) ] { drop complex> }
-    def complex- (f{.negate}) [
-        ( Complex(a1,b1) -- Complex(a2,b2) )
-        Zero complex:Complex(a1,b1) -- Complex(a2,b2)
+    def complex- (f{-},g{-}) [
+        ( *z Zero a -- *z a'
+        , *z Zero b -- *z b'
+        ) *z Zero complex:Complex(a,b) -- *z Complex(a',b')
     ] {
-        drop complex> f
+        drop complex> map(Zero swap f, Zero swap g)
     }
     def complex* [ Zero complex:Complex(a,b) -- Zero ] { complex> drop }
     def complex/ [ Zero complex:Complex(a,b) -- Zero ] { complex> drop }
+    def complex= (f{=},g{=},h{and}) [
+        ( *z Zero a -- *z r1
+        , *z Zero b -- *z r2
+        , *z r1 r2 -- *z r
+        ) *z Zero complex:Complex(a,b) -- *z r
+    ] {
+        drop complex> for(Zero swap f, dip_(Zero swap g) h)
+    }
 
     def >Int [ Zero -- Int ] { drop 0 }
     def >Nat [ Zero -- Nat ] { drop 0u }
@@ -264,6 +287,10 @@ inline patch Int {
     def u64-clamp [ Int lo:U64 hi:U64 -- U64 ] { lo> hi> on2:>Int clamp-via-lt >U64-wrap }
 
     def u32-divmod [ Int u32:U32 -- Int U32 ] { u32> >Int divmod >U32-wrap }
+    def u32=        [ Int u32:U32 -- Bool ] { u32> >Int = }
+    def u32<        [ Int u32:U32 -- Bool ] { u32> >Int < }
+    def u32<=       [ Int u32:U32 -- Bool ] { u32> >Int <= }
+    def u32-compare [ Int u32:U32 -- Comparison ] { u32> >Int compare }
     def u32-min [ Int u32:U32 -- Int ] { u32> >Int min }
     def u32-max [ Int u32:U32 -- Nat ] { u32> >Int max >Nat-unsafe }
     def u32-clamp [ Int lo:U32 hi:U32 -- U32 ] { lo> hi> on2:>Int clamp-via-lt >U32-wrap }
@@ -321,10 +348,13 @@ inline patch Int {
     def f64-clamp [ Int lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
 
     def gcd [ Int Int -- Int ] { dup 0< then(on2:negate) while(dup 0>, tuck mod) drop }
-    def invert [ Int -- Rat ] { 1 swap Rat }
 
     def succ [ Int -- Int ] { 1+ }
     def pred [ Int -- Int ] { 1- }
+
+    def negate [ Int -- Int ] { 0 swap - }
+    def invert [ Int -- Rat ] { 1 swap / }
+    def abs    [ Int -- Nat ] { dup 0< then(negate) >Nat-unsafe }
 
     def >Complex [ Int -- Complex(Int,Zero) ] { >real Zero >imag Complex }
     def i        [ Int -- Complex(Zero,Int) ] { Zero >real >imag Complex }
@@ -499,6 +529,10 @@ inline patch Nat {
     def u64-clamp [ Nat lo:U64 hi:U64 -- U64 ] { >Int u64-clamp }
 
     def u32-divmod [ Nat u32:U32 -- Nat U32 ] { >Int u32-divmod dip:>Nat-unsafe }
+    def u32=        [ Nat u32:U32 -- Bool ] { u32> >Nat = }
+    def u32<        [ Nat u32:U32 -- Bool ] { u32> >Nat < }
+    def u32<=       [ Nat u32:U32 -- Bool ] { u32> >Nat <= }
+    def u32-compare [ Nat u32:U32 -- Comparison ] { u32> >Nat compare }
     def u32-min    [ Nat u32:U32 -- U32 ] { >Int u32-min >U32-wrap }
     def u32-max    [ Nat u32:U32 -- Nat ] { >Int u32-max }
     def u32-clamp  [ Nat lo:U32 hi:U32 -- U32 ] { >Int u32-clamp }
@@ -558,6 +592,10 @@ inline patch Nat {
     def succ [ Nat -- Nat ] { 1+ }
     def pred  [ Nat -- Nat ] { 1- >Nat-clamp }
     def minus [ Nat Nat -- Nat ] { - >Nat-clamp }
+
+    def negate [ Nat -- Int ] { 0 swap - }
+    def invert [ Nat -- Rat ] { 1 swap / }
+    def abs    [ Nat -- Nat ] { }
 
     def >Complex [ Nat -- Complex(Nat,Zero) ] { >real Zero >imag Complex }
     def i        [ Nat -- Complex(Zero,Nat) ] { Zero >real >imag Complex }
@@ -681,6 +719,10 @@ inline patch Rat {
     def u64-clamp [ Rat lo:U64 hi:U64 -- Rat ] { @lo:>Rat @hi:>Rat rat-clamp }
 
     def u32-divmod [ Rat u32:U32 -- Int Rat ] { u32> >Int divmod }
+    def u32=        [ Rat u32:U32 -- Bool ] { u32> >Nat = }
+    def u32<        [ Rat u32:U32 -- Bool ] { u32> >Nat < }
+    def u32<=       [ Rat u32:U32 -- Bool ] { u32> >Nat <= }
+    def u32-compare [ Rat u32:U32 -- Comparison ] { u32> >Nat compare }
     def u32-min [ Rat u32:U32 -- Rat ] { u32> >Int min }
     def u32-max [ Rat u32:U32 -- Rat ] { u32> >Int max }
     def u32-clamp [ Rat lo:U32 hi:U32 -- Rat ] { @lo:>Rat @hi:>Rat rat-clamp }
@@ -751,6 +793,9 @@ inline patch Rat {
         Rat
     }
 
+    def negate [ Rat -- Rat ] { /Unsafe dip:negate Rat.Unsafe }
+    def invert [ Rat -- Rat ] { /Rat swap Rat }
+    def abs    [ Rat -- Rat ] { dup 0< then(negate) }
 
     def >Complex [ Rat -- Complex(Rat,Zero) ] { >real Zero >imag Complex }
     def i        [ Rat -- Complex(Zero,Rat) ] { Zero >real >imag Complex }
@@ -893,6 +938,10 @@ inline struct Half {
     def u64-clamp [ Half lo:U64 hi:U64 -- Rat ] { >Rat u64-clamp }
 
     def u32-divmod [ Half u32:U32 -- Int Half ] { u32> >Int divmod }
+    def u32=        [ Half u32:U32 -- Bool ] { u32> >Nat = }
+    def u32<        [ Half u32:U32 -- Bool ] { u32> >Nat < }
+    def u32<=       [ Half u32:U32 -- Bool ] { u32> >Nat <= }
+    def u32-compare [ Half u32:U32 -- Comparison ] { u32> >Nat compare }
     def u32-min    [ Half u32:U32 -- Rat ] { >Rat u32-min }
     def u32-max    [ Half u32:U32 -- Rat ] { >Rat u32-max }
     def u32-clamp  [ Half lo:U32 hi:U32 -- Rat ] { >Rat u32-clamp }
@@ -948,6 +997,28 @@ inline struct Half {
     def f64-min     [ Half f64:F64 -- F64 ] { >F64 f64-min }
     def f64-max     [ Half f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp   [ Half lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
+
+    def negate [ Half -- Half ] { floor(negate 1-) }
+    def invert [ Half -- Rat  ] { >Rat invert }
+    def abs [ Half -- Half ] { dup 0< then(negate) }
+
+    def >Complex [ Half -- Complex(Half,Zero) ] { >real Zero >imag Complex }
+    def i        [ Half -- Complex(Zero,Half) ] { Zero >real >imag Complex }
+    def real     [ Half -- Half ] { }
+    def imag     [ Half -- Zero ] { drop Zero }
+    def conj     [ Half -- Half ] { }
+    def magsq    [ Half -- Rat  ] { dup * }
+    def mag      [ Half -- Half ] { abs }
+    def complex+ (f {+}) [ (*z Half a -- *z a') *z Half complex:Complex(a,b) -- *z Complex(a',b) ] { complex> map(f,id) }
+    def complex- (f {-}) [ (*z Half a -- *z a') *z Half complex:Complex(a,b) -- *z Complex(a',b) ] { complex> map(f,id) }
+    def complex= (f {=}, g {0=}, h {and}) [
+        ( *z Half a -- *z c1
+        , *z b -- *z c2
+        , *z c1 c2 -- *z c
+        ) *z Half complex:Complex(a,b) -- *z c
+    ] {
+        complex> for(f, dip_(g)) h
+    }
 }
 
 inline patch I64 {
@@ -1024,9 +1095,9 @@ inline patch I64 {
     def i8-max    [ I64 i8:I8       -- I64    ] { i8> >I64 max }
     def i8-clamp  [ I64 lo:I8 hi:I8 -- I8     ] { lo> hi> on2:>I64 clamp >I8-unsafe }
 
-    def u64=  [ I64 u64:U64 -- Bool ] { sip:0>= >U64-wrap u64=  and }
-    def u64<  [ I64 u64:U64 -- Bool ] { sip:0<  >U64-wrap u64<  or  }
-    def u64<= [ I64 u64:U64 -- Bool ] { sip:0<  >U64-wrap u64<= or  }
+    def u64=  [ I64 u64:U64 -- Bool ] { sip(0i64 >=) >U64-wrap u64=  and }
+    def u64<  [ I64 u64:U64 -- Bool ] { sip(0i64 <)  >U64-wrap u64<  or  }
+    def u64<= [ I64 u64:U64 -- Bool ] { sip(0i64 <)  >U64-wrap u64<= or  }
     def u64-divmod [ I64 u64:U64 -- I64 U64 ] { >Int u64-divmod dip:>I64-unsafe }
     def u64-compare [ I64 u64:U64 -- Comparison ] {
         dup 0< if(
@@ -1040,6 +1111,10 @@ inline patch I64 {
     def u64-clamp [ I64 lo:U64 hi:U64 -- U64 ] { >Int u64-clamp }
 
     def u32-divmod [ I64 u32:U32       -- I64 U32 ] { >Int u32-divmod dip:>I64-unsafe }
+    def u32=        [ I64 u32:U32 -- Bool ] { u32> >I64 = }
+    def u32<        [ I64 u32:U32 -- Bool ] { u32> >I64 < }
+    def u32<=       [ I64 u32:U32 -- Bool ] { u32> >I64 <= }
+    def u32-compare [ I64 u32:U32 -- Comparison ] { u32> >I64 compare }
     def u32-min    [ I64 u32:U32       -- I64     ] { u32> >Nat min }
     def u32-max    [ I64 u32:U32       -- U64     ] { u32> >U64 max }
     def u32-clamp  [ I64 lo:U32 hi:U32 -- U32     ] { >Int u32-clamp }
@@ -1102,6 +1177,10 @@ inline patch I64 {
     def pred [ I64 -- I64 ] { dup I64.Min > then(1i64 sub-unsafe) }
     def succ-unsafe [ I64 -- I64 ] { 1i64 add-unsafe }
     def pred-unsafe [ I64 -- I64 ] { 1i64 sub-unsafe }
+
+    def negate [ I64 -- Int ] { >Int negate }
+    def invert [ I64 -- Rat ] { >Int invert }
+    def abs    [ I64 -- U64 ] { >Int abs >U64-wrap }
 
     def repr; [ I64 +Str -- +Str ] { int; "i64"; }
     def int;  [ I64 +Str -- +Str ] { >Int int; }
@@ -1195,6 +1274,7 @@ inline patch I32 {
     def int*  [ I32 int:Int -- Int  ] { >Int int*  }
     def int/  [ I32 int:Int -- Rat  ] { >Int int/  }
     def int-divmod [ I32 int:Int -- Int Int ] { >Int int-divmod }
+
     def int=  [ I32 int:Int -- Bool ] { >Int int=  }
     def int<  [ I32 int:Int -- Bool ] { >Int int<  }
     def int<= [ I32 int:Int -- Bool ] { >Int int<= }
@@ -1245,10 +1325,14 @@ inline patch I32 {
     def u64-max     [ I32 u64:U64 -- U64        ] { >I64 u64-max }
     def u64-clamp   [ I32 lo:U64 hi:U64 -- U64  ] { >Int u64-clamp }
 
-    def u32-divmod [ I32 u32:U32 -- I32 U32 ] { >I64 u32-divmod dip:>I32-unsafe }
-    def u32-min    [ I32 u32:U32 -- I32 ] { >I64 u32-min >I32-unsafe }
-    def u32-max    [ I32 u32:U32 -- U32 ] { >I64 u32> >U64 max >U32-wrap }
-    def u32-clamp  [ I32 lo:U32 hi:U32 -- U32 ] { >Int u32-clamp }
+    def u32-divmod  [ I32 u32:U32 -- I32 U32 ] { >I64 u32-divmod dip:>I32-unsafe }
+    def u32=        [ I32 u32:U32 -- Bool ] { u32> >I64 = }
+    def u32<        [ I32 u32:U32 -- Bool ] { u32> >I64 < }
+    def u32<=       [ I32 u32:U32 -- Bool ] { u32> >I64 <= }
+    def u32-compare [ I32 u32:U32 -- Comparison ] { u32> >I64 compare }
+    def u32-min     [ I32 u32:U32 -- I32 ] { >I64 u32-min >I32-unsafe }
+    def u32-max     [ I32 u32:U32 -- U32 ] { >I64 u32> >U64 max >U32-wrap }
+    def u32-clamp   [ I32 lo:U32 hi:U32 -- U32 ] { >Int u32-clamp }
 
     def u16-divmod [ I32 u16:U16 -- I32 U16 ] { >I64 u16-divmod dip:>I32-unsafe }
     def u16-min    [ I32 u16:U16 -- I32 ] { >I64 u16-min >I32-unsafe }
@@ -1301,6 +1385,10 @@ inline patch I32 {
     def f64-min [ I32 f64:F64 -- F64 ] { >F64 f64-min }
     def f64-max [ I32 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ I32 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
+
+    def negate [ I32 -- Int ] { >Int negate }
+    def invert [ I32 -- Rat ] { >Int invert }
+    def abs    [ I32 -- U32 ] { >Int abs >U32-wrap }
 
     def repr; [ I32 +Str -- +Str ] { int; "i32"; }
     def int;  [ I32 +Str -- +Str ] { >Int int; }
@@ -1419,6 +1507,10 @@ inline patch I16 {
     def u64-clamp   [ I16 lo:U64 hi:U64 -- U64 ] { >Int u64-clamp }
 
     def u32-divmod [ I16 u32:U32 -- I16 U32 ] { >I64 u32-divmod dip:>I16-unsafe }
+    def u32=        [ I16 u32:U32 -- Bool ] { u32> >I64 = }
+    def u32<        [ I16 u32:U32 -- Bool ] { u32> >I64 < }
+    def u32<=       [ I16 u32:U32 -- Bool ] { u32> >I64 <= }
+    def u32-compare [ I16 u32:U32 -- Comparison ] { u32> >I64 compare }
     def u32-min    [ I16 u32:U32 -- I16 ] { >I64 u32-min >I16-unsafe }
     def u32-max    [ I16 u32:U32 -- U32 ] { >I64 u32-max >U32-wrap }
     def u32-clamp  [ I16 lo:U32 hi:U32 -- U32 ] { >Int u32-clamp }
@@ -1474,6 +1566,10 @@ inline patch I16 {
     def f64-min [ I16 f64:F64 -- F64 ] { >F64 f64-min }
     def f64-max [ I16 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ I16 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
+
+    def negate [ I16 -- Int ] { >Int negate }
+    def invert [ I16 -- Rat ] { >Int invert }
+    def abs    [ I16 -- U16 ] { >Int abs >U16-wrap }
 
     def repr; [ I16 +Str -- +Str ] { int; "i16"; }
     def int;  [ I16 +Str -- +Str ] { >Int int; }
@@ -1591,6 +1687,10 @@ inline patch I8 {
     def u64-clamp [ I8 lo:U64 hi:U64 -- U64 ] { >I64 u64-clamp }
 
     def u32-divmod [ I8 u32:U32 -- I8 U32 ] { >I64 u32-divmod dip:>I8-unsafe }
+    def u32=        [ I8 u32:U32 -- Bool ] { u32> >I64 = }
+    def u32<        [ I8 u32:U32 -- Bool ] { u32> >I64 < }
+    def u32<=       [ I8 u32:U32 -- Bool ] { u32> >I64 <= }
+    def u32-compare [ I8 u32:U32 -- Comparison ] { u32> >I64 compare }
     def u32-min    [ I8 u32:U32 -- I8  ] { >I32 u32-min >I8-unsafe }
     def u32-max    [ I8 u32:U32 -- U32 ] { >I32 u32-max }
     def u32-clamp  [ I8 lo:U32 hi:U32 -- U32 ] { >I64 u32-clamp }
@@ -1646,6 +1746,10 @@ inline patch I8 {
     def f64-min [ I8 f64:F64 -- F64 ] { >F64 f64-min }
     def f64-max [ I8 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ I8 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
+
+    def negate [ I8 -- Int ] { >Int negate }
+    def invert [ I8 -- Rat ] { >Int invert }
+    def abs    [ I8 -- U8 ] { >Int abs >U8-wrap }
 
     def repr; [ I8 +Str -- +Str ] { int; "i8"; }
     def int;  [ I8 +Str -- +Str ] { >Int int; }
@@ -1726,9 +1830,9 @@ inline patch U64 {
     def nat-clamp [ U64 lo:Nat hi:Nat -- Nat ] { >Nat nat-clamp }
 
     def i64-divmod [ U64 i64:I64 -- Int I64 ] { >Int i64-divmod }
-    def i64=  [ U64 i64:I64 -- Bool ] { dip(@i64 0>=) i64> >U64-wrap =  and }
-    def i64<  [ U64 i64:I64 -- Bool ] { dip(@i64 0>=) i64> >U64-wrap <  and }
-    def i64<= [ U64 i64:I64 -- Bool ] { dip(@i64 0>=) i64> >U64-wrap <= and }
+    def i64=  [ U64 i64:I64 -- Bool ] { dip(@i64 0i64 >=) i64> >U64-wrap =  and }
+    def i64<  [ U64 i64:I64 -- Bool ] { dip(@i64 0i64 >=) i64> >U64-wrap <  and }
+    def i64<= [ U64 i64:I64 -- Bool ] { dip(@i64 0i64 >=) i64> >U64-wrap <= and }
     def i64-compare [ U64 i64:I64 -- Comparison ] {
         i64> dup 0< if(
             drop2 Comparison.GT,
@@ -1764,6 +1868,10 @@ inline patch U64 {
     def u64-clamp [ U64 lo:U64 hi:U64 -- U64 ] { lo> hi> clamp-via-lt }
 
     def u32-divmod [ U64 u32:U32 -- U64 U32 ] { u32> >U64 divmod >U32-wrap }
+    def u32=        [ U64 u32:U32 -- Bool ] { u32> >U64 = }
+    def u32<        [ U64 u32:U32 -- Bool ] { u32> >U64 < }
+    def u32<=       [ U64 u32:U32 -- Bool ] { u32> >U64 <= }
+    def u32-compare [ U64 u32:U32 -- Comparison ] { u32> >U64 compare }
     def u32-min    [ U64 u32:U32 -- U32 ] { u32> >U64 min >U32-wrap }
     def u32-max    [ U64 u32:U32 -- U64 ] { u32> >U64 max }
     def u32-clamp  [ U64 lo:U32 hi:U32 -- U32 ] { >Nat u32-clamp }
@@ -1819,6 +1927,10 @@ inline patch U64 {
     def f64-min [ U64 f64:F64 -- F64 ] { >F64 f64-min }
     def f64-max [ U64 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ U64 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
+
+    def negate [ U64 -- Int ] { >Int negate }
+    def invert [ U64 -- Rat ] { >Int invert }
+    def abs    [ U64 -- U64 ] { }
 
     def >Complex [ U64 -- Complex(U64,Zero) ] { >real Zero >imag Complex }
     def i        [ U64 -- Complex(Zero,U64) ] { Zero >real >imag Complex }
@@ -1888,10 +2000,10 @@ inline patch U32 {
     def *       (f {.nat*       }) [(*z a nat:Nat       -- *z b  ) *z a U32     -- *z b  ] { >Nat >nat f }
     def /       (f {.nat/       }) [(*z a nat:Nat       -- *z b  ) *z a U32     -- *z b  ] { >Nat >nat f }
     def divmod  (f {.u32-divmod }) [(*z a u32:U32       -- *z b c) *z a U32     -- *z b c] {      >u32 f }
-    def =       (f {.u64=       }) [(*z a u64:U64       -- *z b  ) *z a U32     -- *z b  ] { >U64 >u64 f }
-    def <       (f {.u64<       }) [(*z a u64:U64       -- *z b  ) *z a U32     -- *z b  ] { >U64 >u64 f }
-    def <=      (f {.u64<=      }) [(*z a u64:U64       -- *z b  ) *z a U32     -- *z b  ] { >U64 >u64 f }
-    def compare (f {.u64-compare}) [(*z a u64:U64       -- *z b  ) *z a U32     -- *z b  ] { >U64 >u64 f }
+    def =       (f {.u32=       }) [(*z a u32:U32       -- *z b  ) *z a U32     -- *z b  ] {      >u32 f }
+    def <       (f {.u32<       }) [(*z a u32:U32       -- *z b  ) *z a U32     -- *z b  ] {      >u32 f }
+    def <=      (f {.u32<=      }) [(*z a u32:U32       -- *z b  ) *z a U32     -- *z b  ] {      >u32 f }
+    def compare (f {.u32-compare}) [(*z a u32:U32       -- *z b  ) *z a U32     -- *z b  ] {      >u32 f }
     def min     (f {.u32-min    }) [(*z a u32:U32       -- *z b  ) *z a U32     -- *z b  ] {      >u32 f }
     def max     (f {.u32-max    }) [(*z a u32:U32       -- *z b  ) *z a U32     -- *z b  ] {      >u32 f }
     def clamp   (f {.u32-clamp  }) [(*z a lo:U32 hi:U32 -- *z b  ) *z a U32 U32 -- *z b  ] {   >hi >lo f }
@@ -1952,6 +2064,10 @@ inline patch U32 {
     def u64-clamp [ U32 lo:U64 hi:U64 -- U64 ] { >U64 u64-clamp }
 
     def u32-divmod [ U32 u32:U32 -- U32 U32 ] { >U64 u32-divmod dip:>U32-wrap }
+    def u32=  [ U32 u32:U32 -- Bool ] { u32> on2:>U64 = }
+    def u32<  [ U32 u32:U32 -- Bool ] { u32> on2:>U64 < }
+    def u32<= [ U32 u32:U32 -- Bool ] { u32> on2:>U64 <= }
+    def u32-compare [ U32 u32:U32 -- Comparison ] { u32> on2:>U64 compare }
     def u32-min [ U32 u32:U32 -- U32 ] { u32> min-via-lt }
     def u32-max [ U32 u32:U32 -- U32 ] { u32> max-via-lt }
     def u32-clamp [ U32 lo:U32 hi:U32 -- U32 ] { lo> hi> clamp-via-lt }
@@ -2008,6 +2124,10 @@ inline patch U32 {
     def f64-max [ U32 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ U32 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
 
+    def negate [ U32 -- Int ] { >Int negate }
+    def invert [ U32 -- Rat ] { >Int invert }
+    def abs    [ U32 -- U32 ] { }
+
     def repr; [ U32 +Str -- +Str ] { int; "u32"; }
     def int; [ U32 +Str -- +Str ] { >U64 int; }
     def dec; [ U32 +Str -- +Str ] { >U64 dec; }
@@ -2015,6 +2135,7 @@ inline patch U32 {
     def oct; [ U32 +Str -- +Str ] { >U64 oct; }
 
     def >U64 [ U32 -- U64 ] { prim-u32-to-u64 }
+    def >I64 [ U32 -- I64 ] { >Int >I64-unsafe }
     def >Int [ U32 -- Int ] { >U64 >Int }
     def >Nat [ U32 -- Nat ] { >U64 >Nat }
     def >Rat [ U32 -- Rat ] { >Nat >Rat }
@@ -2063,10 +2184,10 @@ inline patch U16 {
     def *       (f {.nat*       }) [ (*z a nat:Nat       -- *z b  ) *z a U16     -- *z b   ] { >Nat >nat f }
     def /       (f {.nat/       }) [ (*z a nat:Nat       -- *z b  ) *z a U16     -- *z b   ] { >Nat >nat f }
     def divmod  (f {.u16-divmod }) [ (*z a u16:U16       -- *z b c) *z a U16     -- *z b c ] { >u16 f }
-    def =       (f {.u64=       }) [ (*z a u64:U64       -- *z b  ) *z a U16     -- *z b   ] { >U64 >u64 f }
-    def <       (f {.u64<       }) [ (*z a u64:U64       -- *z b  ) *z a U16     -- *z b   ] { >U64 >u64 f }
-    def <=      (f {.u64<=      }) [ (*z a u64:U64       -- *z b  ) *z a U16     -- *z b   ] { >U64 >u64 f }
-    def compare (f {.u64-compare}) [ (*z a u64:U64       -- *z b  ) *z a U16     -- *z b   ] { >U64 >u64 f }
+    def =       (f {.u32=       }) [ (*z a u32:U32       -- *z b  ) *z a U16     -- *z b   ] { >U32 >u32 f }
+    def <       (f {.u32<       }) [ (*z a u32:U32       -- *z b  ) *z a U16     -- *z b   ] { >U32 >u32 f }
+    def <=      (f {.u32<=      }) [ (*z a u32:U32       -- *z b  ) *z a U16     -- *z b   ] { >U32 >u32 f }
+    def compare (f {.u32-compare}) [ (*z a u32:U32       -- *z b  ) *z a U16     -- *z b   ] { >U32 >u32 f }
     def min     (f {.u16-min    }) [ (*z a u16:U16       -- *z b  ) *z a U16     -- *z b   ] { >u16 f }
     def max     (f {.u16-max    }) [ (*z a u16:U16       -- *z b  ) *z a U16     -- *z b   ] { >u16 f }
     def clamp   (f {.u16-clamp  }) [ (*z a lo:U16 hi:U16 -- *z b  ) *z a U16 U16 -- *z b   ] { >hi >lo f }
@@ -2126,10 +2247,14 @@ inline patch U16 {
     def u64-max [ U16 u64:U64 -- U64 ] { >U64 u64-max }
     def u64-clamp [ U16 lo:U64 hi:U64 -- U64 ] { >U64 u64-clamp }
 
-    def u32-divmod [ U16 u32:U32 -- U16 U16 ] { >U32 u32-divmod on2:>U16-wrap }
-    def u32-min [ U16 u32:U32 -- U16 ] { >U32 u32-min >U16-wrap }
-    def u32-max [ U16 u32:U32 -- U32 ] { >U32 u32-max }
-    def u32-clamp [ U16 lo:U32 hi:U32 -- U32 ] { >U32 u32-clamp }
+    def u32-divmod  [ U16 u32:U32 -- U16 U16 ] { >U32 u32-divmod on2:>U16-wrap }
+    def u32=        [ U16 u32:U32 -- Bool ] { >U32 u32= }
+    def u32<        [ U16 u32:U32 -- Bool ] { >U32 u32< }
+    def u32<=       [ U16 u32:U32 -- Bool ] { >U32 u32<= }
+    def u32-compare [ U16 u32:U32 -- Comparison ] { >U32 u32-compare }
+    def u32-min     [ U16 u32:U32 -- U16 ] { >U32 u32-min >U16-wrap }
+    def u32-max     [ U16 u32:U32 -- U32 ] { >U32 u32-max }
+    def u32-clamp   [ U16 lo:U32 hi:U32 -- U32 ] { >U32 u32-clamp }
 
     def u16-divmod [ U16 u16:U16 -- U16 U16 ] { >U64 u16-divmod dip:>U16-wrap }
     def u16-min [ U16 u16:U16 -- U16 ] { u16> min-via-lt }
@@ -2183,6 +2308,10 @@ inline patch U16 {
     def f64-max [ U16 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ U16 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
 
+    def negate [ U16 -- Int ] { >Int negate }
+    def invert [ U16 -- Rat ] { >Int invert }
+    def abs    [ U16 -- U16 ] { }
+
     def >U64 [ U16 -- U64 ] { prim-u16-to-u64 }
     def >U32 [ U16 -- U32 ] { >U64 >U32-wrap }
     def >Int [ U16 -- Int ] { >U64 >Int }
@@ -2225,10 +2354,10 @@ inline patch U8 {
     def *       (f {.nat*       }) [ (*z a nat:Nat     -- *z b  ) *z a U8    -- *z b   ] { >Nat >nat f }
     def /       (f {.nat/       }) [ (*z a nat:Nat     -- *z b  ) *z a U8    -- *z b   ] { >Nat >nat f }
     def divmod  (f {.u8-divmod  }) [ (*z a u8:U8       -- *z b c) *z a U8    -- *z b c ] { >u8 f }
-    def =       (f {.u64=       }) [ (*z a u64:U64     -- *z b  ) *z a U8    -- *z b   ] { >U64 >u64 f }
-    def <       (f {.u64<       }) [ (*z a u64:U64     -- *z b  ) *z a U8    -- *z b   ] { >U64 >u64 f }
-    def <=      (f {.u64<=      }) [ (*z a u64:U64     -- *z b  ) *z a U8    -- *z b   ] { >U64 >u64 f }
-    def compare (f {.u64-compare}) [ (*z a u64:U64     -- *z b  ) *z a U8    -- *z b   ] { >U64 >u64 f }
+    def =       (f {.u32=       }) [ (*z a u32:U32     -- *z b  ) *z a U8    -- *z b   ] { >U32 >u32 f }
+    def <       (f {.u32<       }) [ (*z a u32:U32     -- *z b  ) *z a U8    -- *z b   ] { >U32 >u32 f }
+    def <=      (f {.u32<=      }) [ (*z a u32:U32     -- *z b  ) *z a U8    -- *z b   ] { >U32 >u32 f }
+    def compare (f {.u32-compare}) [ (*z a u32:U32     -- *z b  ) *z a U8    -- *z b   ] { >U32 >u32 f }
     def min     (f {.u8-min     }) [ (*z a u8:U8       -- *z b  ) *z a U8    -- *z b   ] { >u8 f }
     def max     (f {.u8-max     }) [ (*z a u8:U8       -- *z b  ) *z a U8    -- *z b   ] { >u8 f }
     def clamp   (f {.u8-clamp   }) [ (*z a lo:U8 hi:U8 -- *z b  ) *z a U8 U8 -- *z b   ] { >hi >lo f }
@@ -2288,10 +2417,14 @@ inline patch U8 {
     def u64-max [ U8 u64:U64 -- U64 ] { >U64 u64-max }
     def u64-clamp [ U8 lo:U64 hi:U64 -- U64 ] { >U64 u64-clamp }
 
-    def u32-divmod [ U8 u32:U32 -- U8 U8 ] { >U32 u32-divmod on2:>U8-wrap }
-    def u32-min [ U8 u32:U32 -- U8  ] { >U32 u32-min >U8-wrap }
-    def u32-max [ U8 u32:U32 -- U32 ] { >U32 u32-max }
-    def u32-clamp [ U8 lo:U32 hi:U32 -- U32 ] { >U32 u32-clamp }
+    def u32-divmod  [ U8 u32:U32 -- U8 U8 ] { >U32 u32-divmod on2:>U8-wrap }
+    def u32=        [ U8 u32:U32 -- Bool ] { >U32 u32= }
+    def u32<        [ U8 u32:U32 -- Bool ] { >U32 u32< }
+    def u32<=       [ U8 u32:U32 -- Bool ] { >U32 u32<= }
+    def u32-compare [ U8 u32:U32 -- Comparison ] { >U32 u32-compare }
+    def u32-min     [ U8 u32:U32 -- U8  ] { >U32 u32-min >U8-wrap }
+    def u32-max     [ U8 u32:U32 -- U32 ] { >U32 u32-max }
+    def u32-clamp   [ U8 lo:U32 hi:U32 -- U32 ] { >U32 u32-clamp }
 
     def u16-divmod [ U8 u16:U16 -- U8 U8 ] { >U16 u16-divmod on2:>U8-wrap }
     def u16-min [ U8 u16:U16 -- U8  ] { >U16 u16-min >U8-wrap }
@@ -2345,6 +2478,10 @@ inline patch U8 {
     def f64-max [ U8 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ U8 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
 
+    def negate [ U8 -- Int ] { >Int negate }
+    def invert [ U8 -- Rat ] { >Int invert }
+    def abs    [ U8 -- U8 ] { }
+
     def >Int [ U8 -- Int ] { >U64 >Int }
     def >Nat [ U8 -- Nat ] { >U64 >Nat }
     def >I64 [ U8 -- I64 ] { >Int >I64-unsafe }
@@ -2361,7 +2498,6 @@ inline patch U8 {
     def >I8-unsafe [ U8 -- I8 ] { >Int >I8-unsafe }
     def >I8-clamp  [ U8 -- I8 ] { >Int >I8-clamp  }
     def >I8?       [ U8 -- Maybe(I8) ] { >Int >I8? }
-
 }
 
 inline patch F32 {
@@ -2489,6 +2625,10 @@ inline patch F32 {
     def f64-max [ F32 f64:F64 -- F64 ] { >F64 f64-max }
     def f64-clamp [ F32 lo:F64 hi:F64 -- F64 ] { >F64 f64-clamp }
 
+    def negate [ F32 -- F32 ] { 0.0 >F32 swap - }
+    def invert [ F32 -- F32 ] { 1.0 >F32 swap / }
+    def abs    [ F32 -- F32 ] { dup 0.0 >F32 < then(negate) }
+
     def >Complex [ F32 -- Complex(F32,Zero) ] { >real Zero >imag Complex }
     def i        [ F32 -- Complex(Zero,F32) ] { Zero >real >imag Complex }
     def real     [ F32 -- F32  ] { }
@@ -2586,11 +2726,15 @@ inline patch F64 {
     def f64-max [ F64 f64:F64 -- F64 ] { f64> max-via-lt }
     def f64-clamp [ F64 lo:F64 hi:F64 -- F64 ] { lo> hi> clamp-via-lt }
 
-    def >Complex [ F64 -- Complex(F64,Zero) ] { >real Zero >imag Complex }
-    def i        [ F64 -- Complex(Zero,F64) ] { Zero >real >imag Complex }
-    def real     [ F64 -- F64  ] { }
-    def imag     [ F64 -- Zero ] { drop Zero }
-    def conj     [ F64 -- F64  ] { }
+    def negate [ F64 -- F64 ] { 0.0 swap - }
+    def invert [ F64 -- F64 ] { 1.0 swap / }
+    def abs    [ F64 -- F64 ] { dup 0.0 < then(negate) }
+
+    def >Complex [ F64 -- Complex(F64,F64) ] { >real 0.0 >imag Complex }
+    def i        [ F64 -- Complex(F64,F64) ] { 0.0 >real >imag Complex }
+    def real     [ F64 -- F64 ] { }
+    def imag     [ F64 -- F64 ] { drop 0.0 }
+    def conj     [ F64 -- F64 ] { }
 
     def >F64 [ F64 -- F64 ] { }
     def >F32 [ F64 -- F32 ] { prim-f64-to-f32 }
@@ -2604,7 +2748,6 @@ struct Complex(a,b) {
     real: a
     imag: b
     --
-
     def map(f,g) [ (*z1 a -- *z2 a', *z2 b -- *z3 b') *z1 Complex(a,b) -- *z3 Complex(a',b') ] {
         /Complex real> imag> dip(f) swap dip(g) >real >imag Complex
     }
@@ -2668,19 +2811,12 @@ struct Complex(a,b) {
         dip2(f1) rotl dip(f2 f3) swap f4
     }
 
-    def / (f{invert},g{*}) [
-        (*z Complex(a,b) -- *z Complex(a',b'),
-         *z x Complex(a',b') -- *z y)
-        *z x Complex(a,b) -- *z y
-    ] { dip_(f) g }
-
-    def invert (f1{conj}, f2{magsq}, f3{*}) [
-        (*z Complex(a,b) -- *z Complex(a,bn),
-         *z Complex(a,b) -- *z c,
-         *z Complex(a,bn) c -- *z Complex(a',b'))
-        *z Complex(a,b) -- *z Complex(a',b')
+    def / (f{invert}, g{*}) [
+        ( *z Complex(a,b) -- *z Complex(a',b')
+        , *z x Complex(a', b') -- *z y
+        ) *z x Complex(a,b) -- *z y
     ] {
-        sip(f1) dip_(f2) f3
+        dip_(f) g
     }
 
     def int+ (f{int+}) [ (*z a1 int:Int -- *z a2) *z Complex(a1,b) int:Int -- *z Complex(a2,b) ] { map(f,id) }
@@ -2824,6 +2960,20 @@ struct Complex(a,b) {
         h
     }
 
+    def negate (f{negate}, g{negate}) [
+        (*z a -- *z a', *z b -- *z b')
+        *z Complex(a,b) -- *z Complex(a',b')
+    ] { map(f,g) }
+
+    def invert (f{conj}, g{magsq}, h{/}) [
+        ( *z Complex(a,b) -- *z Complex(a,bn)
+        , *z Complex(a,b) -- *z m2
+        , *z Complex(a,bn) m2 -- *z Complex(a/m2, bn/m2)
+        ) *z Complex(a,b) -- *z Complex(a/m2, bn/m2)
+    ] {
+        sip(f) dip_(g) h
+    }
+
     def >Complex [ Complex(a,b) -- Complex(a,b) ] {}
 
     def i (f{negate}) [
@@ -2928,6 +3078,7 @@ inline patch Size {
     def 0B>= [ Size -- Bool ] { >Int 0>= }
     def 0B<= [ Size -- Bool ] { >Int 0<= }
     def 0B<> [ Size -- Bool ] { >Int 0<> }
+    def 0Bmax [ Size -- Size ] { >Int 0max >Size }
 
     def 1B+ [ Size -- Size ] { >Int 1+ >Size }
     def 1B- [ Size -- Size ] { >Int 1- >Size }
@@ -3000,6 +3151,7 @@ inline patch Offset {
     def 0B>= [ Offset -- Bool ] { >Int 0>= }
     def 0B<= [ Offset -- Bool ] { >Int 0<= }
     def 0B<> [ Offset -- Bool ] { >Int 0<> }
+    def 0Bmax [ Offset -- Offset ] { >Int 0max >Offset }
 
     def 1B+ [ Offset -- Offset ] { >Int 1+ >Offset }
     def 1B- [ Offset -- Offset ] { >Int 1- >Offset }

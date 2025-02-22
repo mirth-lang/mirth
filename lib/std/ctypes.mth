@@ -93,6 +93,10 @@ inline patch CUShort {
 }
 
 inline patch CInt {
+    def Zero [ CInt -- CInt CInt ] { 0 >CInt }
+    def One  [ CInt -- CInt CInt ] { 1 >CInt }
+    def Two  [ CInt -- CInt CInt ] { 2 >CInt }
+
     def >Int [ CInt -- Int ] { >I64 >Int }
     def >Rat [ CInt -- Rat ] { >Int >Rat }
     def >F32 [ CInt -- F32 ] { >Int >F32 }

@@ -18,7 +18,6 @@ alias rdip(f) prim-rdip
 alias dip(f) prim-dip
 alias while(f,g) prim-while
 
-
 alias Bool.if(f,g) prim-if
 alias Bool.and prim-bool-and
 alias Bool.or  prim-bool-or
@@ -173,7 +172,6 @@ inline {
     def dup2 [ a b -- a b a b ] { over over }
     def dup3 [ a b c -- a b c a b c ] { dup dip(dip(dup2) rotr) }
 
-    def dip_(f) [ (*a x -- *b y) *a c x -- *b c y ] { swap dip(f) swap }
     def dip2(f) [ (*a -- *b) *a c1 c2 -- *b c1 c2 ] { dip(dip(f)) }
     def dip3(f) [ (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3 ] { dip(dip2(f)) }
     def dip4(f) [ (*a -- *b) *a c1 c2 c3 c4 -- *b c1 c2 c3 c4 ] { dip(dip3(f)) }
@@ -185,6 +183,9 @@ inline {
 
     def sip(f)  [ (*a x     -- *b) *a x     -- *b x     ] { dup  dip(f)  }
     def sip2(f) [ (*a x1 x2 -- *b) *a x1 x2 -- *b x1 x2 ] { dup2 dip2(f) }
+
+    def dip_(f) [ (*a x -- *b y) *a c x -- *b c y ] { swap dip(f) swap }
+    def sip_(f) [ (*a x -- *b y) *a   x -- *b x y ] { dup  dip(f) swap }
 
     def both(f) [ (a -- b) a a -- b b ] { dip(f) f }
 
@@ -293,29 +294,29 @@ inline {
     def div (f {divmod}) [ ( a b -- c d ) a b -- c ] { f drop }
     def mod (f {divmod}) [ ( a b -- c d ) a b -- d ] { f nip  }
 
-    def 1+ (f {+}) [ (a Nat -- b) a -- b ] { 1u f }
-    def 1- (f {-}) [ (a Nat -- b) a -- b ] { 1u f }
-    def 2* (f {*}) [ (a Nat -- b) a -- b ] { 2u f }
-    def 2div (f {div}) [ (a Nat -- b) a -- b ] { 2u f }
-    def 2mod (f {mod}) [ (a Nat -- b) a -- b ] { 2u f }
-    def 2divmod (f {divmod}) [ (a Nat -- b c) a -- b c ] { 2u f }
+    def == (eq {=})  [ (*z a b -- *z c) *z a b -- *z c ] { eq }
+    def >  (lt {<})  [ (*z a b -- *z c) *z b a -- *z c ] { swap lt }
+    def >= (le {<=}) [ (*z a b -- *z c) *z b a -- *z c ] { swap le }
+    def <> (eq {=}, f {not})  [ (*z a b -- *z c, *z c -- *z d) *z a b -- *z d ] { eq f }
 
-    def == (eq {=})  [ (a b -- c) a b -- c ] { eq }
-    def >  (lt {<})  [ (a b -- c) b a -- c ] { swap lt }
-    def >= (le {<=}) [ (a b -- c) b a -- c ] { swap le }
-    def <> (eq {=}, f {not})  [ (a b -- c, c -- d) a b -- d ] { eq f }
+    def 0=       (eq  {=       }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u eq }
+    def 0<       (lt  {<       }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u lt }
+    def 0<=      (le  {<=      }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u le }
+    def 0>       (gt  {>       }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u gt }
+    def 0>=      (ge  {>=      }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u ge }
+    def 0<>      (ne  {<>      }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u ne }
+    def 0compare (cmp {.compare}) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u cmp }
+    def 0min     (min {.min    }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u min }
+    def 0max     (max {.max    }) [ (*z a Nat -- *z b) *z a -- *z b ] { 0u max }
 
-    def negate (f {-}) [ (Nat a -- b) a -- b ] { 0u swap f }
+    def 1+ (f {+}) [ (*z a Nat -- *z b) *z a -- *z b ] { 1u f }
+    def 1- (f {-}) [ (*z a Nat -- *z b) *z a -- *z b ] { 1u f }
 
-    def 0=  (f {= }) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0<  (f {< }) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0>  (f {> }) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0<= (f {<=}) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0>= (f {>=}) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0<> (f {<>}) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0compare (f {compare}) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0min (f {min}) [ (a Nat -- b) a -- b ] { 0u f }
-    def 0max (f {max}) [ (a Nat -- b) a -- b ] { 0u f }
+    def 2* (f {*}) [ (*z a Nat -- *z b) *z a -- *z b ] { 2u f }
+    def 2/ (f {/}) [ (*z a Nat -- *z b) *z a -- *z b ] { 2u f }
+    def 2divmod (f {divmod}) [ (*z a Nat -- *z b) *z a -- *z b ] { 2u f }
+    def 2div    (f {2divmod}) [ (*z a -- *z c d) *z a -- *z c ] { f drop }
+    def 2mod    (f {2divmod}) [ (*z a -- *z c d) *z a -- *z d ] { f nip  }
 
     def max-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2      lt if(nip, drop) }
     def min-via-lt (lt {<}) [ (a a -- Bool) a a -- a ] { dup2 swap lt if(nip, drop) }

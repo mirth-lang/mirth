@@ -24,7 +24,7 @@ struct +Buffer {
     ||| Resize buffer only if the new size is larger,
     ||| and resize by a factor of at least two.
     def expand! [ Size +Buffer -- +Buffer ] {
-        dup size > if(size 2* max resize!, drop)
+        dup size > if(size 2 * max resize!, drop)
     }
 
     def rdrop [ +Buffer -- ] {
