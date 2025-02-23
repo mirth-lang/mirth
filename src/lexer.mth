@@ -32,16 +32,17 @@ struct +Lexer {
     lexer-stack:List(Token)
     lexer-first-token:Token
     lexer-last-token:Token
-    +input: +Input
+    content: Str
+    index: Offset
     --
     def stack-push! [ Token +Lexer -- +Lexer ] { lexer-stack:cons }
     def stack-pop!  [ +Lexer -- Maybe(Token) +Lexer ] { lexer-stack:uncons }
     def stack-drop  [ +Lexer -- +Lexer ] { lexer-stack:tail }
     def stack-peek  [ +Lexer -- Maybe(Token) +Lexer ] { lexer-stack head }
 
-    def Start! [ +Mirth +Input Module -- +Mirth +Lexer ] {
-        >+input
+    def Start! [ +Mirth content:Str Module -- +Mirth +Lexer ] {
         >lexer-module
+        0 >Offset >index
         1 Row >lexer-row
         1 Col >lexer-col
         None >lexer-doc
@@ -52,7 +53,7 @@ struct +Lexer {
         +Lexer
     }
 
-    def stop! [ +Mirth +Lexer -- Module +Mirth +Input ] {
+    def stop! [ +Mirth +Lexer -- Module +Mirth ] {
         TokenValue.None emit!
         /+Lexer
         lexer-stack> uncons drop for("Mismatched token." emit-fatal-error!)
@@ -60,7 +61,7 @@ struct +Lexer {
         lexer-module> Token.alloc-none! over ~end !
         lexer-first-token> succ over ~start !
         lexer-doc> drop
-        +input>
+        content> drop index> drop
     }
 
     def lexer-location [ +Lexer -- +Lexer Location ] {
@@ -73,9 +74,9 @@ struct +Lexer {
     def error! [ Str +Mirth +Lexer -- +Mirth +Lexer ] { dip:lexer-location rdip:emit-error-at! }
     def fatal-error! [ *a Str +Mirth +Lexer -- *b ] { dip:lexer-location rswap emit-fatal-error-at! }
 
-    def done? [ +Lexer -- +Lexer Bool ] { +input:done? }
-    def peek  [ +Lexer -- +Lexer Byte ] { +input:peek }
-    def move! [ +Lexer -- +Lexer ] { +input:move! lexer-col:1+ }
+    def done? [ +Lexer -- +Lexer Bool ] { content num-bytes index <= }
+    def peek  [ +Lexer -- +Lexer Byte ] { index content byte@ }
+    def move! [ +Lexer -- +Lexer ] { index:1B+ lexer-col:1+ }
     def newline! [ +Lexer -- +Lexer ] { 0 Col lexer-col! lexer-row:1+ }
 
     ||| Create a token at the current location with the given payload.
@@ -121,6 +122,7 @@ struct +Lexer {
             { BLSQUARE -> prepare-for-atom! emit-lsquare! move! }
             { BLCURLY  -> prepare-for-atom! emit-lcurly!  move! }
             { BQUOTE   -> prepare-for-atom! emit-string!  move! }
+            { BNUL     -> }
             { _ ->
                 is-name-byte if(
                     prepare-for-atom! emit-name!,
@@ -264,12 +266,19 @@ struct +Lexer {
 
 }
 
+def read-path! [ Path +World -- Result(IOError, Str) +World ] {
+    open-file! +if(
+        read-file! close-file! if?(nip Err, Ok),
+        Err
+    )
+}
+
 def run-lexer! [ Path +World +Mirth -- Module +World +Mirth ] {
     Module.new! dup source-path
-    rdip:open-file! rswap +else(io-error!) +Input.start!
-    +Lexer.Start!
+    rdip:read-path! else(io-error!)
+    >content +Lexer.Start!
     while(done? not, next!)
-    stop! rswap rdip(end! close-file!) then?(io-error!)
+    stop!
 }
 
 def(+Str.name-token, +Mirth +Str -- TokenValue +Mirth +Str, dup! rdip:>Name TokenValue.Name)
