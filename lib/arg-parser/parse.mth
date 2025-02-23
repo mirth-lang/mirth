@@ -67,7 +67,7 @@ def(ArgpOption.usage;, +ArgumentParser(a) +Str ArgpOption -- +ArgumentParser(a) 
 ||| Check if the currently parsed argument is something we accept
 def(check-short-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over flag-type match(
-        Short -> 0u >UOffset rotl byte@ ==,
+        Short -> 0 Offset rotl byte@ =,
         _ -> drop drop False
     ))
 
@@ -90,15 +90,15 @@ def(parse-flags-where(f), (+ArgumentParser(a) ArgpOption Str -- +ArgumentParser(
 ||| Check if the currently parsed argument is something we accept
 def(check-long-flag, +ArgumentParser(a) ArgpOption Str -- +ArgumentParser(a) ArgpOption Bool,
     over name match(
-        Some -> ==,
+        Some -> =,
         None -> drop False
     ))
 
 ||| Parse either a short or long flag
 def(parse-flags, +ArgumentParser(a) Str -- +ArgumentParser(a) Maybe(ArgumentParsingError),
-    dup num-bytes 2u >USize >= and(1u >UOffset over byte@ Byte.B'-' ==) if(
-        2u >USize over unsafe(drop-bytes) parse-flags-where(check-long-flag),
-        1u >USize over unsafe(drop-bytes) parse-flags-where(check-short-flag)
+    dup num-bytes 2 bytes >= and(1 Offset over byte@ Byte.B'-' =) if(
+        2 bytes over unsafe(drop-bytes) parse-flags-where(check-long-flag),
+        1 bytes over unsafe(drop-bytes) parse-flags-where(check-short-flag)
     ) swap drop)
 
 ||| Parse a positional argument, advancing the current index
@@ -129,8 +129,8 @@ def(parse-args, a ArgumentParser(a) -- Result([ArgumentParsingError Str], a),
     )
 
     state State.argv for(
-        dup num-bytes 1u >USize > if(
-            0u >UOffset over byte@ Byte.B'-' == if(
+        dup num-bytes 1 bytes > if(
+            0 Offset over byte@ Byte.B'-' = if(
                 # if in the middle of currently parsing an option when we shouldn't be,
                 # turn it off, otherwise error because need an option value
                 state parsing? if(
@@ -179,8 +179,8 @@ def(parse-args, a ArgumentParser(a) -- Result([ArgumentParsingError Str], a),
     rdrop)
 
 def(read-from-argv, +Unsafe Int -- Str +Unsafe,
-    >UIndex-if (
-        |Ptr| * argv uoffset @Ptr CPtr CStr >Str,
+    dup 0>= if (
+        |Ptr| * argv + @Ptr CPtr CStr >Str,
         drop ""
     ))
 

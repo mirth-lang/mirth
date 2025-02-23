@@ -27,7 +27,7 @@ import mirth.label
 # (or some class of categories). We provide special support for
 # the morphisms of symmetric monoidal category theory, since we
 # want to manipulate multiple pieces of data, like a string diagram,
-# but we do not assume commutativity (i.e. that dip(f) g == g dip(f)),
+# but we do not assume commutativity (i.e. that dip(f) g = g dip(f)),
 # so that we can more easily represent computational effects like IO.
 # As such, we actually provide special support for premonoidal
 # categories, and we're really working with ordered string diagrams.
@@ -85,8 +85,8 @@ data Arg {
     def type  { Block -> type }
     def free-vars { Block -> free-vars }
     def mangled; [ +Mirth +Str Arg -- +Mirth +Str ] { Block -> mangled; }
-    def == [ Arg Arg -- Bool ] {
-        { Block -> swap match { Block -> swap ==, _ -> drop2 No } }
+    def =  [ Arg Arg -- Bool ] {
+        { Block -> swap match { Block -> swap =, _ -> drop2 No } }
     }
 }
 
@@ -104,19 +104,19 @@ data PushValue {
     F32 [ F32 ]
     F64 [ F64 ]
     --
-    def == [ PushValue PushValue -- Bool ] {
-        { Str -> swap match { Str -> swap ==, _ -> drop2 No } }
-        { Int -> swap match { Int -> swap ==, _ -> drop2 No } }
-        { U8  -> swap match { U8  -> swap ==, _ -> drop2 No } }
-        { U16 -> swap match { U16 -> swap ==, _ -> drop2 No } }
-        { U32 -> swap match { U32 -> swap ==, _ -> drop2 No } }
-        { U64 -> swap match { U64 -> swap ==, _ -> drop2 No } }
-        { I8  -> swap match { I8  -> swap ==, _ -> drop2 No } }
-        { I16 -> swap match { I16 -> swap ==, _ -> drop2 No } }
-        { I32 -> swap match { I32 -> swap ==, _ -> drop2 No } }
-        { I64 -> swap match { I64 -> swap ==, _ -> drop2 No } }
-        { F32 -> swap match { F32 -> swap ==, _ -> drop2 No } }
-        { F64 -> swap match { F64 -> swap ==, _ -> drop2 No } }
+    def =  [ PushValue PushValue -- Bool ] {
+        { Str -> swap match { Str -> swap =, _ -> drop2 No } }
+        { Int -> swap match { Int -> swap =, _ -> drop2 No } }
+        { U8  -> swap match { U8  -> swap =, _ -> drop2 No } }
+        { U16 -> swap match { U16 -> swap =, _ -> drop2 No } }
+        { U32 -> swap match { U32 -> swap =, _ -> drop2 No } }
+        { U64 -> swap match { U64 -> swap =, _ -> drop2 No } }
+        { I8  -> swap match { I8  -> swap =, _ -> drop2 No } }
+        { I16 -> swap match { I16 -> swap =, _ -> drop2 No } }
+        { I32 -> swap match { I32 -> swap =, _ -> drop2 No } }
+        { I64 -> swap match { I64 -> swap =, _ -> drop2 No } }
+        { F32 -> swap match { F32 -> swap =, _ -> drop2 No } }
+        { F64 -> swap match { F64 -> swap =, _ -> drop2 No } }
     }
 }
 
@@ -219,7 +219,7 @@ def(Block.type, +Mirth Block -- +Mirth ArrowType, sip(dom) cod T->)
 def(Block.arrow, +Mirth Block -- +Mirth Arrow, ~arrow force!)
 def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
 
-def(Block.==, Block Block -- Bool, both(Block.index) ==)
+def(Block.=, Block Block -- Bool, both(Block.index) =)
 
 field(Block.~home-index, Block, Int)
 def(Block.register-home!, +Mirth Block -- +Mirth,

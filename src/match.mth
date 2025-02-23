@@ -39,7 +39,7 @@ def(Match.is-exhaustive?, +Mirth Match -- +Mirth Bool,
         dup scrutinee-data? match(
             Some ->
                 num-tags
-                over cases len ==,
+                over cases len =,
             None ->
                 dup cases len 0>,
                 # presume exhaustiveness generally.
@@ -55,7 +55,7 @@ def(Match.has-default-case?, +Mirth Match -- +Mirth Bool,
 def(Match.scrutinee-data?, +Mirth Match -- +Mirth Maybe(Data),
     cases filter(is-default-case? not) dup
     first bind(pattern single-tag?) map(.data) if?(
-        swap all(pattern single-tag? if?(dip:dup .data ==, False)) if(
+        swap all(pattern single-tag? if?(dip:dup .data =, False)) if(
             Some,
             drop None
         ),
@@ -188,7 +188,7 @@ def(Pattern.covers?, Pattern Pattern -- Bool,
             Underscore -> drop True,
             Tag -> swap op match(
                 Underscore -> drop False,
-                Tag -> ==
+                Tag -> =
             )
         )
     ))

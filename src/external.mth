@@ -35,7 +35,7 @@ def(External.ctx, +Mirth External -- +Mirth Ctx, ctx-type drop)
 def(External.type, +Mirth External -- +Mirth ArrowType, ctx-type nip)
 def(External.ctype, +Mirth External -- +Mirth CTypeArrow, ~ctype force!)
 
-def(External.==, External External -- Bool, both(index) ==)
+def(External.=, External External -- Bool, both(index) =)
 
 table(ExternalBlock)
 field(ExternalBlock.~doc, ExternalBlock, Maybe(Str))

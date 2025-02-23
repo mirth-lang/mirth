@@ -1,77 +1,380 @@
 module std.ctypes
 
 import std.prelude
+import std.str
 
-inline(
+inline patch CChar {
+    def >Int [ CChar -- Int ] { >I64 >Int }
+    def >I64 [ CChar -- I64 ] { CChar -> id }
+    def >I32 [ CChar -- I32 ] { >I64 >I32-unsafe }
+    def >I16 [ CChar -- I16 ] { >I64 >I16-unsafe }
+    def >I8  [ CChar -- I8  ] { >I64 >I8-unsafe }
+    def >U64 [ CChar -- U64 ] { >Int >U64-wrap }
+    def >U32 [ CChar -- U32 ] { >Int >U32-wrap }
+    def >U16 [ CChar -- U16 ] { >Int >U16-wrap }
+    def >U8  [ CChar -- U8  ] { >Int >U8-wrap  }
 
-    def(CChar.>Int, CChar -- Int, CChar -> >Int)
-    def(CIChar.>Int, CIChar -- Int, CIChar -> >Int)
-    def(CShort.>Int, CShort -- Int, CShort -> >Int)
-    def(CInt.>Int, CInt -- Int, CInt -> >Int)
-    def(CLong.>Int, CLong -- Int, CLong -> >Int)
-    def(CLongLong.>Int, CLongLong -- Int, CLongLong -> >Int)
-    def(CISize.>Int, CISize -- Int, CISize -> >Int)
-    def(CIntPtr.>Int, CIntPtr -- Int, CIntPtr -> >Int)
+    def Int.>CChar [ Int -- CChar ] { >I64-clamp CChar }
+    def I64.>CChar [ I64 -- CChar ] { CChar }
+    def I32.>CChar [ I32 -- CChar ] { >I64 CChar }
+    def I16.>CChar [ I16 -- CChar ] { >I64 CChar }
+    def  I8.>CChar [ I8  -- CChar ] { >I64 CChar }
+    def U64.>CChar [ U64 -- CChar ] { >Int >CChar }
+    def U32.>CChar [ U32 -- CChar ] { >U64 >CChar }
+    def U16.>CChar [ U16 -- CChar ] { >U64 >CChar }
+    def  U8.>CChar [ U8  -- CChar ] { >U64 >CChar }
 
-    def(CUChar.>Int, CUChar -- Int, CUChar -> >Int)
-    def(CUShort.>Int, CUShort -- Int, CUShort -> >Int)
-    def(CUInt.>Int, CUInt -- Int, CUInt -> >Int)
-    def(CULong.>Int, CULong -- Int, CULong -> >Int)
-    def(CULongLong.>Int, CULongLong -- Int, CULongLong -> >Int)
-    def(CUSize.>Int, CUSize -- Int, CUSize -> >Int)
-    def(CUIntPtr.>Int, CUIntPtr -- Int, CUIntPtr -> >Int)
+    def repr; [ CChar +Str -- +Str ] { CChar -> repr; " CChar"; }
+}
 
-    def(CUChar.>Nat, CUChar -- Nat, >Int Nat.Unsafe)
-    def(CUShort.>Nat, CUShort -- Nat, >Int Nat.Unsafe)
-    def(CUInt.>Nat, CUInt -- Nat, >Int Nat.Unsafe)
-    def(CULong.>Nat, CULong -- Nat, >Int Nat.Unsafe)
-    def(CULongLong.>Nat, CULongLong -- Nat, >Int Nat.Unsafe)
-    def(CUSize.>Nat, CUSize -- Nat, >Int Nat.Unsafe)
-    def(CUIntPtr.>Nat, CUIntPtr -- Nat, >Int Nat.Unsafe)
+inline patch CIChar {
+    def >Int [ CIChar -- Int ] { >I64 >Int }
+    def >I64 [ CIChar -- I64 ] { CIChar -> id }
+    def >I32 [ CIChar -- I32 ] { >I64 >I32-unsafe }
+    def >I16 [ CIChar -- I16 ] { >I64 >I16-unsafe }
+    def >I8  [ CIChar -- I8  ] { >I64 >I8-unsafe  }
 
-    max-mirth-revision 2025_01_26_004 {
-        def Int.>IntLike  { }
-        def Int.>UIntLike { }
-    }
-    min-mirth-revision 2025_01_27_001 {
-        def Int.>IntLike  { >I64-unsafe }
-        def Int.>UIntLike { >U64-wrap   }
-    }
+    def Int.>CIChar [ Int -- CIChar ] { >I64-unsafe >CIChar }
+    def I64.>CIChar [ I64 -- CIChar ] { CIChar }
+    def I32.>CIChar [ I32 -- CIChar ] { >I64 >CIChar }
+    def I16.>CIChar [ I16 -- CIChar ] { >I64 >CIChar }
+    def  I8.>CIChar [ I8  -- CIChar ] { >I64 >CIChar }
 
-    def Int.>CChar     { >IntLike CChar     }
-    def Int.>CIChar    { >IntLike CIChar    }
-    def Int.>CShort    { >IntLike CShort    }
-    def Int.>CInt      { >IntLike CInt      }
-    def Int.>CLong     { >IntLike CLong     }
-    def Int.>CLongLong { >IntLike CLongLong }
-    def Int.>CISize    { >IntLike CISize    }
-    def Int.>CIntPtr   { >IntLike CIntPtr   }
+    def repr; [ CIChar +Str -- +Str ] { CIChar -> repr; " CIChar"; }
+}
 
-    def Int.>CUChar     { >UIntLike CUChar     }
-    def Int.>CUShort    { >UIntLike CUShort    }
-    def Int.>CUInt      { >UIntLike CUInt      }
-    def Int.>CULong     { >UIntLike CULong     }
-    def Int.>CULongLong { >UIntLike CULongLong }
-    def Int.>CUSize     { >UIntLike CUSize     }
-    def Int.>CUIntPtr   { >UIntLike CUIntPtr   }
+inline patch CUChar {
+    def >Int [ CUChar -- Int ] { >U64 >Int }
+    def >Nat [ CUChar -- Nat ] { >U64 >Nat }
+    def >U64 [ CUChar -- U64 ] { CUChar -> id }
+    def >U32 [ CUChar -- U32 ] { >U64 >U32-wrap }
+    def >U16 [ CUChar -- U16 ] { >U64 >U16-wrap }
+    def >U8  [ CUChar -- U8  ] { >U64 >U8-wrap  }
 
-    def(CUSize.>USize, CUSize -- USize, >Nat >USize)
+    def Int.>CUChar [ Int -- CUChar ] { >U64-wrap CUChar }
+    def Nat.>CUChar [ Nat -- CUChar ] { >U64-wrap CUChar }
+    def U64.>CUChar [ U64 -- CUChar ] { CUChar }
+    def U32.>CUChar [ U32 -- CUChar ] { >U64 CUChar }
+    def U16.>CUChar [ U16 -- CUChar ] { >U64 CUChar }
+    def  U8.>CUChar [  U8 -- CUChar ] { >U64 CUChar }
 
-    def(CPtr./CPtr, CPtr(t) -- Ptr, CPtr -> id)
-    def(CConst./CConst, CConst(t) -- t, CConst -> id)
-    def(CRestrict./CRestrict, CRestrict(t) -- t, CRestrict -> id)
-    def(CVolatile./CVolatile, CVolatile(t) -- t, CVolatile -> id)
+    def repr; [ CUChar +Str -- +Str ] { CUChar -> repr; " CUChar"; }
+}
 
-    def(CPtr.cast, CPtr(a) -- CPtr(b), CPtr -> CPtr)
-    def(CPtr.>Ptr, CPtr(a) -- Ptr, CPtr -> id)
-    def(Ptr.>CPtr, Ptr -- CPtr(a), CPtr)
+inline patch CShort {
+    def >Int [ CShort -- Int ] { >I64 >Int }
+    def >I64 [ CShort -- I64 ] { CShort -> id }
+    def >I32 [ CShort -- I32 ] { >I64 >I32-unsafe }
+    def >I16 [ CShort -- I16 ] { >I64 >I16-unsafe }
 
-    data(CStr, CStr -> CPtr(CConst(CChar)))
+    def Int.>CShort [ Int -- CShort ] { >I64-clamp CShort }
+    def I64.>CShort [ I64 -- CShort ] { CShort }
+    def I32.>CShort [ I32 -- CShort ] { >I64 CShort }
+    def I16.>CShort [ I16 -- CShort ] { >I64 CShort }
 
-    def(Ptr.>CStr, Ptr -- CStr, CPtr CStr)
-    def(CPtr.>CStr, CPtr(CConst(CChar)) -- CStr, CStr)
-    def(CStr.>CPtr, CStr -- CPtr(CConst(CChar)), CStr -> id)
-    def(CStr.>Ptr, CStr -- Ptr, >CPtr /CPtr)
-    def(CStr.>Str, CStr +Unsafe -- Str +Unsafe, Str.CloneCStr)
-    external(CStr.num-bytes -> strlen [ +Unsafe CStr -- +Unsafe CUSize ])
-)
+    def repr; [ CShort +Str -- +Str ] { CShort -> repr; " CShort"; }
+}
+
+inline patch CUShort {
+    def >Int [ CUShort -- Int ] { >Nat >Int }
+    def >Nat [ CUShort -- Nat ] { >U64 >Nat }
+    def >Rat [ CUShort -- Rat ] { >Int >Rat }
+    def >U64 [ CUShort -- U64 ] { CUShort -> id }
+    def >U32 [ CUShort -- U32 ] { >U64 >U32-wrap }
+    def >U16 [ CUShort -- U16 ] { >U64 >U16-wrap }
+
+    def Int.>CUShort [ Int -- CUShort ] { >U64-wrap CUShort }
+    def Nat.>CUShort [ Nat -- CUShort ] { >U64-wrap CUShort }
+    def U64.>CUShort [ U64 -- CUShort ] { CUShort }
+    def U32.>CUShort [ U32 -- CUShort ] { >U64 CUShort }
+    def U16.>CUShort [ U16 -- CUShort ] { >U64 CUShort }
+
+    def repr; [ CUShort +Str -- +Str ] { CUShort -> repr; " CUShort"; }
+}
+
+inline patch CInt {
+    def Zero [ CInt -- CInt CInt ] { 0 >CInt }
+    def One  [ CInt -- CInt CInt ] { 1 >CInt }
+    def Two  [ CInt -- CInt CInt ] { 2 >CInt }
+
+    def >Int [ CInt -- Int ] { >I64 >Int }
+    def >Rat [ CInt -- Rat ] { >Int >Rat }
+    def >F32 [ CInt -- F32 ] { >Int >F32 }
+    def >F64 [ CInt -- F64 ] { >Int >F64 }
+    def >I64 [ CInt -- I64 ] { CInt -> id }
+    def >I32 [ CInt -- I32 ] { >I64 >I32-unsafe }
+
+    def Int.>CInt [ Int -- CInt ] { >I64-unsafe CInt }
+    def I64.>CInt [ I64 -- CInt ] { CInt }
+    def I32.>CInt [ I32 -- CInt ] { >I64 CInt }
+
+    def Nat.>CInt [ Nat -- CInt ] { >Int >CInt }
+
+    def +  (f {+ }) [ (a Int -- b) a CInt -- b ] { >Int f }
+    def -  (f {- }) [ (a Int -- b) a CInt -- b ] { >Int f }
+    def *  (f {* }) [ (a Int -- b) a CInt -- b ] { >Int f }
+    def /  (f {/ }) [ (a Int -- b) a CInt -- b ] { >Int f }
+    def =  (f {= }) [ (a Int -- b) a CInt -- b ] { >Int f }
+    def <  (f {< }) [ (a Int -- b) a CInt -- b ] { >Int f }
+    def <= (f {<=}) [ (a Int -- b) a CInt -- b ] { >Int f }
+    def compare (f {compare}) [ (a Int -- b) a CInt -- b ] { >Int f }
+
+    def int+  [ CInt int:Int -- Int  ] { >Int int+  }
+    def int-  [ CInt int:Int -- Int  ] { >Int int-  }
+    def int*  [ CInt int:Int -- Int  ] { >Int int*  }
+    def int/  [ CInt int:Int -- Rat  ] { >Int int/  }
+    def int=  [ CInt int:Int -- Bool ] { >Int int=  }
+    def int<  [ CInt int:Int -- Bool ] { >Int int<  }
+    def int<= [ CInt int:Int -- Bool ] { >Int int<= }
+    def int-compare [ CInt int:Int -- Comparison ] { >Int int-compare }
+
+    def nat+  [ CInt nat:Nat -- Int  ] { >Int nat+  }
+    def nat-  [ CInt nat:Nat -- Int  ] { >Int nat-  }
+    def nat*  [ CInt nat:Nat -- Int  ] { >Int nat*  }
+    def nat/  [ CInt nat:Nat -- Rat  ] { >Int nat/  }
+
+    def rat+  [ CInt rat:Rat -- Rat  ] { >Rat rat+  }
+    def rat-  [ CInt rat:Rat -- Rat  ] { >Rat rat-  }
+    def rat*  [ CInt rat:Rat -- Rat  ] { >Rat rat*  }
+    def rat/  [ CInt rat:Rat -- Rat  ] { >Rat rat/  }
+    def rat=  [ CInt rat:Rat -- Bool ] { >Rat rat=  }
+    def rat<  [ CInt rat:Rat -- Bool ] { >Rat rat<  }
+    def rat<= [ CInt rat:Rat -- Bool ] { >Rat rat<= }
+    def rat-compare [ CInt rat:Rat -- Comparison ] { >Rat rat-compare }
+
+    def f32+  [ CInt f32:F32 -- F32  ] { >F32 f32+  }
+    def f32-  [ CInt f32:F32 -- F32  ] { >F32 f32-  }
+    def f32*  [ CInt f32:F32 -- F32  ] { >F32 f32*  }
+    def f32/  [ CInt f32:F32 -- F32  ] { >F32 f32/  }
+    def f32=  [ CInt f32:F32 -- Bool ] { >F32 f32=  }
+    def f32<  [ CInt f32:F32 -- Bool ] { >F32 f32<  }
+    def f32<= [ CInt f32:F32 -- Bool ] { >F32 f32<= }
+    def f32-compare [ CInt f32:F32 -- PartialComparison ] { >F32 f32-compare }
+
+    def f64+  [ CInt f64:F64 -- F64  ] { >F64 f64+  }
+    def f64-  [ CInt f64:F64 -- F64  ] { >F64 f64-  }
+    def f64*  [ CInt f64:F64 -- F64  ] { >F64 f64*  }
+    def f64/  [ CInt f64:F64 -- F64  ] { >F64 f64/  }
+    def f64=  [ CInt f64:F64 -- Bool ] { >F64 f64=  }
+    def f64<  [ CInt f64:F64 -- Bool ] { >F64 f64<  }
+    def f64<= [ CInt f64:F64 -- Bool ] { >F64 f64<= }
+    def f64-compare [ CInt f64:F64 -- PartialComparison ] { >F64 f64-compare }
+
+    def repr; [ CInt +Str -- +Str ] { CInt -> repr; " CInt"; }
+    def int;  [ CInt +Str -- +Str ] { >Int int; }
+    def dec;  [ CInt +Str -- +Str ] { >Int dec; }
+    def hex;  [ CInt +Str -- +Str ] { >Int hex; }
+    def oct;  [ CInt +Str -- +Str ] { >Int oct; }
+    def bin;  [ CInt +Str -- +Str ] { >Int bin; }
+}
+
+inline patch CUInt {
+    def >Int [ CUInt -- Int ] { >U64 >Int }
+    def >Nat [ CUInt -- Nat ] { >U64 >Nat }
+    def >Rat [ CUInt -- Rat ] { >Int >Rat }
+    def >F64 [ CUInt -- F64 ] { >Int >F64 }
+    def >F32 [ CUInt -- F32 ] { >Int >F32 }
+    def >U64 [ CUInt -- U64 ] { CUInt -> id }
+    def >U32 [ CUInt -- U32 ] { >U64 >U32-wrap }
+
+    def Int.>CUInt [ Int -- CUInt ] { >U64-wrap CUInt }
+    def Nat.>CUInt [ Nat -- CUInt ] { >U64-wrap CUInt }
+    def U64.>CUInt [ U64 -- CUInt ] { CUInt }
+    def U32.>CUInt [ U32 -- CUInt ] { >U64 CUInt }
+
+    def +  (f {+ }) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+    def -  (f {- }) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+    def *  (f {* }) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+    def /  (f {/ }) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+    def =  (f {= }) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+    def <  (f {< }) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+    def <= (f {<=}) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+    def compare (f {compare}) [ (a Nat -- b) a CUInt -- b ] { >Nat f }
+
+    def int+  [ CUInt int:Int -- Int  ] { >Int int+  }
+    def int-  [ CUInt int:Int -- Int  ] { >Int int-  }
+    def int*  [ CUInt int:Int -- Int  ] { >Int int*  }
+    def int/  [ CUInt int:Int -- Rat  ] { >Int int/  }
+    def int=  [ CUInt int:Int -- Bool ] { >Int int=  }
+    def int<  [ CUInt int:Int -- Bool ] { >Int int<  }
+    def int<= [ CUInt int:Int -- Bool ] { >Int int<= }
+    def int-compare [ CUInt int:Int -- Comparison ] { >Int int-compare }
+
+    def nat+  [ CUInt nat:Nat -- Nat  ] { >Nat nat+  }
+    def nat-  [ CUInt nat:Nat -- Int  ] { >Nat nat-  }
+    def nat*  [ CUInt nat:Nat -- Nat  ] { >Nat nat*  }
+    def nat/  [ CUInt nat:Nat -- Rat  ] { >Nat nat/  }
+
+    def rat+  [ CUInt rat:Rat -- Rat  ] { >Rat rat+  }
+    def rat-  [ CUInt rat:Rat -- Rat  ] { >Rat rat-  }
+    def rat*  [ CUInt rat:Rat -- Rat  ] { >Rat rat*  }
+    def rat/  [ CUInt rat:Rat -- Rat  ] { >Rat rat/  }
+    def rat=  [ CUInt rat:Rat -- Bool ] { >Rat rat=  }
+    def rat<  [ CUInt rat:Rat -- Bool ] { >Rat rat<  }
+    def rat<= [ CUInt rat:Rat -- Bool ] { >Rat rat<= }
+    def rat-compare [ CInt rat:Rat -- Comparison ] { >Rat rat-compare }
+
+    def f32+  [ CUInt f32:F32 -- F32  ] { >F32 f32+  }
+    def f32-  [ CUInt f32:F32 -- F32  ] { >F32 f32-  }
+    def f32*  [ CUInt f32:F32 -- F32  ] { >F32 f32*  }
+    def f32/  [ CUInt f32:F32 -- F32  ] { >F32 f32/  }
+    def f32=  [ CUInt f32:F32 -- Bool ] { >F32 f32=  }
+    def f32<  [ CUInt f32:F32 -- Bool ] { >F32 f32<  }
+    def f32<= [ CUInt f32:F32 -- Bool ] { >F32 f32<= }
+    def f32-compare [ CUInt f32:F32 -- PartialComparison ] { >F32 f32-compare }
+
+    def f64+  [ CUInt f64:F64 -- F64  ] { >F64 f64+  }
+    def f64-  [ CUInt f64:F64 -- F64  ] { >F64 f64-  }
+    def f64*  [ CUInt f64:F64 -- F64  ] { >F64 f64*  }
+    def f64/  [ CUInt f64:F64 -- F64  ] { >F64 f64/  }
+    def f64=  [ CUInt f64:F64 -- Bool ] { >F64 f64=  }
+    def f64<  [ CUInt f64:F64 -- Bool ] { >F64 f64<  }
+    def f64<= [ CUInt f64:F64 -- Bool ] { >F64 f64<= }
+    def f64-compare [ CUInt f64:F64 -- PartialComparison ] { >F64 f64-compare }
+
+    def repr; [ CUInt +Str -- +Str ] { CUInt -> repr; " CUInt"; }
+    def int;  [ CUInt +Str -- +Str ] { >Nat int; }
+    def dec;  [ CUInt +Str -- +Str ] { >Nat dec; }
+    def hex;  [ CUInt +Str -- +Str ] { >Nat hex; }
+    def oct;  [ CUInt +Str -- +Str ] { >Nat oct; }
+    def bin;  [ CUInt +Str -- +Str ] { >Nat bin; }
+}
+
+inline patch CLong {
+    def >Int [ CLong -- Int ] { >I64 >Int }
+    def >I64 [ CLong -- I64 ] { CLong -> id }
+
+    def Int.>CLong [ Int -- CLong ] { >I64-unsafe CLong }
+    def I64.>CLong [ I64 -- CLong ] { CLong }
+
+    def repr; [ CLong +Str -- +Str ] { CLong -> repr; " CLong"; }
+}
+
+inline patch CULong {
+    def >Int [ CULong -- Int ] { >U64 >Int }
+    def >Nat [ CULong -- Nat ] { >U64 >Nat }
+    def >U64 [ CULong -- U64 ] { CULong -> id }
+
+    def Int.>CULong [ Int -- CULong ] { >U64-wrap CULong }
+    def Nat.>CULong [ Nat -- CULong ] { >U64-wrap CULong }
+    def U64.>CULong [ U64 -- CULong ] { CULong }
+
+    def repr; [ CULong +Str -- +Str ] { CULong -> repr; " CULong"; }
+}
+
+inline patch CLongLong {
+    def >Int [ CLongLong -- Int ] { >I64 >Int }
+    def >I64 [ CLongLong -- I64 ] { CLongLong -> id }
+
+    def Int.>CLongLong [ Int -- CLongLong ] { >I64-unsafe CLongLong }
+    def I64.>CLongLong [ I64 -- CLongLong ] { CLongLong }
+
+    def repr; [ CLongLong +Str -- +Str ] { CLongLong -> repr; " CLongLong"; }
+}
+
+inline patch CULongLong {
+    def >Int [ CULongLong -- Int ] { >U64 >Int }
+    def >Nat [ CULongLong -- Nat ] { >U64 >Nat }
+    def >U64 [ CULongLong -- U64 ] { CULongLong -> id }
+
+    def Int.>CULongLong [ Int -- CULongLong ] { >U64-wrap CULongLong }
+    def Nat.>CULongLong [ Nat -- CULongLong ] { >U64-wrap CULongLong }
+    def U64.>CULongLong [ U64 -- CULongLong ] { CULongLong }
+
+    def repr; [ CULongLong +Str -- +Str ] { CULongLong -> repr; " CULongLong"; }
+}
+
+inline patch CISize {
+    def >Int [ CISize -- Int ] { >I64 >Int }
+    def >I64 [ CISize -- I64 ] { CISize -> id }
+    def >Size [ CISize -- Size ] { >Int >Size }
+    def >Offset [ CISize -- Offset ] { >Int >Offset }
+
+    def Int.>CISize [ Int -- CISize ] { >I64-unsafe CISize }
+    def I64.>CISize [ I64 -- CISize ] { CISize }
+    def Size.>CISize [ Size -- CISize ] { >Int >I64-unsafe CISize }
+    def Offset.>CISize [ Offset -- CISize ] { >Int >I64-unsafe CISize }
+
+    def repr; [ CISize +Str -- +Str ] { CISize -> repr; " CISize"; }
+}
+
+inline patch CUSize {
+    def >Int [ CUSize -- Int ] { >U64 >Int }
+    def >Nat [ CUSize -- Nat ] { >U64 >Nat }
+    def >U64 [ CUSize -- U64 ] { CUSize -> id }
+    def >Size [ CUSize -- Size ] { >Int >Size }
+    def >Offset [ CUSize -- Offset ] { >Int >Offset }
+
+    def Int.>CUSize [ Int -- CUSize ] { >U64-wrap CUSize }
+    def Nat.>CUSize [ Nat -- CUSize ] { >U64-wrap CUSize }
+    def U64.>CUSize [ U64 -- CUSize ] { CUSize }
+    def Size.>CUSize [ Size -- CUSize ] { >Int >CUSize }
+    def Offset.>CUSize [ Offset -- CUSize ] { >Int >CUSize }
+
+    def repr; [ CUSize +Str -- +Str ] { CUSize -> repr; " CUSize"; }
+}
+
+inline patch CIntPtr {
+    def >Int [ CIntPtr -- Int ] { >I64 >Int }
+    def >I64 [ CIntPtr -- I64 ] { CIntPtr -> id }
+
+    def Int.>CIntPtr [ Int -- CIntPtr ] { >I64-unsafe CIntPtr }
+    def I64.>CIntPtr [ I64 -- CIntPtr ] { CIntPtr }
+
+    def repr; [ CIntPtr +Str -- +Str ] { CIntPtr -> repr; " CIntPtr"; }
+}
+
+inline patch CUIntPtr {
+    def >Int [ CUIntPtr -- Int ] { >U64 >Int }
+    def >Nat [ CUIntPtr -- Nat ] { >U64 >Nat }
+    def >U64 [ CUIntPtr -- U64 ] { CUIntPtr -> id }
+
+    def Int.>CUIntPtr [ Int -- CUIntPtr ] { >U64-wrap CUIntPtr }
+    def Nat.>CUIntPtr [ Nat -- CUIntPtr ] { >U64-wrap CUIntPtr }
+    def U64.>CUIntPtr [ U64 -- CUIntPtr ] { CUIntPtr }
+
+    def repr; [ CUIntPtr +Str -- +Str ] { CUIntPtr -> repr; " CUIntPtr"; }
+}
+
+inline patch CPtr {
+    def /CPtr [ CPtr(t) -- Ptr ] { CPtr -> id }
+    def >Ptr [ CPtr(t) -- Ptr ] { CPtr -> id }
+    def cast [ CPtr(a) -- CPtr(b) ] { CPtr -> CPtr }
+    def Ptr.>CPtr [ Ptr -- CPtr(t) ] { CPtr }
+
+    def repr; [ CPtr(t) +Str -- +Str ] { drop "<Ptr> CPtr"; }
+}
+
+inline patch CConst {
+    def /CConst [ CConst(a) -- a ] { CConst -> id }
+
+    def repr; (f {repr;}) [ (a +Str -- +Str) CConst(a) +Str -- +Str ] { CConst -> f " CConst"; }
+}
+
+inline patch CRestrict {
+    def /CRestrict [ CRestrict(a) -- a ] { CRestrict -> id }
+
+    def repr; (f {repr;}) [ (a +Str -- +Str) CRestrict(a) +Str -- +Str ] { CRestrict -> f " CRestrict"; }
+}
+
+inline patch CVolatile {
+    def /CVolatile [ CVolatile(a) -- a ] { CVolatile -> id }
+
+    def repr; (f {repr;}) [ (a +Str -- +Str) CVolatile(a) +Str -- +Str ] { CVolatile -> f " CVolatile"; }
+}
+
+inline struct CStr {
+    CPtr(CConst(CChar))
+    --
+    def >CPtr [ CStr -- CPtr(CConst(CChar)) ] { /CStr }
+    def >Ptr [ CStr -- Ptr ] { /CStr /CPtr }
+    def >Str [ CStr +Unsafe -- Str +Unsafe ] { Str.CloneCStr }
+
+    def Ptr.>CStr [ Ptr -- CStr ] { CPtr CStr }
+    def CPtr.>CStr [ CPtr(CConst(CChar)) -- CStr ] { CStr }
+
+    def repr; [ CStr +Str -- +Str ] { CStr -> repr; " CStr"; }
+
+    external num-bytes-raw -> strlen [ CStr +Unsafe -- CUSize +Unsafe ]
+    def num-bytes [ CStr +Unsafe -- Size +Unsafe ] { num-bytes-raw >Size }
+}

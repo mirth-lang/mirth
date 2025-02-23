@@ -26,7 +26,7 @@ def Alias.name [ +Mirth Alias -- +Mirth Name ] { ~name @ }
 def Alias.arity [ +Mirth Alias -- +Mirth Int ] { ~arity @ }
 def Alias.target [ +Mirth Alias -- +Mirth Def ] { ~target force! }
 
-def Alias.== [ Alias Alias -- Bool ] { both(index) == }
+def Alias.= [ Alias Alias -- Bool ] { both(index) = }
 def Alias.new! [ +Mirth head:Token name:Name arity:Int doc:Maybe(Str) -- +Mirth Alias ] {
     Alias.alloc!
     doc> over ~doc !
@@ -72,7 +72,7 @@ def elab-alias! [ +Mirth Token -- +Mirth Token ] {
         False >report-ambiguous-as-warning
         False >ignore-last-name
         resolve-def(
-            expunge(alias? if?(@alias ==, False))
+            expunge(alias? if?(@alias =, False))
             alias> rdip:arity filter(
                 dup2 rdip:arity arity-compatible?,
                 RejectedDef.WrongArity

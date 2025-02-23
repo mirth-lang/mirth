@@ -3,7 +3,7 @@ module std.set
 import std.prelude
 import std.buffer
 
-def(SET_INITIAL_SIZE, USize, 256u >USize)
+def SET_INITIAL_SIZE [ Size ] { 256 bytes }
 
 ||| Represents a set as a bit string.
 struct +Set {
@@ -19,8 +19,8 @@ struct +Set {
         +buffer> rdrop
     }
 
-    def offset-mask [ Nat +Set -- UOffset U8 +Set ] {
-        8u divmod dip(>UOffset)
+    def offset-mask [ Nat +Set -- Offset U8 +Set ] {
+        8u divmod dip(>Offset)
         >U8-wrap 1u8 swap lshift
     }
 

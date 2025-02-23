@@ -61,12 +61,9 @@ data Byte {
         def U8.>Byte [ U8 -- Byte ] { >Int >Byte-unsafe }
 
         def compare  [ Byte Byte -- Comparison ] { on2:>U8 .compare }
-        def == [ Byte Byte -- Bool ] { on2:>U8 == }
+        def =  [ Byte Byte -- Bool ] { on2:>U8 =  }
         def <  [ Byte Byte -- Bool ] { on2:>U8 <  }
         def <= [ Byte Byte -- Bool ] { on2:>U8 <= }
-        def >  [ Byte Byte -- Bool ] { on2:>U8 >  }
-        def >= [ Byte Byte -- Bool ] { on2:>U8 >= }
-        def <> [ Byte Byte -- Bool ] { on2:>U8 <> }
 
         def Ptr.@Byte [ Ptr +Unsafe -- Byte +Unsafe ] { @U8 >Byte }
         def Ptr.!Byte [ Byte Ptr +Unsafe -- +Unsafe ] { dip(>U8) !U8 }
@@ -87,10 +84,10 @@ data Byte {
         }
         def is-ascii [ Byte -- Bool ] { Byte.BNUL Byte.BDEL in-range }
         def is-upper-or-underscore [ Byte -- Bool ] {
-            dup on2(is-upper, Byte.B'_' ==) or
+            dup on2(is-upper, Byte.B'_' =) or
         }
         def is-sign [ Byte -- Bool ] {
-            dup on2(Byte.B'-' ==, Byte.B'+' ==) or
+            dup on2(Byte.B'-' =, Byte.B'+' =) or
         }
 
         def emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }

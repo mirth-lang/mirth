@@ -42,10 +42,10 @@ data Tycon {
         { Prim -> rdip:tycon-qname qname; }
     }
 
-    def == [ Tycon Tycon -- Bool ] {
-        { Data  -> swap match { Data  -> swap ==, _ -> drop2 False } }
-        { Table -> swap match { Table -> swap ==, _ -> drop2 False } }
-        { Prim  -> swap match { Prim  -> swap ==, _ -> drop2 False } }
+    def =  [ Tycon Tycon -- Bool ] {
+        { Data  -> swap match { Data  -> swap =, _ -> drop2 False } }
+        { Table -> swap match { Table -> swap =, _ -> drop2 False } }
+        { Prim  -> swap match { Prim  -> swap =, _ -> drop2 False } }
     }
 
     def >Type [ Tycon -- Type ] {

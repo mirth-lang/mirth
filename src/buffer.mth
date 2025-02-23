@@ -13,19 +13,19 @@ table Buffer
 
 field(Buffer.~doc, Buffer, Maybe(Str))
 field(Buffer.~head, Buffer, Token)
-field(Buffer.~size, Buffer, USize)
+field(Buffer.~size, Buffer, Size)
 field(Buffer.~name, Buffer, Name)
 field(Buffer.~qname, Buffer, Prop(QName))
 
 def(Buffer.head, +Mirth Buffer -- +Mirth Token, ~head @)
-def(Buffer.size, +Mirth Buffer -- +Mirth USize, ~size @)
+def(Buffer.size, +Mirth Buffer -- +Mirth Size, ~size @)
 def(Buffer.name, +Mirth Buffer -- +Mirth Name, ~name @)
 def(Buffer.qname-soft, +Mirth Buffer -- +Mirth Maybe(QName), ~qname try-force!)
 def(Buffer.qname-hard, +Mirth Buffer -- +Mirth QName, ~qname force!)
 
-def(Buffer.==, Buffer Buffer -- Bool, both(index) ==)
+def(Buffer.=, Buffer Buffer -- Bool, both(index) =)
 
-def Buffer.new! [ +Mirth head:Token size:USize name:Name doc:Maybe(Str) -- +Mirth Buffer ] {
+def Buffer.new! [ +Mirth head:Token size:Size name:Name doc:Maybe(Str) -- +Mirth Buffer ] {
     Buffer.alloc!
     doc> over ~doc !
     size> over ~size !

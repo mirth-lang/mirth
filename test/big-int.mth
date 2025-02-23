@@ -14,7 +14,7 @@ def main {
         I64.Max >Int >Str =>: "9223372036854775807"
 
         U64.Min >Int >Str =>: "0"
-        U64.Max >Int >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int >Str =>: "18446744073709551615"
 
         0x1_00000000_00000000 >Str =>: "0x00000001_00000000_00000000"
         0x12345678_12345678_12345678 >Str =>: "0x12345678_12345678_12345678"
@@ -23,30 +23,30 @@ def main {
         -0x10_00000000_00000000 >Str =>: "-0x00000010_00000000_00000000"
         -0x1_00000000_00000000_00000000 >Str =>: "-0x00000001_00000000_00000000_00000000"
 
-        0xFFFFFFFF_FFFFFFFF >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        0xFFFFFFFF_FFFFFFFF >Str =>: "18446744073709551615"
         0xFFFFFFFF_FFFFFFFF_FFFFFFFF >Str =>: "0xFFFFFFFF_FFFFFFFF_FFFFFFFF"
         0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF >Str =>: "0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF"
     )
 
     "addition" test (
         10 10 + =>: 20
-        I64.Max >Int 1 + >Str =>: "0x80000000_00000000"
-        I64.Max >Int dup + >Str =>: "0xFFFFFFFF_FFFFFFFE"
-        I64.Max >Int dup + 1+ >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        I64.Max >Int 1 + >Str =>: "9223372036854775808"
+        I64.Max >Int dup + >Str =>: "18446744073709551614"
+        I64.Max >Int dup + 1+ >Str =>: "18446744073709551615"
         I64.Max >Int dup + 1+ 1+ >Str =>: "0x00000001_00000000_00000000"
         I64.Min >Int dup + >Str =>: "-0x00000001_00000000_00000000"
-        U64.Max >Int >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int >Str =>: "18446744073709551615"
         U64.Max >Int 1+ >Str =>: "0x00000001_00000000_00000000"
     )
 
     "addition" test (
         10 10 + =>: 20
-        I64.Max >Int 1 + >Str =>: "0x80000000_00000000"
-        I64.Max >Int dup + >Str =>: "0xFFFFFFFF_FFFFFFFE"
-        I64.Max >Int dup + 1+ >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        I64.Max >Int 1 + >Str =>: "9223372036854775808"
+        I64.Max >Int dup + >Str =>: "18446744073709551614"
+        I64.Max >Int dup + 1+ >Str =>: "18446744073709551615"
         I64.Max >Int dup + 1+ 1+ >Str =>: "0x00000001_00000000_00000000"
         I64.Min >Int dup + >Str =>: "-0x00000001_00000000_00000000"
-        U64.Max >Int >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int >Str =>: "18446744073709551615"
         U64.Max >Int 1+ >Str =>: "0x00000001_00000000_00000000"
     )
 
@@ -58,9 +58,9 @@ def main {
         I64.Min >Int 1- 1+ >Str =>: "-9223372036854775808"
 
         U64.Max >Int dup - >Str =>: "0"
-        U64.Max >Int 1- >Str =>: "0xFFFFFFFF_FFFFFFFE"
-        U64.Max >Int 1+ 1- >Str =>: "0xFFFFFFFF_FFFFFFFF"
-        U64.Max >Int 1- 1+ >Str =>: "0xFFFFFFFF_FFFFFFFF"
+        U64.Max >Int 1- >Str =>: "18446744073709551614"
+        U64.Max >Int 1+ 1- >Str =>: "18446744073709551615"
+        U64.Max >Int 1- 1+ >Str =>: "18446744073709551615"
         U64.Max >Int -1 - >Str =>: "0x00000001_00000000_00000000"
     )
 

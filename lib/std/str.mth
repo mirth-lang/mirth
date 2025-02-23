@@ -7,17 +7,24 @@ import std.byte
 import std.buffer
 import std.ctypes
 
+
+inline patch Str {
+    def compare [ Str Str -- Comparison ] { prim-str-cmp Comparison.from-enum-value-unsafe }
+    alias =  prim-str-eq
+    alias <  prim-str-lt
+    alias <= prim-str-le
+}
+
 alias(Str.cat, prim-str-cat)
 inline(
-    def Str.num-bytes [ Str -- USize ] { prim-str-num-bytes >Int Nat.Unsafe >USize }
-    def Str.empty? [ Str -- Bool ] { num-bytes 0= }
+    def Str.num-bytes [ Str -- Size ] { prim-str-num-bytes >Size }
+    def Str.empty? [ Str -- Bool ] { num-bytes 0B= }
 )
 
 ||| Copy string bytes to pointer location (without adding 0 at end).
 ||| Return first unwritten location in second argument.
 def Ptr.!Str+ [ Str Ptr +Unsafe -- Ptr +Unsafe ] {
-    dup2 dip(num-bytes >UOffset)
-    uoffset dip(!Str)
+    over num-bytes over + dip(!Str)
 }
 
 ||| Copy string bytes to pointer location.
@@ -25,15 +32,10 @@ def Ptr.!Str [ Str Ptr +Unsafe -- +Unsafe ] {
     swap with-data(rotl copy)
 }
 
-max-mirth-revision 2025_01_26_004 {
-    inline def(Str.ClonePtrSlice, Ptr USize +Unsafe -- Str +Unsafe, >Int prim-str-copy)
-}
-min-mirth-revision 2025_01_27_001 {
-    inline def(Str.ClonePtrSlice, Ptr USize +Unsafe -- Str +Unsafe, >Int >U64-wrap prim-str-copy)
-}
+inline def(Str.ClonePtrSlice, Ptr Size +Unsafe -- Str +Unsafe, >Int >U64-wrap prim-str-copy)
 
 inline(
-    def(Str.CloneCStr, CStr +Unsafe -- Str +Unsafe, sip:>Ptr num-bytes >USize Str.ClonePtrSlice)
+    def(Str.CloneCStr, CStr +Unsafe -- Str +Unsafe, sip:>Ptr num-bytes Str.ClonePtrSlice)
 )
 
 data(+Str, +Str -> Str)
@@ -44,32 +46,30 @@ inline (
     def(+Str.rdrop, +Str --, +Str -> drop)
     def(+Str.;, Str +Str -- +Str, push-str!)
     def(+Str.dup!, +Str -- Str +Str, +Str -> dup dip(+Str))
-    def(+Str.num-bytes?, +Str -- USize +Str,
+    def(+Str.num-bytes?, +Str -- Size +Str,
         +Str -> dup num-bytes dip(+Str))
 )
 def Str.Str(f) [ (*a +Str -- *b +Str) *a -- *b Str ] { "" +Str f /+Str }
 def str(f) [ (*a x +Str -- *a +Str) *a x -- *a Str ] { Str(f) }
 
 def Str.last-byte [ Str -- Byte ] {
-    dup num-bytes 1- >UOffset-if (
-        swap Str.byte@,
-        drop2 Byte.BNUL
-    )
+    dup num-bytes 1B- offset swap byte@
 }
 
 def(+Str.last-byte, +Str -- Byte +Str,
     dup! Str.last-byte)
 
-def(+Str.byte@, UOffset +Str -- Byte +Str,
+def(+Str.byte@, Offset +Str -- Byte +Str,
     +Str.dup! Str.byte@)
 
-def(offset-in-bounds, UOffset USize -- Bool,
-    dip(>Int 0) >Int in-range)
+def offset-in-bounds [ Offset Size -- Bool ] {
+    0 Offset swap offset in-range
+}
 
-def(Str.byte@, UOffset Str -- Byte,
+def(Str.byte@, Offset Str -- Byte,
     with-data(
         dip(over) offset-in-bounds if(
-            unsafe(uoffset @Byte),
+            unsafe(+ @Byte),
             drop2 Byte.BNUL
         )
     ))
@@ -100,15 +100,15 @@ def +Str.push-str! [ Str +Str -- +Str ] {
 
 ||| Access the string's byte data. This function ensures the
 ||| string won't be garbage collected while inspecting its data.
-def Str.with-data(f) [ (*a Ptr USize -- *b) *a Str -- *b ] {
+def Str.with-data(f) [ (*a Ptr Size -- *b) *a Str -- *b ] {
     dup dip(dup dip(prim-str-base) num-bytes f) drop
 }
 
 ||| Traverse a string's bytes.
 def Str.bytes-for(f) [ (*a Byte -- *a) *a Str -- *a ] {
     with-data(
-        >Nat repeat(
-            dup dip(unsafe(@Byte) f 1u >UOffset) unsafe(uoffset)
+        >Int >Nat-clamp repeat(
+            dup dip(unsafe(@Byte) f 1 >Offset) unsafe(+)
         ) drop
     )
 }
@@ -117,7 +117,7 @@ def Str.bytes-for(f) [ (*a Byte -- *a) *a Str -- *a ] {
 ||| Returns None if the string is empty.
 def Str.first-byte [ Str -- Maybe(Byte) ] {
     with-data(
-        0> if(
+        0B> if(
             unsafe(@Byte) Some,
             drop None
         )
@@ -127,84 +127,85 @@ def Str.first-byte [ Str -- Maybe(Byte) ] {
 ||| Drop n bytes from the beginning of a string.
 ||| This is unsafe because it can break UTF-8.
 ||| Returns an empty string if the string has fewer than n bytes.
-def(Str.drop-bytes, USize Str +Unsafe -- Str +Unsafe,
+def(Str.drop-bytes, Size Str +Unsafe -- Str +Unsafe,
     with-data(
-        dip(over) swap - >USize-if (
-            dip(dip(>UOffset) uoffset)
+        dip(over) swap - dup 0B>= if (
+            dip(+)
             Str.ClonePtrSlice,
             drop3 ""
         )
     ))
 
 def(Str.from-bytes-unsafe, List(Byte) -- Str,
-    dup len >USize +Buffer.new
-    dip(0u >UOffset) for(>U8 over !U8 1+) drop
+    dup len >Size +Buffer.new
+    dip(0 Offset) for(>U8 over !U8 1B+) drop
     base size unsafe(Str.ClonePtrSlice)
     rdrop)
 
 def(Str.with-cstr(f), (*a CStr -- *b) *a Str -- *b,
     with-data(
-        >UOffset over unsafe(uoffset @U8) >Int
-        0= else("tried to use Str as CStr, but Str is not zero terminated" panic!)
+        over unsafe(+ @U8) 0= else("tried to use Str as CStr, but Str is not zero terminated" panic!)
         CPtr CStr f
     ))
 
-def(clamp-slice-offset-size, UOffset USize USize -- UOffset USize,
-    swap dip(tuck >UOffset min tuck >USize -)
-    swap >USize-if(min, drop2 0u >USize))
+def(clamp-slice-offset-size, Offset Size Size -- Offset Size,
+    offset dup >hi >hi
+    0 Offset dup >lo >lo
+    over + offset-clamp dip:offset-clamp
+    over - >Size 0 bytes max)
 
-def(Str.slice, UOffset USize Str +Unsafe -- Str +Unsafe,
+def(Str.slice, Offset Size Str +Unsafe -- Str +Unsafe,
     with-data(
         swap dip(clamp-slice-offset-size)
-        swap dip(uoffset) Str.ClonePtrSlice
+        swap dip(+) Str.ClonePtrSlice
     ))
 
-def(Str.drop-slice, UOffset Str +Unsafe -- Str +Unsafe,
+def(Str.drop-slice, Offset Str +Unsafe -- Str +Unsafe,
     rdip:thaw +Str.drop-slice rdip:rdrop)
 
-def(Str.take-slice, USize Str +Unsafe -- Str +Unsafe,
+def(Str.take-slice, Size Str +Unsafe -- Str +Unsafe,
     rdip:thaw +Str.take-slice rdip:rdrop)
 
-def(+Str.slice, UOffset USize +Str +Unsafe -- Str +Str +Unsafe,
+def(+Str.slice, Offset Size +Str +Unsafe -- Str +Str +Unsafe,
     rdip(+Str.dup!) slice)
 
-def +Str.offset-slice [ UOffset UOffset +Str +Unsafe -- Str +Str +Unsafe ] {
-    over - >USize-if( +Str.slice, drop2 "" )
-}
+def +Str.offset-slice [ Offset Offset +Str +Unsafe -- Str +Str +Unsafe ] {
+    over - >Size +Str.slice}
 
-def(+Str.take-slice, USize +Str +Unsafe -- Str +Str +Unsafe,
-    0u >UOffset swap +Str.slice)
+def(+Str.take-slice, Size +Str +Unsafe -- Str +Str +Unsafe,
+    0 Offset swap +Str.slice)
 
-def(+Str.drop-slice, UOffset +Str +Unsafe -- Str +Str +Unsafe,
-    rdip(+Str.num-bytes? ) +Str.slice)
+def(+Str.drop-slice, Offset +Str +Unsafe -- Str +Str +Unsafe,
+    0 Offset max
+    rdip(+Str.num-bytes?) +Str.slice)
 
 ||| Find the first occurence of a string in the str buf, returning its index.
-def +Str.find [ Str +Str -- Maybe(UOffset) +Str ] {
-    None swap 0u while(
-        over num-bytes over >USize +
+def +Str.find [ Str +Str -- Maybe(Offset) +Str ] {
+    None swap 0 Offset while(
+        over num-bytes over +
         +Str.num-bytes? <= if(
-            dup2 >UOffset over num-bytes unsafe(+Str.slice) == if(
-                rotl drop dup >UOffset Some rotr False,
+            dup2 over num-bytes unsafe(+Str.slice) = if(
+                rotl drop dup Some rotr False,
                 True
             ),
             False
         ),
-        1+
+        1B+
     ) drop2
 }
 
 def(+Str.split-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Nest(Str) +Str,
-    Nest( 0u >UOffset dup while(
-        dup rdip(+Str.num-bytes?) >UOffset <,
+    Nest( 0 Offset dup while(
+        dup rdip(+Str.num-bytes?) offset <,
         tuck dip2(rdip(byte@ rdip(p))) rotl if(
             tuck rdip:unsafe(+Str.offset-slice)
-            ; 1+ dup,
-            1+
+            ; 1B+ dup,
+            1B+
         )
     ) rdip:unsafe(+Str.offset-slice) ;+))
 
 def(+Str.split-byte, Byte +Str -- Nest(Str) +Str,
-    split-byte(over ==) nip)
+    split-byte(over =) nip)
 
 def(Str.split-byte(p), (*a Byte -- *a Bool) *a Str -- *a Nest(Str),
     thaw +Str.split-byte(p) rdrop)
@@ -212,16 +213,16 @@ def(Str.split-byte(p), (*a Byte -- *a Bool) *a Str -- *a Nest(Str),
 def(Str.split-byte, Byte Str -- Nest(Str),
     thaw +Str.split-byte rdrop)
 
-def(+Str.find-last-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Maybe(UOffset) +Str,
-    num-bytes? >UOffset None while(
-        dup none? and(over 0>),
-        drop pred sip(byte@ rdip(p)) swap if(dup Some, None)
+def(+Str.find-last-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Maybe(Offset) +Str,
+    num-bytes? offset None while(
+        dup none? and(over 0B>),
+        drop 1B- sip(byte@ rdip(p)) swap if(dup Some, None)
     ) nip)
 
 def(Str.split-last-byte(p), (*a Byte -- *a Bool) *a Str -- *a Str Maybe(Str),
     thaw find-last-byte(p) freeze swap map(unsafe(
-        swap dup2 dip:1+ drop-slice
-        dip(dip:>USize take-slice)
+        swap dup2 dip:1B+ drop-slice
+        dip(dip:>Size take-slice)
     )))
 
 def(+Str.push-repr-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,

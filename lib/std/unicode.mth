@@ -19,7 +19,7 @@ data Codepoint {
 
     inline def >U32 [ Codepoint -- U32 ] { /Unsafe }
     inline def compare [ Codepoint Codepoint -- Comparison ] { on2:>U32 compare }
-    inline def == [ Codepoint Codepoint -- Bool ] { on2:>U32 == }
+    inline def =  [ Codepoint Codepoint -- Bool ] { on2:>U32 = }
     inline def <  [ Codepoint Codepoint -- Bool ] { on2:>U32 <  }
     inline def <= [ Codepoint Codepoint -- Bool ] { on2:>U32 <= }
     inline def >  [ Codepoint Codepoint -- Bool ] { on2:>U32 >  }
@@ -28,8 +28,8 @@ data Codepoint {
 
     ||| How many utf-16 words are needed to encode this codepoint (always either
     ||| 1 or 2)
-    def size-utf-16 [ Codepoint -- USize ] {
-        >U32 0xFFFFu32 > if(2u, 1u) >USize
+    def num-utf-16-units [ Codepoint -- Nat ] {
+        >U32 0xFFFFu32 > if(2u, 1u)
     }
 
     ||| Encode the codepoint and append it to the string
@@ -67,29 +67,29 @@ def Int.>Codepoint-unsafe { >U32-wrap Codepoint.Unsafe }
 
 
 struct +CodepointsForState {
-    index:UOffset ptr:Ptr len:UOffset
+    index:Offset ptr:Ptr len:Offset
     --
     def peek [ +CodepointsForState -- +CodepointsForState U8 ] {
-        index ptr unsafe(uoffset @U8)
+        index ptr unsafe(+ @U8)
     }
     def next! [ +CodepointsForState -- +CodepointsForState U8 ] {
-        peek index:1+
+        peek index:1B+
     }
 }
 
 ||| Iterate over each unicode codepoint in a string
 def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
     with-data(
-        >UOffset >len >ptr 0u >UOffset >index +CodepointsForState
+        >Offset >len >ptr 0 >Offset >index +CodepointsForState
         while(index len <,
             peek 0x80u8 and 0= if(
                 next! >U32 >Codepoint-unsafe rdip:f,
 
-                peek 0xE0u8 and 0xC0u8 == if(
+                peek 0xE0u8 and 0xC0u8 = if(
                     next! 0x1Fu8 and >U32 6u32 lshift
                     next! 0x3Fu8 and >U32 or >Codepoint-unsafe rdip:f,
 
-                    peek 0xF0u8 and 0xE0u8 == if(
+                    peek 0xF0u8 and 0xE0u8 = if(
                         next! 0x0Fu8 and >U32    6u32 lshift
                         next! 0x3Fu8 and >U32 or 6u32 lshift
                         next! 0x3Fu8 and >U32 or >Codepoint-unsafe rdip:f,
@@ -106,16 +106,16 @@ def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
     )
 }
 
-||| How many utf-16 words long this string would be if it were re-encoded
+||| How many utf-16 units long this string would be if it were re-encoded
 |||
 ||| Unicode codepoints 0xFFFF and below are encoded as one word, and all above
 ||| are encoded as two.
-def Str.num-utf-16 [ Str -- USize ] {
-    dip(0u >USize) codepoints-for(size-utf-16 +)
+def Str.num-utf-16-units [ Str -- Nat ] {
+    dip(0u) codepoints-for(num-utf-16-units +)
 }
 
 ||| How many unicode codepoints this string contains
-def Str.num-codepoints [ Str -- USize ] {
+def Str.num-codepoints [ Str -- Nat ] {
     # TODO: this doesn't actually need to fully decode the string to work
-    dip(0u >USize) codepoints-for(drop 1+)
+    dip(0u) codepoints-for(drop 1+)
 }

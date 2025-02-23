@@ -1,0 +1,6 @@
+bin/fractal.c:1086: error: assertion failed (bhead >= 1)
+??
+call stack:
+    present! at examples/fractal.mth:75:5
+    loop! at examples/fractal.mth:19:5
+    main at examples/fractal.mth:17:5

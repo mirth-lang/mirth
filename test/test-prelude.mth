@@ -6,7 +6,7 @@ import(std.world)
 
 def(!!True, Bool --, if(id, "Assertion failed" panic!))
 def(!!False, Bool --, not !!True)
-def(!!=, Int Int --, == !!True)
+def(!!=, Int Int --, = !!True)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
 def(!!001, Int Int Int --, 1 !!= 0 !!= 0 !!=)
@@ -19,7 +19,7 @@ def(!!111, Int Int Int --, 1 !!= 1 !!= 1 !!=)
 
 def(test-prelude!, --,
     test-if test-drop test-dup test-swap test-dip
-    test-rotr test-rotl test== test< test<= test-gt test>=
+    test-rotr test-rotl test= test< test<= test-gt test>=
     test+ test- test* test-while)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
@@ -40,14 +40,14 @@ def(test-rotl, --,
     0 1 0 rotl !!100
     0 0 1 rotl !!010)
 
-def(test==, --,
-    0 0 == !!True
-    0 1 == !!False
-    1 0 == !!False
-    1 1 == !!True
-    1 2 == !!False
-    2 1 == !!False
-    2 2 == !!True)
+def(test=, --,
+    0 0 = !!True
+    0 1 = !!False
+    1 0 = !!False
+    1 1 = !!True
+    1 2 = !!False
+    2 1 = !!False
+    2 2 = !!True)
 def(test<, --,
     0 0 < !!False
     0 1 < !!True
@@ -91,8 +91,8 @@ def(test+, --,
     0 0 + !!0
     0 1 + !!1
     1 0 + !!1
-    1 1 + 2 == !!True
-    2 2 + 4 == !!True
+    1 1 + 2 = !!True
+    2 2 + 4 = !!True
     2 -2 + !!0)
 
 def(test-, --,
@@ -128,7 +128,7 @@ def(test-stack-assertions, --,
     1 2 { Int Int }
     3 4 { Int Int Int Int }
     + + + { Int }
-    10 ==
+    10 =
     { Bool }
     drop
 )

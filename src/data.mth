@@ -127,7 +127,7 @@ def(data-word-qname, +Mirth Data Str Nat -- +Mirth QName,
 # DATA #
 ########
 
-def(Data.==, Data Data -- Bool, both(index) ==)
+def(Data.=, Data Data -- Bool, both(index) =)
 def(Data.num-tags, +Mirth Data -- +Mirth Nat, tags len)
 
 field(Data.~last-tag-value, Data, Int)
@@ -138,7 +138,7 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
     @tag ~value memoize(
         @data ~last-tag-value @? if?(1+, 0)
     )
-    @data tags find(value over ==) for(
+    @data tags find(value over =) for(
         Str("Constructors ";
             name;
             " and " ;
@@ -178,11 +178,11 @@ def(Data.is-transparent?, +Mirth Data -- +Mirth Bool,
     dup ~is-transparent? memoize(
         dup is-resource? if(
             dup tags single? match(
-                Some -> dup num-resource-inputs 1u == swap num-total-inputs 1u == and,
+                Some -> dup num-resource-inputs 1u = swap num-total-inputs 1u = and,
                 None -> False,
             ),
             dup tags single? match(
-                Some -> dup num-type-inputs 1u == swap num-total-inputs 1u == and,
+                Some -> dup num-type-inputs 1u = swap num-total-inputs 1u = and,
                 None -> False
             )
         )
@@ -303,7 +303,7 @@ def(Tag.is-unit?, +Mirth Tag -- +Mirth Bool,
 def(Tag.outputs-resource?, +Mirth Tag -- +Mirth Bool,
     .data is-resource?)
 
-def(Tag.==, Tag Tag -- Bool, both(index) ==)
+def(Tag.=, Tag Tag -- Bool, both(index) =)
 
 def Tag.prefer-inline? [ +Mirth Tag -- +Mirth Bool ] {
     dup .data semi-transparent?
@@ -321,10 +321,10 @@ def Tag.prefer-inline? [ +Mirth Tag -- +Mirth Bool ] {
 data(DataPartial, DataPartial ->
     data:Data field:Label)
 
-def(DataPartial.==, DataPartial DataPartial -- Bool,
+def(DataPartial.=, DataPartial DataPartial -- Bool,
     /DataPartial /DataPartial
-    data> data> ==
-    field> field> == and)
+    data> data> =
+    field> field> = and)
 
 struct TagField {
     tag: Tag

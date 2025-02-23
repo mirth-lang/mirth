@@ -32,7 +32,7 @@ def TypeDef.params [ +Mirth TypeDef -- +Mirth List(Var) ] {
 
 def TypeDef.name; [ +Mirth +Str TypeDef -- +Mirth +Str ] { rdip:name name; }
 
-def TypeDef.== [ TypeDef TypeDef -- Bool ] { both(index) == }
+def TypeDef.= [ TypeDef TypeDef -- Bool ] { both(index) = }
 
 def TypeDef.new! [ +Mirth head:Maybe(Token) name:Name state:PropState(QName) -- +Mirth TypeDef ] {
     TypeDef.alloc!

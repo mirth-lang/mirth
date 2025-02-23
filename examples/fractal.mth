@@ -1,6 +1,7 @@
 module examples.fractal
 
 import std.prelude
+import std.number
 import std.world
 import std.list
 import std.maybe
@@ -58,7 +59,7 @@ def +FractalUI.Init! [ +World -- +World +FractalUI ] {
 
     SDL_GetWindowSurface >+surface
 
-    256u >USize +Buffer.new >+event-buffer
+    256 bytes +Buffer.new >+event-buffer
 
     +FractalUI
 }
@@ -114,14 +115,12 @@ def +Mandelbrot.plot! [ +Mandelbrot x:Int y:Int Int -- +Mandelbrot ] {
 }
 
 def scale_x [ Int -- F64 ] {
-    >F64
-    2.47 WIDTH >F64 / *
+    2.47 WIDTH / *
     2.0 -
 }
 
 def scale_y [ Int -- F64 ] {
-    >F64
-    2.24 HEIGHT >F64 / *
+    2.24 HEIGHT / *
     1.12 -
 }
 
@@ -134,34 +133,21 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
         0 >px while(
             @px WIDTH <,
 
-            @px scale_x >x0
-            @py scale_y >y0
+            @px scale_x >real
+            @py scale_y >imag Complex >z0
 
-            0.0 >x
-            0.0 >y
+            0.0 >real 0.0 >imag Complex >z
 
             0 >iteration
             while(
                 @iteration 250 <
+                @z magsq 4 <=
+                and,
 
-                @x 2.0 pow
-                @y 2.0 pow +
-                4.0 <= and,
-
-                @x 2.0 pow
-                @y 2.0 pow -
-                @x0 +
-
-                2.0 @x * @y *
-                @y0 +
-
-                !y !x
+                @z(dup * @z0 +)
                 @iteration:1+
             )
-            x> drop
-            y> drop
-            x0> drop
-            y0> drop
+            z> z0> drop2
             @px >x @py >y iteration> dup 250 < if(plot!, x> drop y> drop drop)
 
             px> 1+ >px

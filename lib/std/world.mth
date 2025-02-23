@@ -10,10 +10,10 @@ import std.input
 import std.output
 
 def +World.print- [ Str +World -- +World ] {
-    stdout-file with-data:unsafe:write-bytes! drop2 close-file!
+    stdout-file with-data(>size >ptr unsafe:write-bytes!) drop close-file! drop
 }
 def +World.trace- [ Str +World -- +World ] {
-    stderr-file with-data:unsafe:write-bytes! drop2 close-file!
+    stderr-file with-data(>size >ptr unsafe:write-bytes!) drop close-file! drop
 }
 
 def +World.print [ Str +World -- +World ] { "\n" cat print- }
@@ -29,19 +29,19 @@ def +World.trace(f) [ (*a +World +Str -- *b +World +Str) *a +World -- *b +World 
 def +World.stdin(f) [ (*a +World +Input -- *b +World +Input) *a +World -- *b +World ] {
     stdin-file input(f)
     expect!(is-stdin?, "expected stdin leaving +World.stdin(f) but got different file")
-    close-file!
+    close-file! drop
 }
 
 def +World.stdout(f) [ (*a +World +Output -- *b +World +Output) *a +World -- *b +World ] {
     stdout-file output(f)
     expect!(is-stdout?, "expected stdout leaving +World.stdout(f) but got different file")
-    close-file!
+    close-file! drop
 }
 
 def +World.stderr(f) [ (*a +World +Output -- *b +World +Output) *a +World -- *b +World ] {
     stderr-file output(f)
     expect!(is-stderr?, "expected stderr leaving +World.stderr(f) but got different file")
-    close-file!
+    close-file! drop
 }
 
 ########
@@ -50,7 +50,7 @@ def +World.stderr(f) [ (*a +World +Output -- *b +World +Output) *a +World -- *b 
 
 external(posix-stat -> stat [+Unsafe CStr Ptr -- +Unsafe CInt])
 def +World.is-directory? [ +World Path -- +World Bool ] {
-    256u >USize +Buffer.new
+    256 bytes +Buffer.new
     >Str with-cstr(
         base unsafe(posix-stat) >Int
         0= if(base rdip:unsafe(st_mode@) S_ISDIR, False)
@@ -64,13 +64,13 @@ def S_IFREG  [ U16 ] { 0x8000u16 }
 def S_IFLNK  [ U16 ] { 0xA000u16 }
 def S_IFSOCK [ U16 ] { 0xC000u16 }
 
-def S_ISDIR [ U16 -- Bool ] { S_IFMT and S_IFDIR == }
+def S_ISDIR [ U16 -- Bool ] { S_IFMT and S_IFDIR = }
 
 def st_mode@ [ Ptr +World +Unsafe -- U16 +World +Unsafe ] {
     rdip:running-os match(
-        Linux -> 24u, # .. this is all terrible and brittle
-        Windows -> 6u,
-        Mac -> rdip:running-arch Arch.ARM64 == if(4u, 8u),
-        _ -> drop 8u
-    ) >UOffset swap uoffset @U16
+        Linux -> 24 bytes, # .. this is all terrible and brittle
+        Windows -> 6 bytes,
+        Mac -> rdip:running-arch Arch.ARM64 = if(4 bytes, 8 bytes),
+        _ -> drop 8 bytes
+    ) + @U16
 }

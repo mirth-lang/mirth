@@ -23,13 +23,12 @@ def(Var.name, +Mirth Var -- +Mirth Name, ~name @)
 def(Var.type, +Mirth Var -- +Mirth Type, ~type @)
 def(Var.auto-run?, +Mirth Var -- +Mirth Maybe(ArrowType), ~auto-run? @)
 
-inline def Var.== [ Var Var -- Bool ] { both(index) == }
-inline def Var.<> [ Var Var -- Bool ] { both(index) <> }
+inline def Var.= [ Var Var -- Bool ] { both(index) = }
 
 def(Var.type;, +Mirth +Str Var -- +Mirth +Str, rdip(name >Str) ;)
-def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.Type ==))
-def(Var.is-stack?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.StackType ==))
-def(Var.is-resource?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.ResourceType ==))
+def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.Type =))
+def(Var.is-stack?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.StackType =))
+def(Var.is-resource?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.ResourceType =))
 def(Var.is-physical?, +Mirth Var -- +Mirth Bool, type is-physical?)
 
 def(Var.new!, +Mirth Type Name -- +Mirth Var,
@@ -68,7 +67,7 @@ def(Ctx.new, Ctx Var -- Ctx, dip(>List) List.Snoc >Ctx)
 def(Ctx.vars, Ctx -- List(Var), >List)
 def(Ctx.physical-vars, +Mirth Ctx -- +Mirth List(Var), vars filter(is-physical?))
 def(Ctx.physically-empty?, +Mirth Ctx -- +Mirth Bool, physical-vars empty?)
-def(Ctx.lookup, +Mirth Name Ctx -- +Mirth Maybe(Var), >List reverse-lookup(name ==))
+def(Ctx.lookup, +Mirth Name Ctx -- +Mirth Maybe(Var), >List reverse-lookup(name =))
 def(Ctx.len, Ctx -- Nat, >List len)
 def(Ctx.fresh-name!, +Mirth Ctx -- +Mirth Ctx Name,
     1 "_x1" >Name while-some(
@@ -82,11 +81,11 @@ def(Ctx.fresh-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
 def(Ctx.fresh-var!, +Mirth Type Ctx -- +Mirth Ctx Var,
     fresh-name! dip(swap) Var.new! sip(Ctx.new))
 
-def(Ctx.==, Ctx Ctx -- Bool,
-    on2:vars ==)
+def(Ctx.=, Ctx Ctx -- Bool,
+    on2:vars =)
 
 def(Var.unify!, +Mirth Var Var -- +Mirth Type,
-    dup2 == if(drop Type.Var, both(Type.Var) unify-failed!))
+    dup2 = if(drop Type.Var, both(Type.Var) unify-failed!))
 
 def(Var.freshen, +Mirth Subst Var -- +Mirth Subst Type,
     swap dup2 has-var? if(

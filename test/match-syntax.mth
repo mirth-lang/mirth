@@ -5,7 +5,7 @@ import(std.maybe)
 import(std.list)
 
 def(Maybe.mysum, Maybe(Int) -- Int, { None -> 0 } { Some -> id })
-def List.mysum {
+def List.mysum [ List(Int) -- Int ] {
     { Nil -> 0 }
     { Cons -> dip_(mysum) + }
 }

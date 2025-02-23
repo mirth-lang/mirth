@@ -15,11 +15,16 @@ import mirth.specializer
 import mirth.c99
 
 def main [ +World -- +World ] {
-    parse-options! else(trace(unpack2 ; emit;) 1 posix-exit!)
+    parse-options! if(
+        +Mirth.Init!
+        compile!
+        num-errors 0>
+        rdrop,
 
-    +Mirth.Init!
-    compile!
-    rdrop
+        trace(unpack2 ; emit;)
+        True
+    )
+    then(1 posix-exit!)
 }
 
 def compile! [ Options +World +Mirth -- +World +Mirth ] {
@@ -46,29 +51,34 @@ def compile! [ Options +World +Mirth -- +World +Mirth ] {
     trace-diagnostics!
 
     num-errors 0> if(
-        num-errors rdip:trace(Sgr.FGRed span(int; " errors." ;)) 1 posix-exit!,
-        rdip:trace(Sgr.FGGreen span("No errors." ;)),
+        num-errors rdip:trace(Sgr.FGRed span(int; " errors." ;))
+        drop,
+
+        rdip:trace(Sgr.FGGreen span("No errors." ;))
+        match(
+            Some ->
+                "Running specializer." rdip:trace
+                run-specializer!
+                num-errors 0> if(
+                    trace-diagnostics!
+                    num-errors rdip:trace(Sgr.FGRed span(int; " errors during specializer." ;))
+                    drop,
+
+                    @output-file if?(
+                        "Running codegen." rdip:trace
+                        >output-path
+                        @emit-debug-info >emit-debug-info
+                        C99_Options run-output-c99!,
+
+
+                        drop "No output file, skipping codegen." rdip:trace
+                    )
+                ),
+            None ->
+                "No entry point, skipping Codegen." rdip:trace
+        )
     )
 
-    match(
-        Some ->
-            "Specializer." rdip:trace
-            run-specializer!
-            num-errors 0> if(
-                trace-diagnostics!
-                num-errors rdip:trace(Sgr.FGRed span(int; " errors during specializer." ;)) 1 posix-exit!,
-
-                "Codegen." rdip:trace
-                output-file> if?(
-                    >output-path
-                    C99_Options run-output-c99!,
-
-                    emit-debug-info> drop2
-                )
-            ),
-        None ->
-            "Skipping Codegen." rdip:trace
-            emit-debug-info> drop
-            output-file> drop
-    )
+    output-file> drop
+    emit-debug-info> drop
 }

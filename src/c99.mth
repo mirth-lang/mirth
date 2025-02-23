@@ -61,7 +61,7 @@ def c99-start! [ Arrow C99_Options +World +Mirth -- Arrow +World +C99 ] {
     0u >fresh-counter
     True >put-enabled
     +Needs.new dup determine-arrow-needs! >+needs >+mirth
-    @options output-path create-file! +else(+mirth> fatal-error!) +Output.start! >+output
+    @options output-path create-file! +else(+mirth> io-error!) +Output.start! >+output
     +C99
 }
 
@@ -72,6 +72,7 @@ def c99-end! [ +World +C99 -- +World +Mirth ] {
     +needs> rdrop
     +output> end! close-file!
     +mirth>
+    for(io-error!)
 }
 
 def +C99.reset-fresh-counter! [ +C99 -- +C99 ] {
@@ -314,7 +315,7 @@ def c99-unpack-tuple! [ +C99Branch +C99Resource tag:Maybe(Tag) parts:List(StackT
 
 def c99-tag-label-index [ Tag Label +C99 -- Nat +C99 ] {
     >label sip(+mirth:inputs dup len) +mirth:only-tag? if(id, 1+) >i
-    reverse-find(@i:pred label if?(@label ==, False))
+    reverse-find(@i:pred label if?(@label =, False))
     label> drop2 i>
 }
 
@@ -1047,9 +1048,9 @@ def c99-push-value! [ PushValue +C99Branch -- +C99Branch ] {
     { I8  -> C99ReprType.I8  push-value-expression!(>Int >Str put) }
     { I16 -> C99ReprType.I16 push-value-expression!(>Int >Str put) }
     { I32 -> C99ReprType.I32 push-value-expression!(
-        dup I32.Min == if(drop "INT32_MIN" put, >Int >Str put)) }
+        dup I32.Min = if(drop "INT32_MIN" put, >Int >Str put)) }
     { I64 -> C99ReprType.I64 push-value-expression!(
-        dup I64.Min == if(drop "INT64_MIN" put, >Int >Str put "LL" put)) }
+        dup I64.Min = if(drop "INT64_MIN" put, >Int >Str put "LL" put)) }
     { F32 -> C99ReprType.F32 push-value-expression!(>Str put) }
     { F64 -> C99ReprType.F64 push-value-expression!(>Str put) }
 }
@@ -1161,7 +1162,7 @@ def Int.c99-radixes [ Int -- List(U32) ] {
     List(
         while(
             0x1_0000_0000 divmod >U32-wrap dup ;
-            0x8000_0000u32 div 0= if(dup 0 <>, dup -1 <>)
+            0x8000_0000u32 and 0= if(dup 0 <>, dup -1 <>)
         )
         drop
     )
@@ -1177,7 +1178,7 @@ def c99-int! [ Int +C99Branch -- +C99Branch ] {
         c99-line(
             "static struct BIG_S(" put @size put ") " put @name put
             " = { .refs=100, .cap=" put @size put ", .size=" put size> put
-            ", .radix={" put rad> for( >Int Str("0x"; hex;) put "," put ) "} };" put
+            ", .radix={" put rad> for( str:hex; put "," put ) "} };" put
         )
         c99-line(@name put ".refs++;" put)
 
@@ -1189,7 +1190,7 @@ def c99-int! [ Int +C99Branch -- +C99Branch ] {
 
 def c99-str! [ Str +C99Branch -- +C99Branch ] {
     C99ReprType.STR new-value! >+str
-    dup num-bytes 4090 >Nat-clamp >USize > if(
+    dup num-bytes 4090 bytes > if(
         c99-line("STRLIT(" put @+str:rdup consume put "," put)
         c99-nest(
             c99-line(dup put-cstr-long "," put)
@@ -1210,7 +1211,7 @@ def +C99.put-cstr-long [ Str +C99 -- +C99 ] {
     False >avoid-hexdigit
     Byte.BQUOTE put-byte
     Byte.BNUL swap bytes-for(
-        swap Byte.BLF == then(
+        swap Byte.BLF = then(
             Byte.BQUOTE put-byte
             line indent
             Byte.BQUOTE put-byte
@@ -1260,9 +1261,9 @@ data C99ReprType {
     FNPTR
 }
 
-def C99ReprType.== [ C99ReprType C99ReprType -- Bool ] {
-    { TUP -> swap match { TUP -> ==, _ -> drop2 False } }
-    { _ -> on2:enum-value == }
+def C99ReprType.= [ C99ReprType C99ReprType -- Bool ] {
+    { TUP -> swap match { TUP -> =, _ -> drop2 False } }
+    { _ -> on2:enum-value = }
 }
 
 inline (
@@ -1556,7 +1557,7 @@ def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
         @value-repr match {
             { VAL -> Str( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
             { _ ->
-                over == if(
+                over = if(
                     drop value-name>,
                     dup is-int-like? @value-repr is-int-like? and if(
                         Str( "((" ; underlying-c99-type ; ")" ; value-name> ; ")" ; ),
@@ -1804,7 +1805,7 @@ def +C99Stack.pop-value-label? [ Label +C99Stack -- Label +C99Value? +C99Stack ]
     { +With -> rdip:pop-value-label? +C99Stack.+With }
     { +WithLabel -> dip:rdip:pop-value-label? +C99Stack.+WithLabel }
     { +ConsLabel ->
-        dup2 == if(
+        dup2 = if(
             drop +C99Value?.+C99ValueSome rswap,
             dip:rdip:pop-value-label? +C99Stack.+ConsLabel
         )
@@ -1817,7 +1818,7 @@ def +C99Stack.pop-resource-label? [ Label +C99Stack -- Label +C99Resource? +C99S
     { +With -> rdip:pop-resource-label? +C99Stack.+With }
     { +ConsLabel -> dip:rdip:pop-resource-label? +C99Stack.+ConsLabel }
     { +WithLabel ->
-        dup2 == if(
+        dup2 = if(
             drop +C99Resource?.+C99ResourceSome rswap,
             dip:rdip:pop-resource-label? +C99Stack.+WithLabel
         )
@@ -1902,7 +1903,7 @@ struct C99Var {
 }
 
 def +C99Branch.var-lookup [ +C99Branch Var -- +C99Branch Maybe(C99Var) ] {
-    env lookup(var-var ==)
+    env lookup(var-var =)
 }
 
 def +C99Branch.var-get! [ +C99Branch Var -- +C99Branch +C99Value ] {
@@ -2438,7 +2439,7 @@ def pop-values-to-env! [ List(Var) +C99Branch -- +C99Branch ] {
 
 def drop-env-var! [ Var +C99Branch -- +C99Branch ] {
     pop-from-env!
-    == else("[c99] unexpected variable in environment when exiting scope" rdip:+mirth:fatal-error!)
+    = else("[c99] unexpected variable in environment when exiting scope" rdip:+mirth:fatal-error!)
     drop-value!
 }
 

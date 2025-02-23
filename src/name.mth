@@ -33,7 +33,7 @@ field(Name.~mangled, Name, Str)
 def Name.mangled  [ +Mirth Name -- +Mirth Str ] { dup ~mangled memoize(dup >Str zencode) nip }
 def Name.mangled; [ +Mirth +Str Name -- +Mirth +Str ] { rdip:mangled ; }
 
-def(Name.==, Name Name -- Bool, both(Name.index) ==)
+def(Name.=, Name Name -- Bool, both(Name.index) =)
 
 struct Hash {
     U64
@@ -43,15 +43,15 @@ struct Hash {
     def next [ Hash -- Hash ] { /Hash 1u64 add-wrap Hash }
 
     buffer(Buf, 0x80000)
-    def name-index [ Hash -- UIndex ] { >U64 >U16-wrap >Nat >UIndex }
-    def name-offset [ Hash -- UOffset ] { name-index |I64| * }
+    def name-index [ Hash -- Nat ] { >U64 >U16-wrap >Nat }
+    def name-offset [ Hash -- Offset ] { name-index |I64| * offset }
     def name@ [ +Mirth Hash -- +Mirth Maybe(Name) ] {
-        name-offset Hash.Buf unsafe(uoffset @I64) >Int
+        name-offset Hash.Buf unsafe(+ @I64) >Int
         dup 0= if(drop None, >TableIndex-clamp Name.from-index Some)
     }
     def name! [ +Mirth Name Hash -- +Mirth ] {
         dip(Name.index >Int >I64-clamp)
-        name-offset Hash.Buf unsafe(uoffset !I64)
+        name-offset Hash.Buf unsafe(+ !I64)
     }
 
     def keep-going? [ +Mirth Str Hash -- +Mirth Str Hash Bool ] {
@@ -99,21 +99,21 @@ def Str.>Name [ +Mirth Str -- +Mirth Name ] {
 def(Name.cat, +Mirth Name Str -- +Mirth Name,
     dip(>Str) cat >Name)
 
-def(Name.head, +Mirth Name -- +Mirth Byte, >Str dip(0u >UOffset) byte@)
-def(Name.tail-head, +Mirth Name -- +Mirth Byte, >Str dip(1u >UOffset) byte@)
-def(Name.tail, +Mirth Name +Unsafe -- +Mirth Name +Unsafe, rdip:>Str dip(1u >USize) drop-bytes rdip:>Name)
+def(Name.head, +Mirth Name -- +Mirth Byte, >Str dip(0 Offset) byte@)
+def(Name.tail-head, +Mirth Name -- +Mirth Byte, >Str dip(1 Offset) byte@)
+def(Name.tail, +Mirth Name +Unsafe -- +Mirth Name +Unsafe, rdip:>Str dip(1 bytes) drop-bytes rdip:>Name)
 
 def(Name.can-be-relative?, +Mirth Name -- +Mirth Bool, head is-upper not)
-def(Name.could-be-label-name?, +Mirth Name -- +Mirth Bool, dup head is-lower or(dup head Byte.B'+' == and(dup tail-head is-lower)) nip)
+def(Name.could-be-label-name?, +Mirth Name -- +Mirth Bool, dup head is-lower or(dup head Byte.B'+' = and(dup tail-head is-lower)) nip)
 def(Name.could-be-type, +Mirth Name -- +Mirth Bool, head is-alpha)
 def(Name.could-be-pattern-var?, +Mirth Name -- +Mirth Bool, head is-lower)
 def(Name.could-be-type-var, +Mirth Name -- +Mirth Bool, head is-lower)
 def(Name.could-be-type-con, +Mirth Name -- +Mirth Bool, head is-upper)
-def(Name.is-type-hole, +Mirth Name -- +Mirth Bool, dup head Byte.B'?' == swap tail-head dup Byte.BNUL == swap is-lower or and)
-def(Name.is-underscore, +Mirth Name -- +Mirth Bool, dup head Byte.B'_' == swap tail-head Byte.BNUL == and)
-def(Name.could-be-stack-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'*' == swap tail-head is-lower and)
-def(Name.could-be-resource-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' == swap tail-head is-lower and)
-def(Name.could-be-resource-con, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' == swap tail-head is-upper and)
+def(Name.is-type-hole, +Mirth Name -- +Mirth Bool, dup head Byte.B'?' = swap tail-head dup Byte.BNUL = swap is-lower or and)
+def(Name.is-underscore, +Mirth Name -- +Mirth Bool, dup head Byte.B'_' = swap tail-head Byte.BNUL = and)
+def(Name.could-be-stack-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'*' = swap tail-head is-lower and)
+def(Name.could-be-resource-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' = swap tail-head is-lower and)
+def(Name.could-be-resource-con, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' = swap tail-head is-upper and)
 
 def Name.could-be-constructor [ +Mirth Name -- +Mirth Bool ] {
     dup head match(
@@ -134,12 +134,12 @@ data Namespace {
     Word [ Word ]
     --
 
-    def == [ Namespace Namespace -- Bool ] {
+    def =  [ Namespace Namespace -- Bool ] {
         { Root -> match(Root -> True, _ -> drop False) }
-        { Package -> swap match(Package -> swap ==, _ -> drop2 False) }
-        { Module -> swap match(Module -> swap ==, _ -> drop2 False) }
-        { Tycon -> swap match(Tycon -> swap ==, _ -> drop2 False) }
-        { Word -> swap match(Word -> swap ==, _ -> drop2 False) }
+        { Package -> swap match(Package -> swap =, _ -> drop2 False) }
+        { Module -> swap match(Module -> swap =, _ -> drop2 False) }
+        { Tycon -> swap match(Tycon -> swap =, _ -> drop2 False) }
+        { Word -> swap match(Word -> swap =, _ -> drop2 False) }
     }
 
     def compare [ +Mirth Namespace Namespace -- +Mirth Comparison ] {
@@ -221,13 +221,13 @@ struct QName {
         >arity >name >namespace QName
     }
 
-    def == [ QName QName -- Bool ] {
+    def =  [ QName QName -- Bool ] {
         /QName /QName
-        name> name> ==
-        arity> arity> == and
-        namespace> namespace> == and
+        name> name> =
+        arity> arity> = and
+        namespace> namespace> = and
     }
-    def <> [ QName QName -- Bool ] { == not }
+    def <> [ QName QName -- Bool ] { = not }
     def <  [ +Mirth QName QName -- +Mirth Bool ] { compare lt? }
     def <= [ +Mirth QName QName -- +Mirth Bool ] { compare le? }
     def >  [ +Mirth QName QName -- +Mirth Bool ] { compare gt? }
@@ -246,11 +246,11 @@ struct QName {
         )
     }
 
-    def def-hard? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs lookup(qname-hard ==) }
+    def def-hard? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs lookup(qname-hard =) }
     def defined-hard? [ +Mirth QName -- +Mirth Bool ] { def-hard? some? }
     def undefined-hard? [ +Mirth QName -- +Mirth Bool ] { def-hard? none? }
 
-    def def-soft? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs dip(Some) lookup(qname-soft ==) }
+    def def-soft? [ +Mirth QName -- +Mirth Maybe(Def) ] { dup name defs dip(Some) lookup(qname-soft =) }
     def defined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? some? }
     def undefined-soft? [ +Mirth QName -- +Mirth Bool ] { def-soft? none? }
 

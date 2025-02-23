@@ -66,7 +66,7 @@ def compiler-parse-args [ +ArgumentParser(Options) Options Maybe(Str) ArgpOption
         swap for(>Path swap input-file!),
         dip(drop) ArgumentParsingError.TooManyArgs Some state:error!
     ),
-    LongOnly -> dup "debug" == if(
+    LongOnly -> dup "debug" = if(
         drop2 True swap emit-debug-info!,
         drop2 ArgumentParsingError.UnknownArg Some state:error!
     ),

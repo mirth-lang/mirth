@@ -3,7 +3,7 @@ import(std.prelude)
 import(std.world)
 
 def(!!True, Bool --, if(id, "Assertion failed" panic!))
-def(!!=, Int Int --, == !!True)
+def(!!=, Int Int --, = !!True)
 
 def(mk-int-pack, [Int Int], 10 20 pack2)
 def(swap-int-pack, [a b] -- [b a], unpack2 swap pack2)

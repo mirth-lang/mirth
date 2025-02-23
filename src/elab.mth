@@ -201,7 +201,7 @@ struct +TypeElab {
     }
 
     def elab-type-con! [ +Mirth +TypeElab Name/DName -- +Mirth +TypeElab Type ] {
-        dup left? rdip:has(>Str "Mut" ==) if(
+        dup left? rdip:has(>Str "Mut" =) if(
             drop token rdip:next dip(
                 token:args-1
                 elab-type-arg!
@@ -485,7 +485,7 @@ struct +ResolveDef {
                             WrongConstructor -> rdip_:qname; " is constructor for a different type" ; ,
                             MethodWrongType -> impossible!,
                             MethodNotAvailable -> rdip_:qname; " is not avaliable for current stack" ; ,
-                        ) ", " >separator) 
+                        ) ", " >separator)
                         separator> drop
                 )
         )) rdip:emit-error! rdrop
@@ -508,7 +508,7 @@ def +Mirth.resolve-def(f) [
 
 def QName.punning? [ +Mirth QName -- +Mirth Bool ] {
     dup namespace match {
-        { Tycon -> name swap name == }
+        { Tycon -> name swap name = }
         { _ -> drop2 False }
     }
 }
@@ -547,18 +547,18 @@ def namespace-is-imported-at-token? [ +Mirth Token Namespace -- +Mirth Bool ] {
 def QName.climb-up-name? [ +Mirth Name QName -- +Mirth List(Namespace) ] {
     >qname >name
 
-    @qname name @name == if(
+    @qname name @name = if(
         @qname namespace L1,
         L0
     ) >accum
     name> defs for(match(
         Alias ->
-            dup ~target try-force! has(qname-hard @qname ==) if(
+            dup ~target try-force! has(qname-hard @qname =) if(
                 namespace-hard @accum:cons,
                 drop
             ),
         Type ->
-            dup target tycon? has(qname-hard @qname ==) if(
+            dup target tycon? has(qname-hard @qname =) if(
                 namespace @accum:cons,
                 drop
             ),
@@ -933,7 +933,7 @@ struct +AB {
 }
 
 def arity-compatible? [ Int Int -- Bool ] {
-    dup -1 == dip(==) or
+    dup -1 = dip(=) or
 }
 
 def ab-build!(f) [ (*a +AB -- *b +AB) *a Ctx StackType Token Home -- *b Arrow ] {
@@ -1008,7 +1008,7 @@ def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word 
             ),
         Module ->
             drop
-            @word name >Str "main" == then(
+            @word name >Str "main" = then(
                 T0 Resource.World T+ !dom
                 T0 Resource.World T+ !cod
             ),
@@ -1226,8 +1226,8 @@ def elab-match-cases-args! [ +Mirth +Match -- +Mirth +Match ] {
 ||| Elaborate match case based on starting token.
 def elab-match-case! [ Token +Mirth +Match -- Token +Mirth +Match ] {
     dup rdip:run-arrow? unwrap("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
-    dup2 == then("expected pattern" rdip:emit-fatal-error!)
-    dup2 rdip:prev == else("multi-part pattern not supported" rdip:emit-fatal-error!)
+    dup2 = then("expected pattern" rdip:emit-fatal-error!)
+    dup2 rdip:prev = else("multi-part pattern not supported" rdip:emit-fatal-error!)
     rdip(dip:pat-tokens sip:prev succ) +Match.case!(
         elab-pattern!,
         elab-atoms!
@@ -1406,14 +1406,14 @@ def elab-module-header! [ +World +Mirth Token -- +World +Mirth Token ] {
 def check-module-path [ Token Module +World +Mirth -- +World +Mirth ] {
     dup path rdip:split-last match(
         None ->
-            swap qname to-module-path dup2 == else(
+            swap qname to-module-path dup2 = else(
                 "Expected module name to match path.\n" swap >Str cat "\n" cat swap >Str cat emit-fatal-error!
             ) drop3,
 
         Some ->
-            split-last-byte(Byte.BDOT ==) "mth" Some ==
+            split-last-byte(Byte.BDOT =) "mth" Some =
             else(over3 "Expected .mth extension for mirth file." emit-warning!)
-            over2 name >Str == else(over2 .module .head "Expected module name to match file name." emit-fatal-error!)
+            over2 name >Str = else(over2 .module .head "Expected module name to match file name." emit-fatal-error!)
             over package path! drop2
     )
 }
@@ -2137,7 +2137,7 @@ def check-inline-recursion-arg! [ +Mirth Word Arg -- +Mirth ] {
 def check-inline-recursion-op! [ +Mirth Word Op -- +Mirth ] {
     BlockRun -> arrow check-inline-recursion-arrow!,
     Word ->
-        dup2 == if(
+        dup2 = if(
             drop check-inline-recursion-failed!,
             dup prefer-inline? if(
                 ~arrow try-force! if?(
@@ -2343,7 +2343,7 @@ def elab-def-type! [ +Mirth Token -- +Mirth Token ] {
 |||
 |||     buffer(Name, Size)
 |||     buffer Name Size
-def parse-buffer [ +Mirth Token -- +Mirth Token head:Token doc:Maybe(Str) size:USize ] {
+def parse-buffer [ +Mirth Token -- +Mirth Token head:Token doc:Maybe(Str) size:Size ] {
     dup doc >doc
     dup num-args 0> if(
         sip(next) args-2 >sizearg >head
@@ -2357,7 +2357,8 @@ def parse-buffer [ +Mirth Token -- +Mirth Token head:Token doc:Maybe(Str) size:U
         @head name/dname? else(@head "Expected buffer name." emit-fatal-error!)
         @sizearg int? else?(@sizearg "Expected buffer size." emit-fatal-error!) >size
     )
-    @size:>USize-else(drop @sizearg "Buffer size must not be negative." emit-error! 0u >USize)
+    @size 0> else(@sizearg "Buffer size must be positive." emit-error! 8 !size)
+    @size:>Size
     sizearg> drop
 }
 
@@ -2418,7 +2419,7 @@ def elab-embed-str! [ Token +World +Mirth -- Token +World +Mirth ] {
     @arity 0= else(@head "expected no arguments" emit-fatal-error!)
     dup >body None >sig?
     dup str? unwrap("expected source path" emit-fatal-error!)
-    >Path >+mirth open-file! +else(+mirth> fatal-error!) read-file! close-file! nip >contents +mirth>
+    >Path >+mirth open-file! +else(+mirth> io-error!) read-file! close-file! then?(+mirth> io-error!) nip >contents +mirth>
     Word.new!
     dup PropLabel.WordQName >label Prop over ~qname !
 
@@ -2474,7 +2475,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     None >doc # TODO
     @head >head
     "NUM" >Name >name
-    8u >USize >size
+    8 bytes >size
     Buffer.new! >buf
     @buf @tbl ~num-buffer !
     @tbl "Num" 0 table-qname

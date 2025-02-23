@@ -52,20 +52,20 @@ data Def {
     def field? { Field -> Some, _ -> drop None }
     def macro? { Macro -> Some, _ -> drop None }
 
-    def == [ Def Def -- Bool ] {
-        { Package -> Some swap package? == }
-        { Module -> Some swap module? == }
-        { Alias -> Some swap alias? == }
-        { Data -> Some swap data? == }
-        { Table -> Some swap table? == }
-        { Type -> Some swap typedef? == }
-        { Tag -> Some swap tag? == }
-        { Prim -> Some swap prim? == }
-        { Word -> Some swap word? == }
-        { Buffer -> Some swap buffer? == }
-        { External -> Some swap external? == }
-        { Field -> Some swap field? == }
-        { Macro -> Some swap macro? == }
+    def =  [ Def Def -- Bool ] {
+        { Package -> Some swap package? = }
+        { Module -> Some swap module? = }
+        { Alias -> Some swap alias? = }
+        { Data -> Some swap data? = }
+        { Table -> Some swap table? = }
+        { Type -> Some swap typedef? = }
+        { Tag -> Some swap tag? = }
+        { Prim -> Some swap prim? = }
+        { Word -> Some swap word? = }
+        { Buffer -> Some swap buffer? = }
+        { External -> Some swap external? = }
+        { Field -> Some swap field? = }
+        { Macro -> Some swap macro? = }
     }
 
     def typecheck! [ +Mirth Def -- +Mirth ] {
@@ -153,7 +153,7 @@ data Def {
     }
 
     def same-resolved? [ +Mirth Def Def -- +Mirth Bool ] {
-        on2(resolve) ==
+        on2(resolve) =
     }
 
     def resolve [ +Mirth Def -- +Mirth Def ] {

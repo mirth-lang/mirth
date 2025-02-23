@@ -70,7 +70,7 @@ data Either(a,b) {
     }
 
     ||| Turn left values into right ones if `value eq` is true
-    def case(value, f, eq {==}) [ (*x a -- *x a a, *x -- *x b, *x a a -- *x Bool) *x Either(a,b) -- *x Either(a,b) ] {
+    def case(value, f, eq {=}) [ (*x a -- *x a a, *x -- *x b, *x a a -- *x Bool) *x Either(a,b) -- *x Either(a,b) ] {
         right?(value eq, drop f)
     }
 

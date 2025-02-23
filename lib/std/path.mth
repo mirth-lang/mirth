@@ -12,7 +12,7 @@ struct Path {
     inline {
         def Str.>Path { Path }
         def >Str { /Path }
-        def == { on2:>Str == }
+        def =  { on2:>Str =  }
         def <  { on2:>Str <  }
         def <= { on2:>Str <= }
         def >  { on2:>Str >  }
