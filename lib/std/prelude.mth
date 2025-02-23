@@ -338,8 +338,11 @@ data Nat { Unsafe [ Int ] }
 ||| Rational numbers.
 data Rat { Unsafe [ Int Nat ] }
 
-struct Size         { Int }
-struct Offset       { Int }
+||| Size in bytes.
+struct Size { Int }
+
+||| Byte offset into a structure or buffer.
+struct Offset { Int }
 
 inline {
     def 0u [ Nat ] { 0 Nat.Unsafe }
