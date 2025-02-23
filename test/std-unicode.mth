@@ -10,9 +10,9 @@ def main [ +World -- +World ] {
     +Tests.Start!
 
     "Codepoint.size-utf-16" test (
-        2u >USize => ( 119056 >Codepoint-unsafe size-utf-16 )
-        1u >USize => (     97 >Codepoint-unsafe size-utf-16 )
-        1u >USize => (  22899 >Codepoint-unsafe size-utf-16 )
+        2u => ( 119056 >Codepoint-unsafe num-utf-16-units )
+        1u => (     97 >Codepoint-unsafe num-utf-16-units )
+        1u => (  22899 >Codepoint-unsafe num-utf-16-units )
     )
 
     "Codepoint.emit;" test (
@@ -33,11 +33,11 @@ def main [ +World -- +World ] {
     )
 
     "Str.num-codepoints" test (
-        7u >USize => ( "a🧚🏻‍♀️c" num-codepoints )
+        7u => ( "a🧚🏻‍♀️c" num-codepoints )
     )
 
     "Str.num-utf-16" test (
-        9u >USize => ( "a🧚🏻‍♀️c" num-utf-16 )
+        9u => ( "a🧚🏻‍♀️c" num-utf-16-units )
     )
     +Tests.end!
 }

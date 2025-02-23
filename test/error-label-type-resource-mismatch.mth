@@ -17,7 +17,7 @@ data(+Bar, +Bar)
 def(+World.baz, +World -- +World, id)
 
 def(main, +World -- +World,
-    [ "foo" @+foo:Int.1+ ] drop
+    [ "foo" @+foo:Int.succ ] drop
     [ +Bar @foo:+World.baz ] drop
     [ +Bar @foo +World.baz ] drop
     [ +Bar !foo +World.baz ] drop)

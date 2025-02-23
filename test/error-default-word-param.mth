@@ -1,13 +1,11 @@
 module test.error-default-word-param
 import std.prelude
 
-def foo (f {1+}) [ ( a -- a ) a -- a ] { f f }
+def foo (f {cat}) [ ( a a -- a ) a a -- a ] { f }
 
 def main {
-    10 foo
-    20 foo
-    "Hello" foo
-    drop3
+    10 20 foo
+    drop
 }
-# mirth-test # merr # 9:13: error: Multiple definitions for name, but none are suitable: Method 1+ is for different type – expected one of std.prelude.UOffset std.prelude.IOffset std.prelude.USize std.prelude.ISize std.prelude.UIndex std.prelude.Nat std.prim.Int but got [Str]
+# mirth-test # merr # 7:11: error: Multiple definitions for name, but none are suitable: Method cat is for different type – expected one of std.list.Nest/1 std.list.List/1 std.prim.Str but got [Int]
 # mirth-test # mret # 1

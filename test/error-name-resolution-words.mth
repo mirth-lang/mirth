@@ -7,7 +7,7 @@ data(+Type2, TYPE2)
 data(+Type3, TYPE3)
 def(Type1.method, Type1 -- Type1, id)
 def(+Type2.method, +Type2 -- +Type2, id)
-def(1+, Int -- Int, 1 +)
+def(succ, Int -- Int, 1 +)
 def(+Type2.method2, +Type2 -- +Type2, id)
 
 def(not-visible-but-ok-1, --, 10 >I8? none? drop)
@@ -19,15 +19,15 @@ def(ambiguous-1a, Type1 +Type2 -- Type1 +Type2, method)
 def(ambiguous-1b, Type1 +Type2 -- Type1 +Type2, .method)
 def(not-ambiguous-1c, Type1 +Type2 -- Type1 +Type2, Type1.method)
 def(not-ambiguous-1d, Type1 +Type2 -- Type1 +Type2, +Type2.method)
-def(ambiguous-2a, Int -- Int, 1+)
-def(not-ambiguous-2b, Int -- Int, .1+)
-def(not-ambiguous-2c, Int -- Int, Int.1+)
-def(not-ambiguous-2d, Int -- Int, prim.Int.1+)
-def(not-ambiguous-2e, Int -- Int, std.prim.Int.1+)
-def(not-ambiguous-2f, Int -- Int, error-name-resolution-words.1+)
-def(not-ambiguous-2g, Int -- Int, mirth-tests.error-name-resolution-words.1+)
+def(ambiguous-2a, Int -- Int, succ)
+def(not-ambiguous-2b, Int -- Int, .succ)
+def(not-ambiguous-2c, Int -- Int, Int.succ)
+def(not-ambiguous-2d, Int -- Int, prim.Int.succ)
+def(not-ambiguous-2e, Int -- Int, std.prim.Int.succ)
+def(not-ambiguous-2f, Int -- Int, error-name-resolution-words.succ)
+def(not-ambiguous-2g, Int -- Int, mirth-tests.error-name-resolution-words.succ)
 def(bad-qualifier-1, --, 10 20 std.either.drop2)
-def(bad-qualifier-2, --, 10 std.either.1+ drop)
+def(bad-qualifier-2, --, 10 std.either.succ drop)
 def(bad-qualifier-3, --, 10 Int.method drop)
 def(method-wrong-type-1, Int -- Int, method2)
 def(method-wrong-type-2, Int -- Int, method)
@@ -38,10 +38,10 @@ def(method-not-available-2, --, method)
 def(method-not-available-3, --, .method2)
 def(method-not-available-4, --, .method)
 
-def(error-chaining-1-ambiguous, --, "Hello" 1- 1- drop)
+def(error-chaining-1-ambiguous, --, "Hello" pred pred drop)
 def(error-chaining-2-not-ambiguous, --, "Hello" + method2 /TYPE2)
 def(error-chaining-3-detects-error-again, --, "Hello" + method2 /TYPE3)
-def(error-chaining-4-still-ambiguous, --, "Hello" 1- method2 /TYPE2 1-)
+def(error-chaining-4-still-ambiguous, --, "Hello" pred method2 /TYPE2 pred)
 
 def(main, --, id)
 # mirth-test # merr # 15:39: error: Not imported in current scope: std.maybe.Maybe/1.none?
@@ -49,9 +49,9 @@ def(main, --, id)
 # mirth-test # merr # 17:20: error: Unknown word name, possibly a misspelling.
 # mirth-test # merr # 18:49: error: Ambiguous word. Can't decide between: mirth-tests.error-name-resolution-words.+Type2.method, mirth-tests.error-name-resolution-words.Type1.method
 # mirth-test # merr # 19:49: error: Ambiguous word. Can't decide between: mirth-tests.error-name-resolution-words.+Type2.method, mirth-tests.error-name-resolution-words.Type1.method
-# mirth-test # merr # 22:31: error: Ambiguous word. Can't decide between: mirth-tests.error-name-resolution-words.1+, std.prim.Int.1+
+# mirth-test # merr # 22:31: error: Ambiguous word. Can't decide between: mirth-tests.error-name-resolution-words.succ, std.prim.Int.succ
 # mirth-test # merr # 29:32: error: Qualified name not found. Perhaps you meant: std.prelude.drop2
-# mirth-test # merr # 30:29: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.1+ doesn't match the given qualified name, std.prelude.UOffset.1+ doesn't match the given qualified name, std.prelude.IOffset.1+ doesn't match the given qualified name, std.prelude.USize.1+ doesn't match the given qualified name, std.prelude.ISize.1+ doesn't match the given qualified name, std.prelude.UIndex.1+ doesn't match the given qualified name, std.prelude.Nat.1+ doesn't match the given qualified name, std.prim.Int.1+ doesn't match the given qualified name
+# mirth-test # merr # 30:29: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.succ doesn't match the given qualified name, std.prim.U8.succ doesn't match the given qualified name, std.prim.U16.succ doesn't match the given qualified name, std.prim.U32.succ doesn't match the given qualified name, std.prim.U64.succ doesn't match the given qualified name, std.prim.I8.succ doesn't match the given qualified name, std.prim.I16.succ doesn't match the given qualified name, std.prim.I32.succ doesn't match the given qualified name, std.prim.I64.succ doesn't match the given qualified name, std.prelude.Nat.succ doesn't match the given qualified name, std.prim.Int.succ doesn't match the given qualified name
 # mirth-test # merr # 31:29: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.+Type2.method doesn't match the given qualified name, mirth-tests.error-name-resolution-words.Type1.method doesn't match the given qualified name
 # mirth-test # merr # 32:38: error: Method mirth-tests.error-name-resolution-words.+Type2.method2 does not match [Int]
 # mirth-test # merr # 33:38: error: Multiple definitions for name, but none are suitable: Method method is for different type – expected one of mirth-tests.error-name-resolution-words.+Type2 mirth-tests.error-name-resolution-words.Type1 but got [Int]
@@ -61,11 +61,11 @@ def(main, --, id)
 # mirth-test # merr # 37:33: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.+Type2.method is not avaliable for current stack, mirth-tests.error-name-resolution-words.Type1.method is not avaliable for current stack
 # mirth-test # merr # 38:33: error: Method is not available for current stack: mirth-tests.error-name-resolution-words.+Type2.method2
 # mirth-test # merr # 39:33: error: Multiple definitions for name, but none are suitable: mirth-tests.error-name-resolution-words.+Type2.method is not avaliable for current stack, mirth-tests.error-name-resolution-words.Type1.method is not avaliable for current stack
-# mirth-test # merr # 41:45: error: Multiple definitions for name, but none are suitable: Method 1- is for different type – expected one of std.prelude.UOffset std.prelude.IOffset std.prelude.USize std.prelude.ISize std.prelude.Nat std.prim.Int but got [Str]
-# mirth-test # merr # 41:48: warning: Can't resolve word due to previous errors. Candidates are: std.prelude.UOffset.1-, std.prelude.IOffset.1-, std.prelude.USize.1-, std.prelude.ISize.1-, std.prelude.Nat.1-, std.prim.Int.1-
-# mirth-test # merr # 42:49: error: Multiple definitions for name, but none are suitable: Method + is for different type – expected one of std.prelude.UOffset std.prelude.IOffset std.prelude.USize std.prelude.ISize std.prelude.UIndex std.prelude.Nat std.prim.F64 std.prim.F32 std.prim.Int but got [Str]
-# mirth-test # merr # 43:55: error: Multiple definitions for name, but none are suitable: Method + is for different type – expected one of std.prelude.UOffset std.prelude.IOffset std.prelude.USize std.prelude.ISize std.prelude.UIndex std.prelude.Nat std.prim.F64 std.prim.F32 std.prim.Int but got [Str]
+# mirth-test # merr # 41:45: error: Multiple definitions for name, but none are suitable: Method pred is for different type – expected one of std.prim.U8 std.prim.U16 std.prim.U32 std.prim.U64 std.prim.I8 std.prim.I16 std.prim.I32 std.prim.I64 std.prelude.Nat std.prim.Int but got [Str]
+# mirth-test # merr # 41:50: warning: Can't resolve word due to previous errors. Candidates are: std.prim.U8.pred, std.prim.U16.pred, std.prim.U32.pred, std.prim.U64.pred, std.prim.I8.pred, std.prim.I16.pred, std.prim.I32.pred, std.prim.I64.pred, std.prelude.Nat.pred, std.prim.Int.pred
+# mirth-test # merr # 42:49: error: Multiple definitions for name, but none are suitable: Method + is for different type – expected one of std.prim.Ptr std.prelude.Offset std.prelude.Size std.number.Complex/2 std.prim.F64 std.prim.F32 std.prim.U8 std.prim.U16 std.prim.U32 std.prim.U64 std.prim.I8 std.prim.I16 std.prim.I32 std.prim.I64 std.number.Half std.prelude.Rat std.prelude.Nat std.prim.Int std.number.Zero std.prim.CUInt std.prim.CInt but got [Str]
+# mirth-test # merr # 43:55: error: Multiple definitions for name, but none are suitable: Method + is for different type – expected one of std.prim.Ptr std.prelude.Offset std.prelude.Size std.number.Complex/2 std.prim.F64 std.prim.F32 std.prim.U8 std.prim.U16 std.prim.U32 std.prim.U64 std.prim.I8 std.prim.I16 std.prim.I32 std.prim.I64 std.number.Half std.prelude.Rat std.prelude.Nat std.prim.Int std.number.Zero std.prim.CUInt std.prim.CInt but got [Str]
 # mirth-test # merr # 43:65: error: Failed to unify +Type2 with +Type3
-# mirth-test # merr # 44:51: error: Multiple definitions for name, but none are suitable: Method 1- is for different type – expected one of std.prelude.UOffset std.prelude.IOffset std.prelude.USize std.prelude.ISize std.prelude.Nat std.prim.Int but got [Str]
-# mirth-test # merr # 44:69: warning: Can't resolve word due to previous errors. Candidates are: std.prelude.UOffset.1-, std.prelude.IOffset.1-, std.prelude.USize.1-, std.prelude.ISize.1-, std.prelude.Nat.1-, std.prim.Int.1-
+# mirth-test # merr # 44:51: error: Multiple definitions for name, but none are suitable: Method pred is for different type – expected one of std.prim.U8 std.prim.U16 std.prim.U32 std.prim.U64 std.prim.I8 std.prim.I16 std.prim.I32 std.prim.I64 std.prelude.Nat std.prim.Int but got [Str]
+# mirth-test # merr # 44:71: warning: Can't resolve word due to previous errors. Candidates are: std.prim.U8.pred, std.prim.U16.pred, std.prim.U32.pred, std.prim.U64.pred, std.prim.I8.pred, std.prim.I16.pred, std.prim.I32.pred, std.prim.I64.pred, std.prelude.Nat.pred, std.prim.Int.pred
 # mirth-test # mret # 1

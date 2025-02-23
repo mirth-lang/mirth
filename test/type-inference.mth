@@ -21,14 +21,14 @@ def Maybe.another-map(f) {
 }
 
 def fact  { 1 swap fact* }
-def fact* {
+def fact* [ Int Int -- Int ] {
     dup 1 < if(
         drop,
         tuck * swap 1- fact*
     )
 }
 
-def fib {
+def Int.fib {
     dup 2 < if(
         id,
         dup dip(1- fib) dip_(2 - fib) Int.+
