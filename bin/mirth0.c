@@ -5634,10 +5634,12 @@ static uint64_t mext_std_ctypes_CStr_numZ_bytesZ_raw (void* in_CStr_1) {
 	int64_t v6 = (int64_t)(0);
 	return v5;
 }
-const char * strerror (int);
+char* strerror(int);
+static const char* posix_strerror(int e) { return strerror(e); }
+const char * posix_strerror (int);
 static void* mext_std_prim_ZPlusWorld_rawZ_posixZ_strerrorZBang (int64_t in_CInt_1) {
 	int X2 = (int)(in_CInt_1);
-	const char * Y = strerror(X2);
+	const char * Y = posix_strerror(X2);
 	int64_t v5 = (int64_t)(0);
 	void* v6 = (void*)(Y);
 	return v6;

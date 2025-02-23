@@ -25,7 +25,9 @@ struct +FileDescriptor {
 
 patch +World {
     external {
-        raw-posix-strerror! -> strerror [ +World CInt -- +World CStr ]
+        "char* strerror(int);"
+        "static const char* posix_strerror(int e) { return strerror(e); }"
+        raw-posix-strerror! -> posix_strerror [ +World CInt -- +World CStr ]
     }
     inline def posix-strerror! [ +World Errno -- +World Str ] {
         >CInt raw-posix-strerror! unsafe:Str.CloneCStr
