@@ -1,0 +1,132 @@
+module(mirth-tests.std-map)
+
+import(std.prelude)
+import(std.map)
+import(std.maybe)
+import(std.list)
+import(std.test)
+import(std.str)
+
+
+struct +R {
+    value:Str
+    --
+    def init [ Str -- +R ] { >value +R }
+    def unwrap [ +R -- Str ] { /+R value> }
+    def repr; [ +Str +R -- +Str +R ] { 
+        value rdip(repr; " >value +R";)
+    }
+    def rdrop [ +R -- ] { unwrap drop }
+}
+
+def >+R [ Str -- +R ] { +R.init }
+
+def main [ +World -- +World ] {
+    +Tests.Start!
+
+    "+Map.+insert" test (
+        +Map.init
+
+        1 "A" >+R +KeyValuePair.init rswap +insert
+        1 +find(value Some, None) rdip:=>("A" Some)
+
+        2 +find(value Some, None) rdip:=>(None)
+
+        1 "B" >+R +KeyValuePair.init rswap +insert
+        1 +find(value Some, None) rdip:=>("B" Some)
+
+        rdrop
+    )
+
+    "+Map.+insert/1" test (
+        +Map.init
+
+        +insert(1 "A" >+R)
+        1 +find(value Some, None) rdip:=>("A" Some)
+
+        2 +find(value Some, None) rdip:=>(None)
+        
+        +insert(1 "B" >+R)
+        1 +find(value Some, None) rdip:=>("B" Some)
+
+        rdrop
+    )
+
+    "+Map.+delete" test (
+        +Map.init
+
+        +insert(1 "A" >+R)
+        +insert(2 "B" >+R)
+        +insert(1 "C" >+R)
+
+        1 +find(value Some, None) rdip:=>("C" Some)
+        2 +find(value Some, None) rdip:=>("B" Some)
+
+        1 +delete
+        1 +find(value Some, None) rdip:=>(None)
+        2 +find(value Some, None) rdip:=>("B" Some)
+
+        rdrop
+    )
+
+    "+Map.+find-pair" test (
+        +Map.init
+        +insert(1 "A" >+R)
+        +insert(2 "B" >+R)
+        +insert(1 "C" >+R)
+
+        1 +find-pair(key Some, None) rdip:=>(1 Some)
+        1 +find-pair("D" +value:value!, id)
+        1 +find(value Some, None) rdip:=>("D" Some)
+
+        rdrop
+    )
+
+
+    "+Map.+find" test (
+        +Map.init
+        +insert(1 "A" >+R)
+        +insert(2 "B" >+R)
+        +insert(1 "C" >+R)
+
+        1 +find("D" value! True, False) rdip:=>(True)
+        3 +find("X" value! True, False) rdip:=>(False)
+        1 +find(value Some, None) rdip:=>("D" Some)
+
+        rdrop
+    )
+
+    "+Map.+upsert" test (
+        +Map.init
+        
+        1 +upsert:+else("A" >+R)
+        1 +find(value Some, None) rdip:=>("A" Some)
+        2 +find(value Some, None) rdip:=>(None)
+
+
+        1 +upsert:+else("B" >+R)
+        1 +find(value Some, None) rdip:=>("A" Some)
+
+        1 +upsert:+if("B" value!,"C" >+R)
+        1 +find(value Some, None) rdip:=>("B" Some)
+
+        2 +upsert:+if("X" value!, "Y" >+R)
+        2 +find(value Some, None) rdip:=>("Y" Some)
+
+
+        List(rswap rdrop(unwrap ;))
+        => (List("Y"; "B";))
+    )
+
+
+    "+Map.rdrop" test (
+        +Map.init
+        +insert(1 "A" >+R) 
+        +insert(2 "B" >+R)
+        List(rswap rdrop(unwrap ;))
+        => (List("B"; "A";))
+    )
+
+    +Tests.end!
+}
+# mirth-test # pout # 7 tests passed.
