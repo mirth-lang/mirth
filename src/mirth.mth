@@ -101,6 +101,7 @@ struct +Mirth {
     lexical-state: LexicalState
     +diagnostics: +Lister(Diagnostic)
     +propstack: +Lister(PropLabel)
+    +namehashmap: +NameHashMap
 }
 
 def +Mirth.Init! {
@@ -115,6 +116,7 @@ def +Mirth.Init! {
     None >error-token
     None >defining-namespace
     LexicalState >lexical-state
+    +NameHashMap.new >+namehashmap
     +Mirth
     init-packages!
     init-modules!
@@ -134,6 +136,7 @@ def +Mirth.rdrop [ +Mirth -- ] {
     lexical-state> drop
     +diagnostics> rdrop
     +propstack> rdrop
+    +namehashmap> rdrop
 }
 
 def +Mirth.mirth-base-lib-path [ +World +Mirth -- +World +Mirth Maybe(Path) ] {
