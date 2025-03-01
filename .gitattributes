@@ -1,0 +1,3 @@
+/bin/mirth0.c merge=keep-local-changes
+*.mth linguist-language=Mirth
+

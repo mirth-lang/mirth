@@ -1,0 +1,4 @@
+[merge "keep-local-changes"]
+        name = Custom merge driver that keeps local changes
+        driver = true
+ 
