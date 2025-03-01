@@ -1698,20 +1698,8 @@ def +C99Branch.pop-data! [ Data +C99Branch -- +C99Branch +C99Value/Resource ] {
     )
 }
 
-data +C99Value? {
-    +C99ValueNone
-    +C99ValueSome [ +C99Value ]
-}
 
-def +C99Value?.unwrap!(f,g) {
-    { +C99ValueSome -> f }
-    { +C99ValueNone -> g }
-}
 
-data +C99Resource? {
-    +C99ResourceNone
-    +C99ResourceSome [ +C99Resource ]
-}
 
 def +C99Branch.refresh-branch! [ +C99Branch -- +C99Branch ] {
     /+C99Branch
@@ -1783,43 +1771,43 @@ data +C99Stack {
     +WithLabel [ +C99Stack +C99Resource Label ]
 }
 
-def +C99Stack.pop-value? [ +C99Stack -- +C99Value? +C99Stack ] {
-    { +Nil -> +C99Value?.+C99ValueNone +C99Stack.+Nil }
-    { +Cons -> +C99Value?.+C99ValueSome rswap }
+def +C99Stack.pop-value? [ +C99Stack -- +Maybe(+C99Value) +C99Stack ] {
+    { +Nil -> +None +C99Stack.+Nil }
+    { +Cons -> +Some rswap }
     { +With -> rdip:pop-value? +C99Stack.+With }
     { +ConsLabel -> rdip:pop-value? +C99Stack.+ConsLabel }
     { +WithLabel -> rdip:pop-value? +C99Stack.+WithLabel }
 }
 
-def +C99Stack.pop-resource? [ +C99Stack -- +C99Resource? +C99Stack ] {
-    { +Nil -> +C99Resource?.+C99ResourceNone +C99Stack.+Nil }
-    { +With -> +C99Resource?.+C99ResourceSome rswap }
+def +C99Stack.pop-resource? [ +C99Stack -- +Maybe(+C99Resource) +C99Stack ] {
+    { +Nil -> +None +C99Stack.+Nil }
+    { +With -> +Some rswap }
     { +Cons -> rdip:pop-resource? +C99Stack.+Cons }
     { +ConsLabel -> rdip:pop-resource? +C99Stack.+ConsLabel }
     { +WithLabel -> rdip:pop-resource? +C99Stack.+WithLabel }
 }
 
-def +C99Stack.pop-value-label? [ Label +C99Stack -- Label +C99Value? +C99Stack ] {
-    { +Nil -> +C99Value?.+C99ValueNone +C99Stack.+Nil }
+def +C99Stack.pop-value-label? [ Label +C99Stack -- Label +Maybe(+C99Value) +C99Stack ] {
+    { +Nil -> +None +C99Stack.+Nil }
     { +Cons -> rdip:pop-value-label? +C99Stack.+Cons }
     { +With -> rdip:pop-value-label? +C99Stack.+With }
     { +WithLabel -> dip:rdip:pop-value-label? +C99Stack.+WithLabel }
     { +ConsLabel ->
         dup2 = if(
-            drop +C99Value?.+C99ValueSome rswap,
+            drop +Some rswap,
             dip:rdip:pop-value-label? +C99Stack.+ConsLabel
         )
     }
 }
 
-def +C99Stack.pop-resource-label? [ Label +C99Stack -- Label +C99Resource? +C99Stack ] {
-    { +Nil -> +C99Resource?.+C99ResourceNone +C99Stack.+Nil }
+def +C99Stack.pop-resource-label? [ Label +C99Stack -- Label +Maybe(+C99Resource) +C99Stack ] {
+    { +Nil -> +None +C99Stack.+Nil }
     { +Cons -> rdip:pop-resource-label? +C99Stack.+Cons }
     { +With -> rdip:pop-resource-label? +C99Stack.+With }
     { +ConsLabel -> dip:rdip:pop-resource-label? +C99Stack.+ConsLabel }
     { +WithLabel ->
         dup2 = if(
-            drop +C99Resource?.+C99ResourceSome rswap,
+            drop +Some rswap,
             dip:rdip:pop-resource-label? +C99Stack.+WithLabel
         )
     }
@@ -1952,31 +1940,19 @@ def +C99Branch.flush-cache! [ +C99Branch -- +C99Branch ] {
 }
 
 def +C99Branch.pop-value! [ +C99Branch C99ReprType -- +C99Branch +C99Value ] {
-    +stack(pop-value?) rswap match {
-        { +C99ValueSome -> drop }
-        { +C99ValueNone -> pop-value-direct! }
-    }
+    +stack(pop-value?) rswap +if(drop, pop-value-direct!)
 }
 
 def +C99Branch.pop-value-label! [ C99ReprType Label +C99Branch -- +C99Branch +C99Value ] {
-    +stack(pop-value-label?) rswap match {
-        { +C99ValueSome -> drop2 }
-        { +C99ValueNone -> pop-value-label-direct! }
-    }
+    +stack(pop-value-label?) rswap +if(drop2, pop-value-label-direct!)
 }
 
 def +C99Branch.pop-resource! [ +C99Branch C99ReprType -- +C99Branch +C99Resource ] {
-    +stack(pop-resource?) rswap match {
-        { +C99ResourceSome -> drop }
-        { +C99ResourceNone -> pop-resource-direct! }
-    }
+    +stack(pop-resource?) rswap +if(drop, pop-resource-direct!)
 }
 
 def +C99Branch.pop-resource-label! [ C99ReprType Label +C99Branch -- +C99Branch +C99Resource ] {
-    +stack(pop-resource-label?) rswap match {
-        { +C99ResourceSome -> drop2 }
-        { +C99ResourceNone -> pop-resource-label-direct! }
-    }
+    +stack(pop-resource-label?) rswap +if(drop2, pop-resource-label-direct!)
 }
 
 def +C99Value.push-value! [ +C99Branch +C99Value -- +C99Branch ] {
@@ -2376,9 +2352,9 @@ def c99-pack-closure-vars! [ List(Var) +C99Branch -- +C99Branch ] {
     )
 }
 
-def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+C99Value? ] {
+def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+Maybe(+C99Value) ] {
     +mirth:filter(is-physical?) dup empty? if(
-        +C99Value?.+C99ValueNone >+closure
+        +None >+closure
         drop,
         C99ReprType.VAL pop-value! >+tup
         @+tup:rdup consume-as-TUP >tup
@@ -2398,7 +2374,7 @@ def c99-unpack-closure-vars! [ List(Var) +C99Branch -- +C99Branch +closure:+C99V
         )
         i> drop
         tup> drop
-        +tup> +C99Value?.+C99ValueSome >+closure
+        +tup> +Some >+closure
     )
 }
 
@@ -2549,7 +2525,7 @@ def c99-block-def! [ Block +C99 -- +C99 ] {
         dup +mirth:free-vars c99-unpack-closure-vars!
         dup +mirth:type dom expose-stack-type!
         c99-arrow!
-        +closure> unwrap!(drop-value!, id)
+        +closure> +if(drop-value!, id)
         c99-block-exit!
     )
     c99-line("}" put)
