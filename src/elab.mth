@@ -191,7 +191,7 @@ struct +TypeElab {
             match(
                 Data -> sip:Type.Data rdip:params,
                 Table -> Type.Table L0,
-                Type -> rdip(sip:target params),
+                Type -> rdip(sip:target params), # TODO: this doesn't quite make sense.
                 _ ->
                     drop token "compiler bug: resolve-type-con-name! doesn't understand type"
                     rdip:emit-error! Type.Error L0,
@@ -1102,7 +1102,7 @@ def PushValue.type [ +Mirth PushValue -- +Mirth Type ] {
 }
 
 def elab-op-fresh-sig! [ +Mirth Op -- +Mirth Subst OpSig ] {
-    Subst.nil swap match (
+    Subst.Nil swap match (
         Push -> type OpSig.Push,
         Buffer -> drop Type.Ptr OpSig.Push,
         Tag -> type freshen-sig OpSig.Apply,

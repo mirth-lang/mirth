@@ -27,6 +27,8 @@ struct Map(k,v) {
     def lookup(keq {=}) [ (*c k k -- *c Bool) *c k Map(k,v) -- *c Maybe(v) ] {
         lookup-pair(keq) map(value)
     }
+
+    def empty? [ Map(k,v) -- Bool ] { pairs empty? }
 }
 
 
@@ -38,21 +40,21 @@ struct +KeyValuePair(k, +v) {
         >key >+value +KeyValuePair
     }
     def +for(f) [ (*a +v -- *b) *a +KeyValuePair(k, +v) -- *b ] {
-        /+KeyValuePair key> drop +value> f 
+        /+KeyValuePair key> drop +value> f
     }
 
     def rdrop(del {rdrop}) { +for(del) }
 
-    def ==(eq{==}) [ 
-        (*a +v +v -- *a +v +v Bool) 
-        *a +KeyValuePair(k, +v) +KeyValuePair(k, +v) -- *a +KeyValuePair(k, +v) +KeyValuePair(k, +v) Bool 
+    def ==(eq{==}) [
+        (*a +v +v -- *a +v +v Bool)
+        *a +KeyValuePair(k, +v) +KeyValuePair(k, +v) -- *a +KeyValuePair(k, +v) +KeyValuePair(k, +v) Bool
     ] {
         !+a:+value:@+a:+value:eq
     }
 }
 
 struct +Map(k, +v) {
-    +pairs: +List(+KeyValuePair(k, +v)) 
+    +pairs: +List(+KeyValuePair(k, +v))
     --
     def init [ -- +Map(k,+v) ] {
         +List.+Nil >+pairs +Map
@@ -64,31 +66,31 @@ struct +Map(k, +v) {
     def +insert [ +KeyValuePair(k,+v) +Map(k,+v) -- +Map(k,+v) ] { +pairs:+Cons }
 
     ||| Inserts the key and value returned by `f` into the map.
-    def +insert(f) [ (*a -- *b k +v) *a +Map(k,+v) -- *b +Map(k,+v) ] { 
+    def +insert(f) [ (*a -- *b k +v) *a +Map(k,+v) -- *b +Map(k,+v) ] {
         rdip(f +KeyValuePair.init) +insert
     }
 
     ||| Removes all instances of the given key in the map
-    def +delete (del {rdrop}, keq {==}) [ 
-        (*c +v -- *c, *c k k -- *c Bool) 
+    def +delete (del {rdrop}, keq {==}) [
+        (*c +v -- *c, *c k k -- *c Bool)
         *c k +Map(k, +v) -- *c +Map(k, +v)
     ] {
         +pairs:+filter-for(dup dip_(key rdip:keq), dip:+for:del) drop
     }
 
     ||| Either calls `f` on the first pair in the map that matches the key, or calls `g`
-    def +find-pair(f, g, keq {==}) [ 
+    def +find-pair(f, g, keq {==}) [
         (*c +KeyValuePair(k, +v) -- *d +KeyValuePair(k, +v), *c -- *d, *c k k -- *c Bool)
-        *c k +Map(k, +v) -- *d +Map(k, +v) 
+        *c k +Map(k, +v) -- *d +Map(k, +v)
     ] {
         +pairs:+find(dup dip_(key rdip:keq), drop f, drop g)
     }
 
 
     ||| Either calls `f` on the value in the map that matches the key, or calls `g`
-    def +find(f, g, keq {==}) [ 
-        (*c +v -- *d +v, *c -- *d, *c k k -- *c Bool) 
-        *c k +Map(k, +v) -- *d +Map(k, +v) 
+    def +find(f, g, keq {==}) [
+        (*c +v -- *d +v, *c -- *d, *c k k -- *c Bool)
+        *c k +Map(k, +v) -- *d +Map(k, +v)
     ] {
         +find-pair(+value:f, g, keq)
     }
@@ -98,7 +100,7 @@ struct +Map(k, +v) {
         (*c +Maybe(+v) -- *d +v, *c k k -- *c Bool)
         *c k +Map(k, +v) -- *d +Map(k, +v)
     ] {
-        sip:+find(+Some f rdip:+None, +None f +Some, keq) rswap 
+        sip:+find(+Some f rdip:+None, +None f +Some, keq) rswap
         +for(dup >key >+value +KeyValuePair rswap +insert) drop
     }
 

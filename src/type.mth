@@ -7,6 +7,7 @@ import std.list
 import std.str
 import std.either
 import std.world
+import std.map
 import mirth.name
 import mirth.token
 import mirth.arrow
@@ -1203,32 +1204,81 @@ def(ArrowType.max-num-params, +Mirth ArrowType -- +Mirth Nat,
 # Subst #
 #########
 
-# mirth/data/type
-data(Subst,
-    Nil,
-    Cons -> Subst Type Var)
+struct Subst {
+    var: Map(Var, Type)
+    --
 
-def(Subst.nil?, Subst -- Bool, Nil -> True, _ -> drop False)
-def(Subst.con?, Subst -- Maybe([Subst Type Var]),
-    Cons -> pack3 Some,
-    _ -> drop None)
+    def Nil [ Subst ] { Map.Nil >var Subst }
+    def cons [ Type Var Subst -- Subst ] {
+        dip(>key >value KeyValuePair) var:insert
+    }
 
-def(Subst.nil, Subst, Subst.Nil)
-def(Subst.cons, Type Var Subst -- Subst, rotr Subst.Cons)
-def(Subst.has-var?, Var Subst -- Bool,
-    Nil -> drop False,
-    Cons -> nip over2 = if(drop2 True, has-var?))
-def(Subst.get-var, Var Subst -- Type,
-    Nil -> drop Type.Error,
-    Cons -> over3 = if(dip(drop2), drop get-var))
+    def empty? [ Subst -- Bool ] { var empty? }
+    def lookup-var [ Var Subst -- Maybe(Type) ] { var lookup }
+    def has-var? [ Var Subst -- Bool ] { lookup-var >Bool }
+    def get-var  [ Var Subst -- Type ] { lookup-var else?(Type.Error) }
 
-||| If variable is in subst, unify new type with type in subst.
-||| Otherwise, create larger subst with new binding.
-def(Subst.match-var, +Mirth Type Var Subst -- +Mirth Subst,
-    dup2 has-var? if(
-        sip(get-var unify! drop),
-        cons
-    ))
+    ||| If variable is in subst, unify new type with type in subst.
+    ||| Otherwise, create larger subst with new binding.
+    def match-var [ +Mirth Type Var Subst -- +Mirth Subst ] {
+        >subst >var
+        @var @subst lookup-var if?(
+            unify! var> drop2 subst>,
+            var> subst> cons
+        )
+    }
+}
+
+def Subst.apply (f {apply-subst}) [ ( +Mirth x subst:Subst -- +Mirth y subst:Subst ) +Mirth x Subst -- +Mirth y Subst ] {
+    !subst:f
+}
+
+def Type.apply-subst [ +Mirth Type subst:Subst -- +Mirth Type subst:Subst ] {
+    { Error -> Type.Error }
+    { Ignore -> Type.Ignore }
+    { Prim -> Type.Prim }
+    { Meta -> expand-if(apply-subst, Type.Meta) }
+    { Hole -> Type.Hole }
+    { Var -> dup @subst lookup-var if?(nip, Type.Var) }
+    { Table -> Type.Table }
+    { Data -> Type.Data }
+    { DataPartial -> Type.DataPartial }
+    { Stack -> apply-subst Type.Stack }
+    { Arrow -> apply-subst Type.Arrow }
+    { App -> on2:apply-subst Type.App }
+    { Mut -> apply-subst Type.Mut }
+    { Value -> apply-subst }
+}
+
+def Value.apply-subst [ +Mirth Value subst:Subst -- +Mirth Type subst:Subst ] {
+    { Int -> Value.Int Type.Value }
+    { Str -> Value.Str Type.Value }
+    { F64 -> Value.F64 Type.Value }
+    { Block -> type apply-subst >Type }
+}
+
+def StackType.apply-subst [ +Mirth StackType subst:Subst -- +Mirth StackType subst:Subst ] {
+    { Error -> StackType.Error }
+    { Ignore -> StackType.Ignore }
+    { Unit -> StackType.Unit }
+    { Meta -> expand-if(>StackType apply-subst, StackType.Meta) }
+    { Var -> dup @subst lookup-var if?(>StackType nip, StackType.Var) }
+    { Cons -> dip:apply-subst apply-subst StackType.Cons }
+    { With -> dip:apply-subst apply-subst StackType.With }
+    { ConsLabel -> dip(dip:apply-subst apply-subst) StackType.ConsLabel }
+    { WithLabel -> dip(dip:apply-subst apply-subst) StackType.WithLabel }
+}
+
+def ArrowType.apply-subst [ +Mirth ArrowType subst:Subst -- +Mirth ArrowType subst:Subst ] {
+    /ArrowType
+    @dom:apply-subst
+    @cod:apply-subst
+    ArrowType
+}
+
+def Resource.apply-subst [ +Mirth Resource subst:Subst -- +Mirth Resource subst:Subst ] {
+    { Resource -> apply-subst Resource }
+}
 
 ####################
 # Stack Type Parts #
