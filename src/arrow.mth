@@ -238,25 +238,33 @@ def(Block.cname, +Mirth Block -- +Mirth Str, dup ~cname memoize(
     )) nip)
 def Block.mangled; [ +Mirth +Str Block -- +Mirth +Str ] { rdip:cname ; }
 
-def(Block.new!, +Mirth Arrow -- +Mirth Block,
-    Block.alloc!
-    over home over ~home !
-    dup register-home!
-    over ctx over ~ctx !
-    over token-start over ~token !
-    over dom over ~dom !
-    over cod over ~cod !
-    tuck dup dip(PropLabel.BlockArrow prop) ~arrow !)
+def Block.new! [ +Mirth Arrow -- +Mirth Block ] {
+    >arrow
+    Block.alloc! >block
+    @arrow home @block ~home !
+    @block register-home!
+    @arrow ctx @block ~ctx !
+    @arrow token-start @block ~token !
+    @arrow dom @block ~dom !
+    @arrow cod @block ~cod !
+    arrow> @block PropLabel.BlockArrow prop @block ~arrow !
+    block>
+}
 
-def(Block.new-deferred!(f), (+Mirth Block -- +Mirth Arrow) +Mirth Ctx Token Home -- +Mirth Block,
-    Block.alloc!
-    tuck ~home !
-    dup register-home!
-    tuck ~token !
-    tuck ~ctx !
-    MetaVar.new! StackType.Meta over ~dom !
-    MetaVar.new! StackType.Meta over ~cod !
-    dup dup PropLabel.BlockArrow prop(f) over ~arrow !)
+def Block.new-deferred!(f) [
+    (+Mirth Block -- +Mirth Arrow)
+    +Mirth Ctx Token Home -- +Mirth Block
+] {
+    Block.alloc! >block
+    @block ~home !
+    @block ~token !
+    @block ~ctx !
+    @block register-home!
+    StackType.Fresh! @block ~dom !
+    StackType.Fresh! @block ~cod !
+    @block @block PropLabel.BlockArrow prop(f) @block ~arrow !
+    block>
+}
 
 def(Block.typecheck!, +Mirth Block -- +Mirth,
     arrow drop)

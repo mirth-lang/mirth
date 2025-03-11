@@ -152,15 +152,15 @@ struct +TypeElab {
     }
 
     def elab-stack-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab StackType ] {
-        Type.StackType elab-implicit-var! if?(StackType.Var, StackType.Error)
+        Type.STACK elab-implicit-var! if?(StackType.Var, StackType.Error)
     }
 
     def elab-type-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Type ] {
-        Type.Type elab-implicit-var! if?(Type.Var, Type.Error)
+        Type.TYPE elab-implicit-var! if?(Type.Var, Type.Error)
     }
 
     def elab-resource-var! [ +Mirth +TypeElab Name -- +Mirth +TypeElab Resource ] {
-        Type.ResourceType elab-implicit-var! if?(Type.Var, Type.Error) Resource
+        Type.RESOURCE elab-implicit-var! if?(Type.Var, Type.Error) Resource
     }
 
     def elab-implicit-var! [ +Mirth +TypeElab Name Type -- +Mirth +TypeElab Maybe(Var) ] {
@@ -656,8 +656,11 @@ struct +AB {
     def ab-label-push-r! [ Label +Mirth +AB -- +Mirth +AB ] { Op.LabelPushR ab-op! }
     def ab-label-pop-r! [ Label +Mirth +AB -- +Mirth +AB ] { Op.LabelPopR ab-op! }
 
-    def ab-block-at!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a Token +Mirth +AB -- *b +Mirth +AB ] {
-        ab-ctx@ rdip:MetaVar.new! StackType.Meta rotl ab-home@ rdip(ab-build!(f))
+    def ab-block-at!(f) [
+        (*a +Mirth +AB -- *b +Mirth +AB)
+        *a Token +Mirth +AB -- *b +Mirth +AB
+    ] {
+        ab-ctx@ rdip:StackType.Fresh! rotl ab-home@ rdip(ab-build!(f))
         rdip:Block.new! Op.BlockPush ab-op!
     }
 
@@ -912,7 +915,7 @@ struct +AB {
     }
 
     def elab-atom-match! [ +Mirth +AB -- +Mirth +AB ] {
-        rdip:MetaVar.new! StackType.Meta >cod
+        rdip:StackType.Fresh! >cod
         ab-token@ succ rdip:lcurly? if(
             ab-token@ succ succ >body
             ab-token@ succ ab-token!,
@@ -997,8 +1000,8 @@ def finalize-word-arrow [ +Mirth Arrow Word -- +Mirth Arrow ] {
 
 def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word ] {
     Ctx.L0 >ctx
-    MetaVar.new! StackType.Meta >dom
-    MetaVar.new! StackType.Meta >cod
+    StackType.Fresh! >dom
+    StackType.Fresh! >cod
     @word namespace-hard match(
         Tycon ->
             full-type-fresh
@@ -1017,8 +1020,7 @@ def guess-initial-ctx-type [ +Mirth word:Word -- +Mirth Ctx ArrowType word:Word 
     )
     @word arity repeat(
         @dom(
-            MetaVar.new! StackType.Meta
-            MetaVar.new! StackType.Meta T-> >Type T*
+            ArrowType.Fresh! >Type T*
         )
     )
     ctx> dom> cod> T->
@@ -1166,22 +1168,22 @@ def elab-var-sig! [ +Mirth Var -- +Mirth OpSig ] {
 }
 
 def elab-label-push-sig! [ +Mirth Label -- +Mirth OpSig ] {
-    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
+    dip(StackType.Fresh! Type.Fresh! dup2)
     StackType.ConsLabel dip(StackType.Cons) T-> OpSig.Apply
 }
 
 def elab-label-pop-sig! [ +Mirth Label -- +Mirth OpSig ] {
-    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2)
+    dip(StackType.Fresh! Type.Fresh! dup2)
     StackType.ConsLabel dip(StackType.Cons) swap T-> OpSig.Apply
 }
 
 def elab-label-push-r-sig! [ +Mirth Label -- +Mirth OpSig ] {
-    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
+    dip(StackType.Fresh! Resource.Fresh! dup2)
     StackType.WithLabel dip(StackType.With) T-> OpSig.Apply
 }
 
 def elab-label-pop-r-sig! [ +Mirth Label -- +Mirth OpSig ] {
-    dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2)
+    dip(StackType.Fresh! Resource.Fresh! dup2)
     StackType.WithLabel dip(StackType.With) swap T-> OpSig.Apply
 }
 
@@ -1300,12 +1302,12 @@ def elab-expand-tensor! [ +Mirth StackType Token -- +Mirth StackType Type Token 
 def elab-lambda-param? [ +Mirth Token -- +Mirth Token Maybe(Var) ] {
     dup pattern-var? if?(
         dip(dup args-0 next)
-        dip(MetaVar.new! Type.Meta)
+        dip(Type.Fresh!)
         Var.new! Some,
 
     dup pattern-auto-run-var? if?(
         dip(dup succ args-0 next)
-        dip(MetaVar.new! StackType.Meta MetaVar.new! StackType.Meta T->)
+        dip(ArrowType.Fresh!)
         Var.new-auto-run! Some,
 
         None
@@ -1670,9 +1672,9 @@ def elab-data-params! [ List(Token) +Mirth -- List(Var) +Mirth ] {
         over2 Ctx.lookup then("Duplicate parameter name." emit-fatal-error!)
 
         None
-        or?(dup sig-type-var? map(Type.Type swap Var.new!))
-        or?(dup sig-resource-var? map(Type.ResourceType swap Var.new!))
-        or?(dup sig-stack-var? map(Type.StackType swap Var.new!))
+        or?(dup sig-type-var? map(Type.TYPE swap Var.new!))
+        or?(dup sig-resource-var? map(Type.RESOURCE swap Var.new!))
+        or?(dup sig-stack-var? map(Type.STACK swap Var.new!))
         unwrap("Invalid parameter name." emit-fatal-error!)
         nip Ctx.new
     ) >List
@@ -2556,7 +2558,7 @@ def table-new! [ +Mirth head:Token name:Name state:PropState(QName) doc:Maybe(St
     # Table.for
     None >doc # TODO
     @tbl "for" 1u table-word-new! >word
-    Type.StackType "*a" >Name Var.new! >va
+    Type.STACK "*a" >Name Var.new! >va
     @va StackType.Var @tbl Type.Table T* @va StackType.Var T-> "f" >Name Var.new-auto-run! >vx
 
     @va Ctx.L1

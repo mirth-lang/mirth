@@ -301,7 +301,7 @@ def +SPSynth.synth-var! [ +Mirth +SPSynth Var -- +Mirth +SPSynth ] {
 }
 
 def(+SPSynth.synth-match!, +Mirth +SPSynth Match -- +Mirth +SPSynth,
-    rdip:MetaVar.new! StackType.Meta >cod
+    rdip:StackType.Fresh! >cod
     dup body >body
     cases ab:ab-match!(for(
         dup pattern token-start

@@ -26,9 +26,9 @@ def(Var.auto-run?, +Mirth Var -- +Mirth Maybe(ArrowType), ~auto-run? @)
 inline def Var.= [ Var Var -- Bool ] { both(index) = }
 
 def(Var.type;, +Mirth +Str Var -- +Mirth +Str, rdip(name >Str) ;)
-def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.Type =))
-def(Var.is-stack?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.StackType =))
-def(Var.is-resource?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.ResourceType =))
+def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.TYPE =))
+def(Var.is-stack?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.STACK =))
+def(Var.is-resource?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.RESOURCE =))
 def(Var.is-physical?, +Mirth Var -- +Mirth Bool, type is-physical?)
 
 def(Var.new!, +Mirth Type Name -- +Mirth Var,
@@ -75,25 +75,30 @@ def(Ctx.fresh-name!, +Mirth Ctx -- +Mirth Ctx Name,
         drop2 1+ dup str("_x"; int;) >Name
     ) nip)
 def(Ctx.fresh-stack-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
-    dip(PrimType.StackType Type.Prim) fresh-var!)
+    dip(Type.STACK) fresh-var!)
 def(Ctx.fresh-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
-    dip(PrimType.Type Type.Prim) fresh-var!)
+    dip(Type.TYPE) fresh-var!)
 def(Ctx.fresh-var!, +Mirth Type Ctx -- +Mirth Ctx Var,
     fresh-name! dip(swap) Var.new! sip(Ctx.new))
 
 def(Ctx.=, Ctx Ctx -- Bool,
     on2:vars =)
 
-def(Var.unify!, +Mirth Var Var -- +Mirth Type,
-    dup2 = if(drop Type.Var, both(Type.Var) unify-failed!))
+def Var.unify! [ +Mirth Var Var -- +Mirth Type ] {
+    dup2 = if(drop Type.Var, both(Type.Var) unify-failed!)
+}
 
-def(Var.freshen, +Mirth Subst Var -- +Mirth Subst Type,
+def Var.kind [ +Mirth Var -- +Mirth Kind ] {
+    type >Kind
+}
+
+def Var.freshen [ +Mirth Subst Var -- +Mirth Subst Type ] {
     swap dup2 has-var? if(
         tuck get-var,
-        MetaVar.new! Type.Meta dup
+        over kind MetaVar.new! Type.Meta dup
         dip(rotr cons)
-    ))
-
+    )
+}
 
 # Syntactic Sorts
 
@@ -114,8 +119,8 @@ def Type.>Sort? [ +Mirth Type -- +Mirth Maybe(Sort) ] {
 }
 
 def PrimType.>Sort? [ +Mirth PrimType -- +Mirth Maybe(Sort) ] {
-    { Type -> Sort.Type Some }
-    { StackType -> Sort.Stack Some }
-    { ResourceType -> Sort.Resource Some }
+    { TYPE -> Sort.Type Some }
+    { STACK -> Sort.Stack Some }
+    { RESOURCE -> Sort.Resource Some }
     { _ -> drop None }
 }
