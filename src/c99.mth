@@ -699,9 +699,10 @@ def type-arg-prefix [ +Mirth Type -- +Mirth Str ] {
     { App -> drop type-arg-prefix }
     { Mut -> dip("Mut") type-arg-prefix cat }
     { Prim -> match {
-        { Type -> "Type_" }
-        { StackType -> "StackType_" }
-        { ResourceType -> "ResourceType_" }
+        { KIND -> "KIND_" }
+        { TYPE -> "TYPE_" }
+        { STACK -> "STACK_" }
+        { RESOURCE -> "RESOURCE_" }
         { Bool -> "Bool_" }
         { Int -> "Int_" }
         { U8  -> "U8_" }
@@ -1416,9 +1417,10 @@ def StackType.tuple-c99-repr [ +Mirth StackType -- +Mirth C99ReprType ] {
 }
 
 def PrimType.c99-repr [ PrimType -- C99ReprType ] {
-    { Type -> C99ReprType.VAL }
-    { StackType -> C99ReprType.VAL }
-    { ResourceType -> C99ReprType.VAL }
+    { KIND -> C99ReprType.VAL }
+    { TYPE -> C99ReprType.VAL }
+    { STACK -> C99ReprType.VAL }
+    { RESOURCE -> C99ReprType.VAL }
     { Bool -> C99ReprType.Bool }
     { Int -> C99ReprType.Int }
     { U8  -> C99ReprType.U8  }

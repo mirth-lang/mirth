@@ -86,7 +86,7 @@ def(make-prim-uintlike!, Str Data Str Tag Str +Mirth -- +Mirth,
     tagname> 0 Type.U64 L1 tag> make-prim-tag!)
 
 def(init-data!, +Mirth -- +Mirth,
-    Type.Type "a" >Name Var.new! >a
+    Type.TYPE "a" >Name Var.new! >a
     "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
     "CPtr" 0 Type.Ptr L1 builtin mk-cptr make-prim-tag!
     "CConst" @a L1 builtin cconst builtin mk-cconst L1 None make-prim-data!

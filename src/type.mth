@@ -7,6 +7,7 @@ import std.list
 import std.str
 import std.either
 import std.world
+import std.map
 import mirth.name
 import mirth.token
 import mirth.arrow
@@ -37,7 +38,7 @@ data Type {
     Value [ Value ]
 }
 
-def Type.NewInCtx [ +Mirth Ctx Str -- +Mirth Ctx Type ] { dip:Type.Type Var.NewInCtx Type.Var }
+def Type.NewInCtx [ +Mirth Ctx Str -- +Mirth Ctx Type ] { dip:Type.TYPE Var.NewInCtx Type.Var }
 
 data Value {
     Int [ Int ]
@@ -47,9 +48,10 @@ data Value {
 }
 
 data PrimType {
-    Type
-    StackType
-    ResourceType
+    KIND
+    TYPE
+    STACK
+    RESOURCE
     Bool
     Int
     U8
@@ -73,9 +75,10 @@ def PrimType.is-resource? [ PrimType -- Bool ] {
 }
 
 def PrimType.is-physical? [ PrimType -- Bool ] {
-    { Type -> False }
-    { StackType -> False }
-    { ResourceType -> False }
+    { KIND -> False }
+    { TYPE -> False }
+    { STACK -> False }
+    { RESOURCE -> False }
     { _ -> drop True }
 }
 
@@ -99,9 +102,10 @@ def Type.tycon? [ +Mirth Type -- +Mirth Maybe(Tycon) ] {
 
 ||| Get primitive type constructor name.
 def PrimType.tycon-qname [ +Mirth PrimType -- +Mirth QName ] {
-    { Type -> "Type" 0 QName.Prim }
-    { StackType -> "StackType" 0 QName.Prim }
-    { ResourceType -> "ResourceType" 0 QName.Prim }
+    { KIND -> "KIND" 0 QName.Prim }
+    { TYPE -> "TYPE" 0 QName.Prim }
+    { STACK -> "STACK" 0 QName.Prim }
+    { RESOURCE -> "RESOURCE" 0 QName.Prim }
     { Bool -> "Bool" 0 QName.Prim }
     { Int -> "Int" 0 QName.Prim }
     { U8  -> "U8"  0 QName.Prim }
@@ -207,9 +211,10 @@ def(Type.is-physical?, +Mirth Type -- +Mirth Bool,
     _ -> drop True)
 
 def(Type.Unit, Type, StackType.Unit Type.Stack) # unit type
-def(Type.Type, Type, PrimType.Type Type.Prim) # type of types
-def(Type.StackType, Type, PrimType.StackType Type.Prim) # type of stack types
-def(Type.ResourceType, Type, PrimType.ResourceType Type.Prim) # type of (linear) resources
+def Type.KIND [ Type ] { PrimType.KIND Type.Prim }
+def Type.TYPE [ Type ] { PrimType.TYPE Type.Prim } # type of types
+def(Type.STACK, Type, PrimType.STACK Type.Prim) # type of stack types
+def(Type.RESOURCE, Type, PrimType.RESOURCE Type.Prim) # type of (linear) resources
 def(Type.Bool, Type, PrimType.Bool Type.Prim)
 def(Type.Int, Type, PrimType.Int Type.Prim) # generic integer type for integer literals
 def(Type.U8, Type, PrimType.U8 Type.Prim)
@@ -538,13 +543,32 @@ def(Type.except-field, +Mirth Label Tag Type -- +Mirth Type,
     App -> dip(except-field) Type.App,
     _ -> "Type.except-field on unexpected type" panic!)
 
+########
+# Kind #
+########
+struct Kind {
+    Type
+    --
+    def Kind.Error { Type.Error Kind }
+    def Kind.Ignore  { Type.Ignore Kind }
+    def Kind.KIND { Type.KIND Kind }
+    def Kind.TYPE { Type.TYPE Kind }
+    def Kind.STACK { Type.STACK Kind }
+    def Kind.RESOURCE { Type.RESOURCE Kind }
+
+    def >Type { /Kind }
+    def Type.>Kind { Kind }
+}
+
 ##################
 # Meta-var Types #
 ##################
 
 table(MetaVar)
 field(MetaVar.~type?, MetaVar, Maybe(Type))
-def(MetaVar.type?, +Mirth MetaVar -- +Mirth Maybe(Type), ~type? @)
+field(MetaVar.~kind, MetaVar, Kind)
+def MetaVar.type? [ +Mirth MetaVar -- +Mirth Maybe(Type) ] { ~type? @ }
+def MetaVar.kind  [ +Mirth MetaVar -- +Mirth Kind ] { ~kind @ }
 
 def(MetaVar.has-meta?, +Mirth MetaVar MetaVar -- +Mirth Bool,
     dup type? match(
@@ -560,9 +584,23 @@ def(MetaVar.type;, +Mirth +Str MetaVar -- +Mirth +Str,
         None -> "?" ; index int;,
         Some -> nip type;
     ))
-def(MetaVar.new!, +Mirth -- +Mirth MetaVar,
+def(MetaVar.new!, +Mirth Kind -- +Mirth MetaVar,
     MetaVar.alloc!
+    tuck ~kind !
     None over ~type? !)
+
+def Type.Fresh! [ +Mirth -- +Mirth Type ] {
+    Kind.TYPE MetaVar.new! Type.Meta
+}
+def StackType.Fresh! [ +Mirth -- +Mirth StackType ] {
+    Kind.STACK MetaVar.new! StackType.Meta
+}
+def Resource.Fresh! [ +Mirth -- +Mirth Resource ] {
+    Kind.RESOURCE MetaVar.new! Type.Meta Resource
+}
+def ArrowType.Fresh! [ +Mirth -- +Mirth ArrowType ] {
+    StackType.Fresh! StackType.Fresh! T->
+}
 
 def(MetaVar.expand-if(f,g), (*a +Mirth Type -- *b, *a +Mirth MetaVar -- *b) *a +Mirth MetaVar -- *b,
     dup type? match(
@@ -598,7 +636,7 @@ def(MetaVar.expand-or-update!(f), (*a +Mirth -- *a Type +Mirth) *a MetaVar +Mirt
 def(MetaVar.=, MetaVar MetaVar -- Bool, both(index) =)
 
 def(MetaVar.freshen, +Mirth Subst MetaVar -- +Mirth Subst Type,
-    expand-if(freshen, drop MetaVar.new! Type.Meta))
+    expand-if(freshen, kind MetaVar.new! Type.Meta))
 
 ##############
 # Type Holes #
@@ -625,7 +663,7 @@ def(Type.app-type-open;;, +Mirth +Str Type Type -- +Mirth +Str,
 #################
 
 data(Resource, Resource -> Type)
-def Resource.NewInCtx [ +Mirth Ctx Str -- +Mirth Ctx Resource ] { dip:Type.ResourceType Var.NewInCtx Type.Var Resource }
+def Resource.NewInCtx [ +Mirth Ctx Str -- +Mirth Ctx Resource ] { dip:Type.RESOURCE Var.NewInCtx Type.Var Resource }
 
 def(Resource.>Type, Resource -- Type, Resource -> id)
 def(Type.>Resource, Type -- Resource, Resource)
@@ -659,7 +697,7 @@ data(StackType,
     With -> StackType Resource,
     WithLabel -> StackType Resource Label)
 
-def StackType.NewInCtx [ +Mirth Ctx Str -- +Mirth Ctx StackType ] { dip:Type.StackType Var.NewInCtx StackType.Var }
+def StackType.NewInCtx [ +Mirth Ctx Str -- +Mirth Ctx StackType ] { dip:Type.STACK Var.NewInCtx StackType.Var }
 
 def(Type.>StackType, Type -- StackType,
     Error -> StackType.Error,
@@ -922,7 +960,7 @@ def(StackType.force-cons-label?!, +Mirth Label StackType -- +Mirth Maybe([StackT
                 )
             ),
         Meta ->
-            dip(dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta dup2) StackType.ConsLabel >Type Some) ~type? !
+            dip(dip(StackType.Fresh! Type.Fresh! dup2) StackType.ConsLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -951,7 +989,7 @@ def(StackType.force-with-label?!, +Mirth Label StackType -- +Mirth Maybe([StackT
                 )
             ),
         Meta ->
-            dip(dip(MetaVar.new! StackType.Meta MetaVar.new! Type.Meta Resource dup2) StackType.WithLabel >Type Some) ~type? !
+            dip(dip(StackType.Fresh! Resource.Fresh! dup2) StackType.WithLabel >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -972,9 +1010,8 @@ def(StackType.force-cons?!, +Mirth StackType -- +Mirth Maybe([StackType Type]),
             None -> drop2 None
         ),
         Meta ->
-            dip(MetaVar.new! StackType.Meta
-                MetaVar.new! Type.Meta
-                dup2 StackType.Cons >Type Some) ~type? !
+            dip(StackType.Fresh! Type.Fresh! dup2
+                StackType.Cons >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -995,9 +1032,8 @@ def(StackType.force-with?!, +Mirth StackType -- +Mirth Maybe([StackType Resource
             None -> drop2 None
         ),
         Meta ->
-            dip(MetaVar.new! StackType.Meta
-                MetaVar.new! Type.Meta Resource
-                dup2 StackType.With >Type Some) ~type? !
+            dip(StackType.Fresh! Resource.Fresh! dup2
+                StackType.With >Type Some) ~type? !
             pack2 Some,
     ))
 
@@ -1146,7 +1182,7 @@ def ArrowType.semifreshen-sig [ +Mirth ArrowType -- +Mirth ArrowType ] {
 
 def ArrowType.semifreshen-aux [ +Mirth ArrowType -- +Mirth ArrowType ] {
     /ArrowType
-    MetaVar.new! StackType.Meta
+    StackType.Fresh!
     @cod:semifreshen
     @dom:semifreshen
     ArrowType nip
@@ -1167,7 +1203,7 @@ def ArrowType.freshen-sig [ +Mirth Subst ArrowType -- +Mirth Subst ArrowType ] {
 
 def ArrowType.freshen-sig-aux [ +Mirth Subst ArrowType -- +Mirth Subst ArrowType ] {
     /ArrowType
-    MetaVar.new! StackType.Meta swap
+    StackType.Fresh! swap
     @dom:freshen-aux
     @cod:freshen-aux
     ArrowType dip2:drop
@@ -1203,32 +1239,81 @@ def(ArrowType.max-num-params, +Mirth ArrowType -- +Mirth Nat,
 # Subst #
 #########
 
-# mirth/data/type
-data(Subst,
-    Nil,
-    Cons -> Subst Type Var)
+struct Subst {
+    var: Map(Var, Type)
+    --
 
-def(Subst.nil?, Subst -- Bool, Nil -> True, _ -> drop False)
-def(Subst.con?, Subst -- Maybe([Subst Type Var]),
-    Cons -> pack3 Some,
-    _ -> drop None)
+    def Nil [ Subst ] { Map.Nil >var Subst }
+    def cons [ Type Var Subst -- Subst ] {
+        dip(>key >value KeyValuePair) var:insert
+    }
 
-def(Subst.nil, Subst, Subst.Nil)
-def(Subst.cons, Type Var Subst -- Subst, rotr Subst.Cons)
-def(Subst.has-var?, Var Subst -- Bool,
-    Nil -> drop False,
-    Cons -> nip over2 = if(drop2 True, has-var?))
-def(Subst.get-var, Var Subst -- Type,
-    Nil -> drop Type.Error,
-    Cons -> over3 = if(dip(drop2), drop get-var))
+    def empty? [ Subst -- Bool ] { var empty? }
+    def lookup-var [ Var Subst -- Maybe(Type) ] { var lookup }
+    def has-var? [ Var Subst -- Bool ] { lookup-var >Bool }
+    def get-var  [ Var Subst -- Type ] { lookup-var else?(Type.Error) }
 
-||| If variable is in subst, unify new type with type in subst.
-||| Otherwise, create larger subst with new binding.
-def(Subst.match-var, +Mirth Type Var Subst -- +Mirth Subst,
-    dup2 has-var? if(
-        sip(get-var unify! drop),
-        cons
-    ))
+    ||| If variable is in subst, unify new type with type in subst.
+    ||| Otherwise, create larger subst with new binding.
+    def match-var [ +Mirth Type Var Subst -- +Mirth Subst ] {
+        >subst >var
+        @var @subst lookup-var if?(
+            unify! var> drop2 subst>,
+            var> subst> cons
+        )
+    }
+}
+
+def Subst.apply (f {apply-subst}) [ ( +Mirth x subst:Subst -- +Mirth y subst:Subst ) +Mirth x Subst -- +Mirth y Subst ] {
+    !subst:f
+}
+
+def Type.apply-subst [ +Mirth Type subst:Subst -- +Mirth Type subst:Subst ] {
+    { Error -> Type.Error }
+    { Ignore -> Type.Ignore }
+    { Prim -> Type.Prim }
+    { Meta -> expand-if(apply-subst, Type.Meta) }
+    { Hole -> Type.Hole }
+    { Var -> dup @subst lookup-var if?(nip, Type.Var) }
+    { Table -> Type.Table }
+    { Data -> Type.Data }
+    { DataPartial -> Type.DataPartial }
+    { Stack -> apply-subst Type.Stack }
+    { Arrow -> apply-subst Type.Arrow }
+    { App -> on2:apply-subst Type.App }
+    { Mut -> apply-subst Type.Mut }
+    { Value -> apply-subst }
+}
+
+def Value.apply-subst [ +Mirth Value subst:Subst -- +Mirth Type subst:Subst ] {
+    { Int -> Value.Int Type.Value }
+    { Str -> Value.Str Type.Value }
+    { F64 -> Value.F64 Type.Value }
+    { Block -> type apply-subst >Type }
+}
+
+def StackType.apply-subst [ +Mirth StackType subst:Subst -- +Mirth StackType subst:Subst ] {
+    { Error -> StackType.Error }
+    { Ignore -> StackType.Ignore }
+    { Unit -> StackType.Unit }
+    { Meta -> expand-if(>StackType apply-subst, StackType.Meta) }
+    { Var -> dup @subst lookup-var if?(>StackType nip, StackType.Var) }
+    { Cons -> dip:apply-subst apply-subst StackType.Cons }
+    { With -> dip:apply-subst apply-subst StackType.With }
+    { ConsLabel -> dip(dip:apply-subst apply-subst) StackType.ConsLabel }
+    { WithLabel -> dip(dip:apply-subst apply-subst) StackType.WithLabel }
+}
+
+def ArrowType.apply-subst [ +Mirth ArrowType subst:Subst -- +Mirth ArrowType subst:Subst ] {
+    /ArrowType
+    @dom:apply-subst
+    @cod:apply-subst
+    ArrowType
+}
+
+def Resource.apply-subst [ +Mirth Resource subst:Subst -- +Mirth Resource subst:Subst ] {
+    { Resource -> apply-subst Resource }
+}
 
 ####################
 # Stack Type Parts #
