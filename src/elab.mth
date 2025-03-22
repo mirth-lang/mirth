@@ -59,27 +59,52 @@ struct +TypeElab {
         +TypeElab
     }
 
-    def elab-type-sig! [ +Mirth +TypeElab -- +Mirth +TypeElab ArrowType ] {
+    def elab-type-sig! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab ArrowType ] {
+        >base
+
         token rdip:run-end? then(token "expected type signature" rdip:emit-error!)
-        elab-type-sig-params!
-        elab-stack-type!
-        token rdip:sig-dashes? if(token:succ elab-stack-type!, dip:T0)
+        @base elab-type-sig-params!
+        @base elab-stack-type!
+        token rdip:vdash? then(
+            !base
+            token:succ @base elab-type-sig-params! cat
+            @base elab-stack-type!
+        )
+        token rdip:sig-dashes? if(token:succ @base elab-stack-type!, dip:@base)
         token rdip:run-end? else(token "expected right paren or comma" rdip:emit-error!)
         dip(swap for(T*)) T->
+
+        base> drop
     }
 
-    def elab-type-sig-params! [ +Mirth +TypeElab -- +Mirth +TypeElab List(Type) ] {
+    def elab-type-sig-params! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab List(Type) ] {
+        >base
+
         token rdip:lparen? if(
             token rdip:next
-            token rdip:args map(token! elab-type-sig! Type.Arrow)
+            token rdip:args map(
+                token!
+                @base elab-type-sig! Type.Arrow
+            )
             dip:token!,
             L0
         )
+
+        base> drop
     }
 
-    def elab-stack-type! [ +Mirth +TypeElab -- +Mirth +TypeElab StackType ] {
-        token rdip:sig-stack-var? if?(elab-stack-type-var!, T0)
+    def elab-stack-type! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab StackType ] {
+        elab-stack-type-base!
         elab-stack-type-parts!
+    }
+
+    def elab-stack-type-base! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab StackType ] {
+        token rdip:sig-stack-var? for(
+            elab-stack-type-var!
+            swap rdip:split-parts swap rdip:unit? else(
+                token "Duplicate stack base, context already provided a stack base." rdip:emit-error!
+            ) for(cons)
+        )
     }
 
     def elab-stack-type-parts! [ +Mirth +TypeElab StackType -- +Mirth +TypeElab StackType ] {
@@ -231,7 +256,7 @@ struct +TypeElab {
         uncons swap if? (
             rdip:sort? else?(token "Type parameter has unknown sort." rdip:emit-fatal-error!) match {
                 { Resource -> elab-resource-arg! >Type }
-                { Stack -> elab-stack-type! >Type }
+                { Stack -> T0 elab-stack-type! >Type }
                 { Type -> elab-type-arg! }
             } swap dip:Type.App,
 
@@ -267,8 +292,8 @@ struct +TypeElab {
         token rdip:next dip(
             token:args-1
             token rdip:sig-has-dashes? if(
-                elab-type-sig! >Type,
-                elab-stack-type! >Type
+                T0 elab-type-sig! >Type,
+                T0 elab-stack-type! >Type
             )
         ) token!
     }
@@ -937,7 +962,7 @@ struct +AB {
         ab-ctx@ >ctx
         True >allow-type-holes
         False >allow-implicit-type-vars
-        +TypeElab rdip_:elab-stack-type! rdrop
+        +TypeElab T0 rdip_:elab-stack-type! rdrop
         ab-token@ rdip:error-token!
         dip:ab-type@ rdip:unify! drop
     }
@@ -994,7 +1019,7 @@ struct +AB {
     |||
     def elab-ldip! [ +Mirth +AB -- +Mirth +AB ] {
         elab-parse-ldip! ab-token@
-        labels> else?(ab-type@ rdip:label-names)
+        labels> else?(ab-type@ rdip(label-names unique))
         ab-ldip!(body> ab-token! elab-atoms!)
         ab-token!
     }
@@ -1373,7 +1398,7 @@ def +Match.case!(mkpat,mkbod) [
     @pattern Pattern.dom +Match.cod T->
     rotl
     +Match.home
-    @pattern:dip:rdip(ab-build-hom!(dip(mkbod)))
+    ldip:rdip(ab-build-hom!(dip(mkbod)))
     >body Case add-case
 }
 
@@ -2189,7 +2214,7 @@ def elab-def! [ +Mirth Token -- +Mirth Token ] {
             Some ->
                 nip
                 +TypeElab.Start!
-                elab-type-sig!
+                T0 elab-type-sig!
                 dip:ctx pack2
                 rdrop,
             None ->
@@ -2371,7 +2396,7 @@ def elab-external-def! [ +Mirth doc:Maybe(Str) head:Token symbol:Maybe(Token) si
     head> @external ~head !
     @external dup PropLabel.ExternalType prop(
         sig +TypeElab.Start!
-        elab-type-sig! dip:ctx pack2 rdrop
+        T0 elab-type-sig! dip:ctx pack2 rdrop
     ) @external ~ctx-type !
     @external dup PropLabel.ExternalCType prop(
         elab-external-ctype

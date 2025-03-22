@@ -1388,7 +1388,6 @@ def StackTypePart.label [ StackTypePart -- Maybe(Label) ] {
     { WithLabel -> nip Some }
 }
 
-
 ###########
 # C Types #
 ###########
