@@ -1,0 +1,25 @@
+module test.vdash
+
+import std.prelude
+import std.world
+import std.list
+
+def mydup  [ a |- a ] { dup }
+def mysucc [ Int |- ] { 1 + }
+
+def mymap(f) [ *x |- ( a -- b ) List(a) -- List(b) ] { List.map(f) }
+def myfor(f) [ *x |- ( a --   ) List(a) --         ] { List.for(f) }
+
+def mymap2(f) [ ( *x |- a -- b ) *x |- List(a) -- List(b) ] { List.map(f) }
+def myfor2(f) [ ( *x |- a --   ) *x |- List(a) --         ] { List.for(f) }
+
+def pos? [ Int |- Bool ] { dup 0> }
+def neg? [ Int |- Bool ] { dup 0< }
+
+def my-or-1 (f) [ *x |- (-- Bool) Bool -- Bool ] { or(f) }
+def my-or-2 (f) [ (*x |- Bool) *x |- Bool -- Bool ] { or(f) }
+
+def my-dip  (f) [ (*a -- *b)  c |- *a -- *b ] {  dip(f) }
+def my-rdip (f) [ (*a -- *b) +c |- *a -- *b ] { rdip(f) }
+
+def main [ +World |- ] {}

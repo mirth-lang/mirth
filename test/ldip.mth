@@ -5,9 +5,10 @@ import std.world
 
 def main {
     "Hello" >x
-    "World" >x
     ldip { 10 >x }
-    ldip( 9000 >x )
+    "World" >x
+    ldip:ldip:ldip(9000 >x)
+
     ldip(x x) { @x:1+ }
     ldip(x x, @x(10 *))
     ldip(x) { x> print }

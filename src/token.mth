@@ -140,6 +140,7 @@ def(TokenValue.sig-stack-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? fi
 def(TokenValue.sig-resource-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-resource-var))
 def(TokenValue.sig-resource-con?, +Mirth TokenValue -- +Mirth Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-resource-con))
 def(TokenValue.sig-dashes?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "--" =))
+def(TokenValue.vdash?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "|-" =))
 def(TokenValue.arrow?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "->" =))
 def(TokenValue.pat-underscore?, +Mirth TokenValue -- +Mirth Bool, name? has(is-underscore))
 def(TokenValue.module-header?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "module" =))
@@ -193,6 +194,7 @@ def(Token.sig-stack-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-stack-va
 def(Token.sig-resource-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-resource-var?)
 def(Token.sig-resource-con?, +Mirth Token -- +Mirth Maybe(Name/DName), value sig-resource-con?)
 def(Token.sig-dashes?, +Mirth Token -- +Mirth Bool, value sig-dashes?)
+def(Token.vdash?, +Mirth Token -- +Mirth Bool, value vdash?)
 def(Token.arrow?, +Mirth Token -- +Mirth Bool, value arrow?)
 def(Token.pat-underscore?, +Mirth Token -- +Mirth Bool, value pat-underscore?)
 def(Token.module-header?, +Mirth Token -- +Mirth Bool, value module-header?)
@@ -387,7 +389,7 @@ def(Token.run-arrow?, +Mirth Token -- +Mirth Maybe(Token),
 ###################
 
 def(Token.sig-stack-end?, +Mirth Token -- +Mirth Bool,
-    dup sig-dashes? or(dup run-end?) nip)
+    or(sig-dashes?, vdash?, run-end?))
 
 def(Token.sig-next-stack-end, +Mirth Token -- +Mirth Token,
     while(dup sig-stack-end? not, next))

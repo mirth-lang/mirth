@@ -254,6 +254,19 @@ data List(t) {
 
     def(repr;(f {repr;}), (t +Str -- +Str) List(t) +Str -- +Str,
         "List( " ; for(f " ; " ;) ")" ;)
+
+    ||| Remove duplicates via equality comparison. O(n^2) time.
+    def unique (eq{=}) [ ( *x t t -- *x Bool ) *x List(t) -- *x List(t) ] {
+        L0 >result
+        for(
+            >candidate
+            @candidate @result ldip:member(eq) if(
+                candidate> drop,
+                candidate> @result:cons
+            )
+        )
+        result>
+    }
 }
 
 ||| "Nest" is short for "Non-Empty List". It's a List that has at least one element.
@@ -521,16 +534,16 @@ data +List(+t) {
         { +Cons -> rdip:f rdip_(+map:f) +List.+Cons }
     }
 
-    def +find(pred, f, g) [ 
+    def +find(pred, f, g) [
         (*c +t -- *c +t Bool, *c +t -- *d +t, *c -- *d)
         *c +List(+t) -- *d +List(+t)
     ] {
         { +Nil -> g +List.+Nil }
-        { +Cons -> 
-            rdip:pred if( 
-                rdip:f, 
+        { +Cons ->
+            rdip:pred if(
+                rdip:f,
                 rdip_:+find(pred, f, g)
-            ) +List.+Cons 
+            ) +List.+Cons
         }
     }
 
@@ -539,7 +552,7 @@ data +List(+t) {
         *c +List(+t) -- *c +List(+t)
     ] {
         { +Nil -> +List.+Nil }
-        { +Cons -> 
+        { +Cons ->
             rdip:pred if(
                 rdip:f +filter-for(pred, f),
                 rdip_:+filter-for(pred, f) +List.+Cons
