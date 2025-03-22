@@ -658,21 +658,23 @@ struct +AB {
 
     def ab-block-at!(f) [
         (*a +Mirth +AB -- *b +Mirth +AB)
-        *a Token +Mirth +AB -- *b +Mirth +AB
+        *a StackType Token +Mirth +AB -- *b +Mirth +AB
     ] {
-        ab-ctx@ rdip:StackType.Fresh! rotl ab-home@ rdip(ab-build!(f))
+        ab-ctx@ rotr ab-home@ rdip(ab-build!(f))
         rdip:Block.new! Op.BlockPush ab-op!
     }
 
-    def ab-block!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
+    def ab-block!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a StackType +Mirth +AB -- *b +Mirth +AB ] {
         ab-token@ ab-block-at!(f)
     }
 
     def ab-dip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
+        ab-type@ rdip:force-cons?! if?(unpack2 drop, StackType.Error)
         ab-block!(f) Prim.Dip ab-prim!
     }
 
     def ab-rdip!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a +Mirth +AB -- *b +Mirth +AB ] {
+        ab-type@ rdip:force-with?! if?(unpack2 drop, StackType.Error)
         ab-block!(f) Prim.RDip ab-prim!
     }
 
@@ -681,7 +683,8 @@ struct +AB {
         *b +Mirth +AB -- *c +Mirth +AB)
         *a +Mirth +AB -- *c +Mirth +AB
     ] {
-        ab-block!(f) ab-block!(g) Prim.If ab-prim!
+        ab-type@ rdip:force-cons?! if?(unpack2 drop, StackType.Error) dup
+        dip:ab-block!(f) ab-block!(g) Prim.If ab-prim!
     }
 
     def ab-while!(f,g) [
@@ -689,7 +692,9 @@ struct +AB {
         *b +Mirth +AB -- *c +Mirth +AB)
         *a +Mirth +AB -- *c +Mirth +AB
     ] {
-        ab-block!(f) ab-block!(g) Prim.While ab-prim!
+        ab-type@ dup
+        dip:ab-block!(f)
+        ab-block!(g) Prim.While ab-prim!
     }
 
     def ab-lambda!(f) [ (*a +Mirth +AB -- *b +Mirth +AB) *a List(Var) +Mirth +AB -- *b +Mirth +AB ] {
@@ -722,6 +727,29 @@ struct +AB {
         ab-home@ >home
         L0 >cases
         rdip(+Match f freeze) Op.Match ab-op!
+    }
+
+    def ab-ldip!(f) [
+        (*a +Mirth +AB -- *b +Mirth +AB)
+        *a +Mirth +AB List(Label) -- *b +Mirth +AB
+    ] {
+        { Nil -> f }
+        { Cons -> swap ab-ldip-one!(ab-ldip!(f)) }
+    }
+
+    def ab-ldip-one!(f) [
+        (*a +Mirth +AB -- *b +Mirth +AB)
+        *a +Mirth +AB Label -- *b +Mirth +AB
+    ] {
+        dup rdip:is-resource-label? if(
+            dup ab-label-pop-r!
+            dip(ab-rdip!(f))
+            ab-label-push-r!,
+
+            dup ab-label-pop!
+            dip(ab-dip!(f))
+            ab-label-push!
+        )
     }
 
     def elab-atoms! [ +Mirth +AB -- +Mirth +AB ] {
@@ -912,6 +940,63 @@ struct +AB {
         +TypeElab rdip_:elab-stack-type! rdrop
         ab-token@ rdip:error-token!
         dip:ab-type@ rdip:unify! drop
+    }
+
+    ||| Parse an ldip. It takes on one of the forms:
+    |||
+    |||     ldip(body)
+    |||     ldip(label1 ... labeln, body)
+    |||     ldip { body }
+    |||     ldip(label1 ... labeln) { body }
+    |||
+    ||| Sets up ab-token@ so that Token.next on it will be past the ldip.
+    def elab-parse-ldip! [ +Mirth +AB -- +Mirth +AB labels:Maybe(List(Label)) body:Token ] {
+        ab-token@ rdip:next rdip:lcurly? if(
+            ab-token@ rdip:num-args 0= if(
+                None >labels,
+                ab-token@ rdip:args-1 Some >labels
+            )
+            ab-token@ rdip:next rdip:succ >body
+            ab-token@ rdip:next ab-token!,
+
+            ab-token@ rdip:num-args dup 0= if(
+                ab-token@ "Missing ldip body: ldip { ... }" rdip:emit-fatal-error!,
+
+                1 = if(
+                    None >labels
+                    ab-token@ rdip:args-1 >body,
+
+                    ab-token@ rdip:args-2
+                    >body
+                    Some >labels
+                )
+            )
+        )
+
+        @labels:map:rdip(
+            run-tokens map(
+                dup args-0
+                dup name? else?("Expected label name." emit-fatal-error!)
+                dup could-be-label-name? else(Str("Invalid label name: "; name;) emit-fatal-error!)
+                Label.new! nip
+            )
+        )
+    }
+
+
+    ||| Run function but with labels dipped.
+    ||| If list of labels is not given, it is inferred from the stack type.
+    |||
+    |||     ldip(body)
+    |||     ldip(label1 ... labeln, body)
+    |||     ldip { body }
+    |||     ldip(label1 ... labeln) { body }
+    |||
+    def elab-ldip! [ +Mirth +AB -- +Mirth +AB ] {
+        elab-parse-ldip! ab-token@
+        labels> else?(ab-type@ rdip:label-names)
+        ab-ldip!(body> ab-token! elab-atoms!)
+        ab-token!
     }
 
     def elab-atom-match! [ +Mirth +AB -- +Mirth +AB ] {

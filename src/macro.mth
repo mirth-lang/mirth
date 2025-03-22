@@ -36,12 +36,12 @@ data MacroAction {
     def callable? { arrow? >Bool }
 }
 
-def Macro.Prim [ +Mirth Str MacroAction -- +Mirth Macro ] {
+def Macro.Prim [ +Mirth Str Int MacroAction -- +Mirth Macro ] {
     Macro.alloc! >macro
     @macro ~action !
-    dup >Name @macro ~name !
-    -1 QName.Prim @macro PropLabel.MacroQName prop @macro ~qname !
-    -1 @macro ~arity !
+    over >Name @macro ~name !
+    dup  @macro ~arity !
+    QName.Prim @macro PropLabel.MacroQName prop @macro ~qname !
     macro>
 }
 
@@ -56,24 +56,25 @@ def prim-decl-macro! { MacroAction.Decl Macro.Prim Def.Macro register }
 def prim-word-macro! { MacroAction.Arrow Macro.Prim Def.Macro register }
 
 def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
-    "module"             [ module-statement-error!  ] prim-decl-macro!
-    "import"             [ import-statement-error!  ] prim-decl-macro!
-    "patch"              [ elab-patch!              ] prim-decl-macro!
-    "alias"              [ elab-alias!              ] prim-decl-macro!
-    "inline"             [ elab-inline!             ] prim-decl-macro!
-    "def"                [ elab-def!                ] prim-decl-macro!
-    "def-missing"        [ elab-def-missing!        ] prim-decl-macro!
-    "def-type"           [ elab-def-type!           ] prim-decl-macro!
-    "external"           [ elab-external!           ] prim-decl-macro!
-    "buffer"             [ elab-buffer!             ] prim-decl-macro!
-    "table"              [ elab-table!              ] prim-decl-macro!
-    "field"              [ elab-field!              ] prim-decl-macro!
-    "data"               [ elab-data!               ] prim-decl-macro!
-    "struct"             [ elab-struct!             ] prim-decl-macro!
-    "embed-str"          [ elab-embed-str!          ] prim-decl-macro!
-    "max-mirth-revision" [ elab-max-mirth-revision! ] prim-decl-macro!
-    "min-mirth-revision" [ elab-min-mirth-revision! ] prim-decl-macro!
+    "module"             -1 [ module-statement-error!  ] prim-decl-macro!
+    "import"             -1 [ import-statement-error!  ] prim-decl-macro!
+    "patch"              -1 [ elab-patch!              ] prim-decl-macro!
+    "alias"              -1 [ elab-alias!              ] prim-decl-macro!
+    "inline"             -1 [ elab-inline!             ] prim-decl-macro!
+    "def"                -1 [ elab-def!                ] prim-decl-macro!
+    "def-missing"        -1 [ elab-def-missing!        ] prim-decl-macro!
+    "def-type"           -1 [ elab-def-type!           ] prim-decl-macro!
+    "external"           -1 [ elab-external!           ] prim-decl-macro!
+    "buffer"             -1 [ elab-buffer!             ] prim-decl-macro!
+    "table"              -1 [ elab-table!              ] prim-decl-macro!
+    "field"              -1 [ elab-field!              ] prim-decl-macro!
+    "data"               -1 [ elab-data!               ] prim-decl-macro!
+    "struct"             -1 [ elab-struct!             ] prim-decl-macro!
+    "embed-str"          -1 [ elab-embed-str!          ] prim-decl-macro!
+    "max-mirth-revision" -1 [ elab-max-mirth-revision! ] prim-decl-macro!
+    "min-mirth-revision" -1 [ elab-min-mirth-revision! ] prim-decl-macro!
 
-    "match" [ elab-atom-match!    ] MacroAction.Arrow Macro.Prim Def.Macro register
-    "\\"    [ elab-atom-lambda!   ] MacroAction.Arrow Macro.Prim Def.Macro register
+    "match" -1 [ elab-atom-match!    ] prim-word-macro!
+    "\\"    -1 [ elab-atom-lambda!   ] prim-word-macro!
+    "ldip"  -1 [ elab-ldip!          ] prim-word-macro!
 }
