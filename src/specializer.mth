@@ -287,6 +287,7 @@ def(+SPSynth.synth-op!, +Mirth +SPSynth Op -- +Mirth +SPSynth,
     _ -> ab:ab-op!)
 
 def +SPSynth.synth-block! [ +Mirth +SPSynth Block -- +Mirth +SPSynth ] {
+    rdip:StackType.Fresh!
     ab:ab-block!(+SPSynth synth-run! /+SPSynth)
 }
 

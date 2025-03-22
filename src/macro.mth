@@ -76,4 +76,5 @@ def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
 
     "match" [ elab-atom-match!    ] MacroAction.Arrow Macro.Prim Def.Macro register
     "\\"    [ elab-atom-lambda!   ] MacroAction.Arrow Macro.Prim Def.Macro register
+    "ldip"  [ elab-ldip!          ] MacroAction.Arrow Macro.Prim Def.Macro register
 }

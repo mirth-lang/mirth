@@ -1,0 +1,22 @@
+module test.ldip
+
+import std.prelude
+import std.world
+
+def main {
+    "Hello" >x
+    "World" >x
+    ldip { 10 >x }
+    ldip( 9000 >x )
+    ldip(x x) { @x:1+ }
+    ldip(x x, @x(10 *))
+    ldip(x) { x> print }
+    ldip:x { @x(2 *) }
+    x> print
+    x> 20 + >Str print
+    x> >Str print
+}
+# mirth-test # pout # Hello
+# mirth-test # pout # World
+# mirth-test # pout # 240
+# mirth-test # pout # 9000

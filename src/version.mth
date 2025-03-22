@@ -4,8 +4,8 @@ module mirth.version
 ||| We can update it whenever we are working on the compiler, and then use it for
 ||| conditional compilation via the `max-mirth-revision` and `min-mirth-revision`
 |||
-||| The integer has the format YYYY_MM_DD_nnn where YYYY is the year, MM is the month,
-||| DD is the date, and nnn is some number that goes up within a single day. The only
+||| The integer has the format YYYY_MM_DD_NNN where YYYY is the year, MM is the month,
+||| DD is the date, and NNN is some number that goes up within a single day. The only
 ||| thing that matters is that the overall number never goes down, only up.
 
-def mirth-revision { 2025_01_29_002 }
+def mirth-revision { 2025_03_22_001 }

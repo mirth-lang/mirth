@@ -726,6 +726,18 @@ def(StackType.unit?, +Mirth StackType -- +Mirth Bool,
 
 def-type(Type/Resource, Either(Type, Resource))
 
+def StackType.label-names [ +Mirth StackType -- +Mirth List(Label) ] {
+    L0 >labels
+    while (expand match {
+        { Cons -> drop True }
+        { With -> drop True }
+        { ConsLabel -> @labels:cons drop True }
+        { WithLabel -> @labels:cons drop True }
+        { _ -> False }
+    })
+    drop labels>
+}
+
 ||| Split stack type into base, types, and resources.
 def(StackType.split4, +Mirth StackType -- +Mirth StackType List([Type/Resource Label]) List(Type) List(Resource),
     L0 L0 L0 >labels >withses >conses
