@@ -17,26 +17,26 @@ field(Macro.~arity, Macro, Int)
 field(Macro.~head, Macro, Token)
 field(Macro.~action, Macro, MacroAction)
 
-def Macro.name [ +Mirth Macro -- +Mirth Name ] { ~name @ }
-def Macro.qname-hard [ +Mirth Macro -- +Mirth QName ] { ~qname force! }
-def Macro.qname-soft [ +Mirth Macro -- +Mirth Maybe(QName) ] { ~qname @? bind(ready?) }
-def Macro.arity [ +Mirth Macro -- +Mirth Int ] { ~arity @ }
-def Macro.head? [ +Mirth Macro -- +Mirth Maybe(Token) ] { ~head @? }
-def Macro.action [ +Mirth Macro -- +Mirth MacroAction ] { ~action @ }
+def Macro.name       [ +Mirth |- Macro -- Name ] { ~name @ }
+def Macro.qname-hard [ +Mirth |- Macro -- QName ] { ~qname force! }
+def Macro.qname-soft [ +Mirth |- Macro -- Maybe(QName) ] { ~qname @? bind(ready?) }
+def Macro.arity      [ +Mirth |- Macro -- Int ] { ~arity @ }
+def Macro.head?      [ +Mirth |- Macro -- Maybe(Token) ] { ~head @? }
+def Macro.action     [ +Mirth |- Macro -- MacroAction ] { ~action @ }
 
 def Macro.>Int [ Macro -- Int ] { index >Int }
 def Macro.= [ Macro Macro -- Bool ] { on2:>Int = }
 
 data MacroAction {
-    Decl  [ [ +World +Mirth Token -- +World +Mirth Token ] ]
-    Arrow [ [ +Mirth +AB -- +Mirth +AB ] ]
+    Decl  [[ +World +Mirth Token -- +World +Mirth Token ]]
+    Arrow [[        +Mirth +AB   -- +Mirth +AB          ]]
     --
     def decl?  { Decl -> Some, _ -> drop None }
     def arrow? { Arrow -> Some, _ -> drop None }
     def callable? { arrow? >Bool }
 }
 
-def Macro.Prim [ +Mirth Str Int MacroAction -- +Mirth Macro ] {
+def Macro.Prim [ +Mirth |- Str Int MacroAction -- Macro ] {
     Macro.alloc! >macro
     @macro ~action !
     over >Name @macro ~name !
@@ -45,17 +45,17 @@ def Macro.Prim [ +Mirth Str Int MacroAction -- +Mirth Macro ] {
     macro>
 }
 
-def module-statement-error! [ +Mirth Token -- +Mirth Token ] {
+def module-statement-error! [ +Mirth Token |- ] {
     "'module' statement outside of module header." emit-fatal-error!
 }
-def import-statement-error! [ +Mirth Token -- +Mirth Token ] {
+def import-statement-error! [ +Mirth Token |- ] {
     "'import' statement outside of module header." emit-fatal-error!
 }
 
-def prim-decl-macro! { MacroAction.Decl Macro.Prim Def.Macro register }
+def prim-decl-macro! { MacroAction.Decl  Macro.Prim Def.Macro register }
 def prim-word-macro! { MacroAction.Arrow Macro.Prim Def.Macro register }
 
-def +Mirth.init-macros! [ +Mirth -- +Mirth ] {
+def +Mirth.init-macros! [ +Mirth |- ] {
     "module"             -1 [ module-statement-error!  ] prim-decl-macro!
     "import"             -1 [ import-statement-error!  ] prim-decl-macro!
     "patch"              -1 [ elab-patch!              ] prim-decl-macro!

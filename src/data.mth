@@ -26,20 +26,20 @@ field(Data.~params, Data, Prop(List(Var)))
 field(Data.~tags, Data, List(Tag))
 field(Data.~ctype?, Data, Prop(Maybe(CType)))
 
-def(Data.head?, +Mirth Data -- +Mirth Maybe(Token), ~head? @)
-def(Data.name, +Mirth Data -- +Mirth Name, ~name @)
-def(Data.qname-soft, +Mirth Data -- +Mirth Maybe(QName), ~qname @? bind(ready?))
-def(Data.qname-hard, +Mirth Data -- +Mirth QName, ~qname force!)
-def(Data.namespace-hard, +Mirth Data -- +Mirth Namespace, qname-hard namespace)
-def(Data.arity, +Mirth Data -- +Mirth Int, ~arity @)
-def(Data.params, +Mirth Data -- +Mirth List(Var), ~params force!)
-def(Data.tags, +Mirth Data -- +Mirth List(Tag), ~tags @)
-def(Data.ctype?, +Mirth Data -- +Mirth Maybe(CType), ~ctype? force!)
+def Data.head? [ +Mirth |- Data -- Maybe(Token) ] { ~head? @ }
+def Data.name  [ +Mirth |- Data -- Name ] { ~name @ }
+def Data.qname-soft [ +Mirth |- Data -- Maybe(QName) ] { ~qname @? bind(ready?) }
+def Data.qname-hard [ +Mirth |- Data -- QName ] { ~qname force! }
+def Data.namespace-hard [ +Mirth |- Data -- Namespace ] { qname-hard namespace }
+def Data.arity [ +Mirth |- Data -- Int ] { ~arity @ }
+def Data.params [ +Mirth |- Data -- List(Var) ] { ~params force! }
+def Data.tags [ +Mirth |- Data -- List(Tag) ] { ~tags @ }
+def Data.ctype? [ +Mirth |- Data -- Maybe(CType) ] { ~ctype? force! }
 
-def Data.name; [ +Mirth +Str Data -- +Mirth +Str ] { rdip:name name; }
-def Data.qname; [ +Mirth +Str Data -- +Mirth +Str ] { rdip:qname-hard qname; }
+def Data.name; [ +Mirth +Str |- Data -- ] { rdip:name name; }
+def Data.qname; [ +Mirth +Str |- Data -- ] { rdip:qname-hard qname; }
 
-def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
+def make-prim-data! [ +Mirth |- Str List(Var) Data List(Tag) Maybe(CType) -- ] {
     >ctype >tags >data >params >name
 
     @params len >Int dup @data ~arity !
@@ -53,9 +53,10 @@ def(make-prim-data!, +Mirth Str List(Var) Data List(Tag) Maybe(CType) -- +Mirth,
     params> @data PropLabel.DataParams prop @data ~params !
     None @data ~head? !
 
-    data> Def.Data register)
+    data> Def.Data register
+}
 
-def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
+def make-prim-tag! [ +Mirth |- Str Int List(Type) Tag -- ] {
     >tag >inputs >value >name
 
     @tag .data name> 0u data-word-qname @tag ~qname !
@@ -71,21 +72,24 @@ def(make-prim-tag!, +Mirth Str Int List(Type) Tag -- +Mirth,
     @tag PropLabel.TagType prop2
     @tag ~ctx-type !
 
-    tag> Def.Tag register)
+    tag> Def.Tag register
+}
 
-def(make-prim-intlike!, Str Data Str Tag Str +Mirth -- +Mirth,
+def make-prim-intlike! [ +Mirth |- Str Data Str Tag Str -- ] {
     >underlying >tag >tagname >data >dataname
 
     dataname> L0 data> @tag L1 underlying> CType.IntLike Some make-prim-data!
-    tagname> 0 Type.I64 L1 tag> make-prim-tag!)
+    tagname> 0 Type.I64 L1 tag> make-prim-tag!
+}
 
-def(make-prim-uintlike!, Str Data Str Tag Str +Mirth -- +Mirth,
+def make-prim-uintlike! [ +Mirth |- Str Data Str Tag Str -- ] {
     >underlying >tag >tagname >data >dataname
 
     dataname> L0 data> @tag L1 underlying> CType.UIntLike Some make-prim-data!
-    tagname> 0 Type.U64 L1 tag> make-prim-tag!)
+    tagname> 0 Type.U64 L1 tag> make-prim-tag!
+}
 
-def(init-data!, +Mirth -- +Mirth,
+def init-data! [ +Mirth |- ] {
     Type.TYPE "a" >Name Var.new! >a
     "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
     "CPtr" 0 Type.Ptr L1 builtin mk-cptr make-prim-tag!
@@ -115,25 +119,28 @@ def(init-data!, +Mirth -- +Mirth,
     "CULong"     builtin culong     "CULong"     builtin mk-culong     "unsigned long"      make-prim-uintlike!
     "CULongLong" builtin culonglong "CULongLong" builtin mk-culonglong "unsigned long long" make-prim-uintlike!
     "CUSize"     builtin cusize     "CUSize"     builtin mk-cusize     "size_t"             make-prim-uintlike!
-    "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-uintlike!)
+    "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-uintlike!
+}
 
-def(data-qname, Data Name Int -- QName,
-    >arity >name Tycon.Data Namespace.Tycon >namespace QName)
+def data-qname [ Data Name Int -- QName ] {
+    >arity >name Tycon.Data Namespace.Tycon >namespace QName
+}
 
-def(data-word-qname, +Mirth Data Str Nat -- +Mirth QName,
-    dip(>Name) >Int data-qname)
+def data-word-qname [ +Mirth |- Data Str Nat -- QName ] {
+    dip(>Name) >Int data-qname
+}
 
 ########
 # DATA #
 ########
 
-def(Data.=, Data Data -- Bool, both(index) =)
-def(Data.num-tags, +Mirth Data -- +Mirth Nat, tags len)
+def Data.= [ Data Data -- Bool ] { both(index) = }
+def Data.num-tags [ +Mirth |- Data -- Nat ] { tags len }
 
 field(Data.~last-tag-value, Data, Int)
 
 ||| Adds constructor to data type, and gives tag its value.
-def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
+def Data.add-tag! [ +Mirth |- Tag Data -- ] {
     >data >tag
     @tag ~value memoize(
         @data ~last-tag-value @? if?(1+, 0)
@@ -151,30 +158,32 @@ def Data.add-tag! [ +Mirth Tag Data -- +Mirth ] {
     data> ~tags modify(tag> List.Snoc)
 }
 
-def Data.is-enum-or-unit? [ +Mirth Data -- +Mirth Bool ] {
+def Data.is-enum-or-unit? [ +Mirth |- Data -- Bool ] {
     dup is-enum? dip(is-unit? >Bool) or
 }
 
 field(Data.~is-unit?, Data, Maybe(Tag))
-def(Data.is-unit?, +Mirth Data -- +Mirth Maybe(Tag),
+def Data.is-unit? [ +Mirth |- Data -- Maybe(Tag) ] {
     dup ~is-unit? memoize(
         dup tags single? filter(num-total-inputs 0=)
-    ) nip)
+    ) nip
+}
 
 field(Data.~is-enum?, Data, Bool)
-def(Data.is-enum?, +Mirth Data -- +Mirth Bool,
+def Data.is-enum? [ +Mirth |- Data -- Bool ] {
     dup ~is-enum? memoize(
         dup is-unit? not and(
             dup tags all(num-total-inputs 0=)
         )
-    ) nip)
+    ) nip
+}
 
-def Data.single-tag? [ +Mirth Data -- +Mirth Maybe(Tag) ] {
+def Data.single-tag? [ +Mirth |- Data -- Maybe(Tag) ] {
     tags single?
 }
 
 field(Data.~is-transparent?, Data, Bool)
-def(Data.is-transparent?, +Mirth Data -- +Mirth Bool,
+def Data.is-transparent? [ +Mirth |- Data -- Bool ] {
     dup ~is-transparent? memoize(
         dup is-resource? if(
             dup tags single? match(
@@ -186,7 +195,8 @@ def(Data.is-transparent?, +Mirth Data -- +Mirth Bool,
                 None -> False
             )
         )
-    ) nip)
+    ) nip
+}
 
 struct SemiTransparentData {
     tag: Tag
@@ -194,30 +204,34 @@ struct SemiTransparentData {
 }
 
 field(Data.~semi-transparent?, Data, Maybe(SemiTransparentData))
-def(Data.semi-transparent?, +Mirth Data -- +Mirth Maybe(SemiTransparentData),
+def Data.semi-transparent? [ +Mirth |- Data -- Maybe(SemiTransparentData) ] {
     dup ~semi-transparent? memoize(
         dup tags single? bind(
             dup inputs single? map(
                 >input dup >tag SemiTransparentData
             ) nip
         )
-    ) nip)
+    ) nip
+}
 
 field(Data.~is-resource?, Data, Bool)
-def(Data.is-resource?, +Mirth Data -- +Mirth Bool,
+def Data.is-resource? [ +Mirth |- Data -- Bool ] {
     dup ~is-resource? memoize(
         dup name could-be-resource-con
-    ) nip)
+    ) nip
+}
 
-def(Data.is-value-type?, +Mirth Data -- +Mirth Bool,
-    is-resource? not)
+def Data.is-value-type? [ +Mirth |- Data -- Bool ] {
+    is-resource? not
+}
 
-def(Data.full-type, +Mirth Data -- +Mirth Type/Resource,
+def Data.full-type [ +Mirth |- Data -- Type/Resource ] {
     dup sip:Type.Data params for(Type.Var Type.App)
     swap is-value-type? if(
         Left,
         Resource Right
-    ))
+    )
+}
 
 #######
 # TAG #
@@ -235,77 +249,86 @@ field(Tag.~sig?, Tag, Maybe(Token))
 field(Tag.~ctx-type, Tag, Prop([Ctx ArrowType]))
 field(Tag.~untag, Tag, Maybe(Word))
 
-def(Tag.data, +Mirth Tag -- +Mirth Data, ~data @)
-def(Tag.qname, +Mirth Tag -- +Mirth QName, ~qname @)
-def(Tag.name, +Mirth Tag -- +Mirth Name, qname name)
-def(Tag.value, +Mirth Tag -- +Mirth Int, ~value @)
-def(Tag.label-inputs, +Mirth Tag -- +Mirth List(Label), ~label-inputs @)
-def(Tag.num-type-inputs, +Mirth Tag -- +Mirth Nat, ~num-type-inputs @)
-def(Tag.num-resource-inputs, +Mirth Tag -- +Mirth Nat, ~num-resource-inputs @)
-def(Tag.sig?, +Mirth Tag -- +Mirth Maybe(Token), ~sig? @)
-def(Tag.ctx-type, +Mirth Tag -- +Mirth Ctx ArrowType, ~ctx-type force! unpack2)
-def(Tag.ctx, +Mirth Tag -- +Mirth Ctx, ctx-type drop)
-def(Tag.type, +Mirth Tag -- +Mirth ArrowType, ctx-type nip)
-def(Tag.untag, +Mirth Tag -- +Mirth Maybe(Word), ~untag @)
+def Tag.data                [ +Mirth |- Tag -- Data          ] { ~data @ }
+def Tag.qname               [ +Mirth |- Tag -- QName         ] { ~qname @ }
+def Tag.name                [ +Mirth |- Tag -- Name          ] { qname name }
+def Tag.value               [ +Mirth |- Tag -- Int           ] { ~value @ }
+def Tag.label-inputs        [ +Mirth |- Tag -- List(Label)   ] { ~label-inputs @ }
+def Tag.num-type-inputs     [ +Mirth |- Tag -- Nat           ] { ~num-type-inputs @ }
+def Tag.num-resource-inputs [ +Mirth |- Tag -- Nat           ] { ~num-resource-inputs @ }
+def Tag.sig?                [ +Mirth |- Tag -- Maybe(Token)  ] { ~sig? @ }
+def Tag.ctx-type            [ +Mirth |- Tag -- Ctx ArrowType ] { ~ctx-type force! unpack2 }
+def Tag.ctx                 [ +Mirth |- Tag -- Ctx           ] { ctx-type drop }
+def Tag.type                [ +Mirth |- Tag -- ArrowType     ] { ctx-type nip }
+def Tag.untag               [ +Mirth |- Tag -- Maybe(Word)   ] { ~untag @ }
 
-def Tag.name; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:name name; }
-def Tag.qname; [ +Mirth +Str Tag -- +Mirth +Str ] { rdip:qname qname; }
+def Tag.name;  [ +Mirth +Str |- Tag -- ] { rdip:name  name;  }
+def Tag.qname; [ +Mirth +Str |- Tag -- ] { rdip:qname qname; }
 
-def(Tag.only-tag?, +Mirth Tag -- +Mirth Bool, .data tags single? >Bool)
+def Tag.only-tag? [ +Mirth |- Tag -- Bool ] { .data tags single? >Bool }
 
-def Tag.label-inputs-from-sig [ +Mirth Tag -- +Mirth List(Label) ] {
+def Tag.label-inputs-from-sig [ +Mirth |- Tag -- List(Label) ] {
     sig? if?(run-tokens filter-some(sig-label?), List.Nil)
 }
 
-def(Tag.num-type-inputs-from-sig, +Mirth Tag -- +Mirth Nat,
+def Tag.num-type-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
     dup sig? if?(
         run-length
         over num-resource-inputs-from-sig minus
         swap label-inputs-from-sig len minus,
         drop 0u
-    ))
+    )
+}
 
-def(Tag.num-resource-inputs-from-sig, +Mirth Tag -- +Mirth Nat,
+def Tag.num-resource-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
     sig? if?(
         run-tokens filter(could-be-sig-label? not) filter-some(name?)
         filter(or(could-be-resource-var, could-be-resource-con))
         len,
         0u
-    ))
+    )
+}
 
 field(Tag.~num-label-inputs, Tag, Nat)
-def(Tag.num-label-inputs, +Mirth Tag -- +Mirth Nat,
+def Tag.num-label-inputs [ +Mirth |- Tag -- Nat ] {
     dup ~num-label-inputs memoize(
         dup label-inputs len
-    ) nip)
+    ) nip
+}
 
-def(Tag.num-total-inputs, +Mirth Tag -- +Mirth Nat,
+def Tag.num-total-inputs [ +Mirth |- Tag -- Nat ] {
     >tag
     @tag num-label-inputs
     @tag num-type-inputs +
-    tag> num-resource-inputs +)
+    tag> num-resource-inputs +
+}
 
-def(Tag.is-transparent?, +Mirth Tag -- +Mirth Bool,
-    .data is-transparent?)
+def Tag.is-transparent? [ +Mirth |- Tag -- Bool ] {
+    .data is-transparent?
+}
 
 field(Tag.~inputs, Tag, List(StackTypePart))
-def(Tag.inputs, +Mirth Tag -- +Mirth List(StackTypePart),
+def Tag.inputs [ +Mirth |- Tag -- List(StackTypePart) ] {
     dup ~inputs memoize (
         dup type dom split-parts nip
-    ) nip)
+    ) nip
+}
 
-def(Tag.semi-transparent?, +Mirth Tag -- +Mirth Maybe(SemiTransparentData),
-    .data semi-transparent?)
+def Tag.semi-transparent? [ +Mirth |- Tag -- Maybe(SemiTransparentData) ] {
+    .data semi-transparent?
+}
 
-def(Tag.is-unit?, +Mirth Tag -- +Mirth Bool,
-    .data is-unit? >Bool)
+def Tag.is-unit? [ +Mirth |- Tag -- Bool ] {
+    .data is-unit? >Bool
+}
 
-def(Tag.outputs-resource?, +Mirth Tag -- +Mirth Bool,
-    .data is-resource?)
+def Tag.outputs-resource? [ +Mirth |- Tag -- Bool ] {
+    .data is-resource?
+}
 
-def(Tag.=, Tag Tag -- Bool, both(index) =)
+def Tag.= [ Tag Tag -- Bool ] { both(index) = }
 
-def Tag.prefer-inline? [ +Mirth Tag -- +Mirth Bool ] {
+def Tag.prefer-inline? [ +Mirth |- Tag -- Bool ] {
     dup .data semi-transparent?
     or(dup num-total-inputs 0=)
     nip
@@ -318,13 +341,16 @@ def Tag.prefer-inline? [ +Mirth Tag -- +Mirth Bool ] {
 ||| DataPartial represents a data type with missing parts.
 ||| In general, it could represent missing fields, missing tags, etc.
 ||| For now, all we need to represent is a single missing field.
-data(DataPartial, DataPartial ->
-    data:Data field:Label)
+struct DataPartial {
+    data:Data
+    field:Label
+}
 
-def(DataPartial.=, DataPartial DataPartial -- Bool,
+def DataPartial.= [ DataPartial DataPartial -- Bool ] {
     /DataPartial /DataPartial
     data> data> =
-    field> field> = and)
+    field> field> = and
+}
 
 struct TagField {
     tag: Tag
@@ -333,7 +359,7 @@ struct TagField {
 }
 
 field(Tag.~fields, Tag, List(TagField))
-def Tag.fields [ +Mirth Tag -- +Mirth List(TagField) ] {
+def Tag.fields [ +Mirth |- Tag -- List(TagField) ] {
     >tag
     @tag ~fields memoize (
         @tag type dom split-parts nip filter-some(

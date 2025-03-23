@@ -14,7 +14,7 @@ import mirth.name
 import mirth.specializer
 import mirth.c99
 
-def main [ +World -- +World ] {
+def main [ +World |- ] {
     parse-options! if(
         +Mirth.Init!
         compile!
@@ -27,7 +27,7 @@ def main [ +World -- +World ] {
     then(1 posix-exit!)
 }
 
-def compile! [ Options +World +Mirth -- +World +Mirth ] {
+def compile! [ +World +Mirth |- Options -- ] {
     /Options
     package-search-paths> dup empty? then(
         drop "lib" >Path mirth-base-lib-path >List cons
