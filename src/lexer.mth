@@ -35,12 +35,12 @@ struct +Lexer {
     content: Str
     index: Offset
     --
-    def stack-push! [ Token +Lexer -- +Lexer ] { lexer-stack:cons }
-    def stack-pop!  [ +Lexer -- Maybe(Token) +Lexer ] { lexer-stack:uncons }
-    def stack-drop  [ +Lexer -- +Lexer ] { lexer-stack:tail }
-    def stack-peek  [ +Lexer -- Maybe(Token) +Lexer ] { lexer-stack head }
+    def stack-push! [ +Lexer |- Token -- ] { lexer-stack:cons }
+    def stack-pop!  [ +Lexer |- Maybe(Token) ] { lexer-stack:uncons }
+    def stack-drop  [ +Lexer |- ] { lexer-stack:tail }
+    def stack-peek  [ +Lexer |- Maybe(Token) ] { lexer-stack head }
 
-    def Start! [ +Mirth content:Str Module -- +Mirth +Lexer ] {
+    def Start! [ +Mirth |- content:Str Module -- +Lexer ] {
         >lexer-module
         0 >Offset >index
         1 Row >lexer-row
@@ -53,7 +53,7 @@ struct +Lexer {
         +Lexer
     }
 
-    def stop! [ +Mirth +Lexer -- Module +Mirth ] {
+    def stop! [ +Mirth |- +Lexer -- Module ] {
         TokenValue.None emit!
         /+Lexer
         lexer-stack> uncons drop for("Mismatched token." emit-fatal-error!)
@@ -64,14 +64,14 @@ struct +Lexer {
         content> drop index> drop
     }
 
-    def lexer-location [ +Lexer -- +Lexer Location ] {
+    def lexer-location [ +Lexer |- Location ] {
         lexer-module >module
         lexer-row >row
         lexer-col >col
         Location
     }
-    def warning! [ Str +Mirth +Lexer -- +Mirth +Lexer ] { dip:lexer-location rdip:emit-warning-at! }
-    def error! [ Str +Mirth +Lexer -- +Mirth +Lexer ] { dip:lexer-location rdip:emit-error-at! }
+    def warning! [ +Mirth +Lexer |- Str -- ] { dip:lexer-location rdip:emit-warning-at! }
+    def error! [ +Mirth +Lexer |- Str -- ] { dip:lexer-location rdip:emit-error-at! }
     def fatal-error! [ *a Str +Mirth +Lexer -- *b ] { dip:lexer-location rswap emit-fatal-error-at! }
 
     def done? [ +Lexer -- +Lexer Bool ] { content num-bytes index <= }
@@ -80,7 +80,7 @@ struct +Lexer {
     def newline! [ +Lexer -- +Lexer ] { 0 Col lexer-col! lexer-row:1+ }
 
     ||| Create a token at the current location with the given payload.
-    def make! [ TokenValue +Lexer -- Token +Lexer ] {
+    def make! [ +Lexer |- TokenValue -- Token ] {
         Token.alloc!
         tuck ~value !
         lexer-module over ~module !
@@ -92,20 +92,20 @@ struct +Lexer {
     }
 
     ||| Create a token at the current location, and then build the payload (while consuming characters).
-    def make!(f) [ ( *a +Lexer -- *b TokenValue +Lexer ) *a +Lexer -- *b Token +Lexer ] {
+    def make!(f) [ +Lexer |- ( *a -- *b TokenValue ) *a -- *b Token ] {
         TokenValue.None make!
         dip:f
         tuck ~value !
     }
 
     ||| Emit a token at the current location with the given payload. Same as make! but drops the token.
-    def emit! [ TokenValue +Lexer -- +Lexer ] { make! drop }
+    def emit! [ +Lexer |- TokenValue -- ] { make! drop }
 
     ||| Create a token at the current location, then build the payload. Same as make!(f) but drops the token.
     def emit!(f) { make!(f) drop }
 
     ||| Analyze the next byte (and next token).
-    def next! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def next! [ +Mirth +Lexer |- ] {
         peek match {
             { BLF      -> newline! move! }
             { BSPACE   -> move! }
@@ -132,7 +132,7 @@ struct +Lexer {
         }
     }
 
-    def close-colons! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def close-colons! [ +Mirth +Lexer |- ] {
         while-some(
             stack-peek rdip:filter(lcolon-open?),
             stack-drop
@@ -141,40 +141,40 @@ struct +Lexer {
         )
     }
 
-    def prepare-for-atom! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def prepare-for-atom! [ +Mirth +Lexer |- ] {
         lexer-last-token rdip:lcolon-open? else(close-colons!)
     }
-    def prepare-for-args! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def prepare-for-args! [ +Mirth +Lexer |- ] {
         lexer-last-token rdip:can-take-args? else(close-colons!)
     }
 
-    def emit-lcolon!  [ +Lexer -- +Lexer ] { TokenValue.LColonOpen  make! stack-push! }
-    def emit-lparen!  [ +Lexer -- +Lexer ] { TokenValue.LParenOpen  make! stack-push! }
-    def emit-lcurly!  [ +Lexer -- +Lexer ] { TokenValue.LCurlyOpen  make! stack-push! }
-    def emit-lsquare! [ +Lexer -- +Lexer ] { TokenValue.LSquareOpen make! stack-push! }
+    def emit-lcolon!  [ +Lexer |- ] { TokenValue.LColonOpen  make! stack-push! }
+    def emit-lparen!  [ +Lexer |- ] { TokenValue.LParenOpen  make! stack-push! }
+    def emit-lcurly!  [ +Lexer |- ] { TokenValue.LCurlyOpen  make! stack-push! }
+    def emit-lsquare! [ +Lexer |- ] { TokenValue.LSquareOpen make! stack-push! }
 
-    def emit-rparen! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def emit-rparen! [ +Mirth +Lexer |- ] {
         stack-pop! rdip:filter(value lparen-open?)
         unwrap("Mismatched right parenthesis." fatal-error!)
         dup TokenValue.RParen make!
         TokenValue.LParen swap ~value !
     }
 
-    def emit-rcurly! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def emit-rcurly! [ +Mirth +Lexer |- ] {
         stack-pop! rdip:filter(value lcurly-open?)
         unwrap("Mismatched right curly brace." fatal-error!)
         dup TokenValue.RCurly make!
         TokenValue.LCurly swap ~value !
     }
 
-    def emit-rsquare! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def emit-rsquare! [ +Mirth +Lexer |- ] {
         stack-pop! rdip:filter(value lsquare-open?)
         unwrap("Mismatched right square bracket." fatal-error!)
         dup TokenValue.RSquare make!
         TokenValue.LSquare swap ~value !
     }
 
-    def emit-name! [ +Mirth +Lexer -- +Mirth +Lexer ] {
+    def emit-name! [ +Mirth +Lexer |- ] {
         rdip("" thaw)
         lexer-module
         lexer-row
@@ -212,7 +212,7 @@ struct +Lexer {
         rdip(freeze drop)
     }
 
-    def emit-string! [+Mirth +Lexer -- +Mirth +Lexer] {
+    def emit-string! [ +Mirth +Lexer |- ] {
         rdip("" thaw)
         emit! (
             move!
@@ -229,12 +229,12 @@ struct +Lexer {
         )
     }
 
-    def push-string-byte! [ +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer ] {
+    def push-string-byte! [ +Mirth +Str +Lexer |- Byte -- ] {
         { B'\' -> move! peek push-string-escape-byte! }
         { _ -> rdip:push-byte-unsafe! }
     }
 
-    def push-string-escape-byte! [ +Mirth +Str +Lexer Byte -- +Mirth +Str +Lexer ] {
+    def push-string-escape-byte! [ +Mirth +Str +Lexer |- Byte -- ] {
         { BLF -> newline! }
         { B'n' -> Byte.BLF rdip(push-byte-ascii!) }
         { B'r' -> Byte.BCR rdip(push-byte-ascii!) }
@@ -247,12 +247,12 @@ struct +Lexer {
         }
     }
 
-    def skip-comment! [ +Lexer -- +Lexer ] {
+    def skip-comment! [ +Lexer |- ] {
         while(comment-end? not, move!)
         peek Byte.BLF = then(newline! move!)
     }
 
-    def skip-doc! [ +Lexer -- +Lexer ] {
+    def skip-doc! [ +Lexer |- ] {
         lexer-doc else?("") rdip:thaw
         while(comment-end? not, peek rdip:push-byte-ascii! move!)
         peek Byte.BLF = then(newline! peek rdip:push-byte-ascii! move!)
@@ -260,20 +260,13 @@ struct +Lexer {
         lexer-doc!
     }
 
-    def comment-end? [ +Lexer -- Bool +Lexer ] {
+    def comment-end? [ +Lexer |- Bool ] {
         done? or(peek Byte.BLF =)
     }
 
 }
 
-def read-path! [ Path +World -- Result(IOError, Str) +World ] {
-    open-file! +if(
-        read-file! close-file! if?(nip Err, Ok),
-        Err
-    )
-}
-
-def run-lexer! [ Path +World +Mirth -- Module +World +Mirth ] {
+def run-lexer! [ +World +Mirth |- Path -- Module ] {
     Module.new! dup source-path
     rdip:read-path! else(io-error!)
     >content +Lexer.Start!
@@ -281,67 +274,72 @@ def run-lexer! [ Path +World +Mirth -- Module +World +Mirth ] {
     stop!
 }
 
-def(+Str.name-token, +Mirth +Str -- TokenValue +Mirth +Str, dup! rdip:>Name TokenValue.Name)
+def +Str.name-token [ +Mirth +Str |- TokenValue ] { dup! rdip:>Name TokenValue.Name }
 
-def(+Str.first-byte, +Str -- Byte +Str, 0 Offset byte@)
-def(+Str.second-byte, +Str -- Byte +Str, 1 Offset byte@)
-def(+Str.third-byte, +Str -- Byte +Str, 2 Offset byte@)
+def +Str.first-byte  [ +Str |- Byte ] { 0 Offset byte@ }
+def +Str.second-byte [ +Str |- Byte ] { 1 Offset byte@ }
+def +Str.third-byte  [ +Str |- Byte ] { 2 Offset byte@ }
 
-def(+Str.first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2 bytes +Str.take-slice)
-def(+Str.last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, rdip:num-bytes? 2 bytes - offset +Str.drop-slice)
+def +Str.first-two-bytes [ +Str +Unsafe |- Str ] { 2 bytes +Str.take-slice }
+def +Str.last-two-bytes  [ +Str +Unsafe |- Str ] { rdip:num-bytes? 2 bytes - offset +Str.drop-slice }
 
-def(+Str.drop-first-byte, +Str +Unsafe -- Str +Str +Unsafe, 1 Offset +Str.drop-slice)
-def(+Str.drop-first-two-bytes, +Str +Unsafe -- Str +Str +Unsafe, 2 Offset +Str.drop-slice)
-def(+Str.drop-last-byte, +Str +Unsafe -- Str +Str +Unsafe,
-    rdip:num-bytes? 1B- +Str.take-slice)
-def(+Str.drop-last-two-bytes, +Str +Unsafe -- Str +Str +Unsafe,
-    rdip:num-bytes? 2 bytes - +Str.take-slice)
+def +Str.drop-first-byte [ +Str +Unsafe |- Str ] { 1 Offset +Str.drop-slice }
+def +Str.drop-first-two-bytes [ +Str +Unsafe |- Str ] { 2 Offset +Str.drop-slice }
+def +Str.drop-last-byte [ +Str +Unsafe |- Str ] { rdip:num-bytes? 1B- +Str.take-slice }
+def +Str.drop-last-two-bytes [ +Str +Unsafe |- Str ] { rdip:num-bytes? 2 bytes - +Str.take-slice }
 
-def(+Str.label-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
+def +Str.label-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     label-push-token?
     or?(label-push-r-token?)
     or?(label-pop-token?)
     or?(label-pop-r-token?)
     or?(label-get-token?)
-    or?(label-set-token?))
+    or?(label-set-token?)
+}
 
-def(+Str.label-pop-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
+def +Str.label-pop-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     first-byte is-lower and(last-byte Byte.B'>' =) if(
         unsafe(+Str.drop-last-byte) rdip(>Name Label.new!) TokenValue.LabelPop Some,
         None
-    ))
+    )
+}
 
-def(+Str.label-pop-r-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
+def +Str.label-pop-r-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     first-byte Byte.B'+' = and(second-byte is-lower and(last-byte Byte.B'>' =)) if(
         unsafe(+Str.drop-last-byte) rdip(>Name Label.new!) TokenValue.LabelPopR Some,
         None
-    ))
+    )
+}
 
-def(+Str.label-push-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
+def +Str.label-push-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     first-byte Byte.B'>' = and(second-byte is-lower) if(
         unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelPush Some,
         None
-    ))
+    )
+}
 
-def(+Str.label-push-r-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
+def +Str.label-push-r-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     unsafe(+Str.first-two-bytes) ">+" = and(third-byte is-lower) if(
         unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelPushR Some,
         None
-    ))
+    )
+}
 
-def(+Str.label-get-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
+def +Str.label-get-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     first-byte Byte.B'@' = and(second-byte is-lower or(second-byte Byte.B'+' = and(third-byte is-lower))) if(
         unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelGet Some,
         None
-    ))
+    )
+}
 
-def(+Str.label-set-token?, +Mirth +Str -- +Mirth Maybe(TokenValue) +Str,
+def +Str.label-set-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     first-byte Byte.B'!' = and(second-byte is-lower or(second-byte Byte.B'+' = and(third-byte is-lower))) if(
         unsafe(+Str.drop-first-byte) rdip(>Name Label.new!) TokenValue.LabelSet Some,
         None
-    ))
+    )
+}
 
-def +Str.dname-token? [ +Mirth +Str -- +Mirth Maybe(TokenValue) +Str ] {
+def +Str.dname-token? [ +Mirth +Str |- Maybe(TokenValue) ] {
     Byte.BDOT +Str.split-byte
     uncons >Nest? match {
         { None -> drop None }
@@ -352,16 +350,11 @@ def +Str.dname-token? [ +Mirth +Str -- +Mirth Maybe(TokenValue) +Str ] {
     }
 }
 
-def(+Str.is-doc-start?, +Str -- Bool +Str,
-    dup! "|||" =)
+def +Str.is-doc-start? [ +Str |- Bool ] { dup! "|||" = }
+def +Str.is-arrow?     [ +Str |- Bool ] { dup! "->" = }
+def +Str.is-dashes?    [ +Str |- Bool ] { dup! "--" = }
 
-def(+Str.is-arrow?, +Str -- Bool +Str,
-    dup! "->" =)
-
-def(+Str.is-dashes?, +Str -- Bool +Str,
-    dup! "--" =)
-
-def(+Str.is-float?, +Str -- Bool +Str,
+def +Str.is-float? [ +Str |- Bool ] {
     0 Size
     0 Offset
 
@@ -374,9 +367,9 @@ def(+Str.is-float?, +Str -- Bool +Str,
         dip(3 bytes >=) num-bytes? = and,
         drop2 False
     )
-)
+}
 
-def +Str.float-token? [ +Mirth +Str Token -- +Mirth +Str Token Maybe(TokenValue) ] {
+def +Str.float-token? [ +Mirth +Str Token |- Maybe(TokenValue) ] {
     is-float? >Maybe (
         dup! >F64? unwrap(
             "[lexer] bug: failed to parse float literal" rdip:emit-fatal-error!
@@ -386,8 +379,9 @@ def +Str.float-token? [ +Mirth +Str Token -- +Mirth +Str Token Maybe(TokenValue)
 
 ||| Process float sign and return initial state for rest float lexing.
 ||| returns: (sign multiplier) (str-buf index)
-def(+Str.float-sign, +Str -- Byte Offset +Str,
-    0 Offset byte@ byte-sign-value-index-float)
+def +Str.float-sign [ +Str |- Byte Offset ] {
+    0 Offset byte@ byte-sign-value-index-float
+}
 
 def byte-sign-value-index-float [ Byte -- Byte Offset ] {
     { B'-' -> Byte.B'-' 1 Offset }
@@ -395,7 +389,7 @@ def byte-sign-value-index-float [ Byte -- Byte Offset ] {
     { _ -> drop Byte.B'+' 0 Offset }
 }
 
-def +Str.int-token? [ +Str -- Maybe(Result(Str, TokenValue)) +Str ] {
+def +Str.int-token? [ +Str |- Maybe(Result(Str, TokenValue)) ] {
     None
     or?(is-dec-int? >Maybe:dec-int?)
     or?(is-hex-int? >Maybe:hex-int?)
@@ -420,7 +414,7 @@ data IntSuffix {
     }
 }
 
-def +Str.int-suffix? [ Offset +Str -- Maybe(IntSuffix) +Str ] {
+def +Str.int-suffix? [ +Str |- Offset -- Maybe(IntSuffix) ] {
     unsafe(+Str.drop-slice) >suffix
     None
     or?(@suffix "" = >Maybe(IntSuffix.Int))
@@ -435,17 +429,19 @@ def +Str.int-suffix? [ Offset +Str -- Maybe(IntSuffix) +Str ] {
     suffix> drop
 }
 
-def(skipping-underscore(f), (Byte -- Bool) +Str Size Offset -- +Str Size Offset Bool,
-    over 0B> and(dup byte@ Byte.B'_' =) and(dup 1B+ byte@ f) if(1B+ True, dup byte@ f))
+def skipping-underscore(f) [ (Byte -- Bool) +Str |- Size Offset -- Size Offset Bool ] {
+    over 0B> and(dup byte@ Byte.B'_' =) and(dup 1B+ byte@ f) if(1B+ True, dup byte@ f)
+}
 
-def(+Str.is-dec-int?, +Str -- Bool +Str,
+def +Str.is-dec-int? [ +Str |- Bool ] {
     0 Size # number of digits
     0 Offset # current index
     dup byte@ is-sign if(1B+, id)
     while(skipping-underscore:is-digit, dip(1B+) 1B+)
-    swap 0B> and(dup int-suffix? some?) nip)
+    swap 0B> and(dup int-suffix? some?) nip
+}
 
-def(+Str.is-hex-int?, +Str -- Bool +Str,
+def +Str.is-hex-int? [ +Str |- Bool ] {
     0 Size # number of digits
     0 Offset # current index
     dup byte@ is-sign if(
@@ -463,9 +459,10 @@ def(+Str.is-hex-int?, +Str -- Bool +Str,
         ),
 
         drop2 False
-    ))
+    )
+}
 
-def(+Str.is-oct-int?, +Str -- Bool +Str,
+def +Str.is-oct-int? [ +Str |- Bool ] {
     0 Size # number of digits
     0 Offset # current index
     dup byte@ is-sign if(
@@ -483,19 +480,22 @@ def(+Str.is-oct-int?, +Str -- Bool +Str,
         ),
 
         drop2 False
-    ))
+    )
+}
 
 ||| process int sign and return initial state for rest of int lexing.
 ||| returns: (sign multiplier) (accumulated value = 0) (str-buf index)
-def(+Str.int-sign, +Str -- Int Int Offset +Str,
-    0 Offset byte@ byte-sign-value-index)
+def +Str.int-sign [ +Str |- Int Int Offset ] {
+    0 Offset byte@ byte-sign-value-index
+}
 
-def(byte-sign-value-index, Byte -- Int Int Offset,
-    B'-' -> -1 0 1 Offset,
-    B'+' -> +1 0 1 Offset,
-    _ -> drop +1 0 0 Offset)
+def byte-sign-value-index [ Byte -- Int Int Offset ] {
+    { B'-' -> -1 0 1 Offset }
+    { B'+' -> +1 0 1 Offset }
+    { _ -> drop +1 0 0 Offset }
+}
 
-def +Str.finish-int-literal [ Int Int Offset +Str -- Result(Str, TokenValue) +Str ] {
+def +Str.finish-int-literal [ +Str |- Int Int Offset -- Result(Str, TokenValue) ] {
     dip:*
     int-suffix? if?(
         convert,
@@ -503,7 +503,7 @@ def +Str.finish-int-literal [ Int Int Offset +Str -- Result(Str, TokenValue) +St
     )
 }
 
-def(+Str.dec-int?, +Str -- Result(Str, TokenValue) +Str,
+def +Str.dec-int? [ +Str |- Result(Str, TokenValue) ] {
     int-sign
     while(
         dup byte@ Byte.B'_' = then(1B+)
@@ -513,9 +513,10 @@ def(+Str.dec-int?, +Str -- Result(Str, TokenValue) +Str,
             dip(10 *) 48 - +
         )
         1B+)
-    finish-int-literal)
+    finish-int-literal
+}
 
-def(+Str.hex-int?, +Str -- Result(Str, TokenValue) +Str,
+def +Str.hex-int? [ +Str |- Result(Str, TokenValue) ] {
     int-sign 2 bytes + # skip 0x prefix
     while(
         dup byte@ Byte.B'_' = then(1B+)
@@ -525,9 +526,10 @@ def(+Str.hex-int?, +Str -- Result(Str, TokenValue) +Str,
             dip(16 *) hexdigit-value +
         )
         1B+)
-    finish-int-literal)
+    finish-int-literal
+}
 
-def(+Str.oct-int?, +Str -- Result(Str, TokenValue) +Str,
+def +Str.oct-int? [ +Str |- Result(Str, TokenValue) ] {
     int-sign 2 bytes + # skip 0o prefix
     while(
         dup byte@ Byte.B'_' = then(1B+)
@@ -537,10 +539,12 @@ def(+Str.oct-int?, +Str -- Result(Str, TokenValue) +Str,
             dip(8 *) 48 - +
         )
         1B+)
-    finish-int-literal)
+    finish-int-literal
+}
 
-def(hexdigit-value, Byte -- Int,
+def hexdigit-value [ Byte -- Int ] {
     dup is-digit if(
         >Int 48 -,
         to-upper >Int 55 -
-    ))
+    )
+}

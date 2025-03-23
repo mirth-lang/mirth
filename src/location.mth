@@ -45,7 +45,7 @@ struct Location {
     row: Row
     col: Col
     --
-    def emit; [ +Mirth +Str Location -- +Mirth +Str ] {
+    def emit; [ +Mirth +Str |- Location -- ] {
         /Location
         module> rdip:source-path >Str ;
         ":" ; row> int;

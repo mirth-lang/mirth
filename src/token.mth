@@ -55,7 +55,7 @@ data TokenValue {
     def none? { None -> True, _ -> drop False }
     def comma? { Comma -> True, _ -> drop False }
 
-    def map-token-ref(f) [ (*a Token -- *a Token) *a TokenValue -- *a TokenValue ] {
+    def map-token-ref(f) [ *a |- (Token -- Token)  TokenValue -- TokenValue ] {
         { LParen  -> f TokenValue.LParen  } { RParen  -> f TokenValue.RParen  }
         { LCurly  -> f TokenValue.LCurly  } { RCurly  -> f TokenValue.RCurly  }
         { LSquare -> f TokenValue.LSquare } { RSquare -> f TokenValue.RSquare }
@@ -79,49 +79,53 @@ def(TokenValue.rcolon?, TokenValue -- Maybe(Token), RColon -> Some, _ -> drop No
 def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), LParen -> Some, LColon -> Some, _ -> drop None)
 
 
-def(TokenValue.can-take-args?, TokenValue -- Bool,
-    Name -> drop True,
-    DName -> drop True,
-    LabelGet -> drop True,
-    LabelSet -> drop True,
-    _ -> drop False)
+def TokenValue.can-take-args? [ TokenValue -- Bool ] {
+    { Name -> drop True }
+    { DName -> drop True }
+    { LabelGet -> drop True }
+    { LabelSet -> drop True }
+    { _ -> drop False }
+}
 
 def-type(Name/DName, Either(Name,DName))
 
-def(TokenValue.int?, TokenValue -- Maybe(Int), Int -> Some, _ -> drop None)
-def(TokenValue.str?, TokenValue -- Maybe(Str), Str -> Some, _ -> drop None)
-def(TokenValue.name?, TokenValue -- Maybe(Name), Name -> Some, _ -> drop None)
-def(TokenValue.dname?, TokenValue -- Maybe(DName), DName -> Some, _ -> drop None)
-def(TokenValue.name/dname?, TokenValue -- Maybe(Name/DName),
-    Name -> Left Some,
-    DName -> Right Some,
-    _ -> drop None)
-def(TokenValue.last-name?, TokenValue -- Maybe(Name),
-    Name -> Some,
-    DName -> last-name Some,
-    _ -> drop None)
-def(TokenValue.penultimate-name?, TokenValue -- Maybe(Name),
-    DName -> penultimate-name?,
-    _ -> drop None)
-def(TokenValue.arg-end?, TokenValue -- Bool,
+def TokenValue.int? [ TokenValue -- Maybe(Int) ] { Int -> Some, _ -> drop None }
+def TokenValue.str? [ TokenValue -- Maybe(Str) ] { Str -> Some, _ -> drop None }
+def TokenValue.name? [ TokenValue -- Maybe(Name) ] { Name -> Some, _ -> drop None }
+def TokenValue.dname? [ TokenValue -- Maybe(DName) ] { DName -> Some, _ -> drop None }
+def TokenValue.name/dname? [ TokenValue -- Maybe(Name/DName) ] {
+    { Name -> Left Some }
+    { DName -> Right Some }
+    { _ -> drop None }
+}
+def TokenValue.last-name? [ TokenValue -- Maybe(Name) ] {
+    { Name -> Some }
+    { DName -> last-name Some }
+    { _ -> drop None }
+}
+def TokenValue.penultimate-name? [ TokenValue -- Maybe(Name) ] { DName -> penultimate-name?, _ -> drop None }
+def TokenValue.arg-end? [ TokenValue -- Bool ] {
     Comma -> True,
     RParen -> drop True,
     RCurly -> drop True,
     RSquare -> drop True,
     RColon -> drop True,
-    _ -> drop False)
-def(TokenValue.left-enclosure?, TokenValue -- Bool,
+    _ -> drop False
+}
+def TokenValue.left-enclosure? [ TokenValue -- Bool ] {
     LParen -> drop True,
     LSquare -> drop True,
     LCurly -> drop True,
     LColon -> drop True,
-    _ -> drop False)
-def(TokenValue.right-enclosure?, TokenValue -- Bool,
+    _ -> drop False
+}
+def TokenValue.right-enclosure? [ TokenValue -- Bool ] {
     RParen -> drop True,
     RSquare -> drop True,
     RCurly -> drop True,
     RColon -> drop True,
-    _ -> drop False)
+    _ -> drop False
+}
 
 def name/dname-last-name [ Name/DName -- Name ] {
     { Left -> id }
@@ -132,9 +136,11 @@ def name/dname-penultimate-name? [ Name/DName -- Maybe(Name) ] {
     { Right -> penultimate-name? }
 }
 
-def(TokenValue.sig-type-con?, +Mirth TokenValue -- +Mirth Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-type-con))
-def(TokenValue.sig-type-hole?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(is-type-hole))
-def(TokenValue.sig-type-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-type-var))
+def TokenValue.sig-type-con? [ +Mirth |- TokenValue -- Maybe(Name/DName) ] {
+    name/dname? filter(name/dname-last-name could-be-type-con)
+}
+def TokenValue.sig-type-hole? [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter(is-type-hole) }
+def TokenValue.sig-type-var?  [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter(could-be-type-var) }
 def(TokenValue.sig-param-name?, +Mirth TokenValue -- +Mirth Maybe(Name), sig-type-var?)
 def(TokenValue.sig-stack-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-stack-var))
 def(TokenValue.sig-resource-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-resource-var))
@@ -388,22 +394,19 @@ def(Token.run-arrow?, +Mirth Token -- +Mirth Maybe(Token),
 # Type Signatures #
 ###################
 
-def(Token.sig-stack-end?, +Mirth Token -- +Mirth Bool,
+def(Token.sig-stack-end?, +Mirth |- Token -- Bool,
     or(sig-dashes?, vdash?, run-end?))
 
-def(Token.sig-next-stack-end, +Mirth Token -- +Mirth Token,
+def(Token.sig-next-stack-end, +Mirth |- Token -- Token,
     while(dup sig-stack-end? not, next))
 
-def(Token.sig-has-dashes?, +Mirth Token -- +Mirth Bool,
-    sig-next-stack-end sig-dashes?)
+def(Token.sig-has-vdash-or-dashes?, +Mirth |- Token -- Bool,
+    sig-next-stack-end or(sig-dashes?, vdash?))
 
-def(Token.sig-skip-dashes, +Mirth Token -- +Mirth Token,
-    dup sig-has-dashes? then(sig-next-stack-end next))
-
-def(Token.pat-tokens, +Mirth Token -- +Mirth List(Token),
+def(Token.pat-tokens, +Mirth |- Token -- List(Token),
     run-tokens take-while(arrow? not))
 
-def Token.clone-run! [ +Mirth location:Location Token -- +Mirth Token ] {
+def Token.clone-run! [ +Mirth |- location:Location Token -- Token ] {
     dup >start to-run-end >end
 
     Token.alloc-none! >anchor

@@ -53,10 +53,10 @@ struct Arrow {
     def ctx-type { sip(ctx) type }
     def type { sip(dom) cod T-> }
 
-    def to-run-var [ +Mirth Arrow -- +Mirth Maybe(Var) ] {
+    def to-run-var [ +Mirth |- Arrow -- Maybe(Var) ] {
         atoms single? bind(to-run-var)
     }
-    def free-vars [ +Mirth Arrow -- +Mirth List(Var) ] {
+    def free-vars [ +Mirth |- Arrow -- List(Var) ] {
         atoms map(free-vars) unions
     }
 }
@@ -71,8 +71,8 @@ struct Atom {
     cod:StackType
     subst:Subst
     --
-    def to-run-var [ +Mirth Atom -- +Mirth Maybe(Var) ] { op to-run-var }
-    def free-vars [ +Mirth Atom -- +Mirth List(Var) ] {
+    def to-run-var [ +Mirth |- Atom -- Maybe(Var) ] { op to-run-var }
+    def free-vars [ +Mirth |- Atom -- List(Var) ] {
         dup args map(free-vars) unions
         swap op free-vars union
     }
@@ -84,8 +84,8 @@ data Arg {
     def token { Block -> token }
     def type  { Block -> type }
     def free-vars { Block -> free-vars }
-    def mangled; [ +Mirth +Str Arg -- +Mirth +Str ] { Block -> mangled; }
-    def =  [ Arg Arg -- Bool ] {
+    def mangled; [ +Mirth +Str |- Arg -- ] { Block -> mangled; }
+    def = [ Arg Arg -- Bool ] {
         { Block -> swap match { Block -> swap =, _ -> drop2 No } }
     }
 }
@@ -144,11 +144,11 @@ data Op {
     TableToIndex [ Table ]
     TableFromIndex [ Table ]
     --
-    def to-run-var [ +Mirth Op -- +Mirth Maybe(Var) ] {
+    def to-run-var [ +Mirth |- Op -- Maybe(Var) ] {
         { Var -> dup auto-run? if(Some, drop None) }
         { _ -> drop None }
     }
-    def free-vars [ +Mirth Op -- +Mirth List(Var) ] {
+    def free-vars [ +Mirth |- Op -- List(Var) ] {
         { Prim -> drop List.Nil }
         { Word -> drop List.Nil }
         { External -> drop List.Nil }
@@ -209,36 +209,38 @@ field(Block.~cod, Block, StackType)
 field(Block.~arrow, Block, Prop(Arrow))
 field(Block.~qname, Block, QName)
 
-def(Block.ctx, +Mirth Block -- +Mirth Ctx, ~ctx @)
-def(Block.token, +Mirth Block -- +Mirth Token, ~token @)
-def(Block.dom, +Mirth Block -- +Mirth StackType, ~dom @)
-def(Block.cod, +Mirth Block -- +Mirth StackType, ~cod @)
-def(Block.home, +Mirth Block -- +Mirth Home, ~home @)
+def Block.ctx   [ +Mirth |- Block -- Ctx       ] { ~ctx   @ }
+def Block.token [ +Mirth |- Block -- Token     ] { ~token @ }
+def Block.dom   [ +Mirth |- Block -- StackType ] { ~dom   @ }
+def Block.cod   [ +Mirth |- Block -- StackType ] { ~cod   @ }
+def Block.home  [ +Mirth |- Block -- Home      ] { ~home  @ }
 
-def(Block.type, +Mirth Block -- +Mirth ArrowType, sip(dom) cod T->)
-def(Block.arrow, +Mirth Block -- +Mirth Arrow, ~arrow force!)
-def(Block.infer-type!, +Mirth Block -- +Mirth ArrowType, arrow type)
+def Block.type  [ +Mirth |- Block -- ArrowType ] { sip(dom) cod T-> }
+def Block.arrow [ +Mirth |- Block -- Arrow     ] { ~arrow force! }
+def Block.infer-type! [ +Mirth |- Block -- ArrowType ] { arrow type }
 
-def(Block.=, Block Block -- Bool, both(Block.index) =)
+def Block.= [ Block Block -- Bool ] { on2:index = }
 
 field(Block.~home-index, Block, Int)
-def(Block.register-home!, +Mirth Block -- +Mirth,
-    dup home match(
-        Word ->
-            inc-num-blocks! swap ~home-index !,
-        Main ->
-            drop2
-    ))
+def Block.register-home! [ +Mirth |- Block -- ] {
+    dup home match {
+        { Word -> inc-num-blocks! swap ~home-index ! }
+        { Main -> drop2 }
+    }
+}
 
 field(Block.~cname, Block, Str)
-def(Block.cname, +Mirth Block -- +Mirth Str, dup ~cname memoize(
-    dup home match(
-        Word -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ int;),
-        Main -> drop Str("mb_" ; dup index int;),
-    )) nip)
-def Block.mangled; [ +Mirth +Str Block -- +Mirth +Str ] { rdip:cname ; }
+def Block.cname [ +Mirth |- Block -- Str ] {
+    dup ~cname memoize(
+        dup home match {
+            { Word -> qname-hard mangled Str("mb_" ; ; "_" ; dup ~home-index @ int;) }
+            { Main -> drop Str("mb_" ; dup index int;) }
+        }
+    ) nip
+}
+def Block.mangled; [ +Mirth +Str |- Block -- ] { rdip:cname ; }
 
-def Block.new! [ +Mirth Arrow -- +Mirth Block ] {
+def Block.new! [ +Mirth |- Arrow -- Block ] {
     >arrow
     Block.alloc! >block
     @arrow home @block ~home !
@@ -251,10 +253,7 @@ def Block.new! [ +Mirth Arrow -- +Mirth Block ] {
     block>
 }
 
-def Block.new-deferred!(f) [
-    (+Mirth Block -- +Mirth Arrow)
-    +Mirth Ctx Token Home -- +Mirth Block
-] {
+def Block.new-deferred!(f) [ +Mirth |- (Block -- Arrow) Ctx Token Home -- Block ] {
     Block.alloc! >block
     @block ~home !
     @block ~token !
@@ -266,22 +265,24 @@ def Block.new-deferred!(f) [
     block>
 }
 
-def(Block.typecheck!, +Mirth Block -- +Mirth,
-    arrow drop)
+def Block.typecheck! [ +Mirth |- Block -- ] { arrow drop }
 
-def(block-unify-type!, +Mirth Block ArrowType -- +Mirth ArrowType,
-    dip(dup type) rotl dip(unify! drop) arrow type)
+def block-unify-type! [ +Mirth |- Block ArrowType -- ArrowType ] {
+    dip(dup type) unify! drop arrow type
+}
 
-def(Block.to-run-var, +Mirth Block -- +Mirth Maybe(Var),
-    arrow to-run-var)
+def Block.to-run-var [ +Mirth |- Block -- Maybe(Var) ] { arrow to-run-var }
 
 field(Block.~free-vars, Block, List(Var))
-def(Block.free-vars, +Mirth Block -- +Mirth List(Var),
+def Block.free-vars [ +Mirth |- Block -- List(Var) ] {
     dup ~free-vars memoize(
         dup arrow free-vars
-    ) nip)
+    ) nip
+}
 
-def(Match.free-vars, +Mirth Match -- +Mirth List(Var),
-    cases map(free-vars) unions)
-def(Case.free-vars, +Mirth Case -- +Mirth List(Var),
-    body free-vars)
+def Match.free-vars [ +Mirth |- Match -- List(Var) ] {
+    cases map(free-vars) unions
+}
+def Case.free-vars [ +Mirth |- Case -- List(Var) ] {
+    body free-vars
+}

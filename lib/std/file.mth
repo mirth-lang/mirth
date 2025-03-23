@@ -165,3 +165,10 @@ def +Unsafe.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescript
 def(+Unsafe.read-bytes!, ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe,
     with-fd:posix-read!
     if(Ok, IOError.ReadFailed Err))
+
+def +World.read-path! [ +World |- Path -- Result(IOError, Str) ] {
+    open-file! +if(
+        read-file! close-file! if?(nip Err, Ok),
+        Err
+    )
+}

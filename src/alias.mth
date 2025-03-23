@@ -18,16 +18,16 @@ field(Alias.~arity, Alias, Int)
 field(Alias.~qname, Alias, Prop(QName))
 field(Alias.~target, Alias, Prop(Def))
 
-def Alias.head [ +Mirth Alias -- +Mirth Token ] { ~head @ }
-def Alias.qname-soft [ +Mirth Alias -- +Mirth Maybe(QName) ] { ~qname @? bind:ready? }
-def Alias.qname-hard [ +Mirth Alias -- +Mirth QName ] { ~qname force! }
-def Alias.namespace-hard [ +Mirth Alias -- +Mirth Namespace ] { qname-hard namespace }
-def Alias.name [ +Mirth Alias -- +Mirth Name ] { ~name @ }
-def Alias.arity [ +Mirth Alias -- +Mirth Int ] { ~arity @ }
-def Alias.target [ +Mirth Alias -- +Mirth Def ] { ~target force! }
+def Alias.head [ +Mirth |- Alias -- Token ] { ~head @ }
+def Alias.qname-soft [ +Mirth |- Alias -- Maybe(QName) ] { ~qname @? bind:ready? }
+def Alias.qname-hard [ +Mirth |- Alias -- QName ] { ~qname force! }
+def Alias.namespace-hard [ +Mirth |- Alias -- Namespace ] { qname-hard namespace }
+def Alias.name [ +Mirth |- Alias -- Name ] { ~name @ }
+def Alias.arity [ +Mirth |- Alias -- Int ] { ~arity @ }
+def Alias.target [ +Mirth |- Alias -- Def ] { ~target force! }
 
 def Alias.= [ Alias Alias -- Bool ] { both(index) = }
-def Alias.new! [ +Mirth head:Token name:Name arity:Int doc:Maybe(Str) -- +Mirth Alias ] {
+def Alias.new! [ +Mirth |- head:Token name:Name arity:Int doc:Maybe(Str) -- Alias ] {
     Alias.alloc!
     doc> over ~doc !
     name> over ~name !
@@ -43,7 +43,7 @@ def Alias.new! [ +Mirth head:Token name:Name arity:Int doc:Maybe(Str) -- +Mirth 
 |||
 ||| Both `head` and `target` are names (or dnames), with `head` taking
 ||| an optional argument list (for the arity), and `target` taking no arguments.
-def parse-alias [ +Mirth Token -- +Mirth Token head:Token target:Token name/dname:Name/DName doc:Maybe(Str) ] {
+def parse-alias [ +Mirth Token |- head:Token target:Token name/dname:Name/DName doc:Maybe(Str) ] {
     dup doc >doc
     dup succ lparen? >Bool >has-paren
     @has-paren if(
@@ -61,7 +61,7 @@ def parse-alias [ +Mirth Token -- +Mirth Token head:Token target:Token name/dnam
 }
 
 ||| Elaborate an alias declaration.
-def elab-alias! [ +Mirth Token -- +Mirth Token ] {
+def elab-alias! [ +Mirth Token |- ] {
     parse-alias elab-def-head @arity:>Int Alias.new!
     dup PropLabel.AliasQName >label Prop over ~qname !
 

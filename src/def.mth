@@ -68,7 +68,7 @@ data Def {
         { Macro -> Some swap macro? = }
     }
 
-    def typecheck! [ +Mirth Def -- +Mirth ] {
+    def typecheck! [ +Mirth |- Def -- ] {
         { Package -> drop }
         { Module -> drop }
         { Alias -> target typecheck! }
@@ -84,7 +84,7 @@ data Def {
         { Macro -> drop }
     }
 
-    def callable? [ +Mirth Def -- +Mirth Bool ] {
+    def callable? [ +Mirth |- Def -- Bool ] {
         { Alias -> ~target try-force! has(callable?) }
         { Package -> drop False }
         { Module -> drop False }
@@ -100,7 +100,7 @@ data Def {
         { Macro -> action callable? }
     }
 
-    def defines-a-type? [ +Mirth Def -- +Mirth Bool ] {
+    def defines-a-type? [ +Mirth |- Def -- Bool ] {
         { Alias -> ~target try-force! has(defines-a-type?) }
         { Package -> drop False }
         { Module -> drop False }
@@ -116,7 +116,7 @@ data Def {
         { Macro -> drop False }
     }
 
-    def exposed-tycon? [ +Mirth Def -- +Mirth Maybe(Tycon) ] {
+    def exposed-tycon? [ +Mirth |- Def -- Maybe(Tycon) ] {
         { Alias -> ~target try-force! bind(exposed-tycon?) }
         { Package -> drop None }
         { Module -> drop None }
@@ -132,7 +132,7 @@ data Def {
         { Macro -> drop None }
     }
 
-    def head? [ +Mirth Def -- +Mirth Maybe(Token) ] {
+    def head? [ +Mirth |- Def -- Maybe(Token) ] {
         { Alias -> head Some }
         { Package -> drop None }
         { Module -> start Some }
@@ -148,19 +148,19 @@ data Def {
         { Macro -> head? }
     }
 
-    def defining-module? [ +Mirth Def -- +Mirth Maybe(Module) ] {
+    def defining-module? [ +Mirth |- Def -- Maybe(Module) ] {
         head? map(.module)
     }
 
-    def same-resolved? [ +Mirth Def Def -- +Mirth Bool ] {
+    def same-resolved? [ +Mirth |- Def Def -- Bool ] {
         on2(resolve) =
     }
 
-    def resolve [ +Mirth Def -- +Mirth Def ] {
+    def resolve [ +Mirth |- Def -- Def ] {
         while-some(dup alias? bind(~target try-force!), nip)
     }
 
-    def name [ +Mirth Def -- +Mirth Name ] {
+    def name [ +Mirth |- Def -- Name ] {
         { Alias -> name }
         { Package -> name }
         { Module -> name }
@@ -176,7 +176,7 @@ data Def {
         { Macro -> name }
     }
 
-    def arity [ +Mirth Def -- +Mirth Int ] {
+    def arity [ +Mirth |- Def -- Int ] {
         { Alias -> arity }
         { Package -> drop 0 }
         { Module -> drop 0 }
@@ -192,7 +192,7 @@ data Def {
         { Macro -> arity }
     }
 
-    def qname-soft [ +Mirth Def -- +Mirth Maybe(QName) ] {
+    def qname-soft [ +Mirth |- Def -- Maybe(QName) ] {
         { Alias -> qname-soft }
         { Package -> qname Some }
         { Module -> qname Some }
@@ -208,7 +208,7 @@ data Def {
         { Macro -> qname-soft }
     }
 
-    def qname-hard [ +Mirth Def -- +Mirth QName ] {
+    def qname-hard [ +Mirth |- Def -- QName ] {
         { Alias -> qname-hard }
         { Package -> qname }
         { Module -> qname }
@@ -224,7 +224,7 @@ data Def {
         { Macro -> qname-hard }
     }
 
-    def as-namespace? [ +Mirth Def -- +Mirth Maybe(Namespace) ] {
+    def as-namespace? [ +Mirth |- Def -- Maybe(Namespace) ] {
         { Alias -> ~target try-force! bind(as-namespace?) }
         { Package -> Namespace.Package Some }
         { Module -> Namespace.Module Some }
@@ -235,13 +235,13 @@ data Def {
         { _ -> drop None }
     }
 
-    def as-def-namespace? [ +Mirth Def -- +Mirth Maybe(Namespace) ] {
+    def as-def-namespace? [ +Mirth |- Def -- Maybe(Namespace) ] {
         { Alias -> ~target try-force! bind(as-def-namespace?) }
         { Word -> drop None }
         { _ -> as-namespace? }
     }
 
-    def register [ +Mirth Def -- +Mirth ] {
+    def register [ +Mirth |- Def -- ] {
         dup qname-soft for(
             dup undefined-soft? else(
                 Str("Already defined: "; qname;) fatal-error!
@@ -250,11 +250,11 @@ data Def {
         dup name ~defs modify(cons)
     }
 
-    def name; [ +Mirth +Str Def -- +Mirth +Str ] {
+    def name; [ +Mirth +Str |- Def -- ] {
         rdip:name name;
     }
 
-    def qname; [ +Mirth +Str Def -- +Mirth +Str ] {
+    def qname; [ +Mirth +Str |- Def -- ] {
         rdip:qname-hard qname;
     }
 }
