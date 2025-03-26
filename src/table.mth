@@ -13,45 +13,54 @@ import mirth.mirth
 
 # mirth/data/table
 table(Table)
-field(Table.~doc, Table, Maybe(Str))
-field(Table.~head, Table, Token) # where the table was defined
-field(Table.~name, Table, Name)
-field(Table.~qname, Table, Prop(QName))
-field(Table.~num-buffer, Table, Buffer)
+patch Table {
+    field(~doc, Table, Maybe(Str))
+    field(~head, Table, Token) # where the table was defined
+    field(~name, Table, Name)
+    field(~qname, Table, Prop(QName))
+    field(~num-buffer, Table, Buffer)
 
-def(Table.doc, +Mirth Table -- +Mirth Maybe(Str), ~doc @)
-def(Table.head, +Mirth Table -- +Mirth Token, ~head @)
-def(Table.qname-soft, +Mirth Table -- +Mirth Maybe(QName), ~qname @? bind(ready?))
-def(Table.qname-hard, +Mirth Table -- +Mirth QName, ~qname force!)
-def(Table.namespace, +Mirth Table -- +Mirth Namespace, qname-hard namespace)
-def(Table.name, +Mirth Table -- +Mirth Name, ~name @)
-def(Table.num-buffer, +Mirth Table -- +Mirth Buffer, ~num-buffer @)
-def(Table.=, Table Table -- Bool, both(index) =)
+    def doc        [ +Mirth |- Table -- Maybe(Str)   ] { ~doc @ }
+    def head       [ +Mirth |- Table -- Token        ] { ~head @ }
+    def qname-soft [ +Mirth |- Table -- Maybe(QName) ] { ~qname @? bind(ready?) }
+    def qname-hard [ +Mirth |- Table -- QName        ] { ~qname force! }
+    def namespace  [ +Mirth |- Table -- Namespace    ] { qname-hard namespace }
+    def name       [ +Mirth |- Table -- Name         ] { ~name @ }
+    def num-buffer [ +Mirth |- Table -- Buffer       ] { ~num-buffer @ }
 
-def Table.name; [ +Mirth +Str Table -- +Mirth +Str ] { rdip:name name; }
-def Table.qname; [ +Mirth +Str Table -- +Mirth +Str ] { rdip:qname-hard qname; }
+    def = [ Table Table -- Bool ] { on2:index = }
+    def unify! [ +Mirth |- Table Table -- Type ] {
+        dup2 = if(drop >Type, on2:>Type unify-failed!)
+    }
+    def >Type [ Table -- Type ] { Type.Table }
+
+    def name;  [ +Mirth +Str |- Table -- ] { rdip:name name; }
+    def qname; [ +Mirth +Str |- Table -- ] { rdip:qname-hard qname; }
+}
 
 table(Field)
-field(Field.~doc, Field, Maybe(Str))
-field(Field.~head, Field, Token)
-field(Field.~name, Field, Name)
-field(Field.~qname, Field, Prop(QName))
-field(Field.~index-type, Field, Prop(Type))
-field(Field.~value-type, Field, Prop(Type))
+patch Field {
+    field(~doc, Field, Maybe(Str))
+    field(~head, Field, Token)
+    field(~name, Field, Name)
+    field(~qname, Field, Prop(QName))
+    field(~index-type, Field, Prop(Type))
+    field(~value-type, Field, Prop(Type))
 
-def(Field.doc, +Mirth Field -- +Mirth Maybe(Str), ~doc @)
-def(Field.head, +Mirth Field -- +Mirth Token, ~head @)
-def(Field.name, +Mirth Field -- +Mirth Name, ~name @)
-def(Field.qname-soft, +Mirth Field -- +Mirth Maybe(QName), ~qname @? bind(ready?))
-def(Field.qname-hard, +Mirth Field -- +Mirth QName, ~qname force!)
-def(Field.index-type, +Mirth Field -- +Mirth Type, ~index-type force!)
-def(Field.value-type, +Mirth Field -- +Mirth Type, ~value-type force!)
+    def doc        [ +Mirth |- Field -- Maybe(Str)   ] { ~doc @ }
+    def head       [ +Mirth |- Field -- Token        ] { ~head @ }
+    def name       [ +Mirth |- Field -- Name         ] { ~name @ }
+    def qname-soft [ +Mirth |- Field -- Maybe(QName) ] { ~qname @? bind(ready?) }
+    def qname-hard [ +Mirth |- Field -- QName        ] { ~qname force! }
+    def index-type [ +Mirth |- Field -- Type         ] { ~index-type force! }
+    def value-type [ +Mirth |- Field -- Type         ] { ~value-type force! }
 
-def Field.name; [ +Mirth +Str Field -- +Mirth +Str ] { rdip:name name; }
-def Field.qname; [ +Mirth +Str Field -- +Mirth +Str ] { rdip:qname-hard qname; }
+    def name;  [ +Mirth +Str |- Field -- ] { rdip:name name; }
+    def qname; [ +Mirth +Str |- Field -- ] { rdip:qname-hard qname; }
 
-def(Field.dom, +Mirth Field -- +Mirth StackType, index-type T1)
-def(Field.cod, +Mirth Field -- +Mirth StackType, value-type Type.Mut T1)
-def(Field.type, +Mirth Field -- +Mirth ArrowType, sip(dom) cod T->)
+    def dom  [ +Mirth |- Field -- StackType ] { index-type T1 }
+    def cod  [ +Mirth |- Field -- StackType ] { value-type Type.Mut T1 }
+    def type [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
 
-def(Field.=, Field Field -- Bool, both(index) =)
+    def = [ Field Field -- Bool ] { on2:index = }
+}

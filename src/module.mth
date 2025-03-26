@@ -14,49 +14,51 @@ import mirth.def
 
 # mirth/data/module
 table(Module)
-field(Module.~doc, Module, Maybe(Str))
-field(Module.~package, Module, Package)
-field(Module.~name, Module, Name)
-field(Module.~path, Module, Path)
-field(Module.~start, Module, Token)
-field(Module.~head, Module, Token)
-field(Module.~end, Module, Token)
-field(Module.~imports, Module, List(Module))
+patch Module {
+    field(~doc, Module, Maybe(Str))
+    field(~package, Module, Package)
+    field(~name, Module, Name)
+    field(~path, Module, Path)
+    field(~start, Module, Token)
+    field(~head, Module, Token)
+    field(~end, Module, Token)
+    field(~imports, Module, List(Module))
 
-def(Module.package, +Mirth Module -- +Mirth Package, ~package @)
-def(Module.name, +Mirth Module -- +Mirth Name, ~name @)
-def(Module.qname, +Mirth Module -- +Mirth QName, sip(package Namespace.Package) name 0 QName.Mk)
-def(Module.path, +Mirth Module -- +Mirth Path, ~path @)
-def(Module.start, +Mirth Module -- +Mirth Token, ~start @)
-def(Module.head, +Mirth Module -- +Mirth Token, ~head @)
-def(Module.end, +Mirth Module -- +Mirth Token, ~end @)
-def(Module.imports, +Mirth Module -- +Mirth List(Module), ~imports @)
+    def package [ +Mirth |- Module -- Package      ] { ~package @ }
+    def name    [ +Mirth |- Module -- Name         ] { ~name @ }
+    def qname   [ +Mirth |- Module -- QName        ] { sip(package Namespace.Package) name 0 QName.Mk }
+    def path    [ +Mirth |- Module -- Path         ] { ~path @ }
+    def start   [ +Mirth |- Module -- Token        ] { ~start @ }
+    def head    [ +Mirth |- Module -- Token        ] { ~head @ }
+    def end     [ +Mirth |- Module -- Token        ] { ~end @ }
+    def imports [ +Mirth |- Module -- List(Module) ] { ~imports @ }
 
-def(Module.=, Module Module -- Bool, both(index) =)
+    def = [ Module Module -- Bool ] { both(index) = }
 
-def(Module.Prim, +Mirth -- +Mirth Module, builtin prim)
-def init-modules! [ +Mirth -- +Mirth ] {
+    def Prim [ +Mirth |- Module ] { builtin prim }
+
+    def New! [ +Mirth |- Path -- Module ] {
+        Module.alloc!
+        Module.Prim L1 over ~imports !
+        tuck ~path !
+    }
+
+    ||| Get source path associated with module.
+    def source-path [ +Mirth |- Module -- Path ] { path }
+
+    ||| ( module1 module2 -- bool ) Check whether module1 is visible in module2.
+    ||| In other words, whether module1 is the same as module2, or is imported by module2.
+    def visible [ +Mirth |- Module Module -- Bool ] {
+        dup imports cons member
+    }
+}
+
+def +Mirth.init-modules! [ +Mirth |- ] {
     builtin prim
     L0 over ~imports !
     "<prim>" >Path over ~path !
-    Package.std over ~package !
+    Package.Std over ~package !
     "prim" >Name over ~name !
     None over ~doc !
     Def.Module register
-}
-
-def(Module.new!, +Mirth Path -- +Mirth Module,
-    Module.alloc!
-    Module.Prim L1 over ~imports !
-    tuck ~path !)
-
-||| Get source path associated with module.
-def(Module.source-path, +Mirth Module -- +Mirth Path,
-    path)
-
-||| ( module1 module2 -- bool ) Check whether module1 is visible in module2.
-def Module.visible [ +Mirth Module Module -- +Mirth Bool ] {
-    dup2 = # module is always visible to itself
-    or(dup2 imports member)
-    dip(drop2)
 }

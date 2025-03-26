@@ -19,58 +19,58 @@ struct Options {
     packages: List([Str Path])
     package-search-paths: List(Path)
     emit-debug-info: Bool
-}
+    --
+    ||| Create a default initialized arguments table
+    ||| Since the input file is always required we don't need it to be Maybe(Path)
+    def Default [ Options ] {
+        False >emit-debug-info
+        "mirth.mth" >Path >input-file
+        None >output-file
+        "main" Some >entry-point
+        L0 >packages
+        L0 >package-search-paths
+        Options
+    }
 
-||| Create a default initialized arguments table
-||| Since the input file is always required we don't need it to be Maybe(Path)
-def Options.default [ -- Options ] {
-    False >emit-debug-info
-    "mirth.mth" >Path >input-file
-    None >output-file
-    "main" Some >entry-point
-    L0 >packages
-    L0 >package-search-paths
-    Options
-}
-
-||| Pretty print the contents of the arguments struct
-def Options.repr; [ Options +Str -- +Str ] {
-    /Options
-    output-file> repr; " >output-file " ;
-    input-file> repr; " >input-file " ;
-    entry-point> repr; " >entry-point " ;
-    emit-debug-info> repr; " >emit-debug-info " ;
-    packages> repr;(pack2-repr;) " >packages " ;
-    package-search-paths> repr; " >package-search-path " ;
-    "Options";
+    ||| Emit string representation.
+    def repr; [ +Str |- Options -- ] {
+        /Options
+        output-file> repr; " >output-file " ;
+        input-file> repr; " >input-file " ;
+        entry-point> repr; " >entry-point " ;
+        emit-debug-info> repr; " >emit-debug-info " ;
+        packages> repr;(pack2-repr;) " >packages " ;
+        package-search-paths> repr; " >package-search-path " ;
+        "Options";
+    }
 }
 
 def parse-package-def [ Str -- [Str Path] ] {
-    dip(Byte.BCOLON) split-byte
-    pair? unwrap("Invalid package path definition" panic!)
-    unpack2 >Path pack2
+    !str (
+        Byte.BCOLON @str split-byte
+        pair? unwrap("Invalid package path: " @str cat panic!)
+        unpack2 >Path pack2
+    ) drop
 }
 
-def compiler-parse-args [ +ArgumentParser(Options) Options Maybe(Str) ArgpOptionType --
-                          +ArgumentParser(Options) Options ]
-{
-    Short -> dip(swap) match {
+def compiler-parse-args [ +ArgumentParser(Options) Options |- Maybe(Str) ArgpOptionType -- ] {
+    { Short -> dip(swap) match {
         { B'o' -> dip:map(>Path) output-file! }
         { B'e' -> entry-point! }
         { B'c' -> nip None swap entry-point! }
         { B'p' -> swap for(parse-package-def swap packages:List.Cons) }
         { B'P' -> swap for(>Path swap package-search-paths:List.Cons) }
         { _ -> drop swap drop ArgumentParsingError.UnknownArg Some state:error! }
-    },
-    Positional -> swap state positional-index 0= if(
+    } }
+    { Positional -> swap state positional-index 0= if(
         swap for(>Path swap input-file!),
         dip(drop) ArgumentParsingError.TooManyArgs Some state:error!
-    ),
-    LongOnly -> dup "debug" = if(
+    ) }
+    { LongOnly -> dup "debug" = if(
         drop2 True swap emit-debug-info!,
         drop2 ArgumentParsingError.UnknownArg Some state:error!
-    ),
-    End ->
+    ) }
+    { End ->
         state positional-index 1 < then(
             ArgumentParsingError.TooFewArgs Some state:error!
         )
@@ -79,12 +79,13 @@ def compiler-parse-args [ +ArgumentParser(Options) Options Maybe(Str) ArgpOption
                 "output-file" ArgumentParsingError.MissingArg Some state:error!
             )
         )
-        drop,
-    _ -> drop drop ArgumentParsingError.UnknownArg Some state error! state!
+        drop
+    }
+    { _ -> drop drop ArgumentParsingError.UnknownArg Some state error! state! }
 }
 
-def parse-options! [ +World -- +World Result([ArgumentParsingError Str], Options) ] {
-    Options.default
+def parse-options! [ +World |- Result([ArgumentParsingError Str], Options) ] {
+    Options.Default
     List(
         "output-file" Some >name
         Byte.B'o' ArgpOptionType.Short >flag-type

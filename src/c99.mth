@@ -82,7 +82,7 @@ def c99-start! [ +World Arrow |- C99_Options +Mirth -- +C99 ] {
     0u >depth
     0u >fresh-counter
     True >put-enabled
-    +Needs.new dup determine-arrow-needs! >+needs >+mirth
+    +Needs.New dup determine-arrow-needs! >+needs >+mirth
     @options output-path create-file! +else(+mirth> io-error!) +Output.start! >+output
     +C99
 }
@@ -469,7 +469,7 @@ def c99-external-def! [ +C99 |- External -- ] {
     @ext +mirth:ctype >cty
 
     @cty cod parts find(and(label? none?, ctype phantom? not)) >outty
-    @outty if?(ctype, CType.Phantom) cname put " " put
+    @outty if?(ctype, "void" CType.Void) cname put " " put
     @ext +mirth:symbol put
 
     " (" put
@@ -533,13 +533,13 @@ def CTypeStackPart.c99-arg-name [ +C99 |- arg-index:Nat CTypeStackPart -- arg-in
 }
 
 def CType.>C99ReprType [ CType -- C99ReprType ] {
-    { UIntLike -> drop C99ReprType.U64 }
-    { IntLike -> drop C99ReprType.I64 }
-    { F32Like -> drop C99ReprType.F32 }
-    { F64Like -> drop C99ReprType.F64 }
-    { PtrLike -> drop C99ReprType.PTR }
-    { FnPtr   -> drop C99ReprType.FNPTR }
-    { Phantom -> C99ReprType.I64 }
+    { UInt  -> drop C99ReprType.U64 }
+    { Int   -> drop C99ReprType.I64 }
+    { F32   -> drop C99ReprType.F32 }
+    { F64   -> drop C99ReprType.F64 }
+    { Ptr   -> drop C99ReprType.PTR }
+    { FnPtr -> drop C99ReprType.FNPTR }
+    { Void  -> drop C99ReprType.Void }
 }
 
 def CTypeStackPart.c99-pop [ +C99Branch |- CTypeStackPart -- Str ] {
@@ -918,7 +918,7 @@ def c99-codip-arrow! [ +C99Branch |- Arrow -- ] {
     dup +mirth:type /ArrowType
     cod> +mirth:split-parts >cod-parts >cod-base
     dom> +mirth:split-parts >dom-parts >dom-base
-    cod-base> unit? dom-base> unit? and if(
+    cod-base> +mirth:unit? dom-base> +mirth:unit? and if(
         dom-parts> dip-parts( +stack(+C99Stack.+Nil) )
         c99-arrow!
         cod-parts> dip-parts(
@@ -1094,7 +1094,7 @@ def c99-reverse-tag! [ +C99Branch |- Tag -- ] {
     )
 }
 
-def c99-label-defs! [ +C99 |- ] { Label.for(c99-label-def!) }
+def c99-label-defs! [ +C99 |- ] { Label.for( dup +needs(needed?) if(c99-label-def!, drop) ) }
 def c99-label-def! [ +C99 |- Label -- ] { "static STACK lbl_" put +mirth(name mangled) put " = {0};" put line }
 
 def push-value-label-direct! [ +C99Branch |- Label +C99Value -- ] {

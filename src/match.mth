@@ -19,94 +19,100 @@ struct Match {
     home:Home token:Token body:Token
     ctx:Ctx dom:StackType cod:StackType
     cases:List(Case)
+    --
+    def thaw [ Match -- +Match ] { Match -> +Match }
+    def is-exhaustive? [ +Mirth |- Match -- Bool ] {
+        dup has-default-case? or(
+            dup scrutinee-data? match(
+                Some ->
+                    num-tags
+                    over cases len =,
+                None ->
+                    dup cases len 0>,
+                    # presume exhaustiveness generally.
+                    # and don't support empty matches for now.
+            )
+        ) nip
+    }
+    def has-default-case? [ +Mirth |- Match -- Bool ] {
+        cases has(is-default-case?)
+    }
+
+    ||| Get "data" associated with scrutinee. Only returns Data if all the
+    ||| TAG patterns use it.
+    def scrutinee-data? [ +Mirth |- Match -- Maybe(Data) ] {
+        cases filter(is-default-case? not) dup
+        first bind(pattern single-tag?) map(.data) if?(
+            swap all(pattern single-tag? if?(dip:dup .data =, False)) if(
+                Some,
+                drop None
+            ),
+            drop None
+        )
+    }
+
+
+    def is-transparent? [ +Mirth |- Match -- Bool ] {
+        cases single?
+        bind(pattern atoms single?)
+        has(op match(
+            Tag -> .data is-transparent?,
+            Underscore -> True
+        ))
+    }
+
+    def semi-transparent-tag? [ +Mirth |- Match -- Maybe(SemiTransparentData) ] {
+        cases single?
+        bind(pattern atoms single?)
+        bind(op match(
+            Tag -> Some,
+            _ -> drop None
+        ))
+        bind(.data semi-transparent?)
+    }
+
+    def unit-tag? [ +Mirth |- Match -- Maybe(Tag) ] {
+        cases single?
+        bind(pattern atoms single?)
+        bind(op match(
+            Tag -> Some,
+            _ -> drop None
+        ))
+        filter(is-unit?)
+    }
 }
 
 struct +Match {
     home:Home token:Token body:Token
     ctx:Ctx dom:StackType cod:StackType
     cases:List(Case)
-}
-
-def(Match.thaw, Match -- +Match, Match -> +Match)
-def(+Match.freeze, +Match -- Match, +Match -> Match)
-
-struct Case { pattern:Pattern body:Arrow }
-def(Case.outer-ctx, Case -- Ctx, pattern outer-ctx)
-def(Case.inner-ctx, Case -- Ctx, pattern inner-ctx)
-
-def(Match.is-exhaustive?, +Mirth Match -- +Mirth Bool,
-    dup has-default-case? or(
-        dup scrutinee-data? match(
-            Some ->
-                num-tags
-                over cases len =,
-            None ->
-                dup cases len 0>,
-                # presume exhaustiveness generally.
-                # and don't support empty matches for now.
+    --
+    def freeze [ +Match -- Match ] { +Match -> Match }
+    def add-case [ +Mirth +Match |- Case -- ] {
+        dup case-redundant? if(
+            pattern token-start "Case is unreachable." rdip:emit-error!,
+            cases(swap List.Snoc)
         )
-    ) nip)
-
-def(Match.has-default-case?, +Mirth Match -- +Mirth Bool,
-    cases has(is-default-case?))
-
-||| Get "data" associated with scrutinee. Only returns Data if all the
-||| TAG patterns use it.
-def(Match.scrutinee-data?, +Mirth Match -- +Mirth Maybe(Data),
-    cases filter(is-default-case? not) dup
-    first bind(pattern single-tag?) map(.data) if?(
-        swap all(pattern single-tag? if?(dip:dup .data =, False)) if(
-            Some,
-            drop None
-        ),
-        drop None
-    ))
-
-def(Match.is-transparent?, +Mirth Match -- +Mirth Bool,
-    cases single?
-    bind(pattern atoms single?)
-    has(op match(
-        Tag -> .data is-transparent?,
-        Underscore -> True
-    )))
-
-def Match.semi-transparent-tag? [ +Mirth Match -- +Mirth Maybe(SemiTransparentData) ] {
-    cases single?
-    bind(pattern atoms single?)
-    bind(op match(
-        Tag -> Some,
-        _ -> drop None
-    ))
-    bind(.data semi-transparent?)
+    }
+    def case-redundant? [ +Match |- Case -- Bool ] {
+        cases member(covers?)
+    }
 }
 
-def(Match.unit-tag?, +Mirth Match -- +Mirth Maybe(Tag),
-    cases single?
-    bind(pattern atoms single?)
-    bind(op match(
-        Tag -> Some,
-        _ -> drop None
-    ))
-    filter(is-unit?))
 
-def(+Match.add-case, +Mirth +Match Case -- +Mirth +Match,
-    dup case-redundant? if(
-        pattern token-start "Case is unreachable." rdip:emit-error!,
-        cases(swap List.Snoc)
-    ))
+struct Case {
+    pattern:Pattern
+    body:Arrow
+    --
+    def outer-ctx [ Case -- Ctx ] { pattern outer-ctx }
+    def inner-ctx [ Case -- Ctx ] { pattern inner-ctx }
 
-def(+Match.case-redundant?, Case +Match -- Bool +Match,
-    cases member(covers?))
+    ||| Ask whether the second case covers the first case.
+    def covers? [ Case Case -- Bool ] { on2:pattern covers? }
 
-########
-# CASE #
-########
-
-||| Ask whether the second case covers the first case.
-def(Case.covers?, Case Case -- Bool, both(pattern) covers?)
-
-||| Is this a "default" case?
-def(Case.is-default-case?, Case -- Bool, pattern is-default?)
+    ||| Is this a "default" case?
+    def is-default-case? [ Case -- Bool ] { pattern is-default? }
+}
 
 ###########
 # Pattern #
@@ -122,18 +128,66 @@ struct Pattern {
     mid:StackType       # Stack type on the left of the pattern.
     cod:StackType       # Stack type coming from outside match.
     atoms:List(PatternAtom)
+    --
+    def thaw [ Pattern -- +Pattern ] { >pattern +Pattern }
+    def dom [ Pattern -- StackType ] { sip:mid saved for(StackType.Cons) }
+
+    def single-tag? [ Pattern -- Maybe(Tag) ] { atoms single? bind(op /Tag) }
+    def is-default? [ Pattern -- Bool ] { atoms all(op /Underscore) }
+
+    ||| Asks whether the second pattern covers the first pattern.
+    def covers? [ Pattern Pattern -- Bool ] {
+        both(atoms single?) zip match(
+            None -> False,
+            Some -> unpack2 op match(
+                Underscore -> drop True,
+                Tag -> swap op match(
+                    Underscore -> drop False,
+                    Tag -> =
+                )
+            )
+        )
+    }
 }
-def(Pattern.dom, Pattern -- StackType, sip:mid saved for(StackType.Cons))
-def(Pattern.thaw, Pattern -- +Pattern, >pattern +Pattern)
 
-def(Pattern.single-tag?, Pattern -- Maybe(Tag),
-    atoms single? bind(op /Tag))
+struct +Pattern {
+    pattern:Pattern
+    --
+    def freeze [ +Pattern -- Pattern ] { +Pattern -> pattern> }
+    def op! [ +Mirth +Pattern |- PatternOp -- ] {
+        { Underscore -> underscore! }
+        { Tag -> tag! }
+    }
 
-def(Pattern.is-default?, Pattern -- Bool,
-    atoms all(op /Underscore))
+    def underscore! [ +Mirth +Pattern |- ] {
+        pattern token-start >token
+        pattern inner-ctx >ctx
+        pattern mid >cod
+        Subst.Nil >subst
+        PatternOp.Underscore >op
+        pattern mid rdip:force-cons?! match(
+            None ->
+                pattern token-start "pattern expects something on stack" rdip:emit-error!
+                StackType.Error Type.Error,
+            Some ->
+                unpack2
+        )
+        dup pattern:saved:cons
+        L1 >saved dup >dom pattern:mid!
+        PatternAtom pattern:atoms:cons
+    }
 
-data(+Pattern, +Pattern -> pattern:Pattern)
-def(+Pattern.freeze, +Pattern -- Pattern, /+Pattern pattern>)
+    def tag! [ +Mirth +Pattern |- Tag -- ] {
+        dup PatternOp.Tag >op List.Nil >saved
+        pattern token-start >token
+        pattern inner-ctx >ctx
+        dip:Subst.Nil rdip(type freshen-sig) /ArrowType dom> cod>
+        dip(pattern mid)
+        rdip:unify! >cod
+        dup >dom pattern:mid!
+        >subst PatternAtom pattern:atoms:cons
+    }
+}
 
 struct PatternAtom {
     token:Token
@@ -145,56 +199,13 @@ struct PatternAtom {
     op:PatternOp
 }
 
-data(PatternOp,
-    Underscore,
-    Tag -> Tag)
-
-def(+Pattern.op!, PatternOp +Mirth +Pattern -- +Mirth +Pattern,
-    Underscore -> underscore!,
-    Tag -> tag!)
-
-def(+Pattern.underscore!, +Mirth +Pattern -- +Mirth +Pattern,
-    pattern token-start >token
-    pattern inner-ctx >ctx
-    pattern mid >cod
-    Subst.Nil >subst
-    PatternOp.Underscore >op
-    pattern mid rdip:force-cons?! match(
-        None ->
-            pattern token-start "pattern expects something on stack" rdip:emit-error!
-            StackType.Error Type.Error,
-        Some ->
-            unpack2
-    )
-    dup pattern:saved:List.Cons
-    L1 >saved dup >dom pattern:mid!
-    PatternAtom pattern:atoms:List.Cons)
-
-def(+Pattern.tag!, +Mirth +Pattern Tag -- +Mirth +Pattern,
-    dup PatternOp.Tag >op List.Nil >saved
-    pattern token-start >token
-    pattern inner-ctx >ctx
-    dip:Subst.Nil rdip(type freshen-sig) /ArrowType dom> cod>
-    dip(pattern mid)
-    rdip:unify! >cod
-    dup >dom pattern:mid!
-    >subst PatternAtom pattern:atoms:List.Cons)
-
-||| Asks whether the second pattern covers the first pattern.
-def(Pattern.covers?, Pattern Pattern -- Bool,
-    both(atoms single?) zip match(
-        None -> False,
-        Some -> unpack2 op match(
-            Underscore -> drop True,
-            Tag -> swap op match(
-                Underscore -> drop False,
-                Tag -> =
-            )
-        )
-    ))
-
-def(PatternOp./Tag, PatternOp -- Maybe(Tag), Tag -> Some, _ -> drop None)
-def(PatternOp./Underscore, PatternOp -- Bool, Underscore -> True, _ -> drop False)
+data PatternOp {
+    Underscore
+    Tag [ Tag ]
+    --
+    def /Tag [ PatternOp -- Maybe(Tag) ] { Tag -> Some, _ -> drop None }
+    def /Underscore [ PatternOp -- Bool ] { Underscore -> True, _ -> drop False }
+}
 
 ## TODO: introduce case trees
 ## https://github.com/mirth-lang/mirth/issues/238

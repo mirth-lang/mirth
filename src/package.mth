@@ -11,66 +11,78 @@ import mirth.def
 import mirth.mirth
 
 table(Package)
-field(Package.~name, Package, Name)
-field(Package.~path, Package, Maybe(Path))
+patch Package {
+    field(~name, Package, Name)
+    field(~path, Package, Maybe(Path))
 
-def(Package.name, +Mirth Package -- +Mirth Name, ~name @)
-def(Package.qname, +Mirth Package -- +Mirth QName, Namespace.Root swap name 0 QName.Mk)
-def(Package.path, +Mirth Package -- +Mirth Maybe(Path), ~path @)
+    def name  [ +Mirth |- Package -- Name  ] { ~name @ }
+    def qname [ +Mirth |- Package -- QName ] { Namespace.Root swap name 0 QName.Mk }
+    def path  [ +Mirth |- Package -- Maybe(Path) ] { ~path @ }
 
-def Package.name; [ +Mirth +Str Package -- +Mirth +Str ] { rdip:name name; }
+    def name; [ +Mirth +Str |- Package -- ] { rdip:name name; }
 
-def(Package.std, +Mirth -- +Mirth Package, builtin std)
-def init-packages! [ +Mirth -- +Mirth ] {
+    def Std [ +Mirth |- Package ] { builtin std }
+
+    def path-or-search [ +World +Mirth |- Package -- Maybe(Path) ] {
+        dup path match(
+            { Some -> nip Some }
+            { None ->
+                package-search-paths
+                map(over name >Str >Path rdip:join)
+                find(rdip:is-directory?)
+                tuck swap ~path !
+            }
+        )
+    }
+
+    def path! [ +Mirth |- Path Package -- ] {
+        tuck path match(
+            Some ->
+                dup2 = if(
+                    drop3,
+                    Str(
+                        "Tried to set different path for the same package " ;
+                        "(package = " ; rotl name;
+                        ", path 1 = " ; swap /Path repr;
+                        ", path 2 = " ; /Path repr;
+                        ")." ;
+                    ) fatal-error!
+                ),
+            None ->
+                Some swap ~path !
+        )
+    }
+
+    def New! [ +Mirth |- Maybe(Path) Name -- Package ] {
+        Package.alloc!
+        tuck ~name !
+        tuck ~path !
+        dup Def.Package register
+    }
+
+    def New-Or-Path! [ +Mirth |- Path Name -- Package ] {
+        dup Package.Find? match {
+            { Some -> nip tuck path! }
+            { None -> dip(Some) Package.New! }
+        }
+    }
+
+    def Find? [ +Mirth |- Name -- Maybe(Package) ] {
+        Namespace.Root swap 0 QName.Mk def-soft? bind(package?)
+    }
+
+    def Find-Or-New! [ +Mirth |- Name -- Package ] {
+        dup Package.Find? unwrap(dup None swap Package.New!) nip
+    }
+
+    def = [ Package Package -- Bool ] {
+        both(index) =
+    }
+}
+
+def +Mirth.init-packages! [ +Mirth |- ] {
     builtin std
     "std" >Name over ~name !
     None over ~path !
     Def.Package register
 }
-
-def(Package.path-or-search, +World +Mirth Package -- +World +Mirth Maybe(Path),
-    dup path match(
-        Some -> nip Some,
-        None ->
-            package-search-paths
-            map(over name >Str >Path rdip:join)
-            find(rdip:is-directory?)
-            tuck swap ~path !
-    ))
-
-def(Package.path!, +Mirth Path Package -- +Mirth,
-    tuck path match(
-        Some ->
-            dup2 = if(
-                drop3,
-                Str(
-                    "Tried to set different path for the same package " ;
-                    "(package = " ; rotl name;
-                    ", path 1 = " ; swap /Path repr;
-                    ", path 2 = " ; /Path repr;
-                    ")." ;
-                ) fatal-error!
-            ),
-        None ->
-            Some swap ~path !
-    ))
-
-def(Package.new!, +Mirth Maybe(Path) Name -- +Mirth Package,
-    Package.alloc!
-    tuck ~name !
-    tuck ~path !
-    dup Def.Package register)
-
-def(Package.new-or-path!, +Mirth Path Name -- +Mirth Package,
-    dup Package.find match(
-        Some -> nip tuck path!,
-        None -> dip(Some) Package.new!
-    ))
-
-def(Package.find, +Mirth Name -- +Mirth Maybe(Package),
-    Namespace.Root swap 0 QName.Mk def-soft? bind(package?))
-
-def(Package.find-or-new!, +Mirth Name -- +Mirth Package,
-    dup Package.find unwrap(dup None swap Package.new!) nip)
-
-def(Package.=, Package Package -- Bool, both(index) =)

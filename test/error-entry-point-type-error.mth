@@ -2,5 +2,5 @@ module(mirth-tests.error-entry-point-type-error)
 
 def(main, -- Int, 10)
 
-# mirth-test # merr # 3:5: error: Failed to unify [Int +World] with [+World]
+# mirth-test # merr # 3:5: error: Failed to unify [+World Int] with [+World]
 # mirth-test # mret # 1

@@ -8,6 +8,7 @@ import mirth.mirth
 import mirth.prim
 import mirth.arrow
 import mirth.word
+import mirth.label
 import mirth.data
 import mirth.match
 
@@ -20,12 +21,14 @@ data Need {
     Block [ Block ]
     TagWord [ Tag ]
     TagPattern [ Tag ]
+    Label [ Label ]
     --
     def >Nat [ Need -- Nat ] {
-        { Word       -> index >Int 4 *     >Nat-clamp }
-        { Block      -> index >Int 4 * 1 + >Nat-clamp }
-        { TagWord    -> index >Int 4 * 2 + >Nat-clamp }
-        { TagPattern -> index >Int 4 * 3 + >Nat-clamp }
+        { Word       -> index 5u *      }
+        { Block      -> index 5u * 1u + }
+        { TagWord    -> index 5u * 2u + }
+        { TagPattern -> index 5u * 3u + }
+        { Label      -> index 5u * 4u + }
     }
 }
 
@@ -33,94 +36,107 @@ data Need {
 # NEEDS #
 #########
 
-data(+Needs, +Needs ->
+struct +Needs {
     stack: List(Need)
-    +set: +Set)
+    +set: +Set
+    --
+    def New [ +Needs ] { List.Nil >stack +Set.Empty >+set +Needs }
+    def rdrop [ +Needs -- ] { /+Needs +set> rdrop stack> drop }
 
-def(+Needs.new, -- +Needs, List.Nil >stack +Set.Empty >+set +Needs)
-def(+Needs.rdrop, +Needs --, /+Needs +set> rdrop stack> drop)
+    def Need.needed?     [ +Needs |- Need  -- Bool ] { >Nat +set:member? }
+    def Word.needed?     [ +Needs |- Word  -- Bool ] { Need.Word needed? }
+    def Block.needed?    [ +Needs |- Block -- Bool ] { Need.Block needed? }
+    def Tag.word-needed? [ +Needs |- Tag   -- Bool ] { Need.TagWord needed? }
+    def Tag.pat-needed?  [ +Needs |- Tag   -- Bool ] { Need.TagPattern needed? }
+    def Label.needed?    [ +Needs |- Label -- Bool ] { Need.Label needed? }
 
-def(Need.needed?, Need +Needs -- Bool +Needs, >Nat +set:member?)
-def(Word.needed?, Word +Needs -- Bool +Needs, Need.Word needed?)
-def(Block.needed?, Block +Needs -- Bool +Needs, Need.Block needed?)
-def(Tag.word-needed?, Tag +Needs -- Bool +Needs, Need.TagWord needed?)
-def(Tag.pat-needed?, Tag +Needs -- Bool +Needs, Need.TagPattern needed?)
+    def need! [ +Needs |- Need -- ] {
+        dup needed? if(
+            drop,
+            dup >Nat +set:insert! stack:List.Cons
+        )
+    }
+    def need-word!  [ +Needs |- Word -- ] { Need.Word need! }
+    def need-block! [ +Needs |- Block -- ] { Need.Block need! }
+    def need-tag-word! [ +Needs |- Tag -- ] { Need.TagWord need! }
+    def need-tag-pat!  [ +Needs |- Tag -- ] { Need.TagPattern need! }
+    def need-label!    [ +Needs |- Label -- ] { Need.Label need! }
 
-def(+Needs.need!, Need +Needs -- +Needs,
-    dup needed? if(
-        drop,
-        dup >Nat +set:insert! stack:List.Cons
-    ))
-def(+Needs.need-word!, Word +Needs -- +Needs, Need.Word need!)
-def(+Needs.need-block!, Block +Needs -- +Needs, Need.Block need!)
-def(+Needs.need-tag-word!, Tag +Needs -- +Needs, Need.TagWord need!)
-def(+Needs.need-tag-pat!, Tag +Needs -- +Needs, Need.TagPattern need!)
+    def determine-arrow-needs! [ +Mirth +Needs |- Arrow -- ] {
+        run-arrow! determine-transitive-needs!
+    }
+    def determine-transitive-needs! [ +Mirth +Needs |- ] {
+        while-some(stack:uncons, run-need!)
+    }
 
-def(+Needs.determine-arrow-needs!, Arrow +Mirth +Needs -- +Mirth +Needs,
-    run-arrow! determine-transitive-needs!)
-def(+Needs.determine-transitive-needs!, +Mirth +Needs -- +Mirth +Needs,
-    while-some(stack:uncons, run-need!))
+    def run-need! [ +Mirth +Needs |- Need -- ] {
+        { Block -> run-block! }
+        { Word -> run-word! }
+        { TagWord -> drop }
+        { TagPattern -> drop }
+        { Label -> drop }
+    }
 
-def(+Needs.run-need!, Need +Mirth +Needs -- +Mirth +Needs,
-    Block -> run-block!,
-    Word -> run-word!,
-    TagWord -> drop,
-    TagPattern -> drop)
+    def run-args!  [ +Mirth +Needs |- List(Arg) -- ] { for(run-arg!) }
+    def run-arg!   [ +Mirth +Needs |- Arg       -- ] { Block -> run-block! }
+    def run-block! [ +Mirth +Needs |- Block     -- ] { rdip:arrow run-arrow! }
+    def run-word!  [ +Mirth +Needs |- Word      -- ] { rdip:arrow run-arrow! }
+    def run-arrow! [ +Mirth +Needs |- Arrow     -- ] { atoms for(run-atom!) }
+    def run-atom!  [ +Mirth +Needs |- Atom      -- ] { sip(args) op run-op! }
 
-def(+Needs.run-args!, List(Arg) +Mirth +Needs -- +Mirth +Needs, for(run-arg!))
-def(+Needs.run-arg!, Arg +Mirth +Needs -- +Mirth +Needs, Block -> run-block!)
-def(+Needs.run-block!, Block +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arrow!)
-def(+Needs.run-word!, Word +Mirth +Needs -- +Mirth +Needs, rdip:arrow run-arrow!)
-def(+Needs.run-arrow!, Arrow +Mirth +Needs -- +Mirth +Needs, atoms for(run-atom!))
-def(+Needs.run-atom!, Atom +Mirth +Needs -- +Mirth +Needs, sip(args) op run-op!)
+    def run-op! [ +Mirth +Needs |- List(Arg) Op -- ] {
+        { Push -> drop2 }
+        { Word -> dup rdip:prefer-inline? if(run-word!, need-word!) push-args! }
+        { External -> drop push-args! }
+        { Buffer -> drop push-args! }
+        { Field -> drop push-args! }
+        { Tag -> need-tag-word! push-args! }
+        { Prim -> run-prim! }
+        { Match -> nip run-match! }
+        { Lambda -> nip run-lambda! }
+        { Var -> drop2 }
+        { BlockPush -> nip push-block! }
+        { BlockRun -> nip run-block! }
+        { LabelPush -> nip need-label! }
+        { LabelPop -> nip need-label! }
+        { LabelPushR -> nip need-label! }
+        { LabelPopR -> nip need-label! }
+        { DataGetEnumValue -> drop2 }
+        { DataFromEnumValue -> drop2 }
+        { DataGetLabel -> nip label need-label! }
+        { DataSetLabel -> nip label need-label! }
+        { TableToIndex -> drop2 }
+        { TableFromIndex -> drop2 }
+    }
 
-def +Needs.run-op! [ List(Arg) Op +Mirth +Needs -- +Mirth +Needs ] {
-    { Push -> drop2 }
-    { Word -> dup rdip:prefer-inline? if(run-word!, need-word!) push-args! }
-    { External -> drop push-args! }
-    { Buffer -> drop push-args! }
-    { Field -> drop push-args! }
-    { Tag -> need-tag-word! push-args! }
-    { Prim -> run-prim! }
-    { Match -> nip run-match! }
-    { Lambda -> nip run-lambda! }
-    { Var -> drop2 }
-    { BlockPush -> nip push-block! }
-    { BlockRun -> nip run-block! }
-    { LabelPush -> drop2 }
-    { LabelPop -> drop2 }
-    { LabelPushR -> drop2 }
-    { LabelPopR -> drop2 }
-    { DataGetEnumValue -> drop2 }
-    { DataFromEnumValue -> drop2 }
-    { DataGetLabel -> drop2 }
-    { DataSetLabel -> drop2 }
-    { TableToIndex -> drop2 }
-    { TableFromIndex -> drop2 }
+    def run-prim! [ +Mirth +Needs |- List(Arg) Prim -- ] {
+        { Dip -> dup single? if(run-args!, push-args!) }
+        { RDip -> dup single? if(run-args!, push-args!) }
+        { If -> dup pair? if(run-args!, push-args!) }
+        { While -> dup pair? if(run-args!, push-args!) }
+        { _ -> drop push-args! }
+    }
+
+    def run-match!  [ +Mirth +Needs |- Match  -- ] { cases for(run-case!) }
+    def run-case!   [ +Mirth +Needs |- Case   -- ] { dup pattern run-pattern! body run-arrow! }
+    def run-lambda! [ +Mirth +Needs |- Lambda -- ] { body run-arrow! }
+
+    def run-pattern! [ +Mirth +Needs |- Pattern     -- ] { atoms for:run-patatom! }
+    def run-patatom! [ +Mirth +Needs |- PatternAtom -- ] {
+        op match {
+            { Underscore -> id }
+            { Tag -> need-tag-pat! }
+        }
+    }
+
+    def push-args! [ +Mirth +Needs |- List(Arg) -- ] { for(push-arg!) }
+    def push-arg!  [ +Mirth +Needs |- Arg -- ] {
+        { Block -> push-block! }
+    }
+    def push-block! [ +Mirth +Needs |- Block -- ] {
+        dup rdip:to-run-var match(
+            Some -> drop2,
+            None -> need-block!
+        )
+    }
 }
-
-def(+Needs.run-prim!, List(Arg) Prim +Mirth +Needs -- +Mirth +Needs,
-    Dip -> dup single? if(run-args!, push-args!),
-    RDip -> dup single? if(run-args!, push-args!),
-    If -> dup pair? if(run-args!, push-args!),
-    While -> dup pair? if(run-args!, push-args!),
-    _ -> drop push-args!)
-def(+Needs.run-match!, Match +Mirth +Needs -- +Mirth +Needs, cases for(run-case!))
-def(+Needs.run-case!, Case +Mirth +Needs -- +Mirth +Needs, dup pattern run-pattern! body run-arrow!)
-def(+Needs.run-lambda!, Lambda +Mirth +Needs -- +Mirth +Needs, body run-arrow!)
-
-def(+Needs.run-pattern!, Pattern +Mirth +Needs -- +Mirth +Needs, atoms for:run-patatom!)
-def(+Needs.run-patatom!, PatternAtom +Mirth +Needs -- +Mirth +Needs,
-    op match(
-        Underscore -> id,
-        Tag -> need-tag-pat!
-    ))
-
-def(+Needs.push-args!, List(Arg) +Mirth +Needs -- +Mirth +Needs, for(push-arg!))
-def(+Needs.push-arg!, Arg +Mirth +Needs -- +Mirth +Needs,
-    Block -> push-block!)
-def(+Needs.push-block!, Block +Mirth +Needs -- +Mirth +Needs,
-    dup rdip:to-run-var match(
-        Some -> drop2,
-        None -> need-block!
-    ))

@@ -95,7 +95,7 @@ def Var.kind [ +Mirth Var -- +Mirth Kind ] {
 def Var.freshen [ +Mirth Subst Var -- +Mirth Subst Type ] {
     swap dup2 has-var? if(
         tuck get-var,
-        over kind MetaVar.new! Type.Meta dup
+        over kind MetaVar.New! Type.Meta dup
         dip(rotr cons)
     )
 }

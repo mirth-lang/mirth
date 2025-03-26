@@ -7,18 +7,24 @@ import mirth.mirth
 import mirth.name
 
 table(Label)
-field(Label.~name, Label, Name)
-def(Label.name, +Mirth |- Label -- Name, ~name @)
-def(Label.>Str, +Mirth |- Label -- Str, name >Str)
-def(Label.=, Label Label -- Bool, both(index) =)
+patch Label {
 
-def Label.name; [ +Mirth +Str |- Label -- ] { rdip:name name; }
+    field(~name, Label, Name)
 
-def(Label.new!, +Mirth |- Name -- Label,
-    dup ~label memoize(
-        Label.alloc!
-        dup2 ~name !
-    ) nip)
+    def name [ +Mirth |- Label -- Name ] { ~name @ }
+    def >Str [ +Mirth |- Label -- Str  ] { name >Str }
+    def = [ Label Label -- Bool ] { on2:index = }
 
-def(Label.is-resource-label?, +Mirth |- Label -- Bool,
-    name head Byte.B'+' =)
+    def name; [ +Mirth +Str |- Label -- ] { rdip:name name; }
+
+    def new! [ +Mirth |- Name -- Label ] {
+        dup ~label memoize(
+            Label.alloc!
+            dup2 ~name !
+        ) nip
+    }
+
+    def is-resource-label? [ +Mirth |- Label -- Bool ] {
+        name head Byte.B'+' =
+    }
+}

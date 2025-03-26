@@ -212,6 +212,11 @@ inline {
     def on3(f) [ (*a x -- *a y) *a x x x   -- *a y y y   ] { on3(f,f,f)   }
     def on4(f) [ (*a x -- *a y) *a x x x x -- *a y y y y ] { on4(f,f,f,f) }
 
+    def 2on2(f,g) [ (*x a1 b1 -- *y c1, *y a2 b2 -- *z c2) *x a1 b1 a2 b2 -- *z c1 c2 ] {
+        dip2(f) rotl dip(g) swap
+    }
+    def 2on2(f) [ *x |- (a b -- c) a b a b -- c c ] { 2on2(f,f) }
+
     def drop2 [ a b         -- ] { drop drop                     }
     def drop3 [ a b c       -- ] { drop drop drop                }
     def drop4 [ a b c d     -- ] { drop drop drop drop           }

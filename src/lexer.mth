@@ -267,7 +267,7 @@ struct +Lexer {
 }
 
 def run-lexer! [ +World +Mirth |- Path -- Module ] {
-    Module.new! dup source-path
+    Module.New! dup source-path
     rdip:read-path! else(io-error!)
     >content +Lexer.Start!
     while(done? not, next!)

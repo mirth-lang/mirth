@@ -35,7 +35,7 @@ def compile! [ +World +Mirth |- Options -- ] {
 
     rdip:trace("Compiling "; @input-file path;)
     packages> for(
-        unpack2 swap >Name Package.new-or-path! drop
+        unpack2 swap >Name Package.New-Or-Path! drop
     )
     input-file> run-lexer!
 

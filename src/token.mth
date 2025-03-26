@@ -52,80 +52,94 @@ data TokenValue {
     LabelGet   [ Label ]
     LabelSet   [ Label ]
     --
-    def none? { None -> True, _ -> drop False }
-    def comma? { Comma -> True, _ -> drop False }
+    def none?  [ TokenValue -- Bool ] { None  -> True, _ -> drop False }
+    def comma? [ TokenValue -- Bool ] { Comma -> True, _ -> drop False }
 
-    def map-token-ref(f) [ *a |- (Token -- Token)  TokenValue -- TokenValue ] {
+    def map-token-ref(f) [ *a |- (Token -- Token) TokenValue -- TokenValue ] {
         { LParen  -> f TokenValue.LParen  } { RParen  -> f TokenValue.RParen  }
         { LCurly  -> f TokenValue.LCurly  } { RCurly  -> f TokenValue.RCurly  }
         { LSquare -> f TokenValue.LSquare } { RSquare -> f TokenValue.RSquare }
         { LColon  -> f TokenValue.LColon  } { RColon  -> f TokenValue.RColon  }
         { _ -> id }
     }
-}
 
-def(TokenValue.lparen-open?, TokenValue -- Bool, LParenOpen -> True, _ -> drop False)
-def(TokenValue.lparen?, TokenValue -- Maybe(Token), LParen -> Some, _ -> drop None)
-def(TokenValue.rparen?, TokenValue -- Maybe(Token), RParen -> Some, _ -> drop None)
-def(TokenValue.lsquare-open?, TokenValue -- Bool, LSquareOpen -> True, _ -> drop False)
-def(TokenValue.lsquare?, TokenValue -- Maybe(Token), LSquare -> Some, _ -> drop None)
-def(TokenValue.rsquare?, TokenValue -- Maybe(Token), RSquare -> Some, _ -> drop None)
-def(TokenValue.lcurly-open?, TokenValue -- Bool, LCurlyOpen -> True, _ -> drop False)
-def(TokenValue.lcurly?, TokenValue -- Maybe(Token), LCurly -> Some, _ -> drop None)
-def(TokenValue.rcurly?, TokenValue -- Maybe(Token), RCurly -> Some, _ -> drop None)
-def(TokenValue.lcolon-open?, TokenValue -- Bool, LColonOpen -> True, _ -> drop False)
-def(TokenValue.lcolon?, TokenValue -- Maybe(Token), LColon -> Some, _ -> drop None)
-def(TokenValue.rcolon?, TokenValue -- Maybe(Token), RColon -> Some, _ -> drop None)
-def(TokenValue.lparen-or-lcolon?, TokenValue -- Maybe(Token), LParen -> Some, LColon -> Some, _ -> drop None)
+    def lparen-open?  [ TokenValue -- Bool ] { LParenOpen  -> True, _ -> drop False }
+    def lsquare-open? [ TokenValue -- Bool ] { LSquareOpen -> True, _ -> drop False }
+    def lcurly-open?  [ TokenValue -- Bool ] { LCurlyOpen  -> True, _ -> drop False }
+    def lcolon-open?  [ TokenValue -- Bool ] { LColonOpen  -> True, _ -> drop False }
 
+    def lparen?  [ TokenValue -- Maybe(Token) ] { LParen -> Some, _ -> drop None }
+    def rparen?  [ TokenValue -- Maybe(Token) ] { RParen -> Some, _ -> drop None }
+    def lsquare? [ TokenValue -- Maybe(Token) ] { LSquare -> Some, _ -> drop None }
+    def rsquare? [ TokenValue -- Maybe(Token) ] { RSquare -> Some, _ -> drop None }
+    def lcurly?  [ TokenValue -- Maybe(Token) ] { LCurly -> Some, _ -> drop None }
+    def rcurly?  [ TokenValue -- Maybe(Token) ] { RCurly -> Some, _ -> drop None }
+    def lcolon?  [ TokenValue -- Maybe(Token) ] { LColon -> Some, _ -> drop None }
+    def rcolon?  [ TokenValue -- Maybe(Token) ] { RColon -> Some, _ -> drop None }
+    def lparen-or-lcolon? [ TokenValue -- Maybe(Token) ] { LParen -> Some, LColon -> Some, _ -> drop None }
 
-def TokenValue.can-take-args? [ TokenValue -- Bool ] {
-    { Name -> drop True }
-    { DName -> drop True }
-    { LabelGet -> drop True }
-    { LabelSet -> drop True }
-    { _ -> drop False }
+    def int? [ TokenValue -- Maybe(Int) ] { Int -> Some, _ -> drop None }
+    def str? [ TokenValue -- Maybe(Str) ] { Str -> Some, _ -> drop None }
+    def name? [ TokenValue -- Maybe(Name) ] { Name -> Some, _ -> drop None }
+    def dname? [ TokenValue -- Maybe(DName) ] { DName -> Some, _ -> drop None }
+    def name/dname? [ TokenValue -- Maybe(Name/DName) ] {
+        { Name -> Left Some }
+        { DName -> Right Some }
+        { _ -> drop None }
+    }
+    def last-name? [ TokenValue -- Maybe(Name) ] {
+        { Name -> Some }
+        { DName -> last-name Some }
+        { _ -> drop None }
+    }
+    def penultimate-name? [ TokenValue -- Maybe(Name) ] { DName -> penultimate-name?, _ -> drop None }
+    def arg-end? [ TokenValue -- Bool ] {
+        Comma -> True,
+        RParen -> drop True,
+        RCurly -> drop True,
+        RSquare -> drop True,
+        RColon -> drop True,
+        _ -> drop False
+    }
+    def left-enclosure? [ TokenValue -- Bool ] {
+        LParen -> drop True,
+        LSquare -> drop True,
+        LCurly -> drop True,
+        LColon -> drop True,
+        _ -> drop False
+    }
+    def right-enclosure? [ TokenValue -- Bool ] {
+        RParen -> drop True,
+        RSquare -> drop True,
+        RCurly -> drop True,
+        RColon -> drop True,
+        _ -> drop False
+    }
+
+    def can-take-args? [ TokenValue -- Bool ] {
+        { Name -> drop True }
+        { DName -> drop True }
+        { LabelGet -> drop True }
+        { LabelSet -> drop True }
+        { _ -> drop False }
+    }
+
+    def sig-type-con?     [ +Mirth |- TokenValue -- Maybe(Name/DName) ] { name/dname? filter(left:last-name could-be-type-con) }
+    def sig-resource-con? [ +Mirth |- TokenValue -- Maybe(Name/DName) ] { name/dname? filter(left:last-name could-be-resource-con) }
+    def sig-type-hole?    [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter:is-type-hole }
+    def sig-type-var?     [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter:could-be-type-var }
+    def sig-param-name?   [ +Mirth |- TokenValue -- Maybe(Name) ] { sig-type-var? }
+    def sig-stack-var?    [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter:could-be-stack-var }
+    def sig-resource-var? [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter:could-be-resource-var }
+    def sig-dashes?       [ +Mirth |- TokenValue -- Bool ] { name? has(>Str "--" =) }
+    def vdash?            [ +Mirth |- TokenValue -- Bool ] { name? has(>Str "|-" =) }
+    def arrow?            [ +Mirth |- TokenValue -- Bool ] { name? has(>Str "->" =) }
+    def pat-underscore?   [ +Mirth |- TokenValue -- Bool ] { name? has(is-underscore) }
+    def module-header?    [ +Mirth |- TokenValue -- Bool ] { name? has(>Str "module" =) }
+    def module-import?    [ +Mirth |- TokenValue -- Bool ] { name? has(>Str "import" =) }
 }
 
 def-type(Name/DName, Either(Name,DName))
-
-def TokenValue.int? [ TokenValue -- Maybe(Int) ] { Int -> Some, _ -> drop None }
-def TokenValue.str? [ TokenValue -- Maybe(Str) ] { Str -> Some, _ -> drop None }
-def TokenValue.name? [ TokenValue -- Maybe(Name) ] { Name -> Some, _ -> drop None }
-def TokenValue.dname? [ TokenValue -- Maybe(DName) ] { DName -> Some, _ -> drop None }
-def TokenValue.name/dname? [ TokenValue -- Maybe(Name/DName) ] {
-    { Name -> Left Some }
-    { DName -> Right Some }
-    { _ -> drop None }
-}
-def TokenValue.last-name? [ TokenValue -- Maybe(Name) ] {
-    { Name -> Some }
-    { DName -> last-name Some }
-    { _ -> drop None }
-}
-def TokenValue.penultimate-name? [ TokenValue -- Maybe(Name) ] { DName -> penultimate-name?, _ -> drop None }
-def TokenValue.arg-end? [ TokenValue -- Bool ] {
-    Comma -> True,
-    RParen -> drop True,
-    RCurly -> drop True,
-    RSquare -> drop True,
-    RColon -> drop True,
-    _ -> drop False
-}
-def TokenValue.left-enclosure? [ TokenValue -- Bool ] {
-    LParen -> drop True,
-    LSquare -> drop True,
-    LCurly -> drop True,
-    LColon -> drop True,
-    _ -> drop False
-}
-def TokenValue.right-enclosure? [ TokenValue -- Bool ] {
-    RParen -> drop True,
-    RSquare -> drop True,
-    RCurly -> drop True,
-    RColon -> drop True,
-    _ -> drop False
-}
 
 def name/dname-last-name [ Name/DName -- Name ] {
     { Left -> id }
@@ -136,301 +150,311 @@ def name/dname-penultimate-name? [ Name/DName -- Maybe(Name) ] {
     { Right -> penultimate-name? }
 }
 
-def TokenValue.sig-type-con? [ +Mirth |- TokenValue -- Maybe(Name/DName) ] {
-    name/dname? filter(name/dname-last-name could-be-type-con)
-}
-def TokenValue.sig-type-hole? [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter(is-type-hole) }
-def TokenValue.sig-type-var?  [ +Mirth |- TokenValue -- Maybe(Name) ] { name? filter(could-be-type-var) }
-def(TokenValue.sig-param-name?, +Mirth TokenValue -- +Mirth Maybe(Name), sig-type-var?)
-def(TokenValue.sig-stack-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-stack-var))
-def(TokenValue.sig-resource-var?, +Mirth TokenValue -- +Mirth Maybe(Name), name? filter(could-be-resource-var))
-def(TokenValue.sig-resource-con?, +Mirth TokenValue -- +Mirth Maybe(Name/DName), name/dname? filter(name/dname-last-name could-be-resource-con))
-def(TokenValue.sig-dashes?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "--" =))
-def(TokenValue.vdash?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "|-" =))
-def(TokenValue.arrow?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "->" =))
-def(TokenValue.pat-underscore?, +Mirth TokenValue -- +Mirth Bool, name? has(is-underscore))
-def(TokenValue.module-header?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "module" =))
-def(TokenValue.module-import?, +Mirth TokenValue -- +Mirth Bool, name? has(>Str "import" =))
-
 table(Token)
-field(Token.~value, Token, TokenValue)
-field(Token.~module, Token, Module)
-field(Token.~row, Token, Row)
-field(Token.~col, Token, Col)
-field(Token.~doc, Token, Maybe(Str))
+patch Token {
+    field(~value, Token, TokenValue)
+    field(~module, Token, Module)
+    field(~row, Token, Row)
+    field(~col, Token, Col)
+    field(~doc, Token, Maybe(Str))
 
-def(Token.=, Token Token -- Bool, both(index) =)
+    def = [ Token Token -- Bool ] { both(index) = }
 
-def(Token.value, +Mirth Token -- +Mirth TokenValue, ~value @)
-def(Token.module, +Mirth Token -- +Mirth Module, ~module @)
-def(Token.col, +Mirth Token -- +Mirth Col, ~col @)
-def(Token.row, +Mirth Token -- +Mirth Row, ~row @)
-def(Token.doc, +Mirth Token -- +Mirth Maybe(Str), ~doc @)
+    def value  [ +Mirth |- Token -- TokenValue ] { ~value @ }
+    def module [ +Mirth |- Token -- Module     ] { ~module @ }
+    def col    [ +Mirth |- Token -- Col        ] { ~col @ }
+    def row    [ +Mirth |- Token -- Row        ] { ~row @ }
+    def doc    [ +Mirth |- Token -- Maybe(Str) ] { ~doc @ }
 
-def(Token.none?, +Mirth Token -- +Mirth Bool, value none?)
-def(Token.comma?, +Mirth Token -- +Mirth Bool, value comma?)
-def(Token.lparen-open?, +Mirth Token -- +Mirth Bool, value lparen-open?)
-def(Token.lparen?, +Mirth Token -- +Mirth Maybe(Token), value lparen?)
-def(Token.rparen?, +Mirth Token -- +Mirth Maybe(Token), value rparen?)
-def(Token.lsquare-open?, +Mirth Token -- +Mirth Bool, value lsquare-open?)
-def(Token.lsquare?, +Mirth Token -- +Mirth Maybe(Token), value lsquare?)
-def(Token.rsquare?, +Mirth Token -- +Mirth Maybe(Token), value rsquare?)
-def(Token.lcurly-open?, +Mirth Token -- +Mirth Bool, value lcurly-open?)
-def(Token.lcurly?, +Mirth Token -- +Mirth Maybe(Token), value lcurly?)
-def(Token.rcurly?, +Mirth Token -- +Mirth Maybe(Token), value rcurly?)
-def(Token.lcolon-open?, +Mirth Token -- +Mirth Bool, value lcolon-open?)
-def(Token.lcolon?, +Mirth Token -- +Mirth Maybe(Token), value lcolon?)
-def(Token.rcolon?, +Mirth Token -- +Mirth Maybe(Token), value rcolon?)
-def(Token.lparen-or-lcolon?, +Mirth Token -- +Mirth Maybe(Token), value lparen-or-lcolon?)
-def(Token.int?, +Mirth Token -- +Mirth Maybe(Int), value int?)
-def(Token.str?, +Mirth Token -- +Mirth Maybe(Str), value str?)
-def(Token.name?, +Mirth Token -- +Mirth Maybe(Name), value name?)
-def(Token.dname?, +Mirth Token -- +Mirth Maybe(DName), value dname?)
-def(Token.name/dname?, +Mirth Token -- +Mirth Maybe(Either(Name,DName)), value name/dname?)
-def(Token.last-name?, +Mirth Token -- +Mirth Maybe(Name), value last-name?)
-def(Token.penultimate-name?, +Mirth Token -- +Mirth Maybe(Name), value penultimate-name?)
-def(Token.arg-end?, +Mirth Token -- +Mirth Bool, value arg-end?)
-def(Token.left-enclosure?, +Mirth Token -- +Mirth Bool, value left-enclosure?)
-def(Token.right-enclosure?, +Mirth Token -- +Mirth Bool, value right-enclosure?)
-def(Token.sig-type-con?, +Mirth Token -- +Mirth Maybe(Name/DName), value sig-type-con?)
-def(Token.sig-type-hole?, +Mirth Token -- +Mirth Maybe(Name), value sig-type-hole?)
-def(Token.sig-type-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-type-var?)
-def(Token.sig-param-name?, +Mirth Token -- +Mirth Maybe(Name), value sig-param-name?)
-def(Token.sig-stack-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-stack-var?)
-def(Token.sig-resource-var?, +Mirth Token -- +Mirth Maybe(Name), value sig-resource-var?)
-def(Token.sig-resource-con?, +Mirth Token -- +Mirth Maybe(Name/DName), value sig-resource-con?)
-def(Token.sig-dashes?, +Mirth Token -- +Mirth Bool, value sig-dashes?)
-def(Token.vdash?, +Mirth Token -- +Mirth Bool, value vdash?)
-def(Token.arrow?, +Mirth Token -- +Mirth Bool, value arrow?)
-def(Token.pat-underscore?, +Mirth Token -- +Mirth Bool, value pat-underscore?)
-def(Token.module-header?, +Mirth Token -- +Mirth Bool, value module-header?)
-def(Token.module-import?, +Mirth Token -- +Mirth Bool, value module-import?)
-def(Token.can-take-args?, +Mirth Token -- +Mirth Bool, value can-take-args?)
+    def none?             [ +Mirth |- Token -- Bool              ] { value none? }
+    def comma?            [ +Mirth |- Token -- Bool              ] { value comma? }
+    def lparen-open?      [ +Mirth |- Token -- Bool              ] { value lparen-open? }
+    def lsquare-open?     [ +Mirth |- Token -- Bool              ] { value lsquare-open? }
+    def lcurly-open?      [ +Mirth |- Token -- Bool              ] { value lcurly-open? }
+    def lcolon-open?      [ +Mirth |- Token -- Bool              ] { value lcolon-open? }
+    def lparen?           [ +Mirth |- Token -- Maybe(Token)      ] { value lparen? }
+    def rparen?           [ +Mirth |- Token -- Maybe(Token)      ] { value rparen? }
+    def lsquare?          [ +Mirth |- Token -- Maybe(Token)      ] { value lsquare? }
+    def rsquare?          [ +Mirth |- Token -- Maybe(Token)      ] { value rsquare? }
+    def lcurly?           [ +Mirth |- Token -- Maybe(Token)      ] { value lcurly? }
+    def rcurly?           [ +Mirth |- Token -- Maybe(Token)      ] { value rcurly? }
+    def lcolon?           [ +Mirth |- Token -- Maybe(Token)      ] { value lcolon? }
+    def rcolon?           [ +Mirth |- Token -- Maybe(Token)      ] { value rcolon? }
+    def lparen-or-lcolon? [ +Mirth |- Token -- Maybe(Token)      ] { value lparen-or-lcolon? }
+    def int?              [ +Mirth |- Token -- Maybe(Int)        ] { value int? }
+    def str?              [ +Mirth |- Token -- Maybe(Str)        ] { value str? }
+    def name?             [ +Mirth |- Token -- Maybe(Name)       ] { value name? }
+    def dname?            [ +Mirth |- Token -- Maybe(DName)      ] { value dname? }
+    def name/dname?       [ +Mirth |- Token -- Maybe(Name/DName) ] { value name/dname? }
+    def last-name?        [ +Mirth |- Token -- Maybe(Name)       ] { value last-name? }
+    def penultimate-name? [ +Mirth |- Token -- Maybe(Name)       ] { value penultimate-name? }
+    def arg-end?          [ +Mirth |- Token -- Bool              ] { value arg-end? }
+    def left-enclosure?   [ +Mirth |- Token -- Bool              ] { value left-enclosure? }
+    def right-enclosure?  [ +Mirth |- Token -- Bool              ] { value right-enclosure? }
+    def sig-type-con?     [ +Mirth |- Token -- Maybe(Name/DName) ] { value sig-type-con? }
+    def sig-type-hole?    [ +Mirth |- Token -- Maybe(Name)       ] { value sig-type-hole? }
+    def sig-type-var?     [ +Mirth |- Token -- Maybe(Name)       ] { value sig-type-var?  }
+    def sig-param-name?   [ +Mirth |- Token -- Maybe(Name)       ] { value sig-param-name? }
+    def sig-stack-var?    [ +Mirth |- Token -- Maybe(Name)       ] { value sig-stack-var? }
+    def sig-resource-var? [ +Mirth |- Token -- Maybe(Name)       ] { value sig-resource-var? }
+    def sig-resource-con? [ +Mirth |- Token -- Maybe(Name/DName) ] { value sig-resource-con? }
+    def sig-dashes?       [ +Mirth |- Token -- Bool              ] { value sig-dashes? }
+    def vdash?            [ +Mirth |- Token -- Bool              ] { value vdash? }
+    def arrow?            [ +Mirth |- Token -- Bool              ] { value arrow? }
+    def pat-underscore?   [ +Mirth |- Token -- Bool              ] { value pat-underscore? }
+    def module-header?    [ +Mirth |- Token -- Bool              ] { value module-header? }
+    def module-import?    [ +Mirth |- Token -- Bool              ] { value module-import? }
+    def can-take-args?    [ +Mirth |- Token -- Bool              ] { value can-take-args? }
 
-def(Token.alloc-none!, +Mirth -- +Mirth Token,
-    Token.alloc!
-    None over ~doc !
-    TokenValue.None over ~value !)
+    def alloc-none! [ +Mirth |- Token ] {
+        Token.alloc!
+        None over ~doc !
+        TokenValue.None over ~value !
+    }
 
-def(Token.location, +Mirth Token -- +Mirth Location,
-    dup .module >module
-    dup .row >row
-    .col >col
-    Location)
+    def location [ +Mirth |- Token -- Location ] {
+        dup .module >module
+        dup .row >row
+        .col >col
+        Location
+    }
 
-def Token.location! [ +Mirth Location Token -- +Mirth ] {
-    >token
-    /Location
-    module> @token ~module !
-    row> @token ~row !
-    col> token> ~col !
-}
+    def location! [ +Mirth |- Location Token -- ] {
+        >token
+        /Location
+        module> @token ~module !
+        row> @token ~row !
+        col> token> ~col !
+    }
 
-||| Get next token, respecting nesting of tokens and arguments.
-def(Token.next, +Mirth Token -- +Mirth Token,
-    dup value match(
-        LParen -> nip succ,
-        LSquare -> nip succ,
-        LCurly -> nip succ,
-        LColon -> nip succ,
-        _ -> can-take-args? if(
-            succ dup lparen-or-lcolon? for(nip succ),
-            succ
+    ||| Get next token, respecting nesting of tokens and arguments.
+    def next [ +Mirth Token |- ] {
+        dup value match(
+            LParen -> nip succ,
+            LSquare -> nip succ,
+            LCurly -> nip succ,
+            LColon -> nip succ,
+            _ -> can-take-args? if(
+                succ dup lparen-or-lcolon? for(nip succ),
+                succ
+            )
         )
-    ))
+    }
 
-||| Get previous token, respecting nesting of tokens and arguments.
-def(Token.prev, +Mirth Token -- +Mirth Token,
-    pred dup value match(
-        RSquare -> nip,
-        RCurly -> nip,
-        RParen -> nip dup pred can-take-args? then(pred),
-        RColon -> nip dup pred can-take-args? then(pred),
-        _ -> drop
-    ))
-
-||| Get closest arg ending (see `TokenValue.arg-end?`) while respecting the
-||| nesting of tokens.
-def(Token.next-arg-end, +Mirth Token -- +Mirth Token,
-    while(dup arg-end? not, next))
-
-def(Token.has-args?, +Mirth Token -- +Mirth Bool,
-    dup can-take-args? then(succ)
-    lparen-or-lcolon? >Bool)
-
-def(Token.args-start, +Mirth Token -- +Mirth Token,
-    dup can-take-args?
-    and(dup succ lparen-or-lcolon? >Bool) then(succ))
-
-def(Token.could-be-sig-label?, +Mirth Token -- +Mirth Bool,
-    dup name? if?(could-be-label-name?, False)
-    and(dup succ lcolon? >Bool) nip)
-
-def Token.sig-label? [ +Mirth Token -- +Mirth Maybe(Label) ] {
-    dup name? filter(
-        could-be-label-name?
-        and(dup succ lcolon? >Bool)
-    ) map(Label.new!) nip
-}
-
-def Token.pattern-var? [ +Mirth Token -- +Mirth Maybe(Name) ] {
-    name? filter: could-be-pattern-var?
-}
-
-def Token.pattern-auto-run-var? [ +Mirth Token -- +Mirth Maybe(Name) ] {
-    >token
-    @token lsquare? >Bool
-    @token succ succ rsquare? >Bool and if(
-        token> succ pattern-var?,
-        token> drop None
-    )
-}
-
-||| Verify that token has 0 args, and return them.
-||| Emits a fatal error if arity is wrong.
-def(Token.args-0, Token +Mirth -- +Mirth,
-    dup num-args 0= if(
-        drop,
-        "expected no args" emit-fatal-error!
-    ))
-
-||| Verify that token has 1 arg, and return it.
-||| Emits a fatal error if arity is wrong.
-def(Token.args-1, Token +Mirth -- Token +Mirth,
-    dup num-args 1u = if(
-        args-start succ,
-        dup num-args 1u < if(
-            "expected 1 arg, got none" emit-fatal-error!,
-            "expected 1 arg, got too many" emit-fatal-error!
+    ||| Get previous token, respecting nesting of tokens and arguments.
+    def prev [ +Mirth Token |- ] {
+        pred dup value match(
+            RSquare -> nip,
+            RCurly -> nip,
+            RParen -> nip dup pred can-take-args? then(pred),
+            RColon -> nip dup pred can-take-args? then(pred),
+            _ -> drop
         )
-    ))
+    }
 
-||| Verify that token has 2 args, and return them.
-||| Emits a fatal error if arity is wrong.
-def(Token.args-2, Token +Mirth -- Token Token +Mirth,
-    dup num-args 2u = if(
-        args-start succ
-        dup next-arg-end succ,
-        dup num-args 2u < if(
-            "expected 2 args, got too few" emit-fatal-error!,
-            "expected 2 args, got too many" emit-fatal-error!
+    ||| Get closest arg ending (see `TokenValue.arg-end?`) while respecting the
+    ||| nesting of tokens.
+    def next-arg-end [ +Mirth Token |- ] {
+        while(dup arg-end? not, next)
+    }
+
+    def has-args? [ +Mirth |- Token -- Bool ] {
+        dup can-take-args? then(succ)
+        lparen-or-lcolon? >Bool
+    }
+
+    def args-start [ +Mirth Token |- ] {
+        dup can-take-args?
+        and(dup succ lparen-or-lcolon? >Bool) then(succ)
+    }
+
+    def could-be-sig-label? [ +Mirth |- Token -- Bool ] {
+        dup name? if?(could-be-label-name?, False)
+        and(dup succ lcolon? >Bool) nip
+    }
+
+    def sig-label? [ +Mirth |- Token -- Maybe(Label) ] {
+        dup name? filter(
+            could-be-label-name?
+            and(dup succ lcolon? >Bool)
+        ) map(Label.new!) nip
+    }
+
+    def pattern-var? [ +Mirth |- Token -- Maybe(Name) ] {
+        name? filter:could-be-pattern-var?
+    }
+
+    def pattern-auto-run-var? [ +Mirth |- Token -- Maybe(Name) ] {
+        >token
+        @token lsquare? >Bool
+        @token succ succ rsquare? >Bool and if(
+            token> succ pattern-var?,
+            token> drop None
         )
-    ))
+    }
 
-||| Verify that token has 3 args, and return them.
-||| Emits a fatal error if arity is wrong.
-def(Token.args-3, Token +Mirth -- Token Token Token +Mirth,
-    dup num-args 3u = if(
-        args-start succ
-        dup next-arg-end succ
-        dup next-arg-end succ,
-        dup num-args 3u < if(
-            "expected 3 args, got too few" emit-fatal-error!,
-            "expected 3 args, got too many" emit-fatal-error!
+    ||| Verify that token has 0 args, and return them.
+    ||| Emits a fatal error if arity is wrong.
+    def args-0 [ +Mirth |- Token -- ] {
+        dup num-args 0= if(
+            drop,
+            "expected no args" emit-fatal-error!
         )
-    ))
+    }
 
-||| Get number of arguments or number of components in enclosed token.
-def(Token.num-args, +Mirth Token -- +Mirth Nat,
-    args-start dup left-enclosure? if(
-        dip(0u)
-        while(dup args-end? not,
-            dip(1+) succ next-arg-end)
-        drop,
-        drop 0u
-    ))
+    ||| Verify that token has 1 arg, and return it.
+    ||| Emits a fatal error if arity is wrong.
+    def args-1 [ +Mirth |- Token -- Token ] {
+        dup num-args 1u = if(
+            args-start succ,
+            dup num-args 1u < if(
+                "expected 1 arg, got none" emit-fatal-error!,
+                "expected 1 arg, got too many" emit-fatal-error!
+            )
+        )
+    }
 
-||| Get List of token args.
-def(Token.args, +Mirth Token -- +Mirth List(Token),
-    args-start dup left-enclosure? if(
-        collect-while(dup args-end? not, succ sip(next-arg-end)) nip,
-        drop L0
-    ))
+    ||| Verify that token has 2 args, and return them.
+    ||| Emits a fatal error if arity is wrong.
+    def args-2 [ +Mirth |- Token -- Token Token ] {
+        dup num-args 2u = if(
+            args-start succ
+            dup next-arg-end succ,
+            dup num-args 2u < if(
+                "expected 2 args, got too few" emit-fatal-error!,
+                "expected 2 args, got too many" emit-fatal-error!
+            )
+        )
+    }
 
-||| Check if we're at the end of the last argument.
-||| A trailing comma is ignored.
-def(Token.args-end?, +Mirth Token -- +Mirth Bool,
-    dup comma? then(succ)
-    right-enclosure?)
+    ||| Verify that token has 3 args, and return them.
+    ||| Emits a fatal error if arity is wrong.
+    def args-3 [ +Mirth |- Token -- Token Token Token ] {
+        dup num-args 3u = if(
+            args-start succ
+            dup next-arg-end succ
+            dup next-arg-end succ,
+            dup num-args 3u < if(
+                "expected 3 args, got too few" emit-fatal-error!,
+                "expected 3 args, got too many" emit-fatal-error!
+            )
+        )
+    }
 
-||| Get Nest of token args.
-||| Emits a fatal error if token has no args,
-def(Token.args+, +Mirth Token -- +Mirth Nest(Token),
-    dup args >Nest? unwrap("expected 1 or more args, got none" emit-fatal-error!) nip)
+    ||| Get number of arguments or number of components in enclosed token.
+    def num-args [ +Mirth |- Token -- Nat ] {
+        args-start dup left-enclosure? if(
+            dip(0u)
+            while(dup args-end? not,
+                dip(1+) succ next-arg-end)
+            drop,
+            drop 0u
+        )
+    }
 
-###############
-# Token Types #
-###############
+    ||| Get List of token args.
+    def args [ +Mirth |- Token -- List(Token) ] {
+        args-start dup left-enclosure? if(
+            collect-while(dup args-end? not, succ sip(next-arg-end)) nip,
+            drop L0
+        )
+    }
 
-||| Is this the end of a module?
-def(Token.module-end?, +Mirth Token -- +Mirth Bool, none?)
+    ||| Check if we're at the end of the last argument.
+    ||| A trailing comma is ignored.
+    def args-end? [ +Mirth |- Token -- Bool ] {
+        dup comma? then(succ)
+        right-enclosure?
+    }
 
-||| Is this a token to stop running at?
-def(Token.run-end?, +Mirth Token -- +Mirth Bool,
-    value match(
-        None -> True,
-        Comma -> True,
-        RParen -> drop True,
-        RSquare -> drop True,
-        RCurly -> drop True,
-        RColon -> drop True,
-        _ -> drop False
-    ))
+    ||| Get Nest of token args.
+    ||| Emits a fatal error if token has no args,
+    def args+ [ +Mirth |- Token -- Nest(Token) ] {
+        dup args >Nest? unwrap("expected 1 or more args, got none" emit-fatal-error!) nip
+    }
 
-def Token.to-run-end [ +Mirth Token -- +Mirth Token ] {
-    while(dup run-end? not, next)
-}
+    ###############
+    # Token Types #
+    ###############
 
-def(Token.run-tokens, +Mirth Token -- +Mirth List(Token),
-    collect-while(dup run-end? not, sip(next)) nip)
+    ||| Is this the end of a module?
+    def module-end? [ +Mirth |- Token -- Bool ] { none? }
 
-def(Token.run-length, +Mirth Token -- +Mirth Nat,
-    dip(0u) while(dup run-end? not, next dip(1+)) drop)
+    ||| Is this a token to stop running at?
+    def run-end? [ +Mirth |- Token -- Bool ] {
+        value match(
+            None -> True,
+            Comma -> True,
+            RParen -> drop True,
+            RSquare -> drop True,
+            RCurly -> drop True,
+            RColon -> drop True,
+            _ -> drop False
+        )
+    }
 
-def(Token.run-arrow?, +Mirth Token -- +Mirth Maybe(Token),
-    run-tokens find(arrow?))
+    def to-run-end [ +Mirth Token |- ] {
+        while(dup run-end? not, next)
+    }
 
-###################
-# Type Signatures #
-###################
+    def run-tokens [ +Mirth |- Token -- List(Token) ] {
+        collect-while(dup run-end? not, sip(next)) nip
+    }
 
-def(Token.sig-stack-end?, +Mirth |- Token -- Bool,
-    or(sig-dashes?, vdash?, run-end?))
+    def run-length [ +Mirth |- Token -- Nat ] {
+        dip(0u) while(dup run-end? not, next dip(1+)) drop
+    }
 
-def(Token.sig-next-stack-end, +Mirth |- Token -- Token,
-    while(dup sig-stack-end? not, next))
+    def run-arrow? [ +Mirth |- Token -- Maybe(Token) ] {
+        run-tokens find(arrow?)
+    }
 
-def(Token.sig-has-vdash-or-dashes?, +Mirth |- Token -- Bool,
-    sig-next-stack-end or(sig-dashes?, vdash?))
+    ###################
+    # Type Signatures #
+    ###################
 
-def(Token.pat-tokens, +Mirth |- Token -- List(Token),
-    run-tokens take-while(arrow? not))
+    def sig-stack-end? [ +Mirth |- Token -- Bool ] {
+        or(sig-dashes?, vdash?, run-end?)
+    }
 
-def Token.clone-run! [ +Mirth |- location:Location Token -- Token ] {
-    dup >start to-run-end >end
+    def sig-next-stack-end [ +Mirth |- Token -- Token ] {
+        while(dup sig-stack-end? not, next)
+    }
 
-    Token.alloc-none! >anchor
-    @location @anchor location!
+    def sig-has-vdash-or-dashes? [ +Mirth |- Token -- Bool ] {
+        sig-next-stack-end or(sig-dashes?, vdash?)
+    }
 
-    @end index >Int @start index >Int - >Nat-clamp 1+ repeat(
-        @location Token.alloc-none! location!
-    )
+    def pat-tokens [ +Mirth |- Token -- List(Token) ] {
+        run-tokens take-while(arrow? not)
+    }
 
-    @anchor:succ
-    @anchor >dst
-    @start >src
-    while(@src index @end index <,
-        @src value map-token-ref(
-            index >Int
-            @anchor index >Int + 1+
-            @src index >Int -
-            >TableIndex-clamp Token.from-index
-        ) @dst ~value !
-        @src:succ
-        @dst:succ
-    )
-    src> dst> drop2
-    start> end> drop2
-    location> drop
-    anchor>
+    def clone-run! [ +Mirth |- location:Location Token -- Token ] {
+        dup >start to-run-end >end
+
+        Token.alloc-none! >anchor
+        @location @anchor location!
+
+        @end index >Int @start index >Int - >Nat-clamp 1+ repeat(
+            @location Token.alloc-none! location!
+        )
+
+        @anchor:succ
+        @anchor >dst
+        @start >src
+        while(@src index @end index <,
+            @src value map-token-ref(
+                index >Int
+                @anchor index >Int + 1+
+                @src index >Int -
+                >TableIndex-clamp Token.from-index
+            ) @dst ~value !
+            @src:succ
+            @dst:succ
+        )
+        src> dst> drop2
+        start> end> drop2
+        location> drop
+        anchor>
+    }
 }
