@@ -16,27 +16,27 @@ data Tycon {
     Table [ Table ]
     Prim  [ PrimType ]
     --
-    def name [ +Mirth Tycon -- +Mirth Name ] {
+    def name [ +Mirth |- Tycon -- Name ] {
         { Data -> name }
         { Table -> name }
         { Prim -> tycon-qname name }
     }
-    def qname-soft [ +Mirth Tycon -- +Mirth Maybe(QName) ] {
+    def qname-soft [ +Mirth |- Tycon -- Maybe(QName) ] {
         { Data -> qname-soft }
         { Table -> qname-soft }
         { Prim -> tycon-qname Some }
     }
-    def qname-hard [ +Mirth Tycon -- +Mirth QName ] {
+    def qname-hard [ +Mirth |- Tycon -- QName ] {
         { Data -> qname-hard }
         { Table -> qname-hard }
         { Prim -> tycon-qname }
     }
-    def name; [ +Mirth +Str Tycon -- +Mirth +Str ] {
+    def name; [ +Mirth +Str |- Tycon -- ] {
         { Data -> name; }
         { Table -> name; }
         { Prim -> rdip:tycon-qname name; }
     }
-    def qname; [ +Mirth +Str Tycon -- +Mirth +Str ] {
+    def qname; [ +Mirth +Str |- Tycon -- ] {
         { Data -> qname; }
         { Table -> qname; }
         { Prim -> rdip:tycon-qname qname; }
@@ -54,7 +54,7 @@ data Tycon {
         { Prim -> Type.Prim }
     }
 
-    def full-type-fresh [ +Mirth Tycon -- +Mirth Type/Resource ] {
+    def full-type-fresh [ +Mirth |- Tycon -- Type/Resource ] {
         { Data -> dip:Subst.Nil full-type map(freshen, freshen) nip }
         { Prim -> sip:Type.Prim is-resource? if(Resource Right, Left) }
         { Table -> Type.Table Left }

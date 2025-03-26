@@ -102,145 +102,151 @@ struct +Mirth {
     +diagnostics: +Lister(Diagnostic)
     +propstack: +Lister(PropLabel)
     +namehashmap: +NameHashMap
-}
+    --
 
-def +Mirth.Init! {
-    0u >num-errors
-    0u >num-warnings
-    False >prefer-inline-defs
-    Builtin.Alloc! >builtin
-    None >mirth-base-path
-    L0 >package-search-paths
-    +Lister.+Nil >+diagnostics
-    +Lister.+Nil >+propstack
-    None >error-token
-    None >defining-namespace
-    LexicalState >lexical-state
-    +NameHashMap.new >+namehashmap
-    +Mirth
-    init-packages!
-    init-modules!
-    init-types!
-    init-prims!
-    init-macros!
-}
+    def Init! [ -- +Mirth ] {
+        0u >num-errors
+        0u >num-warnings
+        False >prefer-inline-defs
+        Builtin.Alloc! >builtin
+        None >mirth-base-path
+        L0 >package-search-paths
+        +Lister.+Nil >+diagnostics
+        +Lister.+Nil >+propstack
+        None >error-token
+        None >defining-namespace
+        LexicalState >lexical-state
+        +NameHashMap.new >+namehashmap
+        +Mirth
+        init-packages!
+        init-modules!
+        init-types!
+        init-prims!
+        init-macros!
+    }
 
-def +Mirth.rdrop [ +Mirth -- ] {
-    /+Mirth
-    num-errors> drop
-    num-warnings> drop
-    prefer-inline-defs> drop
-    builtin> drop
-    mirth-base-path> drop
-    package-search-paths> drop
-    lexical-state> drop
-    +diagnostics> rdrop
-    +propstack> rdrop
-    +namehashmap> rdrop
-}
+    def rdrop [ +Mirth -- ] {
+        /+Mirth
+        num-errors> drop
+        num-warnings> drop
+        prefer-inline-defs> drop
+        builtin> drop
+        mirth-base-path> drop
+        package-search-paths> drop
+        lexical-state> drop
+        +diagnostics> rdrop
+        +propstack> rdrop
+        +namehashmap> rdrop
+    }
 
-def +Mirth.mirth-base-lib-path [ +World +Mirth -- +World +Mirth Maybe(Path) ] {
-    mirth-base-path map("lib" >Path rdip:join)
+    def mirth-base-lib-path [ +World +Mirth |- Maybe(Path) ] {
+        mirth-base-path map("lib" >Path rdip:join)
+    }
+
+    def emit-diagnostic-at! [ +Mirth |- Location Str Severity -- ] {
+        >severity >message >location
+        @severity match {
+            { Info    -> id }
+            { Warning -> num-warnings:1+ }
+            { Error   -> num-errors:1+ }
+        }
+        Diagnostic +diagnostics:push!
+    }
+
+
+    def emit-info-at!        [ +Mirth |- Location Str -- ] { Severity.Info    emit-diagnostic-at! }
+    def emit-warning-at!     [ +Mirth |- Location Str -- ] { Severity.Warning emit-diagnostic-at! }
+    def emit-error-at!       [ +Mirth |- Location Str -- ] { Severity.Error   emit-diagnostic-at! }
+    def emit-fatal-error-at! [ *a +Mirth Location Str -- *b ] { emit-error-at! panic-diagnostics! }
+
+    def emit-info!        [ +Mirth |- Token Str -- ] { dip(location) emit-info-at! }
+    def emit-warning!     [ +Mirth |- Token Str -- ] { dip(location) emit-warning-at! }
+    def emit-error!       [ +Mirth |- Token Str -- ] { dip(location) emit-error-at! }
+    def emit-fatal-error! [ *a +Mirth Token Str -- *b ] { dip(location) emit-fatal-error-at! }
+
+    def emit-deprecated! [ +Mirth |- Token old:Str new:Str -- ] {
+        Str(Sgr.FGCyan span(old> ;) " is deprecated, please use ";
+            Sgr.FGCyan span(new> ;) " instead.";) emit-warning!
+    }
+
+    def error-token! [ +Mirth |- Token -- ] {
+        Some lexical-state:error-token!
+    }
+
+    def with-error-token(f) [ +Mirth |- (*a -- *b) *a Token -- *b ] {
+        lexical-state:error-token(swap Some) dip(f) lexical-state:error-token!
+    }
+
+    def default-error-location [ +Mirth |- Location ] {
+        builtin prim >module
+        0 Row >row
+        0 Col >col
+        Location
+    }
+
+    def error-location [ +Mirth |- Location ] {
+        lexical-state error-token if?(location, default-error-location)
+    }
+
+    def info!        [ +Mirth |- Str --    ] { error-location swap emit-info-at!        }
+    def warning!     [ +Mirth |- Str --    ] { error-location swap emit-warning-at!     }
+    def error!       [ +Mirth |- Str --    ] { error-location swap emit-error-at!       }
+    def fatal-error! [ *a +Mirth Str -- *b ] { error-location swap emit-fatal-error-at! }
+
+    def io-error! [ *a IOError +World +Mirth -- *b ] { rdip:message fatal-error! }
+
+    def panic-diagnostics! [ *a +Mirth -- *b ] {
+        pop-diagnostics! Str(
+            for(diagnostic; "\n";)
+            Sgr.FGRed span( "Fatal error. Stopping early."; )
+        ) panic!
+    }
+
+    def trace-diagnostics! [ +World +Mirth |- ] {
+        pop-diagnostics!
+        for(Str(diagnostic;) rdip:trace)
+    }
+
+    def pop-diagnostics! [ +Mirth |- List(Diagnostic) ] {
+        +diagnostics:pop-all!
+    }
+
+    def with-lexical-state(f) [ +Mirth |- (*a -- *b) *a LexicalState -- *b ] {
+        lexical-state:swap dip(f) lexical-state!
+    }
+
+    def with-defining-namespace(f) [ +Mirth |- (*a -- *b) *a Maybe(Prop(Namespace)) -- *b ] {
+        lexical-state:defining-namespace:swap
+        dip(f) lexical-state:defining-namespace!
+    }
 }
 
 struct Diagnostic {
     severity: Severity
     location: Location
     message: Str
-}
-
-data Severity { Info, Warning, Error }
-def Severity.>Str {
-    { Info    -> "info"    }
-    { Warning -> "warning" }
-    { Error   -> "error"   }
-}
-
-def +Mirth.emit-diagnostic-at! [ Location Str Severity +Mirth -- +Mirth ] {
-    >severity >message >location
-    @severity match {
-        { Info    -> id }
-        { Warning -> num-warnings:1+ }
-        { Error   -> num-errors:1+ }
+    --
+    def Diagnostic.diagnostic; [ +Mirth +Str |- Diagnostic -- ] {
+        /Diagnostic
+        location> emit; ": " ;
+        severity> >Str ; ": " ;
+        message> ;
     }
-    Diagnostic +diagnostics:push!
 }
 
-def(+Mirth.emit-info-at!, Location Str +Mirth -- +Mirth, Severity.Info emit-diagnostic-at!)
-def(+Mirth.emit-warning-at!, Location Str +Mirth -- +Mirth, Severity.Warning emit-diagnostic-at!)
-def(+Mirth.emit-error-at!, Location Str +Mirth -- +Mirth, Severity.Error emit-diagnostic-at!)
-def(+Mirth.emit-fatal-error-at!, *a Location Str +Mirth -- *b,
-    emit-error-at! panic-diagnostics!)
-
-def(+Mirth.emit-info!, Token Str +Mirth -- +Mirth,
-    dip(location) emit-info-at!)
-def(+Mirth.emit-warning!, Token Str +Mirth -- +Mirth,
-    dip(location) emit-warning-at!)
-def(+Mirth.emit-error!, Token Str +Mirth -- +Mirth,
-    dip(location) emit-error-at!)
-def(+Mirth.emit-fatal-error!, *a Token Str +Mirth -- *b,
-    dip(location) emit-fatal-error-at!)
-
-def +Mirth.emit-deprecated! [ Token old:Str new:Str +Mirth -- +Mirth ] {
-    Str(Sgr.FGCyan span(old> ;) " is deprecated, please use ";
-           Sgr.FGCyan span(new> ;) " instead.";) emit-warning!
+data Severity {
+    Info
+    Warning
+    Error
+    --
+    def >Str [ Severity -- Str ] {
+        { Info    -> "info"    }
+        { Warning -> "warning" }
+        { Error   -> "error"   }
+    }
 }
 
-def +Mirth.error-token! [ Token +Mirth -- +Mirth ] {
-    Some lexical-state:error-token!
-}
-def +Mirth.with-error-token(f) [ (*a +Mirth -- *b +Mirth) *a Token +Mirth -- *b +Mirth ] {
-    lexical-state:error-token(swap Some) dip(f) lexical-state:error-token!
-}
 
-def +Mirth.default-error-location [ +Mirth -- +Mirth Location ] {
-    builtin prim >module
-    0 Row >row
-    0 Col >col
-    Location
-}
-
-def +Mirth.error-location [ +Mirth -- +Mirth Location ] {
-    lexical-state error-token if?(location, default-error-location)
-}
-
-def +Mirth.info!    [ Str +Mirth -- +Mirth ] { error-location swap emit-info-at!    }
-def +Mirth.warning! [ Str +Mirth -- +Mirth ] { error-location swap emit-warning-at! }
-def +Mirth.error!   [ Str +Mirth -- +Mirth ] { error-location swap emit-error-at!   }
-def +Mirth.fatal-error! [ *a Str +Mirth -- *b ] { error-location swap emit-fatal-error-at! }
-
-def +Mirth.io-error! [ *a IOError +World +Mirth -- *b ] {
-    rdip:message fatal-error!
-}
-
-def(+Mirth.panic-diagnostics!, *a +Mirth -- *b,
-    pop-diagnostics Str(
-        for(diagnostic; "\n";)
-        Sgr.FGRed span( "Fatal error. Stopping early."; )
-    ) panic!)
-
-def +Mirth.trace-diagnostics! [ +World +Mirth -- +World +Mirth ] {
-    pop-diagnostics
-    for(Str(diagnostic;) rdip:trace)
-}
-
-def(+Mirth.pop-diagnostics, +Mirth -- +Mirth List(Diagnostic),
-    +diagnostics(pop-all!))
-
-def(Diagnostic.diagnostic;, +Mirth +Str Diagnostic -- +Mirth +Str,
-    /Diagnostic
-    location> emit; ": " ;
-    severity> >Str ; ": " ;
-    message> ;)
-
-def +Mirth.with-lexical-state(f) [ (*a +Mirth -- *b +Mirth) *a LexicalState +Mirth -- *b +Mirth ] {
-    lexical-state(swap) dip(f) lexical-state!
-}
-
-def +Mirth.with-defining-namespace(f) [ (*a +Mirth -- *b +Mirth) *a Maybe(Prop(Namespace)) +Mirth -- *b +Mirth ] {
-    lexical-state:defining-namespace(swap)
-    dip(f) lexical-state:defining-namespace!
-}
 
 #########
 # PROPS #
@@ -249,12 +255,64 @@ def +Mirth.with-defining-namespace(f) [ (*a +Mirth -- *b +Mirth) *a Maybe(Prop(N
 struct Prop(t) {
     label: PropLabel
     state: PropState(t)
+    --
+    ||| Is the value ready?
+    def ready? [ Prop(t) -- Maybe(t) ] { state ready? }
+
+    ||| Compute prop value without regard for cycles. This may fail or run forever.
+    def compute [ +Mirth |- Prop(t) -- Maybe(t) Prop(t) ] { state:compute }
+
+    ||| Compute prop value but detect cycles. Returns None if cycle is detected.
+    def try-force! [ +Mirth |- Mut(Prop(t)) -- Maybe(t) ] {
+        dup @ >prop
+        @prop state match {
+            { Ready -> prop> drop nip Some }
+            { Delay ->
+                prop> label +propstack:push!
+                rotl with-lexical-state(
+                    rotl
+                    PropState.Computing over modify:state!
+                    dip(run dup PropState.Ready) modify:state!
+                    Some
+                )
+                +propstack:pop! drop
+            }
+            { Computing ->
+                prop> drop2
+                None
+            }
+        }
+    }
+
+    ||| Compute prop value. If a cycle is detected, it panics.
+    def force! [ +Mirth |- Mut(Prop(t)) -- t ] {
+        try-force! unwrap(
+            +propstack:reversed
+            Str("Recursive prop detected:" ;
+                reverse-for("\n  - " ; trace;)
+            ) fatal-error!
+        )
+    }
+
+    ||| Compute prop value. If a cycle is detected, fall back on function.
+    def force-or!(f) [ *a +Mirth |- (-- b) Mut(Prop(b)) -- b ] {
+        try-force! unwrap(f)
+    }
 }
 
 data PropState(b) {
     Ready [ b ]
     Delay [ LexicalState a [ a +Mirth -- b +Mirth ] ]
     Computing
+    --
+    def ready? [ PropState(b) -- Maybe(b) ] { Ready -> Some, _ -> drop None }
+    def compute [ +Mirth |- PropState(t) -- Maybe(t) PropState(t) ] {
+        dup match {
+            { Ready -> Some swap }
+            { Delay -> dip3:drop rotl with-lexical-state:run dup Some swap PropState.Ready }
+            { Computing -> None swap }
+        }
+    }
 }
 
 data PropLabel {
@@ -307,81 +365,24 @@ data PropLabel {
         { FieldIndexType -> "field index type at " ; rdip:head location; }
         { MacroQName     -> "macro qname at " ; rdip:head? location?; }
     }
+
+    def prop  [ +Mirth |- b PropLabel -- Prop(b) ] { >label PropState.Ready >state Prop }
+    def prop2 [ +Mirth |- b1 b2 PropLabel -- Prop([b1 b2]) ] { dip:pack2 prop }
+    def prop3 [ +Mirth |- b1 b2 b3 PropLabel -- Prop([b1 b2 b3]) ] { dip:pack3 prop }
+
+    def prop(f)  [ +Mirth |- ( a -- b ) a PropLabel -- Prop(b) ] {
+        >label lexical-state swap [f] PropState.Delay >state Prop
+    }
+    def prop0(f) [ +Mirth |- (             -- b )             PropLabel -- Prop(b) ] { dip:pack0 prop(unpack0 f) }
+    def prop2(f) [ +Mirth |- ( a1 a2       -- b ) a1 a2       PropLabel -- Prop(b) ] { dip:pack2 prop(unpack2 f) }
+    def prop3(f) [ +Mirth |- ( a1 a2 a3    -- b ) a1 a2 a3    PropLabel -- Prop(b) ] { dip:pack3 prop(unpack3 f) }
+    def prop4(f) [ +Mirth |- ( a1 a2 a3 a4 -- b ) a1 a2 a3 a4 PropLabel -- Prop(b) ] { dip:pack4 prop(unpack4 f) }
 }
 
-def Token.location; [ +Mirth +Str Token -- +Mirth +Str ] {
+def Token.location; [ +Mirth +Str |- Token -- ] {
     rdip:location emit;
 }
 
-def Maybe.location?; (f {location;}) [ (+Mirth +Str t -- +Mirth +Str) +Mirth +Str Maybe(t) -- +Mirth +Str ] {
+def Maybe.location?; (f {location;}) [ +Mirth +Str |- (t --) Maybe(t) -- ] {
     if?(f, "???";)
-}
-
-
-def(PropLabel.prop, b PropLabel +Mirth -- Prop(b) +Mirth,
-    >label PropState.Ready >state Prop)
-def(PropLabel.prop2, b1 b2 PropLabel +Mirth -- Prop([b1 b2]) +Mirth,
-    dip(pack2) prop)
-def(PropLabel.prop3, b1 b2 b3 PropLabel +Mirth -- Prop([b1 b2 b3]) +Mirth,
-    dip(pack3) prop)
-
-def(PropLabel.prop(f), (a +Mirth -- b +Mirth) a PropLabel +Mirth -- Prop(b) +Mirth,
-    >label lexical-state swap [f] PropState.Delay >state Prop)
-def(PropLabel.prop0(f), (+Mirth -- b +Mirth) PropLabel +Mirth -- Prop(b) +Mirth,
-    dip:0 prop(drop f))
-def(PropLabel.prop2(f), (a1 a2 +Mirth -- b +Mirth) a1 a2 PropLabel +Mirth -- Prop(b) +Mirth,
-    dip(pack2) prop(unpack2 f))
-def(PropLabel.prop3(f), (a1 a2 a3 +Mirth -- b +Mirth) a1 a2 a3 PropLabel +Mirth -- Prop(b) +Mirth,
-    dip(pack3) prop(unpack3 f))
-def(PropLabel.prop4(f), (a1 a2 a3 a4 +Mirth -- b +Mirth) a1 a2 a3 a4 PropLabel +Mirth -- Prop(b) +Mirth,
-    dip(pack4) prop(unpack4 f))
-
-def(Prop.ready?, Prop(t) -- Maybe(t),
-    state match(
-        Ready -> Some,
-        _ -> drop None
-    ))
-
-def Prop.compute [ Prop(t) +Mirth -- Maybe(t) Prop(t) +Mirth ] {
-    state (
-        dup >state match {
-            { Ready -> Some }
-            { Delay -> state> drop rotl with-lexical-state:run dup PropState.Ready >state Some }
-            { Computing -> None }
-        } state>
-    )
-}
-
-def Prop.try-force! [ Mut(Prop(t)) +Mirth -- Maybe(t) +Mirth ] {
-    dup @ >prop
-    @prop state match {
-        { Ready -> prop> drop nip Some }
-        { Delay ->
-            prop> label +propstack:push!
-            rotl with-lexical-state(
-                rotl
-                PropState.Computing over modify:state!
-                dip(run dup PropState.Ready) modify:state!
-                Some
-            )
-            +propstack:pop! drop
-        }
-        { Computing ->
-            prop> drop2
-            None
-        }
-    }
-}
-
-def Prop.force! [ Mut(Prop(t)) +Mirth -- t +Mirth ] {
-    try-force! unwrap(
-        +propstack:reversed
-        Str("Recursive prop detected:" ;
-            reverse-for("\n  - " ; trace;)
-        ) fatal-error!
-    )
-}
-
-def Prop.force-or!(f) [ (*a +Mirth -- *a b +Mirth) *a Mut(Prop(b)) +Mirth -- *a b +Mirth ] {
-    try-force! unwrap(f)
 }

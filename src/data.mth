@@ -67,7 +67,7 @@ def make-prim-tag! [ +Mirth |- Str Int List(Type) Tag -- ] {
     L0 @tag ~label-inputs !
 
     @tag .data params >Ctx
-    inputs> TT
+    inputs> foldl(T0, T*)
     T0 @tag .data full-type T*+ T->
     @tag PropLabel.TagType prop2
     @tag ~ctx-type !
@@ -78,14 +78,14 @@ def make-prim-tag! [ +Mirth |- Str Int List(Type) Tag -- ] {
 def make-prim-intlike! [ +Mirth |- Str Data Str Tag Str -- ] {
     >underlying >tag >tagname >data >dataname
 
-    dataname> L0 data> @tag L1 underlying> CType.IntLike Some make-prim-data!
+    dataname> L0 data> @tag L1 underlying> CType.Int Some make-prim-data!
     tagname> 0 Type.I64 L1 tag> make-prim-tag!
 }
 
 def make-prim-uintlike! [ +Mirth |- Str Data Str Tag Str -- ] {
     >underlying >tag >tagname >data >dataname
 
-    dataname> L0 data> @tag L1 underlying> CType.UIntLike Some make-prim-data!
+    dataname> L0 data> @tag L1 underlying> CType.UInt Some make-prim-data!
     tagname> 0 Type.U64 L1 tag> make-prim-tag!
 }
 
@@ -101,7 +101,7 @@ def init-data! [ +Mirth |- ] {
     "CVolatile" 0 @a Type.Var L1 builtin mk-cvolatile make-prim-tag!
     a> drop
 
-    "CVoid" L0 builtin cvoid builtin mk-cvoid L1 CType.Phantom Some make-prim-data!
+    "CVoid" L0 builtin cvoid builtin mk-cvoid L1 "void" CType.Void Some make-prim-data!
     "CVoid" 0 L0 builtin mk-cvoid make-prim-tag!
 
     "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
@@ -233,6 +233,18 @@ def Data.full-type [ +Mirth |- Data -- Type/Resource ] {
     )
 }
 
+def(Data.unify!, +Mirth Data Data -- +Mirth Type,
+    dup2 = if(drop Type.Data, both(Type.Data) unify-failed!))
+
+def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
+    dup builtin cptr = if(drop ptr Some,
+    dup builtin cconst = if(drop const Some,
+    dup builtin crestrict = if(drop restrict Some,
+    dup builtin cvolatile = if(drop volatile Some,
+        drop2 None
+    )))))
+
+
 #######
 # TAG #
 #######
@@ -351,6 +363,9 @@ def DataPartial.= [ DataPartial DataPartial -- Bool ] {
     data> data> =
     field> field> = and
 }
+
+def(DataPartial.unify!, +Mirth DataPartial DataPartial -- +Mirth Type,
+    dup2 = if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!))
 
 struct TagField {
     tag: Tag

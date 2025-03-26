@@ -10,41 +10,44 @@ import mirth.name
 import mirth.var
 import mirth.mirth
 
-# mirth/data/external
 table(External)
-field(External.~doc, External, Maybe(Str))
-field(External.~name, External, Name)
-field(External.~arity, External, Int)
-field(External.~qname, External, Prop(QName))
-field(External.~symbol, External, Str)
-field(External.~head, External, Token)
-field(External.~sig, External, Token)
-field(External.~ctx-type, External, Prop([Ctx ArrowType]))
-field(External.~ctype, External, Prop(CTypeArrow))
+patch External {
+    field(~doc, External, Maybe(Str))
+    field(~name, External, Name)
+    field(~arity, External, Int)
+    field(~qname, External, Prop(QName))
+    field(~symbol, External, Str)
+    field(~head, External, Token)
+    field(~sig, External, Token)
+    field(~ctx-type, External, Prop([Ctx ArrowType]))
+    field(~ctype, External, Prop(CTypeArrow))
 
-def(External.doc, +Mirth External -- +Mirth Maybe(Str), ~doc @)
-def(External.qname-soft, +Mirth External -- +Mirth Maybe(QName), ~qname @? bind(ready?))
-def(External.qname-hard, +Mirth External -- +Mirth QName, ~qname force!)
-def(External.name, +Mirth External -- +Mirth Name, ~name @)
-def(External.arity, +Mirth External -- +Mirth Int, ~arity @)
-def(External.symbol, +Mirth External -- +Mirth Str, ~symbol @)
-def(External.head, +Mirth External -- +Mirth Token, ~head @)
-def(External.sig, +Mirth External -- +Mirth Token, ~sig @)
-def(External.ctx-type, +Mirth External -- +Mirth Ctx ArrowType, ~ctx-type force! unpack2)
-def(External.ctx, +Mirth External -- +Mirth Ctx, ctx-type drop)
-def(External.type, +Mirth External -- +Mirth ArrowType, ctx-type nip)
-def(External.ctype, +Mirth External -- +Mirth CTypeArrow, ~ctype force!)
+    def doc        [ +Mirth |- External -- Maybe(Str)    ] { ~doc @ }
+    def qname-soft [ +Mirth |- External -- Maybe(QName)  ] { ~qname @? bind(ready?) }
+    def qname-hard [ +Mirth |- External -- QName         ] { ~qname force! }
+    def name       [ +Mirth |- External -- Name          ] { ~name @ }
+    def arity      [ +Mirth |- External -- Int           ] { ~arity @ }
+    def symbol     [ +Mirth |- External -- Str           ] { ~symbol @ }
+    def head       [ +Mirth |- External -- Token         ] { ~head @ }
+    def sig        [ +Mirth |- External -- Token         ] { ~sig @ }
+    def ctx-type   [ +Mirth |- External -- Ctx ArrowType ] { ~ctx-type force! unpack2 }
+    def ctx        [ +Mirth |- External -- Ctx           ] { ctx-type drop }
+    def type       [ +Mirth |- External -- ArrowType     ] { ctx-type nip }
+    def ctype      [ +Mirth |- External -- CTypeArrow    ] { ~ctype force! }
 
-def(External.=, External External -- Bool, both(index) =)
+    def = [ External External -- Bool ] { both(index) = }
+}
 
 table(ExternalBlock)
-field(ExternalBlock.~doc, ExternalBlock, Maybe(Str))
-field(ExternalBlock.~token, ExternalBlock, Token)
-field(ExternalBlock.~parts, ExternalBlock, List(ExternalBlockPart))
+patch ExternalBlock {
+    field(~doc, ExternalBlock, Maybe(Str))
+    field(~token, ExternalBlock, Token)
+    field(~parts, ExternalBlock, List(ExternalBlockPart))
 
-def(ExternalBlock.doc, +Mirth ExternalBlock -- +Mirth Maybe(Str), ~doc @)
-def(ExternalBlock.token, +Mirth ExternalBlock -- +Mirth Token, ~token @)
-def(ExternalBlock.parts, +Mirth ExternalBlock -- +Mirth List(ExternalBlockPart), ~parts @)
+    def doc   [ +Mirth |- ExternalBlock -- Maybe(Str)              ] { ~doc @ }
+    def token [ +Mirth |- ExternalBlock -- Token                   ] { ~token @ }
+    def parts [ +Mirth |- ExternalBlock -- List(ExternalBlockPart) ] { ~parts @ }
+}
 
 data(ExternalBlockPart,
     EBPCode -> Str,

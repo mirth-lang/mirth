@@ -112,12 +112,22 @@ data List(t) {
     }
 
     ||| Reduce a list via binary operation.
-    def fold(g) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a) ] {
+    def fold(g) [ *c |- (a a -- a) List(a) -- Maybe(a) ] {
         >Nest? map(fold(g))
     }
 
+    ||| Reduce a list via binary operations, starting with a base case on the left and iterating.
+    def foldl(f,g) [ *c |- (b, b a -- b) List(a) -- b ] {
+        dip(f) for(g)
+    }
+
+    ||| Reduce a list via binary operations, starting with a base case on the right and iterating.
+    def foldr(f,g) [ *c |- (b, a b -- b) List(a) -- b ] {
+        dip(f) reverse-for(swap g)
+    }
+
     ||| Sum together a list of numbers.
-    def sum(g {+}) [ (*c a a -- *c a) *c List(a) -- *c Maybe(a)] {
+    def sum(g {+}) [ *c |- (a a -- a) List(a) -- Maybe(a)] {
         fold(g)
     }
 

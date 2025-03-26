@@ -19,125 +19,141 @@ import mirth.name
 import mirth.var
 import mirth.prim
 
-def(run-specializer!, +Mirth Arrow -- +Mirth Arrow,
-    +SPCheck.begin! check-arrow! loop! end!)
+def run-specializer! [ +Mirth |- Arrow -- Arrow ] {
+    +SPCheck.Init!
+    check-arrow!
+    check-transitive!
+    quit!
+}
 
 field(Word.~sp-checked, Word, Bool)
 field(Block.~sp-checked, Block, Bool)
 
-struct +SPCheck {
-    checklist:List(SPCheckItem)
-    --
+data SPCheckItem {
+    Word  [ Word  ]
+    Block [ Block ]
 }
 
-def(+SPCheck.begin!, -- +SPCheck, L0 >checklist +SPCheck)
-def(+SPCheck.end!, +SPCheck --, +SPCheck -> checklist> drop)
-def(+SPCheck.loop!, +Mirth +SPCheck -- +Mirth +SPCheck,
-    while-some(checklist:uncons, do-item-check!))
+struct +SPCheck {
+    checklist: List(SPCheckItem)
+    --
+    def Init! [ -- +SPCheck ] { L0 >checklist +SPCheck }
+    def quit! [ +SPCheck -- ] { +SPCheck -> checklist> drop }
+    def check-transitive! [ +Mirth +SPCheck |- ] {
+        while-some(checklist:uncons, do-item-check!)
+    }
 
-data(SPCheckItem,
-    Word -> Word,
-    Block -> Block)
+    def do-item-check! [ +Mirth +SPCheck |- SPCheckItem -- ] {
+        { Word  -> >w @w rdip:arrow check-arrow! @w PropLabel.WordArrow  rdip:prop w> ~arrow ! }
+        { Block -> >b @b rdip:arrow check-arrow! @b PropLabel.BlockArrow rdip:prop b> ~arrow ! }
+    }
 
-def(+SPCheck.do-item-check!, SPCheckItem +Mirth +SPCheck -- +Mirth +SPCheck,
-    Word -> >w @w rdip:arrow check-arrow! @w PropLabel.WordArrow rdip:prop w> ~arrow !,
-    Block -> >b @b rdip:arrow check-arrow! @b PropLabel.BlockArrow rdip:prop b> ~arrow !)
+    def check-arrow! [ +Mirth +SPCheck |- Arrow -- Arrow ] {
+        atoms:flatmap(check-atom!)
+    }
 
-def(+SPCheck.check-arrow!, Arrow +Mirth +SPCheck -- Arrow +Mirth +SPCheck,
-    atoms:flatmap(check-atom!))
+    def check-atom! [ +Mirth +SPCheck |- Atom -- List(Atom) ] {
+        dup op match {
+            { Prim -> check-prim-atom! }
+            { Word -> check-word-atom! }
+            { External -> drop L1 }
+            { Buffer -> drop L1 }
+            { Field -> drop L1 }
+            { Push -> drop L1 }
+            { Tag -> drop L1 }
+            { Match -> check-match! Op.Match swap op! L1 }
+            { Lambda -> check-lambda! Op.Lambda swap op! L1 }
+            { Var -> drop L1 }
+            { BlockPush -> push-check-block! L1 }
+            { BlockRun -> push-check-block! L1 }
+            { LabelPush -> drop L1 }
+            { LabelPop -> drop L1 }
+            { LabelPushR -> drop L1 }
+            { LabelPopR -> drop L1 }
+            { DataGetEnumValue -> drop L1 }
+            { DataFromEnumValue -> drop L1 }
+            { DataGetLabel -> drop L1 }
+            { DataSetLabel -> drop L1 }
+            { TableToIndex -> drop L1 }
+            { TableFromIndex -> drop L1 }
+        }
+    }
 
-def(+SPCheck.check-atom!, Atom +Mirth +SPCheck -- List(Atom) +Mirth +SPCheck,
-    dup op match(
-        Prim -> check-prim-atom!,
-        Word -> check-word-atom!,
-        External -> drop L1,
-        Buffer -> drop L1,
-        Field -> drop L1,
-        Push -> drop L1,
-        Tag -> drop L1,
-        Match -> check-match! Op.Match swap op! L1,
-        Lambda -> check-lambda! Op.Lambda swap op! L1,
-        Var -> drop L1,
-        BlockPush -> push-check-block! L1,
-        BlockRun -> push-check-block! L1,
-        LabelPush -> drop L1,
-        LabelPop -> drop L1,
-        LabelPushR -> drop L1,
-        LabelPopR -> drop L1,
-        DataGetEnumValue -> drop L1,
-        DataFromEnumValue -> drop L1,
-        DataGetLabel -> drop L1,
-        DataSetLabel -> drop L1,
-        TableToIndex -> drop L1,
-        TableFromIndex -> drop L1,
-    ))
+    def check-arg! [ +SPCheck |- Arg -- ] {
+        { Block -> push-check-block! }
+    }
+    def check-prim-atom! [ +SPCheck |- Atom Prim -- List(Atom) ] {
+        drop dup args for(check-arg!) L1
+    }
 
-def(+SPCheck.check-arg!, Arg +SPCheck -- +SPCheck,
-    Block -> push-check-block!)
-def(+SPCheck.check-prim-atom!, Atom Prim +SPCheck -- List(Atom) +SPCheck,
-    drop dup args for(check-arg!) L1)
-def(+SPCheck.check-word-atom!, +Mirth +SPCheck Atom Word -- +Mirth +SPCheck List(Atom),
-    dup push-check-word!
-    over args >Nest? match(
-        None -> drop L1,
-        Some ->
-            dup rdip:has(free-vars has(is-physical?)) if(
-                # can't specialize, just check the args
-                dup for(check-arg!)
-                drop2 L1,
+    def check-word-atom! [ +Mirth +SPCheck |- Atom Word -- List(Atom) ] {
+        dup push-check-word!
+        over args >Nest? match {
+            { None -> drop L1 }
+            { Some ->
+                dup rdip:has(free-vars has(is-physical?)) if(
+                    # can't specialize, just check the args
+                    dup for(check-arg!)
+                    drop2 L1,
 
-                # boot up the specializer for real!
-                SPKey swap rdip:specialize-word!
-                dup push-check-word!
-                swap rdip:ab-build-over-atom!(ab-word!) atoms
-            )
-        )
-    )
+                    # boot up the specializer for real!
+                    SPKey swap rdip:specialize-word!
+                    dup push-check-word!
+                    Op.Word swap op!
+                    L0 swap args!
+                    L1
 
-def(+SPCheck.check-match!, Match +Mirth +SPCheck -- Match +Mirth +SPCheck,
-    cases:map(check-case!))
-def(+SPCheck.check-case!, Case +Mirth +SPCheck -- Case +Mirth +SPCheck,
-    body:check-arrow!)
-def(+SPCheck.check-lambda!, Lambda +Mirth +SPCheck -- Lambda +Mirth +SPCheck,
-    body:check-arrow!)
+                    # swap rdip:ab-build-over-atom!(ab-word!) atoms # don't need to be so roundabout
+                )
+            }
+        }
+    }
 
-def(+SPCheck.push-check-word!, Word +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap(False) if(
-        drop,
-        True over ~sp-checked !
-        SPCheckItem.Word checklist:List.Cons
-    ))
-def(+SPCheck.push-check-block!, Block +SPCheck -- +SPCheck,
-    dup ~sp-checked @? unwrap(False) if(
-        drop,
-        True over ~sp-checked !
-        SPCheckItem.Block checklist:List.Cons
-    ))
+    def check-match!  [ +Mirth +SPCheck Match  |- ] { cases:map(check-case!) }
+    def check-case!   [ +Mirth +SPCheck Case   |- ] { body:check-arrow! }
+    def check-lambda! [ +Mirth +SPCheck Lambda |- ] { body:check-arrow! }
 
-def(ab-build-over-atom!(f), (*a +Mirth +AB -- *b +Mirth +AB) *a Atom +Mirth -- *b Arrow +Mirth,
-    /Atom
-    ctx>
-    dom> cod> T->
-    token> home>
-    subst> op> args> drop3
-    ab-build-hom!(dip(f)))
+    def push-check-word!  [ +SPCheck |- Word  -- ] { SPCheckItem.Word  push-check-item! }
+    def push-check-block! [ +SPCheck |- Block -- ] { SPCheckItem.Block push-check-item! }
+    def push-check-item!  [ +SPCheck |- SPCheckItem -- ] {
+        dup checked! if(drop, checklist:cons)
+    }
 
-def(Arg.similar, +Mirth Arg Arg -- +Mirth Bool, both(/Block) similar)
-def(Block.similar, +Mirth Block Block -- +Mirth Bool,
+    ||| Mark item as checked, return whether item was already checked once.
+    def checked! [ +SPCheck |- SPCheckItem -- Bool ] {
+        match {
+            { Word  -> ~sp-checked }
+            { Block -> ~sp-checked }
+        }
+        dup @? unwrap(False) True rotl !
+    }
+}
+
+# def ab-build-over-atom!(f) [ +Mirth |- (*a +AB -- *b +AB) *a Atom  -- *b Arrow ] {
+#     /Atom
+#     ctx>
+#     dom> cod> T->
+#     token> home>
+#     subst> op> args> drop3
+#     ab-build-hom!(dip(f))
+# }
+
+def Arg.similar   [ +Mirth |- Arg Arg -- Bool ] { both(/Block) similar }
+def Block.similar [ +Mirth |- Block Block -- Bool ] {
     dup2 =
     or(dup2 on2(arrow) similar)
     dip:drop2
-)
-def(Arrow.similar, +Mirth Arrow Arrow -- +Mirth Bool,
+}
+def Arrow.similar [ +Mirth |- Arrow Arrow -- Bool ] {
     # both(atoms /L1) if?(swap if?(similar, drop False), drop False)
     both(atoms) =:similar
-)
-def(Atom.similar, +Mirth Atom Atom -- +Mirth Bool,
+}
+def Atom.similar [ +Mirth |- Atom Atom -- Bool ] {
     dup2 both(op) similar
     and(dup2 both(args) =:similar)
     dip(drop2)
-)
-def Op.similar [ +Mirth Op Op -- +Mirth Bool ] {
+}
+def Op.similar [ +Mirth |- Op Op -- Bool ] {
     { Prim -> swap match { Prim -> =, _ -> drop2 False }}
     { Word -> swap match { Word -> =, _ -> drop2 False }}
     { External -> swap match { External -> =, _ -> drop2 False }}
@@ -169,20 +185,26 @@ def TagField.similar [ TagField TagField -- Bool ] {
     type/resource> type/resource> drop2
 }
 
-data(SPKey, SPKey -> Nest(Arg))
-def(SPKey.similar, +Mirth SPKey SPKey -- +Mirth Bool, both(/SPKey) =(similar))
-def(SPKey.>Str, +Mirth SPKey -- +Mirth Str,
-    SPKey -> Str("(" ; dip:"" for(dip:; mangled; ",") drop ")" ;))
-def(SPKey.>Name, +Mirth SPKey -- +Mirth Name,
-    >Str >Name)
+struct SPKey {
+    Nest(Arg)
+    --
+    def similar [ +Mirth |- SPKey SPKey -- Bool ] { on2:/SPKey =(similar) }
+    def args; [ +Mirth +Str |- SPKey -- ] {
+        "("; /SPKey for(mangled;, ",";) ")";
+        # /SPKey "(" ; dip:"" for(dip:; mangled; ",") drop ")" ;
+    }
+    def >Str [ +Mirth |- SPKey -- Str ] { Str(args;) }
+    def >Name [ +Mirth |- SPKey -- Name ] { >Str >Name }
+}
 
 field(Word.~sp-synthed, Word, Map(SPKey,Word))
-def(Word.sp-synthed, Word -- Map(SPKey,Word),
-    ~sp-synthed @? unwrap(Map.Nil))
+def Word.sp-synthed [ +Mirth |- Word -- Map(SPKey,Word) ] {
+    ~sp-synthed @? unwrap(Map.Nil)
+}
 
 ||| Specialize a word to a particular list of arguments.
 ||| Those other arguments are pushed on the stack.
-def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
+def specialize-word! [ +Mirth |- SPKey Word -- Word ] {
     >word >key
     @key @word sp-synthed lookup(similar) match(
         Some ->
@@ -197,7 +219,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
             @word sp-synthed len 1+ str("sp"; int;) >Name >name
             0u >arity
             @word doc >doc
-            Word.new! >word'
+            Word.New! >word'
 
             @word Namespace.Word @word' name 0 QName.Mk
             @word' PropLabel.WordQName prop @word' ~qname !
@@ -222,7 +244,7 @@ def specialize-word! [ +Mirth SPKey Word -- +Mirth Word ] {
     key> word> drop2
 }
 
-def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
+def specialize-ctx-type [ +Mirth |- SPKey Ctx ArrowType -- Ctx ArrowType ] {
     nip dip:Subst.Nil freshen nip swap
     /SPKey
     dup first token error-token!
@@ -235,22 +257,75 @@ def(specialize-ctx-type, +Mirth SPKey Ctx ArrowType -- +Mirth Ctx ArrowType,
             /Block type Type.Arrow unify! drop
         )
     )
-    dip:Ctx.L0 rigidify-sig!)
+    dip:Ctx.L0 rigidify-sig!
+}
 
 struct +SPSynth {
     spkey:SPKey
     spword:Word
     spmap:Map(Var,Block)
     +AB
+    --
+    def +ab(f) [ ( +AB spkey:SPKey spword:Word spmap:Map(Var,Block) |- *a -- *b) +SPSynth |- *a -- *b ] {
+        +SPSynth -> f +SPSynth
+    }
+    def synth-arrow! [ +Mirth +SPSynth |- Arrow -- ] { atoms for:synth-atom! }
+    def synth-atom!  [ +Mirth +SPSynth |- Atom --  ] {
+        dup token +ab:ab-token!
+        dup args for:synth-arg! op synth-op!
+    }
+    def synth-arg! [ +Mirth +SPSynth |- Arg -- ] {
+        { Block -> synth-block! }
+    }
+
+    def synth-op! [ +Mirth +SPSynth |- Op -- ] {
+        { Match -> synth-match! }
+        { Lambda -> synth-lambda! }
+        { BlockPush -> synth-block! }
+        { BlockRun -> synth-run! }
+        { Var -> synth-var! }
+        { _ -> +ab:ab-op! }
+    }
+
+    def synth-block! [ +Mirth +SPSynth |- Block -- ] {
+        rdip:StackType.Fresh!
+        +ab:ab-block!(+SPSynth synth-run! /+SPSynth)
+    }
+
+    def synth-run! [ +Mirth +SPSynth |- Block -- ] {
+        rdip:arrow synth-arrow!
+    }
+
+    def synth-var! [ +Mirth +SPSynth |- Var -- ] {
+        dup spmap lookup match {
+            { Some -> nip synth-run! }
+            { None -> +ab:ab-var! }
+        }
+    }
+
+    def synth-match! [ +Mirth +SPSynth |- Match -- ] {
+        rdip:StackType.Fresh! >cod
+        dup body >body
+        cases +ab:ab-match!(for(
+            dup pattern token-start
+            over Case.body token-start case!(
+                dup Case.pattern atoms reverse-for(op +Pattern.op!),
+                # TODO: avoid capture!
+                +SPSynth body synth-arrow! /+SPSynth
+            )
+        ))
+    }
+
+    def synth-lambda! [ +Mirth +SPSynth |- Lambda -- ] {
+        dup params
+        +ab:ab-lambda!(+SPSynth
+            # TODO: avoid capture!
+            body synth-arrow!
+        /+SPSynth)
+    }
 }
 
-def(+SPSynth.ab(f),
-        (*a spkey:SPKey spword:Word spmap:Map(Var,Block) +AB --
-         *b spkey:SPKey spword:Word spmap:Map(Var,Block) +AB)
-        *a +SPSynth -- *b +SPSynth,
-    +SPSynth -> f +SPSynth)
-
-def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
+def synth-specialized-word! [ +Mirth +AB |- SPKey Word -- ] {
     dup >spword dip(>spkey)
     rdip:Word.arrow atoms single?
     unwrap("unexpected shape for synth-specialized-word!" rdip:fatal-error!)
@@ -267,53 +342,5 @@ def(synth-specialized-word!, +Mirth +AB SPKey Word -- +Mirth +AB,
             body synth-arrow!
             /+SPSynth spkey> spword> spmap> drop3,
         _ -> "unexpected shape" rdip:fatal-error!
-    ))
-
-def(+SPSynth.synth-arrow!, +Mirth +SPSynth Arrow -- +Mirth +SPSynth,
-    atoms for:synth-atom!)
-def(+SPSynth.synth-atom!, +Mirth +SPSynth Atom -- +Mirth +SPSynth,
-    dup token ab:ab-token!
-    dup args for:synth-arg! op synth-op!)
-
-def(+SPSynth.synth-arg!, +Mirth +SPSynth Arg -- +Mirth +SPSynth,
-    Block -> synth-block!)
-
-def(+SPSynth.synth-op!, +Mirth +SPSynth Op -- +Mirth +SPSynth,
-    Match -> synth-match!,
-    Lambda -> synth-lambda!,
-    BlockPush -> synth-block!,
-    BlockRun -> synth-run!,
-    Var -> synth-var!,
-    _ -> ab:ab-op!)
-
-def +SPSynth.synth-block! [ +Mirth +SPSynth Block -- +Mirth +SPSynth ] {
-    rdip:StackType.Fresh!
-    ab:ab-block!(+SPSynth synth-run! /+SPSynth)
+    )
 }
-
-def(+SPSynth.synth-run!, +Mirth +SPSynth Block -- +Mirth +SPSynth,
-    rdip:arrow synth-arrow!)
-
-def +SPSynth.synth-var! [ +Mirth +SPSynth Var -- +Mirth +SPSynth ] {
-    dup spmap lookup match {
-        { Some -> nip synth-run! }
-        { None -> ab:ab-var! }
-    }
-}
-
-def(+SPSynth.synth-match!, +Mirth +SPSynth Match -- +Mirth +SPSynth,
-    rdip:StackType.Fresh! >cod
-    dup body >body
-    cases ab:ab-match!(for(
-        dup pattern token-start
-        over Case.body token-start case!(
-            dup Case.pattern atoms reverse-for(op +Pattern.op!),
-            +SPSynth body synth-arrow! /+SPSynth
-        )
-    )))
-
-def(+SPSynth.synth-lambda!, +Mirth +SPSynth Lambda -- +Mirth +SPSynth,
-    dup params
-    ab:ab-lambda!(+SPSynth
-        body synth-arrow!
-    /+SPSynth))

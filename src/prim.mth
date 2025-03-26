@@ -213,7 +213,7 @@ data Prim {
     --
     def Min [ Prim ] { Prim.Id }
     def Max [ Prim ] { Prim.SysArgv }
-    def ForAll(f) [ (*a Prim -- *a) *a -- *a ] {
+    def for(f) [ (*a Prim -- *a) *a -- *a ] {
         Prim.Min >Int while (
             dup Prim.Max >Int <=,
             sip(>EnumValue-unsafe Prim.from-enum-value-unsafe f)
@@ -224,18 +224,13 @@ data Prim {
     def >Int [ Prim -- Int ] { enum-value >Int }
     def =  [ Prim Prim -- Bool ] { on2:>Int = }
 
-    def name  { str-arity drop >Name }
-    def arity { str-arity nip }
-    def qname { sip:namespace str-arity dip:>Name QName.Mk }
+    def name  [ +Mirth |- Prim -- Name  ] { str >Name }
+    def qname [ +Mirth |- Prim -- QName ] { sip:namespace str-arity dip:>Name QName.Mk }
+    def namespace [ +Mirth |- Prim -- Namespace ] { _ -> drop Namespace.Prim }
+    def register! [ +Mirth |- Prim -- ] { Def.Prim register }
 
-    def register! [ +Mirth Prim -- +Mirth ] {
-        Def.Prim register
-    }
-
-    def namespace [ +Mirth Prim -- +Mirth Namespace ] {
-        { _ -> drop Namespace.Prim }
-    }
-
+    def arity [ Prim -- Int ] { str-arity nip }
+    def str   [ Prim -- Str ] { str-arity drop }
     def str-arity [ Prim -- Str Int ] {
         { Id -> "prim-id" 0 }
         { Dup -> "prim-dup" 0 }
@@ -433,13 +428,13 @@ data Prim {
     }
 
     field (~ctx-type, Prim, [Ctx ArrowType])
-    def ctx-type [ +Mirth Prim -- +Mirth Ctx ArrowType ] {
+    def ctx-type [ +Mirth |- Prim -- Ctx ArrowType ] {
         dup ~ctx-type memoize(dup compute-ctx-type pack2) nip unpack2
     }
-    def ctx  [ +Mirth Prim -- +Mirth Ctx       ] { ctx-type drop }
-    def type [ +Mirth Prim -- +Mirth ArrowType ] { ctx-type nip }
+    def ctx  [ +Mirth |- Prim -- Ctx       ] { ctx-type drop }
+    def type [ +Mirth |- Prim -- ArrowType ] { ctx-type nip }
 
-    def compute-ctx-type [ +Mirth Prim -- +Mirth Ctx ArrowType ] {
+    def compute-ctx-type [ +Mirth |- Prim -- Ctx ArrowType ] {
         { Id -> Ctx.L0 T0 T0 T-> }
         { Dup ->
             Ctx.L0
@@ -814,6 +809,6 @@ data Prim {
 
 
 ||| Initialize name table with list of primitives.
-def +Mirth.init-prims! [ +Mirth -- +Mirth ] {
-    Prim.ForAll(register!)
+def +Mirth.init-prims! [ +Mirth |- ] {
+    Prim.for(register!)
 }
