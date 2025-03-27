@@ -126,7 +126,7 @@ struct +Lexer {
             { _ ->
                 is-name-byte if(
                     prepare-for-atom! emit-name!,
-                    "Unrecognized byte." fatal-error!
+                    "Unrecognized byte." +Lexer.fatal-error!
                 )
             }
         }
@@ -155,21 +155,21 @@ struct +Lexer {
 
     def emit-rparen! [ +Mirth +Lexer |- ] {
         stack-pop! rdip:filter(value lparen-open?)
-        unwrap("Mismatched right parenthesis." fatal-error!)
+        unwrap("Mismatched right parenthesis." +Lexer.fatal-error!)
         dup TokenValue.RParen make!
         TokenValue.LParen swap ~value !
     }
 
     def emit-rcurly! [ +Mirth +Lexer |- ] {
         stack-pop! rdip:filter(value lcurly-open?)
-        unwrap("Mismatched right curly brace." fatal-error!)
+        unwrap("Mismatched right curly brace." +Lexer.fatal-error!)
         dup TokenValue.RCurly make!
         TokenValue.LCurly swap ~value !
     }
 
     def emit-rsquare! [ +Mirth +Lexer |- ] {
         stack-pop! rdip:filter(value lsquare-open?)
-        unwrap("Mismatched right square bracket." fatal-error!)
+        unwrap("Mismatched right square bracket." +Lexer.fatal-error!)
         dup TokenValue.RSquare make!
         TokenValue.LSquare swap ~value !
     }
@@ -222,7 +222,7 @@ struct +Lexer {
             )
             Byte.BQUOTE = else(
                 "String literal is missing end quote (\")."
-                rdip_:fatal-error!
+                rdip_:+Lexer.fatal-error!
             )
 
             rdip:freeze TokenValue.Str
@@ -243,7 +243,7 @@ struct +Lexer {
         { BQUOTE -> Byte.BQUOTE rdip(push-byte-ascii!) }
         { _ ->
             rdip(push-byte-unsafe!)
-            "Unknown character escape sequence." rdip_:warning!
+            "Unknown character escape sequence." rdip_:+Lexer.warning!
         }
     }
 

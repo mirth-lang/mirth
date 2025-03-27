@@ -1,0 +1,20 @@
+module test.resource-sliding
+
+import std.prelude
+import std.world
+
+struct +Foo { msg1: Str -- def foo-method [ +Foo |- ] {} }
+struct +Bar { msg2: Str -- def bar-method [ +Bar |- ] {} }
+
+def foo-first [ +Foo +Bar |- ] { }
+def bar-first [ +Bar +Foo |- ] { }
+
+def foo-bar [ +Foo +Bar |- ] {
+    foo-first
+    bar-first
+    foo-first
+}
+
+def auto-rearrange [ +Foo +Bar -- +Bar +Foo ] { }
+
+def main {}

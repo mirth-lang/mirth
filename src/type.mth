@@ -929,11 +929,26 @@ data StackType {
         top-resource? bind(>Type tycon?)
     }
 
+    ||| Get top concrete resource type constructors.
+    def top-resource-tycons [ +Mirth |- StackType -- List(Tycon) ] {
+        L0 >tycons
+        while (
+            expand match {
+                { With -> >Type tycon? if?(@tycons:cons True, False) }
+                { Cons -> drop True }
+                { WithLabel -> drop2 True }
+                { ConsLabel -> drop2 True }
+                { _ -> False }
+            }
+        )
+        drop tycons>
+    }
+
     ||| Get the top namespaces associated with the stack, for the purposes of name dispatch.
     def top-namespaces [ +Mirth |- StackType -- List(Namespace) ] {
         List(
             dup rdip:top-tycon? for(Namespace.Tycon ;)
-            rdip:top-resource-tycon? for(Namespace.Tycon ;)
+            rdip:top-resource-tycons for(Namespace.Tycon ;)
         )
     }
 

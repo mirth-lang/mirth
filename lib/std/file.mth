@@ -123,7 +123,7 @@ def +Unsafe.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Si
         @result: match (
             { Err -> Err 0 bytes !size }
             { Ok ->
-                with-fd(
+                +Unsafe.with-fd(
                     @ptr >ptr
                     @size >size
                     posix-write!
@@ -152,7 +152,7 @@ def +File.with-fd(f) [ (*a +fd:+FileDescriptor -- *b +fd:+FileDescriptor) *a +Fi
 }
 
 def +Unsafe.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescriptor +Unsafe) *a +File +Unsafe -- *b +File +Unsafe ] {
-    rswap with-fd(f) rswap
+    rswap +File.with-fd(f) rswap
 }
 
 ||| Read from an open file into a buffer.
@@ -163,7 +163,7 @@ def +Unsafe.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescript
 ||| * File was read from succesfully. [ n True ]
 ||| * An error has occurred while trying to read. [ 0 False ]
 def(+Unsafe.read-bytes!, ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe,
-    with-fd:posix-read!
+    +Unsafe.with-fd:posix-read!
     if(Ok, IOError.ReadFailed Err))
 
 def +World.read-path! [ +World |- Path -- Result(IOError, Str) ] {
