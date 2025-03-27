@@ -8,4 +8,4 @@ module mirth.version
 ||| DD is the date, and NNN is some number that goes up within a single day. The only
 ||| thing that matters is that the overall number never goes down, only up.
 
-def mirth-revision { 2025_03_22_002 }
+def mirth-revision { 2025_03_27_001 }
