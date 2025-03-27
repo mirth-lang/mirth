@@ -45,7 +45,7 @@ struct +File {
     ||| This function does not close stdin, stdout, stderr file handles.
     def close-file! [ +World +File -- +World Maybe(IOError) ] {
         /+File owned> if(
-            posix-close! >Maybe(posix-errno! IOError.CloseFailed),
+            posix-close! >Maybe(unsafe:posix-errno! IOError.CloseFailed),
             +fd> rdrop-unsafe None
         )
     }
@@ -73,7 +73,7 @@ def +World.open-file! [ Path +World -- +World +Result(IOError, +File) ] {
     FileMode.None >mode
     posix-open! +if(
         drop >+fd True >owned +File +Ok,
-        posix-errno! IOError.OpenFailed +Err
+        unsafe:posix-errno! IOError.OpenFailed +Err
     )
 }
 
@@ -84,7 +84,7 @@ def +World.create-file! [ Path +World -- +World +Result(IOError, +File) ] {
         FileMode.Default >mode
         posix-open! +if(
             drop >+fd True >owned +File +Ok,
-            posix-errno! IOError.CreateFailed +Err
+            unsafe:posix-errno! IOError.CreateFailed +Err
         ),
         IOError.CreateUnsupported +Err
     )
@@ -115,7 +115,7 @@ def +World.create-file-flags [ +World -- +World Maybe(OpenFlags) ] {
 ||| * Something was written but an error occured before everything could be written. [ m False ]
 ||| * Everything was written and no error occured. [ n True ]
 ||| * Stuck in a loop trying to write but no bytes are being written and no error occurs.
-def +Unsafe.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe ] {
+def +File.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe ] {
     0 bytes Ok >result
     while(
         @size 0B>,
@@ -123,7 +123,7 @@ def +Unsafe.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Si
         @result: match (
             { Err -> Err 0 bytes !size }
             { Ok ->
-                +Unsafe.with-fd(
+                with-fd(
                     @ptr >ptr
                     @size >size
                     posix-write!
@@ -147,12 +147,12 @@ def +Unsafe.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Si
     result>
 }
 
-def +File.with-fd(f) [ (*a +fd:+FileDescriptor -- *b +fd:+FileDescriptor) *a +File -- *b +File ] {
-    +fd(!+fd(f))
-}
+# def +File.with-fd(f) [ (*a +fd:+FileDescriptor -- *b +fd:+FileDescriptor) *a +File -- *b +File ] {
+#     +fd(!+fd(f))
+# }
 
-def +Unsafe.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescriptor +Unsafe) *a +File +Unsafe -- *b +File +Unsafe ] {
-    rswap +File.with-fd(f) rswap
+def +File.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescriptor +Unsafe ) *a +File +Unsafe -- *b +File +Unsafe ] {
+    rswap +fd(!+fd(f)) rswap
 }
 
 ||| Read from an open file into a buffer.
@@ -162,8 +162,8 @@ def +Unsafe.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescript
 |||
 ||| * File was read from succesfully. [ n True ]
 ||| * An error has occurred while trying to read. [ 0 False ]
-def(+Unsafe.read-bytes!, ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe,
-    +Unsafe.with-fd:posix-read!
+def(+File.read-bytes!, ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe,
+    with-fd:posix-read!
     if(Ok, IOError.ReadFailed Err))
 
 def +World.read-path! [ +World |- Path -- Result(IOError, Str) ] {

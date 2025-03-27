@@ -144,7 +144,6 @@ struct Errno {
         "#include <errno.h>"
         "static int posix_errno (void) { return errno; }"
         +Unsafe.posix-errno! -> posix_errno [ +Unsafe -- +Unsafe Errno ]
-        +World.posix-errno! -> posix_errno [ +World -- +World Errno ]
     }
 
     def repr; [ Errno +Str -- +Str ] { >CInt repr; " Errno"; }

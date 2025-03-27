@@ -3,8 +3,16 @@ module test.resource-sliding
 import std.prelude
 import std.world
 
-struct +Foo { msg1: Str -- def foo-method [ +Foo |- ] {} }
-struct +Bar { msg2: Str -- def bar-method [ +Bar |- ] {} }
+struct +Foo {
+    --
+    def hello-foo [ +World +Foo |- ] { "hello foo" print }
+    def drop-foo [ +Foo -- ] { +Foo -> }
+}
+struct +Bar {
+    --
+    def hello-bar [ +World +Bar |- ] { "hello bar" print }
+    def drop-bar [ +Bar -- ] { +Bar -> }
+}
 
 def foo-first [ +Foo +Bar |- ] { }
 def bar-first [ +Bar +Foo |- ] { }
@@ -17,4 +25,12 @@ def foo-bar [ +Foo +Bar |- ] {
 
 def auto-rearrange [ +Foo +Bar -- +Bar +Foo ] { }
 
-def main {}
+def main [ +World -- +World ] {
+    +Foo +Bar
+    hello-foo
+    hello-bar
+    drop-foo
+    drop-bar
+}
+# mirth-test # pout # hello foo
+# mirth-test # pout # hello bar
