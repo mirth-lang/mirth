@@ -272,24 +272,29 @@ struct +SPSynth {
     def synth-arrow! [ +Mirth +SPSynth |- Arrow -- ] { atoms for:synth-atom! }
     def synth-atom!  [ +Mirth +SPSynth |- Atom --  ] {
         dup token +ab:ab-token!
-        dup args for:synth-arg! op synth-op!
+        dup on2(args map:synth-arg!, op) synth-op!
     }
-    def synth-arg! [ +Mirth +SPSynth |- Arg -- ] {
-        { Block -> synth-block! }
+    def synth-arg! [ +Mirth +SPSynth |- Arg -- Arg ] {
+        { Block -> synth-arg-block! }
     }
 
-    def synth-op! [ +Mirth +SPSynth |- Op -- ] {
-        { Match -> synth-match! }
-        { Lambda -> synth-lambda! }
-        { BlockPush -> synth-block! }
-        { BlockRun -> synth-run! }
-        { Var -> synth-var! }
+    def synth-op! [ +Mirth +SPSynth |- List(Arg) Op -- ] {
+        { Match -> nip synth-match! }
+        { Lambda -> nip synth-lambda! }
+        { BlockPush -> nip synth-block! }
+        { BlockRun -> nip synth-run! }
+        { Var -> nip synth-var! }
         { _ -> +ab:ab-op! }
     }
 
     def synth-block! [ +Mirth +SPSynth |- Block -- ] {
         rdip:StackType.Fresh!
-        +ab:ab-block!(+SPSynth synth-run! /+SPSynth)
+        +ab:ab-push-block!(+SPSynth synth-run! /+SPSynth)
+    }
+
+    def synth-arg-block! [ +Mirth +SPSynth |- Block -- Arg ] {
+        rdip:ArrowType.Fresh!
+        +ab:ab-arg-block!(+SPSynth synth-run! /+SPSynth)
     }
 
     def synth-run! [ +Mirth +SPSynth |- Block -- ] {
