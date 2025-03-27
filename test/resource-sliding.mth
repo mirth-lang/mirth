@@ -23,14 +23,20 @@ def foo-bar [ +Foo +Bar |- ] {
     foo-first
 }
 
+def with-foo(f) [ +Foo |- (*a -- *b) *a -- *b ] { f }
+
 def auto-rearrange [ +Foo +Bar -- +Bar +Foo ] { }
 
 def main [ +World -- +World ] {
     +Foo +Bar
     hello-foo
     hello-bar
+    with-foo:hello-foo
+    with-foo:hello-bar
     drop-foo
     drop-bar
 }
+# mirth-test # pout # hello foo
+# mirth-test # pout # hello bar
 # mirth-test # pout # hello foo
 # mirth-test # pout # hello bar

@@ -37,6 +37,15 @@ struct +File {
     +fd: +FileDescriptor
     owned: Bool
     --
+
+    def with-fd(f) [
+        ( *a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescriptor +Unsafe )
+        *a +File +Unsafe  -- *b +File +Unsafe
+    ] {
+        +fd( !+fd:f )
+        rswap
+    }
+
     def is-stdin?  [ +File -- +File Bool ] { +fd:is-stdin?  }
     def is-stdout? [ +File -- +File Bool ] { +fd:is-stdout? }
     def is-stderr? [ +File -- +File Bool ] { +fd:is-stderr? }
@@ -150,10 +159,6 @@ def +File.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size
 # def +File.with-fd(f) [ (*a +fd:+FileDescriptor -- *b +fd:+FileDescriptor) *a +File -- *b +File ] {
 #     +fd(!+fd(f))
 # }
-
-def +File.with-fd(f) [ (*a +fd:+FileDescriptor +Unsafe -- *b +fd:+FileDescriptor +Unsafe ) *a +File +Unsafe -- *b +File +Unsafe ] {
-    rswap +fd(!+fd(f)) rswap
-}
 
 ||| Read from an open file into a buffer.
 |||
