@@ -288,7 +288,7 @@ struct +SPSynth {
     }
 
     def synth-block! [ +Mirth +SPSynth |- Block -- ] {
-        rdip:StackType.Fresh!
+        rdip:ArrowType.Fresh!
         +ab:ab-push-block!(+SPSynth synth-run! /+SPSynth)
     }
 
@@ -322,7 +322,7 @@ struct +SPSynth {
     }
 
     def synth-lambda! [ +Mirth +SPSynth |- Lambda -- ] {
-        dup params
+        dup params StackType.Fresh!
         +ab:ab-lambda!(+SPSynth
             # TODO: avoid capture!
             body synth-arrow!
