@@ -626,7 +626,7 @@ struct +AB {
     def worth-sliding-for? [ +Mirth +AB |- List(Tycon) -- Bool ] {
         dup empty? if(
             drop False,
-            ab-type@ rdip:top-resource-tycons
+            ab-type@ rdip:top-resource-tycons swap
             on2:reverse worth-sliding-for-aux
         )
     }

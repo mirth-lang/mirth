@@ -5,12 +5,12 @@ import std.world
 
 struct +Foo {
     --
-    def hello-foo [ +World +Foo |- ] { "hello foo" rdip:print }
+    def hello-foo [ +World +Foo |- ] { "hello foo" print }
     def drop-foo [ +Foo -- ] { +Foo -> }
 }
 struct +Bar {
     --
-    def hello-bar [ +World +Bar |- ] { "hello bar" rdip:print }
+    def hello-bar [ +World +Bar |- ] { "hello bar" print }
     def drop-bar [ +Bar -- ] { +Bar -> }
 }
 
@@ -27,9 +27,10 @@ def auto-rearrange [ +Foo +Bar -- +Bar +Foo ] { }
 
 def main [ +World -- +World ] {
     +Foo +Bar
+    hello-foo
+    hello-bar
     drop-foo
     drop-bar
 }
-# mirth-test # merr # 30:5: error: Failed to unify +Bar with +Foo
-# mirth-test # merr # 31:5: error: Method test.resource-sliding.+Bar.drop-bar does not match [+World +Foo]
-# mirth-test # mret # 1
+# mirth-test # pout # hello foo
+# mirth-test # pout # hello bar
