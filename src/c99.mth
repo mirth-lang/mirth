@@ -1801,18 +1801,18 @@ def +C99Stack.push-stack-direct! [ +C99Branch +C99Stack -- +C99Branch ] {
 
 def +C99Stack.rdup [ +C99Stack -- +C99Stack +C99Stack ] {
     { +Nil -> +C99Stack.+Nil +C99Stack.+Nil }
-    { +Cons -> rdip:rdup rdup rdip:rswap +C99Stack.+Cons rdip:+C99Stack.+Cons }
-    { +With -> rdip:rdup rdup rdip:rswap +C99Stack.+With rdip:+C99Stack.+With }
-    { +ConsLabel -> dup rdip:rdup rdup rdip:rswap +C99Stack.+ConsLabel rdip:+C99Stack.+ConsLabel }
-    { +WithLabel -> dup rdip:rdup rdup rdip:rswap +C99Stack.+WithLabel rdip:+C99Stack.+WithLabel }
+    { +Cons -> rdip:rdup +C99Value.rdup rdip:rswap +C99Stack.+Cons rdip:+C99Stack.+Cons }
+    { +With -> rdip:rdup +C99Resource.rdup rdip:rswap +C99Stack.+With rdip:+C99Stack.+With }
+    { +ConsLabel -> dup rdip:rdup +C99Value.rdup rdip:rswap +C99Stack.+ConsLabel rdip:+C99Stack.+ConsLabel }
+    { +WithLabel -> dup rdip:rdup +C99Resource.rdup rdip:rswap +C99Stack.+WithLabel rdip:+C99Stack.+WithLabel }
 }
 
 def +C99Stack.rdrop [ +C99Stack -- ] {
     { +Nil -> }
-    { +Cons -> rdrop rdrop }
-    { +With -> rdrop rdrop }
-    { +ConsLabel -> drop rdrop rdrop }
-    { +WithLabel -> drop rdrop rdrop }
+    { +Cons -> +C99Value.rdrop rdrop }
+    { +With -> +C99Resource.rdrop rdrop }
+    { +ConsLabel -> drop +C99Value.rdrop rdrop }
+    { +WithLabel -> drop +C99Resource.rdrop rdrop }
 }
 
 struct +C99BranchSplit {

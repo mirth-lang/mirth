@@ -167,7 +167,7 @@ def(Str.take-slice, Size Str +Unsafe -- Str +Unsafe,
     rdip:thaw +Str.take-slice rdip:rdrop)
 
 def(+Str.slice, Offset Size +Str +Unsafe -- Str +Str +Unsafe,
-    rdip(+Str.dup!) slice)
+    rdip(+Str.dup!) Str.slice)
 
 def +Str.offset-slice [ Offset Offset +Str +Unsafe -- Str +Str +Unsafe ] {
     over - >Size +Str.slice}
@@ -199,7 +199,7 @@ def(+Str.split-byte(p), (*a Byte -- *a Bool) *a +Str -- *a Nest(Str) +Str,
         dup rdip(+Str.num-bytes?) offset <,
         tuck dip2(rdip(byte@ rdip(p))) rotl if(
             tuck rdip:unsafe(+Str.offset-slice)
-            ; 1B+ dup,
+            +Lister.; 1B+ dup,
             1B+
         )
     ) rdip:unsafe(+Str.offset-slice) ;+))

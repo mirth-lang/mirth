@@ -424,9 +424,9 @@ struct +ResolveDef {
         candidates match(
             Nil -> resolve-def-unknown None,
             Cons -> match(
-                Nil -> rdrop Some,
+                Nil -> +ResolveDef.rdrop Some,
                 _ -> List.filter(over rdip:same-resolved? not) match(
-                    Nil -> rdrop Some,
+                    Nil -> +ResolveDef.rdrop Some,
                     _ -> drop2 resolve-def-ambiguous None
                 )
             )
@@ -444,7 +444,7 @@ struct +ResolveDef {
                 "Ambiguous " ; rdip:sort ; ". Can't decide between:" ;
                 " " rdip:candidates for(swap ; rdip_:qname; ", ") drop
             ) rdip:emit-error!
-        ) rdrop
+        ) +ResolveDef.rdrop
     }
 
     def resolve-def-unknown [ +Mirth |- +ResolveDef -- ] {
@@ -499,7 +499,7 @@ struct +ResolveDef {
                         ) ", " >separator)
                         separator> drop
                 )
-        )) rdip:emit-error! rdrop
+        )) rdip:emit-error! +ResolveDef.rdrop
     }
 }
 
@@ -601,7 +601,7 @@ def elab-simple-type-arg! [ +Mirth |- Token -- Type ] {
     Ctx.L0 >ctx
     False >allow-type-holes
     False >allow-implicit-type-vars
-    +TypeElab elab-type-arg! rdrop
+    +TypeElab elab-type-arg! +TypeElab.rdrop
 }
 
 ####################
@@ -618,8 +618,62 @@ struct +AB {
     def ab-ctx@ [ +AB -- +AB Ctx ] { arrow ctx }
     def ab-home@ [ +AB -- +AB Home ] { arrow home }
 
+    def worth-sliding-for? [ +Mirth +AB |- List(Tycon) -- Bool ] {
+        dup empty? if(
+            drop False,
+            ab-type@ rdip:top-resource-tycons
+            on2:reverse worth-sliding-for-aux
+        )
+    }
+
+    def worth-sliding-for-aux [ +Mirth +AB |- List(Tycon) List(Tycon) -- Bool ] {
+        { Nil -> drop False }
+        { Cons ->
+            >ys >y match {
+                { Nil -> ys> y> drop2 False }
+                { Cons -> >xs
+                    @y = if(
+                        y> drop
+                        xs> ys> worth-sliding-for-aux,
+
+                        ys> drop
+                        y> xs> member
+                    )
+                }
+            }
+        }
+    }
+
+    ||| Slide the top resource tycons around until they match the list.
+    ||| Returns True on success.
+    def ab-slide-resource-tycons-to-top! [ +Mirth +AB |- List(Tycon) -- ] {
+        dup worth-sliding-for? if(
+            unsnoc unwrap("logic error: expected resource for sliding" panic!)
+            ab-slide-resource-tycon-to-top! if(
+                ab-rdip!(ab-slide-resource-tycons-to-top!),
+                drop
+            ),
+
+            drop
+        )
+    }
+
+    ||| Slide the top resource tycons around to bring to the front.
+    ||| Returns True on success.
+    def ab-slide-resource-tycon-to-top! [ +Mirth +AB |- Tycon -- Bool ] {
+        ab-type@ rdip:top-resource-tycon? if?(
+            over = if(
+                drop True,
+                ab-rdip!(ab-slide-resource-tycon-to-top!)
+                if(Prim.RSwap ab-prim! True, False)
+            ),
+            drop False
+        )
+    }
+
     def ab-unify-type! [ +Mirth +AB |- StackType -- ] {
         ab-token@ rdip:error-token!
+        dup rdip:top-resource-tycons ab-slide-resource-tycons-to-top!
         dip:ab-type@ rdip:unify! ab-type!
     }
 
@@ -647,8 +701,7 @@ struct +AB {
         { OpSig.Push -> dip(ab-type@ dup) StackType.Cons }
         { OpSig.Apply ->
             /ArrowType
-            ab-type@
-            dom> ab-token@ rdip:elab-stack-type-unify! drop
+            dom> dup ab-unify-type!
             cod> }
     }
 
@@ -928,7 +981,7 @@ struct +AB {
         ab-ctx@ >ctx
         True >allow-type-holes
         False >allow-implicit-type-vars
-        +TypeElab T0 rdip_:elab-stack-type! rdrop
+        +TypeElab T0 rdip_:elab-stack-type! +TypeElab.rdrop
         ab-token@ rdip:error-token!
         dip:ab-type@ rdip:unify! drop
     }
@@ -1773,7 +1826,7 @@ def elab-data-tag! [ +Mirth Data |- SyntaxDataTag -- ] {
             None -> T0,
             Some -> token! T0 elab-stack-type-parts!
         )
-        swap T-> dip:ctx pack2 rdrop
+        swap T-> dip:ctx pack2 +TypeElab.rdrop
     ) @tag ~ctx-type !
     @tag num-type-inputs-from-sig @tag ~num-type-inputs !
     @tag num-resource-inputs-from-sig @tag ~num-resource-inputs !
@@ -2175,7 +2228,7 @@ def elab-def! [ +Mirth Token |- ] {
                 +TypeElab.Start!
                 T0 elab-type-sig!
                 dip:ctx pack2
-                rdrop,
+                +TypeElab.rdrop,
             None ->
                 arrow ctx-type pack2
         )
@@ -2355,7 +2408,7 @@ def elab-external-def! [ +Mirth |- doc:Maybe(Str) head:Token symbol:Maybe(Token)
     head> @external ~head !
     @external dup PropLabel.ExternalType prop(
         sig +TypeElab.Start!
-        T0 elab-type-sig! dip:ctx pack2 rdrop
+        T0 elab-type-sig! dip:ctx pack2 +TypeElab.rdrop
     ) @external ~ctx-type !
     @external dup PropLabel.ExternalCType prop(
         elab-external-ctype
