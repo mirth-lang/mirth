@@ -19,7 +19,7 @@ def main [ +World |- ] {
         +Mirth.Init!
         compile!
         num-errors 0>
-        rdrop,
+        +Mirth.quit!,
 
         trace(unpack2 ; emit;)
         True

@@ -23,7 +23,7 @@ def run-specializer! [ +Mirth |- Arrow -- Arrow ] {
     +SPCheck.Init!
     check-arrow!
     check-transitive!
-    quit!
+    +SPCheck.quit!
 }
 
 field(Word.~sp-checked, Word, Bool)

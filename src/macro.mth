@@ -9,23 +9,35 @@ import mirth.name
 import mirth.elab
 import mirth.def
 import mirth.alias
+import mirth.buffer
 
 table(Macro)
-field(Macro.~name, Macro, Name)
-field(Macro.~qname, Macro, Prop(QName))
-field(Macro.~arity, Macro, Int)
-field(Macro.~head, Macro, Token)
-field(Macro.~action, Macro, MacroAction)
+patch Macro {
+    field(~name, Macro, Name)
+    field(~qname, Macro, Prop(QName))
+    field(~arity, Macro, Int)
+    field(~head, Macro, Token)
+    field(~action, Macro, MacroAction)
 
-def Macro.name       [ +Mirth |- Macro -- Name ] { ~name @ }
-def Macro.qname-hard [ +Mirth |- Macro -- QName ] { ~qname force! }
-def Macro.qname-soft [ +Mirth |- Macro -- Maybe(QName) ] { ~qname @? bind(ready?) }
-def Macro.arity      [ +Mirth |- Macro -- Int ] { ~arity @ }
-def Macro.head?      [ +Mirth |- Macro -- Maybe(Token) ] { ~head @? }
-def Macro.action     [ +Mirth |- Macro -- MacroAction ] { ~action @ }
+    def name       [ +Mirth |- Macro -- Name ] { ~name @ }
+    def qname-hard [ +Mirth |- Macro -- QName ] { ~qname force! }
+    def qname-soft [ +Mirth |- Macro -- Maybe(QName) ] { ~qname @? bind(ready?) }
+    def arity      [ +Mirth |- Macro -- Int ] { ~arity @ }
+    def head?      [ +Mirth |- Macro -- Maybe(Token) ] { ~head @? }
+    def action     [ +Mirth |- Macro -- MacroAction ] { ~action @ }
 
-def Macro.>Int [ Macro -- Int ] { index >Int }
-def Macro.= [ Macro Macro -- Bool ] { on2:>Int = }
+    def >Int [ Macro -- Int ] { index >Int }
+    def = [ Macro Macro -- Bool ] { on2:>Int = }
+
+    def Prim [ +Mirth |- Str Int MacroAction -- Macro ] {
+        Macro.alloc! >macro
+        @macro ~action !
+        over >Name @macro ~name !
+        dup  @macro ~arity !
+        QName.Prim @macro PropLabel.MacroQName prop @macro ~qname !
+        macro>
+    }
+}
 
 data MacroAction {
     Decl  [[ +World +Mirth Token -- +World +Mirth Token ]]
@@ -36,24 +48,15 @@ data MacroAction {
     def callable? { arrow? >Bool }
 }
 
-def Macro.Prim [ +Mirth |- Str Int MacroAction -- Macro ] {
-    Macro.alloc! >macro
-    @macro ~action !
-    over >Name @macro ~name !
-    dup  @macro ~arity !
-    QName.Prim @macro PropLabel.MacroQName prop @macro ~qname !
-    macro>
-}
-
-def module-statement-error! [ +Mirth Token |- ] {
+def +Mirth.module-statement-error! [ +Mirth Token |- ] {
     "'module' statement outside of module header." emit-fatal-error!
 }
-def import-statement-error! [ +Mirth Token |- ] {
+def +Mirth.import-statement-error! [ +Mirth Token |- ] {
     "'import' statement outside of module header." emit-fatal-error!
 }
 
-def prim-decl-macro! { MacroAction.Decl  Macro.Prim Def.Macro register }
-def prim-word-macro! { MacroAction.Arrow Macro.Prim Def.Macro register }
+def +Mirth.prim-decl-macro! { MacroAction.Decl  Macro.Prim Def.Macro register }
+def +Mirth.prim-word-macro! { MacroAction.Arrow Macro.Prim Def.Macro register }
 
 def +Mirth.init-macros! [ +Mirth |- ] {
     "module"             -1 [ module-statement-error!  ] prim-decl-macro!

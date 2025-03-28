@@ -15,34 +15,40 @@ import mirth.mirth
 
 # mirth/data/var
 table(Var)
-field(Var.~name, Var, Name)
-field(Var.~type, Var, Type)
-field(Var.~auto-run?, Var, Maybe(ArrowType)) # run variable by default
+patch Var {
+    field(~name, Var, Name)
+    field(~type, Var, Type)
+    field(~auto-run?, Var, Maybe(ArrowType)) # run variable by default
 
-def(Var.name, +Mirth Var -- +Mirth Name, ~name @)
-def(Var.type, +Mirth Var -- +Mirth Type, ~type @)
-def(Var.auto-run?, +Mirth Var -- +Mirth Maybe(ArrowType), ~auto-run? @)
+    def name [ +Mirth |- Var -- Name ] { ~name @ }
+    def type [ +Mirth |- Var -- Type ] { ~type @ }
+    def auto-run? [ +Mirth |- Var -- Maybe(ArrowType) ] { ~auto-run? @ }
 
-inline def Var.= [ Var Var -- Bool ] { both(index) = }
+    inline def = [ Var Var -- Bool ] { on2:index = }
 
-def(Var.type;, +Mirth +Str Var -- +Mirth +Str, rdip(name >Str) ;)
-def(Var.is-type?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.TYPE =))
-def(Var.is-stack?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.STACK =))
-def(Var.is-resource?, +Mirth Var -- +Mirth Bool, type prim? has(PrimType.RESOURCE =))
-def(Var.is-physical?, +Mirth Var -- +Mirth Bool, type is-physical?)
+    def name; [ +Mirth +Str |- Var -- ] { name name; }
+    def type; [ +Mirth +Str |- Var -- ] { name; }
 
-def(Var.new!, +Mirth Type Name -- +Mirth Var,
-    Var.alloc!
-    tuck ~name !
-    tuck ~type !
-    None over ~auto-run? !)
+    def is-type?     [ +Mirth |- Var -- Bool ] { type prim? has(PrimType.TYPE =) }
+    def is-stack?    [ +Mirth |- Var -- Bool ] { type prim? has(PrimType.STACK =) }
+    def is-resource? [ +Mirth |- Var -- Bool ] { type prim? has(PrimType.RESOURCE =) }
+    def is-physical? [ +Mirth |- Var -- Bool ] { type is-physical? }
 
-def(Var.new-auto-run!, +Mirth ArrowType Name -- +Mirth Var,
-    dip(dup Type.Arrow) Var.new!
-    dip(Some) tuck ~auto-run? !)
+    def New! [ +Mirth |- Type Name -- Var ] {
+        Var.alloc!
+        tuck ~name !
+        tuck ~type !
+        None over ~auto-run? !
+    }
 
-def Var.NewInCtx [ +Mirth Ctx Type Str -- +Mirth Ctx Var ] {
-    >Name Var.new! sip:Ctx.new
+    def NewAutoRun! [ +Mirth |- ArrowType Name -- Var ] {
+        dip(dup Type.Arrow) Var.New!
+        dip(Some) tuck ~auto-run? !
+    }
+
+    def NewInCtx [ +Mirth Ctx Type Str -- +Mirth Ctx Var ] {
+        >Name Var.New! sip:Ctx.new
+    }
 }
 
 ###########
@@ -79,7 +85,7 @@ def(Ctx.fresh-stack-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
 def(Ctx.fresh-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
     dip(Type.TYPE) fresh-var!)
 def(Ctx.fresh-var!, +Mirth Type Ctx -- +Mirth Ctx Var,
-    fresh-name! dip(swap) Var.new! sip(Ctx.new))
+    fresh-name! dip(swap) Var.New! sip(Ctx.new))
 
 def(Ctx.=, Ctx Ctx -- Bool,
     on2:vars =)

@@ -20,12 +20,12 @@ data IOError {
     WriteFailed [ Size Errno ]
     --
     def message; [ +World +Str IOError -- +World +Str ] {
-        { OpenFailed -> "Failed to open "; dip:path; ": "; rdip:posix-strerror! ; }
-        { CreateFailed -> "Failed to create "; dip:path; ": "; rdip:posix-strerror! ; }
+        { OpenFailed -> "Failed to open "; dip:path; ": "; posix-strerror! ; }
+        { CreateFailed -> "Failed to create "; dip:path; ": "; posix-strerror! ; }
         { CreateUnsupported -> "Failed to create "; path; ": Unsupported platform"; }
-        { CloseFailed -> "Close file failed: "; rdip:posix-strerror! ; }
-        { ReadFailed -> "Failed to read from file: "; rdip:posix-strerror! ;}
-        { WriteFailed -> "Failed to write to file: "; rdip:posix-strerror! ; drop}
+        { CloseFailed -> "Close file failed: "; posix-strerror! ; }
+        { ReadFailed -> "Failed to read from file: "; posix-strerror! ;}
+        { WriteFailed -> "Failed to write to file: "; posix-strerror! ; drop}
     }
     def message [ +World IOError -- +World Str ] {
         str:message;
@@ -43,7 +43,6 @@ struct +File {
         *a +File +Unsafe  -- *b +File +Unsafe
     ] {
         +fd( !+fd:f )
-        rswap
     }
 
     def is-stdin?  [ +File -- +File Bool ] { +fd:is-stdin?  }
@@ -74,9 +73,15 @@ struct +File {
             +Output.start! f +Output.end!
         }
     )
+
+    ||| Read from an open file into a buffer.
+    def read-bytes! [ +File +Unsafe |- ptr:Ptr size:Size -- Result(IOError, Size) ] {
+        with-fd:posix-read!
+        if(Ok, IOError.ReadFailed Err)
+    }
 }
 
-def +World.open-file! [ Path +World -- +World +Result(IOError, +File) ] {
+def +World.open-file! [ +World |- Path -- +Result(IOError, +File) ] {
     dup >path
     OpenFlags.None >flags
     FileMode.None >mode
@@ -86,7 +91,7 @@ def +World.open-file! [ Path +World -- +World +Result(IOError, +File) ] {
     )
 }
 
-def +World.create-file! [ Path +World -- +World +Result(IOError, +File) ] {
+def +World.create-file! [ +World |- Path -- +Result(IOError, +File) ] {
     create-file-flags if?(
         >flags
         dup >path
@@ -99,11 +104,11 @@ def +World.create-file! [ Path +World -- +World +Result(IOError, +File) ] {
     )
 }
 
-def +World.stdin-file  [ +World -- +World +File ] { +FileDescriptor.Stdin  >+fd False >owned +File }
-def +World.stdout-file [ +World -- +World +File ] { +FileDescriptor.Stdout >+fd False >owned +File }
-def +World.stderr-file [ +World -- +World +File ] { +FileDescriptor.Stderr >+fd False >owned +File }
+def +World.stdin-file  [ +World |- +File ] { +FileDescriptor.Stdin  >+fd False >owned +File }
+def +World.stdout-file [ +World |- +File ] { +FileDescriptor.Stdout >+fd False >owned +File }
+def +World.stderr-file [ +World |- +File ] { +FileDescriptor.Stderr >+fd False >owned +File }
 
-def +World.create-file-flags [ +World -- +World Maybe(OpenFlags) ] {
+def +World.create-file-flags [ +World |- Maybe(OpenFlags) ] {
     running-os match(
         { Mac -> 0x601 >CInt OpenFlags Some } # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
         { Linux -> 0x241 >CInt OpenFlags Some } # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
@@ -124,7 +129,7 @@ def +World.create-file-flags [ +World -- +World Maybe(OpenFlags) ] {
 ||| * Something was written but an error occured before everything could be written. [ m False ]
 ||| * Everything was written and no error occured. [ n True ]
 ||| * Stuck in a loop trying to write but no bytes are being written and no error occurs.
-def +File.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe ] {
+def +File.write-bytes! [ +File +Unsafe |- ptr:Ptr size:Size -- Result(IOError, Size) ] {
     0 bytes Ok >result
     while(
         @size 0B>,
@@ -160,16 +165,6 @@ def +File.write-bytes! [ ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size
 #     +fd(!+fd(f))
 # }
 
-||| Read from an open file into a buffer.
-|||
-||| Returns: (# of bytes read) (whether an error has occurred).
-||| The possible outcomes are:
-|||
-||| * File was read from succesfully. [ n True ]
-||| * An error has occurred while trying to read. [ 0 False ]
-def(+File.read-bytes!, ptr:Ptr size:Size +File +Unsafe -- Result(IOError, Size) +File +Unsafe,
-    with-fd:posix-read!
-    if(Ok, IOError.ReadFailed Err))
 
 def +World.read-path! [ +World |- Path -- Result(IOError, Str) ] {
     open-file! +if(

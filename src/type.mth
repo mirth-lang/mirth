@@ -166,7 +166,7 @@ data Type {
     }
 
     ||| Fill out any subterms/metavars with Error.
-    def unify-error! [ +Mirth Type -- +Mirth Type ] {
+    def unify-error! [ +Mirth |- Type -- Type ] {
         expand match {
             { Error -> Type.Error }
             { Ignore -> Type.Error }
@@ -1207,11 +1207,11 @@ data StackType {
     }
 
     def dom; [ +Mirth +Str |- StackType -- ] {
-        rdip:expand dup rdip:unit? if(drop, stack; " ";)
+        expand dup unit? if(drop, stack; " ";)
     }
 
     def cod; [ +Mirth +Str |- StackType -- ] {
-        rdip:expand dup rdip:unit? if(drop, " "; stack;)
+        expand dup unit? if(drop, " "; stack;)
     }
 
     def stack; [ +Mirth +Str |- StackType -- ] {

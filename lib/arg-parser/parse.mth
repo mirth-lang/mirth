@@ -18,10 +18,10 @@ import arg-parser.state
 def(+ArgumentParser.usage, +ArgumentParser(a) -- +ArgumentParser(a) Str,
     Str(
         Sgr.Bold span("Usage: ";)
-        "  "; rdip:state program-name ; " [options] ";
-        rdip:argument-parser args-doc for(;)
+        "  "; state program-name ; " [options] ";
+        argument-parser args-doc for(;)
         "\n\n";
-        rdip:argument-parser options for(usage;)
+        argument-parser options for(usage;)
         "\n";
     ))
 
@@ -54,7 +54,7 @@ def(ArgpOption.usage;, +ArgumentParser(a) +Str ArgpOption -- +ArgumentParser(a) 
     )
 
     dup doc for(
-        @col-offset rdip:state longest-arg-length dup2 < if(
+        @col-offset state longest-arg-length dup2 < if(
             swap - from: 0 for(drop " " ;),
             drop2
         )

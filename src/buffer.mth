@@ -7,28 +7,62 @@ import mirth.name
 import mirth.def
 import mirth.token
 import mirth.mirth
+import mirth.elab
 
 # mirth/data/buffer
 table Buffer
+patch Buffer {
+    field(~doc, Buffer, Maybe(Str))
+    field(~head, Buffer, Token)
+    field(~size, Buffer, Size)
+    field(~name, Buffer, Name)
+    field(~qname, Buffer, Prop(QName))
 
-field(Buffer.~doc, Buffer, Maybe(Str))
-field(Buffer.~head, Buffer, Token)
-field(Buffer.~size, Buffer, Size)
-field(Buffer.~name, Buffer, Name)
-field(Buffer.~qname, Buffer, Prop(QName))
+    def head [ +Mirth |- Buffer -- Token ] { ~head @ }
+    def size [ +Mirth |- Buffer -- Size ] { ~size @ }
+    def name [ +Mirth |- Buffer -- Name ] { ~name @ }
+    def qname-soft [ +Mirth |- Buffer -- Maybe(QName) ] { ~qname try-force! }
+    def qname-hard [ +Mirth |- Buffer -- QName ] { ~qname force! }
 
-def Buffer.head [ +Mirth |- Buffer -- Token ] { ~head @ }
-def Buffer.size [ +Mirth |- Buffer -- Size ] { ~size @ }
-def Buffer.name [ +Mirth |- Buffer -- Name ] { ~name @ }
-def Buffer.qname-soft [ +Mirth |- Buffer -- Maybe(QName) ] { ~qname try-force! }
-def Buffer.qname-hard [ +Mirth |- Buffer -- QName ] { ~qname force! }
+    def = [ Buffer Buffer -- Bool ] { both(index) = }
 
-def Buffer.= [ Buffer Buffer -- Bool ] { both(index) = }
+    def New! [ +Mirth |- head:Token size:Size name:Name doc:Maybe(Str) -- Buffer ] {
+        Buffer.alloc!
+        doc> over ~doc !
+        size> over ~size !
+        name> over ~name !
+        head> over ~head !
+    }
+}
 
-def Buffer.new! [ +Mirth |- head:Token size:Size name:Name doc:Maybe(Str) -- Buffer ] {
-    Buffer.alloc!
-    doc> over ~doc !
-    size> over ~size !
-    name> over ~name !
-    head> over ~head !
+
+||| Parse a buffer declaration.
+|||
+|||     buffer(Name, Size)
+|||     buffer Name Size
+def parse-buffer [ +Mirth Token |- head:Token doc:Maybe(Str) size:Size ] {
+    dup doc >doc
+    dup num-args 0> if(
+        sip(next) args-2 >sizearg >head
+        @head args-0
+        @head name/dname? else(@head "Expected buffer name." emit-fatal-error!)
+        @head next arg-end? else(@head next "Expected comma." emit-fatal-error!)
+        @sizearg int? else?(@sizearg "Expected buffer size." emit-fatal-error!) >size
+        @sizearg next args-end? else(@sizearg next "Expected end of arguments." emit-fatal-error!),
+
+        succ dup >head next dup >sizearg next
+        @head name/dname? else(@head "Expected buffer name." emit-fatal-error!)
+        @sizearg int? else?(@sizearg "Expected buffer size." emit-fatal-error!) >size
+    )
+    @size 0> else(@sizearg "Buffer size must be positive." emit-error! 8 !size)
+    @size:>Size
+    sizearg> drop
+}
+
+||| Elaborate a buffer definition `buffer(B, size)`.
+def elab-buffer! [ +Mirth Token |- ] {
+    parse-buffer elab-def-head arity> drop
+    Buffer.New! >buffer
+    @buffer PropLabel.BufferQName >label Prop @buffer ~qname !
+    buffer> Def.Buffer register
 }

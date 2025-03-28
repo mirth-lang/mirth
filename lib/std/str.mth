@@ -160,27 +160,32 @@ def(Str.slice, Offset Size Str +Unsafe -- Str +Unsafe,
         swap dip(+) Str.ClonePtrSlice
     ))
 
-def(Str.drop-slice, Offset Str +Unsafe -- Str +Unsafe,
-    rdip:thaw +Str.drop-slice rdip:rdrop)
+def Str.drop-slice [ +Unsafe |- Offset Str -- Str ] {
+    thaw drop-slice rdrop
+}
 
-def(Str.take-slice, Size Str +Unsafe -- Str +Unsafe,
-    rdip:thaw +Str.take-slice rdip:rdrop)
+def Str.take-slice [ +Unsafe |- Size Str -- Str ] {
+    thaw take-slice rdrop
+}
 
-def(+Str.slice, Offset Size +Str +Unsafe -- Str +Str +Unsafe,
-    rdip(+Str.dup!) Str.slice)
+def +Str.slice [ +Str +Unsafe |- Offset Size -- Str ] {
+    dup! Str.slice
+}
 
-def +Str.offset-slice [ Offset Offset +Str +Unsafe -- Str +Str +Unsafe ] {
-    over - >Size +Str.slice}
+def +Str.offset-slice [ +Str +Unsafe |- Offset Offset -- Str ] {
+    over - >Size slice
+}
 
-def(+Str.take-slice, Size +Str +Unsafe -- Str +Str +Unsafe,
-    0 Offset swap +Str.slice)
+def +Str.take-slice [ +Str +Unsafe |- Size -- Str ] {
+    0 Offset swap slice
+}
 
-def(+Str.drop-slice, Offset +Str +Unsafe -- Str +Str +Unsafe,
-    0 Offset max
-    rdip(+Str.num-bytes?) +Str.slice)
+def +Str.drop-slice [ +Str +Unsafe |- Offset -- Str ] {
+    0 Offset max num-bytes? slice
+}
 
 ||| Find the first occurence of a string in the str buf, returning its index.
-def +Str.find [ Str +Str -- Maybe(Offset) +Str ] {
+def +Str.find [ +Str |- Str -- Maybe(Offset) ] {
     None swap 0 Offset while(
         over num-bytes over +
         +Str.num-bytes? <= if(
@@ -265,3 +270,15 @@ def Str.>F32? [ Str -- Maybe(F32) ] {
 def Str.>F64? [ Str -- Maybe(F64) ] {
     dup empty? if(drop None, parse-f64 empty? if(Some, drop None))
 }
+
+def +Str.first-byte  [ +Str |- Byte ] { 0 Offset byte@ }
+def +Str.second-byte [ +Str |- Byte ] { 1 Offset byte@ }
+def +Str.third-byte  [ +Str |- Byte ] { 2 Offset byte@ }
+
+def +Str.first-two-bytes [ +Str +Unsafe |- Str ] { 2 bytes +Str.take-slice }
+def +Str.last-two-bytes  [ +Str +Unsafe |- Str ] { rdip:num-bytes? 2 bytes - offset +Str.drop-slice }
+
+def +Str.drop-first-byte [ +Str +Unsafe |- Str ] { 1 Offset +Str.drop-slice }
+def +Str.drop-first-two-bytes [ +Str +Unsafe |- Str ] { 2 Offset +Str.drop-slice }
+def +Str.drop-last-byte [ +Str +Unsafe |- Str ] { rdip:num-bytes? 1B- +Str.take-slice }
+def +Str.drop-last-two-bytes [ +Str +Unsafe |- Str ] { rdip:num-bytes? 2 bytes - +Str.take-slice }
