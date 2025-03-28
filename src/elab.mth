@@ -194,7 +194,7 @@ struct +TypeElab {
             Some -> sip(dip:nip rdip:type rdip:unify! drop) Some,
             None ->
                 allow-implicit-type-vars if(
-                    swap ctx(dip:Var.new! over Ctx.new) Some,
+                    swap ctx(dip:Var.New! over Ctx.new) Some,
                     "Implicit type variable not allowed here." rdip:error!
                     drop2 None
                 )
@@ -1401,12 +1401,12 @@ def elab-lambda-param? [ +Mirth Token |- Maybe(Var) ] {
     dup pattern-var? if?(
         dip(dup args-0 next)
         dip(Type.Fresh!)
-        Var.new! Some,
+        Var.New! Some,
 
     dup pattern-auto-run-var? if?(
         dip(dup succ args-0 next)
         dip(ArrowType.Fresh!)
-        Var.new-auto-run! Some,
+        Var.NewAutoRun! Some,
 
         None
     ))
@@ -1768,9 +1768,9 @@ def elab-data-params! [ +Mirth |- List(Token) -- List(Var) ] {
         over2 Ctx.lookup then("Duplicate parameter name." emit-fatal-error!)
 
         None
-        or?(dup sig-type-var? map(Type.TYPE swap Var.new!))
-        or?(dup sig-resource-var? map(Type.RESOURCE swap Var.new!))
-        or?(dup sig-stack-var? map(Type.STACK swap Var.new!))
+        or?(dup sig-type-var? map(Type.TYPE swap Var.New!))
+        or?(dup sig-resource-var? map(Type.RESOURCE swap Var.New!))
+        or?(dup sig-stack-var? map(Type.STACK swap Var.New!))
         unwrap("Invalid parameter name." emit-fatal-error!)
         nip Ctx.new
     ) >List
@@ -2039,7 +2039,7 @@ def create-projectors! [ +Mirth |- Tag -- ] {
             @lbl_lens dup PropLabel.WordParams prop(
                 type dom top-type? unwrap("logic error: expected parameter" fatal-error!)
                 arrow? unwrap("logic error: expected arrow" fatal-error!)
-                "f" >Name Var.new-auto-run! >var None >default Param L1
+                "f" >Name Var.NewAutoRun! >var None >default Param L1
             ) @lbl_lens ~params !
 
             @dat @lbl_get @lbl_set @lbl_lens dup PropLabel.WordArrow prop4(
@@ -2274,7 +2274,7 @@ def elab-def-params! [ +Mirth |- Word -- List(Param) ] {
         )
         elab-expand-tensor!
         swap arrow? unwrap("need function type for param" emit-fatal-error!)
-        nip name> Var.new-auto-run! >var Param
+        nip name> Var.NewAutoRun! >var Param
         rotr dip:cons
     ) drop
 }
@@ -2437,37 +2437,6 @@ def elab-def-type! [ +Mirth Token |- ] {
     target> over PropLabel.TypeDefTarget prop(elab-simple-type-arg!) swap ~target !
 }
 
-||| Elaborate a buffer declaration.
-|||
-|||     buffer(Name, Size)
-|||     buffer Name Size
-def parse-buffer [ +Mirth Token |- head:Token doc:Maybe(Str) size:Size ] {
-    dup doc >doc
-    dup num-args 0> if(
-        sip(next) args-2 >sizearg >head
-        @head args-0
-        @head name/dname? else(@head "Expected buffer name." emit-fatal-error!)
-        @head next arg-end? else(@head next "Expected comma." emit-fatal-error!)
-        @sizearg int? else?(@sizearg "Expected buffer size." emit-fatal-error!) >size
-        @sizearg next args-end? else(@sizearg next "Expected end of arguments." emit-fatal-error!),
-
-        succ dup >head next dup >sizearg next
-        @head name/dname? else(@head "Expected buffer name." emit-fatal-error!)
-        @sizearg int? else?(@sizearg "Expected buffer size." emit-fatal-error!) >size
-    )
-    @size 0> else(@sizearg "Buffer size must be positive." emit-error! 8 !size)
-    @size:>Size
-    sizearg> drop
-}
-
-||| Elaborate a buffer definition `buffer(B, size)`.
-def elab-buffer! [ +Mirth Token |- ] {
-    parse-buffer elab-def-head arity> drop
-    Buffer.new! >buffer
-    @buffer PropLabel.BufferQName >label Prop @buffer ~qname !
-    buffer> Def.Buffer register
-}
-
 ||| Parse a table declaration.
 |||
 |||     table(Tycon)
@@ -2574,7 +2543,7 @@ def table-new! [ +Mirth |- head:Token name:Name state:PropState(QName) doc:Maybe
     @head >head
     "NUM" >Name >name
     8 bytes >size
-    Buffer.new! >buf
+    Buffer.New! >buf
     @buf @tbl ~num-buffer !
     @tbl "Num" 0 table-qname
     @buf PropLabel.BufferQName prop
@@ -2654,8 +2623,8 @@ def table-new! [ +Mirth |- head:Token name:Name state:PropState(QName) doc:Maybe
     # Table.for
     None >doc # TODO
     @tbl "for" 1u table-word-new! >word
-    Type.STACK "*a" >Name Var.new! >va
-    @va StackType.Var @tbl Type.Table T* @va StackType.Var T-> "f" >Name Var.new-auto-run! >vx
+    Type.STACK "*a" >Name Var.New! >va
+    @va StackType.Var @tbl Type.Table T* @va StackType.Var T-> "f" >Name Var.NewAutoRun! >vx
 
     @va Ctx.L1
     @va StackType.Var @vx type T* @va StackType.Var T->

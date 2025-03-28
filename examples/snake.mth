@@ -256,8 +256,8 @@ def +SnakeLogic.tick! [ +SnakeLogic -- +SnakeLogic Bool ] {
 
 def +SnakeLogic.in-snake { snake member }
 def +SnakeLogic.randomize-mouse! [ +World +SnakeLogic -- +World +SnakeLogic ] {
-    rdip:Position.Random!
-    while(dup in-snake, drop rdip:Position.Random!)
+    Position.Random!
+    while(dup in-snake, drop Position.Random!)
     mouse!
 }
 

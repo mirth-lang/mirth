@@ -48,12 +48,11 @@ struct +C99 {
     put-enabled: Bool
     +needs: +Needs
     +output: +Output
-    +mirth: +Mirth
 }
 
-def +C99.put [ Str +C99 -- +C99 ] { put-enabled if(+output:put, drop) }
-def +C99.put-byte [ Byte +C99 -- +C99 ] { put-enabled if(+output:put-byte, drop) }
-def +C99.line [ +C99 -- +C99 ] { put-enabled then(+output:line) }
+def +C99.put      [ +Mirth +C99 |- Str --  ] { put-enabled if(+output:put, drop) }
+def +C99.put-byte [ +Mirth +C99 |- Byte -- ] { put-enabled if(+output:put-byte, drop) }
+def +C99.line     [ +Mirth +C99 |-         ] { put-enabled then(+output:line) }
 
 def run-output-c99! [ +World +Mirth |- Arrow C99_Options -- ] {
     num-errors 0> if(
@@ -77,42 +76,41 @@ def run-output-c99! [ +World +Mirth |- Arrow C99_Options -- ] {
     )
 }
 
-def c99-start! [ +World Arrow |- C99_Options +Mirth -- +C99 ] {
+def c99-start! [ +World +Mirth Arrow |- C99_Options -- +C99 ] {
     >options
     0u >depth
     0u >fresh-counter
     True >put-enabled
-    +Needs.New dup determine-arrow-needs! >+needs >+mirth
-    @options output-path create-file! +else(+mirth> io-error!) +Output.start! >+output
+    +Needs.New dup determine-arrow-needs! >+needs
+    @options output-path create-file! +else(io-error!) +Output.start! >+output
     +C99
 }
 
-def c99-end! [ +World |- +C99 -- +Mirth ] {
+def c99-end! [ +World +Mirth |- +C99 -- ] {
     /+C99
     depth> fresh-counter> options> drop3
     put-enabled> drop
-    +needs> rdrop
+    +needs> +Needs.rdrop
     +output> end! close-file!
-    +mirth>
     for(io-error!)
 }
 
-def +C99.reset-fresh-counter! [ +C99 |- ] {
+def +C99.reset-fresh-counter! [ +Mirth +C99 |- ] {
     0u fresh-counter!
 }
 
-def +C99.fresh-nat! [ +C99 |- Nat ] {
+def +C99.fresh-nat! [ +Mirth +C99 |- Nat ] {
     fresh-counter
     dup 1+ fresh-counter!
 }
 
-def +C99.with-fresh-counter(f) [ +C99 |- ( *a -- *b ) *a Nat -- *b Nat ] {
+def +C99.with-fresh-counter(f) [ +Mirth +C99 |- ( *a -- *b ) *a Nat -- *b Nat ] {
     fresh-counter dip(fresh-counter! f fresh-counter) fresh-counter!
 }
 
-def +C99.fresh-name-on!       [ +C99 |- Str -- Str ] { fresh-nat! >Str cat }
-def +C99.fresh-name!          [ +C99 |-        Str ] { "v" fresh-name-on! }
-def +C99.fresh-resource-name! [ +C99 |-        Str ] { "r" fresh-name-on! }
+def +C99.fresh-name-on!       [ +Mirth +C99 |- Str -- Str ] { fresh-nat! >Str cat }
+def +C99.fresh-name!          [ +Mirth +C99 |-        Str ] { "v" fresh-name-on! }
+def +C99.fresh-resource-name! [ +Mirth +C99 |-        Str ] { "r" fresh-name-on! }
 
 field(Tag.~word-cname, Tag, Str)
 field(Tag.~pat-cname, Tag, Str)
@@ -128,26 +126,26 @@ def Field.cname    [ +Mirth |- Field    -- Str ] { dup ~cname      memoize(dup q
 def External.cname [ +Mirth |- External -- Str ] { dup ~cname      memoize(dup qname-hard Str("mext_" ; mangled;)) nip }
 
 embed-str(c99-header-str, "src/mirth.h")
-def c99-header! [ +C99 |- ] {
+def c99-header! [ +Mirth +C99 |- ] {
     "#define MIRTH_DEBUG " put
     options emit-debug-info if("1", "0") put line
     c99-header-str put line
 }
 
-def c99-buffers! [ +C99 |- ] { Buffer.for(c99-buffer!) }
-def c99-buffer! [ +C99 |- Buffer -- ] {
+def c99-buffers! [ +Mirth +C99 |- ] { Buffer.for(c99-buffer!) }
+def c99-buffer! [ +Mirth +C99 |- Buffer -- ] {
     "static char " put
-    dup +mirth:cname put
-    "[" put +mirth:size >Str put "] = {0};" put line
+    dup cname put
+    "[" put size >Str put "] = {0};" put line
 }
-def c99-buffer-call! [ +C99Branch |- Buffer -- ] {
-    C99ReprType.PTR push-value-expression!(+mirth:cname put)
+def c99-buffer-call! [ +Mirth +C99Branch |- Buffer -- ] {
+    C99ReprType.PTR push-value-expression!(cname put)
 }
 
-def c99-tag-defs! [ +C99 |- ] { Tag.for(c99-tag-def!) }
-def c99-tag-def! [ +C99 |- Tag -- ] {
+def c99-tag-defs! [ +Mirth +C99 |- ] { Tag.for(c99-tag-def!) }
+def c99-tag-def! [ +Mirth +C99 |- Tag -- ] {
     >tag
-    @tag +mirth:prefer-inline? else(
+    @tag prefer-inline? else(
         @tag +needs:word-needed? then(
             @tag word-c99-api c99-smart-def!(
                 @tag c99-tag-body!
@@ -162,13 +160,13 @@ def c99-tag-def! [ +C99 |- Tag -- ] {
     ) tag> drop
 }
 
-def c99-tag-body! [ +C99Branch |- Tag -- ] {
+def c99-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
     >tag
-    @tag +mirth:semi-transparent? if?(
+    @tag semi-transparent? if?(
         input match {
             { ConsLabel ->
                 dip:type-to-c99-repr pop-value-label!
-                @tag rdip:+mirth:outputs-resource? if(
+                @tag outputs-resource? if(
                     turn-into-resource! push-resource!,
                     push-value!
                 )
@@ -179,7 +177,7 @@ def c99-tag-body! [ +C99Branch |- Tag -- ] {
             }
             { Cons ->
                 type-to-c99-repr pop-value!
-                @tag rdip:+mirth:outputs-resource? if(
+                @tag outputs-resource? if(
                     turn-into-resource! push-resource!,
                     push-value!
                 )
@@ -190,30 +188,30 @@ def c99-tag-body! [ +C99Branch |- Tag -- ] {
             }
         },
 
-    @tag +mirth:num-total-inputs 0= if(
-        @tag +mirth(data is-enum-or-unit?) if(
+    @tag num-total-inputs 0= if(
+        @tag data is-enum-or-unit? if(
             C99ReprType.I64 "" >pfx "" >sfx,
             C99ReprType.VAL "MKI64(" >pfx ")" >sfx
         )
-        @tag +mirth:outputs-resource? if(
+        @tag outputs-resource? if(
             push-resource-expression!(
                 pfx> put
-                @tag +mirth:value-show put "LL /* " put
-                @tag +mirth(name >Str) put " */" put
+                @tag value-show put "LL /* " put
+                @tag name >Str put " */" put
                 sfx> put
             ),
             push-value-expression!(
                 pfx> put
-                @tag +mirth:value-show put "LL /* " put
-                @tag +mirth(name >Str) put " */" put
+                @tag value-show put "LL /* " put
+                @tag name >Str put " */" put
                 sfx> put
             )
         ),
 
-        @tag +mirth:inputs >parts
-        @tag Some +mirth:filter(only-tag? not) >tag
+        @tag inputs >parts
+        @tag Some filter(only-tag? not) >tag
         c99-pack-tuple!
-        @tag rdip:+mirth:outputs-resource? if(
+        @tag outputs-resource? if(
             push-resource!,
             turn-into-value! push-value!
         )
@@ -221,13 +219,13 @@ def c99-tag-body! [ +C99Branch |- Tag -- ] {
     tag> drop
 }
 
-def c99-reverse-tag-body! [ +C99Branch |- Tag -- ] {
+def c99-reverse-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
     >tag
-    @tag +mirth:semi-transparent? if?(
+    @tag semi-transparent? if?(
         input match {
             { ConsLabel ->
                 swap type-to-c99-repr
-                @tag +mirth:outputs-resource? if(
+                @tag outputs-resource? if(
                     pop-resource! turn-into-value!,
                     pop-value!
                 )
@@ -240,7 +238,7 @@ def c99-reverse-tag-body! [ +C99Branch |- Tag -- ] {
             }
             { Cons ->
                 type-to-c99-repr
-                @tag +mirth:outputs-resource? if(
+                @tag outputs-resource? if(
                     pop-resource! turn-into-value!,
                     pop-value!
                 )
@@ -252,22 +250,22 @@ def c99-reverse-tag-body! [ +C99Branch |- Tag -- ] {
             }
         },
 
-    @tag +mirth:num-total-inputs 0= if(
-        @tag +mirth:data pop-data! rdrop, # decref is unnecessary
+    @tag num-total-inputs 0= if(
+        @tag data pop-data! +C99Value/Resource.rdrop, # decref is unnecessary
 
-        @tag +mirth:inputs >parts
-        @tag +mirth:data pop-data! turn-into-resource!
-        @tag Some rdip:+mirth:filter(only-tag? not) >tag
+        @tag inputs >parts
+        @tag data pop-data! turn-into-resource!
+        @tag Some filter(only-tag? not) >tag
         c99-unpack-tuple!
     ))
     tag> drop
 }
 
-def +C99.tag-value-put [ +C99 |- Tag -- ] {
-    dup +mirth:value-show put "LL /* " put +mirth(name >Str) put " */" put
+def +C99.tag-value-put [ +Mirth +C99 |- Tag -- ] {
+    dup value-show put "LL /* " put name >Str put " */" put
 }
 
-def c99-pack-tuple! [ +C99Branch |- tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Resource ] {
+def c99-pack-tuple! [ +Mirth +C99Branch |- tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Resource ] {
     @tag len @parts len + >tuplen
     @tuplen C99ReprType.TUP resource-expression!("tup_new(" put @tuplen >Str put ")" put) >+tup
     @+tup:resource-name >tup
@@ -289,7 +287,7 @@ def c99-pack-tuple! [ +C99Branch |- tag:Maybe(Tag) parts:List(StackTypePart) -- 
     +tup>
 }
 
-def c99-unpack-tuple! [ +C99Branch |- +C99Resource tag:Maybe(Tag) parts:List(StackTypePart) -- ] {
+def c99-unpack-tuple! [ +Mirth +C99Branch |- +C99Resource tag:Maybe(Tag) parts:List(StackTypePart) -- ] {
     @tag len @parts len + C99ReprType.TUP consume-as >tup
     tag> len >i
     parts> for(
@@ -305,19 +303,19 @@ def c99-unpack-tuple! [ +C99Branch |- +C99Resource tag:Maybe(Tag) parts:List(Sta
     c99-line("tup_decref_outer(" put tup> put "," put i> >Str put ");" put)
 }
 
-def c99-tag-label-index [ +C99 |- Tag Label -- Nat ] {
-    >label sip(+mirth:inputs dup len) +mirth:only-tag? if(id, 1+) >i
+def c99-tag-label-index [ +Mirth +C99 |- Tag Label -- Nat ] {
+    >label sip(inputs dup len) only-tag? if(id, 1+) >i
     reverse-find(@i:pred label if?(@label =, False))
     label> drop2 i>
 }
 
-def c99-tag-get-label! [ +C99Branch |- TagField -- ] {
+def c99-tag-get-label! [ +Mirth +C99Branch |- TagField -- ] {
     /TagField
     type/resource> >fieldty
-    @tag +mirth:semi-transparent? if(
+    @tag semi-transparent? if(
         fieldty> match {
             { Left -> # field is value
-                @tag +mirth:outputs-resource? if(
+                @tag outputs-resource? if(
                     # wrapper is resource
                     type-to-c99-repr pop-resource!
                     dup-resource-as-value!
@@ -334,7 +332,7 @@ def c99-tag-get-label! [ +C99Branch |- TagField -- ] {
             }
         },
 
-        @tag +mirth:data pop-data! >+tuplevar
+        @tag data pop-data! >+tuplevar
         @+tuplevar:rdup consume-as-TUP >tuplevar
         fieldty> match {
             { Left -> # field is value
@@ -345,7 +343,7 @@ def c99-tag-get-label! [ +C99Branch |- TagField -- ] {
                         @tag @label c99-tag-label-index >Str put
                         "]" put
                     )
-                ) dup-value! rdrop push-value!
+                ) keep-value! push-value!
                 +tuplevar> +for(drop-value!, push-resource!)
             }
             { Right -> # field and tuple are resources
@@ -365,13 +363,13 @@ def c99-tag-get-label! [ +C99Branch |- TagField -- ] {
     label> tag> drop2
 }
 
-def c99-tag-set-label! [ +C99Branch |- TagField -- ] {
+def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
     /TagField
     type/resource> >fieldty
-    @tag +mirth:semi-transparent? if(
+    @tag semi-transparent? if(
         fieldty> match {
             { Left -> # field is value
-                @tag +mirth:data pop-data! +for(
+                @tag data pop-data! +for(
                     drop drop-value!,
 
                     drop-resource-as-value!
@@ -380,12 +378,12 @@ def c99-tag-set-label! [ +C99Branch |- TagField -- ] {
                 )
             }
             { Right -> # field and wrapper are resource
-                C99ReprType.I64 pop-resource! rdrop # vacant wrapper is unit
+                C99ReprType.I64 pop-resource! +C99Resource.rdrop # vacant wrapper is unit
                 drop
             }
         },
 
-        @tag +mirth:data pop-data! >+tuplevar
+        @tag data pop-data! >+tuplevar
         @fieldty match {
             { Left -> type-to-c99-repr pop-value! consume-as-VAL }
             { Right -> resource-to-c99-repr pop-resource! consume-as-VAL }
@@ -442,11 +440,11 @@ def c99-tag-set-label! [ +C99Branch |- TagField -- ] {
     label> tag> drop2
 }
 
-def c99-external-blocks! [ +C99 |- ] {
+def c99-external-blocks! [ +Mirth +C99 |- ] {
     ExternalBlock.for(c99-external-block!)
 }
-def c99-external-block! [ +C99 |- ExternalBlock -- ] {
-    +mirth:parts for(match(
+def c99-external-block! [ +Mirth +C99 |- ExternalBlock -- ] {
+    parts for(match(
         EBPCode -> put line,
         EBPDef -> c99-external-def!
     ))
@@ -457,20 +455,20 @@ def External.cname-type [ +Mirth |- External -- Str ArrowType ] {
 }
 
 field(External.~c99-api, External, C99API)
-def External.c99-api [ +C99 |- External -- C99API ] {
-    dup ~c99-api memoize(dup +mirth:cname-type cname-type-to-c99-api) nip
+def External.c99-api [ +Mirth +C99 |- External -- C99API ] {
+    dup ~c99-api memoize(dup cname-type cname-type-to-c99-api) nip
 }
-def c99-external-call! [ +C99Branch |- List(Arg) External -- ] {
+def c99-external-call! [ +Mirth +C99Branch |- List(Arg) External -- ] {
     +c99:c99-api c99-smart-call!
 }
 
-def c99-external-def! [ +C99 |- External -- ] {
+def c99-external-def! [ +Mirth +C99 |- External -- ] {
     >ext
-    @ext +mirth:ctype >cty
+    @ext ctype >cty
 
     @cty cod parts find(and(label? none?, ctype phantom? not)) >outty
     @outty if?(ctype, "void" CType.Void) cname put " " put
-    @ext +mirth:symbol put
+    @ext symbol put
 
     " (" put
     @cty dom parts filter(ctype phantom? not)
@@ -504,7 +502,7 @@ def c99-external-def! [ +C99 |- External -- ] {
 
         c99-line(
             @outty for(ctype cname put " Y = " put)
-            @ext +mirth:symbol put "(" put
+            @ext symbol put "(" put
 
             1u !arg-index
             @cty dom parts filter-some(
@@ -516,7 +514,7 @@ def c99-external-def! [ +C99 |- External -- ] {
         )
 
         @cty cod parts for(
-            +mirth:sip(dup ctype phantom? if(drop "0", label? if?(name mangled, "Y")))
+            sip(dup ctype phantom? if(drop "0", label? if?(name mangled, "Y")))
             c99-push
         )
     )
@@ -525,9 +523,9 @@ def c99-external-def! [ +C99 |- External -- ] {
     ext> cty> outty> drop3
 }
 
-def CTypeStackPart.c99-arg-name [ +C99 |- arg-index:Nat CTypeStackPart -- arg-index:Nat Str ] {
+def CTypeStackPart.c99-arg-name [ +Mirth +C99 |- arg-index:Nat CTypeStackPart -- arg-index:Nat Str ] {
     label? if?(
-        +mirth(name mangled),
+        name mangled,
         Str("X" ; @arg-index int;)
     )
 }
@@ -542,38 +540,38 @@ def CType.>C99ReprType [ CType -- C99ReprType ] {
     { Void  -> drop C99ReprType.Void }
 }
 
-def CTypeStackPart.c99-pop [ +C99Branch |- CTypeStackPart -- Str ] {
+def CTypeStackPart.c99-pop [ +Mirth +C99Branch |- CTypeStackPart -- Str ] {
     { Cons -> >C99ReprType dup pop-value! consume-as }
     { With -> >C99ReprType dup pop-resource! turn-into-value! consume-as }
     { ConsLabel -> dip(>C99ReprType dup) pop-value-label! consume-as }
     { WithLabel -> dip(>C99ReprType dup) pop-resource-label! turn-into-value! consume-as }
 }
 
-def CTypeStackPart.c99-push [ +C99Branch |- Str CTypeStackPart -- ] {
+def CTypeStackPart.c99-push [ +Mirth +C99Branch |- Str CTypeStackPart -- ] {
     { Cons -> >C99ReprType dup push-value-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
     { With -> >C99ReprType dup push-resource-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
     { ConsLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
     { WithLabel -> dip(>C99ReprType dup) push-label-expression!("(" put underlying-c99-type put ")(" put put ")" put) }
 }
 
-def +C99.indent [ +C99 |- ] { depth repeat("\t" put) }
-def +C99.c99-nest(f) [ +C99 |- (*a -- *b) *a -- *b ] { depth:succ f depth:pred }
-def +C99.c99-line(f) [ +C99 |- (*a -- *b) *a -- *b ] {
+def +C99.indent [ +Mirth +C99 |- ] { depth repeat("\t" put) }
+def +C99.c99-nest(f) [ +Mirth +C99 |- (*a -- *b) *a -- *b ] { depth:succ f depth:pred }
+def +C99.c99-line(f) [ +Mirth +C99 |- (*a -- *b) *a -- *b ] {
     indent f line
 }
-def +C99.c99-line-if(f) [ +C99 |- (*a -- *b) *a Bool -- *b ] {
+def +C99.c99-line-if(f) [ +Mirth +C99 |- (*a -- *b) *a Bool -- *b ] {
     put-enabled(tuck and)
     dip:c99-line(f)
     put-enabled!
 }
 
-def +C99Branch.c99-line(f) [ (+C99 |- *a -- *b) +C99Branch |- *a -- *b ] {
+def +C99Branch.c99-line(f) [ (+Mirth +C99 |- *a -- *b) +Mirth +C99Branch |- *a -- *b ] {
     reachable +c99:c99-line-if(f)
 }
-def +C99Branch.c99-line-if(f) [ (+C99 |- *a -- *b) +C99Branch |- *a Bool -- *b ] {
+def +C99Branch.c99-line-if(f) [ (+Mirth +C99 |- *a -- *b) +Mirth +C99Branch |- *a Bool -- *b ] {
     reachable and +c99:c99-line-if(f)
 }
-def +C99Branch.c99-nest(f) [ +C99Branch |- (*a -- *b) *a -- *b ] {
+def +C99Branch.c99-nest(f) [ +Mirth +C99Branch |- (*a -- *b) *a -- *b ] {
     +c99:depth:succ f +c99:depth:pred
 }
 
@@ -620,7 +618,7 @@ def C99APIArg.is-physical-value? [ C99APIArg -- Bool ] {
     )
 }
 
-def C99APIArg.pop-consume! [ +C99Branch |- C99APIArg -- Str ] {
+def C99APIArg.pop-consume! [ +Mirth +C99Branch |- C99APIArg -- Str ] {
     sip(arg-repr dup) arg-source match {
         { Value -> pop-value! consume-as }
         { Resource -> pop-resource! turn-into-value! consume-as }
@@ -629,7 +627,7 @@ def C99APIArg.pop-consume! [ +C99Branch |- C99APIArg -- Str ] {
     }
 }
 
-def C99APIArg.pop-consume-physical! [ +C99Branch |- C99APIArg -- Maybe(Str) ] {
+def C99APIArg.pop-consume-physical! [ +Mirth +C99Branch |- C99APIArg -- Maybe(Str) ] {
     sip:pop-consume!
     is-physical? if(
         Some,
@@ -637,14 +635,14 @@ def C99APIArg.pop-consume-physical! [ +C99Branch |- C99APIArg -- Maybe(Str) ] {
     )
 }
 
-def C99APIArg.pop-to-reserved! [ +C99Branch |- C99APIArg -- ] {
+def C99APIArg.pop-to-reserved! [ +Mirth +C99Branch |- C99APIArg -- ] {
     dup pop-consume-physical! if?(
         c99-line(swap arg-name put " = " put put ";" put),
         drop
     )
 }
 
-def C99APIArg.push-to! [ +C99Branch |- Str C99APIArg -- ] {
+def C99APIArg.push-to! [ +Mirth +C99Branch |- Str C99APIArg -- ] {
     sip:arg-repr arg-source match {
         { Value -> push-value-expression!(put) }
         { Resource -> push-resource-expression!(put) }
@@ -653,7 +651,7 @@ def C99APIArg.push-to! [ +C99Branch |- Str C99APIArg -- ] {
     }
 }
 
-def C99APIArg.push-api-arg! [ +C99Branch |- C99APIArg -- ] {
+def C99APIArg.push-api-arg! [ +Mirth +C99Branch |- C99APIArg -- ] {
     /C99APIArg
     arg-name> >value-name
     arg-repr> >value-repr
@@ -714,29 +712,29 @@ def type-arg-prefix [ +Mirth |- Type -- Str ] {
     { _ -> drop "_" }
 }
 
-def fresh-arg-name! [ +C99 arg-mode:C99APIArgMode arg-repr:C99ReprType |- Type -- Str ] {
+def fresh-arg-name! [ +Mirth +C99 arg-mode:C99APIArgMode arg-repr:C99ReprType |- Type -- Str ] {
     @arg-repr is-physical? if(
-        dip(@arg-mode mode-arg-prefix) +mirth:type-arg-prefix cat fresh-name-on!,
+        dip(@arg-mode mode-arg-prefix) type-arg-prefix cat fresh-name-on!,
         drop "0"
     )
 }
 
-def cons-fresh-arg! [ +C99 arg-mode:C99APIArgMode |- List(C99APIArg) Type C99APIArgSource -- List(C99APIArg) ] {
+def cons-fresh-arg! [ +Mirth +C99 arg-mode:C99APIArgMode |- List(C99APIArg) Type C99APIArgSource -- List(C99APIArg) ] {
     >arg-source
-    dup +mirth:c99-repr >arg-repr
+    dup c99-repr >arg-repr
     fresh-arg-name! >arg-name
     @arg-mode >arg-mode
     C99APIArg swap cons
 }
 
-def +C99.stack-type-to-c99-api-params-aux [ +C99 arg-mode:C99APIArgMode |- StackType -- must-flush:Bool List(C99APIArg) ] {
+def +C99.stack-type-to-c99-api-params-aux [ +Mirth +C99 arg-mode:C99APIArgMode |- StackType -- must-flush:Bool List(C99APIArg) ] {
     { Unit -> False >must-flush List.Nil }
     { Error -> True >must-flush List.Nil }
     { Ignore -> True >must-flush List.Nil }
     { Meta ->
-        +mirth rswap expand-if(
-            rswap +mirth! >StackType stack-type-to-c99-api-params-aux,
-            rswap +mirth! drop True >must-flush List.Nil
+        expand-if(
+            >StackType stack-type-to-c99-api-params-aux,
+            drop True >must-flush List.Nil
         )
     }
     { Var -> drop True >must-flush List.Nil }
@@ -746,13 +744,13 @@ def +C99.stack-type-to-c99-api-params-aux [ +C99 arg-mode:C99APIArgMode |- Stack
     { WithLabel -> C99APIArgSource.ResourceLabel dip:>Type dip2:stack-type-to-c99-api-params-aux cons-fresh-arg! }
 }
 
-def +C99.stack-type-to-c99-api-params [ +C99 |- StackType C99APIArgMode -- must-flush:Bool List(C99APIArg) ] {
+def +C99.stack-type-to-c99-api-params [ +Mirth +C99 |- StackType C99APIArgMode -- must-flush:Bool List(C99APIArg) ] {
     >arg-mode
     +C99.stack-type-to-c99-api-params-aux reverse
     arg-mode> drop
 }
 
-def +C99.cname-type-to-c99-api [ +C99 |- Str ArrowType -- C99API ] {
+def +C99.cname-type-to-c99-api [ +Mirth +C99 |- Str ArrowType -- C99API ] {
     >type >cname
     1u with-fresh-counter (
         @type dom C99APIArgMode.In  stack-type-to-c99-api-params >in-params
@@ -761,8 +759,8 @@ def +C99.cname-type-to-c99-api [ +C99 |- Str ArrowType -- C99API ] {
         >out-params-2 >return-param >out-params-1
     ) drop
     must-flush> must-flush> or >must-flush
-    @type cod +mirth:linear-base-var? if?(
-        @type dom +mirth:linear-base-var? if?(
+    @type cod linear-base-var? if?(
+        @type dom linear-base-var? if?(
             <>,
             drop False
         ),
@@ -772,7 +770,7 @@ def +C99.cname-type-to-c99-api [ +C99 |- Str ArrowType -- C99API ] {
     C99API
 }
 
-def C99APIArg.reserve-as-new-value! [ +C99Branch |- C99APIArg -- C99APIArg ] {
+def C99APIArg.reserve-as-new-value! [ +Mirth +C99Branch |- C99APIArg -- C99APIArg ] {
     dup is-physical? if(
         dup arg-repr new-value!
         consume swap arg-name!,
@@ -780,7 +778,7 @@ def C99APIArg.reserve-as-new-value! [ +C99Branch |- C99APIArg -- C99APIArg ] {
     )
 }
 
-def C99APIArg.reserve-as-is! [ +C99Branch |- C99APIArg -- ] {
+def C99APIArg.reserve-as-is! [ +Mirth +C99Branch |- C99APIArg -- ] {
     dup is-physical? if(
         >arg
         c99-line(
@@ -792,7 +790,7 @@ def C99APIArg.reserve-as-is! [ +C99Branch |- C99APIArg -- ] {
     )
 }
 
-def C99APIArg.reserve-new-expression! [ +C99Branch |- Str C99APIArg -- C99APIArg ] {
+def C99APIArg.reserve-new-expression! [ +Mirth +C99Branch |- Str C99APIArg -- C99APIArg ] {
     >arg
     +c99:fresh-name! @arg:arg-name!
     c99-line (
@@ -803,7 +801,7 @@ def C99APIArg.reserve-new-expression! [ +C99Branch |- Str C99APIArg -- C99APIArg
     arg>
 }
 
-def c99-smart-call! [ +C99Branch |- List(Arg) C99API -- ] {
+def c99-smart-call! [ +Mirth +C99Branch |- List(Arg) C99API -- ] {
     >api
     c99-args-push!
     @api in-params reverse map(pop-consume-physical!) reverse >popped-inputs
@@ -834,7 +832,7 @@ def c99-smart-call! [ +C99Branch |- List(Arg) C99API -- ] {
     reserved-outputs-2> for(push-api-arg!)
 }
 
-def +C99.smart-sig-put [ +C99 |- C99API -- ] {
+def +C99.smart-sig-put [ +Mirth +C99 |- C99API -- ] {
     >api
     "static " put
     @api return-param if?(
@@ -860,11 +858,11 @@ def +C99.smart-sig-put [ +C99 |- C99API -- ] {
     api> drop
 }
 
-def c99-smart-sig! [ +C99 |- C99API -- ] {
+def c99-smart-sig! [ +Mirth +C99 |- C99API -- ] {
     c99-line(smart-sig-put ";" put)
 }
 
-def c99-api-enter! [ +C99 C99API -- +C99Branch ] {
+def c99-api-enter! [ +Mirth |- +C99 C99API -- +C99Branch ] {
     >api
     @api in-params len
     @api out-params-1 len +
@@ -878,7 +876,7 @@ def c99-api-enter! [ +C99 C99API -- +C99Branch ] {
     api> drop
 }
 
-def c99-api-exit! [ +C99Branch C99API -- +C99 ] {
+def c99-api-exit! [ +Mirth |- +C99Branch C99API -- +C99 ] {
     >api
     @api out-params-2 reverse-for(
         dup pop-consume-physical! if?(
@@ -905,7 +903,7 @@ def c99-api-exit! [ +C99Branch C99API -- +C99 ] {
     env> drop
 }
 
-def c99-smart-def! (f) [ (+C99Branch |- *a -- *b) +C99 |- *a C99API -- *b ] {
+def c99-smart-def! (f) [ (+Mirth +C99Branch |- *a -- *b) +Mirth +C99 |- *a C99API -- *b ] {
     c99-line(dup smart-sig-put " {" put)
     c99-nest(
         dup dip(c99-api-enter! f)
@@ -914,15 +912,15 @@ def c99-smart-def! (f) [ (+C99Branch |- *a -- *b) +C99 |- *a C99API -- *b ] {
     c99-line("}" put)
 }
 
-def c99-codip-arrow! [ +C99Branch |- Arrow -- ] {
-    dup +mirth:type /ArrowType
-    cod> +mirth:split-parts >cod-parts >cod-base
-    dom> +mirth:split-parts >dom-parts >dom-base
-    cod-base> +mirth:unit? dom-base> +mirth:unit? and if(
+def c99-codip-arrow! [ +Mirth +C99Branch |- Arrow -- ] {
+    dup type /ArrowType
+    cod> split-parts >cod-parts >cod-base
+    dom> split-parts >dom-parts >dom-base
+    cod-base> unit? dom-base> unit? and if(
         dom-parts> dip-parts( +stack(+C99Stack.+Nil) )
         c99-arrow!
         cod-parts> dip-parts(
-            +stack(rdrop)
+            +stack(+C99Stack.rdrop)
         ),
 
         cod-parts> dom-parts> drop2
@@ -930,47 +928,47 @@ def c99-codip-arrow! [ +C99Branch |- Arrow -- ] {
     )
 }
 
-def +C99Branch.dip-parts(f) [ +C99Branch |- (*a -- *b) *a List(StackTypePart) -- *b ] {
+def +C99Branch.dip-parts(f) [ +Mirth +C99Branch |- (*a -- *b) *a List(StackTypePart) -- *b ] {
     pop-stack!
     rdip (f)
     push-stack!
 }
 
 ||| Pop stack parts (right-to-left) into a separate stack cache.
-def +C99Branch.pop-stack! [ +C99Branch |- List(StackTypePart) -- +C99Stack ] {
+def +C99Branch.pop-stack! [ +Mirth +C99Branch |- List(StackTypePart) -- +C99Stack ] {
     +C99Stack.+Nil reverse-for(pop-stack-part!)
 }
 
 ||| Pop a part from branch to separate stack.
-def +C99Stack.pop-stack-part! [ +C99Branch +C99Stack |- StackTypePart -- ] {
+def +C99Stack.pop-stack-part! [ +Mirth +C99Branch +C99Stack |- StackTypePart -- ] {
     { Cons -> rdip(type-to-c99-repr pop-value!) rswap +C99Stack.+Cons }
     { With -> rdip(resource-to-c99-repr pop-resource!) rswap +C99Stack.+With }
     { ConsLabel -> rdip(dip:type-to-c99-repr tuck pop-value-label!) rswap +C99Stack.+ConsLabel }
     { WithLabel -> rdip(dip:resource-to-c99-repr tuck pop-resource-label!) rswap +C99Stack.+WithLabel }
 }
 
-def +C99Stack.reverse-cat! [ +C99Stack +C99Stack -- +C99Stack ] {
+def +C99Stack.reverse-cat! [ +Mirth |- +C99Stack +C99Stack -- +C99Stack ] {
     while ( match {
         { +Nil -> +C99Stack.+Nil False }
         { +Cons -> rswap rdip:+C99Stack.+Cons True }
         { +With -> rswap rdip:+C99Stack.+With True }
         { +ConsLabel -> rswap rdip:+C99Stack.+ConsLabel True }
         { +WithLabel -> rswap rdip:+C99Stack.+WithLabel True }
-    } ) rdrop
+    } ) +C99Stack.rdrop
 }
 
 ||| Push stack onto branch, right to left.
-def +C99Stack.push-stack! [ +C99Branch |- +C99Stack -- ] {
+def +C99Stack.push-stack! [ +Mirth +C99Branch |- +C99Stack -- ] {
     rswap +stack(rswap reverse-cat!)
 }
 
-def c99-arrow! [ +C99Branch |- Arrow -- ] { atoms for(c99-atom!) }
-def c99-atom! [ +C99Branch |- Atom -- ] {
-    +c99:options emit-debug-info and(dup op +mirth:show-in-stack-trace?) then(
+def c99-arrow! [ +Mirth +C99Branch |- Arrow -- ] { atoms for(c99-atom!) }
+def c99-atom! [ +Mirth +C99Branch |- Atom -- ] {
+    +c99:options emit-debug-info and(dup op show-in-stack-trace?) then(
         +c99:c99-line("WORD_ATOM(" put
-            dup token +mirth:row >Int >Str put ", " put
-            dup token +mirth:col >Int >Str put ", " put
-            dup token +mirth(name? if?(>Str, "")) put-cstr
+            dup token row >Int >Str put ", " put
+            dup token col >Int >Str put ", " put
+            dup token name? if?(>Str, "") put-cstr
             ");" put
         )
     )
@@ -1003,7 +1001,7 @@ def Op.show-in-stack-trace? [ +Mirth |- Op -- Bool ] {
     { TableFromIndex -> drop False }
 }
 
-def c99-atom-op! [ +C99Branch |- Atom Op -- ] {
+def c99-atom-op! [ +Mirth +C99Branch |- Atom Op -- ] {
     { Push -> nip c99-push-value! }
     { Word          -> dip:args c99-word! }
     { External      -> dip:args c99-external-call! }
@@ -1028,7 +1026,7 @@ def c99-atom-op! [ +C99Branch |- Atom Op -- ] {
     { TableFromIndex -> drop2 }
 }
 
-def c99-push-value! [ +C99Branch |- PushValue -- ] {
+def c99-push-value! [ +Mirth +C99Branch |- PushValue -- ] {
     { Str -> c99-str! }
     { Int -> c99-int! }
     { U8  -> C99ReprType.U8  push-value-expression!(>Nat >Str put) }
@@ -1045,15 +1043,15 @@ def c99-push-value! [ +C99Branch |- PushValue -- ] {
     { F64 -> C99ReprType.F64 push-value-expression!(>Str put) }
 }
 
-def c99-get-enum-value! [ +C99Branch |- Data -- ] {
+def c99-get-enum-value! [ +Mirth +C99Branch |- Data -- ] {
     >data
-    @data +mirth:is-enum? else(
+    @data is-enum? else(
         @data Type.Data type-to-c99-repr pop-value! >+scrutinee
-        @data +mirth:is-unit? if?(
-            C99ReprType.I64 push-value-expression!(+mirth:value-show put "LL" put),
+        @data is-unit? if?(
+            C99ReprType.I64 push-value-expression!(value-show put "LL" put),
 
-        @data +mirth:semi-transparent? if?(
-            C99ReprType.I64 push-value-expression!(tag +mirth:value-show put "LL" put),
+        @data semi-transparent? if?(
+            C99ReprType.I64 push-value-expression!(tag value-show put "LL" put),
             C99ReprType.I64 push-value-expression!(
                 "get_data_tag(" put
                 @+scrutinee:rdup consume-as-VAL put
@@ -1065,14 +1063,14 @@ def c99-get-enum-value! [ +C99Branch |- Data -- ] {
     data> drop
 }
 
-def c99-from-enum-value! [ +C99Branch |- Data -- ] {
-    +mirth:is-enum? else("_.from-enum-value-unsafe on non-enum" +mirth:fatal-error!)
+def c99-from-enum-value! [ +Mirth +C99Branch |- Data -- ] {
+    is-enum? else("_.from-enum-value-unsafe on non-enum" fatal-error!)
 }
 
-def c99-word! [ +C99Branch |- List(Arg) Word -- ] {
-    dup +mirth:prefer-inline? if(
+def c99-word! [ +Mirth +C99Branch |- List(Arg) Word -- ] {
+    dup prefer-inline? if(
         dip:c99-args-push!
-        +mirth:arrow c99-codip-arrow!,
+        arrow c99-codip-arrow!,
         +c99:c99-api c99-smart-call!
     )
 }
@@ -1080,68 +1078,68 @@ def c99-word! [ +C99Branch |- List(Arg) Word -- ] {
 field(Tag.~value-show, Tag, Str)
 def Tag.value-show [ +Mirth |- Tag -- Str ] { dup ~value-show memoize(dup value >Str) nip }
 
-def c99-tag-call! [ +C99Branch |- List(Arg) Tag -- ] {
-    dup +mirth:prefer-inline? if(
+def c99-tag-call! [ +Mirth +C99Branch |- List(Arg) Tag -- ] {
+    dup prefer-inline? if(
         nip c99-tag-body!,
         +c99:word-c99-api c99-smart-call!
     )
 }
 
-def c99-reverse-tag! [ +C99Branch |- Tag -- ] {
-    dup +mirth:prefer-inline? if(
+def c99-reverse-tag! [ +Mirth +C99Branch |- Tag -- ] {
+    dup prefer-inline? if(
         c99-reverse-tag-body!,
         dip:List.Nil +c99:pat-c99-api c99-smart-call!
     )
 }
 
-def c99-label-defs! [ +C99 |- ] { Label.for( dup +needs(needed?) if(c99-label-def!, drop) ) }
-def c99-label-def! [ +C99 |- Label -- ] { "static STACK lbl_" put +mirth(name mangled) put " = {0};" put line }
+def c99-label-defs! [ +Mirth +C99 |- ] { Label.for( dup +needs(needed?) if(c99-label-def!, drop) ) }
+def c99-label-def! [ +Mirth +C99 |- Label -- ] { "static STACK lbl_" put name mangled put " = {0};" put line }
 
-def push-value-label-direct! [ +C99Branch |- Label +C99Value -- ] {
+def push-value-label-direct! [ +Mirth +C99Branch |- Label +C99Value -- ] {
     consume-as-VAL swap
-    c99-line("lpush(&lbl_" put +mirth(name mangled) put ", " put put ");" put)
+    c99-line("lpush(&lbl_" put name mangled put ", " put put ");" put)
 }
-def push-value-label! [ +C99Branch |- Label +C99Value -- ] {
+def push-value-label! [ +Mirth +C99Branch |- Label +C99Value -- ] {
     rswap +stack(rswap +C99Stack.+ConsLabel)
 }
-def push-resource-label-direct! [ +C99Branch |- Label +C99Resource -- ] {
+def push-resource-label-direct! [ +Mirth +C99Branch |- Label +C99Resource -- ] {
     consume-as-VAL swap
-    c99-line("lpush(&lbl_" put +mirth(name mangled) put ", " put put ");" put)
+    c99-line("lpush(&lbl_" put name mangled put ", " put put ");" put)
 }
-def push-resource-label! [ +C99Branch |- Label +C99Resource -- ] {
+def push-resource-label! [ +Mirth +C99Branch |- Label +C99Resource -- ] {
     rswap +stack(rswap +C99Stack.+WithLabel)
 }
 
-def pop-value-label-direct! [ +C99Branch |- C99ReprType Label -- +C99Value ] {
+def pop-value-label-direct! [ +Mirth +C99Branch |- C99ReprType Label -- +C99Value ] {
     swap dup value-expression!(
-        v-macro("lpop(&lbl_" put +mirth(name mangled) put ")" put)
+        v-macro("lpop(&lbl_" put name mangled put ")" put)
     )
 }
 
-def pop-resource-label-direct! [ +C99Branch |- C99ReprType Label -- +C99Resource ] {
+def pop-resource-label-direct! [ +Mirth +C99Branch |- C99ReprType Label -- +C99Resource ] {
     swap dup resource-expression!(
-        v-macro("lpop(&lbl_" put +mirth(name mangled) put ")" put)
+        v-macro("lpop(&lbl_" put name mangled put ")" put)
     )
 }
 
-def c99-label-push! [ +C99Branch |- Atom Label -- ] {
+def c99-label-push! [ +Mirth +C99Branch |- Atom Label -- ] {
     swap dom pop-value-from-stack-type! drop
     push-value-label!
 }
-def c99-label-push-r! [ +C99Branch |- Atom Label -- ] {
+def c99-label-push-r! [ +Mirth +C99Branch |- Atom Label -- ] {
     swap dom pop-resource-from-stack-type! drop
     push-resource-label!
 }
-def c99-label-pop! [ +C99Branch |- Atom Label -- ] {
+def c99-label-pop! [ +Mirth +C99Branch |- Atom Label -- ] {
     swap dom pop-value-label-from-stack-type! drop
     push-value!
 }
-def c99-label-pop-r! [ +C99Branch |- Atom Label -- ] {
+def c99-label-pop-r! [ +Mirth +C99Branch |- Atom Label -- ] {
     swap dom pop-resource-label-from-stack-type! drop
     push-resource!
 }
 
-def c99-f64! [ +C99Branch |- F64 -- ] {
+def c99-f64! [ +Mirth +C99Branch |- F64 -- ] {
     C99ReprType.F64 push-value-expression!(>Str put)
 }
 
@@ -1158,7 +1156,7 @@ def Int.c99-radixes [ Int -- List(U32) ] {
     )
 }
 
-def c99-int! [ +C99Branch |- Int -- ] {
+def c99-int! [ +Mirth +C99Branch |- Int -- ] {
     dup in-i63-range? if(
         C99ReprType.Int push-value-expression!("WRAP_I63(" put >Str put "LL)" put),
 
@@ -1178,7 +1176,7 @@ def c99-int! [ +C99Branch |- Int -- ] {
     )
 }
 
-def c99-str! [ +C99Branch |- Str -- ] {
+def c99-str! [ +Mirth +C99Branch |- Str -- ] {
     C99ReprType.STR new-value! >+str
     dup num-bytes 4090 bytes > if(
         c99-line("STRLIT(" put @+str:rdup consume put "," put)
@@ -1197,7 +1195,7 @@ def c99-str! [ +C99Branch |- Str -- ] {
     +str> push-value!
 }
 
-def +C99.put-cstr-long [ +C99 |- Str -- ] {
+def +C99.put-cstr-long [ +Mirth +C99 |- Str -- ] {
     False >avoid-hexdigit
     Byte.BQUOTE put-byte
     Byte.BNUL swap bytes-for(
@@ -1212,13 +1210,13 @@ def +C99.put-cstr-long [ +C99 |- Str -- ] {
     avoid-hexdigit> drop2
 }
 
-def +C99.put-cstr [ +C99 |- Str -- ] {
+def +C99.put-cstr [ +Mirth +C99 |- Str -- ] {
     False >avoid-hexdigit
     Byte.BQUOTE put-byte bytes-for(c99-string-byte!) Byte.BQUOTE put-byte
     avoid-hexdigit> drop
 }
 
-def c99-string-byte! [ +C99 avoid-hexdigit:Bool |- Byte -- ] {
+def c99-string-byte! [ +Mirth +C99 avoid-hexdigit:Bool |- Byte -- ] {
     { B'\' ->   "\\\\" put False !avoid-hexdigit }
     { BQUOTE -> "\\\"" put False !avoid-hexdigit }
     { BHT ->    "\\t"  put False !avoid-hexdigit }
@@ -1330,7 +1328,7 @@ def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
     { TUP   -> drop "TUP*"  }
 }
 
-def C99ReprType.v-macro(f) [ +C99 |- (*a -- *b) *a C99ReprType -- *b ] {
+def C99ReprType.v-macro(f) [ +Mirth +C99 |- (*a -- *b) *a C99ReprType -- *b ] {
     v-macro-prefix-suffix
     dip(put f) put
 }
@@ -1457,7 +1455,7 @@ def +C99Value.rdrop [ +C99Value -- ] {
     value-name> drop
 }
 
-def C99ReprType.new-value! [ +C99Branch |- C99ReprType -- +C99Value ] {
+def C99ReprType.new-value! [ +Mirth +C99Branch |- C99ReprType -- +C99Value ] {
     >value-repr
     +c99:fresh-name! >value-name
     c99-line(@value-repr underlying-c99-type put " " put
@@ -1465,7 +1463,7 @@ def C99ReprType.new-value! [ +C99Branch |- C99ReprType -- +C99Value ] {
     +C99Value
 }
 
-def C99ReprType.pop-value-direct! [ +C99Branch |- C99ReprType -- +C99Value ] {
+def C99ReprType.pop-value-direct! [ +Mirth +C99Branch |- C99ReprType -- +C99Value ] {
     >value-repr
     +c99:fresh-name! >value-name
     c99-line(@value-repr underlying-c99-type put " " put
@@ -1477,23 +1475,23 @@ def C99ReprType.pop-value-direct! [ +C99Branch |- C99ReprType -- +C99Value ] {
 ||| Push a value with a certain repr type on the stack.
 ||| `f` must emit the C99 expression that calculates the value,
 ||| which must be of the underlying C99 repr type.
-def C99ReprType.push-value-expression!(f) [ (+C99 |- *a -- *b) +C99Branch |- *a C99ReprType -- *b ] {
+def C99ReprType.push-value-expression!(f) [ (+Mirth +C99 |- *a -- *b) +Mirth +C99Branch |- *a C99ReprType -- *b ] {
     value-expression!(f) push-value!
 }
 
-def C99ReprType.push-resource-expression!(f) [ (+C99 |- *a -- *b) +C99Branch |- *a C99ReprType -- *b ] {
+def C99ReprType.push-resource-expression!(f) [ (+Mirth +C99 |- *a -- *b) +Mirth +C99Branch |- *a C99ReprType -- *b ] {
     resource-expression!(f) push-resource!
 }
 
-def push-label-expression!(f) [ (+C99 |- *a -- *b) +C99Branch |- *a C99ReprType Label -- *b ] {
+def push-label-expression!(f) [ (+Mirth +C99 |- *a -- *b) +Mirth +C99Branch |- *a C99ReprType Label -- *b ] {
     dip:value-expression!(f)
-    dup rdip:+mirth:is-resource-label? if(
+    dup rdip:is-resource-label? if(
         turn-into-resource! push-resource-label!,
         push-value-label!
     )
 }
 
-def C99ReprType.value-expression!(f) [ (+C99 |- *a -- *b) +C99Branch |- *a C99ReprType -- *b +C99Value ] {
+def C99ReprType.value-expression!(f) [ (+Mirth +C99 |- *a -- *b) +Mirth +C99Branch |- *a C99ReprType -- *b +C99Value ] {
     dup >value-repr is-physical? dup
     if(+c99:fresh-name!, "0") >value-name
     c99-line-if(
@@ -1503,7 +1501,7 @@ def C99ReprType.value-expression!(f) [ (+C99 |- *a -- *b) +C99Branch |- *a C99Re
     ) rswap
 }
 
-def C99ReprType.resource-expression!(f) [ (+C99 |- *a -- *b) +C99Branch |- *a C99ReprType -- *b +C99Resource ] {
+def C99ReprType.resource-expression!(f) [ (+Mirth +C99 |- *a -- *b) +Mirth +C99Branch |- *a C99ReprType -- *b +C99Resource ] {
     dup >resource-repr is-physical? dup
     if(+c99:fresh-name!, "0") >resource-name
     c99-line-if(
@@ -1513,7 +1511,7 @@ def C99ReprType.resource-expression!(f) [ (+C99 |- *a -- *b) +C99Branch |- *a C9
     ) rswap
 }
 
-def +C99Value.push-value-direct! [ +C99Branch |- +C99Value -- ] {
+def +C99Value.push-value-direct! [ +Mirth +C99Branch |- +C99Value -- ] {
     consume-as-VAL
     c99-line("push_value(" put put ");" put)
 }
@@ -1552,21 +1550,25 @@ def +C99Value.consume-as [ C99ReprType +C99Value -- Str ] {
     }
 }
 
-def +C99Value.drop-value! [ +C99Branch |- +C99Value -- ] {
+def +C99Value.keep-value! [ +Mirth +C99Branch +C99Value |- ] {
+    value-repr needs-refcounting? then(
+        rdup consume-as-VAL rdip:+c99:c99-line("incref(" put put ");" put)
+    )
+}
+
+def +C99Value.drop-value! [ +Mirth +C99Branch |- +C99Value -- ] {
     value-repr needs-refcounting? if(
         consume-as-VAL +c99:c99-line("decref(" put put ");" put),
         rdrop
     )
 }
 
-def +C99Value.dup-value! [ +C99Branch +C99Value |- +C99Value ] {
-    value-repr needs-refcounting? then(
-        rdup consume-as-VAL rdip:+c99:c99-line("incref(" put put ");" put)
-    )
+def +C99Value.dup-value! [ +Mirth +C99Branch +C99Value |- +C99Value ] {
+    keep-value!
     rdup
 }
 
-def +C99Value.peek-data-tag [ +C99Value |- Str ] {
+def +C99Value.peek-data-tag [ +Mirth +C99Value |- Str ] {
     turn-into-resource! peek-data-tag turn-into-value!
 }
 
@@ -1599,11 +1601,11 @@ def +C99Resource.turn-into-value! [ +C99Resource -- +C99Value ] {
     +C99Value
 }
 
-def +C99Resource.drop-resource-as-value! [ +C99Branch |- +C99Resource -- ] {
+def +C99Resource.drop-resource-as-value! [ +Mirth +C99Branch |- +C99Resource -- ] {
     turn-into-value! drop-value!
 }
 
-def +C99Resource.dup-resource-as-value! [ +C99Branch +C99Resource |- +C99Value ] {
+def +C99Resource.dup-resource-as-value! [ +Mirth +C99Branch +C99Resource |- +C99Value ] {
     rdup turn-into-value! rswap rdip(dup-value! rdrop) rswap
 }
 
@@ -1629,7 +1631,7 @@ def +C99Resource.consume-as-TUP [ +C99Resource -- Str ] {
     }
 }
 
-def +C99Branch.pop-resource-direct! [ +C99Branch |- C99ReprType -- +C99Resource ] {
+def +C99Branch.pop-resource-direct! [ +Mirth +C99Branch |- C99ReprType -- +C99Resource ] {
     >resource-repr
     +c99:fresh-resource-name! >resource-name
     c99-line(
@@ -1641,7 +1643,7 @@ def +C99Branch.pop-resource-direct! [ +C99Branch |- C99ReprType -- +C99Resource 
     +C99Resource
 }
 
-def +C99Resource.push-resource-direct! [ +C99Branch |- +C99Resource -- ] {
+def +C99Resource.push-resource-direct! [ +Mirth +C99Branch |- +C99Resource -- ] {
     consume-as-VAL
     c99-line("push_resource(" put put ");" put)
 }
@@ -1672,20 +1674,20 @@ struct +C99Value/Resource {
     def turn-into-resource! { +for(turn-into-resource!, id) }
 }
 
-def +C99Branch.pop-data! [ +C99Branch |- Data -- +C99Value/Resource ] {
-    dup +mirth:is-resource? if(
-        +mirth:c99-repr pop-resource! +Right +C99Value/Resource,
-        +mirth:c99-repr pop-value! +Left +C99Value/Resource
+def +C99Branch.pop-data! [ +Mirth +C99Branch |- Data -- +C99Value/Resource ] {
+    dup is-resource? if(
+        c99-repr pop-resource! +Right +C99Value/Resource,
+        c99-repr pop-value! +Left +C99Value/Resource
     )
 }
 
-def +C99Branch.refresh-branch! [ +C99Branch -- +C99Branch ] {
+def +C99Branch.refresh-branch! [ +Mirth |- +C99Branch -- +C99Branch ] {
     /+C99Branch
     +c99> +stack>
     refresh-all!
 }
 
-def +C99Stack.refresh-all! [ +C99 +C99Stack reachable:Bool env:C99Env -- +C99Branch ] {
+def +C99Stack.refresh-all! [ +Mirth |- +C99 +C99Stack reachable:Bool env:C99Env -- +C99Branch ] {
     { +Nil -> start-branch! }
     { +Cons ->
         >+x refresh-all!
@@ -1705,7 +1707,7 @@ def +C99Stack.refresh-all! [ +C99 +C99Stack reachable:Bool env:C99Env -- +C99Bra
     }
 }
 
-def +C99Stack.tie-knot! [ +C99Branch |- +C99Stack -- ] {
+def +C99Stack.tie-knot! [ +Mirth +C99Branch |- +C99Stack -- ] {
     { +Nil -> flush-cache! }
     { +Cons ->
         value-repr dup rdip2(pop-value! consume-as)
@@ -1791,7 +1793,7 @@ def +C99Stack.pop-resource-label? [ Label +C99Stack -- Label +Maybe(+C99Resource
     }
 }
 
-def +C99Stack.push-stack-direct! [ +C99Branch +C99Stack -- +C99Branch ] {
+def +C99Stack.push-stack-direct! [ +Mirth +C99Branch |- +C99Stack -- ] {
     { +Nil -> }
     { +Cons -> rdip:push-stack-direct! push-value-direct! }
     { +With -> rdip:push-stack-direct! push-resource-direct! }
@@ -1824,9 +1826,7 @@ struct +C99BranchSplit {
     reachable-out: Bool
 }
 
-def +C99BranchSplit.+mirth(f) { +c99:+mirth(f) }
-
-def +C99Branch.begin-branch-split! [ StackType +C99Branch -- +C99BranchSplit ] {
+def +C99Branch.begin-branch-split! [ +Mirth |- StackType +C99Branch -- +C99BranchSplit ] {
     C99APIArgMode.Branch +c99:stack-type-to-c99-api-params >branch-split-target
     must-flush> drop
     @branch-split-target for(reserve-as-is!)
@@ -1835,7 +1835,7 @@ def +C99Branch.begin-branch-split! [ StackType +C99Branch -- +C99BranchSplit ] {
     False >reachable-out
     +C99BranchSplit
 }
-def +C99BranchSplit.end-branch-split! [ +C99BranchSplit -- +C99Branch ] {
+def +C99BranchSplit.end-branch-split! [ +Mirth |- +C99BranchSplit -- +C99Branch ] {
     /+C99BranchSplit
     +stack> rdrop
     reachable-in> drop
@@ -1844,7 +1844,7 @@ def +C99BranchSplit.end-branch-split! [ +C99BranchSplit -- +C99Branch ] {
     branch-split-target> for(push-api-arg!)
 }
 
-def +C99BranchSplit.sub-branch(f) [ (+C99Branch |- *a -- *b) +C99BranchSplit |- *a -- *b ] {
+def +C99BranchSplit.sub-branch(f) [ (+Mirth +C99Branch |- *a -- *b) +Mirth +C99BranchSplit |- *a -- *b ] {
     +stack(rdup >+stack) branch-split-target
     reachable-in >reachable
     env >env
@@ -1857,7 +1857,6 @@ def +C99BranchSplit.sub-branch(f) [ (+C99Branch |- *a -- *b) +C99BranchSplit |- 
     reachable> reachable-out:or
 }
 
-
 def +C99BranchSplit.c99-line(f) { reachable-in +c99:c99-line-if(f) }
 def +C99BranchSplit.c99-line-if(f) { reachable-in and +c99:c99-line-if(f) }
 def +C99BranchSplit.c99-nest(f) { +c99:depth:1+ f +C99BranchSplit.+c99:depth:pred }
@@ -1868,26 +1867,26 @@ struct C99Var {
     value-repr: C99ReprType
 }
 
-def +C99Branch.var-lookup [ +C99Branch |- Var -- Maybe(C99Var) ] {
+def +C99Branch.var-lookup [ +Mirth +C99Branch |- Var -- Maybe(C99Var) ] {
     env lookup(var-var =)
 }
 
-def +C99Branch.var-get! [ +C99Branch |- Var -- +C99Value ] {
-    var-lookup unwrap("[c99] variable unexpectedly missing from environment" +mirth:fatal-error!)
+def +C99Branch.var-get! [ +Mirth +C99Branch |- Var -- +C99Value ] {
+    var-lookup unwrap("[c99] variable unexpectedly missing from environment" fatal-error!)
     /C99Var var-var> drop
     +C99Value
 }
 
-def +C99Branch.var-dup! [ +C99Branch |- Var -- +C99Value ] {
+def +C99Branch.var-dup! [ +Mirth +C99Branch |- Var -- +C99Value ] {
     var-get! dup-value! rdrop
 }
 
-def +C99Value.push-to-env! [ +C99Branch |- Var +C99Value -- ] {
+def +C99Value.push-to-env! [ +Mirth +C99Branch |- Var +C99Value -- ] {
     >var-var /+C99Value C99Var env:cons
 }
 
-def +C99Branch.pop-from-env! [ +C99Branch |- -- Var +C99Value ] {
-    env:uncons unwrap("[c99] variable environment unexpectedly empty" +mirth:fatal-error!)
+def +C99Branch.pop-from-env! [ +Mirth +C99Branch |- -- Var +C99Value ] {
+    env:uncons unwrap("[c99] variable environment unexpectedly empty" fatal-error!)
     /C99Var +C99Value var-var>
 }
 
@@ -1901,81 +1900,79 @@ struct +C99Branch {
     reachable: Bool
 }
 
-def +C99Branch.+mirth(f) { +c99:+mirth(f) }
-
-def +C99.start-branch! [ +C99 reachable:Bool env:C99Env -- +C99Branch ] {
+def +C99.start-branch! [ +Mirth |- +C99 reachable:Bool env:C99Env -- +C99Branch ] {
     >+c99 +C99Stack.+Nil >+stack +C99Branch
 }
 
-def +C99Branch.end-branch! [ +C99Branch -- +C99 reachable:Bool env:C99Env ] {
+def +C99Branch.end-branch! [ +Mirth |- +C99Branch -- +C99 reachable:Bool env:C99Env ] {
     +stack(+C99Stack.+Nil) rswap push-stack-direct!
     /+C99Branch +c99> +stack> rdrop
 }
 
-def +C99Branch.flush-cache! [ +C99Branch |- ] {
+def +C99Branch.flush-cache! [ +Mirth +C99Branch |- ] {
     end-branch!
     start-branch!
 }
 
-def +C99Branch.pop-value! [ +C99Branch |- C99ReprType -- +C99Value ] {
+def +C99Branch.pop-value! [ +Mirth +C99Branch |- C99ReprType -- +C99Value ] {
     +stack(pop-value?) rswap match {
         { +Some -> drop }
         { +None -> pop-value-direct! }
     }
 }
 
-def +C99Branch.pop-value-label! [ +C99Branch |- C99ReprType Label -- +C99Value ] {
+def +C99Branch.pop-value-label! [ +Mirth +C99Branch |- C99ReprType Label -- +C99Value ] {
     +stack(pop-value-label?) rswap match {
         { +Some -> drop2 }
         { +None -> pop-value-label-direct! }
     }
 }
 
-def +C99Branch.pop-resource! [ +C99Branch |- C99ReprType -- +C99Resource ] {
+def +C99Branch.pop-resource! [ +Mirth +C99Branch |- C99ReprType -- +C99Resource ] {
     +stack(pop-resource?) rswap match {
         { +Some -> drop }
         { +None -> pop-resource-direct! }
     }
 }
 
-def +C99Branch.pop-resource-label! [ +C99Branch |- C99ReprType Label -- +C99Resource ] {
+def +C99Branch.pop-resource-label! [ +Mirth +C99Branch |- C99ReprType Label -- +C99Resource ] {
     +stack(pop-resource-label?) rswap match {
         { +Some -> drop2 }
         { +None -> pop-resource-label-direct! }
     }
 }
 
-def +C99Value.push-value! [ +C99Branch |- +C99Value -- ] {
+def +C99Value.push-value! [ +Mirth +C99Branch |- +C99Value -- ] {
     rswap +stack(rswap +C99Stack.+Cons)
 }
 
-def +C99Resource.push-resource! [ +C99Branch |- +C99Resource -- ] {
+def +C99Resource.push-resource! [ +Mirth +C99Branch |- +C99Resource -- ] {
     rswap +stack(rswap +C99Stack.+With)
 }
 
-def +C99Branch.type-to-c99-repr [ +C99Branch |- Type -- C99ReprType ] { +mirth:c99-repr }
-def +C99Branch.resource-to-c99-repr [ +C99Branch |- Resource -- C99ReprType ] { +mirth:c99-repr }
+def +C99Branch.type-to-c99-repr [ +Mirth +C99Branch |- Type -- C99ReprType ] { c99-repr }
+def +C99Branch.resource-to-c99-repr [ +Mirth +C99Branch |- Resource -- C99ReprType ] { c99-repr }
 
-def +C99Branch.pop-value-from-stack-type! [ +C99Branch StackType |- +C99Value ] {
-    +mirth:force-cons?! unwrap("c99 error: tried to pop from invalid stack type" +mirth:fatal-error!) unpack2
+def +C99Branch.pop-value-from-stack-type! [ +Mirth +C99Branch StackType |- +C99Value ] {
+    force-cons?! unwrap("c99 error: tried to pop from invalid stack type" fatal-error!) unpack2
     type-to-c99-repr pop-value!
 }
-def +C99Branch.pop-resource-from-stack-type! [ +C99Branch StackType |- +C99Resource ] {
-    +mirth:force-with?! unwrap("c99 error: tried to pop from invalid stack type" +mirth:fatal-error!) unpack2
+def +C99Branch.pop-resource-from-stack-type! [ +Mirth +C99Branch StackType |- +C99Resource ] {
+    force-with?! unwrap("c99 error: tried to pop from invalid stack type" fatal-error!) unpack2
     resource-to-c99-repr pop-resource!
 }
 
-def +C99Branch.pop-value-label-from-stack-type! [ +C99Branch |- Label StackType -- StackType +C99Value ] {
-    dip:dup +mirth:force-cons-label?! unwrap("c99 error: tried to pop from invalid stack type" +mirth:fatal-error!) unpack2 type-to-c99-repr
+def +C99Branch.pop-value-label-from-stack-type! [ +Mirth +C99Branch |- Label StackType -- StackType +C99Value ] {
+    dip:dup force-cons-label?! unwrap("c99 error: tried to pop from invalid stack type" fatal-error!) unpack2 type-to-c99-repr
     rotl pop-value-label!
 }
 
-def +C99Branch.pop-resource-label-from-stack-type! [ +C99Branch |- Label StackType -- StackType +C99Resource ] {
-    dip:dup +mirth:force-with-label?! unwrap("c99 error: tried to pop from invalid stack type" +mirth:fatal-error!) unpack2 resource-to-c99-repr
+def +C99Branch.pop-resource-label-from-stack-type! [ +Mirth +C99Branch |- Label StackType -- StackType +C99Resource ] {
+    dip:dup force-with-label?! unwrap("c99 error: tried to pop from invalid stack type" fatal-error!) unpack2 resource-to-c99-repr
     rotl pop-resource-label!
 }
 
-def c99-prim! [ +C99Branch |- Atom Prim -- ] {
+def c99-prim! [ +Mirth +C99Branch |- Atom Prim -- ] {
     { Id -> drop }
     { Drop ->
         dom pop-value-from-stack-type! drop
@@ -2002,22 +1999,22 @@ def c99-prim! [ +C99Branch |- Atom Prim -- ] {
         +a> push-resource!
     }
     { Dip ->
-        dup args single? unwrap(token "unexpected number of arguments to Dip" +mirth:emit-fatal-error!)
+        dup args single? unwrap(token "unexpected number of arguments to Dip" emit-fatal-error!)
         swap dom pop-value-from-stack-type! drop >+dipped
         c99-arg-run!
         +dipped> push-value!
     }
     { RDip ->
-        dup args single? unwrap(token "unexpected number of arguments to RDip" +mirth:emit-fatal-error!)
+        dup args single? unwrap(token "unexpected number of arguments to RDip" emit-fatal-error!)
         swap dom pop-resource-from-stack-type! drop >+dipped
         c99-arg-run!
         +dipped> push-resource!
     }
     { If ->
-        dup args pair? unwrap(token "unexpected number of arguments to If" +mirth:emit-fatal-error!)
+        dup args pair? unwrap(token "unexpected number of arguments to If" emit-fatal-error!)
         unpack2 C99ReprType.Bool pop-value! >+cond
 
-        rotl +mirth:cod
+        rotl cod
         begin-branch-split!
         c99-line("if (" put +cond> C99ReprType.Bool consume-as put ") {" put)
         c99-nest:sub-branch(swap c99-arg-run!)
@@ -2027,7 +2024,7 @@ def c99-prim! [ +C99Branch |- Atom Prim -- ] {
         end-branch-split!
     }
     { While ->
-        dup args pair? unwrap(token "unexpected number of arguments to While" +mirth:emit-fatal-error!)
+        dup args pair? unwrap(token "unexpected number of arguments to While" emit-fatal-error!)
         nip unpack2 over c99-arg-run!
         C99ReprType.Bool pop-value! push-value!
         refresh-branch! +stack(rdup >+knot)
@@ -2040,18 +2037,18 @@ def c99-prim! [ +C99Branch |- Atom Prim -- ] {
             +knot> tie-knot!
         )
         c99-line("}" put)
-        C99ReprType.Bool pop-value! rdrop
+        C99ReprType.Bool pop-value! +C99Value.rdrop
     }
     { Debug -> drop flush-cache! c99-line("trace_stack();" put) }
     { Panic ->
         drop
         C99ReprType.STR dup pop-value! consume-as
         c99-line("do_panic(" put put ");" put)
-        +stack(rdrop +C99Stack.+Nil)
+        +stack(+C99Stack.rdrop +C99Stack.+Nil)
         False reachable!
     }
     { Run ->
-        dup args empty? else(token "expected no arguments to prim-core-run" +mirth:emit-fatal-error!) drop
+        dup args empty? else(token "expected no arguments to prim-core-run" emit-fatal-error!) drop
         C99ReprType.VAL pop-value! run-value!
     }
 
@@ -2064,7 +2061,7 @@ def c99-prim! [ +C99Branch |- Atom Prim -- ] {
     { IntAdd -> drop "int_add(" C99ReprType.Int ", " C99ReprType.Int ")" False C99ReprType.Int Some c99-binop! }
     { IntSub -> drop "int_sub(" C99ReprType.Int ", " C99ReprType.Int ")" False C99ReprType.Int Some c99-binop! }
     { IntMul -> drop "int_mul(" C99ReprType.Int ", " C99ReprType.Int ")" False C99ReprType.Int Some c99-binop! }
-    { IntDivMod -> args "int_divmod" Prim.IntDivMod +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
+    { IntDivMod -> args "int_divmod" Prim.IntDivMod type +c99:cname-type-to-c99-api c99-smart-call! }
     { IntToU64 -> drop "int_to_u64(" C99ReprType.Int ")" C99ReprType.U64 Some c99-unop! }
     { IntToI64 -> drop "int_to_i64(" C99ReprType.Int ")" C99ReprType.I64 Some c99-unop! }
     { IntToF32 -> drop "int_to_f32(" C99ReprType.Int ")" C99ReprType.F32 Some c99-unop! }
@@ -2262,8 +2259,8 @@ def c99-prim! [ +C99Branch |- Atom Prim -- ] {
     { StrGe   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") >= 0)" False C99ReprType.Bool Some c99-binop! }
     { StrNe   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") != 0)" False C99ReprType.Bool Some c99-binop! }
 
-    { StrToF32 -> args "str_to_f32" Prim.StrToF32 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
-    { StrToF64 -> args "str_to_f64" Prim.StrToF64 +mirth:type +c99:cname-type-to-c99-api c99-smart-call! }
+    { StrToF32 -> args "str_to_f32" Prim.StrToF32 type +c99:cname-type-to-c99-api c99-smart-call! }
+    { StrToF64 -> args "str_to_f64" Prim.StrToF64 type +c99:cname-type-to-c99-api c99-smart-call! }
 
     { SysOs   -> drop C99ReprType.I64 push-value-expression!("RUNNING_OS" put) }
     { SysArch -> drop C99ReprType.I64 push-value-expression!("RUNNING_ARCH" put) }
@@ -2271,24 +2268,24 @@ def c99-prim! [ +C99Branch |- Atom Prim -- ] {
     { SysArgv -> drop C99ReprType.PTR push-value-expression!("global_argv" put) }
 }
 
-def c99-tup-pack! [ +C99Branch |- Nat -- ] {
+def c99-tup-pack! [ +Mirth +C99Branch |- Nat -- ] {
     None >tag
     List(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
     c99-pack-tuple! turn-into-value! push-value!
 }
 
-def c99-tup-unpack! [ +C99Branch |- Nat -- ] {
+def c99-tup-unpack! [ +Mirth +C99Branch |- Nat -- ] {
     None >tag
     dup List(repeat(Type.Ignore StackTypePart.Cons ;)) >parts
     C99ReprType.TUP pop-value! turn-into-resource! c99-unpack-tuple!
 }
 
-def +C99Value.run-value! [ +C99Branch |- +C99Value -- ] {
+def +C99Value.run-value! [ +Mirth +C99Branch |- +C99Value -- ] {
     consume-as-VAL flush-cache!
     c99-line("run_value(" put put ");" put)
 }
 
-def c99-binop! [ +C99Branch |- Str C99ReprType Str C99ReprType Str Bool Maybe(C99ReprType) -- ] {
+def c99-binop! [ +Mirth +C99Branch |- Str C99ReprType Str C99ReprType Str Bool Maybe(C99ReprType) -- ] {
     >out-type >args-swapped
     >sfx >arg2-type >op >arg1-type >pfx
 
@@ -2306,7 +2303,7 @@ def c99-binop! [ +C99Branch |- Str C99ReprType Str C99ReprType Str Bool Maybe(C9
     }
 }
 
-def c99-unop! [ +C99Branch |- Str C99ReprType Str Maybe(C99ReprType) -- ] {
+def c99-unop! [ +Mirth +C99Branch |- Str C99ReprType Str Maybe(C99ReprType) -- ] {
     >out-type >sfx >arg-type >pfx
     arg-type> dup pop-value! consume-as
     out-type> match {
@@ -2315,25 +2312,25 @@ def c99-unop! [ +C99Branch |- Str C99ReprType Str Maybe(C99ReprType) -- ] {
     }
 }
 
-def c99-args-push! [ +C99Branch |- List(Arg) -- ] {
+def c99-args-push! [ +Mirth +C99Branch |- List(Arg) -- ] {
     for(c99-arg-push!)
 }
-def c99-arg-push! [ +C99Branch |- Arg -- ] {
+def c99-arg-push! [ +Mirth +C99Branch |- Arg -- ] {
     { Block -> c99-block-push! }
 }
-def c99-arg-run! [ +C99Branch |- Arg -- ] {
+def c99-arg-run! [ +Mirth +C99Branch |- Arg -- ] {
     { Block -> c99-block-run! }
 }
 
-def c99-block-run! [ +C99Branch |- Block -- ] {
-    +mirth:arrow c99-codip-arrow!
+def c99-block-run! [ +Mirth +C99Branch |- Block -- ] {
+    arrow c99-codip-arrow!
 }
 
-def c99-pack-closure-vars! [ +C99Branch |- List(Var) -- ] {
-    +mirth:filter(is-physical?) dup empty? if(
+def c99-pack-closure-vars! [ +Mirth +C99Branch |- List(Var) -- ] {
+    filter(is-physical?) dup empty? if(
         drop,
         Type.Ignore StackTypePart.Cons
-        over map(+mirth:type StackTypePart.Cons) cons >parts
+        over map(type StackTypePart.Cons) cons >parts
         None >tag
         for(var-dup! push-value!)
         c99-pack-tuple!
@@ -2342,15 +2339,15 @@ def c99-pack-closure-vars! [ +C99Branch |- List(Var) -- ] {
     )
 }
 
-def c99-unpack-closure-vars! [ +C99Branch |- List(Var) -- +closure:+Maybe(+C99Value) ] {
-    +mirth:filter(is-physical?) dup empty? if(
+def c99-unpack-closure-vars! [ +Mirth +C99Branch |- List(Var) -- +closure:+Maybe(+C99Value) ] {
+    filter(is-physical?) dup empty? if(
         +None >+closure
         drop,
         C99ReprType.VAL pop-value! >+tup
         @+tup:rdup consume-as-TUP >tup
         1 >i
         for(
-            dup +mirth:type type-to-c99-repr
+            dup type type-to-c99-repr
             dup value-expression! (
                 v-macro (
                     @tup put
@@ -2368,69 +2365,69 @@ def c99-unpack-closure-vars! [ +C99Branch |- List(Var) -- +closure:+Maybe(+C99Va
     )
 }
 
-def c99-block-push! [ +C99Branch |- Block -- ] {
-    dup +mirth:to-run-var match(
+def c99-block-push! [ +Mirth +C99Branch |- Block -- ] {
+    dup to-run-var match(
         Some -> nip c99-var-push!,
         None ->
-            C99ReprType.FNPTR push-value-expression!("&" put dup +mirth:cname put)
-            dup +mirth:free-vars c99-pack-closure-vars!
+            C99ReprType.FNPTR push-value-expression!("&" put dup cname put)
+            dup free-vars c99-pack-closure-vars!
             drop
     )
 }
 
-def c99-var! [ +C99Branch |- Var -- ] {
-    dup +mirth:auto-run? if(c99-var-run!, c99-var-push!)
+def c99-var! [ +Mirth +C99Branch |- Var -- ] {
+    dup auto-run? if(c99-var-run!, c99-var-push!)
 }
 
-def c99-var-run! [ +C99Branch |- Var -- ] {
+def c99-var-run! [ +Mirth +C99Branch |- Var -- ] {
     var-dup! run-value!
 }
 
-def c99-var-push! [ +C99Branch |- Var -- ] {
+def c99-var-push! [ +Mirth +C99Branch |- Var -- ] {
     var-dup! push-value!
 }
 
-def reverse-pop-values-to-env! [ +C99Branch |- List(Var) -- ] {
+def reverse-pop-values-to-env! [ +Mirth +C99Branch |- List(Var) -- ] {
     { Nil -> id }
     { Cons ->
-        over +mirth:type type-to-c99-repr pop-value!
+        over type type-to-c99-repr pop-value!
         rdip(reverse-pop-values-to-env!)
         push-to-env!
     }
 }
 
-def pop-values-to-env! [ +C99Branch |- List(Var) -- ] {
+def pop-values-to-env! [ +Mirth +C99Branch |- List(Var) -- ] {
     reverse reverse-pop-values-to-env!
 }
 
-def drop-env-var! [ +C99Branch |- Var -- ] {
+def drop-env-var! [ +Mirth +C99Branch |- Var -- ] {
     pop-from-env!
-    = else("[c99] unexpected variable in environment when exiting scope" rdip:+mirth:fatal-error!)
+    = else("[c99] unexpected variable in environment when exiting scope" rdip:fatal-error!)
     drop-value!
 }
 
-def drop-env-vars! [ +C99Branch |- List(Var) -- ] {
+def drop-env-vars! [ +Mirth +C99Branch |- List(Var) -- ] {
     reverse-for(drop-env-var!)
 }
 
-def c99-lambda! [ +C99Branch |- Lambda -- ] {
+def c99-lambda! [ +Mirth +C99Branch |- Lambda -- ] {
     dup params pop-values-to-env!
     dup body c99-arrow!
     params drop-env-vars!
 }
 
-def c99-match! [ +C99Branch |- Match -- ] {
+def c99-match! [ +Mirth +C99Branch |- Match -- ] {
     dup cases single? if?(
         nip c99-single-case!,
 
-        dup +mirth:scrutinee-data?
-        unwrap(token "non-uniform match, not supported at present" +mirth:emit-fatal-error!)
+        dup scrutinee-data?
+        unwrap(token "non-uniform match, not supported at present" emit-fatal-error!)
         pop-data! >+scrutinee
         dup cod begin-branch-split!
         c99-line("switch (" put @+scrutinee:peek-data-tag put ") {" put)
         c99-nest(
             dup cases for(@+scrutinee:rdup >+scrutinee c99-case!)
-            +mirth:has-default-case? else(
+            has-default-case? else(
                 c99-line("default: {" put)
                 c99-nest(
                     c99-line("do_panic(str_make(\"unexpected fallthrough in match\\n\", 32));" put)
@@ -2444,7 +2441,7 @@ def c99-match! [ +C99Branch |- Match -- ] {
     )
 }
 
-def c99-single-case! [ +C99Branch |- Case -- ] {
+def c99-single-case! [ +Mirth +C99Branch |- Case -- ] {
     dup pattern is-default? if(
         body c99-arrow!,
 
@@ -2453,11 +2450,11 @@ def c99-single-case! [ +C99Branch |- Case -- ] {
         body c99-arrow!,
 
         pattern token-start "c99 target -- don't know how to compile this pattern"
-        +mirth:emit-fatal-error!
+        emit-fatal-error!
     ))
 }
 
-def c99-case! [ +C99BranchSplit |- Case +scrutinee:+C99Value/Resource -- ] {
+def c99-case! [ +Mirth +C99BranchSplit |- Case +scrutinee:+C99Value/Resource -- ] {
     dup pattern is-default? if(
         c99-line("default: {" put)
         c99-nest:sub-branch(
@@ -2467,7 +2464,7 @@ def c99-case! [ +C99BranchSplit |- Case +scrutinee:+C99Value/Resource -- ] {
         c99-line("} break;" put),
 
     dup pattern single-tag? if?(
-        c99-line("case " put dup +mirth:value-show put "LL: { // " put dup +mirth(name >Str) put)
+        c99-line("case " put dup value-show put "LL: { // " put dup name >Str put)
         c99-nest:sub-branch(
             +scrutinee> push-value/resource!
             c99-reverse-tag!
@@ -2476,44 +2473,44 @@ def c99-case! [ +C99BranchSplit |- Case +scrutinee:+C99Value/Resource -- ] {
         c99-line("} break;" put),
 
         pattern token-start "c99 target -- don't know how to compile this pattern"
-        +mirth:emit-fatal-error!
+        emit-fatal-error!
     ))
 }
 
 def Tag.word-cname-type [ +Mirth |- Tag -- Str ArrowType ] { sip:word-cname type }
-def Tag.pat-cname-type [ +Mirth |- Tag -- Str ArrowType ] { sip:pat-cname type invert }
-def Word.cname-type [ +Mirth |- Word -- Str ArrowType ] { sip:cname type }
+def Tag.pat-cname-type  [ +Mirth |- Tag -- Str ArrowType ] { sip:pat-cname type invert }
+def Word.cname-type     [ +Mirth |- Word -- Str ArrowType ] { sip:cname type }
 
 field(Tag.~word-c99-api, Tag, C99API)
-def Tag.word-c99-api [ +C99 |- Tag -- C99API ] {
-    dup ~word-c99-api memoize(dup +mirth:word-cname-type cname-type-to-c99-api) nip
+def Tag.word-c99-api [ +Mirth +C99 |- Tag -- C99API ] {
+    dup ~word-c99-api memoize(dup word-cname-type cname-type-to-c99-api) nip
 }
 
 field(Tag.~pat-c99-api, Tag, C99API)
-def Tag.pat-c99-api [ +C99 |- Tag -- C99API ] {
-    dup ~pat-c99-api memoize(dup +mirth:pat-cname-type cname-type-to-c99-api) nip
+def Tag.pat-c99-api [ +Mirth +C99 |- Tag -- C99API ] {
+    dup ~pat-c99-api memoize(dup pat-cname-type cname-type-to-c99-api) nip
 }
 
 field(Word.~c99-api, Word, C99API)
-def Word.c99-api [ +C99 |- Word -- C99API ] {
-    dup ~c99-api memoize(dup +mirth:cname-type cname-type-to-c99-api) nip
+def Word.c99-api [ +Mirth +C99 |- Word -- C99API ] {
+    dup ~c99-api memoize(dup cname-type cname-type-to-c99-api) nip
 }
 
-def c99-word-sigs! [ +C99 |- ] { Word.for(dup +needs(needed?) if(c99-word-sig!, drop)) }
-def c99-word-sig! [ +C99 |- Word -- ] { c99-api c99-smart-sig! }
+def c99-word-sigs! [ +Mirth +C99 |- ] { Word.for(dup +needs(needed?) if(c99-word-sig!, drop)) }
+def c99-word-sig!  [ +Mirth +C99 |- Word -- ] { c99-api c99-smart-sig! }
 
-def c99-block-sigs! [ +C99 |- ] { Block.for(dup +needs(needed?) if(c99-block-sig!, drop)) }
-def c99-block-sig! [ +C99 |- Block -- ] { c99-line(c99-block-sig-put ";" put) }
+def c99-block-sigs! [ +Mirth +C99 |- ] { Block.for(dup +needs(needed?) if(c99-block-sig!, drop)) }
+def c99-block-sig!  [ +Mirth +C99 |- Block -- ] { c99-line(c99-block-sig-put ";" put) }
 
-def c99-block-defs! [ +C99 |- ] { Block.for(dup +needs(needed?) if(c99-block-def!, drop)) }
-def c99-block-def! [ +C99 |- Block -- ] {
+def c99-block-defs! [ +Mirth +C99 |- ] { Block.for(dup +needs(needed?) if(c99-block-def!, drop)) }
+def c99-block-def!  [ +Mirth +C99 |- Block -- ] {
     c99-line(dup c99-block-sig-put " {" put)
     reset-fresh-counter!
     c99-nest(
         dup c99-block-enter!
-        dup +mirth:arrow
-        dup +mirth:free-vars c99-unpack-closure-vars!
-        dup +mirth:type dom expose-stack-type!
+        dup arrow
+        dup free-vars c99-unpack-closure-vars!
+        dup type dom expose-stack-type!
         c99-arrow!
         +closure> +if(drop-value!, id)
         c99-block-exit!
@@ -2521,18 +2518,18 @@ def c99-block-def! [ +C99 |- Block -- ] {
     c99-line("}" put)
 }
 
-def c99-block-sig-put [ +C99 |- Block -- ] { "static void " put +mirth:cname put " (void)" put }
+def c99-block-sig-put [ +Mirth +C99 |- Block -- ] { "static void " put cname put " (void)" put }
 
-def c99-block-enter! [ Block +C99 -- +C99Branch ] {
+def c99-block-enter! [ +Mirth |- Block +C99 -- +C99Branch ] {
     options emit-debug-info if(
         c99-line("WORD_ENTER(" put
-            dup +mirth:home match(
+            dup home match(
                 Main -> drop "block",
-                Word -> +mirth(name >Str) " block" cat,
+                Word -> name >Str " block" cat,
             ) put-cstr ", " put
-            dup +mirth(token module source-path) >Str put-cstr ", " put
-            dup +mirth(token row) >Int >Str put ", " put
-            dup +mirth(token col) >Int >Str put ");" put
+            dup token module source-path >Str put-cstr ", " put
+            dup token row >Int >Str put ", " put
+            dup token col >Int >Str put ");" put
         ) drop,
         drop
     )
@@ -2541,7 +2538,7 @@ def c99-block-enter! [ Block +C99 -- +C99Branch ] {
     start-branch!
 }
 
-def c99-block-exit! [ Block +C99Branch -- +C99 ] {
+def c99-block-exit! [ +Mirth |- Block +C99Branch -- +C99 ] {
     end-branch!
     reachable> drop
     env> drop
@@ -2551,8 +2548,8 @@ def c99-block-exit! [ Block +C99Branch -- +C99 ] {
     )
 }
 
-def expose-stack-type! [ +C99Branch |- StackType -- ] {
-    +mirth:expand match {
+def expose-stack-type! [ +Mirth +C99Branch |- StackType -- ] {
+    expand match {
         { Cons -> type-to-c99-repr pop-value! rdip:expose-stack-type! push-value! }
         { With -> resource-to-c99-repr pop-resource! rdip:expose-stack-type! push-resource! }
         { ConsLabel ->
@@ -2565,49 +2562,49 @@ def expose-stack-type! [ +C99Branch |- StackType -- ] {
     }
 }
 
-def c99-word-enter! [ +C99Branch |- Word -- ] {
+def c99-word-enter! [ +Mirth +C99Branch |- Word -- ] {
     +c99:options emit-debug-info then(
         c99-line(
             "WORD_ENTER(" put
-            dup +mirth(name >Str) put-cstr ", " put
-            dup +mirth(body module source-path) >Str put-cstr ", " put
-            dup +mirth(body row) >Int >Str put ", " put
-            dup +mirth(body col) >Int >Str put ");" put
+            dup name >Str put-cstr ", " put
+            dup body module source-path >Str put-cstr ", " put
+            dup body row >Int >Str put ", " put
+            dup body col >Int >Str put ");" put
         )
     ) drop
 }
 
-def c99-word-exit! [ +C99Branch |- Word -- ] {
+def c99-word-exit! [ +Mirth +C99Branch |- Word -- ] {
     +c99:options emit-debug-info if(
         c99-line("WORD_EXIT;" put) drop,
         drop
     )
 }
 
-def c99-word-defs! [ +C99 |- ] { Word.for(dup +needs(needed?) if(c99-word-def!, drop)) }
-def c99-word-def! [ +C99 |- Word -- ] {
+def c99-word-defs! [ +Mirth +C99 |- ] { Word.for(dup +needs(needed?) if(c99-word-def!, drop)) }
+def c99-word-def!  [ +Mirth +C99 |- Word -- ] {
     dup c99-api c99-smart-def! (
         dup c99-word-enter!
-        dup +mirth:arrow c99-arrow!
+        dup arrow c99-arrow!
         dup c99-word-exit!
     )
     drop
 }
 
-def c99-field-defs! [ +C99 |- ] { Field.for(c99-field-def!) }
-def c99-field-def! [ +C99 |- Field -- ] { c99-line("static FIELD " put +mirth:cname put " = {0};" put) }
-def c99-field-call! [ +C99Branch |- Field -- ] {
+def c99-field-defs! [ +Mirth +C99 |- ] { Field.for(c99-field-def!) }
+def c99-field-def!  [ +Mirth +C99 |- Field -- ] { c99-line("static FIELD " put cname put " = {0};" put) }
+def c99-field-call! [ +Mirth +C99Branch |- Field -- ] {
     C99ReprType.U64 pop-value! >+index
     C99ReprType.PTR push-value-expression! (
         "field_mut(&" put
-        +mirth:cname put
+        cname put
         ", " put
         +index> C99ReprType.U64 consume-as put
         ")" put
     )
 }
 
-def c99-main! [ +C99 |- Arrow -- ] {
+def c99-main! [ +Mirth +C99 |- Arrow -- ] {
     c99-line("int main (int argc, char** argv) {" put)
     reset-fresh-counter!
     c99-nest(
@@ -2616,9 +2613,9 @@ def c99-main! [ +C99 |- Arrow -- ] {
         options emit-debug-info then(
             c99-line("WORD_ENTER(" put
                 "\"<main>\", " put
-                dup token-start +mirth(module source-path) >Str put-cstr ", " put
-                dup token-start +mirth:row >Int >Str put ", " put
-                dup token-start +mirth:col >Int >Str put ");" put)
+                dup token-start module source-path >Str put-cstr ", " put
+                dup token-start row >Int >Str put ", " put
+                dup token-start col >Int >Str put ");" put)
         )
         True >reachable
         List.Nil >env
@@ -2635,3 +2632,4 @@ def c99-main! [ +C99 |- Arrow -- ] {
     )
     c99-line("}" put)
 }
+

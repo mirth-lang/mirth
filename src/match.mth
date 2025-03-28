@@ -90,7 +90,7 @@ struct +Match {
     def freeze [ +Match -- Match ] { +Match -> Match }
     def add-case [ +Mirth +Match |- Case -- ] {
         dup case-redundant? if(
-            pattern token-start "Case is unreachable." rdip:emit-error!,
+            pattern token-start "Case is unreachable." emit-error!,
             cases(swap List.Snoc)
         )
     }
@@ -165,9 +165,9 @@ struct +Pattern {
         pattern mid >cod
         Subst.Nil >subst
         PatternOp.Underscore >op
-        pattern mid rdip:force-cons?! match(
+        pattern mid force-cons?! match(
             None ->
-                pattern token-start "pattern expects something on stack" rdip:emit-error!
+                pattern token-start "pattern expects something on stack" emit-error!
                 StackType.Error Type.Error,
             Some ->
                 unpack2
@@ -181,9 +181,9 @@ struct +Pattern {
         dup PatternOp.Tag >op List.Nil >saved
         pattern token-start >token
         pattern inner-ctx >ctx
-        dip:Subst.Nil rdip(type freshen-sig) /ArrowType dom> cod>
+        dip:Subst.Nil type freshen-sig /ArrowType dom> cod>
         dip(pattern mid)
-        rdip:unify! >cod
+        unify! >cod
         dup >dom pattern:mid!
         >subst PatternAtom pattern:atoms:cons
     }

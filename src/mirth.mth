@@ -125,7 +125,7 @@ struct +Mirth {
         init-macros!
     }
 
-    def rdrop [ +Mirth -- ] {
+    def quit! [ +Mirth -- ] {
         /+Mirth
         num-errors> drop
         num-warnings> drop

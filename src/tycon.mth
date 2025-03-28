@@ -34,12 +34,12 @@ data Tycon {
     def name; [ +Mirth +Str |- Tycon -- ] {
         { Data -> name; }
         { Table -> name; }
-        { Prim -> rdip:tycon-qname name; }
+        { Prim -> tycon-qname name; }
     }
     def qname; [ +Mirth +Str |- Tycon -- ] {
         { Data -> qname; }
         { Table -> qname; }
-        { Prim -> rdip:tycon-qname qname; }
+        { Prim -> tycon-qname qname; }
     }
 
     def =  [ Tycon Tycon -- Bool ] {

@@ -16,186 +16,227 @@ import mirth.tycon
 import mirth.word
 import mirth.mirth
 
-table(Data)
-field(Data.~head?, Data, Maybe(Token))
-field(Data.~qname, Data, Prop(QName))
-field(Data.~doc, Data, Maybe(Str))
-field(Data.~name, Data, Name)
-field(Data.~arity, Data, Int)
-field(Data.~params, Data, Prop(List(Var)))
-field(Data.~tags, Data, List(Tag))
-field(Data.~ctype?, Data, Prop(Maybe(CType)))
+table Data
+patch Data {
+    field(~head?, Data, Maybe(Token))
+    field(~qname, Data, Prop(QName))
+    field(~doc, Data, Maybe(Str))
+    field(~name, Data, Name)
+    field(~arity, Data, Int)
+    field(~params, Data, Prop(List(Var)))
+    field(~tags, Data, List(Tag))
+    field(~ctype?, Data, Prop(Maybe(CType)))
 
-def Data.head? [ +Mirth |- Data -- Maybe(Token) ] { ~head? @ }
-def Data.name  [ +Mirth |- Data -- Name ] { ~name @ }
-def Data.qname-soft [ +Mirth |- Data -- Maybe(QName) ] { ~qname @? bind(ready?) }
-def Data.qname-hard [ +Mirth |- Data -- QName ] { ~qname force! }
-def Data.namespace-hard [ +Mirth |- Data -- Namespace ] { qname-hard namespace }
-def Data.arity [ +Mirth |- Data -- Int ] { ~arity @ }
-def Data.params [ +Mirth |- Data -- List(Var) ] { ~params force! }
-def Data.tags [ +Mirth |- Data -- List(Tag) ] { ~tags @ }
-def Data.ctype? [ +Mirth |- Data -- Maybe(CType) ] { ~ctype? force! }
+    def head?          [ +Mirth |- Data -- Maybe(Token) ] { ~head? @ }
+    def name           [ +Mirth |- Data -- Name         ] { ~name @ }
+    def qname-soft     [ +Mirth |- Data -- Maybe(QName) ] { ~qname @? bind(ready?) }
+    def qname-hard     [ +Mirth |- Data -- QName        ] { ~qname force! }
+    def namespace-hard [ +Mirth |- Data -- Namespace    ] { qname-hard namespace }
+    def arity          [ +Mirth |- Data -- Int          ] { ~arity @ }
+    def params         [ +Mirth |- Data -- List(Var)    ] { ~params force! }
+    def tags           [ +Mirth |- Data -- List(Tag)    ] { ~tags @ }
+    def ctype?         [ +Mirth |- Data -- Maybe(CType) ] { ~ctype? force! }
 
-def Data.name; [ +Mirth +Str |- Data -- ] { rdip:name name; }
-def Data.qname; [ +Mirth +Str |- Data -- ] { rdip:qname-hard qname; }
+    def name; [ +Mirth +Str |- Data -- ] { name name; }
+    def qname; [ +Mirth +Str |- Data -- ] { qname-hard qname; }
 
-def make-prim-data! [ +Mirth |- Str List(Var) Data List(Tag) Maybe(CType) -- ] {
-    >ctype >tags >data >params >name
+    def = [ Data Data -- Bool ] { both(index) = }
+    def num-tags [ +Mirth |- Data -- Nat ] { tags len }
 
-    @params len >Int dup @data ~arity !
-    @name >Name @data ~name !
-    name> swap QName.Prim @data PropLabel.DataQName prop @data ~qname !
-    ctype> @data PropLabel.DataCType prop @data ~ctype? !
+    field(~last-tag-value, Data, Int)
 
-    @tags for(@data swap ~data !)
-    tags> @data ~tags !
-
-    params> @data PropLabel.DataParams prop @data ~params !
-    None @data ~head? !
-
-    data> Def.Data register
-}
-
-def make-prim-tag! [ +Mirth |- Str Int List(Type) Tag -- ] {
-    >tag >inputs >value >name
-
-    @tag .data name> 0u data-word-qname @tag ~qname !
-    value> @tag ~value !
-
-    @inputs len @tag ~num-type-inputs !
-    0u @tag ~num-resource-inputs !
-    L0 @tag ~label-inputs !
-
-    @tag .data params >Ctx
-    inputs> foldl(T0, T*)
-    T0 @tag .data full-type T*+ T->
-    @tag PropLabel.TagType prop2
-    @tag ~ctx-type !
-
-    tag> Def.Tag register
-}
-
-def make-prim-intlike! [ +Mirth |- Str Data Str Tag Str -- ] {
-    >underlying >tag >tagname >data >dataname
-
-    dataname> L0 data> @tag L1 underlying> CType.Int Some make-prim-data!
-    tagname> 0 Type.I64 L1 tag> make-prim-tag!
-}
-
-def make-prim-uintlike! [ +Mirth |- Str Data Str Tag Str -- ] {
-    >underlying >tag >tagname >data >dataname
-
-    dataname> L0 data> @tag L1 underlying> CType.UInt Some make-prim-data!
-    tagname> 0 Type.U64 L1 tag> make-prim-tag!
-}
-
-def init-data! [ +Mirth |- ] {
-    Type.TYPE "a" >Name Var.new! >a
-    "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
-    "CPtr" 0 Type.Ptr L1 builtin mk-cptr make-prim-tag!
-    "CConst" @a L1 builtin cconst builtin mk-cconst L1 None make-prim-data!
-    "CConst" 0 @a Type.Var L1 builtin mk-cconst make-prim-tag!
-    "CRestrict" @a L1 builtin crestrict builtin mk-crestrict L1 None make-prim-data!
-    "CRestrict" 0 @a Type.Var L1 builtin mk-crestrict make-prim-tag!
-    "CVolatile" @a L1 builtin cvolatile builtin mk-cvolatile L1 None make-prim-data!
-    "CVolatile" 0 @a Type.Var L1 builtin mk-cvolatile make-prim-tag!
-    a> drop
-
-    "CVoid" L0 builtin cvoid builtin mk-cvoid L1 "void" CType.Void Some make-prim-data!
-    "CVoid" 0 L0 builtin mk-cvoid make-prim-tag!
-
-    "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
-    "CIChar"     builtin cichar     "CIChar"     builtin mk-cichar     "signed char"  make-prim-intlike!
-    "CShort"     builtin cshort     "CShort"     builtin mk-cshort     "short"        make-prim-intlike!
-    "CInt"       builtin cint       "CInt"       builtin mk-cint       "int"          make-prim-intlike!
-    "CLong"      builtin clong      "CLong"      builtin mk-clong      "long"         make-prim-intlike!
-    "CLongLong"  builtin clonglong  "CLongLong"  builtin mk-clonglong  "long long"    make-prim-intlike!
-    "CISize"     builtin cisize     "CISize"     builtin mk-cisize     "ssize_t"      make-prim-intlike!
-    "CIntPtr"    builtin cintptr    "CIntPtr"    builtin mk-cintptr    "intptr_t"     make-prim-intlike!
-
-    "CUChar"     builtin cuchar     "CUChar"     builtin mk-cuchar     "unsigned char"      make-prim-uintlike!
-    "CUShort"    builtin cushort    "CUShort"    builtin mk-cushort    "unsigned short"     make-prim-uintlike!
-    "CUInt"      builtin cuint      "CUInt"      builtin mk-cuint      "unsigned int"       make-prim-uintlike!
-    "CULong"     builtin culong     "CULong"     builtin mk-culong     "unsigned long"      make-prim-uintlike!
-    "CULongLong" builtin culonglong "CULongLong" builtin mk-culonglong "unsigned long long" make-prim-uintlike!
-    "CUSize"     builtin cusize     "CUSize"     builtin mk-cusize     "size_t"             make-prim-uintlike!
-    "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-uintlike!
-}
-
-def data-qname [ Data Name Int -- QName ] {
-    >arity >name Tycon.Data Namespace.Tycon >namespace QName
-}
-
-def data-word-qname [ +Mirth |- Data Str Nat -- QName ] {
-    dip(>Name) >Int data-qname
-}
-
-########
-# DATA #
-########
-
-def Data.= [ Data Data -- Bool ] { both(index) = }
-def Data.num-tags [ +Mirth |- Data -- Nat ] { tags len }
-
-field(Data.~last-tag-value, Data, Int)
-
-||| Adds constructor to data type, and gives tag its value.
-def Data.add-tag! [ +Mirth |- Tag Data -- ] {
-    >data >tag
-    @tag ~value memoize(
-        @data ~last-tag-value @? if?(1+, 0)
-    )
-    @data tags find(value over =) for(
-        Str("Constructors ";
-            name;
-            " and " ;
-            @tag name;
-            " have the same tag value." ;
+    ||| Adds constructor to data type, and gives tag its value.
+    def add-tag! [ +Mirth |- Tag Data -- ] {
+        >data >tag
+        @tag ~value memoize(
+            @data ~last-tag-value @? if?(1+, 0)
         )
-        @data head? if?(swap emit-error!, error!)
-    )
-    @data ~last-tag-value !
-    data> ~tags modify(tag> List.Snoc)
-}
-
-def Data.is-enum-or-unit? [ +Mirth |- Data -- Bool ] {
-    dup is-enum? dip(is-unit? >Bool) or
-}
-
-field(Data.~is-unit?, Data, Maybe(Tag))
-def Data.is-unit? [ +Mirth |- Data -- Maybe(Tag) ] {
-    dup ~is-unit? memoize(
-        dup tags single? filter(num-total-inputs 0=)
-    ) nip
-}
-
-field(Data.~is-enum?, Data, Bool)
-def Data.is-enum? [ +Mirth |- Data -- Bool ] {
-    dup ~is-enum? memoize(
-        dup is-unit? not and(
-            dup tags all(num-total-inputs 0=)
-        )
-    ) nip
-}
-
-def Data.single-tag? [ +Mirth |- Data -- Maybe(Tag) ] {
-    tags single?
-}
-
-field(Data.~is-transparent?, Data, Bool)
-def Data.is-transparent? [ +Mirth |- Data -- Bool ] {
-    dup ~is-transparent? memoize(
-        dup is-resource? if(
-            dup tags single? match(
-                Some -> dup num-resource-inputs 1u = swap num-total-inputs 1u = and,
-                None -> False,
-            ),
-            dup tags single? match(
-                Some -> dup num-type-inputs 1u = swap num-total-inputs 1u = and,
-                None -> False
+        @data tags find(value over =) for(
+            Str("Constructors ";
+                name;
+                " and " ;
+                @tag name;
+                " have the same tag value." ;
             )
+            @data head? if?(swap emit-error!, error!)
         )
-    ) nip
+        @data ~last-tag-value !
+        data> ~tags modify(tag> List.Snoc)
+    }
+
+    def is-enum-or-unit? [ +Mirth |- Data -- Bool ] {
+        dup is-enum? dip(is-unit? >Bool) or
+    }
+
+    field(~is-unit?, Data, Maybe(Tag))
+    def is-unit? [ +Mirth |- Data -- Maybe(Tag) ] {
+        dup ~is-unit? memoize(
+            dup tags single? filter(num-total-inputs 0=)
+        ) nip
+    }
+
+    field(~is-enum?, Data, Bool)
+    def is-enum? [ +Mirth |- Data -- Bool ] {
+        dup ~is-enum? memoize(
+            dup is-unit? not and(
+                dup tags all(num-total-inputs 0=)
+            )
+        ) nip
+    }
+
+    def single-tag? [ +Mirth |- Data -- Maybe(Tag) ] {
+        tags single?
+    }
+
+    field(~is-transparent?, Data, Bool)
+    def is-transparent? [ +Mirth |- Data -- Bool ] {
+        dup ~is-transparent? memoize(
+            dup is-resource? if(
+                dup tags single? match(
+                    Some -> dup num-resource-inputs 1u = swap num-total-inputs 1u = and,
+                    None -> False,
+                ),
+                dup tags single? match(
+                    Some -> dup num-type-inputs 1u = swap num-total-inputs 1u = and,
+                    None -> False
+                )
+            )
+        ) nip
+    }
+
+    field(~semi-transparent?, Data, Maybe(SemiTransparentData))
+    def semi-transparent? [ +Mirth |- Data -- Maybe(SemiTransparentData) ] {
+        dup ~semi-transparent? memoize(
+            dup tags single? bind(
+                dup inputs single? map(
+                    >input dup >tag SemiTransparentData
+                ) nip
+            )
+        ) nip
+    }
+
+    field(~is-resource?, Data, Bool)
+    def is-resource? [ +Mirth |- Data -- Bool ] {
+        dup ~is-resource? memoize(
+            dup name could-be-resource-con
+        ) nip
+    }
+
+    def is-value-type? [ +Mirth |- Data -- Bool ] {
+        is-resource? not
+    }
+
+    def full-type [ +Mirth |- Data -- Type/Resource ] {
+        dup sip:Type.Data params for(Type.Var Type.App)
+        swap is-value-type? if(
+            Left,
+            Resource Right
+        )
+    }
+
+    def(unify!, +Mirth Data Data -- +Mirth Type,
+        dup2 = if(drop Type.Data, both(Type.Data) unify-failed!))
+
+    def(ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
+        dup builtin cptr = if(drop ptr Some,
+        dup builtin cconst = if(drop const Some,
+        dup builtin crestrict = if(drop restrict Some,
+        dup builtin cvolatile = if(drop volatile Some,
+            drop2 None
+        )))))
+}
+
+patch +Mirth {
+    def make-prim-data! [ +Mirth |- Str List(Var) Data List(Tag) Maybe(CType) -- ] {
+        >ctype >tags >data >params >name
+
+        @params len >Int dup @data ~arity !
+        @name >Name @data ~name !
+        name> swap QName.Prim @data PropLabel.DataQName prop @data ~qname !
+        ctype> @data PropLabel.DataCType prop @data ~ctype? !
+
+        @tags for(@data swap ~data !)
+        tags> @data ~tags !
+
+        params> @data PropLabel.DataParams prop @data ~params !
+        None @data ~head? !
+
+        data> Def.Data register
+    }
+
+    def make-prim-tag! [ +Mirth |- Str Int List(Type) Tag -- ] {
+        >tag >inputs >value >name
+
+        @tag .data name> 0u data-word-qname @tag ~qname !
+        value> @tag ~value !
+
+        @inputs len @tag ~num-type-inputs !
+        0u @tag ~num-resource-inputs !
+        L0 @tag ~label-inputs !
+
+        @tag .data params >Ctx
+        inputs> foldl(T0, T*)
+        T0 @tag .data full-type T*+ T->
+        @tag PropLabel.TagType prop2
+        @tag ~ctx-type !
+
+        tag> Def.Tag register
+    }
+
+    def make-prim-intlike! [ +Mirth |- Str Data Str Tag Str -- ] {
+        >underlying >tag >tagname >data >dataname
+
+        dataname> L0 data> @tag L1 underlying> CType.Int Some make-prim-data!
+        tagname> 0 Type.I64 L1 tag> make-prim-tag!
+    }
+
+    def make-prim-uintlike! [ +Mirth |- Str Data Str Tag Str -- ] {
+        >underlying >tag >tagname >data >dataname
+
+        dataname> L0 data> @tag L1 underlying> CType.UInt Some make-prim-data!
+        tagname> 0 Type.U64 L1 tag> make-prim-tag!
+    }
+
+    def init-data! [ +Mirth |- ] {
+        Type.TYPE "a" >Name Var.New! >a
+        "CPtr" @a L1 builtin cptr builtin mk-cptr L1 None make-prim-data!
+        "CPtr" 0 Type.Ptr L1 builtin mk-cptr make-prim-tag!
+        "CConst" @a L1 builtin cconst builtin mk-cconst L1 None make-prim-data!
+        "CConst" 0 @a Type.Var L1 builtin mk-cconst make-prim-tag!
+        "CRestrict" @a L1 builtin crestrict builtin mk-crestrict L1 None make-prim-data!
+        "CRestrict" 0 @a Type.Var L1 builtin mk-crestrict make-prim-tag!
+        "CVolatile" @a L1 builtin cvolatile builtin mk-cvolatile L1 None make-prim-data!
+        "CVolatile" 0 @a Type.Var L1 builtin mk-cvolatile make-prim-tag!
+        a> drop
+
+        "CVoid" L0 builtin cvoid builtin mk-cvoid L1 "void" CType.Void Some make-prim-data!
+        "CVoid" 0 L0 builtin mk-cvoid make-prim-tag!
+
+        "CChar"      builtin cchar      "CChar"      builtin mk-cchar      "char"         make-prim-intlike!
+        "CIChar"     builtin cichar     "CIChar"     builtin mk-cichar     "signed char"  make-prim-intlike!
+        "CShort"     builtin cshort     "CShort"     builtin mk-cshort     "short"        make-prim-intlike!
+        "CInt"       builtin cint       "CInt"       builtin mk-cint       "int"          make-prim-intlike!
+        "CLong"      builtin clong      "CLong"      builtin mk-clong      "long"         make-prim-intlike!
+        "CLongLong"  builtin clonglong  "CLongLong"  builtin mk-clonglong  "long long"    make-prim-intlike!
+        "CISize"     builtin cisize     "CISize"     builtin mk-cisize     "ssize_t"      make-prim-intlike!
+        "CIntPtr"    builtin cintptr    "CIntPtr"    builtin mk-cintptr    "intptr_t"     make-prim-intlike!
+
+        "CUChar"     builtin cuchar     "CUChar"     builtin mk-cuchar     "unsigned char"      make-prim-uintlike!
+        "CUShort"    builtin cushort    "CUShort"    builtin mk-cushort    "unsigned short"     make-prim-uintlike!
+        "CUInt"      builtin cuint      "CUInt"      builtin mk-cuint      "unsigned int"       make-prim-uintlike!
+        "CULong"     builtin culong     "CULong"     builtin mk-culong     "unsigned long"      make-prim-uintlike!
+        "CULongLong" builtin culonglong "CULongLong" builtin mk-culonglong "unsigned long long" make-prim-uintlike!
+        "CUSize"     builtin cusize     "CUSize"     builtin mk-cusize     "size_t"             make-prim-uintlike!
+        "CUIntPtr"   builtin cuintptr   "CUIntPtr"   builtin mk-cuintptr   "uintptr_t"          make-prim-uintlike!
+    }
+
+    def data-qname [ +Mirth |- Data Name Int -- QName ] {
+        >arity >name Tycon.Data Namespace.Tycon >namespace QName
+    }
+
+    def data-word-qname [ +Mirth |- Data Str Nat -- QName ] {
+        dip(>Name) >Int data-qname
+    }
 }
 
 struct SemiTransparentData {
@@ -203,147 +244,123 @@ struct SemiTransparentData {
     input: StackTypePart
 }
 
-field(Data.~semi-transparent?, Data, Maybe(SemiTransparentData))
-def Data.semi-transparent? [ +Mirth |- Data -- Maybe(SemiTransparentData) ] {
-    dup ~semi-transparent? memoize(
-        dup tags single? bind(
-            dup inputs single? map(
-                >input dup >tag SemiTransparentData
-            ) nip
-        )
-    ) nip
-}
-
-field(Data.~is-resource?, Data, Bool)
-def Data.is-resource? [ +Mirth |- Data -- Bool ] {
-    dup ~is-resource? memoize(
-        dup name could-be-resource-con
-    ) nip
-}
-
-def Data.is-value-type? [ +Mirth |- Data -- Bool ] {
-    is-resource? not
-}
-
-def Data.full-type [ +Mirth |- Data -- Type/Resource ] {
-    dup sip:Type.Data params for(Type.Var Type.App)
-    swap is-value-type? if(
-        Left,
-        Resource Right
-    )
-}
-
-def(Data.unify!, +Mirth Data Data -- +Mirth Type,
-    dup2 = if(drop Type.Data, both(Type.Data) unify-failed!))
-
-def(Data.ctype1?, +Mirth CType Data -- +Mirth Maybe(CType),
-    dup builtin cptr = if(drop ptr Some,
-    dup builtin cconst = if(drop const Some,
-    dup builtin crestrict = if(drop restrict Some,
-    dup builtin cvolatile = if(drop volatile Some,
-        drop2 None
-    )))))
-
-
 #######
 # TAG #
 #######
 
-table(Tag)
-field(Tag.~doc, Tag, Maybe(Str))
-field(Tag.~data, Tag, Data)
-field(Tag.~qname, Tag, QName)
-field(Tag.~value, Tag, Int)
-field(Tag.~label-inputs, Tag, List(Label))
-field(Tag.~num-type-inputs, Tag, Nat)
-field(Tag.~num-resource-inputs, Tag, Nat)
-field(Tag.~sig?, Tag, Maybe(Token))
-field(Tag.~ctx-type, Tag, Prop([Ctx ArrowType]))
-field(Tag.~untag, Tag, Maybe(Word))
+table Tag
+patch Tag {
+    field(~doc, Tag, Maybe(Str))
+    field(~data, Tag, Data)
+    field(~qname, Tag, QName)
+    field(~value, Tag, Int)
+    field(~label-inputs, Tag, List(Label))
+    field(~num-type-inputs, Tag, Nat)
+    field(~num-resource-inputs, Tag, Nat)
+    field(~sig?, Tag, Maybe(Token))
+    field(~ctx-type, Tag, Prop([Ctx ArrowType]))
+    field(~untag, Tag, Maybe(Word))
 
-def Tag.data                [ +Mirth |- Tag -- Data          ] { ~data @ }
-def Tag.qname               [ +Mirth |- Tag -- QName         ] { ~qname @ }
-def Tag.name                [ +Mirth |- Tag -- Name          ] { qname name }
-def Tag.value               [ +Mirth |- Tag -- Int           ] { ~value @ }
-def Tag.label-inputs        [ +Mirth |- Tag -- List(Label)   ] { ~label-inputs @ }
-def Tag.num-type-inputs     [ +Mirth |- Tag -- Nat           ] { ~num-type-inputs @ }
-def Tag.num-resource-inputs [ +Mirth |- Tag -- Nat           ] { ~num-resource-inputs @ }
-def Tag.sig?                [ +Mirth |- Tag -- Maybe(Token)  ] { ~sig? @ }
-def Tag.ctx-type            [ +Mirth |- Tag -- Ctx ArrowType ] { ~ctx-type force! unpack2 }
-def Tag.ctx                 [ +Mirth |- Tag -- Ctx           ] { ctx-type drop }
-def Tag.type                [ +Mirth |- Tag -- ArrowType     ] { ctx-type nip }
-def Tag.untag               [ +Mirth |- Tag -- Maybe(Word)   ] { ~untag @ }
+    def data                [ +Mirth |- Tag -- Data          ] { ~data @ }
+    def qname               [ +Mirth |- Tag -- QName         ] { ~qname @ }
+    def name                [ +Mirth |- Tag -- Name          ] { qname name }
+    def value               [ +Mirth |- Tag -- Int           ] { ~value @ }
+    def label-inputs        [ +Mirth |- Tag -- List(Label)   ] { ~label-inputs @ }
+    def num-type-inputs     [ +Mirth |- Tag -- Nat           ] { ~num-type-inputs @ }
+    def num-resource-inputs [ +Mirth |- Tag -- Nat           ] { ~num-resource-inputs @ }
+    def sig?                [ +Mirth |- Tag -- Maybe(Token)  ] { ~sig? @ }
+    def ctx-type            [ +Mirth |- Tag -- Ctx ArrowType ] { ~ctx-type force! unpack2 }
+    def ctx                 [ +Mirth |- Tag -- Ctx           ] { ctx-type drop }
+    def type                [ +Mirth |- Tag -- ArrowType     ] { ctx-type nip }
+    def untag               [ +Mirth |- Tag -- Maybe(Word)   ] { ~untag @ }
 
-def Tag.name;  [ +Mirth +Str |- Tag -- ] { rdip:name  name;  }
-def Tag.qname; [ +Mirth +Str |- Tag -- ] { rdip:qname qname; }
+    def name;  [ +Mirth +Str |- Tag -- ] { rdip:name  name;  }
+    def qname; [ +Mirth +Str |- Tag -- ] { rdip:qname qname; }
 
-def Tag.only-tag? [ +Mirth |- Tag -- Bool ] { .data tags single? >Bool }
+    def only-tag? [ +Mirth |- Tag -- Bool ] { .data tags single? >Bool }
 
-def Tag.label-inputs-from-sig [ +Mirth |- Tag -- List(Label) ] {
-    sig? if?(run-tokens filter-some(sig-label?), List.Nil)
-}
+    def label-inputs-from-sig [ +Mirth |- Tag -- List(Label) ] {
+        sig? if?(run-tokens filter-some(sig-label?), List.Nil)
+    }
 
-def Tag.num-type-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
-    dup sig? if?(
-        run-length
-        over num-resource-inputs-from-sig minus
-        swap label-inputs-from-sig len minus,
-        drop 0u
-    )
-}
+    def num-type-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
+        dup sig? if?(
+            run-length
+            over num-resource-inputs-from-sig minus
+            swap label-inputs-from-sig len minus,
+            drop 0u
+        )
+    }
 
-def Tag.num-resource-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
-    sig? if?(
-        run-tokens filter(could-be-sig-label? not) filter-some(name?)
-        filter(or(could-be-resource-var, could-be-resource-con))
-        len,
-        0u
-    )
-}
+    def num-resource-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
+        sig? if?(
+            run-tokens filter(could-be-sig-label? not) filter-some(name?)
+            filter(or(could-be-resource-var, could-be-resource-con))
+            len,
+            0u
+        )
+    }
 
-field(Tag.~num-label-inputs, Tag, Nat)
-def Tag.num-label-inputs [ +Mirth |- Tag -- Nat ] {
-    dup ~num-label-inputs memoize(
-        dup label-inputs len
-    ) nip
-}
+    field(~num-label-inputs, Tag, Nat)
+    def num-label-inputs [ +Mirth |- Tag -- Nat ] {
+        dup ~num-label-inputs memoize(
+            dup label-inputs len
+        ) nip
+    }
 
-def Tag.num-total-inputs [ +Mirth |- Tag -- Nat ] {
-    >tag
-    @tag num-label-inputs
-    @tag num-type-inputs +
-    tag> num-resource-inputs +
-}
+    def num-total-inputs [ +Mirth |- Tag -- Nat ] {
+        >tag
+        @tag num-label-inputs
+        @tag num-type-inputs +
+        tag> num-resource-inputs +
+    }
 
-def Tag.is-transparent? [ +Mirth |- Tag -- Bool ] {
-    .data is-transparent?
-}
+    def is-transparent? [ +Mirth |- Tag -- Bool ] {
+        .data is-transparent?
+    }
 
-field(Tag.~inputs, Tag, List(StackTypePart))
-def Tag.inputs [ +Mirth |- Tag -- List(StackTypePart) ] {
-    dup ~inputs memoize (
-        dup type dom split-parts nip
-    ) nip
-}
+    field(~inputs, Tag, List(StackTypePart))
+    def inputs [ +Mirth |- Tag -- List(StackTypePart) ] {
+        dup ~inputs memoize (
+            dup type dom split-parts nip
+        ) nip
+    }
 
-def Tag.semi-transparent? [ +Mirth |- Tag -- Maybe(SemiTransparentData) ] {
-    .data semi-transparent?
-}
+    def semi-transparent? [ +Mirth |- Tag -- Maybe(SemiTransparentData) ] {
+        .data semi-transparent?
+    }
 
-def Tag.is-unit? [ +Mirth |- Tag -- Bool ] {
-    .data is-unit? >Bool
-}
+    def is-unit? [ +Mirth |- Tag -- Bool ] {
+        .data is-unit? >Bool
+    }
 
-def Tag.outputs-resource? [ +Mirth |- Tag -- Bool ] {
-    .data is-resource?
-}
+    def outputs-resource? [ +Mirth |- Tag -- Bool ] {
+        .data is-resource?
+    }
 
-def Tag.= [ Tag Tag -- Bool ] { both(index) = }
+    def = [ Tag Tag -- Bool ] { both(index) = }
 
-def Tag.prefer-inline? [ +Mirth |- Tag -- Bool ] {
-    dup .data semi-transparent?
-    or(dup num-total-inputs 0=)
-    nip
+    def prefer-inline? [ +Mirth |- Tag -- Bool ] {
+        dup .data semi-transparent?
+        or(dup num-total-inputs 0=)
+        nip
+    }
+
+    field(~fields, Tag, List(TagField))
+    def fields [ +Mirth |- Tag -- List(TagField) ] {
+        >tag
+        @tag ~fields memoize (
+            @tag type dom split-parts nip filter-some(
+                match {
+                    { Cons -> drop None }
+                    { With -> drop None }
+                    { ConsLabel -> @tag >tag >label Left  >type/resource TagField Some }
+                    { WithLabel -> @tag >tag >label Right >type/resource TagField Some }
+                }
+            )
+        )
+        tag> drop
+    }
 }
 
 #
@@ -356,35 +373,20 @@ def Tag.prefer-inline? [ +Mirth |- Tag -- Bool ] {
 struct DataPartial {
     data:Data
     field:Label
-}
+    --
+    def = [ DataPartial DataPartial -- Bool ] {
+        /DataPartial /DataPartial
+        data> data> =
+        field> field> = and
+    }
 
-def DataPartial.= [ DataPartial DataPartial -- Bool ] {
-    /DataPartial /DataPartial
-    data> data> =
-    field> field> = and
+    def unify! [ +Mirth |- DataPartial DataPartial -- Type ] {
+        dup2 = if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!)
+    }
 }
-
-def(DataPartial.unify!, +Mirth DataPartial DataPartial -- +Mirth Type,
-    dup2 = if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!))
 
 struct TagField {
     tag: Tag
     label: Label
     type/resource: Type/Resource
-}
-
-field(Tag.~fields, Tag, List(TagField))
-def Tag.fields [ +Mirth |- Tag -- List(TagField) ] {
-    >tag
-    @tag ~fields memoize (
-        @tag type dom split-parts nip filter-some(
-            match {
-                { Cons -> drop None }
-                { With -> drop None }
-                { ConsLabel -> @tag >tag >label Left  >type/resource TagField Some }
-                { WithLabel -> @tag >tag >label Right >type/resource TagField Some }
-            }
-        )
-    )
-    tag> drop
 }

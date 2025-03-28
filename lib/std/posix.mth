@@ -64,10 +64,8 @@ patch +World {
 }
 
 patch +Unsafe {
-    external raw-posix-read! -> read [
-        +Unsafe +fd:+FileDescriptor ptr:Ptr size:CUSize --
-        +Unsafe +fd:+FileDescriptor CInt
-    ]
+    external raw-posix-read!  -> read  [ +Unsafe +fd:+FileDescriptor |- ptr:Ptr  size:CUSize -- CInt ]
+    external raw-posix-write! -> write [ +Unsafe +fd:+FileDescriptor |- ptr:CStr size:CUSize -- CInt ]
 
     inline def posix-read! [
         +Unsafe +fd:+FileDescriptor ptr:Ptr size:Size --
@@ -80,11 +78,6 @@ patch +Unsafe {
             drop posix-errno! Err
         )
     }
-
-    external raw-posix-write! -> write [
-        +Unsafe +fd:+FileDescriptor ptr:CStr size:CUSize --
-        +Unsafe +fd:+FileDescriptor CInt
-    ]
 
     inline def posix-write! [
         +Unsafe +fd:+FileDescriptor ptr:Ptr size:Size --
