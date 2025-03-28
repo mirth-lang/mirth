@@ -1,0 +1,26 @@
+module test.table-owner
+
+struct +Foo { }
+struct +Bar { }
+
+table FreeTable
+table +Foo |- FooTable
+table +Bar |- BarTable
+
+field(freetable-freefield, FreeTable, Int)
+field(+Foo |- freetable-foofield, FreeTable, Int)
+field(+Bar |- freetable-barfield, FreeTable, Int)
+
+field(footable-freefield, FooTable, Int)
+field(+Foo |- footable-foofield, FooTable, Int)
+field(+Bar |- footable-barfield, FooTable, Int)
+
+field(bartable-freefield, BarTable, Int)
+field(+Foo |- bartable-foofield, BarTable, Int)
+field(+Bar |- bartable-barfield, BarTable, Int)
+
+def freetable-alloc [ -- FreeTable ] { FreeTable.alloc! }
+def footable-alloc  [ -- FooTable ] { FooTable.alloc! }
+def bartable-alloc  [ -- BarTable ] { BarTable.alloc! }
+
+def main {}

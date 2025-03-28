@@ -10,6 +10,7 @@ import mirth.elab
 import mirth.def
 import mirth.alias
 import mirth.buffer
+import mirth.table
 
 table(Macro)
 patch Macro {

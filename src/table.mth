@@ -3,6 +3,7 @@ module mirth.table
 import std.prelude
 import std.maybe
 import std.str
+import std.list
 
 import mirth.name
 import mirth.type
@@ -10,6 +11,64 @@ import mirth.buffer
 import mirth.word
 import mirth.token
 import mirth.mirth
+import mirth.prim
+import mirth.tycon
+import mirth.elab
+import mirth.def
+import mirth.var
+import mirth.arrow
+import mirth.data
+
+data StateOwner {
+    Error
+    Default
+    Resource [ Ctx Resource ]
+    --
+    def ctx [ +Mirth |- StateOwner -- Ctx ] {
+        { Error -> Ctx.L0 }
+        { Default -> Ctx.L0 }
+        { Resource -> drop }
+    }
+    def resource? [ +Mirth |- StateOwner -- Maybe(Resource) ] {
+        { Error -> None }
+        { Default -> None }
+        { Resource -> nip Some }
+    }
+    def push [ +Mirth |- StackType StateOwner -- StackType ] {
+        { Error -> drop StackType.Error }
+        { Default -> }
+        { Resource -> nip T+ }
+    }
+    def else(f) [ *a |- (-- StateOwner) StateOwner -- StateOwner ] {
+        { Default -> f }
+        { _ -> }
+    }
+}
+
+||| Parse a state owner tag.
+|||
+|||     +Foo |-
+def +Mirth.parse-owner [ +Mirth Token |- owner:Maybe(Token) ] {
+    dup name/dname? and(dup next vdash?)
+    >Maybe( sip(next succ) ) >owner
+}
+def +Mirth.resolve-owner [ +Mirth |- Maybe(Token) -- StateOwner ] {
+    { None -> StateOwner.Default }
+    { Some ->
+        +TypeElab.Start!
+        token sig-resource-con? if?(
+            elab-resource-con!
+            dup can-own-state? if(
+                ctx swap StateOwner.Resource,
+                token "Resource cannot own state." emit-error!
+                drop StateOwner.Error
+            ),
+
+            token "Expected a resource name." emit-error! StateOwner.Error
+        )
+        +TypeElab.rdrop
+    }
+}
 
 # mirth/data/table
 table(Table)
@@ -18,6 +77,7 @@ patch Table {
     field(~head, Table, Token) # where the table was defined
     field(~name, Table, Name)
     field(~qname, Table, Prop(QName))
+    field(~owner, Table, Prop(StateOwner))
     field(~num-buffer, Table, Buffer)
 
     def doc        [ +Mirth |- Table -- Maybe(Str)   ] { ~doc @ }
@@ -26,6 +86,7 @@ patch Table {
     def qname-hard [ +Mirth |- Table -- QName        ] { ~qname force! }
     def namespace  [ +Mirth |- Table -- Namespace    ] { qname-hard namespace }
     def name       [ +Mirth |- Table -- Name         ] { ~name @ }
+    def owner      [ +Mirth |- Table -- StateOwner   ] { ~owner force! }
     def num-buffer [ +Mirth |- Table -- Buffer       ] { ~num-buffer @ }
 
     def = [ Table Table -- Bool ] { on2:index = }
@@ -44,6 +105,7 @@ patch Field {
     field(~head, Field, Token)
     field(~name, Field, Name)
     field(~qname, Field, Prop(QName))
+    field(~owner, Field, Prop(StateOwner))
     field(~index-type, Field, Prop(Type))
     field(~value-type, Field, Prop(Type))
 
@@ -52,6 +114,7 @@ patch Field {
     def name       [ +Mirth |- Field -- Name         ] { ~name @ }
     def qname-soft [ +Mirth |- Field -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- Field -- QName        ] { ~qname force! }
+    def owner      [ +Mirth |- Field -- StateOwner   ] { ~owner force! }
     def index-type [ +Mirth |- Field -- Type         ] { ~index-type force! }
     def value-type [ +Mirth |- Field -- Type         ] { ~value-type force! }
 
@@ -63,4 +126,248 @@ patch Field {
     def type [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
 
     def = [ Field Field -- Bool ] { on2:index = }
+}
+
+#########
+# TABLE #
+#########
+
+def table-qname [ +Mirth |- Table Str Int -- QName ] {
+    >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
+}
+
+def table-word-new! [ +Mirth |- Table Str Nat doc:Maybe(Str) -- Word ] {
+    over2 head dup >head >body None >sig?
+    dup >arity over >Name >name >Int table-qname >qname Word.New!
+    qname> over PropLabel.WordQName prop over ~qname !
+}
+
+def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropState(QName) doc:Maybe(Str) -- Table ] {
+    Table.alloc! >tbl
+    @tbl PropLabel.TableQName >label Prop @tbl ~qname !
+    @head @tbl ~head !
+    name> @tbl ~name !
+    doc> @tbl ~doc !
+    @tbl Def.Table register
+
+    owner> @tbl PropLabel.TableOwner prop:resolve-owner @tbl ~owner !
+
+    # Table.nil
+    None >doc # TODO
+    @tbl "nil" 0u table-word-new! >word
+
+    Ctx.L0
+    T0 @tbl Type.Table T1 T->
+    @word PropLabel.WordType prop2
+    @word ~ctx-type !
+
+    word> ab-build-word!(
+        @head ab-token!
+        0u64 PushValue.U64 ab-push-value!
+        L0 @tbl Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.NUM
+    None >doc # TODO
+    @head >head
+    "NUM" >Name >name
+    8 bytes >size
+    Buffer.New! >buf
+    @buf @tbl ~num-buffer !
+    @tbl "Num" 0 table-qname
+    @buf PropLabel.BufferQName prop
+    @buf ~qname !
+    @buf Def.Buffer register
+
+    # Table.index
+    None >doc # TODO
+    @tbl "index" 0u table-word-new! >word
+
+    Ctx.L0
+    @tbl Type.Table T1 Type.U64 T1 T->
+    @word PropLabel.WordType prop2
+    @word ~ctx-type !
+
+    word> ab-build-word! (
+        @head ab-token!
+        L0 @tbl Op.TableToIndex ab-op!
+    ) drop
+
+    # Table.from-index
+    None >doc # TODO
+    @tbl "from-index" 0u table-word-new! >word
+
+    Ctx.L0
+    Type.U64 T1 @tbl Type.Table T1 T->
+    @word PropLabel.WordType prop2
+    @word ~ctx-type !
+
+    word> ab-build-word! (
+        @head ab-token!
+        L0 @tbl Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.succ
+    None >doc # TODO
+    @tbl "succ" 0u table-word-new! >word
+
+    Ctx.L0
+    @tbl Type.Table T1 dup T->
+    @word PropLabel.WordType prop2
+    @word ~ctx-type !
+
+    word> ab-build-word! (
+        @head ab-token!
+        L0 @tbl Op.TableToIndex ab-op!
+        1u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Add ab-prim!
+        L0 @tbl Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.pred
+    None >doc # TODO
+    @tbl "pred" 0u table-word-new! >word
+
+    Ctx.L0
+    @tbl Type.Table T1 dup T->
+    @word PropLabel.WordType prop2
+    @word ~ctx-type !
+
+    word> ab-build-word! (
+        @head ab-token!
+        L0 @tbl Op.TableToIndex ab-op!
+        L0 Prim.Dup ab-prim!
+        0u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Eq ab-prim!
+        ab-if!(
+            ,
+            1u64 PushValue.U64 ab-push-value!
+            L0 Prim.U64Sub ab-prim!
+        )
+        L0 @tbl Op.TableFromIndex ab-op!
+    ) drop
+
+    { +Mirth tbl:Table buf:Buffer head:Token }
+
+    # Table.for
+    None >doc # TODO
+    @tbl "for" 1u table-word-new! >word
+    Type.STACK "*a" >Name Var.New! >va
+    @va StackType.Var @tbl Type.Table T* @va StackType.Var T-> "f" >Name Var.NewAutoRun! >vx
+
+    @va Ctx.L1
+    @va StackType.Var @vx type T* @va StackType.Var T->
+    @word PropLabel.WordType prop2
+    @word ~ctx-type !
+
+    @vx >var None >default Param L1
+    @word PropLabel.WordParams prop
+    @word ~params !
+    @word make-inline!
+
+    word> ab-build-word! (
+        @head ab-token!
+        @vx L1 @va StackType.Var ab-lambda!(
+            1u64 PushValue.U64 ab-push-value!
+            ab-while!(
+                L0 Prim.Dup ab-prim!
+                @buf ab-buffer!
+                L0 Prim.U64Get ab-prim!
+                L0 Prim.U64Le ab-prim!,
+
+                L0 Prim.Dup ab-prim!
+                ab-dip! (
+                    L0 @tbl Op.TableFromIndex ab-op!
+                    @vx ab-var!
+                )
+                1u64 PushValue.U64 ab-push-value!
+                L0 Prim.U64Add ab-prim!
+            )
+            L0 Prim.Drop ab-prim!
+        )
+    ) drop
+    va> vx> drop2
+
+    # Table.alloc!
+    None >doc # TODO
+    @tbl "alloc!" 0u table-word-new! >word
+
+    Ctx.L0
+    T0 @tbl Type.Table T1 T->
+    @word PropLabel.WordType prop2
+    @word ~ctx-type !
+
+    word> ab-build-word! (
+        @head ab-token!
+        @buf ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        1u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Add ab-prim!
+        L0 Prim.Dup ab-prim!
+        @buf ab-buffer!
+        L0 Prim.U64Set ab-prim!
+        L0 @tbl Op.TableFromIndex ab-op!
+    ) drop
+
+    head> buf> drop2
+    tbl>
+}
+
+||| Parse a table declaration.
+|||
+|||     table(Tycon)
+|||     table(Owner |- Tycon)
+|||     table Tycon
+|||     table Owner |- Tycon
+def parse-table-decl [ +Mirth Token |- owner:Maybe(Token) head:Token doc:Maybe(Str) ] {
+    dup doc >doc
+    dup num-args 0> if(
+        sip(next) args-1 parse-owner >head
+        @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
+        @head args-0
+        @head succ arg-end? else(@head succ "expected end of argument after table name" emit-fatal-error!),
+
+        succ parse-owner dup >head
+        @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
+        @head args-0
+        succ
+    )
+}
+
+||| Elaborate a table definition `table(True)`.
+def elab-table! [ +Mirth Token |- ] {
+    parse-table-decl
+    elab-def-head
+    arity> drop
+    table-new! drop
+}
+
+||| Parse a field definition
+|||
+|||     field(f, T1, T2)`
+def parse-field [ +Mirth Token |- doc:Maybe(Str) owner:Maybe(Token) head:Token index-type:Token value-type:Token ] {
+    dup doc >doc
+    sip(next) args-3 >value-type >index-type parse-owner >head
+    @head name/dname? else(@head "expected field name" emit-fatal-error!)
+    @head args-0
+}
+
+||| Elaborate a field definition `field(f, T1, T2)`.
+def elab-field! [ +Mirth Token |- ] {
+    parse-field elab-def-head
+    Field.alloc! >fld
+    doc> @fld ~doc !
+    name> @fld ~name !
+    head> @fld ~head !
+    arity> 0= else(@fld head "Field cannot take arguments." emit-error!)
+    @fld PropLabel.FieldQName >label Prop @fld ~qname !
+    index-type> @fld PropLabel.FieldIndexType prop(elab-simple-type-arg!) @fld ~index-type !
+    value-type> @fld PropLabel.FieldValueType prop(elab-simple-type-arg!) @fld ~value-type !
+    @fld owner> @fld PropLabel.FieldOwner prop2(
+        resolve-owner else(
+            dup index-type tycon? bind:table?
+            if?(owner, StateOwner.Default)
+        ) nip
+    ) @fld ~owner !
+    fld> Def.Field register
 }
