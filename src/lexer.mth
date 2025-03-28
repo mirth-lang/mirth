@@ -222,7 +222,7 @@ struct +Lexer {
                 )
                 Byte.BQUOTE = else(
                     "String literal is missing end quote (\")."
-                    lexer-error!
+                    lexer-fatal-error!
                 )
             ) TokenValue.Str
         )

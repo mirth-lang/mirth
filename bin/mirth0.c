@@ -5959,7 +5959,6 @@ static void mw_mirth_lexer_ZPlusLexer_StartZBang (TUP* in_ZPlusMirth_1, STR* in_
 static uint64_t mw_mirth_lexer_ZPlusLexer_stopZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_lexer_ZPlusLexer_lexerZ_location (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2);
 static void mw_mirth_lexer_ZPlusLexer_lexerZ_warningZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, STR* in_Str_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5);
-static void mw_mirth_lexer_ZPlusLexer_lexerZ_errorZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, STR* in_Str_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5);
 static void mw_mirth_lexer_ZPlusLexer_lexerZ_fatalZ_errorZBang (STR* in_Str_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusLexer_3);
 static bool mw_mirth_lexer_ZPlusLexer_doneZAsk (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2);
 static int64_t mw_mirth_lexer_ZPlusLexer_peek (TUP* in_ZPlusLexer_1, TUP* *out_ZPlusLexer_2);
@@ -15847,14 +15846,6 @@ static void mw_mirth_lexer_ZPlusLexer_lexerZ_warningZBang (TUP* in_ZPlusMirth_1,
 	*out_ZPlusLexer_5 = v6;
 	*out_ZPlusMirth_4 = v8;
 }
-static void mw_mirth_lexer_ZPlusLexer_lexerZ_errorZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusLexer_2, STR* in_Str_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusLexer_5) {
-	TUP* v6;
-	TUP* v7 = mw_mirth_lexer_ZPlusLexer_lexerZ_location(in_ZPlusLexer_2, &v6);
-	TUP* v8;
-	mw_mirth_mirth_ZPlusMirth_emitZ_errorZ_atZBang(in_ZPlusMirth_1, v7, in_Str_3, &v8);
-	*out_ZPlusLexer_5 = v6;
-	*out_ZPlusMirth_4 = v8;
-}
 static void mw_mirth_lexer_ZPlusLexer_lexerZ_fatalZ_errorZBang (STR* in_Str_1, TUP* in_ZPlusMirth_2, TUP* in_ZPlusLexer_3) {
 	TUP* v4;
 	TUP* v5 = mw_mirth_lexer_ZPlusLexer_lexerZ_location(in_ZPlusLexer_3, &v4);
@@ -16753,12 +16744,7 @@ static void mw_mirth_lexer_ZPlusLexer_emitZ_stringZBang (TUP* in_ZPlusMirth_1, T
 	} else {
 		STR* v48;
 		STRLIT(v48, "String literal is missing end quote (\").", 40);
-		TUP* v49;
-		TUP* v50;
-		mw_mirth_lexer_ZPlusLexer_lexerZ_errorZBang(v14, v16, v48, &v49, &v50);
-		branch_ZPlusLexer_47 = v50;
-		branch_z_x1_46 = MKSTR(v15);
-		branch_ZPlusMirth_45 = v49;
+		mw_mirth_lexer_ZPlusLexer_lexerZ_fatalZ_errorZBang(v48, v14, v16);
 	}
 	VAL v51 = mtw_mirth_token_TokenValue_Str(value_str(branch_z_x1_46));
 	void* v52 = field_mut(&mfld_mirth_token_Token_ZTildevalue, v7);
