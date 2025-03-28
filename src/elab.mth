@@ -2474,10 +2474,6 @@ def typecheck-everything! [ +Mirth |- ] {
     External.for(ctype drop)
 }
 
-#########
-# FIELD #
-#########
-
 def resolve-def-namespace [ +Mirth |- Token name/dname:Name/DName ignore-last-name:Bool -- Maybe(Namespace) ] {
     >token
     "namespace" >sort

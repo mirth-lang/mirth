@@ -121,16 +121,13 @@ patch Field {
     def name;  [ +Mirth +Str |- Field -- ] { rdip:name name; }
     def qname; [ +Mirth +Str |- Field -- ] { rdip:qname-hard qname; }
 
-    def dom  [ +Mirth |- Field -- StackType ] { index-type T1 }
-    def cod  [ +Mirth |- Field -- StackType ] { value-type Type.Mut T1 }
-    def type [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
+    def basis [ +Mirth |- Field -- StackType ] { T0 swap owner push }
+    def dom   [ +Mirth |- Field -- StackType ] { sip(basis) index-type T* }
+    def cod   [ +Mirth |- Field -- StackType ] { sip(basis) value-type Type.Mut T* }
+    def type  [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
 
     def = [ Field Field -- Bool ] { on2:index = }
 }
-
-#########
-# TABLE #
-#########
 
 def table-qname [ +Mirth |- Table Str Int -- QName ] {
     >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
@@ -152,12 +149,15 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
 
     owner> @tbl PropLabel.TableOwner prop:resolve-owner @tbl ~owner !
 
+    @tbl owner ctx >ctx
+    T0 @tbl owner push >basis
+
     # Table.nil
     None >doc # TODO
     @tbl "nil" 0u table-word-new! >word
 
-    Ctx.L0
-    T0 @tbl Type.Table T1 T->
+    @ctx
+    @basis @basis @tbl Type.Table T* T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -184,7 +184,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     @tbl "index" 0u table-word-new! >word
 
     Ctx.L0
-    @tbl Type.Table T1 Type.U64 T1 T->
+    @basis @tbl Type.Table T* @basis Type.U64 T* T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -197,8 +197,8 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     None >doc # TODO
     @tbl "from-index" 0u table-word-new! >word
 
-    Ctx.L0
-    Type.U64 T1 @tbl Type.Table T1 T->
+    @ctx
+    @basis Type.U64 T* @basis @tbl Type.Table T* T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -211,8 +211,8 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     None >doc # TODO
     @tbl "succ" 0u table-word-new! >word
 
-    Ctx.L0
-    @tbl Type.Table T1 dup T->
+    @ctx
+    @basis @tbl Type.Table T* dup T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -228,8 +228,8 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     None >doc # TODO
     @tbl "pred" 0u table-word-new! >word
 
-    Ctx.L0
-    @tbl Type.Table T1 dup T->
+    @ctx
+    @basis @tbl Type.Table T* dup T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -247,16 +247,17 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         L0 @tbl Op.TableFromIndex ab-op!
     ) drop
 
-    { +Mirth tbl:Table buf:Buffer head:Token }
+    { +Mirth ctx:Ctx basis:StackType tbl:Table buf:Buffer head:Token }
 
     # Table.for
     None >doc # TODO
     @tbl "for" 1u table-word-new! >word
-    Type.STACK "*a" >Name Var.New! >va
-    @va StackType.Var @tbl Type.Table T* @va StackType.Var T-> "f" >Name Var.NewAutoRun! >vx
 
-    @va Ctx.L1
-    @va StackType.Var @vx type T* @va StackType.Var T->
+    Type.STACK "*a" >Name Var.New! >va
+    @va StackType.Var @tbl owner push sip(@tbl Type.Table T*) T-> "f" >Name Var.NewAutoRun! >vx
+
+    @ctx @va Ctx.new
+    @va StackType.Var @tbl owner push sip(@vx type T*) T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -267,7 +268,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
 
     word> ab-build-word! (
         @head ab-token!
-        @vx L1 @va StackType.Var ab-lambda!(
+        @vx L1 @va StackType.Var @tbl owner push ab-lambda!(
             1u64 PushValue.U64 ab-push-value!
             ab-while!(
                 L0 Prim.Dup ab-prim!
@@ -292,8 +293,8 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     None >doc # TODO
     @tbl "alloc!" 0u table-word-new! >word
 
-    Ctx.L0
-    T0 @tbl Type.Table T1 T->
+    @ctx
+    @basis dup @tbl Type.Table T* T->
     @word PropLabel.WordType prop2
     @word ~ctx-type !
 
@@ -309,6 +310,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         L0 @tbl Op.TableFromIndex ab-op!
     ) drop
 
+    ctx> basis> drop2
     head> buf> drop2
     tbl>
 }

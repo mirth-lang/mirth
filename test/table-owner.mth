@@ -19,8 +19,20 @@ field(bartable-freefield, BarTable, Int)
 field(+Foo |- bartable-foofield, BarTable, Int)
 field(+Bar |- bartable-barfield, BarTable, Int)
 
-def freetable-alloc [ -- FreeTable ] { FreeTable.alloc! }
-def footable-alloc  [ -- FooTable ] { FooTable.alloc! }
-def bartable-alloc  [ -- BarTable ] { BarTable.alloc! }
+def freetable-alloc [         FreeTable ] { FreeTable.alloc! }
+def footable-alloc  [ +Foo |- FooTable  ] { FooTable.alloc! }
+def bartable-alloc  [ +Bar |- BarTable  ] { BarTable.alloc! }
+
+def freetable-freefield-use [         FreeTable -- Mut(Int) ] { freetable-freefield }
+def freetable-foofield-use  [ +Foo |- FreeTable -- Mut(Int) ] { freetable-foofield }
+def freetable-barfield-use  [ +Bar |- FreeTable -- Mut(Int) ] { freetable-barfield }
+
+def footable-freefield-use [ +Foo |- FooTable -- Mut(Int) ] { footable-freefield }
+def footable-foofield-use  [ +Foo |- FooTable -- Mut(Int) ] { footable-foofield }
+def footable-barfield-use  [ +Bar |- FooTable -- Mut(Int) ] { footable-barfield }
+
+def bartable-freefield-use [ +Bar |- BarTable -- Mut(Int) ] { bartable-freefield }
+def bartable-foofield-use  [ +Foo |- BarTable -- Mut(Int) ] { bartable-foofield }
+def bartable-barfield-use  [ +Bar |- BarTable -- Mut(Int) ] { bartable-barfield }
 
 def main {}
