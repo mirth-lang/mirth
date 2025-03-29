@@ -114,6 +114,7 @@ patch Field {
     def name       [ +Mirth |- Field -- Name         ] { ~name @ }
     def qname-soft [ +Mirth |- Field -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- Field -- QName        ] { ~qname force! }
+    def namespace  [ +Mirth |- Field -- Namespace    ] { qname-hard namespace }
     def owner      [ +Mirth |- Field -- StateOwner   ] { ~owner force! }
     def index-type [ +Mirth |- Field -- Type         ] { ~index-type force! }
     def value-type [ +Mirth |- Field -- Type         ] { ~value-type force! }
@@ -354,22 +355,54 @@ def parse-field [ +Mirth Token |- doc:Maybe(Str) owner:Maybe(Token) head:Token i
     @head args-0
 }
 
+
+
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def elab-field! [ +Mirth Token |- ] {
     parse-field elab-def-head
-    Field.alloc! >fld
-    doc> @fld ~doc !
-    name> @fld ~name !
-    head> @fld ~head !
-    arity> 0= else(@fld head "Field cannot take arguments." emit-error!)
-    @fld PropLabel.FieldQName >label Prop @fld ~qname !
-    index-type> @fld PropLabel.FieldIndexType prop(elab-simple-type-arg!) @fld ~index-type !
-    value-type> @fld PropLabel.FieldValueType prop(elab-simple-type-arg!) @fld ~value-type !
-    @fld owner> @fld PropLabel.FieldOwner prop2(
+    Field.alloc! >self
+    doc> @self ~doc !
+    name> @self ~name !
+    head> @self ~head !
+    arity> 0= else(@self head "Field cannot take arguments." emit-error!)
+    @self PropLabel.FieldQName >label Prop @self ~qname !
+    index-type> @self PropLabel.FieldIndexType prop(elab-simple-type-arg!) @self ~index-type !
+    value-type> @self PropLabel.FieldValueType prop(elab-simple-type-arg!) @self ~value-type !
+    @self owner> @self PropLabel.FieldOwner prop2(
         resolve-owner else(
             dup index-type tycon? bind:table?
             if?(owner, StateOwner.Default)
         ) nip
-    ) @fld ~owner !
-    fld> Def.Field register
+    ) @self ~owner !
+    @self Def.Field register
+
+    "Get field value." Some >doc
+    @self head dup >head >body
+    @self name >Str "@" cat L0 Word.Build! (
+        @self namespace,
+
+        @self owner ctx
+        T0 @self owner push @self index-type T*
+        T0 @self owner push @self value-type T*
+        T->,
+
+        L0 @self Op.Field ab-op!
+        L0 Prim.MutGet ab-prim!
+    ) drop
+
+    "Set field value." Some >doc
+    @self head dup >head >body
+    @self name >Str "!" cat L0 Word.Build! (
+        @self namespace,
+
+        @self owner ctx
+        T0 @self owner push @self value-type T* @self index-type T*
+        T0 @self owner push
+        T->,
+
+        L0 @self Op.Field ab-op!
+        L0 Prim.MutSet ab-prim!
+    ) drop
+
+    self> drop
 }
