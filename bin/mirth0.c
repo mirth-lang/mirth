@@ -1889,6 +1889,15 @@ static STACK lbl_underlying = {0};
 static STACK lbl_tagname = {0};
 static STACK lbl_dataname = {0};
 static STACK lbl_typeZDivresource = {0};
+static STACK lbl_owner = {0};
+static STACK lbl_body = {0};
+static STACK lbl_sigZAsk = {0};
+static STACK lbl_self = {0};
+static STACK lbl_buf = {0};
+static STACK lbl_va = {0};
+static STACK lbl_f = {0};
+static STACK lbl_valueZ_type = {0};
+static STACK lbl_indexZ_type = {0};
 static STACK lbl_sizzearg = {0};
 static STACK lbl_buffer = {0};
 static STACK lbl_ctx = {0};
@@ -1904,7 +1913,6 @@ static STACK lbl_y = {0};
 static STACK lbl_xs = {0};
 static STACK lbl_home = {0};
 static STACK lbl_op = {0};
-static STACK lbl_body = {0};
 static STACK lbl_outerZ_ctx = {0};
 static STACK lbl_cases = {0};
 static STACK lbl_ZPlusab = {0};
@@ -1923,7 +1931,6 @@ static STACK lbl_imports = {0};
 static STACK lbl_header = {0};
 static STACK lbl_decls = {0};
 static STACK lbl_valueZAsk = {0};
-static STACK lbl_sigZAsk = {0};
 static STACK lbl_syn = {0};
 static STACK lbl_dat = {0};
 static STACK lbl_untag = {0};
@@ -1936,7 +1943,6 @@ static STACK lbl_datty = {0};
 static STACK lbl_sx = {0};
 static STACK lbl_sy = {0};
 static STACK lbl_default = {0};
-static STACK lbl_f = {0};
 static STACK lbl_code = {0};
 static STACK lbl_symbol = {0};
 static STACK lbl_sig = {0};
@@ -1944,13 +1950,6 @@ static STACK lbl_extblock = {0};
 static STACK lbl_external = {0};
 static STACK lbl_ZPlusmirth = {0};
 static STACK lbl_contents = {0};
-static STACK lbl_tbl = {0};
-static STACK lbl_buf = {0};
-static STACK lbl_va = {0};
-static STACK lbl_vx = {0};
-static STACK lbl_valueZ_type = {0};
-static STACK lbl_indexZ_type = {0};
-static STACK lbl_fld = {0};
 static STACK lbl_lexerZ_module = {0};
 static STACK lbl_source = {0};
 static STACK lbl_lexerZ_source = {0};
@@ -2100,11 +2099,13 @@ static FIELD mfld_mirth_table_Table_ZTildedoc = {0};
 static FIELD mfld_mirth_table_Table_ZTildehead = {0};
 static FIELD mfld_mirth_table_Table_ZTildename = {0};
 static FIELD mfld_mirth_table_Table_ZTildeqname = {0};
+static FIELD mfld_mirth_table_Table_ZTildeowner = {0};
 static FIELD mfld_mirth_table_Table_ZTildenumZ_buffer = {0};
 static FIELD mfld_mirth_table_Field_ZTildedoc = {0};
 static FIELD mfld_mirth_table_Field_ZTildehead = {0};
 static FIELD mfld_mirth_table_Field_ZTildename = {0};
 static FIELD mfld_mirth_table_Field_ZTildeqname = {0};
+static FIELD mfld_mirth_table_Field_ZTildeowner = {0};
 static FIELD mfld_mirth_table_Field_ZTildeindexZ_type = {0};
 static FIELD mfld_mirth_table_Field_ZTildevalueZ_type = {0};
 static FIELD mfld_mirth_data_Data_ZTildeheadZAsk = {0};
@@ -3121,6 +3122,21 @@ static void mtp_mirth_elab_ExternalDeclPart_EDPDef (VAL in_ExternalDeclPart_1, V
 	*out_Maybe_4 = v8;
 	*out_Token_3 = v7;
 	*out_Maybe_2 = v6;
+}
+static VAL mtw_mirth_table_StateOwner_Resource (VAL in_Ctx_1, VAL in_Resource_2) {
+	TUP* v4 = tup_new(3);
+	v4->size = 3;
+	v4->cells[2] = in_Resource_2;
+	v4->cells[1] = in_Ctx_1;
+	v4->cells[0] = MKI64(2LL /* Resource */);
+	return MKTUP(v4, 3);
+}
+static VAL mtp_mirth_table_StateOwner_Resource (VAL in_StateOwner_1, VAL *out_Resource_3) {
+	VAL v4 = value_tup(in_StateOwner_1, 3)->cells[1];
+	VAL v5 = value_tup(in_StateOwner_1, 3)->cells[2];
+	tup_decref_outer(value_tup(in_StateOwner_1, 3),3);
+	*out_Resource_3 = v5;
+	return v4;
 }
 static VAL mtw_mirth_tycon_Tycon_Data (uint64_t in_Data_1) {
 	TUP* v3 = tup_new(2);
@@ -5128,11 +5144,35 @@ static uint64_t mtp_mirth_mirth_PropLabel_BufferQName (VAL in_PropLabel_1) {
 	tup_decref_outer(value_tup(in_PropLabel_1, 2),2);
 	return v3;
 }
+static VAL mtw_mirth_mirth_PropLabel_TableOwner (uint64_t in_Table_1) {
+	TUP* v3 = tup_new(2);
+	v3->size = 2;
+	v3->cells[1] = MKU64(in_Table_1);
+	v3->cells[0] = MKI64(19LL /* TableOwner */);
+	return MKTUP(v3, 2);
+}
+static uint64_t mtp_mirth_mirth_PropLabel_TableOwner (VAL in_PropLabel_1) {
+	uint64_t v3 = value_u64(value_tup(in_PropLabel_1, 2)->cells[1]);
+	tup_decref_outer(value_tup(in_PropLabel_1, 2),2);
+	return v3;
+}
+static VAL mtw_mirth_mirth_PropLabel_FieldOwner (uint64_t in_Field_1) {
+	TUP* v3 = tup_new(2);
+	v3->size = 2;
+	v3->cells[1] = MKU64(in_Field_1);
+	v3->cells[0] = MKI64(20LL /* FieldOwner */);
+	return MKTUP(v3, 2);
+}
+static uint64_t mtp_mirth_mirth_PropLabel_FieldOwner (VAL in_PropLabel_1) {
+	uint64_t v3 = value_u64(value_tup(in_PropLabel_1, 2)->cells[1]);
+	tup_decref_outer(value_tup(in_PropLabel_1, 2),2);
+	return v3;
+}
 static VAL mtw_mirth_mirth_PropLabel_FieldQName (uint64_t in_Field_1) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
 	v3->cells[1] = MKU64(in_Field_1);
-	v3->cells[0] = MKI64(19LL /* FieldQName */);
+	v3->cells[0] = MKI64(21LL /* FieldQName */);
 	return MKTUP(v3, 2);
 }
 static uint64_t mtp_mirth_mirth_PropLabel_FieldQName (VAL in_PropLabel_1) {
@@ -5144,7 +5184,7 @@ static VAL mtw_mirth_mirth_PropLabel_FieldValueType (uint64_t in_Field_1) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
 	v3->cells[1] = MKU64(in_Field_1);
-	v3->cells[0] = MKI64(20LL /* FieldValueType */);
+	v3->cells[0] = MKI64(22LL /* FieldValueType */);
 	return MKTUP(v3, 2);
 }
 static uint64_t mtp_mirth_mirth_PropLabel_FieldValueType (VAL in_PropLabel_1) {
@@ -5156,7 +5196,7 @@ static VAL mtw_mirth_mirth_PropLabel_FieldIndexType (uint64_t in_Field_1) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
 	v3->cells[1] = MKU64(in_Field_1);
-	v3->cells[0] = MKI64(21LL /* FieldIndexType */);
+	v3->cells[0] = MKI64(23LL /* FieldIndexType */);
 	return MKTUP(v3, 2);
 }
 static uint64_t mtp_mirth_mirth_PropLabel_FieldIndexType (VAL in_PropLabel_1) {
@@ -5168,7 +5208,7 @@ static VAL mtw_mirth_mirth_PropLabel_MacroQName (uint64_t in_Macro_1) {
 	TUP* v3 = tup_new(2);
 	v3->size = 2;
 	v3->cells[1] = MKU64(in_Macro_1);
-	v3->cells[0] = MKI64(22LL /* MacroQName */);
+	v3->cells[0] = MKI64(24LL /* MacroQName */);
 	return MKTUP(v3, 2);
 }
 static uint64_t mtp_mirth_mirth_PropLabel_MacroQName (VAL in_PropLabel_1) {
@@ -5553,25 +5593,25 @@ static void mtp_mirth_c99_ZPlusC99Branch_ZPlusC99Branch (TUP* in_ZPlusC99Branch_
 	*out_ZPlusC99Stack_3 = v7;
 	*out_ZPlusC99_2 = v6;
 }
-static char mbuf_mirth_label_Label_Num[8] = {0};
-static char mbuf_mirth_var_Var_Num[8] = {0};
-static char mbuf_mirth_external_External_Num[8] = {0};
-static char mbuf_mirth_external_ExternalBlock_Num[8] = {0};
-static char mbuf_mirth_word_Word_Num[8] = {0};
-static char mbuf_mirth_typedef_TypeDef_Num[8] = {0};
-static char mbuf_mirth_package_Package_Num[8] = {0};
-static char mbuf_mirth_macro_Macro_Num[8] = {0};
-static char mbuf_mirth_buffer_Buffer_Num[8] = {0};
-static char mbuf_mirth_table_Table_Num[8] = {0};
-static char mbuf_mirth_table_Field_Num[8] = {0};
-static char mbuf_mirth_data_Data_Num[8] = {0};
-static char mbuf_mirth_data_Tag_Num[8] = {0};
-static char mbuf_mirth_arrow_Block_Num[8] = {0};
-static char mbuf_mirth_type_MetaVar_Num[8] = {0};
-static char mbuf_mirth_token_Token_Num[8] = {0};
-static char mbuf_mirth_alias_Alias_Num[8] = {0};
-static char mbuf_mirth_name_Name_Num[8] = {0};
-static char mbuf_mirth_module_Module_Num[8] = {0};
+static char mbuf_mirth_label_Label_NumBuffer[8] = {0};
+static char mbuf_mirth_var_Var_NumBuffer[8] = {0};
+static char mbuf_mirth_external_External_NumBuffer[8] = {0};
+static char mbuf_mirth_external_ExternalBlock_NumBuffer[8] = {0};
+static char mbuf_mirth_word_Word_NumBuffer[8] = {0};
+static char mbuf_mirth_typedef_TypeDef_NumBuffer[8] = {0};
+static char mbuf_mirth_package_Package_NumBuffer[8] = {0};
+static char mbuf_mirth_macro_Macro_NumBuffer[8] = {0};
+static char mbuf_mirth_buffer_Buffer_NumBuffer[8] = {0};
+static char mbuf_mirth_table_Table_NumBuffer[8] = {0};
+static char mbuf_mirth_table_Field_NumBuffer[8] = {0};
+static char mbuf_mirth_data_Data_NumBuffer[8] = {0};
+static char mbuf_mirth_data_Tag_NumBuffer[8] = {0};
+static char mbuf_mirth_arrow_Block_NumBuffer[8] = {0};
+static char mbuf_mirth_type_MetaVar_NumBuffer[8] = {0};
+static char mbuf_mirth_token_Token_NumBuffer[8] = {0};
+static char mbuf_mirth_alias_Alias_NumBuffer[8] = {0};
+static char mbuf_mirth_name_Name_NumBuffer[8] = {0};
+static char mbuf_mirth_module_Module_NumBuffer[8] = {0};
 size_t strlen (const char *);
 static uint64_t mext_std_ctypes_CStr_numZ_bytesZ_raw (void* in_CStr_1) {
 	const char * X1 = (const char *)(in_CStr_1);
@@ -5830,8 +5870,8 @@ static TUP* mw_mirth_options_Options_Default (void);
 static TUP* mw_mirth_options_parseZ_packageZ_def (STR* in_Str_1);
 static TUP* mw_mirth_options_compilerZ_parseZ_args (TUP* in_ZPlusArgumentParser_1, TUP* in_Options_2, VAL in_Maybe_3, VAL in_ArgpOptionType_4, TUP* *out_ZPlusArgumentParser_5);
 static VAL mw_mirth_options_parseZ_optionsZBang (void);
-static uint64_t mw_mirth_label_Label_index (uint64_t in_Label_1);
 static uint64_t mw_mirth_label_Label_allocZBang (void);
+static uint64_t mw_mirth_label_Label_index (uint64_t in_Label_1);
 static uint64_t mw_mirth_label_Label_name (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, TUP* *out_ZPlusMirth_3);
 static STR* mw_mirth_label_Label_ZToStr (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_label_Label_ZEqual (uint64_t in_Label_1, uint64_t in_Label_2);
@@ -5841,8 +5881,8 @@ static bool mw_mirth_label_Label_isZ_resourceZ_labelZAsk (TUP* in_ZPlusMirth_1, 
 static VAL mw_std_map_Map_2_Nil (void);
 static INT mw_std_map_Map_2_len (VAL in_Map_1);
 static VAL mw_std_map_Map_2_insert (TUP* in_KeyValuePair_1, VAL in_Map_2);
-static uint64_t mw_mirth_var_Var_index (uint64_t in_Var_1);
 static uint64_t mw_mirth_var_Var_allocZBang (void);
+static uint64_t mw_mirth_var_Var_index (uint64_t in_Var_1);
 static uint64_t mw_mirth_var_Var_name (TUP* in_ZPlusMirth_1, uint64_t in_Var_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_var_Var_type (TUP* in_ZPlusMirth_1, uint64_t in_Var_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_var_Var_autoZ_runZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Var_2, TUP* *out_ZPlusMirth_3);
@@ -5856,7 +5896,6 @@ static VAL mw_mirth_var_Var_NewInCtx (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, VAL in
 static VAL mw_std_list_List_1_ZToCtx (VAL in_List_1);
 static VAL mw_mirth_var_Ctx_ZToList (VAL in_Ctx_1);
 static VAL mw_mirth_var_Ctx_L0 (void);
-static VAL mw_mirth_var_Ctx_L1 (uint64_t in_Var_1);
 static VAL mw_mirth_var_Ctx_new (VAL in_Ctx_1, uint64_t in_Var_2);
 static VAL mw_mirth_var_Ctx_lookup (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, VAL in_Ctx_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_mirth_var_Ctx_freshZ_nameZBang (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Name_5);
@@ -5867,8 +5906,8 @@ static VAL mw_mirth_var_Var_freshen (TUP* in_ZPlusMirth_1, VAL in_Subst_2, uint6
 static VAL mw_mirth_var_Var_sortZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Var_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_type_Type_ZToSortZAsk (TUP* in_ZPlusMirth_1, VAL in_Type_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_type_PrimType_ZToSortZAsk (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_external_External_index (uint64_t in_External_1);
 static uint64_t mw_mirth_external_External_allocZBang (void);
+static uint64_t mw_mirth_external_External_index (uint64_t in_External_1);
 static VAL mw_mirth_external_External_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_external_External_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_external_External_name (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3);
@@ -5882,9 +5921,8 @@ static TUP* mw_mirth_external_External_ctype (TUP* in_ZPlusMirth_1, uint64_t in_
 static bool mw_mirth_external_External_ZEqual (uint64_t in_External_1, uint64_t in_External_2);
 static uint64_t mw_mirth_external_ExternalBlock_allocZBang (void);
 static VAL mw_mirth_external_ExternalBlock_parts (TUP* in_ZPlusMirth_1, uint64_t in_ExternalBlock_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_word_Word_index (uint64_t in_Word_1);
 static uint64_t mw_mirth_word_Word_allocZBang (void);
-static uint64_t mw_mirth_word_Word_NewZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, uint64_t in_Token_4, uint64_t in_Name_5, INT in_Nat_6, VAL in_Maybe_7, TUP* *out_ZPlusMirth_8);
+static uint64_t mw_mirth_word_Word_index (uint64_t in_Word_1);
 static VAL mw_mirth_word_Word_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_word_Word_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_word_Word_namespaceZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
@@ -5897,6 +5935,7 @@ static INT mw_mirth_word_Word_arity (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, T
 static VAL mw_mirth_word_Word_params (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_word_Word_arrow (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_word_Word_inferringZ_typeZAsk (uint64_t in_Word_1);
+static uint64_t mw_mirth_word_Word_NewZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, uint64_t in_Token_4, uint64_t in_Name_5, INT in_Nat_6, VAL in_Maybe_7, TUP* *out_ZPlusMirth_8);
 static STR* mw_mirth_word_Word_cname (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_word_Word_ctxZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3, TUP* *out_ArrowType_5);
 static TUP* mw_mirth_word_Word_type (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
@@ -5904,8 +5943,8 @@ static bool mw_mirth_word_Word_preferZ_inlineZAsk (TUP* in_ZPlusMirth_1, uint64_
 static void mw_mirth_word_Word_makeZ_inlineZBang (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_word_Word_ZEqual (uint64_t in_Word_1, uint64_t in_Word_2);
 static INT mw_mirth_word_Word_incZ_numZ_blocksZBang (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_typedef_TypeDef_index (uint64_t in_TypeDef_1);
 static uint64_t mw_mirth_typedef_TypeDef_allocZBang (void);
+static uint64_t mw_mirth_typedef_TypeDef_index (uint64_t in_TypeDef_1);
 static VAL mw_mirth_typedef_TypeDef_headZAsk (TUP* in_ZPlusMirth_1, uint64_t in_TypeDef_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_typedef_TypeDef_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_TypeDef_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_typedef_TypeDef_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_TypeDef_2, TUP* *out_ZPlusMirth_3);
@@ -5916,8 +5955,8 @@ static VAL mw_mirth_typedef_TypeDef_params (TUP* in_ZPlusMirth_1, uint64_t in_Ty
 static bool mw_mirth_typedef_TypeDef_ZEqual (uint64_t in_TypeDef_1, uint64_t in_TypeDef_2);
 static uint64_t mw_mirth_typedef_TypeDef_newZBang (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, uint64_t in_Name_3, VAL in_PropState_4, TUP* *out_ZPlusMirth_5);
 static void mw_mirth_mirth_ZPlusMirth_defZ_typeZBang (TUP* in_ZPlusMirth_1, TUP* in_QName_2, VAL in_Type_3, TUP* *out_ZPlusMirth_4);
-static uint64_t mw_mirth_package_Package_index (uint64_t in_Package_1);
 static uint64_t mw_mirth_package_Package_allocZBang (void);
+static uint64_t mw_mirth_package_Package_index (uint64_t in_Package_1);
 static uint64_t mw_mirth_package_Package_name (TUP* in_ZPlusMirth_1, uint64_t in_Package_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_package_Package_qname (TUP* in_ZPlusMirth_1, uint64_t in_Package_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_package_Package_path (TUP* in_ZPlusMirth_1, uint64_t in_Package_2, TUP* *out_ZPlusMirth_3);
@@ -6010,8 +6049,8 @@ static VAL mw_mirth_lexer_ZPlusLexer_octZ_intZAsk (STR* in_ZPlusStr_1, TUP* in_Z
 static INT mw_mirth_lexer_ZPlusLexer_hexdigitZ_value (int64_t in_Byte_1);
 static VAL mw_mirth_lexer_IntSuffix_convert (INT in_Int_1, int64_t in_IntSuffix_2);
 static uint64_t mw_mirth_mirth_ZPlusMirth_runZ_lexerZBang (TUP* in_ZPlusMirth_1, STR* in_Path_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_macro_Macro_index (uint64_t in_Macro_1);
 static uint64_t mw_mirth_macro_Macro_allocZBang (void);
+static uint64_t mw_mirth_macro_Macro_index (uint64_t in_Macro_1);
 static uint64_t mw_mirth_macro_Macro_name (TUP* in_ZPlusMirth_1, uint64_t in_Macro_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_macro_Macro_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Macro_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_macro_Macro_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Macro_2, TUP* *out_ZPlusMirth_3);
@@ -6212,14 +6251,9 @@ static uint64_t mw_mirth_elab_elabZ_externalZ_defZBang (TUP* in_ZPlusMirth_1, VA
 static TUP* mw_mirth_elab_elabZ_externalZ_ctype (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_elab_parseZ_defZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, uint64_t *out_Token_6, VAL *out_Maybe_7);
 static uint64_t mw_mirth_elab_elabZ_defZ_typeZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_elab_parseZ_tableZ_decl (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, VAL *out_Maybe_6);
-static uint64_t mw_mirth_elab_elabZ_tableZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_elab_elabZ_entryZ_point (TUP* in_ZPlusMirth_1, TUP* in_QName_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_elab_elabZ_embedZ_strZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
-static TUP* mw_mirth_elab_tableZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, STR* in_Str_3, INT in_Int_4, TUP* *out_ZPlusMirth_5);
-static uint64_t mw_mirth_elab_tableZ_wordZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, STR* in_Str_3, INT in_Nat_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6);
-static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, uint64_t in_Name_3, VAL in_PropState_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6);
 static VAL mw_mirth_elab_resolveZ_defZ_namespace (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Either_3, bool in_Bool_4, TUP* *out_ZPlusMirth_5);
 static TUP* mw_mirth_elab_elabZ_qnameZ_fromZ_nonrelativeZ_dname (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* in_DName_3, INT in_Int_4, TUP* *out_ZPlusMirth_5);
 static bool mw_mirth_elab_moduleZ_visibleZ_fromZ_tokenZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, uint64_t in_Module_3, TUP* *out_ZPlusMirth_4);
@@ -6228,10 +6262,8 @@ static TUP* mw_mirth_elab_elabZ_defZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_To
 static VAL mw_mirth_elab_definingZ_namespaceZ_orZ_error (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_elab_elabZ_defZ_qnameZ_undefined (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_elab_elabZ_defZ_head (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_4, uint64_t *out_Name_5, INT *out_Nat_6, VAL *out_PropState_7);
-static uint64_t mw_mirth_elab_parseZ_field (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5, uint64_t *out_Token_6, uint64_t *out_Token_7, uint64_t *out_Token_8);
-static uint64_t mw_mirth_elab_elabZ_fieldZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_buffer_Buffer_index (uint64_t in_Buffer_1);
 static uint64_t mw_mirth_buffer_Buffer_allocZBang (void);
+static uint64_t mw_mirth_buffer_Buffer_index (uint64_t in_Buffer_1);
 static uint64_t mw_mirth_buffer_Buffer_head (TUP* in_ZPlusMirth_1, uint64_t in_Buffer_2, TUP* *out_ZPlusMirth_3);
 static INT mw_mirth_buffer_Buffer_sizze (TUP* in_ZPlusMirth_1, uint64_t in_Buffer_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_buffer_Buffer_name (TUP* in_ZPlusMirth_1, uint64_t in_Buffer_2, TUP* *out_ZPlusMirth_3);
@@ -6241,35 +6273,52 @@ static bool mw_mirth_buffer_Buffer_ZEqual (uint64_t in_Buffer_1, uint64_t in_Buf
 static uint64_t mw_mirth_buffer_Buffer_NewZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, INT in_Sizze_3, uint64_t in_Name_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6);
 static uint64_t mw_mirth_buffer_parseZ_buffer (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, VAL *out_Maybe_6, INT *out_Sizze_7);
 static uint64_t mw_mirth_buffer_elabZ_bufferZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_table_Table_index (uint64_t in_Table_1);
+static VAL mw_mirth_table_StateOwner_ctx (TUP* in_ZPlusMirth_1, VAL in_StateOwner_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_mirth_table_StateOwner_push (TUP* in_ZPlusMirth_1, VAL in_StackType_2, VAL in_StateOwner_3, TUP* *out_ZPlusMirth_4);
+static uint64_t mw_mirth_mirth_ZPlusMirth_parseZ_owner (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5);
+static VAL mw_mirth_mirth_ZPlusMirth_resolveZ_owner (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_table_Table_allocZBang (void);
+static uint64_t mw_mirth_table_Table_index (uint64_t in_Table_1);
 static uint64_t mw_mirth_table_Table_head (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_table_Table_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_table_Table_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_table_Table_name (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_mirth_table_Table_owner (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
+static uint64_t mw_mirth_table_Table_numZ_buffer (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_table_Table_ZEqual (uint64_t in_Table_1, uint64_t in_Table_2);
 static VAL mw_mirth_table_Table_unifyZBang (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, uint64_t in_Table_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_mirth_table_Table_ZToType (uint64_t in_Table_1);
 static void mw_mirth_table_Table_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, uint64_t in_Table_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
-static uint64_t mw_mirth_table_Field_index (uint64_t in_Field_1);
 static uint64_t mw_mirth_table_Field_allocZBang (void);
+static uint64_t mw_mirth_table_Field_index (uint64_t in_Field_1);
 static uint64_t mw_mirth_table_Field_head (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_table_Field_name (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_table_Field_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_table_Field_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_mirth_table_Field_namespace (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_mirth_table_Field_owner (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_table_Field_indexZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_table_Field_valueZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_mirth_table_Field_basis (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_table_Field_dom (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_table_Field_cod (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_table_Field_type (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_table_Field_ZEqual (uint64_t in_Field_1, uint64_t in_Field_2);
+static TUP* mw_mirth_table_tableZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, STR* in_Str_3, INT in_Int_4, TUP* *out_ZPlusMirth_5);
+static uint64_t mw_mirth_table_tableZ_newZBang (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, uint64_t in_Token_3, uint64_t in_Name_4, VAL in_PropState_5, VAL in_Maybe_6, TUP* *out_ZPlusMirth_7);
+static uint64_t mw_mirth_table_parseZ_tableZ_decl (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5, uint64_t *out_Token_6, VAL *out_Maybe_7);
+static uint64_t mw_mirth_table_elabZ_tableZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
+static uint64_t mw_mirth_table_parseZ_field (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5, VAL *out_Maybe_6, uint64_t *out_Token_7, uint64_t *out_Token_8, uint64_t *out_Token_9);
+static uint64_t mw_mirth_table_elabZ_fieldZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
+static VAL mw_mirth_tycon_Tycon_tableZAsk (VAL in_Tycon_1);
 static uint64_t mw_mirth_tycon_Tycon_name (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_tycon_Tycon_qnameZ_hard (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_tycon_Tycon_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Tycon_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static bool mw_mirth_tycon_Tycon_ZEqual (VAL in_Tycon_1, VAL in_Tycon_2);
 static VAL mw_mirth_tycon_Tycon_fullZ_typeZ_fresh (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_data_Data_index (uint64_t in_Data_1);
+static bool mw_mirth_tycon_Tycon_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_data_Data_allocZBang (void);
+static uint64_t mw_mirth_data_Data_index (uint64_t in_Data_1);
 static VAL mw_mirth_data_Data_headZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_data_Data_name (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_data_Data_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
@@ -6291,6 +6340,7 @@ static VAL mw_mirth_data_Data_semiZ_transparentZAsk (TUP* in_ZPlusMirth_1, uint6
 static bool mw_mirth_data_Data_isZ_resourceZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
 static bool mw_mirth_data_Data_isZ_valueZ_typeZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_data_Data_fullZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
+static bool mw_mirth_data_Data_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_data_Data_unifyZBang (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, uint64_t in_Data_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_mirth_data_Data_ctype1ZAsk (TUP* in_ZPlusMirth_1, VAL in_CType_2, uint64_t in_Data_3, TUP* *out_ZPlusMirth_4);
 static void mw_mirth_mirth_ZPlusMirth_makeZ_primZ_dataZBang (TUP* in_ZPlusMirth_1, STR* in_Str_2, VAL in_List_3, uint64_t in_Data_4, VAL in_List_5, VAL in_Maybe_6, TUP* *out_ZPlusMirth_7);
@@ -6300,8 +6350,8 @@ static void mw_mirth_mirth_ZPlusMirth_makeZ_primZ_uintlikeZBang (TUP* in_ZPlusMi
 static void mw_mirth_mirth_ZPlusMirth_initZ_dataZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
 static TUP* mw_mirth_mirth_ZPlusMirth_dataZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, uint64_t in_Name_3, INT in_Int_4, TUP* *out_ZPlusMirth_5);
 static TUP* mw_mirth_mirth_ZPlusMirth_dataZ_wordZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, STR* in_Str_3, INT in_Nat_4, TUP* *out_ZPlusMirth_5);
-static uint64_t mw_mirth_data_Tag_index (uint64_t in_Tag_1);
 static uint64_t mw_mirth_data_Tag_allocZBang (void);
+static uint64_t mw_mirth_data_Tag_index (uint64_t in_Tag_1);
 static uint64_t mw_mirth_data_Tag_data (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_data_Tag_qname (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_data_Tag_name (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3);
@@ -6340,8 +6390,8 @@ static VAL mw_mirth_arrow_Op_toZ_runZ_var (TUP* in_ZPlusMirth_1, VAL in_Op_2, TU
 static VAL mw_mirth_arrow_Op_freeZ_vars (TUP* in_ZPlusMirth_1, VAL in_Op_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_arrow_Lambda_cod (TUP* in_Lambda_1);
 static VAL mw_mirth_arrow_Lambda_freeZ_vars (TUP* in_ZPlusMirth_1, TUP* in_Lambda_2, TUP* *out_ZPlusMirth_3);
-static uint64_t mw_mirth_arrow_Block_index (uint64_t in_Block_1);
 static uint64_t mw_mirth_arrow_Block_allocZBang (void);
+static uint64_t mw_mirth_arrow_Block_index (uint64_t in_Block_1);
 static VAL mw_mirth_arrow_Block_ctx (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_arrow_Block_token (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_arrow_Block_dom (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3);
@@ -6426,6 +6476,7 @@ static bool mw_mirth_type_PrimType_ZEqual (int64_t in_PrimType_1, int64_t in_Pri
 static VAL mw_mirth_type_PrimType_unifyZBang (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, int64_t in_PrimType_3, TUP* *out_ZPlusMirth_4);
 static void mw_mirth_type_PrimType_typeZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, int64_t in_PrimType_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static VAL mw_mirth_type_PrimType_ctypeZAsk (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3);
+static bool mw_mirth_type_PrimType_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_mirth_ZPlusMirth_defZ_primZ_typeZBang (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_mirth_ZPlusMirth_initZ_typesZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2);
 static VAL mw_mirth_type_TZPlus (VAL in_StackType_1, VAL in_Resource_2);
@@ -6443,8 +6494,8 @@ static VAL mw_mirth_type_Kind_STACK (void);
 static VAL mw_mirth_type_Kind_RESOURCE (void);
 static VAL mw_mirth_type_Kind_ZToType (VAL in_Kind_1);
 static VAL mw_mirth_type_Type_ZToKind (VAL in_Type_1);
-static uint64_t mw_mirth_type_MetaVar_index (uint64_t in_MetaVar_1);
 static uint64_t mw_mirth_type_MetaVar_allocZBang (void);
+static uint64_t mw_mirth_type_MetaVar_index (uint64_t in_MetaVar_1);
 static VAL mw_mirth_type_MetaVar_typeZAsk (TUP* in_ZPlusMirth_1, uint64_t in_MetaVar_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_type_MetaVar_kind (TUP* in_ZPlusMirth_1, uint64_t in_MetaVar_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_type_MetaVar_NewZBang (TUP* in_ZPlusMirth_1, VAL in_Kind_2, TUP* *out_ZPlusMirth_3);
@@ -6471,6 +6522,8 @@ static VAL mw_mirth_type_Resource_unifyZ_errorZBang (TUP* in_ZPlusMirth_1, VAL i
 static void mw_mirth_type_Resource_typeZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Resource_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static VAL mw_mirth_type_Resource_freshen (TUP* in_ZPlusMirth_1, VAL in_Subst_2, VAL in_Resource_3, TUP* *out_ZPlusMirth_4, VAL *out_Resource_6);
 static VAL mw_mirth_type_Resource_rigidifyZBang (TUP* in_ZPlusMirth_1, VAL in_Ctx_2, VAL in_Resource_3, TUP* *out_ZPlusMirth_4, VAL *out_Resource_6);
+static VAL mw_mirth_type_Resource_tyconZAsk (TUP* in_ZPlusMirth_1, VAL in_Resource_2, TUP* *out_ZPlusMirth_3);
+static bool mw_mirth_type_Resource_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, VAL in_Resource_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_type_Resource_exceptZ_field (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, uint64_t in_Tag_3, VAL in_Resource_4, TUP* *out_ZPlusMirth_5);
 static VAL mw_mirth_type_Resource_ctype (TUP* in_ZPlusMirth_1, VAL in_Resource_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_type_Resource_ctypeZAsk (TUP* in_ZPlusMirth_1, VAL in_Resource_2, TUP* *out_ZPlusMirth_3);
@@ -6604,11 +6657,11 @@ static bool mw_mirth_token_TokenValue_moduleZ_headerZAsk (TUP* in_ZPlusMirth_1, 
 static bool mw_mirth_token_TokenValue_moduleZ_importZAsk (TUP* in_ZPlusMirth_1, VAL in_TokenValue_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_token_nameZDivdnameZ_lastZ_name (VAL in_Either_1);
 static VAL mw_mirth_token_nameZDivdnameZ_penultimateZ_nameZAsk (VAL in_Either_1);
+static uint64_t mw_mirth_token_Token_allocZBang (void);
 static uint64_t mw_mirth_token_Token_index (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_fromZ_index (uint64_t in_U64_1);
 static uint64_t mw_mirth_token_Token_succ (uint64_t in_Token_1);
 static uint64_t mw_mirth_token_Token_pred (uint64_t in_Token_1);
-static uint64_t mw_mirth_token_Token_allocZBang (void);
 static bool mw_mirth_token_Token_ZEqual (uint64_t in_Token_1, uint64_t in_Token_2);
 static VAL mw_mirth_token_Token_value (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_token_Token_module (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
@@ -6679,8 +6732,8 @@ static uint64_t mw_mirth_token_Token_sigZ_nextZ_stackZ_end (TUP* in_ZPlusMirth_1
 static bool mw_mirth_token_Token_sigZ_hasZ_vdashZ_orZ_dashesZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_token_Token_patZ_tokens (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_token_Token_cloneZ_runZBang (TUP* in_ZPlusMirth_1, TUP* in_Location_2, uint64_t in_Token_3, TUP* *out_ZPlusMirth_4);
-static uint64_t mw_mirth_alias_Alias_index (uint64_t in_Alias_1);
 static uint64_t mw_mirth_alias_Alias_allocZBang (void);
+static uint64_t mw_mirth_alias_Alias_index (uint64_t in_Alias_1);
 static uint64_t mw_mirth_alias_Alias_head (TUP* in_ZPlusMirth_1, uint64_t in_Alias_2, TUP* *out_ZPlusMirth_3);
 static VAL mw_mirth_alias_Alias_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Alias_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_alias_Alias_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_Alias_2, TUP* *out_ZPlusMirth_3);
@@ -6719,9 +6772,9 @@ static VAL mw_mirth_def_Def_asZ_namespaceZAsk (TUP* in_ZPlusMirth_1, VAL in_Def_
 static VAL mw_mirth_def_Def_asZ_defZ_namespaceZAsk (TUP* in_ZPlusMirth_1, VAL in_Def_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_def_Def_register (TUP* in_ZPlusMirth_1, VAL in_Def_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_def_Def_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, VAL in_Def_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
+static uint64_t mw_mirth_name_Name_allocZBang (void);
 static uint64_t mw_mirth_name_Name_index (uint64_t in_Name_1);
 static uint64_t mw_mirth_name_Name_fromZ_index (uint64_t in_U64_1);
-static uint64_t mw_mirth_name_Name_allocZBang (void);
 static STR* mw_mirth_name_Name_ZToStr (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
 static void mw_mirth_name_Name_nameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_2, uint64_t in_Name_3, TUP* *out_ZPlusMirth_4, STR* *out_ZPlusStr_5);
 static VAL mw_mirth_name_Name_defs (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3);
@@ -6778,8 +6831,8 @@ static TUP* mw_mirth_name_DName_parts (TUP* in_DName_1);
 static uint64_t mw_mirth_name_DName_lastZ_name (TUP* in_DName_1);
 static VAL mw_mirth_name_DName_penultimateZ_nameZAsk (TUP* in_DName_1);
 static bool mw_mirth_name_DName_isZ_relativeZAsk (TUP* in_DName_1);
-static uint64_t mw_mirth_module_Module_index (uint64_t in_Module_1);
 static uint64_t mw_mirth_module_Module_allocZBang (void);
+static uint64_t mw_mirth_module_Module_index (uint64_t in_Module_1);
 static uint64_t mw_mirth_module_Module_package (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, TUP* *out_ZPlusMirth_3);
 static uint64_t mw_mirth_module_Module_name (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_module_Module_qname (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, TUP* *out_ZPlusMirth_3);
@@ -7226,6 +7279,19 @@ static uint64_t mw_std_maybe_Maybe_1_else_1_sp6 (TUP* in_ZPlusMirth_1, uint64_t 
 static uint64_t mw_std_maybe_Maybe_1_else_1_sp7 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4);
 static VAL mw_std_maybe_Maybe_1_filter_1_sp22 (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3);
 static TUP* mw_mirth_mirth_PropLabel_prop_1_sp16 (uint64_t in_Token_1, TUP* in_ZPlusMirth_2, VAL in_PropLabel_3, TUP* *out_ZPlusMirth_4);
+static TUP* mw_mirth_mirth_PropLabel_prop2_1_sp7 (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, uint64_t in_Word_3, VAL in_PropLabel_4, TUP* *out_ZPlusMirth_5);
+static TUP* mw_mirth_mirth_PropLabel_prop2_1_sp8 (TUP* in_ZPlusMirth_1, VAL in_List_2, uint64_t in_Word_3, VAL in_PropLabel_4, TUP* *out_ZPlusMirth_5);
+static uint64_t mw_mirth_word_Word_BuildZBang_3_sp3 (uint64_t in_Table_1, uint64_t in_Token_2, uint64_t in_Token_3, VAL in_Maybe_4, TUP* in_ZPlusMirth_5, STR* in_Str_6, VAL in_List_7, uint64_t *out_Table_8, TUP* *out_ZPlusMirth_9);
+static uint64_t mw_mirth_word_Word_BuildZBang_3_sp4 (uint64_t in_Table_1, uint64_t in_Token_2, uint64_t in_Token_3, VAL in_Maybe_4, TUP* in_ZPlusMirth_5, STR* in_Str_6, VAL in_List_7, uint64_t *out_Table_8, TUP* *out_ZPlusMirth_9);
+static TUP* mw_mirth_mirth_PropLabel_prop2_1_sp11 (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, uint64_t in_Word_3, VAL in_PropLabel_4, TUP* *out_ZPlusMirth_5);
+static VAL mw_std_maybe_Maybe_1_unwrap_1_sp53 (VAL in_Maybe_1);
+static void mw_mirth_elab_ZPlusAB_abZ_whileZBang_2_sp1 (uint64_t in_Var_1, uint64_t in_Table_2, TUP* in_ZPlusMirth_3, TUP* in_ZPlusAB_4, uint64_t *out_Table_5, TUP* *out_ZPlusMirth_6, TUP* *out_ZPlusAB_7);
+static TUP* mw_mirth_mirth_PropLabel_prop_1_sp28 (uint64_t in_Table_1, TUP* in_ZPlusMirth_2, VAL in_PropLabel_3, TUP* *out_ZPlusMirth_4);
+static void mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp1 (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusAB_4);
+static uint64_t mw_mirth_elab_ZPlusAB_abZ_argZ_blockZBang_1_sp11 (TUP* in_ZPlusMirth_1, TUP* in_ArrowType_2, TUP* in_ZPlusAB_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusAB_5);
+static void mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp2 (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusAB_4);
+static void mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp3 (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusAB_4);
+static TUP* mw_mirth_mirth_PropLabel_prop_1_sp35 (uint64_t in_Table_1, TUP* in_ZPlusMirth_2, VAL in_PropLabel_3, TUP* *out_ZPlusMirth_4);
 static void mw_std_maybe_Maybe_1_else_1_sp12 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5);
 static void mw_std_maybe_Maybe_1_else_1_sp13 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5);
 static VAL mw_std_maybe_Maybe_1_elseZAsk_1_sp8 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5);
@@ -7271,13 +7337,34 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp13_9 (void);
 static void mb_mirth_mirth_PropLabel_prop_1_sp14_3 (void);
 static void mb_mirth_mirth_PropLabel_prop_1_sp15_0 (void);
 static void mb_mirth_mirth_PropLabel_prop_1_sp16_0 (void);
-static void mb_mirth_mirth_PropLabel_prop_1_sp17_1 (void);
-static void mb_mirth_mirth_PropLabel_prop_1_sp18_0 (void);
-static void mb_mirth_mirth_PropLabel_prop_1_sp19_1 (void);
-static void mb_mirth_mirth_PropLabel_prop_1_sp20_0 (void);
-static void mb_mirth_mirth_PropLabel_prop_1_sp21_6 (void);
-static void mb_mirth_mirth_PropLabel_prop_1_sp22_10 (void);
-static void mb_mirth_mirth_PropLabel_prop_1_sp23_1 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp17_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp18_14 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp19_3 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp20_1 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp21_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp22_14 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp23_4 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp24_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp25_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp26_29 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp27_1 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp28_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp29_17 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp30_25 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp31_1 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp32_25 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp33_1 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp34_13 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp35_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp36_29 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp37_13 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp38_1 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp39_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp40_1 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp41_0 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp42_6 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp43_10 (void);
+static void mb_mirth_mirth_PropLabel_prop_1_sp44_1 (void);
 int main (int argc, char** argv) {
 	global_argc = argc;
 	global_argv = argv;
@@ -13385,17 +13472,17 @@ static VAL mw_mirth_options_parseZ_optionsZBang (void) {
 	VAL v77 = mw_argZ_parser_parse_parseZ_args(MKTUP(v4, 6), v76);
 	return v77;
 }
-static uint64_t mw_mirth_label_Label_index (uint64_t in_Label_1) {
-	return in_Label_1;
-}
 static uint64_t mw_mirth_label_Label_allocZBang (void) {
-	void* v2 = mbuf_mirth_label_Label_Num;
+	void* v2 = mbuf_mirth_label_Label_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_label_Label_Num;
+	void* v6 = mbuf_mirth_label_Label_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_label_Label_index (uint64_t in_Label_1) {
+	return in_Label_1;
 }
 static uint64_t mw_mirth_label_Label_name (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_label_Label_ZTildename, in_Label_2);
@@ -13482,17 +13569,17 @@ static VAL mw_std_map_Map_2_insert (TUP* in_KeyValuePair_1, VAL in_Map_2) {
 	decref(in_Map_2);
 	return v4;
 }
-static uint64_t mw_mirth_var_Var_index (uint64_t in_Var_1) {
-	return in_Var_1;
-}
 static uint64_t mw_mirth_var_Var_allocZBang (void) {
-	void* v2 = mbuf_mirth_var_Var_Num;
+	void* v2 = mbuf_mirth_var_Var_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_var_Var_Num;
+	void* v6 = mbuf_mirth_var_Var_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_var_Var_index (uint64_t in_Var_1) {
+	return in_Var_1;
 }
 static uint64_t mw_mirth_var_Var_name (TUP* in_ZPlusMirth_1, uint64_t in_Var_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_var_Var_ZTildename, in_Var_2);
@@ -13602,11 +13689,6 @@ static VAL mw_mirth_var_Ctx_ZToList (VAL in_Ctx_1) {
 static VAL mw_mirth_var_Ctx_L0 (void) {
 	VAL v2 = MKI64(0LL /* Nil */);
 	return v2;
-}
-static VAL mw_mirth_var_Ctx_L1 (uint64_t in_Var_1) {
-	VAL v3 = MKI64(0LL /* Nil */);
-	VAL v4 = mw_std_list_List_1_cons(MKU64(in_Var_1), v3);
-	return v4;
 }
 static VAL mw_mirth_var_Ctx_new (VAL in_Ctx_1, uint64_t in_Var_2) {
 	VAL v4 = mw_mirth_var_Ctx_ZToList(in_Ctx_1);
@@ -13943,17 +14025,17 @@ static VAL mw_mirth_type_PrimType_ZToSortZAsk (TUP* in_ZPlusMirth_1, int64_t in_
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
 	return branch_Maybe_6;
 }
-static uint64_t mw_mirth_external_External_index (uint64_t in_External_1) {
-	return in_External_1;
-}
 static uint64_t mw_mirth_external_External_allocZBang (void) {
-	void* v2 = mbuf_mirth_external_External_Num;
+	void* v2 = mbuf_mirth_external_External_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_external_External_Num;
+	void* v6 = mbuf_mirth_external_External_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_external_External_index (uint64_t in_External_1) {
+	return in_External_1;
 }
 static VAL mw_mirth_external_External_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_External_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_external_External_ZTildeqname, in_External_2);
@@ -14032,11 +14114,11 @@ static bool mw_mirth_external_External_ZEqual (uint64_t in_External_1, uint64_t 
 	return v6;
 }
 static uint64_t mw_mirth_external_ExternalBlock_allocZBang (void) {
-	void* v2 = mbuf_mirth_external_ExternalBlock_Num;
+	void* v2 = mbuf_mirth_external_ExternalBlock_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_external_ExternalBlock_Num;
+	void* v6 = mbuf_mirth_external_ExternalBlock_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
 }
@@ -14046,37 +14128,17 @@ static VAL mw_mirth_external_ExternalBlock_parts (TUP* in_ZPlusMirth_1, uint64_t
 	*out_ZPlusMirth_3 = in_ZPlusMirth_1;
 	return v6;
 }
-static uint64_t mw_mirth_word_Word_index (uint64_t in_Word_1) {
-	return in_Word_1;
-}
 static uint64_t mw_mirth_word_Word_allocZBang (void) {
-	void* v2 = mbuf_mirth_word_Word_Num;
+	void* v2 = mbuf_mirth_word_Word_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_word_Word_Num;
+	void* v6 = mbuf_mirth_word_Word_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
 }
-static uint64_t mw_mirth_word_Word_NewZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, uint64_t in_Token_4, uint64_t in_Name_5, INT in_Nat_6, VAL in_Maybe_7, TUP* *out_ZPlusMirth_8) {
-	uint64_t v10 = mw_mirth_word_Word_allocZBang();
-	void* v11 = field_mut(&mfld_mirth_word_Word_ZTildedoc, v10);
-	mut_set(in_Maybe_7, v11);
-	void* v12 = field_mut(&mfld_mirth_word_Word_ZTildename, v10);
-	mut_set(MKU64(in_Name_5), v12);
-	void* v13 = field_mut(&mfld_mirth_word_Word_ZTildehead, v10);
-	mut_set(MKU64(in_Token_2), v13);
-	void* v14 = field_mut(&mfld_mirth_word_Word_ZTildebody, v10);
-	mut_set(MKU64(in_Token_4), v14);
-	void* v15 = field_mut(&mfld_mirth_word_Word_ZTildearity, v10);
-	mut_set(MKINT(in_Nat_6), v15);
-	void* v16 = field_mut(&mfld_mirth_word_Word_ZTildesigZAsk, v10);
-	mut_set(in_Maybe_3, v16);
-	VAL v17 = mtw_mirth_def_Def_Word(v10);
-	TUP* v18;
-	mw_mirth_def_Def_register(in_ZPlusMirth_1, v17, &v18);
-	*out_ZPlusMirth_8 = v18;
-	return v10;
+static uint64_t mw_mirth_word_Word_index (uint64_t in_Word_1) {
+	return in_Word_1;
 }
 static VAL mw_mirth_word_Word_qnameZ_soft (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_word_Word_ZTildeqname, in_Word_2);
@@ -14167,6 +14229,26 @@ static bool mw_mirth_word_Word_inferringZ_typeZAsk (uint64_t in_Word_1) {
 	VAL v4 = mw_std_prelude_ZAtZAsk(v3);
 	bool v5 = mw_std_maybe_Maybe_1_unwrap_1_sp11(v4);
 	return v5;
+}
+static uint64_t mw_mirth_word_Word_NewZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, uint64_t in_Token_4, uint64_t in_Name_5, INT in_Nat_6, VAL in_Maybe_7, TUP* *out_ZPlusMirth_8) {
+	uint64_t v10 = mw_mirth_word_Word_allocZBang();
+	void* v11 = field_mut(&mfld_mirth_word_Word_ZTildedoc, v10);
+	mut_set(in_Maybe_7, v11);
+	void* v12 = field_mut(&mfld_mirth_word_Word_ZTildename, v10);
+	mut_set(MKU64(in_Name_5), v12);
+	void* v13 = field_mut(&mfld_mirth_word_Word_ZTildehead, v10);
+	mut_set(MKU64(in_Token_2), v13);
+	void* v14 = field_mut(&mfld_mirth_word_Word_ZTildebody, v10);
+	mut_set(MKU64(in_Token_4), v14);
+	void* v15 = field_mut(&mfld_mirth_word_Word_ZTildearity, v10);
+	mut_set(MKINT(in_Nat_6), v15);
+	void* v16 = field_mut(&mfld_mirth_word_Word_ZTildesigZAsk, v10);
+	mut_set(in_Maybe_3, v16);
+	VAL v17 = mtw_mirth_def_Def_Word(v10);
+	TUP* v18;
+	mw_mirth_def_Def_register(in_ZPlusMirth_1, v17, &v18);
+	*out_ZPlusMirth_8 = v18;
+	return v10;
 }
 static STR* mw_mirth_word_Word_cname (TUP* in_ZPlusMirth_1, uint64_t in_Word_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_word_Word_ZTildecname, in_Word_2);
@@ -14270,17 +14352,17 @@ static INT mw_mirth_word_Word_incZ_numZ_blocksZBang (TUP* in_ZPlusMirth_1, uint6
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_7;
 	return branch_Int_8;
 }
-static uint64_t mw_mirth_typedef_TypeDef_index (uint64_t in_TypeDef_1) {
-	return in_TypeDef_1;
-}
 static uint64_t mw_mirth_typedef_TypeDef_allocZBang (void) {
-	void* v2 = mbuf_mirth_typedef_TypeDef_Num;
+	void* v2 = mbuf_mirth_typedef_TypeDef_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_typedef_TypeDef_Num;
+	void* v6 = mbuf_mirth_typedef_TypeDef_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_typedef_TypeDef_index (uint64_t in_TypeDef_1) {
+	return in_TypeDef_1;
 }
 static VAL mw_mirth_typedef_TypeDef_headZAsk (TUP* in_ZPlusMirth_1, uint64_t in_TypeDef_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_typedef_TypeDef_ZTildeheadZAsk, in_TypeDef_2);
@@ -14366,17 +14448,17 @@ static void mw_mirth_mirth_ZPlusMirth_defZ_typeZBang (TUP* in_ZPlusMirth_1, TUP*
 	mut_set(MKTUP(v12, 2), v13);
 	*out_ZPlusMirth_4 = v11;
 }
-static uint64_t mw_mirth_package_Package_index (uint64_t in_Package_1) {
-	return in_Package_1;
-}
 static uint64_t mw_mirth_package_Package_allocZBang (void) {
-	void* v2 = mbuf_mirth_package_Package_Num;
+	void* v2 = mbuf_mirth_package_Package_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_package_Package_Num;
+	void* v6 = mbuf_mirth_package_Package_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_package_Package_index (uint64_t in_Package_1) {
+	return in_Package_1;
 }
 static uint64_t mw_mirth_package_Package_name (TUP* in_ZPlusMirth_1, uint64_t in_Package_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_package_Package_ZTildename, in_Package_2);
@@ -21569,17 +21651,17 @@ static uint64_t mw_mirth_mirth_ZPlusMirth_runZ_lexerZBang (TUP* in_ZPlusMirth_1,
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_12;
 	return branch_Module_13;
 }
-static uint64_t mw_mirth_macro_Macro_index (uint64_t in_Macro_1) {
-	return in_Macro_1;
-}
 static uint64_t mw_mirth_macro_Macro_allocZBang (void) {
-	void* v2 = mbuf_mirth_macro_Macro_Num;
+	void* v2 = mbuf_mirth_macro_Macro_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_macro_Macro_Num;
+	void* v6 = mbuf_mirth_macro_Macro_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_macro_Macro_index (uint64_t in_Macro_1) {
+	return in_Macro_1;
 }
 static uint64_t mw_mirth_macro_Macro_name (TUP* in_ZPlusMirth_1, uint64_t in_Macro_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_macro_Macro_ZTildename, in_Macro_2);
@@ -32874,7 +32956,7 @@ static uint64_t mw_mirth_elab_elabZ_patchZBang (TUP* in_ZPlusMirth_1, uint64_t i
 	v21->cells[0] = MKU64(branch_Token_13);
 	TUP* v22 = value_tup(branch_ZPlusMirth_12->cells[6], 2);
 	incref(MKTUP(v22, 2));
-	FNPTR v23 = &mb_mirth_mirth_PropLabel_prop_1_sp23_1;
+	FNPTR v23 = &mb_mirth_mirth_PropLabel_prop_1_sp44_1;
 	VAL v24 = mtw_mirth_mirth_PropState_1_Delay(v22, MKTUP(v21, 2), MKFNPTR(v23));
 	TUP* v25 = mtw_mirth_mirth_Prop_1_Prop(v20, v24);
 	VAL v26 = mtw_std_maybe_Maybe_1_Some(MKTUP(v25, 2));
@@ -33156,7 +33238,7 @@ static uint64_t mw_mirth_elab_elabZ_defZBang (TUP* in_ZPlusMirth_1, uint64_t in_
 	VAL v24 = mtw_mirth_mirth_PropLabel_WordType(v18);
 	TUP* v25 = value_tup(v17->cells[6], 2);
 	incref(MKTUP(v25, 2));
-	FNPTR v26 = &mb_mirth_mirth_PropLabel_prop_1_sp19_1;
+	FNPTR v26 = &mb_mirth_mirth_PropLabel_prop_1_sp40_1;
 	VAL v27 = mtw_mirth_mirth_PropState_1_Delay(v25, MKU64(v18), MKFNPTR(v26));
 	TUP* v28 = mtw_mirth_mirth_Prop_1_Prop(v24, v27);
 	void* v29 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v18);
@@ -33164,7 +33246,7 @@ static uint64_t mw_mirth_elab_elabZ_defZBang (TUP* in_ZPlusMirth_1, uint64_t in_
 	VAL v30 = mtw_mirth_mirth_PropLabel_WordParams(v18);
 	TUP* v31 = value_tup(v17->cells[6], 2);
 	incref(MKTUP(v31, 2));
-	FNPTR v32 = &mb_mirth_mirth_PropLabel_prop_1_sp20_0;
+	FNPTR v32 = &mb_mirth_mirth_PropLabel_prop_1_sp41_0;
 	VAL v33 = mtw_mirth_mirth_PropState_1_Delay(v31, MKU64(v18), MKFNPTR(v32));
 	TUP* v34 = mtw_mirth_mirth_Prop_1_Prop(v30, v33);
 	void* v35 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v18);
@@ -33172,7 +33254,7 @@ static uint64_t mw_mirth_elab_elabZ_defZBang (TUP* in_ZPlusMirth_1, uint64_t in_
 	VAL v36 = mtw_mirth_mirth_PropLabel_WordArrow(v18);
 	TUP* v37 = value_tup(v17->cells[6], 2);
 	incref(MKTUP(v37, 2));
-	FNPTR v38 = &mb_mirth_mirth_PropLabel_prop_1_sp21_6;
+	FNPTR v38 = &mb_mirth_mirth_PropLabel_prop_1_sp42_6;
 	VAL v39 = mtw_mirth_mirth_PropState_1_Delay(v37, MKU64(v18), MKFNPTR(v38));
 	TUP* v40 = mtw_mirth_mirth_Prop_1_Prop(v36, v39);
 	void* v41 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v18);
@@ -34093,7 +34175,7 @@ static uint64_t mw_mirth_elab_elabZ_externalZ_defZBang (TUP* in_ZPlusMirth_1, VA
 	VAL v34 = mtw_mirth_mirth_PropLabel_ExternalType(v24);
 	TUP* v35 = value_tup(v22->cells[6], 2);
 	incref(MKTUP(v35, 2));
-	FNPTR v36 = &mb_mirth_mirth_PropLabel_prop_1_sp17_1;
+	FNPTR v36 = &mb_mirth_mirth_PropLabel_prop_1_sp38_1;
 	VAL v37 = mtw_mirth_mirth_PropState_1_Delay(v35, MKU64(v24), MKFNPTR(v36));
 	TUP* v38 = mtw_mirth_mirth_Prop_1_Prop(v34, v37);
 	void* v39 = field_mut(&mfld_mirth_external_External_ZTildectxZ_type, v24);
@@ -34101,7 +34183,7 @@ static uint64_t mw_mirth_elab_elabZ_externalZ_defZBang (TUP* in_ZPlusMirth_1, VA
 	VAL v40 = mtw_mirth_mirth_PropLabel_ExternalCType(v24);
 	TUP* v41 = value_tup(v22->cells[6], 2);
 	incref(MKTUP(v41, 2));
-	FNPTR v42 = &mb_mirth_mirth_PropLabel_prop_1_sp18_0;
+	FNPTR v42 = &mb_mirth_mirth_PropLabel_prop_1_sp39_0;
 	VAL v43 = mtw_mirth_mirth_PropState_1_Delay(v41, MKU64(v24), MKFNPTR(v42));
 	TUP* v44 = mtw_mirth_mirth_Prop_1_Prop(v40, v43);
 	void* v45 = field_mut(&mfld_mirth_external_External_ZTildectype, v24);
@@ -34469,84 +34551,6 @@ static uint64_t mw_mirth_elab_elabZ_defZ_typeZBang (TUP* in_ZPlusMirth_1, uint64
 	*out_ZPlusMirth_3 = v20;
 	return v9;
 }
-static uint64_t mw_mirth_elab_parseZ_tableZ_decl (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, uint64_t *out_Token_5, VAL *out_Maybe_6) {
-	TUP* v7;
-	VAL v8 = mw_mirth_token_Token_doc(in_ZPlusMirth_1, in_Token_2, &v7);
-	TUP* v9;
-	INT v10 = mw_mirth_token_Token_numZ_args(v7, in_Token_2, &v9);
-	INT v11 = WRAP_I63(0LL);
-	bool v12 = int_lt(v11, v10);
-	VAL branch_Maybe_13;
-	uint64_t branch_Token_14;
-	uint64_t branch_Token_15;
-	TUP* branch_ZPlusMirth_16;
-	if (v12) {
-		TUP* v17;
-		uint64_t v18 = mw_mirth_token_Token_next(v9, in_Token_2, &v17);
-		TUP* v19;
-		uint64_t v20 = mw_mirth_token_Token_argsZ_1(v17, in_Token_2, &v19);
-		TUP* v21;
-		VAL v22 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v19, v20, &v21);
-		TUP* v23;
-		uint64_t v24;
-		mw_std_maybe_Maybe_1_else_1_sp12(v21, v20, v22, &v23, &v24);
-		TUP* v25;
-		mw_mirth_token_Token_argsZ_0(v23, v24, &v25);
-		uint64_t v26 = mw_mirth_token_Token_succ(v24);
-		TUP* v27;
-		bool v28 = mw_mirth_token_Token_argZ_endZAsk(v25, v26, &v27);
-		TUP* branch_ZPlusMirth_29;
-		uint64_t branch_Token_30;
-		if (v28) {
-			branch_Token_30 = v24;
-			branch_ZPlusMirth_29 = v27;
-		} else {
-			uint64_t v31 = mw_mirth_token_Token_succ(v24);
-			STR* v32;
-			STRLIT(v32, "expected end of argument after table name", 41);
-			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v27, v31, v32);
-		}
-		branch_ZPlusMirth_16 = branch_ZPlusMirth_29;
-		branch_Token_15 = branch_Token_30;
-		branch_Token_14 = v18;
-		branch_Maybe_13 = v8;
-	} else {
-		uint64_t v34 = mw_mirth_token_Token_succ(in_Token_2);
-		TUP* v35;
-		VAL v36 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v9, v34, &v35);
-		TUP* v37;
-		uint64_t v38;
-		mw_std_maybe_Maybe_1_else_1_sp12(v35, v34, v36, &v37, &v38);
-		TUP* v39;
-		mw_mirth_token_Token_argsZ_0(v37, v38, &v39);
-		uint64_t v40 = mw_mirth_token_Token_succ(v34);
-		branch_ZPlusMirth_16 = v39;
-		branch_Token_15 = v38;
-		branch_Token_14 = v40;
-		branch_Maybe_13 = v8;
-	}
-	*out_Maybe_6 = branch_Maybe_13;
-	*out_Token_5 = branch_Token_15;
-	*out_ZPlusMirth_3 = branch_ZPlusMirth_16;
-	return branch_Token_14;
-}
-static uint64_t mw_mirth_elab_elabZ_tableZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
-	TUP* v5;
-	uint64_t v6;
-	VAL v7;
-	uint64_t v8 = mw_mirth_elab_parseZ_tableZ_decl(in_ZPlusMirth_1, in_Token_2, &v5, &v6, &v7);
-	TUP* v9;
-	uint64_t v10;
-	uint64_t v11;
-	INT v12;
-	VAL v13;
-	mw_mirth_elab_elabZ_defZ_head(v5, v6, &v9, &v10, &v11, &v12, &v13);
-	decref(MKINT(v12));
-	TUP* v14;
-	uint64_t v15 = mw_mirth_elab_tableZ_newZBang(v9, v10, v11, v13, v7, &v14);
-	*out_ZPlusMirth_3 = v14;
-	return v8;
-}
 static TUP* mw_mirth_elab_elabZ_entryZ_point (TUP* in_ZPlusMirth_1, TUP* in_QName_2, TUP* *out_ZPlusMirth_3) {
 	incref(MKTUP(in_QName_2, 3));
 	TUP* v5;
@@ -34774,7 +34778,7 @@ static uint64_t mw_mirth_elab_elabZ_embedZ_strZBang (TUP* in_ZPlusMirth_1, uint6
 }
 static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP* *out_ZPlusMirth_2) {
 	uint64_t v3 = 1ULL;
-	void* v4 = mbuf_mirth_name_Name_Num;
+	void* v4 = mbuf_mirth_name_Name_NumBuffer;
 	uint64_t v5 = *(uint64_t*)v4;
 	bool v6 = (v3 <= v5);
 	TUP* v7 = in_ZPlusMirth_1;
@@ -34831,7 +34835,7 @@ static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP*
 		decref(v16);
 		uint64_t v33 = 1ULL;
 		uint64_t v34 = (v11 + v33);
-		void* v35 = mbuf_mirth_name_Name_Num;
+		void* v35 = mbuf_mirth_name_Name_NumBuffer;
 		uint64_t v36 = *(uint64_t*)v35;
 		bool v37 = (v34 <= v36);
 		v9 = v37;
@@ -34839,7 +34843,7 @@ static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP*
 		v7 = v15;
 	}
 	uint64_t v38 = 1ULL;
-	void* v39 = mbuf_mirth_arrow_Block_Num;
+	void* v39 = mbuf_mirth_arrow_Block_NumBuffer;
 	uint64_t v40 = *(uint64_t*)v39;
 	bool v41 = (v38 <= v40);
 	TUP* v42 = v7;
@@ -34852,7 +34856,7 @@ static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP*
 		mw_mirth_arrow_Block_typecheckZBang(v45, v46, &v47);
 		uint64_t v48 = 1ULL;
 		uint64_t v49 = (v46 + v48);
-		void* v50 = mbuf_mirth_arrow_Block_Num;
+		void* v50 = mbuf_mirth_arrow_Block_NumBuffer;
 		uint64_t v51 = *(uint64_t*)v50;
 		bool v52 = (v49 <= v51);
 		v44 = v52;
@@ -34860,7 +34864,7 @@ static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP*
 		v42 = v47;
 	}
 	uint64_t v53 = 1ULL;
-	void* v54 = mbuf_mirth_external_External_Num;
+	void* v54 = mbuf_mirth_external_External_NumBuffer;
 	uint64_t v55 = *(uint64_t*)v54;
 	bool v56 = (v53 <= v55);
 	TUP* v57 = v42;
@@ -34874,7 +34878,7 @@ static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP*
 		decref(MKTUP(v63, 2));
 		uint64_t v64 = 1ULL;
 		uint64_t v65 = (v61 + v64);
-		void* v66 = mbuf_mirth_external_External_Num;
+		void* v66 = mbuf_mirth_external_External_NumBuffer;
 		uint64_t v67 = *(uint64_t*)v66;
 		bool v68 = (v65 <= v67);
 		v59 = v68;
@@ -34882,720 +34886,6 @@ static void mw_mirth_elab_typecheckZ_everythingZBang (TUP* in_ZPlusMirth_1, TUP*
 		v57 = v62;
 	}
 	*out_ZPlusMirth_2 = v57;
-}
-static TUP* mw_mirth_elab_tableZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, STR* in_Str_3, INT in_Int_4, TUP* *out_ZPlusMirth_5) {
-	TUP* v7;
-	uint64_t v8 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, in_Str_3, &v7);
-	VAL v9 = mtw_mirth_tycon_Tycon_Table(in_Table_2);
-	VAL v10 = mtw_mirth_name_Namespace_Tycon(v9);
-	TUP* v11 = mtw_mirth_name_QName_QName(v10, v8, in_Int_4);
-	*out_ZPlusMirth_5 = v7;
-	return v11;
-}
-static uint64_t mw_mirth_elab_tableZ_wordZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, STR* in_Str_3, INT in_Nat_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6) {
-	TUP* v8;
-	uint64_t v9 = mw_mirth_table_Table_head(in_ZPlusMirth_1, in_Table_2, &v8);
-	VAL v10 = MKI64(0LL /* None */);
-	incref(MKINT(in_Nat_4));
-	incref(MKSTR(in_Str_3));
-	TUP* v11;
-	uint64_t v12 = mw_std_prim_Str_ZToName(v8, in_Str_3, &v11);
-	TUP* v13;
-	TUP* v14 = mw_mirth_elab_tableZ_qname(v11, in_Table_2, in_Str_3, in_Nat_4, &v13);
-	TUP* v15;
-	uint64_t v16 = mw_mirth_word_Word_NewZBang(v13, v9, v10, v9, v12, in_Nat_4, in_Maybe_5, &v15);
-	VAL v17 = mtw_mirth_mirth_PropLabel_WordQName(v16);
-	TUP* v18;
-	TUP* v19 = mw_mirth_mirth_PropLabel_prop(v15, MKTUP(v14, 3), v17, &v18);
-	void* v20 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v16);
-	mut_set(MKTUP(v19, 2), v20);
-	*out_ZPlusMirth_6 = v18;
-	return v16;
-}
-static uint64_t mw_mirth_elab_tableZ_newZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, uint64_t in_Name_3, VAL in_PropState_4, VAL in_Maybe_5, TUP* *out_ZPlusMirth_6) {
-	uint64_t v8 = mw_mirth_table_Table_allocZBang();
-	VAL v9 = mtw_mirth_mirth_PropLabel_TableQName(v8);
-	TUP* v10 = mtw_mirth_mirth_Prop_1_Prop(v9, in_PropState_4);
-	void* v11 = field_mut(&mfld_mirth_table_Table_ZTildeqname, v8);
-	mut_set(MKTUP(v10, 2), v11);
-	void* v12 = field_mut(&mfld_mirth_table_Table_ZTildehead, v8);
-	mut_set(MKU64(in_Token_2), v12);
-	void* v13 = field_mut(&mfld_mirth_table_Table_ZTildename, v8);
-	mut_set(MKU64(in_Name_3), v13);
-	void* v14 = field_mut(&mfld_mirth_table_Table_ZTildedoc, v8);
-	mut_set(in_Maybe_5, v14);
-	VAL v15 = mtw_mirth_def_Def_Table(v8);
-	TUP* v16;
-	mw_mirth_def_Def_register(in_ZPlusMirth_1, v15, &v16);
-	VAL v17 = MKI64(0LL /* None */);
-	STR* v18;
-	STRLIT(v18, "nil", 3);
-	INT v19 = WRAP_I63(0LL);
-	TUP* v20;
-	uint64_t v21 = mw_mirth_elab_tableZ_wordZ_newZBang(v16, v8, v18, v19, v17, &v20);
-	VAL v22 = mw_mirth_var_Ctx_L0();
-	VAL v23 = mw_mirth_type_T0();
-	VAL v24 = mtw_mirth_type_Type_Table(v8);
-	VAL v25 = mw_mirth_type_T1(v24);
-	TUP* v26 = mw_mirth_type_TZ_ZTo(v23, v25);
-	VAL v27 = mtw_mirth_mirth_PropLabel_WordType(v21);
-	TUP* v28;
-	TUP* v29 = mw_mirth_mirth_PropLabel_prop2(v20, v22, MKTUP(v26, 2), v27, &v28);
-	void* v30 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v21);
-	mut_set(MKTUP(v29, 2), v30);
-	TUP* v31;
-	TUP* v32;
-	uint64_t v33;
-	VAL v34;
-	uint64_t v35;
-	VAL v36 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v28, v21, &v31, &v32, &v33, &v34, &v35);
-	VAL v37;
-	VAL v38;
-	mtp_mirth_type_ArrowType_ArrowType(v32, &v37, &v38);
-	incref(v37);
-	VAL v39 = MKI64(0LL /* Nil */);
-	TUP* v40 = mtw_mirth_arrow_Arrow_Arrow(v34, v33, v33, v36, v37, v37, v39);
-	TUP* v41;
-	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v40, in_Token_2, &v41);
-	uint64_t v42 = 0ULL;
-	VAL v43 = mtw_mirth_arrow_PushValue_U64(v42);
-	TUP* v44;
-	TUP* v45;
-	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v31, v41, v43, &v44, &v45);
-	VAL v46 = MKI64(0LL /* Nil */);
-	VAL v47 = mtw_mirth_arrow_Op_TableFromIndex(v8);
-	TUP* v48;
-	TUP* v49;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v44, v45, v46, v47, &v48, &v49);
-	TUP* v50;
-	TUP* v51;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v48, v49, v38, &v50, &v51);
-	TUP* v52;
-	TUP* v53 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v50, v51, v35, &v52);
-	VAL v54 = mtw_mirth_mirth_PropLabel_WordArrow(v21);
-	TUP* v55;
-	TUP* v56 = mw_mirth_mirth_PropLabel_prop(v52, MKTUP(v53, 7), v54, &v55);
-	void* v57 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v21);
-	mut_set(MKTUP(v56, 2), v57);
-	VAL v58 = MKI64(0LL /* None */);
-	STR* v59;
-	STRLIT(v59, "NUM", 3);
-	TUP* v60;
-	uint64_t v61 = mw_std_prim_Str_ZToName(v55, v59, &v60);
-	INT v62 = WRAP_I63(8LL);
-	TUP* v63;
-	uint64_t v64 = mw_mirth_buffer_Buffer_NewZBang(v60, in_Token_2, v62, v61, v58, &v63);
-	void* v65 = field_mut(&mfld_mirth_table_Table_ZTildenumZ_buffer, v8);
-	mut_set(MKU64(v64), v65);
-	STR* v66;
-	STRLIT(v66, "Num", 3);
-	INT v67 = WRAP_I63(0LL);
-	TUP* v68;
-	TUP* v69 = mw_mirth_elab_tableZ_qname(v63, v8, v66, v67, &v68);
-	VAL v70 = mtw_mirth_mirth_PropLabel_BufferQName(v64);
-	TUP* v71;
-	TUP* v72 = mw_mirth_mirth_PropLabel_prop(v68, MKTUP(v69, 3), v70, &v71);
-	void* v73 = field_mut(&mfld_mirth_buffer_Buffer_ZTildeqname, v64);
-	mut_set(MKTUP(v72, 2), v73);
-	VAL v74 = mtw_mirth_def_Def_Buffer(v64);
-	TUP* v75;
-	mw_mirth_def_Def_register(v71, v74, &v75);
-	VAL v76 = MKI64(0LL /* None */);
-	STR* v77;
-	STRLIT(v77, "index", 5);
-	INT v78 = WRAP_I63(0LL);
-	TUP* v79;
-	uint64_t v80 = mw_mirth_elab_tableZ_wordZ_newZBang(v75, v8, v77, v78, v76, &v79);
-	VAL v81 = mw_mirth_var_Ctx_L0();
-	VAL v82 = mtw_mirth_type_Type_Table(v8);
-	VAL v83 = mw_mirth_type_T1(v82);
-	VAL v84 = mw_mirth_type_Type_U64();
-	VAL v85 = mw_mirth_type_T1(v84);
-	TUP* v86 = mw_mirth_type_TZ_ZTo(v83, v85);
-	VAL v87 = mtw_mirth_mirth_PropLabel_WordType(v80);
-	TUP* v88;
-	TUP* v89 = mw_mirth_mirth_PropLabel_prop2(v79, v81, MKTUP(v86, 2), v87, &v88);
-	void* v90 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v80);
-	mut_set(MKTUP(v89, 2), v90);
-	TUP* v91;
-	TUP* v92;
-	uint64_t v93;
-	VAL v94;
-	uint64_t v95;
-	VAL v96 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v88, v80, &v91, &v92, &v93, &v94, &v95);
-	VAL v97;
-	VAL v98;
-	mtp_mirth_type_ArrowType_ArrowType(v92, &v97, &v98);
-	incref(v97);
-	VAL v99 = MKI64(0LL /* Nil */);
-	TUP* v100 = mtw_mirth_arrow_Arrow_Arrow(v94, v93, v93, v96, v97, v97, v99);
-	TUP* v101;
-	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v100, in_Token_2, &v101);
-	VAL v102 = MKI64(0LL /* Nil */);
-	VAL v103 = mtw_mirth_arrow_Op_TableToIndex(v8);
-	TUP* v104;
-	TUP* v105;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v91, v101, v102, v103, &v104, &v105);
-	TUP* v106;
-	TUP* v107;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v104, v105, v98, &v106, &v107);
-	TUP* v108;
-	TUP* v109 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v106, v107, v95, &v108);
-	VAL v110 = mtw_mirth_mirth_PropLabel_WordArrow(v80);
-	TUP* v111;
-	TUP* v112 = mw_mirth_mirth_PropLabel_prop(v108, MKTUP(v109, 7), v110, &v111);
-	void* v113 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v80);
-	mut_set(MKTUP(v112, 2), v113);
-	VAL v114 = MKI64(0LL /* None */);
-	STR* v115;
-	STRLIT(v115, "from-index", 10);
-	INT v116 = WRAP_I63(0LL);
-	TUP* v117;
-	uint64_t v118 = mw_mirth_elab_tableZ_wordZ_newZBang(v111, v8, v115, v116, v114, &v117);
-	VAL v119 = mw_mirth_var_Ctx_L0();
-	VAL v120 = mw_mirth_type_Type_U64();
-	VAL v121 = mw_mirth_type_T1(v120);
-	VAL v122 = mtw_mirth_type_Type_Table(v8);
-	VAL v123 = mw_mirth_type_T1(v122);
-	TUP* v124 = mw_mirth_type_TZ_ZTo(v121, v123);
-	VAL v125 = mtw_mirth_mirth_PropLabel_WordType(v118);
-	TUP* v126;
-	TUP* v127 = mw_mirth_mirth_PropLabel_prop2(v117, v119, MKTUP(v124, 2), v125, &v126);
-	void* v128 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v118);
-	mut_set(MKTUP(v127, 2), v128);
-	TUP* v129;
-	TUP* v130;
-	uint64_t v131;
-	VAL v132;
-	uint64_t v133;
-	VAL v134 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v126, v118, &v129, &v130, &v131, &v132, &v133);
-	VAL v135;
-	VAL v136;
-	mtp_mirth_type_ArrowType_ArrowType(v130, &v135, &v136);
-	incref(v135);
-	VAL v137 = MKI64(0LL /* Nil */);
-	TUP* v138 = mtw_mirth_arrow_Arrow_Arrow(v132, v131, v131, v134, v135, v135, v137);
-	TUP* v139;
-	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v138, in_Token_2, &v139);
-	VAL v140 = MKI64(0LL /* Nil */);
-	VAL v141 = mtw_mirth_arrow_Op_TableFromIndex(v8);
-	TUP* v142;
-	TUP* v143;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v129, v139, v140, v141, &v142, &v143);
-	TUP* v144;
-	TUP* v145;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v142, v143, v136, &v144, &v145);
-	TUP* v146;
-	TUP* v147 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v144, v145, v133, &v146);
-	VAL v148 = mtw_mirth_mirth_PropLabel_WordArrow(v118);
-	TUP* v149;
-	TUP* v150 = mw_mirth_mirth_PropLabel_prop(v146, MKTUP(v147, 7), v148, &v149);
-	void* v151 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v118);
-	mut_set(MKTUP(v150, 2), v151);
-	VAL v152 = MKI64(0LL /* None */);
-	STR* v153;
-	STRLIT(v153, "succ", 4);
-	INT v154 = WRAP_I63(0LL);
-	TUP* v155;
-	uint64_t v156 = mw_mirth_elab_tableZ_wordZ_newZBang(v149, v8, v153, v154, v152, &v155);
-	VAL v157 = mw_mirth_var_Ctx_L0();
-	VAL v158 = mtw_mirth_type_Type_Table(v8);
-	VAL v159 = mw_mirth_type_T1(v158);
-	incref(v159);
-	TUP* v160 = mw_mirth_type_TZ_ZTo(v159, v159);
-	VAL v161 = mtw_mirth_mirth_PropLabel_WordType(v156);
-	TUP* v162;
-	TUP* v163 = mw_mirth_mirth_PropLabel_prop2(v155, v157, MKTUP(v160, 2), v161, &v162);
-	void* v164 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v156);
-	mut_set(MKTUP(v163, 2), v164);
-	TUP* v165;
-	TUP* v166;
-	uint64_t v167;
-	VAL v168;
-	uint64_t v169;
-	VAL v170 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v162, v156, &v165, &v166, &v167, &v168, &v169);
-	VAL v171;
-	VAL v172;
-	mtp_mirth_type_ArrowType_ArrowType(v166, &v171, &v172);
-	incref(v171);
-	VAL v173 = MKI64(0LL /* Nil */);
-	TUP* v174 = mtw_mirth_arrow_Arrow_Arrow(v168, v167, v167, v170, v171, v171, v173);
-	TUP* v175;
-	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v174, in_Token_2, &v175);
-	VAL v176 = MKI64(0LL /* Nil */);
-	VAL v177 = mtw_mirth_arrow_Op_TableToIndex(v8);
-	TUP* v178;
-	TUP* v179;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v165, v175, v176, v177, &v178, &v179);
-	uint64_t v180 = 1ULL;
-	VAL v181 = mtw_mirth_arrow_PushValue_U64(v180);
-	TUP* v182;
-	TUP* v183;
-	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v178, v179, v181, &v182, &v183);
-	VAL v184 = MKI64(0LL /* Nil */);
-	int64_t v185 = 44LL /* U64Add */;
-	TUP* v186;
-	TUP* v187;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v182, v183, v184, v185, &v186, &v187);
-	VAL v188 = MKI64(0LL /* Nil */);
-	VAL v189 = mtw_mirth_arrow_Op_TableFromIndex(v8);
-	TUP* v190;
-	TUP* v191;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v186, v187, v188, v189, &v190, &v191);
-	TUP* v192;
-	TUP* v193;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v190, v191, v172, &v192, &v193);
-	TUP* v194;
-	TUP* v195 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v192, v193, v169, &v194);
-	VAL v196 = mtw_mirth_mirth_PropLabel_WordArrow(v156);
-	TUP* v197;
-	TUP* v198 = mw_mirth_mirth_PropLabel_prop(v194, MKTUP(v195, 7), v196, &v197);
-	void* v199 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v156);
-	mut_set(MKTUP(v198, 2), v199);
-	VAL v200 = MKI64(0LL /* None */);
-	STR* v201;
-	STRLIT(v201, "pred", 4);
-	INT v202 = WRAP_I63(0LL);
-	TUP* v203;
-	uint64_t v204 = mw_mirth_elab_tableZ_wordZ_newZBang(v197, v8, v201, v202, v200, &v203);
-	VAL v205 = mw_mirth_var_Ctx_L0();
-	VAL v206 = mtw_mirth_type_Type_Table(v8);
-	VAL v207 = mw_mirth_type_T1(v206);
-	incref(v207);
-	TUP* v208 = mw_mirth_type_TZ_ZTo(v207, v207);
-	VAL v209 = mtw_mirth_mirth_PropLabel_WordType(v204);
-	TUP* v210;
-	TUP* v211 = mw_mirth_mirth_PropLabel_prop2(v203, v205, MKTUP(v208, 2), v209, &v210);
-	void* v212 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v204);
-	mut_set(MKTUP(v211, 2), v212);
-	TUP* v213;
-	TUP* v214;
-	uint64_t v215;
-	VAL v216;
-	uint64_t v217;
-	VAL v218 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v210, v204, &v213, &v214, &v215, &v216, &v217);
-	VAL v219;
-	VAL v220;
-	mtp_mirth_type_ArrowType_ArrowType(v214, &v219, &v220);
-	incref(v219);
-	VAL v221 = MKI64(0LL /* Nil */);
-	TUP* v222 = mtw_mirth_arrow_Arrow_Arrow(v216, v215, v215, v218, v219, v219, v221);
-	TUP* v223;
-	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v222, in_Token_2, &v223);
-	VAL v224 = MKI64(0LL /* Nil */);
-	VAL v225 = mtw_mirth_arrow_Op_TableToIndex(v8);
-	TUP* v226;
-	TUP* v227;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v213, v223, v224, v225, &v226, &v227);
-	VAL v228 = MKI64(0LL /* Nil */);
-	int64_t v229 = 1LL /* Dup */;
-	TUP* v230;
-	TUP* v231;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v226, v227, v228, v229, &v230, &v231);
-	uint64_t v232 = 0ULL;
-	VAL v233 = mtw_mirth_arrow_PushValue_U64(v232);
-	TUP* v234;
-	TUP* v235;
-	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v230, v231, v233, &v234, &v235);
-	VAL v236 = MKI64(0LL /* Nil */);
-	int64_t v237 = 38LL /* U64Eq */;
-	TUP* v238;
-	TUP* v239;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v234, v235, v236, v237, &v238, &v239);
-	TUP* v240;
-	VAL v241 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v239, &v240);
-	TUP* v242;
-	VAL v243 = mw_mirth_type_StackType_forceZ_consZAskZBang(v238, v241, &v242);
-	VAL v244 = mw_std_maybe_Maybe_1_ifZAsk_2_sp49(v243);
-	TUP* v245;
-	VAL v246 = mw_mirth_type_StackType_FreshZBang(v242, &v245);
-	TUP* v247 = mw_mirth_type_TZ_ZTo(v244, v246);
-	incref(MKTUP(v247, 2));
-	TUP* v248;
-	VAL v249 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v240, &v248);
-	TUP* v250;
-	uint64_t v251 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v248, &v250);
-	TUP* v252;
-	VAL v253 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v250, &v252);
-	VAL v254;
-	VAL v255;
-	mtp_mirth_type_ArrowType_ArrowType(v247, &v254, &v255);
-	incref(v254);
-	VAL v256 = MKI64(0LL /* Nil */);
-	TUP* v257 = mtw_mirth_arrow_Arrow_Arrow(v253, v251, v251, v249, v254, v254, v256);
-	TUP* v258;
-	TUP* v259;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v245, v257, v255, &v258, &v259);
-	TUP* v260;
-	uint64_t v261 = mw_mirth_arrow_Block_newZBang(v258, v259, &v260);
-	TUP* v262;
-	VAL v263 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v252, &v262);
-	TUP* v264;
-	uint64_t v265 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v262, &v264);
-	TUP* v266;
-	VAL v267 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v264, &v266);
-	VAL v268;
-	VAL v269;
-	mtp_mirth_type_ArrowType_ArrowType(v247, &v268, &v269);
-	incref(v268);
-	VAL v270 = MKI64(0LL /* Nil */);
-	TUP* v271 = mtw_mirth_arrow_Arrow_Arrow(v267, v265, v265, v263, v268, v268, v270);
-	uint64_t v272 = 1ULL;
-	VAL v273 = mtw_mirth_arrow_PushValue_U64(v272);
-	TUP* v274;
-	TUP* v275;
-	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v260, v271, v273, &v274, &v275);
-	VAL v276 = MKI64(0LL /* Nil */);
-	int64_t v277 = 45LL /* U64Sub */;
-	TUP* v278;
-	TUP* v279;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v274, v275, v276, v277, &v278, &v279);
-	TUP* v280;
-	TUP* v281;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v278, v279, v269, &v280, &v281);
-	TUP* v282;
-	uint64_t v283 = mw_mirth_arrow_Block_newZBang(v280, v281, &v282);
-	VAL v284 = MKI64(0LL /* Nil */);
-	VAL v285 = mw_std_list_List_1_cons(MKU64(v283), v284);
-	VAL v286 = mw_std_list_List_1_cons(MKU64(v261), v285);
-	int64_t v287 = 7LL /* If */;
-	TUP* v288;
-	TUP* v289;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v282, v266, v286, v287, &v288, &v289);
-	VAL v290 = MKI64(0LL /* Nil */);
-	VAL v291 = mtw_mirth_arrow_Op_TableFromIndex(v8);
-	TUP* v292;
-	TUP* v293;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v288, v289, v290, v291, &v292, &v293);
-	TUP* v294;
-	TUP* v295;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v292, v293, v220, &v294, &v295);
-	TUP* v296;
-	TUP* v297 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v294, v295, v217, &v296);
-	VAL v298 = mtw_mirth_mirth_PropLabel_WordArrow(v204);
-	TUP* v299;
-	TUP* v300 = mw_mirth_mirth_PropLabel_prop(v296, MKTUP(v297, 7), v298, &v299);
-	void* v301 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v204);
-	mut_set(MKTUP(v300, 2), v301);
-	VAL v302 = MKI64(0LL /* None */);
-	STR* v303;
-	STRLIT(v303, "for", 3);
-	INT v304 = WRAP_I63(1LL);
-	TUP* v305;
-	uint64_t v306 = mw_mirth_elab_tableZ_wordZ_newZBang(v299, v8, v303, v304, v302, &v305);
-	VAL v307 = mw_mirth_type_Type_STACK();
-	STR* v308;
-	STRLIT(v308, "*a", 2);
-	TUP* v309;
-	uint64_t v310 = mw_std_prim_Str_ZToName(v305, v308, &v309);
-	TUP* v311;
-	uint64_t v312 = mw_mirth_var_Var_NewZBang(v309, v307, v310, &v311);
-	VAL v313 = mtw_mirth_type_StackType_Var(v312);
-	VAL v314 = mtw_mirth_type_Type_Table(v8);
-	VAL v315 = mw_mirth_type_TZMul(v313, v314);
-	VAL v316 = mtw_mirth_type_StackType_Var(v312);
-	TUP* v317 = mw_mirth_type_TZ_ZTo(v315, v316);
-	STR* v318;
-	STRLIT(v318, "f", 1);
-	TUP* v319;
-	uint64_t v320 = mw_std_prim_Str_ZToName(v311, v318, &v319);
-	TUP* v321;
-	uint64_t v322 = mw_mirth_var_Var_NewAutoRunZBang(v319, v317, v320, &v321);
-	VAL v323 = mw_mirth_var_Ctx_L1(v312);
-	VAL v324 = mtw_mirth_type_StackType_Var(v312);
-	TUP* v325;
-	VAL v326 = mw_mirth_var_Var_type(v321, v322, &v325);
-	VAL v327 = mw_mirth_type_TZMul(v324, v326);
-	VAL v328 = mtw_mirth_type_StackType_Var(v312);
-	TUP* v329 = mw_mirth_type_TZ_ZTo(v327, v328);
-	VAL v330 = mtw_mirth_mirth_PropLabel_WordType(v306);
-	TUP* v331;
-	TUP* v332 = mw_mirth_mirth_PropLabel_prop2(v325, v323, MKTUP(v329, 2), v330, &v331);
-	void* v333 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v306);
-	mut_set(MKTUP(v332, 2), v333);
-	VAL v334 = MKI64(0LL /* None */);
-	TUP* v335 = mtw_mirth_word_Param_Param(v322, v334);
-	VAL v336 = MKI64(0LL /* Nil */);
-	VAL v337 = mw_std_list_List_1_cons(MKTUP(v335, 2), v336);
-	VAL v338 = mtw_mirth_mirth_PropLabel_WordParams(v306);
-	TUP* v339;
-	TUP* v340 = mw_mirth_mirth_PropLabel_prop(v331, v337, v338, &v339);
-	void* v341 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v306);
-	mut_set(MKTUP(v340, 2), v341);
-	TUP* v342;
-	mw_mirth_word_Word_makeZ_inlineZBang(v339, v306, &v342);
-	TUP* v343;
-	TUP* v344;
-	uint64_t v345;
-	VAL v346;
-	uint64_t v347;
-	VAL v348 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v342, v306, &v343, &v344, &v345, &v346, &v347);
-	VAL v349;
-	VAL v350;
-	mtp_mirth_type_ArrowType_ArrowType(v344, &v349, &v350);
-	incref(v349);
-	VAL v351 = MKI64(0LL /* Nil */);
-	TUP* v352 = mtw_mirth_arrow_Arrow_Arrow(v346, v345, v345, v348, v349, v349, v351);
-	TUP* v353;
-	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v352, in_Token_2, &v353);
-	VAL v354 = MKI64(0LL /* Nil */);
-	VAL v355 = mw_std_list_List_1_cons(MKU64(v322), v354);
-	VAL v356 = mtw_mirth_type_StackType_Var(v312);
-	TUP* v357;
-	uint64_t v358 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v353, &v357);
-	incref(v355);
-	TUP* v359;
-	VAL v360 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v357, &v359);
-	TUP* v361;
-	VAL v362 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v359, &v361);
-	TUP* v363;
-	TUP* v364;
-	VAL v365;
-	VAL v366 = mw_std_list_List_1_reverseZ_for_1_sp10(v343, v361, v360, v362, v355, &v363, &v364, &v365);
-	TUP* v367 = mw_mirth_type_TZ_ZTo(v365, v356);
-	TUP* v368;
-	VAL v369 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v364, &v368);
-	VAL v370;
-	VAL v371;
-	mtp_mirth_type_ArrowType_ArrowType(v367, &v370, &v371);
-	incref(v370);
-	VAL v372 = MKI64(0LL /* Nil */);
-	TUP* v373 = mtw_mirth_arrow_Arrow_Arrow(v369, v358, v358, v366, v370, v370, v372);
-	uint64_t v374 = 1ULL;
-	VAL v375 = mtw_mirth_arrow_PushValue_U64(v374);
-	TUP* v376;
-	TUP* v377;
-	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v363, v373, v375, &v376, &v377);
-	TUP* v378;
-	VAL v379 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v377, &v378);
-	incref(v379);
-	incref(v379);
-	VAL v380 = mw_mirth_type_Type_Bool();
-	VAL v381 = mw_mirth_type_TZMul(v379, v380);
-	TUP* v382 = mw_mirth_type_TZ_ZTo(v379, v381);
-	TUP* v383;
-	VAL v384 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v378, &v383);
-	TUP* v385;
-	uint64_t v386 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v383, &v385);
-	TUP* v387;
-	VAL v388 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v385, &v387);
-	VAL v389;
-	VAL v390;
-	mtp_mirth_type_ArrowType_ArrowType(v382, &v389, &v390);
-	incref(v389);
-	VAL v391 = MKI64(0LL /* Nil */);
-	TUP* v392 = mtw_mirth_arrow_Arrow_Arrow(v388, v386, v386, v384, v389, v389, v391);
-	VAL v393 = MKI64(0LL /* Nil */);
-	int64_t v394 = 1LL /* Dup */;
-	TUP* v395;
-	TUP* v396;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v376, v392, v393, v394, &v395, &v396);
-	TUP* v397;
-	TUP* v398;
-	mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v395, v396, v64, &v397, &v398);
-	VAL v399 = MKI64(0LL /* Nil */);
-	int64_t v400 = 36LL /* U64Get */;
-	TUP* v401;
-	TUP* v402;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v397, v398, v399, v400, &v401, &v402);
-	VAL v403 = MKI64(0LL /* Nil */);
-	int64_t v404 = 40LL /* U64Le */;
-	TUP* v405;
-	TUP* v406;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v401, v402, v403, v404, &v405, &v406);
-	TUP* v407;
-	TUP* v408;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v405, v406, v390, &v407, &v408);
-	TUP* v409;
-	uint64_t v410 = mw_mirth_arrow_Block_newZBang(v407, v408, &v409);
-	incref(v379);
-	TUP* v411 = mw_mirth_type_TZ_ZTo(v379, v379);
-	TUP* v412;
-	VAL v413 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v387, &v412);
-	TUP* v414;
-	uint64_t v415 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v412, &v414);
-	TUP* v416;
-	VAL v417 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v414, &v416);
-	VAL v418;
-	VAL v419;
-	mtp_mirth_type_ArrowType_ArrowType(v411, &v418, &v419);
-	incref(v418);
-	VAL v420 = MKI64(0LL /* Nil */);
-	TUP* v421 = mtw_mirth_arrow_Arrow_Arrow(v417, v415, v415, v413, v418, v418, v420);
-	VAL v422 = MKI64(0LL /* Nil */);
-	int64_t v423 = 1LL /* Dup */;
-	TUP* v424;
-	TUP* v425;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v409, v421, v422, v423, &v424, &v425);
-	TUP* v426;
-	VAL v427 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v425, &v426);
-	TUP* v428;
-	VAL v429 = mw_mirth_type_StackType_forceZ_consZAskZBang(v424, v427, &v428);
-	VAL v430 = mw_std_maybe_Maybe_1_ifZAsk_2_sp49(v429);
-	TUP* v431;
-	VAL v432 = mw_mirth_type_StackType_FreshZBang(v428, &v431);
-	TUP* v433 = mw_mirth_type_TZ_ZTo(v430, v432);
-	TUP* v434;
-	VAL v435 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v426, &v434);
-	TUP* v436;
-	uint64_t v437 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v434, &v436);
-	TUP* v438;
-	VAL v439 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v436, &v438);
-	VAL v440;
-	VAL v441;
-	mtp_mirth_type_ArrowType_ArrowType(v433, &v440, &v441);
-	incref(v440);
-	VAL v442 = MKI64(0LL /* Nil */);
-	TUP* v443 = mtw_mirth_arrow_Arrow_Arrow(v439, v437, v437, v435, v440, v440, v442);
-	VAL v444 = MKI64(0LL /* Nil */);
-	VAL v445 = mtw_mirth_arrow_Op_TableFromIndex(v8);
-	TUP* v446;
-	TUP* v447;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v431, v443, v444, v445, &v446, &v447);
-	TUP* v448;
-	TUP* v449;
-	mw_mirth_elab_ZPlusAB_abZ_varZBang(v446, v447, v322, &v448, &v449);
-	TUP* v450;
-	TUP* v451;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v448, v449, v441, &v450, &v451);
-	TUP* v452;
-	uint64_t v453 = mw_mirth_arrow_Block_newZBang(v450, v451, &v452);
-	VAL v454 = MKI64(0LL /* Nil */);
-	VAL v455 = mw_std_list_List_1_cons(MKU64(v453), v454);
-	int64_t v456 = 5LL /* Dip */;
-	TUP* v457;
-	TUP* v458;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v452, v438, v455, v456, &v457, &v458);
-	uint64_t v459 = 1ULL;
-	VAL v460 = mtw_mirth_arrow_PushValue_U64(v459);
-	TUP* v461;
-	TUP* v462;
-	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v457, v458, v460, &v461, &v462);
-	VAL v463 = MKI64(0LL /* Nil */);
-	int64_t v464 = 44LL /* U64Add */;
-	TUP* v465;
-	TUP* v466;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v461, v462, v463, v464, &v465, &v466);
-	TUP* v467;
-	TUP* v468;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v465, v466, v419, &v467, &v468);
-	TUP* v469;
-	uint64_t v470 = mw_mirth_arrow_Block_newZBang(v467, v468, &v469);
-	VAL v471 = MKI64(0LL /* Nil */);
-	VAL v472 = mw_std_list_List_1_cons(MKU64(v470), v471);
-	VAL v473 = mw_std_list_List_1_cons(MKU64(v410), v472);
-	int64_t v474 = 8LL /* While */;
-	TUP* v475;
-	TUP* v476;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v469, v416, v473, v474, &v475, &v476);
-	VAL v477 = MKI64(0LL /* Nil */);
-	int64_t v478 = 2LL /* Drop */;
-	TUP* v479;
-	TUP* v480;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v475, v476, v477, v478, &v479, &v480);
-	TUP* v481;
-	TUP* v482;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v479, v480, v371, &v481, &v482);
-	TUP* v483;
-	VAL v484 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v368, &v483);
-	TUP* v485;
-	VAL v486 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v483, &v485);
-	TUP* v487;
-	uint64_t v488 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v485, &v487);
-	TUP* v489 = mtw_mirth_arrow_Lambda_Lambda(v488, v484, v486, v355, v482);
-	VAL v490 = mtw_mirth_arrow_Op_Lambda(v489);
-	VAL v491 = MKI64(0LL /* Nil */);
-	TUP* v492;
-	TUP* v493;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v481, v487, v491, v490, &v492, &v493);
-	TUP* v494;
-	TUP* v495;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v492, v493, v350, &v494, &v495);
-	TUP* v496;
-	TUP* v497 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v494, v495, v347, &v496);
-	VAL v498 = mtw_mirth_mirth_PropLabel_WordArrow(v306);
-	TUP* v499;
-	TUP* v500 = mw_mirth_mirth_PropLabel_prop(v496, MKTUP(v497, 7), v498, &v499);
-	void* v501 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v306);
-	mut_set(MKTUP(v500, 2), v501);
-	VAL v502 = MKI64(0LL /* None */);
-	STR* v503;
-	STRLIT(v503, "alloc!", 6);
-	INT v504 = WRAP_I63(0LL);
-	TUP* v505;
-	uint64_t v506 = mw_mirth_elab_tableZ_wordZ_newZBang(v499, v8, v503, v504, v502, &v505);
-	VAL v507 = mw_mirth_var_Ctx_L0();
-	VAL v508 = mw_mirth_type_T0();
-	VAL v509 = mtw_mirth_type_Type_Table(v8);
-	VAL v510 = mw_mirth_type_T1(v509);
-	TUP* v511 = mw_mirth_type_TZ_ZTo(v508, v510);
-	VAL v512 = mtw_mirth_mirth_PropLabel_WordType(v506);
-	TUP* v513;
-	TUP* v514 = mw_mirth_mirth_PropLabel_prop2(v505, v507, MKTUP(v511, 2), v512, &v513);
-	void* v515 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v506);
-	mut_set(MKTUP(v514, 2), v515);
-	TUP* v516;
-	TUP* v517;
-	uint64_t v518;
-	VAL v519;
-	uint64_t v520;
-	VAL v521 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v513, v506, &v516, &v517, &v518, &v519, &v520);
-	VAL v522;
-	VAL v523;
-	mtp_mirth_type_ArrowType_ArrowType(v517, &v522, &v523);
-	incref(v522);
-	VAL v524 = MKI64(0LL /* Nil */);
-	TUP* v525 = mtw_mirth_arrow_Arrow_Arrow(v519, v518, v518, v521, v522, v522, v524);
-	TUP* v526;
-	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v525, in_Token_2, &v526);
-	TUP* v527;
-	TUP* v528;
-	mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v516, v526, v64, &v527, &v528);
-	VAL v529 = MKI64(0LL /* Nil */);
-	int64_t v530 = 36LL /* U64Get */;
-	TUP* v531;
-	TUP* v532;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v527, v528, v529, v530, &v531, &v532);
-	uint64_t v533 = 1ULL;
-	VAL v534 = mtw_mirth_arrow_PushValue_U64(v533);
-	TUP* v535;
-	TUP* v536;
-	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v531, v532, v534, &v535, &v536);
-	VAL v537 = MKI64(0LL /* Nil */);
-	int64_t v538 = 44LL /* U64Add */;
-	TUP* v539;
-	TUP* v540;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v535, v536, v537, v538, &v539, &v540);
-	VAL v541 = MKI64(0LL /* Nil */);
-	int64_t v542 = 1LL /* Dup */;
-	TUP* v543;
-	TUP* v544;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v539, v540, v541, v542, &v543, &v544);
-	TUP* v545;
-	TUP* v546;
-	mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v543, v544, v64, &v545, &v546);
-	VAL v547 = MKI64(0LL /* Nil */);
-	int64_t v548 = 37LL /* U64Set */;
-	TUP* v549;
-	TUP* v550;
-	mw_mirth_elab_ZPlusAB_abZ_primZBang(v545, v546, v547, v548, &v549, &v550);
-	VAL v551 = MKI64(0LL /* Nil */);
-	VAL v552 = mtw_mirth_arrow_Op_TableFromIndex(v8);
-	TUP* v553;
-	TUP* v554;
-	mw_mirth_elab_ZPlusAB_abZ_opZBang(v549, v550, v551, v552, &v553, &v554);
-	TUP* v555;
-	TUP* v556;
-	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v553, v554, v523, &v555, &v556);
-	TUP* v557;
-	TUP* v558 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v555, v556, v520, &v557);
-	VAL v559 = mtw_mirth_mirth_PropLabel_WordArrow(v506);
-	TUP* v560;
-	TUP* v561 = mw_mirth_mirth_PropLabel_prop(v557, MKTUP(v558, 7), v559, &v560);
-	void* v562 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v506);
-	mut_set(MKTUP(v561, 2), v562);
-	*out_ZPlusMirth_6 = v560;
-	return v8;
 }
 static VAL mw_mirth_elab_resolveZ_defZ_namespace (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Either_3, bool in_Bool_4, TUP* *out_ZPlusMirth_5) {
 	STR* v7;
@@ -36091,110 +35381,17 @@ static void mw_mirth_elab_elabZ_defZ_head (TUP* in_ZPlusMirth_1, uint64_t in_Tok
 	*out_Token_4 = branch_Token_11;
 	*out_ZPlusMirth_3 = v22;
 }
-static uint64_t mw_mirth_elab_parseZ_field (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5, uint64_t *out_Token_6, uint64_t *out_Token_7, uint64_t *out_Token_8) {
-	TUP* v9;
-	VAL v10 = mw_mirth_token_Token_doc(in_ZPlusMirth_1, in_Token_2, &v9);
-	TUP* v11;
-	uint64_t v12 = mw_mirth_token_Token_next(v9, in_Token_2, &v11);
-	TUP* v13;
-	uint64_t v14;
-	uint64_t v15;
-	uint64_t v16 = mw_mirth_token_Token_argsZ_3(v11, in_Token_2, &v13, &v14, &v15);
-	TUP* v17;
-	VAL v18 = mw_mirth_token_Token_nameZDivdnameZAsk(v13, v16, &v17);
-	int64_t v19 = get_data_tag(v18);
-	decref(v18);
-	INT v20 = WRAP_I63(0LL);
-	INT v21 = i64_to_int(v19);
-	bool v22 = int_eq(v21, v20);
-	bool v23 = !v22;
-	TUP* branch_ZPlusMirth_24;
-	uint64_t branch_Token_25;
-	if (v23) {
-		branch_Token_25 = v16;
-		branch_ZPlusMirth_24 = v17;
-	} else {
-		STR* v26;
-		STRLIT(v26, "expected field name", 19);
-		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v17, v16, v26);
-	}
-	TUP* v28;
-	mw_mirth_token_Token_argsZ_0(branch_ZPlusMirth_24, branch_Token_25, &v28);
-	*out_Token_8 = v15;
-	*out_Token_7 = v14;
-	*out_Token_6 = branch_Token_25;
-	*out_Maybe_5 = v10;
-	*out_ZPlusMirth_3 = v28;
-	return v12;
-}
-static uint64_t mw_mirth_elab_elabZ_fieldZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
-	TUP* v5;
-	VAL v6;
-	uint64_t v7;
-	uint64_t v8;
-	uint64_t v9;
-	uint64_t v10 = mw_mirth_elab_parseZ_field(in_ZPlusMirth_1, in_Token_2, &v5, &v6, &v7, &v8, &v9);
-	TUP* v11;
-	uint64_t v12;
-	uint64_t v13;
-	INT v14;
-	VAL v15;
-	mw_mirth_elab_elabZ_defZ_head(v5, v7, &v11, &v12, &v13, &v14, &v15);
-	uint64_t v16 = mw_mirth_table_Field_allocZBang();
-	void* v17 = field_mut(&mfld_mirth_table_Field_ZTildedoc, v16);
-	mut_set(v6, v17);
-	void* v18 = field_mut(&mfld_mirth_table_Field_ZTildename, v16);
-	mut_set(MKU64(v13), v18);
-	void* v19 = field_mut(&mfld_mirth_table_Field_ZTildehead, v16);
-	mut_set(MKU64(v12), v19);
-	INT v20 = WRAP_I63(0LL);
-	bool v21 = int_eq(v14, v20);
-	TUP* branch_ZPlusMirth_22;
-	uint64_t branch_Field_23;
-	if (v21) {
-		branch_Field_23 = v16;
-		branch_ZPlusMirth_22 = v11;
-	} else {
-		TUP* v24;
-		uint64_t v25 = mw_mirth_table_Field_head(v11, v16, &v24);
-		STR* v26;
-		STRLIT(v26, "Field cannot take arguments.", 28);
-		TUP* v27;
-		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v24, v25, v26, &v27);
-		branch_Field_23 = v16;
-		branch_ZPlusMirth_22 = v27;
-	}
-	VAL v28 = mtw_mirth_mirth_PropLabel_FieldQName(branch_Field_23);
-	TUP* v29 = mtw_mirth_mirth_Prop_1_Prop(v28, v15);
-	void* v30 = field_mut(&mfld_mirth_table_Field_ZTildeqname, branch_Field_23);
-	mut_set(MKTUP(v29, 2), v30);
-	VAL v31 = mtw_mirth_mirth_PropLabel_FieldIndexType(branch_Field_23);
-	TUP* v32;
-	TUP* v33 = mw_mirth_mirth_PropLabel_prop_1_sp16(v8, branch_ZPlusMirth_22, v31, &v32);
-	void* v34 = field_mut(&mfld_mirth_table_Field_ZTildeindexZ_type, branch_Field_23);
-	mut_set(MKTUP(v33, 2), v34);
-	VAL v35 = mtw_mirth_mirth_PropLabel_FieldValueType(branch_Field_23);
-	TUP* v36;
-	TUP* v37 = mw_mirth_mirth_PropLabel_prop_1_sp16(v9, v32, v35, &v36);
-	void* v38 = field_mut(&mfld_mirth_table_Field_ZTildevalueZ_type, branch_Field_23);
-	mut_set(MKTUP(v37, 2), v38);
-	VAL v39 = mtw_mirth_def_Def_Field(branch_Field_23);
-	TUP* v40;
-	mw_mirth_def_Def_register(v36, v39, &v40);
-	*out_ZPlusMirth_3 = v40;
-	return v10;
-}
-static uint64_t mw_mirth_buffer_Buffer_index (uint64_t in_Buffer_1) {
-	return in_Buffer_1;
-}
 static uint64_t mw_mirth_buffer_Buffer_allocZBang (void) {
-	void* v2 = mbuf_mirth_buffer_Buffer_Num;
+	void* v2 = mbuf_mirth_buffer_Buffer_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_buffer_Buffer_Num;
+	void* v6 = mbuf_mirth_buffer_Buffer_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_buffer_Buffer_index (uint64_t in_Buffer_1) {
+	return in_Buffer_1;
 }
 static uint64_t mw_mirth_buffer_Buffer_head (TUP* in_ZPlusMirth_1, uint64_t in_Buffer_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_buffer_Buffer_ZTildehead, in_Buffer_2);
@@ -36391,17 +35588,201 @@ static uint64_t mw_mirth_buffer_elabZ_bufferZBang (TUP* in_ZPlusMirth_1, uint64_
 	*out_ZPlusMirth_3 = v21;
 	return v9;
 }
-static uint64_t mw_mirth_table_Table_index (uint64_t in_Table_1) {
-	return in_Table_1;
+static VAL mw_mirth_table_StateOwner_ctx (TUP* in_ZPlusMirth_1, VAL in_StateOwner_2, TUP* *out_ZPlusMirth_3) {
+	TUP* branch_ZPlusMirth_5;
+	VAL branch_Ctx_6;
+	switch (get_data_tag(in_StateOwner_2)) {
+		case 0LL: { // Error
+			VAL v7 = mw_mirth_var_Ctx_L0();
+			branch_Ctx_6 = v7;
+			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+		} break;
+		case 1LL: { // Default
+			VAL v8 = mw_mirth_var_Ctx_L0();
+			branch_Ctx_6 = v8;
+			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+		} break;
+		case 2LL: { // Resource
+			VAL v9;
+			VAL v10 = mtp_mirth_table_StateOwner_Resource(in_StateOwner_2, &v9);
+			decref(v9);
+			branch_Ctx_6 = v10;
+			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
+	return branch_Ctx_6;
+}
+static VAL mw_mirth_table_StateOwner_push (TUP* in_ZPlusMirth_1, VAL in_StackType_2, VAL in_StateOwner_3, TUP* *out_ZPlusMirth_4) {
+	TUP* branch_ZPlusMirth_6;
+	VAL branch_StackType_7;
+	switch (get_data_tag(in_StateOwner_3)) {
+		case 0LL: { // Error
+			decref(in_StackType_2);
+			VAL v8 = MKI64(0LL /* Error */);
+			branch_StackType_7 = v8;
+			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
+		} break;
+		case 1LL: { // Default
+			branch_StackType_7 = in_StackType_2;
+			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
+		} break;
+		case 2LL: { // Resource
+			VAL v9;
+			VAL v10 = mtp_mirth_table_StateOwner_Resource(in_StateOwner_3, &v9);
+			decref(v10);
+			VAL v11 = mw_mirth_type_TZPlus(in_StackType_2, v9);
+			branch_StackType_7 = v11;
+			branch_ZPlusMirth_6 = in_ZPlusMirth_1;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusMirth_4 = branch_ZPlusMirth_6;
+	return branch_StackType_7;
+}
+static uint64_t mw_mirth_mirth_ZPlusMirth_parseZ_owner (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5) {
+	TUP* v6;
+	VAL v7 = mw_mirth_token_Token_nameZDivdnameZAsk(in_ZPlusMirth_1, in_Token_2, &v6);
+	int64_t v8 = get_data_tag(v7);
+	decref(v7);
+	INT v9 = WRAP_I63(0LL);
+	INT v10 = i64_to_int(v8);
+	bool v11 = int_eq(v10, v9);
+	bool v12 = !v11;
+	uint64_t branch_Token_13;
+	TUP* branch_ZPlusMirth_14;
+	bool branch_Bool_15;
+	if (v12) {
+		TUP* v16;
+		uint64_t v17 = mw_mirth_token_Token_next(v6, in_Token_2, &v16);
+		TUP* v18;
+		bool v19 = mw_mirth_token_Token_vdashZAsk(v16, v17, &v18);
+		branch_Bool_15 = v19;
+		branch_ZPlusMirth_14 = v18;
+		branch_Token_13 = in_Token_2;
+	} else {
+		bool v20 = false;
+		branch_Bool_15 = v20;
+		branch_ZPlusMirth_14 = v6;
+		branch_Token_13 = in_Token_2;
+	}
+	TUP* branch_ZPlusMirth_21;
+	uint64_t branch_Token_22;
+	VAL branch_Maybe_23;
+	if (branch_Bool_15) {
+		TUP* v24;
+		uint64_t v25 = mw_mirth_token_Token_next(branch_ZPlusMirth_14, branch_Token_13, &v24);
+		uint64_t v26 = mw_mirth_token_Token_succ(v25);
+		VAL v27 = mtw_std_maybe_Maybe_1_Some(MKU64(branch_Token_13));
+		branch_Maybe_23 = v27;
+		branch_Token_22 = v26;
+		branch_ZPlusMirth_21 = v24;
+	} else {
+		VAL v28 = MKI64(0LL /* None */);
+		branch_Maybe_23 = v28;
+		branch_Token_22 = branch_Token_13;
+		branch_ZPlusMirth_21 = branch_ZPlusMirth_14;
+	}
+	*out_Maybe_5 = branch_Maybe_23;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_21;
+	return branch_Token_22;
+}
+static VAL mw_mirth_mirth_ZPlusMirth_resolveZ_owner (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, TUP* *out_ZPlusMirth_3) {
+	TUP* branch_ZPlusMirth_5;
+	VAL branch_StateOwner_6;
+	switch (get_data_tag(in_Maybe_2)) {
+		case 0LL: { // None
+			VAL v7 = MKI64(1LL /* Default */);
+			branch_StateOwner_6 = v7;
+			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+		} break;
+		case 1LL: { // Some
+			VAL v8 = mtp_std_maybe_Maybe_1_Some(in_Maybe_2);
+			TUP* v9;
+			mw_mirth_elab_ZPlusTypeElab_StartZBang(value_u64(v8), &v9);
+			uint64_t v10 = value_u64(v9->cells[1]);
+			TUP* v11;
+			VAL v12 = mw_mirth_token_Token_sigZ_resourceZ_conZAsk(in_ZPlusMirth_1, v10, &v11);
+			TUP* branch_ZPlusMirth_13;
+			TUP* branch_ZPlusTypeElab_14;
+			VAL branch_StateOwner_15;
+			switch (get_data_tag(v12)) {
+				case 1LL: { // Some
+					VAL v16 = mtp_std_maybe_Maybe_1_Some(v12);
+					TUP* v17;
+					TUP* v18;
+					VAL v19 = mw_mirth_elab_ZPlusTypeElab_elabZ_resourceZ_conZBang(v11, v9, v16, &v17, &v18);
+					incref(v19);
+					TUP* v20;
+					bool v21 = mw_mirth_type_Resource_canZ_ownZ_stateZAsk(v17, v19, &v20);
+					TUP* branch_ZPlusMirth_22;
+					TUP* branch_ZPlusTypeElab_23;
+					VAL branch_StateOwner_24;
+					if (v21) {
+						VAL v25 = v18->cells[0];
+						incref(v25);
+						VAL v26 = mtw_mirth_table_StateOwner_Resource(v25, v19);
+						branch_StateOwner_24 = v26;
+						branch_ZPlusTypeElab_23 = v18;
+						branch_ZPlusMirth_22 = v20;
+					} else {
+						uint64_t v27 = value_u64(v18->cells[1]);
+						STR* v28;
+						STRLIT(v28, "Resource cannot own state.", 26);
+						TUP* v29;
+						mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v20, v27, v28, &v29);
+						decref(v19);
+						VAL v30 = MKI64(0LL /* Error */);
+						branch_StateOwner_24 = v30;
+						branch_ZPlusTypeElab_23 = v18;
+						branch_ZPlusMirth_22 = v29;
+					}
+					branch_StateOwner_15 = branch_StateOwner_24;
+					branch_ZPlusTypeElab_14 = branch_ZPlusTypeElab_23;
+					branch_ZPlusMirth_13 = branch_ZPlusMirth_22;
+				} break;
+				case 0LL: { // None
+					uint64_t v31 = value_u64(v9->cells[1]);
+					STR* v32;
+					STRLIT(v32, "Expected a resource name.", 25);
+					TUP* v33;
+					mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v11, v31, v32, &v33);
+					VAL v34 = MKI64(0LL /* Error */);
+					branch_StateOwner_15 = v34;
+					branch_ZPlusTypeElab_14 = v9;
+					branch_ZPlusMirth_13 = v33;
+				} break;
+				default: {
+					do_panic(str_make("unexpected fallthrough in match\n", 32));
+				}
+			}
+			mw_mirth_elab_ZPlusTypeElab_rdrop(branch_ZPlusTypeElab_14);
+			branch_StateOwner_6 = branch_StateOwner_15;
+			branch_ZPlusMirth_5 = branch_ZPlusMirth_13;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
+	return branch_StateOwner_6;
 }
 static uint64_t mw_mirth_table_Table_allocZBang (void) {
-	void* v2 = mbuf_mirth_table_Table_Num;
+	void* v2 = mbuf_mirth_table_Table_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_table_Table_Num;
+	void* v6 = mbuf_mirth_table_Table_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_table_Table_index (uint64_t in_Table_1) {
+	return in_Table_1;
 }
 static uint64_t mw_mirth_table_Table_head (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_table_Table_ZTildehead, in_Table_2);
@@ -36425,6 +35806,19 @@ static TUP* mw_mirth_table_Table_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_
 }
 static uint64_t mw_mirth_table_Table_name (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_table_Table_ZTildename, in_Table_2);
+	VAL v6 = mut_get(v5);
+	*out_ZPlusMirth_3 = in_ZPlusMirth_1;
+	return value_u64(v6);
+}
+static VAL mw_mirth_table_Table_owner (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3) {
+	void* v5 = field_mut(&mfld_mirth_table_Table_ZTildeowner, in_Table_2);
+	TUP* v6;
+	VAL v7 = mw_mirth_mirth_Prop_1_forceZBang(in_ZPlusMirth_1, v5, &v6);
+	*out_ZPlusMirth_3 = v6;
+	return v7;
+}
+static uint64_t mw_mirth_table_Table_numZ_buffer (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, TUP* *out_ZPlusMirth_3) {
+	void* v5 = field_mut(&mfld_mirth_table_Table_ZTildenumZ_buffer, in_Table_2);
 	VAL v6 = mut_get(v5);
 	*out_ZPlusMirth_3 = in_ZPlusMirth_1;
 	return value_u64(v6);
@@ -36467,17 +35861,17 @@ static void mw_mirth_table_Table_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlus
 	*out_ZPlusStr_5 = v9;
 	*out_ZPlusMirth_4 = v8;
 }
-static uint64_t mw_mirth_table_Field_index (uint64_t in_Field_1) {
-	return in_Field_1;
-}
 static uint64_t mw_mirth_table_Field_allocZBang (void) {
-	void* v2 = mbuf_mirth_table_Field_Num;
+	void* v2 = mbuf_mirth_table_Field_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_table_Field_Num;
+	void* v6 = mbuf_mirth_table_Field_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_table_Field_index (uint64_t in_Field_1) {
+	return in_Field_1;
 }
 static uint64_t mw_mirth_table_Field_head (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_table_Field_ZTildehead, in_Field_2);
@@ -36505,6 +35899,22 @@ static TUP* mw_mirth_table_Field_qnameZ_hard (TUP* in_ZPlusMirth_1, uint64_t in_
 	*out_ZPlusMirth_3 = v6;
 	return value_tup(v7, 3);
 }
+static VAL mw_mirth_table_Field_namespace (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
+	TUP* v5;
+	TUP* v6 = mw_mirth_table_Field_qnameZ_hard(in_ZPlusMirth_1, in_Field_2, &v5);
+	VAL v7 = v6->cells[0];
+	incref(v7);
+	decref(MKTUP(v6, 3));
+	*out_ZPlusMirth_3 = v5;
+	return v7;
+}
+static VAL mw_mirth_table_Field_owner (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
+	void* v5 = field_mut(&mfld_mirth_table_Field_ZTildeowner, in_Field_2);
+	TUP* v6;
+	VAL v7 = mw_mirth_mirth_Prop_1_forceZBang(in_ZPlusMirth_1, v5, &v6);
+	*out_ZPlusMirth_3 = v6;
+	return v7;
+}
 static VAL mw_mirth_table_Field_indexZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_table_Field_ZTildeindexZ_type, in_Field_2);
 	TUP* v6;
@@ -36519,20 +35929,33 @@ static VAL mw_mirth_table_Field_valueZ_type (TUP* in_ZPlusMirth_1, uint64_t in_F
 	*out_ZPlusMirth_3 = v6;
 	return v7;
 }
+static VAL mw_mirth_table_Field_basis (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
+	VAL v5 = mw_mirth_type_T0();
+	TUP* v6;
+	VAL v7 = mw_mirth_table_Field_owner(in_ZPlusMirth_1, in_Field_2, &v6);
+	TUP* v8;
+	VAL v9 = mw_mirth_table_StateOwner_push(v6, v5, v7, &v8);
+	*out_ZPlusMirth_3 = v8;
+	return v9;
+}
 static VAL mw_mirth_table_Field_dom (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
-	VAL v6 = mw_mirth_table_Field_indexZ_type(in_ZPlusMirth_1, in_Field_2, &v5);
-	VAL v7 = mw_mirth_type_T1(v6);
-	*out_ZPlusMirth_3 = v5;
-	return v7;
+	VAL v6 = mw_mirth_table_Field_basis(in_ZPlusMirth_1, in_Field_2, &v5);
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Field_indexZ_type(v5, in_Field_2, &v7);
+	VAL v9 = mw_mirth_type_TZMul(v6, v8);
+	*out_ZPlusMirth_3 = v7;
+	return v9;
 }
 static VAL mw_mirth_table_Field_cod (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
-	VAL v6 = mw_mirth_table_Field_valueZ_type(in_ZPlusMirth_1, in_Field_2, &v5);
-	VAL v7 = mtw_mirth_type_Type_Mut(v6);
-	VAL v8 = mw_mirth_type_T1(v7);
-	*out_ZPlusMirth_3 = v5;
-	return v8;
+	VAL v6 = mw_mirth_table_Field_basis(in_ZPlusMirth_1, in_Field_2, &v5);
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Field_valueZ_type(v5, in_Field_2, &v7);
+	VAL v9 = mtw_mirth_type_Type_Mut(v8);
+	VAL v10 = mw_mirth_type_TZMul(v6, v9);
+	*out_ZPlusMirth_3 = v7;
+	return v10;
 }
 static TUP* mw_mirth_table_Field_type (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v5;
@@ -36548,6 +35971,647 @@ static bool mw_mirth_table_Field_ZEqual (uint64_t in_Field_1, uint64_t in_Field_
 	uint64_t v5 = mw_mirth_table_Field_index(in_Field_2);
 	bool v6 = (v4 == v5);
 	return v6;
+}
+static TUP* mw_mirth_table_tableZ_qname (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, STR* in_Str_3, INT in_Int_4, TUP* *out_ZPlusMirth_5) {
+	TUP* v7;
+	uint64_t v8 = mw_std_prim_Str_ZToName(in_ZPlusMirth_1, in_Str_3, &v7);
+	VAL v9 = mtw_mirth_tycon_Tycon_Table(in_Table_2);
+	VAL v10 = mtw_mirth_name_Namespace_Tycon(v9);
+	TUP* v11 = mtw_mirth_name_QName_QName(v10, v8, in_Int_4);
+	*out_ZPlusMirth_5 = v7;
+	return v11;
+}
+static uint64_t mw_mirth_table_tableZ_newZBang (TUP* in_ZPlusMirth_1, VAL in_Maybe_2, uint64_t in_Token_3, uint64_t in_Name_4, VAL in_PropState_5, VAL in_Maybe_6, TUP* *out_ZPlusMirth_7) {
+	uint64_t v9 = mw_mirth_table_Table_allocZBang();
+	VAL v10 = mtw_mirth_mirth_PropLabel_TableQName(v9);
+	TUP* v11 = mtw_mirth_mirth_Prop_1_Prop(v10, in_PropState_5);
+	void* v12 = field_mut(&mfld_mirth_table_Table_ZTildeqname, v9);
+	mut_set(MKTUP(v11, 2), v12);
+	VAL v13 = mtw_mirth_mirth_PropLabel_TableOwner(v9);
+	TUP* v14 = value_tup(in_ZPlusMirth_1->cells[6], 2);
+	incref(MKTUP(v14, 2));
+	FNPTR v15 = &mb_mirth_mirth_PropLabel_prop_1_sp24_0;
+	VAL v16 = mtw_mirth_mirth_PropState_1_Delay(v14, in_Maybe_2, MKFNPTR(v15));
+	TUP* v17 = mtw_mirth_mirth_Prop_1_Prop(v13, v16);
+	void* v18 = field_mut(&mfld_mirth_table_Table_ZTildeowner, v9);
+	mut_set(MKTUP(v17, 2), v18);
+	void* v19 = field_mut(&mfld_mirth_table_Table_ZTildehead, v9);
+	mut_set(MKU64(in_Token_3), v19);
+	void* v20 = field_mut(&mfld_mirth_table_Table_ZTildename, v9);
+	mut_set(MKU64(in_Name_4), v20);
+	void* v21 = field_mut(&mfld_mirth_table_Table_ZTildedoc, v9);
+	mut_set(in_Maybe_6, v21);
+	VAL v22 = mtw_mirth_def_Def_Table(v9);
+	TUP* v23;
+	mw_mirth_def_Def_register(in_ZPlusMirth_1, v22, &v23);
+	VAL v24 = MKI64(0LL /* None */);
+	TUP* v25;
+	uint64_t v26 = mw_mirth_table_Table_head(v23, v9, &v25);
+	STR* v27;
+	STRLIT(v27, "NumBuffer", 9);
+	TUP* v28;
+	uint64_t v29 = mw_std_prim_Str_ZToName(v25, v27, &v28);
+	INT v30 = WRAP_I63(8LL);
+	TUP* v31;
+	uint64_t v32 = mw_mirth_buffer_Buffer_NewZBang(v28, v26, v30, v29, v24, &v31);
+	void* v33 = field_mut(&mfld_mirth_table_Table_ZTildenumZ_buffer, v9);
+	mut_set(MKU64(v32), v33);
+	STR* v34;
+	STRLIT(v34, "NumBuffer", 9);
+	INT v35 = WRAP_I63(0LL);
+	TUP* v36;
+	TUP* v37 = mw_mirth_table_tableZ_qname(v31, v9, v34, v35, &v36);
+	VAL v38 = mtw_mirth_mirth_PropLabel_BufferQName(v32);
+	TUP* v39;
+	TUP* v40 = mw_mirth_mirth_PropLabel_prop(v36, MKTUP(v37, 3), v38, &v39);
+	void* v41 = field_mut(&mfld_mirth_buffer_Buffer_ZTildeqname, v32);
+	mut_set(MKTUP(v40, 2), v41);
+	VAL v42 = mtw_mirth_def_Def_Buffer(v32);
+	TUP* v43;
+	mw_mirth_def_Def_register(v39, v42, &v43);
+	STR* v44;
+	STRLIT(v44, "Return Nil, the zero-th element of the table.", 45);
+	VAL v45 = mtw_std_maybe_Maybe_1_Some(MKSTR(v44));
+	TUP* v46;
+	uint64_t v47 = mw_mirth_table_Table_head(v43, v9, &v46);
+	STR* v48;
+	STRLIT(v48, "Nil", 3);
+	VAL v49 = MKI64(0LL /* Nil */);
+	uint64_t v50;
+	TUP* v51;
+	uint64_t v52 = mw_mirth_word_Word_BuildZBang_3_sp3(v9, v47, v47, v45, v46, v48, v49, &v50, &v51);
+	STR* v53;
+	STRLIT(v53, "Return Nil, the 0th element of the table.", 41);
+	VAL v54 = mtw_std_maybe_Maybe_1_Some(MKSTR(v53));
+	TUP* v55;
+	uint64_t v56 = mw_mirth_table_Table_head(v51, v50, &v55);
+	STR* v57;
+	STRLIT(v57, "nil", 3);
+	VAL v58 = MKI64(0LL /* Nil */);
+	uint64_t v59;
+	TUP* v60;
+	uint64_t v61 = mw_mirth_word_Word_BuildZBang_3_sp3(v50, v56, v56, v54, v55, v57, v58, &v59, &v60);
+	STR* v62;
+	STRLIT(v62, "Allocate a table element, without setting any fields.", 53);
+	VAL v63 = mtw_std_maybe_Maybe_1_Some(MKSTR(v62));
+	TUP* v64;
+	uint64_t v65 = mw_mirth_table_Table_head(v60, v59, &v64);
+	STR* v66;
+	STRLIT(v66, "Alloc!", 6);
+	VAL v67 = MKI64(0LL /* Nil */);
+	uint64_t v68;
+	TUP* v69;
+	uint64_t v70 = mw_mirth_word_Word_BuildZBang_3_sp4(v59, v65, v65, v63, v64, v66, v67, &v68, &v69);
+	STR* v71;
+	STRLIT(v71, "Allocate a table element, without setting any fields.", 53);
+	VAL v72 = mtw_std_maybe_Maybe_1_Some(MKSTR(v71));
+	TUP* v73;
+	uint64_t v74 = mw_mirth_table_Table_head(v69, v68, &v73);
+	STR* v75;
+	STRLIT(v75, "alloc!", 6);
+	VAL v76 = MKI64(0LL /* Nil */);
+	uint64_t v77;
+	TUP* v78;
+	uint64_t v79 = mw_mirth_word_Word_BuildZBang_3_sp4(v68, v74, v74, v72, v73, v75, v76, &v77, &v78);
+	STR* v80;
+	STRLIT(v80, "Turn a table element into a U64 index.", 38);
+	VAL v81 = mtw_std_maybe_Maybe_1_Some(MKSTR(v80));
+	TUP* v82;
+	uint64_t v83 = mw_mirth_table_Table_head(v78, v77, &v82);
+	STR* v84;
+	STRLIT(v84, "index", 5);
+	VAL v85 = MKI64(0LL /* Nil */);
+	incref(v85);
+	INT v86 = mw_std_list_List_1_len(v85);
+	TUP* v87;
+	uint64_t v88 = mw_std_prim_Str_ZToName(v82, v84, &v87);
+	VAL v89 = MKI64(0LL /* None */);
+	TUP* v90;
+	uint64_t v91 = mw_mirth_word_Word_NewZBang(v87, v83, v89, v83, v88, v86, v81, &v90);
+	VAL v92 = mtw_mirth_mirth_PropLabel_WordQName(v91);
+	TUP* v93;
+	TUP* v94 = mw_mirth_mirth_PropLabel_prop2_1_sp11(v90, v77, v91, v92, &v93);
+	void* v95 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v91);
+	mut_set(MKTUP(v94, 2), v95);
+	VAL v96 = mtw_mirth_mirth_PropLabel_WordType(v91);
+	TUP* v97 = value_tup(v93->cells[6], 2);
+	incref(MKTUP(v97, 2));
+	FNPTR v98 = &mb_mirth_mirth_PropLabel_prop_1_sp33_1;
+	VAL v99 = mtw_mirth_mirth_PropState_1_Delay(v97, MKU64(v77), MKFNPTR(v98));
+	TUP* v100 = mtw_mirth_mirth_Prop_1_Prop(v96, v99);
+	void* v101 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v91);
+	mut_set(MKTUP(v100, 2), v101);
+	VAL v102 = mtw_mirth_mirth_PropLabel_WordParams(v91);
+	TUP* v103;
+	TUP* v104 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v93, v85, v91, v102, &v103);
+	void* v105 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v91);
+	mut_set(MKTUP(v104, 2), v105);
+	VAL v106 = mtw_mirth_mirth_PropLabel_WordArrow(v91);
+	TUP* v107 = tup_new(2);
+	v107->size = 2;
+	v107->cells[1] = MKU64(v91);
+	v107->cells[0] = MKU64(v77);
+	TUP* v108 = value_tup(v103->cells[6], 2);
+	incref(MKTUP(v108, 2));
+	FNPTR v109 = &mb_mirth_mirth_PropLabel_prop_1_sp34_13;
+	VAL v110 = mtw_mirth_mirth_PropState_1_Delay(v108, MKTUP(v107, 2), MKFNPTR(v109));
+	TUP* v111 = mtw_mirth_mirth_Prop_1_Prop(v106, v110);
+	void* v112 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v91);
+	mut_set(MKTUP(v111, 2), v112);
+	STR* v113;
+	STRLIT(v113, "Turn a U64 index into a table element. If out of bounds, Nil is returned.", 73);
+	VAL v114 = mtw_std_maybe_Maybe_1_Some(MKSTR(v113));
+	TUP* v115;
+	uint64_t v116 = mw_mirth_table_Table_head(v103, v77, &v115);
+	STR* v117;
+	STRLIT(v117, "from-index", 10);
+	VAL v118 = MKI64(0LL /* Nil */);
+	incref(v118);
+	INT v119 = mw_std_list_List_1_len(v118);
+	TUP* v120;
+	uint64_t v121 = mw_std_prim_Str_ZToName(v115, v117, &v120);
+	VAL v122 = MKI64(0LL /* None */);
+	TUP* v123;
+	uint64_t v124 = mw_mirth_word_Word_NewZBang(v120, v116, v122, v116, v121, v119, v114, &v123);
+	VAL v125 = mtw_mirth_mirth_PropLabel_WordQName(v124);
+	TUP* v126;
+	TUP* v127 = mw_mirth_mirth_PropLabel_prop2_1_sp11(v123, v77, v124, v125, &v126);
+	void* v128 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v124);
+	mut_set(MKTUP(v127, 2), v128);
+	VAL v129 = mtw_mirth_mirth_PropLabel_WordType(v124);
+	TUP* v130 = value_tup(v126->cells[6], 2);
+	incref(MKTUP(v130, 2));
+	FNPTR v131 = &mb_mirth_mirth_PropLabel_prop_1_sp31_1;
+	VAL v132 = mtw_mirth_mirth_PropState_1_Delay(v130, MKU64(v77), MKFNPTR(v131));
+	TUP* v133 = mtw_mirth_mirth_Prop_1_Prop(v129, v132);
+	void* v134 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v124);
+	mut_set(MKTUP(v133, 2), v134);
+	VAL v135 = mtw_mirth_mirth_PropLabel_WordParams(v124);
+	TUP* v136;
+	TUP* v137 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v126, v118, v124, v135, &v136);
+	void* v138 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v124);
+	mut_set(MKTUP(v137, 2), v138);
+	VAL v139 = mtw_mirth_mirth_PropLabel_WordArrow(v124);
+	TUP* v140 = tup_new(2);
+	v140->size = 2;
+	v140->cells[1] = MKU64(v124);
+	v140->cells[0] = MKU64(v77);
+	TUP* v141 = value_tup(v136->cells[6], 2);
+	incref(MKTUP(v141, 2));
+	FNPTR v142 = &mb_mirth_mirth_PropLabel_prop_1_sp32_25;
+	VAL v143 = mtw_mirth_mirth_PropState_1_Delay(v141, MKTUP(v140, 2), MKFNPTR(v142));
+	TUP* v144 = mtw_mirth_mirth_Prop_1_Prop(v139, v143);
+	void* v145 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v124);
+	mut_set(MKTUP(v144, 2), v145);
+	STR* v146;
+	STRLIT(v146, "Return next table element if it exists. Otherwise return Nil.", 61);
+	VAL v147 = mtw_std_maybe_Maybe_1_Some(MKSTR(v146));
+	TUP* v148;
+	uint64_t v149 = mw_mirth_table_Table_head(v136, v77, &v148);
+	STR* v150;
+	STRLIT(v150, "succ", 4);
+	VAL v151 = MKI64(0LL /* Nil */);
+	incref(v151);
+	INT v152 = mw_std_list_List_1_len(v151);
+	TUP* v153;
+	uint64_t v154 = mw_std_prim_Str_ZToName(v148, v150, &v153);
+	VAL v155 = MKI64(0LL /* None */);
+	TUP* v156;
+	uint64_t v157 = mw_mirth_word_Word_NewZBang(v153, v149, v155, v149, v154, v152, v147, &v156);
+	VAL v158 = mtw_mirth_mirth_PropLabel_WordQName(v157);
+	TUP* v159;
+	TUP* v160 = mw_mirth_mirth_PropLabel_prop2_1_sp11(v156, v77, v157, v158, &v159);
+	void* v161 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v157);
+	mut_set(MKTUP(v160, 2), v161);
+	VAL v162 = mtw_mirth_mirth_PropLabel_WordType(v157);
+	TUP* v163;
+	TUP* v164 = mw_mirth_mirth_PropLabel_prop_1_sp28(v77, v159, v162, &v163);
+	void* v165 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v157);
+	mut_set(MKTUP(v164, 2), v165);
+	VAL v166 = mtw_mirth_mirth_PropLabel_WordParams(v157);
+	TUP* v167;
+	TUP* v168 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v163, v151, v157, v166, &v167);
+	void* v169 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v157);
+	mut_set(MKTUP(v168, 2), v169);
+	VAL v170 = mtw_mirth_mirth_PropLabel_WordArrow(v157);
+	TUP* v171 = tup_new(2);
+	v171->size = 2;
+	v171->cells[1] = MKU64(v157);
+	v171->cells[0] = MKU64(v77);
+	TUP* v172 = value_tup(v167->cells[6], 2);
+	incref(MKTUP(v172, 2));
+	FNPTR v173 = &mb_mirth_mirth_PropLabel_prop_1_sp30_25;
+	VAL v174 = mtw_mirth_mirth_PropState_1_Delay(v172, MKTUP(v171, 2), MKFNPTR(v173));
+	TUP* v175 = mtw_mirth_mirth_Prop_1_Prop(v170, v174);
+	void* v176 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v157);
+	mut_set(MKTUP(v175, 2), v176);
+	STR* v177;
+	STRLIT(v177, "Return previous table element if it exists. Otherwise return Nil.", 65);
+	VAL v178 = mtw_std_maybe_Maybe_1_Some(MKSTR(v177));
+	TUP* v179;
+	uint64_t v180 = mw_mirth_table_Table_head(v167, v77, &v179);
+	STR* v181;
+	STRLIT(v181, "pred", 4);
+	VAL v182 = MKI64(0LL /* Nil */);
+	incref(v182);
+	INT v183 = mw_std_list_List_1_len(v182);
+	TUP* v184;
+	uint64_t v185 = mw_std_prim_Str_ZToName(v179, v181, &v184);
+	VAL v186 = MKI64(0LL /* None */);
+	TUP* v187;
+	uint64_t v188 = mw_mirth_word_Word_NewZBang(v184, v180, v186, v180, v185, v183, v178, &v187);
+	VAL v189 = mtw_mirth_mirth_PropLabel_WordQName(v188);
+	TUP* v190;
+	TUP* v191 = mw_mirth_mirth_PropLabel_prop2_1_sp11(v187, v77, v188, v189, &v190);
+	void* v192 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v188);
+	mut_set(MKTUP(v191, 2), v192);
+	VAL v193 = mtw_mirth_mirth_PropLabel_WordType(v188);
+	TUP* v194;
+	TUP* v195 = mw_mirth_mirth_PropLabel_prop_1_sp28(v77, v190, v193, &v194);
+	void* v196 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v188);
+	mut_set(MKTUP(v195, 2), v196);
+	VAL v197 = mtw_mirth_mirth_PropLabel_WordParams(v188);
+	TUP* v198;
+	TUP* v199 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v194, v182, v188, v197, &v198);
+	void* v200 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v188);
+	mut_set(MKTUP(v199, 2), v200);
+	VAL v201 = mtw_mirth_mirth_PropLabel_WordArrow(v188);
+	TUP* v202 = tup_new(2);
+	v202->size = 2;
+	v202->cells[1] = MKU64(v188);
+	v202->cells[0] = MKU64(v77);
+	TUP* v203 = value_tup(v198->cells[6], 2);
+	incref(MKTUP(v203, 2));
+	FNPTR v204 = &mb_mirth_mirth_PropLabel_prop_1_sp29_17;
+	VAL v205 = mtw_mirth_mirth_PropState_1_Delay(v203, MKTUP(v202, 2), MKFNPTR(v204));
+	TUP* v206 = mtw_mirth_mirth_Prop_1_Prop(v201, v205);
+	void* v207 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v188);
+	mut_set(MKTUP(v206, 2), v207);
+	STR* v208;
+	STRLIT(v208, "Iterate through all table elements, skipping Nil.", 49);
+	VAL v209 = mtw_std_maybe_Maybe_1_Some(MKSTR(v208));
+	TUP* v210;
+	uint64_t v211 = mw_mirth_table_Table_head(v198, v77, &v210);
+	STR* v212;
+	STRLIT(v212, "for", 3);
+	STR* v213;
+	STRLIT(v213, "f", 1);
+	VAL v214 = MKI64(0LL /* Nil */);
+	VAL v215 = mw_std_list_List_1_cons(MKSTR(v213), v214);
+	incref(v215);
+	INT v216 = mw_std_list_List_1_len(v215);
+	TUP* v217;
+	uint64_t v218 = mw_std_prim_Str_ZToName(v210, v212, &v217);
+	VAL v219 = MKI64(0LL /* None */);
+	TUP* v220;
+	uint64_t v221 = mw_mirth_word_Word_NewZBang(v217, v211, v219, v211, v218, v216, v209, &v220);
+	VAL v222 = mtw_mirth_mirth_PropLabel_WordQName(v221);
+	TUP* v223;
+	TUP* v224 = mw_mirth_mirth_PropLabel_prop2_1_sp11(v220, v77, v221, v222, &v223);
+	void* v225 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v221);
+	mut_set(MKTUP(v224, 2), v225);
+	VAL v226 = mtw_mirth_mirth_PropLabel_WordType(v221);
+	TUP* v227 = value_tup(v223->cells[6], 2);
+	incref(MKTUP(v227, 2));
+	FNPTR v228 = &mb_mirth_mirth_PropLabel_prop_1_sp25_0;
+	VAL v229 = mtw_mirth_mirth_PropState_1_Delay(v227, MKU64(v77), MKFNPTR(v228));
+	TUP* v230 = mtw_mirth_mirth_Prop_1_Prop(v226, v229);
+	void* v231 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v221);
+	mut_set(MKTUP(v230, 2), v231);
+	VAL v232 = mtw_mirth_mirth_PropLabel_WordParams(v221);
+	TUP* v233;
+	TUP* v234 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v223, v215, v221, v232, &v233);
+	void* v235 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v221);
+	mut_set(MKTUP(v234, 2), v235);
+	VAL v236 = mtw_mirth_mirth_PropLabel_WordArrow(v221);
+	TUP* v237 = tup_new(2);
+	v237->size = 2;
+	v237->cells[1] = MKU64(v221);
+	v237->cells[0] = MKU64(v77);
+	TUP* v238 = value_tup(v233->cells[6], 2);
+	incref(MKTUP(v238, 2));
+	FNPTR v239 = &mb_mirth_mirth_PropLabel_prop_1_sp26_29;
+	VAL v240 = mtw_mirth_mirth_PropState_1_Delay(v238, MKTUP(v237, 2), MKFNPTR(v239));
+	TUP* v241 = mtw_mirth_mirth_Prop_1_Prop(v236, v240);
+	void* v242 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v221);
+	mut_set(MKTUP(v241, 2), v242);
+	*out_ZPlusMirth_7 = v233;
+	return v77;
+}
+static uint64_t mw_mirth_table_parseZ_tableZ_decl (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5, uint64_t *out_Token_6, VAL *out_Maybe_7) {
+	TUP* v8;
+	VAL v9 = mw_mirth_token_Token_doc(in_ZPlusMirth_1, in_Token_2, &v8);
+	TUP* v10;
+	INT v11 = mw_mirth_token_Token_numZ_args(v8, in_Token_2, &v10);
+	INT v12 = WRAP_I63(0LL);
+	bool v13 = int_lt(v12, v11);
+	VAL branch_Maybe_14;
+	uint64_t branch_Token_15;
+	VAL branch_Maybe_16;
+	uint64_t branch_Token_17;
+	TUP* branch_ZPlusMirth_18;
+	if (v13) {
+		TUP* v19;
+		uint64_t v20 = mw_mirth_token_Token_next(v10, in_Token_2, &v19);
+		TUP* v21;
+		uint64_t v22 = mw_mirth_token_Token_argsZ_1(v19, in_Token_2, &v21);
+		TUP* v23;
+		VAL v24;
+		uint64_t v25 = mw_mirth_mirth_ZPlusMirth_parseZ_owner(v21, v22, &v23, &v24);
+		TUP* v26;
+		VAL v27 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v23, v25, &v26);
+		TUP* v28;
+		uint64_t v29;
+		mw_std_maybe_Maybe_1_else_1_sp12(v26, v25, v27, &v28, &v29);
+		TUP* v30;
+		mw_mirth_token_Token_argsZ_0(v28, v29, &v30);
+		uint64_t v31 = mw_mirth_token_Token_succ(v29);
+		TUP* v32;
+		bool v33 = mw_mirth_token_Token_argZ_endZAsk(v30, v31, &v32);
+		TUP* branch_ZPlusMirth_34;
+		uint64_t branch_Token_35;
+		if (v33) {
+			branch_Token_35 = v29;
+			branch_ZPlusMirth_34 = v32;
+		} else {
+			uint64_t v36 = mw_mirth_token_Token_succ(v29);
+			STR* v37;
+			STRLIT(v37, "expected end of argument after table name", 41);
+			mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v32, v36, v37);
+		}
+		branch_ZPlusMirth_18 = branch_ZPlusMirth_34;
+		branch_Token_17 = branch_Token_35;
+		branch_Maybe_16 = v24;
+		branch_Token_15 = v20;
+		branch_Maybe_14 = v9;
+	} else {
+		uint64_t v39 = mw_mirth_token_Token_succ(in_Token_2);
+		TUP* v40;
+		VAL v41;
+		uint64_t v42 = mw_mirth_mirth_ZPlusMirth_parseZ_owner(v10, v39, &v40, &v41);
+		TUP* v43;
+		VAL v44 = mw_mirth_token_Token_sigZ_typeZ_conZAsk(v40, v42, &v43);
+		TUP* v45;
+		uint64_t v46;
+		mw_std_maybe_Maybe_1_else_1_sp12(v43, v42, v44, &v45, &v46);
+		TUP* v47;
+		mw_mirth_token_Token_argsZ_0(v45, v46, &v47);
+		uint64_t v48 = mw_mirth_token_Token_succ(v42);
+		branch_ZPlusMirth_18 = v47;
+		branch_Token_17 = v46;
+		branch_Maybe_16 = v41;
+		branch_Token_15 = v48;
+		branch_Maybe_14 = v9;
+	}
+	*out_Maybe_7 = branch_Maybe_14;
+	*out_Token_6 = branch_Token_17;
+	*out_Maybe_5 = branch_Maybe_16;
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_18;
+	return branch_Token_15;
+}
+static uint64_t mw_mirth_table_elabZ_tableZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
+	TUP* v5;
+	VAL v6;
+	uint64_t v7;
+	VAL v8;
+	uint64_t v9 = mw_mirth_table_parseZ_tableZ_decl(in_ZPlusMirth_1, in_Token_2, &v5, &v6, &v7, &v8);
+	TUP* v10;
+	uint64_t v11;
+	uint64_t v12;
+	INT v13;
+	VAL v14;
+	mw_mirth_elab_elabZ_defZ_head(v5, v7, &v10, &v11, &v12, &v13, &v14);
+	decref(MKINT(v13));
+	TUP* v15;
+	uint64_t v16 = mw_mirth_table_tableZ_newZBang(v10, v6, v11, v12, v14, v8, &v15);
+	*out_ZPlusMirth_3 = v15;
+	return v9;
+}
+static uint64_t mw_mirth_table_parseZ_field (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3, VAL *out_Maybe_5, VAL *out_Maybe_6, uint64_t *out_Token_7, uint64_t *out_Token_8, uint64_t *out_Token_9) {
+	TUP* v10;
+	VAL v11 = mw_mirth_token_Token_doc(in_ZPlusMirth_1, in_Token_2, &v10);
+	TUP* v12;
+	uint64_t v13 = mw_mirth_token_Token_next(v10, in_Token_2, &v12);
+	TUP* v14;
+	uint64_t v15;
+	uint64_t v16;
+	uint64_t v17 = mw_mirth_token_Token_argsZ_3(v12, in_Token_2, &v14, &v15, &v16);
+	TUP* v18;
+	VAL v19;
+	uint64_t v20 = mw_mirth_mirth_ZPlusMirth_parseZ_owner(v14, v17, &v18, &v19);
+	TUP* v21;
+	VAL v22 = mw_mirth_token_Token_nameZDivdnameZAsk(v18, v20, &v21);
+	int64_t v23 = get_data_tag(v22);
+	decref(v22);
+	INT v24 = WRAP_I63(0LL);
+	INT v25 = i64_to_int(v23);
+	bool v26 = int_eq(v25, v24);
+	bool v27 = !v26;
+	TUP* branch_ZPlusMirth_28;
+	uint64_t branch_Token_29;
+	if (v27) {
+		branch_Token_29 = v20;
+		branch_ZPlusMirth_28 = v21;
+	} else {
+		STR* v30;
+		STRLIT(v30, "expected field name", 19);
+		mw_mirth_mirth_ZPlusMirth_emitZ_fatalZ_errorZBang(v21, v20, v30);
+	}
+	TUP* v32;
+	mw_mirth_token_Token_argsZ_0(branch_ZPlusMirth_28, branch_Token_29, &v32);
+	*out_Token_9 = v16;
+	*out_Token_8 = v15;
+	*out_Token_7 = branch_Token_29;
+	*out_Maybe_6 = v19;
+	*out_Maybe_5 = v11;
+	*out_ZPlusMirth_3 = v32;
+	return v13;
+}
+static uint64_t mw_mirth_table_elabZ_fieldZBang (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, TUP* *out_ZPlusMirth_3) {
+	TUP* v5;
+	VAL v6;
+	VAL v7;
+	uint64_t v8;
+	uint64_t v9;
+	uint64_t v10;
+	uint64_t v11 = mw_mirth_table_parseZ_field(in_ZPlusMirth_1, in_Token_2, &v5, &v6, &v7, &v8, &v9, &v10);
+	TUP* v12;
+	uint64_t v13;
+	uint64_t v14;
+	INT v15;
+	VAL v16;
+	mw_mirth_elab_elabZ_defZ_head(v5, v8, &v12, &v13, &v14, &v15, &v16);
+	uint64_t v17 = mw_mirth_table_Field_allocZBang();
+	void* v18 = field_mut(&mfld_mirth_table_Field_ZTildedoc, v17);
+	mut_set(v6, v18);
+	void* v19 = field_mut(&mfld_mirth_table_Field_ZTildename, v17);
+	mut_set(MKU64(v14), v19);
+	void* v20 = field_mut(&mfld_mirth_table_Field_ZTildehead, v17);
+	mut_set(MKU64(v13), v20);
+	INT v21 = WRAP_I63(0LL);
+	bool v22 = int_eq(v15, v21);
+	TUP* branch_ZPlusMirth_23;
+	uint64_t branch_Field_24;
+	if (v22) {
+		branch_Field_24 = v17;
+		branch_ZPlusMirth_23 = v12;
+	} else {
+		TUP* v25;
+		uint64_t v26 = mw_mirth_table_Field_head(v12, v17, &v25);
+		STR* v27;
+		STRLIT(v27, "Field cannot take arguments.", 28);
+		TUP* v28;
+		mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v25, v26, v27, &v28);
+		branch_Field_24 = v17;
+		branch_ZPlusMirth_23 = v28;
+	}
+	VAL v29 = mtw_mirth_mirth_PropLabel_FieldQName(branch_Field_24);
+	TUP* v30 = mtw_mirth_mirth_Prop_1_Prop(v29, v16);
+	void* v31 = field_mut(&mfld_mirth_table_Field_ZTildeqname, branch_Field_24);
+	mut_set(MKTUP(v30, 2), v31);
+	VAL v32 = mtw_mirth_mirth_PropLabel_FieldIndexType(branch_Field_24);
+	TUP* v33;
+	TUP* v34 = mw_mirth_mirth_PropLabel_prop_1_sp16(v9, branch_ZPlusMirth_23, v32, &v33);
+	void* v35 = field_mut(&mfld_mirth_table_Field_ZTildeindexZ_type, branch_Field_24);
+	mut_set(MKTUP(v34, 2), v35);
+	VAL v36 = mtw_mirth_mirth_PropLabel_FieldValueType(branch_Field_24);
+	TUP* v37;
+	TUP* v38 = mw_mirth_mirth_PropLabel_prop_1_sp16(v10, v33, v36, &v37);
+	void* v39 = field_mut(&mfld_mirth_table_Field_ZTildevalueZ_type, branch_Field_24);
+	mut_set(MKTUP(v38, 2), v39);
+	VAL v40 = mtw_mirth_mirth_PropLabel_FieldOwner(branch_Field_24);
+	TUP* v41 = tup_new(2);
+	v41->size = 2;
+	v41->cells[1] = v7;
+	v41->cells[0] = MKU64(branch_Field_24);
+	TUP* v42 = value_tup(v37->cells[6], 2);
+	incref(MKTUP(v42, 2));
+	FNPTR v43 = &mb_mirth_mirth_PropLabel_prop_1_sp23_4;
+	VAL v44 = mtw_mirth_mirth_PropState_1_Delay(v42, MKTUP(v41, 2), MKFNPTR(v43));
+	TUP* v45 = mtw_mirth_mirth_Prop_1_Prop(v40, v44);
+	void* v46 = field_mut(&mfld_mirth_table_Field_ZTildeowner, branch_Field_24);
+	mut_set(MKTUP(v45, 2), v46);
+	VAL v47 = mtw_mirth_def_Def_Field(branch_Field_24);
+	TUP* v48;
+	mw_mirth_def_Def_register(v37, v47, &v48);
+	STR* v49;
+	STRLIT(v49, "Get field value.", 16);
+	VAL v50 = mtw_std_maybe_Maybe_1_Some(MKSTR(v49));
+	TUP* v51;
+	uint64_t v52 = mw_mirth_table_Field_head(v48, branch_Field_24, &v51);
+	TUP* v53;
+	uint64_t v54 = mw_mirth_table_Field_name(v51, branch_Field_24, &v53);
+	TUP* v55;
+	STR* v56 = mw_mirth_name_Name_ZToStr(v53, v54, &v55);
+	STR* v57;
+	STRLIT(v57, "@", 1);
+	STR* v58 = str_cat(v56, v57);
+	VAL v59 = MKI64(0LL /* Nil */);
+	incref(v59);
+	INT v60 = mw_std_list_List_1_len(v59);
+	TUP* v61;
+	uint64_t v62 = mw_std_prim_Str_ZToName(v55, v58, &v61);
+	VAL v63 = MKI64(0LL /* None */);
+	TUP* v64;
+	uint64_t v65 = mw_mirth_word_Word_NewZBang(v61, v52, v63, v52, v62, v60, v50, &v64);
+	VAL v66 = mtw_mirth_mirth_PropLabel_WordQName(v65);
+	TUP* v67;
+	TUP* v68 = mw_mirth_mirth_PropLabel_prop2_1_sp7(v64, branch_Field_24, v65, v66, &v67);
+	void* v69 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v65);
+	mut_set(MKTUP(v68, 2), v69);
+	VAL v70 = mtw_mirth_mirth_PropLabel_WordType(v65);
+	TUP* v71 = value_tup(v67->cells[6], 2);
+	incref(MKTUP(v71, 2));
+	FNPTR v72 = &mb_mirth_mirth_PropLabel_prop_1_sp21_0;
+	VAL v73 = mtw_mirth_mirth_PropState_1_Delay(v71, MKU64(branch_Field_24), MKFNPTR(v72));
+	TUP* v74 = mtw_mirth_mirth_Prop_1_Prop(v70, v73);
+	void* v75 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v65);
+	mut_set(MKTUP(v74, 2), v75);
+	VAL v76 = mtw_mirth_mirth_PropLabel_WordParams(v65);
+	TUP* v77;
+	TUP* v78 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v67, v59, v65, v76, &v77);
+	void* v79 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v65);
+	mut_set(MKTUP(v78, 2), v79);
+	VAL v80 = mtw_mirth_mirth_PropLabel_WordArrow(v65);
+	TUP* v81 = tup_new(2);
+	v81->size = 2;
+	v81->cells[1] = MKU64(v65);
+	v81->cells[0] = MKU64(branch_Field_24);
+	TUP* v82 = value_tup(v77->cells[6], 2);
+	incref(MKTUP(v82, 2));
+	FNPTR v83 = &mb_mirth_mirth_PropLabel_prop_1_sp22_14;
+	VAL v84 = mtw_mirth_mirth_PropState_1_Delay(v82, MKTUP(v81, 2), MKFNPTR(v83));
+	TUP* v85 = mtw_mirth_mirth_Prop_1_Prop(v80, v84);
+	void* v86 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v65);
+	mut_set(MKTUP(v85, 2), v86);
+	STR* v87;
+	STRLIT(v87, "Set field value.", 16);
+	VAL v88 = mtw_std_maybe_Maybe_1_Some(MKSTR(v87));
+	TUP* v89;
+	uint64_t v90 = mw_mirth_table_Field_head(v77, branch_Field_24, &v89);
+	TUP* v91;
+	uint64_t v92 = mw_mirth_table_Field_name(v89, branch_Field_24, &v91);
+	TUP* v93;
+	STR* v94 = mw_mirth_name_Name_ZToStr(v91, v92, &v93);
+	STR* v95;
+	STRLIT(v95, "!", 1);
+	STR* v96 = str_cat(v94, v95);
+	VAL v97 = MKI64(0LL /* Nil */);
+	incref(v97);
+	INT v98 = mw_std_list_List_1_len(v97);
+	TUP* v99;
+	uint64_t v100 = mw_std_prim_Str_ZToName(v93, v96, &v99);
+	VAL v101 = MKI64(0LL /* None */);
+	TUP* v102;
+	uint64_t v103 = mw_mirth_word_Word_NewZBang(v99, v90, v101, v90, v100, v98, v88, &v102);
+	VAL v104 = mtw_mirth_mirth_PropLabel_WordQName(v103);
+	TUP* v105;
+	TUP* v106 = mw_mirth_mirth_PropLabel_prop2_1_sp7(v102, branch_Field_24, v103, v104, &v105);
+	void* v107 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v103);
+	mut_set(MKTUP(v106, 2), v107);
+	VAL v108 = mtw_mirth_mirth_PropLabel_WordType(v103);
+	TUP* v109 = value_tup(v105->cells[6], 2);
+	incref(MKTUP(v109, 2));
+	FNPTR v110 = &mb_mirth_mirth_PropLabel_prop_1_sp17_0;
+	VAL v111 = mtw_mirth_mirth_PropState_1_Delay(v109, MKU64(branch_Field_24), MKFNPTR(v110));
+	TUP* v112 = mtw_mirth_mirth_Prop_1_Prop(v108, v111);
+	void* v113 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v103);
+	mut_set(MKTUP(v112, 2), v113);
+	VAL v114 = mtw_mirth_mirth_PropLabel_WordParams(v103);
+	TUP* v115;
+	TUP* v116 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v105, v97, v103, v114, &v115);
+	void* v117 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v103);
+	mut_set(MKTUP(v116, 2), v117);
+	VAL v118 = mtw_mirth_mirth_PropLabel_WordArrow(v103);
+	TUP* v119 = tup_new(2);
+	v119->size = 2;
+	v119->cells[1] = MKU64(v103);
+	v119->cells[0] = MKU64(branch_Field_24);
+	TUP* v120 = value_tup(v115->cells[6], 2);
+	incref(MKTUP(v120, 2));
+	FNPTR v121 = &mb_mirth_mirth_PropLabel_prop_1_sp18_14;
+	VAL v122 = mtw_mirth_mirth_PropState_1_Delay(v120, MKTUP(v119, 2), MKFNPTR(v121));
+	TUP* v123 = mtw_mirth_mirth_Prop_1_Prop(v118, v122);
+	void* v124 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v103);
+	mut_set(MKTUP(v123, 2), v124);
+	*out_ZPlusMirth_3 = v115;
+	return v11;
+}
+static VAL mw_mirth_tycon_Tycon_tableZAsk (VAL in_Tycon_1) {
+	VAL branch_Maybe_3;
+	switch (get_data_tag(in_Tycon_1)) {
+		case 1LL: { // Table
+			uint64_t v4 = mtp_mirth_tycon_Tycon_Table(in_Tycon_1);
+			VAL v5 = mtw_std_maybe_Maybe_1_Some(MKU64(v4));
+			branch_Maybe_3 = v5;
+		} break;
+		default: {
+			decref(in_Tycon_1);
+			VAL v6 = MKI64(0LL /* None */);
+			branch_Maybe_3 = v6;
+		} break;
+	}
+	return branch_Maybe_3;
 }
 static uint64_t mw_mirth_tycon_Tycon_name (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3) {
 	TUP* branch_ZPlusMirth_5;
@@ -36785,17 +36849,48 @@ static VAL mw_mirth_tycon_Tycon_fullZ_typeZ_fresh (TUP* in_ZPlusMirth_1, VAL in_
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
 	return branch_Either_6;
 }
-static uint64_t mw_mirth_data_Data_index (uint64_t in_Data_1) {
-	return in_Data_1;
+static bool mw_mirth_tycon_Tycon_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, VAL in_Tycon_2, TUP* *out_ZPlusMirth_3) {
+	TUP* branch_ZPlusMirth_5;
+	bool branch_Bool_6;
+	switch (get_data_tag(in_Tycon_2)) {
+		case 0LL: { // Data
+			uint64_t v7 = mtp_mirth_tycon_Tycon_Data(in_Tycon_2);
+			TUP* v8;
+			bool v9 = mw_mirth_data_Data_canZ_ownZ_stateZAsk(in_ZPlusMirth_1, v7, &v8);
+			branch_Bool_6 = v9;
+			branch_ZPlusMirth_5 = v8;
+		} break;
+		case 2LL: { // Prim
+			int64_t v10 = mtp_mirth_tycon_Tycon_Prim(in_Tycon_2);
+			TUP* v11;
+			bool v12 = mw_mirth_type_PrimType_canZ_ownZ_stateZAsk(in_ZPlusMirth_1, v10, &v11);
+			branch_Bool_6 = v12;
+			branch_ZPlusMirth_5 = v11;
+		} break;
+		case 1LL: { // Table
+			uint64_t v13 = mtp_mirth_tycon_Tycon_Table(in_Tycon_2);
+			bool v14 = false;
+			branch_Bool_6 = v14;
+			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
+	return branch_Bool_6;
 }
 static uint64_t mw_mirth_data_Data_allocZBang (void) {
-	void* v2 = mbuf_mirth_data_Data_Num;
+	void* v2 = mbuf_mirth_data_Data_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_data_Data_Num;
+	void* v6 = mbuf_mirth_data_Data_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_data_Data_index (uint64_t in_Data_1) {
+	return in_Data_1;
 }
 static VAL mw_mirth_data_Data_headZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_data_Data_ZTildeheadZAsk, in_Data_2);
@@ -37421,6 +37516,30 @@ static VAL mw_mirth_data_Data_fullZ_type (TUP* in_ZPlusMirth_1, uint64_t in_Data
 	}
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_28;
 	return branch_Either_29;
+}
+static bool mw_mirth_data_Data_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, TUP* *out_ZPlusMirth_3) {
+	TUP* v5;
+	bool v6 = mw_mirth_data_Data_isZ_resourceZAsk(in_ZPlusMirth_1, in_Data_2, &v5);
+	TUP* branch_ZPlusMirth_7;
+	bool branch_Bool_8;
+	if (v6) {
+		TUP* v9;
+		VAL v10 = mw_mirth_data_Data_singleZ_tagZAsk(v5, in_Data_2, &v9);
+		int64_t v11 = get_data_tag(v10);
+		decref(v10);
+		INT v12 = WRAP_I63(0LL);
+		INT v13 = i64_to_int(v11);
+		bool v14 = int_eq(v13, v12);
+		bool v15 = !v14;
+		branch_Bool_8 = v15;
+		branch_ZPlusMirth_7 = v9;
+	} else {
+		bool v16 = false;
+		branch_Bool_8 = v16;
+		branch_ZPlusMirth_7 = v5;
+	}
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_7;
+	return branch_Bool_8;
 }
 static VAL mw_mirth_data_Data_unifyZBang (TUP* in_ZPlusMirth_1, uint64_t in_Data_2, uint64_t in_Data_3, TUP* *out_ZPlusMirth_4) {
 	bool v6 = mw_mirth_data_Data_ZEqual(in_Data_2, in_Data_3);
@@ -38076,17 +38195,17 @@ static TUP* mw_mirth_mirth_ZPlusMirth_dataZ_wordZ_qname (TUP* in_ZPlusMirth_1, u
 	*out_ZPlusMirth_5 = v9;
 	return v10;
 }
-static uint64_t mw_mirth_data_Tag_index (uint64_t in_Tag_1) {
-	return in_Tag_1;
-}
 static uint64_t mw_mirth_data_Tag_allocZBang (void) {
-	void* v2 = mbuf_mirth_data_Tag_Num;
+	void* v2 = mbuf_mirth_data_Tag_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_data_Tag_Num;
+	void* v6 = mbuf_mirth_data_Tag_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_data_Tag_index (uint64_t in_Tag_1) {
+	return in_Tag_1;
 }
 static uint64_t mw_mirth_data_Tag_data (TUP* in_ZPlusMirth_1, uint64_t in_Tag_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_data_Tag_ZTildedata, in_Tag_2);
@@ -39334,17 +39453,17 @@ static VAL mw_mirth_arrow_Lambda_freeZ_vars (TUP* in_ZPlusMirth_1, TUP* in_Lambd
 	*out_ZPlusMirth_3 = v6;
 	return v9;
 }
-static uint64_t mw_mirth_arrow_Block_index (uint64_t in_Block_1) {
-	return in_Block_1;
-}
 static uint64_t mw_mirth_arrow_Block_allocZBang (void) {
-	void* v2 = mbuf_mirth_arrow_Block_Num;
+	void* v2 = mbuf_mirth_arrow_Block_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_arrow_Block_Num;
+	void* v6 = mbuf_mirth_arrow_Block_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_arrow_Block_index (uint64_t in_Block_1) {
+	return in_Block_1;
 }
 static VAL mw_mirth_arrow_Block_ctx (TUP* in_ZPlusMirth_1, uint64_t in_Block_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_arrow_Block_ZTildectx, in_Block_2);
@@ -42593,6 +42712,24 @@ static VAL mw_mirth_type_PrimType_ctypeZAsk (TUP* in_ZPlusMirth_1, int64_t in_Pr
 	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
 	return branch_Maybe_6;
 }
+static bool mw_mirth_type_PrimType_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3) {
+	TUP* branch_ZPlusMirth_5;
+	bool branch_Bool_6;
+	switch (in_PrimType_2) {
+		case 18LL: { // World
+			bool v7 = true;
+			branch_Bool_6 = v7;
+			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+		} break;
+		default: {
+			bool v8 = false;
+			branch_Bool_6 = v8;
+			branch_ZPlusMirth_5 = in_ZPlusMirth_1;
+		} break;
+	}
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_5;
+	return branch_Bool_6;
+}
 static void mw_mirth_mirth_ZPlusMirth_defZ_primZ_typeZBang (TUP* in_ZPlusMirth_1, int64_t in_PrimType_2, TUP* *out_ZPlusMirth_3) {
 	TUP* v4;
 	TUP* v5 = mw_mirth_type_PrimType_tyconZ_qname(in_ZPlusMirth_1, in_PrimType_2, &v4);
@@ -42729,17 +42866,17 @@ static VAL mw_mirth_type_Kind_ZToType (VAL in_Kind_1) {
 static VAL mw_mirth_type_Type_ZToKind (VAL in_Type_1) {
 	return in_Type_1;
 }
-static uint64_t mw_mirth_type_MetaVar_index (uint64_t in_MetaVar_1) {
-	return in_MetaVar_1;
-}
 static uint64_t mw_mirth_type_MetaVar_allocZBang (void) {
-	void* v2 = mbuf_mirth_type_MetaVar_Num;
+	void* v2 = mbuf_mirth_type_MetaVar_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_type_MetaVar_Num;
+	void* v6 = mbuf_mirth_type_MetaVar_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_type_MetaVar_index (uint64_t in_MetaVar_1) {
+	return in_MetaVar_1;
 }
 static VAL mw_mirth_type_MetaVar_typeZAsk (TUP* in_ZPlusMirth_1, uint64_t in_MetaVar_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_type_MetaVar_ZTildetypeZAsk, in_MetaVar_2);
@@ -43180,6 +43317,38 @@ static VAL mw_mirth_type_Resource_rigidifyZBang (TUP* in_ZPlusMirth_1, VAL in_Ct
 	*out_Resource_6 = v11;
 	*out_ZPlusMirth_4 = v8;
 	return v10;
+}
+static VAL mw_mirth_type_Resource_tyconZAsk (TUP* in_ZPlusMirth_1, VAL in_Resource_2, TUP* *out_ZPlusMirth_3) {
+	VAL v5 = mw_mirth_type_Resource_ZToType(in_Resource_2);
+	TUP* v6;
+	VAL v7 = mw_mirth_type_Type_tyconZAsk(in_ZPlusMirth_1, v5, &v6);
+	*out_ZPlusMirth_3 = v6;
+	return v7;
+}
+static bool mw_mirth_type_Resource_canZ_ownZ_stateZAsk (TUP* in_ZPlusMirth_1, VAL in_Resource_2, TUP* *out_ZPlusMirth_3) {
+	TUP* v5;
+	VAL v6 = mw_mirth_type_Resource_tyconZAsk(in_ZPlusMirth_1, in_Resource_2, &v5);
+	TUP* branch_ZPlusMirth_7;
+	bool branch_Bool_8;
+	switch (get_data_tag(v6)) {
+		case 1LL: { // Some
+			VAL v9 = mtp_std_maybe_Maybe_1_Some(v6);
+			TUP* v10;
+			bool v11 = mw_mirth_tycon_Tycon_canZ_ownZ_stateZAsk(v5, v9, &v10);
+			branch_Bool_8 = v11;
+			branch_ZPlusMirth_7 = v10;
+		} break;
+		case 0LL: { // None
+			bool v12 = false;
+			branch_Bool_8 = v12;
+			branch_ZPlusMirth_7 = v5;
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	*out_ZPlusMirth_3 = branch_ZPlusMirth_7;
+	return branch_Bool_8;
 }
 static VAL mw_mirth_type_Resource_exceptZ_field (TUP* in_ZPlusMirth_1, uint64_t in_Label_2, uint64_t in_Tag_3, VAL in_Resource_4, TUP* *out_ZPlusMirth_5) {
 	TUP* v7;
@@ -52366,16 +52535,45 @@ static VAL mw_mirth_token_nameZDivdnameZ_penultimateZ_nameZAsk (VAL in_Either_1)
 	}
 	return branch_Maybe_3;
 }
+static uint64_t mw_mirth_token_Token_allocZBang (void) {
+	void* v2 = mbuf_mirth_token_Token_NumBuffer;
+	uint64_t v3 = *(uint64_t*)v2;
+	uint64_t v4 = 1ULL;
+	uint64_t v5 = (v3 + v4);
+	void* v6 = mbuf_mirth_token_Token_NumBuffer;
+	*(uint64_t*)v6 = v5;
+	return v5;
+}
 static uint64_t mw_mirth_token_Token_index (uint64_t in_Token_1) {
 	return in_Token_1;
 }
 static uint64_t mw_mirth_token_Token_fromZ_index (uint64_t in_U64_1) {
-	return in_U64_1;
+	void* v3 = mbuf_mirth_token_Token_NumBuffer;
+	uint64_t v4 = *(uint64_t*)v3;
+	bool v5 = (in_U64_1 <= v4);
+	uint64_t branch_U64_6;
+	if (v5) {
+		branch_U64_6 = in_U64_1;
+	} else {
+		uint64_t v7 = 0ULL;
+		branch_U64_6 = v7;
+	}
+	return branch_U64_6;
 }
 static uint64_t mw_mirth_token_Token_succ (uint64_t in_Token_1) {
-	uint64_t v3 = 1ULL;
-	uint64_t v4 = (in_Token_1 + v3);
-	return v4;
+	void* v3 = mbuf_mirth_token_Token_NumBuffer;
+	uint64_t v4 = *(uint64_t*)v3;
+	bool v5 = (in_Token_1 < v4);
+	uint64_t branch_U64_6;
+	if (v5) {
+		uint64_t v7 = 1ULL;
+		uint64_t v8 = (in_Token_1 + v7);
+		branch_U64_6 = v8;
+	} else {
+		uint64_t v9 = 0ULL;
+		branch_U64_6 = v9;
+	}
+	return branch_U64_6;
 }
 static uint64_t mw_mirth_token_Token_pred (uint64_t in_Token_1) {
 	uint64_t v3 = 0ULL;
@@ -52389,15 +52587,6 @@ static uint64_t mw_mirth_token_Token_pred (uint64_t in_Token_1) {
 		branch_U64_5 = v7;
 	}
 	return branch_U64_5;
-}
-static uint64_t mw_mirth_token_Token_allocZBang (void) {
-	void* v2 = mbuf_mirth_token_Token_Num;
-	uint64_t v3 = *(uint64_t*)v2;
-	uint64_t v4 = 1ULL;
-	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_token_Token_Num;
-	*(uint64_t*)v6 = v5;
-	return v5;
 }
 static bool mw_mirth_token_Token_ZEqual (uint64_t in_Token_1, uint64_t in_Token_2) {
 	uint64_t v4 = mw_mirth_token_Token_index(in_Token_1);
@@ -54206,17 +54395,17 @@ static uint64_t mw_mirth_token_Token_cloneZ_runZBang (TUP* in_ZPlusMirth_1, TUP*
 	*out_ZPlusMirth_4 = v47;
 	return v48;
 }
-static uint64_t mw_mirth_alias_Alias_index (uint64_t in_Alias_1) {
-	return in_Alias_1;
-}
 static uint64_t mw_mirth_alias_Alias_allocZBang (void) {
-	void* v2 = mbuf_mirth_alias_Alias_Num;
+	void* v2 = mbuf_mirth_alias_Alias_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_alias_Alias_Num;
+	void* v6 = mbuf_mirth_alias_Alias_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_alias_Alias_index (uint64_t in_Alias_1) {
+	return in_Alias_1;
 }
 static uint64_t mw_mirth_alias_Alias_head (TUP* in_ZPlusMirth_1, uint64_t in_Alias_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_alias_Alias_ZTildehead, in_Alias_2);
@@ -54446,7 +54635,7 @@ static uint64_t mw_mirth_alias_elabZ_aliasZBang (TUP* in_ZPlusMirth_1, uint64_t 
 	v22->cells[0] = v8;
 	TUP* v23 = value_tup(v16->cells[6], 2);
 	incref(MKTUP(v23, 2));
-	FNPTR v24 = &mb_mirth_mirth_PropLabel_prop_1_sp22_10;
+	FNPTR v24 = &mb_mirth_mirth_PropLabel_prop_1_sp43_10;
 	VAL v25 = mtw_mirth_mirth_PropState_1_Delay(v23, MKTUP(v22, 3), MKFNPTR(v24));
 	TUP* v26 = mtw_mirth_mirth_Prop_1_Prop(v21, v25);
 	void* v27 = field_mut(&mfld_mirth_alias_Alias_ZTildetarget, v17);
@@ -55216,56 +55405,59 @@ static void mw_mirth_def_Def_typecheckZBang (TUP* in_ZPlusMirth_1, VAL in_Def_2,
 		} break;
 		case 4LL: { // Table
 			uint64_t v12 = mtp_mirth_def_Def_Table(in_Def_2);
-			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
+			TUP* v13;
+			VAL v14 = mw_mirth_table_Table_owner(in_ZPlusMirth_1, v12, &v13);
+			decref(v14);
+			branch_ZPlusMirth_4 = v13;
 		} break;
 		case 5LL: { // Type
-			uint64_t v13 = mtp_mirth_def_Def_Type(in_Def_2);
-			TUP* v14;
-			VAL v15 = mw_mirth_typedef_TypeDef_target(in_ZPlusMirth_1, v13, &v14);
-			decref(v15);
-			branch_ZPlusMirth_4 = v14;
+			uint64_t v15 = mtp_mirth_def_Def_Type(in_Def_2);
+			TUP* v16;
+			VAL v17 = mw_mirth_typedef_TypeDef_target(in_ZPlusMirth_1, v15, &v16);
+			decref(v17);
+			branch_ZPlusMirth_4 = v16;
 		} break;
 		case 6LL: { // Tag
-			uint64_t v16 = mtp_mirth_def_Def_Tag(in_Def_2);
-			TUP* v17;
-			TUP* v18 = mw_mirth_data_Tag_type(in_ZPlusMirth_1, v16, &v17);
-			decref(MKTUP(v18, 2));
-			branch_ZPlusMirth_4 = v17;
+			uint64_t v18 = mtp_mirth_def_Def_Tag(in_Def_2);
+			TUP* v19;
+			TUP* v20 = mw_mirth_data_Tag_type(in_ZPlusMirth_1, v18, &v19);
+			decref(MKTUP(v20, 2));
+			branch_ZPlusMirth_4 = v19;
 		} break;
 		case 7LL: { // Prim
-			int64_t v19 = mtp_mirth_def_Def_Prim(in_Def_2);
+			int64_t v21 = mtp_mirth_def_Def_Prim(in_Def_2);
 			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
 		} break;
 		case 8LL: { // Word
-			uint64_t v20 = mtp_mirth_def_Def_Word(in_Def_2);
-			TUP* v21;
-			TUP* v22 = mw_mirth_word_Word_type(in_ZPlusMirth_1, v20, &v21);
-			decref(MKTUP(v22, 2));
+			uint64_t v22 = mtp_mirth_def_Def_Word(in_Def_2);
 			TUP* v23;
-			TUP* v24 = mw_mirth_word_Word_arrow(v21, v20, &v23);
-			decref(MKTUP(v24, 7));
-			branch_ZPlusMirth_4 = v23;
+			TUP* v24 = mw_mirth_word_Word_type(in_ZPlusMirth_1, v22, &v23);
+			decref(MKTUP(v24, 2));
+			TUP* v25;
+			TUP* v26 = mw_mirth_word_Word_arrow(v23, v22, &v25);
+			decref(MKTUP(v26, 7));
+			branch_ZPlusMirth_4 = v25;
 		} break;
 		case 9LL: { // Buffer
-			uint64_t v25 = mtp_mirth_def_Def_Buffer(in_Def_2);
+			uint64_t v27 = mtp_mirth_def_Def_Buffer(in_Def_2);
 			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
 		} break;
 		case 10LL: { // External
-			uint64_t v26 = mtp_mirth_def_Def_External(in_Def_2);
-			TUP* v27;
-			TUP* v28 = mw_mirth_external_External_type(in_ZPlusMirth_1, v26, &v27);
-			decref(MKTUP(v28, 2));
-			branch_ZPlusMirth_4 = v27;
+			uint64_t v28 = mtp_mirth_def_Def_External(in_Def_2);
+			TUP* v29;
+			TUP* v30 = mw_mirth_external_External_type(in_ZPlusMirth_1, v28, &v29);
+			decref(MKTUP(v30, 2));
+			branch_ZPlusMirth_4 = v29;
 		} break;
 		case 11LL: { // Field
-			uint64_t v29 = mtp_mirth_def_Def_Field(in_Def_2);
-			TUP* v30;
-			TUP* v31 = mw_mirth_table_Field_type(in_ZPlusMirth_1, v29, &v30);
-			decref(MKTUP(v31, 2));
-			branch_ZPlusMirth_4 = v30;
+			uint64_t v31 = mtp_mirth_def_Def_Field(in_Def_2);
+			TUP* v32;
+			TUP* v33 = mw_mirth_table_Field_type(in_ZPlusMirth_1, v31, &v32);
+			decref(MKTUP(v33, 2));
+			branch_ZPlusMirth_4 = v32;
 		} break;
 		case 12LL: { // Macro
-			uint64_t v32 = mtp_mirth_def_Def_Macro(in_Def_2);
+			uint64_t v34 = mtp_mirth_def_Def_Macro(in_Def_2);
 			branch_ZPlusMirth_4 = in_ZPlusMirth_1;
 		} break;
 		default: {
@@ -56157,20 +56349,30 @@ static void mw_mirth_def_Def_qnameZThen (TUP* in_ZPlusMirth_1, STR* in_ZPlusStr_
 	*out_ZPlusStr_5 = v9;
 	*out_ZPlusMirth_4 = v8;
 }
+static uint64_t mw_mirth_name_Name_allocZBang (void) {
+	void* v2 = mbuf_mirth_name_Name_NumBuffer;
+	uint64_t v3 = *(uint64_t*)v2;
+	uint64_t v4 = 1ULL;
+	uint64_t v5 = (v3 + v4);
+	void* v6 = mbuf_mirth_name_Name_NumBuffer;
+	*(uint64_t*)v6 = v5;
+	return v5;
+}
 static uint64_t mw_mirth_name_Name_index (uint64_t in_Name_1) {
 	return in_Name_1;
 }
 static uint64_t mw_mirth_name_Name_fromZ_index (uint64_t in_U64_1) {
-	return in_U64_1;
-}
-static uint64_t mw_mirth_name_Name_allocZBang (void) {
-	void* v2 = mbuf_mirth_name_Name_Num;
-	uint64_t v3 = *(uint64_t*)v2;
-	uint64_t v4 = 1ULL;
-	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_name_Name_Num;
-	*(uint64_t*)v6 = v5;
-	return v5;
+	void* v3 = mbuf_mirth_name_Name_NumBuffer;
+	uint64_t v4 = *(uint64_t*)v3;
+	bool v5 = (in_U64_1 <= v4);
+	uint64_t branch_U64_6;
+	if (v5) {
+		branch_U64_6 = in_U64_1;
+	} else {
+		uint64_t v7 = 0ULL;
+		branch_U64_6 = v7;
+	}
+	return branch_U64_6;
 }
 static STR* mw_mirth_name_Name_ZToStr (TUP* in_ZPlusMirth_1, uint64_t in_Name_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_name_Name_ZTildeStr, in_Name_2);
@@ -58067,17 +58269,17 @@ static bool mw_mirth_name_DName_isZ_relativeZAsk (TUP* in_DName_1) {
 	bool v7 = int_eq(v6, v5);
 	return v7;
 }
-static uint64_t mw_mirth_module_Module_index (uint64_t in_Module_1) {
-	return in_Module_1;
-}
 static uint64_t mw_mirth_module_Module_allocZBang (void) {
-	void* v2 = mbuf_mirth_module_Module_Num;
+	void* v2 = mbuf_mirth_module_Module_NumBuffer;
 	uint64_t v3 = *(uint64_t*)v2;
 	uint64_t v4 = 1ULL;
 	uint64_t v5 = (v3 + v4);
-	void* v6 = mbuf_mirth_module_Module_Num;
+	void* v6 = mbuf_mirth_module_Module_NumBuffer;
 	*(uint64_t*)v6 = v5;
 	return v5;
+}
+static uint64_t mw_mirth_module_Module_index (uint64_t in_Module_1) {
+	return in_Module_1;
 }
 static uint64_t mw_mirth_module_Module_package (TUP* in_ZPlusMirth_1, uint64_t in_Module_2, TUP* *out_ZPlusMirth_3) {
 	void* v5 = field_mut(&mfld_mirth_module_Module_ZTildepackage, in_Module_2);
@@ -59298,24 +59500,24 @@ static void mw_mirth_mirth_PropLabel_traceZThen (TUP* in_ZPlusMirth_1, STR* in_Z
 			branch_ZPlusStr_7 = v135;
 			branch_ZPlusMirth_6 = v134;
 		} break;
-		case 19LL: { // FieldQName
-			uint64_t v136 = mtp_mirth_mirth_PropLabel_FieldQName(in_PropLabel_3);
+		case 19LL: { // TableOwner
+			uint64_t v136 = mtp_mirth_mirth_PropLabel_TableOwner(in_PropLabel_3);
 			STR* v137;
-			STRLIT(v137, "field qname at ", 15);
+			STRLIT(v137, "table owner at ", 15);
 			STR* v138;
 			mw_std_str_ZPlusStr_pushZ_strZBang(v137, in_ZPlusStr_2, &v138);
 			TUP* v139;
-			uint64_t v140 = mw_mirth_table_Field_head(in_ZPlusMirth_1, v136, &v139);
+			uint64_t v140 = mw_mirth_table_Table_head(in_ZPlusMirth_1, v136, &v139);
 			TUP* v141;
 			STR* v142;
 			mw_mirth_token_Token_locationZThen(v139, v138, v140, &v141, &v142);
 			branch_ZPlusStr_7 = v142;
 			branch_ZPlusMirth_6 = v141;
 		} break;
-		case 20LL: { // FieldValueType
-			uint64_t v143 = mtp_mirth_mirth_PropLabel_FieldValueType(in_PropLabel_3);
+		case 20LL: { // FieldOwner
+			uint64_t v143 = mtp_mirth_mirth_PropLabel_FieldOwner(in_PropLabel_3);
 			STR* v144;
-			STRLIT(v144, "field value type at ", 20);
+			STRLIT(v144, "field owner at ", 15);
 			STR* v145;
 			mw_std_str_ZPlusStr_pushZ_strZBang(v144, in_ZPlusStr_2, &v145);
 			TUP* v146;
@@ -59326,10 +59528,10 @@ static void mw_mirth_mirth_PropLabel_traceZThen (TUP* in_ZPlusMirth_1, STR* in_Z
 			branch_ZPlusStr_7 = v149;
 			branch_ZPlusMirth_6 = v148;
 		} break;
-		case 21LL: { // FieldIndexType
-			uint64_t v150 = mtp_mirth_mirth_PropLabel_FieldIndexType(in_PropLabel_3);
+		case 21LL: { // FieldQName
+			uint64_t v150 = mtp_mirth_mirth_PropLabel_FieldQName(in_PropLabel_3);
 			STR* v151;
-			STRLIT(v151, "field index type at ", 20);
+			STRLIT(v151, "field qname at ", 15);
 			STR* v152;
 			mw_std_str_ZPlusStr_pushZ_strZBang(v151, in_ZPlusStr_2, &v152);
 			TUP* v153;
@@ -59340,19 +59542,47 @@ static void mw_mirth_mirth_PropLabel_traceZThen (TUP* in_ZPlusMirth_1, STR* in_Z
 			branch_ZPlusStr_7 = v156;
 			branch_ZPlusMirth_6 = v155;
 		} break;
-		case 22LL: { // MacroQName
-			uint64_t v157 = mtp_mirth_mirth_PropLabel_MacroQName(in_PropLabel_3);
+		case 22LL: { // FieldValueType
+			uint64_t v157 = mtp_mirth_mirth_PropLabel_FieldValueType(in_PropLabel_3);
 			STR* v158;
-			STRLIT(v158, "macro qname at ", 15);
+			STRLIT(v158, "field value type at ", 20);
 			STR* v159;
 			mw_std_str_ZPlusStr_pushZ_strZBang(v158, in_ZPlusStr_2, &v159);
 			TUP* v160;
-			VAL v161 = mw_mirth_macro_Macro_headZAsk(in_ZPlusMirth_1, v157, &v160);
+			uint64_t v161 = mw_mirth_table_Field_head(in_ZPlusMirth_1, v157, &v160);
 			TUP* v162;
 			STR* v163;
-			mw_std_maybe_Maybe_1_locationZAskZThen_sp1(v160, v159, v161, &v162, &v163);
+			mw_mirth_token_Token_locationZThen(v160, v159, v161, &v162, &v163);
 			branch_ZPlusStr_7 = v163;
 			branch_ZPlusMirth_6 = v162;
+		} break;
+		case 23LL: { // FieldIndexType
+			uint64_t v164 = mtp_mirth_mirth_PropLabel_FieldIndexType(in_PropLabel_3);
+			STR* v165;
+			STRLIT(v165, "field index type at ", 20);
+			STR* v166;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v165, in_ZPlusStr_2, &v166);
+			TUP* v167;
+			uint64_t v168 = mw_mirth_table_Field_head(in_ZPlusMirth_1, v164, &v167);
+			TUP* v169;
+			STR* v170;
+			mw_mirth_token_Token_locationZThen(v167, v166, v168, &v169, &v170);
+			branch_ZPlusStr_7 = v170;
+			branch_ZPlusMirth_6 = v169;
+		} break;
+		case 24LL: { // MacroQName
+			uint64_t v171 = mtp_mirth_mirth_PropLabel_MacroQName(in_PropLabel_3);
+			STR* v172;
+			STRLIT(v172, "macro qname at ", 15);
+			STR* v173;
+			mw_std_str_ZPlusStr_pushZ_strZBang(v172, in_ZPlusStr_2, &v173);
+			TUP* v174;
+			VAL v175 = mw_mirth_macro_Macro_headZAsk(in_ZPlusMirth_1, v171, &v174);
+			TUP* v176;
+			STR* v177;
+			mw_std_maybe_Maybe_1_locationZAskZThen_sp1(v174, v173, v175, &v176, &v177);
+			branch_ZPlusStr_7 = v177;
+			branch_ZPlusMirth_6 = v176;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
@@ -64944,7 +65174,7 @@ static void mw_mirth_c99_c99Z_headerZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC9
 }
 static void mw_mirth_c99_c99Z_buffersZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_buffer_Buffer_Num;
+	void* v6 = mbuf_mirth_buffer_Buffer_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -64960,7 +65190,7 @@ static void mw_mirth_c99_c99Z_buffersZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC
 		mw_mirth_c99_c99Z_bufferZBang(v13, v14, v15, &v16, &v17);
 		uint64_t v18 = 1ULL;
 		uint64_t v19 = (v15 + v18);
-		void* v20 = mbuf_mirth_buffer_Buffer_Num;
+		void* v20 = mbuf_mirth_buffer_Buffer_NumBuffer;
 		uint64_t v21 = *(uint64_t*)v20;
 		bool v22 = (v19 <= v21);
 		v12 = v22;
@@ -65094,7 +65324,7 @@ static void mw_mirth_c99_c99Z_bufferZ_callZBang (TUP* in_ZPlusMirth_1, TUP* in_Z
 }
 static void mw_mirth_c99_c99Z_tagZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_data_Tag_Num;
+	void* v6 = mbuf_mirth_data_Tag_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -65110,7 +65340,7 @@ static void mw_mirth_c99_c99Z_tagZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlu
 		mw_mirth_c99_c99Z_tagZ_defZBang(v13, v14, v15, &v16, &v17);
 		uint64_t v18 = 1ULL;
 		uint64_t v19 = (v15 + v18);
-		void* v20 = mbuf_mirth_data_Tag_Num;
+		void* v20 = mbuf_mirth_data_Tag_NumBuffer;
 		uint64_t v21 = *(uint64_t*)v20;
 		bool v22 = (v19 <= v21);
 		v12 = v22;
@@ -67709,7 +67939,7 @@ static void mw_mirth_c99_c99Z_tagZ_setZ_labelZBang (TUP* in_ZPlusMirth_1, TUP* i
 }
 static void mw_mirth_c99_c99Z_externalZ_blocksZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_external_ExternalBlock_Num;
+	void* v6 = mbuf_mirth_external_ExternalBlock_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -67725,7 +67955,7 @@ static void mw_mirth_c99_c99Z_externalZ_blocksZBang (TUP* in_ZPlusMirth_1, TUP* 
 		mw_mirth_c99_c99Z_externalZ_blockZBang(v13, v14, v15, &v16, &v17);
 		uint64_t v18 = 1ULL;
 		uint64_t v19 = (v15 + v18);
-		void* v20 = mbuf_mirth_external_ExternalBlock_Num;
+		void* v20 = mbuf_mirth_external_ExternalBlock_NumBuffer;
 		uint64_t v21 = *(uint64_t*)v20;
 		bool v22 = (v19 <= v21);
 		v12 = v22;
@@ -73230,7 +73460,7 @@ static void mw_mirth_c99_c99Z_reverseZ_tagZBang (TUP* in_ZPlusMirth_1, TUP* in_Z
 }
 static void mw_mirth_c99_c99Z_labelZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_label_Label_Num;
+	void* v6 = mbuf_mirth_label_Label_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -73259,7 +73489,7 @@ static void mw_mirth_c99_c99Z_labelZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZP
 		}
 		uint64_t v23 = 1ULL;
 		uint64_t v24 = (v15 + v23);
-		void* v25 = mbuf_mirth_label_Label_Num;
+		void* v25 = mbuf_mirth_label_Label_NumBuffer;
 		uint64_t v26 = *(uint64_t*)v25;
 		bool v27 = (v24 <= v26);
 		v12 = v27;
@@ -84106,7 +84336,7 @@ static TUP* mw_mirth_word_Word_c99Z_api (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_
 }
 static void mw_mirth_c99_c99Z_wordZ_sigsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_word_Word_Num;
+	void* v6 = mbuf_mirth_word_Word_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -84135,7 +84365,7 @@ static void mw_mirth_c99_c99Z_wordZ_sigsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPl
 		}
 		uint64_t v23 = 1ULL;
 		uint64_t v24 = (v15 + v23);
-		void* v25 = mbuf_mirth_word_Word_Num;
+		void* v25 = mbuf_mirth_word_Word_NumBuffer;
 		uint64_t v26 = *(uint64_t*)v25;
 		bool v27 = (v24 <= v26);
 		v12 = v27;
@@ -84158,7 +84388,7 @@ static void mw_mirth_c99_c99Z_wordZ_sigZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlu
 }
 static void mw_mirth_c99_c99Z_blockZ_sigsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_arrow_Block_Num;
+	void* v6 = mbuf_mirth_arrow_Block_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -84187,7 +84417,7 @@ static void mw_mirth_c99_c99Z_blockZ_sigsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZP
 		}
 		uint64_t v23 = 1ULL;
 		uint64_t v24 = (v15 + v23);
-		void* v25 = mbuf_mirth_arrow_Block_Num;
+		void* v25 = mbuf_mirth_arrow_Block_NumBuffer;
 		uint64_t v26 = *(uint64_t*)v25;
 		bool v27 = (v24 <= v26);
 		v12 = v27;
@@ -84218,7 +84448,7 @@ static void mw_mirth_c99_c99Z_blockZ_sigZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPl
 }
 static void mw_mirth_c99_c99Z_blockZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_arrow_Block_Num;
+	void* v6 = mbuf_mirth_arrow_Block_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -84247,7 +84477,7 @@ static void mw_mirth_c99_c99Z_blockZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZP
 		}
 		uint64_t v23 = 1ULL;
 		uint64_t v24 = (v15 + v23);
-		void* v25 = mbuf_mirth_arrow_Block_Num;
+		void* v25 = mbuf_mirth_arrow_Block_NumBuffer;
 		uint64_t v26 = *(uint64_t*)v25;
 		bool v27 = (v24 <= v26);
 		v12 = v27;
@@ -84733,7 +84963,7 @@ static void mw_mirth_c99_c99Z_wordZ_exitZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPl
 }
 static void mw_mirth_c99_c99Z_wordZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_word_Word_Num;
+	void* v6 = mbuf_mirth_word_Word_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -84762,7 +84992,7 @@ static void mw_mirth_c99_c99Z_wordZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPl
 		}
 		uint64_t v23 = 1ULL;
 		uint64_t v24 = (v15 + v23);
-		void* v25 = mbuf_mirth_word_Word_Num;
+		void* v25 = mbuf_mirth_word_Word_NumBuffer;
 		uint64_t v26 = *(uint64_t*)v25;
 		bool v27 = (v24 <= v26);
 		v12 = v27;
@@ -84831,7 +85061,7 @@ static void mw_mirth_c99_c99Z_wordZ_defZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlu
 }
 static void mw_mirth_c99_c99Z_fieldZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZPlusC99_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusC99_4) {
 	uint64_t v5 = 1ULL;
-	void* v6 = mbuf_mirth_table_Field_Num;
+	void* v6 = mbuf_mirth_table_Field_NumBuffer;
 	uint64_t v7 = *(uint64_t*)v6;
 	bool v8 = (v5 <= v7);
 	TUP* v9 = in_ZPlusMirth_1;
@@ -84847,7 +85077,7 @@ static void mw_mirth_c99_c99Z_fieldZ_defsZBang (TUP* in_ZPlusMirth_1, TUP* in_ZP
 		mw_mirth_c99_c99Z_fieldZ_defZBang(v13, v14, v15, &v16, &v17);
 		uint64_t v18 = 1ULL;
 		uint64_t v19 = (v15 + v18);
-		void* v20 = mbuf_mirth_table_Field_Num;
+		void* v20 = mbuf_mirth_table_Field_NumBuffer;
 		uint64_t v21 = *(uint64_t*)v20;
 		bool v22 = (v19 <= v21);
 		v12 = v22;
@@ -88808,6 +89038,484 @@ static TUP* mw_mirth_mirth_PropLabel_prop_1_sp16 (uint64_t in_Token_1, TUP* in_Z
 	*out_ZPlusMirth_4 = in_ZPlusMirth_2;
 	return v9;
 }
+static TUP* mw_mirth_mirth_PropLabel_prop2_1_sp7 (TUP* in_ZPlusMirth_1, uint64_t in_Field_2, uint64_t in_Word_3, VAL in_PropLabel_4, TUP* *out_ZPlusMirth_5) {
+	TUP* v7 = tup_new(2);
+	v7->size = 2;
+	v7->cells[1] = MKU64(in_Word_3);
+	v7->cells[0] = MKU64(in_Field_2);
+	TUP* v8 = value_tup(in_ZPlusMirth_1->cells[6], 2);
+	incref(MKTUP(v8, 2));
+	FNPTR v9 = &mb_mirth_mirth_PropLabel_prop_1_sp20_1;
+	VAL v10 = mtw_mirth_mirth_PropState_1_Delay(v8, MKTUP(v7, 2), MKFNPTR(v9));
+	TUP* v11 = mtw_mirth_mirth_Prop_1_Prop(in_PropLabel_4, v10);
+	*out_ZPlusMirth_5 = in_ZPlusMirth_1;
+	return v11;
+}
+static TUP* mw_mirth_mirth_PropLabel_prop2_1_sp8 (TUP* in_ZPlusMirth_1, VAL in_List_2, uint64_t in_Word_3, VAL in_PropLabel_4, TUP* *out_ZPlusMirth_5) {
+	TUP* v7 = tup_new(2);
+	v7->size = 2;
+	v7->cells[1] = MKU64(in_Word_3);
+	v7->cells[0] = in_List_2;
+	TUP* v8 = value_tup(in_ZPlusMirth_1->cells[6], 2);
+	incref(MKTUP(v8, 2));
+	FNPTR v9 = &mb_mirth_mirth_PropLabel_prop_1_sp19_3;
+	VAL v10 = mtw_mirth_mirth_PropState_1_Delay(v8, MKTUP(v7, 2), MKFNPTR(v9));
+	TUP* v11 = mtw_mirth_mirth_Prop_1_Prop(in_PropLabel_4, v10);
+	*out_ZPlusMirth_5 = in_ZPlusMirth_1;
+	return v11;
+}
+static uint64_t mw_mirth_word_Word_BuildZBang_3_sp3 (uint64_t in_Table_1, uint64_t in_Token_2, uint64_t in_Token_3, VAL in_Maybe_4, TUP* in_ZPlusMirth_5, STR* in_Str_6, VAL in_List_7, uint64_t *out_Table_8, TUP* *out_ZPlusMirth_9) {
+	incref(in_List_7);
+	INT v11 = mw_std_list_List_1_len(in_List_7);
+	TUP* v12;
+	uint64_t v13 = mw_std_prim_Str_ZToName(in_ZPlusMirth_5, in_Str_6, &v12);
+	VAL v14 = MKI64(0LL /* None */);
+	TUP* v15;
+	uint64_t v16 = mw_mirth_word_Word_NewZBang(v12, in_Token_2, v14, in_Token_3, v13, v11, in_Maybe_4, &v15);
+	VAL v17 = mtw_mirth_mirth_PropLabel_WordQName(v16);
+	TUP* v18;
+	TUP* v19 = mw_mirth_mirth_PropLabel_prop2_1_sp11(v15, in_Table_1, v16, v17, &v18);
+	void* v20 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v16);
+	mut_set(MKTUP(v19, 2), v20);
+	VAL v21 = mtw_mirth_mirth_PropLabel_WordType(v16);
+	TUP* v22;
+	TUP* v23 = mw_mirth_mirth_PropLabel_prop_1_sp35(in_Table_1, v18, v21, &v22);
+	void* v24 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v16);
+	mut_set(MKTUP(v23, 2), v24);
+	VAL v25 = mtw_mirth_mirth_PropLabel_WordParams(v16);
+	TUP* v26;
+	TUP* v27 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v22, in_List_7, v16, v25, &v26);
+	void* v28 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v16);
+	mut_set(MKTUP(v27, 2), v28);
+	VAL v29 = mtw_mirth_mirth_PropLabel_WordArrow(v16);
+	TUP* v30 = tup_new(2);
+	v30->size = 2;
+	v30->cells[1] = MKU64(v16);
+	v30->cells[0] = MKU64(in_Table_1);
+	TUP* v31 = value_tup(v26->cells[6], 2);
+	incref(MKTUP(v31, 2));
+	FNPTR v32 = &mb_mirth_mirth_PropLabel_prop_1_sp37_13;
+	VAL v33 = mtw_mirth_mirth_PropState_1_Delay(v31, MKTUP(v30, 2), MKFNPTR(v32));
+	TUP* v34 = mtw_mirth_mirth_Prop_1_Prop(v29, v33);
+	void* v35 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v16);
+	mut_set(MKTUP(v34, 2), v35);
+	*out_ZPlusMirth_9 = v26;
+	*out_Table_8 = in_Table_1;
+	return v16;
+}
+static uint64_t mw_mirth_word_Word_BuildZBang_3_sp4 (uint64_t in_Table_1, uint64_t in_Token_2, uint64_t in_Token_3, VAL in_Maybe_4, TUP* in_ZPlusMirth_5, STR* in_Str_6, VAL in_List_7, uint64_t *out_Table_8, TUP* *out_ZPlusMirth_9) {
+	incref(in_List_7);
+	INT v11 = mw_std_list_List_1_len(in_List_7);
+	TUP* v12;
+	uint64_t v13 = mw_std_prim_Str_ZToName(in_ZPlusMirth_5, in_Str_6, &v12);
+	VAL v14 = MKI64(0LL /* None */);
+	TUP* v15;
+	uint64_t v16 = mw_mirth_word_Word_NewZBang(v12, in_Token_2, v14, in_Token_3, v13, v11, in_Maybe_4, &v15);
+	VAL v17 = mtw_mirth_mirth_PropLabel_WordQName(v16);
+	TUP* v18;
+	TUP* v19 = mw_mirth_mirth_PropLabel_prop2_1_sp11(v15, in_Table_1, v16, v17, &v18);
+	void* v20 = field_mut(&mfld_mirth_word_Word_ZTildeqname, v16);
+	mut_set(MKTUP(v19, 2), v20);
+	VAL v21 = mtw_mirth_mirth_PropLabel_WordType(v16);
+	TUP* v22;
+	TUP* v23 = mw_mirth_mirth_PropLabel_prop_1_sp35(in_Table_1, v18, v21, &v22);
+	void* v24 = field_mut(&mfld_mirth_word_Word_ZTildectxZ_type, v16);
+	mut_set(MKTUP(v23, 2), v24);
+	VAL v25 = mtw_mirth_mirth_PropLabel_WordParams(v16);
+	TUP* v26;
+	TUP* v27 = mw_mirth_mirth_PropLabel_prop2_1_sp8(v22, in_List_7, v16, v25, &v26);
+	void* v28 = field_mut(&mfld_mirth_word_Word_ZTildeparams, v16);
+	mut_set(MKTUP(v27, 2), v28);
+	VAL v29 = mtw_mirth_mirth_PropLabel_WordArrow(v16);
+	TUP* v30 = tup_new(2);
+	v30->size = 2;
+	v30->cells[1] = MKU64(v16);
+	v30->cells[0] = MKU64(in_Table_1);
+	TUP* v31 = value_tup(v26->cells[6], 2);
+	incref(MKTUP(v31, 2));
+	FNPTR v32 = &mb_mirth_mirth_PropLabel_prop_1_sp36_29;
+	VAL v33 = mtw_mirth_mirth_PropState_1_Delay(v31, MKTUP(v30, 2), MKFNPTR(v32));
+	TUP* v34 = mtw_mirth_mirth_Prop_1_Prop(v29, v33);
+	void* v35 = field_mut(&mfld_mirth_word_Word_ZTildearrow, v16);
+	mut_set(MKTUP(v34, 2), v35);
+	*out_ZPlusMirth_9 = v26;
+	*out_Table_8 = in_Table_1;
+	return v16;
+}
+static TUP* mw_mirth_mirth_PropLabel_prop2_1_sp11 (TUP* in_ZPlusMirth_1, uint64_t in_Table_2, uint64_t in_Word_3, VAL in_PropLabel_4, TUP* *out_ZPlusMirth_5) {
+	TUP* v7 = tup_new(2);
+	v7->size = 2;
+	v7->cells[1] = MKU64(in_Word_3);
+	v7->cells[0] = MKU64(in_Table_2);
+	TUP* v8 = value_tup(in_ZPlusMirth_1->cells[6], 2);
+	incref(MKTUP(v8, 2));
+	FNPTR v9 = &mb_mirth_mirth_PropLabel_prop_1_sp27_1;
+	VAL v10 = mtw_mirth_mirth_PropState_1_Delay(v8, MKTUP(v7, 2), MKFNPTR(v9));
+	TUP* v11 = mtw_mirth_mirth_Prop_1_Prop(in_PropLabel_4, v10);
+	*out_ZPlusMirth_5 = in_ZPlusMirth_1;
+	return v11;
+}
+static VAL mw_std_maybe_Maybe_1_unwrap_1_sp53 (VAL in_Maybe_1) {
+	VAL branch_z_x1_3;
+	switch (get_data_tag(in_Maybe_1)) {
+		case 1LL: { // Some
+			VAL v4 = mtp_std_maybe_Maybe_1_Some(in_Maybe_1);
+			branch_z_x1_3 = v4;
+		} break;
+		case 0LL: { // None
+			STR* v5;
+			STRLIT(v5, "unexpected number of params", 27);
+			do_panic(v5);
+		} break;
+		default: {
+			do_panic(str_make("unexpected fallthrough in match\n", 32));
+		}
+	}
+	return branch_z_x1_3;
+}
+static void mw_mirth_elab_ZPlusAB_abZ_whileZBang_2_sp1 (uint64_t in_Var_1, uint64_t in_Table_2, TUP* in_ZPlusMirth_3, TUP* in_ZPlusAB_4, uint64_t *out_Table_5, TUP* *out_ZPlusMirth_6, TUP* *out_ZPlusAB_7) {
+	TUP* v8;
+	VAL v9 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(in_ZPlusAB_4, &v8);
+	incref(v9);
+	incref(v9);
+	VAL v10 = mw_mirth_type_Type_Bool();
+	VAL v11 = mw_mirth_type_TZMul(v9, v10);
+	TUP* v12 = mw_mirth_type_TZ_ZTo(v9, v11);
+	TUP* v13;
+	VAL v14 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v8, &v13);
+	TUP* v15;
+	uint64_t v16 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v13, &v15);
+	TUP* v17;
+	VAL v18 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v15, &v17);
+	VAL v19;
+	VAL v20;
+	mtp_mirth_type_ArrowType_ArrowType(v12, &v19, &v20);
+	incref(v19);
+	VAL v21 = MKI64(0LL /* Nil */);
+	TUP* v22 = mtw_mirth_arrow_Arrow_Arrow(v18, v16, v16, v14, v19, v19, v21);
+	VAL v23 = MKI64(0LL /* Nil */);
+	int64_t v24 = 1LL /* Dup */;
+	TUP* v25;
+	TUP* v26;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(in_ZPlusMirth_3, v22, v23, v24, &v25, &v26);
+	TUP* v27;
+	uint64_t v28 = mw_mirth_table_Table_numZ_buffer(v25, in_Table_2, &v27);
+	TUP* v29;
+	TUP* v30;
+	mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v27, v26, v28, &v29, &v30);
+	VAL v31 = MKI64(0LL /* Nil */);
+	int64_t v32 = 36LL /* U64Get */;
+	TUP* v33;
+	TUP* v34;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v29, v30, v31, v32, &v33, &v34);
+	VAL v35 = MKI64(0LL /* Nil */);
+	int64_t v36 = 40LL /* U64Le */;
+	TUP* v37;
+	TUP* v38;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v33, v34, v35, v36, &v37, &v38);
+	TUP* v39;
+	TUP* v40;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v37, v38, v20, &v39, &v40);
+	TUP* v41;
+	uint64_t v42 = mw_mirth_arrow_Block_newZBang(v39, v40, &v41);
+	incref(v9);
+	TUP* v43 = mw_mirth_type_TZ_ZTo(v9, v9);
+	TUP* v44;
+	VAL v45 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v17, &v44);
+	TUP* v46;
+	uint64_t v47 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v44, &v46);
+	TUP* v48;
+	VAL v49 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v46, &v48);
+	VAL v50;
+	VAL v51;
+	mtp_mirth_type_ArrowType_ArrowType(v43, &v50, &v51);
+	incref(v50);
+	VAL v52 = MKI64(0LL /* Nil */);
+	TUP* v53 = mtw_mirth_arrow_Arrow_Arrow(v49, v47, v47, v45, v50, v50, v52);
+	VAL v54 = MKI64(0LL /* Nil */);
+	int64_t v55 = 1LL /* Dup */;
+	TUP* v56;
+	TUP* v57;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v41, v53, v54, v55, &v56, &v57);
+	TUP* v58;
+	VAL v59 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v57, &v58);
+	TUP* v60;
+	VAL v61 = mw_mirth_type_StackType_forceZ_consZAskZBang(v56, v59, &v60);
+	VAL v62 = mw_std_maybe_Maybe_1_ifZAsk_2_sp49(v61);
+	TUP* v63;
+	VAL v64 = mw_mirth_type_StackType_FreshZBang(v60, &v63);
+	TUP* v65 = mw_mirth_type_TZ_ZTo(v62, v64);
+	TUP* v66;
+	VAL v67 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v58, &v66);
+	TUP* v68;
+	uint64_t v69 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v66, &v68);
+	TUP* v70;
+	VAL v71 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v68, &v70);
+	VAL v72;
+	VAL v73;
+	mtp_mirth_type_ArrowType_ArrowType(v65, &v72, &v73);
+	incref(v72);
+	VAL v74 = MKI64(0LL /* Nil */);
+	TUP* v75 = mtw_mirth_arrow_Arrow_Arrow(v71, v69, v69, v67, v72, v72, v74);
+	VAL v76 = MKI64(0LL /* Nil */);
+	VAL v77 = mtw_mirth_arrow_Op_TableFromIndex(in_Table_2);
+	TUP* v78;
+	TUP* v79;
+	mw_mirth_elab_ZPlusAB_abZ_opZBang(v63, v75, v76, v77, &v78, &v79);
+	TUP* v80;
+	TUP* v81;
+	mw_mirth_elab_ZPlusAB_abZ_varZBang(v78, v79, in_Var_1, &v80, &v81);
+	TUP* v82;
+	TUP* v83;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v80, v81, v73, &v82, &v83);
+	TUP* v84;
+	uint64_t v85 = mw_mirth_arrow_Block_newZBang(v82, v83, &v84);
+	VAL v86 = MKI64(0LL /* Nil */);
+	VAL v87 = mw_std_list_List_1_cons(MKU64(v85), v86);
+	int64_t v88 = 5LL /* Dip */;
+	TUP* v89;
+	TUP* v90;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v84, v70, v87, v88, &v89, &v90);
+	uint64_t v91 = 1ULL;
+	VAL v92 = mtw_mirth_arrow_PushValue_U64(v91);
+	TUP* v93;
+	TUP* v94;
+	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v89, v90, v92, &v93, &v94);
+	VAL v95 = MKI64(0LL /* Nil */);
+	int64_t v96 = 44LL /* U64Add */;
+	TUP* v97;
+	TUP* v98;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v93, v94, v95, v96, &v97, &v98);
+	TUP* v99;
+	TUP* v100;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v97, v98, v51, &v99, &v100);
+	TUP* v101;
+	uint64_t v102 = mw_mirth_arrow_Block_newZBang(v99, v100, &v101);
+	VAL v103 = MKI64(0LL /* Nil */);
+	VAL v104 = mw_std_list_List_1_cons(MKU64(v102), v103);
+	VAL v105 = mw_std_list_List_1_cons(MKU64(v42), v104);
+	int64_t v106 = 8LL /* While */;
+	TUP* v107;
+	TUP* v108;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v101, v48, v105, v106, &v107, &v108);
+	*out_ZPlusAB_7 = v108;
+	*out_ZPlusMirth_6 = v107;
+	*out_Table_5 = in_Table_2;
+}
+static TUP* mw_mirth_mirth_PropLabel_prop_1_sp28 (uint64_t in_Table_1, TUP* in_ZPlusMirth_2, VAL in_PropLabel_3, TUP* *out_ZPlusMirth_4) {
+	TUP* v6 = value_tup(in_ZPlusMirth_2->cells[6], 2);
+	incref(MKTUP(v6, 2));
+	FNPTR v7 = &mb_mirth_mirth_PropLabel_prop_1_sp28_0;
+	VAL v8 = mtw_mirth_mirth_PropState_1_Delay(v6, MKU64(in_Table_1), MKFNPTR(v7));
+	TUP* v9 = mtw_mirth_mirth_Prop_1_Prop(in_PropLabel_3, v8);
+	*out_ZPlusMirth_4 = in_ZPlusMirth_2;
+	return v9;
+}
+static void mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp1 (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusAB_4) {
+	TUP* v5;
+	VAL v6 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(in_ZPlusAB_2, &v5);
+	TUP* v7;
+	VAL v8 = mw_mirth_type_StackType_forceZ_consZAskZBang(in_ZPlusMirth_1, v6, &v7);
+	VAL v9 = mw_std_maybe_Maybe_1_ifZAsk_2_sp49(v8);
+	TUP* v10;
+	VAL v11 = mw_mirth_type_StackType_FreshZBang(v7, &v10);
+	TUP* v12 = mw_mirth_type_TZ_ZTo(v9, v11);
+	incref(MKTUP(v12, 2));
+	TUP* v13;
+	TUP* v14;
+	uint64_t v15 = mw_mirth_elab_ZPlusAB_abZ_argZ_blockZBang_1_sp11(v10, v12, v5, &v13, &v14);
+	TUP* v16;
+	VAL v17 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v14, &v16);
+	TUP* v18;
+	uint64_t v19 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v16, &v18);
+	TUP* v20;
+	VAL v21 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v18, &v20);
+	VAL v22;
+	VAL v23;
+	mtp_mirth_type_ArrowType_ArrowType(v12, &v22, &v23);
+	incref(v22);
+	VAL v24 = MKI64(0LL /* Nil */);
+	TUP* v25 = mtw_mirth_arrow_Arrow_Arrow(v21, v19, v19, v17, v22, v22, v24);
+	uint64_t v26 = 1ULL;
+	VAL v27 = mtw_mirth_arrow_PushValue_U64(v26);
+	TUP* v28;
+	TUP* v29;
+	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v13, v25, v27, &v28, &v29);
+	VAL v30 = MKI64(0LL /* Nil */);
+	int64_t v31 = 45LL /* U64Sub */;
+	TUP* v32;
+	TUP* v33;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v28, v29, v30, v31, &v32, &v33);
+	TUP* v34;
+	TUP* v35;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v32, v33, v23, &v34, &v35);
+	TUP* v36;
+	uint64_t v37 = mw_mirth_arrow_Block_newZBang(v34, v35, &v36);
+	VAL v38 = MKI64(0LL /* Nil */);
+	VAL v39 = mw_std_list_List_1_cons(MKU64(v37), v38);
+	VAL v40 = mw_std_list_List_1_cons(MKU64(v15), v39);
+	int64_t v41 = 7LL /* If */;
+	TUP* v42;
+	TUP* v43;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v36, v20, v40, v41, &v42, &v43);
+	*out_ZPlusAB_4 = v43;
+	*out_ZPlusMirth_3 = v42;
+}
+static uint64_t mw_mirth_elab_ZPlusAB_abZ_argZ_blockZBang_1_sp11 (TUP* in_ZPlusMirth_1, TUP* in_ArrowType_2, TUP* in_ZPlusAB_3, TUP* *out_ZPlusMirth_4, TUP* *out_ZPlusAB_5) {
+	TUP* v7;
+	VAL v8 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(in_ZPlusAB_3, &v7);
+	TUP* v9;
+	uint64_t v10 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v7, &v9);
+	TUP* v11;
+	VAL v12 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v9, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(in_ArrowType_2, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v12, v10, v10, v8, v13, v13, v15);
+	TUP* v17;
+	TUP* v18;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(in_ZPlusMirth_1, v16, v14, &v17, &v18);
+	TUP* v19;
+	uint64_t v20 = mw_mirth_arrow_Block_newZBang(v17, v18, &v19);
+	*out_ZPlusAB_5 = v11;
+	*out_ZPlusMirth_4 = v19;
+	return v20;
+}
+static void mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp2 (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusAB_4) {
+	TUP* v5;
+	VAL v6 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(in_ZPlusAB_2, &v5);
+	TUP* v7;
+	VAL v8 = mw_mirth_type_StackType_forceZ_consZAskZBang(in_ZPlusMirth_1, v6, &v7);
+	VAL v9 = mw_std_maybe_Maybe_1_ifZAsk_2_sp49(v8);
+	TUP* v10;
+	VAL v11 = mw_mirth_type_StackType_FreshZBang(v7, &v10);
+	TUP* v12 = mw_mirth_type_TZ_ZTo(v9, v11);
+	incref(MKTUP(v12, 2));
+	TUP* v13;
+	VAL v14 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v5, &v13);
+	TUP* v15;
+	uint64_t v16 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v13, &v15);
+	TUP* v17;
+	VAL v18 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v15, &v17);
+	VAL v19;
+	VAL v20;
+	mtp_mirth_type_ArrowType_ArrowType(v12, &v19, &v20);
+	incref(v19);
+	VAL v21 = MKI64(0LL /* Nil */);
+	TUP* v22 = mtw_mirth_arrow_Arrow_Arrow(v18, v16, v16, v14, v19, v19, v21);
+	uint64_t v23 = 1ULL;
+	VAL v24 = mtw_mirth_arrow_PushValue_U64(v23);
+	TUP* v25;
+	TUP* v26;
+	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v10, v22, v24, &v25, &v26);
+	VAL v27 = MKI64(0LL /* Nil */);
+	int64_t v28 = 44LL /* U64Add */;
+	TUP* v29;
+	TUP* v30;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v25, v26, v27, v28, &v29, &v30);
+	TUP* v31;
+	TUP* v32;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v29, v30, v20, &v31, &v32);
+	TUP* v33;
+	uint64_t v34 = mw_mirth_arrow_Block_newZBang(v31, v32, &v33);
+	TUP* v35;
+	VAL v36 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v17, &v35);
+	TUP* v37;
+	uint64_t v38 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v35, &v37);
+	TUP* v39;
+	VAL v40 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v37, &v39);
+	VAL v41;
+	VAL v42;
+	mtp_mirth_type_ArrowType_ArrowType(v12, &v41, &v42);
+	incref(v41);
+	VAL v43 = MKI64(0LL /* Nil */);
+	TUP* v44 = mtw_mirth_arrow_Arrow_Arrow(v40, v38, v38, v36, v41, v41, v43);
+	VAL v45 = MKI64(0LL /* Nil */);
+	int64_t v46 = 2LL /* Drop */;
+	TUP* v47;
+	TUP* v48;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v33, v44, v45, v46, &v47, &v48);
+	uint64_t v49 = 0ULL;
+	VAL v50 = mtw_mirth_arrow_PushValue_U64(v49);
+	TUP* v51;
+	TUP* v52;
+	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v47, v48, v50, &v51, &v52);
+	TUP* v53;
+	TUP* v54;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v51, v52, v42, &v53, &v54);
+	TUP* v55;
+	uint64_t v56 = mw_mirth_arrow_Block_newZBang(v53, v54, &v55);
+	VAL v57 = MKI64(0LL /* Nil */);
+	VAL v58 = mw_std_list_List_1_cons(MKU64(v56), v57);
+	VAL v59 = mw_std_list_List_1_cons(MKU64(v34), v58);
+	int64_t v60 = 7LL /* If */;
+	TUP* v61;
+	TUP* v62;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v55, v39, v59, v60, &v61, &v62);
+	*out_ZPlusAB_4 = v62;
+	*out_ZPlusMirth_3 = v61;
+}
+static void mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp3 (TUP* in_ZPlusMirth_1, TUP* in_ZPlusAB_2, TUP* *out_ZPlusMirth_3, TUP* *out_ZPlusAB_4) {
+	TUP* v5;
+	VAL v6 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(in_ZPlusAB_2, &v5);
+	TUP* v7;
+	VAL v8 = mw_mirth_type_StackType_forceZ_consZAskZBang(in_ZPlusMirth_1, v6, &v7);
+	VAL v9 = mw_std_maybe_Maybe_1_ifZAsk_2_sp49(v8);
+	TUP* v10;
+	VAL v11 = mw_mirth_type_StackType_FreshZBang(v7, &v10);
+	TUP* v12 = mw_mirth_type_TZ_ZTo(v9, v11);
+	incref(MKTUP(v12, 2));
+	TUP* v13;
+	TUP* v14;
+	uint64_t v15 = mw_mirth_elab_ZPlusAB_abZ_argZ_blockZBang_1_sp11(v10, v12, v5, &v13, &v14);
+	TUP* v16;
+	VAL v17 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v14, &v16);
+	TUP* v18;
+	uint64_t v19 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v16, &v18);
+	TUP* v20;
+	VAL v21 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v18, &v20);
+	VAL v22;
+	VAL v23;
+	mtp_mirth_type_ArrowType_ArrowType(v12, &v22, &v23);
+	incref(v22);
+	VAL v24 = MKI64(0LL /* Nil */);
+	TUP* v25 = mtw_mirth_arrow_Arrow_Arrow(v21, v19, v19, v17, v22, v22, v24);
+	VAL v26 = MKI64(0LL /* Nil */);
+	int64_t v27 = 2LL /* Drop */;
+	TUP* v28;
+	TUP* v29;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v13, v25, v26, v27, &v28, &v29);
+	uint64_t v30 = 0ULL;
+	VAL v31 = mtw_mirth_arrow_PushValue_U64(v30);
+	TUP* v32;
+	TUP* v33;
+	mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v28, v29, v31, &v32, &v33);
+	TUP* v34;
+	TUP* v35;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v32, v33, v23, &v34, &v35);
+	TUP* v36;
+	uint64_t v37 = mw_mirth_arrow_Block_newZBang(v34, v35, &v36);
+	VAL v38 = MKI64(0LL /* Nil */);
+	VAL v39 = mw_std_list_List_1_cons(MKU64(v37), v38);
+	VAL v40 = mw_std_list_List_1_cons(MKU64(v15), v39);
+	int64_t v41 = 7LL /* If */;
+	TUP* v42;
+	TUP* v43;
+	mw_mirth_elab_ZPlusAB_abZ_primZBang(v36, v20, v40, v41, &v42, &v43);
+	*out_ZPlusAB_4 = v43;
+	*out_ZPlusMirth_3 = v42;
+}
+static TUP* mw_mirth_mirth_PropLabel_prop_1_sp35 (uint64_t in_Table_1, TUP* in_ZPlusMirth_2, VAL in_PropLabel_3, TUP* *out_ZPlusMirth_4) {
+	TUP* v6 = value_tup(in_ZPlusMirth_2->cells[6], 2);
+	incref(MKTUP(v6, 2));
+	FNPTR v7 = &mb_mirth_mirth_PropLabel_prop_1_sp35_0;
+	VAL v8 = mtw_mirth_mirth_PropState_1_Delay(v6, MKU64(in_Table_1), MKFNPTR(v7));
+	TUP* v9 = mtw_mirth_mirth_Prop_1_Prop(in_PropLabel_3, v8);
+	*out_ZPlusMirth_4 = in_ZPlusMirth_2;
+	return v9;
+}
 static void mw_std_maybe_Maybe_1_else_1_sp12 (TUP* in_ZPlusMirth_1, uint64_t in_Token_2, VAL in_Maybe_3, TUP* *out_ZPlusMirth_4, uint64_t *out_Token_5) {
 	int64_t v6 = get_data_tag(in_Maybe_3);
 	decref(in_Maybe_3);
@@ -89065,7 +89773,7 @@ static void mb_mirth_mirth_ZPlusMirth_initZ_macrosZBang_10 (void) {
 	TUP* r1 = value_tup(pop_resource(), 10);
 	int64_t r2 = (pop_resource(), 0);
 	TUP* v3;
-	uint64_t v4 = mw_mirth_elab_elabZ_tableZBang(r1, v0, &v3);
+	uint64_t v4 = mw_mirth_table_elabZ_tableZBang(r1, v0, &v3);
 	push_resource(MKI64(r2));
 	push_resource(MKTUP(v3, 10));
 	push_value(MKU64(v4));
@@ -89075,7 +89783,7 @@ static void mb_mirth_mirth_ZPlusMirth_initZ_macrosZBang_11 (void) {
 	TUP* r1 = value_tup(pop_resource(), 10);
 	int64_t r2 = (pop_resource(), 0);
 	TUP* v3;
-	uint64_t v4 = mw_mirth_elab_elabZ_fieldZBang(r1, v0, &v3);
+	uint64_t v4 = mw_mirth_table_elabZ_fieldZBang(r1, v0, &v3);
 	push_resource(MKI64(r2));
 	push_resource(MKTUP(v3, 10));
 	push_value(MKU64(v4));
@@ -89984,7 +90692,1711 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp16_0 (void) {
 	push_resource(MKTUP(v2, 10));
 	push_value(v3);
 }
-static void mb_mirth_mirth_PropLabel_prop_1_sp17_1 (void) {
+static void mb_mirth_mirth_PropLabel_prop_1_sp17_0 (void) {
+	uint64_t v0 = value_u64(pop_value());
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_table_Field_owner(r1, v0, &v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_StateOwner_ctx(v2, v3, &v4);
+	VAL v6 = mw_mirth_type_T0();
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Field_owner(v4, v0, &v7);
+	TUP* v9;
+	VAL v10 = mw_mirth_table_StateOwner_push(v7, v6, v8, &v9);
+	TUP* v11;
+	VAL v12 = mw_mirth_table_Field_valueZ_type(v9, v0, &v11);
+	VAL v13 = mw_mirth_type_TZMul(v10, v12);
+	TUP* v14;
+	VAL v15 = mw_mirth_table_Field_indexZ_type(v11, v0, &v14);
+	VAL v16 = mw_mirth_type_TZMul(v13, v15);
+	VAL v17 = mw_mirth_type_T0();
+	TUP* v18;
+	VAL v19 = mw_mirth_table_Field_owner(v14, v0, &v18);
+	TUP* v20;
+	VAL v21 = mw_mirth_table_StateOwner_push(v18, v17, v19, &v20);
+	TUP* v22 = mw_mirth_type_TZ_ZTo(v16, v21);
+	TUP* v23 = tup_new(2);
+	v23->size = 2;
+	v23->cells[1] = MKTUP(v22, 2);
+	v23->cells[0] = v5;
+	push_resource(MKTUP(v20, 10));
+	push_value(MKTUP(v23, 2));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp18_14 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Field_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		VAL v26 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v27 = mtw_mirth_arrow_Op_Field(value_u64(v2));
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v17, v19, v26, v27, &v28, &v29);
+		VAL v30 = MKI64(0LL /* Nil */);
+		int64_t v31 = 146LL /* MutSet */;
+		TUP* v32;
+		TUP* v33;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v28, v29, v30, v31, &v32, &v33);
+		branch_ZPlusAB_25 = v33;
+		branch_ZPlusMirth_24 = v32;
+		branch_Field_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v34;
+		TUP* v35 = mw_mirth_word_Word_type(v17, value_u64(v3), &v34);
+		VAL v36 = v35->cells[1];
+		incref(v36);
+		decref(MKTUP(v35, 2));
+		TUP* v37;
+		uint64_t v38 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v37);
+		incref(v6);
+		TUP* v39;
+		VAL v40 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v37, &v39);
+		TUP* v41;
+		VAL v42 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v39, &v41);
+		TUP* v43;
+		TUP* v44;
+		VAL v45;
+		VAL v46 = mw_std_list_List_1_reverseZ_for_1_sp10(v34, v41, v40, v42, v6, &v43, &v44, &v45);
+		TUP* v47 = mw_mirth_type_TZ_ZTo(v45, v36);
+		TUP* v48;
+		VAL v49 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v44, &v48);
+		VAL v50;
+		VAL v51;
+		mtp_mirth_type_ArrowType_ArrowType(v47, &v50, &v51);
+		incref(v50);
+		VAL v52 = MKI64(0LL /* Nil */);
+		TUP* v53 = mtw_mirth_arrow_Arrow_Arrow(v49, v38, v38, v46, v50, v50, v52);
+		VAL v54 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v55 = mtw_mirth_arrow_Op_Field(value_u64(v2));
+		TUP* v56;
+		TUP* v57;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v43, v53, v54, v55, &v56, &v57);
+		VAL v58 = MKI64(0LL /* Nil */);
+		int64_t v59 = 146LL /* MutSet */;
+		TUP* v60;
+		TUP* v61;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v56, v57, v58, v59, &v60, &v61);
+		TUP* v62;
+		TUP* v63;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v60, v61, v51, &v62, &v63);
+		TUP* v64;
+		VAL v65 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v48, &v64);
+		TUP* v66;
+		VAL v67 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v64, &v66);
+		TUP* v68;
+		uint64_t v69 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v66, &v68);
+		TUP* v70 = mtw_mirth_arrow_Lambda_Lambda(v69, v65, v67, v6, v63);
+		VAL v71 = mtw_mirth_arrow_Op_Lambda(v70);
+		VAL v72 = MKI64(0LL /* Nil */);
+		TUP* v73;
+		TUP* v74;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v62, v68, v72, v71, &v73, &v74);
+		branch_ZPlusAB_25 = v74;
+		branch_ZPlusMirth_24 = v73;
+		branch_Field_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v75;
+	TUP* v76;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v75, &v76);
+	TUP* v77;
+	TUP* v78 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v75, v76, v11, &v77);
+	decref(branch_List_22);
+	push_resource(MKTUP(v77, 10));
+	push_value(MKTUP(v78, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp19_3 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	TUP* v4;
+	TUP* v5 = mw_mirth_word_Word_type(r1, value_u64(v3), &v4);
+	VAL v6 = v5->cells[0];
+	incref(v6);
+	decref(MKTUP(v5, 2));
+	VAL v7 = mw_std_list_List_1_reverse(v2);
+	VAL v8 = MKI64(0LL /* Nil */);
+	VAL v9;
+	mw_std_list_List_1_buildZBang(v8, &v9);
+	bool v10 = true;
+	TUP* v11 = v4;
+	VAL v12 = v6;
+	VAL v13 = v9;
+	VAL v14 = v7;
+	bool v15 = v10;
+	bool v16 = v10;
+	while (v16) {
+		TUP* v17 = v11;
+		VAL v18 = v12;
+		VAL v19 = v13;
+		VAL v20 = v14;
+		bool v21 = v15;
+		VAL branch_StackType_22;
+		TUP* branch_ZPlusMirth_23;
+		VAL branch_ZPlusLister_24;
+		VAL branch_List_25;
+		bool branch_Bool_26;
+		switch (get_data_tag(v20)) {
+			case 1LL: { // Cons
+				VAL v27;
+				VAL v28 = mtp_std_list_List_1_Cons(v20, &v27);
+				TUP* v29;
+				VAL v30 = mw_mirth_type_StackType_forceZ_consZAskZBang(v17, v18, &v29);
+				TUP* branch_ZPlusMirth_31;
+				VAL branch_z_x1_32;
+				switch (get_data_tag(v30)) {
+					case 1LL: { // Some
+						VAL v33 = mtp_std_maybe_Maybe_1_Some(v30);
+						branch_z_x1_32 = v33;
+						branch_ZPlusMirth_31 = v29;
+					} break;
+					case 0LL: { // None
+						STR* v34;
+						STRLIT(v34, "[compiler bug] word-new! expected word parameter type in domain.", 64);
+						mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(v29, v34);
+					} break;
+					default: {
+						do_panic(str_make("unexpected fallthrough in match\n", 32));
+					}
+				}
+				VAL v37 = value_tup(branch_z_x1_32, 2)->cells[0];
+				VAL v38 = value_tup(branch_z_x1_32, 2)->cells[1];
+				tup_decref_outer(value_tup(branch_z_x1_32, 2),2);
+				TUP* v39;
+				VAL v40 = mw_mirth_type_Type_arrowZAsk(branch_ZPlusMirth_31, v38, &v39);
+				TUP* branch_ZPlusMirth_41;
+				VAL branch_z_x1_42;
+				switch (get_data_tag(v40)) {
+					case 1LL: { // Some
+						VAL v43 = mtp_std_maybe_Maybe_1_Some(v40);
+						branch_z_x1_42 = v43;
+						branch_ZPlusMirth_41 = v39;
+					} break;
+					case 0LL: { // None
+						STR* v44;
+						STRLIT(v44, "[compiler bug] word-new! expected word parameter type to be an arrow type.", 74);
+						mw_mirth_mirth_ZPlusMirth_fatalZ_errorZBang(v39, v44);
+					} break;
+					default: {
+						do_panic(str_make("unexpected fallthrough in match\n", 32));
+					}
+				}
+				TUP* v47;
+				uint64_t v48 = mw_std_prim_Str_ZToName(branch_ZPlusMirth_41, value_str(v28), &v47);
+				TUP* v49;
+				uint64_t v50 = mw_mirth_var_Var_NewAutoRunZBang(v47, value_tup(branch_z_x1_42, 2), v48, &v49);
+				VAL v51 = MKI64(0LL /* None */);
+				TUP* v52 = mtw_mirth_word_Param_Param(v50, v51);
+				VAL v53;
+				mw_std_list_ZPlusLister_1_pushZBang(MKTUP(v52, 2), v19, &v53);
+				bool v54 = true;
+				branch_Bool_26 = v54;
+				branch_List_25 = v27;
+				branch_ZPlusLister_24 = v53;
+				branch_ZPlusMirth_23 = v49;
+				branch_StackType_22 = v37;
+			} break;
+			case 0LL: { // Nil
+				VAL v55 = MKI64(0LL /* Nil */);
+				bool v56 = false;
+				branch_Bool_26 = v56;
+				branch_List_25 = v55;
+				branch_ZPlusLister_24 = v19;
+				branch_ZPlusMirth_23 = v17;
+				branch_StackType_22 = v18;
+			} break;
+			default: {
+				do_panic(str_make("unexpected fallthrough in match\n", 32));
+			}
+		}
+		v16 = branch_Bool_26;
+		v15 = branch_Bool_26;
+		v14 = branch_List_25;
+		v13 = branch_ZPlusLister_24;
+		v12 = branch_StackType_22;
+		v11 = branch_ZPlusMirth_23;
+	}
+	decref(v14);
+	VAL v57 = mw_std_list_ZPlusLister_1_doneZBang(v13);
+	VAL v58 = mw_std_list_List_1_reverse(v57);
+	decref(v12);
+	push_resource(MKTUP(v11, 10));
+	push_value(v58);
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp20_1 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_Field_namespace(r1, value_u64(v2), &v4);
+	decref(v2);
+	incref(v3);
+	TUP* v6;
+	INT v7 = mw_mirth_word_Word_arity(v4, value_u64(v3), &v6);
+	TUP* v8;
+	uint64_t v9 = mw_mirth_word_Word_name(v6, value_u64(v3), &v8);
+	TUP* v10 = mtw_mirth_name_QName_QName(v5, v9, v7);
+	push_resource(MKTUP(v8, 10));
+	push_value(MKTUP(v10, 3));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp21_0 (void) {
+	uint64_t v0 = value_u64(pop_value());
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_table_Field_owner(r1, v0, &v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_StateOwner_ctx(v2, v3, &v4);
+	VAL v6 = mw_mirth_type_T0();
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Field_owner(v4, v0, &v7);
+	TUP* v9;
+	VAL v10 = mw_mirth_table_StateOwner_push(v7, v6, v8, &v9);
+	TUP* v11;
+	VAL v12 = mw_mirth_table_Field_indexZ_type(v9, v0, &v11);
+	VAL v13 = mw_mirth_type_TZMul(v10, v12);
+	VAL v14 = mw_mirth_type_T0();
+	TUP* v15;
+	VAL v16 = mw_mirth_table_Field_owner(v11, v0, &v15);
+	TUP* v17;
+	VAL v18 = mw_mirth_table_StateOwner_push(v15, v14, v16, &v17);
+	TUP* v19;
+	VAL v20 = mw_mirth_table_Field_valueZ_type(v17, v0, &v19);
+	VAL v21 = mw_mirth_type_TZMul(v18, v20);
+	TUP* v22 = mw_mirth_type_TZ_ZTo(v13, v21);
+	TUP* v23 = tup_new(2);
+	v23->size = 2;
+	v23->cells[1] = MKTUP(v22, 2);
+	v23->cells[0] = v5;
+	push_resource(MKTUP(v19, 10));
+	push_value(MKTUP(v23, 2));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp22_14 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Field_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		VAL v26 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v27 = mtw_mirth_arrow_Op_Field(value_u64(v2));
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v17, v19, v26, v27, &v28, &v29);
+		VAL v30 = MKI64(0LL /* Nil */);
+		int64_t v31 = 145LL /* MutGet */;
+		TUP* v32;
+		TUP* v33;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v28, v29, v30, v31, &v32, &v33);
+		branch_ZPlusAB_25 = v33;
+		branch_ZPlusMirth_24 = v32;
+		branch_Field_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v34;
+		TUP* v35 = mw_mirth_word_Word_type(v17, value_u64(v3), &v34);
+		VAL v36 = v35->cells[1];
+		incref(v36);
+		decref(MKTUP(v35, 2));
+		TUP* v37;
+		uint64_t v38 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v37);
+		incref(v6);
+		TUP* v39;
+		VAL v40 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v37, &v39);
+		TUP* v41;
+		VAL v42 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v39, &v41);
+		TUP* v43;
+		TUP* v44;
+		VAL v45;
+		VAL v46 = mw_std_list_List_1_reverseZ_for_1_sp10(v34, v41, v40, v42, v6, &v43, &v44, &v45);
+		TUP* v47 = mw_mirth_type_TZ_ZTo(v45, v36);
+		TUP* v48;
+		VAL v49 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v44, &v48);
+		VAL v50;
+		VAL v51;
+		mtp_mirth_type_ArrowType_ArrowType(v47, &v50, &v51);
+		incref(v50);
+		VAL v52 = MKI64(0LL /* Nil */);
+		TUP* v53 = mtw_mirth_arrow_Arrow_Arrow(v49, v38, v38, v46, v50, v50, v52);
+		VAL v54 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v55 = mtw_mirth_arrow_Op_Field(value_u64(v2));
+		TUP* v56;
+		TUP* v57;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v43, v53, v54, v55, &v56, &v57);
+		VAL v58 = MKI64(0LL /* Nil */);
+		int64_t v59 = 145LL /* MutGet */;
+		TUP* v60;
+		TUP* v61;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v56, v57, v58, v59, &v60, &v61);
+		TUP* v62;
+		TUP* v63;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v60, v61, v51, &v62, &v63);
+		TUP* v64;
+		VAL v65 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v48, &v64);
+		TUP* v66;
+		VAL v67 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v64, &v66);
+		TUP* v68;
+		uint64_t v69 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v66, &v68);
+		TUP* v70 = mtw_mirth_arrow_Lambda_Lambda(v69, v65, v67, v6, v63);
+		VAL v71 = mtw_mirth_arrow_Op_Lambda(v70);
+		VAL v72 = MKI64(0LL /* Nil */);
+		TUP* v73;
+		TUP* v74;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v62, v68, v72, v71, &v73, &v74);
+		branch_ZPlusAB_25 = v74;
+		branch_ZPlusMirth_24 = v73;
+		branch_Field_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v75;
+	TUP* v76;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v75, &v76);
+	TUP* v77;
+	TUP* v78 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v75, v76, v11, &v77);
+	decref(branch_List_22);
+	push_resource(MKTUP(v77, 10));
+	push_value(MKTUP(v78, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp23_4 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	TUP* v4;
+	VAL v5 = mw_mirth_mirth_ZPlusMirth_resolveZ_owner(r1, v3, &v4);
+	uint64_t branch_Field_6;
+	TUP* branch_ZPlusMirth_7;
+	VAL branch_StateOwner_8;
+	switch (get_data_tag(v5)) {
+		case 1LL: { // Default
+			incref(v2);
+			TUP* v9;
+			VAL v10 = mw_mirth_table_Field_indexZ_type(v4, value_u64(v2), &v9);
+			TUP* v11;
+			VAL v12 = mw_mirth_type_Type_tyconZAsk(v9, v10, &v11);
+			VAL branch_Maybe_13;
+			switch (get_data_tag(v12)) {
+				case 1LL: { // Some
+					VAL v14 = mtp_std_maybe_Maybe_1_Some(v12);
+					VAL v15 = mw_mirth_tycon_Tycon_tableZAsk(v14);
+					branch_Maybe_13 = v15;
+				} break;
+				case 0LL: { // None
+					VAL v16 = MKI64(0LL /* None */);
+					branch_Maybe_13 = v16;
+				} break;
+				default: {
+					do_panic(str_make("unexpected fallthrough in match\n", 32));
+				}
+			}
+			TUP* branch_ZPlusMirth_17;
+			VAL branch_StateOwner_18;
+			switch (get_data_tag(branch_Maybe_13)) {
+				case 1LL: { // Some
+					VAL v19 = mtp_std_maybe_Maybe_1_Some(branch_Maybe_13);
+					TUP* v20;
+					VAL v21 = mw_mirth_table_Table_owner(v11, value_u64(v19), &v20);
+					branch_StateOwner_18 = v21;
+					branch_ZPlusMirth_17 = v20;
+				} break;
+				case 0LL: { // None
+					VAL v22 = MKI64(1LL /* Default */);
+					branch_StateOwner_18 = v22;
+					branch_ZPlusMirth_17 = v11;
+				} break;
+				default: {
+					do_panic(str_make("unexpected fallthrough in match\n", 32));
+				}
+			}
+			branch_StateOwner_8 = branch_StateOwner_18;
+			branch_ZPlusMirth_7 = branch_ZPlusMirth_17;
+			branch_Field_6 = value_u64(v2);
+		} break;
+		default: {
+			branch_StateOwner_8 = v5;
+			branch_ZPlusMirth_7 = v4;
+			branch_Field_6 = value_u64(v2);
+		} break;
+	}
+	push_resource(MKTUP(branch_ZPlusMirth_7, 10));
+	push_value(branch_StateOwner_8);
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp24_0 (void) {
+	VAL v0 = pop_value();
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_mirth_ZPlusMirth_resolveZ_owner(r1, v0, &v2);
+	push_resource(MKTUP(v2, 10));
+	push_value(v3);
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp25_0 (void) {
+	uint64_t v0 = value_u64(pop_value());
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_table_Table_owner(r1, v0, &v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_StateOwner_ctx(v2, v3, &v4);
+	VAL v6 = mw_mirth_type_Type_STACK();
+	STR* v7;
+	STRLIT(v7, "*a", 2);
+	TUP* v8;
+	uint64_t v9;
+	VAL v10 = mw_mirth_var_Var_NewInCtx(v4, v5, v6, v7, &v8, &v9);
+	VAL v11 = mtw_mirth_type_StackType_Var(v9);
+	TUP* v12;
+	VAL v13 = mw_mirth_table_Table_owner(v8, v0, &v12);
+	TUP* v14;
+	VAL v15 = mw_mirth_table_StateOwner_push(v12, v11, v13, &v14);
+	incref(v15);
+	incref(v15);
+	VAL v16 = mtw_mirth_type_Type_Table(v0);
+	VAL v17 = mw_mirth_type_TZMul(v15, v16);
+	incref(v15);
+	TUP* v18 = mw_mirth_type_TZ_ZTo(v17, v15);
+	VAL v19 = mtw_mirth_type_Type_Arrow(v18);
+	VAL v20 = mw_mirth_type_TZMul(v15, v19);
+	TUP* v21 = mw_mirth_type_TZ_ZTo(v20, v15);
+	TUP* v22 = tup_new(2);
+	v22->size = 2;
+	v22->cells[1] = MKTUP(v21, 2);
+	v22->cells[0] = v10;
+	push_resource(MKTUP(v14, 10));
+	push_value(MKTUP(v22, 2));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp26_29 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Table_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		incref(v6);
+		VAL v26 = mw_std_list_List_1_singleZAsk(v6);
+		VAL v27 = mw_std_maybe_Maybe_1_unwrap_1_sp53(v26);
+		uint64_t v28 = 1ULL;
+		VAL v29 = mtw_mirth_arrow_PushValue_U64(v28);
+		TUP* v30;
+		TUP* v31;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v17, v19, v29, &v30, &v31);
+		uint64_t v32;
+		TUP* v33;
+		TUP* v34;
+		mw_mirth_elab_ZPlusAB_abZ_whileZBang_2_sp1(value_u64(v27), value_u64(v2), v30, v31, &v32, &v33, &v34);
+		VAL v35 = MKI64(0LL /* Nil */);
+		int64_t v36 = 2LL /* Drop */;
+		TUP* v37;
+		TUP* v38;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v33, v34, v35, v36, &v37, &v38);
+		branch_ZPlusAB_25 = v38;
+		branch_ZPlusMirth_24 = v37;
+		branch_Table_23 = v32;
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v39;
+		TUP* v40 = mw_mirth_word_Word_type(v17, value_u64(v3), &v39);
+		VAL v41 = v40->cells[1];
+		incref(v41);
+		decref(MKTUP(v40, 2));
+		TUP* v42;
+		uint64_t v43 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v42);
+		incref(v6);
+		TUP* v44;
+		VAL v45 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v42, &v44);
+		TUP* v46;
+		VAL v47 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v44, &v46);
+		TUP* v48;
+		TUP* v49;
+		VAL v50;
+		VAL v51 = mw_std_list_List_1_reverseZ_for_1_sp10(v39, v46, v45, v47, v6, &v48, &v49, &v50);
+		TUP* v52 = mw_mirth_type_TZ_ZTo(v50, v41);
+		TUP* v53;
+		VAL v54 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v49, &v53);
+		VAL v55;
+		VAL v56;
+		mtp_mirth_type_ArrowType_ArrowType(v52, &v55, &v56);
+		incref(v55);
+		VAL v57 = MKI64(0LL /* Nil */);
+		TUP* v58 = mtw_mirth_arrow_Arrow_Arrow(v54, v43, v43, v51, v55, v55, v57);
+		incref(v6);
+		VAL v59 = mw_std_list_List_1_singleZAsk(v6);
+		VAL v60 = mw_std_maybe_Maybe_1_unwrap_1_sp53(v59);
+		uint64_t v61 = 1ULL;
+		VAL v62 = mtw_mirth_arrow_PushValue_U64(v61);
+		TUP* v63;
+		TUP* v64;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v48, v58, v62, &v63, &v64);
+		uint64_t v65;
+		TUP* v66;
+		TUP* v67;
+		mw_mirth_elab_ZPlusAB_abZ_whileZBang_2_sp1(value_u64(v60), value_u64(v2), v63, v64, &v65, &v66, &v67);
+		VAL v68 = MKI64(0LL /* Nil */);
+		int64_t v69 = 2LL /* Drop */;
+		TUP* v70;
+		TUP* v71;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v66, v67, v68, v69, &v70, &v71);
+		TUP* v72;
+		TUP* v73;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v70, v71, v56, &v72, &v73);
+		TUP* v74;
+		VAL v75 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v53, &v74);
+		TUP* v76;
+		VAL v77 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v74, &v76);
+		TUP* v78;
+		uint64_t v79 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v76, &v78);
+		TUP* v80 = mtw_mirth_arrow_Lambda_Lambda(v79, v75, v77, v6, v73);
+		VAL v81 = mtw_mirth_arrow_Op_Lambda(v80);
+		VAL v82 = MKI64(0LL /* Nil */);
+		TUP* v83;
+		TUP* v84;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v72, v78, v82, v81, &v83, &v84);
+		branch_ZPlusAB_25 = v84;
+		branch_ZPlusMirth_24 = v83;
+		branch_Table_23 = v65;
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v85;
+	TUP* v86;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v85, &v86);
+	TUP* v87;
+	TUP* v88 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v85, v86, v11, &v87);
+	decref(branch_List_22);
+	push_resource(MKTUP(v87, 10));
+	push_value(MKTUP(v88, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp27_1 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v2);
+	VAL v4 = mtw_mirth_tycon_Tycon_Table(value_u64(v2));
+	VAL v5 = mtw_mirth_name_Namespace_Tycon(v4);
+	decref(v2);
+	incref(v3);
+	TUP* v6;
+	INT v7 = mw_mirth_word_Word_arity(r1, value_u64(v3), &v6);
+	TUP* v8;
+	uint64_t v9 = mw_mirth_word_Word_name(v6, value_u64(v3), &v8);
+	TUP* v10 = mtw_mirth_name_QName_QName(v5, v9, v7);
+	push_resource(MKTUP(v8, 10));
+	push_value(MKTUP(v10, 3));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp28_0 (void) {
+	uint64_t v0 = value_u64(pop_value());
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_table_Table_owner(r1, v0, &v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_StateOwner_ctx(v2, v3, &v4);
+	VAL v6 = mw_mirth_type_T0();
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Table_owner(v4, v0, &v7);
+	TUP* v9;
+	VAL v10 = mw_mirth_table_StateOwner_push(v7, v6, v8, &v9);
+	VAL v11 = mtw_mirth_type_Type_Table(v0);
+	VAL v12 = mw_mirth_type_TZMul(v10, v11);
+	incref(v12);
+	TUP* v13 = mw_mirth_type_TZ_ZTo(v12, v12);
+	TUP* v14 = tup_new(2);
+	v14->size = 2;
+	v14->cells[1] = MKTUP(v13, 2);
+	v14->cells[0] = v5;
+	push_resource(MKTUP(v9, 10));
+	push_value(MKTUP(v14, 2));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp29_17 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Table_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		VAL v26 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v27 = mtw_mirth_arrow_Op_TableToIndex(value_u64(v2));
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v17, v19, v26, v27, &v28, &v29);
+		VAL v30 = MKI64(0LL /* Nil */);
+		int64_t v31 = 1LL /* Dup */;
+		TUP* v32;
+		TUP* v33;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v28, v29, v30, v31, &v32, &v33);
+		uint64_t v34 = 0ULL;
+		VAL v35 = mtw_mirth_arrow_PushValue_U64(v34);
+		TUP* v36;
+		TUP* v37;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v32, v33, v35, &v36, &v37);
+		VAL v38 = MKI64(0LL /* Nil */);
+		int64_t v39 = 38LL /* U64Eq */;
+		TUP* v40;
+		TUP* v41;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v36, v37, v38, v39, &v40, &v41);
+		TUP* v42;
+		TUP* v43;
+		mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp1(v40, v41, &v42, &v43);
+		VAL v44 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v45 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v46;
+		TUP* v47;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v42, v43, v44, v45, &v46, &v47);
+		branch_ZPlusAB_25 = v47;
+		branch_ZPlusMirth_24 = v46;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v48;
+		TUP* v49 = mw_mirth_word_Word_type(v17, value_u64(v3), &v48);
+		VAL v50 = v49->cells[1];
+		incref(v50);
+		decref(MKTUP(v49, 2));
+		TUP* v51;
+		uint64_t v52 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v51);
+		incref(v6);
+		TUP* v53;
+		VAL v54 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v51, &v53);
+		TUP* v55;
+		VAL v56 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v53, &v55);
+		TUP* v57;
+		TUP* v58;
+		VAL v59;
+		VAL v60 = mw_std_list_List_1_reverseZ_for_1_sp10(v48, v55, v54, v56, v6, &v57, &v58, &v59);
+		TUP* v61 = mw_mirth_type_TZ_ZTo(v59, v50);
+		TUP* v62;
+		VAL v63 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v58, &v62);
+		VAL v64;
+		VAL v65;
+		mtp_mirth_type_ArrowType_ArrowType(v61, &v64, &v65);
+		incref(v64);
+		VAL v66 = MKI64(0LL /* Nil */);
+		TUP* v67 = mtw_mirth_arrow_Arrow_Arrow(v63, v52, v52, v60, v64, v64, v66);
+		VAL v68 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v69 = mtw_mirth_arrow_Op_TableToIndex(value_u64(v2));
+		TUP* v70;
+		TUP* v71;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v57, v67, v68, v69, &v70, &v71);
+		VAL v72 = MKI64(0LL /* Nil */);
+		int64_t v73 = 1LL /* Dup */;
+		TUP* v74;
+		TUP* v75;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v70, v71, v72, v73, &v74, &v75);
+		uint64_t v76 = 0ULL;
+		VAL v77 = mtw_mirth_arrow_PushValue_U64(v76);
+		TUP* v78;
+		TUP* v79;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v74, v75, v77, &v78, &v79);
+		VAL v80 = MKI64(0LL /* Nil */);
+		int64_t v81 = 38LL /* U64Eq */;
+		TUP* v82;
+		TUP* v83;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v78, v79, v80, v81, &v82, &v83);
+		TUP* v84;
+		TUP* v85;
+		mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp1(v82, v83, &v84, &v85);
+		VAL v86 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v87 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v88;
+		TUP* v89;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v84, v85, v86, v87, &v88, &v89);
+		TUP* v90;
+		TUP* v91;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v88, v89, v65, &v90, &v91);
+		TUP* v92;
+		VAL v93 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v62, &v92);
+		TUP* v94;
+		VAL v95 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v92, &v94);
+		TUP* v96;
+		uint64_t v97 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v94, &v96);
+		TUP* v98 = mtw_mirth_arrow_Lambda_Lambda(v97, v93, v95, v6, v91);
+		VAL v99 = mtw_mirth_arrow_Op_Lambda(v98);
+		VAL v100 = MKI64(0LL /* Nil */);
+		TUP* v101;
+		TUP* v102;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v90, v96, v100, v99, &v101, &v102);
+		branch_ZPlusAB_25 = v102;
+		branch_ZPlusMirth_24 = v101;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v103;
+	TUP* v104;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v103, &v104);
+	TUP* v105;
+	TUP* v106 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v103, v104, v11, &v105);
+	decref(branch_List_22);
+	push_resource(MKTUP(v105, 10));
+	push_value(MKTUP(v106, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp30_25 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Table_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		VAL v26 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v27 = mtw_mirth_arrow_Op_TableToIndex(value_u64(v2));
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v17, v19, v26, v27, &v28, &v29);
+		VAL v30 = MKI64(0LL /* Nil */);
+		int64_t v31 = 1LL /* Dup */;
+		TUP* v32;
+		TUP* v33;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v28, v29, v30, v31, &v32, &v33);
+		incref(v2);
+		TUP* v34;
+		uint64_t v35 = mw_mirth_table_Table_numZ_buffer(v32, value_u64(v2), &v34);
+		TUP* v36;
+		TUP* v37;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v34, v33, v35, &v36, &v37);
+		VAL v38 = MKI64(0LL /* Nil */);
+		int64_t v39 = 36LL /* U64Get */;
+		TUP* v40;
+		TUP* v41;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v36, v37, v38, v39, &v40, &v41);
+		VAL v42 = MKI64(0LL /* Nil */);
+		int64_t v43 = 39LL /* U64Lt */;
+		TUP* v44;
+		TUP* v45;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v40, v41, v42, v43, &v44, &v45);
+		TUP* v46;
+		TUP* v47;
+		mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp2(v44, v45, &v46, &v47);
+		VAL v48 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v49 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v50;
+		TUP* v51;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v46, v47, v48, v49, &v50, &v51);
+		branch_ZPlusAB_25 = v51;
+		branch_ZPlusMirth_24 = v50;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v52;
+		TUP* v53 = mw_mirth_word_Word_type(v17, value_u64(v3), &v52);
+		VAL v54 = v53->cells[1];
+		incref(v54);
+		decref(MKTUP(v53, 2));
+		TUP* v55;
+		uint64_t v56 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v55);
+		incref(v6);
+		TUP* v57;
+		VAL v58 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v55, &v57);
+		TUP* v59;
+		VAL v60 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v57, &v59);
+		TUP* v61;
+		TUP* v62;
+		VAL v63;
+		VAL v64 = mw_std_list_List_1_reverseZ_for_1_sp10(v52, v59, v58, v60, v6, &v61, &v62, &v63);
+		TUP* v65 = mw_mirth_type_TZ_ZTo(v63, v54);
+		TUP* v66;
+		VAL v67 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v62, &v66);
+		VAL v68;
+		VAL v69;
+		mtp_mirth_type_ArrowType_ArrowType(v65, &v68, &v69);
+		incref(v68);
+		VAL v70 = MKI64(0LL /* Nil */);
+		TUP* v71 = mtw_mirth_arrow_Arrow_Arrow(v67, v56, v56, v64, v68, v68, v70);
+		VAL v72 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v73 = mtw_mirth_arrow_Op_TableToIndex(value_u64(v2));
+		TUP* v74;
+		TUP* v75;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v61, v71, v72, v73, &v74, &v75);
+		VAL v76 = MKI64(0LL /* Nil */);
+		int64_t v77 = 1LL /* Dup */;
+		TUP* v78;
+		TUP* v79;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v74, v75, v76, v77, &v78, &v79);
+		incref(v2);
+		TUP* v80;
+		uint64_t v81 = mw_mirth_table_Table_numZ_buffer(v78, value_u64(v2), &v80);
+		TUP* v82;
+		TUP* v83;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v80, v79, v81, &v82, &v83);
+		VAL v84 = MKI64(0LL /* Nil */);
+		int64_t v85 = 36LL /* U64Get */;
+		TUP* v86;
+		TUP* v87;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v82, v83, v84, v85, &v86, &v87);
+		VAL v88 = MKI64(0LL /* Nil */);
+		int64_t v89 = 39LL /* U64Lt */;
+		TUP* v90;
+		TUP* v91;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v86, v87, v88, v89, &v90, &v91);
+		TUP* v92;
+		TUP* v93;
+		mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp2(v90, v91, &v92, &v93);
+		VAL v94 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v95 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v96;
+		TUP* v97;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v92, v93, v94, v95, &v96, &v97);
+		TUP* v98;
+		TUP* v99;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v96, v97, v69, &v98, &v99);
+		TUP* v100;
+		VAL v101 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v66, &v100);
+		TUP* v102;
+		VAL v103 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v100, &v102);
+		TUP* v104;
+		uint64_t v105 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v102, &v104);
+		TUP* v106 = mtw_mirth_arrow_Lambda_Lambda(v105, v101, v103, v6, v99);
+		VAL v107 = mtw_mirth_arrow_Op_Lambda(v106);
+		VAL v108 = MKI64(0LL /* Nil */);
+		TUP* v109;
+		TUP* v110;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v98, v104, v108, v107, &v109, &v110);
+		branch_ZPlusAB_25 = v110;
+		branch_ZPlusMirth_24 = v109;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v111;
+	TUP* v112;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v111, &v112);
+	TUP* v113;
+	TUP* v114 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v111, v112, v11, &v113);
+	decref(branch_List_22);
+	push_resource(MKTUP(v113, 10));
+	push_value(MKTUP(v114, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp31_1 (void) {
+	uint64_t v0 = value_u64(pop_value());
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_table_Table_owner(r1, v0, &v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_StateOwner_ctx(v2, v3, &v4);
+	VAL v6 = mw_mirth_type_T0();
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Table_owner(v4, v0, &v7);
+	TUP* v9;
+	VAL v10 = mw_mirth_table_StateOwner_push(v7, v6, v8, &v9);
+	incref(v10);
+	VAL v11 = mw_mirth_type_Type_U64();
+	VAL v12 = mw_mirth_type_TZMul(v10, v11);
+	VAL v13 = mtw_mirth_type_Type_Table(v0);
+	VAL v14 = mw_mirth_type_TZMul(v10, v13);
+	TUP* v15 = mw_mirth_type_TZ_ZTo(v12, v14);
+	TUP* v16 = tup_new(2);
+	v16->size = 2;
+	v16->cells[1] = MKTUP(v15, 2);
+	v16->cells[0] = v5;
+	push_resource(MKTUP(v9, 10));
+	push_value(MKTUP(v16, 2));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp32_25 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Table_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		VAL v26 = MKI64(0LL /* Nil */);
+		int64_t v27 = 1LL /* Dup */;
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v17, v19, v26, v27, &v28, &v29);
+		incref(v2);
+		TUP* v30;
+		uint64_t v31 = mw_mirth_table_Table_numZ_buffer(v28, value_u64(v2), &v30);
+		TUP* v32;
+		TUP* v33;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v30, v29, v31, &v32, &v33);
+		VAL v34 = MKI64(0LL /* Nil */);
+		int64_t v35 = 36LL /* U64Get */;
+		TUP* v36;
+		TUP* v37;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v32, v33, v34, v35, &v36, &v37);
+		VAL v38 = MKI64(0LL /* Nil */);
+		int64_t v39 = 40LL /* U64Le */;
+		TUP* v40;
+		TUP* v41;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v36, v37, v38, v39, &v40, &v41);
+		TUP* v42;
+		TUP* v43;
+		mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp3(v40, v41, &v42, &v43);
+		VAL v44 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v45 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v46;
+		TUP* v47;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v42, v43, v44, v45, &v46, &v47);
+		branch_ZPlusAB_25 = v47;
+		branch_ZPlusMirth_24 = v46;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v48;
+		TUP* v49 = mw_mirth_word_Word_type(v17, value_u64(v3), &v48);
+		VAL v50 = v49->cells[1];
+		incref(v50);
+		decref(MKTUP(v49, 2));
+		TUP* v51;
+		uint64_t v52 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v51);
+		incref(v6);
+		TUP* v53;
+		VAL v54 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v51, &v53);
+		TUP* v55;
+		VAL v56 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v53, &v55);
+		TUP* v57;
+		TUP* v58;
+		VAL v59;
+		VAL v60 = mw_std_list_List_1_reverseZ_for_1_sp10(v48, v55, v54, v56, v6, &v57, &v58, &v59);
+		TUP* v61 = mw_mirth_type_TZ_ZTo(v59, v50);
+		TUP* v62;
+		VAL v63 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v58, &v62);
+		VAL v64;
+		VAL v65;
+		mtp_mirth_type_ArrowType_ArrowType(v61, &v64, &v65);
+		incref(v64);
+		VAL v66 = MKI64(0LL /* Nil */);
+		TUP* v67 = mtw_mirth_arrow_Arrow_Arrow(v63, v52, v52, v60, v64, v64, v66);
+		VAL v68 = MKI64(0LL /* Nil */);
+		int64_t v69 = 1LL /* Dup */;
+		TUP* v70;
+		TUP* v71;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v57, v67, v68, v69, &v70, &v71);
+		incref(v2);
+		TUP* v72;
+		uint64_t v73 = mw_mirth_table_Table_numZ_buffer(v70, value_u64(v2), &v72);
+		TUP* v74;
+		TUP* v75;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v72, v71, v73, &v74, &v75);
+		VAL v76 = MKI64(0LL /* Nil */);
+		int64_t v77 = 36LL /* U64Get */;
+		TUP* v78;
+		TUP* v79;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v74, v75, v76, v77, &v78, &v79);
+		VAL v80 = MKI64(0LL /* Nil */);
+		int64_t v81 = 40LL /* U64Le */;
+		TUP* v82;
+		TUP* v83;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v78, v79, v80, v81, &v82, &v83);
+		TUP* v84;
+		TUP* v85;
+		mw_mirth_elab_ZPlusAB_abZ_ifZBang_2_sp3(v82, v83, &v84, &v85);
+		VAL v86 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v87 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v88;
+		TUP* v89;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v84, v85, v86, v87, &v88, &v89);
+		TUP* v90;
+		TUP* v91;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v88, v89, v65, &v90, &v91);
+		TUP* v92;
+		VAL v93 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v62, &v92);
+		TUP* v94;
+		VAL v95 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v92, &v94);
+		TUP* v96;
+		uint64_t v97 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v94, &v96);
+		TUP* v98 = mtw_mirth_arrow_Lambda_Lambda(v97, v93, v95, v6, v91);
+		VAL v99 = mtw_mirth_arrow_Op_Lambda(v98);
+		VAL v100 = MKI64(0LL /* Nil */);
+		TUP* v101;
+		TUP* v102;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v90, v96, v100, v99, &v101, &v102);
+		branch_ZPlusAB_25 = v102;
+		branch_ZPlusMirth_24 = v101;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v103;
+	TUP* v104;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v103, &v104);
+	TUP* v105;
+	TUP* v106 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v103, v104, v11, &v105);
+	decref(branch_List_22);
+	push_resource(MKTUP(v105, 10));
+	push_value(MKTUP(v106, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp33_1 (void) {
+	uint64_t v0 = value_u64(pop_value());
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_table_Table_owner(r1, v0, &v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_StateOwner_ctx(v2, v3, &v4);
+	VAL v6 = mw_mirth_type_T0();
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Table_owner(v4, v0, &v7);
+	TUP* v9;
+	VAL v10 = mw_mirth_table_StateOwner_push(v7, v6, v8, &v9);
+	incref(v10);
+	VAL v11 = mtw_mirth_type_Type_Table(v0);
+	VAL v12 = mw_mirth_type_TZMul(v10, v11);
+	VAL v13 = mw_mirth_type_Type_U64();
+	VAL v14 = mw_mirth_type_TZMul(v10, v13);
+	TUP* v15 = mw_mirth_type_TZ_ZTo(v12, v14);
+	TUP* v16 = tup_new(2);
+	v16->size = 2;
+	v16->cells[1] = MKTUP(v15, 2);
+	v16->cells[0] = v5;
+	push_resource(MKTUP(v9, 10));
+	push_value(MKTUP(v16, 2));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp34_13 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Table_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		VAL v26 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v27 = mtw_mirth_arrow_Op_TableToIndex(value_u64(v2));
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v17, v19, v26, v27, &v28, &v29);
+		branch_ZPlusAB_25 = v29;
+		branch_ZPlusMirth_24 = v28;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v30;
+		TUP* v31 = mw_mirth_word_Word_type(v17, value_u64(v3), &v30);
+		VAL v32 = v31->cells[1];
+		incref(v32);
+		decref(MKTUP(v31, 2));
+		TUP* v33;
+		uint64_t v34 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v33);
+		incref(v6);
+		TUP* v35;
+		VAL v36 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v33, &v35);
+		TUP* v37;
+		VAL v38 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v35, &v37);
+		TUP* v39;
+		TUP* v40;
+		VAL v41;
+		VAL v42 = mw_std_list_List_1_reverseZ_for_1_sp10(v30, v37, v36, v38, v6, &v39, &v40, &v41);
+		TUP* v43 = mw_mirth_type_TZ_ZTo(v41, v32);
+		TUP* v44;
+		VAL v45 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v40, &v44);
+		VAL v46;
+		VAL v47;
+		mtp_mirth_type_ArrowType_ArrowType(v43, &v46, &v47);
+		incref(v46);
+		VAL v48 = MKI64(0LL /* Nil */);
+		TUP* v49 = mtw_mirth_arrow_Arrow_Arrow(v45, v34, v34, v42, v46, v46, v48);
+		VAL v50 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v51 = mtw_mirth_arrow_Op_TableToIndex(value_u64(v2));
+		TUP* v52;
+		TUP* v53;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v39, v49, v50, v51, &v52, &v53);
+		TUP* v54;
+		TUP* v55;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v52, v53, v47, &v54, &v55);
+		TUP* v56;
+		VAL v57 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v44, &v56);
+		TUP* v58;
+		VAL v59 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v56, &v58);
+		TUP* v60;
+		uint64_t v61 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v58, &v60);
+		TUP* v62 = mtw_mirth_arrow_Lambda_Lambda(v61, v57, v59, v6, v55);
+		VAL v63 = mtw_mirth_arrow_Op_Lambda(v62);
+		VAL v64 = MKI64(0LL /* Nil */);
+		TUP* v65;
+		TUP* v66;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v54, v60, v64, v63, &v65, &v66);
+		branch_ZPlusAB_25 = v66;
+		branch_ZPlusMirth_24 = v65;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v67;
+	TUP* v68;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v67, &v68);
+	TUP* v69;
+	TUP* v70 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v67, v68, v11, &v69);
+	decref(branch_List_22);
+	push_resource(MKTUP(v69, 10));
+	push_value(MKTUP(v70, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp35_0 (void) {
+	uint64_t v0 = value_u64(pop_value());
+	TUP* r1 = value_tup(pop_resource(), 10);
+	TUP* v2;
+	VAL v3 = mw_mirth_table_Table_owner(r1, v0, &v2);
+	TUP* v4;
+	VAL v5 = mw_mirth_table_StateOwner_ctx(v2, v3, &v4);
+	VAL v6 = mw_mirth_type_T0();
+	TUP* v7;
+	VAL v8 = mw_mirth_table_Table_owner(v4, v0, &v7);
+	TUP* v9;
+	VAL v10 = mw_mirth_table_StateOwner_push(v7, v6, v8, &v9);
+	incref(v10);
+	VAL v11 = mtw_mirth_type_Type_Table(v0);
+	VAL v12 = mw_mirth_type_TZMul(v10, v11);
+	TUP* v13 = mw_mirth_type_TZ_ZTo(v10, v12);
+	TUP* v14 = tup_new(2);
+	v14->size = 2;
+	v14->cells[1] = MKTUP(v13, 2);
+	v14->cells[0] = v5;
+	push_resource(MKTUP(v9, 10));
+	push_value(MKTUP(v14, 2));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp36_29 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Table_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		incref(v2);
+		TUP* v26;
+		uint64_t v27 = mw_mirth_table_Table_numZ_buffer(v17, value_u64(v2), &v26);
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v26, v19, v27, &v28, &v29);
+		VAL v30 = MKI64(0LL /* Nil */);
+		int64_t v31 = 36LL /* U64Get */;
+		TUP* v32;
+		TUP* v33;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v28, v29, v30, v31, &v32, &v33);
+		uint64_t v34 = 1ULL;
+		VAL v35 = mtw_mirth_arrow_PushValue_U64(v34);
+		TUP* v36;
+		TUP* v37;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v32, v33, v35, &v36, &v37);
+		VAL v38 = MKI64(0LL /* Nil */);
+		int64_t v39 = 44LL /* U64Add */;
+		TUP* v40;
+		TUP* v41;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v36, v37, v38, v39, &v40, &v41);
+		VAL v42 = MKI64(0LL /* Nil */);
+		int64_t v43 = 1LL /* Dup */;
+		TUP* v44;
+		TUP* v45;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v40, v41, v42, v43, &v44, &v45);
+		incref(v2);
+		TUP* v46;
+		uint64_t v47 = mw_mirth_table_Table_numZ_buffer(v44, value_u64(v2), &v46);
+		TUP* v48;
+		TUP* v49;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v46, v45, v47, &v48, &v49);
+		VAL v50 = MKI64(0LL /* Nil */);
+		int64_t v51 = 37LL /* U64Set */;
+		TUP* v52;
+		TUP* v53;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v48, v49, v50, v51, &v52, &v53);
+		VAL v54 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v55 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v56;
+		TUP* v57;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v52, v53, v54, v55, &v56, &v57);
+		branch_ZPlusAB_25 = v57;
+		branch_ZPlusMirth_24 = v56;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v58;
+		TUP* v59 = mw_mirth_word_Word_type(v17, value_u64(v3), &v58);
+		VAL v60 = v59->cells[1];
+		incref(v60);
+		decref(MKTUP(v59, 2));
+		TUP* v61;
+		uint64_t v62 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v61);
+		incref(v6);
+		TUP* v63;
+		VAL v64 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v61, &v63);
+		TUP* v65;
+		VAL v66 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v63, &v65);
+		TUP* v67;
+		TUP* v68;
+		VAL v69;
+		VAL v70 = mw_std_list_List_1_reverseZ_for_1_sp10(v58, v65, v64, v66, v6, &v67, &v68, &v69);
+		TUP* v71 = mw_mirth_type_TZ_ZTo(v69, v60);
+		TUP* v72;
+		VAL v73 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v68, &v72);
+		VAL v74;
+		VAL v75;
+		mtp_mirth_type_ArrowType_ArrowType(v71, &v74, &v75);
+		incref(v74);
+		VAL v76 = MKI64(0LL /* Nil */);
+		TUP* v77 = mtw_mirth_arrow_Arrow_Arrow(v73, v62, v62, v70, v74, v74, v76);
+		incref(v2);
+		TUP* v78;
+		uint64_t v79 = mw_mirth_table_Table_numZ_buffer(v67, value_u64(v2), &v78);
+		TUP* v80;
+		TUP* v81;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v78, v77, v79, &v80, &v81);
+		VAL v82 = MKI64(0LL /* Nil */);
+		int64_t v83 = 36LL /* U64Get */;
+		TUP* v84;
+		TUP* v85;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v80, v81, v82, v83, &v84, &v85);
+		uint64_t v86 = 1ULL;
+		VAL v87 = mtw_mirth_arrow_PushValue_U64(v86);
+		TUP* v88;
+		TUP* v89;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v84, v85, v87, &v88, &v89);
+		VAL v90 = MKI64(0LL /* Nil */);
+		int64_t v91 = 44LL /* U64Add */;
+		TUP* v92;
+		TUP* v93;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v88, v89, v90, v91, &v92, &v93);
+		VAL v94 = MKI64(0LL /* Nil */);
+		int64_t v95 = 1LL /* Dup */;
+		TUP* v96;
+		TUP* v97;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v92, v93, v94, v95, &v96, &v97);
+		incref(v2);
+		TUP* v98;
+		uint64_t v99 = mw_mirth_table_Table_numZ_buffer(v96, value_u64(v2), &v98);
+		TUP* v100;
+		TUP* v101;
+		mw_mirth_elab_ZPlusAB_abZ_bufferZBang(v98, v97, v99, &v100, &v101);
+		VAL v102 = MKI64(0LL /* Nil */);
+		int64_t v103 = 37LL /* U64Set */;
+		TUP* v104;
+		TUP* v105;
+		mw_mirth_elab_ZPlusAB_abZ_primZBang(v100, v101, v102, v103, &v104, &v105);
+		VAL v106 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v107 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v108;
+		TUP* v109;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v104, v105, v106, v107, &v108, &v109);
+		TUP* v110;
+		TUP* v111;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v108, v109, v75, &v110, &v111);
+		TUP* v112;
+		VAL v113 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v72, &v112);
+		TUP* v114;
+		VAL v115 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v112, &v114);
+		TUP* v116;
+		uint64_t v117 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v114, &v116);
+		TUP* v118 = mtw_mirth_arrow_Lambda_Lambda(v117, v113, v115, v6, v111);
+		VAL v119 = mtw_mirth_arrow_Op_Lambda(v118);
+		VAL v120 = MKI64(0LL /* Nil */);
+		TUP* v121;
+		TUP* v122;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v110, v116, v120, v119, &v121, &v122);
+		branch_ZPlusAB_25 = v122;
+		branch_ZPlusMirth_24 = v121;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v123;
+	TUP* v124;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v123, &v124);
+	TUP* v125;
+	TUP* v126 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v123, v124, v11, &v125);
+	decref(branch_List_22);
+	push_resource(MKTUP(v125, 10));
+	push_value(MKTUP(v126, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp37_13 (void) {
+	TUP* v0 = value_tup(pop_value(), 2);
+	TUP* r1 = value_tup(pop_resource(), 10);
+	VAL v2 = v0->cells[0];
+	VAL v3 = v0->cells[1];
+	tup_decref_outer(v0,2);
+	incref(v3);
+	TUP* v4;
+	VAL v5 = mw_mirth_word_Word_params(r1, value_u64(v3), &v4);
+	VAL v6 = mw_std_list_List_1_map_1_sp16(v5);
+	incref(v3);
+	TUP* v7;
+	TUP* v8;
+	uint64_t v9;
+	VAL v10;
+	uint64_t v11;
+	VAL v12 = mw_mirth_elab_initialZ_ctxZ_typeZ_bodyZ_home(v4, value_u64(v3), &v7, &v8, &v9, &v10, &v11);
+	VAL v13;
+	VAL v14;
+	mtp_mirth_type_ArrowType_ArrowType(v8, &v13, &v14);
+	incref(v13);
+	VAL v15 = MKI64(0LL /* Nil */);
+	TUP* v16 = mtw_mirth_arrow_Arrow_Arrow(v10, v9, v9, v12, v13, v13, v15);
+	incref(v3);
+	TUP* v17;
+	uint64_t v18 = mw_mirth_word_Word_body(v7, value_u64(v3), &v17);
+	TUP* v19;
+	mw_mirth_elab_ZPlusAB_abZ_tokenZBang(v16, v18, &v19);
+	incref(v6);
+	bool v20 = mw_std_list_List_1_emptyZAsk(v6);
+	uint64_t branch_Word_21;
+	VAL branch_List_22;
+	uint64_t branch_Table_23;
+	TUP* branch_ZPlusMirth_24;
+	TUP* branch_ZPlusAB_25;
+	if (v20) {
+		uint64_t v26 = 0ULL;
+		VAL v27 = mtw_mirth_arrow_PushValue_U64(v26);
+		TUP* v28;
+		TUP* v29;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v17, v19, v27, &v28, &v29);
+		VAL v30 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v31 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v32;
+		TUP* v33;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v28, v29, v30, v31, &v32, &v33);
+		branch_ZPlusAB_25 = v33;
+		branch_ZPlusMirth_24 = v32;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	} else {
+		incref(v6);
+		incref(v3);
+		TUP* v34;
+		TUP* v35 = mw_mirth_word_Word_type(v17, value_u64(v3), &v34);
+		VAL v36 = v35->cells[1];
+		incref(v36);
+		decref(MKTUP(v35, 2));
+		TUP* v37;
+		uint64_t v38 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v19, &v37);
+		incref(v6);
+		TUP* v39;
+		VAL v40 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v37, &v39);
+		TUP* v41;
+		VAL v42 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v39, &v41);
+		TUP* v43;
+		TUP* v44;
+		VAL v45;
+		VAL v46 = mw_std_list_List_1_reverseZ_for_1_sp10(v34, v41, v40, v42, v6, &v43, &v44, &v45);
+		TUP* v47 = mw_mirth_type_TZ_ZTo(v45, v36);
+		TUP* v48;
+		VAL v49 = mw_mirth_elab_ZPlusAB_abZ_homeZAt(v44, &v48);
+		VAL v50;
+		VAL v51;
+		mtp_mirth_type_ArrowType_ArrowType(v47, &v50, &v51);
+		incref(v50);
+		VAL v52 = MKI64(0LL /* Nil */);
+		TUP* v53 = mtw_mirth_arrow_Arrow_Arrow(v49, v38, v38, v46, v50, v50, v52);
+		uint64_t v54 = 0ULL;
+		VAL v55 = mtw_mirth_arrow_PushValue_U64(v54);
+		TUP* v56;
+		TUP* v57;
+		mw_mirth_elab_ZPlusAB_abZ_pushZ_valueZBang(v43, v53, v55, &v56, &v57);
+		VAL v58 = MKI64(0LL /* Nil */);
+		incref(v2);
+		VAL v59 = mtw_mirth_arrow_Op_TableFromIndex(value_u64(v2));
+		TUP* v60;
+		TUP* v61;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v56, v57, v58, v59, &v60, &v61);
+		TUP* v62;
+		TUP* v63;
+		mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(v60, v61, v51, &v62, &v63);
+		TUP* v64;
+		VAL v65 = mw_mirth_elab_ZPlusAB_abZ_ctxZAt(v48, &v64);
+		TUP* v66;
+		VAL v67 = mw_mirth_elab_ZPlusAB_abZ_typeZAt(v64, &v66);
+		TUP* v68;
+		uint64_t v69 = mw_mirth_elab_ZPlusAB_abZ_tokenZAt(v66, &v68);
+		TUP* v70 = mtw_mirth_arrow_Lambda_Lambda(v69, v65, v67, v6, v63);
+		VAL v71 = mtw_mirth_arrow_Op_Lambda(v70);
+		VAL v72 = MKI64(0LL /* Nil */);
+		TUP* v73;
+		TUP* v74;
+		mw_mirth_elab_ZPlusAB_abZ_opZBang(v62, v68, v72, v71, &v73, &v74);
+		branch_ZPlusAB_25 = v74;
+		branch_ZPlusMirth_24 = v73;
+		branch_Table_23 = value_u64(v2);
+		branch_List_22 = v6;
+		branch_Word_21 = value_u64(v3);
+	}
+	TUP* v75;
+	TUP* v76;
+	mw_mirth_elab_ZPlusAB_abZ_unifyZ_typeZBang(branch_ZPlusMirth_24, branch_ZPlusAB_25, v14, &v75, &v76);
+	TUP* v77;
+	TUP* v78 = mw_mirth_elab_finalizzeZ_wordZ_arrow(v75, v76, v11, &v77);
+	decref(branch_List_22);
+	push_resource(MKTUP(v77, 10));
+	push_value(MKTUP(v78, 7));
+}
+static void mb_mirth_mirth_PropLabel_prop_1_sp38_1 (void) {
 	uint64_t v0 = value_u64(pop_value());
 	TUP* r1 = value_tup(pop_resource(), 10);
 	TUP* v2;
@@ -90005,7 +92417,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp17_1 (void) {
 	push_resource(MKTUP(v6, 10));
 	push_value(MKTUP(v10, 2));
 }
-static void mb_mirth_mirth_PropLabel_prop_1_sp18_0 (void) {
+static void mb_mirth_mirth_PropLabel_prop_1_sp39_0 (void) {
 	uint64_t v0 = value_u64(pop_value());
 	TUP* r1 = value_tup(pop_resource(), 10);
 	TUP* v2;
@@ -90013,7 +92425,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp18_0 (void) {
 	push_resource(MKTUP(v2, 10));
 	push_value(MKTUP(v3, 2));
 }
-static void mb_mirth_mirth_PropLabel_prop_1_sp19_1 (void) {
+static void mb_mirth_mirth_PropLabel_prop_1_sp40_1 (void) {
 	uint64_t v0 = value_u64(pop_value());
 	TUP* r1 = value_tup(pop_resource(), 10);
 	TUP* v2;
@@ -90058,7 +92470,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp19_1 (void) {
 	push_resource(MKTUP(branch_ZPlusMirth_4, 10));
 	push_value(MKTUP(branch__5, 2));
 }
-static void mb_mirth_mirth_PropLabel_prop_1_sp20_0 (void) {
+static void mb_mirth_mirth_PropLabel_prop_1_sp41_0 (void) {
 	uint64_t v0 = value_u64(pop_value());
 	TUP* r1 = value_tup(pop_resource(), 10);
 	TUP* v2;
@@ -90066,7 +92478,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp20_0 (void) {
 	push_resource(MKTUP(v2, 10));
 	push_value(v3);
 }
-static void mb_mirth_mirth_PropLabel_prop_1_sp21_6 (void) {
+static void mb_mirth_mirth_PropLabel_prop_1_sp42_6 (void) {
 	uint64_t v0 = value_u64(pop_value());
 	TUP* r1 = value_tup(pop_resource(), 10);
 	TUP* v2;
@@ -90152,7 +92564,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp21_6 (void) {
 	push_value(MKTUP(v58, 7));
 	push_resource(MKTUP(v59, 10));
 }
-static void mb_mirth_mirth_PropLabel_prop_1_sp22_10 (void) {
+static void mb_mirth_mirth_PropLabel_prop_1_sp43_10 (void) {
 	TUP* v0 = value_tup(pop_value(), 3);
 	TUP* r1 = value_tup(pop_resource(), 10);
 	VAL v2 = v0->cells[0];
@@ -90438,7 +92850,7 @@ static void mb_mirth_mirth_PropLabel_prop_1_sp22_10 (void) {
 	push_resource(MKTUP(branch_ZPlusMirth_112, 10));
 	push_value(branch_Def_113);
 }
-static void mb_mirth_mirth_PropLabel_prop_1_sp23_1 (void) {
+static void mb_mirth_mirth_PropLabel_prop_1_sp44_1 (void) {
 	TUP* v0 = value_tup(pop_value(), 2);
 	TUP* r1 = value_tup(pop_resource(), 10);
 	VAL v2 = v0->cells[0];
