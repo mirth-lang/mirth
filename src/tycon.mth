@@ -16,6 +16,8 @@ data Tycon {
     Table [ Table ]
     Prim  [ PrimType ]
     --
+    def >Namespace [ Tycon -- Namespace ] { Namespace.Tycon }
+
     def data?  [ Tycon -- Maybe(Data)     ] { Data  -> Some, _ -> drop None }
     def table? [ Tycon -- Maybe(Table)    ] { Table -> Some, _ -> drop None }
     def prim?  [ Tycon -- Maybe(PrimType) ] { Prim  -> Some, _ -> drop None }

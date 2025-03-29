@@ -1,0 +1,17 @@
+module test.table-syntax
+
+import std.prelude
+
+table Foo1
+table Foo2 { num: Int }
+table Foo3 { num: Int { index >Int } }
+table Foo4 {
+    num: Int
+    num2: Int
+    ~raw: Int
+    --
+    def num^2 { num dup * }
+    def raw { ~raw @ }
+}
+
+def main {}

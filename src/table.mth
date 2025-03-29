@@ -95,6 +95,8 @@ patch Table {
         dup2 = if(drop >Type, on2:>Type unify-failed!)
     }
     def >Type [ Table -- Type ] { Type.Table }
+    def >Tycon [ Table -- Tycon ] { Tycon.Table }
+    def >Namespace [ Table -- Namespace ] { >Tycon >Namespace }
 
     def name;  [ +Mirth +Str |- Table -- ] { rdip:name name; }
     def qname; [ +Mirth +Str |- Table -- ] { rdip:qname-hard qname; }
@@ -132,10 +134,10 @@ patch Field {
 
     def = [ Field Field -- Bool ] { on2:index = }
 
-    def is-exposed-raw? [ +Mirth |- Field -- Bool ] {
-        name >Str first-byte Byte.B'~' Some =
-    }
+    def is-raw? [ +Mirth |- Field -- Bool ] { name could-be-raw-field-name? }
 }
+
+
 
 def table-qname [ +Mirth |- Table Str Int -- QName ] {
     >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
@@ -348,14 +350,20 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     self>
 }
 
+
 ||| Parse a table declaration.
 |||
 |||     table(Owner? Tycon)
-|||     table Owner? Tycon
-def parse-table-decl [ +Mirth Token |- owner:Maybe(Token) head:Token doc:Maybe(Str) ] {
+|||     table(Owner? Tycon, InlineField*)
+|||     table(Owner? Tycon, InlineField* -- Decl*)
+|||     table Owner? Tycon { InlineField* }
+|||     table Owner? Tycon { InlineField* -- Decl* }
+def parse-table-decl [ +Mirth Token |- owner:Maybe(Token) head:Token doc:Maybe(Str) fields:List(InlineFieldSyntax) decls:Maybe(Token) ] {
     dup doc >doc
     dup num-args 0> if(
-        sip(next) args-1 parse-owner >head
+        sip(next)
+        dup num-args 1 = if(args-1 None, args-2 Some) >body parse-owner >head
+
         @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
         @head args-0
         @head succ arg-end? else(@head succ "expected end of argument after table name" emit-fatal-error!),
@@ -363,16 +371,78 @@ def parse-table-decl [ +Mirth Token |- owner:Maybe(Token) head:Token doc:Maybe(S
         succ parse-owner dup >head
         @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
         @head args-0
-        succ
+        next dup lcurly? if(
+            sip(next) succ Some,
+            None
+        ) >body
+    )
+
+    body> if?(
+        List(
+            while (
+                dup sig-stack-end? not,
+                parse-inline-field! ;
+            )
+        ) >fields
+
+        dup sig-dashes? if(
+            succ Some >decls,
+            dup arg-end? else("Invalid syntax." emit-fatal-error!)
+            drop None >decls
+        ),
+
+        L0 >fields
+        None >decls
     )
 }
 
 ||| Elaborate a table definition `table(True)`.
-def elab-table! [ +Mirth Token |- ] {
+def elab-table! [ +World +Mirth Token |- ] {
     parse-table-decl
     elab-def-head
     arity> drop
-    table-new! drop
+    table-new! !table (
+        fields> for(elab-inline-field!)
+        decls> for( @table >Namespace PropLabel.DefiningNamespace prop Some with-defining-namespace( elab-decls! drop ) )
+    ) drop
+}
+
+struct InlineFieldSyntax {
+    doc: Maybe(Str)
+    head: Token
+    name: Name
+    value-type: Token
+    default: Maybe(Token)
+}
+
+||| Parse an inline field declaration, as part of a table definition.
+|||
+|||     FieldName: Type
+|||     FieldName: Type { Arrow }
+def parse-inline-field! [ +Mirth Token |- InlineFieldSyntax ] {
+    dup doc >doc
+    dup >head
+    @head name? unwrap(@head "Expected field name." emit-fatal-error!) >name
+    @name could-be-field-name? else(@head "Invalid field name, must start with lowercase letter or tilde." emit-fatal-error!)
+    @head succ lcolon? else(@head succ "Invalid syntax, expected `: Type` after field name." emit-fatal-error!)
+    @head succ succ >value-type
+    next dup lcurly? map(succ swap succ) >default
+    InlineFieldSyntax
+}
+
+def elab-inline-field! [ +Mirth table:Table |- InlineFieldSyntax -- ] {
+    /InlineFieldSyntax
+    Field.alloc! >self
+    doc> @self ~doc !
+    name> @self ~name !
+    head> @self ~head !
+    default> @self ~default !
+    @table @self name >Str 0 table-qname @self PropLabel.FieldQName prop @self ~qname !
+    @table >Type @self PropLabel.FieldIndexType prop @self ~index-type !
+    @self value-type> @self PropLabel.FieldValueType prop2(dip(owner ctx) elab-simple-type-atom!) @self ~value-type !
+    @table @self PropLabel.FieldOwner prop(owner) @self ~owner !
+    prepare-field-defs!
+    self> drop
 }
 
 ||| Parse a standalone field definition.
@@ -387,7 +457,8 @@ def parse-field [ +Mirth Token |-
     sip(next)
     dup num-args 4u = if(args-4 Some, args-3 None)
     >default >value-type >index-type parse-owner >head
-    @head name/dname? else(@head "expected field name" emit-fatal-error!)
+    @head name/dname? else(@head "Expected field name." emit-fatal-error!)
+    @head last-name? has:could-be-field-name? else(@head "Invalid field name, must start with lowercase letter or tilde." emit-fatal-error!)
     @head args-0
 }
 
@@ -414,7 +485,7 @@ def elab-field! [ +Mirth Token |- -- ] {
 }
 
 def prepare-field-defs! [ +Mirth self:Field |- ] {
-    @self is-exposed-raw? if(
+    @self is-raw? if(
         @self Def.Field register
         @self default then?("Raw field cannot have a default value." emit-error!),
 
