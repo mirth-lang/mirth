@@ -1,0 +1,9 @@
+module test.error-raw-field-with-default
+
+table Foo {
+    ~bar: Int { drop 10 }
+}
+
+def main {}
+# mirth-test # merr # 4:17: error: Raw field cannot have a default value.
+# mirth-test # mret # 1
