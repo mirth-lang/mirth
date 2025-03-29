@@ -103,6 +103,7 @@ table(Field)
 patch Field {
     field(~doc, Field, Maybe(Str))
     field(~head, Field, Token)
+    field(~default, Field, Maybe(Token))
     field(~name, Field, Name)
     field(~qname, Field, Prop(QName))
     field(~owner, Field, Prop(StateOwner))
@@ -111,6 +112,7 @@ patch Field {
 
     def doc        [ +Mirth |- Field -- Maybe(Str)   ] { ~doc @ }
     def head       [ +Mirth |- Field -- Token        ] { ~head @ }
+    def default    [ +Mirth |- Field -- Maybe(Token) ] { ~default @ }
     def name       [ +Mirth |- Field -- Name         ] { ~name @ }
     def qname-soft [ +Mirth |- Field -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- Field -- QName        ] { ~qname force! }
@@ -343,10 +345,8 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
 
 ||| Parse a table declaration.
 |||
-|||     table(Tycon)
-|||     table(Owner |- Tycon)
-|||     table Tycon
-|||     table Owner |- Tycon
+|||     table(Owner? Tycon)
+|||     table Owner? Tycon
 def parse-table-decl [ +Mirth Token |- owner:Maybe(Token) head:Token doc:Maybe(Str) ] {
     dup doc >doc
     dup num-args 0> if(
@@ -372,21 +372,28 @@ def elab-table! [ +Mirth Token |- ] {
 
 ||| Parse a field definition
 |||
-|||     field(f, T1, T2)`
-def parse-field [ +Mirth Token |- doc:Maybe(Str) owner:Maybe(Token) head:Token index-type:Token value-type:Token ] {
+|||     field(Owner? Name, Type, Type)
+|||     field(Owner? Name, Type, Type, Arrow)
+def parse-field [ +Mirth Token |-
+    doc:Maybe(Str) owner:Maybe(Token) head:Token
+    index-type:Token value-type:Token default:Maybe(Token)
+] {
     dup doc >doc
-    sip(next) args-3 >value-type >index-type parse-owner >head
+    sip(next)
+    dup num-args 4u = if(args-4 Some, args-3 None)
+    >default >value-type >index-type parse-owner >head
     @head name/dname? else(@head "expected field name" emit-fatal-error!)
     @head args-0
 }
 
-||| Elaborate a field definition `field(f, T1, T2)`.
+||| Elaborate a standalone field definition.
 def elab-field! [ +Mirth Token |- ] {
     parse-field elab-def-head
     Field.alloc! >self
     doc> @self ~doc !
     name> @self ~name !
     head> @self ~head !
+    default> @self ~default !
     arity> 0= else(@self head "Field cannot take arguments." emit-error!)
     @self PropLabel.FieldQName >label Prop @self ~qname !
     index-type> @self PropLabel.FieldIndexType prop(elab-simple-type-arg!) @self ~index-type !
@@ -409,8 +416,26 @@ def elab-field! [ +Mirth Token |- ] {
         T0 @self owner push @self value-type T*
         T->,
 
-        L0 @self Op.Field ab-op!
-        L0 Prim.MutGet ab-prim!
+        @self default if? (
+            ab-token!
+            L0 Prim.Dup ab-prim!
+            L0 @self Op.Field ab-op!
+            L0 Prim.Dup ab-prim!
+            L0 Prim.MutIsSet ab-prim! ab-if!(
+                L0 Prim.Swap ab-prim!
+                L0 Prim.Drop ab-prim!
+                L0 Prim.MutGet ab-prim!,
+
+                ab-dip!(
+                    elab-atoms!
+                    L0 Prim.Dup ab-prim!
+                )
+                L0 Prim.MutSet ab-prim!
+            ),
+
+            L0 @self Op.Field ab-op!
+            L0 Prim.MutGet ab-prim!
+        )
     ) drop
 
     "Set field value." Some >doc
