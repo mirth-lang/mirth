@@ -3,6 +3,8 @@ module mirth.table
 import std.prelude
 import std.maybe
 import std.str
+import std.list
+import std.byte
 
 import mirth.name
 import mirth.type
@@ -10,6 +12,65 @@ import mirth.buffer
 import mirth.word
 import mirth.token
 import mirth.mirth
+import mirth.prim
+import mirth.tycon
+import mirth.elab
+import mirth.def
+import mirth.var
+import mirth.arrow
+import mirth.data
+import mirth.label
+
+data StateOwner {
+    Error
+    Default
+    Resource [ Ctx Resource ]
+    --
+    def ctx [ +Mirth |- StateOwner -- Ctx ] {
+        { Error -> Ctx.L0 }
+        { Default -> Ctx.L0 }
+        { Resource -> drop }
+    }
+    def resource? [ +Mirth |- StateOwner -- Maybe(Resource) ] {
+        { Error -> None }
+        { Default -> None }
+        { Resource -> nip Some }
+    }
+    def push [ +Mirth |- StackType StateOwner -- StackType ] {
+        { Error -> drop StackType.Error }
+        { Default -> }
+        { Resource -> nip T+ }
+    }
+    def else(f) [ *a |- (-- StateOwner) StateOwner -- StateOwner ] {
+        { Default -> f }
+        { _ -> }
+    }
+}
+
+||| Parse a state owner tag.
+|||
+|||     +Foo |-
+def +Mirth.parse-owner [ +Mirth Token |- owner:Maybe(Token) ] {
+    dup name/dname? and(dup next vdash?)
+    >Maybe( sip(next succ) ) >owner
+}
+def +Mirth.resolve-owner [ +Mirth |- Maybe(Token) -- StateOwner ] {
+    { None -> StateOwner.Default }
+    { Some ->
+        +TypeElab.Start!
+        token sig-resource-con? if?(
+            elab-resource-con!
+            dup can-own-state? if(
+                ctx swap StateOwner.Resource,
+                token "Resource cannot own state." emit-error!
+                drop StateOwner.Error
+            ),
+
+            token "Expected a resource name." emit-error! StateOwner.Error
+        )
+        +TypeElab.rdrop
+    }
+}
 
 # mirth/data/table
 table(Table)
@@ -18,7 +79,10 @@ patch Table {
     field(~head, Table, Token) # where the table was defined
     field(~name, Table, Name)
     field(~qname, Table, Prop(QName))
+    field(~owner, Table, Prop(StateOwner))
     field(~num-buffer, Table, Buffer)
+    field(~alloc-word, Table, Word)
+    field(~inline-fields, Table, List(Field))
 
     def doc        [ +Mirth |- Table -- Maybe(Str)   ] { ~doc @ }
     def head       [ +Mirth |- Table -- Token        ] { ~head @ }
@@ -26,41 +90,483 @@ patch Table {
     def qname-hard [ +Mirth |- Table -- QName        ] { ~qname force! }
     def namespace  [ +Mirth |- Table -- Namespace    ] { qname-hard namespace }
     def name       [ +Mirth |- Table -- Name         ] { ~name @ }
+    def owner      [ +Mirth |- Table -- StateOwner   ] { ~owner force! }
     def num-buffer [ +Mirth |- Table -- Buffer       ] { ~num-buffer @ }
+    def alloc-word [ +Mirth |- Table -- Word         ] { ~alloc-word @ }
+    def inline-fields [ +Mirth |- Table -- List(Field) ] { ~inline-fields @ }
 
     def = [ Table Table -- Bool ] { on2:index = }
     def unify! [ +Mirth |- Table Table -- Type ] {
         dup2 = if(drop >Type, on2:>Type unify-failed!)
     }
     def >Type [ Table -- Type ] { Type.Table }
+    def >Tycon [ Table -- Tycon ] { Tycon.Table }
+    def >Namespace [ Table -- Namespace ] { >Tycon >Namespace }
 
     def name;  [ +Mirth +Str |- Table -- ] { rdip:name name; }
     def qname; [ +Mirth +Str |- Table -- ] { rdip:qname-hard qname; }
+
+    def constructor-fields [ +Mirth |- Table -- List(Field) ] {
+        inline-fields filter:and(is-raw? not, default not)
+    }
 }
 
 table(Field)
 patch Field {
     field(~doc, Field, Maybe(Str))
     field(~head, Field, Token)
+    field(~default, Field, Maybe(Token))
     field(~name, Field, Name)
     field(~qname, Field, Prop(QName))
+    field(~owner, Field, Prop(StateOwner))
     field(~index-type, Field, Prop(Type))
     field(~value-type, Field, Prop(Type))
 
     def doc        [ +Mirth |- Field -- Maybe(Str)   ] { ~doc @ }
     def head       [ +Mirth |- Field -- Token        ] { ~head @ }
+    def default    [ +Mirth |- Field -- Maybe(Token) ] { ~default @ }
     def name       [ +Mirth |- Field -- Name         ] { ~name @ }
     def qname-soft [ +Mirth |- Field -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- Field -- QName        ] { ~qname force! }
+    def namespace  [ +Mirth |- Field -- Namespace    ] { qname-hard namespace }
+    def owner      [ +Mirth |- Field -- StateOwner   ] { ~owner force! }
     def index-type [ +Mirth |- Field -- Type         ] { ~index-type force! }
     def value-type [ +Mirth |- Field -- Type         ] { ~value-type force! }
 
     def name;  [ +Mirth +Str |- Field -- ] { rdip:name name; }
     def qname; [ +Mirth +Str |- Field -- ] { rdip:qname-hard qname; }
 
-    def dom  [ +Mirth |- Field -- StackType ] { index-type T1 }
-    def cod  [ +Mirth |- Field -- StackType ] { value-type Type.Mut T1 }
-    def type [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
+    def basis [ +Mirth |- Field -- StackType ] { T0 swap owner push }
+    def dom   [ +Mirth |- Field -- StackType ] { sip(basis) index-type T* }
+    def cod   [ +Mirth |- Field -- StackType ] { sip(basis) value-type Type.Mut T* }
+    def type  [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
 
     def = [ Field Field -- Bool ] { on2:index = }
+
+    def is-raw? [ +Mirth |- Field -- Bool ] { name could-be-raw-field-name? }
+}
+
+
+
+def table-qname [ +Mirth |- Table Str Int -- QName ] {
+    >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
+}
+
+def table-word-new! [ +Mirth |- Table Str Nat doc:Maybe(Str) -- Word ] {
+    over2 head dup >head >body None >sig?
+    dup >arity over >Name >name >Int table-qname >qname Word.New!
+    qname> over PropLabel.WordQName prop over ~qname !
+}
+
+def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropState(QName) doc:Maybe(Str) -- Table ] {
+    Table.alloc! >self
+    @self PropLabel.TableQName >label Prop @self ~qname !
+    owner> @self PropLabel.TableOwner prop:resolve-owner @self ~owner !
+    head> @self ~head !
+    name> @self ~name !
+    doc> @self ~doc !
+    L0 @self ~inline-fields !
+    @self Def.Table register
+
+    # Table.NumBuffer
+    None >doc # TODO
+    @self head >head
+    "NumBuffer" >Name >name
+    8 bytes >size
+    Buffer.New! >buf
+    @buf @self ~num-buffer !
+    @self "NumBuffer" 0 table-qname
+    @buf PropLabel.BufferQName prop
+    @buf ~qname !
+    buf> Def.Buffer register
+
+    # Table.Nil
+    "Return Nil, the zero-th element of the table." Some >doc
+    @self head dup >head >body
+    "Nil" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push dup @self Type.Table T* T->,
+
+        0u64 PushValue.U64 ab-push-value!
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.nil  # TODO remove in favor of Table.Nil
+    "Return Nil, the 0th element of the table." Some >doc
+    @self head dup >head >body
+    "nil" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push dup @self Type.Table T* T->,
+
+        0u64 PushValue.U64 ab-push-value!
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.Alloc!
+    "Allocate a table element, without setting any fields." Some >doc
+    @self head dup >head >body
+    "Alloc!" L0 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push
+        dup @self Type.Table T*
+        T->,
+
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        1u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Add ab-prim!
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Set ab-prim!
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.alloc!  # TODO: remove this in favor of Table.Alloc!
+    "Allocate a table element, without setting any fields." Some >doc
+    @self head dup >head >body
+    "alloc!" L0 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push
+        dup @self Type.Table T*
+        T->,
+
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        1u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Add ab-prim!
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Set ab-prim!
+        L0 @self Op.TableFromIndex ab-op!
+    ) @self ~alloc-word !
+
+    # Table.Make!     # TODO: maybe rename to Table.New! eventually
+    "Create a table element and supply field values." Some >doc
+    @self head dup >head >body
+    "Make!" L0 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push
+        dup @self constructor-fields for(
+            sip:value-type name Label.new! StackType.ConsLabel
+        )
+        swap @self Type.Table T*
+        T->,
+
+        L0 @self alloc-word ab-word!
+        @self constructor-fields for(
+            L0 Prim.Dup ab-prim!
+            dup name Label.new! ab-label-pop!
+            L0 Prim.Swap ab-prim!
+            ab-field!
+            L0 Prim.MutSet ab-prim!
+        )
+    ) drop
+
+    # Table.index
+    "Turn a table element into a U64 index." Some >doc
+    @self head dup >head >body
+    "index" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push sip(@self Type.Table T*) Type.U64 T* T->,
+
+        L0 @self Op.TableToIndex ab-op!
+    ) drop
+
+    # Table.from-index
+    "Turn a U64 index into a table element. If out of bounds, Nil is returned." Some >doc
+    @self head dup >head >body
+    "from-index" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push sip(Type.U64 T*) @self Type.Table T* T->,
+
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        L0 Prim.U64Le ab-prim! ab-if!(
+            ,
+            L0 Prim.Drop ab-prim!
+            0u64 PushValue.U64 ab-push-value!
+        )
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.succ
+    "Return next table element if it exists. Otherwise return Nil." Some >doc
+    @self head dup >head >body
+    "succ" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push @self Type.Table T* dup T->,
+
+        L0 @self Op.TableToIndex ab-op!
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        L0 Prim.U64Lt ab-prim!
+        ab-if!(
+            1u64 PushValue.U64 ab-push-value!
+            L0 Prim.U64Add ab-prim!,
+
+            L0 Prim.Drop ab-prim!
+            0u64 PushValue.U64 ab-push-value!
+        )
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.pred
+    "Return previous table element if it exists. Otherwise return Nil." Some >doc
+    @self head dup >head >body
+    "pred" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push @self Type.Table T* dup T->,
+
+        L0 @self Op.TableToIndex ab-op!
+        L0 Prim.Dup ab-prim!
+        0u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Eq ab-prim!
+        ab-if!(
+            ,
+            1u64 PushValue.U64 ab-push-value!
+            L0 Prim.U64Sub ab-prim!
+        )
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.for(f)
+    "Iterate through all table elements, skipping Nil." Some >doc
+    @self head dup >head >body
+    "for" "f" L1 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        Type.STACK "*a" Var.NewInCtx >va
+
+        va> StackType.Var @self owner push >b
+        @b @b @self Type.Table T* @b T-> >Type T*
+        b> T->,
+
+        @params single? unwrap("unexpected number of params" panic!) >f
+        1u64 PushValue.U64 ab-push-value!
+        ab-while!(
+            L0 Prim.Dup ab-prim!
+            @self num-buffer ab-buffer!
+            L0 Prim.U64Get ab-prim!
+            L0 Prim.U64Le ab-prim!,
+
+            L0 Prim.Dup ab-prim!
+            ab-dip! (
+                L0 @self Op.TableFromIndex ab-op!
+                f> ab-var!
+            )
+            1u64 PushValue.U64 ab-push-value!
+            L0 Prim.U64Add ab-prim!
+        )
+        L0 Prim.Drop ab-prim!
+    ) drop
+
+    self>
+}
+
+
+||| Parse a table declaration.
+|||
+|||     table(Owner? Tycon)
+|||     table(Owner? Tycon, InlineField*)
+|||     table(Owner? Tycon, InlineField* -- Decl*)
+|||     table Owner? Tycon { InlineField* }
+|||     table Owner? Tycon { InlineField* -- Decl* }
+def parse-table-decl [ +Mirth Token |- owner:Maybe(Token) head:Token doc:Maybe(Str) fields:List(InlineFieldSyntax) decls:Maybe(Token) ] {
+    dup doc >doc
+    dup num-args 0> if(
+        sip(next)
+        dup num-args 1 = if(args-1 None, args-2 Some) >body parse-owner >head
+
+        @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
+        @head args-0
+        @head succ arg-end? else(@head succ "expected end of argument after table name" emit-fatal-error!),
+
+        succ parse-owner dup >head
+        @head sig-type-con? else(@head "expected type name" emit-fatal-error!)
+        @head args-0
+        next dup lcurly? if(
+            sip(next) succ Some,
+            None
+        ) >body
+    )
+
+    body> if?(
+        List(
+            while (
+                dup sig-stack-end? not,
+                parse-inline-field! ;
+            )
+        ) >fields
+
+        dup sig-dashes? if(
+            succ Some >decls,
+            dup arg-end? else("Invalid syntax." emit-fatal-error!)
+            drop None >decls
+        ),
+
+        L0 >fields
+        None >decls
+    )
+}
+
+||| Elaborate a table definition `table(True)`.
+def elab-table! [ +World +Mirth Token |- ] {
+    parse-table-decl
+    elab-def-head
+    arity> drop
+    table-new! !table (
+        fields> for(elab-inline-field!)
+        decls> for( @table >Namespace PropLabel.DefiningNamespace prop Some with-defining-namespace( elab-decls! drop ) )
+    ) drop
+}
+
+struct InlineFieldSyntax {
+    doc: Maybe(Str)
+    head: Token
+    name: Name
+    value-type: Token
+    default: Maybe(Token)
+}
+
+||| Parse an inline field declaration, as part of a table definition.
+|||
+|||     FieldName: Type
+|||     FieldName: Type { Arrow }
+def parse-inline-field! [ +Mirth Token |- InlineFieldSyntax ] {
+    dup doc >doc
+    dup >head
+    @head name? unwrap(@head "Expected field name." emit-fatal-error!) >name
+    @name could-be-field-name? else(@head "Invalid field name, must start with lowercase letter or tilde." emit-fatal-error!)
+    @head succ lcolon? else(@head succ "Invalid syntax, expected `: Type` after field name." emit-fatal-error!)
+    @head succ succ >value-type
+    next dup lcurly? map(succ swap succ) >default
+    InlineFieldSyntax
+}
+
+def elab-inline-field! [ +Mirth table:Table |- InlineFieldSyntax -- ] {
+    /InlineFieldSyntax
+    Field.alloc! >self
+    doc> @self ~doc !
+    name> @self ~name !
+    head> @self ~head !
+    default> @self ~default !
+    @table @self name >Str 0 table-qname @self PropLabel.FieldQName prop @self ~qname !
+    @table >Type @self PropLabel.FieldIndexType prop @self ~index-type !
+    @self value-type> @self PropLabel.FieldValueType prop2(dip(owner ctx) elab-simple-type-atom!) @self ~value-type !
+    @table @self PropLabel.FieldOwner prop(owner) @self ~owner !
+    prepare-field-defs!
+    self> @table ~inline-fields modify(swap List.Snoc)
+}
+
+||| Parse a standalone field definition.
+|||
+|||     field(Owner? Name, Type, Type)
+|||     field(Owner? Name, Type, Type, Arrow)
+def parse-field [ +Mirth Token |-
+    doc:Maybe(Str) owner:Maybe(Token) head:Token
+    index-type:Token value-type:Token default:Maybe(Token)
+] {
+    dup doc >doc
+    sip(next)
+    dup num-args 4u = if(args-4 Some, args-3 None)
+    >default >value-type >index-type parse-owner >head
+    @head name/dname? else(@head "Expected field name." emit-fatal-error!)
+    @head last-name? has:could-be-field-name? else(@head "Invalid field name, must start with lowercase letter or tilde." emit-fatal-error!)
+    @head args-0
+}
+
+||| Elaborate a standalone field definition.
+def elab-field! [ +Mirth Token |- -- ] {
+    parse-field elab-def-head
+    Field.alloc! >self
+    doc> @self ~doc !
+    name> @self ~name !
+    head> @self ~head !
+    default> @self ~default !
+    arity> 0= else(@self head "Field cannot take arguments." emit-error!)
+    @self PropLabel.FieldQName >label Prop @self ~qname !
+    index-type> @self PropLabel.FieldIndexType prop(dip:Ctx.L0 elab-simple-type-atom!) @self ~index-type !
+    value-type> @self PropLabel.FieldValueType prop(dip:Ctx.L0 elab-simple-type-atom!) @self ~value-type !
+    @self owner> @self PropLabel.FieldOwner prop2(
+        resolve-owner else(
+            dup index-type tycon? bind:table?
+            if?(owner, StateOwner.Default)
+        ) nip
+    ) @self ~owner !
+    prepare-field-defs!
+    self> drop
+}
+
+def prepare-field-defs! [ +Mirth self:Field |- ] {
+    @self is-raw? if(
+        @self Def.Field register
+        @self default then?("Raw field cannot have a default value." emit-error!),
+
+        "Get field value." Some >doc
+        @self head dup >head >body
+        @self name >Str L0 Word.Build! (
+            @self namespace,
+
+            @self owner ctx
+            T0 @self owner push @self index-type T*
+            T0 @self owner push @self value-type T*
+            T->,
+
+            @self default if? (
+                ab-token!
+                L0 Prim.Dup ab-prim!
+                L0 @self Op.Field ab-op!
+                L0 Prim.Dup ab-prim!
+                L0 Prim.MutIsSet ab-prim! ab-if!(
+                    L0 Prim.Swap ab-prim!
+                    L0 Prim.Drop ab-prim!
+                    L0 Prim.MutGet ab-prim!,
+
+                    ab-dip!(
+                        elab-atoms!
+                        L0 Prim.Dup ab-prim!
+                    )
+                    L0 Prim.MutSet ab-prim!
+                ),
+
+                L0 @self Op.Field ab-op!
+                L0 Prim.MutGet ab-prim!
+            )
+        ) drop
+
+        "Set field value." Some >doc
+        @self head dup >head >body
+        @self name >Str "!" cat L0 Word.Build! (
+            @self namespace,
+
+            @self owner ctx
+            T0 @self owner push @self value-type T* @self index-type T*
+            T0 @self owner push
+            T->,
+
+            L0 @self Op.Field ab-op!
+            L0 Prim.MutSet ab-prim!
+        ) drop
+    )
 }

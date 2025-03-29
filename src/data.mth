@@ -134,6 +134,10 @@ patch Data {
         )
     }
 
+    def can-own-state? [ +Mirth |- Data -- Bool ] {
+        and(is-resource?, single-tag? >Bool)
+    }
+
     def(unify!, +Mirth Data Data -- +Mirth Type,
         dup2 = if(drop Type.Data, both(Type.Data) unify-failed!))
 

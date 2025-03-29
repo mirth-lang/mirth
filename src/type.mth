@@ -547,6 +547,11 @@ data PrimType {
         { F64   -> "double"   CType.F64  Some }
         { _     -> drop None }
     }
+
+    def can-own-state? [ +Mirth |- PrimType -- Bool ] {
+        { World -> True }
+        { _ -> drop False }
+    }
 }
 
 def +Mirth.def-prim-type! [ +Mirth |- PrimType -- ] {
@@ -760,6 +765,9 @@ struct Resource {
     def rigidify! [ +Mirth Ctx Resource |- ] {
         >Type rigidify! >Resource
     }
+
+    def tycon? [ +Mirth |- Resource -- Maybe(Tycon) ] { >Type tycon? }
+    def can-own-state? [ +Mirth |- Resource -- Bool ] { tycon? has:can-own-state? }
 
     def except-field [ +Mirth |- Label Tag Resource -- Resource ] {
         /Resource except-field Resource

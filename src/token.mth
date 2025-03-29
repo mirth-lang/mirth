@@ -341,6 +341,21 @@ patch Token {
         )
     }
 
+    ||| Verify that token has 4 args, and return them.
+    ||| Emits a fatal error if arity is wrong.
+    def args-4 [ +Mirth |- Token -- Token Token Token Token ] {
+        dup num-args 4u = if(
+            args-start succ
+            dup next-arg-end succ
+            dup next-arg-end succ
+            dup next-arg-end succ,
+            dup num-args 4u < if(
+                "expected 4 args, got too few" emit-fatal-error!,
+                "expected 4 args, got too many" emit-fatal-error!
+            )
+        )
+    }
+
     ||| Get number of arguments or number of components in enclosed token.
     def num-args [ +Mirth |- Token -- Nat ] {
         args-start dup left-enclosure? if(

@@ -1,0 +1,50 @@
+module test.table-owner
+
+struct +Foo { }
+struct +Bar { }
+
+table FreeTable
+table +Foo |- FooTable
+table +Bar |- BarTable
+
+field(freetable-freefield, FreeTable, Int)
+field(+Foo |- freetable-foofield, FreeTable, Int)
+field(+Bar |- freetable-barfield, FreeTable, Int)
+
+field(footable-freefield, FooTable, Int)
+field(+Foo |- footable-foofield, FooTable, Int)
+field(+Bar |- footable-barfield, FooTable, Int)
+
+field(bartable-freefield, BarTable, Int)
+field(+Foo |- bartable-foofield, BarTable, Int)
+field(+Bar |- bartable-barfield, BarTable, Int)
+
+def freetable-alloc [         FreeTable ] { FreeTable.alloc! }
+def footable-alloc  [ +Foo |- FooTable  ] { FooTable.alloc! }
+def bartable-alloc  [ +Bar |- BarTable  ] { BarTable.alloc! }
+
+def freetable-freefield-get [         FreeTable -- Int ] { freetable-freefield }
+def freetable-foofield-get  [ +Foo |- FreeTable -- Int ] { freetable-foofield }
+def freetable-barfield-get  [ +Bar |- FreeTable -- Int ] { freetable-barfield }
+
+def footable-freefield-get [ +Foo |- FooTable -- Int ] { footable-freefield }
+def footable-foofield-get  [ +Foo |- FooTable -- Int ] { footable-foofield }
+def footable-barfield-get  [ +Bar |- FooTable -- Int ] { footable-barfield }
+
+def bartable-freefield-get [ +Bar |- BarTable -- Int ] { bartable-freefield }
+def bartable-foofield-get  [ +Foo |- BarTable -- Int ] { bartable-foofield }
+def bartable-barfield-get  [ +Bar |- BarTable -- Int ] { bartable-barfield }
+
+def freetable-freefield-set [         Int FreeTable -- ] { freetable-freefield! }
+def freetable-foofield-set  [ +Foo |- Int FreeTable -- ] { freetable-foofield! }
+def freetable-barfield-set  [ +Bar |- Int FreeTable -- ] { freetable-barfield! }
+
+def footable-freefield-set [ +Foo |- Int FooTable -- ] { footable-freefield! }
+def footable-foofield-set  [ +Foo |- Int FooTable -- ] { footable-foofield! }
+def footable-barfield-set  [ +Bar |- Int FooTable -- ] { footable-barfield! }
+
+def bartable-freefield-set [ +Bar |- Int BarTable -- ] { bartable-freefield! }
+def bartable-foofield-set  [ +Foo |- Int BarTable -- ] { bartable-foofield! }
+def bartable-barfield-set  [ +Bar |- Int BarTable -- ] { bartable-barfield! }
+
+def main {}

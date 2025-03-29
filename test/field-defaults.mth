@@ -1,0 +1,97 @@
+module test.field-defaults
+
+import std.prelude
+import std.world
+
+table(Foo)
+field(Foo.num, Foo, Int, index >Int)
+
+data Bar { 1 Bar1 2 Bar2 }
+field(Bar.num, Bar, Int, enum-value >Int)
+
+table(+World |- Baz)
+field(Baz.num, Baz, Int, index >Int dup print("calculating baz num default = "; int;))
+
+def main {
+    Foo.Alloc! >foo1
+    Foo.Alloc! >foo2
+
+    @foo1 num print("@foo1 num = "; int;)
+    @foo2 num print("@foo2 num = "; int;)
+
+    10 @foo1 num! print("Set @foo1 num to 10.";)
+
+    @foo1 num print("@foo1 num = "; int;)
+    @foo2 num print("@foo2 num = "; int;)
+
+    10 @foo2 num! print("Set @foo2 num to 10.";)
+
+    @foo1 num print("@foo1 num = "; int;)
+    @foo2 num print("@foo2 num = "; int;)
+
+    foo1> foo2> drop2
+
+    print("---";)
+
+    Bar.Bar1 num print("Bar1 num = "; int;)
+    Bar.Bar2 num print("Bar2 num = "; int;)
+
+    10 Bar.Bar1 num! print("Set Bar1 num to 10.";)
+
+    Bar.Bar1 num print("Bar1 num = "; int;)
+    Bar.Bar2 num print("Bar2 num = "; int;)
+
+    20 Bar.Bar2 num! print("Set Bar2 num to 20.";)
+
+    Bar.Bar1 num print("Bar1 num = "; int;)
+    Bar.Bar2 num print("Bar2 num = "; int;)
+
+    print("---";)
+
+    Baz.Alloc! >baz1
+    Baz.Alloc! >baz2
+
+    @baz1 num print("@baz1 num = "; int;)
+    @baz2 num print("@baz2 num = "; int;)
+
+    10 @baz1 num! print("Set @baz1 num to 10.";)
+
+    @baz1 num print("@baz1 num = "; int;)
+    @baz2 num print("@baz2 num = "; int;)
+
+    10 @baz2 num! print("Set @baz2 num to 10.";)
+
+    @baz1 num print("@baz1 num = "; int;)
+    @baz2 num print("@baz2 num = "; int;)
+
+    baz1> baz2> drop2
+
+}
+# mirth-test # pout # @foo1 num = 1
+# mirth-test # pout # @foo2 num = 2
+# mirth-test # pout # Set @foo1 num to 10.
+# mirth-test # pout # @foo1 num = 10
+# mirth-test # pout # @foo2 num = 2
+# mirth-test # pout # Set @foo2 num to 10.
+# mirth-test # pout # @foo1 num = 10
+# mirth-test # pout # @foo2 num = 10
+# mirth-test # pout # ---
+# mirth-test # pout # Bar1 num = 1
+# mirth-test # pout # Bar2 num = 2
+# mirth-test # pout # Set Bar1 num to 10.
+# mirth-test # pout # Bar1 num = 10
+# mirth-test # pout # Bar2 num = 2
+# mirth-test # pout # Set Bar2 num to 20.
+# mirth-test # pout # Bar1 num = 10
+# mirth-test # pout # Bar2 num = 20
+# mirth-test # pout # ---
+# mirth-test # pout # calculating baz num default = 1
+# mirth-test # pout # @baz1 num = 1
+# mirth-test # pout # calculating baz num default = 2
+# mirth-test # pout # @baz2 num = 2
+# mirth-test # pout # Set @baz1 num to 10.
+# mirth-test # pout # @baz1 num = 10
+# mirth-test # pout # @baz2 num = 2
+# mirth-test # pout # Set @baz2 num to 10.
+# mirth-test # pout # @baz1 num = 10
+# mirth-test # pout # @baz2 num = 10

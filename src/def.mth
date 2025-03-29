@@ -73,7 +73,7 @@ data Def {
         { Module -> drop }
         { Alias -> target typecheck! }
         { Data -> drop }
-        { Table -> drop }
+        { Table -> owner drop }
         { Type -> target drop }
         { Tag -> type drop }
         { Prim -> drop }

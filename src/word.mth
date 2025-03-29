@@ -11,6 +11,7 @@ import mirth.name
 import mirth.def
 import mirth.type
 import mirth.arrow
+import mirth.elab
 
 struct Param {
     var: Var
@@ -33,6 +34,22 @@ patch Word {
     field(~cname, Word, Str)
     field(~inferring-type?, Word, Bool)
 
+    def qname-soft [ +Mirth |- Word -- Maybe(QName) ] { ~qname @? bind(ready?) }
+    def qname-hard [ +Mirth |- Word -- QName ] { ~qname force! }
+    def namespace-soft [ +Mirth |- Word -- Maybe(Namespace) ] { qname-soft map(namespace) }
+    def namespace-hard [ +Mirth |- Word -- Namespace ] { qname-hard namespace }
+    def doc  [ +Mirth |- Word -- Maybe(Str) ] { ~doc @ }
+    def name [ +Mirth |- Word -- Name ] { ~name @ }
+    def head [ +Mirth |- Word -- Token ] { ~head @ }
+    def sig? [ +Mirth |- Word -- Maybe(Token) ] { ~sig? @ }
+    def body [ +Mirth |- Word -- Token ] { ~body @ }
+    def arity [ +Mirth |- Word -- Nat ] { ~arity @ }
+    def params [ +Mirth |- Word -- List(Param) ] { ~params dup mut-is-set if(force!, drop List.Nil) }
+    def arrow  [ +Mirth |- Word -- Arrow ] { ~arrow force! }
+    def inferring-type? [ Word -- Bool ] {
+        ~inferring-type? @? unwrap(False)
+    }
+
     def New! [
         +Mirth |-
         head:Token
@@ -53,20 +70,48 @@ patch Word {
         dup Def.Word register
     }
 
-    def qname-soft [ +Mirth |- Word -- Maybe(QName) ] { ~qname @? bind(ready?) }
-    def qname-hard [ +Mirth |- Word -- QName ] { ~qname force! }
-    def namespace-soft [ +Mirth |- Word -- Maybe(Namespace) ] { qname-soft map(namespace) }
-    def namespace-hard [ +Mirth |- Word -- Namespace ] { qname-hard namespace }
-    def doc  [ +Mirth |- Word -- Maybe(Str) ] { ~doc @ }
-    def name [ +Mirth |- Word -- Name ] { ~name @ }
-    def head [ +Mirth |- Word -- Token ] { ~head @ }
-    def sig? [ +Mirth |- Word -- Maybe(Token) ] { ~sig? @ }
-    def body [ +Mirth |- Word -- Token ] { ~body @ }
-    def arity [ +Mirth |- Word -- Nat ] { ~arity @ }
-    def params [ +Mirth |- Word -- List(Param) ] { ~params dup mut-is-set if(force!, drop List.Nil) }
-    def arrow  [ +Mirth |- Word -- Arrow ] { ~arrow force! }
-    def inferring-type? [ Word -- Bool ] {
-        ~inferring-type? @? unwrap(False)
+    def Build!(fnamespace,fctxtype,farrow) [ +Mirth self:t |-
+        ( Namespace, Ctx ArrowType, +AB word:Word params:List(Var) |-)
+        doc:Maybe(Str) head:Token body:Token Str List(Str) -- Word
+    ] {
+        dup len >arity
+        swap >Name >name
+        None >sig?
+        Word.New! >word
+
+        @self @word dup PropLabel.WordQName prop2(
+            dip(!self(fnamespace >namespace) drop)
+            dup arity >Int >arity name >name QName
+        ) @word ~qname !
+
+        @self @word PropLabel.WordType prop(
+            !self(fctxtype pack2) drop
+        ) @word ~ctx-type !
+
+        @word @word PropLabel.WordParams prop2(
+            type dom swap
+            reverse map(
+                swap force-cons?! unwrap("[compiler bug] word-new! expected word parameter type in domain." fatal-error!)
+                unpack2 arrow? unwrap("[compiler bug] word-new! expected word parameter type to be an arrow type." fatal-error!)
+                rotl >Name Var.NewAutoRun! >var None >default Param
+            ) reverse
+            nip
+        ) @word ~params !
+
+        @self @word dup PropLabel.WordArrow prop2(
+            >word >self
+            @word params map(.var) >params
+            @word ab-build-word-arrow!(dip(
+                @word body ab-token!
+                @params empty? if(
+                    farrow,
+                    @params @word type cod ab-lambda!(farrow)
+                )
+            ))
+            word> params> self> drop3
+        ) @word ~arrow !
+
+        word>
     }
 
     def cname [ +Mirth |- Word -- Str ] {

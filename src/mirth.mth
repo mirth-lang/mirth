@@ -335,6 +335,8 @@ data PropLabel {
     ExternalType   [ External ]
     ExternalCType  [ External ]
     BufferQName    [ Buffer ]
+    TableOwner     [ Table ]
+    FieldOwner     [ Field ]
     FieldQName     [ Field ]
     FieldValueType [ Field ]
     FieldIndexType [ Field ]
@@ -360,6 +362,8 @@ data PropLabel {
         { ExternalType   -> "external type at " ; rdip:head location; }
         { ExternalCType  -> "external ctype at " ; rdip:head location; }
         { BufferQName    -> "buffer qname at " ; rdip:head location; }
+        { TableOwner     -> "table owner at " ; rdip:head location; }
+        { FieldOwner     -> "field owner at " ; rdip:head location; }
         { FieldQName     -> "field qname at " ; rdip:head location; }
         { FieldValueType -> "field value type at " ; rdip:head location; }
         { FieldIndexType -> "field index type at " ; rdip:head location; }

@@ -40,7 +40,7 @@ def(Name.=, Name Name -- Bool, both(Name.index) =)
 struct +NameHashMap {
     +buffer: +Buffer
     --
-    def new [ -- +NameHashMap ] { 
+    def new [ -- +NameHashMap ] {
         0x80000 >Size +Buffer.new >+buffer +NameHashMap
     }
     def rdrop [ +NameHashMap -- ] {
@@ -134,6 +134,9 @@ def(Name.is-underscore, +Mirth Name -- +Mirth Bool, dup head Byte.B'_' = swap ta
 def(Name.could-be-stack-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'*' = swap tail-head is-lower and)
 def(Name.could-be-resource-var, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' = swap tail-head is-lower and)
 def(Name.could-be-resource-con, +Mirth Name -- +Mirth Bool, dup head Byte.B'+' = swap tail-head is-upper and)
+
+def Name.could-be-raw-field-name? [ +Mirth |- Name -- Bool ] { head Byte.B'~' = }
+def Name.could-be-field-name? [ +Mirth |- Name -- Bool ] { or(head is-lower, could-be-raw-field-name?) }
 
 def Name.could-be-constructor [ +Mirth Name -- +Mirth Bool ] {
     dup head match(

@@ -16,6 +16,12 @@ data Tycon {
     Table [ Table ]
     Prim  [ PrimType ]
     --
+    def >Namespace [ Tycon -- Namespace ] { Namespace.Tycon }
+
+    def data?  [ Tycon -- Maybe(Data)     ] { Data  -> Some, _ -> drop None }
+    def table? [ Tycon -- Maybe(Table)    ] { Table -> Some, _ -> drop None }
+    def prim?  [ Tycon -- Maybe(PrimType) ] { Prim  -> Some, _ -> drop None }
+
     def name [ +Mirth |- Tycon -- Name ] {
         { Data -> name }
         { Table -> name }
@@ -42,7 +48,7 @@ data Tycon {
         { Prim -> tycon-qname qname; }
     }
 
-    def =  [ Tycon Tycon -- Bool ] {
+    def = [ Tycon Tycon -- Bool ] {
         { Data  -> swap match { Data  -> swap =, _ -> drop2 False } }
         { Table -> swap match { Table -> swap =, _ -> drop2 False } }
         { Prim  -> swap match { Prim  -> swap =, _ -> drop2 False } }
@@ -58,6 +64,12 @@ data Tycon {
         { Data -> dip:Subst.Nil full-type map(freshen, freshen) nip }
         { Prim -> sip:Type.Prim is-resource? if(Resource Right, Left) }
         { Table -> Type.Table Left }
+    }
+
+    def can-own-state? [ +Mirth |- Tycon -- Bool ] {
+        { Data -> can-own-state? }
+        { Prim -> can-own-state? }
+        { Table -> drop False }
     }
 
 }
