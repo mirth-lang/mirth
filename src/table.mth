@@ -141,102 +141,160 @@ def table-word-new! [ +Mirth |- Table Str Nat doc:Maybe(Str) -- Word ] {
 }
 
 def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropState(QName) doc:Maybe(Str) -- Table ] {
-    Table.alloc! >tbl
-    @tbl PropLabel.TableQName >label Prop @tbl ~qname !
-    @head @tbl ~head !
-    name> @tbl ~name !
-    doc> @tbl ~doc !
-    @tbl Def.Table register
+    Table.alloc! >self
+    @self PropLabel.TableQName >label Prop @self ~qname !
+    owner> @self PropLabel.TableOwner prop:resolve-owner @self ~owner !
+    head> @self ~head !
+    name> @self ~name !
+    doc> @self ~doc !
+    @self Def.Table register
 
-    owner> @tbl PropLabel.TableOwner prop:resolve-owner @tbl ~owner !
-
-    @tbl owner ctx >ctx
-    T0 @tbl owner push >basis
-
-    # Table.nil
+    # Table.NumBuffer
     None >doc # TODO
-    @tbl "nil" 0u table-word-new! >word
-
-    @ctx
-    @basis @basis @tbl Type.Table T* T->
-    @word PropLabel.WordType prop2
-    @word ~ctx-type !
-
-    word> ab-build-word!(
-        @head ab-token!
-        0u64 PushValue.U64 ab-push-value!
-        L0 @tbl Op.TableFromIndex ab-op!
-    ) drop
-
-    # Table.NUM
-    None >doc # TODO
-    @head >head
-    "NUM" >Name >name
+    @self head >head
+    "NumBuffer" >Name >name
     8 bytes >size
     Buffer.New! >buf
-    @buf @tbl ~num-buffer !
-    @tbl "Num" 0 table-qname
+    @buf @self ~num-buffer !
+    @self "NumBuffer" 0 table-qname
     @buf PropLabel.BufferQName prop
     @buf ~qname !
-    @buf Def.Buffer register
+    buf> Def.Buffer register
+
+    # Table.Nil
+    "Return Nil, the zero-th element of the table." Some >doc
+    @self head dup >head >body
+    "Nil" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push dup @self Type.Table T* T->,
+
+        0u64 PushValue.U64 ab-push-value!
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.nil  # TODO remove in favor of Table.Nil
+    "Return Nil, the 0th element of the table." Some >doc
+    @self head dup >head >body
+    "nil" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push dup @self Type.Table T* T->,
+
+        0u64 PushValue.U64 ab-push-value!
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.Alloc!
+    "Allocate a table element, without setting any fields." Some >doc
+    @self head dup >head >body
+    "Alloc!" L0 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push
+        dup @self Type.Table T*
+        T->,
+
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        1u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Add ab-prim!
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Set ab-prim!
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
+
+    # Table.alloc!  # TODO: remove this in favor of Table.Alloc!
+    "Allocate a table element, without setting any fields." Some >doc
+    @self head dup >head >body
+    "alloc!" L0 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push
+        dup @self Type.Table T*
+        T->,
+
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        1u64 PushValue.U64 ab-push-value!
+        L0 Prim.U64Add ab-prim!
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Set ab-prim!
+        L0 @self Op.TableFromIndex ab-op!
+    ) drop
 
     # Table.index
-    None >doc # TODO
-    @tbl "index" 0u table-word-new! >word
+    "Turn a table element into a U64 index." Some >doc
+    @self head dup >head >body
+    "index" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
 
-    Ctx.L0
-    @basis @tbl Type.Table T* @basis Type.U64 T* T->
-    @word PropLabel.WordType prop2
-    @word ~ctx-type !
+        @self owner ctx
+        T0 @self owner push sip(@self Type.Table T*) Type.U64 T* T->,
 
-    word> ab-build-word! (
-        @head ab-token!
-        L0 @tbl Op.TableToIndex ab-op!
+        L0 @self Op.TableToIndex ab-op!
     ) drop
 
     # Table.from-index
-    None >doc # TODO
-    @tbl "from-index" 0u table-word-new! >word
+    "Turn a U64 index into a table element. If out of bounds, Nil is returned." Some >doc
+    @self head dup >head >body
+    "from-index" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
 
-    @ctx
-    @basis Type.U64 T* @basis @tbl Type.Table T* T->
-    @word PropLabel.WordType prop2
-    @word ~ctx-type !
+        @self owner ctx
+        T0 @self owner push sip(Type.U64 T*) @self Type.Table T* T->,
 
-    word> ab-build-word! (
-        @head ab-token!
-        L0 @tbl Op.TableFromIndex ab-op!
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        L0 Prim.U64Le ab-prim! ab-if!(
+            ,
+            L0 Prim.Drop ab-prim!
+            0u64 PushValue.U64 ab-push-value!
+        )
+        L0 @self Op.TableFromIndex ab-op!
     ) drop
 
     # Table.succ
-    None >doc # TODO
-    @tbl "succ" 0u table-word-new! >word
+    "Return next table element if it exists. Otherwise return Nil." Some >doc
+    @self head dup >head >body
+    "succ" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
 
-    @ctx
-    @basis @tbl Type.Table T* dup T->
-    @word PropLabel.WordType prop2
-    @word ~ctx-type !
+        @self owner ctx
+        T0 @self owner push @self Type.Table T* dup T->,
 
-    word> ab-build-word! (
-        @head ab-token!
-        L0 @tbl Op.TableToIndex ab-op!
-        1u64 PushValue.U64 ab-push-value!
-        L0 Prim.U64Add ab-prim!
-        L0 @tbl Op.TableFromIndex ab-op!
+        L0 @self Op.TableToIndex ab-op!
+        L0 Prim.Dup ab-prim!
+        @self num-buffer ab-buffer!
+        L0 Prim.U64Get ab-prim!
+        L0 Prim.U64Lt ab-prim!
+        ab-if!(
+            1u64 PushValue.U64 ab-push-value!
+            L0 Prim.U64Add ab-prim!,
+
+            L0 Prim.Drop ab-prim!
+            0u64 PushValue.U64 ab-push-value!
+        )
+        L0 @self Op.TableFromIndex ab-op!
     ) drop
 
     # Table.pred
-    None >doc # TODO
-    @tbl "pred" 0u table-word-new! >word
+    "Return previous table element if it exists. Otherwise return Nil." Some >doc
+    @self head dup >head >body
+    "pred" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
 
-    @ctx
-    @basis @tbl Type.Table T* dup T->
-    @word PropLabel.WordType prop2
-    @word ~ctx-type !
+        @self owner ctx
+        T0 @self owner push @self Type.Table T* dup T->,
 
-    word> ab-build-word! (
-        @head ab-token!
-        L0 @tbl Op.TableToIndex ab-op!
+        L0 @self Op.TableToIndex ab-op!
         L0 Prim.Dup ab-prim!
         0u64 PushValue.U64 ab-push-value!
         L0 Prim.U64Eq ab-prim!
@@ -245,75 +303,42 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
             1u64 PushValue.U64 ab-push-value!
             L0 Prim.U64Sub ab-prim!
         )
-        L0 @tbl Op.TableFromIndex ab-op!
+        L0 @self Op.TableFromIndex ab-op!
     ) drop
 
-    { +Mirth ctx:Ctx basis:StackType tbl:Table buf:Buffer head:Token }
+    # Table.for(f)
+    "Iterate through all table elements, skipping Nil." Some >doc
+    @self head dup >head >body
+    "for" "f" L1 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
 
-    # Table.for
-    None >doc # TODO
-    @tbl "for" 1u table-word-new! >word
+        @self owner ctx
+        Type.STACK "*a" Var.NewInCtx >va
 
-    Type.STACK "*a" >Name Var.New! >va
-    @va StackType.Var @tbl owner push sip(@tbl Type.Table T*) T-> "f" >Name Var.NewAutoRun! >vx
+        va> StackType.Var @self owner push >b
+        @b @b @self Type.Table T* @b T-> >Type T*
+        b> T->,
 
-    @ctx @va Ctx.new
-    @va StackType.Var @tbl owner push sip(@vx type T*) T->
-    @word PropLabel.WordType prop2
-    @word ~ctx-type !
-
-    @vx >var None >default Param L1
-    @word PropLabel.WordParams prop
-    @word ~params !
-    @word make-inline!
-
-    word> ab-build-word! (
-        @head ab-token!
-        @vx L1 @va StackType.Var @tbl owner push ab-lambda!(
-            1u64 PushValue.U64 ab-push-value!
-            ab-while!(
-                L0 Prim.Dup ab-prim!
-                @buf ab-buffer!
-                L0 Prim.U64Get ab-prim!
-                L0 Prim.U64Le ab-prim!,
-
-                L0 Prim.Dup ab-prim!
-                ab-dip! (
-                    L0 @tbl Op.TableFromIndex ab-op!
-                    @vx ab-var!
-                )
-                1u64 PushValue.U64 ab-push-value!
-                L0 Prim.U64Add ab-prim!
-            )
-            L0 Prim.Drop ab-prim!
-        )
-    ) drop
-    va> vx> drop2
-
-    # Table.alloc!
-    None >doc # TODO
-    @tbl "alloc!" 0u table-word-new! >word
-
-    @ctx
-    @basis dup @tbl Type.Table T* T->
-    @word PropLabel.WordType prop2
-    @word ~ctx-type !
-
-    word> ab-build-word! (
-        @head ab-token!
-        @buf ab-buffer!
-        L0 Prim.U64Get ab-prim!
+        @params single? unwrap("unexpected number of params" panic!) >f
         1u64 PushValue.U64 ab-push-value!
-        L0 Prim.U64Add ab-prim!
-        L0 Prim.Dup ab-prim!
-        @buf ab-buffer!
-        L0 Prim.U64Set ab-prim!
-        L0 @tbl Op.TableFromIndex ab-op!
+        ab-while!(
+            L0 Prim.Dup ab-prim!
+            @self num-buffer ab-buffer!
+            L0 Prim.U64Get ab-prim!
+            L0 Prim.U64Le ab-prim!,
+
+            L0 Prim.Dup ab-prim!
+            ab-dip! (
+                L0 @self Op.TableFromIndex ab-op!
+                f> ab-var!
+            )
+            1u64 PushValue.U64 ab-push-value!
+            L0 Prim.U64Add ab-prim!
+        )
+        L0 Prim.Drop ab-prim!
     ) drop
 
-    ctx> basis> drop2
-    head> buf> drop2
-    tbl>
+    self>
 }
 
 ||| Parse a table declaration.
@@ -354,8 +379,6 @@ def parse-field [ +Mirth Token |- doc:Maybe(Str) owner:Maybe(Token) head:Token i
     @head name/dname? else(@head "expected field name" emit-fatal-error!)
     @head args-0
 }
-
-
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def elab-field! [ +Mirth Token |- ] {
