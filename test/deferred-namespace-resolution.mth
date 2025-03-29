@@ -23,7 +23,7 @@ def-type(MyTable.MySelf, MyTable)
 def(foo, MyTable.MySelf --, drop)
 def(main, --,
     MyTable.alloc! test-ok drop
-    MyTable.alloc! 10 over my-field ! my-drop
+    MyTable.alloc! 10 over my-field! my-drop
     MyTable.this drop
     MyTable.YourTable.alloc! drop
     20 MyData.MyTag drop

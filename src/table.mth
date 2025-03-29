@@ -4,6 +4,7 @@ import std.prelude
 import std.maybe
 import std.str
 import std.list
+import std.byte
 
 import mirth.name
 import mirth.type
@@ -130,6 +131,10 @@ patch Field {
     def type  [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
 
     def = [ Field Field -- Bool ] { on2:index = }
+
+    def is-exposed-raw? [ +Mirth |- Field -- Bool ] {
+        name >Str first-byte Byte.B'~' Some =
+    }
 }
 
 def table-qname [ +Mirth |- Table Str Int -- QName ] {
@@ -370,7 +375,7 @@ def elab-table! [ +Mirth Token |- ] {
     table-new! drop
 }
 
-||| Parse a field definition
+||| Parse a standalone field definition.
 |||
 |||     field(Owner? Name, Type, Type)
 |||     field(Owner? Name, Type, Type, Arrow)
@@ -387,7 +392,7 @@ def parse-field [ +Mirth Token |-
 }
 
 ||| Elaborate a standalone field definition.
-def elab-field! [ +Mirth Token |- ] {
+def elab-field! [ +Mirth Token |- -- ] {
     parse-field elab-def-head
     Field.alloc! >self
     doc> @self ~doc !
@@ -396,61 +401,67 @@ def elab-field! [ +Mirth Token |- ] {
     default> @self ~default !
     arity> 0= else(@self head "Field cannot take arguments." emit-error!)
     @self PropLabel.FieldQName >label Prop @self ~qname !
-    index-type> @self PropLabel.FieldIndexType prop(elab-simple-type-arg!) @self ~index-type !
-    value-type> @self PropLabel.FieldValueType prop(elab-simple-type-arg!) @self ~value-type !
+    index-type> @self PropLabel.FieldIndexType prop(dip:Ctx.L0 elab-simple-type-atom!) @self ~index-type !
+    value-type> @self PropLabel.FieldValueType prop(dip:Ctx.L0 elab-simple-type-atom!) @self ~value-type !
     @self owner> @self PropLabel.FieldOwner prop2(
         resolve-owner else(
             dup index-type tycon? bind:table?
             if?(owner, StateOwner.Default)
         ) nip
     ) @self ~owner !
-    @self Def.Field register
-
-    "Get field value." Some >doc
-    @self head dup >head >body
-    @self name >Str "@" cat L0 Word.Build! (
-        @self namespace,
-
-        @self owner ctx
-        T0 @self owner push @self index-type T*
-        T0 @self owner push @self value-type T*
-        T->,
-
-        @self default if? (
-            ab-token!
-            L0 Prim.Dup ab-prim!
-            L0 @self Op.Field ab-op!
-            L0 Prim.Dup ab-prim!
-            L0 Prim.MutIsSet ab-prim! ab-if!(
-                L0 Prim.Swap ab-prim!
-                L0 Prim.Drop ab-prim!
-                L0 Prim.MutGet ab-prim!,
-
-                ab-dip!(
-                    elab-atoms!
-                    L0 Prim.Dup ab-prim!
-                )
-                L0 Prim.MutSet ab-prim!
-            ),
-
-            L0 @self Op.Field ab-op!
-            L0 Prim.MutGet ab-prim!
-        )
-    ) drop
-
-    "Set field value." Some >doc
-    @self head dup >head >body
-    @self name >Str "!" cat L0 Word.Build! (
-        @self namespace,
-
-        @self owner ctx
-        T0 @self owner push @self value-type T* @self index-type T*
-        T0 @self owner push
-        T->,
-
-        L0 @self Op.Field ab-op!
-        L0 Prim.MutSet ab-prim!
-    ) drop
-
+    prepare-field-defs!
     self> drop
+}
+
+def prepare-field-defs! [ +Mirth self:Field |- ] {
+    @self is-exposed-raw? if(
+        @self Def.Field register
+        @self default then?("Raw field cannot have a default value." emit-error!),
+
+        "Get field value." Some >doc
+        @self head dup >head >body
+        @self name >Str L0 Word.Build! (
+            @self namespace,
+
+            @self owner ctx
+            T0 @self owner push @self index-type T*
+            T0 @self owner push @self value-type T*
+            T->,
+
+            @self default if? (
+                ab-token!
+                L0 Prim.Dup ab-prim!
+                L0 @self Op.Field ab-op!
+                L0 Prim.Dup ab-prim!
+                L0 Prim.MutIsSet ab-prim! ab-if!(
+                    L0 Prim.Swap ab-prim!
+                    L0 Prim.Drop ab-prim!
+                    L0 Prim.MutGet ab-prim!,
+
+                    ab-dip!(
+                        elab-atoms!
+                        L0 Prim.Dup ab-prim!
+                    )
+                    L0 Prim.MutSet ab-prim!
+                ),
+
+                L0 @self Op.Field ab-op!
+                L0 Prim.MutGet ab-prim!
+            )
+        ) drop
+
+        "Set field value." Some >doc
+        @self head dup >head >body
+        @self name >Str "!" cat L0 Word.Build! (
+            @self namespace,
+
+            @self owner ctx
+            T0 @self owner push @self value-type T* @self index-type T*
+            T0 @self owner push
+            T->,
+
+            L0 @self Op.Field ab-op!
+            L0 Prim.MutSet ab-prim!
+        ) drop
+    )
 }

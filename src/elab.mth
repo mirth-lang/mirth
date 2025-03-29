@@ -111,7 +111,7 @@ struct +TypeElab {
         while(token rdip:sig-stack-end? not, elab-stack-type-part! cons)
     }
 
-    def elab-type-arg! [ +Mirth +TypeElab |- Type ] {
+    def elab-type-atom! [ +Mirth +TypeElab |- Type ] {
         token elab-stack-type-part!
         match(
             Cons -> nip,
@@ -119,6 +119,10 @@ struct +TypeElab {
             With -> drop "Expected type, not resource." rdip:emit-error! Type.Error,
             WithLabel -> drop2 "Expected type, not labelled resource." rdip:emit-error! Type.Error,
         )
+    }
+
+    def elab-type-arg! [ +Mirth +TypeElab |- Type ] {
+        elab-type-atom!
         token rdip:arg-end? else(
             token "Unexpected token after type." rdip:emit-error!
         )
@@ -602,6 +606,13 @@ def elab-simple-type-arg! [ +Mirth |- Token -- Type ] {
     False >allow-type-holes
     False >allow-implicit-type-vars
     +TypeElab elab-type-arg! +TypeElab.rdrop
+}
+
+def elab-simple-type-atom! [ +Mirth |- Ctx Token -- Type ] {
+    >token >ctx
+    False >allow-type-holes
+    False >allow-implicit-type-vars
+    +TypeElab elab-type-atom! +TypeElab.rdrop
 }
 
 ####################

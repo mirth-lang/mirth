@@ -23,50 +23,28 @@ def freetable-alloc [         FreeTable ] { FreeTable.alloc! }
 def footable-alloc  [ +Foo |- FooTable  ] { FooTable.alloc! }
 def bartable-alloc  [ +Bar |- BarTable  ] { BarTable.alloc! }
 
-def freetable-freefield-use [         FreeTable -- Mut(Int) ] { freetable-freefield }
-def freetable-foofield-use  [ +Foo |- FreeTable -- Mut(Int) ] { freetable-foofield }
-def freetable-barfield-use  [ +Bar |- FreeTable -- Mut(Int) ] { freetable-barfield }
+def freetable-freefield-get [         FreeTable -- Int ] { freetable-freefield }
+def freetable-foofield-get  [ +Foo |- FreeTable -- Int ] { freetable-foofield }
+def freetable-barfield-get  [ +Bar |- FreeTable -- Int ] { freetable-barfield }
 
-def footable-freefield-use [ +Foo |- FooTable -- Mut(Int) ] { footable-freefield }
-def footable-foofield-use  [ +Foo |- FooTable -- Mut(Int) ] { footable-foofield }
-def footable-barfield-use  [ +Bar |- FooTable -- Mut(Int) ] { footable-barfield }
+def footable-freefield-get [ +Foo |- FooTable -- Int ] { footable-freefield }
+def footable-foofield-get  [ +Foo |- FooTable -- Int ] { footable-foofield }
+def footable-barfield-get  [ +Bar |- FooTable -- Int ] { footable-barfield }
 
-def bartable-freefield-use [ +Bar |- BarTable -- Mut(Int) ] { bartable-freefield }
-def bartable-foofield-use  [ +Foo |- BarTable -- Mut(Int) ] { bartable-foofield }
-def bartable-barfield-use  [ +Bar |- BarTable -- Mut(Int) ] { bartable-barfield }
+def bartable-freefield-get [ +Bar |- BarTable -- Int ] { bartable-freefield }
+def bartable-foofield-get  [ +Foo |- BarTable -- Int ] { bartable-foofield }
+def bartable-barfield-get  [ +Bar |- BarTable -- Int ] { bartable-barfield }
 
-def freetable-freefield-get [         FreeTable -- Int ] { freetable-freefield@ }
-def freetable-foofield-get  [ +Foo |- FreeTable -- Int ] { freetable-foofield@ }
-def freetable-barfield-get  [ +Bar |- FreeTable -- Int ] { freetable-barfield@ }
+def freetable-freefield-set [         Int FreeTable -- ] { freetable-freefield! }
+def freetable-foofield-set  [ +Foo |- Int FreeTable -- ] { freetable-foofield! }
+def freetable-barfield-set  [ +Bar |- Int FreeTable -- ] { freetable-barfield! }
 
-def footable-freefield-get [ +Foo |- FooTable -- Int ] { footable-freefield@ }
-def footable-foofield-get  [ +Foo |- FooTable -- Int ] { footable-foofield@ }
-def footable-barfield-get  [ +Bar |- FooTable -- Int ] { footable-barfield@ }
+def footable-freefield-set [ +Foo |- Int FooTable -- ] { footable-freefield! }
+def footable-foofield-set  [ +Foo |- Int FooTable -- ] { footable-foofield! }
+def footable-barfield-set  [ +Bar |- Int FooTable -- ] { footable-barfield! }
 
-def bartable-freefield-get [ +Bar |- BarTable -- Int ] { bartable-freefield@ }
-def bartable-foofield-get  [ +Foo |- BarTable -- Int ] { bartable-foofield@ }
-def bartable-barfield-get  [ +Bar |- BarTable -- Int ] { bartable-barfield@ }
-
-def freetable-freefield-set [         Int FreeTable -- ] { freetable-freefield@ }
-def freetable-foofield-set  [ +Foo |- Int FreeTable -- ] { freetable-foofield@ }
-def freetable-barfield-set  [ +Bar |- Int FreeTable -- ] { freetable-barfield@ }
-
-def footable-freefield-set [ +Foo |- Int FooTable -- ] { footable-freefield@ }
-def footable-foofield-set  [ +Foo |- Int FooTable -- ] { footable-foofield@ }
-def footable-barfield-set  [ +Bar |- Int FooTable -- ] { footable-barfield@ }
-
-def bartable-freefield-set [ +Bar |- Int BarTable -- ] { bartable-freefield@ }
-def bartable-foofield-set  [ +Foo |- Int BarTable -- ] { bartable-foofield@ }
-def bartable-barfield-set  [ +Bar |- Int BarTable -- ] { bartable-barfield@ }
+def bartable-freefield-set [ +Bar |- Int BarTable -- ] { bartable-freefield! }
+def bartable-foofield-set  [ +Foo |- Int BarTable -- ] { bartable-foofield! }
+def bartable-barfield-set  [ +Bar |- Int BarTable -- ] { bartable-barfield! }
 
 def main {}
-# mirth-test # merr # 50:81: error: Failed to unify [Int Int] with []
-# mirth-test # merr # 51:80: error: Failed to unify [+Foo Int Int] with [+Foo]
-# mirth-test # merr # 52:80: error: Failed to unify [+Bar Int Int] with [+Bar]
-# mirth-test # merr # 54:78: error: Failed to unify [+Foo Int Int] with [+Foo]
-# mirth-test # merr # 55:77: error: Failed to unify [+Foo Int Int] with [+Foo]
-# mirth-test # merr # 56:77: error: Failed to unify [+Bar Int Int] with [+Bar]
-# mirth-test # merr # 58:78: error: Failed to unify [+Bar Int Int] with [+Bar]
-# mirth-test # merr # 59:77: error: Failed to unify [+Foo Int Int] with [+Foo]
-# mirth-test # merr # 60:77: error: Failed to unify [+Bar Int Int] with [+Bar]
-# mirth-test # mret # 1
