@@ -19,6 +19,7 @@ import mirth.def
 import mirth.var
 import mirth.arrow
 import mirth.data
+import mirth.label
 
 data StateOwner {
     Error
@@ -80,6 +81,8 @@ patch Table {
     field(~qname, Table, Prop(QName))
     field(~owner, Table, Prop(StateOwner))
     field(~num-buffer, Table, Buffer)
+    field(~alloc-word, Table, Word)
+    field(~inline-fields, Table, List(Field))
 
     def doc        [ +Mirth |- Table -- Maybe(Str)   ] { ~doc @ }
     def head       [ +Mirth |- Table -- Token        ] { ~head @ }
@@ -89,6 +92,8 @@ patch Table {
     def name       [ +Mirth |- Table -- Name         ] { ~name @ }
     def owner      [ +Mirth |- Table -- StateOwner   ] { ~owner force! }
     def num-buffer [ +Mirth |- Table -- Buffer       ] { ~num-buffer @ }
+    def alloc-word [ +Mirth |- Table -- Word         ] { ~alloc-word @ }
+    def inline-fields [ +Mirth |- Table -- List(Field) ] { ~inline-fields @ }
 
     def = [ Table Table -- Bool ] { on2:index = }
     def unify! [ +Mirth |- Table Table -- Type ] {
@@ -100,6 +105,10 @@ patch Table {
 
     def name;  [ +Mirth +Str |- Table -- ] { rdip:name name; }
     def qname; [ +Mirth +Str |- Table -- ] { rdip:qname-hard qname; }
+
+    def constructor-fields [ +Mirth |- Table -- List(Field) ] {
+        inline-fields filter:and(is-raw? not, default not)
+    }
 }
 
 table(Field)
@@ -156,6 +165,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     head> @self ~head !
     name> @self ~name !
     doc> @self ~doc !
+    L0 @self ~inline-fields !
     @self Def.Table register
 
     # Table.NumBuffer
@@ -236,6 +246,30 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         @self num-buffer ab-buffer!
         L0 Prim.U64Set ab-prim!
         L0 @self Op.TableFromIndex ab-op!
+    ) @self ~alloc-word !
+
+    # Table.Make!     # TODO: maybe rename to Table.New! eventually
+    "Create a table element and supply field values." Some >doc
+    @self head dup >head >body
+    "Make!" L0 Word.Build!(
+        @self Tycon.Table Namespace.Tycon,
+
+        @self owner ctx
+        T0 @self owner push
+        dup @self constructor-fields for(
+            sip:value-type name Label.new! StackType.ConsLabel
+        )
+        swap @self Type.Table T*
+        T->,
+
+        L0 @self alloc-word ab-word!
+        @self constructor-fields for(
+            L0 Prim.Dup ab-prim!
+            dup name Label.new! ab-label-pop!
+            L0 Prim.Swap ab-prim!
+            ab-field!
+            L0 Prim.MutSet ab-prim!
+        )
     ) drop
 
     # Table.index
@@ -442,7 +476,7 @@ def elab-inline-field! [ +Mirth table:Table |- InlineFieldSyntax -- ] {
     @self value-type> @self PropLabel.FieldValueType prop2(dip(owner ctx) elab-simple-type-atom!) @self ~value-type !
     @table @self PropLabel.FieldOwner prop(owner) @self ~owner !
     prepare-field-defs!
-    self> drop
+    self> @table ~inline-fields modify(swap List.Snoc)
 }
 
 ||| Parse a standalone field definition.

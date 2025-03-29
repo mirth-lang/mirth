@@ -1,6 +1,7 @@
 module test.table-syntax
 
 import std.prelude
+import std.world
 
 table Foo1
 table Foo2 { num: Int }
@@ -12,6 +13,11 @@ table Foo4 {
     --
     def num^2 { num dup * }
     def raw { ~raw @ }
+    def Create! [ Foo4 ] { 10 >num 20 >num2 Foo4.Make! }
 }
 
-def main {}
+def main {
+    Foo4.Create! num2
+    print("Foo4.Create! num2 = "; int;)
+}
+# mirth-test # pout # Foo4.Create! num2 = 20
