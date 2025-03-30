@@ -58,30 +58,30 @@ struct Builtin {
 }
 
 def Builtin.Alloc! [ +Mirth |- Builtin ] {
-    Package.alloc! >std
-    Module.alloc! >prim
+    Package.Alloc! >std
+    Module.Alloc! >prim
 
-    Data.alloc! >cchar       Tag.alloc! >mk-cchar
-    Data.alloc! >cichar      Tag.alloc! >mk-cichar
-    Data.alloc! >cshort      Tag.alloc! >mk-cshort
-    Data.alloc! >cint        Tag.alloc! >mk-cint
-    Data.alloc! >clong       Tag.alloc! >mk-clong
-    Data.alloc! >clonglong   Tag.alloc! >mk-clonglong
-    Data.alloc! >cisize      Tag.alloc! >mk-cisize
-    Data.alloc! >cintptr     Tag.alloc! >mk-cintptr
-    Data.alloc! >cuchar      Tag.alloc! >mk-cuchar
-    Data.alloc! >cushort     Tag.alloc! >mk-cushort
-    Data.alloc! >cuint       Tag.alloc! >mk-cuint
-    Data.alloc! >culong      Tag.alloc! >mk-culong
-    Data.alloc! >culonglong  Tag.alloc! >mk-culonglong
-    Data.alloc! >cusize      Tag.alloc! >mk-cusize
-    Data.alloc! >cuintptr    Tag.alloc! >mk-cuintptr
+    Data.Alloc! >cchar       Tag.Alloc! >mk-cchar
+    Data.Alloc! >cichar      Tag.Alloc! >mk-cichar
+    Data.Alloc! >cshort      Tag.Alloc! >mk-cshort
+    Data.Alloc! >cint        Tag.Alloc! >mk-cint
+    Data.Alloc! >clong       Tag.Alloc! >mk-clong
+    Data.Alloc! >clonglong   Tag.Alloc! >mk-clonglong
+    Data.Alloc! >cisize      Tag.Alloc! >mk-cisize
+    Data.Alloc! >cintptr     Tag.Alloc! >mk-cintptr
+    Data.Alloc! >cuchar      Tag.Alloc! >mk-cuchar
+    Data.Alloc! >cushort     Tag.Alloc! >mk-cushort
+    Data.Alloc! >cuint       Tag.Alloc! >mk-cuint
+    Data.Alloc! >culong      Tag.Alloc! >mk-culong
+    Data.Alloc! >culonglong  Tag.Alloc! >mk-culonglong
+    Data.Alloc! >cusize      Tag.Alloc! >mk-cusize
+    Data.Alloc! >cuintptr    Tag.Alloc! >mk-cuintptr
 
-    Data.alloc! >cptr        Tag.alloc! >mk-cptr
-    Data.alloc! >cconst      Tag.alloc! >mk-cconst
-    Data.alloc! >crestrict   Tag.alloc! >mk-crestrict
-    Data.alloc! >cvolatile   Tag.alloc! >mk-cvolatile
-    Data.alloc! >cvoid       Tag.alloc! >mk-cvoid
+    Data.Alloc! >cptr        Tag.Alloc! >mk-cptr
+    Data.Alloc! >cconst      Tag.Alloc! >mk-cconst
+    Data.Alloc! >crestrict   Tag.Alloc! >mk-crestrict
+    Data.Alloc! >cvolatile   Tag.Alloc! >mk-cvolatile
+    Data.Alloc! >cvoid       Tag.Alloc! >mk-cvoid
 
     Builtin
 }

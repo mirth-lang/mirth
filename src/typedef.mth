@@ -28,7 +28,9 @@ table +Mirth |- TypeDef {
 
     def name; [ +Mirth +Str |- TypeDef -- ] { rdip:name name; }
 
-    def = [ +Mirth |- TypeDef TypeDef -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- TypeDef TypeDef -- Bool ] { on2:index = }
+    }
 
     def New! [ +Mirth |- doc:Maybe(Str) head?:Maybe(Token) name:Name state:PropState(QName) -- TypeDef ] {
         TypeDef.Make!

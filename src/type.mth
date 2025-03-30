@@ -699,7 +699,9 @@ table +Mirth |- MetaVar {
     ||| Are these two metavars identical? This is a cheap equality that doesn't consider
     ||| the resolved types. Two metavars may resolve to the same type but be considered
     ||| distinct under this equality.
-    def = [ +Mirth |- MetaVar MetaVar -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- MetaVar MetaVar -- Bool ] { on2:index = }
+    }
 
     ||| Re-create the metavariable anew. (TODO: As written, this is probably a mistake.)
     def freshen [ +Mirth Subst |- MetaVar -- Type ] {

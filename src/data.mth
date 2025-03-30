@@ -56,7 +56,9 @@ table +Mirth |- Data {
     def name; [ +Mirth +Str |- Data -- ] { name name; }
     def qname; [ +Mirth +Str |- Data -- ] { qname-hard qname; }
 
-    def = [ +Mirth |- Data Data -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Data Data -- Bool ] { on2:index = }
+    }
     def num-tags [ +Mirth |- Data -- Nat ] { tags len }
 
     ||| Adds constructor to data type, verifying no duplicate enum-value.
@@ -234,6 +236,20 @@ table +Mirth |- Tag {
     inputs: List(StackTypePart) { type dom split-parts nip }
     fields: List(TagField) { dup inputs filter-some:>TagField? nip }
     untag?: Maybe(Word) { drop None }
+
+    output-type: Type/Resource {
+        >self
+        @self type cod expand match {
+            { Cons -> nip Left }
+            { With -> nip Right }
+            { _ ->
+                drop @self str("Unexpected output type for constructor "; qname;)
+                @self .data head? if?(swap emit-error!, error!)
+                Type.Error @self data is-resource? if(Resource Right, Left)
+            }
+        }
+        self> drop
+    }
     --
     def arity    [ +Mirth |- Tag -- Int ] { drop 0 } # TODO, allow higher-order tags, and specialize them away!
     def qname    [ +Mirth |- Tag -- QName ] { dup data >Namespace >namespace dup name >name arity >arity QName }
@@ -291,7 +307,9 @@ table +Mirth |- Tag {
         .data is-resource?
     }
 
-    def = [ +Mirth |- Tag Tag -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Tag Tag -- Bool ] { on2:index = }
+    }
 
     def prefer-inline? [ +Mirth |- Tag -- Bool ] {
         dup .data semi-transparent?
@@ -627,27 +645,6 @@ def elab-data-done! [ +Mirth |- Data -- ] {
         dat> drop
     ) @dat ~ctype? !
     dat> drop
-}
-
-||| Return the tag's output type or resource in context.
-field(Tag.~output-type, Tag, Type/Resource)
-def Tag.output-type [ +Mirth |- Tag -- Type/Resource ] {
-    >tag
-    @tag ~output-type memoize(
-        @tag type cod expand match {
-            { Cons -> nip Left }
-            { With -> nip Right }
-            { _ ->
-                drop @tag str("Unexpected output type for constructor "; qname;)
-                @tag .data head? if?(swap emit-error!, error!)
-                Type.Error @tag .data is-resource? if(
-                    Resource Right,
-                    Left
-                )
-            }
-        }
-    )
-    tag> drop
 }
 
 ||| Return the tag's output type or resource in context, except for a missing field.

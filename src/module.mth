@@ -24,7 +24,9 @@ table +Mirth |- Module {
     imports: List(Module)
     --
     def qname [ +Mirth |- Module -- QName ] { sip(package Namespace.Package) name 0 QName.Mk }
-    def = [ +Mirth |- Module Module -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Module Module -- Bool ] { on2:index = }
+    }
 
     def Prim [ +Mirth |- Module ] { builtin prim }
     def New! [ +Mirth |- Path -- Module ] {

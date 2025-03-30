@@ -1767,6 +1767,9 @@ def +C99Stack.pop-resource? [ +C99Stack -- +Maybe(+C99Resource) +C99Stack ] {
     { +WithLabel -> rdip:pop-resource? +C99Stack.+WithLabel }
 }
 
+inline def +C99Value.top [ +C99Value |- ] { }
+inline def +C99Resource.top [ +C99Resource |- ] { }
+
 def +C99Stack.pop-value-label? [ +Mirth +C99Stack Label |- +Maybe(+C99Value) ] {
     { +Nil -> +None +C99Stack.+Nil }
     { +Cons -> rdip:pop-value-label? +C99Stack.+Cons }
@@ -1774,7 +1777,7 @@ def +C99Stack.pop-value-label? [ +Mirth +C99Stack Label |- +Maybe(+C99Value) ] {
     { +WithLabel -> dip:rdip:pop-value-label? +C99Stack.+WithLabel }
     { +ConsLabel ->
         dup2 = if(
-            drop rswap +Some,
+            drop +C99Value.top +Some,
             dip:pop-value-label? +C99Stack.+ConsLabel
         )
     }
@@ -1787,7 +1790,7 @@ def +C99Stack.pop-resource-label? [ +Mirth +C99Stack Label |- +Maybe(+C99Resourc
     { +ConsLabel -> dip:rdip:pop-resource-label? +C99Stack.+ConsLabel }
     { +WithLabel ->
         dup2 = if(
-            drop rswap +Some,
+            drop +C99Resource.top +Some,
             dip:pop-resource-label? +C99Stack.+WithLabel
         )
     }

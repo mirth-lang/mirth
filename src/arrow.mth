@@ -248,7 +248,9 @@ table +Mirth |- Block {
     def infer-type! [ +Mirth |- Block -- ArrowType ] { arrow type }
     def unify-type! [ +Mirth |- ArrowType Block -- ArrowType ] { sip(type unify! drop) infer-type! }
 
-    def = [ +Mirth |- Block Block -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Block Block -- Bool ] { on2:index = }
+    }
 
     def mangled; [ +Mirth +Str |- Block -- ] { cname ; }
 

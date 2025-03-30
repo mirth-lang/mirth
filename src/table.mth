@@ -90,7 +90,10 @@ table +Mirth |- Table {
     def owner      [ +Mirth |- Table -- StateOwner   ] { ~owner force! }
     def alloc-word [ +Mirth |- Table -- Word         ] { ~alloc-word @ }
 
-    def = [ +Mirth |- Table Table -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Table Table -- Bool ] { on2:index = }
+    }
+
     def unify! [ +Mirth |- Table Table -- Type ] {
         dup2 = if(drop >Type, on2:>Type unify-failed!)
     }
@@ -131,7 +134,9 @@ table +Mirth |- Field {
     def cod   [ +Mirth |- Field -- StackType ] { sip(basis) value-type Type.Mut T* }
     def type  [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
 
-    def = [ +Mirth |- Field Field -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Field Field -- Bool ] { on2:index = }
+    }
 
     def is-raw? [ +Mirth |- Field -- Bool ] { name could-be-raw-field-name? }
 }
@@ -167,27 +172,14 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     @self num-buffer ~qname !
     @self num-buffer Def.Buffer register
 
-    # Table.Nil
+    # Table.Nil - does not require table state access
     "Return Nil, the zero-th element of the table." Some >doc
     @self head dup >head >body
     "Nil" L0 Word.Build! (
         @self Tycon.Table Namespace.Tycon,
 
-        @self owner ctx
-        T0 @self owner push dup @self Type.Table T* T->,
-
-        0u64 PushValue.U64 ab-push-value!
-        L0 @self Op.TableFromIndex ab-op!
-    ) drop
-
-    # Table.nil  # TODO remove in favor of Table.Nil
-    "Return Nil, the 0th element of the table." Some >doc
-    @self head dup >head >body
-    "nil" L0 Word.Build! (
-        @self Tycon.Table Namespace.Tycon,
-
-        @self owner ctx
-        T0 @self owner push dup @self Type.Table T* T->,
+        Ctx.L0
+        T0 @self Type.Table T1 T->,
 
         0u64 PushValue.U64 ab-push-value!
         L0 @self Op.TableFromIndex ab-op!
@@ -214,28 +206,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         L0 @self Op.TableFromIndex ab-op!
     ) @self ~alloc-word !
 
-    # Table.alloc!  # TODO: remove this in favor of Table.Alloc!
-    "Allocate a table element, without setting any fields." Some >doc
-    @self head dup >head >body
-    "alloc!" L0 Word.Build!(
-        @self Tycon.Table Namespace.Tycon,
-
-        @self owner ctx
-        T0 @self owner push
-        dup @self Type.Table T*
-        T->,
-
-        @self num-buffer ab-buffer!
-        L0 Prim.U64Get ab-prim!
-        1u64 PushValue.U64 ab-push-value!
-        L0 Prim.U64Add ab-prim!
-        L0 Prim.Dup ab-prim!
-        @self num-buffer ab-buffer!
-        L0 Prim.U64Set ab-prim!
-        L0 @self Op.TableFromIndex ab-op!
-    ) drop
-
-    # Table.Make!     # TODO: maybe rename to Table.New! eventually
+    # Table.Make!
     "Create a table element and supply field values." Some >doc
     @self head dup >head >body
     "Make!" L0 Word.Build!(
@@ -259,16 +230,43 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         )
     ) drop
 
-    # Table.index
+    # Table.index - does not require table state access.
     "Turn a table element into a U64 index." Some >doc
     @self head dup >head >body
     "index" L0 Word.Build! (
         @self Tycon.Table Namespace.Tycon,
 
-        @self owner ctx
-        T0 @self owner push sip(@self Type.Table T*) Type.U64 T* T->,
+        Ctx.L0
+        @self Type.Table T1 Type.U64 T1 T->,
 
         L0 @self Op.TableToIndex ab-op!
+    ) make-inline!
+
+    # Table.= - does not require table state access.
+    "Check table elements for identity." Some >doc
+    @self head dup >head >body
+    "=" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        Ctx.L0
+        @self Type.Table dup T2 Type.Bool T1 T->,
+
+        L0 @self Op.TableToIndex ab-op!
+        L0 Prim.Swap ab-prim!
+        L0 @self Op.TableToIndex ab-op!
+        L0 Prim.U64Eq ab-prim!
+    ) make-inline!
+
+    # Table.from-index-unsafe
+    "Turn a U64 index into a table element, with no bounds checking." Some >doc
+    @self head dup >head >body
+    "from-index-unsafe" L0 Word.Build! (
+        @self Tycon.Table Namespace.Tycon,
+
+        Ctx.L0
+        Type.U64 T1 @self Type.Table T1 T->,
+
+        L0 @self Op.TableFromIndex ab-op!
     ) drop
 
     # Table.from-index
@@ -337,7 +335,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
     ) drop
 
     # Table.for(f)
-    "Iterate through all table elements, skipping Nil." Some >doc
+    "Iterate through all table elements (skips Nil)." Some >doc
     @self head dup >head >body
     "for" "f" L1 Word.Build!(
         @self Tycon.Table Namespace.Tycon,

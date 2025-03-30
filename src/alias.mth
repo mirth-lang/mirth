@@ -23,7 +23,9 @@ table +Mirth |- Alias {
     def namespace  [ +Mirth |- Alias -- Namespace ] { qname-hard namespace}
     def target [ +Mirth |- Alias -- Def ] { ~target force! }
 
-    def = [ +Mirth |- Alias Alias -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Alias Alias -- Bool ] { on2:index = }
+    }
     def register! [ +Mirth |- Alias -- ] { Def.Alias register }
 }
 

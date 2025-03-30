@@ -26,7 +26,9 @@ table +Mirth |- Macro {
     def qname-soft [ +Mirth |- Macro -- Maybe(QName) ] { ~qname @? bind(ready?) }
 
     def >Int [ +Mirth |- Macro -- Int ] { index >Int }
-    def = [ +Mirth |- Macro Macro -- Bool ] { on2:>Int = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Macro Macro -- Bool ] { on2:>Int = }
+    }
 
     def Prim [ +Mirth |- Str Int MacroAction -- Macro ] {
         >action >arity

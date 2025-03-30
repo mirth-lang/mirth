@@ -129,8 +129,7 @@ data Arch {
         def Max [ Arch ] { 3i64 >EnumValue Arch.from-enum-value-unsafe }
         def +World.running-arch [ +World -- +World Arch ] { prim-sys-arch >Arch }
         def >Int [ Arch -- Int ] { enum-value >Int }
-        def =  [ Arch Arch -- Bool ] { on2:>Int = }
-        def <> [ Arch Arch -- Bool ] { on2:>Int <> }
+        def = [ Arch Arch -- Bool ] { on2:>Int = }
     }
     def I64.>Arch [ I64 -- Arch ] { >Int >Arch }
     def Int.>Arch [ Int -- Arch ] {

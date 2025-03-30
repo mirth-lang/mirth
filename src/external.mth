@@ -31,7 +31,9 @@ table +Mirth |- External {
     def type       [ +Mirth |- External -- ArrowType     ] { ctx-type nip }
     def ctype      [ +Mirth |- External -- CTypeArrow    ] { ~ctype force! }
 
-    def = [ +Mirth |- External External -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- External External -- Bool ] { on2:index = }
+    }
 }
 
 table +Mirth |- ExternalBlock {

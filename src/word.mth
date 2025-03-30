@@ -102,7 +102,10 @@ table +Mirth |- Word {
 
     def make-inline! [ +Mirth |- Word -- ] { dip:True prefer-inline?! }
 
-    def = [ +Mirth |- Word Word -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Word Word -- Bool ] { on2:index = }
+    }
+
     def compare [ +Mirth |- Word Word -- Comparison ] { on2:index compare }
     def increment-word-home-index! [ +Mirth |- Word -- Int ] {
         sip(word-home-index dup 1+) word-home-index!

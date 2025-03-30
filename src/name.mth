@@ -29,7 +29,9 @@ table +Mirth |- Name {
     def >Str  [ +Mirth |- Name -- Str ] { str }
     def name; [ +Mirth +Str |- Name -- ] { str ; }
     def mangled; [ +Mirth +Str |- Name -- ] { mangled ; }
-    def = [ +Mirth |- Name Name -- Bool ] { on2:index = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Name Name -- Bool ] { on2:index = }
+    }
     def hash [ +Mirth |- Name -- Hash ] { str Hash.Digest }
 
     def Name [ +Mirth |- Str -- Name ] {

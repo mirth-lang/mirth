@@ -69,8 +69,8 @@ table +Mirth |- Package {
         dup Package.Find? unwrap(dup None swap Package.New!) nip
     }
 
-    def = [ +Mirth |- Package Package -- Bool ] {
-        on2:index =
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Package Package -- Bool ] { on2:index = }
     }
 }
 
