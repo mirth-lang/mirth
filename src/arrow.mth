@@ -210,14 +210,14 @@ table +Mirth |- Block {
     home: Home
     dom: StackType
     cod: StackType
-    home-index: Int { field-self home increment-index! }
+    home-index: Int { @self home increment-index! }
     cname: Str {
-        field-self dup home match {
-            { Word -> qname-hard mangled Str("mb_" ; ; "_" ; home-index int; ) }
-            { Main -> drop Str("mb_" ; home-index int;) }
+        @self home match {
+            { Word -> qname-hard mangled Str("mb_" ; ; "_" ; @self home-index int; ) }
+            { Main -> drop Str("mb_" ; @self home-index int; ) }
         }
     }
-    free-vars: List(Var) { field-self arrow free-vars }
+    free-vars: List(Var) { @self arrow free-vars }
     ~arrow: Prop(Arrow)
     --
 
@@ -247,10 +247,6 @@ table +Mirth |- Block {
     def typecheck! [ +Mirth |- Block -- ] { arrow drop }
     def infer-type! [ +Mirth |- Block -- ArrowType ] { arrow type }
     def unify-type! [ +Mirth |- ArrowType Block -- ArrowType ] { sip(type unify! drop) infer-type! }
-
-    max-mirth-revision 2025_03_29_001 {
-        def = [ +Mirth |- Block Block -- Bool ] { on2:index = }
-    }
 
     def mangled; [ +Mirth +Str |- Block -- ] { cname ; }
 

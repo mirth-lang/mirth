@@ -25,10 +25,10 @@ table +Mirth |- Word {
     head: Token
     body: Token
     sig?: Maybe(Token)
-    prefer-inline?: Bool { field-self drop False }
-    inferring-type?: Bool { field-self drop False }
-    word-home-index: Int { field-self drop 0 }
-    cname: Str { field-self qname-hard mangled Str("mw_"; ;) }
+    prefer-inline?: Bool { False }
+    inferring-type?: Bool { False }
+    word-home-index: Int { 0 }
+    cname: Str { @self qname-hard mangled Str("mw_"; ;) }
     ~qname: Prop(QName)
     ~ctx-type: Prop([Ctx ArrowType])
     ~params: Prop(List(Param))
@@ -101,10 +101,6 @@ table +Mirth |- Word {
     def type     [ +Mirth |- Word -- ArrowType ] { ctx-type nip }
 
     def make-inline! [ +Mirth |- Word -- ] { dip:True prefer-inline?! }
-
-    max-mirth-revision 2025_03_29_001 {
-        def = [ +Mirth |- Word Word -- Bool ] { on2:index = }
-    }
 
     def compare [ +Mirth |- Word Word -- Comparison ] { on2:index compare }
     def increment-word-home-index! [ +Mirth |- Word -- Int ] {

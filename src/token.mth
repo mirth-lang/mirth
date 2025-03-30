@@ -157,9 +157,6 @@ table +Mirth |- Token {
     col: Col
     doc: Maybe(Str)
     --
-    max-mirth-revision 2025_03_29_001 {
-        def = [ +Mirth |- Token Token -- Bool ] { on2:index = }
-    }
 
     def none?             [ +Mirth |- Token -- Bool              ] { value none? }
     def comma?            [ +Mirth |- Token -- Bool              ] { value comma? }

@@ -78,7 +78,7 @@ table +Mirth |- Table {
     head: Token
     name: Name
     num-buffer: Buffer
-    inline-fields: List(Field) { field-self drop L0 }
+    inline-fields: List(Field) { L0 }
     ~qname: Prop(QName)
     ~owner: Prop(StateOwner)
     ~alloc-word: Word
@@ -89,10 +89,6 @@ table +Mirth |- Table {
     def namespace  [ +Mirth |- Table -- Namespace    ] { qname-hard namespace }
     def owner      [ +Mirth |- Table -- StateOwner   ] { ~owner force! }
     def alloc-word [ +Mirth |- Table -- Word         ] { ~alloc-word @ }
-
-    max-mirth-revision 2025_03_29_001 {
-        def = [ +Mirth |- Table Table -- Bool ] { on2:index = }
-    }
 
     def unify! [ +Mirth |- Table Table -- Type ] {
         dup2 = if(drop >Type, on2:>Type unify-failed!)
@@ -133,10 +129,6 @@ table +Mirth |- Field {
     def dom   [ +Mirth |- Field -- StackType ] { sip(basis) index-type T* }
     def cod   [ +Mirth |- Field -- StackType ] { sip(basis) value-type Type.Mut T* }
     def type  [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
-
-    max-mirth-revision 2025_03_29_001 {
-        def = [ +Mirth |- Field Field -- Bool ] { on2:index = }
-    }
 
     def is-raw? [ +Mirth |- Field -- Bool ] { name could-be-raw-field-name? }
 }
