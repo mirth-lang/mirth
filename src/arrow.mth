@@ -210,14 +210,14 @@ table +Mirth |- Block {
     home: Home
     dom: StackType
     cod: StackType
-    home-index: Int { home increment-index! }
+    home-index: Int { field-self home increment-index! }
     cname: Str {
-        dup home match {
+        field-self dup home match {
             { Word -> qname-hard mangled Str("mb_" ; ; "_" ; home-index int; ) }
             { Main -> drop Str("mb_" ; home-index int;) }
         }
     }
-    free-vars: List(Var) { arrow free-vars }
+    free-vars: List(Var) { field-self arrow free-vars }
     ~arrow: Prop(Arrow)
     --
 

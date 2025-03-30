@@ -22,9 +22,9 @@ import mirth.mirth
 
 table +Mirth |- Name {
     str: Str
-    defs: List(Def) { drop L0 }
-    label: Label { >name Label.Make! }
-    mangled: Str { str zencode }
+    defs: List(Def) { field-self drop L0 }
+    label: Label { field-self >name Label.Make! }
+    mangled: Str { field-self str zencode }
     --
     def >Str  [ +Mirth |- Name -- Str ] { str }
     def name; [ +Mirth +Str |- Name -- ] { str ; }

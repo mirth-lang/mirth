@@ -25,10 +25,10 @@ table +Mirth |- Word {
     head: Token
     body: Token
     sig?: Maybe(Token)
-    prefer-inline?: Bool { drop False }
-    inferring-type?: Bool { drop False }
-    word-home-index: Int { drop 0 }
-    cname: Str { qname-hard mangled Str("mw_"; ;) }
+    prefer-inline?: Bool { field-self drop False }
+    inferring-type?: Bool { field-self drop False }
+    word-home-index: Int { field-self drop 0 }
+    cname: Str { field-self qname-hard mangled Str("mw_"; ;) }
     ~qname: Prop(QName)
     ~ctx-type: Prop([Ctx ArrowType])
     ~params: Prop(List(Param))

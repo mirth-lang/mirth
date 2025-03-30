@@ -25,22 +25,22 @@ table +Mirth |- Data {
     head?: Maybe(Token)
     name: Name
     arity: Int
-    tags: List(Tag) { drop L0 }
-    last-tag-value: Int { drop -1 }
+    tags: List(Tag) { field-self drop L0 }
+    last-tag-value: Int { field-self drop -1 }
     ~qname: Prop(QName)
     ~params: Prop(List(Var))
     ~ctype?: Prop(Maybe(CType))
-    is-resource?: Bool { name could-be-resource-con }
-    is-unit?: Maybe(Tag) { tags single? filter(num-total-inputs 0=) }
-    is-enum?: Bool { and(is-unit? not, tags all(num-total-inputs 0=)) }
+    is-resource?: Bool { field-self name could-be-resource-con }
+    is-unit?: Maybe(Tag) { field-self tags single? filter(num-total-inputs 0=) }
+    is-enum?: Bool { field-self and(is-unit? not, tags all(num-total-inputs 0=)) }
     is-transparent?: Bool {
-        dup is-resource? if(
+        field-self dup is-resource? if(
             single-tag? has:and(num-resource-inputs 1 =, num-total-inputs 1 =),
             single-tag? has:and(num-type-inputs 1 =, num-total-inputs 1 =)
         )
     }
     semi-transparent?: Maybe(SemiTransparentData) {
-        single-tag? bind(
+        field-self single-tag? bind(
             dup inputs single? map(
                 >input dup >tag SemiTransparentData
             ) nip
@@ -229,16 +229,16 @@ table +Mirth |- Tag {
     value: Int
     sig?: Maybe(Token)
     ~ctx-type: Prop([Ctx ArrowType])
-    label-inputs: List(Label) { label-inputs-from-sig }
-    num-label-inputs: Nat { label-inputs len }
-    num-type-inputs: Nat { num-type-inputs-from-sig }
-    num-resource-inputs: Nat { num-resource-inputs-from-sig }
-    inputs: List(StackTypePart) { type dom split-parts nip }
-    fields: List(TagField) { dup inputs filter-some:>TagField? nip }
-    untag?: Maybe(Word) { drop None }
+    label-inputs: List(Label) { field-self label-inputs-from-sig }
+    num-label-inputs: Nat { field-self label-inputs len }
+    num-type-inputs: Nat { field-self num-type-inputs-from-sig }
+    num-resource-inputs: Nat { field-self num-resource-inputs-from-sig }
+    inputs: List(StackTypePart) { field-self type dom split-parts nip }
+    fields: List(TagField) { field-self dup inputs filter-some:>TagField? nip }
+    untag?: Maybe(Word) { field-self drop None }
 
     output-type: Type/Resource {
-        >self
+        field-self >self
         @self type cod expand match {
             { Cons -> nip Left }
             { With -> nip Right }

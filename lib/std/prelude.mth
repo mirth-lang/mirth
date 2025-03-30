@@ -542,3 +542,11 @@ def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     f if(id, g panic!))
 def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     expect!(f,g "assertion failed: " swap prim-str-cat))
+
+
+max-mirth-revision 2025_03_29_999 {
+    def(field-self, t -- t, id)
+}
+min-mirth-revision 2025_03_30_001 {
+    def(field-self, self:t |- t, @self)
+}

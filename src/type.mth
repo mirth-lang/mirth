@@ -625,7 +625,7 @@ struct Kind {
 ||| Each MetaVar has a kind associated with it.
 table +Mirth |- MetaVar {
     kind: Kind
-    type?: Maybe(Type) { drop None }
+    type?: Maybe(Type) { field-self drop None }
     --
 
     ||| Create a metavar of the given kind.

@@ -78,7 +78,7 @@ table +Mirth |- Table {
     head: Token
     name: Name
     num-buffer: Buffer
-    inline-fields: List(Field) { drop L0 }
+    inline-fields: List(Field) { field-self drop L0 }
     ~qname: Prop(QName)
     ~owner: Prop(StateOwner)
     ~alloc-word: Word
@@ -521,7 +521,10 @@ def prepare-field-defs! [ +Mirth self:Field |- ] {
                     L0 Prim.MutGet ab-prim!,
 
                     ab-dip!(
+                        "self" Name Label ab-label-push!
                         elab-atoms!
+                        "self" Name Label ab-label-pop!
+                        L0 Prim.Drop ab-prim!
                         L0 Prim.Dup ab-prim!
                     )
                     L0 Prim.MutSet ab-prim!
