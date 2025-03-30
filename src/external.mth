@@ -60,9 +60,7 @@ def parse-external-decl [ +Mirth Token |- List(ExternalDeclPart) doc:Maybe(Str) 
     succ dup num-args 0> or(dup lcurly? >Bool) if(
         List(
             succ
-            while(dup rdip:args-end? not,
-                rdip(parse-external-decl-part) ;
-            )
+            while(dup args-end? not, parse-external-decl-part ;)
             succ
         ),
 

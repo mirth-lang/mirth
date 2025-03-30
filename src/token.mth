@@ -150,21 +150,14 @@ def name/dname-penultimate-name? [ Name/DName -- Maybe(Name) ] {
     { Right -> penultimate-name? }
 }
 
-table(Token)
-patch Token {
-    field(~value, Token, TokenValue)
-    field(~module, Token, Module)
-    field(~row, Token, Row)
-    field(~col, Token, Col)
-    field(~doc, Token, Maybe(Str))
-
-    def = [ Token Token -- Bool ] { both(index) = }
-
-    def value  [ +Mirth |- Token -- TokenValue ] { ~value @ }
-    def module [ +Mirth |- Token -- Module     ] { ~module @ }
-    def col    [ +Mirth |- Token -- Col        ] { ~col @ }
-    def row    [ +Mirth |- Token -- Row        ] { ~row @ }
-    def doc    [ +Mirth |- Token -- Maybe(Str) ] { ~doc @ }
+table +Mirth |- Token {
+    value: TokenValue
+    module: Module
+    row: Row
+    col: Col
+    doc: Maybe(Str)
+    --
+    def = [ +Mirth |- Token Token -- Bool ] { on2:index = }
 
     def none?             [ +Mirth |- Token -- Bool              ] { value none? }
     def comma?            [ +Mirth |- Token -- Bool              ] { value comma? }
@@ -207,9 +200,12 @@ patch Token {
     def can-take-args?    [ +Mirth |- Token -- Bool              ] { value can-take-args? }
 
     def alloc-none! [ +Mirth |- Token ] {
-        Token.alloc!
-        None over ~doc !
-        TokenValue.None over ~value !
+        None >doc
+        0 Row >row
+        0 Col >col
+        Module.Nil >module
+        TokenValue.None >value
+        Token.Make!
     }
 
     def location [ +Mirth |- Token -- Location ] {
@@ -222,9 +218,10 @@ patch Token {
     def location! [ +Mirth |- Location Token -- ] {
         >token
         /Location
-        module> @token ~module !
-        row> @token ~row !
-        col> token> ~col !
+
+        module> @token module!
+        row> @token row!
+        col> token> col!
     }
 
     ||| Get next token, respecting nesting of tokens and arguments.
@@ -463,7 +460,7 @@ patch Token {
                 @anchor index >Int + 1+
                 @src index >Int -
                 >TableIndex-clamp Token.from-index
-            ) @dst ~value !
+            ) @dst value!
             @src:succ
             @dst:succ
         )

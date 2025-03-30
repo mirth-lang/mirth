@@ -208,9 +208,11 @@ def specialize-word! [ +Mirth |- SPKey Word -- Word ] {
     >word >key
     @key @word sp-synthed lookup(similar) match(
         Some ->
-            # This specialization has already been done. So inline this
-            # specialization only if the word was marked as inline.
-            @word prefer-inline? over ~prefer-inline? !,
+            # This specialization has already been done before, meaning there is more
+            # than one use of this h.o. word with these arguments. So in general we
+            # no longer wish to inline this word ... unless it was marked
+            # explicitly as inline.
+            @word prefer-inline? over prefer-inline?!,
         None ->
             # This word has not been specialized with these arguments before.
             @word head >head
@@ -234,7 +236,7 @@ def specialize-word! [ +Mirth |- SPKey Word -- Word ] {
                 arrow ctx-type pack2
             ) @word' ~ctx-type !
             # True @word' ~inferring-type? !
-            True @word' ~prefer-inline? !
+            True @word' prefer-inline?!
             @key @word @word' dup PropLabel.WordArrow prop3(ab-build-word-arrow!(dip(
                 synth-specialized-word!
             ))) @word' ~arrow !

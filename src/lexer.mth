@@ -82,26 +82,26 @@ struct +Lexer {
     def newline! [ +Lexer |- ] { 0 Col lexer-col! lexer-row:1+ }
 
     ||| Create a token at the current location with the given payload.
-    def make! [ +Lexer |- TokenValue -- Token ] {
-        Token.alloc!
-        tuck ~value !
-        lexer-module over ~module !
-        lexer-row over ~row !
-        lexer-col over ~col !
-        lexer-doc over ~doc !
+    def make! [ +Mirth +Lexer |- TokenValue -- Token ] {
+        >value
+        lexer-row >row
+        lexer-col >col
+        lexer-doc >doc
+        lexer-module >module
+        Token.Make!
         None lexer-doc!
         dup lexer-last-token!
     }
 
     ||| Create a token at the current location, and then build the payload (while consuming characters).
-    def make!(f) [ +Lexer |- ( *a -- *b TokenValue ) *a -- *b Token ] {
+    def make!(f) [ +Mirth +Lexer |- ( *a -- *b TokenValue ) *a -- *b Token ] {
         TokenValue.None make!
         dip:f
-        tuck ~value !
+        tuck value!
     }
 
     ||| Emit a token at the current location with the given payload. Same as make! but drops the token.
-    def emit! [ +Lexer |- TokenValue -- ] { make! drop }
+    def emit! [ +Mirth +Lexer |- TokenValue -- ] { make! drop }
 
     ||| Create a token at the current location, then build the payload. Same as make!(f) but drops the token.
     def emit!(f) { make!(f) drop }
@@ -139,7 +139,7 @@ struct +Lexer {
             stack-peek filter(lcolon-open?),
             stack-drop
             dup TokenValue.RColon make!
-            TokenValue.LColon swap ~value !
+            TokenValue.LColon swap value!
         )
     }
 
@@ -150,30 +150,30 @@ struct +Lexer {
         lexer-last-token can-take-args? else(close-colons!)
     }
 
-    def emit-lcolon!  [ +Lexer |- ] { TokenValue.LColonOpen  make! stack-push! }
-    def emit-lparen!  [ +Lexer |- ] { TokenValue.LParenOpen  make! stack-push! }
-    def emit-lcurly!  [ +Lexer |- ] { TokenValue.LCurlyOpen  make! stack-push! }
-    def emit-lsquare! [ +Lexer |- ] { TokenValue.LSquareOpen make! stack-push! }
+    def emit-lcolon!  [ +Mirth +Lexer |- ] { TokenValue.LColonOpen  make! stack-push! }
+    def emit-lparen!  [ +Mirth +Lexer |- ] { TokenValue.LParenOpen  make! stack-push! }
+    def emit-lcurly!  [ +Mirth +Lexer |- ] { TokenValue.LCurlyOpen  make! stack-push! }
+    def emit-lsquare! [ +Mirth +Lexer |- ] { TokenValue.LSquareOpen make! stack-push! }
 
     def emit-rparen! [ +Mirth +Lexer |- ] {
         stack-pop! filter(value lparen-open?)
         unwrap("Mismatched right parenthesis." lexer-fatal-error!)
         dup TokenValue.RParen make!
-        TokenValue.LParen swap ~value !
+        TokenValue.LParen swap value!
     }
 
     def emit-rcurly! [ +Mirth +Lexer |- ] {
         stack-pop! filter(value lcurly-open?)
         unwrap("Mismatched right curly brace." lexer-fatal-error!)
         dup TokenValue.RCurly make!
-        TokenValue.LCurly swap ~value !
+        TokenValue.LCurly swap value!
     }
 
     def emit-rsquare! [ +Mirth +Lexer |- ] {
         stack-pop! filter(value lsquare-open?)
         unwrap("Mismatched right square bracket." lexer-fatal-error!)
         dup TokenValue.RSquare make!
-        TokenValue.LSquare swap ~value !
+        TokenValue.LSquare swap value!
     }
 
     def emit-name! [ +Mirth +Lexer |- ] {
@@ -192,10 +192,11 @@ struct +Lexer {
                 drop3
                 skip-doc!,
 
-                Token.alloc!
-                tuck ~col !
-                tuck ~row !
-                tuck ~module !
+                >col >row >module
+                lexer-doc >doc
+                TokenValue.None >value
+                Token.Make!
+                None lexer-doc!
 
                 float-token? map(Ok)
                 or?(int-token?)
@@ -203,12 +204,8 @@ struct +Lexer {
                 or?(label-token? map(Ok))
                 else?(name-token Ok)
                 else(emit-fatal-error!)
-                over ~value !
-
-                lexer-doc over ~doc !
-
+                over value!
                 lexer-last-token!
-                None lexer-doc!
             )
         ) drop
     }

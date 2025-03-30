@@ -92,7 +92,7 @@ data Type {
         { _ -> drop False }
     }
 
-    def meta= [ MetaVar Type -- Bool ] {
+    def meta= [ +Mirth |- MetaVar Type -- Bool ] {
         { Meta -> = }
         { _ -> drop2 False }
     }
@@ -623,22 +623,14 @@ struct Kind {
 
 ||| A MetaVar represents an unknown that needs to be resolved during elaboration.
 ||| Each MetaVar has a kind associated with it.
-table(MetaVar)
-patch MetaVar {
-    field(~type?, MetaVar, Maybe(Type))
-    field(~kind, MetaVar, Kind)
-
-    ||| Get the metavar's resolved type, if available.
-    def type? [ +Mirth |- MetaVar -- Maybe(Type) ] { ~type? @ }
-
-    ||| The kind of the metavar, which constrains the possible solutions.
-    def kind [ +Mirth |- MetaVar -- Kind ] { ~kind @ }
+table +Mirth |- MetaVar {
+    kind: Kind
+    type?: Maybe(Type) { drop None }
+    --
 
     ||| Create a metavar of the given kind.
     def New! [ +Mirth |- Kind -- MetaVar ] {
-        MetaVar.alloc!
-        tuck ~kind !
-        None over ~type? !
+        >kind MetaVar.Make!
     }
 
     ||| Does this metavar resolve to a unit stack?
@@ -676,7 +668,7 @@ patch MetaVar {
     def expand-if(f,g) [ (*a +Mirth Type -- *b, *a +Mirth MetaVar -- *b) *a +Mirth MetaVar -- *b ] {
         dup type? match(
             None -> g,
-            Some -> expand tuck Some swap ~type? ! f
+            Some -> expand tuck Some swap type?! f
         )
     }
 
@@ -689,7 +681,7 @@ patch MetaVar {
                 drop,
                 swap dup2 has-meta? if(
                     swap Type.Meta unify-failed!,
-                    tuck Some swap ~type? !
+                    tuck Some swap type?!
                 )
             )
         )
@@ -700,14 +692,14 @@ patch MetaVar {
     def unify-error! [ +Mirth |- MetaVar -- Type ] {
         dup type? match(
             Some -> nip unify-error!,
-            None -> dip(Type.Error Some) ~type? ! Type.Error
+            None -> dip(Type.Error Some) type?! Type.Error
         )
     }
 
     ||| Are these two metavars identical? This is a cheap equality that doesn't consider
     ||| the resolved types. Two metavars may resolve to the same type but be considered
     ||| distinct under this equality.
-    def = [ MetaVar MetaVar -- Bool ] { both(index) = }
+    def = [ +Mirth |- MetaVar MetaVar -- Bool ] { on2:index = }
 
     ||| Re-create the metavariable anew. (TODO: As written, this is probably a mistake.)
     def freshen [ +Mirth Subst |- MetaVar -- Type ] {
@@ -717,7 +709,7 @@ patch MetaVar {
     ||| Turn unbound metavariables into fresh variables, and add them to the context.
     def rigidify! [ +Mirth Ctx |- MetaVar -- Type ] {
         dup type? match {
-            { None -> sip(kind >Type swap fresh-var! Type.Var dup Some) ~type? ! }
+            { None -> sip(kind >Type swap fresh-var! Type.Var dup Some) type?! }
             { Some -> nip rigidify! }
         }
     }
@@ -1133,7 +1125,7 @@ data StackType {
                     )
                 ),
             Meta ->
-                dip(dip(StackType.Fresh! Type.Fresh! dup2) StackType.ConsLabel >Type Some) ~type? !
+                dip(dip(StackType.Fresh! Type.Fresh! dup2) StackType.ConsLabel >Type Some) type?!
                 pack2 Some,
         )
     }
@@ -1163,7 +1155,7 @@ data StackType {
                     )
                 ),
             Meta ->
-                dip(dip(StackType.Fresh! Resource.Fresh! dup2) StackType.WithLabel >Type Some) ~type? !
+                dip(dip(StackType.Fresh! Resource.Fresh! dup2) StackType.WithLabel >Type Some) type?!
                 pack2 Some,
         )
     }
@@ -1186,7 +1178,7 @@ data StackType {
             ),
             Meta ->
                 dip(StackType.Fresh! Type.Fresh! dup2
-                    StackType.Cons >Type Some) ~type? !
+                    StackType.Cons >Type Some) type?!
                 pack2 Some,
         )
     }
@@ -1209,7 +1201,7 @@ data StackType {
             ),
             Meta ->
                 dip(StackType.Fresh! Resource.Fresh! dup2
-                    StackType.With >Type Some) ~type? !
+                    StackType.With >Type Some) type?!
                 pack2 Some,
         )
     }
@@ -1509,7 +1501,7 @@ struct ArrowType {
         >arrowtype
         @arrowtype dom linear-base-meta? for(
             @arrowtype cod linear-base-meta? for(
-                over = then(Type.Unit Some over ~type? !)
+                over = then(Type.Unit Some over type?!)
             ) drop
         )
         arrowtype> rigidify!
@@ -1542,9 +1534,9 @@ struct Subst {
     }
 
     def empty? [ Subst -- Bool ] { var empty? }
-    def lookup-var [ Var Subst -- Maybe(Type) ] { var lookup }
-    def has-var? [ Var Subst -- Bool ] { lookup-var >Bool }
-    def get-var  [ Var Subst -- Type ] { lookup-var else?(Type.Error) }
+    def lookup-var [ +Mirth |- Var Subst -- Maybe(Type) ] { var lookup }
+    def has-var? [ +Mirth |- Var Subst -- Bool ] { lookup-var >Bool }
+    def get-var  [ +Mirth |- Var Subst -- Type ] { lookup-var else?(Type.Error) }
 
     ||| If variable is in subst, unify new type with type in subst.
     ||| Otherwise, create larger subst with new binding.

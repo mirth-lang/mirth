@@ -2402,7 +2402,7 @@ def pop-values-to-env! [ +Mirth +C99Branch |- List(Var) -- ] {
 
 def drop-env-var! [ +Mirth +C99Branch |- Var -- ] {
     pop-from-env!
-    = else("[c99] unexpected variable in environment when exiting scope" rdip:fatal-error!)
+    = else("[c99] unexpected variable in environment when exiting scope" fatal-error!)
     drop-value!
 }
 

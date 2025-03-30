@@ -18,55 +18,36 @@ struct Param {
     default: Maybe(Token)
 }
 
-table(Word)
-patch Word {
-    field(~doc, Word, Maybe(Str))
-    field(~name, Word, Name)
-    field(~arity, Word, Nat)
-    field(~qname, Word, Prop(QName))
-    field(~head, Word, Token)
-    field(~sig?, Word, Maybe(Token))
-    field(~body, Word, Token)
-    field(~ctx-type, Word, Prop([Ctx ArrowType]))
-    field(~params, Word, Prop(List(Param)))
-    field(~arrow, Word, Prop(Arrow))
-    field(~prefer-inline?, Word, Bool)
-    field(~cname, Word, Str)
-    field(~inferring-type?, Word, Bool)
+table +Mirth |- Word {
+    doc: Maybe(Str)
+    name: Name
+    arity: Nat
+    head: Token
+    body: Token
+    sig?: Maybe(Token)
+    prefer-inline?: Bool { drop False }
+    inferring-type?: Bool { drop False }
+    word-home-index: Int { drop 0 }
+    cname: Str { qname-hard mangled Str("mw_"; ;) }
+    ~qname: Prop(QName)
+    ~ctx-type: Prop([Ctx ArrowType])
+    ~params: Prop(List(Param))
+    ~arrow: Prop(Arrow)
+    --
 
     def qname-soft [ +Mirth |- Word -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- Word -- QName ] { ~qname force! }
     def namespace-soft [ +Mirth |- Word -- Maybe(Namespace) ] { qname-soft map(namespace) }
     def namespace-hard [ +Mirth |- Word -- Namespace ] { qname-hard namespace }
-    def doc  [ +Mirth |- Word -- Maybe(Str) ] { ~doc @ }
-    def name [ +Mirth |- Word -- Name ] { ~name @ }
-    def head [ +Mirth |- Word -- Token ] { ~head @ }
-    def sig? [ +Mirth |- Word -- Maybe(Token) ] { ~sig? @ }
-    def body [ +Mirth |- Word -- Token ] { ~body @ }
-    def arity [ +Mirth |- Word -- Nat ] { ~arity @ }
     def params [ +Mirth |- Word -- List(Param) ] { ~params dup mut-is-set if(force!, drop List.Nil) }
     def arrow  [ +Mirth |- Word -- Arrow ] { ~arrow force! }
-    def inferring-type? [ Word -- Bool ] {
-        ~inferring-type? @? unwrap(False)
-    }
 
-    def New! [
-        +Mirth |-
-        head:Token
-        sig?:Maybe(Token)
-        body:Token
-        name:Name
-        arity:Nat
-        doc:Maybe(Str)
+    def New! [ +Mirth |-
+        head:Token sig?:Maybe(Token) body:Token
+        name:Name arity:Nat doc:Maybe(Str)
         -- Word
     ] {
-        Word.alloc!
-        doc> over ~doc !
-        name> over ~name !
-        head> over ~head !
-        body> over ~body !
-        arity> over ~arity !
-        sig?> over ~sig? !
+        Word.Make!
         dup Def.Word register
     }
 
@@ -114,23 +95,15 @@ patch Word {
         word>
     }
 
-    def cname [ +Mirth |- Word -- Str ] {
-        dup ~cname memoize(
-            dup qname-hard mangled Str("mw_"; ;)
-        ) nip
-    }
 
     def ctx-type [ +Mirth |- Word -- Ctx ArrowType ] { ~ctx-type force! unpack2 }
     def ctx      [ +Mirth |- Word -- Ctx ] { ctx-type drop }
     def type     [ +Mirth |- Word -- ArrowType ] { ctx-type nip }
 
-    def prefer-inline? [ +Mirth |- Word -- Bool ] { ~prefer-inline? @? unwrap(False) }
-    def make-inline!   [ +Mirth |- Word -- ] { dip:True ~prefer-inline? ! }
+    def make-inline! [ +Mirth |- Word -- ] { dip:True prefer-inline?! }
 
-    def = [ Word Word -- Bool ] { both(index) = }
-    def compare [ Word Word -- Comparison ] { both(index) compare }
-
-    field(word-home-index, Word, Int, drop 0)
+    def = [ +Mirth |- Word Word -- Bool ] { on2:index = }
+    def compare [ +Mirth |- Word Word -- Comparison ] { on2:index compare }
     def increment-word-home-index! [ +Mirth |- Word -- Int ] {
         sip(word-home-index dup 1+) word-home-index!
     }

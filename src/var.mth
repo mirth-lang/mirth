@@ -14,17 +14,19 @@ import mirth.mirth
 #######
 
 # mirth/data/var
-table(Var)
-patch Var {
-    field(~name, Var, Name)
-    field(~type, Var, Type)
-    field(~auto-run?, Var, Maybe(ArrowType)) # run variable by default
+table +Mirth |- Var {
+    ||| Name of the variable.
+    name: Name
 
-    def name [ +Mirth |- Var -- Name ] { ~name @ }
-    def type [ +Mirth |- Var -- Type ] { ~type @ }
-    def auto-run? [ +Mirth |- Var -- Maybe(ArrowType) ] { ~auto-run? @ }
+    ||| Type of the variable. This can be a kind, for type variables.
+    type: Type
 
-    inline def = [ Var Var -- Bool ] { on2:index = }
+    ||| Variable runs automatically when used. This returns the corresponding
+    ||| arrow type, so it's doubling the information in `Var.type` but providing
+    ||| a refined view of it.
+    auto-run?: Maybe(ArrowType)
+    --
+    inline def = [ +Mirth |- Var Var -- Bool ] { on2:index = }
 
     def name; [ +Mirth +Str |- Var -- ] { name name; }
     def type; [ +Mirth +Str |- Var -- ] { name; }
@@ -35,15 +37,17 @@ patch Var {
     def is-physical? [ +Mirth |- Var -- Bool ] { type is-physical? }
 
     def New! [ +Mirth |- Type Name -- Var ] {
-        Var.alloc!
-        tuck ~name !
-        tuck ~type !
-        None over ~auto-run? !
+        >name
+        >type
+        None >auto-run?
+        Var.Make!
     }
 
     def NewAutoRun! [ +Mirth |- ArrowType Name -- Var ] {
-        dip(dup Type.Arrow) Var.New!
-        dip(Some) tuck ~auto-run? !
+        >name
+        dup Type.Arrow >type
+        Some >auto-run?
+        Var.Make!
     }
 
     def NewInCtx [ +Mirth Ctx Type Str -- +Mirth Ctx Var ] {
@@ -87,7 +91,7 @@ def(Ctx.fresh-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
 def(Ctx.fresh-var!, +Mirth Type Ctx -- +Mirth Ctx Var,
     fresh-name! dip(swap) Var.New! sip(Ctx.new))
 
-def(Ctx.=, Ctx Ctx -- Bool,
+def(Ctx.=, +Mirth |- Ctx Ctx -- Bool,
     on2:vars =)
 
 def Var.unify! [ +Mirth Var Var -- +Mirth Type ] {

@@ -13,6 +13,7 @@ import mirth.buffer
 import mirth.table
 import mirth.external
 import mirth.data
+import mirth.typedef
 
 table +Mirth |- Macro {
     head?: Maybe(Token)
