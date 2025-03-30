@@ -23,7 +23,7 @@ data Need {
     TagPattern [ Tag ]
     Label [ Label ]
     --
-    def >Nat [ Need -- Nat ] {
+    def >Nat [ +Mirth |- Need -- Nat ] {
         { Word       -> index 5u *      }
         { Block      -> index 5u * 1u + }
         { TagWord    -> index 5u * 2u + }
@@ -43,24 +43,24 @@ struct +Needs {
     def New [ +Needs ] { List.Nil >stack +Set.Empty >+set +Needs }
     def rdrop [ +Needs -- ] { /+Needs +set> rdrop stack> drop }
 
-    def Need.needed?     [ +Needs |- Need  -- Bool ] { >Nat +set:member? }
-    def Word.needed?     [ +Needs |- Word  -- Bool ] { Need.Word needed? }
-    def Block.needed?    [ +Needs |- Block -- Bool ] { Need.Block needed? }
-    def Tag.word-needed? [ +Needs |- Tag   -- Bool ] { Need.TagWord needed? }
-    def Tag.pat-needed?  [ +Needs |- Tag   -- Bool ] { Need.TagPattern needed? }
-    def Label.needed?    [ +Needs |- Label -- Bool ] { Need.Label needed? }
+    def Need.needed?     [ +Mirth +Needs |- Need  -- Bool ] { >Nat +set:member? }
+    def Word.needed?     [ +Mirth +Needs |- Word  -- Bool ] { Need.Word needed? }
+    def Block.needed?    [ +Mirth +Needs |- Block -- Bool ] { Need.Block needed? }
+    def Tag.word-needed? [ +Mirth +Needs |- Tag   -- Bool ] { Need.TagWord needed? }
+    def Tag.pat-needed?  [ +Mirth +Needs |- Tag   -- Bool ] { Need.TagPattern needed? }
+    def Label.needed?    [ +Mirth +Needs |- Label -- Bool ] { Need.Label needed? }
 
-    def need! [ +Needs |- Need -- ] {
+    def need! [ +Mirth +Needs |- Need -- ] {
         dup needed? if(
             drop,
             dup >Nat +set:insert! stack:List.Cons
         )
     }
-    def need-word!  [ +Needs |- Word -- ] { Need.Word need! }
-    def need-block! [ +Needs |- Block -- ] { Need.Block need! }
-    def need-tag-word! [ +Needs |- Tag -- ] { Need.TagWord need! }
-    def need-tag-pat!  [ +Needs |- Tag -- ] { Need.TagPattern need! }
-    def need-label!    [ +Needs |- Label -- ] { Need.Label need! }
+    def need-word!  [ +Mirth +Needs |- Word -- ] { Need.Word need! }
+    def need-block! [ +Mirth +Needs |- Block -- ] { Need.Block need! }
+    def need-tag-word! [ +Mirth +Needs |- Tag -- ] { Need.TagWord need! }
+    def need-tag-pat!  [ +Mirth +Needs |- Tag -- ] { Need.TagPattern need! }
+    def need-label!    [ +Mirth +Needs |- Label -- ] { Need.Label need! }
 
     def determine-arrow-needs! [ +Mirth +Needs |- Arrow -- ] {
         run-arrow! determine-transitive-needs!

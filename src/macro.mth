@@ -11,31 +11,29 @@ import mirth.def
 import mirth.alias
 import mirth.buffer
 import mirth.table
+import mirth.external
+import mirth.data
 
-table(Macro)
-patch Macro {
-    field(~name, Macro, Name)
-    field(~qname, Macro, Prop(QName))
-    field(~arity, Macro, Int)
-    field(~head, Macro, Token)
-    field(~action, Macro, MacroAction)
-
-    def name       [ +Mirth |- Macro -- Name ] { ~name @ }
+table +Mirth |- Macro {
+    head?: Maybe(Token)
+    name: Name
+    arity: Int
+    action: MacroAction
+    ~qname: Prop(QName)
+    --
     def qname-hard [ +Mirth |- Macro -- QName ] { ~qname force! }
     def qname-soft [ +Mirth |- Macro -- Maybe(QName) ] { ~qname @? bind(ready?) }
-    def arity      [ +Mirth |- Macro -- Int ] { ~arity @ }
-    def head?      [ +Mirth |- Macro -- Maybe(Token) ] { ~head @? }
-    def action     [ +Mirth |- Macro -- MacroAction ] { ~action @ }
 
-    def >Int [ Macro -- Int ] { index >Int }
-    def = [ Macro Macro -- Bool ] { on2:>Int = }
+    def >Int [ +Mirth |- Macro -- Int ] { index >Int }
+    def = [ +Mirth |- Macro Macro -- Bool ] { on2:>Int = }
 
     def Prim [ +Mirth |- Str Int MacroAction -- Macro ] {
-        Macro.alloc! >macro
-        @macro ~action !
-        over >Name @macro ~name !
-        dup  @macro ~arity !
-        QName.Prim @macro PropLabel.MacroQName prop @macro ~qname !
+        >action >arity
+        Name >name
+        None >head?
+        Macro.Make! >macro
+        @macro name >Str @macro arity QName.Prim
+        @macro PropLabel.MacroQName prop @macro ~qname !
         macro>
     }
 }

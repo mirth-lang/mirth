@@ -20,22 +20,27 @@ import mirth.mirth
 # Names #
 #########
 
-table(Name)
-field(Name.~Str, Name, Str)
-field(Name.~defs, Name, List(Def))
-field(Name.~label, Name, Label)
+table +Mirth |- Name {
+    str: Str
+    defs: List(Def) { drop L0 }
+    label: Label { >name Label.Make! }
+    mangled: Str { str zencode }
+    --
+    def >Str  [ +Mirth |- Name -- Str ] { str }
+    def name; [ +Mirth +Str |- Name -- ] { str ; }
+    def mangled; [ +Mirth +Str |- Name -- ] { mangled ; }
+    def = [ +Mirth |- Name Name -- Bool ] { on2:index = }
+    def hash [ +Mirth |- Name -- Hash ] { str Hash.Digest }
 
-def(Name.>Str, +Mirth Name -- +Mirth Str, ~Str @)
-def Name.name; [ +Mirth +Str Name -- +Mirth +Str ] { rdip:>Str ; }
-
-def(Name.defs, +Mirth Name -- +Mirth List(Def), ~defs @)
-
-field(Name.~mangled, Name, Str)
-def Name.mangled  [ +Mirth Name -- +Mirth Str ] { dup ~mangled memoize(dup >Str zencode) nip }
-def Name.mangled; [ +Mirth +Str Name -- +Mirth +Str ] { rdip:mangled ; }
-
-def(Name.=, Name Name -- Bool, both(Name.index) =)
-
+    def Name [ +Mirth |- Str -- Name ] {
+        dup Hash.Digest
+        while(keep-going?, next)
+        dup name@ if?(
+            dip:drop2,
+            dip(>str Name.Make! dup) name!
+        )
+    }
+}
 
 struct +NameHashMap {
     +buffer: +Buffer
@@ -47,14 +52,18 @@ struct +NameHashMap {
         /+NameHashMap +buffer> rdrop
     }
 
-    def name-id@ [ +NameHashMap Hash -- +NameHashMap Int ] {
-        name-index +buffer:@I64 >Int
-    }
-    def name-id! [ +NameHashMap I64 Hash -- +NameHashMap ] {
-        name-index +buffer:!I64
-    }
+    def hashmap-index [ +NameHashMap |- Hash -- Nat ] { >Nat +buffer:size |U64| div mod >Nat-clamp }
+    def name-index@ [ +NameHashMap |- Hash -- U64 ] { hashmap-index +buffer:@U64 }
+    def name-index! [ +NameHashMap |- U64 Hash -- ] { hashmap-index +buffer:!U64 }
 }
 
+patch +Mirth {
+    def search-name [ +Mirth |- Str -- Maybe(Name) ] {
+        dup Hash.Digest
+        while(keep-going?, next)
+        nip name@
+    }
+}
 
 struct Hash {
     U64
@@ -63,65 +72,30 @@ struct Hash {
     inline def >Nat [ Hash -- Nat ] { >U64 >Nat }
     def next [ Hash -- Hash ] { /Hash 1u64 add-wrap Hash }
 
-    def name-index [ Hash -- Nat ] { >U64 >U16-wrap >Nat }
-    def name-offset [ Hash -- Offset ] { name-index |I64| * offset }
-    def name@ [ +Mirth Hash -- +Mirth Maybe(Name) ] {
-        +namehashmap:name-id@
-        dup 0= if(drop None, >TableIndex-clamp Name.from-index Some)
-    }
-    def name! [ +Mirth Name Hash -- +Mirth ] {
-        dip(Name.index >Int >I64-clamp)
-        +namehashmap:name-id!
+    def name@ [ +Mirth |- Hash -- Maybe(Name) ] { +namehashmap:name-index@ if(0=, drop None, Name.from-index Some) }
+    def name! [ +Mirth |- Name Hash -- ] { dip:index +namehashmap:name-index! }
+
+    def keep-going? [ +Mirth Str Hash |- Bool ] {
+        dup name@ if?(str over2 <>, False)
     }
 
-    def keep-going? [ +Mirth Str Hash -- +Mirth Str Hash Bool ] {
-        dup name@ if?(
-            >Str over2 <>,
-            False
+    def Digest [ Str -- Hash ] {
+        0u64 swap bytes-for(
+            >U64 0x100020040101u64 mul-wrap
+            over 7u64 lshift xor
+            swap 29u64 rshift xor
         )
+        Hash
     }
-}
-
-||| Calculate a hash for string.
-def Str.hash [ Str -- Hash ] {
-    0u64 swap bytes-for(
-        >U64 0x100020040101u64 mul-wrap
-        over 7u64 lshift xor
-        swap 29u64 rshift xor
-    )
-    Hash
-}
-
-def Name.hash [ +Mirth Name -- +Mirth Hash ] {
-    >Str hash
-}
-
-def Name.search [ +Mirth Str -- +Mirth Maybe(Name) ] {
-    dup hash
-    while(keep-going?, next)
-    nip name@
-}
-
-def Str.>Name [ +Mirth Str -- +Mirth Name ] {
-    dup hash
-    while(keep-going?, next)
-    dup name@ if?(
-        dip(drop2),
-
-        Name.alloc!
-        tuck swap name!
-        tuck ~Str !
-        L0 over ~defs !
-    )
 }
 
 ||| Add string to name, creating new name.
 def(Name.cat, +Mirth Name Str -- +Mirth Name,
-    dip(>Str) cat >Name)
+    dip:str cat Name)
 
 def(Name.head, +Mirth Name -- +Mirth Byte, >Str dip(0 Offset) byte@)
 def(Name.tail-head, +Mirth Name -- +Mirth Byte, >Str dip(1 Offset) byte@)
-def(Name.tail, +Mirth Name +Unsafe -- +Mirth Name +Unsafe, rdip:>Str dip(1 bytes) drop-bytes rdip:>Name)
+def(Name.tail, +Mirth Name +Unsafe -- +Mirth Name +Unsafe, rdip:>Str dip(1 bytes) drop-bytes Name)
 
 def(Name.can-be-relative?, +Mirth Name -- +Mirth Bool, head is-upper not)
 def(Name.could-be-label-name?, +Mirth Name -- +Mirth Bool, dup head is-lower or(dup head Byte.B'+' = and(dup tail-head is-lower)) nip)
@@ -157,7 +131,7 @@ data Namespace {
     Word [ Word ]
     --
 
-    def =  [ Namespace Namespace -- Bool ] {
+    def =  [ +Mirth |- Namespace Namespace -- Bool ] {
         { Root -> match(Root -> True, _ -> drop False) }
         { Package -> swap match(Package -> swap =, _ -> drop2 False) }
         { Module -> swap match(Module -> swap =, _ -> drop2 False) }
@@ -244,18 +218,18 @@ struct QName {
         >arity >name >namespace QName
     }
 
-    def =  [ QName QName -- Bool ] {
+    def = [ +Mirth |- QName QName -- Bool ] {
         /QName /QName
         name> name> =
         arity> arity> = and
         namespace> namespace> = and
     }
-    def <> [ QName QName -- Bool ] { = not }
-    def <  [ +Mirth QName QName -- +Mirth Bool ] { compare lt? }
-    def <= [ +Mirth QName QName -- +Mirth Bool ] { compare le? }
-    def >  [ +Mirth QName QName -- +Mirth Bool ] { compare gt? }
-    def >= [ +Mirth QName QName -- +Mirth Bool ] { compare ge? }
-    def compare [ +Mirth QName QName -- +Mirth Comparison ] {
+    def <> [ +Mirth |- QName QName -- Bool ] { = not }
+    def <  [ +Mirth |- QName QName -- Bool ] { compare lt? }
+    def <= [ +Mirth |- QName QName -- Bool ] { compare le? }
+    def >  [ +Mirth |- QName QName -- Bool ] { compare gt? }
+    def >= [ +Mirth |- QName QName -- Bool ] { compare ge? }
+    def compare [ +Mirth |- QName QName -- Comparison ] {
         /QName /QName
         arity> arity>
         name> >Str name> >Str
@@ -279,7 +253,7 @@ struct QName {
 
     def Prim [ +Mirth Str Int -- +Mirth QName ] {
         >arity
-        >Name >name
+        Name >name
         Namespace.Prim >namespace
         QName
     }

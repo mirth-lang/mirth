@@ -561,7 +561,7 @@ def +Mirth.def-prim-type! [ +Mirth |- PrimType -- ] {
 }
 
 def +Mirth.def-prim-type-alias! [ +Mirth |- PrimType Str -- ] {
-    >Name over tycon-qname .name! >qname
+    Name over tycon-qname .name! >qname
     Type.Prim >type
     def-type!
 }
@@ -1404,6 +1404,13 @@ data StackTypePart {
         { ConsLabel -> >x ctype? map(@x CTypeStackPart.ConsLabel) x> drop }
         { With -> ctype? map(CTypeStackPart.With) }
         { WithLabel -> >x ctype? map(@x CTypeStackPart.WithLabel) x> drop }
+    }
+
+    def >TagField? [ +Mirth Tag |- StackTypePart -- Maybe(TagField) ] {
+        { Cons -> drop None }
+        { With -> drop None }
+        { ConsLabel -> >label Left  >type/resource dup >tag TagField Some }
+        { WithLabel -> >label Right >type/resource dup >tag TagField Some }
     }
 }
 

@@ -47,7 +47,7 @@ patch Var {
     }
 
     def NewInCtx [ +Mirth Ctx Type Str -- +Mirth Ctx Var ] {
-        >Name Var.New! sip:Ctx.new
+        Name Var.New! sip:Ctx.new
     }
 }
 
@@ -76,9 +76,9 @@ def(Ctx.physically-empty?, +Mirth Ctx -- +Mirth Bool, physical-vars empty?)
 def(Ctx.lookup, +Mirth Name Ctx -- +Mirth Maybe(Var), >List reverse-lookup(name =))
 def(Ctx.len, Ctx -- Nat, >List len)
 def(Ctx.fresh-name!, +Mirth Ctx -- +Mirth Ctx Name,
-    1 "_x1" >Name while-some(
+    1 "_x1" Name while-some(
         dup over3 lookup,
-        drop2 1+ dup str("_x"; int;) >Name
+        drop2 1+ dup str("_x"; int;) Name
     ) nip)
 def(Ctx.fresh-stack-type-var!, +Mirth Ctx -- +Mirth Ctx Var,
     dip(Type.STACK) fresh-var!)

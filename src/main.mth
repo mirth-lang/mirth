@@ -35,7 +35,7 @@ def compile! [ +World +Mirth |- Options -- ] {
 
     rdip:trace("Compiling "; @input-file path;)
     packages> for(
-        unpack2 swap >Name Package.New-Or-Path! drop
+        unpack2 swap Name Package.New-Or-Path! drop
     )
     input-file> run-lexer!
 
@@ -44,7 +44,7 @@ def compile! [ +World +Mirth |- Options -- ] {
     typecheck-everything!
 
     entry-point> map(
-        dip(dup Namespace.Module) >Name 0 QName.Mk
+        dip(dup Namespace.Module) Name 0 QName.Mk
         elab-entry-point
     ) nip
 

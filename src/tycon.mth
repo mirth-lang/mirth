@@ -48,7 +48,7 @@ data Tycon {
         { Prim -> tycon-qname qname; }
     }
 
-    def = [ Tycon Tycon -- Bool ] {
+    def = [ +Mirth |- Tycon Tycon -- Bool ] {
         { Data  -> swap match { Data  -> swap =, _ -> drop2 False } }
         { Table -> swap match { Table -> swap =, _ -> drop2 False } }
         { Prim  -> swap match { Prim  -> swap =, _ -> drop2 False } }

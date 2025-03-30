@@ -52,7 +52,7 @@ data Def {
     def field? { Field -> Some, _ -> drop None }
     def macro? { Macro -> Some, _ -> drop None }
 
-    def =  [ Def Def -- Bool ] {
+    def =  [ +Mirth |- Def Def -- Bool ] {
         { Package -> Some swap package? = }
         { Module -> Some swap module? = }
         { Alias -> Some swap alias? = }
@@ -247,7 +247,7 @@ data Def {
                 Str("Already defined: "; qname;) fatal-error!
             ) drop
         )
-        dup name ~defs modify(cons)
+        dup name sip(defs cons) defs!
     }
 
     def name; [ +Mirth +Str |- Def -- ] {

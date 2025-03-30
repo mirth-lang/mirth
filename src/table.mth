@@ -73,29 +73,24 @@ def +Mirth.resolve-owner [ +Mirth |- Maybe(Token) -- StateOwner ] {
 }
 
 # mirth/data/table
-table(Table)
-patch Table {
-    field(~doc, Table, Maybe(Str))
-    field(~head, Table, Token) # where the table was defined
-    field(~name, Table, Name)
-    field(~qname, Table, Prop(QName))
-    field(~owner, Table, Prop(StateOwner))
-    field(~num-buffer, Table, Buffer)
-    field(~alloc-word, Table, Word)
-    field(~inline-fields, Table, List(Field))
+table +Mirth |- Table {
+    doc: Maybe(Str)
+    head: Token
+    name: Name
+    num-buffer: Buffer
+    inline-fields: List(Field) { drop L0 }
+    ~qname: Prop(QName)
+    ~owner: Prop(StateOwner)
+    ~alloc-word: Word
+    --
 
-    def doc        [ +Mirth |- Table -- Maybe(Str)   ] { ~doc @ }
-    def head       [ +Mirth |- Table -- Token        ] { ~head @ }
     def qname-soft [ +Mirth |- Table -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- Table -- QName        ] { ~qname force! }
     def namespace  [ +Mirth |- Table -- Namespace    ] { qname-hard namespace }
-    def name       [ +Mirth |- Table -- Name         ] { ~name @ }
     def owner      [ +Mirth |- Table -- StateOwner   ] { ~owner force! }
-    def num-buffer [ +Mirth |- Table -- Buffer       ] { ~num-buffer @ }
     def alloc-word [ +Mirth |- Table -- Word         ] { ~alloc-word @ }
-    def inline-fields [ +Mirth |- Table -- List(Field) ] { ~inline-fields @ }
 
-    def = [ Table Table -- Bool ] { on2:index = }
+    def = [ +Mirth |- Table Table -- Bool ] { on2:index = }
     def unify! [ +Mirth |- Table Table -- Type ] {
         dup2 = if(drop >Type, on2:>Type unify-failed!)
     }
@@ -111,21 +106,16 @@ patch Table {
     }
 }
 
-table(Field)
-patch Field {
-    field(~doc, Field, Maybe(Str))
-    field(~head, Field, Token)
-    field(~default, Field, Maybe(Token))
-    field(~name, Field, Name)
-    field(~qname, Field, Prop(QName))
-    field(~owner, Field, Prop(StateOwner))
-    field(~index-type, Field, Prop(Type))
-    field(~value-type, Field, Prop(Type))
-
-    def doc        [ +Mirth |- Field -- Maybe(Str)   ] { ~doc @ }
-    def head       [ +Mirth |- Field -- Token        ] { ~head @ }
-    def default    [ +Mirth |- Field -- Maybe(Token) ] { ~default @ }
-    def name       [ +Mirth |- Field -- Name         ] { ~name @ }
+table +Mirth |- Field {
+    doc: Maybe(Str)
+    head: Token
+    default: Maybe(Token)
+    name: Name
+    ~qname: Prop(QName)
+    ~owner: Prop(StateOwner)
+    ~index-type: Prop(Type)
+    ~value-type: Prop(Type)
+    --
     def qname-soft [ +Mirth |- Field -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- Field -- QName        ] { ~qname force! }
     def namespace  [ +Mirth |- Field -- Namespace    ] { qname-hard namespace }
@@ -133,15 +123,15 @@ patch Field {
     def index-type [ +Mirth |- Field -- Type         ] { ~index-type force! }
     def value-type [ +Mirth |- Field -- Type         ] { ~value-type force! }
 
-    def name;  [ +Mirth +Str |- Field -- ] { rdip:name name; }
-    def qname; [ +Mirth +Str |- Field -- ] { rdip:qname-hard qname; }
+    def name;  [ +Mirth +Str |- Field -- ] { name name; }
+    def qname; [ +Mirth +Str |- Field -- ] { qname-hard qname; }
 
     def basis [ +Mirth |- Field -- StackType ] { T0 swap owner push }
     def dom   [ +Mirth |- Field -- StackType ] { sip(basis) index-type T* }
     def cod   [ +Mirth |- Field -- StackType ] { sip(basis) value-type Type.Mut T* }
     def type  [ +Mirth |- Field -- ArrowType ] { sip(dom) cod T-> }
 
-    def = [ Field Field -- Bool ] { on2:index = }
+    def = [ +Mirth |- Field Field -- Bool ] { on2:index = }
 
     def is-raw? [ +Mirth |- Field -- Bool ] { name could-be-raw-field-name? }
 }
@@ -149,36 +139,33 @@ patch Field {
 
 
 def table-qname [ +Mirth |- Table Str Int -- QName ] {
-    >arity >Name >name Tycon.Table Namespace.Tycon >namespace QName
+    >arity Name >name Tycon.Table Namespace.Tycon >namespace QName
 }
 
 def table-word-new! [ +Mirth |- Table Str Nat doc:Maybe(Str) -- Word ] {
     over2 head dup >head >body None >sig?
-    dup >arity over >Name >name >Int table-qname >qname Word.New!
+    dup >arity over Name >name >Int table-qname >qname Word.New!
     qname> over PropLabel.WordQName prop over ~qname !
 }
 
 def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropState(QName) doc:Maybe(Str) -- Table ] {
-    Table.alloc! >self
+
+    "Holds the number of allocated table elements." Some >doc
+    @head >head
+    "NumBuffer" Name >name
+    8 bytes >size
+    Buffer.Make! >num-buffer
+
+    Table.Make! >self
     @self PropLabel.TableQName >label Prop @self ~qname !
     owner> @self PropLabel.TableOwner prop:resolve-owner @self ~owner !
-    head> @self ~head !
-    name> @self ~name !
-    doc> @self ~doc !
-    L0 @self ~inline-fields !
     @self Def.Table register
 
     # Table.NumBuffer
-    None >doc # TODO
-    @self head >head
-    "NumBuffer" >Name >name
-    8 bytes >size
-    Buffer.New! >buf
-    @buf @self ~num-buffer !
     @self "NumBuffer" 0 table-qname
-    @buf PropLabel.BufferQName prop
-    @buf ~qname !
-    buf> Def.Buffer register
+    @self num-buffer PropLabel.BufferQName prop
+    @self num-buffer ~qname !
+    @self num-buffer Def.Buffer register
 
     # Table.Nil
     "Return Nil, the zero-th element of the table." Some >doc
@@ -225,7 +212,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         @self num-buffer ab-buffer!
         L0 Prim.U64Set ab-prim!
         L0 @self Op.TableFromIndex ab-op!
-    ) drop
+    ) @self ~alloc-word !
 
     # Table.alloc!  # TODO: remove this in favor of Table.Alloc!
     "Allocate a table element, without setting any fields." Some >doc
@@ -246,7 +233,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         @self num-buffer ab-buffer!
         L0 Prim.U64Set ab-prim!
         L0 @self Op.TableFromIndex ab-op!
-    ) @self ~alloc-word !
+    ) drop
 
     # Table.Make!     # TODO: maybe rename to Table.New! eventually
     "Create a table element and supply field values." Some >doc
@@ -257,7 +244,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         @self owner ctx
         T0 @self owner push
         dup @self constructor-fields for(
-            sip:value-type name Label.new! StackType.ConsLabel
+            sip:value-type name Label StackType.ConsLabel
         )
         swap @self Type.Table T*
         T->,
@@ -265,7 +252,7 @@ def table-new! [ +Mirth |- owner:Maybe(Token) head:Token name:Name state:PropSta
         L0 @self alloc-word ab-word!
         @self constructor-fields for(
             L0 Prim.Dup ab-prim!
-            dup name Label.new! ab-label-pop!
+            dup name label ab-label-pop!
             L0 Prim.Swap ab-prim!
             ab-field!
             L0 Prim.MutSet ab-prim!
@@ -466,17 +453,13 @@ def parse-inline-field! [ +Mirth Token |- InlineFieldSyntax ] {
 
 def elab-inline-field! [ +Mirth table:Table |- InlineFieldSyntax -- ] {
     /InlineFieldSyntax
-    Field.alloc! >self
-    doc> @self ~doc !
-    name> @self ~name !
-    head> @self ~head !
-    default> @self ~default !
+    Field.Make! >self
     @table @self name >Str 0 table-qname @self PropLabel.FieldQName prop @self ~qname !
     @table >Type @self PropLabel.FieldIndexType prop @self ~index-type !
     @self value-type> @self PropLabel.FieldValueType prop2(dip(owner ctx) elab-simple-type-atom!) @self ~value-type !
     @table @self PropLabel.FieldOwner prop(owner) @self ~owner !
     prepare-field-defs!
-    self> @table ~inline-fields modify(swap List.Snoc)
+    @table sip(inline-fields self> List.Snoc) inline-fields!
 }
 
 ||| Parse a standalone field definition.
@@ -499,11 +482,7 @@ def parse-field [ +Mirth Token |-
 ||| Elaborate a standalone field definition.
 def elab-field! [ +Mirth Token |- -- ] {
     parse-field elab-def-head
-    Field.alloc! >self
-    doc> @self ~doc !
-    name> @self ~name !
-    head> @self ~head !
-    default> @self ~default !
+    Field.Make! >self
     arity> 0= else(@self head "Field cannot take arguments." emit-error!)
     @self PropLabel.FieldQName >label Prop @self ~qname !
     index-type> @self PropLabel.FieldIndexType prop(dip:Ctx.L0 elab-simple-type-atom!) @self ~index-type !

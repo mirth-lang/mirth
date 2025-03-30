@@ -277,7 +277,7 @@ patch Token {
         dup name? filter(
             could-be-label-name?
             and(dup succ lcolon? >Bool)
-        ) map(Label.new!) nip
+        ) map(label) nip
     }
 
     def pattern-var? [ +Mirth |- Token -- Maybe(Name) ] {

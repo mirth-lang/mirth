@@ -57,7 +57,7 @@ struct Builtin {
     cvoid:      Data  mk-cvoid:      Tag
 }
 
-def Builtin.Alloc! [ -- Builtin ] {
+def Builtin.Alloc! [ +Mirth |- Builtin ] {
     Package.alloc! >std
     Module.alloc! >prim
 
@@ -94,11 +94,12 @@ struct LexicalState {
 struct +Mirth {
     num-errors: Nat
     num-warnings: Nat
-    builtin: Builtin
+    builtin?: Maybe(Builtin)
     mirth-base-path: Maybe(Path)
     package-search-paths: List(Path)
     prefer-inline-defs: Bool
     lexical-state: LexicalState
+    main-home-index: Int
     +diagnostics: +Lister(Diagnostic)
     +propstack: +Lister(PropLabel)
     +namehashmap: +NameHashMap
@@ -107,8 +108,9 @@ struct +Mirth {
     def Init! [ -- +Mirth ] {
         0u >num-errors
         0u >num-warnings
+        0 >main-home-index
         False >prefer-inline-defs
-        Builtin.Alloc! >builtin
+        None >builtin?
         None >mirth-base-path
         L0 >package-search-paths
         +Lister.+Nil >+diagnostics
@@ -118,6 +120,7 @@ struct +Mirth {
         LexicalState >lexical-state
         +NameHashMap.new >+namehashmap
         +Mirth
+        Builtin.Alloc! builtin!
         init-packages!
         init-modules!
         init-types!
@@ -125,12 +128,16 @@ struct +Mirth {
         init-macros!
     }
 
+    def builtin! [ +Mirth |- Builtin -- ] { Some builtin?! }
+    def builtin [ +Mirth |- Builtin ] { builtin? unwrap("[compiler bug] Expected builtins to be available." panic!) }
+
     def quit! [ +Mirth -- ] {
         /+Mirth
         num-errors> drop
         num-warnings> drop
+        main-home-index> drop
         prefer-inline-defs> drop
-        builtin> drop
+        builtin?> drop
         mirth-base-path> drop
         package-search-paths> drop
         lexical-state> drop
@@ -153,6 +160,9 @@ struct +Mirth {
         Diagnostic +diagnostics:push!
     }
 
+    def increment-main-home-index! [ +Mirth |- Int ] {
+        main-home-index(dup 1+)
+    }
 
     def emit-info-at!        [ +Mirth |- Location Str -- ] { Severity.Info    emit-diagnostic-at! }
     def emit-warning-at!     [ +Mirth |- Location Str -- ] { Severity.Warning emit-diagnostic-at! }

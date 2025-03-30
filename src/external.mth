@@ -9,46 +9,147 @@ import mirth.token
 import mirth.name
 import mirth.var
 import mirth.mirth
+import mirth.elab
+import mirth.def
 
-table(External)
-patch External {
-    field(~doc, External, Maybe(Str))
-    field(~name, External, Name)
-    field(~arity, External, Int)
-    field(~qname, External, Prop(QName))
-    field(~symbol, External, Str)
-    field(~head, External, Token)
-    field(~sig, External, Token)
-    field(~ctx-type, External, Prop([Ctx ArrowType]))
-    field(~ctype, External, Prop(CTypeArrow))
+table +Mirth |- External {
+    doc: Maybe(Str)
+    name: Name
+    arity: Int
+    symbol: Str
+    head: Token
+    sig: Token
+    ~qname: Prop(QName)
+    ~ctx-type: Prop([Ctx ArrowType])
+    ~ctype: Prop(CTypeArrow)
+    --
 
-    def doc        [ +Mirth |- External -- Maybe(Str)    ] { ~doc @ }
     def qname-soft [ +Mirth |- External -- Maybe(QName)  ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- External -- QName         ] { ~qname force! }
-    def name       [ +Mirth |- External -- Name          ] { ~name @ }
-    def arity      [ +Mirth |- External -- Int           ] { ~arity @ }
-    def symbol     [ +Mirth |- External -- Str           ] { ~symbol @ }
-    def head       [ +Mirth |- External -- Token         ] { ~head @ }
-    def sig        [ +Mirth |- External -- Token         ] { ~sig @ }
     def ctx-type   [ +Mirth |- External -- Ctx ArrowType ] { ~ctx-type force! unpack2 }
     def ctx        [ +Mirth |- External -- Ctx           ] { ctx-type drop }
     def type       [ +Mirth |- External -- ArrowType     ] { ctx-type nip }
     def ctype      [ +Mirth |- External -- CTypeArrow    ] { ~ctype force! }
 
-    def = [ External External -- Bool ] { both(index) = }
+    def = [ +Mirth |- External External -- Bool ] { on2:index = }
 }
 
-table(ExternalBlock)
-patch ExternalBlock {
-    field(~doc, ExternalBlock, Maybe(Str))
-    field(~token, ExternalBlock, Token)
-    field(~parts, ExternalBlock, List(ExternalBlockPart))
-
-    def doc   [ +Mirth |- ExternalBlock -- Maybe(Str)              ] { ~doc @ }
-    def token [ +Mirth |- ExternalBlock -- Token                   ] { ~token @ }
-    def parts [ +Mirth |- ExternalBlock -- List(ExternalBlockPart) ] { ~parts @ }
+table +Mirth |- ExternalBlock {
+    doc: Maybe(Str)
+    token: Token
+    parts: List(ExternalBlockPart)
 }
 
-data(ExternalBlockPart,
-    EBPCode -> Str,
-    EBPDef -> External)
+data ExternalBlockPart {
+    EBPCode [ Str ]
+    EBPDef  [ External ]
+}
+
+data ExternalDeclPart {
+    EDPCode [ token:Token code:Str ]
+    EDPDef  [ doc:Maybe(Str) head:Token symbol:Maybe(Token) sig:Token ]
+}
+
+||| Parse an external block.
+|||
+|||     external( ExternalPart* )
+|||     external{ ExternalPart* }
+|||     external ExternalPart
+def parse-external-decl [ +Mirth Token |- List(ExternalDeclPart) doc:Maybe(Str) ] {
+    dup doc >doc
+    succ dup num-args 0> or(dup lcurly? >Bool) if(
+        List(
+            succ
+            while(dup rdip:args-end? not,
+                rdip(parse-external-decl-part) ;
+            )
+            succ
+        ),
+
+        parse-external-decl-word L1
+        None >doc
+    )
+}
+
+def parse-external-decl-part [ +Mirth Token |- ExternalDeclPart ] {
+    dup str? if?(
+        >code dup >token
+        succ
+        ExternalDeclPart.EDPCode,
+
+        dup doc >doc
+        parse-external-decl-word
+    )
+    dip(dup comma? then(succ))
+}
+
+def parse-external-decl-word [ +Mirth Token |- doc:Maybe(Str) -- ExternalDeclPart ] {
+    dup >head
+    dup name/dname? else("expected external word name" emit-fatal-error!)
+    succ
+    dup arrow? if(
+        succ dup name? else("expected external symbol name" emit-fatal-error!)
+        dup Some >symbol
+        succ,
+
+        None >symbol
+    )
+    dup lsquare? if(
+        dup args-1 >sig
+        next,
+
+        dup comma? else("expected type signature" emit-fatal-error!)
+        succ
+        dup arg-end? then("expected type signature" emit-fatal-error!)
+        dup >sig
+        next-arg-end
+    )
+    ExternalDeclPart.EDPDef
+}
+
+||| Elaborate an external declaration.
+def elab-external! [ +Mirth Token |- ] {
+    dup >token
+    parse-external-decl
+    map(elab-external-block-part!) >parts
+    ExternalBlock.Make! drop
+}
+
+def elab-external-block-part! [ +Mirth |- ExternalDeclPart -- ExternalBlockPart ] {
+    { EDPCode -> token> drop code> ExternalBlockPart.EBPCode }
+    { EDPDef -> elab-external-def! ExternalBlockPart.EBPDef }
+}
+
+def elab-external-def! [ +Mirth |- doc:Maybe(Str) head:Token symbol:Maybe(Token) sig:Token -- External ] {
+    elab-def-head
+    @symbol( bind(name?) unwrap(@name) >Str )
+    @arity:>Int
+    External.Make! >external
+    @external PropLabel.ExternalQName >label Prop @external ~qname !
+    @external dup PropLabel.ExternalType prop(
+        sig +TypeElab.Start!
+        T0 elab-type-sig! dip:ctx pack2 +TypeElab.rdrop
+    ) @external ~ctx-type !
+    @external dup PropLabel.ExternalCType prop(
+        elab-external-ctype
+    ) @external ~ctype !
+    @external Def.External register
+    external>
+}
+
+def elab-external-ctype [ +Mirth |- External -- CTypeArrow ] {
+    dup head with-error-token(
+        type ctype
+        dup cod parts
+        filter:and(label? not, ctype phantom? not)
+        len 1u > then(
+            "External has too many outputs." error!
+        )
+
+        dup dom parts filter-some(label?)
+        over cod parts filter-some(label?)
+        swap difference for(
+            Str("Output label "; name; " not present in input.";) error!
+        )
+    )
+}

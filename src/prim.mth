@@ -224,8 +224,8 @@ data Prim {
     def >Int [ Prim -- Int ] { enum-value >Int }
     def =  [ Prim Prim -- Bool ] { on2:>Int = }
 
-    def name  [ +Mirth |- Prim -- Name  ] { str >Name }
-    def qname [ +Mirth |- Prim -- QName ] { sip:namespace str-arity dip:>Name QName.Mk }
+    def name  [ +Mirth |- Prim -- Name  ] { str Name }
+    def qname [ +Mirth |- Prim -- QName ] { sip:namespace str-arity dip:Name QName.Mk }
     def namespace [ +Mirth |- Prim -- Namespace ] { _ -> drop Namespace.Prim }
     def register! [ +Mirth |- Prim -- ] { Def.Prim register }
 

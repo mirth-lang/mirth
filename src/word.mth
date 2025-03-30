@@ -75,7 +75,7 @@ patch Word {
         doc:Maybe(Str) head:Token body:Token Str List(Str) -- Word
     ] {
         dup len >arity
-        swap >Name >name
+        swap Name >name
         None >sig?
         Word.New! >word
 
@@ -93,7 +93,7 @@ patch Word {
             reverse map(
                 swap force-cons?! unwrap("[compiler bug] word-new! expected word parameter type in domain." fatal-error!)
                 unpack2 arrow? unwrap("[compiler bug] word-new! expected word parameter type to be an arrow type." fatal-error!)
-                rotl >Name Var.NewAutoRun! >var None >default Param
+                rotl Name Var.NewAutoRun! >var None >default Param
             ) reverse
             nip
         ) @word ~params !
@@ -130,11 +130,8 @@ patch Word {
     def = [ Word Word -- Bool ] { both(index) = }
     def compare [ Word Word -- Comparison ] { both(index) compare }
 
-    field(~num-blocks, Word, Int)
-    def inc-num-blocks! [ +Mirth |- Word -- Int ] {
-        dup ~num-blocks @? match(
-            Some -> tuck 1+ swap ~num-blocks !,
-            None -> 1 swap ~num-blocks ! 0
-        )
+    field(word-home-index, Word, Int, drop 0)
+    def increment-word-home-index! [ +Mirth |- Word -- Int ] {
+        sip(word-home-index dup 1+) word-home-index!
     }
 }

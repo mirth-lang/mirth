@@ -80,6 +80,10 @@ struct Match {
         ))
         filter(is-unit?)
     }
+
+    def free-vars [ +Mirth |- Match -- List(Var) ] {
+        cases map(free-vars) unions
+    }
 }
 
 struct +Match {
@@ -94,7 +98,7 @@ struct +Match {
             cases(swap List.Snoc)
         )
     }
-    def case-redundant? [ +Match |- Case -- Bool ] {
+    def case-redundant? [ +Mirth +Match |- Case -- Bool ] {
         cases member(covers?)
     }
 }
@@ -108,10 +112,14 @@ struct Case {
     def inner-ctx [ Case -- Ctx ] { pattern inner-ctx }
 
     ||| Ask whether the second case covers the first case.
-    def covers? [ Case Case -- Bool ] { on2:pattern covers? }
+    def covers? [ +Mirth |- Case Case -- Bool ] { on2:pattern covers? }
 
     ||| Is this a "default" case?
-    def is-default-case? [ Case -- Bool ] { pattern is-default? }
+    def is-default-case? [ +Mirth |- Case -- Bool ] { pattern is-default? }
+
+    def free-vars [ +Mirth |- Case -- List(Var) ] {
+        body free-vars
+    }
 }
 
 ###########
@@ -136,8 +144,8 @@ struct Pattern {
     def is-default? [ Pattern -- Bool ] { atoms all(op /Underscore) }
 
     ||| Asks whether the second pattern covers the first pattern.
-    def covers? [ Pattern Pattern -- Bool ] {
-        both(atoms single?) zip match(
+    def covers? [ +Mirth |- Pattern Pattern -- Bool ] {
+        on2(atoms single?) zip match(
             None -> False,
             Some -> unpack2 op match(
                 Underscore -> drop True,

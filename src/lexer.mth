@@ -59,8 +59,8 @@ struct +Lexer {
         /+Lexer
         lexer-stack> uncons drop for("Mismatched token." emit-fatal-error!)
         lexer-row> lexer-col> lexer-last-token> drop3
-        lexer-module> Token.alloc-none! over ~end !
-        lexer-first-token> succ over ~start !
+        lexer-module> Token.alloc-none! over end!
+        lexer-first-token> succ over start!
         lexer-doc> drop
         lexer-source> drop
         lexer-offset> drop
@@ -262,7 +262,7 @@ struct +Lexer {
         done? or(peek Byte.BLF =)
     }
 
-    def name-token [ +Mirth +Str +Lexer |- TokenValue ] { dup! >Name TokenValue.Name }
+    def name-token [ +Mirth +Str +Lexer |- TokenValue ] { dup! Name TokenValue.Name }
 
     def label-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         label-push-token?
@@ -275,42 +275,42 @@ struct +Lexer {
 
     def label-pop-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte is-lower and(last-byte Byte.B'>' =) if(
-            unsafe:drop-last-byte >Name Label.new! TokenValue.LabelPop Some,
+            unsafe:drop-last-byte Name Label TokenValue.LabelPop Some,
             None
         )
     }
 
     def label-pop-r-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'+' = and(second-byte is-lower and(last-byte Byte.B'>' =)) if(
-            unsafe:drop-last-byte >Name Label.new! TokenValue.LabelPopR Some,
+            unsafe:drop-last-byte Name Label TokenValue.LabelPopR Some,
             None
         )
     }
 
     def label-push-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'>' = and(second-byte is-lower) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelPush Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelPush Some,
             None
         )
     }
 
     def label-push-r-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         unsafe:first-two-bytes ">+" = and(third-byte is-lower) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelPushR Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelPushR Some,
             None
         )
     }
 
     def label-get-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'@' = and(second-byte is-lower or(second-byte Byte.B'+' = and(third-byte is-lower))) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelGet Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelGet Some,
             None
         )
     }
 
     def label-set-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'!' = and(second-byte is-lower or(second-byte Byte.B'+' = and(third-byte is-lower))) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelSet Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelSet Some,
             None
         )
     }
@@ -320,8 +320,8 @@ struct +Lexer {
         uncons >Nest? match {
             { None -> drop None }
             { Some ->
-                dip(dup Str.empty? if(drop None, >Name Some))
-                map(>Name) DName TokenValue.DName Some
+                dip(dup Str.empty? if(drop None, Name Some))
+                map(Name) DName TokenValue.DName Some
             }
         }
     }

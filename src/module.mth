@@ -13,34 +13,24 @@ import mirth.mirth
 import mirth.def
 
 # mirth/data/module
-table(Module)
-patch Module {
-    field(~doc, Module, Maybe(Str))
-    field(~package, Module, Package)
-    field(~name, Module, Name)
-    field(~path, Module, Path)
-    field(~start, Module, Token)
-    field(~head, Module, Token)
-    field(~end, Module, Token)
-    field(~imports, Module, List(Module))
-
-    def package [ +Mirth |- Module -- Package      ] { ~package @ }
-    def name    [ +Mirth |- Module -- Name         ] { ~name @ }
-    def qname   [ +Mirth |- Module -- QName        ] { sip(package Namespace.Package) name 0 QName.Mk }
-    def path    [ +Mirth |- Module -- Path         ] { ~path @ }
-    def start   [ +Mirth |- Module -- Token        ] { ~start @ }
-    def head    [ +Mirth |- Module -- Token        ] { ~head @ }
-    def end     [ +Mirth |- Module -- Token        ] { ~end @ }
-    def imports [ +Mirth |- Module -- List(Module) ] { ~imports @ }
-
-    def = [ Module Module -- Bool ] { both(index) = }
+table +Mirth |- Module {
+    doc: Maybe(Str)
+    package: Package
+    name: Name
+    path: Path
+    start: Token
+    head: Token
+    end: Token
+    imports: List(Module)
+    --
+    def qname [ +Mirth |- Module -- QName ] { sip(package Namespace.Package) name 0 QName.Mk }
+    def = [ +Mirth |- Module Module -- Bool ] { on2:index = }
 
     def Prim [ +Mirth |- Module ] { builtin prim }
-
     def New! [ +Mirth |- Path -- Module ] {
-        Module.alloc!
-        Module.Prim L1 over ~imports !
-        tuck ~path !
+        Module.Alloc!
+        Module.Prim L1 over imports!
+        tuck path!
     }
 
     ||| Get source path associated with module.
@@ -55,10 +45,10 @@ patch Module {
 
 def +Mirth.init-modules! [ +Mirth |- ] {
     builtin prim
-    L0 over ~imports !
-    "<prim>" >Path over ~path !
-    Package.Std over ~package !
-    "prim" >Name over ~name !
-    None over ~doc !
+    L0 over imports!
+    "<prim>" >Path over path!
+    Package.Std over package!
+    "prim" Name over name!
+    None over doc!
     Def.Module register
 }
