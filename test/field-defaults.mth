@@ -4,13 +4,13 @@ import std.prelude
 import std.world
 
 table(Foo)
-field(Foo.num, Foo, Int, index >Int)
+field(Foo.num, Foo, Int, @self index >Int)
 
 data Bar { 1 Bar1 2 Bar2 }
-field(Bar.num, Bar, Int, enum-value >Int)
+field(Bar.num, Bar, Int, @self enum-value >Int)
 
 table(+World |- Baz)
-field(Baz.num, Baz, Int, index >Int dup print("calculating baz num default = "; int;))
+field(Baz.num, Baz, Int, @self index >Int dup print("calculating baz num default = "; int;))
 
 def main {
     Foo.Alloc! >foo1
