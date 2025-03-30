@@ -51,6 +51,7 @@ data TokenValue {
     LabelPushR [ Label ]
     LabelGet   [ Label ]
     LabelSet   [ Label ]
+    LabelLam   [ Label ]
     --
     def none?  [ TokenValue -- Bool ] { None  -> True, _ -> drop False }
     def comma? [ TokenValue -- Bool ] { Comma -> True, _ -> drop False }

@@ -268,6 +268,7 @@ struct +Lexer {
         or?(label-pop-r-token?)
         or?(label-get-token?)
         or?(label-set-token?)
+        or?(label-lam-token?)
     }
 
     def label-pop-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
@@ -308,6 +309,13 @@ struct +Lexer {
     def label-set-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'!' = and(second-byte is-lower or(second-byte Byte.B'+' = and(third-byte is-lower))) if(
             unsafe:drop-first-byte Name Label TokenValue.LabelSet Some,
+            None
+        )
+    }
+
+    def label-lam-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
+        first-byte Byte.B'\' = and(second-byte is-lower) if(
+            unsafe:drop-first-byte Name Label TokenValue.LabelLam Some,
             None
         )
     }
