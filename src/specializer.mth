@@ -79,10 +79,10 @@ struct +SPCheck {
         }
     }
 
-    def check-arg! [ +SPCheck |- Arg -- ] {
+    def check-arg! [ +Mirth +SPCheck |- Arg -- ] {
         { Block -> push-check-block! }
     }
-    def check-prim-atom! [ +SPCheck |- Atom Prim -- List(Atom) ] {
+    def check-prim-atom! [ +Mirth +SPCheck |- Atom Prim -- List(Atom) ] {
         drop dup args for(check-arg!) L1
     }
 
@@ -113,14 +113,14 @@ struct +SPCheck {
     def check-case!   [ +Mirth +SPCheck Case   |- ] { body:check-arrow! }
     def check-lambda! [ +Mirth +SPCheck Lambda |- ] { body:check-arrow! }
 
-    def push-check-word!  [ +SPCheck |- Word  -- ] { SPCheckItem.Word  push-check-item! }
-    def push-check-block! [ +SPCheck |- Block -- ] { SPCheckItem.Block push-check-item! }
-    def push-check-item!  [ +SPCheck |- SPCheckItem -- ] {
+    def push-check-word!  [ +Mirth +SPCheck |- Word  -- ] { SPCheckItem.Word  push-check-item! }
+    def push-check-block! [ +Mirth +SPCheck |- Block -- ] { SPCheckItem.Block push-check-item! }
+    def push-check-item!  [ +Mirth +SPCheck |- SPCheckItem -- ] {
         dup checked! if(drop, checklist:cons)
     }
 
     ||| Mark item as checked, return whether item was already checked once.
-    def checked! [ +SPCheck |- SPCheckItem -- Bool ] {
+    def checked! [ +Mirth +SPCheck |- SPCheckItem -- Bool ] {
         match {
             { Word  -> ~sp-checked }
             { Block -> ~sp-checked }
@@ -178,7 +178,7 @@ def Op.similar [ +Mirth |- Op Op -- Bool ] {
     { TableFromIndex -> swap match { TableFromIndex -> =, _ -> drop2 False }}
 }
 
-def TagField.similar [ TagField TagField -- Bool ] {
+def TagField.similar [ +Mirth |- TagField TagField -- Bool ] {
     /TagField /TagField
     label> label> =
     tag> tag> = and
@@ -194,7 +194,7 @@ struct SPKey {
         # /SPKey "(" ; dip:"" for(dip:; mangled; ",") drop ")" ;
     }
     def >Str [ +Mirth |- SPKey -- Str ] { Str(args;) }
-    def >Name [ +Mirth |- SPKey -- Name ] { >Str >Name }
+    def name [ +Mirth |- SPKey -- Name ] { >Str Name }
 }
 
 field(Word.~sp-synthed, Word, Map(SPKey,Word))
@@ -208,15 +208,17 @@ def specialize-word! [ +Mirth |- SPKey Word -- Word ] {
     >word >key
     @key @word sp-synthed lookup(similar) match(
         Some ->
-            # This specialization has already been done. So inline this
-            # specialization only if the word was marked as inline.
-            @word prefer-inline? over ~prefer-inline? !,
+            # This specialization has already been done before, meaning there is more
+            # than one use of this h.o. word with these arguments. So in general we
+            # no longer wish to inline this word ... unless it was marked
+            # explicitly as inline.
+            @word prefer-inline? over prefer-inline?!,
         None ->
             # This word has not been specialized with these arguments before.
             @word head >head
             None >sig?
             @word body >body
-            @word sp-synthed len 1+ str("sp"; int;) >Name >name
+            @word sp-synthed len 1+ str("sp"; int;) Name >name
             0u >arity
             @word doc >doc
             Word.New! >word'
@@ -234,7 +236,7 @@ def specialize-word! [ +Mirth |- SPKey Word -- Word ] {
                 arrow ctx-type pack2
             ) @word' ~ctx-type !
             # True @word' ~inferring-type? !
-            True @word' ~prefer-inline? !
+            True @word' prefer-inline?!
             @key @word @word' dup PropLabel.WordArrow prop3(ab-build-word-arrow!(dip(
                 synth-specialized-word!
             ))) @word' ~arrow !

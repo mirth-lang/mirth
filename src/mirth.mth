@@ -57,31 +57,31 @@ struct Builtin {
     cvoid:      Data  mk-cvoid:      Tag
 }
 
-def Builtin.Alloc! [ -- Builtin ] {
-    Package.alloc! >std
-    Module.alloc! >prim
+def Builtin.Alloc! [ +Mirth |- Builtin ] {
+    Package.Alloc! >std
+    Module.Alloc! >prim
 
-    Data.alloc! >cchar       Tag.alloc! >mk-cchar
-    Data.alloc! >cichar      Tag.alloc! >mk-cichar
-    Data.alloc! >cshort      Tag.alloc! >mk-cshort
-    Data.alloc! >cint        Tag.alloc! >mk-cint
-    Data.alloc! >clong       Tag.alloc! >mk-clong
-    Data.alloc! >clonglong   Tag.alloc! >mk-clonglong
-    Data.alloc! >cisize      Tag.alloc! >mk-cisize
-    Data.alloc! >cintptr     Tag.alloc! >mk-cintptr
-    Data.alloc! >cuchar      Tag.alloc! >mk-cuchar
-    Data.alloc! >cushort     Tag.alloc! >mk-cushort
-    Data.alloc! >cuint       Tag.alloc! >mk-cuint
-    Data.alloc! >culong      Tag.alloc! >mk-culong
-    Data.alloc! >culonglong  Tag.alloc! >mk-culonglong
-    Data.alloc! >cusize      Tag.alloc! >mk-cusize
-    Data.alloc! >cuintptr    Tag.alloc! >mk-cuintptr
+    Data.Alloc! >cchar       Tag.Alloc! >mk-cchar
+    Data.Alloc! >cichar      Tag.Alloc! >mk-cichar
+    Data.Alloc! >cshort      Tag.Alloc! >mk-cshort
+    Data.Alloc! >cint        Tag.Alloc! >mk-cint
+    Data.Alloc! >clong       Tag.Alloc! >mk-clong
+    Data.Alloc! >clonglong   Tag.Alloc! >mk-clonglong
+    Data.Alloc! >cisize      Tag.Alloc! >mk-cisize
+    Data.Alloc! >cintptr     Tag.Alloc! >mk-cintptr
+    Data.Alloc! >cuchar      Tag.Alloc! >mk-cuchar
+    Data.Alloc! >cushort     Tag.Alloc! >mk-cushort
+    Data.Alloc! >cuint       Tag.Alloc! >mk-cuint
+    Data.Alloc! >culong      Tag.Alloc! >mk-culong
+    Data.Alloc! >culonglong  Tag.Alloc! >mk-culonglong
+    Data.Alloc! >cusize      Tag.Alloc! >mk-cusize
+    Data.Alloc! >cuintptr    Tag.Alloc! >mk-cuintptr
 
-    Data.alloc! >cptr        Tag.alloc! >mk-cptr
-    Data.alloc! >cconst      Tag.alloc! >mk-cconst
-    Data.alloc! >crestrict   Tag.alloc! >mk-crestrict
-    Data.alloc! >cvolatile   Tag.alloc! >mk-cvolatile
-    Data.alloc! >cvoid       Tag.alloc! >mk-cvoid
+    Data.Alloc! >cptr        Tag.Alloc! >mk-cptr
+    Data.Alloc! >cconst      Tag.Alloc! >mk-cconst
+    Data.Alloc! >crestrict   Tag.Alloc! >mk-crestrict
+    Data.Alloc! >cvolatile   Tag.Alloc! >mk-cvolatile
+    Data.Alloc! >cvoid       Tag.Alloc! >mk-cvoid
 
     Builtin
 }
@@ -94,11 +94,12 @@ struct LexicalState {
 struct +Mirth {
     num-errors: Nat
     num-warnings: Nat
-    builtin: Builtin
+    builtin?: Maybe(Builtin)
     mirth-base-path: Maybe(Path)
     package-search-paths: List(Path)
     prefer-inline-defs: Bool
     lexical-state: LexicalState
+    main-home-index: Int
     +diagnostics: +Lister(Diagnostic)
     +propstack: +Lister(PropLabel)
     +namehashmap: +NameHashMap
@@ -107,8 +108,9 @@ struct +Mirth {
     def Init! [ -- +Mirth ] {
         0u >num-errors
         0u >num-warnings
+        0 >main-home-index
         False >prefer-inline-defs
-        Builtin.Alloc! >builtin
+        None >builtin?
         None >mirth-base-path
         L0 >package-search-paths
         +Lister.+Nil >+diagnostics
@@ -118,6 +120,7 @@ struct +Mirth {
         LexicalState >lexical-state
         +NameHashMap.new >+namehashmap
         +Mirth
+        Builtin.Alloc! builtin!
         init-packages!
         init-modules!
         init-types!
@@ -125,12 +128,16 @@ struct +Mirth {
         init-macros!
     }
 
+    def builtin! [ +Mirth |- Builtin -- ] { Some builtin?! }
+    def builtin [ +Mirth |- Builtin ] { builtin? unwrap("[compiler bug] Expected builtins to be available." panic!) }
+
     def quit! [ +Mirth -- ] {
         /+Mirth
         num-errors> drop
         num-warnings> drop
+        main-home-index> drop
         prefer-inline-defs> drop
-        builtin> drop
+        builtin?> drop
         mirth-base-path> drop
         package-search-paths> drop
         lexical-state> drop
@@ -153,6 +160,9 @@ struct +Mirth {
         Diagnostic +diagnostics:push!
     }
 
+    def increment-main-home-index! [ +Mirth |- Int ] {
+        main-home-index(dup 1+)
+    }
 
     def emit-info-at!        [ +Mirth |- Location Str -- ] { Severity.Info    emit-diagnostic-at! }
     def emit-warning-at!     [ +Mirth |- Location Str -- ] { Severity.Warning emit-diagnostic-at! }

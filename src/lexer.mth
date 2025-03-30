@@ -59,8 +59,8 @@ struct +Lexer {
         /+Lexer
         lexer-stack> uncons drop for("Mismatched token." emit-fatal-error!)
         lexer-row> lexer-col> lexer-last-token> drop3
-        lexer-module> Token.alloc-none! over ~end !
-        lexer-first-token> succ over ~start !
+        lexer-module> Token.alloc-none! over end!
+        lexer-first-token> succ over start!
         lexer-doc> drop
         lexer-source> drop
         lexer-offset> drop
@@ -82,26 +82,26 @@ struct +Lexer {
     def newline! [ +Lexer |- ] { 0 Col lexer-col! lexer-row:1+ }
 
     ||| Create a token at the current location with the given payload.
-    def make! [ +Lexer |- TokenValue -- Token ] {
-        Token.alloc!
-        tuck ~value !
-        lexer-module over ~module !
-        lexer-row over ~row !
-        lexer-col over ~col !
-        lexer-doc over ~doc !
+    def make! [ +Mirth +Lexer |- TokenValue -- Token ] {
+        >value
+        lexer-row >row
+        lexer-col >col
+        lexer-doc >doc
+        lexer-module >module
+        Token.Make!
         None lexer-doc!
         dup lexer-last-token!
     }
 
     ||| Create a token at the current location, and then build the payload (while consuming characters).
-    def make!(f) [ +Lexer |- ( *a -- *b TokenValue ) *a -- *b Token ] {
+    def make!(f) [ +Mirth +Lexer |- ( *a -- *b TokenValue ) *a -- *b Token ] {
         TokenValue.None make!
         dip:f
-        tuck ~value !
+        tuck value!
     }
 
     ||| Emit a token at the current location with the given payload. Same as make! but drops the token.
-    def emit! [ +Lexer |- TokenValue -- ] { make! drop }
+    def emit! [ +Mirth +Lexer |- TokenValue -- ] { make! drop }
 
     ||| Create a token at the current location, then build the payload. Same as make!(f) but drops the token.
     def emit!(f) { make!(f) drop }
@@ -139,7 +139,7 @@ struct +Lexer {
             stack-peek filter(lcolon-open?),
             stack-drop
             dup TokenValue.RColon make!
-            TokenValue.LColon swap ~value !
+            TokenValue.LColon swap value!
         )
     }
 
@@ -150,30 +150,30 @@ struct +Lexer {
         lexer-last-token can-take-args? else(close-colons!)
     }
 
-    def emit-lcolon!  [ +Lexer |- ] { TokenValue.LColonOpen  make! stack-push! }
-    def emit-lparen!  [ +Lexer |- ] { TokenValue.LParenOpen  make! stack-push! }
-    def emit-lcurly!  [ +Lexer |- ] { TokenValue.LCurlyOpen  make! stack-push! }
-    def emit-lsquare! [ +Lexer |- ] { TokenValue.LSquareOpen make! stack-push! }
+    def emit-lcolon!  [ +Mirth +Lexer |- ] { TokenValue.LColonOpen  make! stack-push! }
+    def emit-lparen!  [ +Mirth +Lexer |- ] { TokenValue.LParenOpen  make! stack-push! }
+    def emit-lcurly!  [ +Mirth +Lexer |- ] { TokenValue.LCurlyOpen  make! stack-push! }
+    def emit-lsquare! [ +Mirth +Lexer |- ] { TokenValue.LSquareOpen make! stack-push! }
 
     def emit-rparen! [ +Mirth +Lexer |- ] {
         stack-pop! filter(value lparen-open?)
         unwrap("Mismatched right parenthesis." lexer-fatal-error!)
         dup TokenValue.RParen make!
-        TokenValue.LParen swap ~value !
+        TokenValue.LParen swap value!
     }
 
     def emit-rcurly! [ +Mirth +Lexer |- ] {
         stack-pop! filter(value lcurly-open?)
         unwrap("Mismatched right curly brace." lexer-fatal-error!)
         dup TokenValue.RCurly make!
-        TokenValue.LCurly swap ~value !
+        TokenValue.LCurly swap value!
     }
 
     def emit-rsquare! [ +Mirth +Lexer |- ] {
         stack-pop! filter(value lsquare-open?)
         unwrap("Mismatched right square bracket." lexer-fatal-error!)
         dup TokenValue.RSquare make!
-        TokenValue.LSquare swap ~value !
+        TokenValue.LSquare swap value!
     }
 
     def emit-name! [ +Mirth +Lexer |- ] {
@@ -192,10 +192,11 @@ struct +Lexer {
                 drop3
                 skip-doc!,
 
-                Token.alloc!
-                tuck ~col !
-                tuck ~row !
-                tuck ~module !
+                >col >row >module
+                lexer-doc >doc
+                TokenValue.None >value
+                Token.Make!
+                None lexer-doc!
 
                 float-token? map(Ok)
                 or?(int-token?)
@@ -203,12 +204,8 @@ struct +Lexer {
                 or?(label-token? map(Ok))
                 else?(name-token Ok)
                 else(emit-fatal-error!)
-                over ~value !
-
-                lexer-doc over ~doc !
-
+                over value!
                 lexer-last-token!
-                None lexer-doc!
             )
         ) drop
     }
@@ -262,7 +259,7 @@ struct +Lexer {
         done? or(peek Byte.BLF =)
     }
 
-    def name-token [ +Mirth +Str +Lexer |- TokenValue ] { dup! >Name TokenValue.Name }
+    def name-token [ +Mirth +Str +Lexer |- TokenValue ] { dup! Name TokenValue.Name }
 
     def label-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         label-push-token?
@@ -275,42 +272,42 @@ struct +Lexer {
 
     def label-pop-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte is-lower and(last-byte Byte.B'>' =) if(
-            unsafe:drop-last-byte >Name Label.new! TokenValue.LabelPop Some,
+            unsafe:drop-last-byte Name Label TokenValue.LabelPop Some,
             None
         )
     }
 
     def label-pop-r-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'+' = and(second-byte is-lower and(last-byte Byte.B'>' =)) if(
-            unsafe:drop-last-byte >Name Label.new! TokenValue.LabelPopR Some,
+            unsafe:drop-last-byte Name Label TokenValue.LabelPopR Some,
             None
         )
     }
 
     def label-push-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'>' = and(second-byte is-lower) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelPush Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelPush Some,
             None
         )
     }
 
     def label-push-r-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         unsafe:first-two-bytes ">+" = and(third-byte is-lower) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelPushR Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelPushR Some,
             None
         )
     }
 
     def label-get-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'@' = and(second-byte is-lower or(second-byte Byte.B'+' = and(third-byte is-lower))) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelGet Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelGet Some,
             None
         )
     }
 
     def label-set-token? [ +Mirth +Str +Lexer |- Maybe(TokenValue) ] {
         first-byte Byte.B'!' = and(second-byte is-lower or(second-byte Byte.B'+' = and(third-byte is-lower))) if(
-            unsafe:drop-first-byte >Name Label.new! TokenValue.LabelSet Some,
+            unsafe:drop-first-byte Name Label TokenValue.LabelSet Some,
             None
         )
     }
@@ -320,8 +317,8 @@ struct +Lexer {
         uncons >Nest? match {
             { None -> drop None }
             { Some ->
-                dip(dup Str.empty? if(drop None, >Name Some))
-                map(>Name) DName TokenValue.DName Some
+                dip(dup Str.empty? if(drop None, Name Some))
+                map(Name) DName TokenValue.DName Some
             }
         }
     }

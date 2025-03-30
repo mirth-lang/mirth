@@ -10,28 +10,17 @@ import mirth.mirth
 import mirth.elab
 
 # mirth/data/buffer
-table Buffer
-patch Buffer {
-    field(~doc, Buffer, Maybe(Str))
-    field(~head, Buffer, Token)
-    field(~size, Buffer, Size)
-    field(~name, Buffer, Name)
-    field(~qname, Buffer, Prop(QName))
-
-    def head [ +Mirth |- Buffer -- Token ] { ~head @ }
-    def size [ +Mirth |- Buffer -- Size ] { ~size @ }
-    def name [ +Mirth |- Buffer -- Name ] { ~name @ }
+table +Mirth |- Buffer {
+    doc: Maybe(Str)
+    head: Token
+    size: Size
+    name: Name
+    ~qname: Prop(QName)
+    --
     def qname-soft [ +Mirth |- Buffer -- Maybe(QName) ] { ~qname try-force! }
     def qname-hard [ +Mirth |- Buffer -- QName ] { ~qname force! }
-
-    def = [ Buffer Buffer -- Bool ] { both(index) = }
-
-    def New! [ +Mirth |- head:Token size:Size name:Name doc:Maybe(Str) -- Buffer ] {
-        Buffer.alloc!
-        doc> over ~doc !
-        size> over ~size !
-        name> over ~name !
-        head> over ~head !
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Buffer Buffer -- Bool ] { on2:index = }
     }
 }
 
@@ -62,7 +51,7 @@ def parse-buffer [ +Mirth Token |- head:Token doc:Maybe(Str) size:Size ] {
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def elab-buffer! [ +Mirth Token |- ] {
     parse-buffer elab-def-head arity> drop
-    Buffer.New! >buffer
+    Buffer.Make! >buffer
     @buffer PropLabel.BufferQName >label Prop @buffer ~qname !
     buffer> Def.Buffer register
 }

@@ -129,8 +129,7 @@ data Arch {
         def Max [ Arch ] { 3i64 >EnumValue Arch.from-enum-value-unsafe }
         def +World.running-arch [ +World -- +World Arch ] { prim-sys-arch >Arch }
         def >Int [ Arch -- Int ] { enum-value >Int }
-        def =  [ Arch Arch -- Bool ] { on2:>Int = }
-        def <> [ Arch Arch -- Bool ] { on2:>Int <> }
+        def = [ Arch Arch -- Bool ] { on2:>Int = }
     }
     def I64.>Arch [ I64 -- Arch ] { >Int >Arch }
     def Int.>Arch [ Int -- Arch ] {
@@ -543,3 +542,11 @@ def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     f if(id, g panic!))
 def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     expect!(f,g "assertion failed: " swap prim-str-cat))
+
+
+max-mirth-revision 2025_03_29_999 {
+    def(field-self, t -- t, id)
+}
+min-mirth-revision 2025_03_30_001 {
+    def(field-self, self:t |- t, @self)
+}

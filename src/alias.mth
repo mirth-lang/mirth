@@ -10,30 +10,23 @@ import mirth.name
 import mirth.def
 import mirth.elab
 
-table(Alias)
-field(Alias.~doc, Alias, Maybe(Str))
-field(Alias.~head, Alias, Token)
-field(Alias.~name, Alias, Name)
-field(Alias.~arity, Alias, Int)
-field(Alias.~qname, Alias, Prop(QName))
-field(Alias.~target, Alias, Prop(Def))
+table +Mirth |- Alias {
+    doc: Maybe(Str)
+    head: Token
+    name: Name
+    arity: Int
+    ~qname: Prop(QName)
+    ~target: Prop(Def)
+    --
+    def qname-soft [ +Mirth |- Alias -- Maybe(QName) ] { ~qname @? bind:ready? }
+    def qname-hard [ +Mirth |- Alias -- QName ] { ~qname force! }
+    def namespace  [ +Mirth |- Alias -- Namespace ] { qname-hard namespace}
+    def target [ +Mirth |- Alias -- Def ] { ~target force! }
 
-def Alias.head [ +Mirth |- Alias -- Token ] { ~head @ }
-def Alias.qname-soft [ +Mirth |- Alias -- Maybe(QName) ] { ~qname @? bind:ready? }
-def Alias.qname-hard [ +Mirth |- Alias -- QName ] { ~qname force! }
-def Alias.namespace-hard [ +Mirth |- Alias -- Namespace ] { qname-hard namespace }
-def Alias.name [ +Mirth |- Alias -- Name ] { ~name @ }
-def Alias.arity [ +Mirth |- Alias -- Int ] { ~arity @ }
-def Alias.target [ +Mirth |- Alias -- Def ] { ~target force! }
-
-def Alias.= [ Alias Alias -- Bool ] { both(index) = }
-def Alias.new! [ +Mirth |- head:Token name:Name arity:Int doc:Maybe(Str) -- Alias ] {
-    Alias.alloc!
-    doc> over ~doc !
-    name> over ~name !
-    head> over ~head !
-    arity> over ~arity !
-    dup Def.Alias register
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Alias Alias -- Bool ] { on2:index = }
+    }
+    def register! [ +Mirth |- Alias -- ] { Def.Alias register }
 }
 
 ||| Parse an alias declaration:
@@ -62,7 +55,8 @@ def parse-alias [ +Mirth Token |- head:Token target:Token name/dname:Name/DName 
 
 ||| Elaborate an alias declaration.
 def elab-alias! [ +Mirth Token |- ] {
-    parse-alias elab-def-head @arity:>Int Alias.new!
+    parse-alias elab-def-head @arity:>Int Alias.Make!
+    dup register!
     dup PropLabel.AliasQName >label Prop over ~qname !
 
     name/dname> target> over2 dup PropLabel.AliasTarget prop3(

@@ -5,7 +5,7 @@ import std.world
 
 table Foo1
 table Foo2 { num: Int }
-table Foo3 { num: Int { index >Int } }
+table Foo3 { num: Int { @self index >Int } }
 table Foo4 {
     num: Int
     num2: Int

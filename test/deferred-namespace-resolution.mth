@@ -22,13 +22,13 @@ def-type(MyTable.MySelf, MyTable)
 # We can use those words. Note the body is deferred as usual.
 def(foo, MyTable.MySelf --, drop)
 def(main, --,
-    MyTable.alloc! test-ok drop
-    MyTable.alloc! 10 over my-field! my-drop
+    MyTable.Alloc! test-ok drop
+    MyTable.Alloc! 10 over my-field! my-drop
     MyTable.this drop
-    MyTable.YourTable.alloc! drop
+    MyTable.YourTable.Alloc! drop
     20 MyData.MyTag drop
     30 MyTable.MyData.MyTag drop
-    MyTable.Alias.alloc! drop
+    MyTable.Alias.Alloc! drop
     MyTable.MySelf.this drop
     42 >CInt MyTable.my-exit)
 

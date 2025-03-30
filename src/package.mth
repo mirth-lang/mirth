@@ -10,17 +10,12 @@ import mirth.name
 import mirth.def
 import mirth.mirth
 
-table(Package)
-patch Package {
-    field(~name, Package, Name)
-    field(~path, Package, Maybe(Path))
-
-    def name  [ +Mirth |- Package -- Name  ] { ~name @ }
+table +Mirth |- Package {
+    name: Name
+    path: Maybe(Path)
+    --
     def qname [ +Mirth |- Package -- QName ] { Namespace.Root swap name 0 QName.Mk }
-    def path  [ +Mirth |- Package -- Maybe(Path) ] { ~path @ }
-
-    def name; [ +Mirth +Str |- Package -- ] { rdip:name name; }
-
+    def name; [ +Mirth +Str |- Package -- ] { name name; }
     def Std [ +Mirth |- Package ] { builtin std }
 
     def path-or-search [ +World +Mirth |- Package -- Maybe(Path) ] {
@@ -30,12 +25,12 @@ patch Package {
                 package-search-paths
                 map(over name >Str >Path rdip:join)
                 find(rdip:is-directory?)
-                tuck swap ~path !
+                tuck swap path!
             }
         )
     }
 
-    def path! [ +Mirth |- Path Package -- ] {
+    def try-path! [ +Mirth |- Path Package -- ] {
         tuck path match(
             Some ->
                 dup2 = if(
@@ -49,20 +44,19 @@ patch Package {
                     ) fatal-error!
                 ),
             None ->
-                Some swap ~path !
+                Some swap path!
         )
     }
 
     def New! [ +Mirth |- Maybe(Path) Name -- Package ] {
-        Package.alloc!
-        tuck ~name !
-        tuck ~path !
+        >name >path
+        Package.Make!
         dup Def.Package register
     }
 
     def New-Or-Path! [ +Mirth |- Path Name -- Package ] {
         dup Package.Find? match {
-            { Some -> nip tuck path! }
+            { Some -> nip tuck try-path! }
             { None -> dip(Some) Package.New! }
         }
     }
@@ -75,14 +69,14 @@ patch Package {
         dup Package.Find? unwrap(dup None swap Package.New!) nip
     }
 
-    def = [ Package Package -- Bool ] {
-        both(index) =
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- Package Package -- Bool ] { on2:index = }
     }
 }
 
 def +Mirth.init-packages! [ +Mirth |- ] {
     builtin std
-    "std" >Name over ~name !
-    None over ~path !
+    "std" Name over name!
+    None over path!
     Def.Package register
 }

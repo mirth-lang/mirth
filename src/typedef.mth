@@ -11,41 +11,69 @@ import mirth.def
 import mirth.type
 import mirth.mirth
 import mirth.var
+import mirth.elab
 
-table(TypeDef)
-patch TypeDef {
-    field(~doc,    TypeDef, Maybe(Str))
-    field(~head?,  TypeDef, Maybe(Token))
-    field(~name,   TypeDef, Name)
-    field(~qname,  TypeDef, Prop(QName))
-    field(~target, TypeDef, Prop(Type))
-
-    def doc        [ +Mirth |- TypeDef -- Maybe(Str)   ] { ~doc @ }
-    def head?      [ +Mirth |- TypeDef -- Maybe(Token) ] { ~head? @ }
+table +Mirth |- TypeDef {
+    doc: Maybe(Str)
+    head?: Maybe(Token)
+    name: Name
+    ~qname: Prop(QName)
+    ~target: Prop(Type)
+    --
     def qname-soft [ +Mirth |- TypeDef -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- TypeDef -- QName        ] { ~qname force! }
     def namespace  [ +Mirth |- TypeDef -- Namespace    ] { qname-hard namespace }
-    def name       [ +Mirth |- TypeDef -- Name         ] { ~name @ }
     def target     [ +Mirth |- TypeDef -- Type         ] { ~target force! }
     def params     [ +Mirth |- TypeDef -- List(Var)    ] { drop L0 } # TODO
 
     def name; [ +Mirth +Str |- TypeDef -- ] { rdip:name name; }
 
-    def = [ TypeDef TypeDef -- Bool ] { both(index) = }
+    max-mirth-revision 2025_03_29_001 {
+        def = [ +Mirth |- TypeDef TypeDef -- Bool ] { on2:index = }
+    }
 
-    def new! [ +Mirth |- head:Maybe(Token) name:Name state:PropState(QName) -- TypeDef ] {
-        TypeDef.alloc!
-        head> over ~head? !
-        name> over ~name !
+    def New! [ +Mirth |- doc:Maybe(Str) head?:Maybe(Token) name:Name state:PropState(QName) -- TypeDef ] {
+        TypeDef.Make!
         dup PropLabel.TypeDefQName >label Prop over ~qname !
         dup Def.Type register
     }
 }
 
 def +Mirth.def-type! [ +Mirth |- qname:QName type:Type -- ] {
-    None >head
+    None >head?
+    None >doc
     qname> dup name >name
     PropState.Ready >state
-    TypeDef.new!
+    TypeDef.New!
     type> over PropLabel.TypeDefTarget prop swap ~target !
+}
+
+
+||| Parse a type definition.
+|||
+|||     def-type(t1,t2)
+|||     def-type t1 t2
+def parse-def-type [ +Mirth Token |- head:Token target:Token doc:Maybe(Str) ] {
+    dup doc >doc
+    dup num-args 0> if (
+        sip(next) args-2 >target >head
+        @head args-0
+        @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
+        @head next arg-end? else(@head next "expected comma" emit-fatal-error!)
+        @target next arg-end? else(@target next "expected end of args" emit-fatal-error!),
+
+        succ dup >head next dup >target next
+        @head args-0
+        @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
+    )
+}
+
+||| Elaborate a type definition `def-type(t1, t2)`.
+def elab-def-type! [ +Mirth Token |- ] {
+    parse-def-type
+    elab-def-head
+    head> Some >head?
+    arity> drop
+    TypeDef.New!
+    dup target> over PropLabel.TypeDefTarget prop2(dip(params >Ctx) elab-simple-type-atom!) swap ~target !
 }

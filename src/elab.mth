@@ -569,7 +569,7 @@ def QName.climb-up-name? [ +Mirth |- Name QName -- List(Namespace) ] {
     name> defs for(match(
         Alias ->
             dup ~target try-force! has(qname-hard @qname =) if(
-                namespace-hard @accum:cons,
+                namespace @accum:cons,
                 drop
             ),
         Type ->
@@ -749,7 +749,7 @@ struct +AB {
 
     def ab-push-block-at!(f) [ +Mirth +AB |- ( *a -- *b ) *a ArrowType Token -- *b ] {
         ab-ctx@ rotr ab-home@ rdip(ab-build-hom!(dip:f))
-        rdip:Block.new! Op.BlockPush L0 swap ab-op!
+        rdip:Block.New! Op.BlockPush L0 swap ab-op!
     }
 
     def ab-push-block!(f) [ +Mirth +AB |- (*a -- *b) *a ArrowType -- *b ] {
@@ -761,7 +761,7 @@ struct +AB {
         ab-token@
         ab-home@
         rdip:ab-build-hom!(dip(f))
-        rdip:Block.new! Arg.Block
+        rdip:Block.New! Arg.Block
     }
 
     def ab-dip!(f) [ +Mirth +AB |- (*a -- *b) *a -- *b ] {
@@ -911,7 +911,7 @@ struct +AB {
     }
 
     def elab-block-at! [ +Mirth +AB |- Token -- Block ] {
-        ab-ctx@ swap ab-home@ rdip:Block.new-deferred!(
+        ab-ctx@ swap ab-home@ rdip:Block.NewDeferred!(
             dup ctx swap
             dup dom swap
             dup cod swap
@@ -1064,7 +1064,7 @@ struct +AB {
                 dup args-0
                 dup name? else?("Expected label name." emit-fatal-error!)
                 dup could-be-label-name? else(Str("Invalid label name: "; name;) emit-fatal-error!)
-                Label.new! nip
+                Label nip
             )
         )
     }
@@ -1087,10 +1087,10 @@ struct +AB {
 
     def elab-atom-match! [ +Mirth +AB |- ] {
         rdip:StackType.Fresh! >cod
-        ab-token@ succ rdip:lcurly? if(
+        ab-token@ succ lcurly? if(
             ab-token@ succ succ >body
             ab-token@ succ ab-token!,
-            ab-token@ rdip:args+ first >body
+            ab-token@ args+ first >body
         )
         elab-match-at!
     }
@@ -1158,7 +1158,7 @@ def finalize-word-arrow [ +Mirth |- Arrow Word -- Arrow ] {
     @word inferring-type? then(
         @arrow Arrow.ctx-type rigidify-sig!
         dup2 pack2 @word PropLabel.WordType prop @word ~ctx-type !
-        False @word ~inferring-type? !
+        False @word inferring-type?!
         /ArrowType
         cod> @arrow:cod!
         dom> @arrow:dom!
@@ -1194,7 +1194,7 @@ def guess-initial-ctx-type [ +Mirth word:Word |- Ctx ArrowType ] {
     )
     ctx> dom> cod> T->
     dup2 pack2 @word PropLabel.WordType prop @word ~ctx-type !
-    True @word ~inferring-type? !
+    True @word inferring-type?!
 }
 
 def ab-build-word!(f) [ +Mirth |- (*a +AB -- *b +AB) *a Word -- *b Word ] {
@@ -1339,9 +1339,9 @@ def elab-match-cases-args! [ +Mirth +Match |- ] {
 ||| Elaborate match case based on starting token.
 def elab-match-case! [ Token +Mirth +Match |- ] {
     dup rdip:run-arrow? unwrap("Expected pattern match case ... -> ..." rdip:emit-fatal-error!)
-    dup2 = then("expected pattern" rdip:emit-fatal-error!)
-    dup2 rdip:prev = else("multi-part pattern not supported" rdip:emit-fatal-error!)
-    rdip(dip:pat-tokens sip:prev succ) +Match.case!(
+    dup2 = then("expected pattern" emit-fatal-error!)
+    dup2 prev = else("multi-part pattern not supported" emit-fatal-error!)
+    dip:pat-tokens sip:prev succ +Match.case!(
         elab-pattern!,
         elab-atoms!
         ab-token@ dup rdip:comma? then(succ)
@@ -1505,11 +1505,11 @@ def parse-module-package-name! [ +Mirth |- Token -- Package Name ] {
 def elab-module-header! [ +World +Mirth Token |- ] {
     dup .module >module
     parse-module-header! /ModuleHeader
-    name> @module ~name !
-    doc> @module ~doc !
-    package> @module ~package !
+    name> @module name!
+    doc> @module doc!
+    package> @module package!
     @module qname defined-soft? then(@head "Module name already taken." emit-fatal-error!)
-    head> @module ~head !
+    head> @module head!
     @module Def.Module register
     dup module> check-module-path
     imports> for(process-module-import!)
@@ -1526,7 +1526,7 @@ def check-module-path [ +World +Mirth |- Token Module -- ] {
             split-last-byte(Byte.BDOT =) "mth" Some =
             else(over3 "Expected .mth extension for mirth file." emit-warning!)
             over2 name >Str = else(over2 .module .head "Expected module name to match file name." emit-fatal-error!)
-            over package path! drop2
+            over package try-path! drop2
     )
 }
 
@@ -1607,477 +1607,7 @@ def parse-module-import [ +Mirth Token |- ModuleImport ] {
 def process-module-import! [ +World +Mirth |- ModuleImport -- ] {
     /ModuleImport
     name> dup with-error-token(dup elab-module-qname load-module)
-    swap module ~imports modify:cons
-}
-
-||| Parse a data declaration. It looks like one of:
-|||
-|||     data ( TypeAtom, DataTag* DataDecls )
-|||     data TypeAtom { DataTag* DataDecls }
-def parse-data [ +Mirth Token |- SyntaxData ] {
-    dup doc >doc
-    dup num-args 0> if(
-        succ dup lparen? else("expected left parenthesis '('" emit-fatal-error!)
-        succ parse-data-header >header
-        dup comma? then(succ)
-        parse-data-tags >tags
-        parse-data-decls! >decls
-        dup rparen? else("expected right parenthesis ')'" emit-fatal-error!)
-        succ,
-
-        succ parse-data-header >header
-        dup lcurly? else("expected left curly brace '{'" emit-fatal-error!)
-        succ parse-data-tags >tags
-        parse-data-decls! >decls
-        dup rcurly? else("expected right curly brace '}'" emit-fatal-error!)
-        succ
-    )
-    SyntaxData
-}
-
-def parse-data-header [ +Mirth Token |- SyntaxDataHeader ] {
-    dup >head next
-    @head last-name? has(could-be-constructor)
-        else(@head "Expected type name." emit-fatal-error!)
-    SyntaxDataHeader
-}
-
-def parse-data-tags [ +Mirth Token |- List(SyntaxDataTag) ] {
-    collect-while(dup data-tags-end? not, parse-data-tag)
-}
-
-def data-tags-end? [ +Mirth |- Token -- Bool ] {
-    dup args-end? or(dup sig-dashes?) nip
-}
-
-||| Parse a data tag. It looks like one of these:
-|||
-|||     Tag
-|||     Tag -> Type* &ArgEnd
-|||     Tag [ Type* ]
-|||
-def parse-data-tag [ +Mirth Token |- SyntaxDataTag ] {
-    dup doc >doc
-    dup >head
-    dup int? dup >value? then(succ)
-    dup name? filter(could-be-constructor)
-    unwrap("Expected constructor name." emit-fatal-error!) >name
-    succ dup arrow? if(
-        succ dup Some >sig? sig-next-stack-end
-        dup arg-end? else("Expected comma." emit-fatal-error!),
-        dup lsquare? if(
-            succ dup Some >sig? sig-next-stack-end
-            dup rsquare? else("Expected right square bracket ']'" emit-fatal-error!)
-            succ,
-
-            None >sig?
-        )
-    )
-    dup comma? then(succ)
-    SyntaxDataTag
-}
-
-||| Parse a struct declaration. This looks like this:
-|||
-|||     struct(TypeAtom, Type* DataDecls)
-|||     struct TypeAtom { Type* DataDecls }
-|||
-def parse-struct [ +Mirth Token |- SyntaxData ] {
-    dup doc >doc
-    dup num-args 0> if(
-        succ dup lparen? then("Expected left parenthesis '('" emit-fatal-error!)
-        succ parse-data-header >header
-        dup comma? then(succ)
-        parse-struct-tag L1 >tags
-        parse-data-decls! >decls
-        dup rparen? then("Expected right parenthesis ')'" emit-fatal-error!)
-        succ,
-
-        succ parse-data-header >header
-        dup lcurly? else("expected left curly brace '{'" emit-fatal-error!)
-        succ parse-struct-tag L1 >tags
-        parse-data-decls! >decls
-        dup rcurly? else("expected right curly brace '}'" emit-fatal-error!)
-        succ
-    )
-    SyntaxData
-}
-
-||| Data declarations. These start with sig-dashes.
-||| This is either empty, or it is dashes followed by decls within an expression.
-def parse-data-decls! [ +Mirth Token |- Maybe(Token) ] {
-    dup sig-dashes? if(
-        succ dup while(dup arg-end? not, next) swap Some,
-        None
-    )
-}
-
-def parse-struct-tag [ +Mirth Token header:SyntaxDataHeader |- SyntaxDataTag ] {
-    None >doc
-    @header head >head
-    @head last-name? filter(could-be-constructor)
-    unwrap(@header head "Expected constructor name." emit-fatal-error!) >name
-    None >value?
-    dup Some >sig?
-    sig-next-stack-end
-    SyntaxDataTag
-}
-
-struct SyntaxData {
-    doc: Maybe(Str)
-    header: SyntaxDataHeader
-    tags: List(SyntaxDataTag)
-    decls: Maybe(Token)
-}
-
-struct SyntaxDataHeader {
-    head: Token
-}
-
-struct SyntaxDataTag {
-    doc: Maybe(Str)
-    head: Token
-    value?: Maybe(Int)
-    name: Name
-    sig?: Maybe(Token)
-}
-
-def elab-data!   { parse-data   elab-data-aux! }
-def elab-struct! { parse-struct elab-data-aux! }
-
-def elab-data-aux! [ +World +Mirth |- SyntaxData -- ] {
-    /SyntaxData
-    Data.alloc! List.Nil over ~tags !
-    doc> over ~doc !
-    header> elab-data-header!
-    tags> for(elab-data-tag!)
-    decls> for(elab-data-decls!)
-    elab-data-done!
-}
-
-||| Get the header, name, arity for a data type.
-def elab-data-header! [ +Mirth Data |- SyntaxDataHeader -- ] {
-    /SyntaxDataHeader >data
-    @head last-name? has(could-be-constructor)
-        else(@head "Expected type name." emit-fatal-error!)
-    elab-def-head
-    @head Some @data ~head? !
-    arity> >Int @data ~arity !
-    name> @data ~name !
-    @data PropLabel.DataQName >label Prop @data ~qname !
-    @head args @data PropLabel.DataParams prop(elab-data-params!) @data ~params !
-    @data Def.Data register
-    head> drop
-    data>
-}
-
-# TODO check header args are well-formed / elaborate them properly
-#  as part of: https://github.com/mirth-lang/mirth/issues/246
-def elab-data-params! [ +Mirth |- List(Token) -- List(Var) ] {
-    Ctx.L0 swap for(
-        dup name? unwrap("Expected a parameter name." emit-fatal-error!)
-        over2 Ctx.lookup then("Duplicate parameter name." emit-fatal-error!)
-
-        None
-        or?(dup sig-type-var? map(Type.TYPE swap Var.New!))
-        or?(dup sig-resource-var? map(Type.RESOURCE swap Var.New!))
-        or?(dup sig-stack-var? map(Type.STACK swap Var.New!))
-        unwrap("Invalid parameter name." emit-fatal-error!)
-        nip Ctx.new
-    ) >List
-}
-
-||| Get a tag associated with a data type.
-def elab-data-tag! [ +Mirth Data |- SyntaxDataTag -- ] {
-    >syn >dat
-    Tag.alloc! >tag
-
-    @syn doc @tag ~doc !
-    @dat @syn name 0 data-qname @tag ~qname !
-    @syn sig? @tag ~sig? !
-    @syn value? for(@tag ~value !)
-    @dat @tag ~data !
-    @tag @dat add-tag!
-    @tag Def.Tag register
-
-    @syn head @tag @tag PropLabel.TagType prop2(
-        >tag >token
-        @tag .data params >Ctx >ctx
-        True >allow-implicit-type-vars
-        False >allow-type-holes
-        +TypeElab
-        T0 @tag rdip(data full-type) T*+
-        tag> rdip:sig? match(
-            None -> T0,
-            Some -> token! T0 elab-stack-type-parts!
-        )
-        swap T-> dip:ctx pack2 +TypeElab.rdrop
-    ) @tag ~ctx-type !
-    @tag num-type-inputs-from-sig @tag ~num-type-inputs !
-    @tag num-resource-inputs-from-sig @tag ~num-resource-inputs !
-    @tag label-inputs-from-sig @tag ~label-inputs !
-
-    @tag outputs-resource? not then(
-        @tag sig? for(
-            run-tokens find(
-                or(sig-resource-con? >Bool, sig-resource-var? >Bool)
-            ) for ("Value type cannot contain resource." emit-error!)
-        )
-    )
-
-    tag> syn> drop2
-    dat>
-}
-
-def elab-data-decls! [ +World +Mirth Data |- Token -- ] {
-    dup Some >error-token
-    over Tycon.Data Namespace.Tycon PropLabel.DefiningNamespace prop Some >defining-namespace
-    LexicalState with-lexical-state (
-        while(dup arg-end? not, elab-decl!)
-        drop
-    )
-}
-
-def data-word-new! [ +Mirth |- Data Str Nat doc:Maybe(Str) -- Word ] {
-    dup >arity
-    over >Name >name
-    dip2(dup head? unwrap("Missing data token information." fatal-error!) dup >body >head)
-    data-word-qname >qname
-    None >sig?
-    Word.New!
-
-    qname> over PropLabel.WordQName prop over ~qname !
-}
-
-def elab-data-done! [ +Mirth |- Data -- ] {
-    >dat
-    @dat is-value-type? then (
-        None >doc # TODO
-        @dat "enum-value" 0u data-word-new! >word
-        @dat params >Ctx
-        @dat data-get-enum-value-type
-        @word PropLabel.WordType prop2 @word ~ctx-type !
-        @word ab-build-word!(
-            L0 @dat Op.DataGetEnumValue ab-op!
-        ) make-inline!
-        word> drop
-    )
-
-    @dat is-enum? then (
-        None >doc # TODO
-        @dat "from-enum-value-unsafe" 0u data-word-new! >word
-        @dat params >Ctx
-        @dat data-from-enum-value-type
-        @word PropLabel.WordType prop2 @word ~ctx-type !
-        @word ab-build-word!(
-            L0 @dat Op.DataFromEnumValue ab-op!
-        ) make-inline!
-        word> drop
-    )
-
-    @dat tags single? for(
-        >tag
-        None >doc # TODO
-        @dat "/" @tag name >Str cat 0u data-word-new! >untag
-        @untag Some @tag ~untag !
-        @tag @untag PropLabel.WordType prop(ctx-type invert pack2) @untag ~ctx-type !
-        @tag @untag @untag PropLabel.WordArrow prop2(
-            >untag >tag
-            untag> ab-build-word-arrow!(
-                @tag rdip:type dom >cod
-                @tag rdip:data rdip:head? unwrap("Missing data token info" rdip:fatal-error!) dup >body
-                ab-match!(
-                    dup case!(@tag +Pattern.tag!, id)
-                )
-            )
-            tag> drop
-        ) @untag ~arrow !
-        @untag make-inline!
-        @tag create-projectors!
-        tag> untag> drop2
-    )
-
-    @dat @dat PropLabel.DataCType prop(
-        >dat
-        @dat is-unit? if(
-            "void" CType.Void Some,
-        @dat is-enum? if(
-            "int" CType.Int Some,
-        @dat semi-transparent? if?(
-            input match(
-                Cons -> ctype?,
-                ConsLabel -> drop ctype?,
-                With -> ctype?,
-                WithLabel -> drop ctype?,
-            ),
-            None
-        )))
-        dat> drop
-    ) @dat ~ctype? !
-    dat> drop
-}
-
-||| Return the tag's output type or resource in context.
-field(Tag.~output-type, Tag, Type/Resource)
-def Tag.output-type [ +Mirth |- Tag -- Type/Resource ] {
-    >tag
-    @tag ~output-type memoize(
-        @tag type cod expand match {
-            { Cons -> nip Left }
-            { With -> nip Right }
-            { _ ->
-                drop @tag str("Unexpected output type for constructor "; qname;)
-                @tag .data head? if?(swap emit-error!, error!)
-                Type.Error @tag .data is-resource? if(
-                    Resource Right,
-                    Left
-                )
-            }
-        }
-    )
-    tag> drop
-}
-
-||| Return the tag's output type or resource in context, except for a missing field.
-def Tag.output-type-except-field [ +Mirth |- Label Tag -- Type/Resource ] {
-    dup output-type map(except-field, except-field)
-}
-
-||| Return the input type for a tag along a given label.
-def Tag.project-input-label [ +Mirth |- Label Tag -- Maybe(Type/Resource) ] {
-    type dom label-top?
-}
-
-def Tag.project-tag-field [ +Mirth |- Label Tag -- Maybe(TagField) ] {
-    dup2 project-input-label if? (
-        >type/resource >tag >label TagField Some,
-        drop2 None
-    )
-}
-
-def data-get-label-type [ +Mirth |- TagField -- ArrowType ] {
-    /TagField
-    type/resource> match {
-        { Left ->
-            T0 @tag output-type T*+ swap T1
-            @tag .data is-resource? then(@tag output-type T*+)
-            T-> }
-        { Right ->
-            T0 @tag output-type T*+
-            T0 rotl T+ @label @tag output-type-except-field T*+
-            T-> }
-    }
-    label> tag> drop2
-}
-
-def data-set-label-type [ +Mirth |- TagField -- ArrowType ] {
-    /TagField
-    type/resource> match {
-        { Left ->
-            T1 @tag output-type T*+
-            T0 @tag output-type T*+
-            T-> }
-        { Right ->
-            T0 swap T+ @label @tag output-type-except-field T*+
-            T0 @tag output-type T*+
-            T-> }
-    }
-    label> tag> drop2
-}
-
-def create-projectors! [ +Mirth |- Tag -- ] {
-    >tag
-    @tag .data >dat
-    @tag label-inputs reverse-for(
-        >lbl
-        @dat @lbl name 0 data-qname undefined-soft? then(
-            None >doc # TODO
-            @dat @lbl >Str 0u data-word-new! >lbl_get
-
-            None >doc # TODO
-            @dat @lbl >Str "!" cat 0u data-word-new! >lbl_set
-
-            None >doc # TODO
-            @dat @lbl >Str 1u data-word-new! >lbl_lens
-
-            @lbl_get make-inline!
-            @tag @lbl @lbl_get PropLabel.WordType prop2(
-                dip(dup dip(ctx))
-                swap project-tag-field unwrap("logic error: expected field in tag." fatal-error!)
-                data-get-label-type
-                pack2
-            ) @lbl_get ~ctx-type !
-            @tag @lbl @lbl_get dup PropLabel.WordArrow prop3(ab-build-word-arrow!(
-                dip(
-                    swap rdip:project-tag-field unwrap("logic error: expected field in tag." rdip:fatal-error!)
-                    Op.DataGetLabel L0 swap ab-op!
-                )
-            )) @lbl_get ~arrow !
-
-            @lbl_set make-inline!
-            @tag @lbl @lbl_set PropLabel.WordType prop2(
-                dip(dup dip(ctx))
-                swap project-tag-field unwrap("logic error: expected field in tag." fatal-error!)
-                data-set-label-type
-                pack2
-            ) @lbl_set ~ctx-type !
-            @tag @lbl @lbl_set dup PropLabel.WordArrow prop3(ab-build-word-arrow!(
-                dip(
-                    swap rdip:project-tag-field unwrap("logic error: expected field in tag." rdip:fatal-error!)
-                    Op.DataSetLabel L0 swap ab-op!
-                )
-            )) @lbl_set ~arrow !
-
-            @lbl_lens make-inline!
-            @tag @lbl @lbl_lens PropLabel.WordType prop2(
-                >lbl >tag
-                lbl> @tag project-input-label unwrap("logic error: expeted field in tag." fatal-error!) >lblty
-                @tag output-type >datty
-
-                @tag ctx
-                "*x" StackType.NewInCtx >sx
-                "*y" StackType.NewInCtx >sy
-                @sx @datty T*+
-                    @sx @lblty T*+
-                    @sy @lblty T*+ T-> >Type T*
-                @sy  @datty T*+
-                T-> pack2
-
-                sx> sy> drop2
-                lblty> datty> drop2
-                tag> drop
-            ) @lbl_lens ~ctx-type !
-            @lbl_lens dup PropLabel.WordParams prop(
-                type dom top-type? unwrap("logic error: expected parameter" fatal-error!)
-                arrow? unwrap("logic error: expected arrow" fatal-error!)
-                "f" >Name Var.NewAutoRun! >var None >default Param L1
-            ) @lbl_lens ~params !
-
-            @dat @lbl_get @lbl_set @lbl_lens dup PropLabel.WordArrow prop4(
-                >lbl_lens >lbl_set >lbl_get >dat
-                @lbl_lens ab-build-word-arrow!(
-                    lbl_lens> rdip:params map(.var) dup over2 ab-lambda!(
-                        single? unwrap("Expected one parameter." rdip:fatal-error!) >f
-                        dat> rdip:is-resource? if(
-                            L0 lbl_get> ab-word!
-                            ab-rdip!(f> ab-var!)
-                            L0 lbl_set> ab-word!,
-
-                            L0 Prim.Dup ab-prim!
-                            ab-dip!(
-                                L0 lbl_get> ab-word!
-                                f> ab-var!
-                            )
-                            L0 lbl_set> ab-word!
-                        )
-                    )
-                )
-            ) @lbl_lens ~arrow !
-            lbl_get> lbl_set> lbl_lens> drop3
-        )
-        lbl> drop
-    )
-    dat> tag> drop2
+    swap module sip(imports swap List.Snoc) imports!
 }
 
 def expect-token-arrow [ +Mirth Token |- ] {
@@ -2204,7 +1734,7 @@ def elab-def! [ +Mirth Token |- ] {
     elab-def-head Word.New! >word
     @word PropLabel.WordQName >label Prop @word ~qname !
 
-    prefer-inline-defs @word ~prefer-inline? !
+    prefer-inline-defs @word prefer-inline?!
 
     @word @word PropLabel.WordType prop(
         dup sig? match(
@@ -2262,7 +1792,7 @@ def check-inline-recursion-op! [ +Mirth |- Word Op -- ] {
 }
 def check-inline-recursion-failed! [ +Mirth |- Word -- ] {
     dup prefer-inline? if(
-        False over ~prefer-inline? !
+        False over prefer-inline?!
         head "recursive word cannot be inlined" emit-warning!,
         drop
     )
@@ -2299,154 +1829,6 @@ def elab-def-body! [ +Mirth +AB |- StackType -- StackType ] {
     )
 }
 
-data ExternalDeclPart {
-    EDPCode [ token:Token code:Str ]
-    EDPDef  [ doc:Maybe(Str) head:Token symbol:Maybe(Token) sig:Token ]
-}
-
-||| Parse an external block.
-|||
-|||     external( ExternalPart* )
-|||     external{ ExternalPart* }
-|||     external ExternalPart
-def parse-external-decl [ +Mirth Token |- List(ExternalDeclPart) doc:Maybe(Str) ] {
-    dup doc >doc
-    succ dup num-args 0> or(dup lcurly? >Bool) if(
-        List(
-            succ
-            while(dup rdip:args-end? not,
-                rdip(parse-external-decl-part) ;
-            )
-            succ
-        ),
-
-        parse-external-decl-word L1
-        None >doc
-    )
-}
-
-def parse-external-decl-part [ +Mirth Token |- ExternalDeclPart ] {
-    dup str? if?(
-        >code dup >token
-        succ
-        ExternalDeclPart.EDPCode,
-
-        dup doc >doc
-        parse-external-decl-word
-    )
-    dip(dup comma? then(succ))
-}
-
-def parse-external-decl-word [ +Mirth Token |- doc:Maybe(Str) -- ExternalDeclPart ] {
-    dup >head
-    dup name/dname? else("expected external word name" emit-fatal-error!)
-    succ
-    dup arrow? if(
-        succ dup name? else("expected external symbol name" emit-fatal-error!)
-        dup Some >symbol
-        succ,
-
-        None >symbol
-    )
-    dup lsquare? if(
-        dup args-1 >sig
-        next,
-
-        dup comma? else("expected type signature" emit-fatal-error!)
-        succ
-        dup arg-end? then("expected type signature" emit-fatal-error!)
-        dup >sig
-        next-arg-end
-    )
-    ExternalDeclPart.EDPDef
-}
-
-||| Elaborate an external declaration.
-def elab-external! [ +Mirth Token |- ] {
-    dup >token
-    parse-external-decl
-    map(elab-external-block-part!) >parts
-    ExternalBlock.alloc! >extblock
-    doc> @extblock ~doc !
-    token> @extblock ~token !
-    parts> @extblock ~parts !
-    extblock> drop
-}
-
-def elab-external-block-part! [ +Mirth |- ExternalDeclPart -- ExternalBlockPart ] {
-    { EDPCode -> token> drop code> ExternalBlockPart.EBPCode }
-    { EDPDef -> elab-external-def! ExternalBlockPart.EBPDef }
-}
-
-def elab-external-def! [ +Mirth |- doc:Maybe(Str) head:Token symbol:Maybe(Token) sig:Token -- External ] {
-    elab-def-head
-
-    symbol> bind(name?) unwrap(@name) >Str >symbol
-
-    External.alloc! >external
-    doc> @external ~doc !
-    name> @external ~name !
-    arity> >Int @external ~arity !
-    @external PropLabel.ExternalQName >label Prop @external ~qname !
-    symbol> @external ~symbol !
-    sig> @external ~sig !
-    head> @external ~head !
-    @external dup PropLabel.ExternalType prop(
-        sig +TypeElab.Start!
-        T0 elab-type-sig! dip:ctx pack2 +TypeElab.rdrop
-    ) @external ~ctx-type !
-    @external dup PropLabel.ExternalCType prop(
-        elab-external-ctype
-    ) @external ~ctype !
-    @external Def.External register
-    external>
-}
-
-def elab-external-ctype [ +Mirth |- External -- CTypeArrow ] {
-    dup head with-error-token(
-        type ctype
-        dup cod parts
-        filter(sip(label? none?) ctype phantom? not and)
-        len 1u > then(
-            "External has too many outputs." error!
-        )
-
-        dup dom parts filter-some(label?)
-        over cod parts filter-some(label?)
-        swap difference for(
-            Str("Output label "; name; " not present in input";) error!
-        )
-    )
-}
-
-||| Parse a type definition.
-|||
-|||     def-type(t1,t2)
-|||     def-type t1 t2
-def parse-def-type [ +Mirth Token |- head:Token target:Token doc:Maybe(Str) ] {
-    dup doc >doc
-    dup num-args 0> if (
-        sip(next) args-2 >target >head
-        @head args-0
-        @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
-        @head next arg-end? else(@head next "expected comma" emit-fatal-error!)
-        @target next arg-end? else(@target next "expected end of args" emit-fatal-error!),
-
-        succ dup >head next dup >target next
-        @head args-0
-        @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
-    )
-}
-
-||| Elaborate a type definition `def-type(t1, t2)`.
-def elab-def-type! [ +Mirth Token |- ] {
-    parse-def-type
-    elab-def-head @head:Some
-    arity> drop
-    TypeDef.new!
-    doc> over ~doc !
-    target> over PropLabel.TypeDefTarget prop(elab-simple-type-arg!) swap ~target !
-}
 
 ||| Create entry point based on word name.
 def elab-entry-point [ +Mirth |- QName -- Arrow ] {

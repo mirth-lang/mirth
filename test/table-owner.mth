@@ -19,9 +19,9 @@ field(bartable-freefield, BarTable, Int)
 field(+Foo |- bartable-foofield, BarTable, Int)
 field(+Bar |- bartable-barfield, BarTable, Int)
 
-def freetable-alloc [         FreeTable ] { FreeTable.alloc! }
-def footable-alloc  [ +Foo |- FooTable  ] { FooTable.alloc! }
-def bartable-alloc  [ +Bar |- BarTable  ] { BarTable.alloc! }
+def freetable-alloc [         FreeTable ] { FreeTable.Alloc! }
+def footable-alloc  [ +Foo |- FooTable  ] { FooTable.Alloc! }
+def bartable-alloc  [ +Bar |- BarTable  ] { BarTable.Alloc! }
 
 def freetable-freefield-get [         FreeTable -- Int ] { freetable-freefield }
 def freetable-foofield-get  [ +Foo |- FreeTable -- Int ] { freetable-foofield }
