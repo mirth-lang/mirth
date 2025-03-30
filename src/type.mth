@@ -625,7 +625,7 @@ struct Kind {
 ||| Each MetaVar has a kind associated with it.
 table +Mirth |- MetaVar {
     kind: Kind
-    type?: Maybe(Type) { field-self drop None }
+    type?: Maybe(Type) { None }
     --
 
     ||| Create a metavar of the given kind.
@@ -694,13 +694,6 @@ table +Mirth |- MetaVar {
             Some -> nip unify-error!,
             None -> dip(Type.Error Some) type?! Type.Error
         )
-    }
-
-    ||| Are these two metavars identical? This is a cheap equality that doesn't consider
-    ||| the resolved types. Two metavars may resolve to the same type but be considered
-    ||| distinct under this equality.
-    max-mirth-revision 2025_03_29_001 {
-        def = [ +Mirth |- MetaVar MetaVar -- Bool ] { on2:index = }
     }
 
     ||| Re-create the metavariable anew. (TODO: As written, this is probably a mistake.)

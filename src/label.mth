@@ -10,9 +10,6 @@ table +Mirth |- Label {
     name: Name
     --
     def >Str [ +Mirth |- Label -- Str ] { name >Str }
-    max-mirth-revision 2025_03_29_001 {
-        def = [ +Mirth |- Label Label -- Bool ] { on2:index = }
-    }
     def name; [ +Mirth +Str |- Label -- ] { name name; }
     def Label [ +Mirth |- Name -- Label ] { label }
     def is-resource-label? [ +Mirth |- Label -- Bool ] {
