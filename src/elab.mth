@@ -838,13 +838,18 @@ struct +AB {
     }
 
     def elab-atoms! [ +Mirth +AB |- ] {
+        L0 >deferred-drops
         while(
             ab-token@ rdip:run-end? not,
             elab-atom! ab-token@ rdip:next ab-token!
         )
+        deferred-drops> for(
+            ab-label-pop!
+            L0 Prim.Drop ab-prim!
+        )
     }
 
-    def elab-atom! [ +Mirth +AB |- ] {
+    def elab-atom! [ +Mirth +AB deferred-drops:List(Label) |- ] {
         ab-token@ rdip:value match(
             Name -> elab-atom-name!,
             DName -> elab-atom-dname!,
@@ -868,6 +873,7 @@ struct +AB {
             LabelPopR -> ab-token@ rdip:args-0 ab-label-pop-r!,
             LabelGet -> elab-label-get!,
             LabelSet -> elab-label-set!,
+            LabelLam -> elab-label-lam!,
             _ -> ab-token@ "Unexpected token in elab-atom!" rdip:emit-fatal-error!
         )
     }
@@ -903,6 +909,11 @@ struct +AB {
                 ab-label-pop!
             )
         )
+    }
+
+    def elab-label-lam! [ +Mirth +AB deferred-drops:List(Label) |- Label -- ] {
+        dup ab-label-push!
+        @deferred-drops:cons
     }
 
     def elab-atom-block! [ +Mirth +AB |- ] {

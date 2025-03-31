@@ -1,0 +1,39 @@
+module test.label-lam
+import std.prelude
+import std.world
+
+def main [ +World |- ] {
+    10 \x
+    20 \y
+
+    print("@x = "; @x int;)
+    print("@y = "; @y int;)
+
+    @y(@x +)
+    print("added x to y";)
+
+    print("@x = "; @x int;)
+    print("@y = "; @y int;)
+
+    50 !x
+    print("set x to 50";)
+
+    print("@x = "; @x int;)
+    print("@y = "; @y int;)
+
+    print(9000 \x "intermittent @x = "; @x int;)
+
+    print("@x = "; @x int;)
+    print("@y = "; @y int;)
+}
+# mirth-test # pout # @x = 10
+# mirth-test # pout # @y = 20
+# mirth-test # pout # added x to y
+# mirth-test # pout # @x = 10
+# mirth-test # pout # @y = 30
+# mirth-test # pout # set x to 50
+# mirth-test # pout # @x = 50
+# mirth-test # pout # @y = 30
+# mirth-test # pout # intermittent @x = 9000
+# mirth-test # pout # @x = 50
+# mirth-test # pout # @y = 30
