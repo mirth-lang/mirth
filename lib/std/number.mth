@@ -25,9 +25,9 @@ data Base {
     }
 
     def digits; [ +Str Nat Base -- +Str ] {
-        >base
-        0u >num-digits
-        0u >reversed
+        \base
+        0u \num-digits
+        0u \reversed
         while(
             @base >Nat divmod
             @reversed(@base >Nat * +)
@@ -35,10 +35,9 @@ data Base {
             dup 0>
         )
         drop
-        num-digits> repeat(
+        @num-digits repeat(
             @reversed(@base last-digit emit-unsafe;)
         )
-        base> reversed> drop2
     }
 }
 
@@ -388,10 +387,16 @@ inline patch Int {
     def >Int [ Int -- Int ] { }
     def >Rat [ Int -- Rat ] { 1u Rat.Unsafe }
 
-    def >Nat-if(f,g) [ ( *a Nat -- *b, *a Int -- *b ) *a Int -- *b ] { dup 0>= if(Nat.Unsafe f, g) }
+    def >Nat-if(f,g) [ ( *a Nat -- *b, *a Int -- *b ) *a Int -- *b ] { dup 0>= if(>Nat-unsafe f, g) }
     def >Nat-else(g) [ ( *a Int -- *a Nat ) *a Int -- *a Nat ] { >Nat-if(id, g) }
     def >Nat-clamp [ Int -- Nat ] { >Nat-else(drop 0u) }
-    def >Nat-unsafe [ Int -- Nat ] { Nat.Unsafe }
+
+    max-mirth-revision 2025_03_31_000 {
+        def >Nat-unsafe [ Int -- Nat ] { Nat.Unsafe }
+    }
+    min-mirth-revision 2025_03_31_001 {
+        def >Nat-unsafe [ Int -- Nat ] { prim-int-to-nat }
+    }
     def >Nat? [ Int -- Maybe(Nat) ] { >Nat-if(Some, drop None) }
 
     def >I64-unsafe [ Int -- I64 ] { prim-int-to-i64 }
@@ -621,7 +626,13 @@ inline patch Nat {
     def oct; [ Nat +Str -- +Str ] { "0o"; Base.Oct digits; }
     def bin; [ Nat +Str -- +Str ] { "0b"; Base.Bin digits; }
 
-    def >Int [ Nat -- Int ] { /Unsafe }
+    max-mirth-revision 2025_03_31_000 {
+        def >Int [ Nat -- Int ] { /Unsafe }
+    }
+    min-mirth-revision 2025_03_31_001 {
+        def >Int [ Nat -- Int ] { prim-nat-to-int }
+    }
+
     def >Nat [ Nat -- Nat ] { }
     def >Rat [ Nat -- Rat ] { >Int >Rat }
     def >F64 [ Nat -- F64 ] { >Int >F64 }

@@ -102,7 +102,7 @@ def Str.codepoints-for(f) [ (*a Codepoint -- *a) *a Str -- *a ] {
                 )
             )
         )
-        /+CodepointsForState index> drop ptr> drop len> drop
+        /+CodepointsForState ldrop
     )
 }
 

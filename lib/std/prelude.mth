@@ -336,8 +336,10 @@ def clamp-via-lt (lt {<}) [ (a a -- Bool) a a a -- a ] { dip(max-via-lt:lt) min-
 ###########
 # These types are defined here but fleshed out in std.number
 
-||| Natural numbers, i.e. non-negative integers, starting from 0.
-data Nat { Unsafe [ Int ] }
+max-mirth-revision 2025_03_31_000 {
+    ||| Natural numbers, i.e. non-negative integers, starting from 0.
+    data Nat { Unsafe [ Int ] }
+}
 
 ||| Rational numbers.
 data Rat { Unsafe [ Int Nat ] }
@@ -349,30 +351,32 @@ struct Size { Int }
 struct Offset { Int }
 
 inline {
-    def 0u [ Nat ] { 0 Nat.Unsafe }
-    def 1u [ Nat ] { 1 Nat.Unsafe }
-    def 2u [ Nat ] { 2 Nat.Unsafe }
-    def 3u [ Nat ] { 3 Nat.Unsafe }
-    def 4u [ Nat ] { 4 Nat.Unsafe }
-    def 5u [ Nat ] { 5 Nat.Unsafe }
-    def 6u [ Nat ] { 6 Nat.Unsafe }
-    def 7u [ Nat ] { 7 Nat.Unsafe }
-    def 8u [ Nat ] { 8 Nat.Unsafe }
-    def 9u [ Nat ] { 9 Nat.Unsafe }
-    def 10u [ Nat ] { 10 Nat.Unsafe }
-    def 11u [ Nat ] { 11 Nat.Unsafe }
-    def 12u [ Nat ] { 12 Nat.Unsafe }
-    def 13u [ Nat ] { 13 Nat.Unsafe }
-    def 14u [ Nat ] { 14 Nat.Unsafe }
-    def 15u [ Nat ] { 15 Nat.Unsafe }
-    def 16u [ Nat ] { 16 Nat.Unsafe }
-    def 24u [ Nat ] { 24 Nat.Unsafe }
-    def 32u [ Nat ] { 32 Nat.Unsafe }
-    def 36u [ Nat ] { 36 Nat.Unsafe }
-    def 64u [ Nat ] { 64 Nat.Unsafe }
-    def 128u [ Nat ] { 128 Nat.Unsafe }
-    def 255u [ Nat ] { 255 Nat.Unsafe }
-    def 256u [ Nat ] { 256 Nat.Unsafe }
+    max-mirth-revision 2025_03_31_000 {
+        def 0u [ Nat ] { 0 Nat.Unsafe }
+        def 1u [ Nat ] { 1 Nat.Unsafe }
+        def 2u [ Nat ] { 2 Nat.Unsafe }
+        def 3u [ Nat ] { 3 Nat.Unsafe }
+        def 4u [ Nat ] { 4 Nat.Unsafe }
+        def 5u [ Nat ] { 5 Nat.Unsafe }
+        def 6u [ Nat ] { 6 Nat.Unsafe }
+        def 7u [ Nat ] { 7 Nat.Unsafe }
+        def 8u [ Nat ] { 8 Nat.Unsafe }
+        def 9u [ Nat ] { 9 Nat.Unsafe }
+        def 10u [ Nat ] { 10 Nat.Unsafe }
+        def 11u [ Nat ] { 11 Nat.Unsafe }
+        def 12u [ Nat ] { 12 Nat.Unsafe }
+        def 13u [ Nat ] { 13 Nat.Unsafe }
+        def 14u [ Nat ] { 14 Nat.Unsafe }
+        def 15u [ Nat ] { 15 Nat.Unsafe }
+        def 16u [ Nat ] { 16 Nat.Unsafe }
+        def 24u [ Nat ] { 24 Nat.Unsafe }
+        def 32u [ Nat ] { 32 Nat.Unsafe }
+        def 36u [ Nat ] { 36 Nat.Unsafe }
+        def 64u [ Nat ] { 64 Nat.Unsafe }
+        def 128u [ Nat ] { 128 Nat.Unsafe }
+        def 255u [ Nat ] { 255 Nat.Unsafe }
+        def 256u [ Nat ] { 256 Nat.Unsafe }
+    }
 
     def |Byte| [ Size ] { 1 Size }
     def |U8|   [ Size ] { 1 Size }

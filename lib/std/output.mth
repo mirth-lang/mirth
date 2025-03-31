@@ -22,10 +22,7 @@ struct +Output {
     }
 
     def end! [ +Output -- +File ] {
-        flush! /+Output
-        size> drop
-        +buffer> rdrop
-        +file>
+        flush! /+Output +file> ldrop
     }
 
     def flush! [ +Output -- +Output ] {

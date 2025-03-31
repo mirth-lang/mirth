@@ -107,11 +107,7 @@ def +SnakeLogic.Init! [ +World -- +World +SnakeLogic ] {
 }
 
 def +SnakeLogic.rdrop {
-    /+SnakeLogic
-    points> timer> drop2
-    dead> snake> drop2
-    mouse> direction> drop2
-    last-direction> done> drop2
+    /+SnakeLogic ldrop
 }
 
 def +SnakeLogic.reset! [ +World +SnakeLogic -- +World +SnakeLogic ] {

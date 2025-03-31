@@ -32,6 +32,7 @@ data TokenValue {
     LColon     [ Token ]
     RColon     [ Token ]
     Int        [ Int ]
+    Nat        [ Nat ]
     U8         [ U8  ]
     U16        [ U16 ]
     U32        [ U32 ]

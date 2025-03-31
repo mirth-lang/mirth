@@ -12,16 +12,20 @@ import arg-parser.state
 
 struct ArgumentParser(a) {
     options:List(ArgpOption)
-    parser:[ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ]
+    parser:[ +ArgumentParser(a) |- a Maybe(Str) ArgpOptionType -- a ]
     args-doc:Maybe(Str)
     doc:Str
 }
 
-data(+ArgumentParser(a), +ArgumentParser -> argument-parser:ArgumentParser(a) state:State(a))
-def(+ArgumentParser.rdrop, +ArgumentParser(a) --, /+ArgumentParser argument-parser> drop state> drop)
+struct +ArgumentParser(a) {
+    argument-parser: ArgumentParser(a)
+    state: State(a)
+    --
+    def rdrop [ +ArgumentParser(a) -- ] { +ArgumentParser -> ldrop }
+}
 
 def(+ArgumentParser.parser, +ArgumentParser(a) -- +ArgumentParser(a)
-        [ +ArgumentParser(a) a Maybe(Str) ArgpOptionType -- +ArgumentParser(a) a ],
+        [ +ArgumentParser(a) |- a Maybe(Str) ArgpOptionType -- a ],
     argument-parser ArgumentParser.parser)
 
 data(ArgpOptionType,

@@ -80,7 +80,7 @@ def +Mandelbrot.loop! [ +World +Mandelbrot -- +World +Mandelbrot ] {
 }
 
 def +Mandelbrot.quit! [ +World +Mandelbrot -- +World ] {
-    /+Mandelbrot running> drop +platform> quit!
+    /+Mandelbrot +platform> quit! ldrop
 }
 
 def +FractalUI.quit! [ +World +FractalUI -- +World ] {
@@ -128,17 +128,16 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
     +platform:sdl:show-window!
     +platform:clear!
 
-    0 >py while(
+    0 \py while(
         @py HEIGHT <,
-        0 >px while(
+        0 \px while(
             @px WIDTH <,
 
             @px scale_x >real
-            @py scale_y >imag Complex >z0
+            @py scale_y >imag Complex \z0
+            0.0 >real 0.0 >imag Complex \z
 
-            0.0 >real 0.0 >imag Complex >z
-
-            0 >iteration
+            0 \iteration
             while(
                 @iteration 250 <
                 @z magsq 4 <=
@@ -147,15 +146,15 @@ def +Mandelbrot.present! [ +World +Mandelbrot -- +World +Mandelbrot ] {
                 @z(dup * @z0 +)
                 @iteration:1+
             )
-            z> z0> drop2
-            @px >x @py >y iteration> dup 250 < if(plot!, x> drop y> drop drop)
 
-            px> 1+ >px
+            @iteration 250 < then(
+                @px >x @py >y
+                @iteration plot!
+            )
+            @px:1+
         )
-        px> drop
-        py> 1+ >py
+        @py:1+
     )
-    py> drop
 
     +platform:sdl:SDL_UpdateWindowSurface drop
 }

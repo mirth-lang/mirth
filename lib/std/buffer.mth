@@ -29,8 +29,8 @@ struct +Buffer {
 
     def rdrop [ +Buffer -- ] {
         /+Buffer
-        base> unsafe(free)
-        size> drop
+        base> unsafe:free
+        ldrop
     }
 
     def erase-span! [ Offset Size +Buffer -- +Buffer ] {

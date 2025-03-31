@@ -37,10 +37,13 @@ data Prim {
     IntMul
     IntDivMod
     IntToStr
+    IntToNat
     IntToI64
     IntToU64
     IntToF32
     IntToF64
+
+    NatToInt
 
     U8Get
     U8Set
@@ -256,10 +259,13 @@ data Prim {
         { IntMul -> "prim-int-mul" 0 }
         { IntDivMod -> "prim-int-divmod" 0 }
         { IntToStr -> "prim-int-to-str" 0 }
+        { IntToNat -> "prim-int-to-nat" 0}
         { IntToU64 -> "prim-int-to-u64" 0 }
         { IntToI64 -> "prim-int-to-i64" 0 }
         { IntToF32 -> "prim-int-to-f32" 0 }
         { IntToF64 -> "prim-int-to-f64" 0 }
+
+        { NatToInt -> "prim-nat-to-int" 0 }
 
         { U8Get -> "prim-u8-get" 0 }
         { U8Set -> "prim-u8-set" 0 }
@@ -541,10 +547,13 @@ data Prim {
         { IntMul -> Ctx.L0 Type.Int Type.Int T2 Type.Int T1 T-> }
         { IntDivMod -> Ctx.L0 Type.Int Type.Int T2 Type.Int Type.Int T2 T-> }
         { IntToStr -> Ctx.L0 Type.Int T1 Type.Str T1 T-> }
+        { IntToNat -> Ctx.L0 Type.Int T1 Type.Nat T1 T-> }
         { IntToU64 -> Ctx.L0 Type.Int T1 Type.U64 T1 T-> }
         { IntToI64 -> Ctx.L0 Type.Int T1 Type.I64 T1 T-> }
         { IntToF32 -> Ctx.L0 Type.Int T1 Type.F32 T1 T-> }
         { IntToF64 -> Ctx.L0 Type.Int T1 Type.F64 T1 T-> }
+
+        { NatToInt -> Ctx.L0 Type.Nat T1 Type.Int T1 T-> }
 
         { U8Get -> Ctx.L0 Type.Ptr T1 Type.U8 T1 T-> }
         { U8Set -> Ctx.L0 Type.U8 Type.Ptr T2 T0 T-> }

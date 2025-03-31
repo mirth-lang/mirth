@@ -21,10 +21,7 @@ struct +InputOpenState {
     +buffer: +Buffer
     --
     def end! [ +InputOpenState -- +File ] {
-        /+InputOpenState
-        length> offset> drop2
-        +buffer> rdrop
-        +file>
+        /+InputOpenState +file> ldrop
     }
 
     def refill-buffer! [ +InputOpenState -- +Input ] {

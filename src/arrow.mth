@@ -93,6 +93,7 @@ data Arg {
 data PushValue {
     Str [ Str ]
     Int [ Int ]
+    Nat [ Nat ]
     U8  [ U8  ]
     U16 [ U16 ]
     U32 [ U32 ]
@@ -107,6 +108,7 @@ data PushValue {
     def =  [ PushValue PushValue -- Bool ] {
         { Str -> swap match { Str -> swap =, _ -> drop2 No } }
         { Int -> swap match { Int -> swap =, _ -> drop2 No } }
+        { Nat -> swap match { Nat -> swap =, _ -> drop2 No } }
         { U8  -> swap match { U8  -> swap =, _ -> drop2 No } }
         { U16 -> swap match { U16 -> swap =, _ -> drop2 No } }
         { U32 -> swap match { U32 -> swap =, _ -> drop2 No } }

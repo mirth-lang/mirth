@@ -866,8 +866,6 @@ struct +AB {
     }
 
     def ab-push-value! [ +Mirth +AB |- PushValue -- ] { dip:L0 Op.Push ab-op! }
-    def ab-int! [ +Mirth +AB |- Int -- ] { PushValue.Int ab-push-value! }
-    def ab-str! [ +Mirth +AB |- Str -- ] { PushValue.Str ab-push-value! }
     def ab-buffer! [ +Mirth +AB |- Buffer -- ] { L0 swap Op.Buffer ab-op! }
     def ab-field! [ +Mirth +AB |- Field -- ] { L0 swap Op.Field ab-op! }
     def ab-var! [ +Mirth +AB |- Var -- ] { L0 swap Op.Var ab-op! }
@@ -986,8 +984,9 @@ struct +AB {
         ab-token@ rdip:value match(
             Name -> elab-atom-name!,
             DName -> elab-atom-dname!,
-            Str -> ab-str!,
-            Int -> ab-int!,
+            Str -> PushValue.Str ab-push-value!,
+            Int -> PushValue.Int ab-push-value!,
+            Nat -> PushValue.Nat ab-push-value!,
             U8  -> PushValue.U8  ab-push-value!,
             U16 -> PushValue.U16 ab-push-value!,
             U32 -> PushValue.U32 ab-push-value!,
@@ -1413,11 +1412,12 @@ data OpSig {
 def PushValue.type [ +Mirth |- PushValue -- Type ] {
     { Str -> Value.Str Type.Value }
     { Int -> Value.Int Type.Value }
-    { U8  -> drop Type.U8 }
+    { Nat -> drop Type.Nat }
+    { U8  -> drop Type.U8  }
     { U16 -> drop Type.U16 }
     { U32 -> drop Type.U32 }
     { U64 -> drop Type.U64 }
-    { I8  -> drop Type.I8 }
+    { I8  -> drop Type.I8  }
     { I16 -> drop Type.I16 }
     { I32 -> drop Type.I32 }
     { I64 -> drop Type.I64 }
@@ -2059,7 +2059,7 @@ def elab-embed-str! [ +World +Mirth Token |- ] {
     dup PropLabel.WordQName >label Prop over ~qname !
 
     Ctx.L0 T0 Type.Str T1 T-> over2 PropLabel.WordType prop2 over ~ctx-type !
-    ab-build-word!(contents> ab-str!) drop
+    ab-build-word!(contents> PushValue.Str ab-push-value!) drop
 }
 
 ||| Ensure that everything so far has been typechecked.

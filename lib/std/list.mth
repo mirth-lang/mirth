@@ -215,7 +215,7 @@ data List(t) {
 
     ||| If the predicate matches all elements of the list, return the result. Otherwise return None.
     def all-some(f) [ (*c a -- *c Maybe(b)) *c List(a) -- *c Maybe(List(b)) ] {
-        >rest True >ok L0 build! while-some(
+        \rest True >ok L0 build! while-some(
             @rest:uncons,
             @rest(@ok(dip2:rdip(f))) if?(
                 ; ,
@@ -223,7 +223,6 @@ data List(t) {
                 List.Nil !rest
             )
         )
-        rest> drop
         ok> if(done! Some, rdrop None)
     }
 
@@ -291,15 +290,7 @@ data List(t) {
 
     ||| Remove duplicates via equality comparison. O(n^2) time.
     def unique (eq{=}) [ ( *x t t -- *x Bool ) *x List(t) -- *x List(t) ] {
-        L0 >result
-        for(
-            >candidate
-            @candidate @result ldip:member(eq) if(
-                candidate> drop,
-                candidate> @result:cons
-            )
-        )
-        result>
+        List:for(dup reversed member(eq) if(drop, push!))
     }
 }
 
@@ -521,7 +512,7 @@ struct +Lister(t) {
     --
     def +Nil [ +Lister(t) ] { L0 >reversed +Lister }
     def +Snoc [ +Lister(t) t -- +Lister(t) ] { reversed:cons }
-    def rdrop [ +Lister(t) -- ] { +Lister -> reversed> drop }
+    def rdrop [ +Lister(t) -- ] { +Lister -> ldrop }
     def rdup [ +Lister(t) -- +Lister(t) +Lister(t) ] { reversed >reversed +Lister }
 
     def copy! [ +Lister(t) -- +Lister(t) List(t) ] { reversed reverse }
@@ -541,7 +532,7 @@ struct +Nester(t) {
     --
     def +Snoc [ +Lister(t) t -- +Nester(t) ] { +Lister -> @reversed:cons+ +Nester }
 
-    def rdrop [ +Nester(t) -- ] { +Nester -> reversed> drop }
+    def rdrop [ +Nester(t) -- ] { +Nester -> ldrop }
     def rdup [ +Nester(t) -- +Nester(t) +Nester(t) ] { reversed >reversed +Nester }
     def copy! [ +Nester(t) -- +Nester(t) Nest(t) ] { reversed reverse }
     def done! [ +Nester(t) -- Nest(t) ] { +Nester -> reversed> reverse }
