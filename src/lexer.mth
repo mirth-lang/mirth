@@ -58,12 +58,9 @@ struct +Lexer {
         TokenValue.None emit!
         /+Lexer
         lexer-stack> uncons drop for("Mismatched token." emit-fatal-error!)
-        lexer-row> lexer-col> lexer-last-token> drop3
         lexer-module> Token.alloc-none! over end!
         lexer-first-token> succ over start!
-        lexer-doc> drop
-        lexer-source> drop
-        lexer-offset> drop
+        ldrop
     }
 
     def lexer-location [ +Lexer |- Location ] {
@@ -378,18 +375,17 @@ struct +Lexer {
     }
 
     def int-suffix? [ +Str +Lexer |- Offset -- Maybe(IntSuffix) ] {
-        unsafe(+Str.drop-slice) >suffix
-        None
-        or?(@suffix "" = >Maybe(IntSuffix.Int))
-        or?(@suffix "u8" = >Maybe(IntSuffix.U8))
-        or?(@suffix "u16" = >Maybe(IntSuffix.U16))
-        or?(@suffix "u32" = >Maybe(IntSuffix.U32))
-        or?(@suffix "u64" = >Maybe(IntSuffix.U64))
-        or?(@suffix "i8" = >Maybe(IntSuffix.I8))
-        or?(@suffix "i16" = >Maybe(IntSuffix.I16))
-        or?(@suffix "i32" = >Maybe(IntSuffix.I32))
-        or?(@suffix "i64" = >Maybe(IntSuffix.I64))
-        suffix> drop
+        unsafe:drop-slice \suffix None
+        or?(@suffix ""    = >Maybe:IntSuffix.Int)
+        or?(@suffix "u"   = >Maybe:IntSuffix.Nat)
+        or?(@suffix "u8"  = >Maybe:IntSuffix.U8 )
+        or?(@suffix "u16" = >Maybe:IntSuffix.U16)
+        or?(@suffix "u32" = >Maybe:IntSuffix.U32)
+        or?(@suffix "u64" = >Maybe:IntSuffix.U64)
+        or?(@suffix "i8"  = >Maybe:IntSuffix.I8 )
+        or?(@suffix "i16" = >Maybe:IntSuffix.I16)
+        or?(@suffix "i32" = >Maybe:IntSuffix.I32)
+        or?(@suffix "i64" = >Maybe:IntSuffix.I64)
     }
 
     def skipping-underscore(f) [ (Byte -- Bool) +Str +Lexer |- Size Offset -- Size Offset Bool ] {
@@ -514,12 +510,13 @@ struct +Lexer {
 }
 
 data IntSuffix {
-    Int
+    Int Nat
     U8 U16 U32 U64
     I8 I16 I32 I64
     --
     def convert [ Int IntSuffix -- Result(Str, TokenValue) ] {
         { Int -> TokenValue.Int Ok }
+        { Nat -> >Nat-if(TokenValue.Nat Ok, Str(int; " is outside of Nat range.";) Err) }
         { U8  -> >U8-if (TokenValue.U8  Ok, Str(int; " is outside of U8 range." ;) Err) }
         { U16 -> >U16-if(TokenValue.U16 Ok, Str(int; " is outside of U16 range.";) Err) }
         { U32 -> >U32-if(TokenValue.U32 Ok, Str(int; " is outside of U32 range.";) Err) }

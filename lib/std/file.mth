@@ -157,8 +157,7 @@ def +File.write-bytes! [ +File +Unsafe |- ptr:Ptr size:Size -- Result(IOError, S
             }
         )
     )
-    size> ptr> drop2
-    result>
+    result> ldrop
 }
 
 # def +File.with-fd(f) [ (*a +fd:+FileDescriptor -- *b +fd:+FileDescriptor) *a +File -- *b +File ] {

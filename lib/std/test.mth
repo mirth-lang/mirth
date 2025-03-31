@@ -90,8 +90,7 @@ struct +Tests {
             Str(rdip:num-tests int; " tests passed." ;)
             +world:print
         )
-        /+Tests +world>
-        num-tests> num-failed> drop2
+        /+Tests +world> ldrop
     }
 
     ||| Run a test. You pass the test name on the stack, and

@@ -48,6 +48,7 @@ data Type {
     def RESOURCE [ Type ] { PrimType.RESOURCE Type.Prim } # type of (linear) resources
     def Bool     [ Type ] { PrimType.Bool Type.Prim }
     def Int      [ Type ] { PrimType.Int Type.Prim }
+    def Nat      [ Type ] { PrimType.Nat Type.Prim }
     def U8       [ Type ] { PrimType.U8  Type.Prim }
     def U16      [ Type ] { PrimType.U16 Type.Prim }
     def U32      [ Type ] { PrimType.U32 Type.Prim }
@@ -471,6 +472,7 @@ data PrimType {
     RESOURCE
     Bool
     Int
+    Nat
     U8
     U16
     U32
@@ -506,6 +508,7 @@ data PrimType {
         { RESOURCE -> "RESOURCE" 0 QName.Prim }
         { Bool -> "Bool" 0 QName.Prim }
         { Int -> "Int" 0 QName.Prim }
+        { Nat -> "Nat" 0 QName.Prim }
         { U8  -> "U8"  0 QName.Prim }
         { U16 -> "U16" 0 QName.Prim }
         { U32 -> "U32" 0 QName.Prim }
@@ -569,6 +572,7 @@ def +Mirth.def-prim-type-alias! [ +Mirth |- PrimType Str -- ] {
 def +Mirth.init-types! [ +Mirth |- ] {
     PrimType.Bool def-prim-type!
     PrimType.Int def-prim-type!
+    PrimType.Nat def-prim-type!
     PrimType.U8 def-prim-type!
     PrimType.U16 def-prim-type!
     PrimType.U32 def-prim-type!

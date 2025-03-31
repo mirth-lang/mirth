@@ -102,6 +102,7 @@ static TYPE TYPE_BOOL = { .name = "Bool", .trace_ = bool_trace_ };
 static void int_trace_ (VAL v, int fd);
 static void int_free (VAL v);
 static TYPE TYPE_INT = { .name = "Int", .trace_ = int_trace_, .free = int_free };
+static TYPE TYPE_NAT = { .name = "Nat", .trace_ = int_trace_, .free = int_free };
 
 static void i64_trace_ (VAL v, int fd);
 static TYPE TYPE_I64 = { .name = "I64", .trace_ = i64_trace_ };
@@ -162,6 +163,7 @@ static TYPE TYPE_TUP = { .name = "Tup", .flags = REFS_FLAG, .free = tup_free, .t
 #define TAG_PTR   ((TAG)&TYPE_PTR)
 #define TAG_FNPTR ((TAG)&TYPE_FNPTR)
 #define TAG_INT   (REFS_FLAG | (TAG)&TYPE_INT)
+#define TAG_NAT   (REFS_FLAG | (TAG)&TYPE_NAT)
 #define TAG_STR   (REFS_FLAG | (TAG)&TYPE_STR)
 #define TAG_TUP   (REFS_FLAG | (TAG)&TYPE_TUP)
 
@@ -172,6 +174,7 @@ static TYPE TYPE_TUP = { .name = "Tup", .flags = REFS_FLAG, .free = tup_free, .t
 #define HAS_REFS(v) (((v).tag & REFS_FLAG) && PTRPTR((v).data.u64) && (PTRTAG((v).data.u64) == 0))
 
 #define VINT(v)   ((v).data.iint)
+#define VNAT(v)   ((v).data.iint)
 #define VI64(v)   ((v).data.i64)
 #define VI32(v)   ((v).data.i32)
 #define VI16(v)   ((v).data.i16)
@@ -188,6 +191,7 @@ static TYPE TYPE_TUP = { .name = "Tup", .flags = REFS_FLAG, .free = tup_free, .t
 
 #define IS_VAL(v)   (1)
 #define IS_INT(v)   ((v).tag == TAG_INT)
+#define IS_NAT(v)   ((v).tag == TAG_NAT)
 #define IS_I64(v)   ((v).tag == TAG_I64)
 #define IS_I32(v)   ((v).tag == TAG_I32)
 #define IS_I16(v)   ((v).tag == TAG_I16)
@@ -240,6 +244,7 @@ static TYPE TYPE_TUP = { .name = "Tup", .flags = REFS_FLAG, .free = tup_free, .t
 #define GET_BIG(x) ((struct BIG*)(intptr_t)((x).val))
 
 #define MKINT(x) ((VAL){.tag=TAG_INT, .data={.iint=(x)}})
+#define MKNAT(x) ((VAL){.tag=TAG_NAT, .data={.iint=(x)}})
 
 #define IS_INT_I63(x) (IS_INT(x) && IS_I63((x).data.iint))
 #define MKINT_I63(x) (MKINT(WRAP_I63(x)))
@@ -433,6 +438,7 @@ static uint16_t value_u16 (VAL v) { ASSERT1(IS_U16(v),v); return VU16(v); }
 static uint8_t  value_u8  (VAL v) { ASSERT1(IS_U8(v) ,v); return VU8(v) ; }
 
 static INT value_int (VAL v) { ASSERT1(IS_INT(v),v); return VINT(v); }
+static INT value_nat (VAL v) { ASSERT1(IS_NAT(v),v); return VNAT(v); }
 static int64_t value_i64 (VAL v) { ASSERT1(IS_I64(v),v); return VI64(v); }
 static int32_t value_i32 (VAL v) { ASSERT1(IS_I32(v),v); return VI32(v); }
 static int16_t value_i16 (VAL v) { ASSERT1(IS_I16(v),v); return VI16(v); }

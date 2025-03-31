@@ -28,7 +28,7 @@ def(+ArgumentParser.usage, +ArgumentParser(a) -- +ArgumentParser(a) Str,
 def(ArgpOption.usage;, +ArgumentParser(a) +Str ArgpOption -- +ArgumentParser(a) +Str,
     "  " ;
 
-    0 >col-offset
+    0 \col-offset
     dup flag-type match(
         Short ->
             dup is-printable then(
@@ -59,7 +59,7 @@ def(ArgpOption.usage;, +ArgumentParser(a) +Str ArgpOption -- +ArgumentParser(a) 
             drop2
         )
         "    "; ;
-    ) col-offset> drop
+    )
 
     "\n";
     drop)

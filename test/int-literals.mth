@@ -54,6 +54,14 @@ def main {
         -0o0_0_0 >Str => ("0")
     )
 
+    "nat" test (
+        0u >Str => ("0")
+        123u >Str => ("123")
+        1234567890u >Str => ("1234567890")
+        0xFFFFu >Str => ("65535")
+        0o777u >Str => ("511")
+    )
+
     "u8" test (
         0u8 U8.>Int >Str => ("0")
         1u8 U8.>Int >Str => ("1")
@@ -385,4 +393,4 @@ def main {
 
     end!
 }
-# mirth-test # pout # 11 tests passed.
+# mirth-test # pout # 12 tests passed.

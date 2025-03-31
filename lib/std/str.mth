@@ -248,7 +248,7 @@ def(+Str.push-repr-byte!, +Str escape-hex:Bool Byte -- escape-hex:Bool +Str,
     )
 
 def(Str.repr;, Str +Str -- +Str,
-    "\"" ; False >escape-hex bytes-for(push-repr-byte!) escape-hex> drop "\"" ;)
+    "\"" ; False \escape-hex bytes-for(push-repr-byte!) "\"" ;)
 
 def Str.zencode; [ +Str Str -- +Str ] { bytes-for(zencode;) }
 def Str.zencode  [ Str -- Str ] { str:zencode; }
