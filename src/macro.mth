@@ -79,4 +79,5 @@ def +Mirth.init-macros! [ +Mirth |- ] {
     "match" -1 [ elab-atom-match!    ] prim-word-macro!
     "\\"    -1 [ elab-atom-lambda!   ] prim-word-macro!
     "ldip"  -1 [ elab-ldip!          ] prim-word-macro!
+    "ldrop" -1 [ elab-ldrop!         ] prim-word-macro!
 }
