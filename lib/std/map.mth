@@ -11,6 +11,26 @@ import std.maybe
 struct KeyValuePair(k,v) {
     key: k
     value: v
+    --
+    def map(f) [ (*c1 v1 -- *c2 v2) *c1 KeyValuePair(k,v1) -- *c2 KeyValuePair(k,v2) ] {
+        /KeyValuePair ldip(key, @value:f) KeyValuePair
+    }
+
+    def map-pair(f) [ (*c1 k1 v1 -- *c2 k2 v2) *c1 KeyValuePair(k1,v1) -- *c2 KeyValuePair(k2,v2) ] {
+        /KeyValuePair
+        @key:@value:f
+        KeyValuePair
+    }
+
+    def pair [ KeyValuePair(k,v) -- k v ] {
+        /KeyValuePair
+        key> value>
+    }
+
+    def Pair [ k v -- KeyValuePair(k,v) ] {
+        >value >key
+        KeyValuePair
+    }
 }
 
 struct Map(k,v) {
@@ -29,8 +49,66 @@ struct Map(k,v) {
     }
 
     def empty? [ Map(k,v) -- Bool ] { pairs empty? }
-}
 
+    ||| Extract an entry by key.
+    ||| Returns the entry (if it exists), and the map with the entry removed.
+    def extract(keq{=}) [
+        (*c k k -- *c Bool)
+        *c k Map(k,v) -- *c k Maybe(v) Map(k,v)
+    ] {
+        pairs extract(key dip:dup swap dip:keq swap) >pairs Map
+        dip:map:value
+    }
+
+    ||| Modify an entry, potentially deleting it or altering the key.
+    def modify-entry(f, keq{=}) [
+        (*c1 k Maybe(v) -- *c2 k Maybe(v),
+         *c1 k k -- *c1 Bool)
+         *c1 k Map(k,v) -- *c2 Map(k,v)
+    ] {
+        extract(keq) dip(f) swap if?(
+            >value swap >key KeyValuePair swap pairs:cons,
+            nip
+        )
+    }
+
+    ||| Create or update an entry.
+    def create-or-update(f,g,keq{=}) [
+        (*c1 -- *c2 v,
+         *c1 v -- *c2 v,
+         *c1 k k -- *c1 Bool)
+         *c1 k Map(k,v) -- *c2 Map(k,v)
+    ] {
+        modify-entry(
+            if?(dip_(g), dip(f) swap) Some,
+            keq
+        )
+    }
+
+    def map(f) [ *c |- (v1 -- v2) Map(k,v1) -- Map(k,v2) ] {
+        /Map @pairs:map:map(f) Map
+    }
+
+    def map-pairs(f) [ *c |- (k1 v1 -- k2 v2) Map(k1,v1) -- Map(k2,v2) ] {
+        /Map @pairs:map:map-pair(f) Map
+    }
+
+    def for(f) [ *c |- (v --) Map(k,v) -- ] {
+        pairs for(value f)
+    }
+
+    def for-pairs(f) [ *c |- (k v --) Map(k,v) -- ] {
+        pairs for(pair f)
+    }
+
+    def reverse-for-pairs(f) [ *c |- (k v --) Map(k,v) -- ] {
+        pairs reverse-for(pair f)
+    }
+
+    def filter(f) [ *c |- (v -- Bool) Map(k,v) -- Map(k,v) ] {
+        pairs:filter(value f)
+    }
+}
 
 struct +KeyValuePair(k, +v) {
     key: k

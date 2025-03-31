@@ -1,0 +1,23 @@
+module test.auto-codip
+
+import std.prelude
+import std.world
+
+def hello(f) [ (*a -- *a Str) *a +World -- *a +World ] {
+    "Hello, " f cat "!" cat print
+    Str("Hello, "; f ; ", again!";) print
+    "prefix " >prefix " suffix" >suffix f print(prefix> ; ; suffix> ;)
+}
+
+def my-on2(f) [ *a |- (x -- y) x x -- y y ] {
+    dip(f) f
+}
+
+def main {
+    hello:"world"
+    "hello" " world" my-on2("!" cat) cat print
+}
+# mirth-test # pout # Hello, world!
+# mirth-test # pout # Hello, world, again!
+# mirth-test # pout # prefix world suffix
+# mirth-test # pout # hello! world!

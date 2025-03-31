@@ -179,6 +179,30 @@ data List(t) {
         reverse-find-some(dup dip(f) swap if(Some, drop None))
     }
 
+    ||| Extract the first element that satisfies the predicate.
+    ||| Returns the element, if it exists, and the list with the predicate removed.
+    def extract(f) [ (*c a -- *c Bool) *c List(a) -- *c Maybe(a) List(a) ] {
+        L0 >rprefix
+        L0 >suffix
+        None >found
+        while-some(
+            uncons swap,
+            swap
+            dip:ldip(found rprefix suffix, sip(f))
+            rotl if(
+                !suffix
+                Some !found
+                L0,
+
+                swap @rprefix:cons
+            )
+        )
+        drop
+        found>
+        rprefix> for(@suffix:cons)
+        suffix>
+    }
+
     ||| Is the predicate true for any element of the list?
     def has(f) [ (*c a -- *c Bool) *c List(a) -- *c Bool ] {
         find(f) some?
