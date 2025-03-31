@@ -868,6 +868,11 @@ data StackType {
     ||| Get value (i.e. non-resource) types on stack.
     def values [ +Mirth |- StackType -- List(Type) ] { L0 swap peel-parts(swap cons, drop, drop2, drop2) drop }
 
+    ||| Get number of positional values on stack.
+    def num-values [ +Mirth |- StackType -- Nat ] {
+        0u swap peel-parts(drop 1+, drop, drop2, drop2) drop
+    }
+
     ||| Get resources on stack.
     def resources [ +Mirth |- StackType -- List(Resource) ] { L0 swap peel-parts(drop, swap cons, drop2, drop2) drop }
 
@@ -1320,6 +1325,52 @@ data StackType {
             drop None
         )
     }
+
+    def count-parts [ +Mirth |- StackType -- StackTypeCounts ] {
+        StackTypeCounts.Nil >counts
+        peel-parts(
+            @counts:add-value!,
+            @counts:add-resource!,
+            nip @counts:add-label!,
+            nip @counts:add-label!
+        )
+        drop counts>
+    }
+}
+
+struct StackTypeCounts {
+    values: Nat
+    resources: Nat
+    labels: Map(Label, Nat)
+    --
+    def Nil [ StackTypeCounts ] {
+        0u >values
+        0u >resources
+        Map.Nil >labels
+        StackTypeCounts
+    }
+    def add-value! [ +Mirth |- Type StackTypeCounts -- StackTypeCounts ] {
+        nip values:1+
+    }
+    def add-resource! [ +Mirth |- Resource StackTypeCounts -- StackTypeCounts ] {
+        nip resources:1+
+    }
+    def add-label! [ +Mirth |- Label StackTypeCounts -- StackTypeCounts ] {
+        labels:create-or-update(1u, 1+)
+    }
+    def label [ +Mirth |- Label StackTypeCounts -- Nat ] {
+        labels lookup unwrap(0u)
+    }
+
+    def difference [ +Mirth |- StackTypeCounts StackTypeCounts -- StackTypeCounts ] {
+        \got
+        values( @got values sub-clamp )
+        resources( @got resources sub-clamp )
+        labels(
+            map-pairs( over @got label sub-clamp )
+            filter(0>)
+        )
+    }
 }
 
 data StackTypeBase {
@@ -1349,6 +1400,14 @@ data StackTypeBase {
         { Unit -> None }
         { Meta -> drop None }
         { Var -> Some }
+    }
+
+    def is-fixed? [ +Mirth |- StackTypeBase -- Bool ] {
+        { Unit -> True }
+        { Var -> drop True }
+        { Ignore -> False }
+        { Error -> False }
+        { Meta -> drop False } # assuming already expanded
     }
 }
 

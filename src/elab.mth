@@ -688,9 +688,9 @@ struct +AB {
     }
 
     def ab-unify-type! [ +Mirth +AB |- StackType -- ] {
-        ab-token@ rdip:error-token!
-        dup rdip:top-resource-tycons ab-slide-resource-tycons-to-top!
-        dip:ab-type@ rdip:unify! ab-type!
+        ab-token@ error-token!
+        dup ab-prepare-for-unification!
+        dip:ab-type@ unify! ab-type!
     }
 
     def ab-atom! [ +Mirth +AB |- Atom -- ] {
@@ -709,25 +709,158 @@ struct +AB {
         ab-home@ >home
         dup >op
         rdip:elab-op-fresh-sig! dip:>subst
-        ab-expand-opsig! >cod >dom
-        Atom ab-atom!
+        match {
+            { OpSig.Id -> ab-type@ dup >dom >cod Atom ab-atom! }
+            { OpSig.Push -> dip(ab-type@ dup >dom) StackType.Cons >cod Atom ab-atom! }
+            { OpSig.Apply ->
+                /ArrowType
+                @args reverse map(
+                    dom> force-cons?!
+                    unwrap(ab-token@ "Expected arg type in type signature." fatal-error!)
+                    unpack2 rotr >dom pack2
+                ) reverse >typed-args
+                ab-codip-extraneous!(
+                    @dom ab-unify-type!
+                    typed-args> for(unpack2 ab-arg-unify-type!)
+                    @dom >dom @cod >cod
+                    Atom ab-atom!
+                ) dom> cod> drop2
+            }
+        }
     }
 
-    def ab-expand-opsig! [ +Mirth +AB args:List(Arg) |- OpSig -- StackType StackType ] {
-        { OpSig.Id -> ab-type@ dup }
-        { OpSig.Push -> dip(ab-type@ dup) StackType.Cons }
-        { OpSig.Apply ->
-            /ArrowType
-            dom>
-            @args reverse map(
-                swap rdip:force-cons?!
-                unwrap(ab-token@ "Expected arg type in type signature." rdip:fatal-error!)
-                unpack2 rotl pack2
-            )
-            over ab-unify-type!
-            reverse-for (unpack2 ab-arg-unify-type!)
-            cod> }
+    def ab-prepare-for-codipping! [ +Mirth +AB |- StackType -- ] {
+        top-resource-tycons ab-slide-resource-tycons-to-top!
     }
+
+    def ab-prepare-for-unification!  [ +Mirth +AB |- StackType -- ] {
+        top-resource-tycons ab-slide-resource-tycons-to-top!
+    }
+
+
+    ||| Prepare for a call with a fixed base (e.g. auto-run variables) by co-dipping everything that isn't required.
+    def ab-codip-extraneous!(f) [ +Mirth +AB dom:StackType cod:StackType |- (*a -- *b) *a -- *b ] {
+        @dom base is-fixed? if(
+            @dom ab-prepare-for-codipping!
+
+            @dom count-parts \dom-counts
+            @cod count-parts \cod-counts
+            ab-type@ count-parts @dom-counts difference \codip-counts
+            "_codip"   Name Label \codip
+            "_dip"     Name Label \dip
+            "+_rcodip" Name Label \rcodip
+            "+_rdip"   Name Label \rdip
+
+            0u \total-codip
+            0u \total-rcodip
+
+            @codip-counts values 0> then(
+                @dom-counts   values repeat( @dip   ab-label-push! )
+                @codip-counts values repeat( @codip ab-label-push! )
+                @codip-counts values @total-codip:+
+                @dom-counts   values repeat( @dip   ab-label-pop!  )
+            )
+
+            @codip-counts resources 0> then(
+                @dom-counts   resources repeat( @rdip   ab-label-push-r! )
+                @codip-counts resources repeat( @rcodip ab-label-push-r! )
+                @codip-counts resources @total-rcodip:+
+                @dom-counts   resources repeat( @rdip   ab-label-pop-r!  )
+            )
+
+            @codip-counts labels for-pairs(
+                \count \label
+                @label is-resource-label? if(
+                    @label @dom-counts label repeat(@label ab-label-pop-r!)
+                    @count repeat(
+                        @label ab-label-pop-r!
+                        @rcodip ab-label-push-r!
+                        @total-rcodip:1+
+                    )
+                    @label @dom-counts label repeat(@label ab-label-push-r!),
+
+                    @label @dom-counts label repeat(@label ab-label-pop!)
+                    @count repeat(
+                        @label ab-label-pop!
+                        @codip ab-label-push!
+                        @total-codip:1+
+                    )
+                    @label @dom-counts label repeat(@label ab-label-push!)
+                )
+            )
+
+            @total-codip repeat(@codip ab-label-pop!)
+            @total-rcodip repeat(@rcodip ab-label-pop-r!)
+
+            @total-rcodip ab-rdip-n!(
+                @total-codip ab-dip-n!(
+                    ldip(
+                        dom-counts
+                        cod-counts
+                        codip-counts
+                        codip
+                        dip
+                        rcodip
+                        rdip
+                        total-codip
+                        total-rcodip,
+
+                        f
+                    )
+                )
+            )
+            @total-rcodip repeat(@rcodip ab-label-push-r!)
+            @total-codip repeat(@codip ab-label-push!)
+
+            @codip-counts labels reverse-for-pairs(
+                \count \label
+                @label is-resource-label? if(
+                    @label @cod-counts label repeat(@label ab-label-pop-r!)
+                    @count repeat(
+                        @rcodip ab-label-pop-r!
+                        @label ab-label-push-r!
+                    )
+                    @label @cod-counts label repeat(@label ab-label-push-r!),
+
+                    @label @cod-counts label repeat(@label ab-label-pop!)
+                    @count repeat(
+                        @codip ab-label-pop!
+                        @label ab-label-push!
+                    )
+                    @label @cod-counts label repeat(@label ab-label-push!)
+                )
+            )
+
+            @codip-counts resources 0> then(
+                @cod-counts   resources repeat( @rdip   ab-label-push-r! )
+                @codip-counts resources repeat( @rcodip ab-label-pop-r!  )
+                @cod-counts   resources repeat( @rdip   ab-label-pop-r!  )
+            )
+
+            @codip-counts values 0> then(
+                @cod-counts   values repeat( @dip   ab-label-push! )
+                @codip-counts values repeat( @codip ab-label-pop!  )
+                @cod-counts   values repeat( @dip   ab-label-pop!  )
+            ),
+
+            f
+        )
+    }
+
+    def ab-rdip-n!(f) [ +Mirth +AB |- (*a -- *b) *a Nat -- *b ] {
+        dup 0> if(
+            ab-rdip!(pred ab-rdip-n!(f)),
+            drop f
+        )
+    }
+
+    def ab-dip-n!(f) [ +Mirth +AB |- (*a -- *b) *a Nat -- *b ] {
+        dup 0> if(
+            ab-dip!(pred ab-dip-n!(f)),
+            drop f
+        )
+    }
+
     def ab-arg-unify-type! [ +Mirth +AB |- Type Arg -- ] {
         { Block -> swap rdip:unify-block! drop }
     }

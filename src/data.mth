@@ -266,8 +266,8 @@ table +Mirth |- Tag {
     def num-type-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
         dup sig? if?(
             run-length
-            over num-resource-inputs-from-sig minus
-            swap label-inputs-from-sig len minus,
+            over num-resource-inputs-from-sig sub-clamp
+            swap label-inputs-from-sig len sub-clamp,
             drop 0u
         )
     }
