@@ -1,0 +1,39 @@
+module test.ldrop
+
+import std.prelude
+import std.world
+import std.maybe
+
+def foo [ -- ] {
+    10 >x
+    20 >y
+    30 >z
+    ldrop
+}
+
+def bar [ -- x:Int ] {
+    10 >x
+    20 >y
+    30 >z
+    ldrop(y z)
+}
+
+def baz [ -- y:Int ] {
+    10 >x
+    20 >y 25 >y
+    30 >z
+    ldrop
+}
+
+struct +Foo {
+    --
+    def rdrop [ +World |- +Foo -- ] {
+        +Foo -> "dropped +Foo" print
+    }
+}
+
+def main {
+    +Foo >+foo
+    ldrop
+}
+# mirth-test # pout # dropped +Foo

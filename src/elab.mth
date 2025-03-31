@@ -1202,17 +1202,17 @@ struct +AB {
                 )
             )
         )
-
-        @labels:map:rdip(
-            run-tokens map(
-                dup args-0
-                dup name? else?("Expected label name." emit-fatal-error!)
-                dup could-be-label-name? else(Str("Invalid label name: "; name;) emit-fatal-error!)
-                Label nip
-            )
-        )
+        @labels:map:parse-label-names
     }
 
+    def +Mirth.parse-label-names [ +Mirth |- Token -- List(Label) ] {
+        run-tokens map(
+            dup args-0
+            dup name? else?("Expected label name." emit-fatal-error!)
+            dup could-be-label-name? else(Str("Invalid label name: "; name;) emit-fatal-error!)
+            Label nip
+        )
+    }
 
     ||| Run function but with labels dipped.
     ||| If list of labels is not given, it is inferred from the stack type.
@@ -1224,9 +1224,67 @@ struct +AB {
     |||
     def elab-ldip! [ +Mirth +AB |- ] {
         elab-parse-ldip! ab-token@
-        labels> else?(ab-type@ rdip(label-names unique))
+        labels> else?(ab-type@ label-names unique)
         ab-ldip!(body> ab-token! elab-atoms!)
         ab-token!
+    }
+
+
+    ||| Elaborate an ldrop, which drops elements of all
+    |||
+    |||     ldrop
+    |||     ldrop(label1 ... labeln)
+    def elab-ldrop! [ +Mirth +AB |- ] {
+        ab-token@ dup num-args 0> if(
+            args-1 parse-label-names,
+            args-0 ab-type@ label-names unique
+        ) for (
+            dup is-resource-label? if(
+                ab-label-pop-r!
+                L0 "rdrop" Name ab-rmethod!,
+                ab-label-pop!
+                L0 Prim.Drop ab-prim!
+            )
+        )
+    }
+
+    ||| Invoke method on resource.
+    def ab-rmethod! [ +Mirth +AB |- List(Arg) Name -- ] {
+        \name
+        ab-type@ top-resource-tycon? if?(
+            \tycon
+            @tycon >Namespace >namespace
+            @name >name dup len >Int >arity
+            QName def-hard? if?(
+                ab-def!,
+                ab-error!("Resource "; @tycon qname; " doesn't implement "; @name name; "/"; len int;)
+            ),
+            ab-error!(
+                "Can't invoke "; @name name; "/"; len int;
+                " on unknown or generic resource.";
+            )
+        )
+    }
+
+    def ab-def! [ +Mirth +AB |- List(Arg) Def -- ] {
+        { Alias -> target ab-def! }
+        { Word -> Op.Word ab-op! }
+        { Prim -> Op.Prim ab-op! }
+        { External -> Op.External ab-op! }
+        { Field -> Op.Field ab-op! }
+        { Tag -> Op.Tag ab-op! }
+        { Buffer -> Op.Buffer ab-op! }
+        { _ -> drop2 ab-error!("Unexpected definition in ab-def!";) }
+    }
+
+    def ab-error! [ +Mirth +AB |- Str -- ] {
+        ab-token@ swap emit-error!
+        StackType.Error ab-unify-type!
+        StackType.Error ab-type!
+    }
+
+    def ab-error!(f) [ +Mirth +AB |- (+Str |- *a -- *b) *a -- *b ] {
+        Str(f) ab-error!
     }
 
     def elab-atom-match! [ +Mirth +AB |- ] {
