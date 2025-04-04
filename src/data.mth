@@ -86,9 +86,12 @@ table +Mirth |- Data {
         is-resource? not
     }
 
+    def applied-type [ +Mirth |- Data -- Type ] {
+        sip:Type.Data params for(Type.Var Type.App)
+    }
+
     def full-type [ +Mirth |- Data -- Type/Resource ] {
-        dup sip:Type.Data params for(Type.Var Type.App)
-        swap is-value-type? if(
+        sip:applied-type is-value-type? if(
             Left,
             Resource Right
         )

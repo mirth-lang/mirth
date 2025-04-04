@@ -62,6 +62,7 @@ data Type {
     def Ptr      [ Type ] { PrimType.Ptr Type.Prim }
     def Str      [ Type ] { PrimType.Str Type.Prim }
     def World    [ Type ] { PrimType.World Type.Prim }
+    def Array    [ Type -- Type ] { PrimType.Array Type.Prim swap Type.App }
 
     def Unit     [ Type ] { StackType.Unit Type.Stack }
 
@@ -485,6 +486,7 @@ data PrimType {
     F64
     Ptr
     Str
+    Array
     World
     --
     def is-resource? [ PrimType -- Bool ] {
@@ -521,6 +523,7 @@ data PrimType {
         { F64 -> "F64" 0 QName.Prim }
         { Str -> "Str" 0 QName.Prim }
         { Ptr -> "Ptr" 0 QName.Prim }
+        { Array -> "Array" 1 QName.Prim }
         { World -> "+World" 0 QName.Prim }
     }
 
@@ -557,35 +560,40 @@ data PrimType {
     }
 }
 
-def +Mirth.def-prim-type! [ +Mirth |- PrimType -- ] {
-    dup tycon-qname >qname
-    Type.Prim >type
-    def-type!
+def +Mirth.def-prim-type! [ +Mirth |- PrimType List(Str) -- ] {
+    dip(dup tycon-qname name str)
+    def-prim-type-alias!
 }
 
-def +Mirth.def-prim-type-alias! [ +Mirth |- PrimType Str -- ] {
+def +Mirth.def-prim-type-alias! [ +Mirth |- PrimType Str List(Str) -- ] {
+    map(
+        Name dup could-be-resource-var
+        if(Type.RESOURCE, Type.TYPE)
+        swap Var.New!
+    ) >params
     Name over tycon-qname .name! >qname
-    Type.Prim >type
+    Type.Prim @params for(Type.Var Type.App) >type
     def-type!
 }
 
 def +Mirth.init-types! [ +Mirth |- ] {
-    PrimType.Bool def-prim-type!
-    PrimType.Int def-prim-type!
-    PrimType.Nat def-prim-type!
-    PrimType.U8 def-prim-type!
-    PrimType.U16 def-prim-type!
-    PrimType.U32 def-prim-type!
-    PrimType.U64 def-prim-type!
-    PrimType.I8 def-prim-type!
-    PrimType.I16 def-prim-type!
-    PrimType.I32 def-prim-type!
-    PrimType.I64 def-prim-type!
-    PrimType.F32 def-prim-type!
-    PrimType.F64 def-prim-type!
-    PrimType.Ptr def-prim-type!
-    PrimType.Str def-prim-type!
-    PrimType.World def-prim-type!
+    PrimType.Bool L0 def-prim-type!
+    PrimType.Int  L0 def-prim-type!
+    PrimType.Nat  L0 def-prim-type!
+    PrimType.U8   L0 def-prim-type!
+    PrimType.U16  L0 def-prim-type!
+    PrimType.U32  L0 def-prim-type!
+    PrimType.U64  L0 def-prim-type!
+    PrimType.I8   L0 def-prim-type!
+    PrimType.I16  L0 def-prim-type!
+    PrimType.I32  L0 def-prim-type!
+    PrimType.I64  L0 def-prim-type!
+    PrimType.F32  L0 def-prim-type!
+    PrimType.F64  L0 def-prim-type!
+    PrimType.Ptr  L0 def-prim-type!
+    PrimType.Str  L0 def-prim-type!
+    PrimType.Array "t" L1 def-prim-type!
+    PrimType.World L0 def-prim-type!
     init-data!
 }
 

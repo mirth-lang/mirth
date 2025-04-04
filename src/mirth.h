@@ -1857,11 +1857,11 @@ static VAL bool_poke_(ARR* arr, USIZE i, VAL v) {
     return MKBOOL(b);
 }
 
-#define gen_peek_poke(pfx,mkmacro,vmacro,fld) \
-    static VAL pfx##_peek_(ARR* arr, USIZE i) { \
+#define gen_peek_poke(ty,mkmacro,vmacro,fld) \
+    static VAL ty##_peek_(ARR* arr, USIZE i) { \
         return mkmacro(arr->data.fld[i]); \
     } \
-    static VAL pfx##_poke_(ARR* arr, USIZE i, VAL v) { \
+    static VAL ty##_poke_(ARR* arr, USIZE i, VAL v) { \
         VAL u = mkmacro(arr->data.fld[i]); \
         arr->data.fld[i] = vmacro(v); \
         return u; \

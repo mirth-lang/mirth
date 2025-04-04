@@ -333,6 +333,7 @@ data PropLabel {
     TagType        [ Tag ]
     TableQName     [ Table ]
     TypeDefQName   [ TypeDef ]
+    TypeDefParams  [ TypeDef ]
     TypeDefTarget  [ TypeDef ]
     WordQName      [ Word ]
     WordType       [ Word ]
@@ -360,6 +361,7 @@ data PropLabel {
         { TagType        -> "tag ctype at " ; rdip:sig? location?; }
         { TableQName     -> "table qname at " ; rdip:head location; }
         { TypeDefQName   -> "type qname at " ; rdip:head? location?; }
+        { TypeDefParams  -> "type paras at " ; rdip:head? location?; }
         { TypeDefTarget  -> "type target at " ; rdip:head? location?; }
         { WordQName      -> "word qname at " ; rdip:head location; }
         { WordType       -> "word type at " ; rdip:head location; }

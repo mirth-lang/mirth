@@ -12,6 +12,7 @@ import mirth.type
 import mirth.mirth
 import mirth.var
 import mirth.elab
+import mirth.data
 
 table +Mirth |- TypeDef {
     doc: Maybe(Str)
@@ -19,12 +20,13 @@ table +Mirth |- TypeDef {
     name: Name
     ~qname: Prop(QName)
     ~target: Prop(Type)
+    ~params: Prop(List(Var))
     --
     def qname-soft [ +Mirth |- TypeDef -- Maybe(QName) ] { ~qname @? bind(ready?) }
     def qname-hard [ +Mirth |- TypeDef -- QName        ] { ~qname force! }
     def namespace  [ +Mirth |- TypeDef -- Namespace    ] { qname-hard namespace }
     def target     [ +Mirth |- TypeDef -- Type         ] { ~target force! }
-    def params     [ +Mirth |- TypeDef -- List(Var)    ] { drop L0 } # TODO
+    def params     [ +Mirth |- TypeDef -- List(Var)    ] { ~params force! }
 
     def name; [ +Mirth +Str |- TypeDef -- ] { rdip:name name; }
 
@@ -35,13 +37,14 @@ table +Mirth |- TypeDef {
     }
 }
 
-def +Mirth.def-type! [ +Mirth |- qname:QName type:Type -- ] {
+def +Mirth.def-type! [ +Mirth |- qname:QName type:Type params:List(Var) -- ] {
     None >head?
     None >doc
     qname> dup name >name
     PropState.Ready >state
-    TypeDef.New!
-    type> over PropLabel.TypeDefTarget prop swap ~target !
+    TypeDef.New! \self
+    type> @self PropLabel.TypeDefTarget prop @self ~target !
+    params> @self PropLabel.TypeDefParams prop @self ~params !
 }
 
 
@@ -49,17 +52,17 @@ def +Mirth.def-type! [ +Mirth |- qname:QName type:Type -- ] {
 |||
 |||     def-type(t1,t2)
 |||     def-type t1 t2
-def parse-def-type [ +Mirth Token |- head:Token target:Token doc:Maybe(Str) ] {
+def parse-def-type [ +Mirth Token |- head:Token params:List(Token) target:Token doc:Maybe(Str) ] {
     dup doc >doc
     dup num-args 0> if (
         sip(next) args-2 >target >head
-        @head args-0
+        @head args >params
         @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
         @head next arg-end? else(@head next "expected comma" emit-fatal-error!)
         @target next arg-end? else(@target next "expected end of args" emit-fatal-error!),
 
         succ dup >head next dup >target next
-        @head args-0
+        @head args >params
         @head sig-type-con? else(@head "expected type constructor" emit-fatal-error!)
     )
 }
@@ -70,6 +73,8 @@ def elab-def-type! [ +Mirth Token |- ] {
     elab-def-head
     head> Some >head?
     arity> drop
-    TypeDef.New!
-    dup target> over PropLabel.TypeDefTarget prop2(dip(params >Ctx) elab-simple-type-atom!) swap ~target !
+    TypeDef.New! \self
+    params> @self PropLabel.TypeDefParams prop(elab-data-params!) @self ~params !
+    @self target> @self PropLabel.TypeDefTarget prop2(dip(params >Ctx) elab-simple-type-atom!) @self ~target !
+
 }

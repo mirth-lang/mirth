@@ -207,6 +207,18 @@ data Prim {
     StrNe
     StrToF64
     StrToF32
+    StrToArray
+
+    ArrayNew
+    ArrayNewFill
+    ArrayLen
+    ArrayGet
+    ArraySet
+    ArrayPush
+    ArrayPop
+    ArrayCat
+    ArraySlice
+    ArrayToStr
 
     SysOs
     SysArch
@@ -426,6 +438,18 @@ data Prim {
         { StrNe -> "prim-str-ne" 0 }
         { StrToF32 -> "prim-str-to-f32" 0 }
         { StrToF64 -> "prim-str-to-f64" 0 }
+        { StrToArray -> "prim-str-to-array" 0 }
+
+        { ArrayNew -> "prim-array-new" 0 }
+        { ArrayNewFill -> "prim-array-new-fill" 0 }
+        { ArrayLen -> "prim-array-len" 0 }
+        { ArrayGet -> "prim-array-get" 0 }
+        { ArraySet -> "prim-array-set" 0 }
+        { ArrayPush -> "prim-array-push" 0 }
+        { ArrayPop -> "prim-array-pop" 0 }
+        { ArrayCat -> "prim-array-cat" 0 }
+        { ArraySlice -> "prim-array-slice" 0 }
+        { ArrayToStr -> "prim-array-to-str" 0 }
 
         { SysOs   -> "prim-sys-os"   0 }
         { SysArch -> "prim-sys-arch" 0 }
@@ -808,6 +832,73 @@ data Prim {
         { StrNe -> Ctx.L0 Type.Str Type.Str T2 Type.Bool T1 T-> }
         { StrToF32 -> Ctx.L0 Type.Str T1 Type.F32 Type.Str T2 T-> }
         { StrToF64 -> Ctx.L0 Type.Str T1 Type.F64 Type.Str T2 T-> }
+        { StrToArray -> Ctx.L0 Type.Str T1 Type.U8 Type.Array T1 T-> }
+
+        { ArrayNew ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            Type.U64 T1
+            @a Type.Array T1 T->
+        }
+        { ArrayNewFill ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a
+            Type.U64 T2
+            @a Type.Array T1 T->
+        }
+        { ArrayLen ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a Type.Array T1
+            Type.U64 T1 T->
+        }
+        { ArrayGet ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            Type.U64
+            @a Type.Array T2
+            @a T1 T->
+        }
+        { ArraySet ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a
+            Type.U64
+            @a Type.Array T3
+            @a Type.Array T1 T->
+        }
+        { ArrayPush ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a @a Type.Array T2
+            @a Type.Array T1 T->
+        }
+        { ArrayPop ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a Type.Array T1
+            @a @a Type.Array T2 T->
+        }
+        { ArrayCat ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a Type.Array dup T2
+            @a Type.Array T1 T->
+        }
+        { ArraySlice ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            Type.U64
+            Type.U64
+            @a Type.Array T3
+            @a Type.Array T1 T->
+        }
+        { ArrayToStr ->
+            Ctx.L0
+            Type.U8 Type.Array T1
+            Type.Str T1 T->
+        }
 
         { SysOs   -> Ctx.L0 T0 Type.I64 T1 T-> }
         { SysArch -> Ctx.L0 T0 Type.I64 T1 T-> }

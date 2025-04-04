@@ -696,6 +696,7 @@ def type-arg-prefix [ +Mirth |- Type -- Str ] {
         { F64 -> "F64_" }
         { Ptr -> "Ptr_" }
         { Str -> "Str_" }
+        { Array -> "Array_" }
         { World -> "World_" }
     } }
     { _ -> drop "_" }
@@ -1224,6 +1225,7 @@ data C99ReprType {
 
     VAL
     STR
+    ARR
     TUP [ Nat ]
     Int Nat
 
@@ -1248,6 +1250,7 @@ inline (
 def C99ReprType.needs-refcounting? [ C99ReprType -- Bool ] {
     { VAL -> True }
     { STR -> True }
+    { ARR -> True }
     { TUP -> drop True }
     { Int -> True }
     { Nat -> True }
@@ -1276,6 +1279,7 @@ def C99ReprType.is-float-like? [ C99ReprType -- Bool ] {
 def C99ReprType.dummy-value [ C99ReprType -- Str ] {
     { VAL   -> "(VAL){0}"    }
     { STR   -> "NULL"        }
+    { ARR   -> "NULL"        }
     { Void  -> "0"           }
     { Int   -> "WRAP_I63(0)" }
     { Nat   -> "WRAP_I63(0)" }
@@ -1298,6 +1302,7 @@ def C99ReprType.dummy-value [ C99ReprType -- Str ] {
 def C99ReprType.underlying-c99-type [ C99ReprType -- Str ] {
     { VAL   -> "VAL"      }
     { STR   -> "STR*"     }
+    { ARR   -> "ARR*"     }
     { Int   -> "INT"      }
     { Nat   -> "INT"      }
     { Void  -> "int64_t"  }
@@ -1341,6 +1346,7 @@ def C99ReprType.v-macro-prefix-suffix [ C99ReprType -- Str Str ] {
     { Bool  -> "value_bool(" ")" }
     { PTR   -> "value_ptr(" ")" }
     { FNPTR -> "value_fnptr(" ")" }
+    { ARR   -> "value_arr(" ")" }
     { TUP   -> "value_tup(" swap Str(", "; int; ")";) }
 }
 
@@ -1363,6 +1369,7 @@ def C99ReprType.mk-macro [ Str C99ReprType -- Str ] {
     { Bool  -> Str( "MKBOOL(" ; ; ")" ; ) }
     { PTR   -> Str( "MKPTR(" ; ; ")" ; ) }
     { FNPTR -> Str( "MKFNPTR(" ; ; ")" ; ) }
+    { ARR   -> Str( "MKARR(" ; ; ")" ; ) }
     { TUP   -> swap Str( "MKTUP(" ; ; ", " ; int; ")" ; ) }
 }
 
@@ -1414,6 +1421,7 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
     { F64 -> C99ReprType.F64 }
     { Str -> C99ReprType.STR }
     { Ptr -> C99ReprType.PTR }
+    { Array -> C99ReprType.ARR }
     { World -> C99ReprType.Void }
 }
 
@@ -2256,9 +2264,20 @@ def c99-prim! [ +Mirth +C99Branch |- Atom Prim -- ] {
     { StrGt   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") > 0)"  False C99ReprType.Bool Some c99-binop! }
     { StrGe   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") >= 0)" False C99ReprType.Bool Some c99-binop! }
     { StrNe   -> drop "(str_cmp(" C99ReprType.STR ", " C99ReprType.STR ") != 0)" False C99ReprType.Bool Some c99-binop! }
+    { StrToF32     -> args "str_to_f32"   Prim.StrToF32     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { StrToF64     -> args "str_to_f64"   Prim.StrToF64     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { StrToArray   -> args "str_to_arr"   Prim.StrToArray   type +c99:cname-type-to-c99-api c99-smart-call! }
 
-    { StrToF32 -> args "str_to_f32" Prim.StrToF32 type +c99:cname-type-to-c99-api c99-smart-call! }
-    { StrToF64 -> args "str_to_f64" Prim.StrToF64 type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayNew     -> args "arr_new"      Prim.ArrayNew     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayNewFill -> args "arr_new_fill" Prim.ArrayNewFill type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayLen     -> args "arr_len"      Prim.ArrayLen     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayGet     -> args "arr_get"      Prim.ArrayGet     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArraySet     -> args "arr_set"      Prim.ArraySet     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayPush    -> args "arr_push"     Prim.ArrayPush    type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayPop     -> args "arr_pop"      Prim.ArrayPop     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayCat     -> args "arr_cat"      Prim.ArrayCat     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArraySlice   -> args "arr_slice"    Prim.ArrayCat     type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayToStr   -> args "arr_to_str"   Prim.ArrayCat     type +c99:cname-type-to-c99-api c99-smart-call! }
 
     { SysOs   -> drop C99ReprType.I64 push-value-expression!("RUNNING_OS" put) }
     { SysArch -> drop C99ReprType.I64 push-value-expression!("RUNNING_ARCH" put) }
