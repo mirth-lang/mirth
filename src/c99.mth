@@ -2268,7 +2268,6 @@ def c99-prim! [ +Mirth +C99Branch |- Atom Prim -- ] {
     { StrToF64     -> args "str_to_f64"   Prim.StrToF64     type +c99:cname-type-to-c99-api c99-smart-call! }
     { StrToArray   -> args "str_to_arr"   Prim.StrToArray   type +c99:cname-type-to-c99-api c99-smart-call! }
 
-    { ArrayNew     -> args "arr_new"      Prim.ArrayNew     type +c99:cname-type-to-c99-api c99-smart-call! }
     { ArrayNewFill -> args "arr_new_fill" Prim.ArrayNewFill type +c99:cname-type-to-c99-api c99-smart-call! }
     { ArrayLen     -> args "arr_len"      Prim.ArrayLen     type +c99:cname-type-to-c99-api c99-smart-call! }
     { ArrayGet     -> args "arr_get"      Prim.ArrayGet     type +c99:cname-type-to-c99-api c99-smart-call! }
