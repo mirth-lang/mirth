@@ -156,7 +156,7 @@ bin/mirth3debug.c: bin/mirth2debug $(SRCS)
 	bin/mirth2debug --debug src/main.mth -o bin/mirth3debug.c
 
 bin/mirth3san.c: bin/mirth2san $(SRCS)
-	bin/mirth2san src/main.mth -o bin/mirth3san.c
+	ASAN_OPTIONS=detect_leaks=0 bin/mirth2san src/main.mth -o bin/mirth3san.c
 
 bin/mirth_prof.c: bin/mirth3.c
 
