@@ -280,7 +280,9 @@ struct +TypeElab {
                 L0 !params
             ),
 
-            @token "Too many arguments to type." emit-error!
+            @target error? else(
+                @token "Too many arguments to type." emit-error!
+            )
             Type.Error !target
             Subst.Nil !subst
             L0 !params

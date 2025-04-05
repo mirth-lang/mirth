@@ -25386,22 +25386,34 @@ static void mw_mirth_elab_ZPlusTypeElab_elabZ_typeZ_appZBang (PTUP in_ZPlusMirth
 			branch_Token_15 = in_Token_4;
 		} break;
 		case 0LL: { // None
-			STR* v57;
-			STRLIT(v57, "Too many arguments to type.", 27);
-			PTUP v58;
-			mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(in_ZPlusMirth_1, in_Token_4, v57, &v58);
-			PTUP v59 = PTRMK(0LL /* Error */,0,0);
+			incref(in_Type_3);
+			PTUP v57;
+			bool v58 = mw_mirth_type_Type_errorZAsk(in_ZPlusMirth_1, in_Type_3, &v57);
+			PTUP branch_ZPlusMirth_59;
+			uint64_t branch_Token_60;
+			if (v58) {
+				branch_Token_60 = in_Token_4;
+				branch_ZPlusMirth_59 = v57;
+			} else {
+				STR* v61;
+				STRLIT(v61, "Too many arguments to type.", 27);
+				PTUP v62;
+				mw_mirth_mirth_ZPlusMirth_emitZ_errorZBang(v57, in_Token_4, v61, &v62);
+				branch_Token_60 = in_Token_4;
+				branch_ZPlusMirth_59 = v62;
+			}
+			PTUP v63 = PTRMK(0LL /* Error */,0,0);
 			decref(in_Type_3);
-			VAL v60 = mw_mirth_type_Subst_Nil();
+			VAL v64 = mw_mirth_type_Subst_Nil();
 			decref(in_Subst_5);
-			PTUP v61 = PTRMK(0LL /* Nil */,0,0);
+			PTUP v65 = PTRMK(0LL /* Nil */,0,0);
 			decref(v13);
-			branch_Subst_20 = v60;
+			branch_Subst_20 = v64;
 			branch_ZPlusTypeElab_19 = in_ZPlusTypeElab_2;
-			branch_ZPlusMirth_18 = v58;
-			branch_Type_17 = MKTUP(v59);
-			branch_List_16 = MKTUP(v61);
-			branch_Token_15 = in_Token_4;
+			branch_ZPlusMirth_18 = branch_ZPlusMirth_59;
+			branch_Type_17 = MKTUP(v63);
+			branch_List_16 = MKTUP(v65);
+			branch_Token_15 = branch_Token_60;
 		} break;
 		default: {
 			do_panic(str_make("unexpected fallthrough in match\n", 32));
