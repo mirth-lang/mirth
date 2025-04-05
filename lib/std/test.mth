@@ -68,12 +68,14 @@ import std.posix
 struct +Tests {
     num-tests: Nat   ||| Number of tests so far.
     num-failed: Nat  ||| Number of tests failed so far.
-    +world: +World   ||| The outside world.
     --
 
+    def +Tests(f) [ +World |- ( +Tests |- ) ] {
+        +Tests.Start! f end!
+    }
+
     ||| Create a test resource.
-    def Start! [ +World -- +Tests ] {
-        >+world
+    def Start! [ +Tests ] {
         0u >num-tests
         0u >num-failed
         +Tests
@@ -81,16 +83,15 @@ struct +Tests {
 
     ||| End the tests. This prints the number of tests
     ||| passed and failed to stdout.
-    def end! [ +Tests -- +World ] {
+    def end! [ +World |- +Tests -- ] {
         num-failed 0> if(
-            Str(rdip:num-failed int; " out of " ;
-                rdip:num-tests int; " tests failed." ;)
-            +world(print 1 posix-exit!),
+            print(num-failed int; " out of " ;
+                  num-tests int; " tests failed." ;)
+            1 posix-exit!,
 
-            Str(rdip:num-tests int; " tests passed." ;)
-            +world:print
+            print(num-tests int; " tests passed.";)
         )
-        /+Tests +world> ldrop
+        /+Tests ldrop
     }
 
     ||| Run a test. You pass the test name on the stack, and
@@ -103,7 +104,7 @@ struct +Tests {
     |||
     ||| Note the test name `"my test"` is only shown if the test fails.
     ||| As demonstrated here, you can run multiple checks within a test.
-    def test(f) [ (+Test -- +Test) Str +Tests -- +Tests ]  {
+    def test(f) [ *x |- (+Test -- +Test) Str +Tests -- +Tests ]  {
         >test-name
         False >test-failed
         >+tests
@@ -125,16 +126,13 @@ struct +Test {
     test-failed: Bool   ||| Did this test fail?
     +tests: +Tests      ||| The test harness.
     --
-    ||| Access the [+World] resource within [+Test], via [+Tests].
-    def +world(f) { +tests:+world(f) }
-
     ||| Declare that the test has failed.
     ||| Output `"<test name> test failed"` and set the [+Test.test-failed] flag.
     ||| If the test already failed before, do nothing instead.
-    def fail! {
+    def fail! [ +World +Test |- ] {
         test-failed else(
             True test-failed!
-            test-name +world:print(repr; " test failed" ;)
+            test-name print(repr; " test failed" ;)
         )
     }
 
@@ -144,13 +142,14 @@ struct +Test {
     |||
     ||| We usually use `=>` instead of check-equals!
     def check-equals! (feq {=}, fshow {repr;}) [
-        (a a -- Bool, a +Str -- +Str)
-        a a +Test -- +Test
+        *x +World |-
+            (a a -- Bool, a +Str -- +Str)
+            a a +Test -- +Test
     ] {
         dup2 feq if(
             drop2,
             fail!
-            +world:print (
+            print (
                 "  expected: " ; fshow "\n" ;
                 "       got: " ; fshow "\n" ;
             )
@@ -167,8 +166,9 @@ struct +Test {
     |||           => (1)
     |||
     def =>(f, feq {=}, fshow {repr;}) [
-        (-- a, a a -- Bool, a +Str -- +Str)
-        a +Test -- +Test
+        *x +World |-
+            (-- a, a a -- Bool, a +Str -- +Str)
+            a +Test -- +Test
     ] {
         f check-equals!(feq, fshow)
     }

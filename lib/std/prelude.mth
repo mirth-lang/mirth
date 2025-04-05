@@ -29,11 +29,19 @@ inline def Bool.then(f) [ (*a -- *a) *a Bool -- *a ] { if(f, id) }
 inline def Bool.else(f) [ (*a -- *a) *a Bool -- *a ] { if(id, f) }
 
 inline def or(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
-    dup dip(f) swap if(drop True, g)
+    dup f if(drop True, g)
 }
 inline def and(f,g) [ (*x a -- *x Bool, *x a -- *x Bool) *x a -- *x Bool ] {
-    dup dip(f) swap if(g, drop False)
+    dup f if(g, drop False)
 }
+
+inline def or2(f,g) [ (*x a b -- *x Bool, *x a b -- *x Bool) *x a b -- *x Bool ] {
+    dup2 f if(drop2 True, g)
+}
+inline def and2(f,g) [ (*x a b -- *x Bool, *x a b -- *x Bool) *x a b -- *x Bool ] {
+    dup2 f if(g, drop2 False)
+}
+
 inline def while(f) [ (*x -- *x Bool) *x -- *x ] {
     True while(dup, drop f) drop
 }

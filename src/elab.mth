@@ -218,7 +218,7 @@ struct +TypeElab {
             L0 filter-roots
         ) if? (
             match(
-                Data -> sip:Type.Data rdip:params,
+                Data -> sip:applied-type params,
                 Table -> Type.Table L0,
                 Type -> rdip(sip:target params), # TODO: this doesn't quite make sense.
                 _ ->
@@ -237,7 +237,7 @@ struct +TypeElab {
                 Type.Mut
             ) token!,
 
-            resolve-type-con-name! elab-type-args!
+            resolve-type-con-name! elab-type-args! apply drop
             token:next
         )
     }
@@ -250,24 +250,42 @@ struct +TypeElab {
         token:swap dip(f) token!
     }
 
-    def elab-type-args! [ +Mirth +TypeElab |- Type List(Var) -- Type ] {
-        token rdip:args for(
+    def elab-type-args! [ +Mirth +TypeElab Type |- List(Var) -- Subst ] {
+        \params
+        >target
+        Subst.Nil >subst
+        token \token
+
+        @token args for(
             with-token(elab-type-app!)
-        ) drop
+        )
+
+        target>
+        subst>
     }
 
-    def elab-type-app! [ +Mirth +TypeElab |- Type List(Var) -- Type List(Var) ] {
-        uncons swap if? (
-            rdip:sort? else?(token "Type parameter has unknown sort." rdip:emit-fatal-error!) match {
-                { Resource -> elab-resource-arg! >Type }
-                { Stack -> T0 elab-stack-type! >Type }
-                { Type -> elab-type-arg! }
-            } swap dip:Type.App,
+    def elab-type-app! [ +Mirth +TypeElab target:Type token:Token subst:Subst params:List(Var) |- ] {
+        @params:uncons if? (
+            \param
+            @param sort? if?(
+                match {
+                    { Resource -> elab-resource-arg! >Type }
+                    { Stack -> T0 elab-stack-type! >Type }
+                    { Type -> elab-type-arg! }
+                } @param @subst:cons,
 
-            drop rdip:tycon? then?(
-                token rdip(Str("Too many type arguments to "; swap qname;) emit-error!)
+                token "Parameter has unknown sort." emit-error!
+                Type.Error !target
+                Subst.Nil !subst
+                L0 !params
+            ),
+
+            @target error? else(
+                @token "Too many arguments to type." emit-error!
             )
-            Type.Error L0
+            Type.Error !target
+            Subst.Nil !subst
+            L0 !params
         )
     }
 
