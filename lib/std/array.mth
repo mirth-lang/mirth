@@ -1,0 +1,100 @@
+module std.array
+
+import std.prelude
+import std.str
+
+min-mirth-revision 2025_04_04_001 {
+    patch Array {
+
+        def Array(f) [ ( +Array(a) |- *x -- *y ) *x -- *y Array(a) ] {
+            +Array.Nil f freeze
+        }
+        def Nil  [ Array(a) ] { 4u Array.New }
+        def New  [ Nat -- Array(a) ] { >U64-clamp prim-array-new }
+        def Fill [ a Nat -- Array(a) ] { >U64-clamp prim-array-new-fill }
+        def len [ Array(a) -- Nat ] { prim-array-len >Nat }
+        def cat [ Array(a) Array(a) -- Array(a) ] { prim-array-cat }
+
+        def get  [ Nat Array(a) -- a Array(a) ] { dip:>U64-clamp sip(swap prim-array-get) }
+        def set  [ a Nat Array(a) -- Array(a) ] { swap >U64-clamp rotl prim-array-set }
+        def push [ a Array(a) -- Array(a) ] { swap prim-array-push }
+        def pop  [ Array(a) -- a Array(a) ] { prim-array-pop swap }
+
+        ||| Get a slice of an array between two indices.
+        |||
+        def slice [ Nat Nat Array(a) -- Array(a) ] {
+            tuck dip2(len min)
+            dup dip(len min over - >U64-clamp)
+            dip2:>U64-clamp
+            rotr prim-array-slice
+        }
+
+        ||| Get a prefix of a certain length.
+        def prefix [ Nat Array(a) -- Array(a) ] { dip2:0u slice }
+
+        ||| Get a suffix, from a starting index.
+        def suffix [ Nat Array(a) -- Array(a) ] { sip:len slice }
+
+        ||| Iterate over every element of the array.
+        def for(f) [ *x |- (a --) Array(a) -- ] {
+            \array
+            @array len count(@array:get f)
+        }
+
+        ||| Iterate over every element of the array, with a second action
+        ||| to perform between every element.
+        def for(f,g) [ *x |- (a --, --) Array(a) --] {
+            \array
+            @array len count(
+                dup 0> then(dip:g)
+                @array:get f
+            )
+        }
+
+        def repr; (f{repr;}) [ *x +Str |- (a --) Array(a) -- ] {
+            "Array( " ;
+            for(f " ; ";)
+            ")" ;
+        }
+
+        def = (f{=}) [ *x |- ( a a -- Bool ) Array(a) Array(a) -- Bool ] {
+            and2(on2:len =,
+                \array2 \array1
+                0u \i
+                True \result
+                while(
+                    @result
+                    @i @array1 len < and,
+                    @i @array1:get
+                    @i @array2:get f
+                    !result
+                    @i:1+
+                )
+                @result
+            )
+        }
+    }
+
+    struct +Array(a) {
+        Array(a)
+        --
+        def Nil [ +Array(a) ] { Array.Nil thaw }
+        def New [ Nat -- +Array(a) ] { Array.New thaw }
+        def Fill [ a Nat -- +Array(a) ] { Array.Fill thaw }
+
+        def freeze [ +Array(a) -- Array(a) ] { /+Array }
+        def Array.thaw [ Array(a) -- +Array(a) ] { +Array }
+
+        def push! [ +Array(a) |- a -- ] { +Array -> push +Array }
+        def pop!  [ +Array(a) |- a ] { +Array -> pop +Array }
+        def get!  [ +Array(a) |- Nat -- a ] { +Array -> get +Array }
+        def set!  [ +Array(a) |- a Nat -- ] { +Array -> set +Array }
+        def cat!  [ +Array(a) |- Array(a) -- ] { +Array -> swap cat +Array }
+
+        def copy! [ +Array(a) |- Array(a) ] { +Array -> dup +Array }
+        def rdrop [ +Array(a) -- ] { freeze drop }
+        def rdup  [ +Array(a) -- +Array(a) +Array(a) ] { copy! +Array }
+
+        def ; [ +Array(a) |- a -- ] { push! }
+    }
+}

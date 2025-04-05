@@ -1,0 +1,158 @@
+module test.arrays
+import std.prelude
+import std.array
+import std.list
+import std.world
+import std.test
+
+def main {
+
+    +Tests (
+
+        "Array(Int).New, len, push, pop, get, set" test (
+            10u New@Int \array
+            @array len =>: 0u
+            Str(@array repr;) =>: "Array( )"
+
+            10 @array:push
+            @array len =>: 1u
+            0u @array:get =>: 10
+            Str(@array repr;) =>: "Array( 10 ; )"
+
+            20 @array:push
+            @array len =>: 2u
+            0u @array:get =>: 10
+            1u @array:get =>: 20
+            Str(@array repr;) =>: "Array( 10 ; 20 ; )"
+
+            30 @array:push
+            @array len =>: 3u
+            0u @array:get =>: 10
+            1u @array:get =>: 20
+            2u @array:get =>: 30
+            Str(@array repr;) =>: "Array( 10 ; 20 ; 30 ; )"
+
+            40 1u @array:set
+            @array len =>: 3u
+            0u @array:get =>: 10
+            1u @array:get =>: 40
+            2u @array:get =>: 30
+            Str(@array repr;) =>: "Array( 10 ; 40 ; 30 ; )"
+
+            @array:pop =>: 30
+            @array len =>: 2u
+            0u @array:get =>: 10
+            1u @array:get =>: 40
+            Str(@array repr;) =>: "Array( 10 ; 40 ; )"
+
+            @array:pop =>: 40
+            @array len =>: 1u
+            0u @array:get =>: 10
+            Str(@array repr;) =>: "Array( 10 ; )"
+
+            @array:pop =>: 10
+            @array len =>: 0u
+            Str(@array repr;) =>: "Array( )"
+        )
+
+        "Array(Int).Fill, prefix, suffix, slice" test (
+            10 5u Array.Fill \array
+            @array Str:repr; =>: "Array( 10 ; 10 ; 10 ; 10 ; 10 ; )"
+
+            30 2u @array:set
+            @array Str:repr; =>: "Array( 10 ; 10 ; 30 ; 10 ; 10 ; )"
+
+            100 3u @array:set
+            @array Str:repr; =>: "Array( 10 ; 10 ; 30 ; 100 ; 10 ; )"
+
+            0 1u @array:set
+            @array Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
+
+            0u @array prefix Str:repr; =>: "Array( )"
+            1u @array prefix Str:repr; =>: "Array( 10 ; )"
+            2u @array prefix Str:repr; =>: "Array( 10 ; 0 ; )"
+            3u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; )"
+            4u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; )"
+            5u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
+            6u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
+
+            0u @array suffix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
+            1u @array suffix Str:repr; =>: "Array( 0 ; 30 ; 100 ; 10 ; )"
+            2u @array suffix Str:repr; =>: "Array( 30 ; 100 ; 10 ; )"
+            3u @array suffix Str:repr; =>: "Array( 100 ; 10 ; )"
+            4u @array suffix Str:repr; =>: "Array( 10 ; )"
+            5u @array suffix Str:repr; =>: "Array( )"
+            6u @array suffix Str:repr; =>: "Array( )"
+        )
+
+        "Array(Int), cat, =" test (
+            Array( 10 ; 20 ; 30 ; ) Str:repr; =>: "Array( 10 ; 20 ; 30 ; )"
+            Array( 10 ; 20 ; 30 ; ) Array( 40 ; 50 ; 60 ; ) cat
+                =>: Array( 10 ; 20 ; 30 ; 40 ; 50 ; 60 ; )
+            Nil@Int Array( 1 ; 2 ; 3 ; 4 ; 5 ; ) cat
+                =>: Array( 1 ; 2 ; 3 ; 4 ; 5 ; )
+            Nil@Int Nil@Int cat =>: Array.Nil
+        )
+
+        "Array(Bool)" test (
+            Array( True ; False ; True ; False ; ) \array
+            0u @array:get =>: True
+            1u @array:get =>: False
+            2u @array:get =>: True
+            3u @array:get =>: False
+            @array @array = =>: True
+            @array show-bools =>: "1010"
+            @array @array cat !array
+            @array show-bools =>: "10101010"
+            0u @array suffix show-bools =>: "10101010"
+            1u @array suffix show-bools =>:  "0101010"
+            2u @array suffix show-bools =>:   "101010"
+
+            False 40u Array.Fill !array
+            @array show-bools =>: "0000000000000000000000000000000000000000"
+            True 10u @array:set
+            @array show-bools =>: "0000000000100000000000000000000000000000"
+            True 35u @array:set
+            @array show-bools =>: "0000000000100000000000000000000000010000"
+            0u @array suffix show-bools =>: "0000000000100000000000000000000000010000"
+            1u @array suffix show-bools =>:  "000000000100000000000000000000000010000"
+            2u @array suffix show-bools =>:   "00000000100000000000000000000000010000"
+            3u @array suffix show-bools =>:    "0000000100000000000000000000000010000"
+            4u @array suffix show-bools =>:     "000000100000000000000000000000010000"
+            5u @array suffix show-bools =>:      "00000100000000000000000000000010000"
+            6u @array suffix show-bools =>:       "0000100000000000000000000000010000"
+            7u @array suffix show-bools =>:        "000100000000000000000000000010000"
+            8u @array suffix show-bools =>:         "00100000000000000000000000010000"
+            9u @array suffix show-bools =>:          "0100000000000000000000000010000"
+            10u @array suffix show-bools =>:          "100000000000000000000000010000"
+
+            @array 10u @array suffix cat show-bools => (
+                "0000000000100000000000000000000000010000"
+                          "100000000000000000000000010000" cat
+            )
+
+        )
+
+        "Array(List(Int))" test (
+            Nil@ListInt Str:repr; =>: "Array( )"
+
+            Nil@ListInt \array
+            List(1 ; 2 ; 3 ;) @array:push
+            List(4 ; 5 ;) @array:push
+            @array Str:repr;
+                =>: "Array( List( 1 ; 2 ; 3 ; ) ; List( 4 ; 5 ; ) ; )"
+
+            # List.Nil @array:push
+
+
+        )
+    )
+}
+
+def New@Int [ Nat -- Array(Int) ] { Array.New }
+def Nil@Int [ Array(Int) ] { Array.Nil }
+def New@ListInt [ Nat -- Array:List:Int ] { Array.New }
+def Nil@ListInt [ Array:List:Int ] { Array.Nil }
+def show-bools [ Array(Bool) -- Str ] { Str:for:if("1";,"0";) }
+
+# mirth-test # pout # 5 tests passed.

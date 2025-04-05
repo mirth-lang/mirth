@@ -279,6 +279,7 @@ static TYPE TYPE_ARR = { .name = "Array", .flags = REFS_FLAG, .free = arr_free, 
 #define IS_PTR(v)   ((v).tag == TAG_PTR)
 #define IS_FNPTR(v) ((v).tag == TAG_FNPTR)
 #define IS_STR(v)   ((v).tag == TAG_STR)
+#define IS_ARR(v)   ((v).tag == TAG_ARR)
 #define IS_TUP(v)   ((v).tag == TAG_TUP)
 #define IS_NIL(v)   (IS_TUP(v) && (VTUPLEN(v) == 0))
 
@@ -550,6 +551,7 @@ static float value_f32 (VAL v) { ASSERT1(IS_F32(v), v); return VF32(v); }
 static void* value_ptr (VAL v) { ASSERT1(IS_PTR(v),v); return VPTR(v); }
 static FNPTR value_fnptr (VAL v) { ASSERT1(IS_FNPTR(v),v); return VFNPTR(v); }
 static STR* value_str (VAL v) { ASSERT1(IS_STR(v),v); return VSTR(v); }
+static ARR* value_arr (VAL v) { ASSERT1(IS_ARR(v),v); return VARR(v); }
 static TUP* value_tup (VAL v, TUPLEN n) { ASSERT1(IS_TUP(v) && (VTUPLEN(v) == n), v); return VTUP(v); }
 
 static void push_value (VAL x) { ASSERT(stack_counter > 0); stack[--stack_counter] = x; }
@@ -1678,16 +1680,16 @@ static VAL arr_peek_(ARR*, USIZE);
 static void arr_trace_(VAL v, int fd) {
     ARR* arr = VARR(v);
     if (!arr) {
-        write(fd, "Arr[]", 5);
+        write(fd, "{}", 2);
     } else {
         USIZE n = arr->size;
         if (n > 16) n = 16;
-        write(fd, "Arr[ ", 5);
+        write(fd, "{ ", 2);
         for (size_t i = 0; i < arr->size; i++) {
             if (i > 0) write(fd, " ", 1);
             value_trace_(arr_peek_(arr,i), fd);
         }
-        write(fd, " ]", 2);
+        write(fd, " }", 2);
     }
 }
 
@@ -1925,7 +1927,17 @@ static ARR* arr_thaw(ARR* arr, size_t new_size) {
     return arr2;
 }
 
-static ARR* arr_new(TAG tag, USIZE cap) {
+
+static ARR* arr_new(USIZE cap) {
+    USIZE nbytes = cap * sizeof(VAL);
+    ARR* arr = calloc(1, sizeof(ARR) + nbytes);
+    ASSERT(arr);
+    arr->refs = 1;
+    arr->cap = cap;
+    return arr;
+}
+
+static ARR* arr_new_of(TAG tag, USIZE cap) {
     const TYPE* ty = PTRPTR(tag);
     USIZE stride = ty ? ty->stride : sizeof(VAL);
     USIZE nbytes = stride ? stride * cap : cap/8 + 4;
@@ -1940,7 +1952,7 @@ static ARR* arr_new(TAG tag, USIZE cap) {
 }
 
 static ARR* arr_new_fill(VAL v, USIZE n) {
-    ARR* arr = arr_new(v.tag, n);
+    ARR* arr = arr_new_of(v.tag, n);
     arr->size = n;
     if (v.tag == TAG_U8) {
         memset(arr->data.u8s, v.data.u8, n);
@@ -1952,6 +1964,13 @@ static ARR* arr_new_fill(VAL v, USIZE n) {
     }
     if (n == 0) decref(v);
     return arr;
+}
+
+static USIZE arr_len(ARR* arr) {
+    ASSERT(arr);
+    USIZE n = arr->size;
+    decref(MKARR(arr));
+    return n;
 }
 
 static VAL arr_get(ARR* arr, USIZE i) {
@@ -1971,10 +1990,18 @@ static ARR* arr_set(ARR* arr, USIZE i, VAL v) {
 
 static ARR* arr_push(ARR* arr, VAL v) {
     ASSERT(arr);
+    if (!arr->tag) {
+        const TYPE *ty = PTRPTR(v.tag);
+        arr->tag = v.tag;
+        arr->cap = ty->stride ?
+            (arr->cap * sizeof(VAL) / ty->stride):
+            (arr->cap * sizeof(VAL) * 8);
+    }
+    ASSERT(arr->tag == v.tag);
     USIZE n = arr->size;
     arr = arr_thaw(arr, n+1);
+    arr->size++;
     arr_poke_(arr,n,v);
-    n++;
     return arr;
 }
 
@@ -1983,16 +2010,19 @@ static ARR* arr_pop(ARR* arr, VAL* vout) {
     USIZE n = arr->size;
     *vout = arr_peek_(arr, n-1);
     arr = arr_thaw(arr, n-1);
-    n--;
+    arr->size--;
     return arr;
 }
 
 static ARR* arr_cat(ARR* arr, ARR* arr2) {
     ASSERT(arr && arr2);
+    if (arr2->size == 0) { decref(MKARR(arr2)); return arr; }
+    if (arr->size == 0) { decref(MKARR(arr)); return arr2; }
     ASSERT(arr->tag == arr2->tag);
     USIZE n1 = arr->size;
     USIZE n2 = arr2->size;
     arr = arr_thaw(arr, n1 + n2);
+    ASSERT(arr && (arr->cap >= n1 + n2));
     arr->size += n2;
     for(USIZE i = 0; i < n2; i++) {
         VAL v = arr_peek_(arr2, i);
@@ -2000,7 +2030,6 @@ static ARR* arr_cat(ARR* arr, ARR* arr2) {
         incref(v);
     }
     decref(MKARR(arr2));
-
     return arr;
 }
 
@@ -2049,7 +2078,7 @@ static STR* arr_to_str (ARR* arr) {
 
 static ARR* str_to_arr (STR* str) {
     ASSERT(str);
-    ARR* arr = arr_new(TAG_U8, str->size+4);
+    ARR* arr = arr_new_of(TAG_U8, str->size+4);
     arr->size = str->size;
     arr->stride = 1;
     memcpy(arr->data.u8s, str->data, str->size);

@@ -209,6 +209,7 @@ data Prim {
     StrToF32
     StrToArray
 
+    ArrayNew
     ArrayNewFill
     ArrayLen
     ArrayGet
@@ -439,6 +440,7 @@ data Prim {
         { StrToF64 -> "prim-str-to-f64" 0 }
         { StrToArray -> "prim-str-to-array" 0 }
 
+        { ArrayNew -> "prim-array-new" 0 }
         { ArrayNewFill -> "prim-array-new-fill" 0 }
         { ArrayLen -> "prim-array-len" 0 }
         { ArrayGet -> "prim-array-get" 0 }
@@ -832,6 +834,12 @@ data Prim {
         { StrToF64 -> Ctx.L0 Type.Str T1 Type.F64 Type.Str T2 T-> }
         { StrToArray -> Ctx.L0 Type.Str T1 Type.U8 Type.Array T1 T-> }
 
+        { ArrayNew ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            Type.U64 T1
+            @a Type.Array T1 T->
+        }
         { ArrayNewFill ->
             Ctx.L0
             "a" Type.NewInCtx \a
@@ -848,16 +856,16 @@ data Prim {
         { ArrayGet ->
             Ctx.L0
             "a" Type.NewInCtx \a
-            Type.U64
-            @a Type.Array T2
+            @a Type.Array
+            Type.U64 T2
             @a T1 T->
         }
         { ArraySet ->
             Ctx.L0
             "a" Type.NewInCtx \a
-            @a
+            @a Type.Array
             Type.U64
-            @a Type.Array T3
+            @a T3
             @a Type.Array T1 T->
         }
         { ArrayPush ->
@@ -881,9 +889,9 @@ data Prim {
         { ArraySlice ->
             Ctx.L0
             "a" Type.NewInCtx \a
+            @a Type.Array
             Type.U64
-            Type.U64
-            @a Type.Array T3
+            Type.U64 T3
             @a Type.Array T1 T->
         }
         { ArrayToStr ->
