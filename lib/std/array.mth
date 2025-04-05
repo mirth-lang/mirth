@@ -51,6 +51,14 @@ min-mirth-revision 2025_04_04_001 {
             )
         }
 
+        ||| Create a new array with the result of applying a function
+        ||| to each element of the original array.
+        def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
+            dup len +Array.New
+            for(f push!)
+            freeze
+        }
+
         def repr; (f{repr;}) [ *x +Str |- (a --) Array(a) -- ] {
             "Array( " ;
             for(f " ; ";)
@@ -75,7 +83,7 @@ min-mirth-revision 2025_04_04_001 {
         }
     }
 
-    struct +Array(a) {
+    inline struct +Array(a) {
         Array(a)
         --
         def Nil [ +Array(a) ] { Array.Nil thaw }
@@ -85,8 +93,6 @@ min-mirth-revision 2025_04_04_001 {
         def freeze [ +Array(a) -- Array(a) ] { /+Array }
         def Array.thaw [ Array(a) -- +Array(a) ] { +Array }
 
-        def push! [ +Array(a) |- a -- ] { +Array -> push +Array }
-        def pop!  [ +Array(a) |- a ] { +Array -> pop +Array }
         def get!  [ +Array(a) |- Nat -- a ] { +Array -> get +Array }
         def set!  [ +Array(a) |- a Nat -- ] { +Array -> set +Array }
         def cat!  [ +Array(a) |- Array(a) -- ] { +Array -> swap cat +Array }
@@ -95,6 +101,25 @@ min-mirth-revision 2025_04_04_001 {
         def rdrop [ +Array(a) -- ] { freeze drop }
         def rdup  [ +Array(a) -- +Array(a) +Array(a) ] { copy! +Array }
 
+        def push!  [ +Array(a) |- a -- ] { +Array -> push +Array }
+        def push2! [ +Array(a) |- a a -- ] { dip:push! push! }
+        def push3! [ +Array(a) |- a a a -- ] { dip:push2! push! }
+        def push4! [ +Array(a) |- a a a a -- ] { dip:push3! push! }
+        def push5! [ +Array(a) |- a a a a a -- ] { dip:push4! push! }
+
+        def pop!  [ +Array(a) |- a ] { +Array -> pop +Array }
+        def pop2! [ +Array(a) |- a a ] { pop! dip:pop! }
+        def pop3! [ +Array(a) |- a a a ] { pop! dip:pop2! }
+        def pop4! [ +Array(a) |- a a a a ] { pop! dip:pop3! }
+        def pop5! [ +Array(a) |- a a a a a ] { pop! dip:pop4! }
+
         def ; [ +Array(a) |- a -- ] { push! }
     }
+
+    def A0 [ Array(a) ] { Array.Nil }
+    def A1 [ a -- Array(a) ] { 1u Array.New push }
+    def A2 [ a a -- Array(a) ] { 2u +Array.New push2! freeze }
+    def A3 [ a a a -- Array(a) ] { 3u +Array.New push3! freeze }
+    def A4 [ a a a a -- Array(a) ] { 4u +Array.New push4! freeze }
+    def A5 [ a a a a a -- Array(a) ] { 5u +Array.New push5! freeze }
 }

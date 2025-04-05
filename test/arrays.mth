@@ -142,9 +142,13 @@ def main {
             @array Str:repr;
                 =>: "Array( List( 1 ; 2 ; 3 ; ) ; List( 4 ; 5 ; ) ; )"
 
-            # List.Nil @array:push
-
-
+            List.Nil @array:push
+            @array Str:repr;
+                =>: "Array( List( 1 ; 2 ; 3 ; ) ; List( 4 ; 5 ; ) ; List( ) ; )"
+            @array map(sum) Str:repr;
+                =>: "Array( 6 Some ; 9 Some ; None ; )"
+            @array map(foldl(0,+))
+                =>: Array( 6 ; 9 ; 0 ; )
         )
     )
 }
