@@ -670,11 +670,7 @@ static STR* str_cat (STR* s1, STR* s2) {
 
 static USIZE get_data_tag(VAL v) {
     if (IS_TUP(v)) {
-        ASSERT(VTUPLEN(v) > 0);
-        PTUP ptup = VTUP(v);
-        ASSERT(PTRISPTR(ptup));
-        TUP* tup = PTRPTR(ptup);
-        return VU64(tup->cells[0]);
+        return PTREXTRA(VTUP(v));
     } else {
         return VU64(v);
     }

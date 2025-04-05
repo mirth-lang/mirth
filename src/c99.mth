@@ -184,7 +184,8 @@ def c99-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
     @tag num-total-inputs 0= if(
         @tag data is-enum-or-unit? if(
             C99ReprType.I64 "" >pfx "" >sfx,
-            C99ReprType.VAL "MKI64(" >pfx ")" >sfx
+            C99ReprType.TUP "PTRMK(" >pfx ",0,0)" >sfx
+            @tag c99-check-tag-value!
         )
         @tag outputs-resource? if(
             push-resource-expression!(
@@ -255,16 +256,20 @@ def +C99.tag-value-put [ +Mirth +C99 |- Tag -- ] {
     dup value-show put "LL /* " put name >Str put " */" put
 }
 
-def c99-pack-tuple! [ +Mirth +C99Branch |- tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Resource ] {
-    @tag len @parts len + >tuplen
-    @tag for(dup value 0x0 0xFFFF in-range if(
+def c99-check-tag-value! [ +Mirth |- Tag -- ] {
+    dup value 0x0 0xFFFF in-range if(
         drop,
         Str("Constructor "; qname; " enum value is out of range for C99 tuple representation (must be between 0 and 0xFFFF inclusive).";) fatal-error!
-    ))
+    )
+}
+
+def c99-pack-tuple! [ +Mirth +C99Branch |- tag:Maybe(Tag) parts:List(StackTypePart) -- +C99Resource ] {
+    @tag len @parts len + >tuplen
+    @tag for(c99-check-tag-value!)
 
     C99ReprType.TUP resource-expression!(
         "PTRMK(" put
-        "0" put
+        @tag if?(tag-value-put, "0" put)
         "," put
         "tup_new(" put @tuplen >Str put
         "),0)" put) >+tup
