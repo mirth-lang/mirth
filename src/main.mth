@@ -4,6 +4,7 @@ import std.prelude
 import std.list
 import std.posix
 import std.terminal
+import std.array
 
 import mirth.options
 import mirth.mirth

@@ -110,7 +110,7 @@ typedef struct TYPE {
     void (*trace_)(VAL v, int fd);
     void (*run)(VAL v);
     VAL (*peek_)(ARR* a, USIZE i);
-    VAL (*poke_)(ARR* a, USIZE i, VAL v);
+    void (*poke_)(ARR* a, USIZE i, VAL v);
 } TYPE;
 
 #define REFS_FLAG 0x0001
@@ -126,101 +126,101 @@ static void default_run    (VAL v);
 
 static void bool_trace_ (VAL v, int fd);
 static VAL  bool_peek_ (ARR* a, USIZE i);
-static VAL  bool_poke_ (ARR* a, USIZE i, VAL v);
+static void bool_poke_ (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_BOOL = { .name = "Bool", .trace_ = bool_trace_, .stride=0, .peek_=bool_peek_, .poke_=bool_poke_ };
 
 static void int_trace_ (VAL v, int fd);
 static void int_free   (VAL v);
 static VAL  int_peek_  (ARR* a, USIZE i);
-static VAL  int_poke_  (ARR* a, USIZE i, VAL v);
+static void int_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_INT = { .name = "Int", .trace_ = int_trace_, .free = int_free, .stride=8, .peek_=int_peek_, .poke_=int_poke_, };
 
 static void nat_trace_ (VAL v, int fd);
 static void nat_free   (VAL v);
 static VAL  nat_peek_  (ARR* a, USIZE i);
-static VAL  nat_poke_  (ARR* a, USIZE i, VAL v);
+static void nat_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_NAT = { .name = "Nat", .trace_ = nat_trace_, .free = nat_free, .stride=8, .peek_=nat_peek_, .poke_=nat_poke_, };
 
 static void i64_trace_ (VAL v, int fd);
 static VAL  i64_peek_  (ARR* a, USIZE i);
-static VAL  i64_poke_  (ARR* a, USIZE i, VAL v);
+static void i64_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_I64 = { .name = "I64", .trace_ = i64_trace_, .stride=8, .peek_=i64_peek_, .poke_=i64_poke_, };
 
 static void i32_trace_ (VAL v, int fd);
 static VAL  i32_peek_  (ARR* a, USIZE i);
-static VAL  i32_poke_  (ARR* a, USIZE i, VAL v);
+static void i32_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_I32 = { .name = "I32", .trace_ = i32_trace_, .stride=4, .peek_=i32_peek_, .poke_=i32_poke_, };
 
 static void i16_trace_ (VAL v, int fd);
 static VAL  i16_peek_  (ARR* a, USIZE i);
-static VAL  i16_poke_  (ARR* a, USIZE i, VAL v);
+static void i16_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_I16 = { .name = "I16", .trace_ = i16_trace_, .stride=2, .peek_=i16_peek_, .poke_=i16_poke_, };
 
 static void i8_trace_ (VAL v, int fd);
 static VAL  i8_peek_  (ARR* a, USIZE i);
-static VAL  i8_poke_  (ARR* a, USIZE i, VAL v);
+static void i8_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_I8 = { .name = "I8", .trace_ = i8_trace_, .stride=1, .peek_=i8_peek_, .poke_=i8_poke_, };
 
 static void u64_trace_ (VAL v, int fd);
 static VAL  u64_peek_  (ARR* a, USIZE i);
-static VAL  u64_poke_  (ARR* a, USIZE i, VAL v);
+static void u64_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_U64 = { .name = "U64", .trace_ = u64_trace_, .stride=8, .peek_=u64_peek_, .poke_=u64_poke_, };
 
 static void u32_trace_ (VAL v, int fd);
 static VAL  u32_peek_  (ARR* a, USIZE i);
-static VAL  u32_poke_  (ARR* a, USIZE i, VAL v);
+static void u32_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_U32 = { .name = "U32", .trace_ = u32_trace_, .stride=4, .peek_=u32_peek_, .poke_=u32_poke_, };
 
 static void u16_trace_ (VAL v, int fd);
 static VAL  u16_peek_  (ARR* a, USIZE i);
-static VAL  u16_poke_  (ARR* a, USIZE i, VAL v);
+static void u16_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_U16 = { .name = "U16", .trace_ = u16_trace_, .stride=2, .peek_=u16_peek_, .poke_=u16_poke_, };
 
 static void u8_trace_ (VAL v, int fd);
 static VAL  u8_peek_  (ARR* a, USIZE i);
-static VAL  u8_poke_  (ARR* a, USIZE i, VAL v);
+static void u8_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_U8 = { .name = "U8", .trace_ = u8_trace_, .stride=1, .peek_=u8_peek_, .poke_=u8_poke_, };
 
 static void f64_trace_ (VAL v, int fd);
 static VAL  f64_peek_  (ARR* a, USIZE i);
-static VAL  f64_poke_  (ARR* a, USIZE i, VAL v);
+static void f64_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_F64 = { .name = "F64", .trace_ = f64_trace_, .stride=8, .peek_=f64_peek_, .poke_=f64_poke_, };
 
 static void f32_trace_ (VAL v, int fd);
 static VAL  f32_peek_  (ARR* a, USIZE i);
-static VAL  f32_poke_  (ARR* a, USIZE i, VAL v);
+static void f32_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_F32 = { .name = "F32", .trace_ = f32_trace_, .stride=4, .peek_=f32_peek_, .poke_=f32_poke_, };
 
 static void ptr_trace_ (VAL v, int fd);
 static VAL  ptr_peek_  (ARR* a, USIZE i);
-static VAL  ptr_poke_  (ARR* a, USIZE i, VAL v);
+static void ptr_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_PTR = { .name = "Ptr", .trace_ = ptr_trace_, .stride=sizeof(void*), .peek_=ptr_peek_, .poke_=ptr_poke_, };
 
 static void fnptr_run (VAL v);
 static VAL  fnptr_peek_  (ARR* a, USIZE i);
-static VAL  fnptr_poke_  (ARR* a, USIZE i, VAL v);
+static void fnptr_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_FNPTR = { .name = "FnPtr", .run = fnptr_run, .stride=sizeof(FNPTR), .peek_=fnptr_peek_, .poke_=fnptr_poke_, };
 
 static void str_free (VAL v);
 static void str_trace_ (VAL v, int fd);
 static VAL  str_peek_  (ARR* a, USIZE i);
-static VAL  str_poke_  (ARR* a, USIZE i, VAL v);
+static void str_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_STR = { .name = "Str", .flags=REFS_FLAG, .trace_ = str_trace_, .free=str_free, .stride=sizeof(void*), .peek_=str_peek_, .poke_=str_poke_, };
 
 static void tup_free (VAL v);
 static void tup_trace_ (VAL v, int fd);
 static void tup_run (VAL v);
 static VAL  tup_peek_  (ARR* a, USIZE i);
-static VAL  tup_poke_  (ARR* a, USIZE i, VAL v);
+static void tup_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_TUP = { .name = "Tup", .flags = REFS_FLAG, .free = tup_free, .trace_ = tup_trace_, .run = tup_run, .stride=sizeof(void*), .peek_=tup_peek_, .poke_=tup_poke_, };
 
-static VAL arr_peek_ (ARR* a, USIZE i);
-static VAL arr_poke_ (ARR* a, USIZE i, VAL v);
+static VAL  arr_peek_ (ARR* a, USIZE i);
+static void arr_poke_ (ARR* a, USIZE i, VAL v);
 
 static void arr_free (VAL v);
 static void arr_trace_ (VAL v, int fd);
 static VAL  arr_arr_peek_  (ARR* a, USIZE i);
-static VAL  arr_arr_poke_  (ARR* a, USIZE i, VAL v);
+static void arr_arr_poke_  (ARR* a, USIZE i, VAL v);
 static TYPE TYPE_ARR = { .name = "Array", .flags = REFS_FLAG, .free = arr_free, .trace_ = arr_trace_, .stride=sizeof(void*), .peek_=arr_arr_peek_, .poke_=arr_arr_poke_, };
 
 #define TAG_BOOL  ((TAG)&TYPE_BOOL)
@@ -1868,22 +1868,23 @@ static VAL bool_peek_(ARR* arr, USIZE i) {
     return MKBOOL(b);
 }
 
-static VAL bool_poke_(ARR* arr, USIZE i, VAL v) {
-    uint32_t u32 = arr->data.u32s[i/32];
-    bool b = (u32 >> (i&31)) & 1;
-    bool b2 = VBOOL(v);
-    arr->data.u32s[i/32] ^= (b != b2) << (i&31);
-    return MKBOOL(b);
+static void bool_poke_(ARR* arr, USIZE i, VAL v) {
+    USIZE hi = i/32;
+    USIZE lo = i&31;
+    uint32_t u32 = arr->data.u32s[hi];
+    uint32_t flag = 1 << lo;
+    uint32_t mask = ~flag;
+    uint32_t b = (bool)VBOOL(v);
+    flag = b << lo;
+    arr->data.u32s[hi] = (u32 & mask) | flag;
 }
 
-#define gen_peek_poke(ty,mkmacro,vmacro,fld) \
-    static VAL ty##_peek_(ARR* arr, USIZE i) { \
+#define gen_peek_poke(pfx,mkmacro,vmacro,fld) \
+    static VAL pfx##_peek_(ARR* arr, USIZE i) { \
         return mkmacro(arr->data.fld[i]); \
     } \
-    static VAL ty##_poke_(ARR* arr, USIZE i, VAL v) { \
-        VAL u = mkmacro(arr->data.fld[i]); \
+    static void pfx##_poke_(ARR* arr, USIZE i, VAL v) { \
         arr->data.fld[i] = vmacro(v); \
-        return u; \
     }
 gen_peek_poke(int,MKINT,VINT,iints)
 gen_peek_poke(nat,MKNAT,VNAT,iints)
@@ -1910,21 +1911,24 @@ static VAL arr_peek_(ARR* arr, USIZE i) {
     return ty->peek_(arr, i);
 }
 
-static VAL arr_poke_(ARR* arr, USIZE i, VAL v) {
+static void arr_poke_(ARR* arr, USIZE i, VAL v) {
     ASSERT(arr); ASSERT(i < arr->size);
     ASSERT(arr->refs == 1);
     ASSERT(arr->tag == v.tag);
     const TYPE* ty = PTRPTR(arr->tag);
     ASSERT(ty && ty->poke_);
-    return ty->poke_(arr, i, v);
+    ty->poke_(arr, i, v);
 }
 
-static ARR* arr_thaw(ARR* arr, size_t new_size) {
+// Copy array over into a fresh array with minimum capacity.
+// No-op if array has a unique reference and enough capacity.
+static ARR* arr_thaw(ARR* arr, size_t need_cap) {
     ASSERT(arr);
-    if ((arr->refs == 1) && (arr->cap >= new_size)) return arr;
+    if ((arr->refs == 1) && (arr->cap >= need_cap)) return arr;
     USIZE stride = arr->stride;
     USIZE size = arr->size;
-    USIZE cap = new_size * 2 + 8 ;
+    if (need_cap < size) need_cap = size;
+    USIZE cap = need_cap * 2 + 8 ;
     USIZE mbytes = stride ? (size * stride) : (size/8 + 4);
     USIZE nbytes = stride ? (cap  * stride) : (cap /8 + 4);
     ARR* arr2 = calloc(1, sizeof(ARR) + nbytes);
@@ -1935,7 +1939,7 @@ static ARR* arr_thaw(ARR* arr, size_t new_size) {
     arr2->size = arr->size;
     arr2->tag = arr->tag;
     memcpy(arr2->data.u8s, arr->data.u8s, mbytes);
-    if ((arr->tag == 0) || (arr->tag & REFS_FLAG)) {
+    if (arr->tag & REFS_FLAG) {
         for (USIZE i = 0; i < arr->size; i++) {
             incref(arr_peek_(arr2,i));
         }
@@ -1946,15 +1950,18 @@ static ARR* arr_thaw(ARR* arr, size_t new_size) {
 
 
 static ARR* arr_new(USIZE cap) {
+    if (cap < 4) cap = 4;
     USIZE nbytes = cap * sizeof(VAL);
     ARR* arr = calloc(1, sizeof(ARR) + nbytes);
     ASSERT(arr);
     arr->refs = 1;
     arr->cap = cap;
+    arr->stride = sizeof(VAL);
     return arr;
 }
 
 static ARR* arr_new_of(TAG tag, USIZE cap) {
+    if (cap < 4) cap = 4;
     const TYPE* ty = PTRPTR(tag);
     USIZE stride = ty ? ty->stride : sizeof(VAL);
     USIZE nbytes = stride ? stride * cap : cap/8 + 4;
@@ -1969,17 +1976,25 @@ static ARR* arr_new_of(TAG tag, USIZE cap) {
 }
 
 static ARR* arr_new_fill(VAL v, USIZE n) {
-    ARR* arr = arr_new_of(v.tag, n);
+    ARR* arr = arr_new_of(v.tag, n+1);
     arr->size = n;
-    if (v.tag == TAG_U8) {
+    if (v.tag == TAG_BOOL) {
+        if (VBOOL(v)) {
+            memset(arr->data.u8s, 0xFF, n/8 + 1);
+        }
+    } else if (arr->stride == 1) {
         memset(arr->data.u8s, v.data.u8, n);
-    } else {
+    } else if (HAS_REFS(v)) {
         for (USIZE i = 0; i < n; i++) {
             arr_poke_(arr,i,v);
             if (i > 0) incref(v);
         }
+        if (n == 0) decref(v);
+    } else {
+        for (USIZE i = 0; i < n; i++) {
+            arr_poke_(arr,i,v);
+        }
     }
-    if (n == 0) decref(v);
     return arr;
 }
 
@@ -1991,6 +2006,8 @@ static USIZE arr_len(ARR* arr) {
 }
 
 static VAL arr_get(ARR* arr, USIZE i) {
+    ASSERT(arr);
+    ASSERT(i < arr->size);
     VAL v = arr_peek_(arr,i);
     incref(v);
     decref(MKARR(arr));
@@ -1998,35 +2015,45 @@ static VAL arr_get(ARR* arr, USIZE i) {
 }
 
 static ARR* arr_set(ARR* arr, USIZE i, VAL v) {
+    ASSERT(arr);
     ASSERT(arr->tag == v.tag);
+    ASSERT(i < arr->size);
     arr = arr_thaw(arr, arr->size);
-    VAL u = arr_poke_(arr,i,v);
+    VAL u = arr_peek_(arr,i);
+    arr_poke_(arr,i,v);
     decref(u);
     return arr;
 }
 
 static ARR* arr_push(ARR* arr, VAL v) {
     ASSERT(arr);
-    if (!arr->tag) {
-        const TYPE *ty = PTRPTR(v.tag);
-        arr->tag = v.tag;
-        arr->cap = ty->stride ?
-            (arr->cap * sizeof(VAL) / ty->stride):
-            (arr->cap * sizeof(VAL) * 8);
-    }
-    ASSERT(arr->tag == v.tag);
     USIZE n = arr->size;
     arr = arr_thaw(arr, n+1);
-    arr->size++;
+    if (!arr->tag) {
+        ASSERT(n == 0);
+        ASSERT(arr->cap > 0);
+        ASSERT(arr->cap * sizeof(VAL) > 4);
+        const TYPE *ty = PTRPTR(v.tag);
+        ASSERT(ty);
+        arr->tag = v.tag;
+        arr->cap = ty->stride
+            ? (arr->cap * sizeof(VAL) / ty->stride)
+            : ((arr->cap * sizeof(VAL) - 4) * 8);
+        arr->stride = ty->stride;
+    }
+    ASSERT(arr->tag == v.tag);
+    ASSERT(arr->cap > n);
+    arr->size = n+1;
     arr_poke_(arr,n,v);
     return arr;
 }
 
 static ARR* arr_pop(ARR* arr, VAL* vout) {
-    ASSERT(arr && arr->size > 0);
+    ASSERT(arr);
+    ASSERT(arr->size > 0);
     USIZE n = arr->size;
     *vout = arr_peek_(arr, n-1);
-    arr = arr_thaw(arr, n-1);
+    arr = arr_thaw(arr, n);
     arr->size--;
     return arr;
 }
