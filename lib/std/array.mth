@@ -2,124 +2,320 @@ module std.array
 
 import std.prelude
 import std.str
+import std.maybe
 
-min-mirth-revision 2025_04_04_001 {
-    patch Array {
+||| An array of values, tightly packed in linear memory.
+||| The array grows from left to right, and access to a
+||| particular array location takes constant time.
+patch Array {
+    ||| Build an array, piece by piece. Together with `+Array.;` this
+    ||| is intended as a kind of array literal syntax. For example,
+    ||| `Array(10 ; 20 ; 30 ; 40 ;)` creates an array of length 4
+    ||| with the `Int` elements `10`, `20`, `30`, and `40`.
+    def Array(f) [ ( +Array(a) |- *x -- *y ) *x -- *y Array(a) ] {
+        Array.Nil thaw f freeze
+    }
 
-        def Array(f) [ ( +Array(a) |- *x -- *y ) *x -- *y Array(a) ] {
-            +Array.Nil f freeze
-        }
-        def Nil  [ Array(a) ] { 4u Array.New }
-        def New  [ Nat -- Array(a) ] { >U64-clamp prim-array-new }
-        def Fill [ a Nat -- Array(a) ] { >U64-clamp prim-array-new-fill }
-        def len [ Array(a) -- Nat ] { prim-array-len >Nat }
-        def cat [ Array(a) Array(a) -- Array(a) ] { prim-array-cat }
+    ||| Create an empty array.
+    def Nil [ Array(a) ] { 4u Array.New }
 
-        def get  [ Nat Array(a) -- a Array(a) ] { dip:>U64-clamp sip(swap prim-array-get) }
-        def set  [ a Nat Array(a) -- Array(a) ] { swap >U64-clamp rotl prim-array-set }
-        def push [ a Array(a) -- Array(a) ] { swap prim-array-push }
-        def pop  [ Array(a) -- a Array(a) ] { prim-array-pop swap }
+    ||| Create an empty array with a capacity hint.
+    def New  [ Nat -- Array(a) ] { >U64-clamp prim-array-new }
 
-        ||| Get a slice of an array between two indices.
-        |||
-        def slice [ Nat Nat Array(a) -- Array(a) ] {
-            tuck dip2(len min)
-            dup dip(len min over - >U64-clamp)
-            dip2:>U64-clamp
-            rotr prim-array-slice
-        }
+    ||| Create an array with n elements that are all copies of some value.
+    def Fill [ a Nat -- Array(a) ] { >U64-clamp prim-array-new-fill }
 
-        ||| Get a prefix of a certain length.
-        def prefix [ Nat Array(a) -- Array(a) ] { dip2:0u slice }
+    ||| Get the number of elements in this array.
+    def len [ Array(a) -- Nat ] { prim-array-len >Nat }
 
-        ||| Get a suffix, from a starting index.
-        def suffix [ Nat Array(a) -- Array(a) ] { sip:len slice }
+    ||| Concatenate two arrays. If the first array is unique and has enough
+    ||| space to absorb the second array's elements, this is done in-place
+    ||| in the first array.
+    def cat [ Array(a) Array(a) -- Array(a) ] { prim-array-cat }
 
-        ||| Iterate over every element of the array.
-        def for(f) [ *x |- (a --) Array(a) -- ] {
-            \array
-            @array len count(@array:get f)
-        }
+    ||| Is this array empty?
+    def empty? [ Array(a) -- Bool ] { len 0= }
 
-        ||| Iterate over every element of the array, with a second action
-        ||| to perform between every element.
-        def for(f,g) [ *x |- (a --, --) Array(a) --] {
-            \array
-            @array len count(
-                dup 0> then(dip:g)
-                @array:get f
-            )
-        }
+    ||| Does this array contain a single element?
+    ||| If so, return that element.
+    ||| Else return None.
+    def single? [ Array(a) -- Maybe(a) ] {
+        dup len 1 = if(
+            0u swap get Some,
+            drop None
+        )
+    }
 
-        ||| Create a new array with the result of applying a function
-        ||| to each element of the original array.
-        def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
-            dup len +Array.New
-            for(f push!)
-            freeze
-        }
+    ||| Does this array contain exactly two elements?
+    ||| If so, return those two elements as a pair.
+    ||| Else return None.
+    def pair? [ Array(a) -- Maybe([a a]) ] {
+        dup len 2 = if(
+            dup 1u swap get dip(0u swap get) pack2 Some,
+            drop None
+        )
+    }
 
-        def repr; (f{repr;}) [ *x +Str |- (a --) Array(a) -- ] {
-            "Array( " ;
-            for(f " ; ";)
-            ")" ;
-        }
+    ||| Get a value from an array at the given index.
+    ||| If the index is out of bounds, return None.
+    def get? [ Nat Array(a) -- Maybe(a) ] {
+        dup2 len < if(
+            get Some,
+            drop2 None
+        )
+    }
 
-        def = (f{=}) [ *x |- ( a a -- Bool ) Array(a) Array(a) -- Bool ] {
-            and2(on2:len =,
-                \array2 \array1
-                0u \i
-                True \result
-                while(
-                    @result
-                    @i @array1 len < and,
-                    @i @array1:get
-                    @i @array2:get f
-                    !result
-                    @i:1+
+    ||| Get a value from an array at the given index.
+    ||| If the index is out of bounds, panic.
+    def get [ Nat Array(a) -- a ] { swap >U64-clamp prim-array-get }
+
+    ||| Set an array value at a given index.
+    ||| If the index is out of bounds, panic.
+    def set [ a Nat Array(a) -- Array(a) ] { swap >U64-clamp rotl prim-array-set }
+
+    ||| Get a value from an array at the given index from the right.
+    ||| If the index is out of bounds, return None.
+    def get-right? [ Nat Array(a) -- Maybe(a) ] {
+        dup2 len < if(get-right Some, drop2 None)
+    }
+
+    ||| Get a value from an array at the given index from the right.
+    ||| If the index is out of bounds, panic.
+    def get-right [ Nat Array(a) -- a ] {
+        sip(len swap - >Nat-else("Array access out of bounds." panic!)) get
+    }
+
+    ||| Set a value from an array at the given index from the right.
+    def set-right [ a Nat Array(a) -- Array(a) ] {
+        sip(len swap - >Nat-else("Array access out of bounds." panic!)) set
+    }
+
+    ||| Push a value at the end of the array.
+    ||| Expands the array size as needed.
+    def push [ a Array(a) -- Array(a) ] { swap prim-array-push }
+
+    ||| Push two values at the end of the array.
+    ||| Expands the array size as needed.
+    def push2 [ a a Array(a) -- Array(a) ] { thaw push2! freeze }
+
+    ||| Push three values at the end of the array.
+    ||| Expands the array size as needed.
+    def push3 [ a a a Array(a) -- Array(a) ] { thaw push3! freeze }
+
+    ||| Push four values at the end of the array.
+    ||| Expands the array size as needed.
+    def push4 [ a a a a Array(a) -- Array(a) ] { thaw push4! freeze }
+
+    ||| Push five values at the end of the array.
+    ||| Expands the array size as needed.
+    def push5 [ a a a a a Array(a) -- Array(a) ] { thaw push5! freeze }
+
+    ||| Pop a value from the end of the array.
+    ||| If the array is empty, panic.
+    ||| >>>                push pop === id
+    ||| >>> (dup len 1 >=) pop push === id
+    ||| >>> (dup len 1 < ) pop !!!
+    def pop [ Array(a) -- a Array(a) ] { prim-array-pop swap }
+
+    ||| Pop two values from the end of the array.
+    ||| If the array has fewer than two elements, panic.
+    ||| >>>                push2 pop2 === id
+    ||| >>> (dup len 2 >=) pop2 push2 === id
+    ||| >>> (dup len 2 < ) pop2 !!!
+    def pop2 [ Array(a) -- a a Array(a) ] { thaw pop2! freeze }
+
+    ||| Pop three values from the end of the array.
+    ||| If the array has fewer than three elements, panic.
+    ||| >>>                push3 pop3 === id
+    ||| >>> (dup len 3 >=) pop3 push3 === id
+    ||| >>> (dup len 3 < ) pop3 !!!
+    def pop3 [ Array(a) -- a a a Array(a) ] { thaw pop3! freeze }
+
+    ||| Pop four values from the end of the array.
+    ||| If the array has fewer than four elements, panic.
+    ||| >>>                push4 pop4 === id
+    ||| >>> (dup len 4 >=) pop4 push4 === id
+    ||| >>> (dup len 4 < ) pop4 !!!
+    def pop4 [ Array(a) -- a a a a Array(a) ] { thaw pop4! freeze }
+
+    ||| Pop five values from the end of the array.
+    ||| If the array has fewer than five elements, panic.
+    ||| >>>                push5 pop5 === id
+    ||| >>> (dup len 5 >=) pop5 push5 === id
+    ||| >>> (dup len 5 < ) pop5 !!!
+    def pop5 [ Array(a) -- a a a a a Array(a) ] { thaw pop5! freeze }
+
+    ||| Get a slice of an array between two indices.
+    ||| This slice is inclusive of the first index, but exclusive of the last index.
+    ||| So for example, `1u 2u @array slice` returns an array containing only the
+    ||| element at index `1u`, but not the element at index `2u`.
+    ||| And `1u 1u @array slice` returns an empty array.
+    def slice [ Nat Nat Array(a) -- Array(a) ] {
+        tuck dip2(len min)
+        dup dip(len min over - >U64-clamp)
+        dip2:>U64-clamp
+        rotr prim-array-slice
+    }
+
+    ||| Get a prefix of a certain length.
+    def prefix [ Nat Array(a) -- Array(a) ] { dip2:0u slice }
+
+    ||| Get a suffix, from a starting index.
+    def suffix [ Nat Array(a) -- Array(a) ] { sip:len slice }
+
+    ||| Reverse the array.
+    def reverse [ Array(a) -- Array(a) ] {
+        >array
+        @array len \n
+        @n 2u div count (
+            @n over sub-clamp @array:swap-index
+        )
+        array>
+    }
+
+    ||| Swap the elements at the given indexes.
+    ||| If either index is out of bounds, panics.
+    def swap-index [ Nat Nat Array(a) -- Array(a) ] {
+        >array \j \i
+        @i @array get
+        @j @array get
+        @i @array:set
+        @j @array:set
+        array>
+    }
+
+    ||| Sort the array.
+    def sort(lt{<}) [ *x |- (a a -- Bool) Array(a) -- Array(a) ] {
+        0u swap sip:len sort-slice:lt
+    }
+
+    ||| Sort the array by some key.
+    def sort-by(key, lt{<}) [
+        *x |- (a -- b, b b -- Bool) Array(a) -- Array(a)
+    ] {
+        sort(on2:key lt)
+    }
+
+    ||| Sort the array between two indices [i,j).
+    ||| This is an unstable quicksort that uses the center as pivot.
+    ||| Worst case is O(n^2) time, but O(n log n) is the typical case.
+    def sort-slice(lt{<}) [
+        *x |- (a a -- Bool) Nat Nat Array(a) -- Array(a)
+    ] {
+        >array
+        64u Array.New \stack
+        @stack:push2
+        while(
+            @stack empty? not,
+            @stack:pop2 \j \i
+            @i 1+ @j < then(
+                @i @i @j + 2u div @array:swap-index
+                @i @array get \pivot
+                @i 1+ \ki
+                @j \kj
+                while(@ki @kj <,
+                    @ki @array get @pivot lt if(
+                        @ki:succ,
+                        @kj:pred
+                        @ki @kj @array:swap-index
+                    )
                 )
-                @result
+                @ki:pred
+                @i @ki @array:swap-index
+                @i @ki @stack:push2
+                @kj @j @stack:push2
             )
-        }
+        )
+        array>
     }
 
-    inline struct +Array(a) {
-        Array(a)
-        --
-        def Nil [ +Array(a) ] { Array.Nil thaw }
-        def New [ Nat -- +Array(a) ] { Array.New thaw }
-        def Fill [ a Nat -- +Array(a) ] { Array.Fill thaw }
-
-        def freeze [ +Array(a) -- Array(a) ] { /+Array }
-        def Array.thaw [ Array(a) -- +Array(a) ] { +Array }
-
-        def get!  [ +Array(a) |- Nat -- a ] { +Array -> get +Array }
-        def set!  [ +Array(a) |- a Nat -- ] { +Array -> set +Array }
-        def cat!  [ +Array(a) |- Array(a) -- ] { +Array -> swap cat +Array }
-
-        def copy! [ +Array(a) |- Array(a) ] { +Array -> dup +Array }
-        def rdrop [ +Array(a) -- ] { freeze drop }
-        def rdup  [ +Array(a) -- +Array(a) +Array(a) ] { copy! +Array }
-
-        def push!  [ +Array(a) |- a -- ] { +Array -> push +Array }
-        def push2! [ +Array(a) |- a a -- ] { dip:push! push! }
-        def push3! [ +Array(a) |- a a a -- ] { dip:push2! push! }
-        def push4! [ +Array(a) |- a a a a -- ] { dip:push3! push! }
-        def push5! [ +Array(a) |- a a a a a -- ] { dip:push4! push! }
-
-        def pop!  [ +Array(a) |- a ] { +Array -> pop +Array }
-        def pop2! [ +Array(a) |- a a ] { pop! dip:pop! }
-        def pop3! [ +Array(a) |- a a a ] { pop! dip:pop2! }
-        def pop4! [ +Array(a) |- a a a a ] { pop! dip:pop3! }
-        def pop5! [ +Array(a) |- a a a a a ] { pop! dip:pop4! }
-
-        def ; [ +Array(a) |- a -- ] { push! }
+    ||| Iterate over every element of the array.
+    def for(f) [ *x |- (a --) Array(a) -- ] {
+        \array
+        @array len count(@array get f)
     }
 
-    def A0 [ Array(a) ] { Array.Nil }
-    def A1 [ a -- Array(a) ] { 1u Array.New push }
-    def A2 [ a a -- Array(a) ] { 2u +Array.New push2! freeze }
-    def A3 [ a a a -- Array(a) ] { 3u +Array.New push3! freeze }
-    def A4 [ a a a a -- Array(a) ] { 4u +Array.New push4! freeze }
-    def A5 [ a a a a a -- Array(a) ] { 5u +Array.New push5! freeze }
+    ||| Iterate over every element of the array, with a second action
+    ||| to perform between every element.
+    def for(f,g) [ *x |- (a --, --) Array(a) --] {
+        \array
+        @array len count(
+            dup 0> then(dip:g)
+            @array get f
+        )
+    }
+
+    ||| Create a new array with the result of applying a function
+    ||| to each element of the original array.
+    def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
+        dup len +Array.New
+        for(f push!)
+        freeze
+    }
+
+    ||| Emit a text representation for the array.
+    def repr; (f{repr;}) [ *x +Str |- (a --) Array(a) -- ] {
+        "Array( " ;
+        for(f " ; ";)
+        ")" ;
+    }
+
+    ||| Check two arrays for equality. Equality means they have the
+    ||| same number of elemnets, and corresponding elements are equal.
+    def = (f{=}) [ *x |- ( a a -- Bool ) Array(a) Array(a) -- Bool ] {
+        and2(on2:len =,
+            \array2 \array1
+            0u \i
+            True \result
+            while(
+                @result
+                @i @array1 len < and,
+                @i @array1 get
+                @i @array2 get f
+                !result
+                @i:1+
+            )
+            @result
+        )
+    }
 }
+
+inline struct +Array(a) {
+    array:Array(a)
+    --
+    def Nil [ +Array(a) ] { Array.Nil thaw }
+    def New [ Nat -- +Array(a) ] { Array.New thaw }
+    def Fill [ a Nat -- +Array(a) ] { Array.Fill thaw }
+
+    def freeze [ +Array(a) -- Array(a) ] { /+Array array> }
+    def Array.thaw [ Array(a) -- +Array(a) ] { >array +Array }
+
+    def get!  [ +Array(a) |- Nat -- a ] { array get }
+    def set!  [ +Array(a) |- a Nat -- ] { array:set }
+    def cat!  [ +Array(a) |- Array(a) -- ] { array(swap cat) }
+
+    def copy! [ +Array(a) |- Array(a) ] { array }
+    def rdrop [ +Array(a) -- ] { freeze drop }
+    def rdup  [ +Array(a) -- +Array(a) +Array(a) ] { copy! thaw }
+
+    def push!  [ +Array(a) |- a -- ] { array:push }
+    def push2! [ +Array(a) |- a a -- ] { dip:push! push! }
+    def push3! [ +Array(a) |- a a a -- ] { dip:push2! push! }
+    def push4! [ +Array(a) |- a a a a -- ] { dip:push3! push! }
+    def push5! [ +Array(a) |- a a a a a -- ] { dip:push4! push! }
+
+    def pop!  [ +Array(a) |- a ] { array:pop }
+    def pop2! [ +Array(a) |- a a ] { pop! dip:pop! }
+    def pop3! [ +Array(a) |- a a a ] { pop! dip:pop2! }
+    def pop4! [ +Array(a) |- a a a a ] { pop! dip:pop3! }
+    def pop5! [ +Array(a) |- a a a a a ] { pop! dip:pop4! }
+
+    def ; [ +Array(a) |- a -- ] { push! }
+}
+
+def A0 [ Array(a) ] { Array.Nil }
+def A1 [ a -- Array(a) ] { 1u Array.New push }
+def A2 [ a a -- Array(a) ] { 2u +Array.New push2! freeze }
+def A3 [ a a a -- Array(a) ] { 3u +Array.New push3! freeze }
+def A4 [ a a a a -- Array(a) ] { 4u +Array.New push4! freeze }
+def A5 [ a a a a a -- Array(a) ] { 5u +Array.New push5! freeze }
