@@ -211,6 +211,7 @@ data Prim {
 
     ArrayNew
     ArrayNewFill
+    ArrayThaw
     ArrayLen
     ArrayGet
     ArraySet
@@ -442,6 +443,7 @@ data Prim {
 
         { ArrayNew -> "prim-array-new" 0 }
         { ArrayNewFill -> "prim-array-new-fill" 0 }
+        { ArrayThaw -> "prim-array-thaw" 0 }
         { ArrayLen -> "prim-array-len" 0 }
         { ArrayGet -> "prim-array-get" 0 }
         { ArraySet -> "prim-array-set" 0 }
@@ -846,6 +848,11 @@ data Prim {
             @a
             Type.U64 T2
             @a Type.Array T1 T->
+        }
+        { ArrayThaw ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a Type.Array T1 dup T->
         }
         { ArrayLen ->
             Ctx.L0

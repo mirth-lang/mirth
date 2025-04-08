@@ -1922,7 +1922,7 @@ static void arr_poke_(ARR* arr, USIZE i, VAL v) {
 
 // Copy array over into a fresh array with minimum capacity.
 // No-op if array has a unique reference and enough capacity.
-static ARR* arr_thaw(ARR* arr, size_t need_cap) {
+static ARR* arr_thaw_reserve(ARR* arr, size_t need_cap) {
     ASSERT(arr);
     if ((arr->refs == 1) && (arr->cap >= need_cap)) return arr;
     USIZE stride = arr->stride;
@@ -1998,9 +1998,35 @@ static ARR* arr_new_fill(VAL v, USIZE n) {
     return arr;
 }
 
+static ARR* arr_thaw(ARR* arr) {
+    ASSERT(arr);
+    return arr_thaw_reserve(arr, arr->size);
+}
+
+static void* arr_base(ARR* arr) {
+    ASSERT(arr);
+    void* base = arr->data.u8s;
+    decref(MKARR(arr));
+    return base;
+}
+
 static USIZE arr_len(ARR* arr) {
     ASSERT(arr);
     USIZE n = arr->size;
+    decref(MKARR(arr));
+    return n;
+}
+
+static USIZE arr_cap(ARR* arr) {
+    ASSERT(arr);
+    USIZE n = arr->cap;
+    decref(MKARR(arr));
+    return n;
+}
+
+static USIZE arr_stride(ARR* arr) {
+    ASSERT(arr);
+    USIZE n = arr->stride;
     decref(MKARR(arr));
     return n;
 }
@@ -2018,7 +2044,7 @@ static ARR* arr_set(ARR* arr, USIZE i, VAL v) {
     ASSERT(arr);
     ASSERT(arr->tag == v.tag);
     ASSERT(i < arr->size);
-    arr = arr_thaw(arr, arr->size);
+    arr = arr_thaw(arr);
     VAL u = arr_peek_(arr,i);
     arr_poke_(arr,i,v);
     decref(u);
@@ -2028,7 +2054,7 @@ static ARR* arr_set(ARR* arr, USIZE i, VAL v) {
 static ARR* arr_push(ARR* arr, VAL v) {
     ASSERT(arr);
     USIZE n = arr->size;
-    arr = arr_thaw(arr, n+1);
+    arr = arr_thaw_reserve(arr, n+1);
     if (!arr->tag) {
         ASSERT(n == 0);
         ASSERT(arr->cap > 0);
@@ -2053,7 +2079,7 @@ static ARR* arr_pop(ARR* arr, VAL* vout) {
     ASSERT(arr->size > 0);
     USIZE n = arr->size;
     *vout = arr_peek_(arr, n-1);
-    arr = arr_thaw(arr, n);
+    arr = arr_thaw(arr);
     arr->size--;
     return arr;
 }
@@ -2065,7 +2091,7 @@ static ARR* arr_cat(ARR* arr, ARR* arr2) {
     ASSERT(arr->tag == arr2->tag);
     USIZE n1 = arr->size;
     USIZE n2 = arr2->size;
-    arr = arr_thaw(arr, n1 + n2);
+    arr = arr_thaw_reserve(arr, n1 + n2);
     ASSERT(arr && (arr->cap >= n1 + n2));
     arr->size += n2;
     for(USIZE i = 0; i < n2; i++) {
@@ -2081,7 +2107,7 @@ static ARR* arr_slice(ARR* arr, USIZE from, USIZE len) {
     ASSERT(arr);
     ASSERT(len <= arr->size);
     ASSERT(from <= arr->size - len);
-    arr = arr_thaw(arr, arr->size);
+    arr = arr_thaw(arr);
     if (from > 0) {
         if (arr->stride) {
             if (REFS_FLAG & arr->tag) {
