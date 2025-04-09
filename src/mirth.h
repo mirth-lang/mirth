@@ -2092,10 +2092,10 @@ static ARR* arr_cat(ARR* arr, ARR* arr2) {
     } else {
         USIZE hi = n1 / 32;
         USIZE lo = n1 % 32;
-        arr->data.u32s[hi] &= (1 << lo) - 1;
+        arr->data.u32s[hi] &= (((uint32_t)(1)) << lo) - 1;
         arr->data.u32s[hi] |= arr2->data.u32s[0] << lo;
         for (USIZE i = 0; i < (n2+lo)/32; i++) {
-            arr->data.u32s[hi+i]
+            arr->data.u32s[hi+i+1]
                 = (arr2->data.u32s[i] >> (32 - lo))
                 | (arr2->data.u32s[i+1] << lo);
         }
