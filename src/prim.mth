@@ -210,11 +210,13 @@ data Prim {
     StrToArray
 
     ArrayNew
-    ArrayNewFill
     ArrayThaw
+    ArrayBase
     ArrayLen
     ArrayGet
     ArraySet
+    ArrayGetDefault
+    ArraySetDefault
     ArrayPush
     ArrayPop
     ArrayCat
@@ -442,11 +444,13 @@ data Prim {
         { StrToArray -> "prim-str-to-array" 0 }
 
         { ArrayNew -> "prim-array-new" 0 }
-        { ArrayNewFill -> "prim-array-new-fill" 0 }
         { ArrayThaw -> "prim-array-thaw" 0 }
+        { ArrayBase -> "prim-array-base" 0 }
         { ArrayLen -> "prim-array-len" 0 }
         { ArrayGet -> "prim-array-get" 0 }
         { ArraySet -> "prim-array-set" 0 }
+        { ArrayGetDefault -> "prim-array-get-default" 0 }
+        { ArraySetDefault -> "prim-array-set-default" 0 }
         { ArrayPush -> "prim-array-push" 0 }
         { ArrayPop -> "prim-array-pop" 0 }
         { ArrayCat -> "prim-array-cat" 0 }
@@ -839,12 +843,6 @@ data Prim {
         { ArrayNew ->
             Ctx.L0
             "a" Type.NewInCtx \a
-            Type.U64 T1
-            @a Type.Array T1 T->
-        }
-        { ArrayNewFill ->
-            Ctx.L0
-            "a" Type.NewInCtx \a
             @a
             Type.U64 T2
             @a Type.Array T1 T->
@@ -853,6 +851,12 @@ data Prim {
             Ctx.L0
             "a" Type.NewInCtx \a
             @a Type.Array T1 dup T->
+        }
+        { ArrayBase ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a Type.Array T1
+            Type.Ptr T1 T->
         }
         { ArrayLen ->
             Ctx.L0
@@ -873,6 +877,19 @@ data Prim {
             @a Type.Array
             Type.U64
             @a T3
+            @a Type.Array T1 T->
+        }
+        { ArrayGetDefault ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a Type.Array T1
+            @a T1 T->
+        }
+        { ArraySetDefault ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            @a Type.Array
+            @a T2
             @a Type.Array T1 T->
         }
         { ArrayPush ->

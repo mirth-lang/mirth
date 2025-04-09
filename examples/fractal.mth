@@ -59,7 +59,7 @@ def +FractalUI.Init! [ +World -- +World +FractalUI ] {
 
     SDL_GetWindowSurface >+surface
 
-    256 bytes +Buffer.new >+event-buffer
+    256 bytes +Buffer.New >+event-buffer
 
     +FractalUI
 }

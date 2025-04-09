@@ -17,7 +17,7 @@ struct +Output {
     def start! [ +File -- +Output ] {
         >+file
         0 bytes >size
-        OUTPUT_BUFFER_SIZE +Buffer.new >+buffer
+        OUTPUT_BUFFER_SIZE +Buffer.New >+buffer
         +Output
     }
 
@@ -45,14 +45,14 @@ struct +Output {
                 put
             ),
 
-            dup offset +buffer:!Str
+            dup offset +buffer:str!
             num-bytes size:+
         )
     }
 
     def put-byte [ Byte +Output -- +Output ] {
         full? then(flush!)
-        offset +buffer:!Byte
+        offset +buffer:byte!
         size:1B+
     }
 

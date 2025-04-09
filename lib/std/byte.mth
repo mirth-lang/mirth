@@ -145,7 +145,7 @@ data Byte {
     }
 
     def zencode [ Byte -- Str ] { str:zencode; }
-    def zencode; [ +Str Byte -- +Str ] {
+    def zencode; [ +Str |- Byte -- ] {
         ||| Encode byte as a readable string of alphanumeric or underscore characters.
         ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
         ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.

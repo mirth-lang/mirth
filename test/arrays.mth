@@ -4,97 +4,152 @@ import std.array
 import std.list
 import std.world
 import std.test
+import std.str
 
 def main {
 
     +Tests (
-        "Array(Int).New, len, push, pop, get, set" test (
-            10u New@Int \array
+        "len, push, pop, get, set" test (
+            Array(0) \array
             @array len =>: 0u
-            Str(@array repr;) =>: "Array( )"
+            Str(@array repr;) =>: "Array( 0 )"
 
             10 @array:push
             @array len =>: 1u
             0u @array get =>: 10
-            Str(@array repr;) =>: "Array( 10 ; )"
+            Str(@array repr;) =>: "Array( 10 ; 0 )"
 
             20 @array:push
             @array len =>: 2u
             0u @array get =>: 10
             1u @array get =>: 20
-            Str(@array repr;) =>: "Array( 10 ; 20 ; )"
+            Str(@array repr;) =>: "Array( 10 ; 20 ; 0 )"
 
             30 @array:push
             @array len =>: 3u
             0u @array get =>: 10
             1u @array get =>: 20
             2u @array get =>: 30
-            Str(@array repr;) =>: "Array( 10 ; 20 ; 30 ; )"
+            Str(@array repr;) =>: "Array( 10 ; 20 ; 30 ; 0 )"
 
             40 1u @array:set
             @array len =>: 3u
             0u @array get =>: 10
             1u @array get =>: 40
             2u @array get =>: 30
-            Str(@array repr;) =>: "Array( 10 ; 40 ; 30 ; )"
+            Str(@array repr;) =>: "Array( 10 ; 40 ; 30 ; 0 )"
 
             @array:pop =>: 30
             @array len =>: 2u
             0u @array get =>: 10
             1u @array get =>: 40
-            Str(@array repr;) =>: "Array( 10 ; 40 ; )"
+            Str(@array repr;) =>: "Array( 10 ; 40 ; 0 )"
 
             @array:pop =>: 40
             @array len =>: 1u
             0u @array get =>: 10
-            Str(@array repr;) =>: "Array( 10 ; )"
+            Str(@array repr;) =>: "Array( 10 ; 0 )"
 
             @array:pop =>: 10
             @array len =>: 0u
-            Str(@array repr;) =>: "Array( )"
+            Str(@array repr;) =>: "Array( 0 )"
         )
 
-        "Array(Int).Fill, prefix, suffix, slice" test (
-            10 5u Array.Fill \array
-            @array Str:repr; =>: "Array( 10 ; 10 ; 10 ; 10 ; 10 ; )"
+        "Array.Fill, prefix, suffix, slice" test (
+            10 5u Array.New \array
+            @array Str:repr; =>: "Array( 10 ; 10 ; 10 ; 10 ; 10 ; 10 )"
 
             30 2u @array:set
-            @array Str:repr; =>: "Array( 10 ; 10 ; 30 ; 10 ; 10 ; )"
+            @array Str:repr; =>: "Array( 10 ; 10 ; 30 ; 10 ; 10 ; 10 )"
 
             100 3u @array:set
-            @array Str:repr; =>: "Array( 10 ; 10 ; 30 ; 100 ; 10 ; )"
+            @array Str:repr; =>: "Array( 10 ; 10 ; 30 ; 100 ; 10 ; 10 )"
 
             0 1u @array:set
-            @array Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
+            @array Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; 10 )"
 
-            0u @array prefix Str:repr; =>: "Array( )"
-            1u @array prefix Str:repr; =>: "Array( 10 ; )"
-            2u @array prefix Str:repr; =>: "Array( 10 ; 0 ; )"
-            3u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; )"
-            4u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; )"
-            5u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
-            6u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
+            0u @array prefix Str:repr; =>: "Array( 10 )"
+            1u @array prefix Str:repr; =>: "Array( 10 ; 10 )"
+            2u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 10 )"
+            3u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 10 )"
+            4u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 )"
+            5u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; 10 )"
+            6u @array prefix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; 10 )"
 
-            0u @array suffix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; )"
-            1u @array suffix Str:repr; =>: "Array( 0 ; 30 ; 100 ; 10 ; )"
-            2u @array suffix Str:repr; =>: "Array( 30 ; 100 ; 10 ; )"
-            3u @array suffix Str:repr; =>: "Array( 100 ; 10 ; )"
-            4u @array suffix Str:repr; =>: "Array( 10 ; )"
-            5u @array suffix Str:repr; =>: "Array( )"
-            6u @array suffix Str:repr; =>: "Array( )"
+            0u @array suffix Str:repr; =>: "Array( 10 ; 0 ; 30 ; 100 ; 10 ; 10 )"
+            1u @array suffix Str:repr; =>: "Array( 0 ; 30 ; 100 ; 10 ; 10 )"
+            2u @array suffix Str:repr; =>: "Array( 30 ; 100 ; 10 ; 10 )"
+            3u @array suffix Str:repr; =>: "Array( 100 ; 10 ; 10 )"
+            4u @array suffix Str:repr; =>: "Array( 10 ; 10 )"
+            5u @array suffix Str:repr; =>: "Array( 10 )"
+            6u @array suffix Str:repr; =>: "Array( 10 )"
         )
 
-        "Array(Int), cat, =" test (
-            Array( 10 ; 20 ; 30 ; ) Str:repr; =>: "Array( 10 ; 20 ; 30 ; )"
-            Array( 10 ; 20 ; 30 ; ) Array( 40 ; 50 ; 60 ; ) cat
-                =>: Array( 10 ; 20 ; 30 ; 40 ; 50 ; 60 ; )
-            Nil@Int Array( 1 ; 2 ; 3 ; 4 ; 5 ; ) cat
-                =>: Array( 1 ; 2 ; 3 ; 4 ; 5 ; )
-            Nil@Int Nil@Int cat =>: Array.Nil
+        "Array(;), cat" test (
+            Array(10 ; 20 ; 30 ; 0) Str:repr; =>: "Array( 10 ; 20 ; 30 ; 0 )"
+            Array(10 ; 20 ; 30 ; 0) Array(40 ; 50 ; 60 ; 0) cat str:repr;
+                =>: "Array( 10 ; 20 ; 30 ; 40 ; 50 ; 60 ; 0 )"
+            Array(10 ; 20 ; 30 ; 40) Array(40 ; 50 ; 60 ; 0) cat str:repr;
+                =>: "Array( 10 ; 20 ; 30 ; 40 ; 50 ; 60 ; 0 )"
+            Array(10 ; 20 ; 30 ; 40) Array(40 ; 50 ; 60 ; 70) cat str:repr;
+                =>: "Array( 10 ; 20 ; 30 ; 40 ; 50 ; 60 ; 70 )"
+            Array(0) Array(1 ; 2 ; 3 ; 4 ; 5 ; 0) cat str:repr;
+                =>: "Array( 1 ; 2 ; 3 ; 4 ; 5 ; 0 )"
+            Array(0) Array(1 ; 2 ; 3 ; 4 ; 5 ; 6) cat str:repr;
+                =>: "Array( 1 ; 2 ; 3 ; 4 ; 5 ; 6 )"
+            Array(1 ; 2 ; 3 ; 4 ; 5 ; 0) Array(0) cat str:repr;
+                =>: "Array( 1 ; 2 ; 3 ; 4 ; 5 ; 0 )"
+            Array(1 ; 2 ; 3 ; 4 ; 5 ; 0) Array(1) cat str:repr;
+                =>: "Array( 1 ; 2 ; 3 ; 4 ; 5 ; 1 )"
+            Array(0) Array(0) cat str:repr; =>: "Array( 0 )"
+            Array(0) Array(1) cat str:repr; =>: "Array( 1 )"
+            Array(1) Array(0) cat str:repr; =>: "Array( 0 )"
+            Array(1) Array(1) cat str:repr; =>: "Array( 1 )"
+        )
+
+        "Array.=" test (
+            # values and defaults must match:
+
+            Array(0) Array(0) = =>: True
+            Array(0) Array(1) = =>: False
+            Array(1) Array(0) = =>: False
+            Array(1) Array(1) = =>: True
+
+            Array(0 ; 0) Array(0 ; 0) = =>: True
+            Array(0 ; 0) Array(0 ; 1) = =>: False
+            Array(0 ; 0) Array(1 ; 0) = =>: False
+            Array(0 ; 0) Array(1 ; 1) = =>: False
+
+            Array(0 ; 1) Array(0 ; 0) = =>: False
+            Array(0 ; 1) Array(0 ; 1) = =>: True
+            Array(0 ; 1) Array(1 ; 0) = =>: False
+            Array(0 ; 1) Array(1 ; 1) = =>: False
+
+            Array(1 ; 0) Array(0 ; 0) = =>: False
+            Array(1 ; 0) Array(0 ; 1) = =>: False
+            Array(1 ; 0) Array(1 ; 0) = =>: True
+            Array(1 ; 0) Array(1 ; 1) = =>: False
+
+            Array(1 ; 1) Array(0 ; 0) = =>: False
+            Array(1 ; 1) Array(0 ; 1) = =>: False
+            Array(1 ; 1) Array(1 ; 0) = =>: False
+            Array(1 ; 1) Array(1 ; 1) = =>: True
+
+            # different lengths are always False even if values match:
+
+            Array(0 ; 0) Array(0) = =>: False
+            Array(0 ; 1) Array(0) = =>: False
+            Array(1 ; 0) Array(0) = =>: False
+            Array(1 ; 1) Array(0) = =>: False
+
+            Array(0 ; 0) Array(1) = =>: False
+            Array(0 ; 1) Array(1) = =>: False
+            Array(1 ; 0) Array(1) = =>: False
+            Array(1 ; 1) Array(1) = =>: False
         )
 
         "Array(Bool)" test (
-            Array( True ; False ; True ; False ; ) \array
+            Array( True ; False ; True ; False ; False ) \array
             0u @array get =>: True
             1u @array get =>: False
             2u @array get =>: True
@@ -107,7 +162,7 @@ def main {
             1u @array suffix show-bools =>:  "0101010"
             2u @array suffix show-bools =>:   "101010"
 
-            False 40u Array.Fill !array
+            False 40u Array.New !array
             @array show-bools =>: "0000000000000000000000000000000000000000"
             True 10u @array:set
             @array show-bools =>: "0000000000100000000000000000000000000000"
@@ -132,32 +187,32 @@ def main {
         )
 
         "Array(List(Int))" test (
-            Nil@ListInt Str:repr; =>: "Array( )"
+            Nil@ListInt Str:repr; =>: "Array( List( ) )"
 
             Nil@ListInt \array
             List(1 ; 2 ; 3 ;) @array:push
             List(4 ; 5 ;) @array:push
             @array Str:repr;
-                =>: "Array( List( 1 ; 2 ; 3 ; ) ; List( 4 ; 5 ; ) ; )"
+                =>: "Array( List( 1 ; 2 ; 3 ; ) ; List( 4 ; 5 ; ) ; List( ) )"
 
             List.Nil @array:push
             @array Str:repr;
-                =>: "Array( List( 1 ; 2 ; 3 ; ) ; List( 4 ; 5 ; ) ; List( ) ; )"
+                =>: "Array( List( 1 ; 2 ; 3 ; ) ; List( 4 ; 5 ; ) ; List( ) ; List( ) )"
             @array map(sum) Str:repr;
-                =>: "Array( 6 Some ; 9 Some ; None ; )"
+                =>: "Array( 6 Some ; 9 Some ; None ; None )"
             @array map(foldl(0,+))
-                =>: Array( 6 ; 9 ; 0 ; )
+                =>: Array( 6 ; 9 ; 0 ; 0 )
         )
 
         "Array.sort" test (
-            Array( 1 ; 2 ; 3 ; 4 ; ) sort
-                =>: Array( 1 ; 2 ; 3 ; 4 ; )
+            Array( 1 ; 2 ; 3 ; 4 ; -1 ) sort
+                =>: Array( 1 ; 2 ; 3 ; 4 ; -1 )
 
-            Array( 4 ; 3 ; 2 ; 1 ; ) sort
-                =>: Array( 1 ; 2 ; 3 ; 4 ; )
+            Array( 4 ; 3 ; 2 ; 1 ; -1 ) sort
+                =>: Array( 1 ; 2 ; 3 ; 4 ; -1 )
 
-            Array( 1 ; 3 ; 2 ; 5 ; 4 ; ) sort
-                =>: Array( 1 ; 2 ; 3 ; 4 ; 5 ; )
+            Array( 1 ; 3 ; 2 ; 5 ; 4 ; -1 ) sort
+                =>: Array( 1 ; 2 ; 3 ; 4 ; 5 ; -1 )
 
             "Hello, world!" prim-str-to-array sort prim-array-to-str
                 =>: " !,Hdellloorw"
@@ -165,10 +220,10 @@ def main {
     )
 }
 
-def New@Int [ Nat -- Array(Int) ] { Array.New }
-def Nil@Int [ Array(Int) ] { Array.Nil }
-def New@ListInt [ Nat -- Array:List:Int ] { Array.New }
-def Nil@ListInt [ Array:List:Int ] { Array.Nil }
+def New@Int [ Nat -- Array(Int) ] { 0 swap Array.New }
+def Nil@Int [ Array(Int) ] { 0 0u Array.New }
+def New@ListInt [ Nat -- Array:List:Int ] { L0 swap Array.New }
+def Nil@ListInt [ Array:List:Int ] { L0 0u Array.New }
 def show-bools [ Array(Bool) -- Str ] { Str:for:if("1";,"0";) }
 
-# mirth-test # pout # 6 tests passed.
+# mirth-test # pout # 7 tests passed.
