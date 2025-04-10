@@ -438,6 +438,18 @@ data +Array(a) {
     ||| truncated array of the given length (if there are enough elements).
     def truncate! [ +Array(a) |- Nat -- ] { array:prefix }
 
+    ||| Increase size of the array until it is at least as big
+    ||| as the given length.
+    def expand! [ +Array(a) |- Nat -- ] {
+        pred value(id)
+    }
+
+    ||| Set the length of the array, truncating or expanding
+    ||| the array as necessary.
+    def resize! [ +Array(a) |- Nat -- ] {
+        dup len@ < if(truncate!, expand!)
+    }
+
     ||| Split the array in two at a given index.
     ||| If the index is out of bounds, the second array will be empty.
     def split! [ +Array(a) Nat -- +Array(a) +Array(a) ] { freeze split dip:thaw thaw }
