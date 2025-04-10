@@ -363,7 +363,7 @@ struct ARR {
     USIZE cap;
     USIZE size;
     USIZE stride;
-    TAG tag;
+    VAL nil;
     ARR_DATA data;
 };
 
@@ -527,10 +527,11 @@ static TUPLEN tup_len_ (PTUP ptup) {
 static void arr_free (VAL v) {
     ARR* arr = VARR(v);
     if (arr) {
-        if ((arr->tag == 0) || (arr->tag & REFS_FLAG)) {
+        if (HAS_REFS(arr->nil)) {
             for (USIZE i = 0; i < arr->size; i++) {
                 decref(arr_peek_(arr,i));
             }
+            decref(arr->nil);
         }
         free(arr);
     }
@@ -1905,24 +1906,26 @@ gen_peek_poke(tup,MKTUP,VTUP,tups)
 gen_peek_poke(arr_arr,MKARR,VARR,arrs)
 
 static VAL arr_peek_(ARR* arr, USIZE i) {
-    ASSERT(arr); ASSERT(i < arr->size);
-    const TYPE* ty = PTRPTR(arr->tag);
+    ASSERT(arr);
+    ASSERT(i < arr->size);
+    const TYPE* ty = VTYPE(arr->nil);
     ASSERT(ty && ty->peek_);
     return ty->peek_(arr, i);
 }
 
 static void arr_poke_(ARR* arr, USIZE i, VAL v) {
-    ASSERT(arr); ASSERT(i < arr->size);
+    ASSERT(arr);
     ASSERT(arr->refs == 1);
-    ASSERT(arr->tag == v.tag);
-    const TYPE* ty = PTRPTR(arr->tag);
+    ASSERT(arr->nil.tag == v.tag);
+    ASSERT(i < arr->size);
+    const TYPE* ty = VTYPE(arr->nil);
     ASSERT(ty && ty->poke_);
     ty->poke_(arr, i, v);
 }
 
 // Copy array over into a fresh array with minimum capacity.
 // No-op if array has a unique reference and enough capacity.
-static ARR* arr_thaw(ARR* arr, size_t need_cap) {
+static ARR* arr_thaw_reserve(ARR* arr, size_t need_cap) {
     ASSERT(arr);
     if ((arr->refs == 1) && (arr->cap >= need_cap)) return arr;
     USIZE stride = arr->stride;
@@ -1937,9 +1940,10 @@ static ARR* arr_thaw(ARR* arr, size_t need_cap) {
     arr2->stride = stride;
     arr2->cap = cap;
     arr2->size = arr->size;
-    arr2->tag = arr->tag;
+    arr2->nil = arr->nil;
     memcpy(arr2->data.u8s, arr->data.u8s, mbytes);
-    if (arr->tag & REFS_FLAG) {
+    if (HAS_REFS(arr->nil)) {
+        incref(arr->nil);
         for (USIZE i = 0; i < arr->size; i++) {
             incref(arr_peek_(arr2,i));
         }
@@ -1948,54 +1952,48 @@ static ARR* arr_thaw(ARR* arr, size_t need_cap) {
     return arr2;
 }
 
-
-static ARR* arr_new(USIZE cap) {
-    if (cap < 4) cap = 4;
-    USIZE nbytes = cap * sizeof(VAL);
+static ARR* arr_new(VAL v, USIZE n) {
+    USIZE cap = (n >= 4) ? n : 4;
+    const TYPE* ty = VTYPE(v);
+    ASSERT(ty);
+    USIZE nbytes = ty->stride ? ty->stride * cap : cap/8 + 4;
     ARR* arr = calloc(1, sizeof(ARR) + nbytes);
     ASSERT(arr);
     arr->refs = 1;
-    arr->cap = cap;
-    arr->stride = sizeof(VAL);
-    return arr;
-}
-
-static ARR* arr_new_of(TAG tag, USIZE cap) {
-    if (cap < 4) cap = 4;
-    const TYPE* ty = PTRPTR(tag);
-    USIZE stride = ty ? ty->stride : sizeof(VAL);
-    USIZE nbytes = stride ? stride * cap : cap/8 + 4;
-    ARR* arr = calloc(1, sizeof(ARR) + nbytes);
-    ASSERT(arr);
-    arr->refs = 1;
-    arr->tag = tag;
-    arr->stride = stride;
-    arr->size = 0;
-    arr->cap = cap;
-    return arr;
-}
-
-static ARR* arr_new_fill(VAL v, USIZE n) {
-    ARR* arr = arr_new_of(v.tag, n+1);
+    arr->stride = ty->stride;
     arr->size = n;
-    if (v.tag == TAG_BOOL) {
+    arr->cap = cap;
+    arr->nil = v;
+    if (IS_BOOL(v)) {
         if (VBOOL(v)) {
-            memset(arr->data.u8s, 0xFF, n/8 + 1);
+            memset(arr->data.u8s, 0xFF, nbytes);
         }
-    } else if (arr->stride == 1) {
+    } else if (IS_U8(v) || IS_I8(v)) {
         memset(arr->data.u8s, v.data.u8, n);
     } else if (HAS_REFS(v)) {
         for (USIZE i = 0; i < n; i++) {
             arr_poke_(arr,i,v);
-            if (i > 0) incref(v);
+            incref(v);
         }
-        if (n == 0) decref(v);
     } else {
         for (USIZE i = 0; i < n; i++) {
             arr_poke_(arr,i,v);
         }
     }
     return arr;
+}
+
+static ARR* arr_thaw(ARR* arr) {
+    ASSERT(arr);
+    return arr_thaw_reserve(arr, arr->size);
+}
+
+static void* arr_base(ARR* arr) {
+    ASSERT(arr);
+    ASSERT(!HAS_REFS(arr->nil));
+    void* base = arr->data.u8s;
+    decref(MKARR(arr));
+    return base;
 }
 
 static USIZE arr_len(ARR* arr) {
@@ -2007,8 +2005,7 @@ static USIZE arr_len(ARR* arr) {
 
 static VAL arr_get(ARR* arr, USIZE i) {
     ASSERT(arr);
-    ASSERT(i < arr->size);
-    VAL v = arr_peek_(arr,i);
+    VAL v = (i < arr->size) ? arr_peek_(arr,i) : arr->nil;
     incref(v);
     decref(MKARR(arr));
     return v;
@@ -2016,11 +2013,36 @@ static VAL arr_get(ARR* arr, USIZE i) {
 
 static ARR* arr_set(ARR* arr, USIZE i, VAL v) {
     ASSERT(arr);
-    ASSERT(arr->tag == v.tag);
-    ASSERT(i < arr->size);
-    arr = arr_thaw(arr, arr->size);
-    VAL u = arr_peek_(arr,i);
-    arr_poke_(arr,i,v);
+    arr = arr_thaw_reserve(arr, i+1);
+    while (i > arr->size) {
+        USIZE j = arr->size++;
+        arr_poke_(arr,j,arr->nil);
+        incref(arr->nil);
+    }
+    if (i == arr->size) {
+        arr->size++;
+        arr_poke_(arr,i,v);
+    } else {
+        VAL u = arr_peek_(arr,i);
+        arr_poke_(arr,i,v);
+        decref(u);
+    }
+    return arr;
+}
+
+static VAL arr_get_default(ARR* arr) {
+    ASSERT(arr);
+    VAL v = arr->nil;
+    incref(v);
+    decref(MKARR(arr));
+    return v;
+}
+
+static ARR* arr_set_default(ARR* arr, VAL v) {
+    ASSERT(arr);
+    arr = arr_thaw(arr);
+    VAL u = arr->nil;
+    arr->nil = v;
     decref(u);
     return arr;
 }
@@ -2028,51 +2050,59 @@ static ARR* arr_set(ARR* arr, USIZE i, VAL v) {
 static ARR* arr_push(ARR* arr, VAL v) {
     ASSERT(arr);
     USIZE n = arr->size;
-    arr = arr_thaw(arr, n+1);
-    if (!arr->tag) {
-        ASSERT(n == 0);
-        ASSERT(arr->cap > 0);
-        ASSERT(arr->cap * sizeof(VAL) > 4);
-        const TYPE *ty = PTRPTR(v.tag);
-        ASSERT(ty);
-        arr->tag = v.tag;
-        arr->cap = ty->stride
-            ? (arr->cap * sizeof(VAL) / ty->stride)
-            : ((arr->cap * sizeof(VAL) - 4) * 8);
-        arr->stride = ty->stride;
-    }
-    ASSERT(arr->tag == v.tag);
-    ASSERT(arr->cap > n);
-    arr->size = n+1;
+    arr = arr_thaw_reserve(arr, n+1);
+    arr->size++;
     arr_poke_(arr,n,v);
     return arr;
 }
 
 static ARR* arr_pop(ARR* arr, VAL* vout) {
     ASSERT(arr);
-    ASSERT(arr->size > 0);
+    arr = arr_thaw(arr);
     USIZE n = arr->size;
-    *vout = arr_peek_(arr, n-1);
-    arr = arr_thaw(arr, n);
-    arr->size--;
+    if (n > 0) {
+        *vout = arr_peek_(arr,n-1);
+        arr->size--;
+    } else {
+        incref(arr->nil);
+        *vout = arr->nil;
+    }
     return arr;
 }
 
 static ARR* arr_cat(ARR* arr, ARR* arr2) {
     ASSERT(arr && arr2);
-    if (arr2->size == 0) { decref(MKARR(arr2)); return arr; }
     if (arr->size == 0) { decref(MKARR(arr)); return arr2; }
-    ASSERT(arr->tag == arr2->tag);
+    ASSERT(arr->nil.tag == arr2->nil.tag);
+    ASSERT(arr->stride == arr2->stride);
     USIZE n1 = arr->size;
     USIZE n2 = arr2->size;
-    arr = arr_thaw(arr, n1 + n2);
+    arr = arr_thaw_reserve(arr, n1 + n2);
     ASSERT(arr && (arr->cap >= n1 + n2));
     arr->size += n2;
-    for(USIZE i = 0; i < n2; i++) {
-        VAL v = arr_peek_(arr2, i);
-        arr_poke_(arr, i+n1, v);
-        incref(v);
+    if (arr->stride > 0) {
+        memcpy(arr->data.u8s + n1*arr->stride, arr2->data.u8s, n2*arr->stride);
+        if (HAS_REFS(arr->nil)) {
+            for (USIZE i = 0; i < n2; i++) {
+                incref(arr_peek_(arr2,i));
+            }
+        }
+    } else if (n1 % 8 == 0) {
+        memcpy(arr->data.u8s + n1/8, arr2->data.u8s, n2/8 + 1);
+    } else {
+        USIZE hi = n1 / 32;
+        USIZE lo = n1 % 32;
+        arr->data.u32s[hi] &= (((uint32_t)(1)) << lo) - 1;
+        arr->data.u32s[hi] |= arr2->data.u32s[0] << lo;
+        for (USIZE i = 0; i < (n2+lo)/32; i++) {
+            arr->data.u32s[hi+i+1]
+                = (arr2->data.u32s[i] >> (32 - lo))
+                | (arr2->data.u32s[i+1] << lo);
+        }
     }
+    incref(arr2->nil);
+    decref(arr->nil);
+    arr->nil = arr2->nil;
     decref(MKARR(arr2));
     return arr;
 }
@@ -2081,10 +2111,10 @@ static ARR* arr_slice(ARR* arr, USIZE from, USIZE len) {
     ASSERT(arr);
     ASSERT(len <= arr->size);
     ASSERT(from <= arr->size - len);
-    arr = arr_thaw(arr, arr->size);
+    arr = arr_thaw(arr);
     if (from > 0) {
         if (arr->stride) {
-            if (REFS_FLAG & arr->tag) {
+            if (HAS_REFS(arr->nil)) {
                 for (USIZE i = 0; i < from; i++) {
                     decref(arr_peek_(arr, i));
                 }
@@ -2094,7 +2124,7 @@ static ARR* arr_slice(ARR* arr, USIZE from, USIZE len) {
             }
             memmove(arr->data.u8s, arr->data.u8s + from*arr->stride, arr->stride*len);
         } else {
-            ASSERT(arr->tag == TAG_BOOL);
+            ASSERT(IS_BOOL(arr->nil));
             if (from % 8 == 0) {
                 memmove(arr->data.u8s, arr->data.u8s + from/8, len/8 + 1);
             } else {
@@ -2114,7 +2144,7 @@ static ARR* arr_slice(ARR* arr, USIZE from, USIZE len) {
 
 static STR* arr_to_str (ARR* arr) {
     ASSERT(arr);
-    ASSERT(arr->tag == TAG_U8);
+    ASSERT(IS_U8(arr->nil));
     STR* str = str_make((char*)arr->data.u8s, arr->size);
     decref(MKARR(arr));
     return str;
@@ -2122,7 +2152,7 @@ static STR* arr_to_str (ARR* arr) {
 
 static ARR* str_to_arr (STR* str) {
     ASSERT(str);
-    ARR* arr = arr_new_of(TAG_U8, str->size+4);
+    ARR* arr = arr_new(MKU8(0), str->size+4);
     arr->size = str->size;
     arr->stride = 1;
     memcpy(arr->data.u8s, str->data, str->size);

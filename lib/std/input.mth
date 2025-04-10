@@ -46,7 +46,7 @@ data +Input {
     --
     def start! [ +File -- +Input ] {
         >+file
-        INPUT_BUFFER_SIZE +Buffer.new >+buffer
+        INPUT_BUFFER_SIZE +Buffer.New >+buffer
         0 bytes >length
         0 Offset >offset
         +InputOpenState refill-buffer!
@@ -69,7 +69,7 @@ data +Input {
     ||| Return the current char in the input buffer.
     ||| Returns NUL if the file is already exhausted.
     def peek [ +Input -- Byte +Input ] {
-        { Open -> offset +buffer:@U8 >Byte +Input.Open }
+        { Open -> offset +buffer:u8@ >Byte +Input.Open }
         { Done -> Byte.BNUL +Input.Done }
     }
 
@@ -83,7 +83,7 @@ data +Input {
     ||| Read a chunk of input.
     def read-chunk! [ +Input -- Maybe(Str) +Input ] {
         { Open ->
-            offset length +buffer:@Str Some
+            offset length +buffer:str@ Some
             refill-buffer! }
         { Done ->
             None +Input.Done }

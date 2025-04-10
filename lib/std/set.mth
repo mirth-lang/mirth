@@ -10,7 +10,7 @@ struct +Set {
     +buffer: +Buffer
     --
     def Empty [ -- +Set ] {
-        SET_INITIAL_SIZE +Buffer.new >+buffer
+        SET_INITIAL_SIZE +Buffer.New >+buffer
         +Set
     }
 
@@ -25,12 +25,12 @@ struct +Set {
     }
 
     def member? [ Nat +Set -- Bool +Set ] {
-        offset-mask +buffer(swap @U8) and >Int 0 <>
+        offset-mask +buffer(swap u8@) and >Int 0 <>
     }
     def insert! [ Nat +Set -- +Set ] {
-        offset-mask +buffer(over @U8 or swap !U8)
+        offset-mask +buffer(over u8@ or swap u8!)
     }
     def remove! [ Nat +Set -- +Set ] {
-        offset-mask 0xFF >U8-wrap xor +buffer(over @U8 and swap !U8)
+        offset-mask 0xFF >U8-wrap xor +buffer(over u8@ and swap u8!)
     }
 }

@@ -8,13 +8,13 @@ struct +Buffer {
     size: Size
     base: Ptr
     --
-    def new [ Size -- +Buffer ] {
+    def New [ Size -- +Buffer ] {
         >size
         @size unsafe(Ptr.alloc) >base +Buffer
         0 >Offset size erase-span!
     }
 
-    def resize! [ Size +Buffer -- +Buffer ] {
+    def resize! [ +Buffer |- Size -- ] {
         size >old-size
         size! size base:unsafe(swap Ptr.realloc)
         @old-size >Offset
@@ -23,7 +23,7 @@ struct +Buffer {
 
     ||| Resize buffer only if the new size is larger,
     ||| and resize by a factor of at least two.
-    def expand! [ Size +Buffer -- +Buffer ] {
+    def expand! [ +Buffer |- Size -- ] {
         dup size > if(size 2 * max resize!, drop)
     }
 
@@ -33,63 +33,63 @@ struct +Buffer {
         ldrop
     }
 
-    def erase-span! [ Offset Size +Buffer -- +Buffer ] {
+    def erase-span! [ +Buffer |- Offset Size -- ] {
         clamp-span! swap base unsafe(+ erase)
     }
 
-    def clamp-offset! [ Offset +Buffer -- Offset +Buffer ] {
+    def clamp-offset! [ +Buffer |- Offset -- Offset ] {
         0 Offset
         size offset
         clamp
     }
 
-    def clamp-span! [ Offset Size +Buffer -- Offset Size +Buffer ] {
+    def clamp-span! [ +Buffer |- Offset Size -- Offset Size ] {
         0 bytes max over + >endix >index
         @index:clamp-offset!
         @endix:clamp-offset!
         @index endix> index> - >Size
     }
 
-    def prepare-span! [ Offset Size +Buffer -- Offset +Buffer ] {
+    def prepare-span! [ +Buffer |- Offset Size -- Offset ] {
         over >Size + expand!
     }
 
-    def prepare-aligned-span! [ Nat Size +Buffer -- Offset +Buffer ] {
+    def prepare-aligned-span! [ +Buffer |- Nat Size -- Offset ] {
         dup dip(* >Offset) prepare-span!
     }
 
-    def with-span!(f) [ ( *a Ptr -- *b ) *a Offset Size +Buffer -- *b +Buffer ] {
+    def with-span!(f) [ ( *a Ptr -- *b ) +Buffer |- *a Offset Size -- *b ] {
         prepare-span! base unsafe:+ rdip:f
     }
-    def with-aligned-span!(f)  [ ( *a Ptr -- *b ) *a Nat Size +Buffer -- *b +Buffer ] {
+    def with-aligned-span!(f)  [ ( *a Ptr -- *b ) +Buffer |- *a Nat Size -- *b ] {
         prepare-aligned-span! base unsafe:+ rdip:f
     }
 
-    def @U8  [ Offset +Buffer -- U8  +Buffer ] { |U8|  with-span!         (unsafe:@U8 ) }
-    def @U16 [ Nat    +Buffer -- U16 +Buffer ] { |U16| with-aligned-span! (unsafe:@U16) }
-    def @U32 [ Nat    +Buffer -- U32 +Buffer ] { |U32| with-aligned-span! (unsafe:@U32) }
-    def @U64 [ Nat    +Buffer -- U64 +Buffer ] { |U64| with-aligned-span! (unsafe:@U64) }
-    def @I8  [ Offset +Buffer -- I8  +Buffer ] { |I8|  with-span!         (unsafe:@I8 ) }
-    def @I16 [ Nat    +Buffer -- I16 +Buffer ] { |I16| with-aligned-span! (unsafe:@I16) }
-    def @I32 [ Nat    +Buffer -- I32 +Buffer ] { |I32| with-aligned-span! (unsafe:@I32) }
-    def @I64 [ Nat    +Buffer -- I64 +Buffer ] { |I64| with-aligned-span! (unsafe:@I64) }
-    def @F32 [ Nat    +Buffer -- F32 +Buffer ] { |F32| with-aligned-span! (unsafe:@F32) }
-    def @F64 [ Nat    +Buffer -- F64 +Buffer ] { |F64| with-aligned-span! (unsafe:@F64) }
+    def u8@  [ +Buffer |- Offset -- U8  ] { |U8|  with-span!         (unsafe:@U8 ) }
+    def u16@ [ +Buffer |- Nat    -- U16 ] { |U16| with-aligned-span! (unsafe:@U16) }
+    def u32@ [ +Buffer |- Nat    -- U32 ] { |U32| with-aligned-span! (unsafe:@U32) }
+    def u64@ [ +Buffer |- Nat    -- U64 ] { |U64| with-aligned-span! (unsafe:@U64) }
+    def i8@  [ +Buffer |- Offset -- I8  ] { |I8|  with-span!         (unsafe:@I8 ) }
+    def i16@ [ +Buffer |- Nat    -- I16 ] { |I16| with-aligned-span! (unsafe:@I16) }
+    def i32@ [ +Buffer |- Nat    -- I32 ] { |I32| with-aligned-span! (unsafe:@I32) }
+    def i64@ [ +Buffer |- Nat    -- I64 ] { |I64| with-aligned-span! (unsafe:@I64) }
+    def f32@ [ +Buffer |- Nat    -- F32 ] { |F32| with-aligned-span! (unsafe:@F32) }
+    def f64@ [ +Buffer |- Nat    -- F64 ] { |F64| with-aligned-span! (unsafe:@F64) }
 
-    def !U8  [ U8  Offset +Buffer -- +Buffer ] { |U8|  with-span!         (unsafe:!U8 ) }
-    def !U16 [ U16 Nat    +Buffer -- +Buffer ] { |U16| with-aligned-span! (unsafe:!U16) }
-    def !U32 [ U32 Nat    +Buffer -- +Buffer ] { |U32| with-aligned-span! (unsafe:!U32) }
-    def !U64 [ U64 Nat    +Buffer -- +Buffer ] { |U64| with-aligned-span! (unsafe:!U64) }
-    def !I8  [ I8  Offset +Buffer -- +Buffer ] { |I8|  with-span!         (unsafe:!I8 ) }
-    def !I16 [ I16 Nat    +Buffer -- +Buffer ] { |I16| with-aligned-span! (unsafe:!I16) }
-    def !I32 [ I32 Nat    +Buffer -- +Buffer ] { |I32| with-aligned-span! (unsafe:!I32) }
-    def !I64 [ I64 Nat    +Buffer -- +Buffer ] { |I64| with-aligned-span! (unsafe:!I64) }
-    def !F32 [ F32 Nat    +Buffer -- +Buffer ] { |F32| with-aligned-span! (unsafe:!F32) }
-    def !F64 [ F64 Nat    +Buffer -- +Buffer ] { |F64| with-aligned-span! (unsafe:!F64) }
+    def u8!  [ +Buffer |- U8  Offset -- ] { |U8|  with-span!         (unsafe:!U8 ) }
+    def u16! [ +Buffer |- U16 Nat    -- ] { |U16| with-aligned-span! (unsafe:!U16) }
+    def u32! [ +Buffer |- U32 Nat    -- ] { |U32| with-aligned-span! (unsafe:!U32) }
+    def u64! [ +Buffer |- U64 Nat    -- ] { |U64| with-aligned-span! (unsafe:!U64) }
+    def i8!  [ +Buffer |- I8  Offset -- ] { |I8|  with-span!         (unsafe:!I8 ) }
+    def i16! [ +Buffer |- I16 Nat    -- ] { |I16| with-aligned-span! (unsafe:!I16) }
+    def i32! [ +Buffer |- I32 Nat    -- ] { |I32| with-aligned-span! (unsafe:!I32) }
+    def i64! [ +Buffer |- I64 Nat    -- ] { |I64| with-aligned-span! (unsafe:!I64) }
+    def f32! [ +Buffer |- F32 Nat    -- ] { |F32| with-aligned-span! (unsafe:!F32) }
+    def f64! [ +Buffer |- F64 Nat    -- ] { |F64| with-aligned-span! (unsafe:!F64) }
 
-    def @Byte [ Offset +Buffer -- Byte +Buffer ] { @U8 >Byte }
-    def !Byte [ Byte Offset +Buffer -- +Buffer ] { dip:>U8 !U8 }
+    def byte@ [ +Buffer |- Offset -- Byte ] { u8@ >Byte }
+    def byte! [ +Buffer |- Byte Offset -- ] { dip:>U8 u8! }
 
-    def @Str [ Offset Size +Buffer -- Str +Buffer ] { tuck with-span!(swap unsafe:Str.ClonePtrSlice) }
-    def !Str [ Str Offset +Buffer -- +Buffer ] { over num-bytes with-span!(unsafe:!Str) }
+    def str@ [ +Buffer |- Offset Size -- Str ] { tuck with-span!(swap unsafe:Str.ClonePtrSlice) }
+    def str! [ +Buffer |- Str Offset -- ] { over num-bytes with-span!(unsafe:!Str) }
 }

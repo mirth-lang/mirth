@@ -2283,16 +2283,19 @@ def c99-prim! [ +Mirth +C99Branch |- Atom Prim -- ] {
     { StrToF64     -> args "str_to_f64"   Prim.StrToF64     type +c99:cname-type-to-c99-api c99-smart-call! }
     { StrToArray   -> args "str_to_arr"   Prim.StrToArray   type +c99:cname-type-to-c99-api c99-smart-call! }
 
-    { ArrayNew     -> args "arr_new"      Prim.ArrayNew     type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArrayNewFill -> args "arr_new_fill" Prim.ArrayNewFill type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArrayLen     -> args "arr_len"      Prim.ArrayLen     type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArrayGet     -> args "arr_get"      Prim.ArrayGet     type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArraySet     -> args "arr_set"      Prim.ArraySet     type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArrayPush    -> args "arr_push"     Prim.ArrayPush    type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArrayPop     -> args "arr_pop"      Prim.ArrayPop     type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArrayCat     -> args "arr_cat"      Prim.ArrayCat     type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArraySlice   -> args "arr_slice"    Prim.ArraySlice   type +c99:cname-type-to-c99-api c99-smart-call! }
-    { ArrayToStr   -> args "arr_to_str"   Prim.ArrayToStr   type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayNew        -> args "arr_new"          Prim.ArrayNew        type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayThaw       -> args "arr_thaw"         Prim.ArrayThaw       type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayBase       -> args "arr_base"         Prim.ArrayBase       type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayLen        -> args "arr_len"          Prim.ArrayLen        type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayGet        -> args "arr_get"          Prim.ArrayGet        type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArraySet        -> args "arr_set"          Prim.ArraySet        type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayGetDefault -> args "arr_get_default"  Prim.ArrayGetDefault type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArraySetDefault -> args "arr_set_default"  Prim.ArraySetDefault type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayPush       -> args "arr_push"         Prim.ArrayPush       type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayPop        -> args "arr_pop"          Prim.ArrayPop        type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayCat        -> args "arr_cat"          Prim.ArrayCat        type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArraySlice      -> args "arr_slice"        Prim.ArraySlice      type +c99:cname-type-to-c99-api c99-smart-call! }
+    { ArrayToStr      -> args "arr_to_str"       Prim.ArrayToStr      type +c99:cname-type-to-c99-api c99-smart-call! }
 
     { SysOs   -> drop C99ReprType.I64 push-value-expression!("RUNNING_OS" put) }
     { SysArch -> drop C99ReprType.I64 push-value-expression!("RUNNING_ARCH" put) }

@@ -3022,6 +3022,14 @@ inline patch Size {
     def >Offset [ Size -- Offset ] { /Size Offset }
     def >Str    [ Size -- Str    ] { >Int >Str }
 
+    def >Nat-if(f,g) [ ( *a Nat -- *b, *a Size -- *b ) *a Size -- *b ] {
+        dup 0B>= if(>Nat-unsafe f, g)
+    }
+    def >Nat-else(g) [ ( *a Size -- *a Nat ) *a Size -- *a Nat ] { >Nat-if(id, g) }
+    def >Nat-clamp [ Size -- Nat ] { >Nat-else(drop 0u) }
+    def >Nat-unsafe [ Size -- Nat ] { >Int >Nat-unsafe }
+    def >Nat? [ Size -- Maybe(Nat) ] { >Nat-if(Some, drop None) }
+
     def Int.>Size  [ Int  -- Size ] { Size }
     def Nat.>Size  [ Nat  -- Size ] { >Int Size }
     def Zero.>Size [ Zero -- Size ] { >Int Size }

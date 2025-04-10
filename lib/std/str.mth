@@ -137,8 +137,8 @@ def(Str.drop-bytes, Size Str +Unsafe -- Str +Unsafe,
     ))
 
 def(Str.from-bytes-unsafe, List(Byte) -- Str,
-    dup len >Size +Buffer.new
-    dip(0 Offset) for(>U8 over !U8 1B+) drop
+    dup len >Size +Buffer.New
+    dip(0 Offset) for(>U8 over u8! 1B+) drop
     base size unsafe(Str.ClonePtrSlice)
     rdrop)
 

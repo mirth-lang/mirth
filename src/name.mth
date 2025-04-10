@@ -45,15 +45,15 @@ struct +NameHashMap {
     +buffer: +Buffer
     --
     def new [ -- +NameHashMap ] {
-        0x80000 >Size +Buffer.new >+buffer +NameHashMap
+        0x80000 >Size +Buffer.New >+buffer +NameHashMap
     }
     def rdrop [ +NameHashMap -- ] {
         /+NameHashMap +buffer> rdrop
     }
 
     def hashmap-index [ +NameHashMap |- Hash -- Nat ] { >Nat +buffer:size |U64| div mod >Nat-clamp }
-    def name-index@ [ +NameHashMap |- Hash -- U64 ] { hashmap-index +buffer:@U64 }
-    def name-index! [ +NameHashMap |- U64 Hash -- ] { hashmap-index +buffer:!U64 }
+    def name-index@ [ +NameHashMap |- Hash -- U64 ] { hashmap-index +buffer:u64@ }
+    def name-index! [ +NameHashMap |- U64 Hash -- ] { hashmap-index +buffer:u64! }
 }
 
 patch +Mirth {

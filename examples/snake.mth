@@ -131,8 +131,8 @@ def +SnakePlatform.Init! [ +World -- +World +SnakePlatform ] {
     create-renderer! unwrap!
     >+renderer
 
-    256 bytes +Buffer.new >+event-buffer
-    16 bytes +Buffer.new >+rect-buffer
+    256 bytes +Buffer.New >+event-buffer
+    16 bytes +Buffer.New >+rect-buffer
 
     +SnakePlatform
 }
@@ -171,10 +171,10 @@ def snake-background-color { 140 100 150 255 rgba }
 def snake-foreground-color { 255 255 255 255 rgba }
 
 def +SnakePlatform.snake-rect! [ +SnakePlatform x:I32 y:I32 w:I32 h:I32 -- +SnakePlatform ] {
-    h> 3u +rect-buffer:!I32
-    w> 2u +rect-buffer:!I32
-    y> 1u +rect-buffer:!I32
-    x> 0u +rect-buffer:!I32
+    h> 3u +rect-buffer:i32!
+    w> 2u +rect-buffer:i32!
+    y> 1u +rect-buffer:i32!
+    x> 0u +rect-buffer:i32!
 }
 
 def +SnakePlatform.snake-rect-cell! [ +SnakePlatform Position -- +SnakePlatform ] {
