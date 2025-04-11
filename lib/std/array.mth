@@ -7,50 +7,25 @@ import std.maybe
 ||| An array of values, tightly packed in linear memory.
 ||| The array grows from left to right, and access to a
 ||| particular array location takes constant time.
+|||
+||| Arrays also have a fill value, which is used to when expanding
+||| the array or accessing out of bounds elements.
 patch Array {
-    max-mirth-revision 2025_04_09_000 {
-        ||| Create an empty array.
-        def Nil [ Array(a) ] { 4u Array.New }
+    ||| Create an array with the given fill value, and n elements
+    ||| that are copies of the fill value.
+    def New [ a Nat -- Array(a) ] { >U64-clamp prim-array-new }
 
-        ||| Create an empty array with a capacity hint.
-        def New  [ Nat -- Array(a) ] { >U64-clamp prim-array-new }
-
-        ||| Create an array with n elements that are all copies of some value.
-        def Fill [ a Nat -- Array(a) ] { >U64-clamp prim-array-new-fill }
-
-        ||| Build an array, piece by piece. Together with `+Array.;` this
-        ||| is intended as a kind of array literal syntax. For example,
-        ||| `Array(10 ; 20 ; 30 ; 40 ;)` creates an array of length 4
-        ||| with the `Int` elements `10`, `20`, `30`, and `40`.
-        def Array(f) [ ( +Array(a) |- *x -- *y ) *x -- *y Array(a) ] {
-            Array.Nil thaw f freeze
-        }
+    ||| Build an array, piece by piece via `+ArrayBuilder`, and give
+    ||| a fill value. For example, `Array(10 ; 20 ; 30 ; 0)`
+    ||| creates an array with three `Int` elements `10`, `20`, `30`,
+    ||| and a fill value of `0`.
+    def Array(f) [ ( +ArrayBuilder(a) |- *x -- *y a ) *x -- *y Array(a) ] {
+        +Array(f) freeze
     }
 
-    min-mirth-revision 2025_04_09_001 {
-        ||| Create an array with n elements that are all copies of the default value.
-        def New [ a Nat -- Array(a) ] { >U64-clamp prim-array-new }
-
-        ||| Build an array, piece by piece via `+ArrayBuilder`, and give
-        ||| a default element. For example, `Array(10 ; 20 ; 30 ; 0)`
-        ||| creates an array with three `Int` elements `10`, `20`, `30`,
-        ||| and a default element `0`.
-        def Array(f) [ ( +ArrayBuilder(a) |- *x -- *y a ) *x -- *y Array(a) ] {
-            +Array(f) freeze
-        }
-    }
-
-    max-mirth-revision 2025_04_07_000 {
-        ||| Prepare array for mutation, turning it into a linear resource.
-        def thaw [ Array(a) -- +Array(a) ] {
-            +Array.Unsafe
-        }
-    }
-    min-mirth-revision 2025_04_07_001 {
-        ||| Prepare array for mutation, turning it into a linear resource.
-        def thaw [ Array(a) -- +Array(a) ] {
-            prim-array-thaw +Array.Unsafe
-        }
+    ||| Prepare array for mutation, turning it into a linear resource.
+    def thaw [ Array(a) -- +Array(a) ] {
+        prim-array-thaw +Array.Unsafe
     }
 
     ||| Get the number of elements in this array.
@@ -185,6 +160,12 @@ patch Array {
         rotr prim-array-slice
     }
 
+    ||| Expand array up the given length, using the fill value.
+    ||| No-op if array is already big enough.
+    def expand [ Nat Array(a) -- Array(a) ] {
+        dip:pred sip2:get set
+    }
+
     ||| Get a prefix up to a certain index (exclusive).
     ||| If the index is greater than len, returns the whole array.
     def prefix [ Nat Array(a) -- Array(a) ] { dip2:0u slice }
@@ -220,51 +201,49 @@ patch Array {
         array>
     }
 
-    min-mirth-revision 2025_04_09_001 {
-        ||| Sort the array.
-        def sort(lt{<}) [ *x |- (a a -- Bool) Array(a) -- Array(a) ] {
-            0u swap sip:len sort-slice:lt
-        }
+    ||| Sort the array.
+    def sort(lt{<}) [ *x |- (a a -- Bool) Array(a) -- Array(a) ] {
+        0u swap sip:len sort-slice:lt
+    }
 
-        ||| Sort the array by some key function.
-        def sort-by(key, lt{<}) [
-            *x |- (a -- b, b b -- Bool) Array(a) -- Array(a)
-        ] {
-            sort(on2:key lt)
-        }
+    ||| Sort the array by some key function.
+    def sort-by(key, lt{<}) [
+        *x |- (a -- b, b b -- Bool) Array(a) -- Array(a)
+    ] {
+        sort(on2:key lt)
+    }
 
-        ||| Sort the array between two indices [i,j).
-        ||| This is an unstable quicksort that uses the center as pivot.
-        ||| Worst case is O(n^2) time, but O(n log n) is the typical case.
-        def sort-slice(lt{<}) [
-            *x |- (a a -- Bool) Nat Nat Array(a) -- Array(a)
-        ] {
-            >array
-            0u 0u Array.New \stack
-            @stack:push2
-            while(
-                @stack empty? not,
-                @stack:pop2 \j \i
-                @i 1+ @j < then(
-                    @i @i @j + 2u div @array:swap-index
-                    @i @array get \pivot
-                    @i 1+ \ki
-                    @j \kj
-                    while(@ki @kj <,
-                        @ki @array get @pivot lt if(
-                            @ki:succ,
-                            @kj:pred
-                            @ki @kj @array:swap-index
-                        )
+    ||| Sort the array between two indices [i,j).
+    ||| This is an unstable quicksort that uses the center as pivot.
+    ||| Worst case is O(n^2) time, but O(n log n) is the typical case.
+    def sort-slice(lt{<}) [
+        *x |- (a a -- Bool) Nat Nat Array(a) -- Array(a)
+    ] {
+        >array
+        0u 0u Array.New \stack
+        @stack:push2
+        while(
+            @stack empty? not,
+            @stack:pop2 \j \i
+            @i 1+ @j < then(
+                @i @i @j + 2u div @array:swap-index
+                @i @array get \pivot
+                @i 1+ \ki
+                @j \kj
+                while(@ki @kj <,
+                    @ki @array get @pivot lt if(
+                        @ki:succ,
+                        @kj:pred
+                        @ki @kj @array:swap-index
                     )
-                    @ki:pred
-                    @i @ki @array:swap-index
-                    @i @ki @stack:push2
-                    @kj @j @stack:push2
                 )
+                @ki:pred
+                @i @ki @array:swap-index
+                @i @ki @stack:push2
+                @kj @j @stack:push2
             )
-            array>
-        }
+        )
+        array>
     }
 
     ||| Iterate over every element of the array.
@@ -283,66 +262,60 @@ patch Array {
         )
     }
 
-    max-mirth-revision 2025_04_09_000 {
-        def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
-            +Array.Nil
-            for(f push!)
-            freeze
-        }
+    ||| Get array fill value. The fill value is used
+    ||| when accessing out of bounds elements, and when
+    ||| expanding the array.
+    def get-fill-value [ Array(a) -- a ] {
+        prim-array-get-default
     }
 
-    min-mirth-revision 2025_04_09_001 {
-        ||| Get array default value. The default value is used
-        ||| when accessing out of bounds elements, and when
-        ||| expanding the array.
-        def get-default [ Array(a) -- a ] {
-            prim-array-get-default
-        }
+    ||| Set array fill value. The fill value is used
+    ||| when accessing out of bounds elements, and when
+    ||| expanding the array.
+    def set-fill-value [ a Array(a) -- Array(a) ] {
+        swap prim-array-set-default
+    }
 
-        ||| Set array default value. The default value is used
-        ||| when accessing out of bounds elements, and when
-        ||| expanding the array.
-        def set-default [ a Array(a) -- Array(a) ] {
-            swap prim-array-set-default
-        }
+    ||| Create a new array by applying a function
+    ||| to each element of the original array.
+    ||| The fill value is also mapped.
+    def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
+        dup get-fill-value f 0u +Array.New
+        for(f push!)
+        freeze
+    }
 
-        ||| Create a new array by applying a function
-        ||| to each element of the original array.
-        ||| The default is also mapped.
-        def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
-            dup get-default f 0u +Array.New
-            for(f push!)
-            freeze
-        }
+    ||| Emit a text representation for the array.
+    def repr; (f{repr;}) [ *x +Str |- (a --) Array(a) -- ] {
+        "Array( " ;
+        sip:for(f " ; ";)
+        get-fill-value f
+        " )" ;
+    }
 
-        ||| Emit a text representation for the array.
-        def repr; (f{repr;}) [ *x +Str |- (a --) Array(a) -- ] {
-            "Array( " ;
-            sip:for(f " ; ";)
-            get-default f
-            " )" ;
-        }
-
-        ||| Check two arrays for equality. Equality means they have the
-        ||| same length, corresponding elements are equal, and their
-        ||| default elements are the same.
-        def = (f{=}) [ *x |- ( a a -- Bool ) Array(a) Array(a) -- Bool ] {
-            and2(on2:len =,
-                \array2 \array1
-                0u \i
-                @array1 get-default
-                @array2 get-default f \result
-                while(
-                    @result
-                    @i @array1 len < and,
-                    @i @array1 get
-                    @i @array2 get f
-                    !result
-                    @i:1+
-                )
+    ||| Check two arrays for equality. Equality means they have the
+    ||| same length, corresponding elements are equal, and their
+    ||| fill values are the same.
+    def = (f{=}) [ *x |- ( a a -- Bool ) Array(a) Array(a) -- Bool ] {
+        and2(on2:len =,
+            \array2 \array1
+            0u \i
+            @array1 get-fill-value
+            @array2 get-fill-value f \result
+            while(
                 @result
+                @i @array1 len < and,
+                @i @array1 get
+                @i @array2 get f
+                !result
+                @i:1+
             )
-        }
+            @result
+        )
+    }
+
+    def with-base(f) [ +Unsafe |- (*x Ptr -- *y) *x Array(a) -- *y Array(a) ] {
+        sip(prim-array-base f)
     }
 }
 
@@ -351,23 +324,16 @@ data +Array(a) {
     ||| Safety: Array should have unique reference.
     Unsafe [ Array(a) ]
     --
-    max-mirth-revision 2025_04_09_000 {
-        def Nil [ +Array(a) ] { Array.Nil +Array.Unsafe }
-        def New [ Nat -- +Array(a) ] { Array.New +Array.Unsafe }
-        def Fill [ a Nat -- +Array(a) ] { Array.Fill +Array.Unsafe }
+    def New [ a Nat -- +Array(a) ] { Array.New +Array.Unsafe }
+    def +Array(f) [ ( +ArrayBuilder(a) |- *x -- *y a ) *x -- *y +Array(a) ] {
+        +ArrayBuilder.None f finish-array!
     }
-    min-mirth-revision 2025_04_09_001 {
-        def New [ a Nat -- +Array(a) ] { Array.New +Array.Unsafe }
-        def +Array(f) [ ( +ArrayBuilder(a) |- *x -- *y a ) *x -- *y +Array(a) ] {
-            +ArrayBuilder.None f finish-array!
-        }
 
-        ||| Get the default value for the array.
-        def default@ [ +Array(a) |- a ] { array@ get-default }
+    ||| Get the fill value for the array.
+    def fill-value@ [ +Array(a) |- a ] { array@ get-fill-value }
 
-        ||| Set the default value for the array.
-        def default! [ +Array(a) |- a -- ] { array:set-default }
-    }
+    ||| Set the fill value for the array.
+    def fill-value! [ +Array(a) |- a -- ] { array:set-fill-value }
 
     ||| Freeze the array resource into an immutable value.
     def freeze [ +Array(a) -- Array(a) ] { /Unsafe }
@@ -390,12 +356,12 @@ data +Array(a) {
     def len@ [ +Array(a) |- Nat ] { array:sip:len }
 
     ||| Get value at certain index.
-    ||| If index is greater than length, return the default value.
+    ||| If index is greater than length, return the fill value.
     def value@ [ +Array(a) |- Nat -- a ] { array:sip:get }
 
     ||| Set value at certain index.
     ||| If index is greater than length, expand the array with copies of
-    ||| the default value until index equals length, then push the value
+    ||| the fill value until index equals length, then push the value
     ||| at the end.
     def value! [ +Array(a) |- a Nat -- ] { array:set }
 
@@ -422,7 +388,7 @@ data +Array(a) {
     def swap! [ +Array(a) |- Nat Nat -- ] { dip(sip:value@) swap dip(replace!) value! }
 
     ||| Concatenate the given array to the end of this array.
-    ||| The default value is set to the given array's default value.
+    ||| The fill value is set to the second array's fill value.
     def cat! [ +Array(a) |- Array(a) -- ] { array(swap cat) }
 
     ||| Get a slice of the array between two indices.
@@ -440,9 +406,7 @@ data +Array(a) {
 
     ||| Increase size of the array until it is at least as big
     ||| as the given length.
-    def expand! [ +Array(a) |- Nat -- ] {
-        pred value(id)
-    }
+    def expand! [ +Array(a) |- Nat -- ] { array:expand }
 
     ||| Set the length of the array, truncating or expanding
     ||| the array as necessary.
@@ -470,38 +434,46 @@ data +Array(a) {
     def push5! [ +Array(a) |- a a a a a -- ] { dip:push4! push! }
 
     ||| Pop an element from the end of the array.
-    ||| If the array is empty, returns the default value instead.
+    ||| If the array is empty, returns the fill value instead.
     def pop! [ +Array(a) |- a ] { array:pop }
 
     ||| Pop two elements from the end of the array.
-    ||| If the array does not have enough elements, returns default values instead.
+    ||| If the array does not have enough elements, return copies of the fill value.
     def pop2! [ +Array(a) |- a a ] { pop! dip:pop! }
 
     ||| Pop three values from the end of the array.
-    ||| If the array does not have enough values, returns default values instead.
+    ||| If the array does not have enough values, return copies of the fill value.
     def pop3! [ +Array(a) |- a a a ] { pop! dip:pop2! }
 
     ||| Pop four values from the end of the array.
-    ||| If the array does not have enough values, returns default values instead.
+    ||| If the array does not have enough values, return copies of the fill value.
     def pop4! [ +Array(a) |- a a a a ] { pop! dip:pop3! }
 
     ||| Pop five values from the end of the array.
-    ||| If the array does not have enough values, returns default values instead.
+    ||| If the array does not have enough values, return copies of the fill value.
     def pop5! [ +Array(a) |- a a a a a ] { pop! dip:pop4! }
+
+    ||| Get base pointer to array data. This operation only works when the array has
+    ||| flat data that is not subject to garbage collection / reference counting,
+    ||| like Bool, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, Ptr, enums,
+    ||| and single-field structs containing flat data. Attempting to use it in
+    ||| other situations will result in a panic.
+    ||| Also using the pointer to access memory is unsafe. If you are not
+    ||| sure that the array is a unique reference, do not write to this
+    ||| pointer.
+    def base [ +Unsafe +Array(a) |- Ptr ] { array:with-base:id }
 }
 
-min-mirth-revision 2025_04_09_001 {
-    data +ArrayBuilder(a) {
-        None [ ]
-        Some [ +Array(a) ]
-        --
-        def finish-array! [ +ArrayBuilder(a) a -- +Array(a) ] {
-            { None -> 0u +Array.New }
-            { Some -> default! }
-        }
-        def ; [ +ArrayBuilder(a) |- a --] {
-            { None -> 1u +Array.New +ArrayBuilder.Some }
-            { Some -> push! +ArrayBuilder.Some }
-        }
+data +ArrayBuilder(a) {
+    None [ ]
+    Some [ +Array(a) ]
+    --
+    def finish-array! [ +ArrayBuilder(a) a -- +Array(a) ] {
+        { None -> 0u +Array.New }
+        { Some -> fill-value! }
+    }
+    def ; [ +ArrayBuilder(a) |- a --] {
+        { None -> 1u +Array.New +ArrayBuilder.Some }
+        { Some -> push! +ArrayBuilder.Some }
     }
 }

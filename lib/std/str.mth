@@ -51,6 +51,7 @@ inline (
 )
 def Str.Str(f) [ (*a +Str -- *b +Str) *a -- *b Str ] { "" +Str f /+Str }
 def str(f) [ (*a x +Str -- *a +Str) *a x -- *a Str ] { Str(f) }
+def repr(f{repr;})   [ *a |- (+Str |- x --) x -- Str ] { str:f }
 
 def Str.last-byte [ Str -- Byte ] {
     dup num-bytes 1B- offset swap byte@
