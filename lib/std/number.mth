@@ -390,13 +390,7 @@ inline patch Int {
     def >Nat-if(f,g) [ ( *a Nat -- *b, *a Int -- *b ) *a Int -- *b ] { dup 0>= if(>Nat-unsafe f, g) }
     def >Nat-else(g) [ ( *a Int -- *a Nat ) *a Int -- *a Nat ] { >Nat-if(id, g) }
     def >Nat-clamp [ Int -- Nat ] { >Nat-else(drop 0u) }
-
-    max-mirth-revision 2025_03_31_000 {
-        def >Nat-unsafe [ Int -- Nat ] { Nat.Unsafe }
-    }
-    min-mirth-revision 2025_03_31_001 {
-        def >Nat-unsafe [ Int -- Nat ] { prim-int-to-nat }
-    }
+    def >Nat-unsafe [ Int -- Nat ] { prim-int-to-nat }
     def >Nat? [ Int -- Maybe(Nat) ] { >Nat-if(Some, drop None) }
 
     def >I64-unsafe [ Int -- I64 ] { prim-int-to-i64 }
@@ -626,13 +620,7 @@ inline patch Nat {
     def oct; [ Nat +Str -- +Str ] { "0o"; Base.Oct digits; }
     def bin; [ Nat +Str -- +Str ] { "0b"; Base.Bin digits; }
 
-    max-mirth-revision 2025_03_31_000 {
-        def >Int [ Nat -- Int ] { /Unsafe }
-    }
-    min-mirth-revision 2025_03_31_001 {
-        def >Int [ Nat -- Int ] { prim-nat-to-int }
-    }
-
+    def >Int [ Nat -- Int ] { prim-nat-to-int }
     def >Nat [ Nat -- Nat ] { }
     def >Rat [ Nat -- Rat ] { >Int >Rat }
     def >F64 [ Nat -- F64 ] { >Int >F64 }
@@ -2323,6 +2311,12 @@ inline patch U16 {
     def invert [ U16 -- Rat ] { >Int invert }
     def abs    [ U16 -- U16 ] { }
 
+    def repr; [ U16 +Str -- +Str ] { int; "u16"; }
+    def int; [ U16 +Str -- +Str ] { >U64 int; }
+    def dec; [ U16 +Str -- +Str ] { >U64 dec; }
+    def hex; [ U16 +Str -- +Str ] { >U64 hex; }
+    def oct; [ U16 +Str -- +Str ] { >U64 oct; }
+
     def >U64 [ U16 -- U64 ] { prim-u16-to-u64 }
     def >U32 [ U16 -- U32 ] { >U64 >U32-wrap }
     def >Int [ U16 -- Int ] { >U64 >Int }
@@ -2492,6 +2486,12 @@ inline patch U8 {
     def negate [ U8 -- Int ] { >Int negate }
     def invert [ U8 -- Rat ] { >Int invert }
     def abs    [ U8 -- U8 ] { }
+
+    def repr; [ U8 +Str -- +Str ] { int; "u8"; }
+    def int; [ U8 +Str -- +Str ] { >U64 int; }
+    def dec; [ U8 +Str -- +Str ] { >U64 dec; }
+    def hex; [ U8 +Str -- +Str ] { >U64 hex; }
+    def oct; [ U8 +Str -- +Str ] { >U64 oct; }
 
     def >Int [ U8 -- Int ] { >U64 >Int }
     def >Nat [ U8 -- Nat ] { >U64 >Nat }

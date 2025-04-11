@@ -118,7 +118,7 @@ struct +Mirth {
         None >error-token
         None >defining-namespace
         LexicalState >lexical-state
-        +NameHashMap.new >+namehashmap
+        +NameHashMap.New >+namehashmap
         +Mirth
         Builtin.Alloc! builtin!
         init-packages!

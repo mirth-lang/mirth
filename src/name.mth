@@ -7,7 +7,7 @@ import std.list
 import std.maybe
 import std.path
 import std.world
-import std.buffer
+import std.array
 import mirth.def
 import mirth.module
 import mirth.package
@@ -42,18 +42,14 @@ table +Mirth |- Name {
 }
 
 struct +NameHashMap {
-    +buffer: +Buffer
+    +array: +Array(U64)
     --
-    def new [ -- +NameHashMap ] {
-        0x80000 >Size +Buffer.New >+buffer +NameHashMap
-    }
-    def rdrop [ +NameHashMap -- ] {
-        /+NameHashMap +buffer> rdrop
-    }
+    def New [ -- +NameHashMap ] { 0u64 0x10000u +Array.New >+array +NameHashMap }
+    def rdrop [ +NameHashMap -- ] { /+NameHashMap ldrop }
 
-    def hashmap-index [ +NameHashMap |- Hash -- Nat ] { >Nat +buffer:size |U64| div mod >Nat-clamp }
-    def name-index@ [ +NameHashMap |- Hash -- U64 ] { hashmap-index +buffer:u64@ }
-    def name-index! [ +NameHashMap |- U64 Hash -- ] { hashmap-index +buffer:u64! }
+    def hashmap-index [ +NameHashMap |- Hash -- Nat ] { >Nat +array:len@ mod }
+    def name-index@ [ +NameHashMap |- Hash -- U64 ] { hashmap-index +array:value@ }
+    def name-index! [ +NameHashMap |- U64 Hash -- ] { hashmap-index +array:value! }
 }
 
 patch +Mirth {

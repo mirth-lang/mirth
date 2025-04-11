@@ -7,5 +7,5 @@ def main {
     10 20 foo
     drop
 }
-# mirth-test # merr # 7:11: error: Multiple definitions for name, but none are suitable: Method cat is for different type – expected one of std.list.Nest/1 std.list.List/1 std.prim.Str but got [Int]
+# mirth-test # merr # 7:11: error: Multiple definitions for name, but none are suitable: Method cat is for different type – expected one of std.list.Nest/1 std.list.List/1 std.prim.Str std.prim.Array/1 but got [Int]
 # mirth-test # mret # 1

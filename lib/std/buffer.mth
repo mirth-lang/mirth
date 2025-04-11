@@ -3,34 +3,26 @@ module std.buffer
 import std.prelude
 import std.str
 import std.byte
+import std.array
 
 struct +Buffer {
-    size: Size
-    base: Ptr
+    +Array(U8)
     --
-    def New [ Size -- +Buffer ] {
-        >size
-        @size unsafe(Ptr.alloc) >base +Buffer
-        0 >Offset size erase-span!
-    }
+    def +array [ +Buffer -- +Array(U8) ] { /+Buffer }
+    def +array(f) [ (+Array(U8) |- *x -- *y) +Buffer |- *x -- *y ] { /+Buffer f +Buffer }
 
-    def resize! [ +Buffer |- Size -- ] {
-        size >old-size
-        size! size base:unsafe(swap Ptr.realloc)
-        @old-size >Offset
-        size old-size> - dup 0B> if(erase-span!, drop2)
-    }
+    def New [ Size -- +Buffer ] { dip:0u8 >Nat-clamp +Array.New +Buffer }
+    def rdrop [ +Buffer -- ] { /+Buffer rdrop }
+    def size [ +Buffer |- Size ] { +array:len@ >Size }
+    def base [ +Buffer |- Ptr  ] { +array:unsafe:base }
+
+    ||| Resive buffer to given size.
+    def resize! [ +Buffer |- Size -- ] { >Nat-clamp +array:resize! }
 
     ||| Resize buffer only if the new size is larger,
     ||| and resize by a factor of at least two.
     def expand! [ +Buffer |- Size -- ] {
         dup size > if(size 2 * max resize!, drop)
-    }
-
-    def rdrop [ +Buffer -- ] {
-        /+Buffer
-        base> unsafe:free
-        ldrop
     }
 
     def erase-span! [ +Buffer |- Offset Size -- ] {
