@@ -16,8 +16,15 @@ struct +Buffer {
     def size [ +Buffer |- Size ] { +array:len@ >Size }
     def base [ +Buffer |- Ptr  ] { +array:unsafe:base }
 
-    ||| Resive buffer to given size.
-    def resize! [ +Buffer |- Size -- ] { >Nat-clamp +array:resize! }
+    min-mirth-revision 2025_04_12_001 {
+        ||| Resive buffer to given size.
+        def resize! [ +Buffer |- Size -- ] { 0u8 swap >Nat-clamp +array:resize! }
+    }
+
+    max-mirth-revision 2025_04_12_000 {
+        ||| Resive buffer to given size.
+        def resize! [ +Buffer |- Size -- ] { >Nat-clamp +array:resize! }
+    }
 
     ||| Resize buffer only if the new size is larger,
     ||| and resize by a factor of at least two.
