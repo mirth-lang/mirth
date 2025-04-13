@@ -62,6 +62,7 @@ data Type {
     def Ptr      [ Type ] { PrimType.Ptr Type.Prim }
     def Str      [ Type ] { PrimType.Str Type.Prim }
     def World    [ Type ] { PrimType.World Type.Prim }
+    def Debug    [ Type ] { PrimType.Debug Type.Prim }
     def Array    [ Type -- Type ] { PrimType.Array Type.Prim swap Type.App }
 
     def Unit     [ Type ] { StackType.Unit Type.Stack }
@@ -488,9 +489,11 @@ data PrimType {
     Str
     Array
     World
+    Debug
     --
     def is-resource? [ PrimType -- Bool ] {
         { World -> True }
+        { Debug -> True }
         { _ -> drop False }
     }
 
@@ -504,27 +507,28 @@ data PrimType {
 
     ||| Get primitive type constructor name.
     def tycon-qname [ +Mirth |- PrimType -- QName ] {
-        { KIND -> "KIND" 0 QName.Prim }
-        { TYPE -> "TYPE" 0 QName.Prim }
-        { STACK -> "STACK" 0 QName.Prim }
+        { KIND     -> "KIND" 0 QName.Prim }
+        { TYPE     -> "TYPE" 0 QName.Prim }
+        { STACK    -> "STACK" 0 QName.Prim }
         { RESOURCE -> "RESOURCE" 0 QName.Prim }
-        { Bool -> "Bool" 0 QName.Prim }
-        { Int -> "Int" 0 QName.Prim }
-        { Nat -> "Nat" 0 QName.Prim }
-        { U8  -> "U8"  0 QName.Prim }
-        { U16 -> "U16" 0 QName.Prim }
-        { U32 -> "U32" 0 QName.Prim }
-        { U64 -> "U64" 0 QName.Prim }
-        { I8  -> "I8"  0 QName.Prim }
-        { I16 -> "I16" 0 QName.Prim }
-        { I32 -> "I32" 0 QName.Prim }
-        { I64 -> "I64" 0 QName.Prim }
-        { F32 -> "F32" 0 QName.Prim }
-        { F64 -> "F64" 0 QName.Prim }
-        { Str -> "Str" 0 QName.Prim }
-        { Ptr -> "Ptr" 0 QName.Prim }
-        { Array -> "Array" 1 QName.Prim }
-        { World -> "+World" 0 QName.Prim }
+        { Bool     -> "Bool" 0 QName.Prim }
+        { Int      -> "Int" 0 QName.Prim }
+        { Nat      -> "Nat" 0 QName.Prim }
+        { U8       -> "U8"  0 QName.Prim }
+        { U16      -> "U16" 0 QName.Prim }
+        { U32      -> "U32" 0 QName.Prim }
+        { U64      -> "U64" 0 QName.Prim }
+        { I8       -> "I8"  0 QName.Prim }
+        { I16      -> "I16" 0 QName.Prim }
+        { I32      -> "I32" 0 QName.Prim }
+        { I64      -> "I64" 0 QName.Prim }
+        { F32      -> "F32" 0 QName.Prim }
+        { F64      -> "F64" 0 QName.Prim }
+        { Str      -> "Str" 0 QName.Prim }
+        { Ptr      -> "Ptr" 0 QName.Prim }
+        { Array    -> "Array" 1 QName.Prim }
+        { World    -> "+World" 0 QName.Prim }
+        { Debug    -> "+Debug" 0 QName.Prim }
     }
 
     def >Int [ PrimType -- Int ] { enum-value >Int }
@@ -556,6 +560,7 @@ data PrimType {
 
     def can-own-state? [ +Mirth |- PrimType -- Bool ] {
         { World -> True }
+        { Debug -> True }
         { _ -> drop False }
     }
 }
@@ -594,6 +599,8 @@ def +Mirth.init-types! [ +Mirth |- ] {
     PrimType.Str  L0 def-prim-type!
     PrimType.Array "t" L1 def-prim-type!
     PrimType.World L0 def-prim-type!
+    PrimType.Debug L0 def-prim-type!
+
     init-data!
 }
 
@@ -747,6 +754,7 @@ struct Resource {
     def Fresh! [ +Mirth |- Resource ] { Kind.RESOURCE MetaVar.New! Type.Meta Resource }
 
     def World [ Resource ] { Type.World Resource }
+    def Debug [ Resource ] { Type.Debug Resource }
 
     def >Type [ Resource -- Type ] { Resource -> id }
     def Type.>Resource [ Type -- Resource ] { Resource }

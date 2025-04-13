@@ -22,9 +22,16 @@ data Prim {
     RDip
     If
     While
-    Debug
     Panic
     Run
+
+    DebugMode
+    DebugTrace
+    DebugTraceValue
+    DebugTraceResource
+    DebugTraceStack
+    DebugGetNumRefs
+    DebugGetIdentity
 
     IntEq
     IntLt
@@ -259,9 +266,16 @@ data Prim {
         { RDip -> "prim-rdip" 1 }
         { If -> "prim-if" 2 }
         { While -> "prim-while" 2 }
-        { Debug -> "prim-debug" 0 }
         { Panic -> "prim-panic" 0 }
         { Run -> "prim-run" 0 }
+
+        { DebugMode -> "prim-debug-mode" 1 }
+        { DebugTrace -> "prim-debug-trace" 0 }
+        { DebugTraceValue -> "prim-debug-trace-value" 0 }
+        { DebugTraceResource -> "prim-debug-trace-resource" 0 }
+        { DebugTraceStack -> "prim-debug-trace-stack" 0 }
+        { DebugGetNumRefs -> "prim-debug-get-num-refs" 0 }
+        { DebugGetIdentity -> "prim-debug-get-identity" 0 }
 
         { IntEq -> "prim-int-eq" 0 }
         { IntLt -> "prim-int-lt" 0 }
@@ -543,9 +557,46 @@ data Prim {
             a> drop
         }
 
-        { Debug ->
+        { DebugMode ->
             Ctx.L0
-            T0 T0 T->
+            "*a" StackType.NewInCtx \a
+            @a @a Resource.Debug T+ dup T-> >Type T*
+            @a T->
+        }
+        { DebugTrace ->
+            Ctx.L0
+            T0 Resource.Debug T+ Type.Str T*
+            T0 Resource.Debug T+ T->
+        }
+        { DebugTraceValue ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            T0 Resource.Debug T+ @a T*
+            T0 Resource.Debug T+ T->
+        }
+        { DebugTraceResource ->
+            Ctx.L0
+            "+a" Resource.NewInCtx \a
+            T0 @a T+ Resource.Debug T+
+            T0 @a T+ Resource.Debug T+ T->
+        }
+        { DebugTraceStack ->
+            Ctx.L0
+            "*a" StackType.NewInCtx \a
+            @a Resource.Debug T+
+            @a Resource.Debug T+ T->
+        }
+        { DebugGetNumRefs ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            T0 Resource.Debug T+ @a T*
+            T0 Resource.Debug T+ Type.U64 T* T->
+        }
+        { DebugGetIdentity ->
+            Ctx.L0
+            "a" Type.NewInCtx \a
+            T0 Resource.Debug T+ @a T*
+            T0 Resource.Debug T+ Type.U64 T* T->
         }
 
         { Panic ->

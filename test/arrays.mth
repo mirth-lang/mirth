@@ -249,6 +249,22 @@ def main {
                 dup cat dup cat dup cat dup cat
                 dup cat dup cat dup cat dup cat
             )
+
+            +Debug (
+                "this is a regression test" \val
+                Array() \array
+                @val get-num-refs \refs0
+                @val 100u @array:expand
+                @val get-num-refs \refs1
+                @val 200u @array:expand
+                @val get-num-refs \refs2
+                @val 300u @array:expand
+                @val get-num-refs \refs3
+                @refs0 @refs0 - =>: 0
+                @refs1 @refs0 - =>: 100
+                @refs2 @refs0 - =>: 200
+                @refs3 @refs0 - =>: 300
+            )
         )
 
         "using buffer" test (
