@@ -5,6 +5,8 @@ import(std.maybe)
 import(std.world)
 import(std.str)
 
+def ?? [*a -- *a] { +Debug:trace-stack }
+
 def(compose, [*a -- *b] [*b -- *c] -- [*a -- *c], \([f] [g] -> [f g]))
 
 def(run1, (a -- b) a -- b, run)

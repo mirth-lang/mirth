@@ -1974,7 +1974,7 @@ static ARR* arr_expand(ARR* arr, USIZE n, VAL v) {
     arr->size = n;
     val_poke_many_(arr,m,n,v);
     if (HAS_REFS(v)) {
-        VREFS(v) += n - m;
+        VREFS(v) += n - m - 1;
     }
     return arr;
 }

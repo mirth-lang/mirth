@@ -7,7 +7,7 @@ import std.list
 import std.number
 
 alias id prim-id
-alias ?? prim-debug
+
 alias swap prim-swap
 alias dup prim-dup
 alias drop prim-drop
@@ -554,3 +554,32 @@ def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     f if(id, g panic!))
 def(assert!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     expect!(f,g "assertion failed: " swap prim-str-cat))
+
+
+min-mirth-revision 2025_04_13_001 {
+
+    def debug(f) [ (+Debug |- *a -- *a) *a -- *a ] {
+        prim-debug-mode(
+            "[debug] " prim-debug-trace
+            f
+            "\n" prim-debug-trace
+        )
+    }
+
+    patch +Debug {
+        def +Debug(f) [ (+Debug |- *a -- *a) *a -- *a ] { prim-debug-mode(f) }
+
+        def trace [ +Debug |- Str -- Str ] { dup prim-debug-trace }
+        def trace(f) [ (+Str |- a --) +Debug |- a -- a ] { dup Str(f " ";) prim-debug-trace }
+        def trace-repr(f {repr;}) [ (+Str |- a --) +Debug |- a -- a ] { trace(f) }
+        def trace-int (f {int;})  [ (+Str |- a --) +Debug |- a -- a ] { trace(f) }
+
+        def trace-value    [  a +Debug |- ] { dup prim-debug-trace-value " " trace drop }
+        def trace-resource [ +a +Debug |- ] { prim-debug-trace-resource }
+        def trace-stack    [ *a +Debug |- ] { prim-debug-trace-stack }
+
+        def get-num-refs   [ +Debug |- a -- Nat ] { prim-debug-get-num-refs >Nat }
+        def get-identity   [ +Debug |- a -- U64 ] { prim-debug-get-identity }
+    }
+
+}

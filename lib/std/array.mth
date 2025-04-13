@@ -8,28 +8,18 @@ import std.maybe
 ||| The array grows from left to right, and access to a
 ||| particular location takes constant time.
 patch Array {
+    ||| Empty array.
+    def Nil [ Array(a) ] { prim-array-nil }
+
     ||| Create an array with n copies of the given value.
     def New [ a Nat -- Array(a) ] { >U64-clamp prim-array-new }
 
-    min-mirth-revision 2025_04_12_001 {
-        def Nil [ Array(a) ] { prim-array-nil }
-
-        ||| Build an array, piece by piece via `+ArrayBuilder`, and give
-        ||| a fill value. For example, `Array(10 ; 20 ; 30 ; 0)`
-        ||| creates an array with three `Int` elements `10`, `20`, `30`,
-        ||| and a fill value of `0`.
-        def Array(f) [ ( +ArrayBuilder(a) |- *x -- *y ) *x -- *y Array(a) ] {
-            +Array(f) freeze
-        }
-    }
-
-    max-mirth-revision 2025_04_12_000 {
-        ||| Build an array, piece by piece via `+ArrayBuilder`.
-        ||| example, `Array(10 ; 20 ; 30 ;)` creates an array with
-        ||| three `Int` elements: `10`, `20`, and `30`.
-        def Array(f) [ ( +ArrayBuilder(a) |- *x -- *y a ) *x -- *y Array(a) ] {
-            +Array(f) freeze
-        }
+    ||| Build an array, piece by piece via `+ArrayBuilder`, and give
+    ||| a fill value. For example, `Array(10 ; 20 ; 30 ; 0)`
+    ||| creates an array with three `Int` elements `10`, `20`, `30`,
+    ||| and a fill value of `0`.
+    def Array(f) [ ( +ArrayBuilder(a) |- *x -- *y ) *x -- *y Array(a) ] {
+        +Array(f) freeze
     }
 
     ||| Prepare array for mutation, turning it into a linear resource.
@@ -137,26 +127,17 @@ patch Array {
     ||| If the array has fewer than five elements, panic.
     def pop5 [ Array(a) -- a a a a a Array(a) ] { thaw pop5! freeze }
 
-    min-mirth-revision 2025_04_12_001 {
-        ||| Expand array up to the given length, using the given value.
-        ||| This is a no-op if the array is big enough already.
-        def expand [ a Nat Array(a) -- Array(a) ] {
-            dip:>U64-clamp
-            swap rotl prim-array-expand
-        }
-
-        ||| Push n copies of a value at the end of the array.
-        ||| Like `Array.expand` but takes the number of copies to push, not the final length.
-        def push-many [ a Nat Array(a) -- Array(a) ] {
-            sip(len +) expand
-        }
+    ||| Expand array up to the given length, using the given value.
+    ||| This is a no-op if the array is big enough already.
+    def expand [ a Nat Array(a) -- Array(a) ] {
+        dip:>U64-clamp
+        swap rotl prim-array-expand
     }
-    max-mirth-revision 2025_04_12_000 {
-        ||| Expand array up the given length, using the fill value.
-        ||| No-op if array is already big enough.
-        def expand [ Nat Array(a) -- Array(a) ] {
-            dip:pred sip2:get set
-        }
+
+    ||| Push n copies of a value at the end of the array.
+    ||| Like `Array.expand` but takes the number of copies to push, not the final length.
+    def push-many [ a Nat Array(a) -- Array(a) ] {
+        sip(len +) expand
     }
 
     ||| Get a slice of an array between two indices.
@@ -267,37 +248,10 @@ patch Array {
         )
     }
 
-    max-mirth-revision 2025_04_12_000 {
-        ||| Get array fill value. The fill value is used
-        ||| when accessing out of bounds elements, and when
-        ||| expanding the array.
-        def get-fill-value [ Array(a) -- a ] {
-            prim-array-get-default
-        }
-
-        ||| Set array fill value. The fill value is used
-        ||| when accessing out of bounds elements, and when
-        ||| expanding the array.
-        def set-fill-value [ a Array(a) -- Array(a) ] {
-            swap prim-array-set-default
-        }
-
-        ||| Create a new array by applying a function
-        ||| to each element of the original array.
-        ||| The fill value is also mapped.
-        def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
-            dup get-fill-value f 0u +Array.New
-            for(f push!)
-            freeze
-        }
-    }
-
-    min-mirth-revision 2025_04_12_001 {
-        ||| Create a new array by applying a function
-        ||| to each element of the original array.
-        def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
-            Array(for(f ;))
-        }
+    ||| Create a new array by applying a function
+    ||| to each element of the original array.
+    def map(f) [ *x |- (a -- b) Array(a) -- Array(b) ] {
+        Array(for(f ;))
     }
 
     ||| Emit a text representation for the array.
@@ -343,25 +297,15 @@ data +Array(a) {
     ||| Safety: Array should have unique reference.
     Unsafe [ Array(a) ]
     --
+    ||| Empty array.
+    def Nil [ +Array(a) ] { Array.Nil +Array.Unsafe }
+
+    ||| Create an array that is n copies of an element.
     def New [ a Nat -- +Array(a) ] { Array.New +Array.Unsafe }
 
-    min-mirth-revision 2025_04_12_001 {
-        def Nil [ +Array(a) ] { Array.Nil +Array.Unsafe }
-        def +Array(f) [ (+ArrayBuilder(a) |- *x -- *y) *x -- *y +Array(a) ] {
-            +ArrayBuilder.None f finish-array!
-        }
-    }
-
-    max-mirth-revision 2025_04_12_000 {
-        def +Array(f) [ ( +ArrayBuilder(a) |- *x -- *y a ) *x -- *y +Array(a) ] {
-            +ArrayBuilder.None f finish-array!
-        }
-
-        ||| Get the fill value for the array.
-        def fill-value@ [ +Array(a) |- a ] { array@ get-fill-value }
-
-        ||| Set the fill value for the array.
-        def fill-value! [ +Array(a) |- a -- ] { array:set-fill-value }
+    ||| Build an array element by element.
+    def +Array(f) [ (+ArrayBuilder(a) |- *x -- *y) *x -- *y +Array(a) ] {
+        +ArrayBuilder.None f finish-array!
     }
 
     ||| Freeze the array resource into an immutable value.
@@ -430,28 +374,14 @@ data +Array(a) {
     ||| truncated array of the given length (if there are enough elements).
     def truncate! [ +Array(a) |- Nat -- ] { array:prefix }
 
-    min-mirth-revision 2025_04_12_001 {
-        ||| Increase size of the array until it is at least as big
-        ||| as the given length.
-        def expand! [ +Array(a) |- a Nat -- ] { array:expand }
+    ||| Increase size of the array until it is at least as big
+    ||| as the given length.
+    def expand! [ +Array(a) |- a Nat -- ] { array:expand }
 
-        ||| Set the length of the array, truncating or expanding
-        ||| the array as necessary.
-        def resize! [ +Array(a) |- a Nat -- ] {
-            dup len@ < if(nip truncate!, expand!)
-        }
-    }
-
-    max-mirth-revision 2025_04_12_000 {
-        ||| Increase size of the array until it is at least as big
-        ||| as the given length.
-        def expand! [ +Array(a) |- Nat -- ] { array:expand }
-
-        ||| Set the length of the array, truncating or expanding
-        ||| the array as necessary.
-        def resize! [ +Array(a) |- Nat -- ] {
-            dup len@ < if(truncate!, expand!)
-        }
+    ||| Set the length of the array, truncating or expanding
+    ||| the array as necessary.
+    def resize! [ +Array(a) |- a Nat -- ] {
+        dup len@ < if(nip truncate!, expand!)
     }
 
     ||| Split the array in two at a given index.
@@ -502,32 +432,14 @@ data +Array(a) {
     def base [ +Unsafe +Array(a) |- Ptr ] { array:with-base:id }
 }
 
-max-mirth-revision 2025_04_12_000 {
-    data +ArrayBuilder(a) {
-        None [ ]
-        Some [ +Array(a) ]
-        --
-        def finish-array! [ +ArrayBuilder(a) a -- +Array(a) ] {
-            { None -> 0u +Array.New }
-            { Some -> fill-value! }
-        }
-        def ; [ +ArrayBuilder(a) |- a --] {
-            { None -> 1u +Array.New +ArrayBuilder.Some }
-            { Some -> push! +ArrayBuilder.Some }
-        }
+struct +ArrayBuilder(a) {
+    +array: +Array(a)
+    --
+    def None [ +ArrayBuilder(a) ] { +Array.Nil >+array +ArrayBuilder }
+    def finish-array! [ +ArrayBuilder(a) -- +Array(a) ] {
+        /+ArrayBuilder +array>
     }
-}
-
-min-mirth-revision 2025_04_12_001 {
-    struct +ArrayBuilder(a) {
-        +array: +Array(a)
-        --
-        def None [ +ArrayBuilder(a) ] { +Array.Nil >+array +ArrayBuilder }
-        def finish-array! [ +ArrayBuilder(a) -- +Array(a) ] {
-            /+ArrayBuilder +array>
-        }
-        def ; [ +ArrayBuilder(a) |- a -- ] {
-            +array:push!
-        }
+    def ; [ +ArrayBuilder(a) |- a -- ] {
+        +array:push!
     }
 }

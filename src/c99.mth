@@ -718,6 +718,7 @@ def type-arg-prefix [ +Mirth |- Type -- Str ] {
         { Str -> "Str_" }
         { Array -> "Array_" }
         { World -> "World_" }
+        { Debug -> "Debug_" }
     } }
     { _ -> drop "_" }
 }
@@ -1438,6 +1439,7 @@ def PrimType.c99-repr [ PrimType -- C99ReprType ] {
     { Ptr -> C99ReprType.PTR }
     { Array -> C99ReprType.ARR }
     { World -> C99ReprType.Void }
+    { Debug -> C99ReprType.Void }
 }
 
 def Data.c99-repr [ +Mirth |- Data -- C99ReprType ] {
@@ -2057,7 +2059,61 @@ def c99-prim! [ +Mirth +C99Branch |- Atom Prim -- ] {
         c99-line("}" put)
         C99ReprType.Bool pop-value! +C99Value.rdrop
     }
-    { Debug -> drop flush-cache! c99-line("trace_stack();" put) }
+    { DebugMode ->
+        dup args single? unwrap(token "unexpected number of arguments to prim-debug-mode" emit-fatal-error!) \f
+        cod begin-branch-split!
+        c99-line("if (MIRTH_DEBUG) {" put)
+        c99-nest:sub-branch(
+            C99ReprType.Void push-resource-expression!("0" put)
+            @f c99-arg-run!
+            C99ReprType.Void pop-resource! +C99Resource.rdrop
+        )
+        c99-line("} else {" put)
+        c99-nest:sub-branch(id)
+        c99-line("}" put)
+        end-branch-split!
+    }
+    { DebugTrace ->
+        drop
+        C99ReprType.STR pop-value!
+        +C99Value.rdup C99ReprType.STR consume-as \msg
+        c99-line("write(2, " put @msg put "->data, " put @msg put "->size);" put)
+        drop-value!
+    }
+    { DebugTraceValue ->
+        drop
+        C99ReprType.VAL pop-value!
+        +C99Value.rdup consume-as-VAL \val
+        c99-line("value_trace_(" put @val put ", 2);" put)
+        drop-value!
+    }
+    { DebugTraceResource ->
+        drop
+        C99ReprType.Void pop-resource! >+debug
+        C99ReprType.VAL pop-resource!
+        +C99Resource.rdup consume-as-VAL \val
+        c99-line("value_trace_(" put @val put ", 2);" put)
+        push-resource!
+        +debug> push-resource!
+    }
+    { DebugTraceStack ->
+        drop flush-cache! c99-line("trace_stack();" put)
+    }
+    { DebugGetNumRefs ->
+        drop
+        C99ReprType.VAL pop-value! +C99Value.rdup consume-as-VAL \v
+        C99ReprType.U64 push-value-expression!(
+            "HAS_REFS(" put @v put ") ? VREFS(" put @v put ")-1 : 0" put
+        )
+        drop-value!
+    }
+    { DebugGetIdentity -> 
+        drop
+        C99ReprType.VAL pop-value! +C99Value.rdup consume-as-VAL \v
+        C99ReprType.U64 push-value-expression!(@v put ".data.u64" put)
+        drop-value!
+    }
+
     { Panic ->
         drop
         C99ReprType.STR dup pop-value! consume-as
