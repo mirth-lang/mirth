@@ -509,7 +509,8 @@ def c99-external-def! [ +Mirth +C99 |- External -- ] {
         @ext type dom parts reverse \dom-parts
         dup len >arg-index
         reverse-for(
-            @dom-parts:uncons unwrap("external unexpected domain" fatal-error!) pop-stack-part-name! >expr
+            @dom-parts:uncons unwrap("external unexpected domain" fatal-error!)
+            pop-stack-part! dup ctype to-ctype-expr >expr
             dup ctype phantom? if(
                 expr> drop,
                 c99-line(
@@ -568,6 +569,12 @@ def CType.>C99ReprType [ CType -- C99ReprType ] {
     { FnPtr -> drop C99ReprType.FNPTR }
     { Void  -> drop C99ReprType.Void }
 }
+
+def to-ctype-expr [ +Mirth |- +C99Value/Resource CType -- Str ] {
+    { FnPtr -> drop C99ReprType.FNPTR consume-as }
+    { _ -> drop consume }
+}
+
 
 def CTypeStackPart.c99-ctype-pop [ +Mirth +C99Branch StackType |- CTypeStackPart -- Str ] {
     { Cons -> drop pop-value-from-stack-type! consume }
@@ -1919,6 +1926,8 @@ struct +C99Value/Resource {
 
     def push-value/resource! { +for(push-value!, push-resource!) }
     def peek-data-tag { +map(peek-data-tag, peek-data-tag) }
+    def consume { +for(consume, consume) }
+    def consume-as { +for(consume-as, consume-as) }
     def consume-as-VAL { +for(consume-as-VAL, consume-as-VAL) }
     def consume-as-TUP { +for(consume-as-TUP, consume-as-TUP) }
     def consume-as-data { +for(consume-as-data, consume-as-data) }
