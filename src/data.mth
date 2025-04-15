@@ -31,7 +31,7 @@ table +Mirth |- Data {
     ~params: Prop(List(Var))
     ~ctype?: Prop(Maybe(CType))
     is-resource?: Bool { @self name could-be-resource-con }
-    is-unit?: Maybe(Tag) { @self tags single? filter(num-total-inputs 0=) }
+    unit?: Maybe(Tag) { @self tags single? filter(num-total-inputs 0=) }
     is-enum?: Bool { @self and(is-unit? not, tags all(num-total-inputs 0=)) }
     is-transparent?: Bool {
         @self dup is-resource? if(
@@ -52,6 +52,7 @@ table +Mirth |- Data {
     def namespace-hard [ +Mirth |- Data -- Namespace    ] { qname-hard namespace }
     def params         [ +Mirth |- Data -- List(Var)    ] { ~params force! }
     def ctype?         [ +Mirth |- Data -- Maybe(CType) ] { ~ctype? force! }
+    def is-unit?       [ +Mirth |- Data -- Bool ] { unit? >Bool }
 
     def name; [ +Mirth +Str |- Data -- ] { name name; }
     def qname; [ +Mirth +Str |- Data -- ] { qname-hard qname; }
@@ -75,7 +76,7 @@ table +Mirth |- Data {
     }
 
     def is-enum-or-unit? [ +Mirth |- Data -- Bool ] {
-        dup is-enum? dip(is-unit? >Bool) or
+        or(is-unit?, is-enum?)
     }
 
     def single-tag? [ +Mirth |- Data -- Maybe(Tag) ] {
@@ -300,7 +301,7 @@ table +Mirth |- Tag {
     }
 
     def is-unit? [ +Mirth |- Tag -- Bool ] {
-        .data is-unit? >Bool
+        .data is-unit?
     }
 
     def outputs-resource? [ +Mirth |- Tag -- Bool ] {
@@ -333,6 +334,10 @@ struct DataPartial {
 
     def unify! [ +Mirth |- DataPartial DataPartial -- Type ] {
         dup2 = if(drop Type.DataPartial, both(Type.DataPartial) unify-failed!)
+    }
+
+    def is-semi-transparent? [ +Mirth |- DataPartial -- Bool ] {
+        .data semi-transparent? >Bool
     }
 }
 

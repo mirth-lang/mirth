@@ -1329,6 +1329,10 @@ data StackType {
         parts>
     }
 
+    def parts [ +Mirth |- StackType -- List(StackTypePart) ] {
+        split-parts nip
+    }
+
     def ctype [ +Mirth |- StackType -- CTypeStack ] {
         split-parts
         map(ctype) >parts
