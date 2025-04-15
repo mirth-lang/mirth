@@ -89,6 +89,7 @@ data Byte {
         def is-sign [ Byte -- Bool ] {
             dup on2(Byte.B'-' =, Byte.B'+' =) or
         }
+        def is-LF? [ Byte -- Bool ] { Byte.BLF = }
 
         def emit-unsafe; [ +Str Byte -- +Str ] { push-byte-unsafe! }
         def emit-ascii;  [ +Str Byte -- +Str ] { push-byte-ascii!  }
