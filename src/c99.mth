@@ -160,10 +160,6 @@ def c99-tag-def! [ +Mirth +C99 |- Tag -- ] {
     )
 }
 
-def pop-stack-part-name! [ +Mirth +C99Branch |- StackTypePart -- Str ] {
-    pop-stack-part! +for(consume,consume)
-}
-
 def pop-stack-part! [ +Mirth +C99Branch |- StackTypePart -- +C99Value/Resource ] {
     { ConsLabel -> dip:type-to-c99-repr pop-value-label! +C99Value/Resource.+Left }
     { WithLabel -> dip:resource-to-c99-repr pop-resource-label! +C99Value/Resource.+Right }
@@ -174,7 +170,7 @@ def pop-stack-part! [ +Mirth +C99Branch |- StackTypePart -- +C99Value/Resource ]
 def c99-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
     \tag @tag semi-transparent? if?(
         input pop-stack-part!
-        @tag data C99ReprType.Data value/resource-repr!
+        @tag data C99ReprType.Data convert-value/resource!
         @tag outputs-resource? if(
             turn-into-resource! push-resource!,
             turn-into-value! push-value!
@@ -221,7 +217,7 @@ def push-stack-part! [ +Mirth +C99Branch |- +C99Value/Resource StackTypePart -- 
 def c99-reverse-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
     \tag @tag semi-transparent? if?(
         @tag data pop-data!
-        input dup c99-repr value/resource-repr!
+        input dup c99-repr convert-value/resource!
         push-stack-part!,
 
     @tag num-total-inputs 0= if(
@@ -331,14 +327,14 @@ def c99-tag-get-label! [ +Mirth +C99Branch |- TagField -- ] {
                     # wrapper is value
                     @tagrepr pop-value!
                 )
-                @fieldrepr value-repr!
+                @fieldrepr convert-value!
                 push-value!
             }
 
             { Right -> # field and wrapper are both resources
                 resource-to-c99-repr \fieldrepr
                 @tagrepr pop-resource!
-                @fieldrepr resource-repr!
+                @fieldrepr convert-resource!
                 push-resource!
                 C99ReprType.Void push-resource-expression!("0" put)
             }
@@ -376,13 +372,13 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
                 @tag data pop-data! +for(
                     drop-value!
                     @fieldrepr pop-value!
-                    @tagrepr value-repr!
+                    @tagrepr convert-value!
                     push-value!,
 
                     drop-resource-as-value!
                     @fieldrepr pop-value!
                     turn-into-resource!
-                    @tagrepr resource-repr!
+                    @tagrepr convert-resource!
                     push-resource!
                 )
             }
@@ -390,7 +386,7 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
                 resource-to-c99-repr \fieldrepr
                 C99ReprType.Void pop-resource! +C99Resource.rdrop # vacant wrapper is unit
                 @fieldrepr pop-resource!
-                @tagrepr resource-repr!
+                @tagrepr convert-resource!
                 push-resource!
             }
         },
@@ -404,7 +400,7 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
         +datavar> +for (
             # field and data are both values
             @fieldrepr is-physical? if(
-                consume >dataval
+                @tag data consume-as-data >dataval
                 @tag data C99ReprType.Data push-value-expression!(
                     @struct-repr cname put "_set_" put @label name mangled put "(" put
                     dataval> put
@@ -451,13 +447,13 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
 
 def c99-table-to-index! [ +Mirth +C99Branch |- Table -- ] {
     C99ReprType.Table pop-value!
-    C99ReprType.U64 value-repr!
+    C99ReprType.U64 convert-value!
     push-value!
 }
 
 def c99-table-from-index! [ +Mirth +C99Branch |- Table -- ] {
     C99ReprType.U64 pop-value!
-    C99ReprType.Table value-repr!
+    C99ReprType.Table convert-value!
     push-value!
 }
 
@@ -566,16 +562,7 @@ def CType.>C99ReprType [ CType -- C99ReprType ] {
 }
 
 def to-ctype-expr [ +Mirth |- +C99Value/Resource CType -- Str ] {
-    { FnPtr -> drop C99ReprType.FNPTR consume-as }
-    { _ -> drop consume }
-}
-
-
-def CTypeStackPart.c99-ctype-pop [ +Mirth +C99Branch StackType |- CTypeStackPart -- Str ] {
-    { Cons -> drop pop-value-from-stack-type! consume }
-    { With -> drop pop-resource-from-stack-type! consume }
-    { ConsLabel -> nip swap pop-value-label-from-stack-type! consume }
-    { WithLabel -> nip swap pop-resource-label-from-stack-type! consume }
+    >C99ReprType consume-as
 }
 
 def CTypeStackPart.c99-ctype-push [ +Mirth +C99Branch List(StackTypePart) |- Str CTypeStackPart -- ] {
@@ -805,8 +792,7 @@ def +C99.cname-type-to-c99-api [ +Mirth +C99 |- Str ArrowType -- C99API ] {
 
 def C99APIArg.reserve-as-new-value! [ +Mirth +C99Branch |- C99APIArg -- C99APIArg ] {
     dup is-physical? if(
-        dup arg-repr new-value!
-        consume swap arg-name!,
+        dup arg-repr dup new-value! consume-as swap arg-name!,
         "0" swap arg-name!
     )
 }
@@ -1083,7 +1069,7 @@ def c99-from-enum-value! [ +Mirth +C99Branch |- Data -- ] {
     dup is-enum? else("from-enum-value-unsafe on non-enum data type" fatal-error!)
     dup is-resource? then("from-enum-value-unsafe on resource" fatal-error!)
     C99ReprType.I64 pop-value!
-    C99ReprType.Data value-repr!
+    C99ReprType.Data convert-value!
     push-value!
 }
 
@@ -1220,7 +1206,7 @@ def c99-nat! [ +Mirth +C99Branch |- Nat -- ] { >Int C99ReprType.Nat c99-int/nat!
 def c99-str! [ +Mirth +C99Branch |- Str -- ] {
     C99ReprType.STR new-value! >+str
     dup num-bytes 4090 bytes > if(
-        c99-line("STRLIT(" put @+str:rdup consume put "," put)
+        c99-line("STRLIT(" put @+str:value-name put "," put)
         c99-nest(
             c99-line(dup put-cstr-long "," put)
             c99-line(dup num-bytes >Str put)
@@ -1228,7 +1214,7 @@ def c99-str! [ +Mirth +C99Branch |- Str -- ] {
         c99-line(");" put),
 
         c99-line("STRLIT(" put
-            @+str:rdup consume put ", " put
+            @+str:value-name put ", " put
             dup put-cstr ", " put
             dup num-bytes >Str put ");" put)
     ) drop
@@ -1356,7 +1342,7 @@ struct C99DataUnitRepr {
     def needs-refcounting? { drop False }
     def underlying-c99-type { drop "void" }
     def v-macro-prefix-suffix { drop "" "" }
-    def mk-macro { drop }
+    def mk-macro { drop2 "MKI64(0)" }
     def get-data-tag { nip tag value-show "LL" cat }
     def prepare-type-sigs! [ +Mirth +C99 |- C99DataUnitRepr -- ] { drop }
     def prepare-type-defs! [ +Mirth +C99 |- C99DataUnitRepr -- ] { drop }
@@ -1549,7 +1535,7 @@ struct C99DataStructRepr {
         c99-line(@struct-ptr put "->refs = 1;" put)
         @self fields reverse-for(
             \field
-            @field input pop-stack-part! consume \expr
+            @field input pop-stack-part! @field c99-repr consume-as \expr
             @field is-physical? then(
                 c99-line(
                     @struct-ptr put "->" put @field cname put " = " put
@@ -1567,7 +1553,7 @@ struct C99DataStructRepr {
     def destruct! [ +Mirth +C99Branch |- C99DataStructRepr +C99Value/Resource -- ] {
         \self
         +c99:fresh-name! \struct-val
-        consume \struct-ptr
+        @self data consume-as-data \struct-ptr
         c99-line(
             "struct " put @self cname put " " put
             @struct-val put " = " put
@@ -2015,10 +2001,6 @@ def +C99Value.push-value-direct! [ +Mirth +C99Branch |- +C99Value -- ] {
     c99-line("push_value(" put put ");" put)
 }
 
-def +C99Value.consume [ +C99Value -- Str ] {
-    /+C99Value value-repr> drop value-name>
-}
-
 def +C99Value.consume-as-VAL [ +Mirth |- +C99Value -- Str ] {
     /+C99Value value-name> value-repr> mk-macro
 }
@@ -2032,30 +2014,59 @@ def +C99Value.consume-as-data [ +Mirth |- +C99Value Data -- Str ] {
 }
 
 def +C99Value.consume-as [ +Mirth |- C99ReprType +C99Value -- Str ] {
-    { VAL -> consume-as-VAL }
-    { Void -> rdrop "0" }
-    { _ ->
-        /+C99Value
-        @value-repr match {
-            { VAL -> Str( v-macro-prefix-suffix dip(; value-name> ;) ; ) }
-            { _ ->
-                over = if(
-                    drop value-name>,
-                    dup is-int-like? @value-repr is-int-like? and if(
-                        Str( "((" ; underlying-c99-type ; ")" ; value-name> ; ")" ; ),
-                        Str( "(\n#error \"attempted to cast " ; value-name> ; " to incompatible C99 repr type " ;
-                            underlying-c99-type ; "\"\n" ; )
+    strip-newtypes \wanted
+    @wanted match {
+        { VAL -> consume-as-VAL }
+        { Void -> rdrop "0" }
+        { _ -> drop
+            /+C99Value
+            @value-repr strip-newtypes \got
+            @got match {
+                { VAL -> Str( @wanted v-macro-prefix-suffix dip(; value-name> ;) ; ) }
+                { _ -> drop
+                    @wanted @got = if(
+                        value-name>,
+                        @wanted is-int-like? and(@got is-int-like?) if(
+                            Str( "((" ; @wanted underlying-c99-type ; ")" ; value-name> ; ")" ; ),
+                            Str( "(\n#error \"attempted to cast " ; value-name> ;
+                                " to incompatible C99 repr type " ;
+                                @wanted underlying-c99-type ; "\"\n" ; )
+                        )
                     )
-                )
+                }
             }
+            value-repr> drop
         }
-        value-repr> drop
     }
+}
+
+# Get C99-repr but see through newtypes,enums,units,etc
+field(+Mirth |- Data.strip-newtypes-c99-repr, Data, C99ReprType,
+    @self C99ReprType.Data \default
+    @default @self strip-newtypes-c99-repr!
+    @self c99-repr match {
+        { Unit   -> drop C99ReprType.Void }
+        { Enum   -> drop C99ReprType.I64 }
+        { Field  -> c99-repr strip-newtypes }
+        { Struct -> drop @default }
+        { Sum    -> drop @default }
+    }
+)
+
+def C99ReprType.strip-newtypes [ +Mirth |- C99ReprType -- C99ReprType ] {
+    { Data -> strip-newtypes-c99-repr }
+    { Table -> drop C99ReprType.U64 }
+    { _ -> id }
+}
+
+def C99ReprType.compatible? [ +Mirth |- C99ReprType C99ReprType -- Bool ] {
+    on2:strip-newtypes =
 }
 
 def +C99Value.keep-value! [ +Mirth +C99Branch +C99Value |- ] {
     value-repr needs-refcounting? then(
-        +C99Value.rdup consume-as-VAL +c99:c99-line("incref(" put put ");" put)
+        value-name value-repr mk-macro
+        +c99:c99-line("incref(" put put ");" put)
     )
 }
 
@@ -2087,7 +2098,7 @@ def +C99Resource.rdup [ +C99Resource |- +C99Resource ] {
 }
 
 def +C99Resource.rdrop [ +C99Resource -- ] {
-    consume drop
+    /+C99Resource ldrop
 }
 
 def +C99Value.turn-into-resource! [ +C99Value -- +C99Resource ] {
@@ -2110,12 +2121,6 @@ def +C99Resource.drop-resource-as-value! [ +Mirth +C99Branch |- +C99Resource -- 
 
 def +C99Resource.dup-resource-as-value! [ +Mirth +C99Branch +C99Resource |- +C99Value ] {
     rdup turn-into-value! rswap rdip(dup-value! rdrop) rswap
-}
-
-def +C99Resource.consume [ +C99Resource -- Str ] {
-    /+C99Resource
-    resource-repr> drop
-    resource-name>
 }
 
 def +C99Resource.consume-as [ +Mirth |- C99ReprType +C99Resource -- Str ] {
@@ -2177,7 +2182,6 @@ struct +C99Value/Resource {
 
     def push-value/resource! { +for(push-value!, push-resource!) }
     def peek-data-tag { +map(peek-data-tag, peek-data-tag) }
-    def consume { +for(consume, consume) }
     def consume-as { +for(consume-as, consume-as) }
     def consume-as-VAL { +for(consume-as-VAL, consume-as-VAL) }
     def consume-as-TUP { +for(consume-as-TUP, consume-as-TUP) }
@@ -2186,14 +2190,15 @@ struct +C99Value/Resource {
     def turn-into-resource! { +for(turn-into-resource!, id) }
     def value/resource-name { +map(value-name, resource-name) }
     def value/resource-repr { +map(value-repr, resource-repr) }
-    def value/resource-name! { +map(value-name!, resource-name!) }
-    def value/resource-repr! { +map(value-repr!, resource-repr!) }
+    # def value/resource-name! { +map(value-name!, resource-name!) }
+    # def value/resource-repr! { +map(value-repr!, resource-repr!) }
+    def convert-value/resource! { +map(convert-value!, convert-resource!) }
 }
 
 def +C99Branch.pop-data! [ +Mirth +C99Branch |- Data -- +C99Value/Resource ] {
     dup is-resource? if(
-        C99ReprType.Data pop-resource! +Right +C99Value/Resource,
-        C99ReprType.Data pop-value! +Left +C99Value/Resource
+        C99ReprType.Data dup pop-resource! convert-resource! +Right +C99Value/Resource,
+        C99ReprType.Data dup pop-value! convert-value! +Left +C99Value/Resource
     )
 }
 
@@ -2207,19 +2212,23 @@ def +C99Stack.refresh-all! [ +Mirth |- +C99 +C99Stack reachable:Bool env:C99Env 
     { +Nil -> start-branch! }
     { +Cons ->
         >+x refresh-all!
-        @+x:value-repr push-value-expression!(+x> consume put)
+        @+x:value-repr push-value-expression!(@+x:value-name put)
+        +x> +C99Value.rdrop
     }
     { +With ->
         >+x refresh-all!
-        @+x:resource-repr push-resource-expression!(+x> consume put)
+        @+x:resource-repr push-resource-expression!(@+x:resource-name put)
+        +x> +C99Resource.rdrop
     }
     { +ConsLabel ->
         >+x refresh-all!
-        @+x:value-repr swap push-label-expression!(+x> consume put)
+        @+x:value-repr swap push-label-expression!(@+x:value-name put)
+        +x> +C99Value.rdrop
     }
     { +WithLabel ->
         >+x refresh-all!
-        @+x:resource-repr swap push-label-expression!(+x> consume put)
+        @+x:resource-repr swap push-label-expression!(@+x:resource-name put)
+        +x> +C99Resource.rdrop
     }
 }
 
@@ -2435,28 +2444,28 @@ def +C99Branch.flush-cache! [ +Mirth +C99Branch |- ] {
 
 def +C99Branch.pop-value! [ +Mirth +C99Branch |- C99ReprType -- +C99Value ] {
     +stack(pop-value?) rswap match {
-        { +Some -> convert-value! }
+        { +Some -> drop }
         { +None -> pop-value-direct! }
     }
 }
 
 def +C99Branch.pop-value-label! [ +Mirth +C99Branch |- C99ReprType Label -- +C99Value ] {
     +stack(pop-value-label?) rswap match {
-        { +Some -> drop convert-value! }
+        { +Some -> drop2 }
         { +None -> pop-value-label-direct! }
     }
 }
 
 def +C99Branch.pop-resource! [ +Mirth +C99Branch |- C99ReprType -- +C99Resource ] {
     +stack(pop-resource?) rswap match {
-        { +Some -> convert-resource! }
+        { +Some -> drop }
         { +None -> pop-resource-direct! }
     }
 }
 
 def +C99Branch.pop-resource-label! [ +Mirth +C99Branch |- C99ReprType Label -- +C99Resource ] {
     +stack(pop-resource-label?) rswap match {
-        { +Some -> drop convert-resource! }
+        { +Some -> drop2 }
         { +None -> pop-resource-label-direct! }
     }
 }
@@ -2469,13 +2478,11 @@ def +C99Resource.push-resource! [ +Mirth +C99Branch |- +C99Resource -- ] {
     rswap +stack(rswap +C99Stack.+With)
 }
 
-def +C99Value.convert-value! [ +Mirth +C99Value |- C99ReprType -- ] {
-    { VAL -> }
-    { _ -> dup +C99Value.rdup consume-as value-name! value-repr! }
+def +C99Value.convert-value! [ +Mirth +C99Branch +C99Value |- C99ReprType -- ] {
+    dup consume-as >value-name >value-repr +C99Value
 }
-def +C99Resource.convert-resource! [ +Mirth +C99Resource |- C99ReprType -- ] {
-    { VAL -> }
-    { _ -> dup +C99Resource.rdup consume-as resource-name! resource-repr! }
+def +C99Resource.convert-resource! [ +Mirth +C99Branch +C99Resource |- C99ReprType -- ] {
+    dup consume-as >resource-name >resource-repr +C99Resource
 }
 
 def +C99Branch.type-to-c99-repr [ +Mirth +C99Branch |- Type -- C99ReprType ] { c99-repr }
@@ -3199,7 +3206,7 @@ def c99-field-call! [ +Mirth +C99Branch |- Field -- ] {
         "field_mut(&" put
         cname put
         ", " put
-        +index> consume put
+        +index> C99ReprType.U64 consume-as put
         ")" put
     )
 }
