@@ -415,7 +415,7 @@ table +Mirth |- Token {
     }
 
     def run-length [ +Mirth |- Token -- Nat ] {
-        dip(0u) while(dup run-end? not, next dip(1+)) drop
+        run-tokens len
     }
 
     def run-arrow? [ +Mirth |- Token -- Maybe(Token) ] {
@@ -432,6 +432,14 @@ table +Mirth |- Token {
 
     def sig-next-stack-end [ +Mirth |- Token -- Token ] {
         while(dup sig-stack-end? not, next)
+    }
+
+    def sig-stack-tokens [ +Mirth |- Token -- List(Token) ] {
+        collect-while(dup sig-stack-end? not, sip(next)) nip
+    }
+
+    def sig-stack-length [ +Mirth |- Token -- Nat ] {
+        sig-stack-tokens len
     }
 
     def sig-has-vdash-or-dashes? [ +Mirth |- Token -- Bool ] {

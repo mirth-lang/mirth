@@ -15,6 +15,9 @@ data Either(a,b) {
 
     --
 
+    def is-left?  [ Either(a,b) -- Bool ] { Left  -> drop True, Right -> drop False }
+    def is-right? [ Either(a,b) -- Bool ] { Right -> drop True, Left  -> drop False }
+
     def left? [ Either(a,b) -- Maybe(a) ] {
         { Left -> Some }
         { Right -> drop None }

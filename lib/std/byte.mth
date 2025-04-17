@@ -147,42 +147,27 @@ data Byte {
 
     def zencode [ Byte -- Str ] { str:zencode; }
     def zencode; [ +Str |- Byte -- ] {
-        ||| Encode byte as a readable string of alphanumeric or underscore characters.
-        ||| Alphanumeric ASCII characters other than 'z' and 'Z' are left as is.
-        ||| Otherwise, they are encoded as a string beginning with 'z' or 'Z'.
+        ||| Encode byte as a string of alphanumeric characters.
+        ||| Alphanumeric characters other than 'z' are left as is.
+        ||| Otherwise, they are encoded as a short string beginning with 'z'.
 
         # Important invariant: No string here should be the prefix of another.
         # With this invariant we can ensure that the z-encoding of any string
-        # is unique. To help enforce the invariant, keep these cases in
-        # lexicographical order.
+        # is unique. To help enforce the invariant, keep these cases in order.
 
-        { B'&' -> "ZAmp"; } { B'?' -> "ZAsk"; } { B'@' -> "ZAt"; }
-        { B'\' -> "ZBSlash"; } { B'!' -> "ZBang"; }
-        { B'^' -> "ZCaret"; } { BCOLON -> "ZColon"; } { BCOMMA -> "ZComma"; }
-        { B'/' -> "ZDiv"; } { B'$' -> "ZDollar"; } { BDOT -> "ZDot"; }
-        { B'=' -> "ZEqual"; }
-        { BHASH -> "ZHash"; }
-        { BLCURLY  -> "ZLCurly"; }
-        { BLPAREN  -> "ZLParen"; }
-        { BLSQUARE -> "ZLSquare"; }
-        { B'<'  -> "ZLess"; }
-        { B'%' -> "ZMod"; }
-        { B'*' -> "ZMul"; }
-        { B'|' -> "ZPipe"; }
-        { B'+' -> "ZPlus"; }
-        { BQUOTE -> "ZQuote"; }
-        { BRCURLY  -> "ZRCurly"; }
-        { BRPAREN  -> "ZRParen"; }
-        { BRSQUARE -> "ZRSquare"; }
-        { B';' -> "ZThen"; }
-        { BTICK -> "ZTick"; }
-        { B'~' -> "ZTilde"; }
-        { B'>' -> "ZTo"; }
+        { B'+'   -> "za"; } { B'\'   -> "zb"; } { B'^'   -> "zc"; } { B'='  -> "zd"; }
+        { B'-'   -> "ze"; } { B'/'   -> "zf"; } { B'>'   -> "zg"; } { BHASH -> "zh"; }
+        { BCOLON -> "zi"; } { B';'   -> "zj"; } { BCOMMA -> "zk"; } { B'<'  -> "zl"; }
+        { B'*'   -> "zm"; } { B'&'   -> "zn"; } { B'@'   -> "zo"; } { BDOT  -> "zp"; }
+        { BTICK  -> "zq"; } { B'%'   -> "zr"; } { B'$'   -> "zs"; } { B'~'  -> "zt"; }
+        { B'_'   -> "zu"; } { B'|'   -> "zv"; } { B'`'   -> "zw"; } { B'!'  -> "zx"; }
+        { B'?'   -> "zy"; } { B'z'   -> "zz"; }
 
-        { B'Z' -> "ZZ"; } { B'-'  -> "Z_"; }
-        { B'z' -> "zz"; } { B'_' -> "z_"; }
-
-        { _ -> dup is-alnum if(emit-unsafe; , "Z"; int; "U";) }
+        { BLSQUARE -> "zLB"; } { BRSQUARE -> "zRB"; }
+        { BLCURLY  -> "zLC"; } { BRCURLY  -> "zRC"; }
+        { BLPAREN  -> "zLP"; } { BRPAREN  -> "zRP"; }
+        { BQUOTE   -> "zQ"; }
+        { _ -> dup is-alnum if(emit-unsafe; , "z"; to-hexdigits dip:emit-unsafe; emit-unsafe;) }
     }
 
     def int; [ +Str Byte -- +Str ] {
