@@ -64,6 +64,7 @@ def run-output-c99! [ +World +Mirth |- Arrow C99_Options -- ] {
         c99-header!
         c99-label-defs!
         c99-field-defs!
+        c99-data-defs!
         c99-tag-defs!
         c99-buffers!
         c99-external-blocks!
@@ -137,6 +138,11 @@ def c99-buffer-call! [ +Mirth +C99Branch |- Buffer -- ] {
     C99ReprType.PTR push-value-expression!(cname put)
 }
 
+def c99-data-defs! [ +Mirth +C99 |- ] {
+    Data.for(c99-repr prepare-type-sigs!)
+    Data.for(c99-repr prepare-type-defs!)
+}
+
 def c99-tag-defs! [ +Mirth +C99 |- ] { Tag.for(c99-tag-def!) }
 def c99-tag-def! [ +Mirth +C99 |- Tag -- ] {
     \tag @tag prefer-inline? else(
@@ -187,7 +193,10 @@ def c99-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
             push-value-expression!(put)
         ),
 
-        @tag c99-pack-tag! push-value/resource!
+        @tag data c99-repr struct? if?(
+            construct!,
+            @tag c99-pack-tag!
+        ) push-value/resource!
     ))
 }
 
@@ -219,7 +228,10 @@ def c99-reverse-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
         @tag data pop-data! +C99Value/Resource.rdrop, # decref is unnecessary
 
         @tag data pop-data!
-        @tag c99-unpack-tag!
+        @tag data c99-repr struct? if?(
+            destruct!,
+            @tag c99-unpack-tag!
+        )
     ))
 }
 
@@ -336,26 +348,14 @@ def c99-tag-get-label! [ +Mirth +C99Branch |- TagField -- ] {
         @+datavar:rdup @tag data consume-as-data >datavar
         @fieldty match {
             { Left -> # field is value
-                type-to-c99-repr >fieldrepr
-                @fieldrepr value-expression!(
-                    fieldrepr> v-macro(
-                        "((TUP*)PTRPTR(" put
-                        @datavar put "))->cells[" put
-                        @tag @label c99-tag-label-index >Str put
-                        "]" put
-                    )
+                type-to-c99-repr value-expression!(
+                    @datavar put "->m" put @label name mangled put
                 ) keep-value! push-value!
                 +datavar> +for(drop-value!, push-resource!)
             }
             { Right -> # field and data are resources
-                resource-to-c99-repr >fieldrepr
-                @fieldrepr push-resource-expression!(
-                    fieldrepr> v-macro (
-                        "((TUP*)PTRPTR(" put
-                        @datavar put "))->cells[" put
-                        @tag @label c99-tag-label-index >Str put
-                        "]" put
-                    )
+                resource-to-c99-repr push-resource-expression!(
+                    @datavar put "->m" put @label name mangled put
                 )
                 +datavar> push-value/resource!
             }
@@ -395,19 +395,18 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
             }
         },
 
+        @tag data c99-repr struct? unwrap("Expected struct repr" fatal-error!) \struct-repr
         @tag data pop-data! >+datavar
         @fieldty match {
-            { Left -> type-to-c99-repr pop-value! consume-as-VAL }
-            { Right -> resource-to-c99-repr pop-resource! consume-as-VAL }
+            { Left -> type-to-c99-repr pop-value! consume }
+            { Right -> resource-to-c99-repr pop-resource! consume }
         } >fieldval
         +datavar> +for (
             # field and data are both values
-            consume-as-VAL >dataval
-            C99ReprType.VAL push-value-expression!(
-                "tup_replace(" put
+            consume >dataval
+            @tag data C99ReprType.Data push-value-expression!(
+                @struct-repr cname put "_set_" put @label name mangled put "(" put
                 dataval> put
-                ", " put
-                @tag @label c99-tag-label-index >Str put
                 ", " put
                 fieldval> put
                 ")" put
@@ -419,32 +418,20 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
             @+datavar:rdup @tag data consume-as-data >datavar
             fieldty> match {
                 { Left -> # field is value
-                    type-to-c99-repr >fieldrepr
+                    type-to-c99-repr \fieldrepr
                     @fieldrepr needs-refcounting? then (
-                        @fieldrepr dup value-expression! (
-                            v-macro (
-                                "((TUP*)PTRPTR(" put
-                                @datavar put
-                                "))->cells[" put
-                                @tag @label c99-tag-label-index >Str put
-                                "]" put
-                            )
+                        @fieldrepr value-expression! (
+                            @datavar put "->m" put @label name mangled put
                         ) drop-value!
                     )
-                    fieldrepr> drop
                 }
                 { Right -> # field is resource
                     drop
                 }
             }
             c99-line(
-                "((TUP*)PTRPTR(" put
-                @datavar put
-                "))->cells[" put
-                @tag @label c99-tag-label-index >Str put
-                "] = " put
-                fieldval> put
-                ";" put
+                @datavar put "->m" put @label name mangled put " = " put
+                fieldval> put ";" put
             )
             +datavar>
             push-resource!
@@ -1337,6 +1324,22 @@ data C99DataRepr {
         { Struct -> get-data-tag }
         { Sum    -> get-data-tag }
     }
+
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataRepr -- ] {
+        { Unit   -> prepare-type-sigs! }
+        { Enum   -> prepare-type-sigs! }
+        { Field  -> prepare-type-sigs! }
+        { Struct -> prepare-type-sigs! }
+        { Sum    -> prepare-type-sigs! }
+    }
+
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataRepr -- ] {
+        { Unit   -> prepare-type-defs! }
+        { Enum   -> prepare-type-defs! }
+        { Field  -> prepare-type-defs! }
+        { Struct -> prepare-type-defs! }
+        { Sum    -> prepare-type-defs! }
+    }
 }
 
 struct C99DataUnitRepr {
@@ -1347,6 +1350,8 @@ struct C99DataUnitRepr {
     def v-macro-prefix-suffix { drop "" "" }
     def mk-macro { drop }
     def get-data-tag { nip tag value-show "LL" cat }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataUnitRepr -- ] { drop }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataUnitRepr -- ] { drop }
 }
 
 struct C99DataEnumRepr {
@@ -1357,6 +1362,8 @@ struct C99DataEnumRepr {
     def v-macro-prefix-suffix { drop "VI64(" ")" }
     def mk-macro { drop Str( "MKI64(" ; ; ")" ; ) }
     def get-data-tag { drop }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataEnumRepr -- ] { drop }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataEnumRepr -- ] { drop }
 }
 
 struct C99DataFieldRepr {
@@ -1369,16 +1376,252 @@ struct C99DataFieldRepr {
     def v-macro-prefix-suffix { c99-repr v-macro-prefix-suffix }
     def mk-macro { c99-repr mk-macro }
     def get-data-tag { nip tag value-show "LL" cat }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataFieldRepr -- ] { drop }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataFieldRepr -- ] { drop }
 }
 
 struct C99DataStructRepr {
     tag: Tag
+    cname: Str
+    fields: List(C99DataStructField)
     --
+
+    def Make [ +Mirth |- Tag -- C99DataStructRepr ] {
+        >tag
+        @tag only-tag? if(@tag data cname, @tag qname mangled) >cname
+        @tag inputs c99-inputs-to-struct-fields >fields
+        C99DataStructRepr
+    }
+
+    def data [ +Mirth |- C99DataStructRepr -- Data ] { tag data }
+
     def needs-refcounting? { drop True }
-    def underlying-c99-type [ +Mirth |- C99DataStructRepr -- Str ] { drop "PTUP" }
-    def v-macro-prefix-suffix { drop "VTUP(" ")" }
-    def mk-macro { drop Str( "MKTUP(" ; ; ")" ; ) }
+    def underlying-c99-type [ +Mirth |- C99DataStructRepr -- Str ] {
+        Str("struct "; cname ; "*";)
+    }
+    def v-macro-prefix-suffix [ +Mirth |- C99DataStructRepr -- Str Str ] {
+        Str( "V_" ; cname ; "(" ; ) ")"
+    }
+    def mk-macro [ +Mirth |- Str C99DataStructRepr -- Str ] {
+        Str( "MK_" ; cname ; "(" ; ; ")" ; )
+    }
     def get-data-tag { nip tag value-show "LL" cat }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataStructRepr -- ] {
+        \self
+        c99-line("struct " put @self cname put " { " put)
+        c99-nest(
+            c99-line("REFS refs;" put)
+            @self tag only-tag? else (
+                c99-line("enum " put @self data cname put " tag;" put)
+            )
+            @self fields for(
+                \field
+                c99-line(
+                    @field c99-repr underlying-c99-type put " "
+                    put @field cname put ";" put
+                )
+            )
+        )
+        c99-line("};" put)
+        c99-line(
+            "MKTYPE_REFS(" put
+            "TYPE_" put @self cname put "," put
+            @self tag data name >Str put-cstr "," put
+            @self cname put "," put
+            "sizeof(void*),);" put
+        )
+        c99-line(
+            "#define TAG_" put @self cname put
+            " (REFS_FLAG | (TAG)&TYPE_" put @self cname put ")" put
+        )
+        c99-line(
+            "#define MK_" put @self cname put "(x) " put
+            "((VAL){.tag=TAG_" put @self cname put ", .data.ptr=(x)})" put
+        )
+        c99-line(
+            "#define V_" put @self cname put "(v) " put
+            "((struct " put @self cname put "*)((v).data.ptr))" put
+        )
+    }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataStructRepr -- ] {
+        \self
+        c99-line(
+            "gen_peek_poke(" put
+            @self cname put "," put
+            "MK_" put @self cname put "," put
+            "V_" put @self cname put "," put
+            "ptrs)" put
+        )
+        c99-line("static void " put @self cname put "_free (VAL vself) {" put)
+        c99-nest(
+            c99-line("ASSERT(vself.tag == TAG_" put @self cname put ");" put)
+            c99-line(@self underlying-c99-type put " self = vself.data.ptr;" put)
+            @self fields for(
+                \field
+                @field c99-repr needs-refcounting? then(
+                    c99-line(
+                        "decref(" put
+                        Str("self->" ; @field cname ;)
+                        @field c99-repr mk-macro put
+                        ");" put
+                    )
+                )
+            )
+            c99-line("free(self);" put)
+        )
+        c99-line("}" put)
+
+        c99-line("static void " put @self cname put "_trace_ (VAL vself, int fd) {" put)
+        c99-nest(
+            Str("<" ; @self data name >Str ; ">" ;) \msg
+            c99-line("write(fd, " put @msg put-cstr ", " put @msg num-bytes >Str put ");" put)
+        )
+        c99-line("}" put)
+
+        @self fields for( \field
+            @field label? filter(
+                drop
+                @self data is-resource? not
+                @field is-resource? not and
+            ) for ( \label
+                c99-line(
+                    "static " put @self underlying-c99-type put " " put
+                    @self cname put "_set_" put @label name mangled put
+                    "(" put @self underlying-c99-type put " self, " put
+                        @field c99-repr underlying-c99-type put " x" put
+                    ") {" put
+                )
+                c99-nest(
+                    c99-line("if (self->refs == 1) {" put )
+                    c99-nest(
+                        @field c99-repr needs-refcounting? then(
+                            c99-line(
+                                "decref(" put
+                                Str("self->" ; @field cname ;)
+                                @field c99-repr mk-macro put
+                                ");" put
+                            )
+                        )
+                        c99-line("self->" put @field cname put " = x;" put)
+                        c99-line("return self;" put)
+                    )
+                    c99-line("}" put)
+                    c99-line(@self underlying-c99-type put " self2 = calloc(1, sizeof * self2);" put)
+                    c99-line("ASSERT(self2); memcpy(self2, self, sizeof * self2);" put)
+                    @self fields for(\field2
+                        @field cname @field2 cname = if(
+                            c99-line("self2->" put @field cname put " = x;" put),
+                            @field2 c99-repr needs-refcounting? then(
+                                c99-line(
+                                    "incref(" put
+                                    Str("self2->"; @field2 cname ;)
+                                    @field2 c99-repr mk-macro put
+                                    ");" put
+                                )
+                            )
+                        )
+                    )
+                    c99-line("self->refs--;" put)
+                    c99-line("return self2;" put)
+                )
+                c99-line("}" put)
+            )
+        )
+    }
+
+    def construct! [ +Mirth +C99Branch |- C99DataStructRepr -- +C99Value/Resource ] {
+        \self
+        +c99:fresh-name! \struct-ptr
+        c99-line(
+            "struct " put @self cname put "* " put
+            @struct-ptr put " = " put
+            "calloc(1, sizeof *" put @struct-ptr put ");" put
+        )
+        c99-line("ASSERT(" put @struct-ptr put ");" put)
+        c99-line(@struct-ptr put "->refs = 1;" put)
+        @self fields reverse-for(
+            \field
+            @field input pop-stack-part! consume \expr
+            c99-line(
+                @struct-ptr put "->" put @field cname put " = " put
+                @expr put ";" put
+            )
+        )
+        @struct-ptr >value-name
+        @self data C99ReprType.Data >value-repr +C99Value
+        @self data is-resource? if(
+            turn-into-resource! +C99Value/Resource.+Right,
+            +C99Value/Resource.+Left
+        )
+    }
+    def destruct! [ +Mirth +C99Branch |- C99DataStructRepr +C99Value/Resource -- ] {
+        \self
+        +c99:fresh-name! \struct-val
+        consume \struct-ptr
+        c99-line(
+            "struct " put @self cname put " " put
+            @struct-val put " = " put
+            "*" put @struct-ptr put ";" put
+        )
+        @self fields for(
+            \field
+            Str(@struct-val ; "." ; @field cname ;) >value-name
+            @field c99-repr >value-repr
+            +C99Value +C99Value/Resource.+Left
+            @field input push-stack-part!
+        )
+        c99-line("if (!--(" put @struct-ptr put "->refs)) {" put)
+        c99-nest:c99-line("free(" put @struct-ptr put ");" put)
+        c99-line("} else {" put)
+        c99-nest(
+            @self fields for(
+                \field
+                @field c99-repr needs-refcounting? then(
+                    c99-line(
+                        "incref(" put
+                        Str( @struct-val ; "." ; @field cname ; )
+                        @field c99-repr mk-macro put
+                        ");" put
+                    )
+                )
+            )
+        )
+        c99-line("}" put)
+    }
+}
+
+struct C99DataStructField {
+    input: StackTypePart
+    c99-repr: C99ReprType
+    cname: Str
+    --
+    def is-resource? [ +Mirth |- C99DataStructField -- Bool ] {
+        input type/resource is-right?
+    }
+    def label? [ +Mirth |- C99DataStructField -- Maybe(Label) ] {
+        input label
+    }
+}
+
+def c99-inputs-to-struct-fields [ +Mirth |- List(StackTypePart) -- List(C99DataStructField) ] {
+    0 \i
+    L0 \names
+    L0 \fields
+    reverse-for(
+        dup >input
+        match {
+            { Cons -> sip:c99-repr tycon? if?(name mangled, @i >Str @i:1+) }
+            { With -> sip:c99-repr tycon? if?(name mangled, @i >Str @i:1+) }
+            { ConsLabel -> dip:c99-repr name mangled }
+            { WithLabel -> dip:c99-repr name mangled }
+        }
+        \name >c99-repr
+        0 \j
+        @names for(@name = then(@j:1+))
+        "m" @j 0> if(@name "_" cat @j >Str cat, @name) cat >cname
+        C99DataStructField @fields:cons
+    )
+    @fields
 }
 
 struct C99DataSumRepr {
@@ -1389,6 +1632,8 @@ struct C99DataSumRepr {
     def v-macro-prefix-suffix { drop "VTUP(" ")" }
     def mk-macro { drop Str( "MKTUP(" ; ; ")" ; ) }
     def get-data-tag { drop Str( "PTREXTRA("  ; ; ")" ; ) }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataSumRepr -- ] { drop }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataSumRepr -- ] { drop }
 }
 
 def StackTypePart.c99-repr [ +Mirth |- StackTypePart -- C99ReprType ] {
@@ -1412,8 +1657,7 @@ field(+Mirth |- Data.c99-repr, Data, C99DataRepr,
         @input type/resource either(c99-repr,c99-repr) >c99-repr
         C99DataFieldRepr C99DataRepr.Field,
     @self single-tag? if?(
-        >tag
-        C99DataStructRepr C99DataRepr.Struct,
+        C99DataStructRepr.Make C99DataRepr.Struct,
         @self >data
         C99DataSumRepr C99DataRepr.Sum
     ))))

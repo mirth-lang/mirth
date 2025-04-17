@@ -30,6 +30,7 @@ table +Mirth |- Data {
     ~qname: Prop(QName)
     ~params: Prop(List(Var))
     ~ctype?: Prop(Maybe(CType))
+    cname: Str { @self qname-hard mangled }
     is-resource?: Bool { @self name could-be-resource-con }
     unit?: Maybe(Tag) { @self tags single? filter(num-total-inputs 0=) }
     is-enum?: Bool { @self and(is-unit? not, tags all(num-total-inputs 0=)) }
