@@ -265,12 +265,12 @@ table +Mirth |- Tag {
     def only-tag? [ +Mirth |- Tag -- Bool ] { .data tags single? >Bool }
 
     def label-inputs-from-sig [ +Mirth |- Tag -- List(Label) ] {
-        sig? if?(run-tokens filter-some(sig-label?), List.Nil)
+        sig? if?(sig-stack-tokens filter-some(sig-label?), List.Nil)
     }
 
     def num-type-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
         dup sig? if?(
-            run-length
+            sig-stack-length
             over num-resource-inputs-from-sig sub-clamp
             swap label-inputs-from-sig len sub-clamp,
             drop 0u
@@ -279,7 +279,9 @@ table +Mirth |- Tag {
 
     def num-resource-inputs-from-sig [ +Mirth |- Tag -- Nat ] {
         sig? if?(
-            run-tokens filter(could-be-sig-label? not) filter-some(name?)
+            sig-stack-tokens
+            filter(could-be-sig-label? not)
+            filter-some(last-name?)
             filter(or(could-be-resource-var, could-be-resource-con))
             len,
             0u
@@ -551,7 +553,7 @@ def elab-data-tag! [ +Mirth Data |- SyntaxDataTag -- ] {
 
     @tag outputs-resource? not then(
         @tag sig? for(
-            run-tokens find(
+            sig-stack-tokens find(
                 or(sig-resource-con? >Bool, sig-resource-var? >Bool)
             ) for ("Value type cannot contain resource." emit-error!)
         )

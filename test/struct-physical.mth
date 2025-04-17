@@ -1,0 +1,528 @@
+||| Test whether a struct can handle a variety of physical & non-physical fields correctly.
+module test.struct-physical
+import std.prelude
+import std.world
+import std.test
+import std.str
+
+struct Fake {
+    --
+    def = [ Fake Fake -- Bool ] { drop2 True }
+    def repr; [ +Str |- Fake -- ] { drop "Fake"; }
+}
+struct Real {
+    Int
+    --
+    def = [ Real Real -- Bool ] { on2:/Real = }
+    def repr; [ +Str |- Real -- ] { Real -> repr; " Real"; }
+}
+struct +Cake {
+    --
+    def have [ +Cake |- Str ] { "cake" }
+    def eat  [ +Cake -- Str ] { +Cake -> "cake" }
+}
+
+struct F0R0 { }
+struct F0R1 { r1: Real }
+struct F0R2 { r1: Real r2: Real }
+
+struct F1R0 { f1: Fake }
+struct F1R1 { f1: Fake r1: Real }
+struct F1R2 { f1: Fake r1: Real r2: Real }
+
+struct F2R0 { f1: Fake f2: Fake }
+struct F2R1 { f1: Fake f2: Fake r1: Real }
+struct F2R2 { f1: Fake f2: Fake r1: Real r2: Real }
+
+struct +F0R0 { }
+struct +F0R1 { r1: Real }
+struct +F0R2 { r1: Real r2: Real }
+
+struct +F1R0 { f1: Fake }
+struct +F1R1 { f1: Fake r1: Real }
+struct +F1R2 { f1: Fake r1: Real r2: Real }
+
+struct +F2R0 { f1: Fake f2: Fake }
+struct +F2R1 { f1: Fake f2: Fake r1: Real }
+struct +F2R2 { f1: Fake f2: Fake r1: Real r2: Real }
+
+struct +C1F0R0 { +c1: +Cake }
+struct +C1F0R1 { +c1: +Cake r1: Real }
+struct +C1F0R2 { +c1: +Cake r1: Real r2: Real }
+
+struct +C1F1R0 { +c1: +Cake f1: Fake }
+struct +C1F1R1 { +c1: +Cake f1: Fake r1: Real }
+struct +C1F1R2 { +c1: +Cake f1: Fake r1: Real r2: Real }
+
+struct +C1F2R0 { +c1: +Cake f1: Fake f2: Fake }
+struct +C1F2R1 { +c1: +Cake f1: Fake f2: Fake r1: Real }
+struct +C1F2R2 { +c1: +Cake f1: Fake f2: Fake r1: Real r2: Real }
+
+def main {
+    +Tests (
+
+        "F0R0" test( F0R0 drop )
+        "F0R1" test(
+            10 Real >r1
+            F0R1 \x
+            @x r1 => ( 10 Real )
+            20 Real @x:r1!
+            @x r1 => ( 20 Real )
+        )
+        "F0R2" test (
+            11 Real >r1
+            12 Real >r2
+            F0R2 \x
+            @x r1 => ( 11 Real )
+            @x r2 => ( 12 Real )
+            21 Real @x:r1!
+            @x r1 => ( 21 Real )
+            @x r2 => ( 12 Real )
+            32 Real @x:r2!
+            @x r1 => ( 21 Real )
+            @x r2 => ( 32 Real )
+        )
+
+        "F1R0" test(
+            Fake >f1
+            F1R0 \x
+            @x f1 => ( Fake )
+            Fake @x:f1!
+            @x f1 => ( Fake )
+        )
+
+        "F1R1" test(
+            Fake >f1
+            11 Real >r1
+            F1R1 \x
+            @x f1 => ( Fake )
+            @x r1 => ( 11 Real )
+            Fake @x:f1!
+            @x f1 => ( Fake )
+            @x r1 => ( 11 Real )
+            21 Real @x:r1!
+            @x f1 => ( Fake )
+            @x r1 => ( 21 Real )
+        )
+
+        "F1R2" test(
+            Fake >f1
+            11 Real >r1
+            12 Real >r2
+            F1R2 \x
+            @x f1 => ( Fake )
+            @x r1 => ( 11 Real )
+            @x r2 => ( 12 Real )
+            Fake @x:f1!
+            @x f1 => ( Fake )
+            @x r1 => ( 11 Real )
+            @x r2 => ( 12 Real )
+            21 Real @x:r1!
+            @x f1 => ( Fake )
+            @x r1 => ( 21 Real )
+            @x r2 => ( 12 Real )
+            32 Real @x:r2!
+            @x f1 => ( Fake )
+            @x r1 => ( 21 Real )
+            @x r2 => ( 32 Real )
+        )
+
+        "F2R0" test(
+            Fake >f1
+            Fake >f2
+            F2R0 \x
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            Fake @x:f1!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            Fake @x:f2!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+        )
+
+        "F2R1" test(
+            Fake >f1
+            Fake >f2
+            11 Real >r1
+            F2R1 \x
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 11 Real )
+            Fake @x:f1!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 11 Real )
+            Fake @x:f2!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 11 Real )
+            21 Real @x:r1!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 21 Real )
+        )
+
+        "F2R2" test(
+            Fake >f1
+            Fake >f2
+            11 Real >r1
+            12 Real >r2
+            F2R2 \x
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 11 Real )
+            @x r2 => ( 12 Real )
+            Fake @x:f1!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 11 Real )
+            @x r2 => ( 12 Real )
+            Fake @x:f2!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 11 Real )
+            @x r2 => ( 12 Real )
+            21 Real @x:r1!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 21 Real )
+            @x r2 => ( 12 Real )
+            32 Real @x:r2!
+            @x f1 => ( Fake )
+            @x f2 => ( Fake )
+            @x r1 => ( 21 Real )
+            @x r2 => ( 32 Real )
+        )
+
+        "+F0R0" test( +F0R0 /+F0R0 ldrop )
+        "+F0R1" test(
+            11 Real >r1
+            +F0R1
+            r1 => ( 11 Real )
+            21 Real r1!
+            r1 => ( 21 Real )
+            /+F0R1
+            r1> => ( 21 Real )
+        )
+        "+F0R2" test(
+            11 Real >r1
+            12 Real >r2
+            +F0R2
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            21 Real r1!
+            r1 => ( 21 Real )
+            r2 => ( 12 Real )
+            32 Real r2!
+            r1 => ( 21 Real )
+            r2 => ( 32 Real )
+            /+F0R2
+            r1> => ( 21 Real )
+            r2> => ( 32 Real )
+        )
+        "+F1R0" test(
+            Fake >f1
+            +F1R0
+            f1 => ( Fake )
+            Fake f1!
+            f1 => ( Fake )
+            /+F1R0
+            f1> => ( Fake )
+        )
+        "+F1R1" test(
+            Fake >f1
+            11 Real >r1
+            +F1R1
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            Fake f1!
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            21 Real r1!
+            f1 => ( Fake )
+            r1 => ( 21 Real )
+            /+F1R1
+            f1> => ( Fake )
+            r1> => ( 21 Real )
+        )
+        "+F1R2" test(
+            Fake >f1
+            11 Real >r1
+            12 Real >r2
+            +F1R2
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            Fake f1!
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            21 Real r1!
+            f1 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 12 Real )
+            32 Real r2!
+            f1 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 32 Real )
+            /+F1R2
+            f1> => ( Fake )
+            r1> => ( 21 Real )
+            r2> => ( 32 Real )
+        )
+        "+F2R0" test(
+            Fake >f1
+            Fake >f2
+            +F2R0
+            f1 => ( Fake )
+            f2 => ( Fake )
+            Fake f1!
+            f1 => ( Fake )
+            f2 => ( Fake )
+            /+F2R0
+            f1> => ( Fake )
+            f2> => ( Fake )
+        )
+        "+F2R1" test(
+            Fake >f1
+            Fake >f2
+            11 Real >r1
+            +F2R1
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            Fake f1!
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            21 Real r1!
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 21 Real )
+            /+F2R1
+            f1> => ( Fake )
+            f2> => ( Fake )
+            r1> => ( 21 Real )
+        )
+        "+F2R2" test(
+            Fake >f1
+            Fake >f2
+            11 Real >r1
+            12 Real >r2
+            +F2R2
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            Fake f1!
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            21 Real r1!
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 12 Real )
+            32 Real r2!
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 32 Real )
+            /+F2R2
+            f1> => ( Fake )
+            f2> => ( Fake )
+            r1> => ( 21 Real )
+            r2> => ( 32 Real )
+        )
+
+        "+C1F0R0" test(
+            +Cake >+c1
+            +C1F0R0
+            +c1:have =>: "cake"
+            /+C1F0R0
+            +c1> eat =>: "cake"
+        )
+        "+C1F0R1" test(
+            +Cake >+c1
+            11 Real >r1
+            +C1F0R1
+            +c1:have =>: "cake"
+            r1 => ( 11 Real )
+            21 Real r1!
+            +c1:have =>: "cake"
+            r1 => ( 21 Real )
+            /+C1F0R1
+            +c1> eat =>: "cake"
+            r1> => ( 21 Real )
+        )
+        "+C1F0R2" test(
+            +Cake >+c1
+            11 Real >r1
+            12 Real >r2
+            +C1F0R2
+            +c1:have =>: "cake"
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            21 Real r1!
+            +c1:have =>: "cake"
+            r1 => ( 21 Real )
+            r2 => ( 12 Real )
+            32 Real r2!
+            +c1:have =>: "cake"
+            r1 => ( 21 Real )
+            r2 => ( 32 Real )
+            /+C1F0R2
+            +c1> eat =>: "cake"
+            r1> => ( 21 Real )
+            r2> => ( 32 Real )
+        )
+        "+C1F1R0" test(
+            +Cake >+c1
+            Fake >f1
+            +C1F1R0
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            Fake f1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            /+C1F1R0
+            +c1> eat =>: "cake"
+            f1> => ( Fake )
+        )
+        "+C1F1R1" test(
+            +Cake >+c1
+            Fake >f1
+            11 Real >r1
+            +C1F1R1
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            Fake f1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            21 Real r1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            r1 => ( 21 Real )
+            /+C1F1R1
+            +c1> eat =>: "cake"
+            f1> => ( Fake )
+            r1> => ( 21 Real )
+        )
+        "+C1F1R2" test(
+            +Cake >+c1
+            Fake >f1
+            11 Real >r1
+            12 Real >r2
+            +C1F1R2
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            Fake f1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            21 Real r1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 12 Real )
+            32 Real r2!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 32 Real )
+            /+C1F1R2
+            +c1> eat =>: "cake"
+            f1> => ( Fake )
+            r1> => ( 21 Real )
+            r2> => ( 32 Real )
+        )
+        "+C1F2R0" test(
+            +Cake >+c1
+            Fake >f1
+            Fake >f2
+            +C1F2R0
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            Fake f1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            /+C1F2R0
+            +c1> eat =>: "cake"
+            f1> => ( Fake )
+            f2> => ( Fake )
+        )
+        "+C1F2R1" test(
+            +Cake >+c1
+            Fake >f1
+            Fake >f2
+            11 Real >r1
+            +C1F2R1
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            Fake f1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            21 Real r1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 21 Real )
+            /+C1F2R1
+            +c1> eat =>: "cake"
+            f1> => ( Fake )
+            f2> => ( Fake )
+            r1> => ( 21 Real )
+        )
+        "+C1F2R2" test(
+            +Cake >+c1
+            Fake >f1
+            Fake >f2
+            11 Real >r1
+            12 Real >r2
+            +C1F2R2
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            Fake f1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 11 Real )
+            r2 => ( 12 Real )
+            21 Real r1!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 12 Real )
+            32 Real r2!
+            +c1:have =>: "cake"
+            f1 => ( Fake )
+            f2 => ( Fake )
+            r1 => ( 21 Real )
+            r2 => ( 32 Real )
+            /+C1F2R2
+            +c1> eat =>: "cake"
+            f1> => ( Fake )
+            f2> => ( Fake )
+            r1> => ( 21 Real )
+            r2> => ( 32 Real )
+        )
+    )
+}
+# mirth-test # pout # 27 tests passed.

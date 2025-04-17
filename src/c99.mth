@@ -398,20 +398,25 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
         @tag data c99-repr struct? unwrap("Expected struct repr" fatal-error!) \struct-repr
         @tag data pop-data! >+datavar
         @fieldty match {
-            { Left -> type-to-c99-repr pop-value! consume }
-            { Right -> resource-to-c99-repr pop-resource! consume }
-        } >fieldval
+            { Left -> type-to-c99-repr dup dup pop-value! consume-as }
+            { Right -> resource-to-c99-repr dup dup pop-resource! consume-as }
+        } >fieldval \fieldrepr
         +datavar> +for (
             # field and data are both values
-            consume >dataval
-            @tag data C99ReprType.Data push-value-expression!(
-                @struct-repr cname put "_set_" put @label name mangled put "(" put
-                dataval> put
-                ", " put
-                fieldval> put
-                ")" put
-            )
-            fieldty> drop,
+            @fieldrepr is-physical? if(
+                consume >dataval
+                @tag data C99ReprType.Data push-value-expression!(
+                    @struct-repr cname put "_set_" put @label name mangled put "(" put
+                    dataval> put
+                    ", " put
+                    fieldval> put
+                    ")" put
+                )
+                fieldty> drop,
+
+                fieldval> fieldty> drop2
+                push-value!
+            ),
 
             # data is resource
             >+datavar
@@ -429,9 +434,12 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
                     drop
                 }
             }
-            c99-line(
-                @datavar put "->m" put @label name mangled put " = " put
-                fieldval> put ";" put
+            @fieldrepr is-physical? if(
+                c99-line(
+                    @datavar put "->m" put @label name mangled put " = " put
+                    fieldval> put ";" put
+                ),
+                fieldval> drop
             )
             +datavar>
             push-resource!
@@ -1411,14 +1419,13 @@ struct C99DataStructRepr {
         c99-line("struct " put @self cname put " { " put)
         c99-nest(
             c99-line("REFS refs;" put)
-            @self tag only-tag? else (
-                c99-line("enum " put @self data cname put " tag;" put)
-            )
             @self fields for(
                 \field
-                c99-line(
-                    @field c99-repr underlying-c99-type put " "
-                    put @field cname put ";" put
+                @field is-physical? then(
+                    c99-line(
+                        @field c99-repr underlying-c99-type put " "
+                        put @field cname put ";" put
+                    )
                 )
             )
         )
@@ -1483,6 +1490,7 @@ struct C99DataStructRepr {
                 drop
                 @self data is-resource? not
                 @field is-resource? not and
+                @field is-physical? and
             ) for ( \label
                 c99-line(
                     "static " put @self underlying-c99-type put " " put
@@ -1542,9 +1550,11 @@ struct C99DataStructRepr {
         @self fields reverse-for(
             \field
             @field input pop-stack-part! consume \expr
-            c99-line(
-                @struct-ptr put "->" put @field cname put " = " put
-                @expr put ";" put
+            @field is-physical? then(
+                c99-line(
+                    @struct-ptr put "->" put @field cname put " = " put
+                    @expr put ";" put
+                )
             )
         )
         @struct-ptr >value-name
@@ -1565,7 +1575,7 @@ struct C99DataStructRepr {
         )
         @self fields for(
             \field
-            Str(@struct-val ; "." ; @field cname ;) >value-name
+            @field is-physical? if(Str(@struct-val ; "." ; @field cname ;), "0") >value-name
             @field c99-repr >value-repr
             +C99Value +C99Value/Resource.+Left
             @field input push-stack-part!
@@ -1595,12 +1605,9 @@ struct C99DataStructField {
     c99-repr: C99ReprType
     cname: Str
     --
-    def is-resource? [ +Mirth |- C99DataStructField -- Bool ] {
-        input type/resource is-right?
-    }
-    def label? [ +Mirth |- C99DataStructField -- Maybe(Label) ] {
-        input label
-    }
+    def is-physical? [ +Mirth |- C99DataStructField -- Bool ] { c99-repr is-physical? }
+    def is-resource? [ +Mirth |- C99DataStructField -- Bool ] { input type/resource is-right? }
+    def label? [ +Mirth |- C99DataStructField -- Maybe(Label) ] { input label }
 }
 
 def c99-inputs-to-struct-fields [ +Mirth |- List(StackTypePart) -- List(C99DataStructField) ] {
@@ -1711,7 +1718,7 @@ data C99ReprType {
     def is-void? [ C99ReprType -- Bool ] { Void -> True, _ -> drop False }
     def is-unit? [ +Mirth |- C99ReprType -- Bool ] {
         { Void -> True }
-        { Data -> is-unit? }
+        { Data -> c99-repr is-unit? }
         { _ -> drop False }
     }
     def is-physical? [ +Mirth |- C99ReprType -- Bool ] { is-unit? not }
@@ -2463,10 +2470,12 @@ def +C99Resource.push-resource! [ +Mirth +C99Branch |- +C99Resource -- ] {
 }
 
 def +C99Value.convert-value! [ +Mirth +C99Value |- C99ReprType -- ] {
-    dup +C99Value.rdup consume-as value-name! value-repr!
+    { VAL -> }
+    { _ -> dup +C99Value.rdup consume-as value-name! value-repr! }
 }
 def +C99Resource.convert-resource! [ +Mirth +C99Resource |- C99ReprType -- ] {
-    dup +C99Resource.rdup consume-as resource-name! resource-repr!
+    { VAL -> }
+    { _ -> dup +C99Resource.rdup consume-as resource-name! resource-repr! }
 }
 
 def +C99Branch.type-to-c99-repr [ +Mirth +C99Branch |- Type -- C99ReprType ] { c99-repr }
