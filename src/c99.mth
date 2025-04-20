@@ -1263,26 +1263,26 @@ def c99-string-byte! [ +Mirth +C99 avoid-hexdigit:Bool |- Byte -- ] {
 data C99DataRepr {
     Unit   [ C99DataUnitRepr   ]  ### single tag, no field
     Enum   [ C99DataEnumRepr   ]  ### multiple tags, no fields
-    Field  [ C99DataFieldRepr  ]  ### single tag, single-field data
-    Struct [ C99DataStructRepr ]  ### single tag, multiple field data
+    Trans  [ C99DataTransRepr  ]  ### semi-transparent data
+    Struct [ C99DataStructRepr ]  ### single tag, not semi-transparent data
     Sum    [ C99DataSumRepr    ]  ### multiple tags, some fields
     --
     def is-unit?    { Unit   -> drop True, _ -> drop False }
     def is-enum?    { Enum   -> drop True, _ -> drop False }
-    def is-field?   { Field  -> drop True, _ -> drop False }
+    def is-trans?   { Trans  -> drop True, _ -> drop False }
     def is-struct?  { Struct -> drop True, _ -> drop False }
     def is-sum?     { Sum    -> drop True, _ -> drop False }
 
     def unit?       { Unit   -> Some, _ -> drop None }
     def enum?       { Enum   -> Some, _ -> drop None }
-    def field?      { Field  -> Some, _ -> drop None }
+    def trans?      { Trans  -> Some, _ -> drop None }
     def struct?     { Struct -> Some, _ -> drop None }
     def sum?        { Sum    -> Some, _ -> drop None }
 
     def need-refcounting? {
         { Unit   -> needs-refcounting? }
         { Enum   -> needs-refcounting? }
-        { Field  -> needs-refcounting? }
+        { Trans  -> needs-refcounting? }
         { Struct -> needs-refcounting? }
         { Sum    -> needs-refcounting? }
     }
@@ -1290,7 +1290,7 @@ data C99DataRepr {
     def underlying-c99-type [ +Mirth |- C99DataRepr -- Str ] {
         { Unit   -> underlying-c99-type }
         { Enum   -> underlying-c99-type }
-        { Field  -> underlying-c99-type }
+        { Trans  -> underlying-c99-type }
         { Struct -> underlying-c99-type }
         { Sum    -> underlying-c99-type }
     }
@@ -1298,7 +1298,7 @@ data C99DataRepr {
     def v-macro-prefix-suffix [ +Mirth |- C99DataRepr -- Str Str ] {
         { Unit   -> v-macro-prefix-suffix }
         { Enum   -> v-macro-prefix-suffix }
-        { Field  -> v-macro-prefix-suffix }
+        { Trans  -> v-macro-prefix-suffix }
         { Struct -> v-macro-prefix-suffix }
         { Sum    -> v-macro-prefix-suffix }
     }
@@ -1306,7 +1306,7 @@ data C99DataRepr {
     def mk-macro [ +Mirth |- Str C99DataRepr -- Str ] {
         { Unit   -> mk-macro }
         { Enum   -> mk-macro }
-        { Field  -> mk-macro }
+        { Trans  -> mk-macro }
         { Struct -> mk-macro }
         { Sum    -> mk-macro }
     }
@@ -1314,7 +1314,7 @@ data C99DataRepr {
     def get-data-tag [ +Mirth |- Str C99DataRepr -- Str ] {
         { Unit   -> get-data-tag }
         { Enum   -> get-data-tag }
-        { Field  -> get-data-tag }
+        { Trans  -> get-data-tag }
         { Struct -> get-data-tag }
         { Sum    -> get-data-tag }
     }
@@ -1322,7 +1322,7 @@ data C99DataRepr {
     def prepare-type-sigs! [ +Mirth +C99 |- C99DataRepr -- ] {
         { Unit   -> prepare-type-sigs! }
         { Enum   -> prepare-type-sigs! }
-        { Field  -> prepare-type-sigs! }
+        { Trans  -> prepare-type-sigs! }
         { Struct -> prepare-type-sigs! }
         { Sum    -> prepare-type-sigs! }
     }
@@ -1330,7 +1330,7 @@ data C99DataRepr {
     def prepare-type-defs! [ +Mirth +C99 |- C99DataRepr -- ] {
         { Unit   -> prepare-type-defs! }
         { Enum   -> prepare-type-defs! }
-        { Field  -> prepare-type-defs! }
+        { Trans  -> prepare-type-defs! }
         { Struct -> prepare-type-defs! }
         { Sum    -> prepare-type-defs! }
     }
@@ -1360,9 +1360,10 @@ struct C99DataEnumRepr {
     def prepare-type-defs! [ +Mirth +C99 |- C99DataEnumRepr -- ] { drop }
 }
 
-struct C99DataFieldRepr {
+struct C99DataTransRepr {
     tag: Tag
     input: StackTypePart
+    input-tycon: Tycon
     c99-repr: C99ReprType
     --
     def needs-refcounting? { c99-repr needs-refcounting? }
@@ -1370,8 +1371,8 @@ struct C99DataFieldRepr {
     def v-macro-prefix-suffix { c99-repr v-macro-prefix-suffix }
     def mk-macro { c99-repr mk-macro }
     def get-data-tag { nip tag value-show "LL" cat }
-    def prepare-type-sigs! [ +Mirth +C99 |- C99DataFieldRepr -- ] { drop }
-    def prepare-type-defs! [ +Mirth +C99 |- C99DataFieldRepr -- ] { drop }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataTransRepr -- ] { drop }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataTransRepr -- ] { drop }
 }
 
 struct C99DataStructRepr {
@@ -1648,7 +1649,7 @@ field(+Mirth |- Data.c99-repr, Data, C99DataRepr,
     @self semi-transparent? if?(
         /SemiTransparentData
         @input type/resource either(c99-repr,c99-repr) >c99-repr
-        C99DataFieldRepr C99DataRepr.Field,
+        C99DataTransRepr C99DataRepr.Trans,
     @self single-tag? if?(
         C99DataStructRepr.Make C99DataRepr.Struct,
         @self >data
@@ -2047,7 +2048,7 @@ field(+Mirth |- Data.strip-newtypes-c99-repr, Data, C99ReprType,
     @self c99-repr match {
         { Unit   -> drop C99ReprType.Void }
         { Enum   -> drop C99ReprType.I64 }
-        { Field  -> c99-repr strip-newtypes }
+        { Trans  -> c99-repr strip-newtypes }
         { Struct -> drop @default }
         { Sum    -> drop @default }
     }

@@ -34,17 +34,18 @@ table +Mirth |- Data {
     is-resource?: Bool { @self name could-be-resource-con }
     unit?: Maybe(Tag) { @self tags single? filter(num-total-inputs 0=) }
     is-enum?: Bool { @self and(is-unit? not, tags all(num-total-inputs 0=)) }
-    is-transparent?: Bool {
-        @self dup is-resource? if(
-            single-tag? has:and(num-resource-inputs 1 =, num-total-inputs 1 =),
-            single-tag? has:and(num-type-inputs 1 =, num-total-inputs 1 =)
-        )
-    }
     semi-transparent?: Maybe(SemiTransparentData) {
         @self single-tag? bind(
-            dup inputs single? map(
-                >input dup >tag SemiTransparentData
-            ) nip
+            \tag
+            @tag inputs single? bind(
+                \input
+                @input type/resource either(tycon?,tycon?) map(
+                    >input-tycon
+                    @input >input
+                    @tag >tag
+                    SemiTransparentData
+                )
+            )
         )
     }
     --
@@ -218,6 +219,7 @@ patch +Mirth {
 struct SemiTransparentData {
     tag: Tag
     input: StackTypePart
+    input-tycon: Tycon
 }
 
 #######
@@ -293,10 +295,6 @@ table +Mirth |- Tag {
         @tag num-label-inputs
         @tag num-type-inputs +
         tag> num-resource-inputs +
-    }
-
-    def is-transparent? [ +Mirth |- Tag -- Bool ] {
-        .data is-transparent?
     }
 
     def semi-transparent? [ +Mirth |- Tag -- Maybe(SemiTransparentData) ] {
