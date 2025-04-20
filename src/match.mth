@@ -51,16 +51,6 @@ struct Match {
         )
     }
 
-
-    def is-transparent? [ +Mirth |- Match -- Bool ] {
-        cases single?
-        bind(pattern atoms single?)
-        has(op match(
-            Tag -> .data is-transparent?,
-            Underscore -> True
-        ))
-    }
-
     def semi-transparent-tag? [ +Mirth |- Match -- Maybe(SemiTransparentData) ] {
         cases single?
         bind(pattern atoms single?)
