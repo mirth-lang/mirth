@@ -607,6 +607,11 @@ def elab-data-done! [ +Mirth |- Data -- ] {
         word> drop
     )
 
+    @dat tags empty? then(
+        "Expected at least one constructor in data type. Empty data types are not currently supported."
+        @dat head? if?(swap emit-error!, error!)
+    )
+
     @dat tags single? for(
         >tag
         None >doc # TODO

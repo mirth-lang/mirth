@@ -11,8 +11,8 @@ data(TG, G1 -> Int, G2)
 data(TH, H1 -> Int, H2,)
 data(TI, I1, I2 -> Int)
 data(TJ, J1, J2 -> Int,)
-data(TK)
-data(TL,)
+# data(TK)  # empty enums not supported
+# data(TL,) # empty enums not supported
 
 data(Foo, Foo1 Foo2 [ Int ])
 data Bar { Bar1 Bar2 [ Str x:Str ] }

@@ -108,18 +108,12 @@ def +C99.fresh-name-on!       [ +Mirth +C99 |- Str -- Str ] { fresh-nat! >Str ca
 def +C99.fresh-name!          [ +Mirth +C99 |-        Str ] { "v" fresh-name-on! }
 def +C99.fresh-resource-name! [ +Mirth +C99 |-        Str ] { "r" fresh-name-on! }
 
-field(Tag.~word-cname, Tag, Str)
-field(Tag.~pat-cname, Tag, Str)
-field(Buffer.~cname, Buffer, Str)
-field(Field.~cname, Field, Str)
-field(External.~cname, External, Str)
-field(Prim.~cname, Prim, Str)
-
-def Tag.word-cname [ +Mirth |- Tag      -- Str ] { dup ~word-cname memoize(dup qname      Str("mtw_"  ; mangled;)) nip }
-def Tag.pat-cname  [ +Mirth |- Tag      -- Str ] { dup ~pat-cname  memoize(dup qname      Str("mtp_"  ; mangled;)) nip }
-def Buffer.cname   [ +Mirth |- Buffer   -- Str ] { dup ~cname      memoize(dup qname-hard Str("mbuf_" ; mangled;)) nip }
-def Field.cname    [ +Mirth |- Field    -- Str ] { dup ~cname      memoize(dup qname-hard Str("mfld_" ; mangled;)) nip }
-def External.cname [ +Mirth |- External -- Str ] { dup ~cname      memoize(dup qname-hard Str("mext_" ; mangled;)) nip }
+field(+Mirth |- Tag.cname,      Tag,      Str, @self qname mangled)
+field(+Mirth |- Tag.word-cname, Tag,      Str, Str("mtw_"; @self cname ;))
+field(+Mirth |- Tag.pat-cname,  Tag,      Str, Str("mtp_"; @self cname ;))
+field(+Mirth |- Buffer.cname,   Buffer,   Str, Str("mbuf_"; @self qname-hard mangled;))
+field(+Mirth |- Field.cname,    Field,    Str, Str("mfld_"; @self qname-hard mangled;))
+field(+Mirth |- External.cname, External, Str, Str("mext_"; @self qname-hard mangled;))
 
 embed-str(c99-header-str, "src/mirth.h")
 def c99-header! [ +Mirth +C99 |- ] {
@@ -168,32 +162,55 @@ def pop-stack-part! [ +Mirth +C99Branch |- StackTypePart -- +C99Value/Resource ]
 }
 
 def c99-tag-body! [ +Mirth +C99Branch |- Tag -- ] {
-    \tag @tag semi-transparent? if?(
-        input pop-stack-part!
-        @tag data C99ReprType.Data convert-value/resource!
-        @tag outputs-resource? if(
-            turn-into-resource! push-resource!,
-            turn-into-value! push-value!
-        ),
+    \tag
+    @tag data c99-repr match {
+        { Unit ->
+            drop
+            "0" >value-name
+            @tag data C99ReprType.Data >value-repr
+            +C99Value
+            @tag outputs-resource? if(
+                turn-into-resource!
+                push-resource!,
+                push-value!
+            )
+        }
+        { Enum ->
+            drop
+            @tag cname >value-name
+            @tag data C99ReprType.Data >value-repr
+            +C99Value
+            @tag outputs-resource? if(
+                turn-into-resource!
+                push-resource!,
+                push-value!
+            )
+        }
+        { Trans ->
+            input pop-stack-part!
+            @tag data C99ReprType.Data convert-value/resource!
+            @tag outputs-resource? if(
+                turn-into-resource! push-resource!,
+                turn-into-value! push-value!
+            )
+        }
+        { Struct -> construct! push-value/resource! }
+        { Sum ->
+            drop
+            @tag num-total-inputs 0= if(
+                @tag c99-check-tag-value!
+                Str( "PTRMK(" ; @tag cname ; ",0,0)" ; )
+                @tag data C99ReprType.Data
+                @tag outputs-resource? if(
+                    push-resource-expression!(put),
+                    push-value-expression!(put)
+                ),
 
-    @tag num-total-inputs 0= if(
-        @tag data is-enum-or-unit? if(
-            "" >pfx "" >sfx,
-            "PTRMK(" >pfx ",0,0)" >sfx
-            @tag c99-check-tag-value!
-        )
-        Str( pfx> ; @tag value-show ; "LL /* "; @tag name; " */" ; sfx> ; )
-        @tag data C99ReprType.Data
-        @tag outputs-resource? if(
-            push-resource-expression!(put),
-            push-value-expression!(put)
-        ),
-
-        @tag data c99-repr struct? if?(
-            construct!,
-            @tag c99-pack-tag!
-        ) push-value/resource!
-    ))
+                @tag c99-pack-tag!
+                push-value/resource!
+            )
+        }
+    }
 }
 
 def C99ReprType.cast [ +Mirth |- Str C99ReprType -- Str ] {
@@ -258,7 +275,7 @@ def c99-pack-tuple! [ +Mirth +C99Branch |- tag:Maybe(Tag) parts:List(StackTypePa
     @tag for(c99-check-tag-value!)
     @tag if?(data C99ReprType.Data, C99ReprType.TUP) resource-expression!(
         "PTRMK(" put
-        @tag if?(tag-value-put, "0" put)
+        @tag if?(cname, "0") put
         "," put
         "tup_new(" put @tuplen >Str put
         "),0)" put) >+tup
@@ -1066,10 +1083,11 @@ def c99-get-enum-value! [ +Mirth +C99Branch |- Data -- ] {
 }
 
 def c99-from-enum-value! [ +Mirth +C99Branch |- Data -- ] {
-    dup is-enum? else("from-enum-value-unsafe on non-enum data type" fatal-error!)
-    dup is-resource? then("from-enum-value-unsafe on resource" fatal-error!)
+    \data
+    @data is-enum? else("from-enum-value-unsafe on non-enum data type" fatal-error!)
+    @data is-resource? then("from-enum-value-unsafe on resource" fatal-error!)
     C99ReprType.I64 pop-value!
-    C99ReprType.Data convert-value!
+    @data C99ReprType.Data convert-value!
     push-value!
 }
 
@@ -1351,13 +1369,63 @@ struct C99DataUnitRepr {
 struct C99DataEnumRepr {
     data: Data
     --
+    def cname { data cname }
     def needs-refcounting? { drop False }
-    def underlying-c99-type { drop "int64_t" }
-    def v-macro-prefix-suffix { drop "VI64(" ")" }
-    def mk-macro { drop Str( "MKI64(" ; ; ")" ; ) }
+    def underlying-c99-type { cname Str("enum "; ;) }
+    def v-macro-prefix-suffix { cname Str("V_"; ; "(";) ")" }
+    def mk-macro { cname Str( "MK_"; ; "("; ; ")" ; ) }
     def get-data-tag { drop }
-    def prepare-type-sigs! [ +Mirth +C99 |- C99DataEnumRepr -- ] { drop }
-    def prepare-type-defs! [ +Mirth +C99 |- C99DataEnumRepr -- ] { drop }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataEnumRepr -- ] {
+        \self
+        c99-line("enum " put @self data cname put " {" put)
+        c99-nest(
+            @self data tags for(
+                \tag
+                c99-line(
+                    @tag cname put
+                    " = " put @tag value str:hex; put
+                    "," put
+                )
+            )
+        )
+        c99-line("};" put)
+        c99-line(
+            "MKTYPE_FLAT(" put
+            "TYPE_" put @self cname put "," put
+            @self data name >Str put-cstr "," put
+            @self cname put "," put
+            "8,);" put
+        )
+        c99-line(
+            "#define TAG_" put @self cname put
+            " ((TAG)&TYPE_" put @self cname put ")" put
+        )
+        c99-line(
+            "#define MK_" put @self cname put "(x) " put
+            "((VAL){.tag=TAG_" put @self cname put ", .data.i64=(x)})" put
+        )
+        c99-line(
+            "#define V_" put @self cname put "(v) " put
+            "((enum " put @self cname put ")((v).data.i64))" put
+        )
+    }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataEnumRepr -- ] {
+        \self
+        c99-line(
+            "gen_peek_poke(" put
+            @self cname put "," put
+            "MK_" put @self cname put "," put
+            "V_" put @self cname put "," put
+            "i64s)" put
+        )
+
+        c99-line("static void " put @self cname put "_trace_ (VAL vself, int fd) {" put)
+        c99-nest(
+            Str("<" ; @self data name >Str ; ">" ;) \msg
+            c99-line("write(fd, " put @msg put-cstr ", " put @msg num-bytes >Str put ");" put)
+        )
+        c99-line("}" put)
+    }
 }
 
 struct C99DataTransRepr {
@@ -1383,7 +1451,7 @@ struct C99DataStructRepr {
 
     def Make [ +Mirth |- Tag -- C99DataStructRepr ] {
         >tag
-        @tag only-tag? if(@tag data cname, @tag qname mangled) >cname
+        @tag only-tag? if(@tag data cname, @tag cname) >cname
         @tag inputs c99-inputs-to-struct-fields >fields
         C99DataStructRepr
     }
@@ -1403,20 +1471,6 @@ struct C99DataStructRepr {
     def get-data-tag { nip tag value-show "LL" cat }
     def prepare-type-sigs! [ +Mirth +C99 |- C99DataStructRepr -- ] {
         \self
-        c99-line("struct " put @self cname put " { " put)
-        c99-nest(
-            c99-line("REFS refs;" put)
-            @self fields for(
-                \field
-                @field is-physical? then(
-                    c99-line(
-                        @field c99-repr underlying-c99-type put " "
-                        put @field cname put ";" put
-                    )
-                )
-            )
-        )
-        c99-line("};" put)
         c99-line(
             "MKTYPE_REFS(" put
             "TYPE_" put @self cname put "," put
@@ -1439,6 +1493,20 @@ struct C99DataStructRepr {
     }
     def prepare-type-defs! [ +Mirth +C99 |- C99DataStructRepr -- ] {
         \self
+        c99-line("struct " put @self cname put " { " put)
+        c99-nest(
+            c99-line("REFS refs;" put)
+            @self fields for(
+                \field
+                @field is-physical? then(
+                    c99-line(
+                        @field c99-repr underlying-c99-type put " "
+                        put @field cname put ";" put
+                    )
+                )
+            )
+        )
+        c99-line("};" put)
         c99-line(
             "gen_peek_poke(" put
             @self cname put "," put
@@ -1621,12 +1689,51 @@ def c99-inputs-to-struct-fields [ +Mirth |- List(StackTypePart) -- List(C99DataS
 struct C99DataSumRepr {
     data: Data
     --
+    def cname { data cname }
+    def enum-cname { cname Str("enum "; ; "_tag";) }
+    def union-cname { cname Str("union " ; ; "_ptr";) }
+    def struct-cname { cname Str("struct "; ;) }
     def needs-refcounting? { drop True }
     def underlying-c99-type [ +Mirth |- C99DataSumRepr -- Str ] { drop "PTUP" }
     def v-macro-prefix-suffix { drop "VTUP(" ")" }
     def mk-macro { drop Str( "MKTUP(" ; ; ")" ; ) }
     def get-data-tag { drop Str( "PTREXTRA("  ; ; ")" ; ) }
-    def prepare-type-sigs! [ +Mirth +C99 |- C99DataSumRepr -- ] { drop }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataSumRepr -- ] {
+        \self
+        c99-line(@self enum-cname put " {" put)
+        c99-nest(
+            @self data tags for(
+                \tag
+                c99-line(
+                    @tag cname put
+                    " = " put @tag value str:hex; put
+                    "," put
+                )
+            )
+        )
+        c99-line("};" put)
+
+        c99-line(@self union-cname put " {" put)
+        c99-nest(
+            c99-line("REFS* refs;" put)
+            @self data tags for(
+                \tag
+                c99-line(
+                    "struct " put @tag cname put
+                    " *" put @tag name mangled put
+                    ";" put
+                )
+            )
+        )
+        c99-line("};" put)
+
+        c99-line(@self struct-cname put " {" put)
+        c99-nest(
+            c99-line(@self enum-cname put " tag;" put)
+            c99-line(@self union-cname put " ptr;" put)
+        )
+        c99-line("};" put)
+    }
     def prepare-type-defs! [ +Mirth +C99 |- C99DataSumRepr -- ] { drop }
 }
 
@@ -1729,10 +1836,12 @@ data C99ReprType {
         { FNPTR -> False }
     }
 
-    def is-int-like? [ C99ReprType -- Bool ] {
+    def is-int-like? [ +Mirth |- C99ReprType -- Bool ] {
         { I64 -> True } { I32 -> True } { I16 -> True } { I8 -> True }
         { U64 -> True } { U32 -> True } { U16 -> True } { U8 -> True }
         { Bool -> True }
+        { Data -> is-enum? }
+        { Table -> drop True }
         { _ -> drop False }
     }
 
@@ -2041,13 +2150,13 @@ def +C99Value.consume-as [ +Mirth |- C99ReprType +C99Value -- Str ] {
     }
 }
 
-# Get C99-repr but see through newtypes,enums,units,etc
+# Get C99-repr but see through newtypes
 field(+Mirth |- Data.strip-newtypes-c99-repr, Data, C99ReprType,
     @self C99ReprType.Data \default
     @default @self strip-newtypes-c99-repr!
     @self c99-repr match {
         { Unit   -> drop C99ReprType.Void }
-        { Enum   -> drop C99ReprType.I64 }
+        { Enum   -> drop @default }
         { Trans  -> c99-repr strip-newtypes }
         { Struct -> drop @default }
         { Sum    -> drop @default }
@@ -2056,7 +2165,6 @@ field(+Mirth |- Data.strip-newtypes-c99-repr, Data, C99ReprType,
 
 def C99ReprType.strip-newtypes [ +Mirth |- C99ReprType -- C99ReprType ] {
     { Data -> strip-newtypes-c99-repr }
-    { Table -> drop C99ReprType.U64 }
     { _ -> id }
 }
 
@@ -3071,7 +3179,7 @@ def c99-case! [ +Mirth +C99BranchSplit |- Case +scrutinee:+C99Value/Resource -- 
         c99-line("} break;" put),
 
     dup pattern single-tag? if?(
-        c99-line("case " put dup value-show put "LL: { // " put dup name >Str put)
+        c99-line("case " put dup cname put ": {" put)
         c99-nest:sub-branch(
             +scrutinee> push-value/resource!
             c99-reverse-tag!
