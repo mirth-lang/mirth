@@ -1,0 +1,9 @@
+module test.error-empty-enum
+
+# Not currently supported.
+data EmptyEnum { }
+
+def main { }
+
+# mirth-test # merr # 4:6: error: Expected at least one constructor in data type. Empty data types are not currently supported.
+# mirth-test # mret # 1
