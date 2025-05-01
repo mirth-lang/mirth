@@ -1423,7 +1423,7 @@ struct C99DataStructRepr {
 
     def data [ +Mirth |- C99DataStructRepr -- Data ] { tag data }
 
-    def needs-refcounting? { drop True }
+    def needs-refcounting? { tag outputs-resource? not }
     def underlying-c99-type [ +Mirth |- C99DataStructRepr -- Str ] {
         Str("struct "; cname ; "*";)
     }
@@ -1437,15 +1437,16 @@ struct C99DataStructRepr {
     def prepare-type-sigs! [ +Mirth +C99 |- C99DataStructRepr -- ] {
         \self
         c99-line(
-            "MKTYPE_REFS(" put
+            @self needs-refcounting? if("MKTYPE_REFS(", "MKTYPE_FLAT(") put
             "TYPE_" put @self cname put "," put
             @self tag data name >Str put-cstr "," put
             @self cname put "," put
             "sizeof(void*),);" put
         )
         c99-line(
-            "#define TAG_" put @self cname put
-            " (REFS_FLAG | (TAG)&TYPE_" put @self cname put ")" put
+            "#define TAG_" put @self cname put " " put
+            @self needs-refcounting? if("(REFS_FLAG | ", "(") put
+            "(TAG)&TYPE_" put @self cname put ")" put
         )
         c99-line(
             "#define MK_" put @self cname put "(x) " put
@@ -1461,7 +1462,12 @@ struct C99DataStructRepr {
         \self
         c99-line("struct " put @self cname put " {" put)
         c99-nest(
-            c99-line("REFS refs;" put)
+            @self needs-refcounting? if(
+                c99-line("REFS refs;" put),
+                @self fields has(is-physical?) else(
+                    c99-line("int dummy;" put) # TODO: This should be considered a unit type.
+                )
+            )
             @self fields for(
                 \field
                 @field is-physical? then(
@@ -1501,13 +1507,15 @@ struct C99DataStructRepr {
             "V_" put @self cname put "," put
             "ptrs)" put
         )
-        c99-line("static void " put @self cname put "_free (VAL vself) {" put)
-        c99-nest(
-            c99-line("ASSERT(vself.tag == TAG_" put @self cname put ");" put)
-            c99-line(@self underlying-c99-type put " self = vself.data.ptr;" put)
-            "self" @self free-struct!
+        @self needs-refcounting? then(
+            c99-line("static void " put @self cname put "_free (VAL vself) {" put)
+            c99-nest(
+                c99-line("ASSERT(vself.tag == TAG_" put @self cname put ");" put)
+                c99-line(@self underlying-c99-type put " self = vself.data.ptr;" put)
+                "self" @self free-struct!
+            )
+            c99-line("}" put)
         )
-        c99-line("}" put)
 
         c99-line("static void " put @self cname put "_trace_ (VAL vself, int fd) {" put)
         c99-nest(
@@ -1531,37 +1539,39 @@ struct C99DataStructRepr {
                     ") {" put
                 )
                 c99-nest(
-                    c99-line("if (self->refs == 1) {" put )
-                    c99-nest(
-                        @field c99-repr needs-refcounting? then(
-                            c99-line(
-                                "decref(" put
-                                Str("self->" ; @field cname ;)
-                                @field c99-repr mk-macro put
-                                ");" put
-                            )
-                        )
-                        c99-line("self->" put @field cname put " = x;" put)
-                        c99-line("return self;" put)
-                    )
-                    c99-line("}" put)
-                    c99-line(@self underlying-c99-type put " self2 = calloc(1, sizeof * self2);" put)
-                    c99-line("ASSERT(self2); memcpy(self2, self, sizeof * self2);" put)
-                    @self fields for(\field2
-                        @field cname @field2 cname = if(
-                            c99-line("self2->" put @field cname put " = x;" put),
-                            @field2 c99-repr needs-refcounting? then(
-                                c99-line(
-                                    "incref(" put
-                                    Str("self2->"; @field2 cname ;)
-                                    @field2 c99-repr mk-macro put
-                                    ");" put
+                    @self needs-refcounting? then(
+                        c99-line("if (self->refs > 1) {" put )
+                        c99-nest(
+                            c99-line(@self underlying-c99-type put " self2 = calloc(1, sizeof * self2);" put)
+                            c99-line("ASSERT(self2); memcpy(self2, self, sizeof * self2);" put)
+                            @self fields for(\field2
+                                @field cname @field2 cname = if(
+                                    c99-line("self2->" put @field cname put " = x;" put),
+                                    @field2 c99-repr needs-refcounting? then(
+                                        c99-line(
+                                            "incref(" put
+                                            Str("self2->"; @field2 cname ;)
+                                            @field2 c99-repr mk-macro put
+                                            ");" put
+                                        )
+                                    )
                                 )
                             )
+                            c99-line("self->refs--;" put)
+                            c99-line("return self2;" put)
+                        )
+                        c99-line("}" put)
+                    )
+                    @field c99-repr needs-refcounting? then(
+                        c99-line(
+                            "decref(" put
+                            Str("self->" ; @field cname ;)
+                            @field c99-repr mk-macro put
+                            ");" put
                         )
                     )
-                    c99-line("self->refs--;" put)
-                    c99-line("return self2;" put)
+                    c99-line("self->" put @field cname put " = x;" put)
+                    c99-line("return self;" put)
                 )
                 c99-line("}" put)
             )
@@ -1577,7 +1587,9 @@ struct C99DataStructRepr {
             "calloc(1, sizeof *" put @struct-ptr put ");" put
         )
         c99-line("ASSERT(" put @struct-ptr put ");" put)
-        c99-line(@struct-ptr put "->refs = 1;" put)
+        @self needs-refcounting? then(
+            c99-line(@struct-ptr put "->refs = 1;" put)
+        )
         @self fields reverse-for(
             \field
             @field input pop-stack-part! @field c99-repr consume-as \expr
@@ -1617,23 +1629,27 @@ struct C99DataStructRepr {
             +C99Value +C99Value/Resource.+Left
             @field input push-stack-part!
         )
-        c99-line("if (!--(" put @struct-ptr put "->refs)) {" put)
-        c99-nest:c99-line("free(" put @struct-ptr put ");" put)
-        c99-line("} else {" put)
-        c99-nest(
-            @self fields for(
-                \field
-                @field c99-repr needs-refcounting? then(
-                    c99-line(
-                        "incref(" put
-                        Str( @struct-val ; "." ; @field cname ; )
-                        @field c99-repr mk-macro put
-                        ");" put
+        @self needs-refcounting? if(
+            c99-line("if (!--(" put @struct-ptr put "->refs)) {" put)
+            c99-nest:c99-line("free(" put @struct-ptr put ");" put)
+            c99-line("} else {" put)
+            c99-nest(
+                @self fields for(
+                    \field
+                    @field c99-repr needs-refcounting? then(
+                        c99-line(
+                            "incref(" put
+                            Str( @struct-val ; "." ; @field cname ; )
+                            @field c99-repr mk-macro put
+                            ");" put
+                        )
                     )
                 )
             )
+            c99-line("}" put),
+
+            c99-line("free(" put @struct-ptr put ");" put)
         )
-        c99-line("}" put)
     }
 }
 
@@ -1774,7 +1790,7 @@ struct C99DataSumRepr {
     def enum-cname { cname Str("enum "; ; "_tag";) }
     def union-cname { cname Str("union " ; ; "_ptr";) }
     def struct-cname { cname Str("struct "; ;) }
-    def needs-refcounting? { drop True }
+    def needs-refcounting? { data is-resource? not }
     def underlying-c99-type [ +Mirth |- C99DataSumRepr -- Str ] { struct-cname }
     def v-macro-prefix-suffix { cname Str("V_"; ; "(";) ")" }
     def mk-macro { cname Str( "MK_" ; ; "(" ; ; ")" ; ) }
@@ -1796,7 +1812,10 @@ struct C99DataSumRepr {
 
         c99-line(@self union-cname put " {" put)
         c99-nest(
-            c99-line("REFS* refs;" put)
+            @self needs-refcounting? then(
+                c99-line("REFS* refs;" put)
+            )
+            c99-line("void* ptr;" put)
             @self data tags for(
                 \tag
                 c99-line(
@@ -1815,7 +1834,7 @@ struct C99DataSumRepr {
         )
         c99-line("};" put)
         c99-line(
-            "MKTYPE_REFS(" put
+            @self needs-refcounting? if("MKTYPE_REFS(", "MKTYPE_FLAT(") put
             "TYPE_" put @self cname put "," put
             @self data name >Str put-cstr "," put
             @self cname put "," put
@@ -1823,7 +1842,8 @@ struct C99DataSumRepr {
         )
         c99-line(
             "#define TAG_" put @self cname put " " put
-            "(REFS_FLAG | (TAG)&TYPE_" put @self cname put ")" put
+            @self needs-refcounting? if("(REFS_FLAG | ", "(") put
+            "(TAG)&TYPE_" put @self cname put ")" put
         )
         c99-line(
             "#define MKU_" put @self cname put "(x) " put
@@ -1840,7 +1860,7 @@ struct C99DataSumRepr {
             c99-line(
                 "return (" put @self struct-cname put "){ " put
                 ".tag=PTREXTRA((v).data.u64), " put
-                ".ptr.refs=PTRPTR((v).data.u64) };" put
+                ".ptr.ptr=PTRPTR((v).data.u64) };" put
             )
         )
         c99-line("}" put)
@@ -1849,7 +1869,7 @@ struct C99DataSumRepr {
         c99-nest(
             c99-line(
                 "return (VAL){.tag=TAG_" put @self cname put ", " put
-                ".data.u64=PTRMK((x).tag, (x).ptr.refs, 0)};" put
+                ".data.u64=PTRMK((x).tag, (x).ptr.ptr, 0)};" put
             )
         )
         c99-line("}" put)
@@ -1870,29 +1890,31 @@ struct C99DataSumRepr {
             c99-line("write(fd, " put @msg put-cstr ", " put @msg num-bytes >Str put ");" put)
         )
         c99-line("}" put)
-        c99-line("void " put @self cname put "_free (VAL v) {" put)
-        c99-nest(
-            c99-line(@self struct-cname put " self = V_" put @self cname put "(v);" put)
-            c99-line("switch (self.tag) {" put)
+        @self needs-refcounting? then(
+            c99-line("void " put @self cname put "_free (VAL v) {" put)
             c99-nest(
-                @self tags for (
-                    dup tag \tag
-                    dup union-member? unwrap("__") \union-member
-                    struct? if?(
-                        c99-line("case " put @tag cname put ": {" put)
-                        c99-nest(
-                            Str("self.ptr." ; @union-member ;)
-                            swap free-struct!
-                        )
-                        c99-line("} break;" put),
+                c99-line(@self struct-cname put " self = V_" put @self cname put "(v);" put)
+                c99-line("switch (self.tag) {" put)
+                c99-nest(
+                    @self tags for (
+                        dup tag \tag
+                        dup union-member? unwrap("__") \union-member
+                        struct? if?(
+                            c99-line("case " put @tag cname put ": {" put)
+                            c99-nest(
+                                Str("self.ptr." ; @union-member ;)
+                                swap free-struct!
+                            )
+                            c99-line("} break;" put),
 
-                        c99-line("case " put @tag cname put ": break;" put)
+                            c99-line("case " put @tag cname put ": break;" put)
+                        )
                     )
                 )
+                c99-line("}" put)
             )
             c99-line("}" put)
         )
-        c99-line("}" put)
     }
 }
 
