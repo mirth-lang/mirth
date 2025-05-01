@@ -1462,8 +1462,11 @@ struct C99DataStructRepr {
         \self
         c99-line("struct " put @self cname put " {" put)
         c99-nest(
-            @self needs-refcounting? then(
-                c99-line("REFS refs;" put)
+            @self needs-refcounting? if(
+                c99-line("REFS refs;" put),
+                @self fields has(is-physical?) else(
+                    c99-line("int dummy;" put) # TODO: This should be considered a unit type.
+                )
             )
             @self fields for(
                 \field
