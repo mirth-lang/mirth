@@ -55,6 +55,7 @@ table +Mirth |- Data {
     def params         [ +Mirth |- Data -- List(Var)    ] { ~params force! }
     def ctype?         [ +Mirth |- Data -- Maybe(CType) ] { ~ctype? force! }
     def is-unit?       [ +Mirth |- Data -- Bool ] { unit? >Bool }
+    def is-physical?   [ +Mirth |- Data -- Bool ] { physical-bits? has:0= not }
 
     def name; [ +Mirth +Str |- Data -- ] { name name; }
     def qname; [ +Mirth +Str |- Data -- ] { qname-hard qname; }

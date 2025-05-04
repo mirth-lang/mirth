@@ -137,8 +137,12 @@ def while-none(f) [ (*a -- *a Maybe(b)) *a -- *a b ] {
     None until(drop f dup some?) unwrap(impossible!)
 }
 
-inline def Bool.>Maybe (f) [ ( *a -- *a b ) *a Bool -- *a Maybe(b) ] {
+inline def Bool.>Maybe(f) [ ( *a -- *a b ) *a Bool -- *a Maybe(b) ] {
     if(f Some, None)
+}
+
+inline def Bool.>Maybe(f,g) [ (*a -- *b c, *a -- *b) *a Bool -- *b Maybe(c) ] {
+    if(f Some, g None)
 }
 
 
