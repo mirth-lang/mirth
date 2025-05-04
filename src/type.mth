@@ -103,7 +103,7 @@ data Type {
     def is-physical? [ +Mirth |- Type -- Bool ] {
         { Meta -> expand-if(is-physical?, "[bug] unbound meta at Type.is-physical?" panic!) }
         { Prim -> is-physical? }
-        { _ -> drop True }
+        { _ -> physical-bits? has:0= not }
     }
 
     def expand [ +Mirth |- Type -- Type ] {
@@ -1676,6 +1676,80 @@ struct Subst {
     def Resource.apply-subst [ +Mirth subst:Subst Resource |- ] {
         { Resource -> apply-subst Resource }
     }
+}
+
+###################################################
+# classify types as empty, unit, finite, infinite #
+###################################################
+
+def Type.physical-bits? [ +Mirth |- Type -- Maybe(Nat) ] {
+    { Error -> None }
+    { Ignore -> None }
+    { Prim -> physical-bits? }
+    { Meta -> expand-if(physical-bits?, drop None) }
+    { Hole -> drop None }
+    { Var -> drop None }
+    { Table -> drop 40u Some } # should verify / enforce this somewhere
+    { Data -> physical-bits? }
+    { DataPartial -> data physical-bits? }
+    { Stack -> physical-bits? }
+    { Arrow -> drop None }
+    { App -> drop physical-bits? }
+    { Mut -> drop None }
+    { Value -> drop None }
+}
+
+def StackType.physical-bits? [ +Mirth |- StackType -- Maybe(Nat) ] {
+    { Error -> None }
+    { Ignore -> None }
+    { Unit -> 0u Some }
+    { Meta -> expand-if(physical-bits?, drop None) }
+    { Var -> drop None }
+    { Cons -> dip:physical-bits? physical-bits? map2:+ }
+    { With -> dip:physical-bits? physical-bits? map2:+ }
+    { ConsLabel -> drop dip:physical-bits? physical-bits? map2:+ }
+    { WithLabel -> drop dip:physical-bits? physical-bits? map2:+ }
+}
+
+def Resource.physical-bits? [ +Mirth |- Resource -- Maybe(Nat) ] {
+    >Type physical-bits?
+}
+
+def PrimType.physical-bits? [ +Mirth |- PrimType -- Maybe(Nat) ] {
+    { KIND     -> 0u Some }
+    { TYPE     -> 0u Some }
+    { RESOURCE -> 0u Some }
+    { STACK    -> 0u Some }
+
+    { Bool -> 1u Some }
+    { I8 -> 8u Some } { I16 -> 16u Some } { I32 -> 32u Some } { I64 -> 64u Some }
+    { U8 -> 8u Some } { U16 -> 16u Some } { U32 -> 32u Some } { U64 -> 64u Some }
+    { F32 -> 32u Some } { F64 -> 64u Some }
+    { Ptr -> 48u Some }
+
+    { Int -> None }
+    { Nat -> None }
+    { Str -> None }
+    { Array -> None }
+
+    { World -> 0u Some }
+    { Debug -> 0u Some }
+}
+
+field(+Mirth |- Data.tag-bits, Data, Nat, @self tags len log2-ceil)
+field(+Mirth |- Data.physical-bits?, Data, Maybe(Nat),
+    None @self physical-bits?!
+    0u Some
+    @self tags for(physical-bits? map2:max)
+    map(@self tag-bits +)
+)
+
+field(+Mirth |- Tag.physical-bits?, Tag, Maybe(Nat),
+    None @self physical-bits?!
+    @self type dom physical-bits?)
+
+def Nat.log2-ceil [ Nat -- Nat ] {
+    0u swap while(dup 1u >, 2u div dip:1+) drop
 }
 
 ###########
