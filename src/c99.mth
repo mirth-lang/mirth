@@ -1297,6 +1297,7 @@ struct C99DataUnitRepr {
     }
     def >C99DataRepr { C99DataRepr.Unit }
     def >C99DataTagRepr { C99DataTagRepr.Unit }
+    def >C99DataSumTagRepr { C99DataSumTagRepr.Unit }
     def tag-repr [ Tag C99DataUnitRepr -- C99DataUnitRepr ] { nip }
 
     def needs-refcounting? { drop False }
@@ -1749,37 +1750,37 @@ struct C99DataEnumTagRepr {
 }
 
 data C99DataSumTagRepr {
-    NoInputs [ Tag ]
-    Struct   [ C99DataStructRepr ]
+    Unit   [ C99DataUnitRepr   ]
+    Struct [ C99DataStructRepr ]
     --
     def is-struct? [ C99DataSumTagRepr -- Bool ] { Struct -> drop True, _ -> drop False }
     def struct? [ C99DataSumTagRepr -- Maybe(C99DataStructRepr) ] { Struct -> Some, _ -> drop None }
 
     def Make [ +Mirth |- Tag -- C99DataSumTagRepr ] {
-        dup num-total-inputs 0= if(
-            C99DataSumTagRepr.NoInputs,
-            C99DataStructRepr.Make >C99DataSumTagRepr
-        )
+        None
+        or?   (dup C99DataUnitRepr.MakeOfTag? map:>C99DataSumTagRepr)
+        else? (dup C99DataStructRepr.Make         >C99DataSumTagRepr)
+        nip
     }
     def >C99DataTagRepr { C99DataTagRepr.Sum }
 
     def prepare-tag-type-defs! [ +Mirth +C99 |- C99DataSumTagRepr -- ] {
-        { NoInputs -> drop }
+        { Unit   -> drop }
         { Struct -> emit-struct-def! }
     }
 
     def tag [ +Mirth |- C99DataSumTagRepr -- Tag ] {
-        { NoInputs -> }
+        { Unit   -> tag }
         { Struct -> tag }
     }
 
     def union-member? [ +Mirth |- C99DataSumTagRepr -- Maybe(Str) ] {
-        { NoInputs -> drop None }
+        { Unit   -> drop None }
         { Struct -> tag name mangled Some }
     }
 
     def pack-struct! [ +Mirth +C99Branch |- C99DataSumTagRepr -- Str ] {
-        { NoInputs -> drop "0" }
+        { Unit   -> pack-unit! "0" }
         { Struct -> pack-struct! }
     }
 
@@ -1803,7 +1804,7 @@ data C99DataSumTagRepr {
     }
 
     def unpack-struct! [ +Mirth +C99Branch |- Str C99DataSumTagRepr -- ] {
-        { NoInputs -> drop2 }
+        { Unit   -> unpack-unit! drop }
         { Struct -> unpack-struct! }
     }
 
