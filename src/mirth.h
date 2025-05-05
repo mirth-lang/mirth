@@ -137,7 +137,7 @@ static void default_run    (VAL v);
     static void mpfx##_free (VAL v); \
     MKTYPE_FLAT(mtype,mname,mpfx,mstride, .free=mpfx##_free, .flags=REFS_FLAG, __VA_ARGS__)
 
-#define STRIDE_BOOL (-(size_t)1)
+#define STRIDE_BOOL ((size_t)-1)
 #define STRIDE_UNIT 0
 
 MKTYPE_FLAT(TYPE_BOOL,"Bool",bool,STRIDE_BOOL,);
