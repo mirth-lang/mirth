@@ -137,7 +137,10 @@ static void default_run    (VAL v);
     static void mpfx##_free (VAL v); \
     MKTYPE_FLAT(mtype,mname,mpfx,mstride, .free=mpfx##_free, .flags=REFS_FLAG, __VA_ARGS__)
 
-MKTYPE_FLAT(TYPE_BOOL,"Bool",bool,0,);
+#define STRIDE_BOOL (-(size_t)1)
+#define STRIDE_UNIT 0
+
+MKTYPE_FLAT(TYPE_BOOL,"Bool",bool,STRIDE_BOOL,);
 MKTYPE_REFS(TYPE_INT,"Int",int,8,);
 MKTYPE_REFS(TYPE_NAT,"Nat",nat,8,);
 MKTYPE_FLAT(TYPE_I64,"I64",i64,8,);
@@ -155,8 +158,10 @@ static void fnptr_run (VAL v);
 MKTYPE_FLAT(TYPE_FNPTR,"FnPtr",fnptr,sizeof(FNPTR),.run=fnptr_run,);
 MKTYPE_REFS(TYPE_STR,"Str",str,sizeof(void*),);
 static void tup_run (VAL v);
-MKTYPE_REFS(TYPE_TUP,"Tup",tup,sizeof(void*),.run=tup_run,);
+MKTYPE_REFS(TYPE_TUP,"Tup",tup,8,.run=tup_run,);
 MKTYPE_REFS(TYPE_ARR,"Array",arr,sizeof(void*),);
+MKTYPE_FLAT(TYPE_WORLD,"World",world,STRIDE_UNIT,);
+MKTYPE_FLAT(TYPE_DEBUG,"Debug",debug,STRIDE_UNIT,);
 
 #define TAG_BOOL  ((TAG)&TYPE_BOOL)
 #define TAG_I64   ((TAG)&TYPE_I64)
@@ -171,6 +176,8 @@ MKTYPE_REFS(TYPE_ARR,"Array",arr,sizeof(void*),);
 #define TAG_F32   ((TAG)&TYPE_F32)
 #define TAG_PTR   ((TAG)&TYPE_PTR)
 #define TAG_FNPTR ((TAG)&TYPE_FNPTR)
+#define TAG_WORLD ((TAG)&TYPE_WORLD)
+#define TAG_DEBUG ((TAG)&TYPE_DEBUG)
 #define TAG_INT   (REFS_FLAG | (TAG)&TYPE_INT)
 #define TAG_NAT   (REFS_FLAG | (TAG)&TYPE_NAT)
 #define TAG_STR   (REFS_FLAG | (TAG)&TYPE_STR)
@@ -246,6 +253,9 @@ MKTYPE_REFS(TYPE_ARR,"Array",arr,sizeof(void*),);
 
 #define VARR(v)   ((v).data.arr)
 #define MKARR(x)  ((VAL){.tag=TAG_ARR, .data={.arr=(x)}})
+
+#define MKWORLD(x) ((VAL){.tag=TAG_WORLD})
+#define MKDEBUG(x) ((VAL){.tag=TAG_DEBUG})
 
 #define INT63_MIN (-0x4000000000000000LL)
 #define INT63_MAX ( 0x3FFFFFFFFFFFFFFFLL)
@@ -1528,6 +1538,9 @@ void f64_trace_(VAL v, int fd) { (void)v; write(fd, "<F64>", 5); }
 void ptr_trace_(VAL v, int fd) { (void)v; write(fd, "<Ptr>", 5); }
 void fnptr_trace_(VAL v, int fd) { (void)v; write(fd, "<FnPtr>", 7); }
 
+void world_trace_(VAL v, int fd) { (void)v; write(fd, "+World", 6); }
+void debug_trace_(VAL v, int fd) { (void)v; write(fd, "+Debug", 6); }
+
 static STR* u64_to_str (uint64_t x) {
     bool cache = (x <= 255);
     static STR* scache[256] = {0};
@@ -1846,6 +1859,26 @@ static void bool_poke_many_(ARR* arr, USIZE lo, USIZE hi, VAL v) {
     }
 }
 
+#define gen_peek_poke_unit(pfx,mkmacro) \
+    static VAL pfx##_peek_(ARR* arr, USIZE i) { return mkmacro(0); } \
+    static void pfx##_poke_(ARR* arr, USIZE i, VAL v) { } \
+    static void pfx##_poke_many_(ARR* arr, USIZE lo, USIZE hi, VAL v) { }
+
+#define gen_peek_poke_trans(wpfx,wtag,vpfx,vtag) \
+    static VAL wpfx##_peek_(ARR* arr, USIZE i) { \
+        VAL v = vpfx##_peek_(arr,i);\
+        v.tag = wtag; \
+        return v; \
+    } \
+    static void wpfx##_poke_(ARR* arr, USIZE i, VAL v) { \
+        v.tag = vtag; \
+        vpfx##_poke_(arr,i,v); \
+    } \
+    static void wpfx##_poke_many_(ARR* arr, USIZE lo, USIZE hi, VAL v) { \
+        v.tag = vtag; \
+        vpfx##_poke_many_(arr,lo,hi,v); \
+    }
+
 #define gen_peek_poke(pfx,mkmacro,vmacro,fld) \
     static VAL pfx##_peek_(ARR* arr, USIZE i) { \
         return mkmacro(arr->data.fld[i]); \
@@ -1875,6 +1908,8 @@ gen_peek_poke(fnptr,MKFNPTR,VFNPTR,fnptrs)
 gen_peek_poke(str,MKSTR,VSTR,strs)
 gen_peek_poke(tup,MKTUP,VTUP,tups)
 gen_peek_poke(arr,MKARR,VARR,arrs)
+gen_peek_poke_unit(world,MKWORLD)
+gen_peek_poke_unit(debug,MKDEBUG)
 
 static VAL val_peek_(ARR* arr, USIZE i) {
     ASSERT(arr);
@@ -1910,8 +1945,7 @@ static ARR* arr_new_of(TAG tag, USIZE cap) {
     const TYPE* ty = PTRPTR(tag);
     ASSERT(ty);
     USIZE stride = ty->stride;
-    ASSERT(stride || (tag == TAG_BOOL));
-    USIZE nbytes = stride ? stride * cap : cap/8 + 4;
+    USIZE nbytes = ((stride == STRIDE_BOOL) ? cap/8 : cap*stride) + 4;
     ARR* arr = calloc(1, sizeof(ARR) + nbytes);
     ASSERT(arr);
     arr->refs = 1;
@@ -1944,7 +1978,7 @@ static ARR* arr_reserve(ARR* arr, TAG tag, size_t need_cap) {
     if (need_cap < size) need_cap = arr->size;
     USIZE cap = need_cap*2 + 4;
     ARR* arr2 = arr_new_of(tag, cap);
-    USIZE mbytes = stride ? (size * stride) : (size/8 + 4);
+    USIZE mbytes = ((stride == STRIDE_BOOL) ? size/8 : size*stride) + 4;
     arr2->size = size;
     memcpy(arr2->data.u8s, arr->data.u8s, mbytes);
     if (TAG_HAS_REFS(tag)) {
@@ -2049,7 +2083,7 @@ static ARR* arr_cat(ARR* arr, ARR* arr2) {
     arr = arr_reserve(arr, arr->tag, n1 + n2);
     ASSERT(arr && (arr->cap >= n1 + n2));
     arr->size += n2;
-    if (arr->stride > 0) {
+    if (arr->stride != STRIDE_BOOL) {
         memcpy(arr->data.u8s + n1*arr->stride, arr2->data.u8s, n2*arr->stride);
         if (TAG_HAS_REFS(arr->tag)) {
             for (USIZE i = 0; i < n2; i++) {
@@ -2057,7 +2091,6 @@ static ARR* arr_cat(ARR* arr, ARR* arr2) {
             }
         }
     } else {
-        ASSERT(arr->tag == TAG_BOOL);
         if (n1 % 8 == 0) {
             memcpy(arr->data.u8s + n1/8, arr2->data.u8s, n2/8 + 1);
         } else {
@@ -2082,7 +2115,7 @@ static ARR* arr_slice(ARR* arr, USIZE from, USIZE len) {
     ASSERT(from <= arr->size - len);
     arr = arr_thaw(arr);
     if (from > 0) {
-        if (arr->stride) {
+        if (arr->stride != STRIDE_BOOL) {
             if (TAG_HAS_REFS(arr->tag)) {
                 for (USIZE i = 0; i < from; i++) {
                     decref(val_peek_(arr, i));
@@ -2093,7 +2126,6 @@ static ARR* arr_slice(ARR* arr, USIZE from, USIZE len) {
             }
             memmove(arr->data.u8s, arr->data.u8s + from*arr->stride, arr->stride*len);
         } else {
-            ASSERT(arr->tag == TAG_BOOL);
             if (from % 8 == 0) {
                 memmove(arr->data.u8s, arr->data.u8s + from/8, len/8 + 1);
             } else {

@@ -79,6 +79,7 @@ table +Mirth |- Table {
     name: Name
     num-buffer: Buffer
     inline-fields: List(Field) { L0 }
+    cname: Str { @self qname-hard mangled }
     ~qname: Prop(QName)
     ~owner: Prop(StateOwner)
     ~alloc-word: Word

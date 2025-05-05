@@ -63,6 +63,7 @@ def run-output-c99! [ +World +Mirth |- Arrow C99_Options -- ] {
         c99-start!
         c99-header!
         c99-label-defs!
+        c99-table-defs!
         c99-field-defs!
         c99-data-defs!
         c99-tag-defs!
@@ -384,15 +385,13 @@ def c99-tag-set-label! [ +Mirth +C99Branch |- TagField -- ] {
 }
 
 def c99-table-to-index! [ +Mirth +C99Branch |- Table -- ] {
-    C99ReprType.Table pop-value!
-    C99ReprType.U64 convert-value!
-    push-value!
+    C99ReprType.Table dup pop-value! consume-as
+    C99ReprType.U64 push-value-expression!(put)
 }
 
 def c99-table-from-index! [ +Mirth +C99Branch |- Table -- ] {
-    C99ReprType.U64 pop-value!
-    C99ReprType.Table convert-value!
-    push-value!
+    C99ReprType.U64 dup pop-value! consume-as swap
+    C99ReprType.Table push-value-expression!(put)
 }
 
 def c99-external-blocks! [ +Mirth +C99 |- ] {
@@ -1218,6 +1217,22 @@ data C99DataRepr {
     def struct?     { Struct -> Some, _ -> drop None }
     def sum?        { Sum    -> Some, _ -> drop None }
 
+    def cname [ +Mirth |- C99DataRepr -- Str ] {
+        { Unit   -> cname }
+        { Enum   -> cname }
+        { Trans  -> cname }
+        { Struct -> cname }
+        { Sum    -> cname }
+    }
+
+    def stride [ +Mirth |- C99DataRepr -- Str ] {
+        { Unit   -> stride }
+        { Enum   -> stride }
+        { Trans  -> stride }
+        { Struct -> stride }
+        { Sum    -> stride }
+    }
+
     def tag-repr [ +Mirth |- Tag C99DataRepr -- C99DataTagRepr ] {
         { Unit   -> tag-repr >C99DataTagRepr }
         { Enum   -> tag-repr >C99DataTagRepr }
@@ -1285,13 +1300,16 @@ data C99DataRepr {
 
 struct C99DataUnitRepr {
     tag: Tag
+    cname: Str
     --
     def Make? [ +Mirth |- Data -- Maybe:C99DataUnitRepr ] {
         single-tag? bind:C99DataUnitRepr.MakeOfTag?
     }
     def MakeOfTag? [ +Mirth |- Tag -- Maybe:C99DataUnitRepr ] {
         dup physical-bits? has:0= >Maybe(
-            >tag C99DataUnitRepr,
+            >tag
+            @tag only-tag? if(@tag data cname, @tag cname) >cname
+            C99DataUnitRepr,
             drop
         )
     }
@@ -1301,12 +1319,42 @@ struct C99DataUnitRepr {
     def tag-repr [ Tag C99DataUnitRepr -- C99DataUnitRepr ] { nip }
 
     def needs-refcounting? { drop False }
+    def data { tag data }
+    def stride { drop "STRIDE_UNIT" }
     def underlying-c99-type { drop "void" }
-    def v-macro-prefix-suffix { drop "" "" }
-    def mk-macro { drop2 "MKI64(0)" }
+    def v-macro-prefix-suffix { drop "(" ", 0)" }
+    def mk-macro { nip cname Str("MK_"; ; "(0)";) }
     def get-data-tag { nip tag value-show "LL" cat }
-    def prepare-type-sigs! [ +Mirth +C99 |- C99DataUnitRepr -- ] { drop }
-    def prepare-type-defs! [ +Mirth +C99 |- C99DataUnitRepr -- ] { drop }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataUnitRepr -- ] {
+        \self
+        c99-line(
+            "MKTYPE_FLAT(" put
+            "TYPE_" put @self cname put "," put
+            @self data name >Str put-cstr "," put
+            @self cname put "," put
+            @self stride put ",);" put
+        )
+        c99-line(
+            "#define TAG_" put @self cname put " " put
+            "((TAG)&TYPE_" put @self cname put ")" put
+        )
+        c99-line(
+            "#define MK_" put @self cname put "(x) " put
+            "((VAL){.tag=TAG_" put @self cname put "})" put
+        )
+    }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataUnitRepr -- ] {
+        \self
+        c99-line(
+            "gen_peek_poke_unit(" put
+            @self cname put "," put
+            "MK_" put @self cname put ")" put
+        )
+        c99-line("void " put @self cname put "_trace_(VAL i, int fd) {" put)
+        @self tag data name >Str \msg
+        c99-nest:c99-line("write(fd," put @msg put-cstr "," put @msg num-bytes >Str put ");" put)
+        c99-line("}" put)
+    }
 
     def pack-unit! [ +Mirth +C99Branch |- C99DataUnitRepr -- ] {
         tag inputs reverse-for(pop-stack-part! rdrop)
@@ -1336,6 +1384,7 @@ struct C99DataEnumRepr {
     def tag-repr [ Tag C99DataEnumRepr -- C99DataEnumTagRepr ] { >data-repr >tag C99DataEnumTagRepr }
 
     def cname { data cname }
+    def stride { drop "8" }
     def needs-refcounting? { drop False }
     def underlying-c99-type { cname Str("enum "; ;) }
     def v-macro-prefix-suffix { cname Str("V_"; ; "(";) ")" }
@@ -1360,7 +1409,7 @@ struct C99DataEnumRepr {
             "TYPE_" put @self cname put "," put
             @self data name >Str put-cstr "," put
             @self cname put "," put
-            "8,);" put
+            @self stride put ",);" put
         )
         c99-line(
             "#define TAG_" put @self cname put
@@ -1394,16 +1443,79 @@ struct C99DataEnumRepr {
     }
 }
 
+def Tycon.c99-repr-prefix [ +Mirth |- Tycon -- Str ] {
+    { Prim -> c99-repr-prefix }
+    { Data -> cname }
+    { Table -> cname }
+}
+
+def PrimType.c99-repr-prefix [ +Mirth |- PrimType -- Str ] {
+    { KIND -> "mthkind" }
+    { TYPE -> "mthtype" }
+    { STACK -> "mthtype" }
+    { RESOURCE -> "mthresource" }
+    { Bool -> "bool" }
+    { Int -> "int" } { Nat -> "nat" }
+    { U8 -> "u8" } { U16 -> "u16" } { U32 -> "u32" } { U64 -> "u64" }
+    { I8 -> "i8" } { I16 -> "i16" } { I32 -> "i32" } { I64 -> "i64" }
+    { F32 -> "f32" } { F64 -> "f64" }
+    { Ptr -> "ptr" } { Str -> "str" } { Array -> "arr" }
+    { World -> "world" } { Debug -> "debug" }
+}
+
+def Tycon.c99-repr-stride [ +Mirth |- Tycon -- Str ] {
+    { Prim -> c99-repr-stride }
+    { Data -> c99-repr stride }
+    { Table -> drop "8" }
+}
+
+def PrimType.c99-repr-stride [ +Mirth |- PrimType -- Str ] {
+    { KIND -> "STRIDE_UNIT" }
+    { TYPE -> "STRIDE_UNIT" }
+    { STACK -> "STRIDE_UNIT" }
+    { RESOURCE -> "STRIDE_UNIT" }
+    { Bool -> "STRIDE_BOOL" }
+    { Int -> "8" } { Nat -> "8" }
+    { U8 -> "1" } { U16 -> "2" } { U32 -> "4" } { U64 -> "8" }
+    { I8 -> "1" } { I16 -> "2" } { I32 -> "4" } { I64 -> "8" }
+    { F32 -> "4" } { F64 -> "8" }
+    { Array -> "sizeof(void*)" }
+    { Ptr -> "sizeof(void*)" } { Str -> "sizeof(void*)" }
+    { World -> "STRIDE_UNIT" } { Debug -> "STRIDE_UNIT" }
+}
+
+def Tycon.c99-repr-tag [ +Mirth |- Tycon -- Str ] {
+    { Prim -> c99-repr-tag }
+    { Data -> cname "TAG_" swap cat }
+    { Table -> cname "TAG_" swap cat }
+}
+
+def PrimType.c99-repr-tag [ +Mirth |- PrimType -- Str ] {
+    { KIND -> "TAG_KIND" }
+    { TYPE -> "TAG_TYPE" }
+    { STACK -> "TAG_STACK" }
+    { RESOURCE -> "TAG_RESOURCE" }
+    { Bool -> "TAG_BOOL" }
+    { Int -> "TAG_INT" } { Nat -> "TAG_NAT" }
+    { U8 -> "TAG_U8" } { U16 -> "TAG_U16" } { U32 -> "TAG_U32" } { U64 -> "TAG_U64" }
+    { I8 -> "TAG_I8" } { I16 -> "TAG_I16" } { I32 -> "TAG_I32" } { I64 -> "TAG_I64" }
+    { F32 -> "TAG_F32" } { F64 -> "TAG_F64" }
+    { Array -> "TAG_ARR" } { Str -> "TAG_STR" } { Ptr -> "TAG_PTR" }
+    { World -> "TAG_WORLD" } { Debug -> "TAG_DEBUG" }
+}
+
 struct C99DataTransRepr {
     tag: Tag
     input: StackTypePart
     input-tycon: Tycon
     c99-repr: C99ReprType
+    cname: Str
     --
     def Make? [ +Mirth |- Data -- Maybe:C99DataTransRepr ] {
         semi-transparent? map (
             /SemiTransparentData
             @input type/resource either(c99-repr,c99-repr) >c99-repr
+            @tag only-tag? if(@tag data cname, @tag cname) >cname
             C99DataTransRepr
         )
     }
@@ -1411,13 +1523,63 @@ struct C99DataTransRepr {
     def >C99DataTagRepr { C99DataTagRepr.Trans }
     def tag-repr [ Tag C99DataTransRepr -- C99DataTransRepr ] { nip }
 
+    def stride { input-tycon c99-repr-stride }
     def needs-refcounting? { c99-repr needs-refcounting? }
     def underlying-c99-type { c99-repr underlying-c99-type }
     def v-macro-prefix-suffix { c99-repr v-macro-prefix-suffix }
     def mk-macro { c99-repr mk-macro }
     def get-data-tag { nip tag value-show "LL" cat }
-    def prepare-type-sigs! [ +Mirth +C99 |- C99DataTransRepr -- ] { drop }
-    def prepare-type-defs! [ +Mirth +C99 |- C99DataTransRepr -- ] { drop }
+    def prepare-type-sigs! [ +Mirth +C99 |- C99DataTransRepr -- ] {
+        \self
+        @self needs-refcounting? \refcounted
+        c99-line(
+            @self needs-refcounting? if("MKTYPE_REFS(", "MKTYPE_FLAT(") put
+            "TYPE_" put @self cname put "," put
+            @self tag data name >Str put-cstr "," put
+            @self cname put "," put
+            @self stride put ",);" put
+        )
+
+        c99-line(
+            "#define TAG_" put
+            @self cname put
+            " (" put
+            @self needs-refcounting? then("REFS_FLAG | " put)
+            "(TAG)&TYPE_" put
+            @self cname put ")" put
+        )
+    }
+    def prepare-type-defs! [ +Mirth +C99 |- C99DataTransRepr -- ] {
+        \self
+        c99-line(
+            "gen_peek_poke_trans(" put
+            @self cname put "," put
+            "TAG_" put @self cname put "," put
+            @self input-tycon c99-repr-prefix put "," put
+            @self input-tycon c99-repr-tag put
+            ")" put
+        )
+
+        c99-line("static void " put @self cname put "_trace_ (VAL v, int fd) {" put)
+        c99-nest(
+            Str(@self tag name >Str ; "[" ;) \msg
+            c99-line("write(fd, " put @msg put-cstr ", " put @msg num-bytes >Str put ");" put)
+            c99-line("v.tag = " put @self input-tycon c99-repr-tag put ";" put)
+            c99-line(@self input-tycon c99-repr-prefix put "_trace_(v, fd);" put)
+            "]" !msg
+            c99-line("write(fd, " put @msg put-cstr ", " put @msg num-bytes >Str put ");" put)
+        )
+        c99-line("}" put)
+
+        @self needs-refcounting? then (
+            c99-line("static void " put @self cname put "_free (VAL v) {" put)
+            c99-nest(
+                c99-line("v.tag = " put @self input-tycon c99-repr-tag put ";" put)
+                c99-line(@self input-tycon c99-repr-prefix put "_free(v);" put)
+            )
+            c99-line("}" put)
+        )
+    }
 
     def construct! [ +Mirth +C99Branch |- C99DataTransRepr -- +C99Value/Resource ] {
         dup input pop-stack-part!
@@ -1450,6 +1612,7 @@ struct C99DataStructRepr {
 
     def data [ +Mirth |- C99DataStructRepr -- Data ] { tag data }
 
+    def stride { drop "sizeof(void*)" }
     def needs-refcounting? { tag outputs-resource? not }
     def underlying-c99-type [ +Mirth |- C99DataStructRepr -- Str ] {
         Str("struct "; cname ; "*";)
@@ -1466,9 +1629,9 @@ struct C99DataStructRepr {
         c99-line(
             @self needs-refcounting? if("MKTYPE_REFS(", "MKTYPE_FLAT(") put
             "TYPE_" put @self cname put "," put
-            @self tag data name >Str put-cstr "," put
+            @self data name >Str put-cstr "," put
             @self cname put "," put
-            "sizeof(void*),);" put
+            @self stride put ",);" put
         )
         c99-line(
             "#define TAG_" put @self cname put " " put
@@ -1835,6 +1998,7 @@ struct C99DataSumRepr {
     def enum-cname { cname Str("enum "; ; "_tag";) }
     def union-cname { cname Str("union " ; ; "_ptr";) }
     def struct-cname { cname Str("struct "; ;) }
+    def stride { drop "8" }
     def needs-refcounting? { data is-resource? not }
     def underlying-c99-type [ +Mirth |- C99DataSumRepr -- Str ] { struct-cname }
     def v-macro-prefix-suffix { cname Str("V_"; ; "(";) ")" }
@@ -1883,7 +2047,7 @@ struct C99DataSumRepr {
             "TYPE_" put @self cname put "," put
             @self data name >Str put-cstr "," put
             @self cname put "," put
-            "8,);" put
+            @self stride put ",);" put
         )
         c99-line(
             "#define TAG_" put @self cname put " " put
@@ -2039,7 +2203,7 @@ data C99ReprType {
         { TUP -> True }
         { Int -> True }
         { Nat -> True }
-        { Table -> drop False}
+        { Table -> drop False }
         { Data -> c99-repr need-refcounting? }
 
         { Void -> False }
@@ -2161,7 +2325,7 @@ data C99ReprType {
         { FNPTR -> "value_fnptr(" ")" }
         { ARR   -> "value_arr(" ")" }
         { TUP   -> "value_tup(" ")" }
-        { Table -> drop "value_u64(" ")" }
+        { Table -> Str( "V_"; cname ; "(";) ")" }
         { Data  -> c99-repr v-macro-prefix-suffix }
     }
 
@@ -2186,13 +2350,19 @@ data C99ReprType {
         { FNPTR -> Str( "MKFNPTR(" ; ; ")" ; ) }
         { ARR   -> Str( "MKARR(" ; ; ")" ; ) }
         { TUP   -> Str( "MKTUP(" ; ; ")" ; ) }
-        { Table -> drop Str( "MKU64(" ; ; ")" ; ) }
+        { Table -> Str( "MK_" ; cname ; "(" ; ; ")" ; ) }
         { Data  -> c99-repr mk-macro }
     }
 }
 
 def Resource.c99-repr [ +Mirth |- Resource -- C99ReprType ] {
     >Type c99-repr
+}
+
+def Tycon.c99-repr [ +Mirth |- Tycon -- C99ReprType ] {
+    { Table -> C99ReprType.Table }
+    { Data -> C99ReprType.Data }
+    { Prim -> c99-repr }
 }
 
 def Type.c99-repr [ +Mirth |- Type -- C99ReprType ] {
@@ -3532,6 +3702,48 @@ def c99-word-def!  [ +Mirth +C99 |- Word -- ] {
     drop
 }
 
+def c99-table-defs! [ +Mirth +C99 |- ] { Table.for(c99-table-def!) }
+def c99-table-def! [ +Mirth +C99 |- Table -- ] {
+    \self
+    c99-line(
+        "MKTYPE_FLAT(" put
+        "TYPE_" put @self cname put "," put
+        @self name >Str put-cstr "," put
+        @self cname put "," put
+        "8,);" put
+    )
+    c99-line(
+        "#define TAG_" put @self cname put
+        " ((TAG)&TYPE_" put @self cname put ")" put
+    )
+    c99-line(
+        "#define MK_" put @self cname put "(x) " put
+        "((VAL){.tag=TAG_" put @self cname put ", .data.u64=(x)})" put
+    )
+    c99-line(
+        "#define V_" put @self cname put "(v) " put
+        "((v).data.u64)" put
+    )
+
+    c99-line(
+        "gen_peek_poke(" put
+        @self cname put "," put
+        "MK_" put @self cname put "," put
+        "V_" put @self cname put "," put
+        "u64s)" put
+    )
+
+    c99-line("static void " put @self cname put "_trace_ (VAL v, int fd) {" put)
+    c99-nest(
+        Str(@self name >Str ; "[" ;) \msg
+        c99-line("write(fd, " put @msg put-cstr ", " put @msg num-bytes >Str put ");" put)
+        c99-line("u64_trace_(MKU64(v.data.u64), fd);" put)
+        "]" !msg
+        c99-line("write(fd, " put @msg put-cstr ", " put @msg num-bytes >Str put ");" put)
+    )
+    c99-line("}" put)
+}
+
 def c99-field-defs! [ +Mirth +C99 |- ] { Field.for(c99-field-def!) }
 def c99-field-def!  [ +Mirth +C99 |- Field -- ] { c99-line("static FIELD " put cname put " = {0};" put) }
 def c99-field-call! [ +Mirth +C99Branch |- Field -- ] {
@@ -3541,7 +3753,7 @@ def c99-field-call! [ +Mirth +C99Branch |- Field -- ] {
         "field_mut(&" put
         cname put
         ", " put
-        +index> C99ReprType.U64 consume-as put
+        +index> @indexrepr consume-as put
         ")" put
     )
 }

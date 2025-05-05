@@ -1689,7 +1689,7 @@ def Type.physical-bits? [ +Mirth |- Type -- Maybe(Nat) ] {
     { Meta -> expand-if(physical-bits?, drop None) }
     { Hole -> drop None }
     { Var -> drop None }
-    { Table -> drop 40u Some } # should verify / enforce this somewhere
+    { Table -> drop 64u Some }
     { Data -> physical-bits? }
     { DataPartial -> data physical-bits? }
     { Stack -> physical-bits? }
