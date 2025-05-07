@@ -4,12 +4,14 @@ import std.prelude
 import std.maybe
 import std.either
 import std.str
+import std.list
 
 import mirth.name
 import mirth.data
 import mirth.table
 import mirth.type
 import mirth.mirth
+import mirth.var
 
 data Tycon {
     Data  [ Data ]
@@ -60,16 +62,17 @@ data Tycon {
         { Prim -> Type.Prim }
     }
 
-    def full-type-fresh [ +Mirth |- Tycon -- Type/Resource ] {
-        { Data -> dip:Subst.Nil full-type map(freshen, freshen) nip }
-        { Prim -> sip:Type.Prim is-resource? if(Resource Right, Left) }
-        { Table -> Type.Table Left }
-    }
-
     def can-own-state? [ +Mirth |- Tycon -- Bool ] {
         { Data -> can-own-state? }
         { Prim -> can-own-state? }
         { Table -> drop False }
     }
 
+    def params       [ +Mirth |- Tycon -- List(Var)     ] { Data -> params,       Table -> params,       Prim -> params       }
+    def applied-type [ +Mirth |- Tycon -- Type          ] { Data -> applied-type, Table -> applied-type, Prim -> applied-type }
+    def full-type    [ +Mirth |- Tycon -- Type/Resource ] { Data -> full-type,    Table -> full-type,    Prim -> full-type    }
+
+    def full-type-fresh [ +Mirth |- Tycon -- Type/Resource ] {
+        dip:Subst.Nil full-type map(freshen, freshen) nip
+    }
 }

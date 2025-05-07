@@ -29,6 +29,7 @@ import mirth.typedef
 import mirth.prim
 import mirth.name
 import mirth.macro
+import mirth.tycon
 
 struct Builtin {
     std: Package
@@ -229,6 +230,16 @@ struct +Mirth {
         lexical-state:defining-namespace:swap
         dip(f) lexical-state:defining-namespace!
     }
+
+    def defining-namespace? [ +Mirth |- Maybe(Namespace) ] {
+        lexical-state defining-namespace (
+            if?(compute Some, None None)
+        ) lexical-state!
+    }
+
+    def defining-tycon? [ +Mirth |- Maybe:Tycon ] {
+        defining-namespace? bind:enclosing-tycon?
+    }
 }
 
 struct Diagnostic {
@@ -255,8 +266,6 @@ data Severity {
         { Error   -> "error"   }
     }
 }
-
-
 
 #########
 # PROPS #

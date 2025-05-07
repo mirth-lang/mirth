@@ -217,21 +217,23 @@ struct +TypeElab {
             filter-qualifiers
             L0 filter-roots
         ) if? (
-            match(
-                Data -> sip:applied-type params,
-                Table -> Type.Table L0,
-                Type -> rdip(sip:target params), # TODO: this doesn't quite make sense.
-                _ ->
+            match {
+                { Data -> sip:applied-type params }
+                { Table -> Type.Table L0 }
+                { Type -> sip:target params } # TODO: this doesn't quite make sense.
+                { Macro -> action run-type! }
+                { _ ->
                     drop token "compiler bug: resolve-type-con-name! doesn't understand type"
-                    rdip:emit-error! Type.Error L0,
-            ),
+                    rdip:emit-error! Type.Error L0
+                }
+            },
             Type.Error L0
         )
     }
 
     def elab-type-con! [ +Mirth +TypeElab |- Name/DName -- Type ] {
-        dup left? rdip:has(>Str "Mut" =) if(
-            drop token rdip:next dip(
+        dup left? has(>Str "Mut" =) if(
+            drop token next dip(
                 token:args-1
                 elab-type-arg!
                 Type.Mut
@@ -244,6 +246,30 @@ struct +TypeElab {
 
     def elab-resource-con! [ +Mirth +TypeElab |- Name/DName -- Resource ] {
         elab-type-con! Resource
+    }
+
+    def elab-self! [ +Mirth +TypeElab |- Type/Resource List(Var) ] {
+        defining-tycon? if?(
+            sip:full-type params,
+            token sig-resource-con? if(
+                token "Not currently inside a type block, +Self is not bound." emit-error! Resource.Error Right,
+                token "Not currently inside a type block, Self is not bound." emit-error! Type.Error Left
+            ) L0
+        )
+    }
+
+    def elab-self-type! [ +Mirth +TypeElab |- Type List(Var) ] {
+        elab-self! dip:left(
+            token "Enclosing type block is a resource type, must use +Self instead of Self." emit-error!
+            drop Type.Error
+        )
+    }
+
+    def elab-self-resource!  [ +Mirth +TypeElab |- Resource List(Var) ] {
+        elab-self! dip:right(
+            token "Enclosing type block is a value type, must use Self instead of +Self." emit-error!
+            drop Resource.Error
+        )
     }
 
     def with-token(f) [ +TypeElab |- (*a -- *b) *a Token -- *b ] {

@@ -113,7 +113,7 @@ data Def {
         { Word -> drop False }
         { Field -> drop False }
         { Tag -> drop False }
-        { Macro -> drop False }
+        { Macro -> action defines-a-type? }
     }
 
     def exposed-tycon? [ +Mirth |- Def -- Maybe(Tycon) ] {

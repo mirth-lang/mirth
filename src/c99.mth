@@ -50,9 +50,9 @@ struct +C99 {
     +output: +Output
 }
 
-def +C99.put      [ +Mirth +C99 |- Str --  ] { put-enabled if(+output:put, drop) }
+def +C99.put      [ +Mirth +C99 |- Str  -- ] { put-enabled if(+output:put, drop)      }
 def +C99.put-byte [ +Mirth +C99 |- Byte -- ] { put-enabled if(+output:put-byte, drop) }
-def +C99.line     [ +Mirth +C99 |-         ] { put-enabled then(+output:line) }
+def +C99.line     [ +Mirth +C99 |-         ] { put-enabled then(+output:line)         }
 
 def run-output-c99! [ +World +Mirth |- Arrow C99_Options -- ] {
     num-errors 0> if(
