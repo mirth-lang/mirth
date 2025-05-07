@@ -563,6 +563,14 @@ data PrimType {
         { Debug -> True }
         { _ -> drop False }
     }
+
+    field(+Mirth |- params, PrimType, List(Var), L0)
+    def applied-type [ +Mirth |- PrimType -- Type ] {
+        sip:Type.Prim params for(Type.Var Type.App)
+    }
+    def full-type [ +Mirth |- PrimType -- Type/Resource ] {
+        sip:applied-type is-resource? if(Resource Right, Left)
+    }
 }
 
 def +Mirth.def-prim-type! [ +Mirth |- PrimType List(Str) -- ] {
@@ -577,6 +585,7 @@ def +Mirth.def-prim-type-alias! [ +Mirth |- PrimType Str List(Str) -- ] {
         swap Var.New!
     ) >params
     Name over tycon-qname .name! >qname
+    @params over params!
     Type.Prim @params for(Type.Var Type.App) >type
     def-type!
 }
@@ -752,6 +761,7 @@ struct Resource {
     --
     def NewInCtx [ +Mirth Ctx |- Str -- Resource ] { dip:Type.RESOURCE Var.NewInCtx Type.Var Resource }
     def Fresh! [ +Mirth |- Resource ] { Kind.RESOURCE MetaVar.New! Type.Meta Resource }
+    def Error [ Resource ] { Type.Error Resource }
 
     def World [ Resource ] { Type.World Resource }
     def Debug [ Resource ] { Type.Debug Resource }

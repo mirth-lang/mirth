@@ -5,6 +5,7 @@ import std.maybe
 import std.str
 import std.list
 import std.byte
+import std.either
 
 import mirth.name
 import mirth.type
@@ -97,6 +98,10 @@ table +Mirth |- Table {
     def >Type [ Table -- Type ] { Type.Table }
     def >Tycon [ Table -- Tycon ] { Tycon.Table }
     def >Namespace [ Table -- Namespace ] { >Tycon >Namespace }
+
+    def params [ +Mirth |- Table -- List(Var) ] { drop L0 }
+    def applied-type [ +Mirth |- Table -- Type ] { >Type }
+    def full-type [ +Mirth |- Table -- Type/Resource ] { applied-type Left }
 
     def name;  [ +Mirth +Str |- Table -- ] { rdip:name name; }
     def qname; [ +Mirth +Str |- Table -- ] { rdip:qname-hard qname; }

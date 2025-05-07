@@ -1,0 +1,48 @@
+||| Test the Self value type and +Self resource type.
+module test.self-type
+
+import std.prelude
+import std.world
+
+struct Foo {
+    --
+    def name [ Self -- Str ] { drop "Foo" }
+}
+
+struct Bar(a) {
+    value: a
+    --
+    def map(f) [ (a -- b) Self(a) -- Self(b) ] { /Bar value> f >value Bar }
+}
+
+struct Baz(a,b) {
+    a b
+    --
+    def exchange [ Self(a,b) -- Self(b,a) ] { /Baz swap Baz }
+}
+
+struct +Foo {
+    --
+    def name [ +Self |- Str ] { "+Foo" }
+}
+
+struct +Bar(a) {
+    value: a
+    --
+    def value2 [ +Self(a) |- a a ] { value value }
+}
+
+struct +Baz(a,b) {
+    baz: Baz(a,b)
+    --
+    def exchange! [ +Self(a,b) -- +Self(b,a) ] {
+        /+Baz @baz:exchange +Baz
+    }
+}
+
+def main {
+    Foo name print
+    +Foo name print /+Foo
+}
+# mirth-test # pout # Foo
+# mirth-test # pout # +Foo

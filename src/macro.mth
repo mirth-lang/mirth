@@ -2,6 +2,8 @@ module mirth.macro
 
 import std.prelude
 import std.maybe
+import std.list
+
 import mirth.mirth
 import mirth.name
 import mirth.token
@@ -14,6 +16,8 @@ import mirth.table
 import mirth.external
 import mirth.data
 import mirth.typedef
+import mirth.type
+import mirth.var
 
 table +Mirth |- Macro {
     head?: Maybe(Token)
@@ -39,12 +43,20 @@ table +Mirth |- Macro {
 }
 
 data MacroAction {
-    Decl  [[ +World +Mirth Token -- +World +Mirth Token ]]
-    Arrow [[        +Mirth +AB   -- +Mirth +AB          ]]
+    Decl  [[ +World +Mirth Token |- ]]
+    Type  [[ +Mirth +TypeElab    |- Type List(Var) ]]
+    Arrow [[ +Mirth +AB          |- ]]
     --
     def decl?  { Decl -> Some, _ -> drop None }
     def arrow? { Arrow -> Some, _ -> drop None }
+    def type?  { Type -> Some, _ -> drop None }
     def callable? { arrow? >Bool }
+    def defines-a-type? { type? >Bool }
+
+    def run-type! [ +Mirth +TypeElab |- MacroAction -- Type List(Var) ] {
+        { Type -> run }
+        { _ -> "Expected type macro!" fatal-error! }
+    }
 }
 
 def +Mirth.module-statement-error! [ +Mirth Token |- ] {
@@ -55,6 +67,7 @@ def +Mirth.import-statement-error! [ +Mirth Token |- ] {
 }
 
 def +Mirth.prim-decl-macro! { MacroAction.Decl  Macro.Prim Def.Macro register }
+def +Mirth.prim-type-macro! { MacroAction.Type  Macro.Prim Def.Macro register }
 def +Mirth.prim-word-macro! { MacroAction.Arrow Macro.Prim Def.Macro register }
 
 def +Mirth.init-macros! [ +Mirth |- ] {
@@ -75,6 +88,9 @@ def +Mirth.init-macros! [ +Mirth |- ] {
     "embed-str"          -1 [ elab-embed-str!          ] prim-decl-macro!
     "max-mirth-revision" -1 [ elab-max-mirth-revision! ] prim-decl-macro!
     "min-mirth-revision" -1 [ elab-min-mirth-revision! ] prim-decl-macro!
+
+    "Self"  -1 [ elab-self-type!               ] prim-type-macro!
+    "+Self" -1 [ elab-self-resource! dip:>Type ] prim-type-macro!
 
     "match" -1 [ elab-atom-match!    ] prim-word-macro!
     "\\"    -1 [ elab-atom-lambda!   ] prim-word-macro!

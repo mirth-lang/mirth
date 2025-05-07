@@ -170,6 +170,14 @@ data Namespace {
         { Word -> drop None }
     }
 
+    def enclosing-tycon? [ +Mirth |- Namespace -- Maybe(Tycon) ] {
+        { Root -> None }
+        { Package -> drop None }
+        { Module -> drop None }
+        { Tycon -> Some }
+        { Word -> namespace-hard enclosing-tycon? }
+    }
+
     def Prim [ +Mirth -- +Mirth Namespace ] {
         Module.Prim Namespace.Module
     }
