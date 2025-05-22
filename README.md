@@ -1,10 +1,14 @@
 # Mirth
 
-**Mirth** is a strongly-typed concatenative programming language.
+**Mirth** is a strongly-typed concatenative programming language that is currently in development.
 
 Mirth is inspired by **Forth**, **Joy**, **Haskell**, **Lisp**, and monoidal category theory.
 
-The main repository for mirth is located at [git.sr.ht/~typeswitch/mirth](https://git.sr.ht/~typeswitch/mirth), and the issue tracker with this being an occasional mirror.
+Useful Links:
+
+- Main repository: [git.sr.ht/~typeswitch/mirth](https://git.sr.ht/~typeswitch/mirth)
+- GitHub mirror: [github.com/mirth-lang/mirth](https://github.com/mirth-lang/mirth)
+- Issue tracker: [todo.sr.ht/~typeswitch/mirth](https://todo.sr.ht/~typeswitch/mirth)
 
 If you are interested in Mirth, please support the development of Mirth on [Patreon](https://patreon.com/typeswitch). Thank you for your time and generosity.
 
