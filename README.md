@@ -29,9 +29,9 @@ def main [ +World -- +World ] {
 
 | Editor       | Source | Install                                                                                                                    | Syntax highlighting |
 | ------------ | ------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Vim          | `tools/mirth-vim` | To install via Pathogen,           </br> run `make install-vim`.                                                           | :heavy_check_mark:  |
-| VS Code      | `tools/mirth-code` | Ensuring `code` is in your `PATH`, </br> run `make install-code`. </br> Not yet published in the Marketplace.              | :heavy_check_mark:  |
-| Atom         | `tools/mirth-atom` | Ensuring `apm` is in your `PATH`,  </br> run `make install-atom`. </br> Not yet published in the atom.io package registry. | :heavy_check_mark:  |
+| Vim          | `tools/mirth-vim` | To install via Pathogen,           </br> run `make install-vim`.                                                           | ✔️  |
+| VS Code      | `tools/mirth-code` | Ensuring `code` is in your `PATH`, </br> run `make install-code`. </br> Not yet published in the Marketplace.              | ✔️ |
+| Atom         | `tools/mirth-atom` | Ensuring `apm` is in your `PATH`,  </br> run `make install-atom`. </br> Not yet published in the atom.io package registry. | ✔️ |
 
 ## License
 
