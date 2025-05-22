@@ -1,23 +1,24 @@
 # Mirth
 
-![build](https://github.com/mirth-lang/mirth/workflows/build/badge.svg)
-
-**Mirth** is a new strongly-typed concatenative programming language.
+**Mirth** is a strongly-typed concatenative programming language.
 
 Mirth is inspired by **Forth**, **Joy**, **Haskell**, **Lisp**, and monoidal category theory.
 
-This repository is a **work-in-progress** implementation of Mirth. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/typeswitch). Thank you for your time and generosity.
+The main repository for mirth is located at [git.sr.ht/~typeswitch/mirth](https://git.sr.ht/~typeswitch/mirth), and the issue tracker with this being an occasional mirror.
+
+If you are interested in Mirth, please support the development of Mirth on [Patreon](https://patreon.com/typeswitch). Thank you for your time and generosity.
 
 ### Hello, world!
 
 ```mirth
 ||| A simple hello world program to show off the Mirth language.
-module(examples.hello-world)
-import(std.prelude)
-import(std.world)
+module examples.hello-world
+import std.prelude
+import std.world
 
-def(main, +World -- +World,
-    "Hello, world!" print)
+def main [ +World -- +World ] {
+    "Hello, world!" print
+}
 ```
 
 ## Tools
