@@ -15,7 +15,6 @@ If you are interested in Mirth, please support the development of Mirth on [Patr
 ### Hello, world!
 
 ```mirth
-||| A simple hello world program to show off the Mirth language.
 module examples.hello-world
 import std.prelude
 import std.world
@@ -29,7 +28,7 @@ def main [ +World -- +World ] {
 
 | Editor       | Source | Install                                                                                                                    | Syntax highlighting |
 | ------------ | ------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Vim          | `tools/mirth-vim` | To install via Pathogen,           </br> run `make install-vim`.                                                           | ✔️  |
+| Vim          | `tools/mirth-vim` | To install as a vim package,  </br> run `make install-vim`.                                                           | ✔️  |
 | VS Code      | `tools/mirth-code` | Ensuring `code` is in your `PATH`, </br> run `make install-code`. </br> Not yet published in the Marketplace.              | ✔️ |
 | Atom         | `tools/mirth-atom` | Ensuring `apm` is in your `PATH`,  </br> run `make install-atom`. </br> Not yet published in the atom.io package registry. | ✔️ |
 

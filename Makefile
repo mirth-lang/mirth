@@ -68,9 +68,9 @@ clean:
 	mv mirth0.c bin/
 
 install-vim:
-	mkdir -p ~/.vim/bundle
-	rm -rf ~/.vim/bundle/mirth-vim
-	cp -r tools/mirth-vim ~/.vim/bundle/
+	mkdir -p ~/.vim/pack/mirth/start/
+	rm -rf ~/.vim/pack/mirth/start/mirth
+	cp -r tools/mirth-vim ~/.vim/pack/mirth/start/mirth
 
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
