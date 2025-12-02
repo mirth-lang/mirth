@@ -1,0 +1,512 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/syntax.html
+file_extensions:
+  - mth
+name: Mirth
+scope: source.mirth
+version: 2
+contexts:
+  comments:
+    - match: '#'
+      scope: punctuation.definition.comment.mirth
+      push: line_comment
+
+    - match: '\|\|\|'
+      scope: punctuation.definition.comment.mirth
+      push: line_comment
+
+  line_comment:
+    - meta_scope: comment.line.mirth
+    - match: $
+      pop: true
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.mirth
+      push: double_quoted_string
+
+  double_quoted_string:
+    - meta_scope: string.quoted.double.mirth
+    - match: '\\.'
+      scope: constant.character.escape.mirth
+    - match: '#'
+    - match: '\|'
+    - match: '"'
+      scope: punctuation.definition.string.end.mirth
+      pop: true
+
+  numbers:
+    - match: '(?<![^\s\"\.:\(\)\[\]\{\},])([+-]?([0-9](_?[0-9])*|0x[0-9a-fA-F](_?[0-9a-fA-F])*)|0o[0-7](_?[0-7])*)([ui](8|16|32|64)?)?(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: constant.numeric.mirth
+
+  type_expr_nested:
+    - match: '\]'
+      scope: meta.brackets.mirth punctuation.section.brackets.end
+      pop: true
+
+    - match: '\}'
+      scope: meta.braces.mirth punctuation.section.braces.end
+      pop: true
+
+    - match: '\)'
+      scope: meta.parens.mirth punctuation.section.parens.end
+      pop: true
+
+    - include: type_expr
+
+  type_expr:
+    - include: comments
+    - include: strings
+    - include: numbers
+
+    - match: '(?<![^\s\"\.:\(\)\[\]\{\},])(\|-|--|_)(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.operator.mirth
+
+    - match: '\('
+      scope: meta.parens.mirth punctuation.section.brackets.start
+      push: type_expr_nested
+
+    - match: '\{'
+      scope: meta.braces.mirth punctuation.section.braces.end
+      push: type_expr_nested
+
+    - match: '\['
+      scope: meta.brackets.mirth punctuation.section.brackets.end
+      push: type_expr_nested
+
+    - match: '\)'
+      scope: meta.parens.mirth
+      pop: true
+
+    - match: '\]'
+      scope: keyword.operator.mirth
+      pop: true
+
+    - match: '\}'
+      scope: keyword.operator.mirth
+      pop: true
+
+    - match: '\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*'
+      scope: support.constant.mirth
+
+    - match: '\+?[a-z][^\s\"\.:\(\)\[\]\{\},]*\s*:'
+      scope: support.function.mirth
+
+    - match: '[\*\+]?[a-z][^\s\"\.:\(\)\[\]\{\},]*'
+      scope: variable.parameter
+
+    - match: '[^\s\"\.:\(\)\[\]\{\},]*'
+      scope: variable.function
+
+  word_expr_atoms:
+    - include: comments
+    - include: strings
+    - include: numbers
+
+    - match: '(?<![^\s\"\.:\(\)\[\]\{\},])(->|\|-|--|_)(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.operator.mirth
+
+    - match: '\['
+      scope: meta.brackets.mirth
+      push: word_expr_square
+
+    - match: '\{'
+      scope: meta.braces.mirth keyword.operator.mirth
+      push: word_expr_curly
+
+    - match: '\('
+      scope: meta.parens.mirth
+      push: word_expr_round
+
+    - match: ':'
+      scope: meta.function-call.mirth
+
+    - match: '([@!>]\+?[a-z][^\s\"\.:\(\)\[\]\{\},]*|\+?[a-z][^\s\"\.:\(\)\[\]\{\},]*>(?![^\s\"\.:\(\)\[\]\{\},]))'
+      scope: support.function.mirth
+
+    - match: '\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*'
+      scope: support.constant.mirth
+
+    - match: '[^\s\"\.:\(\)\[\]\{\},]*'
+      scope: text.mirth
+
+  word_expr_curly:
+    - match: '\}'
+      scope: meta.braces.mirth keyword.operator.mirth
+      pop: true
+
+    - include: word_expr_atoms
+
+  word_expr_square:
+    - match: '\]'
+      scope: meta.brackets.mirth
+      pop: true
+
+    - include: word_expr_atoms
+
+  word_expr_round:
+    - match: '\)'
+      scope: meta.braces.mirth
+      pop: true
+
+    - include: word_expr_atoms
+
+  def_start:
+    - meta_scope: meta.function.mirth
+    - include: comments
+
+    - match: '\('
+      set: word_expr_round
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)(\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: entity.name.function.mirth
+      set: def_after_name
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)([^\s\"\.:\(\)\[\]\{\},]+)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: entity.name.function.mirth
+      set: def_after_name
+
+  def_after_name:
+    - match: '\('
+      set: [def_after_params, def_params]
+
+    - include: comments
+    - include: def_after_params
+
+  def_params:
+    - meta_scope: meta.function.parameters.mirth
+    - include: comments
+    - include: word_expr_round
+
+  def_after_params:
+    - match: '\['
+      set: [def_after_type, def_type]
+      scope: keyword.operator.mirth
+
+    - include: comments
+    - include: def_after_type
+
+  def_type:
+    - meta_scope: meta.function.mirth
+    - include: comments
+    - include: type_expr
+
+  def_after_type:
+    - match: '\{'
+      set: def_body
+      scope: keyword.operator.mirth
+
+    - match: '[^\s]+'
+      scope: invalid.illegal.mirth
+      pop: true
+
+  def_body:
+    - meta_scope: meta.function.mirth
+
+    - match: '\{'
+      scope: keyword.operator.mirth
+      push: def_body_clause
+
+    - include: comments
+    - include: word_expr_curly
+
+  def_body_clause:
+    - include: comments
+    - include: word_expr_curly
+
+  data_start:
+    - meta_scope: meta.enum.mirth
+    - include: comments
+
+    - match: '\('
+      set: word_expr_round
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)(\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: entity.name.type.mirth
+      set: data_after_name
+
+  data_after_name:
+    - meta_scope: meta.enum.mirth
+    - match: '\('
+      set: [data_after_params, data_params]
+    - include: comments
+    - include: data_after_params
+
+  data_params:
+    - meta_scope: meta.enum.parameters.mirth
+    - include: comments
+    - include: type_expr_nested
+
+  data_after_params:
+    - match: '\{'
+      scope: keyword.operator.mirth
+      set: data_body
+    - include: comments
+
+  data_body:
+    - match: '--'
+      scope: keyword.operator.mirth
+      set: main_curly
+
+    - include: comments
+    - include: numbers
+
+    - match: '(\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: entity.name.function.mirth
+
+    - match: '\['
+      scope: keyword.operator.mirth
+      push: type_expr
+
+    - match: '\}'
+      scope: keyword.operator.mirth
+      pop: true
+
+
+  struct_start:
+    - meta_scope: meta.struct.mirth
+    - include: comments
+
+    - match: '\('
+      set: word_expr_round
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)(\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: entity.name.type.mirth
+      set: struct_after_name
+
+  struct_after_name:
+    - meta_scope: meta.struct.mirth
+    - match: '\('
+      set: [struct_after_params, struct_params]
+
+    - include: comments
+    - include: struct_after_params
+
+  struct_params:
+    - meta_scope: meta.struct.parameters.mirth
+    - include: comments
+    - include: type_expr_nested
+
+  struct_after_params:
+    - match: '\{'
+      scope: keyword.operator.mirth
+      set: struct_body
+    - include: comments
+
+  struct_body:
+    - match: '--'
+      scope: keyword.operator.mirth
+      set: main_curly
+
+    - match: '(\+?[a-z][^\s\"\.:\(\)\[\]\{\},]*)\s*:'
+      scope: support.function.mirth
+      captures:
+        1: entity.name.function
+
+    - include: comments
+    - include: type_expr
+
+  table_start:
+    - meta_scope: meta.struct.mirth
+    - match: '\('
+      set: word_expr_round
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)(\+[A-Z][^\s\"\.:\(\)\[\]\{\},]*)(?![^\s\":\(\)\[\]\{\},])\s+\|-(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: support.type.mirth
+
+    - include: comments
+    - include: table_after_owner
+
+  table_after_owner:
+    - meta_scope: meta.struct.mirth
+    - include: comments
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)(\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: entity.name.type.mirth
+      set: table_after_name
+
+  table_after_name:
+    - match: '\{'
+      scope: keyword.operator.mirth
+      set: table_body
+    - include: comments
+
+  table_body:
+    - match: '--'
+      scope: keyword.operator.mirth
+      set: main_curly
+
+    - match: '(~?\+?[a-z][^\s\"\.:\(\)\[\]\{\},]*)\s*:'
+      scope: support.function.mirth
+      captures:
+        1: entity.name.function
+
+    - match: '\{'
+      scope: meta.braces.mirth keyword.operator.mirth
+      push: word_expr_curly
+
+    - include: comments
+    - include: type_expr
+
+  alias_start:
+    - meta_scope: meta.function.mirth
+    - include: comments
+
+    - match: '\('
+      set: word_expr_round
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)([^\s\"\.:\(\)\[\]\{\},]+)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: entity.name.function.mirth
+      set: alias_after_name
+
+  alias_after_name:
+    - meta_scope: meta.function.mirth
+    - include: comments
+    - match: '\('
+      set: [ alias_after_params, alias_params ]
+    - include: alias_after_params
+
+  alias_params:
+    - meta_scope: meta.function.parameters.mirth
+    - include: word_expr_round
+
+  alias_after_params:
+    - meta_scope: meta.function.mirth
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)([^\s\"\.:\(\)\[\]\{\},]+)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: support.function.mirth
+      pop: true
+
+  deftype_start:
+    - meta_scope: meta.type.mirth
+    - include: comments
+
+    - match: '\('
+      set: word_expr_round
+
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)(\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]+)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: entity.name.type.mirth
+      set: alias_after_name
+
+  deftype_after_name:
+    - meta_scope: meta.type.mirth
+    - match: '((?:(?:\+?[A-Z]|[a-z])[^\s\"\.:\(\)\[\]\{\},]*\.)*)(\+?[^\s\"\.:\(\)\[\]\{\},]+)(?![^\s\":\(\)\[\]\{\},])'
+      captures:
+        1: support.constant.mirth
+        2: support.type.mirth
+      pop: true
+
+  decls:
+    - match: 'inline(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.inline.mirth
+    - match: 'def(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.def.mirth
+      push: def_start
+    - match: 'def-missing(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.def-missing.mirth
+      push: def_start
+    - match: 'data(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.data.mirth
+      push: data_start
+    - match: 'struct(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.struct.mirth
+      push: struct_start
+    - match: 'table(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.table.mirth
+      push: table_start
+    - match: 'alias(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.struct.mirth
+      push: alias_start
+    - match: 'def-type(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.struct.mirth
+      push: deftype_start
+
+  main_curly:
+    - match: '\}'
+      scope: meta.braces.mirth punctuation.section.braces.end keyword.operator.mirth
+      pop: true
+    - include: main
+
+  main_square:
+    - match: '\]'
+      scope: meta.brackets.mirth punctuation.section.brackets.end keyword.operator.mirth
+      pop: true
+    - include: main
+
+  main:
+    - include: comments
+
+    - match: 'module(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.module.mirth
+      push: module_arg
+
+    - match: 'import(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.import.mirth
+      push: module_arg
+
+    - include: decls
+
+    - match: '\{'
+      scope: meta.braces.mirth punctuation.section.braces.begin keyword.operator.mirth
+      push: main_curly
+
+    - match: '\['
+      scope: meta.brackets.mirth punctuation.section.brackets.begin keyword.operator.mirth
+      push: main_square
+
+    - match: '\('
+      scope: meta.parens.mirth punctuation.section.parens.begin
+      push: word_expr_round
+
+    # "Keywords"
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: '(?<![^\s\"\.:\(\)\[\]\{\},])(external|field|embed-str|buffer|min-mirth-revision|max-mirth-revision|patch)(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.control.mirth
+
+    - match: '(?<![^\s\"\.:\(\)\[\]\{\},])(->|\|-|--|_)(?![^\s\"\.:\(\)\[\]\{\},])'
+      scope: keyword.operator.mirth
+
+    - match: '[\.,]'
+      scope: keyword.operator.mirth
+
+    - match: ':'
+      scope: meta.function-call.mirth
+
+    - match: '([@!>]\+?[a-z][^\s\"\.:\(\)\[\]\{\},]*|\+?[a-z][^\s\"\.:\(\)\[\]\{\},]*>(?![^\s\"\.:\(\)\[\]\{\},]))'
+      scope: support.function.mirth
+
+    - match: '\+?[A-Z][^\s\"\.:\(\)\[\]\{\},]*'
+      scope: constant.type.mirth
+
+    - match: '[^\s\"\.:\(\)\[\]\{\},]*'
+      scope: text.mirth
+
+
+  module_arg:
+    - meta_scope: declaration.module.arg.mirth
+    - include: comments
+    - match: '[a-z][a-zA-Z0-9_\-]*(\.[a-z][a-zA-Z0-9_\-]*)+'
+      scope: support.function.mirth
+      pop: true

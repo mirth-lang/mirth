@@ -141,7 +141,7 @@ data TokenValue {
     def module-import?    [ +Mirth |- TokenValue -- Bool ] { name? has(>Str "import" =) }
 }
 
-def-type(Name/DName, Either(Name,DName))
+def-type Name/DName Either(Name,DName)
 
 def name/dname-last-name [ Name/DName -- Name ] {
     { Left -> id }

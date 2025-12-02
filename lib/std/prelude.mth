@@ -71,7 +71,7 @@ inline def or(f,g,h,i) { or(f,or(g,or(h,i))) }
 inline def and(f,g,h) { and(f,and(g,h)) }
 inline def and(f,g,h,i) { and(f,and(g,and(h,i))) }
 
-def(Bool.repr;, Bool +Str -- +Str, if("True", "False") ;)
+def Bool.repr; [ +Str |- Bool -- ] { if("True", "False") ; }
 
 alias Bool.True  prim-bool-true
 alias Bool.False prim-bool-false
@@ -83,11 +83,11 @@ alias Yes True
 alias No  False
 
 inline {
-    def-type(EnumValue,I64)
+    def-type EnumValue I64
     def Int.>EnumValue-unsafe [ Int -- EnumValue ] { >I64-unsafe }
     def I64.>EnumValue [ I64 -- EnumValue ] { }
 
-    def-type(TableIndex,U64)
+    def-type TableIndex U64
     def Int.>TableIndex-clamp [ Int -- TableIndex ] { >U64-clamp }
     def U64.>TableIndex [ U64 -- TableIndex ] { }
 }
@@ -99,8 +99,8 @@ data OS {
     3 Mac
     --
     inline {
-        def Min [ OS ] { 0 >EnumValue-unsafe OS.from-enum-value-unsafe }
-        def Max [ OS ] { 3 >EnumValue-unsafe OS.from-enum-value-unsafe }
+        def Min [ OS ] { OS.Unknown }
+        def Max [ OS ] { OS.Mac }
         def +World.running-os [ +World -- +World OS ] { prim-sys-os >OS }
         def >Int [ OS -- Int ] { enum-value >Int }
         def = [ OS OS -- Bool ] { on2:>Int = }
@@ -133,8 +133,8 @@ data Arch {
     3 ARM64
     --
     inline {
-        def Min [ Arch ] { 0i64 >EnumValue Arch.from-enum-value-unsafe }
-        def Max [ Arch ] { 3i64 >EnumValue Arch.from-enum-value-unsafe }
+        def Min [ Arch ] { Arch.Unknown }
+        def Max [ Arch ] { Arch.ARM64 }
         def +World.running-arch [ +World -- +World Arch ] { prim-sys-arch >Arch }
         def >Int [ Arch -- Int ] { enum-value >Int }
         def = [ Arch Arch -- Bool ] { on2:>Int = }

@@ -752,7 +752,7 @@ def type-hole-unify! [ +Mirth |- Type Name -- Type ] {
 # Resource TYPE #
 #################
 
-def-type(Type/Resource, Either(Type, Resource))
+def-type Type/Resource Either(Type, Resource)
 
 ||| A type that denotes a resource. There isn't a hard distinction between types and resources,
 ||| except that resources aren't cartesian so `dup` and `drop` are not available.

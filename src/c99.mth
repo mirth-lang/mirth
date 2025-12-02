@@ -2923,7 +2923,7 @@ def +C99Branch.pop-from-env! [ +Mirth +C99Branch |- -- Var +C99Value ] {
     /C99Var +C99Value var-var>
 }
 
-def-type(C99Env, List(C99Var))
+def-type C99Env List(C99Var)
 
 ||| This resource represents a single active branch.
 struct +C99Branch {
