@@ -1,0 +1,10 @@
+||| Regression test for https://todo.sr.ht/~typeswitch/mirth/14
+module test.issue14
+
+def fix(f) {
+     [fix(f)] { ?x }
+}
+
+def main { }
+# mirth-test # merr # 5:13: error: Failed to unify [[-- *?6]] with ?6
+# mirth-test # mret # 1
