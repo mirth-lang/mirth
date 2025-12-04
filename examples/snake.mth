@@ -11,56 +11,6 @@ import examples.sdl2
 # Snake Game #
 ##############
 
-def main {
-    +Snake.Init!
-    loop!
-    quit!
-}
-
-data(+Snake, +Snake ->
-    +platform: +SnakePlatform
-    +logic: +SnakeLogic)
-
-data(+SnakePlatform, +SnakePlatform ->
-    +SDL
-    +window: +SDL_Window
-    +renderer: +SDL_Renderer
-    +rect-buffer: +Buffer
-    +event-buffer: +Buffer
-    )
-
-def +SnakePlatform.sdl(f) { /+SnakePlatform f +SnakePlatform }
-
-struct +SnakeLogic {
-    done: Bool dead: Bool
-    direction: Direction
-    last-direction: Direction
-    mouse: Position
-    snake: Nest(Position)
-    points: Nat
-    timer: Nat
-}
-
-data(Position, Position -> x:Int y:Int)
-def Position.wrap { x(SNAKE_W mod) y(SNAKE_H mod) }
-
-def Position.= [ Position Position -- Bool ] {
-    /Position /Position x> x> = y> y> = and
-}
-
-data(Direction, North, East, South, West)
-
-def Direction.apply [ Position Direction -- Position ] {
-    { North -> y:1- wrap }
-    { South -> y:1+ wrap }
-    { West  -> x:1- wrap }
-    { East  -> x:1+ wrap }
-}
-
-def +SnakeLogic.enqueue { snake:cons }
-def +SnakeLogic.dequeue { snake(unsnoc swap >Nest? unwrap("logic error: expected snake to have more segments" panic!) ) }
-def +SnakeLogic.head    { snake first }
-
 def SNAKE_W { 20 }
 def SNAKE_H { 20 }
 def SNAKE_CELL_SIZE { 30 }
@@ -69,242 +19,320 @@ def SNAKE_WINDOW_H { SNAKE_H SNAKE_CELL_SIZE * }
 def SNAKE_WINDOW_FLAGS { SDL_WINDOW_HIDDEN }
 def SNAKE_RENDERER_FLAGS { SDL_RENDERER_ACCELERATED SDL_RENDERER_PRESENTVSYNC or }
 
-data(SnakeButton,
-    Up,
-    Right,
-    Down,
-    Left,
-    Start)
-
-def SDL_Scancode.>SnakeButton? {
-    { SDL_SCANCODE_UP -> SnakeButton.Up Some }
-    { SDL_SCANCODE_DOWN -> SnakeButton.Down Some }
-    { SDL_SCANCODE_LEFT -> SnakeButton.Left Some }
-    { SDL_SCANCODE_RIGHT -> SnakeButton.Right Some }
-    { SDL_SCANCODE_SPACE -> SnakeButton.Start Some }
-    { _ -> drop None }
-}
-
-def SDL_GameControllerButton.>SnakeButton? {
-    { SDL_CONTROLLER_BUTTON_DPAD_UP -> SnakeButton.Up Some }
-    { SDL_CONTROLLER_BUTTON_DPAD_DOWN -> SnakeButton.Down Some }
-    { SDL_CONTROLLER_BUTTON_DPAD_LEFT -> SnakeButton.Left Some }
-    { SDL_CONTROLLER_BUTTON_DPAD_RIGHT -> SnakeButton.Right Some }
-    { SDL_CONTROLLER_BUTTON_START -> SnakeButton.Start Some }
-    { _ -> drop None }
-}
-
-def +SnakeLogic.Init! [ +World -- +World +SnakeLogic ] {
-    False >done
-    Direction.North >direction
-    Direction.North >last-direction
-    Position.Random! >mouse
-    Position.Center N1 >snake
-    False >dead
-    0u >timer
-    0u >points
-    +SnakeLogic
-}
-
-def +SnakeLogic.rdrop {
-    /+SnakeLogic ldrop
-}
-
-def +SnakeLogic.reset! [ +World +SnakeLogic -- +World +SnakeLogic ] {
-    rdrop +SnakeLogic.Init!
-}
-
-def +SnakePlatform.Init! [ +World -- +World +SnakePlatform ] {
-    SDL_INIT_VIDEO >flags
-    SDL_Init unwrap!
-
-    "Snake!" >title
-    100 >x 100 >y
-    SNAKE_WINDOW_W >w
-    SNAKE_WINDOW_H >h
-    SNAKE_WINDOW_FLAGS >flags
-    create-window! unwrap!
-    >+window
-
-    -1 >index
-    SNAKE_RENDERER_FLAGS >flags
-    create-renderer! unwrap!
-    >+renderer
-
-    256 bytes +Buffer.New >+event-buffer
-    16 bytes +Buffer.New >+rect-buffer
-
-    +SnakePlatform
-}
-
-def +Snake.Init! [ +World -- +World +Snake ] {
-    +SnakeLogic.Init! >+logic
-    +SnakePlatform.Init! >+platform
-    +Snake
-}
-
-def +Snake.loop! [ +World +Snake -- +World +Snake ] {
-    process-events!
-    while(+logic:done not,
-        present!
-        10u32 >ticks +platform:sdl:delay!
-        process-events!
-        +logic:update!
-    )
-}
-
-def +Snake.quit! [ +World +Snake -- +World ] {
-    /+Snake +logic> rdrop +platform> quit!
-}
-
-def +SnakePlatform.quit! [ +World +SnakePlatform -- +World ] {
-    /+SnakePlatform
-    +event-buffer> rdrop
-    +rect-buffer> rdrop
-    destroy-renderer!
-    destroy-window!
+def main {
+    +Snake.Init!
+    loop!
     quit!
 }
+
+struct +Snake {
+    +platform: +SnakePlatform
+    +logic: +SnakeLogic
+    --
+
+    def Init! [ +World |- +Snake ] {
+        +SnakeLogic.Init! >+logic
+        +SnakePlatform.Init! >+platform
+        +Snake
+    }
+
+    def loop! [ +World +Snake |- ] {
+        process-events!
+        while(+logic:done not,
+            present!
+            10u32 >ticks +platform:sdl:delay!
+            process-events!
+            +logic:update!
+        )
+    }
+
+    def quit! [ +World |- +Snake -- ] {
+        /+Snake +logic> rdrop +platform> quit!
+    }
+
+    def present! [ +Snake |- ] {
+        +platform:sdl:show-window!
+        +platform:clear!
+        +logic:snake for(+platform:draw-cell!)
+        +logic:mouse +platform:draw-cell!
+        +platform:sdl:SDL_RenderPresent
+    }
+
+    def &event [ +Snake |- SDL_Event ] {
+        +platform:+event-buffer:base SDL_Event
+    }
+
+    def process-events! [ +World +Snake |- ] {
+        while(&event +platform:sdl:SDL_PollEvent >Int 0>, process-event!)
+    }
+
+    def process-event! [ +World +Snake |- ] {
+        &event type@ match {
+            { SDL_QUIT ->
+                True +logic:done! }
+            { SDL_KEYDOWN ->
+                &event key repeat@ >Int 0> if(
+                    id,
+                    &event key keysym scancode@
+                    match(
+                        SDL_SCANCODE_ESCAPE -> True +logic:done!,
+                        _ -> >SnakeButton? for:+logic:press!
+                    )
+                )
+            }
+            { SDL_CONTROLLERBUTTONDOWN ->
+                &event cbutton button@
+                >SnakeButton? for:+logic:press! }
+            { _ -> drop }
+        }
+    }
+}
+
 
 def rgba [ Int Int Int Int -- r:CInt g:CInt b:CInt a:CInt ] { >CInt >a >CInt >b >CInt >g >CInt >r }
 def snake-background-color { 140 100 150 255 rgba }
 def snake-foreground-color { 255 255 255 255 rgba }
 
-def +SnakePlatform.snake-rect! [ +SnakePlatform x:I32 y:I32 w:I32 h:I32 -- +SnakePlatform ] {
-    h> 3u +rect-buffer:i32!
-    w> 2u +rect-buffer:i32!
-    y> 1u +rect-buffer:i32!
-    x> 0u +rect-buffer:i32!
-}
+struct +SnakePlatform {
+    +SDL
+    +window: +SDL_Window
+    +renderer: +SDL_Renderer
+    +rect-buffer: +Buffer
+    +event-buffer: +Buffer
+    --
+    inline def sdl(f) { /+SnakePlatform f +SnakePlatform }
 
-def +SnakePlatform.snake-rect-cell! [ +SnakePlatform Position -- +SnakePlatform ] {
-    /Position
-    x> SNAKE_CELL_SIZE * >I32-clamp >x
-    y> SNAKE_CELL_SIZE * >I32-clamp >y
-    SNAKE_CELL_SIZE >I32-clamp dup >w >h
-    snake-rect!
-}
+    def Init! [ +World |- +SnakePlatform ] {
+        SDL_INIT_VIDEO >flags
+        SDL_Init unwrap!
 
-def +Snake.present! [ +Snake -- +Snake ] {
-    +platform:sdl:show-window!
-    +platform:clear!
-    +logic:snake for(+platform:draw-cell!)
-    +logic:mouse +platform:draw-cell!
-    +platform:sdl:SDL_RenderPresent
-}
+        "Snake!" >title
+        100 >x 100 >y
+        SNAKE_WINDOW_W >w
+        SNAKE_WINDOW_H >h
+        SNAKE_WINDOW_FLAGS >flags
+        create-window! unwrap!
+        >+window
 
-def +SnakePlatform.clear! [ +SnakePlatform -- +SnakePlatform ] {
-    snake-background-color sdl:SDL_SetRenderDrawColor
-    sdl:SDL_RenderClear
-    snake-foreground-color sdl:SDL_SetRenderDrawColor
-}
+        -1 >index
+        SNAKE_RENDERER_FLAGS >flags
+        create-renderer! unwrap!
+        >+renderer
 
-def +SnakePlatform.draw-cell! [ Position +SnakePlatform -- +SnakePlatform ] {
-    snake-rect-cell! +rect-buffer:base >rect
-    sdl:SDL_RenderFillRect
-}
+        256 bytes +Buffer.New >+event-buffer
+        16 bytes +Buffer.New >+rect-buffer
 
-def +Snake.&event [ +Snake -- +Snake SDL_Event ] {
-    +platform:+event-buffer:base SDL_Event
-}
+        +SnakePlatform
+    }
 
-def +Snake.process-events! [ +World +Snake -- +World +Snake ] {
-    while(&event +platform:sdl:SDL_PollEvent >Int 0>, process-event!)
-}
+    def quit! [ +World |- +SnakePlatform -- ] {
+        /+SnakePlatform
+        +event-buffer> rdrop
+        +rect-buffer> rdrop
+        destroy-renderer!
+        destroy-window!
+        quit!
+    }
 
-def +Snake.process-event! [ +World +Snake -- +World +Snake ] {
-    &event type@ match {
-        { SDL_QUIT ->
-            True +logic:done! }
-        { SDL_KEYDOWN ->
-            &event key repeat@ >Int 0> if(
-                id,
-                &event key keysym scancode@
-                match(
-                    SDL_SCANCODE_ESCAPE -> True +logic:done!,
-                    _ -> >SnakeButton? for:+logic:press!
-                )
-            )
-        }
-        { SDL_CONTROLLERBUTTONDOWN ->
-            &event cbutton button@
-            >SnakeButton? for:+logic:press! }
-        { _ -> drop }
+    def snake-rect! [ +SnakePlatform |- x:I32 y:I32 w:I32 h:I32 -- ] {
+        h> 3u +rect-buffer:i32!
+        w> 2u +rect-buffer:i32!
+        y> 1u +rect-buffer:i32!
+        x> 0u +rect-buffer:i32!
+    }
+
+    def snake-rect-cell! [ +SnakePlatform |- Position -- ] {
+        /Position
+        x> SNAKE_CELL_SIZE * >I32-clamp >x
+        y> SNAKE_CELL_SIZE * >I32-clamp >y
+        SNAKE_CELL_SIZE >I32-clamp dup >w >h
+        snake-rect!
+    }
+
+    def clear! [ +SnakePlatform |- ] {
+        snake-background-color sdl:SDL_SetRenderDrawColor
+        sdl:SDL_RenderClear
+        snake-foreground-color sdl:SDL_SetRenderDrawColor
+    }
+
+    def draw-cell! [ +SnakePlatform |- Position -- ] {
+        snake-rect-cell! +rect-buffer:base >rect
+        sdl:SDL_RenderFillRect
     }
 }
 
-def +SnakeLogic.press! [ +World +SnakeLogic SnakeButton -- +World +SnakeLogic ] {
-    { Up -> Direction.North turn! }
-    { Left -> Direction.West turn! }
-    { Down -> Direction.South turn! }
-    { Right -> Direction.East turn! }
-    { Start -> dead then(reset!) }
-}
+struct +SnakeLogic {
+    done: Bool
+    dead: Bool
+    direction: Direction
+    last-direction: Direction
+    mouse: Position
+    snake: Nest(Position)
+    points: Nat
+    timer: Nat
+    --
+    def Init! [ +World |- +SnakeLogic ] {
+        False >done
+        Direction.North >direction
+        Direction.North >last-direction
+        Position.Random! >mouse
+        Position.Center N1 >snake
+        False >dead
+        0u >timer
+        0u >points
+        +SnakeLogic
+    }
+    def rdrop   [ +SnakeLogic -- ] { +SnakeLogic -> ldrop }
+    def reset!  [ +World +SnakeLogic |- --   ] { rdrop +SnakeLogic.Init! }
+    def head    [ +SnakeLogic |- Position    ] { snake first }
+    def enqueue [ +SnakeLogic |- Position -- ] { snake:cons }
+    def dequeue [ +SnakeLogic |- -- Position ] {
+        snake(unsnoc swap >Nest? unwrap("logic error: expected snake to have more segments" panic!))
+    }
 
-def +SnakeLogic.tick-frames { 40 >Nat-clamp points 5u + div 2u + }
-def +SnakeLogic.tick! [ +SnakeLogic -- +SnakeLogic Bool ] {
-    timer:1+
-    timer tick-frames >= if(
-        0u timer! True,
-        False
-    )
-}
+    ||| React to a logical button press.
+    def press! [ +World +SnakeLogic |- SnakeButton -- ] {
+        { Up -> Direction.North turn! }
+        { Left -> Direction.West turn! }
+        { Down -> Direction.South turn! }
+        { Right -> Direction.East turn! }
+        { Start -> dead then:reset! }
+    }
 
-def +SnakeLogic.in-snake { snake member }
-def +SnakeLogic.randomize-mouse! [ +World +SnakeLogic -- +World +SnakeLogic ] {
-    Position.Random!
-    while(dup in-snake, drop Position.Random!)
-    mouse!
-}
+    ||| Turn the snake in the given direction. We can't turn backwards directly.
+    def turn! [ +World +SnakeLogic |- Direction -- ] {
+        dup last-direction flip = if(
+            drop, # can't turn backwards directly
+            direction!
+        )
+    }
 
-def +SnakeLogic.update! [ +World +SnakeLogic -- +World +SnakeLogic ] {
-    dead not and(tick!) then(
-        direction last-direction!
-        head direction apply
-        dup in-snake if(
-            True dead! drop,
+    ||| Is the snake alive?
+    def alive? [ +SnakeLogic |- Bool ] { dead not }
 
-            enqueue
-            head mouse = then(
-                points:1+
-                randomize-mouse!
-            )
+    ||| How many frames between game ticks.
+    def tick-frames { 40 >Nat-clamp points 5u + div 5u + }
 
-            snake len desired-length > then(
-                dequeue drop
+    ||| Increase frame counter. If enough frames have passed to warrant a game tick,
+    ||| reset frame counter and returns true. Otherwise, return false.
+    def tick! [ +SnakeLogic |- Bool ] {
+        timer:1+
+        timer tick-frames >=
+        dup then(0u timer!)
+    }
+
+    ||| Check if a position is inside the snake or not.
+    def in-snake [ +SnakeLogic |- Position -- Bool ] { snake member }
+
+    ||| Randomize the "mouse" position, avoiding positions that are inside the snake.
+    ||| Infinite loop if the snake is occupying all positions, but that would be a feat.
+    def randomize-mouse! [ +World +SnakeLogic |- ] {
+        Position.Random!
+        while(dup in-snake, drop Position.Random!)
+        mouse!
+    }
+
+    ||| Calculate the next frame.
+    def update! [ +World +SnakeLogic |- ] {
+        alive? and:tick! then(
+            direction last-direction!
+            head direction step
+            dup in-snake if(
+                True dead! drop,
+
+                enqueue
+                head mouse = then(
+                    points:1+
+                    randomize-mouse!
+                )
+
+                snake len desired-length > then(
+                    dequeue drop
+                )
             )
         )
-    )
+    }
+
+    ||| The desired snake length, based on the number of points.
+    def desired-length { points 5u + }
 }
 
-def +SnakeLogic.desired-length { points 5u + }
+external libc-rand -> rand [+World |- CInt]
 
-external(libc-rand -> rand [+World -- +World CInt])
+struct Position {
+    x: Int
+    y: Int
+    --
+    def = [ Position Position -- Bool ] {
+        /Position /Position x> x> = y> y> = and
+    }
+    def wrap   { wrap-x wrap-y }
+    def wrap-x { x(SNAKE_W mod) }
+    def wrap-y { y(SNAKE_H mod) }
+    def north  { y:1- wrap-y }
+    def south  { y:1+ wrap-y }
+    def west   { x:1- wrap-x }
+    def east   { x:1+ wrap-x }
 
-def Position.Random! [ +World -- +World Position ] {
-    libc-rand >Int SNAKE_W mod >x
-    libc-rand >Int SNAKE_H mod >y
-    Position
+    def Random! [ +World -- +World Position ] {
+        libc-rand >Int SNAKE_W mod >x
+        libc-rand >Int SNAKE_H mod >y
+        Position
+    }
+
+    def Center {
+        SNAKE_W 2 div >x
+        SNAKE_H 2 div >y
+        Position
+    }
 }
 
-def Position.Center {
-    SNAKE_W 2 div >x
-    SNAKE_H 2 div >y
-    Position
+
+data Direction {
+    North East South West
+    --
+    def >Int [ Direction -- Int ] { enum-value >Int }
+    def = [ Direction Direction -- Bool ] { both:enum-value = }
+
+    ||| Take one step in the given direction.
+    def step [ Position Direction -- Position ] {
+        { North -> north }
+        { South -> south }
+        { West  -> west }
+        { East  -> east }
+    }
+
+    ||| Get the opposite direction, after 180 degree rotation.
+    def flip [ Direction -- Direction ] {
+        North -> Direction.South,
+        West -> Direction.East,
+        South -> Direction.North,
+        East -> Direction.West
+    }
 }
 
-def +SnakeLogic.turn! {
-    dup last-direction flip = if(
-        drop, # can't turn backwards directly
-        direction!
-    )
-}
+data SnakeButton {
+    Up
+    Right
+    Down
+    Left
+    Start
+    --
+    def SDL_Scancode.>SnakeButton? {
+        { SDL_SCANCODE_UP -> SnakeButton.Up Some }
+        { SDL_SCANCODE_DOWN -> SnakeButton.Down Some }
+        { SDL_SCANCODE_LEFT -> SnakeButton.Left Some }
+        { SDL_SCANCODE_RIGHT -> SnakeButton.Right Some }
+        { SDL_SCANCODE_SPACE -> SnakeButton.Start Some }
+        { _ -> drop None }
+    }
 
-def Direction.>Int { enum-value }
-def Direction.= { both(enum-value) = }
-def Direction.flip {
-    North -> Direction.South,
-    West -> Direction.East,
-    South -> Direction.North,
-    East -> Direction.West
+    def SDL_GameControllerButton.>SnakeButton? {
+        { SDL_CONTROLLER_BUTTON_DPAD_UP -> SnakeButton.Up Some }
+        { SDL_CONTROLLER_BUTTON_DPAD_DOWN -> SnakeButton.Down Some }
+        { SDL_CONTROLLER_BUTTON_DPAD_LEFT -> SnakeButton.Left Some }
+        { SDL_CONTROLLER_BUTTON_DPAD_RIGHT -> SnakeButton.Right Some }
+        { SDL_CONTROLLER_BUTTON_START -> SnakeButton.Start Some }
+        { _ -> drop None }
+    }
 }

@@ -8,64 +8,83 @@ import std.ctypes
 # SDL2 Bindings #
 #################
 
-data(+SDL, +SDL)
-data(+SDL?, +SDL? -> CInt)
+struct +SDL {
+    --
+}
 
-inline (
-    def +SDL?.if-ok!(f,g) [ (*a +SDL -- *b, *a Str -- *b) *a +SDL? -- *b ] {
+struct +SDL? {
+    CInt
+    --
+    inline def if-ok! (f,g) [ (*a +SDL -- *b, *a Str -- *b) *a +SDL? -- *b ] {
         +SDL? -> >Int 0= if(
             +SDL f,
             +SDL get-error! /+SDL g
         )
     }
-)
-def +SDL?.unwrap! [ +SDL? -- +SDL ] {
-    +SDL?.if-ok!(id, panic!)
+    def unwrap! [ +SDL? -- +SDL ] {
+        if-ok!(id, panic!)
+    }
 }
 
-data(+SDL_Surface, +SDL_Surface -> Ptr)
+struct +SDL_Surface {
+    Ptr
+    --
+}
 
-data(+SDL_Window, +SDL_Window -> Ptr)
-data(+SDL_Window?, +SDL_Window? -> Ptr?)
-inline (
-    def +SDL_Window?.if-ok!(f,g) [
+struct +SDL_Window {
+    Ptr
+    --
+}
+
+struct +SDL_Window? {
+    Ptr?
+    --
+    inline def if-ok!(f,g) [
         ( *a +SDL +SDL_Window -- *b, *a +SDL Str -- *b )
         *a +SDL +SDL_Window? -- *b
     ] {
         +SDL_Window? -> if?(+SDL_Window f, +SDL.get-error! g)
     }
-)
-def +SDL_Window?.unwrap! [ +SDL +SDL_Window? -- +SDL +SDL_Window ] {
-    if-ok!(id, panic!)
+    def unwrap! [ +SDL |- +SDL_Window? -- +SDL_Window ] {
+        if-ok!(id, panic!)
+    }
 }
 
-data(+SDL_Renderer, +SDL_Renderer -> Ptr)
-data(+SDL_Renderer?, +SDL_Renderer? -> Ptr?)
-inline (
-    def +SDL_Renderer?.if-ok!(f,g) [
+
+struct +SDL_Renderer {
+    Ptr
+    --
+}
+
+struct +SDL_Renderer? {
+    Ptr?
+    --
+    inline def if-ok!(f,g) [
         (*a +SDL +SDL_Renderer -- *b, *a +SDL Str -- *b)
         *a +SDL +SDL_Renderer? -- *b
     ] {
         +SDL_Renderer? -> if?(+SDL_Renderer f, get-error! g)
     }
-)
-def +SDL_Renderer?.unwrap! [ +SDL +SDL_Renderer? -- +SDL +SDL_Renderer ] {
-    if-ok!(id, panic!)
+    def unwrap! [ +SDL |- +SDL_Renderer? -- +SDL_Renderer ] {
+        if-ok!(id, panic!)
+    }
 }
 
-data(+SDL_Texture, +SDL_Texture -> Ptr)
-data(+SDL_TextureLocked, +SDL_TextureLocked -> Ptr)
-data(+SDL_Texture?, +SDL_Texture? -> Ptr?)
-inline (
-    def +SDL_Texture?.if-ok!(f,g) [
+struct +SDL_Texture { Ptr }
+struct +SDL_Texture? {
+    Ptr?
+    --
+    inline def if-ok!(f,g) [
         (*a +SDL +SDL_Texture -- *b, *a +SDL Str -- *b)
         *a +SDL +SDL_Texture? -- *b
     ] {
         +SDL_Texture? -> if?(+SDL_Texture f, get-error! g)
     }
-)
-def +SDL_Texture?.unwrap! [ +SDL +SDL_Texture? -- +SDL +SDL_Texture ] {
-    if-ok!(id, panic!)
+
+    def unwrap! [ +SDL |- +SDL_Texture? -- +SDL_Texture ] {
+        if-ok!(id, panic!)
+    }
+
 }
 
 external(
@@ -120,7 +139,7 @@ external(
     ]
 )
 
-inline(
+inline {
     def +SDL.init! [ +World flags:SDL_InitFlags -- +World +SDL? ] { SDL_Init }
     def +SDL.quit! [ +World +SDL -- +World ] { SDL_Quit }
     def +SDL.get-error! [ +SDL -- +SDL Str ] { SDL_GetError unsafe(Str.CloneCStr) }
@@ -148,13 +167,15 @@ inline(
         @index:>CInt SDL_CreateRenderer
     }
     def +SDL.destroy-renderer! [ +SDL +renderer:+SDL_Renderer -- +SDL ] { SDL_DestroyRenderer }
-)
+}
 
-data(SDL_InitFlags, SDL_InitFlags -> U32)
-inline (
-    def SDL_InitFlags.or {
-        both(/SDL_InitFlags) or SDL_InitFlags
-    }
+struct SDL_InitFlags {
+    U32
+    --
+    inline def or { both:/SDL_InitFlags or SDL_InitFlags }
+}
+
+inline {
     def SDL_INIT_TIMER          [ SDL_InitFlags ] { 0x0001u32 SDL_InitFlags }
     def SDL_INIT_AUDIO          [ SDL_InitFlags ] { 0x0010u32 SDL_InitFlags }
     def SDL_INIT_VIDEO          [ SDL_InitFlags ] { 0x0020u32 SDL_InitFlags }
@@ -164,16 +185,17 @@ inline (
     def SDL_INIT_EVENTS         [ SDL_InitFlags ] { 0x4000u32 SDL_InitFlags }
     def SDL_INIT_SENSOR         [ SDL_InitFlags ] { 0x8000u32 SDL_InitFlags }
     def SDL_INIT_EVERYTHING     [ SDL_InitFlags ] { 0xF231u32 SDL_InitFlags }
-)
+}
 
-def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF0000)
-def(SDL_WINDOWPOS_CENTERED, Int, 0x2FFF0000)
+def SDL_WINDOWPOS_UNDEFINED [ Int ] { 0x1FFF0000 }
+def SDL_WINDOWPOS_CENTERED  [ Int ] { 0x2FFF0000 }
 
-data(SDL_WindowFlags, SDL_WindowFlags -> U32)
-inline (
-    def SDL_WindowFlags.or [ SDL_WindowFlags SDL_WindowFlags -- SDL_WindowFlags ] {
-        both(/SDL_WindowFlags) or SDL_WindowFlags
-    }
+struct SDL_WindowFlags {
+    U32
+    --
+    inline def or { both:/SDL_WindowFlags or SDL_WindowFlags }
+}
+inline {
     def SDL_WINDOW_FULLSCREEN         [ SDL_WindowFlags ] { 0x00000001u32 SDL_WindowFlags }
     def SDL_WINDOW_OPENGL             [ SDL_WindowFlags ] { 0x00000002u32 SDL_WindowFlags }
     def SDL_WINDOW_SHOWN              [ SDL_WindowFlags ] { 0x00000004u32 SDL_WindowFlags }
@@ -198,18 +220,19 @@ inline (
     def SDL_WINDOW_KEYBOARD_GRABBED   [ SDL_WindowFlags ] { 0x00100000u32 SDL_WindowFlags }
     def SDL_WINDOW_VULKAN             [ SDL_WindowFlags ] { 0x10000000u32 SDL_WindowFlags }
     def SDL_WINDOW_METAL              [ SDL_WindowFlags ] { 0x20000000u32 SDL_WindowFlags }
-)
+}
 
-data(SDL_RendererFlags, SDL_RendererFlags -> U32)
-inline (
-    def SDL_RendererFlags.or {
-        both(/SDL_RendererFlags) or SDL_RendererFlags
-    }
+struct SDL_RendererFlags {
+    U32
+    --
+    inline def or { both:/SDL_RendererFlags or SDL_RendererFlags }
+}
+inline {
     def SDL_RENDERER_SOFTWARE      [ SDL_RendererFlags ] { 0x00000001u32 SDL_RendererFlags }
     def SDL_RENDERER_ACCELERATED   [ SDL_RendererFlags ] { 0x00000002u32 SDL_RendererFlags }
     def SDL_RENDERER_PRESENTVSYNC  [ SDL_RendererFlags ] { 0x00000004u32 SDL_RendererFlags }
     def SDL_RENDERER_TARGETTEXTURE [ SDL_RendererFlags ] { 0x00000008u32 SDL_RendererFlags }
-)
+}
 
 data SDL_TextureAccess {
     0x0000 SDL_TEXTUREACCESS_STATIC,
@@ -288,11 +311,11 @@ data SDL_PixelFormat {
 # Size of SDL_Event structure.
 def SDL_EVENT_SIZE [ Size ] { 56 bytes }
 
-data(SDL_Event, SDL_Event -> Ptr)
+struct SDL_Event { Ptr }
 
 external( SDL_PollEvent [ +SDL SDL_Event -- +SDL CInt ] )
 
-data(SDL_EventType,
+data SDL_EventType {
     0x0000 SDL_FIRSTEVENT,
 
     0x0100 SDL_QUIT,
@@ -369,36 +392,41 @@ data(SDL_EventType,
     0x8000 SDL_USEREVENT,
 
     0xFFFF SDL_LASTEVENT,
-)
 
-inline(
-    def SDL_EventType.>U32 [ SDL_EventType -- U32 ] { enum-value >Int >U32-wrap }
-    def U32.>SDL_EventType-unsafe [ U32 -- SDL_EventType ] { >Int >EnumValue-unsafe SDL_EventType.from-enum-value-unsafe }
-    def SDL_EventType.= [ SDL_EventType SDL_EventType -- Bool ] { both(>U32) = }
-    def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] { unsafe(/SDL_Event @U32) >SDL_EventType-unsafe  }
-)
+    --
+    def >U32 [ SDL_EventType -- U32 ] { enum-value >Int >U32-wrap }
+    def U32.>SDL_EventType-unsafe [ U32 -- SDL_EventType ] {
+        >Int >EnumValue-unsafe SDL_EventType.from-enum-value-unsafe
+    }
+    def = { both:>U32 = }
+}
 
-def(SDL_Event.key, SDL_Event -- SDL_KeyboardEvent, /SDL_Event SDL_KeyboardEvent)
+inline {
+    def SDL_Event.type@ [ SDL_Event -- SDL_EventType ] {
+        unsafe(/SDL_Event @U32) >SDL_EventType-unsafe
+    }
+}
+
+def SDL_Event.key [ SDL_Event -- SDL_KeyboardEvent ] { /SDL_Event SDL_KeyboardEvent }
 
 struct SDL_KeyboardEvent {
     Ptr
     --
     inline def >Ptr [ SDL_KeyboardEvent -- Ptr ] { /SDL_KeyboardEvent }
+    def timestamp&  [ SDL_KeyboardEvent -- Ptr ] { unsafe(>Ptr 4 bytes +) }
+    def timestamp@  [ SDL_KeyboardEvent -- U32 ] { timestamp& unsafe(@U32) }
+    def timestamp!  [ U32 SDL_KeyboardEvent --     ] { timestamp& unsafe(!U32) }
+    def windowID&   [     SDL_KeyboardEvent -- Ptr ] { unsafe(>Ptr 8 bytes +) }
+    def windowID@   [     SDL_KeyboardEvent -- U32 ] { windowID& unsafe(@U32) }
+    def windowID!   [ U32 SDL_KeyboardEvent --     ] { windowID& unsafe(!U32) }
+    def state&      [     SDL_KeyboardEvent -- Ptr ] { unsafe(>Ptr 12 bytes +) }
+    def state@      [     SDL_KeyboardEvent -- U8  ] { state& unsafe(@U8) }
+    def state!      [ U8 SDL_KeyboardEvent --     ] { state& unsafe(!U8) }
+    def repeat&     [    SDL_KeyboardEvent -- Ptr ] { unsafe(>Ptr 13 bytes +) }
+    def repeat@     [    SDL_KeyboardEvent -- U8  ] { repeat& unsafe(@U8) }
+    def repeat!     [ U8 SDL_KeyboardEvent --     ] { repeat& unsafe(!U8) }
+    def keysym      [    SDL_KeyboardEvent -- SDL_Keysym ] { unsafe(>Ptr 16 bytes + SDL_Keysym) }
 }
-
-def(SDL_KeyboardEvent.timestamp&, SDL_KeyboardEvent -- Ptr, unsafe(>Ptr 4 bytes +))
-def(SDL_KeyboardEvent.timestamp@, SDL_KeyboardEvent -- U32, timestamp& unsafe(@U32))
-def(SDL_KeyboardEvent.timestamp!, U32 SDL_KeyboardEvent --, timestamp& unsafe(!U32))
-def(SDL_KeyboardEvent.windowID&, SDL_KeyboardEvent -- Ptr, unsafe(>Ptr 8 bytes +))
-def(SDL_KeyboardEvent.windowID@, SDL_KeyboardEvent -- U32, windowID& unsafe(@U32))
-def(SDL_KeyboardEvent.windowID!, U32 SDL_KeyboardEvent --, windowID& unsafe(!U32))
-def(SDL_KeyboardEvent.state&, SDL_KeyboardEvent -- Ptr, unsafe(>Ptr 12 bytes +))
-def(SDL_KeyboardEvent.state@, SDL_KeyboardEvent -- U8, state& unsafe(@U8))
-def(SDL_KeyboardEvent.state!, U8 SDL_KeyboardEvent --, state& unsafe(!U8))
-def(SDL_KeyboardEvent.repeat&, SDL_KeyboardEvent -- Ptr, unsafe(>Ptr 13 bytes +))
-def(SDL_KeyboardEvent.repeat@, SDL_KeyboardEvent -- U8, repeat& unsafe(@U8))
-def(SDL_KeyboardEvent.repeat!, U8 SDL_KeyboardEvent --, repeat& unsafe(!U8))
-def(SDL_KeyboardEvent.keysym, SDL_KeyboardEvent -- SDL_Keysym, unsafe(>Ptr 16 bytes + SDL_Keysym))
 
 struct SDL_Keysym {
     Ptr
@@ -430,273 +458,275 @@ def(SDL_ControllerButtonEvent.button@, SDL_ControllerButtonEvent -- SDL_GameCont
 def(SDL_ControllerButtonEvent.button!, SDL_GameControllerButton SDL_ControllerButtonEvent --,
     dip(>I8) button& unsafe(!I8))
 
-def(U16.>SDL_Scancode, U16 -- SDL_Scancode,
-   >Int >EnumValue-unsafe SDL_Scancode.from-enum-value-unsafe)
 
-data(SDL_Scancode,
-    0 SDL_SCANCODE_UNKNOWN,
-    4 SDL_SCANCODE_A,
-    5 SDL_SCANCODE_B,
-    6 SDL_SCANCODE_C,
-    7 SDL_SCANCODE_D,
-    8 SDL_SCANCODE_E,
-    9 SDL_SCANCODE_F,
-    10 SDL_SCANCODE_G,
-    11 SDL_SCANCODE_H,
-    12 SDL_SCANCODE_I,
-    13 SDL_SCANCODE_J,
-    14 SDL_SCANCODE_K,
-    15 SDL_SCANCODE_L,
-    16 SDL_SCANCODE_M,
-    17 SDL_SCANCODE_N,
-    18 SDL_SCANCODE_O,
-    19 SDL_SCANCODE_P,
-    20 SDL_SCANCODE_Q,
-    21 SDL_SCANCODE_R,
-    22 SDL_SCANCODE_S,
-    23 SDL_SCANCODE_T,
-    24 SDL_SCANCODE_U,
-    25 SDL_SCANCODE_V,
-    26 SDL_SCANCODE_W,
-    27 SDL_SCANCODE_X,
-    28 SDL_SCANCODE_Y,
-    29 SDL_SCANCODE_Z,
+data SDL_Scancode {
+    0 SDL_SCANCODE_UNKNOWN
+    4 SDL_SCANCODE_A
+    5 SDL_SCANCODE_B
+    6 SDL_SCANCODE_C
+    7 SDL_SCANCODE_D
+    8 SDL_SCANCODE_E
+    9 SDL_SCANCODE_F
+    10 SDL_SCANCODE_G
+    11 SDL_SCANCODE_H
+    12 SDL_SCANCODE_I
+    13 SDL_SCANCODE_J
+    14 SDL_SCANCODE_K
+    15 SDL_SCANCODE_L
+    16 SDL_SCANCODE_M
+    17 SDL_SCANCODE_N
+    18 SDL_SCANCODE_O
+    19 SDL_SCANCODE_P
+    20 SDL_SCANCODE_Q
+    21 SDL_SCANCODE_R
+    22 SDL_SCANCODE_S
+    23 SDL_SCANCODE_T
+    24 SDL_SCANCODE_U
+    25 SDL_SCANCODE_V
+    26 SDL_SCANCODE_W
+    27 SDL_SCANCODE_X
+    28 SDL_SCANCODE_Y
+    29 SDL_SCANCODE_Z
 
-    30 SDL_SCANCODE_1,
-    31 SDL_SCANCODE_2,
-    32 SDL_SCANCODE_3,
-    33 SDL_SCANCODE_4,
-    34 SDL_SCANCODE_5,
-    35 SDL_SCANCODE_6,
-    36 SDL_SCANCODE_7,
-    37 SDL_SCANCODE_8,
-    38 SDL_SCANCODE_9,
-    39 SDL_SCANCODE_0,
+    30 SDL_SCANCODE_1
+    31 SDL_SCANCODE_2
+    32 SDL_SCANCODE_3
+    33 SDL_SCANCODE_4
+    34 SDL_SCANCODE_5
+    35 SDL_SCANCODE_6
+    36 SDL_SCANCODE_7
+    37 SDL_SCANCODE_8
+    38 SDL_SCANCODE_9
+    39 SDL_SCANCODE_0
 
-    40 SDL_SCANCODE_RETURN,
-    41 SDL_SCANCODE_ESCAPE,
-    42 SDL_SCANCODE_BACKSPACE,
-    43 SDL_SCANCODE_TAB,
-    44 SDL_SCANCODE_SPACE,
-    45 SDL_SCANCODE_MINUS,
-    46 SDL_SCANCODE_EQUALS,
-    47 SDL_SCANCODE_LEFTBRACKET,
-    48 SDL_SCANCODE_RIGHTBRACKET,
-    49 SDL_SCANCODE_BACKSLASH,
-    50 SDL_SCANCODE_NONUSHASH,
-    51 SDL_SCANCODE_SEMICOLON,
-    52 SDL_SCANCODE_APOSTROPHE,
-    53 SDL_SCANCODE_GRAVE,
-    54 SDL_SCANCODE_COMMA,
-    55 SDL_SCANCODE_PERIOD,
-    56 SDL_SCANCODE_SLASH,
-    57 SDL_SCANCODE_CAPSLOCK,
+    40 SDL_SCANCODE_RETURN
+    41 SDL_SCANCODE_ESCAPE
+    42 SDL_SCANCODE_BACKSPACE
+    43 SDL_SCANCODE_TAB
+    44 SDL_SCANCODE_SPACE
+    45 SDL_SCANCODE_MINUS
+    46 SDL_SCANCODE_EQUALS
+    47 SDL_SCANCODE_LEFTBRACKET
+    48 SDL_SCANCODE_RIGHTBRACKET
+    49 SDL_SCANCODE_BACKSLASH
+    50 SDL_SCANCODE_NONUSHASH
+    51 SDL_SCANCODE_SEMICOLON
+    52 SDL_SCANCODE_APOSTROPHE
+    53 SDL_SCANCODE_GRAVE
+    54 SDL_SCANCODE_COMMA
+    55 SDL_SCANCODE_PERIOD
+    56 SDL_SCANCODE_SLASH
+    57 SDL_SCANCODE_CAPSLOCK
 
-    58 SDL_SCANCODE_F1,
-    59 SDL_SCANCODE_F2,
-    60 SDL_SCANCODE_F3,
-    61 SDL_SCANCODE_F4,
-    62 SDL_SCANCODE_F5,
-    63 SDL_SCANCODE_F6,
-    64 SDL_SCANCODE_F7,
-    65 SDL_SCANCODE_F8,
-    66 SDL_SCANCODE_F9,
-    67 SDL_SCANCODE_F10,
-    68 SDL_SCANCODE_F11,
-    69 SDL_SCANCODE_F12,
+    58 SDL_SCANCODE_F1
+    59 SDL_SCANCODE_F2
+    60 SDL_SCANCODE_F3
+    61 SDL_SCANCODE_F4
+    62 SDL_SCANCODE_F5
+    63 SDL_SCANCODE_F6
+    64 SDL_SCANCODE_F7
+    65 SDL_SCANCODE_F8
+    66 SDL_SCANCODE_F9
+    67 SDL_SCANCODE_F10
+    68 SDL_SCANCODE_F11
+    69 SDL_SCANCODE_F12
 
-    70 SDL_SCANCODE_PRINTSCREEN,
-    71 SDL_SCANCODE_SCROLLLOCK,
-    72 SDL_SCANCODE_PAUSE,
-    73 SDL_SCANCODE_INSERT,
-    74 SDL_SCANCODE_HOME,
-    75 SDL_SCANCODE_PAGEUP,
-    76 SDL_SCANCODE_DELETE,
-    77 SDL_SCANCODE_END,
-    78 SDL_SCANCODE_PAGEDOWN,
-    79 SDL_SCANCODE_RIGHT,
-    80 SDL_SCANCODE_LEFT,
-    81 SDL_SCANCODE_DOWN,
-    82 SDL_SCANCODE_UP,
+    70 SDL_SCANCODE_PRINTSCREEN
+    71 SDL_SCANCODE_SCROLLLOCK
+    72 SDL_SCANCODE_PAUSE
+    73 SDL_SCANCODE_INSERT
+    74 SDL_SCANCODE_HOME
+    75 SDL_SCANCODE_PAGEUP
+    76 SDL_SCANCODE_DELETE
+    77 SDL_SCANCODE_END
+    78 SDL_SCANCODE_PAGEDOWN
+    79 SDL_SCANCODE_RIGHT
+    80 SDL_SCANCODE_LEFT
+    81 SDL_SCANCODE_DOWN
+    82 SDL_SCANCODE_UP
 
-    83 SDL_SCANCODE_NUMLOCKCLEAR,
+    83 SDL_SCANCODE_NUMLOCKCLEAR
 
-    84 SDL_SCANCODE_KP_DIVIDE,
-    85 SDL_SCANCODE_KP_MULTIPLY,
-    86 SDL_SCANCODE_KP_MINUS,
-    87 SDL_SCANCODE_KP_PLUS,
-    88 SDL_SCANCODE_KP_ENTER,
-    89 SDL_SCANCODE_KP_1,
-    90 SDL_SCANCODE_KP_2,
-    91 SDL_SCANCODE_KP_3,
-    92 SDL_SCANCODE_KP_4,
-    93 SDL_SCANCODE_KP_5,
-    94 SDL_SCANCODE_KP_6,
-    95 SDL_SCANCODE_KP_7,
-    96 SDL_SCANCODE_KP_8,
-    97 SDL_SCANCODE_KP_9,
-    98 SDL_SCANCODE_KP_0,
-    99 SDL_SCANCODE_KP_PERIOD,
+    84 SDL_SCANCODE_KP_DIVIDE
+    85 SDL_SCANCODE_KP_MULTIPLY
+    86 SDL_SCANCODE_KP_MINUS
+    87 SDL_SCANCODE_KP_PLUS
+    88 SDL_SCANCODE_KP_ENTER
+    89 SDL_SCANCODE_KP_1
+    90 SDL_SCANCODE_KP_2
+    91 SDL_SCANCODE_KP_3
+    92 SDL_SCANCODE_KP_4
+    93 SDL_SCANCODE_KP_5
+    94 SDL_SCANCODE_KP_6
+    95 SDL_SCANCODE_KP_7
+    96 SDL_SCANCODE_KP_8
+    97 SDL_SCANCODE_KP_9
+    98 SDL_SCANCODE_KP_0
+    99 SDL_SCANCODE_KP_PERIOD
 
-    100 SDL_SCANCODE_NONUSBACKSLASH,
-    101 SDL_SCANCODE_APPLICATION,
-    102 SDL_SCANCODE_POWER,
-    103 SDL_SCANCODE_KP_EQUALS,
-    104 SDL_SCANCODE_F13,
-    105 SDL_SCANCODE_F14,
-    106 SDL_SCANCODE_F15,
-    107 SDL_SCANCODE_F16,
-    108 SDL_SCANCODE_F17,
-    109 SDL_SCANCODE_F18,
-    110 SDL_SCANCODE_F19,
-    111 SDL_SCANCODE_F20,
-    112 SDL_SCANCODE_F21,
-    113 SDL_SCANCODE_F22,
-    114 SDL_SCANCODE_F23,
-    115 SDL_SCANCODE_F24,
-    116 SDL_SCANCODE_EXECUTE,
-    117 SDL_SCANCODE_HELP,
-    118 SDL_SCANCODE_MENU,
-    119 SDL_SCANCODE_SELECT,
-    120 SDL_SCANCODE_STOP,
-    121 SDL_SCANCODE_AGAIN,
-    122 SDL_SCANCODE_UNDO,
-    123 SDL_SCANCODE_CUT,
-    124 SDL_SCANCODE_COPY,
-    125 SDL_SCANCODE_PASTE,
-    126 SDL_SCANCODE_FIND,
-    127 SDL_SCANCODE_MUTE,
-    128 SDL_SCANCODE_VOLUMEUP,
-    129 SDL_SCANCODE_VOLUMEDOWN,
+    100 SDL_SCANCODE_NONUSBACKSLASH
+    101 SDL_SCANCODE_APPLICATION
+    102 SDL_SCANCODE_POWER
+    103 SDL_SCANCODE_KP_EQUALS
+    104 SDL_SCANCODE_F13
+    105 SDL_SCANCODE_F14
+    106 SDL_SCANCODE_F15
+    107 SDL_SCANCODE_F16
+    108 SDL_SCANCODE_F17
+    109 SDL_SCANCODE_F18
+    110 SDL_SCANCODE_F19
+    111 SDL_SCANCODE_F20
+    112 SDL_SCANCODE_F21
+    113 SDL_SCANCODE_F22
+    114 SDL_SCANCODE_F23
+    115 SDL_SCANCODE_F24
+    116 SDL_SCANCODE_EXECUTE
+    117 SDL_SCANCODE_HELP
+    118 SDL_SCANCODE_MENU
+    119 SDL_SCANCODE_SELECT
+    120 SDL_SCANCODE_STOP
+    121 SDL_SCANCODE_AGAIN
+    122 SDL_SCANCODE_UNDO
+    123 SDL_SCANCODE_CUT
+    124 SDL_SCANCODE_COPY
+    125 SDL_SCANCODE_PASTE
+    126 SDL_SCANCODE_FIND
+    127 SDL_SCANCODE_MUTE
+    128 SDL_SCANCODE_VOLUMEUP
+    129 SDL_SCANCODE_VOLUMEDOWN
 
-    133 SDL_SCANCODE_KP_COMMA,
-    134 SDL_SCANCODE_KP_EQUALSAS400,
-    135 SDL_SCANCODE_INTERNATIONAL1,
-    136 SDL_SCANCODE_INTERNATIONAL2,
-    137 SDL_SCANCODE_INTERNATIONAL3,
-    138 SDL_SCANCODE_INTERNATIONAL4,
-    139 SDL_SCANCODE_INTERNATIONAL5,
-    140 SDL_SCANCODE_INTERNATIONAL6,
-    141 SDL_SCANCODE_INTERNATIONAL7,
-    142 SDL_SCANCODE_INTERNATIONAL8,
-    143 SDL_SCANCODE_INTERNATIONAL9,
-    144 SDL_SCANCODE_LANG1,
-    145 SDL_SCANCODE_LANG2,
-    146 SDL_SCANCODE_LANG3,
-    147 SDL_SCANCODE_LANG4,
-    148 SDL_SCANCODE_LANG5,
-    149 SDL_SCANCODE_LANG6,
-    150 SDL_SCANCODE_LANG7,
-    151 SDL_SCANCODE_LANG8,
-    152 SDL_SCANCODE_LANG9,
-    153 SDL_SCANCODE_ALTERASE,
-    154 SDL_SCANCODE_SYSREQ,
-    155 SDL_SCANCODE_CANCEL,
-    156 SDL_SCANCODE_CLEAR,
-    157 SDL_SCANCODE_PRIOR,
-    158 SDL_SCANCODE_RETURN2,
-    159 SDL_SCANCODE_SEPARATOR,
-    160 SDL_SCANCODE_OUT,
-    161 SDL_SCANCODE_OPER,
-    162 SDL_SCANCODE_CLEARAGAIN,
-    163 SDL_SCANCODE_CRSEL,
-    164 SDL_SCANCODE_EXSEL,
+    133 SDL_SCANCODE_KP_COMMA
+    134 SDL_SCANCODE_KP_EQUALSAS400
+    135 SDL_SCANCODE_INTERNATIONAL1
+    136 SDL_SCANCODE_INTERNATIONAL2
+    137 SDL_SCANCODE_INTERNATIONAL3
+    138 SDL_SCANCODE_INTERNATIONAL4
+    139 SDL_SCANCODE_INTERNATIONAL5
+    140 SDL_SCANCODE_INTERNATIONAL6
+    141 SDL_SCANCODE_INTERNATIONAL7
+    142 SDL_SCANCODE_INTERNATIONAL8
+    143 SDL_SCANCODE_INTERNATIONAL9
+    144 SDL_SCANCODE_LANG1
+    145 SDL_SCANCODE_LANG2
+    146 SDL_SCANCODE_LANG3
+    147 SDL_SCANCODE_LANG4
+    148 SDL_SCANCODE_LANG5
+    149 SDL_SCANCODE_LANG6
+    150 SDL_SCANCODE_LANG7
+    151 SDL_SCANCODE_LANG8
+    152 SDL_SCANCODE_LANG9
+    153 SDL_SCANCODE_ALTERASE
+    154 SDL_SCANCODE_SYSREQ
+    155 SDL_SCANCODE_CANCEL
+    156 SDL_SCANCODE_CLEAR
+    157 SDL_SCANCODE_PRIOR
+    158 SDL_SCANCODE_RETURN2
+    159 SDL_SCANCODE_SEPARATOR
+    160 SDL_SCANCODE_OUT
+    161 SDL_SCANCODE_OPER
+    162 SDL_SCANCODE_CLEARAGAIN
+    163 SDL_SCANCODE_CRSEL
+    164 SDL_SCANCODE_EXSEL
 
-    176 SDL_SCANCODE_KP_00,
-    177 SDL_SCANCODE_KP_000,
-    178 SDL_SCANCODE_THOUSANDSSEPARATOR,
-    179 SDL_SCANCODE_DECIMALSEPARATOR,
-    180 SDL_SCANCODE_CURRENCYUNIT,
-    181 SDL_SCANCODE_CURRENCYSUBUNIT,
-    182 SDL_SCANCODE_KP_LEFTPAREN,
-    183 SDL_SCANCODE_KP_RIGHTPAREN,
-    184 SDL_SCANCODE_KP_LEFTBRACE,
-    185 SDL_SCANCODE_KP_RIGHTBRACE,
-    186 SDL_SCANCODE_KP_TAB,
-    187 SDL_SCANCODE_KP_BACKSPACE,
-    188 SDL_SCANCODE_KP_A,
-    189 SDL_SCANCODE_KP_B,
-    190 SDL_SCANCODE_KP_C,
-    191 SDL_SCANCODE_KP_D,
-    192 SDL_SCANCODE_KP_E,
-    193 SDL_SCANCODE_KP_F,
-    194 SDL_SCANCODE_KP_XOR,
-    195 SDL_SCANCODE_KP_POWER,
-    196 SDL_SCANCODE_KP_PERCENT,
-    197 SDL_SCANCODE_KP_LESS,
-    198 SDL_SCANCODE_KP_GREATER,
-    199 SDL_SCANCODE_KP_AMPERSAND,
-    200 SDL_SCANCODE_KP_DBLAMPERSAND,
-    201 SDL_SCANCODE_KP_VERTICALBAR,
-    202 SDL_SCANCODE_KP_DBLVERTICALBAR,
-    203 SDL_SCANCODE_KP_COLON,
-    204 SDL_SCANCODE_KP_HASH,
-    205 SDL_SCANCODE_KP_SPACE,
-    206 SDL_SCANCODE_KP_AT,
-    207 SDL_SCANCODE_KP_EXCLAM,
-    208 SDL_SCANCODE_KP_MEMSTORE,
-    209 SDL_SCANCODE_KP_MEMRECALL,
-    210 SDL_SCANCODE_KP_MEMCLEAR,
-    211 SDL_SCANCODE_KP_MEMADD,
-    212 SDL_SCANCODE_KP_MEMSUBTRACT,
-    213 SDL_SCANCODE_KP_MEMMULTIPLY,
-    214 SDL_SCANCODE_KP_MEMDIVIDE,
-    215 SDL_SCANCODE_KP_PLUSMINUS,
-    216 SDL_SCANCODE_KP_CLEAR,
-    217 SDL_SCANCODE_KP_CLEARENTRY,
-    218 SDL_SCANCODE_KP_BINARY,
-    219 SDL_SCANCODE_KP_OCTAL,
-    220 SDL_SCANCODE_KP_DECIMAL,
-    221 SDL_SCANCODE_KP_HEXADECIMAL,
+    176 SDL_SCANCODE_KP_00
+    177 SDL_SCANCODE_KP_000
+    178 SDL_SCANCODE_THOUSANDSSEPARATOR
+    179 SDL_SCANCODE_DECIMALSEPARATOR
+    180 SDL_SCANCODE_CURRENCYUNIT
+    181 SDL_SCANCODE_CURRENCYSUBUNIT
+    182 SDL_SCANCODE_KP_LEFTPAREN
+    183 SDL_SCANCODE_KP_RIGHTPAREN
+    184 SDL_SCANCODE_KP_LEFTBRACE
+    185 SDL_SCANCODE_KP_RIGHTBRACE
+    186 SDL_SCANCODE_KP_TAB
+    187 SDL_SCANCODE_KP_BACKSPACE
+    188 SDL_SCANCODE_KP_A
+    189 SDL_SCANCODE_KP_B
+    190 SDL_SCANCODE_KP_C
+    191 SDL_SCANCODE_KP_D
+    192 SDL_SCANCODE_KP_E
+    193 SDL_SCANCODE_KP_F
+    194 SDL_SCANCODE_KP_XOR
+    195 SDL_SCANCODE_KP_POWER
+    196 SDL_SCANCODE_KP_PERCENT
+    197 SDL_SCANCODE_KP_LESS
+    198 SDL_SCANCODE_KP_GREATER
+    199 SDL_SCANCODE_KP_AMPERSAND
+    200 SDL_SCANCODE_KP_DBLAMPERSAND
+    201 SDL_SCANCODE_KP_VERTICALBAR
+    202 SDL_SCANCODE_KP_DBLVERTICALBAR
+    203 SDL_SCANCODE_KP_COLON
+    204 SDL_SCANCODE_KP_HASH
+    205 SDL_SCANCODE_KP_SPACE
+    206 SDL_SCANCODE_KP_AT
+    207 SDL_SCANCODE_KP_EXCLAM
+    208 SDL_SCANCODE_KP_MEMSTORE
+    209 SDL_SCANCODE_KP_MEMRECALL
+    210 SDL_SCANCODE_KP_MEMCLEAR
+    211 SDL_SCANCODE_KP_MEMADD
+    212 SDL_SCANCODE_KP_MEMSUBTRACT
+    213 SDL_SCANCODE_KP_MEMMULTIPLY
+    214 SDL_SCANCODE_KP_MEMDIVIDE
+    215 SDL_SCANCODE_KP_PLUSMINUS
+    216 SDL_SCANCODE_KP_CLEAR
+    217 SDL_SCANCODE_KP_CLEARENTRY
+    218 SDL_SCANCODE_KP_BINARY
+    219 SDL_SCANCODE_KP_OCTAL
+    220 SDL_SCANCODE_KP_DECIMAL
+    221 SDL_SCANCODE_KP_HEXADECIMAL
 
-    224 SDL_SCANCODE_LCTRL,
-    225 SDL_SCANCODE_LSHIFT,
-    226 SDL_SCANCODE_LALT,
-    227 SDL_SCANCODE_LGUI,
-    228 SDL_SCANCODE_RCTRL,
-    229 SDL_SCANCODE_RSHIFT,
-    230 SDL_SCANCODE_RALT,
-    231 SDL_SCANCODE_RGUI,
+    224 SDL_SCANCODE_LCTRL
+    225 SDL_SCANCODE_LSHIFT
+    226 SDL_SCANCODE_LALT
+    227 SDL_SCANCODE_LGUI
+    228 SDL_SCANCODE_RCTRL
+    229 SDL_SCANCODE_RSHIFT
+    230 SDL_SCANCODE_RALT
+    231 SDL_SCANCODE_RGUI
 
-    257 SDL_SCANCODE_MODE,
+    257 SDL_SCANCODE_MODE
 
-    258 SDL_SCANCODE_AUDIONEXT,
-    259 SDL_SCANCODE_AUDIOPREV,
-    260 SDL_SCANCODE_AUDIOSTOP,
-    261 SDL_SCANCODE_AUDIOPLAY,
-    262 SDL_SCANCODE_AUDIOMUTE,
-    263 SDL_SCANCODE_MEDIASELECT,
-    264 SDL_SCANCODE_WWW,
-    265 SDL_SCANCODE_MAIL,
-    266 SDL_SCANCODE_CALCULATOR,
-    267 SDL_SCANCODE_COMPUTER,
-    268 SDL_SCANCODE_AC_SEARCH,
-    269 SDL_SCANCODE_AC_HOME,
-    270 SDL_SCANCODE_AC_BACK,
-    271 SDL_SCANCODE_AC_FORWARD,
-    272 SDL_SCANCODE_AC_STOP,
-    273 SDL_SCANCODE_AC_REFRESH,
-    274 SDL_SCANCODE_AC_BOOKMARKS,
+    258 SDL_SCANCODE_AUDIONEXT
+    259 SDL_SCANCODE_AUDIOPREV
+    260 SDL_SCANCODE_AUDIOSTOP
+    261 SDL_SCANCODE_AUDIOPLAY
+    262 SDL_SCANCODE_AUDIOMUTE
+    263 SDL_SCANCODE_MEDIASELECT
+    264 SDL_SCANCODE_WWW
+    265 SDL_SCANCODE_MAIL
+    266 SDL_SCANCODE_CALCULATOR
+    267 SDL_SCANCODE_COMPUTER
+    268 SDL_SCANCODE_AC_SEARCH
+    269 SDL_SCANCODE_AC_HOME
+    270 SDL_SCANCODE_AC_BACK
+    271 SDL_SCANCODE_AC_FORWARD
+    272 SDL_SCANCODE_AC_STOP
+    273 SDL_SCANCODE_AC_REFRESH
+    274 SDL_SCANCODE_AC_BOOKMARKS
 
-    275 SDL_SCANCODE_BRIGHTNESSDOWN,
-    276 SDL_SCANCODE_BRIGHTNESSUP,
-    277 SDL_SCANCODE_DISPLAYSWITCH,
-    278 SDL_SCANCODE_KBDILLUMTOGGLE,
-    279 SDL_SCANCODE_KBDILLUMDOWN,
-    280 SDL_SCANCODE_KBDILLUMUP,
-    281 SDL_SCANCODE_EJECT,
-    282 SDL_SCANCODE_SLEEP,
-    283 SDL_SCANCODE_APP1,
-    284 SDL_SCANCODE_APP2,
+    275 SDL_SCANCODE_BRIGHTNESSDOWN
+    276 SDL_SCANCODE_BRIGHTNESSUP
+    277 SDL_SCANCODE_DISPLAYSWITCH
+    278 SDL_SCANCODE_KBDILLUMTOGGLE
+    279 SDL_SCANCODE_KBDILLUMDOWN
+    280 SDL_SCANCODE_KBDILLUMUP
+    281 SDL_SCANCODE_EJECT
+    282 SDL_SCANCODE_SLEEP
+    283 SDL_SCANCODE_APP1
+    284 SDL_SCANCODE_APP2
 
-    285 SDL_SCANCODE_AUDIOREWIND,
-    286 SDL_SCANCODE_AUDIOFASTFORWARD,
+    285 SDL_SCANCODE_AUDIOREWIND
+    286 SDL_SCANCODE_AUDIOFASTFORWARD
 
-    287 SDL_SCANCODE_SOFTLEFT,
-    288 SDL_SCANCODE_SOFTRIGHT,
-    289 SDL_SCANCODE_CALL,
-    290 SDL_SCANCODE_ENDCALL,
-)
+    287 SDL_SCANCODE_SOFTLEFT
+    288 SDL_SCANCODE_SOFTRIGHT
+    289 SDL_SCANCODE_CALL
+    290 SDL_SCANCODE_ENDCALL
+    --
+    def U16.>SDL_Scancode [ U16 -- SDL_Scancode ] {
+       >Int >EnumValue-unsafe SDL_Scancode.from-enum-value-unsafe
+    }
+}
 def SDL_NUM_SCANCODES { 512 }
 
 struct SDL_JoystickID {
@@ -716,60 +746,81 @@ struct SDL_JoystickID {
     def succ { >I32 succ >SDL_JoystickID }
 }
 
-external(
-    SDL_NumJoysticks        [+Unsafe      -- CInt +Unsafe]
-    SDL_IsGameController    [+Unsafe CInt -- Bool +Unsafe]
-    SDL_GameControllerOpen  [+Unsafe CInt -- Ptr? +Unsafe]
-    SDL_GameControllerClose [+Unsafe Ptr  --      +Unsafe]
-)
+external {
+    SDL_NumJoysticks        [ +Unsafe |-      -- CInt ]
+    SDL_IsGameController    [ +Unsafe |- CInt -- Bool ]
+    SDL_GameControllerOpen  [ +Unsafe |- CInt -- Ptr? ]
+    SDL_GameControllerClose [ +Unsafe |- Ptr  --      ]
+}
 
-def(+SDL.num-joysticks, +SDL -- +SDL Int, unsafe(SDL_NumJoysticks) >Int)
-def(+SDL.is-game-controller, +SDL Int -- +SDL Bool, >CInt unsafe(SDL_IsGameController))
+def +SDL.num-joysticks [ +SDL |- Int ] { unsafe:SDL_NumJoysticks >Int }
+def +SDL.is-game-controller [ +SDL |- Int -- Bool ] { >CInt unsafe:SDL_IsGameController }
 
-struct +SDL_GameController { unsafe-ptr:Ptr }
-data(+SDL_GameController?, OK! -> +SDL_GameController, ERROR! -> Str)
-def(+SDL_GameController?.unwrap!, +SDL_GameController? -- +SDL_GameController, OK! -> id, ERROR! -> panic!)
-def(+SDL_GameController?.map!(f), (*a +SDL_GameController -- *a +SDL_GameController) *a +SDL_GameController? -- *a +SDL_GameController?,
-    OK! -> f +SDL_GameController?.OK!,
-    ERROR! -> +SDL_GameController?.ERROR!)
-def(+SDL_GameController?.for!(f), (*a +SDL_GameController -- *a) *a +SDL_GameController? -- *a,
-    OK! -> f,
-    ERROR! -> drop)
+struct +SDL_GameController {
+    unsafe-ptr:Ptr
+    --
+    def close! [ +SDL |- +SDL_GameController -- ] {
+        /+SDL_GameController unsafe-ptr> unsafe:SDL_GameControllerClose
+    }
+}
 
-def(+SDL.game-controller-open!, +SDL Int -- +SDL +SDL_GameController?,
-    >CInt unsafe(SDL_GameControllerOpen)
+data +SDL_GameController? {
+    OK! [ +SDL_GameController ]
+    ERROR! [ Str ]
+    --
+    def unwrap! [ +SDL_GameController? -- +SDL_GameController ] {
+        { OK! -> id }
+        { ERROR! -> panic! }
+    }
+    def if-ok!(f,g) {
+        { OK! -> f }
+        { ERROR! -> g }
+    }
+    def map!(f) [ (*a +SDL_GameController |-) *a +SDL_GameController? |-] {
+        { OK! -> f +SDL_GameController?.OK! }
+        { ERROR! -> +SDL_GameController?.ERROR! }
+    }
+    def for!(f) [ (*a +SDL_GameController -- *a) *a +SDL_GameController? -- *a ] {
+        if-ok!(f, drop)
+    }
+}
+
+def +SDL.game-controller-open! [ +SDL |- Int -- +SDL_GameController? ] {
+    >CInt unsafe:SDL_GameControllerOpen
     if?(
         >unsafe-ptr +SDL_GameController +SDL_GameController?.OK!,
-        get-error! +SDL_GameController?.ERROR!,
-    ))
-def(+SDL_GameController.close!, +SDL +SDL_GameController -- +SDL,
-    /+SDL_GameController unsafe-ptr> unsafe(SDL_GameControllerClose))
+        get-error! +SDL_GameController?.ERROR!
+    )
+}
 
-data(SDL_GameControllerButton,
-    -1 SDL_CONTROLLER_BUTTON_INVALID,
-    SDL_CONTROLLER_BUTTON_A,
-    SDL_CONTROLLER_BUTTON_B,
-    SDL_CONTROLLER_BUTTON_X,
-    SDL_CONTROLLER_BUTTON_Y,
-    SDL_CONTROLLER_BUTTON_BACK,
-    SDL_CONTROLLER_BUTTON_GUIDE,
-    SDL_CONTROLLER_BUTTON_START,
-    SDL_CONTROLLER_BUTTON_LEFTSTICK,
-    SDL_CONTROLLER_BUTTON_RIGHTSTICK,
-    SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
-    SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
-    SDL_CONTROLLER_BUTTON_DPAD_UP,
-    SDL_CONTROLLER_BUTTON_DPAD_DOWN,
-    SDL_CONTROLLER_BUTTON_DPAD_LEFT,
-    SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
-    SDL_CONTROLLER_BUTTON_MISC1,
-    SDL_CONTROLLER_BUTTON_PADDLE1,
-    SDL_CONTROLLER_BUTTON_PADDLE2,
-    SDL_CONTROLLER_BUTTON_PADDLE3,
-    SDL_CONTROLLER_BUTTON_PADDLE4,
-    SDL_CONTROLLER_BUTTON_TOUCHPAD,)
+data SDL_GameControllerButton {
+    -1 SDL_CONTROLLER_BUTTON_INVALID
+    SDL_CONTROLLER_BUTTON_A
+    SDL_CONTROLLER_BUTTON_B
+    SDL_CONTROLLER_BUTTON_X
+    SDL_CONTROLLER_BUTTON_Y
+    SDL_CONTROLLER_BUTTON_BACK
+    SDL_CONTROLLER_BUTTON_GUIDE
+    SDL_CONTROLLER_BUTTON_START
+    SDL_CONTROLLER_BUTTON_LEFTSTICK
+    SDL_CONTROLLER_BUTTON_RIGHTSTICK
+    SDL_CONTROLLER_BUTTON_LEFTSHOULDER
+    SDL_CONTROLLER_BUTTON_RIGHTSHOULDER
+    SDL_CONTROLLER_BUTTON_DPAD_UP
+    SDL_CONTROLLER_BUTTON_DPAD_DOWN
+    SDL_CONTROLLER_BUTTON_DPAD_LEFT
+    SDL_CONTROLLER_BUTTON_DPAD_RIGHT
+    SDL_CONTROLLER_BUTTON_MISC1
+    SDL_CONTROLLER_BUTTON_PADDLE1
+    SDL_CONTROLLER_BUTTON_PADDLE2
+    SDL_CONTROLLER_BUTTON_PADDLE3
+    SDL_CONTROLLER_BUTTON_PADDLE4
+    SDL_CONTROLLER_BUTTON_TOUCHPAD
+    --
 
-def(I8.>SDL_GameControllerButton, I8 -- SDL_GameControllerButton,
-   >Int >EnumValue-unsafe SDL_GameControllerButton.from-enum-value-unsafe)
-def(SDL_GameControllerButton.>I8, SDL_GameControllerButton -- I8, enum-value >I8-unsafe)
-def(SDL_GameControllerButton.=, SDL_GameControllerButton SDL_GameControllerButton -- Bool, both(enum-value) =)
+    def I8.>SDL_GameControllerButton [ I8 -- SDL_GameControllerButton ] {
+        >Int >EnumValue-unsafe SDL_GameControllerButton.from-enum-value-unsafe
+    }
+    def >I8 [ SDL_GameControllerButton -- I8 ] { enum-value >I8-unsafe }
+    def = [ SDL_GameControllerButton SDL_GameControllerButton -- Bool ] { both:enum-value = }
+}

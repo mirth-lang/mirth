@@ -23,6 +23,9 @@ case "$DirName" in
             snake.mth )
                 make play-snake
                 ;;
+            sdl2.mth )
+                make play-snake
+                ;;
             *.mth )
                 ctarget="bin/${BaseName%.*}.c"
                 bintarget="bin/${BaseName%.*}"
