@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-DirName="$(dirname "$1")"
+PathName="$(dirname "$1")"
+DirName="$(basename "$PathName")"
 BaseName="$(basename "$1")"
 
 make
