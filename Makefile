@@ -81,6 +81,9 @@ update-code:
 install-atom:
 	apm link tools/mirth-atom
 
+install-sublime:
+	tools/install-sublime.sh
+
 install: bin/mirth0
 	tools/install.sh bin/mirth0
 

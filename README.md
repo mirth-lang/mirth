@@ -15,22 +15,23 @@ If you are interested in Mirth, please support the development of Mirth on [Patr
 ### Hello, world!
 
 ```mirth
-module examples.hello-world
+module examples.hello
 import std.prelude
 import std.world
 
-def main [ +World -- +World ] {
+def main {
     "Hello, world!" print
 }
 ```
 
 ## Tools
 
-| Editor       | Source | Install                                                                                                                    | Syntax highlighting |
-| ------------ | ------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Vim          | `tools/mirth-vim` | To install as a vim package,  </br> run `make install-vim`.                                                           | ✔️  |
-| VS Code      | `tools/mirth-code` | Ensuring `code` is in your `PATH`, </br> run `make install-code`. </br> Not yet published in the Marketplace.              | ✔️ |
-| Atom         | `tools/mirth-atom` | Ensuring `apm` is in your `PATH`,  </br> run `make install-atom`. </br> Not yet published in the atom.io package registry. | ✔️ |
+| Editor       | Source  | Install                                                                                                                    | Syntax Highlighting | Definition Tracking |
+| ------------ | ------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------- |
+| Vim          | `tools/mirth-vim` | To install as a vim package,  </br> run `make install-vim`.                                                           | ✔️  |  |
+| Sublime Text | `tools/mirth-sublime` | To install sublime package, </br> run `make install-sublime`.</br> Not yet available through Package Control. | ✔️ | ✔️ |
+| VS Code      | `tools/mirth-code` | Ensuring `code` is in your `PATH`, </br> run `make install-code`. </br> Not yet published in the Marketplace.              | ✔️ | |
+| Atom         | `tools/mirth-atom` | Ensuring `apm` is in your `PATH`,  </br> run `make install-atom`. </br> Not yet published in the atom.io package registry. | ✔️ | |
 
 ## License
 

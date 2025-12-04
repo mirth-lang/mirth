@@ -1,5 +1,4 @@
 module examples.hello
-
 import std.prelude
 import std.world
 
